@@ -5,6 +5,7 @@ ARCHIVE=""
 ARCHIVE_RUNTIMEPREFS=""
 ARCHIVE_SYSTEMCONFIG=""
 ARCHIVE_DATADIR=""
+SAVED_SUFFIX=".saved"
 
 echo "Executing ntopng configuration restore utility"
 
@@ -100,6 +101,33 @@ function check_current_system_dirs() {
     fi
 }
 
+function save_existing() {
+    if [ ! -z "$1" ]; then
+	if [ ! -f "$1" ] && [ ! -d "$1"] ; then
+	    return
+	else
+	    local DST="$1${SAVED_SUFFIX}"
+	    echo "Copying to ${DST}"
+	    rm -rf "${DST}"
+	    cp -Rp "$1" "${DST}"
+	fi
+    fi
+}
+
+function save_ntopng_conf_dir() {
+    # copy the whole directory
+    save_existing "/etc/ntopng"
+}
+
+function save_existing_files() {
+    if [ -z "${ARCHIVE_DATADIR}" ]; then
+	return
+    fi
+
+    save_existing "${ARCHIVE_RUNTIMEPREFS}"
+    save_existing "${ARCHIVE_SYSTEMCONFIG}"
+}
+
 function restore_ntopng_conf_dir() {
     # extract /etc/ntopng from the archive to the filesystem
     # P is use to tell tar to not remove the leading slash
@@ -151,6 +179,10 @@ function restore_files() {
 check_tar_file ${ARCHIVE}
 check_tar_contents ${ARCHIVE}
 check_current_system_dirs
+
+# pre-restore saves of existing files and dirs
+save_ntopng_conf_dir
+save_existing_files
 
 # actual restore
 restore_ntopng_conf_dir
