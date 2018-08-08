@@ -48,16 +48,17 @@ function toEpoch(datestring)
 end
 
 function toSeries(jsonrrd, res, label)
-   for _, rrd in pairs(jsonrrd) do
+   for _, rrd in pairs(jsonrrd.series) do
       local datapoints = {}
+      local instant = jsonrrd.start
 
-      for _, point in ipairs(rrd["values"]) do
-	 local instant = point[1]
-	 local val     = point[2]
+      for _, point in ipairs(rrd["data"]) do
+	 local val     = point
 	 datapoints[#datapoints + 1] = {val, instant*1000}
+	 instant = instant + jsonrrd.step
       end
 
-      local target = rrd["key"]
+      local target = rrd.tags.protocol or rrd.tags.category or rrd["label"]
       if label then target = target.." "..label end
       res[#res + 1] = {target = target, datapoints = datapoints}
    end
