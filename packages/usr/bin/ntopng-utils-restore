@@ -1,4 +1,159 @@
 #!/bin/bash
 
+DEFAULT_ARCHIVE="/etc/ntopng/conf.tar.gz"
+ARCHIVE=""
+ARCHIVE_RUNTIMEPREFS=""
+ARCHIVE_SYSTEMCONFIG=""
+ARCHIVE_DATADIR=""
+
 echo "Executing ntopng configuration restore utility"
 
+if [ -f "$1" ]; then
+    ARCHIVE="$1"
+elif [ -f "${DEFAULT_ARCHIVE}" ]; then
+
+    ARCHIVE="${DEFAULT_ARCHIVE}"
+else
+    echo "Usage:"
+    echo "`basename $0` [/path/to/conf.tar.gz]"
+    echo ""
+    echo "[/path/to/conf.tar.gz]"
+    echo "  The path to a compressed archive containing"
+    echo "  a backup that has to be restored. The only compressed archives"
+    echo "  accepted are those created from the web interface."
+    echo "  When no path is specified, the default ${DEFAULT_ARCHIVE}"
+    echo "  path is used."
+    exit 1
+fi
+
+function check_tar_file() {
+    # make sure it's a tar archive
+    if ! `file $1 | grep -qc "gzip compressed data";`; then
+	echo "Unrecognized file format for ${ARCHIVE}: expecting gzip compressed data"
+	exit 1
+    fi
+}
+
+function check_tar_contents() {
+    # must contain directory /etc/ntopng
+    if ! `tar tf ${ARCHIVE} /etc/ntopng/ >/dev/null 2>&1`; then
+	echo "Compressed archive $1 does not contain /etc/ntopng/"
+	exit 1
+    fi
+
+    # could contain files:
+    # - runtimepref.json
+    # - system.config (nedge only)
+    # if those files exist they must be in the same dir
+    # only one copy of the file must be present in the archive
+
+    if [ `tar Pztf ${ARCHIVE} | grep 'runtimeprefs.json$' | wc -l` -gt "1" ]; then
+	echo "Too many copies of runtimeprefs.json in compressed archive."
+	exit 1
+    fi
+
+    if [ `tar Pztf ${ARCHIVE} | grep 'system.config$' | wc -l` -gt "1" ]; then
+	echo "Too many copies of system.config in compressed archive."
+	exit 1
+    fi
+
+    ARCHIVE_RUNTIMEPREFS="`tar Pztf ${ARCHIVE} | grep 'runtimeprefs.json$'`"
+    ARCHIVE_SYSTEMCONFIG="`tar Pztf ${ARCHIVE} | grep 'system.config$'`"
+
+    local ARCHIVE_RUNTIMEBASE=""
+    local ARCHIVE_SYSTEMBASE=""
+
+    if [ ! -z ${ARCHIVE_RUNTIMEPREFS} ]; then
+	ARCHIVE_RUNTIMEBASE=`dirname ${ARCHIVE_RUNTIMEPREFS}`
+	ARCHIVE_DATADIR="${ARCHIVE_RUNTIMEBASE}"
+    fi
+    if [ ! -z ${ARCHIVE_SYSTEMCONFIG} ]; then
+	ARCHIVE_SYSTEMBASE=`dirname ${ARCHIVE_SYSTEMCONFIG}`
+	ARCHIVE_DATADIR="${ARCHIVE_SYSTEMBASE}"
+    fi
+
+    # note, it's not a double set of ARCHIVE_DATADIR, indeed, in the following if
+    # we exit if the ARCHIVE_DATADIR differ
+
+    if [ ! -z ${ARCHIVE_RUNTIMEPREFS} ] && [ ! -z ${ARCHIVE_SYSTEMCONFIG} ]; then
+	if [ "${ARCHIVE_RUNTIMEBASE}" != "${ARCHIVE_SYSTEMBASE}" ]; then
+	    echo "Compressed archive contains files in unexpected positions:"
+	    echo "${ARCHIVE_RUNTIMEPREFS}"
+	    echo "${ARCHIVE_SYSTEMCONFIG}"
+	    echo "Files must be in the same directory"
+	    exit 1
+	fi
+    fi
+}
+
+function check_current_system_dirs() {
+    if [ ! -d "/etc/ntopng" ]; then
+	echo "Directory /etc/ntopng is missing from the system, unable to restore."
+	exit 1
+    fi
+
+    # ARCHIVE_DATADIR is empty when system.config and runtimeprefs.json are not
+    # going to be restored
+    if [ ! -z "${ARCHIVE_DATADIR}" ] && [ ! -d "${ARCHIVE_DATADIR}" ]; then
+	echo "Directory ${ARCHIVE_DATADIR} missing from the system, unable to restore."
+	exit 1
+    fi
+}
+
+function restore_ntopng_conf_dir() {
+    # extract /etc/ntopng from the archive to the filesystem
+    # P is use to tell tar to not remove the leading slash
+    # as we are only going to write /etc/ntopng and not stuff
+    # around for the system
+
+    # permissions stay untouched for the ntopng data dir
+    # that must be hanlded as root (sensitive data including
+    # passwords can be contained here)
+
+    echo "Restoring..."
+    tar Pxfvz ${ARCHIVE} /etc/ntopng || exit 1
+}
+
+function restore_files() {
+    if [ -z "${ARCHIVE_DATADIR}" ] || [ ! -d "${ARCHIVE_DATADIR}" ]; then
+	# nothing to do, the either not existing or not a directory
+	return
+    fi
+
+    # Get the ownership of the data directory
+    # extracted files will be chowned to make sure they have the same
+    # owner and group of the data directory
+    local USER_GROUP=`ls -ld ${ARCHIVE_DATADIR} | awk '{print $3":"$4}'`
+    # will be something like root:root nobody:nogroup
+
+    if [ -z "${USER_GROUP}" ]; then
+	echo "Unable to retrieve user and group of ${ARCHIVE_DATADIR}"
+	exit 1
+    fi
+
+    # restore archive runtimeprefs and we're sure it's
+    # going to be in an existing directory
+    if [ ! -z "${ARCHIVE_RUNTIMEPREFS}" ]; then
+	echo "Restoring..."
+	tar Pxfvz ${ARCHIVE} ${ARCHIVE_RUNTIMEPREFS} || exit 1
+	chown "${USER_GROUP}" ${ARCHIVE_RUNTIMEPREFS}
+    fi
+
+    # same for the systemconfig
+    if [ ! -z "${ARCHIVE_SYSTEMCONFIG}" ]; then
+	echo "Restoring..."
+	tar Pxfvz ${ARCHIVE} ${ARCHIVE_SYSTEMCONFIG} || exit 1
+	chown "${USER_GROUP}" ${ARCHIVE_SYSTEMCONFIG}
+    fi
+}
+
+# preliminary checks
+check_tar_file ${ARCHIVE}
+check_tar_contents ${ARCHIVE}
+check_current_system_dirs
+
+# actual restore
+restore_ntopng_conf_dir
+restore_files
+
+exit 0
