@@ -5002,7 +5002,6 @@ void NetworkInterface::lua(lua_State *vm) {
   nDPIStats _ndpiStats;
   PacketStats _pktStats;
   TcpPacketStats _tcpPacketStats;
-  int num_live_captures = 0;
   
   lua_newtable(vm);
 
@@ -6567,6 +6566,7 @@ bool NetworkInterface::deregisterLiveCapture(struct ntopngLuaContext * const lua
   for(int i=0; i<MAX_NUM_PCAP_CAPTURES; i++) {
     if(live_captures[i] == luactx) {
       struct ntopngLuaContext *c = (struct ntopngLuaContext *)live_captures[i];
+      
       c->live_capture.done = true;
       live_captures[i] = NULL, num_live_captures--;
       ret = true;

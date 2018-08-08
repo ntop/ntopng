@@ -3697,7 +3697,7 @@ static int ntop_interface_live_capture(lua_State* vm) {
   snprintf(c->live_capture.username, sizeof(c->live_capture.username), "%s", c->user);
 
   if(ntop_interface->registerLiveCapture(c, &capture_id)) {
-    ntop->getTrace()->traceEvent(TRACE_NORMAL,
+    ntop->getTrace()->traceEvent(TRACE_INFO,
 				 "Starting live capture id %d for user %s",
 				 capture_id, c->live_capture.username);
 
@@ -3741,7 +3741,7 @@ static int ntop_interface_stop_live_capture(lua_State* vm) {
 
   rc = ntop_interface->stopLiveCapture(c->user, capture_id);
   
-  ntop->getTrace()->traceEvent(TRACE_NORMAL,
+  ntop->getTrace()->traceEvent(TRACE_INFO,
 			       "Stopping live capture %d for user %s: %s",
 			       capture_id, c->user,
 			       rc ? "stopped" : "error");
