@@ -336,13 +336,13 @@ function ts_utils.queryTopk(schema_name, tags, tstart, tend, options)
   end
 
   -- Possibly fix series inconsistencies due to RRA steps
-  for _, serie in pairs(top_items.series) do
+  for _, serie in pairs(top_items.series or {}) do
     if count > #serie.data then
       traceError(TRACE_INFO, TRACE_CONSOLE, "Upsampling " .. table.tconcat(serie.tags, "=", ",") .. " from " .. #serie.data .. " to " .. count)
       serie.data = ts_common.upsampleSerie(serie.data, count)
     end
   end
-  for key, serie in pairs(top_items.additional_series) do
+  for key, serie in pairs(top_items.additional_series or {}) do
     if count > #serie then
       traceError(TRACE_INFO, TRACE_CONSOLE, "Upsampling " .. key .. " from " .. #serie .. " to " .. count)
       top_items.additional_series[key] = ts_common.upsampleSerie(serie, count)
