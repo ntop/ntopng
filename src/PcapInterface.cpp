@@ -182,9 +182,11 @@ static void* packetPollLoop(void* ptr) {
 	FD_SET(fd, &rset);
 	
 	tv.tv_sec = 1, tv.tv_usec = 0;
-	if(select(fd + 1, &rset, NULL, NULL, &tv) == 0)
+	if(select(fd + 1, &rset, NULL, NULL, &tv) == 0) {
+	  iface->purgeIdle(time(NULL));
 	  continue;
 	}
+      }
       
       if((rc = pcap_next_ex(pd, &hdr, &pkt)) > 0) {
 	if((pkt != NULL) && (hdr->caplen > 0)) {
