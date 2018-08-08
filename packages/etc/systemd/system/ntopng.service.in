@@ -8,18 +8,13 @@ PartOf=@SERVICE_WANTS@
 [Service]
 Type=simple
 
-# Restore from configuration backup (untar /etc/ntopng/conf.tar.gz, create system.config.reload in case of nedge, delete tar)
-ExecStartPre=/bin/sh -c 'BIN_TAR=/bin/tar; if [ ! -f $BIN_TAR ]; then BIN_TAR=/usr/bin/tar; fi; [ -f /etc/ntopng/conf.tar.gz ] && $BIN_TAR -xzf /etc/ntopng/conf.tar.gz -C / || true'
-ExecStartPre=/bin/sh -c 'DATA_DIR=$(cat /etc/ntopng/ntopng.conf | sed -n -e "s/^\(-d\|--data-dir\)[ =]//p"); if [ ! $DATA_DIR ]; then DATA_DIR="/var/tmp"; fi; [ -f /etc/ntopng/conf.tar.gz ] && [ -f /etc/systemd/system/nedge.service ] && touch $DATA_DIR/ntopng/system.config.reload || true'
-ExecStartPre=/bin/sh -c '[ -f /etc/ntopng/conf.tar.gz ] && rm /etc/ntopng/conf.tar.gz || true'
-
 ExecStartPre=/bin/sh -c '/bin/echo "$(/bin/date) ntopng StartPre" >> /var/log/ntop-systemd.log'
+ExecStartPre=/bin/sh -c '[ -f /etc/ntopng/conf.tar.gz ] && /usr/bin/ntopng-utils-restore || true'
 ExecStartPre=/bin/sh -c '/bin/sed "/^[ ]*-e.*$\\|^[ ]*-G.*\\|^[ ]*--daemon.*\\|^[ ]*--pid.*/s/^/#/" /etc/ntopng/ntopng.conf > /run/ntopng.conf'
 
 ExecStart=/usr/local/bin/ntopng /run/ntopng.conf
 
 ExecStartPost=/bin/sh -c '/bin/echo "$(/bin/date) ntopng StartPost" >> /var/log/ntop-systemd.log'
-
 ExecStopPost=-/bin/rm -rf /run/ntopng.conf
 ExecStopPost=/bin/sh -c '/bin/echo "$(/bin/date) ntopng StopPost" >> /var/log/ntop-systemd.log'
 
