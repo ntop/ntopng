@@ -100,7 +100,7 @@ function checkSeriesConsinstency(schema_name, count, series) {
       rv = false;
     } else if(data.length < count) {
       /* upsample */
-      upsampleSerie(data, count);
+      series[i].data = upsampleSerie(data, count);
     }
   }
 
@@ -209,6 +209,7 @@ function fixTimeRange(chart, params, step) {
     [21600, 300, "%H:%M", 3600, 1800],                  // <= 6 h
     [43200, 600, "%H:%M", 3600, 3600],                  // <= 12 h
     [86400, 600, "%H:%M", 3600, 7200],                  // <= 1 d
+    [172800, 3600, "%a, %H:%M", 3600, 14400],           // <= 2 d
     [604800, 3600, "%Y-%m-%d", 86400, 86400],           // <= 7 d
     [1209600, 7200, "%Y-%m-%d", 86400, 172800],         // <= 14 d
     [2678400, 21600, "%Y-%m-%d", 86400, 259200],        // <= 1 m
@@ -317,7 +318,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_out_id, f
     }
   });
 
-  $zoom_out.on("click", function() {
+  var zoom_out_callback = function() {
     if(zoom_stack.length) {
       var zoom = zoom_stack.pop();
       var t_start = zoom[0];
@@ -328,7 +329,10 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_out_id, f
       if(!zoom_stack.length)
         $zoom_out.hide();
     }
-  });
+  }
+
+  $chart.on('dblclick', zoom_out_callback);
+  $zoom_out.on("click", zoom_out_callback);
 
   var old_start, old_end;
 
