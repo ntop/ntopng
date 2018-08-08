@@ -904,6 +904,8 @@ local known_parameters = {
    ["max_sec_file"]            =  validateEmptyOr(validateNumber), --
    ["max_files"]               =  validateEmptyOr(validateNumber), --
    ["capture_id"]              =  validateNumber,                -- Live capture id
+   ["duration"]                =  validateNumber,                --
+   ["bpf_filter"]              =  validateEmptyOr(validateUnquoted), --
    
 -- OTHER
    ["_"]                       =  validateEmptyOr(validateNumber), -- jQuery nonce in ajax requests used to prevent browser caching

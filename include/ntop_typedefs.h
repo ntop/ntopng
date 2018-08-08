@@ -466,7 +466,6 @@ struct ntopngLuaContext {
     
     /* Status */
     bool pcaphdr_sent;
-    bool done;
     bool stopped;
   } live_capture;
 };

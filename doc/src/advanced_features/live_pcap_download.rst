@@ -4,24 +4,14 @@ Live Pcap Download
 A pcap file containing packets matching a certain host can be generated on-the-fly by ntopng and streamed 
 via web using a browser or by directly requesting endpoint `live_traffic.lua`. 
 
-In order to download the pcap using the web GUI, click on the `pcap` hyperlink available on every host page
+In order to download the pcap using the web GUI, click on the `pcap` hyperlink available on every host page and device
+page. You can control the pcap duration and set an optional BPF filter for further filtering packets.
 
-.. figure:: ../img/adavanced_features_host_pcap_link.png
+.. figure:: ../img/advanced_features_host_pcap_link.png
   :align: center
   :alt: Link for downloading the pcap file
 
   Link for downloading the pcap file
-
-and control the download by using the `start`/`stop` buttons on the dialog box
-
-.. figure:: ../img/adavanced_features_pcap_dialog.png
-  :align: center
-  :alt: Dialog box to control the pcap download
-
-  Dialog box to control the pcap download
-
-Note that the pcap file is automatically cut by default after 1 minute or 100k packets, use the `stop` button
-to interrupt it.
 
 The pcap file can also be downloaded directly through http, using a command line tool such as `wget` or `curl`.
 The direct url for downloading the pcap is :code:`http://<ntopng IP>:3000/lua/live_traffic.lua?ifid=<interface index>&host=<host IP>`.

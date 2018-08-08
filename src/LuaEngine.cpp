@@ -130,7 +130,7 @@ LuaEngine::~LuaEngine() {
 	pthread_join(ctx->pkt_capture.captureThreadLoop, NULL);
       }
 
-      if(ctx->iface != NULL)
+      if((ctx->iface != NULL) && ctx->live_capture.pcaphdr_sent)
 	ctx->iface->deregisterLiveCapture(ctx);
 
       free(ctx);
@@ -2863,8 +2863,9 @@ static int ntop_checkpoint_host(lua_State* vm) {
 
   checkpoint_id = (u_int8_t)lua_tointeger(vm, 3);
 
-  if(!iface || iface->isView() || !iface->checkPointHostCounters(vm,
-								 checkpoint_id, host_ip, vlan_id, details_level)){
+  if(!iface || iface->isView() ||
+     !iface->checkPointHostCounters(vm,
+				    checkpoint_id, host_ip, vlan_id, details_level)){
     lua_pushnil(vm);
     return(CONST_LUA_ERROR);
   } else
@@ -2893,7 +2894,8 @@ static int ntop_checkpoint_host_talker(lua_State* vm) {
 
   if(lua_type(vm, 3) == LUA_TBOOLEAN) save_checkpoint = lua_toboolean(vm, 3);
 
-  if(!iface || iface->isView() || !iface->checkPointHostTalker(vm, host_ip, vlan_id, save_checkpoint))
+  if(!iface || iface->isView()
+     || !iface->checkPointHostTalker(vm, host_ip, vlan_id, save_checkpoint))
     return(CONST_LUA_ERROR);
   else
     return(CONST_LUA_OK);
@@ -2921,8 +2923,9 @@ static int ntop_checkpoint_network(lua_State* vm) {
   network_id = (u_int8_t)lua_tointeger(vm, 2);
   checkpoint_id = (u_int8_t)lua_tointeger(vm, 3);
 
-  if(!iface || iface->isView() || !iface->checkPointNetworkCounters(vm,
-								    checkpoint_id, network_id, details_level))
+  if(!iface || iface->isView()
+     || !iface->checkPointNetworkCounters(vm,
+					  checkpoint_id, network_id, details_level))
     return(CONST_LUA_ERROR);
   else
     return(CONST_LUA_OK);
@@ -2946,8 +2949,9 @@ static int ntop_checkpoint_interface(lua_State* vm) {
   iface = ntop->getInterfaceById(ifid);
   checkpoint_id = (u_int8_t)lua_tointeger(vm, 2);
 
-  if(!iface || iface->isView() || !iface->checkPointInterfaceCounters(vm,
-								      checkpoint_id, details_level))
+  if(!iface || iface->isView() ||
+     !iface->checkPointInterfaceCounters(vm,
+					 checkpoint_id, details_level))
     return(CONST_LUA_ERROR);
   else
     return(CONST_LUA_OK);
@@ -3658,11 +3662,15 @@ static int ntop_interface_dump_live_captures(lua_State* vm) {
 static int ntop_interface_live_capture(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   struct ntopngLuaContext *c;
-  int capture_id;
-
+  int capture_id, duration;
+  char *bpf = NULL;
+  NetworkInterface *iface = getCurrentInterface(vm);
+ 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(!Utils::isUserAdministrator(vm)) return(CONST_LUA_ERROR);
+  
+  if(!iface) return(CONST_LUA_ERROR);
 
 #ifdef DONT_USE_LUAJIT
   lua_getglobal(vm, "userdata");
@@ -3674,7 +3682,7 @@ static int ntop_interface_live_capture(lua_State* vm) {
   if((!ntop_interface) || (!c))
     return(CONST_LUA_ERROR);
 
-  if(lua_type(vm, 1) == LUA_TSTRING) /* Optional */ {
+  if(lua_type(vm, 1) == LUA_TSTRING) /* Host */ {
     Host *h;
     char host_ip[64];
     char *key;
@@ -3682,18 +3690,37 @@ static int ntop_interface_live_capture(lua_State* vm) {
 
     get_host_vlan_info((char*)lua_tostring(vm, 1), &key, &vlan_id, host_ip, sizeof(host_ip));
 
-    if((!ntop_interface) || ((h = ntop_interface->findHostByIP(get_allowed_nets(vm), host_ip, vlan_id)) == NULL)) {
-      return(CONST_LUA_ERROR);
-    } else {
-      c->live_capture.matching_host = h;
-    }
+    if((!ntop_interface) || ((h = ntop_interface->findHostByIP(get_allowed_nets(vm), host_ip, vlan_id)) == NULL))
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to locate host %s", host_ip);
+    else 
+      c->live_capture.matching_host = h;    
   }
 
-  c->live_capture.capture_until = time(NULL)+60; /* 1 min max */
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  duration = (u_int32_t)lua_tonumber(vm, 2);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  bpf = (char*)lua_tostring(vm, 3);
+  
+  c->live_capture.capture_until = time(NULL)+duration;
   c->live_capture.capture_max_pkts = 100000; /* No more than 100k packets */
   c->live_capture.num_captured_packets = 0;
-  c->live_capture.stopped = c->live_capture.done = c->live_capture.pcaphdr_sent = false;
+  c->live_capture.stopped = c->live_capture.pcaphdr_sent = false;
   c->live_capture.bpfFilterSet = false;
+  
+  if(bpf && (bpf[0] != '\0')) {
+    if(pcap_compile_nopcap(65535,   /* snaplen */
+			   iface->get_datalink(), /* linktype */
+			   &c->live_capture.fcode, /* program */
+			   bpf,     /* const char *buf */
+			   0,       /* optimize */
+			   PCAP_NETMASK_UNKNOWN) == -1)
+      ntop->getTrace()->traceEvent(TRACE_WARNING,
+				   "Unable to set capturefilter %s. Filter ignored.", bpf);
+    else
+      c->live_capture.bpfFilterSet = true;
+  }
+  
   snprintf(c->live_capture.username, sizeof(c->live_capture.username), "%s", c->user);
 
   if(ntop_interface->registerLiveCapture(c, &capture_id)) {
@@ -3701,7 +3728,7 @@ static int ntop_interface_live_capture(lua_State* vm) {
 				 "Starting live capture id %d for user %s",
 				 capture_id, c->live_capture.username);
 
-    while(!c->live_capture.done) {
+    while(!c->live_capture.stopped) {
       ntop->getTrace()->traceEvent(TRACE_INFO, "Capturing....");
       sleep(1);
     }

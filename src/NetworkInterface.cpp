@@ -1302,6 +1302,7 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
 
     srcMac->setSourceMac();
   }
+
   if(likely(dstMac != NULL)) {
     dstMac->incSentStats(zflow->core.pkt_sampling_rate * zflow->core.out_pkts,
 			 zflow->core.pkt_sampling_rate * zflow->core.out_bytes);
@@ -6567,7 +6568,7 @@ bool NetworkInterface::deregisterLiveCapture(struct ntopngLuaContext * const lua
     if(live_captures[i] == luactx) {
       struct ntopngLuaContext *c = (struct ntopngLuaContext *)live_captures[i];
       
-      c->live_capture.done = true;
+      c->live_capture.stopped = true;
       live_captures[i] = NULL, num_live_captures--;
       ret = true;
       break;
@@ -6575,18 +6576,29 @@ bool NetworkInterface::deregisterLiveCapture(struct ntopngLuaContext * const lua
   }
 
   active_captures_lock.unlock(__FILE__, __LINE__);
-
+  
   return(ret);
 }
 
 /* *************************************** */
 
-bool NetworkInterface::matchLiveCapture(struct ntopngLuaContext * const luactx, Flow * const f) {
+bool NetworkInterface::matchLiveCapture(struct ntopngLuaContext * const luactx,
+					const struct pcap_pkthdr * const h,
+					const u_char * const packet,
+					Flow * const f) {
   if((luactx->live_capture.matching_host == NULL)
      || (luactx->live_capture.matching_host == f->get_cli_host())
-     || (luactx->live_capture.matching_host == f->get_srv_host()))
+     || (luactx->live_capture.matching_host == f->get_srv_host())) {
+    if(luactx->live_capture.bpfFilterSet) {
+      if(!bpf_filter(luactx->live_capture.fcode.bf_insns,
+		     (const u_char*)packet, h->caplen, h->caplen)) {
+	return(false);
+      }
+    }
+    
     return(true);
-
+  }
+  
   return false;
 }
 
@@ -6602,12 +6614,12 @@ void NetworkInterface::deliverLiveCapture(const struct pcap_pkthdr * const h,
 
       num_found++;
 
-      if(c->live_capture.capture_until < h->ts.tv_sec || c->live_capture.stopped) {
-	http_client_disconnected = true;
-	//mg_close_connection(c->conn); /* this was causing crashes in mongoose */
-      }
+      if(c->live_capture.capture_until < h->ts.tv_sec || c->live_capture.stopped)
+	http_client_disconnected = true;      
       
-      if((!http_client_disconnected) && c->conn && matchLiveCapture(c, f)) {
+      if((!http_client_disconnected)
+	 && c->conn
+	 && matchLiveCapture(c, h, packet, f)) {
 	if(!c->live_capture.pcaphdr_sent) {
 	  struct pcap_file_header pcaphdr;
 	  int res;
@@ -6643,7 +6655,7 @@ void NetworkInterface::deliverLiveCapture(const struct pcap_pkthdr * const h,
       }
 
       if(http_client_disconnected)
-	deregisterLiveCapture(c); /* (*) */
+	deregisterLiveCapture(c); /* (*) */      
     }
   }
 }
@@ -6707,11 +6719,11 @@ bool NetworkInterface::stopLiveCapture(char *user, int capture_id) {
     if((live_captures[capture_id] != NULL)
        && (!strcmp(live_captures[capture_id]->live_capture.username, user))) {
       struct ntopngLuaContext *c = (struct ntopngLuaContext *)live_captures[capture_id];
+
       c->live_capture.stopped = true, rc = true;
       if(c->live_capture.bpfFilterSet)
 	pcap_freecode(&c->live_capture.fcode);
       /* live_captures[capture_id] = NULL; */ /* <-- not necessary as mongoose will clean it */
-      num_live_captures--;
     }
     
     active_captures_lock.unlock(__FILE__, __LINE__);

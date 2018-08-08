@@ -103,6 +103,11 @@
 
 extern "C" {
 #include "pcap.h"
+
+#ifndef __linux__
+#include <pcap/bpf.h> /* Used for bpf_filter() */
+#endif
+
 #include "ndpi_main.h"
 #ifdef DONT_USE_LUAJIT
 #include "lua.h"

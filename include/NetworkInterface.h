@@ -88,7 +88,10 @@ class NetworkInterface : public Checkpointable {
   Mutex active_captures_lock;
   u_int8_t num_live_captures;
   struct ntopngLuaContext *live_captures[MAX_NUM_PCAP_CAPTURES];
-  static bool matchLiveCapture(struct ntopngLuaContext * const luactx, Flow * const f);
+  static bool matchLiveCapture(struct ntopngLuaContext * const luactx,
+			       const struct pcap_pkthdr * const h,
+			       const u_char * const packet,
+			       Flow * const f);
   void deliverLiveCapture(const struct pcap_pkthdr * const h, const u_char * const packet, Flow * const f);
   
   string ip_addresses;

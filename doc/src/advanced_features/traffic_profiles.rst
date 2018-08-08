@@ -9,7 +9,7 @@ Traffic Profiles are a feature that is only available in the Professional Versio
 
 Profiles can be set and configured via the dropdown |cog_icon| menu in the top toolbar.
 
-.. figure:: ../img/adavanced_features_traffic_profiles_edit.png
+.. figure:: ../img/advanced_features_traffic_profiles_edit.png
   :align: center
   :alt: Edit Traffic Profiles
 
@@ -33,7 +33,7 @@ A blue badge labelled with profile name will appear in the rightmost column ‘I
 In the example below are shown two currently active flows for host 192.168.2.130, that match the defined
 localnet profile.
 
-.. figure:: ../img/adavanced_features_traffic_profiles_flows.png
+.. figure:: ../img/advanced_features_traffic_profiles_flows.png
   :align: center
   :alt: Active Flows Traffic Profiles
 
@@ -49,7 +49,7 @@ reachable from the ‘Interface’ contextual toolbar. By clicking on the doctor
 full list of profiles detected for the selected interface, together with their traffic and throughput trend. Profile
 Details page can be opened for each profile simply by clicking on the |chart_icon| icon.
 
-.. figure:: ../img/adavanced_features_traffic_profiles_summary.png
+.. figure:: ../img/advanced_features_traffic_profiles_summary.png
   :align: center
   :alt: Traffic Profiles Summary
 
@@ -58,7 +58,7 @@ Details page can be opened for each profile simply by clicking on the |chart_ico
 Profile Details page shows historical profile traffic. An optional table with historical flow details — for flows
 matching the selected profile — is shown below the chart if ntopng was started with the -F modifier.
 
-.. figure:: ../img/adavanced_features_traffic_profiles_details.png
+.. figure:: ../img/advanced_features_traffic_profiles_details.png
   :align: center
   :alt: Traffic Profiles Details
 

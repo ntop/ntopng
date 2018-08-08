@@ -592,13 +592,35 @@ end
    end
    
    if(host["json"] ~= nil) then
-      print("<tr><th>"..i18n("download").."&nbsp;<i class=\"fa fa-download fa-lg\"></i></th><td colspan=2><A HREF='"..ntop.getHttpPrefix().."/lua/host_get_json.lua?ifid="..ifId.."&"..hostinfo2url(host_info).."'>JSON</A>")
+      print("<tr><th>"..i18n("download").."&nbsp;<i class=\"fa fa-download fa-lg\"></i></th><td")
+      if(not isAdministrator()) then print(" colspan=2") end
+      print("><A HREF='"..ntop.getHttpPrefix().."/lua/host_get_json.lua?ifid="..ifId.."&"..hostinfo2url(host_info).."'>JSON</A></td>")
 
       if(isAdministrator()) then
-	 print("&nbsp;/&nbsp;<A HREF=\""..ntop.getHttpPrefix().."/lua/live_traffic.lua?ifid="..ifId.."&host="..host_info["host"].."\">pcap</A>")
+	 print [[
+<td><form class="form-inline" action="]] print(ntop.getHttpPrefix().."/lua/live_traffic.lua") print [[">
+  <input type=hidden name=ifid value="]] print(ifId.."") print [[">
+  <input type=hidden name=host value="]] print(host_info["host"]) print [[">
+  <div class="form-group mb-2">
+    <label for="duration" class="sr-only">Duration</label>
+      <select class="form-control" id="duration" name=duration>
+      <option value=10>10 sec</option>
+      <option value=30>30 sec</option>
+      <option value=60 selected>1 min</option>
+      <option value=300>5 min</option>
+      <option value=600>10 min</option>
+    </select>
+  </div>
+  <div class="form-group mx-sm-3 mb-2">
+    <label for="bpf_filter" class="sr-only">BPF Filter</label>
+    <input type="text" class="form-control" id="bpf_filter" name="bpf_filter" placeholder="BPF Filter"></input>
+  </div>
+  <button type="submit" class="btn btn-primary mb-2">pcap Download</button>
+</form></td>
+]]
       end
 
-      print("</td></tr>\n")
+      print("</tr>\n")
    end
 
    if(host["ssdp"] ~= nil) then

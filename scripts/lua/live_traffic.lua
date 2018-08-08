@@ -32,38 +32,26 @@ local granted = true
 if not granted then
    send_error("not_granted")
 else
-   local host = _GET["host"]
-   local action = _GET["action"]
-
-   if(action ~= nil and action == 'stop') then
-
-     interface.stopLiveCapture(host)
-
-     send_status("stopped")
-
-   elseif(action ~= nil and action == 'status') then
-     local status = 'stopped'
-
-     local rc = interface.dumpLiveCaptures()
-     for _,v in ipairs(rc) do
-       if(v.host ~= nil and v.host == host) then
-         status = 'running'
-       end
-     end
-
-     send_status(status)
-
-   else -- start
-     local fname = ifname
-
-     if(host ~= nil) then
-        fname = fname .. "_"..host
-     end
-
-     fname = fname .."_live.pcap"
+   local host       = _GET["host"]
+   local duration   = tonumber(_GET["duration"])
+   local bpf_filter = _GET["bpf_filter"]   
+   local fname      = ifname
    
-     sendHTTPContentTypeHeader('application/vnd.tcpdump.pcap', 'attachment; filename="'..fname..'"')
-   
-     interface.liveCapture(host)
+   if(host ~= nil) then
+      fname = fname .. "_"..host
    end
+
+   if((bpf_filter ~= nil) and (bpf_filter ~= "")) then
+      fname = fname .. "_filtered"
+   end
+   
+   fname = fname .."_live.pcap"
+
+   if((duration == nil) or (duration < 0) or (duration > 600)) then
+      duration = 60
+   end
+   
+   sendHTTPContentTypeHeader('application/vnd.tcpdump.pcap', 'attachment; filename="'..fname..'"')
+   
+   interface.liveCapture(host, duration, bpf_filter)
 end
