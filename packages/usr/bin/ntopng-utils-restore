@@ -97,7 +97,7 @@ function check_tar_contents() {
     fi
 }
 
-function extract_tar_archive() {
+function extract_tar_file() {
     # the temp directory used, within $DIR
     # omit the -p parameter to create a temporal directory in the default location
     STAGING_DIR=`mktemp -d`
@@ -207,8 +207,7 @@ function restore_files() {
 }
 
 function cleanup() {
-    :
-#    rm -rf "${ARCHIVE}"
+    rm -rf "${ARCHIVE}"
     rm -rf "${STAGING_DIR}"
 }
 
@@ -217,7 +216,7 @@ trap cleanup EXIT
 # preliminary checks
 check_tar_file
 check_tar_contents
-extract_tar_archive
+extract_tar_file
 check_current_system_dirs
 
 # actual restore
