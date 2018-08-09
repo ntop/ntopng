@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DEFAULT_ARCHIVE="/etc/ntopng/conf.tar.gz"
+DEFAULT_ARCHIVE="/tmp/conf.tar.gz"
 ARCHIVE=""
 ARCHIVE_RUNTIMEPREFS=""
 ARCHIVE_SYSTEMCONFIG=""
@@ -157,8 +157,15 @@ function restore_file() {
     fi
 
     # restore the file passed as first argument
+
+    # NOTE:
+    # When extracting files, if tar discovers that the extracted file already exists,
+    # it replaces the file by removing it before extracting it. If a directory cannot be removed
+    # because it is nonempty, tar overwrites its metadata (ownership, permission, etc.).
+    # To be more cautious and preserve the metadata of such a directory, we use the `--no-overwrite-dir' option.
+
     tar Pxfvz "${ARCHIVE}" "$1" --no-overwrite-dir || exit 1
-    # changes the permissions of the restored file as specified in the
+    # changses the permissions of the restored file as specified in the
     # second argument
     chown "$2" "$1" || exit 1
 
@@ -189,6 +196,10 @@ function restore_files() {
     restore_file "${ARCHIVE_LICENSE}" "root:root"
 }
 
+function cleanup() {
+    rm -rf ${ARCHIVE}
+}
+
 # preliminary checks
 check_tar_file ${ARCHIVE}
 check_tar_contents ${ARCHIVE}
@@ -201,5 +212,8 @@ save_existing_files
 # actual restore
 restore_ntopng_conf_dir
 restore_files
+
+#cleanup files
+cleanup
 
 exit 0
