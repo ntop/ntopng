@@ -103,7 +103,7 @@ local function influx2Series(schema, tstart, tend, tags, options, data, time_ste
   for idx, values in ipairs(data.values) do
     local cur_t = data.values[idx][1]
 
-    if #values < 1 then
+    if #values < 2 then
       -- skip empty points (which are out of query bounds)
       goto continue
     end
