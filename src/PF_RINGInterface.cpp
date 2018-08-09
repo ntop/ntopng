@@ -64,8 +64,11 @@ pfring *PF_RINGInterface::pfringSocketInit(const char *name) {
   case PCAP_D_OUT:   direction = tx_only_direction;   break;
   }
 
-  if(pfring_set_direction(handle, direction) != 0)
+  if(pfring_set_direction(handle, direction) != 0) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to set packet capture direction on %s", name);
+    if (strstr(name, "zc:") && direction != rx_only_direction)
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "ZC supports RX capture only, please use --capture-direction 1"); 
+  }
 
   if(pfring_set_socket_mode(handle, recv_only_mode) != 0)
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to set socket mode on %s", name);
