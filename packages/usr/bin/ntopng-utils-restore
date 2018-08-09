@@ -10,8 +10,8 @@ SAVED_SUFFIX=".saved"
 
 echo "Executing ntopng configuration restore utility"
 
-if [ -f "$1" ]; then
-    ARCHIVE="$1"
+if [ -f "$@" ]; then
+    ARCHIVE="$@"
 elif [ -f "${DEFAULT_ARCHIVE}" ]; then
 
     ARCHIVE="${DEFAULT_ARCHIVE}"
@@ -30,7 +30,7 @@ fi
 
 function check_tar_file() {
     # make sure it's a tar archive
-    if ! `file $1 | grep -qc "gzip compressed data";`; then
+    if ! `file "${ARCHIVE}" | grep -qc "gzip compressed data";`; then
 	echo "Unrecognized file format for ${ARCHIVE}: expecting gzip compressed data"
 	exit 1
     fi
@@ -38,15 +38,15 @@ function check_tar_file() {
 
 function check_tar_contents() {
     # must contain directory /etc/ntopng
-    if ! `tar tf ${ARCHIVE} /etc/ntopng/ >/dev/null 2>&1`; then
+    if ! `tar tf "${ARCHIVE}" /etc/ntopng/ >/dev/null 2>&1`; then
 	echo "Compressed archive $1 does not contain /etc/ntopng/"
 	exit 1
     fi
 
     # could contain a license file
-    if `tar tf ${ARCHIVE} /etc/ntopng.license >/dev/null 2>&1`; then
+    if `tar tf "${ARCHIVE}" /etc/ntopng.license >/dev/null 2>&1`; then
 	ARCHIVE_LICENSE="/etc/ntopng.license"
-    elif `tar tf ${ARCHIVE} /etc/nedge.license >/dev/null 2>&1`; then
+    elif `tar tf "${ARCHIVE}" /etc/nedge.license >/dev/null 2>&1`; then
 	ARCHIVE_LICENSE="/etc/nedge.license"
     fi
 
@@ -56,28 +56,29 @@ function check_tar_contents() {
     # if those files exist they must be in the same dir
     # only one copy of the file must be present in the archive
 
-    if [ `tar Pztf ${ARCHIVE} | grep 'runtimeprefs.json$' | wc -l` -gt "1" ]; then
+    if [ `tar Pztf "${ARCHIVE}" | grep 'runtimeprefs.json$' | wc -l` -gt "1" ]; then
 	echo "Too many copies of runtimeprefs.json in compressed archive."
 	exit 1
     fi
 
-    if [ `tar Pztf ${ARCHIVE} | grep 'system.config$' | wc -l` -gt "1" ]; then
+    if [ `tar Pztf "${ARCHIVE}" | grep 'system.config$' | wc -l` -gt "1" ]; then
 	echo "Too many copies of system.config in compressed archive."
 	exit 1
     fi
 
-    ARCHIVE_RUNTIMEPREFS="`tar Pztf ${ARCHIVE} | grep 'runtimeprefs.json$'`"
-    ARCHIVE_SYSTEMCONFIG="`tar Pztf ${ARCHIVE} | grep 'system.config$'`"
+    ARCHIVE_RUNTIMEPREFS="`tar Pztf "${ARCHIVE}" | grep 'runtimeprefs.json$'`"
+    ARCHIVE_SYSTEMCONFIG="`tar Pztf "${ARCHIVE}" | grep 'system.config$'`"
 
     local ARCHIVE_RUNTIMEBASE=""
     local ARCHIVE_SYSTEMBASE=""
 
     if [ ! -z ${ARCHIVE_RUNTIMEPREFS} ]; then
-	ARCHIVE_RUNTIMEBASE=`dirname ${ARCHIVE_RUNTIMEPREFS}`
+	ARCHIVE_RUNTIMEBASE=`dirname "${ARCHIVE_RUNTIMEPREFS}"`
 	ARCHIVE_DATADIR="${ARCHIVE_RUNTIMEBASE}"
     fi
+
     if [ ! -z ${ARCHIVE_SYSTEMCONFIG} ]; then
-	ARCHIVE_SYSTEMBASE=`dirname ${ARCHIVE_SYSTEMCONFIG}`
+	ARCHIVE_SYSTEMBASE=`dirname "${ARCHIVE_SYSTEMCONFIG}"`
 	ARCHIVE_DATADIR="${ARCHIVE_SYSTEMBASE}"
     fi
 
@@ -146,7 +147,7 @@ function restore_ntopng_conf_dir() {
     # permissions stay untouched for the ntopng data dir
     # that must be hanlded as root (sensitive data including
     # passwords can be contained here)
-    tar Pxfvz ${ARCHIVE} /etc/ntopng || exit 1
+    tar Pxfvz "${ARCHIVE}" /etc/ntopng || exit 1
     echo "Restored folder /etc/ntopng"
 }
 
@@ -197,12 +198,12 @@ function restore_files() {
 }
 
 function cleanup() {
-    rm -rf ${ARCHIVE}
+    rm -rf "${ARCHIVE}"
 }
 
 # preliminary checks
-check_tar_file ${ARCHIVE}
-check_tar_contents ${ARCHIVE}
+check_tar_file "${ARCHIVE}"
+check_tar_contents "${ARCHIVE}"
 check_current_system_dirs
 
 # pre-restore saves of existing files and dirs
