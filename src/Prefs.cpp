@@ -71,8 +71,10 @@ Prefs::Prefs(Ntop *_ntop) {
   https_port = 0; // CONST_DEFAULT_NTOP_PORT+1;
   change_user = true, daemonize = false;
   user = strdup(CONST_DEFAULT_NTOP_USER);
-  http_binding_address = NULL;
-  https_binding_address = NULL; // CONST_ANY_ADDRESS;
+  http_binding_address1 = NULL;
+  http_binding_address2 = NULL;
+  https_binding_address1 = NULL; // CONST_ANY_ADDRESS;
+  https_binding_address2 = NULL;
   lan_interface = NULL;
   httpbl_key = NULL;
   cpu_affinity = NULL;
@@ -157,8 +159,10 @@ Prefs::~Prefs() {
   if(ls_host)         free(ls_host);
   if(ls_port)	      free(ls_port);
   if(ls_proto)	      free(ls_proto);
-  if(http_binding_address)  free(http_binding_address);
-  if(https_binding_address) free(https_binding_address);
+  if(http_binding_address1)  free(http_binding_address1);
+  if(http_binding_address2)  free(http_binding_address2);
+  if(https_binding_address1) free(https_binding_address1);
+  if(https_binding_address2) free(https_binding_address2);
   if(lan_interface)	free(lan_interface);
 }
 
@@ -886,7 +890,7 @@ int Prefs::setOption(int optkey, char *optarg) {
       // we need to parse both the ip address and the port
       double_dot = strrchr(optarg, ':');
       u_int len = double_dot - optarg;
-      http_binding_address = strndup(optarg, len);
+      http_binding_address1 = strndup(optarg, len);
       parseHTTPPort(&double_dot[1]);
     }
     break;
@@ -904,7 +908,7 @@ int Prefs::setOption(int optkey, char *optarg) {
       // we need to parse both the ip address and the port
       double_dot = strrchr(optarg, ':');
       u_int len = double_dot - optarg;
-      https_binding_address = strndup(optarg, len);
+      https_binding_address1 = strndup(optarg, len);
       https_port = atoi(&double_dot[1]);
     }
     break;
@@ -1308,10 +1312,10 @@ int Prefs::checkOptions() {
   ntop->removeTrailingSlash(callbacks_dir);
   ntop->removeTrailingSlash(prefs_dir);
 
-  if(http_binding_address == NULL)
-    bind_http_to_address((char*)CONST_ANY_ADDRESS);
-  if(https_binding_address == NULL)
-    bind_https_to_address((char*)CONST_ANY_ADDRESS);
+  if(http_binding_address1 == NULL) http_binding_address1 = strdup(CONST_ANY_ADDRESS);
+  if(http_binding_address2 == NULL) http_binding_address2 = strdup(CONST_ANY_ADDRESS);
+  if(https_binding_address1 == NULL) https_binding_address1 = strdup(CONST_ANY_ADDRESS);
+  if(https_binding_address2 == NULL) https_binding_address2 = strdup(CONST_ANY_ADDRESS);
 
   return(0);
 }
@@ -1425,6 +1429,24 @@ void Prefs::add_default_interfaces() {
   dummy->addAllAvailableInterfaces();
   delete dummy;
 };
+
+/* *************************************** */
+
+void Prefs::bind_http_to_address(const char * const addr1, const char * const addr2) {
+  if(http_binding_address1)  free(http_binding_address1);
+  http_binding_address1 = strdup(addr1);
+
+  if(http_binding_address2)  free(http_binding_address2);
+  http_binding_address2 = strdup(addr2);
+}
+
+void Prefs::bind_https_to_address(const char * const addr1, const char * const addr2) {
+  if(https_binding_address1) free(https_binding_address1);
+  https_binding_address1 = strdup(addr1);
+
+  if(https_binding_address2) free(https_binding_address2);
+  https_binding_address2 = strdup(addr2);
+}
 
 /* *************************************** */
 

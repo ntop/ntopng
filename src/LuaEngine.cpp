@@ -1270,20 +1270,23 @@ static int ntop_get_host_information(lua_State* vm) {
 
 #ifdef HAVE_NEDGE
 static int ntop_set_bind_addr(lua_State* vm, bool http) {
-  char *addr;
+  char *addr, *addr2 = CONST_LOOPBACK_ADDRESS;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(!Utils::isUserAdministrator(vm))
     return(CONST_LUA_ERROR);
 
-  if(lua_type(vm, 1) == LUA_TSTRING) {
-    addr = (char*)lua_tostring(vm, 1);
-    if(http)
-      ntop->getPrefs()->bind_http_to_address(addr);
-    else /* https */
-      ntop->getPrefs()->bind_https_to_address(addr);
-  }
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  addr = (char*)lua_tostring(vm, 1);
+
+  if(lua_type(vm, 2) == LUA_TSTRING)
+    addr2 = (char*)lua_tostring(vm, 2);
+
+  if(http)
+    ntop->getPrefs()->bind_http_to_address(addr, addr2);
+  else /* https */
+    ntop->getPrefs()->bind_https_to_address(addr, addr2);
 
   lua_pushnil(vm);
   return(CONST_LUA_OK);

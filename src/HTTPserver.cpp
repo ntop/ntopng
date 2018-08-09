@@ -973,8 +973,12 @@ void HTTPserver::parseACL(char * const acl, u_int acl_len) {
 HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
   struct mg_callbacks callbacks;
   static char ports[256] = { 0 }, acl_management[64], ssl_cert_path[MAX_PATH], access_log_path[MAX_PATH] = { 0 };
-  const char *http_binding_addr = ntop->getPrefs()->get_http_binding_address();
-  const char *https_binding_addr = ntop->getPrefs()->get_https_binding_address();
+  const char *http_binding_addr1, *http_binding_addr2;
+  const char *https_binding_addr1, *https_binding_addr2;
+
+  ntop->getPrefs()->get_http_binding_addresses(&http_binding_addr1, &http_binding_addr2);
+  ntop->getPrefs()->get_https_binding_addresses(&https_binding_addr1, &https_binding_addr2);
+
   bool use_http = true;
   bool good_ssl_cert = false;
   wispr_captive_data = NULL;
@@ -1013,9 +1017,16 @@ HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
 
   if(use_http) {
     snprintf(ports, sizeof(ports), "%s%s%d",
-	     http_binding_addr,
-	     (http_binding_addr[0] == '\0') ? "" : ":",
+	     http_binding_addr1,
+	     (http_binding_addr1[0] == '\0') ? "" : ":",
 	     ntop->getPrefs()->get_http_port());
+
+    if(http_binding_addr2[0] && strcmp(http_binding_addr1, http_binding_addr2)) {
+      snprintf(&ports[strlen(ports)],
+	     sizeof(ports) - strlen(ports) - 1, ",%s:%d",
+	     http_binding_addr2,
+	     ntop->getPrefs()->get_http_port());
+    }
   }
 
   good_ssl_cert = check_ssl_cert(ssl_cert_path, sizeof(ssl_cert_path));
@@ -1030,10 +1041,16 @@ HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
 	     sizeof(ports) - strlen(ports) - 1,
 	     "%s%s%s%ds",
 	     use_http ? (char*)"," : "",
-	     https_binding_addr,
-	     (https_binding_addr[0] == '\0') ? "" : ":",
+	     https_binding_addr1,
+	     (https_binding_addr1[0] == '\0') ? "" : ":",
 	     ntop->getPrefs()->get_https_port());
 
+    if(http_binding_addr2[0] && strcmp(https_binding_addr1, https_binding_addr2)) {
+      snprintf(&ports[strlen(ports)],
+	     sizeof(ports) - strlen(ports) - 1, ",%s:%d",
+	     https_binding_addr2,
+	     ntop->getPrefs()->get_https_port());
+    }
   }
 
   if((!use_http) && (!ssl_enabled)) {
@@ -1077,14 +1094,14 @@ HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
 
   if(use_http)
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "HTTP server listening on %s%s%d",
-				 http_binding_addr[0] != '\0' ? http_binding_addr : (char*)"",
-				 http_binding_addr[0] != '\0' ? (char*)":" : (char*)"",
+				 http_binding_addr1[0] != '\0' ? http_binding_addr1 : (char*)"",
+				 http_binding_addr1[0] != '\0' ? (char*)":" : (char*)"",
 				 ntop->getPrefs()->get_http_port());
 
   if(ssl_enabled)
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "HTTPS server listening on %s%s%d",
-				 https_binding_addr[0] != '\0' ? https_binding_addr : (char*)"",
-				 https_binding_addr[0] != '\0' ? (char*)":" : (char*)"",
+				 https_binding_addr1[0] != '\0' ? https_binding_addr1 : (char*)"",
+				 https_binding_addr1[0] != '\0' ? (char*)":" : (char*)"",
 				 ntop->getPrefs()->get_https_port());
 };
 

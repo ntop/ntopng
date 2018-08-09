@@ -39,7 +39,8 @@ class Prefs {
   u_int8_t num_deferred_interfaces_to_register;
   pcap_direction_t captureDirection;
   char *deferred_interfaces_to_register[MAX_NUM_INTERFACES], *cli;
-  char *http_binding_address, *https_binding_address;
+  char *http_binding_address1, *http_binding_address2;
+  char *https_binding_address1, *https_binding_address2;
   char *lan_interface;
   Ntop *ntop;
   bool enable_dns_resolution, sniff_dns_responses,
@@ -239,18 +240,12 @@ class Prefs {
   void registerNetworkInterfaces();
   void refreshHostsAlertsPrefs();
 
-  inline void bind_http_to_address(const char * const addr)  {
-    if(http_binding_address)  free(http_binding_address);
-    http_binding_address  = strdup(addr);
-  };
-  inline void bind_https_to_address(const char * const addr) {
-    if(https_binding_address) free(https_binding_address);
-    https_binding_address = strdup(addr);
-  };
-  inline void bind_http_to_loopback()  { bind_http_to_address((char*)CONST_LOOPBACK_ADDRESS);  };
-  inline void bind_https_to_loopback() { bind_https_to_address((char*)CONST_LOOPBACK_ADDRESS); };
-  inline const char* get_http_binding_address()  { return(http_binding_address);  };
-  inline const char* get_https_binding_address() { return(https_binding_address); };
+  void bind_http_to_address(const char * const addr1, const char * const addr2);
+  void bind_https_to_address(const char * const addr1, const char * const addr2);
+  void bind_http_to_loopback()  { bind_http_to_address((char*)CONST_LOOPBACK_ADDRESS, (char*)CONST_LOOPBACK_ADDRESS);  };
+  inline void bind_https_to_loopback() { bind_https_to_address((char*)CONST_LOOPBACK_ADDRESS, (char*)CONST_LOOPBACK_ADDRESS); };
+  inline void get_http_binding_addresses(const char** addr1, const char** addr2) { *addr1=http_binding_address1; *addr2=http_binding_address2; };
+  inline void get_https_binding_addresses(const char** addr1, const char** addr2) { *addr1=https_binding_address1; *addr2=https_binding_address2; };
 
   inline bool checkLicenseOnline()               { return(online_license_check);  };
   inline bool checkServiceLicense()              { return(service_license_check); };
