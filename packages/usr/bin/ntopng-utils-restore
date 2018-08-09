@@ -6,7 +6,8 @@ ARCHIVE_RUNTIMEPREFS=""
 ARCHIVE_SYSTEMCONFIG=""
 ARCHIVE_DATADIR=""
 ARCHIVE_LICENSE=""
-SAVED_SUFFIX=".saved"
+SAVED_SUFFIX=".ntopngsaved"
+STAGING_DIR=""
 
 echo "Executing ntopng configuration restore utility"
 
@@ -96,6 +97,40 @@ function check_tar_contents() {
     fi
 }
 
+function extract_tar_archive() {
+    # the temp directory used, within $DIR
+    # omit the -p parameter to create a temporal directory in the default location
+    STAGING_DIR=`mktemp -d`
+
+    # check if tmp dir was created
+    if [[ ! "$STAGING_DIR" || ! -d "$STAGING_DIR" ]]; then
+	echo "Could not create temp directory"
+	exit 1
+    fi
+
+    echo "Extracting compressed archive contents to ${STAGING_DIR}"
+    tar xfvz "${ARCHIVE}" -C "${STAGING_DIR}" || exit 1
+
+    # Throw away any possible executable file from the staging area
+    # executables include binaries but also shell scripts
+    find "${STAGING_DIR}" -executable -type f  -exec rm -rf {} \;
+
+    # Throw away backup files
+    find "${STAGING_DIR}" -type f -name "*~" -exec rm -rf {} \;
+
+    # Throw away empty files
+    find "${STAGING_DIR}" -type f -size 0 -exec rm -rf {} \;
+
+    # Throw away everything else BUT pure ASCII files
+    find "${STAGING_DIR}" -type f -name '*.*' -print0 |
+    while IFS= read -r -d '' FL; do
+	if ! `file "${FL}" | grep -qc "ASCII text";`; then
+	    rm -rf "${FL}"
+	    echo "Non-ASCII file ""${FL}"" will not be restored"
+	fi
+    done
+}
+
 function check_current_system_dirs() {
     if [ ! -d "/etc/ntopng" ]; then
 	echo "Directory /etc/ntopng is missing from the system, unable to restore."
@@ -110,70 +145,45 @@ function check_current_system_dirs() {
     fi
 }
 
-function save_existing() {
-    if [ ! -z "$1" ]; then
-	if [ ! -f "$1" ] && [ ! -d "$1" ] ; then
-	    return
-	else
-	    local DST="$1${SAVED_SUFFIX}"
-	    echo "Saving $1 to to ${DST}"
-	    rm -rf "${DST}"
-	    cp -Rp "$1" "${DST}"
+function restore_and_save_file() {
+    local SRC="$1"  # full path to the source file
+    local DST_DIR="$2" # destination directory
+    local OWNERSHIP="$3" # ownership to execute chown
+
+    if [ ! -z "${SRC}" ] && [ -f "${SRC}" ] && [ ! -z "${DST_DIR}" ] && [ -d "${DST_DIR}" ]; then
+	local SRC_BASENAME=`basename "${SRC}"`
+	local DST="${DST_DIR}/${SRC_BASENAME}"
+
+	if [ -f "${DST}" ]; then
+	    # make a backup copy of the file before overwriting it
+	    local SAV="${DST}${SAVED_SUFFIX}"
+
+	    rm -rf "${SAV}"
+	    cp -Rp "${DST}" "${SAV}"
+	    echo "File ""${DST}"" saved to ""${SAV}"
+	fi
+
+	# put the recovered file in place
+	cp -Rp "${SRC}" "${DST}"
+	echo "File ""${DST}"" restored"
+
+	# possibly change the ownership
+	if [ ! -z "${OWNERSHIP}" ]; then
+	    chown "${OWNERSHIP}" "${DST}"
+	    echo "File ""${DST}"" permissions set to ""${OWNERSHIP}"
 	fi
     fi
 }
 
-function save_ntopng_conf_dir() {
-    # copy the whole directory
-    save_existing "/etc/ntopng"
-}
-
-function save_existing_files() {
-    if [ -z "${ARCHIVE_DATADIR}" ]; then
-	return
-    fi
-
-    save_existing "${ARCHIVE_RUNTIMEPREFS}"
-    save_existing "${ARCHIVE_SYSTEMCONFIG}"
-    save_existing "${ARCHIVE_LICENSE}"
-}
-
-function restore_ntopng_conf_dir() {
-    # extract /etc/ntopng from the archive to the filesystem
-    # P is use to tell tar to not remove the leading slash
-    # as we are only going to write /etc/ntopng and not stuff
-    # around for the system
-
-    # permissions stay untouched for the ntopng data dir
-    # that must be hanlded as root (sensitive data including
-    # passwords can be contained here)
-    tar Pxfvz "${ARCHIVE}" /etc/ntopng || exit 1
-    echo "Restored folder /etc/ntopng"
-}
-
-function restore_file() {
-    if [ -z "$1" ]; then
-	# nothing to do
-	return
-    fi
-
-    # restore the file passed as first argument
-
-    # NOTE:
-    # When extracting files, if tar discovers that the extracted file already exists,
-    # it replaces the file by removing it before extracting it. If a directory cannot be removed
-    # because it is nonempty, tar overwrites its metadata (ownership, permission, etc.).
-    # To be more cautious and preserve the metadata of such a directory, we use the `--no-overwrite-dir' option.
-
-    tar Pxfvz "${ARCHIVE}" "$1" --no-overwrite-dir || exit 1
-    # changses the permissions of the restored file as specified in the
-    # second argument
-    chown "$2" "$1" || exit 1
-
-    echo "Restored $1"
-}
-
 function restore_files() {
+    # restore /etc/ntopng files
+    find "${STAGING_DIR}/etc/ntopng"  -maxdepth 1 -type f -name '*.*' -print0 |
+    while IFS= read -r -d '' FL; do
+	restore_and_save_file "${FL}" "/etc/ntopng"
+    done
+
+    restore_and_save_file "${STAGING_DIR}/${ARCHIVE_LICENSE}" "/etc" "root:root"
+
     if [ -z "${ARCHIVE_DATADIR}" ] || [ ! -d "${ARCHIVE_DATADIR}" ]; then
 	# nothing to do, the either not existing or not a directory
 	return
@@ -192,26 +202,25 @@ function restore_files() {
 
     # restore archives and we're sure it's
     # going to be in an existing directory
-    restore_file "${ARCHIVE_RUNTIMEPREFS}" "${USER_GROUP}"
-    restore_file "${ARCHIVE_SYSTEMCONFIG}" "${USER_GROUP}"
-    restore_file "${ARCHIVE_LICENSE}" "root:root"
+    restore_and_save_file "${STAGING_DIR}/${ARCHIVE_RUNTIMEPREFS}" "${ARCHIVE_DATADIR}" "${USER_GROUP}"
+    restore_and_save_file "${STAGING_DIR}/${ARCHIVE_SYSTEMCONFIG}" "${ARCHIVE_DATADIR}" "${USER_GROUP}"
 }
 
 function cleanup() {
-    rm -rf "${ARCHIVE}"
+    :
+#    rm -rf "${ARCHIVE}"
+    rm -rf "${STAGING_DIR}"
 }
 
+trap cleanup EXIT
+
 # preliminary checks
-check_tar_file "${ARCHIVE}"
-check_tar_contents "${ARCHIVE}"
+check_tar_file
+check_tar_contents
+extract_tar_archive
 check_current_system_dirs
 
-# pre-restore saves of existing files and dirs
-save_ntopng_conf_dir
-save_existing_files
-
 # actual restore
-restore_ntopng_conf_dir
 restore_files
 
 #cleanup files
