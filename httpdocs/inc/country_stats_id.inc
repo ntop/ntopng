@@ -11,6 +11,8 @@ function country_table_setID (row) {
 
   row.find("td").eq(index++).attr('id', country_key+"_key");
   row.find("td").eq(index++).attr('id', country_key+"_number");
+  // skip chart column
+  index++;
   // country_stats_top
   row.find("td").eq(index++).attr('id', country_key+"_hosts");
   row.find("td").eq(index++).attr('id', country_key+"_alerts");

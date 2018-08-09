@@ -213,7 +213,11 @@ local function print_single_group(value)
       local charts_enabled = ntop.getPref("ntopng.prefs.country_rrd_creation") == "1"
       if(charts_enabled) then
          print("\"column_chart\" : \"")
-         print('<A HREF=\''..ntop.getHttpPrefix()..'/lua/country_details.lua?country='..value["id"]..'&page=historical\'><i class=\'fa fa-area-chart fa-lg\'></i></A>')
+         if ts_utils.exists("country:traffic", {ifid=getInterfaceId(ifname), country=value["id"]}) then
+            print('<A HREF=\''..ntop.getHttpPrefix()..'/lua/country_details.lua?country='..value["id"]..'&page=historical\'><i class=\'fa fa-area-chart fa-lg\'></i></A>')
+         else
+            print("-")
+         end
          print("\", ")
       end
 
