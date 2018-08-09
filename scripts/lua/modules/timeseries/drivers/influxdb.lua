@@ -103,6 +103,11 @@ local function influx2Series(schema, tstart, tend, tags, options, data, time_ste
   for idx, values in ipairs(data.values) do
     local cur_t = data.values[idx][1]
 
+    if #values < 1 then
+      -- skip empty points (which are out of query bounds)
+      goto continue
+    end
+
     if (idx == 1) and (data_type ~= ts_common.metrics.counter) then
       -- skip first point when no derivative is performed as an issue with GROUP BY
       goto continue
@@ -119,22 +124,20 @@ local function influx2Series(schema, tstart, tend, tags, options, data, time_ste
       prev_t = prev_t + time_step
     end
 
-    if #values > 1 then
-      for i=2, #values do
-        local val = values[i]
+    for i=2, #values do
+      local val = values[i]
 
-        if val < options.min_value then
-          val = options.min_value
-        elseif val > options.max_value then
-          val = options.max_value
-        end
-
-        series[i-1].data[series_idx] = val
+      if val < options.min_value then
+        val = options.min_value
+      elseif val > options.max_value then
+        val = options.max_value
       end
 
-      series_idx = series_idx + 1
-      prev_t = prev_t + time_step
+      series[i-1].data[series_idx] = val
     end
+
+    series_idx = series_idx + 1
+    prev_t = prev_t + time_step
 
     ::continue::
   end
