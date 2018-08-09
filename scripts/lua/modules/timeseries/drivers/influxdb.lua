@@ -140,7 +140,7 @@ local function influx2Series(schema, tstart, tend, tags, options, data, time_ste
   end
 
    -- Fill the missing points at the end
-  while((tend - prev_t) > time_step) do
+  while((tend - prev_t) >= time_step) do
     for _, serie in pairs(series) do
       serie.data[series_idx] = options.fill_value
     end
@@ -249,6 +249,81 @@ local function test_influx2Series()
   end
 
   io.write("test_influx2Series OK\n")
+  return true
+end
+
+local function test_influx2Series2()
+  local tags = {}
+  local options = {
+    fill_value = 0,
+    min_value = 0,
+    max_value = math.huge,
+  }
+
+  local data1 = {
+    statement_id = 0,
+    series = {
+      {
+        name = "iface:traffic",
+        columns = {
+          "time", "bytes"
+        },
+        values = {
+          {1533808916, 0},
+        },
+      }
+    }
+  }
+
+  local data2 = {
+    statement_id = 0,
+    series = {
+      {
+        name = "iface:traffic",
+        columns = {
+          "time", "bytes"
+        },
+        values = {
+          {1533808616, 156},
+          {1533808617, 384},
+          {1533808618, 1443},
+          {1533808619, 763},
+          {1533808620, 12763},
+          {1533808621, 4372},
+          {1533808622, 0},
+          {1533808623, 0},
+          {1533808624, 1215},
+          {1533808625, 3397},
+          {1533808626, 245613},
+          {1533808627, 76308},
+          {1533808628, 202},
+          {1533808629, 0},
+          {1533808630, 0},
+        },
+      }
+    }
+  }
+
+  local schema = {
+    options = {
+      step = 1,
+      metrics_type = "counter",
+    }
+  }
+
+  local time_step = 1 -- no sampling
+  local tstart = 1533808915; tend = 1533808930
+  local data1_series, data1_count = influx2Series(schema, tstart, tend, tags, options, data1.series[1], time_step)
+  local tstart = 1533808615; tend = 1533808630
+  local data2_series, data2_count = influx2Series(schema, tstart, tend, tags, options, data2.series[1], time_step)
+
+  -- No initial gaps
+  if(not(data1_count == data2_count)) then
+    io.write("test_influx2Series ASSERTION FAILED: data1_count == data2_count\n")
+    return false
+  end
+
+  io.write("test_influx2Series2 OK\n")
   return true
 end
 
