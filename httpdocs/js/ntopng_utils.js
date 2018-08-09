@@ -75,7 +75,7 @@ function is_network_mask(what, optional_mask) {
 
 function fbits(bits) {
     var sizes = ['bps', 'Kbit/s', 'Mbit/s', 'Gbit/s', 'Tbit/s'];
-    if(bits <= 0) return '0';
+    if(bits < 0.005) return '0';
     var bits_log1000 = Math.log(bits) / Math.log(1000)
     var i = parseInt(Math.floor(bits_log1000));
     if (i < 0 || isNaN(i)) {
@@ -102,7 +102,7 @@ function fbits_from_bytes(bytes) {
 
 function fpackets(pps) {
     var sizes = ['pps', 'Kpps', 'Mpps', 'Gpps', 'Tpps'];
-    if(pps == 0) return '0';
+    if(pps < 0.005) return '0';
     var res = scaleValue(pps, sizes, 1000);
 
     // Round to two decimal digits
@@ -111,7 +111,7 @@ function fpackets(pps) {
 
 function fflows(fps) {
     var sizes = ['fps', 'Kfps', 'Mfps', 'Gfps', 'Tfps'];
-    if(fps == 0) return '0';
+    if(fps < 0.005) return '0';
     var res = scaleValue(fps, sizes, 1000);
 
     // Round to two decimal digits
