@@ -146,23 +146,23 @@ function restore_ntopng_conf_dir() {
     # permissions stay untouched for the ntopng data dir
     # that must be hanlded as root (sensitive data including
     # passwords can be contained here)
-
-    echo "Restoring..."
     tar Pxfvz ${ARCHIVE} /etc/ntopng || exit 1
+    echo "Restored folder /etc/ntopng"
 }
 
 function restore_file() {
-    if [ ! -z "$1" ]; then
+    if [ -z "$1" ]; then
 	# nothing to do
 	return
     fi
 
-    echo "Restoring $1"
     # restore the file passed as first argument
-    tar Pxfvz "${ARCHIVE}" "$1" || exit 1
+    tar Pxfvz "${ARCHIVE}" "$1" --no-overwrite-dir || exit 1
     # changes the permissions of the restored file as specified in the
     # second argument
-    chown "$2" "$1"
+    chown "$2" "$1" || exit 1
+
+    echo "Restored $1"
 }
 
 function restore_files() {
@@ -184,9 +184,9 @@ function restore_files() {
 
     # restore archives and we're sure it's
     # going to be in an existing directory
-    restore_file ${ARCHIVE_RUNTIMEPREFS} ${USER_GROUP}
-    restore_file ${ARCHIVE_SYSTEMCONFIG} ${USER_GROUP}
-    restore_file ${ARCHIVE_LICENSE} ${USER_GROUP}
+    restore_file "${ARCHIVE_RUNTIMEPREFS}" "${USER_GROUP}"
+    restore_file "${ARCHIVE_SYSTEMCONFIG}" "${USER_GROUP}"
+    restore_file "${ARCHIVE_LICENSE}" "root:root"
 }
 
 # preliminary checks
