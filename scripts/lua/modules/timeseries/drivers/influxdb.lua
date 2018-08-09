@@ -140,7 +140,7 @@ local function influx2Series(schema, tstart, tend, tags, options, data, time_ste
   end
 
    -- Fill the missing points at the end
-  while((tend - prev_t) >= time_step) do
+  while((tend - prev_t) > 0) do
     for _, serie in pairs(series) do
       serie.data[series_idx] = options.fill_value
     end
@@ -319,11 +319,87 @@ local function test_influx2Series2()
 
   -- No initial gaps
   if(not(data1_count == data2_count)) then
-    io.write("test_influx2Series ASSERTION FAILED: data1_count == data2_count\n")
+    io.write("test_influx2Series2 ASSERTION FAILED: data1_count == data2_count\n")
     return false
   end
 
   io.write("test_influx2Series2 OK\n")
+  return true
+end
+
+local function test_influx2Series3()
+  local tags = {}
+  local options = {
+    fill_value = 0,
+    min_value = 0,
+    max_value = math.huge,
+  }
+
+  local data1 = {
+    statement_id = 0,
+    series = {
+      {
+        name = "iface:traffic",
+        columns = {
+          "time", "bytes"
+        },
+        values = {
+          {1533808816, 130.79671280276},
+          {1533808850, 231.55622837371},
+          {1533808884, 149.47404844291},
+          {1533808918, 208.94723183391},
+          {1533808952, 101.22664359862},
+          {1533808986, 53.307093425599},
+          {1533809020, 87.579584775095},
+          {1533809054, 56.829584775082},
+          {1533809088, 134.9682939672},
+        },
+      }
+    }
+  }
+
+  local data2 = {
+    statement_id = 0,
+    series = {
+      {
+        name = "iface:traffic",
+        columns = {
+          "time", "bytes"
+        },
+        values = {
+          {1533808544, 479.54411764706},
+          {1533808578, 111.54584775086},
+          {1533808612, 6143.3468858131},
+          {1533808646, 4240.8070934256},
+          {1533808680, 164.98183391004},
+          {1533808714, 120.65224913495},
+          {1533808748, 658.87543252595},
+          {1533808782, 363.52923278845},
+        },
+      }
+    }
+  }
+
+  local schema = {
+    options = {
+      step = 1,
+      metrics_type = "counter",
+    }
+  }
+
+  local time_step = 34 -- 34x sampling
+  local tstart = 1533808810; tend = 1533809110
+  local data1_series, data1_count = influx2Series(schema, tstart, tend, tags, options, data1.series[1], time_step)
+  local tstart = 1533808510; tend = 1533808810
+  local data2_series, data2_count = influx2Series(schema, tstart, tend, tags, options, data2.series[1], time_step)
+
+  -- No initial gaps
+  if(not(data1_count == data2_count)) then
+    io.write("test_influx2Series3 ASSERTION FAILED: data1_count == data2_count\n")
+    return false
+  end
+
+  io.write("test_influx2Series3 OK\n")
   return true
 end
 
@@ -463,7 +539,7 @@ function driver:query(schema, tstart, tend, tags, options)
   local total_serie = makeTotalSerie(schema, tstart, tend, tags, options, url, time_step, self.db)
   local stats = nil
 
-  if options.calculate_stats then
+  if options.calculate_stats and total_serie then
     stats = calcStats(schema, tstart, tend, tags, url, total_serie, time_step, self.db)
   end
 
@@ -617,7 +693,7 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
   local total_serie = makeTotalSerie(schema, tstart, tend, tags, options, url, time_step, self.db)
   local stats = nil
 
-  if options.calculate_stats then
+  if options.calculate_stats and total_serie then
     stats = calcStats(schema, tstart, tend, tags, url, total_serie, time_step, self.db)
   end
 

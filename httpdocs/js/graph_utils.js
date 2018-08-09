@@ -461,7 +461,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_out_id, f
         }
       }
 
-      if(!data.no_trend) {
+      if(!data.no_trend && total_serie.length) {
         // Smoothed serie
         var num_smoothed_points = Math.max(Math.floor(total_serie.length / 5), 3);
 
