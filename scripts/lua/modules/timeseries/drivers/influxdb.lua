@@ -415,19 +415,22 @@ end
 -- ##############################################
 
 function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
+  -- At least 2 values are needed otherwise derivative will return empty
+  local min_values = 2
+
   -- NOTE: time based query not currently supported on show tags/series, using select
   -- https://github.com/influxdata/influxdb/issues/5668
   --[[
   SELECT * FROM "iface:ndpi_categories"
     WHERE ifid='2' AND time >= 1531981349000000000
     GROUP BY category
-    LIMIT 1
+    LIMIT 2
   ]]
   local query = 'SELECT * FROM "' .. schema.name .. '" WHERE ' ..
       table.tconcat(tags_filter, "=", " AND ", nil, "'") ..
       " AND time >= " .. start_time .. "000000000" ..
       ternary(not table.empty(wildcard_tags), " GROUP BY " .. table.concat(wildcard_tags, ","), "") ..
-      " LIMIT 1"
+      " LIMIT " .. min_values
 
   local url = self.url
   local full_url = url .. "/query?db=".. self.db .."&q=" .. urlencode(query)
@@ -443,7 +446,7 @@ function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
 
   if table.empty(wildcard_tags) then
     -- Simple "exists" check
-    if not table.empty(data.series[1].values) then
+    if #data.series[1].values >= min_values then
       return tags_filter
     else
       return {}
@@ -453,6 +456,10 @@ function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
   local res = {}
 
   for _, serie in pairs(data.series) do
+    if #serie.values < min_values then
+      goto continue
+    end
+
     for _, value in pairs(serie.values) do
       local tags = {}
 
@@ -470,7 +477,10 @@ function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
       end
 
       res[#res + 1] = tags
+      break
     end
+
+    ::continue::
   end
 
   return res
