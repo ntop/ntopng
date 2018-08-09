@@ -94,39 +94,6 @@ function ts_common.upsampleSerie(serie, num_points)
   return res
 end
 
--- test for ts_common.interpolateSerie
-local function test_interpolateSerie()
-  local serie = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
-  local target_points = 19
-  local max_err_perc = 10
-  local res = interpolateSerie(serie, target_points)
-
-  if not(#res == target_points) then
-    io.write("test_influx2Series ASSERTION FAILED: target_points == #res\n")
-    return false
-  end
-
-  local sum = function(a)
-    local s = 0
-    for _, x in pairs(a) do
-      s = s + x
-    end
-    return s
-  end
-
-  local avg1 = sum(serie) / #serie
-  local avg2 = sum(res) / #res
-  local err = math.abs(avg1 - avg2)
-  local err_perc = err * 100 / avg1
-
-  if not(err_perc <= max_err_perc) then
-    io.write("test_influx2Series ASSERTION FAILED: err <= ".. max_err_perc .."%\n")
-    return false
-  end
-
-  return true
-end
-
 -- ##############################################
 
 return ts_common
