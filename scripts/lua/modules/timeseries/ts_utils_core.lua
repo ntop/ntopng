@@ -378,6 +378,7 @@ function ts_utils.listSeries(schema_name, tags_filter, start_time)
   end
 
   local wildcard_tags = {}
+  local filter_tags = {}
 
   for tag in pairs(schema.tags) do
     if not tags_filter[tag] then
@@ -385,7 +386,14 @@ function ts_utils.listSeries(schema_name, tags_filter, start_time)
     end
   end
 
-  return driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
+  -- only pass schema own tags
+  for tag, val in pairs(tags_filter) do
+    if schema.tags[tag] then
+      filter_tags[tag] = val
+    end
+  end
+
+  return driver:listSeries(schema, filter_tags, wildcard_tags, start_time)
 end
 
 -- ##############################################
