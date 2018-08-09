@@ -276,7 +276,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_out_id, f
     "#E27B85"
   ];
 
-  var chart_colors_min = ["#94CFA4", "#FCD384", "#FD977B"];
+  var chart_colors_min = ["#7CC28F", "#FCD384", "#FD977B"];
 
   var update_chart_data = function(new_data) {
     /* reset chart data so that the next transition animation will be gracefull */

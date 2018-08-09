@@ -376,6 +376,9 @@ tr.quotas > td {
 }
 
 /* Hide second axis lines */
-#historical-tab-chart .nv-y2 .tick line {
+/* #historical-tab-chart .nv-y2 .tick line */
+
+/* Hide second axis at all */
+#historical-tab-chart .nv-y2 {
   display: none;
 }
