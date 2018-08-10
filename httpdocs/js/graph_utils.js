@@ -300,6 +300,8 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_out_id, f
   }
 
   chart.legend.dispatch.on('legendClick', function(d,i) {
+    console.log(d.legend_key, d.disabled);
+
     if(typeof localStorage !== "undefined")
       localStorage.setItem("chart_series.disabled." + d.legend_key, (!d.disabled) ? true : false);
   });
@@ -405,18 +407,22 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_out_id, f
           t += data.step;
         }
 
+        var label = getSerieLabel(schema_name, series[j]);
+        var legend_key = schema_name + ":" + label;
+
         res.push({
-          key: getSerieLabel(schema_name, series[j]),
+          key: label,
           yAxis: series[j].axis || 1,
           values: values,
           type: series[j].type || "area",
           color: chart_colors[color_i++],
-          legend_key: series[j].label,
-          disabled: isLegendDisabled(series[j].label, false),
+          legend_key: legend_key,
+          disabled: isLegendDisabled(legend_key, false),
         });
       }
 
       var visual_total = buildTotalSerie(series);
+      var has_full_data = false;
 
       if(data.additional_series && data.additional_series.total) {
         total_serie = data.additional_series.total;
@@ -434,9 +440,13 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_out_id, f
             legend_key: "other",
             disabled: isLegendDisabled("other", false),
           });
+
+          has_full_data = true;
         }
-      } else
+      } else {
         total_serie = visual_total;
+        has_full_data = !schema_name.startsWith("top:");
+      }
 
       if(data.additional_series) {
         for(var key in data.additional_series) {
@@ -461,7 +471,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_out_id, f
         }
       }
 
-      if(!data.no_trend && total_serie.length) {
+      if(!data.no_trend && has_full_data && total_serie.length) {
         // Smoothed serie
         var num_smoothed_points = Math.max(Math.floor(total_serie.length / 5), 3);
 
@@ -493,7 +503,8 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_out_id, f
       chart.yAxis1.tickFormat(value_formatter);
       chart.yAxis1_formatter = value_formatter;
 
-      var formatter2 = getValueFormatter(schema_name, series.filter(function(d) { return(d.axis == 2); }));
+      var second_axis_series = series.filter(function(d) { return(d.axis == 2); });
+      var formatter2 = getValueFormatter(schema_name, second_axis_series);
       var value_formatter2 = formatter2[0];
       chart.yAxis2.tickFormat(value_formatter2);
       chart.yAxis2_formatter = value_formatter2;
@@ -550,6 +561,19 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_out_id, f
           stats_table.hide();
       } else {
         stats_table.hide();
+      }
+
+      var enabled_series = res.filter(function(d) { return(d.disabled !== true); });
+
+      if(second_axis_series.length > 0 || enabled_series.length == 0) {
+        // Enable all the series
+        for(var i=0; i<res.length; i++)
+          res[i].disabled = false;
+      }
+
+      if(second_axis_series.length > 0) {
+        // Don't allow series toggle by disabling legend clicks
+        chart.legend.updateState(false);
       }
 
       update_chart_data(res);

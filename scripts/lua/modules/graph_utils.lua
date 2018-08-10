@@ -196,12 +196,15 @@ function populateGraphMenuEntry(label, base_url, params, tab_id)
       entry_params[k] = v
    end
 
-   graph_menu_entries[#graph_menu_entries + 1] = {
+   local entry = {
       html = entry_str,
       label = label,
       schema = params.ts_schema,
       params = entry_params, -- for graphMenuGetActive
    }
+
+   graph_menu_entries[#graph_menu_entries + 1] = entry
+   return entry
 end
 
 function graphMenuDivider()

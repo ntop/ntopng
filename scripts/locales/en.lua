@@ -1213,6 +1213,7 @@ local lang = {
     ["blocked_flows"] = "Blocked Flows",
     ["flows_vs_local_hosts"] = "Active Flows vs Local Hosts",
     flows_vs_traffic = "Active Flows vs Traffic",
+    right_axis_note = "(right axis)",
     ["graph_info"] = "Graph Info",
     ["hover_the_mouse_to"] = "Hover the mouse on the chart to display minute top traffic statistics",
     ["max"] = "Max",
