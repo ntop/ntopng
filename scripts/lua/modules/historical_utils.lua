@@ -331,7 +331,9 @@ function historicalDownloadButtonsBar(button_id, pcap_request_data_container_div
              print [[<a class="btn btn-default btn-sm" href="#" role="button" id="download_flows_v6_]] print(button_id) print[[" style="]] print(style_ipv6) print[[">]] print(i18n("ipv6")) print[[</a>]]
 	end
 
-	print [[</div>]]
+	print [[
+        <p class="text-muted">]] print(i18n("db_explorer.download_flows_limit")) print[[</p>
+	</div>]]
 	  if interface.isPacketInterface()
 	    and ntop.getCache("ntopng.prefs.nbox_integration") == "1"
 	    and haveAdminPrivileges() then
@@ -1782,7 +1784,6 @@ end
 
 print[[
         tr += "<td align='right'>" + bytesToVolume(item.tot_bytes) + "</td>"
-debugger;
         tr += "<td align='right'>" + formatPackets(item.tot_packets) + "</td>"
         tr += "<td align='right'>" + fbits(item.tot_bytes * 8 / msg.timespan) + "</td>"
         tr += "<td align='right'>" + fpackets(item.tot_packets / msg.timespan) + "</td>"

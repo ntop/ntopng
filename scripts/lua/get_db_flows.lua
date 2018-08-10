@@ -56,7 +56,7 @@ if((sortOrder == nil) or (sortOrder == "")) then sortOrder = "asc" end
 if((sortColumn == nil) or (sortColumn == "")) then sortColumn = "BYTES" end
 
 if(format == "txt") then
-   limit = 99999
+   limit = 1000
    currentPage = 1
    perPage = limit
 else

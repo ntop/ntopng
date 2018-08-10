@@ -406,6 +406,7 @@ local lang = {
     ["client_server_host"] = "Client/Server Host",
     ["dns_query"] = "DNS Query",
     ["download_flows"] = "Download flows",
+    ["download_flows_limit"] = "Maximum 1000 records.",
     ["empty_query_response"] = "Empty query response (database down or query killed/timed out?)",
     ["extract_pcap"] = "Extract pcap",
     ["filter_bpf"] = "Filter (BPF)",

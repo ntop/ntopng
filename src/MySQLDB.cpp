@@ -863,6 +863,14 @@ int MySQLDB::exec_sql_query(lua_State *vm, char *sql, bool limitRows, bool wait_
       lua_insert(vm, -2);
       lua_settable(vm, -3);
 
+      if(num > MYSQL_MAX_NUM_ROWS) {
+	static bool warning_shown = false;
+	if(!warning_shown) {
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "Too many results returned from MySQL, reduce query result set");
+	  warning_shown = true;
+	}
+      }
+
       if(limitRows && num >= MYSQL_MAX_NUM_ROWS) break;
     }
 

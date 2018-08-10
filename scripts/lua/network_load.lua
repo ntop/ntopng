@@ -2,11 +2,11 @@
 -- (C) 2013-18 - ntop.org
 --
 
-dirs = ntop.getDirs()
+local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
-json = require("dkjson")
+local json = require("dkjson")
 
 --sendHTTPContentTypeHeader('text/html')
 sendHTTPHeader('application/json')
@@ -50,12 +50,12 @@ function dumpInterfaceStats(interface_name)
 
    local res = {}
    if(ifstats ~= nil) then
-      uptime = ntop.getUptime()
-      prefs = ntop.getPrefs()
+      local uptime = ntop.getUptime()
+      local prefs = ntop.getPrefs()
 
       -- Round up
-      hosts_pctg = math.floor(1+((ifstats.stats.hosts*100)/prefs.max_num_hosts))
-      flows_pctg = math.floor(1+((ifstats.stats.flows*100)/prefs.max_num_flows))
+      local hosts_pctg = math.floor(1+((ifstats.stats.hosts*100)/prefs.max_num_hosts))
+      local flows_pctg = math.floor(1+((ifstats.stats.flows*100)/prefs.max_num_flows))
 
       res["ifname"]  = interface_name
       res["speed"]  = getInterfaceSpeed(ifstats)
