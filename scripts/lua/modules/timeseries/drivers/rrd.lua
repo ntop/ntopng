@@ -32,8 +32,8 @@ end
 
 -- ##############################################
 
-function driver:flush()
-  return true
+function driver:export()
+  return
 end
 
 -- ##############################################

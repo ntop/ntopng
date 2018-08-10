@@ -309,8 +309,6 @@ function rrd_dump.run_5min_dump(_ifname, ifstats, config, when, time_threshold, 
       host_pools_utils.updateRRDs(ifstats.id, true --[[ also dump nDPI data ]], verbose)
     end
   end
-
-  ts_utils.flush()
 end
 
 -- ########################################################

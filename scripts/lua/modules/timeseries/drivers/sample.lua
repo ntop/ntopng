@@ -51,6 +51,11 @@ end
 function driver:topk(schema, tags, tstart, tend, options, top_tags)
 end
 
+--! @brief Informs the driver that it's time to export data.
+--! @note This is called periodically by ntopng and should not be called manually.
+function driver:export()
+end
+
 -- ##############################################
 
 return driver

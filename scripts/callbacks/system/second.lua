@@ -31,6 +31,3 @@ callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, functio
       ts_utils.append("iface:drops", {ifid=ifstats.id, packets=ifstats.stats.drops}, when)
    end
 end)
-
-ts_utils.flush()
-

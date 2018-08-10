@@ -7,6 +7,7 @@ local driver = {}
 local ts_common = require("ts_common")
 
 local json = require("dkjson")
+local os_utils = require("os_utils")
 require("ntop_utils")
 
 --
@@ -316,8 +317,36 @@ end
 
 -- ##############################################
 
-function driver:flush()
-  return true
+function driver:export()
+  local system_iface_id = -1
+
+  while(true) do
+    local name_id = ntop.lpopCache("ntopng.influx_file_queue")
+    local ret
+
+    if((name_id == nil) or (name_id == "")) then
+      break
+    end
+
+    if(tonumber(name_id) == nil) then
+      traceError(TRACE_ERROR, TRACE_CONSOLE, "Invalid name "..name_id.."\n")
+      break
+    end
+
+    local fname = os_utils.fixPath(dirs.workingdir .. "/" .. system_iface_id .. "/ts_export/" .. name_id)
+
+    -- Delete the file after POST
+    local delete_file_after_post = true
+    ret = ntop.postHTTPTextFile("", "", self.url .. "/write?db=" .. self.db, fname, delete_file_after_post, 5 --[[ timeout ]])
+
+    if(ret ~= true) then
+      traceError(TRACE_ERROR, TRACE_CONSOLE, "POST of "..fname.." failed\n")
+
+      -- delete the file manually
+      os.remove(fname)
+      break
+    end
+  end
 end
 
 -- ##############################################

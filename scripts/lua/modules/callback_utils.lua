@@ -220,42 +220,11 @@ end
 -- ########################################################
 
 function callback_utils.uploadTSdata()
-   local url = ntop.getPref("ntopng.prefs.ts_post_data_url")
-   local dbname = ntop.getPref("ntopng.prefs.influx_dbname")
-   local driver = ntop.getPref("ntopng.prefs.timeseries_driver")
+   local ts_utils = require("ts_utils_core")
+   local drivers = ts_utils.listActiveDrivers()
 
-   if((url == nil) or (url == "") or (driver ~= "influxdb")) then
-      return
-   end
-
-   while(true) do
-      local name_id = ntop.lpopCache("ntopng.influx_file_queue")
-      local ret
-
-      if((name_id == nil) or (name_id == "")) then
-	 break
-      end
-
-      if(tonumber(name_id) == nil) then
-	 print("[ERROR] Invalid name "..name_id.."\n")
-	 break
-      end
-
-      local fname = os_utils.fixPath(dirs.workingdir .. "/" .. getInterfaceId(ifname) .. "/ts_export/" .. name_id)
-
-      -- Delete the file after POST
-      local delete_file_after_post = true
-      ret = ntop.postHTTPTextFile("", "", url .. "/write?db=" .. dbname, fname, delete_file_after_post, 5 --[[ timeout ]])
-      --print(fname .. "\n")
-
-      if(ret ~= true) then
-	 print("[ERROR] POST of "..fname.." failed\n")
-
-	 -- delete the file manually
-	 os.remove(fname)
-    break
-      end
-
+   for _, driver in ipairs(drivers) do
+      driver:export()
    end
 end
 -- ########################################################

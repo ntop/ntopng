@@ -152,8 +152,6 @@ function rrd_dump.run_min_dump(_ifname, ifstats, config, when, verbose)
 
      ts_utils.append("iface:nfq_pct", {ifid=ifstats.id, num_nfq_pct = st.queue_pct}, when, verbose)
   end
-
-  ts_utils.flush()
 end
 
 -- ########################################################
