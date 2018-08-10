@@ -66,7 +66,7 @@ if(haveAdminPrivileges()) then
     local url = string.gsub(string.gsub( _POST["ts_post_data_url"], "http:__", "http://"), "https:__", "https://")
 
     if(url ~= ntop.getPref("ntopng.prefs.ts_post_data_url"))
-        or (_POST["influx_dbname"] ~= ntop.getPref("ntopng.prefs.influxdb_dbname"))
+        or (_POST["influx_dbname"] ~= ntop.getPref("ntopng.prefs.influx_dbname"))
         or (_POST["influx_retention"] ~= ntop.getPref("ntopng.prefs.influx_retention")) then
       package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/drivers/?.lua;" .. package.path
       local influxdb = require("influxdb")
