@@ -592,7 +592,7 @@ print("</script>\n")
   <input type=hidden name=ifid value="]] print(ifId.."") print [[">
   <input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
   <div class="form-group mb-2">
-    <label for="duration" class="sr-only">Duration</label>
+    <label for="duration" class="sr-only">]] print(i18n("duration")) print[[</label>
       <select class="form-control" id="duration" name=duration>
       <option value=10>10 sec</option>
       <option value=30>30 sec</option>
@@ -602,10 +602,10 @@ print("</script>\n")
     </select>
   </div>
   <div class="form-group mx-sm-3 mb-2">
-    <label for="bpf_filter" class="sr-only">BPF Filter</label>
-    <input type="text" class="form-control" id="bpf_filter" name="bpf_filter" placeholder="BPF Filter"></input>
+    <label for="bpf_filter" class="sr-only">]] print(i18n("db_explorer.filter_bpf")) print[[</label>
+    <input type="text" class="form-control" id="bpf_filter" name="bpf_filter" placeholder="]] print(i18n("db_explorer.filter_bpf")) print[["></input>
   </div>
-  <button type="submit" class="btn btn-primary mb-2">pcap Download</button>
+  <button type="submit" class="btn btn-default mb-2">]] print(i18n("download")) print[[ pcap</button>
 </form>
 ]]
 
