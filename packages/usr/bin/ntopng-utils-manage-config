@@ -120,6 +120,9 @@ function sanitize_staging_dir() {
     # Throw away backup files
     find "${STAGING_DIR}" -type f -name "*~" -exec rm -rf {} \;
 
+    # Throw away previously backed up ntopng files
+    find "${STAGING_DIR}" -type f -name "*${SAVED_SUFFIX}" -exec rm -rf {} \;
+
     # Throw away empty files
     find "${STAGING_DIR}" -type f -size 0 -exec rm -rf {} \;
 
