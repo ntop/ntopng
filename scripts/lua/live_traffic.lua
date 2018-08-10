@@ -20,7 +20,7 @@ local function send_error(error_type)
    print(json.encode({error = msg}))
 end
 
-local function send_status(status_type) 
+local function send_status(status_type)
    sendHTTPContentTypeHeader('application/json')
    print(json.encode({status = status_type}))
 end
@@ -32,11 +32,11 @@ local granted = true
 if not granted then
    send_error("not_granted")
 else
-   local host       = _GET["host"]
-   local duration   = tonumber(_GET["duration"])
-   local bpf_filter = _GET["bpf_filter"]   
+   local host       = _POST["host"]
+   local duration   = tonumber(_POST["duration"])
+   local bpf_filter = _POST["bpf_filter"]
    local fname      = ifname
-   
+
    if(host ~= nil) then
       fname = fname .. "_"..host
    end
@@ -44,14 +44,14 @@ else
    if((bpf_filter ~= nil) and (bpf_filter ~= "")) then
       fname = fname .. "_filtered"
    end
-   
+
    fname = fname .."_live.pcap"
 
    if((duration == nil) or (duration < 0) or (duration > 600)) then
       duration = 60
    end
-   
+
    sendHTTPContentTypeHeader('application/vnd.tcpdump.pcap', 'attachment; filename="'..fname..'"')
-   
+
    interface.liveCapture(host, duration, bpf_filter)
 end

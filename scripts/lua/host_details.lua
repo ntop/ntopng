@@ -598,8 +598,9 @@ end
 
       if(isAdministrator()) then
 	 print [[
-<td><form class="form-inline" action="]] print(ntop.getHttpPrefix().."/lua/live_traffic.lua") print [[">
+<td><form class="form-inline" action="]] print(ntop.getHttpPrefix().."/lua/live_traffic.lua") print [[" method="POST">
   <input type=hidden name=ifid value="]] print(ifId.."") print [[">
+  <input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
   <input type=hidden name=host value="]] print(host_info["host"]) print [[">
   <div class="form-group mb-2">
     <label for="duration" class="sr-only">Duration</label>

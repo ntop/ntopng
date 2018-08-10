@@ -588,8 +588,9 @@ print("</script>\n")
       print("<tr><th>"..i18n("download").."&nbsp;<i class=\"fa fa-download fa-lg\"></i></th><td colspan=4>")
 
       	 print [[
-<form class="form-inline" action="]] print(ntop.getHttpPrefix().."/lua/live_traffic.lua") print [[">
+<form class="form-inline" action="]] print(ntop.getHttpPrefix().."/lua/live_traffic.lua") print [[" method="POST">
   <input type=hidden name=ifid value="]] print(ifId.."") print [[">
+  <input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
   <div class="form-group mb-2">
     <label for="duration" class="sr-only">Duration</label>
       <select class="form-control" id="duration" name=duration>
