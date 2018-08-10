@@ -18,7 +18,7 @@ require("ntop_utils")
 --
 
 local INFLUX_QUERY_TIMEMOUT_SEC = 5
-local MIN_INFLUXDB_SUPPORTED_VERSION = "1.6.0"
+local MIN_INFLUXDB_SUPPORTED_VERSION = "1.5.1"
 
 -- ##############################################
 
@@ -516,14 +516,31 @@ end
 
 -- ##############################################
 
-local function isCompatibleVersion(version)
-  local parts = split(version, "%.")
-  local required = split(MIN_INFLUXDB_SUPPORTED_VERSION, "%.")
+local function toVersion(version_str)
+  local parts = string.split(version_str, "%.")
 
-  return (parts[1] == required[1]) -- major
-    and (tonumber(parts[2]) ~= nil)
-    and (tonumber(required[2]) ~= nil)
-    and (tonumber(parts[2]) >= tonumber(required[2])) -- minor
+  if (#parts ~= 3) then
+    return nil
+  end
+
+  return {
+    major = tonumber(parts[1]) or 0,
+    minor = tonumber(parts[2]) or 0,
+    patch = tonumber(parts[3]) or 0,
+  }
+end
+
+local function isCompatibleVersion(version)
+  local current = toVersion(version)
+  local required = toVersion(MIN_INFLUXDB_SUPPORTED_VERSION)
+
+  if (version == nil) or (required == nil) then
+    return false
+  end
+
+  return (current.major == required.major) and
+    ((current.minor > required.minor) or
+      ((current.minor == required.minor) and (current.patch >= required.patch)))
 end
 
 function driver.init(dbname, url, days_retention, verbose)
