@@ -215,7 +215,7 @@ function graphMenuGetActive(schema, params)
    for _, entry in pairs(graph_menu_entries) do
       if entry.schema == schema and entry.params then
 	 for k, v in pairs(params) do
-	    if tostring(entry.params[k]) ~= tostring(v) then
+	    if (k ~= "zoom") and tostring(entry.params[k]) ~= tostring(v) then
 	       goto continue
 	    end
 	 end
@@ -266,7 +266,7 @@ function printSeries(options, tags, start_time, base_url, params)
             exists = true
 
             for _, serie in pairs(serie.check) do
-               exists = exists and ts_utils.listSeries(serie, tags, start_time)
+               exists = exists and not table.empty(ts_utils.listSeries(serie, tags, start_time))
 
                if not exists then
                   break
@@ -274,7 +274,7 @@ function printSeries(options, tags, start_time, base_url, params)
             end
          elseif not exists then
             -- only show if there has been an update within the specified time frame
-            exists = (ts_utils.listSeries(k, tags, start_time) ~= nil)
+            exists = not table.empty(ts_utils.listSeries(k, tags, start_time))
          end
    
          if exists then
