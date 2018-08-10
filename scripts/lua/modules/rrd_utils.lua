@@ -6,6 +6,8 @@ SECONDS_IN_A_DAY = SECONDS_IN_A_HOUR*24
 
 local rrd_utils = {}
 
+-- NOTE: DO NOT EXTEND this module. This is deprecated and will be removed.
+
 --------------------------------------------------------------------------------
 
 -- Note: these date functions are expensive, use with care!
@@ -51,55 +53,6 @@ function rrd_get_positive_value(x)
     return 0
   else
     return x
-  end
-end
-
---------------------------------------------------------------------------------
-
--- Select only one or more data series (columns)
---
--- Parameters:
---  fdata: RRD series data
---  selected: either a
---      - list of columns to select
---      - map of column->alias to select
-function rrd_select_columns(fdata, selected)
-  if next(selected) == nil then
-    -- selected is a list
-    for sname, svalue in pairs(fdata) do
-      -- check if value is in selected list
-      local found = false
-      
-      for i=1,#selected do
-        if selected[i] == sname then
-          found = true
-          break
-        end
-      end
-
-      if not found then
-        fdata[sname] = nil
-      end
-    end
-  else
-    -- selected is a map
-    local to_insert = {}
-    for sname, svalue in pairs(fdata) do
-      if selected[sname] ~= nil then
-        if selected[sname] ~= sname then
-          -- use alias
-          to_insert[selected[sname]] = svalue
-          fdata[sname] = nil
-        end
-      else
-        -- not found
-        fdata[sname] = nil
-      end
-    end
-
-    for key,val in pairs(to_insert) do
-      fdata[key] = val
-    end
   end
 end
 
@@ -325,16 +278,6 @@ function rrd_interval_integrate(epoch_start, epoch_end, resolution, start, rawda
 
   if with_activity then rawdata.activity = activity end
   return times
-end
-
-
-function get_interface_rrd_creation_key(ifid)
-   local k = "ntopng.prefs.ifid_"..ifid..".interface_rrd_creation"
-   return k
-end
-
-function interface_rrd_creation_enabled(ifId)
-   return not (ntop.getPref(get_interface_rrd_creation_key(ifId)) == "false")
 end
 
 return rrd_utils

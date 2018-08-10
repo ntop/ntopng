@@ -22,7 +22,6 @@ require "prefs_utils"
 require "graph_utils"
 require "alert_utils"
 require "db_utils"
-require "rrd_utils"
 local ts_utils = require "ts_utils"
 
 local have_nedge = ntop.isnEdge()
@@ -1235,9 +1234,9 @@ elseif(page == "config") then
          interface_rrd_creation_checked = ""
       end
 
-      ntop.setPref(get_interface_rrd_creation_key(ifId), tostring(interface_rrd_creation))
+      ntop.setPref("ntopng.prefs.ifid_"..ifId..".interface_rrd_creation", tostring(interface_rrd_creation))
    else
-      interface_rrd_creation = ntop.getPref(get_interface_rrd_creation_key(ifId))
+      interface_rrd_creation = ntop.getPref("ntopng.prefs.ifid_"..ifId..".interface_rrd_creation")
 
       if interface_rrd_creation == "false" then
          interface_rrd_creation = false

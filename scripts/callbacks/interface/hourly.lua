@@ -7,7 +7,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 require "alert_utils"
-require "rrd_utils"
 local callback_utils = require "callback_utils"
 
 if (ntop.isPro()) then

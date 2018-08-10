@@ -1,7 +1,6 @@
 require "lua_utils"
 require "graph_utils"
 require "alert_utils"
-require "rrd_utils"
 local host_pools_utils = require "host_pools_utils"
 local callback_utils = require "callback_utils"
 local os_utils = require "os_utils"
@@ -206,7 +205,7 @@ end
 
 function rrd_dump.run_5min_dump(_ifname, ifstats, config, when, time_threshold, verbose)
   local working_status = nil
-  local is_rrd_creation_enabled = interface_rrd_creation_enabled(ifstats.id)
+  local is_rrd_creation_enabled = (ntop.getPref("ntopng.prefs.ifid_"..ifstats.id..".interface_rrd_creation") ~= "false")
   local are_alerts_enabled = mustScanAlerts(ifstats)
 
   -- alerts stuff

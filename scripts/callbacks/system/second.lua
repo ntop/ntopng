@@ -16,6 +16,11 @@ local enable_second_debug = false
 local ifnames = interface.getIfNames()
 local when = os.time()
 
+local function interface_rrd_creation_enabled(ifid)
+   return (ntop.getPref("ntopng.prefs.ifid_"..ifid..".interface_rrd_creation") ~= "false")
+      and (ntop.getPref("ntopng.prefs.interface_rrd_creation") ~= "0")
+end
+
 callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, function(ifname, ifstats)
    if(enable_second_debug) then print("Processing "..ifname.."\n") end
 

@@ -3,7 +3,6 @@
 require "lua_utils"
 require "alert_utils"
 require "graph_utils"
-require "rrd_utils"
 
 local os_utils = require "os_utils"
 local top_talkers_utils = require "top_talkers_utils"
@@ -113,9 +112,10 @@ function rrd_dump.run_min_dump(_ifname, ifstats, config, when, verbose)
   dumpTopTalkers(_ifname, ifstats, verbose)
   scanAlerts("min", ifstats)
 
-  -- not even needed to check this as the function should only be called
-  -- on interfaces that have rrd generation enabled
-  if not interface_rrd_creation_enabled(ifstats.id) then
+  local iface_rrd_creation_enabled = (ntop.getPref("ntopng.prefs.ifid_"..ifstats.id..".interface_rrd_creation") ~= "false")
+    and (ntop.getPref("ntopng.prefs.interface_rrd_creation") ~= "0")
+
+  if not iface_rrd_creation_enabled then
     return
   end
 
