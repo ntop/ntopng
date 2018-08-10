@@ -38,6 +38,12 @@ end
 
 -- ##############################################
 
+function driver:getLatestTimestamp()
+  return os.time()
+end
+
+-- ##############################################
+
 -- TODO remove after migrating to the new path format
 -- Maps second tag name to getRRDName
 local HOST_PREFIX_MAP = {

@@ -408,18 +408,6 @@ end
 
 -- ##############################################
 
-function ts_utils.flush()
-  local rv = true
-
-  for _, driver in pairs(ts_utils.listActiveDrivers()) do
-    rv = driver:flush() and rv
-  end
-
-  return rv
-end
-
--- ##############################################
-
 function ts_utils.delete(schema_name, tags)
   local schema = ts_utils.getSchema(schema_name)
 

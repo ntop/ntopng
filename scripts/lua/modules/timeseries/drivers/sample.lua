@@ -56,6 +56,12 @@ end
 function driver:export()
 end
 
+--! @brief Get the most recent timestamp available for queries.
+--! @note a conservative way to implement this is to return the current time.
+--! @return most recent timestamp available.
+function driver:getLatestTimestamp()
+end
+
 -- ##############################################
 
 return driver

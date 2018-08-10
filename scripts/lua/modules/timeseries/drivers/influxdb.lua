@@ -319,6 +319,7 @@ end
 
 function driver:export()
   local system_iface_id = -1
+  local exported = false
 
   while(true) do
     local name_id = ntop.lpopCache("ntopng.influx_file_queue")
@@ -344,9 +345,30 @@ function driver:export()
 
       -- delete the file manually
       os.remove(fname)
+      exported = false
       break
+    else
+      exported = true
     end
   end
+
+  if exported then
+    local k = "ntopng.cache.influxdb_export_time_" .. self.db
+    ntop.setCache(k, tostring(os.time()))
+  end
+end
+
+-- ##############################################
+
+function driver:getLatestTimestamp()
+  local k = "ntopng.cache.influxdb_export_time_" .. self.db
+  local v = tonumber(ntop.getCache(k))
+
+  if v ~= nil then
+    return v
+  end
+
+  return os.time()
 end
 
 -- ##############################################
