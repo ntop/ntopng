@@ -586,27 +586,8 @@ print("</script>\n")
    if (isAdministrator() and ifstats.isView == false and ifstats.isDynamic == false) then
       print("<tr><th>"..i18n("download").."&nbsp;<i class=\"fa fa-download fa-lg\"></i></th><td colspan=4>")
 
-      	 print [[
-<form class="form-inline" action="]] print(ntop.getHttpPrefix().."/lua/live_traffic.lua") print [[" method="POST">
-  <input type=hidden name=ifid value="]] print(ifId.."") print [[">
-  <input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
-  <div class="form-group mb-2">
-    <label for="duration" class="sr-only">]] print(i18n("duration")) print[[</label>
-      <select class="form-control" id="duration" name=duration>
-      <option value=10>10 sec</option>
-      <option value=30>30 sec</option>
-      <option value=60 selected>1 min</option>
-      <option value=300>5 min</option>
-      <option value=600>10 min</option>
-    </select>
-  </div>
-  <div class="form-group mx-sm-3 mb-2">
-    <label for="bpf_filter" class="sr-only">]] print(i18n("db_explorer.filter_bpf")) print[[</label>
-    <input type="text" class="form-control" id="bpf_filter" name="bpf_filter" placeholder="]] print(i18n("db_explorer.filter_bpf")) print[["></input>
-  </div>
-  <button type="submit" class="btn btn-default mb-2">]] print(i18n("download")) print[[ pcap</button>
-</form>
-]]
+      local live_traffic_utils = require("live_traffic_utils")
+      live_traffic_utils.printLiveTrafficForm(ifId)
 
       print("</td></tr>\n")
       

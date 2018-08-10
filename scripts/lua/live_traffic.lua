@@ -9,11 +9,11 @@ require "lua_utils"
 local json = require "dkjson"
 
 local function send_error(error_type)
-   local msg = "Generic error"
+   local msg = i18n("live_traffic.error_generic")
    if error_type == "not_found" then
-      msg = "Host not found"
+      msg = i18n("live_traffic.error_not_found")
    elseif error_type == "not_granted" then
-      msg = "Request not granted. Another request may be in progress. Retry later."
+      msg = i18n("live_traffic.error_not_granted")
    end
 
    sendHTTPContentTypeHeader('application/json')
@@ -32,9 +32,9 @@ local granted = true
 if not granted then
    send_error("not_granted")
 else
-   local host       = _POST["host"]
-   local duration   = tonumber(_POST["duration"])
-   local bpf_filter = _POST["bpf_filter"]
+   local host       = _GET["host"]
+   local duration   = tonumber(_GET["duration"])
+   local bpf_filter = _GET["bpf_filter"]
    local fname      = ifname
 
    if(host ~= nil) then

@@ -33,6 +33,7 @@ local lang = {
   ["disabled"] = "Disabled",
   ["dns"] = "DNS",
   ["download"] = "Download",
+  ["download_x"] = "%{what} download",
   ["downloaders"] = "Download Volume",
   ["duration"] = "Duration",
   ["egress"] = "Egress",
@@ -390,6 +391,11 @@ local lang = {
     ["top_local_talkers"] = "Top Local Talkers",
     ["top_remote_destinations"] = "Top Remote Destinations",
     ["traffic_dashboard"] = "Traffic Dashboard",
+  },
+  ["live_traffic"] = {
+    ["error_generic"] = "Generic Error",
+    ["error_not_found"] = "Not found",
+    ["error_not_granted"] = "Request not granted",
   },
   ["db_explorer"] = {
     ["abort"] = "Abort",
