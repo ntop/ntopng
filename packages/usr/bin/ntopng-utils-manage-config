@@ -1,7 +1,7 @@
 #!/bin/bash
 
 DEFAULT_ARCHIVE="/tmp/conf.tar.gz"
-ARCHIVE=""
+ARCHIVE="${DEFAULT_ARCHIVE}"
 ARCHIVE_RUNTIMEPREFS=""
 ARCHIVE_SYSTEMCONFIG=""
 ARCHIVE_DATADIR=""
@@ -9,25 +9,140 @@ ARCHIVE_LICENSE=""
 SAVED_SUFFIX=".ntopngsaved"
 STAGING_DIR=""
 
-echo "Executing ntopng configuration restore utility"
+ACTION=""
 
-if [ -f "$@" ]; then
-    ARCHIVE="$@"
-elif [ -f "${DEFAULT_ARCHIVE}" ]; then
-
-    ARCHIVE="${DEFAULT_ARCHIVE}"
-else
+function print_usage() {
+echo "Executing ntopng configuration backup/restore utility"
     echo "Usage:"
-    echo "`basename $0` [/path/to/conf.tar.gz]"
+    echo "`basename $0` -a backup  [-c archive.tar.gz] pathname1 [pathname2 [...]] "
+    echo "`basename $0` -a restore [-c archive.tar.gz]"
     echo ""
-    echo "[/path/to/conf.tar.gz]"
+    echo "Restore:"
+    echo "`basename $0` -a restore [-c archive.tar.gz]"
+    echo "[-c archive.tar.gz]"
     echo "  The path to a compressed archive containing"
     echo "  a backup that has to be restored. The only compressed archives"
-    echo "  accepted are those created from the web interface."
+    echo "  accepted are those created from the web interface or with this script."
     echo "  When no path is specified, the default ${DEFAULT_ARCHIVE}"
     echo "  path is used."
+    echo ""
+    echo "Backup:"
+    echo "`basename $0` -a backup  [-c archive.tar.gz] pathname1 [pathname2 [...]] "
+    echo "[-c archive.tar.gz]"
+    echo  " The path of the compressed archive that will be output."
+    echo  " When no path is specified, the compressed archive will be output"
+    echo  " to the default ${DEFAULT_ARCHIVE}."
+    echo "pathname1"
+    echo "  The path to a directory or file that should be backed up"
+}
+
+POSITIONAL=()
+while [[ $# -gt 0 ]]
+do
+key="$1"
+
+case $key in
+    -a|--action)
+    ACTION="$2"
+    shift
+    shift
+    ;;
+    -c|--archive)
+    ARCHIVE="$2"
+    shift
+    shift
+    ;;
+    *)
+    POSITIONAL+=("$1")
+    shift
+    ;;
+esac
+done
+set -- "${POSITIONAL[@]}" # restore positional parameters
+
+if [[ ( $ACTION != "backup" && $ACTION != "restore" ) ]]; then
+    print_usage
     exit 1
 fi
+
+if [[ ( $ACTION == "backup" ) && ( ${#POSITIONAL[@]} -lt 1 ) ]]; then
+    print_usage
+    exit 1
+fi
+
+if [[ ( $ACTION == "restore" ) && ( ${#POSITIONAL[@]} -gt 0 ) ]]; then
+    print_usage
+    exit 1
+fi
+
+function setup_staging_dir() {
+    # the temp directory used, within $DIR
+    # omit the -p parameter to create a temporal directory in the default location
+    STAGING_DIR=`mktemp -d`
+
+    # check if tmp dir was created
+    if [[ ! "$STAGING_DIR" || ! -d "$STAGING_DIR" ]]; then
+	echo "Could not create temp directory"
+	exit 1
+    fi
+}
+
+function backup_to_staging_dir() {
+    for PATHNAME in "${POSITIONAL[@]}"; do
+	if [ ! -f "${PATHNAME}" ] && [ ! -d "${PATHNAME}" ]; then
+	    echo "Skipping ${PATHNAME}. Not a file or directory."
+	fi
+
+	if [[ "${PATHNAME}" != /* ]]; then
+	    echo "Skipping ${PATHNAME}. Only absolute paths allowed"
+	fi
+
+	# if it's a file we get it's base dir
+	local BASEDIR=`dirname "${PATHNAME}"`
+
+	# recreate the tree into the staging directory
+	local STAGED="${STAGING_DIR}""${BASEDIR}"
+	mkdir -p "${STAGED}"
+
+	# copy to the staging area
+	cp -Rp "${PATHNAME}" "${STAGED}"
+    done
+
+    # echo "${STAGING_DIR}"
+    # find ${STAGING_DIR}
+}
+
+function sanitize_staging_dir() {
+    # Throw away any possible executable file from the staging area
+    # executables include binaries but also shell scripts
+    find "${STAGING_DIR}" -executable -type f  -exec rm -rf {} \;
+
+    # Throw away backup files
+    find "${STAGING_DIR}" -type f -name "*~" -exec rm -rf {} \;
+
+    # Throw away empty files
+    find "${STAGING_DIR}" -type f -size 0 -exec rm -rf {} \;
+
+    # Throw away everything else BUT pure ASCII files
+    find "${STAGING_DIR}" -type f -name '*.*' -print0 |
+    while IFS= read -r -d '' FL; do
+	if ! `file "${FL}" | grep -qc "ASCII text";`; then
+	    rm -rf "${FL}"
+	    echo "Non-ASCII file ""${FL}"" ignored"
+	fi
+    done
+
+    # echo "${STAGING_DIR}"
+    # find ${STAGING_DIR}
+}
+
+function staging_dir_to_archive() {
+    # remove the archive if it exists
+    rm -rf "${ARCHIVE}"
+    # compress the staging dir to a compressed archive
+    # by discaring the current path to the staging dir
+    tar cfvz "${ARCHIVE}" -C "${STAGING_DIR}" .
+}
 
 function check_tar_file() {
     # make sure it's a tar archive
@@ -39,15 +154,15 @@ function check_tar_file() {
 
 function check_tar_contents() {
     # must contain directory /etc/ntopng
-    if ! `tar tf "${ARCHIVE}" /etc/ntopng/ >/dev/null 2>&1`; then
+    if ! `tar tf "${ARCHIVE}" ./etc/ntopng/ >/dev/null 2>&1`; then
 	echo "Compressed archive $1 does not contain /etc/ntopng/"
 	exit 1
     fi
 
     # could contain a license file
-    if `tar tf "${ARCHIVE}" /etc/ntopng.license >/dev/null 2>&1`; then
+    if `tar tf "${ARCHIVE}" ./etc/ntopng.license >/dev/null 2>&1`; then
 	ARCHIVE_LICENSE="/etc/ntopng.license"
-    elif `tar tf "${ARCHIVE}" /etc/nedge.license >/dev/null 2>&1`; then
+    elif `tar tf "${ARCHIVE}" ./etc/nedge.license >/dev/null 2>&1`; then
 	ARCHIVE_LICENSE="/etc/nedge.license"
     fi
 
@@ -74,11 +189,14 @@ function check_tar_contents() {
     local ARCHIVE_SYSTEMBASE=""
 
     if [ ! -z ${ARCHIVE_RUNTIMEPREFS} ]; then
+	# remove the first ./ to consider paths as absolute
+	ARCHIVE_RUNTIMEPREFS="${ARCHIVE_RUNTIMEPREFS#.}"
 	ARCHIVE_RUNTIMEBASE=`dirname "${ARCHIVE_RUNTIMEPREFS}"`
 	ARCHIVE_DATADIR="${ARCHIVE_RUNTIMEBASE}"
     fi
 
     if [ ! -z ${ARCHIVE_SYSTEMCONFIG} ]; then
+	ARCHIVE_SYSTEMCONFIG="${ARCHIVE_SYSTEMCONFIG#.}"
 	ARCHIVE_SYSTEMBASE=`dirname "${ARCHIVE_SYSTEMCONFIG}"`
 	ARCHIVE_DATADIR="${ARCHIVE_SYSTEMBASE}"
     fi
@@ -97,38 +215,9 @@ function check_tar_contents() {
     fi
 }
 
-function extract_tar_file() {
-    # the temp directory used, within $DIR
-    # omit the -p parameter to create a temporal directory in the default location
-    STAGING_DIR=`mktemp -d`
-
-    # check if tmp dir was created
-    if [[ ! "$STAGING_DIR" || ! -d "$STAGING_DIR" ]]; then
-	echo "Could not create temp directory"
-	exit 1
-    fi
-
+function tar_file_to_staging_dir() {
     echo "Extracting compressed archive contents to ${STAGING_DIR}"
     tar xfvz "${ARCHIVE}" -C "${STAGING_DIR}" || exit 1
-
-    # Throw away any possible executable file from the staging area
-    # executables include binaries but also shell scripts
-    find "${STAGING_DIR}" -executable -type f  -exec rm -rf {} \;
-
-    # Throw away backup files
-    find "${STAGING_DIR}" -type f -name "*~" -exec rm -rf {} \;
-
-    # Throw away empty files
-    find "${STAGING_DIR}" -type f -size 0 -exec rm -rf {} \;
-
-    # Throw away everything else BUT pure ASCII files
-    find "${STAGING_DIR}" -type f -name '*.*' -print0 |
-    while IFS= read -r -d '' FL; do
-	if ! `file "${FL}" | grep -qc "ASCII text";`; then
-	    rm -rf "${FL}"
-	    echo "Non-ASCII file ""${FL}"" will not be restored"
-	fi
-    done
 }
 
 function check_current_system_dirs() {
@@ -158,18 +247,19 @@ function restore_and_save_file() {
 	    # make a backup copy of the file before overwriting it
 	    local SAV="${DST}${SAVED_SUFFIX}"
 
-	    rm -rf "${SAV}"
-	    cp -Rp "${DST}" "${SAV}"
+	    rm -rf "${SAV}" || exit 1
+	    echo "Old file ""${SAV}"" removed"
+	    cp -Rp "${DST}" "${SAV}" || exit 1
 	    echo "File ""${DST}"" saved to ""${SAV}"
 	fi
 
 	# put the recovered file in place
-	cp -Rp "${SRC}" "${DST}"
+	cp -Rp "${SRC}" "${DST}" || exit 1
 	echo "File ""${DST}"" restored"
 
 	# possibly change the ownership
 	if [ ! -z "${OWNERSHIP}" ]; then
-	    chown "${OWNERSHIP}" "${DST}"
+	    chown "${OWNERSHIP}" "${DST}" || exit 1
 	    echo "File ""${DST}"" permissions set to ""${OWNERSHIP}"
 	fi
     fi
@@ -207,20 +297,41 @@ function restore_files() {
 }
 
 function cleanup() {
-    rm -rf "${ARCHIVE}"
-    rm -rf "${STAGING_DIR}"
+    :
+    # if [ $ACTION == "restore" ]; then
+    # 	rm -rf "${ARCHIVE}"
+    # fi
+    # rm -rf "${STAGING_DIR}"
 }
 
 trap cleanup EXIT
 
-# preliminary checks
-check_tar_file
-check_tar_contents
-extract_tar_file
-check_current_system_dirs
+if [ $ACTION == "backup" ]; then
+    echo "Backing up..."
 
-# actual restore
-restore_files
+    setup_staging_dir
+    backup_to_staging_dir
+    sanitize_staging_dir
+    staging_dir_to_archive
+
+elif [ $ACTION == "restore" ]; then
+    echo "Restoring..."
+
+    # preliminary checks
+    check_tar_file
+    check_tar_contents
+    check_current_system_dirs
+
+    # actual restore
+    setup_staging_dir
+    tar_file_to_staging_dir
+    sanitize_staging_dir
+    restore_files
+else
+    # never reached
+    echo "Unknown action $ACTION"
+    exit 1
+fi
 
 #cleanup files
 cleanup
