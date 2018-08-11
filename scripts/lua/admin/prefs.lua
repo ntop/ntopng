@@ -236,13 +236,13 @@ function printAlerts()
   end
 
  local elementToSwitch = { "max_num_alerts_per_entity", "max_num_flow_alerts", "row_toggle_alert_probing",
-  "row_toggle_malware_probing", "row_toggle_dns_alerts", "row_toggle_alert_syslog",
-  "row_toggle_flow_alerts_iface", "row_alerts_retention_header", "row_alerts_security_header",
-  "row_toggle_ssl_alerts", "row_toggle_dns_alerts", "row_toggle_remote_to_remote_alerts",
-  "row_toggle_ip_reassignment_alerts", "row_toggle_dropped_flows_alerts", "row_alerts_informative_header",
-  "row_toggle_device_first_seen_alert", "row_toggle_device_activation_alert", "row_toggle_pool_activation_alert", "row_toggle_quota_exceeded_alert"}
-
-  if not subpage_active.entries["toggle_mysql_check_open_files_limit"].hidden then
+			   "row_toggle_malware_probing", "row_toggle_dns_alerts", "row_toggle_alert_syslog",
+			   "row_toggle_flow_alerts_iface", "row_alerts_retention_header", "row_alerts_security_header",
+			   "row_toggle_ssl_alerts", "row_toggle_dns_alerts", "row_toggle_remote_to_remote_alerts",
+			   "row_toggle_ip_reassignment_alerts", "row_toggle_dropped_flows_alerts", "row_alerts_informative_header",
+			   "row_toggle_device_first_seen_alert", "row_toggle_device_activation_alert", "row_toggle_pool_activation_alert", "row_toggle_quota_exceeded_alert"}
+ 
+ if not subpage_active.entries["toggle_mysql_check_open_files_limit"].hidden then
     elementToSwitch[#elementToSwitch+1] = "row_toggle_mysql_check_open_files_limit"
   end
 
@@ -1268,8 +1268,15 @@ function printLogging()
   print('<table class="table">')
   print('<tr><th colspan=2 class="info">'..i18n("prefs.logging")..'</th></tr>')
 
-  loggingSelector(subpage_active.entries["toggle_logging_level"].title, subpage_active.entries["toggle_logging_level"].description,
-        "toggle_logging_level", "ntopng.prefs.logging_level")
+  loggingSelector(subpage_active.entries["toggle_logging_level"].title, 
+     subpage_active.entries["toggle_logging_level"].description, 
+     "toggle_logging_level", "ntopng.prefs.logging_level")
+     
+  prefsToggleButton({
+    field = "toggle_log_to_file",
+    default = "0",
+    pref = "log_to_file",
+  })
 
   prefsToggleButton({
     field = "toggle_access_log",

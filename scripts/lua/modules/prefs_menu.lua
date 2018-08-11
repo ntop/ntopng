@@ -238,6 +238,9 @@ local menu_subpages = {
     toggle_logging_level = {
       title       = i18n("prefs.toggle_logging_level_title"),
       description = i18n("prefs.toggle_logging_level_description"),
+    }, toggle_log_to_file = {
+      title       = i18n("prefs.toggle_log_to_file_title"),
+      description = i18n("prefs.toggle_log_to_file_description", {product=info["product"]}),
     }, toggle_access_log = {
       title       = i18n("prefs.toggle_access_log_title"),
       description = i18n("prefs.toggle_access_log_description", {product=info["product"]}),

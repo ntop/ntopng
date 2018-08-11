@@ -72,7 +72,7 @@ void Trace::rotate_logs(bool forceRotation) {
 
 void Trace::open_log() {
   if(logFile) {
-    logFd = fopen(logFile, "w");
+    logFd = fopen(logFile, "a");
 
     if(!logFd)
       traceEvent(TRACE_ERROR, "Unable to create log %s", logFile);
@@ -170,25 +170,25 @@ void Trace::traceEvent(int eventTraceLevel, const char* _file,
       fflush(logFd);
       rotate_logs(false);
       rotate_mutex.unlock(__FILE__, __LINE__);
+    } else {
+#ifdef WIN32
+      AddToMessageLog(out_buf);
+#else
+      syslogMsg = &out_buf[strlen(theDate)+1];
+      if(eventTraceLevel == 0 /* TRACE_ERROR */)
+	syslog(LOG_ERR, "%s", syslogMsg);
+      else if(eventTraceLevel == 1 /* TRACE_WARNING */)
+	syslog(LOG_WARNING, "%s", syslogMsg);
+#endif
     }
 
     printf("%s\n", out_buf);
     fflush(stdout);
-
+    
     if(traceRedis)
       traceRedis->lpush(NTOPNG_TRACE, out_buf, MAX_NUM_NTOPNG_TRACES,
 			false /* Do not re-trace errors, re-tracing would yield a deadlock */);
-
-#ifdef WIN32
-    AddToMessageLog(out_buf);
-#else
-    syslogMsg = &out_buf[strlen(theDate)+1];
-    if(eventTraceLevel == 0 /* TRACE_ERROR */)
-      syslog(LOG_ERR, "%s", syslogMsg);
-    else if(eventTraceLevel == 1 /* TRACE_WARNING */)
-      syslog(LOG_WARNING, "%s", syslogMsg);
-#endif
-
+    
     va_end(va_ap);
   }
 }

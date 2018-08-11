@@ -100,7 +100,7 @@ int main(int argc, char *argv[])
   char path[MAX_PATH];
   FILE *fd;
   ThreadedActivity *boot_activity;
-  
+    
 #ifdef WIN32
   initWinsock32();
 #endif
@@ -360,18 +360,20 @@ int main(int argc, char *argv[])
     fclose(fd); /* All right */
     unlink(path);
   }
-  
+
+  if(prefs->is_log_to_file_enabled()
 #ifndef WIN32
-  if(prefs->daemonize_ntopng())
+     || prefs->daemonize_ntopng()
 #endif
-    {
+     ) {
       char path[MAX_PATH];
 
       Utils::mkdir_tree(ntop->get_data_dir());
       Utils::mkdir_tree(ntop->get_working_dir());
       snprintf(path, sizeof(path), "%s/ntopng.log", ntop->get_working_dir() /* "C:\\Windows\\Temp" */);
-      ntop->fixPath(path);
+      ntop->fixPath(path);      
       ntop->registerLogFile(path);
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Logging onto %s", path);
     }
 
   if(prefs->get_httpbl_key() != NULL)

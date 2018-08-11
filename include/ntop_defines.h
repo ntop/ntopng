@@ -349,7 +349,7 @@
 #define CONST_PATH_SEP              '/'
 #endif
 
-#define CONST_DEFAULT_FILE_MODE      0700
+#define CONST_DEFAULT_FILE_MODE      0600 /* rw */
 #define CONST_MAX_LEN_REDIS_KEY      256
 #define CONST_MAX_LEN_REDIS_VALUE    2*65526
 
@@ -475,6 +475,7 @@
 #define CONST_RUNTIME_IDLE_LOCAL_HOSTS_CACHE_ENABLED   "ntopng.prefs.is_local_host_cache_enabled"
 #define CONST_RUNTIME_ACTIVE_LOCAL_HOSTS_CACHE_ENABLED "ntopng.prefs.is_active_local_host_cache_enabled"
 #define CONST_RUNTIME_ACTIVE_LOCAL_HOSTS_CACHE_INTERVAL "ntopng.prefs.active_local_host_cache_interval"
+#define CONST_RUNTIME_PREFS_LOG_TO_FILE                "ntopng.prefs.log_to_file"
 #define CONST_RUNTIME_PREFS_HOUSEKEEPING_FREQUENCY     "ntopng.prefs.housekeeping_frequency"
 #define CONST_RUNTIME_PREFS_FLOW_DEVICE_PORT_RRD_CREATION     "ntopng.prefs.flow_device_port_rrd_creation" /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_ALERT_IP_REASSIGNMENT      "ntopng.prefs.ip_reassignment_alerts" /* 0 / 1 */
