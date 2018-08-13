@@ -1,5 +1,123 @@
 # Changelog
 
+#### ntopng 3.6 (August 2018)
+
+## New features
+
+* New pro charts
+  * Ability to compare data with the past (time shift)
+  * Trend lines based on ASAP
+  * Average and percentile lines overlayed on the graph and animated
+  * New color scheme that uses pastel colors for better visualization
+  * https://www.ntop.org/ntopng/ntopng-and-time-series-from-rrd-to-influxdb-new-charts-with-time-shift/
+* New timeseries API with support for RRD and InfluxDB
+  * Abstracts and handles multiple sources transparently
+  * https://www.ntop.org/guides/ntopng/api/lua/timeseries/index.html
+* Streaming pcap captures with BPF support
+  * Download live packet captures right from the browser
+* New SNMP devices caching
+  * Periodically cache information of all the SNMP device configured
+  * Calculate and visualize interfaces throughput
+
+
+## Improvements
+
+* Security
+  * Access to the web user interface is controlled with ACLs
+  * Secure ntopng cookies with SameSite and HttpOnly
+  * HTTP cookie authentication
+  * Improved random session id generation
+* Various SNMP improvemenets
+  * Caching
+  * Interfaces status change alerts
+  * Device interfaces page
+  * Devices and interfaces added to flows
+  * Fixed several library memory leaks
+  * Improved device and interface charts
+  * Interfaces throughput calculation and visualization
+  * Ability to delete all SNMP devices at once
+* Improved active devices discovery
+  * OS detection via HTTP User-Agent
+* Alerts
+  * Crypto miners alerts toggle
+  * Detection and alerting of anomalous terminations
+  * Module for sending telegram.org alerts
+  * Slack
+    * Configurable Slack channel names
+    * Added Slack test button
+* Charts
+  * Active flows vs local hosts chart
+  * Active flows vs interface traffic chart
+* Ubuntu 18.04 support
+* Support for ElasticSearch 6 export
+* Added support for custom categories lists
+* Added ability to use the non-JIT Lua interpreter
+* Improved ntopng startup and shutdown time
+* Support for capturing from interface pairs with PF_RING ZC
+* Support for variable PPP header lenght
+* Migrated geolocation to GeoLite2 and libmaxminddb
+* Configuration backup and restore
+* Improved IE browser support
+* Using client SSL certificate for protocol detection
+* Optimized host/flows purging
+
+
+## nEdge
+
+* Netfilter queue fill level monitoring
+* Bridging support with VLANs
+* Added user members management page
+* Added systemd service alias to ntopng
+* Captive portal fixes
+* Informative captive portal (no login)
+* Improved captive portal support with WISPr XML
+* Disabled global DNS forging by default
+* Added netfilter stats RRDs
+* Fixed bad MAC traffic increment
+* Fixed slow shutdown/reboot
+* Fixed invalid banned site redirection
+* Fixed bad gateway status
+* Fixed gateway network unreacheable when gateway is down
+* Fixed SSL traffic not blocked when captive portal is active
+* Fixed invalid read during local DNS lookup
+* Workaround for dhclient bug stuck while a lease already exists
+
+
+## Fixes
+
+* SNMP
+  * Fixed SNMP devices deletion
+  * Fixed format for odd SNMP interfaces speed
+  * Fixed SNMP community selection
+* Fixed MDNS decoding
+* Fixed login redirection
+* Fixed MAC manufacturers escaping
+* Fixed host validation errors
+* Fixed traffic throughput burst when loading a serialized host
+* Allowing multiple consecutive dots in password fields
+* Reworked shutdown to allow graceful periodic activities termimation
+* Fixed validation error in profiles with spaces in names
+* Fixed old top talkers stats deletion
+* Fixed 32-bit integers pushed to Lua
+* Fixed service dependency from pfring
+* Fixes for enabling broken SSL certificate mismatch alerts
+* Fixed allowed interfaces users access
+* Fixes for crashes on Windows
+* Fixed lua platform dependent execution
+* Fixed subnet search in hist data explorer
+* Fixed flow devices and sflow mappings with SNMP
+* Fixed invalid login page encoding
+* LDAP fixes (overflow, invalid LDAP fields length)
+* Fixed encoding for local/LDAP UTF-8 passwords
+* Added POST timeout to prevent housekeeping from blocking indefinitely
+* Windows resize fixes
+* Fixed invalid uPnP URL
+* Fixed wrong hosts retrv by pool id, OS, network, and country
+* Fixed JS errors with IE browser
+* Fixed custom categories matching
+
+----------------------------------------------------------------
+
 #### ntopng 3.4 (April 2018)
 
 
