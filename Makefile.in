@@ -204,8 +204,9 @@ veryclean: clean
 geoip:
 	$(GET_UTIL) http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.tar.gz
 	$(GET_UTIL) http://geolite.maxmind.com/download/geoip/database/GeoLite2-ASN.tar.gz
-	tar xfvz GeoLite2-ASN.tar.gz --strip 1 --wildcards "**/*.mmdb"
-	tar xfvz GeoLite2-City.tar.gz --strip 1 --wildcards "**/*.mmdb"
+#	bsdtar does not support --wildcards
+	tar xfvz GeoLite2-ASN.tar.gz --strip 1 --wildcards "**/*.mmdb" || tar xfvz GeoLite2-ASN.tar.gz --strip 1 "**/*.mmdb"
+	tar xfvz GeoLite2-City.tar.gz --strip 1 --wildcards "**/*.mmdb" || tar xfvz GeoLite2-City.tar.gz --strip 1 "**/*.mmdb"
 	mv *.mmdb httpdocs/geoip
 	rm -rf GeoLite2*.tar.gz
 
