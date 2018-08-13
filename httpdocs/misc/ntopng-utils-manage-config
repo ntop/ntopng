@@ -278,10 +278,12 @@ function restore_and_save_file() {
 
 function restore_files() {
     # restore /etc/ntopng files
-    find "${STAGING_DIR}/__etc_ntopng"  -maxdepth 1 -type f -name '*.*' -print0 |
-    while IFS= read -r -d '' FL; do
-	restore_and_save_file "${FL}" "/etc/ntopng"
-    done
+    if [ -d "${STAGING_DIR}/__etc_ntopng" ]; then
+	find "${STAGING_DIR}/__etc_ntopng"  -maxdepth 1 -type f -name '*.*' -print0 |
+	    while IFS= read -r -d '' FL; do
+		restore_and_save_file "${FL}" "/etc/ntopng"
+	    done
+    fi
 
     if [ -f "${STAGING_DIR}/__license/ntopng.license" ]; then
 	restore_and_save_file "${STAGING_DIR}/__license/ntopng.license" "/etc" "root:root"
