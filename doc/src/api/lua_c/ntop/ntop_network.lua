@@ -1,12 +1,23 @@
 --! @brief Performs an HTTP GET request to the specified URL.
 --! @param url the URL to fetch.
 --! @param username for HTTP authentication.
---! @param pwd the password for HTTP authentication.
+--! @param password the password for HTTP authentication.
 --! @param timeout maximum connection timeout in seconds.
---! @param cookie_auth Use basic (default) or cookie (used by ntopng) authentication
 --! @param return_content enable sending response content back to the caller.
+--! @param cookie_auth Use basic (default) or cookie (used by ntopng) authentication
 --! @return table (RESPONSE_CODE, CONTENT_TYPE, EFFECTIVE_URL), with additional CONTENT and CONTENT_LEN if return_content is enabled on success, nil otherwise.
-function ntop.httpGet(string url, string username=nil, string pwd=nil, int timeout=nil, bool return_content=false, bool cookie_auth=false)
+function ntop.httpGet(string url, string username=nil, string password=nil, int timeout=nil, bool return_content=false, bool cookie_auth=false)
+
+--! @brief Send an HTTP POST request with url encoded data.
+--! @param url the target URL.
+--! @param data the url encoded data to send.
+--! @param username for HTTP authentication.
+--! @param password for HTTP authentication.
+--! @param timeout maximum connection timeout in seconds.
+--! @param return_content enable sending response content back to the caller.
+--! @param cookie_auth Use basic (default) or cookie (used by ntopng) authentication
+--! @return table (RESPONSE_CODE, CONTENT_TYPE, EFFECTIVE_URL), with additional CONTENT and CONTENT_LEN if return_content is enabled on success, nil otherwise.
+function ntop.httpPost(string url, string data, string username=nil, string password=nil, int timeout=nil, bool return_content=false, bool cookie_auth=false)
 
 --! @brief Send an HTTP POST request with json content.
 --! @param username for HTTP authentication. Pass empty string to disable authentication.
@@ -16,14 +27,6 @@ function ntop.httpGet(string url, string username=nil, string pwd=nil, int timeo
 --! @return true on success, false otherwise.
 --! @note HTTP header "Content-Type: application/json" is sent.
 function ntop.postHTTPJsonData(string username, string password, string url, string json)
-
---! @brief Send an HTTP POST request with url encoded data.
---! @param username for HTTP authentication. Pass empty string to disable authentication.
---! @param password for HTTP authentication. Pass empty string to disable authentication.
---! @param url the target URL.
---! @param data the url encoded data to send.
---! @return true on success, false otherwise.
-function ntop.postHTTPform(string username, string password, string url, string data)
 
 --! @brief Send an HTTP POST request with a file contents.
 --! @param username for HTTP authentication. Pass empty string to disable authentication.

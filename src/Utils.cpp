@@ -1136,65 +1136,6 @@ static void readCurlStats(CURL *curl, HTTPTranferStats *stats, lua_State* vm) {
 
 /* **************************************** */
 
-/* form_data is in format param=value&param1=&value1... */
-bool Utils::postHTTPForm(char *username, char *password, char *url, char *form_data) {
-  CURL *curl;
-  bool ret = true;
-
-  curl = curl_easy_init();
-  if(curl) {
-    CURLcode res;
-
-    // TODO return to the caller
-    curl_fetcher_t fetcher = {
-      /* .payload =  */ NULL,
-      /* .cur_size = */ 0,
-      /* .max_size = */ 0};
-    
-    curl_easy_setopt(curl, CURLOPT_URL, url);
-
-    if((username && (username[0] != '\0'))
-       || (password && (password[0] != '\0'))) {
-      char auth[64];
-
-      snprintf(auth, sizeof(auth), "%s:%s",
-	       username ? username : "",
-	       password ? password : "");
-      curl_easy_setopt(curl, CURLOPT_USERPWD, auth);
-      curl_easy_setopt(curl, CURLOPT_HTTPAUTH, (long)CURLAUTH_BASIC);
-    }
-
-    if(!strncmp(url, "https", 5)) {
-      curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
-      curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
-    }
-
-    curl_easy_setopt(curl, CURLOPT_POST, 1L);
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, form_data);
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)strlen(form_data));
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &fetcher);
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_get_writefunc);
-
-    res = curl_easy_perform(curl);
-
-    if(res != CURLE_OK) {
-      ntop->getTrace()->traceEvent(TRACE_WARNING,
-				   "Unable to post data to (%s): %s",
-				   url, curl_easy_strerror(res));
-      ret = false;
-    } else {
-      ntop->getTrace()->traceEvent(TRACE_INFO, "Posted data to %s", url);
-    }
-    
-    /* always cleanup */
-    curl_easy_cleanup(curl);
-  }
-
-  return(ret);
-}
-
-/* **************************************** */
-
 bool Utils::postHTTPJsonData(char *username, char *password, char *url,
 			     char *json, HTTPTranferStats *stats) {
   CURL *curl;
@@ -1468,11 +1409,12 @@ static size_t curl_hdf(char *buffer, size_t size, size_t nitems, void *userp) {
 
 /* **************************************** */
 
-bool Utils::httpGet(lua_State* vm, char *url, char *username,
+/* form_data is in format param=value&param1=&value1... */
+bool Utils::httpGetPost(lua_State* vm, char *url, char *username,
 		    char *password, int timeout,
 		    bool return_content,
 		    bool use_cookie_authentication,
-		    HTTPTranferStats *stats) {
+		    HTTPTranferStats *stats, const char *form_data) {
   CURL *curl;
   bool ret = true;
 
@@ -1510,6 +1452,13 @@ bool Utils::httpGet(lua_State* vm, char *url, char *username,
       curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
     }
 
+    if(form_data) {
+      /* This is a POST request */
+      curl_easy_setopt(curl, CURLOPT_POST, 1L);
+      curl_easy_setopt(curl, CURLOPT_POSTFIELDS, form_data);
+      curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)strlen(form_data));
+    }
+
     if(return_content) {
       state = (DownloadState*)malloc(sizeof(DownloadState));
       if(state != NULL) {
@@ -1524,6 +1473,7 @@ bool Utils::httpGet(lua_State* vm, char *url, char *username,
       } else {
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "Out of memory");
 	curl_easy_cleanup(curl);
+	if(vm) lua_pushnil(vm);
 	return(false);
       }
     }

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DEFAULT_ARCHIVE="/tmp/conf.tar.gz"
+DEFAULT_ARCHIVE="/etc/ntopng/conf.tar.gz"
 ARCHIVE="${DEFAULT_ARCHIVE}"
 
 DEFAULT_DATADIR="/var/tmp/ntopng"
@@ -134,9 +134,9 @@ function copy_to_staging_dir() {
 
     # copy to the staging area
     if [ -f "${PATHNAME}" ]; then
-	cp -p "${PATHNAME}" "${STAGED}"
+	cp -Pp "${PATHNAME}" "${STAGED}"
     else
-	cp -Rp "${PATHNAME}/." "${STAGED}"
+	cp -RPp "${PATHNAME}/." "${STAGED}"
     fi
 
     # echo "${STAGING_DIR}"
@@ -161,9 +161,16 @@ function backup_to_staging_dir() {
 }
 
 function sanitize_staging_dir() {
+    # Throw away any symlink
+    find "${STAGING_DIR}" -type l -exec rm -rf {} \;
+
     # Throw away any possible executable file from the staging area
     # executables include binaries but also shell scripts
-    find "${STAGING_DIR}" -executable -type f  -exec rm -rf {} \;
+    if ! `find "${STAGING_DIR}" -executable -type f -exec rm -rf {} \; 2> /dev/null`; then
+	# some versions of find don't support -executable and require the
+	# executable permissions bits to be specified explicitly
+	find "${STAGING_DIR}" -perm +0111 -type f -exec rm -rf {} \;
+    fi
 
     # Throw away backup files
     find "${STAGING_DIR}" -type f -name "*~" -exec rm -rf {} \;
@@ -204,18 +211,6 @@ function check_tar_file() {
 }
 
 function check_tar_contents() {
-    # must contain __etc_ntopng
-    if ! `tar tf "${ARCHIVE}" ./__etc_ntopng/ >/dev/null 2>&1`; then
-	echo "Compressed archive $1 does not contain __etc_ntopng"
-	exit 1
-    fi
-
-    # must contain __datadir
-    if ! `tar tf "${ARCHIVE}" ./__datadir/ >/dev/null 2>&1`; then
-	echo "Compressed archive $1 does not contain __datadir"
-	exit 1
-    fi
-
     # must contain a manifest file
     if ! `tar tf "${ARCHIVE}" ./MANIFEST >/dev/null 2>&1`; then
 	echo "Compressed archive $1 does not contain MANIFEST"
@@ -242,11 +237,6 @@ function tar_file_to_staging_dir() {
 }
 
 function check_current_system_dirs() {
-    if [ ! -d "/etc/ntopng" ]; then
-	echo "Directory /etc/ntopng is missing from the system, unable to restore."
-	exit 1
-    fi
-
     # DATADIR is empty when system.config and runtimeprefs.json are not
     # going to be restored
     if [ ! -z "${DATADIR}" ] && [ ! -d "${DATADIR}" ]; then
@@ -288,10 +278,12 @@ function restore_and_save_file() {
 
 function restore_files() {
     # restore /etc/ntopng files
-    find "${STAGING_DIR}/__etc_ntopng"  -maxdepth 1 -type f -name '*.*' -print0 |
-    while IFS= read -r -d '' FL; do
-	restore_and_save_file "${FL}" "/etc/ntopng"
-    done
+    if [ -d "${STAGING_DIR}/__etc_ntopng" ]; then
+	find "${STAGING_DIR}/__etc_ntopng"  -maxdepth 1 -type f -name '*.*' -print0 |
+	    while IFS= read -r -d '' FL; do
+		restore_and_save_file "${FL}" "/etc/ntopng"
+	    done
+    fi
 
     if [ -f "${STAGING_DIR}/__license/ntopng.license" ]; then
 	restore_and_save_file "${STAGING_DIR}/__license/ntopng.license" "/etc" "root:root"
@@ -326,6 +318,14 @@ function restore_files() {
     fi
 }
 
+function post_restore_actions() {
+    # in case we are restoring nedge, we touch a file to indicate
+    # a fresh first start.
+    if [ -f "/etc/systemd/system/nedge.service" ]; then
+	touch "${DATADIR}/system.config.reload"
+    fi
+}
+
 if [ $ACTION == "backup" ]; then
     echo "Backing up..."
 
@@ -348,6 +348,7 @@ elif [ $ACTION == "restore" ]; then
     check_current_system_dirs
     sanitize_staging_dir
     restore_files
+    post_restore_actions
 else
     # never reached
     echo "Unknown action $ACTION"

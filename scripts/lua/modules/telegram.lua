@@ -46,7 +46,7 @@ function telegram.sendMessage(bot_token_id, chat_id, message)
    local url = "https://api.telegram.org/bot"..bot_token_id.."/sendMessage"
    local postfields = "chat_id="..chat_id.."&text="..urlencode(message)
 
-   ntop.postHTTPform("", "", url, postfields)
+   ntop.httpPost(url, postfields)
 end
 
 -- ########################################################

@@ -56,7 +56,7 @@ else
        tar_file = "nedge_conf_backup.tar.gz"
     end
 
-    local output_tar = os_utils.fixPath("/tmp/"..tar_file)
+    local output_tar = os_utils.fixPath(dirs.workingdir.."/"..tar_file)
     local cmd = string.format("%s -a backup -c %s -d %s > /dev/null", manage_config, output_tar, dirs.workingdir)
 
     -- Note: we are using os.execute / ntop.dumpBinaryFile as io.popen / print 

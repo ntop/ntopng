@@ -2105,11 +2105,6 @@ end
 
 -- GENERIC UTILS
 
--- ternary
-function ternary(cond, T, F)
-   if cond then return T else return F end
-end
-
 -- split
 function split(s, delimiter)
    result = {};

@@ -65,13 +65,25 @@ if(haveAdminPrivileges()) then
    elseif (_POST["timeseries_driver"] == "influxdb") then
     local url = string.gsub(string.gsub( _POST["ts_post_data_url"], "http:__", "http://"), "https:__", "https://")
 
-    if(url ~= ntop.getPref("ntopng.prefs.ts_post_data_url"))
+    if ntop.getPref("ntopng.prefs.timeseries_driver") ~= "influxdb"
+        or (url ~= ntop.getPref("ntopng.prefs.ts_post_data_url"))
         or (_POST["influx_dbname"] ~= ntop.getPref("ntopng.prefs.influx_dbname"))
-        or (_POST["influx_retention"] ~= ntop.getPref("ntopng.prefs.influx_retention")) then
+        or (_POST["influx_retention"] ~= ntop.getPref("ntopng.prefs.influx_retention"))
+        or (_POST["toggle_influx_auth"] ~= ntop.getPref("ntopng.prefs.influx_auth_enabled"))
+        or (_POST["influx_username"] ~= ntop.getPref("ntopng.prefs.influx_username"))
+        or (_POST["influx_password"] ~= ntop.getPref("ntopng.prefs.influx_password")) then
       package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/drivers/?.lua;" .. package.path
       local influxdb = require("influxdb")
+      local username = nil
+      local password = nil
 
-      local ok, message = influxdb.init(_POST["influx_dbname"], url, tonumber(_POST["influx_retention"]), false --[[verbose]])
+      if _POST["toggle_influx_auth"] == "1" then
+        username = _POST["influx_username"]
+        password = _POST["influx_password"]
+      end
+
+      local ok, message = influxdb.init(_POST["influx_dbname"], url, tonumber(_POST["influx_retention"]),
+          username, password, false --[[verbose]])
       if not ok then
         message_info = message
         message_severity = "alert-danger"
@@ -1061,6 +1073,71 @@ end
 function printStatsTimeseries()
   print('<form method="post">')
   print('<table class="table">')
+  print('<tr><th colspan=2 class="info">'..i18n('prefs.timeseries_database')..'</th></tr>')
+
+  local elementToSwitch = {"ts_post_data_url", "influx_dbname", "influx_retention", "row_toggle_influx_auth", "influx_username", "influx_password"}
+  local showElementArray = {false, true}
+
+  local javascriptAfterSwitch = "";
+  javascriptAfterSwitch = javascriptAfterSwitch.."  if($(\"#id-toggle-timeseries_driver\").val() == \"influxdb\") {\n"
+  javascriptAfterSwitch = javascriptAfterSwitch.."    if($(\"#toggle_influx_auth_input\").val() == \"1\") {\n"
+  javascriptAfterSwitch = javascriptAfterSwitch.."      $(\"#influx_username\").css(\"display\",\"table-row\");\n"
+  javascriptAfterSwitch = javascriptAfterSwitch.."      $(\"#influx_password\").css(\"display\",\"table-row\");\n"
+  javascriptAfterSwitch = javascriptAfterSwitch.."    } else {\n"
+  javascriptAfterSwitch = javascriptAfterSwitch.."      $(\"#influx_username\").css(\"display\",\"none\");\n"
+  javascriptAfterSwitch = javascriptAfterSwitch.."      $(\"#influx_password\").css(\"display\",\"none\");\n"
+  javascriptAfterSwitch = javascriptAfterSwitch.."    }\n"
+  javascriptAfterSwitch = javascriptAfterSwitch.."  }\n"
+
+  multipleTableButtonPrefs(subpage_active.entries["multiple_timeseries_database"].title,
+				    subpage_active.entries["multiple_timeseries_database"].description,
+				    {"RRD", "InfluxDB"}, {"rrd", "influxdb"},
+				    "rrd",
+				    "primary",
+				    "timeseries_driver",
+				    "ntopng.prefs.timeseries_driver", nil,
+				    elementToSwitch, showElementArray, javascriptAfterSwitch, true--[[show]])
+
+  local active_driver = ntop.getPref("ntopng.prefs.timeseries_driver")
+  local influx_active = (active_driver == "influxdb")
+
+  prefsInputFieldPrefs(subpage_active.entries["influxdb_url"].title,
+		       subpage_active.entries["influxdb_url"].description,
+		       "ntopng.prefs.",
+		       "ts_post_data_url",
+		       "http://localhost:8086",
+		       false, influx_active, nil, nil,  {attributes={spellcheck="false"}, pattern=getURLPattern(), required=true})
+
+  prefsInputFieldPrefs(subpage_active.entries["influxdb_dbname"].title, subpage_active.entries["influxdb_dbname"].description,
+      "ntopng.prefs.", "influx_dbname", product, nil, influx_active, nil, nil, {pattern="[^\\s]+"})
+
+  prefsToggleButton({
+	field = "toggle_influx_auth",
+	default = "0",
+	pref = "influx_auth_enabled",
+	to_switch = {"influx_username", "influx_password"},
+  hidden = not influx_active,
+  })
+
+  local auth_enabled = influx_active and (ntop.getPref("ntopng.prefs.influx_auth_enabled") == "1")
+
+  prefsInputFieldPrefs(subpage_active.entries["influxdb_username"].title, subpage_active.entries["influxdb_username"].description,
+		       "ntopng.prefs.",
+		       "influx_username", "",
+           false, auth_enabled, nil, nil,  {attributes={spellcheck="false"}, pattern="[^\\s]+"})
+
+  prefsInputFieldPrefs(subpage_active.entries["influxdb_password"].title, subpage_active.entries["influxdb_password"].description,
+		       "ntopng.prefs.",
+		       "influx_password", "",
+           false, auth_enabled, nil, nil,  {attributes={spellcheck="false"}, pattern="[^\\s]+"})
+
+  prefsInputFieldPrefs(subpage_active.entries["influxdb_storage"].title, subpage_active.entries["influxdb_storage"].description,
+      "ntopng.prefs.", "influx_retention", 365, "number", influx_active, nil, nil, {min=0, max=365*10, --[[ TODO check min/max ]]})
+
+  mysql_retention = 7
+  prefsInputFieldPrefs(subpage_active.entries["mysql_retention"].title, subpage_active.entries["mysql_retention"].description .. "-F mysql;&lt;host|socket&gt;;&lt;dbname&gt;;&lt;table name&gt;;&lt;user&gt;;&lt;pw&gt;.",
+    "ntopng.prefs.", "mysql_retention", mysql_retention, "number", not subpage_active.entries["mysql_retention"].hidden, nil, nil, {min=1, max=365*5, --[[ TODO check min/max ]]})
+
   print('<tr><th colspan=2 class="info">'..i18n('prefs.interfaces_timeseries')..'</th></tr>')
 
   -- TODO: make also per-category interface RRDs
@@ -1200,38 +1277,6 @@ function printStatsTimeseries()
 
   print('<table class="table">')
   print('<tr><th colspan=2 class="info">'..i18n("prefs.databases")..'</th></tr>')
-
-  local elementToSwitch = {"ts_post_data_url", "influx_dbname", "influx_retention"}
-  local showElementArray = {false, true}
-
-  multipleTableButtonPrefs(subpage_active.entries["multiple_timeseries_database"].title,
-				    subpage_active.entries["multiple_timeseries_database"].description,
-				    {"RRD", "InfluxDB"}, {"rrd", "influxdb"},
-				    "rrd",
-				    "primary",
-				    "timeseries_driver",
-				    "ntopng.prefs.timeseries_driver", nil,
-				    elementToSwitch, showElementArray, nil, true--[[show]])
-
-  local active_driver = ntop.getPref("ntopng.prefs.timeseries_driver")
-  local influx_active = (active_driver == "influxdb")
-
-  prefsInputFieldPrefs(subpage_active.entries["influxdb_url"].title,
-		       subpage_active.entries["influxdb_url"].description,
-		       "ntopng.prefs.",
-		       "ts_post_data_url",
-		       "http://localhost:8086",
-		       false, influx_active, nil, nil,  {attributes={spellcheck="false"}, pattern=getURLPattern(), required=true})
-
-  prefsInputFieldPrefs(subpage_active.entries["influxdb_dbname"].title, subpage_active.entries["influxdb_dbname"].description,
-      "ntopng.prefs.", "influx_dbname", product, nil, influx_active, nil, nil, {pattern="[^\\s]+"})
-
-  prefsInputFieldPrefs(subpage_active.entries["influxdb_storage"].title, subpage_active.entries["influxdb_storage"].description,
-      "ntopng.prefs.", "influx_retention", 365, "number", influx_active, nil, nil, {min=0, max=365*10, --[[ TODO check min/max ]]})
-
-  mysql_retention = 7
-  prefsInputFieldPrefs(subpage_active.entries["mysql_retention"].title, subpage_active.entries["mysql_retention"].description .. "-F mysql;&lt;host|socket&gt;;&lt;dbname&gt;;&lt;table name&gt;;&lt;user&gt;;&lt;pw&gt;.",
-    "ntopng.prefs.", "mysql_retention", mysql_retention, "number", not subpage_active.entries["mysql_retention"].hidden, nil, nil, {min=1, max=365*5, --[[ TODO check min/max ]]})
   
   --default value
   minute_top_talkers_retention = 365
