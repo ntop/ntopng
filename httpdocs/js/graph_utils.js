@@ -300,8 +300,6 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_out_id, f
   }
 
   chart.legend.dispatch.on('legendClick', function(d,i) {
-    console.log(d.legend_key, d.disabled);
-
     if(typeof localStorage !== "undefined")
       localStorage.setItem("chart_series.disabled." + d.legend_key, (!d.disabled) ? true : false);
   });
