@@ -707,7 +707,7 @@ char* Flow::print(char *buf, u_int buf_len) {
   }
 
   snprintf(buf, buf_len,
-	   "%s %s:%u &gt; %s:%u [proto: %u.%u/%s][device: %u in: %u out:%u][%u/%u pkts][%llu/%llu bytes][%s]"
+	   "%s %s:%u &gt; %s:%u [first: %u][last: %u][proto: %u.%u/%s][device: %u in: %u out:%u][%u/%u pkts][%llu/%llu bytes][%s]"
 	   "%s%s%s"
 #if defined(NTOPNG_PRO) && defined(SHAPER_DEBUG)
 	   "%s"
@@ -716,6 +716,7 @@ char* Flow::print(char *buf, u_int buf_len) {
 	   get_protocol_name(),
 	   cli_host->get_ip()->print(buf1, sizeof(buf1)), ntohs(cli_port),
 	   srv_host->get_ip()->print(buf2, sizeof(buf2)), ntohs(srv_port),
+	   (u_int32_t)first_seen, (u_int32_t)last_seen,
 	   ndpiDetectedProtocol.master_protocol, ndpiDetectedProtocol.app_protocol,
 	   get_detected_protocol_name(pbuf, sizeof(pbuf)),
 	   flow_device.device_ip, flow_device.in_index, flow_device.out_index,

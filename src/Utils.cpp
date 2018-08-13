@@ -328,12 +328,12 @@ bool Utils::mkdir_tree(char *path) {
           break;
 	
 	path[i] = '\0';
-	rc = Utils::mkdir(path, CONST_DEFAULT_FILE_MODE);
+	rc = Utils::mkdir(path, CONST_DEFAULT_DIR_MODE);
 	
 	path[i] = CONST_PATH_SEP;
       }
 
-    rc = Utils::mkdir(path, CONST_DEFAULT_FILE_MODE);
+    rc = Utils::mkdir(path, CONST_DEFAULT_DIR_MODE);
 
     return(((rc == 0) || (errno == EEXIST/* Already existing */)) ? true : false);
   } else
@@ -353,7 +353,7 @@ int Utils::mkdir(const char *path, mode_t mode) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "mkdir(%s) failed [%d/%s]",
 				   path, errno, strerror(errno));
   } else {
-    if(chmod(path, CONST_DEFAULT_FILE_MODE) == -1) /* Ubuntu 18 */
+    if(chmod(path, CONST_DEFAULT_DIR_MODE) == -1) /* Ubuntu 18 */
       ntop->getTrace()->traceEvent(TRACE_WARNING, "chmod(%s) failed [%d/%s]",
 				   path, errno, strerror(errno));
   }
