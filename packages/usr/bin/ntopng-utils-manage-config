@@ -2,36 +2,47 @@
 
 DEFAULT_ARCHIVE="/tmp/conf.tar.gz"
 ARCHIVE="${DEFAULT_ARCHIVE}"
-ARCHIVE_RUNTIMEPREFS=""
-ARCHIVE_SYSTEMCONFIG=""
-ARCHIVE_DATADIR=""
-ARCHIVE_LICENSE=""
-SAVED_SUFFIX=".ntopngsaved"
+
+DEFAULT_DATADIR="/var/tmp/ntopng"
+DATADIR="${DEFAULT_DATADIR}"
+DATADIR_SET=false
+
 STAGING_DIR=""
+
+SAVED_SUFFIX=".ntopngsaved"
 
 ACTION=""
 
 function print_usage() {
 echo "Executing ntopng configuration backup/restore utility"
     echo "Usage:"
-    echo "`basename $0` -a backup  [-c archive.tar.gz] pathname1 [pathname2 [...]] "
-    echo "`basename $0` -a restore [-c archive.tar.gz]"
+    echo "`basename $0` -a restore [-c archive.tar.gz] [-d datadir]"
+    echo "`basename $0` -a backup  [-c archive.tar.gz] [-d datadir]"
     echo ""
     echo "Restore:"
-    echo "`basename $0` -a restore [-c archive.tar.gz]"
+    echo "`basename $0` -a restore [-c archive.tar.gz] [-d datadir]"
     echo "[-c archive.tar.gz]"
     echo "  The path to a compressed archive containing"
     echo "  a backup that has to be restored. The only compressed archives"
     echo "  accepted are those created from the web interface or with this script."
     echo "  When no path is specified, the default ${DEFAULT_ARCHIVE}"
     echo "  path is used."
+    echo "[-d datadir]"
+    echo "  The path to the ntopng data directory where the restore will place the files."
+    echo "  When no path is specified, the path indicated in the compressed archive"
+    echo "  is used."
+    echo "  The data directory must exist on the system. Resored files will take the"
+    echo "  ownership (user and group) of the existing directory."
     echo ""
     echo "Backup:"
-    echo "`basename $0` -a backup  [-c archive.tar.gz] pathname1 [pathname2 [...]] "
+    echo "`basename $0` -a backup  [-c archive.tar.gz] [-d datadir]"
     echo "[-c archive.tar.gz]"
     echo  " The path of the compressed archive that will be output."
     echo  " When no path is specified, the compressed archive will be output"
     echo  " to the default ${DEFAULT_ARCHIVE}."
+    echo "[-d datadir]"
+    echo "  The path to the ntopng data directory used to backup files."
+    echo "  When no path is specified, the default ${DEFAULT_DATADIR} path is used."
     echo "pathname1"
     echo "  The path to a directory or file that should be backed up"
 }
@@ -52,6 +63,12 @@ case $key in
     shift
     shift
     ;;
+    -d|--data-dir)
+    DATADIR="$2"
+    DATADIR_SET=true
+    shift
+    shift
+    ;;
     *)
     POSITIONAL+=("$1")
     shift
@@ -60,12 +77,23 @@ esac
 done
 set -- "${POSITIONAL[@]}" # restore positional parameters
 
-if [[ ( $ACTION != "backup" && $ACTION != "restore" ) ]]; then
-    print_usage
-    exit 1
-fi
+function cleanup() {
+    if [ "$?" = "0" ]; then
+	# exited with SUCCESS
+	if [ $ACTION == "restore" ]; then
+		rm -rf "${ARCHIVE}"
+	fi
+    else
+	# exited with ERROR
+	:
+    fi
 
-if [[ ( $ACTION == "backup" ) && ( ${#POSITIONAL[@]} -lt 1 ) ]]; then
+    rm -rf "${STAGING_DIR}"
+}
+
+trap cleanup EXIT
+
+if [[ ( $ACTION != "backup" && $ACTION != "restore" ) ]]; then
     print_usage
     exit 1
 fi
@@ -87,29 +115,49 @@ function setup_staging_dir() {
     fi
 }
 
-function backup_to_staging_dir() {
-    for PATHNAME in "${POSITIONAL[@]}"; do
-	if [ ! -f "${PATHNAME}" ] && [ ! -d "${PATHNAME}" ]; then
-	    echo "Skipping ${PATHNAME}. Not a file or directory."
-	fi
+function copy_to_staging_dir() {
+    local PATHNAME="$1"
+    local DST="$2"
 
-	if [[ "${PATHNAME}" != /* ]]; then
-	    echo "Skipping ${PATHNAME}. Only absolute paths allowed"
-	fi
+    if [ ! -f "${PATHNAME}" ] && [ ! -d "${PATHNAME}" ]; then
+	return
+    fi
 
-	# if it's a file we get it's base dir
-	local BASEDIR=`dirname "${PATHNAME}"`
+    if [[ "${PATHNAME}" != /* ]]; then
+	echo "Skipping ${PATHNAME}. Only absolute paths allowed"
+	return
+    fi
 
-	# recreate the tree into the staging directory
-	local STAGED="${STAGING_DIR}""${BASEDIR}"
-	mkdir -p "${STAGED}"
+    # recreate the tree into the staging directory
+    local STAGED="${STAGING_DIR}/${DST}"
+    mkdir -p "${STAGED}"
 
-	# copy to the staging area
-	cp -Rp "${PATHNAME}" "${STAGED}"
-    done
+    # copy to the staging area
+    if [ -f "${PATHNAME}" ]; then
+	cp -p "${PATHNAME}" "${STAGED}"
+    else
+	cp -Rp "${PATHNAME}/." "${STAGED}"
+    fi
 
     # echo "${STAGING_DIR}"
     # find ${STAGING_DIR}
+}
+
+function manifest_to_staging_dir() {
+    local DST="${STAGING_DIR}/MANIFEST"
+
+    # write a timestamp and the original data directory to a manifest file
+    echo "Time: $(date)" >> "${DST}"
+    echo "__datadir: ""${DATADIR}" >> "${DST}"
+}
+
+function backup_to_staging_dir() {
+    copy_to_staging_dir "/etc/ntopng" "__etc_ntopng"
+    copy_to_staging_dir "/etc/ntopng.license" "__license"
+    copy_to_staging_dir "/etc/nedge.license" "__license"
+    copy_to_staging_dir "${DATADIR}/runtimeprefs.json" "__datadir"
+    copy_to_staging_dir "${DATADIR}/system.config" "__datadir"
+    manifest_to_staging_dir
 }
 
 function sanitize_staging_dir() {
@@ -144,7 +192,7 @@ function staging_dir_to_archive() {
     rm -rf "${ARCHIVE}"
     # compress the staging dir to a compressed archive
     # by discaring the current path to the staging dir
-    tar cfvz "${ARCHIVE}" -C "${STAGING_DIR}" .
+    tar cfz "${ARCHIVE}" -C "${STAGING_DIR}" .
 }
 
 function check_tar_file() {
@@ -156,71 +204,41 @@ function check_tar_file() {
 }
 
 function check_tar_contents() {
-    # must contain directory /etc/ntopng
-    if ! `tar tf "${ARCHIVE}" ./etc/ntopng/ >/dev/null 2>&1`; then
-	echo "Compressed archive $1 does not contain /etc/ntopng/"
+    # must contain __etc_ntopng
+    if ! `tar tf "${ARCHIVE}" ./__etc_ntopng/ >/dev/null 2>&1`; then
+	echo "Compressed archive $1 does not contain __etc_ntopng"
 	exit 1
     fi
 
-    # could contain a license file
-    if `tar tf "${ARCHIVE}" ./etc/ntopng.license >/dev/null 2>&1`; then
-	ARCHIVE_LICENSE="/etc/ntopng.license"
-    elif `tar tf "${ARCHIVE}" ./etc/nedge.license >/dev/null 2>&1`; then
-	ARCHIVE_LICENSE="/etc/nedge.license"
-    fi
-
-    # could contain files:
-    # - runtimepref.json
-    # - system.config (nedge only)
-    # if those files exist they must be in the same dir
-    # only one copy of the file must be present in the archive
-
-    if [ `tar Pztf "${ARCHIVE}" | grep 'runtimeprefs.json$' | wc -l` -gt "1" ]; then
-	echo "Too many copies of runtimeprefs.json in compressed archive."
+    # must contain __datadir
+    if ! `tar tf "${ARCHIVE}" ./__datadir/ >/dev/null 2>&1`; then
+	echo "Compressed archive $1 does not contain __datadir"
 	exit 1
     fi
 
-    if [ `tar Pztf "${ARCHIVE}" | grep 'system.config$' | wc -l` -gt "1" ]; then
-	echo "Too many copies of system.config in compressed archive."
+    # must contain a manifest file
+    if ! `tar tf "${ARCHIVE}" ./MANIFEST >/dev/null 2>&1`; then
+	echo "Compressed archive $1 does not contain MANIFEST"
 	exit 1
     fi
+}
 
-    ARCHIVE_RUNTIMEPREFS="`tar Pztf "${ARCHIVE}" | grep 'runtimeprefs.json$'`"
-    ARCHIVE_SYSTEMCONFIG="`tar Pztf "${ARCHIVE}" | grep 'system.config$'`"
+function parse_manifest() {
+    local ARCHIVE_DATADIR=`cat "${STAGING_DIR}"/MANIFEST | grep "__datadir:" |  awk -F ": " '{print $2}'`
 
-    local ARCHIVE_RUNTIMEBASE=""
-    local ARCHIVE_SYSTEMBASE=""
-
-    if [ ! -z ${ARCHIVE_RUNTIMEPREFS} ]; then
-	# remove the first ./ to consider paths as absolute
-	ARCHIVE_RUNTIMEPREFS="${ARCHIVE_RUNTIMEPREFS#.}"
-	ARCHIVE_RUNTIMEBASE=`dirname "${ARCHIVE_RUNTIMEPREFS}"`
-	ARCHIVE_DATADIR="${ARCHIVE_RUNTIMEBASE}"
-    fi
-
-    if [ ! -z ${ARCHIVE_SYSTEMCONFIG} ]; then
-	ARCHIVE_SYSTEMCONFIG="${ARCHIVE_SYSTEMCONFIG#.}"
-	ARCHIVE_SYSTEMBASE=`dirname "${ARCHIVE_SYSTEMCONFIG}"`
-	ARCHIVE_DATADIR="${ARCHIVE_SYSTEMBASE}"
-    fi
-
-    # note, it's not a double set of ARCHIVE_DATADIR, indeed, in the following if
-    # we exit if the ARCHIVE_DATADIR differ
-
-    if [ ! -z ${ARCHIVE_RUNTIMEPREFS} ] && [ ! -z ${ARCHIVE_SYSTEMCONFIG} ]; then
-	if [ "${ARCHIVE_RUNTIMEBASE}" != "${ARCHIVE_SYSTEMBASE}" ]; then
-	    echo "Compressed archive contains files in unexpected positions:"
-	    echo "${ARCHIVE_RUNTIMEPREFS}"
-	    echo "${ARCHIVE_SYSTEMCONFIG}"
-	    echo "Files must be in the same directory"
-	    exit 1
-	fi
+    if [ "${DATADIR_SET}" = false ] && [ ! -z "${ARCHIVE_DATADIR}" ]; then
+	DATADIR="${ARCHIVE_DATADIR}"
+	echo "Restoring to MANIFEST data directory ${DATADIR}"
+    elif [ "${DATADIR_SET}" = true ]; then
+	echo "Restoring to command line data directory ${DATADIR}"
+    else
+	echo "Restoring to defaul data directory ${DATADIR}"
     fi
 }
 
 function tar_file_to_staging_dir() {
     echo "Extracting compressed archive contents to ${STAGING_DIR}"
-    tar xfvz "${ARCHIVE}" -C "${STAGING_DIR}" || exit 1
+    tar xfz "${ARCHIVE}" -C "${STAGING_DIR}" || exit 1
 }
 
 function check_current_system_dirs() {
@@ -229,10 +247,10 @@ function check_current_system_dirs() {
 	exit 1
     fi
 
-    # ARCHIVE_DATADIR is empty when system.config and runtimeprefs.json are not
+    # DATADIR is empty when system.config and runtimeprefs.json are not
     # going to be restored
-    if [ ! -z "${ARCHIVE_DATADIR}" ] && [ ! -d "${ARCHIVE_DATADIR}" ]; then
-	echo "Directory ${ARCHIVE_DATADIR} missing from the system, unable to restore."
+    if [ ! -z "${DATADIR}" ] && [ ! -d "${DATADIR}" ]; then
+	echo "Directory ${DATADIR} missing from the system, unable to restore."
 	exit 1
     fi
 }
@@ -270,14 +288,20 @@ function restore_and_save_file() {
 
 function restore_files() {
     # restore /etc/ntopng files
-    find "${STAGING_DIR}/etc/ntopng"  -maxdepth 1 -type f -name '*.*' -print0 |
+    find "${STAGING_DIR}/__etc_ntopng"  -maxdepth 1 -type f -name '*.*' -print0 |
     while IFS= read -r -d '' FL; do
 	restore_and_save_file "${FL}" "/etc/ntopng"
     done
 
-    restore_and_save_file "${STAGING_DIR}/${ARCHIVE_LICENSE}" "/etc" "root:root"
+    if [ -f "${STAGING_DIR}/__license/ntopng.license" ]; then
+	restore_and_save_file "${STAGING_DIR}/__license/ntopng.license" "/etc" "root:root"
+    fi
 
-    if [ -z "${ARCHIVE_DATADIR}" ] || [ ! -d "${ARCHIVE_DATADIR}" ]; then
+    if [ -f "${STAGING_DIR}/__license/nedge.license" ]; then
+	restore_and_save_file "${STAGING_DIR}/__license/nedge.license" "/etc" "root:root"
+    fi
+
+    if [ -z "${DATADIR}" ] || [ ! -d "${DATADIR}" ]; then
 	# nothing to do, the either not existing or not a directory
 	return
     fi
@@ -285,29 +309,22 @@ function restore_files() {
     # Get the ownership of the data directory
     # extracted files will be chowned to make sure they have the same
     # owner and group of the data directory
-    local USER_GROUP=`ls -ld ${ARCHIVE_DATADIR} | awk '{print $3":"$4}'`
+    local USER_GROUP=`ls -ld ${DATADIR} | awk '{print $3":"$4}'`
     # will be something like root:root nobody:nogroup
 
     if [ -z "${USER_GROUP}" ]; then
-	echo "Unable to retrieve user and group of ${ARCHIVE_DATADIR}"
+	echo "Unable to retrieve user and group of ${DATADIR}"
 	exit 1
     fi
 
-    # restore archives and we're sure it's
-    # going to be in an existing directory
-    restore_and_save_file "${STAGING_DIR}/${ARCHIVE_RUNTIMEPREFS}" "${ARCHIVE_DATADIR}" "${USER_GROUP}"
-    restore_and_save_file "${STAGING_DIR}/${ARCHIVE_SYSTEMCONFIG}" "${ARCHIVE_DATADIR}" "${USER_GROUP}"
-}
+    if [ -f "${STAGING_DIR}/__datadir/system.config" ]; then
+	restore_and_save_file "${STAGING_DIR}/__datadir/system.config" "${DATADIR}" "${USER_GROUP}"
+    fi
 
-function cleanup() {
-    :
-    # if [ $ACTION == "restore" ]; then
-    # 	rm -rf "${ARCHIVE}"
-    # fi
-    # rm -rf "${STAGING_DIR}"
+    if [ -f "${STAGING_DIR}/__datadir/runtimeprefs.json" ]; then
+	restore_and_save_file "${STAGING_DIR}/__datadir/runtimeprefs.json" "${DATADIR}" "${USER_GROUP}"
+    fi
 }
-
-trap cleanup EXIT
 
 if [ $ACTION == "backup" ]; then
     echo "Backing up..."
@@ -323,11 +340,12 @@ elif [ $ACTION == "restore" ]; then
     # preliminary checks
     check_tar_file
     check_tar_contents
-    check_current_system_dirs
 
     # actual restore
     setup_staging_dir
     tar_file_to_staging_dir
+    parse_manifest
+    check_current_system_dirs
     sanitize_staging_dir
     restore_files
 else
@@ -335,8 +353,5 @@ else
     echo "Unknown action $ACTION"
     exit 1
 fi
-
-#cleanup files
-cleanup
 
 exit 0
