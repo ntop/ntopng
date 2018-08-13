@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DEFAULT_ARCHIVE="/tmp/conf.tar.gz"
+DEFAULT_ARCHIVE="/etc/ntopng/conf.tar.gz"
 ARCHIVE="${DEFAULT_ARCHIVE}"
 
 DEFAULT_DATADIR="/var/tmp/ntopng"

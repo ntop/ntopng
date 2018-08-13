@@ -57,7 +57,7 @@ tarball (.tar.gz), including:
 Please note that on Windows systems the runtime configuration file only is provided.
 
 The backup can be used to restore the configuration, placing a copy of the tarball
-under /tmp/conf.tar.gz and restarting the ntopng service. Please note
-that after restoring the configuration, the backup copy under /tmp/conf.tar.gz
+under /etc/ntopng/conf.tar.gz and restarting the ntopng service. Please note
+that after restoring the configuration, the backup copy under /etc/ntopng/conf.tar.gz
 is automatically deleted.
 
