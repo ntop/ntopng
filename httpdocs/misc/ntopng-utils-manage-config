@@ -166,7 +166,11 @@ function sanitize_staging_dir() {
 
     # Throw away any possible executable file from the staging area
     # executables include binaries but also shell scripts
-    find "${STAGING_DIR}" -perm +0111 -type f -exec rm -rf {} \;
+    if ! `find "${STAGING_DIR}" -executable -type f -exec rm -rf {} \; 2> /dev/null`; then
+	# some versions of find don't support -executable and require the
+	# executable permissions bits to be specified explicitly
+	find "${STAGING_DIR}" -perm +0111 -type f -exec rm -rf {} \;
+    fi
 
     # Throw away backup files
     find "${STAGING_DIR}" -type f -name "*~" -exec rm -rf {} \;
