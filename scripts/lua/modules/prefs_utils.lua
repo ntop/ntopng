@@ -425,7 +425,7 @@ function toggleTableButton(label, comment, on_label, on_value, on_color , off_la
 end
 
 function toggleTableButtonPrefs(label, comment, on_label, on_value, on_color , off_label, off_value, off_color, submit_field,
-                                redis_key, default_value, disabled, elementToSwitch, hideOn, showElement)
+                                redis_key, default_value, disabled, elementToSwitch, hideOn, showElement, javascriptAfterSwitch)
  if not skip_redis then
   value = ntop.getPref(redis_key)
   if(_POST[submit_field] ~= nil) then
@@ -497,6 +497,10 @@ function toggleTableButtonPrefs(label, comment, on_label, on_value, on_color , o
         end
       end
     end
+
+    if javascriptAfterSwitch ~= nil then
+      print(javascriptAfterSwitch)
+    end
     print[[
   }
   ]]
@@ -518,6 +522,10 @@ function toggleTableButtonPrefs(label, comment, on_label, on_value, on_color , o
         end
       end
     end
+
+    if javascriptAfterSwitch ~= nil then
+      print(javascriptAfterSwitch)
+    end
     print [[
   }]]
   print('</script>\n')
@@ -538,7 +546,8 @@ function prefsToggleButton(params)
     off_text = "Off",           -- The text when the button is off
     off_value = "0",            -- The value when the button is off
     off_class = "danger",       -- The css class when the button is off
-    reverse_switch = false      -- If true, elements are hidden when the item is enabled
+    reverse_switch = false,     -- If true, elements are hidden when the item is enabled
+    js_after_switch = nil,      -- javascript after switch
   }
 
   local options = table.merge(defaults, params)
@@ -549,7 +558,7 @@ function prefsToggleButton(params)
     options.on_text, options.on_value, options.on_class,
     options.off_text, options.off_value, options.off_class,
     options.field, redis_key,
-    options.default, options.disabled, options.to_switch, options.reverse_switch, not options.hidden)
+    options.default, options.disabled, options.to_switch, options.reverse_switch, not options.hidden, options.js_after_switch)
 end
 
 function multipleTableButtonPrefs(label, comment, array_labels, array_values, default_value, selected_color,

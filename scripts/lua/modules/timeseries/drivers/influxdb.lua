@@ -26,6 +26,8 @@ function driver:new(options)
   local obj = {
     url = options.url,
     db = options.db,
+    username = options.username or "",
+    password = options.password or "",
   }
 
   setmetatable(obj, self)
@@ -49,8 +51,26 @@ end
 
 -- ##############################################
 
-local function influx_query(full_url)
-  local res = ntop.httpGet(full_url, "", "", INFLUX_QUERY_TIMEMOUT_SEC, true)
+local function getResponseError(res)
+  if res.CONTENT and res.CONTENT_TYPE == "application/json" then
+    local jres = json.decode(res.CONTENT)
+
+    if jres and jres.error then
+      if res.RESPONSE_CODE then
+        return "[".. res.RESPONSE_CODE .. "] " ..jres.error
+      else
+        return jres.error
+      end
+    end
+  end
+
+  return res.RESPONSE_CODE or "unknown error"
+end
+
+-- ##############################################
+
+local function influx_query(full_url, username, password)
+  local res = ntop.httpGet(full_url, username, password, INFLUX_QUERY_TIMEMOUT_SEC, true)
 
   if not res then
     traceError(TRACE_ERROR, TRACE_CONSOLE, "Invalid response for query: " .. full_url)
@@ -193,12 +213,12 @@ end
 
 -- ##############################################
 
-local function makeTotalSerie(schema, tstart, tend, tags, options, url, time_step, db)
+function driver:_makeTotalSerie(schema, tstart, tend, tags, options, url, time_step)
   local data_type = schema.options.metrics_type
   local query = getTotalSerieQuery(schema, tstart, tend, tags, time_step, data_type)
 
-  local full_url = url .. "/query?db=".. db .."&epoch=s&q=" .. urlencode(query)
-  local data = influx_query(full_url)
+  local full_url = url .. "/query?db=".. self.db .."&epoch=s&q=" .. urlencode(query)
+  local data = influx_query(full_url, self.username, self.password)
 
   if not data then
     return nil
@@ -214,7 +234,7 @@ end
 
 -- NOTE: mean / percentile values are calculated manually because of an issue with
 -- empty points in the queries https://github.com/influxdata/influxdb/issues/6967
-local function calcStats(schema, tstart, tend, tags, url, total_serie, time_step, db)
+function driver:_calcStats(schema, tstart, tend, tags, url, total_serie, time_step)
   local stats = ts_common.calculateStatistics(total_serie, time_step, tend - tstart, schema.options.metrics_type)
 
   if time_step ~= schema.options.step then
@@ -223,8 +243,8 @@ local function calcStats(schema, tstart, tend, tags, url, total_serie, time_step
     local query = getTotalSerieQuery(schema, tstart, tend, tags, nil --[[ important: no sampling ]], data_type)
     query = 'SELECT SUM("total_serie") * ' .. schema.options.step ..' FROM (' .. query .. ')'
 
-    local full_url = url .. "/query?db=".. db .."&epoch=s&q=" .. urlencode(query)
-    local data = influx_query(full_url)
+    local full_url = url .. "/query?db=".. self.db .."&epoch=s&q=" .. urlencode(query)
+    local data = influx_query(full_url, self.username, self.password)
 
     if (data and data.series and data.series[1] and data.series[1].values[1]) then
       local data_stats = data.series[1].values[1]
@@ -287,18 +307,18 @@ function driver:query(schema, tstart, tend, tags, options)
 
   local url = self.url
   local full_url = url .. "/query?db=".. self.db .."&epoch=s&q=" .. urlencode(query)
-  local data = influx_query(full_url)
+  local data = influx_query(full_url, self.username, self.password)
 
   if not data then
     return nil
   end
 
   local series, count = influx2Series(schema, tstart, tend, tags, options, data.series[1], time_step)
-  local total_serie = makeTotalSerie(schema, tstart, tend, tags, options, url, time_step, self.db)
+  local total_serie = self:_makeTotalSerie(schema, tstart, tend, tags, options, url, time_step)
   local stats = nil
 
   if options.calculate_stats and total_serie then
-    stats = calcStats(schema, tstart, tend, tags, url, total_serie, time_step, self.db)
+    stats = self:_calcStats(schema, tstart, tend, tags, url, total_serie, time_step)
   end
 
   local rv = {
@@ -338,7 +358,7 @@ function driver:export()
 
     -- Delete the file after POST
     local delete_file_after_post = true
-    ret = ntop.postHTTPTextFile("", "", self.url .. "/write?db=" .. self.db, fname, delete_file_after_post, 5 --[[ timeout ]])
+    ret = ntop.postHTTPTextFile(self.username, self.password, self.url .. "/write?db=" .. self.db, fname, delete_file_after_post, 5 --[[ timeout ]])
 
     if(ret ~= true) then
       traceError(TRACE_ERROR, TRACE_CONSOLE, "POST of "..fname.." failed\n")
@@ -393,7 +413,7 @@ function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
 
   local url = self.url
   local full_url = url .. "/query?db=".. self.db .."&q=" .. urlencode(query)
-  local data = influx_query(full_url)
+  local data = influx_query(full_url, self.username, self.password)
 
   if not data then
     return nil
@@ -467,7 +487,7 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
   local url = self.url
   local full_url = url .. "/query?db=".. self.db .."&epoch=s&q=" .. urlencode(query)
 
-  local data = influx_query(full_url)
+  local data = influx_query(full_url, self.username, self.password)
 
   if not data then
     return nil
@@ -498,11 +518,11 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
   end
 
   local time_step = calculateSampledTimeStep(schema, tstart, tend, options)
-  local total_serie = makeTotalSerie(schema, tstart, tend, tags, options, url, time_step, self.db)
+  local total_serie = self:_makeTotalSerie(schema, tstart, tend, tags, options, url, time_step)
   local stats = nil
 
   if options.calculate_stats and total_serie then
-    stats = calcStats(schema, tstart, tend, tags, url, total_serie, time_step, self.db)
+    stats = self:_calcStats(schema, tstart, tend, tags, url, total_serie, time_step)
   end
 
   return {
@@ -543,13 +563,15 @@ local function isCompatibleVersion(version)
       ((current.minor == required.minor) and (current.patch >= required.patch)))
 end
 
-function driver.init(dbname, url, days_retention, verbose)
+function driver.init(dbname, url, days_retention, username, password, verbose)
+  local timeout = INFLUX_QUERY_TIMEMOUT_SEC
+
   -- Check version
   if verbose then traceError(TRACE_NORMAL, TRACE_CONSOLE, "Contacting influxdb at " .. url .. " ...") end
 
-  local res = ntop.httpGet(url .. "/ping", "", "", INFLUX_QUERY_TIMEMOUT_SEC, true)
-  if res == nil then
-    local err = i18n("prefs.could_not_contact_influxdb")
+  local res = ntop.httpGet(url .. "/ping", username, password, INFLUX_QUERY_TIMEMOUT_SEC, true)
+  if not res or ((res.RESPONSE_CODE ~= 200) and (res.RESPONSE_CODE ~= 204)) then
+    local err = i18n("prefs.could_not_contact_influxdb", {msg=getResponseError(res)})
 
     traceError(TRACE_ERROR, TRACE_CONSOLE, err)
     return false, err
@@ -570,9 +592,9 @@ function driver.init(dbname, url, days_retention, verbose)
   if verbose then traceError(TRACE_NORMAL, TRACE_CONSOLE, "Creating database " .. dbname .. " ...") end
   local query = "CREATE DATABASE \"" .. dbname .. "\""
 
-  local res = ntop.postHTTPform("", "", url .. "/query", "q=" .. query)
-  if not res then
-    local err = i18n("prefs.influxdb_create_error", {db=dbname})
+  local res = ntop.httpPost(url .. "/query", "q=" .. query, username, password, timeout, true)
+  if not res or (res.RESPONSE_CODE ~= 200) then
+    local err = i18n("prefs.influxdb_create_error", {db=dbname, msg=getResponseError(res)})
 
     traceError(TRACE_ERROR, TRACE_CONSOLE, err)
     return false, err
@@ -582,9 +604,9 @@ function driver.init(dbname, url, days_retention, verbose)
   if verbose then traceError(TRACE_NORMAL, TRACE_CONSOLE, "Setting retention for " .. dbname .. " ...") end
   local query = "ALTER RETENTION POLICY autogen ON \"".. dbname .."\" DURATION ".. days_retention .."d"
 
-  local res = ntop.postHTTPform("", "", url .. "/query", "q=" .. query)
-  if not res then
-    local err = i18n("prefs.influxdb_retention_error", {db=dbname})
+  local res = ntop.httpPost(url .. "/query", "q=" .. query, username, password, timeout, true)
+  if not res or (res.RESPONSE_CODE ~= 200) then
+    local err = i18n("prefs.influxdb_retention_error", {db=dbname, msg=getResponseError(res)})
 
     traceError(TRACE_ERROR, TRACE_CONSOLE, err)
     return false, err

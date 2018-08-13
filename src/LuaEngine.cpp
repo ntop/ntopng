@@ -4755,11 +4755,10 @@ static int ntop_http_get(lua_State* vm) {
     }
   }
 
-  if(Utils::httpGet(vm, url, username, pwd, timeout, return_content,
-		    use_cookie_authentication, &stats))
-    return(CONST_LUA_OK);
-  else
-    return(CONST_LUA_ERROR);
+  Utils::httpGetPost(vm, url, username, pwd, timeout, return_content,
+		    use_cookie_authentication, &stats, NULL);
+
+  return(CONST_LUA_OK);
 }
 
 /* ****************************************** */
@@ -4974,24 +4973,37 @@ static int ntop_post_http_json_data(lua_State* vm) {
 /* ****************************************** */
 
 // ***API***
-static int ntop_post_http_form(lua_State* vm) {
-  char *username, *password, *url, *form_data;
+static int ntop_http_post(lua_State* vm) {
+  char *username = (char*)"", *password = (char*)"", *url, *form_data;
+  int timeout = 30;
+  bool return_content = false;
+  bool use_cookie_authentication = false;
+  HTTPTranferStats stats;
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
-  if((username = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
+  if((url = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
 
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
-  if((password = (char*)lua_tostring(vm, 2)) == NULL) return(CONST_LUA_PARAM_ERROR);
+  if((form_data = (char*)lua_tostring(vm, 2)) == NULL) return(CONST_LUA_PARAM_ERROR);
 
-  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
-  if((url = (char*)lua_tostring(vm, 3)) == NULL) return(CONST_LUA_PARAM_ERROR);
+  if(lua_type(vm, 3) == LUA_TSTRING) /* Optional */
+    if((username = (char*)lua_tostring(vm, 3)) == NULL) return(CONST_LUA_PARAM_ERROR);
 
-  if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
-  if((form_data = (char*)lua_tostring(vm, 4)) == NULL) return(CONST_LUA_PARAM_ERROR);
+  if(lua_type(vm, 4) == LUA_TSTRING) /* Optional */
+    if((password = (char*)lua_tostring(vm, 4)) == NULL) return(CONST_LUA_PARAM_ERROR);
 
-  bool rv = Utils::postHTTPForm(username, password, url, form_data);
+  if(lua_type(vm, 5) == LUA_TNUMBER) /* Optional */
+    timeout = lua_tonumber(vm, 5);
 
-  lua_pushboolean(vm, rv);
+  if(lua_type(vm, 6) == LUA_TBOOLEAN) /* Optional */
+    return_content = lua_toboolean(vm, 6) ? true : false;
+
+  if(lua_type(vm, 7) == LUA_TBOOLEAN) /* Optional */
+    use_cookie_authentication = lua_toboolean(vm, 7) ? true : false;
+
+  Utils::httpGetPost(vm, url, username, password, timeout, return_content,
+    use_cookie_authentication, &stats, form_data);
+
   return(CONST_LUA_OK);
 }
 
@@ -7859,9 +7871,8 @@ static const luaL_Reg ntop_reg[] = {
   /* Prefs */
   { "getPrefs",         ntop_get_prefs },
 
-  /* HTTP */
+  /* HTTP utils */
   { "httpRedirect",     ntop_http_redirect },
-  { "httpGet",          ntop_http_get },
   { "getHttpPrefix",    ntop_http_get_prefix },
 
   /* Admin */
@@ -7886,8 +7897,9 @@ static const luaL_Reg ntop_reg[] = {
   { "getRandomCSRFValue",   ntop_generate_csrf_value },
 
   /* HTTP */
+  { "httpGet",              ntop_http_get            },
+  { "httpPost",             ntop_http_post           },
   { "postHTTPJsonData",     ntop_post_http_json_data },
-  { "postHTTPform",         ntop_post_http_form      },
   { "postHTTPTextFile",     ntop_post_http_text_file },
 
 #ifdef HAVE_CURL_SMTP

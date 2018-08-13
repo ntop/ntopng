@@ -61,9 +61,13 @@ function ts_utils.listActiveDrivers()
     local rrd_driver = require("rrd"):new({base_path = (dirs.workingdir .. "/rrd_new")})
     active_drivers[#active_drivers + 1] = rrd_driver
   elseif driver == "influxdb" then
+    local auth_enabled = (ntop.getPref("ntopng.prefs.influx_auth_enabled") == "1")
+
     local influxdb_driver = require("influxdb"):new({
       url = ntop.getPref("ntopng.prefs.ts_post_data_url"),
       db = ntop.getPref("ntopng.prefs.influx_dbname"),
+      username = ternary(auth_enabled, ntop.getPref("ntopng.prefs.influx_username"), nil),
+      password = ternary(auth_enabled, ntop.getPref("ntopng.prefs.influx_password"), nil),
     })
     active_drivers[#active_drivers + 1] = influxdb_driver
   end

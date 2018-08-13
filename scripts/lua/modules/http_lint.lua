@@ -1019,6 +1019,7 @@ local known_parameters = {
    ["toggle_pool_activation_alert"]                =  validateBool,
    ["toggle_quota_exceeded_alert"]                 =  validateBool,
    ["toggle_external_alerts"]                      =  validateBool,
+   ["toggle_influx_auth"]                          =  validateBool,
 
    -- Input fields
    ["minute_top_talkers_retention"]                =  validateNumber,
@@ -1064,6 +1065,8 @@ local known_parameters = {
    ["email_recipient"]                             =  validateSingleWord,
    ["smtp_server"]                                 =  validateSingleWord,
    ["influx_dbname"]                               =  validateSingleWord,
+   ["influx_username"]                             =  validateEmptyOr(validateSingleWord),
+   ["influx_password"]                             =  validateEmptyOr(validateSingleWord),
 
    -- Multiple Choice
    ["disaggregation_criterion"]                    =  validateChoiceInline({"none", "vlan", "probe_ip", "iface_idx", "ingress_iface_idx", "ingress_vrf_id"}),
