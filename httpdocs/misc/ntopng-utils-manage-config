@@ -134,9 +134,9 @@ function copy_to_staging_dir() {
 
     # copy to the staging area
     if [ -f "${PATHNAME}" ]; then
-	cp --no-dereference -p "${PATHNAME}" "${STAGED}"
+	cp -Pp "${PATHNAME}" "${STAGED}"
     else
-	cp --no-dereference -Rp "${PATHNAME}/." "${STAGED}"
+	cp -RPp "${PATHNAME}/." "${STAGED}"
     fi
 
     # echo "${STAGING_DIR}"
@@ -207,18 +207,6 @@ function check_tar_file() {
 }
 
 function check_tar_contents() {
-    # must contain __etc_ntopng
-    if ! `tar tf "${ARCHIVE}" ./__etc_ntopng/ >/dev/null 2>&1`; then
-	echo "Compressed archive $1 does not contain __etc_ntopng"
-	exit 1
-    fi
-
-    # must contain __datadir
-    if ! `tar tf "${ARCHIVE}" ./__datadir/ >/dev/null 2>&1`; then
-	echo "Compressed archive $1 does not contain __datadir"
-	exit 1
-    fi
-
     # must contain a manifest file
     if ! `tar tf "${ARCHIVE}" ./MANIFEST >/dev/null 2>&1`; then
 	echo "Compressed archive $1 does not contain MANIFEST"
@@ -245,11 +233,6 @@ function tar_file_to_staging_dir() {
 }
 
 function check_current_system_dirs() {
-    if [ ! -d "/etc/ntopng" ]; then
-	echo "Directory /etc/ntopng is missing from the system, unable to restore."
-	exit 1
-    fi
-
     # DATADIR is empty when system.config and runtimeprefs.json are not
     # going to be restored
     if [ ! -z "${DATADIR}" ] && [ ! -d "${DATADIR}" ]; then
