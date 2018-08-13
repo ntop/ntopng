@@ -28,12 +28,35 @@ DB::DB(NetworkInterface *_iface) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: NULL mutex. Are you running out of memory?");
 
   iface = _iface;
+  log_fd = NULL;
+
+  open_log();
 }
+
+/* ******************************* */
+
+void DB::open_log() {
+  static char sql_log_path[MAX_PATH];
+
+  if(ntop->getPrefs()->is_sql_log_enabled()) {
+    snprintf(sql_log_path, sizeof(sql_log_path), "%s/%d/ntopng_sql.log",
+	     ntop->get_working_dir(), iface->get_id());
+
+    log_fd = fopen(sql_log_path, "a");
+
+    if(!log_fd)
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create log %s", sql_log_path);
+    else
+      chmod(sql_log_path, CONST_DEFAULT_FILE_MODE);
+  }
+}
+
 
 /* ******************************************* */
 
 DB::~DB() {
   if(m) delete m;
+  if(log_fd) fclose(log_fd);
 }
 
 /* ******************************************* */

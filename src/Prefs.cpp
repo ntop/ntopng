@@ -38,7 +38,7 @@ Prefs::Prefs(Ntop *_ntop) {
   attacker_max_num_syn_per_sec = victim_max_num_syn_per_sec = CONST_MAX_NUM_SYN_PER_SECOND;
   ewma_alpha_percent = CONST_DEFAULT_EWMA_ALPHA_PERCENT;
   data_dir = strdup(CONST_DEFAULT_DATA_DIR);
-  enable_access_log = false, flow_aggregation_enabled = false;
+  enable_access_log = false, enable_sql_log = false, flow_aggregation_enabled = false;
   enable_flow_device_port_rrd_creation = false;
   enable_ip_reassignment_alerts = false;
   enable_top_talkers = false, enable_idle_local_hosts_cache = false;
@@ -475,6 +475,7 @@ void Prefs::reloadPrefsFromRedis() {
 		       CONST_DEFAULT_IS_AUTOLOGOUT_ENABLED);
   // alert preferences
   enable_access_log     = getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_ACCESS_LOG, false);
+  enable_sql_log        = getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_SQL_LOG, false);
 
   /* Runtime Preferences */
   housekeeping_frequency      = getDefaultPrefsValue(CONST_RUNTIME_PREFS_HOUSEKEEPING_FREQUENCY, HOUSEKEEPING_FREQUENCY),

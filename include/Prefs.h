@@ -48,7 +48,7 @@ class Prefs {
     enable_auto_logout, use_promiscuous_mode,
     enable_ixia_timestamps, enable_vss_apcon_timestamps,
     enable_users_login, disable_localhost_login, online_license_check,
-    service_license_check, enable_access_log, log_to_file,
+    service_license_check, enable_sql_log, enable_access_log, log_to_file,
     flow_aggregation_enabled,
     enable_mac_ndpi_stats;
 
@@ -171,6 +171,7 @@ class Prefs {
   inline bool is_httpbl_enabled()                       { return(httpbl_key ? true : false); };
   inline bool do_change_user()                          { return(change_user);            };
   inline void dont_change_user()                        { change_user = false;            };
+  inline bool is_sql_log_enabled()                      { return(enable_sql_log);         };
   inline bool is_access_log_enabled()                   { return(enable_access_log);      };
   inline void do_enable_access_log(bool state = true)   { enable_access_log = state;      };
   inline bool are_ixia_timestamps_enabled()             { return(enable_ixia_timestamps); };

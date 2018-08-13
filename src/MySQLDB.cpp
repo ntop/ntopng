@@ -808,6 +808,12 @@ int MySQLDB::exec_sql_query(lua_State *vm, char *sql, bool limitRows, bool wait_
 
   if(m) m->lock(__FILE__, __LINE__);
 
+
+  if(ntop->getPrefs()->is_sql_log_enabled() && log_fd && sql) {
+    fprintf(log_fd, "%s\n", sql);
+    fflush(log_fd);
+  }
+  
   if((rc = mysql_query(&mysql, sql)) != 0) {
     /* retry */
     disconnectFromDB(&mysql);

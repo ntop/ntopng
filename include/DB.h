@@ -30,9 +30,11 @@ class AggregatedFlow;
 
 class DB {
  protected:
+  FILE *log_fd;
   NetworkInterface *iface;
   Mutex *m;
 
+  void open_log();
  public:
   DB(NetworkInterface *_iface);
   virtual ~DB();
