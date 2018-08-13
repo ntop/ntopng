@@ -318,6 +318,14 @@ function restore_files() {
     fi
 }
 
+function post_restore_actions() {
+    # in case we are restoring nedge, we touch a file to indicate
+    # a fresh first start.
+    if [ -f "/etc/systemd/system/nedge.service" ]; then
+	touch "${DATADIR}/system.config.reload"
+    fi
+}
+
 if [ $ACTION == "backup" ]; then
     echo "Backing up..."
 
@@ -340,6 +348,7 @@ elif [ $ACTION == "restore" ]; then
     check_current_system_dirs
     sanitize_staging_dir
     restore_files
+    post_restore_actions
 else
     # never reached
     echo "Unknown action $ACTION"
