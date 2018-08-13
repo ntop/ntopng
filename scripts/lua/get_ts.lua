@@ -16,7 +16,7 @@ require "graph_utils"
 local ts_utils = require("ts_utils")
 local json = require("dkjson")
 
-local schema_id = _GET["ts_schema"]
+local ts_schema = _GET["ts_schema"]
 local query = _GET["ts_query"]
 local tstart = tonumber(_GET["epoch_begin"]) or (os.time() - 3600)
 local tend = tonumber(_GET["epoch_end"]) or os.time()
@@ -38,12 +38,12 @@ sendHTTPHeader('application/json')
 local function performQuery(tstart, tend, keep_total)
   local res
 
-  if starts(schema_id, "top:") then
-    local schema_id = split(schema_id, "top:")[2]
+  if starts(ts_schema, "top:") then
+    local ts_schema = split(ts_schema, "top:")[2]
 
-    res = ts_utils.queryTopk(schema_id, tags, tstart, tend, options)
+    res = ts_utils.queryTopk(ts_schema, tags, tstart, tend, options)
   else
-    res = ts_utils.query(schema_id, tags, tstart, tend, options)
+    res = ts_utils.query(ts_schema, tags, tstart, tend, options)
 
     if(not keep_total) and (res) and (res.additional_series) then
       -- no need for total serie in normal queries
@@ -56,8 +56,8 @@ end
 
 local res
 
-if starts(schema_id, "custom:") and ntop.isPro() then
-  res = performCustomQuery(schema_id, tags, tstart, tend, options)
+if starts(ts_schema, "custom:") and ntop.isPro() then
+  res = performCustomQuery(ts_schema, tags, tstart, tend, options)
   compare_backward = nil
 else
   res = performQuery(tstart, tend)
