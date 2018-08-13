@@ -13,6 +13,8 @@ SAVED_SUFFIX=".ntopngsaved"
 
 ACTION=""
 
+NEDGE="@NEDGE@"
+
 function print_usage() {
 echo "Executing ntopng configuration backup/restore utility"
     echo "Usage:"
@@ -153,10 +155,15 @@ function manifest_to_staging_dir() {
 
 function backup_to_staging_dir() {
     copy_to_staging_dir "/etc/ntopng" "__etc_ntopng"
-    copy_to_staging_dir "/etc/ntopng.license" "__license"
-    copy_to_staging_dir "/etc/nedge.license" "__license"
     copy_to_staging_dir "${DATADIR}/runtimeprefs.json" "__datadir"
-    copy_to_staging_dir "${DATADIR}/system.config" "__datadir"
+
+    if [ "${NEDGE}" == "0" ]; then
+	copy_to_staging_dir "/etc/ntopng.license" "__license"
+    else
+	copy_to_staging_dir "/etc/nedge.license" "__license"
+	copy_to_staging_dir "${DATADIR}/system.config" "__datadir"
+    fi
+
     manifest_to_staging_dir
 }
 
@@ -182,11 +189,18 @@ function sanitize_staging_dir() {
     find "${STAGING_DIR}" -type f -size 0 -exec rm -rf {} \;
 
     # Throw away everything else BUT pure ASCII files
+    # or PNG images when nEdge
     find "${STAGING_DIR}" -type f -name '*.*' -print0 |
     while IFS= read -r -d '' FL; do
 	if ! `file "${FL}" | grep -qc "ASCII text";`; then
+	    if [ "${NEDGE}" == "1" ]; then
+		if `file "${FL}" | grep -qc "PNG image data";`; then
+		    continue
+		fi
+	    fi
+
 	    rm -rf "${FL}"
-	    echo "Non-ASCII file ""${FL}"" ignored"
+	    echo "File ""${FL}"" ignored"
 	fi
     done
 
@@ -285,11 +299,11 @@ function restore_files() {
 	    done
     fi
 
-    if [ -f "${STAGING_DIR}/__license/ntopng.license" ]; then
+    if [ "${NEDGE}" == "0" ] && [ -f "${STAGING_DIR}/__license/ntopng.license" ]; then
 	restore_and_save_file "${STAGING_DIR}/__license/ntopng.license" "/etc" "root:root"
     fi
 
-    if [ -f "${STAGING_DIR}/__license/nedge.license" ]; then
+    if [ "${NEDGE}" == "1" ] && [ -f "${STAGING_DIR}/__license/nedge.license" ]; then
 	restore_and_save_file "${STAGING_DIR}/__license/nedge.license" "/etc" "root:root"
     fi
 
@@ -309,7 +323,7 @@ function restore_files() {
 	exit 1
     fi
 
-    if [ -f "${STAGING_DIR}/__datadir/system.config" ]; then
+    if [ "${NEDGE}" == "1" ] && [ -f "${STAGING_DIR}/__datadir/system.config" ]; then
 	restore_and_save_file "${STAGING_DIR}/__datadir/system.config" "${DATADIR}" "${USER_GROUP}"
     fi
 
@@ -321,7 +335,7 @@ function restore_files() {
 function post_restore_actions() {
     # in case we are restoring nedge, we touch a file to indicate
     # a fresh first start.
-    if [ -f "/etc/systemd/system/nedge.service" ]; then
+    if [ "${NEDGE}" == "1" ]; then
 	touch "${DATADIR}/system.config.reload"
     fi
 }

@@ -591,9 +591,14 @@ AC_CONFIG_FILES(packages/ntopng.spec)
 AC_CONFIG_FILES(packages/ntopng-data.spec)
 AC_CONFIG_FILES(Makefile)
 AC_CONFIG_FILES(doc/doxygen.conf)
+AC_CONFIG_FILES(httpdocs/misc/ntopng-utils-manage-config)
 AC_CONFIG_FILES(packages/etc/systemd/system/ntopng.service)
 
 AC_OUTPUT
+
+if test -f "httpdocs/misc/ntopng-utils-manage-config"; then
+  chmod +x httpdocs/misc/ntopng-utils-manage-config
+fi
 
 echo ""
 echo "You are now ready to compile typing $GMAKE"
