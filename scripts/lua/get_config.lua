@@ -44,7 +44,7 @@ else
   else -- Unix
     local manage_config = "/usr/bin/ntopng-utils-manage-config"
     if not ntop.exists(manage_config) then
-      manage_config = os_utils.fixPath(dirs.installdir.."/packages/usr/bin/ntopng-utils-manage-config")
+      manage_config = os_utils.fixPath(dirs.installdir..'/httpdocs/misc/ntopng-utils-manage-config')
     end
 
     if not ntop.exists(manage_config) then
