@@ -134,9 +134,9 @@ function copy_to_staging_dir() {
 
     # copy to the staging area
     if [ -f "${PATHNAME}" ]; then
-	cp -p "${PATHNAME}" "${STAGED}"
+	cp --no-dereference -p "${PATHNAME}" "${STAGED}"
     else
-	cp -Rp "${PATHNAME}/." "${STAGED}"
+	cp --no-dereference -Rp "${PATHNAME}/." "${STAGED}"
     fi
 
     # echo "${STAGING_DIR}"
@@ -161,9 +161,12 @@ function backup_to_staging_dir() {
 }
 
 function sanitize_staging_dir() {
+    # Throw away any symlink
+    find "${STAGING_DIR}" -type l -exec rm -rf {} \;
+
     # Throw away any possible executable file from the staging area
     # executables include binaries but also shell scripts
-    find "${STAGING_DIR}" -executable -type f  -exec rm -rf {} \;
+    find "${STAGING_DIR}" -perm +0111 -type f -exec rm -rf {} \;
 
     # Throw away backup files
     find "${STAGING_DIR}" -type f -name "*~" -exec rm -rf {} \;
