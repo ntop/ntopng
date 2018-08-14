@@ -6614,6 +6614,13 @@ void NetworkInterface::deliverLiveCapture(const struct pcap_pkthdr * const h,
 
       num_found++;
 
+#if 0
+      if(!HTTPserver::sender_queue_free_space(c->conn, h->len)) {
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Skipping packet, buffer full");
+	continue;
+      }
+#endif
+
       if(c->live_capture.capture_until < h->ts.tv_sec || c->live_capture.stopped)
 	http_client_disconnected = true;      
       
