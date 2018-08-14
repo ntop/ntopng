@@ -26,3 +26,9 @@ For example, to process the traffic matching host `192.168.2.1` with `wireshark`
 	  
    curl -s --cookie "user=admin; password=admin" "http://192.168.1.1:3000/lua/live_traffic.lua?ifid=12&host=192.168.2.1" | wireshark -k -i -
 
+Similarly, the traffic of the whole interface with id `0` can be sent to `tshark` with
+
+.. code:: bash
+
+  curl --cookie "user=admin; password=admin1"  "http://devel:3000/lua/live_traffic.lua?ifid=0&duration=600&bpf_filter=" | tshark  -i -
+

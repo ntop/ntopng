@@ -3717,7 +3717,7 @@ static int ntop_interface_live_capture(lua_State* vm) {
   }
 
   if(ntop_interface->registerLiveCapture(c, &capture_id)) {
-    ntop->getTrace()->traceEvent(TRACE_NORMAL,
+    ntop->getTrace()->traceEvent(TRACE_INFO,
 				 "Starting live capture id %d",
 				 capture_id);
 
