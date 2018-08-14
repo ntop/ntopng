@@ -68,6 +68,7 @@ print [[/lua/about.lua"><i class="fa fa-question-circle"></i> ]] print(i18n("abo
 print(ntop.getHttpPrefix())
 print [[/lua/runtime.lua"><i class="fa fa-hourglass-start"></i> ]] print(i18n("about.runtime_status")) print[[</a></li>
       <li><a href="http://blog.ntop.org/" target="_blank"><i class="fa fa-rss"></i> ]] print(i18n("about.ntop_blog")) print[[ <i class="fa fa-external-link"></i></a></li>
+      <li><a href="https://t.me/ntop_community" target="_blank"><i class="fa fa-telegram"></i> ]] print(i18n("about.telegram")) print[[ <i class="fa fa-external-link"></i></a></li>
       <li><a href="https://github.com/ntop/ntopng/issues" target="_blank"><i class="fa fa-bug"></i> ]] print(i18n("about.report_issue")) print[[ <i class="fa fa-external-link"></i></a></li>
 <li class="divider"></li><li><a href="https://www.ntop.org/guides/ntopng/" target="_blank"><i class="fa fa-book"></i> ]] print(i18n("about.readme_and_manual")) print[[ <i class="fa fa-external-link"></i></a></li>
 

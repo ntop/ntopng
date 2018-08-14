@@ -163,6 +163,7 @@ local lang = {
     ["maintenance_expired"] = "%{product} maintenance is expired",
     ["maxmind"] = "This product includes GeoLite data created by <a href=\"%{maxmind_url}\">MaxMind</a>.",
     ["ntop_blog"] = "ntop Blog",
+    ["telegram"] = "Help and News",
     ["platform"] = "Platform",
     ["ram_memory"] = "RAM",
     ["readme_and_manual"] = "User's Guide",
