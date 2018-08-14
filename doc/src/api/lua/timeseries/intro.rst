@@ -73,7 +73,7 @@ To extract data from an external program:
 
 .. code-block:: bash
 
-  curl "127.0.0.1:3000/lua/get_ts.lua?ts_schema=host:traffic&ts_query=ifid:1,host:192.168.1.10,protocol:Facebook&tstart=1532180495&tend=1532176895"
+  curl "127.0.0.1:3000/lua/get_ts.lua?ts_schema=host:traffic&ts_query=ifid:1,host:192.168.1.10,protocol:Facebook&epoch_begin=1532180495&epoch_end=1532176895"
 
 JSON data will be returned. Check out the `ts_utils` module documentation below to
 learn more about the query response format.
