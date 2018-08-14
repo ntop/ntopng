@@ -199,9 +199,9 @@ function fixTimeRange(chart, params, step) {
   // max_diff / resolution indicates the number of actual points, which should be ~60
   var range_params = [
     // max_diff, resolution, x_format, alignment, tick_step
-    [15, 1, "%H:%M:%S", 1, 1],                          // <= 1 min
+    [15, 1, "%H:%M:%S", 1, 1],                          // <= 15 sec
     [60, 1, "%H:%M:%S", 1, 5],                          // <= 1 min
-    [120, 5, "%H:%M:%S", 10, 10],                       // <= 5 min
+    [120, 5, "%H:%M:%S", 10, 10],                       // <= 2 min
     [300, 5, "%H:%M:%S", 10, 30],                       // <= 5 min
     [600, 10, "%H:%M:%S", 30, 60],                      // <= 10 min
     [1200, 30, "%H:%M:%S", 60, 120],                    // <= 20 min
@@ -382,10 +382,14 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_out_id, f
 
     // Load data via ajax
     pending_request = $.get(url, params, function(data) {
-      if(!data || !data.series || !checkSeriesConsinstency(schema_name, data.count, data.series)) {
+      if(!data || !data.series || !data.series.length || !checkSeriesConsinstency(schema_name, data.count, data.series)) {
         update_chart_data([]);
         return;
       }
+
+      // We are converting intervals to data points.
+      // The interval value is assigned to the right edge of the interval.
+      data.start = data.start + data.step;
 
       // Adapt data
       var res = [];

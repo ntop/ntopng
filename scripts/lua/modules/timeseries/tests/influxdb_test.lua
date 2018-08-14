@@ -5,6 +5,24 @@
 local influxdb = require("influxdb")
 local influx2Series = influxdb._influx2Series
 
+local function makeTimeStamp(series, tstart, tstep)
+  local v = {}
+
+  for idx, serie in ipairs(series) do
+    local data = {}
+    t = tstart
+
+    for i, pt in ipairs(serie.data) do
+      data[i] = {t, pt}
+      t = t + tstep
+    end
+
+    v[idx] = data
+  end
+
+  return v
+end
+
 -- Reproduces 12c8fc315654c1a0e7bf82f089ee47d45a98fc07 - Fix occasional series ponts differences in InfluxDB
 local function test_sampling1(test)
   local schema = {
@@ -247,10 +265,90 @@ local function test_datafill2(test)
   return test:success()
 end
 
+function test_datafill3(test)
+  local tags = {}
+  local options = {
+    fill_value = 0,
+    min_value = 0,
+    max_value = math.huge,
+  }    
+
+  local data1 = {
+    statement_id = 0,
+    series = {
+      {
+        name = "iface:traffic",
+        columns = {
+          "time", "bytes"
+        },
+        values = {
+          {1534254780, 43468.299166667},
+          {1534254840, 43840.816666667},
+          {1534254900, 43736.703055556},
+          {1534254960, 45451.860277778},
+          {1534255020, 51042.556111111},
+          {1534255080, 41195.961111111},
+          {1534255140, 49409.312222222},
+          {1534255200, 46668.393333333},
+          {1534255260, 49719.968611111},
+          {1534255320, 46598.248611111},
+          {1534255380, -1986466.8319444},
+          {1534255560, -2555.5150205761},
+          {1534255620, 32720.676450617},
+          {1534255680, 90807.558333333},
+          {1534255740, 43846.880833333},
+          {1534255800, 40665.011111111},
+          {1534255860, 46311.474444444},
+          {1534255920, 35688.736944444},
+          {1534255980, 35530.134166667},
+          {1534256040, 35844.119722222},
+          {1534256100, 40027.853055556},
+          {1534256160, 47747.443055556},
+          {1534256220, 33840.845},
+          {1534256280, 13316.156944444},
+          {1534256340, 12864.246944444},
+          {1534256400, 33067.384444444},
+          {1534256460, 35054.200555556},
+          {1534256520, 38080.145},
+          {1534256580, 31810.306527778},
+        },
+      }
+    }
+  }
+
+  local schema = {
+    options = {
+      step = 1,
+      metrics_type = "counter",
+    }
+  }
+
+  local time_step = 60 -- 60x sampling
+  local tstart = 1534254780; tend = 1534256640
+  local data1_series, data1_count = influx2Series(schema, tstart, tend, tags, options, data1.series[1], time_step)
+  local with_tstamp = makeTimeStamp(data1_series, tstart, time_step)[1]
+  local last_val = with_tstamp[#with_tstamp - 1]
+  local last_expected_val = data1.series[1].values[#data1.series[1].values]
+
+  -- Timestamp must correspond
+  if not(last_val[1] == last_expected_val[1]) then
+    return test:assertion_failed("last_val[0] == last_expected_val[0]\n")
+  end
+
+  -- Value must correspond
+  if not(last_val[2] == last_expected_val[2]) then
+    return test:assertion_failed("last_val[1] == last_expected_val[1]\n")
+  end
+
+  return test:success()
+end
+ 
+
 function run(tester)
   local rv = tester.run_test("influx2Series:test_sampling1", test_sampling1)
   rv = tester.run_test("influx2Series:test_datafill1", test_datafill1) and rv
   rv = tester.run_test("influx2Series:test_datafill2", test_datafill2) and rv
+  rv = tester.run_test("influx2Series:test_datafill3", test_datafill3) and rv
 
   return rv
 end

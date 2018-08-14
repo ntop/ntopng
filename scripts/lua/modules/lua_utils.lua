@@ -3193,7 +3193,7 @@ end
 function swapKeysValues(tbl)
    local new_tbl = {}
 
-   for k, v in pairs(tbl) do
+   for k, v in pairs(tbl or {}) do
       new_tbl[v] = k
    end
 

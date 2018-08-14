@@ -331,7 +331,9 @@ function driver:query(schema, tstart, tend, tags, options)
 
   touchRRD(rrdfile)
 
+  --tprint("rrdtool fetch ".. rrdfile.. " " .. RRD_CONSOLIDATION_FUNCTION .. " -s ".. tstart .. " -e " .. tend)
   local fstart, fstep, fdata, fend, fcount = ntop.rrd_fetch_columns(rrdfile, RRD_CONSOLIDATION_FUNCTION, tstart, tend)
+
   local count = 0
   local series = {}
 
@@ -368,10 +370,14 @@ function driver:query(schema, tstart, tend, tags, options)
     fstep, count, series = sampleSeries(schema, count, fstep, options.max_num_points, series)
   end
 
-  local total_serie = makeTotalSerie(series, count)
+  --local returned_tend = fstart + fstep * (count-1)
+  --tprint(returned_tend .. " " .. fstart)
+
+  local total_serie = nil
   local stats = nil
 
   if options.calculate_stats then
+    total_serie = makeTotalSerie(series, count)
     stats = ts_common.calculateStatistics(total_serie, fstep, tend - tstart, schema.options.metrics_type)
   end
 

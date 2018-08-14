@@ -113,12 +113,13 @@ local function influx2Series(schema, tstart, tend, tags, options, data, time_ste
     series[i-1] = {label=data.columns[i], data={}}
   end
 
-  -- Time tracking to fill the missing points
+  -- The first time available in the returned data
   local first_t = data.values[1][1]
-  local prev_t = tstart + ((first_t - tstart) % time_step)
-
+  -- next_t holds the expected timestamp of the next point to process
+  local next_t = tstart + ((first_t - tstart) % time_step)
+  -- the next index to use for insertion in the result table
   local series_idx = 1
-  --tprint(time_step .. ") " .. tstart .. " vs " .. first_t .. " - " .. prev_t)
+  --tprint(time_step .. ") " .. tstart .. " vs " .. first_t .. " - " .. next_t)
 
   -- Convert the data
   for idx, values in ipairs(data.values) do
@@ -135,14 +136,14 @@ local function influx2Series(schema, tstart, tend, tags, options, data, time_ste
     end
 
     -- Fill the missing points
-    while((cur_t - prev_t) > time_step) do
+    while((cur_t - next_t) >= time_step) do
       for _, serie in pairs(series) do
         serie.data[series_idx] = options.fill_value
       end
 
-      --tprint("FILL [" .. series_idx .."] " .. cur_t .. " vs " .. prev_t)
+      --tprint("FILL [" .. series_idx .."] " .. cur_t .. " vs " .. next_t)
       series_idx = series_idx + 1
-      prev_t = prev_t + time_step
+      next_t = next_t + time_step
     end
 
     for i=2, #values do
@@ -158,19 +159,20 @@ local function influx2Series(schema, tstart, tend, tags, options, data, time_ste
     end
 
     series_idx = series_idx + 1
-    prev_t = prev_t + time_step
+    next_t = next_t + time_step
 
     ::continue::
   end
 
    -- Fill the missing points at the end
-  while((tend - prev_t) > 0) do
+  while((tend - next_t) >= 0) do
     for _, serie in pairs(series) do
       serie.data[series_idx] = options.fill_value
     end
 
+    --tprint("FILL [" .. series_idx .."] " .. tend .. " vs " .. next_t)
     series_idx = series_idx + 1
-    prev_t = prev_t + time_step
+    next_t = next_t + time_step
   end
 
   local count = series_idx - 1
@@ -226,7 +228,7 @@ function driver:_makeTotalSerie(schema, tstart, tend, tags, options, url, time_s
 
   data = data.series[1]
 
-  local series, count = influx2Series(schema, tstart, tend, tags, options, data, time_step)
+  local series, count = influx2Series(schema, tstart + time_step, tend, tags, options, data, time_step)
   return series[1].data
 end
 
@@ -313,12 +315,18 @@ function driver:query(schema, tstart, tend, tags, options)
     return nil
   end
 
-  local series, count = influx2Series(schema, tstart, tend, tags, options, data.series[1], time_step)
-  local total_serie = self:_makeTotalSerie(schema, tstart, tend, tags, options, url, time_step)
+  -- Note: we are working with intervals because of derivatives. The first interval ends at tstart + time_step
+  -- which is the first value returned by InfluxDB
+  local series, count = influx2Series(schema, tstart + time_step, tend, tags, options, data.series[1], time_step)
+  local total_serie = nil
   local stats = nil
 
-  if options.calculate_stats and total_serie then
-    stats = self:_calcStats(schema, tstart, tend, tags, url, total_serie, time_step)
+  if options.calculate_stats then
+    total_serie = self:_makeTotalSerie(schema, tstart, tend, tags, options, url, time_step)
+
+    if total_serie then
+      stats = self:_calcStats(schema, tstart, tend, tags, url, total_serie, time_step)
+    end
   end
 
   local rv = {
@@ -339,7 +347,9 @@ end
 
 function driver:export()
   local system_iface_id = -1
-  local exported = false
+  local time_key = "ntopng.cache.influxdb_export_time_" .. self.db
+  local prev_t = tonumber(ntop.getCache(time_key)) or 0
+  local max_t = prev_t
 
   while(true) do
     local name_id = ntop.lpopCache("ntopng.influx_file_queue")
@@ -349,7 +359,9 @@ function driver:export()
       break
     end
 
-    if(tonumber(name_id) == nil) then
+    local time_ref = tonumber(name_id)
+
+    if(time_ref == nil) then
       traceError(TRACE_ERROR, TRACE_CONSOLE, "Invalid name "..name_id.."\n")
       break
     end
@@ -365,16 +377,14 @@ function driver:export()
 
       -- delete the file manually
       os.remove(fname)
-      exported = false
       break
     else
-      exported = true
+      max_t = math.max(time_ref, max_t)
     end
   end
 
-  if exported then
-    local k = "ntopng.cache.influxdb_export_time_" .. self.db
-    ntop.setCache(k, tostring(os.time()))
+  if max_t > prev_t then
+    ntop.setCache(time_key, tostring(max_t))
   end
 end
 

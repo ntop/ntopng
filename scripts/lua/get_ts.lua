@@ -22,6 +22,16 @@ local tstart = tonumber(_GET["epoch_begin"]) or (os.time() - 3600)
 local tend = tonumber(_GET["epoch_end"]) or os.time()
 local compare_backward = _GET["ts_compare"]
 
+local driver = ts_utils.getQueryDriver()
+local latest_tstamp = driver:getLatestTimestamp()
+
+-- Check end time bound and realign if necessary
+if tend > latest_tstamp then
+  local delta = tend - latest_tstamp
+  tend = tend - delta
+  tstart = tstart - delta
+end
+
 local options = {
   max_num_points = tonumber(_GET["limit"]),
 }
