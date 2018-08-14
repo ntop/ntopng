@@ -354,6 +354,12 @@ local function validateResetStatsMode(mode)
    return validateChoice(modes, mode)
 end
 
+local function validateFlowMode(mode)
+   local modes = {"topk", "flows"}
+
+   return validateChoice(modes, mode)
+end
+
 local function validateDevicesMode(mode)
    local modes = {"source_macs_only", "dhcp_macs_only"}
 
@@ -1166,6 +1172,7 @@ local known_parameters = {
    ["policy_preset"]           =  validateEmptyOr(validatePolicyPreset), -- a traffic bridge policy set
    ["members_filter"]          =  validateMembersFilter,         -- host_pools.lua
    ["devices_mode"]            =  validateDevicesMode,           -- macs_stats.lua
+   ["flow_mode"]               =  validateFlowMode   ,           -- if_stats.lua
    ["unassigned_devices"]      =  validateUnassignedDevicesMode, -- unknown_device.lua
    ["create_guests_pool"]      =  validateOnOff,                 -- bridge wizard
    ["show_wizard"]             =  validateEmpty,                 -- bridge wizard
