@@ -115,6 +115,7 @@
 #define HOTSPOT_DETECT_LUA_URL    "/lua/hotspot-detect.lua"
 #define CHANGE_PASSWORD_ULR       "/lua/change_password.lua"
 #define GRAFANA_URL               "/lua/modules/grafana"
+#define LIVE_TRAFFIC_URL          "/lua/live_traffic.lua"
 #define POOL_MEMBERS_ASSOC_URL    "/lua/admin/manage_pool_members.lua"
 #define NETWORK_LOAD_URL          "/lua/network_load.lua"
 #define HTTP_SESSION_DURATION     43200
@@ -237,6 +238,7 @@
 #define CONST_DEMO_MODE_DURATION       600 /* 10 min */
 #define CONST_MAX_DUMP_DURATION        300 /* 5 min */
 #define CONST_DUMP_SAMPLING_RATE       1   /* sampling disabled by default */
+#define CONST_MAX_NUM_PACKETS_PER_LIVE 100000 /* live captures via HTTP */
 #define CONST_MAX_NUM_PACKETS_PER_DUMP 1000000
 #define CONST_MAX_DUMP                 500000000
 

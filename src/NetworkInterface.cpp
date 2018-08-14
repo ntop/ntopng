@@ -6663,23 +6663,15 @@ void NetworkInterface::deliverLiveCapture(const struct pcap_pkthdr * const h,
 /* *************************************** */
 
 void NetworkInterface::dumpLiveCaptures(lua_State* vm) {
-  struct ntopngLuaContext *c;
-  
-#ifdef DONT_USE_LUAJIT
-  lua_getglobal(vm, "userdata");
-  c = (struct ntopngLuaContext*)lua_touserdata(vm, lua_gettop(vm));
-#else
-  c = (struct ntopngLuaContext*)(G(vm)->userdata);
-#endif
+  /* Administrative privileges checked by the caller */
 
   active_captures_lock.lock(__FILE__, __LINE__);
 
   lua_newtable(vm);
 
-  for(int i=0, capture_id=0; i<MAX_NUM_PCAP_CAPTURES; i++) {
-    if((live_captures[i] != NULL)
-       && (!live_captures[i]->live_capture.stopped)
-       && (!strcmp(live_captures[i]->live_capture.username, c->user))) {
+  for(int i = 0, capture_id = 0; i < MAX_NUM_PCAP_CAPTURES; i++) {
+    if(live_captures[i] != NULL
+       && !live_captures[i]->live_capture.stopped) {
       lua_newtable(vm);
 
       lua_push_int_table_entry(vm, "id", i);
@@ -6710,14 +6702,15 @@ void NetworkInterface::dumpLiveCaptures(lua_State* vm) {
 
 /* *************************************** */
 
-bool NetworkInterface::stopLiveCapture(char *user, int capture_id) {
+bool NetworkInterface::stopLiveCapture(int capture_id) {
+  /* Administrative privileges checked by the caller */
+
   bool rc = false;
 
   if((capture_id >= 0) && (capture_id < MAX_NUM_PCAP_CAPTURES)) {
     active_captures_lock.lock(__FILE__, __LINE__);
     
-    if((live_captures[capture_id] != NULL)
-       && (!strcmp(live_captures[capture_id]->live_capture.username, user))) {
+    if(live_captures[capture_id] != NULL) {
       struct ntopngLuaContext *c = (struct ntopngLuaContext *)live_captures[capture_id];
 
       c->live_capture.stopped = true, rc = true;

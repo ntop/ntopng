@@ -3637,22 +3637,14 @@ static int ntop_interface_set_idle(lua_State* vm) {
 
 // ***API***
 static int ntop_interface_dump_live_captures(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  struct ntopngLuaContext *c;
   NetworkInterface *iface = getCurrentInterface(vm);
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if(!Utils::isUserAdministrator(vm)) return(CONST_LUA_ERROR);
+  if(!Utils::isUserAdministrator(vm))
+    return(CONST_LUA_ERROR);
 
-#ifdef DONT_USE_LUAJIT
-  lua_getglobal(vm, "userdata");
-  c = (struct ntopngLuaContext*)lua_touserdata(vm, lua_gettop(vm));
-#else
-  c = (struct ntopngLuaContext*)(G(vm)->userdata);
-#endif
-
-  if((!ntop_interface) || (!c))
+  if(!iface)
     return(CONST_LUA_ERROR);
 
   iface->dumpLiveCaptures(vm);
@@ -3706,7 +3698,7 @@ static int ntop_interface_live_capture(lua_State* vm) {
   bpf = (char*)lua_tostring(vm, 3);
   
   c->live_capture.capture_until = time(NULL)+duration;
-  c->live_capture.capture_max_pkts = 100000; /* No more than 100k packets */
+  c->live_capture.capture_max_pkts = CONST_MAX_NUM_PACKETS_PER_LIVE;
   c->live_capture.num_captured_packets = 0;
   c->live_capture.stopped = c->live_capture.pcaphdr_sent = false;
   c->live_capture.bpfFilterSet = false;
@@ -3723,13 +3715,11 @@ static int ntop_interface_live_capture(lua_State* vm) {
     else
       c->live_capture.bpfFilterSet = true;
   }
-  
-  snprintf(c->live_capture.username, sizeof(c->live_capture.username), "%s", c->user);
 
   if(ntop_interface->registerLiveCapture(c, &capture_id)) {
-    ntop->getTrace()->traceEvent(TRACE_INFO,
-				 "Starting live capture id %d for user %s",
-				 capture_id, c->live_capture.username);
+    ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				 "Starting live capture id %d",
+				 capture_id);
 
     while(!c->live_capture.stopped) {
       ntop->getTrace()->traceEvent(TRACE_INFO, "Capturing....");
@@ -3748,32 +3738,25 @@ static int ntop_interface_live_capture(lua_State* vm) {
 // ***API***
 static int ntop_interface_stop_live_capture(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  struct ntopngLuaContext *c;
   int capture_id;
   bool rc;
   
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if(!Utils::isUserAdministrator(vm)) return(CONST_LUA_ERROR);
+  if(!Utils::isUserAdministrator(vm))
+    return(CONST_LUA_ERROR);
 
-#ifdef DONT_USE_LUAJIT
-  lua_getglobal(vm, "userdata");
-  c = (struct ntopngLuaContext*)lua_touserdata(vm, lua_gettop(vm));
-#else
-  c = (struct ntopngLuaContext*)(G(vm)->userdata);
-#endif
-
-  if((!ntop_interface) || (!c))
+  if(!ntop_interface)
     return(CONST_LUA_ERROR);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   capture_id = (int)lua_tointeger(vm, 1);
 
-  rc = ntop_interface->stopLiveCapture(c->user, capture_id);
+  rc = ntop_interface->stopLiveCapture(capture_id);
   
   ntop->getTrace()->traceEvent(TRACE_INFO,
-			       "Stopping live capture %d for user %s: %s",
-			       capture_id, c->user,
+			       "Stopping live capture %d: %s",
+			       capture_id,
 			       rc ? "stopped" : "error");
 
   lua_pushnil(vm);

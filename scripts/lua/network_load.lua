@@ -99,7 +99,10 @@ function dumpInterfaceStats(interface_name)
       res["remote_pps"] = ifstats.remote_pps
       res["remote_bps"] = ifstats.remote_bps
       res["is_view"]    = ifstats.isView
-      res["num_live_captures"]    = ifstats.stats.num_live_captures
+
+      if isAdministrator() then
+	 res["num_live_captures"]    = ifstats.stats.num_live_captures
+      end
 
       res["local2remote"] = ifstats["localstats"]["bytes"]["local2remote"]
       res["remote2local"] = ifstats["localstats"]["bytes"]["remote2local"]

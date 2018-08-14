@@ -110,7 +110,7 @@ static void generate_session_id(char *buf, const char *random, const char *user)
 
 /* ****************************************** */
 
-static inline bool authorized_localhost_users_login_disabled(const struct mg_connection *conn) {
+bool HTTPserver::authorized_localhost_user_login(const struct mg_connection *conn) {
   if(ntop->getPrefs()->is_localhost_users_login_disabled()
      && (conn->request_info.remote_ip == 0x7F000001 /* 127.0.0.1 */))
     return true;
@@ -124,11 +124,12 @@ static void set_cookie(const struct mg_connection *conn,
   char key[256], session_id[64], random[64];
 
   if(!strcmp(mg_get_request_info((struct mg_connection*)conn)->uri, "/metrics")
+     || !strncmp(mg_get_request_info((struct mg_connection*)conn)->uri, LIVE_TRAFFIC_URL, strlen(LIVE_TRAFFIC_URL))
      || !strncmp(mg_get_request_info((struct mg_connection*)conn)->uri, GRAFANA_URL, strlen(GRAFANA_URL))
      || !strncmp(mg_get_request_info((struct mg_connection*)conn)->uri, POOL_MEMBERS_ASSOC_URL, strlen(POOL_MEMBERS_ASSOC_URL)))
     return;
 
-  if(authorized_localhost_users_login_disabled(conn))
+  if(HTTPserver::authorized_localhost_user_login(conn))
     return;
   
   // Authentication success:
@@ -284,7 +285,7 @@ static int is_authorized(const struct mg_connection *conn,
   const char *auth_header_p;
   string auth_type = "", auth_string = "";
   bool user_login_disabled = !ntop->getPrefs()->is_users_login_enabled() ||
-    authorized_localhost_users_login_disabled(conn);
+    HTTPserver::authorized_localhost_user_login(conn);
 
 #ifdef DEBUG
   ntop->getTrace()->traceEvent(TRACE_WARNING, "[AUTHORIZATION] [%s][%s]",

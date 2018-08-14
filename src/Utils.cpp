@@ -834,6 +834,7 @@ char* Utils::urlDecode(const char *src, char *dst, u_int dst_len) {
  * @return true if the current user is an administrator, false otherwise.
  */
 bool Utils::isUserAdministrator(lua_State* vm) {
+  struct mg_connection *conn;
   char *username;
   char key[64], val[64];
 
@@ -841,10 +842,14 @@ bool Utils::isUserAdministrator(lua_State* vm) {
   lua_getglobal(vm, "userdata");
 #endif
 
-  if(getLuaVMUservalue(vm,conn) == NULL) {
+  if(!ntop->getPrefs()->is_users_login_enabled())
+    return(true); /* login disabled for all users, everyone's an admin */
+
+  if((conn = getLuaVMUservalue(vm,conn)) == NULL) {
     /* this is an internal script (e.g. periodic script), admin check should pass */
     return(true);
-  }
+  } else if(HTTPserver::authorized_localhost_user_login(conn))
+    return(true); /* login disabled from localhost, everyone's connecting from localhost is an admin */
 
   if((username = getLuaVMUserdata(vm,user)) == NULL) {
     // ntop->getTrace()->traceEvent(TRACE_WARNING, "%s(%s): NO", __FUNCTION__, "???");
