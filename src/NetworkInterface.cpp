@@ -6614,13 +6614,6 @@ void NetworkInterface::deliverLiveCapture(const struct pcap_pkthdr * const h,
 
       num_found++;
 
-#if 0
-      if(!HTTPserver::sender_queue_free_space(c->conn, h->len)) {
-	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Skipping packet, buffer full");
-	continue;
-      }
-#endif
-
       if(c->live_capture.capture_until < h->ts.tv_sec || c->live_capture.stopped)
 	http_client_disconnected = true;      
       
@@ -6633,7 +6626,7 @@ void NetworkInterface::deliverLiveCapture(const struct pcap_pkthdr * const h,
 	  
 	  Utils::init_pcap_header(&pcaphdr, this);
 	  
-	  if((res = mg_write(c->conn, &pcaphdr, sizeof(pcaphdr))) < (int)sizeof(pcaphdr))
+	  if((res = mg_write_async(c->conn, &pcaphdr, sizeof(pcaphdr))) < (int)sizeof(pcaphdr))
 	    http_client_disconnected = true;
 
 	  c->live_capture.pcaphdr_sent = true;
@@ -6647,8 +6640,8 @@ void NetworkInterface::deliverLiveCapture(const struct pcap_pkthdr * const h,
 	    pkthdr.caplen = h->caplen, pkthdr.len = h->len;
 
 	  if(
-	    ((res = mg_write(c->conn, &pkthdr, sizeof(pkthdr))) < (int)sizeof(pkthdr))
-	    || ((res = mg_write(c->conn, packet, h->caplen)) < (int)h->caplen)
+	    ((res = mg_write_async(c->conn, &pkthdr, sizeof(pkthdr))) < (int)sizeof(pkthdr))
+	    || ((res = mg_write_async(c->conn, packet, h->caplen)) < (int)h->caplen)
 	    )
 	    http_client_disconnected = true;
 	  else {

@@ -579,6 +579,7 @@ struct mg_connection {
   int throttle;               // Throttling, bytes/sec. <= 0 means no throttle
   time_t last_throttle_time;  // Last time throttled data was sent
   int64_t last_throttle_bytes;// Bytes sent this second
+  int async_send;             // Asynchronous send
 };
 
 char* http_prefix = NULL; /* ntop */
@@ -1692,6 +1693,45 @@ int mg_write(struct mg_connection *conn, const void *buf, size_t len) {
 		 (int64_t) len);
   }
   return (int) total;
+}
+
+
+int mg_write_async(struct mg_connection *conn, const void *buf, size_t len) {
+  int total;
+
+  if(!conn->async_send) {
+    /* Enable asynchronous send */
+#ifdef WIN32
+    u_long iMode = 0;
+
+    /*
+      Set the socket I/O mode: In this case FIONBIO
+      enables or disables the blocking mode for the
+      socket based on the numerical value of iMode.
+      If iMode = 0, blocking is enabled;
+      If iMode != 0, non-blocking mode is enabled.
+      
+      https://docs.microsoft.com/en-us/windows/desktop/api/winsock/nf-winsock-ioctlsocket
+    */
+    
+    ioctlsocket(conn->client.sock, FIONBIO, &iMode);
+#else
+    int flags = fcntl(conn->client.sock, F_GETFL, 0);
+
+    fcntl(conn->client.sock, F_SETFL, flags | O_NONBLOCK);
+#endif
+    conn->async_send = 1;
+  }
+  
+  total = push(NULL, conn->client.sock, conn->ssl, (const char *) buf, (int64_t) len);
+
+  /*
+    In case you want to disable async ... 
+
+    fcntl(conn->client.sock, F_SETFL, flags & (~O_NONBLOCK)); 
+  */
+
+  return(total);
 }
 
 // Print message to buffer. If buffer is large enough to hold the message,

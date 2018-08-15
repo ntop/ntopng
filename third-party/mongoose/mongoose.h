@@ -154,6 +154,8 @@ struct mg_request_info *mg_get_request_info(struct mg_connection *);
 //  number of bytes written on success
 int mg_write(struct mg_connection *, const void *buf, size_t len);
 
+int mg_write_async(struct mg_connection *, const void *buf, size_t len);
+
 
 #undef PRINTF_FORMAT_STRING
 #if _MSC_VER >= 1400

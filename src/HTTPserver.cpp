@@ -110,30 +110,6 @@ static void generate_session_id(char *buf, const char *random, const char *user)
 
 /* ****************************************** */
 
-bool HTTPserver::sender_queue_free_space(const struct mg_connection *conn, u_int32_t space_needed) {
-  int free_space = 0, send_buf, unsent_buf;
-
-  if(conn) {
-#if defined(linux) && defined(SIOCOUTQ)
-
-    socklen_t optlen = sizeof(send_buf);
-
-    if(!getsockopt(conn->client.sock, SOL_SOCKET, SO_SNDBUF, &send_buf, (socklen_t*)&optlen)
-       && !ioctl(conn->client.sock, SIOCOUTQ, &unsent_buf)) {
-      if(send_buf > unsent_buf)
-	free_space = send_buf - unsent_buf;
-
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "SO_SNDBUF: %d SIOCOUTQ: %d (free space: %d)", send_buf, unsent_buf, free_space);
-    }
-#endif
-
-  }
-
-  return((int)space_needed < 2 * free_space ? true : false);
-}
-
-/* ****************************************** */
-
 bool HTTPserver::authorized_localhost_user_login(const struct mg_connection *conn) {
   if(ntop->getPrefs()->is_localhost_users_login_disabled()
      && (conn->request_info.remote_ip == 0x7F000001 /* 127.0.0.1 */))
