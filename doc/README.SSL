@@ -22,8 +22,15 @@ In order to use SSL with ntopng (i.e. HTTPS) you need to
    - OSX
    ln -s /usr/local/Cellar/openssl/1.0.1i/lib/libcrypto.dylib .
    ln -s /usr/local/Cellar/openssl/1.0.1i/lib/libssl.dylib .
+   
+4. Edit ntop.conf to enable https
+   Edit the /etc/ntopng/ntopng.conf file to include the text --https-port=3001
+   You may choose ports other than 3001 but it must be a different port to the http port which is port 3000 by default
+   Alternatively you can disable insecure http altogether by replacing the line -w=3000 with --http-port=0
+   (-w and --http-port are interchangeable)
+   
 
-4. Start ntopng
+5. Start ntopng
   "make cert" will create the certificate but you can see below the
   exact steps if you want to generate the certificate manually.
   
