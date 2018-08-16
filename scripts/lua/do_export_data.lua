@@ -10,10 +10,13 @@ local json = require("dkjson")
 
 sendHTTPContentTypeHeader('application/json', 'attachment; filename="exported_data.json"')
 
-local mode = _POST["mode"]
+local mode = _GET["mode"]
+local ifId = _GET["ifid"]
+
+interface.select(ifId)
 
 if mode == "filtered" then
-   local host_info = url2hostinfo(_POST)
+   local host_info = url2hostinfo(_GET)
    local host
 
    if not isEmptyString(host_info["host"]) then

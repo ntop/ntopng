@@ -16,7 +16,7 @@ ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-if _POST and table.len(_POST) > 0 then
+if _POST and table.len(_POST) > 0 and isAdministrator() then
    local delete_data_utils = require "delete_data_utils"
 
    local host_info = url2hostinfo(_POST)
@@ -62,10 +62,12 @@ else
    print[[<li><a data-toggle="tab" href="#export">]] print(i18n("manage_data.export_tab")) print[[</a></li>]]
 end
 
-if((page == "delete")) then
-   print[[<li class="active"><a data-toggle="tab" href="#delete">]] print(i18n("manage_data.delete_tab")) print[[</a></li>]]
-else
-   print[[<li><a data-toggle="tab" href="#delete">]] print(i18n("manage_data.delete_tab")) print[[</a></li>]]
+if isAdministrator() then
+   if((page == "delete")) then
+      print[[<li class="active"><a data-toggle="tab" href="#delete">]] print(i18n("manage_data.delete_tab")) print[[</a></li>]]
+   else
+      print[[<li><a data-toggle="tab" href="#delete">]] print(i18n("manage_data.delete_tab")) print[[</a></li>]]
+   end
 end
 
 print[[</ul>
@@ -89,7 +91,7 @@ print [[
 
   <div id="search_panel">
     <div class='container'>
-      <form class="host_data_form" id="host_data_form_export" action="]] print(ntop.getHttpPrefix()) print[[/lua/do_export_data.lua" method="POST">
+      <form class="host_data_form" id="host_data_form_export" action="]] print(ntop.getHttpPrefix()) print[[/lua/do_export_data.lua" method="GET">
       <input type=hidden name="ifid" value=]] print(tostring(getInterfaceId(ifname))) print[[>
     
        <div class="row">
