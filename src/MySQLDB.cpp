@@ -810,6 +810,16 @@ int MySQLDB::exec_sql_query(lua_State *vm, char *sql, bool limitRows, bool wait_
 
 
   if(ntop->getPrefs()->is_sql_log_enabled() && log_fd && sql) {
+#ifndef WIN32
+    char log_date[32];
+    time_t log_time = time(NULL);
+    struct tm result;
+
+    strftime(log_date, sizeof(log_date),
+	     "%d/%b/%Y %H:%M:%S", localtime_r(&log_time, &result));
+    fprintf(log_fd, "%s ", log_date);
+#endif
+
     fprintf(log_fd, "%s\n", sql);
     fflush(log_fd);
   }
