@@ -28,15 +28,11 @@ end
 
 -- ##############################################
 
-function ts_common.calculateStatistics(total_serie, step, tdiff, data_type)
-  local total = 0
+function ts_common.calculateMinMax(total_serie)
   local min_val, max_val
   local min_val_pt, max_val_pt
 
   for idx, val in pairs(total_serie) do
-    -- integrate
-    total = total + val * step
-
     if (min_val_pt == nil) or (val < min_val) then
       min_val = val
       min_val_pt = idx - 1
@@ -45,6 +41,24 @@ function ts_common.calculateStatistics(total_serie, step, tdiff, data_type)
       max_val = val
       max_val_pt = idx - 1
     end
+  end
+
+  return {
+    min_val = min_val,
+    max_val = max_val,
+    min_val_idx = min_val_pt,
+    max_val_idx = max_val_pt,
+  }
+end
+
+-- ##############################################
+
+function ts_common.calculateStatistics(total_serie, step, tdiff, data_type)
+  local total = 0
+
+  for idx, val in pairs(total_serie) do
+    -- integrate
+    total = total + val * step
   end
 
   local avg = total / tdiff
@@ -57,10 +71,6 @@ function ts_common.calculateStatistics(total_serie, step, tdiff, data_type)
   return {
     total = total,
     average = avg,
-    min_val = min_val,
-    max_val = max_val,
-    min_val_idx = min_val_pt,
-    max_val_idx = max_val_pt,
     ["95th_percentile"] = ts_common.ninetififthPercentile(total_serie),
   }
 end

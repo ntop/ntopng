@@ -321,6 +321,19 @@ end
 
 -- ##############################################
 
+local function normalizeVal(v, options)
+  if v ~= v then
+    -- NaN value
+    v = options.fill_value
+  elseif v < options.min_value then
+    v = options.min_value
+  elseif v > options.max_value then
+    v = options.max_value
+  end
+
+  return v
+end
+
 function driver:query(schema, tstart, tend, tags, options)
   local base, rrd = schema_get_path(schema, tags)
   local rrdfile = os_utils.fixPath(base .. "/" .. rrd .. ".rrd")
@@ -344,15 +357,7 @@ function driver:query(schema, tstart, tend, tags, options)
 
     -- unify the format
     for i, v in pairs(serie) do
-      if v ~= v then
-        -- NaN value
-        v = options.fill_value
-      elseif v < options.min_value then
-        v = options.min_value
-      elseif v > options.max_value then
-        v = options.max_value
-      end
-
+      local v = normalizeVal(v, options)
       serie[i] = v
       count = count + 1
     end
@@ -379,6 +384,29 @@ function driver:query(schema, tstart, tend, tags, options)
   if options.calculate_stats then
     total_serie = makeTotalSerie(series, count)
     stats = ts_common.calculateStatistics(total_serie, fstep, tend - tstart, schema.options.metrics_type)
+  end
+
+  if options.initial_point then
+    local _, _, initial_pt = ntop.rrd_fetch_columns(rrdfile, RRD_CONSOLIDATION_FUNCTION, tstart-schema.options.step, tstart-schema.options.step)
+    initial_pt = initial_pt or {}
+
+    for name_key, values in pairs(initial_pt) do
+      local ptval = normalizeVal(values[1], options)
+      local serie_idx = map_rrd_column_to_metrics(schema, name_key)
+
+      table.insert(series[serie_idx].data, 1, ptval)
+    end
+
+    count = count + 1
+
+    if total_serie then
+      -- recalculate with additional point
+      total_serie = makeTotalSerie(series, count)
+    end
+  end
+
+  if options.calculate_stats then
+    stats = table.merge(stats, ts_common.calculateMinMax(total_serie))
   end
 
   return {
@@ -490,12 +518,17 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
   local total_serie = {}
   local total_valid = true
   local step = 0
+  local query_start = tstart
+
+  if options.initial_point then
+    query_start =  tstart - schema.options.step
+  end
 
   for _, serie_tags in pairs(series) do
     local rrdfile = schema_get_full_path(schema, serie_tags)
     touchRRD(rrdfile)
 
-    local fstart, fstep, fdata, fend, fcount = ntop.rrd_fetch_columns(rrdfile, RRD_CONSOLIDATION_FUNCTION, tstart, tend)
+    local fstart, fstep, fdata, fend, fcount = ntop.rrd_fetch_columns(rrdfile, RRD_CONSOLIDATION_FUNCTION, query_start, tend)
     local sum = 0
     step = fstep
 
@@ -514,14 +547,7 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
       end
 
       for i, v in pairs(serie) do
-        if v ~= v then
-          -- NaN value
-          v = options.fill_value
-        elseif v < options.min_value then
-          v = options.min_value
-        elseif v > options.max_value then
-          v = options.max_value
-        end
+        local v = normalizeVal(v, options)
 
         if type(v) == "number" then
           sum = sum + v
@@ -552,21 +578,30 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
   -- Remove the last value: RRD seems to give an additional point
   total_serie[#total_serie] = nil
 
-  local fstep, count, total_serie = sampleSeries(schema, #total_serie, step, options.max_num_points, {{data=total_serie}})
-  total_serie = total_serie[1].data
+  local augumented_total = total_serie
+
+  if options.initial_point and total_serie then
+    augumented_total = table.clone(total_serie)
+    table.remove(total_serie, 1)
+  end
+
+  local fstep, count, augumented_total = sampleSeries(schema, #augumented_total, step, options.max_num_points, {{data=augumented_total}})
+  augumented_total = augumented_total[1].data
 
   if options.calculate_stats then
     stats = ts_common.calculateStatistics(total_serie, step, tend - tstart, schema.options.metrics_type)
+    stats = table.merge(stats, ts_common.calculateMinMax(augumented_total))
   end
 
   if not total_valid then
     total_serie = nil
+    augumented_total = nil
   end
 
   return {
     topk = topk,
     additional_series = {
-      total = total_serie,
+      total = augumented_total,
     },
     statistics = stats,
   }

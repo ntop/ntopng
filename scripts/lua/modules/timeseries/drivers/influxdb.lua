@@ -104,6 +104,16 @@ end
 
 -- ##############################################
 
+local function normalizeVal(val, options)
+  if val < options.min_value then
+    val = options.min_value
+  elseif val > options.max_value then
+    val = options.max_value
+  end
+
+  return val
+end
+
 local function influx2Series(schema, tstart, tend, tags, options, data, time_step)
   local data_type = schema.options.metrics_type
   local series = {}
@@ -147,14 +157,7 @@ local function influx2Series(schema, tstart, tend, tags, options, data, time_ste
     end
 
     for i=2, #values do
-      local val = values[i]
-
-      if val < options.min_value then
-        val = options.min_value
-      elseif val > options.max_value then
-        val = options.max_value
-      end
-
+      local val = normalizeVal(values[i], options)
       series[i-1].data[series_idx] = val
     end
 
@@ -281,6 +284,12 @@ end
 
 -- ##############################################
 
+local function makeSeriesQuery(schema, metrics, tags, tstart, tend, time_step)
+  return 'SELECT '.. table.concat(metrics, ",") ..' FROM "' .. schema.name .. '" WHERE ' ..
+      table.tconcat(tags, "=", " AND ", nil, "'") .. " AND time >= " .. tstart .. "000000000 AND time <= " .. tend .. "000000000" ..
+      " GROUP BY TIME(".. time_step .."s)"
+end
+
 function driver:query(schema, tstart, tend, tags, options)
   local metrics = {}
   local time_step = calculateSampledTimeStep(schema, tstart, tend, options)
@@ -303,9 +312,7 @@ function driver:query(schema, tstart, tend, tags, options)
     AND time >= 1531991910000000000 AND time <= 1532002710000000000
     GROUP BY TIME(60s)
   ]]
-  local query = 'SELECT '.. table.concat(metrics, ",") ..' FROM "' .. schema.name .. '" WHERE ' ..
-      table.tconcat(tags, "=", " AND ", nil, "'") .. " AND time >= " .. tstart .. "000000000 AND time <= " .. tend .. "000000000" ..
-      " GROUP BY TIME(".. time_step .."s)"
+  local query = makeSeriesQuery(schema, metrics, tags, tstart, tend, time_step)
 
   local url = self.url
   local full_url = url .. "/query?db=".. self.db .."&epoch=s&q=" .. urlencode(query)
@@ -327,6 +334,43 @@ function driver:query(schema, tstart, tend, tags, options)
     if total_serie then
       stats = self:_calcStats(schema, tstart, tend, tags, url, total_serie, time_step)
     end
+  end
+
+  if options.initial_point then
+    local initial_metrics = {}
+
+    for idx, metric in ipairs(schema._metrics) do
+      initial_metrics[idx] = "FIRST(" .. metric .. ")"
+    end
+
+    local query = makeSeriesQuery(schema, metrics, tags, tstart-time_step, tstart, time_step)
+    local full_url = url .. "/query?db=".. self.db .."&epoch=s&q=" .. urlencode(query)
+
+    local data = influx_query(full_url, self.username, self.password)
+
+    if not data then
+      -- Data fill
+      for _, serie in pairs(series) do
+        table.insert(serie.data, 1, options.fill_value)
+      end
+    else
+      local values = data.series[1].values[1]
+      for i=2, #values do
+        local val = normalizeVal(values[i], options)
+        table.insert(series[i-1].data, 1, val)
+      end
+    end
+
+    if total_serie then
+      local additional_pt = self:_makeTotalSerie(schema, tstart-time_step, tstart, tags, options, url, time_step) or {options.fill_value}
+      table.insert(total_serie, 1, additional_pt[1])
+    end
+
+    count = count + 1
+  end
+
+  if options.calculate_stats and total_serie then
+    stats = table.merge(stats, ts_common.calculateMinMax(total_serie))
   end
 
   local rv = {
@@ -533,6 +577,15 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
 
   if options.calculate_stats and total_serie then
     stats = self:_calcStats(schema, tstart, tend, tags, url, total_serie, time_step)
+  end
+
+  if options.initial_point and total_serie then
+    local additional_pt = self:_makeTotalSerie(schema, tstart-time_step, tstart, tags, options, url, time_step) or {options.fill_value}
+    table.insert(total_serie, 1, additional_pt[1])
+  end
+
+  if options.calculate_stats and total_serie then
+    stats = table.merge(stats, ts_common.calculateMinMax(total_serie))
   end
 
   return {

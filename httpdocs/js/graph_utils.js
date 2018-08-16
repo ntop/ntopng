@@ -387,10 +387,6 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_out_id, f
         return;
       }
 
-      // We are converting intervals to data points.
-      // The interval value is assigned to the right edge of the interval.
-      data.start = data.start + data.step;
-
       // Adapt data
       var res = [];
       var series = data.series;
