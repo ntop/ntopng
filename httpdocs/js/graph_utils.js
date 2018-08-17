@@ -2,10 +2,12 @@
 
 var schema_2_label = {};
 var data_2_label = {};
+var graph_i18n = {};
 
-function initLabelMaps(_schema_2_label, _data_2_label) {
+function initLabelMaps(_schema_2_label, _data_2_label, _graph_i18n) {
   schema_2_label = _schema_2_label;
   data_2_label = _data_2_label;
+  graph_i18n = _graph_i18n;
 };
 
 function getSerieLabel(schema, serie) {
@@ -45,7 +47,7 @@ function getSerieLabel(schema, serie) {
       else if(serie.tags.profile)
         return serie.tags.profile;
       else if(data_label == "bytes")
-        return "Traffic"; // TODO localize
+        return graph_i18n.traffic;
   }
 
   if(schema_2_label[schema])
@@ -448,7 +450,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
 
         if(other_serie) {
           res.push({
-            key: "Other", // TODO localize
+            key: graph_i18n.other,
             yAxis: 1,
             values: arrayToNvSerie(other_serie, data.start, data.step),
             type: "area",
@@ -505,7 +507,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
           var aligned = upsampleSerie(scaled, data.count);
 
           res.push({
-            key: "Trend", // TODO localize
+            key: graph_i18n.trend,
             yAxis: 1,
             values: arrayToNvSerie(aligned, data.start, data.step),
             type: "line",
@@ -542,7 +544,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
           var values = makeFlatLineValues(data.start, data.step, data.count, stats.average);
 
           res.push({
-            key: "Avg", // TODO localize
+            key: graph_i18n.avg,
             yAxis: 1,
             values: values,
             type: "line",
@@ -568,7 +570,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
           var values = makeFlatLineValues(data.start, data.step, data.count, stats["95th_percentile"]);
 
           res.push({
-            key: "95th Perc", // TODO localize
+            key: graph_i18n["95_perc"],
             yAxis: 1,
             values: values,
             type: "line",
