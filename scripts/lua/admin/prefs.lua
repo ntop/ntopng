@@ -130,7 +130,7 @@ if not isEmptyString(message_info) then
 end
 
    print [[
-	    <h2>Runtime Preferences</h2>
+	    <h2>]] print(i18n("prefs.runtime_prefs")) print[[</h2>
       ]]
 
    if(false) then

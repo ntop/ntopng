@@ -42,7 +42,7 @@ local menu_subpages = {
       description = i18n("prefs.dynamic_interfaces_creation_description"),
     }, ignored_interfaces = {
       title       = i18n("prefs.ignored_interfaces_title"),
-      description = i18n("prefs.ignored_interfaces_description"),
+      description = i18n("prefs.ignored_interfaces_description", {product=info.product}),
     }, toggle_src_with_post_nat_src = {
       title       = i18n("prefs.toggle_src_with_post_nat_src_title"),
       description = i18n("prefs.toggle_src_with_post_nat_src_description"),
@@ -313,7 +313,7 @@ local menu_subpages = {
        description = i18n("prefs.max_ui_strlen_description"),
     }, mgmt_acl = {
        title       = i18n("prefs.mgmt_acl_title"),
-       description = i18n("prefs.mgmt_acl_description"),
+       description = i18n("prefs.mgmt_acl_description", {product=info.product}),
     }, toggle_host_mask = {
       title       = i18n("prefs.toggle_host_mask_title"),
       description = i18n("prefs.toggle_host_mask_description"),
