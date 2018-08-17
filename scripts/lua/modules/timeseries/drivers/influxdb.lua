@@ -115,7 +115,6 @@ local function normalizeVal(val, options)
 end
 
 local function influx2Series(schema, tstart, tend, tags, options, data, time_step)
-  local data_type = schema.options.metrics_type
   local series = {}
 
   -- Create the columns
@@ -135,13 +134,8 @@ local function influx2Series(schema, tstart, tend, tags, options, data, time_ste
   for idx, values in ipairs(data.values) do
     local cur_t = data.values[idx][1]
 
-    if #values < 2 then
+    if #values < 2 or cur_t < tstart then
       -- skip empty points (which are out of query bounds)
-      goto continue
-    end
-
-    if (idx == 1) and (data_type ~= ts_common.metrics.counter) then
-      -- skip first point when no derivative is performed as an issue with GROUP BY
       goto continue
     end
 

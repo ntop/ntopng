@@ -342,13 +342,126 @@ function test_datafill3(test)
 
   return test:success()
 end
- 
+
+function test_no_derivative1(test)
+  local tags = {}
+  local options = {
+    fill_value = 0,
+    min_value = 0,
+    max_value = math.huge,
+  }    
+
+  local data1 = {
+    statement_id = 0,
+    series = {
+      {
+        name = "iface:flows",
+        columns = {
+          "time", "total_serie"
+        },
+        values = {
+          {1534492860, 40},
+          {1534492920, 35},
+          {1534492980, 19},
+          {1534493040, 26},
+          {1534493100, 33},
+          {1534493160, 18},
+        },
+      }
+    }
+  }
+
+  local schema = {
+    options = {
+      step = 1,
+      metrics_type = "gauge",
+    }
+  }
+
+  local time_step = 60 -- no sampling
+  local tstart = 1534492620; tend = 1534493220
+  local data1_series, data1_count = influx2Series(schema, tstart+time_step, tend, tags, options, data1.series[1], time_step)
+  local with_tstamp = makeTimeStamp(data1_series, tstart+time_step, time_step)[1]
+  local first_expected_val = data1.series[1].values[1]
+
+  for _, pt in pairs(with_tstamp) do
+    if pt[1] == first_expected_val[1] then
+      if not(pt[2] == first_expected_val[2]) then
+        return test:assertion_failed("pt[2] == first_expected_val[2]\n")
+      end
+
+      break
+    end
+  end
+
+  return test:success()
+end
+
+--http://127.0.0.1:3000/lua/get_ts.lua?ts_query=ifid:1&epoch_end=1534493220&ts_schema=iface:flows&epoch_begin=1534492620&initial_point=true&ts_compare=30m&limit=42
+
+function test_skip_initial1(test)
+  local tags = {}
+  local options = {
+    fill_value = 0,
+    min_value = 0,
+    max_value = math.huge,
+  }    
+
+  local data1 = {
+    statement_id = 0,
+    series = {
+      {
+        name = "iface:flows",
+        columns = {
+          "time", "num_flows"
+        },
+        values = {
+          {1534502280, 12},
+          {1534502340, 23},
+          {1534502400, 28},
+          {1534502460, 13},
+          {1534502520, 12},
+          {1534502580, 13},
+          {1534502640, 20},
+          {1534502700, nil},
+        },
+      }
+    }
+  }
+
+  local schema = {
+    options = {
+      step = 1,
+      metrics_type = "gauge",
+    }
+  }
+
+  local time_step = 60 -- no sampling
+  local tstart = 1534502340; tend = 1534493220
+  local data1_series, data1_count = influx2Series(schema, tstart, tend, tags, options, data1.series[1], time_step)
+  local with_tstamp = makeTimeStamp(data1_series, tstart, tstart)[1]
+  local first_expected_val = data1.series[1].values[2]
+
+  for _, pt in ipairs(with_tstamp) do
+    if pt[2] ~= 0 then
+      if not(pt[2] == first_expected_val[2]) then
+        return test:assertion_failed("pt[2] == first_expected_val\n")
+      end
+
+      break
+    end
+  end
+
+  return test:success()
+end
 
 function run(tester)
   local rv = tester.run_test("influx2Series:test_sampling1", test_sampling1)
   rv = tester.run_test("influx2Series:test_datafill1", test_datafill1) and rv
   rv = tester.run_test("influx2Series:test_datafill2", test_datafill2) and rv
   rv = tester.run_test("influx2Series:test_datafill3", test_datafill3) and rv
+  rv = tester.run_test("influx2Series:test_no_derivative1", test_no_derivative1) and rv
+  rv = tester.run_test("influx2Series:test_skip_initial1", test_skip_initial1) and rv
 
   return rv
 end
