@@ -130,12 +130,6 @@ Geolocation::Geolocation(char *db_home) {
 #ifdef HAVE_MAXMINDDB
   mmdbs_ok = loadMaxMindDB(path, "GeoLite2-ASN.mmdb",  &geo_ip_asn_mmdb)
     && loadMaxMindDB(path, "GeoLite2-City.mmdb", &geo_ip_city_mmdb);
-
-#elif defined(HAVE_GEOIP)
-  geo_ip_asn_db     = loadGeoDB(path, "GeoIPASNum.dat");
-  geo_ip_asn_db_v6  = loadGeoDB(path, "GeoIPASNumv6.dat");
-  geo_ip_city_db    = loadGeoDB(path, "GeoLiteCity.dat");
-  geo_ip_city_db_v6 = loadGeoDB(path, "GeoLiteCityv6.dat");
 #endif
 }
 
@@ -172,30 +166,6 @@ bool Geolocation::loadMaxMindDB(const char * const base_path, const char * const
   }
 }
 
-#elif defined(HAVE_GEOIP)
-
-GeoIP* Geolocation::loadGeoDB(char *base_path, const char *db_name) {
-  char path[MAX_PATH];
-  GeoIP *geo;
-  struct stat buf;
-  bool found;
-
-  snprintf(path, sizeof(path), "%s/%s", base_path, db_name);
-  ntop->fixPath(path);
-
-  found = ((stat(path, &buf) == 0) && (S_ISREG(buf.st_mode))) ? true : false;
-
-  if(!found) return(NULL);
-
-  geo = GeoIP_open(path, GEOIP_CHECK_CACHE);
-
-  if(geo == NULL)
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to read GeoIP database %s", path);
-  else
-    GeoIP_set_charset(geo, GEOIP_CHARSET_UTF8); /* Avoid UTF-8 issues (hopefully) */
-
-  return(geo);
-}
 #endif
 
 /* *************************************** */
@@ -206,17 +176,15 @@ Geolocation::~Geolocation() {
     MMDB_close(&geo_ip_asn_mmdb);
     MMDB_close(&geo_ip_city_mmdb);
   }
-#elif defined(HAVE_GEOIP)
-  if(geo_ip_asn_db != NULL)     GeoIP_delete(geo_ip_asn_db);
-  if(geo_ip_asn_db_v6 != NULL)  GeoIP_delete(geo_ip_asn_db_v6);
-  if(geo_ip_city_db != NULL)    GeoIP_delete(geo_ip_city_db);
-  if(geo_ip_city_db_v6 != NULL) GeoIP_delete(geo_ip_city_db_v6);
 #endif
 }
 
 /* *************************************** */
 
 void Geolocation::getAS(IpAddress *addr, u_int32_t *asn, char **asname) {
+  if(asn)    *asn = 0;
+  if(asname) *asname = NULL;
+
 #ifdef HAVE_MAXMINDDB
   sockaddr *sa = NULL;
   ssize_t sa_len;
@@ -224,8 +192,6 @@ void Geolocation::getAS(IpAddress *addr, u_int32_t *asn, char **asname) {
   MMDB_lookup_result_s result;
   MMDB_entry_data_s entry_data;
 
-  if(asn)    *asn = 0;
-  if(asname) *asname = NULL;
 
   if(!mmdbs_ok) return;
 
@@ -257,55 +223,21 @@ void Geolocation::getAS(IpAddress *addr, u_int32_t *asn, char **asname) {
 
     free(sa);
   }
-
-  return;
-
-#elif defined(HAVE_GEOIP)
-  char *rsp = NULL;
-  struct ipAddress *ip = addr->getIP();
-
-  switch(ip->ipVersion) {
-  case 4:
-    if(geo_ip_asn_db)
-      rsp = GeoIP_name_by_ipnum(geo_ip_asn_db, ntohl(ip->ipType.ipv4));
-    break;
-
-  case 6:
-    if(geo_ip_asn_db_v6 != NULL) {
-      struct in6_addr *ipv6 = (struct in6_addr*)&ip->ipType.ipv6;
-      rsp = GeoIP_name_by_ipnum_v6(geo_ip_asn_db_v6, *ipv6);
-    }
-    break;
-  }
-
-  if(rsp != NULL) {
-    char *space = strchr(rsp, ' ');
-
-    if(asn)
-      *asn = atoi(&rsp[2]);
-
-    if(asname) {
-      if(space)
-	*asname = strdup(&space[1]);
-      else
-	*asname = strdup(rsp);
-    }
-
-    free(rsp);
-    return;
-  }
 #endif
 
-  if(asn)
-    *asn = 0;
-  if(asname)
-    *asname = NULL;
+  return;
 }
 
 /* *************************************** */
 
 void Geolocation::getInfo(IpAddress *addr, char **continent_code, char **country_code,
 			  char **city, float *latitude, float *longitude) {
+  if(continent_code) *continent_code = strdup((char*)UNKNOWN_CONTINENT);
+  if(country_code)   *country_code = strdup((char*)UNKNOWN_COUNTRY);
+  if(city)           *city = strdup((char*)UNKNOWN_CITY);
+  if(latitude)       *latitude = 0;
+  if(longitude)      *longitude = 0;
+
 #ifdef HAVE_MAXMINDDB
   sockaddr *sa = NULL;
   ssize_t sa_len;
@@ -313,12 +245,6 @@ void Geolocation::getInfo(IpAddress *addr, char **continent_code, char **country
   MMDB_lookup_result_s result;
   MMDB_entry_data_s entry_data;
   char *cdata;
-
-  if(continent_code) *continent_code = strdup((char*)UNKNOWN_CONTINENT);
-  if(country_code)   *country_code = strdup((char*)UNKNOWN_COUNTRY);
-  if(city)           *city = strdup((char*)UNKNOWN_CITY);
-  if(latitude)       *latitude = 0;
-  if(longitude)      *longitude = 0;
 
   if(!mmdbs_ok) return;
 
@@ -377,42 +303,9 @@ void Geolocation::getInfo(IpAddress *addr, char **continent_code, char **country
     free(sa);
   } else
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Lookup failed [%s]", MMDB_strerror(mmdb_error));
+#endif
 
   return;
-#elif defined(HAVE_GEOIP)
-  GeoIPRecord *geo = NULL;
-  struct ipAddress *ip = addr->getIP();
-
-  switch(ip->ipVersion) {
-  case 4:
-    if(geo_ip_city_db != NULL)
-      geo = GeoIP_record_by_ipnum(geo_ip_city_db, ntohl(ip->ipType.ipv4));
-    break;
-
-  case 6:
-    if(geo_ip_city_db_v6 != NULL) {
-      struct in6_addr *ipv6 = (struct in6_addr*)&ip->ipType.ipv6;
-
-      geo = GeoIP_record_by_ipnum_v6(geo_ip_city_db_v6, *ipv6);
-    }
-    break;
-  }
-
-  if(geo != NULL) {
-    *continent_code =
-#ifdef WIN32
-		""
-#else
-		geo->continent_code
-#endif
-		;
-    *country_code = geo->country_code;
-    *city = geo->city ? strdup(geo->city) : NULL;
-    *latitude = geo->latitude, *longitude = geo->longitude;
-    GeoIPRecord_delete(geo);
-  } else
-#endif
-    *country_code = (char*)UNKNOWN_COUNTRY, *city = NULL, *latitude = *longitude = 0, *continent_code = (char*)"";
 }
 
 

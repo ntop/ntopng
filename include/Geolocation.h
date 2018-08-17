@@ -27,9 +27,6 @@
 extern "C" {
 #ifdef HAVE_MAXMINDDB
 #include <maxminddb.h>
-#elif defined(HAVE_GEOIP)
-#include "GeoIP.h"
-#include "GeoIPCity.h"
 #endif
 };
 

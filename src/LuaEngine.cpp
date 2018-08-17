@@ -32,10 +32,6 @@
 
 extern "C" {
 #include "rrd.h"
-
-#ifdef HAVE_GEOIP
-  extern const char * GeoIP_lib_version(void);
-#endif
 };
 
 struct keyval string_to_replace[MAX_NUM_HTTP_REPLACEMENTS] = { { NULL, NULL } };
@@ -5697,8 +5693,6 @@ static int ntop_get_info(lua_State* vm) {
 #endif
 #ifdef HAVE_MAXMINDDB
     lua_push_str_table_entry(vm, "version.geoip", (char*)MMDB_lib_version());
-#elif defined(HAVE_GEOIP)
-    lua_push_str_table_entry(vm, "version.geoip", (char*)GeoIP_lib_version());
 #endif
     lua_push_str_table_entry(vm, "version.ndpi", ndpi_revision());
     lua_push_bool_table_entry(vm, "version.enterprise_edition", ntop->getPrefs()->is_enterprise_edition());
