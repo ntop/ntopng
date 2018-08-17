@@ -314,9 +314,9 @@ void Geolocation::getInfo(IpAddress *addr, char **continent_code, char **country
   MMDB_entry_data_s entry_data;
   char *cdata;
 
-  if(continent_code) *continent_code = (char*)"";
-  if(country_code)   *country_code = (char*)UNKNOWN_COUNTRY;
-  if(city)           *city = NULL;
+  if(continent_code) *continent_code = strdup((char*)UNKNOWN_CONTINENT);
+  if(country_code)   *country_code = strdup((char*)UNKNOWN_COUNTRY);
+  if(city)           *city = strdup((char*)UNKNOWN_CITY);
   if(latitude)       *latitude = 0;
   if(longitude)      *longitude = 0;
 
@@ -332,6 +332,7 @@ void Geolocation::getInfo(IpAddress *addr, char **continent_code, char **country
 	  if(entry_data.has_data && entry_data.type == MMDB_DATA_TYPE_UTF8_STRING) {
 	    if((cdata = (char*)malloc(entry_data.data_size + 1))) {
 	      snprintf(cdata, entry_data.data_size + 1, "%s", entry_data.utf8_string);
+	      free(*continent_code);
 	      *continent_code = cdata;
 	    }
 	  }
@@ -342,6 +343,7 @@ void Geolocation::getInfo(IpAddress *addr, char **continent_code, char **country
 	  if(entry_data.has_data && entry_data.type == MMDB_DATA_TYPE_UTF8_STRING) {
 	    if((cdata = (char*)malloc(entry_data.data_size + 1))) {
 	      snprintf(cdata, entry_data.data_size + 1, "%s", entry_data.utf8_string);
+	      free(*country_code);
 	      *country_code = cdata;
 	    }
 	  }
@@ -352,6 +354,7 @@ void Geolocation::getInfo(IpAddress *addr, char **continent_code, char **country
 	  if(entry_data.has_data && entry_data.type == MMDB_DATA_TYPE_UTF8_STRING) {
 	    if((cdata = (char*)malloc(entry_data.data_size + 1))) {
 	      snprintf(cdata, entry_data.data_size + 1, "%s", entry_data.utf8_string);
+	      free(*city);
 	      *city = cdata;
 	    }
 	  }
@@ -412,3 +415,11 @@ void Geolocation::getInfo(IpAddress *addr, char **continent_code, char **country
     *country_code = (char*)UNKNOWN_COUNTRY, *city = NULL, *latitude = *longitude = 0, *continent_code = (char*)"";
 }
 
+
+/* *************************************** */
+
+void Geolocation::freeInfo(char **continent_code, char **country_code, char **city) {
+  if(continent_code) { free(*continent_code); *continent_code = NULL; }
+  if(country_code)   { free(*country_code);   *country_code = NULL;   }
+  if(city)           { free(*city);           *city = NULL;           }
+}

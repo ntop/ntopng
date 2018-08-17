@@ -406,15 +406,15 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
     char *continent = NULL, *country_name = NULL, *city = NULL;
     float latitude = 0, longitude = 0;
 
-    ntop->getGeolocation()->getInfo(&ip, &continent, &country_name, &city, &latitude, &longitude);
-
     if(info) lua_push_str_table_entry(vm, "info", getInfo(buf, sizeof(buf)));
 
+    ntop->getGeolocation()->getInfo(&ip, &continent, &country_name, &city, &latitude, &longitude);
     lua_push_str_table_entry(vm, "continent", continent ? continent : (char*)"");
     lua_push_str_table_entry(vm, "country", country_name ? country_name  : (char*)"");
     lua_push_float_table_entry(vm, "latitude", latitude);
     lua_push_float_table_entry(vm, "longitude", longitude);
     lua_push_str_table_entry(vm, "city", city ? city : (char*)"");
+    ntop->getGeolocation()->freeInfo(&continent, &country_name, &city);
 
     lua_push_int_table_entry(vm, "total_activity_time", total_activity_time);
     lua_push_int_table_entry(vm, "flows.as_client", total_num_flows_as_client);
@@ -443,8 +443,6 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
 
     lua_push_int_table_entry(vm, "low_goodput_flows.as_client", low_goodput_client_flows);
     lua_push_int_table_entry(vm, "low_goodput_flows.as_server", low_goodput_server_flows);
-
-    if(city) free(city);
   }
 
   lua_push_int_table_entry(vm, "seen.first", first_seen);
@@ -626,8 +624,6 @@ json_object* Host::getJSONObject() {
   json_object *my_object;
   char buf[32];
   Mac *m = mac;
-  char *continent, *country_name, *city = NULL;
-  float latitude, longitude;
 
   if((my_object = json_object_new_object()) == NULL) return(NULL);
 
@@ -644,7 +640,6 @@ json_object* Host::getJSONObject() {
   if(vlan_id != 0)        json_object_object_add(my_object, "vlan_id",   json_object_new_int(vlan_id));
   json_object_object_add(my_object, "ip", ip.getJSONObject());
 
-  ntop->getGeolocation()->getInfo(&ip, &continent, &country_name, &city, &latitude, &longitude);
   json_object_object_add(my_object, "localHost", json_object_new_boolean(isLocalHost()));
   json_object_object_add(my_object, "systemHost", json_object_new_boolean(isSystemHost()));
   json_object_object_add(my_object, "is_blacklisted", json_object_new_boolean(isBlacklisted()));
@@ -694,8 +689,6 @@ json_object* Host::getJSONObject() {
 
   /* The value below is handled by reading dumps on disk as otherwise the string will be too long */
   //json_object_object_add(my_object, "activityStats", activityStats.getJSONObject());
-
-  if(city) free(city);
 
   return(my_object);
 }
@@ -1218,12 +1211,17 @@ void Host::setMDSNInfo(char *str) {
 /* *************************************** */
 
 char* Host::get_country(char *buf, u_int buf_len) {
-  char *continent, *country_name, *city = NULL;
-  float latitude, longitude;
+  char *continent = NULL, *country_name = NULL, *city = NULL;
+  float latitude = 0, longitude = 0;
 
   ntop->getGeolocation()->getInfo(&ip, &continent, &country_name, &city, &latitude, &longitude);
-  snprintf(buf, buf_len, "%s", country_name);
-  if(city) free(city);
+
+  if(country_name)
+    snprintf(buf, buf_len, "%s", country_name);
+  else
+    buf[0] = '\0';
+
+  ntop->getGeolocation()->freeInfo(&continent, &country_name, &city);
 
   return(buf);
 }
@@ -1231,16 +1229,17 @@ char* Host::get_country(char *buf, u_int buf_len) {
 /* *************************************** */
 
 char* Host::get_city(char *buf, u_int buf_len) {
-  char *continent, *country_name, *city = NULL;
-  float latitude, longitude;
+  char *continent = NULL, *country_name = NULL, *city = NULL;
+  float latitude = 0, longitude = 0;
 
   ntop->getGeolocation()->getInfo(&ip, &continent, &country_name, &city, &latitude, &longitude);
 
   if(city) {
     snprintf(buf, buf_len, "%s", city);
-    free(city);
   } else
     buf[0] = '\0';
+
+  ntop->getGeolocation()->freeInfo(&continent, &country_name, &city);
 
   return(buf);
 }
@@ -1248,9 +1247,9 @@ char* Host::get_city(char *buf, u_int buf_len) {
 /* *************************************** */
 
 void Host::get_geocoordinates(float *latitude, float *longitude) {
-  char *continent, *country_name, *city = NULL;
+  char *continent = NULL, *country_name = NULL, *city = NULL;
 
   *latitude = 0, *longitude = 0;
   ntop->getGeolocation()->getInfo(&ip, &continent, &country_name, &city, latitude, longitude);
-  if(city) free(city);
+  ntop->getGeolocation()->freeInfo(&continent, &country_name, &city);
 }

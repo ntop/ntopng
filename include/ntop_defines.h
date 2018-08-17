@@ -780,7 +780,9 @@
 /* Logstash */
 #define LS_MAX_QUEUE_LEN              32768
 /* Unknown values for host groups */
+#define UNKNOWN_CONTINENT     ""
 #define UNKNOWN_COUNTRY       ""
+#define UNKNOWN_CITY          ""
 #define UNKNOWN_OS            ""
 #define UNKNOWN_ASN           "Private ASN"
 #define UNKNOWN_LOCAL_NETWORK "Remote Networks"
