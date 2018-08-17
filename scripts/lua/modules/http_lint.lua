@@ -1231,6 +1231,7 @@ local known_parameters = {
    ["ts_schema"]               =  validateSingleWord,
    ["ts_query"]                =  validateListOfTypeInline(validateSingleWord),
    ["ts_compare"]              =  validateZoom,
+   ["initial_point"]           =  validateBool,
 
    -- json POST DATA
    ["payload"]                 =  validateJSON,

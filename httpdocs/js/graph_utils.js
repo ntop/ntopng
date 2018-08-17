@@ -249,16 +249,20 @@ function fixTimeRange(chart, params, step) {
 }
 
 // add a new updateStackedChart function
-function attachStackedChartCallback(chart, schema_name, chart_id, zoom_out_id, flows_dt, params, step) {
+function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id, flows_dt, params, step) {
   var pending_request = null;
   var d3_sel = d3.select(chart_id);
   var $chart = $(chart_id);
-  var $zoom_out = $(zoom_out_id);
+  var $zoom_reset = $(zoom_reset_id);
+  var $graph_zoom = $("#graph_zoom");
   var max_interval = step * 8;
   var is_max_zoom = false;
   var zoom_stack = [];
   var url = http_prefix + "/lua/get_ts.lua";
   var first_load = true;
+  var first_time_loaded = true;
+  var datetime_format = "dd/MM/yyyy hh:mm:ss";
+  var max_over_total_ratio = 3;
 
   //var spinner = $("<img class='chart-loading-spinner' src='" + spinner_url + "'/>");
   var spinner = $('<i class="chart-loading-spinner fa fa-spinner fa-lg fa-spin"></i>');
@@ -312,7 +316,16 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_out_id, f
     if(chart.updateStackedChart(t_start, t_end)) {
       chart.is_zoomed = true;
       zoom_stack.push(cur_zoom);
-      $zoom_out.show();
+      $zoom_reset.show();
+      $graph_zoom.find(".btn-warning:not(.custom-zoom-btn)")
+        .addClass("initial-zoom-sel")
+        .removeClass("btn-warning");
+      $graph_zoom.find(".custom-zoom-btn").show();
+
+      var zoom_link = $graph_zoom.find(".custom-zoom-btn input");
+      var link = zoom_link.val();
+      link += "&epoch_begin=" + t_start + "&epoch_end=" + t_end;
+      zoom_link.val(link);
     }
   });
 
@@ -322,8 +335,13 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_out_id, f
 
     chart.updateStackedChart(t_start, t_end);
 
-    if(!zoom_stack.length)
-      $zoom_out.hide();
+    if(!zoom_stack.length) {
+      $zoom_reset.hide();
+
+      $graph_zoom.find(".initial-zoom-sel")
+        .addClass("btn-warning");
+      $graph_zoom.find(".custom-zoom-btn").hide();
+    }
   }
 
   $chart.on('dblclick', function() {
@@ -333,7 +351,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_out_id, f
     }
   });
 
-  $zoom_out.on("click", function() {
+  $zoom_reset.on("click", function() {
     if(zoom_stack.length) {
       var zoom = zoom_stack[0];
       zoom_stack = [];
@@ -454,7 +472,13 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_out_id, f
           }
 
           var serie_data = upsampleSerie(data.additional_series[key], data.count);
+          var ratio_over_total = d3.max(serie_data) / d3.max(visual_total);
           var values = arrayToNvSerie(serie_data, data.start, data.step);
+          var is_disabled = isLegendDisabled(key, false);
+
+          /* Hide comparison serie at first load if it's too high */
+          if(first_time_loaded && (ratio_over_total > max_over_total_ratio))
+            is_disabled = true;
 
           res.push({
             key: capitaliseFirstLetter(key),
@@ -464,7 +488,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_out_id, f
             classed: "line-dashed line-animated",
             color: "#7E91A0",
             legend_key: key,
-            disabled: isLegendDisabled(key, false),
+            disabled: is_disabled,
           });
         }
       }
@@ -510,6 +534,9 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_out_id, f
       var stats_table = $chart.closest("table").find(".graph-statistics");
       var stats = data.statistics;
 
+      stats_table.find(".graph-val-begin").show().find("span").html(new Date(data.start * 1000).format(datetime_format));
+      stats_table.find(".graph-val-end").show().find("span").html(new Date((data.start + data.step * (data.count-1)) * 1000).format(datetime_format));
+
       if(stats) {
         if(stats.average) {
           var values = makeFlatLineValues(data.start, data.step, data.count, stats.average);
@@ -532,9 +559,9 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_out_id, f
         if(stats.average)
           stats_table.find(".graph-val-average").show().find("span").html(stats_formatter(stats.average));
         if(stats.min_val)
-          stats_table.find(".graph-val-min").show().find("span").html(stats_formatter(stats.min_val) + "@" + (new Date(res[0].values[stats.min_val_idx][0] * 1000)).format("dd/MM/yyyy hh:mm:ss"));
+          stats_table.find(".graph-val-min").show().find("span").html(stats_formatter(stats.min_val) + " @ " + (new Date(res[0].values[stats.min_val_idx][0] * 1000)).format(datetime_format));
         if(stats.max_val)
-          stats_table.find(".graph-val-max").show().find("span").html(stats_formatter(stats.max_val) + "@" + (new Date(res[0].values[stats.max_val_idx][0] * 1000)).format("dd/MM/yyyy hh:mm:ss"));
+          stats_table.find(".graph-val-max").show().find("span").html(stats_formatter(stats.max_val) + " @ " + (new Date(res[0].values[stats.max_val_idx][0] * 1000)).format(datetime_format));
         if(stats["95th_percentile"]) {
           stats_table.find(".graph-val-95percentile").show().find("span").html(stats_formatter(stats["95th_percentile"]));
 
@@ -552,14 +579,10 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_out_id, f
           });
         }
 
-        // only show if there are visible elements
-        if(stats_table.find("td").filter(function(){ return $(this).css("display") != "none"; }).length > 0)
-          stats_table.show();
-        else
-          stats_table.hide();
-      } else {
-        stats_table.hide();
+        // check if there are visible elements
+        //if(stats_table.find("td").filter(function(){ return $(this).css("display") != "none"; }).length > 0)
       }
+      stats_table.show();
 
       var enabled_series = res.filter(function(d) { return(d.disabled !== true); });
 
@@ -575,6 +598,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_out_id, f
       }
 
       update_chart_data(res);
+      first_time_loaded = false;
     }).fail(function(xhr, status, error) {
       if (xhr.statusText =='abort') {
         return;

@@ -129,7 +129,7 @@ local function getQueryOptions(overrides)
     max_value = math.huge,  -- maximum value for a data point
     top = 8,                -- topk number of items
     calculate_stats = true, -- calculate stats if possible
-    initial_point = true,   -- add an extra initial point, not accounted in statistics but useful for drawing graphs
+    initial_point = false,   -- add an extra initial point, not accounted in statistics but useful for drawing graphs
   }, overrides or {})
 end
 

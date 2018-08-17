@@ -34,6 +34,7 @@ end
 
 local options = {
   max_num_points = tonumber(_GET["limit"]),
+  initial_point = toboolean(_GET["initial_point"]),
 }
 
 -- convert the query into fields

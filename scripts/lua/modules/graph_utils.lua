@@ -394,7 +394,7 @@ print[[
 
    if ntop.isPro() then
       _ifstats = interface.getStats()
-      drawProGraph(ifid, schema, tags, zoomLevel, baseurl, selectedEpoch, options)
+      drawProGraph(ifid, schema, tags, zoomLevel, baseurl, options)
       return
    end
 
