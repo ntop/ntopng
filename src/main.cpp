@@ -276,7 +276,7 @@ int main(int argc, char *argv[])
   ntop->getLogstash()->startFlowDump();
 #endif
   
-  if(ntop->getFirstInterface() == NULL) {
+  if(ntop->getInterfaceAtId(0) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Startup error: missing super-user privileges ?");
     exit(0);
   }
@@ -327,14 +327,14 @@ int main(int argc, char *argv[])
    */
   if(prefs->do_dump_flows_on_mysql()) {
     /* create the schema only one time, no need to call it for every interface */
-    if(!ntop->getFirstInterface()->createDBSchema()){
+    if(!ntop->getInterfaceAtId(0)->createDBSchema()){
       ntop->getTrace()->traceEvent(TRACE_ERROR,
 				   "Unable to create database schema, quitting.");
       exit(EXIT_FAILURE);
     }
   } else if(prefs->do_read_flows_from_nprobe_mysql()) {
     /* Create a view only one time for the first interface */
-    if(!ntop->getFirstInterface()->createNprobeDBView()){
+    if(!ntop->getInterfaceAtId(0)->createNprobeDBView()){
       ntop->getTrace()->traceEvent(TRACE_ERROR,
 				   "Unable to create a view on the nProbe database.");
       exit(EXIT_FAILURE);

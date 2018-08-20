@@ -271,15 +271,12 @@ class Ntop {
    * @param i The i-th network interface.
    * @return The network interface instance if exists, NULL otherwise.
    */
-  inline NetworkInterface* getInterfaceAtId(lua_State *vm, int if_id) const {
-    for(int cur = 0; cur < num_defined_interfaces; cur++) {
-      if(iface[cur] && iface[cur]->get_id() == if_id)
-	return isInterfaceAllowed(vm, iface[cur]->get_name()) ? iface[cur] : NULL;
+  inline NetworkInterface* getInterfaceAtId(lua_State *vm, int i) const {
+    if((i < num_defined_interfaces) && iface[i]) {
+      return isInterfaceAllowed(vm, iface[i]->get_name()) ? iface[i] : NULL;
     }
-
-    return(NULL);
+    return NULL;
   }
-
   /**
    * @brief Get the i-th network interface.
    * @details Retrieves the pointer the network interface
@@ -289,8 +286,8 @@ class Ntop {
    * @param i The i-th network interface.
    * @return The network interface instance if exists, NULL otherwise.
    */
-  inline NetworkInterface* getInterfaceAtId(int if_id) const {
-    return getInterfaceAtId(NULL, if_id);
+  inline NetworkInterface* getInterfaceAtId(int i) const {
+    return getInterfaceAtId(NULL, i);
   }
 
   /**
@@ -301,6 +298,14 @@ class Ntop {
    * @return The network interface Id if exists, -1 otherwise.
    */
   int getInterfaceIdByName(char *name);
+
+  /**
+   * @brief Get the network interface with the specified Id
+   *
+   * @param if_id Id of network interface.
+   * @return Pointer to the network interface, NULL otherwise.
+   */
+  NetworkInterface* getInterfaceById(int if_id);
 
   /**
    * @brief Register the HTTP server.
@@ -393,6 +398,7 @@ class Ntop {
   void getUsers(lua_State* vm);
   void getUserGroup(lua_State* vm);
   void getAllowedNetworks(lua_State* vm);
+  bool getInterfaceAllowed(lua_State* vm, char *ifname)         const;
   bool isInterfaceAllowed(lua_State* vm, const char *ifname)    const;
   bool isInterfaceAllowed(lua_State* vm, int ifid)              const;
   bool checkUser(const char * const user, const char *password) const;
@@ -452,7 +458,7 @@ class Ntop {
   void addToHostBlacklist(char *net);
   bool isBlacklistedIP(IpAddress *ip);
   bool isExistingInterface(const char * const name) const;
-  NetworkInterface* getFirstInterface(lua_State *vm = NULL) const;
+  inline NetworkInterface* getFirstInterface() { return(iface[0]);         }
   inline NetworkInterface* getInterface(int i) { return(((i < num_defined_interfaces) && iface[i]) ? iface[i] : NULL); }
 #ifdef NTOPNG_PRO
   bool addToNotifiedInformativeCaptivePortal(u_int32_t client_ip);

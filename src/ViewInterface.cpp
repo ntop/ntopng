@@ -42,7 +42,7 @@ ViewInterface::ViewInterface(const char *_endpoint) : NetworkInterface(_endpoint
 	  found = true;
 	  
 	  if(numSubInterfaces < MAX_NUM_VIEW_INTERFACES) {
-	    NetworkInterface *what = ntop->getInterfaceAtId(i);
+	    NetworkInterface *what = ntop->getInterfaceById(i);
 
 	    if(what)
 	      subInterfaces[numSubInterfaces++] = what;

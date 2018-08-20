@@ -266,6 +266,7 @@ class NetworkInterface : public Checkpointable {
   virtual void startPacketPolling();
   virtual void shutdown();
   virtual void cleanup();
+  virtual char *getScriptName()                { return NULL;   };
   virtual char *getEndpoint(u_int8_t id)       { return NULL;   };
   virtual bool set_packet_filter(char *filter) { return(false); };
   virtual void incrDrops(u_int32_t num)        { ; }

@@ -2024,7 +2024,7 @@ function check_interface_alerts(ifid, working_status)
 
    -- note: always checkpoint as the interface could have anomalies
 
-   local checkpoints = interface.checkpointInterface(working_status.checkpoint_id, "high") or {}
+   local checkpoints = interface.checkpointInterface(ifid, working_status.checkpoint_id, "high") or {}
    local old_entity_info = checkpoints["previous"] and j.decode(checkpoints["previous"])
    local new_entity_info = checkpoints["current"] and j.decode(checkpoints["current"])
 
@@ -2075,7 +2075,7 @@ function check_networks_alerts(ifid, working_status)
          goto continue
       end
 
-      local checkpoints = interface.checkpointNetwork(tonumber(sstats.network_id), working_status.checkpoint_id, "high") or {}
+      local checkpoints = interface.checkpointNetwork(ifid, tonumber(sstats.network_id), working_status.checkpoint_id, "high") or {}
 
       local old_entity_info = checkpoints["previous"] and j.decode(checkpoints["previous"])
       local new_entity_info = checkpoints["current"] and j.decode(checkpoints["current"])
@@ -2124,7 +2124,7 @@ function check_host_alerts(ifid, working_status, host)
    if (working_status.configured_thresholds[entity_value] ~= nil)
    or (working_status.configured_thresholds["local_hosts"] ~= nil) then
 
-      local checkpoints = interface.checkpointHost(entity_value, working_status.checkpoint_id, "high") or {}
+      local checkpoints = interface.checkpointHost(ifid, entity_value, working_status.checkpoint_id, "high") or {}
 
       old_entity_info = checkpoints["previous"] and j.decode(checkpoints["previous"])
       new_entity_info = checkpoints["current"] and j.decode(checkpoints["current"])
