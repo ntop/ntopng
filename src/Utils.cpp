@@ -344,7 +344,7 @@ bool Utils::mkdir_tree(char *path) {
 
 int Utils::mkdir(const char *path, mode_t mode) {
 #ifdef WIN32
-  return(_mkdir(path, mode));
+  return(_mkdir(path));
 #else
   int rc = ::mkdir(path, mode);
 

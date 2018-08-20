@@ -67,11 +67,12 @@ const char *win_inet_ntop(int af, const void *src, char *dst,socklen_t size);
 #define inet_ntop win_inet_ntop
 
 #define realpath(N,R) _fullpath((R),(N),_MAX_PATH)
+#define PCAP_NETMASK_UNKNOWN	0xffffffff
 
 typedef HANDLE pthread_mutex_t;
 typedef struct { HANDLE signal, broadcast; } pthread_cond_t;
 typedef HANDLE pthread_t;
-
+typedef int mode_t;
 
 #ifdef __cplusplus
 extern "C" {
