@@ -7,7 +7,7 @@
 local blacklist_utils = {}
 
 local blacklistURLs = {
-   "https://rules.emergingthreats.net/fwrules/emerging-Block-IPs.txt"
+   "http://rules.emergingthreats.net/fwrules/emerging-Block-IPs.txt"
 }
 
 -- ##################################################################
@@ -15,11 +15,11 @@ local blacklistURLs = {
 local function loadBlackListFromURL(url)
    local resp = ntop.httpGet(url)
 
-   if(resp ~= nil) then
+   if((resp ~= nil) and (resp["CONTENT"] ~= nil)) then
       local content = resp["CONTENT"]
       local line
       local lines = string.split(content, "\n")
-
+      
       for _,line in pairs(lines) do
 	 line = trimSpace(line)
 	 if((string.len(line) > 0) and not(string.starts(line, "#"))) then

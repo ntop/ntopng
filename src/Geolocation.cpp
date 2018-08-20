@@ -241,14 +241,15 @@ void Geolocation::getInfo(IpAddress *addr, char **continent_code, char **country
 #ifdef HAVE_MAXMINDDB
   sockaddr *sa = NULL;
   ssize_t sa_len;
-  int mmdb_error, status;
-  MMDB_lookup_result_s result;
-  MMDB_entry_data_s entry_data;
   char *cdata;
 
   if(!mmdbs_ok) return;
 
   if(addr && addr->get_sockaddr(&sa, &sa_len)) {
+    int mmdb_error, status;
+    MMDB_lookup_result_s result;
+    MMDB_entry_data_s entry_data;
+      
     result = MMDB_lookup_sockaddr(&geo_ip_city_mmdb, sa, &mmdb_error);
 
     if(mmdb_error == MMDB_SUCCESS) {
@@ -302,7 +303,7 @@ void Geolocation::getInfo(IpAddress *addr, char **continent_code, char **country
 
     free(sa);
   } else
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Lookup failed [%s]", MMDB_strerror(mmdb_error));
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Invalid address lookup");
 #endif
 
   return;
