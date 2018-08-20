@@ -940,7 +940,7 @@ bool Ntop::isInterfaceAllowed(lua_State* vm, const char *ifname) const {
   if(vm == NULL || ifname == NULL)
     return true; /* Always return true when no lua state is passed */  
 
-  allowed_ifname = getLuaVMUserdata(vm, ifname);
+  allowed_ifname = getLuaVMUserdata(vm, allowed_ifname);
   
   if((allowed_ifname == NULL) || (allowed_ifname[0] == '\0')) {
     ntop->getTrace()->traceEvent(TRACE_DEBUG,

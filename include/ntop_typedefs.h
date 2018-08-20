@@ -440,7 +440,7 @@ typedef struct {
 class SNMP; /* Forward */
 
 struct ntopngLuaContext {
-  char *ifname, *user;
+  char *allowed_ifname, *user;
   void *zmq_context, *zmq_subscriber;
   struct mg_connection *conn;
   AddressTree *allowedNets;
