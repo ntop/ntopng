@@ -96,7 +96,7 @@ end
 -- ##################################################################
 
 -- Clean old InfluxDB export cache
-local valid_entries = swapKeysValues(ntop.lrangeCache("ntopng.influx_file_queue"))
+local valid_entries = swapKeysValues(ntop.lrangeCache("ntopng.influx_file_queue") or {})
 local entries_dir = dirs.workingdir .. "/-1/ts_export"
 local existing_entries = ntop.readdir(entries_dir)
 

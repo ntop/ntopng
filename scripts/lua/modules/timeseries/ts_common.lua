@@ -106,4 +106,47 @@ end
 
 -- ##############################################
 
+-- If a point value exceeds this value, it should be discarded as invalid
+function ts_common.getMaxPointValue(schema, metric, tags)
+  if tags.ifid ~= nil then
+    if string.contains(metric, "bytes") then
+      local ifspeed = interface.getMaxIfSpeed(tonumber(tags.ifid))
+
+      if ifspeed ~= nil then
+        -- bit/s
+        return ifspeed * 1000 * 1000
+      end
+    elseif string.contains(metric, "packets") then
+      local ifspeed = interface.getMaxIfSpeed(tonumber(tags.ifid))
+
+      if ifspeed ~= nil then
+        -- mbit/s
+        local speed_mbps = ifspeed
+        local max_pps_baseline = 14881 -- for 10 mbps
+
+        return speed_mbps / 10 * max_pps_baseline
+      end
+    end
+  end
+
+  return math.huge
+end
+
+-- ##############################################
+
+function ts_common.normalizeVal(v, max_val, options)
+  if v ~= v or v > max_val then
+    -- NaN value
+    v = options.fill_value
+  elseif v < options.min_value then
+    v = options.min_value
+  elseif v > options.max_value then
+    v = options.max_value
+  end
+
+  return v
+end
+
+-- ##############################################
+
 return ts_common

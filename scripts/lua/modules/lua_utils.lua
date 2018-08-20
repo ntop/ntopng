@@ -2271,22 +2271,6 @@ function getservbyport(port_num, proto)
    return(ntop.getservbyport(port_num, proto))
 end
 
--- getSpeedMax
-function getSpeedMax(ifname)
-
-   if(ifname == nil) then
-      return -1
-   end
-
-   if(ifname ~= "eth0") then
-      return -1
-   end
-
-   ifname = tostring(ifname)
-
-   return(ntop.getSpeedMax(ifname))
-end
-
 function intToIPv4(num)
    return(math.floor(num / 2^24).. "." ..math.floor((num % 2^24) / 2^16).. "." ..math.floor((num % 2^16) / 2^8).. "." ..num % 2^8)
 end

@@ -104,22 +104,14 @@ end
 
 -- ##############################################
 
-local function normalizeVal(val, options)
-  if val < options.min_value then
-    val = options.min_value
-  elseif val > options.max_value then
-    val = options.max_value
-  end
-
-  return val
-end
-
 local function influx2Series(schema, tstart, tend, tags, options, data, time_step)
   local series = {}
+  local max_vals = {}
 
   -- Create the columns
   for i=2, #data.columns do
     series[i-1] = {label=data.columns[i], data={}}
+    max_vals[i-1] = ts_common.getMaxPointValue(schema, series[i-1].label, tags)
   end
 
   -- The first time available in the returned data
@@ -151,7 +143,7 @@ local function influx2Series(schema, tstart, tend, tags, options, data, time_ste
     end
 
     for i=2, #values do
-      local val = normalizeVal(values[i], options)
+      local val = ts_common.normalizeVal(values[i], max_vals[i-1], options)
       series[i-1].data[series_idx] = val
     end
 
@@ -182,7 +174,9 @@ driver._influx2Series = influx2Series
 
  --##############################################
 
-local function getTotalSerieQuery(schema, tstart, tend, tags, time_step, data_type)
+local function getTotalSerieQuery(schema, tstart, tend, tags, time_step, data_type, label)
+  label = label or "total_serie"
+
   --[[
   SELECT NON_NEGATIVE_DERIVATIVE(total_serie) AS total_serie FROM               // derivate the serie, if necessary
     (SELECT MEAN("total_serie") AS "total_serie" FROM                           // sample the total serie points, if necessary
@@ -193,18 +187,18 @@ local function getTotalSerieQuery(schema, tstart, tend, tags, time_step, data_ty
         GROUP BY time(300s))
       GROUP BY time(600s))
   ]]
-  local query = 'SELECT SUM("value") AS "total_serie" FROM ' ..
+  local query = 'SELECT SUM("value") AS "'.. label ..'" FROM ' ..
     '(SELECT (' .. table.concat(schema._metrics, " + ") ..') AS "value" FROM "'.. schema.name ..'" WHERE ' ..
     table.tconcat(tags, "=", " AND ", nil, "'") .. ' AND time >= ' .. tstart .. '000000000 AND time <= ' .. tend .. '000000000)'..
     ' GROUP BY time('.. schema.options.step ..'s)'
 
   if time_step and (schema.options.step ~= time_step) then
     -- sample the points
-    query = 'SELECT MEAN("total_serie") AS "total_serie" FROM ('.. query ..') GROUP BY time('.. time_step ..'s)'
+    query = 'SELECT MEAN("'.. label ..'") AS "'.. label ..'" FROM ('.. query ..') GROUP BY time('.. time_step ..'s)'
   end
 
   if data_type == ts_common.metrics.counter then
-    query = "SELECT NON_NEGATIVE_DERIVATIVE(total_serie) AS total_serie FROM (" .. query .. ")"
+    query = "SELECT NON_NEGATIVE_DERIVATIVE(".. label ..") AS ".. label .." FROM (" .. query .. ")"
   end
 
   return query
@@ -212,9 +206,9 @@ end
 
 -- ##############################################
 
-function driver:_makeTotalSerie(schema, tstart, tend, tags, options, url, time_step)
+function driver:_makeTotalSerie(schema, tstart, tend, tags, options, url, time_step, label)
   local data_type = schema.options.metrics_type
-  local query = getTotalSerieQuery(schema, tstart, tend, tags, time_step, data_type)
+  local query = getTotalSerieQuery(schema, tstart, tend, tags, time_step, data_type, label)
 
   local full_url = url .. "/query?db=".. self.db .."&epoch=s&q=" .. urlencode(query)
   local data = influx_query(full_url, self.username, self.password)
@@ -233,13 +227,13 @@ end
 
 -- NOTE: mean / percentile values are calculated manually because of an issue with
 -- empty points in the queries https://github.com/influxdata/influxdb/issues/6967
-function driver:_calcStats(schema, tstart, tend, tags, url, total_serie, time_step)
+function driver:_calcStats(schema, tstart, tend, tags, url, total_serie, time_step, label)
   local stats = ts_common.calculateStatistics(total_serie, time_step, tend - tstart, schema.options.metrics_type)
 
   if time_step ~= schema.options.step then
     -- NOTE: the total must be manually extracted from influx when sampling occurs
     local data_type = schema.options.metrics_type
-    local query = getTotalSerieQuery(schema, tstart, tend, tags, nil --[[ important: no sampling ]], data_type)
+    local query = getTotalSerieQuery(schema, tstart, tend, tags, nil --[[ important: no sampling ]], data_type, label)
     query = 'SELECT SUM("total_serie") * ' .. schema.options.step ..' FROM (' .. query .. ')'
 
     local full_url = url .. "/query?db=".. self.db .."&epoch=s&q=" .. urlencode(query)
@@ -323,10 +317,12 @@ function driver:query(schema, tstart, tend, tags, options)
   local stats = nil
 
   if options.calculate_stats then
-    total_serie = self:_makeTotalSerie(schema, tstart, tend, tags, options, url, time_step)
+    -- try to inherit label from existing series
+    local label = series and series[1].label
+    total_serie = self:_makeTotalSerie(schema, tstart, tend, tags, options, url, time_step, label)
 
     if total_serie then
-      stats = self:_calcStats(schema, tstart, tend, tags, url, total_serie, time_step)
+      stats = self:_calcStats(schema, tstart, tend, tags, url, total_serie, time_step, label)
     end
   end
 
@@ -350,13 +346,15 @@ function driver:query(schema, tstart, tend, tags, options)
     else
       local values = data.series[1].values[1]
       for i=2, #values do
-        local val = normalizeVal(values[i], options)
+        local max_val = ts_common.getMaxPointValue(schema, series[i-1].label, tags)
+        local val = ts_common.normalizeVal(values[i], max_val, options)
         table.insert(series[i-1].data, 1, val)
       end
     end
 
     if total_serie then
-      local additional_pt = self:_makeTotalSerie(schema, tstart-time_step, tstart, tags, options, url, time_step) or {options.fill_value}
+      local label = series and series[1].label
+      local additional_pt = self:_makeTotalSerie(schema, tstart-time_step, tstart, tags, options, url, time_step, label) or {options.fill_value}
       table.insert(total_serie, 1, additional_pt[1])
     end
 
@@ -566,15 +564,16 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
   end
 
   local time_step = calculateSampledTimeStep(schema, tstart, tend, options)
-  local total_serie = self:_makeTotalSerie(schema, tstart, tend, tags, options, url, time_step)
+  local label = series and series[1].label
+  local total_serie = self:_makeTotalSerie(schema, tstart, tend, tags, options, url, time_step, label)
   local stats = nil
 
   if options.calculate_stats and total_serie then
-    stats = self:_calcStats(schema, tstart, tend, tags, url, total_serie, time_step)
+    stats = self:_calcStats(schema, tstart, tend, tags, url, total_serie, time_step, label)
   end
 
   if options.initial_point and total_serie then
-    local additional_pt = self:_makeTotalSerie(schema, tstart-time_step, tstart, tags, options, url, time_step) or {options.fill_value}
+    local additional_pt = self:_makeTotalSerie(schema, tstart-time_step, tstart, tags, options, url, time_step, label) or {options.fill_value}
     table.insert(total_serie, 1, additional_pt[1])
   end
 

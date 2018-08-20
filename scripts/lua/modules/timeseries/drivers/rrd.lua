@@ -321,19 +321,6 @@ end
 
 -- ##############################################
 
-local function normalizeVal(v, options)
-  if v ~= v then
-    -- NaN value
-    v = options.fill_value
-  elseif v < options.min_value then
-    v = options.min_value
-  elseif v > options.max_value then
-    v = options.max_value
-  end
-
-  return v
-end
-
 function driver:query(schema, tstart, tend, tags, options)
   local base, rrd = schema_get_path(schema, tags)
   local rrdfile = os_utils.fixPath(base .. "/" .. rrd .. ".rrd")
@@ -353,11 +340,12 @@ function driver:query(schema, tstart, tend, tags, options)
   for name_key, serie in pairs(fdata or {}) do
     local serie_idx = map_rrd_column_to_metrics(schema, name_key)
     local name = schema._metrics[serie_idx]
+    local max_val = ts_common.getMaxPointValue(schema, name, tags)
     count = 0
 
     -- unify the format
     for i, v in pairs(serie) do
-      local v = normalizeVal(v, options)
+      local v = ts_common.normalizeVal(v, max_val, options)
       serie[i] = v
       count = count + 1
     end
@@ -391,8 +379,10 @@ function driver:query(schema, tstart, tend, tags, options)
     initial_pt = initial_pt or {}
 
     for name_key, values in pairs(initial_pt) do
-      local ptval = normalizeVal(values[1], options)
       local serie_idx = map_rrd_column_to_metrics(schema, name_key)
+      local name = schema._metrics[serie_idx]
+      local max_val = ts_common.getMaxPointValue(schema, name, tags)
+      local ptval = ts_common.normalizeVal(values[1], max_val, options)
 
       table.insert(series[serie_idx].data, 1, ptval)
     end
@@ -532,7 +522,11 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
     local sum = 0
     step = fstep
 
-    for _, serie in pairs(fdata) do
+    for name_key, serie in pairs(fdata) do
+      local serie_idx = map_rrd_column_to_metrics(schema, name_key)
+      local name = schema._metrics[serie_idx]
+      local max_val = ts_common.getMaxPointValue(schema, name, serie_tags)
+
       if (#total_serie ~= 0) and #total_serie ~= #serie then
         -- NOTE: even if touchRRD is used, series can still have a different number
         -- of points when the tend parameter does not correspond to the current time
@@ -547,7 +541,7 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
       end
 
       for i, v in pairs(serie) do
-        local v = normalizeVal(v, options)
+        local v = ts_common.normalizeVal(v, max_val, options)
 
         if type(v) == "number" then
           sum = sum + v

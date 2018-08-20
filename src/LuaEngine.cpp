@@ -352,12 +352,22 @@ static int ntop_select_interface(lua_State* vm) {
 // ***API***
 static int ntop_get_max_if_speed(lua_State* vm) {
   char *ifname = NULL;
+  int ifid;
+  NetworkInterface *iface;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) {
+  if(lua_type(vm, 1) == LUA_TSTRING) {
     ifname = (char*)lua_tostring(vm, 1);
     lua_pushnumber(vm, Utils::getMaxIfSpeed(ifname));
+  } else if(lua_type(vm, 1) == LUA_TNUMBER) {
+    ifid = lua_tointeger(vm, 1);
+
+    if((iface = ntop->getInterfaceAtId(vm, ifid)) != NULL) {
+      lua_pushnumber(vm, iface->getMaxSpeed());
+    } else {
+      lua_pushnil(vm);
+    }
   } else
     lua_pushnil(vm);
 
