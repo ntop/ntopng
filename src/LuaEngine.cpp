@@ -8185,18 +8185,17 @@ bool LuaEngine::setUserInterface(lua_State *L, const char * const user, char * c
 
   if_name[0] = '\0';
 
-  snprintf(key, sizeof(key), CONST_STR_USER_ALLOWED_IFNAME, user);
+  snprintf(key, sizeof(key), CONST_STR_USER_ALLOWED_IFNAME, cur_user);
+  res = ntop->getRedis()->get(key, if_name, if_name_len);
 
   /* First check if there's an allowed interface for the user ... */
-  if(snprintf(key, sizeof(key), CONST_STR_USER_ALLOWED_IFNAME, user)
-     && !(res = ntop->getRedis()->get(key, if_name, if_name_len))) {
+  if(if_name[0] != '\0') {
     if(!ntop->isExistingInterface(if_name)) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Interface %s not existing for user %s", if_name, cur_user);
       return false; /* Cannot serve the request as the allowed interface isn't instantiated */
     } else {
       getLuaVMUservalue(L,ifname) = if_name;
       ntop->getTrace()->traceEvent(TRACE_DEBUG, "Setting %s as allowed interface for user %s", if_name, cur_user);
-            // ntop->getTrace()->traceEvent(TRACE_WARNING, "SET %p", ptree);
     }
 
   /* If here there's not allowed interface for the user and we can check if
