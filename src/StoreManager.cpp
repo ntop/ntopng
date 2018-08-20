@@ -23,7 +23,7 @@
 
 StoreManager::StoreManager(int interface_id) {
     ifid = interface_id;
-    iface = ntop->getInterfaceById(interface_id);
+    iface = ntop->getInterfaceAtId(interface_id);
     db = NULL;
 };
 
@@ -40,7 +40,7 @@ int StoreManager::init(const char *db_file_full_path) {
 
 NetworkInterface* StoreManager::getNetworkInterface() {
   if(!iface)
-    iface = ntop->getInterfaceById(ifid);
+    iface = ntop->getInterfaceAtId(ifid);
   return iface;
 }
 

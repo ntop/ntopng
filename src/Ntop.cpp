@@ -1571,18 +1571,6 @@ void Ntop::setLocalNetworks(char *_nets) {
 
 /* ******************************************* */
 
-NetworkInterface* Ntop::getInterfaceById(int if_id) {
-  for(int i=0; i<num_defined_interfaces; i++) {
-    if(iface[i] && iface[i]->get_id() == if_id)
-      return(iface[i]);
-  }
-
-  return(NULL);
-}
-
-
-/* ******************************************* */
-
 bool Ntop::isExistingInterface(const char * const name) const {
   if(name == NULL) return(false);
 
@@ -1597,6 +1585,8 @@ bool Ntop::isExistingInterface(const char * const name) const {
 /* ******************************************* */
 
 NetworkInterface* Ntop::getNetworkInterface(lua_State* vm, const char *name) {
+  NetworkInterface *ret_iface = NULL;
+
   if (name == NULL)
     return NULL;
 
@@ -1607,34 +1597,18 @@ NetworkInterface* Ntop::getNetworkInterface(lua_State* vm, const char *name) {
   snprintf(str, sizeof(str), "%d", if_id);
   if (strcmp(name, str) == 0) {
     /* name is a number */
-    return(getInterfaceById(if_id));
-  }
-
-  /* if here, name is a string */
-  for(int i = 0; i<num_defined_interfaces; i++) {
-    if (!strcmp(name, iface[i]->get_name())) {
-      NetworkInterface *ret_iface = isInterfaceAllowed(vm, iface[i]->get_name()) ? iface[i] : NULL;
-		  
-      if (ret_iface != NULL)
-	return(ret_iface);
-      else
-	goto iface_not_found;
+    ret_iface = getInterfaceAtId(vm, if_id);
+  } else {
+    /* if here, name is a string */
+    for(int i = 0; i<num_defined_interfaces; i++) {
+      if (!strcmp(name, iface[i]->get_name())) {
+	ret_iface = isInterfaceAllowed(vm, iface[i]->get_name()) ? iface[i] : NULL;
+	break;
+      }
     }
   }
-	
-  /* FIX: remove this for at some point, when endpoint is passed */
-  for(int i = 0; i<num_defined_interfaces; i++) {
-    char *script = iface[i]->getScriptName();
-    if (script != NULL && strcmp(script, name) == 0)
-      return(iface[i]);
-  }
 
- iface_not_found:
-  /* Not found */
-  //if(!strcmp(name, "any"))
-  return(getFirstInterface()); /* FIX: remove at some point */
-
-  return(NULL);
+  return(ret_iface);
 };
 
 /* ******************************************* */

@@ -131,13 +131,12 @@ end
 -- ########################################################
 
 function top_talkers_utils.makeTopJson(_ifname, save_checkpoint)
-   local ifid = getInterfaceId(_ifname)
    if save_checkpoint == nil then save_checkpoint = true end
 
    local res = {}
 
    local in_time = callback_utils.foreachHost(_ifname, os.time() + 60 --[[1 minute --]], function (hostname, hoststats)
-      local checkpoint = interface.checkpointHostTalker(ifid, hostname, save_checkpoint)
+      local checkpoint = interface.checkpointHostTalker(hostname, save_checkpoint)
 
       if(checkpoint == nil) then 
         goto continue

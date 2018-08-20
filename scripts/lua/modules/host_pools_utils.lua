@@ -447,12 +447,9 @@ end
 function host_pools_utils.initPools()
   for _, ifname in pairs(interface.getIfNames()) do
     local ifid = getInterfaceId(ifname)
-    local ifstats = interface.getStats()
 
     -- Note: possible shapers are initialized in shaper_utils::initShapers
-    if not ifstats.isView then
-      initInterfacePools(ifid)
-    end
+    initInterfacePools(ifid)
   end
 end
 
