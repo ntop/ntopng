@@ -393,7 +393,6 @@ class Ntop {
   void getUsers(lua_State* vm);
   void getUserGroup(lua_State* vm);
   void getAllowedNetworks(lua_State* vm);
-  bool getInterfaceAllowed(lua_State* vm, char *ifname)         const;
   bool isInterfaceAllowed(lua_State* vm, const char *ifname)    const;
   bool isInterfaceAllowed(lua_State* vm, int ifid)              const;
   bool checkUser(const char * const user, const char *password) const;
@@ -453,7 +452,7 @@ class Ntop {
   void addToHostBlacklist(char *net);
   bool isBlacklistedIP(IpAddress *ip);
   bool isExistingInterface(const char * const name) const;
-  inline NetworkInterface* getFirstInterface() { return(iface[0]);         }
+  NetworkInterface* getFirstInterface(lua_State *vm = NULL) const;
   inline NetworkInterface* getInterface(int i) { return(((i < num_defined_interfaces) && iface[i]) ? iface[i] : NULL); }
 #ifdef NTOPNG_PRO
   bool addToNotifiedInformativeCaptivePortal(u_int32_t client_ip);

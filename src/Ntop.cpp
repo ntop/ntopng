@@ -933,25 +933,6 @@ void Ntop::getAllowedNetworks(lua_State* vm) {
 
 /* ******************************************* */
 
-bool Ntop::getInterfaceAllowed(lua_State* vm, char *ifname) const {
-  char *allowed_ifname;
-
-  allowed_ifname = getLuaVMUserdata(vm,ifname);
-
-  if(ifname == NULL)
-    return false;
-
-  if((allowed_ifname == NULL) || (allowed_ifname[0] == '\0')) {
-    ifname = NULL;
-    return false;
-  }
-  
-  strncpy(ifname, allowed_ifname, strlen(allowed_ifname));
-  return true;
-}
-
-/* ******************************************* */
-
 bool Ntop::isInterfaceAllowed(lua_State* vm, const char *ifname) const {
   char *allowed_ifname;
   bool ret;
@@ -1574,12 +1555,26 @@ void Ntop::setLocalNetworks(char *_nets) {
 bool Ntop::isExistingInterface(const char * const name) const {
   if(name == NULL) return(false);
 
-  for(int i=0; i<num_defined_interfaces; i++) {
+  for(int i = 0; i < num_defined_interfaces; i++) {
     if(!strcmp(iface[i]->get_name(), name))
       return(true);
   }
 
   return(false);
+}
+
+/* ******************************************* */
+
+NetworkInterface* Ntop::getFirstInterface(lua_State* vm) const {
+  /* Returns the first available interface. If there's a lua state
+    passed as argument, the interface is checked to make sure the user
+    has rights on it. */
+  for(int i = 0; i < num_defined_interfaces; i++) {
+    if(isInterfaceAllowed(vm, iface[i]->get_name()))
+      return iface[i];
+  }
+
+  return NULL;
 }
 
 /* ******************************************* */
@@ -1600,11 +1595,9 @@ NetworkInterface* Ntop::getNetworkInterface(lua_State* vm, const char *name) {
     ret_iface = getInterfaceAtId(vm, if_id);
   } else {
     /* if here, name is a string */
-    for(int i = 0; i<num_defined_interfaces; i++) {
-      if (!strcmp(name, iface[i]->get_name())) {
-	ret_iface = isInterfaceAllowed(vm, iface[i]->get_name()) ? iface[i] : NULL;
-	break;
-      }
+    for(int i = 0; i < num_defined_interfaces; i++) {
+      if (!strcmp(name, iface[i]->get_name()))
+	return isInterfaceAllowed(vm, iface[i]->get_name()) ? iface[i] : NULL;
     }
   }
 
