@@ -373,7 +373,8 @@ static int getAuthorizedUser(const struct mg_connection *conn,
     mg_get_cookie(conn, "user", username, username_len);
     mg_get_cookie(conn, "password", password, sizeof(password));
 
-    return(ntop->checkUserPassword(username, password));
+    if(username[0] && password[0])
+      return(ntop->checkUserPassword(username, password));
   }
 
   /* Important: validate the session */
