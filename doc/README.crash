@@ -1,0 +1,30 @@
+If the ntopng service crashes with a *segmentation fault*, there is a bug in the
+software which must be fixed.
+
+Before opening a new issue, please ensure that you are using a recent (ideally the latest)
+ntopng version. In order to speed up the troubleshooting process, a stack trace of the
+crash is needed.
+
+# Linux
+
+An easy way to get a stack trace on linux is to run ntopng through the *gdb* debugger:
+
+1. Install gdb (e.g. `sudo apt-get install gdb`)
+2. Stop the running service: `sudo systemctl stop ntopng`
+3. Start gdb: `gdb --args ntopng /etc/ntopng/ntopng.conf`
+4. Run ntopng through gdb with the `run` command
+5. Wait for the crash to occur
+6. Now run `bt` into gdb to get a stack trace of the crash
+
+# Windows
+
+The *WinDbg* tool can be used to get a stack trace on Windows:
+
+1. Download and install WinDbg Preview: https://docs.microsoft.com/en-us/windows-hardware/drivers/debugger/debugger-download-tools
+2. Stop the running service: `C:\Program Files\ntopng\ntopng.exe /r`
+3. Open the WinDbg debugger and load the ntopng executable
+4. Run the `g` command to start ntopng
+5. Wait for the crash to occur
+6. Now run `k` to get a stack trace of the crash
+
+See https://docs.microsoft.com/en-us/windows-hardware/drivers/debugger/getting-started-with-windbg for more details.
