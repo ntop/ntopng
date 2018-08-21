@@ -18,7 +18,7 @@ if(user_group == "administrator") then
    old_password = ""
 else
    -- Check to avoid that this user changes password for other users
-   username = _COOKIE["user"]
+   username = _SESSION["user"]
 end
 
 if((username == nil) or (old_password == nil) or (new_password == nil) or (confirm_new_password == nil)) then

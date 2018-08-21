@@ -886,15 +886,9 @@ void Ntop::getUsers(lua_State* vm) {
 
 void Ntop::getUserGroup(lua_State* vm) {
   char key[64], val[64];
-  char username[33];
-  struct mg_connection *conn;
+  const char *username = getLuaVMUservalue(vm, user);
 
-
-  conn = getLuaVMUserdata(vm,conn);
-
-  mg_get_cookie(conn, CONST_USER, username, sizeof(username));
-
-  if(!strncmp(username, NTOP_NOLOGIN_USER, sizeof(username))) {
+  if(!username || !strncmp(username, NTOP_NOLOGIN_USER, sizeof(username))) {
     lua_pushstring(vm, CONST_USER_GROUP_ADMIN);
     return;
   }
@@ -920,14 +914,9 @@ void Ntop::getUserGroup(lua_State* vm) {
 
 void Ntop::getAllowedNetworks(lua_State* vm) {
   char key[64], val[64];
-  char username[33];
-  struct mg_connection *conn;
+  const char *username = getLuaVMUservalue(vm, user);
 
-  conn = getLuaVMUserdata(vm,conn);
-
-  mg_get_cookie(conn, CONST_USER, username, sizeof(username));
-
-  snprintf(key, sizeof(key), CONST_STR_USER_NETS, username);
+  snprintf(key, sizeof(key), CONST_STR_USER_NETS, username ? username : "");
   lua_pushstring(vm, (ntop->getRedis()->get(key, val, sizeof(val)) >= 0) ? val : (char*)"");
 }
 
@@ -992,18 +981,6 @@ bool Ntop::checkUserInterfaces(const char * const user) const {
      has been restarted.) */
   getUserAllowedIfname(user, ifbuf, sizeof(ifbuf));
   if(ifbuf[0] != '\0' && !isExistingInterface(ifbuf))
-    return false;
-
-  return true;
-}
-
-/* ******************************************* */
-
-bool Ntop::checkUser(const char * const user, const char *password) const {
-  if(!checkUserPassword(user, password))
-    return false;
-
-  if(!checkUserInterfaces(user))
     return false;
 
   return true;

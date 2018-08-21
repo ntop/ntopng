@@ -22,8 +22,8 @@ print [[
 print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 
 local user = ""
-if (_COOKIE["user"] ~= nil) then
-  user = _COOKIE["user"]
+if (_SESSION["user"] ~= nil) then
+  user = _SESSION["user"]
 end
 print('<input id="password_dialog_username" type="hidden" name="username" value="' ..user.. '" />')
 

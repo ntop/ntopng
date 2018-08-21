@@ -119,6 +119,7 @@
 #define POOL_MEMBERS_ASSOC_URL    "/lua/admin/manage_pool_members.lua"
 #define NETWORK_LOAD_URL          "/lua/network_load.lua"
 #define HTTP_SESSION_DURATION     43200
+#define EXTENDED_HTTP_SESSION_DURATION     604800 // 7d
 #define CONST_HTTPS_CERT_NAME     "ntopng-cert.pem"
 #define CONST_NTOP_INTERFACE      "ntop_interface"
 
@@ -534,6 +535,7 @@
 #define PAGE_ERROR         "<html><head><title>ntop</title></head><body><img src=/img/warning.png> Script &quot;%s&quot; returned an error:\n<p><H3>%s</H3></body></html>"
 #define DENIED             "<html><head><title>Access denied</title></head><body>Access denied</body></html>"
 #define ACCESS_FORBIDDEN   "<html><head><title>Access forbidden</title></head><body>Access forbidden</body></html>"
+#define ACCESS_DENIED_INTERFACES "<html><head><title>Access denied</title></head><body>This user login is temporary denied due to network interface initialization. Please retry again later.</body></html>"
 
 #define CONST_DB_DAY_FORMAT            "%y%m%d"
 

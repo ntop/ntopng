@@ -5826,11 +5826,11 @@ static int ntop_syslog(lua_State* vm) {
  */
 // ***API***
 static int ntop_generate_csrf_value(lua_State* vm) {
-  char random_a[32], random_b[32], csrf[33], user[64] = { '\0' };
+  char random_a[32], random_b[32], csrf[33];
   Redis *redis = ntop->getRedis();
-  struct mg_connection *conn;
+  const char *user = getLuaVMUservalue(vm, user);
 
-  conn = getLuaVMUserdata(vm, conn);
+  if(!user) return(CONST_LUA_ERROR);
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -5842,7 +5842,6 @@ static int ntop_generate_csrf_value(lua_State* vm) {
   snprintf(random_b, sizeof(random_b), "%lu", time(NULL)*rand());
 #endif
 
-  mg_get_cookie(conn, "user", user, sizeof(user));
   mg_md5(csrf, random_a, random_b, NULL);
 
   redis->set(csrf, (char*)user, MAX_CSRF_DURATION);
@@ -8322,11 +8321,10 @@ bool LuaEngine::setParamsTable(lua_State* vm,
 
 int LuaEngine::handle_script_request(struct mg_connection *conn,
 				     const struct mg_request_info *request_info,
-				     char *script_path, bool *attack_attempt) {
+				     char *script_path, bool *attack_attempt, const char *user) {
   NetworkInterface *iface = NULL;
   char buf[64], key[64], ifname[MAX_INTERFACE_NAME_LEN];
   bool is_interface_allowed;
-  char *_cookies, user[64] = { '\0' };
   AddressTree ptree;
   int rc, post_data_len;
   const char * content_type;
@@ -8360,7 +8358,6 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
 
       /* CSRF is mandatory in POST request */
       mg_get_var(post_data, post_data_len, "csrf", csrf, sizeof(csrf));
-      mg_get_cookie(conn, "user", user, sizeof(user));
 
       if(strstr(content_type, "application/json"))
 	valid_csrf = 1;
@@ -8413,6 +8410,10 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
 			     (char*)request_info->http_headers[i].value);
   lua_setglobal(L, (char*)"_SERVER");
 
+#ifdef NOT_USED
+  /* NOTE: ntopng cannot rely on user provided cookies, it must use session data */
+  char *_cookies;
+
   /* Cookies */
   lua_newtable(L);
   if((_cookies = (char*)mg_get_header(conn, "Cookie")) != NULL) {
@@ -8438,14 +8439,14 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
     free(cookies);
   }
   lua_setglobal(L, "_COOKIE"); /* Like in php */
+#endif
 
   /* Put the _SESSION params into the environment */
   lua_newtable(L);
 
-  mg_get_cookie(conn, "user", user, sizeof(user));
-  lua_push_str_table_entry(L, "user", user);
   mg_get_cookie(conn, "session", buf, sizeof(buf));
   lua_push_str_table_entry(L, "session", buf);
+  lua_push_str_table_entry(L, "user", (char*)user);
 
   // now it's time to set the interface.
   setInterface(user, ifname, sizeof(ifname), &is_interface_allowed);
@@ -8455,7 +8456,7 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
   if(user[0] != '\0') {
     char val[255];
 
-    getLuaVMUservalue(L,user) = user;
+    getLuaVMUservalue(L, user) = (char*)user;
 
     snprintf(key, sizeof(key), CONST_STR_USER_NETS, user);
     if((ntop->getRedis()->get(key, val, sizeof(val)) != -1)

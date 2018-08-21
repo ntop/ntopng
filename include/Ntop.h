@@ -79,8 +79,6 @@ class Ntop {
   void loadLocalInterfaceAddress();
   void initAllowedProtocolPresets();
 
-  bool checkUserPassword(const char * const user, const char * const password) const;
-
  public:
   /**
    * @brief A Constructor
@@ -401,7 +399,7 @@ class Ntop {
   bool getInterfaceAllowed(lua_State* vm, char *ifname)         const;
   bool isInterfaceAllowed(lua_State* vm, const char *ifname)    const;
   bool isInterfaceAllowed(lua_State* vm, int ifid)              const;
-  bool checkUser(const char * const user, const char *password) const;
+  bool checkUserPassword(const char * const user, const char * const password) const;
   bool checkUserInterfaces(const char * const user)             const;
   bool resetUserPassword(char *username, char *old_password, char *new_password);
   bool mustChangePassword(const char *user);

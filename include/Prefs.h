@@ -45,7 +45,7 @@ class Prefs {
   Ntop *ntop;
   bool enable_dns_resolution, sniff_dns_responses,
     categorization_enabled, resolve_all_host_ip, change_user, daemonize,
-    enable_auto_logout, use_promiscuous_mode,
+    enable_auto_logout, enable_auto_logout_at_runtime, use_promiscuous_mode,
     enable_ixia_timestamps, enable_vss_apcon_timestamps,
     enable_users_login, disable_localhost_login, online_license_check,
     service_license_check, enable_sql_log, enable_access_log, log_to_file,
@@ -203,6 +203,7 @@ class Prefs {
 
   inline bool  are_user_scripts_enabled()               { return(enable_user_scripts);              };
   inline bool  do_auto_logout()                         { return(enable_auto_logout);               };
+  inline bool  do_auto_logout_at_runtime()              { return(enable_auto_logout_at_runtime);    };
   inline bool  do_ignore_vlans()                        { return(ignore_vlans);                     };
   inline bool  do_simulate_vlans()                      { return(simulate_vlans);                   };
   inline char* get_cpu_affinity()                       { return(cpu_affinity);   };

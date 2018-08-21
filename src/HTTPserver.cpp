@@ -122,6 +122,7 @@ bool HTTPserver::authorized_localhost_user_login(const struct mg_connection *con
 static void set_cookie(const struct mg_connection *conn,
                        char *user, char *referer) {
   char key[256], session_id[64], random[64];
+  u_int session_duration = HTTP_SESSION_DURATION;
 
   if(!strcmp(mg_get_request_info((struct mg_connection*)conn)->uri, "/metrics")
      || !strncmp(mg_get_request_info((struct mg_connection*)conn)->uri, LIVE_TRAFFIC_URL, strlen(LIVE_TRAFFIC_URL))
@@ -148,18 +149,26 @@ static void set_cookie(const struct mg_connection *conn,
 
   // ntop->getTrace()->traceEvent(TRACE_ERROR, "==> %s\t%s", random, session_id);
 
+  // do_auto_logout() is the getter for the command-line specified
+  // preference that defaults to true (i.e., auto_logout is enabled by default)
+  // If do_auto_logout() is disabled, then the runtime auto logout preference
+  // is taken into account.
+  // If do_auto_logout() is false, then the auto logout is disabled regardless
+  // of runtime preferences.
+  if(!ntop->getPrefs()->do_auto_logout() || !ntop->getPrefs()->do_auto_logout_at_runtime())
+    session_duration = EXTENDED_HTTP_SESSION_DURATION;
+
   /* http://en.wikipedia.org/wiki/HTTP_cookie */
   mg_printf((struct mg_connection *)conn, "HTTP/1.1 302 Found\r\n"
 	    "Set-Cookie: session=%s; path=/; max-age=%u;%s\r\n"  // Session ID
-	    "Set-Cookie: user=%s; path=/; max-age=%u;%s\r\n"  // Set user, needed by JavaScript code
 	    "Location: %s%s\r\n\r\n",
-	    session_id, HTTP_SESSION_DURATION, get_secure_cookie_attributes(mg_get_request_info((struct mg_connection*)conn)),
-	    user, HTTP_SESSION_DURATION, get_secure_cookie_attributes(mg_get_request_info((struct mg_connection*)conn)),
+	    session_id, session_duration, get_secure_cookie_attributes(mg_get_request_info((struct mg_connection*)conn)),
 	    ntop->getPrefs()->get_http_prefix(), referer ? referer : "/");
 
   /* Save session in redis */
   snprintf(key, sizeof(key), "sessions.%s", session_id);
-  ntop->getRedis()->set(key, user, HTTP_SESSION_DURATION);
+
+  ntop->getRedis()->set(key, user, session_duration);
   ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] Set session sessions.%s", session_id);
 }
 
@@ -276,16 +285,21 @@ static int isWhitelistedURI(const char * const uri) {
 /* ****************************************** */
 
 // Return 1 if request is authorized, 0 otherwise.
-static int is_authorized(const struct mg_connection *conn,
+// If 1 is returned, the username parameter will contain the authenticated user,
+// which can also be "" or NTOP_NOLOGIN_USER .
+static int getAuthorizedUser(const struct mg_connection *conn,
                          const struct mg_request_info *request_info,
 			 char *username, u_int username_len) {
-  char session_id[33], buf[128];
-  char key[64], user[32];
+  char session_id[33];
+  char key[64];
   char password[32];
   const char *auth_header_p;
   string auth_type = "", auth_string = "";
   bool user_login_disabled = !ntop->getPrefs()->is_users_login_enabled() ||
     HTTPserver::authorized_localhost_user_login(conn);
+
+  /* Default */
+  username[0] = '\0';
 
 #ifdef DEBUG
   ntop->getTrace()->traceEvent(TRACE_WARNING, "[AUTHORIZATION] [%s][%s]",
@@ -317,10 +331,10 @@ static int is_authorized(const struct mg_connection *conn,
       if(request_info->query_string) {
 	get_qsvar(request_info, "username", username, username_len);
 	get_qsvar(request_info, "password", password, sizeof(password));
-      }
 
-      return(ntop->checkUser(username, password)
+	return(ntop->checkUserPassword(username, password)
 	     && checkCaptive(conn, request_info, username, password));
+      }
     }
   }
 
@@ -329,11 +343,8 @@ static int is_authorized(const struct mg_connection *conn,
   }
 
   if(user_login_disabled) {
-    mg_get_cookie(conn, "user", username, username_len);
-    if(strncmp(username, NTOP_NOLOGIN_USER, username_len)) {
-      set_cookie(conn, (char *)NTOP_NOLOGIN_USER, NULL);
-    }
-    return 1;
+    strncpy(username, NTOP_NOLOGIN_USER, username_len);
+    return(1);
   }
 
   /* Try to decode Authorization header if present */
@@ -350,53 +361,37 @@ static int is_authorized(const struct mg_connection *conn,
     getline(authss, user_s, ':');
     getline(authss, pword_s, ':');
 
-    return ntop->checkUser(user_s.c_str(), pword_s.c_str());
+    strncpy(username, user_s.c_str(), username_len);
+    return ntop->checkUserPassword(username, pword_s.c_str());
   }
 
-  mg_get_cookie(conn, "user", username, username_len);
+  /* NOTE: this is the only cookie needed for gui authentication */
   mg_get_cookie(conn, "session", session_id, sizeof(session_id));
 
-  if(!strcmp(username, NTOP_NOLOGIN_USER) && !user_login_disabled)
-    /* Trying to access web interface with nologin after ntopng restart
-       with different settings */
-    return 0;
-
   if(session_id[0] == '\0') {
-    /* Last resort: see if we have a user and password matching */
+    /* Explicit username + password */
+    mg_get_cookie(conn, "user", username, username_len);
     mg_get_cookie(conn, "password", password, sizeof(password));
 
-    return(ntop->checkUser(username, password));
+    return(ntop->checkUserPassword(username, password));
   }
 
-  /* Make sure there are existing interfaces for username */
-  if(!ntop->checkUserInterfaces(username))
-     return(0);
+  /* Important: validate the session */
+  snprintf(key, sizeof(key), "sessions.%s", session_id);
 
-  // ntop->getTrace()->traceEvent(TRACE_WARNING, "[HTTP] Received session %s/%s", session_id, username);
+  username[0] = '\0';
+  if((ntop->getRedis()->get(key, username, sizeof(username), true) < 0) || (!username[0])) {
+    ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] Session %s is expired", session_id);
+    return(0);
+  }
 
-  snprintf(key, sizeof(key), CONST_RUNTIME_IS_AUTOLOGOUT_ENABLED);
-  ntop->getRedis()->get(key, buf, sizeof(buf), true);
-  // do_auto_logout() is the getter for the command-line specified
-  // preference that defaults to true (i.e., auto_logout is enabled by default)
-  // If do_auto_logout() is disabled, then the runtime auto logout preference
-  // is taken into account.
-  // If do_auto_logout() is false, then the auto logout is disabled regardless
-  // of runtime preferences.
-  if(ntop->getPrefs()->do_auto_logout() && strncmp(buf, (char*)"1", 1) == 0) {
-    snprintf(key, sizeof(key), "sessions.%s", session_id);
-    if((ntop->getRedis()->get(key, user, sizeof(user), true) < 0)
-       || strcmp(user, username) /* Users don't match */) {
-      ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] Session %s/%s is expired or empty user",
-				   session_id, username);
-      return(0);
-    } else {
-      ntop->getRedis()->expire(key, HTTP_SESSION_DURATION); /* Extend session */
-      ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] Session %s is OK: extended for %u sec",
-				   session_id, HTTP_SESSION_DURATION);
-      return(1);
-    }
-  } else
-    return(1);
+  //ntop->getTrace()->traceEvent(TRACE_NORMAL, "[HTTP] Session %s successfully authenticated for %s", session_id, username);
+
+  // NOTE: no sense to extend the session here, since the user browser cookie will expire anyway!
+  //ntop->getRedis()->expire(key, HTTP_SESSION_DURATION); /* Extend session */
+  //ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] Session %s (for %s) is ok, extended for %u sec", session_id, username, HTTP_SESSION_DURATION);
+
+  return(1);
 }
 
 /* ****************************************** */
@@ -599,7 +594,7 @@ static void redirect_to_password_change(struct mg_connection *conn,
 // Login page form sends user name and password to this endpoint.
 static void authorize(struct mg_connection *conn,
                       const struct mg_request_info *request_info,
-		      char *username) {
+		      char *username, u_int username_len) {
   char user[32] = { '\0' }, password[32] = { '\0' }, referer[256] = { '\0' };
 
   if(!strcmp(request_info->request_method, "POST")) {
@@ -627,7 +622,7 @@ static void authorize(struct mg_connection *conn,
 
   if(isCaptiveConnection(conn)
      || ntop->isCaptivePortalUser(user)
-     || !ntop->checkUser(user, password)) {
+     || !ntop->checkUserPassword(user, password)) {
     // Authentication failure, redirect to login
     redirect_to_login(conn, request_info, (referer[0] == '\0') ? NULL : referer);
   } else {
@@ -637,7 +632,9 @@ static void authorize(struct mg_connection *conn,
       strcpy(referer, r ? r : "/");
     }
 
+    /* Send session cookie and set user for the new session */
     set_cookie(conn, user, referer);
+    strncpy(username, user, username_len);
   }
 }
 
@@ -764,7 +761,27 @@ static int handle_lua_request(struct mg_connection *conn) {
 #endif
 
   whitelisted = isWhitelistedURI(request_info->uri);
-  authorized = is_authorized(conn, request_info, username, sizeof(username));
+  authorized = getAuthorizedUser(conn, request_info, username, sizeof(username));
+
+  /* Make sure there are existing interfaces for username. */
+  if(!ntop->checkUserInterfaces(username)) {
+    char session_id[33];
+    mg_get_cookie(conn, "session", session_id, sizeof(session_id));
+
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "[HTTP] user %s cannot login due to non-existent allowed_interface", username);
+
+    // send error and expire session cookie
+    mg_printf(conn,
+	 "HTTP/1.1 403 Forbidden\r\n"
+	 "Content-Type: text/html\r\n"
+	 "Set-Cookie: session=%s; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0;%s\r\n"  // Session ID
+	 "Connection: close\r\n"
+	 "\r\n\r\n%s", session_id,
+	 get_secure_cookie_attributes(request_info),
+	 ACCESS_DENIED_INTERFACES);
+
+    return(1);
+  }
 
   if(isStaticResourceUrl(request_info, len))
     ;
@@ -791,7 +808,7 @@ static int handle_lua_request(struct mg_connection *conn) {
     redirect_to_password_change(conn, request_info);
     return(1);
   } else if(strcmp(request_info->uri, AUTHORIZE_URL) == 0) {
-    authorize(conn, request_info, username);
+    authorize(conn, request_info, username, sizeof(username));
     return(1);
   }
 
@@ -865,8 +882,10 @@ static int handle_lua_request(struct mg_connection *conn) {
 			  "Internal server error", "%s", "Unable to start Lua interpreter"));
       } else {
 	bool attack_attempt;
-	
-	l->handle_script_request(conn, request_info, path, &attack_attempt);
+
+	// NOTE: username is stored into the engine context, so we must guarantee
+	// that LuaEngine is destroyed after username goes out of context! Indeeed we delete LuaEngine below.
+	l->handle_script_request(conn, request_info, path, &attack_attempt, username);
 
 	if(attack_attempt) {
 	  char buf[32];

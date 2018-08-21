@@ -85,7 +85,7 @@ Prefs::Prefs(Ntop *_ntop) {
   dns_mode = 0;
   pid_path = strdup(DEFAULT_PID_PATH);
   packet_filter = NULL;
-  num_interfaces = 0, enable_auto_logout = true;
+  num_interfaces = 0, enable_auto_logout = true, enable_auto_logout_at_runtime = true;
   dump_flows_on_es = dump_flows_on_mysql = dump_flows_on_ls = false;
   routing_mode_enabled = false;
   global_dns_forging_enabled = false;
@@ -471,8 +471,8 @@ void Prefs::reloadPrefsFromRedis() {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "A preference has changed, reloading...");
 #endif
 
-  getDefaultPrefsValue(CONST_RUNTIME_IS_AUTOLOGOUT_ENABLED,
-		       CONST_DEFAULT_IS_AUTOLOGOUT_ENABLED);
+  enable_auto_logout_at_runtime = getDefaultPrefsValue(CONST_RUNTIME_IS_AUTOLOGOUT_ENABLED, CONST_DEFAULT_IS_AUTOLOGOUT_ENABLED);
+
   // alert preferences
   enable_access_log     = getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_ACCESS_LOG, false);
   enable_sql_log        = getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_SQL_LOG, false);

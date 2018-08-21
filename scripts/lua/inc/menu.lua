@@ -464,7 +464,7 @@ print[[
     </ul>
   </li>]]
 
-if(_COOKIE["user"] ~= nil and _COOKIE["user"] ~= ntop.getNologinUser()) then
+if(_SESSION["user"] ~= nil and _SESSION["user"] ~= ntop.getNologinUser()) then
 print [[
     <li class="dropdown">
       <a class="dropdown-toggle" data-toggle="dropdown" href="#">
@@ -474,7 +474,7 @@ print [[
 
 print[[<li><a href="]]
 print(ntop.getHttpPrefix())
-print [[/lua/logout.lua"><i class="fa fa-sign-out"></i> ]] print(i18n("login.logout_user_x", {user=_COOKIE["user"]})) print [[</a></li>]]
+print [[/lua/logout.lua"><i class="fa fa-sign-out"></i> ]] print(i18n("login.logout_user_x", {user=_SESSION["user"]})) print [[</a></li>]]
 
    print[[
     </ul>

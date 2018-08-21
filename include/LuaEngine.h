@@ -78,7 +78,7 @@ class LuaEngine {
    */
   int handle_script_request(struct mg_connection *conn,
 			    const struct mg_request_info *request_info, 
-			    char *script_path, bool *attack_attempt);
+			    char *script_path, bool *attack_attempt, const char *user);
 
   bool setParamsTable(lua_State* vm,
 		      const struct mg_request_info *request_info,
