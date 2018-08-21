@@ -31,7 +31,7 @@ if(where == nil)  then
 end
 
 if((select_keys == nil) or (select_keys == "")) then
-   select_keys = "IPV4_SRC_ADDR,IPV4_DST_ADDR"
+   select_keys = "IPV4_SRC_ADDR,IPV4_DST_ADDR,L7_PROTO"
 end
 
 if((select_values == nil) or (select_values == "")) then
@@ -59,9 +59,15 @@ select_keys   = select_keys:gsub("%s+", "")
 select_values = select_values:gsub("%s+", "")
 -- where = where:gsub("%s+", "")
 
-print [[
-  <p align=right>[ <A HREF=nindex.lua>Select</A> ]</P>
+print('<p align=right>[ <A HREF="nindex.lua')
 
+if(_GET["where_clause"] ~= nil) then
+   print("?where_clause="..urlencode(_GET["where_clause"]))
+end
+
+print('">Flows</A> ]</P>')
+
+print [[
   <form method=get action=nindex_topk.lua>
 
   <fieldset class="form-group"> 
