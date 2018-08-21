@@ -381,7 +381,7 @@ static int getAuthorizedUser(const struct mg_connection *conn,
   snprintf(key, sizeof(key), "sessions.%s", session_id);
 
   username[0] = '\0';
-  if((ntop->getRedis()->get(key, username, sizeof(username), true) < 0) || (!username[0])) {
+  if((ntop->getRedis()->get(key, username, username_len, true) < 0) || (!username[0])) {
     ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] Session %s is expired", session_id);
     return(0);
   }
