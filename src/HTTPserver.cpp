@@ -769,7 +769,7 @@ static int handle_lua_request(struct mg_connection *conn) {
   if(isStaticResourceUrl(request_info, len))
     ;
   else if((!whitelisted) && (!authorized)) {
-      if(strcmp(request_info->uri, NETWORK_LOAD_URL) == 0) {
+    if(strcmp(request_info->uri, NETWORK_LOAD_URL) == 0) {
       // avoid sending login redirect to allow js itself to redirect the user
       return(send_error(conn, 403 /* Forbidden */, request_info->uri, "Login Required"));
     } else {

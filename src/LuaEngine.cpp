@@ -186,14 +186,10 @@ static NetworkInterface* handle_null_interface(lua_State* vm) {
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "NULL interface: did you restart ntopng in the meantime?");
 
-  if(ntop->getInterfaceAllowed(vm, allowed_ifname)) {
-    NetworkInterface *iface = ntop->getNetworkInterface(allowed_ifname);
+  if(ntop->getInterfaceAllowed(vm, allowed_ifname))
+    return ntop->getNetworkInterface(allowed_ifname);
 
-    if(iface != NULL)
-      return(iface);
-  }
-
-  return(ntop->getInterfaceAtId(0));
+  return(ntop->getFirstInterface());
 }
 
 /* ****************************************** */
@@ -290,7 +286,7 @@ static int ntop_set_active_interface_id(lua_State* vm) {
 
 // ***API***
 static int ntop_get_interface_names(lua_State* vm) {
-  char *allowed_ifname = getLuaVMUserdata(vm, ifname);
+  char *allowed_ifname = getLuaVMUserdata(vm, allowed_ifname);
 
   lua_newtable(vm);
 
@@ -3783,7 +3779,7 @@ static int ntop_interface_name2id(lua_State* vm) {
     if_name = (char*)lua_tostring(vm, 1);
   }
 
-  lua_pushinteger(vm, ntop->getInterfaceIdByName(if_name));
+  lua_pushinteger(vm, ntop->getInterfaceIdByName(vm, if_name));
 
   return(CONST_LUA_OK);
 }
@@ -8194,51 +8190,42 @@ void LuaEngine::purifyHTTPParameter(char *param) {
 
 /* ****************************************** */
 
-void LuaEngine::setInterface(const char *user) {
-  char key[64], ifname[MAX_INTERFACE_NAME_LEN];
-  bool enforce_allowed_interface = false;
+void LuaEngine::setInterface(const char * user, char * const ifname, ssize_t ifname_len, bool * const is_allowed) const {
+  NetworkInterface *iface = NULL;
+  char key[CONST_MAX_LEN_REDIS_KEY];
+  ifname[0] = '\0';
 
-  if(user[0] != '\0') {
-    // check if the user is restricted to browse only a given interface
+  if(!user || user[0] == '\0')
+    user = NTOP_NOLOGIN_USER;
 
-    if(snprintf(key, sizeof(key), CONST_STR_USER_ALLOWED_IFNAME, user)
-       && !ntop->getRedis()->get(key, ifname, sizeof(ifname))) {
-      // there is only one allowed interface for the user
-      enforce_allowed_interface = true;
-      goto set_preferred_interface;
-    } else if(snprintf(key, sizeof(key), "ntopng.prefs.%s.ifname", user)
-	      && ntop->getRedis()->get(key, ifname, sizeof(ifname)) < 0) {
-      // no allowed interface and no default set interface
-    set_default_if_name_in_session:
-      snprintf(ifname, sizeof(ifname), "%s",
-	       ntop->getInterfaceAtId(NULL /* allowed user interface check already enforced */,
-				      0)->get_name());
-      lua_push_str_table_entry(L, "ifname", ifname);
-      ntop->getRedis()->set(key, ifname, 3600 /* 1h */);
-    } else {
-      goto set_preferred_interface;
-    }
-  } else {
-    // We need to check if ntopng is running with the option --disable-login
-    snprintf(key, sizeof(key), "ntopng.prefs.ifname");
-    if(ntop->getRedis()->get(key, ifname, sizeof(ifname)) < 0) {
-      goto set_preferred_interface;
-    }
+  if(is_allowed) *is_allowed = false;
 
-  set_preferred_interface:
-    NetworkInterface *iface;
+  // check if the user is restricted to browse only a given interface
+  if(snprintf(key, sizeof(key), CONST_STR_USER_ALLOWED_IFNAME, user)
+     && !ntop->getRedis()->get(key, ifname, ifname_len)
+     && ifname[0] != '\0') {
+    /* If here is only one allowed interface for the user.
+       The interface must exists otherwise we hould have prevented the login */
+    if(is_allowed) *is_allowed = true;
+    ntop->getTrace()->traceEvent(TRACE_DEBUG, "Allowed interface found. [Interface: %s][user: %s]", ifname, user);
 
-    if((iface = ntop->getNetworkInterface(NULL /* allowed user interface check already enforced */,
-					  ifname)) != NULL) {
-      /* The specified interface still exists */
-      lua_push_str_table_entry(L, "ifname", iface->get_name());
-    } else if(!enforce_allowed_interface) {
-      goto set_default_if_name_in_session;
-    } else {
-      // TODO: handle the case where the user has
-      // an allowed interface that is not presently available
-      // (e.g., not running?)
-    }
+  } else if(snprintf(key, sizeof(key), "ntopng.prefs.%s.ifname", user)
+	    && (ntop->getRedis()->get(key, ifname, ifname_len) < 0
+		|| !ntop->isExistingInterface(ifname))) {
+    /* No allowed interface and no default (or not existing) set interface */
+    snprintf(ifname, ifname_len, "%s",
+	     ntop->getFirstInterface()->get_name());
+    ntop->getRedis()->set(key, ifname, 3600 /* 1h */);
+    ntop->getTrace()->traceEvent(TRACE_DEBUG, "No interface interface found. Using default. [Interface: %s][user: %s]", ifname, user);
+  }
+
+  if((iface = ntop->getNetworkInterface(NULL /* allowed user interface check already enforced */,
+					     ifname)) != NULL) {
+    /* The specified interface still exists */
+    lua_push_str_table_entry(L, "ifname", iface->get_name());
+    snprintf(ifname, ifname_len, "%s", iface->get_name());
+
+    ntop->getTrace()->traceEvent(TRACE_DEBUG, "Interface found [Interface: %s][user: %s]", iface->get_name(), user);
   }
 }
 
@@ -8336,7 +8323,9 @@ bool LuaEngine::setParamsTable(lua_State* vm,
 int LuaEngine::handle_script_request(struct mg_connection *conn,
 				     const struct mg_request_info *request_info,
 				     char *script_path, bool *attack_attempt) {
+  NetworkInterface *iface = NULL;
   char buf[64], key[64], ifname[MAX_INTERFACE_NAME_LEN];
+  bool is_interface_allowed;
   char *_cookies, user[64] = { '\0' };
   AddressTree ptree;
   int rc, post_data_len;
@@ -8459,7 +8448,7 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
   lua_push_str_table_entry(L, "session", buf);
 
   // now it's time to set the interface.
-  setInterface(user);
+  setInterface(user, ifname, sizeof(ifname), &is_interface_allowed);
 
   lua_setglobal(L, "_SESSION"); /* Like in php */
 
@@ -8485,20 +8474,14 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
       lua_pushstring(L, NTOP_DEFAULT_USER_LANG);
     }
     lua_setglobal(L, CONST_USER_LANGUAGE);
-
-    snprintf(key, sizeof(key), CONST_STR_USER_ALLOWED_IFNAME, user);
-    if(snprintf(key, sizeof(key), CONST_STR_USER_ALLOWED_IFNAME, user)
-       && !ntop->getRedis()->get(key, ifname, sizeof(ifname))) {
-      if(!ntop->isExistingInterface(ifname)) {
-	NetworkInterface *iface = ntop->getFirstInterface();
-
-	getLuaVMUservalue(L,ifname) = iface->get_name();
-	getLuaVMUservalue(L,iface)  = iface;
-      } else {
-	getLuaVMUservalue(L,ifname) = ifname;
-      }
-    }
   }
+
+  iface = ntop->getNetworkInterface(NULL, ifname); /* Can't be null */
+  /* 'select' ther interface that has already been set into the _SESSION */
+  getLuaVMUservalue(L,iface)  = iface;
+
+  if(is_interface_allowed)
+    getLuaVMUservalue(L, allowed_ifname) = iface->get_name();
 
 #ifndef NTOPNG_PRO
   rc = luaL_dofile(L, script_path);
