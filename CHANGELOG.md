@@ -27,7 +27,7 @@
   * Secure ntopng cookies with SameSite and HttpOnly
   * HTTP cookie authentication
   * Improved random session id generation
-* Various SNMP improvemenets
+* Various SNMP improvements
   * Caching
   * Interfaces status change alerts
   * Device interfaces page
