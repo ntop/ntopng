@@ -344,7 +344,7 @@ void NetworkInterface::initL7Policer() {
 void NetworkInterface::aggregatePartialFlow(Flow *flow) {
   if(flow && aggregated_flows_hash) {
     AggregatedFlow *aggregatedFlow = aggregated_flows_hash->find(flow);
-
+    
     if(aggregatedFlow == NULL) {
       if(!aggregated_flows_hash->hasEmptyRoom()) {
 	/* There is no more room in the hash table */
@@ -826,8 +826,6 @@ void NetworkInterface::dumpAggregatedFlow(AggregatedFlow *f) {
 
     db->dumpAggregatedFlow(f);
   }
-
-  /* TODO: call NIndexFlowDB::dumpAggregatedFlow to dump the aggregation to nIndex as well */
 }
 
 /* **************************************************** */
