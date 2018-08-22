@@ -31,6 +31,7 @@ extern int ntop_lua_check(lua_State* vm, const char* func, int pos, int expected
 
 static bool help_printed = false;
 
+#define AGGREGATED_FLOW_DEBUG 1
 /* **************************************************** */
 
 /* Method used for collateral activities */
@@ -346,46 +347,61 @@ void NetworkInterface::aggregatePartialFlow(Flow *flow) {
     AggregatedFlow *aggregatedFlow = aggregated_flows_hash->find(flow);
 
     if(aggregatedFlow == NULL) {
+      if(!aggregated_flows_hash->hasEmptyRoom()) {
+	/* There is no more room in the hash table */
+      } else if(aggregated_flows_hash->getNumEntries() < FLOW_AGGREGATION_MAX_AGGREGATES) {
 #ifdef AGGREGATED_FLOW_DEBUG
-      char buf[256];
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "AggregatedFlow not found [%s]. Creating it.",
-				   flow->print(buf, sizeof(buf)));
+	char buf[256];
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "AggregatedFlow not found [%s]. Creating it.",
+				     flow->print(buf, sizeof(buf)));
 #endif
 
-      try {
-	aggregatedFlow = new AggregatedFlow(this, flow);
+	try {
+	  aggregatedFlow = new AggregatedFlow(this, flow);
 
-	if(aggregated_flows_hash->add(aggregatedFlow) == false) {
-	  /* Too many flows */
-	  delete aggregatedFlow;
-	  return;
-	} else {
+	  if(aggregated_flows_hash->add(aggregatedFlow) == false) {
+	    /* Too many flows, should never happen */
+	    delete aggregatedFlow;
+	    return;
+	  } else {
 #ifdef AGGREGATED_FLOW_DEBUG
-	  char buf[256];
+	    char buf[256];
 
-	  ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				       "New AggregatedFlow successfully created and added "
-				       "to the hash table [%s]",
-				       aggregatedFlow->print(buf, sizeof(buf)));
+	    ntop->getTrace()->traceEvent(TRACE_NORMAL,
+					 "New AggregatedFlow successfully created and added "
+					 "to the hash table [%s]",
+					 aggregatedFlow->print(buf, sizeof(buf)));
 #endif
+	  }
+	} catch(std::bad_alloc& ba) {
+	  return; /* Not enough memory */
 	}
-      } catch(std::bad_alloc& ba) {
-	return; /* Not enough memory */
+      } else {
+	/* The maximum number of aggregates has been reached. Add here the logic to handle
+	   this case. For example, make the maximum number adaptive depending on the number of hosts,
+	   or keep only the top-X aggregates. */
+
+#ifdef AGGREGATED_FLOW_DEBUG
+	ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				     "Maximum reached [maximum: %d]", FLOW_AGGREGATION_MAX_AGGREGATES);
+#endif
       }
     }
 
-    aggregatedFlow->sumFlowStats(flow);
+    if(aggregatedFlow) {
+      aggregatedFlow->sumFlowStats(flow);
 
 #ifdef AGGREGATED_FLOW_DEBUG
-    char buf[256];
-    ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				 "Stats updated for AggregatedFlow [%s]",
-				 aggregatedFlow->print(buf, sizeof(buf)));
+      char buf[256];
+      ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				   "Stats updated for AggregatedFlow [%s]",
+				   aggregatedFlow->print(buf, sizeof(buf)));
 
-    ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				 "Aggregated Flows hash table [num items: %i]",
-				 aggregated_flows_hash->getCurrentSize());
+      ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				   "Aggregated Flows hash table [num items: %i]",
+				   aggregated_flows_hash->getCurrentSize());
 #endif
+    }
   }
 }
 
@@ -798,21 +814,21 @@ int NetworkInterface::dumpDBFlow(time_t when, Flow *f) {
 
 #ifdef NTOPNG_PRO
 
-int NetworkInterface::dumpAggregatedFlow(AggregatedFlow *f) {
+void NetworkInterface::dumpAggregatedFlow(AggregatedFlow *f) {
   if(db
      && f && (f->get_packets() > 0)
      && ntop->getPrefs()->is_enterprise_edition()) {
-#ifdef AGGREGATED_FLOW_DEBUG
+#ifdef DUMP_AGGREGATED_FLOW_DEBUG
     char buf[256];
     ntop->getTrace()->traceEvent(TRACE_NORMAL,
 				 "Going to dump AggregatedFlow to database [%s]",
 				 f->print(buf, sizeof(buf)));
 #endif
 
-    return(db->dumpAggregatedFlow(f));
+    db->dumpAggregatedFlow(f);
   }
 
-  return(-1);
+  /* TODO: call NIndexFlowDB::dumpAggregatedFlow to dump the aggregation to nIndex as well */
 }
 
 /* **************************************************** */
