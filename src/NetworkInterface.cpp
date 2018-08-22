@@ -31,7 +31,6 @@ extern int ntop_lua_check(lua_State* vm, const char* func, int pos, int expected
 
 static bool help_printed = false;
 
-#define AGGREGATED_FLOW_DEBUG 1
 /* **************************************************** */
 
 /* Method used for collateral activities */
