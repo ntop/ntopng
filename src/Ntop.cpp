@@ -888,7 +888,7 @@ void Ntop::getUserGroup(lua_State* vm) {
   char key[64], val[64];
   const char *username = getLuaVMUservalue(vm, user);
 
-  if(!username || !strncmp(username, NTOP_NOLOGIN_USER, sizeof(username))) {
+  if(!username || !strncmp(username, NTOP_NOLOGIN_USER, strlen(username))) {
     lua_pushstring(vm, CONST_USER_GROUP_ADMIN);
     return;
   }
