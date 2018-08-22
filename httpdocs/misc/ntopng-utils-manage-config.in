@@ -1,52 +1,57 @@
 #!/bin/bash
 
-DEFAULT_ARCHIVE="/etc/ntopng/conf.tar.gz"
-ARCHIVE="${DEFAULT_ARCHIVE}"
+DEFAULT_CONF_FILE="/etc/ntopng/ntopng.conf"
 
 DEFAULT_DATADIR="/var/tmp/ntopng"
 DATADIR="${DEFAULT_DATADIR}"
 DATADIR_SET=false
+
+ARCHIVE_NAME="conf.tar.gz"
+ARCHIVE=""
+ARCHIVE_SET=false
 
 STAGING_DIR=""
 
 SAVED_SUFFIX=".ntopngsaved"
 
 ACTION=""
+QUIET=false
 
 NEDGE="@NEDGE@"
 
 function print_usage() {
-echo "Executing ntopng configuration backup/restore utility"
+    echo "ntopng configuration backup/restore utility"
+    echo ""
     echo "Usage:"
-    echo "`basename $0` -a restore [-c archive.tar.gz] [-d datadir]"
-    echo "`basename $0` -a backup  [-c archive.tar.gz] [-d datadir]"
+    echo "`basename $0` -a restore [-d datadir] [-c archive.tar.gz]"
+    echo "`basename $0` -a backup  [-d datadir] [-c archive.tar.gz]"
+    echo "`basename $0` -a check-restore [-d datadir] [-c archive.tar.gz]"
     echo ""
-    echo "Restore:"
-    echo "`basename $0` -a restore [-c archive.tar.gz] [-d datadir]"
-    echo "[-c archive.tar.gz]"
-    echo "  The path to a compressed archive containing"
-    echo "  a backup that has to be restored. The only compressed archives"
-    echo "  accepted are those created from the web interface or with this script."
-    echo "  When no path is specified, the default ${DEFAULT_ARCHIVE}"
-    echo "  path is used."
     echo "[-d datadir]"
-    echo "  The path to the ntopng data directory where the restore will place the files."
-    echo "  When no path is specified, the path indicated in the compressed archive"
-    echo "  is used."
-    echo "  The data directory must exist on the system. Resored files will take the"
-    echo "  ownership (user and group) of the existing directory."
+    echo "  The path to the ntopng data directory."
+    echo "  When no path is specified, ntopng configuration file ${DEFAULT_CONF_FILE}"
+    echo "  is read in an attempt to determine the data directory. If the data directory cannot"
+    echo "  be determined from the ntopng configuration file, the default ${DEFAULT_DATADIR} is used."
+    echo "  The data directory must exist on the system."
     echo ""
-    echo "Backup:"
-    echo "`basename $0` -a backup  [-c archive.tar.gz] [-d datadir]"
     echo "[-c archive.tar.gz]"
-    echo  " The path of the compressed archive that will be output."
-    echo  " When no path is specified, the compressed archive will be output"
-    echo  " to the default ${DEFAULT_ARCHIVE}."
-    echo "[-d datadir]"
-    echo "  The path to the ntopng data directory used to backup files."
-    echo "  When no path is specified, the default ${DEFAULT_DATADIR} path is used."
-    echo "pathname1"
-    echo "  The path to a directory or file that should be backed up"
+    echo "  The path to a compressed archive used to backup or restore ntopng files."
+    echo "  When no path is specified, file ${ARCHIVE_NAME} inside the data directory is used."
+    echo ""
+    echo "-a restore"
+    echo "`basename $0` -a restore [-c archive.tar.gz] [-d datadir]"
+    echo "  Restore places the files contained in the archive into the current system."
+    echo "  Resored data directory files will take the ownership (user and group) of exisining the data directory."
+    echo "  The only compressed archives accepted are those created from the web interface or with this script."
+    echo ""
+    echo "-a backup"
+    echo "`basename $0` -a backup [-c archive.tar.gz] [-d datadir]"
+    echo " Backup creates a compressed archive using files contained into the current system."
+    echo ""
+    echo "-a check-restore"
+    echo "`basename $0` -a check-restore [-c archive.tar.gz] [-d datadir]"
+    echo " Check restore scans the data directory and looks for a valid compressed archive there."
+    echo " Returns true when the archive is found and false otherwise."
 }
 
 POSITIONAL=()
@@ -62,6 +67,7 @@ case $key in
     ;;
     -c|--archive)
     ARCHIVE="$2"
+    ARCHIVE_SET=true
     shift
     shift
     ;;
@@ -95,7 +101,7 @@ function cleanup() {
 
 trap cleanup EXIT
 
-if [[ ( $ACTION != "backup" && $ACTION != "restore" ) ]]; then
+if [[ ( $ACTION != "backup" && $ACTION != "restore" && $ACTION != "check-restore") ]]; then
     print_usage
     exit 1
 fi
@@ -104,6 +110,46 @@ if [[ ( $ACTION == "restore" ) && ( ${#POSITIONAL[@]} -gt 0 ) ]]; then
     print_usage
     exit 1
 fi
+
+if [ $ACTION == "check-restore" ]; then
+    QUIET=true
+fi
+
+function prepare_cur_data_dir_path() {
+    if [ "${DATADIR_SET}" = false ] && [ -f "${DEFAULT_CONF_FILE}" ]; then
+	# make sure there's at most one among -d and --data-dir
+	local DATADIR_COUNT="`cat "${DEFAULT_CONF_FILE}" | grep -v "#" | grep "\-d\|\-\-data\-dir"  | wc -l`"
+
+	if [ "${DATADIR_COUNT}" -gt "1" ]; then
+	    [ $QUIET = false ] && echo "Cannot reliably determine the data dir from ${DEFAULT_CONF_FILE}"
+	    exit 1
+	elif [ "${DATADIR_COUNT}" -eq "1" ]; then
+	    # use awk to split on spaces or = signs and remove " and ' s, and take the last column that should be the path to the data directory
+	    local CUR_DATADIR=`cat "${DEFAULT_CONF_FILE}" | grep -v "#" | grep "\-d\|\-\-data\-dir" | awk -F"[= ]" '{print $NF}' | sed s/\"//g | sed s/\'//g`
+
+	    if [ ! -d "${CUR_DATADIR}" ]; then
+		[ $QUIET = false ] && "Data dir ${CUR_DATADIR} read from ${DEFAULT_CONF_FILE} is not a directory on the system"
+		exit 1
+	    fi
+
+	    # set the data dir to the one extracted from the configuration file
+	    DATADIR="${CUR_DATADIR}"
+	fi
+    fi
+
+    if [ ! -d "${DATADIR}" ]; then
+	[ $QUIET = false ] && echo "Data dir ${DATADIR} is not a directory on the system."
+	exit 1
+    fi
+
+    [ $QUIET = false ] && echo "Using data dir ${DATADIR}"
+}
+
+function prepare_tar_file_path() {
+    if [ "${ARCHIVE_SET}" = false ]; then
+	ARCHIVE="${DATADIR}/${ARCHIVE_NAME}"
+    fi
+}
 
 function setup_staging_dir() {
     # the temp directory used, within $DIR
@@ -217,9 +263,14 @@ function staging_dir_to_archive() {
 }
 
 function check_tar_file() {
+    if [ ! -f "${ARCHIVE}" ]; then
+	[ $QUIET = false ] && echo "Missing ${ARCHIVE}: unable to restore"
+	exit 1
+    fi
+
     # make sure it's a tar archive
     if ! `file "${ARCHIVE}" | grep -qc "gzip compressed data";`; then
-	echo "Unrecognized file format for ${ARCHIVE}: expecting gzip compressed data"
+	[ $QUIET = false ] && echo "Unrecognized file format for ${ARCHIVE}: expecting gzip compressed data"
 	exit 1
     fi
 }
@@ -227,21 +278,8 @@ function check_tar_file() {
 function check_tar_contents() {
     # must contain a manifest file
     if ! `tar tf "${ARCHIVE}" ./MANIFEST >/dev/null 2>&1`; then
-	echo "Compressed archive $1 does not contain MANIFEST"
+	[ $QUIET = false ] && echo "Compressed archive $1 does not contain MANIFEST"
 	exit 1
-    fi
-}
-
-function parse_manifest() {
-    local ARCHIVE_DATADIR=`cat "${STAGING_DIR}"/MANIFEST | grep "__datadir:" |  awk -F ": " '{print $2}'`
-
-    if [ "${DATADIR_SET}" = false ] && [ ! -z "${ARCHIVE_DATADIR}" ]; then
-	DATADIR="${ARCHIVE_DATADIR}"
-	echo "Restoring to MANIFEST data directory ${DATADIR}"
-    elif [ "${DATADIR_SET}" = true ]; then
-	echo "Restoring to command line data directory ${DATADIR}"
-    else
-	echo "Restoring to defaul data directory ${DATADIR}"
     fi
 }
 
@@ -340,8 +378,11 @@ function post_restore_actions() {
     fi
 }
 
+prepare_cur_data_dir_path
+prepare_tar_file_path
+
 if [ $ACTION == "backup" ]; then
-    echo "Backing up..."
+    echo "Backing up to ${ARCHIVE} ..."
 
     setup_staging_dir
     backup_to_staging_dir
@@ -349,7 +390,7 @@ if [ $ACTION == "backup" ]; then
     staging_dir_to_archive
 
 elif [ $ACTION == "restore" ]; then
-    echo "Restoring..."
+    echo "Restoring from ${ARCHIVE} ..."
 
     # preliminary checks
     check_tar_file
@@ -358,11 +399,13 @@ elif [ $ACTION == "restore" ]; then
     # actual restore
     setup_staging_dir
     tar_file_to_staging_dir
-    parse_manifest
     check_current_system_dirs
     sanitize_staging_dir
     restore_files
     post_restore_actions
+elif [ $ACTION == "check-restore" ]; then
+    check_tar_file
+    check_tar_contents
 else
     # never reached
     echo "Unknown action $ACTION"
