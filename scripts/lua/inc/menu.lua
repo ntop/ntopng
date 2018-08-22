@@ -457,7 +457,9 @@ if(user_group == "administrator") then
   print [[
       <li><a href="]]
   print(ntop.getHttpPrefix())
-  print [[/lua/get_config.lua"><i class="fa fa-retweet"></i> ]] print(i18n("conf_backup.conf_backup")) print[[</a></li>]]
+  print [[/lua/get_config.lua"><i class="fa fa-download"></i> ]] print(i18n("conf_backup.conf_backup")) print[[</a></li>]]
+
+  print[[ <li><a href="https://www.ntop.org/guides/ntopng/web_gui/settings.html#restore-configuration" target="_blank"><i class="fa fa-upload"></i> ]] print(i18n("conf_backup.conf_restore")) print[[ <i class="fa fa-external-link"></i></a></li>]]
 end
 
 print[[

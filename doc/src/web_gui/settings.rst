@@ -46,8 +46,9 @@ user the ability to include ntopng information in a user created GUI.
 Backup Configuration
 --------------------
 
-The Backup Configuration entry downloads a copy of the ntopng configuration, as compressed 
-tarball (.tar.gz), including:
+The Backup Configuration entry downloads a copy of the ntopng
+configuration, as a compressed tarball (.tar.gz). The following files
+and directories are included in the backup:
 
 - Configuration file (unless command line is used for providing the options)
 - /etc/ntopng folder
@@ -56,8 +57,25 @@ tarball (.tar.gz), including:
 
 Please note that on Windows systems the runtime configuration file only is provided.
 
-The backup can be used to restore the configuration, placing a copy of the tarball
-under /etc/ntopng/conf.tar.gz and restarting the ntopng service. Please note
-that after restoring the configuration, the backup copy under /etc/ntopng/conf.tar.gz
-is automatically deleted.
+Restore Configuration
+---------------------
 
+ntopng configuration can be restored by placing the compressed tarball
+(downloaded via Backup Configuration) into the ntopng data directory
+and restarting the service. The tarball must be named conf.tar.gz.
+
+For example, assuming the default /var/tmp/ntopng data directory has not been changed, one can
+restore a previously backed-up configuration by placing the compressed
+tarball in /var/tmp/ntopng/conf.tar.gz and then issuing a
+:code:`systemctl restart ntopng`.
+
+.. note::
+
+   After the restore, the compressed archive into the data directory
+   is automatically deleted.
+
+.. note::
+
+   Restore is only supported for packaged ntopng installations on
+   systems that use :code:`systemd`. Geeks and those who are building
+   ntopng from source should have a look at script :code:`httpdocs/misc/ntopng-utils-manage-config`.

@@ -364,6 +364,7 @@ local lang = {
   },
   ["conf_backup"] = {
     ["conf_backup"] = "Backup Configuration",
+    ["conf_restore"] = "Restore Configuration",
   },
   ["contacts_page"] = {
     ["client_address"] = "Client Address",

@@ -1,4 +1,4 @@
-Configuration Backup/Restore
+Configuration Backup
 ############################
 
 From the `System Setup` menu, into the `Misc` tab, it is possible to download the nEdge
@@ -11,12 +11,24 @@ the nEdge configuration, as compressed tarball (.tar.gz), including:
 - /etc/ntopng folder
 - License file
 
-This backup copy can be used to restore the configuration, placing a copy of the tarball
-under /etc/ntopng/conf.tar.gz and restarting the nedge service. By logging in into nEdge 
-after restarting the service, it will be possible to perform the `first start` setup through
-the GUI, and permanently apply the new settings. This will write the system configuration to 
-disk and reboot the device. Please refer to the `First Start` section in `Getting Started`.
+Configuration Restore
+#####################
 
-Please note that after restoring the configuration, the backup copy under /etc/ntopng/conf.tar.gz
-is automatically deleted.
+nEdge configuration can be restored by placing the compressed tarball
+(downloaded via Backup Configuration) into the nEdge data directory
+and restarting the service. The tarball must be named conf.tar.gz.
 
+For example, assuming the default /var/tmp/ntopng data directory has not been changed, one can
+restore a previously backed-up configuration by placing the compressed
+tarball in /var/tmp/ntopng/conf.tar.gz and then issuing a
+:code:`systemctl restart nedge`.
+
+.. note::
+
+   After the restore, the compressed archive into the data directory
+   is automatically deleted.
+
+.. note::
+
+   Restore is only supported for packaged ntopng installations on
+   systems that use :code:`systemd`.
