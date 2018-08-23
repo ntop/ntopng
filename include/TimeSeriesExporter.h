@@ -27,6 +27,8 @@
 class TimeSeriesExporter {
  private:
   time_t flushTime;
+  u_int32_t cursize;
+  u_int32_t num_exports;
   int fd;
   char fbase[PATH_MAX], fname[PATH_MAX+32];
   NetworkInterface *iface;

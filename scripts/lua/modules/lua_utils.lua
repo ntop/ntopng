@@ -140,7 +140,7 @@ l4_keys = {
   { "TCP", "tcp", 6 },
   { "UDP", "udp", 17 },
   { "ICMP", "icmp", 1 },
-  { "Other IP", "other ip", -1 }
+  { "Other IP", "other_ip", -1 }
 }
 
 function __FILE__() return debug.getinfo(2,'S').source end

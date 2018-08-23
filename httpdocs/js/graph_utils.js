@@ -192,7 +192,7 @@ function buildTimeArray(start_time, end_time, step) {
   return arr;
 }
 
-function fixTimeRange(chart, params, step) {
+function fixTimeRange(chart, params, align_step) {
   var diff_epoch = (params.epoch_end - params.epoch_begin);
   var frame, align, tick_step, resolution, fmt = "%H:%M:%S";
 
@@ -235,7 +235,7 @@ function fixTimeRange(chart, params, step) {
   }
 
   if(align) {
-    align = Math.max(align, step);
+    align = Math.max(align, align_step);
     params.epoch_begin -= params.epoch_begin % align;
     params.epoch_end -= params.epoch_end % align;
     diff_epoch = (params.epoch_end - params.epoch_begin);
@@ -251,7 +251,7 @@ function fixTimeRange(chart, params, step) {
 }
 
 // add a new updateStackedChart function
-function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id, flows_dt, params, step) {
+function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id, flows_dt, params, step, align_step) {
   var pending_request = null;
   var d3_sel = d3.select(chart_id);
   var $chart = $(chart_id);
@@ -387,7 +387,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
       chart.zoomType('x'); // enable zoom
     }
 
-    fixTimeRange(chart, params, step);
+    fixTimeRange(chart, params, align_step);
 
     if((old_start == params.epoch_begin) && (old_end == params.epoch_end))
       return false;

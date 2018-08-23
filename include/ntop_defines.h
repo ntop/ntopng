@@ -153,6 +153,7 @@
 #define MAX_FLOW_IDLE            60 /* sec */
 #define MAX_LOCAL_HOST_IDLE     300 /* sec */
 #define MAX_REMOTE_HOST_IDLE     60 /* sec */
+//#define HOST_NUM_TIMESERIES_POINTS (6+1) /* 5s * 6 = 30s + 1 extra slot */
 #define INTF_RRD_RAW_DAYS        1
 #define INTF_RRD_1MIN_DAYS       30
 #define INTF_RRD_1H_DAYS         100
@@ -413,6 +414,7 @@
 
 #define CONST_INFLUXDB_FILE_QUEUE          "ntopng.influx_file_queue"
 #define CONST_INFLUXDB_FLUSH_TIME          10 /* sec */
+#define CONST_INFLUXDB_MAX_DUMP_SIZE       4194304 /* 4 MB */
 #define CONST_ALERT_MSG_QUEUE              "ntopng.alert_queue"
 #define CONST_ALERT_MAC_IP_QUEUE           "ntopng.alert_mac_ip_queue"
 #define CONST_ALERT_NFQ_FLUSHED            "ntopng.alert_nfq_flushed_queue"
@@ -740,6 +742,7 @@
 #define PINGER_SCRIPT_PATH         "pinger.lua"
 #define SECOND_SCRIPT_PATH         "second.lua"
 #define MINUTE_SCRIPT_PATH         "minute.lua"
+#define THIRTY_SECONDS_SCRIPT_PATH "30sec.lua"
 #define FIVE_MINUTES_SCRIPT_PATH   "5min.lua"
 #define HOURLY_SCRIPT_PATH         "hourly.lua"
 #define DAILY_SCRIPT_PATH          "daily.lua"

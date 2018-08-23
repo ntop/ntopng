@@ -38,7 +38,7 @@ end
 
 -- ##############################################
 
-function driver:getLatestTimestamp()
+function driver:getLatestTimestamp(ifid)
   return os.time()
 end
 

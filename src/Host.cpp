@@ -102,7 +102,7 @@ void Host::set_host_label(char *label_name, bool ignoreIfPresent) {
 
 void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   ndpiStats = new nDPIStats();
-
+//printf("SIZE: %lu, %lu, %lu\n", sizeof(nDPIStats), MAX_NDPI_PROTOS, NDPI_PROTOCOL_NUM_CATEGORIES);
   last_bytes = 0, last_bytes_thpt = bytes_thpt = 0, bytes_thpt_trend = trend_unknown;
   bytes_thpt_diff = 0, last_epoch_update = 0;
   total_activity_time = 0;

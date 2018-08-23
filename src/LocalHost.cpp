@@ -131,6 +131,14 @@ void LocalHost::initialize() {
 			       ip.print(buf, sizeof(buf)),
 			       isSystemHost() ? "systemHost" : "", this);
 #endif
+
+  ts_cur_point = ts_max_points = ts_available_points = 0;
+  ts_points = NULL;
+
+#ifdef HOST_NUM_TIMESERIES_POINTS
+  ts_max_points = HOST_NUM_TIMESERIES_POINTS;
+  ts_points = (TimeseriesPoint*) calloc(HOST_NUM_TIMESERIES_POINTS, sizeof(TimeseriesPoint));
+#endif
 }
 
 /* *************************************** */
@@ -631,6 +639,37 @@ void LocalHost::updateStats(struct timeval *tv) {
 
     nextSitesUpdate = tv->tv_sec + HOST_SITES_REFRESH;
   }
+
+  if(ts_points) {
+    TimeseriesPoint *pt = &ts_points[ts_cur_point];
+
+    if(ndpiStats) {
+      if(pt->ndpi) delete pt->ndpi;
+
+      pt->ndpi = new nDPIStats(*ndpiStats);
+    }
+
+    pt->timestamp = last_update_time.tv_sec;
+    pt->sent = sent.getNumBytes();
+    pt->rcvd = rcvd.getNumBytes();
+    pt->total_num_flows_as_client = total_num_flows_as_client;
+    pt->total_num_flows_as_server = total_num_flows_as_server;
+
+    /* L4 */
+    pt->l4_stats[0].sent = tcp_sent.getNumBytes();
+    pt->l4_stats[0].rcvd = tcp_rcvd.getNumBytes();
+    pt->l4_stats[1].sent = udp_sent.getNumBytes();
+    pt->l4_stats[1].rcvd = udp_rcvd.getNumBytes();
+    pt->l4_stats[2].sent = icmp_sent.getNumBytes();
+    pt->l4_stats[2].rcvd = icmp_rcvd.getNumBytes();
+    pt->l4_stats[3].sent = other_ip_sent.getNumBytes();
+    pt->l4_stats[3].rcvd = other_ip_sent.getNumBytes();
+
+    //printf("%p.%d) %lu -> %lu\n", this, ts_cur_point, pt->timestamp, pt->sent);
+
+    ts_cur_point = (ts_cur_point + 1) % ts_max_points;
+    ts_available_points = min(ts_available_points + 1, ts_max_points - 1);
+  }
 }
 
 /* *************************************** */
@@ -672,4 +711,61 @@ void LocalHost::setOS(char *_os) {
     mac->setDeviceType(device_workstation);
   else if(strcasestr(os, "iPad") || strcasestr(os, "tablet"))
     mac->setDeviceType(device_tablet);
+}
+
+/* *************************************** */
+
+/* NOTE: the returnded lua is compatible with Host::lua for interoperability */
+void LocalHost::tsLua(lua_State* vm) {
+  int idx;
+  uint8_t cur_point, available_points;
+
+  if(!ts_points || !ts_available_points) {
+    lua_pushnil(vm);
+    return;
+  }
+
+  lua_newtable(vm);
+
+  /* NOTE: this avoids concurrency issues, order is important */
+  available_points = ts_available_points;
+  cur_point = ts_cur_point;
+
+  /* ts_cur_point points to the next point to insert
+   * last_update_time.tv_sec holds the time of the previously inserted point
+   * ts_available_points is at most ts_max_points-1
+   */
+  idx = cur_point - available_points;
+
+  if(idx < 0)
+    idx += ts_max_points;
+
+  for(int i=0; i<available_points; i++) {
+    TimeseriesPoint *pt = &ts_points[idx];
+
+    lua_newtable(vm);
+    lua_push_int_table_entry(vm, "instant", pt->timestamp);
+
+    //printf("%p.%d] %lu -> %lu\n", this, idx, pt->timestamp, pt->sent);
+
+    pt->ndpi->lua(iface, vm, true /* with categories */);
+    lua_push_int_table_entry(vm, "bytes.sent", pt->sent);
+    lua_push_int_table_entry(vm, "bytes.rcvd", pt->rcvd);
+    lua_push_int_table_entry(vm, "active_flows.as_client", pt->total_num_flows_as_client);
+    lua_push_int_table_entry(vm, "active_flows.as_server", pt->total_num_flows_as_server);
+
+    /* L4 */
+    lua_push_int_table_entry(vm, "tcp.bytes.sent", pt->l4_stats[0].sent);
+    lua_push_int_table_entry(vm, "tcp.bytes.rcvd", pt->l4_stats[0].rcvd);
+    lua_push_int_table_entry(vm, "udp.bytes.sent",  pt->l4_stats[1].sent);
+    lua_push_int_table_entry(vm, "udp.bytes.rcvd", pt->l4_stats[1].sent);
+    lua_push_int_table_entry(vm, "icmp.bytes.sent",  pt->l4_stats[2].sent);
+    lua_push_int_table_entry(vm, "icmp.bytes.rcvd", pt->l4_stats[2].sent);
+    lua_push_int_table_entry(vm, "other_ip.bytes.sent",  pt->l4_stats[3].sent);
+    lua_push_int_table_entry(vm, "other_ip.bytes.rcvd", pt->l4_stats[3].sent);
+
+    lua_rawseti(vm, -2, i + 1);
+
+    idx = (idx + 1) % ts_max_points;
+  }
 }

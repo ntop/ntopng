@@ -382,11 +382,6 @@ end
 -- ##############################################
 
 function driver:export()
-  local system_iface_id = -1
-  local time_key = "ntopng.cache.influxdb_export_time_" .. self.db
-  local prev_t = tonumber(ntop.getCache(time_key)) or 0
-  local max_t = prev_t
-
   while(true) do
     local name_id = ntop.lpopCache("ntopng.influx_file_queue")
     local ret
@@ -395,17 +390,24 @@ function driver:export()
       break
     end
 
-    local time_ref = tonumber(name_id)
+    local parts = split(name_id, "|")
+    local ifid = tonumber(parts[1])
+    local time_ref = tonumber(parts[2])
+    local export_id = tonumber(parts[3])
 
-    if(time_ref == nil) then
+    if((ifid == nil) or (time_ref == nil) or (export_id == nil)) then
       traceError(TRACE_ERROR, TRACE_CONSOLE, "Invalid name "..name_id.."\n")
       break
     end
 
-    local fname = os_utils.fixPath(dirs.workingdir .. "/" .. system_iface_id .. "/ts_export/" .. name_id)
+    local time_key = "ntopng.cache.influxdb_export_time_" .. self.db .. "_" .. ifid
+    local prev_t = tonumber(ntop.getCache(time_key)) or 0
+    local fname = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/ts_export/" .. export_id .. "_" .. time_ref)
 
     -- Delete the file after POST
     local delete_file_after_post = true
+
+    local t = os.time()
     ret = ntop.postHTTPTextFile(self.username, self.password, self.url .. "/write?db=" .. self.db, fname, delete_file_after_post, 5 --[[ timeout ]])
 
     if(ret ~= true) then
@@ -414,20 +416,18 @@ function driver:export()
       -- delete the file manually
       os.remove(fname)
       break
-    else
-      max_t = math.max(time_ref, max_t)
     end
-  end
 
-  if max_t > prev_t then
-    ntop.setCache(time_key, tostring(max_t))
+    -- Successfully exported
+    --tprint("Exported ".. fname .." in " .. (os.time() - t) .. " sec")
+    ntop.setCache(time_key, tostring(math.max(prev_t, time_ref)))
   end
 end
 
 -- ##############################################
 
-function driver:getLatestTimestamp()
-  local k = "ntopng.cache.influxdb_export_time_" .. self.db
+function driver:getLatestTimestamp(ifid)
+  local k = "ntopng.cache.influxdb_export_time_" .. self.db .. "_" .. ifid
   local v = tonumber(ntop.getCache(k))
 
   if v ~= nil then

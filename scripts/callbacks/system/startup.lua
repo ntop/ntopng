@@ -91,20 +91,10 @@ for _, ifname in pairs(interface.getIfNames()) do
 
    -- Note: we do not delete this as quotas are persistent across ntopng restart
    --deletePoolsQuotaExceededItemsKey(ifid)
-end
 
--- ##################################################################
-
--- Clean old InfluxDB export cache
-local valid_entries = swapKeysValues(ntop.lrangeCache("ntopng.influx_file_queue") or {})
-local entries_dir = dirs.workingdir .. "/-1/ts_export"
-local existing_entries = ntop.readdir(entries_dir)
-
-for entry in pairs(existing_entries or {}) do
-   if not valid_entries[entry] then
-      local entry_path = os_utils.fixPath(entries_dir .. "/" .. entry)
-      os.remove(entry_path)
-   end
+   -- Clean old InfluxDB export cache
+   local export_dir = os_utils.fixPath(dirs.workingdir .. "/".. ifid .."/ts_export")
+   ntop.rmdir(export_dir)
 end
 
 -- ##################################################################

@@ -241,6 +241,7 @@ class Host : public Checkpointable, public GenericHashEntry, public GenericTraff
   inline u_int16_t getVlanId() { return (vlan ? vlan->get_vlan_id() : 0); }
   inline void reloadHideFromTop() { hidden_from_top = iface->isHiddenFromTop(this); }
   inline bool isHiddenFromTop() { return hidden_from_top; }
+  virtual void tsLua(lua_State* vm) { lua_pushnil(vm); };
 
   inline void setSSDPLocation(char *url) {
      if(url) {

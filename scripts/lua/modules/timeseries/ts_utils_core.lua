@@ -39,7 +39,16 @@ end
 --! @param name the schema identifier.
 --! @return a schema object on success, nil on error.
 function ts_utils.getSchema(name)
-  return loaded_schemas[name]
+  local schema = loaded_schemas[name]
+
+  if schema and (ntop.getPref("ntopng.prefs.30_sec_dump") == "1") then
+    if (schema.options.step == 300) and (starts(name, "host:") or starts(name, "top:host:")) then
+      schema.options.step = 5
+      schema.options.insertion_step = 30
+    end
+  end
+
+  return schema
 end
 
 function ts_utils.getLoadedSchemas()
