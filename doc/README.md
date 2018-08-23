@@ -69,7 +69,8 @@ Resetting admin user password
 -----------------------------
 1. shutdown ntopng
 2. run `redis-cli del ntopng.user.admin.password`
-3. restart ntopng and now the admin password has been reset
+3. delete file `runtimeprefs.json` from the ntopng data directory
+4. restart ntopng and now the admin password has been reset
 
 
 Running multiple ntopng instances on the same host
