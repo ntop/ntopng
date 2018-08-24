@@ -644,16 +644,41 @@ function driver.init(dbname, url, days_retention, username, password, verbose)
     return false, err
   end
 
-  -- Create database
-  if verbose then traceError(TRACE_NORMAL, TRACE_CONSOLE, "Creating database " .. dbname .. " ...") end
-  local query = "CREATE DATABASE \"" .. dbname .. "\""
-
+  -- Check existing database (this is used to prevent db creationg error for unprivileged users)
+  if verbose then traceError(TRACE_NORMAL, TRACE_CONSOLE, "Checking database " .. dbname .. " ...") end
+  local query = "SHOW DATABASES"
   local res = ntop.httpPost(url .. "/query", "q=" .. query, username, password, timeout, true)
-  if not res or (res.RESPONSE_CODE ~= 200) then
-    local err = i18n("prefs.influxdb_create_error", {db=dbname, msg=getResponseError(res)})
+  local db_found = false
 
-    traceError(TRACE_ERROR, TRACE_CONSOLE, err)
-    return false, err
+  if res and (res.RESPONSE_CODE == 200) and res.CONTENT then
+    local reply = json.decode(res.CONTENT)
+
+    if reply and reply.results and reply.results[1] and reply.results[1].series then
+      local dbs = reply.results[1].series[1] or {values={}}
+
+      for _, row in pairs(dbs.values) do
+        local user_db = row[1]
+
+        if user_db == dbname then
+          db_found = true
+          break
+        end
+      end
+    end
+  end
+
+  if not db_found then
+    -- Create database
+    if verbose then traceError(TRACE_NORMAL, TRACE_CONSOLE, "Creating database " .. dbname .. " ...") end
+    local query = "CREATE DATABASE \"" .. dbname .. "\""
+
+    local res = ntop.httpPost(url .. "/query", "q=" .. query, username, password, timeout, true)
+    if not res or (res.RESPONSE_CODE ~= 200) then
+      local err = i18n("prefs.influxdb_create_error", {db=dbname, msg=getResponseError(res)})
+
+      traceError(TRACE_ERROR, TRACE_CONSOLE, err)
+      return false, err
+    end
   end
 
   -- Set retention
@@ -662,10 +687,11 @@ function driver.init(dbname, url, days_retention, username, password, verbose)
 
   local res = ntop.httpPost(url .. "/query", "q=" .. query, username, password, timeout, true)
   if not res or (res.RESPONSE_CODE ~= 200) then
-    local err = i18n("prefs.influxdb_retention_error", {db=dbname, msg=getResponseError(res)})
+    local warning = i18n("prefs.influxdb_retention_error", {db=dbname, msg=getResponseError(res)})
 
-    traceError(TRACE_ERROR, TRACE_CONSOLE, err)
-    return false, err
+    traceError(TRACE_WARNING, TRACE_CONSOLE, warning)
+    -- This is just a warning, we can proceed
+    --return false, err
   end
 
   return true, i18n("prefs.successfully_connected_influxdb", {db=dbname, version=version})
