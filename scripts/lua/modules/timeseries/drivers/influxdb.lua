@@ -206,9 +206,9 @@ end
 
 -- ##############################################
 
-function driver:_makeTotalSerie(schema, tstart, tend, tags, options, url, time_step, label)
+function driver:_makeTotalSerie(schema, tstart, tend, tags, options, url, time_step, label, unaligned_offset)
   local data_type = schema.options.metrics_type
-  local query = getTotalSerieQuery(schema, tstart, tend, tags, time_step, data_type, label)
+  local query = getTotalSerieQuery(schema, tstart, tend + unaligned_offset, tags, time_step, data_type, label)
 
   local full_url = url .. "/query?db=".. self.db .."&epoch=s&q=" .. urlencode(query)
   local data = influx_query(full_url, self.username, self.password)
@@ -227,13 +227,13 @@ end
 
 -- NOTE: mean / percentile values are calculated manually because of an issue with
 -- empty points in the queries https://github.com/influxdata/influxdb/issues/6967
-function driver:_calcStats(schema, tstart, tend, tags, url, total_serie, time_step, label)
+function driver:_calcStats(schema, tstart, tend, tags, url, total_serie, time_step, label, unaligned_offset)
   local stats = ts_common.calculateStatistics(total_serie, time_step, tend - tstart, schema.options.metrics_type)
 
   if time_step ~= schema.options.step then
     -- NOTE: the total must be manually extracted from influx when sampling occurs
     local data_type = schema.options.metrics_type
-    local query = getTotalSerieQuery(schema, tstart, tend, tags, nil --[[ important: no sampling ]], data_type, label)
+    local query = getTotalSerieQuery(schema, tstart, tend + unaligned_offset, tags, nil --[[ important: no sampling ]], data_type, label)
     query = 'SELECT SUM("total_serie") * ' .. schema.options.step ..' FROM (' .. query .. ')'
 
     local full_url = url .. "/query?db=".. self.db .."&epoch=s&q=" .. urlencode(query)
@@ -283,6 +283,9 @@ function driver:query(schema, tstart, tend, tags, options)
   local time_step = calculateSampledTimeStep(schema, tstart, tend, options)
   local data_type = schema.options.metrics_type
 
+  -- NOTE: this offset is necessary to fix graph edge points when data insertion is not aligned with tstep
+  local unaligned_offset = schema.options.step - 1
+
   for i, metric in ipairs(schema._metrics) do
     -- NOTE: why we need to device by time_step ? is MEAN+GROUP BY TIME bugged?
     if data_type == ts_common.metrics.counter then
@@ -300,7 +303,7 @@ function driver:query(schema, tstart, tend, tags, options)
     AND time >= 1531991910000000000 AND time <= 1532002710000000000
     GROUP BY TIME(60s)
   ]]
-  local query = makeSeriesQuery(schema, metrics, tags, tstart, tend, time_step)
+  local query = makeSeriesQuery(schema, metrics, tags, tstart, tend + unaligned_offset, time_step)
 
   local url = self.url
   local full_url = url .. "/query?db=".. self.db .."&epoch=s&q=" .. urlencode(query)
@@ -319,10 +322,10 @@ function driver:query(schema, tstart, tend, tags, options)
   if options.calculate_stats then
     -- try to inherit label from existing series
     local label = series and series[1].label
-    total_serie = self:_makeTotalSerie(schema, tstart, tend, tags, options, url, time_step, label)
+    total_serie = self:_makeTotalSerie(schema, tstart, tend, tags, options, url, time_step, label, unaligned_offset)
 
     if total_serie then
-      stats = self:_calcStats(schema, tstart, tend, tags, url, total_serie, time_step, label)
+      stats = self:_calcStats(schema, tstart, tend, tags, url, total_serie, time_step, label, unaligned_offset)
     end
   end
 
@@ -333,7 +336,7 @@ function driver:query(schema, tstart, tend, tags, options)
       initial_metrics[idx] = "FIRST(" .. metric .. ")"
     end
 
-    local query = makeSeriesQuery(schema, metrics, tags, tstart-time_step, tstart, time_step)
+    local query = makeSeriesQuery(schema, metrics, tags, tstart-time_step, tstart+unaligned_offset, time_step)
     local full_url = url .. "/query?db=".. self.db .."&epoch=s&q=" .. urlencode(query)
 
     local data = influx_query(full_url, self.username, self.password)
@@ -354,7 +357,7 @@ function driver:query(schema, tstart, tend, tags, options)
 
     if total_serie then
       local label = series and series[1].label
-      local additional_pt = self:_makeTotalSerie(schema, tstart-time_step, tstart, tags, options, url, time_step, label) or {options.fill_value}
+      local additional_pt = self:_makeTotalSerie(schema, tstart-time_step, tstart, tags, options, url, time_step, label, unaligned_offset) or {options.fill_value}
       table.insert(total_serie, 1, additional_pt[1])
     end
 
@@ -521,6 +524,9 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
 
   local top_tag = top_tags[1]
 
+  -- NOTE: this offset is necessary to fix graph edge points when data insertion is not aligned with tstep
+  local unaligned_offset = schema.options.step - 1
+
   --[[
   SELECT TOP("value", "protocol", 10) FROM                                      // select top 10 protocols
     (SELECT protocol, (bytes_sent + bytes_rcvd) AS "value"                      // possibly sum multiple metrics within same serie
@@ -565,15 +571,15 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
 
   local time_step = calculateSampledTimeStep(schema, tstart, tend, options)
   local label = series and series[1].label
-  local total_serie = self:_makeTotalSerie(schema, tstart, tend, tags, options, url, time_step, label)
+  local total_serie = self:_makeTotalSerie(schema, tstart, tend, tags, options, url, time_step, label, unaligned_offset)
   local stats = nil
 
   if options.calculate_stats and total_serie then
-    stats = self:_calcStats(schema, tstart, tend, tags, url, total_serie, time_step, label)
+    stats = self:_calcStats(schema, tstart, tend, tags, url, total_serie, time_step, label, unaligned_offset)
   end
 
   if options.initial_point and total_serie then
-    local additional_pt = self:_makeTotalSerie(schema, tstart-time_step, tstart, tags, options, url, time_step, label) or {options.fill_value}
+    local additional_pt = self:_makeTotalSerie(schema, tstart-time_step, tstart, tags, options, url, time_step, label, unaligned_offset) or {options.fill_value}
     table.insert(total_serie, 1, additional_pt[1])
   end
 
