@@ -199,3 +199,5 @@ if(res) then
 else
    print("No result")
 end
+
+dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

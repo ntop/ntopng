@@ -4784,6 +4784,26 @@ static int ntop_http_get_prefix(lua_State* vm) {
 /* ****************************************** */
 
 // ***API***
+static int ntop_http_purify_param(lua_State* vm) {
+  char *str, *buf;
+  
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  if((str = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
+
+  buf = strdup(str);
+  if(buf == NULL) return(CONST_LUA_PARAM_ERROR);
+  Utils::purifyHTTPparam(buf, false, false, false);  
+  lua_pushstring(vm, buf);
+  free(buf);
+  
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+// ***API***
 static int ntop_get_prefs(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -7880,9 +7900,10 @@ static const luaL_Reg ntop_reg[] = {
   { "getPrefs",         ntop_get_prefs },
 
   /* HTTP utils */
-  { "httpRedirect",     ntop_http_redirect },
-  { "getHttpPrefix",    ntop_http_get_prefix },
-
+  { "httpRedirect",         ntop_http_redirect        },
+  { "getHttpPrefix",        ntop_http_get_prefix      },
+  { "httpPurifyParam",      ntop_http_purify_param    },
+  
   /* Admin */
   { "getNologinUser",       ntop_get_nologin_username },
   { "getUsers",             ntop_get_users },
@@ -8321,8 +8342,17 @@ bool LuaEngine::setParamsTable(lua_State* vm,
 
 	  /* ntop->getTrace()->traceEvent(TRACE_WARNING, "'%s'='%s'", tok, decoded_buf); */
 
+#ifdef CPP_VALIDATION
 	  /* put tok and the decoded buffer in to the table */
 	  lua_push_str_table_entry(vm, tok, decoded_buf);
+#else
+	  /*
+	    Restore original buffer so Lua can handle it (we checked it was not a file),
+	    while we leave tok already purified
+	  */
+	  Utils::urlDecode(_equal, decoded_buf, len+1);
+	  lua_push_str_table_entry(vm, tok, decoded_buf);
+#endif
 
           free(decoded_buf);
         } else

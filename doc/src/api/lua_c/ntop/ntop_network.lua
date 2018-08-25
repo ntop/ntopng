@@ -61,6 +61,11 @@ function ntop.networkPrefix(string address, int netmask)
 --! @note this must be called before sending any other HTTP data.
 function ntop.httpRedirect(string url)
 
+--! @brief Purify a string from the HTTP standpoint. Used to purify HTTP params
+--! @param the string to purify
+--! @note The ourigied inout string with _ that replaced chars not allowed
+function ntop.httpPurifyParam(string str)
+
 --! @brief A wrapper for C getservbyport.
 --! @param port service port.
 --! @param proto service protocol, e.g. "tcp".
