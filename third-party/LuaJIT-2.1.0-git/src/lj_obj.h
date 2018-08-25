@@ -479,7 +479,7 @@ typedef struct Node {
 
 LJ_STATIC_ASSERT(offsetof(Node, val) == 0);
 
-#ifndef linux /* ntop */
+#if !defined(linux) && !defined(__FreeBSD__) /* ntop */
 #define int8_t char
 #endif
 
