@@ -1108,8 +1108,12 @@ function printStatsTimeseries()
 		       "http://localhost:8086",
 		       false, influx_active, nil, nil,  {attributes={spellcheck="false"}, pattern=getURLPattern(), required=true})
 
+  if ntop.isnEdge() and ntop.getPref("ntopng.prefs.influx_dbname") == "ntopng edge" then
+     -- Fixes issue #1939 with wrong deployed nedge db name
+     ntop.delCache("ntopng.prefs.influx_dbname")
+  end
   prefsInputFieldPrefs(subpage_active.entries["influxdb_dbname"].title, subpage_active.entries["influxdb_dbname"].description,
-      "ntopng.prefs.", "influx_dbname", product, nil, influx_active, nil, nil, {pattern="[^\\s]+"})
+		       "ntopng.prefs.", "influx_dbname", product:gsub(' ' , '_'), nil, influx_active, nil, nil, {pattern="[^\\s]+"})
 
   prefsToggleButton({
 	field = "toggle_influx_auth",
