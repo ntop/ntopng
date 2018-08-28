@@ -922,7 +922,7 @@ bool Utils::isPrintableChar(u_char c) {
 
 /* ************************************************************ */
 
-bool Utils::purifyHTTPparam(char *param, bool strict, bool allowURL, bool allowDots) {
+bool Utils::purifyHTTPparam(char * const param, bool strict, bool allowURL, bool allowDots) {
   if(strict) {
     for(int i=0; xssAttempts[i] != NULL; i++) {
       if(strstr(param, xssAttempts[i])) {

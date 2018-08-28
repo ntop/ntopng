@@ -118,6 +118,7 @@
 #define LIVE_TRAFFIC_URL          "/lua/live_traffic.lua"
 #define POOL_MEMBERS_ASSOC_URL    "/lua/admin/manage_pool_members.lua"
 #define NETWORK_LOAD_URL          "/lua/network_load.lua"
+#define MAX_PASSWORD_LEN          32 + 1 /* \0 */
 #define HTTP_SESSION_DURATION     43200
 #define EXTENDED_HTTP_SESSION_DURATION     604800 // 7d
 #define CONST_HTTPS_CERT_NAME     "ntopng-cert.pem"

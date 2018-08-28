@@ -1979,13 +1979,13 @@ end
 
 -- ##############################################
 
-function unescapeHTML (s)
+function unescapeHTML(s)
    local unesc = function (h)
       local res = string.char(tonumber(h, 16))
       return res
    end
 
-   s = string.gsub(s, "+", " ")
+   -- s = string.gsub(s, "+", " ")
    s = string.gsub(s, "%%(%x%x)", unesc)
 
    return s
@@ -2158,7 +2158,8 @@ function hasKey(key, theTable)
    end
 end
 function getPasswordInputPattern()
-  return [[^[\w\$\\!\/\(\)=\?\^\*@_\-\u0000-\u0019\u0021-\u00ff]{5,}$]]
+  -- maximum len must be kept in sync with MAX_PASSWORD_LEN
+  return [[^[\w\$\\!\/\(\)=\?\^\*@_\-\u0000-\u0019\u0021-\u00ff]{5,31}$]]
 end
 
 function getIPv4Pattern()

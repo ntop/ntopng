@@ -85,8 +85,9 @@ class LuaEngine {
 		      const char* table_name,
 		      const char* query) const;
 
+#ifdef NOT_USED /* Use Utils::purifyHTTPParam */
   static void purifyHTTPParameter(char *param);
-
+#endif
   static void luaRegister(lua_State *L, const ntop_class_reg *reg);
   static void luaRegisterInternalRegs(lua_State *L);
 

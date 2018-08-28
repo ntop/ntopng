@@ -152,9 +152,7 @@ local function validateUsername(p)
 end
 
 local function passwordCleanup(p)
-   -- TODO: write a better cleanup function for pasword fields
-   -- For the time being we use ntop.httpPurifyParam to avoid breaking compatibility
-   return(ntop.httpPurifyParam(p))
+   return p -- don't touch passwords (checks against valid fs paths already performed)
 end
 
 local function whereCleanup(p)
@@ -1324,7 +1322,7 @@ local function validateParameter(k, v)
 	 v = known_parameters[k][1](v)
 	 ret = known_parameters[k][2](v)
       end
-      
+
       if ret then
          return true, v
       else
@@ -1338,6 +1336,8 @@ local function validateSpecialParameter(param, value)
    for k, v in pairs(special_parameters) do
       if starts(param, k) then
          local suffix = split(param, k)[2]
+
+	 value = ntop.httpPurifyParam(value)
 
          if not v[1](suffix) then
             return false, "Special Validation, parameter key"

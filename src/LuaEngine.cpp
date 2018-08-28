@@ -4786,15 +4786,28 @@ static int ntop_http_get_prefix(lua_State* vm) {
 // ***API***
 static int ntop_http_purify_param(lua_State* vm) {
   char *str, *buf;
+  bool strict = false, allowURL = false, allowDots = false;
   
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) {
+    lua_pushnil(vm);
+    return(CONST_LUA_PARAM_ERROR);
+  }
+
   if((str = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
+  if(lua_type(vm, 2) == LUA_TBOOLEAN)  strict    = lua_toboolean(vm, 2) ? true : false;
+  if(lua_type(vm, 3) == LUA_TBOOLEAN)  allowURL  = lua_toboolean(vm, 3) ? true : false;
+  if(lua_type(vm, 4) == LUA_TBOOLEAN)  allowDots = lua_toboolean(vm, 4) ? true : false;
 
   buf = strdup(str);
-  if(buf == NULL) return(CONST_LUA_PARAM_ERROR);
-  Utils::purifyHTTPparam(buf, false, false, false);  
+
+  if(buf == NULL) {
+    lua_pushnil(vm);
+    return(CONST_LUA_PARAM_ERROR);
+  }
+
+  Utils::purifyHTTPparam(buf, strict, allowURL, allowDots);  
   lua_pushstring(vm, buf);
   free(buf);
   
@@ -8167,7 +8180,7 @@ static char* http_encode(char *str) {
 #endif
 
 /* ****************************************** */
-
+#ifdef NOT_USED
 void LuaEngine::purifyHTTPParameter(char *param) {
   char *ampersand;
   bool utf8_found = false;
@@ -8233,7 +8246,7 @@ void LuaEngine::purifyHTTPParameter(char *param) {
       ampersand[0] = '\0';
   }
 }
-
+#endif
 /* ****************************************** */
 
 void LuaEngine::setInterface(const char * user, char * const ifname, ssize_t ifname_len, bool * const is_allowed) const {
@@ -8308,21 +8321,16 @@ bool LuaEngine::setParamsTable(lua_State* vm,
         _equal = &_equal[1];
         len = strlen(_equal);
 
-        purifyHTTPParameter(tok), purifyHTTPParameter(_equal);
-
 	// ntop->getTrace()->traceEvent(TRACE_WARNING, "%s = %s", tok, _equal);
 
         if((decoded_buf = (char*)malloc(len+1)) != NULL) {
 	  bool rsp = false;
 	  FILE *fd;
 
-          Utils::urlDecode(_equal, decoded_buf, len+1);
+          Utils::urlDecode(_equal, decoded_buf, len + 1);
 
-	  /* Allow multiple dots in password fields */
-	  bool allow_dots = (strstr(tok, "password") != NULL);
-
-	  rsp |= Utils::purifyHTTPparam(tok, true, false, false);
-	  rsp |= Utils::purifyHTTPparam(decoded_buf, false, false, allow_dots);
+	  rsp = Utils::purifyHTTPparam(tok, true, false, false);
+	  /* don't purify decoded_buf, it's purified in lua */
 
 	  if(rsp) {
 	    ntop->getTrace()->traceEvent(TRACE_WARNING, "[HTTP] Invalid '%s'", query);
@@ -8330,29 +8338,16 @@ bool LuaEngine::setParamsTable(lua_State* vm,
 	  }
 
 	  /* Now make sure that decoded_buf is not a file path */
-	  if((decoded_buf[0] == '.')
+	  if((decoded_buf[0] == '.' || decoded_buf[0] == '/')
 	     && ((fd = fopen(decoded_buf, "r"))
 		 || (fd = fopen(realpath(decoded_buf, outbuf), "r")))) {
 
 	    ntop->getTrace()->traceEvent(TRACE_WARNING, "Discarded '%s'='%s' as argument is a valid file path",
 					 tok, decoded_buf);
-	    decoded_buf[0] = '\0';
 	    fclose(fd);
+	  } else {
+	    lua_push_str_table_entry(vm, tok, decoded_buf);
 	  }
-
-	  /* ntop->getTrace()->traceEvent(TRACE_WARNING, "'%s'='%s'", tok, decoded_buf); */
-
-#ifdef CPP_VALIDATION
-	  /* put tok and the decoded buffer in to the table */
-	  lua_push_str_table_entry(vm, tok, decoded_buf);
-#else
-	  /*
-	    Restore original buffer so Lua can handle it (we checked it was not a file),
-	    while we leave tok already purified
-	  */
-	  Utils::urlDecode(_equal, decoded_buf, len+1);
-	  lua_push_str_table_entry(vm, tok, decoded_buf);
-#endif
 
           free(decoded_buf);
         } else

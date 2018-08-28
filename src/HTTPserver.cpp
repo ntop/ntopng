@@ -292,7 +292,7 @@ static int getAuthorizedUser(const struct mg_connection *conn,
 			 char *username, u_int username_len) {
   char session_id[33];
   char key[64];
-  char password[32];
+  char password[MAX_PASSWORD_LEN];
   const char *auth_header_p;
   string auth_type = "", auth_string = "";
   bool user_login_disabled = !ntop->getPrefs()->is_users_login_enabled() ||
