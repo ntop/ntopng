@@ -1408,16 +1408,13 @@ static int ntop_get_batched_interface_remote_hosts_info(lua_State* vm) {
 // ***API***
 static int ntop_is_dir(lua_State* vm) {
   char *path;
-  struct stat buf;
-  int rc;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   path = (char*)lua_tostring(vm, 1);
 
-  rc = ((stat(path, &buf) != 0) || (!S_ISDIR(buf.st_mode))) ? 0 : 1;
-  lua_pushboolean(vm, rc);
+  lua_pushboolean(vm, Utils::dir_exists(path));
 
   return(CONST_LUA_OK);
 }
@@ -8294,7 +8291,6 @@ bool LuaEngine::setParamsTable(lua_State* vm,
 			       const struct mg_request_info *request_info,
 			       const char* table_name,
 			       const char* query) const {
-  char outbuf[FILENAME_MAX];
   char *where;
   char *tok;
   char *query_string = query ? strdup(query) : NULL;
@@ -8325,7 +8321,6 @@ bool LuaEngine::setParamsTable(lua_State* vm,
 
         if((decoded_buf = (char*)malloc(len+1)) != NULL) {
 	  bool rsp = false;
-	  FILE *fd;
 
           Utils::urlDecode(_equal, decoded_buf, len + 1);
 
@@ -8338,16 +8333,11 @@ bool LuaEngine::setParamsTable(lua_State* vm,
 	  }
 
 	  /* Now make sure that decoded_buf is not a file path */
-	  if((decoded_buf[0] == '.' || decoded_buf[0] == '/')
-	     && ((fd = fopen(decoded_buf, "r"))
-		 || (fd = fopen(realpath(decoded_buf, outbuf), "r")))) {
-
+	  if(Utils::file_exists(decoded_buf) && !Utils::dir_exists(decoded_buf))
 	    ntop->getTrace()->traceEvent(TRACE_WARNING, "Discarded '%s'='%s' as argument is a valid file path",
 					 tok, decoded_buf);
-	    fclose(fd);
-	  } else {
+	  else
 	    lua_push_str_table_entry(vm, tok, decoded_buf);
-	  }
 
           free(decoded_buf);
         } else

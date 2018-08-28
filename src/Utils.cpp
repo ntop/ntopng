@@ -256,6 +256,13 @@ bool Utils::file_exists(const char *path) {
 
 /* ****************************************************** */
 
+bool Utils::dir_exists(const char * const path) {
+  struct stat buf;
+  return !((stat(path, &buf) != 0) || (!S_ISDIR(buf.st_mode)));
+}
+
+/* ****************************************************** */
+
 size_t Utils::file_write(const char *path, const char *content, size_t content_len) {
   size_t ret = 0;
   FILE *fd = fopen(path, "wb");

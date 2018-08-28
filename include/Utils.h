@@ -50,7 +50,8 @@ class Utils {
   static float msTimevalDiff(const struct timeval *end, const struct timeval *begin);
   static size_t file_write(const char *path, const char *content, size_t content_len);
   static size_t file_read(const char *path, char **content);
-  static bool file_exists(const char *path);
+  static bool file_exists(const char * const path);
+  static bool dir_exists(const char * const path);
   static bool mkdir_tree(char *path);
   static int mkdir(const char *pathname, mode_t mode);
   static const char* trend2str(ValueTrend t);
