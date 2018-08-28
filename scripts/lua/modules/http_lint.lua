@@ -993,6 +993,7 @@ local known_parameters = {
 -- PREFERENCES - see prefs.lua for details
    -- Toggle Buttons
    ["interface_rrd_creation"]                      = validateBool,
+   ["is_mirrored_traffic"]                         = validateBool,
    ["interface_network_discovery"]                 = validateBool,
    ["dynamic_iface_vlan_creation"]                 = validateBool,
    ["toggle_mysql_check_open_files_limit"]         = validateBool,

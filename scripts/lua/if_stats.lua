@@ -1233,6 +1233,37 @@ elseif(page == "config") then
       </tr>]]
 
    -- per-interface Network Discovery
+   if not ntop.isnEdge() and interface.isPacketInterface() then
+      local is_mirrored_traffic = false
+      local is_mirrored_traffic_checked = ""
+      local is_mirrored_traffic_pref = string.format("ntopng.prefs.ifid_%d.is_traffic_mirrored", ifId)
+
+      if _SERVER["REQUEST_METHOD"] == "POST" then
+	 if _POST["is_mirrored_traffic"] == "1" then
+	    is_mirrored_traffic = true
+	    is_mirrored_traffic_checked = "checked"
+	 end
+
+	 ntop.setPref(is_mirrored_traffic_pref,
+		      ternary(is_mirrored_traffic == true, '1', '0'))
+	 interface.updateTrafficMirrored()
+      else
+	 is_mirrored_traffic = ternary(ntop.getPref(is_mirrored_traffic_pref) == '1', true, false)
+
+	 if is_mirrored_traffic then
+	    is_mirrored_traffic_checked = "checked"
+	 end
+      end
+
+      print [[<tr>
+	 <th>]] print(i18n("if_stats_config.is_mirrored_traffic")) print[[</th>
+	 <td>
+      <input type="checkbox" name="is_mirrored_traffic" value="1" ]] print(is_mirrored_traffic_checked) print[[>
+	 </td>
+      </tr>]]
+   end
+
+   -- per-interface Network Discovery
    if interface.isDiscoverableInterface() then
       local discover = require "discover_utils"
 

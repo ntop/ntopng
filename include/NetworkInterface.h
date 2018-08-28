@@ -96,7 +96,7 @@ class NetworkInterface : public Checkpointable {
   
   string ip_addresses;
   int id;
-  bool bridge_interface, is_dynamic_interface;
+  bool bridge_interface, is_dynamic_interface, is_traffic_mirrored;
   bool reload_custom_categories;
 #ifdef NTOPNG_PRO
   L7Policer *policer;
@@ -275,10 +275,11 @@ class NetworkInterface : public Checkpointable {
   inline virtual bool isPacketInterface()      { return(getIfType() != interface_type_FLOW); }
 #if defined(linux) && !defined(HAVE_LIBCAP) && !defined(HAVE_NEDGE)
   /* Note: if we miss the capabilities, we block the overriding of this method. */
-  inline bool isDiscoverableInterface()        { return(false);                              }
+  inline bool
 #else
-  inline virtual bool isDiscoverableInterface(){ return(false);                              }
+  virtual bool
 #endif
+                      isDiscoverableInterface(){ return(false);                              }
   inline virtual char* altDiscoverableName()   { return(NULL);                               }
   inline virtual const char* get_type()        { return(customIftype ? customIftype : CONST_INTERFACE_TYPE_UNKNOWN); }
   inline virtual InterfaceType getIfType()     { return(interface_type_UNKNOWN); }
@@ -367,6 +368,8 @@ class NetworkInterface : public Checkpointable {
   inline int get_datalink()        { return(pcap_datalink_type); };
   inline void set_datalink(int l)  { pcap_datalink_type = l;     };
   inline int isRunning()	   { return running;             };
+  inline bool isTrafficMirrored()  { return is_traffic_mirrored; };
+  void  updateTrafficMirrored();
   bool restoreHost(char *host_ip, u_int16_t vlan_id);
   u_int printAvailableInterfaces(bool printHelp, int idx, char *ifname, u_int ifname_len);
   void findFlowHosts(u_int16_t vlan_id,

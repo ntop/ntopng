@@ -261,6 +261,7 @@ NetworkInterface::NetworkInterface(const char *name,
 #endif
 
   reloadHideFromTop(false);
+  updateTrafficMirrored();
 }
 
 /* **************************************************** */
@@ -272,6 +273,7 @@ void NetworkInterface::init() {
     last_pkt_rcvd = last_pkt_rcvd_remote = 0,
     next_idle_flow_purge = next_idle_host_purge = 0,
     running = false, customIftype = NULL, is_dynamic_interface = false,
+    is_traffic_mirrored = false;
     numVirtualInterfaces = 0, flowHashing = NULL,
     pcap_datalink_type = 0, mtuWarningShown = false,
     purge_idle_flows_hosts = true, id = (u_int8_t)-1,
@@ -492,6 +494,25 @@ void NetworkInterface::loadPacketsDropsAlertPrefs() {
     if((ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0) && (rsp[0] != '\0'))
       packet_drops_alert_perc = atoi(rsp);
   }
+}
+
+/* **************************************************** */
+
+void NetworkInterface::updateTrafficMirrored() {
+  char key[CONST_MAX_LEN_REDIS_KEY], rsp[2] = { 0 };
+  bool is_mirrored = CONST_DEFAULT_MIRRORED_TRAFFIC;
+
+  snprintf(key, sizeof(key), CONST_MIRRORED_TRAFFIC_PREFS, get_id());
+  if((ntop->getRedis()->get(key, rsp, sizeof(rsp)) == 0) && (rsp[0] != '\0')) {
+    if(rsp[0] == '1')
+      is_mirrored = true;
+    else if(rsp[0] == '0')
+      is_mirrored = false;
+  }
+
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Updating mirrored traffic [ifid: %i][rsp: %s][actual_value: %d]", get_id(), rsp, is_mirrored ? 1 : 0);
+
+  is_traffic_mirrored = is_mirrored;
 }
 
 /* **************************************************** */

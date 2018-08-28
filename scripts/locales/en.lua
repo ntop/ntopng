@@ -1557,6 +1557,7 @@ local lang = {
     ["custom_name_popup_msg"] = "Specify an alias for the interface",
     ["hide_from_top_networks"] = "Hide from Top Networks",
     ["hide_from_top_networks_descr"] = "e.g. %{example}",
+    ["is_mirrored_traffic"] = "Mirrored Traffic",
     ["interface_network_discovery"] = "Periodic Interface Network Discovery",
     ["interface_rrd_creation"] = "Create Interface Timeseries",
     ["interface_speed"] = "Interface Speed (Mbit/s)",

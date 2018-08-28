@@ -422,11 +422,13 @@
 #define CONST_SQL_QUEUE                    "ntopng.sql_queue"
 #define CONST_SQL_BATCH_SIZE               32
 #define CONST_MAX_SQL_QUERY_LEN            8192
+#define CONST_DEFAULT_MIRRORED_TRAFFIC     false
 #define CONST_ALERT_DISABLED_PREFS         "ntopng.prefs.disable_alerts_generation"
 #define CONST_PREFS_ENABLE_ACCESS_LOG      "ntopng.prefs.enable_access_log"
 #define CONST_PREFS_ENABLE_SQL_LOG         "ntopng.prefs.enable_sql_log"
 #define CONST_TOP_TALKERS_ENABLED          "ntopng.prefs.host_top_sites_creation"
 #define CONST_SUPPRESSED_ALERT_PREFS       "ntopng.prefs.alerts.ifid_%d"
+#define CONST_MIRRORED_TRAFFIC_PREFS       "ntopng.prefs.ifid_%d.is_traffic_mirrored"
 #define CONST_USE_NINDEX                   "ntopng.prefs.use_nindex"
 #ifdef NTOPNG_PRO
 #define CONST_NAGIOS_NSCA_HOST_PREFS       "ntopng.prefs.nagios_nsca_host"

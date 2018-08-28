@@ -44,7 +44,7 @@ class PF_RINGInterface : public NetworkInterface {
   void singlePacketPollLoop();
   void multiPacketPollLoop();
   inline bool areTrafficDirectionsSupported()  { return(true); };
-  inline bool isDiscoverableInterface()        { return(true);                         };
+  bool isDiscoverableInterface()               { return(!isTrafficMirrored());         };
   inline InterfaceType getIfType()             { return(interface_type_PF_RING);       };
   inline const char* get_type()                { return(CONST_INTERFACE_TYPE_PF_RING); };
   inline int get_num_pfring_handles()          { return(num_pfring_handles); };

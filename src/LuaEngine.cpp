@@ -3295,6 +3295,20 @@ static int ntop_get_interface_find_host_by_mac(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_update_traffic_mirrored(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_interface)
+    ntop_interface->updateTrafficMirrored();
+
+  lua_pushnil(vm);
+  return CONST_LUA_OK;
+}
+
+/* ****************************************** */
+
 static int ntop_update_host_traffic_policy(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *host_ip;
@@ -7669,7 +7683,8 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "listHTTPhosts",            ntop_list_http_hosts },
   { "findHost",                 ntop_get_interface_find_host },
   { "findHostByMac",            ntop_get_interface_find_host_by_mac },
-  { "updateHostTrafficPolicy",   ntop_update_host_traffic_policy },
+  { "updateTrafficMirrored",    ntop_update_traffic_mirrored },
+  { "updateHostTrafficPolicy",  ntop_update_host_traffic_policy },
   { "refreshHostsAlertsConfiguration",   ntop_refresh_hosts_alerts_configuration },
   { "setHostDumpPolicy",        ntop_set_host_dump_policy },
   { "getInterfaceDumpDiskPolicy",       ntop_get_interface_dump_disk_policy },

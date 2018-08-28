@@ -216,7 +216,9 @@ end
 -- ################################################################################
 
 function discover.interfaceNetworkDiscoveryEnabled(ifid)
-   return not (ntop.getPref(discover.getInterfaceNetworkDiscoveryEnabledKey(ifid)) == "false")
+   -- must be discoverable and must have not been disabled by the interface preferences
+   return interface.isDiscoverableInterface() 
+          and not (ntop.getPref(discover.getInterfaceNetworkDiscoveryEnabledKey(ifid)) == "false")
 end
 
 -- ################################################################################
