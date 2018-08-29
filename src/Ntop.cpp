@@ -93,8 +93,11 @@ Ntop::Ntop(char *appName) {
   dirs[0] = startup_dir;
   dirs[1] = install_dir;
 #else
-  /* Folder will be created lazily, avoid creating it now */
-  snprintf(working_dir, sizeof(working_dir), "%s/ntopng", CONST_DEFAULT_WRITABLE_DIR);
+  /* Note: working_dir folder will be created lazily, avoid creating it now */
+  if (Utils::dir_exists(CONST_OLD_DEFAULT_DATA_DIR)) /* keep using the old dir */
+    snprintf(working_dir, sizeof(working_dir), CONST_OLD_DEFAULT_DATA_DIR);
+  else
+    snprintf(working_dir, sizeof(working_dir), CONST_DEFAULT_DATA_DIR);
 
   //umask(0);
 

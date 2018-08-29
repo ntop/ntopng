@@ -70,6 +70,7 @@ Prefs::Prefs(Ntop *_ntop) {
   https_port = 0; // CONST_DEFAULT_NTOP_PORT+1;
   change_user = true, daemonize = false;
   user = strdup(CONST_DEFAULT_NTOP_USER);
+  user_set = false;
   http_binding_address1 = NULL;
   http_binding_address2 = NULL;
   https_binding_address1 = NULL; // CONST_ANY_ADDRESS;
@@ -1203,8 +1204,7 @@ int Prefs::setOption(int optkey, char *optarg) {
     break;
 
   case 'U':
-    free(user);
-    user = strdup(optarg);
+    set_user(optarg);
     break;
 
   case 'V':
@@ -1358,6 +1358,12 @@ int Prefs::checkOptions() {
   if(http_binding_address2 == NULL) http_binding_address2 = strdup(CONST_ANY_ADDRESS);
   if(https_binding_address1 == NULL) https_binding_address1 = strdup(CONST_ANY_ADDRESS);
   if(https_binding_address2 == NULL) https_binding_address2 = strdup(CONST_ANY_ADDRESS);
+
+  if (strcmp(ntop->get_working_dir(), CONST_OLD_DEFAULT_DATA_DIR) == 0 && !is_user_set()) {
+    /* Using the old /var/tmp/ntopng with the default user:
+     * keep using 'nobody' to preserve backward compaitibility */
+    set_user(CONST_OLD_DEFAULT_NTOP_USER);
+  }
 
   return(0);
 }

@@ -40,9 +40,9 @@ class Ntop {
  private:
   AddressTree local_interface_addresses;
   char epoch_buf[11];
-  char working_dir[MAX_PATH]; /**< Array of working directory. */
-  char install_dir[MAX_PATH]; /**< Array of install directory. */
-  char startup_dir[MAX_PATH]; /**< Array of startup directory. */
+  char working_dir[MAX_PATH]; /**< Working directory. */
+  char install_dir[MAX_PATH]; /**< Install directory. */
+  char startup_dir[MAX_PATH]; /**< Startup directory. */
   char *custom_ndpi_protos; /**< Pointer of a custom protocol for nDPI. */
   NetworkInterface **iface; /**< Array of network interfaces. */
   u_int8_t num_defined_interfaces; /**< Number of defined interfaces. */

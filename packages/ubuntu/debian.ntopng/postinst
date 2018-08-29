@@ -17,11 +17,28 @@ esac
 
 umask 022
 
+if ! grep -q ntopng /etc/group; then
+    echo 'Creating ntopng group'
+    /usr/sbin/groupadd -r ntopng
+fi
+
+if ! /usr/bin/id -u ntopng > /dev/null 2>&1; then 
+    echo "Creating ntopng user..."
+    /usr/sbin/useradd -M -N -g ntopng -r ntopng
+fi
+
+DATA_DIR=/var/lib/ntopng
+if [ ! -d "$DATA_DIR" ]; then
+    mkdir $DATA_DIR
+    /bin/chown ntopng:ntopng $DATA_DIR
+    /bin/chmod 700 $DATA_DIR
+fi
+
 echo "Rebuilding ld cache..."
 /sbin/ldconfig
 
 if [ ! -f /usr/local/bin/ntopng ] && [ ! -L /usr/local/bin/ntopng ] ; then
-   ln -s /usr/bin/ntopng /usr/local/bin/ntopng
+    ln -s /usr/bin/ntopng /usr/local/bin/ntopng
 fi
 
 if [ -d /usr/local/share/ntopng ] ; then

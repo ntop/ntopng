@@ -216,5 +216,5 @@ to generate a PCAP file containing the traffic of all the flows marked as "Unkno
 which can then be submitted to the ntop team for further analysis.
 
 Pcap files are generated under the ntopng data directory, into the "pcap" folder
-of a specific network inteface id (e.g. `/var/tmp/ntopng/0/pcap`). In particular,
+of a specific network inteface id (e.g. `/var/lib/ntopng/0/pcap`). In particular,
 The unknown traffic is stored into the folder "pcap/ndpi_unknown".

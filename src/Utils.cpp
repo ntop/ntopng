@@ -484,7 +484,8 @@ int Utils::dropPrivileges() {
   pw = getpwnam(username);
 
   if(pw == NULL) {
-    username = "anonymous";
+    /* if the user (e.g. 'ntopng') does not exists, falls back to 'nobody' */
+    username = CONST_OLD_DEFAULT_NTOP_USER;
     pw = getpwnam(username);
   }
 

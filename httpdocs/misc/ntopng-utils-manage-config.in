@@ -2,7 +2,12 @@
 
 DEFAULT_CONF_FILE="/etc/ntopng/ntopng.conf"
 
-DEFAULT_DATADIR="/var/tmp/ntopng"
+DEFAULT_DATADIR="/var/lib/ntopng"
+OLD_DEFAULT_DATADIR="/var/tmp/ntopng"
+if [ -d "${OLD_DEFAULT_DATADIR}" ]; then
+    DEFAULT_DATADIR="${OLD_DEFAULT_DATADIR}"
+fi
+
 DATADIR="${DEFAULT_DATADIR}"
 DATADIR_SET=false
 

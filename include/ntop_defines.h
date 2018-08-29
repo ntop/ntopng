@@ -359,7 +359,8 @@
 
 #define NTOPNG_NDPI_OS_PROTO_ID      (NDPI_LAST_IMPLEMENTED_PROTOCOL+NDPI_MAX_NUM_CUSTOM_PROTOCOLS-2)
 #define CONST_DEFAULT_HOME_NET       "192.168.1.0/24"
-#define CONST_DEFAULT_DATA_DIR       "/var/tmp/ntopng"
+#define CONST_OLD_DEFAULT_DATA_DIR   "/var/tmp/ntopng"
+#define CONST_DEFAULT_DATA_DIR       "/var/lib/ntopng"
 #define CONST_DEFAULT_MAX_UI_STRLEN  24
 #define CONST_DEFAULT_IS_AUTOLOGOUT_ENABLED               1
 #define CONST_DEFAULT_IS_IDLE_LOCAL_HOSTS_CACHE_ENABLED   1
@@ -377,14 +378,14 @@
 #define CONST_DEFAULT_SCRIPTS_DIR    "scripts"
 #define CONST_DEFAULT_CALLBACKS_DIR  "scripts/callbacks"
 #define CONST_DEFAULT_USERS_FILE     "ntopng-users.conf"
-#define CONST_DEFAULT_WRITABLE_DIR   "/var/tmp"
 #define CONST_DEFAULT_INSTALL_DIR    (DATA_DIR "/ntopng")
 #define CONST_ALT_INSTALL_DIR        "/usr/share/ntopng"
 #define CONST_ALT2_INSTALL_DIR       "/usr/local/share/ntopng"
 #define CONST_HTTP_PREFIX_STRING     "@HTTP_PREFIX@"
 #define CONST_NTOP_STARTUP_EPOCH     "@NTOP_STARTUP_EPOCH@"
 #define CONST_NTOP_PRODUCT_NAME      "@NTOP_PRODUCT_NAME@"
-#define CONST_DEFAULT_NTOP_USER      "nobody"
+#define CONST_OLD_DEFAULT_NTOP_USER  "nobody"
+#define CONST_DEFAULT_NTOP_USER      "ntopng"
 #define CONST_TOO_EARLY              "(Too Early)"
 
 #define CONST_LUA_OK                  1

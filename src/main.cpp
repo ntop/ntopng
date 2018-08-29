@@ -313,8 +313,9 @@ int main(int argc, char *argv[])
    */
   if(prefs->do_change_user()
      && (prefs->get_http_port()  >= 1024)
-     && (prefs->get_https_port() >= 1024))
+     && (prefs->get_https_port() >= 1024)) {
     Utils::dropPrivileges();
+  }
 
   ntop->loadGeolocation(prefs->get_docs_dir());
   ntop->loadMacManufacturers(prefs->get_docs_dir());
@@ -352,8 +353,8 @@ int main(int argc, char *argv[])
   
   if((fd = fopen(path, "w")) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
-				 "Unable to write on %s [%s]: %s. Please specify a different directory (-d)",
-				 ntop->get_working_dir(), path, strerror(errno));
+				 "Unable to write on %s as '%s' [%s]: %s. Please specify a different directory (-d)",
+				 ntop->get_working_dir(), prefs->get_user(), path, strerror(errno));
     exit(EXIT_FAILURE);
   } else {
     chmod(path, CONST_DEFAULT_FILE_MODE);

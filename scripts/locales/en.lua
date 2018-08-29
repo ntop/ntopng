@@ -156,6 +156,7 @@ local lang = {
     ["built_on"] = "Built on",
     ["copyright"] = "Copyright",
     ["cpu_load"] = "CPU load",
+    ["datadir_warning"] = "Data directory migration notice",
     ["last_log"] = "Last Log Trace",
     ["licence"] = "License",
     ["licence_expires_in"] = "License expires in %{time}",

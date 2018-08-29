@@ -37,6 +37,7 @@ if [ -d $RPM_BUILD_ROOT ]; then
 fi
 
 mkdir -p $RPM_BUILD_ROOT/usr/bin $RPM_BUILD_ROOT/usr/share/ntopng $RPM_BUILD_ROOT/usr/share/man/man8 
+mkdir -p $RPM_BUILD_ROOT/var/lib/ntopng
 mkdir -p $RPM_BUILD_ROOT/etc/logrotate.d
 %if 0%{?centos_ver} != 7
 mkdir -p $RPM_BUILD_ROOT/etc/init.d 
@@ -100,6 +101,8 @@ rm -fr $RPM_BUILD_ROOT
 #/etc/ntopng/ntopng.conf.sample
 #/etc/ntopng/ntopng.start
 
+%dir %attr(700, ntopng, ntopng) /var/lib/ntopng
+
 # Set the default attributes of all of the files specified to have an
 # owner and group of root and to inherit the permissions of the file
 # itself.
@@ -115,6 +118,14 @@ rm -fr $RPM_BUILD_ROOT
 # un-install:                          preun       -> (delete)     -> postun
 
 %pre
+if ! grep -q ntopng /etc/group; then
+  echo 'Creating ntopng group'
+  /usr/sbin/groupadd -r ntopng
+fi
+if ! /usr/bin/id -u ntopng > /dev/null 2>&1; then 
+  echo 'Creating ntopng user'
+  /usr/sbin/useradd -M -N -g ntopng -r ntopng
+fi
 %if 0%{?centos_ver} != 7
 case "$1" in
   1)

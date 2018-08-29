@@ -186,13 +186,13 @@ can be instructed to act as a publisher delivering flows to a ZeroMQ endpoint us
 Finally using \-i dummy it is possible to create a dummy interface that generates a large number of flows/hosts in order to saturate ntopng resources. This way ntopng can be tested for performance issues as well proper handling of low-memory situations.
 
 .It \-d|\-\-data\-dir\ <path>
-Specifies the data directory (it must be writable). Default directory is /var/tmp/ntopng
+Specifies the data directory (it must be writable). Default directory is /var/lib/ntopng
 
 .It \-t|\-\-install\-dir\ <path>
 Specifies the installation directory. Default directory is retrieved from common install paths.
 
 .It \-G|\-\-pid\-path\ <path>
-Specifies the path where the PID (process ID) is saved. Default is /var/tmp/ntopng.pid
+Specifies the path where the PID (process ID) is saved. Default is /var/run/ntopng.pid
 
 .It \-k|\-\-traffic\-filtering\ <key>
 Set the key used to access httpbl services (default: disabled).  Please read README.httpbl and README.flashstart for more info.

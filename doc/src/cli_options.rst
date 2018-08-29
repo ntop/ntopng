@@ -25,7 +25,7 @@ ntopng supports a large number of command line parameters. To see what they are,
    [--interface|-i] <interface|pcap>   | Input interface name (numeric/symbolic),
                                        | view or pcap file path
    [--data-dir|-d] <path>              | Data directory (must be writable).
-                                       | Default: /var/tmp/ntopng
+                                       | Default: /var/lib/ntopng
    [--install-dir|-t] <path>           | Set the installation directory to <dir>.
                                        | Should be set when installing ntopng
                                        | under custom directories
@@ -39,7 +39,7 @@ ntopng supports a large number of command line parameters. To see what they are,
    [--prefs-dir|-4] <path>             | Preferences directory used to serialize
                                        | and deserialize file
                                        | containing runtime preferences.
-                                       | Default: /var/tmp/ntopng
+                                       | Default: /var/lib/ntopng
    [--no-promisc|-u]                   | Don't set the interface in promisc mode.
    [--traffic-filtering|-k] <param>    | Filter traffic using cloud services.
                                        | (default: disabled). Available options:

@@ -103,6 +103,7 @@ class Prefs {
   char *config_file_path, *ndpi_proto_path;
   char *packet_filter;
   char *user;
+  bool user_set;
   char *redis_host;
   char *redis_password;
   char *pid_path;
@@ -178,6 +179,8 @@ class Prefs {
   inline bool are_ixia_timestamps_enabled()             { return(enable_ixia_timestamps); };
   inline bool are_vss_apcon_timestamps_enabled()        { return(enable_vss_apcon_timestamps); };
   inline char* get_user()                               { return(user);                   };
+  inline void set_user(const char *u)                   { if(user) free(user); user = strdup(u); user_set = true; };
+  inline bool is_user_set()                             { return user_set; };
   inline u_int8_t get_num_user_specified_interfaces()   { return(num_interfaces);         };
   inline bool  do_read_flows_from_nprobe_mysql()        { return(read_flows_from_mysql);  };
   inline bool  do_dump_flows_on_es()                    { return(dump_flows_on_es);       };
