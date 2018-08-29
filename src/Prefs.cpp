@@ -25,7 +25,6 @@
 
 Prefs::Prefs(Ntop *_ntop) {
   num_deferred_interfaces_to_register = 0, cli = NULL;
-  memset(deferred_interfaces_to_register, 0, sizeof(deferred_interfaces_to_register));
   ntop = _ntop, sticky_hosts = location_none,
     ignore_vlans = false, simulate_vlans = false;
   local_networks = strdup(CONST_DEFAULT_HOME_NET "," CONST_DEFAULT_LOCAL_NETS);
@@ -94,7 +93,11 @@ Prefs::Prefs(Ntop *_ntop) {
 #endif
   read_flows_from_mysql = false;
   enable_taps = false;
-  memset(ifNames, 0, sizeof(ifNames));
+
+  if(!(ifNames = (InterfaceInfo*)calloc(MAX_NUM_DEFINED_INTERFACES, sizeof(InterfaceInfo)))
+     || !(deferred_interfaces_to_register = (char**)calloc(MAX_NUM_DEFINED_INTERFACES, sizeof(char*))))
+     throw "Not enough memory";
+
   dump_hosts_to_db = location_none;
   json_labels_string_format = true;
 #ifdef WIN32
@@ -124,9 +127,24 @@ Prefs::Prefs(Ntop *_ntop) {
 /* ******************************************* */
 
 Prefs::~Prefs() {
-  for(int i=0; i<num_interfaces; i++) {
-    if(ifNames[i].name) free(ifNames[i].name);
-    if(ifNames[i].description) free(ifNames[i].description);
+  if(ifNames) {
+    for(int i = 0; i < num_interfaces; i++) {
+      if(ifNames[i].name) free(ifNames[i].name);
+      if(ifNames[i].description) free(ifNames[i].description);
+    }
+
+    free(ifNames);
+    ifNames = NULL;
+  }
+
+  if(deferred_interfaces_to_register) {
+    for(int i = 0; i < num_deferred_interfaces_to_register; i++) {
+      if(deferred_interfaces_to_register[i])
+	free(deferred_interfaces_to_register[i]);
+    }
+
+    free(deferred_interfaces_to_register);
+    deferred_interfaces_to_register = NULL;
   }
 
   if(data_dir)         free(data_dir);
@@ -425,6 +443,28 @@ void Prefs::setTraceLevelFromRedis(){
 
   free(lvlStr);
 }
+
+/* ******************************************* */
+
+char* Prefs::get_if_name(int id) {
+  for(int i = 0; i < num_interfaces; i++) {
+    if(ifNames[i].id == id)
+      return ifNames[i].name;
+  }
+
+  return NULL;
+};
+
+/* ******************************************* */
+
+char* Prefs::get_if_descr(int id) {
+  for(int i = 0; i < num_interfaces; i++) {
+    if(ifNames[i].id == id)
+      return ifNames[i].description;
+  }
+
+  return NULL;
+};
 
 /* ******************************************* */
 
@@ -873,7 +913,7 @@ int Prefs::setOption(int optkey, char *optarg) {
       ntop->getTrace()->traceEvent(TRACE_ERROR,
 				   "Interface name too long (exceeding %d characters): ignored %s",
 				   MAX_INTERFACE_NAME_LEN - 1, optarg);
-    else if(num_deferred_interfaces_to_register < MAX_NUM_INTERFACES)
+    else if(num_deferred_interfaces_to_register < MAX_NUM_DEFINED_INTERFACES)
       deferred_interfaces_to_register[num_deferred_interfaces_to_register++] = strdup(optarg);
     else
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Too many interfaces specified with -i: ignored %s", optarg);
@@ -1412,14 +1452,19 @@ int Prefs::loadFromFile(const char *path) {
 /* ******************************************* */
 
 void Prefs::add_network_interface(char *name, char *description) {
-  int id = Utils::ifname2id(name);
+  if(num_interfaces < MAX_NUM_DEFINED_INTERFACES) {
+    int id = Utils::ifname2id(name);
 
-  if(id < (MAX_NUM_INTERFACES-1)) {
-    ifNames[id].name = strdup(!strncmp(name, "-", 1) ? "stdin" : name);
-    ifNames[id].description = strdup(description ? description : name);
-    num_interfaces++;
+    if(id >= 0) {
+      ifNames[num_interfaces].name = strdup(!strncmp(name, "-", 1) ? "stdin" : name);
+      ifNames[num_interfaces].description = strdup(description ? description : name);
+      ifNames[num_interfaces].id = id;
+      num_interfaces++;
+      //      ntop->getTrace()->traceEvent(TRACE_ERROR, "Added interface [id: %d][name: %s]", id, name);
+    } else
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to get a valid id for %s, skipping.", name);
   } else {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Too many interfaces (%d): discarded %s", id, name);
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Too many interfaces (%d): discarded %s", num_interfaces, name);
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Hint: reset redis (redis-cli flushall) and then start ntopng again");
   }
 }
@@ -1596,10 +1641,11 @@ void Prefs::refreshHostsAlertsPrefs() {
 /* *************************************** */
 
 void Prefs::registerNetworkInterfaces() {
-  for(int i=0; i<num_deferred_interfaces_to_register; i++) {
+  for(int i = 0; i < num_deferred_interfaces_to_register; i++) {
     if(deferred_interfaces_to_register[i] != NULL) {
       add_network_interface(deferred_interfaces_to_register[i], NULL);
       free(deferred_interfaces_to_register[i]);
+      deferred_interfaces_to_register[i] = NULL;
     }
   }
 }

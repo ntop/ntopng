@@ -32,7 +32,7 @@ ViewInterface::ViewInterface(const char *_endpoint) : NetworkInterface(_endpoint
     while(iface != NULL) {
       bool found = false;
 
-      for(int i=0; i<MAX_NUM_INTERFACES; i++) {
+      for(int i = 0; i < MAX_NUM_INTERFACE_IDS; i++) {
 	char *ifName;
 
 	if((ifName = ntop->get_if_name(i)) == NULL)

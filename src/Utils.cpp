@@ -717,15 +717,14 @@ extern "C" {
 int Utils::ifname2id(const char *name) {
   char rsp[MAX_INTERFACE_NAME_LEN], ifidx[8];
 
-  if(name == NULL)                    return(-1);
-  else if(!strncmp(name, "dummy", 5)) return(DUMMY_IFACE_ID);
-  else if(!strncmp(name, "stdin", 5) || !strncmp(name, "-", 1)) return(STDIN_IFACE_ID);
+  if(name == NULL) return(-1);
+  else if(!strncmp(name, "-", 1)) name = (char*) "stdin";
 
   if(ntop->getRedis()->hashGet((char*)CONST_IFACE_ID_PREFS, (char*)name, rsp, sizeof(rsp)) == 0) {
     /* Found */
     return(atoi(rsp));
   } else {
-    for(int i = 0; i < 255; i++) {
+    for(int i = 0; i < MAX_NUM_INTERFACE_IDS; i++) {
       snprintf(ifidx, sizeof(ifidx), "%d", i);
       if(ntop->getRedis()->hashGet((char*)CONST_IFACE_ID_PREFS, ifidx, rsp, sizeof(rsp)) < 0) {
 	snprintf(rsp, sizeof(rsp), "%s", name);
@@ -734,9 +733,11 @@ int Utils::ifname2id(const char *name) {
 	return(i);
       }
     }
+
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Interface ids exhausted. Flush redis to create new interfaces.");
   }
 
-  return(DUMMY_IFACE_ID); /* This can't happen, hopefully */
+  return(-1); /* This can't happen, hopefully */
 }
 
 /* **************************************************** */

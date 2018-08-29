@@ -1619,13 +1619,13 @@ int Ntop::getInterfaceIdByName(lua_State *vm, const char * const name) {
   return(-1);
 }
 
-/* ******************************************* */
+/* ****************************************** */
 
 void Ntop::registerInterface(NetworkInterface *_if) {
   _if->finishInitialization();
   _if->checkAggregationMode();
 
-  for(int i=0; i<num_defined_interfaces; i++) {
+  for(int i = 0; i < num_defined_interfaces; i++) {
     if(strcmp(iface[i]->get_name(), _if->get_name()) == 0) {
       ntop->getTrace()->traceEvent(TRACE_WARNING,
 				   "Skipping duplicated interface %s", _if->get_name());

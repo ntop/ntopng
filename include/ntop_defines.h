@@ -131,7 +131,6 @@
 #define TZSP_PORT                 37008
 #define CAPWAP_DATA_PORT          5247
 #define MAX_NUM_INTERFACE_HOSTS   131072
-#define MAX_NUM_INTERFACES        48
 #define MAX_NUM_VIEW_INTERFACES   8
 
 #define LIMITED_NUM_INTERFACES    32
@@ -198,8 +197,7 @@
 #define HOST_POOL_SERIALIZED_KEY "ntopng.serialized_host_pools.ifid_%u"
 #define MAC_CUSTOM_DEVICE_TYPE  "ntopng.prefs.device_types.%s"
 #define NTOP_HOSTS_SERIAL       "ntopng.host_serial"
-#define DUMMY_IFACE_ID          (MAX_NUM_INTERFACES-2)
-#define STDIN_IFACE_ID          (MAX_NUM_INTERFACES-3)
+#define MAX_NUM_INTERFACE_IDS   256
 #define DUMMY_BRIDGE_INTERFACE_ID       1 /* Anything but zero */
 #define MAX_CSRF_DURATION       300 /* 5 mins */
 #define NTOP_NOLOGIN_USER	"nologin"

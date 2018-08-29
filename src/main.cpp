@@ -153,7 +153,7 @@ int main(int argc, char *argv[])
 
   affinity = prefs->get_cpu_affinity();
 
-  for(int i=0; i<MAX_NUM_INTERFACES; i++) {
+  for(int i = 0; i < MAX_NUM_INTERFACE_IDS; i++) {
     NetworkInterface *iface = NULL;
 
     if((ifName = ntop->get_if_name(i)) == NULL
@@ -260,7 +260,7 @@ int main(int argc, char *argv[])
   } /* for */
 
   /* Instantiated deferred view interfaces */
-  for(int i = 0; i < MAX_NUM_INTERFACES; i++) {
+  for(int i = 0; i < MAX_NUM_INTERFACE_IDS; i++) {
     NetworkInterface *iface = NULL;
 
     if((ifName = ntop->get_if_name(i)) == NULL || strncmp(ifName, "view:", 5))

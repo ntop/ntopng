@@ -32,13 +32,14 @@ extern void nDPIusage();
 
 typedef struct {
   char *name, *description;
+  int id;
 } InterfaceInfo;
 
 class Prefs {
  private:
   u_int8_t num_deferred_interfaces_to_register;
   pcap_direction_t captureDirection;
-  char *deferred_interfaces_to_register[MAX_NUM_INTERFACES], *cli;
+  char **deferred_interfaces_to_register, *cli;
   char *http_binding_address1, *http_binding_address2;
   char *https_binding_address1, *https_binding_address2;
   char *lan_interface;
@@ -89,7 +90,7 @@ class Prefs {
   bool dump_flows_on_es, dump_flows_on_mysql, dump_flows_on_ls, dump_flows_on_nindex;
   bool read_flows_from_mysql;
   bool enable_taps;
-  InterfaceInfo ifNames[MAX_NUM_INTERFACES];
+  InterfaceInfo *ifNames;
   char *local_networks;
   bool local_networks_set, shutdown_when_done, simulate_vlans, ignore_vlans;
   char *data_dir, *install_dir, *docs_dir, *scripts_dir,
@@ -186,8 +187,8 @@ class Prefs {
     
   int32_t getDefaultPrefsValue(const char *pref_key, int32_t default_value);
   void getDefaultStringPrefsValue(const char *pref_key, char **buffer, const char *default_value);
-  inline char* get_if_name(u_int id)                    { return((id < MAX_NUM_INTERFACES) ? ifNames[id].name : NULL); };
-  inline char* get_if_descr(u_int id)                   { return((id < MAX_NUM_INTERFACES) ? ifNames[id].description : NULL); };
+  char* get_if_name(int id);
+  char* get_if_descr(int id);
   inline char* get_config_file_path()                   { return(config_file_path); };
   inline char* get_ndpi_proto_file_path()               { return(ndpi_proto_path); };
   inline char* get_data_dir()                           { return(data_dir);       };
@@ -274,8 +275,6 @@ class Prefs {
   inline char* get_command_line()       { return(cli ? cli : (char*)""); };
   inline char* get_lan_interface()      { return(lan_interface ? lan_interface : (char*)""); };
   inline void set_lan_interface(char *iface) { if(lan_interface) free(lan_interface); lan_interface = strdup(iface); };
-
-  inline char* getInterfaceAt(int id)   { return((id >= MAX_NUM_INTERFACES) ? NULL : ifNames[id].name); };
   inline bool areMacNdpiStatsEnabled()  { return(enable_mac_ndpi_stats); };
   inline pcap_direction_t getCaptureDirection() { return(captureDirection); }
   inline void setCaptureDirection(pcap_direction_t dir) { captureDirection = dir; }
