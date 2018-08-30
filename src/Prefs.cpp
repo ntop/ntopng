@@ -95,8 +95,8 @@ Prefs::Prefs(Ntop *_ntop) {
   read_flows_from_mysql = false;
   enable_taps = false;
 
-  if(!(ifNames = (InterfaceInfo*)calloc(MAX_NUM_DEFINED_INTERFACES, sizeof(InterfaceInfo)))
-     || !(deferred_interfaces_to_register = (char**)calloc(MAX_NUM_DEFINED_INTERFACES, sizeof(char*))))
+  if(!(ifNames = (InterfaceInfo*)calloc(UNLIMITED_NUM_INTERFACES, sizeof(InterfaceInfo)))
+     || !(deferred_interfaces_to_register = (char**)calloc(UNLIMITED_NUM_INTERFACES, sizeof(char*))))
      throw "Not enough memory";
 
   dump_hosts_to_db = location_none;
@@ -914,7 +914,7 @@ int Prefs::setOption(int optkey, char *optarg) {
       ntop->getTrace()->traceEvent(TRACE_ERROR,
 				   "Interface name too long (exceeding %d characters): ignored %s",
 				   MAX_INTERFACE_NAME_LEN - 1, optarg);
-    else if(num_deferred_interfaces_to_register < MAX_NUM_DEFINED_INTERFACES)
+    else if(num_deferred_interfaces_to_register < UNLIMITED_NUM_INTERFACES)
       deferred_interfaces_to_register[num_deferred_interfaces_to_register++] = strdup(optarg);
     else
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Too many interfaces specified with -i: ignored %s", optarg);
