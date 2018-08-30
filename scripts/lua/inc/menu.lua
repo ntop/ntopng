@@ -513,3 +513,10 @@ print("</A></h3>\n</div>\n")
 
 -- select the original interface back to prevent possible issues
 interface.select(ifname)
+
+if(dirs.workingdir == "/var/tmp/ntopng") then
+   print('<br><div class="alert alert-danger" role="alert"><i class="fa fa-warning fa-lg" id="alerts-menu-triangle"></i> <A HREF="https://www.ntop.org/support/faq/migrate-the-data-directory-in-ntopng/">')
+   print(i18n("about.datadir_warning"))
+   print('</a></div>')
+end
+

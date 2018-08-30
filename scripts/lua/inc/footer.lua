@@ -71,12 +71,6 @@ if have_nedge then
   )
 end
 
-if(dirs.workingdir == "/var/tmp/ntopng") then
-   print('<br><A HREF="https://www.ntop.org/support/faq/migrate-the-data-directory-in-ntopng/"><span class="badge badge-warning">')
-   print(i18n("about.datadir_warning"))
-   print('</span></a>')
-end
-
 if(info["pro.systemid"] and (info["pro.systemid"] ~= "")) then
    local do_show = false
 
