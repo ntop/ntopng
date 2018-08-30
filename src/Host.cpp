@@ -600,10 +600,6 @@ void Host::incStats(u_int32_t when, u_int8_t l4_proto, u_int ndpi_proto,
 	other_ip_sent.incStats(sent_packets, sent_bytes);
       break;
     }
-
-    if(as) {
-      as->incStats(when, ndpi_proto, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes);
-    }
   }
 }
 

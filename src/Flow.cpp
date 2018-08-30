@@ -1030,6 +1030,14 @@ void Flow::update_hosts_stats(struct timeval *tv) {
 	}
       }
 
+      if(cli_host->get_asn() != srv_host->get_asn()) {
+        AutonomousSystem *cli_as = cli_host->get_as(), *srv_as = srv_host->get_as();
+        if(cli_as)
+          cli_as->incStats(tv->tv_sec, stats_protocol, diff_sent_packets, diff_sent_bytes, diff_rcvd_packets, diff_rcvd_bytes);
+        if(srv_as)
+          srv_as->incStats(tv->tv_sec, stats_protocol, diff_rcvd_packets, diff_rcvd_bytes, diff_sent_packets, diff_sent_bytes);
+      }
+
       // Update Country stats
       Country *cli_country_stats = cli_host->getCountryStats();
       Country *srv_country_stats = srv_host->getCountryStats();

@@ -166,6 +166,7 @@ class Host : public Checkpointable, public GenericHashEntry, public GenericTraff
 
   inline u_int32_t get_asn()                   { return(asn);              }
   inline char*     get_asname()                { return(asname);           }
+  inline AutonomousSystem* get_as()            { return(as);               }
   inline bool isPrivateHost()                  { return(ip.isPrivateAddress()); }
   bool isLocalInterfaceAddress();
   char* get_name(char *buf, u_int buf_len, bool force_resolution_if_not_found);
