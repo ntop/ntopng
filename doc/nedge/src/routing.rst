@@ -104,6 +104,30 @@ gateway in `Up` status with the highest priority. nEdge will also adapt to cable
 **plug/unplug** events. When the WAN interfaces are configured in DHCP client mode,
 the cables can even be swapped and nEdge will automatically detect the new gateways setup.
 
+Static Routes
+-------------
+
+Sometimes it may be necessary to add static routes to nEdge to properly handle users' traffic.
+
+Static routes, when defined, are applied to any of the nEdge routing
+policies and take precedence over any other gateway specified. That is, if there
+are a couple of gateways for a routing policy, namely `SAT`
+and `WiFi`, then the traffic will be matched against all the
+defined static routes (and possibly sent through the best match)
+before being sent through `WiFi` or `SAT`.
+
+As an example, let's consider the following scenario:
+
+inet <-> gw (192.168.2.1) <-> (WAN 192.168.2.149) nEdge (LAN 192.168.1.1) <-> (192.168.1.2 LAN 10.100.200.0/24 with gw 192.168.1.1)
+
+A ping packet originating at host `10.100.200.2` in the rightmost LAN,
+and destined to `8.8.8.8` will reach the nEdge but the
+reply won't be able to reach the originating host as nEdge has no
+routing information to each `10.100.200.0/24`. Therefore, one should
+add static route `10.100.200.0/24 via 192.168.1.2` to make sure the
+reply is able to reach the originating host.
+
+
 DHCP Server
 -----------
 
