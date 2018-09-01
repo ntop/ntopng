@@ -41,6 +41,8 @@ class Mutex {
 
  public:
   Mutex();
+  ~Mutex() { pthread_mutex_destroy(&the_mutex); };
+  
   void lock(const char *filename, const int line);
   void unlock(const char *filename, const int line);  
   inline bool is_locked() { return(locked); };
