@@ -39,8 +39,9 @@
 */
 TimeSeriesExporter::TimeSeriesExporter(NetworkInterface *_if) {
   fd = -1, iface = _if, num_cached_entries = 0, dbCreated = false;
+  cursize = num_exports = 0;
 
-  snprintf(fbase, sizeof(fbase), "%s/%d/ts_export/", ntop->get_working_dir(), -1);
+  snprintf(fbase, sizeof(fbase), "%s/%d/ts_export/", ntop->get_working_dir(), iface->get_id());
   ntop->fixPath(fbase);
 
   if(!Utils::mkdir_tree(fbase)) {
@@ -60,9 +61,10 @@ TimeSeriesExporter::~TimeSeriesExporter() {
 
 void TimeSeriesExporter::createDump() {
   flushTime = time(NULL) + CONST_INFLUXDB_FLUSH_TIME;
+  cursize = 0;
 
   /* Use the flushTime as the fname */
-  snprintf(fname, sizeof(fname), "%s%lu", fbase, flushTime);
+  snprintf(fname, sizeof(fname), "%s%u_%lu", fbase, num_exports, flushTime);
 
 #ifdef WIN32
   fd = open(fname, O_RDWR | O_CREAT | O_EXCL, _S_IREAD | _S_IWRITE);
@@ -97,6 +99,8 @@ void TimeSeriesExporter::exportData(char *data, bool do_lock) {
     int exp = strlen(data);
     int l = (int)write(fd, data, exp);
 
+    cursize += l;
+
     num_cached_entries++;
     if(l == exp)
       ntop->getTrace()->traceEvent(TRACE_INFO, "[%s] %s", iface->get_name(), data);
@@ -107,7 +111,7 @@ void TimeSeriesExporter::exportData(char *data, bool do_lock) {
 
   if(do_lock) m.unlock(__FILE__, __LINE__);
 
-  if(time(NULL) > flushTime)
+  if((time(NULL) > flushTime) || (cursize >= CONST_INFLUXDB_MAX_DUMP_SIZE))
     flush(); /* Auto-flush data */
 }
 
@@ -120,7 +124,9 @@ void TimeSeriesExporter::flush() {
     close(fd);
     fd = -1;
     char buf[32];
-    snprintf(buf, sizeof(buf), "%lu", flushTime);
+    snprintf(buf, sizeof(buf), "%d|%lu|%u", iface->get_id(), flushTime, num_exports);
+    cursize = 0;
+    num_exports++;
 
     ntop->getRedis()->rpush(CONST_INFLUXDB_FILE_QUEUE, buf, 0);
     ntop->getTrace()->traceEvent(TRACE_INFO, "[%s] Queueing TS file %s [%u entries]",
