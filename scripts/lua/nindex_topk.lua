@@ -170,6 +170,9 @@ res = interface.nIndexTopK(aggregated_flows, begin_time, end_time, select_keys, 
 -- tprint(res)
 
 if(res) then
+   if(type(res) == "string") then
+      print("<p>&nbsp;</p><font color=red>ERROR: "..res.."</font>")
+   else
    if(res.info.duration == 0) then
       res.info.duration = " &lt; 1"
    end
@@ -196,6 +199,7 @@ if(res) then
    end
    
    print("</table>\n")
+end
 else
    print("No result")
 end

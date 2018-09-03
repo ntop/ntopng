@@ -136,35 +136,39 @@ print [[
 
 res = interface.nIndexSelect(aggregated_flows, begin_time, end_time, select, where, 0, tonumber(maxhits))
 
--- tprint(res)
+--tprint(res)
 
 if(res) then
-   if(res.info.duration == 0) then
-      res.info.duration = " &lt; 1"
-   end
-   
-   print("<p><small>Query perfomed in "..res.info.duration.." msec</small><br>")
-   
-   print("<p><table class=\"table table-bordered table-striped\">\n")
-
-   print("<tr>")
-   for k, row in pairs(res.columns) do      
-      print("<th>"..row.."</th>")     
-   end
-   print("</tr>\n")
-   
-   for k, row in pairs(res.results) do
-      print("<tr>")
-      -- print("<tr><th>"..k.."</th>")
-      
-      for k, v in pairs(row) do
-	 print("<td>"..v.."</td>")
+   if(type(res) == "string") then
+      print("<p>&nbsp;</p><font color=red>ERROR: "..res.."</font>")
+   else
+      if(res.info.duration == 0) then
+	 res.info.duration = " &lt; 1"
       end
       
+      print("<p><small>Query perfomed in "..res.info.duration.." msec</small><br>")
+      
+      print("<p><table class=\"table table-bordered table-striped\">\n")
+      
+      print("<tr>")
+      for k, row in pairs(res.columns) do      
+	 print("<th>"..row.."</th>")     
+      end
       print("</tr>\n")
+      
+      for k, row in pairs(res.results) do
+	 print("<tr>")
+	 -- print("<tr><th>"..k.."</th>")
+	 
+	 for k, v in pairs(row) do
+	    print("<td>"..v.."</td>")
+	 end
+	 
+	 print("</tr>\n")
+      end
+      
+      print("</table>\n")
    end
-   
-   print("</table>\n")
 else
    print("No result")
 end
