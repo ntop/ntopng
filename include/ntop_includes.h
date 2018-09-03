@@ -233,6 +233,7 @@ using namespace std;
 #include "nindex_api.h"
 #endif
 #include "TimeSeriesExporter.h"
+#include "TimeSeriesRing.h"
 #include "NetworkInterface.h"
 #ifndef HAVE_NEDGE
 #include "PcapInterface.h"

@@ -1117,6 +1117,7 @@ local known_parameters = {
    ["topk_heuristic_precision"]                    = validateChoiceInline({"disabled", "more_accurate", "accurate", "aggressive"}),
    ["bridging_policy_target_type"]                 = validateChoiceInline({"per_protocol", "per_category", "both"}),
    ["timeseries_driver"]                           = validateChoiceInline({"rrd", "influxdb"}),
+   ["ts_high_resolution"]                          = validateNumber,
 
    -- Other
    ["flush_alerts_data"]                           = validateEmpty,

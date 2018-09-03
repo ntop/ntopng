@@ -156,7 +156,6 @@
 #define MAX_FLOW_IDLE            60 /* sec */
 #define MAX_LOCAL_HOST_IDLE     300 /* sec */
 #define MAX_REMOTE_HOST_IDLE     60 /* sec */
-//#define HOST_NUM_TIMESERIES_POINTS (6+1) /* 5s * 6 = 30s + 1 extra slot */
 #define INTF_RRD_RAW_DAYS        1
 #define INTF_RRD_1MIN_DAYS       30
 #define INTF_RRD_1H_DAYS         100
@@ -338,6 +337,8 @@
 #define CONST_MAX_NUM_NETWORKS       255
 #define CONST_NUM_OPEN_DB_CACHE        8
 #define CONST_NUM_CONTACT_DBS          8
+#define CONST_DEFAULT_TS_NUM_SLOTS     0 /* disabled */
+#define CONST_DEFAULT_TS_NUM_STEPS     0 /* disabled */
 #define MAX_ZMQ_SUBSCRIBERS           32
 #define MAX_ZMQ_POLL_WAIT_MS        1000 /* 1 sec */
 #define MAX_ZMQ_POLLS_BEFORE_PURGE  1000
@@ -513,6 +514,8 @@
 #define CONST_RUNTIME_PREFS_IFACE_FLOW_COLLECTION      "ntopng.prefs.dynamic_flow_collection_mode" /* {"none", "vlan", "probe_ip","ingress_iface_idx"} */
 #define CONST_RUNTIME_PREFS_IGNORED_INTERFACES         "ntopng.prefs.ignored_interfaces"
 #define CONST_RUNTIME_PREFS_ENABLE_MAC_NDPI_STATS      "ntopng.prefs.l2_device_ndpi_timeseries_creation"
+#define CONST_RUNTIME_TS_NUM_SLOTS                     "ntopng.prefs.ts_write_slots"
+#define CONST_RUNTIME_TS_NUM_STEPS                     "ntopng.prefs.ts_write_steps"
 #define DISAGGREGATION_PROBE_IP                        "probe_ip"
 #define DISAGGREGATION_IFACE_ID                        "iface_idx"
 #define DISAGGREGATION_INGRESS_IFACE_ID                "ingress_iface_idx"

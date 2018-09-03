@@ -24,13 +24,17 @@
 
 #include "ntop_includes.h"
 
-typedef struct {
+class HostTimeseriesPoint: public TimeseriesPoint {
+ public:
   nDPIStats *ndpi;
   u_int64_t sent, rcvd;
   u_int32_t total_num_flows_as_client, total_num_flows_as_server;
   TrafficCounter l4_stats[4]; // tcp, udp, icmp, other
-  time_t timestamp;
-} TimeseriesPoint;
+
+  HostTimeseriesPoint();
+  virtual ~HostTimeseriesPoint();
+  virtual void lua(lua_State* vm, NetworkInterface *iface);
+};
 
 class LocalHost : public Host {
  private:
@@ -52,8 +56,7 @@ class LocalHost : public Host {
   u_int32_t attacker_max_num_syn_per_sec, victim_max_num_syn_per_sec;
   AlertCounter *syn_flood_attacker_alert, *syn_flood_victim_alert;
   AlertCounter *flow_flood_attacker_alert, *flow_flood_victim_alert;
-  TimeseriesPoint *ts_points;
-  u_int8_t ts_max_points, ts_cur_point, ts_available_points;
+  TimeSeriesRing *ts_ring;
 
   void initialize();
   virtual bool readDHCPCache();
@@ -104,6 +107,7 @@ class LocalHost : public Host {
   virtual void lua(lua_State* vm, AddressTree * ptree, bool host_details,
 		   bool verbose, bool returnHost, bool asListElement);
   virtual void tsLua(lua_State* vm);
+  void makeTsPoint(HostTimeseriesPoint *pt);
 };
 
 #endif /* _LOCAL_HOST_H_ */

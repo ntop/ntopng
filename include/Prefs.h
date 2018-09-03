@@ -76,6 +76,7 @@ class Prefs {
   u_int32_t max_num_packets_per_tiny_flow, max_num_bytes_per_tiny_flow;
   u_int32_t max_ui_strlen;
   u_int8_t default_l7policy;
+  u_int8_t num_ts_slots, ts_num_steps;
   HostMask hostMask;
 
   LocationPolicy dump_hosts_to_db, sticky_hosts;
@@ -331,6 +332,8 @@ class Prefs {
   inline u_int16_t get_auto_assigned_pool_id()   { return(auto_assigned_pool_id);                       };
   inline u_int16_t is_routing_mode()             { return(routing_mode_enabled);                        };
   inline bool isGlobalDnsForgingEnabled()        { return(global_dns_forging_enabled);                  };
+  inline u_int8_t getNumTsSlots()                { return(num_ts_slots);                                };
+  inline u_int8_t getNumTsSteps()                { return(ts_num_steps);                                };
 
   void validate();
 };

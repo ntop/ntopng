@@ -35,16 +35,32 @@ function ts_utils.newSchema(name, options)
   return schema
 end
 
+-- ##############################################
+
+function ts_utils.hasHighResolutionTs()
+  return (ntop.getPref("ntopng.prefs.timeseries_driver") == "influxdb")
+end
+
+-- ##############################################
+
 --! @brief Find schema by name.
 --! @param name the schema identifier.
 --! @return a schema object on success, nil on error.
 function ts_utils.getSchema(name)
   local schema = loaded_schemas[name]
 
-  if schema and (ntop.getPref("ntopng.prefs.30_sec_dump") == "1") then
-    if (schema.options.step == 300) and (starts(name, "host:") or starts(name, "top:host:")) then
-      schema.options.step = 5
-      schema.options.insertion_step = 30
+  if schema and ts_utils.hasHighResolutionTs() then
+    if schema.options.step == 300 then
+      schema.options.insertion_step = 60
+      schema.options.step = 60
+
+      if starts(name, "host:") then
+        local write_steps = tonumber(ntop.getPref("ntopng.prefs.ts_write_steps"))
+
+        if write_steps > 0 then
+          schema.options.step = 5 * write_steps
+        end
+      end
     end
   end
 
@@ -54,6 +70,8 @@ end
 function ts_utils.getLoadedSchemas()
   return loaded_schemas
 end
+
+-- ##############################################
 
 --! @brief Return a list of active timeseries drivers.
 --! @return list of driver objects.
@@ -83,6 +101,8 @@ function ts_utils.listActiveDrivers()
 
   return active_drivers
 end
+
+-- ##############################################
 
 -- Get the driver to use to query data
 function ts_utils.getQueryDriver()

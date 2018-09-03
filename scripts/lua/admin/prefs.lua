@@ -1075,7 +1075,7 @@ function printStatsTimeseries()
   print('<table class="table">')
   print('<tr><th colspan=2 class="info">'..i18n('prefs.timeseries_database')..'</th></tr>')
 
-  local elementToSwitch = {"ts_post_data_url", "influx_dbname", "influx_retention", "row_toggle_influx_auth", "influx_username", "influx_password"}
+  local elementToSwitch = {"ts_post_data_url", "influx_dbname", "influx_retention", "row_toggle_influx_auth", "influx_username", "influx_password", "row_ts_high_resolution"}
   local showElementArray = {false, true}
 
   local javascriptAfterSwitch = "";
@@ -1134,6 +1134,18 @@ function printStatsTimeseries()
 		       "ntopng.prefs.",
 		       "influx_password", "",
            false, auth_enabled, nil, nil,  {attributes={spellcheck="false"}, pattern="[^\\s]+"})
+
+  local ts_slots_labels = {"10s", "30s", "1m"}
+  local ts_slots_values = {"10", "30", "60"}
+
+  multipleTableButtonPrefs(subpage_active.entries["timeseries_resolution_resolution"].title,
+				    subpage_active.entries["timeseries_resolution_resolution"].description,
+				    ts_slots_labels, ts_slots_values,
+				    "60",
+				    "primary",
+				    "ts_high_resolution",
+				    "ntopng.prefs.ts_high_resolution", nil,
+				    nil, nil, nil, influx_active)
 
   prefsInputFieldPrefs(subpage_active.entries["influxdb_storage"].title, subpage_active.entries["influxdb_storage"].description,
       "ntopng.prefs.", "influx_retention", 365, "number", influx_active, nil, nil, {min=0, max=365*10, --[[ TODO check min/max ]]})
@@ -1542,6 +1554,30 @@ aysHandleForm("form", {
 /* Use the validator plugin to override default chrome bubble, which is displayed out of window */
 $("form[id!='search-host-form']").validator({disable:true});
 </script>]])
+
+if tonumber(_POST["ts_high_resolution"]) ~= nil then
+  -- update ts_write_slots
+  local driver = ntop.getPref("ntopng.prefs.timeseries_driver")
+  local new_slots = 0
+  local new_steps = 0
+
+  if driver == "influxdb" then
+    new_slots = 60 / tonumber(_POST["ts_high_resolution"])
+
+    if new_slots == 1 then
+      -- no slots needed in this case
+      new_slots = 0
+    else
+      new_steps = 60 / new_slots / 5
+
+      -- important: add one extra slots to give "buffer" time to the writer
+      new_slots = new_slots + 1
+    end
+  end
+
+  ntop.setPref("ntopng.prefs.ts_write_slots", tostring(new_slots))
+  ntop.setPref("ntopng.prefs.ts_write_steps", tostring(new_steps))
+end
 
 if(_SERVER["REQUEST_METHOD"] == "POST") then
    -- Something has changed

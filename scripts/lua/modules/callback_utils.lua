@@ -106,28 +106,15 @@ end
 
 -- ########################################################
 
-function callback_utils.is30SecDumpEnabled()
-   return ntop.getPref("ntopng.prefs.30_sec_dump") == "1"
-end
-
--- ########################################################
-
 -- Iterates each active host on the ifname interface for RRD creation.
 -- Each host is passed to the callback with some more information.
-function callback_utils.foreachLocalRRDHost(ifname, deadline, callback)
+function callback_utils.foreachLocalRRDHost(ifname, deadline, with_ts, callback)
    interface.select(ifname)
 
    local iterator = callback_utils.getLocalHostsIterator(false --[[ no details ]])
-   local dump30sec = callback_utils.is30SecDumpEnabled()
 
    for hostname, hoststats in iterator do
-      local host
-
-      if dump30sec then
-         host = interface.getHostTimeseries(hostname) or {}
-      else
-         host = interface.getHostInfo(hostname)
-      end
+      local host_ts = nil
 
       if(ntop.isShutdown()) then return true end
       if ((deadline ~= nil) and (os.time() >= deadline)) then
@@ -135,11 +122,13 @@ function callback_utils.foreachLocalRRDHost(ifname, deadline, callback)
 	 return false
       end
 
-      if host ~= nil then
-	 if callback(hostname, host--[[hostinfo]]) == false then
+      if with_ts then
+         host_ts = interface.getHostTimeseries(hostname) or {}
+      end
+
+	 if callback(hostname, host_ts) == false then
 	    return false
 	 end
-      end
    end
 
    return true

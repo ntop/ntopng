@@ -11,6 +11,7 @@ if(ntop.isPro()) then
 end
 
 require "lua_utils"
+local ts_utils = require("ts_utils_core")
 local rrd_dump = require "rrd_5min_dump_utils"
 
 -- ########################################################
@@ -25,4 +26,5 @@ local _ifname = ifstats.name
 
 -- ########################################################
 
-rrd_dump.run_5min_dump(_ifname, ifstats, config, when, time_threshold, verbose)
+local skip_ts = ts_utils.hasHighResolutionTs()
+rrd_dump.run_5min_dump(_ifname, ifstats, config, when, time_threshold, skip_ts, false --[[skip alerts]], verbose)
