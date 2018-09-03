@@ -755,6 +755,11 @@ local function validateGatewayName(m)
    return validateSingleWord(m)
 end
 
+local function validateStaticRouteName(m)
+   -- NOTE: no space allowed right now
+   return validateSingleWord(m)
+end
+
 local function validateNetworkInterface(m)
    return validateSingleWord(m)
 end
@@ -1203,6 +1208,9 @@ local known_parameters = {
    ["default_policy"]          = validateNumber,                -- users
    ["lan_interfaces"]          = validateListOfTypeInline(validateNetworkInterface),
    ["wan_interfaces"]          = validateListOfTypeInline(validateNetworkInterface),
+   ["static_route_name"]       = validateStaticRouteName,
+   ["old_static_route_name"]   = validateStaticRouteName,
+   ["delete_static_route"]     = validateStaticRouteName,
    ["gateway_name"]            = validateGatewayName,
    ["old_gateway_name"]        = validateGatewayName,
    ["delete_gateway"]          = validateGatewayName,
@@ -1282,6 +1290,11 @@ local special_parameters = {   --[[Suffix validator]]     --[[Value Validator]]
 
 -- Protocol to categories match
    ["proto_"]                  = { validateProtocolId, validateCategory },
+
+--
+   ["static_route_address_"]        = { validateStaticRouteName, validateIPV4 },
+   ["static_route_netmask_"]        = { validateStaticRouteName, validateIPV4 },
+   ["static_route_via_"]            = { validateStaticRouteName, validateIPV4 },
 
 -- Gateways
    ["gateway_address_"]        = { validateGatewayName, validateIPV4 },
