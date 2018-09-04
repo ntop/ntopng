@@ -25,12 +25,23 @@ function prefs_dump_utils.savePrefsToDisk()
 
    local out = {}
    for _, pattern in pairs(patterns) do
+      -- ntop.getKeysCache returns all the redis keys
+      -- matching the given patter and SKIPS the in-memory
+      -- cache implemented in class Redis.
       local keys = ntop.getKeysCache(pattern)
 
       for k in pairs(keys or {}) do
 	 local dump = ntop.dumpCache(k)
 	 if dump ~= empty_string_dump then
 	    out[k] = dump
+	 elseif pattern == "ntopng.prefs.*" then
+	    -- Empty preferences can be found in redis due to
+	    -- previous implementations. Currently, empty preferences
+	    -- only stay in the in-memory cache implemented in class Redis
+	    -- (Redis::addToCache) and there's no longer need to have them
+	    -- written to redis. See Redis::isCacheable for the whole list
+	    -- of keys that are cached internally
+	    ntop.delCache(k)
 	 end
       end
    end

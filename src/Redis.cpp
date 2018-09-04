@@ -290,8 +290,12 @@ int Redis::get(char *key, char *rsp, u_int rsp_len, bool cache_it) {
   l->unlock(__FILE__, __LINE__);
 
   if(cacheable && (rc == -1)) {
+    /* Don't fill redis with default empty strings.
+       Those empty strings have already been set
+       into the memory cache by addToCache, leave
+       them out from redis */
     /* Add default */
-    set(key, (char*)"", 0);
+    // set(key, (char*)"", 0);
   }
 
   return(rc);
