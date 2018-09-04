@@ -663,7 +663,7 @@ int AlertsManager::storeAlert(AlertEntity alert_entity, const char *alert_entity
 int AlertsManager::storeFlowAlert(Flow *f) {
   if(!ntop->getPrefs()->are_alerts_disabled()) {
     char alert_json[1024];
-    char cli_ip_buf[256], srv_ip_buf[256];
+    char cli_ip_buf[64], srv_ip_buf[64];
     char query[STORE_MANAGER_MAX_QUERY];
     sqlite3_stmt *stmt = NULL;
     int rc = 0;
@@ -674,11 +674,14 @@ int AlertsManager::storeFlowAlert(Flow *f) {
     AlertType alert_type;
     AlertLevel alert_severity;
     time_t now = time(NULL);
+    char *info;
  
     if(!store_initialized || !store_opened || !f)
       return(-1);
 
     markForMakeRoom(true);
+
+    info = f->getFlowInfo();
 
     msg = Utils::flowStatus2str(f->getFlowStatus(), &alert_type, &alert_severity);
     cli = f->get_cli_host(), srv = f->get_srv_host();
@@ -689,7 +692,7 @@ int AlertsManager::storeFlowAlert(Flow *f) {
 
     if(snprintf(alert_json, sizeof(alert_json),
 		"{\"info\":\"%s\"}",
-		f->getFlowInfo() ? f->getFlowInfo() : (char*)"") >= (int)sizeof(alert_json))
+		info ? info : (char*)"") >= (int)sizeof(alert_json))
       snprintf(alert_json, sizeof(alert_json), "{\"info\":\"\"}");
 
     notifyAlert(alert_entity_flow, "flow", NULL,
@@ -786,7 +789,6 @@ int AlertsManager::storeFlowAlert(Flow *f) {
        && ntop->getPrefs()->are_alerts_syslog_enabled()) {
       char cli_name[64], srv_name[64];
       char at_vlan[8];
-      char *info;
       int len;
 
       at_vlan[0] = '\0';
@@ -803,9 +805,8 @@ int AlertsManager::storeFlowAlert(Flow *f) {
 	       srv->get_ip()->print(srv_ip_buf, sizeof(srv_ip_buf)), at_vlan,
 	       srv->get_visual_name(srv_name, sizeof(srv_name)));
 
-      info = f->getFlowInfo();
       if (info && strlen(info) > 0)
-        len += snprintf(&alert_json[len], sizeof(alert_json)-len, " Info: %s", f->getFlowInfo());
+        len += snprintf(&alert_json[len], sizeof(alert_json)-len, " Info: %s", info);
 
       syslog(LOG_WARNING, "[Alert] %s", alert_json);
     }
