@@ -663,17 +663,18 @@ int AlertsManager::storeAlert(AlertEntity alert_entity, const char *alert_entity
 int AlertsManager::storeFlowAlert(Flow *f) {
   if(!ntop->getPrefs()->are_alerts_disabled()) {
     char alert_json[1024];
+    char cli_ip_buf[256], srv_ip_buf[256];
     char query[STORE_MANAGER_MAX_QUERY];
     sqlite3_stmt *stmt = NULL;
     int rc = 0;
     Host *cli, *srv;
-    char *cli_ip = NULL, *cli_ip_buf = NULL, *srv_ip = NULL, *srv_ip_buf = NULL,
-      cb[64], cb1[64];
+    char *cli_ip = NULL, *srv_ip = NULL;
+    char cb[64], cb1[64];
     const char *msg;
     AlertType alert_type;
     AlertLevel alert_severity;
     time_t now = time(NULL);
-
+ 
     if(!store_initialized || !store_opened || !f)
       return(-1);
 
@@ -681,10 +682,10 @@ int AlertsManager::storeFlowAlert(Flow *f) {
 
     msg = Utils::flowStatus2str(f->getFlowStatus(), &alert_type, &alert_severity);
     cli = f->get_cli_host(), srv = f->get_srv_host();
-    if(cli && cli->get_ip() && (cli_ip_buf = (char*)malloc(sizeof(char) * 256)))
-      cli_ip = cli->get_ip()->print(cli_ip_buf, 128);
-    if(srv && srv->get_ip() && (srv_ip_buf = (char*)malloc(sizeof(char) * 256)))
-      srv_ip = srv->get_ip()->print(srv_ip_buf, 128);
+    if(cli && cli->get_ip())
+      cli_ip = cli->get_ip()->print(cli_ip_buf, sizeof(cli_ip_buf));
+    if(srv && srv->get_ip())
+      srv_ip = srv->get_ip()->print(srv_ip_buf, sizeof(srv_ip_buf));
 
     if(snprintf(alert_json, sizeof(alert_json),
 		"{\"info\":\"%s\"}",
@@ -778,35 +779,39 @@ int AlertsManager::storeFlowAlert(Flow *f) {
     m.unlock(__FILE__, __LINE__);
 
     f->setFlowAlerted();
-  
+
 #ifndef WIN32
-    char cli_name[64], srv_name[64];
-
-    if(cli && cli_ip_buf
-       && srv && srv_ip_buf
+    if(cli && cli->get_ip()
+       && srv && srv->get_ip()
        && ntop->getPrefs()->are_alerts_syslog_enabled()) {
+      char cli_name[64], srv_name[64];
+      char at_vlan[8];
+      char *info;
+      int len;
 
+      at_vlan[0] = '\0';
 
-      snprintf(alert_json, sizeof(alert_json),
-	       "%s: <A HREF='%s/lua/host_details.lua?host=%s@%d&ifid=%d&page=alerts'>%s</A> &gt; "
-	       "<A HREF='%s/lua/host_details.lua?host=%s@%d&ifid=%d&page=alerts'>%s</A> [info: %s]",
+      if (f->get_vlan_id())
+        snprintf(at_vlan, sizeof(at_vlan), "@%d", f->get_vlan_id());
+
+      len = snprintf(alert_json, sizeof(alert_json),
+	       "%s: %s %s%s (%s) > %s%s (%s)",
 	       msg, /* TODO: remove string and save numeric status */
-	       ntop->getPrefs()->get_http_prefix(),
-	       cli_ip_buf, f->get_vlan_id(), iface->get_id(),
+               iface->get_name(),	       
+               cli->get_ip()->print(cli_ip_buf, sizeof(cli_ip_buf)), at_vlan,
 	       cli->get_visual_name(cli_name, sizeof(cli_name)),
-	       ntop->getPrefs()->get_http_prefix(),
-	       srv_ip_buf, f->get_vlan_id(), iface->get_id(),
-	       srv->get_visual_name(srv_name, sizeof(srv_name)),
-	       f->getFlowInfo() ? f->getFlowInfo() : (char*)"");
+	       srv->get_ip()->print(srv_ip_buf, sizeof(srv_ip_buf)), at_vlan,
+	       srv->get_visual_name(srv_name, sizeof(srv_name)));
+
+      info = f->getFlowInfo();
+      if (info && strlen(info) > 0)
+        len += snprintf(&alert_json[len], sizeof(alert_json)-len, " Info: %s", f->getFlowInfo());
 
       syslog(LOG_WARNING, "[Alert] %s", alert_json);
     }
 #endif
 
     ntop->getTrace()->traceEvent(TRACE_INFO, "[%s] %s", msg, alert_json);
-
-    if(cli_ip_buf) free(cli_ip_buf);
-    if(srv_ip_buf) free(srv_ip_buf);
 
     return rc;
   } else
