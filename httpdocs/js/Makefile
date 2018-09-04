@@ -9,7 +9,7 @@ DEP_MIN_JS_SRC=ie_fix.js rickshaw.js pie-chart.js gauge.js \
 		  crossfilter.js validator.js validator.js \
 		  dc.js cal-heatmap.js nv.d3.js \
 		  jquery.bootstrap-duallistbox.js jquery.are-you-sure.js \
-		  moment.js bootstrap-datetimepicker.js ASAP.js
+		  moment.js bootstrap-datetimepicker.js ASAP.js binary-indicators.js
 
 NTOP_MIN_JS=ntop.min.js
 NTOP_MIN_JS_SRC=springy-ntop.js springyui-ntop.js datatable_utils.js\

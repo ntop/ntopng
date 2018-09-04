@@ -251,7 +251,7 @@ function fixTimeRange(chart, params, align_step) {
 }
 
 // add a new updateStackedChart function
-function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id, flows_dt, params, step, align_step) {
+function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id, flows_dt, params, step, align_step, show_all_smooth) {
   var pending_request = null;
   var d3_sel = d3.select(chart_id);
   var $chart = $(chart_id);
@@ -503,24 +503,41 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
         // Smoothed serie
         var num_smoothed_points = Math.max(Math.floor(total_serie.length / 5), 3);
 
-        var smoothed = smooth(total_serie, num_smoothed_points);
-        var max_val = d3.max(smoothed);
-        if(max_val > 0) {
-          var scale = d3.max(total_serie) / max_val;
-          var scaled = $.map(smoothed, function(x) { return x * scale; });
-          var aligned = upsampleSerie(scaled, data.count);
-
-          res.push({
-            key: graph_i18n.trend,
-            yAxis: 1,
-            values: arrayToNvSerie(aligned, data.start, data.step),
-            type: "line",
-            classed: "line-animated",
-            color: "#62ADF6",
-            legend_key: "trend",
-            disabled: isLegendDisabled("trend", false),
-          });
+        var smooth_functions = {
+          smooth: [graph_i18n.trend, "#62ADF6", smooth, num_smoothed_points],
+          ema: ["EMA", "#F96BFF", exponentialMovingAverageArray, {periods: num_smoothed_points}],
+          sma: ["SMA", "#A900FF", simpleMovingAverageArray, {periods: num_smoothed_points}],
+          rsi: ["RSI", "#00FF5D", relativeStrengthIndexArray, {periods: num_smoothed_points}],
         }
+
+        function add_smoothed_serie(fn_to_use) {
+          var options = smooth_functions[fn_to_use];
+          var smoothed = options[2](total_serie, options[3]);
+          
+          var max_val = d3.max(smoothed);
+          if(max_val > 0) {
+            var scale = d3.max(total_serie) / max_val;
+            var scaled = $.map(smoothed, function(x) { return x * scale; });
+            var aligned = upsampleSerie(scaled, data.count);
+
+            res.push({
+              key: options[0],
+              yAxis: 1,
+              values: arrayToNvSerie(aligned, data.start, data.step),
+              type: "line",
+              classed: "line-animated",
+              color: options[1],
+              legend_key: fn_to_use,
+              disabled: isLegendDisabled("trend", false),
+            });
+          }
+        }
+
+        if(show_all_smooth) {
+          for(fn_to_use in smooth_functions)
+            add_smoothed_serie(fn_to_use);
+        } else
+          add_smoothed_serie("smooth");
       }
 
       // get the value formatter
