@@ -10,6 +10,9 @@ local os_utils = require "os_utils"
 
 local prefs_dump_utils = {}
 
+-- 00000600CB7634C0FA2A9E49 is the dump for ""
+local empty_string_dump = "00000600CB7634C0FA2A9E49"
+
 -- ###########################################
 
 local debug = false
@@ -25,20 +28,9 @@ function prefs_dump_utils.savePrefsToDisk()
       local keys = ntop.getKeysCache(pattern)
 
       for k in pairs(keys or {}) do
-	 local do_dump = true
-	 if(pattern == "ntopng.prefs.*") then
-	    local ret = ntop.getPrefs(k)
-
-	    if(type(ret) == "string") then	   
-	       if(ret == "") then
-		  if(debug) then io.write("[SAVE] Discarding empty value for "..k.."\n") end
-		  do_dump = false
-	       end
-	    end
-	 end
-
-	 if(do_dump) then
-	    out[k] = ntop.dumpCache(k)
+	 local dump = ntop.dumpCache(k)
+	 if dump ~= empty_string_dump then
+	    out[k] = dump
 	 end
       end
    end
@@ -70,8 +62,7 @@ function prefs_dump_utils.readPrefsFromDisk()
       for k,v in pairs(restore or {}) do
 	 --print(k.." = " .. v .. "\n")
 
-	 if(v == "00000600CB7634C0FA2A9E49") then
-	    -- 00000600CB7634C0FA2A9E49 is the dump for ""
+	 if(v == empty_string_dump) then
 	    ntop.delCache(k)
 	    if(debug) then io.write("[RESTORE] Deleting empty value for "..k.."\n") end
 	 else 
