@@ -61,6 +61,14 @@ function ts_utils.getSchema(name)
           schema.options.step = 5 * write_steps
         end
       end
+    elseif schema.options.step == 60 then
+      if starts(name, "iface:") then
+        local write_steps = tonumber(ntop.getPref("ntopng.prefs.ts_write_steps"))
+
+        if write_steps > 0 then
+          schema.options.step = 5 * write_steps
+        end
+      end
     end
   end
 

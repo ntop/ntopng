@@ -330,6 +330,30 @@ void NetworkInterface::init() {
 #endif
 
 #endif
+
+    ts_ring = NULL;
+
+  if(TimeSeriesRing::isRingEnabled(ntop->getPrefs()))
+    ts_ring = new TimeSeriesRing(this);
+}
+
+/* **************************************************** */
+
+void NetworkInterfaceTsPoint::lua(lua_State* vm, NetworkInterface *iface) {
+  ndpi.lua(iface, vm, true /* with categories */);
+  local_stats.lua(vm);
+  tcpPacketStats.lua(vm, "tcpPacketStats");
+  packetStats.lua(vm, "pktSizeDistribution");
+
+  lua_newtable(vm);
+  lua_push_int_table_entry(vm, "hosts", hosts);
+  lua_push_int_table_entry(vm, "local_hosts", local_hosts);
+  lua_push_int_table_entry(vm, "devices", devices);
+  lua_push_int_table_entry(vm, "flows", flows);
+  lua_push_int_table_entry(vm, "http_hosts", http_hosts);
+  lua_pushstring(vm, "stats");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
 }
 
 /* **************************************************** */
@@ -751,6 +775,7 @@ NetworkInterface::~NetworkInterface() {
   if(hide_from_top)         delete(hide_from_top);
   if(hide_from_top_shadow)  delete(hide_from_top_shadow);
   if(tsExporter)            delete tsExporter;
+  if(ts_ring)               delete ts_ring;
   if(mdns)                  delete mdns; /* Leave it at the end so the mdns resolved has time to initialize */
 }
 
@@ -2817,6 +2842,17 @@ void NetworkInterface::periodicStatsUpdate() {
   if(host_pools)
     host_pools->updateStats(&tv);
 #endif
+
+  if(!ts_ring && TimeSeriesRing::isRingEnabled(ntop->getPrefs()))
+    ts_ring = new TimeSeriesRing(this);
+
+  if(ts_ring && ts_ring->isTimeToInsert()) {
+    NetworkInterfaceTsPoint *pt = new NetworkInterfaceTsPoint();
+    makeTsPoint(pt);
+
+    /* Ownership of the point is passed to the ring */
+    ts_ring->insert(pt, tv.tv_sec);
+  }
 }
 
 /* **************************************************** */
@@ -6761,3 +6797,33 @@ bool NetworkInterface::stopLiveCapture(int capture_id) {
 
 /* *************************************** */
 
+void NetworkInterface::makeTsPoint(NetworkInterfaceTsPoint *pt) {
+  /* unused */
+  TcpFlowStats _tcpFlowStats;
+  EthStats _ethStats;
+
+  sumStats(&_tcpFlowStats, &_ethStats, &pt->local_stats,
+	   &pt->ndpi, &pt->packetStats, &pt->tcpPacketStats);
+
+  for(u_int8_t s = 0; s<numSubInterfaces; s++)
+    subInterfaces[s]->sumStats(&_tcpFlowStats, &_ethStats,
+			       &pt->local_stats, &pt->ndpi, &pt->packetStats, &pt->tcpPacketStats);
+
+  pt->hosts = getNumHosts();
+  pt->local_hosts = getNumLocalHosts();
+  pt->devices = getNumL2Devices();
+  pt->flows = getNumFlows();
+  pt->http_hosts = getNumHTTPHosts();
+}
+
+/* *************************************** */
+
+void NetworkInterface::tsLua(lua_State* vm) {
+  if(!ts_ring || !TimeSeriesRing::isRingEnabled(ntop->getPrefs())) {
+    /* Use real time data */
+    NetworkInterfaceTsPoint pt;
+    makeTsPoint(&pt);
+    TimeSeriesRing::luaSinglePoint(vm, this, &pt);
+  } else
+    ts_ring->lua(vm);
+}

@@ -2502,6 +2502,21 @@ static int ntop_get_interface_host_timeseries(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_get_interface_timeseries(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(!ntop_interface)
+    return(CONST_LUA_ERROR);
+  else {
+    ntop_interface->tsLua(vm);
+    return(CONST_LUA_OK);
+  }
+}
+
+/* ****************************************** */
+
 // ***API***
 static int ntop_get_interface_host_country(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
@@ -7636,6 +7651,7 @@ static const luaL_Reg ntop_interface_reg[] = {
 
   { "getMaxIfSpeed",            ntop_get_max_if_speed },
   { "getStats",                 ntop_get_interface_stats },
+  { "getInterfaceTimeseries",   ntop_get_interface_timeseries },
   { "resetCounters",            ntop_interface_reset_counters },
 
   { "getnDPIStats",             ntop_get_ndpi_interface_stats },

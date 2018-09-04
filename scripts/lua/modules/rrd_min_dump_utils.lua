@@ -108,7 +108,7 @@ local function dumpTopTalkers(_ifname, ifstats, verbose)
   ntop.insertMinuteSampling(ifstats.id, talkers)
 end
 
-function rrd_dump.run_min_dump(_ifname, ifstats, config, when, verbose)
+function rrd_dump.run_min_dump(_ifname, ifstats, iface_ts, config, when, verbose)
   dumpTopTalkers(_ifname, ifstats, verbose)
   scanAlerts("min", ifstats)
 
@@ -119,27 +119,34 @@ function rrd_dump.run_min_dump(_ifname, ifstats, config, when, verbose)
     return
   end
 
-  rrd_dump.iface_update_stats_rrds(when, _ifname, ifstats, verbose)
-  rrd_dump.iface_update_general_stats(when, ifstats, verbose)
-
-  if config.interface_ndpi_timeseries_creation == "per_protocol" or config.interface_ndpi_timeseries_creation == "both" then
-     rrd_dump.iface_update_ndpi_rrds(when, _ifname, ifstats, verbose)
-  end
-
-  if config.interface_ndpi_timeseries_creation == "per_category" or config.interface_ndpi_timeseries_creation == "both" then
-     rrd_dump.iface_update_categories_rrds(when, _ifname, ifstats, verbose)
-  end
-
   rrd_dump.subnet_update_rrds(when, ifstats, verbose)
 
-  -- TCP stats
-  if config.tcp_retr_ooo_lost_rrd_creation == "1" then
-    rrd_dump.iface_update_tcp_stats(when, ifstats, verbose)
-  end
+  for _, iface_point in ipairs(iface_ts or {}) do
+    local instant = iface_point.instant
 
-  -- TCP Flags
-  if config.tcp_flags_rrd_creation == "1" then
-    rrd_dump.iface_update_tcp_flags(when, ifstats, verbose)
+    -- compatibility fix with ifstats
+    iface_point.id = ifstats.id
+
+    rrd_dump.iface_update_stats_rrds(instant, _ifname, iface_point, verbose)
+    rrd_dump.iface_update_general_stats(instant, iface_point, verbose)
+
+    if config.interface_ndpi_timeseries_creation == "per_protocol" or config.interface_ndpi_timeseries_creation == "both" then
+      rrd_dump.iface_update_ndpi_rrds(instant, _ifname, iface_point, verbose)
+    end
+
+    if config.interface_ndpi_timeseries_creation == "per_category" or config.interface_ndpi_timeseries_creation == "both" then
+      rrd_dump.iface_update_categories_rrds(instant, _ifname, iface_point, verbose)
+    end
+
+    -- TCP stats
+    if config.tcp_retr_ooo_lost_rrd_creation == "1" then
+      rrd_dump.iface_update_tcp_stats(instant, iface_point, verbose)
+    end
+
+    -- TCP Flags
+    if config.tcp_flags_rrd_creation == "1" then
+      rrd_dump.iface_update_tcp_flags(instant, iface_point, verbose)
+    end
   end
 
   -- Save Profile stats every minute

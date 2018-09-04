@@ -24,17 +24,7 @@
 
 #include "ntop_includes.h"
 
-class HostTimeseriesPoint: public TimeseriesPoint {
- public:
-  nDPIStats *ndpi;
-  u_int64_t sent, rcvd;
-  u_int32_t total_num_flows_as_client, total_num_flows_as_server;
-  TrafficCounter l4_stats[4]; // tcp, udp, icmp, other
-
-  HostTimeseriesPoint();
-  virtual ~HostTimeseriesPoint();
-  virtual void lua(lua_State* vm, NetworkInterface *iface);
-};
+class HostTimeseriesPoint;
 
 class LocalHost : public Host {
  private:
@@ -108,6 +98,18 @@ class LocalHost : public Host {
 		   bool verbose, bool returnHost, bool asListElement);
   virtual void tsLua(lua_State* vm);
   void makeTsPoint(HostTimeseriesPoint *pt);
+};
+
+class HostTimeseriesPoint: public TimeseriesPoint {
+ public:
+  nDPIStats *ndpi;
+  u_int64_t sent, rcvd;
+  u_int32_t total_num_flows_as_client, total_num_flows_as_server;
+  TrafficCounter l4_stats[4]; // tcp, udp, icmp, other
+
+  HostTimeseriesPoint();
+  virtual ~HostTimeseriesPoint();
+  virtual void lua(lua_State* vm, NetworkInterface *iface);
 };
 
 #endif /* _LOCAL_HOST_H_ */

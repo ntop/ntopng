@@ -42,6 +42,7 @@ class Country;
 class CountriesHash;
 class DB;
 class Paginator;
+class NetworkInterfaceTsPoint;
 
 #ifdef NTOPNG_PRO
 class AggregatedFlow;
@@ -124,6 +125,7 @@ class NetworkInterface : public Checkpointable {
   u_int32_t last_remote_pps, last_remote_bps;
   u_int8_t packet_drops_alert_perc;
   TimeSeriesExporter *tsExporter;
+  TimeSeriesRing *ts_ring;
 
   /* Sub-interface views */
   u_int8_t numSubInterfaces;
@@ -688,6 +690,20 @@ class NetworkInterface : public Checkpointable {
   inline uint32_t getMaxSpeed()              { return(ifSpeed); }
   virtual void sendTermination()             { ; }
   virtual bool read_from_pcap_dump()         { return(false); };
+  void makeTsPoint(NetworkInterfaceTsPoint *pt);
+  void tsLua(lua_State* vm);
+};
+
+class NetworkInterfaceTsPoint: public TimeseriesPoint {
+ public:
+  nDPIStats ndpi;
+  LocalTrafficStats local_stats;
+  u_int hosts, local_hosts;
+  u_int devices, flows, http_hosts;
+  TcpPacketStats tcpPacketStats;
+  PacketStats packetStats;
+
+  virtual void lua(lua_State* vm, NetworkInterface *iface);
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */

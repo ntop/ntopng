@@ -22,12 +22,13 @@ local verbose = ntop.verboseTrace()
 local when = os.time()
 local config = rrd_dump.getConfig()
 
+local iface_ts = interface.getInterfaceTimeseries()
 local ifstats = interface.getStats()
 local _ifname = ifstats.name
 
 -- ########################################################
 
-rrd_dump.run_min_dump(_ifname, ifstats, config, when, verbose)
+rrd_dump.run_min_dump(_ifname, ifstats, iface_ts, config, when, verbose)
 
 if ts_utils.hasHighResolutionTs() then
    local rrd_5min_dump = require "rrd_5min_dump_utils"
