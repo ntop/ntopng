@@ -192,9 +192,10 @@
 #define CONST_TCP_CHECK_ISSUES_RATIO         10  /* 10% */
 #define HOST_LABEL_NAMES        "ntopng.host_labels"
 #define HOST_SERIALIZED_KEY     "ntopng.serialized_hosts.ifid_%u__%s@%d"
-#define MAC_SERIALIED_KEY       "ntopng.serialized_macs.ifid_%u__%s"
+#define MAC_SERIALIZED_KEY      "ntopng.serialized_macs.ifid_%u__%s"
 #define HOST_POOL_SERIALIZED_KEY "ntopng.serialized_host_pools.ifid_%u"
-#define MAC_CUSTOM_DEVICE_TYPE  "ntopng.prefs.device_types.%s"
+#define NTOPNG_PREFS_PREFIX     "ntopng.prefs"
+#define MAC_CUSTOM_DEVICE_TYPE  NTOPNG_PREFS_PREFIX".device_types.%s"
 #define NTOP_HOSTS_SERIAL       "ntopng.host_serial"
 #define DUMMY_IFACE_ID          (MAX_NUM_INTERFACES-2)
 #define STDIN_IFACE_ID          (MAX_NUM_INTERFACES-3)
@@ -205,7 +206,7 @@
 #define MAX_OPTIONS             24
 #define CONST_ADMINISTRATOR_USER       "administrator"
 #define CONST_UNPRIVILEGED_USER        "unprivileged"
-#define CONST_DEFAULT_PASSWORD_CHANGED "ntopng.prefs.admin_password_changed"
+#define CONST_DEFAULT_PASSWORD_CHANGED NTOPNG_PREFS_PREFIX".admin_password_changed"
 #define CONST_STR_NEDGE_LICENSE        "nedge.license"
 #define CONST_STR_NEDGE_KEY            "nedge.key"
 #define CONST_STR_NTOPNG_LICENSE       "ntopng.license"
@@ -420,93 +421,97 @@
 #define CONST_SQL_QUEUE                    "ntopng.sql_queue"
 #define CONST_SQL_BATCH_SIZE               32
 #define CONST_MAX_SQL_QUERY_LEN            8192
-#define CONST_ALERT_DISABLED_PREFS         "ntopng.prefs.disable_alerts_generation"
-#define CONST_PREFS_ENABLE_ACCESS_LOG      "ntopng.prefs.enable_access_log"
-#define CONST_PREFS_ENABLE_SQL_LOG         "ntopng.prefs.enable_sql_log"
-#define CONST_TOP_TALKERS_ENABLED          "ntopng.prefs.host_top_sites_creation"
-#define CONST_SUPPRESSED_ALERT_PREFS       "ntopng.prefs.alerts.ifid_%d"
-#define CONST_USE_NINDEX                   "ntopng.prefs.use_nindex"
+#define CONST_DEFAULT_MIRRORED_TRAFFIC     false
+#define CONST_ALERT_DISABLED_PREFS         NTOPNG_PREFS_PREFIX".disable_alerts_generation"
+#define CONST_PREFS_ENABLE_ACCESS_LOG      NTOPNG_PREFS_PREFIX".enable_access_log"
+#define CONST_PREFS_ENABLE_SQL_LOG         NTOPNG_PREFS_PREFIX".enable_sql_log"
+#define CONST_TOP_TALKERS_ENABLED          NTOPNG_PREFS_PREFIX".host_top_sites_creation"
+#define CONST_SUPPRESSED_ALERT_PREFS       NTOPNG_PREFS_PREFIX".alerts.ifid_%d"
+#define CONST_MIRRORED_TRAFFIC_PREFS       NTOPNG_PREFS_PREFIX".ifid_%d.is_traffic_mirrored"
+#define CONST_USE_NINDEX                   NTOPNG_PREFS_PREFIX".use_nindex"
 #ifdef NTOPNG_PRO
-#define CONST_NAGIOS_NSCA_HOST_PREFS       "ntopng.prefs.nagios_nsca_host"
-#define CONST_NAGIOS_NSCA_PORT_PREFS       "ntopng.prefs.nagios_nsca_port"
-#define CONST_NAGIOS_SEND_NSCA_EXEC_PREFS  "ntopng.prefs.nagios_send_nsca_executable"
-#define CONST_NAGIOS_SEND_NSCA_CONF_PREFS  "ntopng.prefs.nagios_send_nsca_config"
-#define CONST_NAGIOS_HOST_NAME_PREFS       "ntopng.prefs.nagios_host_name"
-#define CONST_NAGIOS_SERVICE_NAME_PREFS    "ntopng.prefs.nagios_service_name"
+#define CONST_NAGIOS_NSCA_HOST_PREFS       NTOPNG_PREFS_PREFIX".nagios_nsca_host"
+#define CONST_NAGIOS_NSCA_PORT_PREFS       NTOPNG_PREFS_PREFIX".nagios_nsca_port"
+#define CONST_NAGIOS_SEND_NSCA_EXEC_PREFS  NTOPNG_PREFS_PREFIX".nagios_send_nsca_executable"
+#define CONST_NAGIOS_SEND_NSCA_CONF_PREFS  NTOPNG_PREFS_PREFIX".nagios_send_nsca_config"
+#define CONST_NAGIOS_HOST_NAME_PREFS       NTOPNG_PREFS_PREFIX".nagios_host_name"
+#define CONST_NAGIOS_SERVICE_NAME_PREFS    NTOPNG_PREFS_PREFIX".nagios_service_name"
 #endif
-#define CONST_NBOX_USER                     "ntopng.prefs.nbox_user"
-#define CONST_NBOX_PASSWORD                 "ntopng.prefs.nbox_password"
-#define CONST_IFACE_ID_PREFS                "ntopng.prefs.iface_id"
-#define CONST_IFACE_SCALING_FACTOR_PREFS    "ntopng.prefs.iface_%d.scaling_factor"
-#define CONST_IFACE_PACKET_DROPS_ALERT_PREFS "ntopng.prefs.iface_%d.packet_drops_alert"
-#define CONST_IFACE_HIDE_FROM_TOP_PREFS     "ntopng.prefs.iface_%d.hide_from_top"
-#define CONST_HOST_ANOMALIES_THRESHOLD      "ntopng.prefs.%s:%d.alerts_config"
+#define CONST_NBOX_USER                     NTOPNG_PREFS_PREFIX".nbox_user"
+#define CONST_NBOX_PASSWORD                 NTOPNG_PREFS_PREFIX".nbox_password"
+#define CONST_IFACE_ID_PREFS                NTOPNG_PREFS_PREFIX".iface_id"
+#define CONST_IFACE_SCALING_FACTOR_PREFS    NTOPNG_PREFS_PREFIX".iface_%d.scaling_factor"
+#define CONST_IFACE_PACKET_DROPS_ALERT_PREFS NTOPNG_PREFS_PREFIX".iface_%d.packet_drops_alert"
+#define CONST_IFACE_HIDE_FROM_TOP_PREFS     NTOPNG_PREFS_PREFIX".iface_%d.hide_from_top"
+#define CONST_HOST_ANOMALIES_THRESHOLD      NTOPNG_PREFS_PREFIX".%s:%d.alerts_config"
 #define CONST_HOSTS_ALERT_COUNTERS          "ntopng.cache.alerts.iface_%u.host_engaged_alert_counters"
-#define CONST_REMOTE_HOST_IDLE_PREFS        "ntopng.prefs.non_local_host_max_idle"
-#define CONST_FLOW_MAX_IDLE_PREFS           "ntopng.prefs.flow_max_idle"
-#define CONST_INTF_RRD_RAW_DAYS             "ntopng.prefs.intf_rrd_raw_days"
-#define CONST_INTF_RRD_1MIN_DAYS            "ntopng.prefs.intf_rrd_1min_days"
-#define CONST_INTF_RRD_1H_DAYS              "ntopng.prefs.intf_rrd_1h_days"
-#define CONST_INTF_RRD_1D_DAYS              "ntopng.prefs.intf_rrd_1d_days"
-#define CONST_OTHER_RRD_RAW_DAYS            "ntopng.prefs.other_rrd_raw_days"
-#define CONST_OTHER_RRD_1MIN_DAYS           "ntopng.prefs.other_rrd_1min_days"
-#define CONST_OTHER_RRD_1H_DAYS             "ntopng.prefs.other_rrd_1h_days"
-#define CONST_OTHER_RRD_1D_DAYS             "ntopng.prefs.other_rrd_1d_days"
-#define CONST_SAFE_SEARCH_DNS               "ntopng.prefs.safe_search_dns"
-#define CONST_GLOBAL_DNS                    "ntopng.prefs.global_dns"
-#define CONST_SECONDARY_DNS                 "ntopng.prefs.secondary_dns"
-#define CONST_MAX_NUM_ALERTS_PER_ENTITY     "ntopng.prefs.max_num_alerts_per_entity"
-#define CONST_MAX_NUM_FLOW_ALERTS           "ntopng.prefs.max_num_flow_alerts"
-#define CONST_PROFILES_PREFS                "ntopng.prefs.profiles"
+#define CONST_REMOTE_HOST_IDLE_PREFS        NTOPNG_PREFS_PREFIX".non_local_host_max_idle"
+#define CONST_FLOW_MAX_IDLE_PREFS           NTOPNG_PREFS_PREFIX".flow_max_idle"
+#define CONST_INTF_RRD_RAW_DAYS             NTOPNG_PREFS_PREFIX".intf_rrd_raw_days"
+#define CONST_INTF_RRD_1MIN_DAYS            NTOPNG_PREFS_PREFIX".intf_rrd_1min_days"
+#define CONST_INTF_RRD_1H_DAYS              NTOPNG_PREFS_PREFIX".intf_rrd_1h_days"
+#define CONST_INTF_RRD_1D_DAYS              NTOPNG_PREFS_PREFIX".intf_rrd_1d_days"
+#define CONST_OTHER_RRD_RAW_DAYS            NTOPNG_PREFS_PREFIX".other_rrd_raw_days"
+#define CONST_OTHER_RRD_1MIN_DAYS           NTOPNG_PREFS_PREFIX".other_rrd_1min_days"
+#define CONST_OTHER_RRD_1H_DAYS             NTOPNG_PREFS_PREFIX".other_rrd_1h_days"
+#define CONST_OTHER_RRD_1D_DAYS             NTOPNG_PREFS_PREFIX".other_rrd_1d_days"
+#define CONST_SAFE_SEARCH_DNS               NTOPNG_PREFS_PREFIX".safe_search_dns"
+#define CONST_GLOBAL_DNS                    NTOPNG_PREFS_PREFIX".global_dns"
+#define CONST_SECONDARY_DNS                 NTOPNG_PREFS_PREFIX".secondary_dns"
+#define CONST_MAX_NUM_ALERTS_PER_ENTITY     NTOPNG_PREFS_PREFIX".max_num_alerts_per_entity"
+#define CONST_MAX_NUM_FLOW_ALERTS           NTOPNG_PREFS_PREFIX".max_num_flow_alerts"
+#define CONST_PROFILES_PREFS                NTOPNG_PREFS_PREFIX".profiles"
 #define CONST_PROFILES_COUNTERS             "ntopng.profiles_counters.ifid_%i"
-#define CONST_PREFS_CAPTIVE_PORTAL          "ntopng.prefs.enable_captive_portal"
-#define CONST_PREFS_INFORM_CAPTIVE_PORTAL   "ntopng.prefs.enable_informative_captive_portal"
-#define CONST_PREFS_DEFAULT_L7_POLICY       "ntopng.prefs.default_l7_policy"
-#define CONST_PREFS_GLOBAL_DNS_FORGING_ENABLED "ntopng.prefs.global_dns_forging"
-#define HOST_POOL_IDS_KEY                   "ntopng.prefs.%u.host_pools.pool_ids"
-#define HOST_POOL_MEMBERS_KEY               "ntopng.prefs.%u.host_pools.members.%s"
-#define HOST_POOL_SHAPERS_KEY               "ntopng.prefs.%u.l7_policies.%s"
-#define HOST_POOL_DETAILS_KEY               "ntopng.prefs.%u.host_pools.details.%u"
+#define CONST_PREFS_CAPTIVE_PORTAL          NTOPNG_PREFS_PREFIX".enable_captive_portal"
+#define CONST_PREFS_INFORM_CAPTIVE_PORTAL   NTOPNG_PREFS_PREFIX".enable_informative_captive_portal"
+#define CONST_PREFS_DEFAULT_L7_POLICY       NTOPNG_PREFS_PREFIX".default_l7_policy"
+#define CONST_PREFS_GLOBAL_DNS_FORGING_ENABLED NTOPNG_PREFS_PREFIX".global_dns_forging"
+#define HOST_POOL_IDS_KEY                   NTOPNG_PREFS_PREFIX".%u.host_pools.pool_ids"
+#define HOST_POOL_MEMBERS_KEY               NTOPNG_PREFS_PREFIX".%u.host_pools.members.%s"
+#define HOST_POOL_SHAPERS_KEY               NTOPNG_PREFS_PREFIX".%u.l7_policies.%s"
+#define HOST_POOL_DETAILS_KEY               NTOPNG_PREFS_PREFIX".%u.host_pools.details.%u"
 
 #define CONST_USER_GROUP_ADMIN             "administrator"
 #define CONST_USER_GROUP_UNPRIVILEGED      "unprivileged"
 #define CONST_USER_GROUP_CAPTIVE_PORTAL    "captive_portal"
 #define CONST_CAPTIVE_PORTAL_INFORM_SECS   86400
 
-#define CONST_LOCAL_HOST_CACHE_DURATION_PREFS  "ntopng.prefs.local_host_cache_duration"
-#define CONST_LOCAL_HOST_IDLE_PREFS            "ntopng.prefs.local_host_max_idle"
+#define CONST_LOCAL_HOST_CACHE_DURATION_PREFS  NTOPNG_PREFS_PREFIX".local_host_cache_duration"
+#define CONST_LOCAL_HOST_IDLE_PREFS            NTOPNG_PREFS_PREFIX".local_host_max_idle"
 
-#define CONST_RUNTIME_MAX_UI_STRLEN                    "ntopng.prefs.max_ui_strlen"
-#define CONST_RUNTIME_IS_AUTOLOGOUT_ENABLED            "ntopng.prefs.is_autologon_enabled"
-#define CONST_RUNTIME_IDLE_LOCAL_HOSTS_CACHE_ENABLED   "ntopng.prefs.is_local_host_cache_enabled"
-#define CONST_RUNTIME_ACTIVE_LOCAL_HOSTS_CACHE_ENABLED "ntopng.prefs.is_active_local_host_cache_enabled"
-#define CONST_RUNTIME_ACTIVE_LOCAL_HOSTS_CACHE_INTERVAL "ntopng.prefs.active_local_host_cache_interval"
-#define CONST_RUNTIME_PREFS_LOG_TO_FILE                "ntopng.prefs.log_to_file"
-#define CONST_RUNTIME_PREFS_HOUSEKEEPING_FREQUENCY     "ntopng.prefs.housekeeping_frequency"
-#define CONST_RUNTIME_PREFS_FLOW_DEVICE_PORT_RRD_CREATION     "ntopng.prefs.flow_device_port_rrd_creation" /* 0 / 1 */
-#define CONST_RUNTIME_PREFS_ALERT_IP_REASSIGNMENT      "ntopng.prefs.ip_reassignment_alerts" /* 0 / 1 */
-#define CONST_RUNTIME_PREFS_HOST_RRD_CREATION          "ntopng.prefs.host_rrd_creation" /* 0 / 1 */
-#define CONST_RUNTIME_PREFS_HOST_NDPI_RRD_CREATION     "ntopng.prefs.host_ndpi_rrd_creation" /* 0 / 1 */
-#define CONST_RUNTIME_PREFS_HOST_CATE_RRD_CREATION     "ntopng.prefs.host_categories_rrd_creation" /* 0 / 1 */
-#define CONST_RUNTIME_PREFS_THPT_CONTENT               "ntopng.prefs.thpt_content"     /* bps / pps */
-#define CONST_RUNTIME_PREFS_ALERT_SYSLOG               "ntopng.prefs.alerts_syslog"    /* 0 / 1 */
-#define CONST_RUNTIME_PREFS_ALERT_PROBING              "ntopng.prefs.probing_alerts"   /* 0 / 1 */
-#define CONST_RUNTIME_PREFS_ALERT_SSL                  "ntopng.prefs.ssl_alerts"       /* 0 / 1 */
-#define CONST_RUNTIME_PREFS_ALERT_DNS                  "ntopng.prefs.dns_alerts"       /* 0 / 1 */
-#define CONST_RUNTIME_PREFS_ALERT_MINING               "ntopng.prefs.mining_alerts"    /* 0 / 1 */
-#define CONST_RUNTIME_PREFS_ALERT_REMOTE_TO_REMOTE     "ntopng.prefs.remote_to_remote_alerts"
-#define CONST_RUNTIME_PREFS_ALERT_DROPPED_FLOWS        "ntopng.prefs.dropped_flows_alerts"
-#define CONST_RUNTIME_PREFS_HOSTS_ALERTS_CONFIG        "ntopng.prefs.alerts_global.min.local_hosts"
+#define CONST_RUNTIME_MAX_UI_STRLEN                    NTOPNG_PREFS_PREFIX".max_ui_strlen"
+#define CONST_RUNTIME_IS_AUTOLOGOUT_ENABLED            NTOPNG_PREFS_PREFIX".is_autologon_enabled"
+#define CONST_RUNTIME_IDLE_LOCAL_HOSTS_CACHE_ENABLED   NTOPNG_PREFS_PREFIX".is_local_host_cache_enabled"
+#define CONST_RUNTIME_ACTIVE_LOCAL_HOSTS_CACHE_ENABLED NTOPNG_PREFS_PREFIX".is_active_local_host_cache_enabled"
+#define CONST_RUNTIME_ACTIVE_LOCAL_HOSTS_CACHE_INTERVAL NTOPNG_PREFS_PREFIX".active_local_host_cache_interval"
+#define CONST_RUNTIME_PREFS_LOG_TO_FILE                NTOPNG_PREFS_PREFIX".log_to_file"
+#define CONST_RUNTIME_PREFS_HOUSEKEEPING_FREQUENCY     NTOPNG_PREFS_PREFIX".housekeeping_frequency"
+#define CONST_RUNTIME_PREFS_FLOW_DEVICE_PORT_RRD_CREATION     NTOPNG_PREFS_PREFIX".flow_device_port_rrd_creation" /* 0 / 1 */
+#define CONST_RUNTIME_PREFS_ALERT_IP_REASSIGNMENT      NTOPNG_PREFS_PREFIX".ip_reassignment_alerts" /* 0 / 1 */
+#define CONST_RUNTIME_PREFS_HOST_RRD_CREATION          NTOPNG_PREFS_PREFIX".host_rrd_creation" /* 0 / 1 */
+#define CONST_RUNTIME_PREFS_HOST_NDPI_RRD_CREATION     NTOPNG_PREFS_PREFIX".host_ndpi_rrd_creation" /* 0 / 1 */
+#define CONST_RUNTIME_PREFS_HOST_CATE_RRD_CREATION     NTOPNG_PREFS_PREFIX".host_categories_rrd_creation" /* 0 / 1 */
+#define CONST_RUNTIME_PREFS_THPT_CONTENT               NTOPNG_PREFS_PREFIX".thpt_content"     /* bps / pps */
+#define CONST_RUNTIME_PREFS_ALERT_SYSLOG               NTOPNG_PREFS_PREFIX".alerts_syslog"    /* 0 / 1 */
+#define CONST_RUNTIME_PREFS_ALERT_PROBING              NTOPNG_PREFS_PREFIX".probing_alerts"   /* 0 / 1 */
+#define CONST_RUNTIME_PREFS_ALERT_SSL                  NTOPNG_PREFS_PREFIX".ssl_alerts"       /* 0 / 1 */
+#define CONST_RUNTIME_PREFS_ALERT_DNS                  NTOPNG_PREFS_PREFIX".dns_alerts"       /* 0 / 1 */
+#define CONST_RUNTIME_PREFS_ALERT_MINING               NTOPNG_PREFS_PREFIX".mining_alerts"    /* 0 / 1 */
+#define CONST_RUNTIME_PREFS_ALERT_REMOTE_TO_REMOTE     NTOPNG_PREFS_PREFIX".remote_to_remote_alerts"
+#define CONST_RUNTIME_PREFS_ALERT_DROPPED_FLOWS        NTOPNG_PREFS_PREFIX".dropped_flows_alerts"
+#define CONST_RUNTIME_PREFS_HOSTS_ALERTS_CONFIG        NTOPNG_PREFS_PREFIX".alerts_global.min.local_hosts"
 #define CONST_HOST_SYN_ATTACKER_ALERT_THRESHOLD_KEY    "syn_attacker_threshold"
 #define CONST_HOST_SYN_VICTIM_ALERT_THRESHOLD_KEY      "syn_victim_threshold"
 #define CONST_HOST_FLOW_ATTACKER_ALERT_THRESHOLD_KEY   "flow_attacker_threshold"
 #define CONST_HOST_FLOW_VICTIM_ALERT_THRESHOLD_KEY     "flow_victim_threshold"
-#define CONST_RUNTIME_PREFS_NBOX_INTEGRATION           "ntopng.prefs.nbox_integration" /* 0 / 1 */
-#define CONST_RUNTIME_PREFS_LOGGING_LEVEL              "ntopng.prefs.logging_level"
-#define CONST_RUNTIME_PREFS_SNMP_PROTO_VERSION         "ntopng.prefs.default_snmp_version"
-#define CONST_RUNTIME_PREFS_IFACE_FLOW_COLLECTION      "ntopng.prefs.dynamic_flow_collection_mode" /* {"none", "vlan", "probe_ip","ingress_iface_idx"} */
-#define CONST_RUNTIME_PREFS_IGNORED_INTERFACES         "ntopng.prefs.ignored_interfaces"
-#define CONST_RUNTIME_PREFS_ENABLE_MAC_NDPI_STATS      "ntopng.prefs.l2_device_ndpi_timeseries_creation"
+#define CONST_RUNTIME_PREFS_NBOX_INTEGRATION           NTOPNG_PREFS_PREFIX".nbox_integration" /* 0 / 1 */
+#define CONST_RUNTIME_PREFS_LOGGING_LEVEL              NTOPNG_PREFS_PREFIX".logging_level"
+#define CONST_RUNTIME_PREFS_SNMP_PROTO_VERSION         NTOPNG_PREFS_PREFIX".default_snmp_version"
+#define CONST_RUNTIME_PREFS_IFACE_FLOW_COLLECTION      NTOPNG_PREFS_PREFIX".dynamic_flow_collection_mode" /* {"none", "vlan", "probe_ip","ingress_iface_idx"} */
+#define CONST_RUNTIME_PREFS_IGNORED_INTERFACES         NTOPNG_PREFS_PREFIX".ignored_interfaces"
+#define CONST_RUNTIME_PREFS_ENABLE_MAC_NDPI_STATS      NTOPNG_PREFS_PREFIX".l2_device_ndpi_timeseries_creation"
+#define CONST_RUNTIME_TS_NUM_SLOTS                     NTOPNG_PREFS_PREFIX".ts_write_slots"
+#define CONST_RUNTIME_TS_NUM_STEPS                     NTOPNG_PREFS_PREFIX".ts_write_steps"
 #define DISAGGREGATION_PROBE_IP                        "probe_ip"
 #define DISAGGREGATION_IFACE_ID                        "iface_idx"
 #define DISAGGREGATION_INGRESS_IFACE_ID                "ingress_iface_idx"
@@ -514,11 +519,11 @@
 #define DISAGGREGATION_VLAN                            "vlan"
 #define DISAGGREGATION_NONE                            "none"
 #ifdef NTOPNG_PRO
-#define CONST_RUNTIME_PREFS_ALERT_NAGIOS             "ntopng.prefs.alerts.nagios_notifications_enabled"    /* 0 / 1 */
-#define CONST_RUNTIME_PREFS_DAILY_REPORTS            "ntopng.prefs.daily_reports"    /* 0 / 1 */
+#define CONST_RUNTIME_PREFS_ALERT_NAGIOS             NTOPNG_PREFS_PREFIX".alerts.nagios_notifications_enabled"    /* 0 / 1 */
+#define CONST_RUNTIME_PREFS_DAILY_REPORTS            NTOPNG_PREFS_PREFIX".daily_reports"    /* 0 / 1 */
 #endif
-#define CONST_RUNTIME_PREFS_HOSTMASK  "ntopng.prefs.host_mask"
-#define CONST_RUNTIME_PREFS_AUTO_ASSIGNED_POOL_ID      "ntopng.prefs.auto_assigned_pool_id"
+#define CONST_RUNTIME_PREFS_HOSTMASK  NTOPNG_PREFS_PREFIX".host_mask"
+#define CONST_RUNTIME_PREFS_AUTO_ASSIGNED_POOL_ID      NTOPNG_PREFS_PREFIX".auto_assigned_pool_id"
 
 #define CONST_MAX_ALERT_MSG_QUEUE_LEN 8192
 #define CONST_MAX_ES_MSG_QUEUE_LEN    8192
@@ -554,19 +559,19 @@
 #define CONST_DEFAULT_MAX_PACKET_SIZE  1518
 
 /* SRC/DST override for ZMQ interfaces */
-#define CONST_DEFAULT_OVERRIDE_SRC_WITH_POST_NAT    "ntopng.prefs.override_src_with_post_nat_src"
-#define CONST_DEFAULT_OVERRIDE_DST_WITH_POST_NAT    "ntopng.prefs.override_dst_with_post_nat_dst"
+#define CONST_DEFAULT_OVERRIDE_SRC_WITH_POST_NAT    NTOPNG_PREFS_PREFIX".override_src_with_post_nat_src"
+#define CONST_DEFAULT_OVERRIDE_DST_WITH_POST_NAT    NTOPNG_PREFS_PREFIX".override_dst_with_post_nat_dst"
 
 /* Tiny Flows */
 #define CONST_DEFAULT_IS_TINY_FLOW_EXPORT_ENABLED   true /* disabled by default */
 #define CONST_DEFAULT_MAX_NUM_PACKETS_PER_TINY_FLOW 3
 #define CONST_DEFAULT_MAX_NUM_BYTES_PER_TINY_FLOW   64 /* Empty TCP */
-#define CONST_IS_TINY_FLOW_EXPORT_ENABLED   "ntopng.prefs.tiny_flows_export_enabled"
-#define CONST_MAX_NUM_PACKETS_PER_TINY_FLOW "ntopng.prefs.max_num_packets_per_tiny_flow"
-#define CONST_MAX_NUM_BYTES_PER_TINY_FLOW   "ntopng.prefs.max_num_bytes_per_tiny_flow"
+#define CONST_IS_TINY_FLOW_EXPORT_ENABLED   NTOPNG_PREFS_PREFIX".tiny_flows_export_enabled"
+#define CONST_MAX_NUM_PACKETS_PER_TINY_FLOW NTOPNG_PREFS_PREFIX".max_num_packets_per_tiny_flow"
+#define CONST_MAX_NUM_BYTES_PER_TINY_FLOW   NTOPNG_PREFS_PREFIX".max_num_bytes_per_tiny_flow"
 
 /* Exponentially Weighted Moving Average alpha config. */
-#define CONST_EWMA_ALPHA_PERCENT            "ntopng.prefs.ewma_alpha_percent"
+#define CONST_EWMA_ALPHA_PERCENT            NTOPNG_PREFS_PREFIX".ewma_alpha_percent"
 #define CONST_DEFAULT_EWMA_ALPHA_PERCENT    15 /* 15% */
 
 #define HTTPBL_DOMAIN                  "dnsbl.httpbl.org"
@@ -728,8 +733,8 @@
 #define STATS_MANAGER_STORE_NAME             "top_talkers.db"
 
 #define ALERTS_MANAGER_NOTIFICATION_QUEUE_NAME "ntopng.alerts.notifications_queue"
-#define ALERTS_MANAGER_EXTERNAL_NOTIFICATIONS_ENABLED "ntopng.prefs.alerts.external_notifications_enabled"
-#define ALERTS_DUMP_DURING_IFACE_ALERTED       "ntopng.prefs.alerts.dump_alerts_when_iface_is_alerted"
+#define ALERTS_MANAGER_EXTERNAL_NOTIFICATIONS_ENABLED NTOPNG_PREFS_PREFIX".alerts.external_notifications_enabled"
+#define ALERTS_DUMP_DURING_IFACE_ALERTED       NTOPNG_PREFS_PREFIX".alerts.dump_alerts_when_iface_is_alerted"
 
 #define CONST_MAX_NUM_THREADED_ACTIVITIES 64
 #define STARTUP_SCRIPT_PATH        "startup.lua"
@@ -758,20 +763,20 @@
 #define HOST_LOW_GOODPUT_THRESHOLD  25 /* No more than X low goodput flows per host */
 #define FLOW_GOODPUT_THRESHOLD      40 /* 40% */
 
-#define PREF_NTOP_AUTHENTICATION_TYPE "ntopng.prefs.auth_type"
-#define PREF_LDAP_ACCOUNT_TYPE        "ntopng.prefs.ldap.account_type"
-#define PREF_LDAP_SERVER              "ntopng.prefs.ldap.ldap_server_address"
-#define PREF_LDAP_BIND_ANONYMOUS      "ntopng.prefs.ldap.anonymous_bind"
-#define PREF_LDAP_BIND_DN             "ntopng.prefs.ldap.bind_dn"
-#define PREF_LDAP_BIND_PWD            "ntopng.prefs.ldap.bind_pwd"
-#define PREF_LDAP_SEARCH_PATH         "ntopng.prefs.ldap.search_path"
-#define PREF_LDAP_USER_GROUP          "ntopng.prefs.ldap.user_group"
-#define PREF_LDAP_ADMIN_GROUP         "ntopng.prefs.ldap.admin_group"
-#define PREF_LDAP_GROUP_OF_USER       "ntopng.prefs.ldap.%s.group_of_user"
+#define PREF_NTOP_AUTHENTICATION_TYPE NTOPNG_PREFS_PREFIX".auth_type"
+#define PREF_LDAP_ACCOUNT_TYPE        NTOPNG_PREFS_PREFIX".ldap.account_type"
+#define PREF_LDAP_SERVER              NTOPNG_PREFS_PREFIX".ldap.ldap_server_address"
+#define PREF_LDAP_BIND_ANONYMOUS      NTOPNG_PREFS_PREFIX".ldap.anonymous_bind"
+#define PREF_LDAP_BIND_DN             NTOPNG_PREFS_PREFIX".ldap.bind_dn"
+#define PREF_LDAP_BIND_PWD            NTOPNG_PREFS_PREFIX".ldap.bind_pwd"
+#define PREF_LDAP_SEARCH_PATH         NTOPNG_PREFS_PREFIX".ldap.search_path"
+#define PREF_LDAP_USER_GROUP          NTOPNG_PREFS_PREFIX".ldap.user_group"
+#define PREF_LDAP_ADMIN_GROUP         NTOPNG_PREFS_PREFIX".ldap.admin_group"
+#define PREF_LDAP_GROUP_OF_USER       NTOPNG_PREFS_PREFIX".ldap.%s.group_of_user"
 #ifdef HAVE_LDAP
 #define MAX_LDAP_LEN     256  /* Keep it in sync with lua preferences file prefs.lua */
 #endif
-#define PREF_USER_TYPE_LOG            "ntopng.prefs.user.%s.type_log"
+#define PREF_USER_TYPE_LOG            NTOPNG_PREFS_PREFIX".user.%s.type_log"
 
 /* Elastic Search */
 #define NTOP_ES_TEMPLATE              "ntopng_template_elk.json"

@@ -1181,8 +1181,7 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
       break;
 
     case flowhashing_vlan:
-      if(zflow->core.vlan_id)
-	vIface = getSubInterface((u_int32_t)zflow->core.vlan_id, true);
+      vIface = getSubInterface((u_int32_t)zflow->core.vlan_id, true);
       break;
 
     default:
