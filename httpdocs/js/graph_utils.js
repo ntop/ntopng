@@ -400,6 +400,10 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
     else if(!no_spinner)
       spinner.appendTo($chart.parent());
 
+    // Update datetime selection
+    $("#period_begin").data("DateTimePicker").date(new Date(params.epoch_begin * 1000));
+    $("#period_end").data("DateTimePicker").date(new Date(params.epoch_end * 1000));
+
     // Load data via ajax
     pending_request = $.get(url, params, function(data) {
       if(!data || !data.series || !data.series.length || !checkSeriesConsinstency(schema_name, data.count, data.series)) {
@@ -535,9 +539,6 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
 
       var stats_table = $chart.closest("table").find(".graph-statistics");
       var stats = data.statistics;
-
-      stats_table.find(".graph-val-begin").show().find("span").html(new Date(data.start * 1000).format(datetime_format));
-      stats_table.find(".graph-val-end").show().find("span").html(new Date((data.start + data.step * (data.count-1)) * 1000).format(datetime_format));
 
       if(stats) {
         if(stats.average) {
