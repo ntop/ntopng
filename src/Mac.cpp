@@ -65,7 +65,7 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6])
     char redis_key[64], buf1[64], rsp[8];
     char *json = NULL;
     char *mac_ptr = Utils::formatMac(mac, buf1, sizeof(buf1));
-    snprintf(redis_key, sizeof(redis_key), MAC_SERIALIED_KEY, iface->get_id(), mac_ptr);
+    snprintf(redis_key, sizeof(redis_key), MAC_SERIALIZED_KEY, iface->get_id(), mac_ptr);
 
     if((json = (char*)malloc(HOST_MAX_SERIALIZED_LEN * sizeof(char))) == NULL) {
       ntop->getTrace()->traceEvent(TRACE_ERROR,
@@ -98,7 +98,7 @@ Mac::~Mac() {
     char key[64], buf1[64];
     char *json = serialize();
 
-    snprintf(key, sizeof(key), MAC_SERIALIED_KEY, iface->get_id(), Utils::formatMac(mac, buf1, sizeof(buf1)));
+    snprintf(key, sizeof(key), MAC_SERIALIZED_KEY, iface->get_id(), Utils::formatMac(mac, buf1, sizeof(buf1)));
     ntop->getRedis()->set(key, json, ntop->getPrefs()->get_local_host_cache_duration());
     free(json);
   }

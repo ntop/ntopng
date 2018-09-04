@@ -405,6 +405,13 @@ int Redis::set(char *key, char *value, u_int expire_secs) {
   int rc;
   redisReply *reply;
 
+  if((value == NULL) || (value[0] == '\0')) {    
+    if(strncmp(key, NTOPNG_PREFS_PREFIX, sizeof(NTOPNG_PREFS_PREFIX)) == 0) {
+      /* This is an empty preference value that we can discard*/
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Discarding empty prefence value %s", key);
+    }
+  }
+  
   l->lock(__FILE__, __LINE__);
 
   if(isCacheable(key))
