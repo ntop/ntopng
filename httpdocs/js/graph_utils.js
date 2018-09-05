@@ -504,7 +504,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
         var num_smoothed_points = Math.max(Math.floor(total_serie.length / 5), 3);
 
         var smooth_functions = {
-          smooth: [graph_i18n.trend, "#62ADF6", smooth, num_smoothed_points],
+          trend: [graph_i18n.trend, "#62ADF6", smooth, num_smoothed_points],
           ema: ["EMA", "#F96BFF", exponentialMovingAverageArray, {periods: num_smoothed_points}],
           sma: ["SMA", "#A900FF", simpleMovingAverageArray, {periods: num_smoothed_points}],
           rsi: ["RSI", "#00FF5D", relativeStrengthIndexArray, {periods: num_smoothed_points}],
@@ -516,19 +516,32 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
           
           var max_val = d3.max(smoothed);
           if(max_val > 0) {
-            var scale = d3.max(total_serie) / max_val;
-            var scaled = $.map(smoothed, function(x) { return x * scale; });
-            var aligned = upsampleSerie(scaled, data.count);
+            var aligned;
+
+            if((fn_to_use != "ema") && (fn_to_use != "sma") && (fn_to_use != "rsi")) {
+              var scale = d3.max(total_serie) / max_val;
+              var scaled = $.map(smoothed, function(x) { return x * scale; });
+              aligned = upsampleSerie(scaled, data.count);
+            } else {
+              /* Fill the initial buffering space */
+              for(var i=0; i<num_smoothed_points; i++)
+                smoothed.splice(0, 0, smoothed[0]);
+
+              aligned = upsampleSerie(smoothed, data.count);
+            }
+
+            if(fn_to_use == "rsi")
+              chart.yDomainRatioY2(1.0);
 
             res.push({
               key: options[0],
-              yAxis: 1,
+              yAxis: (fn_to_use != "rsi") ? 1 : 2,
               values: arrayToNvSerie(aligned, data.start, data.step),
               type: "line",
               classed: "line-animated",
               color: options[1],
               legend_key: fn_to_use,
-              disabled: isLegendDisabled("trend", false),
+              disabled: isLegendDisabled(fn_to_use, false),
             });
           }
         }
@@ -537,7 +550,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
           for(fn_to_use in smooth_functions)
             add_smoothed_serie(fn_to_use);
         } else
-          add_smoothed_serie("smooth");
+          add_smoothed_serie("trend");
       }
 
       // get the value formatter
