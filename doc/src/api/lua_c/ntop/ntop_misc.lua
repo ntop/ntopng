@@ -39,7 +39,6 @@ function ntop.addLocalNetwork(string network_cidr)
 function ntop.getNetworkNameById(int network_id)
 
 
-
 --! @brief Get information about the currest host.
 --! @return table (ip, instance_name).
 function ntop.getHostInformation()
@@ -48,12 +47,10 @@ function ntop.getHostInformation()
 --! @return table (cpu_load, cpu_idle, mem_total, mem_free, mem_buffers, mem_cached, mem_shmem. mem_used).
 function ntop.systemHostStat()
 
-
-
 --! @brief Send a message to syslog.
---! @param is_error if true, level will be LOG_ERR, otherwise LOG_INFO.
 --! @param message the message to send.
-function ntop.syslog(bool is_error, string message)
+--! @param syslog_severity an integer representing the standard syslog severity as per RFC 5424. LOG_INFO is used when severity is not specified.
+function syslog(string message, int syslog_severity);
 
 --! @brief Set ntopng logging level.
 --! @param level one of "trace", "debug", "info", "normal", "warning", "error".
