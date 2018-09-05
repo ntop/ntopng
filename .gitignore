@@ -90,3 +90,4 @@ third-party/libcrafter/
 prime/
 stage/
 parts/
+hooks/.enabled

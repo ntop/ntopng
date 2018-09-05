@@ -1,0 +1,23 @@
+#!/bin/sh
+
+if which lua 2>&1 >/dev/null; then
+	# Sort locales
+	for fname in `ls scripts/locales`; do
+		full_path=scripts/locales/${fname}
+
+		if ! git diff --staged --quiet $full_path; then
+			locale=${fname%%.lua}
+			tools/localization/localize.sh sort $locale
+			git add $full_path
+		fi
+	done
+fi
+
+if which uglifyjs 2>&1 >/dev/null; then
+	# Minify scripts
+	if ! git diff --staged --quiet httpdocs/js; then
+		make minify
+		git add -u httpdocs/js/*.min.js
+		git add -u httpdocs/js/*.min.js.map
+	fi
+fi

@@ -157,7 +157,7 @@ endif
 
 .NOTPARALLEL: default all
 
-default: $(NDPI_LIB_DEP) $(LIB_TARGETS) $(TARGET)
+default: hooks/.enabled $(NDPI_LIB_DEP) $(LIB_TARGETS) $(TARGET)
 
 all: default
 
@@ -187,6 +187,10 @@ $(LIBRRDTOOL_LIB):
 
 $(JSON_LIB):
 	cd $(JSON_HOME); ./autogen.sh; ./configure; @GMAKE@
+
+hooks/.enabled:
+	git config core.hooksPath hooks || true
+	touch hooks/.enabled
 
 clean:
 	-rm -f src/*.o src/*~ include/*~ *~ #config.h
