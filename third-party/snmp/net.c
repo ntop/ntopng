@@ -73,16 +73,28 @@ int open_udp_socket(int port)
 void send_udp_datagram(void *buf, int len, int socket, char *target_host, int target_port)
 {
   struct sockaddr_in target_si;
-  struct hostent *he;
-    
-  memset((char *) &target_si, 0, sizeof(target_si));
-  target_si.sin_family = AF_INET;
+
+  struct addrinfo hints, *res = NULL, *p;
+  int errcode;
+
+  memset(&target_si, 0, sizeof(target_si));
+  memset(&hints, 0, sizeof(hints));
+  hints.ai_family = AF_INET; /* IPv4 */
+  //  hints.ai_socktype = SOCK_STREAM;
+  //  hints.ai_flags |= AI_CANONNAME;
+
+  if((errcode = getaddrinfo(target_host, NULL, &hints, &res))
+     || !res)
+    return;
+
+  for (p = res; p != NULL; p = p->ai_next) {
+    memcpy(&target_si, res->ai_addr, res->ai_addrlen);
+    break;
+  }
+
+  freeaddrinfo(res);
+
   target_si.sin_port = htons(target_port);
-    
-  if (!(he = gethostbyname2(target_host, AF_INET)))
-    return; //diep("gethostbyname2");
-    
-  memmove(&target_si.sin_addr.s_addr, he->h_addr, he->h_length);
     
   if (sendto(socket, (const char*)buf, len, 0, (struct sockaddr *) &target_si, sizeof(target_si)) == -1)
     return; //diep("sendto");
