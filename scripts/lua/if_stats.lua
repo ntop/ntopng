@@ -24,6 +24,8 @@ require "alert_utils"
 require "db_utils"
 local ts_utils = require "ts_utils"
 
+processAlertNotifications(os.time(), 1, false)
+
 local have_nedge = ntop.isnEdge()
 
 if ntop.isPro() then

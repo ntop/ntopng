@@ -2659,9 +2659,9 @@ function alertNotificationActionToLabel(action)
    local label = ""
 
    if action == "engage" then
-      label = "Alert Engaged: "
+      label = "[Engaged]"
    elseif action == "release" then
-      label = "Alert Released: "
+      label = "[Released]"
    end
 
    return label
@@ -2684,11 +2684,24 @@ local ALERT_NOTIFICATION_MODULES = {
    "custom", "nagios", "slack"
 }
 
+if ntop.syslog then
+   table.insert(ALERT_NOTIFICATION_MODULES, 1, "syslog")
+end
+
 if ntop.sendMail then -- only if email support is available
    table.insert(ALERT_NOTIFICATION_MODULES, 1, "email")
 end
 
 function getAlertNotificationModuleEnableKey(module_name, short)
+   if module_name == "syslog" and ntop.getPref("ntopng.prefs.alerts_syslog") ~= "" then
+      -- For backward compatibility
+      if short then
+	 return "alerts_syslog"
+      else
+	 return "ntopng.prefs.alerts_syslog"
+      end
+   end
+
    local short_k = "alerts." .. module_name .. "_notifications_enabled"
 
    if short then
@@ -2784,15 +2797,32 @@ function formatAlertNotification(notif, options)
    }
    options = table.merge(defaults, options)
 
-   local msg_prefix = alertNotificationActionToLabel(notif.action)
-   local msg = "[" .. formatEpoch(notif.tstamp or 0) .. "]" ..
-      ternary(defaults.show_severity == true, "", "[" .. alertSeverityLabel(alertSeverity(notif.severity), options.nohtml) .. "]") ..
-      "[" .. alertTypeLabel(alertType(notif.type), options.nohtml) .."]: "
+   local msg = "[" .. formatEpoch(notif.tstamp or 0) .. "]"
+   msg = msg .. ternary(options.show_severity == false, "", "[" .. alertSeverityLabel(alertSeverity(notif.severity), options.nohtml) .. "]") ..
+      "[" .. alertTypeLabel(alertType(notif.type), options.nohtml) .."]"
+
+   -- entity can be hidden for example when one is OK with just the message
+   if options.show_entity then
+      msg = msg.."["..alertEntityLabel(alertEntity(notif.entity_type)).."]"
+
+      if notif.entity_type ~= "flow" then
+	 local ev = notif.entity_value
+	 if notif.entity_type == "host" then
+	    -- suppresses @0 when the vlan is zero
+	    ev = hostinfo2hostkey(hostkey2hostinfo(notif.entity_value))
+	 end
+
+	 msg = msg.."["..ev.."]"
+      end
+   end
+
+   -- add the label, that is, engaged or released
+   msg = msg .. alertNotificationActionToLabel(notif.action).. " "
 
    if options.nohtml then
-      msg = msg .. noHtml(msg_prefix .. notif.message)
+      msg = msg .. noHtml(notif.message)
    else
-      msg = msg .. msg_prefix .. notif.message
+      msg = msg .. notif.message
    end
 
    return msg
@@ -2827,6 +2857,7 @@ function processAlertNotifications(now, periodic_frequency, force_export)
    -- Process export notifications
    for _, m in ipairs(modules) do
       if force_export or ((now % m.export_frequency) < periodic_frequency) then
+
          local rv = m.module.dequeueAlerts(m.export_queue)
 
          if not rv.success then

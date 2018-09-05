@@ -371,11 +371,6 @@ int AlertsManager::engageAlert(AlertEngine alert_engine, AlertEntity alert_entit
       notifyAlert(alert_entity, alert_entity_value, engaged_alert_id,
 		  alert_type, alert_severity, alert_json,
 		  alert_origin, alert_target, true, now, NULL);
-
-#ifndef WIN32
-      if(ntop->getPrefs()->are_alerts_syslog_enabled())
-	syslog(LOG_WARNING, "[Alert] [ENGAGED] %s", alert_json ? alert_json : (char*)"");
-#endif
     }
 
     return rc;
@@ -409,11 +404,6 @@ int AlertsManager::releaseAlert(AlertEngine alert_engine,
 
     if(getNetworkInterface())
       getNetworkInterface()->decAlertLevel();
-
-#ifndef WIN32
-    if(ntop->getPrefs()->are_alerts_syslog_enabled())
-      syslog(LOG_WARNING, "[Alert] [RELEASED] %s", alert_json ? alert_json : (char*)"");
-#endif
 
     notifyAlert(alert_entity, alert_entity_value, engaged_alert_id,
           alert_type, alert_severity, alert_json,
@@ -648,11 +638,6 @@ int AlertsManager::storeAlert(AlertEntity alert_entity, const char *alert_entity
     if(stmt) sqlite3_finalize(stmt);
     m.unlock(__FILE__, __LINE__);
 
-#ifndef WIN32
-    if(ntop->getPrefs()->are_alerts_syslog_enabled())
-      syslog(LOG_WARNING, "[Alert] %s", alert_json ? alert_json : (char*)"");
-#endif
-
     return rc;
   } else
     return(-1);
@@ -782,35 +767,6 @@ int AlertsManager::storeFlowAlert(Flow *f) {
     m.unlock(__FILE__, __LINE__);
 
     f->setFlowAlerted();
-
-#ifndef WIN32
-    if(cli && cli->get_ip()
-       && srv && srv->get_ip()
-       && ntop->getPrefs()->are_alerts_syslog_enabled()) {
-      char cli_name[64], srv_name[64];
-      char at_vlan[8];
-      int len;
-
-      at_vlan[0] = '\0';
-
-      if (f->get_vlan_id())
-        snprintf(at_vlan, sizeof(at_vlan), "@%d", f->get_vlan_id());
-
-      len = snprintf(alert_json, sizeof(alert_json),
-	       "%s: %s %s%s (%s) > %s%s (%s)",
-	       msg, /* TODO: remove string and save numeric status */
-               iface->get_name(),	       
-               cli->get_ip()->print(cli_ip_buf, sizeof(cli_ip_buf)), at_vlan,
-	       cli->get_visual_name(cli_name, sizeof(cli_name)),
-	       srv->get_ip()->print(srv_ip_buf, sizeof(srv_ip_buf)), at_vlan,
-	       srv->get_visual_name(srv_name, sizeof(srv_name)));
-
-      if (info && strlen(info) > 0)
-        len += snprintf(&alert_json[len], sizeof(alert_json)-len, " Info: %s", info);
-
-      syslog(LOG_WARNING, "[Alert] %s", alert_json);
-    }
-#endif
 
     ntop->getTrace()->traceEvent(TRACE_INFO, "[%s] %s", msg, alert_json);
 

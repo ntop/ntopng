@@ -5882,24 +5882,27 @@ static int ntop_snmpgetnext(lua_State* vm) { SNMP s; return(s.getnext(vm)); }
 /* ****************************************** */
 
 // ***API***
-static int ntop_syslog(lua_State* vm) {
 #ifndef WIN32
+static int ntop_syslog(lua_State* vm) {
   char *msg;
-  bool is_error;
+  int syslog_severity = LOG_INFO;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TBOOLEAN) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING)  != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)  != CONST_LUA_OK) {
+    lua_pushnil(vm);
+    return(CONST_LUA_ERROR);
+  }
 
-  is_error = lua_toboolean(vm, 1) ? true : false;
-  msg = (char*)lua_tostring(vm, 2);
+  msg = (char*)lua_tostring(vm, 1);
+  if(lua_type(vm, 2) == LUA_TNUMBER)
+    syslog_severity = (int)lua_tonumber(vm, 2);
 
-  syslog(is_error ? LOG_ERR : LOG_INFO, "%s", msg);
-#endif
+  syslog(syslog_severity, "%s", msg);
 
   lua_pushnil(vm);
   return(CONST_LUA_OK);
+#endif
 }
 
 /* ****************************************** */
@@ -7982,7 +7985,9 @@ static const luaL_Reg ntop_reg[] = {
   { "getResolvedName",   ntop_get_resolved_address },  /* Note: you should use getResolvedAddress() to call from Lua */
 
   /* Logging */
+#ifndef WIN32
   { "syslog",            ntop_syslog },
+#endif
   { "setLoggingLevel",   ntop_set_logging_level },
   { "traceEvent",        ntop_trace_event },
 
