@@ -248,7 +248,7 @@ function printAlerts()
   end
 
  local elementToSwitch = { "max_num_alerts_per_entity", "max_num_flow_alerts", "row_toggle_alert_probing",
-			   "row_toggle_malware_probing", "row_toggle_dns_alerts", "row_toggle_alert_syslog",
+			   "row_toggle_malware_probing", "row_toggle_dns_alerts",
 			   "row_toggle_flow_alerts_iface", "row_alerts_retention_header", "row_alerts_security_header",
 			   "row_toggle_ssl_alerts", "row_toggle_dns_alerts", "row_toggle_remote_to_remote_alerts",
 			   "row_toggle_ip_reassignment_alerts", "row_toggle_dropped_flows_alerts", "row_alerts_informative_header",
@@ -271,13 +271,6 @@ function printAlerts()
   else
      showElements = false
   end
-
-  prefsToggleButton({
-    field = "toggle_alert_syslog",
-    pref = "alerts_syslog",
-    default = "0",
-    hidden = not showElements,
-  })
 
   --[[
   prefsToggleButton({
@@ -540,6 +533,18 @@ function printExternalAlertsReport()
 
     print('<tr id="slack_test" style="' .. ternary(showSlackNotificationPrefs, "", "display:none;").. '"><td><button class="btn btn-default disable-on-dirty" type="button" onclick="sendTestSlack();" style="width:230px; float:left;">'..i18n("prefs.send_test_slack")..'</button></td></tr>')
 
+    if ntop.syslog then
+      print('<tr><th colspan="2" class="info">'..i18n("prefs.syslog_notification")..'</th></tr>')
+
+      prefsToggleButton({
+        field = "toggle_alert_syslog",
+        pref = getAlertNotificationModuleEnableKey("syslog", true),
+        default = "0",
+	disabled = showElements == false,
+      })
+
+    end
+
     if(ntop.isPro() and hasNagiosSupport()) then
       print('<tr><th colspan="2" class="info">'..i18n("prefs.nagios_integration")..'</th></tr>')
 
@@ -574,6 +579,7 @@ function printExternalAlertsReport()
       prefsInputFieldPrefs(subpage_active.entries["nagios_service_name"].title, subpage_active.entries["nagios_service_name"].description, "ntopng.prefs.", "nagios_service_name", prefs.nagios_service_name, nil, showElements)
     end
   end
+
   
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
   print('</table>')

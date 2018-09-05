@@ -9,12 +9,12 @@ local format_utils  = require "format_utils"
 
 -- Alerts (see ntop_typedefs.h)
 -- each table entry is an array as:
--- {"alert html string", "alert C enum value", "plain string"}
+-- {"alert html string", "alert C enum value", "plain string", "syslog severity"}
 alert_consts.alert_severity_keys = {
-   { "<span class='label label-info'>" .. i18n("alerts_dashboard.none") .. "</span>",      -1, "none"    },
-   { "<span class='label label-info'>" .. i18n("alerts_dashboard.info") .. "</span>",       0, "info"    },
-   { "<span class='label label-warning'>" .. i18n("alerts_dashboard.warning") .. "</span>", 1, "warning" },
-   { "<span class='label label-danger'>" .. i18n("alerts_dashboard.error") .. "</span>",    2, "error"   }
+   { "<span class='label label-info'>" .. i18n("alerts_dashboard.none") .. "</span>",      -1, "none",    6, --[[ LOG_INFO --]]    },
+   { "<span class='label label-info'>" .. i18n("alerts_dashboard.info") .. "</span>",       0, "info",    6, --[[ LOG_INFO --]]    },
+   { "<span class='label label-warning'>" .. i18n("alerts_dashboard.warning") .. "</span>", 1, "warning", 4, --[[ LOG_WARNING --]] },
+   { "<span class='label label-danger'>" .. i18n("alerts_dashboard.error") .. "</span>",    2, "error",   3, --[[ LOG_ERR --]]     }
 }
 
 alert_consts.alert_type_keys = {

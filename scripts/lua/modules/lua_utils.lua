@@ -553,11 +553,26 @@ end
 
 function noHtml(s)
    if s == nil then return nil end
+
+   local gsub, char = string.gsub, string.char
+   local entityMap  = {lt = "<", gt = ">" , amp = "&", quot ='"', apos = "'"}
+   local entitySwap = function(orig, n, s)
+      return (n == '' and entityMap[s])
+	 or (n == "#" and tonumber(s)) and string.char(s)
+	 or (n == "#x" and tonumber(s,16)) and string.char(tonumber(s,16))
+	 or orig
+   end
+
+   local function unescape(str)
+      return (gsub( str, '(&(#?x?)([%d%a]+);)', entitySwap ))
+   end
+
    local cleaned = s:gsub("<[aA].->(.-)</[aA]>","%1")
       :gsub("%s*<[iI].->(.-)</[iI]>","%1")
       :gsub("<.->(.-)</.->","%1") -- note: this does not handle nested tags
       :gsub("^%s*(.-)%s*$", "%1")
-   return cleaned
+
+   return unescape(cleaned)
 end
 
 function alertSeverityLabel(v, nohtml)
@@ -621,6 +636,15 @@ function alertLevel(v)
 
    for i, t in ipairs(alert_consts.alert_severity_keys) do
       leveltable[#leveltable + 1] = {t[2], t[3]}
+   end
+   return(_handleArray(leveltable, v))
+end
+
+function alertLevelToSyslogLevel(v)
+   local leveltable = {}
+
+   for i, t in ipairs(alert_consts.alert_severity_keys) do
+      leveltable[#leveltable + 1] = {t[4], t[3]}
    end
    return(_handleArray(leveltable, v))
 end

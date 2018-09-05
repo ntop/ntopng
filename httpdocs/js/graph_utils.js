@@ -470,6 +470,8 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
         has_full_data = !schema_name.startsWith("top:");
       }
 
+      var past_serie = null;
+
       if(data.additional_series) {
         for(var key in data.additional_series) {
           if(key == "total") {
@@ -481,6 +483,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
           var ratio_over_total = d3.max(serie_data) / d3.max(visual_total);
           var values = arrayToNvSerie(serie_data, data.start, data.step);
           var is_disabled = isLegendDisabled(key, false);
+          past_serie = serie_data; // TODO: more reliable way to determine past serie
 
           /* Hide comparison serie at first load if it's too high */
           if(first_time_loaded && (ratio_over_total > max_over_total_ratio))
@@ -507,12 +510,24 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
           trend: [graph_i18n.trend, "#62ADF6", smooth, num_smoothed_points],
           ema: ["EMA", "#F96BFF", exponentialMovingAverageArray, {periods: num_smoothed_points}],
           sma: ["SMA", "#A900FF", simpleMovingAverageArray, {periods: num_smoothed_points}],
-          rsi: ["RSI", "#00FF5D", relativeStrengthIndexArray, {periods: num_smoothed_points}],
+          rsi: ["RSI cur vs past", "#00FF5D", relativeStrengthIndexArray, {periods: num_smoothed_points}],
         }
 
         function add_smoothed_serie(fn_to_use) {
           var options = smooth_functions[fn_to_use];
-          var smoothed = options[2](total_serie, options[3]);
+          var smoothed;
+
+          if(fn_to_use == "rsi") {
+            if(!past_serie)
+              return;
+
+            var delta_serie = [];
+            for(var i=0; i<total_serie.length; i++) {
+              delta_serie[i] = total_serie[i] - past_serie[i];
+            }
+            smoothed = options[2](delta_serie, options[3]);
+          } else
+            smoothed = options[2](total_serie, options[3]);
           
           var max_val = d3.max(smoothed);
           if(max_val > 0) {

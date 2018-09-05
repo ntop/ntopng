@@ -149,9 +149,6 @@ local menu_subpages = {
     disable_alerts_generation = {
       title       = i18n("prefs.disable_alerts_generation_title"),
       description = i18n("prefs.disable_alerts_generation_description"),
-    }, toggle_alert_syslog = {
-      title       = i18n("prefs.toggle_alert_syslog_title"),
-      description = i18n("prefs.toggle_alert_syslog_description"),
     }, toggle_flow_alerts_iface = {
       title       = i18n("prefs.toggle_flow_alerts_iface_title"),
       description = i18n("prefs.toggle_flow_alerts_iface_description"),
@@ -237,7 +234,10 @@ local menu_subpages = {
     }, slack_webhook = {
       title       = i18n("prefs.slack_webhook_title"),
       description = i18n("prefs.slack_webhook_description"),
-    },
+    }, toggle_alert_syslog = {
+      title       = i18n("prefs.toggle_alert_syslog_title"),
+      description = i18n("prefs.toggle_alert_syslog_description"),
+    }
   }}, {id="protocols",     label=i18n("prefs.protocols"),            advanced=false, pro_only=false,  hidden=false, entries={
     toggle_top_sites = {
       title       = i18n("prefs.toggle_top_sites_title"),
