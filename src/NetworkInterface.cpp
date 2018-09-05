@@ -733,6 +733,7 @@ NetworkInterface::~NetworkInterface() {
 
   deleteDataStructures();
 
+  if(db)             delete db;
   if(host_pools)     delete host_pools;     /* note: this requires ndpi_struct */
   if(ifDescription)  free(ifDescription);
   if(discovery)      delete discovery;
@@ -762,7 +763,6 @@ NetworkInterface::~NetworkInterface() {
 
   delete frequentProtocols;
   delete frequentMacs;
-  if(db) delete db;
 
 #ifdef NTOPNG_PRO
   if(policer)               delete(policer);
