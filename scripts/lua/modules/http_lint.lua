@@ -103,6 +103,13 @@ local function validateNumber(p)
       return false
    end
 end
+local function validateSyslogFormat(p)
+   if p == "plaintext" or p == "json" then
+      return true
+   end
+
+   return false
+end
 
 local function validatePort(p)
    if not validateNumber(p) then
@@ -1063,6 +1070,7 @@ local known_parameters = {
    ["max_num_flow_alerts"]                         = validateNumber,
    ["max_num_packets_per_tiny_flow"]               = validateNumber,
    ["max_num_bytes_per_tiny_flow"]                 = validateNumber,
+   ["syslog_alert_format"]                         = validateEmptyOr(validateSyslogFormat),
    ["nagios_nsca_port"]                            = validateEmptyOr(validatePort),
    ["nagios_send_nsca_executable"]                 = validateAbsolutePath,
    ["nagios_send_nsca_config"]                     = validateAbsolutePath,
