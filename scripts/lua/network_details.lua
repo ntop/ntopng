@@ -68,6 +68,7 @@ if areAlertsEnabled() and not ifstats.isView then
     end
 end
 
+   if ts_utils.getDriverName() == "rrd" then
    if(ntop.isEnterprise()) then
       if(page == "traffic_report") then
          print("\n<li class=\"active\"><a href=\"#\"><i class='fa fa-file-text report-icon'></i></a></li>\n")
@@ -76,6 +77,7 @@ end
       end
    elseif not have_nedge then
       print("\n<li><a href=\"#\" title=\""..i18n('enterpriseOnly').."\"><i class='fa fa-file-text report-icon'></i></A></li>\n")
+   end
    end
    
 if((network ~= nil) and (areAlertsEnabled())) then

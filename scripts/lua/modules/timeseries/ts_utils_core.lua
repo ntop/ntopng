@@ -84,12 +84,8 @@ end
 --! @brief Return a list of active timeseries drivers.
 --! @return list of driver objects.
 function ts_utils.listActiveDrivers()
-  local driver = ntop.getPref("ntopng.prefs.timeseries_driver")
+  local driver = ts_utils.getDriverName()
   local active_drivers = {}
-
-  if isEmptyString(driver) then
-    driver = "rrd"
-  end
 
   if driver == "rrd" then
     local dirs = ntop.getDirs()
@@ -118,6 +114,18 @@ function ts_utils.getQueryDriver()
 
   -- TODO: for now prefer the influx driver if present
   local driver = drivers[2] or drivers[1]
+
+  return driver
+end
+
+-- ##############################################
+
+function ts_utils.getDriverName()
+  local driver = ntop.getPref("ntopng.prefs.timeseries_driver")
+
+  if isEmptyString(driver) then
+    driver = "rrd"
+  end
 
   return driver
 end
