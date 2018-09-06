@@ -538,8 +538,11 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
               var scaled = $.map(smoothed, function(x) { return x * scale; });
               aligned = upsampleSerie(scaled, data.count);
             } else {
+              var remaining = (data.count - smoothed.length);
+              var to_fill = remaining < num_smoothed_points ? remaining : num_smoothed_points;
+
               /* Fill the initial buffering space */
-              for(var i=0; i<num_smoothed_points; i++)
+              for(var i=0; i<to_fill; i++)
                 smoothed.splice(0, 0, smoothed[0]);
 
               aligned = upsampleSerie(smoothed, data.count);
