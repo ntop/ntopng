@@ -334,7 +334,7 @@ if(ts_utils.exists("host:traffic", {ifid=ifId, host=host_ip})) then
    end
 end
 
-if host["localhost"] == true then
+if (host["localhost"] == true) and (ts_utils.getDriverName() == "rrd") then
    if(ntop.isEnterprise()) then
       if(page == "traffic_report") then
          print("\n<li class=\"active\"><a href=\"#\"><i class='fa fa-file-text report-icon'></i></a></li>\n")
