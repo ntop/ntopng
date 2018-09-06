@@ -11,6 +11,8 @@ information such as Date, Severity, Type and Description.
 
   The Alerts Page
 
+.. _ThirdPartyAlertEndpoints:
+
 Alert Endopints
 ---------------
 
@@ -50,9 +52,8 @@ Fields have the following meaning:
 - :code:`[action]` indicates whether this is an engaged alert, an
   alert that has been released or if it just an alert that has to be stored.
 
-The full list of alert severities, types, and entities can be found at
-https://github.com/ntop/ntopng/blob/dev/scripts/lua/modules/alert_consts.lua
-
+Alert types, entities, and actions are explained in detail in section :ref:`BasicConceptAlerts`.
+  
 Examples of alerts sent to syslog are
 
 .. code:: bash
