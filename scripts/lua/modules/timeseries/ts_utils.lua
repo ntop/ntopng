@@ -8,5 +8,6 @@ local ts_utils = require("ts_utils_core")
 require("ts_second")
 require("ts_minute")
 require("ts_5min")
+require("ts_hour")
 
 return ts_utils
