@@ -157,8 +157,8 @@ void HostTimeseriesPoint::lua(lua_State* vm, NetworkInterface *iface) {
 
   lua_push_int_table_entry(vm, "bytes.sent", sent);
   lua_push_int_table_entry(vm, "bytes.rcvd", rcvd);
-  lua_push_int_table_entry(vm, "active_flows.as_client", total_num_flows_as_client);
-  lua_push_int_table_entry(vm, "active_flows.as_server", total_num_flows_as_server);
+  lua_push_int_table_entry(vm, "active_flows.as_client", num_flows_as_client);
+  lua_push_int_table_entry(vm, "active_flows.as_server", num_flows_as_server);
   lua_push_int_table_entry(vm, "contacts.as_client", num_contacts_as_cli);
   lua_push_int_table_entry(vm, "contacts.as_server", num_contacts_as_srv);
 
@@ -702,8 +702,8 @@ void LocalHost::makeTsPoint(HostTimeseriesPoint *pt) {
   pt->ndpi = ndpiStats ? (new nDPIStats(*ndpiStats)) : NULL;
   pt->sent = sent.getNumBytes();
   pt->rcvd = rcvd.getNumBytes();
-  pt->total_num_flows_as_client = total_num_flows_as_client;
-  pt->total_num_flows_as_server = total_num_flows_as_server;
+  pt->num_flows_as_client = getNumOutgoingFlows();
+  pt->num_flows_as_server = getNumIncomingFlows();
   pt->num_contacts_as_cli = contacts_as_cli.size();
   pt->num_contacts_as_srv = contacts_as_srv.size();
 
