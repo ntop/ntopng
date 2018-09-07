@@ -1945,7 +1945,6 @@ drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
    show_historical = true,
    timeseries = {
       {schema="host:traffic",                label=i18n("traffic")},
-      {schema="host:rsi_traffic",            label="RSI Traffic"}, -- TODO localize
       {schema="host:flows",                  label=i18n("graphs.active_flows")},
       {schema="host:contacts",               label=i18n("graphs.active_host_contacts")},
    }

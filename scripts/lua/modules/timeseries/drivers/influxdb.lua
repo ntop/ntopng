@@ -598,6 +598,92 @@ end
 
 -- ##############################################
 
+function driver:queryTotal(schema, tags, tstart, tend)
+  local data_type = schema.options.metrics_type
+  local query
+
+  if data_type == ts_common.metrics.counter then
+    local metrics = {}
+    local sum_metrics = {}
+
+    for i, metric in ipairs(schema._metrics) do
+      metrics[i] = "NON_NEGATIVE_DIFFERENCE(" .. metric .. ") as " .. metric
+      sum_metrics[i] = "SUM(" .. metric .. ") as " .. metric
+    end
+
+    -- SELECT SUM("bytes_sent") as "bytes_sent", SUM("bytes_rcvd") as "bytes_rcvd" FROM
+    --  (SELECT DIFFERENCE("bytes_sent") AS "bytes_sent", DIFFERENCE("bytes_rcvd") AS "bytes_rcvd"
+    --    FROM "host:traffic" WHERE ifid='1' AND host='192.168.1.1' AND time >= 1536321770000000000 AND time <= 1536322070000000000)
+    query = 'SELECT ' .. table.concat(sum_metrics, ", ") .. ' FROM ' ..
+    '(SELECT ' .. table.concat(metrics, ", ") .. ' FROM "'.. schema.name ..'" WHERE ' ..
+      table.tconcat(tags, "=", " AND ", nil, "'") .. ' AND time >= ' .. tstart .. '000000000 AND time <= ' .. tend .. '000000000)'
+  else
+    local metrics = {}
+
+    for i, metric in ipairs(schema._metrics) do
+      metrics[i] = "SUM(" .. metric .. ") as " .. metric
+    end
+
+    query = 'SELECT ' .. table.concat(metrics, ", ") .. ' FROM "' .. schema.name ..'" WHERE ' ..
+      table.tconcat(tags, "=", " AND ", nil, "'") .. ' AND time >= ' .. tstart .. '000000000 AND time <= ' .. tend .. '000000000'
+  end
+
+  local url = self.url
+  local full_url = url .. "/query?db=".. self.db .."&epoch=s&q=" .. urlencode(query)
+  local data = influx_query(full_url, self.username, self.password)
+
+  if not data then
+    return nil
+  end
+
+  data = data.series[1]
+  local res = {}
+
+  for i=2, #data.columns do
+    local metric = data.columns[i]
+    local total = data.values[1][i]
+
+    res[metric] = total
+  end
+
+  return res
+end
+
+-- ##############################################
+
+function driver:queryMean(schema, tags, tstart, tend)
+  local metrics = {}
+
+  for i, metric in ipairs(schema._metrics) do
+    metrics[i] = "MEAN(" .. metric .. ") as " .. metric
+  end
+
+  local query = 'SELECT ' .. table.concat(metrics, ", ") .. ' FROM "'.. schema.name ..'" WHERE ' ..
+      table.tconcat(tags, "=", " AND ", nil, "'") .. ' AND time >= ' .. tstart .. '000000000 AND time <= ' .. tend .. '000000000'
+
+  local url = self.url
+  local full_url = url .. "/query?db=".. self.db .."&epoch=s&q=" .. urlencode(query)
+  local data = influx_query(full_url, self.username, self.password)
+
+  if not data then
+    return nil
+  end
+
+  data = data.series[1]
+  local res = {}
+
+  for i=2, #data.columns do
+    local metric = data.columns[i]
+    local average = data.values[1][i]
+
+    res[metric] = average
+  end
+
+  return res
+end
+
+-- ##############################################
+
 local function toVersion(version_str)
   local parts = string.split(version_str, "%.")
 

@@ -191,7 +191,7 @@ local function create_rrd(schema, path)
     params[#params + 1] = "RRA:" .. RRD_CONSOLIDATION_FUNCTION .. ":0.5:" .. rra.aggregation_dp .. ":" .. rra.retention_dp
   end
 
-  if use_hwpredict then
+  if use_hwpredict and schema.hwpredict then
     -- NOTE: at most one RRA, otherwise rrd_update crashes.
     local hwpredict = schema.hwpredict
     params[#params + 1] = "RRA:HWPREDICT:" .. hwpredict.row_count .. ":0.1:0.0035:" .. hwpredict.period

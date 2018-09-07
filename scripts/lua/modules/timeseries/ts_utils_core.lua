@@ -485,4 +485,45 @@ end
 
 -- ##############################################
 
+-- TODO make standard and document
+function ts_utils.queryTotal(schema_name, tags, tstart, tend)
+  local schema = ts_utils.getSchema(schema_name)
+
+  if not schema then
+    traceError(TRACE_ERROR, TRACE_CONSOLE, "Schema not found: " .. schema_name)
+    return nil
+  end
+
+  local driver = ts_utils.getQueryDriver()
+
+  if not driver or not driver.queryTotal then
+    return nil
+  end
+
+  return driver:queryTotal(schema, tags, tstart, tend)
+end
+
+-- ##############################################
+
+-- TODO make standard and document
+function ts_utils.queryMean(schema_name, tags, tstart, tend)
+  local schema = ts_utils.getSchema(schema_name)
+
+  if not schema then
+    traceError(TRACE_ERROR, TRACE_CONSOLE, "Schema not found: " .. schema_name)
+    return nil
+  end
+
+  local rv = ts_utils.queryTotal(schema_name, tags, tstart, tend)
+  local intervals = (tend - tstart) / schema.options.step
+
+  for i, total in pairs(rv or {}) do
+    rv[i] = total / intervals
+  end
+
+  return rv
+end
+
+-- ##############################################
+
 return ts_utils

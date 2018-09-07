@@ -39,6 +39,12 @@ ts_schema.supported_steps = {
       period = 288,      -- assume 1 day periodicity
     }
   },
+  ["3600"] = {
+    retention = {
+      {aggregation_dp = 1, retention_dp = 720},     -- 1 hour resolution: keep for 1 month
+      {aggregation_dp = 24, retention_dp = 365},    -- 1 day resolution: keep for 1 year
+    }
+  }
 }
 
 function ts_schema:new(name, options)
