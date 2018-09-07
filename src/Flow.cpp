@@ -74,8 +74,8 @@ Flow::Flow(NetworkInterface *_iface,
   memset(&flow_device, 0, sizeof(flow_device));
 
   iface->findFlowHosts(_vlanId, _cli_mac, _cli_ip, &cli_host, _srv_mac, _srv_ip, &srv_host);
-  if(cli_host) { cli_host->incUses(); cli_host->incNumFlows(true);  }
-  if(srv_host) { srv_host->incUses(); srv_host->incNumFlows(false); }
+  if(cli_host) { cli_host->incUses(); cli_host->incNumFlows(true, srv_host);  }
+  if(srv_host) { srv_host->incUses(); srv_host->incNumFlows(false, cli_host); }
 
 #ifdef NTOPNG_PRO
   HostPools *hp = iface->getHostPools();
@@ -170,8 +170,8 @@ Flow::~Flow() {
   if(flow_packets_head)
     flushBufferedPackets();
 
-  if(cli_host) cli_host->decNumFlows(true),  cli_host->decUses();
-  if(srv_host) srv_host->decNumFlows(false), srv_host->decUses();
+  if(cli_host) cli_host->decNumFlows(true, srv_host),  cli_host->decUses();
+  if(srv_host) srv_host->decNumFlows(false, cli_host), srv_host->decUses();
 
   if(json_info)        free(json_info);
   if(client_proc)      delete(client_proc);

@@ -750,7 +750,7 @@ bool Host::addIfMatching(lua_State* vm, u_int8_t *_mac) {
 
 /* *************************************** */
 
-void Host::incNumFlows(bool as_client) {
+void Host::incNumFlows(bool as_client, Host *peer) {
   if(as_client)
     total_num_flows_as_client++, num_active_flows_as_client++;
   else
@@ -759,7 +759,7 @@ void Host::incNumFlows(bool as_client) {
 
 /* *************************************** */
 
-void Host::decNumFlows(bool as_client) {
+void Host::decNumFlows(bool as_client, Host *peer) {
   if(as_client) {
     if(num_active_flows_as_client)
       num_active_flows_as_client--;

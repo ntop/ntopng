@@ -47,6 +47,7 @@ class LocalHost : public Host {
   AlertCounter *syn_flood_attacker_alert, *syn_flood_victim_alert;
   AlertCounter *flow_flood_attacker_alert, *flow_flood_victim_alert;
   TimeSeriesRing *ts_ring;
+  map<Host*, u_int16_t> contacts_as_cli, contacts_as_srv;
 
   void initialize();
   virtual bool readDHCPCache();
@@ -75,7 +76,8 @@ class LocalHost : public Host {
   void luaAnomalies(lua_State* vm);
   virtual void loadAlertsCounter();
 
-  virtual void incNumFlows(bool as_client);
+  virtual void incNumFlows(bool as_client, Host *peer);
+  virtual void decNumFlows(bool as_client, Host *peer);
   virtual void refreshHostAlertPrefs();
   void incrVisitedWebSite(char *hostname);
   virtual bool triggerAlerts()                            { return(trigger_host_alerts); };
@@ -106,6 +108,7 @@ class HostTimeseriesPoint: public TimeseriesPoint {
   u_int64_t sent, rcvd;
   u_int32_t total_num_flows_as_client, total_num_flows_as_server;
   TrafficCounter l4_stats[4]; // tcp, udp, icmp, other
+  u_int32_t num_contacts_as_cli, num_contacts_as_srv;
 
   HostTimeseriesPoint();
   virtual ~HostTimeseriesPoint();

@@ -160,6 +160,14 @@ schema:addMetric("num_flows")
 
 -- ##############################################
 
+schema = ts_utils.newSchema("host:contacts", {step=300, metrics_type=ts_utils.metrics.gauge})
+schema:addTag("ifid")
+schema:addTag("host")
+schema:addMetric("as_client")
+schema:addMetric("as_server")
+
+-- ##############################################
+
 -- NOTE: not shown
 schema = ts_utils.newSchema("host:l4protos", {step=300})
 schema:addTag("ifid")

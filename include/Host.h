@@ -197,8 +197,8 @@ class Host : public Checkpointable, public GenericHashEntry, public GenericTraff
     if(as) as->updateRoundTripTime(rtt_msecs);
   }
 
-  virtual void incNumFlows(bool as_client);
-  void decNumFlows(bool as_client);
+  virtual void incNumFlows(bool as_client, Host *peer);
+  virtual void decNumFlows(bool as_client, Host *peer);
 
   inline void incFlagStats(bool as_client, u_int8_t flags)  { if (as_client) sent_stats.incFlagStats(flags); else recv_stats.incFlagStats(flags); };
   inline void incIngressDrops(u_int num_bytes)           { ingress_drops.incStats(num_bytes); };

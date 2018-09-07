@@ -159,6 +159,8 @@ void HostTimeseriesPoint::lua(lua_State* vm, NetworkInterface *iface) {
   lua_push_int_table_entry(vm, "bytes.rcvd", rcvd);
   lua_push_int_table_entry(vm, "active_flows.as_client", total_num_flows_as_client);
   lua_push_int_table_entry(vm, "active_flows.as_server", total_num_flows_as_server);
+  lua_push_int_table_entry(vm, "contacts.as_client", num_contacts_as_cli);
+  lua_push_int_table_entry(vm, "contacts.as_server", num_contacts_as_srv);
 
   /* L4 */
   lua_push_int_table_entry(vm, "tcp.bytes.sent", l4_stats[0].sent);
@@ -204,18 +206,59 @@ void LocalHost::incICMP(u_int8_t icmp_type, u_int8_t icmp_code, bool sent, Host 
 
 /* *************************************** */
 
-void LocalHost::incNumFlows(bool as_client) {
+void LocalHost::incNumFlows(bool as_client, Host *peer) {
   AlertCounter *counter;
+  map<Host*, u_int16_t> *contacts_map;
 
-  Host::incNumFlows(as_client);
+  Host::incNumFlows(as_client, peer);
 
-  if(as_client)
+  if(as_client) {
     counter = flow_flood_attacker_alert;
-  else
+    contacts_map = &contacts_as_cli;
+  } else {
     counter = flow_flood_victim_alert;
+    contacts_map = &contacts_as_srv;
+  }
+
+  if(peer) {
+    (*contacts_map)[peer] += 1;
+
+#if 0
+      char buf1[64], buf2[64];
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "INC contacts: %s %s %s, now %u",
+	get_string_key(buf1, sizeof(buf1)), as_client ? "->" : "<-",
+	peer->get_string_key(buf2, sizeof(buf2)), (*contacts_map)[peer]);
+#endif
+  }
 
   if(triggerAlerts())
     counter->incHits(time(0));
+}
+
+/* *************************************** */
+
+void LocalHost::decNumFlows(bool as_client, Host *peer) {
+  Host::decNumFlows(as_client, peer);
+
+  if(peer) {
+    map<Host*, u_int16_t> *contacts_map = as_client ? &contacts_as_cli : &contacts_as_srv;
+    map<Host*, u_int16_t>::iterator it;
+
+    if((it = contacts_map->find(peer)) != contacts_map->end()) {
+      if(it->second)
+	it->second -= 1;
+
+#if 0
+      char buf1[64], buf2[64];
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "DEC contacts: %s %s %s, now %u",
+	get_string_key(buf1, sizeof(buf1)), as_client ? "->" : "<-",
+	peer->get_string_key(buf2, sizeof(buf2)), it->second);
+#endif
+
+      if(!it->second)
+	contacts_map->erase(it);
+    }
+  }
 }
 
 /* *************************************** */
@@ -661,6 +704,8 @@ void LocalHost::makeTsPoint(HostTimeseriesPoint *pt) {
   pt->rcvd = rcvd.getNumBytes();
   pt->total_num_flows_as_client = total_num_flows_as_client;
   pt->total_num_flows_as_server = total_num_flows_as_server;
+  pt->num_contacts_as_cli = contacts_as_cli.size();
+  pt->num_contacts_as_srv = contacts_as_srv.size();
 
   /* L4 */
   pt->l4_stats[0].sent = tcp_sent.getNumBytes();

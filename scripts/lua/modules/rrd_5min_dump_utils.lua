@@ -171,6 +171,10 @@ function rrd_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
   ts_utils.append("host:flows", {ifid=ifstats.id, host=hostname,
             num_flows=host["active_flows.as_client"] + host["active_flows.as_server"]}, when, verbose)
 
+  -- Contacts
+  ts_utils.append("host:contacts", {ifid=ifstats.id, host=hostname,
+            as_client=host["contacts.as_client"], as_server=host["contacts.as_server"]}, when, verbose)
+
   -- L4 Protocols
   for id, _ in ipairs(l4_keys) do
     k = l4_keys[id][2]
