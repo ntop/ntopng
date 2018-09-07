@@ -6,6 +6,7 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
+local delete_data_utils = require "delete_data_utils"
 local template = require "template_utils"
 
 local page        = _GET["page"] or _POST["page"]
@@ -16,24 +17,30 @@ ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
+
 if _POST and table.len(_POST) > 0 and isAdministrator() then
-   local delete_data_utils = require "delete_data_utils"
+   if _POST["delete_inactive_if_data"] then
+      local res = delete_data_utils.delete_inactive_interfaces()
 
-   local host_info = url2hostinfo(_POST)
+      print('<div class="alert alert-success alert-dismissable"><a href="" class="close" data-dismiss="alert" aria-label="close">&times;</a>'..i18n('delete_data.delete_inactive_interfaces_data_ok')..'</div>')
 
-   local res = delete_data_utils.delete_host(_POST["ifid"], host_info)
+   else -- we're deleting an host
+      local host_info = url2hostinfo(_POST)
 
-   local err_msgs = {}
-   for what, what_res in pairs(res) do
-      if what_res["status"] ~= "OK" then
-	 err_msgs[#err_msgs + 1] = i18n(delete_data_utils.status_to_i18n(what_res["status"]))
+      local res = delete_data_utils.delete_host(_POST["ifid"], host_info)
+
+      local err_msgs = {}
+      for what, what_res in pairs(res) do
+	 if what_res["status"] ~= "OK" then
+	    err_msgs[#err_msgs + 1] = i18n(delete_data_utils.status_to_i18n(what_res["status"]))
+	 end
       end
-   end
 
-   if #err_msgs == 0 then
-      print('<div class="alert alert-success alert-dismissable"><a href="" class="close" data-dismiss="alert" aria-label="close">&times;</a>'..i18n('delete_data.delete_ok', {host = hostinfo2hostkey(host_info)})..'</div>')
-   else
-      print('<div class="alert alert-danger alert-dismissable"><a href="" class="close" data-dismiss="alert" aria-label="close">&times;</a>'..i18n('delete_data.delete_failed', {host = hostinfo2hostkey(host_info)})..' '..table.concat(err_msgs, ' ')..'</div>')
+      if #err_msgs == 0 then
+	 print('<div class="alert alert-success alert-dismissable"><a href="" class="close" data-dismiss="alert" aria-label="close">&times;</a>'..i18n('delete_data.delete_ok', {host = hostinfo2hostkey(host_info)})..'</div>')
+      else
+	 print('<div class="alert alert-danger alert-dismissable"><a href="" class="close" data-dismiss="alert" aria-label="close">&times;</a>'..i18n('delete_data.delete_failed', {host = hostinfo2hostkey(host_info)})..' '..table.concat(err_msgs, ' ')..'</div>')
+      end
    end
 end
 
@@ -50,13 +57,48 @@ print(
    })
 )
 
+local inactive_interfaces = delete_data_utils.list_inactive_interfaces()
+local num_inactive_interfaces = table.len(inactive_interfaces or {})
+
+if num_inactive_interfaces > 0 then
+   local inactive_list = {}
+   for if_id, if_name in pairs(inactive_interfaces) do
+      inactive_list[#inactive_list + 1] = if_name
+   end
+
+   if table.len(inactive_list) > 20 then
+      -- too many to use a bullet list, just concat them with a comma
+      inactive_list = '<br>'..table.concat(inactive_list, ", ")..'<br>'
+   else
+      inactive_list = '<br><ul><li>'..table.concat(inactive_list, "</li><li>")..'</li></ul><br>'
+   end
+
+   print(
+      template.gen("modal_confirm_dialog.html", {
+		      dialog = {
+			 id      = "delete_inactive_interfaces_data",
+			 action  = "delete_inactive_interfaces_data()",
+			 title   = i18n("manage_data.delete_inactive_interfaces"),
+			 message = i18n("delete_data.delete_inactive_interfaces_confirmation",
+					{interfaces_list = inactive_list}),
+			 confirm = i18n("delete")
+		      }
+      })
+   )
+
+end
+
 print[[
 <hr>
 <h2>]] print(i18n("manage_data.manage_data")) print[[</h2>
 <br>
 <ul class="nav nav-tabs">]]
 
+local tab_export_active = ""
+local tab_delete_active = ""
+
 if((page == "export") or (page == nil)) then
+   tab_export_active = " in active"
    print[[<li class="active"><a data-toggle="tab" href="#export">]] print(i18n("manage_data.export_tab")) print[[</a></li>]]
 else
    print[[<li><a data-toggle="tab" href="#export">]] print(i18n("manage_data.export_tab")) print[[</a></li>]]
@@ -64,6 +106,7 @@ end
 
 if isAdministrator() then
    if((page == "delete")) then
+      tab_delete_active = " in active"
       print[[<li class="active"><a data-toggle="tab" href="#delete">]] print(i18n("manage_data.delete_tab")) print[[</a></li>]]
    else
       print[[<li><a data-toggle="tab" href="#delete">]] print(i18n("manage_data.delete_tab")) print[[</a></li>]]
@@ -78,7 +121,7 @@ print[[</ul>
 
 print [[
 
-  <div id="export" class="tab-pane fade in active">
+  <div id="export" class="tab-pane fade ]]print(tab_export_active) print[[">
   <br>
 
 <section class="panel panel-default">
@@ -161,7 +204,7 @@ print("</div>") -- closes <div id="export" class="tab-pane fade in active">
 
 print [[
 
-  <div id="delete" class="tab-pane fade">
+  <div id="delete" class="tab-pane fade]] print(tab_delete_active) print[[">
   <br>
 
 <section class="panel panel-default">
@@ -222,7 +265,20 @@ print [[
 </div>
 
 </section>
-  <b>]] print(i18n('notes')) print[[</b>
+]] 
+
+if num_inactive_interfaces > 0 then
+   print[[
+<div>
+        <form class="interface_data_form" id="form_delete_inactive_interfaces" method="POST">
+          <button class="btn btn-default" type="submit" onclick="return delete_inactive_interfaces_data_show_modal();" style="float:right; margin-right:1em;"><i class="fa fa-trash" aria-hidden="true" data-original-title="" title="]] print(i18n("manage_data.delete_inactive_interfaces")) print[["></i> ]] print(i18n("manage_data.delete_inactive_interfaces")) print[[</button>
+        </form>
+</div>
+
+<br>]]
+end
+
+print[[  <b>]] print(i18n('notes')) print[[</b>
 <ul>
 <li>]] print(i18n('delete_data.note_persistent_data')) print[[</li>
 </ul>
@@ -248,9 +304,9 @@ var delete_data_show_modal = function() {
 };
 
 var delete_data = function() {
-            var params = {};
+var params = {};
 
-            params.ifid = ']] print(tostring(getInterfaceId(ifname))) print[[';
+params.ifid = ']] print(tostring(getInterfaceId(ifname))) print[[';
             params.host = $('#delete_host').val();
             params.vlan = $('#delete_vlan').val();
             params.page = 'delete';
@@ -261,7 +317,33 @@ var delete_data = function() {
 
             form.appendTo('body').submit();
          };
+]]
 
+if num_inactive_interfaces > 0 then
+   print[[
+var delete_inactive_interfaces_data_show_modal = function() {
+  $('#delete_inactive_interfaces_data').modal('show');
+
+  /* abort submit */
+  return false;
+};
+
+var delete_inactive_interfaces_data = function() {
+  var params = {};
+
+  params.delete_inactive_if_data = '';
+  params.page = 'delete';
+
+  params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
+
+  var form = paramsToForm('<form method="post"></form>', params);
+
+  form.appendTo('body').submit();
+};
+]]
+end
+
+print[[
 var prepare_typeahead = function(host_id, vlan_id, buttons_id) {
   $('#' + host_id).val('');
   $('#' + vlan_id).val('');

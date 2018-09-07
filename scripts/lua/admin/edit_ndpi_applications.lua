@@ -11,7 +11,7 @@ sendHTTPContentTypeHeader('text/html')
 
 local proto_filter = _GET["l7proto"]
 
-local ifId = interface.name2id(ifname)
+local ifId = getInterfaceId(ifname)
 
 if not haveAdminPrivileges() then
   return

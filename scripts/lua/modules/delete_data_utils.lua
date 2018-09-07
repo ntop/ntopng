@@ -8,9 +8,11 @@ local os_utils = require "os_utils"
 local delete_data_utils = {}
 local dry_run = false
 
+local ALL_INTERFACES_HASH_KEYS = "ntopng.prefs.iface_id"
+
 function delete_data_utils.status_to_i18n(err)
    local map = {
-      ERR_NO_HOST_FS_DATA = "delete_data..msg_err_no_fs_data",
+      ERR_NO_HOST_FS_DATA = "delete_data.msg_err_no_fs_data",
       ERR_INVALID_HOST = "delete_data.msg_err_invalid_host",
    }
 
@@ -102,6 +104,159 @@ function delete_data_utils.delete_host(interface_id, host_info)
    local h_db = delete_host_mysql_flows(interface_id, host_info)
 
    return {delete_host_fs_data = h_fs, delete_host_redis_keys = h_rk, delete_host_mysql_flows = h_db}
+end
+
+local function delete_interfaces_redis_keys(interfaces_list)
+   local pref_prefix = "ntopng.prefs"
+   local status = "OK"
+
+   for if_id, if_name in pairs(interfaces_list) do
+      -- let's match some patterns here (don't write an hexahustive list of keys
+      -- as it will become unmanageable)
+
+      local keys_patterns = {
+	 -- examples:
+	 --  ntopng.prefs.0.host_pools.pool_ids
+	 --  ntopng.prefs.0.host_pools.details.0
+	 string.format("%s.%u.*", pref_prefix, if_id),
+	 -- examples:
+	 --  ntopng.profiles_counters.ifid_0
+	 --  ntopng.serialized_host_pools.ifid_0
+	 string.format("ntopng.*ifid_%u", if_id),
+	 -- examples:
+	 --  ntopng.serialized_macs.ifid_0__52:54:00:3B:CB:B3
+	 --  ntopng.serialized_hosts.ifid_0__192.168.2.131@0
+	 string.format("*.ifid_%u_*", if_id),
+	 -- examples:
+	 --  ntopng.cache.engaged_alerts_cache_ifid_4_5mins
+	 --  ntopng.cache.engaged_alerts_cache_ifid_4_min
+	 string.format("ntopng.*_ifid_%u_*", if_id),
+	 -- examples:
+	 -- ntopng.prefs.ifid_0.custom_nDPI_proto_categories
+	 -- ntopng.prefs.ifid_0.is_traffic_mirrored
+	 string.format("*.ifid_%u.*", if_id),
+	 -- examples:
+	 --  ntopng.prefs.iface_2.packet_drops_alert
+	 --  ntopng.prefs.iface_3.scaling_factor
+	 string.format("%s.iface_%u.*", pref_prefix, if_id),
+	 -- examples:
+	 --  ntopng.prefs.enp1s0f0.dump_sampling_rate
+	 --  ntopng.prefs.enp1s0f0.dump_all_traffic
+	 string.format("%s.%s.*", pref_prefix, if_name),
+	 -- examples:
+	 --  ntopng.prefs.enp2s0f0_not_idle
+	 string.format("%s.%s_*", pref_prefix, if_name),
+      }
+
+      for _, pattern in pairs(keys_patterns) do
+	 local matching_keys = ntop.getKeysCache(pattern)
+
+	 for matching_key, _ in pairs(matching_keys or {}) do
+	    if not dry_run then
+	       ntop.delCache(matching_key)
+	    end
+	 end
+      end
+   end
+
+   return {status = status}
+end
+
+local function delete_interfaces_fs_data(interfaces_list)
+   local status = "OK"
+   local data_dir = ntop.getDirs()["workingdir"]
+
+   for if_id, if_name in pairs(interfaces_list) do
+      local if_dir = os_utils.fixPath(string.format("%s/%u/", data_dir, if_id))
+
+      if ntop.exists(if_dir) and not dry_run then
+	 ntop.rmdir(if_dir)
+      end
+   end
+
+   return {status = status}
+end
+
+local function delete_interfaces_influx_data(interfaces_list)
+   local status = "OK"
+   -- TODO
+   return {status = status}
+end
+
+local function delete_interfaces_db_flows(interfaces_list)
+   local db_utils = require "db_utils"
+   local status = "OK"
+   local prefs = ntop.getPrefs()
+
+   for if_id, if_name in pairs(interfaces_list) do
+      -- this deletes MySQL
+      if prefs.is_dump_flows_to_mysql_enabled == true and not dry_run then
+	 db_utils.harverstExpiredMySQLFlows(if_id, os.time() + 86400 --[[ go 1d in the future to make sure everything is deleted --]])
+      end
+      -- TODO: add delete for nIndex
+   end
+
+   return {status = status}
+end
+
+local function delete_interfaces_ids(interfaces_list)
+   local status = "OK"
+
+   for if_id, if_name in pairs(interfaces_list) do
+      -- delete the interface from the all interfaces hash
+      -- this will cause the id to be re-used
+      if not dry_run then
+	 ntop.delHashCache(ALL_INTERFACES_HASH_KEYS, if_name)
+	 ntop.delHashCache(ALL_INTERFACES_HASH_KEYS, if_id)
+      end
+   end
+
+   return {status = status}
+end
+
+function delete_data_utils.list_inactive_interfaces()
+   local res = {}
+   local active_interfaces = interface.getIfNames()
+   local all_interfaces = ntop.getHashAllCache(ALL_INTERFACES_HASH_KEYS)
+
+   for k, v in pairs(all_interfaces) do
+      if tonumber(k) ~= nil then
+	 -- assumes this in an interface integer id
+	 -- this check is necessary as function Utils::ifname2id
+	 -- inserts in the same hash table both the ids and the interface
+	 -- names. So for example interface eno1 with id 20 has two entries in the
+	 -- hash table, namely eno1: 20 and 20: eno1
+	 goto continue
+      end
+
+      local if_name = k
+      local if_id = v
+
+      if active_interfaces[if_id] then
+	 -- the interface is active
+	 goto continue
+      end
+
+      -- add the interface to the list of inactive interfaces
+      res[if_id] = if_name
+      ::continue::
+   end
+
+   return res
+end
+
+function delete_data_utils.delete_inactive_interfaces()
+   local inactive_if_list = delete_data_utils.list_inactive_interfaces()
+
+   local if_fs = delete_interfaces_fs_data(inactive_if_list)
+   local if_rk = delete_interfaces_redis_keys(inactive_if_list)
+   local if_id = delete_interfaces_influx_data(inactive_if_list)
+   local if_db = delete_interfaces_db_flows(inactive_if_list)
+
+   -- last step is to also free the ids that can thus be re-used
+   local if_in = delete_interfaces_ids(inactive_if_list)
+
+   return {delete_if_fs_data = if_fs, delete_if_redis_keys = if_rk, delete_if_influx_data = if_id}
 end
 
 return delete_data_utils

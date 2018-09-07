@@ -467,12 +467,14 @@ local lang = {
   },
   ["delete_data"] = {
     ["delete_confirmation"] = "Are you sure you want to delete all persistent data for %{host}?",
+    ["delete_inactive_interfaces_confirmation"] = "The following interfaces are inactive:%{interfaces_list}Are you sure you want to delete all their persistent data?",
     ["delete_failed"] = "Unable to delete data for %{host}.",
     ["delete_ok"] = "Data for %{host} has been successfully deleted.",
+    ["delete_inactive_interfaces_data_ok"] = "Data for inactive interfaces successfully deleted.",
     ["msg_err_invalid_host"] = "The format of the specified host is not recognized.",
     ["msg_err_no_fs_data"] = "No persistent data found for the specified host.",
     ["msg_err_unknown"] = "An unknown error occurred.",
-    ["note_persistent_data"] = "All the persistent host data is deleted. Data include stored timeseries, flows, alerts, and Redis caches.",
+    ["note_persistent_data"] = "All the persistent data is deleted. Data include stored timeseries, flows, alerts, and Redis caches.",
   },
   ["details"] = {
     ["additional_mac_address"] = "Additional MAC Address",
@@ -1723,6 +1725,7 @@ local lang = {
   ["manage_data"] = {
     ["all_hosts"] = "All",
     ["delete"] = "Delete Host Data",
+    ["delete_inactive_interfaces"] = "Delete Inactive Interfaces Data",
     ["delete_tab"] = "Delete",
     ["export"] = "Export Host Data",
     ["export_tab"] = "Export",
