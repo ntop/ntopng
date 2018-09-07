@@ -15,15 +15,6 @@ require "alert_utils"
 local callback_utils = require "callback_utils"
 local now = os.time()
 
-local prefs_dump_utils = require "prefs_dump_utils"
-local prefs_changed = ntop.getCache("ntopng.prefs_changed")
-
-if(prefs_changed == "true") then
-   -- First delete prefs_changed then dump data
-   ntop.delCache("ntopng.prefs_changed")
-   prefs_dump_utils.savePrefsToDisk()
-end
-
 check_mac_ip_association_alerts()
 if ntop.isnEdge() then
    check_nfq_flushed_queue_alerts()
