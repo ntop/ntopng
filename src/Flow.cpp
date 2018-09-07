@@ -2620,6 +2620,7 @@ void Flow::dissectBittorrent(char *payload, u_int16_t payload_len) {
 
 void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_len) {
   HTTPstats *h;
+  ssize_t host_server_name_len = host_server_name && host_server_name[0] != '\0' ? strlen(host_server_name) : 0;
 
   if(src2dst_direction) {
     char *space;
@@ -2662,9 +2663,14 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
 	  }
 
 	  if(protos.http.last_url) free(protos.http.last_url);
-	  if((protos.http.last_url = (char*)malloc(l + 1)) != NULL) {
-	    strncpy(protos.http.last_url, payload, l);
-	    protos.http.last_url[l] = '\0';
+	  if((protos.http.last_url = (char*)malloc(host_server_name_len + l + 1)) != NULL) {
+	    protos.http.last_url[0] = '\0';
+
+	    if(host_server_name_len > 0) {
+	      strncat(protos.http.last_url, host_server_name, host_server_name_len);
+	    }
+
+	    strncat(protos.http.last_url, payload, l);
 	  }
 	}
 

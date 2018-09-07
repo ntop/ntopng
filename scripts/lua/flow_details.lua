@@ -478,9 +478,9 @@ else
       print("</td></tr>\n")
 
       print("<tr><th>"..i18n("flow_details.url").."</th><td colspan=2>")
-      print("<A HREF=\"http://"..s)
+      print("<A HREF=\"http://")
       if(flow["srv.port"] ~= 80) then print(":"..flow["srv.port"]) end
-      print(flow["protos.http.last_url"].."\">"..shortenString(flow["protos.http.last_url"] or '').."</A> <i class=\"fa fa-external-link\">")
+      print(flow["protos.http.last_url"].."\">"..shortenString(flow["protos.http.last_url"] or '', 64).."</A> <i class=\"fa fa-external-link\">")
       print("</td></tr>\n")
 
       if not have_nedge then
