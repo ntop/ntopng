@@ -8371,7 +8371,9 @@ bool LuaEngine::setParamsTable(lua_State* vm,
 	  }
 
 	  /* Now make sure that decoded_buf is not a file path */
-	  if(strcmp(decoded_buf, "ntopng") && Utils::file_exists(decoded_buf) && !Utils::dir_exists(decoded_buf))
+	  if(strchr(decoded_buf, CONST_PATH_SEP)
+	     && Utils::file_exists(decoded_buf)
+	     && !Utils::dir_exists(decoded_buf))
 	    ntop->getTrace()->traceEvent(TRACE_WARNING, "Discarded '%s'='%s' as argument is a valid file path",
 					 tok, decoded_buf);
 	  else
