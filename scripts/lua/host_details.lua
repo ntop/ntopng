@@ -1947,6 +1947,10 @@ drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
       {schema="host:traffic",                label=i18n("traffic")},
       {schema="host:flows",                  label=i18n("graphs.active_flows")},
       {schema="host:contacts",               label=i18n("graphs.active_host_contacts")},
+
+      {schema="host:1d_delta_traffic_volume",  label="1 Day Traffic Delta"}, -- TODO localize
+      {schema="host:1d_delta_flows",           label="1 Day Active Flows Delta"}, -- TODO localize
+      {schema="host:1d_delta_contacts",        label="1 Day Active Host Contacts Delta"}, -- TODO localize
    }
 })
 

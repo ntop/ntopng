@@ -46,8 +46,12 @@ function getSerieLabel(schema, serie) {
         return serie.tags.category;
       else if(serie.tags.profile)
         return serie.tags.profile;
-      else if(data_label == "bytes")
-        return graph_i18n.traffic;
+      else if(data_label == "bytes") {
+        if(schema.contains("volume"))
+          return graph_i18n.traffic_volume;
+        else
+          return graph_i18n.traffic;
+      }
   }
 
   if(schema_2_label[schema])
@@ -65,9 +69,12 @@ function getValueFormatter(schema, series) {
   if(series && series.length && series[0].label) {
     var label = series[0].label;
 
-    if(label.contains("bytes"))
-      return [fbits_from_bytes, bytesToSize];
-    else if(label.contains("packets"))
+    if(label.contains("bytes")) {
+      if(schema.contains("volume"))
+        return [bytesToSize, bytesToSize];
+      else
+        return [fbits_from_bytes, bytesToSize];
+    } else if(label.contains("packets"))
       return [fpackets, formatPackets];
     else if(label.contains("flows"))
       return [formatValue, formatFlows, formatFlows];
