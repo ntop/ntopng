@@ -414,7 +414,15 @@ void NetworkInterface::aggregatePartialFlow(Flow *flow) {
     }
 
     if(aggregatedFlow) {
-      aggregatedFlow->sumFlowStats(flow);
+      aggregatedFlow->sumFlowStats(flow,
+				   /* nextFlowAggregation will be decremented by one after the current periodic
+				      flows walk (this method is called in the periodic flows walk)
+
+				      Therefore, we can check nextFlowAggregation minus one to determine whether
+				      a cleanup of the aggregated flows hash table is going to be performed
+				      after this walk on the (normal, non-aggregated) flows table.
+				   */
+				   ((getIfType() == interface_type_DUMMY) || (nextFlowAggregation - 1 == 0)));
 
 #ifdef AGGREGATED_FLOW_DEBUG
       char buf[256];

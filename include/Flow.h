@@ -83,6 +83,7 @@ class Flow : public GenericHashEntry {
     quota_exceeded, cli_quota_app_proto, cli_quota_is_category, srv_quota_app_proto, srv_quota_is_category;
   u_int16_t diff_num_http_requests;
 #ifdef NTOPNG_PRO
+  bool counted_in_aggregated_flow;
   bool ingress2egress_direction;
   u_int8_t routing_table_id;
 #ifndef HAVE_NEDGE
@@ -299,6 +300,10 @@ class Flow : public GenericHashEntry {
   void processDetectedProtocol();
   void setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection);
   void setJSONInfo(const char *json);
+#ifdef NTOPNG_PRO
+  inline bool is_counted_in_aggregated_flow()          { return(counted_in_aggregated_flow); };
+  inline void set_counted_in_aggregated_flow(bool val) { counted_in_aggregated_flow  = val;  };
+#endif
   bool isFlowPeer(char *numIP, u_int16_t vlanId);
   void incStats(bool cli2srv_direction, u_int pkt_len,
 		u_int8_t *payload, u_int payload_len, u_int8_t l4_proto,

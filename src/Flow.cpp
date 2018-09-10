@@ -86,6 +86,8 @@ Flow::Flow(NetworkInterface *_iface,
     if(cli_host) routing_table_id = hp->getRoutingPolicy(cli_host->get_host_pool());
     if(srv_host) routing_table_id = max_val(routing_table_id, hp->getRoutingPolicy(srv_host->get_host_pool()));
   }
+
+  counted_in_aggregated_flow = false;
 #endif
 
   passVerdict = true, quota_exceeded = false;
