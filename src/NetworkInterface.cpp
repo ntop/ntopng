@@ -878,7 +878,15 @@ void NetworkInterface::dumpAggregatedFlow(AggregatedFlow *f) {
 				 f->print(buf, sizeof(buf)));
 #endif
 
-    db->dumpAggregatedFlow(f);
+    if(!ntop->getPrefs()->is_tiny_flows_export_enabled() && f->isTiny()) {
+#ifdef DUMP_AGGREGATED_FLOW_DEBUG
+      ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				   "Skipping tiny aggregated flow [flow: %s]",
+				   f->print(buf, sizeof(buf)));
+#endif
+    } else {
+      db->dumpAggregatedFlow(f);
+    }
   }
 }
 

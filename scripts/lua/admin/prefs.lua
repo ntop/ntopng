@@ -1422,17 +1422,21 @@ function printFlowDBDump()
   print('<table class="table">')
   print('<tr><th colspan=2 class="info">'..i18n("prefs.tiny_flows")..'</th></tr>')
 
+  local tiny_to_switch = {"max_num_packets_per_tiny_flow", "max_num_bytes_per_tiny_flow"}
+
   prefsToggleButton({
     field = "toggle_flow_db_dump_export",
     default = "1",
-    pref = "flow_db_dump_export_enabled",
+    pref = "tiny_flows_export_enabled",
   })
 
   prefsInputFieldPrefs(subpage_active.entries["max_num_packets_per_tiny_flow"].title, subpage_active.entries["max_num_packets_per_tiny_flow"].description,
-        "ntopng.prefs.", "max_num_packets_per_tiny_flow", prefs.max_num_packets_per_tiny_flow, "number", true, false, nil, {min=1, max=2^32-1})
+        "ntopng.prefs.", "max_num_packets_per_tiny_flow", prefs.max_num_packets_per_tiny_flow, "number",
+	true, false, nil, {min=1, max=2^32-1})
 
   prefsInputFieldPrefs(subpage_active.entries["max_num_bytes_per_tiny_flow"].title, subpage_active.entries["max_num_bytes_per_tiny_flow"].description,
-        "ntopng.prefs.", "max_num_bytes_per_tiny_flow", prefs.max_num_bytes_per_tiny_flow, "number", true, false, nil, {min=1, max=2^32-1})
+        "ntopng.prefs.", "max_num_bytes_per_tiny_flow", prefs.max_num_bytes_per_tiny_flow, "number",
+	true, false, nil, {min=1, max=2^32-1})
 
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
 

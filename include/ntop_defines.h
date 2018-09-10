@@ -857,7 +857,7 @@
 #define NO_HOST_POOL_ID                 0
 /* Flow aggregation duration is expressed in housekeeping periods. If housekeeping frequency
    is 5 secs, a flow aggregation duration of 12 equals to 1 minute. */
-#define FLOW_AGGREGATION_DURATION       12 * 5 /* 1 minute * 5 = 5 minutes */
+#define FLOW_AGGREGATION_DURATION       1 * 5 /* 1 minute * 5 = 5 minutes */
 #define FLOW_AGGREGATION_MAX_AGGREGATES 1000
 
 #ifdef DONT_USE_LUAJIT
