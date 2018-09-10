@@ -406,6 +406,9 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
     char *continent = NULL, *country_name = NULL, *city = NULL;
     float latitude = 0, longitude = 0;
 
+    /* ifid is useful for example for view interfaces to detemine
+       the actual, original interface the host is associated to. */
+    lua_push_int_table_entry(vm, "ifid", iface->get_id());
     if(info) lua_push_str_table_entry(vm, "info", getInfo(buf, sizeof(buf)));
 
     ntop->getGeolocation()->getInfo(&ip, &continent, &country_name, &city, &latitude, &longitude);
