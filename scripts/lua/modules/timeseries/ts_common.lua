@@ -21,6 +21,10 @@ local function percentile(N, P)
 end
 
 function ts_common.ninetififthPercentile(serie)
+  if #serie <= 1 then
+    return serie[1]
+  end
+
   N = table.clone(serie)
   table.sort(N) -- <<== Sort first
   return(percentile(N, 0.95))
