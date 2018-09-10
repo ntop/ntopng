@@ -140,35 +140,32 @@ PF_RINGInterface::~PF_RINGInterface() {
 void PF_RINGInterface::singlePacketPollLoop() {
   pfring  *pd = pfring_handle[0];
   u_int sleep_time, max_sleep = 1000, step_sleep = 100;
+  u_char *buffer;
+  struct pfring_pkthdr hdr;
   
   sleep_time = step_sleep;
   
   while(isRunning()) {
-    if(pfring_is_pkt_available(pd)) {
-      u_char *buffer;
-      struct pfring_pkthdr hdr;
+    if(pfring_recv(pd, &buffer, 0, &hdr, 0 /* wait_for_packet */) > 0) {
+      try {
+        u_int16_t p;
+        Host *srcHost = NULL, *dstHost = NULL;
+        Flow *flow = NULL;
 
-      if(pfring_recv(pd, &buffer, 0, &hdr, 0 /* wait_for_packet */) > 0) {
-	try {
-	  u_int16_t p;
-	  Host *srcHost = NULL, *dstHost = NULL;
-	  Flow *flow = NULL;
-
-	  if(hdr.ts.tv_sec == 0) gettimeofday(&hdr.ts, NULL);
-	  dissectPacket(DUMMY_BRIDGE_INTERFACE_ID,
-			(hdr.extended_hdr.rx_direction == 1) ? 
-			true /* ingress */ : false /* egress */,
-			NULL, (const struct pcap_pkthdr *) &hdr, buffer,
-			&p, &srcHost, &dstHost, &flow);
+        if(hdr.ts.tv_sec == 0) gettimeofday(&hdr.ts, NULL);
+        dissectPacket(DUMMY_BRIDGE_INTERFACE_ID,
+		      (hdr.extended_hdr.rx_direction == 1) ? 
+		      true /* ingress */ : false /* egress */,
+		      NULL, (const struct pcap_pkthdr *) &hdr, buffer,
+		      &p, &srcHost, &dstHost, &flow);
 	  sleep_time = step_sleep;
-	} catch(std::bad_alloc& ba) {
-	  static bool oom_warning_sent = false;
+      } catch(std::bad_alloc& ba) {
+        static bool oom_warning_sent = false;
 
-	  if(!oom_warning_sent) {
-	    ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
-	    oom_warning_sent = true;
-	  }
-	}
+        if(!oom_warning_sent) {
+          ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
+          oom_warning_sent = true;
+        }
       }
     } else {
       if(sleep_time < max_sleep) sleep_time += step_sleep;
