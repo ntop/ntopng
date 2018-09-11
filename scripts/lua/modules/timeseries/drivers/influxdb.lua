@@ -791,4 +791,22 @@ end
 
 -- ##############################################
 
+function driver:delete(schema_prefix, tags)
+  local url = self.url
+  local measurement_pattern = ternary(schema_prefix == "", '//', '/^'.. schema_prefix ..':/')
+  local query = 'DELETE FROM '.. measurement_pattern ..' WHERE ' .. table.tconcat(tags, "=", " AND ", nil, "'")
+  local full_url = url .. "/query?db=".. self.db .."&q=" .. urlencode(query)
+
+  local res = ntop.httpGet(full_url, self.username, self.password, INFLUX_QUERY_TIMEMOUT_SEC, true)
+
+  if not res or (res.RESPONSE_CODE ~= 200) then
+    traceError(TRACE_ERROR, TRACE_CONSOLE, getResponseError(res))
+    return false
+  end
+
+  return true
+end
+
+-- ##############################################
+
 return driver

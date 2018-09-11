@@ -2,9 +2,9 @@
 -- (C) 2014-18 - ntop.org
 --
 local dirs = ntop.getDirs()
+local ts_utils = require("ts_utils")
+local os_utils = require("os_utils")
 
-require "graph_utils" -- getRRDName
-local os_utils = require "os_utils"
 local delete_data_utils = {}
 local dry_run = false
 
@@ -19,29 +19,28 @@ function delete_data_utils.status_to_i18n(err)
    return map[err] or 'delete_data.msg_err_unknown'
 end
 
--- TODO: move to timeseries API
-local function delete_host_fs_data(interface_id, host_info)
+local function delete_host_timeseries_data(interface_id, host_info)
    local status = "OK"
+   local is_mac = isMacAddress(host_info["host"])
 
-   if not isMacAddress(host_info["host"]) and not isIPv4(host_info["host"]) and not isIPv6(host_info["host"]) then
+   if not is_mac and not isIPv4(host_info["host"]) and not isIPv6(host_info["host"]) then
       status = "ERR_INVALID_HOST"
    else
-      -- getRRDName automatically determines the right path both for ip and mac addresses
-      local host_rrd_dir = os_utils.fixPath(dirs.workingdir .. "/" .. interface_id .. "/rrd/" .. getPathFromKey(hostinfo2hostkey(host_info)))
+      local to_delete
+      local delete_tags
+      local value = hostinfo2hostkey(host_info)
 
-      if not ntop.isdir(host_rrd_dir) then
-	 -- missing directory
-	 status = "ERR_NO_HOST_FS_DATA"
+      if is_mac then
+	 to_delete = "mac"
+	 delete_tags = {ifid=interface_id, mac=value}
       else
-	 local host_rrd_dir_contents = ntop.readdir(host_rrd_dir)
+	 to_delete = "host"
+	 delete_tags = {ifid=interface_id, host=value}
+      end
 
-	 if host_rrd_dir_contents and table.len(host_rrd_dir_contents) == 0 then
-	    -- directory existing, but missing files
-	    status = "ERR_NO_HOST_FS_DATA"
-	 end
-
-	 if not dry_run then
-	    ntop.rmdir(host_rrd_dir)
+      if not dry_run then
+	 if not ts_utils.delete(to_delete, delete_tags) then
+	    status = "ERR_TS_DELETE"
 	 end
       end
    end
@@ -99,11 +98,11 @@ local function delete_host_mysql_flows(interface_id, host_info)
 end
 
 function delete_data_utils.delete_host(interface_id, host_info)
-   local h_fs = delete_host_fs_data(interface_id, host_info)
+   local h_ts = delete_host_timeseries_data(interface_id, host_info)
    local h_rk = delete_host_redis_keys(interface_id, host_info)
    local h_db = delete_host_mysql_flows(interface_id, host_info)
 
-   return {delete_host_fs_data = h_fs, delete_host_redis_keys = h_rk, delete_host_mysql_flows = h_db}
+   return {delete_host_timeseries_data = h_ts, delete_host_redis_keys = h_rk, delete_host_mysql_flows = h_db}
 end
 
 local function delete_interfaces_redis_keys(interfaces_list)
@@ -162,14 +161,19 @@ local function delete_interfaces_redis_keys(interfaces_list)
    return {status = status}
 end
 
-local function delete_interfaces_fs_data(interfaces_list)
+local function delete_interfaces_data(interfaces_list)
    local status = "OK"
    local data_dir = ntop.getDirs()["workingdir"]
 
    for if_id, if_name in pairs(interfaces_list) do
       local if_dir = os_utils.fixPath(string.format("%s/%u/", data_dir, if_id))
 
-      if ntop.exists(if_dir) and not dry_run then
+      if not dry_run then
+	 if not ts_utils.delete("" --[[ all schemas ]], {ifid=if_id}) then
+	    status = "ERR_TS_DELETE"
+	 end
+
+	 -- Delete additional data
 	 ntop.rmdir(if_dir)
       end
    end
@@ -248,15 +252,14 @@ end
 function delete_data_utils.delete_inactive_interfaces()
    local inactive_if_list = delete_data_utils.list_inactive_interfaces()
 
-   local if_fs = delete_interfaces_fs_data(inactive_if_list)
+   local if_dt = delete_interfaces_data(inactive_if_list)
    local if_rk = delete_interfaces_redis_keys(inactive_if_list)
-   local if_id = delete_interfaces_influx_data(inactive_if_list)
    local if_db = delete_interfaces_db_flows(inactive_if_list)
 
    -- last step is to also free the ids that can thus be re-used
    local if_in = delete_interfaces_ids(inactive_if_list)
 
-   return {delete_if_fs_data = if_fs, delete_if_redis_keys = if_rk, delete_if_influx_data = if_id}
+   return {delete_if_data = if_dt, delete_if_redis_keys = if_rk}
 end
 
 return delete_data_utils

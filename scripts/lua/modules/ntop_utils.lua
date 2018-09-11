@@ -218,3 +218,13 @@ function ternary(cond, T, F)
 end
 
 -- ##############################################
+
+function isAdministrator()
+   local user_group = ntop.getUserGroup()
+
+   if(user_group == "administrator") or (user_group == "") then
+      return(true)
+   else
+      return(false)
+   end
+end

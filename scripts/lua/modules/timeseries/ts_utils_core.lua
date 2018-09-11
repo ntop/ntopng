@@ -462,22 +462,26 @@ end
 
 -- ##############################################
 
-function ts_utils.delete(schema_name, tags)
-  local schema = ts_utils.getSchema(schema_name)
-
-  if not schema then
-    traceError(TRACE_ERROR, TRACE_CONSOLE, "Schema not found: " .. schema_name)
+--! @brief Delete timeseries data.
+--! @param schema_prefix a prefix for the schemas.
+--! @param tags a list of filter tags.
+--! @return true if operation was successful, false otherwise.
+--! @note E.g. "iface" schema_prefix matches any schema starting with "iface:". Empty prefix is allowed and matches all the schemas.
+function ts_utils.delete(schema_prefix, tags)
+  if string.find(schema_prefix, ":") ~= nil then
+    traceError(TRACE_ERROR, TRACE_CONSOLE, "Full schema labels not supported, use schema prefixes instead.")
     return false
   end
 
-  if not schema:verifyTags(data) then
+  if not isAdministrator() then
+    traceError(TRACE_ERROR, TRACE_CONSOLE, "Not Admin")
     return false
   end
 
   local rv = true
 
   for _, driver in pairs(ts_utils.listActiveDrivers()) do
-    rv = driver:delete(schema, tags) and rv
+    rv = driver:delete(schema_prefix, tags) and rv
   end
 
   return rv

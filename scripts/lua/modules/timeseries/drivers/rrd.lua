@@ -604,8 +604,48 @@ end
 
 -- ##############################################
 
-function driver:delete(schema, tags)
-  tprint("TODO DELETE")
+function driver:delete(schema_prefix, tags)
+  -- NOTE: delete support in this driver is currently limited to a specific set of schemas and tags
+  local supported_prefixes = {
+    [""] = {
+      tags = {ifid=1},
+      path = function(tags) return getRRDName(tags.ifid) end,
+    }, host = {
+      tags = {ifid=1, host=1},
+      path = function(tags) return getRRDName(tags.ifid, tags.host) end,
+    }, mac = {
+      tags = {ifid=1, mac=1},
+      path = function(tags) return getRRDName(tags.ifid, tags.mac) end,
+    }
+  }
+
+  local delete_info = supported_prefixes[schema_prefix]
+
+  if not delete_info then
+    traceError(TRACE_ERROR, TRACE_CONSOLE, "unsupported schema prefix for delete: " .. schema_prefix)
+    return false
+  end
+
+  for tag in pairs(delete_info.tags) do
+    if not tags[tag] then
+      traceError(TRACE_ERROR, TRACE_CONSOLE, "missing tag '".. tag .."' for schema prefix " .. schema_prefix)
+      return false
+    end
+  end
+
+  for tag in pairs(tags) do
+    if not delete_info.tags[tag] then
+      traceError(TRACE_ERROR, TRACE_CONSOLE, "unexpected tag '".. tag .."' for schema prefix " .. schema_prefix)
+      return false
+    end
+  end
+
+  local path_to_del = os_utils.fixPath(delete_info.path(tags))
+
+  -- TODO check rmdir return value
+  ntop.rmdir(path_to_del)
+
+  return true
 end
 
 -- ##############################################

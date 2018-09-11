@@ -63,6 +63,14 @@ end
 function driver:getLatestTimestamp(ifid)
 end
 
+--! @brief Delete timeseries data
+--! @param schema_prefix a prefix for the schemas.
+--! @param tags a list of filter tags. When a given scheam tag is not specified, it will be considered wildcard.
+--! @return true if operation was successful, false otherwise.
+--! @note E.g. "iface" schema_prefix matches any schema starting with "iface:". Empty prefix is allowed and matches all the schemas.
+function driver:delete(schema_prefix, tags)
+end
+
 -- ##############################################
 
 return driver
