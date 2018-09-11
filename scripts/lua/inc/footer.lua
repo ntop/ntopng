@@ -112,7 +112,7 @@ end
 
 if (interface.isPcapDumpInterface() == false) and (not have_nedge) then
    if(ifname ~= nil) then
-     maxSpeed = getInterfaceSpeed(_ifstats)
+     maxSpeed = getInterfaceSpeed(_ifstats.id)
    end
    -- io.write(maxSpeed)
    if((maxSpeed == "") or (maxSpeed == nil)) then

@@ -1124,7 +1124,7 @@ elseif(page == "config") then
 	<tr>
 	   <th>]] print(i18n("if_stats_config.interface_speed")) print[[</th>
 	   <td>]]
-	local ifspeed = getInterfaceSpeed(ifstats)
+	local ifspeed = getInterfaceSpeed(ifstats.id)
 	inline_input_form("ifSpeed", "Interface Speed",
 	   i18n("if_stats_config.interface_speed_popup_msg"),
 	   ifspeed, isAdministrator(), 'type="number" min="1"')
