@@ -48,6 +48,7 @@ end
 -- Maps second tag name to getRRDName
 local HOST_PREFIX_MAP = {
   host = "",
+  mac = "",
   subnet = "net:",
   flowdev_port = "flow_device:",
   sflowdev_port = "sflow:",
@@ -73,7 +74,7 @@ local function schema_get_path(schema, tags)
   local ifid = tags.ifid
   local host_or_network = nil
 
-  if string.find(schema.name, "iface:") == nil and string.find(schema.name, "mac:") == nil then
+  if string.find(schema.name, "iface:") == nil then
     local parts = split(schema.name, ":")
     host_or_network = (HOST_PREFIX_MAP[parts[1]] or (parts[1] .. ":")) .. tags[schema._tags[2]]
 
