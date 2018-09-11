@@ -178,6 +178,8 @@ void PF_RINGInterface::singlePacketPollLoop() {
 /* **************************************************** */
 
 void PF_RINGInterface::multiPacketPollLoop() {
+  u_char *buffer;
+  struct pfring_pkthdr hdr;
   u_int sleep_time, max_sleep = 1000, step_sleep = 100;
   int rc, idx = 0;
  
@@ -185,36 +187,31 @@ void PF_RINGInterface::multiPacketPollLoop() {
   
   while(isRunning()) {
 
-    rc = pfring_is_pkt_available(pfring_handle[idx]);
-    if(!rc) {
+    rc = pfring_recv(pfring_handle[idx], &buffer, 0, &hdr, 0 /* wait_for_packet */);
+    if(rc <= 0) {
       idx ^= 0x1;
-      rc = pfring_is_pkt_available(pfring_handle[idx]);
+      rc = pfring_recv(pfring_handle[idx], &buffer, 0, &hdr, 0 /* wait_for_packet */);
     }
 
-    if(rc) {
-      u_char *buffer;
-      struct pfring_pkthdr hdr;
+    if(rc > 0) {
+      try {
+        u_int16_t p;
+        Host *srcHost = NULL, *dstHost = NULL;
+        Flow *flow = NULL;
 
-      if(pfring_recv(pfring_handle[idx], &buffer, 0, &hdr, 0 /* wait_for_packet */) > 0) {
-	try {
-	  u_int16_t p;
-	  Host *srcHost = NULL, *dstHost = NULL;
-	  Flow *flow = NULL;
+        if(hdr.ts.tv_sec == 0) gettimeofday(&hdr.ts, NULL);
+	dissectPacket(DUMMY_BRIDGE_INTERFACE_ID,
+		      (hdr.extended_hdr.rx_direction == 1) ? 
+		      true /* ingress */ : false /* egress */,
+		      NULL, (const struct pcap_pkthdr *) &hdr, buffer,
+		      &p, &srcHost, &dstHost, &flow);
+	sleep_time = step_sleep;
+      } catch(std::bad_alloc& ba) {
+	static bool oom_warning_sent = false;
 
-	  if(hdr.ts.tv_sec == 0) gettimeofday(&hdr.ts, NULL);
-	  dissectPacket(DUMMY_BRIDGE_INTERFACE_ID,
-			(hdr.extended_hdr.rx_direction == 1) ? 
-			true /* ingress */ : false /* egress */,
-			NULL, (const struct pcap_pkthdr *) &hdr, buffer,
-			&p, &srcHost, &dstHost, &flow);
-	  sleep_time = step_sleep;
-	} catch(std::bad_alloc& ba) {
-	  static bool oom_warning_sent = false;
-
-	  if(!oom_warning_sent) {
-	    ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
-	    oom_warning_sent = true;
-	  }
+	if(!oom_warning_sent) {
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
+	  oom_warning_sent = true;
 	}
       }
     } else {
