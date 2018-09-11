@@ -225,6 +225,7 @@ class Flow : public GenericHashEntry {
 			  u_int64_t diff_sent_packets, u_int64_t diff_sent_bytes,
 			  u_int64_t diff_rcvd_packets, u_int64_t diff_rcvd_bytes);
 #endif
+  bool triggerAlerts() const;
   void dumpFlowAlert();
 
  public:

@@ -201,7 +201,29 @@ Flow::~Flow() {
 
 /* *************************************** */
 
+bool Flow::triggerAlerts() const {
+  /* If a flow involves at least a local endpoint,
+     then that endpoint may have disabled alerts.
+     When there's a local endpoint with alerts disabled,
+     we do not generate flow alerts having it as an endpoint as one
+     wants to explicitly silence them */
+
+  bool cli_trigger_alerts, srv_trigger_alerts;
+
+  /* client is either remote, or has alerts enabled... */
+  cli_trigger_alerts = cli_host && (!cli_host->isLocalHost() || cli_host->triggerAlerts());
+  /* server is either remote, or has alerts enabled.. */
+  srv_trigger_alerts = srv_host && (!srv_host->isLocalHost() || srv_host->triggerAlerts());
+
+  return cli_trigger_alerts && srv_trigger_alerts;
+}
+
+/* *************************************** */
+
 void Flow::dumpFlowAlert() {
+  if(!triggerAlerts())
+    return;
+
   FlowStatus status = getFlowStatus();
 
   if(!isFlowAlerted() && status != status_normal) {
