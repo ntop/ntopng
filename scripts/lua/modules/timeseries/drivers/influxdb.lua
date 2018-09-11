@@ -234,7 +234,7 @@ function driver:_calcStats(schema, tstart, tend, tags, url, total_serie, time_st
     -- NOTE: the total must be manually extracted from influx when sampling occurs
     local data_type = schema.options.metrics_type
     local query = getTotalSerieQuery(schema, tstart, tend + unaligned_offset, tags, nil --[[ important: no sampling ]], data_type, label)
-    query = 'SELECT SUM("'.. label ..'") * ' .. schema.options.step ..' FROM (' .. query .. ')'
+    query = 'SELECT SUM("'.. (label or "total_serie") ..'") * ' .. schema.options.step ..' FROM (' .. query .. ')'
 
     local full_url = url .. "/query?db=".. self.db .."&epoch=s&q=" .. urlencode(query)
     local data = influx_query(full_url, self.username, self.password)
