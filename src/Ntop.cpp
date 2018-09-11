@@ -231,9 +231,9 @@ Ntop::~Ntop() {
 #endif
 #endif
 
-  if(redis) delete redis;
-  delete prefs;
-  delete globals;
+  if(redis)   { delete redis; redis = NULL;     }
+  if(prefs)   { delete prefs; prefs = NULL;     }
+  if(globals) { delete globals; globals = NULL; }
 }
 
 /* ******************************************* */

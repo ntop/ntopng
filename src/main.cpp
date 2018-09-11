@@ -50,6 +50,7 @@ void sigproc(int sig) {
   ntop->shutdownAll();
 
   delete ntop;
+  ntop = NULL;
 
 #ifdef __linux__
   switch(afterShutdownAction) {

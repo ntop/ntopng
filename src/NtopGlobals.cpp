@@ -28,14 +28,11 @@ NtopGlobals::NtopGlobals() {
   ifMTU = snaplen = 1514;
   file_id = 0;
   trace = new Trace();  
-  mutex = new Mutex();
   is_shutdown = shutdown_requested = false, do_decode_tunnels = true;
 };
 
 /* **************************************** */
 
 NtopGlobals::~NtopGlobals() {
-  delete trace;
-  delete mutex;
+  if(trace) { delete trace; trace = NULL; }
 };
-

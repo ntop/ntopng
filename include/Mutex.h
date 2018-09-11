@@ -31,7 +31,7 @@
 class Mutex {
  private:
   pthread_mutex_t the_mutex;
-  bool locked;  
+  bool locked;
 #ifdef MUTEX_DEBUG
   char last_lock_file[64], last_unlock_file[64];
   int  last_lock_line, last_unlock_line;
@@ -42,9 +42,9 @@ class Mutex {
  public:
   Mutex();
   ~Mutex() { pthread_mutex_destroy(&the_mutex); };
-  
-  void lock(const char *filename, const int line);
-  void unlock(const char *filename, const int line);  
+
+  void lock(const char *filename, const int line, bool trace_errors = true);
+  void unlock(const char *filename, const int line, bool trace_errors = true);
   inline bool is_locked() { return(locked); };
 
   /* NOTE: this must be called while locked */

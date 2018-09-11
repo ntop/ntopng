@@ -29,7 +29,6 @@ class NtopGlobals {
   time_t start_time;
   u_int ifMTU, snaplen;
   Trace *trace;
-  Mutex *mutex;
   u_int16_t file_id;
 
  public:

@@ -1010,7 +1010,7 @@ int Redis::msg_push(const char *cmd, const char *queue_name, char *msg,
   redisReply *reply;
   int rc = 0;
 
-  l->lock(__FILE__, __LINE__);
+  l->lock(__FILE__, __LINE__, trace_errors);
   /* Put the latest messages on top so old messages (if any) will be discarded */
   num_requests++;
   reply = (redisReply*)redisCommand(redis, "%s %s %s", cmd,  queue_name, msg);
@@ -1042,7 +1042,7 @@ int Redis::msg_push(const char *cmd, const char *queue_name, char *msg,
   } else
     rc = -1;
 
-  l->unlock(__FILE__, __LINE__);
+  l->unlock(__FILE__, __LINE__, trace_errors);
   return(rc);
 }
 
