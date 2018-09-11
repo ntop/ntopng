@@ -702,39 +702,40 @@ void HostPools::reloadPools() {
     }
 #endif
 
-    snprintf(kname, sizeof(kname), HOST_POOL_DETAILS_KEY, iface->get_id(), i);
+    snprintf(kname, sizeof(kname), HOST_POOL_DETAILS_KEY, iface->get_id(), _pool_id);
 
 #ifdef NTOPNG_PRO
     char rsp[16] = { 0 };
 
-    children_safe[i] = ((redis->hashGet(kname, (char*)CONST_CHILDREN_SAFE, rsp, sizeof(rsp)) != -1)
+    children_safe[_pool_id] = ((redis->hashGet(kname, (char*)CONST_CHILDREN_SAFE, rsp, sizeof(rsp)) != -1)
 			&& (!strcmp(rsp, "true")));
 
-    forge_global_dns[i] = ((redis->hashGet(kname, (char*)CONST_FORGE_GLOBAL_DNS, rsp, sizeof(rsp)) != -1)
+    forge_global_dns[_pool_id] = ((redis->hashGet(kname, (char*)CONST_FORGE_GLOBAL_DNS, rsp, sizeof(rsp)) != -1)
     			&& (!strcmp(rsp, "true")));
 
-    routing_policy_id[i] = (redis->hashGet(kname, (char*)CONST_ROUTING_POLICY_ID, rsp, sizeof(rsp)) != -1) ? atoi(rsp) : DEFAULT_ROUTING_TABLE_ID;
-    pool_shaper[i] = (redis->hashGet(kname, (char*)CONST_POOL_SHAPER_ID, rsp, sizeof(rsp)) != -1) ? atoi(rsp) : DEFAULT_SHAPER_ID;
-    schedule_bitmap[i] = (redis->hashGet(kname, (char*)CONST_SCHEDULE_BITMAP, rsp, sizeof(rsp)) != -1) ? strtol(rsp, NULL, 16) : DEFAULT_TIME_SCHEDULE;
+    routing_policy_id[_pool_id] = (redis->hashGet(kname, (char*)CONST_ROUTING_POLICY_ID, rsp, sizeof(rsp)) != -1) ? atoi(rsp) : DEFAULT_ROUTING_TABLE_ID;
+    pool_shaper[_pool_id] = (redis->hashGet(kname, (char*)CONST_POOL_SHAPER_ID, rsp, sizeof(rsp)) != -1) ? atoi(rsp) : DEFAULT_SHAPER_ID;
+    schedule_bitmap[_pool_id] = (redis->hashGet(kname, (char*)CONST_SCHEDULE_BITMAP, rsp, sizeof(rsp)) != -1) ? strtol(rsp, NULL, 16) : DEFAULT_TIME_SCHEDULE;
 
-    enforce_quotas_per_pool_member[i]   = ((redis->hashGet(kname, (char*)CONST_ENFORCE_QUOTAS_PER_POOL_MEMBER, rsp, sizeof(rsp)) != -1)
+    enforce_quotas_per_pool_member[_pool_id]   = ((redis->hashGet(kname, (char*)CONST_ENFORCE_QUOTAS_PER_POOL_MEMBER, rsp, sizeof(rsp)) != -1)
 					 && (!strcmp(rsp, "true")));;
-    enforce_shapers_per_pool_member[i]   = ((redis->hashGet(kname, (char*)CONST_ENFORCE_SHAPERS_PER_POOL_MEMBER, rsp, sizeof(rsp)) != -1)
+    enforce_shapers_per_pool_member[_pool_id]   = ((redis->hashGet(kname, (char*)CONST_ENFORCE_SHAPERS_PER_POOL_MEMBER, rsp, sizeof(rsp)) != -1)
 					 && (!strcmp(rsp, "true")));;
 
 #ifdef HOST_POOLS_DEBUG
     redis->hashGet(kname, (char*)"name", rsp, sizeof(rsp));
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Loading pool [name: %s]"
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Loading pool [iteration: %u][pool_id: %u][name: %s]"
 				 "[children_safe: %i]"
 				 "[forge_global_dns: %i]"
 				 "[pool_shaper: %i]"
 				 "[schedule_bitmap: %i]"
 				 "[enforce_quotas_per_pool_member: %i]"
 				 "[enforce_shapers_per_pool_member: %i]",
-				 rsp, children_safe[i], forge_global_dns[i],
-				 pool_shaper[i], schedule_bitmap[i],
-				 enforce_quotas_per_pool_member[i],
-				 enforce_shapers_per_pool_member[i]);
+				 i, _pool_id,
+				 rsp, children_safe[_pool_id], forge_global_dns[_pool_id],
+				 pool_shaper[_pool_id], schedule_bitmap[_pool_id],
+				 enforce_quotas_per_pool_member[_pool_id],
+				 enforce_shapers_per_pool_member[_pool_id]);
 #endif
 
 #endif /* NTOPNG_PRO */
@@ -744,7 +745,7 @@ void HostPools::reloadPools() {
     /* Pool members are the elements of the list */
     if((num_members = redis->smembers(kname, &pool_members)) > 0) {
       // NOTE: the auto-assigned host_pool must not be limited as it receives devices assigments automatically
-      num_members = min_val((u_int32_t)num_members, ((i == ntop->getPrefs()->get_auto_assigned_pool_id()) ? MAX_NUM_INTERFACE_HOSTS : MAX_NUM_POOL_MEMBERS));
+      num_members = min_val((u_int32_t)num_members, ((_pool_id == ntop->getPrefs()->get_auto_assigned_pool_id()) ? MAX_NUM_INTERFACE_HOSTS : MAX_NUM_POOL_MEMBERS));
 
       for(int k = 0; k < num_members; k++) {
 	member = pool_members[k];
