@@ -1848,12 +1848,13 @@ function tablePreferences(key, value, force_set)
   end
 end
 
-function getInterfaceSpeed(ifstats)
-   local ifspeed = ntop.getCache('ntopng.prefs.'..ifstats.name..'.speed')
+function getInterfaceSpeed(ifid)
+   local ifname = getInterfaceName(ifid)
+   local ifspeed = ntop.getCache('ntopng.prefs.'..ifname..'.speed')
    if not isEmptyString(ifspeed) and tonumber(ifspeed) ~= nil then
       ifspeed = tonumber(ifspeed)
    else
-      ifspeed = ifstats.speed
+      ifspeed = interface.getMaxIfSpeed(ifid)
    end
 
    return ifspeed

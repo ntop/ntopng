@@ -114,14 +114,14 @@ end
 function ts_common.getMaxPointValue(schema, metric, tags)
   if tags.ifid ~= nil then
     if string.contains(metric, "bytes") then
-      local ifspeed = interface.getMaxIfSpeed(tonumber(tags.ifid))
+      local ifspeed = getInterfaceSpeed(tonumber(tags.ifid))
 
       if ifspeed ~= nil then
         -- bit/s
         return ifspeed * 1000 * 1000
       end
     elseif string.contains(metric, "packets") then
-      local ifspeed = interface.getMaxIfSpeed(tonumber(tags.ifid))
+      local ifspeed = getInterfaceSpeed(tonumber(tags.ifid))
 
       if ifspeed ~= nil then
         -- mbit/s

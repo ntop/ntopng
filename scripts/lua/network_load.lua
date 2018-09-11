@@ -58,7 +58,7 @@ function dumpInterfaceStats(interface_name)
       local flows_pctg = math.floor(1+((ifstats.stats.flows*100)/prefs.max_num_flows))
 
       res["ifname"]  = interface_name
-      res["speed"]  = getInterfaceSpeed(ifstats)
+      res["speed"]  = getInterfaceSpeed(ifstats.id)
       -- network load is used by web pages that are shown to the user
       -- so we must return statistics since the latest (possible) reset
       res["packets"] = ifstats.stats_since_reset.packets
