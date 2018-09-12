@@ -5,6 +5,7 @@
 dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
+local ts_utils = require("ts_utils")
 
 sendHTTPContentTypeHeader('text/html')
 
@@ -45,7 +46,21 @@ print("<tr><th nowrap>"..i18n("about.platform").."</th><td>"..info["platform"]..
 if(info.pid ~= nil) then
    print("<tr><th nowrap>PID (Process ID)</th><td>"..info.pid.."</td></tr>\n")
 end
-print("<tr><th nowrap>"..i18n("about.startup_line").."</th><td>ntopng "..info["command_line"].."</td></tr>\n")
+if ts_utils.getDriverName() == "influxdb" then
+   print("<tr><th nowrap>".. i18n("prefs.influxdb_storage_title") .."</th><td><img id=\"influxdb-info-load\" border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber><span id=\"influxdb-info-text\"></span></td></tr>\n")
+   print[[<script>
+$(function() {
+   $.get("]] print(ntop.getHttpPrefix()) print[[/lua/get_influxdb_info.lua", function(info) {
+      $("#influxdb-info-load").hide();
+      $("#influxdb-info-text").html(bytesToVolume(info.db_bytes) + " ");
+   }).fail(function() {
+      $("#influxdb-info-load").hide();
+   });
+});
+</script>
+]]
+end
+print("<tr><th nowrap>"..i18n("about.startup_line").."</th><td>".. info["product"] .." "..info["command_line"].."</td></tr>\n")
 print("<tr><th nowrap>"..i18n("about.last_log").."</th><td><code>\n")
 
 for i=1,32 do

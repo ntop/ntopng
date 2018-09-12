@@ -5,6 +5,7 @@
 dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
+local ts_utils = require("ts_utils")
 
 sendHTTPContentTypeHeader('text/html')
 
@@ -124,6 +125,34 @@ print("<tr><th><a href=\"https://curl.haxx.se\" target=\"_blank\">cURL</A></th><
 print("<tr><th><a href=\"http://twitter.github.io/\" target=\"_blank\"><i class=\'fa fa-twitter fa-lg'></i> Twitter Bootstrap</A></th><td>3.x</td></tr>\n")
 print("<tr><th><a href=\"http://fortawesome.github.io/Font-Awesome/\" target=\"_blank\"><i class=\'fa fa-flag fa-lg'></i> Font Awesome</A></th><td>4.x</td></tr>\n")
 print("<tr><th><a href=\"http://www.rrdtool.org/\" target=\"_blank\">RRDtool</A></th><td>"..info["version.rrd"].."</td></tr>\n")
+
+local l7_resolution = "5m"
+
+if ts_utils.getDriverName() == "influxdb" then
+   print("<tr><th><a href=\"http://www.influxdata.com\" target=\"_blank\">InfluxDB</A></th><td><img id=\"influxdb-info-load\" border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber><span id=\"influxdb-info-text\"></span></td></tr>\n")
+   print[[<script>
+$(function() {
+   $.get("]] print(ntop.getHttpPrefix()) print[[/lua/get_influxdb_info.lua", function(info) {
+      $("#influxdb-info-load").hide();
+      $("#influxdb-info-text").html(info.version + " ");
+   }).fail(function() {
+      $("#influxdb-info-load").hide();
+   });
+});
+</script>
+]]
+
+   -- NOTE: need to calculate this dynamically as it can be temporary disabled at runtime
+   local steps = tonumber(ntop.getPref("ntopng.prefs.ts_write_steps"))
+
+   if steps and steps > 0 then
+      l7_resolution = (steps * 5) .. "s"
+   else
+      l7_resolution = "1m"
+   end
+end
+
+print("<tr><th>".. i18n("prefs.timeseries_resolution_resolution_title") .."</th><td>"..l7_resolution.."</td></tr>\n")
 print("<tr><th><a href=\"http://www.redis.io\" target=\"_blank\">Redis</A> Server</th><td>"..info["version.redis"].."</td></tr>\n")
 print("<tr><th><a href=\"https://github.com/valenok/mongoose\" target=\"_blank\">Mongoose web server</A></th><td>"..info["version.httpd"].."</td></tr>\n")
 print("<tr><th><a href=\"http://www.luajit.org\" target=\"_blank\">LuaJIT</A></th><td>"..info["version.luajit"].."</td></tr>\n")

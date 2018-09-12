@@ -94,6 +94,10 @@ local function influx_query(full_url, username, password)
     return nil
   end
 
+  if jres.results[1]["error"] then
+    traceError(TRACE_ERROR, TRACE_CONSOLE, jres.results[1]["error"])
+  end
+
   if not jres.results[1].series then
     -- no results fount
     return nil
@@ -684,6 +688,40 @@ end
 
 -- ##############################################
 
+local function getInfluxdbVersion(url, username, password)
+  local res = ntop.httpGet(url .. "/ping", username, password, INFLUX_QUERY_TIMEMOUT_SEC, true)
+  if not res or ((res.RESPONSE_CODE ~= 200) and (res.RESPONSE_CODE ~= 204)) then
+    local err = i18n("prefs.could_not_contact_influxdb", {msg=getResponseError(res)})
+
+    traceError(TRACE_ERROR, TRACE_CONSOLE, err)
+    return nil, err
+  end
+
+  local content = res.CONTENT or ""
+  return string.match(content, "\nX%-Influxdb%-Version: ([%d|%.]+)")
+end
+
+function driver:getInfluxdbVersion()
+  return getInfluxdbVersion(self.url, self.username, self.password)
+end
+
+-- ##############################################
+
+function driver:getDiskUsage()
+  local query = 'select SUM(last) FROM (select LAST(diskBytes) FROM "monitor"."shard" where "database" = \''.. self.db ..'\' group by id)'
+  local full_url = self.url .. "/query?db=_internal&q=" .. urlencode(query)
+
+  local data = influx_query(full_url, self.username, self.password)
+
+  if data and data.series[1] and data.series[1].values[1] then
+    return data.series[1].values[1][2]
+  end
+
+  return nil
+end
+
+-- ##############################################
+
 local function toVersion(version_str)
   local parts = string.split(version_str, "%.")
 
@@ -717,16 +755,7 @@ function driver.init(dbname, url, days_retention, username, password, verbose)
   -- Check version
   if verbose then traceError(TRACE_NORMAL, TRACE_CONSOLE, "Contacting influxdb at " .. url .. " ...") end
 
-  local res = ntop.httpGet(url .. "/ping", username, password, INFLUX_QUERY_TIMEMOUT_SEC, true)
-  if not res or ((res.RESPONSE_CODE ~= 200) and (res.RESPONSE_CODE ~= 204)) then
-    local err = i18n("prefs.could_not_contact_influxdb", {msg=getResponseError(res)})
-
-    traceError(TRACE_ERROR, TRACE_CONSOLE, err)
-    return false, err
-  end
-
-  local content = res.CONTENT or ""
-  local version = string.match(content, "\nX%-Influxdb%-Version: ([%d|%.]+)")
+  local version = getInfluxdbVersion(url, username, password)
 
   if not version or not isCompatibleVersion(version) then
     local err = i18n("prefs.incompatible_influxdb_version",
