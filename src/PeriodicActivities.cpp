@@ -51,6 +51,15 @@ PeriodicActivities::~PeriodicActivities() {
 
 /* ******************************************* */
 
+void PeriodicActivities::sendShutdownSignal() {
+  for(u_int16_t i = 0; i < CONST_MAX_NUM_THREADED_ACTIVITIES; i++) {
+    if(activities[i])
+      activities[i]->shutdown();
+  }
+}
+
+/* ******************************************* */
+
 void PeriodicActivities::startPeriodicActivitiesLoop() {
   struct stat buf;
   ThreadedActivity *startup_activity;

@@ -1713,6 +1713,10 @@ void Ntop::shutdown() {
 void Ntop::shutdownAll() {
   ThreadedActivity *shutdown_activity;
 
+  if(pa) pa->sendShutdownSignal();
+  
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Executing shutdown script");
+  
   /* Exec shutdown script before shutting down ntopng */
   if((shutdown_activity = new ThreadedActivity(SHUTDOWN_SCRIPT_PATH))) {
     /* Don't call run() as by the time the script will be run the delete below will free the memory */
@@ -1720,13 +1724,19 @@ void Ntop::shutdownAll() {
     delete shutdown_activity;
   }    
 
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Terminating periodic activities");
+  
   /* Wait until currently executing periodic activities are completed,
    Periodic activites should not run during interfaces shutdown */
   ntop->shutdownPeriodicActivities();
 
-  /* Not it is time to trear down running interfaces */
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Terminating network interfaces");
+  
+  /* Now it is time to trear down running interfaces */
   ntop->sendNetworkInterfacesTermination();
 
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Waiting for the application to shutdown");
+  
   ntop->getGlobals()->shutdown();
   sleep(2); /* Wait until all threads know that we're shutting down... */
   ntop->shutdown();

@@ -34,6 +34,7 @@ class PeriodicActivities {
   ~PeriodicActivities();
 
   void startPeriodicActivitiesLoop();
+  void sendShutdownSignal();
 };
 
 #endif /* _PERIODIC_ACTIVITIES_H_ */
