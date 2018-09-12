@@ -162,6 +162,11 @@ local function passwordCleanup(p)
    return p -- don't touch passwords (checks against valid fs paths already performed)
 end
 
+local function jsonCleanup(json_payload)
+   -- can't touch the json payload or it could be broken
+   return json_payload
+end
+
 local function whereCleanup(p)
    -- SQL where
    -- A-Za-z0-9!=<>()
@@ -1273,8 +1278,8 @@ local known_parameters = {
    ["initial_point"]           = validateBool,
 
    -- json POST DATA
-   ["payload"]                 = validateJSON,
-   ["JSON"]                    = validateJSON
+   ["payload"]                 = { jsonCleanup, validateJSON },
+   ["JSON"]                    = { jsonCleanup, validateJSON },
 }
 
 -- A special parameter is formed by a prefix, followed by a variable suffix
