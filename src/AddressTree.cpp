@@ -118,6 +118,28 @@ bool AddressTree::addAddresses(char *rule, const int16_t user_data) {
 
 /* ******************************************* */
 
+// TODO match MAC
+bool AddressTree::match(char *addr) {
+  IpAddress address;
+  char *net_prefix = strchr(addr, '/');
+
+  if(net_prefix) {
+    int bits = atoi(net_prefix + 1);
+    char tmp = *net_prefix;
+    *net_prefix = '\0', address.set(addr), *net_prefix = tmp;
+
+    if(address.isIPv4())
+      return Utils::ptree_match(ptree_v4, AF_INET, &address.getIP()->ipType.ipv4, bits);
+    else
+      return Utils::ptree_match(ptree_v6, AF_INET6, (void*)&address.getIP()->ipType.ipv6, bits);
+  } else {
+    address.set(addr);
+    return address.match(this);
+  }
+}
+
+/* ******************************************* */
+
 int16_t AddressTree::findAddress(int family, void *addr, u_int8_t *network_mask_bits) {
   patricia_tree_t *p;
   int bits;

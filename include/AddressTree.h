@@ -54,6 +54,7 @@ class AddressTree {
   void getAddresses(lua_State* vm);
   int16_t findAddress(int family, void *addr, u_int8_t *network_mask_bits = NULL);
   int16_t findMac(u_int8_t addr[]);
+  bool match(char *addr);
   void dump();
 };
 

@@ -132,6 +132,27 @@ end
 
 -- ##############################################
 
+local function isUserAccessAllowed(tags)
+  if tags.ifid and not ntop.isAllowedInterface(tonumber(tags.ifid)) then
+    traceError(TRACE_ERROR, TRACE_CONSOLE, "User: " .. _SESSION["user"] .. " is not allowed to access interface " .. tags.ifid)
+    return false
+  end
+
+  if tags.host and not ntop.isAllowedNetwork(tags.host) then
+    traceError(TRACE_ERROR, TRACE_CONSOLE, "User: " .. _SESSION["user"] .. " is not allowed to access host " .. tags.host)
+    return false
+  end
+
+  if tags.subnet and not ntop.isAllowedNetwork(tags.subnet) then
+    traceError(TRACE_ERROR, TRACE_CONSOLE, "User: " .. _SESSION["user"] .. " is not allowed to access subnet " .. tags.subnet)
+    return false
+  end
+
+  return true
+end
+
+-- ##############################################
+
 --! @brief Append a new data point to the specified timeseries.
 --! @param schema_name the schema identifier.
 --! @param tags_and_metrics a table with tag->value and metric->value mappings.
@@ -188,6 +209,10 @@ end
 --! @param options (optional) query options.
 --! @return query result on success, nil on error.
 function ts_utils.query(schema_name, tags, tstart, tend, options)
+  if not isUserAccessAllowed(tags) then
+    return nil
+  end
+
   local query_options = getQueryOptions(options)
   local schema = ts_utils.getSchema(schema_name)
 
@@ -295,6 +320,10 @@ function ts_utils.queryTopk(schema_name, tags, tstart, tend, options)
   local query_options = getQueryOptions(options)
   local top_items = nil
   local schema = nil
+
+  if not isUserAccessAllowed(tags) then
+    return nil
+  end
 
   local driver = ts_utils.getQueryDriver()
 
@@ -468,13 +497,17 @@ end
 --! @return true if operation was successful, false otherwise.
 --! @note E.g. "iface" schema_prefix matches any schema starting with "iface:". Empty prefix is allowed and matches all the schemas.
 function ts_utils.delete(schema_prefix, tags)
-  if string.find(schema_prefix, ":") ~= nil then
-    traceError(TRACE_ERROR, TRACE_CONSOLE, "Full schema labels not supported, use schema prefixes instead.")
+  if not isAdministrator() then
+    traceError(TRACE_ERROR, TRACE_CONSOLE, "Not Admin")
     return false
   end
 
-  if not isAdministrator() then
-    traceError(TRACE_ERROR, TRACE_CONSOLE, "Not Admin")
+  if not isUserAccessAllowed(tags) then
+    return false
+  end
+
+  if string.find(schema_prefix, ":") ~= nil then
+    traceError(TRACE_ERROR, TRACE_CONSOLE, "Full schema labels not supported, use schema prefixes instead.")
     return false
   end
 
@@ -491,6 +524,10 @@ end
 
 -- TODO make standard and document
 function ts_utils.queryTotal(schema_name, tags, tstart, tend)
+  if not isUserAccessAllowed(tags) then
+    return nil
+  end
+
   local schema = ts_utils.getSchema(schema_name)
 
   if not schema then
@@ -511,6 +548,10 @@ end
 
 -- TODO make standard and document
 function ts_utils.queryMean(schema_name, tags, tstart, tend)
+  if not isUserAccessAllowed(tags) then
+    return nil
+  end
+
   local schema = ts_utils.getSchema(schema_name)
 
   if not schema then

@@ -284,6 +284,15 @@ static int ntop_set_active_interface_id(lua_State* vm) {
   return(CONST_LUA_OK);
 }
 
+/* ****************************************** */
+
+static inline bool matches_allowed_ifname(char *allowed_ifname, char *iface) {
+  return (((allowed_ifname == NULL) || (allowed_ifname[0] == '\0')) /* Periodic script */
+    || (!strncmp(allowed_ifname, iface, strlen(allowed_ifname))));
+}
+
+/* ****************************************** */
+
 // ***API***
 static int ntop_get_interface_names(lua_State* vm) {
   char *allowed_ifname = getLuaVMUserdata(vm, allowed_ifname);
@@ -303,8 +312,7 @@ static int ntop_get_interface_names(lua_State* vm) {
     if((iface = ntop->getInterface(i)) != NULL) {
       char num[8], *ifname = iface->get_name();
 
-      if(((allowed_ifname == NULL) || (allowed_ifname[0] == '\0')) /* Periodic script */
-	 || (!strncmp(allowed_ifname, ifname, strlen(allowed_ifname))))	{
+      if(matches_allowed_ifname(allowed_ifname, ifname))	{
 	ntop->getTrace()->traceEvent(TRACE_DEBUG, "Returning name [%d][%s]", i, ifname);
 	snprintf(num, sizeof(num), "%d", iface->get_id());
 	lua_push_str_table_entry(vm, num, ifname);
@@ -5836,6 +5844,43 @@ static int ntop_get_cookie_attributes(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_is_allowed_interface(lua_State* vm) {
+  int id;
+  NetworkInterface *iface;
+  bool rv = false;
+  char *allowed_ifname = getLuaVMUserdata(vm, allowed_ifname);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  id = lua_tointeger(vm, 1);
+
+  if(((iface = ntop->getNetworkInterface(vm, id)) != NULL) && (iface->get_id() == id) &&
+      matches_allowed_ifname(allowed_ifname, iface->get_name()))
+    rv = true;
+
+  lua_pushboolean(vm, rv);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_is_allowed_network(lua_State* vm) {
+  bool rv = false;
+  u_int16_t vlan_id = 0;
+  char *host, buf[64];
+  AddressTree *allowed_nets = get_allowed_nets(vm);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  get_host_vlan_info((char*)lua_tostring(vm, 1), &host, &vlan_id, buf, sizeof(buf));
+
+  if(allowed_nets->match(host))
+    rv = true;
+
+  lua_pushboolean(vm, rv);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_get_resolved_address(lua_State* vm) {
   char *key, *tmp,rsp[256],value[64];
   Redis *redis = ntop->getRedis();
@@ -7843,6 +7888,8 @@ static const luaL_Reg ntop_reg[] = {
   { "checkLicense",     ntop_check_license },
   { "systemHostStat",   ntop_system_host_stat },
   { "getCookieAttributes", ntop_get_cookie_attributes },
+  { "isAllowedInterface",  ntop_is_allowed_interface },
+  { "isAllowedNetwork",    ntop_is_allowed_network },
 
   /* Redis */
   { "getCache",          ntop_get_redis },
