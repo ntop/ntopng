@@ -184,6 +184,42 @@ function callback_utils.foreachLocalHost(ifname, deadline, callback)
    return true
 end
 
+function callback_utils.foreachSNMPDevice(callback)
+   if not ntop.isPro() or not callback then
+      return
+   end
+
+   local cbs = {}
+   local snmpdevs = get_snmp_devices()
+
+   if type(callback) == "function" then
+      cbs = {callback}
+   elseif type(callback) == "table" and callback[1] ~= nil then
+      cbs = callback
+   end
+
+   for _, device in pairs(snmpdevs) do
+      local snmp_device = require "snmp_device"
+      snmp_device.init(device["ip"])
+
+      for _, cb in ipairs(cbs) do
+	 if ntop.isShutdown() then
+	    return true
+	 end
+
+	 if isSNMPDeviceUnresponsive(device["ip"]) or is_snmp_polling_disabled(device["ip"]) then
+	    goto next_device
+	 end
+
+	 if not cb(snmp_device) then
+	    goto next_device
+	 end
+      end
+
+      ::next_device::
+   end
+end
+
 -- Iterates each device on the ifname interface.
 -- Each device is passed to the callback with some more information.
 function callback_utils.foreachDevice(ifname, deadline, callback)
