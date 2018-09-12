@@ -51,10 +51,16 @@ function toSeries(jsonrrd, res, label)
    for _, rrd in pairs(jsonrrd.series) do
       local datapoints = {}
       local instant = jsonrrd.start
+      local scale = 1
+
+      if rrd["label"]:find("bytes") then
+	 -- grafana rates are returned in bits an not bytes per second
+	 scale = 8
+      end
 
       for _, point in ipairs(rrd["data"]) do
 	 local val     = point
-	 datapoints[#datapoints + 1] = {val, instant*1000}
+	 datapoints[#datapoints + 1] = {val * scale, instant * 1000}
 	 instant = instant + jsonrrd.step
       end
 
