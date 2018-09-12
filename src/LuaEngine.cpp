@@ -4111,7 +4111,7 @@ static int ntop_nindex_topk(lua_State* vm) {
   NIndexFlowDB *nindex;
   char *_topkOperator;
   TopKSelectOperator topkOperator = topk_select_operator_sum;
-  bool topToBottomSort;
+  bool topToBottomSort, useApproxQuery;
 
   if(!ntop_interface)
     return(CONST_LUA_ERROR);
@@ -4154,10 +4154,14 @@ static int ntop_nindex_topk(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TBOOLEAN) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
   topToBottomSort = lua_toboolean(vm, id++) ? true : false;
 
+  if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TBOOLEAN) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  useApproxQuery = lua_toboolean(vm, id++) ? true : false;
+
   return(nindex->topk(vm, use_aggregated_flows,
 		      timestamp_begin, timestamp_end,
 		      select_keys, select_values,
-		      where, topkOperator, skip_initial_records,
+		      where, topkOperator,
+		      useApproxQuery, skip_initial_records,
 		      max_num_hits, topToBottomSort));
 }
 
