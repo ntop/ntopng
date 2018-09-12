@@ -1053,8 +1053,10 @@ function printInMemory()
   prefsInputFieldPrefs(subpage_active.entries["flow_max_idle"].title, subpage_active.entries["flow_max_idle"].description,
       "ntopng.prefs.", "flow_max_idle", prefs.flow_max_idle, "number", nil, nil, nil, {min=1, max=86400, tformat="smh"})
 
-  prefsInputFieldPrefs(subpage_active.entries["housekeeping_frequency"].title, subpage_active.entries["housekeeping_frequency"].description,
-      "ntopng.prefs.", "housekeeping_frequency", prefs.housekeeping_frequency, "number", nil, nil, nil, {min=1, max=60})
+  local has_high_resolution = ((tonumber(ntop.getPref("ntopng.prefs.ts_write_steps")) or 0) > 0)
+
+  prefsInputFieldPrefs(subpage_active.entries["housekeeping_frequency"].title, subpage_active.entries["housekeeping_frequency"].description .. ternary(has_high_resolution, "<br>"..i18n("prefs.note_update_frequency_disabled", {pref=i18n("prefs.timeseries_resolution_resolution_title")}), ""),
+      "ntopng.prefs.", "housekeeping_frequency", prefs.housekeeping_frequency, "number", nil, nil, nil, {min=1, max=60, disabled=has_high_resolution})
 
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
   print('</table>')
@@ -1164,14 +1166,15 @@ function printStatsTimeseries()
 
   local ts_slots_labels = {"10s", "30s", "1m"}
   local ts_slots_values = {"10", "30", "60"}
+  local has_custom_housekeeping = (tonumber(ntop.getPref("ntopng.prefs.housekeeping_frequency")) or 5) ~= 5
 
   multipleTableButtonPrefs(subpage_active.entries["timeseries_resolution_resolution"].title,
-				    subpage_active.entries["timeseries_resolution_resolution"].description,
+				    subpage_active.entries["timeseries_resolution_resolution"].description .. ternary(has_custom_housekeeping, "<br>" .. i18n("prefs.note_timeseries_resolution_disabled", {pref=i18n("prefs.housekeeping_frequency_title")}), ""),
 				    ts_slots_labels, ts_slots_values,
 				    "60",
 				    "primary",
 				    "ts_high_resolution",
-				    "ntopng.prefs.ts_high_resolution", nil,
+				    "ntopng.prefs.ts_high_resolution", has_custom_housekeeping,
 				    nil, nil, nil, influx_active)
 
   prefsInputFieldPrefs(subpage_active.entries["influxdb_storage"].title, subpage_active.entries["influxdb_storage"].description,
