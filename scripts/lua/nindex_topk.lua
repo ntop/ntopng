@@ -19,6 +19,7 @@ maxhits       = _GET["maxhits_clause"]
 topk          = _GET["topk_clause"]
 begin_time    = _GET["begin_time_clause"]
 end_time      = _GET["end_time_clause"]
+approx_search = _GET["approx_search"]
 
 if(_GET["flow_clause"] == "aggregated_flows") then
    aggregated_flows = true
@@ -28,6 +29,12 @@ end
 
 if(where == nil)  then
    where = ""
+end
+
+if((approx_search == nil) or (approx_search == "true")) then
+   approx_search = true
+ else
+   approx_search = false
 end
 
 if((select_keys == nil) or (select_keys == "")) then
@@ -123,11 +130,27 @@ print [[
       <div class="col-sm-10">
         <div class="form-check">
           <input class="form-check-input" type="radio" name="flow_clause" id="gridRadios1" value="flows" ]] if(aggregated_flows == false) then print("checked") end print [[>
-          <label class="form-check-label" for="gridRadios1">Flows</label>
+          <label class="form-check-label" for="gridRadios1">Raw Flows</label>
         </div>
         <div class="form-check">
           <input class="form-check-input" type="radio" name="flow_clause" id="gridRadios2" value="aggregated_flows" ]] if(aggregated_flows == true) then print("checked") end print [[>
           <label class="form-check-label" for="gridRadios2">Aggregated Flows</label>
+        </div>
+      </div>
+    </div>
+  </fieldset>
+
+  <fieldset class="form-group">
+    <div class="form-group form-row">
+      <label for="searchType" class="col-sm-2 col-form-label">Search Type</label> 
+      <div class="col-sm-10">
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="approx_search" id="gridRadios1" value="false" ]] if(approx_search == false) then print("checked") end print [[>
+          <label class="form-check-label" for="gridRadios1">Exact</label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="approx_search" id="gridRadios2" value="true" ]] if(approx_search == true) then print("checked") end print [[>
+          <label class="form-check-label" for="gridRadios2">Approximated</label>
         </div>
       </div>
     </div>
@@ -165,7 +188,7 @@ print [[
 
 
 bottomToTopSort = false
-res = interface.nIndexTopK(aggregated_flows, begin_time, end_time, select_keys, select_values, where, topk, 0, tonumber(maxhits), bottomToTopSort)
+res = interface.nIndexTopK(aggregated_flows, begin_time, end_time, select_keys, select_values, where, topk, 0, tonumber(maxhits), bottomToTopSort, approx_search)
 
 -- tprint(res)
 

@@ -851,6 +851,7 @@ local known_parameters = {
    ["select_clause"]           = validateUnquoted,
    ["select_keys_clause"]      = validateUnquoted,
    ["select_values_clause"]    = validateUnquoted,
+   ["approx_search"]           = validateBool,
    ["where_clause"]            = { whereCleanup, validateUnquoted },
    ["begin_time_clause"]       = validateUnquoted,
    ["end_time_clause"]         = validateUnquoted,
