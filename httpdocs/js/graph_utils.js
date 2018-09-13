@@ -371,7 +371,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
     }
   });
 
-  var old_start, old_end;
+  var old_start, old_end, old_interval;
 
   /* Returns false if zoom update is rejected. */
   chart.updateStackedChart = function (tstart, tend, no_spinner) {
@@ -381,8 +381,10 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
     var cur_interval = (params.epoch_end - params.epoch_begin);
 
     if(cur_interval < max_interval) {
-      if(is_max_zoom)
+      if(is_max_zoom && (cur_interval < old_interval)) {
+        old_interval = cur_interval;
         return false;
+      }
 
       if(!first_load || chart.is_zoomed) {
         var epoch = params.epoch_begin + (params.epoch_end - params.epoch_begin) / 2;
@@ -392,11 +394,12 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
 
       is_max_zoom = true;
       chart.zoomType(null); // disable zoom
-    } else {
+    } else if (cur_interval > max_interval) {
       is_max_zoom = false;
       chart.zoomType('x'); // enable zoom
     }
 
+    old_interval = cur_interval;
     fixTimeRange(chart, params, align_step);
 
     if((old_start == params.epoch_begin) && (old_end == params.epoch_end))

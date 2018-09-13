@@ -202,10 +202,12 @@ function graphMenuDivider()
 end
 
 function graphMenuGetActive(schema, params)
+   local ignore_tags = {epoch_begin=1, epoch_end=1, zoom=1, version=1}
+
    for _, entry in pairs(graph_menu_entries) do
       if entry.schema == schema and entry.params then
 	 for k, v in pairs(params) do
-	    if (k ~= "zoom") and tostring(entry.params[k]) ~= tostring(v) then
+	    if (not ignore_tags[k]) and tostring(entry.params[k]) ~= tostring(v) then
 	       goto continue
 	    end
 	 end
