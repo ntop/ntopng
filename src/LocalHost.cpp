@@ -98,7 +98,7 @@ void LocalHost::initialize() {
       else if(!ntop->getRedis()->get(redis_key, json, json_len)){
 	/* Found saved copy of the host so let's start from the previous state */
 	// ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s => %s", redis_key, json);
-	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deserializing %s", redis_key);
+	ntop->getTrace()->traceEvent(TRACE_INFO, "Deserializing %s", redis_key);
 
 	deserialize(json, redis_key);
       }
