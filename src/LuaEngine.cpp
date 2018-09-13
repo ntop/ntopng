@@ -1345,7 +1345,7 @@ static int ntop_shutdown(lua_State* vm) {
 // ***API***
 static int ntop_is_shutdown(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-  lua_pushboolean(vm, ntop->getGlobals()->isShutdown());
+  lua_pushboolean(vm, ntop->getGlobals()->isShutdownRequested());
   return(CONST_LUA_OK);
 }
 
