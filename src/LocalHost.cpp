@@ -85,23 +85,27 @@ void LocalHost::initialize() {
 
   if(ntop->getPrefs()->is_idle_local_host_cache_enabled()) {
     char *json = NULL;
+    u_int json_len = 0;
 
     k = ip.print(key, sizeof(key));
     snprintf(redis_key, sizeof(redis_key), HOST_SERIALIZED_KEY, iface->get_id(), k, vlan_id);
 
-    if((json = (char*)malloc(HOST_MAX_SERIALIZED_LEN * sizeof(char))) == NULL)
-      ntop->getTrace()->traceEvent(TRACE_ERROR,
-				   "Unable to allocate memory to deserialize %s", redis_key);
-    else if(!ntop->getRedis()->get(redis_key, json, HOST_MAX_SERIALIZED_LEN)){
+    if((json_len = ntop->getRedis()->len(redis_key)) > 0
+       && ++json_len <= HOST_MAX_SERIALIZED_LEN) {
+      if((json = (char*)malloc(json_len * sizeof(char))) == NULL)
+	ntop->getTrace()->traceEvent(TRACE_ERROR,
+				     "Unable to allocate memory to deserialize %s", redis_key);
+      else if(!ntop->getRedis()->get(redis_key, json, json_len)){
 	/* Found saved copy of the host so let's start from the previous state */
 	// ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s => %s", redis_key, json);
-	ntop->getTrace()->traceEvent(TRACE_INFO, "Deserializing %s", redis_key);
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deserializing %s", redis_key);
 
 	deserialize(json, redis_key);
       }
 
       if(json) free(json);
     }
+  }  
 
   attacker_max_num_syn_per_sec = ntop->getPrefs()->get_attacker_max_num_syn_per_sec();
   victim_max_num_syn_per_sec = ntop->getPrefs()->get_victim_max_num_syn_per_sec();

@@ -1046,6 +1046,32 @@ int Redis::msg_push(const char *cmd, const char *queue_name, char *msg,
   return(rc);
 }
 
+/* **************************************** */
+
+u_int Redis::len(const char * const key) {
+  redisReply *reply;
+  u_int num = 0;
+
+  l->lock(__FILE__, __LINE__);
+
+  num_requests++;
+  reply = (redisReply*)redisCommand(redis, "STRLEN %s", key);
+
+  if(!reply) reconnectRedis();
+  if(reply) {
+    if(reply->type == REDIS_REPLY_ERROR)
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
+    else
+      num = (u_int)reply->integer;
+  }
+
+  l->unlock(__FILE__, __LINE__);
+  if(reply) freeReplyObject(reply);
+
+  return(num);
+
+}
+
 /* ******************************************* */
 
 u_int Redis::llen(const char *queue_name) {

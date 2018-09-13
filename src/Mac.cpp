@@ -64,20 +64,24 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6])
   if(!special_mac) {
     char redis_key[64], buf1[64], rsp[8];
     char *json = NULL;
+    u_int json_len = 0;
     char *mac_ptr = Utils::formatMac(mac, buf1, sizeof(buf1));
     snprintf(redis_key, sizeof(redis_key), MAC_SERIALIZED_KEY, iface->get_id(), mac_ptr);
 
-    if((json = (char*)malloc(HOST_MAX_SERIALIZED_LEN * sizeof(char))) == NULL) {
-      ntop->getTrace()->traceEvent(TRACE_ERROR,
-               "Unable to allocate memory to deserialize %s", redis_key);
-    } else if(!ntop->getRedis()->get(redis_key, json, HOST_MAX_SERIALIZED_LEN)) {
-      /* Found saved copy of the host so let's start from the previous state */
-      // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s => %s", redis_key, json);
-      ntop->getTrace()->traceEvent(TRACE_INFO, "Deserializing %s", redis_key);
-      deserialize(redis_key, json);
-    }
+    if((json_len = ntop->getRedis()->len(redis_key)) > 0
+       && ++json_len <= HOST_MAX_SERIALIZED_LEN) {
+      if((json = (char*)malloc(json_len * sizeof(char))) == NULL) {
+	ntop->getTrace()->traceEvent(TRACE_ERROR,
+				     "Unable to allocate memory to deserialize %s", redis_key);
+      } else if(!ntop->getRedis()->get(redis_key, json, json_len)) {
+	/* Found saved copy of the host so let's start from the previous state */
+	// ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s => %s", redis_key, json);
+	ntop->getTrace()->traceEvent(TRACE_INFO, "Deserializing %s", redis_key);
+	deserialize(redis_key, json);
+      }
 
-    if(json) free(json);
+      if(json) free(json);
+    }
 
     // Load the user defined device type, if available
     snprintf(redis_key, sizeof(redis_key), MAC_CUSTOM_DEVICE_TYPE, mac_ptr);
