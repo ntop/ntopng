@@ -86,9 +86,9 @@ void SNMP::send_snmp_request(char *agent_host, char *community, bool isGetNext,
 int SNMP::snmp_read_response(lua_State* vm, u_int timeout) {
   int i = 0, rc = CONST_LUA_OK;
   
-  if(input_timeout(udp_sock, timeout) == 0) {
-    /* Timeout */
-
+  if(ntop->getGlobals()->isShutdown()
+     || input_timeout(udp_sock, timeout) == 0) {
+    /* Timeout or shutdown in progress */
     rc = CONST_LUA_ERROR;
     lua_pushnil(vm);
   } else {
@@ -97,6 +97,7 @@ int SNMP::snmp_read_response(lua_State* vm, u_int timeout) {
     char *sender_host, *oid_str,  *value_str;
     int sender_port, added = 0, len;
 
+    /* This receive doesn't block */
     len = receive_udp_datagram(buf, BUFLEN, udp_sock, &sender_host, &sender_port);
     message = snmp_parse_message(buf, len);
 
@@ -169,8 +170,9 @@ void SNMP::snmp_fetch_responses(lua_State* vm) {
   lua_newtable(vm);
 
   while(true) {
-    if(input_timeout(udp_sock, 0) == 0) {
-      /* Timeout */
+    if(ntop->getGlobals()->isShutdown()
+       || input_timeout(udp_sock, 0) == 0) {
+      /* Timeout or shutdown in progress */
       break;
     } else {
       char buf[BUFLEN];
