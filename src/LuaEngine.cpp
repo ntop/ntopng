@@ -1942,16 +1942,17 @@ static int remove_recursively(const char * path) {
 
 // ***API***
 static int ntop_remove_dir_recursively(lua_State* vm) {
-  char *path;
+  char *path = NULL;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  path = (char*)lua_tostring(vm, 1);
-  ntop->fixPath(path);
+  if(lua_type(vm, 1) == LUA_TSTRING)
+    path = (char*)lua_tostring(vm, 1);
 
-  remove_recursively(path);
-  lua_pushnil(vm);
+  if(path)
+    ntop->fixPath(path);
+
+  lua_pushboolean(vm, path && !remove_recursively(path) ? true /* OK */ : false /* Errors */);
 
   return(CONST_LUA_OK);
 }

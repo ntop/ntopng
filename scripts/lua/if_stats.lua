@@ -24,6 +24,9 @@ require "alert_utils"
 require "db_utils"
 local ts_utils = require "ts_utils"
 
+local res = ntop.rmdir("/tmp/can")
+tprint(res)
+
 local have_nedge = ntop.isnEdge()
 
 if ntop.isPro() then

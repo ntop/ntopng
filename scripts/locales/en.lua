@@ -470,10 +470,13 @@ local lang = {
     ["delete_failed"] = "Unable to delete data for %{host}.",
     ["delete_inactive_interfaces_confirmation"] = "The following interfaces are inactive:%{interfaces_list}Are you sure you want to delete all their persistent data?",
     ["delete_inactive_interfaces_data_ok"] = "Data for inactive interfaces successfully deleted.",
+    ["delete_inactive_interfaces_data_failed"] = "Unable to delete inactive interfaces data.",
     ["delete_ok"] = "Data for %{host} has been successfully deleted.",
     ["msg_err_invalid_host"] = "The format of the specified host is not recognized.",
     ["msg_err_no_fs_data"] = "No persistent data found for the specified host.",
+    ["msg_err_unable_to_delete_ts_data"] = "Unable to delete timeseries data.",
     ["msg_err_unknown"] = "An unknown error occurred.",
+    ["msg_err_unable_to_delete_dir"] = "Unable to delete the data directory.",
     ["note_persistent_data"] = "All the persistent data is deleted. Data include stored timeseries, flows, alerts, and Redis caches.",
   },
   ["details"] = {

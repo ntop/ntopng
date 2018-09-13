@@ -14,6 +14,8 @@ function delete_data_utils.status_to_i18n(err)
    local map = {
       ERR_NO_HOST_FS_DATA = "delete_data.msg_err_no_fs_data",
       ERR_INVALID_HOST = "delete_data.msg_err_invalid_host",
+      ERR_TS_DELETE = "delete_data.msg_err_unable_to_delete_ts_data",
+      ERR_UNABLE_TO_DELETE_DIR = "delete_data.msg_err_unable_to_delete_dir",
    }
 
    return map[err] or 'delete_data.msg_err_unknown'
@@ -171,10 +173,14 @@ local function delete_interfaces_data(interfaces_list)
       if not dry_run then
 	 if not ts_utils.delete("" --[[ all schemas ]], {ifid=if_id}) then
 	    status = "ERR_TS_DELETE"
+	    break
 	 end
 
 	 -- Delete additional data
-	 ntop.rmdir(if_dir)
+	 if ntop.exists(if_dir) and not ntop.rmdir(if_dir) then
+	    status = "ERR_UNABLE_TO_DELETE_DIR"
+	    break
+	 end
       end
    end
 
@@ -257,9 +263,12 @@ function delete_data_utils.delete_inactive_interfaces()
    local if_db = delete_interfaces_db_flows(inactive_if_list)
 
    -- last step is to also free the ids that can thus be re-used
-   local if_in = delete_interfaces_ids(inactive_if_list)
+   -- if everything was OK.
+   if if_dt["status"] == "OK" and if_rk["status"] == "OK" and if_db["status"] == "OK" then
+      local if_in = delete_interfaces_ids(inactive_if_list)
+   end
 
-   return {delete_if_data = if_dt, delete_if_redis_keys = if_rk}
+   return {delete_if_data = if_dt, delete_if_redis_keys = if_rk, delete_if_db = if_db, delete_if_ids = if_in}
 end
 
 return delete_data_utils
