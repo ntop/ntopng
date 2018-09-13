@@ -179,17 +179,6 @@ local graph_menu_entries = {}
 
 function populateGraphMenuEntry(label, base_url, params, tab_id)
    local url = getPageUrl(base_url, params)
-   local parts = {}
-
-   parts[#parts + 1] = [[<li><a href="]] .. url .. [[" ]]
-
-   if not isEmptyString(tab_id) then
-      parts[#parts + 1] = [[id="]] .. tab_id .. [[" ]]
-   end
-
-   parts[#parts + 1] = [[> ]] .. label .. [[</a></li>]]
-
-   local entry_str = table.concat(parts, "")
 
    local entry_params = table.clone(params)
    for k, v in pairs(splitUrl(base_url).params) do
@@ -197,10 +186,11 @@ function populateGraphMenuEntry(label, base_url, params, tab_id)
    end
 
    local entry = {
-      html = entry_str,
       label = label,
       schema = params.ts_schema,
       params = entry_params, -- for graphMenuGetActive
+      url = url,
+      tab_id = tab_id,
    }
 
    graph_menu_entries[#graph_menu_entries + 1] = entry
@@ -231,8 +221,26 @@ end
 
 function printGraphMenuEntries()
    for _, entry in ipairs(graph_menu_entries) do
-      print(entry.html)
+      if entry.html then
+         print(entry.html)
+      else
+         local parts = {}
+
+         parts[#parts + 1] = [[<li><a href="]] .. entry.url .. [[" ]]
+
+         if not isEmptyString(entry.tab_id) then
+            parts[#parts + 1] = [[id="]] .. entry.tab_id .. [[" ]]
+         end
+
+         parts[#parts + 1] = [[> ]] .. entry.label .. [[</a></li>]]
+
+         print(table.concat(parts, ""))
+      end
    end
+end
+
+function getGraphMenuEntries()
+   return graph_menu_entries
 end
 
 -- ########################################################

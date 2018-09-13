@@ -321,9 +321,10 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
     var cur_zoom = [params.epoch_begin, params.epoch_end];
     var t_start = Math.floor(e.xDomain[0]);
     var t_end = Math.ceil(e.xDomain[1]);
+    var old_zoomed = chart.is_zoomed;
+    chart.is_zoomed = true;
 
     if(chart.updateStackedChart(t_start, t_end)) {
-      chart.is_zoomed = true;
       zoom_stack.push(cur_zoom);
       $zoom_reset.show();
       $graph_zoom.find(".btn-warning:not(.custom-zoom-btn)")
@@ -335,7 +336,8 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
       var link = zoom_link.val().replace(/&epoch_begin=.*/, "");
       link += "&epoch_begin=" + params.epoch_begin + "&epoch_end=" + params.epoch_end;
       zoom_link.val(link);
-    }
+    } else
+      chart.is_zoomed = old_zoomed;
   });
 
   function updateZoom(zoom) {
@@ -350,6 +352,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
       $graph_zoom.find(".initial-zoom-sel")
         .addClass("btn-warning");
       $graph_zoom.find(".custom-zoom-btn").hide();
+      chart.is_zoomed = false;
     }
   }
 
@@ -381,7 +384,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
       if(is_max_zoom)
         return false;
 
-      if(!first_load) {
+      if(!first_load || chart.is_zoomed) {
         var epoch = params.epoch_begin + (params.epoch_end - params.epoch_begin) / 2;
         params.epoch_begin = Math.floor(epoch - max_interval / 2);
         params.epoch_end = Math.ceil(epoch + max_interval / 2);
@@ -509,7 +512,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
         }
       }
 
-      if(!data.no_trend && has_full_data && total_serie.length) {
+      if(!data.no_trend && has_full_data && (total_serie.length >= 3)) {
         // Smoothed serie
         var num_smoothed_points = Math.max(Math.floor(total_serie.length / 5), 3);
 
