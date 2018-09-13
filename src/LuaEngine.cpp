@@ -384,7 +384,7 @@ static int ntop_get_max_if_speed(lua_State* vm) {
   } else if(lua_type(vm, 1) == LUA_TNUMBER) {
     ifid = lua_tointeger(vm, 1);
 
-    if((iface = ntop->getInterfaceAtId(vm, ifid)) != NULL) {
+    if((iface = ntop->getInterfaceById(ifid)) != NULL) {
       lua_pushnumber(vm, iface->getMaxSpeed());
     } else {
       lua_pushnil(vm);
