@@ -517,13 +517,16 @@ else
    end
 
    if (flow["moreinfo.json"] ~= nil) then
+      local flow_field_value_maps = require "flow_field_value_maps"
       local info, pos, err = json.decode(flow["moreinfo.json"], 1, nil)
       local isThereSIP = 0
       local isThereRTP = 0
 
       -- Convert the array to symbolic identifiers if necessary
       local syminfo = {}
-      for key,value in pairs(info) do
+      for key, value in pairs(info) do
+	 key, value = flow_field_value_maps.map_field_value(key, value)
+
 	 local k = rtemplate[tonumber(key)]
 	 if(k ~= nil) then
 	    syminfo[k] = value
@@ -572,7 +575,6 @@ else
 	 if(num == 0) then
 	    print("<tr><th colspan=3 class=\"info\">"..i18n("flow_details.additional_flow_elements").."</th></tr>\n")
 	 end
-	 
 	 if(value ~= "") then
 	    print("<tr><th width=30%>" .. getFlowKey(key) .. "</th><td colspan=2>" .. handleCustomFlowField(key, value, snmpdevice) .. "</td></tr>\n")
 	 end
