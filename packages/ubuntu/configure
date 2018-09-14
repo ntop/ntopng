@@ -1709,6 +1709,11 @@ SHORT_MACHINE=`uname -m | cut -b1-3`
 if test $MACHINE = "x86_64"; then
    EXTN="amd64"
 else
+  if test $SHORT_MACHINE = "aar"; then
+     EXTN="arm64"
+     EXTRA_DEPS=""
+     LIBRRD="librrd4, "
+  else
   if test $SHORT_MACHINE = "arm"; then
      EXTN="armhf"
      EXTRA_DEPS=""
@@ -1721,6 +1726,7 @@ else
      else
        EXTN="i386"
      fi
+   fi
   fi
 fi
 
