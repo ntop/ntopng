@@ -95,6 +95,10 @@ function ts_common.upsampleSerie(serie, num_points)
     return (1 - t) * v0 + t * v1
   end
 
+  if #serie == 0 then
+    return res
+  end
+
   for i=1,num_points do
     local index = (i-1) / (intervals)
     local _, t = math.modf(index)
