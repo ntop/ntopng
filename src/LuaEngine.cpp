@@ -287,7 +287,7 @@ static int ntop_set_active_interface_id(lua_State* vm) {
 /* ****************************************** */
 
 static inline bool matches_allowed_ifname(char *allowed_ifname, char *iface) {
-  return (((allowed_ifname == NULL) || (allowed_ifname[0] == '\0')) /* Periodic script */
+  return (((allowed_ifname == NULL) || (allowed_ifname[0] == '\0')) /* Periodic script / unrestricted user */
     || (!strncmp(allowed_ifname, iface, strlen(allowed_ifname))));
 }
 
@@ -5854,8 +5854,10 @@ static int ntop_is_allowed_interface(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   id = lua_tointeger(vm, 1);
 
+  if((allowed_ifname == NULL) || (allowed_ifname[0] == '\0'))
+    rv = true;
   /* TODO -1 interface should not be accessible by limited users */
-  if((id < 0) || (((iface = ntop->getNetworkInterface(vm, id)) != NULL) && (iface->get_id() == id) &&
+  else if((id < 0) || (((iface = ntop->getNetworkInterface(vm, id)) != NULL) && (iface->get_id() == id) &&
       matches_allowed_ifname(allowed_ifname, iface->get_name())))
     rv = true;
 
