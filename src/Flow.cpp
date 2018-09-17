@@ -506,6 +506,7 @@ void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
        requests s.youtube.com but the server responds with google.com */
     if((proto_id.master_protocol == NDPI_PROTOCOL_SSL)
        && (get_packets() < NDPI_MIN_NUM_PACKETS)
+       && (ndpiFlow)
        && (ndpiFlow->protos.stun_ssl.ssl.client_certificate[0] == '\0')
        && (ndpiFlow->protos.stun_ssl.ssl.server_certificate[0] == '\0')) {
       get_ndpi_flow()->detected_protocol_stack[0] = NDPI_PROTOCOL_UNKNOWN;

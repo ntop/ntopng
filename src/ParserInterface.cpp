@@ -736,7 +736,22 @@ void ParserInterface::parseSingleFlow(json_object *o,
 	  flow.core.vlan_id = atoi(value);
 	break;
       case L7_PROTO:
-	flow.core.l7_proto.app_protocol = atoi(value);
+	if(!strchr(value, '.')) {
+	  /* Old behaviour, only the app protocol */
+	  flow.core.l7_proto.app_protocol = atoi(value);
+	} else {
+	  char *proto_dot;
+
+	  flow.core.l7_proto.master_protocol = (u_int16_t)strtoll(value, &proto_dot, 10);
+	  flow.core.l7_proto.app_protocol    = (u_int16_t)strtoll(proto_dot + 1, NULL, 10);
+	}
+
+#if 0
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "[value: %s][master: %u][app: %u]",
+				     value,
+				     flow.core.l7_proto.master_protocol,
+				     flow.core.l7_proto.app_protocol);
+#endif
 	break;
       case PROTOCOL:
 	flow.core.l4_proto = atoi(value);
