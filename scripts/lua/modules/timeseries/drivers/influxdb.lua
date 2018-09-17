@@ -69,8 +69,18 @@ end
 
 -- ##############################################
 
-local function influx_query(full_url, username, password)
+local function influx_query(base_url, query, username, password)
+  local full_url = base_url .."&q=" .. urlencode(query)
+  local tstart = os.time()
   local res = ntop.httpGet(full_url, username, password, INFLUX_QUERY_TIMEMOUT_SEC, true)
+  local tend = os.time()
+
+  if true then
+    local tdiff = tend - tstart
+    if tdiff > 0 then
+      traceError(TRACE_NORMAL, TRACE_CONSOLE, "Query took ".. (tend - tstart) .." sec to complete: ".. query)
+    end
+  end
 
   if not res then
     traceError(TRACE_ERROR, TRACE_CONSOLE, "Invalid response for query: " .. full_url)
@@ -222,9 +232,7 @@ end
 function driver:_makeTotalSerie(schema, tstart, tend, tags, options, url, time_step, label, unaligned_offset)
   local data_type = schema.options.metrics_type
   local query = getTotalSerieQuery(schema, tstart, tend + unaligned_offset, tags, time_step, data_type, label)
-
-  local full_url = url .. "/query?db=".. self.db .."&epoch=s&q=" .. urlencode(query)
-  local data = influx_query(full_url, self.username, self.password)
+  local data = influx_query(url .. "/query?db=".. self.db .."&epoch=s", query, self.username, self.password)
 
   if not data then
     return nil
@@ -248,9 +256,7 @@ function driver:_calcStats(schema, tstart, tend, tags, url, total_serie, time_st
     local data_type = schema.options.metrics_type
     local query = getTotalSerieQuery(schema, tstart, tend + unaligned_offset, tags, nil --[[ important: no sampling ]], data_type, label)
     query = 'SELECT SUM("'.. (label or "total_serie") ..'") * ' .. schema.options.step ..' FROM (' .. query .. ')'
-
-    local full_url = url .. "/query?db=".. self.db .."&epoch=s&q=" .. urlencode(query)
-    local data = influx_query(full_url, self.username, self.password)
+    local data = influx_query(url .. "/query?db=".. self.db .."&epoch=s", query, self.username, self.password)
 
     if (data and data.series and data.series[1] and data.series[1].values[1]) then
       local data_stats = data.series[1].values[1]
@@ -319,8 +325,7 @@ function driver:query(schema, tstart, tend, tags, options)
   local query = makeSeriesQuery(schema, metrics, tags, tstart, tend + unaligned_offset, time_step)
 
   local url = self.url
-  local full_url = url .. "/query?db=".. self.db .."&epoch=s&q=" .. urlencode(query)
-  local data = influx_query(full_url, self.username, self.password)
+  local data = influx_query(url .. "/query?db=".. self.db .."&epoch=s", query, self.username, self.password)
 
   if not data then
     return nil
@@ -350,9 +355,7 @@ function driver:query(schema, tstart, tend, tags, options)
     end
 
     local query = makeSeriesQuery(schema, metrics, tags, tstart-time_step, tstart+unaligned_offset, time_step)
-    local full_url = url .. "/query?db=".. self.db .."&epoch=s&q=" .. urlencode(query)
-
-    local data = influx_query(full_url, self.username, self.password)
+    local data = influx_query(url .. "/query?db=".. self.db .."&epoch=s", query, self.username, self.password)
 
     if not data then
       -- Data fill
@@ -474,8 +477,7 @@ function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
       " LIMIT " .. min_values
 
   local url = self.url
-  local full_url = url .. "/query?db=".. self.db .."&q=" .. urlencode(query)
-  local data = influx_query(full_url, self.username, self.password)
+  local data = influx_query(url .. "/query?db=".. self.db, query, self.username, self.password)
 
   if not data then
     return nil
@@ -550,9 +552,7 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
       ', (' .. table.concat(schema._metrics, " + ") ..') AS "value" FROM "'.. schema.name ..'" WHERE '..
       table.tconcat(tags, "=", " AND ", nil, "'") .. ' AND time >= '.. tstart ..'000000000 AND time <= '.. tend ..'000000000)'
   local url = self.url
-  local full_url = url .. "/query?db=".. self.db .."&epoch=s&q=" .. urlencode(query)
-
-  local data = influx_query(full_url, self.username, self.password)
+  local data = influx_query(url .. "/query?db=".. self.db .."&epoch=s", query, self.username, self.password)
 
   if not data then
     return nil
@@ -642,8 +642,7 @@ function driver:queryTotal(schema, tags, tstart, tend)
   end
 
   local url = self.url
-  local full_url = url .. "/query?db=".. self.db .."&epoch=s&q=" .. urlencode(query)
-  local data = influx_query(full_url, self.username, self.password)
+  local data = influx_query(url .. "/query?db=".. self.db .."&epoch=s", query, self.username, self.password)
 
   if not data then
     return nil
@@ -675,8 +674,7 @@ function driver:queryMean(schema, tags, tstart, tend)
       table.tconcat(tags, "=", " AND ", nil, "'") .. ' AND time >= ' .. tstart .. '000000000 AND time <= ' .. tend .. '000000000'
 
   local url = self.url
-  local full_url = url .. "/query?db=".. self.db .."&epoch=s&q=" .. urlencode(query)
-  local data = influx_query(full_url, self.username, self.password)
+  local data = influx_query(url .. "/query?db=".. self.db .."&epoch=s", query, self.username, self.password)
 
   if not data then
     return nil
@@ -718,9 +716,7 @@ end
 
 function driver:getDiskUsage()
   local query = 'select SUM(last) FROM (select LAST(diskBytes) FROM "monitor"."shard" where "database" = \''.. self.db ..'\' group by id)'
-  local full_url = self.url .. "/query?db=_internal&q=" .. urlencode(query)
-
-  local data = influx_query(full_url, self.username, self.password)
+  local data = influx_query(self.url .. "/query?db=_internal", query, self.username, self.password)
 
   if data and data.series[1] and data.series[1].values[1] then
     return data.series[1].values[1][2]
