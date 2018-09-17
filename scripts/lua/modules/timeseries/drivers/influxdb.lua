@@ -191,10 +191,19 @@ local function getTotalSerieQuery(schema, tstart, tend, tags, time_step, data_ty
         GROUP BY time(300s))
       GROUP BY time(600s))
   ]]
-  local query = 'SELECT SUM("value") AS "'.. label ..'" FROM ' ..
-    '(SELECT (' .. table.concat(schema._metrics, " + ") ..') AS "value" FROM "'.. schema.name ..'" WHERE ' ..
-    table.tconcat(tags, "=", " AND ", nil, "'") .. ' AND time >= ' .. tstart .. '000000000 AND time <= ' .. tend .. '000000000)'..
-    ' GROUP BY time('.. schema.options.step ..'s)'
+  local is_single_serie = schema:allTagsDefined(tags)
+  local simplified_query = 'SELECT (' .. table.concat(schema._metrics, " + ") ..') AS "'.. label ..'" FROM "'.. schema.name ..'" WHERE ' ..
+    table.tconcat(tags, "=", " AND ", nil, "'") .. ' AND time >= ' .. tstart .. '000000000 AND time <= ' .. tend .. '000000000'
+
+  local query
+
+  if is_single_serie then
+    -- optimized version
+    query = simplified_query
+  else
+    query = 'SELECT SUM("'.. label ..'") AS "'.. label ..'" FROM ('.. simplified_query ..')'..
+      ' GROUP BY time('.. schema.options.step ..'s)'
+  end
 
   if time_step and (schema.options.step ~= time_step) then
     -- sample the points

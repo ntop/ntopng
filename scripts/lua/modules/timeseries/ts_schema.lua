@@ -87,12 +87,20 @@ function ts_schema:addMetric(name)
   self.metrics[name] = 1
 end
 
-function ts_schema:verifyTags(tags)
+function ts_schema:allTagsDefined(tags)
   for tag in pairs(self.tags) do
     if not tags[tag] then
-      traceError(TRACE_ERROR, TRACE_CONSOLE, "missing tag '" .. tag .. "' in schema " .. self.name)
       return false
     end
+  end
+
+  return true
+end
+
+function ts_schema:verifyTags(tags)
+  if not self:allTagsDefined(tags) then
+    traceError(TRACE_ERROR, TRACE_CONSOLE, "missing tag '" .. tag .. "' in schema " .. self.name)
+    return false
   end
 
   for tag in pairs(tags) do
