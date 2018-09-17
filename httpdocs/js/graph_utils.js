@@ -242,7 +242,7 @@ function fixTimeRange(chart, params, align_step) {
   }
 
   if(align) {
-    align = (align_step) ? Math.max(align, align_step) : 1;
+    align = (align_step && (frame != 86400) /* do not align daily traffic to avoid jumping to other RRA */) ? Math.max(align, align_step) : 1;
     params.epoch_begin -= params.epoch_begin % align;
     params.epoch_end -= params.epoch_end % align;
     diff_epoch = (params.epoch_end - params.epoch_begin);
