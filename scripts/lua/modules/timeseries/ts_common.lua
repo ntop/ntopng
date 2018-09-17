@@ -59,13 +59,15 @@ end
 
 function ts_common.calculateStatistics(total_serie, step, tdiff, data_type)
   local total = 0
+  local pt_sum = 0
 
   for idx, val in pairs(total_serie) do
     -- integrate
     total = total + val * step
+    pt_sum = pt_sum + val
   end
 
-  local avg = total / tdiff
+  local avg = pt_sum / #total_serie
 
   if data_type == ts_common.metrics.gauge then
     -- no total for gauge values!
