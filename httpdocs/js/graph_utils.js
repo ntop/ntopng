@@ -257,6 +257,29 @@ function fixTimeRange(chart, params, align_step) {
   chart.xAxis.tickFormat(function(d) { return d3.time.format(fmt)(new Date(d*1000)) });
 }
 
+function findActualStep(raw_step, tstart) {
+  if(typeof supported_steps === "object") {
+    if(supported_steps[raw_step]) {
+      var retention = supported_steps[raw_step].retention;
+
+      if(retention) {
+        var now_ts = Date.now() / 1000;
+        var delta = now_ts - tstart;
+
+        for(var i=0; i<retention.length; i++) {
+          var partial = raw_step * retention[i].aggregation_dp;
+          var tframe = partial * retention[i].retention_dp;
+          delta -= tframe;
+
+          if(delta <= 0)
+            return partial;
+        }
+      }
+    }
+  }
+  return raw_step;
+}
+
 // add a new updateStackedChart function
 function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id, flows_dt, params, step, align_step, show_all_smooth, has_initial_zoom) {
   var pending_request = null;
@@ -264,7 +287,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
   var $chart = $(chart_id);
   var $zoom_reset = $(zoom_reset_id);
   var $graph_zoom = $("#graph_zoom");
-  var max_interval = step * 8;
+  var max_interval = findActualStep(step, params.epoch_begin) * 8;
   var is_max_zoom = false;
   var zoom_stack = [];
   var url = http_prefix + "/lua/get_ts.lua";
@@ -379,6 +402,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
     if(tend) params.epoch_end = tend;
 
     var cur_interval = (params.epoch_end - params.epoch_begin);
+    max_interval = findActualStep(step, params.epoch_begin) * 8;
 
     if(cur_interval < max_interval) {
       if(is_max_zoom && (cur_interval < old_interval)) {
