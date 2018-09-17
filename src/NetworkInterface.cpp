@@ -1422,7 +1422,7 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
 		     zflow->core.pkt_sampling_rate*zflow->core.out_pkts,
 		     zflow->core.pkt_sampling_rate*zflow->core.out_bytes, 0,
 		     zflow->core.last_switched);
-  p.app_protocol = zflow->core.l7_proto, p.master_protocol = NDPI_PROTOCOL_UNKNOWN;
+  p.app_protocol = zflow->core.l7_proto.app_protocol, p.master_protocol = zflow->core.l7_proto.master_protocol;
   flow->setDetectedProtocol(p, true);
   flow->setJSONInfo(json_object_to_json_string(zflow->additional_fields));
 
@@ -1434,7 +1434,7 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
     if(zflow->src_process.pid) flow->handle_process(&zflow->src_process, src2dst_direction ? true : false);
     if(zflow->dst_process.pid) flow->handle_process(&zflow->dst_process, src2dst_direction ? false : true);
 
-    if(zflow->core.l7_proto == NDPI_PROTOCOL_UNKNOWN)
+    if(zflow->core.l7_proto.app_protocol == NDPI_PROTOCOL_UNKNOWN)
       flow->guessProtocol();
   }
 
