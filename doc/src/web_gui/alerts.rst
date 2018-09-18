@@ -81,7 +81,7 @@ The additional keys are:
 
 - :code:`message`: is a text message describing the alert.
 - :code:`ifid`: the id of the monitored ntopng interface
-- :code:`alert_key`: is a string that, for condition-based alerts, represents the check interval (e.g., min, 5min, hour) and the type of condition checked (e.g., bytes, packets).
+- :code:`alert_key`: is a string that, for threshold-based alerts, represents the check interval (e.g., min, 5min, hour) and the type of threshold checked (e.g., bytes, packets).
 
 Examples of JSON alerts sent to syslog are
 
