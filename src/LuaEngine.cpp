@@ -2350,7 +2350,10 @@ static int ntop_send_udp_data(lua_State* vm) {
 static int ntop_append_influx_db(lua_State* vm) {
   char *data;
   bool rv = false;
-  NetworkInterface *ntop_interface = ntop->getFirstInterface();
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  if(!ntop_interface)
+    return(CONST_LUA_ERROR);
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -7825,6 +7828,9 @@ static const luaL_Reg ntop_interface_reg[] = {
   /* SNMP */
   { "getSNMPStats",                     ntop_interface_get_snmp_stats         },
 
+  /* InfluxDB */
+  { "appendInfluxDB",                   ntop_append_influx_db                 },
+
   /* Flow Devices */
   { "getFlowDevices",                   ntop_get_flow_devices                  },
   { "getFlowDeviceInfo",                ntop_get_flow_device_info              },
@@ -7995,9 +8001,6 @@ static const luaL_Reg ntop_reg[] = {
   { "rrd_fetch",         ntop_rrd_fetch  },
   { "rrd_fetch_columns", ntop_rrd_fetch_columns },
   { "rrd_lastupdate",    ntop_rrd_lastupdate  },
-
-  /* InfluxDB */
-  { "appendInfluxDB",   ntop_append_influx_db },
 
   /* Prefs */
   { "getPrefs",         ntop_get_prefs },

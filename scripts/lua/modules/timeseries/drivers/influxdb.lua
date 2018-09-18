@@ -46,7 +46,7 @@ function driver:append(schema, timestamp, tags, metrics)
   -- NB: time format is in nanoseconds UTC
   local api_line = schema.name .. "," .. tags_string .. " " .. metrics_string .. " " .. timestamp .. "000000000\n"
 
-  return ntop.appendInfluxDB(api_line)
+  return interface.appendInfluxDB(api_line)
 end
 
 -- ##############################################
