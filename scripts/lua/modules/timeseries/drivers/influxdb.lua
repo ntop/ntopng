@@ -221,7 +221,20 @@ local function getTotalSerieQuery(schema, tstart, tend, tags, time_step, data_ty
   end
 
   if data_type == ts_common.metrics.counter then
-    query = "SELECT NON_NEGATIVE_DERIVATIVE(".. label ..") AS ".. label .." FROM (" .. query .. ")"
+    local optimized = false
+
+    if (query == simplified_query) and (#schema._metrics == 1) then
+      -- Remove nested query if possible
+      local parts = split(query, " FROM ")
+
+      if #parts == 2 then
+        query = "SELECT NON_NEGATIVE_DERIVATIVE(".. schema._metrics[1] ..") AS ".. label .." FROM " .. parts[2]
+      end
+    end
+
+    if not optimized then
+      query = "SELECT NON_NEGATIVE_DERIVATIVE(".. label ..") AS ".. label .." FROM (" .. query .. ")"
+    end
   end
 
   return query
@@ -338,9 +351,16 @@ function driver:query(schema, tstart, tend, tags, options)
   local stats = nil
 
   if options.calculate_stats then
-    -- try to inherit label from existing series
-    local label = series and series[1].label
-    total_serie = self:_makeTotalSerie(schema, tstart, tend, tags, options, url, time_step, label, unaligned_offset)
+    local is_single_serie = (#series == 1)
+
+    if is_single_serie then
+      -- optimization
+      total_serie = table.clone(series[1].data)
+    else
+      -- try to inherit label from existing series
+      local label = series and series[1].label
+      total_serie = self:_makeTotalSerie(schema, tstart, tend, tags, options, url, time_step, label, unaligned_offset)
+    end
 
     if total_serie then
       stats = self:_calcStats(schema, tstart, tend, tags, url, total_serie, time_step, label, unaligned_offset)
