@@ -1331,6 +1331,8 @@ static int ntop_shutdown(lua_State* vm) {
       afterShutdownAction = after_shutdown_poweroff;
     else if(!strcmp(action, "reboot"))
       afterShutdownAction = after_shutdown_reboot;
+    else if(!strcmp(action, "restart_self"))
+      afterShutdownAction = after_shutdown_restart_self;
   }
 
   ntop->getGlobals()->requestShutdown();

@@ -509,6 +509,7 @@ typedef enum {
   after_shutdown_nop = 0,
   after_shutdown_reboot = 1,
   after_shutdown_poweroff = 2,
+  after_shutdown_restart_self = 3,
 } AfterShutdownAction;
 
 typedef struct {
