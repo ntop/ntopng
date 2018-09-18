@@ -1325,6 +1325,7 @@ local special_parameters = {   --[[Suffix validator]]     --[[Value Validator]]
    ["iface_on_"]               = { validateNetworkInterface, validateBool },
    ["iface_gw_"]               = { validateNetworkInterface, validateIPV4 },
    ["iface_netmask_"]          = { validateNetworkInterface, validateIPV4 },
+   ["iface_nat_"]              = { validateNetworkInterface, validateBool },
    ["iface_id_"]               = { validateNumber, validateNetworkInterface },
    ["iface_up_"]               = { validateNumber, validateNumber },
    ["iface_down_"]             = { validateNumber, validateNumber },
