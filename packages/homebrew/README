@@ -1,11 +1,9 @@
 === HOMEBREW PACKAGE ===
 
-NB: Work in progress
-
 - SUBMIT FORMULA
-cp ntopng.rb /usr/local/Library/Formula/
+cp ntopng.rb /usr/local/Homebrew/Library/Taps/homebrew/homebrew-core/Formula/
 
 - INSTALL FORMULA
 #check the formula
 brew audit ntopng
-brew install -vd ntopng
+brew install -vd ntopng --stable
