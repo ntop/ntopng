@@ -1311,6 +1311,7 @@ local special_parameters = {   --[[Suffix validator]]     --[[Value Validator]]
    ["static_route_address_"]        = { validateStaticRouteName, validateIPV4 },
    ["static_route_netmask_"]        = { validateStaticRouteName, validateIPV4 },
    ["static_route_via_"]            = { validateStaticRouteName, validateIPV4 },
+   ["static_route_is_local_"]       = { validateStaticRouteName, validateBool },
 
 -- Gateways
    ["gateway_address_"]        = { validateGatewayName, validateIPV4 },

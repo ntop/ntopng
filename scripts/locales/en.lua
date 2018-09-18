@@ -1977,6 +1977,8 @@ local lang = {
     ["static_route_name"] = "Static Route Name",
     ["static_route_netmask_descr"] = "Specify the netmask to apply to the destination for the static route.",
     ["static_route_via_descr"] = "Specify the IP address to use as next hop for the static route.",
+    ["static_route_is_local_title"] = "Local Network Static Route",
+    ["static_route_is_local_descr"] = "Specify whether this is a static route to a local network.",
     ["static_route_x"] = "Static route %{sr}",
     ["static_routes"] = "Static Routes",
     ["static_routes_in_policies"] = "Static routes are applied to (and take precedence over) any of the defined <a href=\"%{url}\">Routing Policies</a>.",
