@@ -34,10 +34,10 @@ On Fedora/CentOS
 - yum install git autoconf automake autogen bison flex libpcap-devel libmaxminddb-devel hiredis-devel redis glib2-devel libxml2-devel sqlite-devel gcc-c++ libtool wget libcurl-devel pango-devel cairo-devel libpng-devel mysql-devel libnetfilter_queue-devel zlib-devel which libcap-devel
 
 On MacOSX (using http://brew.sh)
-brew install redis hiredis autoconf automake libtool rrdtool wget pkg-config git mysql
+brew install redis hiredis autoconf automake libtool rrdtool wget pkg-config git mysql lua
 
 On MacOSX (using mac ports)
-port install redis hiredis autoconf automake libtool rrdtool wget pkgconfig git
+port install redis hiredis autoconf automake libtool rrdtool wget pkgconfig git lua
 
 On FreeBSD
 See README.FreeBSD
