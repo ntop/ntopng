@@ -12,6 +12,7 @@ can be obtained from the traffic captured by the server.
    how_to_start/index
    cli_options
    web_gui/index
+   case_study/index
    advanced_features/index
    api/index
 
