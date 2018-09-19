@@ -131,10 +131,6 @@ RPM_PKG = $(TARGET)-$(NTOPNG_VERSION)-@REVISION@.$(PLATFORM).rpm
 RPM_DATA_PKG = $(TARGET)-data-$(NTOPNG_VERSION)-@REVISION@.noarch.rpm
 ######
 
-ifeq ($(OS),Darwin)
-NLIBS += -lstdc++.6
-endif
-
 LIB_TARGETS =
 
 ifneq ($(HAS_LUAJIT), 0)
