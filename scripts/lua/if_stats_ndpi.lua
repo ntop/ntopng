@@ -77,7 +77,17 @@ for _k in pairsByKeys(vals, asc) do
      end
   end
 
-  if(ts_utils.exists("iface:ndpi", {ifid=ifid, protocol=k})) then
+  local proto_cache_key = "ntopng.cache.has_ndpi_" .. ifid.."_".. k
+  local has_ndpi_proto = ntop.getCache(proto_cache_key)
+
+  if has_ndpi_proto ~= "1" then
+    if ts_utils.exists("iface:ndpi", {ifid=ifid, protocol=k}) then
+      has_ndpi_proto = "1"
+      ntop.setCache(proto_cache_key, "1", 300)
+    end
+  end
+
+  if(has_ndpi_proto == "1") then
      if(not(json_format)) then
 	print("<A HREF=\""..ntop.getHttpPrefix().."/lua/if_stats.lua?ifid=" .. ifid .. "&page=historical&ts_schema=iface:ndpi&protocol=".. k .."\">".. k .." "..formatBreed(ifstats["ndpi"][k]["breed"]).."</A>")
      else
