@@ -3,12 +3,12 @@ class Ntopng < Formula
   homepage "https://www.ntop.org/products/traffic-analysis/ntop/"
 
   stable do
-    url "https://github.com/ntop/ntopng.git", :branch => "3.6-stable"
-    version "3.6"
+    url "https://github.com/ntop/ntopng/archive/3.6.tar.gz"
+    sha256 "43a90940936e6c7c39cb35c6e87ff4f1cd80b7620941686341fe1713421949cc"
 
     resource "nDPI" do
-      url "https://github.com/ntop/nDPI.git", :branch => "2.4-stable"
-      version "2.4"
+      url "https://github.com/ntop/nDPI/archive/2.4.tar.gz"
+      sha256 "5243e16b1c4a2728e9487466b2b496d8ffef18a44ff7ee6dfdc21e72008c6d29"
     end
   end
 
@@ -34,6 +34,7 @@ class Ntopng < Formula
   depends_on "pkg-config" => :build
   depends_on "zeromq" => :build
   depends_on "lua" => :build
+  depends_on "libmaxminddb" => :build
 
   depends_on "geoip"
   depends_on "json-c"
