@@ -19,6 +19,7 @@ It Combines extensive network visibility with configurable security policies.
    captive_portal
    bridging
    routing
+   data_management
    management
    recovery
    conf_backup.rst
