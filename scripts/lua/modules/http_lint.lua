@@ -1317,6 +1317,7 @@ local special_parameters = {   --[[Suffix validator]]     --[[Value Validator]]
 -- Gateways
    ["gateway_address_"]        = { validateGatewayName, validateIPV4 },
    ["gateway_ping_"]           = { validateGatewayName, validateIPV4 },
+   ["gw_rtt_"]                 = { validateGatewayName, validateNumber },
    ["gw_id_"]                  = { validateNumber, validateGatewayName },
    ["pol_id_"]                 = { validateNumber, validateRoutingPolicyName },
    ["routing_"]                = { validateRoutingPolicyGateway, validateEmptyOr(validateNumber) }, -- a routing policy
