@@ -642,8 +642,9 @@ function driver:delete(schema_prefix, tags)
 
   local path_to_del = os_utils.fixPath(delete_info.path(tags))
 
-  -- TODO check rmdir return value
-  ntop.rmdir(path_to_del)
+  if not ntop.exists(path_to_del) or not ntop.rmdir(path_to_del) then
+     return false
+  end
 
   return true
 end
