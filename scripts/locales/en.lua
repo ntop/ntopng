@@ -1293,6 +1293,7 @@ local lang = {
     ["modify_host_pool_policy_btn"] = "Modify Host Pool Policy",
     ["trigger_alerts_for_host"] = "Trigger alerts for Host %{host}",
     ["trigger_host_alerts"] = "Trigger Host Alerts",
+    ["unblock_host_traffic"] = "Unblock Host Traffic",
   },
   ["host_details"] = {
     ["blocked_traffic"] = "Blocked Traffic",

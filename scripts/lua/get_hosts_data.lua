@@ -7,6 +7,8 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local discover = require("discover_utils")
 
+local have_nedge = ntop.isnEdge()
+
 sendHTTPContentTypeHeader('text/html')
 
 -- Table parameters
@@ -222,12 +224,19 @@ for _key, _value in pairsByKeys(vals, funct) do
    symkey = hostinfo2jqueryid(hosts_stats[key])
    print ('\"key\" : \"'..symkey..'\",')
 
-   print ("\"column_ip\" : \"<A HREF='")
    url = ntop.getHttpPrefix().."/lua/host_details.lua?" ..hostinfo2url(hosts_stats[key])
-   print(url .. "'>")
 
-   print(mapOS2Icon(stripVlan(key)))
-   print(" </A> ")
+   local drop_traffic = false
+   if have_nedge and ntop.getHashCache("ntopng.prefs.drop_host_traffic", key) == "true" then
+     drop_traffic = true
+   end
+
+   local column_ip = "<A HREF='"..url.."'>"..mapOS2Icon(stripVlan(key)).." </A> "
+   if have_nedge and drop_traffic then
+     column_ip = "<strike>"..column_ip.."</strike>"
+   end
+
+   print ("\"column_ip\" : \""..column_ip)
 
    if((value.operatingSystem ~= 0) and (value["os"] == "")) then
      print(" "..getOperatingSystemIcon(value.operatingSystem).." ")
@@ -343,10 +352,20 @@ for _key, _value in pairsByKeys(vals, funct) do
       print ("\"column_thpt\" : \"0 "..throughput_type.."\",")
    end
 
-   print ("\"column_info\" : \"<a href='"
+   local column_info = "<a href='"
 	     ..ntop.getHttpPrefix().."/lua/host_details.lua?page=flows&"..hostinfo2url(value).."'>"
 	     .."<span class='label label-info'>"..i18n("flows").."</span>"
-	     .."</a> \",")
+	     .."</a>"
+
+   if have_nedge and (host.localhost or host.systemhost) then
+     column_info = column_info.." <span title='"..
+       (ternary(drop_traffic, i18n("host_config.unblock_host_traffic"), i18n("host_config.drop_all_host_traffic")))..
+       "' class='label label-"..(ternary(drop_traffic, "danger", "default")).." block-badge' "..
+       (ternary(isAdministrator(), "onclick='block_host(\\\""..symkey.."\\\", \\\""..hostinfo2url(value)..
+       "\\\");' style='cursor: pointer;'", "")).."><i class='fa fa-ban' /></span>"
+   end
+
+   print ("\"column_info\" : \""..column_info.."\",")
 
    print("\"column_traffic\" : \"" .. bytesToSize(value["bytes.sent"]+value["bytes.rcvd"]))
 

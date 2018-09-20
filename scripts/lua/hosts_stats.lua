@@ -469,6 +469,42 @@ if (_GET["page"] ~= "historical") then
 
 ]]
 
+   if(have_nedge) then
+      print[[
+<script>
+  var block_host_csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
+
+  function block_host(host_key, host_url) {
+    var url = "]] print(ntop.getHttpPrefix()) print[[/lua/pro/nedge/toggle_block_host.lua?" + host_url;
+    $.ajax({
+      type: 'GET',
+      url: url,
+      cache: false,
+      data: {
+        csrf: block_host_csrf
+      },
+      success: function(content) {
+        var data = jQuery.parseJSON(content);
+        block_host_csrf = data.csrf;
+        if (data.status == "BLOCKED") {
+          $('#'+host_key+'_info').find('.block-badge')
+            .removeClass('label-default').addClass('label-danger');
+          $('#'+host_key+'_ip').css("text-decoration", "line-through");
+        } else if (data.status == "UNBLOCKED") {
+          $('#'+host_key+'_info').find('.block-badge')
+            .removeClass('label-danger').addClass('label-default');
+          $('#'+host_key+'_ip').css("text-decoration", "none");
+        }
+      },
+      error: function(content) {
+        console.log("error");
+      }
+    });
+  }
+</script>
+]]
+   end
+
 
    if(asn ~= nil) then
       print [[
