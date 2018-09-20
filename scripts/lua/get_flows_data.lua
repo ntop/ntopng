@@ -9,6 +9,8 @@ require "lua_utils"
 require "flow_utils"
 local json = require "dkjson"
 
+local have_nedge = ntop.isnEdge()
+
 sendHTTPContentTypeHeader('text/html')
 local debug = false
 local debug_process = false -- Show flow processed information
@@ -277,10 +279,18 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
       dst_port=":"..value["srv.port"]
    end
 
-   record["column_key"] = "<A HREF='"
+   local column_key = "<A HREF='"
       ..ntop.getHttpPrefix().."/lua/flow_details.lua?flow_key="
       ..value["ntopng.key"]
       .."'><span class='label label-info'>Info</span></A>"
+   if(have_nedge) then
+     if (value["verdict.pass"]) then
+       column_key = column_key.." <span title='"..i18n("flow_details.drop_flow_traffic_btn").."' class='label label-default block-badge' "..(ternary(isAdministrator(), "onclick='block_flow("..value["ntopng.key"]..");' style='cursor: pointer;'", "")).."><i class='fa fa-ban' /></span>"
+     else
+       column_key = column_key.." <span title='"..i18n("flow_details.drop_flow_traffic_btn").."' class='label label-danger block-badge'><i class='fa fa-ban' /></span>"
+     end
+   end
+   record["column_key"] = column_key
    record["key"] = value["ntopng.key"]
 
    local column_client = src_key
@@ -291,6 +301,9 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
    end
 
    column_client = column_client..src_port
+   if(value["verdict.pass"] == false) then
+     column_client = "<strike>"..column_client.."</strike>"
+   end
    record["column_client"] = column_client
 
    local column_server = dst_key
@@ -300,6 +313,9 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
    end
 
    column_server = column_server..dst_port
+   if(value["verdict.pass"] == false) then
+     column_server = "<strike>"..column_server.."</strike>"
+   end
    record["column_server"] = column_server
 
    record["column_vlan"] = ''
@@ -338,6 +354,9 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
       end
    else
       column_proto_l4 = column_proto_l4..value["proto.l4"]
+   end
+   if(value["verdict.pass"] == false) then
+     column_proto_l4 = "<strike>"..column_proto_l4.."</strike>"
    end
    record["column_proto_l4"] = column_proto_l4
 
