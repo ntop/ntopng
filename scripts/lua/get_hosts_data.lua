@@ -231,10 +231,9 @@ for _key, _value in pairsByKeys(vals, funct) do
      drop_traffic = true
    end
 
-   local column_ip = "<A HREF='"..url.."'>"..mapOS2Icon(stripVlan(key)).." </A> "
-   if have_nedge and drop_traffic then
-     column_ip = "<strike>"..column_ip.."</strike>"
-   end
+   local column_ip = "<A HREF='"..url.."' "..
+     ternary((have_nedge and drop_traffic), "style='text-decoration: line-through'", "")..
+     ">"..mapOS2Icon(stripVlan(key)).." </A> "
 
    print ("\"column_ip\" : \""..column_ip)
 

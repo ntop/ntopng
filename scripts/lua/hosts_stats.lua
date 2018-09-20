@@ -489,11 +489,11 @@ if (_GET["page"] ~= "historical") then
         if (data.status == "BLOCKED") {
           $('#'+host_key+'_info').find('.block-badge')
             .removeClass('label-default').addClass('label-danger');
-          $('#'+host_key+'_ip').css("text-decoration", "line-through");
+          $('#'+host_key+'_ip').find('a').css("text-decoration", "line-through");
         } else if (data.status == "UNBLOCKED") {
           $('#'+host_key+'_info').find('.block-badge')
             .removeClass('label-danger').addClass('label-default');
-          $('#'+host_key+'_ip').css("text-decoration", "none");
+          $('#'+host_key+'_ip').find('a').css("text-decoration", "none");
         }
       },
       error: function(content) {
