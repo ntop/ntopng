@@ -471,9 +471,8 @@ if(have_nedge) then
           $('#'+flow_key+'_info').find('.block-badge')
             .removeClass('label-default')
             .addClass('label-danger');
-          $('#'+flow_key+'_application').css("text-decoration", "line-through");
-          $('#'+flow_key+'_client').css("text-decoration", "line-through");
-          $('#'+flow_key+'_server').css("text-decoration", "line-through");
+          $('#'+flow_key+'_application, #'+flow_key+'_l4, #'+flow_key+'_client, #'+flow_key+'_server')
+            .css("text-decoration", "line-through");
         }
       },
       error: function(content) {
