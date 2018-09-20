@@ -69,7 +69,7 @@ print(
 )
 
 local inactive_interfaces = delete_data_utils.list_inactive_interfaces()
-local num_inactive_interfaces = table.len(inactive_interfaces or {})
+local num_inactive_interfaces = ternary(not ntop.isnEdge(), table.len(inactive_interfaces or {}), 0)
 
 if num_inactive_interfaces > 0 then
    local inactive_list = {}

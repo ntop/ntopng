@@ -10,6 +10,8 @@ local dry_run = false
 
 local ALL_INTERFACES_HASH_KEYS = "ntopng.prefs.iface_id"
 
+-- ################################################################
+
 function delete_data_utils.status_to_i18n(err)
    local map = {
       ERR_NO_HOST_FS_DATA = "delete_data.msg_err_no_fs_data",
@@ -20,6 +22,8 @@ function delete_data_utils.status_to_i18n(err)
 
    return map[err] or 'delete_data.msg_err_unknown'
 end
+
+-- ################################################################
 
 local function delete_host_timeseries_data(interface_id, host_info)
    local status = "OK"
@@ -50,6 +54,8 @@ local function delete_host_timeseries_data(interface_id, host_info)
    return {status = status}
 end
 
+-- ################################################################
+
 local function delete_host_redis_keys(interface_id, host_info)
    local status = "OK"
    local serialized_k, dns_k, devnames_k, devtypes_k
@@ -75,6 +81,8 @@ local function delete_host_redis_keys(interface_id, host_info)
    return {status = status}
 end
 
+-- ################################################################
+
 local function delete_host_mysql_flows(interface_id, host_info)
    local status = "OK"
 
@@ -99,6 +107,8 @@ local function delete_host_mysql_flows(interface_id, host_info)
    return {status = status}
 end
 
+-- ################################################################
+
 function delete_data_utils.delete_host(interface_id, host_info)
    local h_ts = delete_host_timeseries_data(interface_id, host_info)
    local h_rk = delete_host_redis_keys(interface_id, host_info)
@@ -106,6 +116,8 @@ function delete_data_utils.delete_host(interface_id, host_info)
 
    return {delete_host_timeseries_data = h_ts, delete_host_redis_keys = h_rk, delete_host_mysql_flows = h_db}
 end
+
+-- ################################################################
 
 local function delete_interfaces_redis_keys(interfaces_list)
    local pref_prefix = "ntopng.prefs"
@@ -163,6 +175,8 @@ local function delete_interfaces_redis_keys(interfaces_list)
    return {status = status}
 end
 
+-- ################################################################
+
 local function delete_interfaces_data(interfaces_list)
    local status = "OK"
    local data_dir = ntop.getDirs()["workingdir"]
@@ -187,11 +201,15 @@ local function delete_interfaces_data(interfaces_list)
    return {status = status}
 end
 
+-- ################################################################
+
 local function delete_interfaces_influx_data(interfaces_list)
    local status = "OK"
    -- TODO
    return {status = status}
 end
+
+-- ################################################################
 
 local function delete_interfaces_db_flows(interfaces_list)
    local db_utils = require "db_utils"
@@ -209,6 +227,8 @@ local function delete_interfaces_db_flows(interfaces_list)
    return {status = status}
 end
 
+-- ################################################################
+
 local function delete_interfaces_ids(interfaces_list)
    local status = "OK"
 
@@ -224,7 +244,9 @@ local function delete_interfaces_ids(interfaces_list)
    return {status = status}
 end
 
-function delete_data_utils.list_inactive_interfaces()
+-- ################################################################
+
+local function list_interfaces(inactive_interfaces_only)
    local res = {}
    local active_interfaces = interface.getIfNames()
    local all_interfaces = ntop.getHashAllCache(ALL_INTERFACES_HASH_KEYS)
@@ -242,7 +264,7 @@ function delete_data_utils.list_inactive_interfaces()
       local if_name = k
       local if_id = v
 
-      if active_interfaces[if_id] then
+      if inactive_interfaces_only and active_interfaces[if_id] then
 	 -- the interface is active
 	 goto continue
       end
@@ -255,21 +277,62 @@ function delete_data_utils.list_inactive_interfaces()
    return res
 end
 
-function delete_data_utils.delete_inactive_interfaces()
-   local inactive_if_list = delete_data_utils.list_inactive_interfaces()
+-- ################################################################
 
-   local if_dt = delete_interfaces_data(inactive_if_list)
-   local if_rk = delete_interfaces_redis_keys(inactive_if_list)
-   local if_db = delete_interfaces_db_flows(inactive_if_list)
+function delete_data_utils.list_inactive_interfaces()
+   return list_interfaces(true --[[ inactive interfaces only --]])
+end
+
+-- ################################################################
+
+-- no need to make it global yet
+local function list_all_interfaces()
+   return list_interfaces(false --[[ all interfaces, active and inactive --]])
+end
+
+-- ################################################################
+
+local function delete_interfaces_from_list(interfaces_list)
+   local if_dt = delete_interfaces_data(interfaces_list)
+   local if_rk = delete_interfaces_redis_keys(interfaces_list)
+   local if_db = delete_interfaces_db_flows(interfaces_list)
 
    -- last step is to also free the ids that can thus be re-used
    -- if everything was OK.
+   local if_in   
    if if_dt["status"] == "OK" and if_rk["status"] == "OK" and if_db["status"] == "OK" then
-      local if_in = delete_interfaces_ids(inactive_if_list)
+      if_in = delete_interfaces_ids(interfaces_list)
    end
 
    return {delete_if_data = if_dt, delete_if_redis_keys = if_rk, delete_if_db = if_db, delete_if_ids = if_in}
 end
 
+-- ################################################################
+
+function delete_data_utils.delete_inactive_interfaces()
+   local inactive_if_list = delete_data_utils.list_inactive_interfaces()
+
+   return delete_interfaces_from_list(inactive_if_list)
+end
+
+-- ################################################################
+
+function delete_data_utils.delete_all_interfaces_data()
+   -- Deleting all interfaces can be a risky operation as it includes active interfaces.
+   -- Currently we are using this only in boot.lua (that is, before interfaces registration)
+   -- and only in nEdge. Use it carefully as also the interface ids are recycled.
+
+   if not ntop.isnEdge() then
+      return
+   end
+
+   local if_list = list_all_interfaces()
+
+   return delete_interfaces_from_list(if_list)
+end
+
+-- ################################################################
+
 return delete_data_utils
+
 
