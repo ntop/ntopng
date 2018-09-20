@@ -69,14 +69,15 @@ local host = interface.getHostInfo(host_info["host"], host_vlan)
 
 local restoreFailed = false
 
+-- NOTE: calling interface.restoreHost generates crashes!
+--[[
 if((host == nil) and ((_POST["mode"] == "restore") or (page == "historical"))) then
    if(debug_hosts) then traceError(TRACE_DEBUG,TRACE_CONSOLE, i18n("host_details.trace_debug_restored_host_info").."\n") end
    interface.restoreHost(host_info["host"], host_vlan)
    host = interface.getHostInfo(host_info["host"], host_vlan)
    restoreFailed = true
 end
-
-local only_historical = false
+]]
 
 local host_pool_id = nil
 
@@ -101,29 +102,9 @@ if (host ~= nil) then
    end
 end
 
-if(host == nil) then
-   -- NOTE: this features is not currently enabled as it may incur into thread concurrency issues
-   if (ts_utils.exists("host:traffic", {ifid=ifId, host=host_ip}) and always_show_hist == "true") then
-      page = "historical"
-      only_historical = true
-      sendHTTPContentTypeHeader('text/html')
-      ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
-      dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
-      print [[
-         <div class="bs-docs-example">
-         <nav class="navbar navbar-default" role="navigation">
-         <div class="navbar-collapse collapse">
-         <ul class="nav navbar-nav">
-      ]]
-      print("\n<li class=\"active\"><a href=\"#\"><i class='fa fa-area-chart fa-lg'></i></a></li>\n")
-      print [[
-         <li><a href="javascript:history.go(-1)"><i class='fa fa-reply'></i></a></li>
-         </ul>
-         </div>
-         </nav>
-         </div>
-      ]]
-   else
+local only_historical = (host == nil) and (page == "historical")
+
+if(host == nil) and (not only_historical) then
       -- We need to check if this is an aggregated host
       if(not(restoreFailed) and (host_info ~= nil) and (host_info["host"] ~= nil)) then json = ntop.getCache(host_info["host"].. "." .. ifId .. ".json") end
       sendHTTPContentTypeHeader('text/html')
@@ -149,7 +130,6 @@ if(host == nil) then
 
 	 print("</div>")
 	 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
-      end
       return
    end
 else
@@ -161,6 +141,11 @@ else
    --   Added global javascript variable, in order to disable the refresh of pie chart in case
    --  of historical interface
    print('\n<script>var refresh = 3000 /* ms */;</script>\n')
+
+   if host == nil then
+      -- only_historical = true here
+      host = hostkey2hostinfo(host_info["host"] .. "@" .. host_vlan)
+   end
 
    if(host["ip"] ~= nil) then
       host_name = hostinfo2hostkey(host)
@@ -188,6 +173,7 @@ url=ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url
 
 print("<li><a href=\"#\">"..i18n("host_details.host")..": "..host_info["host"].."</A> </li>")
 
+if not only_historical then
 if((page == "overview") or (page == nil)) then
    print("<li class=\"active\"><a href=\"#\"><i class=\"fa fa-home fa-lg\"></i>\n")
 else
@@ -326,7 +312,9 @@ if (host["ip"] ~= nil and host['localhost']) and areAlertsEnabled() and not ifst
    end
 end
 
-if(ts_utils.exists("host:traffic", {ifid=ifId, host=host_ip})) then
+end -- not only_historical
+
+if((page == "historical") or ts_utils.exists("host:traffic", {ifid=ifId, host=host_ip})) then
    if(page == "historical") then
      print("\n<li class=\"active\"><a href=\"#\"><i class='fa fa-area-chart fa-lg'></i></a></li>\n")
    else
@@ -334,6 +322,7 @@ if(ts_utils.exists("host:traffic", {ifid=ifId, host=host_ip})) then
    end
 end
 
+if not only_historical then
 if (host["localhost"] == true) and (ts_utils.getDriverName() == "rrd") then
    if(ntop.isEnterprise()) then
       if(page == "traffic_report") then
@@ -361,6 +350,7 @@ if ((isAdministrator()) and (host["ip"] ~= nil)) then
       print("\n<li><a href=\""..url.."&page=config\"><i class=\"fa fa-cog fa-lg\"></i></a></li>")
    end
 end
+end -- not only_historical
 
 print [[
 <li><a href="javascript:history.go(-1)"><i class='fa fa-reply'></i></a></li>
