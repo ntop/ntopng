@@ -100,6 +100,14 @@ for _key,_value in ipairs(alerts) do
    local column_type     = alertTypeLabel(tonumber(_value["alert_type"]))
 
    local column_msg      = formatAlertRecord(alert_entity, _value) or ""
+   local column_chart = nil
+
+   if ntop.isPro() then
+      column_chart    = getAlertGraphLink(getInterfaceId(ifname), _value)
+      if not isEmptyString(column_chart) then
+	 column_chart = "<a href='".. column_chart .."'><i class='fa fa-area-chart fa-lg'></i></a>"
+      end
+   end
 
    local column_id = tostring(alert_id)
 
@@ -132,6 +140,7 @@ for _key,_value in ipairs(alerts) do
    record["column_msg"] = column_msg
    record["column_entity"] = alert_entity
    record["column_entity_val"] = alert_entity_val
+   record["column_chart"] = column_chart
 
    res_formatted[#res_formatted + 1] = record
 	  

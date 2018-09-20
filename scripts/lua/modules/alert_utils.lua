@@ -1474,6 +1474,16 @@ function getCurrentStatus() {
 	 },
 
 	 {
+	    title: "]]print(i18n("chart"))print[[",
+	    field: "column_chart",
+            sortable: false,
+	    hidden: ]] print(ternary(ntop.isPro(), "false", "true")) print[[,
+	    css: {
+	       textAlign: 'center'
+	    }
+	 },
+
+	 {
 	    title: "]]print(i18n("show_alerts.alert_description"))print[[",
 	    field: "column_msg",
 	    css: {

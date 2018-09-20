@@ -82,7 +82,9 @@ local mac_info = interface.getMacInfo(mac)
 
 -- tprint(mac_info)
 
-if(mac_info == nil) then
+local only_historical = (mac_info == nil) and (page == "historical")
+
+if(mac_info == nil) and not only_historical then
       print('<div class=\"alert alert-danger\"><i class="fa fa-warning fa-lg"></i>'..' '..i18n("mac_details.mac_cannot_be_found_message",{mac=mac}))
       print("</div>")
       dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
@@ -100,6 +102,7 @@ print("<li><a href=\"#\">"..i18n("mac_details.mac")..": "..mac.."</A> </li>")
 
 local url = ntop.getHttpPrefix().."/lua/mac_details.lua?"..hostinfo2url(host_info)
 
+if not only_historical then
 if((page == "overview") or (page == nil)) then
    print("<li class=\"active\"><a href=\"#\"><i class=\"fa fa-home fa-lg\"></i>\n")
 else
@@ -114,6 +117,7 @@ if((mac_info ~= nil) and (not have_nedge) and
       print("<li><a href=\""..url.."&page=packets\">" .. i18n("packets") .. "</a></li>")
    end
 end
+end -- only_historical
 
 if(ts_utils.exists("mac:traffic", {ifid=ifId, mac=devicekey})) then
    if(page == "historical") then
@@ -123,11 +127,13 @@ if(ts_utils.exists("mac:traffic", {ifid=ifId, mac=devicekey})) then
    end
 end
 
+if not only_historical then
 if(page == "config") then
    print("<li class=\"active\"><a href=\"#\"><i class=\"fa fa-cog fa-lg\"></i>\n")
 elseif isAdministrator() then
    print("<li><a href=\""..url.."&page=config\"><i class=\"fa fa-cog fa-lg\"></i>\n")
 end
+end -- only_historical
 
 print("<li><a href='javascript:history.go(-1)'><i class='fa fa-reply'></i></a></li></ul></div></nav></div>")
 

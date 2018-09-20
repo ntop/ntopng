@@ -202,12 +202,13 @@ function graphMenuDivider()
 end
 
 function graphMenuGetActive(schema, params)
-   local ignore_tags = {epoch_begin=1, epoch_end=1, zoom=1, version=1}
+   -- These tags are used to determine the active timeseries entry
+   local match_tags = {ts_schema=1, ts_query=1, protocol=1, category=1, snmp_port_idx=1}
 
    for _, entry in pairs(graph_menu_entries) do
       if entry.schema == schema and entry.params then
 	 for k, v in pairs(params) do
-	    if (not ignore_tags[k]) and tostring(entry.params[k]) ~= tostring(v) then
+	    if match_tags[k] and tostring(entry.params[k]) ~= tostring(v) then
 	       goto continue
 	    end
 	 end

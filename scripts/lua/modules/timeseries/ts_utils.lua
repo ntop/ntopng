@@ -9,5 +9,6 @@ require("ts_second")
 require("ts_minute")
 require("ts_5min")
 require("ts_hour")
+require("ts_custom")
 
 return ts_utils

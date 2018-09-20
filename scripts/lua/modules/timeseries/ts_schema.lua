@@ -90,7 +90,7 @@ end
 function ts_schema:allTagsDefined(tags)
   for tag in pairs(self.tags) do
     if not tags[tag] then
-      return false
+      return false, tag
     end
   end
 
@@ -98,8 +98,9 @@ function ts_schema:allTagsDefined(tags)
 end
 
 function ts_schema:verifyTags(tags)
-  if not self:allTagsDefined(tags) then
-    traceError(TRACE_ERROR, TRACE_CONSOLE, "missing tag '" .. tag .. "' in schema " .. self.name)
+  local all_defined, missing_tag = self:allTagsDefined(tags)
+  if not all_defined then
+    traceError(TRACE_ERROR, TRACE_CONSOLE, "missing tag '" .. missing_tag .. "' in schema " .. self.name)
     return false
   end
 

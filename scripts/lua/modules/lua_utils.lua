@@ -703,6 +703,14 @@ function hasNagiosSupport()
   return prefs.nagios_nsca_host ~= nil
 end
 
+function hasNindexSupport()
+   -- TODO optimize
+   if prefs == nil then
+    prefs = ntop.getPrefs()
+   end
+   return prefs.is_nindex_enabled
+end
+
 --for _key, _value in pairsByKeys(vals, rev) do
 --   print(_key .. "=" .. _value .. "\n")
 --end
