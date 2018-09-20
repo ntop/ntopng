@@ -196,6 +196,7 @@ local function getQueryOptions(overrides)
     top = 8,                -- topk number of items
     calculate_stats = true, -- calculate stats if possible
     initial_point = false,   -- add an extra initial point, not accounted in statistics but useful for drawing graphs
+    with_series = false,    -- in topk query, if true, also get top items series data
   }, overrides or {})
 end
 
@@ -366,75 +367,79 @@ function ts_utils.queryTopk(schema_name, tags, tstart, tend, options)
     return nil
   end
 
-  top_items.series = {}
+  if options.with_series then
+    top_items.series = {}
 
-  -- Query the top items data
-  local options = table.merge(query_options, {calculate_stats = false})
-  local count = 0
-  local step = nil
-  local start = 0
+    -- Query the top items data
+    local options = table.merge(query_options, {calculate_stats = false})
+    local count = 0
+    local step = nil
+    local start = 0
 
-  for _, top in ipairs(top_items.topk) do
-    local top_res = driver:query(schema, tstart, tend, top.tags, options)
+    for _, top in ipairs(top_items.topk) do
+      local top_res = driver:query(schema, tstart, tend, top.tags, options)
 
-    if not top_res then
-      --traceError(TRACE_WARNING, TRACE_CONSOLE, "Topk series query on '" .. schema.name .. "' with filter '".. table.tconcat(top.tags, "=", ",") .."' returned nil")
-      goto continue
-    end
+      if not top_res then
+        --traceError(TRACE_WARNING, TRACE_CONSOLE, "Topk series query on '" .. schema.name .. "' with filter '".. table.tconcat(top.tags, "=", ",") .."' returned nil")
+        goto continue
+      end
 
-    if #top_res.series > 1 then
-      -- Unify multiple series into one (e.g. for Top Protocols)
-      local aggregated = {}
+      if #top_res.series > 1 then
+        -- Unify multiple series into one (e.g. for Top Protocols)
+        local aggregated = {}
 
-      for i=1,top_res.count do
-        aggregated[i] = 0
+        for i=1,top_res.count do
+          aggregated[i] = 0
+        end
+
+        for _, serie in pairs(top_res.series) do
+          for i, v in pairs(serie.data) do
+            aggregated[i] = aggregated[i] + v
+          end
+        end
+
+        top_res.series = {{label="bytes", data=aggregated}}
       end
 
       for _, serie in pairs(top_res.series) do
-        for i, v in pairs(serie.data) do
-          aggregated[i] = aggregated[i] + v
-        end
+        count = math.max(#serie.data, count)
       end
 
-      top_res.series = {{label="bytes", data=aggregated}}
+      start = top_res.start
+      if step then
+        step = math.min(step, top_res.step)
+      else
+        step = top_res.step
+      end
+
+      for _, serie in ipairs(top_res.series) do
+        serie.tags = top.tags
+        top_items.series[#top_items.series + 1] = serie
+      end
+
+      ::continue::
     end
 
-    for _, serie in pairs(top_res.series) do
-      count = math.max(#serie.data, count)
+    -- Possibly fix series inconsistencies due to RRA steps
+    for _, serie in pairs(top_items.series or {}) do
+      if count > #serie.data then
+        traceError(TRACE_INFO, TRACE_CONSOLE, "Upsampling " .. table.tconcat(serie.tags, "=", ",") .. " from " .. #serie.data .. " to " .. count)
+        serie.data = ts_common.upsampleSerie(serie.data, count)
+      end
+    end
+    for key, serie in pairs(top_items.additional_series or {}) do
+      if count > #serie then
+        traceError(TRACE_INFO, TRACE_CONSOLE, "Upsampling " .. key .. " from " .. #serie .. " to " .. count)
+        top_items.additional_series[key] = ts_common.upsampleSerie(serie, count)
+      end
     end
 
-    start = top_res.start
-    if step then
-      step = math.min(step, top_res.step)
-    else
-      step = top_res.step
-    end
-
-    for _, serie in ipairs(top_res.series) do
-      serie.tags = top.tags
-      top_items.series[#top_items.series + 1] = serie
-    end
-
-    ::continue::
+    top_items.count = count
+    top_items.step = step
+    top_items.start = start
+  else
+    top_items.additional_series = nil
   end
-
-  -- Possibly fix series inconsistencies due to RRA steps
-  for _, serie in pairs(top_items.series or {}) do
-    if count > #serie.data then
-      traceError(TRACE_INFO, TRACE_CONSOLE, "Upsampling " .. table.tconcat(serie.tags, "=", ",") .. " from " .. #serie.data .. " to " .. count)
-      serie.data = ts_common.upsampleSerie(serie.data, count)
-    end
-  end
-  for key, serie in pairs(top_items.additional_series or {}) do
-    if count > #serie then
-      traceError(TRACE_INFO, TRACE_CONSOLE, "Upsampling " .. key .. " from " .. #serie .. " to " .. count)
-      top_items.additional_series[key] = ts_common.upsampleSerie(serie, count)
-    end
-  end
-
-  top_items.count = count
-  top_items.step = step
-  top_items.start = start
 
   return top_items
 end

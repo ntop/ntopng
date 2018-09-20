@@ -36,6 +36,7 @@ end
 local options = {
   max_num_points = tonumber(_GET["limit"]),
   initial_point = toboolean(_GET["initial_point"]),
+  with_series = true,
 }
 
 if tags.ifid then

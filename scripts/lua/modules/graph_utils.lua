@@ -129,6 +129,21 @@ end
 
 -- ########################################################
 
+function makeProgressBar(percentage)
+   -- nan check
+   if percentage ~= percentage then
+      return ""
+   end
+
+   local perc_int = round(percentage)
+   return '<span style="width: 70%; float:left"><div class="progress"><div class="progress-bar progress-bar-warning" aria-valuenow="'..
+      perc_int ..'" aria-valuemin="0" aria-valuemax="100" style="width: '.. perc_int ..'%;"></div></div></span><span style="width: 30%; margin-left: 15px;">'..
+      round(percentage, 1) ..' %</span>'
+end
+
+
+-- ########################################################
+
 -- label, relative_difference, seconds
 zoom_vals = {
    { "1m",  "now-60s",  60},

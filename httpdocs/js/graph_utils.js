@@ -410,7 +410,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
         return false;
       }
 
-      if(!first_load || chart.is_zoomed) {
+      if(!first_load || (!has_initial_zoom && chart.is_zoomed)) {
         var epoch = params.epoch_begin + (params.epoch_end - params.epoch_begin) / 2;
         params.epoch_begin = Math.floor(epoch - max_interval / 2);
         params.epoch_end = Math.ceil(epoch + max_interval / 2);
@@ -703,10 +703,59 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
       first_load = false;
     } else {
       /* Reload datatable */
-      if(flows_dt)
-        flows_dt.render();
+      if(flows_dt.data("datatable"))
+        flows_dt.data("datatable").render();
     }
 
     return true;
+  }
+}
+
+function updateGraphsTableView(graph_table, view, graph_params, nindex_buttons) {
+  if(view.columns) {
+    var url = http_prefix + (view.nindex_view ? "/lua/enterprise/get_flows.lua" : "/lua/enterprise/get_ts_table.lua");
+
+    var columns = view.columns.map(function(col) {
+      return {
+        title: col[1],
+        field: col[0],
+        sortable: col[2],
+        css: { textAlign: col[3], width: col[4], },
+	    };
+    });
+
+    /* Force reinstantiation */
+    graph_table.removeData('datatable');
+    graph_table.html("");
+
+    graph_table.datatable({
+      title: "",
+      url: url,
+      post: function() {
+        var params = $.extend({}, graph_params);
+        delete params.ts_compare;
+        delete params.initial_point;
+        params.limit = 1; // TODO make specific query
+        // TODO change topk
+        // TODO disable statistics
+        params.detail_view = view.id;
+
+        return params;
+      },
+      loadingYOffset: 40,
+      columns: columns,
+      buttons: view.nindex_view ? [nindex_buttons, ] : [],
+      tableCallback: function() {
+        var data = this.resultset;
+        var stats_div = $("#chart1-flows-stats");
+
+        if(data && data.stats && data.stats.loading_time) {
+           $("#flows-load-time").html(data.stats.loading_time);
+           $("#flows-processed-records").html(data.stats.num_records_processed);
+           stats_div.show();
+        } else
+          stats_div.hide();
+      },
+    });
   }
 }

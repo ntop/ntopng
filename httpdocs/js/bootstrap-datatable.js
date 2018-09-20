@@ -107,12 +107,14 @@
                 , filter: o.filter
               }) );
         if(o.url !== "") {
+          var req_data = (typeof o.post === "function") ? o.post() : o.post;
+
           $.ajax({
               url: o.url
 // ------------- Start ntop Patch ---------------
             , type: "GET"
             , dataType: "json"
-            , data: $.extend({}, o.post, {
+            , data: $.extend({}, req_data, {
                   currentPage: o.currentPage
                 , perPage: o.perPage
                 , sortColumn: (o.sort.length > 0) ? o.sort[0][0] : null
@@ -121,7 +123,10 @@
                 , filter: o.filter
               })
             , success: function( res ) {
-                that.resultset = res;
+                if(o.dataAdapter)
+                  res = o.dataAdapter(res, o);
+
+                that.resultset = res;                  
 // ------------- Start ntop Patch ---------------
                 if(!res || res === undefined || !res.data || (res.data.length == 0 && !o.forceTable) ) {
 // ------------- End ntop Patch -----------------

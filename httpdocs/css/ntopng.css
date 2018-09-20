@@ -382,3 +382,8 @@ tr.quotas > td {
 #historical-tab-chart .nv-y2 .tick line {
   display: none;
 }
+
+#chart1-flows table {
+  margin-top: 10px;
+  font-size: 14px;
+}
