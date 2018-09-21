@@ -151,8 +151,6 @@ endif
 
 .PHONY: default all clean docs test
 
-.NOTPARALLEL: default all
-
 default: hooks/.enabled $(NDPI_LIB_DEP) $(LIB_TARGETS) $(TARGET)
 
 all: default
