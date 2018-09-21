@@ -33,8 +33,6 @@ static void* resolverCheckFctn(void* ptr) {
 /* ******************************* */
 
 MDNS::MDNS(NetworkInterface *iface) {
-  pthread_t resolverCheck;
-  
   if(((udp_sock = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
      || ((batch_udp_sock = socket(AF_INET, SOCK_DGRAM, 0)) == -1))
     throw("Unable to create socket");
