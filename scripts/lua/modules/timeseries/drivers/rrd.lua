@@ -293,7 +293,7 @@ local function sampleSeries(schema, cur_points, step, max_points, series)
   end
 
   -- new step, new count, new data
-  return step * sampled_dp, count, series
+  return step * sampled_dp, count
 end
 
 -- ##############################################
@@ -360,8 +360,11 @@ function driver:query(schema, tstart, tend, tags, options)
     serie_idx = serie_idx + 1
   end
 
+  local unsampled_series = table.clone(series)
+  local unsamped_count = count
+
   if count > options.max_num_points then
-    fstep, count, series = sampleSeries(schema, count, fstep, options.max_num_points, series)
+    fstep, count = sampleSeries(schema, count, fstep, options.max_num_points, series)
   end
 
   --local returned_tend = fstart + fstep * (count-1)
@@ -372,7 +375,7 @@ function driver:query(schema, tstart, tend, tags, options)
 
   if options.calculate_stats then
     total_serie = makeTotalSerie(series, count)
-    stats = ts_common.calculateStatistics(total_serie, fstep, tend - tstart, schema.options.metrics_type)
+    stats = ts_common.calculateStatistics(makeTotalSerie(unsampled_series, unsamped_count), fstep, tend - tstart, schema.options.metrics_type)
   end
 
   if options.initial_point then
@@ -528,6 +531,9 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
       local name = schema._metrics[serie_idx]
       local max_val = ts_common.getMaxPointValue(schema, name, serie_tags)
 
+      -- Remove the last value: RRD seems to give an additional point
+      serie[#serie] = nil
+
       if (#total_serie ~= 0) and #total_serie ~= #serie then
         -- NOTE: even if touchRRD is used, series can still have a different number
         -- of points when the tend parameter does not correspond to the current time
@@ -551,7 +557,7 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
       end
     end
 
-    items[serie_tags[top_tag]] = sum
+    items[serie_tags[top_tag]] = sum * step
     tag_2_series[serie_tags[top_tag]] = serie_tags
   end
 
@@ -570,18 +576,14 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
 
   local stats = nil
 
-  -- Remove the last value: RRD seems to give an additional point
-  total_serie[#total_serie] = nil
-
-  local augumented_total = total_serie
+  local augumented_total = table.clone(total_serie)
 
   if options.initial_point and total_serie then
-    augumented_total = table.clone(total_serie)
+    -- remove initial point to avoid stats calculation on it
     table.remove(total_serie, 1)
   end
 
-  local fstep, count, augumented_total = sampleSeries(schema, #augumented_total, step, options.max_num_points, {{data=augumented_total}})
-  augumented_total = augumented_total[1].data
+  local fstep, count = sampleSeries(schema, #augumented_total, step, options.max_num_points, {{data=augumented_total}})
 
   if options.calculate_stats then
     stats = ts_common.calculateStatistics(total_serie, step, tend - tstart, schema.options.metrics_type)
