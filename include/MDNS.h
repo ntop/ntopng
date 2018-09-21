@@ -33,6 +33,7 @@ class MDNS {
   int udp_sock, batch_udp_sock;
   u_int32_t gatewayIPv4;
   bool sentAnyQuery;
+  pthread_t resolverCheck;
   
   u_int16_t buildMDNSRequest(char *query, u_int8_t query_type,
 			     char *mdnsbuf, u_int mdnsbuf_len,
