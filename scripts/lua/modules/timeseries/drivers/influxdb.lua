@@ -522,14 +522,27 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
   local top_tag = top_tags[1]
 
   --[[
-  SELECT TOP("value", "protocol", 10) FROM                                      // select top 10 protocols
-    (SELECT protocol, (bytes_sent + bytes_rcvd) AS "value"                      // possibly sum multiple metrics within same serie
-      FROM "host:ndpi" WHERE host='192.168.43.18' AND ifid='2'
-      AND time >= 1531986825000000000 AND time <= 1531994776000000000)
+    SELECT TOP(value,protocol,10) FROM
+      (SELECT SUM(value) AS value FROM
+        (SELECT NON_NEGATIVE_DIFFERENCE(value) as value FROM
+          (SELECT protocol, (bytes_sent + bytes_rcvd) AS "value" FROM "host:ndpi" WHERE host='192.168.1.1'
+            AND ifid='1' AND time >= 1537540320000000000 AND time <= 1537540649000000000)
+          GROUP BY protocol)
+        GROUP BY protocol)
   ]]
-  local query = 'SELECT TOP("value", "'.. top_tag ..'", '.. options.top ..') FROM (SELECT '.. top_tag ..
-      ', (' .. table.concat(schema._metrics, " + ") ..') AS "value" FROM "'.. schema.name ..'" WHERE '..
-      table.tconcat(tags, "=", " AND ", nil, "'") .. ' AND time >= '.. tstart ..'000000000 AND time <= '.. tend ..'000000000)'
+  -- Aggregate into 1 metric and filter
+  local query = '(SELECT '.. top_tag ..', (' .. table.concat(schema._metrics, " + ") ..') AS "value" FROM "'.. schema.name ..
+      '" WHERE '.. table.tconcat(tags, "=", " AND ", nil, "'") .. ' AND time >= '.. tstart ..'000000000 AND time <= '.. (tend + unaligned_offset) .. "000000000)"
+
+   -- Calculate difference between counter values
+  query = '(SELECT NON_NEGATIVE_DIFFERENCE(value) as value FROM ' .. query .. " GROUP BY ".. top_tag ..")"
+
+  -- Sum the traffic
+  query = '(SELECT SUM(value) AS value FROM '.. query .. ' GROUP BY '.. top_tag ..')'
+
+  -- Calculate TOPk
+  query = 'SELECT TOP(value,'.. top_tag ..','.. options.top ..') FROM ' .. query
+
   local url = self.url
   local full_url = url .. "/query?db=".. self.db .."&epoch=s&q=" .. urlencode(query)
 
