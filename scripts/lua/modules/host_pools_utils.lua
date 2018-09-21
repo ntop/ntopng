@@ -522,7 +522,7 @@ function host_pools_utils.updateRRDs(ifid, dump_ndpi, verbose)
     if dump_ndpi then
       for proto,v in pairs(pool_stats["ndpi"] or {}) do
         ts_utils.append("host_pool:ndpi", {ifid=ifid, pool=pool_id, protocol=proto,
-              bytes_sent=pool_stats["bytes.sent"], bytes_rcvd=pool_stats["bytes.rcvd"]}, when)
+              bytes_sent=v["bytes.sent"], bytes_rcvd=v["bytes.rcvd"]}, when)
       end
     end
   end
