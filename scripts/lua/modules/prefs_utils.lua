@@ -134,7 +134,7 @@ end
 local options_script_loaded = false
 local options_ctr = 0
 
-function prefsResolutionButtons(fmt, value, fixed_id, format_spec)
+function prefsResolutionButtons(fmt, value, fixed_id, format_spec, max_val)
   local ctrl_id
   if fixed_id ~= nil then
     ctrl_id = fixed_id
@@ -143,8 +143,10 @@ function prefsResolutionButtons(fmt, value, fixed_id, format_spec)
     options_ctr = options_ctr + 1
   end
 
-  local res = makeResolutionButtons(format_spec or FMT_TO_DATA_TIME, ctrl_id, fmt, value, {classes={"pull-right"}})
+  local res = makeResolutionButtons(format_spec or FMT_TO_DATA_TIME, ctrl_id, fmt, value, {classes={"pull-right"}}, max_val)
 
+  res.value = truncate(res.value)
+  
   print(res.html)
   print("<script>")
   if not options_script_loaded then
@@ -265,7 +267,7 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
           <td width="100%;"></td>
           <td style="vertical-align:top;">]]
       if extra.tformat ~= nil then
-        value = prefsResolutionButtons(extra.tformat, value, nil, extra.format_spec)
+        value = prefsResolutionButtons(extra.tformat, value, nil, extra.format_spec, extra.max)
       end
 
       if extra.width == nil then

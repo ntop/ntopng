@@ -2782,7 +2782,7 @@ FMT_TO_DATA_TIME = {
 -- ###########################################
 
 -- Note: use data-min and data-max to setup ranges
-function makeResolutionButtons(fmt_to_data, ctrl_id, fmt, value, extra)
+function makeResolutionButtons(fmt_to_data, ctrl_id, fmt, value, extra, max_val)
   local extra = extra or {}
   local html_lines = {}
 
@@ -2794,7 +2794,7 @@ function makeResolutionButtons(fmt_to_data, ctrl_id, fmt, value, extra)
     string.gsub(fmt, ".", function(k)
       local v = fmt_to_data[k]
       if v ~= nil then
-        divisors[#divisors + 1] = {k=k, v=v.value}
+	 divisors[#divisors + 1] = {k=k, v=v.value}
       end
     end)
   end
@@ -2817,18 +2817,21 @@ function makeResolutionButtons(fmt_to_data, ctrl_id, fmt, value, extra)
   string.gsub(fmt, ".", function(k)
     local v = fmt_to_data[k]
     if v ~= nil then
-      local line = {}
-      line[#line+1] = [[<label class="btn]]
-      if selected == k then
-	 line[#line+1] = [[ btn-primary active]]
-      else
-	 line[#line+1] = [[ btn-default]]
-      end
-      line[#line+1] = [[ btn-sm"><input data-resol="]] .. k .. [[" value="]] .. v.value .. [[" title="]] .. v.label .. [[" name="opt_resbt_]] .. k .. [[_]] .. ctrl_id .. [[" autocomplete="off" type="radio"]]
-      if selected == k then line[#line+1] = [[ checked="checked"]] end
-      line[#line+1] = [[/>]] .. v.label .. [[</label>]]
+       local line = {}
 
-      html_lines[#html_lines+1] = table.concat(line, "")
+       if((max_val == nil) or (v.value < max_val)) then
+	  line[#line+1] = [[<label class="btn]]
+	  if selected == k then
+	     line[#line+1] = [[ btn-primary active]]
+	  else
+	     line[#line+1] = [[ btn-default]]
+	  end
+	  line[#line+1] = [[ btn-sm"><input data-resol="]] .. k .. [[" value="]] .. truncate(v.value) .. [[" title="]] .. v.label .. [[" name="opt_resbt_]] .. k .. [[_]] .. ctrl_id .. [[" autocomplete="off" type="radio"]]
+	  if selected == k then line[#line+1] = [[ checked="checked"]] end
+	  line[#line+1] = [[/>]] .. v.label .. [[</label>]]
+
+	  html_lines[#html_lines+1] = table.concat(line, "")
+       end
     end
   end)
 
@@ -3285,4 +3288,3 @@ end
 -- defined in this file
 --
 http_lint = require "http_lint"
-

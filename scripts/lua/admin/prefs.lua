@@ -1046,17 +1046,25 @@ function printInMemory()
   
   print('<table class="table">')
   print('<tr><th colspan=2 class="info">'..i18n("prefs.idle_timeout_settings")..'</th></tr>')
+
   prefsInputFieldPrefs(subpage_active.entries["local_host_max_idle"].title, subpage_active.entries["local_host_max_idle"].description,
-      "ntopng.prefs.","local_host_max_idle", prefs.local_host_max_idle, "number", nil, nil, nil, {min=1, max=86400, tformat="smh", attributes={["data-localremotetimeout"]="localremotetimeout"}})
+		       "ntopng.prefs.","local_host_max_idle", prefs.local_host_max_idle, "number", nil, nil, nil,
+		       {min=1, max=86400, tformat="smh", attributes={["data-localremotetimeout"]="localremotetimeout"}})
+
   prefsInputFieldPrefs(subpage_active.entries["non_local_host_max_idle"].title, subpage_active.entries["non_local_host_max_idle"].description,
-      "ntopng.prefs.", "non_local_host_max_idle", prefs.non_local_host_max_idle, "number", nil, nil, nil, {min=1, max=86400, tformat="smh"})
+		       "ntopng.prefs.", "non_local_host_max_idle", prefs.non_local_host_max_idle, "number", nil, nil, nil,
+		       {min=1, max=86400, tformat="smh"})
+  
   prefsInputFieldPrefs(subpage_active.entries["flow_max_idle"].title, subpage_active.entries["flow_max_idle"].description,
-      "ntopng.prefs.", "flow_max_idle", prefs.flow_max_idle, "number", nil, nil, nil, {min=1, max=86400, tformat="smh"})
+		       "ntopng.prefs.", "flow_max_idle", prefs.flow_max_idle, "number", nil, nil, nil,
+		       {min=1, max=3600, tformat="smh"})
 
   local has_high_resolution = ((tonumber(ntop.getPref("ntopng.prefs.ts_write_steps")) or 0) > 0)
 
-  prefsInputFieldPrefs(subpage_active.entries["housekeeping_frequency"].title, subpage_active.entries["housekeeping_frequency"].description .. ternary(has_high_resolution, "<br>"..i18n("prefs.note_update_frequency_disabled", {pref=i18n("prefs.timeseries_resolution_resolution_title")}), ""),
-      "ntopng.prefs.", "housekeeping_frequency", prefs.housekeeping_frequency, "number", nil, nil, nil, {min=1, max=60, disabled=has_high_resolution})
+  prefsInputFieldPrefs(subpage_active.entries["housekeeping_frequency"].title,
+		       subpage_active.entries["housekeeping_frequency"].description ..
+			  ternary(has_high_resolution, "<br>"..i18n("prefs.note_update_frequency_disabled", {pref=i18n("prefs.timeseries_resolution_resolution_title")}), ""),
+		       "ntopng.prefs.", "housekeeping_frequency", prefs.housekeeping_frequency, "number", nil, nil, nil, {min=1, max=60, disabled=has_high_resolution})
 
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
   print('</table>')

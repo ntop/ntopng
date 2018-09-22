@@ -186,8 +186,8 @@ void PF_RINGInterface::multiPacketPollLoop() {
   sleep_time = step_sleep;
   
   while(isRunning()) {
-
     rc = pfring_recv(pfring_handle[idx], &buffer, 0, &hdr, 0 /* wait_for_packet */);
+
     if(rc <= 0) {
       idx ^= 0x1;
       rc = pfring_recv(pfring_handle[idx], &buffer, 0, &hdr, 0 /* wait_for_packet */);
