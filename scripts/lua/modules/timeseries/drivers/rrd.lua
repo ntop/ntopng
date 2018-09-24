@@ -361,7 +361,8 @@ function driver:query(schema, tstart, tend, tags, options)
   end
 
   local unsampled_series = table.clone(series)
-  local unsamped_count = count
+  local unsampled_count = count
+  local unsampled_fstep = fstep
 
   if count > options.max_num_points then
     fstep, count = sampleSeries(schema, count, fstep, options.max_num_points, series)
@@ -375,7 +376,7 @@ function driver:query(schema, tstart, tend, tags, options)
 
   if options.calculate_stats then
     total_serie = makeTotalSerie(series, count)
-    stats = ts_common.calculateStatistics(makeTotalSerie(unsampled_series, unsamped_count), fstep, tend - tstart, schema.options.metrics_type)
+    stats = ts_common.calculateStatistics(makeTotalSerie(unsampled_series, unsampled_count), unsampled_fstep, tend - tstart, schema.options.metrics_type)
   end
 
   if options.initial_point then
