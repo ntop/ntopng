@@ -564,10 +564,12 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
   local topk = {}
 
   for top_item, value in pairsByValues(items, rev) do
-    topk[#topk + 1] = {
-      tags = tag_2_series[top_item],
-      value = value,
-    }
+    if value > 0 then
+      topk[#topk + 1] = {
+        tags = tag_2_series[top_item],
+        value = value,
+      }
+    end
 
     if #topk >= options.top then
       break
