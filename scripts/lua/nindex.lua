@@ -55,7 +55,7 @@ if(_GET["where_clause"] ~= nil) then
    print("?where_clause="..urlencode(_GET["where_clause"]))
 end
 
-print('">TopK</A> ]</P>')
+print('">TopK</A> ] [ <A HREF=/lua/if_stats.lua?page=historical>Interface</A> ]</P>')
 
 print [[
   <form method=get action=nindex.lua>
