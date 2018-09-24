@@ -227,32 +227,18 @@ end
 
 -- NOTE: mean / percentile values are calculated manually because of an issue with
 -- empty points in the queries https://github.com/influxdata/influxdb/issues/6967
-function driver:_calcStats(schema, tstart, tend, tags, url, total_serie, time_step, label)
-  local stats = ts_common.calculateStatistics(total_serie, time_step, tend - tstart, schema.options.metrics_type)
+function driver:_performStatsQuery(stats_query, tstart, tend)
+  local full_url = self.url .. "/query?db=".. self.db .."&epoch=s&q=" .. urlencode(stats_query)
+  local data = influx_query(full_url, self.username, self.password)
 
-  if time_step ~= schema.options.step then
-    -- NOTE: the total must be manually extracted from influx when sampling occurs
-    local data_type = schema.options.metrics_type
-    local query = getTotalSerieQuery(schema, tstart, tend, tags, nil --[[ important: no sampling ]], data_type, label)
-    query = 'SELECT SUM("'.. (label or "total_serie") ..'") * ' .. schema.options.step ..' FROM (' .. query .. ')'
+  if (data and data.series and data.series[1] and data.series[1].values[1]) then
+    local data_stats = data.series[1].values[1]
+    local total = data_stats[2]
 
-    local full_url = url .. "/query?db=".. self.db .."&epoch=s&q=" .. urlencode(query)
-    local data = influx_query(full_url, self.username, self.password)
-
-    if (data and data.series and data.series[1] and data.series[1].values[1]) then
-      local data_stats = data.series[1].values[1]
-      local total = data_stats[2]
-
-      if stats.total then
-        -- only overwrite it if previously set
-        stats.total = total
-      end
-
-      stats.average = total / (tend - tstart)
-    end
+    return {total=total, average = (total / (tend - tstart))}
   end
 
-  return stats
+  return nil
 end
 
 -- ##############################################
@@ -322,7 +308,15 @@ function driver:query(schema, tstart, tend, tags, options)
     total_serie = self:_makeTotalSerie(schema, tstart, tend, tags, options, url, time_step, label)
 
     if total_serie then
-      stats = self:_calcStats(schema, tstart, tend, tags, url, total_serie, time_step, label)
+      stats = ts_common.calculateStatistics(total_serie, time_step, tend - tstart, schema.options.metrics_type)
+
+      -- override total and average
+      local stats_query = "(SELECT ".. table.concat(schema._metrics, " + ") .. ' AS value FROM "' .. schema.name..
+        '" ' ..getWhereClause(tags, tstart, tend) .. ")"
+      stats_query = "(SELECT NON_NEGATIVE_DIFFERENCE(value) as value FROM " .. stats_query .. ")"
+      stats_query = "SELECT SUM(value) FROM " .. stats_query
+
+      stats = table.merge(stats, self:_performStatsQuery(stats_query, tstart, tend))
     end
   end
 
@@ -513,6 +507,10 @@ end
 
 -- ##############################################
 
+function getWhereClause(tags, tstart, tend)
+  return 'WHERE '.. table.tconcat(tags, "=", " AND ", nil, "'") .. ' AND time >= '.. tstart ..'000000000 AND time <= '.. tend .. "000000000"
+end
+
 function driver:topk(schema, tags, tstart, tend, options, top_tags)
   if #top_tags ~= 1 then
     traceError(TRACE_ERROR, TRACE_CONSOLE, "InfluxDB driver expects exactly one top tag, " .. #top_tags .. " found")
@@ -531,17 +529,17 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
         GROUP BY protocol)
   ]]
   -- Aggregate into 1 metric and filter
-  local query = '(SELECT '.. top_tag ..', (' .. table.concat(schema._metrics, " + ") ..') AS "value" FROM "'.. schema.name ..
-      '" WHERE '.. table.tconcat(tags, "=", " AND ", nil, "'") .. ' AND time >= '.. tstart ..'000000000 AND time <= '.. (tend + unaligned_offset) .. "000000000)"
+  local base_query = '(SELECT '.. top_tag ..', (' .. table.concat(schema._metrics, " + ") ..') AS "value" FROM "'.. schema.name ..
+      '" '.. getWhereClause(tags, tstart, tend) ..')'
 
    -- Calculate difference between counter values
-  query = '(SELECT NON_NEGATIVE_DIFFERENCE(value) as value FROM ' .. query .. " GROUP BY ".. top_tag ..")"
+  base_query = '(SELECT NON_NEGATIVE_DIFFERENCE(value) as value FROM ' .. base_query .. " GROUP BY ".. top_tag ..")"
 
   -- Sum the traffic
-  query = '(SELECT SUM(value) AS value FROM '.. query .. ' GROUP BY '.. top_tag ..')'
+  base_query = '(SELECT SUM(value) AS value FROM '.. base_query .. ' GROUP BY '.. top_tag ..')'
 
   -- Calculate TOPk
-  query = 'SELECT TOP(value,'.. top_tag ..','.. options.top ..') FROM ' .. query
+  local query = 'SELECT TOP(value,'.. top_tag ..','.. options.top ..') FROM ' .. base_query
 
   local url = self.url
   local full_url = url .. "/query?db=".. self.db .."&epoch=s&q=" .. urlencode(query)
@@ -570,10 +568,12 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
   for idx in pairsByValues(res, rev) do
     local value = data.values[idx]
 
-    sorted[#sorted + 1] = {
-      tags = table.merge(tags, {[top_tag] = value[3]}),
-      value = value[2],
-    }
+    if value[2] > 0 then
+      sorted[#sorted + 1] = {
+        tags = table.merge(tags, {[top_tag] = value[3]}),
+        value = value[2],
+      }
+    end
   end
 
   local time_step = calculateSampledTimeStep(schema, tstart, tend, options)
@@ -582,7 +582,14 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
   local stats = nil
 
   if options.calculate_stats and total_serie then
-    stats = self:_calcStats(schema, tstart, tend, tags, url, total_serie, time_step, label)
+    stats = ts_common.calculateStatistics(total_serie, time_step, tend - tstart, schema.options.metrics_type)
+
+    -- override total and average
+    -- NOTE: sum must be calculated on individual top_tag fields to avoid
+    -- calculating DIFFERENCE on a decreasing serie (e.g. this can happend on a top hosts query
+    -- when a previously seen host becomes idle, which causes its traffic contribution on the total to become zero on next points)
+    local stats_query = "SELECT SUM(value) as value FROM " .. base_query
+    stats = table.merge(stats, self:_performStatsQuery(stats_query, tstart, tend))
   end
 
   if options.initial_point and total_serie then
