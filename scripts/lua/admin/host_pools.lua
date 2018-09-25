@@ -843,7 +843,7 @@ print[[
           });
 
           if(numPoolMembers === 0)
-            numPoolMembers = datatableGetTotalItems('#table-manage-form');
+            numPoolMembers = $("#table-manage").data("datatable").resultset.num_pool_members || 0;
           aysResetForm('#table-manage-form');
         }
 
