@@ -719,8 +719,7 @@ function updateGraphsTableView(graph_table, view, graph_params, nindex_buttons) 
       return {
         title: col[1],
         field: col[0],
-        sortable: col[2],
-        css: { textAlign: col[3], width: col[4], },
+        css: { textAlign: col[2], width: col[3], },
 	    };
     });
 

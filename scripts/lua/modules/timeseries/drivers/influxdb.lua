@@ -562,6 +562,15 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
   -- NOTE: this offset is necessary to fix graph edge points when data insertion is not aligned with tstep
   local unaligned_offset = schema.options.step - 1
 
+  local derivate_metrics = {}
+  local sum_metrics = {}
+  local all_metrics = table.concat(schema._metrics, ", ")
+
+  for idx, metric in ipairs(schema._metrics) do
+    derivate_metrics[idx] = 'NON_NEGATIVE_DIFFERENCE('.. metric .. ') as ' .. metric
+    sum_metrics[idx] = 'SUM('.. metric .. ') as ' .. metric
+  end
+
   --[[
     SELECT TOP(value,protocol,10) FROM
       (SELECT SUM(value) AS value FROM
@@ -572,17 +581,20 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
         GROUP BY protocol)
   ]]
   -- Aggregate into 1 metric and filter
-  local base_query = '(SELECT '.. top_tag ..', (' .. table.concat(schema._metrics, " + ") ..') AS "value" FROM "'.. schema.name ..
+  local base_query = '(SELECT '.. top_tag ..', (' .. table.concat(schema._metrics, " + ") ..') AS "value", '..
+      all_metrics .. ' FROM "'.. schema.name ..
       '" '.. getWhereClause(tags, tstart, tend, unaligned_offset) ..')'
 
    -- Calculate difference between counter values
-  base_query = '(SELECT NON_NEGATIVE_DIFFERENCE(value) as value FROM ' .. base_query .. " GROUP BY ".. top_tag ..")"
+  base_query = '(SELECT NON_NEGATIVE_DIFFERENCE(value) as value, '.. table.concat(derivate_metrics, ", ")  ..
+      ' FROM ' .. base_query .. " GROUP BY ".. top_tag ..")"
 
   -- Sum the traffic
-  base_query = '(SELECT SUM(value) AS value FROM '.. base_query .. ' GROUP BY '.. top_tag ..')'
+  base_query = '(SELECT SUM(value) AS value, '.. table.concat(sum_metrics, ", ")  ..
+      ' FROM '.. base_query .. ' GROUP BY '.. top_tag ..')'
 
   -- Calculate TOPk
-  local query = 'SELECT TOP(value,'.. top_tag ..','.. options.top ..') FROM ' .. base_query
+  local query = 'SELECT TOP(value,'.. top_tag ..','.. options.top ..'), '.. all_metrics ..' FROM ' .. base_query
 
   local url = self.url
   local data = influx_query(url .. "/query?db=".. self.db .."&epoch=s", query, self.username, self.password)
@@ -610,9 +622,16 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
     local value = data.values[idx]
 
     if value[2] > 0 then
+      local partials = {}
+
+      for idx=4, #value do
+        partials[data.columns[idx]] = value[idx]
+      end
+
       sorted[#sorted + 1] = {
         tags = table.merge(tags, {[top_tag] = value[3]}),
         value = value[2],
+        partials = partials,
       }
     end
   end

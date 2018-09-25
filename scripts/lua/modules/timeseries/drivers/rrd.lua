@@ -527,10 +527,13 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
     local sum = 0
     step = fstep
 
+    local partials = {}
+
     for name_key, serie in pairs(fdata) do
       local serie_idx = map_rrd_column_to_metrics(schema, name_key)
       local name = schema._metrics[serie_idx]
       local max_val = ts_common.getMaxPointValue(schema, name, serie_tags)
+      partials[name] = 0
 
       -- Remove the last value: RRD seems to give an additional point
       serie[#serie] = nil
@@ -553,13 +556,14 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
 
         if type(v) == "number" then
           sum = sum + v
+          partials[name] = partials[name] + v * step
           total_serie[i] = total_serie[i] + v
         end
       end
     end
 
     items[serie_tags[top_tag]] = sum * step
-    tag_2_series[serie_tags[top_tag]] = serie_tags
+    tag_2_series[serie_tags[top_tag]] = {serie_tags, partials}
   end
 
   local topk = {}
@@ -567,8 +571,9 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
   for top_item, value in pairsByValues(items, rev) do
     if value > 0 then
       topk[#topk + 1] = {
-        tags = tag_2_series[top_item],
+        tags = tag_2_series[top_item][1],
         value = value,
+        partials = tag_2_series[top_item][2],
       }
     end
 
