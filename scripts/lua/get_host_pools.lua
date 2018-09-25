@@ -49,8 +49,9 @@ if((ifid ~= nil) and (isAdministrator())) then
   if pool_id ~= nil then
     local active_hosts = interface.getHostsInfo(false, nil, nil, nil, nil, nil, nil, nil, nil, nil, true--[[no macs]], tonumber(pool_id)).hosts
     local network_stats = interface.getNetworksStats()
+    local pool_members = host_pools_utils.getPoolMembers(ifid, pool_id) or {}
 
-    for _,member in ipairs(host_pools_utils.getPoolMembers(ifid, pool_id)) do
+    for _,member in ipairs(pool_members) do
       local is_mac = isMacAddress(member.address)
 
       if matches_members_filter(member.key, is_mac) then
@@ -124,7 +125,7 @@ if((ifid ~= nil) and (isAdministrator())) then
         i = i + 1
       end
     end
-
+    res.num_pool_members = #pool_members
     tablePreferences("hostPoolMembers", perpage)
   else
     local by_pool_name = {}
