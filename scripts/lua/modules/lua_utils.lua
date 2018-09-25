@@ -1143,6 +1143,7 @@ end
 
 -- #################################
 
+-- NOTE: use host2name when possible
 function getResolvedAddress(hostinfo)
    local hostname = ntop.getResolvedName(hostinfo["host"])
    return hostVisualization(hostinfo["host"], hostname)

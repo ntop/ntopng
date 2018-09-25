@@ -19,13 +19,6 @@ function datatableIsEmpty(table) {
   return datatableGetNumDisplayedItems(table) == 0;
 }
 
-function datatableGetTotalItems(table) {
-   if(datatableIsEmpty(table))
-      return 0;
-
-   return $("#dt-bottom-details div.pull-left", $(table)).html().match(/of (\d+) rows/)[1];
-}
-
 function datatableGetByForm(form) {
   return $("table", $("#dt-top-details", $(form)).parent())
 }
