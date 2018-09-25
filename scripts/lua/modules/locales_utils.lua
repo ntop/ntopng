@@ -20,7 +20,8 @@ locales.default_locale = "en"
 -- language is a global variable set from C that corresponds to the user default language
 -- it may be null when lua_utils are imported from periodic scripts
 if language == nil then
-   language = locales.default_locale
+   local admin_lang = ntop.getPref("ntopng.user.admin.language")
+   language = ternary(isEmptyString(admin_lang), locales.default_locale, admin_lang)
 end
 
 i18n.setLocale(language)
