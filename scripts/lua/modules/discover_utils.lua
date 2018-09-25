@@ -281,11 +281,8 @@ end
 
 -- ################################################################################
 
-function discover.printDeviceTypeSelector(device_type, field_name)
+function discover.printDeviceTypeSelectorOptions(device_type)
    device_type = tonumber(device_type)
-
-   print [[<div class="form-group"><select name="]] print(field_name) print[[" class="form-control">\
-   <option value="0"></option>]]
 
    for typeid, info in sortedDeviceTypeLabels() do
       local devtype = info[1]
@@ -297,6 +294,15 @@ function discover.printDeviceTypeSelector(device_type, field_name)
          print(">".. label .."</option>")
       end
    end
+end
+
+-- ################################################################################
+
+function discover.printDeviceTypeSelector(device_type, field_name)
+   print [[<div class="form-group"><select name="]] print(field_name) print[[" class="form-control">\
+   <option value="0"></option>]]
+
+   discover.printDeviceTypeSelectorOptions(device_type)
 
    print [[</select></div>]]
 end
