@@ -6529,7 +6529,7 @@ void NetworkInterface::checkMacIPAssociation(bool triggerEvent, u_char *_mac, u_
 
   u_int64_t mac = Utils::mac2int(_mac);
 
-  if((ipv4 != 0) && (mac != 0)) {
+  if((ipv4 != 0) && (mac != 0) && (mac != 0xFFFFFFFFFFFF)) {
     std::map<u_int32_t, u_int64_t>::iterator it;
 
     if(!triggerEvent)
