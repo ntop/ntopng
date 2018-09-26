@@ -1205,6 +1205,7 @@ local known_parameters = {
    ["lifetime_secs"]           = validateNumber,                -- user lifetime in seconds
    ["edit_profiles"]           = validateEmpty,                 -- set when editing traffic profiles
    ["edit_policy"]             = validateEmpty,                 -- set when editing policy
+   ["edit_device_policy"]      = validateEmpty,                 -- set when editing device policy
    ["delete_user"]             = validateSingleWord,
    ["drop_flow_policy"]        = validateBool,                  -- true if target flow should be dropped
    ["traffic_type"]            = validateBroadcastUnicast,      -- flows_stats.lua
