@@ -705,6 +705,10 @@ void LocalHost::updateStats(struct timeval *tv) {
     nextSitesUpdate = tv->tv_sec + HOST_SITES_REFRESH;
   }
 
+  /* The ring can be enabled at runtime so we need to check for allocation */
+  if(!ts_ring && TimeseriesRing::isRingEnabled(ntop->getPrefs()))
+    ts_ring = new TimeseriesRing(iface);
+  
   if(ts_ring && ts_ring->isTimeToInsert()) {
     HostTimeseriesPoint *pt = new HostTimeseriesPoint();
     

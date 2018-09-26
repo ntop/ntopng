@@ -35,18 +35,21 @@ TimeseriesRingStatus::TimeseriesRingStatus(u_int8_t max_points, u_int8_t num_ste
 /* *************************************** */
 
 TimeseriesRingStatus::~TimeseriesRingStatus() {
+  for(int i=0; i<max_points; i++)
+    if(ts_points[i])
+      delete ts_points[i];
+  
   delete[] ts_points;
 }
 
 /* *************************************** */
 
 void TimeseriesRingStatus::insert(TimeseriesPoint *pt, time_t when) {
-  TimeseriesPoint *target = ts_points[point_idx];
+  if(ts_points[point_idx])
+    delete ts_points[point_idx];
 
-  if(target) delete target;
-  target = pt;
-  target->timestamp = when;
-  ts_points[point_idx] = target;
+  pt->timestamp = when;
+  ts_points[point_idx] = pt;
 
   point_idx = (point_idx + 1) % max_points;
   cur_steps = 0;
