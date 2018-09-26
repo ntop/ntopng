@@ -534,6 +534,14 @@ end
 
 -- ##############################################
 
+function table.len(T)
+  local count = 0
+  for _ in pairs(T) do count = count + 1 end
+  return count
+end
+
+-- ##############################################
+
 -- Note: make sure the maximum id for checkpoint_keys honours CONST_MAX_NUM_CHECKPOINTS
 local checkpoint_keys = {
    -- following checkpoints are used for alerts
@@ -733,6 +741,28 @@ end
 
 function capitalize(str)
   return (str:gsub("^%l", string.upper))
+end
+
+local function starstring(len)
+local s = ""
+
+  while(len > 0) do
+   s = s .."*"
+   len = len -1
+  end
+
+  return(s)
+end
+
+function obfuscate(str)
+  local len = string.len(str)
+  local in_clear = 2
+
+  if(len <= in_clear) then
+    return(starstring(len))
+  else
+    return(string.sub(str, 0, in_clear)..starstring(len-in_clear))
+  end
 end
 
 function isnumber(str)
