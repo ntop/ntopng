@@ -197,7 +197,7 @@ end
 
 -- ################################################################################
 
-local function sortedDeviceTypeLabels()
+function discover.sortedDeviceTypeLabels()
    return pairsByValues(id2label, device_label_sort_fn)
 end
 
@@ -284,7 +284,7 @@ end
 function discover.printDeviceTypeSelectorOptions(device_type)
    device_type = tonumber(device_type)
 
-   for typeid, info in sortedDeviceTypeLabels() do
+   for typeid, info in discover.sortedDeviceTypeLabels() do
       local devtype = info[1]
       local label = info[2]
 
