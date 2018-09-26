@@ -72,6 +72,8 @@ bool TimeseriesRing::isTimeToInsert() {
 void TimeseriesRing::insert(TimeseriesPoint *pt, time_t when) {
   if(status)
     status->insert(pt, when);
+  else
+    delete pt;
 }
 
 /* *************************************** */

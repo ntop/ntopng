@@ -54,4 +54,3 @@ void HostTimeseriesPoint::lua(lua_State* vm, NetworkInterface *iface) {
   lua_push_int_table_entry(vm, "other_ip.bytes.sent", l4_stats[3].sent);
   lua_push_int_table_entry(vm, "other_ip.bytes.rcvd", l4_stats[3].rcvd);
 }
-

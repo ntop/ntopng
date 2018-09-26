@@ -81,4 +81,3 @@ void TimeseriesRingStatus::lua(lua_State* vm, NetworkInterface *iface) {
     idx = (idx + 1) % max_points;
   }
 }
-

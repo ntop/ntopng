@@ -137,10 +137,10 @@ void LocalHost::initialize() {
 			       isSystemHost() ? "systemHost" : "", this);
 #endif
 
-  ts_ring = NULL;
-
   if(TimeseriesRing::isRingEnabled(ntop->getPrefs()))
     ts_ring = new TimeseriesRing(iface);
+  else
+    ts_ring = NULL;
 }
 
 /* *************************************** */
@@ -705,12 +705,9 @@ void LocalHost::updateStats(struct timeval *tv) {
     nextSitesUpdate = tv->tv_sec + HOST_SITES_REFRESH;
   }
 
-  if(!ts_ring && TimeseriesRing::isRingEnabled(ntop->getPrefs()))
-    ts_ring = new TimeseriesRing(iface);
-
   if(ts_ring && ts_ring->isTimeToInsert()) {
     HostTimeseriesPoint *pt = new HostTimeseriesPoint();
-
+    
     makeTsPoint(pt);
     /* Ownership of the point is passed to the ring */
     ts_ring->insert(pt, last_update_time.tv_sec);
