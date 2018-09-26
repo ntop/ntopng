@@ -4,8 +4,11 @@
 
 dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
+package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
+
 -- io.write ("Session:".._SESSION["session"].."\n")
 require "lua_utils"
+require "snmp_utils"
 
 sendHTTPContentTypeHeader('text/html')
 
