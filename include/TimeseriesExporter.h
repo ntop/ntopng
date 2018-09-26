@@ -24,7 +24,7 @@
 
 #include "ntop_includes.h"
 
-class TimeSeriesExporter {
+class TimeseriesExporter {
  private:
   time_t flushTime;
   u_int32_t cursize;
@@ -39,8 +39,8 @@ class TimeSeriesExporter {
   void createDump();
   
  public:
-  TimeSeriesExporter(NetworkInterface *_if);
-  ~TimeSeriesExporter();
+  TimeseriesExporter(NetworkInterface *_if);
+  ~TimeseriesExporter();
 
   void exportData(char *data, bool do_lock = true);
   void flush();

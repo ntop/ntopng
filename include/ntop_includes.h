@@ -215,6 +215,7 @@ using namespace std;
 #include "ProtoStats.h"
 #include "TcpPacketStats.h"
 #include "EthStats.h"
+
 #include "LocalTrafficStats.h"
 #include "PacketDumperGeneric.h"
 #include "PacketDumper.h"
@@ -232,8 +233,13 @@ using namespace std;
 #if defined(NTOPNG_PRO) && defined(HAVE_NINDEX)
 #include "nindex_api.h"
 #endif
-#include "TimeSeriesExporter.h"
-#include "TimeSeriesRing.h"
+
+#include "TimeseriesPoint.h"
+#include "TimeseriesRingStatus.h"
+#include "TimeseriesRing.h"
+#include "TimeseriesExporter.h"
+#include "TimeseriesRing.h"
+#include "HostTimeseriesPoint.h"
 #include "NetworkInterface.h"
 #ifndef HAVE_NEDGE
 #include "PcapInterface.h"

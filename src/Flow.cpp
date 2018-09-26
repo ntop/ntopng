@@ -2656,7 +2656,7 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
     dissect_next_http_packet = true;
 
     /* use memchr to prevent possibly non-NULL terminated HTTP requests */
-    if(payload && ((space = (char*)memchr(payload, ' ', payload_len)) != NULL)) {
+    if(payload && ((space = (char*)memchr(payload, ' ', payload_len-1)) != NULL)) {
       u_int l = space - payload;
 
       if((!strncmp(payload, "GET", 3))

@@ -139,8 +139,8 @@ void LocalHost::initialize() {
 
   ts_ring = NULL;
 
-  if(TimeSeriesRing::isRingEnabled(ntop->getPrefs()))
-    ts_ring = new TimeSeriesRing(iface);
+  if(TimeseriesRing::isRingEnabled(ntop->getPrefs()))
+    ts_ring = new TimeseriesRing(iface);
 }
 
 /* *************************************** */
@@ -739,13 +739,13 @@ void LocalHost::updateStats(struct timeval *tv) {
     nextSitesUpdate = tv->tv_sec + HOST_SITES_REFRESH;
   }
 
-  if(!ts_ring && TimeSeriesRing::isRingEnabled(ntop->getPrefs()))
-    ts_ring = new TimeSeriesRing(iface);
+  if(!ts_ring && TimeseriesRing::isRingEnabled(ntop->getPrefs()))
+    ts_ring = new TimeseriesRing(iface);
 
   if(ts_ring && ts_ring->isTimeToInsert()) {
     HostTimeseriesPoint *pt = new HostTimeseriesPoint();
-    makeTsPoint(pt);
 
+    makeTsPoint(pt);
     /* Ownership of the point is passed to the ring */
     ts_ring->insert(pt, last_update_time.tv_sec);
   }
@@ -795,11 +795,12 @@ void LocalHost::setOS(char *_os) {
 /* *************************************** */
 
 void LocalHost::tsLua(lua_State* vm) {
-  if(!ts_ring || !TimeSeriesRing::isRingEnabled(ntop->getPrefs())) {
+  if(!ts_ring || !TimeseriesRing::isRingEnabled(ntop->getPrefs())) {
     /* Use real time data */
     HostTimeseriesPoint pt;
+    
     makeTsPoint(&pt);
-    TimeSeriesRing::luaSinglePoint(vm, iface, &pt);
+    TimeseriesRing::luaSinglePoint(vm, iface, &pt);
   } else
     ts_ring->lua(vm);
 }

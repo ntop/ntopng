@@ -333,8 +333,8 @@ void NetworkInterface::init() {
 
     ts_ring = NULL;
 
-  if(TimeSeriesRing::isRingEnabled(ntop->getPrefs()))
-    ts_ring = new TimeSeriesRing(this);
+  if(TimeseriesRing::isRingEnabled(ntop->getPrefs()))
+    ts_ring = new TimeseriesRing(this);
 }
 
 /* **************************************************** */
@@ -2858,8 +2858,8 @@ void NetworkInterface::periodicStatsUpdate() {
     host_pools->updateStats(&tv);
 #endif
 
-  if(!ts_ring && TimeSeriesRing::isRingEnabled(ntop->getPrefs()))
-    ts_ring = new TimeSeriesRing(this);
+  if(!ts_ring && TimeseriesRing::isRingEnabled(ntop->getPrefs()))
+    ts_ring = new TimeseriesRing(this);
 
   if(ts_ring && ts_ring->isTimeToInsert()) {
     NetworkInterfaceTsPoint *pt = new NetworkInterfaceTsPoint();
@@ -6834,11 +6834,12 @@ void NetworkInterface::makeTsPoint(NetworkInterfaceTsPoint *pt) {
 /* *************************************** */
 
 void NetworkInterface::tsLua(lua_State* vm) {
-  if(!ts_ring || !TimeSeriesRing::isRingEnabled(ntop->getPrefs())) {
+  if(!ts_ring || !TimeseriesRing::isRingEnabled(ntop->getPrefs())) {
     /* Use real time data */
     NetworkInterfaceTsPoint pt;
+
     makeTsPoint(&pt);
-    TimeSeriesRing::luaSinglePoint(vm, this, &pt);
+    TimeseriesRing::luaSinglePoint(vm, this, &pt);
   } else
     ts_ring->lua(vm);
 }

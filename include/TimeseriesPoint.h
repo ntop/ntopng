@@ -19,12 +19,10 @@
  *
  */
 
-#ifndef _TS_AGGREGATOR_H_
-#define _TS_AGGREGATOR_H_
+#ifndef _TIMESERIES_POINT_H_
+#define _TIMESERIES_POINT_H_
 
 #include "ntop_includes.h"
-
-class TsRingStatus;
 
 class TimeseriesPoint {
  public:
@@ -34,20 +32,5 @@ class TimeseriesPoint {
   virtual void lua(lua_State* vm, NetworkInterface *iface) = 0;
 };
 
-class TimeSeriesRing {
-  protected:
-    NetworkInterface *iface;
-    TsRingStatus *status, *status_shadow;
+#endif /* _TIMESERIES_POINT_H_ */
 
-  public:
-    TimeSeriesRing(NetworkInterface *iface);
-    ~TimeSeriesRing();
-    bool isTimeToInsert();
-    void insert(TimeseriesPoint *pt, time_t when);
-    void lua(lua_State* vm);
-
-    static inline bool isRingEnabled(Prefs *prefs) { return(prefs->getNumTsSlots() > 0); }
-    static void luaSinglePoint(lua_State* vm, NetworkInterface *iface, TimeseriesPoint *pt);
-};
-
-#endif

@@ -37,7 +37,7 @@
   Start Chronograf
   $ chronograf
 */
-TimeSeriesExporter::TimeSeriesExporter(NetworkInterface *_if) {
+TimeseriesExporter::TimeseriesExporter(NetworkInterface *_if) {
   fd = -1, iface = _if, num_cached_entries = 0, dbCreated = false;
   cursize = num_exports = 0;
 
@@ -53,13 +53,13 @@ TimeSeriesExporter::TimeSeriesExporter(NetworkInterface *_if) {
 
 /* ******************************************************* */
 
-TimeSeriesExporter::~TimeSeriesExporter() {
+TimeseriesExporter::~TimeseriesExporter() {
   flush();
 }
 
 /* ******************************************************* */
 
-void TimeSeriesExporter::createDump() {
+void TimeseriesExporter::createDump() {
   flushTime = time(NULL) + CONST_INFLUXDB_FLUSH_TIME;
   cursize = 0;
 
@@ -89,7 +89,7 @@ void TimeSeriesExporter::createDump() {
 
 /* ******************************************************* */
 
-void TimeSeriesExporter::exportData(char *data, bool do_lock) {
+void TimeseriesExporter::exportData(char *data, bool do_lock) {
   if(do_lock) m.lock(__FILE__, __LINE__);
   
   if(fd == -1)
@@ -117,7 +117,7 @@ void TimeSeriesExporter::exportData(char *data, bool do_lock) {
 
 /* ******************************************************* */
 
-void TimeSeriesExporter::flush() {
+void TimeseriesExporter::flush() {
   m.lock(__FILE__, __LINE__);
 
   if(fd != -1) {

@@ -24,8 +24,6 @@
 
 #include "ntop_includes.h"
 
-class HostTimeseriesPoint;
-
 class LocalHost : public Host {
  private:
   int16_t local_network_id;
@@ -46,7 +44,7 @@ class LocalHost : public Host {
   u_int32_t attacker_max_num_syn_per_sec, victim_max_num_syn_per_sec;
   AlertCounter *syn_flood_attacker_alert, *syn_flood_victim_alert;
   AlertCounter *flow_flood_attacker_alert, *flow_flood_victim_alert;
-  TimeSeriesRing *ts_ring;
+  TimeseriesRing *ts_ring;
   map<Host*, u_int16_t> contacts_as_cli, contacts_as_srv;
 
   void initialize();
@@ -100,19 +98,6 @@ class LocalHost : public Host {
 		   bool verbose, bool returnHost, bool asListElement);
   virtual void tsLua(lua_State* vm);
   void makeTsPoint(HostTimeseriesPoint *pt);
-};
-
-class HostTimeseriesPoint: public TimeseriesPoint {
- public:
-  nDPIStats *ndpi;
-  u_int64_t sent, rcvd;
-  u_int32_t num_flows_as_client, num_flows_as_server;
-  TrafficCounter l4_stats[4]; // tcp, udp, icmp, other
-  u_int32_t num_contacts_as_cli, num_contacts_as_srv;
-
-  HostTimeseriesPoint();
-  virtual ~HostTimeseriesPoint();
-  virtual void lua(lua_State* vm, NetworkInterface *iface);
 };
 
 #endif /* _LOCAL_HOST_H_ */

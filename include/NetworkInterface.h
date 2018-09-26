@@ -124,8 +124,8 @@ class NetworkInterface : public Checkpointable {
   FlowHash *flows_hash; /**< Hash used to store flows information. */
   u_int32_t last_remote_pps, last_remote_bps;
   u_int8_t packet_drops_alert_perc;
-  TimeSeriesExporter *tsExporter;
-  TimeSeriesRing *ts_ring;
+  TimeseriesExporter *tsExporter;
+  TimeseriesRing *ts_ring;
 
   /* Sub-interface views */
   u_int8_t numSubInterfaces;
@@ -686,7 +686,7 @@ class NetworkInterface : public Checkpointable {
 #ifdef HAVE_NINDEX
   NIndexFlowDB* getNindex();
 #endif
-  inline TimeSeriesExporter* getTSExporter() { if(!tsExporter) tsExporter = new TimeSeriesExporter(this); return(tsExporter); }
+  inline TimeseriesExporter* getTSExporter() { if(!tsExporter) tsExporter = new TimeseriesExporter(this); return(tsExporter); }
   inline uint32_t getMaxSpeed()              { return(ifSpeed); }
   virtual void sendTermination()             { ; }
   virtual bool read_from_pcap_dump()         { return(false); };
