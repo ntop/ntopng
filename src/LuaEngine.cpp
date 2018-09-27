@@ -1280,7 +1280,7 @@ static int ntop_get_host_information(lua_State* vm) {
 
 #ifdef HAVE_NEDGE
 static int ntop_set_bind_addr(lua_State* vm, bool http) {
-  char *addr, *addr2 = CONST_LOOPBACK_ADDRESS;
+  char *addr, *addr2 = (char *) CONST_LOOPBACK_ADDRESS;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -5652,6 +5652,23 @@ static int ntop_reload_shapers(lua_State *vm) {
     return(CONST_LUA_ERROR);
 }
 
+/* ****************************************** */
+
+static int ntop_reload_device_presets(lua_State *vm) {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+#ifdef NTOPNG_PRO
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  else {
+    u_int device_type = (u_int) lua_tonumber(vm, 1);
+    if(ntop->getPro()->has_valid_license())
+      ntop->getPro()->refreshAllowedProtocolPresets((DeviceType) device_type);
+  }
+#endif
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
+
 #endif
 
 /* ****************************************** */
@@ -8093,6 +8110,11 @@ static const luaL_Reg ntop_reg[] = {
   { "setRoutingMode",        ntop_set_routing_mode         },
   { "isRoutingMode",         ntop_is_routing_mode          },
   { "setLanInterface",       ntop_set_lan_interface        },
+#endif
+
+  /* Device Presets */
+#ifdef NTOPNG_PRO
+  { "reloadDevicePresets",   ntop_reload_device_presets    },
 #endif
 
   { NULL,          NULL}

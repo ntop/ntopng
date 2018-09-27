@@ -66,9 +66,9 @@ class Ntop {
   time_t start_time; /**< Time when start() was called */
   int udp_socket;
   NtopPro *pro;
+#ifdef NTOPNG_PRO
   DeviceProtocolBitmask deviceProtocolPresets[device_max_type];
   
-#ifdef NTOPNG_PRO
 #ifndef WIN32
   NagiosManager *nagios_manager;
 #endif
@@ -77,7 +77,10 @@ class Ntop {
   AddressTree *hostBlacklist, *hostBlacklistShadow;
 
   void loadLocalInterfaceAddress();
+
+#ifdef NTOPNG_PRO
   void initAllowedProtocolPresets();
+#endif
 
  public:
   /**
@@ -464,7 +467,10 @@ class Ntop {
 			 char *label, int32_t lifetime_secs, char *ifname);
 #endif /* NTOPNG_PRO */
   
+#ifdef NTOPNG_PRO
   DeviceProtocolBitmask* getDeviceAllowedProtocols(DeviceType t) { return(&deviceProtocolPresets[t]); }
+#endif
+
   void sendNetworkInterfacesTermination();
 };
 

@@ -1823,9 +1823,9 @@ bool Ntop::isATrackerHost(char *host) {
 
 /* ******************************************* */
 
-void Ntop::initAllowedProtocolPresets() {
-  /* TODO define per-device protocol bitmask */
+#ifdef NTOPNG_PRO
 
+void Ntop::initAllowedProtocolPresets() {
   for(u_int i=0; i<device_max_type; i++) {
     NDPI_BITMASK_SET_ALL(deviceProtocolPresets[i].clientAllowed);
     NDPI_BITMASK_SET_ALL(deviceProtocolPresets[i].serverAllowed);
@@ -1833,8 +1833,6 @@ void Ntop::initAllowedProtocolPresets() {
 }
 
 /* ******************************************* */
-
-#ifdef NTOPNG_PRO
 
 bool Ntop::addIPToLRUMatches(u_int32_t client_ip,
 			     u_int16_t user_pool_id,

@@ -3146,6 +3146,7 @@ void Flow::updateFlowShapers(bool first_update) {
     old_srv2cli_in = srv2cli_in,
     old_srv2cli_out = srv2cli_out;
 
+#if 0 /* TODO rework/enable this code after creating presets for all devices */
   /* Check if this application protocol is allowd for the specified device type */
   if(cli_host && srv_host && cli_host->getMac() && srv_host->getMac()) {
     DeviceProtocolBitmask *cli = ntop->getDeviceAllowedProtocols(cli_host->getMac()->getDeviceType());
@@ -3162,6 +3163,7 @@ void Flow::updateFlowShapers(bool first_update) {
        )
       passVerdict = false;
   }
+#endif
 
   /* Re-compute the verdict */
   cli2srv_verdict = updateDirectionShapers(true, &flowShaperIds.cli2srv.ingress, &flowShaperIds.cli2srv.egress);
