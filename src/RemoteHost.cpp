@@ -50,8 +50,7 @@ void RemoteHost::initialize() {
   snprintf(host, sizeof(host), "%s@%u", strIP, vlan_id);
   char rsp[256];
 
-  blacklisted_host = false,
-    trafficCategory[0] = '\0';
+  blacklisted_host = false;
 
   if(ntop->getPrefs()->is_dns_resolution_enabled_for_all_hosts()) {
     if(ntop->getRedis()->getAddress(host, rsp, sizeof(rsp), true) == 0)
@@ -60,28 +59,5 @@ void RemoteHost::initialize() {
 
   blacklisted_host = ntop->isBlacklistedIP(&ip);
 
-  if((!blacklisted_host) && ntop->getPrefs()->is_httpbl_enabled() && ip.isIPv4()) {
-    // http:bl only works for IPv4 addresses
-    if(ntop->getRedis()->getAddressTrafficFiltering(host, iface, trafficCategory,
-						    sizeof(trafficCategory), true) == 0) {
-      if(strcmp(trafficCategory, NULL_BL)) {
-	blacklisted_host = true;
-      }
-    }
-  }
-
   iface->incNumHosts(false /* Remote Host */);
-}
-
-/* ***************************************** */
-
-void RemoteHost::refreshHTTPBL() {
-  if(ip.isIPv4()
-     && (trafficCategory[0] == '\0')
-     && ntop->get_httpbl()) {
-    char buf[128] =  { 0 };
-    char* ip_addr = ip.print(buf, sizeof(buf));
-
-    ntop->get_httpbl()->findCategory(ip_addr, trafficCategory, sizeof(trafficCategory), false);
-  }
 }

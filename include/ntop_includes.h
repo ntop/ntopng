@@ -316,7 +316,6 @@ using namespace std;
 #include "LuaEngine.h"
 #include "MacManufacturers.h"
 #include "AddressResolution.h"
-#include "HTTPBL.h"
 #include "HTTPserver.h"
 #include "Paginator.h"
 #include "Ntop.h"

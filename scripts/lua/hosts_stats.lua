@@ -122,8 +122,6 @@ if (_GET["page"] ~= "historical") then
 
    if ((ifstats.vlan)) then show_vlan = true else show_vlan = false end
 
-   -- Set the host table option
-   if(prefs.is_httpbl_enabled) then print ('host_rows_option["httpbl"] = true;\n') end
    if(show_vlan) then print ('host_rows_option["vlan"] = true;\n') end
 
    print [[
@@ -419,25 +417,7 @@ if (_GET["page"] ~= "historical") then
 	 	             css: { 
 			        textAlign: 'center'
 			     }
-				 },
-
-]]
-
-   if(prefs.is_httpbl_enabled) then
-      print [[
-			     {
-			     title: "]] print(i18n("hosts_stats.httpbl")) print[[",
-				 field: "column_httpbl",
-				 sortable: true,
-	 	             css: {
-			        textAlign: 'center'
-			       }
-			       },
-		       ]]
-   end
-
-   print [[
-			     {
+				 }, {
 			     title: "]] print(i18n("breakdown")) print[[",
 				 field: "column_breakdown",
 				 sortable: false,

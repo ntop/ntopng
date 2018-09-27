@@ -390,9 +390,6 @@ int main(int argc, char *argv[])
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Logging onto %s", path);
     }
 
-  if(prefs->get_httpbl_key() != NULL)
-    ntop->setHTTPBL(new HTTPBL(prefs->get_httpbl_key()));
-
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Working directory: %s",
 			       ntop->get_working_dir());
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Scripts/HTML pages directory: %s",

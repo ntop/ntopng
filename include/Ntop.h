@@ -61,7 +61,6 @@ class Ntop {
   Geolocation *geo;
   MacManufacturers *mac_manufacturers;
   void *trackers_automa;
-  HTTPBL *httpbl;
   long time_offset;
   time_t start_time; /**< Time when start() was called */
   int udp_socket;
@@ -242,13 +241,6 @@ class Ntop {
   inline char* get_docs_dir()                     { return(prefs->get_docs_dir());      };
 
   /**
-   * @brief Get httpbl.
-   *
-   * @return Current httpbl instance.
-   */
-  inline HTTPBL* get_httpbl()                        { return(httpbl);             };
-
-  /**
    * @brief Register the network interface.
    * @details Check for duplicated interface and add the network interface in to @ref iface.
    *
@@ -314,12 +306,6 @@ class Ntop {
    * @param h HTTP server instance.
    */
   inline void registerHTTPserver(HTTPserver *h)      { httpd = h;              };
-  /**
-   * @brief Set httpbl.
-   *
-   * @param h The categorization instance.
-   */
-  inline void setHTTPBL(HTTPBL *h)                   { httpbl = h; };
 
   /**
    * @brief Get the network interface identified by name or Id.

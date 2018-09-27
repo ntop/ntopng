@@ -78,7 +78,6 @@ class Host : public Checkpointable, public GenericHashEntry, public GenericTraff
   bool hidden_from_top;
 
   void initialize(Mac *_mac, u_int16_t _vlan_id, bool init_all);
-  virtual void refreshHTTPBL() {};
   virtual bool readDHCPCache() { return false; };
 #ifdef NTOPNG_PRO
   TrafficShaper *get_shaper(ndpi_protocol ndpiProtocol, bool isIngress);
@@ -143,10 +142,8 @@ class Host : public Checkpointable, public GenericHashEntry, public GenericTraff
   virtual bool isBlacklisted()                 { return(false);                     }
   inline u_int8_t*  get_mac()                  { return(mac ? mac->get_mac() : NULL);      }
   inline Mac* getMac()                         { return(mac);              }
-  virtual char* get_traffic_category()         { return((char*)"");        }
   virtual char* get_os()                       { return((char*)"");        }
   inline char* get_name()                      { return(symbolic_name);    }
-  inline char* get_httpbl()                    { refreshHTTPBL();     return(get_traffic_category()); }
 #ifdef NTOPNG_PRO
   inline TrafficShaper *get_ingress_shaper(ndpi_protocol ndpiProtocol) { return(get_shaper(ndpiProtocol, true)); }
   inline TrafficShaper *get_egress_shaper(ndpi_protocol ndpiProtocol)  { return(get_shaper(ndpiProtocol, false)); }

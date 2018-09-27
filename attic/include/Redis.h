@@ -83,8 +83,17 @@ class Redis {
   int pushHostToResolve(char *hostname, bool dont_check_for_existence, bool localHost);
   int popHostToResolve(char *hostname, u_int hostname_len);
 
+  int pushHostToTrafficFiltering(char *hostname, bool dont_check_for_existence, bool localHost);
+  int popHostToTrafficFiltering(char *hostname, u_int hostname_len);
+
+  char* getTrafficFilteringCategory(char *numeric_ip, char *buf, u_int buf_len, bool query_httpbl_if_unknown);
+  int popDomainToCategorize(char *domainname, u_int domainname_len);
+
   int getAddress(char *numeric_ip, char *rsp, u_int rsp_len, bool queue_if_not_found);
+  int getAddressTrafficFiltering(char *numeric_ip, NetworkInterface *iface,
+		       char *rsp, u_int rsp_len, bool queue_if_not_found);
   int setResolvedAddress(char *numeric_ip, char *symbolic_ip);
+  int setTrafficFilteringAddress(char* numeric_ip, char* httpbl);
 
   int sadd(const char *set_name, char *item);
   int srem(const char *set_name, char *item);

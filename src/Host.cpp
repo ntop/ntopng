@@ -454,11 +454,6 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
 
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[pkts_thpt: %.2f] [pkts_thpt_trend: %d]", pkts_thpt,pkts_thpt_trend);
 
-  if(ntop->getPrefs()->is_httpbl_enabled())
-    lua_push_str_table_entry(vm, "httpbl", get_httpbl());
-
-
-
   if(verbose) {
     char *rsp = serialize();
 
@@ -634,8 +629,6 @@ json_object* Host::getJSONObject() {
   if(symbolic_name)       json_object_object_add(my_object, "symbolic_name", json_object_new_string(symbolic_name));
   if(asname)              json_object_object_add(my_object, "asname",    json_object_new_string(asname ? asname : (char*)""));
   if(strlen(get_os()))    json_object_object_add(my_object, "os",        json_object_new_string(get_os()));
-  if(get_traffic_category()[0] != '\0')
-    json_object_object_add(my_object, "trafficCategory",    json_object_new_string(get_traffic_category()));
   if(vlan_id != 0)        json_object_object_add(my_object, "vlan_id",   json_object_new_int(vlan_id));
   json_object_object_add(my_object, "ip", ip.getJSONObject());
 

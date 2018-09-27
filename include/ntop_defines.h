@@ -579,10 +579,6 @@
 #define CONST_EWMA_ALPHA_PERCENT            NTOPNG_PREFS_PREFIX".ewma_alpha_percent"
 #define CONST_DEFAULT_EWMA_ALPHA_PERCENT    15 /* 15% */
 
-#define HTTPBL_DOMAIN                  "dnsbl.httpbl.org"
-#define NULL_BL                        "''"
-//#define DEBUG_HTTPBL
-
 #ifdef NTOPNG_PRO
 #define CONST_DEFAULT_NAGIOS_NSCA_HOST      "localhost"
 #define CONST_DEFAULT_NAGIOS_NSCA_PORT      "5667"
@@ -665,8 +661,6 @@
 #ifndef DLT_IPV4
 #define DLT_IPV4  228
 #endif
-
-#define HTTPBL_STRING              "httpbl:"
 
 #define MAX_NUM_CATEGORIES         3
 #define NTOP_UNKNOWN_CATEGORY_STR  "???"

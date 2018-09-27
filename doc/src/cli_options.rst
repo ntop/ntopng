@@ -41,9 +41,6 @@ ntopng supports a large number of command line parameters. To see what they are,
                                        | containing runtime preferences.
                                        | Default: /var/lib/ntopng
    [--no-promisc|-u]                   | Don't set the interface in promisc mode.
-   [--traffic-filtering|-k] <param>    | Filter traffic using cloud services.
-                                       | (default: disabled). Available options:
-                                       | httpbl:<api_key>   See README.httpbl
    [--http-port|-w] <[addr:]port>      | HTTP. Set to 0 to disable http server.
                                        | Addr can be an IPv4 (192.168.1.1)
                                        | or IPv6 ([3ffe:2a00:100:7031::1]) addr.

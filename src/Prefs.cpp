@@ -77,7 +77,6 @@ Prefs::Prefs(Ntop *_ntop) {
   https_binding_address1 = NULL; // CONST_ANY_ADDRESS;
   https_binding_address2 = NULL;
   lan_interface = NULL;
-  httpbl_key = NULL;
   cpu_affinity = NULL;
   redis_host = strdup("127.0.0.1");
   redis_password = NULL;
@@ -240,9 +239,6 @@ void usage() {
 	 "                                    | containing runtime preferences.\n"
 	 "                                    | Default: %s\n"
 	 "[--no-promisc|-u]                   | Don't set the interface in promisc mode.\n"
-	 "[--traffic-filtering|-k] <param>    | Filter traffic using cloud services.\n"
-	 "                                    | (default: disabled). Available options:\n"
-	 "                                    | httpbl:<api_key>   See README.httpbl\n"
 	 "[--http-port|-w] <[addr:]port>      | HTTP. Set to 0 to disable http server.\n"
 	 "                                    | Addr can be an IPv4 (192.168.1.1)\n"
 	 "                                    | or IPv6 ([3ffe:2a00:100:7031::1]) addr.\n"
@@ -824,13 +820,6 @@ int Prefs::setOption(int optkey, char *optarg) {
       packet_filter[strlen(packet_filter)-1] = '\0';
     } else
       packet_filter = strdup(optarg);
-    break;
-
-  case 'k':
-    if(strncmp(optarg, HTTPBL_STRING, strlen(HTTPBL_STRING)) == 0)
-      httpbl_key = strdup(&optarg[strlen(HTTPBL_STRING)]);
-    else
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unknown value %s for -k", optarg);
     break;
 
   case 'u':
@@ -1536,7 +1525,6 @@ void Prefs::lua(lua_State* vm) {
 
   lua_push_bool_table_entry(vm, "is_dns_resolution_enabled_for_all_hosts", resolve_all_host_ip);
   lua_push_bool_table_entry(vm, "is_dns_resolution_enabled", enable_dns_resolution);
-  lua_push_bool_table_entry(vm, "is_httpbl_enabled", is_httpbl_enabled());
   lua_push_bool_table_entry(vm, "is_autologout_enabled", enable_auto_logout);
   lua_push_int_table_entry(vm, "http_port", http_port);
 

@@ -5,7 +5,6 @@
 
 var host_rows_option = {};
 host_rows_option["ip"] = false;
-host_rows_option["httpbl"] = false;
 host_rows_option["vlan"] = false;
 
 
@@ -28,9 +27,6 @@ function host_table_setID (row) {
   row.find("td").eq(index++).attr('id', host_key+"_alerts");
   row.find("td").eq(index++).attr('id', host_key+"_name");
   row.find("td").eq(index++).attr('id', host_key+"_since");
-  
-  //custom
-  if (host_rows_option["httpbl"]) row.find("td").eq(index++).attr('id', host_key+"_httpbl");
   
   // hosts_stats_bottom
   row.find("td").eq(index++).attr('id', host_key+"_breakdown");

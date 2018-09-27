@@ -171,9 +171,6 @@ if(hosts_stats ~= nil) then
 	    vals[(now-hosts_stats[key]["family"])+postfix] = key
 	 elseif(sortColumn == "column_last") then
 	    vals[(now-hosts_stats[key]["seen.last"]+1)+postfix] = key
-	 elseif(sortColumn == "column_httpbl") then
-	    if(hosts_stats[key]["httpbl"] == nil) then hosts_stats[key]["httpbl"] = "" end
-	    vals[hosts_stats[key]["httpbl"]..postfix] = key
 	 elseif(sortColumn == "column_country") then
 	    vals[hosts_stats[key]["country"]..postfix] = key
 	 elseif(sortColumn == "column_vlan") then
@@ -293,10 +290,6 @@ for _key, _value in pairsByKeys(vals, funct) do
       end
    end
 
-   if((value["httpbl"] ~= nil) and (string.len(value["httpbl"]) > 2)) then
-      print (" <i class='fa fa-frown-o'></i>")
-   end
-
    if((value["num_alerts"] ~= nil) and (value["num_alerts"] > 0)) then
       print(" <i class='fa fa-warning fa-lg' style='color: #B94A48;'></i>")
    end
@@ -306,8 +299,6 @@ for _key, _value in pairsByKeys(vals, funct) do
    end
 
    --   print("</div>")
-
-   if((value["httpbl"] ~= nil) and (string.len(value["httpbl"]) > 2)) then print("\", \"column_httpbl\" : \"".. value["httpbl"]) end
 
    if(value["vlan"] ~= nil) then
 

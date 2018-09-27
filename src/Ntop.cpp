@@ -50,7 +50,6 @@ Ntop::Ntop(char *appName) {
   globals = new NtopGlobals();
   pa = new PeriodicActivities();
   address = new AddressResolution();
-  httpbl = NULL;
   custom_ndpi_protos = NULL;
   prefs = NULL, redis = NULL;
 #ifndef HAVE_NEDGE
@@ -198,7 +197,6 @@ Ntop::~Ntop() {
 
   if(udp_socket != -1) closesocket(udp_socket);
 
-  if(httpbl)              delete httpbl;
   if(trackers_automa)     ndpi_free_automa(trackers_automa);
   if(custom_ndpi_protos)  delete(custom_ndpi_protos);
 #ifndef HAVE_NEDGE
@@ -415,8 +413,6 @@ void Ntop::start() {
 
   strftime(daybuf, sizeof(daybuf), CONST_DB_DAY_FORMAT, localtime(&when));
   snprintf(buf, sizeof(buf), "ntopng.%s.hostkeys", daybuf);
-
-  if(httpbl) httpbl->startLoop();
 
 #ifdef NTOPNG_PRO
   if(!pro->forced_community_edition())

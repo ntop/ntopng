@@ -97,7 +97,6 @@ class Prefs {
   char *data_dir, *install_dir, *docs_dir, *scripts_dir,
 	  *callbacks_dir, *prefs_dir, *export_endpoint;
   char *categorization_key;
-  char *httpbl_key;
   char *zmq_encryption_pwd;
   char *http_prefix;
   char *instance_name;
@@ -171,7 +170,6 @@ class Prefs {
   inline bool is_categorization_enabled()               { return(categorization_enabled); };
   inline void enable_flow_aggregation()                 { flow_aggregation_enabled = true;                                  };
   inline bool is_flow_aggregation_enabled()             { return(flow_aggregation_enabled);                                 };
-  inline bool is_httpbl_enabled()                       { return(httpbl_key ? true : false); };
   inline bool do_change_user()                          { return(change_user);            };
   inline void dont_change_user()                        { change_user = false;            };
   inline bool is_sql_log_enabled()                      { return(enable_sql_log);         };
@@ -202,7 +200,6 @@ class Prefs {
   inline char* get_prefs_dir()                          { return(prefs_dir);      };
   inline char* get_export_endpoint()                    { return(export_endpoint);};
   inline char* get_categorization_key()                 { return(categorization_key); };
-  inline char* get_httpbl_key()                         { return(httpbl_key);  };
   inline char* get_http_prefix()                        { return(http_prefix); };
   inline char* get_instance_name()                      { return(instance_name); };
 
