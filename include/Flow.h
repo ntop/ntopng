@@ -373,7 +373,7 @@ class Flow : public GenericHashEntry {
   bool isReadyToPurge();
   inline bool is_l7_protocol_guessed() { return(l7_protocol_guessed); };
   char* print(char *buf, u_int buf_len);
-  void update_hosts_stats(struct timeval *tv);
+  void update_hosts_stats(struct timeval *tv, bool dump_alert);
   u_int32_t key();
   static u_int32_t key(Host *cli, u_int16_t cli_port,
 		       Host *srv, u_int16_t srv_port,
@@ -386,7 +386,7 @@ class Flow : public GenericHashEntry {
 	     bool *src2srv_direction);
   void sumStats(nDPIStats *stats);
   void guessProtocol();
-  bool dumpFlow();
+  bool dumpFlow(bool dump_alert);
   bool dumpFlowTraffic(void);
   bool match(AddressTree *ptree);
   inline Host* get_real_client() { return(cli2srv_direction ? cli_host : srv_host); }

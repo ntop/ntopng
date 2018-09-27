@@ -252,6 +252,7 @@ local lang = {
     ["remote_origin_local_target"] = "Remote Origin - Local Target",
     ["remote_to_remote_flow"] = "Remote to Remote Flow",
     ["search_criteria"] = "Dashboard Settings",
+    ["slow_stats_update"] = "Slow Statistics Update",
     ["snmp_device_is_unresponsive"] = "SNMP device <a href=\"%{url}\">%{device}</a> is unresponsive",
     ["snmp_port_changed_operational_status"] = "Interface <a href=\"%{port_url}\">%{port}</a> on SNMP device <a href=\"%{url}\">%{device}</a> changed its status to %{new_op}",
     ["snmp_port_changed_status_at"] = "Interface <a href=\"%{port_url}\">%{port}</a> on SNMP device <a href=\"%{url}\">%{device}</a> changed on %{time} to %{op_status}",

@@ -282,6 +282,7 @@ void NetworkInterface::init() {
     pcap_datalink_type = 0, cpu_affinity = -1 /* no affinity */,
     inline_interface = false, running = false, interfaceStats = NULL,
     has_too_many_hosts = has_too_many_flows = too_many_drops = false,
+    slow_stats_update = false,
     pkt_dumper = NULL, numL2Devices = 0, numHosts = 0, numLocalHosts = 0,
     checkpointPktCount = checkpointBytesCount = checkpointPktDropCount = 0,
     pollLoopCreated = false, bridge_interface = false,
@@ -2718,8 +2719,9 @@ void NetworkInterface::getnDPIStats(nDPIStats *stats, AddressTree *allowed_hosts
 static bool flow_update_hosts_stats(GenericHashEntry *node, void *user_data, bool *matched) {
   Flow *flow = (Flow*)node;
   struct timeval *tv = (struct timeval*)user_data;
+  bool dump_alert = ((time(NULL) - tv->tv_sec) < ntop->getPrefs()->get_housekeeping_frequency()) ? true : false;
 
-  flow->update_hosts_stats(tv);
+  flow->update_hosts_stats(tv, dump_alert);
   *matched = true;
 
   return(false); /* false = keep on walking */
@@ -2868,6 +2870,9 @@ void NetworkInterface::periodicStatsUpdate() {
     /* Ownership of the point is passed to the ring */
     ts_ring->insert(pt, tv.tv_sec);
   }
+
+  if((time(NULL) - tv.tv_sec) > ntop->getPrefs()->get_housekeeping_frequency())
+    slow_stats_update = true;
 }
 
 /* **************************************************** */
@@ -5169,6 +5174,7 @@ void NetworkInterface::lua(lua_State *vm) {
   if(has_too_many_flows) lua_push_bool_table_entry(vm, "too_many_flows", true);
   if(has_too_many_hosts) lua_push_bool_table_entry(vm, "too_many_hosts", true);
   if(too_many_drops) lua_push_bool_table_entry(vm, "too_many_drops", true);
+  if(slow_stats_update) lua_push_bool_table_entry(vm, "slow_stats_update", true);
   lua_pushstring(vm, "anomalies");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
