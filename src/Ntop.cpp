@@ -142,7 +142,9 @@ Ntop::Ntop(char *appName) {
   initTimezone();
   ntop->getTrace()->traceEvent(TRACE_INFO, "System Timezone offset: %+ld", time_offset);
 
+#ifdef NTOPNG_PRO
   initAllowedProtocolPresets();
+#endif
   
   udp_socket = socket(AF_INET, SOCK_DGRAM, 0);
 
