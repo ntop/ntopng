@@ -613,6 +613,7 @@ class NetworkInterface : public Checkpointable {
 
   void reloadHideFromTop(bool refreshHosts=true);
   inline void reloadCustomCategories()       { reload_custom_categories = true; }
+  void reloadHostsBlacklist();
   bool isHiddenFromTop(Host *host);
   inline virtual bool areTrafficDirectionsSupported() { return(false); };
   inline virtual bool isView() { return(false); };

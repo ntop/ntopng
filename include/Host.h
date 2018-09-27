@@ -141,6 +141,7 @@ class Host : public Checkpointable, public GenericHashEntry, public GenericTraff
   void set_mac(char *m);
   void set_mac(u_int8_t *m);
   inline bool isBlacklisted()                  { return(blacklisted_host);  };
+  void reloadHostBlacklist();
   inline u_int8_t*  get_mac()                  { return(mac ? mac->get_mac() : NULL);      }
   inline Mac* getMac()                         { return(mac);              }
   virtual char* get_os()                       { return((char*)"");        }

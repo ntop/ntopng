@@ -6843,3 +6843,24 @@ void NetworkInterface::tsLua(lua_State* vm) {
   } else
     ts_ring->lua(vm);
 }
+
+/* *************************************** */
+
+static bool host_reload_blacklist(GenericHashEntry *host, void *user_data, bool *matched) {
+  Host *h = (Host*)host;
+
+  h->reloadHostBlacklist();
+  *matched = true;
+
+  return(false); /* false = keep on walking */
+}
+
+/* *************************************** */
+
+void NetworkInterface::reloadHostsBlacklist() {
+  u_int32_t begin_slot = 0;
+  bool walk_all = true;
+
+  /* Update the hosts */
+  walker(&begin_slot, walk_all,  walker_hosts, host_reload_blacklist, NULL);
+}
