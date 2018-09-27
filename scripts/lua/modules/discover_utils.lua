@@ -329,6 +329,16 @@ end
 
 -- ################################################################################
 
+function discover.id2devtype(id)
+   for k,v in pairs(id2label) do
+      if(k == id) then return v[1] end
+   end
+
+   return("") -- unknown
+end
+
+-- ################################################################################
+
 function discover.devtype2string(devtype)
    devtype = tonumber(devtype)
    for k,v in pairs(id2label) do
