@@ -1660,12 +1660,15 @@ void Ntop::sendNetworkInterfacesTermination() {
 
 /* ******************************************* */
 
+/* NOTE: the multiple isShutdown checks below are necessary to reduce the shutdown time */
 void Ntop::runHousekeepingTasks() {
+  for(int i=0; i<num_defined_interfaces; i++) {
+    if(globals->isShutdown()) return;
+    iface[i]->runHousekeepingTasks();
+  }
+
   if(globals->isShutdown()) return;
 
-  for(int i=0; i<num_defined_interfaces; i++)
-    iface[i]->runHousekeepingTasks();
- 
 #ifndef HAVE_NEDGE
   /* ES stats are updated once as the present implementation is not per-interface  */
   if (ntop->getPrefs()->do_dump_flows_on_es()) {
@@ -1673,14 +1676,16 @@ void Ntop::runHousekeepingTasks() {
     gettimeofday(&tv, NULL);
     ntop->getElasticSearch()->updateStats(&tv);
   }
-  
+
   if(ntop->getPrefs()->do_dump_flows_on_ls()){
     struct timeval tv;
     gettimeofday(&tv, NULL);
     ntop->getLogstash()->updateStats(&tv);
   }
 #endif
-  
+
+  if(globals->isShutdown()) return;
+
 #ifdef NTOPNG_PRO
   pro->runHousekeepingTasks();
 #endif

@@ -74,33 +74,6 @@ void sigproc(int sig) {
     called = 1;
     ntop->getGlobals()->requestShutdown();
   }
-  
-  ntop->shutdownAll();
-
-  delete ntop;
-  ntop = NULL;
-
-#ifdef __linux__
-  switch(afterShutdownAction) {
-  case after_shutdown_reboot:
-    nohup_after_shutdown_command("systemctl start systemd-reboot");
-    break;
-  case after_shutdown_poweroff:
-    nohup_after_shutdown_command("systemctl start systemd-poweroff");
-    break;
-  case after_shutdown_restart_self:
-    /* Necessary to check if the service has been activated via systemd before actually
-       restarting it using systemd. When the service hasn't been started with systemd (e.g., during the development)
-       it is desirable to skip the use of systemd */
-    nohup_after_shutdown_command("systemctl restart ntopng");
-    break;
-  case after_shutdown_nop:
-  default:
-    break;
-  }
-#endif
-
-  _exit(0);
 }
 
 /* ******************************************* */
@@ -429,7 +402,6 @@ int main(int argc, char *argv[])
   signal(SIGHUP,  sighup);
   signal(SIGINT,  sigproc);
   signal(SIGTERM, sigproc);
-  signal(SIGINT,  sigproc);
 #endif
 
 #if defined(WIN32) && defined(DEMO_WIN32)
@@ -439,17 +411,35 @@ int main(int argc, char *argv[])
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "-----------------------------------------------------------");
 #endif
 
+  /* this returns after a shutdown has been requested */
   ntop->start();
 
-  if(ntop->getGlobals()->isShutdownRequested()) {
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Shutdown requested: hold on");
-    sleep(3); /* Wait until all open activities have been completed */
-    ntop->shutdown();
-  }
-  
-  sigproc(0);
+  /* perform all the necessary cleanup and wait for other threads termination */
+  ntop->shutdownAll();
+
   delete ntop;
- 
+  ntop = NULL;
+
+#ifdef __linux__
+  switch(afterShutdownAction) {
+  case after_shutdown_reboot:
+    nohup_after_shutdown_command("systemctl start systemd-reboot");
+    break;
+  case after_shutdown_poweroff:
+    nohup_after_shutdown_command("systemctl start systemd-poweroff");
+    break;
+  case after_shutdown_restart_self:
+    /* Necessary to check if the service has been activated via systemd before actually
+       restarting it using systemd. When the service hasn't been started with systemd (e.g., during the development)
+       it is desirable to skip the use of systemd */
+    nohup_after_shutdown_command("systemctl restart ntopng");
+    break;
+  case after_shutdown_nop:
+  default:
+    break;
+  }
+#endif
+
   return(0);
 }
 
