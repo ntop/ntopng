@@ -31,6 +31,7 @@ local lang = {
   ["define"] = "Define",
   ["delete"] = "Delete",
   ["destination"] = "Destination",
+  ["device_protocols"] = "Protocol Policies for Devices",
   ["difference"] = "Difference",
   ["disabled"] = "Disabled",
   ["dns"] = "DNS",
