@@ -2721,6 +2721,9 @@ static bool flow_update_hosts_stats(GenericHashEntry *node, void *user_data, boo
   struct timeval *tv = (struct timeval*)user_data;
   bool dump_alert = ((time(NULL) - tv->tv_sec) < ntop->getPrefs()->get_housekeeping_frequency()) ? true : false;
 
+  if(ntop->getGlobals()->isShutdownRequested())
+    return(true); /* true = stop walking */
+
   flow->update_hosts_stats(tv, dump_alert);
   *matched = true;
 
@@ -2802,6 +2805,9 @@ void NetworkInterface::periodicStatsUpdate() {
   flows_hash->walk(&begin_slot, walk_all, flow_update_hosts_stats, (void*)&tv);
   topItemsCommit(&tv);
 
+  if(ntop->getGlobals()->isShutdownRequested())
+    return;
+
   // if drop alerts enabled and have some significant packets
   if((packet_drops_alert_perc > 0) && (getNumPacketsSinceReset() > 100)) {
     float drop_perc = getNumPacketDropsSinceReset() * 100.f / (getNumPacketDropsSinceReset() + getNumPacketsSinceReset());
@@ -2846,6 +2852,9 @@ void NetworkInterface::periodicStatsUpdate() {
 
   begin_slot = 0;
   macs_hash->walk(&begin_slot, walk_all, update_macs_stats, (void*)&tv);
+
+  if(ntop->getGlobals()->isShutdownRequested())
+    return;
 
 #ifdef HAVE_MYSQL
   if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
