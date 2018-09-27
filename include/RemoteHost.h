@@ -26,8 +26,6 @@
 
 class RemoteHost : public Host {
  private:
-  bool blacklisted_host;
-
   void initialize();
 
  public:
@@ -36,7 +34,6 @@ class RemoteHost : public Host {
   virtual ~RemoteHost();
 
   virtual int16_t get_local_network_id() { return(-1);                };
-  virtual bool isBlacklisted()           { return(blacklisted_host);  };
   virtual bool isLocalHost()             { return(false);             };
   virtual bool isSystemHost()            { return(false);             };
 };

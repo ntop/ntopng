@@ -57,6 +57,7 @@ class Host : public Checkpointable, public GenericHashEntry, public GenericTraff
   Country *country;
   Vlan *vlan;
   bool host_label_set;
+  bool blacklisted_host;
   u_int32_t host_quota_mb;
 
   Mutex *m;
@@ -139,7 +140,7 @@ class Host : public Checkpointable, public GenericHashEntry, public GenericTraff
   void set_mac(Mac  *m);
   void set_mac(char *m);
   void set_mac(u_int8_t *m);
-  virtual bool isBlacklisted()                 { return(false);                     }
+  inline bool isBlacklisted()                  { return(blacklisted_host);  };
   inline u_int8_t*  get_mac()                  { return(mac ? mac->get_mac() : NULL);      }
   inline Mac* getMac()                         { return(mac);              }
   virtual char* get_os()                       { return((char*)"");        }

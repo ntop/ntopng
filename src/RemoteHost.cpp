@@ -50,14 +50,10 @@ void RemoteHost::initialize() {
   snprintf(host, sizeof(host), "%s@%u", strIP, vlan_id);
   char rsp[256];
 
-  blacklisted_host = false;
-
   if(ntop->getPrefs()->is_dns_resolution_enabled_for_all_hosts()) {
     if(ntop->getRedis()->getAddress(host, rsp, sizeof(rsp), true) == 0)
       setName(rsp);
   }
-
-  blacklisted_host = ntop->isBlacklistedIP(&ip);
 
   iface->incNumHosts(false /* Remote Host */);
 }

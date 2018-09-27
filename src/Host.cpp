@@ -142,6 +142,7 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   memset(&tcpPacketStats, 0, sizeof(tcpPacketStats));
   asn = 0, asname = NULL;
   as = NULL, country = NULL;
+  blacklisted_host = ntop->isBlacklistedIP(&ip);
 
   if(init_all) {
     if((as = iface->getAS(&ip, true)) != NULL) {
