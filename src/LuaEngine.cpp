@@ -5652,6 +5652,8 @@ static int ntop_reload_shapers(lua_State *vm) {
     return(CONST_LUA_ERROR);
 }
 
+#endif
+
 /* ****************************************** */
 
 static int ntop_reload_device_presets(lua_State *vm) {
@@ -5668,8 +5670,6 @@ static int ntop_reload_device_presets(lua_State *vm) {
   lua_pushnil(vm);
   return(CONST_LUA_OK);
 }
-
-#endif
 
 /* ****************************************** */
 
