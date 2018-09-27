@@ -2882,6 +2882,8 @@ void NetworkInterface::periodicStatsUpdate() {
 
   if((time(NULL) - tv.tv_sec) > ntop->getPrefs()->get_housekeeping_frequency())
     slow_stats_update = true;
+  else
+    slow_stats_update = false;
 }
 
 /* **************************************************** */

@@ -1833,7 +1833,7 @@ end
 
 function formatSlowStatsUpdate(ifid, engine, entity_type, entity_value, entity_info, alert_key, alert_info)
    return "Statistics update on ".. formatAlertEntity(ifid, entity_type, entity_value, entity_info) .. " is too slow."..
-      "This could lead to data accuracy loss and missing alerts. Update frequency can be tuned by the "..
+      " This could lead to data accuracy loss and missing alerts. Update frequency can be tuned by the "..
       "<a href=\"".. ntop.getHttpPrefix() .."/lua/admin/prefs.lua?tab=in_memory\">".. i18n("prefs.housekeeping_frequency_title") .."</a> preference."
 end
 
