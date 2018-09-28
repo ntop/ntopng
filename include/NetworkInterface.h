@@ -114,7 +114,8 @@ class NetworkInterface : public Checkpointable {
   LocalTrafficStats localStats;
   int pcap_datalink_type; /**< Datalink type of pcap. */
   pthread_t pollLoop;
-  bool pollLoopCreated, has_too_many_hosts, has_too_many_flows, mtuWarningShown, too_many_drops;
+  bool pollLoopCreated, has_too_many_hosts, has_too_many_flows, mtuWarningShown;
+  bool too_many_drops, slow_stats_update;
   u_int32_t ifSpeed, numL2Devices, numHosts, numLocalHosts, scalingFactor;
   u_int64_t checkpointPktCount, checkpointBytesCount, checkpointPktDropCount; /* Those will hold counters at checkpoints */
   u_int16_t ifMTU;
@@ -613,6 +614,7 @@ class NetworkInterface : public Checkpointable {
 
   void reloadHideFromTop(bool refreshHosts=true);
   inline void reloadCustomCategories()       { reload_custom_categories = true; }
+  void reloadHostsBlacklist();
   bool isHiddenFromTop(Host *host);
   inline virtual bool areTrafficDirectionsSupported() { return(false); };
   inline virtual bool isView() { return(false); };

@@ -142,7 +142,7 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   memset(&tcpPacketStats, 0, sizeof(tcpPacketStats));
   asn = 0, asname = NULL;
   as = NULL, country = NULL;
-  blacklisted_host = ntop->isBlacklistedIP(&ip);
+  blacklisted_host = false, reloadHostBlacklist();
 
   if(init_all) {
     if((as = iface->getAS(&ip, true)) != NULL) {
@@ -1168,6 +1168,12 @@ void Host::splitHostVlan(const char *at_sign_str, char*buf, int bufsize, u_int16
   size = min(bufsize, (int)(vlan_ptr - at_sign_str + 1));
   strncpy(buf, at_sign_str, size);
   buf[size-1] = '\0';
+}
+
+/* *************************************** */
+
+void Host::reloadHostBlacklist() {
+  blacklisted_host = ntop->isBlacklistedIP(&ip);
 }
 
 /* *************************************** */

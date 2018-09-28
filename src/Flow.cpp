@@ -764,11 +764,14 @@ return(buf);
 
 /* *************************************** */
 
-bool Flow::dumpFlow() {
+bool Flow::dumpFlow(bool dump_alert) {
   bool rc = false;
   time_t now;
 
-  dumpFlowAlert();
+  if(dump_alert) {
+    /* NOTE: this can be very time consuming */
+    dumpFlowAlert();
+  }
 
   if(((cli2srv_packets - last_db_dump.cli2srv_packets) == 0)
      && ((srv2cli_packets - last_db_dump.srv2cli_packets) == 0))
@@ -890,7 +893,7 @@ void Flow::incFlowDroppedCounters() {
 
 /* *************************************** */
 
-void Flow::update_hosts_stats(struct timeval *tv) {
+void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
   u_int64_t sent_packets, sent_bytes, sent_goodput_bytes, rcvd_packets, rcvd_bytes, rcvd_goodput_bytes;
   u_int64_t diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes,
     diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes;
@@ -1259,7 +1262,7 @@ void Flow::update_hosts_stats(struct timeval *tv) {
   if(updated)
     memcpy(&last_update_time, tv, sizeof(struct timeval));
 
-  if(dumpFlow()) {
+  if(dumpFlow(dump_alert)) {
     last_db_dump.cli2srv_packets = cli2srv_packets,
       last_db_dump.srv2cli_packets = srv2cli_packets,
       last_db_dump.cli2srv_bytes = cli2srv_bytes,

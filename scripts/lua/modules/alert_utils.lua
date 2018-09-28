@@ -1768,6 +1768,7 @@ end
 
 -- #################################
 
+-- TODO localize
 local function formatThresholdCross(ifid, engine, entity_type, entity_value, entity_info, alert_key, threshold_info)
    if threshold_info.metric then
       local info = alert_consts.alert_functions_info[threshold_info.metric]
@@ -1830,6 +1831,12 @@ local function formatMisconfiguredApp(ifid, engine, entity_type, entity_value, e
    return ""
 end
 
+function formatSlowStatsUpdate(ifid, engine, entity_type, entity_value, entity_info, alert_key, alert_info)
+   return "Statistics update on ".. formatAlertEntity(ifid, entity_type, entity_value, entity_info) .. " is too slow."..
+      " This could lead to data accuracy loss and missing alerts. Update frequency can be tuned by the "..
+      "<a href=\"".. ntop.getHttpPrefix() .."/lua/admin/prefs.lua?tab=in_memory\">".. i18n("prefs.housekeeping_frequency_title") .."</a> preference."
+end
+
 local function formatTooManyPacketDrops(ifid, engine, entity_type, entity_value, entity_info, alert_key, alert_info)
    local max_drop_perc = ntop.getPref(getInterfacePacketDropPercAlertKey(getInterfaceName(ifid)))
    if isEmptyString(max_drop_perc) then
@@ -1854,6 +1861,8 @@ local function formatAlertMessage(ifid, engine, entity_type, entity_value, atype
       msg = formatFlowsFlood(ifid, engine, entity_type, entity_value, entity_info, akey, alert_info)
    elseif atype == "misconfigured_app" then
       msg = formatMisconfiguredApp(ifid, engine, entity_type, entity_value, entity_info, akey, alert_info)
+   elseif atype == "slow_stats_update" then
+      msg = formatSlowStatsUpdate(ifid, engine, entity_type, entity_value, entity_info, akey, alert_info)
    elseif atype == "too_many_drops" then
       msg = formatTooManyPacketDrops(ifid, engine, entity_type, entity_value, entity_info, akey, alert_info)
    end
@@ -1954,6 +1963,8 @@ local function check_entity_alerts(ifid, entity_type, entity_value, working_stat
 	 return "flows_flood"
       elseif anomal_name == "too_many_drops" then
 	 return "too_many_drops"
+      elseif anomal_name == "slow_stats_update" then
+	 return "slow_stats_update"
       elseif starts(anomal_name, "too_many_") then
 	 return "misconfigured_app"
       end

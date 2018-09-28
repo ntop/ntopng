@@ -1547,8 +1547,15 @@ static int ntop_allocHostBlacklist(lua_State* vm) {
 static int ntop_swapHostBlacklist(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
   ntop->swapHostBlacklist();
-  lua_pushnil(vm);
 
+  for(int i=0; i<ntop->get_num_interfaces(); i++) {
+    NetworkInterface *iface;
+
+    if((iface = ntop->getInterfaceAtId(vm, i)) != NULL)
+      iface->reloadHostsBlacklist();
+  }
+
+  lua_pushnil(vm);
   return(CONST_LUA_OK);
 }
 

@@ -282,6 +282,7 @@ void NetworkInterface::init() {
     pcap_datalink_type = 0, cpu_affinity = -1 /* no affinity */,
     inline_interface = false, running = false, interfaceStats = NULL,
     has_too_many_hosts = has_too_many_flows = too_many_drops = false,
+    slow_stats_update = false,
     pkt_dumper = NULL, numL2Devices = 0, numHosts = 0, numLocalHosts = 0,
     checkpointPktCount = checkpointBytesCount = checkpointPktDropCount = 0,
     pollLoopCreated = false, bridge_interface = false,
@@ -2718,8 +2719,12 @@ void NetworkInterface::getnDPIStats(nDPIStats *stats, AddressTree *allowed_hosts
 static bool flow_update_hosts_stats(GenericHashEntry *node, void *user_data, bool *matched) {
   Flow *flow = (Flow*)node;
   struct timeval *tv = (struct timeval*)user_data;
+  bool dump_alert = ((time(NULL) - tv->tv_sec) < ntop->getPrefs()->get_housekeeping_frequency()) ? true : false;
 
-  flow->update_hosts_stats(tv);
+  if(ntop->getGlobals()->isShutdownRequested())
+    return(true); /* true = stop walking */
+
+  flow->update_hosts_stats(tv, dump_alert);
   *matched = true;
 
   return(false); /* false = keep on walking */
@@ -2800,6 +2805,9 @@ void NetworkInterface::periodicStatsUpdate() {
   flows_hash->walk(&begin_slot, walk_all, flow_update_hosts_stats, (void*)&tv);
   topItemsCommit(&tv);
 
+  if(ntop->getGlobals()->isShutdownRequested())
+    return;
+
   // if drop alerts enabled and have some significant packets
   if((packet_drops_alert_perc > 0) && (getNumPacketsSinceReset() > 100)) {
     float drop_perc = getNumPacketDropsSinceReset() * 100.f / (getNumPacketDropsSinceReset() + getNumPacketsSinceReset());
@@ -2845,6 +2853,9 @@ void NetworkInterface::periodicStatsUpdate() {
   begin_slot = 0;
   macs_hash->walk(&begin_slot, walk_all, update_macs_stats, (void*)&tv);
 
+  if(ntop->getGlobals()->isShutdownRequested())
+    return;
+
 #ifdef HAVE_MYSQL
   if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
     static_cast<MySQLDB*>(db)->updateStats(&tv);
@@ -2868,6 +2879,12 @@ void NetworkInterface::periodicStatsUpdate() {
     /* Ownership of the point is passed to the ring */
     ts_ring->insert(pt, tv.tv_sec);
   }
+
+  if((!read_from_pcap_dump()) &&
+      (time(NULL) - tv.tv_sec) > ntop->getPrefs()->get_housekeeping_frequency())
+    slow_stats_update = true;
+  else
+    slow_stats_update = false;
 }
 
 /* **************************************************** */
@@ -5169,6 +5186,7 @@ void NetworkInterface::lua(lua_State *vm) {
   if(has_too_many_flows) lua_push_bool_table_entry(vm, "too_many_flows", true);
   if(has_too_many_hosts) lua_push_bool_table_entry(vm, "too_many_hosts", true);
   if(too_many_drops) lua_push_bool_table_entry(vm, "too_many_drops", true);
+  if(slow_stats_update) lua_push_bool_table_entry(vm, "slow_stats_update", true);
   lua_pushstring(vm, "anomalies");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
@@ -6842,4 +6860,25 @@ void NetworkInterface::tsLua(lua_State* vm) {
     TimeseriesRing::luaSinglePoint(vm, this, &pt);
   } else
     ts_ring->lua(vm);
+}
+
+/* *************************************** */
+
+static bool host_reload_blacklist(GenericHashEntry *host, void *user_data, bool *matched) {
+  Host *h = (Host*)host;
+
+  h->reloadHostBlacklist();
+  *matched = true;
+
+  return(false); /* false = keep on walking */
+}
+
+/* *************************************** */
+
+void NetworkInterface::reloadHostsBlacklist() {
+  u_int32_t begin_slot = 0;
+  bool walk_all = true;
+
+  /* Update the hosts */
+  walker(&begin_slot, walk_all,  walker_hosts, host_reload_blacklist, NULL);
 }

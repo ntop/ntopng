@@ -42,6 +42,7 @@ alert_consts.alert_type_keys = {
    { "<i class='fa fa-truck'></i> " .. i18n("alerts_dashboard.process"),                           20, "process_notification"       },
    { "<i class='fa fa-bitcoin'></i> " .. i18n("alerts_dashboard.web_mining"),                      21, "web_mining"                 },
    { "<i class='fa fa-angle-double-down'></i> " .. i18n("alerts_dashboard.nfq_flushed"),           22, "nfq_flushed"                },
+   { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.slow_stats_update"),           23, "slow_stats_update"          },
 }
 
 -- Keep in sync with ntop_typedefs.h:AlertEntity

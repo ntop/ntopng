@@ -1661,11 +1661,11 @@ void Ntop::sendNetworkInterfacesTermination() {
 /* NOTE: the multiple isShutdown checks below are necessary to reduce the shutdown time */
 void Ntop::runHousekeepingTasks() {
   for(int i=0; i<num_defined_interfaces; i++) {
-    if(globals->isShutdown()) return;
+    if(globals->isShutdownRequested()) return;
     iface[i]->runHousekeepingTasks();
   }
 
-  if(globals->isShutdown()) return;
+  if(globals->isShutdownRequested()) return;
 
 #ifndef HAVE_NEDGE
   /* ES stats are updated once as the present implementation is not per-interface  */
@@ -1682,7 +1682,7 @@ void Ntop::runHousekeepingTasks() {
   }
 #endif
 
-  if(globals->isShutdown()) return;
+  if(globals->isShutdownRequested()) return;
 
 #ifdef NTOPNG_PRO
   pro->runHousekeepingTasks();
