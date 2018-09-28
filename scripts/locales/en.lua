@@ -31,7 +31,6 @@ local lang = {
   ["define"] = "Define",
   ["delete"] = "Delete",
   ["destination"] = "Destination",
-  ["device_protocols"] = "Device Protocols",
   ["difference"] = "Difference",
   ["disabled"] = "Disabled",
   ["dns"] = "DNS",
@@ -527,6 +526,11 @@ local lang = {
     ["traffic_sent_received"] = "Traffic Sent / Received",
     ["vlan_id"] = "VLAN ID",
     ["whois_lookup"] = "Whois Lookup",
+  },
+  ["device_protocols"] = {
+    ["device_protocols"] = "Device Protocols",
+    ["alert"] = "Trigger Alert",
+    ["ok"] = "Acceptable",
   },
   ["device_types"] = {
     ["iot"] = "IoT",
