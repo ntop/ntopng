@@ -281,14 +281,14 @@ end
 
 -- ################################################################################
 
-function discover.printDeviceTypeSelectorOptions(device_type)
+function discover.printDeviceTypeSelectorOptions(device_type, skip_unknown)
    device_type = tonumber(device_type)
 
    for typeid, info in discover.sortedDeviceTypeLabels() do
       local devtype = info[1]
       local label = info[2]
 
-      if devtype ~= "unknown" then
+      if not skip_unknown or devtype ~= "unknown" then
          print("<option value=\"".. typeid .."\"")
          if(typeid == device_type) then print(" selected") end
          print(">".. label .."</option>")
@@ -302,7 +302,7 @@ function discover.printDeviceTypeSelector(device_type, field_name)
    print [[<div class="form-group"><select name="]] print(field_name) print[[" class="form-control">\
    <option value="0"></option>]]
 
-   discover.printDeviceTypeSelectorOptions(device_type)
+   discover.printDeviceTypeSelectorOptions(device_type, true)
 
    print [[</select></div>]]
 end

@@ -21,7 +21,7 @@ end
 local page = _GET["page"] or ""
 local policy_filter = _GET["policy_filter"] or ""
 local proto_filter = _GET["l7proto"] or ""
-local device_type = _GET["device_type"] or "3" -- computer by default
+local device_type = _GET["device_type"] or "0" -- unknown by default
 
 local base_url = ""
 if ntop.isnEdge() then
@@ -106,7 +106,7 @@ local function printDeviceProtocolsPage()
 
    -- Device type selector
    print(i18n("details.device_type")) print(': <select id="device_type_selector" class="form-control device-type-selector" style="display:inline; width: 200px" onchange="document.location.href=\'?page=device_protocols&l7proto=') print(proto_filter) print('&device_type=\' + $(this).val()">')
-   discover.printDeviceTypeSelectorOptions(device_type)
+   discover.printDeviceTypeSelectorOptions(device_type, false)
    print[[</select></td><td style="width:100%"></td>]]
 
    -- Active protocol filter
@@ -196,7 +196,7 @@ local function printDeviceProtocolsPage()
     });
 
   var url_update = "]] print (ntop.getHttpPrefix())
-   print[[/lua/pro/nedge/admin/nf_get_device_protocols.lua?device_type=]] print(device_type)
+   print[[/lua/admin/get_device_protocols.lua?device_type=]] print(device_type)
    if not isEmptyString(policy_filter) then print("&policy_filter=" .. policy_filter) end
    if not isEmptyString(proto_filter) then print("&l7proto=" .. proto_filter) end
    print[[";

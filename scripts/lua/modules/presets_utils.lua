@@ -13,9 +13,10 @@ presets_utils.DROP = "0"
 presets_utils.ALLOW = "1"
 presets_utils.DEFAULT_ACTION = presets_utils.DROP
 
--- Client default presets
+-- Default presets
+-- Note: 'unknown' is also used for device types with no preset defined here
 presets_utils.client_allowed = {
-   ['default'] = { -- this is used when there is no preset for a device type
+   ['unknown'] = {
      18,   -- DHCP
       5,   -- DNS
       7,   -- HTTP
@@ -26,10 +27,8 @@ presets_utils.client_allowed = {
       7,   -- HTTP
    },
 }
-
--- Server default presets
 presets_utils.server_allowed = {
-   ['default'] = { -- this is used when there is no preset for a device type
+   ['unknown'] = {
      18,   -- DHCP
       5,   -- DNS
    },
@@ -139,29 +138,27 @@ function presets_utils.initPolicies()
    for device_type, info in discover.sortedDeviceTypeLabels() do
       local type_name = info[1]
       local label = info[2]
-      if type_name ~= "unknown" then
-         if not presets_utils.devicePoliciesInitialized(device_type) then
-            local device_type_name = discover.id2devtype(device_type)
-            local presets = presets_utils.client_allowed[device_type_name]
-            if presets == nil then
-               traceError(TRACE_WARNING, TRACE_CONSOLE, "No default presets found for '" .. device_type_name .. "' devices as client, using generic presets")
-               presets = presets_utils.client_allowed["default"]
-            end
-            for k,v in pairs(presets) do
-               presets_utils.updateDeviceProto(device_type, "client", v, presets_utils.ALLOW)
-            end
-            presets = presets_utils.server_allowed[device_type_name]
-            if presets == nil then
-               traceError(TRACE_WARNING, TRACE_CONSOLE, "No default presets found for '" .. device_type_name .. "' devices as server, using generic presets")
-               presets = presets_utils.server_allowed["default"]
-            end
-            for k,v in pairs(presets) do
-               presets_utils.updateDeviceProto(device_type, "server", v, presets_utils.ALLOW)
-            end
-            presets_utils.setDevicePoliciesInitialized(device_type)
+      if not presets_utils.devicePoliciesInitialized(device_type) then
+         local device_type_name = discover.id2devtype(device_type)
+         local presets = presets_utils.client_allowed[device_type_name]
+         if presets == nil then
+            traceError(TRACE_WARNING, TRACE_CONSOLE, "No default presets found for '" .. device_type_name .. "' devices as client, using presets of 'unknown' devices")
+            presets = presets_utils.client_allowed["unknown"]
          end
-         presets_utils.reloadDevicePolicies(device_type)
+         for k,v in pairs(presets) do
+            presets_utils.updateDeviceProto(device_type, "client", v, presets_utils.ALLOW)
+         end
+         presets = presets_utils.server_allowed[device_type_name]
+         if presets == nil then
+            traceError(TRACE_WARNING, TRACE_CONSOLE, "No default presets found for '" .. device_type_name .. "' devices as server, using presets of 'unknown' devices")
+            presets = presets_utils.server_allowed["unknown"]
+         end
+         for k,v in pairs(presets) do
+            presets_utils.updateDeviceProto(device_type, "server", v, presets_utils.ALLOW)
+         end
+         presets_utils.setDevicePoliciesInitialized(device_type)
       end
+      presets_utils.reloadDevicePolicies(device_type)
    end
 end
 
