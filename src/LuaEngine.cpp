@@ -5666,14 +5666,13 @@ static int ntop_reload_shapers(lua_State *vm) {
 static int ntop_reload_device_presets(lua_State *vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-#ifdef NTOPNG_PRO
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
   else {
     u_int device_type = (u_int) lua_tonumber(vm, 1);
     if(ntop->getPro()->has_valid_license())
-      ntop->getPro()->refreshAllowedProtocolPresets((DeviceType) device_type);
+      ntop->refreshAllowedProtocolPresets((DeviceType) device_type);
   }
-#endif
+
   lua_pushnil(vm);
   return(CONST_LUA_OK);
 }

@@ -1826,16 +1826,71 @@ bool Ntop::isATrackerHost(char *host) {
 
 /* ******************************************* */
 
-#ifdef NTOPNG_PRO
-
 void Ntop::initAllowedProtocolPresets() {
   for(u_int i=0; i<device_max_type; i++) {
-    NDPI_BITMASK_SET_ALL(deviceProtocolPresets[i].clientAllowed);
-    NDPI_BITMASK_SET_ALL(deviceProtocolPresets[i].serverAllowed);
+    DeviceProtocolBitmask *b = ntop->getDeviceAllowedProtocols((DeviceType) i);
+    NDPI_BITMASK_SET_ALL(b->clientAllowed);
+    NDPI_BITMASK_SET_ALL(b->serverAllowed);
   }
 }
 
 /* ******************************************* */
+
+void Ntop::refreshAllowedProtocolPresets(DeviceType t) {
+  DeviceProtocolBitmask *b = ntop->getDeviceAllowedProtocols(t);
+  char key[CONST_MAX_LEN_REDIS_KEY];
+  /* char val[CONST_MAX_LEN_REDIS_VALUE]; */
+  char **vals;
+  int rc;
+
+  if(!ntop->getRedis()) return;
+
+  snprintf(key, sizeof(key), "ntopng.prefs.device_policies.client.%u", (u_int) t);
+  rc = ntop->getRedis()->hashKeys(key, &vals);
+
+  if (rc >= 0) {
+#ifdef PRESETS_DEBUG
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Reloading policy for device type %u [%u allowed protocols]", t, rc);
+#endif
+
+    NDPI_BITMASK_RESET(b->clientAllowed);
+    for (int i = 0; i < rc; i++) {
+      if (vals[i][0] != '\0' 
+          /* Note: no need to check the value as we store allowed protocols only
+           * && ntop->getRedis()->hashGet(key, vals[i], val, sizeof(val)) == 0 */
+        ) {
+        int proto = atoi(vals[i]);
+        NDPI_BITMASK_ADD(b->clientAllowed, proto);
+      }
+      free(vals[i]);
+    }
+    free(vals);
+  }
+
+  snprintf(key, sizeof(key), "ntopng.prefs.device_policies.server.%u", (u_int) t);
+  rc = ntop->getRedis()->hashKeys(key, &vals);
+
+  if (rc >= 0) {
+#ifdef PRESETS_DEBUG
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Reloading policy for device type %u [%u allowed protocols]", t, rc);
+#endif
+    NDPI_BITMASK_RESET(b->serverAllowed);
+    for (int i = 0; i < rc; i++) {
+      if (vals[i][0] != '\0' 
+          /* Note: no need to check the value as we store allowed protocols only
+           * && ntop->getRedis()->hashGet(key, vals[i], val, sizeof(val)) == 0 */ ) {
+        int proto = atoi(vals[i]);
+        NDPI_BITMASK_ADD(b->serverAllowed, proto);
+      }
+      free(vals[i]);
+    }
+    free(vals);
+  }
+}
+
+/* ******************************************* */
+
+#ifdef NTOPNG_PRO
 
 bool Ntop::addIPToLRUMatches(u_int32_t client_ip,
 			     u_int16_t user_pool_id,
