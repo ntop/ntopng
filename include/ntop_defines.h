@@ -524,6 +524,7 @@
 #define DISAGGREGATION_VLAN                            "vlan"
 #define DISAGGREGATION_NONE                            "none"
 #ifdef NTOPNG_PRO
+#define MAX_NUM_CUSTOM_APPS  128
 #define CONST_RUNTIME_PREFS_ALERT_NAGIOS             NTOPNG_PREFS_PREFIX".alerts.nagios_notifications_enabled"    /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_DAILY_REPORTS            NTOPNG_PREFS_PREFIX".daily_reports"    /* 0 / 1 */
 #endif

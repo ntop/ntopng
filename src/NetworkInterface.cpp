@@ -220,7 +220,9 @@ NetworkInterface::NetworkInterface(const char *name,
   shadow_flow_profiles = NULL;
 #endif
 
-  flow_interfaces_stats = NULL; /* Lazy, instantiated on demand */
+  /* Lazy, instantiated on demand */
+  custom_app_stats = NULL;
+  flow_interfaces_stats = NULL;
 #endif
 
   loadScalingFactorPrefs();
@@ -312,6 +314,7 @@ void NetworkInterface::init() {
   
   db = NULL;
 #ifdef NTOPNG_PRO
+  custom_app_stats = NULL;
   aggregated_flows_hash = NULL, flow_interfaces_stats = NULL;
   policer = NULL;
 #endif
@@ -779,6 +782,7 @@ NetworkInterface::~NetworkInterface() {
   if(flow_profiles)         delete(flow_profiles);
   if(shadow_flow_profiles)  delete(shadow_flow_profiles);
 #endif
+  if(custom_app_stats)      delete custom_app_stats;
   if(flow_interfaces_stats) delete flow_interfaces_stats;
 #endif
   if(hide_from_top)         delete(hide_from_top);
@@ -1445,6 +1449,17 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
   if(zflow->ssl_server_name) flow->setServerName(zflow->ssl_server_name);
   if(zflow->bittorrent_hash) flow->setBTHash(zflow->bittorrent_hash);
   if(zflow->core.vrfId)      flow->setVRFid(zflow->core.vrfId);
+#ifdef NTOPNG_PRO
+  if(zflow->custom_app.pen) {
+    flow->setCustomApp(zflow->custom_app);
+
+    if(custom_app_stats || (custom_app_stats = new(std::nothrow) CustomAppStats(this))) {
+      custom_app_stats->incStats(zflow->custom_app.remapped_app_id,
+				zflow->core.pkt_sampling_rate * (zflow->core.in_bytes + zflow->core.out_bytes));
+    }
+  }
+#endif
+
   /* Do not put incStats before guessing the flow protocol */
   incStats(true /* ingressPacket */,
 	   now, srcIP.isIPv4() ? ETHERTYPE_IP : ETHERTYPE_IPV6,
@@ -5218,6 +5233,11 @@ void NetworkInterface::lua(lua_State *vm) {
 
   if(host_pools)
     host_pools->lua(vm);
+
+#ifdef NTOPNG_PRO
+  if(custom_app_stats)
+    custom_app_stats->lua(vm);  
+#endif
 }
 
 /* **************************************************** */

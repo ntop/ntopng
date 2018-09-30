@@ -5663,6 +5663,7 @@ static int ntop_reload_shapers(lua_State *vm) {
 
 /* ****************************************** */
 
+#ifdef HAVE_NEDGE
 static int ntop_reload_device_presets(lua_State *vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -5676,6 +5677,7 @@ static int ntop_reload_device_presets(lua_State *vm) {
   lua_pushnil(vm);
   return(CONST_LUA_OK);
 }
+#endif
 
 /* ****************************************** */
 
@@ -8116,10 +8118,6 @@ static const luaL_Reg ntop_reg[] = {
   { "setRoutingMode",        ntop_set_routing_mode         },
   { "isRoutingMode",         ntop_is_routing_mode          },
   { "setLanInterface",       ntop_set_lan_interface        },
-#endif
-
-  /* Device Presets */
-#ifdef NTOPNG_PRO
   { "reloadDevicePresets",   ntop_reload_device_presets    },
 #endif
 

@@ -28,6 +28,10 @@ GenericTrafficElement::GenericTrafficElement() {
   ndpiStats = NULL;
   host_pool_id = NO_HOST_POOL_ID;
   resetStats();
+
+#ifdef NTOPNG_PRO
+  custom_app_stats = NULL;
+#endif
 }
 
 /* *************************************** */

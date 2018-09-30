@@ -37,7 +37,9 @@ class ParserInterface : public NetworkInterface {
   u_int64_t zmq_initial_bytes, zmq_initial_pkts,
     zmq_remote_initial_exported_flows;
   ZMQ_RemoteStats *zmq_remote_stats, *zmq_remote_stats_shadow;
-
+#ifdef NTOPNG_PRO
+  CustomAppMaps *custom_app_maps;
+#endif
   int getKeyId(char *sym);
   void addMapping(const char *sym, int num);
   void parseSingleFlow(json_object *o, u_int8_t source_id, NetworkInterface *iface);
@@ -51,6 +53,9 @@ class ParserInterface : public NetworkInterface {
   u_int8_t parseCounter(char *payload, int payload_size, u_int8_t source_id, void *data);
 
   virtual void setRemoteStats(ZMQ_RemoteStats *zrs);
+#ifdef NTOPNG_PRO
+  virtual bool getCustomAppDetails(u_int32_t remapped_app_id, u_int32_t *const pen, u_int32_t *const app_field, u_int32_t *const app_id);
+#endif
   u_int32_t getNumDroppedPackets() { return zmq_remote_stats ? zmq_remote_stats->sflow_pkt_sample_drops : 0; };
   virtual void lua(lua_State* vm);
 };

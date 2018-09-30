@@ -1826,6 +1826,7 @@ bool Ntop::isATrackerHost(char *host) {
 
 /* ******************************************* */
 
+#ifdef NTOPNG_PRO
 void Ntop::initAllowedProtocolPresets() {
   for(u_int i=0; i<device_max_type; i++) {
     DeviceProtocolBitmask *b = ntop->getDeviceAllowedProtocols((DeviceType) i);
@@ -1833,6 +1834,7 @@ void Ntop::initAllowedProtocolPresets() {
     NDPI_BITMASK_SET_ALL(b->serverAllowed);
   }
 }
+#endif
 
 /* ******************************************* */
 

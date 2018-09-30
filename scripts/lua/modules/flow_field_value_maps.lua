@@ -25,7 +25,7 @@ end
 
 -- ################################################################################
 
-local function field_to_pen_and_type(field)
+function flow_field_value_maps.key_to_pen_type_and_value(field)
    -- nProbe exports the field as the dot-concatenation
    -- of PEN and TYPE
    -- Example: 8741.22
@@ -35,13 +35,13 @@ local function field_to_pen_and_type(field)
    local pen_type = field:split("%.") or {}
 
    --   tprint({field = field, field_pen = field_pen, field_type = field_type})
-   return pen_type[1], pen_type[2]
+   return pen_type[1], pen_type[2], pen_type[3]
 end
 
 -- ################################################################################
 
 function flow_field_value_maps.map_field_value(field, value)
-   local field_pen, field_type = field_to_pen_and_type(field)
+   local field_pen, field_type = flow_field_value_maps.key_to_pen_type_and_value(field)
 
    if field_pen ~= nil and field_type ~= nil then
       -- if pen or type is nil then

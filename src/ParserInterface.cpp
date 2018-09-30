@@ -31,6 +31,9 @@ ParserInterface::ParserInterface(const char *endpoint, const char *custom_interf
   zmq_remote_stats = zmq_remote_stats_shadow = NULL;
   zmq_remote_initial_exported_flows = 0;
   map = NULL, once = false;
+#ifdef NTOPNG_PRO
+  custom_app_maps = NULL;
+#endif
 
   addMapping("IN_BYTES", 1);
   addMapping("IN_PKTS", 2);
@@ -465,6 +468,9 @@ ParserInterface::~ParserInterface() {
 
   if(zmq_remote_stats)        free(zmq_remote_stats);
   if(zmq_remote_stats_shadow) free(zmq_remote_stats_shadow);
+#ifdef NTOPNG_PRO
+  if(custom_app_maps)         delete(custom_app_maps);
+#endif
 }
 
 /* **************************************************** */
@@ -942,6 +948,10 @@ void ParserInterface::parseSingleFlow(json_object *o,
 	flow.core.vrfId = atoi(value);
 	break;
       default:
+#ifdef NTOPNG_PRO
+	if(custom_app_maps || (custom_app_maps = new(std::nothrow) CustomAppMaps()))
+	  custom_app_maps->checkCustomApp(key, value, &flow);
+#endif
 	ntop->getTrace()->traceEvent(TRACE_DEBUG, "Not handled ZMQ field %u/%s", key_id, key);
 	add_to_additional_fields = true;
 	break;
@@ -1142,6 +1152,14 @@ void ParserInterface::setRemoteStats(ZMQ_RemoteStats *zrs) {
    *
    */
 }
+
+/* **************************************************** */
+
+#ifdef NTOPNG_PRO
+bool ParserInterface::getCustomAppDetails(u_int32_t remapped_app_id, u_int32_t *const pen, u_int32_t *const app_field, u_int32_t *const app_id) {
+  return custom_app_maps && custom_app_maps->getCustomAppDetails(remapped_app_id, pen, app_field, app_id);
+}
+#endif
 
 /* **************************************************** */
 

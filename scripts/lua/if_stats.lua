@@ -689,6 +689,18 @@ elseif(page == "ndpi") then
    print [[
 <script type="text/javascript" src="]] print(ntop.getHttpPrefix()) print [[/js/jquery.tablesorter.js"></script>
   <table class="table table-bordered table-striped">
+]]
+
+   if ntop.isPro() and ifstats["custom_apps"] then
+      print[[
+    <tr>
+      <th class="text-left">]] print(i18n("ndpi_page.overview", {what = i18n("ndpi_page.custom_applications")})) print [[</th>
+      <td colspan=5><div class="pie-chart" id="topCustomApps"></div></td>
+    </tr>
+]]
+   end
+
+   print[[
     <tr>
       <th class="text-left">]] print(i18n("ndpi_page.overview", {what = i18n("ndpi_page.application_protocol")})) print [[</th>
       <td colspan=3><div class="pie-chart" id="topApplicationProtocols"></div></td>
@@ -708,9 +720,16 @@ elseif(page == "ndpi") then
   </div>
 
 	<script type='text/javascript'>
-	 window.onload=function() {
+	 window.onload=function() {]]
 
-       do_pie("#topApplicationProtocols", ']]
+   if ntop.isPro() and ifstats["custom_apps"] then
+      print[[do_pie("#topCustomApps", ']]
+      print (ntop.getHttpPrefix())
+      print [[/lua/pro/get_custom_app_stats.lua', { ifid: "]] print(ifid) print [[" }, "", refresh);
+]]
+   end
+
+   print[[do_pie("#topApplicationProtocols", ']]
    print (ntop.getHttpPrefix())
    print [[/lua/iface_ndpi_stats.lua', { ndpistats_mode: "sinceStartup", ifid: "]] print(ifid) print [[" }, "", refresh);
 

@@ -458,7 +458,10 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   if(verbose) {
     char *rsp = serialize();
 
-    if(ndpiStats) ndpiStats->lua(iface, vm, true);
+    if(ndpiStats)        ndpiStats->lua(iface, vm, true);
+#ifdef NTOPNG_PRO
+    if(custom_app_stats) custom_app_stats->lua(vm);
+#endif
     lua_push_str_table_entry(vm, "json", rsp);
     free(rsp);
 
@@ -557,6 +560,7 @@ bool Host::idle() {
 /* *************************************** */
 
 void Host::incStats(u_int32_t when, u_int8_t l4_proto, u_int ndpi_proto,
+		    custom_app_t custom_app,
 		    u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
 		    u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes) {
 
@@ -570,6 +574,13 @@ void Host::incStats(u_int32_t when, u_int8_t l4_proto, u_int ndpi_proto,
 				    sent_bytes, rcvd_bytes);
 
     }
+
+#ifdef NTOPNG_PRO
+    if(custom_app.pen
+       && (custom_app_stats || (custom_app_stats = new(std::nothrow) CustomAppStats(iface)))) {
+      custom_app_stats->incStats(custom_app.remapped_app_id, sent_bytes + rcvd_bytes); 
+    }
+#endif
 
     if(when && when - last_epoch_update >= ntop->getPrefs()->get_housekeeping_frequency())
       total_activity_time += ntop->getPrefs()->get_housekeeping_frequency(), last_epoch_update = when;

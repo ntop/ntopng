@@ -42,7 +42,7 @@ Flow::Flow(NetworkInterface *_iface,
   l7_protocol_guessed = detection_completed = false,
     flow_packets_head = flow_packets_tail = NULL,
     dump_flow_traffic = false,
-    memset(&ndpiDetectedProtocol, 0, sizeof(ndpiDetectedProtocol));
+    memset(&ndpiDetectedProtocol, 0, sizeof(ndpiDetectedProtocol)),
   doNotExpireBefore = iface->getTimeLastPktRcvd() + DONT_NOT_EXPIRE_BEFORE_SEC;
 #ifdef HAVE_NEDGE
   last_conntrack_update = 0;
@@ -76,6 +76,8 @@ Flow::Flow(NetworkInterface *_iface,
   iface->findFlowHosts(_vlanId, _cli_mac, _cli_ip, &cli_host, _srv_mac, _srv_ip, &srv_host);
   if(cli_host) { cli_host->incUses(); cli_host->incNumFlows(true, srv_host);  }
   if(srv_host) { srv_host->incUses(); srv_host->incNumFlows(false, cli_host); }
+
+  memset(&custom_app, 0, sizeof(custom_app));
 
 #ifdef NTOPNG_PRO
   HostPools *hp = iface->getHostPools();
@@ -1022,7 +1024,7 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
 
       // Update network stats
       cli_network_stats = cli_host->getNetworkStats(cli_network_id);
-      cli_host->incStats(tv->tv_sec, protocol, stats_protocol,
+      cli_host->incStats(tv->tv_sec, protocol, stats_protocol, custom_app,
 			 diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes,
 			 diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes);
 
@@ -1044,7 +1046,7 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
       NetworkStats *srv_network_stats;
 
       srv_network_stats = srv_host->getNetworkStats(srv_network_id);
-      srv_host->incStats(tv->tv_sec, protocol, stats_protocol,
+      srv_host->incStats(tv->tv_sec, protocol, stats_protocol, custom_app,
 			 diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes,
 			 diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes);
 

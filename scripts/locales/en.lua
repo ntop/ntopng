@@ -1786,6 +1786,7 @@ local lang = {
     ["secs"] = "Secs",
   },
   ["ndpi_page"] = {
+    ["custom_applications"] = "Custom Applications",
     ["application_protocol"] = "Application Protocol",
     ["application_protocol_category"] = "Application Protocol Category",
     ["live_flows_count"] = "Live Flows Count",

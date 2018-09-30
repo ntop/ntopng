@@ -94,6 +94,7 @@ class Flow : public GenericHashEntry {
   CounterTrend throughputTrend, goodputTrend, thptRatioTrend;
 #endif
   ndpi_protocol ndpiDetectedProtocol;
+  custom_app_t custom_app;
   void *cli_id, *srv_id;
   char *json_info, *host_server_name, *bt_hash;
   bool dump_flow_traffic;
@@ -300,6 +301,9 @@ class Flow : public GenericHashEntry {
   void updateSeqNum(time_t when, u_int32_t sN, u_int32_t aN);
   void processDetectedProtocol();
   void setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection);
+  void setCustomApp(custom_app_t ca) {
+    memcpy(&custom_app, &ca, sizeof(custom_app));
+  };
   void setJSONInfo(const char *json);
 #ifdef NTOPNG_PRO
   inline bool is_counted_in_aggregated_flow()          { return(counted_in_aggregated_flow); };

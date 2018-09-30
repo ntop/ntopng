@@ -104,6 +104,7 @@ class NetworkInterface : public Checkpointable {
 #ifndef HAVE_NEDGE
   FlowProfiles  *flow_profiles, *shadow_flow_profiles;
 #endif
+  CustomAppStats *custom_app_stats;
   FlowInterfacesStats *flow_interfaces_stats;
   AggregatedFlowHash *aggregated_flows_hash; /**< Hash used to store aggregated flows information. */
 #endif
@@ -634,6 +635,7 @@ class NetworkInterface : public Checkpointable {
   inline void decAlertLevel()               { if(--alertLevel < 0) alertLevel = 0; }
   inline int8_t getAlertLevel()             { return(alertLevel);                  }
 #ifdef NTOPNG_PRO
+  virtual bool getCustomAppDetails(u_int32_t remapped_app_id, u_int32_t *const pen, u_int32_t *const app_field, u_int32_t *const app_id) { return false; };
   virtual void addToNotifiedInformativeCaptivePortal(u_int32_t client_ip) { ; };
   virtual void addIPToLRUMatches(u_int32_t client_ip, u_int16_t user_pool_id,
 				 char *label, int32_t lifetime_sec) { ; };

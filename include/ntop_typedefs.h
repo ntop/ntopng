@@ -175,10 +175,20 @@ typedef struct zmq_flow_core {
   //char extn[];
 } ZMQ_FlowCore;
 
+/* Handle vendor-proprietary applications.
+   Must stay with 32-bit integers as, at least sonicwall, uses
+   32-bit application ids. */
+typedef struct {
+  u_int32_t pen;
+  u_int32_t app_id;
+  u_int32_t remapped_app_id;
+} custom_app_t;
+
 typedef struct zmq_flow {
   ZMQ_FlowCore core;
   json_object *additional_fields;
   char *http_url, *http_site, *dns_query, *ssl_server_name, *bittorrent_hash;
+  custom_app_t custom_app;
   /* Process Extensions */
   ProcessInfo src_process, dst_process;
 } ZMQ_Flow;

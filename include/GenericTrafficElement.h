@@ -29,6 +29,9 @@ class GenericTrafficElement {
   u_int16_t vlan_id;
   TrafficStats sent, rcvd;
   nDPIStats *ndpiStats;
+#ifdef NTOPNG_PRO
+  CustomAppStats *custom_app_stats;
+#endif
   u_int32_t total_num_dropped_flows;
 
   float bytes_thpt, pkts_thpt;
@@ -46,6 +49,9 @@ class GenericTrafficElement {
 
   virtual ~GenericTrafficElement() {
     if(ndpiStats) delete ndpiStats;
+#ifdef NTOPNG_PRO
+    if(custom_app_stats) delete custom_app_stats;
+#endif
   };
   inline u_int16_t get_host_pool()         { return(host_pool_id);   };
   inline u_int16_t get_vlan_id()           { return(vlan_id);        };
