@@ -160,16 +160,21 @@ local function printDeviceProtocolsPage()
       <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[">
       <div id="]] print(table_id) print[["></div>
       <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button>
-   </form>
+   </form>]]
+  
+   if ntop.isnEdge() then
+     print[[
    <span>
    ]] print(i18n("notes")) print[[
    <ul>
-     <li>]] 
-   print(i18n("nedge.device_protocol_policy_has_higher_priority")) print[[
-     </li>
+     <li>]] print(i18n("nedge.device_protocol_policy_has_higher_priority")) print[[</li>
+     <li>]] print(i18n("nedge.protocol_policy_has_higher_priority")) print[[</li>
    </ul>
    </span>
+   ]]
+   end
 
+   print[[
    <script type="text/javascript">
     aysHandleForm("#]] print(form_id) print[[");
     $("#]] print(form_id) print[[").submit(function() {
