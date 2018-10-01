@@ -6728,6 +6728,8 @@ bool NetworkInterface::matchLiveCapture(struct ntopngLuaContext * const luactx,
 
 void NetworkInterface::deliverLiveCapture(const struct pcap_pkthdr * const h,
 					  const u_char * const packet, Flow * const f) {
+  int res;
+
   for(u_int i=0, num_found = 0; (i<MAX_NUM_PCAP_CAPTURES)
 	&& (num_found < num_live_captures); i++) {
     if(live_captures[i] != NULL) {
@@ -6738,41 +6740,43 @@ void NetworkInterface::deliverLiveCapture(const struct pcap_pkthdr * const h,
 
       if(c->live_capture.capture_until < h->ts.tv_sec || c->live_capture.stopped)
 	http_client_disconnected = true;      
-      
-      if((!http_client_disconnected)
+
+      /* The header is always sent even when there is never a match with matchLiveCapture,
+         as otherwise some browsers may end up in hangning. Hanging has been
+         verified with Safari Version 12.0 (13606.2.11)
+	 but not with Chrome Version 68.0.3440.106 (Official Build) (64-bit) */
+      if(!http_client_disconnected
+	 && c->conn
+	 && !c->live_capture.pcaphdr_sent) {
+	struct pcap_file_header pcaphdr;
+
+	Utils::init_pcap_header(&pcaphdr, this);
+
+	if((res = mg_write_async(c->conn, &pcaphdr, sizeof(pcaphdr))) < (int)sizeof(pcaphdr))
+	  http_client_disconnected = true;
+
+	c->live_capture.pcaphdr_sent = true;
+      }
+
+      if(!http_client_disconnected
 	 && c->conn
 	 && matchLiveCapture(c, h, packet, f)) {
-	if(!c->live_capture.pcaphdr_sent) {
-	  struct pcap_file_header pcaphdr;
-	  int res;
-	  
-	  Utils::init_pcap_header(&pcaphdr, this);
-	  
-	  if((res = mg_write_async(c->conn, &pcaphdr, sizeof(pcaphdr))) < (int)sizeof(pcaphdr))
+	struct pcap_disk_pkthdr pkthdr; /* Cannot use h as the format on disk differs */
+
+	pkthdr.ts.tv_sec = h->ts.tv_sec, pkthdr.ts.tv_usec = h->ts.tv_usec,
+	  pkthdr.caplen = h->caplen, pkthdr.len = h->len;
+
+	if(
+	   ((res = mg_write_async(c->conn, &pkthdr, sizeof(pkthdr))) < (int)sizeof(pkthdr))
+	   || ((res = mg_write_async(c->conn, packet, h->caplen)) < (int)h->caplen)
+	   )
+	  http_client_disconnected = true;
+	else {
+	  c->live_capture.num_captured_packets++;
+
+	  if((c->live_capture.capture_max_pkts != 0)
+	     && (c->live_capture.num_captured_packets == c->live_capture.capture_max_pkts))
 	    http_client_disconnected = true;
-
-	  c->live_capture.pcaphdr_sent = true;
-	}
-
-	if(!http_client_disconnected) {
-	  int res;
-	  struct pcap_disk_pkthdr pkthdr; /* Cannot use h as the format on disk differs */
-
-	  pkthdr.ts.tv_sec = h->ts.tv_sec, pkthdr.ts.tv_usec = h->ts.tv_usec,
-	    pkthdr.caplen = h->caplen, pkthdr.len = h->len;
-
-	  if(
-	    ((res = mg_write_async(c->conn, &pkthdr, sizeof(pkthdr))) < (int)sizeof(pkthdr))
-	    || ((res = mg_write_async(c->conn, packet, h->caplen)) < (int)h->caplen)
-	    )
-	    http_client_disconnected = true;
-	  else {
-	    c->live_capture.num_captured_packets++;
-
-	    if((c->live_capture.capture_max_pkts != 0)
-	       && (c->live_capture.num_captured_packets == c->live_capture.capture_max_pkts))
-	      http_client_disconnected = true;
-	  }
 	}
       }
 
