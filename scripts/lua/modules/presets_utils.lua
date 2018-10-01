@@ -38,7 +38,7 @@ if ntop.isnEdge() then
    drop_icon = "ban"
    allow_icon = "asterisk"
    drop_text = i18n("users.shapers.drop")
-   allow_text = i18n("users.shapers.drop")
+   allow_text = i18n("users.shapers.default")
 end
 
 -- Constants
