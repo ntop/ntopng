@@ -1667,6 +1667,9 @@ local lang = {
     ["error_generic"] = "Generic Error",
     ["error_not_found"] = "Not found",
     ["error_not_granted"] = "Request not granted",
+    ["modal_vlan_tagged_with_bpf_title"] = "Host pcap Download",
+    ["modal_vlan_tagged_with_bpf_confirmation"] = "This host is VLAN-tagged. The BPF filter submitted, to properly match packets, must contain VLAN 51. The VLAN can be specified in the filter as <br> <pre>vlan %{vlan} and <i>...rest of the filter...</i></pre>",
+    ["modal_vlan_tagged_with_bpf_continue"] = "Continue",
   },
   ["local_flow_matrix"] = {
     ["error_no_local_hosts"] = "No local hosts can be found",
