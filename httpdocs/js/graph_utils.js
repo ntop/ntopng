@@ -728,6 +728,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
 function updateGraphsTableView(graph_table, view, graph_params, nindex_buttons) {
   if(view.columns) {
     var url = http_prefix + (view.nindex_view ? "/lua/enterprise/get_flows.lua" : "/lua/enterprise/get_ts_table.lua");
+    var params_obj = graph_params.ts_query.split(",").reduce(function(params, value) { var v = value.split(":"); params[v[0]] = v[1]; return params; }, {});
 
     var columns = view.columns.map(function(col) {
       return {
@@ -768,7 +769,15 @@ function updateGraphsTableView(graph_table, view, graph_params, nindex_buttons) 
            stats_div.show();
         } else
           stats_div.hide();
-      },
+      }, rowCallback: function(row, row_data) {
+        if((params_obj.category && (row_data.tags.category === params_obj.category)) ||
+            (params_obj.protocol && (row_data.tags.protocol === params_obj.protocol))) {
+          /* Highlight the row */
+          row.addClass("info");
+        }
+
+        return row;
+      }
     });
   }
 }
