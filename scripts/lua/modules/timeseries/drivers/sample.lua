@@ -28,6 +28,7 @@ end
 --! @param tend upper time bound for the query.
 --! @param tags a list of filter tags. It contains exactly the tags defined in the schema.
 --! @param options query options.
+--! @return a (possibly empty) query result on success, nil on failure.
 function driver:query(schema, tstart, tend, tags, options)
 end
 
@@ -47,7 +48,7 @@ end
 --! @param tend upper time bound for the query.
 --! @param options query options.
 --! @param top_tags the remaining tags of the schema, on which top k calculation is taking place.
---! @return a topk result on success, nil on error.
+--! @return a (possibly empty) topk result on success, nil on error.
 function driver:topk(schema, tags, tstart, tend, options, top_tags)
 end
 

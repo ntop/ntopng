@@ -1767,14 +1767,6 @@ function get_version_update_msg(info, latest_version)
   end
 end
 
-function table.empty(table)
-  if(table == nil) then return true end
-  if next(table) == nil then
-    return true
-  end
-  return false
-end
-
 function table.len(table)
  local count = 0
 

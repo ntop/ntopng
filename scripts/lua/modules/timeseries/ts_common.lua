@@ -159,4 +159,39 @@ end
 
 -- ##############################################
 
+function ts_common.calculateSampledTimeStep(schema, tstart, tend, options)
+  local estimed_num_points = math.ceil((tend - tstart) / schema.options.step)
+  local time_step = schema.options.step
+
+  if estimed_num_points > options.max_num_points then
+    -- downsample
+    local num_samples = math.ceil(estimed_num_points / options.max_num_points)
+    time_step = num_samples * schema.options.step
+  end
+
+  return time_step
+end
+
+-- ##############################################
+
+function ts_common.fillSeries(schema, tstart, tend, time_step, fill_value)
+  local count = math.ceil((tend-tstart) / time_step)
+  local res = {}
+
+  for idx, metric in ipairs(schema._metrics) do
+    local data = {}
+
+    for i=1, count do
+      data[i] = fill_value
+      i = i + 1
+    end
+
+    res[idx] = {label=metric, data=data}
+  end
+
+  return res, count
+end
+
+-- ##############################################
+
 return ts_common

@@ -234,7 +234,7 @@ function ts_utils.query(schema_name, tags, tstart, tend, options)
 
   local rv = driver:query(schema, tstart, tend, tags, query_options)
 
-  if not rv then
+  if rv == nil then
     return nil
   end
 
@@ -363,7 +363,7 @@ function ts_utils.queryTopk(schema_name, tags, tstart, tend, options)
     top_items = driver:topk(schema, tags, tstart, tend, query_options, top_tags)
   end
 
-  if not top_items then
+  if table.empty(top_items) then
     return nil
   end
 

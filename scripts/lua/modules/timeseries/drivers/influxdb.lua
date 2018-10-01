@@ -110,8 +110,8 @@ local function influx_query(base_url, query, username, password)
   end
 
   if not jres.results[1].series then
-    -- no results fount
-    return nil
+    -- no results found
+    return {}
   end
 
   return jres.results[1]
@@ -248,8 +248,16 @@ function driver:_makeTotalSerie(schema, tstart, tend, tags, options, url, time_s
   local query = getTotalSerieQuery(schema, tstart, tend + unaligned_offset, tags, time_step, data_type, label)
   local data = influx_query(url .. "/query?db=".. self.db .."&epoch=s", query, self.username, self.password)
 
-  if not data then
-    return nil
+  if table.empty(data) then
+    local rv = {}
+    local i = 1
+
+    for t=tstart, tend, time_step do
+      rv[i] = 0
+      i = i + 1
+    end
+
+    return rv
   end
 
   data = data.series[1]
@@ -277,21 +285,6 @@ end
 
 -- ##############################################
 
-function calculateSampledTimeStep(schema, tstart, tend, options)
-  local estimed_num_points = math.ceil((tend - tstart) / schema.options.step)
-  local time_step = schema.options.step
-
-  if estimed_num_points > options.max_num_points then
-    -- downsample
-    local num_samples = math.ceil(estimed_num_points / options.max_num_points)
-    time_step = num_samples * schema.options.step
-  end
-
-  return time_step
-end
-
--- ##############################################
-
 local function makeSeriesQuery(schema, metrics, tags, tstart, tend, time_step)
   return 'SELECT '.. table.concat(metrics, ",") ..' FROM "' .. schema.name .. '" WHERE ' ..
       table.tconcat(tags, "=", " AND ", nil, "'") .. " AND time >= " .. tstart .. "000000000 AND time <= " .. tend .. "000000000" ..
@@ -300,7 +293,7 @@ end
 
 function driver:query(schema, tstart, tend, tags, options)
   local metrics = {}
-  local time_step = calculateSampledTimeStep(schema, tstart, tend, options)
+  local time_step = ts_common.calculateSampledTimeStep(schema, tstart, tend, options)
   local data_type = schema.options.metrics_type
 
   -- NOTE: this offset is necessary to fix graph edge points when data insertion is not aligned with tstep
@@ -327,14 +320,16 @@ function driver:query(schema, tstart, tend, tags, options)
 
   local url = self.url
   local data = influx_query(url .. "/query?db=".. self.db .."&epoch=s", query, self.username, self.password)
+  local series, count
 
-  if not data then
-    return nil
+  if table.empty(data) then
+    series, count = ts_common.fillSeries(schema, tstart, tend, time_step, options.fill_value)
+  else
+    -- Note: we are working with intervals because of derivatives. The first interval ends at tstart + time_step
+    -- which is the first value returned by InfluxDB
+    series, count = influx2Series(schema, tstart + time_step, tend, tags, options, data.series[1], time_step)
   end
 
-  -- Note: we are working with intervals because of derivatives. The first interval ends at tstart + time_step
-  -- which is the first value returned by InfluxDB
-  local series, count = influx2Series(schema, tstart + time_step, tend, tags, options, data.series[1], time_step)
   local total_serie = nil
   local stats = nil
 
@@ -373,7 +368,7 @@ function driver:query(schema, tstart, tend, tags, options)
     local query = makeSeriesQuery(schema, metrics, tags, tstart-time_step, tstart+unaligned_offset, time_step)
     local data = influx_query(url .. "/query?db=".. self.db .."&epoch=s", query, self.username, self.password)
 
-    if not data then
+    if table.empty(data) then
       -- Data fill
       for _, serie in pairs(series) do
         table.insert(serie.data, 1, options.fill_value)
@@ -495,8 +490,8 @@ function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
   local url = self.url
   local data = influx_query(url .. "/query?db=".. self.db, query, self.username, self.password)
 
-  if not data then
-    return nil
+  if table.empty(data) then
+    return data
   end
 
   if table.empty(data.series) then
@@ -599,8 +594,8 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
   local url = self.url
   local data = influx_query(url .. "/query?db=".. self.db .."&epoch=s", query, self.username, self.password)
 
-  if not data then
-    return nil
+  if table.empty(data) then
+    return data
   end
 
   if table.empty(data.series) then
@@ -636,7 +631,7 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
     end
   end
 
-  local time_step = calculateSampledTimeStep(schema, tstart, tend, options)
+  local time_step = ts_common.calculateSampledTimeStep(schema, tstart, tend, options)
   local label = series and series[1].label
   local total_serie = self:_makeTotalSerie(schema, tstart, tend, tags, options, url, time_step, label, unaligned_offset)
   local stats = nil
@@ -705,8 +700,8 @@ function driver:queryTotal(schema, tags, tstart, tend)
   local url = self.url
   local data = influx_query(url .. "/query?db=".. self.db .."&epoch=s", query, self.username, self.password)
 
-  if not data then
-    return nil
+  if table.empty(data) then
+    return data
   end
 
   data = data.series[1]
@@ -737,8 +732,8 @@ function driver:queryMean(schema, tags, tstart, tend)
   local url = self.url
   local data = influx_query(url .. "/query?db=".. self.db .."&epoch=s", query, self.username, self.password)
 
-  if not data then
-    return nil
+  if table.empty(data) then
+    return data
   end
 
   data = data.series[1]

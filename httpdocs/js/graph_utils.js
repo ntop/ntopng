@@ -644,17 +644,23 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
           });
         }
 
+        var total_cell = stats_table.find(".graph-val-total");
+        var average_cell = stats_table.find(".graph-val-average");
+        var min_cell = stats_table.find(".graph-val-min");
+        var max_cell = stats_table.find(".graph-val-max");
+        var perc_cell = stats_table.find(".graph-val-95percentile");
+
         // fill the stats
-        if(stats.total)
-          stats_table.find(".graph-val-total").show().find("span").html(tot_formatter(stats.total));
-        if(stats.average)
-          stats_table.find(".graph-val-average").show().find("span").html(stats_formatter(stats.average));
-        if(stats.min_val)
-          stats_table.find(".graph-val-min").show().find("span").html(stats_formatter(stats.min_val) + " @ " + (new Date(res[0].values[stats.min_val_idx][0] * 1000)).format(datetime_format));
-        if(stats.max_val)
-          stats_table.find(".graph-val-max").show().find("span").html(stats_formatter(stats.max_val) + " @ " + (new Date(res[0].values[stats.max_val_idx][0] * 1000)).format(datetime_format));
-        if(stats["95th_percentile"]) {
-          stats_table.find(".graph-val-95percentile").show().find("span").html(stats_formatter(stats["95th_percentile"]));
+        if(stats.total || total_cell.is(':visible'))
+          total_cell.show().find("span").html(tot_formatter(stats.total));
+        if(stats.average || average_cell.is(':visible'))
+          average_cell.show().find("span").html(stats_formatter(stats.average));
+        if(stats.min_val || min_cell.is(':visible'))
+          min_cell.show().find("span").html(stats_formatter(stats.min_val) + " @ " + (new Date(res[0].values[stats.min_val_idx][0] * 1000)).format(datetime_format));
+        if(stats.max_val || max_cell.is(':visible'))
+          max_cell.show().find("span").html(stats_formatter(stats.max_val) + " @ " + (new Date(res[0].values[stats.max_val_idx][0] * 1000)).format(datetime_format));
+        if(stats["95th_percentile"] || perc_cell.is(':visible')) {
+          perc_cell.show().find("span").html(stats_formatter(stats["95th_percentile"]));
 
           var values = makeFlatLineValues(data.start, data.step, data.count, stats["95th_percentile"]);
 

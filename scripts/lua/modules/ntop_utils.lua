@@ -81,6 +81,18 @@ end
 
 -- ##############################################
 
+function table.empty(tbl)
+  if(tbl == nil) then return true end
+
+  if next(tbl) == nil then
+    return true
+  end
+
+  return false
+end
+
+-- ##############################################
+
 function isIPv6(ip)
    if((string.find(ip, ":")) and (not isMacAddress(ip))) then
      return true
