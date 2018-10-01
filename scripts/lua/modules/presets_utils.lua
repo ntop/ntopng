@@ -14,8 +14,8 @@ presets_utils.ALLOW = "1"
 presets_utils.DEFAULT_ACTION = presets_utils.DROP
 
 -- Default presets (allowed protocols are listed here)
+-- Note: 'unknown' devices and all devices not listed here have 'allow all' as default
 presets_utils.allowed = {
-   -- ['unknown'] = { } -- Unkown devices are handles as a special case - allow all by default
    ['nas'] = {
       ['client'] = { 
          18, -- DHCP
