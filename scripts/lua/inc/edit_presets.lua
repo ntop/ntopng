@@ -161,18 +161,18 @@ local function printDeviceProtocolsPage()
       <div id="]] print(table_id) print[["></div>
       <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button>
    </form>]]
-  
+ 
+   print[[<span>]]
    if ntop.isnEdge() then
-     print[[
-   <span>
-   ]] print(i18n("notes")) print[[
-   <ul>
-     <li>]] print(i18n("nedge.device_protocol_policy_has_higher_priority")) print[[</li>
-     <li>]] print(i18n("nedge.protocol_policy_has_higher_priority")) print[[</li>
-   </ul>
-   </span>
-   ]]
+     print(i18n("notes")) print[[
+     <ul>
+       <li>]] print(i18n("nedge.device_protocol_policy_has_higher_priority")) print[[</li>
+       <li>]] print(i18n("nedge.protocol_policy_has_higher_priority")) print[[</li>
+     </ul>]]
+   else
+     print[[<br/>]]
    end
+   print[[</span>]]
 
    print[[
    <script type="text/javascript">
