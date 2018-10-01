@@ -2218,7 +2218,7 @@ print [[ </script>]]
 end
 end
 
-if (host ~= nil) then
+if(page ~= "historical") and (host ~= nil) then
    print[[<script type="text/javascript" src="]] print(ntop.getHttpPrefix()) print [[/js/jquery.tablesorter.js"></script>]]
 
    print [[ 
