@@ -440,10 +440,10 @@ if(user_group == "administrator") then
       end
 
       print("<li><a href=\""..ntop.getHttpPrefix().."/lua/admin/edit_ndpi_applications.lua\"><i class=\"fa fa-tags\"></i> ") print(i18n("protocols")) print("</a></li>\n")
-      -- TODO uncomment to enable the device protocols editor
-      -- print("<li><a href=\""..ntop.getHttpPrefix().."/lua/admin/edit_device_protocols.lua\"><i class=\"fa fa-tablet\"></i> ") print(i18n("device_protocols.device_protocols")) print("</a></li>\n")
    end
 
+   -- TODO uncomment to enable the device protocols editor
+   -- print("<li><a href=\""..ntop.getHttpPrefix().."/lua/admin/edit_device_protocols.lua\"><i class=\"fa fa-tablet\"></i> ") print(i18n("device_protocols.device_protocols")) print("</a></li>\n")
 end
 
 

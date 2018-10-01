@@ -77,9 +77,7 @@ class Ntop {
 
   void loadLocalInterfaceAddress();
 
-#ifdef NTOPNG_PRO
   void initAllowedProtocolPresets();
-#endif
 
  public:
   /**
@@ -454,7 +452,7 @@ class Ntop {
 #endif /* NTOPNG_PRO */
   
   DeviceProtocolBitmask* getDeviceAllowedProtocols(DeviceType t) { return(&deviceProtocolPresets[t]); }
-  void refreshAllowedProtocolPresets(DeviceType t);
+  void refreshAllowedProtocolPresets(DeviceType t, bool client, lua_State *L, int index);
 
   void sendNetworkInterfacesTermination();
 };

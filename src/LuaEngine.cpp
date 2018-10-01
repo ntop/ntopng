@@ -5663,21 +5663,28 @@ static int ntop_reload_shapers(lua_State *vm) {
 
 /* ****************************************** */
 
-#ifdef HAVE_NEDGE
-static int ntop_reload_device_presets(lua_State *vm) {
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+static int ntop_reload_device_protocols(lua_State *vm) {
+  DeviceType device_type = device_unknown;
+  char *dir; /* client or server */
 
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
-  else {
-    u_int device_type = (u_int) lua_tonumber(vm, 1);
-    if(ntop->getPro()->has_valid_license())
-      ntop->refreshAllowedProtocolPresets((DeviceType) device_type);
-  }
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);  
 
-  lua_pushnil(vm);
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK)
+    return(CONST_LUA_PARAM_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING) != CONST_LUA_OK)
+    return(CONST_LUA_PARAM_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TTABLE) != CONST_LUA_OK)
+    return(CONST_LUA_PARAM_ERROR);
+
+  device_type = (DeviceType) lua_tointeger(vm, 1);
+  if((dir = (char *) lua_tostring(vm, 2)) == NULL)  return(CONST_LUA_PARAM_ERROR);
+
+  ntop->refreshAllowedProtocolPresets(device_type, !!strcmp(dir, "server"), vm, 3);
+
   return(CONST_LUA_OK);
 }
-#endif
 
 /* ****************************************** */
 
@@ -8111,6 +8118,9 @@ static const luaL_Reg ntop_reg[] = {
   { "getHostInformation",   ntop_get_host_information },
   { "isShutdown",           ntop_is_shutdown          },
 
+  /* Device Protocols */
+  { "reloadDeviceProtocols", ntop_reload_device_protocols },
+
 #ifdef HAVE_NEDGE
   { "setHTTPBindAddr",       ntop_set_http_bind_addr       },
   { "setHTTPSBindAddr",      ntop_set_https_bind_addr      },
@@ -8118,7 +8128,6 @@ static const luaL_Reg ntop_reg[] = {
   { "setRoutingMode",        ntop_set_routing_mode         },
   { "isRoutingMode",         ntop_is_routing_mode          },
   { "setLanInterface",       ntop_set_lan_interface        },
-  { "reloadDevicePresets",   ntop_reload_device_presets    },
 #endif
 
   { NULL,          NULL}

@@ -142,9 +142,7 @@ Ntop::Ntop(char *appName) {
   initTimezone();
   ntop->getTrace()->traceEvent(TRACE_INFO, "System Timezone offset: %+ld", time_offset);
 
-#ifdef NTOPNG_PRO
   initAllowedProtocolPresets();
-#endif
   
   udp_socket = socket(AF_INET, SOCK_DGRAM, 0);
 
@@ -1826,7 +1824,6 @@ bool Ntop::isATrackerHost(char *host) {
 
 /* ******************************************* */
 
-#ifdef NTOPNG_PRO
 void Ntop::initAllowedProtocolPresets() {
   for(u_int i=0; i<device_max_type; i++) {
     DeviceProtocolBitmask *b = ntop->getDeviceAllowedProtocols((DeviceType) i);
@@ -1834,59 +1831,40 @@ void Ntop::initAllowedProtocolPresets() {
     NDPI_BITMASK_SET_ALL(b->serverAllowed);
   }
 }
-#endif
 
 /* ******************************************* */
 
-void Ntop::refreshAllowedProtocolPresets(DeviceType t) {
-  DeviceProtocolBitmask *b = ntop->getDeviceAllowedProtocols(t);
-  char key[CONST_MAX_LEN_REDIS_KEY];
-  /* char val[CONST_MAX_LEN_REDIS_VALUE]; */
-  char **vals;
-  int rc;
+void Ntop::refreshAllowedProtocolPresets(DeviceType device_type, bool client, lua_State *L, int index) {
+  DeviceProtocolBitmask *b = ntop->getDeviceAllowedProtocols(device_type);
 
-  if(!ntop->getRedis()) return;
+  lua_pushnil(L);
 
-  snprintf(key, sizeof(key), "ntopng.prefs.device_policies.client.%u", (u_int) t);
-  rc = ntop->getRedis()->hashKeys(key, &vals);
+  if (b == NULL)
+    return;
 
-  if (rc >= 0) {
-#ifdef PRESETS_DEBUG
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Reloading policy for device type %u [%u allowed protocols]", t, rc);
-#endif
+  if (client) NDPI_BITMASK_RESET(b->clientAllowed);
+  else        NDPI_BITMASK_RESET(b->serverAllowed);
 
-    NDPI_BITMASK_RESET(b->clientAllowed);
-    for (int i = 0; i < rc; i++) {
-      if (vals[i][0] != '\0' 
-          /* Note: no need to check the value as we store allowed protocols only
-           * && ntop->getRedis()->hashGet(key, vals[i], val, sizeof(val)) == 0 */
-        ) {
-        int proto = atoi(vals[i]);
-        NDPI_BITMASK_ADD(b->clientAllowed, proto);
+  while (lua_next(L, index) != 0) {
+    u_int key_proto = lua_tointeger(L, -2);
+    int t = lua_type(L, -1);
+
+    switch (t) {
+      case LUA_TNUMBER:
+      {
+        u_int value_action = lua_tointeger(L, -1);
+        if (value_action) {
+          if (client) NDPI_BITMASK_ADD(b->clientAllowed, key_proto);
+          else        NDPI_BITMASK_ADD(b->serverAllowed, key_proto);
+        }
       }
-      free(vals[i]);
+      break;
+      default:
+        ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal error: type %d not handled", t);
+      break;
     }
-    free(vals);
-  }
 
-  snprintf(key, sizeof(key), "ntopng.prefs.device_policies.server.%u", (u_int) t);
-  rc = ntop->getRedis()->hashKeys(key, &vals);
-
-  if (rc >= 0) {
-#ifdef PRESETS_DEBUG
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Reloading policy for device type %u [%u allowed protocols]", t, rc);
-#endif
-    NDPI_BITMASK_RESET(b->serverAllowed);
-    for (int i = 0; i < rc; i++) {
-      if (vals[i][0] != '\0' 
-          /* Note: no need to check the value as we store allowed protocols only
-           * && ntop->getRedis()->hashGet(key, vals[i], val, sizeof(val)) == 0 */ ) {
-        int proto = atoi(vals[i]);
-        NDPI_BITMASK_ADD(b->serverAllowed, proto);
-      }
-      free(vals[i]);
-    }
-    free(vals);
+    lua_pop(L, 1);
   }
 }
 

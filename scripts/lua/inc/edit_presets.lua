@@ -52,7 +52,6 @@ end
 
 function editDeviceProtocols()
    local reload = false
-
    for k,v in pairs(_POST) do
       if starts(k, "client_policy_") then
          local proto = split(k, "client_policy_")[2]

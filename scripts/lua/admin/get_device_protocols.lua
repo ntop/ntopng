@@ -69,17 +69,18 @@ if(sortOrder == "desc") then sOrder = rev_insensitive else sOrder = asc_insensit
 
 local device_policies = presets_utils.getDevicePolicies(device_type)
 
-local function matchesPolicyFilter(item_name)
+local function matchesPolicyFilter(item_id)
    if isEmptyString(policy_filter) then
       return true
    end
 
-   local policy = device_policies[item_name]
+   local policy = device_policies[tonumber(item_id)]
    if policy == nil then
       if policy_filter ~= presets_utils.DEFAULT_ACTION then -- != default
          return false
       end
-   elseif policy_filter ~= policy.clientActionId and policy_filter ~= policy.serverActionId then 
+   elseif policy.clientActionId ~= nil and policy_filter ~= policy.clientActionId and 
+          policy.serverActionId ~= nil and policy_filter ~= policy.serverActionId then 
       return false
    end
 
@@ -101,11 +102,11 @@ local num_items = 0
 items = interface.getnDPIProtocols(nil, true)
 
 for item_name, item_id in pairs(items) do
-   if not matchesProtoFilter(item_id) or not matchesPolicyFilter(item_name) then
+   if not matchesProtoFilter(item_id) or not matchesPolicyFilter(item_id) then
       goto continue
    end
 
-   items[item_name] = { name = item_name, id = item_id, conf = device_policies[item_name] }
+   items[item_name] = { name = item_name, id = item_id, conf = device_policies[tonumber(item_id)] }
    num_items = num_items + 1
 
    if sortColumn == "column_" or sortColumn == "column_ndpi_application" then
