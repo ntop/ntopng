@@ -348,13 +348,15 @@ function driver:query(schema, tstart, tend, tags, options)
     if total_serie then
       stats = ts_common.calculateStatistics(total_serie, time_step, tend - tstart, schema.options.metrics_type)
 
-      -- override total and average
-      local stats_query = "(SELECT ".. table.concat(schema._metrics, " + ") .. ' AS value FROM "' .. schema.name..
-        '" ' ..getWhereClause(tags, tstart, tend, unaligned_offset) .. ")"
-      stats_query = "(SELECT NON_NEGATIVE_DIFFERENCE(value) as value FROM " .. stats_query .. ")"
-      stats_query = "SELECT SUM(value) FROM " .. stats_query
+      if stats.total ~= nil then
+        -- override total and average
+        local stats_query = "(SELECT ".. table.concat(schema._metrics, " + ") .. ' AS value FROM "' .. schema.name..
+          '" ' ..getWhereClause(tags, tstart, tend, unaligned_offset) .. ")"
+        stats_query = "(SELECT NON_NEGATIVE_DIFFERENCE(value) as value FROM " .. stats_query .. ")"
+        stats_query = "SELECT SUM(value) FROM " .. stats_query
 
-      stats = table.merge(stats, self:_performStatsQuery(stats_query, tstart, tend))
+        stats = table.merge(stats, self:_performStatsQuery(stats_query, tstart, tend))
+      end
     end
   end
 
@@ -639,12 +641,14 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
   if options.calculate_stats and total_serie then
     stats = ts_common.calculateStatistics(total_serie, time_step, tend - tstart, schema.options.metrics_type)
 
-    -- override total and average
-    -- NOTE: sum must be calculated on individual top_tag fields to avoid
-    -- calculating DIFFERENCE on a decreasing serie (e.g. this can happend on a top hosts query
-    -- when a previously seen host becomes idle, which causes its traffic contribution on the total to become zero on next points)
-    local stats_query = "SELECT SUM(value) as value FROM " .. base_query
-    stats = table.merge(stats, self:_performStatsQuery(stats_query, tstart, tend))
+    if stats.total ~= nil then
+      -- override total and average
+      -- NOTE: sum must be calculated on individual top_tag fields to avoid
+      -- calculating DIFFERENCE on a decreasing serie (e.g. this can happend on a top hosts query
+      -- when a previously seen host becomes idle, which causes its traffic contribution on the total to become zero on next points)
+      local stats_query = "SELECT SUM(value) as value FROM " .. base_query
+      stats = table.merge(stats, self:_performStatsQuery(stats_query, tstart, tend))
+    end
   end
 
   if options.initial_point and total_serie then
