@@ -80,7 +80,6 @@ class Prefs {
   HostMask hostMask;
 
   LocationPolicy dump_hosts_to_db, sticky_hosts;
-  bool enable_user_scripts;
   u_int32_t max_num_hosts, max_num_flows;
   u_int32_t attacker_max_num_flows_per_sec, victim_max_num_flows_per_sec;
   u_int32_t attacker_max_num_syn_per_sec, victim_max_num_syn_per_sec;
@@ -203,7 +202,6 @@ class Prefs {
   inline char* get_http_prefix()                        { return(http_prefix); };
   inline char* get_instance_name()                      { return(instance_name); };
 
-  inline bool  are_user_scripts_enabled()               { return(enable_user_scripts);              };
   inline bool  do_auto_logout()                         { return(enable_auto_logout);               };
   inline bool  do_auto_logout_at_runtime()              { return(enable_auto_logout_at_runtime);    };
   inline bool  do_ignore_vlans()                        { return(ignore_vlans);                     };

@@ -402,13 +402,6 @@
 #define CONST_CONTACTED_BY            "contacted_by"
 #define CONST_CONTACTS                "contacted_peers" /* Peers contacted by this host */
 
-#define CONST_USER_SCRIPTS_LOADER    "user_scripts/loader.lua"
-#define CONST_USER_SCRIPTS_FLOW      "global_flow"
-#define CONST_USER_SCRIPTS_CONTEXT   "script_context"
-#define CONST_USER_SCRIPTS_CONTEXT_INLINE     "inline"
-#define CONST_USER_SCRIPTS_CONTEXT_PERIODIC   "periodic"
-#define CONST_DEFAULT_USER_SCRIPTS_ENABLED   false
-
 #define CONST_HISTORICAL_OK               1
 #define CONST_HISTORICAL_FILE_ERROR       0
 #define CONST_HISTORICAL_OPEN_ERROR      -1

@@ -106,7 +106,6 @@ Prefs::Prefs(Ntop *_ntop) {
 #endif
   export_endpoint = NULL;
   enable_ixia_timestamps = enable_vss_apcon_timestamps = false;
-  enable_user_scripts    = CONST_DEFAULT_USER_SCRIPTS_ENABLED;
 
   es_type = strdup((char*)"flows"), es_index = strdup((char*)"ntopng-%Y.%m.%d"),
     es_url = strdup((char*)"http://localhost:9200/_bulk"),
@@ -367,7 +366,6 @@ void usage() {
 	 /* "--online-check                      | Check the license using the online service\n" */
 	 "--online-license-check              | Check the license online\n" /* set as deprecated as soon as --online-check is supported */
 	 "[--enable-taps|-T]                  | Enable tap interfaces for dumping traffic\n"
-	 "[--enable-user-scripts]             | Enable LUA user scripts\n"
 	 "[--http-prefix|-Z <prefix>]         | HTTP prefix to be prepended to URLs.\n"
 	 "                                    | Useful when using ntopng behind a proxy.\n"
 	 "[--instance-name|-N <name>]         | Assign a name to this ntopng instance.\n"
@@ -704,7 +702,6 @@ static const struct option long_options[] = {
   { "shutdown-when-done",                no_argument,       NULL, 213 },
   { "simulate-vlans",                    no_argument,       NULL, 214 },
   { "zmq-encrypt-pwd",                   required_argument, NULL, 215 },
-  { "enable-user-scripts",               no_argument,       NULL, 216 },
   { "ignore-vlans",                      no_argument,       NULL, 217 },
 #ifdef NTOPNG_PRO
   { "check-maintenance",                 no_argument,       NULL, 252 },
@@ -1299,11 +1296,6 @@ int Prefs::setOption(int optkey, char *optarg) {
     zmq_encryption_pwd = strdup(optarg);
     break;
 
-  case 216:
-    enable_user_scripts = true;
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "User scripts enabled");
-    break;
-
   case 217:
     ignore_vlans = true;
     break;
@@ -1545,7 +1537,6 @@ void Prefs::lua(lua_State* vm) {
   lua_push_bool_table_entry(vm, "is_dump_flows_to_es_enabled",    dump_flows_on_es);
   lua_push_bool_table_entry(vm, "is_dump_flows_to_ls_enabled", dump_flows_on_ls);
 
-  lua_push_bool_table_entry(vm, "are_user_scripts_enabled", enable_user_scripts);
   lua_push_int_table_entry(vm, "dump_hosts", dump_hosts_to_db);
 
   lua_push_int_table_entry(vm, "http.port", get_http_port());
