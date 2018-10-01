@@ -193,14 +193,11 @@ if(flows_stats == nil) then flows_stats = { } end
 
 for key, value in ipairs(flows_stats) do
    local info = ""
+   -- use an italic font to indicate extra information added after sorting
+   local italic = true
    if(not isEmptyString(flows_stats[key]["info"])) then
       info = flows_stats[key]["info"]
-
-      if not isEmptyString(flows_stats[key]["host_server_name"]) then
-	 info = info:gsub(flows_stats[key]["host_server_name"], '')
-      end
-
-      info = shortenString(info)
+      italic = false
    elseif(not isEmptyString(flows_stats[key]["icmp"])) then
       info = getICMPTypeCode(flows_stats[key]["icmp"])
    elseif(flows_stats[key]["proto.ndpi"] == "SIP") then
@@ -208,6 +205,16 @@ for key, value in ipairs(flows_stats) do
    elseif(flows_stats[key]["proto.ndpi"] == "RTP") then
       info = getRTPInfo(flows_stats[key])
    end
+
+   -- safety checks against injections
+   info = noHtml(info) 
+   info = info:gsub('"', '')
+
+   if italic then
+      info = string.format("<i>%s</i>", info)
+   end
+   
+   info = shortenString(info)
    flows_stats[key]["info"] = info
 
    if(flows_stats[key]["profile"] ~= nil) then

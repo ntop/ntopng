@@ -3618,6 +3618,7 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
 static bool flow_search_walker(GenericHashEntry *h, void *user_data, bool *matched) {
   struct flowHostRetriever *retriever = (struct flowHostRetriever*)user_data;
   Flow *f = (Flow*)h;
+  char *flow_info;
 
   if(retriever->actNumEntries >= retriever->maxNumEntries)
     return(true); /* Limit reached - stop iterating */
@@ -3651,10 +3652,8 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data, bool *match
 	retriever->elems[retriever->actNumEntries++].numericValue = f->get_bytes();
 	break;
       case column_info:
-	if(f->getDNSQuery())            retriever->elems[retriever->actNumEntries++].stringValue = f->getDNSQuery();
-	else if(f->getHTTPURL())        retriever->elems[retriever->actNumEntries++].stringValue = f->getHTTPURL();
-	else if(f->getSSLCertificate()) retriever->elems[retriever->actNumEntries++].stringValue = f->getSSLCertificate();
-	else retriever->elems[retriever->actNumEntries++].stringValue = (char*)"";
+	flow_info = f->getFlowInfo();
+	retriever->elems[retriever->actNumEntries++].stringValue = flow_info ? flow_info : (char*)"";
 	break;
       default:
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: column %d not handled", retriever->sorter);
