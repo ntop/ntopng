@@ -26,18 +26,21 @@ local tags = tsQueryToTags(_GET["ts_query"])
 local driver = ts_utils.getQueryDriver()
 local latest_tstamp = driver:getLatestTimestamp(tags.ifid or -1)
 
--- Check end time bound and realign if necessary
-if tend > latest_tstamp then
-  local delta = tend - latest_tstamp
-  tend = tend - delta
-  tstart = tstart - delta
-end
-
 local options = {
   max_num_points = tonumber(_GET["limit"]),
   initial_point = toboolean(_GET["initial_point"]),
   with_series = true,
 }
+
+-- Check end time bound and realign if necessary
+if tend > latest_tstamp then
+  local delta = tend - latest_tstamp
+  local alignment = (tend - tstart) / options.max_num_points
+
+  delta = delta + (alignment - delta % alignment)
+  tend = tend - delta
+  tstart = tstart - delta
+end
 
 if tags.ifid then
   interface.select(tags.ifid)

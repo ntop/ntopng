@@ -252,7 +252,7 @@ function driver:_makeTotalSerie(schema, tstart, tend, tags, options, url, time_s
     local rv = {}
     local i = 1
 
-    for t=tstart, tend, time_step do
+    for t=tstart + time_step, tend, time_step do
       rv[i] = 0
       i = i + 1
     end
@@ -323,7 +323,7 @@ function driver:query(schema, tstart, tend, tags, options)
   local series, count
 
   if table.empty(data) then
-    series, count = ts_common.fillSeries(schema, tstart, tend, time_step, options.fill_value)
+    series, count = ts_common.fillSeries(schema, tstart + time_step, tend, time_step, options.fill_value)
   else
     -- Note: we are working with intervals because of derivatives. The first interval ends at tstart + time_step
     -- which is the first value returned by InfluxDB

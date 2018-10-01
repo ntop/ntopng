@@ -199,7 +199,7 @@ function buildTimeArray(start_time, end_time, step) {
   return arr;
 }
 
-function fixTimeRange(chart, params, align_step) {
+function fixTimeRange(chart, params, align_step, actual_step) {
   var diff_epoch = (params.epoch_end - params.epoch_begin);
   var frame, align, tick_step, resolution, fmt = "%H:%M:%S";
 
@@ -241,17 +241,20 @@ function fixTimeRange(chart, params, align_step) {
     }
   }
 
+  resolution = Math.max(actual_step, resolution);
+
   if(align) {
     align = (align_step && (frame != 86400) /* do not align daily traffic to avoid jumping to other RRA */) ? Math.max(align, align_step) : 1;
     params.epoch_begin -= params.epoch_begin % align;
     params.epoch_end -= params.epoch_end % align;
     diff_epoch = (params.epoch_end - params.epoch_begin);
-    params.limit = Math.round(diff_epoch / resolution);
+    params.limit = Math.ceil(diff_epoch / resolution);
 
     // align epoch end wrt params.limit
     params.epoch_end += Math.ceil(diff_epoch / params.limit) * params.limit - diff_epoch;
 
     chart.xAxis.tickValues(buildTimeArray(params.epoch_begin, params.epoch_end, tick_step));
+    chart.align = align;
   }
 
   chart.xAxis.tickFormat(function(d) { return d3.time.format(fmt)(new Date(d*1000)) });
@@ -345,9 +348,10 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
     var t_start = Math.floor(e.xDomain[0]);
     var t_end = Math.ceil(e.xDomain[1]);
     var old_zoomed = chart.is_zoomed;
+    var is_user_zoom = (typeof e.is_user_zoom !== "undefined") ? e.is_user_zoom : true;
     chart.is_zoomed = true;
 
-    if(chart.updateStackedChart(t_start, t_end)) {
+    if(chart.updateStackedChart(t_start, t_end, false, is_user_zoom)) {
       zoom_stack.push(cur_zoom);
       $zoom_reset.show();
       $graph_zoom.find(".btn-warning:not(.custom-zoom-btn)")
@@ -363,11 +367,11 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
       chart.is_zoomed = old_zoomed;
   });
 
-  function updateZoom(zoom) {
+  function updateZoom(zoom, is_user_zoom) {
     var t_start = zoom[0];
     var t_end = zoom[1];
 
-    chart.updateStackedChart(t_start, t_end);
+    chart.updateStackedChart(t_start, t_end, false, is_user_zoom);
 
     if(!zoom_stack.length) {
       $zoom_reset.hide();
@@ -382,7 +386,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
   $chart.on('dblclick', function() {
     if(zoom_stack.length) {
       var zoom = zoom_stack.pop();
-      updateZoom(zoom);
+      updateZoom(zoom, true);
     }
   });
 
@@ -390,19 +394,20 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
     if(zoom_stack.length) {
       var zoom = zoom_stack[0];
       zoom_stack = [];
-      updateZoom(zoom);
+      updateZoom(zoom, true);
     }
   });
 
   var old_start, old_end, old_interval;
 
   /* Returns false if zoom update is rejected. */
-  chart.updateStackedChart = function (tstart, tend, no_spinner) {
+  chart.updateStackedChart = function (tstart, tend, no_spinner, is_user_zoom, on_load_callback) {
     if(tstart) params.epoch_begin = tstart;
     if(tend) params.epoch_end = tend;
 
     var cur_interval = (params.epoch_end - params.epoch_begin);
-    max_interval = findActualStep(step, params.epoch_begin) * 8;
+    var actual_step = findActualStep(step, params.epoch_begin);
+    max_interval = actual_step * 8;
 
     if(cur_interval < max_interval) {
       if(is_max_zoom && (cur_interval < old_interval)) {
@@ -410,7 +415,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
         return false;
       }
 
-      if(!first_load || (!has_initial_zoom && chart.is_zoomed)) {
+      if(is_user_zoom) {
         var epoch = params.epoch_begin + (params.epoch_end - params.epoch_begin) / 2;
         params.epoch_begin = Math.floor(epoch - max_interval / 2);
         params.epoch_end = Math.ceil(epoch + max_interval / 2);
@@ -427,7 +432,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
 
     if(!first_load || has_initial_zoom)
       align_step = null;
-    fixTimeRange(chart, params, align_step);
+    fixTimeRange(chart, params, align_step, actual_step);
 
     if((old_start == params.epoch_begin) && (old_end == params.epoch_end))
       return false;
@@ -712,6 +717,9 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
       if(flows_dt.data("datatable"))
         flows_dt.data("datatable").render();
     }
+
+    if(typeof on_load_callback === "function")
+      on_load_callback(chart);
 
     return true;
   }
