@@ -66,3 +66,160 @@ It is also possible to kick a device out of the captive portal and force a new
 authentication by assigning the device to the "Not Assigned" user.
 
 .. _policies: policies.html
+
+Configuration API
+-----------------
+
+Configuration of users, policies, and device-to-user associations/disassociations can also
+be done programmatically.
+
+
+Users and Policies Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Users and policies can be configured programmatically by serving
+ntopng Edge a configuration JSON.
+
+The configuration JSON has the following structure
+
+.. code:: json
+
+   {
+	  "users": {...},
+	  "associations": {...},
+   }
+
+
+There are two keys at the outermost level of the hierarchy, namely,
+:code:`users` and :code:`associations`. The former key is used to
+create users and specify their policies, whereas the latter is used to
+associate devices to the created users.
+
+:code:`users`
+
+The value of this key must be a JSON object with zero or more
+key-value pairs:
+
+- Keys are the usernames chosen for the users
+- Values are other objects each one carrying the configuration for the user indicated in the key
+
+The following snippet highlights, with an example, a key-value pair
+with the configuration for a user named *maina* 
+
+.. code:: json
+
+        "maina" : {
+            "full_name": "Maina Bar",
+            "password": "ntop0101",
+            "default_policy": "pass",
+            "policies" : {
+	       10 : "slow_pass",
+               "Facebook": "slower_pass",
+               "MyCustomProtocol": "drop",
+               "YouTube": "drop"
+	     }
+	}
+
+
+The user configuration is a JSON object that must contain the
+following keys:
+
+- :code:`full_name`: The full name (e.g., first and last name) of the
+  user.
+- :code:`password:`: The password the user will have to submit to the
+  captive portal in order to access the Internet. This field is not
+  used when the captive portal is off.
+- :code:`default_policy`: A policy to be used as last resort, that is,
+  when no other policy in :code:`policies` matches.
+- :code:`policies`: A JSON object containing zero or more key-value
+  pairs with applications as keys and policies as
+  values. An application key can be specified either using its string
+  name as well as using its integer id.
+
+Policies are in a one-to-one relation with the bandwidth classes
+explained in bandwidth control. There is also an extra
+:code:`drop` policy to block the matching traffic. The four policies available are:
+
+- :code:`pass`
+- :code:`slow_pass`
+- :code:`slower_pass`
+- :code:`drop`
+
+
+:code:`associations`
+
+The value of this key must be a JSON object with zero or more
+key-value pairs:
+
+- Keys are the Mac addresses of the devices that have to be associated
+- Values are other objects each one carrying the username the device will
+  be associated to.
+
+An example of the associations JSON object is the following
+
+.. code:: json
+
+	  "associations" : { 
+	        "DE:AD:BE:EE:FF:FF"  : {"group" : "maina" , "connectivity" : "pass"},
+		"11:22:33:44:55:66"  : {"group" : "maina" , "connectivity" : "pass"}
+	  }
+
+Here, :code:`group` indicates the username and :code:`connectivity` is
+not used and must stay at :code:`pass`. :code:`connectivity` will
+become meaningful when creating associations at runtime
+as shown in `Runtime Associations Configuration`_.
+
+A full example of a JSON configuration can be found at https://github.com/ntop/ntopng/blob/dev/tools/serve_bridge_config.py
+
+
+Serving the Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The configuration JSON must be served to ntopng Edge using a web
+server. ntopng Edge, early during startup, will connect to the webserver to
+read the JSON and apply the configuration.
+
+An example of a web server that serves ntopng Edge the JSON configuration
+is available at https://github.com/ntop/ntopng/blob/dev/tools/serve_bridge_config.py
+
+.. note::
+
+   To instruct ntopng Edge to fetch the configuration JSON, variable
+   :code:`http_bridge_conf_utils.HTTP_BRIDGE_CONFIGURATION_URL` in
+   file :code:`http_bridge_conf_utils.lua` must be manually edited to
+   specify the server address and port.
+
+   For example, to connect to a server on :code:`localhost` listening
+   for connections on port :code:`8000`, the variable has to be
+   changed to :code:`http_bridge_conf_utils.HTTP_BRIDGE_CONFIGURATION_URL = "localhost:8000"`.
+
+.. warning::
+
+   During startup, right before applying the JSON configuration, ntopng Edge flushes all the
+   exising configured users, their policies, and all the defined applications.
+
+   
+Runtime Associations Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Associating members to their host pools is done at runtime using the
+ntopng Edge endpoint :code:`/lua/admin/manage_pool_members.lua`.
+
+A valid JSON must be :code:`POST` ed to this endpoint. The JSON is
+exactly an :code:`associations` object described in detail above.
+
+For exampe, using curl, one can associate/disassociate devices to users as follow:
+
+.. code:: bash
+
+	  curl -H "Content-Type: application/json" -X POST -d '{"associations" : { "DE:AD:BE:EE:FF:FF"  : {"group" : "maina" ,  "connectivity" : "pass"}, "AA:BB:CC:DD:EE:FF"  : {"group" : "simon" ,  "connectivity" : "reject"}}}' "http://devel:3000/lua/admin/manage_pool_members.lua"
+
+This time, :code:`connectivity` can take two values:
+
+- :code:`pass` associates a Mac address to the user specified in :code:`group`.
+- :code:`reject` disassociates a Mac address from the user specified in :code:`group`.
+
+The endpoint responds with a status for each configured association.
+The status can be used to determine if the association/disassociation
+has completed successfully.
+

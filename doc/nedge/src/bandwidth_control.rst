@@ -29,6 +29,8 @@ In the picture above, the traffic flowing through the interface will be limited
 to 10 Mbit/s in both the upload and download directions. Usually the interface speed
 should match the available internet bandwidth.
 
+.. _BandwidthControl:
+
 Global Bandwidth Control
 ------------------------
 
