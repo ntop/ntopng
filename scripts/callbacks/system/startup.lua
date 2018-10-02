@@ -101,8 +101,7 @@ end
 
 -- Initialize device policies (presets)
 local presets_utils = require "presets_utils"
--- TODO uncomment this when all presets will be ready
--- presets_utils.initPolicies()
+presets_utils.initPolicies()
 
 -- ##################################################################
 

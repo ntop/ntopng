@@ -115,6 +115,7 @@ local lang = {
   ["refresh"] = "Refresh",
   ["remote_networks"] = "Remote Networks",
   ["remove"] = "Remove",
+  ["reset"] = "Reset",
   ["restore"] = "Restore",
   ["save"] = "Save",
   ["save_configuration"] = "Save Configuration",
@@ -529,8 +530,8 @@ local lang = {
     ["whois_lookup"] = "Whois Lookup",
   },
   ["device_protocols"] = {
-    ["device_protocols"] = "Device Protocols",
     ["alert"] = "Trigger Alert",
+    ["device_protocols"] = "Device Protocols",
     ["ok"] = "Acceptable",
   },
   ["device_types"] = {
@@ -1667,9 +1668,9 @@ local lang = {
     ["error_generic"] = "Generic Error",
     ["error_not_found"] = "Not found",
     ["error_not_granted"] = "Request not granted",
-    ["modal_vlan_tagged_with_bpf_title"] = "Host pcap Download",
     ["modal_vlan_tagged_with_bpf_confirmation"] = "This host is VLAN-tagged. The BPF filter submitted, to properly match packets, must contain VLAN 51. The VLAN can be specified in the filter as <br> <pre>vlan %{vlan} and <i>...rest of the filter...</i></pre>",
     ["modal_vlan_tagged_with_bpf_continue"] = "Continue",
+    ["modal_vlan_tagged_with_bpf_title"] = "Host pcap Download",
   },
   ["local_flow_matrix"] = {
     ["error_no_local_hosts"] = "No local hosts can be found",
@@ -1789,9 +1790,9 @@ local lang = {
     ["secs"] = "Secs",
   },
   ["ndpi_page"] = {
-    ["custom_applications"] = "Custom Applications",
     ["application_protocol"] = "Application Protocol",
     ["application_protocol_category"] = "Application Protocol Category",
+    ["custom_applications"] = "Custom Applications",
     ["live_flows_count"] = "Live Flows Count",
     ["note"] = "NOTE",
     ["note_historical_per_protocol_traffic"] = "Historical %{what} traffic data can be enabled via the <a href='%{url}'>%{flask_icon} Preferences</a>.",
@@ -2845,6 +2846,8 @@ local lang = {
     ["no_users"] = "No users",
     ["policy"] = "Policy",
     ["protocols"] = "Protocols",
+    ["reset_to_defaults"] = "Reset To Defaults",
+    ["reset_to_defaults_confirm"] = "Do you really want to reset the device type \"%{devtype}\" policies to to the defaults?",
     ["server_policy"] = "Device As Server",
     ["settings"] = "Settings",
     ["total_daily_time_quota"] = "Total Daily Time Quota",

@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
 
 require "lua_utils"
+local template = require "template_utils"
 
 local host_pools_utils = require "host_pools_utils"
 local template = require "template_utils"
@@ -155,12 +156,28 @@ local function printDeviceProtocolsPage()
 
    print[[</td></tr></tbody></table>]]
 
+   print(
+	 template.gen("modal_confirm_dialog.html", {
+			 dialog={
+			    id      = "presetsResetDefaults",
+			    action  = "presetsResetDefaults()",
+			    title   = i18n("users.reset_to_defaults"),
+			    message = i18n("users.reset_to_defaults_confirm", {devtype="<span id='to_reset_devtype'></span>"}),
+			    confirm = i18n("reset")
+			 }
+	 })
+      )
+
    -- Table form
    print[[<form id="]] print(form_id) print[[" lass="form-inline" style="margin-bottom: 0px;" method="post">
       <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[">
       <div id="]] print(table_id) print[["></div>
       <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button>
-   </form>]]
+   </form>
+
+   <button class="btn btn-default" onclick="$('#to_reset_devtype').html($('#device_type_selector option:selected').text()); $('#presetsResetDefaults').modal('show');" style="float:right; margin-right:1em;"><i class="fa fa-undo" aria-hidden="true" data-original-title="" title=""></i> ]] print(i18n("users.reset_to_defaults")) print[[</button>
+
+   <br>]]
  
    print[[<span>]]
    if ntop.isnEdge() then
@@ -176,6 +193,17 @@ local function printDeviceProtocolsPage()
 
    print[[
    <script type="text/javascript">
+   function presetsResetDefaults() {
+      var params = {};
+
+      params.action = "reset";
+      params.device_type = $('#device_type_selector').val();
+      params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
+
+      var form = paramsToForm('<form method="post"></form>', params);
+      form.appendTo('body').submit();
+   }
+
     aysHandleForm("#]] print(form_id) print[[");
     $("#]] print(form_id) print[[").submit(function() {
       var form = $("#]] print(form_id) print[[");
@@ -304,6 +332,10 @@ end
 
 if _POST["edit_device_policy"] ~= nil then
   editDeviceProtocols()
+elseif (_POST["action"] == "reset") and (_POST["device_type"] ~= nil) then
+   local device_type = tonumber(_POST["device_type"])
+   presets_utils.resetDefaultPresets(device_type)
+   presets_utils.reloadDevicePolicies(device_type)
 end
 
 printDeviceProtocolsPage()

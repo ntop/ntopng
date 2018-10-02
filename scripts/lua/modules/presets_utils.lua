@@ -255,6 +255,15 @@ function presets_utils.getDevicePolicies(device_type)
    return device_policies
 end
 
+
+function presets_utils.resetDefaultPresets(device_type)
+   local key_client = presets_utils.getDevicePoliciesKey(device_type, "client")
+   local key_server = presets_utils.getDevicePoliciesKey(device_type, "server")
+
+   ntop.delCache(key_client)
+   ntop.delCache(key_server)
+end
+
 --------------------------------------------------------------------------------
 
 return presets_utils
