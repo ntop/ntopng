@@ -510,12 +510,20 @@ if (typeof(String.prototype.contains) === "undefined") {
 /* Used while searching hosts a and macs with typeahead */
 function makeFindHostBeforeSubmitCallback(http_prefix) {
   return function(form, data) {
-    if (data.type == "mac")
+    if (data.type == "mac") {
       form.attr("action", http_prefix + "/lua/mac_details.lua");
-    else if (data.type == "snmp")
-      form.attr("action", http_prefix + "/lua/pro/enterprise/snmp_device_details.lua");
-    else
+    } else if (data.type == "snmp") {
+      form.attr("action", http_prefix + "/lua/pro/enterprise/snmp_interface_details.lua");
+      /* Must add also the snmp port index to properly set the destination link */
+      $('<input>').attr({
+	  type: 'hidden',
+	  id: 'snmp_port_idx',
+	  name: 'snmp_port_idx',
+	  value: data.snmp_port_idx,
+      }).appendTo(form);
+    } else {
       form.attr("action", http_prefix + "/lua/host_details.lua");
+    }
 
     return true;
   }
