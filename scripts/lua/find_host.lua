@@ -14,7 +14,7 @@ end
 
 sendHTTPHeader('application/json')
 
-max_num_to_find = 5
+local max_num_to_find = 5
 local already_printed = {}
 
 print [[
@@ -23,12 +23,12 @@ print [[
 	 "results": [
       ]]
 
-      query = _GET["query"]
+      local query = _GET["query"]
       if(query == nil) then query = "" end
-      num = 0
+      local num = 0
 
       interface.select(ifname)
-      res = interface.findHost(query)
+      local res = interface.findHost(query)
 
       -- Also look at the custom names
       local ip_to_name = ntop.getHashAllCache(getHostAltNamesKey()) or {}
@@ -46,18 +46,22 @@ print [[
         end
       end
 
-      if isMacAddress(query) and ntop.isPro() then
-	    local mac = string.upper(query)
-	    local devices = get_snmp_devices()
+      -- Check also in the mac addresses of snmp devices
+      -- The query can be partial so we can't use functions to
+      -- test if it'a an IPv4, an IPv6, or a mac as they would yield
+      -- wrong results. We can just check for a dot in the string as if
+      -- there's a dot then we're sure it can't be a mac
+      if ntop.isEnterprise() and not query:find("%.") then
+	 local mac = string.upper(query)
+	 local devices = get_snmp_devices()
+	 local matches = find_mac_snmp_ports(mac, true)
 
-	    for snmp_device_ip, _ in pairs(devices) do
-		  local v = ntop.getCache("cachedsnmp."..snmp_device_ip.."." .. mac .. ".port")
-		  if v ~= nil then
-			print('\t{"name": "' .. mac .. ' [SNMP]", "ip": "' .. snmp_device_ip .. '", "type": "snmp"}')
-			num = num + 1
-			break
-		  end
-	    end
+	 for _, snmp_port in ipairs(matches) do
+	    local snmp_device_ip = snmp_port["snmp_device_ip"]
+	    local matching_mac = snmp_port["mac"]
+
+	    -- print('\t{"name": "' .. matching_mac .. ' [SNMP]", "ip": "' .. snmp_device_ip .. '", "type": "snmp"},')
+	 end
       end
 
       if(res ~= nil) then
