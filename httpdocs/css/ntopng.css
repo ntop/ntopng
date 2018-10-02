@@ -387,3 +387,8 @@ tr.quotas > td {
   margin-top: 10px;
   font-size: 14px;
 }
+
+.typeahead-dropdown-right .dropdown-menu {
+  left: auto !important;
+  right: 0;
+}

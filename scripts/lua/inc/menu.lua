@@ -497,6 +497,7 @@ print(
       action      = "", -- see makeFindHostBeforeSubmitCallback
       json_key    = "ip",
       query_field = "host",
+      class       = "typeahead-dropdown-right",
       query_url   = ntop.getHttpPrefix() .. "/lua/find_host.lua",
       query_title = i18n("search_host"),
       style       = "width:16em;",
