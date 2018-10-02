@@ -60,6 +60,7 @@ typedef enum {
   alert_flow_blocked,
   alert_flow_web_mining = 21,
   alert_nfq_flushed = 22,
+  alert_device_protocol_not_allowed = 24,
 } AlertType; /*
 	       NOTE:
 	       keep it in sync with alert_type_keys
@@ -249,6 +250,7 @@ typedef enum {
   status_blacklisted /* 13 */,
   status_blocked /* 14 */,
   status_web_mining_detected /* 15 */,
+  status_device_protocol_not_allowed /* 16 */,
 } FlowStatus;
 
 typedef enum {

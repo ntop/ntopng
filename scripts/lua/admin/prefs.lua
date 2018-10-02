@@ -349,6 +349,13 @@ function printAlerts()
     hidden = not showElements,
   })
 
+  prefsToggleButton({
+    field = "toggle_device_protocols_alerts",
+    pref = "device_protocols_alerts",
+    default = "0",
+    hidden = not showElements,
+  })
+
   print('<tr id="row_alerts_informative_header" ')
   if (showElements == false) then print(' style="display:none;"') end
   print('><th colspan=2 class="info">'..i18n("prefs.status_alerts")..'</th></tr>')

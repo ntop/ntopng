@@ -2367,8 +2367,70 @@ function formatWebSite(site)
    return("<A target=\"_blank\" HREF=\"http://"..site.."\">"..site.."</A> <i class=\"fa fa-external-link\"></i></th>")
 end
 
--- Update Utils::flowstatus2str
-function getFlowStatus(status)
+-- ###############################################
+
+-- NOTE: "flowstatus_info" is a lua table in a common format used
+-- to dump accurate flow alert information. See flow2statusinfo and flow2statusinfo
+-- below.
+
+-- Uses a flow returned by interface.getFlowsInfo() to create a flowstatus_info.
+-- NOTE: Keep consistent with alert2statusinfo
+function flow2statusinfo(flow)
+   if flow["status_info"] then
+      local json = require("dkjson")
+      local res = json.decode(flow["status_info"])
+
+      if res then
+         -- Add additional information
+         res["proto.ndpi"] = flow["proto.ndpi"]
+         res["proto.ndpi_id"] = flow["proto.ndpi_id"]
+      end
+
+      return res
+   end
+
+   return nil
+end
+
+-- Uses an alert json to create a flowstatus_info.
+-- NOTE: Keep consistent with flow2statusinfo
+function alert2statusinfo(flow_json, alert_json)
+   local res = table.clone(flow_json.status_info)
+
+   if res then
+      -- Add additional information
+      res["proto.ndpi"] = interface.getnDPIProtoName(tonumber(alert_json["l7_proto"]))
+      res["proto.ndpi_id"] = alert_json["l7_proto"]
+   end
+
+   return res
+end
+
+-- ###############################################
+
+function formatSuspiciousDeviceProtocolAlert(flowstatus_info)
+   local msg, devtype
+   local discover = require("discover_utils")
+
+   if not flowstatus_info["cli.devtype_proto_allowed"] then
+      msg = "flow_details.suspicious_client_device_protocol"
+      devtype = flowstatus_info["cli.devtype"]
+   else
+      msg = "flow_details.suspicious_server_device_protocol"
+      devtype = flowstatus_info["srv.devtype"]
+   end
+
+   local label = discover.devtype2string(devtype)
+   return i18n(msg, {proto=flowstatus_info["proto.ndpi"], devtype=label,
+      url=ntop.getHttpPrefix().."/lua/admin/edit_device_protocols.lua?device_type="..
+      devtype.."&l7proto="..flowstatus_info["proto.ndpi_id"]})
+end
+
+-- ###############################################
+
+-- Update Utils::flowstatus2str / FlowStatus enum
+function getFlowStatus(status, flowstatus_info)
+   -- NOTE: flowstatus_info can be nil on older alerts
   if(status == 0) then return("<font color=green>"..i18n("flow_details.normal").."</font>")
   elseif(status == 1)  then return("<font color=orange>"..i18n("flow_details.slow_tcp_connection").."</font>")
   elseif(status == 2)  then return("<font color=orange>"..i18n("flow_details.slow_application_header").."</font>")
@@ -2385,6 +2447,7 @@ function getFlowStatus(status)
   elseif(status == 13) then return("<font color=orange>"..i18n("flow_details.blacklisted_flow").."</font>")
   elseif(status == 14) then return(""..i18n("flow_details.flow_blocked_by_bridge").."")
   elseif(status == 15) then return(""..i18n("flow_details.web_mining_detected").."")
+  elseif(status == 16) then return(formatSuspiciousDeviceProtocolAlert(flowstatus_info))
   else return("<font color=orange>"..i18n("flow_details.unknown_status",{status=status}).."</font>")
   end
 end

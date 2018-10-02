@@ -675,10 +675,17 @@ int AlertsManager::storeFlowAlert(Flow *f) {
     if(srv && srv->get_ip())
       srv_ip = srv->get_ip()->print(srv_ip_buf, sizeof(srv_ip_buf));
 
+    json_object *status_info = f->flow2statusinfojson();
+
     if(snprintf(alert_json, sizeof(alert_json),
-		"{\"info\":\"%s\"}",
-		info ? info : (char*)"") >= (int)sizeof(alert_json))
+		"{\"info\":\"%s\", \"status_info\":%s}",
+		info ? info : (char*)"",
+		status_info ? json_object_to_json_string(status_info) : (char*)"{}"
+	) >= (int)sizeof(alert_json))
       snprintf(alert_json, sizeof(alert_json), "{\"info\":\"\"}");
+
+    if(status_info)
+      json_object_put(status_info);
 
     notifyAlert(alert_entity_flow, "flow", NULL,
 		alert_type, alert_severity, alert_json,

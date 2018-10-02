@@ -442,7 +442,9 @@ if(user_group == "administrator") then
       print("<li><a href=\""..ntop.getHttpPrefix().."/lua/admin/edit_ndpi_applications.lua\"><i class=\"fa fa-tags\"></i> ") print(i18n("protocols")) print("</a></li>\n")
    end
 
-   print("<li><a href=\""..ntop.getHttpPrefix().."/lua/admin/edit_device_protocols.lua\"><i class=\"fa fa-tablet\"></i> ") print(i18n("device_protocols.device_protocols")) print("</a></li>\n")
+   if ntop.getPref("ntopng.prefs.device_protocols_alerts") == "1" then
+      print("<li><a href=\""..ntop.getHttpPrefix().."/lua/admin/edit_device_protocols.lua\"><i class=\"fa fa-tablet\"></i> ") print(i18n("device_protocols.device_protocols")) print("</a></li>\n")
+   end
 end
 
 

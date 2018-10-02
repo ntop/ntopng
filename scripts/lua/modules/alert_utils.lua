@@ -645,7 +645,7 @@ function formatRawFlow(record, flow_json)
       -- render the json
       local msg = ""
       if not isEmptyString(record["flow_status"]) then
-         msg = msg..getFlowStatus(tonumber(record["flow_status"])).." "
+         msg = msg..getFlowStatus(tonumber(record["flow_status"]), alert2statusinfo(decoded, record)).." "
       end
       if not isEmptyString(flow) then
          msg = msg..flow.." "

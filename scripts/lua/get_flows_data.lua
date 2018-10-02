@@ -335,7 +335,7 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
    if(interface.isPacketInterface()) then
       if(value["flow.status"] ~= 0) then
 	 column_proto_l4 = "<i class='fa fa-warning fa-lg' style='color: orange;'"
-	    .." title='"..string.gsub(getFlowStatus(value["flow.status"]), "<[^>]*>([^<]+)<.*", "%1")
+	    .." title='"..string.gsub(getFlowStatus(value["flow.status"], flow2statusinfo(value)), "<[^>]*>([^<]+)<.*", "%1")
 	    .."'></i> "
       end
    end

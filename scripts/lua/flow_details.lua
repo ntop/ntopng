@@ -401,7 +401,7 @@ else
    end
 
    if interface.isPacketInterface() then
-      print("<tr><th width=30%>"..i18n("flow_details.flow_status").."</th><td colspan=2>"..getFlowStatus(flow["flow.status"]).."</td></tr>\n")
+      print("<tr><th width=30%>"..i18n("flow_details.flow_status").."</th><td colspan=2>"..getFlowStatus(flow["flow.status"], flow2statusinfo(flow)).."</td></tr>\n")
    end
 
    if((flow.client_process == nil) and (flow.server_process == nil)) then

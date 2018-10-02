@@ -284,6 +284,10 @@ void Flow::dumpFlowAlert() {
       do_dump = false;
 #endif
       break;
+
+    case status_device_protocol_not_allowed:
+      do_dump = ntop->getPrefs()->are_device_protocols_alerts_enabled();
+      break;
     }
 
     if(do_dump)
@@ -1737,6 +1741,12 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 	lua_push_str_table_entry(vm,  "srv.city", get_srv_host()->get_city(buf, sizeof(buf)));
       }
     }
+
+    json_object *status_info_json = flow2statusinfojson();
+    if(status_info_json) {
+      lua_push_str_table_entry(vm, "status_info", (char*)json_object_to_json_string(status_info_json));
+      json_object_put(status_info_json);
+    }
   }
 
   lua_push_bool_table_entry(vm, "flow.idle", idle_flow);
@@ -1861,6 +1871,21 @@ char* Flow::serialize(bool es_json) {
   }
 
   return(rsp);
+}
+
+/* *************************************** */
+
+/* Returns a stripped-down JSON specifically used for providing more alert information */
+json_object* Flow::flow2statusinfojson() {
+  json_object *obj = json_object_new_object();
+  if(!obj) return NULL;
+
+  json_object_object_add(obj, "cli.devtype", json_object_new_int((cli_host && cli_host->getMac()) ? cli_host->getMac()->getDeviceType() : device_unknown));
+  json_object_object_add(obj, "srv.devtype", json_object_new_int((srv_host && srv_host->getMac()) ? srv_host->getMac()->getDeviceType() : device_unknown));
+  json_object_object_add(obj, "cli.devtype_proto_allowed", json_object_new_boolean(isDeviceAllowedProtocolDirection(true /* client */)));
+  json_object_object_add(obj, "srv.devtype_proto_allowed", json_object_new_boolean(isDeviceAllowedProtocolDirection(false /* server */)));
+
+  return obj;
 }
 
 /* *************************************** */
@@ -3071,6 +3096,32 @@ void Flow::dissectSSDP(bool src2dst_direction, char *payload, u_int16_t payload_
 
 /* *************************************** */
 
+bool Flow::isDeviceAllowedProtocolDirection(bool is_client) {
+  Host *host = is_client ? cli_host : srv_host;
+
+  /* Check if this application protocol is allowd for the specified device type */
+  if(host && host->getMac() && !host->getMac()->isSpecialMac()) {
+    DeviceProtocolBitmask *bitmask = ntop->getDeviceAllowedProtocols(host->getMac()->getDeviceType());
+    NDPI_PROTOCOL_BITMASK *direction_bitmask = is_client ? (&bitmask->clientAllowed) : (&bitmask->serverAllowed);
+
+    if(
+       ((ndpiDetectedProtocol.master_protocol != NDPI_PROTOCOL_UNKNOWN)
+	/* Always allow network critical protocols */
+        && (!Utils::isCriticalNetworkProtocol(ndpiDetectedProtocol.master_protocol))
+	&& (!NDPI_ISSET(direction_bitmask, ndpiDetectedProtocol.master_protocol)))
+       ||
+       /* We consider NDPI_PROTOCOL_UNKNOWN as a protocol to be allowed */
+       (((!Utils::isCriticalNetworkProtocol(ndpiDetectedProtocol.app_protocol)))
+	&& (!NDPI_ISSET(direction_bitmask, ndpiDetectedProtocol.app_protocol)))
+      )
+      return false;
+  }
+
+  return true;
+}
+
+/* *************************************** */
+
 #ifdef HAVE_NEDGE
 
 bool Flow::isPassVerdict() {
@@ -3081,6 +3132,7 @@ bool Flow::isPassVerdict() {
     return((!quota_exceeded)
 	   && (!(cli_host->dropAllTraffic() || srv_host->dropAllTraffic()))
 	   && (!isBlacklistedFlow()));
+	   //&& isDeviceAllowedProtocol()); TODO enable and test
   else
     return(true);
 }
@@ -3150,25 +3202,6 @@ void Flow::updateFlowShapers(bool first_update) {
     old_cli2srv_out = cli2srv_out,
     old_srv2cli_in = srv2cli_in,
     old_srv2cli_out = srv2cli_out;
-
-#if 0 /* TODO rework/enable this code after creating presets for all devices */
-  /* Check if this application protocol is allowd for the specified device type */
-  if(cli_host && srv_host && cli_host->getMac() && srv_host->getMac()) {
-    DeviceProtocolBitmask *cli = ntop->getDeviceAllowedProtocols(cli_host->getMac()->getDeviceType());
-    DeviceProtocolBitmask *srv = ntop->getDeviceAllowedProtocols(srv_host->getMac()->getDeviceType());
-
-    if(
-       ((ndpiDetectedProtocol.master_protocol != NDPI_PROTOCOL_UNKNOWN)
-	&& ((!NDPI_ISSET(&cli->clientAllowed, ndpiDetectedProtocol.master_protocol))
-	    || (!NDPI_ISSET(&srv->serverAllowed, ndpiDetectedProtocol.master_protocol))))
-       ||
-       /* We consider NDPI_PROTOCOL_UNKNOWN as a protocol to be allowed */
-       (((!NDPI_ISSET(&cli->clientAllowed, ndpiDetectedProtocol.app_protocol))
-	 || (!NDPI_ISSET(&srv->serverAllowed, ndpiDetectedProtocol.app_protocol))))
-       )
-      passVerdict = false;
-  }
-#endif
 
   /* Re-compute the verdict */
   cli2srv_verdict = updateDirectionShapers(true, &flowShaperIds.cli2srv.ingress, &flowShaperIds.cli2srv.egress);
@@ -3368,8 +3401,13 @@ FlowStatus Flow::getFlowStatus() {
     return status_blocked;
 #endif
 
+  /* NOTE: evaluation order is important here! */
+
   if(isBlacklistedFlow())
     return status_blacklisted;
+
+  if(!isDeviceAllowedProtocol())
+    return status_device_protocol_not_allowed;
 
   if(ndpiDetectedProtocol.category == CUSTOM_CATEGORY_MINING)
     return status_web_mining_detected;

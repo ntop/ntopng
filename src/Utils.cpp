@@ -430,6 +430,10 @@ const char* Utils::flowStatus2str(FlowStatus s, AlertType *aType, AlertLevel *aL
     *aLevel = alert_level_info;
     *aType = alert_flow_blocked;
     return("Flow blocked");
+  case status_device_protocol_not_allowed:
+    *aType = alert_device_protocol_not_allowed;
+    *aLevel = alert_level_warning;
+    return("Protocol not allowed for this device type");
   default:
     return("Unknown status");
     break;
