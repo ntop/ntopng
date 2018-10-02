@@ -370,9 +370,18 @@ if((page == "overview") or (page == nil)) then
       print("</tr>\n")
 
       print("<tr>")
-      print("<td nowrap><b>"..i18n("if_stats_overview.probe_timeout_lifetime").."</b>: "..secondsToTime(ifstats["timeout.lifetime"]).."</td>")
-      print("<td nowrap><b>"..i18n("if_stats_overview.probe_timeout_idle").."</b>: "..secondsToTime(ifstats["timeout.idle"]).."</td>")
-      print("<td nowrap colspan=3>"..num_remote_flow_exporters.."</td>")
+      local colspan = 3
+      if ifstats["timeout.lifetime"] > 0 then
+        print("<td nowrap><b>"..i18n("if_stats_overview.probe_timeout_lifetime").."</b>: "..secondsToTime(ifstats["timeout.lifetime"]).."</td>")
+      else
+        colspan = colspan + 1
+      end
+      if ifstats["timeout.idle"] > 0 then
+        print("<td nowrap><b>"..i18n("if_stats_overview.probe_timeout_idle").."</b>: "..secondsToTime(ifstats["timeout.idle"]).."</td>")
+      else
+        colspan = colspan + 1
+      end
+      print("<td nowrap colspan="..colspan..">"..num_remote_flow_exporters.."</td>")
       print("</tr>")
    end
 
