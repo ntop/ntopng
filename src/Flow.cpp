@@ -3100,7 +3100,12 @@ bool Flow::isDeviceAllowedProtocolDirection(bool is_client) {
   Host *host = is_client ? cli_host : srv_host;
 
   /* Check if this application protocol is allowd for the specified device type */
-  if(host && host->getMac() && !host->getMac()->isSpecialMac()) {
+  if(host && host->getMac() && !host->getMac()->isSpecialMac()
+#ifdef HAVE_NEDGE
+      /* On nEdge the concept of device protocol policies is only applied to unassigned devices */
+      && (host->get_host_pool() != NO_HOST_POOL_ID)
+#endif
+  ) {
     DeviceProtocolBitmask *bitmask = ntop->getDeviceAllowedProtocols(host->getMac()->getDeviceType());
     NDPI_PROTOCOL_BITMASK *direction_bitmask = is_client ? (&bitmask->clientAllowed) : (&bitmask->serverAllowed);
 

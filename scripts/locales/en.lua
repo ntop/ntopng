@@ -2387,6 +2387,7 @@ local lang = {
     ["toggle_device_first_seen_alert_description"] = "Toggle alerts generated when new unseen devices appear on the network.",
     ["toggle_device_first_seen_alert_title"] = "New Devices Connection",
     ["toggle_device_protocols_description"] = "Toggle alerts generated when an anomalous protocol is detected according to the configured <a href=\"%{url}\">device protocols policies</a>.",
+    ["toggle_device_protocols_description_nedge"] = "Toggle alerts generated when an anomalous protocol on <i>Not Assigned</i> devices is detected according to the configured <a href=\"%{url}\">device protocols policies</a>.",
     ["toggle_device_protocols_title"] = "Device Protocols Alerts",
     ["toggle_dns_alerts_description"] = "Toggle alerts generated when the DNS query is invalid",
     ["toggle_dns_alerts_title"] = "DNS Alerts",

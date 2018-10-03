@@ -2422,8 +2422,8 @@ function formatSuspiciousDeviceProtocolAlert(flowstatus_info)
 
    local label = discover.devtype2string(devtype)
    return i18n(msg, {proto=flowstatus_info["proto.ndpi"], devtype=label,
-      url=ntop.getHttpPrefix().."/lua/admin/edit_device_protocols.lua?device_type="..
-      devtype.."&l7proto="..flowstatus_info["proto.ndpi_id"]})
+      url=getDeviceProtocolPoliciesUrl("device_type="..
+      devtype.."&l7proto="..flowstatus_info["proto.ndpi_id"])})
 end
 
 -- ###############################################
@@ -2754,6 +2754,9 @@ function label2criteriakey(what)
   return what, format_utils.formatValue
 end
 
+-- Merges table a and table b into a new table. If some elements are presents in
+-- both a and b, b elements will have precedence.
+-- NOTE: this does *not* perform a deep merge. Only first level is merged.
 function table.merge(a, b)
   local merged = {}
 
@@ -2766,6 +2769,7 @@ function table.merge(a, b)
   return merged
 end
 
+-- Performs a deep copy of the table.
 function table.clone(orig)
    local orig_type = type(orig)
    local copy
@@ -3364,6 +3368,26 @@ function splitUrl(url)
       url = url,
       params = params,
    }
+end
+
+-- ###########################################
+
+function getDeviceProtocolPoliciesUrl(params_str)
+   local url, sep
+
+   if ntop.isnEdge() then
+      url = "/lua/pro/nedge/admin/nf_edit_user.lua?page=device_protocols"
+      sep = "&"
+   else
+      url = "/lua/admin/edit_device_protocols.lua"
+      sep = "?"
+   end
+
+   if not isEmptyString(params_str) then
+      return ntop.getHttpPrefix() .. url .. sep .. params_str
+   end
+
+   return ntop.getHttpPrefix() .. url
 end
 
 -- ###########################################
