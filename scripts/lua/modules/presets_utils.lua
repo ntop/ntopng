@@ -7,6 +7,8 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 local discover = require "discover_utils"
 
+interface.select(ifname)
+
 local presets_utils = {}
 
 presets_utils.DROP = "0"
@@ -42,14 +44,22 @@ end
 -- Add policy for a specific protocol to a device type
 function presets_utils.addProtocolByName(device_type_name, client_or_server, proto_id, action)
    presets_utils.createPreset(device_type_name)
-   presets_utils.policies[device_type_name][client_or_server][proto_id] = action
+   presets_utils.policies[device_type_name][client_or_server][tonumber(proto_id)] = action
 end
 
 -- Add policy for a specific protocol (by name) to a device type
 function presets_utils.addProtocolByName(device_type_name, client_or_server, proto_name, action)
    presets_utils.createPreset(device_type_name)
    local proto_id = interface.getnDPIProtoId(proto_name)
-   presets_utils.policies[device_type_name][client_or_server][proto_id] = action
+   presets_utils.policies[device_type_name][client_or_server][tonumber(proto_id)] = action
+end
+
+function presets_utils.setAllProtocols(device_type_name, client_or_server, action)
+   presets_utils.createPreset(device_type_name)
+   local items = interface.getnDPIProtocols(nil, true)
+   for proto_name,proto_id in pairs(items) do
+      presets_utils.policies[device_type_name][client_or_server][tonumber(proto_id)] = action
+   end
 end
 
 -----------------------------------------------------------------------------
@@ -59,8 +69,7 @@ end
 local basic_policy = {
    client = { 
       [ 18] = presets_utils.ALLOW, -- DHCP
-      [  5] = presets_utils.ALLOW, -- DNS
-      [126] = presets_utils.ALLOW  -- Google
+      [  5] = presets_utils.ALLOW  -- DNS
    }, 
    server = {}
 }
@@ -74,7 +83,10 @@ presets_utils.addPresetFrom('nas', 'multimedia')
 presets_utils.addProtocolByName('nas', 'server', 'HTTP',        presets_utils.ALLOW)
 presets_utils.addProtocolByName('nas', 'server', 'FTP_CONTROL', presets_utils.ALLOW)
 presets_utils.addProtocolByName('nas', 'server', 'FTP_DATA',    presets_utils.ALLOW)
-presets_utils.addProtocolByName('nas', 'client', 'NetFlix',     presets_utils.DROP)
+
+presets_utils.addPreset('laptop', basic_policy)
+presets_utils.setAllProtocols('laptop', 'client', presets_utils.ALLOW)
+presets_utils.addProtocolByName('laptop', 'client', 'Corba', presets_utils.DROP)
 
 -----------------------------------------------------------------------------
 
@@ -96,8 +108,6 @@ presets_utils.actions = {
    { name = "ALLOW", id = presets_utils.ALLOW, text = allow_text,
      icon = '<i class="fa fa-'..allow_icon..'" aria-hidden="true"></i>'},
 }
-
-interface.select(ifname)
 
 -- Action ID to action name
 function presets_utils.actionIDToAction(action_id)
