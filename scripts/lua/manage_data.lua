@@ -312,7 +312,7 @@ if num_inactive_interfaces > 0 then
 ]]
 end
 
-if not delete_active_interface_requested then
+if (not ntop.isnEdge()) and (not delete_active_interface_requested) then
    print[[
 <form class="interface_data_form" id="form_delete_inactive_interfaces" method="POST">
   <button class="btn btn-default" type="submit" onclick="return delete_interfaces_data_show_modal('delete_active_interface_data');" style="float:right; margin-right:1em;"><i class="fa fa-trash" aria-hidden="true" data-original-title="" title="]] print(i18n("manage_data.delete_active_interface")) print[["></i> ]] print(i18n("manage_data.delete_active_interface")) print[[</button>
