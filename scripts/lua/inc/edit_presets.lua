@@ -304,10 +304,23 @@ local function printDeviceProtocolsPage()
          '<span class="caret"></span></div> <ul class="dropdown-menu" role="menu" style="min-width: 90px;">')
 
    -- 'Category' dropdown menu
+   local device_policies = presets_utils.getDevicePolicies(device_type)
    local entries = { {text=i18n("all"), id=""} }
    entries[#entries + 1] = ""
    for cat_name, cat_id in pairsByKeys(interface.getnDPICategories()) do
-      entries[#entries + 1] = {text=cat_name, id=cat_name}
+      local cat_count = 0
+      local cat_desc = cat_name
+      for proto_id,p in pairs(device_policies) do
+         local cat = interface.getnDPIProtoCategory(tonumber(proto_id))
+         if cat.name == cat_name and (isEmptyString(policy_filter) 
+              or policy_filter == p.clientActionId or policy_filter == p.serverActionId) then
+            cat_count = cat_count + 1
+         end
+      end
+      if cat_count > 0 then
+         cat_desc = cat_name.." ("..cat_count..")"
+      end
+      entries[#entries + 1] = {text=cat_desc, id=cat_name}
    end
    for _, entry in pairs(entries) do
       if entry ~= "" then

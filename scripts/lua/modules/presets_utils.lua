@@ -63,14 +63,17 @@ end
 -----------------------------------------------------------------------------
 -----------------------------------------------------------------------------
 -- DEVICE PROTOCOL PRESETS
--- Note: 'unknown' devices and all devices not listed here have 'allow all' as default
+-- Note: 
+-- - 'unknown' devices and all devices not listed here have 'allow all' as default
+-- - 'DHCP' and 'DNS' are always allowed in the datapath
 
 local basic_policy = {
    client = { 
-      [ 18] = presets_utils.ALLOW, -- DHCP
-      [  5] = presets_utils.ALLOW  -- DNS
+      -- [ 18] = presets_utils.ALLOW, -- DHCP
+      -- [  5] = presets_utils.ALLOW  -- DNS
    }, 
-   server = {}
+   server = {
+   }
 }
 
 addPreset('multimedia', basic_policy)
@@ -118,11 +121,6 @@ function presets_utils.actionIDToAction(action_id)
    end
 end
 
--- Return device policies redis key
-local function getDevicePoliciesKey(device_type, client_or_server)
-   return "ntopng.prefs.device_policies."..client_or_server.."." .. device_type
-end
-
 -- Check if a protocol is allowed by the default presets
 local function isProtoAllowedByPresets(device_type, client_or_server, proto_id)
    local device_type_name = discover.id2devtype(tonumber(device_type))
@@ -138,8 +136,13 @@ local function isProtoAllowedByPresets(device_type, client_or_server, proto_id)
    return false
 end
 
+-- Return device policies redis key
+local function getDevicePoliciesKey(device_type, client_or_server)
+   return "ntopng.prefs.device_policies."..client_or_server.."." .. device_type
+end
+
 -- Check if the device policy for a protocol is set on redis
-local function isDeviceProtoPolicySet(device_type, client_or_server, proto_id)
+local function isCustomDeviceProtoPolicySet(device_type, client_or_server, proto_id)
    local key = getDevicePoliciesKey(device_type, client_or_server)
 
    local action_id = ntop.getHashCache(key, proto_id)
@@ -152,7 +155,7 @@ local function isDeviceProtoPolicySet(device_type, client_or_server, proto_id)
 end
 
 -- Return device policy for a protocol from redis
-local function getDeviceProtoPolicy(device_type, client_or_server, proto_id)
+local function getCustomDeviceProtoPolicy(device_type, client_or_server, proto_id)
    local key = getDevicePoliciesKey(device_type, client_or_server)
 
    local action_id = ntop.getHashCache(key, proto_id)
@@ -165,7 +168,7 @@ local function getDeviceProtoPolicy(device_type, client_or_server, proto_id)
 end
 
 -- Store the device policy for a protocol on redis
-local function setDeviceProtoAction(device_type, client_or_server, proto_id, action_id)
+local function setCustomDeviceProtoPolicy(device_type, client_or_server, proto_id, action_id)
    local key = getDevicePoliciesKey(device_type, client_or_server)
    ntop.setHashCache(key, proto_id, action_id)
 end
@@ -174,14 +177,14 @@ end
 function presets_utils.updateDeviceProto(device_type, client_or_server, proto_id, action_id)
    local proto_name = interface.getnDPIProtoName(tonumber(proto_id))
 
-   if isDeviceProtoPolicySet(device_type, client_or_server, proto_id) then
+   if isCustomDeviceProtoPolicySet(device_type, client_or_server, proto_id) then
       -- the user changed this policy, storing the change on redis
-      setDeviceProtoAction(device_type, client_or_server, proto_id, action_id)
+      setCustomDeviceProtoPolicy(device_type, client_or_server, proto_id, action_id)
    elseif action_id == presets_utils.ALLOW and isProtoAllowedByPresets(device_type, client_or_server, proto_id) then
       -- it seems this has not been changed by the user, nothing to do
    else
       -- preset changed by the user, seting custom user-defined action on redis
-      setDeviceProtoAction(device_type, client_or_server, proto_id, action_id)
+      setCustomDeviceProtoPolicy(device_type, client_or_server, proto_id, action_id)
    end
 end
 
@@ -195,7 +198,7 @@ local function getCustomDevicePoliciesByDir(device_type, client_or_server)
    for proto_id,_ in pairs(proto_ids) do
       local proto_name = interface.getnDPIProtoName(tonumber(proto_id))
       local p = { protoId=proto_id, protoName=proto_name }
-      p.actionId = getDeviceProtoPolicy(device_type, client_or_server, proto_id)
+      p.actionId = getCustomDeviceProtoPolicy(device_type, client_or_server, proto_id)
       custom_policies[tonumber(proto_id)] = p
    end
 
@@ -206,40 +209,36 @@ end
 local function getDevicePoliciesByDir(device_type, client_or_server)
    local device_type_name = discover.id2devtype(tonumber(device_type))
    local device_policies = {}
+   local default_action = presets_utils.ALLOW -- allow by default if no preset for the device
 
-   -- read custom user-defined policies from redis
-   local custom_policies = getCustomDevicePoliciesByDir(device_type, client_or_server) 
+   if presets_utils.policies[device_type_name] ~= nil and 
+      presets_utils.policies[device_type_name][client_or_server] ~= nil then
+      -- device with preset, deny by default
+      default_action = presets_utils.DROP
+   end
 
-   -- init protocols from presets
+   -- init
+   local items = interface.getnDPIProtocols(nil, true)
+   for proto_name,proto_id in pairs(items) do
+      local p = { protoId=proto_id, protoName=proto_name, actionId=default_action }
+      device_policies[tonumber(proto_id)] = p
+   end
+
+   -- protocols from presets
    if presets_utils.policies[device_type_name] ~= nil and 
       presets_utils.policies[device_type_name][client_or_server] ~= nil then
       for proto_id,action_id in pairs(presets_utils.policies[device_type_name][client_or_server]) do
-         -- add allowed protocol, unless the user set it to not allow
-         if custom_policies[proto_id] == nil or not custom_policies[proto_id].actionId == presets_utils.DROP then
-            if action_id == presets_utils.ALLOW then
-               local proto_name = interface.getnDPIProtoName(tonumber(proto_id))
-               local p = { protoId=proto_id, protoName=proto_name, actionId=action_id }
-               device_policies[tonumber(proto_id)] = p
-            end
-         end
+         local proto_name = interface.getnDPIProtoName(tonumber(proto_id))
+         local p = { protoId=proto_id, protoName=proto_name, actionId=action_id }
+         device_policies[tonumber(proto_id)] = p
       end
    else
-      -- device with no preset (including 'unknown') - allow all by default 
-      local items = interface.getnDPIProtocols(nil, true)
-      for proto_name,proto_id in pairs(items) do
-         -- add allowed protocol, unless the user set it to not allow
-         if custom_policies[proto_id] == nil or not custom_policies[proto_id].actionId == presets_utils.DROP then
-            local p = { protoId=proto_id, protoName=proto_name, actionId=presets_utils.ALLOW }
-            device_policies[tonumber(proto_id)] = p
-         end
-      end
    end
 
-   -- set allowed user-defined protocols
+   -- custom user-defined policies from redis
+   local custom_policies = getCustomDevicePoliciesByDir(device_type, client_or_server) 
    for k,v in pairs(custom_policies) do 
-      if v.actionId == presets_utils.ALLOW then
-         device_policies[tonumber(v.protoId)] = v
-      end
+      device_policies[tonumber(v.protoId)] = v
    end   
 
    return device_policies
