@@ -259,8 +259,20 @@ function presets_utils.getDevicePoliciesByDir(device_type, client_or_server)
       end
    end   
 
-
    return device_policies
+end
+
+-- Check if a protocol is allowed
+function presets_utils.isProtoAllowed(device_type, client_or_server, proto_id)
+   local device_type_name = discover.id2devtype(tonumber(device_type))
+
+   local device_policies = presets_utils.getDevicePoliciesByDir(device_type, client_or_server)
+   local policy = device_policies[tonumber(proto_id)]
+   if policy ~= nil and policy.actionId == presets_utils.ALLOW then
+      return true
+   end   
+
+   return false
 end
 
 -- Reload client or server device policies in the datapath
