@@ -42,7 +42,7 @@ function presets_utils.addPresetFrom(device_type_name, source_device_type_name)
 end
 
 -- Add policy for a specific protocol to a device type
-function presets_utils.addProtocolByName(device_type_name, client_or_server, proto_id, action)
+function presets_utils.addProtocol(device_type_name, client_or_server, proto_id, action)
    presets_utils.createPreset(device_type_name)
    presets_utils.policies[device_type_name][client_or_server][tonumber(proto_id)] = action
 end
@@ -90,6 +90,8 @@ presets_utils.addProtocolByName('laptop', 'client', 'Corba', presets_utils.DROP)
 
 -----------------------------------------------------------------------------
 
+-----------------------------------------------------------------------------
+
 local drop_icon = "warning"
 local allow_icon = "check"
 local drop_text = i18n("device_protocols.alert")
@@ -126,9 +128,13 @@ end
 -- Check if a protocol is allowed by the default presets
 function presets_utils.isProtoAllowedByPresets(device_type, client_or_server, proto_id)
    local device_type_name = discover.id2devtype(tonumber(device_type))
-   return presets_utils.policies[device_type_name] ~= nil and 
-          presets_utils.policies[device_type_name][client_or_server] ~= nil and
-          presets_utils.policies[device_type_name][client_or_server][proto_id] == presets_utils.ALLOW
+   if presets_utils.policies[device_type_name] ~= nil and 
+      presets_utils.policies[device_type_name][client_or_server] ~= nil and
+      presets_utils.policies[device_type_name][client_or_server][proto_id] == presets_utils.ALLOW then
+      return true
+   end
+
+   return false
 end
 
 -- Check if the device policy for a protocol is set on redis

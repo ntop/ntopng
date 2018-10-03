@@ -34,11 +34,14 @@ end
 -- ###################################################################
 
 local page_params = {}
+local filter_msg = ""
 
 page_params["page"] = page
 
 if not isEmptyString(policy_filter) then
   page_params["policy_filter"] = policy_filter
+  local action = presets_utils.actionIDToAction(policy_filter)
+  filter_msg = action.text
 end
 
 if not isEmptyString(proto_filter) then
@@ -96,7 +99,7 @@ local function printDeviceProtocolsPage()
       local pool_name = host_pools_utils.DEFAULT_POOL_NAME
       print(i18n("nedge.user_device_protocols", {user=pool_name})) 
    else
-      print(i18n("device_protocols.device_protocols")) 
+      print(i18n("device_protocols.filter_device_protocols", {filter=filter_msg}))
    end
    print[[</h2>
 
@@ -293,7 +296,7 @@ local function printDeviceProtocolsPage()
               hidden: true,
               sortable: false,
             },{
-              title: "]] print(i18n("application_protocols")) print[[ ",
+              title: "]] print(i18n("application_protocol")) print[[ ",
               field: "column_ndpi_application",
               sortable: true,
                 css: {

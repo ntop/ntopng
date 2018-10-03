@@ -8,7 +8,7 @@ local lang = {
   ["allowed"] = "Allowed",
   ["any"] = "any",
   ["application"] = "Application",
-  ["application_protocols"] = "Application Protocols",
+  ["application_protocol"] = "Application Protocol",
   ["applications"] = "Applications",
   ["arp"] = "ARP",
   ["as"] = "AS",
@@ -542,6 +542,7 @@ local lang = {
     ["device_protocols"] = "Device Protocols",
     ["devtype_as_proto_client"] = "%{devtype} as <i>%{proto}</i> client",
     ["devtype_as_proto_server"] = "%{devtype} as <i>%{proto}</i> server",
+    ["filter_device_protocols"] = "%{filter} Device Protocols",
     ["ok"] = "Acceptable",
   },
   ["device_types"] = {
