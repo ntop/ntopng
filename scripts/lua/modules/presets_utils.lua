@@ -128,9 +128,12 @@ end
 -- Check if a protocol is allowed by the default presets
 function presets_utils.isProtoAllowedByPresets(device_type, client_or_server, proto_id)
    local device_type_name = discover.id2devtype(tonumber(device_type))
-   if presets_utils.policies[device_type_name] ~= nil and 
-      presets_utils.policies[device_type_name][client_or_server] ~= nil and
-      presets_utils.policies[device_type_name][client_or_server][proto_id] == presets_utils.ALLOW then
+   if presets_utils.policies[device_type_name] == nil or
+      presets_utils.policies[device_type_name][client_or_server] == nil then
+      return true -- no preset: allowed
+   end
+
+   if presets_utils.policies[device_type_name][client_or_server][proto_id] == presets_utils.ALLOW then
       return true
    end
 
