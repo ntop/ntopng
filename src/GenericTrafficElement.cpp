@@ -23,10 +23,12 @@
 
 /* *************************************** */
 
-/* NOTE: keep in sync with copy constructor below */
 GenericTrafficElement::GenericTrafficElement() {
+  /* NOTE NOTE NOTE: keep in sync with copy constructor below */
   ndpiStats = NULL;
   host_pool_id = NO_HOST_POOL_ID;
+
+  /* Stats */
   resetStats();
 
 #ifdef NTOPNG_PRO
@@ -37,6 +39,7 @@ GenericTrafficElement::GenericTrafficElement() {
 /* *************************************** */
 
 void GenericTrafficElement::resetStats() {
+  /* NOTE NOTE NOTE: keep in sync with copy constructor below */
   last_bytes = 0, last_bytes_thpt = bytes_thpt = 0, bytes_thpt_trend = trend_unknown;
   bytes_thpt_diff = 0;
   last_packets = 0, last_pkts_thpt = pkts_thpt = 0, pkts_thpt_trend = trend_unknown;
@@ -51,14 +54,22 @@ void GenericTrafficElement::resetStats() {
 
 GenericTrafficElement::GenericTrafficElement(const GenericTrafficElement &gte) {
     ndpiStats = (gte.ndpiStats) ? new nDPIStats(*gte.ndpiStats) : NULL;
-    sent = gte.sent, rcvd = gte.rcvd;
+    host_pool_id = gte.host_pool_id;
 
+    /* Stats */
     last_bytes = gte.last_bytes, bytes_thpt = gte.bytes_thpt, last_bytes_thpt = gte.last_bytes_thpt, bytes_thpt_trend = gte.bytes_thpt_trend;
     bytes_thpt_diff = gte.bytes_thpt_diff;
     last_packets = gte.last_packets, pkts_thpt = gte.pkts_thpt, last_pkts_thpt = gte.last_pkts_thpt, pkts_thpt_trend = gte.pkts_thpt_trend;
     last_update_time = gte.last_update_time;
     vlan_id = gte.vlan_id;
     total_num_dropped_flows = gte.total_num_dropped_flows;
+
+    sent = gte.sent;
+    rcvd = gte.rcvd;
+
+#ifdef NTOPNG_PRO
+    custom_app_stats = (gte.custom_app_stats) ? new CustomAppStats(*gte.custom_app_stats) : NULL;
+#endif
 }
 
 /* *************************************** */
