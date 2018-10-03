@@ -8,6 +8,7 @@ local lang = {
   ["allowed"] = "Allowed",
   ["any"] = "any",
   ["application"] = "Application",
+  ["application_protocols"] = "Application Protocols",
   ["applications"] = "Applications",
   ["arp"] = "ARP",
   ["as"] = "AS",
