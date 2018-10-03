@@ -4019,6 +4019,31 @@ static int ntop_update_flows_shapers(lua_State* vm) {
   return(CONST_LUA_OK);
 }
 
+/* ****************************************** */
+
+static int ntop_get_shaper_id_for_pool(lua_State* vm) {
+  u_int16_t pool_id;
+  ndpi_protocol proto;
+  bool is_ingress;
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  if(!ntop_interface || !ntop_interface->getL7Policer()) return(CONST_LUA_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TBOOLEAN) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+
+  pool_id = (u_int16_t)lua_tointeger(vm, 1);
+  proto.master_protocol = (u_int16_t)lua_tointeger(vm, 2);
+  proto.app_protocol = (u_int16_t)lua_tointeger(vm, 3);
+  is_ingress = lua_toboolean(vm, 4);
+
+  lua_pushnumber(vm, ntop_interface->getL7Policer()->getShaperIdForPool(pool_id, proto, is_ingress));
+  return(CONST_LUA_OK);
+}
+
 #endif
 
 /* ****************************************** */
@@ -7874,6 +7899,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "setLanIpAddress",                  ntop_set_lan_ip_address                },
   { "getPolicyChangeMarker",            ntop_get_policy_change_marker          },
   { "updateFlowsShapers",               ntop_update_flows_shapers              },
+  { "getShaperIdForPool",               ntop_get_shaper_id_for_pool            },
 #endif
 #endif
 
