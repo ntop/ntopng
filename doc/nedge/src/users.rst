@@ -67,8 +67,10 @@ authentication by assigning the device to the "Not Assigned" user.
 
 .. _policies: policies.html
 
-Configuration API
------------------
+.. _programmatic_configuration:
+
+Programmatic Configuration
+--------------------------
 
 Configuration of users, policies, and device-to-user associations/disassociations can also
 be done programmatically.

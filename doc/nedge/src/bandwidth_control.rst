@@ -1,3 +1,5 @@
+.. _bandwidth_control:
+
 Bandwidth Control
 #################
 
