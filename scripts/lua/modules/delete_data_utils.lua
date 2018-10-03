@@ -8,7 +8,8 @@ local os_utils = require("os_utils")
 local delete_data_utils = {}
 local dry_run = false
 
-local ALL_INTERFACES_HASH_KEYS = "ntopng.prefs.iface_id"
+local ALL_INTERFACES_HASH_KEYS      = "ntopng.prefs.iface_id"
+local ACTIVE_INTERFACES_DELETE_HASH = "ntopng.prefs.delete_active_interfaces_data"
 
 -- ################################################################
 
@@ -292,15 +293,15 @@ end
 
 -- ################################################################
 
-local function delete_interfaces_from_list(interfaces_list)
+local function delete_interfaces_from_list(interfaces_list, preserve_interface_ids)
    local if_dt = delete_interfaces_data(interfaces_list)
    local if_rk = delete_interfaces_redis_keys(interfaces_list)
    local if_db = delete_interfaces_db_flows(interfaces_list)
 
    -- last step is to also free the ids that can thus be re-used
    -- if everything was OK.
-   local if_in   
-   if if_dt["status"] == "OK" and if_rk["status"] == "OK" and if_db["status"] == "OK" then
+   local if_in
+   if not preserve_interface_ids and if_dt["status"] == "OK" and if_rk["status"] == "OK" and if_db["status"] == "OK" then
       if_in = delete_interfaces_ids(interfaces_list)
    end
 
@@ -329,6 +330,51 @@ function delete_data_utils.delete_all_interfaces_data()
    local if_list = list_all_interfaces()
 
    return delete_interfaces_from_list(if_list)
+end
+
+-- ################################################################
+
+function delete_data_utils.delete_active_interfaces_data()
+   local if_list = ntop.getHashAllCache(ACTIVE_INTERFACES_DELETE_HASH)
+
+   return delete_interfaces_from_list(if_list, true --[[ preserve ids --]])
+end
+
+-- ################################################################
+
+function delete_data_utils.request_delete_active_interface_data(if_name)
+   local if_id = getInterfaceId(if_name)
+
+   if tonumber(if_id) >= 0 then
+      ntop.setHashCache(ACTIVE_INTERFACES_DELETE_HASH, tostring(if_id), if_name)
+   end
+end
+
+-- ################################################################
+
+function delete_data_utils.clear_request_delete_active_interface_data()
+   ntop.delCache(ACTIVE_INTERFACES_DELETE_HASH)
+end
+
+-- ################################################################
+
+function delete_data_utils.delete_active_interface_data_requested(if_name)
+   if not isEmptyString(if_name) then
+      -- Check if a delete has been requested for a particular interface
+      local if_id = getInterfaceId(if_name)
+
+      if tonumber(if_id) >= 0 then
+	 local req = ntop.getHashCache(ACTIVE_INTERFACES_DELETE_HASH, tostring(if_id))
+	 if not isEmptyString(req) then
+	    return true
+	 end
+      end
+   else
+      -- Check if there's at least a data delete request
+      return (ntop.getHashAllCache(ACTIVE_INTERFACES_DELETE_HASH) ~= nil)
+   end
+
+   return false
 end
 
 -- ################################################################

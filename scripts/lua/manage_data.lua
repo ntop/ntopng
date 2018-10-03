@@ -11,6 +11,8 @@ local template = require "template_utils"
 
 local page        = _GET["page"] or _POST["page"]
 
+local delete_data_utils = require "delete_data_utils"
+
 sendHTTPContentTypeHeader('text/html')
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
@@ -19,7 +21,14 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 
 if _POST and table.len(_POST) > 0 and isAdministrator() then
-   if _POST["delete_inactive_if_data"] then
+   if _POST["delete_active_if_data"] then
+      -- Data for the active interface can't be hot-deleted.
+      -- a restart of ntopng is required so we just mark the deletion.
+      delete_data_utils.request_delete_active_interface_data(ifname)
+
+      print('<div class="alert alert-success alert-dismissable"><a href="" class="close" data-dismiss="alert" aria-label="close">&times;</a>'..i18n('delete_data.delete_active_interface_data_ok', {ifname = ifname, product = ntop.getInfo().product})..'</div>')
+
+   elseif _POST["delete_inactive_if_data"] then
       local res = delete_data_utils.delete_inactive_interfaces()
 
       local err_msgs = {}
@@ -68,6 +77,22 @@ print(
    })
 )
 
+local delete_active_interface_requested = delete_data_utils.delete_active_interface_data_requested(ifname)
+if not delete_active_interface_requested then
+   print(
+      template.gen("modal_confirm_dialog.html", {
+		      dialog = {
+			 id      = "delete_active_interface_data",
+			 action  = "delete_interfaces_data('delete_active_if_data')",
+			 title   = i18n("manage_data.delete_active_interface"),
+			 message = i18n("delete_data.delete_active_interface_confirmation",
+					{ifname = ifname, product = ntop.getInfo().product}),
+			 confirm = i18n("delete")
+		      }
+      })
+   )
+end
+
 local inactive_interfaces = delete_data_utils.list_inactive_interfaces()
 local num_inactive_interfaces = ternary(not ntop.isnEdge(), table.len(inactive_interfaces or {}), 0)
 
@@ -88,7 +113,7 @@ if num_inactive_interfaces > 0 then
       template.gen("modal_confirm_dialog.html", {
 		      dialog = {
 			 id      = "delete_inactive_interfaces_data",
-			 action  = "delete_inactive_interfaces_data()",
+			 action  = "delete_interfaces_data('delete_inactive_if_data')",
 			 title   = i18n("manage_data.delete_inactive_interfaces"),
 			 message = i18n("delete_data.delete_inactive_interfaces_confirmation",
 					{interfaces_list = inactive_list}),
@@ -96,7 +121,6 @@ if num_inactive_interfaces > 0 then
 		      }
       })
    )
-
 end
 
 print[[
@@ -278,16 +302,25 @@ print [[
 </section>
 ]] 
 
+print[[<div>]]
+
 if num_inactive_interfaces > 0 then
    print[[
-<div>
         <form class="interface_data_form" id="form_delete_inactive_interfaces" method="POST">
-          <button class="btn btn-default" type="submit" onclick="return delete_inactive_interfaces_data_show_modal();" style="float:right; margin-right:1em;"><i class="fa fa-trash" aria-hidden="true" data-original-title="" title="]] print(i18n("manage_data.delete_inactive_interfaces")) print[["></i> ]] print(i18n("manage_data.delete_inactive_interfaces")) print[[</button>
+          <button class="btn btn-default" type="submit" onclick="return delete_interfaces_data_show_modal('delete_inactive_interfaces_data');" style="float:right; margin-right:1em;"><i class="fa fa-trash" aria-hidden="true" data-original-title="" title="]] print(i18n("manage_data.delete_inactive_interfaces")) print[["></i> ]] print(i18n("manage_data.delete_inactive_interfaces")) print[[</button>
         </form>
-</div>
-
-<br>]]
+]]
 end
+
+if not delete_active_interface_requested then
+   print[[
+<form class="interface_data_form" id="form_delete_inactive_interfaces" method="POST">
+  <button class="btn btn-default" type="submit" onclick="return delete_interfaces_data_show_modal('delete_active_interface_data');" style="float:right; margin-right:1em;"><i class="fa fa-trash" aria-hidden="true" data-original-title="" title="]] print(i18n("manage_data.delete_active_interface")) print[["></i> ]] print(i18n("manage_data.delete_active_interface")) print[[</button>
+</form>
+]]
+end
+
+print[[</div><br>]]
 
 print[[  <b>]] print(i18n('notes')) print[[</b>
 <ul>
@@ -328,21 +361,17 @@ params.ifid = ']] print(tostring(getInterfaceId(ifname))) print[[';
 
             form.appendTo('body').submit();
          };
-]]
 
-if num_inactive_interfaces > 0 then
-   print[[
-var delete_inactive_interfaces_data_show_modal = function() {
-  $('#delete_inactive_interfaces_data').modal('show');
+var delete_interfaces_data_show_modal = function(modal_id) {
+  $('#' + modal_id).modal('show');
 
   /* abort submit */
   return false;
 };
 
-var delete_inactive_interfaces_data = function() {
-  var params = {};
+var delete_interfaces_data = function(action) {
+  var params = {[action] : ''};
 
-  params.delete_inactive_if_data = '';
   params.page = 'delete';
 
   params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
@@ -351,10 +380,7 @@ var delete_inactive_interfaces_data = function() {
 
   form.appendTo('body').submit();
 };
-]]
-end
 
-print[[
 var prepare_typeahead = function(host_id, vlan_id, buttons_id) {
   $('#' + host_id).val('');
   $('#' + vlan_id).val('');

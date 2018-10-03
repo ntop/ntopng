@@ -1257,6 +1257,7 @@ local known_parameters = {
    ["policy_filter"]           = validateEmptyOr(validateNumber),
    ["hostname"]                = validateSingleWord,
    ["delete"]                  = validateEmpty,
+   ["delete_active_if_data"]   = validateEmpty,
    ["delete_inactive_if_data"] = validateEmpty,
    ["reset_quotas"]            = validateEmpty,
    ["bandwidth_allocation"]    = validateChoiceInline({"min_guaranteed", "max_enforced"}),
