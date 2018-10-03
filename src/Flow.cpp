@@ -3102,8 +3102,9 @@ bool Flow::isDeviceAllowedProtocolDirection(bool is_client) {
   /* Check if this application protocol is allowd for the specified device type */
   if(host && host->getMac() && !host->getMac()->isSpecialMac()
 #ifdef HAVE_NEDGE
-      /* On nEdge the concept of device protocol policies is only applied to unassigned devices */
-      && (host->get_host_pool() != NO_HOST_POOL_ID)
+      /* On nEdge the concept of device protocol policies is only applied to unassigned devices on LAN */
+      && (host->get_host_pool() == NO_HOST_POOL_ID)
+      && (host->getMac()->locate() == located_on_lan_interface)
 #endif
   ) {
     DeviceProtocolBitmask *bitmask = ntop->getDeviceAllowedProtocols(host->getMac()->getDeviceType());
@@ -3137,7 +3138,7 @@ bool Flow::isPassVerdict() {
     return((!quota_exceeded)
 	   && (!(cli_host->dropAllTraffic() || srv_host->dropAllTraffic()))
 	   && (!isBlacklistedFlow()));
-	   //&& isDeviceAllowedProtocol()); TODO enable and test
+	   //&& isDeviceAllowedProtocol()); //TODO enable and test
   else
     return(true);
 }

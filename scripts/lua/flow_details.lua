@@ -18,6 +18,7 @@ require "historical_utils"
 require "flow_utils"
 require "voip_utils"
 
+local discover = require("discover_utils")
 local json = require ("dkjson")
 
 sendHTTPContentTypeHeader('text/html')
@@ -198,6 +199,38 @@ else
          printFlowQuota(ifstats.id, flow, false --[[ server ]])
          print("</td>")
          print("</tr>")
+      end
+
+      local status_info = flow2statusinfo(flow)
+
+      if status_info then
+         local cli_mac = flow["cli.mac"] and interface.getMacInfo(flow["cli.mac"])
+         local srv_mac = flow["srv.mac"] and interface.getMacInfo(flow["srv.mac"])
+         local num_rows = 0
+
+         if cli_mac and cli_mac.location == "lan" then
+           num_rows = num_rows + 1
+         end
+         if srv_mac and srv_mac.location == "lan" then
+           num_rows = num_rows + 1
+         end
+
+         if num_rows > 0 then
+           print("<tr><th width=30% rowspan=".. num_rows ..">"..i18n("device_protocols.device_protocol_policy").."</th>")
+           if cli_mac and cli_mac.location == "lan" then
+             print("<td>"..i18n("device_protocols.devtype_as_proto_client", {devtype=discover.devtype2string(status_info["cli.devtype"]), proto=flow["proto.ndpi"]}).."</td>")
+             print("<td><a href=\"".. getDeviceProtocolPoliciesUrl("device_type=" .. status_info["cli.devtype"]) .."&l7proto=".. flow["proto.ndpi_id"] .."\">")
+             print(i18n(ternary(status_info["cli.devtype_proto_allowed"], "allowed", "forbidden")))
+             print("</a></td></tr><tr>")
+           end
+
+           if srv_mac and srv_mac.location == "lan" then
+             print("<td>"..i18n("device_protocols.devtype_as_proto_server", {devtype=discover.devtype2string(status_info["srv.devtype"]), proto=flow["proto.ndpi"]}).."</td>")
+             print("<td><a href=\"".. getDeviceProtocolPoliciesUrl("device_type=" .. status_info["srv.devtype"]) .."&l7proto=".. flow["proto.ndpi_id"] .."\">")
+             print(i18n(ternary(status_info["srv.devtype_proto_allowed"], "allowed", "forbidden")))
+             print("</a></td></tr><tr>")
+           end
+         end
       end
    end
 
