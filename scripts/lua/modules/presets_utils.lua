@@ -13,22 +13,70 @@ presets_utils.DROP = "0"
 presets_utils.ALLOW = "1"
 presets_utils.DEFAULT_ACTION = presets_utils.DROP
 
--- Default presets (allowed protocols are listed here)
+presets_utils.policies = {}
+
 -- Note: 'unknown' devices and all devices not listed here have 'allow all' as default
-presets_utils.allowed = {
-   ['nas'] = {
-      ['client'] = { 
-         18, -- DHCP
-          5, -- DNS
-          7, -- HTTP
-      },
-      ['server'] = {
-          7, -- HTTP
-          1, -- FTP_CONTROL
-        175, -- FTP_DATA
-      }
-   },
+
+-- Create an empty preset for a device type if it does not exist
+function presets_utils.createPreset(device_type_name)
+   if presets_utils.policies[device_type_name] == nil then
+      presets_utils.policies[device_type_name] = { client = {}, server = {} }
+   end
+end
+
+-- Add client and server policies to a device type
+function presets_utils.addPreset(device_type_name, source_preset)
+   presets_utils.createPreset(device_type_name)
+   presets_utils.policies[device_type_name].client = 
+      table.merge(presets_utils.policies[device_type_name].client, source_preset.client)
+   presets_utils.policies[device_type_name].server = 
+      table.merge(presets_utils.policies[device_type_name].server, source_preset.server)
+end
+
+-- Add policies to a device type cloning policies from another device type
+function presets_utils.addPresetFrom(device_type_name, source_device_type_name)
+   presets_utils.addPreset(device_type_name,
+      presets_utils.policies[source_device_type_name])
+end
+
+-- Add policy for a specific protocol to a device type
+function presets_utils.addProtocolByName(device_type_name, client_or_server, proto_id, action)
+   presets_utils.createPreset(device_type_name)
+   presets_utils.policies[device_type_name][client_or_server][proto_id] = action
+end
+
+-- Add policy for a specific protocol (by name) to a device type
+function presets_utils.addProtocolByName(device_type_name, client_or_server, proto_name, action)
+   presets_utils.createPreset(device_type_name)
+   local proto_id = interface.getnDPIProtoId(proto_name)
+   presets_utils.policies[device_type_name][client_or_server][proto_id] = action
+end
+
+-----------------------------------------------------------------------------
+-- DEVICE PROTOCOL PRESETS
+-----------------------------------------------------------------------------
+
+local basic_policy = {
+   client = { 
+      [ 18] = presets_utils.ALLOW, -- DHCP
+      [  5] = presets_utils.ALLOW, -- DNS
+      [126] = presets_utils.ALLOW  -- Google
+   }, 
+   server = {}
 }
+
+presets_utils.addPreset('multimedia', basic_policy)
+presets_utils.addProtocolByName('multimedia', 'client', 'HTTP', presets_utils.ALLOW)
+presets_utils.addProtocolByName('multimedia', 'client', 'NetFlix', presets_utils.ALLOW)
+presets_utils.addProtocolByName('multimedia', 'client', 'YouTube', presets_utils.ALLOW)
+
+presets_utils.addPresetFrom('nas', 'multimedia')
+presets_utils.addProtocolByName('nas', 'server', 'HTTP',        presets_utils.ALLOW)
+presets_utils.addProtocolByName('nas', 'server', 'FTP_CONTROL', presets_utils.ALLOW)
+presets_utils.addProtocolByName('nas', 'server', 'FTP_DATA',    presets_utils.ALLOW)
+presets_utils.addProtocolByName('nas', 'client', 'NetFlix',     presets_utils.DROP)
+
+-----------------------------------------------------------------------------
 
 local drop_icon = "warning"
 local allow_icon = "check"
@@ -47,12 +95,12 @@ presets_utils.actions = {
      icon = '<i class="fa fa-'..drop_icon..'" aria-hidden="true"></i>'},
    { name = "ALLOW", id = presets_utils.ALLOW, text = allow_text,
      icon = '<i class="fa fa-'..allow_icon..'" aria-hidden="true"></i>'},
-  }
+}
 
 interface.select(ifname)
 
 -- Action ID to action name
-function presets_utils.nedge_action_id_to_action(action_id)
+function presets_utils.actionIDToAction(action_id)
    for _, action in pairs(presets_utils.actions) do
       if action.id == tostring(action_id) then
 	 return action
@@ -65,20 +113,12 @@ function presets_utils.getDevicePoliciesKey(device_type, client_or_server)
    return "ntopng.prefs.device_policies."..client_or_server.."." .. device_type
 end
 
+-- Check if a protocol is allowed by the default presets
 function presets_utils.isProtoAllowedByPresets(device_type, client_or_server, proto_id)
    local device_type_name = discover.id2devtype(tonumber(device_type))
-   local allow = false
-
-   if presets_utils.allowed[device_type_name] ~= nil and 
-      presets_utils.allowed[device_type_name][client_or_server] ~= nil then
-      for k,v in pairs(presets_utils.allowed[device_type_name][client_or_server]) do
-         if v == proto_id then
-            allow = true
-         end
-      end
-   end
-
-  return allow
+   return presets_utils.policies[device_type_name] ~= nil and 
+          presets_utils.policies[device_type_name][client_or_server] ~= nil and
+          presets_utils.policies[device_type_name][client_or_server][proto_id] == presets_utils.ALLOW
 end
 
 -- Check if the device policy for a protocol is set on redis
@@ -121,7 +161,7 @@ end
 
 -- Update the device policy for a protocol on redis
 function presets_utils.updateDeviceProto(device_type, client_or_server, proto_id, action_id)
-local proto_name = interface.getnDPIProtoName(tonumber(proto_id))
+   local proto_name = interface.getnDPIProtoName(tonumber(proto_id))
 
    if presets_utils.isDeviceProtoPolicySet(device_type, client_or_server, proto_id) then
       -- the user changed this policy, storing the change on redis
@@ -148,7 +188,7 @@ function presets_utils.getCustomDevicePoliciesByDir(device_type, client_or_serve
       local p = { protoId=proto_id, protoName=proto_name }
       p.actionId = presets_utils.getDeviceProtoPolicy(device_type, client_or_server, proto_id)
       -- tprint("Custom policy for device "..device_type.." protocol "..proto_name.." action is "..p.actionId)
-      custom_policies[proto_id] = p
+      custom_policies[tonumber(proto_id)] = p
    end
 
    return custom_policies
@@ -165,15 +205,17 @@ function presets_utils.getDevicePoliciesByDir(device_type, client_or_server)
 
    -- init protocols from presets
 
-   if presets_utils.allowed[device_type_name] ~= nil and 
-      presets_utils.allowed[device_type_name][client_or_server] ~= nil then
-      for k,proto_id in pairs(presets_utils.allowed[device_type_name][client_or_server]) do
+   if presets_utils.policies[device_type_name] ~= nil and 
+      presets_utils.policies[device_type_name][client_or_server] ~= nil then
+      for proto_id,action_id in pairs(presets_utils.policies[device_type_name][client_or_server]) do
          -- add allowed protocol, unless the user set it to not allow
          if custom_policies[proto_id] == nil or not custom_policies[proto_id].actionId == presets_utils.DROP then
-            local proto_name = interface.getnDPIProtoName(tonumber(proto_id))
-            local p = { protoId=proto_id, protoName=proto_name, actionId=presets_utils.ALLOW }
+            if action_id == presets_utils.ALLOW then
+               local proto_name = interface.getnDPIProtoName(tonumber(proto_id))
+               local p = { protoId=proto_id, protoName=proto_name, actionId=action_id }
             -- tprint("Preset policy for device "..device_type.." protocol "..proto_name.." action is "..p.actionId)
-            device_policies[tonumber(proto_id)] = p
+               device_policies[tonumber(proto_id)] = p
+            end
          end
       end
    else
@@ -205,7 +247,7 @@ end
 -- Reload client or server device policies in the datapath
 function presets_utils.reloadDevicePoliciesByDir(device_type, client_or_server)
    local device_type_name = discover.id2devtype(tonumber(device_type))
-   local allowed_protocols = {};
+   local allowed_protocols = {}
 
    local device_policies = presets_utils.getDevicePoliciesByDir(device_type, client_or_server)
    for k,v in pairs(device_policies) do 
@@ -256,7 +298,7 @@ function presets_utils.getDevicePolicies(device_type)
 end
 
 
-function presets_utils.resetDefaultPresets(device_type)
+function presets_utils.resetDevicePoliciesFromPresets(device_type)
    local key_client = presets_utils.getDevicePoliciesKey(device_type, "client")
    local key_server = presets_utils.getDevicePoliciesKey(device_type, "server")
 

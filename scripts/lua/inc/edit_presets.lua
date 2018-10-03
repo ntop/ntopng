@@ -334,7 +334,7 @@ if _POST["edit_device_policy"] ~= nil then
   editDeviceProtocols()
 elseif (_POST["action"] == "reset") and (_POST["device_type"] ~= nil) then
    local device_type = tonumber(_POST["device_type"])
-   presets_utils.resetDefaultPresets(device_type)
+   presets_utils.resetDevicePoliciesFromPresets(device_type)
    presets_utils.reloadDevicePolicies(device_type)
 end
 
