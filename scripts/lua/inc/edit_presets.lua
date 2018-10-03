@@ -23,6 +23,7 @@ local page = _GET["page"] or ""
 local policy_filter = _GET["policy_filter"] or ""
 local proto_filter = _GET["l7proto"] or ""
 local device_type = _GET["device_type"] or "0" -- unknown by default
+local category = _GET["category"] or ""
 
 local base_url = ""
 if ntop.isnEdge() then
@@ -43,6 +44,12 @@ if not isEmptyString(policy_filter) then
   local action = presets_utils.actionIDToAction(policy_filter)
   filter_msg = action.text
 end
+
+if not isEmptyString(category) then
+  page_params["category"] = category
+  filter_msg = filter_msg.." "..category
+end
+
 
 if not isEmptyString(proto_filter) then
   page_params["l7proto"] = proto_filter
@@ -140,6 +147,7 @@ local function printDeviceProtocolsPage()
    after_search_params.device_type = device_type
    after_search_params.l7proto = nil
    after_search_params.policy_filter = nil
+   after_search_params.category = nil
 
    -- Protocol search form
    print(
@@ -230,17 +238,18 @@ local function printDeviceProtocolsPage()
       return false;
     });
 
-  var url_update = "]] print (ntop.getHttpPrefix())
+    var url_update = "]] print (ntop.getHttpPrefix())
    print[[/lua/admin/get_device_protocols.lua?device_type=]] print(device_type)
    if not isEmptyString(policy_filter) then print("&policy_filter=" .. policy_filter) end
    if not isEmptyString(proto_filter) then print("&l7proto=" .. proto_filter) end
+   if not isEmptyString(category) then print("&category=" .. category) end
    print[[";
 
-  var legend_appended = false;
+    var legend_appended = false;
 
-  $("#]] print(table_id) print[[").datatable({
-    url: url_update ,
-    class: "table table-striped table-bordered table-condensed",
+    $("#]] print(table_id) print[[").datatable({
+      url: url_update ,
+      class: "table table-striped table-bordered table-condensed",
 ]]
 
    -- Table preferences
@@ -249,47 +258,71 @@ local function printDeviceProtocolsPage()
    print ('perPage: '..preference.. ",\n")
 
    print[[
-         tableCallback: function(opts) {
-          if (! legend_appended) {
-            legend_appended = true;
-            $("#]] print(table_id) print[[ .dt-toolbar-container").append("]]
+      tableCallback: function(opts) {
+        if (! legend_appended) {
+          legend_appended = true;
+          $("#]] print(table_id) print[[ .dt-toolbar-container").append("]]
 
-  -- Legenda
-  printDevicePolicyLegenda()
+   -- Legenda
+   printDevicePolicyLegenda()
 
-  print[[")};
-           datatableForEachRow($("#]] print(table_id) print[["), function() {
+   print[[")};
+            datatableForEachRow($("#]] print(table_id) print[["), function() {
               var row = $(this);
               var proto_id = $("td:nth-child(1)", row).html();
-           });
+            });
 
-           aysResetForm("#]] print(form_id) print[[");
-         }, showPagination: true, title:"",
-          buttons: []]
-          print('\'<div class="btn-group pull-right"><div class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..
-            i18n("nedge.filter_policies") .. ternary(not isEmptyString(policy_filter), '<span class="glyphicon glyphicon-filter"></span>', '') ..
-            '<span class="caret"></span></div> <ul class="dropdown-menu" role="menu" style="min-width: 90px;">')
+            aysResetForm("#]] print(form_id) print[[");
+      }, showPagination: true, title:"",
+      buttons: []]
 
-          -- 'Filter Policies' dropdown menu
-          local entries = { {text=i18n("all"), id=""} }
-          entries[#entries + 1] = ""
-          for _, action in ipairs(presets_utils.actions) do
-            entries[#entries + 1] = {text=action.text, id=action.id, icon=action.icon .. "&nbsp;&nbsp;"}
-          end
-          for _, entry in pairs(entries) do
-            if entry ~= "" then
-              page_params["policy_filter"] = entry.id
-              -- page_params["device_type"] = device_type
-              print('<li' .. ternary(policy_filter == entry.id, ' class="active"', '') .. '><a href="' .. getPageUrl(base_url, page_params) .. '">' .. (entry.icon or "") .. entry.text .. '</a></li>')
-            else
-              print('<li role="separator" class="divider"></li>')
-            end
-          end
-          page_params["policy_filter"] = nil
-          print('</ul></div>\'], ')
+   -- 'Filter Policies' button
+   print('\'<div class="btn-group pull-right"><div class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..
+         i18n("nedge.filter_policies") .. ternary(not isEmptyString(policy_filter), '<span class="glyphicon glyphicon-filter"></span>', '') ..
+         '<span class="caret"></span></div> <ul class="dropdown-menu" role="menu" style="min-width: 90px;">')
 
-          -- datatable columns definition
-          print[[columns: [
+   -- 'Filter Policies' dropdown menu
+   local entries = { {text=i18n("all"), id=""} }
+   entries[#entries + 1] = ""
+   for _, action in ipairs(presets_utils.actions) do
+      entries[#entries + 1] = {text=action.text, id=action.id, icon=action.icon .. "&nbsp;&nbsp;"}
+   end
+   for _, entry in pairs(entries) do
+      if entry ~= "" then
+         page_params["policy_filter"] = entry.id
+         print('<li' .. ternary(policy_filter == entry.id, ' class="active"', '') .. '><a href="' .. getPageUrl(base_url, page_params) .. '">' .. (entry.icon or "") .. entry.text .. '</a></li>')
+      else
+         print('<li role="separator" class="divider"></li>')
+      end
+   end
+   page_params["policy_filter"] = policy_filter
+   print('</ul></div>\', ')
+       
+   -- 'Category' button
+   print('\'<div class="btn-group pull-right"><div class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..
+         i18n("category") .. ternary(not isEmptyString(category), '<span class="glyphicon glyphicon-filter"></span>', '') ..
+         '<span class="caret"></span></div> <ul class="dropdown-menu" role="menu" style="min-width: 90px;">')
+
+   -- 'Category' dropdown menu
+   local entries = { {text=i18n("all"), id=""} }
+   entries[#entries + 1] = ""
+   for cat_name, cat_id in pairsByKeys(interface.getnDPICategories()) do
+      entries[#entries + 1] = {text=cat_name, id=cat_name}
+   end
+   for _, entry in pairs(entries) do
+      if entry ~= "" then
+         page_params["category"] = entry.id
+         print('<li' .. ternary(category == entry.id, ' class="active"', '') .. '><a href="' .. getPageUrl(base_url, page_params) .. '">' .. (entry.icon or "") .. entry.text .. '</a></li>')
+      else
+         print('<li role="separator" class="divider"></li>')
+      end
+   end
+   page_params["category"] = category
+   print('</ul></div>\', ')
+
+   -- datatable columns definition
+   print[[],
+          columns: [
             {
               title: "",
               field: "column_ndpi_application_id",

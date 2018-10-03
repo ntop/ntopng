@@ -22,6 +22,7 @@ local sortOrder    = _GET["sortOrder"]
 local device_type = _GET["device_type"]
 local policy_filter = _GET["policy_filter"]
 local proto_filter = _GET["l7proto"]
+local category = _GET["category"]
 
 -- ################################################
 --  Sorting and Pagination
@@ -95,6 +96,15 @@ local function matchesProtoFilter(item_id)
    return proto_filter == item_id
 end
 
+local function matchesCategoryFilter(item_id)
+   if isEmptyString(category) then
+      return true
+   end
+
+   local cat = interface.getnDPIProtoCategory(tonumber(item_id))
+   return category == cat.name
+end
+
 local items = {}
 local sorter = {}
 local num_items = 0
@@ -102,7 +112,7 @@ local num_items = 0
 items = interface.getnDPIProtocols(nil, true)
 
 for item_name, item_id in pairs(items) do
-   if not matchesProtoFilter(item_id) or not matchesPolicyFilter(item_id) then
+   if not matchesProtoFilter(item_id) or not matchesPolicyFilter(item_id) or not matchesCategoryFilter(item_id) then
       goto continue
    end
 
