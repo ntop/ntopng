@@ -42,9 +42,9 @@ else
 	 t["target"] = string.gsub(t["target"], "host_(.-)_", "")
       end
 
-      local is_traffic     = string.ends(t["target"], "_traffic_bps") or string.ends(t["target"], "_traffic_total_bytes")
-      local is_packets   = string.ends(t["target"], "_traffic_pps") or string.ends(t["target"], "_traffic_total_packets")
-      local is_allprotos = string.ends(t["target"], "_allprotocols_bps")
+      local is_traffic       = string.ends(t["target"], "_traffic_bps") or string.ends(t["target"], "_traffic_total_bytes")
+      local is_packets       = string.ends(t["target"], "_traffic_pps") or string.ends(t["target"], "_traffic_total_packets")
+      local is_allprotos     = string.ends(t["target"], "_allprotocols_bps")
       local is_allcategories = string.ends(t["target"], "_allcategories_bps")
 
       local ifname = string.gsub(t["target"], "^(.-)_", "") -- lazy match to remove up to the first underscore
@@ -67,7 +67,11 @@ else
       local datapoints = {}
 
       local options = {
-         max_num_points = global_max_num_points
+         max_num_points = global_max_num_points,
+	 -- always request full series
+	 -- as, by default, queryTopk only returns
+	 -- cumulated total values while grafana needs full timeseries
+	 with_series = true,
       }
 
       local rr
