@@ -377,14 +377,14 @@ end
       </form>
       ]]
 
-if not ntop.isEnterprise() then
-  print[[<span style="float:left;">]]
-  print(i18n("notes"))
-  print[[<ul>
-      <li>]] print(i18n("host_pools.max_members_message", {maxnum=host_pools_utils.LIMITED_NUMBER_POOL_MEMBERS})) print[[</li>
+  if not ntop.isEnterprise() and not ntop.isnEdgeEnterprise() then
+     print[[<span style="float:left;">]]
+     print(i18n("notes"))
+     print[[<ul>
+      <li>]] print(i18n("host_pools.max_members_message", {maxnum = host_pools_utils.LIMITED_NUMBER_POOL_MEMBERS})) print[[</li>
     </ul>
   </span>]]
-end
+  end
 
 print[[
       <button id="emptyPoolButton" class="btn btn-default" onclick="$('#empty_pool_dialog').modal('show');" style="float:right; margin-right:1em;"><i class="fa fa-trash" aria-hidden="true"></i> ]] print(i18n("host_pools.empty_pool")) print[[</button>
@@ -412,7 +412,7 @@ if isCaptivePortalActive() then
   print [[Manage Captive Portal users <a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/users.lua?captive_portal_users=1">here</a>.</li>]]
 end
 
-if not ntop.isEnterprise() then
+if not ntop.isEnterprise() and not ntop.isnEdgeEnterprise() then
   print("<li>"..i18n("host_pools.max_pools_message", {maxnum=host_pools_utils.LIMITED_NUMBER_USER_HOST_POOLS}).."</li>")
 end
 

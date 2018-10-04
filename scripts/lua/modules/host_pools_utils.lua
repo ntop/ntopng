@@ -32,9 +32,9 @@ end
 -- END NEDGE specific code
 --
 
-host_pools_utils.LIMITED_NUMBER_POOL_MEMBERS = ntop_info["constants.max_num_pool_members"] or 5
+host_pools_utils.LIMITED_NUMBER_POOL_MEMBERS = ntop_info["constants.max_num_pool_members"]
 -- this takes into account the special pools
-host_pools_utils.LIMITED_NUMBER_TOTAL_HOST_POOLS = ntop_info["constants.max_num_host_pools"] or 5
+host_pools_utils.LIMITED_NUMBER_TOTAL_HOST_POOLS = ntop_info["constants.max_num_host_pools"]
 -- this does not take into account the special pools
 host_pools_utils.LIMITED_NUMBER_USER_HOST_POOLS = host_pools_utils.LIMITED_NUMBER_TOTAL_HOST_POOLS - 1
 
