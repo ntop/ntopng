@@ -31,29 +31,25 @@ local sortPrefs = "nf_device_protocols"
 
 if isEmptyString(sortColumn) or sortColumn == "column_" then
    sortColumn = getDefaultTableSort(sortPrefs)
-else
-   if((sortColumn ~= "column_")
-    and (sortColumn ~= "")) then
-      tablePreferences("sort_"..sortPrefs, sortColumn)
-   end
+elseif sortColumn ~= "" then
+   tablePreferences("sort_"..sortPrefs, sortColumn)
 end
 
 if isEmptyString(_GET["sortColumn"]) then
-  sortOrder = getDefaultTableSortOrder(sortPrefs, true)
+   sortOrder = getDefaultTableSortOrder(sortPrefs, true)
 end
 
-if((_GET["sortColumn"] ~= "column_")
-  and (_GET["sortColumn"] ~= "")) then
-    tablePreferences("sort_order_"..sortPrefs, sortOrder, true)
+if _GET["sortColumn"] ~= "column_" and _GET["sortColumn"] ~= "" then
+   tablePreferences("sort_order_"..sortPrefs, sortOrder, true)
 end
 
-if(currentPage == nil) then
+if currentPage == nil then
    currentPage = 1
 else
    currentPage = tonumber(currentPage)
 end
 
-if(perPage == nil) then
+if perPage == nil then
    perPage = 10
 else
    perPage = tonumber(perPage)
@@ -66,7 +62,7 @@ interface.select(ifname)
 
 local to_skip = (currentPage-1) * perPage
 
-if(sortOrder == "desc") then sOrder = rev_insensitive else sOrder = asc_insensitive end
+if sortOrder == "desc" then sOrder = rev_insensitive else sOrder = asc_insensitive end
 
 local device_policies = presets_utils.getDevicePolicies(device_type)
 
@@ -116,11 +112,15 @@ for item_name, item_id in pairs(items) do
       goto continue
    end
 
-   items[item_name] = { name = item_name, id = item_id, conf = device_policies[tonumber(item_id)] }
+   local cat = interface.getnDPIProtoCategory(tonumber(item_id))
+
+   items[item_name] = { name = item_name, id = item_id, conf = device_policies[tonumber(item_id)], catName = cat.name }
    num_items = num_items + 1
 
    if sortColumn == "column_" or sortColumn == "column_ndpi_application" then
       sorter[item_name] = item_name
+   elseif sortColumn == "column_ndpi_category" then
+      sorter[item_name] = cat.name 
    end
 
    ::continue::
@@ -140,15 +140,12 @@ for sorted_item, _ in pairsByValues(sorter, sOrder) do
 
    record["column_ndpi_application_id"] = tostring(items[sorted_item]["id"])
    record["column_ndpi_application"] = tostring(items[sorted_item]["name"])
-
-   local field_id = items[sorted_item]["id"]
-
-   local cat = interface.getnDPIProtoCategory(tonumber(field_id))
-   record["column_ndpi_category"] = cat.name 
+   record["column_ndpi_category"] = items[sorted_item].catName
 
    local cr = ''
    local sr = ''
    local conf = items[sorted_item]["conf"]
+   local field_id = items[sorted_item]["id"]
    for _, action in ipairs(presets_utils.actions) do
       local checked = ''
       if ((conf == nil or conf.clientActionId == nil) and action.id == presets_utils.DEFAULT_ACTION) or
