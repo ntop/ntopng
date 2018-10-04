@@ -1454,14 +1454,31 @@ end
 -- #################################################################
 
 local function clearNotAllowedParams()
-   local not_allowed_uris = { "/lua/info_portal.lua", "/lua/captive_portal.lua"}
+   if ntop.isnEdge() then
+      -- Captive portal urls that can be clobbered with unrecognized
+      -- and unvalid params as devices could have http requests open that are redirected
+      -- to the captive portal.
+      -- This function removes all the params except a minimum allowed set.
+      local not_allowed_uris = {"/lua/info_portal.lua", "/lua/captive_portal.lua"}
+      -- the referer must go through or the captive portal won't be able to do
+      -- a proper redirect
+      local allowed_params = {referer = 1,}
 
-   if (table.len(_GET) > 0 or table.len(_POST) > 0) and _SERVER["URI"] then
-      for _, uri in pairs(not_allowed_uris) do
-	 if string.ends(uri, _SERVER["URI"]) then
-	    _GET  = { }
-	    _POST = { }
-	    break
+      if (table.len(_GET) > 0 or table.len(_POST) > 0) and _SERVER["URI"] then
+	 for _, uri in pairs(not_allowed_uris) do
+	    if string.ends(uri, _SERVER["URI"]) then
+	       local param_tables = {_GET or {}, _POST or {}}
+
+	       for _, param_table in pairs(param_tables) do
+		  for param_key, param_value in pairs(param_table) do
+		     if not allowed_params[param_key] then
+			param_table[param_key] = nil
+		     end
+		  end
+	       end
+
+	       break
+	    end
 	 end
       end
    end
