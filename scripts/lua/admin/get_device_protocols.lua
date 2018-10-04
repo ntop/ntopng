@@ -143,6 +143,9 @@ for sorted_item, _ in pairsByValues(sorter, sOrder) do
 
    local field_id = items[sorted_item]["id"]
 
+   local cat = interface.getnDPIProtoCategory(tonumber(field_id))
+   record["column_ndpi_category"] = cat.name 
+
    local cr = ''
    local sr = ''
    local conf = items[sorted_item]["conf"]

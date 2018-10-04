@@ -346,12 +346,20 @@ local function printDeviceProtocolsPage()
               field: "column_ndpi_application",
               sortable: true,
                 css: {
-                  width: '65%',
+                  width: '35%',
                   textAlign: 'left',
                   verticalAlign: 'middle',
               }
-            },
-            {
+            },{
+              title: "]] print(i18n("category")) print[[ ",
+              field: "column_ndpi_category",
+              sortable: true,
+                css: {
+                  width: '30%',
+                  textAlign: 'left',
+                  verticalAlign: 'middle',
+              }
+            },{
               title: "]] print(i18n("users.client_policy")) print[[",
               field: "column_client_policy",
               sortable: false,
