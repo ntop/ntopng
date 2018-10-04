@@ -173,6 +173,18 @@ local function delete_interfaces_redis_keys(interfaces_list)
       end
    end
 
+   if ntop.isnEdge() then
+      -- clear captive portal users
+      -- (their host pools have already been deleted above)
+      local ntop_users = ntop.getUsers()
+
+      for username, user_details in pairs(ntop_users) do
+	 if user_details["group"] == "captive_portal" then
+	    ntop.deleteUser(username)
+	 end
+      end
+   end
+
    return {status = status}
 end
 
@@ -293,16 +305,26 @@ end
 
 -- ################################################################
 
-local function delete_interfaces_from_list(interfaces_list, preserve_interface_ids)
+local function delete_interfaces_from_list(interfaces_list, preserve_interface_ids, preserve_redis_keys)
    local if_dt = delete_interfaces_data(interfaces_list)
-   local if_rk = delete_interfaces_redis_keys(interfaces_list)
    local if_db = delete_interfaces_db_flows(interfaces_list)
 
-   -- last step is to also free the ids that can thus be re-used
+   local if_rk
+   if not preserve_redis_keys then
+      if_rk = delete_interfaces_redis_keys(interfaces_list)
+   end
+
+   -- last step is to also free the ids that can thus be recycled
    -- if everything was OK.
    local if_in
-   if not preserve_interface_ids and if_dt["status"] == "OK" and if_rk["status"] == "OK" and if_db["status"] == "OK" then
-      if_in = delete_interfaces_ids(interfaces_list)
+   if not preserve_interface_ids then
+      if not preserve_redis_keys or if_rk["status"] == "OK" then
+	 if if_dt["status"] == "OK" then
+	    if if_db["status"] == "OK" then
+	       if_in = delete_interfaces_ids(interfaces_list)
+	    end
+	 end
+      end
    end
 
    return {delete_if_data = if_dt, delete_if_redis_keys = if_rk, delete_if_db = if_db, delete_if_ids = if_in}
@@ -321,7 +343,7 @@ end
 function delete_data_utils.delete_all_interfaces_data()
    -- Deleting all interfaces can be a risky operation as it includes active interfaces.
    -- Currently we are using this only in boot.lua (that is, before interfaces registration)
-   -- and only in nEdge. Use it carefully as also the interface ids are recycled.
+   -- and only in nEdge. Use it carefully.
 
    if not ntop.isnEdge() then
       return
