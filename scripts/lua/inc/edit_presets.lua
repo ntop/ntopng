@@ -309,7 +309,6 @@ local function printDeviceProtocolsPage()
    entries[#entries + 1] = ""
    for cat_name, cat_id in pairsByKeys(interface.getnDPICategories()) do
       local cat_count = 0
-      local cat_desc = cat_name
       for proto_id,p in pairs(device_policies) do
          local cat = interface.getnDPIProtoCategory(tonumber(proto_id))
          if cat.name == cat_name and (isEmptyString(policy_filter) 
@@ -318,9 +317,8 @@ local function printDeviceProtocolsPage()
          end
       end
       if cat_count > 0 then
-         cat_desc = cat_name.." ("..cat_count..")"
+         entries[#entries + 1] = {text=cat_name.." ("..cat_count..")", id=cat_name}
       end
-      entries[#entries + 1] = {text=cat_desc, id=cat_name}
    end
    for _, entry in pairs(entries) do
       if entry ~= "" then
