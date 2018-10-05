@@ -72,7 +72,8 @@ Host::~Host() {
   if(symbolic_name)   free(symbolic_name);
   if(ssdpLocation_shadow) free(ssdpLocation_shadow);
   if(ssdpLocation)        free(ssdpLocation);
-  if(m)               delete m;
+  if(m)                  delete m;
+  if(flow_alert_counter) delete flow_alert_counter;
   if(info)            free(info);
 
   /* Pool counters are updated both in and outside the datapath.
@@ -127,6 +128,7 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
 
   num_resolve_attempts = 0, ssdpLocation = NULL, ssdpLocation_shadow = NULL;
 
+  flow_alert_counter = NULL;
   good_low_flow_detected = false;
   nextResolveAttempt = 0, info = NULL;
   host_label_set = false;
@@ -1022,6 +1024,17 @@ void Host::updateStats(struct timeval *tv) {
 
 void Host::postHashAdd() {
   loadAlertsCounter();
+}
+
+/* *************************************** */
+
+bool Host::incFlowAlertHits(time_t when) {
+  if(flow_alert_counter
+     || (flow_alert_counter = new(std::nothrow) FlowAlertCounter(CONST_MAX_FLOW_ALERTS_PER_SECOND, CONST_MAX_THRESHOLD_CROSS_DURATION))) {
+    return flow_alert_counter->incHits(when);
+  }
+
+  return false; 
 }
 
 /* *************************************** */

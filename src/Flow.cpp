@@ -223,7 +223,11 @@ bool Flow::triggerAlerts() const {
 /* *************************************** */
 
 void Flow::dumpFlowAlert() {
-  if(!triggerAlerts())
+  time_t when = time(0);
+
+  if(!triggerAlerts()
+     || (cli_host && cli_host->incFlowAlertHits(when))
+     || (srv_host && srv_host->incFlowAlertHits(when)))
     return;
 
   FlowStatus status = getFlowStatus();

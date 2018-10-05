@@ -253,6 +253,7 @@ using namespace std;
 #include "PF_RINGInterface.h"
 #endif
 #include "AlertCounter.h"
+#include "FlowAlertCounter.h"
 #include "GenericHash.h"
 #include "VirtualHost.h"
 #include "VirtualHostHash.h"

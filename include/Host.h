@@ -67,6 +67,7 @@ class Host : public Checkpointable, public GenericHashEntry, public GenericTraff
 
   u_int32_t num_active_flows_as_client, num_active_flows_as_server;
   bool good_low_flow_detected;
+  FlowAlertCounter *flow_alert_counter;
 
   char *ssdpLocation, *ssdpLocation_shadow;
 #ifdef NTOPNG_PRO
@@ -208,7 +209,6 @@ class Host : public Checkpointable, public GenericHashEntry, public GenericTraff
   virtual void incNumDNSResponsesSent(u_int32_t ret_code) { };
   virtual void incNumDNSResponsesRcvd(u_int32_t ret_code) { };
   virtual bool triggerAlerts()                            { return(false); };
-
   virtual u_int32_t getNumAlerts(bool from_alertsmanager = false) { return(0); };
   virtual void setNumAlerts(u_int32_t num) {};
   virtual void postHashAdd();
@@ -225,6 +225,7 @@ class Host : public Checkpointable, public GenericHashEntry, public GenericTraff
   virtual bool dropAllTraffic()  { return(false); };
   virtual bool dumpHostTraffic() { return(false); };
   virtual void setDumpTrafficPolicy(bool new_policy) {};
+  bool incFlowAlertHits(time_t when);
   bool serializeCheckpoint(json_object *my_object, DetailsLevel details_level);
   void checkPointHostTalker(lua_State *vm, bool saveCheckpoint);
   inline void setInfo(char *s) { if(info) free(info); info = strdup(s); }
