@@ -425,6 +425,8 @@ end
 if(user_group == "administrator") then
    print("<li><a href=\""..ntop.getHttpPrefix().."/lua/admin/prefs.lua\"><i class=\"fa fa-flask\"></i> ") print(i18n("prefs.preferences")) print("</a></li>\n")
 
+   -- print("<li><a href=\""..ntop.getHttpPrefix().."/lua/admin/traffic_recording.lua\"><i class=\"fa fa-hdd-o\"></i> ") print(i18n("traffic_recording.traffic_recording")) print("</a></li>\n")
+
    if is_bridge_interface and ntop.isEnterprise() then
       print[[<form id="go_show_bridge_wizard" method="post" action="]] print(ntop.getHttpPrefix()) print[[/lua/if_stats.lua">]]
       print[[<input name="show_wizard" type="hidden" value="" />]]

@@ -66,9 +66,9 @@ function isSubpageAvailable(subpage, show_advanced_prefs)
   return true
 end
 
-local subpage_active = nil
-
 function prefsGetActiveSubpage(show_advanced_prefs, tab)
+  local subpage_active = nil
+
   for _, subpage in ipairs(menu_subpages) do
     if not isSubpageAvailable(subpage, show_advanced_prefs) then
       subpage.hidden = true
@@ -539,7 +539,7 @@ local function get_pref_redis_key(options)
   return prefix .. ternary(options.pref ~= nil, options.pref, options.field)
 end
 
-function prefsToggleButton(params)
+function prefsToggleButton(subpage_active, params)
   defaults = {
     to_switch = {},             -- a list of elements to be switched on or off
     on_text = "On",             -- The text when the button is on

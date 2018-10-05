@@ -203,13 +203,13 @@ function printInterfaces()
 		       "",
 		       false, nil, nil, nil,  {attributes={spellcheck="false", pattern="^([0-9]+,)*[0-9]+$", maxlength=32}})
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
 	field = "toggle_dst_with_post_nat_dst",
 	default = "0",
 	pref = "override_dst_with_post_nat_dst",
   })
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
 	field = "toggle_src_with_post_nat_src",
 	default = "0",
 	pref = "override_src_with_post_nat_src",
@@ -258,7 +258,7 @@ function printAlerts()
     elementToSwitch[#elementToSwitch+1] = "row_toggle_mysql_check_open_files_limit"
   end
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
     field = "disable_alerts_generation",
     default = "0",
     to_switch = elementToSwitch,
@@ -273,14 +273,14 @@ function printAlerts()
   end
 
   --[[
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
     field = "toggle_flow_alerts_iface",
     default = "0",
     pref = "alerts.dump_alerts_when_iface_is_alerted",
     hidden = not showElements,
   })]]
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
     field = "toggle_mysql_check_open_files_limit",
     default = "1",
     pref = "alerts.mysql_check_open_files_limit",
@@ -291,35 +291,35 @@ function printAlerts()
   if (showElements == false) then print(' style="display:none;"') end
   print('><th colspan=2 class="info">'..i18n("prefs.security_alerts")..'</th></tr>')
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
     field = "toggle_alert_probing",
     pref = "probing_alerts",
     default = "0",
     hidden = not showElements,
   })
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
     field = "toggle_ssl_alerts",
     pref = "ssl_alerts",
     default = "0",
     hidden = not showElements,
   })
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
     field = "toggle_dns_alerts",
     pref = "dns_alerts",
     default = "0",
     hidden = not showElements,
   })
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
   field = "toggle_ip_reassignment_alerts",
   pref = "ip_reassignment_alerts",
   default = "0",
   hidden = not showElements,
   })
   
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
     field = "toggle_remote_to_remote_alerts",
     pref = "remote_to_remote_alerts",
     default = "0",
@@ -327,7 +327,7 @@ function printAlerts()
   })
 
   if hasBridgeInterfaces(false) then
-     prefsToggleButton({
+     prefsToggleButton(subpage_active, {
   field = "toggle_dropped_flows_alerts",
   pref = "dropped_flows_alerts",
   default = "0",
@@ -335,21 +335,21 @@ function printAlerts()
      })
   end
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
     field = "toggle_mining_alerts",
     pref = "mining_alerts",
     default = "1",
     hidden = not showElements,
   })
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
     field = "toggle_malware_probing",
     pref = "host_blacklist",
     default = "1",
     hidden = not showElements,
   })
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
     field = "toggle_device_protocols_alerts",
     pref = "device_protocols_alerts",
     default = "0",
@@ -360,7 +360,7 @@ function printAlerts()
   if (showElements == false) then print(' style="display:none;"') end
   print('><th colspan=2 class="info">'..i18n("prefs.status_alerts")..'</th></tr>')
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
       field = "toggle_device_first_seen_alert",
       pref = "device_first_seen_alert",
       default = "0",
@@ -368,7 +368,7 @@ function printAlerts()
       redis_prefix = "ntopng.prefs.alerts.",
     })
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
       field = "toggle_device_activation_alert",
       pref = "device_connection_alert",
       default = "0",
@@ -376,7 +376,7 @@ function printAlerts()
       redis_prefix = "ntopng.prefs.alerts.",
     })
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
       field = "toggle_pool_activation_alert",
       pref = "pool_connection_alert",
       default = "0",
@@ -385,7 +385,7 @@ function printAlerts()
     })
 
   if ntop.isPro() and hasBridgeInterfaces(false) then
-    prefsToggleButton({
+    prefsToggleButton(subpage_active, {
       field = "toggle_quota_exceeded_alert",
       pref = "quota_exceeded_alert",
       default = "0",
@@ -441,7 +441,7 @@ function printExternalAlertsReport()
 
   print('<tr><th colspan="2" class="info">'..i18n("prefs.alerts_notifications")..'</th></tr>')
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
     field = "toggle_external_alerts",
     pref = "alerts.external_notifications_enabled",
     default = "0",
@@ -457,7 +457,7 @@ function printExternalAlertsReport()
 	
 	local elementToSwitch = {"row_email_notification_severity_preference", "email_sender", "email_recipient", "smtp_server", "alerts_test"}
 
-	prefsToggleButton({
+	prefsToggleButton(subpage_active, {
 	      field = "toggle_email_notification",
 	      pref = getAlertNotificationModuleEnableKey("email", true),
 	      default = "0",
@@ -497,7 +497,7 @@ function printExternalAlertsReport()
 
      local elementToSwitchSlack = {"row_slack_notification_severity_preference", "slack_sender_username", "slack_webhook", "slack_test", "slack_channels"}
 
-    prefsToggleButton({
+    prefsToggleButton(subpage_active, {
       field = "toggle_slack_notification",
       pref = getAlertNotificationModuleEnableKey("slack", true),
       default = "0",
@@ -546,7 +546,7 @@ function printExternalAlertsReport()
       local alertsEnabled = showElements
       local elementToSwitch = {"row_syslog_alert_format"}
 
-      prefsToggleButton({
+      prefsToggleButton(subpage_active, {
         field = "toggle_alert_syslog",
         pref = getAlertNotificationModuleEnableKey("syslog", true),
         default = "0",
@@ -582,7 +582,7 @@ function printExternalAlertsReport()
         "nagios_send_nsca_config","nagios_host_name","nagios_service_name",
         "row_nagios_notification_severity_preference"}
 
-      prefsToggleButton({
+      prefsToggleButton(subpage_active, {
         field = "toggle_alert_nagios",
         pref = getAlertNotificationModuleEnableKey("nagios", true),
         default = "0",
@@ -668,7 +668,7 @@ function printProtocolPrefs()
 
   print('<tr><th colspan=2 class="info">HTTP</th></tr>')
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
     field = "toggle_top_sites",
     pref = "host_top_sites_creation",
     default = "0",
@@ -713,7 +713,7 @@ function printBridgingPrefs()
   if show_advanced_prefs then
     print('<tr><th colspan=2 class="info">'..i18n("traffic_policy")..'</th></tr>')
 
-    prefsToggleButton({
+    prefsToggleButton(subpage_active, {
       field = "toggle_shaping_directions",
       pref = "split_shaping_directions",
       default = "0",
@@ -766,7 +766,7 @@ end
   print('<tr><th colspan=2 class="info">'..i18n("prefs.user_authentication")..'</th></tr>')
 
   local captivePortalElementsToSwitch = {"redirection_url"}
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
     field = "toggle_captive_portal",
     pref = "enable_captive_portal",
     default = "0",
@@ -801,7 +801,7 @@ function printNbox()
 
   local elementToSwitch = {"nbox_user","nbox_password"}
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
     field = "toggle_nbox_integration",
     default = "0",
     pref = "nbox_integration",
@@ -834,7 +834,7 @@ function printNetworkDiscovery()
 
    local elementToSwitch = {"network_discovery_interval"}
 
-   prefsToggleButton({
+   prefsToggleButton(subpage_active, {
     field = "toggle_network_discovery",
     default = "0",
     pref = "is_periodic_network_discovery_enabled",
@@ -871,7 +871,7 @@ function printMisc()
 
   print('<tr><th colspan=2 class="info">'..i18n("prefs.web_user_interface")..'</th></tr>')
   if prefs.is_autologout_enabled == true then
-    prefsToggleButton({
+    prefsToggleButton(subpage_active, {
       field = "toggle_autologout",
       default = "1",
       pref = "is_autologon_enabled",
@@ -981,7 +981,7 @@ function printAuthentication()
         "ntopng.prefs.ldap", "ldap_server_address", "ldap://localhost:389", nil, showElements, true, true, {attributes={pattern="ldap(s)?://[0-9.\\-A-Za-z]+(:[0-9]+)?", spellcheck="false", required="required", maxlength=255}})
 
   local elementToSwitchBind = {"bind_dn","bind_pwd"}
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
       field = "toggle_ldap_anonymous_bind",
       default = "1",
       pref = "ldap.anonymous_bind",
@@ -1019,7 +1019,7 @@ function printInMemory()
   print('<table class="table">')
   print('<tr><th colspan=2 class="info">'..i18n("prefs.local_hosts_cache_settings")..'</th></tr>')
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
     field = "toggle_local_host_cache_enabled",
     default = "1",
     pref = "is_local_host_cache_enabled",
@@ -1034,7 +1034,7 @@ function printInMemory()
   prefsInputFieldPrefs(subpage_active.entries["local_host_cache_duration"].title, subpage_active.entries["local_host_cache_duration"].description,
     "ntopng.prefs.","local_host_cache_duration", prefs.local_host_cache_duration, "number", showLocalHostCacheInterval, nil, nil, {min=60, tformat="mhd"})
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
     field = "toggle_active_local_host_cache_enabled",
     default = "0",
     pref = "is_active_local_host_cache_enabled",
@@ -1159,7 +1159,7 @@ function printStatsTimeseries()
   prefsInputFieldPrefs(subpage_active.entries["influxdb_dbname"].title, subpage_active.entries["influxdb_dbname"].description,
 		       "ntopng.prefs.", "influx_dbname", product:gsub(' ' , '_'), nil, influx_active, nil, nil, {pattern="[^\\s]+"})
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
 	field = "toggle_influx_auth",
 	default = "0",
 	pref = "influx_auth_enabled",
@@ -1216,7 +1216,7 @@ function printStatsTimeseries()
   local showElementArray = nil -- { true, false, false }
   local javascriptAfterSwitch = "";
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
 	field = "toggle_interface_traffic_rrd_creation",
 	default = "1",
 	pref = "interface_rrd_creation",
@@ -1237,7 +1237,7 @@ function printStatsTimeseries()
 
   print('<tr><th colspan=2 class="info">'..i18n('prefs.local_hosts_timeseries')..'</th></tr>')
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
     field = "toggle_local_hosts_traffic_rrd_creation",
     default = "1",
     pref = "host_rrd_creation",
@@ -1257,7 +1257,7 @@ function printStatsTimeseries()
 
   print('<tr><th colspan=2 class="info">'..i18n('prefs.l2_devices_timeseries')..'</th></tr>')
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
     field = "toggle_l2_devices_traffic_rrd_creation",
     default = "0",
     pref = "l2_device_rrd_creation",
@@ -1290,45 +1290,45 @@ function printStatsTimeseries()
   local info = ntop.getInfo()
 
   if ntop.isPro() then
-    prefsToggleButton({
+    prefsToggleButton(subpage_active, {
       field = "toggle_flow_rrds",
       default = "0",
       pref = "flow_device_port_rrd_creation",
       disabled = not info["version.enterprise_edition"],
     })
 
-    prefsToggleButton({
+    prefsToggleButton(subpage_active, {
       field = "toggle_pools_rrds",
       default = "0",
       pref = "host_pools_rrd_creation",
     })
   end
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
     field = "toggle_tcp_flags_rrds",
     default = "0",
     pref = "tcp_flags_rrd_creation",
   })
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
     field = "toggle_tcp_retr_ooo_lost_rrds",
     default = "0",
     pref = "tcp_retr_ooo_lost_rrd_creation",
   })
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
     field = "toggle_vlan_rrds",
     default = "0",
     pref = "vlan_rrd_creation",
   })
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
     field = "toggle_asn_rrds",
     default = "0",
     pref = "asn_rrd_creation",
   })
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
     field = "toggle_country_rrds",
     default = "0",
     pref = "country_rrd_creation",
@@ -1378,19 +1378,19 @@ function printLogging()
      subpage_active.entries["toggle_logging_level"].description, 
      "toggle_logging_level", "ntopng.prefs.logging_level")
      
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
     field = "toggle_log_to_file",
     default = "0",
     pref = "log_to_file",
   })
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
     field = "toggle_access_log",
     default = "0",
     pref = "enable_access_log",
   })
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
     field = "toggle_host_pools_log",
     default = "0",
     pref = "enable_host_pools_log",
@@ -1410,7 +1410,7 @@ function printSnmp()
   print('<table class="table">')
   print('<tr><th colspan=2 class="info">SNMP</th></tr>')
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
     field = "toggle_snmp_rrds",
     default = "0",
     pref = "snmp_devices_rrd_creation",
@@ -1442,7 +1442,7 @@ function printFlowDBDump()
 
   local tiny_to_switch = {"max_num_packets_per_tiny_flow", "max_num_bytes_per_tiny_flow"}
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
     field = "toggle_flow_db_dump_export",
     default = "1",
     pref = "tiny_flows_export_enabled",
