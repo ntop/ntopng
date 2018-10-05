@@ -215,8 +215,11 @@ class Flow : public GenericHashEntry {
 				    || srv_host->isBlacklisted()
 				    || (((u_int8_t)ndpiDetectedProtocol.category) == CUSTOM_CATEGORY_MALWARE)));
   };
-  bool isDeviceAllowedProtocolDirection(bool is_client);
-  inline bool isDeviceAllowedProtocol() { return(isDeviceAllowedProtocolDirection(true) && isDeviceAllowedProtocolDirection(false)); }
+  inline bool isDeviceAllowedProtocol() {
+      return(!cli_host || !srv_host ||
+        (cli_host->isDeviceAllowedProtocolDirection(ndpiDetectedProtocol, true) &&
+          srv_host->isDeviceAllowedProtocolDirection(ndpiDetectedProtocol, false)));
+  }
   inline u_int32_t getCurrentInterArrivalTime(time_t now, bool cli2srv_direction) {
     return(1000 /* msec */
 	   * (now - (cli2srv_direction ? cli2srvStats.pktTime.lastTime.tv_sec : srv2cliStats.pktTime.lastTime.tv_sec)));

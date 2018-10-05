@@ -1972,6 +1972,7 @@ local lang = {
     ["ping_address_description"] = "The address to monitor to verify the gateway status.",
     ["please_fill_out_this_field"] = "Please fill out this field.",
     ["policy_name"] = "Policy Name",
+    ["policy_source"] = "Policy Source",
     ["power_off"] = "Power Off",
     ["power_off_confirm"] = "Do you want to power off the device?",
     ["priority_x"] = "Priority %{x}",
@@ -2062,6 +2063,13 @@ local lang = {
     ["you_can_assign_shapers_to_users_protocols"] = "You can assign bandwidth policies to <a href=\"%{url}\">Users</a> specific protocols or set them globally as a <a href=\"%{url2}\">Fallback Policy</a>.",
     ["you_can_set_static_dhcp_lease_here"] = "You can configure static DHCP leases <a href=\"%{url}\">here</a>.",
     ["you_can_use_gateways_in_policies"] = "You can specify gateways priorities in <a href=\"%{url}\">Routing Policies</a>.",
+    ["policy_source_labels"] = {
+      ["policy_source_category"] = "Category Policy",
+      ["policy_source_default"] = "Unknown",
+      ["policy_source_device_protocol"] = "Device Protocol Policy",
+      ["policy_source_pool"] = "Default Policy",
+      ["policy_source_protocol"] = "Protocol Policy",
+    },
   },
   ["network_alert_config"] = {
     ["trigger_alerts_for_network"] = "Trigger alerts for Network %{network}",

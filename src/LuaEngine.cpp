@@ -4021,11 +4021,14 @@ static int ntop_update_flows_shapers(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_get_shaper_id_for_pool(lua_State* vm) {
+static int ntop_get_l7_policy_info(lua_State* vm) {
   u_int16_t pool_id;
+  u_int8_t shaper_id;
   ndpi_protocol proto;
-  bool is_ingress;
+  DeviceType dev_type;
+  bool as_client;
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  L7PolicySource_t policy_source;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
   if(!ntop_interface || !ntop_interface->getL7Policer()) return(CONST_LUA_ERROR);
@@ -4037,10 +4040,21 @@ static int ntop_get_shaper_id_for_pool(lua_State* vm) {
 
   pool_id = (u_int16_t)lua_tointeger(vm, 1);
   proto.master_protocol = (u_int16_t)lua_tointeger(vm, 2);
-  proto.app_protocol = (u_int16_t)lua_tointeger(vm, 3);
-  is_ingress = lua_toboolean(vm, 4);
+  proto.app_protocol = proto.master_protocol;
+  dev_type = (DeviceType)lua_tointeger(vm, 3);
+  as_client = lua_toboolean(vm, 4);
 
-  lua_pushnumber(vm, ntop_interface->getL7Policer()->getShaperIdForPool(pool_id, proto, is_ingress));
+  if(!ntop->isDeviceAllowedProtocolDirection(dev_type, proto, pool_id, as_client)) {
+    shaper_id = DROP_ALL_SHAPER_ID;
+    policy_source = policy_source_device_protocol;
+  } else {
+    shaper_id = ntop_interface->getL7Policer()->getShaperIdForPool(pool_id, proto, !as_client, &policy_source);
+  }
+
+  lua_newtable(vm);
+  lua_push_int_table_entry(vm, "shaper_id", shaper_id);
+  lua_push_str_table_entry(vm, "policy_source", (char*)ntop_interface->getL7Policer()->policySource2Str(policy_source));
+
   return(CONST_LUA_OK);
 }
 
@@ -7903,7 +7917,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "setLanIpAddress",                  ntop_set_lan_ip_address                },
   { "getPolicyChangeMarker",            ntop_get_policy_change_marker          },
   { "updateFlowsShapers",               ntop_update_flows_shapers              },
-  { "getShaperIdForPool",               ntop_get_shaper_id_for_pool            },
+  { "getl7PolicyInfo",                  ntop_get_l7_policy_info                },
 #endif
 #endif
 

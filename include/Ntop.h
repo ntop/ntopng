@@ -453,6 +453,7 @@ class Ntop {
   
   DeviceProtocolBitmask* getDeviceAllowedProtocols(DeviceType t) { return(&deviceProtocolPresets[t]); }
   void refreshAllowedProtocolPresets(DeviceType t, bool client, lua_State *L, int index);
+  bool isDeviceAllowedProtocolDirection(DeviceType dev_type, ndpi_protocol proto, u_int16_t pool_id, bool as_client);
 
   void sendNetworkInterfacesTermination();
 };

@@ -1882,8 +1882,8 @@ json_object* Flow::flow2statusinfojson() {
 
   json_object_object_add(obj, "cli.devtype", json_object_new_int((cli_host && cli_host->getMac()) ? cli_host->getMac()->getDeviceType() : device_unknown));
   json_object_object_add(obj, "srv.devtype", json_object_new_int((srv_host && srv_host->getMac()) ? srv_host->getMac()->getDeviceType() : device_unknown));
-  json_object_object_add(obj, "cli.devtype_proto_allowed", json_object_new_boolean(isDeviceAllowedProtocolDirection(true /* client */)));
-  json_object_object_add(obj, "srv.devtype_proto_allowed", json_object_new_boolean(isDeviceAllowedProtocolDirection(false /* server */)));
+  json_object_object_add(obj, "cli.devtype_proto_allowed", json_object_new_boolean(!cli_host || cli_host->isDeviceAllowedProtocolDirection(ndpiDetectedProtocol, true /* client */)));
+  json_object_object_add(obj, "srv.devtype_proto_allowed", json_object_new_boolean(!srv_host || srv_host->isDeviceAllowedProtocolDirection(ndpiDetectedProtocol, false /* server */)));
 
   return obj;
 }
@@ -3096,38 +3096,6 @@ void Flow::dissectSSDP(bool src2dst_direction, char *payload, u_int16_t payload_
 
 /* *************************************** */
 
-bool Flow::isDeviceAllowedProtocolDirection(bool is_client) {
-  Host *host = is_client ? cli_host : srv_host;
-
-  /* Check if this application protocol is allowd for the specified device type */
-  if(host && host->getMac() && !host->getMac()->isSpecialMac()
-#ifdef HAVE_NEDGE
-      /* On nEdge the concept of device protocol policies is only applied to unassigned devices on LAN */
-      && (host->get_host_pool() == NO_HOST_POOL_ID)
-      && (host->getMac()->locate() == located_on_lan_interface)
-#endif
-  ) {
-    DeviceProtocolBitmask *bitmask = ntop->getDeviceAllowedProtocols(host->getMac()->getDeviceType());
-    NDPI_PROTOCOL_BITMASK *direction_bitmask = is_client ? (&bitmask->clientAllowed) : (&bitmask->serverAllowed);
-
-    if(
-       ((ndpiDetectedProtocol.master_protocol != NDPI_PROTOCOL_UNKNOWN)
-	/* Always allow network critical protocols */
-        && (!Utils::isCriticalNetworkProtocol(ndpiDetectedProtocol.master_protocol))
-	&& (!NDPI_ISSET(direction_bitmask, ndpiDetectedProtocol.master_protocol)))
-       ||
-       /* We consider NDPI_PROTOCOL_UNKNOWN as a protocol to be allowed */
-       (((!Utils::isCriticalNetworkProtocol(ndpiDetectedProtocol.app_protocol)))
-	&& (!NDPI_ISSET(direction_bitmask, ndpiDetectedProtocol.app_protocol)))
-      )
-      return false;
-  }
-
-  return true;
-}
-
-/* *************************************** */
-
 #ifdef HAVE_NEDGE
 
 bool Flow::isPassVerdict() {
@@ -3138,7 +3106,6 @@ bool Flow::isPassVerdict() {
     return((!quota_exceeded)
 	   && (!(cli_host->dropAllTraffic() || srv_host->dropAllTraffic()))
 	   && (!isBlacklistedFlow()));
-	   //&& isDeviceAllowedProtocol()); //TODO enable and test
   else
     return(true);
 }

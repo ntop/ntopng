@@ -791,11 +791,11 @@ TrafficShaper* Host::get_shaper(ndpi_protocol ndpiProtocol, bool isIngress) {
   TrafficShaper *ts = NULL, **shapers = NULL;
   u_int8_t shaper_id = DEFAULT_SHAPER_ID;
   L7Policer *policer;
+  L7PolicySource_t policy_source;
 
   if(!(policer = iface->getL7Policer())) return NULL;
   if(!(hp = iface->getHostPools())) return policer->getShaper(PASS_ALL_SHAPER_ID);
 
-#ifdef HAVE_NEDGE
   // Avoid setting drop verdicts for wan hosts policy
   if(getMac() && (getMac()->locate() != located_on_lan_interface)) {
     return policer->getShaper(DEFAULT_SHAPER_ID);
@@ -805,9 +805,14 @@ TrafficShaper* Host::get_shaper(ndpi_protocol ndpiProtocol, bool isIngress) {
   if(Utils::isCriticalNetworkProtocol(ndpiProtocol.master_protocol) ||
 	  Utils::isCriticalNetworkProtocol(ndpiProtocol.app_protocol))
     return policer->getShaper(PASS_ALL_SHAPER_ID);
+
+  /* TODO enable after populating the presets */
+#if 0
+  if(!isDeviceAllowedProtocolDirection(ndpiProtocol, !isIngress))
+    return policer->getShaper(DROP_ALL_SHAPER_ID);
 #endif
 
-  shaper_id = policer->getShaperIdForPool(get_host_pool(), ndpiProtocol, isIngress);
+  shaper_id = policer->getShaperIdForPool(get_host_pool(), ndpiProtocol, isIngress, &policy_source);
 
 #ifdef SHAPER_DEBUG
   {
@@ -1213,4 +1218,18 @@ void Host::get_geocoordinates(float *latitude, float *longitude) {
   *latitude = 0, *longitude = 0;
   ntop->getGeolocation()->getInfo(&ip, &continent, &country_name, &city, latitude, longitude);
   ntop->getGeolocation()->freeInfo(&continent, &country_name, &city);
+}
+
+/* *************************************** */
+
+bool Host::isDeviceAllowedProtocolDirection(ndpi_protocol proto, bool as_client) {
+  if(getMac() && !getMac()->isSpecialMac()
+#ifdef HAVE_NEDGE
+      /* On nEdge the concept of device protocol policies is only applied to unassigned devices on LAN */
+      && (getMac()->locate() == located_on_lan_interface)
+#endif
+  )
+    return ntop->isDeviceAllowedProtocolDirection(getMac()->getDeviceType(), proto, get_host_pool(), as_client);
+
+  return true;
 }

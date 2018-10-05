@@ -227,8 +227,8 @@ local function printDeviceProtocolsPage()
       datatableForEachRow($("#]] print(table_id) print[["), function() {
         var row = $(this);
         var proto_id = $("td:nth-child(1)", row).html();
-        var client_action_id = $("td:nth-child(3)", row).find("input[type=radio]:checked").val();
-        var server_action_id = $("td:nth-child(4)", row).find("input[type=radio]:checked").val();
+        var client_action_id = $("td:nth-child(4)", row).find("input[type=radio]:checked").val();
+        var server_action_id = $("td:nth-child(5)", row).find("input[type=radio]:checked").val();
         params["client_policy_" + proto_id] = client_action_id;
         params["server_policy_" + proto_id] = server_action_id;
       });
