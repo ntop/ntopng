@@ -1141,6 +1141,12 @@ local known_parameters = {
    ["network_discovery_interval"]                  = validateNumber,
 --
 
+-- TRAFFIC RECORDING
+   ["disk_space"]                                  = validateNumber,
+   ["n2disk_license"]                              = validateSingleWord,
+   ["storage_path"]                                = validateAbsolutePath,
+--
+
 -- PAGE SPECIFIC
    ["iflocalstat_mode"]        = validateIfaceLocalStatsMode,   -- A mode for iface_local_stats.lua
    ["clisrv"]                  = validateClientOrServer,        -- Client or Server filter

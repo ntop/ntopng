@@ -43,18 +43,6 @@ print [[<h2>]] print(i18n("traffic_recording.traffic_recording")) print[[</h2>]]
 
 -- ================================================================================
 
-if(false) then
-      io.write("------- SERVER ----------------\n")
-      tprint(_SERVER)
-      io.write("-------- GET ---------------\n")
-      tprint(_GET)
-      io.write("-------- POST ---------------\n")
-      tprint(_POST)
-      io.write("-----------------------\n")
-end
-
--- ================================================================================
-
 local menu_items = {
   {
     id="storage",
@@ -73,10 +61,6 @@ local menu_items = {
     label=i18n("traffic_recording.network_interfaces"),
     advanced=false,  pro_only=false,  hidden=false, nedge_hidden=true, 
     entries={
-      interface_xxx = {
-        title       = "eth1", -- TODO
-        description = i18n("traffic_recording.interface_desc", {interface="eth1"}),
-      },
     }
   }, {
     id="license",
@@ -137,22 +121,33 @@ local subpage_active, tab = trafficRecordingSettingsGetActiveSubpage(_GET["tab"]
 -- ================================================================================
 
 function printInterfaces()
+  local all_interfaces = interface.getIfNames()
+
   print [[
   <form method="post">
     <table class="table">
       <tr><th colspan=2 class="info">]] print(subpage_active.label) print [[</th></tr>]]
 
-  -- TODO
-  prefsToggleButton(subpage_active, {
-    field = "interface_xxx",
-    default = "0",
-    pref = "traffic_recording_interface_xxx",
-  })
+  for if_id,if_name in pairsByValues(all_interfaces, asc_insensitive) do
+    if _POST["iface_on_"..if_id] ~= nil then
+      -- tprint(_POST["iface_on_"..if_id])
+    end
+  end
 
-  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
-  print('</table>')
-  print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
-  </form> ]]
+  for if_id,if_name in pairsByValues(all_interfaces, asc_insensitive) do
+    prefsToggleButton(subpage_active, {
+      title = if_name,
+      description = i18n("traffic_recording.enable_interface_desc", {interface = if_name}),
+      redis_key = "ntopng.prefs.traffic_recording", field = "iface_on_"..if_id,
+      content = "", default = "0", to_switch = nil,
+    })
+  end
+
+  print [[
+      <tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">]] print(i18n("save")) print [[</button></th></tr>
+    </table>
+    <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
+  </form>]]
 end
 
 -- ================================================================================
@@ -166,7 +161,7 @@ function printStorageSettings()
   prefsInputFieldPrefs(
     subpage_active.entries["storage_path"].title,
     subpage_active.entries["storage_path"].description,
-    "ntopng.prefs.traffic_recording", "path",
+    "ntopng.prefs.traffic_recording", "storage_path",
     "/storage", false, nil, nil, nil, {style = {width = "25em;"},
     attributes = { spellcheck = "false", maxlength = 255 }})
 
@@ -176,11 +171,11 @@ function printStorageSettings()
     "ntopng.prefs.traffic_recording", "disk_space", 
     1000, "number", nil, nil, nil, { min=1, max=1000000 })
 
-  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
-
-  print('</table>')
-  print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
-  </form> ]]
+  print [[
+      <tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">]] print(i18n("save")) print [[</button></th></tr>
+    </table>
+    <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
+  </form>]]
 end
 
 -- ================================================================================
@@ -194,59 +189,62 @@ function printLicense()
   prefsInputFieldPrefs(
     subpage_active.entries["license"].title, 
     subpage_active.entries["license"].description,
-    "ntopng.prefs.traffic_recording", "license",
+    "ntopng.prefs.traffic_recording", "n2disk_license",
     "", false, nil, nil, nil, {style = {width = "25em;"},
     attributes = {spellcheck = "false", maxlength = 64 }})
 
   -- #####################
 
-  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" onclick="return save_button_users();" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
-  print('</table>')
-  print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
-    </form>]]
-
+  print [[<tr><th colspan=2 style="text-align:right;"><button type="submit" onclick="return save_button_users();" class="btn btn-primary" style="width:115px" disabled="disabled">]] print(i18n("save")) print [[</button></th></tr>
+    </table>
+    <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
+  </form>]]
 end
 
 -- ================================================================================
 
 print[[
-       <table class="table table-bordered">
-         <col width="20%">
-         <col width="80%">
-         <tr><td style="padding-right: 20px;">
-           <div class="list-group">]]
-printTrafficRecordingSettingsMenu(tab)
-print[[
-           </div>
+      <table class="table table-bordered">
+        <col width="20%">
+        <col width="80%">
+        <tr>
+          <td style="padding-right: 20px;">
+            <div class="list-group">]]
 
-        </td><td colspan=2 style="padding-left: 14px;border-left-style: groove; border-width:1px; border-color: #e0e0e0;">]]
+printTrafficRecordingSettingsMenu(tab)
+
+print[[
+            </div>
+          </td>
+          <td colspan=2 style="padding-left: 14px;border-left-style: groove; border-width:1px; border-color: #e0e0e0;">]]
 
 if tab == "storage" then
-   printStorageSettings()
+  printStorageSettings()
 elseif tab == "license" then
-   printLicense()
+  printLicense()
 elseif tab == "ifaces" then
-   printInterfaces()
+  printInterfaces()
 end
 
 print[[
-        </td></tr>
-      </table>
-]]
+          </td>
+        </tr>
+      </table>]]
 
-   dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
+dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
 
-   print([[<script>
+print [[
+<script>
 aysHandleForm("form", {
   disable_on_dirty: '.disable-on-dirty',
 });
 
 /* Use the validator plugin to override default chrome bubble, which is displayed out of window */
 $("form[id!='search-host-form']").validator({disable:true});
-</script>]])
+</script>]]
 
-if(_SERVER["REQUEST_METHOD"] == "POST") then
-   -- Something has changed
-  ntop.reloadPreferences()
-end
+-- if _SERVER["REQUEST_METHOD"] == "POST" then
+--  -- Something has changed
+--  ntop.reloadPreferences()
+-- end
 
