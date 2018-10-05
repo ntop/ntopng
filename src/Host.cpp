@@ -808,12 +808,6 @@ TrafficShaper* Host::get_shaper(ndpi_protocol ndpiProtocol, bool isIngress) {
 	  Utils::isCriticalNetworkProtocol(ndpiProtocol.app_protocol))
     return policer->getShaper(PASS_ALL_SHAPER_ID);
 
-  /* TODO enable after populating the presets */
-#if 0
-  if(getDeviceAllowedProtocolStatus(ndpiProtocol, !isIngress) != device_proto_allowed)
-    return policer->getShaper(DROP_ALL_SHAPER_ID);
-#endif
-
   shaper_id = policer->getShaperIdForPool(get_host_pool(), ndpiProtocol, isIngress, &policy_source);
 
 #ifdef SHAPER_DEBUG

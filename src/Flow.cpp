@@ -3184,6 +3184,7 @@ bool Flow::updateDirectionShapers(bool src2dst_direction, TrafficShaper **ingres
 void Flow::updateFlowShapers(bool first_update) {
   bool cli2srv_verdict, srv2cli_verdict;
   bool old_verdict = passVerdict;
+  bool new_verdict;
   u_int16_t old_cli2srv_in = cli2srv_in,
     old_cli2srv_out = cli2srv_out,
     old_srv2cli_in = srv2cli_in,
@@ -3192,7 +3193,20 @@ void Flow::updateFlowShapers(bool first_update) {
   /* Re-compute the verdict */
   cli2srv_verdict = updateDirectionShapers(true, &flowShaperIds.cli2srv.ingress, &flowShaperIds.cli2srv.egress);
   srv2cli_verdict = updateDirectionShapers(false, &flowShaperIds.srv2cli.ingress, &flowShaperIds.srv2cli.egress);
-  passVerdict = (cli2srv_verdict && srv2cli_verdict);
+  new_verdict = (cli2srv_verdict && srv2cli_verdict);
+
+  /* TODO enable after populating the presets */
+#if 0
+  if(cli_host && srv_host && new_verdict) {
+    /* NOTE: this must be handled differently to only consider actual peers direction */
+    if((cli_host->getDeviceAllowedProtocolStatus(ndpiDetectedProtocol, true /* client */) != device_proto_allowed) ||
+       (srv_host->getDeviceAllowedProtocolStatus(ndpiDetectedProtocol, false /* server */) != device_proto_allowed))
+      new_verdict = false;
+  }
+#endif
+
+  /* Set the new verdict */
+  passVerdict = new_verdict;
 
   if((!first_update) && (iface->getIfType() == interface_type_NETFILTER) &&
            (((old_verdict != passVerdict)) ||

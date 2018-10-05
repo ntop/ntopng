@@ -97,7 +97,9 @@ local drop_icon = "warning"
 local allow_icon = "check"
 local drop_text = i18n("device_protocols.alert")
 local allow_text = i18n("device_protocols.ok")
-if ntop.isnEdge() then
+local is_nedge = ntop.isnEdge()
+
+if is_nedge then
    drop_icon = "ban"
    allow_icon = "asterisk"
    drop_text = i18n("users.shapers.drop")
@@ -276,6 +278,11 @@ end
 function presets_utils.reloadDevicePolicies(device_type)
    reloadDevicePoliciesByDir(device_type, "client")
    reloadDevicePoliciesByDir(device_type, "server")
+
+   if is_nedge then
+     -- reload the new policy on active flows
+     interface.updateFlowsShapers()
+   end
 end
 
 -- Init protocol policies for all devices
