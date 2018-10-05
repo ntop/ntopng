@@ -909,7 +909,7 @@ int Prefs::setOption(int optkey, char *optarg) {
     break;
 
   case 'h':
-    ntop->registerPrefs(this, true);
+    //    ntop->registerPrefs(this, true);
     help();
     break;
 

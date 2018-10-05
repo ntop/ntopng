@@ -337,8 +337,10 @@ void NetworkInterface::init() {
 
     ts_ring = NULL;
 
-  if(TimeseriesRing::isRingEnabled(ntop->getPrefs()))
-    ts_ring = new TimeseriesRing(this);
+    if(ntop->getPrefs()) {
+      if(TimeseriesRing::isRingEnabled(ntop->getPrefs()))
+	ts_ring = new TimeseriesRing(this);
+    }
 }
 
 /* **************************************************** */
@@ -538,6 +540,8 @@ void NetworkInterface::updateTrafficMirrored() {
   char key[CONST_MAX_LEN_REDIS_KEY], rsp[2] = { 0 };
   bool is_mirrored = CONST_DEFAULT_MIRRORED_TRAFFIC;
 
+  if(!ntop->getRedis()) return;
+  
   snprintf(key, sizeof(key), CONST_MIRRORED_TRAFFIC_PREFS, get_id());
   if((ntop->getRedis()->get(key, rsp, sizeof(rsp)) == 0) && (rsp[0] != '\0')) {
     if(rsp[0] == '1')
@@ -5950,6 +5954,9 @@ void NetworkInterface::reloadHideFromTop(bool refreshHosts) {
   char **networks = NULL;
   VlanAddressTree *new_tree;
 
+  if(!ntop->getRedis()) return;
+
+  
   if ((new_tree = new VlanAddressTree) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Not enough memory");
     return;
