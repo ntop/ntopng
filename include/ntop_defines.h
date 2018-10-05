@@ -71,6 +71,10 @@
 #define BSD_AF_INET6_FREEBSD    28
 #define BSD_AF_INET6_DARWIN     30
 
+#ifndef SPEED_UNKNOWN
+#define SPEED_UNKNOWN           -1
+#endif
+
 /* ***************************************************** */
 
 #ifndef min_val

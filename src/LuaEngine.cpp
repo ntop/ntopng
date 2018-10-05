@@ -2354,6 +2354,8 @@ static int ntop_send_udp_data(lua_State* vm) {
 
 /* ****************************************** */
 
+#ifdef NTOPNG_PRO
+
 static int ntop_append_influx_db(lua_State* vm) {
   char *data;
   bool rv = false;
@@ -2375,6 +2377,8 @@ static int ntop_append_influx_db(lua_State* vm) {
   lua_pushboolean(vm, rv);
   return(CONST_LUA_OK);
 }
+
+#endif
 
 /* ****************************************** */
 
