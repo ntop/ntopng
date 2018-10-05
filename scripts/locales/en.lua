@@ -33,6 +33,7 @@ local lang = {
   ["define"] = "Define",
   ["delete"] = "Delete",
   ["destination"] = "Destination",
+  ["device_protocols_description"] = "In this page it is possible to configure the list of acceptable application protocols per device type and direction (device as client or server with respect to the application protocol). By enabling Device Protocols Alerts in the Alerts configuration page under Preferences, alerts are generated when an anomalous protocol is detected.",
   ["difference"] = "Difference",
   ["disabled"] = "Disabled",
   ["dns"] = "DNS",

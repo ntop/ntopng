@@ -190,17 +190,21 @@ local function printDeviceProtocolsPage()
 
    <br>]]
  
-   print[[<span>]]
+   print[[
+     <span>
+       <ul>]]
+   print(i18n("notes"))
    if ntop.isnEdge() then
-     print(i18n("notes")) print[[
-     <ul>
+      print [[
        <li>]] print(i18n("nedge.device_protocol_policy_has_higher_priority")) print[[</li>
-       <li>]] print(i18n("nedge.protocol_policy_has_higher_priority")) print[[</li>
-     </ul>]]
+       <li>]] print(i18n("nedge.protocol_policy_has_higher_priority")) print[[</li>]]
    else
-     print[[<br/>]]
+      print [[
+       <li>]] print(i18n("device_protocols_description")) print[[</li>]]
    end
-   print[[</span>]]
+   print[[
+       </ul>
+     </span>]]
 
    print[[
    <script type="text/javascript">
