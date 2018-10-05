@@ -225,14 +225,12 @@ bool Flow::triggerAlerts() const {
 void Flow::dumpFlowAlert() {
   time_t when = time(0);
 
-  if(!triggerAlerts()
-     || (cli_host && cli_host->incFlowAlertHits(when))
-     || (srv_host && srv_host->incFlowAlertHits(when)))
+  if(!triggerAlerts())
     return;
 
   FlowStatus status = getFlowStatus();
 
-  if(!isFlowAlerted() && status != status_normal) {
+  if(!isFlowAlerted()) {
     bool do_dump = true;
 
     switch(status) {
@@ -293,6 +291,21 @@ void Flow::dumpFlowAlert() {
       do_dump = ntop->getPrefs()->are_device_protocols_alerts_enabled();
       break;
     }
+
+#ifdef HAVE_NEDGE
+    /* NOTE: this must be explicitly re-checked as a more specific alert
+       e.g. status_device_protocol_not_allowed may have set do_dump=false but
+       we still want to generate the alert */
+    if(!do_dump && !isPassVerdict())
+      /* A side effect of this is that the generated alert will still have
+         the original status rather then the status_blocked */
+      do_dump = ntop->getPrefs()->are_dropped_flows_alerts_enabled();
+#endif
+
+    /* Check per-host thresholds */
+    if((cli_host && cli_host->incFlowAlertHits(when))
+         ||(srv_host && srv_host->incFlowAlertHits(when)))
+      do_dump = false;
 
     if(do_dump)
       iface->getAlertsManager()->storeFlowAlert(this);
@@ -3396,11 +3409,6 @@ FlowStatus Flow::getFlowStatus() {
 #endif
   u_int16_t l7proto = ndpi_get_lower_proto(ndpiDetectedProtocol);
 
-#ifdef HAVE_NEDGE
-  if(iface->is_bridge_interface() && !isPassVerdict())
-    return status_blocked;
-#endif
-
   /* NOTE: evaluation order is important here! */
 
   if(isBlacklistedFlow())
@@ -3497,6 +3505,12 @@ FlowStatus Flow::getFlowStatus() {
      && ! cli_host->get_ip()->isMulticastAddress()
      && ! srv_host->get_ip()->isMulticastAddress())
     return status_remote_to_remote;
+
+#ifdef HAVE_NEDGE
+  /* Leave this at the end. A more specific status should be returned above if avaialble. */
+  if(!isPassVerdict())
+    return status_blocked;
+#endif
 
 #if 0
   if(iface->getAlertLevel() > 0)
