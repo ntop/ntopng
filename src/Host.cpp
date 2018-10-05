@@ -810,7 +810,7 @@ TrafficShaper* Host::get_shaper(ndpi_protocol ndpiProtocol, bool isIngress) {
 
   /* TODO enable after populating the presets */
 #if 0
-  if(!isDeviceAllowedProtocolDirection(ndpiProtocol, !isIngress))
+  if(getDeviceAllowedProtocolStatus(ndpiProtocol, !isIngress) != device_proto_allowed)
     return policer->getShaper(DROP_ALL_SHAPER_ID);
 #endif
 
@@ -1235,14 +1235,14 @@ void Host::get_geocoordinates(float *latitude, float *longitude) {
 
 /* *************************************** */
 
-bool Host::isDeviceAllowedProtocolDirection(ndpi_protocol proto, bool as_client) {
+DeviceProtoStatus Host::getDeviceAllowedProtocolStatus(ndpi_protocol proto, bool as_client) {
   if(getMac() && !getMac()->isSpecialMac()
 #ifdef HAVE_NEDGE
       /* On nEdge the concept of device protocol policies is only applied to unassigned devices on LAN */
       && (getMac()->locate() == located_on_lan_interface)
 #endif
   )
-    return ntop->isDeviceAllowedProtocolDirection(getMac()->getDeviceType(), proto, get_host_pool(), as_client);
+    return ntop->getDeviceAllowedProtocolStatus(getMac()->getDeviceType(), proto, get_host_pool(), as_client);
 
-  return true;
+  return device_proto_allowed;
 }

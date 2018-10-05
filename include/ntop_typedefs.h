@@ -350,6 +350,12 @@ typedef enum {
   flowhashing_vrfid /* VRF Id */
 } FlowHashingEnum;
 
+typedef enum {
+  device_proto_allowed = 0,
+  device_proto_forbidden_master,
+  device_proto_forbidden_app
+} DeviceProtoStatus;
+
 struct keyval {
   const char *key;
   char *val;

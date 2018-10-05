@@ -1883,11 +1883,20 @@ char* Flow::serialize(bool es_json) {
 json_object* Flow::flow2statusinfojson() {
   json_object *obj = json_object_new_object();
   if(!obj) return NULL;
+  DeviceProtoStatus proto_status = device_proto_allowed;
 
   json_object_object_add(obj, "cli.devtype", json_object_new_int((cli_host && cli_host->getMac()) ? cli_host->getMac()->getDeviceType() : device_unknown));
   json_object_object_add(obj, "srv.devtype", json_object_new_int((srv_host && srv_host->getMac()) ? srv_host->getMac()->getDeviceType() : device_unknown));
-  json_object_object_add(obj, "cli.devtype_proto_allowed", json_object_new_boolean(!cli_host || cli_host->isDeviceAllowedProtocolDirection(ndpiDetectedProtocol, true /* client */)));
-  json_object_object_add(obj, "srv.devtype_proto_allowed", json_object_new_boolean(!srv_host || srv_host->isDeviceAllowedProtocolDirection(ndpiDetectedProtocol, false /* server */)));
+
+  if(cli_host && ((proto_status = cli_host->getDeviceAllowedProtocolStatus(ndpiDetectedProtocol, true /* client */)) != device_proto_allowed)) {
+    json_object_object_add(obj, "devproto_forbidden_peer", json_object_new_string("cli"));
+    json_object_object_add(obj, "devproto_forbidden_id", json_object_new_int(
+      (proto_status == device_proto_forbidden_app) ? ndpiDetectedProtocol.app_protocol : ndpiDetectedProtocol.master_protocol));
+  } else if(srv_host && ((proto_status = srv_host->getDeviceAllowedProtocolStatus(ndpiDetectedProtocol, false /* server */)) != device_proto_allowed)) {
+    json_object_object_add(obj, "devproto_forbidden_peer", json_object_new_string("srv"));
+    json_object_object_add(obj, "devproto_forbidden_id", json_object_new_int(
+      (proto_status == device_proto_forbidden_app) ? ndpiDetectedProtocol.app_protocol : ndpiDetectedProtocol.master_protocol));
+  }
 
   return obj;
 }

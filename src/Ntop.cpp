@@ -1901,7 +1901,7 @@ bool Ntop::addToNotifiedInformativeCaptivePortal(u_int32_t client_ip) {
 
 /* ******************************************* */
 
-bool Ntop::isDeviceAllowedProtocolDirection(DeviceType dev_type, ndpi_protocol proto, u_int16_t pool_id, bool as_client) {
+DeviceProtoStatus Ntop::getDeviceAllowedProtocolStatus(DeviceType dev_type, ndpi_protocol proto, u_int16_t pool_id, bool as_client) {
   /* Check if this application protocol is allowd for the specified device type */
   DeviceProtocolBitmask *bitmask = getDeviceAllowedProtocols(dev_type);
   NDPI_PROTOCOL_BITMASK *direction_bitmask = as_client ? (&bitmask->clientAllowed) : (&bitmask->serverAllowed);
@@ -1909,18 +1909,21 @@ bool Ntop::isDeviceAllowedProtocolDirection(DeviceType dev_type, ndpi_protocol p
 #ifdef HAVE_NEDGE
   /* On nEdge the concept of device protocol policies is only applied to unassigned devices on LAN */
   if(pool_id != NO_HOST_POOL_ID)
-    return true;
+    return device_proto_allowed;
 #endif
 
-  if(((proto.master_protocol != NDPI_PROTOCOL_UNKNOWN)
-      /* Always allow network critical protocols */
-      && (!Utils::isCriticalNetworkProtocol(proto.master_protocol))
-      && (!NDPI_ISSET(direction_bitmask, proto.master_protocol)))
-     ||
-     /* We consider NDPI_PROTOCOL_UNKNOWN as a protocol to be allowed */
-     (((!Utils::isCriticalNetworkProtocol(proto.app_protocol)))
-      && (!NDPI_ISSET(direction_bitmask, proto.app_protocol))))
-    return false;
+  /* Always allow network critical protocols */
+  if(Utils::isCriticalNetworkProtocol(proto.master_protocol) ||
+      Utils::isCriticalNetworkProtocol(proto.app_protocol))
+    return device_proto_allowed;
 
-  return true;
+  if((proto.master_protocol != NDPI_PROTOCOL_UNKNOWN) &&
+      (!NDPI_ISSET(direction_bitmask, proto.master_protocol))) {
+    return device_proto_forbidden_master;
+  } else if((!NDPI_ISSET(direction_bitmask, proto.app_protocol))) {
+    /* We consider NDPI_PROTOCOL_UNKNOWN as a protocol to be allowed */
+    return device_proto_forbidden_app;
+  }
+
+  return device_proto_allowed;
 }

@@ -217,8 +217,8 @@ class Flow : public GenericHashEntry {
   };
   inline bool isDeviceAllowedProtocol() {
       return(!cli_host || !srv_host ||
-        (cli_host->isDeviceAllowedProtocolDirection(ndpiDetectedProtocol, true) &&
-          srv_host->isDeviceAllowedProtocolDirection(ndpiDetectedProtocol, false)));
+        ((cli_host->getDeviceAllowedProtocolStatus(ndpiDetectedProtocol, true) == device_proto_allowed) &&
+         (srv_host->getDeviceAllowedProtocolStatus(ndpiDetectedProtocol, false) == device_proto_allowed)));
   }
   inline u_int32_t getCurrentInterArrivalTime(time_t now, bool cli2srv_direction) {
     return(1000 /* msec */

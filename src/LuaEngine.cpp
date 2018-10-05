@@ -4033,6 +4033,7 @@ static int ntop_get_l7_policy_info(lua_State* vm) {
   bool as_client;
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   L7PolicySource_t policy_source;
+  DeviceProtoStatus device_proto_status;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
   if(!ntop_interface || !ntop_interface->getL7Policer()) return(CONST_LUA_ERROR);
@@ -4048,7 +4049,7 @@ static int ntop_get_l7_policy_info(lua_State* vm) {
   dev_type = (DeviceType)lua_tointeger(vm, 3);
   as_client = lua_toboolean(vm, 4);
 
-  if(!ntop->isDeviceAllowedProtocolDirection(dev_type, proto, pool_id, as_client)) {
+  if((device_proto_status = ntop->getDeviceAllowedProtocolStatus(dev_type, proto, pool_id, as_client)) != device_proto_allowed) {
     shaper_id = DROP_ALL_SHAPER_ID;
     policy_source = policy_source_device_protocol;
   } else {

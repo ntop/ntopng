@@ -244,7 +244,7 @@ class Host : public Checkpointable, public GenericHashEntry, public GenericTraff
   inline void reloadHideFromTop() { hidden_from_top = iface->isHiddenFromTop(this); }
   inline bool isHiddenFromTop() { return hidden_from_top; }
   virtual void tsLua(lua_State* vm) { lua_pushnil(vm); };
-  bool isDeviceAllowedProtocolDirection(ndpi_protocol proto, bool as_client);
+  DeviceProtoStatus getDeviceAllowedProtocolStatus(ndpi_protocol proto, bool as_client);
 
   inline void setSSDPLocation(char *url) {
      if(url) {

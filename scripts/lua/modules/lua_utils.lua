@@ -2370,7 +2370,7 @@ end
 -- ###############################################
 
 -- NOTE: "flowstatus_info" is a lua table in a common format used
--- to dump accurate flow alert information. See flow2statusinfo and flow2statusinfo
+-- to dump accurate flow alert information. See flow2statusinfo and alert2statusinfo
 -- below.
 
 -- Uses a flow returned by interface.getFlowsInfo() to create a flowstatus_info.
@@ -2379,12 +2379,6 @@ function flow2statusinfo(flow)
    if flow["status_info"] then
       local json = require("dkjson")
       local res = json.decode(flow["status_info"])
-
-      if res then
-         -- Add additional information
-         res["proto.ndpi"] = flow["proto.ndpi"]
-         res["proto.ndpi_id"] = flow["proto.ndpi_id"]
-      end
 
       return res
    end
@@ -2397,12 +2391,6 @@ end
 function alert2statusinfo(flow_json, alert_json)
    local res = table.clone(flow_json.status_info)
 
-   if res then
-      -- Add additional information
-      res["proto.ndpi"] = interface.getnDPIProtoName(tonumber(alert_json["l7_proto"]))
-      res["proto.ndpi_id"] = alert_json["l7_proto"]
-   end
-
    return res
 end
 
@@ -2411,8 +2399,9 @@ end
 function formatSuspiciousDeviceProtocolAlert(flowstatus_info)
    local msg, devtype
    local discover = require("discover_utils")
+   local forbidden_proto = flowstatus_info["devproto_forbidden_id"] or 0
 
-   if not flowstatus_info["cli.devtype_proto_allowed"] then
+   if (flowstatus_info["devproto_forbidden_peer"] == "cli") then
       msg = "flow_details.suspicious_client_device_protocol"
       devtype = flowstatus_info["cli.devtype"]
    else
@@ -2421,9 +2410,9 @@ function formatSuspiciousDeviceProtocolAlert(flowstatus_info)
    end
 
    local label = discover.devtype2string(devtype)
-   return i18n(msg, {proto=flowstatus_info["proto.ndpi"], devtype=label,
+   return i18n(msg, {proto=interface.getnDPIProtoName(forbidden_proto), devtype=label,
       url=getDeviceProtocolPoliciesUrl("device_type="..
-      devtype.."&l7proto="..flowstatus_info["proto.ndpi_id"])})
+      devtype.."&l7proto="..forbidden_proto)})
 end
 
 -- ###############################################

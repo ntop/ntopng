@@ -217,16 +217,18 @@ else
 
          if num_rows > 0 then
            print("<tr><th width=30% rowspan=".. num_rows ..">"..i18n("device_protocols.device_protocol_policy").."</th>")
+	   local proto = status_info["devproto_forbidden_id"]
+
            if cli_mac and cli_mac.location == "lan" then
-             print("<td>"..i18n("device_protocols.devtype_as_proto_client", {devtype=discover.devtype2string(status_info["cli.devtype"]), proto=flow["proto.ndpi"]}).."</td>")
-             print("<td><a href=\"".. getDeviceProtocolPoliciesUrl("device_type=" .. status_info["cli.devtype"]) .."&l7proto=".. flow["proto.ndpi_id"] .."\">")
+             print("<td>"..i18n("device_protocols.devtype_as_proto_client", {devtype=discover.devtype2string(status_info["cli.devtype"]), proto=interface.getnDPIProtoName(proto)}).."</td>")
+             print("<td><a href=\"".. getDeviceProtocolPoliciesUrl("device_type=" .. status_info["cli.devtype"]) .."&l7proto=".. proto .."\">")
              print(i18n(ternary(status_info["cli.devtype_proto_allowed"], "allowed", "forbidden")))
              print("</a></td></tr><tr>")
            end
 
            if srv_mac and srv_mac.location == "lan" then
-             print("<td>"..i18n("device_protocols.devtype_as_proto_server", {devtype=discover.devtype2string(status_info["srv.devtype"]), proto=flow["proto.ndpi"]}).."</td>")
-             print("<td><a href=\"".. getDeviceProtocolPoliciesUrl("device_type=" .. status_info["srv.devtype"]) .."&l7proto=".. flow["proto.ndpi_id"] .."\">")
+             print("<td>"..i18n("device_protocols.devtype_as_proto_server", {devtype=discover.devtype2string(status_info["srv.devtype"]), proto=interface.getnDPIProtoName(proto)}).."</td>")
+             print("<td><a href=\"".. getDeviceProtocolPoliciesUrl("device_type=" .. status_info["srv.devtype"]) .."&l7proto=".. proto .."\">")
              print(i18n(ternary(status_info["srv.devtype_proto_allowed"], "allowed", "forbidden")))
              print("</a></td></tr><tr>")
            end
