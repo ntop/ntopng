@@ -68,7 +68,7 @@ class MySQLDB : public DB {
   void updateStats(const struct timeval *tv);
   void lua(lua_State* vm, bool since_last_checkpoint) const;
 #ifdef NTOPNG_PRO
-  bool dumpAggregatedFlow(AggregatedFlow *f) { return(false); };
+  bool dumpAggregatedFlow(time_t when, AggregatedFlow *f) { return(false); };
 #endif
 
 };

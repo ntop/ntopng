@@ -199,7 +199,6 @@ veryclean: clean
 	-rm -rf nDPI
 
 geoip:
-	# check if local cache exists
 	if test -d ../dat_files/; then \
 		cp ../dat_files/*.mmdb httpdocs/geoip; \
 	else \

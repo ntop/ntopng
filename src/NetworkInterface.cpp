@@ -876,7 +876,7 @@ int NetworkInterface::dumpDBFlow(time_t when, Flow *f) {
 
 #ifdef NTOPNG_PRO
 
-void NetworkInterface::dumpAggregatedFlow(AggregatedFlow *f) {
+void NetworkInterface::dumpAggregatedFlow(time_t when, AggregatedFlow *f) {
   if(db
      && f && (f->get_packets() > 0)
      && ntop->getPrefs()->is_enterprise_edition()) {
@@ -894,7 +894,7 @@ void NetworkInterface::dumpAggregatedFlow(AggregatedFlow *f) {
 				   f->print(buf, sizeof(buf)));
 #endif
     } else {
-      db->dumpAggregatedFlow(f);
+      db->dumpAggregatedFlow(when, f);
     }
   }
 }

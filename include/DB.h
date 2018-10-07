@@ -51,7 +51,7 @@ class DB {
   virtual void checkPointCounters(bool drops_only) {};
   virtual void lua(lua_State* vm, bool since_last_checkpoint) const {};
 #ifdef NTOPNG_PRO
-  virtual bool dumpAggregatedFlow(AggregatedFlow *f);
+  virtual bool dumpAggregatedFlow(time_t when, AggregatedFlow *f);
 #endif
 };
 
