@@ -129,7 +129,8 @@ class Utils {
   static u_int32_t parsetime(char *str);
   static u_int64_t mac2int(u_int8_t *mac);
   static u_int8_t* int2mac(u_int64_t mac, u_int8_t *buf);
-  
+  static void listInterfaces(lua_State* vm); 
+ 
   /* System Host Montoring and Diagnose Functions */
   static void luaCpuLoad(lua_State* vm);
   static void luaMeminfo(lua_State* vm);

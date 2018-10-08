@@ -3199,3 +3199,35 @@ void Utils::init_pcap_header(struct pcap_file_header * const h, NetworkInterface
   h->snaplen  = ntop->getGlobals()->getSnaplen();
   h->linktype = iface->get_datalink();
 }
+
+/* ****************************************************** */
+
+void Utils::listInterfaces(lua_State* vm) {
+  char ebuf[PCAP_ERRBUF_SIZE];
+  pcap_if_t *devs, *devpointer;
+
+  if (pcap_findalldevs(&devs, ebuf) != 0) 
+    return;
+
+  devpointer = devs;
+
+  while (devpointer != NULL) {
+    if (!(devpointer->flags & PCAP_IF_LOOPBACK)) {
+      lua_newtable(vm);
+
+      lua_push_str_table_entry(vm, "description", devpointer->description ? devpointer->description : (char *) "");
+      // add more info here..
+
+      lua_pushstring(vm, devpointer->name);
+      lua_insert(vm, -2);
+      lua_settable(vm, -3);
+    }
+
+    devpointer = devpointer->next;
+  }
+
+  pcap_freealldevs(devs);
+}
+
+/* ****************************************************** */
+

@@ -1353,6 +1353,16 @@ static int ntop_is_shutdown(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
+static int ntop_list_interfaces(lua_State* vm) {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  lua_newtable(vm);
+  Utils::listInterfaces(vm); 
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 #ifdef HAVE_NEDGE
 static int ntop_set_routing_mode(lua_State* vm) {
   bool routing_enabled;
@@ -8167,6 +8177,7 @@ static const luaL_Reg ntop_reg[] = {
   { "getMacManufacturer",   ntop_get_mac_manufacturer },
   { "getHostInformation",   ntop_get_host_information },
   { "isShutdown",           ntop_is_shutdown          },
+  { "listInterfaces",       ntop_list_interfaces      },
 
   /* Device Protocols */
   { "reloadDeviceProtocols", ntop_reload_device_protocols },

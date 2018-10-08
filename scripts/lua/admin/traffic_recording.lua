@@ -8,22 +8,14 @@ if((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.
 require "lua_utils"
 require "prefs_utils"
 local recording_utils = require "recording_utils"
-local template = require "template_utils"
-local callback_utils = require "callback_utils"
-local lists_utils = require "lists_utils"
-
-if(ntop.isPro()) then
-  package.path = dirs.installdir .. "/scripts/lua/pro/?.lua;" .. package.path
-end
 
 sendHTTPContentTypeHeader('text/html')
 
-local product = ntop.getInfo().product
 local message_info = ""
 local message_severity = "alert-warning"
 
 if not haveAdminPrivileges() then
-   return
+  return
 end
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
@@ -122,23 +114,32 @@ local subpage_active, tab = trafficRecordingSettingsGetActiveSubpage(_GET["tab"]
 -- ================================================================================
 
 function printInterfaces()
-  local all_interfaces = interface.getIfNames()
+  local interfaces = recording_utils.getInterfaces()
 
   print [[
   <form method="post">
     <table class="table">
       <tr><th colspan=2 class="info">]] print(subpage_active.label) print [[</th></tr>]]
 
-  for if_id,if_name in pairsByValues(all_interfaces, asc_insensitive) do
+  for if_name,value in pairsByKeys(interfaces, asc_insensitive) do
+    local if_id = if_name
     if _POST["iface_on_"..if_id] ~= nil then
       -- tprint(_POST["iface_on_"..if_id])
+      -- recording_utils.createConfig(if_name, { path=storage_path })
+      -- recording_utils.start(if_name)
+      -- recording_utils.stop(if_name)
     end
   end
 
-  for if_id,if_name in pairsByValues(all_interfaces, asc_insensitive) do
+  for if_name,value in pairsByKeys(interfaces, asc_insensitive) do
+    local if_id = if_name
+    local if_desc = if_name
+    if not isEmptyString(value.desc) then
+      if_desc = if_desc.." - "..value.desc
+    end
     prefsToggleButton(subpage_active, {
       title = if_name,
-      description = i18n("traffic_recording.enable_interface_desc", {interface = if_name}),
+      description = i18n("traffic_recording.enable_interface_desc", {interface = if_desc}),
       redis_key = "ntopng.prefs.traffic_recording", field = "iface_on_"..if_id,
       content = "", default = "0", to_switch = nil,
     })
