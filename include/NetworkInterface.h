@@ -347,7 +347,7 @@ class NetworkInterface : public Checkpointable {
 			u_int16_t eth_proto, u_int16_t ndpi_proto,
 		       u_int pkt_len, u_int num_pkts, u_int pkt_overhead) {
     ethStats.incStats(ingressPacket, eth_proto, num_pkts, pkt_len, pkt_overhead);
-    ndpiStats.incStats(when, ndpi_proto, 0, 0, 1, pkt_len);
+    ndpiStats.incStats(when, ndpi_proto, 0, 0, num_pkts, pkt_len);
     // Note: here we are not currently interested in packet direction, so we tell it is receive
     ndpiStats.incCategoryStats(when, get_ndpi_proto_category(ndpi_proto), 0 /* see above comment */, pkt_len);
     pktStats.incStats(pkt_len);
