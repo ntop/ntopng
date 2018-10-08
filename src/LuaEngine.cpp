@@ -5961,7 +5961,8 @@ static int ntop_is_allowed_network(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   get_host_vlan_info((char*)lua_tostring(vm, 1), &host, &vlan_id, buf, sizeof(buf));
 
-  if(allowed_nets->match(host))
+  if(!allowed_nets /* e.g., when the user is 'nologin' there's no allowed network to enforce */
+     || allowed_nets->match(host))
     rv = true;
 
   lua_pushboolean(vm, rv);
@@ -8689,7 +8690,7 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
       ptree.addAddresses(val);
 
       getLuaVMUservalue(L, allowedNets) = &ptree;
-      // ntop->getTrace()->traceEvent(TRACE_WARNING, "SET %p", ptree);
+      // ntop->getTrace()->traceEvent(TRACE_WARNING, "SET [p: %p][val: %s][user: %s]", &ptree, val, user);
     }
 
     snprintf(key, sizeof(key), CONST_STR_USER_LANGUAGE, user);
