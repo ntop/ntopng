@@ -151,6 +151,8 @@ if(_GET["iffilter"] == "all") then
       -- its a lua array and will look for integers starting at one
       res[ifid..""] = dumpInterfaceStats(ifname)
    end
+elseif not isEmptyString(_GET["iffilter"]) then
+   res = dumpInterfaceStats(getInterfaceName(_GET["iffilter"]))
 else
    res = dumpInterfaceStats(ifname)
 end
