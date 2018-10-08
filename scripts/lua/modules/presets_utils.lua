@@ -24,7 +24,8 @@ local function createPreset(device_type_name)
    end
 end
 
--- Add client and server policies to a device type
+-- Add policies to a device type cloning policies from an initial device type.
+-- source_preset is a table
 local function addPreset(device_type_name, source_preset)
    createPreset(device_type_name)
    presets_utils.policies[device_type_name].client = 
@@ -33,7 +34,8 @@ local function addPreset(device_type_name, source_preset)
       table.merge(presets_utils.policies[device_type_name].server, source_preset.server)
 end
 
--- Add policies to a device type cloning policies from another device type
+-- Add policies to a device type cloning policies from another device type.
+-- source_device_type_name is the string identifying the source device type
 local function addPresetFrom(device_type_name, source_device_type_name)
    addPreset(device_type_name,
       presets_utils.policies[source_device_type_name])
@@ -69,27 +71,29 @@ end
 
 local basic_policy = {
    client = {
-      [  8] = presets_utils.ALLOW  -- MDNS
-      [  9] = presets_utils.ALLOW  -- NTP
-      [ 10] = presets_utils.ALLOW  -- NetBIOS
-      [ 81] = presets_utils.ALLOW  -- ICMP
-      [ 82] = presets_utils.ALLOW  -- IGMP
-      [102] = presets_utils.ALLOW  -- ICMPV6
-      [153] = presets_utils.ALLOW  -- UPnP
-      [154] = presets_utils.ALLOW  -- LLMNR
+      [  8] = presets_utils.ALLOW,  -- MDNS
+      [  9] = presets_utils.ALLOW,  -- NTP
+      [ 10] = presets_utils.ALLOW,  -- NetBIOS
+      [ 81] = presets_utils.ALLOW,  -- ICMP
+      [ 82] = presets_utils.ALLOW,  -- IGMP
+      [102] = presets_utils.ALLOW,  -- ICMPV6
+      [153] = presets_utils.ALLOW,  -- UPnP
+      [154] = presets_utils.ALLOW,  -- LLMNR
    },
    server = {
-      [ 81] = presets_utils.ALLOW  -- ICMP
-      [102] = presets_utils.ALLOW  -- ICMPV6
+      [ 81] = presets_utils.ALLOW,  -- ICMP
+      [102] = presets_utils.ALLOW,  -- ICMPV6
    }
 }
 
 -- IoT like devices
 addPreset('iot', basic_policy)
 addProtocolByName('iot', 'client', 'HTTP',      presets_utils.ALLOW)
+addProtocolByName('iot', 'server', 'HTTP',      presets_utils.ALLOW)
 addProtocolByName('iot', 'client', 'SSL',       presets_utils.ALLOW)
+addProtocolByName('iot', 'server', 'SSL',       presets_utils.ALLOW)
 
-addPreset('video', iot)
+addPresetFrom('video', 'iot')
 addProtocolByName('video', 'server', 'RTP',     presets_utils.ALLOW)
 addProtocolByName('video', 'server', 'RTSP',    presets_utils.ALLOW)
 
@@ -111,10 +115,10 @@ addProtocolByName('multimedia', 'client', 'Skype',       presets_utils.ALLOW)
 addProtocolByName('multimedia', 'client', 'SkypeCallIn', presets_utils.ALLOW)
 addProtocolByName('multimedia', 'client', 'SkypeCallOut',presets_utils.ALLOW)
 
-addPreset('tv', 'multimedia')
+addPresetFrom('tv', 'multimedia')
 
 -- NAS devices
-addPresetFrom('nas', basic_policy)
+addPreset('nas', basic_policy)
 addProtocolByName('nas', 'server', 'HTTP',        presets_utils.ALLOW)
 addProtocolByName('nas', 'server', 'FTP_CONTROL', presets_utils.ALLOW)
 addProtocolByName('nas', 'server', 'FTP_DATA',    presets_utils.ALLOW)
