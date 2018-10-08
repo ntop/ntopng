@@ -3,6 +3,10 @@
 --
 
 local dirs = ntop.getDirs()
+require "lua_utils"
+require "prefs_utils"
+
+prefs = ntop.getPrefs()
 
 local recording_utils = {}
 
@@ -24,30 +28,89 @@ function recording_utils.isAvailable()
    return false
 end
 
+local function nextFreeCore(num_cores, busy_cores, start)
+   local busy_map = swapKeysValues(busy_cores) 
+   for i=start,num_cores-1 do
+      if busy_map[i] == nil then
+         return i
+      end
+   end
+   return start
+end
+
 function recording_utils.createConfig(ifname, params)
-   local filename = "/etc/n2disk/n2disk-"..ifname..".conf"
+   local filename = "/etc/n2disk/n2disk-"..ifname..".conf" -- TODO write in a folder with write permissions
 
    local defaults = {
       path = "/storage",        -- Storage path
-      buffer_size = 4*1024,     -- Buffer size (MB)
-      max_file_size = 1024,     -- Max file length
+      buffer_size = 1024,       -- Buffer size (MB)
+      max_file_size = 256,      -- Max file length (MB)
       max_disk_space = 10*1024, -- Max disk space (MB)
       snaplen = 1536,           -- Capture length
       writer_core = 0,          -- Writer thread affinity
       reader_core = 1,          -- Reader thread affinity
-      indexer_cores = "2,3",    -- Indexer threads affinity
+      indexer_cores = { 2 },    -- Indexer threads affinity
+      -- Optional parameters
+      -- zmq_endpoint = "tcp://*:5556" -- ZMQ endpoint for stats/flows
    }
 
-   -- TODO 
-   -- - auto-tune cpu affinity based on the actual cpu and ntopng configuration
-   -- - auto-size max file size based on interface speed
-   -- - write the configuration file in a place where ntopng can write
+   local ifspeed = (interface.getMaxIfSpeed(ifname) or 1000)
 
-   if params.path == nil then -- mandatory parameters here
+   -- Computing file and buffer size
+
+   if ifspeed > 10000 then -- 40/100G
+      defaults.max_file_size = 4*1024
+   else if ifspeed > 1000 then -- 10G
+      defaults.max_file_size = 1*1024
+   end
+   defaults.buffer_size = 4*defaults.max_file_size
+
+   -- Computing core affinity
+
+   local indexing_threads = 1 -- 1G
+   if ifspeed > 10000 then    -- 40/100G
+      indexing_threads = 4
+   elseif ifspeed > 1000 then -- 10G
+      indexing_threads = 2
+   end
+   local n2disk_threads = indexing_threads + 2
+
+   local cores = tonumber(executeWithOuput("nproc"))
+
+   local ntopng_affinity = split(prefs.cpu_affinity, ',')
+   local busy_cores = {}
+   if cores - (#ntopng_affinity) >= n2disk_threads then
+      -- enough cores to isolate all threads, skipping ntopng threads
+      busy_cores = ntopng_affinity
+   end
+
+   local first_core = 0
+
+   defaults.writer_core = nextFreeCore(cores, busy_cores, first_core)
+   table.insert(busy_cores, defaults.writer_core)
+   first_core = (defaults.writer_core + 1) % cores
+
+   defaults.reader_core = nextFreeCore(cores, busy_cores, first_core)
+   table.insert(busy_cores, defaults.reader_core)
+   first_core = (defaults.reader_core + 1) % cores
+
+   defaults.indexer_cores = {}
+   for i=1,indexing_threads do
+      local indexer_core = nextFreeCore(cores, busy_cores, first_core)
+      table.insert(defaults.indexer_cores, indexer_core)
+      table.insert(busy_cores, indexer_core)
+      first_core = (indexer_core + 1) % cores
+   end 
+
+   -- Checking options
+
+   if params.path == nil then
       return false
    end
 
    local config = table.merge(defaults, params)
+
+   -- Writing configuration file
 
    local f = io.open(filename, "w")
 
@@ -55,7 +118,7 @@ function recording_utils.createConfig(ifname, params)
       return false
    end
 
-   f:write("--interface="..config.interface.."\n")
+   f:write("--interface="..ifname.."\n")
    f:write("--dump-directory="..config.path.."/n2disk/"..ifname.."\n")
    f:write("--index\n")
    f:write("--timeline-dir="..config.path.."/n2disk/"..ifname.."\n")
@@ -64,9 +127,17 @@ function recording_utils.createConfig(ifname, params)
    f:write("--disk-limit="..config.max_disk_space.."\n")
    f:write("--snaplen="..config.snaplen.."\n")
    f:write("--writer-cpu-affinity="..config.writer_core.."\n")
-   f:write("--reader-cpu-affinity="..config..reader_core."\n")
-   f:write("--compressor-cpu-affinity="..config..indexer_cores."\n")
+   f:write("--reader-cpu-affinity="..config.reader_core.."\n")
+   f:write("--compressor-cpu-affinity=")
+   for i, v in ipairs(config.indexer_cores) do
+      f:write(v..ternary(i == #config.indexer_cores, "", ","))
+   end
+   f:write("\n")
    f:write("--index-on-compressor-threads\n")
+   if config.zmq_endpoint ~= nil then
+      f:write("--zmq="..config.zmq_endpoint.."\n")
+      f:write("--zmq-export-flows\n")
+   end
 
    f:close()
    return true

@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 if((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.scriptdir .. "/lua/modules/?.lua;" .. package.path end
 require "lua_utils"
 require "prefs_utils"
+local recording_utils = require "recording_utils"
 local template = require "template_utils"
 local callback_utils = require "callback_utils"
 local lists_utils = require "lists_utils"
