@@ -539,6 +539,11 @@ function handler_alert_more_info()
   local text, display_text = "",""
   local alerts = net_state.alerts_details()
 
+  if not alerts then 
+    google.send("Non ci sono allarmi da segnalare")
+    return
+  end
+
   display_text = "Allarmi scattati:\n\n"
 
   for i,v in pairs(alerts) do
