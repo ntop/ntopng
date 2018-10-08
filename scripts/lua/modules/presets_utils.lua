@@ -68,27 +68,65 @@ end
 -- - 'DHCP' and 'DNS' are always allowed in the datapath
 
 local basic_policy = {
-   client = { 
-      -- [ 18] = presets_utils.ALLOW, -- DHCP
-      -- [  5] = presets_utils.ALLOW  -- DNS
-   }, 
+   client = {
+      [  8] = presets_utils.ALLOW  -- MDNS
+      [  9] = presets_utils.ALLOW  -- NTP
+      [ 10] = presets_utils.ALLOW  -- NetBIOS
+      [ 81] = presets_utils.ALLOW  -- ICMP
+      [ 82] = presets_utils.ALLOW  -- IGMP
+      [102] = presets_utils.ALLOW  -- ICMPV6
+      [153] = presets_utils.ALLOW  -- UPnP
+      [154] = presets_utils.ALLOW  -- LLMNR
+   },
    server = {
+      [ 81] = presets_utils.ALLOW  -- ICMP
+      [102] = presets_utils.ALLOW  -- ICMPV6
    }
 }
 
-addPreset('multimedia', basic_policy)
-addProtocolByName('multimedia', 'client', 'HTTP', presets_utils.ALLOW)
-addProtocolByName('multimedia', 'client', 'NetFlix', presets_utils.ALLOW)
-addProtocolByName('multimedia', 'client', 'YouTube', presets_utils.ALLOW)
+-- IoT like devices
+addPreset('iot', basic_policy)
+addProtocolByName('iot', 'client', 'HTTP',      presets_utils.ALLOW)
+addProtocolByName('iot', 'client', 'SSL',       presets_utils.ALLOW)
 
-addPresetFrom('nas', 'multimedia')
+addPreset('video', iot)
+addProtocolByName('video', 'server', 'RTP',     presets_utils.ALLOW)
+addProtocolByName('video', 'server', 'RTSP',    presets_utils.ALLOW)
+
+-- Multimedia like devices
+addPreset('multimedia', basic_policy)
+addProtocolByName('multimedia', 'client', 'HTTP',        presets_utils.ALLOW)
+addProtocolByName('multimedia', 'client', 'SSL',         presets_utils.ALLOW)
+addProtocolByName('multimedia', 'client', 'RTP',         presets_utils.ALLOW)
+addProtocolByName('multimedia', 'client', 'RTSP',        presets_utils.ALLOW)
+addProtocolByName('multimedia', 'client', 'NetFlix',     presets_utils.ALLOW)
+addProtocolByName('multimedia', 'client', 'YouTube',     presets_utils.ALLOW)
+addProtocolByName('multimedia', 'client', 'AmazonVideo', presets_utils.ALLOW)
+addProtocolByName('multimedia', 'client', 'AppleiTunes', presets_utils.ALLOW)
+addProtocolByName('multimedia', 'client', 'Deezer',      presets_utils.ALLOW)
+addProtocolByName('multimedia', 'client', 'LastFM',      presets_utils.ALLOW)
+addProtocolByName('multimedia', 'client', 'SoundCloud',  presets_utils.ALLOW)
+addProtocolByName('multimedia', 'client', 'Spotify',     presets_utils.ALLOW)
+addProtocolByName('multimedia', 'client', 'Skype',       presets_utils.ALLOW)
+addProtocolByName('multimedia', 'client', 'SkypeCallIn', presets_utils.ALLOW)
+addProtocolByName('multimedia', 'client', 'SkypeCallOut',presets_utils.ALLOW)
+
+addPreset('tv', 'multimedia')
+
+-- NAS devices
+addPresetFrom('nas', basic_policy)
 addProtocolByName('nas', 'server', 'HTTP',        presets_utils.ALLOW)
 addProtocolByName('nas', 'server', 'FTP_CONTROL', presets_utils.ALLOW)
 addProtocolByName('nas', 'server', 'FTP_DATA',    presets_utils.ALLOW)
+addProtocolByName('nas', 'server', 'AFP',         presets_utils.ALLOW)
+addProtocolByName('nas', 'server', 'NFS',         presets_utils.ALLOW)
+addProtocolByName('nas', 'server', 'RSYNC',       presets_utils.ALLOW)
+addProtocolByName('nas', 'server', 'TFTP',        presets_utils.ALLOW)
 
-addPreset('laptop', basic_policy)
-setAllProtocols('laptop', 'client', presets_utils.ALLOW)
-addProtocolByName('laptop', 'client', 'Corba', presets_utils.DROP)
+-- Printer devices
+addPreset('printer', basic_policy)
+addProtocolByName('printer', 'server', 'HTTP',    presets_utils.ALLOW)
+addProtocolByName('printer', 'server', 'SSL',     presets_utils.ALLOW)
 
 -----------------------------------------------------------------------------
 -----------------------------------------------------------------------------
