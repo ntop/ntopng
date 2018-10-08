@@ -770,8 +770,10 @@ function updateGraphsTableView(graph_table, view, graph_params, nindex_buttons) 
         } else
           stats_div.hide();
       }, rowCallback: function(row, row_data) {
-        if((params_obj.category && (row_data.tags.category === params_obj.category)) ||
-            (params_obj.protocol && (row_data.tags.protocol === params_obj.protocol))) {
+        if((typeof row_data.tags === "object") && (
+          (params_obj.category && (row_data.tags.category === params_obj.category)) ||
+          (params_obj.protocol && (row_data.tags.protocol === params_obj.protocol))
+        )) {
           /* Highlight the row */
           row.addClass("info");
         }
