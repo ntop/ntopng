@@ -121,7 +121,7 @@ function printInterfaces()
     <table class="table">
       <tr><th colspan=2 class="info">]] print(subpage_active.label) print [[</th></tr>]]
 
-  for if_name,value in pairsByKeys(interfaces, asc_insensitive) do
+  for if_name,info in pairsByKeys(interfaces, asc_insensitive) do
     local if_id = if_name
     if _POST["iface_on_"..if_id] ~= nil then
       -- tprint(_POST["iface_on_"..if_id])
@@ -131,17 +131,30 @@ function printInterfaces()
     end
   end
 
-  for if_name,value in pairsByKeys(interfaces, asc_insensitive) do
+  for if_name,info in pairsByKeys(interfaces, asc_insensitive) do
     local if_id = if_name
     local if_desc = if_name
-    if not isEmptyString(value.desc) then
-      if_desc = if_desc.." - "..value.desc
+    local disabled = false
+
+    if not isEmptyString(info.desc) then
+      if_desc = if_desc.." - "..info.desc
     end
+
+    if_desc = i18n("traffic_recording.enable_interface_desc", {interface = if_desc})
+
+    if info.in_use and info.is_zc then
+      disabled = true
+      if_desc = i18n("traffic_recording.zc_interface_in_use")
+    elseif not info.in_use and not info.is_zc then
+      disabled = true
+      if_desc = i18n("traffic_recording.not_a_ntopng_interface")
+    end
+
     prefsToggleButton(subpage_active, {
       title = if_name,
-      description = i18n("traffic_recording.enable_interface_desc", {interface = if_desc}),
+      description = if_desc, 
       redis_key = "ntopng.prefs.traffic_recording", field = "iface_on_"..if_id,
-      content = "", default = "0", to_switch = nil,
+      content = "", default = "0", to_switch = nil, disabled = disabled
     })
   end
 

@@ -2831,10 +2831,12 @@ local lang = {
     ["license"] = "License",
     ["license_desc"] = "Configure here your n2disk license key.",
     ["network_interfaces"] = "Network Interfaces",
+    ["not_a_ntopng_interface"] = "This interface is not controlled by ntopng: please add this interface to the ntopng configuration and restart ntopng.",
     ["storage"] = "Storage",
     ["storage_path"] = "Storage Path",
     ["storage_path_desc"] = "Path on the local file system where raw data in PCAP format will be stored.",
     ["traffic_recording"] = "Traffic Recording",
+    ["zc_interface_in_use"] = "ZC interfaces require exclusive access: please remove this interface from the ntopng configuration and restart ntopng to enable traffic recording (flow data will be produced by the recording process).",
   },
   ["traffic_report"] = {
     ["current_day"] = "Current Day",
