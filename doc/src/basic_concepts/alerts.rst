@@ -141,6 +141,7 @@ The list of currently supported alerts, divided by entity, is outlined below:
   - **Device Connection** (event): Generated when a previously-seen Mac address starts doing traffic after an inactivity period.
   - **Device Disconnection** (event): Generated when a Mac address goes idle after an activity period.
   - **IP/MAC Change** (event): Generated when the Mac address seen for a given IP changes, for example when the DHCP re-uses an IP address.
+  - **Device Protocols** (event): Generated when an anomalous protocol is detected. See `device protocols`_ for more details.
 
 - Host Pools
 
@@ -185,3 +186,4 @@ Third-Party Endpoints
 
 Alerts are not only available within the ntopng web GUI, they can also be propagated to the outside using third party endpoints that include mail, slack, nagios and syslog. To see the configuration details necessary to use the endpoints refer to :ref:`ThirdPartyAlertEndpoints`.
 
+.. _`device protocols`: ../advanced_features/device_protocols.html

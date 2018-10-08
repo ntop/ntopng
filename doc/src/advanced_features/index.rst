@@ -10,6 +10,7 @@ section.
 
     view_interfaces
     traffic_profiles
+    device_protocols
     bridging_and_policing
     flows_dump
     live_pcap_download
