@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 require "graph_utils"
+require "flow_utils"
 
 local have_nedge = ntop.isnEdge()
 
@@ -451,36 +452,7 @@ print[[
 ]]
 
 if(have_nedge) then
-  print[[
-  var block_flow_csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
-
-  function block_flow(flow_key) {
-    var url = "]] print(ntop.getHttpPrefix()) print[[/lua/pro/nedge/block_flow.lua";
-    $.ajax({
-      type: 'GET',
-      url: url,
-      cache: false,
-      data: {
-        csrf: block_flow_csrf,
-        flow_key: flow_key
-      },
-      success: function(content) {
-        var data = jQuery.parseJSON(content);
-        block_flow_csrf = data.csrf;
-        if (data.status == "BLOCKED") {
-          $('#'+flow_key+'_info').find('.block-badge')
-            .removeClass('label-default')
-            .addClass('label-danger');
-          $('#'+flow_key+'_application, #'+flow_key+'_l4, #'+flow_key+'_client, #'+flow_key+'_server')
-            .css("text-decoration", "line-through");
-        }
-      },
-      error: function(content) {
-        console.log("error");
-      }
-    });
-  }
-  ]]
+  printBlockFlowJs()
 end
 
 print[[

@@ -1247,6 +1247,7 @@ print [[/lua/host_http_breakdown.lua', { ]] print(hostinfo2json(host_info)) prin
 	 print("</table>\n")
       end
    elseif(page == "flows") then
+      require("flow_utils")
 
 print [[
       <div id="table-flows"></div>
@@ -1554,6 +1555,13 @@ print [[
 				 }
 			     ]
 	       });
+]]
+
+if(have_nedge) then
+  printBlockFlowJs()
+end
+
+print[[
        </script>
 
    ]]

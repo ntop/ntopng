@@ -661,6 +661,7 @@ local lang = {
     ["flow_reset_msg"] = "This flow has been reset",
     ["flow_shapers"] = "Flow Shapers",
     ["flow_status"] = "Flow Status",
+    ["flow_traffic_is_dropped"] = "Flow Traffic is Dropped",
     ["forward"] = "Forward",
     ["gsm_cell_identifier"] = "GSM Cell Identifier",
     ["gsm_cell_lac"] = "GSM Cell LAC (Location Area Code)",

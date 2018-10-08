@@ -294,7 +294,7 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
      if (value["verdict.pass"]) then
        column_key = column_key.." <span title='"..i18n("flow_details.drop_flow_traffic_btn").."' class='label label-default block-badge' "..(ternary(isAdministrator(), "onclick='block_flow("..value["ntopng.key"]..");' style='cursor: pointer;'", "")).."><i class='fa fa-ban' /></span>"
      else
-       column_key = column_key.." <span title='"..i18n("flow_details.drop_flow_traffic_btn").."' class='label label-danger block-badge'><i class='fa fa-ban' /></span>"
+       column_key = column_key.." <span title='"..i18n("flow_details.flow_traffic_is_dropped").."' class='label label-danger block-badge'><i class='fa fa-ban' /></span>"
      end
    end
    record["column_key"] = column_key
