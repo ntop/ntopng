@@ -725,10 +725,11 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
   }
 }
 
-function updateGraphsTableView(graph_table, view, graph_params, nindex_buttons) {
+function updateGraphsTableView(graph_table, view, graph_params, nindex_buttons, has_nindex) {
   if(view.columns) {
     var url = http_prefix + (view.nindex_view ? "/lua/enterprise/get_flows.lua" : "/lua/enterprise/get_ts_table.lua");
     var params_obj = graph_params.ts_query.split(",").reduce(function(params, value) { var v = value.split(":"); params[v[0]] = v[1]; return params; }, {});
+    var added_drilldown = false;
 
     var columns = view.columns.map(function(col) {
       return {
@@ -737,6 +738,16 @@ function updateGraphsTableView(graph_table, view, graph_params, nindex_buttons) 
         css: { textAlign: col[2], width: col[3], },
 	    };
     });
+
+    if(has_nindex) {
+      columns.unshift({
+        title: "",
+        field: "drilldown",
+        css: {width: "1%"},
+      });
+
+      added_drilldown = true;
+    }
 
     /* Force reinstantiation */
     graph_table.removeData('datatable');
@@ -762,6 +773,11 @@ function updateGraphsTableView(graph_table, view, graph_params, nindex_buttons) 
       tableCallback: function() {
         var data = this.resultset;
         var stats_div = $("#chart1-flows-stats");
+        var has_drilldown = (data && data.data.some(function(row) { return row.drilldown; }));
+
+        /* Remove the drilldown column if no drilldown is available */
+        if(!has_drilldown && added_drilldown)
+          $("table td:first-child, th:first-child", graph_table).remove();
 
         if(data && data.stats && data.stats.loading_time) {
            $("#flows-load-time").html(data.stats.loading_time);
