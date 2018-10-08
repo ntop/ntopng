@@ -39,7 +39,7 @@ local function nextFreeCore(num_cores, busy_cores, start)
 end
 
 function recording_utils.createConfig(ifname, params)
-   local filename = "/etc/n2disk/n2disk-"..ifname..".conf" -- TODO write in a folder with write permissions
+   local filename = dirs.workingdir.."/n2disk/n2disk-"..ifname..".conf"
 
    local defaults = {
       path = "/storage",        -- Storage path
@@ -60,7 +60,7 @@ function recording_utils.createConfig(ifname, params)
 
    if ifspeed > 10000 then -- 40/100G
       defaults.max_file_size = 4*1024
-   else if ifspeed > 1000 then -- 10G
+   elseif ifspeed > 1000 then -- 10G
       defaults.max_file_size = 1*1024
    end
    defaults.buffer_size = 4*defaults.max_file_size
