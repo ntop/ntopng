@@ -123,16 +123,6 @@ function printInterfaces()
 
   for if_name,info in pairsByKeys(interfaces, asc_insensitive) do
     local if_id = if_name
-    if _POST["iface_on_"..if_id] ~= nil then
-      -- tprint(_POST["iface_on_"..if_id])
-      -- recording_utils.createConfig(if_name, { path=storage_path })
-      -- recording_utils.start(if_name)
-      -- recording_utils.stop(if_name)
-    end
-  end
-
-  for if_name,info in pairsByKeys(interfaces, asc_insensitive) do
-    local if_id = if_name
     local if_desc = if_name
     local disabled = false
 
@@ -163,6 +153,52 @@ function printInterfaces()
     </table>
     <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
   </form>]]
+
+  if _SERVER["REQUEST_METHOD"] == "POST" then
+    local storage_path = ntop.getCache("ntopng.prefs.traffic_recording.storage_path")
+    local disk_space = ntop.getCache("ntopng.prefs.traffic_recording.disk_space")
+    local config = {}
+    if not isEmptyString(storage_path) then
+      config.storage_path = storage_path
+    end
+    if not isEmptyString(disk_space) then
+      config.max_disk_space = tonumber(disk_space) * 1024
+    end
+    for if_name,info in pairsByKeys(interfaces, asc_insensitive) do
+      local if_id = if_name
+      local if_toggle = ntop.getCache("ntopng.prefs.traffic_recording.iface_on_"..if_id)
+      if isEmptyString(if_toggle) or if_toggle ~= "1" then
+        recording_utils.stop(if_name)
+      else
+        recording_utils.createConfig(if_name, config)
+        recording_utils.start(if_name)
+      end
+    end
+  end
+
+  print [[
+  <script>
+  function update_interfaces_status() {
+    $.ajax({
+      type: 'GET',
+      url: ']] print (ntop.getHttpPrefix()) print [[/lua/get_traffic_recording_info.lua',
+      data: { },
+      success: function(content) {
+        var data = jQuery.parseJSON(content);
+        for (var ifname in data) {
+          var btn = $('#iface_on_'+ifname+'_on_id');
+          if (btn) {
+            if (data[ifname].status == 'on') eval('iface_on_'+ifname+'_functionOn()');
+            else eval('iface_on_'+ifname+'_functionOff()');
+          }
+        }
+      }
+    });
+  }
+  update_interfaces_status();
+  setInterval(update_interfaces_status, 5000);
+  </script>
+]]
 end
 
 -- ================================================================================
@@ -177,7 +213,7 @@ function printStorageSettings()
     subpage_active.entries["storage_path"].title,
     subpage_active.entries["storage_path"].description,
     "ntopng.prefs.traffic_recording", "storage_path",
-    "/storage", false, nil, nil, nil, {style = {width = "25em;"},
+    recording_utils.default_storage_path, false, nil, nil, nil, {style = {width = "25em;"},
     attributes = { spellcheck = "false", maxlength = 255 }})
 
   prefsInputFieldPrefs(
@@ -196,6 +232,7 @@ end
 -- ================================================================================
 
 function printLicense()
+
   print [[
   <form method="post">
     <table class="table">
@@ -214,6 +251,11 @@ function printLicense()
     </table>
     <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
   </form>]]
+
+  if _SERVER["REQUEST_METHOD"] == "POST" then
+    -- TODO store license
+    -- ntopng.prefs.traffic_recording.n2disk_license
+  end
 end
 
 -- ================================================================================
@@ -257,9 +299,4 @@ aysHandleForm("form", {
 /* Use the validator plugin to override default chrome bubble, which is displayed out of window */
 $("form[id!='search-host-form']").validator({disable:true});
 </script>]]
-
--- if _SERVER["REQUEST_METHOD"] == "POST" then
---  -- Something has changed
---  ntop.reloadPreferences()
--- end
 

@@ -11,6 +11,7 @@ prefs = ntop.getPrefs()
 local recording_utils = {}
 
 recording_utils.n2disk_bin = "/usr/local/bin/n2disk"
+recording_utils.default_storage_path = "/storage"
 
 -- #################################
 
@@ -39,7 +40,9 @@ function recording_utils.getInterfaces()
       local is_zc = false
       local in_use = false
 
-      if ntopng_interfaces_map[k] ~= nil then
+      -- TODO check RSS queues
+      if ntopng_interfaces_map[k] ~= nil or 
+         ntopng_interfaces_map['zc:'..k] ~= nil then
         in_use = true
       end
 
@@ -77,7 +80,7 @@ function recording_utils.createConfig(ifname, params)
   local filename = conf_dir.."/n2disk-"..ifname..".conf"
 
   local defaults = {
-    path = "/storage",        -- Storage path
+    storage_path = recording_utils.default_storaga_path, -- Storage path
     buffer_size = 1024,       -- Buffer size (MB)
     max_file_size = 256,      -- Max file length (MB)
     max_disk_space = 10*1024, -- Max disk space (MB)
@@ -137,11 +140,11 @@ function recording_utils.createConfig(ifname, params)
     first_core = (indexer_core + 1) % cores
   end 
 
-  -- Checking options
+  -- Checking mandatory options
 
-  if params.path == nil then
-    return false
-  end
+  -- if params.storage_path == nil then
+  --   return false
+  -- end
 
   local config = table.merge(defaults, params)
 
@@ -160,9 +163,9 @@ function recording_utils.createConfig(ifname, params)
   end
 
   f:write("--interface="..ifname.."\n")
-  f:write("--dump-directory="..config.path.."/n2disk/"..ifname.."\n")
+  f:write("--dump-directory="..config.storage_path.."/n2disk/"..ifname.."\n")
   f:write("--index\n")
-  f:write("--timeline-dir="..config.path.."/n2disk/"..ifname.."\n")
+  f:write("--timeline-dir="..config.storage_path.."/n2disk/"..ifname.."\n")
   f:write("--buffer-len="..config.buffer_size.."\n")
   f:write("--max-file-len="..config.max_file_size.."\n")
   f:write("--disk-limit="..config.max_disk_space.."\n")
