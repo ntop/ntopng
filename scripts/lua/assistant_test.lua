@@ -596,7 +596,8 @@ function handler_tcp_dump()
   local duration_amount, duration_unit = request.parameters.duration.amount, request.parameters.duration.unit
   --possible values of "unit": s - min - h - day
 
-  local seconds, unit_text
+  local seconds = 10
+  local unit_text
 
   if      duration_unit == "s"    then 
     seconds = duration_amount 
