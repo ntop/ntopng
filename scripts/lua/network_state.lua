@@ -288,10 +288,31 @@ end
 function network_state.alerts_details()
   local engaged_alerts, past_alerts, flow_alerts = network_state.check_alerts() 
   local tmp_alerts, alerts = {}, {}
+  local limit= 3 --temporary limit, add effective selection criterion
 
-  for i,v in pairs(engaged_alerts)  do table.insert( tmp_alerts, v ) end
-  for i,v in pairs(flow_alerts)     do table.insert( tmp_alerts, v ) end
-  for i,v in pairs(past_alerts)     do table.insert( tmp_alerts, v ) end
+  j = 0
+  for i,v in pairs(engaged_alerts)  do
+    if j < limit then 
+       table.insert( tmp_alerts, v )
+       j = j+1
+    else break end
+  end
+
+  j = 0
+  for i,v in pairs(flow_alerts)  do
+    if j < limit then 
+       table.insert( tmp_alerts, v )
+       j = j+1
+    else break end
+  end
+
+  j = 0
+  for i,v in pairs(past_alerts)  do
+    if j < limit then 
+       table.insert( tmp_alerts, v )
+       j = j+1
+    else break end
+  end
 
   local alert_type, rowid, t_stamp, srv_addr, srv_port, cli_addr, cli_port, severity, alert_json  
 
