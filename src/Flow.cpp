@@ -1569,6 +1569,9 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     lua_push_int_table_entry(vm, "proto.ndpi_id", ndpiDetectedProtocol.app_protocol);
     lua_push_str_table_entry(vm, "proto.ndpi_breed", get_protocol_breed_name());
 
+    lua_push_int_table_entry(vm, "proto.ndpi_cat_id", get_protocol_category());
+    lua_push_str_table_entry(vm, "proto.ndpi_cat", get_protocol_category_name());
+
 #ifdef NTOPNG_PRO
 #ifndef HAVE_NEDGE
     if((!mask_flow) && trafficProfile && ntop->getPro()->has_valid_license())

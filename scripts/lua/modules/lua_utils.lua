@@ -1264,6 +1264,13 @@ function getApplicationLabel(name)
   return(icon.." "..name)
 end
 
+-- #################################
+
+function getCategoryLabel(cat_name)
+  cat_name = cat_name:gsub("^%l", string.upper)
+  return(cat_name)
+end
+
 function mapOS2Icon(name)
   if(name == nil) then
     return("")

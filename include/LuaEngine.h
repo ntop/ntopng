@@ -101,7 +101,7 @@ class LuaEngine {
  * @param key The key of hash table.
  * @param value The value of hash table.
  */
-extern void lua_push_str_table_entry(lua_State *L, const char *key, char *value);
+extern void lua_push_str_table_entry(lua_State *L, const char * const key, const char * const value);
 
 /**
  * @brief Push null value to table entry specify the key.

@@ -140,7 +140,7 @@ else
 
    print("<tr><th width=30%>"..i18n("flow_details.flow_peers_client_server").."</th><td colspan=2>"..getFlowLabel(flow, true, true).."</td></tr>\n")
 
-   print("<tr><th width=30%>"..i18n("protocol").."</th>")
+   print("<tr><th width=30%>"..i18n("db_explorer.l4_proto").." / "..i18n("application").."</th>")
    if((ifstats.inline and flow["verdict.pass"]) or (flow.vrfId ~= nil)) then
       print("<td>")
    else
@@ -151,8 +151,11 @@ else
    print(flow["proto.l4"].." / <A HREF=\""..ntop.getHttpPrefix().."/lua/")
    if((flow.client_process ~= nil) or (flow.server_process ~= nil))then	print("s") end
    print("flows_stats.lua?application=" .. flow["proto.ndpi"] .. "\">")
-   print(getApplicationLabel(flow["proto.ndpi"]).." ("..flow["proto.ndpi_id"]..")")
-   print("</A> ".. formatBreed(flow["proto.ndpi_breed"]))
+   print(getApplicationLabel(flow["proto.ndpi"]).."</A> ")
+   print("(<A HREF=\""..ntop.getHttpPrefix().."/lua/")
+   print("flows_stats.lua?category=" .. flow["proto.ndpi_cat"] .. "\">")
+   print(getCategoryLabel(flow["proto.ndpi_cat"]))
+   print("</A>) ".. formatBreed(flow["proto.ndpi_breed"]))
    if(flow["verdict.pass"] == false) then print("</strike>") end
    historicalProtoHostHref(ifid, flow["cli.ip"], nil, flow["proto.ndpi_id"], flow["protos.ssl.certificate"])
 

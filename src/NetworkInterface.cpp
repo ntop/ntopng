@@ -3512,7 +3512,7 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
 
     if(retriever->pag
        && retriever->pag->l7categoryFilter(&ndpi_cat)
-       && f->get_detected_protocol_category() != ndpi_cat)
+       && f->get_protocol_category() != ndpi_cat)
       return(false);
 
     if(retriever->pag
