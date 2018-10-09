@@ -247,7 +247,9 @@ struct pollfd {
 #define mg_rename(x, y) rename(x, y)
 #define mg_sleep(x) usleep((x) * 1000)
 #define ERRNO errno
+#ifndef INVALID_SOCKET
 #define INVALID_SOCKET (-1)
+#endif
 
 /* ntop */
 #if ((ULONG_MAX) == (UINT_MAX))
@@ -270,7 +272,9 @@ struct pollfd {
 #endif
 
 //#define INT64_FMT PRId64
+#ifndef SOCKET
 typedef int SOCKET;
+#endif
 #define WINCDECL
 
 #endif // End of Windows and UNIX specific includes
