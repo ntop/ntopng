@@ -250,7 +250,7 @@ if(page == "http") then
   print("<li class=\"active\"><a href=\"#\">"..i18n("http"))
 else
    if((http ~= nil)
-      and ((http["sender"]["query"]["total"]+ http["receiver"]["response"]["total"]) > 0)) then
+      and ((http["sender"]["query"]["total"] + http["receiver"]["response"]["total"] + table.len(http["virtual_hosts"])) > 0)) then
       print("<li><a href=\""..url.."&page=http\">"..i18n("http"))
       if(host["active_http_hosts"] > 0) then print(" <span class='badge badge-top-right'>".. host["active_http_hosts"] .."</span>") end
    end

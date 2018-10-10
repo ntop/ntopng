@@ -77,7 +77,7 @@ class Flow : public GenericHashEntry {
   struct ndpi_flow_struct *ndpiFlow;
   BufferedPacket *flow_packets_head, *flow_packets_tail;
   bool detection_completed, protocol_processed, idle_flow,
-    cli2srv_direction, twh_over, dissect_next_http_packet, passVerdict,
+    cli2srv_direction, twh_over, twh_ok, dissect_next_http_packet, passVerdict,
     check_tor, l7_protocol_guessed, flow_alerted, flow_dropped_counts_increased,
     good_low_flow_detected, good_ssl_hs,
     quota_exceeded, cli_quota_app_proto, cli_quota_is_category, srv_quota_app_proto, srv_quota_is_category;
@@ -321,6 +321,7 @@ class Flow : public GenericHashEntry {
 		const struct timeval *when);
   void addFlowStats(bool cli2srv_direction, u_int in_pkts, u_int in_bytes, u_int in_goodput_bytes,
 		    u_int out_pkts, u_int out_bytes, u_int out_goodput_bytes, time_t last_seen);
+  inline bool isThreeWayHandshakeOK()             { return(twh_ok);                          };
   inline bool isDetectionCompleted()              { return(detection_completed);             };
   inline struct ndpi_flow_struct* get_ndpi_flow() { return(ndpiFlow);                        };
   inline void* get_cli_id()                       { return(cli_id);                          };

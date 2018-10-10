@@ -43,7 +43,7 @@ HTTPstats::HTTPstats(HostHash *_h) {
 
   gettimeofday(&tv, NULL);
   memcpy(&last_update_time, &tv, sizeof(struct timeval));
-  if((virtualHosts = new VirtualHostHash(NULL, 1, 4096)) == NULL) {
+  if((virtualHosts = new (std::nothrow) VirtualHostHash(NULL, 1, 4096)) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: are you running out of memory?");
   }
 }

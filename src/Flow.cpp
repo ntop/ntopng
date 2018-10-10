@@ -51,7 +51,7 @@ Flow::Flow(NetworkInterface *_iface,
   memset(&cli2srvStats, 0, sizeof(cli2srvStats)), memset(&srv2cliStats, 0, sizeof(srv2cliStats));
 
   ndpiFlow = NULL, cli_id = srv_id = NULL, client_proc = server_proc = NULL;
-  json_info = strdup("{}"), cli2srv_direction = true, twh_over = false,
+  json_info = strdup("{}"), cli2srv_direction = true, twh_over = twh_ok = false,
     dissect_next_http_packet = false,
     check_tor = false, host_server_name = NULL, diff_num_http_requests = 0,
     bt_hash = NULL;
@@ -755,7 +755,7 @@ char* Flow::print(char *buf, u_int buf_len) {
   }
 
   snprintf(buf, buf_len,
-	   "%s %s:%u &gt; %s:%u [first: %u][last: %u][proto: %u.%u/%s][device: %u in: %u out:%u][%u/%u pkts][%llu/%llu bytes][%s]"
+	   "%s %s:%u &gt; %s:%u [first: %u][last: %u][proto: %u.%u/%s][cat: %u/%s][device: %u in: %u out:%u][%u/%u pkts][%llu/%llu bytes][%s]"
 	   "%s%s%s"
 #if defined(NTOPNG_PRO) && defined(SHAPER_DEBUG)
 	   "%s"
@@ -767,6 +767,8 @@ char* Flow::print(char *buf, u_int buf_len) {
 	   (u_int32_t)first_seen, (u_int32_t)last_seen,
 	   ndpiDetectedProtocol.master_protocol, ndpiDetectedProtocol.app_protocol,
 	   get_detected_protocol_name(pbuf, sizeof(pbuf)),
+	   get_protocol_category(),
+	   get_protocol_category_name(),
 	   flow_device.device_ip, flow_device.in_index, flow_device.out_index,
 	   cli2srv_packets, srv2cli_packets,
 	   (long long unsigned) cli2srv_bytes, (long long unsigned) srv2cli_bytes,
@@ -1120,6 +1122,7 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
       }
 
       if(host_server_name
+	 && isThreeWayHandshakeOK()
 	 && (ndpi_is_proto(ndpiDetectedProtocol, NDPI_PROTOCOL_HTTP)
 	     || ndpi_is_proto(ndpiDetectedProtocol, NDPI_PROTOCOL_HTTP_PROXY))) {
 	srv_host->updateHTTPHostRequest(host_server_name,
@@ -2420,6 +2423,8 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when,
 
 	rttSec = ((float)(serverNwLatency.tv_sec+clientNwLatency.tv_sec))
 	  +((float)(serverNwLatency.tv_usec+clientNwLatency.tv_usec))/(float)1000000;
+
+	twh_ok = true;
       }
 
       twh_over = true, iface->getTcpFlowStats()->incEstablished();
@@ -2719,7 +2724,9 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
   HTTPstats *h;
   ssize_t host_server_name_len = host_server_name && host_server_name[0] != '\0' ? strlen(host_server_name) : 0;
 
-  if(src2dst_direction) {
+  if(!isThreeWayHandshakeOK())
+    ; /* Useless to compute http stats as client and server could be swapped */
+  else if(src2dst_direction) {
     char *space;
 
     // payload[10]=0; ntop->getTrace()->traceEvent(TRACE_WARNING, "[len: %u][%s]", payload_len, payload);
