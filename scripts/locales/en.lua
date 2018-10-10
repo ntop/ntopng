@@ -2832,6 +2832,7 @@ local lang = {
     ["interface"] = "Network Interface",
     ["license"] = "License",
     ["license_desc"] = "Configure here your n2disk license key.",
+    ["logs"] = "Traffic Recording Logs",
     ["network_interfaces"] = "Network Interfaces",
     ["not_a_ntopng_interface"] = "This interface is not controlled by ntopng: please add this interface to the ntopng configuration and restart ntopng.",
     ["recording"] = "Recording",

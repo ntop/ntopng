@@ -205,8 +205,8 @@ function recording_utils.stop(ifname)
   os.execute(n2disk_ctl_cmd.." disable "..ifname)
 end
 
-function recording_utils.log(ifname)
-  local log = executeWithOuput(n2disk_ctl_cmd.." log "..ifname)
+function recording_utils.log(ifname, rows)
+  local log = executeWithOuput(n2disk_ctl_cmd.." log "..ifname.."|tail -n"..rows)
   return log
 end
 

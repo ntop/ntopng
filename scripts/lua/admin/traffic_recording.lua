@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 if((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.scriptdir .. "/lua/modules/?.lua;" .. package.path end
 require "lua_utils"
 require "prefs_utils"
+local template = require "template_utils"
 local recording_utils = require "recording_utils"
 
 sendHTTPContentTypeHeader('text/html')
@@ -192,20 +193,46 @@ function printInterfaces()
       local if_toggle = ntop.getCache("ntopng.prefs.traffic_recording.iface_on_"..if_id)
 
       if isEmptyString(if_toggle) or if_toggle ~= "1" then
-        if recording_utils.isActive(if_name) then
-          recording_utils.stop(if_name)
+        if recording_utils.isActive(if_id) then
+          recording_utils.stop(if_id)
         end
       else
-        if not recording_utils.isActive(if_name) then
-          recording_utils.createConfig(if_name, config)
-          recording_utils.start(if_name)
+        if not recording_utils.isActive(if_id) then
+          recording_utils.createConfig(if_id, config)
+          recording_utils.start(if_id)
         end
       end
     end
   end
 
   print [[
+  <div id="log_dialog" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="log_dialog_label" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
+          <h3 id="log_dialog_title"></h3>
+        </div>
+
+        <div class="modal-body">
+          <div class="alert alert-info" id="log_dialog_text"></div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-default" data-dismiss="modal" aria-hidden="true">]] print(i18n("close")) print [[ </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  ]]
+
+  print [[
   <script>
+  var logs = {};
+  function show_logs(ifname) {
+    $('#log_dialog_title').text("]] print(i18n("traffic_recording.logs")) print [[ - "+ifname);
+    $('#log_dialog_text').html(logs[ifname].replace(/(?:\r\n|\r|\n)/g,'<br>'));
+    $('#log_dialog').modal('show');
+  }
   function update_interfaces_status() {
     $.ajax({
       type: 'GET',
@@ -222,9 +249,10 @@ function printInterfaces()
               badge.text("]] print(i18n("traffic_recording.recording")) print [[");
               badge.show();
             } else if (data[ifname].status == 'failure') {
+              logs[ifname] = data[ifname].logs;
               badge.removeClass();
               badge.addClass("label label-danger");
-              badge.text("]] print(i18n("traffic_recording.failure")) print [[");
+              badge.html("<a onclick='show_logs(\""+ifname+"\");' style='color: #fff'>]] print(i18n("traffic_recording.failure")) print [[</a>");
               badge.show();
             } else {
               badge.hide();
@@ -237,7 +265,7 @@ function printInterfaces()
   update_interfaces_status();
   setInterval(update_interfaces_status, 5000);
   </script>
-]]
+  ]]
 end
 
 -- ================================================================================
@@ -274,7 +302,8 @@ end
 if tab == "storage" or tab == "license" then
   local interfaces = recording_utils.getInterfaces()
   for if_name,info in pairs(interfaces) do
-    if recording_utils.isActive(if_name) then
+    local if_id = if_name
+    if recording_utils.isActive(if_id) then
       running_instances = true
     end
   end
