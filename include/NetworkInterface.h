@@ -224,8 +224,6 @@ class NetworkInterface : public Checkpointable {
 		const char *sortColumn);
 
   bool isNumber(const char *str);
-  bool validInterface(char *name);
-  bool isInterfaceUp(char *name);
   bool checkIdle();
   void dumpPacketDisk(const struct pcap_pkthdr *h, const u_char *packet, dump_reason reason);
   void dumpPacketTap(const struct pcap_pkthdr *h, const u_char *packet, dump_reason reason);

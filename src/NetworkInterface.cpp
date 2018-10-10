@@ -5485,24 +5485,6 @@ bool NetworkInterface::findHostsByName(lua_State* vm,
 
 /* **************************************************** */
 
-bool NetworkInterface::validInterface(char *name) {
-#ifdef HAVE_NEDGE
-  return((name && (strncmp(name, "nf:", 3) == 0)) ? true : false);
-#else
-  if(name &&
-     (strstr(name, "PPP")            /* Avoid to use the PPP interface              */
-      || strstr(name, "dialup")      /* Avoid to use the dialup interface           */
-      || strstr(name, "ICSHARE")     /* Avoid to use the internet sharing interface */
-      || strstr(name, "NdisWan"))) { /* Avoid to use the internet sharing interface */
-    return(false);
-  }
-
-  return(true);
-#endif
-}
-
-/* **************************************************** */
-
 u_int NetworkInterface::printAvailableInterfaces(bool printHelp, int idx,
 						 char *ifname, u_int ifname_len) {
   char ebuf[256];
@@ -5526,7 +5508,7 @@ u_int NetworkInterface::printAvailableInterfaces(bool printHelp, int idx,
     }
 
     for(int i = 0; devpointer != NULL; i++) {
-      if(validInterface(devpointer->description)) {
+      if(Utils::validInterface(devpointer->description)) {
 	numInterfaces++;
 
 	if(ifname == NULL) {
@@ -5763,29 +5745,6 @@ void NetworkInterface::listHTTPHosts(lua_State *vm, char *key) {
 
 /* **************************************** */
 
-bool NetworkInterface::isInterfaceUp(char *name) {
-#ifdef WIN32
-  return(true);
-#else
-  struct ifreq ifr;
-  int sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
-
-  if(strlen(name) >= sizeof(ifr.ifr_name))
-    return(false);
-
-  memset(&ifr, 0, sizeof(ifr));
-  strcpy(ifr.ifr_name, name);
-  if(ioctl(sock, SIOCGIFFLAGS, &ifr) < 0) {
-    closesocket(sock);
-    return(false);
-  }
-  closesocket(sock);
-  return(!!(ifr.ifr_flags & IFF_UP));
-#endif
-}
-
-/* **************************************** */
-
 void NetworkInterface::addAllAvailableInterfaces() {
   char ebuf[256] = { '\0' };
   pcap_if_t *devpointer;
@@ -5794,9 +5753,9 @@ void NetworkInterface::addAllAvailableInterfaces() {
     ;
   } else {
     for(int i = 0; devpointer != 0; i++) {
-      if(validInterface(devpointer->description)
+      if(Utils::validInterface(devpointer->description)
 	 && (strncmp(devpointer->name, "virbr", 5) != 0) /* Ignore virtual interfaces */
-	 && isInterfaceUp(devpointer->name)
+	 && Utils::isInterfaceUp(devpointer->name)
 	 ) {
 	ntop->getPrefs()->add_network_interface(devpointer->name,
 						devpointer->description);

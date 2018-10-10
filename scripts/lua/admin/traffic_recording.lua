@@ -161,8 +161,10 @@ function printInterfaces()
       if_desc = i18n("traffic_recording.not_a_ntopng_interface")
     end
 
+    local if_badge = "<span id='iface_on_badge_"..if_id.."' style='display: none'></span>"
+
     prefsToggleButton(subpage_active, {
-      title = if_name,
+      title = if_name.." "..if_badge,
       description = if_desc, 
       redis_prefix = "ntopng.prefs.traffic_recording.", field = "iface_on_"..if_id,
       content = "", default = "0", to_switch = nil, disabled = disabled
@@ -212,10 +214,21 @@ function printInterfaces()
       success: function(content) {
         var data = jQuery.parseJSON(content);
         for (var ifname in data) {
-          var btn = $('#iface_on_'+ifname+'_on_id');
-          if (btn) {
-            if (data[ifname].status == 'on') eval('iface_on_'+ifname+'_functionOn()');
-            else eval('iface_on_'+ifname+'_functionOff()');
+          var badge = $('#iface_on_badge_'+ifname);
+          if (badge) {
+            if (data[ifname].status == 'on') {
+              badge.removeClass();
+              badge.addClass("label label-success");
+              badge.text("]] print(i18n("traffic_recording.recording")) print [[");
+              badge.show();
+            } else if (data[ifname].status == 'failure') {
+              badge.removeClass();
+              badge.addClass("label label-danger");
+              badge.text("]] print(i18n("traffic_recording.failure")) print [[");
+              badge.show();
+            } else {
+              badge.hide();
+            }
           }
         }
       }

@@ -38,30 +38,29 @@ function recording_utils.getInterfaces()
   local n2disk_interfaces = {}
 
   for k,v in pairs(all_interfaces) do
-    if not string.match(k, "usb") then
-      local is_zc = false
-      local in_use = false
+    local in_use = false
+    local description = v.description
 
-      -- TODO check RSS queues
-      if ntopng_interfaces_map[k] ~= nil or 
-         ntopng_interfaces_map['zc:'..k] ~= nil then
-        in_use = true
-      end
-
-      local proc_info = io.open("/proc/net/pf_ring/dev/"..k.."/info", "r")
-      if proc_info ~= nil then
-        local info = proc_info:read "*a"
-        if string.match(info, "ZC") then
-          is_zc = true
-        end
-      end
-
-      n2disk_interfaces[k] = {
-        desc = v.description,
-        is_zc = is_zc,
-        in_use = in_use
-      }
+    -- TODO check RSS queues
+    if ntopng_interfaces_map[k] ~= nil or 
+       ntopng_interfaces_map['zc:'..k] ~= nil then
+      in_use = true
     end
+
+    local proc_info = io.open("/proc/net/pf_ring/dev/"..k.."/info", "r")
+    if proc_info ~= nil then
+      local info = proc_info:read "*a"
+      if string.match(info, "ZC") then
+        is_zc = true
+        description = description.." [ZC]"
+      end
+    end
+
+    n2disk_interfaces[k] = {
+      desc = description,
+      is_zc = is_zc,
+      in_use = in_use
+    }
   end
 
   return n2disk_interfaces

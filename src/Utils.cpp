@@ -3212,7 +3212,8 @@ void Utils::listInterfaces(lua_State* vm) {
   devpointer = devs;
 
   while (devpointer != NULL) {
-    if (!(devpointer->flags & PCAP_IF_LOOPBACK)) {
+    if (Utils::validInterface(devpointer->description) && 
+        Utils::isInterfaceUp(devpointer->name)) {
       lua_newtable(vm);
 
       lua_push_str_table_entry(vm, "description", devpointer->description ? devpointer->description : (char *) "");
@@ -3227,6 +3228,24 @@ void Utils::listInterfaces(lua_State* vm) {
   }
 
   pcap_freealldevs(devs);
+}
+
+/* ****************************************************** */
+
+bool Utils::validInterface(char *name) {
+#ifdef HAVE_NEDGE
+  return((name && (strncmp(name, "nf:", 3) == 0)) ? true : false);
+#else
+  if(name &&
+     (strstr(name, "PPP")            /* Avoid to use the PPP interface              */
+      || strstr(name, "dialup")      /* Avoid to use the dialup interface           */
+      || strstr(name, "ICSHARE")     /* Avoid to use the internet sharing interface */
+      || strstr(name, "NdisWan"))) { /* Avoid to use the internet sharing interface */
+    return(false);
+  }
+
+  return(true);
+#endif
 }
 
 /* ****************************************************** */
