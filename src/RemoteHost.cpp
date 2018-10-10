@@ -55,5 +55,17 @@ void RemoteHost::initialize() {
       setName(rsp);
   }
 
+  remote_to_remote_alerts = false;
   iface->incNumHosts(false /* Remote Host */);
+}
+
+/* *************************************** */
+
+bool RemoteHost::setRemoteToRemoteAlerts() {
+  if(!remote_to_remote_alerts) {
+    remote_to_remote_alerts = true;
+    return false;
+  }
+
+  return true;
 }

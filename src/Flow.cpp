@@ -1131,6 +1131,19 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
 				    */
       }
     }
+
+    /* Check and possibly enqueue host remote-to-remote alerts */
+    if(!cli_host->isLocalHost() && !srv_host->isLocalHost()
+       && ntop->getPrefs()->are_remote_to_remote_alerts_enabled()
+       && !cli_host->setRemoteToRemoteAlerts()) {
+      json_object *jo = cli_host->getJSONObject(details_normal);
+
+      if(jo) {
+      	ntop->getRedis()->rpush(CONST_ALERT_HOST_REMOTE_TO_REMOTE, json_object_to_json_string(jo), CONST_REMOTE_TO_REMOTE_MAX_QUEUE);
+
+      	json_object_put(jo);
+      }
+    }
   }
 
   if(last_update_time.tv_sec > 0) {
@@ -3420,6 +3433,7 @@ FlowStatus Flow::getFlowStatus() {
   if(!isDeviceAllowedProtocol())
     return status_device_protocol_not_allowed;
 
+  //if(get_protocol_category() == CUSTOM_CATEGORY_MINING)
   if(ndpiDetectedProtocol.category == CUSTOM_CATEGORY_MINING)
     return status_web_mining_detected;
 

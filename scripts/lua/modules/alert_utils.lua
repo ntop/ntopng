@@ -16,6 +16,7 @@ local alert_consts = require "alert_consts"
 package.path = dirs.installdir .. "/scripts/lua/modules/alert_endpoints/?.lua;" .. package.path
 
 local alert_process_queue = "ntopng.alert_process_queue"
+local host_remote_to_remote_alerts_queue = "ntopng.alert_host_remote_to_remote"
 
 local shaper_utils = nil
 
@@ -2306,6 +2307,34 @@ function check_nfq_flushed_queue_alerts()
 		       {name = elems.ifname, pct = elems.pct,
 			tot = elems.tot, dropped = elems.dropped,
 			url = ntop.getHttpPrefix().."/lua/if_stats.lua?ifid="..elems.ifid}))
+      end
+   end   
+end
+
+-- Global function
+function check_host_remote_to_remote_alerts()
+   while(true) do
+      local message = ntop.lpopCache(host_remote_to_remote_alerts_queue)
+      local elems
+
+      if((message == nil) or (message == "")) then
+	 break
+      end
+
+      elems = json.decode(message)
+
+      if elems ~= nil then
+	 local host_info = {host = elems.ip.ip, vlan = elems.vlan_id or 0}
+	 local entity_value = hostinfo2hostkey(host_info, nil, true --[[ show vlan --]])
+	 local msg = i18n("alert_messages.host_remote_to_remote",
+			  {url = ntop.getHttpPrefix() .. "/lua/host_details.lua?host=" .. entity_value,
+			   flow_alerts_url = ntop.getHttpPrefix() .."/lua/show_alerts.lua?status=historical-flows&alert_type="..alertType("remote_to_remote"),
+			   mac_url = ntop.getHttpPrefix() .."/lua/mac_details.lua?host="..elems.mac_address,
+			   ip = getResolvedAddress(host_info),
+			   mac = get_symbolic_mac(elems.mac_address, true)})
+
+         interface.select(getInterfaceName(elems.ifid))
+	 interface.storeAlert(alertEntity("host"), entity_value, alertType("remote_to_remote"), alertSeverity("warning"), msg)
       end
    end   
 end

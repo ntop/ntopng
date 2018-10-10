@@ -46,7 +46,7 @@ class Redis {
 
   char* getRedisVersion();
   void reconnectRedis();
-  int msg_push(const char *cmd, const char *queue_name, char *msg, u_int queue_trim_size,
+  int msg_push(const char * const cmd, const char * const queue_name, const char * const msg, u_int queue_trim_size,
 	       bool trace_errors = true, bool head_trim = true);
   int pushHost(const char* ns_cache, const char* ns_list, char *hostname,
 	       bool dont_check_for_existence, bool localHost);
@@ -91,8 +91,8 @@ class Redis {
   int smembers(lua_State* vm, char *setName);
   int smembers(const char *set_name, char ***members);
 
-  int lpush(const char *queue_name, char *msg, u_int queue_trim_size, bool trace_errors = true);
-  int rpush(const char *queue_name, char *msg, u_int queue_trim_size);
+  int lpush(const char * const queue_name, const char * const msg, u_int queue_trim_size, bool trace_errors = true);
+  int rpush(const char * const queue_name, const char * const msg, u_int queue_trim_size);
   int lindex(const char *queue_name, int idx, char *buf, u_int buf_len);
   int ltrim(const char *queue_name, int start_idx, int end_idx);
   u_int len(const char * const key);

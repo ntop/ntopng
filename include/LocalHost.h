@@ -61,7 +61,7 @@ class LocalHost : public Host {
   virtual void  serialize2redis();
   bool deserialize(char *json_str, char *key);
 
-  virtual json_object* getJSONObject();
+  virtual json_object* getJSONObject(DetailsLevel details_level);
   virtual NetworkStats* getNetworkStats(int16_t networkId){ return(iface->getNetworkStats(networkId));   };
   virtual u_int32_t getActiveHTTPHosts()             { return(http ? http->get_num_virtual_hosts() : 0); };
   virtual HTTPstats* getHTTPstats()                  { return(http);                  };

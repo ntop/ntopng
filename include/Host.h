@@ -42,8 +42,6 @@ class Host : public Checkpointable, public GenericHashEntry, public GenericTraff
   u_int32_t total_num_flows_as_client, total_num_flows_as_server;
   u_int32_t total_activity_time /* sec */;
 
-  virtual json_object* getJSONObject();
-
  private:
   u_int32_t low_goodput_client_flows, low_goodput_server_flows;
   u_int32_t last_epoch_update; /* useful to avoid multiple updates */
@@ -189,6 +187,7 @@ class Host : public Checkpointable, public GenericHashEntry, public GenericTraff
 		u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes);
   void incHitter(Host *peer, u_int64_t sent_bytes, u_int64_t rcvd_bytes);
   virtual void updateHostTrafficPolicy(char *key) {};
+  virtual json_object* getJSONObject(DetailsLevel details_level);
   char* serialize();
   virtual void  serialize2redis() {};
   bool addIfMatching(lua_State* vm, AddressTree * ptree, char *key);
@@ -226,6 +225,7 @@ class Host : public Checkpointable, public GenericHashEntry, public GenericTraff
   virtual bool dumpHostTraffic() { return(false); };
   virtual void setDumpTrafficPolicy(bool new_policy) {};
   bool incFlowAlertHits(time_t when);
+  virtual bool setRemoteToRemoteAlerts() { return(false); };
   bool serializeCheckpoint(json_object *my_object, DetailsLevel details_level);
   void checkPointHostTalker(lua_State *vm, bool saveCheckpoint);
   inline void setInfo(char *s) { if(info) free(info); info = strdup(s); }

@@ -26,6 +26,7 @@
 
 class RemoteHost : public Host {
  private:
+  bool remote_to_remote_alerts;
   void initialize();
 
  public:
@@ -33,6 +34,7 @@ class RemoteHost : public Host {
   RemoteHost(NetworkInterface *_iface, char *ipAddress, u_int16_t _vlanId);
   virtual ~RemoteHost();
 
+  virtual bool setRemoteToRemoteAlerts();
   virtual int16_t get_local_network_id() { return(-1);                };
   virtual bool isLocalHost()             { return(false);             };
   virtual bool isSystemHost()            { return(false);             };

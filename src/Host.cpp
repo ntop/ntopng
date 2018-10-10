@@ -618,7 +618,7 @@ void Host::incStats(u_int32_t when, u_int8_t l4_proto, u_int ndpi_proto,
 /* *************************************** */
 
 char* Host::serialize() {
-  json_object *my_object = getJSONObject();
+  json_object *my_object = getJSONObject(details_max);
   char *rsp = strdup(json_object_to_json_string(my_object));
 
   /* Free memory */
@@ -628,70 +628,74 @@ char* Host::serialize() {
 }
 /* *************************************** */
 
-json_object* Host::getJSONObject() {
+json_object* Host::getJSONObject(DetailsLevel details_level) {
   json_object *my_object;
   char buf[32];
   Mac *m = mac;
 
   if((my_object = json_object_new_object()) == NULL) return(NULL);
 
-  json_object_object_add(my_object, "mac_address", json_object_new_string(Utils::formatMac(m ? m->get_mac() : NULL, buf, sizeof(buf))));
-
-  json_object_object_add(my_object, "seen.first", json_object_new_int64(first_seen));
-  json_object_object_add(my_object, "seen.last",  json_object_new_int64(last_seen));
-  json_object_object_add(my_object, "asn", json_object_new_int(asn));
-  if(symbolic_name)       json_object_object_add(my_object, "symbolic_name", json_object_new_string(symbolic_name));
-  if(asname)              json_object_object_add(my_object, "asname",    json_object_new_string(asname ? asname : (char*)""));
-  if(strlen(get_os()))    json_object_object_add(my_object, "os",        json_object_new_string(get_os()));
-  if(vlan_id != 0)        json_object_object_add(my_object, "vlan_id",   json_object_new_int(vlan_id));
   json_object_object_add(my_object, "ip", ip.getJSONObject());
+  if(vlan_id != 0)        json_object_object_add(my_object, "vlan_id",   json_object_new_int(vlan_id));
+  json_object_object_add(my_object, "mac_address", json_object_new_string(Utils::formatMac(m ? m->get_mac() : NULL, buf, sizeof(buf))));
+  json_object_object_add(my_object, "ifid", json_object_new_int(iface->get_id()));
 
-  json_object_object_add(my_object, "localHost", json_object_new_boolean(isLocalHost()));
-  json_object_object_add(my_object, "systemHost", json_object_new_boolean(isSystemHost()));
-  json_object_object_add(my_object, "is_blacklisted", json_object_new_boolean(isBlacklisted()));
-  json_object_object_add(my_object, "tcp_sent", tcp_sent.getJSONObject());
-  json_object_object_add(my_object, "tcp_rcvd", tcp_rcvd.getJSONObject());
-  json_object_object_add(my_object, "udp_sent", udp_sent.getJSONObject());
-  json_object_object_add(my_object, "udp_rcvd", udp_rcvd.getJSONObject());
-  json_object_object_add(my_object, "icmp_sent", icmp_sent.getJSONObject());
-  json_object_object_add(my_object, "icmp_rcvd", icmp_rcvd.getJSONObject());
-  json_object_object_add(my_object, "other_ip_sent", other_ip_sent.getJSONObject());
-  json_object_object_add(my_object, "other_ip_rcvd", other_ip_rcvd.getJSONObject());
+  if(details_level >= details_high) {
+    json_object_object_add(my_object, "seen.first", json_object_new_int64(first_seen));
+    json_object_object_add(my_object, "seen.last",  json_object_new_int64(last_seen));
+    json_object_object_add(my_object, "asn", json_object_new_int(asn));
+    if(symbolic_name)       json_object_object_add(my_object, "symbolic_name", json_object_new_string(symbolic_name));
+    if(asname)              json_object_object_add(my_object, "asname",    json_object_new_string(asname ? asname : (char*)""));
+    if(strlen(get_os()))    json_object_object_add(my_object, "os",        json_object_new_string(get_os()));
 
-  /* packet stats */
-  json_object_object_add(my_object, "pktStats.sent", sent_stats.getJSONObject());
-  json_object_object_add(my_object, "pktStats.recv", recv_stats.getJSONObject());
 
-  /* TCP packet stats (serialize only anomalies) */
-  if(tcpPacketStats.pktRetr) json_object_object_add(my_object,
-						    "tcpPacketStats.pktRetr",
-						    json_object_new_int(tcpPacketStats.pktRetr));
-  if(tcpPacketStats.pktOOO)  json_object_object_add(my_object,
-						    "tcpPacketStats.pktOOO",
-						    json_object_new_int(tcpPacketStats.pktOOO));
-  if(tcpPacketStats.pktLost) json_object_object_add(my_object,
-						    "tcpPacketStats.pktLost",
-						    json_object_new_int(tcpPacketStats.pktLost));
-  if(tcpPacketStats.pktKeepAlive) json_object_object_add(my_object,
-							 "tcpPacketStats.pktKeepAlive",
-							 json_object_new_int(tcpPacketStats.pktKeepAlive));
+    json_object_object_add(my_object, "localHost", json_object_new_boolean(isLocalHost()));
+    json_object_object_add(my_object, "systemHost", json_object_new_boolean(isSystemHost()));
+    json_object_object_add(my_object, "is_blacklisted", json_object_new_boolean(isBlacklisted()));
+    json_object_object_add(my_object, "tcp_sent", tcp_sent.getJSONObject());
+    json_object_object_add(my_object, "tcp_rcvd", tcp_rcvd.getJSONObject());
+    json_object_object_add(my_object, "udp_sent", udp_sent.getJSONObject());
+    json_object_object_add(my_object, "udp_rcvd", udp_rcvd.getJSONObject());
+    json_object_object_add(my_object, "icmp_sent", icmp_sent.getJSONObject());
+    json_object_object_add(my_object, "icmp_rcvd", icmp_rcvd.getJSONObject());
+    json_object_object_add(my_object, "other_ip_sent", other_ip_sent.getJSONObject());
+    json_object_object_add(my_object, "other_ip_rcvd", other_ip_rcvd.getJSONObject());
 
-  /* throughput stats */
-  json_object_object_add(my_object, "throughput_bps", json_object_new_double(bytes_thpt));
-  json_object_object_add(my_object, "throughput_trend_bps", json_object_new_string(Utils::trend2str(bytes_thpt_trend)));
-  json_object_object_add(my_object, "throughput_pps", json_object_new_double(pkts_thpt));
-  json_object_object_add(my_object, "throughput_trend_pps", json_object_new_string(Utils::trend2str(pkts_thpt_trend)));
-  json_object_object_add(my_object, "flows.as_client", json_object_new_int(total_num_flows_as_client));
-  json_object_object_add(my_object, "flows.as_server", json_object_new_int(total_num_flows_as_server));
-  if(total_num_dropped_flows)
-    json_object_object_add(my_object, "flows.dropped", json_object_new_int(total_num_dropped_flows));
+    /* packet stats */
+    json_object_object_add(my_object, "pktStats.sent", sent_stats.getJSONObject());
+    json_object_object_add(my_object, "pktStats.recv", recv_stats.getJSONObject());
 
-  /* Generic Host */
-  json_object_object_add(my_object, "num_alerts", json_object_new_int(triggerAlerts() ? getNumAlerts() : 0));
-  json_object_object_add(my_object, "sent", sent.getJSONObject());
-  json_object_object_add(my_object, "rcvd", rcvd.getJSONObject());
-  json_object_object_add(my_object, "ndpiStats", ndpiStats->getJSONObject(iface));
-  json_object_object_add(my_object, "total_activity_time", json_object_new_int(total_activity_time));
+    /* TCP packet stats (serialize only anomalies) */
+    if(tcpPacketStats.pktRetr) json_object_object_add(my_object,
+						      "tcpPacketStats.pktRetr",
+						      json_object_new_int(tcpPacketStats.pktRetr));
+    if(tcpPacketStats.pktOOO)  json_object_object_add(my_object,
+						      "tcpPacketStats.pktOOO",
+						      json_object_new_int(tcpPacketStats.pktOOO));
+    if(tcpPacketStats.pktLost) json_object_object_add(my_object,
+						      "tcpPacketStats.pktLost",
+						      json_object_new_int(tcpPacketStats.pktLost));
+    if(tcpPacketStats.pktKeepAlive) json_object_object_add(my_object,
+							   "tcpPacketStats.pktKeepAlive",
+							   json_object_new_int(tcpPacketStats.pktKeepAlive));
+
+    /* throughput stats */
+    json_object_object_add(my_object, "throughput_bps", json_object_new_double(bytes_thpt));
+    json_object_object_add(my_object, "throughput_trend_bps", json_object_new_string(Utils::trend2str(bytes_thpt_trend)));
+    json_object_object_add(my_object, "throughput_pps", json_object_new_double(pkts_thpt));
+    json_object_object_add(my_object, "throughput_trend_pps", json_object_new_string(Utils::trend2str(pkts_thpt_trend)));
+    json_object_object_add(my_object, "flows.as_client", json_object_new_int(total_num_flows_as_client));
+    json_object_object_add(my_object, "flows.as_server", json_object_new_int(total_num_flows_as_server));
+    if(total_num_dropped_flows)
+      json_object_object_add(my_object, "flows.dropped", json_object_new_int(total_num_dropped_flows));
+
+    /* Generic Host */
+    json_object_object_add(my_object, "num_alerts", json_object_new_int(triggerAlerts() ? getNumAlerts() : 0));
+    json_object_object_add(my_object, "sent", sent.getJSONObject());
+    json_object_object_add(my_object, "rcvd", rcvd.getJSONObject());
+    json_object_object_add(my_object, "ndpiStats", ndpiStats->getJSONObject(iface));
+    json_object_object_add(my_object, "total_activity_time", json_object_new_int(total_activity_time));
+  }
 
   /* The value below is handled by reading dumps on disk as otherwise the string will be too long */
   //json_object_object_add(my_object, "activityStats", activityStats.getJSONObject());

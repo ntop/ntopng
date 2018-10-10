@@ -283,8 +283,8 @@ bool LocalHost::readDHCPCache() {
 
 /* *************************************** */
 
-json_object* LocalHost::getJSONObject() {
-  json_object *my_object = Host::getJSONObject();
+json_object* LocalHost::getJSONObject(DetailsLevel details_level) {
+  json_object *my_object = Host::getJSONObject(details_level);
 
   if(dns)  json_object_object_add(my_object, "dns", dns->getJSONObject());
   if(http) json_object_object_add(my_object, "http", http->getJSONObject());

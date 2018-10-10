@@ -880,20 +880,20 @@ int Redis::smembers(const char *set_name, char ***members) {
 /* ******************************************* */
 
 /*  Add at the top of queue */
-int Redis::lpush(const char *queue_name, char *msg, u_int queue_trim_size, bool trace_errors) {
+int Redis::lpush(const char * const queue_name, const char * const msg, u_int queue_trim_size, bool trace_errors) {
   return(msg_push("LPUSH", queue_name, msg, queue_trim_size, trace_errors));
 }
 
 /* ******************************************* */
 
 /* Add at the bottom of the queue */
-int Redis::rpush(const char *queue_name, char *msg, u_int queue_trim_size) {
+int Redis::rpush(const char * const queue_name, const char * const msg, u_int queue_trim_size) {
   return(msg_push("RPUSH", queue_name, msg, queue_trim_size, true, false));
 }
 
 /* ******************************************* */
 
-int Redis::msg_push(const char *cmd, const char *queue_name, char *msg,
+int Redis::msg_push(const char * const cmd, const char * const queue_name, const char * const msg,
           u_int queue_trim_size, bool trace_errors, bool head_trim) {
   redisReply *reply;
   int rc = 0;
