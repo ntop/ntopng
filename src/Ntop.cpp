@@ -63,8 +63,7 @@ Ntop::Ntop(char *appName) {
   iface = NULL;
   start_time = 0, epoch_buf[0] = '\0'; /* It will be initialized by start() */
   
-  httpd = NULL, geo = NULL, mac_manufacturers = NULL,
-    hostBlacklistShadow = hostBlacklist = NULL;
+  httpd = NULL, geo = NULL, mac_manufacturers = NULL;
 
 #ifdef WIN32
   if(SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, working_dir) != S_OK) {
@@ -203,8 +202,6 @@ Ntop::~Ntop() {
   if(elastic_search)      delete(elastic_search);
   if(logstash)            delete(logstash);
 #endif
-  if(hostBlacklist)       delete hostBlacklist;
-  if(hostBlacklistShadow) delete hostBlacklistShadow;
 
   delete address;
   if(pa)    delete pa;
@@ -1751,45 +1748,6 @@ void Ntop::shutdownAll() {
 				 rc, strerror(errno));
   }
 #endif
-}
-
-/* ******************************************* */
-
-void Ntop::allocHostBlacklist() {
-  if(hostBlacklistShadow != NULL) {
-    delete hostBlacklistShadow;
-    hostBlacklistShadow = NULL;
-  }
-
-  hostBlacklistShadow = new AddressTree();
-}
-
-/* ******************************************* */
-
-void Ntop::swapHostBlacklist() {
-  AddressTree *cp = hostBlacklist;
-
-  hostBlacklist = hostBlacklistShadow;
-  hostBlacklistShadow = cp;
-}
-
-/* ******************************************* */
-
-void Ntop::addToHostBlacklist(char *net) {
-  if(hostBlacklistShadow) {
-    ntop->getTrace()->traceEvent(TRACE_INFO, "Loading blacklist %s", net);
-    hostBlacklistShadow->addAddresses(net);
-  }
-}
-
-/* ******************************************* */
-
-bool Ntop::isBlacklistedIP(IpAddress *ip) {
-  bool rc = (hostBlacklist && ip->findAddress(hostBlacklist)) ? true : false;
-
-  // if(rc) ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Found blacklist [%p]", n);
-
-  return(rc);
 }
 
 /* ******************************************* */

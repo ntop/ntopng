@@ -177,6 +177,7 @@ NetworkInterface::NetworkInterface(const char *name,
       ndpi_load_protocols_file(ndpi_struct, ntop->getCustomnDPIProtos());
 
     ndpi_set_detection_preferences(ndpi_struct, ndpi_pref_http_dont_dissect_response, 1);
+    ndpi_set_detection_preferences(ndpi_struct, ndpi_pref_enable_category_substring_match, 1);
 
     memset(d_port, 0, sizeof(d_port));
     ndpi_set_proto_defaults(ndpi_struct, NDPI_PROTOCOL_UNRATED, NTOPNG_NDPI_OS_PROTO_ID,
@@ -5895,6 +5896,7 @@ ndpi_protocol_category_t NetworkInterface::get_ndpi_proto_category(u_int protoid
 
   proto.app_protocol = NDPI_PROTOCOL_UNKNOWN;
   proto.master_protocol = protoid;
+  proto.category = NDPI_PROTOCOL_CATEGORY_UNSPECIFIED;
   return get_ndpi_proto_category(proto);
 }
 

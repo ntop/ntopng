@@ -106,7 +106,7 @@ presets_utils.initPolicies()
 -- ##################################################################
 
 initCustomnDPIProtoCategories()
-lists_utils.reloadLists()
+lists_utils.reloadListsNow()
 
 -- TODO: migrate custom re-arm settings
 

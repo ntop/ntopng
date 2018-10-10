@@ -6,7 +6,7 @@
         <h3>{{dialog.title}}</h3>
       </div>
 
-      <div class="modal-body">
+      <div class="modal-body {{dialog.custom_dialog_class}}">
         <div class="{{dialog.custom_alert_class or "alert alert-warning"}}">{*dialog.message*}</div>
       </div>
       <div class="modal-footer">

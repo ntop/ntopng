@@ -1633,8 +1633,4 @@ if(_SERVER["REQUEST_METHOD"] == "POST") then
   ntop.reloadPreferences()
 end
 
-if(_POST["toggle_malware_probing"] ~= nil) then
-  lists_utils.reloadLists(true --[[ force the reload of the list ]])
-end
-
 end --[[ haveAdminPrivileges ]]

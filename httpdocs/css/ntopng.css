@@ -392,3 +392,8 @@ tr.quotas > td {
   left: auto !important;
   right: 0;
 }
+
+.dialog-body-full-height {
+  padding: 15px;
+  padding-bottom: 0;
+}

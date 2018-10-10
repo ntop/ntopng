@@ -47,6 +47,7 @@ Prefs::Prefs(Ntop *_ntop) {
   enable_remote_to_remote_alerts = true,
   enable_dropped_flows_alerts = true, enable_device_protocols_alerts = false,
   enable_syslog_alerts = false, enable_captive_portal = false,
+  enabled_malware_alerts = true,
   enable_informative_captive_portal = false,
   external_notifications_enabled = false, dump_flow_alerts_when_iface_alerted = false,
   override_dst_with_post_nat_dst = false, override_src_with_post_nat_src = false,
@@ -559,6 +560,7 @@ void Prefs::reloadPrefsFromRedis() {
     enable_device_protocols_alerts  = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_ALERT_DEVICE_PROTOCOLS,
 							       CONST_DEFAULT_ALERT_DEVICE_PROTOCOLS_ENABLED),
     enable_syslog_alerts  = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_ALERT_SYSLOG, CONST_DEFAULT_ALERT_SYSLOG_ENABLED),
+    enabled_malware_alerts = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_MALWARE_ALERTS, CONST_DEFAULT_MALWARE_ALERTS_ENABLED),
     external_notifications_enabled         = getDefaultBoolPrefsValue(ALERTS_MANAGER_EXTERNAL_NOTIFICATIONS_ENABLED, false),
     dump_flow_alerts_when_iface_alerted = getDefaultBoolPrefsValue(ALERTS_DUMP_DURING_IFACE_ALERTED, false),
 

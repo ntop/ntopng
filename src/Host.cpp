@@ -1151,7 +1151,12 @@ void Host::splitHostVlan(const char *at_sign_str, char*buf, int bufsize, u_int16
 /* *************************************** */
 
 void Host::reloadHostBlacklist() {
-  blacklisted_host = ntop->isBlacklistedIP(&ip);
+  char ipbuf[64];
+  char *ip_str = ip.print(ipbuf, sizeof(ipbuf));
+  unsigned long category;
+
+  blacklisted_host = ((ndpi_get_custom_category_match(iface->get_ndpi_struct(), ip_str, &category) == 0) &&
+    (category == CUSTOM_CATEGORY_MALWARE));
 }
 
 /* *************************************** */

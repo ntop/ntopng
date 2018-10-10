@@ -243,7 +243,7 @@ void Flow::dumpFlowAlert() {
       break;
 
     case status_blacklisted:
-      do_dump = true;
+      do_dump = ntop->getPrefs()->are_malware_alerts_enabled();
       break;
 
     case status_slow_tcp_connection: /* 1 */
@@ -932,7 +932,7 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
 
   if((!isDetectionCompleted()) && ((tv->tv_sec - get_last_seen()) > 5 /* sec */)) {
     /* If we have not found out the protocol until now we can give up at this point */
-    ndpi_protocol proto_id = { NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_UNKNOWN };
+    ndpi_protocol proto_id = { NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_CATEGORY_UNSPECIFIED };
     setDetectedProtocol(proto_id, true);
   }
 

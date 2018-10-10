@@ -73,7 +73,6 @@ class Ntop {
 #endif
   FlowChecker *flow_checker;
 #endif
-  AddressTree *hostBlacklist, *hostBlacklistShadow;
 
   void loadLocalInterfaceAddress();
 
@@ -438,10 +437,6 @@ class Ntop {
   inline u_int8_t getNumLocalNetworks()       { return(address->getNumLocalNetworks()); };
   void loadTrackers();
   bool isATrackerHost(char *host);
-  void allocHostBlacklist();
-  void swapHostBlacklist();
-  void addToHostBlacklist(char *net);
-  bool isBlacklistedIP(IpAddress *ip);
   bool isExistingInterface(const char * const name) const;
   inline NetworkInterface* getFirstInterface() { return(iface[0]);         }
   inline NetworkInterface* getInterface(int i) { return(((i < num_defined_interfaces) && iface[i]) ? iface[i] : NULL); }

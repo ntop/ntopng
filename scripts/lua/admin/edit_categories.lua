@@ -1,0 +1,201 @@
+--
+-- (C) 2018 - ntop.org
+--
+
+local dirs = ntop.getDirs()
+package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
+
+require "lua_utils"
+local template = require "template_utils"
+local categories_utils = require "categories_utils"
+local lists_utils = require "lists_utils"
+sendHTTPContentTypeHeader('text/html')
+
+if not haveAdminPrivileges() then
+  return
+end
+
+ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
+dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
+
+local category_warnings = {}
+
+if _POST["action"] == "edit" then
+  local category_id = tonumber(split(_POST["category"], "cat_")[2])
+  local hosts_list = _POST["custom_hosts"]
+  local hosts_ok = {}
+
+  local hosts = split(hosts_list, ",")
+
+  for _, host in ipairs(hosts) do
+    if not isEmptyString(host) then
+      local matched_category = ntop.matchCustomCategory(host)
+
+      if (matched_category ~= nil) and (matched_category ~= category_id) then
+        -- NOTE: this check is not comprehensive
+        category_warnings[#category_warnings + 1] = i18n("custom_categories.similar_host_found", {
+          host = host,
+          category = interface.getnDPICategoryName(matched_category),
+        })
+      end
+
+      hosts_ok[#hosts_ok + 1] = host
+    end
+  end
+
+  categories_utils.updateCustomCategoryHosts(category_id, hosts_ok)
+  lists_utils.reloadLists()
+elseif _POST["action"] == "clear" then
+  local category_id = split(_POST["category"], "cat_")[2]
+
+  categories_utils.clearCustomCategoryHosts(category_id)
+  lists_utils.reloadLists()
+end
+
+for _, msg in ipairs(category_warnings) do
+  print([[
+  <div class="alert alert-warning alert-dismissible" style="margin-top:2em; margin-bottom:0em;">
+    <button type="button" class="close" data-dismiss="alert" aria-label="]]..i18n("close")..[[">
+      <span aria-hidden="true">&times;</span>
+    </button><b>]]..i18n("warning")..[[</b>: ]]..msg..[[
+  </div>]])
+end
+
+print[[<h2>]] print(i18n("custom_categories.customized_categories")) print[[</h2>]]
+
+print(
+  template.gen("modal_confirm_dialog.html", {
+    dialog={
+      id      = "edit_category_rules",
+      action  = "editCategory()",
+      title   = i18n("custom_categories.edit_category_hosts"),
+      custom_alert_class = "",
+      custom_dialog_class = "dialog-body-full-height",
+      message = [[<p style='margin-bottom:5px;'>]] .. i18n("custom_categories.the_following_is_a_list_of_hosts", {category='<i id="selected_category_name"></i>'}) .. [[:</p>
+  <textarea id="category-hosts-list" spellcheck="false" style='width:100%; height:14em;'></textarea><br><br>
+  ]].. i18n("notes") ..[[
+  <ul>
+  <li>]].. i18n("custom_categories.each_host_separate_line") .. [[</li>
+  <li>]].. i18n("custom_categories.host_domain_or_cidr") .. [[</li>
+  <li>]].. i18n("custom_categories.domain_names_substrings", {s1="ntop.org", s2="mail.ntop.org", s3="ntop.org.example.com"}) ..[[</li>
+  </ul>]],
+      confirm = "Update",
+    }
+  })
+)
+
+print(
+  template.gen("modal_confirm_dialog.html", {
+    dialog={
+      id      = "clear_category_rules",
+      action  = "clearCategory()",
+      
+      title   = i18n("custom_categories.clear_category"),
+      message = i18n("custom_categories.clear_confirm_message.", {category="<span id='category_to_clean'></span>"}),
+      confirm = i18n("custom_categories.clear"),
+    }
+  })
+)
+
+print[[
+<form id="custom-cat-form" lass="form-inline" style="margin-bottom: 0px;" method="post">
+  <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[">
+  <div id="table-custom-cat-form"></div>
+  <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button>
+</form>
+
+<script>
+  var selected_category_id = null;
+
+  function editCategory() {
+    var unique_hosts = [];
+
+    /* Remove duplicate hosts */
+    $.each($("#category-hosts-list").val().split("\n"), function(i, host) {
+      host = cleanCustomHostUrl(host);
+
+      if($.inArray(host, unique_hosts) === -1)
+        unique_hosts.push(host);
+    });
+
+    var params = {};
+    params.category = "cat_" + selected_category_id;
+    params.action = "edit";
+    params.custom_hosts = unique_hosts.join(',');
+    params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
+
+    paramsToForm('<form method="post"></form>', params).appendTo('body').submit();
+  }
+
+  function clearCategory() {
+    var params = {};
+    params.category = "cat_" + selected_category_id;
+    params.action = "clear";
+    params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
+
+    paramsToForm('<form method="post"></form>', params).appendTo('body').submit();
+  }
+
+  function loadCategories(category_id) {
+    var data = $("#table-custom-cat-form").data('datatable').resultset;
+    var hosts_list = data.data.filter(function(item) {
+      return item.column_category_id == category_id;
+    })[0].column_category_hosts;
+
+    $("#category-hosts-list").val(hosts_list.split(",").join("\n"));
+  }
+
+  $("#table-custom-cat-form").datatable({
+    url: "]] print (ntop.getHttpPrefix()) print [[/lua/admin/get_custom_categories_hosts.lua",
+    class: "table table-striped table-bordered table-condensed",
+    title:"",
+    columns: [
+     {
+        field: "column_category_id",
+        hidden: 1,
+      },{
+        title: "]] print(i18n("category")) print[[",
+        field: "column_category_name",
+        sortable: true,
+      },{
+        title: "]] print(i18n("custom_categories.custom_hosts")) print[[",
+        field: "column_num_hosts",
+        sortable: true,
+          css: {
+            width: '20%',
+            textAlign: 'right'
+        }
+      },{
+        title: "]] print(i18n("actions")) print[[",
+        field: "column_actions",
+        sortable: false,
+          css: {
+            textAlign: 'center',
+            width: '15%',
+        }
+      }, {
+        field: "column_category_hosts",
+        hidden: 1,
+      }
+    ], rowCallback: function(row, data) {
+      var category_id = data.column_category_id;
+      var category_name = data.column_category_name;
+      var actions_td_idx = 4;
+
+      datatableAddActionButtonCallback.bind(row)(actions_td_idx,
+        "loadCategories("+ data.column_category_id +"); $('#selected_category_name').html('"+ category_name +"'); selected_category_id = "+ category_id +"; $('#edit_category_rules').modal('show')", "Edit");
+      datatableAddDeleteButtonCallback.bind(row)(actions_td_idx,
+        "$('#category_to_clean').html('"+ category_name +"'); selected_category_id = "+ category_id +"; $('#clear_category_rules').modal('show')", "Clear");
+
+      return row;
+     }
+  });
+</script>
+
+]] print(i18n("notes")) print[[
+<ul>
+  <li>]] print(i18n("custom_categories.note_page_usage")) print[[</li>
+</ul>
+]]
+
+dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

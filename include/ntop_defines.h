@@ -381,6 +381,7 @@
 #define CONST_DEFAULT_ALERT_DROPPED_FLOWS_ENABLED         0
 #define CONST_DEFAULT_ALERT_DEVICE_PROTOCOLS_ENABLED      0
 #define CONST_DEFAULT_ALERT_SYSLOG_ENABLED                0
+#define CONST_DEFAULT_MALWARE_ALERTS_ENABLED              1
 #define CONST_DEFAULT_PACKETS_DROP_PERCENTAGE_ALERT       5
 #define CONST_DEFAULT_IS_ACTIVE_LOCAL_HOSTS_CACHE_ENABLED 0
 #define CONST_DEFAULT_ACTIVE_LOCAL_HOSTS_CACHE_INTERVAL   3600 /* Every hour by default */
@@ -499,6 +500,7 @@
 #define CONST_RUNTIME_PREFS_HOST_CATE_RRD_CREATION     NTOPNG_PREFS_PREFIX".host_categories_rrd_creation" /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_THPT_CONTENT               NTOPNG_PREFS_PREFIX".thpt_content"     /* bps / pps */
 #define CONST_RUNTIME_PREFS_ALERT_SYSLOG               NTOPNG_PREFS_PREFIX".alerts_syslog"    /* 0 / 1 */
+#define CONST_RUNTIME_PREFS_MALWARE_ALERTS             NTOPNG_PREFS_PREFIX".host_blacklist"    /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_ALERT_PROBING              NTOPNG_PREFS_PREFIX".probing_alerts"   /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_ALERT_SSL                  NTOPNG_PREFS_PREFIX".ssl_alerts"       /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_ALERT_DNS                  NTOPNG_PREFS_PREFIX".dns_alerts"       /* 0 / 1 */

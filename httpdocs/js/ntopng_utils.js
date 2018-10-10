@@ -536,3 +536,14 @@ function tstampToDateString(html_tag, format, tdiff) {
   html_tag.html(localized).removeClass("hidden");
   return localized;
 }
+
+function cleanCustomHostUrl(host) {
+  /* Remove starting http(s). */
+  return host
+    .replace(/^http:\/\//gi, '')
+    .replace(/^https:\/\//gi, '')
+    /* Remove starting www. */
+    .replace(/^www\./gi, '')
+    /* Remove non-allowed characters */
+    .replace(/[^0-9a-zA-Z\.\/_-]/gi, '');
+}

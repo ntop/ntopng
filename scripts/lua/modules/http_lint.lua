@@ -1288,6 +1288,7 @@ local known_parameters = {
    ["ts_compare"]              = validateZoom,
    ["detail_view"]             = validateSingleWord,
    ["initial_point"]           = validateBool,
+   ["custom_hosts"]            = validateListOfTypeInline(validateSingleWord),
 
    -- json POST DATA
    ["payload"]                 = { jsonCleanup, validateJSON },

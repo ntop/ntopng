@@ -1544,49 +1544,6 @@ static int ntop_is_windows(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_allocHostBlacklist(lua_State* vm) {
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-  ntop->allocHostBlacklist();
-  lua_pushnil(vm);
-
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-static int ntop_swapHostBlacklist(lua_State* vm) {
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-  ntop->swapHostBlacklist();
-
-  for(int i=0; i<ntop->get_num_interfaces(); i++) {
-    NetworkInterface *iface;
-
-    if((iface = ntop->getInterfaceAtId(vm, i)) != NULL)
-      iface->reloadHostsBlacklist();
-  }
-
-  lua_pushnil(vm);
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-static int ntop_addToHostBlacklist(lua_State* vm) {
-  char *net;
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  net = (char*)lua_tostring(vm, 1);
-
-  ntop->addToHostBlacklist(net);
-  lua_pushnil(vm);
-
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
 static int ntop_loadCustomCategoryIp(lua_State* vm) {
   char *net;
   ndpi_protocol_category_t catid;
@@ -1664,6 +1621,27 @@ static int ntop_reloadCustomCategories(lua_State* vm) {
   new_custom_categories.clear();
 
   lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_match_custom_category(lua_State* vm) {
+  char *host_to_match;
+  NetworkInterface *iface;
+  unsigned long match;
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  iface = ntop->getFirstInterface();
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  host_to_match = (char*)lua_tostring(vm, 1);
+
+  if((!iface) || (ndpi_get_custom_category_match(iface->get_ndpi_struct(), host_to_match, &match) != 0))
+    lua_pushnil(vm);
+  else
+    lua_pushnumber(vm, (int)match);
+
   return(CONST_LUA_OK);
 }
 
@@ -4056,6 +4034,7 @@ static int ntop_get_l7_policy_info(lua_State* vm) {
   pool_id = (u_int16_t)lua_tointeger(vm, 1);
   proto.master_protocol = (u_int16_t)lua_tointeger(vm, 2);
   proto.app_protocol = proto.master_protocol;
+  proto.category = NDPI_PROTOCOL_CATEGORY_UNSPECIFIED;
   dev_type = (DeviceType)lua_tointeger(vm, 3);
   as_client = lua_toboolean(vm, 4);
 
@@ -8157,14 +8136,11 @@ static const luaL_Reg ntop_reg[] = {
   { "hasGeoIP",         ntop_has_geoip },
   { "isWindows",        ntop_is_windows },
 
-  /* Host Blacklist */
-  { "allocHostBlacklist",   ntop_allocHostBlacklist },
-  { "swapHostBlacklist",    ntop_swapHostBlacklist  },
-  { "addToHostBlacklist",   ntop_addToHostBlacklist },
-
+  /* Custom Categories */
   { "loadCustomCategoryIp",   ntop_loadCustomCategoryIp },
   { "loadCustomCategoryHost", ntop_loadCustomCategoryHost },
   { "reloadCustomCategories", ntop_reloadCustomCategories },
+  { "matchCustomCategory",    ntop_match_custom_category },
 
   /* Privileges */
   { "gainWriteCapabilities",   ntop_gainWriteCapabilities },

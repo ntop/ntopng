@@ -901,7 +901,7 @@ function isBroadcastMulticast(ip)
 end
 
 function isIPv4(address)
-  local chunks = {address:match("(%d+)%.(%d+)%.(%d+)%.(%d+)$")}
+  local chunks = {address:match("^(%d+)%.(%d+)%.(%d+)%.(%d+)$")}
 
   if #chunks == 4 then
     for _, v in pairs(chunks) do

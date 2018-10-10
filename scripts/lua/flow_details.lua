@@ -18,6 +18,8 @@ require "historical_utils"
 require "flow_utils"
 require "voip_utils"
 
+local template = require "template_utils"
+local categories_utils = require "categories_utils"
 local discover = require("discover_utils")
 local json = require ("dkjson")
 
@@ -25,6 +27,78 @@ sendHTTPContentTypeHeader('text/html')
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 warn_shown = 0
+
+if isAdministrator() then
+   if _POST["custom_hosts"] and _POST["category"] then
+      local lists_utils = require("lists_utils")
+      local category_id = tonumber(split(_POST["category"], "cat_")[2])
+
+      if categories_utils.addCustomCategoryHost(category_id, _POST["custom_hosts"]) then
+	 lists_utils.reloadLists()
+      end
+   end
+end
+
+local function printAddHostoToCustomizedCategories(full_url)
+   if not isAdministrator() then
+      return
+   end
+
+   local categories = interface.getnDPICategories()
+   local short_url = categories_utils.getSuggestedHostName(full_url)
+
+   -- Fill the dropdown
+   local cat_select_dropdown = '<select id="categories_target_category" class="form-control">'
+
+   for cat_name, cat_id in pairsByKeys(categories, asc_insensitive) do
+      cat_select_dropdown = cat_select_dropdown .. [[<option value="cat_]] ..cat_id .. [[">]] .. cat_name .. [[</option>]]
+   end
+   cat_select_dropdown = cat_select_dropdown .. "</select>"
+
+   -- Put a note if the URL is already assigned to another customized category
+   local existing_note = ""
+   local matched_category = ntop.matchCustomCategory(full_url)
+
+   if matched_category ~= nil then
+      existing_note = "<br>" .. i18n("details.note") .. ": " ..
+	 i18n("custom_categories.similar_host_found", {host=full_url, category=interface.getnDPICategoryName(matched_category)})
+   end
+
+   print(
+     template.gen("modal_confirm_dialog.html", {
+       dialog={
+	 id      = "add_to_customized_categories",
+	 action  = "addToCustomizedCategories()",
+	 custom_alert_class = "",
+	 custom_dialog_class = "dialog-body-full-height",
+	 title   = i18n("custom_categories.add_url_to_categories"),
+	 message = i18n("custom_categories.select_url_category") .. "<br>" ..
+	    cat_select_dropdown .. "<br>" .. i18n("custom_categories.the_following_url_will_be_added") ..
+	    '<br><input id="categories_url_add" class="form-control" required value="'.. short_url ..'">' .. existing_note,
+	 confirm = i18n("custom_categories.add"),
+       }
+     })
+   )
+
+   print(' <a href="#" onclick="$(\'#add_to_customized_categories\').modal(\'show\'); return false;"><i title="'.. i18n("custom_categories.add_to_customized_categories") ..'" class="fa fa-plus"></i></a>')
+
+   print[[<script>
+   function addToCustomizedCategories() {
+      var target_category = $("#categories_target_category").val();
+      var target_url = cleanCustomHostUrl($("#categories_url_add").val());
+
+      if(!target_category || !target_url)
+	 return;
+
+      var params = {};
+      params.category = target_category;
+      params.custom_hosts = target_url;
+      params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
+
+      paramsToForm('<form method="post"></form>', params).appendTo('body').submit();
+   }
+</script>]]
+end
 
 function displayProc(proc)
    print("<tr><th width=30%>"..i18n("flow_details.user_name").."</th><td colspan=2><A HREF=\""..ntop.getHttpPrefix().."/lua/get_user_info.lua?username=".. proc.user_name .."&".. hostinfo2url(flow,"cli").."\">".. proc.user_name .."</A></td></tr>\n")
@@ -357,6 +431,7 @@ else
       print(i18n("flow_details.client_requested")..": <A HREF=\"http://"..flow["protos.ssl.certificate"].."\">"..flow["protos.ssl.certificate"].."</A> <i class=\"fa fa-external-link\"></i>")
       if(flow["category"] ~= nil) then print(" "..getCategoryIcon(flow["protos.ssl.certificate"], flow["category"])) end
       historicalProtoHostHref(ifid, nil, nil, nil, flow["protos.ssl.certificate"])
+      printAddHostoToCustomizedCategories(flow["protos.ssl.certificate"])
       print("</td>")
 
       if(flow["protos.ssl.server_certificate"] ~= nil) then
@@ -492,6 +567,8 @@ else
 	 print(" "..getCategoryIcon(flow["protos.dns.last_query"], flow["category"]))
       end
 
+      printAddHostoToCustomizedCategories(flow["protos.dns.last_query"])
+
       print("</td></tr>\n")
    end
 
@@ -513,8 +590,9 @@ else
       if(not isEmptyString(flow["host_server_name"])) then
 	 s = flow["host_server_name"]
       end
-      print("<A HREF=\"http://"..s.."\">"..s.."</A> <i class=\"fa fa-external-link\">")
+      print("<A HREF=\"http://"..s.."\">"..s.."</A> <i class=\"fa fa-external-link\"></i>")
       if(flow["category"] ~= nil) then print(" "..getCategoryIcon(flow["host_server_name"], flow["category"])) end
+      printAddHostoToCustomizedCategories(s)
       print("</td></tr>\n")
 
       print("<tr><th>"..i18n("flow_details.url").."</th><td colspan=2>")
