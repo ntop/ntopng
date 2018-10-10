@@ -2712,7 +2712,12 @@ bool Utils::isInterfaceUp(char *ifname) {
 #else
   struct ifreq ifr;
   char *colon;
-  int sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
+  int sock;
+
+  sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
+
+  if (sock == -1)
+    return(false);
 
   /* Handle PF_RING interfaces zc:ens2f1@3 */
   colon = strchr(ifname, ':');
@@ -2722,8 +2727,8 @@ bool Utils::isInterfaceUp(char *ifname) {
   memset(&ifr, 0, sizeof(ifr));
   strcpy(ifr.ifr_name, ifname);
 
-  if(ioctl(sock, SIOCGIFFLAGS, &ifr) < 0) {
-    /* perror("SIOCGIFFLAGS"); */
+  if (ioctl(sock, SIOCGIFFLAGS, &ifr) < 0) {
+    close(sock);
     return(false);
   }
 
