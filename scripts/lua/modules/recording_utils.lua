@@ -54,6 +54,7 @@ function recording_utils.getInterfaces()
         is_zc = true
         description = description.." [ZC]"
       end
+      proc_info:close()
     end
 
     n2disk_interfaces[k] = {
@@ -76,6 +77,15 @@ local function nextFreeCore(num_cores, busy_cores, start)
   return start
 end
 
+local function memInfo()
+  local mem_info = {}
+  for line in io.lines("/proc/meminfo") do 
+    local values = split(line, ':')
+    mem_info[values[1]] = trimString(values[2])
+  end
+  return mem_info
+end
+
 function recording_utils.createConfig(ifname, params)
   local conf_dir = dirs.workingdir.."/n2disk"
   local filename = conf_dir.."/n2disk-"..ifname..".conf"
@@ -95,6 +105,11 @@ function recording_utils.createConfig(ifname, params)
 
   local ifspeed = (interface.getMaxIfSpeed(ifname) or 1000)
 
+  -- Reading system memory info
+
+  local mem_info = memInfo()
+  local mem_total_mb = math.floor(tonumber(split(mem_info['MemTotal'], ' ')[1])/1024)
+
   -- Computing file and buffer size
 
   if ifspeed > 10000 then -- 40/100G
@@ -103,6 +118,16 @@ function recording_utils.createConfig(ifname, params)
     defaults.max_file_size = 1*1024
   end
   defaults.buffer_size = 4*defaults.max_file_size
+
+  local min_sys_mem = 512
+  local min_n2disk_mem = 128
+  if defaults.buffer_size + min_sys_mem > mem_total_mb then
+    if mem_total_mb < min_sys_mem then
+      return false
+    end
+    defaults.buffer_size = mem_total_mb - min_sys_mem
+    defaults.max_file_size = math.floor(defaults.buffer_size/4)
+  end
 
   -- Computing core affinity
 

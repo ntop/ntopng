@@ -2346,6 +2346,14 @@ end
 
 -- ###############################################
 
+-- removes trailing/leading spaces
+function trimString(s)
+  return (s:gsub("^%s*(.-)%s*$", "%1"))
+end
+
+-- ###############################################
+
+-- removes all spaces
 function trimSpace(what)
    if(what == nil) then return("") end
    return(string.gsub(string.gsub(what, "%s+", ""), "+%s", ""))
