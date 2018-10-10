@@ -95,6 +95,7 @@ class Redis {
   int rpush(const char * const queue_name, const char * const msg, u_int queue_trim_size);
   int lindex(const char *queue_name, int idx, char *buf, u_int buf_len);
   int ltrim(const char *queue_name, int start_idx, int end_idx);
+  u_int hstrlen(const char * const key, const char * const value);
   u_int len(const char * const key);
   u_int llen(const char *queue_name);
   int lset(const char *queue_name, u_int32_t idx, const char *value);

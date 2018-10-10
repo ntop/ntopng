@@ -960,6 +960,32 @@ u_int Redis::len(const char * const key) {
 
 }
 
+/* **************************************** */
+
+u_int Redis::hstrlen(const char * const key, const char * const value) {
+  redisReply *reply;
+  u_int num = 0;
+
+  l->lock(__FILE__, __LINE__);
+
+  num_requests++;
+  reply = (redisReply*)redisCommand(redis, "HSTRLEN %s %s", key, value);
+
+  if(!reply) reconnectRedis();
+  if(reply) {
+    if(reply->type == REDIS_REPLY_ERROR)
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
+    else
+      num = (u_int)reply->integer;
+  }
+
+  l->unlock(__FILE__, __LINE__);
+  if(reply) freeReplyObject(reply);
+
+  return(num);
+
+}
+
 /* ******************************************* */
 
 u_int Redis::llen(const char *queue_name) {
