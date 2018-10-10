@@ -119,7 +119,7 @@ function recording_utils.createConfig(ifname, params)
   end
   defaults.buffer_size = 4*defaults.max_file_size
 
-  local min_sys_mem = 512
+  local min_sys_mem = 768
   local min_n2disk_mem = 128
   if defaults.buffer_size + min_sys_mem > mem_total_mb then
     if mem_total_mb < min_sys_mem then

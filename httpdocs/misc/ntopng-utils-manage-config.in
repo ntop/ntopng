@@ -20,7 +20,7 @@ STAGING_DIR=""
 SAVED_SUFFIX=".ntopngsaved"
 
 ACTION=""
-QUIET=false
+QUIET=true
 
 INTERFACE=""
 
@@ -93,6 +93,10 @@ case $key in
     -i|--interface)
     INTERFACE="$2"
     shift
+    shift
+    ;;
+    -v|--verbose)
+    QUIET=false
     shift
     ;;
     *)
@@ -446,7 +450,7 @@ elif [ $ACTION == "check-restore" ]; then
     check_tar_contents
 
 elif [ $ACTION == "install-n2disk-conf" ]; then
-    echo "Installing n2disk configuration for ${INTERFACE} ..."
+    [ $QUIET = false ] && echo "Installing n2disk configuration for ${INTERFACE} ..."
 
     install_n2disk_conf
 
