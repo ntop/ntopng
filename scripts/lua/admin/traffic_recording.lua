@@ -25,14 +25,7 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 prefs = ntop.getPrefs()
 
-if not isEmptyString(message_info) then
-  print[[<div class="alert ]] print(message_severity) print[[" role="alert">]]
-  print[[<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>]]
-  print(message_info)
-  print[[</div>]]
-end
-
-print [[<h2>]] print(i18n("traffic_recording.traffic_recording")) print[[</h2>]]
+local running_instances = false
 
 -- ================================================================================
 
@@ -113,6 +106,34 @@ local subpage_active, tab = trafficRecordingSettingsGetActiveSubpage(_GET["tab"]
 
 -- ================================================================================
 
+function printStorageSettings()
+  print [[
+  <form method="post">
+    <table class="table">
+      <tr><th colspan=2 class="info">]] print(subpage_active.label) print [[</th></tr>]]
+
+  prefsInputFieldPrefs(
+    subpage_active.entries["storage_path"].title,
+    subpage_active.entries["storage_path"].description,
+    "ntopng.prefs.traffic_recording", "storage_path",
+    recording_utils.default_storage_path, false, nil, nil, nil, {style = {width = "25em;"},
+    attributes = { spellcheck = "false", maxlength = 255 }, disabled=running_instances})
+
+  prefsInputFieldPrefs(
+    subpage_active.entries["disk_space"].title.." (GB)",
+    subpage_active.entries["disk_space"].description,
+    "ntopng.prefs.traffic_recording", "disk_space", 
+    1000, "number", nil, nil, nil, { min=1, max=1000000, disabled=running_instances })
+
+  print [[
+      <tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">]] print(i18n("save")) print [[</button></th></tr>
+    </table>
+    <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
+  </form>]]
+end
+
+-- ================================================================================
+
 function printInterfaces()
   local interfaces = recording_utils.getInterfaces()
 
@@ -143,7 +164,7 @@ function printInterfaces()
     prefsToggleButton(subpage_active, {
       title = if_name,
       description = if_desc, 
-      redis_key = "ntopng.prefs.traffic_recording", field = "iface_on_"..if_id,
+      redis_prefix = "ntopng.prefs.traffic_recording.", field = "iface_on_"..if_id,
       content = "", default = "0", to_switch = nil, disabled = disabled
     })
   end
@@ -167,11 +188,16 @@ function printInterfaces()
     for if_name,info in pairsByKeys(interfaces, asc_insensitive) do
       local if_id = if_name
       local if_toggle = ntop.getCache("ntopng.prefs.traffic_recording.iface_on_"..if_id)
+
       if isEmptyString(if_toggle) or if_toggle ~= "1" then
-        recording_utils.stop(if_name)
+        if recording_utils.isActive(if_name) then
+          recording_utils.stop(if_name)
+        end
       else
-        recording_utils.createConfig(if_name, config)
-        recording_utils.start(if_name)
+        if not recording_utils.isActive(if_name) then
+          recording_utils.createConfig(if_name, config)
+          recording_utils.start(if_name)
+        end
       end
     end
   end
@@ -203,34 +229,6 @@ end
 
 -- ================================================================================
 
-function printStorageSettings()
-  print [[
-  <form method="post">
-    <table class="table">
-      <tr><th colspan=2 class="info">]] print(subpage_active.label) print [[</th></tr>]]
-
-  prefsInputFieldPrefs(
-    subpage_active.entries["storage_path"].title,
-    subpage_active.entries["storage_path"].description,
-    "ntopng.prefs.traffic_recording", "storage_path",
-    recording_utils.default_storage_path, false, nil, nil, nil, {style = {width = "25em;"},
-    attributes = { spellcheck = "false", maxlength = 255 }})
-
-  prefsInputFieldPrefs(
-    subpage_active.entries["disk_space"].title.." (GB)",
-    subpage_active.entries["disk_space"].description,
-    "ntopng.prefs.traffic_recording", "disk_space", 
-    1000, "number", nil, nil, nil, { min=1, max=1000000 })
-
-  print [[
-      <tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">]] print(i18n("save")) print [[</button></th></tr>
-    </table>
-    <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
-  </form>]]
-end
-
--- ================================================================================
-
 function printLicense()
 
   print [[
@@ -253,12 +251,42 @@ function printLicense()
   </form>]]
 
   if _SERVER["REQUEST_METHOD"] == "POST" then
-    -- TODO store license
-    -- ntopng.prefs.traffic_recording.n2disk_license
+    local license_key = ntop.getCache("ntopng.prefs.traffic_recording.n2disk_license")
+    recording_utils.set_license(license_key)
   end
 end
 
 -- ================================================================================
+
+if tab == "storage" or tab == "license" then
+  local interfaces = recording_utils.getInterfaces()
+  for if_name,info in pairs(interfaces) do
+    if recording_utils.isActive(if_name) then
+      running_instances = true
+    end
+  end
+end
+
+if tab == "storage" then
+  if running_instances then
+    message_info = i18n("traffic_recording.running_instances_storage")
+    message_severity = "alert-info"
+  end
+elseif tab == "license" then
+  if running_instances then
+    message_info = i18n("traffic_recording.running_instances_license")
+    message_severity = "alert-info"
+  end
+end
+
+if not isEmptyString(message_info) then
+  print[[<div class="alert ]] print(message_severity) print[[" role="alert">]]
+  print[[<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>]]
+  print(message_info)
+  print[[</div>]]
+end
+
+print [[<h2>]] print(i18n("traffic_recording.traffic_recording")) print[[</h2>]]
 
 print[[
       <table class="table table-bordered">

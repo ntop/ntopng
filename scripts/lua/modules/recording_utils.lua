@@ -8,9 +8,11 @@ require "prefs_utils"
 
 prefs = ntop.getPrefs()
 
+local n2disk_ctl = "/usr/local/bin/n2diskctl"
+local n2disk_ctl_cmd = "sudo "..n2disk_ctl
+
 local recording_utils = {}
 
-recording_utils.n2disk_bin = "/usr/local/bin/n2disk"
 recording_utils.default_storage_path = "/storage"
 
 -- #################################
@@ -23,7 +25,7 @@ local function executeWithOuput(c)
 end
 
 function recording_utils.isAvailable()
-  if not ntop.isWindows() and ntop.exists(recording_utils.n2disk_bin) then
+  if not ntop.isWindows() and ntop.exists(n2disk_ctl) then
     return true
   end
   return false
@@ -189,19 +191,28 @@ function recording_utils.createConfig(ifname, params)
 end
 
 function recording_utils.isActive(ifname)
-  local check_cmd = "systemctl is-active n2disk@"..ifname
+  local check_cmd = n2disk_ctl_cmd.." is-active "..ifname
   local is_active = executeWithOuput(check_cmd)
   return ternary(string.match(is_active, "^active"), true, false)
 end
 
 function recording_utils.start(ifname)
-  os.execute("systemctl enable n2disk@"..ifname)
-  os.execute("systemctl restart n2disk@"..ifname)
+  os.execute(n2disk_ctl_cmd.." enable "..ifname)
+  os.execute(n2disk_ctl_cmd.." restart "..ifname)
 end
 
 function recording_utils.stop(ifname)
-  os.execute("systemctl stop n2disk@"..ifname)
-  os.execute("systemctl disable n2disk@"..ifname)
+  os.execute(n2disk_ctl_cmd.." stop "..ifname)
+  os.execute(n2disk_ctl_cmd.." disable "..ifname)
+end
+
+function recording_utils.log(ifname)
+  local log = executeWithOuput(n2disk_ctl_cmd.." log "..ifname)
+  return log
+end
+
+function recording_utils.set_license(key)
+  os.execute(n2disk_ctl_cmd.." set-license "..key)
 end
 
 -- #################################

@@ -411,7 +411,7 @@ function install_n2disk_conf() {
 
     mkdir -p "${DEST_PATH}"
 
-    ln -s "${SOURCE_FILE}" "${DEST_PATH}"
+    ln -sf "${SOURCE_FILE}" "${DEST_PATH}"
 }
 
 prepare_cur_data_dir_path
