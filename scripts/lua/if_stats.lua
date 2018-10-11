@@ -266,11 +266,13 @@ if is_packetdump_enabled then
       print("<li><a href=\""..url.."&page=packetdump\"><i class=\"fa fa-hdd-o fa-lg\"></i></a></li>")
    end
 
-   -- if(page == "trafficrecording") then
-   --    print("<li class=\"active\"><a href=\""..url.."&page=trafficrecording\"><i class=\"fa fa-hdd-o fa-lg\"></i></a></li>")
-   -- else
-   --    print("<li><a href=\""..url.."&page=trafficrecording\"><i class=\"fa fa-hdd-o fa-lg\"></i></a></li>")
-   -- end
+   --[[
+   if(page == "trafficrecording") then
+      print("<li class=\"active\"><a href=\""..url.."&page=trafficrecording\"><i class=\"fa fa-hdd-o fa-lg\"></i></a></li>")
+   else
+      print("<li><a href=\""..url.."&page=trafficrecording\"><i class=\"fa fa-hdd-o fa-lg\"></i></a></li>")
+   end
+   --]]
 end
 
 if(isAdministrator() and areAlertsEnabled() and not ifstats.isView) then
@@ -1171,6 +1173,11 @@ elseif(page == "trafficrecording") then
             <td>
 	      <input name="record_traffic" type="checkbox" value="1" ]] print (record_traffic_checked) print [[> ]] print(i18n("traffic_recording.enable_recording")) print [[ <span id='traffic_recording_badge' style='display: none'></span></input>
             </td>
+          </tr>
+
+          <tr>
+            <th>]] print(i18n("traffic_recording.storage_dir")) print [[</th>
+            <td>]] print(dirs.storagedir) print [[</td>
           </tr>
 
           <tr>

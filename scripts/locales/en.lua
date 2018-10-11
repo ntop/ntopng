@@ -2851,6 +2851,7 @@ local lang = {
     ["logs"] = "Traffic Recording Logs",
     ["recording"] = "Recording",
     ["storage"] = "Storage",
+    ["storage_dir"] = "Storage Directory",
     ["traffic_recording"] = "Traffic Recording",
   },
   ["traffic_report"] = {
