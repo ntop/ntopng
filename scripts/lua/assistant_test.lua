@@ -350,10 +350,10 @@ function handler_suspicious_activity_more_info()
   end
 
   if  ndpi_breeds["Acceptable"] and ndpi_breeds["Fun"]  then
-    table.insert( res, {nome = "è accettabile", perc = (ndpi_breeds["Acceptable"]["perc"] or 0) + (ndpi_breeds["Fun"]["perc"] or 0), bytes = ndpi_breeds["Acceptable"]["bytes"] } )
-  
+    table.insert( res, {nome = "è accettabile", perc = ndpi_breeds["Acceptable"]["perc"]  + ndpi_breeds["Fun"]["perc"], bytes = ndpi_breeds["Acceptable"]["bytes"] + ndpi_breeds["Fun"]["bytes"] } )
+    
   elseif  ndpi_breeds["Acceptable"]   then
-    table.insert( res, {nome = "è accettabile", perc = (ndpi_breeds["Acceptable"]["perc"] or 0) } )
+    table.insert( res, {nome = "è accettabile", perc = ndpi_breeds["Acceptable"]["perc"], bytes = ndpi_breeds["Acceptable"]["bytes"] } )
   end
   
   if  ndpi_breeds["Unrated"] then
@@ -600,7 +600,8 @@ function handler_tcp_dump()
   local duration_amount, duration_unit = request.parameters.duration.amount, request.parameters.duration.unit
   --possible values of "unit": s - min - h - day
 
-  local seconds, unit_text
+  local seconds = 10
+  local unit_text
 
   if      duration_unit == "s"    then 
     seconds = duration_amount 
