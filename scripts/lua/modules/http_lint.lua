@@ -1144,7 +1144,7 @@ local known_parameters = {
 -- TRAFFIC RECORDING
    ["disk_space"]                                  = validateNumber,
    ["n2disk_license"]                              = validateSingleWord,
-   ["storage_path"]                                = validateAbsolutePath,
+   ["record_traffic"]                              = validateBool,
 --
 
 -- PAGE SPECIFIC

@@ -13,7 +13,7 @@ local n2disk_ctl_cmd = "sudo "..n2disk_ctl
 
 local recording_utils = {}
 
-recording_utils.default_storage_path = "/storage"
+recording_utils.default_disk_space = 10*1024
 
 -- #################################
 
@@ -88,7 +88,7 @@ function recording_utils.createConfig(ifname, params)
   local defaults = {
     buffer_size = 1024,       -- Buffer size (MB)
     max_file_size = 256,      -- Max file length (MB)
-    max_disk_space = 10*1024, -- Max disk space (MB)
+    max_disk_space = recording_utils.default_disk_space, -- Max disk space (MB)
     snaplen = 1536,           -- Capture length
     writer_core = 0,          -- Writer thread affinity
     reader_core = 1,          -- Reader thread affinity
@@ -208,7 +208,7 @@ function recording_utils.isActive(ifname)
   return ternary(string.match(is_active, "^active"), true, false)
 end
 
-function recording_utils.start(ifname)
+function recording_utils.restart(ifname)
   os.execute(n2disk_ctl_cmd.." enable "..ifname)
   os.execute(n2disk_ctl_cmd.." restart "..ifname)
 end

@@ -23,6 +23,7 @@ require "graph_utils"
 require "alert_utils"
 require "db_utils"
 local ts_utils = require "ts_utils"
+local recording_utils = require "recording_utils"
 
 local have_nedge = ntop.isnEdge()
 
@@ -155,6 +156,30 @@ if (isAdministrator()) then
 
       interface.loadDumpPrefs()
    end
+
+   if is_packetdump_enabled and (page == "trafficrecording") and (_SERVER["REQUEST_METHOD"] == "POST") then
+      local record_traffic = false
+      if not isEmptyString(_POST["record_traffic"]) then
+        record_traffic = true
+      end
+      ntop.setCache('ntopng.prefs.'..ifstats.name..'.traffic_recording.enabled', ternary(record_traffic, "true", "false"))
+
+      local disk_space = recording_utils.default_disk_space
+      if not isEmptyString(_POST["disk_space"]) then
+        local disk_space = tonumber(_POST["disk_space"])*1024
+      end
+      ntop.setCache('ntopng.prefs.'..ifstats.name..'.traffic_recording.disk_space', tostring(disk_space))
+      
+      if record_traffic then
+        local config = {}
+        config.max_disk_space = disk_space
+        recording_utils.createConfig(ifstats.name, config)
+        recording_utils.restart(ifstats.name)
+      else
+        recording_utils.stop(ifstats.name)
+      end
+   end
+
 end
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
@@ -240,6 +265,12 @@ if is_packetdump_enabled then
    else
       print("<li><a href=\""..url.."&page=packetdump\"><i class=\"fa fa-hdd-o fa-lg\"></i></a></li>")
    end
+
+   -- if(page == "trafficrecording") then
+   --    print("<li class=\"active\"><a href=\""..url.."&page=trafficrecording\"><i class=\"fa fa-hdd-o fa-lg\"></i></a></li>")
+   -- else
+   --    print("<li><a href=\""..url.."&page=trafficrecording\"><i class=\"fa fa-hdd-o fa-lg\"></i></a></li>")
+   -- end
 end
 
 if(isAdministrator() and areAlertsEnabled() and not ifstats.isView) then
@@ -1048,7 +1079,7 @@ if is_packetdump_enabled then
 	       print(' </input>')
    else
       print(i18n("packetdump_page.packet_dump_to_tap_disabled_message"))
-end
+   end
 
    print("</td></tr>\n")
    print("<tr><th width=250>"..i18n("packetdump_page.sampling_rate").."</th>\n")
@@ -1111,6 +1142,112 @@ end
       aysHandleForm("#packetdump_form");
    </script>]]
 end
+
+elseif(page == "trafficrecording") then
+
+  if is_packetdump_enabled then
+    local record_traffic = ntop.getCache('ntopng.prefs.'..ifstats.name..'.traffic_recording.enabled')
+    local disk_space = ntop.getCache('ntopng.prefs.'..ifstats.name..'.traffic_recording.disk_space')
+
+    if record_traffic == "true" then
+      record_traffic_checked = 'checked="checked"'
+      record_traffic_value = "false" -- Opposite
+    else
+      record_traffic_checked = ""
+      record_traffic_value = "true" -- Opposite
+    end
+
+    if isEmptyString(disk_space) then
+      disk_space = recording_utils.default_disk_space
+    end
+    disk_space = tostring(math.floor(tonumber(disk_space)/1024))
+
+    print [[
+      <form id="trafficrecording_form" class="form-inline" method="post">
+        <table class="table table-striped table-bordered">
+          <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
+          <tr>
+            <th width=30%>]] print(i18n("traffic_recording.traffic_recording")) print [[</th>
+            <td>
+	      <input name="record_traffic" type="checkbox" value="1" ]] print (record_traffic_checked) print [[> ]] print(i18n("traffic_recording.enable_recording")) print [[ <span id='traffic_recording_badge' style='display: none'></span></input>
+            </td>
+          </tr>
+
+          <tr>
+            <th>]] print(i18n("traffic_recording.disk_space")) print [[</th>
+            <td>
+              <input type="number" style="width:127px;display:inline;" class="form-control" name="disk_space" placeholder="" min="1" step="1" max="1000000" value="]] print(disk_space) print [["></input><span style="vertical-align: middle"> GB</span><br>
+    <small>]] print(i18n("traffic_recording.disk_space_note")) print[[</small>
+            </td>
+          </tr>
+        </table>
+        <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button><br><br>
+      </form>
+      <script>
+        aysHandleForm("#trafficrecording_form");
+      </script>
+    ]]
+
+    print [[
+  <div id="log_dialog" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="log_dialog_label" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
+          <h3 id="log_dialog_title"></h3>
+        </div>
+
+        <div class="modal-body">
+          <div class="alert alert-info" id="log_dialog_text"></div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-default" data-dismiss="modal" aria-hidden="true">]] print(i18n("close")) print [[ </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  ]]
+
+    print [[
+  <script>
+  var traffic_recording_logs = "";
+  function show_logs() {
+    $('#log_dialog_title').text("]] print(i18n("traffic_recording.logs")) print [[ - ]] print(ifstats.name) print[[");
+    $('#log_dialog_text').html(traffic_recording_logs.replace(/(?:\r\n|\r|\n)/g,'<br>'));
+    $('#log_dialog').modal('show');
+  }
+  function update_traffic_recording_status() {
+    $.ajax({
+      type: 'GET',
+      url: ']] print (ntop.getHttpPrefix()) print [[/lua/get_traffic_recording_info.lua',
+      data: { ifid: ]] print(ifstats.id) print[[ },
+      success: function(content) {
+        var data = jQuery.parseJSON(content);
+        var badge = $('#traffic_recording_badge');
+        if (badge) {
+          if (data.status == 'on') {
+            badge.removeClass();badge.addClass("label label-success");
+            badge.text("]] print(i18n("traffic_recording.recording")) print [[");
+            badge.show();
+          } else if (data.status == 'failure') {
+            traffic_recording_logs = data.logs;
+            badge.removeClass();badge.addClass("label label-danger");
+            badge.html("<a onclick='show_logs();' style='color: #fff'>]] print(i18n("traffic_recording.failure")) print [[</a>");
+            badge.show();
+          } else {
+            badge.hide();
+          }
+        }
+      }
+    });
+  }
+  update_traffic_recording_status();
+  setInterval(update_traffic_recording_status, 5000);
+  </script>
+  ]]
+
+  end
+
 elseif(page == "alerts") then
 
    drawAlertSourceSettings("interface", ifname_clean,
