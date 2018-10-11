@@ -99,6 +99,14 @@ PcapInterface::PcapInterface(const char *name) : NetworkInterface(name) {
     } else
       throw errno;
   }
+
+  if(read_pkts_from_pcap_dump) {
+    /* Used to cleanup data during next ntopng startup */
+    char id_str[8];
+    snprintf(id_str, sizeof(id_str), "%d", get_id());
+    
+    ntop->getRedis()->hashSet(PCAP_DUMP_INTERFACES_DELETE_HASH, id_str, get_name());
+  }
   
   if(ntop->getPrefs()->are_ixia_timestamps_enabled())
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Hardware timestamps are supported only on PF_RING capture interfaces");
@@ -112,6 +120,17 @@ PcapInterface::~PcapInterface() {
   if(pcap_handle) {
     pcap_close(pcap_handle);
     pcap_handle = NULL;
+  }
+
+  if(getIfType() == interface_type_PCAP_DUMP) {
+    /* Cleanup any possible leftover file */
+    char base_dir[MAX_PATH];
+
+    if(snprintf(base_dir, sizeof(base_dir), "%s/%d", ntop->get_working_dir(), get_id()) < (int)sizeof(base_dir)) {
+      ntop->fixPath(base_dir);
+
+      Utils::remove_recursively(base_dir);
+    }
   }
 }
 

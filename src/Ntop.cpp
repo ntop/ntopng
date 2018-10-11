@@ -1713,6 +1713,12 @@ void Ntop::shutdownAll() {
 
   if(pa) pa->sendShutdownSignal();
   
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Terminating periodic activities");
+  
+  /* Wait until currently executing periodic activities are completed,
+   Periodic activites should not run during interfaces shutdown */
+  ntop->shutdownPeriodicActivities();
+
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Executing shutdown script");
   
   /* Exec shutdown script before shutting down ntopng */
@@ -1721,12 +1727,6 @@ void Ntop::shutdownAll() {
     shutdown_activity->runScript();
     delete shutdown_activity;
   }    
-
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Terminating periodic activities");
-  
-  /* Wait until currently executing periodic activities are completed,
-   Periodic activites should not run during interfaces shutdown */
-  ntop->shutdownPeriodicActivities();
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Terminating network interfaces");
   

@@ -54,6 +54,7 @@ class Utils {
   static bool dir_exists(const char * const path);
   static bool mkdir_tree(char *path);
   static int mkdir(const char *pathname, mode_t mode);
+  static int remove_recursively(const char * const path);
   static const char* trend2str(ValueTrend t);
   static int dropPrivileges();
   static std::string base64_encode(unsigned char const* bytes_to_encode, unsigned int in_len);

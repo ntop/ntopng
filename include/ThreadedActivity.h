@@ -42,7 +42,7 @@ class ThreadedActivity {
   void periodicActivityBody();
   void aperiodicActivityBody();
   void uSecDiffPeriodicActivityBody();
-  void scheduleJob(ThreadPool *pool);
+  void schedulePeriodicActivity(ThreadPool *pool);
   void setInterfaceTaskRunning(NetworkInterface *iface, bool running);
   bool isInterfaceTaskRunning(NetworkInterface *iface);
   

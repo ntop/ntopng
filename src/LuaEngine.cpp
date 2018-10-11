@@ -1889,54 +1889,6 @@ static int ntop_list_dir_files(lua_State* vm) {
 
 /* ****************************************** */
 
-/* Adapted from http://stackoverflow.com/questions/2256945/removing-a-non-empty-directory-programmatically-in-c-or-c */
-static int remove_recursively(const char * path) {
-  DIR *d = opendir(path);
-  size_t path_len = strlen(path);
-  int r = -1;
-  size_t len;
-  char *buf;
-
-  if(d) {
-    struct dirent *p;
-
-    r = 0;
-
-    while ((r==0) && (p=readdir(d))) {
-      /* Skip the names "." and ".." as we don't want to recurse on them. */
-      if(!strcmp(p->d_name, ".") || !strcmp(p->d_name, ".."))
-	continue;
-
-      len = path_len + strlen(p->d_name) + 2;
-      buf = (char *) malloc(len);
-
-      if(buf) {
-        struct stat statbuf;
-
-        snprintf(buf, len, "%s/%s", path, p->d_name);
-
-        if(stat(buf, &statbuf) == 0) {
-          if(S_ISDIR(statbuf.st_mode))
-            r = remove_recursively(buf);
-          else
-            r = unlink(buf);
-        }
-
-        free(buf);
-      }
-    }
-
-    closedir(d);
-  }
-
-  if(r == 0)
-    r = rmdir(path);
-
-  return r;
-}
-
-/* ****************************************** */
-
 // ***API***
 static int ntop_remove_dir_recursively(lua_State* vm) {
   char *path = NULL;
@@ -1949,7 +1901,7 @@ static int ntop_remove_dir_recursively(lua_State* vm) {
   if(path)
     ntop->fixPath(path);
 
-  lua_pushboolean(vm, path && !remove_recursively(path) ? true /* OK */ : false /* Errors */);
+  lua_pushboolean(vm, path && !Utils::remove_recursively(path) ? true /* OK */ : false /* Errors */);
 
   return(CONST_LUA_OK);
 }

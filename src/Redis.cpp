@@ -338,7 +338,7 @@ int Redis::del(char *key){
 
 /* **************************************** */
 
-int Redis::hashGet(char *key, char *field, char *rsp, u_int rsp_len) {
+int Redis::hashGet(const char * const key, const char * const field, char * const rsp, u_int rsp_len) {
   int rc;
   redisReply *reply;
 
@@ -361,7 +361,7 @@ int Redis::hashGet(char *key, char *field, char *rsp, u_int rsp_len) {
 
 /* **************************************** */
 
-int Redis::hashSet(char *key, char *field, char *value) {
+int Redis::hashSet(const char * const key, const char * const field, const char * const value) {
   int rc = 0;
   redisReply *reply;
 
@@ -381,7 +381,7 @@ int Redis::hashSet(char *key, char *field, char *value) {
 
 /* **************************************** */
 
-int Redis::hashDel(char *key, char *field) {
+int Redis::hashDel(const char * const key, const char * const field) {
   int rc;
   redisReply *reply;
 

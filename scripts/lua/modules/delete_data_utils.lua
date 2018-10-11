@@ -8,8 +8,9 @@ local os_utils = require("os_utils")
 local delete_data_utils = {}
 local dry_run = false
 
-local ALL_INTERFACES_HASH_KEYS      = "ntopng.prefs.iface_id"
-local ACTIVE_INTERFACES_DELETE_HASH = "ntopng.prefs.delete_active_interfaces_data"
+local ALL_INTERFACES_HASH_KEYS         = "ntopng.prefs.iface_id"
+local ACTIVE_INTERFACES_DELETE_HASH    = "ntopng.prefs.delete_active_interfaces_data"
+local PCAP_DUMP_INTERFACES_DELETE_HASH = "ntopng.prefs.delete_pcap_dump_interfaces_data"
 
 -- ################################################################
 
@@ -327,7 +328,20 @@ local function delete_interfaces_from_list(interfaces_list, preserve_interface_i
       end
    end
 
-   return {delete_if_data = if_dt, delete_if_redis_keys = if_rk, delete_if_db = if_db, delete_if_ids = if_in}
+   local res = {delete_if_data = if_dt, delete_if_redis_keys = if_rk, delete_if_db = if_db, delete_if_ids = if_in}
+
+   for op, op_res in pairs(res or {}) do
+      local trace_level = TRACE_NORMAL
+      local status = op_res["status"]
+
+      if status ~= "OK" then
+	 trace_level = TRACE_ERROR
+      end
+
+      traceError(trace_level, TRACE_CONSOLE, string.format("Deleting data [%s][%s]", op, status))
+   end
+
+   return res
 end
 
 -- ################################################################
@@ -397,6 +411,18 @@ function delete_data_utils.delete_active_interface_data_requested(if_name)
    end
 
    return false
+end
+
+-- ################################################################
+
+function delete_data_utils.delete_pcap_dump_interfaces_data()
+   local if_list = ntop.getHashAllCache(PCAP_DUMP_INTERFACES_DELETE_HASH)
+
+   if if_list and table.len(if_list) > 0 then
+      local res = delete_interfaces_from_list(if_list)
+
+      ntop.delCache(PCAP_DUMP_INTERFACES_DELETE_HASH)
+   end
 end
 
 -- ################################################################

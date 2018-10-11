@@ -284,7 +284,7 @@ class NetworkInterface : public Checkpointable {
                       isDiscoverableInterface(){ return(false);                              }
   inline virtual char* altDiscoverableName()   { return(NULL);                               }
   inline virtual const char* get_type()        { return(customIftype ? customIftype : CONST_INTERFACE_TYPE_UNKNOWN); }
-  inline virtual InterfaceType getIfType()     { return(interface_type_UNKNOWN); }
+  virtual InterfaceType getIfType()            { return(interface_type_UNKNOWN); }
   inline FlowHash *get_flows_hash()            { return flows_hash;     }
   inline TcpFlowStats* getTcpFlowStats()       { return(&tcpFlowStats); }
   inline virtual bool is_ndpi_enabled()        { return(true);          }

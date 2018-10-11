@@ -71,9 +71,9 @@ class Redis {
   inline void setInitializationComplete() { initializationCompleted = true; };
   int expire(char *key, u_int expire_sec);
   int get(char *key, char *rsp, u_int rsp_len, bool cache_it = false);
-  int hashGet(char *key, char *member, char *rsp, u_int rsp_len);
-  int hashDel(char *key, char *field);
-  int hashSet(char *key, char *field, char *value);
+  int hashGet(const char * const key, const char * const member, char * const rsp, u_int rsp_len);
+  int hashDel(const char * const key, const char * const field);
+  int hashSet(const char * const key, const char * const field, const char * const value);
   int delHash(char *key, char *member);
   int set(char *key, char *value, u_int expire_secs=0);
   int keys(const char *pattern, char ***keys_p);

@@ -239,7 +239,7 @@ void ThreadedActivity::periodicActivityBody() {
     u_int now = (u_int)time(NULL);
 
     if(now >= next_run) {
-      scheduleJob(pool);
+      schedulePeriodicActivity(pool);
 
       next_run = Utils::roundTime(now, periodicity,
 				  align_to_localtime ? ntop->get_time_offset() : 0);
@@ -253,7 +253,7 @@ void ThreadedActivity::periodicActivityBody() {
 
 /* ******************************************* */
 
-void ThreadedActivity::scheduleJob(ThreadPool *pool) {
+void ThreadedActivity::schedulePeriodicActivity(ThreadPool *pool) {
   /* Schedule per system / interface */
   char script_path[MAX_PATH];
   struct stat statbuf;
@@ -276,10 +276,15 @@ void ThreadedActivity::scheduleJob(ThreadPool *pool) {
 	   ntop->get_callbacks_dir(), path);
 
   if(stat(script_path, &statbuf) == 0) {
-    for(int i=0; i<ntop->get_num_interfaces(); i++) {
+    for(int i = 0; i < ntop->get_num_interfaces(); i++) {
       NetworkInterface *iface = ntop->getInterface(i);
 
-      if(iface && !isInterfaceTaskRunning(iface)) {
+      if(iface
+	 /* Don't schedule periodic activities for Interfaces associated to pcap files.
+	    There's no need to run them as they will create files
+	    and calculate stats assuming live traffic. */
+	 && iface->getIfType() != interface_type_PCAP_DUMP
+	 && !isInterfaceTaskRunning(iface)) {
         pool->queueJob(this, script_path, iface);
         setInterfaceTaskRunning(iface, true);
 #ifdef THREAD_DEBUG
