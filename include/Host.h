@@ -151,11 +151,17 @@ class Host : public Checkpointable, public GenericHashEntry, public GenericTraff
   bool checkQuota(u_int16_t protocol, bool *is_category, const struct tm *now); /* Per-protocol quota check */
   bool checkCrossApplicationQuota(); /* Overall quota check (e.g., total traffic per host pool) */
   inline void incQuotaEnforcementStats(u_int32_t when, u_int16_t ndpi_proto,
-				       ndpi_protocol_category_t category_id, u_int64_t sent_packets, u_int64_t sent_bytes,
+				       u_int64_t sent_packets, u_int64_t sent_bytes,
 				       u_int64_t rcvd_packets, u_int64_t rcvd_bytes) {
     if(quota_enforcement_stats)
-      quota_enforcement_stats->incStats(when, ndpi_proto, category_id, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes);
+      quota_enforcement_stats->incStats(when, ndpi_proto, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes);
   };
+  inline void incQuotaEnforcementCategoryStats(u_int32_t when,
+				       ndpi_protocol_category_t category_id,
+				       u_int64_t sent_bytes, u_int64_t rcvd_bytes) {
+    if(quota_enforcement_stats)
+      quota_enforcement_stats->incCategoryStats(when, category_id, sent_bytes, rcvd_bytes);
+  }
   inline bool hasBlockedTraffic() { return has_blocking_quota || has_blocking_shaper; };
   inline void resetBlockedTrafficStatus(){ has_blocking_quota = has_blocking_shaper = false; };
   inline void resetQuotaStats() { if(quota_enforcement_stats) quota_enforcement_stats->resetStats(); }

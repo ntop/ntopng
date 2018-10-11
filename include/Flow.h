@@ -213,7 +213,7 @@ class Flow : public GenericHashEntry {
   inline bool isBlacklistedFlow() {
     return(cli_host && srv_host && (cli_host->isBlacklisted()
 				    || srv_host->isBlacklisted()
-				    || (((u_int8_t)ndpiDetectedProtocol.category) == CUSTOM_CATEGORY_MALWARE)));
+				    || (get_protocol_category() == CUSTOM_CATEGORY_MALWARE)));
   };
   inline bool isDeviceAllowedProtocol() {
       return(!cli_host || !srv_host ||

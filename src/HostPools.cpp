@@ -390,7 +390,8 @@ void HostPools::incPoolStats(u_int32_t when, u_int16_t host_pool_id, u_int16_t n
   if(!hps) return;
 
   /* Important to use the assigned hps as a swap can make stats[host_pool_id] NULL */
-  hps->incStats(when, ndpi_proto, category_id, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes);
+  hps->incStats(when, ndpi_proto, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes);
+  hps->incCategoryStats(when, category_id, sent_bytes, rcvd_bytes);
 };
 
 /* *************************************** */
