@@ -341,7 +341,7 @@ print[[
 print (ntop.getHttpPrefix())
 print [[/lua/show_alerts.lua\">"
 
-                   msg += "&nbsp;<span class=\"label " + label + "\">"+addCommas(rsp.engaged_alerts)+" <i class=\"fa fa-warning\"></i></span></A>"
+                   msg += "<span class=\"label " + label + "\">"+addCommas(rsp.engaged_alerts)+" <i class=\"fa fa-warning\"></i></span></A>"
                 }
 
 		if((rsp.engaged_alerts > 0 || rsp.alerts_stored == true) && $("#alerts-id").is(":visible") == false) {
@@ -353,15 +353,15 @@ print [[/lua/show_alerts.lua\">"
 		var alert = 0;     
 
 		if(rsp.num_local_hosts > 0) {
-		  msg += "<a style=\"margin-left:0.5em;\" href=\"]]
+		  msg += "&nbsp;<a href=\"]]
 print (ntop.getHttpPrefix())
 print [[/lua/hosts_stats.lua?mode=local\">";
 
 		  msg += "<span class=\"label label-success\">";
-		  msg += addCommas(rsp.num_local_hosts)+" <i class=\"fa fa-laptop\" aria-hidden=\"true\"></i></span></a> ";
+		  msg += addCommas(rsp.num_local_hosts)+" <i class=\"fa fa-laptop\" aria-hidden=\"true\"></i></span></a>";
 		}
 
-	    msg += "<a href=\"]]
+	    msg += "&nbsp;<a href=\"]]
 print (ntop.getHttpPrefix())
 print [[/lua/hosts_stats.lua?mode=remote\">";
 
