@@ -56,6 +56,7 @@ Prefs::Prefs(Ntop *_ntop) {
   auto_assigned_pool_id = NO_HOST_POOL_ID;
   default_l7policy = PASS_ALL_SHAPER_ID;
   num_ts_slots = CONST_DEFAULT_TS_NUM_SLOTS, ts_num_steps = CONST_DEFAULT_TS_NUM_STEPS;
+  device_protocol_policies_enabled = false;
 
   install_dir = NULL, captureDirection = PCAP_D_INOUT;
   docs_dir = strdup(CONST_DEFAULT_DOCS_DIR);
@@ -612,6 +613,7 @@ void Prefs::reloadPrefsFromRedis() {
 
   setTraceLevelFromRedis();
   refreshHostsAlertsPrefs();
+  refreshDeviceProtocolsPolicyPref();
 
 #ifdef PREFS_RELOAD_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Updated IPs "
@@ -1655,6 +1657,12 @@ void Prefs::refreshHostsAlertsPrefs() {
     victim_max_num_syn_per_sec = atol(rsp);
   else
     victim_max_num_syn_per_sec = CONST_MAX_NUM_SYN_PER_SECOND;
+}
+
+/* *************************************** */
+
+void Prefs::refreshDeviceProtocolsPolicyPref() {
+  device_protocol_policies_enabled = getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_DEVICE_PROTOCOL_POLICIES, false);
 }
 
 /* *************************************** */

@@ -24,9 +24,10 @@ local policy_filter = _GET["policy_filter"] or ""
 local proto_filter = _GET["l7proto"] or ""
 local device_type = _GET["device_type"] or "0" -- unknown by default
 local category = _GET["category"] or ""
+local is_nedge = ntop.isnEdge()
 
 local base_url = ""
-if ntop.isnEdge() then
+if is_nedge then
    base_url = "/lua/pro/nedge/admin/nf_edit_user.lua"
 else
    base_url = "/lua/admin/edit_device_protocols.lua"
@@ -102,7 +103,7 @@ local function printDeviceProtocolsPage()
    local table_id = "device-protocols-table"
 
    print[[ <h2 style="margin-top: 0; margin-bottom: 20px;">]]
-   if ntop.isnEdge() then
+   if is_nedge then
       local pool_name = host_pools_utils.DEFAULT_POOL_NAME
       print(i18n("nedge.user_device_protocols", {user=pool_name})) 
    else
@@ -179,6 +180,18 @@ local function printDeviceProtocolsPage()
 	 })
       )
 
+      if is_nedge and (ntop.getPref("ntopng.prefs.device_protocols_policing") ~= "1") then
+        print([[
+  <div class="alert alert-warning alert-dismissible" style="margin-top:2em; margin-bottom:0em;">
+    <button type="button" class="close" data-dismiss="alert" aria-label="]]..i18n("close")..[[">
+      <span aria-hidden="true">&times;</span>
+    </button><b>]]..i18n("warning")..[[</b>: ]].. i18n("nedge.device_protocols_blocked_warning", {
+      device_protocols_policies = '<a href="'.. ntop.getHttpPrefix() ..
+         '/lua/pro/nedge/admin/nf_edit_user.lua?page=settings">'.. i18n("nedge.enable_device_protocols_policies") .. '</a>',
+    }) ..[[
+  </div><br>]])
+   end
+
    -- Table form
    print[[<form id="]] print(form_id) print[[" lass="form-inline" style="margin-bottom: 0px;" method="post">
       <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[">
@@ -194,7 +207,7 @@ local function printDeviceProtocolsPage()
      <span>
        <ul>]]
    print(i18n("notes"))
-   if ntop.isnEdge() then
+   if is_nedge then
       print [[
        <li>]] print(i18n("nedge.device_protocol_policy_has_higher_priority")) print[[</li>
        <li>]] print(i18n("nedge.protocol_policy_has_higher_priority")) print[[</li>]]

@@ -1227,6 +1227,7 @@ local known_parameters = {
    ["show_wizard"]             = validateEmpty,                 -- bridge wizard
    ["delete_all_policies"]     = validateEmpty,                 -- traffic policies
    ["safe_search"]             = validateOnOff,                 -- users
+   ["device_protocols_policing"] = validateOnOff,               -- users
    ["forge_global_dns"]        = validateBool,                  -- users
    ["default_policy"]          = validateNumber,                -- users
    ["lan_interfaces"]          = validateListOfTypeInline(validateNetworkInterface),

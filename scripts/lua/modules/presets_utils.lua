@@ -77,6 +77,7 @@ local basic_policy = {
       [ 81] = presets_utils.ALLOW,  -- ICMP
       [ 82] = presets_utils.ALLOW,  -- IGMP
       [102] = presets_utils.ALLOW,  -- ICMPV6
+      [103] = presets_utils.ALLOW,  -- DHCPV6
       [153] = presets_utils.ALLOW,  -- UPnP
       [154] = presets_utils.ALLOW,  -- LLMNR
    },
@@ -131,6 +132,7 @@ addProtocolByName('nas', 'server', 'TFTP',        presets_utils.ALLOW)
 addPreset('printer', basic_policy)
 addProtocolByName('printer', 'server', 'HTTP',    presets_utils.ALLOW)
 addProtocolByName('printer', 'server', 'SSL',     presets_utils.ALLOW)
+addProtocolByName('printer', 'server', 'SNMP',    presets_utils.ALLOW)
 
 -----------------------------------------------------------------------------
 -----------------------------------------------------------------------------

@@ -31,7 +31,15 @@ Device Protocols Policies
 nEdge supports defining per-device-type policies in a similar way as `ntopng does`_.
 
 Such policies can be used to block possibly harmful device protocols, according to the
-configured rules. It is important to note that such policies in nEdge only apply to
+configured rules. Device Protocols Policies can be enabled from the user settings page:
+
+.. figure:: img/device_protocol_policies_enable.png
+  :align: center
+  :alt: Enable Device Protocol Policies
+
+  Enable Device Protocol Policies
+
+It is important to note that such policies in nEdge only apply to
 the *Not Assigned* devices. If a captive portal authentication is used, or the
 administrator has manually assigned the device to a specific user, the device protocols
 policies *will not* be applied. This also applies to Device Protocols alerts.

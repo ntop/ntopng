@@ -3942,6 +3942,17 @@ static int ntop_set_lan_interface(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_refresh_device_protocols_policies_pref(lua_State* vm) {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  ntop->getPrefs()->refreshDeviceProtocolsPolicyPref();
+
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_get_policy_change_marker(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -3990,7 +4001,8 @@ static int ntop_get_l7_policy_info(lua_State* vm) {
   dev_type = (DeviceType)lua_tointeger(vm, 3);
   as_client = lua_toboolean(vm, 4);
 
-  if((device_proto_status = ntop->getDeviceAllowedProtocolStatus(dev_type, proto, pool_id, as_client)) != device_proto_allowed) {
+  if(ntop->getPrefs()->are_device_protocol_policies_enabled() &&
+      ((device_proto_status = ntop->getDeviceAllowedProtocolStatus(dev_type, proto, pool_id, as_client)) != device_proto_allowed)) {
     shaper_id = DROP_ALL_SHAPER_ID;
     policy_source = policy_source_device_protocol;
   } else {
@@ -8118,6 +8130,7 @@ static const luaL_Reg ntop_reg[] = {
   { "setRoutingMode",        ntop_set_routing_mode         },
   { "isRoutingMode",         ntop_is_routing_mode          },
   { "setLanInterface",       ntop_set_lan_interface        },
+  { "refreshDeviceProtocolsPoliciesConf", ntop_refresh_device_protocols_policies_pref },
 #endif
 
   { NULL,          NULL}

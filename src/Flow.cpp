@@ -3232,15 +3232,12 @@ void Flow::updateFlowShapers(bool first_update) {
   srv2cli_verdict = updateDirectionShapers(false, &flowShaperIds.srv2cli.ingress, &flowShaperIds.srv2cli.egress);
   new_verdict = (cli2srv_verdict && srv2cli_verdict);
 
-  /* TODO enable after populating the presets */
-#if 0
-  if(cli_host && srv_host && new_verdict) {
+  if(ntop->getPrefs()->are_device_protocol_policies_enabled() && cli_host && srv_host && new_verdict) {
     /* NOTE: this must be handled differently to only consider actual peers direction */
     if((cli_host->getDeviceAllowedProtocolStatus(ndpiDetectedProtocol, true /* client */) != device_proto_allowed) ||
        (srv_host->getDeviceAllowedProtocolStatus(ndpiDetectedProtocol, false /* server */) != device_proto_allowed))
       new_verdict = false;
   }
-#endif
 
   /* Set the new verdict */
   passVerdict = new_verdict;
