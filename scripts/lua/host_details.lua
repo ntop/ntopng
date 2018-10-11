@@ -314,7 +314,7 @@ end
 
 end -- not only_historical
 
-if((page == "historical") or ts_utils.exists("host:traffic", {ifid=ifId, host=host_ip})) then
+if((page == "historical") or ts_utils.exists("host:traffic", {ifid=ifId, host=hostinfo2hostkey(host_info)})) then
    if(page == "historical") then
      print("\n<li class=\"active\"><a href=\"#\"><i class='fa fa-area-chart fa-lg'></i></a></li>\n")
    else
