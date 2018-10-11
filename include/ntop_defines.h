@@ -259,7 +259,7 @@
 #define HOST_SITES_REFRESH             300 /* 5 min */
 #define HOST_SITES_TOP_NUMBER          10
 #define HOST_MAX_SERIALIZED_LEN        1048576 /* 1MB, use only when allocating memory in the heap */
-#define POOL_MAX_SERIALIZED_LEN        16348 /* bytes */
+#define POOL_MAX_SERIALIZED_LEN        32768 /* bytes */
 
 #define CONST_MAX_NUM_NETWORKS         255
 #define CONST_MAX_NUM_CHECKPOINTS      4

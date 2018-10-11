@@ -962,6 +962,7 @@ u_int Redis::len(const char * const key) {
 
 /* **************************************** */
 
+#if 0 /* Only available since Redis 3.2.0 */
 u_int Redis::hstrlen(const char * const key, const char * const value) {
   redisReply *reply;
   u_int num = 0;
@@ -985,6 +986,7 @@ u_int Redis::hstrlen(const char * const key, const char * const value) {
   return(num);
 
 }
+#endif
 
 /* ******************************************* */
 

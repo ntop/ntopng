@@ -329,9 +329,8 @@ void HostPools::dumpToRedis() {
 /* *************************************** */
 
 void HostPools::loadFromRedis() {
-  char key[128], buf[32], *json_str;
-  json_object *json;
-  u_int json_len;
+  char key[128], buf[32], *value;
+  json_object *obj;
   enum json_tokener_error jerr = json_tokener_success;
   Redis *redis = ntop->getRedis();
   time_t deadline = 0;
@@ -347,32 +346,28 @@ void HostPools::loadFromRedis() {
       return; /* Expired */
   }
 
-  for(int i = 0; i < MAX_NUM_HOST_POOLS; i++) {
+  if((value = (char *) malloc(POOL_MAX_SERIALIZED_LEN)) == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to allocate memory to deserialize %s", key);
+    return;
+  }
+
+  for(int i = 0; i<MAX_NUM_HOST_POOLS; i++) {
     if(stats[i]) {
       snprintf(buf, sizeof(buf), "%d", i);
-
-      if((json_len = ntop->getRedis()->hstrlen(key, buf)) > 0
-	 && ++json_len <= HOST_MAX_SERIALIZED_LEN) {
-	if((json_str = (char*)malloc(json_len * sizeof(char))) == NULL)
-	  ntop->getTrace()->traceEvent(TRACE_ERROR,
-				       "Unable to allocate memory to deserialize %s", key);
-	else {
-	  if(!redis->hashGet(key, buf, json_str, json_len)) {
-	    if((json = json_tokener_parse_verbose(json_str, &jerr)) == NULL) {
-	      ntop->getTrace()->traceEvent(TRACE_WARNING, "JSON Parse error [%s] key: %s: %s",
-					   json_tokener_error_desc(jerr),
-					   key, json_str);
-	    } else {
-	      stats[i]->deserialize(iface, json);
-	      json_object_put(json);
-	    }
-	  }
-
-	  free(json_str);
+      if(redis->hashGet(key, buf, value, POOL_MAX_SERIALIZED_LEN) == 0) {
+	if((obj = json_tokener_parse_verbose(value, &jerr)) == NULL) {
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "JSON Parse error [%s] key: %s: %s",
+				       json_tokener_error_desc(jerr),
+				       key, value);
+	} else {
+	  stats[i]->deserialize(iface, obj);
+	  json_object_put(obj);
 	}
       }
     }
   }
+
+  free(value);
 }
 
 /* *************************************** */
