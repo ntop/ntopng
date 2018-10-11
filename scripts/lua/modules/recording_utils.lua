@@ -33,34 +33,24 @@ end
 
 function recording_utils.getInterfaces()
   local ntopng_interfaces = interface.getIfNames()
-  local ntopng_interfaces_map = swapKeysValues(ntopng_interfaces)
-  local all_interfaces = ntop.listInterfaces()
   local n2disk_interfaces = {}
 
-  for k,v in pairs(all_interfaces) do
-    local in_use = false
-    local description = v.description
+  for id,ifname in pairs(ntopng_interfaces) do
+    local is_zc = false
 
-    -- TODO check RSS queues
-    if ntopng_interfaces_map[k] ~= nil or 
-       ntopng_interfaces_map['zc:'..k] ~= nil then
-      in_use = true
-    end
-
-    local proc_info = io.open("/proc/net/pf_ring/dev/"..k.."/info", "r")
+    local proc_info = io.open("/proc/net/pf_ring/dev/"..ifname.."/info", "r")
     if proc_info ~= nil then
       local info = proc_info:read "*a"
       if string.match(info, "ZC") then
         is_zc = true
-        description = description.." [ZC]"
       end
       proc_info:close()
     end
 
-    n2disk_interfaces[k] = {
-      desc = description,
-      is_zc = is_zc,
-      in_use = in_use
+    n2disk_interfaces[ifname] = {
+      id = id,
+      desc = "",
+      is_zc = is_zc
     }
   end
 
@@ -89,9 +79,13 @@ end
 function recording_utils.createConfig(ifname, params)
   local conf_dir = dirs.workingdir.."/n2disk"
   local filename = conf_dir.."/n2disk-"..ifname..".conf"
+  local storage_path = dirs.storagedir
+
+  if isEmptyString(storage_path) then
+    return false
+  end
 
   local defaults = {
-    storage_path = recording_utils.default_storaga_path, -- Storage path
     buffer_size = 1024,       -- Buffer size (MB)
     max_file_size = 256,      -- Max file length (MB)
     max_disk_space = 10*1024, -- Max disk space (MB)
@@ -166,12 +160,6 @@ function recording_utils.createConfig(ifname, params)
     first_core = (indexer_core + 1) % cores
   end 
 
-  -- Checking mandatory options
-
-  -- if params.storage_path == nil then
-  --   return false
-  -- end
-
   local config = table.merge(defaults, params)
 
   -- Writing configuration file
@@ -189,9 +177,9 @@ function recording_utils.createConfig(ifname, params)
   end
 
   f:write("--interface="..ifname.."\n")
-  f:write("--dump-directory="..config.storage_path.."/n2disk/"..ifname.."\n")
+  f:write("--dump-directory="..storage_path.."/n2disk/"..ifname.."\n")
   f:write("--index\n")
-  f:write("--timeline-dir="..config.storage_path.."/n2disk/"..ifname.."\n")
+  f:write("--timeline-dir="..storage_path.."/n2disk/"..ifname.."\n")
   f:write("--buffer-len="..config.buffer_size.."\n")
   f:write("--max-file-len="..config.max_file_size.."\n")
   f:write("--disk-limit="..config.max_disk_space.."\n")

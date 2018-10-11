@@ -388,6 +388,7 @@
 #define CONST_DEFAULT_DOCS_DIR       "httpdocs"
 #define CONST_DEFAULT_SCRIPTS_DIR    "scripts"
 #define CONST_DEFAULT_CALLBACKS_DIR  "scripts/callbacks"
+#define CONST_DEFAULT_STORAGE_DIR    "/storage"
 #define CONST_DEFAULT_USERS_FILE     "ntopng-users.conf"
 #define CONST_DEFAULT_INSTALL_DIR    (DATA_DIR "/ntopng")
 #define CONST_ALT_INSTALL_DIR        "/usr/share/ntopng"

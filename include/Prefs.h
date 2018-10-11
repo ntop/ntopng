@@ -95,7 +95,7 @@ class Prefs {
   char *local_networks;
   bool local_networks_set, shutdown_when_done, simulate_vlans, ignore_vlans;
   char *data_dir, *install_dir, *docs_dir, *scripts_dir,
-	  *callbacks_dir, *prefs_dir, *export_endpoint;
+	  *callbacks_dir, *prefs_dir, *storage_dir, *export_endpoint;
   char *categorization_key;
   char *zmq_encryption_pwd;
   char *http_prefix;
@@ -198,6 +198,7 @@ class Prefs {
   inline char* get_scripts_dir()                        { return(scripts_dir);    };
   inline char* get_callbacks_dir()                      { return(callbacks_dir);  };
   inline char* get_prefs_dir()                          { return(prefs_dir);      };
+  inline char* get_storage_dir()                        { return(storage_dir);  };
   inline char* get_export_endpoint()                    { return(export_endpoint);};
   inline char* get_categorization_key()                 { return(categorization_key); };
   inline char* get_http_prefix()                        { return(http_prefix); };

@@ -61,6 +61,7 @@ Prefs::Prefs(Ntop *_ntop) {
   docs_dir = strdup(CONST_DEFAULT_DOCS_DIR);
   scripts_dir = strdup(CONST_DEFAULT_SCRIPTS_DIR);
   callbacks_dir = strdup(CONST_DEFAULT_CALLBACKS_DIR);
+  storage_dir = strdup(CONST_DEFAULT_STORAGE_DIR);
   prefs_dir = NULL;
   config_file_path = ndpi_proto_path = NULL;
   http_port = CONST_DEFAULT_NTOP_PORT;
@@ -154,6 +155,7 @@ Prefs::~Prefs() {
   if(scripts_dir)      free(scripts_dir);
   if(callbacks_dir)    free(callbacks_dir);
   if(prefs_dir)        free(prefs_dir);
+  if(storage_dir)      free(storage_dir);
   if(config_file_path) free(config_file_path);
   if(user)             free(user);
   if(pid_path)         free(pid_path);
@@ -1349,17 +1351,20 @@ int Prefs::checkOptions() {
   docs_dir      = ntop->getValidPath(docs_dir);
   scripts_dir   = ntop->getValidPath(scripts_dir);
   callbacks_dir = ntop->getValidPath(callbacks_dir);
+  storage_dir   = ntop->getValidPath(storage_dir);
 
   if(!data_dir)         { ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to locate data dir");      return(-1); }
   if(!docs_dir[0])      { ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to locate docs dir");      return(-1); }
   if(!scripts_dir[0])   { ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to locate scripts dir");   return(-1); }
   if(!callbacks_dir[0]) { ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to locate callbacks dir"); return(-1); }
   if(!prefs_dir[0])     { ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to locate prefs dir");     return(-1); }
+  if(!storage_dir[0])   { ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to locate storage dir");   return(-1); }
 
   ntop->removeTrailingSlash(docs_dir);
   ntop->removeTrailingSlash(scripts_dir);
   ntop->removeTrailingSlash(callbacks_dir);
   ntop->removeTrailingSlash(prefs_dir);
+  ntop->removeTrailingSlash(storage_dir);
 
   if(http_binding_address1 == NULL) http_binding_address1 = strdup(CONST_ANY_ADDRESS);
   if(http_binding_address2 == NULL) http_binding_address2 = strdup(CONST_ANY_ADDRESS);
