@@ -419,13 +419,20 @@ print [[/lua/if_stats.lua\"><i class=\"fa fa-warning\" style=\"color: #B94A48;\"
 		msg += addCommas(rsp.num_live_captures)+" <i class=\"fa fa-download fa-lg\"></i></A> </span> ";
 	    }
 
+	    if(typeof rsp.traffic_recording !== "undefined") {
+                if (rsp.traffic_recording == "recording") status_label = "success";
+                else status_label = "danger";
+   	        msg += "&nbsp;<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/traffic_recording_status.lua\">";
+ 	        msg += "<span class=\"label label-"+status_label+"\" title=\""+addCommas(rsp.traffic_recording)+"\">";
+		msg += "<i class=\"fa fa-hdd-o fa-lg\"></i></a></span>";
+	    }
 
-		$('#network-load').html(msg);
+	    $('#network-load').html(msg);
 
 
-		if(alert) {
-		   $('#toomany').html("<div class='alert alert-warning'><h4>]] print(i18n("warning")) print[[</h4>]] print(i18n("about.you_have_too_many_flows", {product=info["product"]})) print[[.</div>");
-		}
+	    if(alert) {
+	        $('#toomany').html("<div class='alert alert-warning'><h4>]] print(i18n("warning")) print[[</h4>]] print(i18n("about.you_have_too_many_flows", {product=info["product"]})) print[[.</div>");
+	    }
 
 	    prev_bytes   = rsp.bytes;
 	    prev_packets = rsp.packets;

@@ -12,6 +12,7 @@ local json = require("dkjson")
 sendHTTPHeader('application/json')
 
 local callback_utils = require("callback_utils")
+local recording_utils = require("recording_utils")
 
 local function userHasRestrictions()
    local allowed_nets = ntop.getPref("ntopng.user." .. (_SESSION["user"] or "") .. ".allowed_nets")
@@ -137,6 +138,14 @@ function dumpInterfaceStats(interface_name)
       end
 
       res["breed"] = stats["breeds"]
+
+      if isAdministrator() and recording_utils.isEnabled(ifstats.name) then
+        if recording_utils.isActive(ifstats.name) then
+          res["traffic_recording"] = "recording"
+        else
+          res["traffic_recording"] = "failed"
+        end
+      end
    end
    return res
 end

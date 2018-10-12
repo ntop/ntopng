@@ -62,7 +62,7 @@ Prefs::Prefs(Ntop *_ntop) {
   docs_dir = strdup(CONST_DEFAULT_DOCS_DIR);
   scripts_dir = strdup(CONST_DEFAULT_SCRIPTS_DIR);
   callbacks_dir = strdup(CONST_DEFAULT_CALLBACKS_DIR);
-  storage_dir = NULL;
+  pcap_dir = NULL;
   prefs_dir = NULL;
   config_file_path = ndpi_proto_path = NULL;
   http_port = CONST_DEFAULT_NTOP_PORT;
@@ -156,7 +156,7 @@ Prefs::~Prefs() {
   if(scripts_dir)      free(scripts_dir);
   if(callbacks_dir)    free(callbacks_dir);
   if(prefs_dir)        free(prefs_dir);
-  if(storage_dir)      free(storage_dir);
+  if(pcap_dir)      free(pcap_dir);
   if(config_file_path) free(config_file_path);
   if(user)             free(user);
   if(pid_path)         free(pid_path);
@@ -241,9 +241,9 @@ void usage() {
 	 "                                    | and deserialize file\n"
 	 "                                    | containing runtime preferences.\n"
 	 "                                    | Default: %s\n"
-	 "[--storage-dir|-5] <path>           | Storage directory used for continuous traffic\n"
-	 "                                    | recording\n"
-	 "                                    | Default: %s\n"
+	 "[--pcap-dir|-5] <path>              | Storage directory used for continuous traffic\n"
+	 "                                    | recording in PCAP format.\n"
+	 "                                    | Default: %s/%s\n"
 	 "[--no-promisc|-u]                   | Don't set the interface in promisc mode.\n"
 	 "[--http-port|-w] <[addr:]port>      | HTTP. Set to 0 to disable http server.\n"
 	 "                                    | Addr can be an IPv4 (192.168.1.1)\n"
@@ -400,7 +400,7 @@ void usage() {
 	 CONST_DEFAULT_DOCS_DIR, CONST_DEFAULT_SCRIPTS_DIR,
          CONST_DEFAULT_CALLBACKS_DIR,
 	 CONST_DEFAULT_DATA_DIR,
-	 CONST_DEFAULT_DATA_DIR,
+	 CONST_DEFAULT_DATA_DIR, CONST_PCAP_SUBDIR,
 	 CONST_DEFAULT_NTOP_PORT, CONST_DEFAULT_NTOP_PORT+1,
          CONST_DEFAULT_NTOP_USER,
 	 MAX_NUM_INTERFACE_HOSTS, MAX_NUM_INTERFACE_HOSTS,
@@ -707,7 +707,7 @@ static const struct option long_options[] = {
   { "scripts-dir",                       required_argument, NULL, '2' },
   { "callbacks-dir",                     required_argument, NULL, '3' },
   { "prefs-dir",                         required_argument, NULL, '4' },
-  { "storage-dir",                       required_argument, NULL, '5' },
+  { "pcap-dir",                          required_argument, NULL, '5' },
   { "online-check",                      no_argument,       NULL, 209 },
   { "print-ndpi-protocols",              no_argument,       NULL, 210 },
   { "online-license-check",              no_argument,       NULL, 211 },
@@ -1065,8 +1065,8 @@ int Prefs::setOption(int optkey, char *optarg) {
     break;
 
   case '5':
-    if(storage_dir) free(storage_dir);
-    storage_dir = strdup(optarg);
+    if(pcap_dir) free(pcap_dir);
+    pcap_dir = strdup(optarg);
     break;
 
   case 'l':
@@ -1360,8 +1360,11 @@ int Prefs::checkOptions() {
   if(!prefs_dir)
     prefs_dir = strdup(ntop->get_working_dir());
 
-  if(!storage_dir)
-    storage_dir = strdup(ntop->get_working_dir());
+  if(!pcap_dir) {
+    int len = strlen(ntop->get_working_dir())+strlen(CONST_PCAP_SUBDIR)+2;
+    pcap_dir = (char*) malloc(len);
+    snprintf(pcap_dir, len, "%s/%s", ntop->get_working_dir(), CONST_PCAP_SUBDIR);
+  }
 
   docs_dir      = ntop->getValidPath(docs_dir);
   scripts_dir   = ntop->getValidPath(scripts_dir);
@@ -1372,13 +1375,13 @@ int Prefs::checkOptions() {
   if(!scripts_dir[0])   { ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to locate scripts dir");   return(-1); }
   if(!callbacks_dir[0]) { ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to locate callbacks dir"); return(-1); }
   if(!prefs_dir[0])     { ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to locate prefs dir");     return(-1); }
-  if(!storage_dir[0])   { ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to locate storage dir");   return(-1); }
+  if(!pcap_dir[0])      { ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to locate pcap dir");   return(-1); }
 
   ntop->removeTrailingSlash(docs_dir);
   ntop->removeTrailingSlash(scripts_dir);
   ntop->removeTrailingSlash(callbacks_dir);
   ntop->removeTrailingSlash(prefs_dir);
-  ntop->removeTrailingSlash(storage_dir);
+  ntop->removeTrailingSlash(pcap_dir);
 
   if(http_binding_address1 == NULL) http_binding_address1 = strdup(CONST_ANY_ADDRESS);
   if(http_binding_address2 == NULL) http_binding_address2 = strdup(CONST_ANY_ADDRESS);

@@ -5775,7 +5775,7 @@ static int ntop_get_dirs(lua_State* vm) {
   lua_push_str_table_entry(vm, "scriptdir", ntop->getPrefs()->get_scripts_dir());
   lua_push_str_table_entry(vm, "httpdocsdir", ntop->getPrefs()->get_docs_dir());
   lua_push_str_table_entry(vm, "callbacksdir", ntop->getPrefs()->get_callbacks_dir());
-  lua_push_str_table_entry(vm, "storagedir", ntop->getPrefs()->get_storage_dir());
+  lua_push_str_table_entry(vm, "pcapdir", ntop->getPrefs()->get_pcap_dir());
 
   return(CONST_LUA_OK);
 }

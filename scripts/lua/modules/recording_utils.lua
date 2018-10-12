@@ -25,7 +25,10 @@ local function executeWithOuput(c)
 end
 
 function recording_utils.isAvailable()
-  if not ntop.isWindows() and ntop.exists(n2disk_ctl) then
+  if isAdministrator() and 
+     isLocalPacketdumpEnabled() and
+     not ntop.isWindows() and 
+     ntop.exists(n2disk_ctl) then
     return true
   end
   return false
@@ -88,7 +91,7 @@ end
 
 function recording_utils.storageInfo()
   local storage_info = {
-    path = dirs.storagedir, dev = "", mount = "",
+    path = dirs.pcapdir, dev = "", mount = "",
     total = 0, used = 0, avail = 0, used_perc = 0,
   }
   local root_path = storage_info.path
@@ -112,7 +115,7 @@ end
 function recording_utils.createConfig(ifname, params)
   local conf_dir = dirs.workingdir.."/n2disk"
   local filename = conf_dir.."/n2disk-"..ifname..".conf"
-  local storage_path = dirs.storagedir
+  local storage_path = dirs.pcapdir
 
   if isEmptyString(storage_path) then
     return false
@@ -236,6 +239,16 @@ function recording_utils.createConfig(ifname, params)
   f:close()
 
   return true
+end
+
+function recording_utils.isEnabled(ifname)
+  if recording_utils.isAvailable() then
+    local record_traffic = ntop.getCache('ntopng.prefs.'..ifname..'.traffic_recording.enabled')
+    if record_traffic == "true" then
+      return true
+    end
+  end
+  return false
 end
 
 function recording_utils.isActive(ifname)

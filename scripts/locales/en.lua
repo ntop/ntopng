@@ -2858,6 +2858,7 @@ local lang = {
     ["storage_dir"] = "Storage Directory",
     ["storage_utilization"] = "Storage Utilization",
     ["traffic_recording"] = "Traffic Recording",
+    ["traffic_recording_status"] = "Traffic Recording Status",
   },
   ["traffic_report"] = {
     ["current_day"] = "Current Day",
