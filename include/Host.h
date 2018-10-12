@@ -249,6 +249,7 @@ class Host : public Checkpointable, public GenericHashEntry, public GenericTraff
   inline u_int16_t getVlanId() { return (vlan ? vlan->get_vlan_id() : 0); }
   inline void reloadHideFromTop() { hidden_from_top = iface->isHiddenFromTop(this); }
   inline bool isHiddenFromTop() { return hidden_from_top; }
+  inline bool isOneWayTraffic() { return !(rcvd.getNumBytes() > 0 && sent.getNumBytes() > 0); };
   virtual void tsLua(lua_State* vm) { lua_pushnil(vm); };
   DeviceProtoStatus getDeviceAllowedProtocolStatus(ndpi_protocol proto, bool as_client);
 

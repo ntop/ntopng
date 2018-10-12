@@ -48,6 +48,12 @@ typedef enum {
 } LocationPolicy;
 
 typedef enum {
+  traffic_type_all,
+  traffic_type_one_way,
+  traffic_type_bidirectional,
+} TrafficType;
+
+typedef enum {
   alert_none = -1,
   alert_syn_flood = 0,
   alert_flow_flood,

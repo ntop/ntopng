@@ -25,6 +25,7 @@ local os_          = _GET["os"]
 local community    = _GET["community"]
 local pool         = _GET["pool"]
 local ipversion    = _GET["version"]
+local traffic_type = _GET["traffic_type"]
 
 local base_url = ntop.getHttpPrefix() .. "/lua/hosts_stats.lua"
 local page_params = {}
@@ -110,6 +111,14 @@ if (_GET["page"] ~= "historical") then
       ipver_title = i18n("hosts_stats.ipver_title",{version_num=ipversion})
    else
       ipver_title = ""
+   end
+
+   local traffic_type_title
+   if not isEmptyString(traffic_type) then
+      page_params["traffic_type"] = traffic_type
+      traffic_type_title = i18n("hosts_stats.traffic_type_one_way")
+   else
+      traffic_type_title = ""
    end
 
    print [[
@@ -204,6 +213,7 @@ if (_GET["page"] ~= "historical") then
       -- Note: we must use the empty string as fallback. Multiple spaces will be collapsed into one automatically.
       return i18n("hosts_stats.hosts_page_title", {
 		     all = isEmptyString(mode_label) and i18n("hosts_stats.all") or "",
+		     traffic_type = traffic_type_title or "",
 		     local_remote = mode_label,
 		     protocol = protocol_name or "",
 		     network = not isEmptyString(network_name) and i18n("hosts_stats.in_network", {network=network_name}) or "",
@@ -252,6 +262,10 @@ if (_GET["page"] ~= "historical") then
       printVLANFilterDropdown(base_url, page_params)
       print[[</div>']]
    end
+
+   print[[, '<div class="btn-group pull-right">]]
+   printTrafficTypeFilterDropdown(base_url, page_params)
+   print[[</div>']]
 
    -- Hosts filter
    local hosts_filter_params = table.clone(page_params)

@@ -751,6 +751,7 @@ static int ntop_get_batched_interface_hosts(lua_State* vm, LocationPolicy locati
   u_int16_t pool_filter = (u_int16_t)-1;
   u_int8_t ipver_filter = 0;
   int proto_filter = -1;
+  TrafficType traffic_type_filter = traffic_type_all;
   u_int32_t toSkip = 0, maxHits = CONST_MAX_NUM_HITS;
   u_int32_t begin_slot = 0;
   bool walk_all = false;
@@ -771,6 +772,7 @@ static int ntop_get_batched_interface_hosts(lua_State* vm, LocationPolicy locati
 					   vlan_filter, os_filter, asn_filter,
 					   network_filter, pool_filter, filtered_hosts, blacklisted_hosts, hide_top_hidden,
 					   ipver_filter, proto_filter,
+					   traffic_type_filter,
 					   sortColumn, maxHits,
 					   toSkip, a2zSortOrder) < 0)
     return(CONST_LUA_ERROR);
@@ -790,6 +792,7 @@ static int ntop_get_interface_hosts(lua_State* vm, LocationPolicy location) {
   int16_t network_filter = -2;
   u_int16_t pool_filter = (u_int16_t)-1;
   u_int8_t ipver_filter = 0;
+  TrafficType traffic_type_filter = traffic_type_all;
   int proto_filter = -1;
   u_int32_t toSkip = 0, maxHits = CONST_MAX_NUM_HITS;
   u_int32_t begin_slot = 0;
@@ -798,23 +801,24 @@ static int ntop_get_interface_hosts(lua_State* vm, LocationPolicy location) {
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if(lua_type(vm, 1) == LUA_TBOOLEAN) show_details   = lua_toboolean(vm, 1) ? true : false;
-  if(lua_type(vm, 2) == LUA_TSTRING)  sortColumn     = (char*)lua_tostring(vm, 2);
-  if(lua_type(vm, 3) == LUA_TNUMBER)  maxHits        = (u_int16_t)lua_tonumber(vm, 3);
-  if(lua_type(vm, 4) == LUA_TNUMBER)  toSkip         = (u_int16_t)lua_tonumber(vm, 4);
-  if(lua_type(vm, 5) == LUA_TBOOLEAN) a2zSortOrder   = lua_toboolean(vm, 5) ? true : false;
-  if(lua_type(vm, 6) == LUA_TSTRING)  country        = (char*)lua_tostring(vm, 6);
-  if(lua_type(vm, 7) == LUA_TSTRING)  os_filter      = (char*)lua_tostring(vm, 7);
-  if(lua_type(vm, 8) == LUA_TNUMBER)  vlan_filter    = (u_int16_t)lua_tonumber(vm, 8);
-  if(lua_type(vm, 9) == LUA_TNUMBER)  asn_filter     = (u_int32_t)lua_tonumber(vm, 9);
-  if(lua_type(vm,10) == LUA_TNUMBER)  network_filter = (int16_t)lua_tonumber(vm, 10);
-  if(lua_type(vm,11) == LUA_TSTRING)  mac_filter     = (char*)lua_tostring(vm, 11);
-  if(lua_type(vm,12) == LUA_TNUMBER)  pool_filter    = (u_int16_t)lua_tonumber(vm, 12);
-  if(lua_type(vm,13) == LUA_TNUMBER)  ipver_filter   = (u_int8_t)lua_tonumber(vm, 13);
-  if(lua_type(vm,14) == LUA_TNUMBER)  proto_filter   = (int)lua_tonumber(vm, 14);
-  if(lua_type(vm,15) == LUA_TBOOLEAN) filtered_hosts = lua_toboolean(vm, 15);
-  if(lua_type(vm,16) == LUA_TBOOLEAN) blacklisted_hosts = lua_toboolean(vm, 16);
-  if(lua_type(vm,17) == LUA_TBOOLEAN) hide_top_hidden = lua_toboolean(vm, 17);
+  if(lua_type(vm, 1) == LUA_TBOOLEAN) show_details         = lua_toboolean(vm, 1) ? true : false;
+  if(lua_type(vm, 2) == LUA_TSTRING)  sortColumn           = (char*)lua_tostring(vm, 2);
+  if(lua_type(vm, 3) == LUA_TNUMBER)  maxHits              = (u_int16_t)lua_tonumber(vm, 3);
+  if(lua_type(vm, 4) == LUA_TNUMBER)  toSkip               = (u_int16_t)lua_tonumber(vm, 4);
+  if(lua_type(vm, 5) == LUA_TBOOLEAN) a2zSortOrder         = lua_toboolean(vm, 5) ? true : false;
+  if(lua_type(vm, 6) == LUA_TSTRING)  country              = (char*)lua_tostring(vm, 6);
+  if(lua_type(vm, 7) == LUA_TSTRING)  os_filter            = (char*)lua_tostring(vm, 7);
+  if(lua_type(vm, 8) == LUA_TNUMBER)  vlan_filter          = (u_int16_t)lua_tonumber(vm, 8);
+  if(lua_type(vm, 9) == LUA_TNUMBER)  asn_filter           = (u_int32_t)lua_tonumber(vm, 9);
+  if(lua_type(vm,10) == LUA_TNUMBER)  network_filter       = (int16_t)lua_tonumber(vm, 10);
+  if(lua_type(vm,11) == LUA_TSTRING)  mac_filter           = (char*)lua_tostring(vm, 11);
+  if(lua_type(vm,12) == LUA_TNUMBER)  pool_filter          = (u_int16_t)lua_tonumber(vm, 12);
+  if(lua_type(vm,13) == LUA_TNUMBER)  ipver_filter         = (u_int8_t)lua_tonumber(vm, 13);
+  if(lua_type(vm,14) == LUA_TNUMBER)  proto_filter         = (int)lua_tonumber(vm, 14);
+  if(lua_type(vm,15) == LUA_TBOOLEAN) traffic_type_filter  = lua_toboolean(vm, 15) ? traffic_type_one_way : traffic_type_bidirectional;
+  if(lua_type(vm,16) == LUA_TBOOLEAN) filtered_hosts       = lua_toboolean(vm, 16);
+  if(lua_type(vm,17) == LUA_TBOOLEAN) blacklisted_hosts    = lua_toboolean(vm, 17);
+  if(lua_type(vm,18) == LUA_TBOOLEAN) hide_top_hidden      = lua_toboolean(vm, 18);
 
   if((!ntop_interface)
      || ntop_interface->getActiveHostsList(vm,
@@ -825,7 +829,9 @@ static int ntop_get_interface_hosts(lua_State* vm, LocationPolicy location) {
 					   country, mac_filter,
 					   vlan_filter, os_filter, asn_filter,
 					   network_filter, pool_filter, filtered_hosts, blacklisted_hosts, hide_top_hidden,
-					   ipver_filter, proto_filter, sortColumn, maxHits,
+					   ipver_filter, proto_filter,
+					   traffic_type_filter,
+					   sortColumn, maxHits,
 					   toSkip, a2zSortOrder) < 0)
     return(CONST_LUA_ERROR);
 
@@ -877,7 +883,7 @@ static int ntop_get_grouped_interface_hosts(lua_State* vm) {
   if(lua_type(vm, 6) == LUA_TNUMBER)  asn_filter     = (u_int32_t)lua_tonumber(vm, 6);
   if(lua_type(vm, 7) == LUA_TNUMBER)  network_filter = (int16_t)lua_tonumber(vm, 7);
   if(lua_type(vm, 8) == LUA_TNUMBER)  pool_filter    = (u_int16_t)lua_tonumber(vm, 8);
-  if(lua_type(vm, 9) == LUA_TNUMBER) ipver_filter   = (u_int8_t)lua_tonumber(vm, 9);
+  if(lua_type(vm, 9) == LUA_TNUMBER)  ipver_filter   = (u_int8_t)lua_tonumber(vm, 9);
 
   if((!ntop_interface)
      || ntop_interface->getActiveHostsGroup(vm,

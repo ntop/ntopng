@@ -20,7 +20,8 @@ local sortOrder   = _GET["sortOrder"]
 local protocol    = _GET["protocol"]
 local long_names  = _GET["long_names"]
 local criteria    = _GET["criteria"]
-
+local traffic_type= _GET["traffic_type"]
+   
 -- Host comparison parameters
 local mode        = _GET["mode"]
 local tracked     = _GET["tracked"]
@@ -101,6 +102,8 @@ else
    tablePreferences("rows_number",perPage)
 end
 
+local one_way_traffic
+if(traffic_type == "one_way") then one_way_traffic = true end
 if(tracked ~= nil) then tracked = tonumber(tracked) else tracked = 0 end
 
 if((mode == nil) or (mode == "")) then mode = "all" end
@@ -129,7 +132,8 @@ local hosts_stats = hosts_retrv_function(false, sortColumn, perPage, to_skip, sO
 					 country, os_, tonumber(vlan), tonumber(asn),
 					 tonumber(network), mac,
 					 tonumber(pool), tonumber(ipversion),
-					 tonumber(protocol), filtered_hosts, blacklisted_hosts, top_hidden) -- false = little details
+					 tonumber(protocol), one_way_traffic,
+					 filtered_hosts, blacklisted_hosts, top_hidden) -- false = little details
 
 -- tprint(hosts_stats)
 --io.write("---\n")

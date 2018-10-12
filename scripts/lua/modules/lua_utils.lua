@@ -342,6 +342,32 @@ function printVLANFilterDropdown(base_url, page_params)
       </ul>]]
 end
 
+-- ##############################################
+
+function printTrafficTypeFilterDropdown(base_url, page_params)
+   local traffic_type = _GET["traffic_type"]
+   local traffic_type_filter = ''
+   if not isEmptyString(traffic_type) then
+      traffic_type_filter = '<span class="glyphicon glyphicon-filter"></span>'
+   end
+
+   local traffic_type_params = table.clone(page_params)
+   traffic_type_params["traffic_type"] = nil
+
+   print[[\
+      <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("flows_page.direction")) print[[]] print(traffic_type_filter) print[[<span class="caret"></span></button>\
+      <ul class="dropdown-menu" role="menu" id="flow_dropdown">\
+         <li><a href="]] print(getPageUrl(base_url, traffic_type_params)) print[[">]] print(i18n("hosts_stats.traffic_type_all")) print[[</a></li>\]]
+
+   -- now forthe one-way
+   traffic_type_params["traffic_type"] = "one_way"
+   print[[
+         <li>\
+           <a href="]] print(getPageUrl(base_url, traffic_type_params)) print[[">]] print(i18n("hosts_stats.traffic_type_one_way")) print[[</a></li>\]]
+   print[[
+      </ul>]]
+end
+
 
 -- ##############################################
 
