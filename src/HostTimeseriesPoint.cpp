@@ -35,7 +35,7 @@ HostTimeseriesPoint::~HostTimeseriesPoint() {
 
 void HostTimeseriesPoint::lua(lua_State* vm, NetworkInterface *iface) {
   if(ndpi)
-    ndpi->lua(iface, vm, true /* with categories */);
+    ndpi->lua(iface, vm, true /* with categories */, true /* tsLua */);
 
   lua_push_int_table_entry(vm, "bytes.sent", sent);
   lua_push_int_table_entry(vm, "bytes.rcvd", rcvd);

@@ -190,17 +190,18 @@ end
 
 function rrd_dump.host_update_ndpi_rrds(when, hostname, host, ifstats, verbose)
   -- nDPI Protocols
-  for k in pairs(host["ndpi"] or {}) do
+  for k, value in pairs(host["ndpi"] or {}) do
+    local v = split(value, "|")
     ts_utils.append("host:ndpi", {ifid=ifstats.id, host=hostname, protocol=k,
-              bytes_sent=host["ndpi"][k]["bytes.sent"], bytes_rcvd=host["ndpi"][k]["bytes.rcvd"]}, when, verbose)
+              bytes_sent=v[1], bytes_rcvd=v[2]}, when, verbose)
   end
 end
 
 function rrd_dump.host_update_categories_rrds(when, hostname, host, ifstats, verbose)
   -- nDPI Protocol CATEGORIES
-  for k, cat in pairs(host["ndpi_categories"] or {}) do
+  for k, bytes in pairs(host["ndpi_categories"] or {}) do
     ts_utils.append("host:ndpi_categories", {ifid=ifstats.id, host=hostname, category=k,
-              bytes=cat["bytes"]}, when, verbose)
+              bytes=bytes}, when, verbose)
   end
 end
 
@@ -275,7 +276,7 @@ function rrd_dump.run_5min_dump(_ifname, ifstats, config, when, time_threshold, 
     end
   end
 
-  --tprint("Dump of ".. num_processed_hosts .. ": completed in " .. (os.time() - when) .. " seconds")
+  --tprint("Dump of ".. num_processed_hosts .. " hosts: completed in " .. (os.time() - when) .. " seconds")
 
   if is_rrd_creation_enabled then
     if config.l2_device_rrd_creation ~= "0" then
