@@ -157,7 +157,7 @@ if (isAdministrator()) then
       interface.loadDumpPrefs()
    end
 
-   if is_packetdump_enabled and (page == "trafficrecording") and (_SERVER["REQUEST_METHOD"] == "POST") then
+   if is_packetdump_enabled and (page == "traffic_recording") and (_SERVER["REQUEST_METHOD"] == "POST") then
       local record_traffic = false
       if not isEmptyString(_POST["record_traffic"]) then
         record_traffic = true
@@ -267,10 +267,10 @@ if is_packetdump_enabled then
    end
 
    --[[
-   if(page == "trafficrecording") then
-      print("<li class=\"active\"><a href=\""..url.."&page=trafficrecording\"><i class=\"fa fa-hdd-o fa-lg\"></i></a></li>")
+   if(page == "traffic_recording") then
+      print("<li class=\"active\"><a href=\""..url.."&page=traffic_recording\"><i class=\"fa fa-hdd-o fa-lg\"></i></a></li>")
    else
-      print("<li><a href=\""..url.."&page=trafficrecording\"><i class=\"fa fa-hdd-o fa-lg\"></i></a></li>")
+      print("<li><a href=\""..url.."&page=traffic_recording\"><i class=\"fa fa-hdd-o fa-lg\"></i></a></li>")
    end
    --]]
 end
@@ -1145,11 +1145,12 @@ if is_packetdump_enabled then
    </script>]]
 end
 
-elseif(page == "trafficrecording") then
+elseif(page == "traffic_recording") then
 
   if is_packetdump_enabled then
     local record_traffic = ntop.getCache('ntopng.prefs.'..ifstats.name..'.traffic_recording.enabled')
     local disk_space = ntop.getCache('ntopng.prefs.'..ifstats.name..'.traffic_recording.disk_space')
+    local storage_info = recording_utils.storageInfo()
 
     if record_traffic == "true" then
       record_traffic_checked = 'checked="checked"'
@@ -1165,33 +1166,46 @@ elseif(page == "trafficrecording") then
     disk_space = tostring(math.floor(tonumber(disk_space)/1024))
 
     print [[
-      <form id="trafficrecording_form" class="form-inline" method="post">
+      <form id="traffic_recording_form" class="form-inline" method="post">
         <table class="table table-striped table-bordered">
           <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
           <tr>
             <th width=30%>]] print(i18n("traffic_recording.traffic_recording")) print [[</th>
-            <td>
+            <td colspan=2>
 	      <input name="record_traffic" type="checkbox" value="1" ]] print (record_traffic_checked) print [[> ]] print(i18n("traffic_recording.enable_recording")) print [[ <span id='traffic_recording_badge' style='display: none'></span></input>
             </td>
           </tr>
-
-          <tr>
-            <th>]] print(i18n("traffic_recording.storage_dir")) print [[</th>
-            <td>]] print(dirs.storagedir) print [[</td>
-          </tr>
-
           <tr>
             <th>]] print(i18n("traffic_recording.disk_space")) print [[</th>
-            <td>
+            <td colspan=2>
               <input type="number" style="width:127px;display:inline;" class="form-control" name="disk_space" placeholder="" min="1" step="1" max="1000000" value="]] print(disk_space) print [["></input><span style="vertical-align: middle"> GB</span><br>
     <small>]] print(i18n("traffic_recording.disk_space_note")) print[[</small>
             </td>
           </tr>
+          <tr>
+            <th>]] print(i18n("traffic_recording.storage_dir")) print [[</th>
+            <td colspan=2>]] print(dirs.storagedir) print [[</td>
+          </tr>
+    ]]
+
+    print [[
+          <tr>
+            <th>]] print(i18n("traffic_recording.storage_utilization")) print [[</th>
+            <td width="15%" class="text-right">]] print(tostring(math.floor(storage_info.used/1024))) print [[GB/]] print(tostring(math.floor(storage_info.total/1024))) print [[GB</td>
+            <td>
+              <span style="width: 60%; float: left;">
+              <div class='progress'><div class='progress-bar progress-bar-warning' style='width: ]] print(storage_info.used_perc) print [[;'></div></div></span>
+            <span style="width: 40%; margin-left: 15px;">]] print(storage_info.used_perc) print [[</span>
+            </td>
+          </tr>
+    ]]
+
+    print [[
         </table>
         <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button><br><br>
       </form>
       <script>
-        aysHandleForm("#trafficrecording_form");
+        aysHandleForm("#traffic_recording_form");
       </script>
     ]]
 

@@ -76,6 +76,39 @@ local function memInfo()
   return mem_info
 end
 
+local function dirname(s)
+  s = s:gsub('/$', '')
+  local s, n = s:gsub('/[^/]*$', '')
+  if n == 1 then
+    return ternary(string.len(s) > 0, s, "/")
+  else 
+    return '.' 
+  end
+end
+
+function recording_utils.storageInfo()
+  local storage_info = {
+    path = dirs.storagedir, dev = "", mount = "",
+    total = 0, used = 0, avail = 0, used_perc = 0,
+  }
+  local root_path = storage_info.path
+  while not ntop.isdir(root_path) and string.len(root_path) > 1 do
+    root_path = dirname(root_path) 
+  end
+  local line = executeWithOuput("df "..root_path.." 2>/dev/null|tail -n1")
+  line = line:gsub('%s+', ' ')
+  local values = split(line, ' ')
+  if #values >= 6 then
+    storage_info.dev = values[1]
+    storage_info.total = tonumber(values[2])/1024
+    storage_info.used = tonumber(values[3])/1024
+    storage_info.avail = tonumber(values[4])/1024
+    storage_info.used_perc = values[5]
+    storage_info.mount = values[6]
+  end
+  return storage_info
+end
+
 function recording_utils.createConfig(ifname, params)
   local conf_dir = dirs.workingdir.."/n2disk"
   local filename = conf_dir.."/n2disk-"..ifname..".conf"
@@ -192,6 +225,9 @@ function recording_utils.createConfig(ifname, params)
   end
   f:write("\n")
   f:write("--index-on-compressor-threads\n")
+  if not isEmptyString(prefs.user) then
+    f:write("-u="..prefs.user.."\n");
+  end
   if config.zmq_endpoint ~= nil then
     f:write("--zmq="..config.zmq_endpoint.."\n")
     f:write("--zmq-export-flows\n")

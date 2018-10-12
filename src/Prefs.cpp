@@ -1627,6 +1627,7 @@ void Prefs::lua(lua_State* vm) {
   lua_push_str_table_entry(vm, "ndpi_proto_file", ndpi_proto_path ? ndpi_proto_path : (char*)"");
 
   lua_push_str_table_entry(vm, "cpu_affinity", cpu_affinity ? cpu_affinity : (char*)"");
+  lua_push_str_table_entry(vm, "user", change_user ? user : (char*)"");
 }
 
 /* *************************************** */
