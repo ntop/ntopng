@@ -705,16 +705,4 @@ class NetworkInterface : public Checkpointable {
 #endif
 };
 
-class NetworkInterfaceTsPoint: public TimeseriesPoint {
- public:
-  nDPIStats ndpi;
-  LocalTrafficStats local_stats;
-  u_int hosts, local_hosts;
-  u_int devices, flows, http_hosts;
-  TcpPacketStats tcpPacketStats;
-  PacketStats packetStats;
-
-  virtual void lua(lua_State* vm, NetworkInterface *iface);
-};
-
 #endif /* _NETWORK_INTERFACE_H_ */

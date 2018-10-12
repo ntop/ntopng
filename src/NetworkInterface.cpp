@@ -350,25 +350,6 @@ void NetworkInterface::init() {
 
 /* **************************************************** */
 
-void NetworkInterfaceTsPoint::lua(lua_State* vm, NetworkInterface *iface) {
-  ndpi.lua(iface, vm, true /* with categories */);
-  local_stats.lua(vm);
-  tcpPacketStats.lua(vm, "tcpPacketStats");
-  packetStats.lua(vm, "pktSizeDistribution");
-
-  lua_newtable(vm);
-  lua_push_int_table_entry(vm, "hosts", hosts);
-  lua_push_int_table_entry(vm, "local_hosts", local_hosts);
-  lua_push_int_table_entry(vm, "devices", devices);
-  lua_push_int_table_entry(vm, "flows", flows);
-  lua_push_int_table_entry(vm, "http_hosts", http_hosts);
-  lua_pushstring(vm, "stats");
-  lua_insert(vm, -2);
-  lua_settable(vm, -3);
-}
-
-/* **************************************************** */
-
 #ifdef NTOPNG_PRO
 
 void NetworkInterface::initL7Policer() {

@@ -249,6 +249,7 @@ using namespace std;
 #include "TimeseriesRing.h"
 #include "HostTimeseriesPoint.h"
 #include "SPSCQueue.h"
+#include "NetworkInterfaceTsPoint.h"
 #include "NetworkInterface.h"
 #ifndef HAVE_NEDGE
 #include "PcapInterface.h"
