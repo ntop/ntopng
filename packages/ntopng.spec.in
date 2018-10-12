@@ -39,6 +39,7 @@ fi
 mkdir -p $RPM_BUILD_ROOT/usr/bin $RPM_BUILD_ROOT/usr/share/ntopng $RPM_BUILD_ROOT/usr/share/man/man8 
 mkdir -p $RPM_BUILD_ROOT/var/lib/ntopng
 mkdir -p $RPM_BUILD_ROOT/etc/logrotate.d
+mkdir -p $RPM_BUILD_ROOT/etc/sudoers.d/
 %if 0%{?centos_ver} != 7
 mkdir -p $RPM_BUILD_ROOT/etc/init.d 
 %endif
