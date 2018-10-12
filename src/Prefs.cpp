@@ -62,7 +62,7 @@ Prefs::Prefs(Ntop *_ntop) {
   docs_dir = strdup(CONST_DEFAULT_DOCS_DIR);
   scripts_dir = strdup(CONST_DEFAULT_SCRIPTS_DIR);
   callbacks_dir = strdup(CONST_DEFAULT_CALLBACKS_DIR);
-  storage_dir = strdup(CONST_DEFAULT_STORAGE_DIR);
+  storage_dir = NULL;
   prefs_dir = NULL;
   config_file_path = ndpi_proto_path = NULL;
   http_port = CONST_DEFAULT_NTOP_PORT;
@@ -241,6 +241,9 @@ void usage() {
 	 "                                    | and deserialize file\n"
 	 "                                    | containing runtime preferences.\n"
 	 "                                    | Default: %s\n"
+	 "[--storage-dir|-5] <path>           | Storage directory used for continuous traffic\n"
+	 "                                    | recording\n"
+	 "                                    | Default: %s\n"
 	 "[--no-promisc|-u]                   | Don't set the interface in promisc mode.\n"
 	 "[--http-port|-w] <[addr:]port>      | HTTP. Set to 0 to disable http server.\n"
 	 "                                    | Addr can be an IPv4 (192.168.1.1)\n"
@@ -396,6 +399,7 @@ void usage() {
 #endif
 	 CONST_DEFAULT_DOCS_DIR, CONST_DEFAULT_SCRIPTS_DIR,
          CONST_DEFAULT_CALLBACKS_DIR,
+	 CONST_DEFAULT_DATA_DIR,
 	 CONST_DEFAULT_DATA_DIR,
 	 CONST_DEFAULT_NTOP_PORT, CONST_DEFAULT_NTOP_PORT+1,
          CONST_DEFAULT_NTOP_USER,
@@ -703,6 +707,7 @@ static const struct option long_options[] = {
   { "scripts-dir",                       required_argument, NULL, '2' },
   { "callbacks-dir",                     required_argument, NULL, '3' },
   { "prefs-dir",                         required_argument, NULL, '4' },
+  { "storage-dir",                       required_argument, NULL, '5' },
   { "online-check",                      no_argument,       NULL, 209 },
   { "print-ndpi-protocols",              no_argument,       NULL, 210 },
   { "online-license-check",              no_argument,       NULL, 211 },
@@ -1059,6 +1064,11 @@ int Prefs::setOption(int optkey, char *optarg) {
     prefs_dir = strdup(optarg);
     break;
 
+  case '5':
+    if(storage_dir) free(storage_dir);
+    storage_dir = strdup(optarg);
+    break;
+
   case 'l':
     switch(atoi(optarg)) {
     case 0:
@@ -1350,10 +1360,12 @@ int Prefs::checkOptions() {
   if(!prefs_dir)
     prefs_dir = strdup(ntop->get_working_dir());
 
+  if(!storage_dir)
+    storage_dir = strdup(ntop->get_working_dir());
+
   docs_dir      = ntop->getValidPath(docs_dir);
   scripts_dir   = ntop->getValidPath(scripts_dir);
   callbacks_dir = ntop->getValidPath(callbacks_dir);
-  storage_dir   = ntop->getValidPath(storage_dir);
 
   if(!data_dir)         { ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to locate data dir");      return(-1); }
   if(!docs_dir[0])      { ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to locate docs dir");      return(-1); }

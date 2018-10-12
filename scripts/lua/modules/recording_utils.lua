@@ -210,9 +210,9 @@ function recording_utils.createConfig(ifname, params)
   end
 
   f:write("--interface="..ifname.."\n")
-  f:write("--dump-directory="..storage_path.."/n2disk/"..ifname.."\n")
+  f:write("--dump-directory="..storage_path.."/pcap/"..ifname.."\n")
   f:write("--index\n")
-  f:write("--timeline-dir="..storage_path.."/n2disk/"..ifname.."\n")
+  f:write("--timeline-dir="..storage_path.."/pcap/"..ifname.."\n")
   f:write("--buffer-len="..config.buffer_size.."\n")
   f:write("--max-file-len="..config.max_file_size.."\n")
   f:write("--disk-limit="..config.max_disk_space.."\n")
