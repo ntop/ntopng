@@ -346,14 +346,6 @@ end
 
 -- ################################################################
 
-function delete_data_utils.delete_inactive_interfaces()
-   local inactive_if_list = delete_data_utils.list_inactive_interfaces()
-
-   return delete_interfaces_from_list(inactive_if_list)
-end
-
--- ################################################################
-
 function delete_data_utils.delete_all_interfaces_data()
    -- Deleting all interfaces can be a risky operation as it includes active interfaces.
    -- Currently we are using this only in boot.lua (that is, before interfaces registration)
@@ -417,12 +409,31 @@ end
 
 function delete_data_utils.delete_pcap_dump_interfaces_data()
    local if_list = ntop.getHashAllCache(PCAP_DUMP_INTERFACES_DELETE_HASH)
+   local res = {}
 
    if if_list and table.len(if_list) > 0 then
-      local res = delete_interfaces_from_list(if_list)
+      res = delete_interfaces_from_list(if_list)
 
       ntop.delCache(PCAP_DUMP_INTERFACES_DELETE_HASH)
    end
+
+   return res
+end
+
+-- ################################################################
+
+function delete_data_utils.delete_inactive_interfaces()
+   delete_data_utils.delete_pcap_dump_interfaces_data()
+
+   local inactive_if_list = delete_data_utils.list_inactive_interfaces()
+
+   local res = delete_interfaces_from_list(inactive_if_list)
+
+   for if_id, _ in pairs(inactive_if_list) do
+      ntop.delHashCache(PCAP_DUMP_INTERFACES_DELETE_HASH, if_id)
+   end
+
+   return res
 end
 
 -- ################################################################
