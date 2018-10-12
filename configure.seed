@@ -119,11 +119,13 @@ AC_ARG_WITH(ndpi-includes,
 
 EBPF_HOME="../ebpf/ebpfflowlib/"
 AC_MSG_CHECKING(for ebpfflowlib)
-if test ! -z "$EBPF_HOME" ; then :
+if test -d "$EBPF_HOME" ; then :
        AC_MSG_RESULT(found $EBPF_HOME)
        PRO_INCS="${PRO_INCS} -I ${EBPF_HOME}"
        PRO_LIBS="${PRO_LIBS} -L${EBPF_HOME} -lebpfflow"
        AC_DEFINE_UNQUOTED(HAVE_EBPF, 1, [Building with eBPF support])
+else
+       AC_MSG_RESULT(not found)
 fi
 
 PKG_CHECK_MODULES([NDPI], [libndpi >= 2.0], [
