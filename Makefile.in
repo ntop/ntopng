@@ -166,7 +166,7 @@ HEADERS = $(wildcard include/*.h) @PRO_HEADERS@
 
 .PRECIOUS: $(TARGET) $(OBJECTS)
 
-$(TARGET): $(OBJECTS) $(LIBRRDTOOL) Makefile
+$(TARGET): $(OBJECTS) $(LIB_TARGETS) Makefile
 	$(GPP) $(OBJECTS) -Wall $(NLIBS) -o $@
 
 $(LUAJIT_LIB):
