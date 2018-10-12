@@ -6365,7 +6365,7 @@ bool NetworkInterface::setMacDeviceType(char *strmac,
     oldtype = m->getDeviceType();
 
     if(alwaysOverwrite || (oldtype == device_unknown)) {
-      m->setDeviceType(dtype);
+      m->forceDeviceType(dtype);
 
       if(alwaysOverwrite && (oldtype != device_unknown) && (oldtype != dtype))
         ntop->getTrace()->traceEvent(TRACE_INFO, "Device %s type changed from %d to %d\n",

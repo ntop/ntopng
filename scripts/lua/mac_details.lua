@@ -361,7 +361,6 @@ elseif(page == "historical") then
    })
 
 elseif(page == "config") then
-   
    if(not isAdministrator()) then
       return
    end

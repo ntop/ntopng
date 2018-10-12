@@ -36,6 +36,9 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6])
 #endif
   ndpiStats = NULL, model = NULL, ssid = NULL;
 
+  char redis_key[64], buf1[64], rsp[8];
+  char *mac_ptr = Utils::formatMac(mac, buf1, sizeof(buf1));
+
   if(ntop->getMacManufacturers()) {
     manuf = ntop->getMacManufacturers()->getManufacturer(mac);
     if(manuf) checkDeviceTypeFromManufacturer();
@@ -62,10 +65,9 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6])
    * We only need redis MAC data to show Unassigned Devices in host pools view.
    */
   if(!special_mac) {
-    char redis_key[64], buf1[64], rsp[8];
     char *json = NULL;
     u_int json_len = 0;
-    char *mac_ptr = Utils::formatMac(mac, buf1, sizeof(buf1));
+
     snprintf(redis_key, sizeof(redis_key), MAC_SERIALIZED_KEY, iface->get_id(), mac_ptr);
 
     if((json_len = ntop->getRedis()->len(redis_key)) > 0
@@ -82,12 +84,12 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6])
 
       if(json) free(json);
     }
-
-    // Load the user defined device type, if available
-    snprintf(redis_key, sizeof(redis_key), MAC_CUSTOM_DEVICE_TYPE, mac_ptr);
-    if((ntop->getRedis()->get(redis_key, rsp, sizeof(rsp)) == 0) && rsp[0])
-      setDeviceType((DeviceType) atoi(rsp));
   }
+
+  // Load the user defined device type, if available
+  snprintf(redis_key, sizeof(redis_key), MAC_CUSTOM_DEVICE_TYPE, mac_ptr);
+  if((ntop->getRedis()->get(redis_key, rsp, sizeof(rsp)) == 0) && rsp[0])
+    forceDeviceType((DeviceType)atoi(rsp));
 
   updateHostPool(true /* Inline */);
 }

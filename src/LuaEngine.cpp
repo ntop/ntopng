@@ -1039,7 +1039,8 @@ static int ntop_set_mac_device_type(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TBOOLEAN) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   overwriteType = (bool)lua_toboolean(vm, 3);
 
-  if((!ntop_interface) || (!mac)
+  if((!ntop_interface)
+     || (!mac)
      || (!ntop_interface->setMacDeviceType(mac, dtype, overwriteType)))
     return(CONST_LUA_ERROR);
 

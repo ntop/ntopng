@@ -101,7 +101,18 @@ class Mac : public GenericHashEntry, public GenericTrafficElement {
   #endif
   inline void setSeenIface(u_int32_t idx)  { bridge_seen_iface_id = idx; setSourceMac(); }
   inline u_int32_t getSeenIface()     { return(bridge_seen_iface_id); }
-  inline void setDeviceType(DeviceType devtype) { if(!lockDeviceTypeChanges) device_type = devtype; }
+  inline void setDeviceType(DeviceType devtype) {
+    /* Called by ntopng when it can guess a device type during normal packet processing */
+    if(!lockDeviceTypeChanges)
+      device_type = devtype;
+  }
+  inline void forceDeviceType(DeviceType devtype) {
+    /* Called when a user, from the GUI, wants to change the device type and specify a custom type */
+    device_type = devtype;
+    /* If the user specifies a custom type, then we want ntopng to stop guessing other types for
+       the same device */
+    if(!lockDeviceTypeChanges) lockDeviceTypeChanges = true;
+  }
   inline DeviceType getDeviceType()        { return (device_type); }
   inline u_int64_t  getNumSentArp()   { return (u_int64_t)arp_stats.sent_requests + arp_stats.sent_replies; }
   inline u_int64_t  getNumRcvdArp()   { return (u_int64_t)arp_stats.rcvd_requests + arp_stats.rcvd_replies; }
