@@ -420,10 +420,10 @@ print [[/lua/if_stats.lua\"><i class=\"fa fa-warning\" style=\"color: #B94A48;\"
 	    }
 
 	    if(typeof rsp.traffic_recording !== "undefined") {
-                if (rsp.traffic_recording == "recording") status_label = "success";
-                else status_label = "danger";
+                if (rsp.traffic_recording == "recording") { status_label="primary"; status_title="]] print(i18n("traffic_recording.recording")) print [["; }
+                else { status_label = "danger"; status_title = "]] print(i18n("traffic_recording.failure")) print [["; }
    	        msg += "&nbsp;<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/traffic_recording_status.lua\">";
- 	        msg += "<span class=\"label label-"+status_label+"\" title=\""+addCommas(rsp.traffic_recording)+"\">";
+ 	        msg += "<span class=\"label label-"+status_label+"\" title=\""+addCommas(status_title)+"\">";
 		msg += "<i class=\"fa fa-hdd-o fa-lg\"></i></a></span>";
 	    }
 

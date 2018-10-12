@@ -266,15 +266,13 @@ if is_packetdump_enabled then
       print("<li><a href=\""..url.."&page=packetdump\"><i class=\"fa fa-hdd-o fa-lg\"></i></a></li>")
    end
 
-   --[[
    if recording_utils.isAvailable() then
       if(page == "traffic_recording") then
-         print("<li class=\"active\"><a href=\""..url.."&page=traffic_recording\"><i class=\"fa fa-hdd-o fa-lg\"></i></a></li>")
+         print("<li class=\"active\"><a href=\""..url.."&page=traffic_recording\"><i class=\"fa fa-caret-square-o-right fa-lg\"></i></a></li>")
       else
-         print("<li><a href=\""..url.."&page=traffic_recording\"><i class=\"fa fa-hdd-o fa-lg\"></i></a></li>")
+         print("<li><a href=\""..url.."&page=traffic_recording\"><i class=\"fa fa-caret-square-o-right fa-lg\"></i></a></li>")
       end
    end
-   --]]
 end
 
 if(isAdministrator() and areAlertsEnabled() and not ifstats.isView) then
@@ -1174,7 +1172,7 @@ elseif(page == "traffic_recording") then
           <tr>
             <th width=30%>]] print(i18n("traffic_recording.traffic_recording")) print [[</th>
             <td colspan=2>
-	      <input name="record_traffic" type="checkbox" value="1" ]] print (record_traffic_checked) print [[> ]] print(i18n("traffic_recording.enable_recording")) print [[</input>
+	      <input name="record_traffic" type="checkbox" value="1" ]] print (record_traffic_checked) print [[> <i class="fa fa-hdd-o fa-lg"></i> ]] print(i18n("traffic_recording.enable_recording")) print [[</input>
             </td>
           </tr>
           <tr>
