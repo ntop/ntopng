@@ -119,7 +119,7 @@ AC_ARG_WITH(ndpi-includes,
 
 EBPF_HOME="../ebpf/ebpfflowlib/"
 AC_MSG_CHECKING(for ebpfflowlib)
-if test -d "$EBPF_HOME" ; then :
+if test -f "$EBPF_HOME/libebpfflow.a" ; then :
        AC_MSG_RESULT(found $EBPF_HOME)
        PRO_INCS="${PRO_INCS} -I ${EBPF_HOME}"
        PRO_LIBS="${PRO_LIBS} -L${EBPF_HOME} -lebpfflow"
