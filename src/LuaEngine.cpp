@@ -2306,11 +2306,32 @@ static int ntop_send_udp_data(lua_State* vm) {
 
 /* ****************************************** */
 
-#ifdef NTOPNG_PRO
+static inline int concat_table_fields(lua_State *L, int index, char *buf, int size) {
+  bool first = true;
+
+  // table traversal from https://www.lua.org/ftp/refman-5.0.pdf
+  lua_pushnil(L);
+
+  while(lua_next(L, index) != 0) {
+    int l = snprintf(buf, size, "%s%s=%s", first ? "" : ",",
+         lua_tostring(L, -2), lua_tostring(L, -1));
+    buf += l;
+    size -= l;
+    first = false;
+
+    lua_pop(L, 1);
+  }
+
+  return size;
+}
+
+/* ****************************************** */
 
 static int ntop_append_influx_db(lua_State* vm) {
-  char *data;
+  char data[256], *schema;
+  int buflen = sizeof(data);
   bool rv = false;
+  time_t tstamp;
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
   if(!ntop_interface)
@@ -2319,7 +2340,20 @@ static int ntop_append_influx_db(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  data = (char*)lua_tostring(vm, 1);
+  schema = (char*)lua_tostring(vm, 1);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  tstamp = (time_t)lua_tonumber(vm, 2);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TTABLE) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TTABLE) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+
+  // "iface:traffic,ifid=0 bytes=0 1539358699000000000\n"
+  buflen -= snprintf(data, buflen, "%s,", schema);
+  buflen = concat_table_fields(vm, 3, data + sizeof(data) - buflen, buflen);
+  buflen -= snprintf(data + sizeof(data) - buflen, buflen, " ");
+  buflen = concat_table_fields(vm, 4, data + sizeof(data) - buflen, buflen);
+  buflen -= snprintf(data + sizeof(data) - buflen, buflen, " %lu000000000\n", tstamp);
 
   if(ntop_interface && ntop_interface->getTSExporter()) {
     ntop_interface->getTSExporter()->exportData(data);
@@ -2329,8 +2363,6 @@ static int ntop_append_influx_db(lua_State* vm) {
   lua_pushboolean(vm, rv);
   return(CONST_LUA_OK);
 }
-
-#endif
 
 /* ****************************************** */
 
@@ -7865,6 +7897,9 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getTopPoolsProtos",                ntop_get_top_pools_protos             },
   { "getHostPoolsInfo",                 ntop_get_host_pools_info              },
 
+  /* InfluxDB */
+  { "appendInfluxDB",                   ntop_append_influx_db                 },
+
 #ifdef NTOPNG_PRO
   { "resetPoolsQuotas",                 ntop_reset_pools_quotas               },
   { "getHostPoolsStats",                ntop_get_host_pool_interface_stats    },
@@ -7875,9 +7910,6 @@ static const luaL_Reg ntop_interface_reg[] = {
 
   /* SNMP */
   { "getSNMPStats",                     ntop_interface_get_snmp_stats         },
-
-  /* InfluxDB */
-  { "appendInfluxDB",                   ntop_append_influx_db                 },
 
   /* Flow Devices */
   { "getFlowDevices",                   ntop_get_flow_devices                  },

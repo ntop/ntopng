@@ -81,9 +81,15 @@ end
 
 -- ##############################################
 
+local cached_active_drivers = nil
+
 --! @brief Return a list of active timeseries drivers.
 --! @return list of driver objects.
 function ts_utils.listActiveDrivers()
+  if cached_active_drivers ~= nil then
+    return cached_active_drivers
+  end
+
   local driver = ts_utils.getDriverName()
   local active_drivers = {}
 
@@ -102,6 +108,9 @@ function ts_utils.listActiveDrivers()
     })
     active_drivers[#active_drivers + 1] = influxdb_driver
   end
+
+  -- cache for future calls
+  cached_active_drivers = active_drivers
 
   return active_drivers
 end

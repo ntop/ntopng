@@ -39,14 +39,7 @@ end
 -- ##############################################
 
 function driver:append(schema, timestamp, tags, metrics)
-  local tags_string = table.tconcat(tags, "=", ",")
-  local metrics_string = table.tconcat(metrics, "=", ",")
-
-  -- E.g. iface:ndpi_categories,category=Network,ifid=0 bytes=371707
-  -- NB: time format is in nanoseconds UTC
-  local api_line = schema.name .. "," .. tags_string .. " " .. metrics_string .. " " .. timestamp .. "000000000\n"
-
-  return interface.appendInfluxDB(api_line)
+  return interface.appendInfluxDB(schema.name, timestamp, tags, metrics)
 end
 
 -- ##############################################
