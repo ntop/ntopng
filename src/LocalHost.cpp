@@ -762,6 +762,8 @@ void LocalHost::setOS(char *_os) {
 /* *************************************** */
 
 void LocalHost::tsLua(lua_State* vm) {
+  char buf_id[64], *host_id;
+
   if(!ts_ring || !TimeseriesRing::isRingEnabled(ntop->getPrefs())) {
     /* Use real time data */
     HostTimeseriesPoint pt;
@@ -770,6 +772,11 @@ void LocalHost::tsLua(lua_State* vm) {
     TimeseriesRing::luaSinglePoint(vm, iface, &pt);
   } else
     ts_ring->lua(vm);
+
+  host_id = get_hostkey(buf_id, sizeof(buf_id));
+  lua_pushstring(vm, host_id);
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
 }
 
 /* *************************************** */

@@ -740,7 +740,7 @@ static int ntop_get_ndpi_protocol_breed(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_get_batched_interface_hosts(lua_State* vm, LocationPolicy location) {
+static int ntop_get_batched_interface_hosts(lua_State* vm, LocationPolicy location, bool tsLua=false) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   bool show_details = true, filtered_hosts = false, blacklisted_hosts = false, hide_top_hidden = false;
   char *sortColumn = (char*)"column_ip", *country = NULL, *os_filter = NULL, *mac_filter = NULL;
@@ -772,7 +772,7 @@ static int ntop_get_batched_interface_hosts(lua_State* vm, LocationPolicy locati
 					   vlan_filter, os_filter, asn_filter,
 					   network_filter, pool_filter, filtered_hosts, blacklisted_hosts, hide_top_hidden,
 					   ipver_filter, proto_filter,
-					   traffic_type_filter,
+					   traffic_type_filter, tsLua /* host->tsLua | host->lua */,
 					   sortColumn, maxHits,
 					   toSkip, a2zSortOrder) < 0)
     return(CONST_LUA_ERROR);
@@ -830,7 +830,7 @@ static int ntop_get_interface_hosts(lua_State* vm, LocationPolicy location) {
 					   vlan_filter, os_filter, asn_filter,
 					   network_filter, pool_filter, filtered_hosts, blacklisted_hosts, hide_top_hidden,
 					   ipver_filter, proto_filter,
-					   traffic_type_filter,
+					   traffic_type_filter, false /* host->lua */,
 					   sortColumn, maxHits,
 					   toSkip, a2zSortOrder) < 0)
     return(CONST_LUA_ERROR);
@@ -1428,6 +1428,11 @@ static int ntop_get_batched_interface_local_hosts_info(lua_State* vm) {
 static int ntop_get_batched_interface_remote_hosts_info(lua_State* vm) {
   return(ntop_get_batched_interface_hosts(vm, location_remote_only));
 }
+
+static int ntop_get_batched_interface_local_hosts_ts(lua_State* vm) {
+  return(ntop_get_batched_interface_hosts(vm, location_local_only, true /* timeseries */));
+}
+
 
 /* ****************************************** */
 
@@ -7776,6 +7781,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getBatchedHostsInfo",        ntop_get_batched_interface_hosts_info },
   { "getBatchedLocalHostsInfo",   ntop_get_batched_interface_local_hosts_info },
   { "getBatchedRemoteHostsInfo",  ntop_get_batched_interface_remote_hosts_info },
+  { "getBatchedLocalHostsTs",   ntop_get_batched_interface_local_hosts_ts },
   { "getHostInfo",              ntop_get_interface_host_info },
   { "getHostTimeseries",        ntop_get_interface_host_timeseries },
   { "getHostCountry",           ntop_get_interface_host_country },

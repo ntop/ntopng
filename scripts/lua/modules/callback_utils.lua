@@ -89,6 +89,11 @@ local function getBatchedIterator(batched_function, field, function_params)
    end
 end
 
+-- A batched iterator over the local hosts with timeseries
+function callback_utils.getLocalHostsTsIterator(...)
+   return getBatchedIterator(interface.getBatchedLocalHostsTs, "hosts", { ... })
+end
+
 -- A batched iterator over the local hosts
 function callback_utils.getLocalHostsIterator(...)
    return getBatchedIterator(interface.getBatchedLocalHostsInfo, "hosts", { ... })
@@ -111,19 +116,19 @@ end
 function callback_utils.foreachLocalRRDHost(ifname, deadline, with_ts, callback)
    interface.select(ifname)
 
-   local iterator = callback_utils.getLocalHostsIterator(false --[[ no details ]])
+   local iterator
 
-   for hostname, hoststats in iterator do
-      local host_ts = nil
+   if with_ts then
+      iterator = callback_utils.getLocalHostsTsIterator()
+   else
+      iterator = callback_utils.getLocalHostsIterator(false --[[no details]])
+   end
 
+   for hostname, host_ts in iterator do
       if(ntop.isShutdown()) then return true end
       if ((deadline ~= nil) and (os.time() >= deadline)) then
 	 -- Out of time
 	 return false
-      end
-
-      if with_ts then
-         host_ts = interface.getHostTimeseries(hostname) or {}
       end
 
 	 if callback(hostname, host_ts) == false then

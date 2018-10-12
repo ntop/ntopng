@@ -4584,7 +4584,7 @@ int NetworkInterface::getActiveHostsList(lua_State* vm,
 					 u_int16_t pool_filter, bool filtered_hosts,
 					 bool blacklisted_hosts, bool hide_top_hidden,
 					 u_int8_t ipver_filter, int proto_filter,
-					 TrafficType traffic_type_filter,
+					 TrafficType traffic_type_filter, bool tsLua,
 					 char *sortColumn, u_int32_t maxHits,
 					 u_int32_t toSkip, bool a2zSortOrder) {
   struct flowHostRetriever retriever;
@@ -4624,12 +4624,20 @@ int NetworkInterface::getActiveHostsList(lua_State* vm,
   if(a2zSortOrder) {
     for(int i = toSkip, num=0; i<(int)retriever.actNumEntries && num < (int)maxHits; i++, num++) {
       Host *h = retriever.elems[i].hostValue;
-      h->lua(vm, NULL /* Already checked */, host_details, false, false, true);
+
+      if(!tsLua)
+	h->lua(vm, NULL /* Already checked */, host_details, false, false, true);
+      else
+	h->tsLua(vm);
     }
   } else {
     for(int i = (retriever.actNumEntries-1-toSkip), num=0; i >= 0 && num < (int)maxHits; i--, num++) {
       Host *h = retriever.elems[i].hostValue;
-      h->lua(vm, NULL /* Already checked */, host_details, false, false, true);
+
+      if(!tsLua)
+	h->lua(vm, NULL /* Already checked */, host_details, false, false, true);
+      else
+	h->tsLua(vm);
     }
   }
 
