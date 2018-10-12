@@ -62,7 +62,7 @@ Ntop::Ntop(char *appName) {
   num_defined_interfaces = 0;
   iface = NULL;
   start_time = 0, epoch_buf[0] = '\0'; /* It will be initialized by start() */
-  
+
   httpd = NULL, geo = NULL, mac_manufacturers = NULL;
 
 #ifdef WIN32
@@ -70,10 +70,10 @@ Ntop::Ntop(char *appName) {
     strcpy(working_dir, "C:\\Windows\\Temp\\ntopng"); // Fallback: it should never happen
   } else {
     int l = strlen(working_dir);
-    
+
     snprintf(&working_dir[l], sizeof(working_dir), "%s", "\\ntopng");
   }
-  
+
   // Get the full path and filename of this program
   if(GetModuleFileName(NULL, startup_dir, sizeof(startup_dir)) == 0) {
     startup_dir[0] = '\0';
@@ -142,7 +142,7 @@ Ntop::Ntop(char *appName) {
   ntop->getTrace()->traceEvent(TRACE_INFO, "System Timezone offset: %+ld", time_offset);
 
   initAllowedProtocolPresets();
-  
+
   udp_socket = socket(AF_INET, SOCK_DGRAM, 0);
 
 #ifndef WIN32
@@ -292,7 +292,7 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
     for(int i=0; i<NUM_NSERIES; i++) {
       char path[MAX_PATH];
       const char *base;
-      
+
       switch(i) {
       case 0: base = "sec"; break;
       case 1: base = "min"; break;
@@ -300,9 +300,9 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
       default:
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error");
       }
-      
+
       snprintf(path, sizeof(path), "%s/nseries/%s", ntop->get_working_dir(), base);
-      
+
       if(!Utils::mkdir_tree(path))
 	ntop->getTrace()->traceEvent(TRACE_WARNING,
 				     "Unable to create directory %s: nSeries will be disabled", path);
@@ -377,6 +377,17 @@ void Ntop::createExportInterface() {
 
 /* ******************************************* */
 
+#ifdef HAVE_EBPF
+static void* ebpfLoopFctn(void* ptr) {
+  Ntop *ntop = (Ntop*)ptr;
+
+  ntop->getPro()->ebpfLoop();
+  return(NULL);
+}
+#endif
+
+/* ******************************************* */
+
 void Ntop::start() {
   char daybuf[64], buf[32];
   time_t when = time(NULL);
@@ -436,15 +447,21 @@ void Ntop::start() {
     get_HTTPserver()->startCaptiveServer();
 #endif
 
-  for(int i=0; i<num_defined_interfaces; i++) {
+  for(int i=0; i<num_defined_interfaces; i++)
     iface[i]->startPacketPolling();
-  }
 
   sleep(2);
 
-  for(int i=0; i<num_defined_interfaces; i++) {
+  for(int i=0; i<num_defined_interfaces; i++)
     iface[i]->checkPointCounters(true); /* Reset drop counters */
+
+#ifdef HAVE_EBPF
+  {
+    pthread_t ebpfLoop;
+
+    pthread_create(&ebpfLoop, NULL, ebpfLoopFctn, (void*)this);
   }
+#endif
 
   while((!globals->isShutdown()) && (!globals->isShutdownRequested())) {
     struct timeval begin, end;
@@ -804,7 +821,7 @@ void Ntop::getUsers(lua_State* vm) {
   lua_newtable(vm);
 
   if((rc = ntop->getRedis()->keys("ntopng.user.*.password", &usernames)) <= 0)
-    return;  
+    return;
 
   if((key = (char*)malloc(CONST_MAX_LEN_REDIS_VALUE)) == NULL)
     return;
@@ -812,7 +829,7 @@ void Ntop::getUsers(lua_State* vm) {
     free(key);
     return;
   }
-  
+
   for(i = 0; i < rc; i++) {
     if(usernames[i] == NULL) continue; /* safety check */
     if(strtok_r(usernames[i], ".", &holder) == NULL) continue;
@@ -930,7 +947,7 @@ bool Ntop::getInterfaceAllowed(lua_State* vm, char *ifname) const {
     ifname = NULL;
     return false;
   }
-  
+
   strncpy(ifname, allowed_ifname, strlen(allowed_ifname));
   return true;
 }
@@ -940,12 +957,12 @@ bool Ntop::getInterfaceAllowed(lua_State* vm, char *ifname) const {
 bool Ntop::isInterfaceAllowed(lua_State* vm, const char *ifname) const {
   char *allowed_ifname;
   bool ret;
-    
+
   if(vm == NULL || ifname == NULL)
-    return true; /* Always return true when no lua state is passed */  
+    return true; /* Always return true when no lua state is passed */
 
   allowed_ifname = getLuaVMUserdata(vm, allowed_ifname);
-  
+
   if((allowed_ifname == NULL) || (allowed_ifname[0] == '\0')) {
     ntop->getTrace()->traceEvent(TRACE_DEBUG,
 				 "No allowed interface found for %s", ifname);
@@ -1712,29 +1729,29 @@ void Ntop::shutdownAll() {
   ThreadedActivity *shutdown_activity;
 
   if(pa) pa->sendShutdownSignal();
-  
+
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Terminating periodic activities");
-  
+
   /* Wait until currently executing periodic activities are completed,
    Periodic activites should not run during interfaces shutdown */
   ntop->shutdownPeriodicActivities();
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Executing shutdown script");
-  
+
   /* Exec shutdown script before shutting down ntopng */
   if((shutdown_activity = new ThreadedActivity(SHUTDOWN_SCRIPT_PATH))) {
     /* Don't call run() as by the time the script will be run the delete below will free the memory */
     shutdown_activity->runScript();
     delete shutdown_activity;
-  }    
+  }
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Terminating network interfaces");
-  
+
   /* Now it is time to trear down running interfaces */
   ntop->sendNetworkInterfacesTermination();
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Waiting for the application to shutdown");
-  
+
   ntop->getGlobals()->shutdown();
   sleep(2); /* Wait until all threads know that we're shutting down... */
   ntop->shutdown();
@@ -1765,7 +1782,7 @@ void Ntop::loadTrackers() {
       return;
     }
 
-	while (fgets(line, MAX_PATH, fd) != NULL)
+    while(fgets(line, MAX_PATH, fd) != NULL)
       ndpi_add_string_to_automa(trackers_automa, line);
 
     fclose(fd);
@@ -1803,7 +1820,7 @@ void Ntop::refreshAllowedProtocolPresets(DeviceType device_type, bool client, lu
   if (client) NDPI_BITMASK_RESET(b->clientAllowed);
   else        NDPI_BITMASK_RESET(b->serverAllowed);
 
-  while (lua_next(L, index) != 0) {
+  while(lua_next(L, index) != 0) {
     u_int key_proto = lua_tointeger(L, -2);
     int t = lua_type(L, -1);
 

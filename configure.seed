@@ -122,7 +122,7 @@ AC_MSG_CHECKING(for ebpfflowlib)
 if test -f "$EBPF_HOME/libebpfflow.a" ; then :
        AC_MSG_RESULT(found $EBPF_HOME)
        PRO_INCS="${PRO_INCS} -I ${EBPF_HOME}"
-       PRO_LIBS="${PRO_LIBS} -L${EBPF_HOME} -lebpfflow"
+       PRO_LIBS="${PRO_LIBS} -L${EBPF_HOME} -lebpfflow -lbcc"
        AC_DEFINE_UNQUOTED(HAVE_EBPF, 1, [Building with eBPF support])
 else
        AC_MSG_RESULT(not found)
