@@ -85,6 +85,11 @@ class NetworkInterface : public Checkpointable {
   NetworkDiscovery *discovery;
   MDNS *mdns;
 
+#ifdef HAVE_EBPF
+  /* eBPF */
+  SPSCQueue *ebpfEvents;
+#endif
+  
   /* Live Capture */
   Mutex active_captures_lock;
   u_int8_t num_live_captures;
@@ -694,6 +699,10 @@ class NetworkInterface : public Checkpointable {
   virtual bool read_from_pcap_dump()         { return(false); };
   void makeTsPoint(NetworkInterfaceTsPoint *pt);
   void tsLua(lua_State* vm);
+#ifdef HAVE_EBFF
+  inline void enqueueeBPFEvent(void *event)  { if(ebpfEvents) ebpfEvents->enqueue(event, false);        }
+  inline bool dequeueeBPFEvent(void **event) { return(ebpfEvents ? ebpfEvents->dequeue(event) : false); }
+#endif
 };
 
 class NetworkInterfaceTsPoint: public TimeseriesPoint {

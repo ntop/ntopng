@@ -342,6 +342,10 @@ void NetworkInterface::init() {
       if(TimeseriesRing::isRingEnabled(ntop->getPrefs()))
 	ts_ring = new TimeseriesRing(this);
     }
+
+#ifdef HAVE_EBPF
+    ebpfEvents = new SPSCQueue();
+#endif
 }
 
 /* **************************************************** */
@@ -736,6 +740,11 @@ void NetworkInterface::deleteDataStructures() {
     free(ifname);
     ifname = NULL;
   }
+
+#ifdef HAVE_EBPF
+  if(ebpfEvents)
+    delete ebpfEvents;
+#endif
 }
 
 /* **************************************************** */

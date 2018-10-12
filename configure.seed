@@ -15,6 +15,14 @@ NTOPNG_SHORT_VERSION="@SHORT_VERSION@"
 MACHINE=`uname -m`
 SYSTEM=`uname -s`
 
+PRO_MAKEFILE_INC=
+PRO_INCS=
+PRO_LIBS=
+ADDITIONAL_PRO_OBJECTS=
+PRO_OBJECTS=
+PRO_HEADERS=
+PRO_LIBS=
+
 AC_ARG_WITH(nedge,          [  --with-nedge          Enable nEdge device build])
 
 NEDGE=0
@@ -109,6 +117,15 @@ AC_ARG_WITH(ndpi-includes,
       NDPI_CUST_INC="-I$withval -I$withval/../lib/third_party/include"
    ])
 
+EBPF_HOME="../ebpf/ebpfflowlib/"
+AC_MSG_CHECKING(for ebpfflowlib)
+if test ! -z "$EBPF_HOME" ; then :
+       AC_MSG_RESULT(found $EBPF_HOME)
+       PRO_INCS="${PRO_INCS} -I ${EBPF_HOME}"
+       PRO_LIBS="${PRO_LIBS} -L${EBPF_HOME} -lebpfflow"
+       AC_DEFINE_UNQUOTED(HAVE_EBPF, 1, [Building with eBPF support])
+fi
+
 PKG_CHECK_MODULES([NDPI], [libndpi >= 2.0], [
    NDPI_INC=`echo $NDPI_CFLAGS | sed -e "s/[ ]*$//"`/libndpi
    # Use static libndpi library as building against the dynamic library fails
@@ -165,13 +182,6 @@ if test -d "/usr/include/openssl"; then :
 fi
 
 AC_MSG_CHECKING(for ntopng professional edition)
-PRO_MAKEFILE_INC=
-PRO_INCS=
-PRO_LIBS=
-ADDITIONAL_PRO_OBJECTS=
-PRO_OBJECTS=
-PRO_HEADERS=
-PRO_LIBS=
 
 SERVICE_ALIAS=
 SERVICE_REQUIRES=

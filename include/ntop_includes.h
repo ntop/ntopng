@@ -151,6 +151,10 @@ extern "C" {
 #endif
 };
 
+#ifdef HAVE_EBPF
+#include "ebpf_flow.h"
+#endif
+
 #include <fstream>
 #include <map>
 #include <set>
@@ -244,6 +248,7 @@ using namespace std;
 #include "TimeseriesExporter.h"
 #include "TimeseriesRing.h"
 #include "HostTimeseriesPoint.h"
+#include "SPSCQueue.h"
 #include "NetworkInterface.h"
 #ifndef HAVE_NEDGE
 #include "PcapInterface.h"
@@ -275,7 +280,6 @@ using namespace std;
 #include "BatchedMySQLDB.h"
 #include "BatchedMySQLDBEntry.h"
 #endif
-#include "SPSCQueue.h"
 #include "LuaHandler.h"
 #ifndef WIN32
 #include "NagiosManager.h"
