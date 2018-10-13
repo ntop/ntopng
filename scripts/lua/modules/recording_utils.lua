@@ -9,6 +9,7 @@ require "prefs_utils"
 prefs = ntop.getPrefs()
 
 local n2disk_ctl = "/usr/local/bin/n2diskctl"
+local ntopng_config_tool = "/usr/bin/ntopng-utils-manage-config"
 local n2disk_ctl_cmd = "sudo "..n2disk_ctl
 
 local recording_utils = {}
@@ -27,7 +28,8 @@ end
 function recording_utils.isAvailable()
   if isAdministrator() and 
      isLocalPacketdumpEnabled() and
-     not ntop.isWindows() and 
+     not ntop.isWindows() and
+     ntop.exists(ntopng_config_tool) and 
      ntop.exists(n2disk_ctl) then
     return true
   end
@@ -153,6 +155,7 @@ function recording_utils.createConfig(ifname, params)
   local min_n2disk_mem = 128
   if defaults.buffer_size + min_sys_mem > mem_total_mb then
     if mem_total_mb < min_sys_mem then
+      traceError(TRACE_ERROR, TRACE_CONSOLE, "Not enough memory available for n2disk ("..mem_total_mb.."MB, required "..min_sys_mem.."MB)") 
       return false
     end
     defaults.buffer_size = mem_total_mb - min_sys_mem
@@ -235,6 +238,9 @@ function recording_utils.createConfig(ifname, params)
     f:write("--zmq="..config.zmq_endpoint.."\n")
     f:write("--zmq-export-flows\n")
   end
+  -- Ignored by systemd, required by init.d
+  f:write("--daemon\n")
+  f:write("-P=/var/run/n2disk-"..ifname..".pid\n")
 
   f:close()
 

@@ -157,7 +157,10 @@ if (isAdministrator()) then
       interface.loadDumpPrefs()
    end
 
-   if is_packetdump_enabled and (page == "traffic_recording") and (_SERVER["REQUEST_METHOD"] == "POST") then
+   if recording_utils.isAvailable() and 
+      page == "traffic_recording" and 
+      _SERVER["REQUEST_METHOD"] == "POST" then
+
       local record_traffic = false
       if not isEmptyString(_POST["record_traffic"]) then
         record_traffic = true
@@ -166,7 +169,7 @@ if (isAdministrator()) then
 
       local disk_space = recording_utils.default_disk_space
       if not isEmptyString(_POST["disk_space"]) then
-        local disk_space = tonumber(_POST["disk_space"])*1024
+        disk_space = tonumber(_POST["disk_space"])*1024
       end
       ntop.setCache('ntopng.prefs.'..ifstats.name..'.traffic_recording.disk_space', tostring(disk_space))
       
