@@ -151,11 +151,11 @@ function recording_utils.createConfig(ifname, params)
   end
   defaults.buffer_size = 4*defaults.max_file_size
 
-  local min_sys_mem = 768
+  local min_sys_mem = 1024 -- 1G
   local min_n2disk_mem = 128
   if defaults.buffer_size + min_sys_mem > mem_total_mb then
     if mem_total_mb < min_sys_mem then
-      traceError(TRACE_ERROR, TRACE_CONSOLE, "Not enough memory available for n2disk ("..mem_total_mb.."MB, required "..min_sys_mem.."MB)") 
+      traceError(TRACE_ERROR, TRACE_CONSOLE, "Not enough memory available ("..mem_total_mb.."MB total, min required is "..min_sys_mem.."MB)") 
       return false
     end
     defaults.buffer_size = mem_total_mb - min_sys_mem
@@ -216,9 +216,9 @@ function recording_utils.createConfig(ifname, params)
   end
 
   f:write("--interface="..ifname.."\n")
-  f:write("--dump-directory="..storage_path.."/pcap/"..ifname.."\n")
+  f:write("--dump-directory="..storage_path.."/"..ifname.."\n")
   f:write("--index\n")
-  f:write("--timeline-dir="..storage_path.."/pcap/"..ifname.."\n")
+  f:write("--timeline-dir="..storage_path.."/"..ifname.."\n")
   f:write("--buffer-len="..config.buffer_size.."\n")
   f:write("--max-file-len="..config.max_file_size.."\n")
   f:write("--disk-limit="..config.max_disk_space.."\n")
@@ -233,6 +233,8 @@ function recording_utils.createConfig(ifname, params)
   f:write("--index-on-compressor-threads\n")
   if not isEmptyString(prefs.user) then
     f:write("-u="..prefs.user.."\n");
+  else
+    f:write("--dont-change-user\n");
   end
   if config.zmq_endpoint ~= nil then
     f:write("--zmq="..config.zmq_endpoint.."\n")
