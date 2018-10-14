@@ -25,6 +25,18 @@ if recording_utils.isAvailable then
 
   print("<table class=\"table table-bordered table-striped\">\n")
 
+  print("<tr><th nowrap>"..i18n("interface").."</th><td>"..ifstats.name.."</td></tr>\n")
+
+  local stats = recording_utils.stats(ifstats.name)
+
+  if stats['Bytes'] ~= nil and stats['Packets'] ~= nil then
+    print("<tr><th nowrap>"..i18n("if_stats_overview.received_traffic").."</th><td>"..bytesToSize(stats['Bytes']).." ["..formatValue(stats['Packets']).." "..i18n("pkts").."]</td></tr>\n")
+  end
+
+  if stats['Dropped'] ~= nil then
+    print("<tr><th nowrap>"..i18n("if_stats_overview.dropped_packets").."</th><td>"..stats['Dropped'].." "..i18n("pkts").."</td></tr>\n")
+  end
+
   print("<tr><th nowrap>"..i18n("traffic_recording.storage_dir").."</th><td>"..dirs.pcapdir.."</td></tr>\n")
 
   print("<tr><th nowrap>"..i18n("traffic_recording.storage_utilization").."</th><td>"..tostring(math.floor(storage_info.used/1024)).."GB / "..tostring(math.floor(storage_info.total/1024)).."GB ("..storage_info.used_perc..")</td></tr>\n")

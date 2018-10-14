@@ -1164,7 +1164,7 @@ elseif(page == "traffic_recording") then
     end
 
     if isEmptyString(disk_space) then
-      disk_space = recording_utils.default_disk_space
+      disk_space = storage_info.avail - (storage_info.avail*0.2) -- default (recommended value)
     end
     disk_space = tostring(math.floor(tonumber(disk_space)/1024))
 
@@ -1181,7 +1181,7 @@ elseif(page == "traffic_recording") then
           <tr>
             <th>]] print(i18n("traffic_recording.disk_space")) print [[</th>
             <td colspan=2>
-              <input type="number" style="width:127px;display:inline;" class="form-control" name="disk_space" placeholder="" min="1" step="1" max="1000000" value="]] print(disk_space) print [["></input><span style="vertical-align: middle"> GB</span><br>
+              <input type="number" style="width:127px;display:inline;" class="form-control" name="disk_space" placeholder="" min="1" step="1" max="]] print(storage_info.total/1024) print [[" value="]] print(disk_space) print [["></input><span style="vertical-align: middle"> GB</span><br>
     <small>]] print(i18n("traffic_recording.disk_space_note")) print[[</small>
             </td>
           </tr>

@@ -153,12 +153,13 @@ function recording_utils.createConfig(ifname, params)
 
   local min_sys_mem = 1024 -- 1G
   local min_n2disk_mem = 128
-  if defaults.buffer_size + min_sys_mem > mem_total_mb then
-    if mem_total_mb < min_sys_mem then
-      traceError(TRACE_ERROR, TRACE_CONSOLE, "Not enough memory available ("..mem_total_mb.."MB total, min required is "..min_sys_mem.."MB)") 
+  if mem_total_mb < defaults.buffer_size + min_sys_mem then
+    local min_total_mem = min_sys_mem + min_n2disk_mem
+    if mem_total_mb < min_total_mem then
+      traceError(TRACE_ERROR, TRACE_CONSOLE, "Not enough memory available ("..mem_total_mb.."MB total, min required is "..min_total_mem.."MB)") 
       return false
     end
-    defaults.buffer_size = mem_total_mb - min_sys_mem
+    defaults.buffer_size = (mem_total_mb - min_sys_mem) / 2 -- leave some room for index memory and other processes
     defaults.max_file_size = math.floor(defaults.buffer_size/4)
   end
 
@@ -278,6 +279,19 @@ end
 function recording_utils.log(ifname, rows)
   local log = executeWithOuput(n2disk_ctl_cmd.." log "..ifname.."|tail -n"..rows)
   return log
+end
+
+function recording_utils.stats(ifname)
+  local stats = {}
+  local proc_stats = executeWithOuput(n2disk_ctl_cmd.." stats "..ifname)
+  local lines = split(proc_stats, "\n")
+  for i = 1, #lines do
+    local pair = split(lines[i], ": ")
+    if pair[1] ~= nil and pair[2] ~= nil then
+      stats[pair[1]] = trimString(pair[2])
+    end
+  end
+  return stats
 end
 
 function recording_utils.set_license(key)
