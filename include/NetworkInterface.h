@@ -701,9 +701,10 @@ class NetworkInterface : public Checkpointable {
   virtual bool read_from_pcap_dump()         { return(false); };
   void makeTsPoint(NetworkInterfaceTsPoint *pt);
   void tsLua(lua_State* vm);
-#ifdef HAVE_EBFF
+#ifdef HAVE_EBPF
   inline void enqueueeBPFEvent(void *event)  { if(ebpfEvents) ebpfEvents->enqueue(event, false);        }
   inline bool dequeueeBPFEvent(void **event) { return(ebpfEvents ? ebpfEvents->dequeue(event) : false); }
+  void delivereBPFEvent(eBPFevent *event);
 #endif
 };
 

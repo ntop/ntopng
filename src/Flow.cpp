@@ -1435,6 +1435,7 @@ void Flow::processJson(bool is_src,
   json_object_object_add(my_object, Utils::jsonLabel(num_id, str_id, jsonbuf, sizeof(jsonbuf)),
 			 json_object_new_string(proc->user_name));
 
+#if 0
   num_id = is_src ? SRC_PROC_ACTUAL_MEMORY : DST_PROC_ACTUAL_MEMORY;
   str_id = is_src ? "SRC_PROC_ACTUAL_MEMORY" : "DST_PROC_ACTUAL_MEMORY";
   json_object_object_add(my_object, Utils::jsonLabel(num_id, str_id, jsonbuf, sizeof(jsonbuf)),
@@ -1456,6 +1457,7 @@ void Flow::processJson(bool is_src,
   json_object_object_add(my_object,
 			 Utils::jsonLabel(num_id, str_id, jsonbuf, sizeof(jsonbuf)),
 			 json_object_new_int(proc->num_vm_page_faults));
+#endif
 }
 
 /* *************************************** */
@@ -1472,12 +1474,13 @@ void Flow::processLua(lua_State* vm, ProcessInfo *proc, bool client) {
   lua_push_str_table_entry(vm, "name", proc->name);
   lua_push_str_table_entry(vm, "father_name", proc->father_name);
   lua_push_str_table_entry(vm, "user_name", proc->user_name);
+#if 0
   lua_push_int_table_entry(vm, "actual_memory", proc->actual_memory);
   lua_push_int_table_entry(vm, "peak_memory", proc->peak_memory);
   lua_push_float_table_entry(vm, "average_cpu_load", proc->average_cpu_load);
   lua_push_float_table_entry(vm, "percentage_iowait_time", proc->percentage_iowait_time);
   lua_push_int_table_entry(vm, "num_vm_page_faults", proc->num_vm_page_faults);
-
+#endif
   lua_pushstring(vm, client ? "client_process" : "server_process");
   lua_insert(vm, -2);
   lua_settable(vm, -3);

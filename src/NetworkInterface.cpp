@@ -344,7 +344,13 @@ void NetworkInterface::init() {
     }
 
 #ifdef HAVE_EBPF
-    ebpfEvents = new SPSCQueue();
+    if(bridge_interface
+       || is_dynamic_interface
+       || is_traffic_mirrored
+       || isView())
+      ;
+    else
+      ebpfEvents = new SPSCQueue();
 #endif
 }
 
@@ -2378,7 +2384,8 @@ decode_packet_eth:
       if(vlan_id && ntop->getPrefs()->do_ignore_vlans())
 	vlan_id = 0;
       if((vlan_id == 0) && ntop->getPrefs()->do_simulate_vlans())
-	vlan_id = (ip6 ? ip6->ip6_src.u6_addr.u6_addr8[15] + ip6->ip6_dst.u6_addr.u6_addr8[15] : iph->saddr + iph->daddr) % 0xFF;
+	vlan_id = (ip6 ? ip6->ip6_src.u6_addr.u6_addr8[15] +
+		   ip6->ip6_dst.u6_addr.u6_addr8[15] : iph->saddr + iph->daddr) % 0xFF;
 
       try {
 	pass_verdict = processPacket(bridge_iface_idx,
@@ -2571,6 +2578,17 @@ decode_packet_eth:
     break;
   }
 
+#ifdef HAVE_EBPF
+  if(ebpfEvents) {
+    eBPFevent *event;
+
+    if(dequeueeBPFEvent((void**)&event)) {
+      /* ntop->getTrace()->traceEvent(TRACE_WARNING, "*** Event consumed ***"); */
+      free(event);
+    }
+  }
+#endif
+  
   return(pass_verdict);
 }
 
@@ -6878,3 +6896,22 @@ void NetworkInterface::reloadHostsBlacklist() {
   /* Update the hosts */
   walker(&begin_slot, walk_all,  walker_hosts, host_reload_blacklist, NULL);
 }
+
+/* *************************************** */
+
+#ifdef HAVE_EBPF
+
+void NetworkInterface::delivereBPFEvent(eBPFevent *event) {
+  eBPFevent *tmp;
+  
+  if(ebpfEvents == NULL) return;
+
+  if((tmp = (eBPFevent*)malloc(sizeof(eBPFevent))) != NULL) {
+    memcpy(tmp, event, sizeof(eBPFevent));
+
+    if(!ebpfEvents->enqueue(tmp, false))
+      free(tmp); /* Not enough space */
+  }
+}
+
+#endif

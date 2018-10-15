@@ -875,6 +875,7 @@ void ParserInterface::parseSingleFlow(json_object *o,
       case SRC_FATHER_PROC_NAME:
 	snprintf(flow.src_process.father_name, sizeof(flow.src_process.father_name), "%s", value);
 	break;
+#if 0
       case SRC_PROC_ACTUAL_MEMORY:
 	flow.src_process.actual_memory = atoi(value);
 	break;
@@ -890,6 +891,7 @@ void ParserInterface::parseSingleFlow(json_object *o,
       case SRC_PROC_PCTG_IOWAIT:
 	flow.src_process.percentage_iowait_time = ((float)atol(value))/((float)100);
 	break;
+#endif
       case DST_PROC_PID:
 	iface->enable_sprobe(); /* We're collecting system flows */
 	flow.dst_process.pid = atoi(value);
@@ -907,6 +909,7 @@ void ParserInterface::parseSingleFlow(json_object *o,
       case DST_FATHER_PROC_NAME:
 	snprintf(flow.dst_process.father_name, sizeof(flow.dst_process.father_name), "%s", value);
 	break;
+#if 0
       case DST_PROC_ACTUAL_MEMORY:
 	flow.dst_process.actual_memory = atoi(value);
 	break;
@@ -922,6 +925,7 @@ void ParserInterface::parseSingleFlow(json_object *o,
       case DST_PROC_PCTG_IOWAIT:
 	flow.dst_process.percentage_iowait_time = ((float)atol(value))/((float)100);
 	break;
+#endif
       case DNS_QUERY:
 	flow.dns_query = strdup(value);
 	break;

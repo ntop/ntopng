@@ -117,7 +117,7 @@ AC_ARG_WITH(ndpi-includes,
       NDPI_CUST_INC="-I$withval -I$withval/../lib/third_party/include"
    ])
 
-EBPF_HOME="../ebpf/ebpfflowlib/"
+EBPF_HOME="../ebpf/libebpfflow/"
 AC_MSG_CHECKING(for ebpfflowlib)
 if test -f "$EBPF_HOME/libebpfflow.a" ; then :
        AC_MSG_RESULT(found $EBPF_HOME)

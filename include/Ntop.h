@@ -75,7 +75,6 @@ class Ntop {
 #endif
 
   void loadLocalInterfaceAddress();
-
   void initAllowedProtocolPresets();
 
  public:
@@ -444,6 +443,9 @@ class Ntop {
   bool addToNotifiedInformativeCaptivePortal(u_int32_t client_ip);
   bool addIPToLRUMatches(u_int32_t client_ip, u_int16_t user_pool_id,
 			 char *label, int32_t lifetime_secs, char *ifname);
+#ifdef HAVE_EBPF
+  void deliverEventToInterfaces(eBPFevent *event);
+#endif
 #endif /* NTOPNG_PRO */
   
   DeviceProtocolBitmask* getDeviceAllowedProtocols(DeviceType t) { return(&deviceProtocolPresets[t]); }

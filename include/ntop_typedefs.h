@@ -164,9 +164,11 @@ typedef struct ether80211q {
 typedef struct {
   u_int32_t pid, father_pid;
   char name[48], father_name[48], user_name[48];
+#if 0
   u_int32_t actual_memory, peak_memory;
   float average_cpu_load, percentage_iowait_time;
   u_int32_t num_vm_page_faults;
+#endif
 } ProcessInfo;
 
 typedef struct zmq_flow_core {

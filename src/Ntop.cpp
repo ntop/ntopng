@@ -1872,6 +1872,15 @@ bool Ntop::addToNotifiedInformativeCaptivePortal(u_int32_t client_ip) {
   return true;
 }
 
+/* ******************************************* */
+
+#ifdef HAVE_EBPF
+void Ntop::deliverEventToInterfaces(eBPFevent *event) {
+  for(int i = 0; i < num_defined_interfaces; i++)
+    iface[i]->delivereBPFEvent(event);  
+}
+#endif
+
 #endif
 
 /* ******************************************* */
