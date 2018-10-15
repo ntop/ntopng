@@ -38,6 +38,7 @@ FlowAlertCounter::FlowAlertCounter(u_int8_t _max_num_hits_sec,
 void FlowAlertCounter::reset() {
   time_last_hit = last_trespassed_threshold = 0;
   num_trespassed_threshold = num_hits_rcvd_last_second = 0;
+  thresholdTrepassed = false;
 }
 
 /* *************************************** */
