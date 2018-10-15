@@ -2857,6 +2857,7 @@ local lang = {
     ["storage"] = "Storage",
     ["storage_dir"] = "Storage Directory",
     ["storage_utilization"] = "Storage Utilization",
+    ["traffic_on_disk"] = "Traffic On Disk",
     ["traffic_recording"] = "Traffic Recording",
     ["traffic_recording_status"] = "Traffic Recording Status",
   },
