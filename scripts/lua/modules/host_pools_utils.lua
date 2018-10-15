@@ -28,6 +28,11 @@ function host_pools_utils.poolIdToUsername(pool_id)
   local ifid = getInterfaceId(ifname)
   return host_pools_utils.getPoolName(ifid, pool_id)
 end
+
+function host_pools_utils.getUserUrl(pool_id)
+  return ntop.getHttpPrefix() .."/lua/pro/nedge/admin/nf_edit_user.lua?username=" ..
+    ternary(tostring(pool_id) == host_pools_utils.DEFAULT_POOL_ID, "", host_pools_utils.poolIdToUsername(pool_id))
+end
 --
 -- END NEDGE specific code
 --
