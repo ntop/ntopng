@@ -114,6 +114,16 @@ function recording_utils.storageInfo()
   return storage_info
 end
 
+function recording_utils.getPcapPath(ifid)
+  local storage_path = dirs.pcapdir
+  return storage_path.."/"..ifid.."/pcap"
+end
+
+function recording_utils.getTimelinePath(ifid)
+  local storage_path = dirs.pcapdir
+  return storage_path.."/"..ifid.."/timeline"
+end
+
 function recording_utils.createConfig(ifid, params)
   local ifname = getInterfaceName(ifid)
   local conf_dir = dirs.workingdir.."/n2disk"
@@ -217,10 +227,13 @@ function recording_utils.createConfig(ifid, params)
     return false
   end
 
+  local pcap_path = recording_utils.getPcapPath(ifid)
+  local timeline_path = recording_utils.getTimelinePath(ifid)
+
   f:write("--interface="..ifname.."\n")
-  f:write("--dump-directory="..storage_path.."/"..ifid.."/pcap\n")
+  f:write("--dump-directory="..pcap_path.."\n")
   f:write("--index\n")
-  f:write("--timeline-dir="..storage_path.."/"..ifid.."/timeline\n")
+  f:write("--timeline-dir="..timeline_path.."\n")
   f:write("--buffer-len="..config.buffer_size.."\n")
   f:write("--max-file-len="..config.max_file_size.."\n")
   f:write("--disk-limit="..config.max_disk_space.."\n")

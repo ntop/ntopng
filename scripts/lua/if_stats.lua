@@ -1187,7 +1187,7 @@ elseif(page == "traffic_recording") then
           </tr>
           <tr>
             <th>]] print(i18n("traffic_recording.storage_dir")) print [[</th>
-            <td colspan=2>]] print(dirs.pcapdir) print [[</td>
+            <td colspan=2>]] print(recording_utils.getPcapPath(ifid)) print [[</td>
           </tr>
     ]]
 
