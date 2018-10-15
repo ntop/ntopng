@@ -320,8 +320,8 @@ end
 
 -- Schedule an extraction
 -- Note: 'params' should contain 'time_from', 'time_to', 'filter'
--- 'time_*' format: "2018-10-15 11:00:00"
--- 'filter' format: BPF
+-- 'time_*' format is epoch (number)
+-- 'filter' format is BPF
 function recording_utils.schedule_extraction(ifid, params)
   if params.time_from == nil or params.time_to == nil then
     return nil

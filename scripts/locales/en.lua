@@ -2853,6 +2853,7 @@ local lang = {
     ["disk_space_note"] = "Maximum disk space used for recorded traffic on disk.",
     ["failure"] = "Failure",
     ["logs"] = "Traffic Recording Logs",
+    ["missing_parameters"] = "Mandatory parameters are missing",
     ["not_granted"] = "Request not granted",
     ["recording"] = "Recording",
     ["storage"] = "Storage",

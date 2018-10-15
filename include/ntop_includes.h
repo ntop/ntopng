@@ -228,6 +228,7 @@ using namespace std;
 #include "PacketDumperGeneric.h"
 #include "PacketDumper.h"
 #include "PacketDumperTuntap.h"
+#include "TimelineExtract.h"
 #include "TcpFlowStats.h"
 #include "StoreManager.h"
 #include "StatsManager.h"
