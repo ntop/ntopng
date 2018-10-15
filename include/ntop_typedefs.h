@@ -53,6 +53,16 @@ typedef enum {
   traffic_type_bidirectional,
 } TrafficType;
 
+/* keep in sync with Utils::policySource */
+typedef enum {
+  policy_source_default = 0,
+  policy_source_pool = 1,
+  policy_source_protocol = 2,
+  policy_source_category = 3,
+  policy_source_device_protocol = 4,
+  policy_source_schedule = 5,
+} L7PolicySource_t;
+
 typedef enum {
   alert_none = -1,
   alert_syn_flood = 0,

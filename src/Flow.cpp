@@ -93,7 +93,6 @@ Flow::Flow(NetworkInterface *_iface,
 #endif
 
   passVerdict = true, quota_exceeded = false;
-  cli_quota_app_proto = cli_quota_is_category = srv_quota_app_proto = srv_quota_is_category = false;
   if(_first_seen > _last_seen) _first_seen = _last_seen;
   first_seen = _first_seen, last_seen = _last_seen;
   bytes_thpt_trend = trend_unknown, pkts_thpt_trend = trend_unknown;
@@ -117,6 +116,7 @@ Flow::Flow(NetworkInterface *_iface,
 #else
   cli2srv_in = cli2srv_out = srv2cli_in = srv2cli_out = DEFAULT_SHAPER_ID;
   memset(&flowShaperIds, 0, sizeof(flowShaperIds));
+  cli_quota_source = srv_quota_source = policy_source_default;
 #endif
 #endif
 
@@ -1695,10 +1695,8 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 			       flowShaperIds.srv2cli.egress ? flowShaperIds.srv2cli.egress->get_shaper_id() : DEFAULT_SHAPER_ID);
 
       /* Quota */
-      lua_push_str_table_entry(vm, "cli.quota_applied_proto", (char *)(cli_quota_app_proto ? "app" : "master"));
-      lua_push_bool_table_entry(vm, "cli.quota_is_category", cli_quota_is_category);
-      lua_push_str_table_entry(vm, "srv.quota_applied_proto", (char *)(srv_quota_app_proto ? "app" : "master"));
-      lua_push_bool_table_entry(vm, "srv.quota_is_category", srv_quota_is_category);
+      lua_push_str_table_entry(vm, "cli.quota_source", Utils::policySource2Str(cli_quota_source));
+      lua_push_str_table_entry(vm, "srv.quota_source", Utils::policySource2Str(srv_quota_source));
     }
 #endif
 
@@ -3265,31 +3263,16 @@ void Flow::recheckQuota(const struct tm *now) {
   bool above_quota = false;
 
   if(cli_host && srv_host) {
-    /* Make sure the overall cross-application quota is not crossed */
-    if((above_quota = cli_host->checkCrossApplicationQuota()))
-      cli_quota_app_proto = true; /* TODO: make this more invormative, possibly use a struct */
-    else if((above_quota = srv_host->checkCrossApplicationQuota()))
-      srv_quota_app_proto = true;
-    /* Now it is time to check */
-    else if((above_quota = cli_host->checkQuota(ndpiDetectedProtocol.app_protocol, &cli_quota_is_category, now)))
-      cli_quota_app_proto = true;
-    else if((above_quota = cli_host->checkQuota(ndpiDetectedProtocol.master_protocol, &cli_quota_is_category, now)))
-      cli_quota_app_proto = false;
-    else if((above_quota = srv_host->checkQuota(ndpiDetectedProtocol.app_protocol, &srv_quota_is_category, now)))
-      srv_quota_app_proto = true;
-    else if((above_quota = srv_host->checkQuota(ndpiDetectedProtocol.master_protocol, &srv_quota_is_category, now)))
-      srv_quota_app_proto = false;
-  }
+    L7PolicySource_t cli_src, srv_src;
 
-#ifdef SHAPER_DEBUG
-  char buf[256];
-  if(above_quota) {
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "AFTER: [cli_quota_app_proto: %u][srv_quota_app_proto: %u] %s",
-				 cli_quota_app_proto ? 1 : 0,
-				 srv_quota_app_proto  ? 1 : 0,
-				 print(buf, sizeof(buf)));
+    if((above_quota = cli_host->checkQuota(ndpiDetectedProtocol, &cli_src, now)))
+      srv_src = policy_source_default;
+    else if((above_quota = srv_host->checkQuota(ndpiDetectedProtocol, &srv_src, now)))
+      ;
+
+    /* Use temporary values to guard against partial changes */
+    cli_quota_source = cli_src, srv_quota_source = srv_src;
   }
-#endif
 
   quota_exceeded = above_quota;
 }

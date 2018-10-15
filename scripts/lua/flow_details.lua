@@ -254,24 +254,23 @@ else
       c = flowinfo2hostname(flow,"cli")
       s = flowinfo2hostname(flow,"srv")
 
-      cli_max_rate = shaper_utils.getShaperMaxRate(ifstats.id, flow["shaper.cli2srv_ingress"]) if(cli_max_rate == "") then cli_max_rate = -1 end
-      srv_max_rate = shaper_utils.getShaperMaxRate(ifstats.id, flow["shaper.cli2srv_egress"]) if(srv_max_rate == "") then srv_max_rate = -1 end
-      max_rate = getFlowMaxRate(cli_max_rate, srv_max_rate)
-      print("<td nowrap>"..c.." <i class='fa fa-arrow-right'></i> "..s.."</td><td>"..shaper_utils.shaperRateToString(max_rate).."</td></tr>")
+      local shaper = shaper_utils.nedge_shaper_id_to_shaper(flow["shaper.cli2srv_ingress"])
+      print("<td nowrap>"..c.." <i class='fa fa-arrow-right'></i> "..s.."</td><td>".. shaper.icon .. " " .. shaper.text .."</td></tr>")
 
       cli_max_rate = shaper_utils.getShaperMaxRate(ifstats.id, flow["shaper.srv2cli_ingress"]) if(cli_max_rate == "") then cli_max_rate = -1 end
       srv_max_rate = shaper_utils.getShaperMaxRate(ifstats.id, flow["shaper.srv2cli_egress"])  if(srv_max_rate == "") then srv_max_rate = -1 end
-      max_rate = getFlowMaxRate(cli_max_rate, srv_max_rate)
-      print("<td nowrap>"..c.." <i class='fa fa-arrow-left'></i> "..s.."</td><td>"..shaper_utils.shaperRateToString(max_rate).."</td></tr>")
+
+      local shaper = shaper_utils.nedge_shaper_id_to_shaper(flow["shaper.srv2cli_ingress"])
+      print("<td nowrap>"..c.." <i class='fa fa-arrow-left'></i> "..s.."</td><td>".. shaper.icon .. " " .. shaper.text.."</td></tr>")
       print("</tr>")
 
       if flow["cli.pool_id"] ~= nil and flow["srv.pool_id"] ~= nil then
          print("<tr><th width=30% rowspan=2>"..i18n("flow_details.flow_quota").."</th>")
-         print("<td>"..c.." <i class='fa fa-arrow-right'></i> "..s.."</td>")
+         print("<td>"..c.."</td>")
          print("<td id='cli2srv_quota'>")
          printFlowQuota(ifstats.id, flow, true --[[ client ]])
          print("</td></tr>")
-         print("<td nowrap>"..c.." <i class='fa fa-arrow-left'></i> "..s.."</td>")
+         print("<td nowrap>"..s.."</td>")
          print("<td id='srv2cli_quota'>")
          printFlowQuota(ifstats.id, flow, false --[[ server ]])
          print("</td>")

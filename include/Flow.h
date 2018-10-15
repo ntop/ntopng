@@ -80,7 +80,7 @@ class Flow : public GenericHashEntry {
     cli2srv_direction, twh_over, twh_ok, dissect_next_http_packet, passVerdict,
     check_tor, l7_protocol_guessed, flow_alerted, flow_dropped_counts_increased,
     good_low_flow_detected, good_ssl_hs,
-    quota_exceeded, cli_quota_app_proto, cli_quota_is_category, srv_quota_app_proto, srv_quota_is_category;
+    quota_exceeded;
   u_int16_t diff_num_http_requests;
 #ifdef NTOPNG_PRO
   bool counted_in_aggregated_flow;
@@ -90,6 +90,7 @@ class Flow : public GenericHashEntry {
   FlowProfile *trafficProfile;
 #else
   u_int16_t cli2srv_in, cli2srv_out, srv2cli_in, srv2cli_out;
+  L7PolicySource_t cli_quota_source, srv_quota_source;
 #endif
   CounterTrend throughputTrend, goodputTrend, thptRatioTrend;
 #endif

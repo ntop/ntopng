@@ -148,8 +148,7 @@ class Host : public Checkpointable, public GenericHashEntry, public GenericTraff
 #ifdef NTOPNG_PRO
   inline TrafficShaper *get_ingress_shaper(ndpi_protocol ndpiProtocol) { return(get_shaper(ndpiProtocol, true)); }
   inline TrafficShaper *get_egress_shaper(ndpi_protocol ndpiProtocol)  { return(get_shaper(ndpiProtocol, false)); }
-  bool checkQuota(u_int16_t protocol, bool *is_category, const struct tm *now); /* Per-protocol quota check */
-  bool checkCrossApplicationQuota(); /* Overall quota check (e.g., total traffic per host pool) */
+  bool checkQuota(ndpi_protocol ndpiProtocol, L7PolicySource_t *quota_source, const struct tm *now);
   inline void incQuotaEnforcementStats(u_int32_t when, u_int16_t ndpi_proto,
 				       u_int64_t sent_packets, u_int64_t sent_bytes,
 				       u_int64_t rcvd_packets, u_int64_t rcvd_bytes) {

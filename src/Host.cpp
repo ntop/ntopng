@@ -860,143 +860,24 @@ TrafficShaper* Host::get_shaper(ndpi_protocol ndpiProtocol, bool isIngress) {
 
 /* *************************************** */
 
-void Host::get_quota(u_int16_t protocol, u_int64_t *bytes_quota, u_int32_t *secs_quota, u_int32_t *schedule_bitmap, bool *is_category) {
-  ShaperDirection_t *sd = NULL;
-  u_int64_t bytes = 0;  /* Default: no quota */
-  u_int32_t secs = 0;   /* Default: no quota */
-  bool category = false; /* Default: no category */
-  u_int32_t schedule = 0xFFFFFFFF; /* Default: all day */
-  int protocol32 = (int)protocol; /* uthash macro HASH_FIND_INT requires an int */
-  L7Policy_t *policy = NULL;
+bool Host::checkQuota(ndpi_protocol ndpiProtocol, L7PolicySource_t *quota_source, const struct tm *now) {
+  bool is_above;
+  L7Policer *policer;
 
-  if(iface->getL7Policer()) policy = iface->getL7Policer()->getIpPolicy(get_host_pool());
-
-  if(policy) {
-    HASH_FIND_INT(policy->mapping_proto_shaper_id, &protocol32, sd);
-
-    if(sd) {
-      /* A protocol quota has priority over the category quota */
-      if(sd->protocol_shapers.enabled) {
-	bytes = sd->protocol_shapers.bytes_quota;
-	secs = sd->protocol_shapers.secs_quota;
-	schedule = sd->protocol_shapers.schedule_bitmap;
-	category = false;
-      } else if(sd->category_shapers.enabled) {
-	bytes = sd->category_shapers.bytes_quota;
-	secs = sd->category_shapers.secs_quota;
-	schedule = sd->category_shapers.schedule_bitmap;
-	category = true;
-      }
-    }
-  }
-
-  *bytes_quota = bytes;
-  *secs_quota = secs;
-  *is_category = category;
-  *schedule_bitmap = schedule;
-}
-
-/* *************************************** */
-
-bool Host::checkQuota(u_int16_t protocol, bool *is_category, const struct tm *now) {
-  u_int64_t bytes_quota, bytes;
-  u_int32_t secs_quota, secs;
-  u_int32_t schedule_bitmap;
-  ndpi_protocol_category_t category;
-  HostPools *pools = getInterface()->getHostPools();
-  bool is_above = false;
-  bool category_quota;
-
-  if(!pools || get_host_pool() == NO_HOST_POOL_ID) /* Enforce quotas only for custom pools */
+  if((policer = iface->getL7Policer()) == NULL)
     return false;
 
-  get_quota(protocol, &bytes_quota, &secs_quota, &schedule_bitmap, &category_quota);
-
-#ifdef SCHEDULE_DEBUG
-  printf("Schedule: proto=0x%08X pool=0x%08X final=%08X\n", schedule_bitmap, pools->getPoolSchedule(get_host_pool()), schedule_bitmap & pools->getPoolSchedule(get_host_pool()));
-#endif
-
-  // the actual schedule must honor both the pool schedule and the protocol schedule
-  schedule_bitmap &= pools->getPoolSchedule(get_host_pool());
-
-  if (schedule_bitmap != DEFAULT_TIME_SCHEDULE) {
-    // see shaper_utils.lua schedule_to_bitmap for full format
-
-    // verify day of the week (bits 1-7), bit 7 is monday
-    if(! (schedule_bitmap & (1 << ((6 - now->tm_wday) + 1))))
-      is_above = true;
-    // verify the hour (bits 31-8), bit 31 is midnight
-    else if(! (schedule_bitmap & (1 << ((23 - now->tm_hour) + 8))))
-      is_above = true;
-  }
-
-  if((!is_above) && ((bytes_quota > 0) || (secs_quota > 0))) {
-      category = getInterface()->get_ndpi_proto_category(protocol);
-
-      if(!pools->enforceQuotasPerPoolMember(get_host_pool())) {
-
-	if((category_quota && pools->getCategoryStats(get_host_pool(), category, &bytes, &secs))
-	   || (!category_quota && pools->getProtoStats(get_host_pool(), protocol, &bytes, &secs))) {
-	  if(((bytes_quota > 0) && (bytes >= bytes_quota))
-	     || ((secs_quota > 0) && (secs >= secs_quota)))
-	    is_above = true;
-	}
-
-      } else if(quota_enforcement_stats) { /* Per pool member quota enforcement */
-
-	if(category_quota)
-	  quota_enforcement_stats->getCategoryStats(category, &bytes, &secs);
-	else
-	  quota_enforcement_stats->getProtoStats(protocol, &bytes, &secs);
-
-	if(((bytes_quota > 0) && (bytes >= bytes_quota))
-	   || ((secs_quota > 0) && (secs >= secs_quota)))
-	  is_above = true;
-
-      }
-
-    /* note: update is_category only if a quota policy has been found */
-    *is_category = category_quota;
+  is_above = policer->checkQuota(get_host_pool(), quota_enforcement_stats, ndpiProtocol, quota_source, now);
 
 #ifdef SHAPER_DEBUG
-      char buf[128];
+  char buf[128], protobuf[32];
 
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[QUOTA (%s)] [%s@%u] [bytes: %ld/%lu][seconds: %d/%u] => %s %s",
-				   ndpi_get_proto_name(iface->get_ndpi_struct(), protocol),
-				   ip.print(buf, sizeof(buf)), vlan_id,
-				   bytes, bytes_quota,
-				   secs, secs_quota,
-				   is_above ? (char*)"EXCEEDED" : (char*)"ok",
-				   quota_enforcement_stats ? "[QUOTAS enforced per pool member]" : "");
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[QUOTA (%s)] [%s@%u] => %s %s",
+       ndpi_protocol2name(iface->get_ndpi_struct(), ndpiProtocol, protobuf, sizeof(protobuf)),
+       ip.print(buf, sizeof(buf)), vlan_id,
+       is_above ? (char*)"EXCEEDED" : (char*)"ok",
+       quota_enforcement_stats ? "[QUOTAS enforced per pool member]" : "");
 #endif
-  }
-
-  has_blocking_quota |= is_above;
-  return is_above;
-}
-
-/* *************************************** */
-
-bool Host::checkCrossApplicationQuota() {
-  HostPools *pools = getInterface()->getHostPools();
-  u_int64_t cur_bytes = 0;
-  u_int32_t cur_duration = 0;
-  bool is_above = false;
-  L7Policy_t *policy = NULL;
-
-  if(iface->getL7Policer()) policy = iface->getL7Policer()->getIpPolicy(get_host_pool());
-
-  if(pools && policy
-     && (policy->cross_application_quotas.bytes_quota > 0
-	 || policy->cross_application_quotas.secs_quota > 0)) {
-    pools->getStats(get_host_pool(), &cur_bytes, &cur_duration);
-
-    if((policy->cross_application_quotas.bytes_quota > 0
-	&& cur_bytes >= policy->cross_application_quotas.bytes_quota)
-      || (policy->cross_application_quotas.secs_quota > 0
-	  && cur_duration >= policy->cross_application_quotas.secs_quota))
-      is_above = true;
-  }
 
   has_blocking_quota |= is_above;
   return is_above;

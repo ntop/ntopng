@@ -1778,16 +1778,14 @@ end
 -- #######################
 
 function getFlowQuota(ifid, info, as_client)
-  local pool_id, quota_protocol, quota_is_category
+  local pool_id, quota_source
 
   if as_client then
     pool_id = info["cli.pool_id"]
-    quota_protocol = info["cli.quota_applied_proto"]
-    quota_is_category = info["cli.quota_is_category"]
+    quota_source = info["cli.quota_source"]
   else
     pool_id = info["srv.pool_id"]
-    quota_protocol = info["srv.quota_applied_proto"]
-    quota_is_category = info["srv.quota_is_category"]
+    quota_source = info["srv.quota_source"]
   end
 
   local master_proto, app_proto = splitProtocol(info["proto.ndpi"])
@@ -1795,28 +1793,41 @@ function getFlowQuota(ifid, info, as_client)
 
   local pools_stats = interface.getHostPoolsStats()
   local pool_stats = pools_stats and pools_stats[tonumber(pool_id)]
+  local quota_and_protos = shaper_utils.getPoolProtoShapers(ifid, pool_id)
 
   if pool_stats ~= nil then
-    local application = ternary(quota_protocol == "master", master_proto, app_proto)
-    local key, category_stats, proto_stats
+    local key = nil
 
-    if quota_is_category then
-      -- the quota is being applied on the protocol category
-      key = interface.getnDPIProtoCategory(interface.getnDPIProtoId(application)).name
-      proto_stats = nil
-      category_stats = pool_stats.ndpi_categories
-    else
-      -- the quota is being applied on the protocol itself
-      key = application
-      proto_stats = pool_stats.ndpi
-      category_stats = nil
+    if quota_source == "policy_source_protocol" then
+	proto_stats = pool_stats.ndpi
+
+	-- determine if the quota is on the app or master proto
+	if(quota_and_protos[master_proto] ~= nil) then
+	    key = master_proto
+	else
+	    key = app_proto
+	end
+    elseif quota_source == "policy_source_category" then
+	key = flow["proto.ndpi_cat"]
+	proto_stats = nil
+	category_stats = pool_stats.ndpi_categories
+    elseif quota_source == "policy_source_pool" then
+	key = "Default"
+	proto_stats = nil
+	category_stats = {default = pool_stats.cross_application}
     end
 
-    local quota_and_protos = shaper_utils.getPoolProtoShapers(ifid, pool_id)
-    local proto_info = quota_and_protos[key]
+    if key ~= nil then
+	local proto_info = nil
+	if key ~= "Default" then
+	    proto_info = quota_and_protos[key]
+	else
+	    proto_info = shaper_utils.getCrossApplicationShaper(ifid, pool_id)
+	end
 
-    if proto_info ~= nil then
-      return proto_info, proto_stats, category_stats
+	if proto_info ~= nil then
+	  return proto_info, proto_stats, category_stats
+	end
     end
   end
 

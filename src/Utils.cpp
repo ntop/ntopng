@@ -3302,3 +3302,19 @@ bool Utils::validInterface(char *name) {
 
 /* ****************************************************** */
 
+const char* Utils::policySource2Str(L7PolicySource_t policy_source) {
+  switch(policy_source) {
+    case policy_source_pool:
+      return "policy_source_pool";
+    case policy_source_protocol:
+      return "policy_source_protocol";
+    case policy_source_category:
+      return "policy_source_category";
+    case policy_source_device_protocol:
+      return "policy_source_device_protocol";
+    case policy_source_schedule:
+      return "policy_source_schedule";
+    default:
+      return "policy_source_default";
+  }
+}

@@ -4041,7 +4041,11 @@ static int ntop_get_l7_policy_info(lua_State* vm) {
   pool_id = (u_int16_t)lua_tointeger(vm, 1);
   proto.master_protocol = (u_int16_t)lua_tointeger(vm, 2);
   proto.app_protocol = proto.master_protocol;
-  proto.category = NDPI_PROTOCOL_CATEGORY_UNSPECIFIED;
+  proto.category = NDPI_PROTOCOL_CATEGORY_UNSPECIFIED; // important for ndpi_get_proto_category below
+
+  // set appropriate category based on the protocols
+  proto.category = ndpi_get_proto_category(ntop_interface->get_ndpi_struct(), proto);
+
   dev_type = (DeviceType)lua_tointeger(vm, 3);
   as_client = lua_toboolean(vm, 4);
 
@@ -4055,7 +4059,7 @@ static int ntop_get_l7_policy_info(lua_State* vm) {
 
   lua_newtable(vm);
   lua_push_int_table_entry(vm, "shaper_id", shaper_id);
-  lua_push_str_table_entry(vm, "policy_source", (char*)ntop_interface->getL7Policer()->policySource2Str(policy_source));
+  lua_push_str_table_entry(vm, "policy_source", (char*)Utils::policySource2Str(policy_source));
 
   return(CONST_LUA_OK);
 }
