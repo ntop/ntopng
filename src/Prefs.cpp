@@ -156,7 +156,7 @@ Prefs::~Prefs() {
   if(scripts_dir)      free(scripts_dir);
   if(callbacks_dir)    free(callbacks_dir);
   if(prefs_dir)        free(prefs_dir);
-  if(pcap_dir)      free(pcap_dir);
+  if(pcap_dir)         free(pcap_dir);
   if(config_file_path) free(config_file_path);
   if(user)             free(user);
   if(pid_path)         free(pid_path);
@@ -1360,11 +1360,8 @@ int Prefs::checkOptions() {
   if(!prefs_dir)
     prefs_dir = strdup(ntop->get_working_dir());
 
-  if(!pcap_dir) {
-    int len = strlen(ntop->get_working_dir())+strlen(CONST_PCAP_SUBDIR)+2;
-    pcap_dir = (char*) malloc(len);
-    snprintf(pcap_dir, len, "%s/%s", ntop->get_working_dir(), CONST_PCAP_SUBDIR);
-  }
+  if(!pcap_dir) 
+    pcap_dir = strdup(ntop->get_working_dir());
 
   docs_dir      = ntop->getValidPath(docs_dir);
   scripts_dir   = ntop->getValidPath(scripts_dir);

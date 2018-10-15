@@ -139,8 +139,8 @@ function dumpInterfaceStats(interface_name)
 
       res["breed"] = stats["breeds"]
 
-      if isAdministrator() and recording_utils.isEnabled(ifstats.name) then
-        if recording_utils.isActive(ifstats.name) then
+      if isAdministrator() and recording_utils.isEnabled(ifstats.id) then
+        if recording_utils.isActive(ifstats.id) then
           res["traffic_recording"] = "recording"
         else
           res["traffic_recording"] = "failed"

@@ -165,21 +165,21 @@ if (isAdministrator()) then
       if not isEmptyString(_POST["record_traffic"]) then
         record_traffic = true
       end
-      ntop.setCache('ntopng.prefs.'..ifstats.name..'.traffic_recording.enabled', ternary(record_traffic, "true", "false"))
+      ntop.setCache('ntopng.prefs.ifid_'..ifstats.id..'.traffic_recording.enabled', ternary(record_traffic, "true", "false"))
 
       local disk_space = recording_utils.default_disk_space
       if not isEmptyString(_POST["disk_space"]) then
         disk_space = tonumber(_POST["disk_space"])*1024
       end
-      ntop.setCache('ntopng.prefs.'..ifstats.name..'.traffic_recording.disk_space', tostring(disk_space))
+      ntop.setCache('ntopng.prefs.ifid_'..ifstats.id..'.traffic_recording.disk_space', tostring(disk_space))
       
       if record_traffic then
         local config = {}
         config.max_disk_space = disk_space
-        recording_utils.createConfig(ifstats.name, config)
-        recording_utils.restart(ifstats.name)
+        recording_utils.createConfig(ifstats.id, config)
+        recording_utils.restart(ifstats.id)
       else
-        recording_utils.stop(ifstats.name)
+        recording_utils.stop(ifstats.id)
       end
    end
 
@@ -1151,8 +1151,8 @@ end
 elseif(page == "traffic_recording") then
 
   if recording_utils.isAvailable() then
-    local record_traffic = ntop.getCache('ntopng.prefs.'..ifstats.name..'.traffic_recording.enabled')
-    local disk_space = ntop.getCache('ntopng.prefs.'..ifstats.name..'.traffic_recording.disk_space')
+    local record_traffic = ntop.getCache('ntopng.prefs.ifid_'..ifid..'.traffic_recording.enabled')
+    local disk_space = ntop.getCache('ntopng.prefs.ifid_'..ifid..'.traffic_recording.disk_space')
     local storage_info = recording_utils.storageInfo()
 
     if record_traffic == "true" then

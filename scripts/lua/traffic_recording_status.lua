@@ -27,7 +27,7 @@ if recording_utils.isAvailable then
 
   print("<tr><th nowrap>"..i18n("interface").."</th><td>"..ifstats.name.."</td></tr>\n")
 
-  local stats = recording_utils.stats(ifstats.name)
+  local stats = recording_utils.stats(ifstats.id)
 
   if stats['Bytes'] ~= nil and stats['Packets'] ~= nil then
     print("<tr><th nowrap>"..i18n("if_stats_overview.received_traffic").."</th><td>"..bytesToSize(stats['Bytes']).." ["..formatValue(stats['Packets']).." "..i18n("pkts").."]</td></tr>\n")
@@ -47,7 +47,7 @@ if recording_utils.isAvailable then
 
   print("<tr><th nowrap>"..i18n("about.last_log").."</th><td><code>\n")
 
-  local log = recording_utils.log(ifstats.name, 32)
+  local log = recording_utils.log(ifstats.id, 32)
   local logs = split(log, "\n")
   for i = 1, #logs do
     local row = split(logs[i], "]: ")

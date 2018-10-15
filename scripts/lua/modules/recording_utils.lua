@@ -114,7 +114,8 @@ function recording_utils.storageInfo()
   return storage_info
 end
 
-function recording_utils.createConfig(ifname, params)
+function recording_utils.createConfig(ifid, params)
+  local ifname = getInterfaceName(ifid)
   local conf_dir = dirs.workingdir.."/n2disk"
   local filename = conf_dir.."/n2disk-"..ifname..".conf"
   local storage_path = dirs.pcapdir
@@ -217,9 +218,9 @@ function recording_utils.createConfig(ifname, params)
   end
 
   f:write("--interface="..ifname.."\n")
-  f:write("--dump-directory="..storage_path.."/"..ifname.."\n")
+  f:write("--dump-directory="..storage_path.."/"..ifid.."/pcap\n")
   f:write("--index\n")
-  f:write("--timeline-dir="..storage_path.."/"..ifname.."\n")
+  f:write("--timeline-dir="..storage_path.."/"..ifid.."/timeline\n")
   f:write("--buffer-len="..config.buffer_size.."\n")
   f:write("--max-file-len="..config.max_file_size.."\n")
   f:write("--disk-limit="..config.max_disk_space.."\n")
@@ -250,9 +251,9 @@ function recording_utils.createConfig(ifname, params)
   return true
 end
 
-function recording_utils.isEnabled(ifname)
+function recording_utils.isEnabled(ifid)
   if recording_utils.isAvailable() then
-    local record_traffic = ntop.getCache('ntopng.prefs.'..ifname..'.traffic_recording.enabled')
+    local record_traffic = ntop.getCache('ntopng.prefs.ifid_'..ifid..'.traffic_recording.enabled')
     if record_traffic == "true" then
       return true
     end
@@ -260,28 +261,33 @@ function recording_utils.isEnabled(ifname)
   return false
 end
 
-function recording_utils.isActive(ifname)
+function recording_utils.isActive(ifid)
+  local ifname = getInterfaceName(ifid)
   local check_cmd = n2disk_ctl_cmd.." is-active "..ifname
   local is_active = executeWithOuput(check_cmd)
   return ternary(string.match(is_active, "^active"), true, false)
 end
 
-function recording_utils.restart(ifname)
+function recording_utils.restart(ifid)
+  local ifname = getInterfaceName(ifid)
   os.execute(n2disk_ctl_cmd.." enable "..ifname)
   os.execute(n2disk_ctl_cmd.." restart "..ifname)
 end
 
-function recording_utils.stop(ifname)
+function recording_utils.stop(ifid)
+  local ifname = getInterfaceName(ifid)
   os.execute(n2disk_ctl_cmd.." stop "..ifname)
   os.execute(n2disk_ctl_cmd.." disable "..ifname)
 end
 
-function recording_utils.log(ifname, rows)
+function recording_utils.log(ifid, rows)
+  local ifname = getInterfaceName(ifid)
   local log = executeWithOuput(n2disk_ctl_cmd.." log "..ifname.."|tail -n"..rows)
   return log
 end
 
-function recording_utils.stats(ifname)
+function recording_utils.stats(ifid)
+  local ifname = getInterfaceName(ifid)
   local stats = {}
   local proc_stats = executeWithOuput(n2disk_ctl_cmd.." stats "..ifname)
   local lines = split(proc_stats, "\n")
