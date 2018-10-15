@@ -2848,9 +2848,9 @@ local lang = {
     ["traffic_profiles"] = "Traffic Profiles",
   },
   ["traffic_recording"] = {
+    ["continuous_recording"] = "Continuous Traffic Recording",
     ["disk_space"] = "Max Disk Space",
     ["disk_space_note"] = "Maximum disk space used for recorded traffic on disk.",
-    ["enable_recording"] = "Enable Continuous Traffic Recording",
     ["failure"] = "Failure",
     ["logs"] = "Traffic Recording Logs",
     ["not_granted"] = "Request not granted",

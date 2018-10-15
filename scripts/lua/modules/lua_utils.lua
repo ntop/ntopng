@@ -742,7 +742,10 @@ function hasNindexSupport()
    if prefs == nil then
     prefs = ntop.getPrefs()
    end
-   return prefs.is_nindex_enabled
+   local rc = prefs.is_nindex_enabled
+
+   if(rc == nil) then rc = false end
+   return rc
 end
 
 --for _key, _value in pairsByKeys(vals, rev) do

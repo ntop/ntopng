@@ -11,6 +11,7 @@ prefs = ntop.getPrefs()
 local n2disk_ctl = "/usr/local/bin/n2diskctl"
 local ntopng_config_tool = "/usr/bin/ntopng-utils-manage-config"
 local n2disk_ctl_cmd = "sudo "..n2disk_ctl
+local extraction_queue = "ntopng.traffic_recording.extraction_queue"
 
 local recording_utils = {}
 
@@ -315,6 +316,41 @@ end
 
 function recording_utils.set_license(key)
   os.execute(n2disk_ctl_cmd.." set-license "..key)
+end
+
+-- Schedule an extraction
+-- Note: 'params' should contain 'time_from', 'time_to', 'filter'
+-- 'time_*' format: "2018-10-15 11:00:00"
+-- 'filter' format: BPF
+function recording_utils.schedule_extraction(ifid, params)
+  if params.time_from == nil or params.time_to == nil then
+    return nil
+  end
+  if params.filter == nil then
+    params.filter = ""
+  end
+
+  local id = os.time() -- TODO
+
+  local job = {
+    id = id,
+    time = os.time(),
+    status = 'waiting',
+    ifid = ifid,
+    time_from = params.time_from,
+    time_to = params.time_to,
+    filter = params.filer,
+  }
+
+  ntop.rpushCache(extraction_queue, json.encode(job))
+
+  local job_info = { id = id }
+
+  -- Scheduler:
+  -- local job_json = ntop.lpopCache(extraction_queue)
+  -- local job = json.decode(job_json)
+
+  return job_info
 end
 
 -- #################################

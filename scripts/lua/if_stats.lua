@@ -1175,7 +1175,7 @@ elseif(page == "traffic_recording") then
           <tr>
             <th width=30%>]] print(i18n("traffic_recording.traffic_recording")) print [[</th>
             <td colspan=2>
-	      <input name="record_traffic" type="checkbox" value="1" ]] print (record_traffic_checked) print [[> <i class="fa fa-hdd-o fa-lg"></i> ]] print(i18n("traffic_recording.enable_recording")) print [[</input>
+	      <input name="record_traffic" type="checkbox" value="1" ]] print (record_traffic_checked) print [[> <i class="fa fa-hdd-o fa-lg"></i> ]] print(i18n("traffic_recording.continuous_recording")) print [[</input>
             </td>
           </tr>
           <tr>
@@ -1194,11 +1194,10 @@ elseif(page == "traffic_recording") then
     print [[
           <tr>
             <th>]] print(i18n("traffic_recording.storage_utilization")) print [[</th>
-            <td width="15%" class="text-right">]] print(tostring(math.floor(storage_info.used/1024))) print [[GB/]] print(tostring(math.floor(storage_info.total/1024))) print [[GB</td>
             <td>
               <span style="width: 60%; float: left;">
               <div class='progress'><div class='progress-bar progress-bar-warning' style='width: ]] print(storage_info.used_perc) print [[;'></div></div></span>
-            <span style="width: 40%; margin-left: 15px;">]] print(storage_info.used_perc) print [[</span>
+            <span style="width: 40%; margin-left: 15px;"> ]] print(tostring(math.floor(storage_info.used/1024))) print [[ GB / ]] print(tostring(math.floor(storage_info.total/1024))) print [[ GB (]] print(storage_info.used_perc) print [[)</span>
             </td>
           </tr>
     ]]
