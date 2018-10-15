@@ -399,7 +399,6 @@
 #define CONST_OLD_DEFAULT_NTOP_USER  "nobody"
 #define CONST_DEFAULT_NTOP_USER      "ntopng"
 #define CONST_TOO_EARLY              "(Too Early)"
-#define CONST_PCAP_SUBDIR            "pcap"
 
 #define CONST_LUA_OK                  1
 #define CONST_LUA_ERROR               0

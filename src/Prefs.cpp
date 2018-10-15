@@ -243,7 +243,7 @@ void usage() {
 	 "                                    | Default: %s\n"
 	 "[--pcap-dir|-5] <path>              | Storage directory used for continuous traffic\n"
 	 "                                    | recording in PCAP format.\n"
-	 "                                    | Default: %s/%s\n"
+	 "                                    | Default: %s\n"
 	 "[--no-promisc|-u]                   | Don't set the interface in promisc mode.\n"
 	 "[--http-port|-w] <[addr:]port>      | HTTP. Set to 0 to disable http server.\n"
 	 "                                    | Addr can be an IPv4 (192.168.1.1)\n"
@@ -400,7 +400,7 @@ void usage() {
 	 CONST_DEFAULT_DOCS_DIR, CONST_DEFAULT_SCRIPTS_DIR,
          CONST_DEFAULT_CALLBACKS_DIR,
 	 CONST_DEFAULT_DATA_DIR,
-	 CONST_DEFAULT_DATA_DIR, CONST_PCAP_SUBDIR,
+	 CONST_DEFAULT_DATA_DIR,
 	 CONST_DEFAULT_NTOP_PORT, CONST_DEFAULT_NTOP_PORT+1,
          CONST_DEFAULT_NTOP_USER,
 	 MAX_NUM_INTERFACE_HOSTS, MAX_NUM_INTERFACE_HOSTS,

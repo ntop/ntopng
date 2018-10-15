@@ -44,11 +44,9 @@ class PacketDumper {
   void closeDump();
   void idle(time_t when);
   bool checkClose(time_t when);
-  void openDump(time_t when, int sampling_rate, unsigned int max_pkts_per_file,
-                unsigned int max_sec_per_file);
+  void openDump(time_t when, int sampling_rate);
   void dumpPacket(const struct pcap_pkthdr *h, const u_char *packet,
-                  dump_reason reason, int sampling_rate,
-                  unsigned int max_pkts_per_file, unsigned int max_sec_per_file);
+                  dump_reason reason, int sampling_rate);
   inline u_int64_t get_num_dumped_packets() { return(num_dumped_packets+num_dumped_unknown_packets); }
   inline u_int64_t get_num_dumped_files()   { return(file_id+num_dumped_unknown_files); }
   void lua(lua_State *vm);

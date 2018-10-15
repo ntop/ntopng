@@ -2853,6 +2853,7 @@ local lang = {
     ["enable_recording"] = "Enable Continuous Traffic Recording",
     ["failure"] = "Failure",
     ["logs"] = "Traffic Recording Logs",
+    ["not_granted"] = "Request not granted",
     ["recording"] = "Recording",
     ["storage"] = "Storage",
     ["storage_dir"] = "Storage Directory",

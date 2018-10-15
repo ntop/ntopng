@@ -1476,9 +1476,7 @@ void NetworkInterface::dumpPacketDisk(const struct pcap_pkthdr *h, const u_char 
     pkt_dumper = new PacketDumper(this);
 
   if(pkt_dumper)
-    pkt_dumper->dumpPacket(h, packet, reason, getDumpTrafficSamplingRate(),
-                           getDumpTrafficMaxPktsPerFile(),
-                           getDumpTrafficMaxSecPerFile());
+    pkt_dumper->dumpPacket(h, packet, reason, getDumpTrafficSamplingRate());
 }
 
 /* **************************************************** */

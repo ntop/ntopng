@@ -73,9 +73,7 @@ bool PacketDumper::checkClose(time_t when) {
 
 /* ********************************************* */
 
-void PacketDumper::openDump(time_t when, int sampling_rate,
-                            unsigned int max_pkts_per_file,
-                            unsigned int max_sec_per_file) {
+void PacketDumper::openDump(time_t when, int sampling_rate) {
   char pcap_path[MAX_PATH], hour_path[64];
   int len;
   time_t _when = when;
@@ -111,11 +109,10 @@ void PacketDumper::openDump(time_t when, int sampling_rate,
 /* ********************************************* */
 
 void PacketDumper::dumpPacket(const struct pcap_pkthdr *h, const u_char *packet,
-                              dump_reason reason, int sampling_rate,
-                              unsigned int max_pkts_per_file, unsigned int max_sec_per_file) {
+                              dump_reason reason, int sampling_rate) {
 
   // ntop->getTrace()->traceEvent(TRACE_WARNING, "%s(len=%u)", __FUNCTION__, h->len);
-  if(!dumper) openDump(h->ts.tv_sec, sampling_rate, max_pkts_per_file, max_sec_per_file);
+  if(!dumper) openDump(h->ts.tv_sec, sampling_rate);
 
   int rate_dump_ok = /* reason != ATTACK || TODO: not yet supported */ (num_sampled_packets++ % sampling_rate) == 0;
 
