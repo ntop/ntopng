@@ -12,7 +12,9 @@ prefs = ntop.getPrefs()
 local n2disk_ctl = "/usr/local/bin/n2diskctl"
 local ntopng_config_tool = "/usr/bin/ntopng-utils-manage-config"
 local n2disk_ctl_cmd = "sudo "..n2disk_ctl
-local extraction_queue = "ntopng.traffic_recording.extraction_queue"
+local extraction_queue_key = "ntopng.traffic_recording.extraction_queue"
+local extraction_seqnum_key = "ntopng.traffic_recording.extraction_seqnum"
+local extraction_jobs_key = "ntopng.traffic_recording.extraction_jobs"
 
 local recording_utils = {}
 
@@ -324,6 +326,7 @@ end
 -- 'time_*' format is epoch (number)
 -- 'filter' format is BPF
 function recording_utils.scheduleExtraction(ifid, params)
+
   if params.time_from == nil or params.time_to == nil then
     return nil
   end
@@ -331,7 +334,7 @@ function recording_utils.scheduleExtraction(ifid, params)
     params.filter = ""
   end
 
-  local id = os.time() -- TODO
+  local id = ntop.incrCache(extraction_seqnum_key)
 
   local job = {
     id = id,
@@ -343,20 +346,52 @@ function recording_utils.scheduleExtraction(ifid, params)
     filter = params.filter,
   }
 
-  ntop.rpushCache(extraction_queue, json.encode(job))
+  ntop.setHashCache(extraction_jobs_key, job.id, json.encode(job))
 
-  local job_info = { id = id }
-
+  ntop.rpushCache(extraction_queue_key, tostring(job.id))
+  
+  local job_info = { id = job.id }
   return job_info
+end
+
+function recording_utils.setJobAsCompleted()
+  local last_id = ntop.getCache(extraction_seqnum_key)
+  if not isEmptyString(last_id) then
+    local job_json = ntop.getHashCache(extraction_jobs_key, last_id)
+    if not isEmptyString(job_json) then
+      local job = json.decode(job_json)
+      local datapath_extractions = ntop.getExtractionStatus()
+      for id,status in pairs(datapath_extractions) do
+        if job.id == tonumber(id) and job.status == "processing" then
+          if status.status == 0 then
+            job.status = "completed"
+          else
+            job.status = "failed"
+            job.error_code = status.status
+          end
+          ntop.setHashCache(extraction_jobs_key, job.id, json.encode(job)) 
+        end
+      end
+    end
+  end
 end
 
 function recording_utils.checkExtractionJobs()
   if not ntop.isExtractionRunning() then
-    local job_json = ntop.lpopCache(extraction_queue)
 
-    if not isEmptyString(job_json) then
+    -- set the previous job as completed, if any
+    recording_utils.setJobAsCompleted()
+
+    local id = ntop.lpopCache(extraction_queue_key)
+    if not isEmptyString(id) then
+
+      local job_json = ntop.getHashCache(extraction_jobs_key, id)
       local job = json.decode(job_json)
+
       ntop.runExtraction(job.id, tonumber(job.ifid), tonumber(job.time_from), tonumber(job.time_to), job.filter)
+
+      job.status = 'processing'
+      ntop.setHashCache(extraction_jobs_key, job.id, json.encode(job))
     end
   end
 end

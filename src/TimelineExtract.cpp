@@ -24,6 +24,8 @@
 /* ********************************************* */
 
 TimelineExtract::TimelineExtract() {
+  extraction.id = 0;
+  status_code = 0;
   running = false;
   shutdown = false;
 }
@@ -36,11 +38,12 @@ TimelineExtract::~TimelineExtract() {
 
 /* ********************************************* */
 
-bool TimelineExtract::extract(NetworkInterface *iface,
+bool TimelineExtract::extract(u_int32_t id, NetworkInterface *iface,
     time_t from, time_t to, const char *bpf_filter) {
   bool completed = false;
 #ifdef HAVE_PF_RING
-  char path[MAX_PATH];
+  char timeline_path[MAX_PATH];
+  char out_path[MAX_PATH];
   char from_buff[24], to_buff[24];
   PacketDumper *dumper;
   pfring  *handle;
@@ -52,11 +55,15 @@ bool TimelineExtract::extract(NetworkInterface *iface,
   int rc;
  
   shutdown = false;
+  status_code = 1;
 
-  dumper = new PacketDumper(iface);
+  snprintf(out_path, sizeof(out_path), "%s/%u/extr_pcap/%u", ntop->getPrefs()->get_pcap_dir(), iface->get_id(), id);
+
+  dumper = new PacketDumper(iface, out_path);
 
   if (dumper == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to initialize packet dumper");
+    status_code = 2;
     goto error;
   }
 
@@ -64,6 +71,7 @@ bool TimelineExtract::extract(NetworkInterface *iface,
 
   if (filter == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to allocate memory");
+    status_code = 3;
     goto delete_dumper;
   }
 
@@ -80,15 +88,16 @@ bool TimelineExtract::extract(NetworkInterface *iface,
 
   sprintf(&filter[strlen(filter)], "start %s and end %s", from_buff, to_buff);
 
-  snprintf(path, sizeof(path), "timeline:%s/%d/timeline", ntop->getPrefs()->get_pcap_dir(), iface->get_id());
+  snprintf(timeline_path, sizeof(timeline_path), "timeline:%s/%d/timeline", ntop->getPrefs()->get_pcap_dir(), iface->get_id());
 
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Extracting traffic from %s matching filter %s",
-    path, filter);
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Running extraction #%u from %s matching %s to %s",
+    id, timeline_path, filter, out_path);
 
-  handle = pfring_open(path, 16384, 0);
+  handle = pfring_open(timeline_path, 16384, 0);
 
   if (handle == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to open %s", path);
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to open %s", timeline_path);
+    status_code = 4;
     goto free_filter;
   }
 
@@ -96,20 +105,25 @@ bool TimelineExtract::extract(NetworkInterface *iface,
 
   if (rc != 0) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to set filter '%s' (%d)", filter, rc);
+    status_code = 5;
     goto close_pfring;
   }
 
   if (pfring_enable_ring(handle) != 0) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to start extraction on %s", path);
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to start extraction on %s", timeline_path);
+    status_code = 6;
     goto close_pfring;
   }
 
   while (!shutdown && !ntop->getGlobals()->isShutdown() && 
          (rc = pfring_recv(handle, &packet, 0, &header, 0)) > 0) {
     h = (struct pcap_pkthdr *) &header;
-    dumper->dumpPacket(h, packet, UNKNOWN, 1 /* sampling */);
+    dumper->dumpPacket(h, packet, UNKNOWN, 1);
+    stats.packets++;
+    stats.bytes += h->caplen;
   }
 
+  status_code = 0;
   completed = true;
 
  close_pfring:
@@ -124,8 +138,8 @@ bool TimelineExtract::extract(NetworkInterface *iface,
  error:
 #endif
 
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Extraction %s",
-    completed ? "completed" : "failed");
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Extraction #%u %s",
+    id, completed ? "completed" : "failed");
 
   return completed;
 }
@@ -136,6 +150,7 @@ static void *extractionThread(void *ptr) {
   TimelineExtract *extr = (TimelineExtract *) ptr;
 
   extr->extract(
+    extr->getID(),
     extr->getNetworkInterface(), 
     extr->getFrom(),
     extr->getTo(),
@@ -178,6 +193,25 @@ void TimelineExtract::cleanupJob() {
   if (extraction.bpf_filter) free(extraction.bpf_filter);
 
   running = false;
+}
+
+/* ********************************************* */
+
+void TimelineExtract::getStatus(lua_State* vm) {
+  lua_newtable(vm);
+
+  if (extraction.id) {
+    lua_newtable(vm);
+
+    lua_push_int_table_entry(vm, "id", extraction.id);
+    lua_push_int_table_entry(vm, "extracted_pkts", stats.packets);
+    lua_push_int_table_entry(vm, "extracted_bytes", stats.bytes);
+    lua_push_int_table_entry(vm, "status", status_code);
+
+    lua_pushnumber(vm, extraction.id);
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
+  }
 }
 
 /* ********************************************* */

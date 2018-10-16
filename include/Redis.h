@@ -103,6 +103,7 @@ class Redis {
   int lrange(const char *list_name, char ***elements, int start_offset, int end_offset);
   int lpop(const char *queue_name, char *buf, u_int buf_len);
   int lpop(const char *queue_name, char ***elements, u_int num_elements);
+  u_int incr(const char *key);
   int flushDb();
   void flushCache();
   void lua(lua_State *vm);

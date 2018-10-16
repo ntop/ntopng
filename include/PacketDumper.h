@@ -36,11 +36,14 @@ class PacketDumper {
   int sampling_rate;
   unsigned int max_pkts_per_file, max_sec_per_file;
   unsigned int num_pkts_cur_file;
+  char *out_path;
 
  public:
   PacketDumper(NetworkInterface *i);
+  PacketDumper(NetworkInterface *i, const char *path);
   ~PacketDumper();
 
+  void init(NetworkInterface *i);
   void closeDump();
   void idle(time_t when);
   bool checkClose(time_t when);
