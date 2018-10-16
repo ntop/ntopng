@@ -286,14 +286,17 @@ local function getLocalTopTalkers(schema_id, tags, tstart, tend, options)
         -- need to recalculate total value
         local host_tags = {ifid=tags.ifid, host=host.address}
         local host_partials = ts_utils.queryTotal("host:traffic", host_tags, tstart, tend)
-        local host_value = ternary(direction == "senders", host_partials["bytes_sent"], host_partials["bytes_rcvd"])
 
-        if host_value > 0 then
-          tophosts[host.address] = {
-            value = host_value,
-            tags = host_tags,
-            partials = host_partials,
-          }
+        if host_partials ~= nil then
+          local host_value = ternary(direction == "senders", host_partials["bytes_sent"], host_partials["bytes_rcvd"])
+
+          if host_value > 0 then
+            tophosts[host.address] = {
+              value = host_value,
+              tags = host_tags,
+              partials = host_partials,
+            }
+          end
         end
       end
     end
