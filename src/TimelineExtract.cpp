@@ -23,24 +23,26 @@
 
 /* ********************************************* */
 
-TimelineExtract::TimelineExtract(NetworkInterface *i) {
-  iface = i;
-  dumper = new PacketDumper(i);
+TimelineExtract::TimelineExtract() {
+  running = false;
+  shutdown = false;
 }
 
 /* ********************************************* */
 
 TimelineExtract::~TimelineExtract() {
-  if (dumper)
-    delete dumper; 
+  stop();
 }
 
 /* ********************************************* */
 
-void TimelineExtract::extract(time_t from, time_t to, const char *bpf_filter) {
+bool TimelineExtract::extract(NetworkInterface *iface,
+    time_t from, time_t to, const char *bpf_filter) {
+  bool completed = false;
 #ifdef HAVE_PF_RING
   char path[MAX_PATH];
   char from_buff[24], to_buff[24];
+  PacketDumper *dumper;
   pfring  *handle;
   u_char *packet = NULL;
   struct pfring_pkthdr header = { 0 };
@@ -49,11 +51,20 @@ void TimelineExtract::extract(time_t from, time_t to, const char *bpf_filter) {
   char *filter; 
   int rc;
  
+  shutdown = false;
+
+  dumper = new PacketDumper(iface);
+
+  if (dumper == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to initialize packet dumper");
+    goto error;
+  }
+
   filter = (char *) malloc(64 + (bpf_filter ? strlen(bpf_filter) : 0));
 
   if (filter == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to allocate memory");
-    return; 
+    goto delete_dumper;
   }
 
   filter[0] = '\0';
@@ -71,41 +82,102 @@ void TimelineExtract::extract(time_t from, time_t to, const char *bpf_filter) {
 
   snprintf(path, sizeof(path), "timeline:%s/%d/timeline", ntop->getPrefs()->get_pcap_dir(), iface->get_id());
 
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Extracting traffic from %s matching filter %s",
+    path, filter);
+
   handle = pfring_open(path, 16384, 0);
 
   if (handle == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to open %s", path);
-    free(filter);
-    return; 
+    goto free_filter;
   }
 
   rc = pfring_set_bpf_filter(handle, filter);
 
   if (rc != 0) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to set filter '%s' (%d)", filter, rc);
-    pfring_close(handle);
-    free(filter);
-    return;
+    goto close_pfring;
   }
-
-  free(filter);
 
   if (pfring_enable_ring(handle) != 0) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to start extraction on %s", path);
-    pfring_close(handle);
-    return;
+    goto close_pfring;
   }
 
-  while (!ntop->getGlobals()->isShutdown() /* iface->isRunning() */ && 
+  while (!shutdown && !ntop->getGlobals()->isShutdown() && 
          (rc = pfring_recv(handle, &packet, 0, &header, 0)) > 0) {
     h = (struct pcap_pkthdr *) &header;
     dumper->dumpPacket(h, packet, UNKNOWN, 1 /* sampling */);
   }
 
+  completed = true;
+
+ close_pfring:
   pfring_close(handle);
 
-  dumper->closeDump();
+ free_filter:
+  free(filter);
+
+ delete_dumper:
+  delete dumper;
+
+ error:
 #endif
+
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Extraction %s",
+    completed ? "completed" : "failed");
+
+  return completed;
+}
+
+/* ********************************************* */
+
+static void *extractionThread(void *ptr) {
+  TimelineExtract *extr = (TimelineExtract *) ptr;
+
+  extr->extract(
+    extr->getNetworkInterface(), 
+    extr->getFrom(),
+    extr->getTo(),
+    extr->getFilter()
+  );
+
+  extr->cleanupJob();
+  return NULL;
+}
+
+/* ********************************************* */
+
+void TimelineExtract::runExtractionJob(u_int32_t id, NetworkInterface *iface, time_t from, time_t to, const char *bpf_filter) {
+
+  running = true;
+
+  extraction.id = id;
+  extraction.iface = iface;
+  extraction.from = from;
+  extraction.to = to;
+  extraction.bpf_filter = strdup(bpf_filter);
+
+  pthread_create(&extraction_thread, NULL, extractionThread, (void *) this);
+}
+
+/* ********************************************* */
+
+void TimelineExtract::stop() {
+  void *res;
+
+  shutdown = true;
+
+  if (running)
+    pthread_join(extraction_thread, &res);
+}
+
+/* ********************************************* */
+
+void TimelineExtract::cleanupJob() {
+  if (extraction.bpf_filter) free(extraction.bpf_filter);
+
+  running = false;
 }
 
 /* ********************************************* */

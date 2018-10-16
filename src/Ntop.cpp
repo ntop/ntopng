@@ -48,6 +48,7 @@ extern struct keyval string_to_replace[]; /* Lua.cpp */
 Ntop::Ntop(char *appName) {
   ntop = this;
   globals = new NtopGlobals();
+  extract = new TimelineExtract();
   pa = new PeriodicActivities();
   address = new AddressResolution();
   custom_ndpi_protos = NULL;

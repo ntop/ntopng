@@ -5,6 +5,7 @@
 local dirs = ntop.getDirs()
 require "lua_utils"
 require "prefs_utils"
+local json = require("dkjson")
 
 prefs = ntop.getPrefs()
 
@@ -314,7 +315,7 @@ function recording_utils.stats(ifid)
   return stats
 end
 
-function recording_utils.set_license(key)
+function recording_utils.setLicense(key)
   os.execute(n2disk_ctl_cmd.." set-license "..key)
 end
 
@@ -322,7 +323,7 @@ end
 -- Note: 'params' should contain 'time_from', 'time_to', 'filter'
 -- 'time_*' format is epoch (number)
 -- 'filter' format is BPF
-function recording_utils.schedule_extraction(ifid, params)
+function recording_utils.scheduleExtraction(ifid, params)
   if params.time_from == nil or params.time_to == nil then
     return nil
   end
@@ -334,23 +335,30 @@ function recording_utils.schedule_extraction(ifid, params)
 
   local job = {
     id = id,
+    ifid = tonumber(ifid),
     time = os.time(),
     status = 'waiting',
-    ifid = ifid,
-    time_from = params.time_from,
-    time_to = params.time_to,
-    filter = params.filer,
+    time_from = tonumber(params.time_from),
+    time_to = tonumber(params.time_to),
+    filter = params.filter,
   }
 
   ntop.rpushCache(extraction_queue, json.encode(job))
 
   local job_info = { id = id }
 
-  -- Scheduler:
-  -- local job_json = ntop.lpopCache(extraction_queue)
-  -- local job = json.decode(job_json)
-
   return job_info
+end
+
+function recording_utils.checkExtractionJobs()
+  if not ntop.isExtractionRunning() then
+    local job_json = ntop.lpopCache(extraction_queue)
+
+    if not isEmptyString(job_json) then
+      local job = json.decode(job_json)
+      ntop.runExtraction(job.id, tonumber(job.ifid), tonumber(job.time_from), tonumber(job.time_to), job.filter)
+    end
+  end
 end
 
 -- #################################

@@ -5737,6 +5737,51 @@ static int ntop_reload_device_protocols(lua_State *vm) {
 
 /* ****************************************** */
 
+static int ntop_run_extraction(lua_State *vm) {
+  int id, ifid;
+  time_t time_from, time_to;
+  char *filter;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);  
+
+  if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK)
+    return(CONST_LUA_PARAM_ERROR);
+  if (ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK)
+    return(CONST_LUA_PARAM_ERROR);
+  if (ntop_lua_check(vm, __FUNCTION__, 3, LUA_TNUMBER) != CONST_LUA_OK)
+    return(CONST_LUA_PARAM_ERROR);
+  if (ntop_lua_check(vm, __FUNCTION__, 4, LUA_TNUMBER) != CONST_LUA_OK)
+    return(CONST_LUA_PARAM_ERROR);
+  if (ntop_lua_check(vm, __FUNCTION__, 5, LUA_TSTRING) != CONST_LUA_OK)
+    return(CONST_LUA_PARAM_ERROR);
+
+  id = lua_tointeger(vm, 1);
+  ifid = lua_tointeger(vm, 2);
+  time_from = lua_tointeger(vm, 3);
+  time_to = lua_tointeger(vm, 4);
+  if ((filter = (char *) lua_tostring(vm, 5)) == NULL)  return(CONST_LUA_PARAM_ERROR);
+
+  ntop->getTimelineExtract()->runExtractionJob(id, 
+    ntop->getInterfaceById(ifid), time_from, time_to, filter);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_is_extraction_running(lua_State *vm) {
+  bool rv;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  rv = ntop->getTimelineExtract()->isRunning();
+
+  lua_pushboolean(vm, rv);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_interface_exec_sql_query(lua_State *vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   bool limit_rows = true;  // honour the limit by default
@@ -8171,6 +8216,10 @@ static const luaL_Reg ntop_reg[] = {
 
   /* Device Protocols */
   { "reloadDeviceProtocols", ntop_reload_device_protocols },
+
+  /* Traffic Recording/Extraction */
+  { "runExtraction",         ntop_run_extraction },
+  { "isExtractionRunning",   ntop_is_extraction_running },
 
 #ifdef HAVE_NEDGE
   { "setHTTPBindAddr",       ntop_set_http_bind_addr       },
