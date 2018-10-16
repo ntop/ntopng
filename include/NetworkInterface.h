@@ -242,7 +242,8 @@ class NetworkInterface : public Checkpointable {
 
   void topItemsCommit(const struct timeval *when);
   void checkMacIPAssociation(bool triggerEvent, u_char *_mac, u_int32_t ipv4);
-
+  void pollQueuedeBPFEvents();
+  
  public:
   /**
   * @brief A Constructor
@@ -704,7 +705,7 @@ class NetworkInterface : public Checkpointable {
   void makeTsPoint(NetworkInterfaceTsPoint *pt);
   void tsLua(lua_State* vm);
 #ifdef HAVE_EBPF
-  inline void enqueueeBPFEvent(void *event)  { if(ebpfEvents) ebpfEvents->enqueue(event, false);        }
+  inline void enqueueeBPFEvent(void *event)  { if(ebpfEvents) ebpfEvents->enqueue(event, true);        }
   inline bool dequeueeBPFEvent(void **event) { return(ebpfEvents ? ebpfEvents->dequeue(event) : false); }
   void delivereBPFEvent(eBPFevent *event);
 #endif

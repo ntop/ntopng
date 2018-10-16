@@ -100,11 +100,16 @@ local function printAddHostoToCustomizedCategories(full_url)
 </script>]]
 end
 
-function displayProc(proc)
+function displayProc(proc, label)
+   if(proc.pid == 0) then return end
+
+   print(label)
+   
    print("<tr><th width=30%>"..i18n("flow_details.user_name").."</th><td colspan=2><A HREF=\""..ntop.getHttpPrefix().."/lua/get_user_info.lua?username=".. proc.user_name .."&".. hostinfo2url(flow,"cli").."\">".. proc.user_name .."</A></td></tr>\n")
    print("<tr><th width=30%>"..i18n("flow_details.process_pid_name").."</th><td colspan=2><A HREF=\""..ntop.getHttpPrefix().."/lua/get_process_info.lua?pid=".. proc.pid .."&".. hostinfo2url(flow,"srv").. "\">".. proc.pid .. "/" .. proc.name .. "</A>")
    print(" ["..i18n("flow_details.son_of_father_process",{url=ntop.getHttpPrefix().."/lua/get_process_info.lua?pid="..proc.father_pid,proc_father_pid=proc.father_pid,proc_father_name=proc.father_name}).."]</td></tr>\n")
 
+   if(false) then
    if(proc.actual_memory > 0) then
       print("<tr><th width=30%>"..i18n("flow_details.average_cpu_load").."</th><td colspan=2><span id=average_cpu_load_"..proc.pid..">")
 
@@ -141,6 +146,7 @@ function displayProc(proc)
 	 print("<font color=green>"..proc.num_vm_page_faults.."</font>")
       end
       print("</span></td></tr>\n")
+end -- fix
    end
 
    if(proc.actual_memory == 0) then
@@ -551,12 +557,12 @@ else
       end
 
       if(flow.client_process ~= nil) then
-	 print("<tr><th colspan=3 class=\"info\">"..i18n("flow_details.client_process_information").."</th></tr>\n")
-	 displayProc(flow.client_process)
+	 displayProc(flow.client_process,
+	     "<tr><th colspan=3 class=\"info\">"..i18n("flow_details.client_process_information").."</th></tr>\n")
       end
-      if(flow.server_process ~= nil) then
-	 print("<tr><th colspan=3 class=\"info\">"..i18n("flow_details.server_process_information").."</th></tr>\n")
-	 displayProc(flow.server_process)
+      if(flow.server_process ~= nil) then	 
+	 displayProc(flow.server_process,
+                     "<tr><th colspan=3 class=\"info\">"..i18n("flow_details.server_process_information").."</th></tr>\n")
       end
    end
 

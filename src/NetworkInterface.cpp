@@ -2146,6 +2146,8 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
   bool pass_verdict = true;
   u_int32_t rawsize = h->len * scalingFactor;
 
+  pollQueuedeBPFEvents();
+  
   if(reload_custom_categories) {
     ntop->getTrace()->traceEvent(TRACE_INFO, "Going to reload categories..");
     ndpi_enable_loaded_categories(ndpi_struct);
@@ -2650,6 +2652,12 @@ decode_packet_eth:
     break;
   }
 
+  return(pass_verdict);
+}
+
+/* **************************************************** */
+
+void NetworkInterface::pollQueuedeBPFEvents() {
 #ifdef HAVE_EBPF
   if(ebpfEvents) {
     eBPFevent *event;
@@ -2660,6 +2668,8 @@ decode_packet_eth:
       bool src2dst_direction, new_flow;
       u_int16_t proto, sport, dport;
 
+      // ntop->getTrace()->traceEvent(TRACE_ERROR, "%s(FOUND)", __FUNCTION__);
+      
       if(event->ip_version == 4)
 	src.set(event->event.v4.saddr), dst.set(event->event.v4.daddr),
 	  sport = event->event.v4.net.sport, dport = event->event.v4.net.dport,
@@ -2671,7 +2681,7 @@ decode_packet_eth:
 	  proto = event->event.v6.net.is_tcp ? IPPROTO_TCP : IPPROTO_UDP;
 
       sport = htons(sport), dport = htons(dport);
-      
+
       flow = getFlow(NULL /* srcMac */, NULL /* dstMac */,
 		     0 /* vlan_id - CHECK */,
 		     0 /* deviceIP */,
@@ -2684,19 +2694,16 @@ decode_packet_eth:
 		     true);
 
       if(flow) flow->setProcessInfo(event, src2dst_direction);
-
-#if 0
+      
       if(event->ip_version == 4)
 	IPV4Handler(flow, &event->event.v4);
       else
 	IPV6Handler(flow, &event->event.v6);
-#endif      
+
       free(event);
     }
   }
 #endif
-
-  return(pass_verdict);
 }
 
 /* **************************************************** */
@@ -5013,6 +5020,8 @@ u_int NetworkInterface::purgeIdleFlows() {
   u_int n = 0;
   time_t last_packet_time = getTimeLastPktRcvd();
 
+  pollQueuedeBPFEvents();
+  
   if(!purge_idle_flows_hosts) return(0);
 
   if(next_idle_flow_purge == 0) {
@@ -7016,6 +7025,8 @@ void NetworkInterface::delivereBPFEvent(eBPFevent *event) {
   if((tmp = (eBPFevent*)malloc(sizeof(eBPFevent))) != NULL) {
     memcpy(tmp, event, sizeof(eBPFevent));
 
+    // ntop->getTrace()->traceEvent(TRACE_ERROR, "%s()", __FUNCTION__);
+    
     if(!ebpfEvents->enqueue(tmp, false))
       free(tmp); /* Not enough space */
   }

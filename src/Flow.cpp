@@ -957,7 +957,7 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
     }
   }
 
-  if (ndpiDetectedProtocol.app_protocol != NDPI_PROTOCOL_UNKNOWN
+  if(ndpiDetectedProtocol.app_protocol != NDPI_PROTOCOL_UNKNOWN
       && !ndpi_is_subprotocol_informative(NULL, ndpiDetectedProtocol.master_protocol))
     stats_protocol = ndpiDetectedProtocol.app_protocol;
   else
@@ -1185,10 +1185,10 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
       if(isDetectionCompleted() && cli_host && srv_host) {
 	iface->topProtocolsAdd(cli_host->get_host_pool(), stats_protocol, diff_bytes);
 
-	if (cli_host->get_host_pool() != srv_host->get_host_pool())
+	if(cli_host->get_host_pool() != srv_host->get_host_pool())
 	  iface->topProtocolsAdd(srv_host->get_host_pool(), stats_protocol, diff_bytes);
 
-	if (cli_host->get_mac() && srv_host->getMac()) {
+	if(cli_host->get_mac() && srv_host->getMac()) {
 	  iface->topMacsAdd(cli_host->getMac(), stats_protocol, diff_bytes);
 	  iface->topMacsAdd(srv_host->getMac(), stats_protocol, diff_bytes);
 	}
@@ -1333,7 +1333,7 @@ void Flow::update_pools_stats(const struct timeval *tv,
       cli_host_pool_id = cli_host->get_host_pool();
 
       /* Overall host pool stats */
-      if (ndpiDetectedProtocol.app_protocol != NDPI_PROTOCOL_UNKNOWN
+      if(ndpiDetectedProtocol.app_protocol != NDPI_PROTOCOL_UNKNOWN
 	  && !ndpi_is_subprotocol_informative(NULL, ndpiDetectedProtocol.master_protocol))
 	hp->incPoolStats(tv->tv_sec, cli_host_pool_id, ndpiDetectedProtocol.app_protocol, category_id,
 		       diff_sent_packets, diff_sent_bytes, diff_rcvd_packets, diff_rcvd_bytes);
@@ -1357,7 +1357,7 @@ void Flow::update_pools_stats(const struct timeval *tv,
 
       /* Update server pool stats only if the pool is not equal to the client pool */
       if(!cli_host || srv_host_pool_id != cli_host_pool_id) {
-	if (ndpiDetectedProtocol.app_protocol != NDPI_PROTOCOL_UNKNOWN
+	if(ndpiDetectedProtocol.app_protocol != NDPI_PROTOCOL_UNKNOWN
 	    && !ndpi_is_subprotocol_informative(NULL, ndpiDetectedProtocol.master_protocol))
 	  hp->incPoolStats(tv->tv_sec, srv_host_pool_id, ndpiDetectedProtocol.app_protocol, category_id,
 			 diff_rcvd_packets, diff_rcvd_bytes, diff_sent_packets, diff_sent_bytes);
@@ -2227,16 +2227,18 @@ bool Flow::isIdleFlow() {
 	}
       } else {
 	/* The 3WH has been completed */
-	if((applLatencyMsec == 0) /* The client has not yet completed the request or
+#ifdef STRICT_TIMEOUT_ENFORCEMENT
+1	if((applLatencyMsec == 0) /* The client has not yet completed the request or
 				     the connection is idle after its setup */
 	   && (ackTime.tv_sec > 0)
 	   && ((now - ackTime.tv_sec) > CONST_MAX_IDLE_NO_DATA_AFTER_ACK))
-	  return(idle_flow = true);  /* Connection established and no data exchanged yet */
-
+	  return(idle_flow = true);  /* Connection established and no data exchanged yet */ 
 	else if((getCli2SrvCurrentInterArrivalTime(now) > CONST_MAX_IDLE_INTERARRIVAL_TIME)
 		|| ((srv2cli_packets > 0) && (getSrv2CliCurrentInterArrivalTime(now) > CONST_MAX_IDLE_INTERARRIVAL_TIME)))
 	  return(idle_flow = true);
-	else {
+	else
+#endif
+	  {
 	  switch(ndpi_get_lower_proto(ndpiDetectedProtocol)) {
 	  case NDPI_PROTOCOL_SSL:
 	    if((protos.ssl.hs_delta_time > CONST_SSL_MAX_DELTA)
@@ -3727,8 +3729,8 @@ void Flow::flushBufferedPackets() {
 
 #ifdef HAVE_EBPF
 void Flow::setProcessInfo(eBPFevent *event, bool src2dst_direction) {
-  if(client_proc == NULL) client_proc = (ProcessInfo*)malloc(sizeof(ProcessInfo));
-  if(server_proc == NULL) server_proc = (ProcessInfo*)malloc(sizeof(ProcessInfo));
+  if(client_proc == NULL) client_proc = (ProcessInfo*)calloc(1, sizeof(ProcessInfo));
+  if(server_proc == NULL) server_proc = (ProcessInfo*)calloc(1, sizeof(ProcessInfo));
   
   if(client_proc && server_proc) {
     ProcessInfo *c /* , *s */;
