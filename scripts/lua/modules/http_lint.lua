@@ -809,6 +809,12 @@ end
 
 -- #################################################################
 
+local function validatenIndexQueryType(qt)
+   return validateChoice({"top_clients", "top_servers", "top_protocols", "top_contacts"}, qt)
+end
+
+-- #################################################################
+
 local function validateCIDR(m)
    return validateChoice({"24", "32"}, m)
 end
@@ -859,6 +865,7 @@ local known_parameters = {
    ["flow_clause"]             = validateSingleWord,
    ["topk_clause"]             = validateSingleWord,
    ["maxhits_clause"]          = validateNumber,
+   ["query_type"]              = validatenIndexQueryType,
    
 -- HOST SPECIFICATION
    ["host"]                    = validateHost,                  -- an IPv4 (optional @vlan), IPv6 (optional @vlan), or MAC address
