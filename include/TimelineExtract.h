@@ -26,13 +26,40 @@
 
 class TimelineExtract {
  private:
-  NetworkInterface *iface;
-  PacketDumper *dumper;
+  pthread_t extraction_thread;
+  bool running;
+  bool shutdown;
+  int status_code;
+
+  struct {
+    u_int64_t packets;
+    u_int64_t bytes;
+  } stats;
+
+  struct {
+    NetworkInterface *iface;
+    u_int32_t id;
+    time_t from;
+    time_t to;
+    char *bpf_filter;
+  } extraction;
 
  public:
-  TimelineExtract(NetworkInterface *i);
+  TimelineExtract();
   ~TimelineExtract();
-  void extract(time_t from, time_t to, const char *bpf_filter);
+  inline NetworkInterface *getNetworkInterface() { return extraction.iface; };
+  inline u_int32_t getID() { return extraction.id; };
+  inline time_t getFrom() { return extraction.from; };
+  inline time_t getTo() { return extraction.to; };
+  inline const char *getFilter() { return extraction.bpf_filter; };
+  inline bool isRunning() { return running; };
+  void stop();
+  /* sync */
+  bool extract(u_int32_t id, NetworkInterface *iface, time_t from, time_t to, const char *bpf_filter);
+  /* async */
+  void runExtractionJob(u_int32_t id, NetworkInterface *iface, time_t from, time_t to, const char *bpf_filter);
+  void cleanupJob();
+  void getStatus(lua_State* vm);
 };
 
 #endif /* _TIMELINE_EXTRACT_H_ */

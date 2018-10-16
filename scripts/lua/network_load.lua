@@ -139,13 +139,25 @@ function dumpInterfaceStats(interface_name)
 
       res["breed"] = stats["breeds"]
 
-      if isAdministrator() and recording_utils.isEnabled(ifstats.id) then
-        if recording_utils.isActive(ifstats.id) then
-          res["traffic_recording"] = "recording"
-        else
-          res["traffic_recording"] = "failed"
+      if recording_utils.isAvailable() then
+        if recording_utils.isEnabled(ifstats.id) then
+          if recording_utils.isActive(ifstats.id) then
+            res["traffic_recording"] = "recording"
+          else
+            res["traffic_recording"] = "failed"
+          end
+        end
+
+        if recording_utils.isEnabled(ifstats.id) then
+          local jobs_info = recording_utils.extractionJobsInfo(ifstats.id)
+          if jobs_info.ready > 0 then
+            res["traffic_extraction"] = "ready"
+          elseif jobs_info.total > 0 then
+            res["traffic_extraction"] = "processing"
+          end
         end
       end
+
    end
    return res
 end

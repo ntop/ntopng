@@ -10,7 +10,12 @@ require "lua_utils"
 
 local presets_utils = require "presets_utils"
 local json = require("dkjson")
+
 sendHTTPContentTypeHeader('text/html')
+
+if not isAdministrator() then
+   return
+end
 
 -- ################################################
 -- Table parameters

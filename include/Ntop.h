@@ -55,6 +55,7 @@ class Ntop {
   Logstash *logstash; /**< Pointer of Logstash. */
   ExportInterface *export_interface;
 #endif
+  TimelineExtract *extract;
   PeriodicActivities *pa; /**< Instance of periodical activities. */
   AddressResolution *address;
   Prefs *prefs;
@@ -362,6 +363,7 @@ class Ntop {
   inline NtopGlobals*      getGlobals()              { return(globals); };
   inline Trace*            getTrace()                { return(globals->getTrace()); };
   inline Redis*            getRedis()                { return(redis);               };
+  inline TimelineExtract*  getTimelineExtract()      { return(extract); };
 #ifndef HAVE_NEDGE
   inline ElasticSearch*    getElasticSearch()        { return(elastic_search);      };
   inline Logstash*         getLogstash()             { return(logstash);            };

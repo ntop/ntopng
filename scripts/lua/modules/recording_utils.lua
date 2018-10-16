@@ -5,13 +5,16 @@
 local dirs = ntop.getDirs()
 require "lua_utils"
 require "prefs_utils"
+local json = require("dkjson")
 
 prefs = ntop.getPrefs()
 
 local n2disk_ctl = "/usr/local/bin/n2diskctl"
 local ntopng_config_tool = "/usr/bin/ntopng-utils-manage-config"
 local n2disk_ctl_cmd = "sudo "..n2disk_ctl
-local extraction_queue = "ntopng.traffic_recording.extraction_queue"
+local extraction_queue_key = "ntopng.traffic_recording.extraction_queue"
+local extraction_seqnum_key = "ntopng.traffic_recording.extraction_seqnum"
+local extraction_jobs_key = "ntopng.traffic_recording.extraction_jobs"
 
 local recording_utils = {}
 
@@ -123,6 +126,16 @@ end
 function recording_utils.getTimelinePath(ifid)
   local storage_path = dirs.pcapdir
   return storage_path.."/"..ifid.."/timeline"
+end
+
+local function getPcapFileDir(job_id, ifid)
+  local storage_path = dirs.pcapdir
+  return storage_path.."/"..ifid.."/extr_pcap/"..job_id
+end
+
+local function getPcapFilePath(job_id, ifid, file_id)
+  local dir_path = getPcapFileDir(job_id, ifid)
+  return dir_path.."/"..file_id..".pcap"
 end
 
 function recording_utils.createConfig(ifid, params)
@@ -314,15 +327,75 @@ function recording_utils.stats(ifid)
   return stats
 end
 
-function recording_utils.set_license(key)
+function recording_utils.setLicense(key)
   os.execute(n2disk_ctl_cmd.." set-license "..key)
+end
+
+function recording_utils.getJobFiles(id)
+  local job_json = ntop.getHashCache(extraction_jobs_key, id)
+  local files = {}
+  if not isEmptyString(job_json) then
+    local job = json.decode(job_json)
+    local file_id = 1
+    local file = getPcapFilePath(job.id, job.ifid, file_id)
+    while ntop.exists(file) do
+      table.insert(files, file)
+      file_id = file_id + 1
+      file = getPcapFilePath(job.id, job.ifid, file_id) 
+    end
+  end
+  return files
+end
+
+function recording_utils.deleteJob(job_id)
+  local job_json = ntop.getHashCache(extraction_jobs_key, job_id)
+  if not isEmptyString(job_json) then
+    local job = json.decode(job_json)
+    local dir_path = getPcapFileDir(job.id, job.ifid)
+    ntop.rmdir(dir_path)
+    ntop.delHashCache(extraction_jobs_key, tostring(job_id))
+  end
+end
+
+function recording_utils.extractionJobsInfo(ifid)
+  local job_ids = ntop.getHashKeysCache(extraction_jobs_key) or {}
+  local jobs_info = { total = 0, ready = 0 }
+
+  for id,_ in pairs(job_ids) do
+    local job_json = ntop.getHashCache(extraction_jobs_key, id)
+    local job = json.decode(job_json)
+    if ifid == nil or job.ifid == ifid then
+      if job.status == "completed" or job.status == "failed" then
+        jobs_info.ready = jobs_info.ready + 1
+      end
+      jobs_info.total = jobs_info.total + 1
+    end
+  end
+
+  return jobs_info
+end
+
+function recording_utils.getExtractionJobs(ifid)
+  local jobs = {}
+  local job_ids = ntop.getHashKeysCache(extraction_jobs_key) or {}
+
+  for id,_ in pairs(job_ids) do
+    local job_json = ntop.getHashCache(extraction_jobs_key, id)
+    local job = json.decode(job_json)
+    if ifid == nil or job.ifid == ifid then
+      jobs[tonumber(id)] = json.decode(job_json)
+    end
+  end
+
+  return jobs
 end
 
 -- Schedule an extraction
 -- Note: 'params' should contain 'time_from', 'time_to', 'filter'
 -- 'time_*' format is epoch (number)
 -- 'filter' format is BPF
-function recording_utils.schedule_extraction(ifid, params)
+function recording_utils.scheduleExtraction(ifid, params)
+
   if params.time_from == nil or params.time_to == nil then
     return nil
   end
@@ -330,27 +403,65 @@ function recording_utils.schedule_extraction(ifid, params)
     params.filter = ""
   end
 
-  local id = os.time() -- TODO
+  local id = ntop.incrCache(extraction_seqnum_key)
 
   local job = {
     id = id,
+    ifid = tonumber(ifid),
     time = os.time(),
     status = 'waiting',
-    ifid = ifid,
-    time_from = params.time_from,
-    time_to = params.time_to,
-    filter = params.filer,
+    time_from = tonumber(params.time_from),
+    time_to = tonumber(params.time_to),
+    filter = params.filter,
   }
 
-  ntop.rpushCache(extraction_queue, json.encode(job))
+  ntop.setHashCache(extraction_jobs_key, job.id, json.encode(job))
 
-  local job_info = { id = id }
-
-  -- Scheduler:
-  -- local job_json = ntop.lpopCache(extraction_queue)
-  -- local job = json.decode(job_json)
-
+  ntop.rpushCache(extraction_queue_key, tostring(job.id))
+  
+  local job_info = { id = job.id }
   return job_info
+end
+
+local function setJobAsCompleted()
+  local datapath_extractions = ntop.getExtractionStatus()
+  for id,status in pairs(datapath_extractions) do
+    local job_json = ntop.getHashCache(extraction_jobs_key, id)
+    if not isEmptyString(job_json) then
+      local job = json.decode(job_json)
+      if job.status == "processing" then
+        if status.status == 0 then
+          job.status = "completed"
+        else
+          job.status = "failed"
+          job.error_code = status.status
+        end
+        job.extracted_pkts = status.extracted_pkts
+        job.extracted_bytes = status.extracted_bytes
+        ntop.setHashCache(extraction_jobs_key, job.id, json.encode(job)) 
+      end
+    end
+  end
+end
+
+function recording_utils.checkExtractionJobs()
+  if not ntop.isExtractionRunning() then
+
+    -- set the previous job as completed, if any
+    setJobAsCompleted()
+
+    local id = ntop.lpopCache(extraction_queue_key)
+    if not isEmptyString(id) then
+
+      local job_json = ntop.getHashCache(extraction_jobs_key, id)
+      local job = json.decode(job_json)
+
+      ntop.runExtraction(job.id, tonumber(job.ifid), tonumber(job.time_from), tonumber(job.time_to), job.filter)
+
+      job.status = 'processing'
+      ntop.setHashCache(extraction_jobs_key, job.id, json.encode(job))
+    end
+  end
 end
 
 -- #################################

@@ -420,11 +420,24 @@ print [[/lua/if_stats.lua\"><i class=\"fa fa-warning\" style=\"color: #B94A48;\"
 	    }
 
 	    if(typeof rsp.traffic_recording !== "undefined") {
-                if (rsp.traffic_recording == "recording") { status_label="primary"; status_title="]] print(i18n("traffic_recording.recording")) print [["; }
-                else { status_label = "danger"; status_title = "]] print(i18n("traffic_recording.failure")) print [["; }
+                var status_label="primary"; 
+                var status_title="]] print(i18n("traffic_recording.recording")) print [[";
+                if (rsp.traffic_recording != "recording") { 
+                  status_label = "danger"; 
+                  status_title = "]] print(i18n("traffic_recording.failure")) print [["; 
+                }
    	        msg += "&nbsp;<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/traffic_recording_status.lua\">";
  	        msg += "<span class=\"label label-"+status_label+"\" title=\""+addCommas(status_title)+"\">";
 		msg += "<i class=\"fa fa-hdd-o fa-lg\"></i></a></span>";
+	    }
+
+	    if(typeof rsp.traffic_extraction !== "undefined") {
+                var status_title="]] print(i18n("traffic_recording.traffic_extraction_jobs")) print [["; 
+                var status_label = "default";
+                if (rsp.traffic_extraction == "ready") status_label="primary";
+   	        msg += "&nbsp;<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/traffic_extraction_stats.lua\">";
+ 	        msg += "<span class=\"label label-"+status_label+"\" title=\""+addCommas(status_title)+"\">";
+		msg += "<i class=\"fa fa-tasks fa-lg\"></i></a></span>";
 	    }
 
 	    $('#network-load').html(msg);
