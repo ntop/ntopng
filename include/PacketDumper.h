@@ -47,7 +47,7 @@ class PacketDumper {
   void closeDump();
   void idle(time_t when);
   bool checkClose(time_t when);
-  void openDump(time_t when, int sampling_rate);
+  bool openDump(time_t when, int sampling_rate);
   void dumpPacket(const struct pcap_pkthdr *h, const u_char *packet,
                   dump_reason reason, int sampling_rate);
   inline u_int64_t get_num_dumped_packets() { return(num_dumped_packets+num_dumped_unknown_packets); }

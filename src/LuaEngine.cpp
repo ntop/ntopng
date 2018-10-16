@@ -5789,7 +5789,6 @@ static int ntop_is_extraction_running(lua_State *vm) {
 /* ****************************************** */
 
 static int ntop_get_extraction_status(lua_State *vm) {
-  bool rv;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 

@@ -90,7 +90,7 @@ bool TimelineExtract::extract(u_int32_t id, NetworkInterface *iface,
 
   snprintf(timeline_path, sizeof(timeline_path), "timeline:%s/%d/timeline", ntop->getPrefs()->get_pcap_dir(), iface->get_id());
 
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Running extraction #%u from %s matching %s to %s",
+  ntop->getTrace()->traceEvent(TRACE_INFO, "Running extraction #%u from %s matching %s to %s",
     id, timeline_path, filter, out_path);
 
   handle = pfring_open(timeline_path, 16384, 0);
@@ -138,7 +138,7 @@ bool TimelineExtract::extract(u_int32_t id, NetworkInterface *iface,
  error:
 #endif
 
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Extraction #%u %s",
+  ntop->getTrace()->traceEvent(TRACE_INFO, "Extraction #%u %s",
     id, completed ? "completed" : "failed");
 
   return completed;

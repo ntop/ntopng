@@ -1153,6 +1153,8 @@ local known_parameters = {
    ["disk_space"]                                  = validateNumber,
    ["n2disk_license"]                              = validateSingleWord,
    ["record_traffic"]                              = validateBool,
+   ["job_id"]                                      = validateNumber,
+   ["delete_job"]                                  = validateNumber,
 --
 
 -- PAGE SPECIFIC
