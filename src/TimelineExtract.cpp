@@ -55,6 +55,7 @@ bool TimelineExtract::extract(u_int32_t id, NetworkInterface *iface,
   int rc;
  
   shutdown = false;
+  stats.packets = stats.bytes = 0;
   status_code = 1;
 
   snprintf(out_path, sizeof(out_path), "%s/%u/extr_pcap/%u", ntop->getPrefs()->get_pcap_dir(), iface->get_id(), id);
@@ -77,16 +78,16 @@ bool TimelineExtract::extract(u_int32_t id, NetworkInterface *iface,
 
   filter[0] = '\0';
 
-  if (bpf_filter && strlen(bpf_filter) > 0) 
-    sprintf(filter, "%s and ", bpf_filter);
-
   time_info = localtime(&from);
   strftime(from_buff, sizeof(from_buff), "%Y-%m-%d %H:%M:%S", time_info);
 
   time_info = localtime(&to);
   strftime(to_buff, sizeof(to_buff), "%Y-%m-%d %H:%M:%S", time_info);
 
-  sprintf(&filter[strlen(filter)], "start %s and end %s", from_buff, to_buff);
+  sprintf(filter, "start %s and end %s", from_buff, to_buff);
+
+  if (bpf_filter && strlen(bpf_filter) > 0) 
+    sprintf(&filter[strlen(filter)], " and %s", bpf_filter);
 
   snprintf(timeline_path, sizeof(timeline_path), "timeline:%s/%d/timeline", ntop->getPrefs()->get_pcap_dir(), iface->get_id());
 

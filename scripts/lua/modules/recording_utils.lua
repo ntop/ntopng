@@ -424,24 +424,21 @@ function recording_utils.scheduleExtraction(ifid, params)
 end
 
 local function setJobAsCompleted()
-  local last_id = ntop.getCache(extraction_seqnum_key)
-  if not isEmptyString(last_id) then
-    local job_json = ntop.getHashCache(extraction_jobs_key, last_id)
+  local datapath_extractions = ntop.getExtractionStatus()
+  for id,status in pairs(datapath_extractions) do
+    local job_json = ntop.getHashCache(extraction_jobs_key, id)
     if not isEmptyString(job_json) then
       local job = json.decode(job_json)
-      local datapath_extractions = ntop.getExtractionStatus()
-      for id,status in pairs(datapath_extractions) do
-        if job.id == tonumber(id) and job.status == "processing" then
-          if status.status == 0 then
-            job.status = "completed"
-          else
-            job.status = "failed"
-            job.error_code = status.status
-          end
-          job.extracted_pkts = status.extracted_pkts
-          job.extracted_bytes = status.extracted_bytes
-          ntop.setHashCache(extraction_jobs_key, job.id, json.encode(job)) 
+      if job.status == "processing" then
+        if status.status == 0 then
+          job.status = "completed"
+        else
+          job.status = "failed"
+          job.error_code = status.status
         end
+        job.extracted_pkts = status.extracted_pkts
+        job.extracted_bytes = status.extracted_bytes
+        ntop.setHashCache(extraction_jobs_key, job.id, json.encode(job)) 
       end
     end
   end

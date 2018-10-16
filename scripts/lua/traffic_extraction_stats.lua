@@ -38,6 +38,7 @@ print [[
            {
              title: "]] print(i18n("traffic_recording.job_id")) print [[",
              field: "column_id",
+             css: {textAlign:'center'},
            }, {
              title: "]] print(i18n("traffic_recording.job_date_time")) print [[",
              field: "column_job_time",
@@ -57,9 +58,11 @@ print [[
            }, {
              title: "]] print(i18n("traffic_recording.extracted_packets")) print [[",
              field: "column_extracted_packets",
+             css: {textAlign:'right'},
            }, {
              title: "]] print(i18n("traffic_recording.extracted_bytes")) print [[",
              field: "column_extracted_bytes",
+             css: {textAlign:'right'},
            }, {
              title: "]] print(i18n("actions")) print [[",
              field: "column_actions",

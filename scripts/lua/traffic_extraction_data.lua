@@ -100,8 +100,8 @@ for id, _ in pairsByValues(sorter, sOrder) do
     column_begin_time = format_utils.formatEpoch(job.time_from),
     column_end_time = format_utils.formatEpoch(job.time_to),
     column_bpf_filter = ternary(isEmptyString(job.filter), "-", job.filter),
-    column_extracted_packets = ternary(extracted_packets, extracted_packets, "-"),
-    column_extracted_bytes = ternary(extracted_bytes, bytesToSize(extracted_bytes), "-"),
+    column_extracted_packets = ternary(job.extracted_pkts, formatPackets(job.extracted_pkts), "-"),
+    column_extracted_bytes = ternary(job.extracted_bytes, bytesToSize(job.extracted_bytes), "-"),
     column_actions = action_links
   }
 
