@@ -865,7 +865,8 @@ local known_parameters = {
    ["flow_clause"]             = validateSingleWord,
    ["topk_clause"]             = validateSingleWord,
    ["maxhits_clause"]          = validateNumber,
-   ["query_type"]              = validatenIndexQueryType,
+   ["ni_query_type"]           = validatenIndexQueryType,
+   ["ni_query_filter"]         = validateListOfTypeInline(validateSingleWord),
    
 -- HOST SPECIFICATION
    ["host"]                    = validateHost,                  -- an IPv4 (optional @vlan), IPv6 (optional @vlan), or MAC address
