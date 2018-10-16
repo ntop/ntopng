@@ -205,27 +205,27 @@ function fixTimeRange(chart, params, align_step, actual_step) {
 
   // must be sorted by ascending max_diff
   // max_diff / tick_step indicates the number of ticks, which should be <= 15
-  // max_diff / resolution indicates the number of actual points, which should be ~60
+  // max_diff / resolution indicates the number of actual points, which should be ~300
   var range_params = [
     // max_diff, resolution, x_format, alignment, tick_step
     [15, 1, "%H:%M:%S", 1, 1],                          // <= 15 sec
     [60, 1, "%H:%M:%S", 1, 5],                          // <= 1 min
-    [120, 5, "%H:%M:%S", 10, 10],                       // <= 2 min
-    [300, 5, "%H:%M:%S", 10, 30],                       // <= 5 min
-    [600, 10, "%H:%M:%S", 30, 60],                      // <= 10 min
-    [1200, 30, "%H:%M:%S", 60, 120],                    // <= 20 min
-    [3600, 60, "%H:%M:%S", 60, 300],                    // <= 1 h
-    [5400, 120, "%H:%M", 300, 900],                     // <= 1.5 h
-    [10800, 300, "%H:%M", 300, 900],                    // <= 3 h
-    [21600, 300, "%H:%M", 3600, 1800],                  // <= 6 h
-    [43200, 600, "%H:%M", 3600, 3600],                  // <= 12 h
-    [86400, 600, "%H:%M", 3600, 7200],                  // <= 1 d
-    [172800, 3600, "%a, %H:%M", 3600, 14400],           // <= 2 d
-    [604800, 3600, "%Y-%m-%d", 86400, 86400],           // <= 7 d
-    [1209600, 7200, "%Y-%m-%d", 86400, 172800],         // <= 14 d
-    [2678400, 21600, "%Y-%m-%d", 86400, 259200],        // <= 1 m
-    [15768000, 175200, "%Y-%m-%d", 2678400, 1314000],   // <= 6 m
-    [31622400, 175200, "%Y-%m-%d", 2678400, 2678400],   // <= 1 y
+    [120, 1, "%H:%M:%S", 10, 10],                       // <= 2 min
+    [300, 1, "%H:%M:%S", 10, 30],                       // <= 5 min
+    [600, 5, "%H:%M:%S", 30, 60],                       // <= 10 min
+    [1200, 5, "%H:%M:%S", 60, 120],                     // <= 20 min
+    [3600, 10, "%H:%M:%S", 60, 300],                    // <= 1 h
+    [5400, 15, "%H:%M", 300, 900],                      // <= 1.5 h
+    [10800, 30, "%H:%M", 300, 900],                     // <= 3 h
+    [21600, 60, "%H:%M", 3600, 1800],                   // <= 6 h
+    [43200, 120, "%H:%M", 3600, 3600],                  // <= 12 h
+    [86400, 240, "%H:%M", 3600, 7200],                  // <= 1 d
+    [172800, 480, "%a, %H:%M", 3600, 14400],            // <= 2 d
+    [604800, 1800, "%Y-%m-%d", 86400, 86400],           // <= 7 d
+    [1209600, 3600, "%Y-%m-%d", 86400, 172800],         // <= 14 d
+    [2678400, 7200, "%Y-%m-%d", 86400, 259200],         // <= 1 m
+    [15768000, 43200, "%Y-%m-%d", 2678400, 1314000],    // <= 6 m
+    [31622400, 86400, "%Y-%m-%d", 2678400, 2678400],    // <= 1 y
   ];
 
   for(var i=0; i<range_params.length; i++) {
@@ -357,7 +357,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
       $graph_zoom.find(".btn-warning:not(.custom-zoom-btn)")
         .addClass("initial-zoom-sel")
         .removeClass("btn-warning");
-      $graph_zoom.find(".custom-zoom-btn").show();
+      $graph_zoom.find(".custom-zoom-btn").css("visibility", "visible");
 
       var zoom_link = $graph_zoom.find(".custom-zoom-btn input");
       var link = zoom_link.val().replace(/&epoch_begin=.*/, "");
@@ -378,7 +378,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
 
       $graph_zoom.find(".initial-zoom-sel")
         .addClass("btn-warning");
-      $graph_zoom.find(".custom-zoom-btn").hide();
+      $graph_zoom.find(".custom-zoom-btn").css("visibility", "hidden");
       chart.is_zoomed = false;
     }
   }
@@ -630,7 +630,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
       chart.yAxis2.tickFormat(value_formatter2);
       chart.yAxis2_formatter = value_formatter2;
 
-      var stats_table = $chart.closest("table").find(".graph-statistics");
+      var stats_table = $("#ts-chart-stats");
       var stats = data.statistics;
 
       if(stats) {
