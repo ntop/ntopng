@@ -1406,6 +1406,7 @@ bool Flow::equal(IpAddress *_cli_ip, IpAddress *_srv_ip, u_int16_t _cli_port,
 void Flow::processJson(bool is_src,
 		       json_object *my_object,
 		       ProcessInfo *proc) {
+#if 0
   u_int num_id;
   const char *str_id;
   char jsonbuf[64];
@@ -1435,7 +1436,6 @@ void Flow::processJson(bool is_src,
   json_object_object_add(my_object, Utils::jsonLabel(num_id, str_id, jsonbuf, sizeof(jsonbuf)),
 			 json_object_new_string(proc->user_name));
 
-#if 0
   num_id = is_src ? SRC_PROC_ACTUAL_MEMORY : DST_PROC_ACTUAL_MEMORY;
   str_id = is_src ? "SRC_PROC_ACTUAL_MEMORY" : "DST_PROC_ACTUAL_MEMORY";
   json_object_object_add(my_object, Utils::jsonLabel(num_id, str_id, jsonbuf, sizeof(jsonbuf)),
@@ -1463,17 +1463,30 @@ void Flow::processJson(bool is_src,
 /* *************************************** */
 
 void Flow::processLua(lua_State* vm, ProcessInfo *proc, bool client) {
+#ifndef WIN32
   Host *src = get_cli_host(), *dst = get_srv_host();
-
+  struct passwd *pwd;
+  
   if((src == NULL) || (dst == NULL)) return;
 
   lua_newtable(vm);
 
   lua_push_int_table_entry(vm, "pid", proc->pid);
   lua_push_int_table_entry(vm, "father_pid", proc->father_pid);
-  lua_push_str_table_entry(vm, "name", proc->name);
-  lua_push_str_table_entry(vm, "father_name", proc->father_name);
-  lua_push_str_table_entry(vm, "user_name", proc->user_name);
+  lua_push_str_table_entry(vm, "name", proc->process_name);
+  lua_push_str_table_entry(vm, "father_name", proc->father_process_name);
+  lua_push_int_table_entry(vm, "uid", proc->uid);
+  lua_push_int_table_entry(vm, "gid", proc->gid);
+  lua_push_int_table_entry(vm, "father_uid", proc->father_uid);
+  lua_push_int_table_entry(vm, "father_gid", proc->father_gid);
+
+  /* TODO: improve code efficiency */
+  pwd = getpwuid(proc->uid);
+  lua_push_str_table_entry(vm, "user_name", pwd ? pwd->pw_name : "");
+
+  pwd = getpwuid(proc->father_uid);
+  lua_push_str_table_entry(vm, "father_user_name", pwd ? pwd->pw_name : "");
+
 #if 0
   lua_push_int_table_entry(vm, "actual_memory", proc->actual_memory);
   lua_push_int_table_entry(vm, "peak_memory", proc->peak_memory);
@@ -1484,6 +1497,7 @@ void Flow::processLua(lua_State* vm, ProcessInfo *proc, bool client) {
   lua_pushstring(vm, client ? "client_process" : "server_process");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
+#endif
 }
 
 /* *************************************** */
@@ -2668,9 +2682,15 @@ u_int32_t Flow::getFatherPid(bool client) {
 /* *************************************** */
 
 char* Flow::get_username(bool client) {
+#ifdef WIN32
+  return(NULL);
+#else
   ProcessInfo *proc = client ? client_proc : server_proc;
+  struct passwd *pwd;
 
-  return((proc == NULL) ? NULL : proc->user_name);
+  if(proc == NULL) return(NULL); else pwd = getpwuid(proc->uid);
+  return((pwd == NULL) ? NULL : pwd->pw_name);
+#endif
 };
 
 /* *************************************** */
@@ -2678,7 +2698,7 @@ char* Flow::get_username(bool client) {
 char* Flow::get_proc_name(bool client) {
   ProcessInfo *proc = client ? client_proc : server_proc;
 
-  return((proc == NULL) ? NULL : proc->name);
+  return((proc == NULL) ? NULL : proc->process_name);
 };
 
 /* *************************************** */
@@ -3702,3 +3722,36 @@ void Flow::flushBufferedPackets() {
     free(tmp);
   }
 }
+
+/* ***************************************************** */
+
+#ifdef HAVE_EBPF
+void Flow::setProcessInfo(eBPFevent *event, bool src2dst_direction) {
+  if(client_proc == NULL) client_proc = (ProcessInfo*)malloc(sizeof(ProcessInfo));
+  if(server_proc == NULL) server_proc = (ProcessInfo*)malloc(sizeof(ProcessInfo));
+  
+  if(client_proc && server_proc) {
+    ProcessInfo *c /* , *s */;
+    struct taskInfo *proc, *father;
+
+    if(src2dst_direction)
+      c = client_proc /* , s = server_proc */;
+    else
+      c = server_proc /* s = client_proc */;
+
+    proc = (event->ip_version == 4)   ? &event->event.v4.proc   : &event->event.v6.proc;
+    father = (event->ip_version == 4) ? &event->event.v4.father : &event->event.v6.father;
+
+    c->pid = proc->tid, c->father_pid = father->tid,
+      snprintf(c->process_name, sizeof(c->process_name), "%s", proc->task),
+      snprintf(c->father_process_name, sizeof(c->father_process_name), "%s", father->task),
+      c->uid = proc->uid, c->gid = proc->gid,
+      c->father_uid = father->uid, c->father_gid = father->gid;
+
+    /* TODO: handle latency_usec */
+  } else {
+    if(client_proc) { free(client_proc); client_proc = NULL; }
+    if(server_proc) { free(server_proc); server_proc = NULL; }
+  }
+}
+#endif

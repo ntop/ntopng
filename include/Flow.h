@@ -507,6 +507,9 @@ class Flow : public GenericHashEntry {
   void addPacketToDump(const struct pcap_pkthdr *h, const u_char *packet);
   void flushBufferedPackets();
   void housekeep();
+#ifdef HAVE_EBPF
+  void setProcessInfo(eBPFevent *event, bool src2dst_direction);
+#endif
 };
 
 #endif /* _FLOW_H_ */

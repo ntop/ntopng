@@ -312,7 +312,7 @@ void NetworkInterface::init() {
   frequentProtocols = new FrequentTrafficItems(5);
   num_live_captures = 0;
   memset(live_captures, 0, sizeof(live_captures));
-  
+
   db = NULL;
 #ifdef NTOPNG_PRO
   custom_app_stats = NULL;
@@ -368,7 +368,7 @@ void NetworkInterface::initL7Policer() {
 void NetworkInterface::aggregatePartialFlow(Flow *flow) {
   if(flow && aggregated_flows_hash) {
     AggregatedFlow *aggregatedFlow = aggregated_flows_hash->find(flow);
-    
+
     if(aggregatedFlow == NULL) {
       if(!aggregated_flows_hash->hasEmptyRoom()) {
 	/* There is no more room in the hash table */
@@ -533,7 +533,7 @@ void NetworkInterface::updateTrafficMirrored() {
   bool is_mirrored = CONST_DEFAULT_MIRRORED_TRAFFIC;
 
   if(!ntop->getRedis()) return;
-  
+
   snprintf(key, sizeof(key), CONST_MIRRORED_TRAFFIC_PREFS, get_id());
   if((ntop->getRedis()->get(key, rsp, sizeof(rsp)) == 0) && (rsp[0] != '\0')) {
     if(rsp[0] == '1')
@@ -1023,7 +1023,7 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
 				bool *src2dst_direction,
 				time_t first_seen, time_t last_seen,
 				u_int32_t rawsize,
-				bool *new_flow) {
+				bool *new_flow, bool create_if_missing) {
   Flow *ret;
   Mac *primary_mac;
   Host *srcHost = NULL, *dstHost = NULL;
@@ -1039,6 +1039,9 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
 			 vlan_id, l4_proto, src2dst_direction);
 
   if(ret == NULL) {
+    if(!create_if_missing)
+      return(NULL);
+
     *new_flow = true;
 
     try {
@@ -1290,7 +1293,7 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
 		 zflow->core.l4_proto, &src2dst_direction,
 		 zflow->core.first_switched,
 		 zflow->core.last_switched,
-		 0, &new_flow);
+		 0, &new_flow, true);
 
   if(flow == NULL)
     return;
@@ -1693,7 +1696,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 
   /* Updating Flow */
   flow = getFlow(srcMac, dstMac, vlan_id, 0, 0, 0, &src_ip, &dst_ip, src_port, dst_port,
-		 l4_proto, &src2dst_direction, last_pkt_rcvd, last_pkt_rcvd, rawsize, &new_flow);
+		 l4_proto, &src2dst_direction, last_pkt_rcvd, last_pkt_rcvd, rawsize, &new_flow, true);
 
   if(flow == NULL) {
     incStats(ingressPacket, when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN,
@@ -2583,12 +2586,41 @@ decode_packet_eth:
     eBPFevent *event;
 
     if(dequeueeBPFEvent((void**)&event)) {
-      /* ntop->getTrace()->traceEvent(TRACE_WARNING, "*** Event consumed ***"); */
+      Flow *flow;
+      IpAddress src, dst;
+      bool src2dst_direction, new_flow;
+      u_int16_t proto, sport, dport;
+
+      if(event->ip_version == 4)
+	src.set(event->event.v4.saddr), dst.set(event->event.v4.daddr),
+	  sport = event->event.v4.net.sport, dport = event->event.v4.net.dport,
+	  proto = event->event.v4.net.is_tcp ? IPPROTO_TCP : IPPROTO_UDP;
+      else
+	src.set((struct ndpi_in6_addr*)&event->event.v6.saddr),
+	  dst.set((struct ndpi_in6_addr*)&event->event.v6.daddr),
+	  sport = event->event.v6.net.sport, dport = event->event.v6.net.dport,
+	  proto = event->event.v6.net.is_tcp ? IPPROTO_TCP : IPPROTO_UDP;
+
+      flow = getFlow(NULL /* srcMac */, NULL /* dstMac */,
+		     0 /* vlan_id - CHECK */,
+		     0 /* deviceIP */,
+		     0 /* inIndex */, 1 /* outIndex */,
+		     &src, &dst,
+		     sport, dport,
+		     proto,
+		     &src2dst_direction,
+		     0, 0, 0, &new_flow, false);
+
+      if(flow)
+	flow->setProcessInfo(event, src2dst_direction);
+      else      
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "*** Unable to match event ***");
+      
       free(event);
     }
   }
 #endif
-  
+
   return(pass_verdict);
 }
 
@@ -4760,7 +4792,7 @@ int NetworkInterface::getActiveHostsGroup(lua_State* vm,
   Grouper *gper;
 
   disablePurge(false);
-  
+
   // sort hosts according to the grouping criterion
   if(sortHosts(begin_slot, walk_all,
 	       &retriever, 0 /* bridge_iface_idx TODO */,
@@ -5147,7 +5179,7 @@ void NetworkInterface::lua(lua_State *vm) {
   nDPIStats _ndpiStats;
   PacketStats _pktStats;
   TcpPacketStats _tcpPacketStats;
-  
+
   lua_newtable(vm);
 
   lua_push_str_table_entry(vm, "name", get_name());
@@ -5174,7 +5206,7 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_int_table_entry(vm, "drops",       getNumPacketDrops());
   lua_push_int_table_entry(vm, "devices",     getNumL2Devices());
   lua_push_int_table_entry(vm, "num_live_captures", num_live_captures);
-    
+
 #ifndef HAVE_NEDGE
   /* even if the counter is global, we put it here on every interface
      as we may decide to make an elasticsearch thread per interface.
@@ -5263,7 +5295,7 @@ void NetworkInterface::lua(lua_State *vm) {
 
 #ifdef NTOPNG_PRO
   if(custom_app_stats)
-    custom_app_stats->lua(vm);  
+    custom_app_stats->lua(vm);
 #endif
 }
 
@@ -5940,7 +5972,7 @@ void NetworkInterface::reloadHideFromTop(bool refreshHosts) {
 
   if(!ntop->getRedis()) return;
 
-  
+
   if ((new_tree = new VlanAddressTree) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Not enough memory");
     return;
@@ -6654,7 +6686,7 @@ bool NetworkInterface::registerLiveCapture(struct ntopngLuaContext * const luact
 
   *id = -1;
   active_captures_lock.lock(__FILE__, __LINE__);
-  
+
   if(num_live_captures < MAX_NUM_PCAP_CAPTURES) {
     for(int i=0; i<MAX_NUM_PCAP_CAPTURES; i++) {
       if(live_captures[i] == NULL) {
@@ -6664,7 +6696,7 @@ bool NetworkInterface::registerLiveCapture(struct ntopngLuaContext * const luact
       }
     }
   }
-  
+
   active_captures_lock.unlock(__FILE__, __LINE__);
 
   return(ret);
@@ -6680,7 +6712,7 @@ bool NetworkInterface::deregisterLiveCapture(struct ntopngLuaContext * const lua
   for(int i=0; i<MAX_NUM_PCAP_CAPTURES; i++) {
     if(live_captures[i] == luactx) {
       struct ntopngLuaContext *c = (struct ntopngLuaContext *)live_captures[i];
-      
+
       c->live_capture.stopped = true;
       live_captures[i] = NULL, num_live_captures--;
       ret = true;
@@ -6689,7 +6721,7 @@ bool NetworkInterface::deregisterLiveCapture(struct ntopngLuaContext * const lua
   }
 
   active_captures_lock.unlock(__FILE__, __LINE__);
-  
+
   return(ret);
 }
 
@@ -6708,10 +6740,10 @@ bool NetworkInterface::matchLiveCapture(struct ntopngLuaContext * const luactx,
 	return(false);
       }
     }
-    
+
     return(true);
   }
-  
+
   return false;
 }
 
@@ -6730,7 +6762,7 @@ void NetworkInterface::deliverLiveCapture(const struct pcap_pkthdr * const h,
       num_found++;
 
       if(c->live_capture.capture_until < h->ts.tv_sec || c->live_capture.stopped)
-	http_client_disconnected = true;      
+	http_client_disconnected = true;
 
       /* The header is always sent even when there is never a match with matchLiveCapture,
          as otherwise some browsers may end up in hangning. Hanging has been
@@ -6772,7 +6804,7 @@ void NetworkInterface::deliverLiveCapture(const struct pcap_pkthdr * const h,
       }
 
       if(http_client_disconnected)
-	deregisterLiveCapture(c); /* (*) */      
+	deregisterLiveCapture(c); /* (*) */
     }
   }
 }
@@ -6802,11 +6834,11 @@ void NetworkInterface::dumpLiveCaptures(lua_State* vm) {
       if(live_captures[i]->live_capture.matching_host != NULL) {
 	Host *h = (Host*)live_captures[i]->live_capture.matching_host;
 	char buf[64];
-	
+
 	lua_push_str_table_entry(vm, "host",
 				 h->get_ip()->print(buf, sizeof(buf)));
       }
-      
+
       lua_pushnumber(vm, ++capture_id);
       lua_insert(vm, -2);
       lua_settable(vm, -3);
@@ -6826,7 +6858,7 @@ bool NetworkInterface::stopLiveCapture(int capture_id) {
 
   if((capture_id >= 0) && (capture_id < MAX_NUM_PCAP_CAPTURES)) {
     active_captures_lock.lock(__FILE__, __LINE__);
-    
+
     if(live_captures[capture_id] != NULL) {
       struct ntopngLuaContext *c = (struct ntopngLuaContext *)live_captures[capture_id];
 
@@ -6835,10 +6867,10 @@ bool NetworkInterface::stopLiveCapture(int capture_id) {
 	pcap_freecode(&c->live_capture.fcode);
       /* live_captures[capture_id] = NULL; */ /* <-- not necessary as mongoose will clean it */
     }
-    
+
     active_captures_lock.unlock(__FILE__, __LINE__);
   }
-  
+
   return(rc);
 }
 
@@ -6903,7 +6935,7 @@ void NetworkInterface::reloadHostsBlacklist() {
 
 void NetworkInterface::delivereBPFEvent(eBPFevent *event) {
   eBPFevent *tmp;
-  
+
   if(ebpfEvents == NULL) return;
 
   if((tmp = (eBPFevent*)malloc(sizeof(eBPFevent))) != NULL) {

@@ -163,7 +163,9 @@ typedef struct ether80211q {
 
 typedef struct {
   u_int32_t pid, father_pid;
-  char name[48], father_name[48], user_name[48];
+  char process_name[16], father_process_name[16];
+  u_int32_t uid /* User Id */, gid; /* Group Id */
+  u_int32_t father_uid /* User Id */, father_gid; /* Group Id */
 #if 0
   u_int32_t actual_memory, peak_memory;
   float average_cpu_load, percentage_iowait_time;

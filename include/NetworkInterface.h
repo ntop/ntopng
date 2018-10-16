@@ -191,7 +191,7 @@ class NetworkInterface : public Checkpointable {
 		bool *src2dst_direction,
 		time_t first_seen, time_t last_seen,
 		u_int32_t rawsize,
-		bool *new_flow);
+		bool *new_flow, bool create_if_missing);
   int sortHosts(u_int32_t *begin_slot,
 		bool walk_all,
 		struct flowHostRetriever *retriever,

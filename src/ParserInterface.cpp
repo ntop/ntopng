@@ -862,6 +862,7 @@ void ParserInterface::parseSingleFlow(json_object *o,
 	iface->enable_sprobe(); /* We're collecting system flows */
 	flow.src_process.pid = atoi(value);
 	break;
+#if 0
       case SRC_PROC_NAME:
 	iface->enable_sprobe(); /* We're collecting system flows */
 	snprintf(flow.src_process.name, sizeof(flow.src_process.name), "%s", value);
@@ -875,7 +876,6 @@ void ParserInterface::parseSingleFlow(json_object *o,
       case SRC_FATHER_PROC_NAME:
 	snprintf(flow.src_process.father_name, sizeof(flow.src_process.father_name), "%s", value);
 	break;
-#if 0
       case SRC_PROC_ACTUAL_MEMORY:
 	flow.src_process.actual_memory = atoi(value);
 	break;
@@ -896,6 +896,7 @@ void ParserInterface::parseSingleFlow(json_object *o,
 	iface->enable_sprobe(); /* We're collecting system flows */
 	flow.dst_process.pid = atoi(value);
 	break;
+#if 0
       case DST_PROC_NAME:
 	iface->enable_sprobe(); /* We're collecting system flows */
 	snprintf(flow.dst_process.name, sizeof(flow.dst_process.name), "%s", value);
@@ -909,7 +910,6 @@ void ParserInterface::parseSingleFlow(json_object *o,
       case DST_FATHER_PROC_NAME:
 	snprintf(flow.dst_process.father_name, sizeof(flow.dst_process.father_name), "%s", value);
 	break;
-#if 0
       case DST_PROC_ACTUAL_MEMORY:
 	flow.dst_process.actual_memory = atoi(value);
 	break;
