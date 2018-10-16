@@ -257,6 +257,10 @@ end
 
 -- ##############################################
 
+local function host_rev(a, b)
+  return rev(a.value, b.value)
+end
+
 local function getLocalTopTalkers(schema_id, tags, tstart, tend, options)
   package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
   local top_utils = require "top_utils"
@@ -279,22 +283,25 @@ local function getLocalTopTalkers(schema_id, tags, tstart, tend, options)
   for idx1, vlan in pairs(top_talkers.vlan or {}) do
     for idx2, host in pairs(vlan.hosts[1][direction] or {}) do
       if host["local"] == "true" then
-        tophosts[idx1.."_"..idx2] = host.value
+        -- need to recalculate total value
+        local host_tags = {ifid=tags.ifid, host=host.address}
+        local host_partials = ts_utils.queryTotal("host:traffic", host_tags, tstart, tend)
+        local host_value = ternary(direction == "senders", host_partials["bytes_sent"], host_partials["bytes_rcvd"])
+
+        if host_value > 0 then
+          tophosts[host.address] = {
+            value = host_value,
+            tags = host_tags,
+            partials = host_partials,
+          }
+        end
       end
     end
   end
 
   local res = {}
-  for item in pairsByValues(tophosts, rev) do
-    local parts = split(item, "_")
-    local idx1 = tonumber(parts[1])
-    local idx2 = tonumber(parts[2])
-    local host = top_talkers.vlan[idx1].hosts[1][direction][idx2]
-
-    res[#res + 1] = {
-      value = host.value,
-      tags = {ifid=tags.ifid, host=host.address},
-    }
+  for _, host in pairsByValues(tophosts, host_rev) do
+    res[#res + 1] = host
 
     if #res >= options.top then
       break
@@ -304,6 +311,7 @@ local function getLocalTopTalkers(schema_id, tags, tstart, tend, options)
   return {
     topk = res,
     schema = ts_utils.getSchema("host:traffic"),
+    statistics = stats,
   }
 end
 
