@@ -109,13 +109,13 @@ NetworkInterface::NetworkInterface(const char *name,
 #endif
 
     if(strchr(name, ':')
-     || strchr(name, '@')
-	 || (!strcmp(name, "dummy"))
-     || strchr(name, '/') /* file path */
-     || strstr(name, ".pcap") /* pcap */
-     || (strncmp(name, "lo", 2) == 0)
+       || strchr(name, '@')
+       || (!strcmp(name, "dummy"))
+       || strchr(name, '/') /* file path */
+       || strstr(name, ".pcap") /* pcap */
+       || (strncmp(name, "lo", 2) == 0)
 #if !defined(__APPLE__) && !defined(WIN32)
-     || (Utils::readIPv4((char*)name) == 0)
+       || (Utils::readIPv4((char*)name) == 0)
 #endif
      )
     ; /* Don't setup MDNS on ZC or RSS interfaces */
@@ -125,22 +125,20 @@ NetworkInterface::NetworkInterface(const char *name,
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to read IPv4 address of %s: %s",
 				   ifname, pcap_error_buffer);
     } else {
-
-
-	  try {
+      try {
         discovery = new NetworkDiscovery(this);
-	  } catch (...) {
-		discovery = NULL;
-	  }
+      } catch (...) {
+	discovery = NULL;
+      }
 
-	  if (discovery) {
-		  try {
-			  mdns = new MDNS(this);
-		  }
-		  catch (...) {
-			  mdns = NULL;
-		  }
-	  }
+      if (discovery) {
+	try {
+	  mdns = new MDNS(this);
+	}
+	catch (...) {
+	  mdns = NULL;
+	}
+      }
     }
   }
 
@@ -263,6 +261,8 @@ NetworkInterface::NetworkInterface(const char *name,
   }
 #endif
 
+  is_loopback = (strncmp(ifname, "lo", 2) == 0) ? true : false;
+    
   reloadHideFromTop(false);
   updateTrafficMirrored();
 }
@@ -276,13 +276,13 @@ void NetworkInterface::init() {
     last_pkt_rcvd = last_pkt_rcvd_remote = 0,
     next_idle_flow_purge = next_idle_host_purge = 0,
     running = false, customIftype = NULL, is_dynamic_interface = false,
-    is_traffic_mirrored = false;
+    is_loopback = is_traffic_mirrored = false;
     numVirtualInterfaces = 0, flowHashing = NULL,
     pcap_datalink_type = 0, mtuWarningShown = false,
     purge_idle_flows_hosts = true, id = (u_int8_t)-1,
     last_remote_pps = 0, last_remote_bps = 0,
     sprobe_interface = false, has_vlan_packets = false,
-    pcap_datalink_type = 0, cpu_affinity = -1 /* no affinity */,
+    cpu_affinity = -1 /* no affinity */,
     inline_interface = false, running = false, interfaceStats = NULL,
     has_too_many_hosts = has_too_many_flows = too_many_drops = false,
     slow_stats_update = false,
@@ -1074,53 +1074,57 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
     has_too_many_flows = false;
   }
 
-  if((srcHost = (*src2dst_direction) ? ret->get_cli_host() : ret->get_srv_host())) {
-    if((!srcMac->isSpecialMac()) && (primary_mac = srcHost->getMac()) && primary_mac != srcMac) {
+  if(srcMac) {
+    if((srcHost = (*src2dst_direction) ? ret->get_cli_host() : ret->get_srv_host())) {
+      if((!srcMac->isSpecialMac()) && (primary_mac = srcHost->getMac()) && primary_mac != srcMac) {
 #ifdef MAC_DEBUG
-      char buf[32], bufm1[32], bufm2[32];
-      ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				   "Detected mac address [%s] [host: %s][primary mac: %s]",
-				   Utils::formatMac(srcMac->get_mac(), bufm1, sizeof(bufm1)),
-				   srcHost->get_ip()->print(buf, sizeof(buf)),
-				   Utils::formatMac(primary_mac->get_mac(), bufm2, sizeof(bufm2)));
+	char buf[32], bufm1[32], bufm2[32];
+	ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				     "Detected mac address [%s] [host: %s][primary mac: %s]",
+				     Utils::formatMac(srcMac->get_mac(), bufm1, sizeof(bufm1)),
+				     srcHost->get_ip()->print(buf, sizeof(buf)),
+				     Utils::formatMac(primary_mac->get_mac(), bufm2, sizeof(bufm2)));
 #endif
 
-      if(srcHost->getMac()->isSpecialMac()) {
-	if(getIfType() == interface_type_NETFILTER) {
-	  /*
-	     This is the first *reply* packet of a flow so we need to increment it
-	     with the initial packet that was missed as NetFilter did not report
-	     the (destination) MAC. From now on, all flow peers are known
-	  */
+	if(srcHost->getMac()->isSpecialMac()) {
+	  if(getIfType() == interface_type_NETFILTER) {
+	    /*
+	      This is the first *reply* packet of a flow so we need to increment it
+	      with the initial packet that was missed as NetFilter did not report
+	      the (destination) MAC. From now on, all flow peers are known
+	    */
 
-/* NOTE: in nEdge, stats are updated into Flow::update_hosts_stats */
+	    /* NOTE: in nEdge, stats are updated into Flow::update_hosts_stats */
 #ifndef HAVE_NEDGE
-	  if(ret->get_packets_cli2srv() == 1 /* first packet */)
-	    srcMac->incRcvdStats(1, ret->get_bytes_cli2srv() /* size of the last packet */);
+	    if(ret->get_packets_cli2srv() == 1 /* first packet */)
+	      srcMac->incRcvdStats(1, ret->get_bytes_cli2srv() /* size of the last packet */);
 #endif
+	  }
 	}
+
+	srcHost->set_mac(srcMac);
+	srcHost->updateHostPool(true /* Inline */);
       }
-
-      srcHost->set_mac(srcMac);
-      srcHost->updateHostPool(true /* Inline */);
     }
   }
 
-  if((dstHost = (*src2dst_direction) ? ret->get_srv_host() : ret->get_cli_host())) {
-    if((!dstMac->isSpecialMac()) && (primary_mac = dstHost->getMac()) && primary_mac != dstMac) {
+  if(dstMac) {
+    if((dstHost = (*src2dst_direction) ? ret->get_srv_host() : ret->get_cli_host())) {
+      if((!dstMac->isSpecialMac()) && (primary_mac = dstHost->getMac()) && primary_mac != dstMac) {
 #ifdef MAC_DEBUG
-      char buf[32], bufm1[32], bufm2[32];
-      ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				   "Detected mac address [%s] [host: %s][primary mac: %s]",
-				   Utils::formatMac(dstMac->get_mac(), bufm1, sizeof(bufm1)),
-				   dstHost->get_ip()->print(buf, sizeof(buf)),
-				   Utils::formatMac(primary_mac->get_mac(), bufm2, sizeof(bufm2)));
+	char buf[32], bufm1[32], bufm2[32];
+	ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				     "Detected mac address [%s] [host: %s][primary mac: %s]",
+				     Utils::formatMac(dstMac->get_mac(), bufm1, sizeof(bufm1)),
+				     dstHost->get_ip()->print(buf, sizeof(buf)),
+				     Utils::formatMac(primary_mac->get_mac(), bufm2, sizeof(bufm2)));
 #endif
-      dstHost->set_mac(dstMac);
-      dstHost->updateHostPool(true /* Inline */);
+	dstHost->set_mac(dstMac);
+	dstHost->updateHostPool(true /* Inline */);
+      }
     }
   }
-
+  
   return(ret);
 }
 
@@ -2059,6 +2063,71 @@ void NetworkInterface::purgeIdle(time_t when) {
   if(pkt_dumper) pkt_dumper->idle(when);
 }
 
+/* ***************************************************** */
+
+#ifdef HAVE_EBPF
+
+static void IPV4Handler(Flow *f, struct ipv4_kernel_data *event) {  
+  char buf1[32], buf2[32];
+
+#ifdef USER_READLINK
+  char what[256], sym[256] = { '\0' };
+  char fwhat[256], fsym[256] = { '\0' };
+
+  snprintf(what, sizeof(what), "/proc/%u/exe", event->proc.pid);
+  readlink(what, sym, sizeof(sym));
+  
+  snprintf(fwhat, sizeof(fwhat), "/proc/%u/exe", event->father.pid);
+  readlink(fwhat, fsym, sizeof(fsym));
+#endif
+  
+  ntop->getTrace()->traceEvent(TRACE_NORMAL,
+			       "[%s][IPv4/%s][%s][pid/tid: %u/%u (%s), uid/gid: %u/%u][father pid/tid: %u/%u (%s), uid/gid: %u/%u][addr: %s:%u <-> %s:%u][latency: %.2f msec]\n",
+			       f ? "** MATCH **" : "NOT MATCH", event->net.is_tcp ? "TCP" : "UDP",
+			       event->net.client_srv ? (event->net.is_tcp ? "connect" : "send") : (event->net.is_tcp ? "accept" : "recv"),
+			       event->proc.pid, event->proc.tid,
+#ifdef USER_READLINK
+			       sym
+#else
+			       event->proc.task
+#endif
+			       , event->proc.uid, event->proc.gid,
+			       event->father.pid, event->father.tid,
+#ifdef USER_READLINK
+			       fsym
+#else
+			       event->father.task
+#endif
+			       ,
+			       event->father.uid, event->father.gid,
+			       Utils::intoaV4(htonl(event->saddr), buf1, sizeof(buf1)), event->net.sport,
+			       Utils::intoaV4(htonl(event->daddr), buf2, sizeof(buf2)), event->net.dport,
+			       ((float)event->net.latency_usec)/(float)1000);
+}
+
+/* ***************************************************** */
+
+static void IPV6Handler(Flow *f, struct ipv6_kernel_data *event) {
+  char buf1[32], buf2[32];
+  struct ndpi_in6_addr saddr, daddr;
+
+  memcpy(&saddr, &event->saddr, sizeof(saddr));
+  memcpy(&daddr, &event->daddr, sizeof(daddr));
+  
+  ntop->getTrace()->traceEvent(TRACE_NORMAL,
+			       "[%s][IPv6/%s][%s][pid/tid: %u/%u (%s), uid/gid: %u/%u][father pid/tid: %u/%u (%s), uid/gid: %u/%u][addr: %s:%u <-> %s:%u][latency: %.2f msec]\n",
+			       f ? "** MATCH **" : "NOT MATCH", event->net.is_tcp ? "TCP" : "UDP",
+			       event->net.client_srv ? (event->net.is_tcp ? "connect" : "send") : (event->net.is_tcp ? "accept" : "recv"),
+			       event->proc.pid, event->proc.tid, event->proc.task, event->proc.uid, event->proc.gid,
+			       event->father.pid, event->father.tid, event->father.task, event->father.uid, event->father.gid,
+			       Utils::intoaV6(saddr, 128, buf1, sizeof(buf1)),
+			       event->net.sport,
+			       Utils::intoaV6(daddr, 128, buf2, sizeof(buf2)),
+			       event->net.dport, ((float)event->net.latency_usec)/(float)1000);
+}
+
+#endif
+
 /* **************************************************** */
 
 bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
@@ -2586,7 +2655,7 @@ decode_packet_eth:
     eBPFevent *event;
 
     if(dequeueeBPFEvent((void**)&event)) {
-      Flow *flow;
+      Flow *flow = NULL;
       IpAddress src, dst;
       bool src2dst_direction, new_flow;
       u_int16_t proto, sport, dport;
@@ -2601,6 +2670,8 @@ decode_packet_eth:
 	  sport = event->event.v6.net.sport, dport = event->event.v6.net.dport,
 	  proto = event->event.v6.net.is_tcp ? IPPROTO_TCP : IPPROTO_UDP;
 
+      sport = htons(sport), dport = htons(dport);
+      
       flow = getFlow(NULL /* srcMac */, NULL /* dstMac */,
 		     0 /* vlan_id - CHECK */,
 		     0 /* deviceIP */,
@@ -2609,13 +2680,17 @@ decode_packet_eth:
 		     sport, dport,
 		     proto,
 		     &src2dst_direction,
-		     0, 0, 0, &new_flow, false);
+		     0, 0, 0, &new_flow,
+		     true);
 
-      if(flow)
-	flow->setProcessInfo(event, src2dst_direction);
-      else      
-	ntop->getTrace()->traceEvent(TRACE_WARNING, "*** Unable to match event ***");
-      
+      if(flow) flow->setProcessInfo(event, src2dst_direction);
+
+#if 0
+      if(event->ip_version == 4)
+	IPV4Handler(flow, &event->event.v4);
+      else
+	IPV6Handler(flow, &event->event.v6);
+#endif      
       free(event);
     }
   }

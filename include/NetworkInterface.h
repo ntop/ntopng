@@ -102,7 +102,7 @@ class NetworkInterface : public Checkpointable {
   
   string ip_addresses;
   int id;
-  bool bridge_interface, is_dynamic_interface, is_traffic_mirrored;
+  bool bridge_interface, is_dynamic_interface, is_traffic_mirrored, is_loopback;
   bool reload_custom_categories;
 #ifdef NTOPNG_PRO
   L7Policer *policer;
@@ -696,7 +696,9 @@ class NetworkInterface : public Checkpointable {
   NIndexFlowDB* getNindex();
 #endif
   inline TimeseriesExporter* getTSExporter() { if(!tsExporter) tsExporter = new TimeseriesExporter(this); return(tsExporter); }
-  inline uint32_t getMaxSpeed()              { return(ifSpeed); }
+  inline uint32_t getMaxSpeed()              { return(ifSpeed);     }
+  inline bool isLoopback()                   { return(is_loopback); }
+
   virtual void sendTermination()             { ; }
   virtual bool read_from_pcap_dump()         { return(false); };
   void makeTsPoint(NetworkInterfaceTsPoint *pt);

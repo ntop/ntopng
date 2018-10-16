@@ -248,7 +248,8 @@ static void* packetPollLoop(void* ptr) {
     } /* while */
   } while(pcap_list != NULL);
 
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Terminated packet polling for %s", iface->get_name());
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Terminated packet polling for %s",
+			       iface->get_name());
 
   if(ntop->getPrefs()->shutdownWhenDone())
     ntop->getGlobals()->shutdown();
