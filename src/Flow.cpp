@@ -3744,7 +3744,8 @@ void Flow::setProcessInfo(eBPFevent *event, bool src2dst_direction) {
     proc = (event->ip_version == 4)   ? &event->event.v4.proc   : &event->event.v6.proc;
     father = (event->ip_version == 4) ? &event->event.v4.father : &event->event.v6.father;
 
-    c->pid = proc->tid, c->father_pid = father->tid,
+    c->pid = proc->tid ? proc->tid : proc->pid,
+      c->father_pid = father->tid ? father->tid : father->pid,
       snprintf(c->process_name, sizeof(c->process_name), "%s", proc->task),
       snprintf(c->father_process_name, sizeof(c->father_process_name), "%s", father->task),
       c->uid = proc->uid, c->gid = proc->gid,

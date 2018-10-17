@@ -7036,7 +7036,7 @@ bool NetworkInterface::enqueueeBPFEvent(eBPFevent *event) {
 /* *************************************** */
 
 bool NetworkInterface::dequeueeBPFEvent(eBPFevent **event) {
-  if(ebpfEvents[next_remove_idx] != (eBPFevent*)NULL) {
+  if(ebpfEvents[next_remove_idx] == (eBPFevent*)NULL) {
     *event = NULL;
     return(false);
   }
