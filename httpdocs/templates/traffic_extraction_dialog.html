@@ -24,6 +24,17 @@
             </div>
           </div>
         </form>
+
+
+        <label class="form-label">{{i18n("traffic_recording.filter_examples")}}:</label>
+        <br />
+        <ul>
+          <li>{{i18n("traffic_profiles.host_traffic")}}: <i>host 192.168.1.2</i></li>
+          <li>{{i18n("traffic_profiles.http_traffic")}}: <i>tcp and port 80</i></li>
+          <li>{{i18n("traffic_profiles.traffic_between")}}: <i>ip host 192.168.1.1 and 192.168.1.2</i></li>
+          <li>{{i18n("traffic_profiles.traffic_from_to")}}: <i>ip src 192.168.1.1 and dst 192.168.1.2</i></li>
+        </ul>
+
       </div>
       <div class="modal-footer">
         <button class="btn btn-default" data-dismiss="modal" aria-hidden="true">{{i18n("cancel")}}</button>

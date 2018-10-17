@@ -2860,6 +2860,7 @@ local lang = {
     ["failed"] = "Failed", 
     ["failure"] = "Failure",
     ["filter_bpf"] = "Filter (nBPF Format)",
+    ["filter_examples"] = "Filter Examples",
     ["invalid_bpf"] = "Invalid filter",
     ["job_id"] = "Job ID",
     ["job_date_time"] = "Job Creation Date/Time",
