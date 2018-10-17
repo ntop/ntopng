@@ -2074,6 +2074,8 @@ void NetworkInterface::purgeIdle(time_t when) {
 
 #ifdef HAVE_EBPF
 
+#ifdef EBPF_DEBUG
+
 static void IPV4Handler(Flow *f, struct ipv4_kernel_data *event) {  
   char buf1[32], buf2[32];
 
@@ -2132,6 +2134,8 @@ static void IPV6Handler(Flow *f, struct ipv6_kernel_data *event) {
 			       Utils::intoaV6(daddr, 128, buf2, sizeof(buf2)),
 			       event->net.dport, ((float)event->net.latency_usec)/(float)1000);
 }
+
+#endif
 
 #endif
 
@@ -2701,12 +2705,14 @@ void NetworkInterface::pollQueuedeBPFEvents() {
 		     true);
 
       if(flow) flow->setProcessInfo(event, src2dst_direction);
-      
+
+#ifdef EBPF_DEBUG
       if(event->ip_version == 4)
 	IPV4Handler(flow, &event->event.v4);
       else
 	IPV6Handler(flow, &event->event.v6);
-
+#endif
+      
       free(event);
     }
   }
@@ -2802,7 +2808,9 @@ void NetworkInterface::findFlowHosts(u_int16_t vlanId,
       return;
     }
 
-    if(_dst_ip && (_dst_ip->isLocalHost(&local_network_id) || _dst_ip->isLocalInterfaceAddress()))
+    if(_dst_ip
+       && (_dst_ip->isLocalHost(&local_network_id)
+	   || _dst_ip->isLocalInterfaceAddress()))
       (*dst) = new LocalHost(this, dst_mac, vlanId, _dst_ip);
     else
       (*dst) = new RemoteHost(this, dst_mac, vlanId, _dst_ip);
@@ -2863,7 +2871,8 @@ void NetworkInterface::getnDPIStats(nDPIStats *stats, AddressTree *allowed_hosts
 
 /* **************************************************** */
 
-static bool flow_update_hosts_stats(GenericHashEntry *node, void *user_data, bool *matched) {
+static bool flow_update_hosts_stats(GenericHashEntry *node,
+				    void *user_data, bool *matched) {
   Flow *flow = (Flow*)node;
   struct timeval *tv = (struct timeval*)user_data;
   bool dump_alert = ((time(NULL) - tv->tv_sec) < ntop->getPrefs()->get_housekeeping_frequency()) ? true : false;
@@ -2957,7 +2966,8 @@ void NetworkInterface::periodicStatsUpdate() {
 
   // if drop alerts enabled and have some significant packets
   if((packet_drops_alert_perc > 0) && (getNumPacketsSinceReset() > 100)) {
-    float drop_perc = getNumPacketDropsSinceReset() * 100.f / (getNumPacketDropsSinceReset() + getNumPacketsSinceReset());
+    float drop_perc = getNumPacketDropsSinceReset() * 100.f
+      / (getNumPacketDropsSinceReset() + getNumPacketsSinceReset());
     too_many_drops = (drop_perc >= packet_drops_alert_perc) ? true : false;
   } else
     too_many_drops = false;
@@ -7025,6 +7035,11 @@ void NetworkInterface::reloadHostsBlacklist() {
 #ifdef HAVE_EBPF
 
 bool NetworkInterface::enqueueeBPFEvent(eBPFevent *event) {
+#ifdef EBPF_DEBUG
+  ntop->getTrace()->traceEvent(TRACE_ERROR, "[%s] %s(%d/%d)",
+			       ifname, __FUNCTION__, next_insert_idx, next_remove_idx);
+#endif
+  
   if(ebpfEvents[next_insert_idx] != (eBPFevent*)NULL)
     return(false);
 
@@ -7035,13 +7050,19 @@ bool NetworkInterface::enqueueeBPFEvent(eBPFevent *event) {
 
 /* *************************************** */
 
-bool NetworkInterface::dequeueeBPFEvent(eBPFevent **event) {
+bool NetworkInterface::dequeueeBPFEvent(eBPFevent **event) { 
   if(ebpfEvents[next_remove_idx] == (eBPFevent*)NULL) {
     *event = NULL;
     return(false);
   }
 
+#ifdef EBPF_DEBUG
+  ntop->getTrace()->traceEvent(TRACE_ERROR, "[%s] %s(%d/%d)",
+			       ifname, __FUNCTION__, next_insert_idx, next_remove_idx);
+#endif
+  
   *event = ebpfEvents[next_remove_idx];
+  ebpfEvents[next_remove_idx] = NULL;
   next_remove_idx = (next_remove_idx + 1) % EBPF_QUEUE_LEN;  
   return(true);
 }
