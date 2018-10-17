@@ -1,0 +1,51 @@
+<div id="{{dialog.id}}" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="{{dialog.id}}_label" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
+        <h3>{{dialog.title}}</h3>
+      </div>
+
+      <div class="modal-body {{dialog.custom_dialog_class}}">
+        <div class="{{dialog.custom_alert_class or "alert alert-info"}}">{*dialog.message*}</div>
+        <form id="{{dialog.id}}Form" style="height:95%;" onkeypress="return event.keyCode != 13;"
+         method="{{dialog.form_method or "post"}}"
+         {% if dialog.form_action ~= nil then %} action="{{dialog.form_action}} {% end %}"
+         {% if dialog.form_onsubmit ~= nil then %} onsubmit="return {{dialog.form_onsubmit}}(this)" {% end %}>
+          <input name="csrf" type="hidden" value="{{ ntop.getRandomCSRFValue() }}" />
+          <input id="{{dialog.id}}_epoch_begin" name="epoch_begin" type="hidden" value="" />
+          <input id="{{dialog.id}}_epoch_end" name="epoch_end" type="hidden" value="" />
+          <div class="tab-content" style="height:100%;">
+            <div class="row">
+              <div class="form-group col-md-12 has-feedback">
+                <label class="form-label">{{i18n("traffic_recording.filter_bpf")}}</label>
+                <div class="input-group">
+                  <span class="input-group-addon"><span class="glyphicon glyphicon-filter"></span></span>
+                  <input id="{{dialog.id}}_bpf_filter" name="bpf_filter" class="form-control input-sm" data-bpf="bpf" autocomplete="off" spellcheck="false" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-default" data-dismiss="modal" aria-hidden="true">{{i18n("close")}}</button>
+        <button id="{{dialog.id}}SubmitBtn" class="btn btn-primary" onClick="$('#{{dialog.id}}Form').submit();">{{i18n("traffic_recording.start_extraction")}}</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  $("#{{dialog.id}}Form")
+    .validator({*dialog.validator_options or "{}"*})
+    .on('validate.bs.validator', function(e) {
+      var submitbtn = $("#{{dialog.id}}SubmitBtn");
+      var invalid = $(".has-error", $(this)).length > 0;
+      if (invalid) {
+        submitbtn.addClass("disabled");
+      } else {
+        submitbtn.removeClass("disabled");
+      }
+    });
+</script>
