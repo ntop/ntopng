@@ -80,7 +80,7 @@ else
       proc = flow.client_process
       print ('"'..proc.pid..'": {')
 
-      if(proc.actual_memory > 0) then
+      if proc.actual_memory and proc.actual_memory > 0 then
         -- average_cpu_load
         print('"average_cpu_load": "')
 	load = round(proc.average_cpu_load, 2)
