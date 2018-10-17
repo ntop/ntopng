@@ -8,10 +8,7 @@
 
       <div class="modal-body {{dialog.custom_dialog_class}}">
         <div class="{{dialog.custom_alert_class or "alert alert-info"}}">{*dialog.message*}</div>
-        <form id="{{dialog.id}}Form" style="height:95%;" onkeypress="return event.keyCode != 13;"
-         method="{{dialog.form_method or "post"}}"
-         {% if dialog.form_action ~= nil then %} action="{{dialog.form_action}} {% end %}"
-         {% if dialog.form_onsubmit ~= nil then %} onsubmit="return {{dialog.form_onsubmit}}(this)" {% end %}>
+        <form id="{{dialog.id}}Form" style="height:95%;" onkeypress="return event.keyCode != 13;" method="{{dialog.form_method or "post"}}" {% if dialog.form_action ~= nil then %} action="{{dialog.form_action}} {% end %}" {% if dialog.form_onsubmit ~= nil then %} onsubmit="return {{dialog.form_onsubmit}}(this)" {% end %}>
           <input name="csrf" type="hidden" value="{{ ntop.getRandomCSRFValue() }}" />
           <input id="{{dialog.id}}_epoch_begin" name="epoch_begin" type="hidden" value="" />
           <input id="{{dialog.id}}_epoch_end" name="epoch_end" type="hidden" value="" />
@@ -29,7 +26,7 @@
         </form>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-default" data-dismiss="modal" aria-hidden="true">{{i18n("close")}}</button>
+        <button class="btn btn-default" data-dismiss="modal" aria-hidden="true">{{i18n("cancel")}}</button>
         <button id="{{dialog.id}}SubmitBtn" class="btn btn-primary" onClick="$('#{{dialog.id}}Form').submit();">{{i18n("traffic_recording.start_extraction")}}</button>
       </div>
     </div>

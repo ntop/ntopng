@@ -96,12 +96,12 @@ for id, _ in pairsByValues(sorter, sOrder) do
   res[#res + 1] = { 
     column_id = job.id, 
     column_job_time = format_utils.formatEpoch(job.time), 
-    column_status = job.status, -- job.error_code 
+    column_status = i18n("traffic_recording."..job.status), -- job.error_code 
     column_begin_time = format_utils.formatEpoch(job.time_from),
     column_end_time = format_utils.formatEpoch(job.time_to),
     column_bpf_filter = ternary(isEmptyString(job.filter), "-", job.filter),
-    column_extracted_packets = ternary(job.extracted_pkts, formatPackets(job.extracted_pkts), "-"),
-    column_extracted_bytes = ternary(job.extracted_bytes, bytesToSize(job.extracted_bytes), "-"),
+    column_extracted_packets = ternary(job.status == "completed" and job.extracted_pkts, formatPackets(job.extracted_pkts), "-"),
+    column_extracted_bytes = ternary(job.status == "completed" and job.extracted_bytes, bytesToSize(job.extracted_bytes), "-"),
     column_actions = action_links
   }
 
