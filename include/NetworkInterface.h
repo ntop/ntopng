@@ -87,7 +87,8 @@ class NetworkInterface : public Checkpointable {
 
 #ifdef HAVE_EBPF
   /* eBPF */
-  SPSCQueue *ebpfEvents;
+  u_int16_t next_insert_idx, next_remove_idx;
+  eBPFevent **ebpfEvents; 
 #endif
   
   /* Live Capture */
@@ -705,8 +706,9 @@ class NetworkInterface : public Checkpointable {
   void makeTsPoint(NetworkInterfaceTsPoint *pt);
   void tsLua(lua_State* vm);
 #ifdef HAVE_EBPF
-  inline void enqueueeBPFEvent(void *event)  { if(ebpfEvents) ebpfEvents->enqueue(event, true);        }
-  inline bool dequeueeBPFEvent(void **event) { return(ebpfEvents ? ebpfEvents->dequeue(event) : false); }
+  inline bool iseBPFEventAvailable() { return((ebpfEvents && (ebpfEvents[next_remove_idx] != NULL)) ? true : false); }
+  bool enqueueeBPFEvent(eBPFevent *event);
+  bool dequeueeBPFEvent(eBPFevent **event);
   void delivereBPFEvent(eBPFevent *event);
 #endif
 };

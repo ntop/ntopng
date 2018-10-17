@@ -893,6 +893,7 @@ inline struct ntopngLuaContext* getUserdata(lua_State *vm) {
 
 #define MIN_NUM_HASH_WALK_ELEMS      512
 
+#define EBPF_QUEUE_LEN               1024
 
 #ifdef NTOPNG_EMBEDDED_EDITION
 #define DEFAULT_THREAD_POOL_SIZE     1

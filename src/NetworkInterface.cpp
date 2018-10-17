@@ -349,8 +349,10 @@ void NetworkInterface::init() {
        || is_traffic_mirrored
        || isView())
       ;
-    else
-      ebpfEvents = new SPSCQueue();
+    else {
+      ebpfEvents = (eBPFevent**)calloc(sizeof(eBPFevent*), EBPF_QUEUE_LEN);
+      next_insert_idx = next_remove_idx = 0;
+    }
 #endif
 }
 
@@ -729,8 +731,13 @@ void NetworkInterface::deleteDataStructures() {
   }
 
 #ifdef HAVE_EBPF
-  if(ebpfEvents)
+  if(ebpfEvents) {
+    for(u_int16_t i=0; i<EBPF_QUEUE_LEN; i++)
+      if(ebpfEvents[i])
+	delete ebpfEvents[i];
+    
     delete ebpfEvents;
+  }
 #endif
 }
 
@@ -2662,7 +2669,7 @@ void NetworkInterface::pollQueuedeBPFEvents() {
   if(ebpfEvents) {
     eBPFevent *event;
 
-    if(dequeueeBPFEvent((void**)&event)) {
+    if(dequeueeBPFEvent(&event)) {
       Flow *flow = NULL;
       IpAddress src, dst;
       bool src2dst_direction, new_flow;
@@ -7017,6 +7024,30 @@ void NetworkInterface::reloadHostsBlacklist() {
 
 #ifdef HAVE_EBPF
 
+bool NetworkInterface::enqueueeBPFEvent(eBPFevent *event) {
+  if(ebpfEvents[next_insert_idx] != (eBPFevent*)NULL)
+    return(false);
+
+  ebpfEvents[next_insert_idx] = event;
+  next_insert_idx = (next_insert_idx + 1) % EBPF_QUEUE_LEN;
+  return(true);
+}
+
+/* *************************************** */
+
+bool NetworkInterface::dequeueeBPFEvent(eBPFevent **event) {
+  if(ebpfEvents[next_remove_idx] != (eBPFevent*)NULL) {
+    *event = NULL;
+    return(false);
+  }
+
+  *event = ebpfEvents[next_remove_idx];
+  next_remove_idx = (next_remove_idx + 1) % EBPF_QUEUE_LEN;  
+  return(true);
+}
+
+/* *************************************** */
+
 void NetworkInterface::delivereBPFEvent(eBPFevent *event) {
   eBPFevent *tmp;
 
@@ -7027,7 +7058,7 @@ void NetworkInterface::delivereBPFEvent(eBPFevent *event) {
 
     // ntop->getTrace()->traceEvent(TRACE_ERROR, "%s()", __FUNCTION__);
     
-    if(!ebpfEvents->enqueue(tmp, false))
+    if(!enqueueeBPFEvent(tmp))
       free(tmp); /* Not enough space */
   }
 }

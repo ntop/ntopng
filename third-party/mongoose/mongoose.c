@@ -4770,7 +4770,7 @@ static int load_dll(struct mg_context *ctx, const char *dll_name,
 }
 #endif // NO_SSL_DL
 
-#ifdef UNUSED_CODE
+// #ifdef UNUSED_CODE
 
 static unsigned long ssl_id_callback(void) {
   return (unsigned long) pthread_self();
@@ -4788,7 +4788,7 @@ static void ssl_locking_callback(int mode, int mutex_num, const char *file,
   }
 }
 
-#endif /* UNUSED_CODE */
+// #endif /* UNUSED_CODE */
 
 // Dynamically load SSL library. Set up ctx->ssl_ctx pointer.
 static int set_ssl_option(struct mg_context *ctx) {
