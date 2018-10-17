@@ -5,6 +5,10 @@
 dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
+-- keep calling this before including modules to avoid that the 
+-- current interface is changed by (unexpected) interface.select() calls
+local ifstats = interface.getStats()
+
 require "lua_utils"
 require "alert_utils"
 local callback_utils = require "callback_utils"
@@ -17,7 +21,6 @@ end
 -- ########################################################
 
 local verbose = ntop.verboseTrace()
-local ifstats = interface.getStats()
 local _ifname = ifstats.name
 
 -- ########################################################

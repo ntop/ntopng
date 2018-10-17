@@ -11,6 +11,10 @@ if (ntop.isPro()) then
    package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
 end
 
+-- keep calling this before including modules to avoid that the 
+-- current interface is changed by (unexpected) interface.select() calls
+local ifstats = interface.getStats()
+
 require "lua_utils"
 
 local ts_utils = require("ts_utils_core")
@@ -23,7 +27,6 @@ local when = os.time()
 local config = rrd_dump.getConfig()
 
 local iface_ts = interface.getInterfaceTimeseries()
-local ifstats = interface.getStats()
 local _ifname = ifstats.name
 
 -- ########################################################
