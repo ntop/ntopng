@@ -463,7 +463,7 @@ local function _listSeries(schema, tags_filter, wildcard_tags, start_time, with_
         -- TODO remove after migration
         local value = v[1]
 
-        if ((wildcard_tag ~= "protocol") or (with_l4 and l4_keys[value] ~= nil) or (interface.getnDPIProtoId(value) ~= -1)) and
+        if ((wildcard_tag ~= "protocol") or (with_l4 and l4_keys[value] ~= nil) or ((l4_keys[value] == nil) and (interface.getnDPIProtoId(value) ~= -1))) and
             ((wildcard_tag ~= "category") or (interface.getnDPICategoryId(value) ~= -1)) then
           res[#res + 1] = table.merge(tags_filter, {[wildcard_tag] = value})
         end
