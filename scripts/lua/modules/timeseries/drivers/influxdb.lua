@@ -664,7 +664,7 @@ end
 
 -- ##############################################
 
-function driver:queryTotal(schema, tags, tstart, tend)
+function driver:queryTotal(schema, tstart, tend, tags, options)
   local data_type = schema.options.metrics_type
   local query
 

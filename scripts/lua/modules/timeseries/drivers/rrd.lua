@@ -614,6 +614,43 @@ end
 
 -- ##############################################
 
+function driver:queryTotal(schema, tstart, tend, tags, options)
+  local rrdfile = schema_get_full_path(schema, tags)
+
+  if not ntop.exists(rrdfile) then
+     return nil
+  end
+
+  touchRRD(rrdfile)
+
+  local fstart, fstep, fdata, fend, fcount = ntop.rrd_fetch_columns(rrdfile, RRD_CONSOLIDATION_FUNCTION, tstart, tend)
+  local totals = {}
+
+  for name_key, serie in pairs(fdata) do
+    local serie_idx = map_rrd_column_to_metrics(schema, name_key)
+    local name = schema._metrics[serie_idx]
+    local max_val = ts_common.getMaxPointValue(schema, name, tags)
+    local sum = 0
+
+    -- Remove the last value: RRD seems to give an additional point
+    serie[#serie] = nil
+
+    for i, v in pairs(serie) do
+      local v = ts_common.normalizeVal(v, max_val, options)
+
+      if type(v) == "number" then
+        sum = sum + v * fstep
+      end
+    end
+
+    totals[name] = sum
+  end
+
+  return totals
+end
+
+-- ##############################################
+
 function driver:delete(schema_prefix, tags)
   -- NOTE: delete support in this driver is currently limited to a specific set of schemas and tags
   local supported_prefixes = {

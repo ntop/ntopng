@@ -285,7 +285,7 @@ local function getLocalTopTalkers(schema_id, tags, tstart, tend, options)
       if host["local"] == "true" then
         -- need to recalculate total value
         local host_tags = {ifid=tags.ifid, host=host.address}
-        local host_partials = ts_utils.queryTotal("host:traffic", host_tags, tstart, tend)
+        local host_partials = ts_utils.queryTotal("host:traffic", tstart, tend, host_tags)
         local host_value = tonumber(host.value)
 
         if host_partials ~= nil then
@@ -548,8 +548,7 @@ end
 
 -- ##############################################
 
--- TODO make standard and document
-function ts_utils.queryTotal(schema_name, tags, tstart, tend)
+function ts_utils.queryTotal(schema_name, tstart, tend, tags, options)
   if not isUserAccessAllowed(tags) then
     return nil
   end
@@ -567,13 +566,15 @@ function ts_utils.queryTotal(schema_name, tags, tstart, tend)
     return nil
   end
 
-  return driver:queryTotal(schema, tags, tstart, tend)
+  local query_options = getQueryOptions(options)
+
+  return driver:queryTotal(schema, tstart, tend, tags, query_options)
 end
 
 -- ##############################################
 
 -- TODO make standard and document
-function ts_utils.queryMean(schema_name, tags, tstart, tend)
+function ts_utils.queryMean(schema_name, tstart, tend, tags)
   if not isUserAccessAllowed(tags) then
     return nil
   end
@@ -585,7 +586,7 @@ function ts_utils.queryMean(schema_name, tags, tstart, tend)
     return nil
   end
 
-  local rv = ts_utils.queryTotal(schema_name, tags, tstart, tend)
+  local rv = ts_utils.queryTotal(schema_name, tstart, tend, tags)
   local intervals = (tend - tstart) / schema.options.step
 
   for i, total in pairs(rv or {}) do
