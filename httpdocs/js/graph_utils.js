@@ -725,7 +725,22 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
   }
 }
 
-function updateGraphsTableView(graph_table, view, graph_params, nindex_buttons, has_nindex) {
+function updateGraphsTableView(graph_table, view, graph_params, has_nindex, nindex_query) {
+  // TODO localize
+  nindex_buttons = '<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">';
+  nindex_buttons += "IP Version";
+  nindex_buttons += '<span class="caret"></span></button><ul class="dropdown-menu" role="menu">';
+  nindex_buttons += '<li><a href="#" onclick="return onGraphMenuClick($(\'#ts-resolution-buttons .btn-warning\').index(), 4)">4</a></li>';
+  nindex_buttons += '<li><a href="#" onclick="return onGraphMenuClick($(\'#ts-resolution-buttons .btn-warning\').index(), 6)">6</a></li>';
+  nindex_buttons += '</span></div>';
+
+  nindex_buttons += '<div class="btn-group pull-right"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">';
+  nindex_buttons += "Explorer";
+  nindex_buttons += '<span class="caret"></span></button><ul class="dropdown-menu" role="menu">';
+  nindex_buttons += '<li><a href="'+ http_prefix +'/lua/nindex_topk.lua'+ nindex_query +'">Top-K</a></li>';
+  nindex_buttons += '<li><a href="'+ http_prefix +'/lua/nindex.lua'+ nindex_query +'">Flows</a></li>';
+  nindex_buttons += '</span></div>';
+
   if(view.columns) {
     var url = http_prefix + (view.nindex_view ? "/lua/enterprise/get_nindex_flows.lua" : "/lua/enterprise/get_ts_table.lua");
     var params_obj = graph_params.ts_query.split(",").reduce(function(params, value) { var v = value.split(":"); params[v[0]] = v[1]; return params; }, {});
