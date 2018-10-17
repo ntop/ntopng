@@ -6,6 +6,7 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 if((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.scriptdir .. "/lua/modules/?.lua;" .. package.path end
 require "lua_utils"
+local recording_utils = require "recording_utils"
 
 print[[
 <script>
@@ -290,6 +291,7 @@ print [[
 
 local views = {}
 local drops = {}
+local recording = {}
 local packetinterfaces = {}
 local ifnames = {}
 local ifdescr = {}
@@ -303,6 +305,7 @@ for v,k in pairs(iface_names) do
    ifdescr[_ifstats.id] = _ifstats.description
    --io.write("["..k.."/"..v.."][".._ifstats.id.."] "..ifnames[_ifstats.id].."=".._ifstats.id.."\n")
    if(_ifstats.isView == true) then views[k] = true end
+   if(recording_utils.isEnabled(_ifstats.id)) then recording[k] = true end
    if(interface.isPacketInterface()) then packetinterfaces[k] = true end
    if(_ifstats.stats_since_reset.drops * 100 > _ifstats.stats_since_reset.packets) then
       drops[k] = true
@@ -351,12 +354,17 @@ for round = 1, 2 do
 	 end
 
 	 print(descr)
+
 	 if(views[v] == true) then
 	    print(' <i class="fa fa-eye" aria-hidden="true"></i> ')
 	 end
 
 	 if(drops[v] == true) then
 	    print('&nbsp;<span><i class="fa fa-tint" aria-hidden="true"></i></span>')
+	 end
+
+	 if(recording[v] == true) then
+	    print(' <i class="fa fa-hdd-o" aria-hidden="true"></i> ')
 	 end
 
 	 print("</a>")

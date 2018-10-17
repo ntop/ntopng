@@ -437,7 +437,7 @@ print [[/lua/if_stats.lua\"><i class=\"fa fa-warning\" style=\"color: #B94A48;\"
                 if (rsp.traffic_extraction == "ready") status_label="primary";
    	        msg += "&nbsp;<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/traffic_extraction_stats.lua\">";
  	        msg += "<span class=\"label label-"+status_label+"\" title=\""+addCommas(status_title)+"\">";
-		msg += "<i class=\"fa fa-tasks fa-lg\"></i></a></span>";
+		msg += rsp.traffic_extraction_num_tasks+" <i class=\"fa fa-tasks fa-lg\"></i></a></span>";
 	    }
 
 	    $('#network-load').html(msg);

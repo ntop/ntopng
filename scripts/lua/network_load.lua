@@ -153,8 +153,9 @@ function dumpInterfaceStats(interface_name)
           if jobs_info.ready > 0 then
             res["traffic_extraction"] = "ready"
           elseif jobs_info.total > 0 then
-            res["traffic_extraction"] = "processing"
+            res["traffic_extraction"] = jobs_info.total
           end
+          res["traffic_extraction_num_tasks"] = jobs_info.total
         end
       end
 
