@@ -156,7 +156,7 @@
 #define HOST_FAMILY_ID            ((u_int16_t)-1)
 #define FLOW_PURGE_FREQUENCY      2 /* sec */
 #define HOST_PURGE_FREQUENCY      2 /* sec */
-#define MAX_TCP_FLOW_IDLE         3 /* sec - how long to delete a flow where the 3wh termination has been seen */
+#define MAX_TCP_FLOW_IDLE        15 /* sec - how long to wait before idling a TCP flow with FIN/RST set */
 #define MAX_FLOW_IDLE            60 /* sec */
 #define MAX_LOCAL_HOST_IDLE     300 /* sec */
 #define MAX_REMOTE_HOST_IDLE     60 /* sec */

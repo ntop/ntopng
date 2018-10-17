@@ -1854,8 +1854,8 @@ bool Flow::isReadyToPurge() {
 	/* If this flow is idle for at least MAX_TCP_FLOW_IDLE */
 	if(((tcp_flags & TH_FIN) || (tcp_flags & TH_RST))
 	   /* Flows won't expire if less than DONT_NOT_EXPIRE_BEFORE_SEC old */
-	   && (doNotExpireBefore >= iface->getTimeLastPktRcvd())
-	   && isIdle(MAX_TCP_FLOW_IDLE /* sec */)) {
+	   && iface->getTimeLastPktRcvd() > doNotExpireBefore
+	   && isIdle(MAX_TCP_FLOW_IDLE)) {
 	  /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "[TCP] Early flow expire"); */
 	  return(idle_flow = true);
 	}
