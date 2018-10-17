@@ -10,30 +10,34 @@ local recording_utils = require "recording_utils"
 
 sendHTTPContentTypeHeader('application/json')
 
+local res = {}
+
 if not recording_utils.isAvailable() then
-  local msg = i18n("traffic_recording.not_granted")
-  print(json.encode({error = msg}))
-elseif _GET["epoch_begin"] == nil or _GET["epoch_end"] == nil then
-  local msg = i18n("traffic_recording.missing_parameters")
-  print(json.encode({error = msg}))
+  res.error = i18n("traffic_recording.not_granted") 
 else
+  if _GET["epoch_begin"] == nil or _GET["epoch_end"] == nil then
+    res.error = i18n("traffic_recording.missing_parameters")
+  else
 
-  interface.select(ifname)
+    interface.select(ifname)
 
-  local ifstats = interface.getStats()
+    local ifstats = interface.getStats()
 
-  local filter = _GET["bpf_filter"]
-  local time_from = tonumber(_GET["epoch_begin"])
-  local time_to = tonumber(_GET["epoch_end"])
+    local filter = _GET["bpf_filter"]
+    local time_from = tonumber(_GET["epoch_begin"])
+    local time_to = tonumber(_GET["epoch_end"])
 
-  local params = {
-    time_from = time_from,
-    time_to = time_to,
-    filter = filter,
-  }
+    local params = {
+      time_from = time_from,
+      time_to = time_to,
+      filter = filter,
+    }
 
-  local job_info = recording_utils.scheduleExtraction(ifstats.id, params)
+    local job_info = recording_utils.scheduleExtraction(ifstats.id, params)
 
-  print(json.encode(job_info))
-
+    res.id = job_info.id
+  end
+  res.csrf = ntop.getRandomCSRFValue()
 end
+
+print(json.encode(res))
