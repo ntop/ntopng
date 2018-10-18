@@ -7043,6 +7043,8 @@ bool NetworkInterface::enqueueeBPFEvent(eBPFevent *event) {
   if(ebpfEvents[next_insert_idx] != (eBPFevent*)NULL)
     return(false);
 
+  ebpf_preprocess_event(event);
+  
   ebpfEvents[next_insert_idx] = event;
   next_insert_idx = (next_insert_idx + 1) % EBPF_QUEUE_LEN;
   return(true);

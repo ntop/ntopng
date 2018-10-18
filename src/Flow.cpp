@@ -3728,6 +3728,7 @@ void Flow::flushBufferedPackets() {
 /* ***************************************************** */
 
 #ifdef HAVE_EBPF
+
 void Flow::setProcessInfo(eBPFevent *event, bool src2dst_direction) {
   if(client_proc == NULL) client_proc = (ProcessInfo*)calloc(1, sizeof(ProcessInfo));
   if(server_proc == NULL) server_proc = (ProcessInfo*)calloc(1, sizeof(ProcessInfo));
