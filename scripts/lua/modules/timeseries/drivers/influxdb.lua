@@ -429,23 +429,25 @@ function driver:export()
     local prev_t = tonumber(ntop.getCache(time_key)) or 0
     local fname = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/ts_export/" .. export_id .. "_" .. time_ref)
 
-    -- Delete the file after POST
-    local delete_file_after_post = true
+    if ntop.exists(fname) then
+      -- Delete the file after POST
+      local delete_file_after_post = true
 
-    local t = os.time()
-    ret = ntop.postHTTPTextFile(self.username, self.password, self.url .. "/write?db=" .. self.db, fname, delete_file_after_post, 5 --[[ timeout ]])
+      local t = os.time()
+      ret = ntop.postHTTPTextFile(self.username, self.password, self.url .. "/write?db=" .. self.db, fname, delete_file_after_post, 5 --[[ timeout ]])
 
-    if(ret ~= true) then
-      traceError(TRACE_ERROR, TRACE_CONSOLE, "POST of "..fname.." failed\n")
+      if(ret ~= true) then
+        traceError(TRACE_ERROR, TRACE_CONSOLE, "POST of "..fname.." failed\n")
 
-      -- delete the file manually
-      os.remove(fname)
-      break
+        -- delete the file manually
+        os.remove(fname)
+        break
+      end
+
+      -- Successfully exported
+      --tprint("Exported ".. fname .." in " .. (os.time() - t) .. " sec")
+      ntop.setCache(time_key, tostring(math.max(prev_t, time_ref)))
     end
-
-    -- Successfully exported
-    --tprint("Exported ".. fname .." in " .. (os.time() - t) .. " sec")
-    ntop.setCache(time_key, tostring(math.max(prev_t, time_ref)))
   end
 end
 
