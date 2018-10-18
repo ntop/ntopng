@@ -734,9 +734,9 @@ void NetworkInterface::deleteDataStructures() {
   if(ebpfEvents) {
     for(u_int16_t i=0; i<EBPF_QUEUE_LEN; i++)
       if(ebpfEvents[i])
-	delete ebpfEvents[i];
+	free(ebpfEvents[i]);
     
-    delete ebpfEvents;
+    free(ebpfEvents);
   }
 #endif
 }

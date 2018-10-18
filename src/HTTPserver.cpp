@@ -630,7 +630,11 @@ static void authorize(struct mg_connection *conn,
     /* Referer url must begin with '/' */
     if((referer[0] != '/') || (strcmp(referer, AUTHORIZE_URL) == 0)) {
       char *r = strchr(referer, '/');
-      strcpy(referer, r ? r : "/");
+
+      if(r)
+	memmove(referer, r, strlen(r)+1 /* with null terminator */);
+      else
+	strcpy(referer, "/");
     }
 
     /* Send session cookie and set user for the new session */

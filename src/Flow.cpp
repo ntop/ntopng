@@ -178,8 +178,8 @@ Flow::~Flow() {
   if(srv_host) srv_host->decNumFlows(false, cli_host), srv_host->decUses();
 
   if(json_info)        free(json_info);
-  if(client_proc)      delete(client_proc);
-  if(server_proc)      delete(server_proc);
+  if(client_proc)      free(client_proc);
+  if(server_proc)      free(server_proc);
   if(host_server_name) free(host_server_name);
 
   if(isHTTP()) {
@@ -2650,7 +2650,7 @@ void Flow::handle_process(ProcessInfo *pinfo, bool client_process) {
     if(client_proc)
       memcpy(client_proc, pinfo, sizeof(ProcessInfo));
     else {
-      if((proc = new ProcessInfo) == NULL) return;
+      if((proc = (ProcessInfo*)malloc(sizeof(ProcessInfo))) == NULL) return;
       memcpy(proc, pinfo, sizeof(ProcessInfo));
       client_proc = proc, cli_host->setSystemHost(); /* Outgoing */
     }
@@ -2658,7 +2658,7 @@ void Flow::handle_process(ProcessInfo *pinfo, bool client_process) {
     if(server_proc)
       memcpy(server_proc, pinfo, sizeof(ProcessInfo));
     else {
-      if((proc = new ProcessInfo) == NULL) return;
+      if((proc = (ProcessInfo*)malloc(sizeof(ProcessInfo))) == NULL) return;
       memcpy(proc, pinfo, sizeof(ProcessInfo));
       server_proc = proc, srv_host->setSystemHost();  /* Incoming */
     }
