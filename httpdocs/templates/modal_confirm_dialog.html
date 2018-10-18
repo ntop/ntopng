@@ -7,11 +7,14 @@
       </div>
 
       <div class="modal-body {{dialog.custom_dialog_class}}">
-        <div class="{{dialog.custom_alert_class or "alert alert-warning"}}">{*dialog.message*}</div>
+        <div class="{{dialog.custom_alert_class or "alert alert-warning"}}">
+          {*dialog.message*}
+          <span id="{{dialog.id}}_more_content"></span>
+        </div>
       </div>
       <div class="modal-footer">
         <button class="btn btn-default" data-dismiss="modal" aria-hidden="true">{{i18n("close")}}</button>
-        <button type="submit" class="btn {{dialog.confirm_button or "btn-primary"}}" onclick="{{dialog.action}}">{*dialog.confirm*}</button>
+        {% if dialog.action ~= nil then %}<button type="submit" class="btn {{dialog.confirm_button or "btn-primary"}}" onclick="{{dialog.action}}">{*dialog.confirm*}</button>{% end %}
       </div>
     </div>
   </div>

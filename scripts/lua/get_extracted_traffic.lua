@@ -28,13 +28,18 @@ elseif isEmptyString(_GET["job_id"]) then
 else
 
   local job_id = tonumber(_GET["job_id"])
+  local file_id = 1
+  if _GET["file_id"] ~= nil then
+    file_id = tonumber(_GET["file_id"])
+  end
+
   local job_files = recording_utils.getJobFiles(job_id)
 
-  if #job_files == 0 then
+  if job_files[file_id] == nil then
     send_error("not_found")
   else
-    local file = job_files[1] -- TODO multiple files (tar?)
-    sendHTTPContentTypeHeader('application/vnd.tcpdump.pcap', 'attachment; filename="extraction_'..job_id..'.pcap"')
+    local file = job_files[file_id]
+    sendHTTPContentTypeHeader('application/vnd.tcpdump.pcap', 'attachment; filename="extraction_'..job_id..'_'..file_id..'.pcap"')
     ntop.dumpBinaryFile(file)
   end
 end

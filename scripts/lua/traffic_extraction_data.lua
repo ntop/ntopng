@@ -88,7 +88,14 @@ for id, _ in pairsByValues(sorter, sOrder) do
   local action_links = "<a onclick='deleteJob("..job.id..")' style='cursor: pointer'><span class=\"label label-danger\">"..i18n("delete").."</span></a>"
   if job.status == "completed" then
     local job_files = recording_utils.getJobFiles(job.id)
-    if #job_files > 0 then
+    if #job_files > 1 then
+      local links = "<ul>"
+      for file_id = 1,#job_files do
+        links = links.."<li><a href=\\'"..ntop.getHttpPrefix().."/lua/get_extracted_traffic.lua?job_id="..job.id.."&file_id="..file_id.."\\'>"..i18n("download").." Pcap "..file_id.."</a></li>"
+      end
+      links = links.."<ul>"
+      action_links = action_links.." <a onclick=\"downloadJobFiles('"..links.."')\" style='cursor: pointer'><span class=\"label label-info\">"..i18n("download").."</span></a>"
+    elseif #job_files == 1 then
       action_links = action_links.." <a href="..ntop.getHttpPrefix().."/lua/get_extracted_traffic.lua?job_id="..job.id.."><span class=\"label label-info\">"..i18n("download").."</span></a>"
     end
   end

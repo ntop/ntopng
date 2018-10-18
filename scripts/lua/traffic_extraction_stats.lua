@@ -6,6 +6,7 @@ dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 -- io.write ("Session:".._SESSION["session"].."\n")
 require "lua_utils"
+local template = require "template_utils"
 local recording_utils = require "recording_utils"
 
 interface.select(ifname)
@@ -26,6 +27,15 @@ active_page = "home"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 print("<HR><H2>"..i18n("traffic_recording.traffic_extraction_jobs").."</H2>")
+
+print(template.gen("modal_confirm_dialog.html", {
+  dialog = {
+    id      = "PcapDownloadDialog",
+    title   = i18n("traffic_recording.download"),
+    custom_alert_class = "alert alert-info",
+    message = ""
+ }
+}))
 
 print [[
   <div id="extractionjobs"></div>
@@ -79,11 +89,16 @@ print [[
     setTimeout(reloadTable, 10000); /* Refresh content every a few seconds */
   });
 
+  function downloadJobFiles(links) {
+    $('#PcapDownloadDialog_more_content').html(links);
+    $('#PcapDownloadDialog').modal('show');
+  }
+
   function deleteJob(job_id) {
-   var params = {}
-   params.delete_job = job_id;
-   params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
-   paramsToForm('<form method="post"></form>', params).appendTo('body').submit();
+    var params = {}
+    params.delete_job = job_id;
+    params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
+    paramsToForm('<form method="post"></form>', params).appendTo('body').submit();
   }
   </script>
 ]]

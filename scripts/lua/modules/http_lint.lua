@@ -1151,11 +1151,12 @@ local known_parameters = {
 --
 
 -- TRAFFIC RECORDING
+   ["delete_job"]                                  = validateNumber,
    ["disk_space"]                                  = validateNumber,
+   ["file_id"]                                     = validateNumber,
+   ["job_id"]                                      = validateNumber,
    ["n2disk_license"]                              = validateSingleWord,
    ["record_traffic"]                              = validateBool,
-   ["job_id"]                                      = validateNumber,
-   ["delete_job"]                                  = validateNumber,
 --
 
 -- PAGE SPECIFIC
