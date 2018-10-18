@@ -11,6 +11,9 @@ local categories_utils = require "categories_utils"
 local lists_utils = require "lists_utils"
 sendHTTPContentTypeHeader('text/html')
 
+local category_filter = _GET["l7proto"]
+local ifId = getInterfaceId(ifname)
+
 if not haveAdminPrivileges() then
   return
 end
@@ -61,8 +64,6 @@ for _, msg in ipairs(category_warnings) do
   </div>]])
 end
 
-print[[<h2>]] print(i18n("custom_categories.customized_categories")) print[[</h2>]]
-
 print(
   template.gen("modal_confirm_dialog.html", {
     dialog={
@@ -97,7 +98,49 @@ print(
   })
 )
 
+print [[<hr>
+<table><tbody><tr>
+  <td style="white-space:nowrap; padding-right:1em;">
+    <h2 style="margin-top:0">]] print(i18n("custom_categories.customized_categories")) print[[</h2>
+  </td>]]
+
+if not isEmptyString(category_filter) then
+  local cat_name = interface.getnDPICategoryName(tonumber(category_filter))
+
+  print[[<td>
+    <form>
+      <button type="button" class="btn btn-default btn-sm" onclick="$(this).closest('form').submit();">
+        <i class="fa fa-close fa-lg" aria-hidden="true" data-original-title="" title=""></i> ]] print(cat_name) print[[
+      </button>
+    </form>
+  </td>]]
+end
+
 print[[
+<td style="width:100%"></td>
+<td>
+]]
+
+print(
+  template.gen("typeahead_input.html", {
+    typeahead={
+      base_id     = "t_app",
+      action      = ntop.getHttpPrefix() .. "/lua/admin/edit_categories.lua",
+      parameters  = after_search_params,
+      json_key    = "key",
+      query_field = "l7proto",
+      query_url   = ntop.getHttpPrefix() .. "/lua/find_category.lua",
+      query_title = i18n("nedge.search_categories"),
+      style       = "margin-left:1em; width:25em;",
+    }
+  })
+)
+
+print[[
+  </td>
+  </tr>
+</table>
+
 <form id="custom-cat-form" lass="form-inline" style="margin-bottom: 0px;" method="post">
   <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[">
   <div id="table-custom-cat-form"></div>
@@ -146,7 +189,7 @@ print[[
   }
 
   $("#table-custom-cat-form").datatable({
-    url: "]] print (ntop.getHttpPrefix()) print [[/lua/admin/get_custom_categories_hosts.lua",
+    url: "]] print (ntop.getHttpPrefix()) print [[/lua/admin/get_custom_categories_hosts.lua?l7proto=]] print(category_filter or "") print[[",
     class: "table table-striped table-bordered table-condensed",
     title:"",
     columns: [

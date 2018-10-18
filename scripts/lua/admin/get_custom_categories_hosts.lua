@@ -17,6 +17,7 @@ local currentPage  = _GET["currentPage"]
 local perPage      = _GET["perPage"]
 local sortColumn   = _GET["sortColumn"]
 local sortOrder    = _GET["sortOrder"]
+local category_filter = _GET["l7proto"]
 
 -- ################################################
 --  Sorting and Pagination
@@ -66,6 +67,10 @@ local num_items = 0
 local items = interface.getnDPICategories()
 
 for item_name, item_id in pairs(items) do
+   if not isEmptyString(category_filter) and (category_filter ~= item_id) then
+      goto continue
+   end
+
    local hosts_list = categories_utils.getCustomCategoryHosts(item_id)
    local num_hosts = #hosts_list
 

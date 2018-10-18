@@ -14,6 +14,7 @@ sendHTTPContentTypeHeader('text/html')
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
+print[[<hr>]]
 dofile(dirs.installdir .. "/scripts/lua/inc/edit_presets.lua");
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

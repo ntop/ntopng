@@ -48,13 +48,13 @@ end
 print [[<hr>
 <table><tbody><tr>
   <td style="white-space:nowrap; padding-right:1em;">
-    <h2>]] print(i18n("protocols")) print[[</h2>
+    <h2 style="margin-top:0">]] print(i18n("protocols")) print[[</h2>
   </td>]]
 
 if not isEmptyString(proto_filter) then
   local proto_name = interface.getnDPIProtoName(tonumber(proto_filter))
 
-  print[[<td style="padding-top: 15px;">
+  print[[<td>
     <form>
       <button type="button" class="btn btn-default btn-sm" onclick="$(this).closest('form').submit();">
         <i class="fa fa-close fa-lg" aria-hidden="true" data-original-title="" title=""></i> ]] print(proto_name) print[[
@@ -149,7 +149,7 @@ print [[
               hidden: true,
               sortable: false,
             },{
-              title: "]] print(i18n("application")) print[[",
+              title: "]] print(i18n("protocol")) print[[",
               field: "column_ndpi_application",
               sortable: true,
                 css: {
