@@ -101,6 +101,11 @@ if ifstats.stats and ifstats.stats_since_reset then
    end
 end
 
+local ext_interfaces = {}
+if recording_utils.isAvailable() and not interface.isPacketInterface() then
+   ext_interfaces = recording_utils.getExtInterfaces()
+end
+
 if (isAdministrator()) then
    if (page == "config") and (not table.empty(_POST)) then
       -- TODO move keys to new schema: replace ifstats.name with ifid
@@ -172,12 +177,32 @@ if (isAdministrator()) then
         disk_space = tonumber(_POST["disk_space"])*1024
       end
       ntop.setCache('ntopng.prefs.ifid_'..ifstats.id..'.traffic_recording.disk_space', tostring(disk_space))
+
+      if not interface.isPacketInterface() then
+        local ext_ifname
+        if not isEmptyString(_POST["custom_name"]) then
+          -- param check
+          for ifname,_ in pairs(ext_interfaces) do
+            if ifname == _POST["custom_name"] then
+              ext_ifname = ifname
+              break
+            end
+          end
+        end
+        if ext_ifname ~= nil then
+          ntop.setCache('ntopng.prefs.ifid_'..ifstats.id..'.traffic_recording.ext_ifname', ext_ifname) 
+        end
+      end
       
       if record_traffic then
         local config = {}
         config.max_disk_space = disk_space
-        recording_utils.createConfig(ifstats.id, config)
-        recording_utils.restart(ifstats.id)
+        if not interface.isPacketInterface() then 
+          config.zmq_endpoint = "tcp://127.0.0.1:5556" -- TODO
+        end
+        if recording_utils.createConfig(ifstats.id, config) then
+          recording_utils.restart(ifstats.id)
+        end
       else
         recording_utils.stop(ifstats.id)
       end
@@ -268,13 +293,13 @@ if is_packetdump_enabled then
    else
       print("<li><a href=\""..url.."&page=packetdump\"><i class=\"fa fa-hdd-o fa-lg\"></i></a></li>")
    end
+end
 
-   if recording_utils.isAvailable() then
-      if(page == "traffic_recording") then
-         print("<li class=\"active\"><a href=\""..url.."&page=traffic_recording\"><i class=\"fa fa-caret-square-o-right fa-lg\"></i></a></li>")
-      else
-         print("<li><a href=\""..url.."&page=traffic_recording\"><i class=\"fa fa-caret-square-o-right fa-lg\"></i></a></li>")
-      end
+if recording_utils.isAvailable() and (interface.isPacketInterface() or not table.empty(ext_interfaces)) then
+   if(page == "traffic_recording") then
+      print("<li class=\"active\"><a href=\""..url.."&page=traffic_recording\"><i class=\"fa fa-caret-square-o-right fa-lg\"></i></a></li>")
+   else
+      print("<li><a href=\""..url.."&page=traffic_recording\"><i class=\"fa fa-caret-square-o-right fa-lg\"></i></a></li>")
    end
 end
 
@@ -1154,7 +1179,6 @@ elseif(page == "traffic_recording") then
     local record_traffic = ntop.getCache('ntopng.prefs.ifid_'..ifid..'.traffic_recording.enabled')
     local disk_space = ntop.getCache('ntopng.prefs.ifid_'..ifid..'.traffic_recording.disk_space')
     local storage_info = recording_utils.storageInfo()
-
     if record_traffic == "true" then
       record_traffic_checked = 'checked="checked"'
       record_traffic_value = "false" -- Opposite
@@ -1172,12 +1196,40 @@ elseif(page == "traffic_recording") then
       <form id="traffic_recording_form" class="form-inline" method="post">
         <table class="table table-striped table-bordered">
           <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
+    ]]
+
+    if not interface.isPacketInterface() then
+      local ext_ifname = ntop.getCache('ntopng.prefs.ifid_'..ifid..'.traffic_recording.ext_ifname')
+      if isEmptyString(ext_ifname) then
+        for ifname,_ in pairs(ext_interfaces) do
+          ext_ifname = ifname
+          break
+        end
+      end
+      print [[
+          <tr>
+            <th width=30%>]] print(i18n("traffic_recording.ext_interface")) print [[</th>
+            <td colspan=2>
+              <select class="form-control" name="custom_name" value="]] print(ext_ifname) print [[">
+      ]]
+      for ifname,info in pairs(ext_interfaces) do
+        print("<option value=\""..ifname.."\" "..ternary(ifname == ext_ifname, "selected", "")..">"..info.ifdesc.."</option>")
+      end
+      print [[
+  	      </select>
+            </td>
+          </tr>
+      ]]
+    end
+
+    print [[
           <tr>
             <th width=30%>]] print(i18n("traffic_recording.traffic_recording")) print [[</th>
             <td colspan=2>
 	      <input name="record_traffic" type="checkbox" value="1" ]] print (record_traffic_checked) print [[> <i class="fa fa-hdd-o fa-lg"></i> ]] print(i18n("traffic_recording.continuous_recording")) print [[</input>
             </td>
           </tr>
+
           <tr>
             <th>]] print(i18n("traffic_recording.disk_space")) print [[</th>
             <td colspan=2>
@@ -1185,6 +1237,7 @@ elseif(page == "traffic_recording") then
     <small>]] print(i18n("traffic_recording.disk_space_note")) print[[</small>
             </td>
           </tr>
+
           <tr>
             <th>]] print(i18n("traffic_recording.storage_dir")) print [[</th>
             <td colspan=2>]] print(recording_utils.getPcapPath(ifid)) print [[</td>

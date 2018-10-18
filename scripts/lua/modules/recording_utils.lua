@@ -31,8 +31,9 @@ end
 
 function recording_utils.isAvailable()
   if isAdministrator() and 
-     isLocalPacketdumpEnabled() and
+     -- interface.isPacketInterface() and 
      not ntop.isWindows() and
+     not ntop.isnEdge() and
      ntop.exists(ntopng_config_tool) and 
      ntop.exists(n2disk_ctl) then
     return true
@@ -40,30 +41,36 @@ function recording_utils.isAvailable()
   return false
 end
 
-function recording_utils.getInterfaces()
-  local ntopng_interfaces = interface.getIfNames()
-  local n2disk_interfaces = {}
-
-  for id,ifname in pairs(ntopng_interfaces) do
-    local is_zc = false
-
-    local proc_info = io.open("/proc/net/pf_ring/dev/"..ifname.."/info", "r")
-    if proc_info ~= nil then
-      local info = proc_info:read "*a"
-      if string.match(info, "ZC") then
-        is_zc = true
-      end
-      proc_info:close()
+function recording_utils.isZC(ifname)
+  local proc_info = io.open("/proc/net/pf_ring/dev/"..ifname.."/info", "r")
+  if proc_info ~= nil then
+    local info = proc_info:read "*a"
+    proc_info:close()
+    if string.match(info, "ZC") then
+      return true
     end
+  end
+  -- return true -- DEBUG
+  return false
+end
 
-    n2disk_interfaces[ifname] = {
-      id = id,
-      desc = "",
-      is_zc = is_zc
-    }
+function recording_utils.getExtInterfaces()
+  local ext_interfaces = {}
+  local all_interfaces = ntop.listInterfaces()
+  local ntopng_interfaces = swapKeysValues(interface.getIfNames()) 
+  
+  for ifname,_ in pairs(all_interfaces) do
+    if ntopng_interfaces[ifname] == nil then
+      if recording_utils.isZC(ifname) then
+        ext_interfaces[ifname] = {
+          ifdesc = 'zc:'..ifname,
+          is_zc = is_zc
+        }
+      end
+    end
   end
 
-  return n2disk_interfaces
+  return ext_interfaces
 end
 
 local function nextFreeCore(num_cores, busy_cores, start)
@@ -138,8 +145,32 @@ local function getPcapFilePath(job_id, ifid, file_id)
   return dir_path.."/"..file_id..".pcap"
 end
 
+local function getN2diskInterfaceName(ifid)
+  if interface.isPacketInterface() then
+    return getInterfaceName(ifid)
+  else
+    return ntop.getCache('ntopng.prefs.ifid_'..ifid..'.traffic_recording.ext_ifname')
+  end
+end
+
 function recording_utils.createConfig(ifid, params)
-  local ifname = getInterfaceName(ifid)
+  local ifname = getN2diskInterfaceName(ifid)
+
+  if interface.isPacketInterface() then
+    full_ifname = ifname
+  else
+    if recording_utils.isZC(ifname) then
+      -- full_ifname = ifname -- DEBUG
+      full_ifname = "zc:"..ifname
+    else
+      full_ifname = ifname
+    end
+  end
+
+  if isEmptyString(ifname) then
+    return false
+  end
+
   local conf_dir = dirs.workingdir.."/n2disk"
   local filename = conf_dir.."/n2disk-"..ifname..".conf"
   local storage_path = dirs.pcapdir
@@ -244,7 +275,7 @@ function recording_utils.createConfig(ifid, params)
   local pcap_path = recording_utils.getPcapPath(ifid)
   local timeline_path = recording_utils.getTimelinePath(ifid)
 
-  f:write("--interface="..ifname.."\n")
+  f:write("--interface="..full_ifname.."\n")
   f:write("--dump-directory="..pcap_path.."\n")
   f:write("--index\n")
   f:write("--timeline-dir="..timeline_path.."\n")
@@ -289,32 +320,32 @@ function recording_utils.isEnabled(ifid)
 end
 
 function recording_utils.isActive(ifid)
-  local ifname = getInterfaceName(ifid)
+  local ifname = getN2diskInterfaceName(ifid)
   local check_cmd = n2disk_ctl_cmd.." is-active "..ifname
   local is_active = executeWithOuput(check_cmd)
   return ternary(string.match(is_active, "^active"), true, false)
 end
 
 function recording_utils.restart(ifid)
-  local ifname = getInterfaceName(ifid)
+  local ifname = getN2diskInterfaceName(ifid)
   os.execute(n2disk_ctl_cmd.." enable "..ifname)
   os.execute(n2disk_ctl_cmd.." restart "..ifname)
 end
 
 function recording_utils.stop(ifid)
-  local ifname = getInterfaceName(ifid)
+  local ifname = getN2diskInterfaceName(ifid)
   os.execute(n2disk_ctl_cmd.." stop "..ifname)
   os.execute(n2disk_ctl_cmd.." disable "..ifname)
 end
 
 function recording_utils.log(ifid, rows)
-  local ifname = getInterfaceName(ifid)
+  local ifname = getN2diskInterfaceName(ifid)
   local log = executeWithOuput(n2disk_ctl_cmd.." log "..ifname.."|tail -n"..rows)
   return log
 end
 
 function recording_utils.stats(ifid)
-  local ifname = getInterfaceName(ifid)
+  local ifname = getN2diskInterfaceName(ifid)
   local stats = {}
   local proc_stats = executeWithOuput(n2disk_ctl_cmd.." stats "..ifname)
   local lines = split(proc_stats, "\n")

@@ -2856,6 +2856,7 @@ local lang = {
     ["disk_space"] = "Max Disk Space",
     ["disk_space_note"] = "Maximum disk space used for recorded traffic on disk.",
     ["download"] = "Download",
+    ["ext_interface"] = "External Interface",
     ["extracted_bytes"] = "Bytes",
     ["extracted_packets"] = "Packets",
     ["extraction_scheduled"] = "A new extraction job has been scheduled, please check the %{page} page to download the pcap as soon as the file is ready. The job ID for this extraction is ",
