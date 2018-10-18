@@ -102,7 +102,7 @@ if ifstats.stats and ifstats.stats_since_reset then
 end
 
 local ext_interfaces = {}
-if recording_utils.isAvailable() and not interface.isPacketInterface() then
+if recording_utils.isAvailable() and recording_utils.isSupportedZMQInterface(ifid) then
    ext_interfaces = recording_utils.getExtInterfaces()
 end
 
@@ -178,7 +178,7 @@ if (isAdministrator()) then
       end
       ntop.setCache('ntopng.prefs.ifid_'..ifstats.id..'.traffic_recording.disk_space', tostring(disk_space))
 
-      if not interface.isPacketInterface() then
+      if recording_utils.isSupportedZMQInterface(ifid) then
         local ext_ifname
         if not isEmptyString(_POST["custom_name"]) then
           -- param check
@@ -197,8 +197,9 @@ if (isAdministrator()) then
       if record_traffic then
         local config = {}
         config.max_disk_space = disk_space
-        if not interface.isPacketInterface() then 
-          config.zmq_endpoint = "tcp://127.0.0.1:5556" -- TODO
+        if recording_utils.isSupportedZMQInterface(ifid) then 
+          config.zmq_endpoint = recording_utils.getZMQProbeAddr(ifid)
+          recording_utils.stop(ifstats.id) -- stop before starting as the interface can be changed
         end
         if recording_utils.createConfig(ifstats.id, config) then
           recording_utils.restart(ifstats.id)
@@ -295,7 +296,9 @@ if is_packetdump_enabled then
    end
 end
 
-if recording_utils.isAvailable() and (interface.isPacketInterface() or not table.empty(ext_interfaces)) then
+if recording_utils.isAvailable() and (interface.isPacketInterface() or 
+   (recording_utils.isSupportedZMQInterface(ifid) and not table.empty(ext_interfaces))) then
+
    if(page == "traffic_recording") then
       print("<li class=\"active\"><a href=\""..url.."&page=traffic_recording\"><i class=\"fa fa-caret-square-o-right fa-lg\"></i></a></li>")
    else
@@ -1198,7 +1201,7 @@ elseif(page == "traffic_recording") then
           <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
     ]]
 
-    if not interface.isPacketInterface() then
+    if recording_utils.isSupportedZMQInterface(ifid) then
       local ext_ifname = ntop.getCache('ntopng.prefs.ifid_'..ifid..'.traffic_recording.ext_ifname')
       if isEmptyString(ext_ifname) then
         for ifname,_ in pairs(ext_interfaces) do

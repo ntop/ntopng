@@ -29,9 +29,55 @@ local function executeWithOuput(c)
   return s
 end
 
+function recording_utils.isSupportedZMQInterface(ifid)
+  local ifname = getInterfaceName(ifid)
+  -- localhost in collectore mode is accepted
+  local zmq_prefix_any = "tcp://*"
+  local zmq_prefix_loh = "tcp://127.0.0.1"
+  if (ifname:sub(1, #zmq_prefix_any) == zmq_prefix_any or
+      ifname:sub(1, #zmq_prefix_loh) == zmq_prefix_loh) and
+      ifname:sub(-1) == "c" then
+    return true
+  end
+  return false
+end
+
+local function getZMQPort(addr)
+  local values = split(addr, ':')
+  if #values == 3 then
+    local port = split(values[3], 'c')
+    return port[1]
+  end
+  return nil
+end
+
+function recording_utils.getZMQProbeAddr(ifid)
+  local port = getZMQPort(getInterfaceName(ifid))
+  if port == nil then
+    port = "5556"
+  end
+  return "tcp://127.0.0.1:"..port
+end
+
+function recording_utils.isSupportedZMQInterface(ifid)
+  local ifname = getInterfaceName(ifid)
+  local zmq_prefix = "tcp://"
+  if ifname:sub(1, #zmq_prefix) == zmq_prefix and ifname:sub(-1) == "c" then
+    return true
+  end
+  return false
+end
+
+function recording_utils.isSupportedInterface(ifid)
+  if interface.isPacketInterface() or 
+     recording_utils.isSupportedZMQInterface(ifid) then
+    return true
+  end
+  return false
+end
+
 function recording_utils.isAvailable()
-  if isAdministrator() and 
-     -- interface.isPacketInterface() and 
+  if isAdministrator() and
      not ntop.isWindows() and
      not ntop.isnEdge() and
      ntop.exists(ntopng_config_tool) and 
@@ -298,6 +344,7 @@ function recording_utils.createConfig(ifid, params)
   end
   if config.zmq_endpoint ~= nil then
     f:write("--zmq="..config.zmq_endpoint.."\n")
+    f:write("--zmq-probe-mode\n")
     f:write("--zmq-export-flows\n")
   end
   -- Ignored by systemd, required by init.d
