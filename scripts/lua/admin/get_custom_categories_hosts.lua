@@ -22,20 +22,24 @@ local category_filter = _GET["l7proto"]
 -- ################################################
 --  Sorting and Pagination
 
-local sortPrefs = "custom_categories_lists"
+local sortPrefs = "custom_categories_hosts"
 
-if isEmptyString(sortColumn) or sortColumn == "column_" then
+if((sortColumn == nil) or (sortColumn == "column_"))then
    sortColumn = getDefaultTableSort(sortPrefs)
-elseif sortColumn ~= "" then
-   tablePreferences("sort_"..sortPrefs, sortColumn)
+else
+   if((sortColumn ~= "column_")
+    and (sortColumn ~= "")) then
+      tablePreferences("sort_"..sortPrefs,sortColumn)
+   end
 end
 
-if isEmptyString(_GET["sortColumn"]) then
-   sortOrder = getDefaultTableSortOrder(sortPrefs, true)
-end
-
-if _GET["sortColumn"] ~= "column_" and _GET["sortColumn"] ~= "" then
-   tablePreferences("sort_order_"..sortPrefs, sortOrder, true)
+if(sortOrder == nil) then
+   sortOrder = getDefaultTableSortOrder(sortPrefs)
+else
+   if((sortColumn ~= "column_")
+    and (sortColumn ~= "")) then
+      tablePreferences("sort_order_"..sortPrefs,sortOrder)
+   end
 end
 
 if currentPage == nil then
@@ -45,10 +49,10 @@ else
 end
 
 if perPage == nil then
-   perPage = 10
+   perPage = getDefaultTableSize()
 else
    perPage = tonumber(perPage)
-   tablePreferences("rows_number_policies", perPage)
+   tablePreferences("rows_number", perPage)
 end
 
 -- ################################################
@@ -73,14 +77,17 @@ for item_name, item_id in pairs(items) do
 
    local hosts_list = categories_utils.getCustomCategoryHosts(item_id)
    local num_hosts = #hosts_list
+   local num_protocols = table.len(interface.getnDPIProtocols(tonumber(item_id)))
 
-   items[item_name] = { name = item_name, id = item_id, num_hosts = num_hosts, hosts_list = hosts_list }
+   items[item_name] = { name = item_name, id = item_id, num_hosts = num_hosts, hosts_list = hosts_list , num_protocols = num_protocols }
    num_items = num_items + 1
 
    if sortColumn == "column_" or sortColumn == "column_category_name" then
       sorter[item_name] = item_name
    elseif sortColumn == "column_num_hosts" then
       sorter[item_name] = num_hosts
+   elseif sortColumn == "column_num_protos" then
+      sorter[item_name] = num_protocols
    end
 
    ::continue::
@@ -101,6 +108,7 @@ for sorted_item, _ in pairsByValues(sorter, sOrder) do
    record["column_category_id"] = tostring(items[sorted_item]["id"])
    record["column_category_name"] = tostring(items[sorted_item]["name"])
    record["column_num_hosts"] = tostring(items[sorted_item].num_hosts)
+   record["column_num_protos"] = tostring(items[sorted_item].num_protocols)
    record["column_category_hosts"] = table.concat(items[sorted_item].hosts_list, ",")
 
    res_formatted[#res_formatted + 1] = record

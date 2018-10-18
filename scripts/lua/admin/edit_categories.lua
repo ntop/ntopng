@@ -36,10 +36,13 @@ if _POST["action"] == "edit" then
 
       if (matched_category ~= nil) and (matched_category ~= category_id) then
         -- NOTE: this check is not comprehensive
-        category_warnings[#category_warnings + 1] = i18n("custom_categories.similar_host_found", {
-          host = host,
-          category = interface.getnDPICategoryName(matched_category),
-        })
+        category_warnings[#category_warnings + 1] = {
+          type = "warning",
+          text = i18n("custom_categories.similar_host_found", {
+            host = host,
+            category = interface.getnDPICategoryName(matched_category),
+          })
+        }
       end
 
       hosts_ok[#hosts_ok + 1] = host
@@ -48,21 +51,9 @@ if _POST["action"] == "edit" then
 
   categories_utils.updateCustomCategoryHosts(category_id, hosts_ok)
   lists_utils.reloadLists()
-elseif _POST["action"] == "clear" then
-  local category_id = split(_POST["category"], "cat_")[2]
-
-  categories_utils.clearCustomCategoryHosts(category_id)
-  lists_utils.reloadLists()
 end
 
-for _, msg in ipairs(category_warnings) do
-  print([[
-  <div class="alert alert-warning alert-dismissible" style="margin-top:2em; margin-bottom:0em;">
-    <button type="button" class="close" data-dismiss="alert" aria-label="]]..i18n("close")..[[">
-      <span aria-hidden="true">&times;</span>
-    </button><b>]]..i18n("warning")..[[</b>: ]]..msg..[[
-  </div>]])
-end
+printMessageBanners(category_warnings)
 
 print(
   template.gen("modal_confirm_dialog.html", {
@@ -80,20 +71,7 @@ print(
   <li>]].. i18n("custom_categories.host_domain_or_cidr") .. [[</li>
   <li>]].. i18n("custom_categories.domain_names_substrings", {s1="ntop.org", s2="mail.ntop.org", s3="ntop.org.example.com"}) ..[[</li>
   </ul>]],
-      confirm = "Update",
-    }
-  })
-)
-
-print(
-  template.gen("modal_confirm_dialog.html", {
-    dialog={
-      id      = "clear_category_rules",
-      action  = "clearCategory()",
-      
-      title   = i18n("custom_categories.clear_category"),
-      message = i18n("custom_categories.clear_confirm_message.", {category="<span id='category_to_clean'></span>"}),
-      confirm = i18n("custom_categories.clear"),
+      confirm = i18n("users.edit"),
     }
   })
 )
@@ -101,7 +79,7 @@ print(
 print [[<hr>
 <table><tbody><tr>
   <td style="white-space:nowrap; padding-right:1em;">
-    <h2 style="margin-top:0">]] print(i18n("custom_categories.customized_categories")) print[[</h2>
+    <h2 style="margin-top:0">]] print(i18n("users.categories")) print[[</h2>
   </td>]]
 
 if not isEmptyString(category_filter) then
@@ -191,6 +169,17 @@ print[[
   $("#table-custom-cat-form").datatable({
     url: "]] print (ntop.getHttpPrefix()) print [[/lua/admin/get_custom_categories_hosts.lua?l7proto=]] print(category_filter or "") print[[",
     class: "table table-striped table-bordered table-condensed",
+    ]]
+
+-- Set the preference table
+local preference = tablePreferences("rows_number", _GET["perPage"])
+if (preference ~= "") then print ('perPage: '..preference.. ",\n") end
+
+-- Automatic default sorted. NB: the column must exist.
+print ('sort: [ ["' .. getDefaultTableSort("custom_categories_hosts") ..'","' .. getDefaultTableSortOrder("custom_categories_hosts").. '"] ],')
+
+
+print [[
     title:"",
     columns: [
      {
@@ -199,6 +188,10 @@ print[[
       },{
         title: "]] print(i18n("category")) print[[",
         field: "column_category_name",
+        sortable: true,
+      },{
+        title: "]] print(i18n("users.num_protocols")) print[[",
+        field: "column_num_protos",
         sortable: true,
       },{
         title: "]] print(i18n("custom_categories.custom_hosts")) print[[",
@@ -223,22 +216,20 @@ print[[
     ], rowCallback: function(row, data) {
       var category_id = data.column_category_id;
       var category_name = data.column_category_name;
-      var actions_td_idx = 4;
+      var actions_td_idx = 5;
+
+      if(data.column_num_protos != 0)
+        datatableAddLinkButtonCallback.bind(row)(actions_td_idx,
+          "]] print(ntop.getHttpPrefix()) print[[/lua/admin/edit_ndpi_applications.lua?category=cat_" + category_id, "]] print(i18n("host_pools.view")) print[[");
 
       datatableAddActionButtonCallback.bind(row)(actions_td_idx,
-        "loadCategories("+ data.column_category_id +"); $('#selected_category_name').html('"+ category_name +"'); selected_category_id = "+ category_id +"; $('#edit_category_rules').modal('show')", "Edit");
-      datatableAddDeleteButtonCallback.bind(row)(actions_td_idx,
-        "$('#category_to_clean').html('"+ category_name +"'); selected_category_id = "+ category_id +"; $('#clear_category_rules').modal('show')", "Clear");
+        "loadCategories("+ data.column_category_id +"); $('#selected_category_name').html('"+ category_name +"'); selected_category_id = "+ category_id +"; $('#edit_category_rules').modal('show')", "]] print(i18n("custom_categories.edit_hosts")) print[[");
 
       return row;
      }
   });
 </script>
-
-]] print(i18n("notes")) print[[
-<ul>
-  <li>]] print(i18n("custom_categories.note_page_usage")) print[[</li>
-</ul>
+<br><br>
 ]]
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

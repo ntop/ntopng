@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
 
 require "lua_utils"
+require "graph_utils"
 local template = require "template_utils"
 
 local host_pools_utils = require "host_pools_utils"
@@ -314,17 +315,11 @@ local function printDeviceProtocolsPage()
    end
    page_params["policy_filter"] = policy_filter
    print('</ul></div>\', ')
-       
-   -- 'Category' button
-   print('\'<div class="btn-group pull-right"><div class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..
-         i18n("category") .. ternary(not isEmptyString(category), '<span class="glyphicon glyphicon-filter"></span>', '') ..
-         '<span class="caret"></span></div> <ul class="dropdown-menu" role="menu" style="min-width: 90px;">')
 
-   -- 'Category' dropdown menu
+   -- Category filter
    local device_policies = presets_utils.getDevicePolicies(device_type)
-   local entries = { {text=i18n("all"), id=""} }
-   entries[#entries + 1] = ""
-   for cat_name, cat_id in pairsByKeys(interface.getnDPICategories()) do
+
+   local function categoryCountCallback(cat_id, cat_name)
       local cat_count = 0
       for proto_id,p in pairs(device_policies) do
          local cat = interface.getnDPIProtoCategory(tonumber(proto_id))
@@ -333,20 +328,11 @@ local function printDeviceProtocolsPage()
             cat_count = cat_count + 1
          end
       end
-      if cat_count > 0 then
-         entries[#entries + 1] = {text=cat_name.." ("..cat_count..")", id=cat_name}
-      end
+
+      return cat_count
    end
-   for _, entry in pairs(entries) do
-      if entry ~= "" then
-         page_params["category"] = entry.id
-         print('<li' .. ternary(category == entry.id, ' class="active"', '') .. '><a href="' .. getPageUrl(base_url, page_params) .. '">' .. (entry.icon or "") .. entry.text .. '</a></li>')
-      else
-         print('<li role="separator" class="divider"></li>')
-      end
-   end
-   page_params["category"] = category
-   print('</ul></div>\', ')
+
+   printCategoryDropdownButton(false, category, base_url, page_params, categoryCountCallback)
 
    -- datatable columns definition
    print[[],

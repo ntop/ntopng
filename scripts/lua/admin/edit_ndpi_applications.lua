@@ -6,10 +6,12 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
+require "graph_utils"
 local template = require "template_utils"
 sendHTTPContentTypeHeader('text/html')
 
 local proto_filter = _GET["l7proto"]
+local category_filter = _GET["category"]
 
 local ifId = getInterfaceId(ifname)
 
@@ -19,6 +21,18 @@ end
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
+
+local base_url = ntop.getHttpPrefix() .. "/lua/admin/edit_ndpi_applications.lua"
+local page_params = {
+  l7proto = proto_filter,
+  category = category_filter,
+}
+
+local catid = nil
+
+if not isEmptyString(category_filter) then
+  catid = split(category_filter, "cat_")[2]
+end
 
 if not table.empty(_POST) then
   local custom_categories = getCustomnDPIProtoCategories(ifname)
@@ -48,7 +62,15 @@ end
 print [[<hr>
 <table><tbody><tr>
   <td style="white-space:nowrap; padding-right:1em;">
-    <h2 style="margin-top:0">]] print(i18n("protocols")) print[[</h2>
+    <h2 style="margin-top:0">]]
+
+  if catid == nil then
+    print(i18n("protocols"))
+  else
+    print(i18n("users.cat_protocols", {cat=interface.getnDPICategoryName(tonumber(catid))}))
+  end
+
+  print[[</h2>
   </td>]]
 
 if not isEmptyString(proto_filter) then
@@ -72,9 +94,10 @@ print(
   template.gen("typeahead_input.html", {
     typeahead={
       base_id     = "t_app",
-      action      = ntop.getHttpPrefix() .. "/lua/admin/edit_ndpi_applications.lua",
+      action      = base_url,
       parameters  = {
                       ifid = tostring(ifId),
+                      category = category_filter,
                     },
       json_key    = "key",
       query_field = "l7proto",
@@ -114,15 +137,15 @@ print[[
 
   };
 
-  var url_update = "]] print (ntop.getHttpPrefix()) print [[/lua/admin/get_ndpi_applications.lua]]
-  if not isEmptyString(proto_filter) then
-    print("?l7proto=" .. proto_filter)
-  end
+  var url_update = "]] print (ntop.getHttpPrefix()) print [[/lua/admin/get_ndpi_applications.lua?l7proto=]]
+  print(proto_filter or "") print("&category=") print(category_filter or "")
+
   print[[";
 
   $("#table-edit-ndpi-applications").datatable({
     url: url_update ,
     class: "table table-striped table-bordered table-condensed",
+    buttons: []] printCategoryDropdownButton(true, catid, base_url, page_params) print[[],
 ]]
 
 -- Set the preference table
@@ -157,7 +180,7 @@ print [[
                   textAlign: 'left'
               }
             },{
-              title: "]] print(i18n("categories_page.traffic_category")) print[[",
+              title: "]] print(i18n("category")) print[[",
               field: "column_ndpi_application_category",
               sortable: true,
                 css: {

@@ -967,6 +967,8 @@ function poolDropdown(ifId, pool_id, exclude)
    return table.concat(output, '')
 end
 
+-- #################################################
+
 function printPoolChangeDropdown(ifId, pool_id, have_nedge)
    local output = {}
 
@@ -990,3 +992,48 @@ function printPoolChangeDropdown(ifId, pool_id, have_nedge)
 
    print(table.concat(output, ''))
 end
+
+-- #################################################
+
+function printCategoryDropdownButton(by_id, cat_id_or_name, base_url, page_params, count_callback)
+   local function count_all(cat_id, cat_name)
+      local cat_protos = interface.getnDPIProtocols(tonumber(cat_id))
+      return table.len(cat_protos)
+   end
+
+   cat_id_or_name = cat_id_or_name or ""
+   count_callback = count_callback or count_all
+
+   -- 'Category' button
+   print('\'<div class="btn-group pull-right"><div class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..
+         i18n("category") .. ternary(not isEmptyString(cat_id_or_name), '<span class="glyphicon glyphicon-filter"></span>', '') ..
+         '<span class="caret"></span></div> <ul class="dropdown-menu" role="menu" style="min-width: 90px;">')
+
+   -- 'Category' dropdown menu
+   local entries = { {text=i18n("all"), id="", cat_id=""} }
+   entries[#entries + 1] = ""
+   for cat_name, cat_id in pairsByKeys(interface.getnDPICategories()) do
+      local cat_count = count_callback(cat_id, cat_name)
+
+      if cat_count > 0 then
+         entries[#entries + 1] = {text=cat_name.." ("..cat_count..")", id=cat_name, cat_id=cat_id}
+      end
+   end
+
+   for _, entry in pairs(entries) do
+      if entry ~= "" then
+         page_params["category"] = ternary(by_id, ternary(entry.cat_id ~= "", "cat_" .. entry.cat_id, ""), entry.id)
+
+         print('<li' .. ternary(cat_id_or_name == ternary(by_id, entry.cat_id, entry.id), ' class="active"', '') ..
+            '><a href="' .. getPageUrl(base_url, page_params) .. '">' .. (entry.icon or "") ..
+            entry.text .. '</a></li>')
+      else
+         print('<li role="separator" class="divider"></li>')
+      end
+   end
+
+   print('</ul></div>\', ')
+   page_params["category"] = cat_id_or_name
+end
+
+-- #################################################

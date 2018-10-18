@@ -28,6 +28,8 @@ sendHTTPContentTypeHeader('text/html')
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 warn_shown = 0
 
+local alert_banners = {}
+
 if isAdministrator() then
    if _POST["custom_hosts"] and _POST["category"] then
       local lists_utils = require("lists_utils")
@@ -35,6 +37,19 @@ if isAdministrator() then
 
       if categories_utils.addCustomCategoryHost(category_id, _POST["custom_hosts"]) then
 	 lists_utils.reloadLists()
+
+	 alert_banners[#alert_banners + 1] = {
+	    type="success",
+	    text=i18n("flow_details.host_successfully_added_to_category",
+	       {host=_POST["custom_hosts"], category=interface.getnDPICategoryName(category_id),
+	       url = ntop.getHttpPrefix() .. "/lua/admin/edit_categories.lua?l7proto=" .. category_id})
+	 }
+      else
+	 alert_banners[#alert_banners + 1] = {
+	    type="danger",
+	    text=i18n("flow_details.could_not_add_host_to_category",
+	       {host=_POST["custom_hosts"], category=interface.getnDPICategoryName(category_id)})
+	 }
       end
    end
 end
@@ -71,7 +86,7 @@ local function printAddHostoToCustomizedCategories(full_url)
 	 action  = "addToCustomizedCategories()",
 	 custom_alert_class = "",
 	 custom_dialog_class = "dialog-body-full-height",
-	 title   = i18n("custom_categories.add_url_to_categories"),
+	 title   = i18n("custom_categories.custom_host_category"),
 	 message = i18n("custom_categories.select_url_category") .. "<br>" ..
 	    cat_select_dropdown .. "<br>" .. i18n("custom_categories.the_following_url_will_be_added") ..
 	    '<br><input id="categories_url_add" class="form-control" required value="'.. short_url ..'">' .. existing_note,
@@ -80,7 +95,7 @@ local function printAddHostoToCustomizedCategories(full_url)
      })
    )
 
-   print(' <a href="#" onclick="$(\'#add_to_customized_categories\').modal(\'show\'); return false;"><i title="'.. i18n("custom_categories.add_to_customized_categories") ..'" class="fa fa-plus"></i></a>')
+   print(' <a href="#" onclick="$(\'#add_to_customized_categories\').modal(\'show\'); return false;"><i title="'.. i18n("custom_categories.add_to_categories") ..'" class="fa fa-plus"></i></a>')
 
    print[[<script>
    function addToCustomizedCategories() {
@@ -160,6 +175,11 @@ end
 active_page = "flows"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
+printMessageBanners(alert_banners)
+
+if not table.empty(alert_banners) then
+   print("<br>")
+end
 
 throughput_type = getThroughputType()
 

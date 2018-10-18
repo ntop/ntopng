@@ -3425,6 +3425,30 @@ end
 
 -- ###########################################
 
+-- Banner format: {type="success|warning|danger", text="..."}
+function printMessageBanners(banners)
+   for _, msg in ipairs(banners) do
+      print[[
+  <div class="alert alert-]] print(msg.type) print([[ alert-dismissible" style="margin-top:2em; margin-bottom:0em;">
+    <button type="button" class="close" data-dismiss="alert" aria-label="]]..i18n("close")..[[">
+      <span aria-hidden="true">&times;</span>
+    </button>]])
+
+      if (msg.type == "warning") then
+         print("<b>".. i18n("warning") .. "</b>: ")
+      elseif (msg.type == "danger") then
+         print("<b>".. i18n("error") .. "</b>: ")
+      end
+
+      print(msg.text)
+    
+      print[[
+  </div>]]
+   end
+end
+
+-- ###########################################
+
 --
 -- IMPORTANT
 -- Leave it at the end so it can use the functions

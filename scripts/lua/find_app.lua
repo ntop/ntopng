@@ -17,10 +17,15 @@ local results = res.results
 local ifid = _GET["ifId"]
 local query = string.lower(_GET["query"])
 local skip_critical = _GET["skip_critical"]
+local category_filter = _GET["category"]
 
 interface.select(ifid)
 
-local protocols = interface.getnDPIProtocols(nil, toboolean(skip_critical))
+if not isEmptyString(category_filter) and starts(category_filter, "cat_") then
+  category_filter = split(category_filter, "cat_")[2]
+end
+
+local protocols = interface.getnDPIProtocols(tonumber(category_filter), toboolean(skip_critical))
 
 for proto, id in pairsByKeys(protocols, asc_insensitive) do
   if string.contains(string.lower(proto), query) then
