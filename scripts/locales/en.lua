@@ -2808,6 +2808,7 @@ local lang = {
   ["traffic_recording"] = {
     ["completed"] = "Completed",
     ["continuous_recording"] = "Continuous Traffic Recording",
+    ["continuous_recording_and_flows"] = "Continuous Traffic Recording and Flow Visibility",
     ["disk_space"] = "Max Disk Space",
     ["disk_space_note"] = "Maximum disk space used for recorded traffic on disk.",
     ["download"] = "Download",

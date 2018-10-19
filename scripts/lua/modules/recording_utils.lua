@@ -101,19 +101,37 @@ function recording_utils.isZC(ifname)
   return false
 end
 
-function recording_utils.getExtInterfaces()
+local function getInUseExtInterfaces(current_ifid)
+  local inuse_ext_interfaces = {}
+  local ntopng_interfaces = interface.getIfNames()
+  for other_ifid,other_ifname in pairs(ntopng_interfaces) do
+    if other_ifid ~= current_ifid then
+      local enabled = ntop.getCache('ntopng.prefs.ifid_'..other_ifid..'.traffic_recording.enabled')
+      if not isEmptyString(enabled) and enabled == "true" then
+        local other_ext_ifname = ntop.getCache('ntopng.prefs.ifid_'..other_ifid..'.traffic_recording.ext_ifname')
+        if not isEmptyString(other_ext_ifname) then
+          inuse_ext_interfaces[other_ext_ifname] = true
+        end
+      end
+    end
+  end
+  return inuse_ext_interfaces
+end
+
+function recording_utils.getExtInterfaces(ifid)
   local ext_interfaces = {}
   local all_interfaces = ntop.listInterfaces()
   local ntopng_interfaces = swapKeysValues(interface.getIfNames()) 
-  
+  local inuse_ext_interfaces = getInUseExtInterfaces(ifid)
+ 
   for ifname,_ in pairs(all_interfaces) do
-    if ntopng_interfaces[ifname] == nil then
-      if recording_utils.isZC(ifname) then
-        ext_interfaces[ifname] = {
-          ifdesc = 'zc:'..ifname,
-          is_zc = is_zc
-        }
-      end
+    if ntopng_interfaces[ifname] == nil and -- not in use as packet interface by ntopng 
+       inuse_ext_interfaces[ifname] == nil and -- not in use by other zmq interfaces
+       recording_utils.isZC(ifname) then -- is ZC
+      ext_interfaces[ifname] = {
+        ifdesc = 'zc:'..ifname,
+        is_zc = is_zc
+      }
     end
   end
 

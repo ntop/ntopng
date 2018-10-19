@@ -101,7 +101,7 @@ end
 
 local ext_interfaces = {}
 if recording_utils.isAvailable() and recording_utils.isSupportedZMQInterface(ifid) then
-   ext_interfaces = recording_utils.getExtInterfaces()
+   ext_interfaces = recording_utils.getExtInterfaces(ifid)
 end
 
 if (isAdministrator()) then
@@ -1219,7 +1219,7 @@ elseif(page == "traffic_recording") then
           <tr>
             <th width=30%>]] print(i18n("traffic_recording.traffic_recording")) print [[</th>
             <td colspan=2>
-	      <input name="record_traffic" type="checkbox" value="1" ]] print (record_traffic_checked) print [[> <i class="fa fa-hdd-o fa-lg"></i> ]] print(i18n("traffic_recording.continuous_recording")) print [[</input>
+	      <input name="record_traffic" type="checkbox" value="1" ]] print (record_traffic_checked) print [[> <i class="fa fa-hdd-o fa-lg"></i> ]] print(ternary(recording_utils.isSupportedZMQInterface(ifid), i18n("traffic_recording.continuous_recording_and_flows"), i18n("traffic_recording.continuous_recording"))) print [[</input>
             </td>
           </tr>
 
