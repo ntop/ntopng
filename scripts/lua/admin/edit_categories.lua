@@ -193,6 +193,10 @@ print [[
         title: "]] print(i18n("users.num_protocols")) print[[",
         field: "column_num_protos",
         sortable: true,
+        css: {
+            width: '20%',
+            textAlign: 'right'
+        }
       },{
         title: "]] print(i18n("custom_categories.custom_hosts")) print[[",
         field: "column_num_hosts",
@@ -218,9 +222,11 @@ print [[
       var category_name = data.column_category_name;
       var actions_td_idx = 5;
 
+/*
       if(data.column_num_protos != 0)
         datatableAddLinkButtonCallback.bind(row)(actions_td_idx,
           "]] print(ntop.getHttpPrefix()) print[[/lua/admin/edit_ndpi_applications.lua?category=cat_" + category_id, "]] print(i18n("host_pools.view")) print[[");
+*/
 
       datatableAddActionButtonCallback.bind(row)(actions_td_idx,
         "loadCategories("+ data.column_category_id +"); $('#selected_category_name').html('"+ category_name +"'); selected_category_id = "+ category_id +"; $('#edit_category_rules').modal('show')", "]] print(i18n("custom_categories.edit_hosts")) print[[");

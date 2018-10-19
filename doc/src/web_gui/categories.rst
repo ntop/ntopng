@@ -49,3 +49,17 @@ to play with the dots to avoid excessive matching (e.g. a simple `ads` rule woul
 
 Host matching based on IP addresses is currently limited to IPv4 flows. So, this currently does *not*
 include ICMP flows.
+
+Flow Shortcut
+-------------
+
+From the flow details view there is a convenient way to add the flow SNI/HTTP host
+to a customized category.
+
+.. figure:: ../img/web_gui_add_host_to_category.png
+  :align: center
+  :alt: Edit Category Hosts
+
+.. figure:: ../img/web_gui_add_host_to_category_dialog.png
+  :align: center
+  :alt: Edit Category Hosts
