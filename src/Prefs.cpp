@@ -754,7 +754,22 @@ void Prefs::setCommandLineString(int optkey, const char * optarg){
 /* ******************************************* */
 
 int Prefs::setOption(int optkey, char *optarg) {
+  const struct option *opt;
   char *double_dot, buf[128] = { '\0' };
+
+  opt = long_options;
+  while(opt->name != NULL) {
+    if(optkey == opt->val) {
+      if(opt->has_arg == required_argument && (!optarg || optarg[0] == '\0')) {
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "Missing required argument. Skipping option -%c (--%s).", opt->val, opt->name);
+	return(-1);
+      }
+
+      break;
+    }
+
+    opt++;
+  }
 
   setCommandLineString(optkey, optarg);
 
@@ -1028,16 +1043,20 @@ int Prefs::setOption(int optkey, char *optarg) {
 
   case 'v':
     {
-      has_cmdl_trace_lvl = true;
-      errno = 0;
-      int8_t lvl = (int8_t)strtol(optarg, NULL, 10);
-      if(errno) {
-	ntop->getTrace()->traceEvent(TRACE_ERROR,
-				     "Invalid '%s' value specified for -v: ignored",
-				     optarg);
-      } else {
-	if(lvl < 0) lvl = 0;
-	ntop->getTrace()->set_trace_level((u_int8_t)lvl);
+      if(!optarg)
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "No value specified for verbosity: ignored");
+      else {
+	has_cmdl_trace_lvl = true;
+	errno = 0;
+	int8_t lvl = (int8_t)strtol(optarg, NULL, 10);
+	if(errno) {
+	  ntop->getTrace()->traceEvent(TRACE_ERROR,
+				       "Invalid '%s' value specified for -v: ignored",
+				       optarg);
+	} else {
+	  if(lvl < 0) lvl = 0;
+	  ntop->getTrace()->set_trace_level((u_int8_t)lvl);
+	}
       }
     }
     break;
