@@ -496,9 +496,9 @@ function host_pools_utils.purgeExpiredPoolsMembers()
    for _, ifname in pairs(ifnames) do
       interface.select(ifname)
 
-      if isCaptivePortalActive() then
-        interface.purgeExpiredPoolsMembers()
-      end
+      -- Currently, volatile pool members are no longer used,
+      -- so there's no need to purge them.
+      -- interface.purgeExpiredPoolsMembers()
    end
 end
 

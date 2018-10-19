@@ -3163,58 +3163,6 @@ function isBridgeInterface(ifstats)
   return ifstats.inline
 end
 
--- Returns true if the captive portal can be started with the current configuration
-function isCaptivePortalSupported(ifstats, prefs, skip_interface_check)
-   if not ntop.isEnterprise() and not ntop.isnEdge() then
-      return false
-   end
-
-   local is_bridge_iface
-
-   if not skip_interface_check then
-      local ifstats = ifstats or interface.getStats()
-      is_bridge_iface = isBridgeInterface(ifstats)
-   else
-      is_bridge_iface = true
-   end
-
-   local prefs = prefs or ntop.getPrefs()
-   return is_bridge_iface and (prefs["http.port"] ~= 80)
-end
-
--- Returns true if the captive portal is active right now
-function isCaptivePortalActive(ifstats, prefs)
-  if not ntop.isEnterprise() then
-    return false
-  end
-
-  local ifstats = ifstats or interface.getStats()
-  local prefs = prefs or ntop.getPrefs()
-  local is_bridge_iface = isBridgeInterface(ifstats)
-
-  return is_bridge_iface and prefs["is_captive_portal_enabled"] and isCaptivePortalSupported(ifstats, prefs)
-end
-
-function getCaptivePortalUsers()
-  local keys = ntop.getKeysCache("ntopng.user.*.host_pool_id")
-  local users = {}
-
-  for key in pairs(keys or {}) do
-    local host_pool = ntop.getCache(key)
-
-    if not isEmptyString(host_pool) then
-      local username = split(key, "%.")[3]
-      users[username] = host_pool
-    end
-  end
-
-  return users
-end
-
-function getBridgeInitializedKey(ifid)
-  return "ntopng.prefs.iface_"..ifid..".bridge_initialized"
-end
-
 function hasSnmpDevices(ifid)
   if (not ntop.isEnterprise()) or (not isAdministrator()) then
     return false
