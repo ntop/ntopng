@@ -58,6 +58,7 @@ Finally, in the right side of the footer there is the uptime information, direct
     dashboard
     report
     flows
+    categories
     hosts
     host_details
     interfaces
