@@ -326,7 +326,7 @@ function printAlerts()
     hidden = not showElements,
   })
 
-  if hasBridgeInterfaces(false) then
+  if ntop.isnEdge() then
      prefsToggleButton(subpage_active, {
   field = "toggle_dropped_flows_alerts",
   pref = "dropped_flows_alerts",
@@ -384,7 +384,7 @@ function printAlerts()
       redis_prefix = "ntopng.prefs.alerts.",
     })
 
-  if ntop.isPro() and hasBridgeInterfaces(false) then
+  if ntop.isnEdge() then
     prefsToggleButton(subpage_active, {
       field = "toggle_quota_exceeded_alert",
       pref = "quota_exceeded_alert",

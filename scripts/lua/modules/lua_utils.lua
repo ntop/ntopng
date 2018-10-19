@@ -3163,26 +3163,6 @@ function isBridgeInterface(ifstats)
   return ifstats.inline
 end
 
-function hasBridgeInterfaces(skip_netfilter)
-  local curif = ifname
-  local ifnames = interface.getIfNames()
-  local found = false
-
-  for _,ifname in pairs(ifnames) do
-    interface.select(ifname)
-
-    local ifstats = interface.getStats()
-    if isBridgeInterface(ifstats)
-        and (skip_netfilter~=true or ifstats.type ~= "netfilter") then
-      found = true
-      break
-    end
-  end
-
-  interface.select(curif)
-  return found
-end
-
 -- Returns true if the captive portal can be started with the current configuration
 function isCaptivePortalSupported(ifstats, prefs, skip_interface_check)
    if not ntop.isEnterprise() and not ntop.isnEdge() then

@@ -31,8 +31,6 @@ if ntop.isPro() then
    shaper_utils = require("shaper_utils")
 end
 
-local show_bridge_wizard = false
-
 sendHTTPContentTypeHeader('text/html')
 
 page = _GET["page"]
@@ -469,11 +467,6 @@ if((page == "overview") or (page == nil)) then
    else
       print("<tr><th>"..i18n("bridge").."</th><td colspan=2>"..ifstats["bridge.device_a"].." <i class=\"fa fa-arrows-h\"></i> "..ifstats["bridge.device_b"])
 
-      if(user_group == "administrator") and isBridgeInterface(ifstats) and ntop.isEnterprise() and not have_nedge then
-         print[[ <a href="#bridgeWizardModal" data-toggle="modal"><i class="fa fa-sm fa-magic" aria-hidden="true" title=]] print('\"'..i18n("bridge_wizard.bridge_wizard")..'\"') print[[></i></a>]]
-         show_bridge_wizard = true
-      end
-
       print("</td>")
    end
 
@@ -708,9 +701,6 @@ print("</script>\n")
 
    print("</table>\n")
 
-   if show_bridge_wizard then
-      dofile(dirs.installdir .. "/scripts/lua/inc/bridge_wizard.lua")
-   end
 elseif((page == "packets")) then
    local nedge_hidden = ternary(have_nedge, 'class="hidden"', '')
 

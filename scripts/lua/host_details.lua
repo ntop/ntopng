@@ -556,7 +556,7 @@ end
    end
    print("</td></tr>")
 
-   if interface.isBridgeInterface(ifstats) then
+   if ntop.isnEdge() then
       print("<tr id=bridge_dropped_flows_tr ") if not host["flows.dropped"] then print("style='display:none;'") end print(">")
 
       print("<th><i class=\"fa fa-ban fa-lg\"></i> "..i18n("details.flows_dropped_by_bridge").."</th>")
@@ -2251,7 +2251,7 @@ if(page ~= "historical") and (host ~= nil) then
    print("var last_tcp_lost = " .. host["tcp.packets.lost"] .. ";\n")
    print("var last_tcp_keep_alive = " .. host["tcp.packets.keep_alive"] .. ";\n")
 
-   if isBridgeInterface(ifstats) then
+   if ntop.isnEdge() then
       print("var last_dropped_flows = " .. (host["flows.dropped"] or 0) .. ";\n")
    end
 
@@ -2313,7 +2313,7 @@ if(page ~= "historical") and (host ~= nil) then
    			$('#low_goodput_as_server').html(addCommas(host["low_goodput_flows.as_server"]));
    		  ]]
 
-   if isBridgeInterface(ifstats) then
+   if ntop.isnEdge() then
 print [[
                         if(host["flows.dropped"] > 0) {
                           if(host["flows.dropped"] == last_dropped_flows) {
