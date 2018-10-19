@@ -1154,6 +1154,7 @@ local known_parameters = {
    ["send_test_email"]                             = validateEmpty,
    ["send_test_slack"]                             = validateEmpty,
    ["network_discovery_interval"]                  = validateNumber,
+   ["captive_portal_id_method"]                    = validateChoiceInline({"mac", "ip"}),
 --
 
 -- TRAFFIC RECORDING

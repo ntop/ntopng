@@ -46,7 +46,7 @@ Prefs::Prefs(Ntop *_ntop) {
   enable_mining_alerts = CONST_DEFAULT_ALERT_MINING_ENABLED,
   enable_remote_to_remote_alerts = true,
   enable_dropped_flows_alerts = true, enable_device_protocols_alerts = false,
-  enable_syslog_alerts = false, enable_captive_portal = false,
+  enable_syslog_alerts = false, enable_captive_portal = false, mac_based_captive_portal = false,
   enabled_malware_alerts = true,
   enable_informative_captive_portal = false,
   external_notifications_enabled = false, dump_flow_alerts_when_iface_alerted = false,
@@ -582,6 +582,7 @@ void Prefs::reloadPrefsFromRedis() {
     ewma_alpha_percent = getDefaultPrefsValue(CONST_EWMA_ALPHA_PERCENT, CONST_DEFAULT_EWMA_ALPHA_PERCENT);
 
     enable_captive_portal = getDefaultBoolPrefsValue(CONST_PREFS_CAPTIVE_PORTAL, false),
+    mac_based_captive_portal = getDefaultBoolPrefsValue(CONST_PREFS_MAC_CAPTIVE_PORTAL, true),
     enable_informative_captive_portal = getDefaultBoolPrefsValue(CONST_PREFS_INFORM_CAPTIVE_PORTAL, false),
     default_l7policy = getDefaultPrefsValue(CONST_PREFS_DEFAULT_L7_POLICY, PASS_ALL_SHAPER_ID),
 

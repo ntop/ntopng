@@ -68,7 +68,7 @@ class Prefs {
   bool enable_dropped_flows_alerts, enable_device_protocols_alerts;
   bool enable_syslog_alerts, external_notifications_enabled;
   bool enabled_malware_alerts;
-  bool enable_captive_portal, enable_informative_captive_portal;
+  bool enable_captive_portal, enable_informative_captive_portal, mac_based_captive_portal;
   bool dump_flow_alerts_when_iface_alerted;
   bool override_dst_with_post_nat_dst, override_src_with_post_nat_src;
   bool routing_mode_enabled, global_dns_forging_enabled;
@@ -316,6 +316,7 @@ class Prefs {
 
   inline bool isCaptivePortalEnabled()                   { return(enable_captive_portal);              }
   inline bool isInformativeCaptivePortalEnabled()        { return(enable_informative_captive_portal);  }
+  inline bool isMacBasedCaptivePortal()                  { return(mac_based_captive_portal);  }
   const char * const getCaptivePortalUrl();
 
   inline u_int8_t  getDefaultl7Policy()                  { return(default_l7policy);  }
