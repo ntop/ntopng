@@ -48,6 +48,16 @@ conditions of the Internet access that is being provided. Users will
 be able to access the Internet upon acceptance of the presented terms
 and conditions.
 
+The *Device Identifier* specifies how new devices authenticating to the captive
+portal will be added to the corresponding user. Usually it's desiderable to
+add the devices via their MAC address as it's bound to a specific device. However,
+when the devices are connected to a router (not a simple switch, the router is their
+default gateway) before reaching the nEdge device, their MAC address will be hidden
+by the router MAC address and nEdge will always see the same MAC address, so the
+captive portal would be useless. In this case the IP based identification should
+be used, so that the IP address is used in place of the MAC. This assumes each
+device has it's own fixed IP, so it won't work properly with DHCP.
+
 .. figure:: img/captive_portal_informative.png
   :align: center
   :alt: Informative Captive Portal Page
