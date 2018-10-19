@@ -1809,7 +1809,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
     {
       Mac *mac = (*srcHost)->getMac();
 
-      if(payload_len > 240) {
+      if(mac && (payload_len > 240)) {
 	struct dhcp_packet *dhcpp = (struct dhcp_packet*)payload;
 
 	if(dhcpp->msgType == 0x01) /* Request */
