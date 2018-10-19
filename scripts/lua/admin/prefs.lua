@@ -690,109 +690,6 @@ end
 
 -- ================================================================================
 
-function printBridgingPrefs()
-  if not isAdministrator() then
-    return
-  end
-
-  local show
-  local label
-
-  if isCaptivePortalSupported(nil, prefs, true --[[ skip interface check ]]) then
-     show = true
-     label = ""
-  else
-     show = false
-     label = "<p>"..i18n("prefs.captive_portal_disabled_message").."</p>"
-  end
-
-  print('<form method="post">')
-
-  print('<table class="table">')
-
-  if show_advanced_prefs then
-    print('<tr><th colspan=2 class="info">'..i18n("traffic_policy")..'</th></tr>')
-
-    prefsToggleButton(subpage_active, {
-      field = "toggle_shaping_directions",
-      pref = "split_shaping_directions",
-      default = "0",
-    })
-
-    local labels = {
-      i18n("prefs.per_protocol"),
-      i18n("prefs.per_category"),
-      i18n("prefs.both"),
-    }
-
-    local values = {
-      "per_protocol",
-      "per_category",
-      "both",
-    }
-
-    multipleTableButtonPrefs(subpage_active.entries["policy_target_type"].title,
-				    subpage_active.entries["policy_target_type"].description,
-				    labels, values,
-				    "per_category",
-				    "primary",
-				    "bridging_policy_target_type",
-				    "ntopng.prefs.bridging_policy_target_type")
-  end
-
-  print('<tr><th colspan=2 class="info">'..i18n("prefs.dns")..'</th></tr>')
-
-if hasBridgeInterfaces(true) then
-  prefsInputFieldPrefs(subpage_active.entries["safe_search_dns"].title, subpage_active.entries["safe_search_dns"].description,
-        "ntopng.prefs.", "safe_search_dns", prefs.safe_search_dns, nil, true, false, nil, {required=true, pattern=getIPv4Pattern()})
-  prefsInputFieldPrefs(subpage_active.entries["global_dns"].title, subpage_active.entries["global_dns"].description,
-        "ntopng.prefs.", "global_dns", prefs.global_dns, nil, true, false, nil, {pattern=getIPv4Pattern()})
-  prefsInputFieldPrefs(subpage_active.entries["secondary_dns"].title, subpage_active.entries["secondary_dns"].description,
-        "ntopng.prefs.", "secondary_dns", prefs.secondary_dns, nil, true, false, nil, {pattern=getIPv4Pattern()})
-end
-
-  local dns_rows = {}
-  for _, dns in pairs(DNS_PRESETS) do
-    local secondary = ternary(not isEmptyString(dns.secondary_dns), dns.secondary_dns, "-")
-    dns_rows[#dns_rows + 1] = [[<tr><td><a href="]] .. dns.url .. [[">]] .. dns.label .. [[</a></td><td>]] .. dns.primary_dns .. [[</td><td>]] .. secondary .. [[</td></tr>]]
-  end
-
-  prefsInformativeField(subpage_active.entries["featured_dns"].title, subpage_active.entries["featured_dns"].description..[[<br><br>
-        <table class='table table-bordered table-condensed small'>
-          <tr><th>]]..i18n("prefs.dns_service")..[[</th><th>]]..i18n("prefs.primary_dns")..[[</th><th>]]..i18n("prefs.secondary_dns")..[[</th></tr>]] ..
-          table.concat(dns_rows, "\n") .. [[</table>
-        ]], true)
-
-  print('<tr><th colspan=2 class="info">'..i18n("prefs.user_authentication")..'</th></tr>')
-
-  local captivePortalElementsToSwitch = {"redirection_url"}
-  prefsToggleButton(subpage_active, {
-    field = "toggle_captive_portal",
-    pref = "enable_captive_portal",
-    default = "0",
-    disabled = not(show),
-    to_switch = captivePortalElementsToSwitch,
-  })
-
-  if not isEmptyString(label) then
-    prefsInformativeField("", label, true)
-  end
-
-  local redirection_url = ntop.getPref("ntopng.prefs.redirection_url")
-  local to_show = (ntop.getPref("ntopng.prefs.enable_captive_portal") == "1")
-
-  prefsInputFieldPrefs(subpage_active.entries["captive_portal_url"].title, subpage_active.entries["captive_portal_url"].description,
-        "ntopng.prefs.", "redirection_url", redirection_url, nil, to_show, false, nil, {pattern=getURLPattern()})
-  
-  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
-
-  print('</table>')
-  print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
-  </form> ]]
-end
-
--- ================================================================================
-
 function printNbox()
   print('<form method="post">')
   print('<table class="table">')
@@ -1561,12 +1458,6 @@ end
 
 if(tab == "discovery") then
    printNetworkDiscovery()
-end
-
-if(tab == "bridging") then
-  if info["version.enterprise_edition"] then
-     printBridgingPrefs()
-  end
 end
 
 if(tab == "misc") then

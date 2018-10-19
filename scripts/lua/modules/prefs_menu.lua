@@ -330,32 +330,6 @@ local menu_subpages = {
       title       = i18n("prefs.topk_heuristic_precision_title"),
       description = i18n("prefs.topk_heuristic_precision_description"),
     },
-  }}, {id="bridging",      label=i18n("prefs.traffic_bridging"),     advanced=false,  pro_only=true,   enterprise_only=true, hidden=true, nedge_hidden=true, entries={
-    safe_search_dns = {
-      title       = i18n("prefs.safe_search_dns_title"),
-      description = i18n("prefs.safe_search_dns_description", {url="https://en.wikipedia.org/wiki/SafeSearch"}),
-    }, global_dns = {
-      title       = i18n("prefs.global_dns_title"),
-      description = i18n("prefs.global_dns_description"),
-    }, secondary_dns = {
-      title       = i18n("prefs.secondary_dns_title"),
-      description = i18n("prefs.secondary_dns_description"),
-    }, featured_dns = {
-      title       = i18n("prefs.featured_dns_title"),
-      description = i18n("prefs.featured_dns_description"),
-    }, toggle_shaping_directions = {
-      title       = i18n("prefs.toggle_shaping_directions_title"),
-      description = i18n("prefs.toggle_shaping_directions_description"),
-    }, toggle_captive_portal = {
-      title       = i18n("prefs.toggle_captive_portal_title"),
-      description = i18n("prefs.toggle_captive_portal_description"),
-    }, captive_portal_url = {
-      title       = i18n("prefs.captive_portal_url_title"),
-      description = i18n("prefs.captive_portal_url_description"),
-    }, policy_target_type = {
-      title       = i18n("prefs.policy_target_type"),
-      description = i18n("prefs.policy_target_type_description"),
-    }
   }},
 }
 
