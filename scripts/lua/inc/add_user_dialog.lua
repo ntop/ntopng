@@ -2,16 +2,9 @@ require("lua_utils")
 local host_pools_utils = require 'host_pools_utils'
 require("prefs_utils")
 
-local messages = {ntopng=ternary(ntop.isnEdge(), i18n("nedge.add_system_user"), i18n("login.add_web_user")), captive_portal=i18n("login.add_captive_portal_user")}
+local messages = {ntopng=ternary(ntop.isnEdge(), i18n("nedge.add_system_user"), i18n("login.add_web_user"))}
 
 local add_user_msg = messages["ntopng"]
-local captive_portal_user = false
-if is_captive_portal_active then
-   if _GET["captive_portal_users"] ~= nil then
-      add_user_msg = messages["captive_portal"]
-      captive_portal_user = true
-   end
-end
 
 print [[
 <div id="add_user_dialog" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="add_user_dialog_label" aria-hidden="true">
@@ -78,11 +71,6 @@ print [[
 </div>
 
 <br>
-
-]]
-
-if captive_portal_user == false then
-   print[[
 <div class="row">
     <div class="form-group col-md-6 has-feedback">
       <label class="form-label">]] print(i18n("manage_users.user_role")) print[[</label>
@@ -120,97 +108,7 @@ if captive_portal_user == false then
       </div>
       <small>]] print(i18n("manage_users.allowed_networks_descr")) print[[: 192.168.1.0/24,172.16.0.0/16</small>
     </div>
-</div>]]
-
-else -- a captive portal user is being added
-   print[[
-
-<div class="row">
-    <div class="form-group col-md-6 has-feedback">
-      <label class="form-label">]] print(i18n("host_config.host_pool")) print[[</label>
-      <div class="input-group" style="width:100%;">
-        <select name="host_pool_id" id="host_pool_id" class="form-control">
-
-]]
-
-   local pools = host_pools_utils.getPoolsList(getInterfaceId(ifname))
-   local no_pools = true
-
-   for _, pool in ipairs(pools) do
-      if pool.id ~= host_pools_utils.DEFAULT_POOL_ID then
-        print('<option value="'.. pool.id ..'"> '.. pool.name ..'</option>')
-        no_pools = false
-      end
-   end
-
-   print[[
-        </select>
-      </div>
-      <input id="host_role" name="user_role" type="hidden" value="captive_portal" />
-      <input id="allowed_networks_input" name="allowed_networks" type="hidden" value="0.0.0.0/0,::/0" />
-      <input id="allowed_interface" name="allowed_interface" type="hidden" value="]] print(tostring(getInterfaceId(ifname))) print[[" />
-    </div>
-
-    <div class="form-group col-md-6 has-feedback">
-      <label class="form-label">]] print(i18n("manage_users.authentication_lifetime")) print[[</label>
-      <div class="input-group">
-        <label class="radio-inline"><input type="radio" id="add_lifetime_unlimited" name="lifetime_unlimited" checked>]] print(i18n("manage_users.unlimited")) print[[</label>
-        <label class="radio-inline"><input type="radio" id="add_lifetime_limited" name="lifetime_limited">]] print(i18n("manage_users.expires_after")) print[[</label>
-      </div>
-      <!-- optionally allow to specify a certain number of days
-      <input id="add_lifetime_days" name="lifetime_days" type="number" min="1" max="100" value="" class="form-control pull-right text-right" style="display: inline; width: 8em; padding-right: 1em;" disabled required>
-      -->
-    </div>
 </div>
-
-<div class="row">
-    <div class="form-group col-md-6 has-feedback">
-    </div>
-
-    <div class="col-md-6 has-feedback text-center">
-
-      <table class="form-group" id="add_lifetime_selection_table">
-        <tr>
-
-          <td style="vertical-align:top;">
-]]
-   --   require("prefs_utils")
-   local res = prefsResolutionButtons("hd", 3600)
-   print[[
-          </td>
-          <td style="padding-left: 2em;">
-        <input class="form-control text-right" style="display:inline; width:5em; padding-right:1em;" name="lifetime_secs" id="add_lifetime_secs" type="number" data-min="3600" value="]] print(tostring(res)) print[[">
-          </td>
-        </tr>
-      </table>
-    </div>
-</div>
-
-<div class="row">
-  <div class='col-md-6'>
-    <small>]] print(i18n("manage_users.the_host_pool_associated")) print[[.</small>
-  </div>
-  <div class='col-md-6'>
-    <small>]] print(i18n("manage_users.the_auth_can_be_perpetual")) print[[.</small>
-  </div>
-</div>
-
-]]
-
-if no_pools then
-  print[[
-    <script>
-      $(function() {
-        add_user_alert.error("]] print(i18n("manage_users.no_host_pools", {url = ntop.getHttpPrefix() .. "/lua/if_stats.lua?page=pools#create"})) print[[.", true);
-        $("#add_user_dialog").find("input,select,button[type='submit']").attr("disabled", "disabled");
-      });
-    </script>
-  ]]
-end
-
-end
-
-print[[
 <br>
 
 <div class="row">
@@ -308,11 +206,6 @@ print[[
     // Don't do any escape, form contain Unicode UTF-8 encoded chars
     // ('#password_input').val(escape($('#password_input').val()))
     // $('#confirm_password_input').val(escape($('#confirm_password_input').val()))
-]]
-
-if captive_portal_user == false then
-   -- network validation only for captive portal users
-   print[[
     if($("#allowed_networks_input").val().length == 0) {
       add_user_alert.error("Network list not specified");
       return(false);
@@ -325,27 +218,15 @@ if captive_portal_user == false then
         }
       }
     }]]
-end
+
 
 local location_href = ntop.getHttpPrefix().."/lua/admin/users.lua"
-if captive_portal_user then
-   location_href = location_href.."?captive_portal_users=1"
-end
 
 print[[
     $.getJSON(']]  print(ntop.getHttpPrefix())  print[[/lua/admin/validate_new_user.lua?username='+$("#username_input").val()+"&allowed_networks="+$("#allowed_networks_input").val(), function(data){
       if (!data.valid) {
         add_user_alert.error(data.msg);
       } else {
-]]
-
-if captive_portal_user == true then
-  print[[
-        /* Converts expire resolution into appropriate value */
-        resol_selector_finalize(frmadduser);]]
-end
-
-print[[
         $.ajax({
           type: frmadduser.attr('method'),
           url: frmadduser.attr('action'),

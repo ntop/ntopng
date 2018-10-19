@@ -171,27 +171,9 @@ print [[
     <div id="network-load">
   </div> <!-- End column 3 -->
 </div>
-</div>]]
-
--- Bridge wizard check
-local show_bridge_dialog = false
-
-if isAdministrator()
- and isBridgeInterface(_ifstats)
- and ntop.isEnterprise()
- and ((ntop.getCache(getBridgeInitializedKey(_ifstats.id)) ~= "1") or (_POST["show_wizard"] ~= nil)) then
-  show_bridge_dialog = true
-  dofile(dirs.installdir .. "/scripts/lua/inc/bridge_wizard.lua")
-end
-
-print[[<script>
-// Updating charts.
+</div>
+<script>
 ]]
-
-if show_bridge_dialog then
-  print("$('#bridgeWizardModal').modal();")
-  ntop.setCache(getBridgeInitializedKey(_ifstats.id), "1")
-end
 
 local traffic_peity_width = ternary(have_nedge, "140", "64")
 

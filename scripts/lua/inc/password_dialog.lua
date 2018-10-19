@@ -24,11 +24,6 @@ print [[
     <li class="active"><a href="#change-password-dialog" role="tab" data-toggle="tab"> ]] print(i18n("login.password")) print[[ </a></li>
 ]]
 
-local captive_portal_user = false
-if is_captive_portal_active and _GET["captive_portal_users"] ~= nil then
-   captive_portal_user = true
-end
-
 if(user_group=="administrator") then
    print[[<li><a href="#change-prefs-dialog" role="tab" data-toggle="tab"> ]] print(i18n("prefs.preferences")) print[[ </a></li>]]
 end
@@ -114,10 +109,6 @@ print [[
   <input id="pref_dialog_username" type="hidden" name="username" value="" />
 
 <br>
-]]
-
-if not captive_portal_user then
-   print[[
 <div class="row">
   <div class='col-md-6 form-group has-feedback'>
       <label class="input-label">]] print(i18n("manage_users.user_role")) print[[</label>
@@ -162,73 +153,6 @@ if not captive_portal_user then
       <small>]] print(i18n("manage_users.allowed_networks_descr")) print[[ 192.168.1.0/24,172.16.0.0/16</small>
     </div>
 </div>
-
-]]
-
-else -- captive portal user
-   print[[
-
-<div class="row">
-    <div class="form-group col-md-6 has-feedback">
-      <label class="form-label">Host Pool</label>
-      <div class="input-group" style="width:100%;">
-        <input id="old_host_pool_id" type="hidden" name="old_host_pool_id" value="" />
-        <select name="host_pool_id" id="host_pool_id" class="form-control" disabled>
-
-]]
-
-   local pools = host_pools_utils.getPoolsList(getInterfaceId(ifname))
-   local no_pools = true
-
-   for _, pool in ipairs(pools) do
-      if pool.id ~= host_pools_utils.DEFAULT_POOL_ID then
-        print('<option value="'.. pool.id ..'"> '.. pool.name ..'</option>')
-        no_pools = false
-      end
-   end
-
-   print[[
-        </select>
-      </div>
-    </div>
-
-    <div class="form-group col-md-6 has-feedback">
-      <label class="form-label">]] print(i18n("manage_users.authentication_lifetime")) print[[</label>
-      <div class="input-group">
-        <label class="radio-inline"><input type="radio" id="lifetime_unlimited" name="lifetime_unlimited" checked>]] print(i18n("manage_users.unlimited")) print[[</label>
-        <label class="radio-inline"><input type="radio" id="lifetime_limited" name="lifetime_limited">]] print(i18n("manage_users.expires_after")) print[[</label>
-      </div>
-    </div>
-</div>
-
-<div class="row">
-    <div class="form-group col-md-6 has-feedback">
-    </div>
-
-    <div class="col-md-6 has-feedback text-center">
-
-      <table class="form-group" id="lifetime_selection_table">
-        <tr>
-
-          <td style="vertical-align:top;">
-]]
-   --   require("prefs_utils")
-   local res = prefsResolutionButtons("hd", 3600, "user_lifetime_sel")
-   print[[
-          </td>
-          <td style="padding-left: 2em;">
-        <input class="form-control text-right" style="display:inline; width:5em; padding-right:1em;" name="lifetime_secs" id="lifetime_secs" type="number" data-min="3600" value="]] print(tostring(res)) print[[">
-          </td>
-        </tr>
-      </table>
-    </div>
-</div>
-
-]]
-end
-
-print[[
-
 <br>
 
 <div class="row">
@@ -338,12 +262,6 @@ print [[
 
   frmprefchange.submit(function () {
   var ok = true;
-
-]]
-
-if not captive_portal_user then
-
-print[[
   if($("#networks_input").val().length == 0) {
      password_alert.error("Network list not specified");
      ok = false;
@@ -357,21 +275,7 @@ print[[
 	}
      }
   }
-]]
-
-end
-
-print[[
   if(ok) {
-]]
-
-if captive_portal_user == true then
-  print[[
-        /* Converts expire resolution into appropriate value */
-        resol_selector_finalize(frmprefchange);]]
-end
-
-print[[
     $.ajax({
       type: frmprefchange.attr('method'),
       url: frmprefchange.attr('action'),
