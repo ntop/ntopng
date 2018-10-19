@@ -85,8 +85,15 @@ for id, _ in pairsByValues(sorter, sOrder) do
 
   local job = jobs[id]
 
-  local action_links = "<a onclick='deleteJob("..job.id..")' style='cursor: pointer'><span class=\"label label-danger\">"..i18n("delete").."</span></a>"
-  if job.status == "completed" then
+  local action_links = ""
+
+  if job.status == "processing" then
+    action_links = action_links.."<a onclick='stopJob("..job.id..")' style='cursor: pointer'><span class=\"label label-danger\">"..i18n("stop").."</span></a>"
+  else
+    action_links = action_links.."<a onclick='deleteJob("..job.id..")' style='cursor: pointer'><span class=\"label label-danger\">"..i18n("delete").."</span></a>"
+  end
+
+  if job.status == "completed" or job.status == "stopped" then
     local job_files = recording_utils.getJobFiles(job.id)
     if #job_files > 1 then
       local links = "<ul>"

@@ -2873,6 +2873,7 @@ local lang = {
     ["processing"] = "Processing",
     ["recording"] = "Recording",
     ["start_extraction"] = "Start Extraction",
+    ["stopped"] = "Stopped",
     ["storage"] = "Storage",
     ["storage_dir"] = "Storage Directory",
     ["storage_utilization"] = "Storage Utilization",

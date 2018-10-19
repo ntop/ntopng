@@ -413,6 +413,12 @@ local function validateSnmpAction(mode)
    return validateChoice(modes, mode)
 end
 
+local function validateExtractionJobAction(mode)
+   local modes = {"delete", "stop"}
+
+   return validateChoice(modes, mode)
+end
+
 local function validateUserRole(mode)
    local modes = {"administrator", "unprivileged", "captive_portal"}
 
@@ -1151,9 +1157,9 @@ local known_parameters = {
 --
 
 -- TRAFFIC RECORDING
-   ["delete_job"]                                  = validateNumber,
    ["disk_space"]                                  = validateNumber,
    ["file_id"]                                     = validateNumber,
+   ["job_action"]                                  = validateExtractionJobAction,
    ["job_id"]                                      = validateNumber,
    ["n2disk_license"]                              = validateSingleWord,
    ["record_traffic"]                              = validateBool,

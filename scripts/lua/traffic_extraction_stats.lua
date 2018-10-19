@@ -17,8 +17,12 @@ if not recording_utils.isAvailable() then
   return
 end
 
-if not isEmptyString(_POST["delete_job"]) then
-  recording_utils.deleteJob(_POST["delete_job"])
+if not isEmptyString(_POST["job_action"]) and not isEmptyString(_POST["job_id"]) then
+  if _POST["job_action"] == "delete" then
+    recording_utils.deleteJob(_POST["job_id"])
+  elseif _POST["job_action"] == "stop" then
+    recording_utils.stopJob(_POST["job_id"])
+  end
 end
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
@@ -96,7 +100,16 @@ print [[
 
   function deleteJob(job_id) {
     var params = {}
-    params.delete_job = job_id;
+    params.job_action = 'delete';
+    params.job_id = job_id;
+    params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
+    paramsToForm('<form method="post"></form>', params).appendTo('body').submit();
+  }
+
+  function stopJob(job_id) {
+    var params = {}
+    params.job_action = 'stop';
+    params.job_id = job_id;
     params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
     paramsToForm('<form method="post"></form>', params).appendTo('body').submit();
   }

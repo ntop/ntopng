@@ -58,6 +58,7 @@ class TimelineExtract {
   bool extract(u_int32_t id, NetworkInterface *iface, time_t from, time_t to, const char *bpf_filter);
   /* async */
   void runExtractionJob(u_int32_t id, NetworkInterface *iface, time_t from, time_t to, const char *bpf_filter);
+  void stopExtractionJob(u_int32_t id);
   void cleanupJob();
   void getStatus(lua_State* vm);
 };

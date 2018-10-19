@@ -5772,6 +5772,26 @@ static int ntop_run_extraction(lua_State *vm) {
 
 /* ****************************************** */
 
+static int ntop_stop_extraction(lua_State *vm) {
+  int id;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);  
+
+  if(!Utils::isUserAdministrator(vm))
+    return(CONST_LUA_ERROR);
+
+  if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK)
+    return(CONST_LUA_PARAM_ERROR);
+
+  id = lua_tointeger(vm, 1);
+
+  ntop->getTimelineExtract()->stopExtractionJob(id);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_is_extraction_running(lua_State *vm) {
   bool rv;
 
@@ -8260,6 +8280,7 @@ static const luaL_Reg ntop_reg[] = {
 
   /* Traffic Recording/Extraction */
   { "runExtraction",         ntop_run_extraction },
+  { "stopExtraction",        ntop_stop_extraction },
   { "isExtractionRunning",   ntop_is_extraction_running },
   { "getExtractionStatus",   ntop_get_extraction_status },
 

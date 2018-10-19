@@ -179,6 +179,13 @@ void TimelineExtract::runExtractionJob(u_int32_t id, NetworkInterface *iface, ti
 
 /* ********************************************* */
 
+void TimelineExtract::stopExtractionJob(u_int32_t id) {
+  if (running && extraction.id == id)
+    stop();
+}
+
+/* ********************************************* */
+
 void TimelineExtract::stop() {
   void *res;
 
