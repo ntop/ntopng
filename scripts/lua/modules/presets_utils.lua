@@ -7,8 +7,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 local discover = require "discover_utils"
 
-interface.select(ifname)
-
 local presets_utils = {}
 
 presets_utils.DROP = "0"
@@ -62,6 +60,7 @@ local function setAllProtocols(device_type_name, client_or_server, action)
    end
 end
 
+function presets_utils.init()
 -----------------------------------------------------------------------------
 -----------------------------------------------------------------------------
 -- DEVICE PROTOCOL PRESETS
@@ -136,6 +135,7 @@ addProtocolByName('printer', 'server', 'SNMP',    presets_utils.ALLOW)
 
 -----------------------------------------------------------------------------
 -----------------------------------------------------------------------------
+end
 
 local drop_icon = "warning"
 local allow_icon = "check"
@@ -329,8 +329,8 @@ function presets_utils.reloadDevicePolicies(device_type)
    end
 end
 
--- Init protocol policies for all devices
-function presets_utils.initPolicies()
+-- Reload device policies for all devices in the datapath
+function presets_utils.reloadAllDevicePolicies()
    for device_type, info in discover.sortedDeviceTypeLabels() do
       presets_utils.reloadDevicePolicies(device_type)
    end

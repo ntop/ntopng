@@ -27,6 +27,10 @@ local device_type = _GET["device_type"] or "0" -- unknown by default
 local category = _GET["category"] or ""
 local is_nedge = ntop.isnEdge()
 
+interface.select(ifname)
+
+presets_utils.init()
+
 local base_url = ""
 if is_nedge then
    base_url = "/lua/pro/nedge/admin/nf_edit_user.lua"

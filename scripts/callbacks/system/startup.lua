@@ -101,7 +101,10 @@ end
 
 -- Initialize device policies (presets)
 local presets_utils = require "presets_utils"
-presets_utils.initPolicies()
+local ifid, ifname = getFirstInterfaceId()
+interface.select(ifname)
+presets_utils.init()
+presets_utils.reloadAllDevicePolicies()
 
 -- ##################################################################
 
