@@ -283,16 +283,22 @@ function findActualStep(raw_step, tstart) {
   return raw_step;
 }
 
+function has_initial_zoom() {
+  return typeof parseQuery(window.location.search).epoch_begin !== "undefined";
+}
+
+var current_zoom_level = (history.state) ? (history.state.zoom_level) : 0;
+
 // add a new updateStackedChart function
-function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id, flows_dt, params, step, align_step, show_all_smooth, has_initial_zoom) {
+function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id, flows_dt, params, step, align_step, show_all_smooth, initial_range) {
   var pending_request = null;
   var d3_sel = d3.select(chart_id);
   var $chart = $(chart_id);
   var $zoom_reset = $(zoom_reset_id);
   var $graph_zoom = $("#graph_zoom");
   var max_interval = findActualStep(step, params.epoch_begin) * 8;
-  var is_max_zoom = false;
-  var zoom_stack = [];
+  var initial_interval = (params.epoch_end - params.epoch_begin);
+  var is_max_zoom = (initial_interval <= max_interval);
   var url = http_prefix + "/lua/get_ts.lua";
   var first_load = true;
   var first_time_loaded = true;
@@ -352,8 +358,55 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
     chart.is_zoomed = true;
 
     if(chart.updateStackedChart(t_start, t_end, false, is_user_zoom)) {
-      zoom_stack.push(cur_zoom);
-      $zoom_reset.show();
+      if(is_user_zoom || e.push_state) {
+        //console.log("zoom IN!");
+        current_zoom_level += 1;
+        var url = getHistoryParameters({epoch_begin: t_start, epoch_end: t_end});
+        history.pushState({zoom_level: current_zoom_level, range: [t_start, t_end]}, "", url);
+      }
+
+      fixChartButtons();
+    } else
+      chart.is_zoomed = old_zoomed;
+  });
+
+  function updateZoom(zoom, is_user_zoom, force) {
+    var t_start = zoom[0];
+    var t_end = zoom[1];
+
+    chart.updateStackedChart(t_start, t_end, false, is_user_zoom, null, force);
+    fixChartButtons();
+  }
+
+  $chart.on('dblclick', function() {
+    if(current_zoom_level) {
+      //console.log("zoom OUT");
+      history.back();
+    }
+  });
+
+  $zoom_reset.on("click", function() {
+    if(current_zoom_level) {
+      //console.log("zoom RESET");
+      history.go(-current_zoom_level);
+    }
+  });
+
+  window.addEventListener('popstate', function(e) {
+    var zoom = initial_range;
+    //console.log("popstate: ", e.state);
+
+    if(e.state) {
+      zoom = e.state.range;
+      current_zoom_level = e.state.zoom_level;
+    } else
+      current_zoom_level = 0;
+
+    updateZoom(zoom, true, true /* force */);
+  });
+
+  function fixChartButtons() {
+    if((current_zoom_level > 0) || has_initial_zoom()) {
       $graph_zoom.find(".btn-warning:not(.custom-zoom-btn)")
         .addClass("initial-zoom-sel")
         .removeClass("btn-warning");
@@ -363,45 +416,23 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
       var link = zoom_link.val().replace(/&epoch_begin=.*/, "");
       link += "&epoch_begin=" + params.epoch_begin + "&epoch_end=" + params.epoch_end;
       zoom_link.val(link);
-    } else
-      chart.is_zoomed = old_zoomed;
-  });
-
-  function updateZoom(zoom, is_user_zoom) {
-    var t_start = zoom[0];
-    var t_end = zoom[1];
-
-    chart.updateStackedChart(t_start, t_end, false, is_user_zoom);
-
-    if(!zoom_stack.length) {
-      $zoom_reset.hide();
-
+    } else {
       $graph_zoom.find(".initial-zoom-sel")
         .addClass("btn-warning");
       $graph_zoom.find(".custom-zoom-btn").css("visibility", "hidden");
       chart.is_zoomed = false;
     }
+
+    if(current_zoom_level > 0)
+      $zoom_reset.show();
+    else
+      $zoom_reset.hide();
   }
-
-  $chart.on('dblclick', function() {
-    if(zoom_stack.length) {
-      var zoom = zoom_stack.pop();
-      updateZoom(zoom, true);
-    }
-  });
-
-  $zoom_reset.on("click", function() {
-    if(zoom_stack.length) {
-      var zoom = zoom_stack[0];
-      zoom_stack = [];
-      updateZoom(zoom, true);
-    }
-  });
 
   var old_start, old_end, old_interval;
 
   /* Returns false if zoom update is rejected. */
-  chart.updateStackedChart = function (tstart, tend, no_spinner, is_user_zoom, on_load_callback) {
+  chart.updateStackedChart = function (tstart, tend, no_spinner, is_user_zoom, on_load_callback, force_update) {
     if(tstart) params.epoch_begin = tstart;
     if(tend) params.epoch_end = tend;
 
@@ -410,7 +441,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
     max_interval = actual_step * 8;
 
     if(cur_interval < max_interval) {
-      if(is_max_zoom && (cur_interval < old_interval)) {
+      if((is_max_zoom && (cur_interval < old_interval)) && !force_update) {
         old_interval = cur_interval;
         return false;
       }
@@ -430,7 +461,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
 
     old_interval = cur_interval;
 
-    if(!first_load || has_initial_zoom)
+    if(!first_load || has_initial_zoom() || force_update)
       align_step = null;
     fixTimeRange(chart, params, align_step, actual_step);
 
@@ -726,6 +757,8 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
 }
 
 function updateGraphsTableView(graph_table, view, graph_params, has_nindex, nindex_query) {
+  nindex_query = nindex_query + "&begin_time_clause=" + graph_params.epoch_begin + "&end_time_clause=" + graph_params.epoch_end
+
   // TODO localize
   nindex_buttons = '<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">';
   nindex_buttons += "IP Version";

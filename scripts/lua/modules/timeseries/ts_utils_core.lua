@@ -292,7 +292,7 @@ local function getLocalTopTalkers(schema_id, tags, tstart, tend, options)
           host_value = ternary(direction == "senders", host_partials["bytes_sent"], host_partials["bytes_rcvd"])
         end
 
-        if host_value > 0 then
+        if((host_value ~= nil) and (host_value > 0)) then
           tophosts[host.address] = {
             value = host_value,
             tags = host_tags,

@@ -166,7 +166,7 @@ function getZoomAtPos(cur_zoom, pos_offset)
   local new_zoom_level = cur_zoom
   for k,v in pairs(zoom_vals) do
     if(zoom_vals[k][1] == cur_zoom) then
-      if (pos+pos_offset >= 1 and pos+pos_offset < 13) then
+      if (pos+pos_offset >= 1 and pos+pos_offset < table.len(zoom_vals)) then
 	new_zoom_level = zoom_vals[pos+pos_offset][1]
 	break
       end
