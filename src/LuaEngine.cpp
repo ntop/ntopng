@@ -72,6 +72,7 @@ static void stackDump(lua_State *L) {
 /* ******************************* */
 
 LuaEngine::LuaEngine() {
+  std::bad_alloc bax;
   void *ctx;
 
 #ifdef HAVE_NEDGE
@@ -84,18 +85,24 @@ LuaEngine::LuaEngine() {
 
   L = luaL_newstate();
 
+  if(!L) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create a new Lua state.");
+    throw bax;
+  }
+
   ctx = (void*)calloc(1, sizeof(struct ntopngLuaContext));
+
+  if(!ctx) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create a context for the new Lua state.");
+    lua_close(L);
+    throw bax;
+  }
 
 #ifdef DONT_USE_LUAJIT
   lua_pushlightuserdata(L, ctx);
   lua_setglobal(L, "userdata");
 #else
-  if(L) G(L)->userdata = ctx;
-
-  if((L == NULL) || (G(L)->userdata == NULL)) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create Lua interpreter");
-    return;
-  }
+  G(L)->userdata = ctx;
 #endif
 }
 

@@ -168,7 +168,7 @@ void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface) {
     static bool oom_warning_sent = false;
 
     if(!oom_warning_sent) {
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "[ThreadedActivity] Unable to start a Lua interpreter.");
       oom_warning_sent = true;
     }
 

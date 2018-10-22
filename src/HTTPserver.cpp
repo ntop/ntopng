@@ -877,32 +877,34 @@ static int handle_lua_request(struct mg_connection *conn) {
     }
 
     if(found) {
-      LuaEngine *l = new LuaEngine();
+      LuaEngine *l;
 
       ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] %s [%s]", request_info->uri, path);
 
-      if(l == NULL) {
-	ntop->getTrace()->traceEvent(TRACE_ERROR, "[HTTP] Unable to start Lua interpreter");
+      try {
+	l = new LuaEngine();
+      } catch(std::bad_alloc& ba) {
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "[HTTP] Unable to start Lua interpreter.");
 	return(send_error(conn, 500 /* Internal server error */,
-			  "Internal server error", "%s", "Unable to start Lua interpreter"));
-      } else {
-	bool attack_attempt;
-
-	// NOTE: username is stored into the engine context, so we must guarantee
-	// that LuaEngine is destroyed after username goes out of context! Indeeed we delete LuaEngine below.
-	l->handle_script_request(conn, request_info, path, &attack_attempt, username);
-
-	if(attack_attempt) {
-	  char buf[32];
-	  
-	  ntop->getTrace()->traceEvent(TRACE_WARNING, "[HTTP] Potential attack from %s on %s",
-				       Utils::intoaV4((unsigned int)conn->request_info.remote_ip, buf, sizeof(buf)),
-				       request_info->uri);
-	}
-
-	delete l;
-	return(1); /* Handled */
+			  "Internal server error", "%s", "Unable to start Lua interpreter."));
       }
+
+      bool attack_attempt;
+
+      // NOTE: username is stored into the engine context, so we must guarantee
+      // that LuaEngine is destroyed after username goes out of context! Indeeed we delete LuaEngine below.
+      l->handle_script_request(conn, request_info, path, &attack_attempt, username);
+
+      if(attack_attempt) {
+	char buf[32];
+	  
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "[HTTP] Potential attack from %s on %s",
+				     Utils::intoaV4((unsigned int)conn->request_info.remote_ip, buf, sizeof(buf)),
+				     request_info->uri);
+      }
+
+      delete l;
+      return(1); /* Handled */
     }
 
     uri_encode(request_info->uri, uri, sizeof(uri)-1);
