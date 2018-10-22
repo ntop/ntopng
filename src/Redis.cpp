@@ -557,18 +557,8 @@ int Redis::pushHostToResolve(char *hostname, bool dont_check_for_existence, bool
   if(!ntop->getPrefs()->is_dns_resolution_enabled()) return(0);
   if(hostname == NULL) return(-1);
 
-  if(!ntop->getPrefs()->is_dns_resolution_enabled_for_all_hosts()) {
-    /*
-      In case only local addresses need to be resolved, skip
-      remote hosts
-    */
-    IpAddress ip;
-    int16_t network_id;
-
-    ip.set(hostname);
-    if(!ip.isLocalHost(&network_id))
-      return(-1);
-  }
+  if(!Utils::shouldResolveHost(hostname))
+    return(-1);
 
   return(pushHost(DNS_CACHE, DNS_TO_RESOLVE, hostname, dont_check_for_existence, localHost));
 }

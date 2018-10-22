@@ -122,7 +122,7 @@ void LocalHost::initialize() {
   snprintf(host, sizeof(host), "%s@%u", strIP, vlan_id);
   char rsp[256];
 
-  if(ntop->getRedis()->getAddress(host, rsp, sizeof(rsp), true) == 0)
+  if(ntop->getRedis()->getAddress(strIP, rsp, sizeof(rsp), true) == 0)
     setName(rsp);
 
   updateHostTrafficPolicy(host);

@@ -3318,3 +3318,25 @@ const char* Utils::policySource2Str(L7PolicySource_t policy_source) {
       return "policy_source_default";
   }
 }
+
+/* ****************************************************** */
+
+bool Utils::shouldResolveHost(const char *host_ip) {
+  if(!ntop->getPrefs()->is_dns_resolution_enabled())
+    return false;
+
+  if(!ntop->getPrefs()->is_dns_resolution_enabled_for_all_hosts()) {
+    /*
+      In case only local addresses need to be resolved, skip
+      remote hosts
+    */
+    IpAddress ip;
+    int16_t network_id;
+
+    ip.set((char*)host_ip);
+    if(!ip.isLocalHost(&network_id))
+      return false;
+  }
+
+  return true;
+}
