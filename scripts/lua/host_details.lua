@@ -1529,6 +1529,14 @@ print [[
 			       }
 			       },
 			     {
+                             title: "]] print(i18n("breakdown")) print[[",
+				 field: "column_breakdown",
+				 sortable: true,
+	 	             css: {
+			        textAlign: 'center'
+			       }
+			       },
+			     {
 			     title: "]] print(i18n("flows_page.actual_throughput")) print[[",
 				 field: "column_thpt",
 				 sortable: true,

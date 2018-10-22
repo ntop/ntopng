@@ -29,7 +29,7 @@ function flow_table_setID (row) {
     if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', flow_key+"_server");
     if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', flow_key+"_duration");
     // flows_stats_bottom
-    if (type == 'flow') row.find("td").eq(index++).attr('id', flow_key+"_breakdown");
+    if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', flow_key+"_breakdown");
     if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', flow_key+"_throughput");
     if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', flow_key+"_bytes");
   
