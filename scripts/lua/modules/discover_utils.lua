@@ -873,7 +873,7 @@ local function analyzeSSDP(ssdp)
       local services = { }
       local friendlyName = ""
 
-      if(hresp ~= nil) then
+      if(hresp ~= nil) and (hresp["CONTENT"] ~= nil) then
 	 local xml = newParser()
 	 local r = xml:ParseXmlText(hresp["CONTENT"])
 
