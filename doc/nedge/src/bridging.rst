@@ -30,15 +30,17 @@ VLAN Trunk Bridging
 nEdge can also bridge interfaces with VLAN-tagged traffic when it is
 configured as a VLAN Trunk bridge.
 
-When briging interfaces with VLAN-traffic, it may be necessary to
-configure one extra interface for the management of the nEdge
-device. This is necessary as the bridge per se is not aware of the
-VLAN that should be used to do the actual management.
+In VLAN Trunk mode, it's essential to set up a management address to
+reach the device. This should be done before applying the VLAN Trunk mode settings
+in order to avoid losing management access. This usually is performed in one of the following ways:
 
-To configure a management interface simply edit file
-`/etc/network/interfaces.d/nedge_mgmt.conf`. Following is an example
-that creates an interface for traffic on VLAN 86 and assigns an ip
-address and a netmask to that interface.
+- by using a dedicated network interface (this setup requires at least 3 network interfaces)
+- by using a virtual network interface on a VLAN (only 2 network interfaces required)
+
+The management interface configuration should be written to the
+`/etc/network/interfaces.d/nedge_mgmt.conf` configuration file. Here is an example
+on how to set up a virtual network interface for the VLAN case above (the dedicated
+interface case is trivial):
 
 .. code:: bash
 
@@ -53,6 +55,26 @@ address and a netmask to that interface.
       address 10.10.10.1
       netmask 255.255.255.0
 
+The configuration above specifies to create a virtual interface br0.86 with VLAN
+86. The VLAN id (86 in this example) should match one of the VLAN ids flowing through
+the VLAN trunk. Such virtual interface will be created after reboot. When the
+VLAN Trunk mode is running on the nEdge device, the administrator can connect to the
+management IP (10.10.10.1 in this example) by configuring a network interface on the same
+network (10.10.10.0/24 in this example). For example:
+
+.. code:: bash
+
+   $ ifconfig eth0 10.10.10.99 netmask 255.255.255.0
+
+The switch port connected to the administrator eth0 interface must be tagged with the same
+VLAN id configured in the `nedge_mgmt.conf` file (86 in this example) in order for
+this to work.
+
+.. warning::
+
+   Due to an open issue (https://github.com/ntop/ntopng/issues/2117) users must be
+   very cautios when configuring blocking policies in this mode as they will affect the
+   management interface as well and possibly block management access.
 
 See management_ for a detailed description of how the network
 configuration is handled by nEdge.
