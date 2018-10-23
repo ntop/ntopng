@@ -1385,7 +1385,10 @@ void Flow::update_pools_stats(const struct timeval *tv,
 bool Flow::equal(IpAddress *_cli_ip, IpAddress *_srv_ip, u_int16_t _cli_port,
 		 u_int16_t _srv_port, u_int16_t _vlanId, u_int8_t _protocol,
 		 bool *src2srv_direction) {
-  if((_vlanId != vlanId) || (_protocol != protocol)) return(false);
+  if((_vlanId != vlanId) && (vlanId != 0))
+    return(false);
+
+  if(_protocol != protocol) return(false);
 
   if(cli_host && cli_host->equal(_cli_ip)
      && srv_host && srv_host->equal(_srv_ip)

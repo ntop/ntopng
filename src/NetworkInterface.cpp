@@ -2677,34 +2677,52 @@ void NetworkInterface::pollQueuedeBPFEvents() {
     if(dequeueeBPFEvent(&event)) {
       Flow *flow = NULL;
       IpAddress src, dst;
-      bool src2dst_direction, new_flow;
+      bool src2dst_direction, new_flow, swap_peers = false;
       u_int16_t proto, sport, dport;
 
       // ntop->getTrace()->traceEvent(TRACE_ERROR, "%s(FOUND)", __FUNCTION__);
       
-      if(event->ip_version == 4)
+      if(event->ip_version == 4) {
 	src.set(event->event.v4.saddr), dst.set(event->event.v4.daddr),
 	  sport = event->event.v4.net.sport, dport = event->event.v4.net.dport,
 	  proto = event->event.v4.net.is_tcp ? IPPROTO_TCP : IPPROTO_UDP;
-      else
+	if(event->event.v4.net.client_srv == 0 /* accept */) swap_peers = true;
+      } else {
 	src.set((struct ndpi_in6_addr*)&event->event.v6.saddr),
 	  dst.set((struct ndpi_in6_addr*)&event->event.v6.daddr),
 	  sport = event->event.v6.net.sport, dport = event->event.v6.net.dport,
 	  proto = event->event.v6.net.is_tcp ? IPPROTO_TCP : IPPROTO_UDP;
-
+	if(event->event.v6.net.client_srv == 0 /* accept */) swap_peers = true;
+      }
+      
       sport = htons(sport), dport = htons(dport);
 
-      flow = getFlow(NULL /* srcMac */, NULL /* dstMac */,
-		     0 /* vlan_id - CHECK */,
-		     0 /* deviceIP */,
-		     0 /* inIndex */, 1 /* outIndex */,
-		     &src, &dst,
-		     sport, dport,
-		     proto,
-		     &src2dst_direction,
-		     0, 0, 0, &new_flow,
-		     true);
-
+      if(proto == IPPROTO_TCP) {
+	if(swap_peers)
+	  /* Swap peers */
+	  flow = getFlow(NULL /* srcMac */, NULL /* dstMac */,
+			 0 /* vlan_id */,
+			 0 /* deviceIP */,
+			 0 /* inIndex */, 1 /* outIndex */,
+			 &dst, &src,
+			 dport, sport,
+			 proto,
+			 &src2dst_direction,
+			 0, 0, 0, &new_flow,
+			 true);
+	else
+	  flow = getFlow(NULL /* srcMac */, NULL /* dstMac */,
+			 0 /* vlan_id */,
+			 0 /* deviceIP */,
+			 0 /* inIndex */, 1 /* outIndex */,
+			 &src, &dst,
+			 sport, dport,
+			 proto,
+			 &src2dst_direction,
+			 0, 0, 0, &new_flow,
+			 true);
+      }
+      
       if(flow) flow->setProcessInfo(event, src2dst_direction);
 
 #ifdef EBPF_DEBUG
