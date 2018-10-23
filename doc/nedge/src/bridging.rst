@@ -30,7 +30,11 @@ VLAN Trunk Bridging
 nEdge can also bridge interfaces with VLAN-tagged traffic when it is
 configured as a VLAN Trunk bridge.
 
-In VLAN Trunk mode, it's essential to set up a management address to
+In VLAN Trunk mode, it's necessary to specify the list of local networks by manually editing the file
+`/etc/ntopng/ntopng.conf` via the `-m` option. Policies will only be applied to local hosts, so
+this is very important. See `the ntopng documentation`_ for more details.
+
+In VLAN Trunk mode, it's also essential to set up a management address to
 reach the device. This should be done before applying the VLAN Trunk mode settings
 in order to avoid losing management access. This usually is performed in one of the following ways:
 
@@ -79,11 +83,6 @@ this to work.
 See management_ for a detailed description of how the network
 configuration is handled by nEdge.
 
-It may also me necessary to specify a list of local networks by
-manyally editing file `/etc/ntopng/ntopng.conf`. The list of local
-networks, specified with option `-m`, is necessary as the nEdge in
-this mode as it cannot correctly guess the local network.
-
 .. warning::
 
    Overlapping IP addresses across multiple VLANs are not handled. nedge will
@@ -107,3 +106,4 @@ care should be taken.
 - Disalbe the Captive Portal the can alter packets in order to perform devices authentication.
 
 .. _management: management.html
+.. _`the ntopng documentation`: https://www.ntop.org/guides/ntopng/basic_concepts/hosts.html#local-hosts
