@@ -72,7 +72,7 @@ class Prefs {
   bool dump_flow_alerts_when_iface_alerted;
   bool override_dst_with_post_nat_dst, override_src_with_post_nat_src;
   bool routing_mode_enabled, global_dns_forging_enabled;
-  bool device_protocol_policies_enabled;
+  bool device_protocol_policies_enabled, enable_vlan_trunk_bridge;
   int32_t max_num_alerts_per_entity, max_num_flow_alerts;
   u_int32_t safe_search_dns_ip, global_primary_dns_ip, global_secondary_dns_ip;
   u_int32_t max_num_packets_per_tiny_flow, max_num_bytes_per_tiny_flow;
@@ -314,8 +314,9 @@ class Prefs {
   inline bool do_override_src_with_post_nat_src()   { return(override_src_with_post_nat_src); };
   inline bool are_device_protocol_policies_enabled()     { return(device_protocol_policies_enabled);    };
 
-  inline bool isCaptivePortalEnabled()                   { return(enable_captive_portal);              }
-  inline bool isInformativeCaptivePortalEnabled()        { return(enable_informative_captive_portal);  }
+  inline bool isVLANTrunkModeEnabled()                   { return(enable_vlan_trunk_bridge);           }
+  inline bool isCaptivePortalEnabled()                   { return(enable_captive_portal && !enable_vlan_trunk_bridge); }
+  inline bool isInformativeCaptivePortalEnabled()        { return(enable_informative_captive_portal && !enable_vlan_trunk_bridge); }
   inline bool isMacBasedCaptivePortal()                  { return(mac_based_captive_portal);  }
   const char * const getCaptivePortalUrl();
 
