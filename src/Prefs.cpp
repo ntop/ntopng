@@ -55,6 +55,7 @@ Prefs::Prefs(Ntop *_ntop) {
   enable_mac_ndpi_stats = false;
   auto_assigned_pool_id = NO_HOST_POOL_ID;
   default_l7policy = PASS_ALL_SHAPER_ID;
+  enable_vlan_trunk_bridge = false;
 
   install_dir = NULL, captureDirection = PCAP_D_INOUT;
   docs_dir = strdup(CONST_DEFAULT_DOCS_DIR);
@@ -534,6 +535,7 @@ void Prefs::reloadPrefsFromRedis() {
 
     enable_captive_portal = getDefaultBoolPrefsValue(CONST_PREFS_CAPTIVE_PORTAL, false),
     enable_informative_captive_portal = getDefaultBoolPrefsValue(CONST_PREFS_INFORM_CAPTIVE_PORTAL, false),
+    enable_vlan_trunk_bridge = getDefaultBoolPrefsValue(CONST_PREFS_VLAN_TRUNK_MODE_ENABLED, false),
     default_l7policy = getDefaultPrefsValue(CONST_PREFS_DEFAULT_L7_POLICY, PASS_ALL_SHAPER_ID),
 
     max_ui_strlen = getDefaultPrefsValue(CONST_RUNTIME_MAX_UI_STRLEN, CONST_DEFAULT_MAX_UI_STRLEN),
