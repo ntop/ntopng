@@ -690,39 +690,6 @@ end
 
 -- ================================================================================
 
-function printNbox()
-  print('<form method="post">')
-  print('<table class="table">')
-
-  print('<tr><th colspan=2 class="info">'..i18n("prefs.nbox_integration")..'</th></tr>')
-
-  local elementToSwitch = {"nbox_user","nbox_password"}
-
-  prefsToggleButton(subpage_active, {
-    field = "toggle_nbox_integration",
-    default = "0",
-    pref = "nbox_integration",
-    to_switch = elementToSwitch,
-  })
-
-  if ntop.getPref("ntopng.prefs.nbox_integration") == "1" then
-    showElements = true
-  else
-    showElements = false
-  end
-
-  prefsInputFieldPrefs(subpage_active.entries["nbox_user"].title, subpage_active.entries["nbox_user"].description, "ntopng.prefs.", "nbox_user", "nbox", nil, showElements, false)
-  prefsInputFieldPrefs(subpage_active.entries["nbox_password"].title, subpage_active.entries["nbox_password"].description, "ntopng.prefs.", "nbox_password", "nbox", "password", showElements, false)
-
-  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
-
-  print('</table>')
-  print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
-  </form> ]]
-end
-
--- ================================================================================
-
 function printNetworkDiscovery()
    print('<form method="post">')
    print('<table class="table">')
@@ -1448,12 +1415,6 @@ end
 
 if(tab == "protocols") then
    printProtocolPrefs()
-end
-
-if(tab == "nbox") then
-  if(ntop.isPro()) then
-     printNbox()
-  end
 end
 
 if(tab == "discovery") then

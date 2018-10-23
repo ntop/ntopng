@@ -273,10 +273,12 @@ function recording_utils.createConfig(ifid, params)
   end
   defaults.buffer_size = 4*defaults.max_file_size
 
-  local min_sys_mem = 1024 -- 1G
-  local min_n2disk_mem = 128
-  if mem_total_mb < defaults.buffer_size + min_sys_mem then
-    local min_total_mem = min_sys_mem + min_n2disk_mem
+  local min_sys_mem = 1024 -- 1G reserved for system
+  local min_n2disk_buffer_size = 128 -- min memory for n2disk to work
+  local total_n2disk_mem = defaults.buffer_size + (defaults.buffer_size/2) -- pcap + index buffer
+  if mem_total_mb < total_n2disk_mem + min_sys_mem then
+    local min_total_n2disk_mem = min_n2disk_buffer_size + (min_n2disk_buffer_size/2)
+    local min_total_mem = min_sys_mem + min_total_n2disk_mem
     if mem_total_mb < min_total_mem then
       traceError(TRACE_ERROR, TRACE_CONSOLE, "Not enough memory available ("..mem_total_mb.."MB total, min required is "..min_total_mem.."MB)") 
       return false

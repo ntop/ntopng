@@ -288,17 +288,6 @@ local menu_subpages = {
        title       = i18n("prefs.default_snmp_proto_version_title"),
        description = i18n("prefs.default_snmp_proto_version_description"),
     },
-  }}, {id="nbox",          label=i18n("prefs.nbox_integration"),     advanced=true,  pro_only=true,  nedge_hidden=true, hidden=false, entries={
-    toggle_nbox_integration = {
-      title       = i18n("prefs.toggle_nbox_integration_title"),
-      description = i18n("prefs.toggle_nbox_integration_description"),
-    }, nbox_user = {
-      title       = i18n("prefs.nbox_user_title"),
-      description = i18n("prefs.nbox_user_description"),
-    }, nbox_password = {
-      title       = i18n("prefs.nbox_password_title"),
-      description = i18n("prefs.nbox_password_description"),
-    },
   }}, {id="discovery",     label=i18n("prefs.network_discovery"),     advanced=false,  pro_only=false,   hidden=false, entries={
     toggle_network_discovery = {
       title       = i18n("prefs.toggle_network_discovery_title"),

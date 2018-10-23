@@ -350,12 +350,6 @@ local function validatenEdgeAction(mode)
    return validateChoice(modes, mode)
 end
 
-local function validateNboxAction(mode)
-   local modes = {"status", "schedule"}
-
-   return validateChoice(modes, mode)
-end
-
 local function validateFavouriteAction(mode)
    local modes = {"set", "get", "del", "del_all"}
 
@@ -1049,7 +1043,6 @@ local known_parameters = {
    ["toggle_top_sites"]                            = validateBool,
    ["toggle_captive_portal"]                       = validateBool,
    ["toggle_informative_captive_portal"]           = validateBool,
-   ["toggle_nbox_integration"]                     = validateBool,
    ["toggle_autologout"]                           = validateBool,
    ["toggle_ldap_anonymous_bind"]                  = validateBool,
    ["toggle_local"]                                = validateBool,
@@ -1096,8 +1089,6 @@ local known_parameters = {
    ["nagios_nsca_port"]                            = validateEmptyOr(validatePort),
    ["nagios_send_nsca_executable"]                 = validateAbsolutePath,
    ["nagios_send_nsca_config"]                     = validateAbsolutePath,
-   ["nbox_user"]                                   = validateSingleWord,
-   ["nbox_password"]                               = validateSingleWord,
    ["google_apis_browser_key"]                     = validateSingleWord,
    ["ldap_server_address"]                         = validateSingleWord,
    ["local_host_max_idle"]                         = validateNumber,
@@ -1174,7 +1165,6 @@ local known_parameters = {
    ["report_zoom"]             = validateBool,                  -- True if we are zooming in the report
    ["format"]                  = validatePrintFormat,           -- a print format
    ["nedge_config_action"]     = validatenEdgeAction,           -- system_setup_utils.lua
-   ["nbox_action"]             = validateNboxAction,            -- get_nbox_data.lua
    ["fav_action"]              = validateFavouriteAction,       -- get_historical_favourites.lua
    ["favourite_type"]          = validateFavouriteType,         -- get_historical_favourites.lua
    ["locale"]                  = validateCountry,               -- locale used in test_locale.lua
@@ -1192,7 +1182,6 @@ local known_parameters = {
    ["refresh"]                 = validateNumber,                -- top flow refresh in seconds, index.lua
    ["sprobe"]                  = validateEmpty,                 -- sankey.lua
    ["always_show_hist"]        = validateBool,                  -- host_details.lua
-   ["task_id"]                 = validateSingleWord,            -- get_nbox_data
    ["host_stats"]              = validateBool,                  -- host_get_json
    ["captive_portal_users"]    = validateBool,                  -- to show or hide captive portal users
    ["long_names"]              = validateBool,                  -- get_hosts_data

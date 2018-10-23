@@ -81,8 +81,8 @@ end
 
 interface.select(ifname)
 
--- local pcap dump is disabled if the nbox integration is enabled or
--- if the user is not an administrator or if the interface:
+-- local pcap dump is disabled if  the user is not an administrator 
+-- or if the interface:
 -- is a view
 -- is not a packet interface (i.e., it is zmq)
 local is_packetdump_enabled = isLocalPacketdumpEnabled()
@@ -286,6 +286,7 @@ if not have_nedge and (table.len(ifstats.profiles) > 0) then
   end
 end
 
+--[[ To be removed
 if is_packetdump_enabled then
    if(page == "packetdump") then
       print("<li class=\"active\"><a href=\""..url.."&page=packetdump\"><i class=\"fa fa-hdd-o fa-lg\"></i></a></li>")
@@ -293,14 +294,15 @@ if is_packetdump_enabled then
       print("<li><a href=\""..url.."&page=packetdump\"><i class=\"fa fa-hdd-o fa-lg\"></i></a></li>")
    end
 end
+--]]
 
 if recording_utils.isAvailable() and (interface.isPacketInterface() or 
    (recording_utils.isSupportedZMQInterface(ifid) and not table.empty(ext_interfaces))) then
 
    if(page == "traffic_recording") then
-      print("<li class=\"active\"><a href=\""..url.."&page=traffic_recording\"><i class=\"fa fa-caret-square-o-right fa-lg\"></i></a></li>")
+      print("<li class=\"active\"><a href=\""..url.."&page=traffic_recording\"><i class=\"fa fa-hdd-o fa-lg\"></i></a></li>")
    else
-      print("<li><a href=\""..url.."&page=traffic_recording\"><i class=\"fa fa-caret-square-o-right fa-lg\"></i></a></li>")
+      print("<li><a href=\""..url.."&page=traffic_recording\"><i class=\"fa fa-hdd-o fa-lg\"></i></a></li>")
    end
 end
 

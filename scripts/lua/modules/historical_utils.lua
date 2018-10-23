@@ -7,8 +7,6 @@ require "flow_aggregation_utils"
 
 local json = require ("dkjson")
 
-local pcap_status_url = ntop.getHttpPrefix().."/lua/get_nbox_data.lua?nbox_action=status"
-local pcap_request_url = ntop.getHttpPrefix().."/lua/get_nbox_data.lua?nbox_action=schedule"
 local favourites_url = ntop.getHttpPrefix().."/lua/get_historical_favourites.lua"
 local flows_download_url = ntop.getHttpPrefix().."/lua/get_db_flows.lua"
 
@@ -333,20 +331,8 @@ function historicalDownloadButtonsBar(button_id, pcap_request_data_container_div
 
 	print [[
         <p class="text-muted">]] print(i18n("db_explorer.download_flows_limit")) print[[</p>
-	</div>]]
-	  if interface.isPacketInterface()
-	    and ntop.getCache("ntopng.prefs.nbox_integration") == "1"
-	    and haveAdminPrivileges() then
-       print[[ <div class='col-md-2'><div style='margin-bottom:0.4em;'>
-	       ]] print(i18n("db_explorer.extract_pcap")) print[[: <a class="btn btn-default btn-sm]]
-	       print[[" href="#" role="button" id="extract_pcap_]] print(button_id)
-	       print[["><i class="fa fa-download fa-lg"></i></a></div>
-	       <span id="pcap_download_msg_]] print(button_id) print[[">]]
-	       print[[</span>
-	       </div>]]
-	  end
-
-	  print[[<div class='col-md-]] print(displacement) print[['>
+	</div>
+	<div class='col-md-]] print(displacement) print[['>
        </div>
      </div>
 
@@ -385,35 +371,6 @@ print[[
     $('#download_flows_v6_]] print(button_id) print[[').attr("style", "display:none;");
   }
 ]]
-
-if ntop.getCache("ntopng.prefs.nbox_integration") == "1" and haveAdminPrivileges() then
-print[[
-   $('#extract_pcap_]] print(button_id) print[[').click(function (event)
-  {
-    event.preventDefault();
-    var perror = function(msg){
-      alert("Request failed: " + msg);
-      $('#pcap_download_msg_]] print(button_id) print[[').show().fadeOut(4000).html("<small>]] print(i18n("db_explorer.request_failed")) print[[.</small>");
-    };
-
-    $.ajax({type: 'GET', url: "]] print(pcap_request_url) print [[",
-    data: buildRequestData(']] print(pcap_request_data_container_div_id) print[['),
-      success: function(data) {
-	data = jQuery.parseJSON(data);
-	if (data["result"] === "KO"){
-	  perror(data["description"]);
-	} else if (data["result"] == "OK"){
-	  $('#pcap_download_msg_]] print(button_id) print[[').show().fadeOut(4000).html('<small>]] print(i18n("db_explorer.ok_request_sent")) print[[.</small>');
-	} else { alert('Unknown response.'); }
-      },
-      error: function() {
-	perror('An HTTP error occurred.');
-      }
-    });
-  });
-]]
-  end
-
 
 print[[
  </script>
@@ -1458,110 +1415,6 @@ $('a[href="#historical-top-apps"]').on('shown.bs.tab', function (e) {
 
 </script>
 
-]]
-end
-
-
-function historicalPcapsTable()
-print[[
-<div id="table-pcaps"></div>
-<script>
-
-function jump_to_nbox_activity_scheduler(){
-  var url = document.URL;
-  res = url.split("http://");
-  if(res[0]=="") url=res[1]; else url=res[0];
-  res = url.split("https://");
-  if(res[0]=="") url=res[1]; else url=res[0];
-  res = url.split("/");
-  url = res[0];
-  res = url.split(":");
-  url = res[0];
-  window.open("https://"+url+"/ntop-bin/config_scheduler.cgi", "_blank");
-}
-
-function download_pcap_from_nbox(task_id){
-  var url = document.URL;
-  res = url.split("http://");
-  if(res[0]=="") url=res[1]; else url=res[0];
-  res = url.split("https://");
-  if(res[0]=="") url=res[1]; else url=res[0];
-  res = url.split("/");
-  url = res[0];
-  res = url.split(":");
-  url = res[0];
-  window.open("https://"+url+"/ntop-bin/run.cgi?script=n2disk_filemanager.cgi&opt=download_pcap&dir=/storage/n2disk/&pcap_name=/storage/n2disk/"+task_id+".pcap", "_blank");
-}
-
-var populatePcapsTable = function(){
-  $("#table-pcaps").datatable({
-    title: "]] print(i18n("db_explorer.pcaps")) print[[",
-    url: "]] print (ntop.getHttpPrefix()) print [[/lua/get_nbox_data.lua?nbox_action=status" ,
-    title: "]] print(i18n("db_explorer.pcap_requests_and_status")) print[[",
-]]
-
--- Set the preference table
-preference = tablePreferences("rows_number","5")
-if (preference ~= "") then print ('perPage: '..preference.. ",\n") end
-
--- Automatic default sorted. NB: the column must exist.
-print ('sort: [ ["' .. getDefaultTableSort("pcaps") ..'","' .. getDefaultTableSortOrder("pcaps").. '"] ],')
-
-print [[
-	       showPagination: true,
-		columns: [
-			 {
-			     title: "]] print(i18n("db_explorer.task_id")) print[[",
-				 field: "column_task_id",
-				 sortable: true,
-			     css: {
-				textAlign: 'left'
-			     }
-				 },
-			     {
-			     title: "]] print(i18n("db_explorer.filter_bpf")) print[[",
-				 field: "column_bpf",
-				 sortable: true,
-			     css: {
-				textAlign: 'left'
-			     }
-				 },
-			     {
-			     title: "]] print(i18n("status")) print[[",
-				 field: "column_status",
-				 sortable: true,
-			     css: {
-				textAlign: 'center'
-			     }
-
-				 },
-			     {
-			     title: "]] print(i18n("actions")) print[[",
-				 field: "column_actions",
-				 sortable: true,
-			     css: {
-				textAlign: 'center'
-			     }
-				 }
-			     ]
-	       });
-
-};
-
-$('a[href="#historical-pcaps"]').on('shown.bs.tab', function (e) {
-  if ($('a[href="#historical-pcaps"]').attr("loaded") == 1){
-    enableAllDropdownsAndTabs();
-    // do nothing if the tabs have already been computed and populated
-    return;
-  }
-
-  var target = $(e.target).attr("href"); // activated tab
-  populatePcapsTable();
-  // Finally set a loaded flag for the current tab
-  $('a[href="#historical-pcaps"]').attr("loaded", 1);
-});
-
-</script>
 ]]
 end
 
