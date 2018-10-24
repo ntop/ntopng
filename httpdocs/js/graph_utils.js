@@ -373,7 +373,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
         history.pushState({zoom_level: current_zoom_level, range: [t_start, t_end]}, "", url);
       }
 
-      fixChartButtons();
+      chart.fixChartButtons();
     } else
       chart.is_zoomed = old_zoomed;
   });
@@ -383,7 +383,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
     var t_end = zoom[1];
 
     chart.updateStackedChart(t_start, t_end, false, is_user_zoom, null, force);
-    fixChartButtons();
+    chart.fixChartButtons();
   }
 
   $chart.on('dblclick', function() {
@@ -413,7 +413,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
     updateZoom(zoom, true, true /* force */);
   });
 
-  function fixChartButtons() {
+  chart.fixChartButtons = function() {
     if((current_zoom_level > 0) || has_initial_zoom()) {
       $graph_zoom.find(".btn-warning:not(.custom-zoom-btn)")
         .addClass("initial-zoom-sel")
