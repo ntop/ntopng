@@ -289,6 +289,14 @@ function has_initial_zoom() {
 
 var current_zoom_level = (history.state) ? (history.state.zoom_level) : 0;
 
+function fixJumpButtons(epoch_end) {
+  var duration = $("#btn-jump-time-ahead").data("duration");
+  if((epoch_end + duration)*1000 > $.now())
+    $("#btn-jump-time-ahead").addClass("disabled");
+  else
+    $("#btn-jump-time-ahead").removeClass("disabled");
+};
+
 // add a new updateStackedChart function
 function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id, flows_dt, params, step, align_step, show_all_smooth, initial_range) {
   var pending_request = null;
@@ -422,6 +430,8 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
       $graph_zoom.find(".custom-zoom-btn").css("visibility", "hidden");
       chart.is_zoomed = false;
     }
+
+    fixJumpButtons(params.epoch_end);
 
     if(current_zoom_level > 0)
       $zoom_reset.show();

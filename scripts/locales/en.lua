@@ -10,6 +10,7 @@ local lang = {
   ["application"] = "Application",
   ["application_protocol"] = "Application Protocol",
   ["applications"] = "Applications",
+  ["apply"] = "Apply",
   ["arp"] = "ARP",
   ["as"] = "AS",
   ["as_number"] = "AS number",
