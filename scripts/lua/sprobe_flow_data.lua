@@ -1,131 +1,99 @@
 --
--- (C) 2014-15-15 - ntop.org
+-- (C) 2018 - ntop.org
 --
 
-dirs = ntop.getDirs()
+local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
-require "flow_utils"
-require "voip_utils"
-require "sqlite_utils"
+local json = require "dkjson"
 
 sendHTTPHeader('text/json')
 
-flow_key = _GET["flow_key"]
+local flow_key = _GET["flow_key"]
+local flow
+local tree = {}
 
 if(flow_key == nil) then
    flow = nil
 else
-   interface.select(ifname)
    flow = interface.findFlowByKey(tonumber(flow_key))
 end
 
-if(flow == nil) then
-   print("{ } ")
-else
-   key = "" -- TODO
+local function format_proc(name, pid)
+   return string.format("%s [pid: %u]", name, pid)
+end
 
-   -- ====================================
+local function proc_branch(host, proc)
+   local proc_link = ntop.getHttpPrefix().."/lua/get_process_info.lua?pid="..proc.pid.."&pid_name="..proc.name.."&host=".. host .."&page=Flows"
+   local proc_leaf = {name = format_proc(proc.name, proc.pid), link = proc_link, children = {}}
 
-   function nest2tab(level)
-      print('\n')
+   if proc.pid ~= 1 then
+      local father_leaf = {name = format_proc(proc.father_name, proc.father_pid), children = {}}
 
-      while(level > 0) do
-	 print('\t')
-	 level = level - 1
-      end
+      father_leaf["children"] = {proc_leaf}
+      proc_leaf = father_leaf
+
+      -- TODO: rather than simply adding the system, it would be desirable to
+      -- go up into the tree recursively and get all the processes
+      -- if proc.father_pid ~= 1 then
+      --	 local systemd_leaf = {name = format_proc("systemd", 1), type="proc", children = {}}
+
+      --	 systemd_leaf["children"] = {proc_leaf}
+      --	 proc_leaf = systemd_leaf
+      -- end
    end
 
-   -- ====================================
+   return proc_leaf
+end
 
-   function displayProc(nest, proc, host, host_name,
-			add_host, add_father, add_init, first_element, last_element, add_comma)
-      -- if(num > 0) then print(',') end
+local function host_branch(host_name, host, procs)
+   local link = ntop.getHttpPrefix().."/lua/host_details.lua?host=".. host .."&page=flows"
 
-      if(add_host) then
-	 nest2tab(nest)
-	 link = ntop.getHttpPrefix().."/lua/host_details.lua?host=".. host .."&page=flows"
-	 if(add_comma) then print(',') add_comma = false end
-	 print('{ "name": "'..host_name..'", "type": "host", "link": "'..link..'", "children": [ ')
-	 nest = nest + 1
-      end
-      
-      if(add_father) then
-	 if(first_element and add_init and (proc.father_pid ~= 1)) then
-	    nest2tab(nest)
-	    print('{ "name": "init (pid 1)", "type": "proc", "children": [ ')
-	    nest = nest + 1
-	 else
-	    if(not(first_element) and (proc.father_pid ~= 1)) then
-	       nest2tab(nest)
-	       print('] }')
-	       nest = nest -1
-	       add_comma = true
-	    end
-	 end
-	 
-	 if(add_init or (proc.father_pid ~= 1)) then
-	    -- No link for father
-	    -- link = ntop.getHttpPrefix().."/lua/get_process_info.lua?pid="..proc.father_pid.."&pid_name="..proc.father_name.."&host=".. host .."&page=flows"
-	    nest2tab(nest)
-	    if(add_comma) then print(',') add_comma = false end
-	    print(' { "name": "'..proc.father_name..' (pid '.. proc.father_pid..')", "type": "proc", "children": [ ')
-	    nest = nest + 1
-	 end
-      end
-
-      link = ntop.getHttpPrefix().."/lua/get_process_info.lua?pid="..proc.pid.."&pid_name="..proc.name.."&host=".. host .."&page=Flows"
-      nest2tab(nest)
-      if(add_comma) then print(',') add_comma = false end
-      print('{ "name": "'..proc.name..' (pid '.. proc.pid..')", "link": "'.. link ..'", "type": "proc", "children": [ ] }')
-
-      if(last_element) then
-	 while(nest > 0) do
-	    nest2tab(nest)
-	    print('] }')
-	    nest = nest -1
-	 end
-      end
-
-      return(nest)
+   local children = {}
+   for _, proc in pairs(procs) do
+      children[#children + 1] = proc
    end
 
--- ================================================
+   local branch = {name = host_name, type = "host", link = link, children = children}
+
+   return branch
+end
+
+-- EXAMPLE of tree format
+-- tree = {name = "", type="root",
+--	children = {
+--	   {name="client", type="host",
+--	    children={{name="systemd", type="proc"}, {name="p", type="proc", children = {{name="q", type = "proc"}}}}},
+--	   {name="server", type="host",
+--	    children={}}}}
 
 
-   nest = 0
-
-   if((flow.client_process ~= nil) and (flow.server_process ~= nil)) then
-      if(flow["cli.ip"] ~= flow["srv.ip"]) then 
-	 print('{ "name": "", "type": "root", "children": [') 
-	 last = true
+if flow then
+   if flow.client_process and flow.server_process then
+      if flow["cli.ip"] ~= flow["srv.ip"] then
+	 tree = {name = "", type = "root",
+		 children = {
+		    host_branch(flowinfo2hostname(flow, "cli"), flow["cli.ip"],
+				{proc_branch(flow["cli.ip"], flow.client_process)}),
+		    host_branch(flowinfo2hostname(flow, "srv"), flow["srv.ip"],
+				{proc_branch(flow["srv.ip"], flow.server_process)})
+		 }
+	 }
       else
-	 last = false
+	 tree = host_branch(flowinfo2hostname(flow, "cli"), flow["cli.ip"],
+			    {proc_branch(flow["cli.ip"], flow.client_process),
+			     proc_branch(flow["srv.ip"], flow.server_process)})
       end
-      -- nest = nest + 1
-      nest = displayProc(nest, flow.client_process, 
-			 flow["cli.ip"], 
-			 flowinfo2hostname(flow, "cli"),
-			 true,  true, true, true, last, false)
-      
-      displayProc(nest, flow.server_process, 
-		  flow["srv.ip"], 
-		  flowinfo2hostname(flow, "srv"),
-		  (flow["cli.ip"] ~= flow["srv.ip"]), 
-		  ((flow.client_process.father_pid ~= flow.server_process.father_pid) or (flow["cli.ip"] ~= flow["srv.ip"])),
-		  false,
-		  (flow["cli.ip"] ~= flow["srv.ip"]), true, true)
-      if(flow["cli.ip"] ~= flow["srv.ip"]) then
-	 print("] }\n")
-      end
-   elseif(flow.client_process ~= nil) then
-      nest = displayProc(nest, flow.client_process, 
-			 flow["cli.ip"], flowinfo2hostname(flow, "cli"),
-			 true, true, true, true, true, false)
-   elseif(flow.server_process ~= nil) then
-      nest = displayProc(nest, flow.server_process,
-			 flow["srv.ip"], flowinfo2hostname(flow, "srv"),
-			 true, true, true, true, true, false)
+
+   elseif flow.client_process then
+      tree = host_branch(flowinfo2hostname(flow, "cli"), flow["cli.ip"],
+			 {proc_branch(flow["cli.ip"], flow.client_process)})
+
+   elseif flow.server_process then
+      tree = host_branch(flowinfo2hostname(flow, "srv"), flow["srv.ip"],
+			 {proc_branch(flow["srv.ip"], flow.server_process)})
    end
 end
+
+print(json.encode(tree))
