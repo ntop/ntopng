@@ -508,7 +508,7 @@ class Flow : public GenericHashEntry {
   void flushBufferedPackets();
   void housekeep();
 #ifdef HAVE_EBPF
-  void setProcessInfo(eBPFevent *event, bool src2dst_direction);
+  void setProcessInfo(eBPFevent *event, bool client_process);
 #endif
 };
 

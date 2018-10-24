@@ -3732,18 +3732,17 @@ void Flow::flushBufferedPackets() {
 
 #ifdef HAVE_EBPF
 
-void Flow::setProcessInfo(eBPFevent *event, bool src2dst_direction) {
-  if(client_proc == NULL) client_proc = (ProcessInfo*)calloc(1, sizeof(ProcessInfo));
-  if(server_proc == NULL) server_proc = (ProcessInfo*)calloc(1, sizeof(ProcessInfo));
-  
-  if(client_proc && server_proc) {
-    ProcessInfo *c /* , *s */;
-    struct taskInfo *proc, *father;
+void Flow::setProcessInfo(eBPFevent *event, bool client_process) {
+  ProcessInfo **process_info = client_process ? &client_proc : &server_proc;
 
-    if(src2dst_direction)
-      c = client_proc /* , s = server_proc */;
-    else
-      c = server_proc /* s = client_proc */;
+  if(!*process_info)
+    *process_info = (ProcessInfo*)calloc(1, sizeof(ProcessInfo));
+  // else
+  //   memset(*process_info, 0, sizeof(ProcessInfo));
+
+  if(*process_info) {
+    struct taskInfo *proc, *father;
+    ProcessInfo *c = *process_info /* , *s */;
 
     proc = (event->ip_version == 4)   ? &event->event.v4.proc   : &event->event.v6.proc;
     father = (event->ip_version == 4) ? &event->event.v4.father : &event->event.v6.father;
@@ -3756,9 +3755,6 @@ void Flow::setProcessInfo(eBPFevent *event, bool src2dst_direction) {
       c->father_uid = father->uid, c->father_gid = father->gid;
 
     /* TODO: handle latency_usec */
-  } else {
-    if(client_proc) { free(client_proc); client_proc = NULL; }
-    if(server_proc) { free(server_proc); server_proc = NULL; }
   }
 }
 #endif

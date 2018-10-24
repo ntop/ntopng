@@ -2681,7 +2681,7 @@ void NetworkInterface::pollQueuedeBPFEvents() {
       u_int16_t proto, sport, dport;
 
       // ntop->getTrace()->traceEvent(TRACE_ERROR, "%s(FOUND)", __FUNCTION__);
-      
+
       if(event->ip_version == 4) {
 	src.set(event->event.v4.saddr), dst.set(event->event.v4.daddr),
 	  sport = event->event.v4.net.sport, dport = event->event.v4.net.dport,
@@ -2694,7 +2694,7 @@ void NetworkInterface::pollQueuedeBPFEvents() {
 	  proto = event->event.v6.net.is_tcp ? IPPROTO_TCP : IPPROTO_UDP;
 	if(event->event.v6.net.client_srv == 0 /* accept */) swap_peers = true;
       }
-      
+
       sport = htons(sport), dport = htons(dport);
 
       if(proto == IPPROTO_TCP) {
@@ -2722,16 +2722,19 @@ void NetworkInterface::pollQueuedeBPFEvents() {
 			 0, 0, 0, &new_flow,
 			 true);
       }
-      
-      if(flow) flow->setProcessInfo(event, src2dst_direction);
+
+      if(flow) flow->setProcessInfo(event, !swap_peers);
 
 #ifdef EBPF_DEBUG
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[swap peers: %u][new flow: %u][src2dst_direction: %u]",
+				   swap_peers ? 1 : 0, new_flow ? 1 : 0, src2dst_direction ? 1 : 0);
+
       if(event->ip_version == 4)
 	IPV4Handler(flow, &event->event.v4);
       else
 	IPV6Handler(flow, &event->event.v6);
 #endif
-      
+
       free(event);
     }
   }

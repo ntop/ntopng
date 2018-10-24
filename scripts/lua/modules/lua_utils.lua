@@ -1521,6 +1521,27 @@ function flowinfo2hostname(flow_info, host_type)
    return(host2name(name, flow_info["vlan"]))
 end
 
+function flowinfo2process(process)
+   local fmt, proc_name, proc_user_name = '', '', ''
+
+   if process then
+      -- TODO: add links back once restored
+
+      if not isEmptyString(process["name"]) then
+	 proc_name = string.format("<i class='fa fa-terminal'></i> %s", process["name"])
+	 -- proc_name = string.format("<A HREF='%s/lua/tbd.lua'>%s</A>", ntop.getHttpPrefix(), proc_name)
+      end
+
+      if not isEmptyString(process["user_name"]) then
+	 proc_user_name = string.format("<i class='fa fa-linux'></i> %s", process["user_name"])
+	 -- proc_user_name = string.format("<A HREF='%s/lua/tbd.lua'>%s</A>", ntop.getHttpPrefix(), proc_user_name)
+      end
+
+      fmt = string.format("[%s]", table.concat({proc_user_name, proc_name}, ' '))
+   end
+
+   return fmt
+end
 
 -- URL Util --
 
