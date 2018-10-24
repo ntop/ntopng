@@ -272,7 +272,7 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
       dst_key = dst_key .. "</A>"
 
       if(value["srv.port"] > 0) then
-	 dst_port=":<A HREF='"..ntop.getHttpPrefix().."/lua/port_details.lua?port=" .. value["srv.port"] .. "'>"..ntop.getservbyport(value["srv.port"], string.lower(value["proto.l4"])).."</A>"
+	 dst_port="<A HREF='"..ntop.getHttpPrefix().."/lua/port_details.lua?port=" .. value["srv.port"] .. "'>"..ntop.getservbyport(value["srv.port"], string.lower(value["proto.l4"])).."</A>"
       else
 	 dst_port=""
       end
