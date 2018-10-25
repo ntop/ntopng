@@ -186,7 +186,6 @@ throughput_type = getThroughputType()
 flow_key = _GET["flow_key"]
 
 interface.select(ifname)
-is_packetdump_enabled = isLocalPacketdumpEnabled()
 if(flow_key == nil) then
    flow = nil
 else
@@ -218,10 +217,6 @@ else
       if(_POST["drop_flow_policy"] == "true") then
 	 interface.dropFlowTraffic(tonumber(flow_key))
 	 flow["verdict.pass"] = false
-      end
-      if(_POST["dump_flow_to_disk"] ~= nil and is_packetdump_enabled) then
-	 interface.dumpFlowTraffic(tonumber(flow_key), ternary(_POST["dump_flow_to_disk"] == "true", 1, 0))
-	 flow["dump.disk"] = ternary(_POST["dump_flow_to_disk"] == "true", true, false)
       end
    end
 
@@ -645,26 +640,6 @@ else
 
    if(flow["profile"] ~= nil) then
       print("<tr><th width=30%><A HREF=\"".. ntop.getHttpPrefix() .."/lua/pro/admin/edit_profiles.lua\">"..i18n("flow_details.profile_name").."</A></th><td colspan=2><span class='label label-primary'>"..flow["profile"].."</span></td></tr>\n")
-   end
-
-   if is_packetdump_enabled then
-      dump_flow_to_disk = flow["dump.disk"]
-      if(dump_flow_to_disk == true) then
-	 dump_flow_to_disk_checked = 'checked="checked"'
-	 dump_flow_to_disk_value = "false" -- Opposite
-      else
-	 dump_flow_to_disk_checked = ""
-	 dump_flow_to_disk_value = "true" -- Opposite
-      end
-
-      print("<tr><th width=30%>"..i18n("flow_details.dump_flow_traffic").."</th><td colspan=2>")
-      print [[
-        <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">]]
-      print('<input type="hidden" name="dump_flow_to_disk" value="'..dump_flow_to_disk_value..'"><input type="checkbox" value="1" '..dump_flow_to_disk_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i>')
-      print(' </input>')
-      print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-      print('</form>')
-      print("</td></tr>\n")
    end
 
    if (flow["moreinfo.json"] ~= nil) then

@@ -259,8 +259,6 @@ for _key, _value in pairsByKeys(vals, funct) do
    icon = icon:gsub('"',"'")
    print(icon)
 
-   if(value["dump_host_traffic"] == true) then print("&nbsp;<i class='fa fa-hdd-o fa-lg'></i>") end
-
    if((hosts_stats[key].ip ~= "0.0.0.0") and (not string.contains(hosts_stats[key].ip, ":"))) then
       if(value.dhcpHost) then print("&nbsp;<i class='fa fa-flash fa-lg' title='DHCP Host'></i>") end
    end

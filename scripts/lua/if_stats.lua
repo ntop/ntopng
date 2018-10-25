@@ -81,11 +81,6 @@ end
 
 interface.select(ifname)
 
--- local pcap dump is disabled if  the user is not an administrator 
--- or if the interface:
--- is a view
--- is not a packet interface (i.e., it is zmq)
-local is_packetdump_enabled = isLocalPacketdumpEnabled()
 local is_packet_interface = interface.isPacketInterface()
 
 local ifstats = interface.getStats()
@@ -143,21 +138,6 @@ if (isAdministrator()) then
       if(sf == nil) then sf = 1 end
       ntop.setCache(getRedisIfacePrefix(ifid)..'.scaling_factor',tostring(sf))
       interface.loadScalingFactorPrefs()
-   end
-
-   if is_packetdump_enabled and (page == "packetdump") and (_SERVER["REQUEST_METHOD"] == "POST") then
-      ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_all_traffic', ternary(isEmptyString(_POST["dump_all_traffic"]), "false", "true"))
-      ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_tap', ternary(isEmptyString(_POST["dump_traffic_to_tap"]), "false", "true"))
-      ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_disk', ternary(isEmptyString(_POST["dump_traffic_to_disk"]), "false", "true"))
-      ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_unknown_traffic', ternary(isEmptyString(_POST["dump_unknown_to_disk"]), "false", "true"))
-      ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_sampling_rate', _POST["sampling_rate"])
-      ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_max_pkts_file', _POST["max_pkts_file"])
-      ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_max_sec_file',_POST["max_sec_file"])
-      local max_files = ternary(not isEmptyString(_POST["max_files"]), _POST["max_files"], 500)
-      max_files = tonumber(max_files) * 1e6
-      ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_max_files', tostring(max_files))
-
-      interface.loadDumpPrefs()
    end
 
    if recording_utils.isAvailable() and 
@@ -285,16 +265,6 @@ if not have_nedge and (table.len(ifstats.profiles) > 0) then
     print("<li><a href=\""..url.."&page=trafficprofiles\"><i class=\"fa fa-user-md fa-lg\"></i></a></li>")
   end
 end
-
---[[ To be removed
-if is_packetdump_enabled then
-   if(page == "packetdump") then
-      print("<li class=\"active\"><a href=\""..url.."&page=packetdump\"><i class=\"fa fa-hdd-o fa-lg\"></i></a></li>")
-   else
-      print("<li><a href=\""..url.."&page=packetdump\"><i class=\"fa fa-hdd-o fa-lg\"></i></a></li>")
-   end
-end
---]]
 
 if recording_utils.isAvailable() and (interface.isPacketInterface() or 
    (recording_utils.isSupportedZMQInterface(ifid) and not table.empty(ext_interfaces))) then
@@ -524,12 +494,6 @@ if((page == "overview") or (page == nil)) then
          print("<td colspan=3></td></tr>")
       end
       print("</tr>")
-   end
-
-   if(ifstats["pkt_dumper"] ~= nil) then
-      print("<tr><th rowspan=2>"..i18n("if_stats_overview.packet_dumper").."</th><th colspan=2>"..i18n("if_stats_overview.dumped_packets").."</th><th colspan=2>"..i18n("if_stats_overview.dumped_files").."</th></tr>\n")
-      print("<tr><td colspan=2><div id=dumped_pkts>".. formatValue(ifstats["pkt_dumper"]["num_dumped_pkts"]) .."</div></td>")
-      print("<td colspan=2><div id=dumped_files>".. formatValue(ifstats["pkt_dumper"]["num_dumped_files"]) .."</div></td></tr>\n")
    end
 
    label = i18n("pkts")
@@ -1035,138 +999,6 @@ print [[
 
    </script>
 ]]
-elseif(page == "packetdump") then
-
-if is_packetdump_enabled then
-  local dump_all_traffic = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_all_traffic')
-  local dump_unknown_traffic = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_unknown_traffic')
-  local dump_status_tap = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_tap')
-  local dump_status_disk = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_disk')
-
-  if(dump_all_traffic == "true") then
-    dump_all_traffic_checked = 'checked="checked"'
-    dump_all_traffic_value = "false" -- Opposite
-  else
-    dump_all_traffic_checked = ""
-    dump_all_traffic_value = "true" -- Opposite
-  end
-  if(dump_status_disk == "true") then
-    dump_traffic_checked = 'checked="checked"'
-    dump_traffic_value = "false" -- Opposite
-  else
-    dump_traffic_checked = ""
-    dump_traffic_value = "true" -- Opposite
-  end
-  if(dump_unknown_traffic == "true") then
-    dump_unknown_checked = 'checked="checked"'
-    dump_unknown_value = "false" -- Opposite
-  else
-    dump_unknown_checked = ""
-    dump_unknown_value = "true" -- Opposite
-  end
-  if(dump_status_tap == "true") then
-    dump_traffic_tap_checked = 'checked="checked"'
-    dump_traffic_tap_value = "false" -- Opposite
-  else
-    dump_traffic_tap_checked = ""
-    dump_traffic_tap_value = "true" -- Opposite
-  end
-
-   print("<form id=\"packetdump_form\" class=\"form-inline\" method=\"post\">")
-   print("<table class=\"table table-striped table-bordered\">\n")
-   print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-   print("<tr><th rowspan=2 width=30%>" .. i18n("packetdump_page.packet_dump") .. "</th><td>")
-	       print('<input name="dump_all_traffic" type="checkbox" value="1" '..dump_all_traffic_checked..'>'..' '..i18n("packetdump_page.dump_all_traffic"))
-	       print('</input>')
-   print("</td></tr>\n")
-
-   print("<tr><td>")
-	       print('<input name="dump_unknown_to_disk" type="checkbox" value="1" '..dump_unknown_checked..'> '..i18n("packetdump_page.dump_unknown_traffic")..' </input>')
-   print("</td></tr>\n")
-
-   print("<tr><th width=30%>" .. i18n("packetdump_page.packet_dump_to_disk").. "</th><td>")
-	       print('<input name="dump_traffic_to_disk" type="checkbox" value="1" '..dump_traffic_checked..'> <i class="fa fa-hdd-o fa-lg"></i> '..i18n("packetdump_page.dump_traffic_to_disk"))
-	       if(dump_traffic_checked ~= "") then
-		 local dumped = interface.getInterfacePacketsDumpedFile()
-	         print(" - " .. i18n("packetdump_page.num_dumped_packets",{num_pkts=ternary(dumped, dumped, 0)}))
-	       end
-	       print('</input>')
-   print("</td></tr>\n")
-
-   print("<tr><th>" .. i18n("packetdump_page.packet_dump_to_tap") .. "</th><td>")
-   if(interface.getInterfaceDumpTapName() ~= "") then
-	       print('<input name="dump_traffic_to_tap" type="checkbox" value="1" '..dump_traffic_tap_checked..'> <i class="fa fa-filter fa-lg"></i> '..i18n("packetdump_page.dump_traffic_to_tap")..' ')
-	       print('('..interface.getInterfaceDumpTapName()..')')
-	       if(dump_traffic_tap_checked ~= "") then
-		 dumped = interface.getInterfacePacketsDumpedTap()
- 		 print(" - " .. i18n("packetdump_page.num_dumped_packets",{num_pkts=ternary(dumped, dumped, 0)}))
-	       end
-	       print(' </input>')
-   else
-      print(i18n("packetdump_page.packet_dump_to_tap_disabled_message"))
-   end
-
-   print("</td></tr>\n")
-   print("<tr><th width=250>"..i18n("packetdump_page.sampling_rate").."</th>\n")
-   print [[<td>]]
-
-   print [[<input type="number" style="width:127px;display:inline;" class="form-control" name="sampling_rate" placeholder="" min="1" step="1" max="100000000" value="]]
-   local srate = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_sampling_rate')
-   if not isEmptyString(srate) then print(srate) else print("1") end
-   print [["></input>
-    </td></tr>
-       ]]
-   
-
-   print("<tr><th colspan=2>" .. i18n("packetdump_page.dump_to_disk_parameters") .. "</th></tr>")
-   print("<tr><th width=250>" .. i18n("packetdump_page.pcap_dump_directory") .. "</th><td>")
-   pcapdir = dirs.workingdir .."/"..ifstats.id.."/pcap/"
-   print(pcapdir.."</td></tr>\n")
-   print("<tr><th width=250>" .. i18n("packetdump_page.max_packets_per_file") .. "</th>\n")
-   print [[<td>]]
-      print [[<input type="number" style="width:127px;display:inline;" class="form-control" name="max_pkts_file" placeholder="" min="1" step="1" max="100000000" value="]]
-      local max_pkts_file = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_max_pkts_file')
-      if(max_pkts_file ~= nil and max_pkts_file ~= "") then
-	 print(max_pkts_file.."")
-      else
-	 print(interface.getInterfaceDumpMaxPkts().."")
-      end
-      print [["></input> pkts<br>
-    <small>]] print(i18n("packetdump_page.max_packets_per_file_description")) print [[</small>
-    </td></tr>
-       ]]
-   print("<tr><th width=250>" .. i18n("packetdump_page.max_duration_file") .. "</th>\n")
-   print [[<td>]]
-      print [[<input type="number" class="form-control" style="width:127px;display:inline;" name="max_sec_file" placeholder="" min="60" step="60" max="100000000" value="]]
-      local max_sec_file = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_max_sec_file')
-      if not isEmptyString(max_sec_file) then
-	 print(max_sec_file.."")
-      else
-	 print(interface.getInterfaceDumpMaxSec().."")
-      end
-      print [["></input> sec<br>
-    <small>]] print(i18n("packetdump_page.max_duration_file_description") .. "<br>") print(i18n("packetdump_page.note") .. ": " .. i18n("packetdump_page.note_max_duration_file")) print[[</small>
-    </td></tr>
-       ]]
-   print("<tr><th width=250>" .. i18n("packetdump_page.max_dump_files") .. "</th>\n")
-   print [[<td>]]
-      print [[<input type="number" style="width:127px;display:inline;" class="form-control" name="max_files" placeholder="" min="1" step="1" max="500000000" value="]]
-      local max_files = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_max_files')
-      if not isEmptyString(max_files) then
-	 print((max_files / 1e6).."")
-      else
-	 print(interface.getInterfaceDumpMaxFiles().."")
-      end
-      print [["></input> MB<br>
-    <small>]] print(i18n("packetdump_page.max_size_dump_files_description")) print[[<br>]] print(i18n("packetdump_page.note") .. ": " .. i18n("packetdump_page.note_max_size_dump_files")) print[[</small>
-    </td>]]
-   print("</table>")
-   print[[<button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button><br><br>]]
-   print("</form>")
-   print[[<script>
-      aysHandleForm("#packetdump_form");
-   </script>]]
-end
 
 elseif(page == "traffic_recording") then
 

@@ -1894,10 +1894,6 @@ function isLoopback(name)
   end
 end
 
-function isLocalPacketdumpEnabled()
-   return isAdministrator() and interface.isPacketInterface() and not ntop.isnEdge()
-end
-
 function processColor(proc)
   if(proc == nil) then
     return("")

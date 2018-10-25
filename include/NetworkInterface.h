@@ -162,10 +162,8 @@ class NetworkInterface : public Checkpointable {
 
   /* Hosts */
   HostHash *hosts_hash; /**< Hash used to store hosts information. */
-  bool purge_idle_flows_hosts, sprobe_interface, inline_interface,
-    dump_all_traffic, dump_to_tap, dump_to_disk, dump_unknown_traffic;
+  bool purge_idle_flows_hosts, sprobe_interface, inline_interface;
   DB *db;
-  u_int dump_sampling_rate, dump_max_pkts_file, dump_max_duration, dump_max_files;
   StatsManager  *statsManager;
   AlertsManager *alertsManager;
   HostPools *host_pools;
@@ -175,8 +173,6 @@ class NetworkInterface : public Checkpointable {
   time_t last_pkt_rcvd, last_pkt_rcvd_remote, /* Meaningful only for ZMQ interfaces */
     next_idle_flow_purge, next_idle_host_purge;
   bool running, is_idle;
-  PacketDumper *pkt_dumper;
-  PacketDumperTuntap *pkt_dumper_tap;
   NetworkStats *networkStats;
   InterfaceStatsHash *interfaceStats;
   char checkpoint_compression_buffer[CONST_MAX_NUM_CHECKPOINTS][MAX_CHECKPOINT_COMPRESSION_BUFFER_SIZE];
@@ -232,8 +228,6 @@ class NetworkInterface : public Checkpointable {
 
   bool isNumber(const char *str);
   bool checkIdle();
-  void dumpPacketDisk(const struct pcap_pkthdr *h, const u_char *packet, dump_reason reason);
-  void dumpPacketTap(const struct pcap_pkthdr *h, const u_char *packet, dump_reason reason);
 
   void disablePurge(bool on_flows);
   void enablePurge(bool on_flows);
@@ -409,7 +403,6 @@ class NetworkInterface : public Checkpointable {
 		     Host **srcHost, Host **dstHost, Flow **flow);
   void processFlow(ZMQ_Flow *zflow);
   void processInterfaceStats(sFlowInterfaceStats *stats);
-  void dumpFlows();
   void getnDPIStats(nDPIStats *stats, AddressTree *allowed_hosts, const char *host_ip, u_int16_t vlan_id);
   void periodicStatsUpdate();
   virtual void lua(lua_State* vm);
@@ -529,8 +522,6 @@ class NetworkInterface : public Checkpointable {
 #endif
   inline HostPools* getHostPools()                     { return(host_pools);    }
 
-  PacketDumper *getPacketDumper(void)                  { return pkt_dumper;     }
-  PacketDumperTuntap *getPacketDumperTap(void)         { return pkt_dumper_tap; }
   bool registerLiveCapture(struct ntopngLuaContext * const luactx, int *id);
   bool deregisterLiveCapture(struct ntopngLuaContext * const luactx);
   void dumpLiveCaptures(lua_State* vm);
@@ -548,21 +539,6 @@ class NetworkInterface : public Checkpointable {
   inline u_int16_t getHostPool(Host *h) { if(h && host_pools) return host_pools->getPool(h); return NO_HOST_POOL_ID; };
   inline u_int16_t getHostPool(Mac *m)  { if(m && host_pools) return host_pools->getPool(m); return NO_HOST_POOL_ID; };
 
-  bool updateDumpAllTrafficPolicy(void);
-  bool updateDumpTrafficDiskPolicy();
-  bool updateDumpTrafficTapPolicy();
-  int updateDumpTrafficSamplingRate();
-  int updateDumpTrafficMaxPktsPerFile();
-  int updateDumpTrafficMaxSecPerFile();
-  int updateDumpTrafficMaxFiles(void);
-  inline bool getDumpTrafficDiskPolicy()      { return(dump_to_disk);       }
-  inline bool getDumpTrafficTapPolicy()       { return(dump_to_tap);        }
-  inline u_int getDumpTrafficSamplingRate()   { return(dump_sampling_rate); }
-  inline u_int getDumpTrafficMaxPktsPerFile() { return(dump_max_pkts_file); }
-  inline u_int getDumpTrafficMaxSecPerFile()  { return(dump_max_duration);  }
-  inline u_int getDumpTrafficMaxFiles()       { return(dump_max_files);     }
-  inline char* getDumpTrafficTapName()        { return(pkt_dumper_tap ? pkt_dumper_tap->getName() : (char*)""); }
-  void loadDumpPrefs();
   void loadScalingFactorPrefs();
   void loadPacketsDropsAlertPrefs();
   void getnDPIFlowsCount(lua_State *vm);
@@ -618,7 +594,6 @@ class NetworkInterface : public Checkpointable {
 
   void refreshHostsAlertPrefs(bool full_refresh);
   int updateHostTrafficPolicy(AddressTree* allowed_networks, char *host_ip, u_int16_t host_vlan);
-  int setHostDumpTrafficPolicy(AddressTree* allowed_networks, char *host_ip, u_int16_t host_vlan, bool dump_traffic_to_disk);
 
   void reloadHideFromTop(bool refreshHosts=true);
   inline void reloadCustomCategories()       { reload_custom_categories = true; }
@@ -692,8 +667,6 @@ class NetworkInterface : public Checkpointable {
     if (host_pools) host_pools->decNumL2Devices(id, isInlineCall);
   };
   Host* findHostByIP(AddressTree *allowed_hosts, char *host_ip, u_int16_t vlan_id);
-  inline bool do_dump_unknown_traffic() { return(dump_unknown_traffic); }
-  inline bool do_dump_all_traffic()     { return(dump_unknown_traffic); }
 #ifdef HAVE_NINDEX
   NIndexFlowDB* getNindex();
 #endif

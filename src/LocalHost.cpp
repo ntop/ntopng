@@ -68,7 +68,7 @@ void LocalHost::initialize() {
   dhcpUpdated = false;
   icmp = NULL;
   num_alerts_detected = 0;
-  drop_all_host_traffic = false, dump_host_traffic = false;
+  drop_all_host_traffic = false;
   trigger_host_alerts = false;
 
   os[0] = '\0';
@@ -431,30 +431,7 @@ void LocalHost::updateHostTrafficPolicy(char *key) {
       drop_all_host_traffic = true;
 
   }
-
-  if((ntop->getRedis()->hashGet((char*)DUMP_HOST_TRAFFIC,
-				host, buf, sizeof(buf)) == -1)
-     || (strcmp(buf, "true") != 0))
-    dump_host_traffic = false;
-  else
-    dump_host_traffic = true;
 }
-
-/* *************************************** */
-
-void LocalHost::setDumpTrafficPolicy(bool new_policy) {
-  char buf[64], *host;
-
-  if(dump_host_traffic == new_policy)
-    return; /* Nothing to do */
-  else
-    dump_host_traffic = new_policy;
-
-  host = get_hostkey(buf, sizeof(buf), true);
-
-  ntop->getRedis()->hashSet((char*)DUMP_HOST_TRAFFIC, host,
-			    (char*)(dump_host_traffic ? "true" : "false"));
-};
 
 /* *************************************** */
 

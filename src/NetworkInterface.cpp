@@ -97,7 +97,7 @@ NetworkInterface::NetworkInterface(const char *name,
     }
   }
 
-  pkt_dumper_tap = NULL, db = NULL;
+  db = NULL;
   ifname = strdup(name);
   if(custom_interface_type) {
     ifDescription = strdup(name);
@@ -189,11 +189,8 @@ NetworkInterface::NetworkInterface(const char *name,
     last_pkt_rcvd = last_pkt_rcvd_remote = 0, pollLoopCreated = false,
       bridge_interface = false;
     next_idle_flow_purge = next_idle_host_purge = 0;
-    cpu_affinity = -1 /* no affinity */, has_vlan_packets = has_mac_addresses = false,
-      pkt_dumper = NULL;
+    cpu_affinity = -1 /* no affinity */, has_vlan_packets = has_mac_addresses = false;
     arp_requests = arp_replies = 0;
-    if(ntop->getPrefs()->are_taps_enabled())
-      pkt_dumper_tap = new PacketDumperTuntap(this);
 
     running = false, sprobe_interface = false,
       inline_interface = false, db = NULL;
@@ -206,7 +203,6 @@ NetworkInterface::NetworkInterface(const char *name,
     macs_hash = NULL, ases_hash = NULL, vlans_hash = NULL;
     countries_hash =  NULL;
     ndpi_struct = NULL, db = NULL, ifSpeed = 0;
-    pkt_dumper = NULL, pkt_dumper_tap = NULL;
   }
 
   networkStats = NULL;
@@ -286,25 +282,19 @@ void NetworkInterface::init() {
     inline_interface = false, running = false, interfaceStats = NULL,
     has_too_many_hosts = has_too_many_flows = too_many_drops = false,
     slow_stats_update = false,
-    pkt_dumper = NULL, numL2Devices = 0, numHosts = 0, numLocalHosts = 0,
+    numL2Devices = 0, numHosts = 0, numLocalHosts = 0,
     checkpointPktCount = checkpointBytesCount = checkpointPktDropCount = 0,
     pollLoopCreated = false, bridge_interface = false,
     mdns = NULL, discovery = NULL, ifDescription = NULL,
     flowHashingMode = flowhashing_none;
     macs_hash = NULL, ases_hash = NULL, countries_hash = NULL, vlans_hash = NULL;
 
-  if(ntop && ntop->getPrefs() && ntop->getPrefs()->are_taps_enabled())
-    pkt_dumper_tap = new PacketDumperTuntap(this);
-  else
-    pkt_dumper_tap = NULL;
-
   numSubInterfaces = 0;
   memset(subInterfaces, 0, sizeof(subInterfaces));
   reload_custom_categories = false;
 
   ip_addresses = "", networkStats = NULL,
-    pcap_datalink_type = 0, cpu_affinity = -1,
-    pkt_dumper = NULL;
+    pcap_datalink_type = 0, cpu_affinity = -1;
   hide_from_top = hide_from_top_shadow = NULL;
 
   gettimeofday(&last_frequent_reset, NULL);
@@ -322,12 +312,6 @@ void NetworkInterface::init() {
   statsManager = NULL, alertsManager = NULL, ifSpeed = 0;
   host_pools = NULL;
   checkIdle();
-  dump_all_traffic = dump_to_disk = dump_unknown_traffic
-    = dump_to_tap = false;
-  dump_sampling_rate = CONST_DUMP_SAMPLING_RATE;
-  dump_max_pkts_file = CONST_MAX_NUM_PACKETS_PER_DUMP;
-  dump_max_duration = CONST_MAX_DUMP_DURATION;
-  dump_max_files = CONST_MAX_DUMP;
   ifMTU = CONST_DEFAULT_MAX_PACKET_SIZE, mtuWarningShown = false;
 #ifdef NTOPNG_PRO
 #ifndef HAVE_NEDGE
@@ -483,20 +467,6 @@ void NetworkInterface::checkAggregationMode() {
 
 /* **************************************************** */
 
-void NetworkInterface::loadDumpPrefs() {
-  if(ntop->getRedis() != NULL) {
-    updateDumpAllTrafficPolicy();
-    updateDumpTrafficDiskPolicy();
-    updateDumpTrafficTapPolicy();
-    updateDumpTrafficSamplingRate();
-    updateDumpTrafficMaxPktsPerFile();
-    updateDumpTrafficMaxSecPerFile();
-    updateDumpTrafficMaxFiles();
-  }
-}
-
-/* **************************************************** */
-
 void NetworkInterface::loadScalingFactorPrefs() {
   if(ntop->getRedis() != NULL) {
     char rkey[128], rsp[16];
@@ -547,144 +517,6 @@ void NetworkInterface::updateTrafficMirrored() {
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Updating mirrored traffic [ifid: %i][rsp: %s][actual_value: %d]", get_id(), rsp, is_mirrored ? 1 : 0);
 
   is_traffic_mirrored = is_mirrored;
-}
-
-/* **************************************************** */
-
-bool NetworkInterface::updateDumpTrafficTapPolicy(void) {
-  bool retval = false;
-
-  if(ifname != NULL) {
-    char rkey[128], rsp[16];
-
-    snprintf(rkey, sizeof(rkey), "ntopng.prefs.%s.dump_tap", ifname);
-    if(ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0)
-      retval = !strncmp(rsp, "true", 5);
-    else
-      retval = false;
-  }
-
-  dump_to_tap = retval;
-  return retval;
-}
-
-/* **************************************************** */
-
-bool NetworkInterface::updateDumpAllTrafficPolicy(void) {
-  bool retval = false;
-
-  if(ifname != NULL) {
-    char rkey[128], rsp[16];
-
-    snprintf(rkey, sizeof(rkey), "ntopng.prefs.%s.dump_all_traffic", ifname);
-    if(ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0)
-      retval = !strncmp(rsp, "true", 5);
-  }
-
-  dump_all_traffic = retval;
-  return retval;
-}
-
-/* **************************************************** */
-
-bool NetworkInterface::updateDumpTrafficDiskPolicy(void) {
-  bool retval = false, retval_u = false;
-
-  if(ifname != NULL) {
-    char rkey[128], rsp[16];
-
-    snprintf(rkey, sizeof(rkey), "ntopng.prefs.%s.dump_disk", ifname);
-    if(ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0)
-      retval = !strncmp(rsp, "true", 5);
-    snprintf(rkey, sizeof(rkey), "ntopng.prefs.%s.dump_unknown_traffic", ifname);
-    if(ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0)
-      retval_u = !strncmp(rsp, "true", 5);
-  }
-
-  dump_to_disk = retval;
-  dump_unknown_traffic = retval_u;
-
-  if(dump_to_disk || dump_unknown_traffic) {
-    if(!pkt_dumper)
-      pkt_dumper = new PacketDumper(this);
-  }
-  return retval;
-}
-
-/* **************************************************** */
-
-int NetworkInterface::updateDumpTrafficSamplingRate(void) {
-  int retval = CONST_DUMP_SAMPLING_RATE;
-
-  if(ifname != NULL) {
-    char rkey[128], rsp[16];
-
-    snprintf(rkey, sizeof(rkey), "ntopng.prefs.%s.dump_sampling_rate", ifname);
-    if(ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0 && rsp[0] != '\0')
-      retval = atoi(rsp);
-  }
-
-  dump_sampling_rate = retval;
-  return retval;
-}
-
-/* **************************************************** */
-
-int NetworkInterface::updateDumpTrafficMaxPktsPerFile(void) {
-  int retval = CONST_MAX_NUM_PACKETS_PER_DUMP;
-
-  if(ifname != NULL) {
-    char rkey[128], rsp[16];
-
-    snprintf(rkey, sizeof(rkey), "ntopng.prefs.%s.dump_max_pkts_file", ifname);
-    if(ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0 && rsp[0] != '\0')
-      retval = atoi(rsp);
-  }
-
-  retval = retval > 0 ? retval : CONST_MAX_NUM_PACKETS_PER_DUMP;
-
-  dump_max_pkts_file = retval;
-  return retval;
-}
-
-/* **************************************************** */
-
-int NetworkInterface::updateDumpTrafficMaxSecPerFile(void) {
-  int retval = 0;
-
-  if(ifname != NULL) {
-    char rkey[128], rsp[16];
-
-    snprintf(rkey, sizeof(rkey), "ntopng.prefs.%s.dump_max_sec_file", ifname);
-    if(ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0)
-      retval = atoi(rsp);
-  }
-
-  retval = retval > 0 ? retval : CONST_MAX_DUMP_DURATION;
-
-  dump_max_duration = retval;
-
-  return retval;
-}
-
-/* **************************************************** */
-
-int NetworkInterface::updateDumpTrafficMaxFiles(void) {
-  int retval = CONST_MAX_DUMP;
-
-  if(ifname != NULL) {
-    char rkey[128], rsp[16];
-
-    snprintf(rkey, sizeof(rkey), "ntopng.prefs.%s.dump_max_files", ifname);
-    if(ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0 && rsp[0] != '\0')
-      retval = atoi(rsp);
-  }
-
-  retval = retval > 0 ? retval : CONST_MAX_DUMP;
-
-  dump_max_files = retval;
-
-  return retval;
 }
 
 /* **************************************************** */
@@ -760,8 +592,6 @@ NetworkInterface::~NetworkInterface() {
   if(statsManager)   delete statsManager;
   if(alertsManager)  delete alertsManager;
   if(networkStats)   delete []networkStats;
-  if(pkt_dumper)     delete pkt_dumper;
-  if(pkt_dumper_tap) delete pkt_dumper_tap;
   if(interfaceStats) delete interfaceStats;
 
   if(flowHashing) {
@@ -1490,26 +1320,6 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
 
 /* **************************************************** */
 
-void NetworkInterface::dumpPacketDisk(const struct pcap_pkthdr *h, const u_char *packet,
-                                      dump_reason reason) {
-  if(pkt_dumper == NULL)
-    pkt_dumper = new PacketDumper(this);
-
-  if(pkt_dumper)
-    pkt_dumper->dumpPacket(h, packet, reason, getDumpTrafficSamplingRate());
-}
-
-/* **************************************************** */
-
-void NetworkInterface::dumpPacketTap(const struct pcap_pkthdr *h, const u_char *packet,
-                                     dump_reason reason) {
-  if(pkt_dumper_tap)
-    pkt_dumper_tap->writeTap((unsigned char *)packet, h->len, reason,
-                             getDumpTrafficSamplingRate());
-}
-
-/* **************************************************** */
-
 bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 				     bool ingressPacket,
 				     const struct bpf_timeval *when,
@@ -1781,11 +1591,6 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	struct ndpi_id_struct *srv = (struct ndpi_id_struct*)flow->get_srv_id();
 
 	if(flow->get_packets() >= NDPI_MIN_NUM_PACKETS) {
-	  if(dump_unknown_traffic && (!isSampledTraffic())) {
-	    flow->addPacketToDump(h, packet);
-	    flow->flushBufferedPackets();
-	  }
-
 	  flow->setDetectedProtocol(ndpi_detection_giveup(ndpi_struct, ndpi_flow), false);
 	} else
 	  flow->setDetectedProtocol(ndpi_detection_process_packet(ndpi_struct, ndpi_flow,
@@ -2019,26 +1824,6 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 #endif
   }
 
-  bool dump_if_unknown = dump_unknown_traffic
-    && ((!flow->isDetectionCompleted())
-	&& (flow->get_detected_protocol().app_protocol == NDPI_PROTOCOL_UNKNOWN));
-  bool dump_flow_to_disk = dump_to_disk && !isSampledTraffic();
-
-  /* Special handler for unknown traffic */
-  if(dump_if_unknown && dump_flow_to_disk)
-    flow->addPacketToDump(h, packet);
-
-  /* General packet dump */
-  if(dump_if_unknown
-     || dump_all_traffic
-     || flow->dumpFlowTraffic()) {
-    /* Dump to separate file only if general packet dump is enabled */
-    if(dump_flow_to_disk && (dump_all_traffic || flow->dumpFlowTraffic()))
-      dumpPacketDisk(h, packet, GUI);
-
-    if(dump_to_tap)  dumpPacketTap(h, packet, GUI);
-  }
-
   /* Live packet dump to mongoose */
   if(num_live_captures > 0)
     deliverLiveCapture(h, packet, flow);
@@ -2066,8 +1851,6 @@ void NetworkInterface::purgeIdle(time_t when) {
       ntop->getTrace()->traceEvent(TRACE_DEBUG, "Purged %u/%u idle hosts/macs on %s",
 				   m, getNumHosts()+getNumMacs(), ifname);
   }
-
-  if(pkt_dumper) pkt_dumper->idle(when);
 }
 
 /* ***************************************************** */
@@ -5403,9 +5186,6 @@ void NetworkInterface::lua(lua_State *vm) {
   _tcpPacketStats.lua(vm, "tcpPacketStats");
 
   if(!isView()) {
-    if(pkt_dumper)
-      pkt_dumper->lua(vm);
-
 #ifdef NTOPNG_PRO
 #ifndef HAVE_NEDGE
     if(flow_profiles) flow_profiles->lua(vm);
@@ -6641,24 +6421,6 @@ int NetworkInterface::updateHostTrafficPolicy(AddressTree* allowed_networks,
 
   if((h = findHostByIP(allowed_networks, host_ip, host_vlan)) != NULL) {
     h->updateHostTrafficPolicy(host_ip);
-    rv = CONST_LUA_OK;
-  } else
-    rv = CONST_LUA_ERROR;
-
-  enablePurge(false);
-  return rv;
-}
-
-/* **************************************** */
-
-int NetworkInterface::setHostDumpTrafficPolicy(AddressTree* allowed_networks, char *host_ip,
-					       u_int16_t host_vlan, bool dump_traffic_to_disk) {
-  Host *h;
-  int rv;
-  disablePurge(false);
-
-  if((h = findHostByIP(allowed_networks, host_ip, host_vlan)) != NULL) {
-    h->setDumpTrafficPolicy(dump_traffic_to_disk);
     rv = CONST_LUA_OK;
   } else
     rv = CONST_LUA_ERROR;

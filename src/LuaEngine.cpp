@@ -3141,36 +3141,6 @@ static int ntop_drop_multiple_flows_traffic(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
-static int ntop_dump_flow_traffic(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  u_int32_t key, what;
-  Flow *f;
-  AddressTree *ptree = get_allowed_nets(vm);
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  key = (u_int32_t)lua_tonumber(vm, 1);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  what = (u_int32_t)lua_tonumber(vm, 2);
-
-  if(!ntop_interface) return(false);
-
-  f = ntop_interface->findFlowByKey(key, ptree);
-
-  if(f == NULL)
-    return(CONST_LUA_ERROR);
-  else {
-    lua_pushnil(vm);
-    f->setDumpFlowTraffic(what ? true : false);
-    return(CONST_LUA_OK);
-  }
-}
-
-/* ****************************************** */
-
 static int ntop_dump_local_hosts_2_redis(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -3375,192 +3345,6 @@ static int ntop_refresh_hosts_alerts_configuration(lua_State* vm) {
 
   ntop_interface->refreshHostsAlertPrefs(full_refresh);
   lua_pushnil(vm);
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-// ***API***
-static int ntop_set_host_dump_policy(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  char *host_ip;
-  u_int16_t vlan_id = 0;
-  char buf[64];
-  bool dump_traffic_to_disk;
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TBOOLEAN) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  dump_traffic_to_disk = lua_toboolean(vm, 1) ? true : false;
-
-  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  get_host_vlan_info((char*)lua_tostring(vm, 2), &host_ip, &vlan_id, buf, sizeof(buf));
-
-  /* Optional VLAN id */
-  if(lua_type(vm, 3) == LUA_TNUMBER) vlan_id = (u_int16_t)lua_tonumber(vm, 3);
-
-  if(!ntop_interface)
-    return(CONST_LUA_ERROR);
-
-  lua_pushboolean(vm, ntop_interface->setHostDumpTrafficPolicy(get_allowed_nets(vm),
-							       host_ip, vlan_id, dump_traffic_to_disk));
-  return CONST_LUA_OK;
-}
-
-/* ****************************************** */
-
-// *** API ***
-static int ntop_get_interface_dump_tap_policy(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  bool dump_traffic_to_tap;
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(!ntop_interface)
-    return(CONST_LUA_ERROR);
-
-  dump_traffic_to_tap = ntop_interface->getDumpTrafficTapPolicy();
-
-  lua_pushboolean(vm, dump_traffic_to_tap ? 1 : 0);
-
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-// *** API ***
-static int ntop_get_interface_dump_tap_name(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(!ntop_interface)
-    return(CONST_LUA_ERROR);
-
-  lua_pushstring(vm, ntop_interface->getDumpTrafficTapName());
-
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-// ***API***
-static int ntop_get_interface_dump_disk_policy(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  bool dump_traffic_to_disk;
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(!ntop_interface)
-    return(CONST_LUA_ERROR);
-
-  dump_traffic_to_disk = ntop_interface->getDumpTrafficDiskPolicy();
-
-  lua_pushboolean(vm, dump_traffic_to_disk ? 1 : 0);
-
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-// *** API ***
-static int ntop_get_interface_dump_max_pkts(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  int max_pkts;
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(!ntop_interface)
-    return(CONST_LUA_ERROR);
-
-  max_pkts = ntop_interface->getDumpTrafficMaxPktsPerFile();
-
-  lua_pushnumber(vm, max_pkts);
-
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-// *** API ***
-static int ntop_get_interface_dump_max_sec(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  int max_sec;
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(!ntop_interface)
-    return(CONST_LUA_ERROR);
-
-  max_sec = ntop_interface->getDumpTrafficMaxSecPerFile();
-
-  lua_pushnumber(vm, max_sec);
-
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-// *** API ***
-static int ntop_get_interface_dump_max_files(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  int max_files;
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(!ntop_interface)
-    return(CONST_LUA_ERROR);
-
-  max_files = ntop_interface->getDumpTrafficMaxFiles();
-
-  lua_pushnumber(vm, max_files);
-
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-// *** API ***
-static int ntop_get_interface_pkts_dumped_file(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  int num_pkts;
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(!ntop_interface)
-    return(CONST_LUA_ERROR);
-
-  PacketDumper *dumper = ntop_interface->getPacketDumper();
-  if(!dumper)
-    return(CONST_LUA_ERROR);
-
-  num_pkts = dumper->get_num_dumped_packets();
-
-  lua_pushnumber(vm, num_pkts);
-
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-// *** API ***
-static int ntop_get_interface_pkts_dumped_tap(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  int num_pkts;
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(!ntop_interface)
-    return(CONST_LUA_ERROR);
-
-  PacketDumperTuntap *dumper = ntop_interface->getPacketDumperTap();
-  if(!dumper)
-    return(CONST_LUA_ERROR);
-
-  num_pkts = dumper->get_num_dumped_packets();
-
-  lua_pushnumber(vm, num_pkts);
-
   return(CONST_LUA_OK);
 }
 
@@ -3903,18 +3687,6 @@ static int ntop_get_ndpi_categories(lua_State* vm) {
     lua_push_str_table_entry(vm, ntop_interface->get_ndpi_category_name((ndpi_protocol_category_t)i), buf);
   }
 
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-static int ntop_load_dump_prefs(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-  ntop_interface->loadDumpPrefs();
-
-  lua_pushnil(vm);
   return(CONST_LUA_OK);
 }
 
@@ -6739,30 +6511,6 @@ static int ntop_stats_get_samplings_of_days_from_epoch(lua_State *vm) {
 
 /* ****************************************** */
 
-static int ntop_delete_dump_files(lua_State *vm) {
-  int ifid;
-  char pcap_path[MAX_PATH];
-  NetworkInterface *iface;
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  if((ifid = lua_tointeger(vm, 1)) < 0) return(CONST_LUA_ERROR);
-  if(!(iface = ntop->getNetworkInterface(ifid))) return(CONST_LUA_ERROR);
-
-  snprintf(pcap_path, sizeof(pcap_path), "%s/%d/pcap/",
-	   ntop->get_working_dir(), ifid);
-  ntop->fixPath(pcap_path);
-
-  if(Utils::discardOldFilesExceeding(pcap_path, iface->getDumpTrafficMaxFiles()))
-    return(CONST_LUA_ERROR);
-
-  lua_pushnil(vm);
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
 static int ntop_delete_old_rrd_files(lua_State *vm) {
   int ifid;
   char path[MAX_PATH];
@@ -7948,7 +7696,6 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getFlowKey",               ntop_get_interface_flow_key   },
   { "findFlowByKey",            ntop_get_interface_find_flow_by_key },
   { "dropFlowTraffic",          ntop_drop_flow_traffic },
-  { "dumpFlowTraffic",          ntop_dump_flow_traffic },
   { "dumpLocalHosts2redis",     ntop_dump_local_hosts_2_redis },
   { "dropMultipleFlowsTraffic",   ntop_drop_multiple_flows_traffic },
   { "findUserFlows",            ntop_get_interface_find_user_flows },
@@ -7961,15 +7708,6 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "updateTrafficMirrored",    ntop_update_traffic_mirrored },
   { "updateHostTrafficPolicy",  ntop_update_host_traffic_policy },
   { "refreshHostsAlertsConfiguration",   ntop_refresh_hosts_alerts_configuration },
-  { "setHostDumpPolicy",        ntop_set_host_dump_policy },
-  { "getInterfaceDumpDiskPolicy",       ntop_get_interface_dump_disk_policy },
-  { "getInterfaceDumpTapPolicy",        ntop_get_interface_dump_tap_policy },
-  { "getInterfaceDumpTapName",          ntop_get_interface_dump_tap_name },
-  { "getInterfaceDumpMaxPkts",          ntop_get_interface_dump_max_pkts },
-  { "getInterfaceDumpMaxSec",           ntop_get_interface_dump_max_sec },
-  { "getInterfaceDumpMaxFiles",         ntop_get_interface_dump_max_files },
-  { "getInterfacePacketsDumpedFile",    ntop_get_interface_pkts_dumped_file },
-  { "getInterfacePacketsDumpedTap",     ntop_get_interface_pkts_dumped_tap },
   { "getEndpoint",                      ntop_get_interface_endpoint },
   { "isPacketInterface",                ntop_interface_is_packet_interface },
   { "isDiscoverableInterface",          ntop_interface_is_discoverable_interface },
@@ -7979,7 +7717,6 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "isIdle",                           ntop_interface_is_idle },
   { "setInterfaceIdleState",            ntop_interface_set_idle },
   { "name2id",                          ntop_interface_name2id },
-  { "loadDumpPrefs",                    ntop_load_dump_prefs },
   { "loadScalingFactorPrefs",           ntop_load_scaling_factor_prefs },
   { "loadPacketsDropsAlertPrefs",       ntop_load_packet_drops_prefs },
   { "reloadHideFromTop",                ntop_reload_hide_from_top },
@@ -8176,7 +7913,6 @@ static const luaL_Reg ntop_reg[] = {
   { "getDaySamplingsFromEpoch",      ntop_stats_get_samplings_of_days_from_epoch },
   { "getMinuteSamplingsInterval",    ntop_stats_get_minute_samplings_interval },
 
-  { "deleteDumpFiles",   ntop_delete_dump_files    },
   { "deleteOldRRDs",     ntop_delete_old_rrd_files },
 
   /* Time */

@@ -245,9 +245,6 @@ int main(int argc, char *argv[])
 #endif
 
     if(iface) {
-      /* NOTE: allocate the PacketDumper only after setting the pcap_datalink_type */
-      iface->loadDumpPrefs();
-
       if(affinity != NULL) {
 	char *tmp;
 	

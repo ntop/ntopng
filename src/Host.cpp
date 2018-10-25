@@ -357,7 +357,6 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
 #endif
 
   lua_push_bool_table_entry(vm, "drop_all_host_traffic", dropAllTraffic());
-  lua_push_bool_table_entry(vm, "dump_host_traffic", dumpHostTraffic());
   lua_push_int_table_entry(vm, "active_http_hosts", getActiveHTTPHosts());
 
   if(host_details) {

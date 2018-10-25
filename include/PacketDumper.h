@@ -27,14 +27,13 @@
 class PacketDumper {
  private:
   NetworkInterface *iface;
-  time_t dump_end;
   pcap_dumper_t *dumper;
   u_int64_t num_sampled_packets, num_dumped_packets, num_dumped_unknown_packets;
   u_int32_t file_id, num_dumped_unknown_files;
   u_int16_t iface_type;
   time_t sec_start;
   int sampling_rate;
-  unsigned int max_pkts_per_file, max_sec_per_file;
+  unsigned int max_pkts_per_file;
   unsigned int num_pkts_cur_file;
   char *out_path;
 

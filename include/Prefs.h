@@ -91,7 +91,6 @@ class Prefs {
   u_int16_t auto_assigned_pool_id;
   bool dump_flows_on_es, dump_flows_on_mysql, dump_flows_on_ls, dump_flows_on_nindex;
   bool read_flows_from_mysql;
-  bool enable_taps;
   InterfaceInfo *ifNames;
   char *local_networks;
   bool local_networks_set, shutdown_when_done, simulate_vlans, ignore_vlans;
@@ -262,7 +261,6 @@ class Prefs {
   inline char* get_es_user()  { return(es_user);  };
   inline char* get_es_pwd()   { return(es_pwd);   };
   inline bool shutdownWhenDone() { return(shutdown_when_done); }
-  inline bool are_taps_enabled() { return(enable_taps); };
   inline void set_promiscuous_mode(bool mode)  { use_promiscuous_mode = mode; };
   inline bool use_promiscuous()         { return(use_promiscuous_mode);  };
   inline char* get_mysql_host()         { return(mysql_host);            };

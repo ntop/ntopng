@@ -38,7 +38,7 @@ class LocalHost : public Host {
   bool systemHost;
   bool dhcpUpdated;
   bool trigger_host_alerts;
-  bool drop_all_host_traffic, dump_host_traffic;
+  bool drop_all_host_traffic;
   u_int32_t num_alerts_detected;
   u_int32_t attacker_max_num_flows_per_sec, victim_max_num_flows_per_sec;
   u_int32_t attacker_max_num_syn_per_sec, victim_max_num_syn_per_sec;
@@ -68,7 +68,6 @@ class LocalHost : public Host {
   virtual char* get_os()                             { return(os);                    };
 
   virtual bool dropAllTraffic()  { return(drop_all_host_traffic); };
-  virtual bool dumpHostTraffic() { return(dump_host_traffic);     };
 
   bool hasAnomalies();
   void luaAnomalies(lua_State* vm);
@@ -81,7 +80,6 @@ class LocalHost : public Host {
   virtual bool triggerAlerts()                            { return(trigger_host_alerts); };
   virtual u_int32_t getNumAlerts(bool from_alertsmanager = false);
   virtual void setNumAlerts(u_int32_t num) { num_alerts_detected = num; };
-  virtual void setDumpTrafficPolicy(bool new_policy);
   virtual void setOS(char *_os);
   virtual void updateSynFlags(time_t when, u_int8_t flags, Flow *f, bool syn_sent);
   virtual void updateStats(struct timeval *tv);

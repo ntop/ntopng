@@ -60,12 +60,6 @@ typedef enum {
   SSL_ENCRYPTION_BOTH = 0x3,
 } FlowSSLEncryptionStatus;
 
-typedef struct buffered_packet {
-  const struct pcap_pkthdr h;
-  u_char *packet;
-  struct buffered_packet *next;
-} BufferedPacket;
-
 class Flow : public GenericHashEntry {
  private:
   Host *cli_host, *srv_host;
@@ -75,7 +69,6 @@ class Flow : public GenericHashEntry {
   u_int32_t vrfId;
   u_int8_t protocol, src2dst_tcp_flags, dst2src_tcp_flags;
   struct ndpi_flow_struct *ndpiFlow;
-  BufferedPacket *flow_packets_head, *flow_packets_tail;
   bool detection_completed, protocol_processed, idle_flow,
     cli2srv_direction, twh_over, twh_ok, dissect_next_http_packet, passVerdict,
     check_tor, l7_protocol_guessed, flow_alerted, flow_dropped_counts_increased,
@@ -98,7 +91,6 @@ class Flow : public GenericHashEntry {
   custom_app_t custom_app;
   void *cli_id, *srv_id;
   char *json_info, *host_server_name, *bt_hash;
-  bool dump_flow_traffic;
 #ifdef HAVE_NEDGE
   u_int32_t last_conntrack_update; 
 #endif
@@ -407,7 +399,6 @@ class Flow : public GenericHashEntry {
   void sumStats(nDPIStats *stats);
   void guessProtocol();
   bool dumpFlow(bool dump_alert);
-  bool dumpFlowTraffic(void);
   bool match(AddressTree *ptree);
   inline Host* get_real_client() { return(cli2srv_direction ? cli_host : srv_host); }
   inline Host* get_real_server() { return(cli2srv_direction ? srv_host : cli_host); }
@@ -440,8 +431,6 @@ class Flow : public GenericHashEntry {
   inline bool isSSLHandshake()         { return(isSSLProto() && good_ssl_hs && !protos.ssl.is_data); }
   inline bool hasSSLHandshakeEnded()   { return(getSSLEncryptionStatus() == SSL_ENCRYPTION_BOTH);    }
   FlowSSLEncryptionStatus getSSLEncryptionStatus();
-  void setDumpFlowTraffic(bool what)   { dump_flow_traffic = what; }
-  bool getDumpFlowTraffic(void)        { return dump_flow_traffic; }
 
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   inline void updateProfile()     { trafficProfile = iface->getFlowProfile(this); }
@@ -504,8 +493,6 @@ class Flow : public GenericHashEntry {
   inline void setIngress2EgressDirection(bool _ingress2egress) { ingress2egress_direction = _ingress2egress; }
   inline bool isIngress2EgressDirection() { return(ingress2egress_direction); }
 #endif
-  void addPacketToDump(const struct pcap_pkthdr *h, const u_char *packet);
-  void flushBufferedPackets();
   void housekeep();
 #ifdef HAVE_EBPF
   void setProcessInfo(eBPFevent *event, bool client_process);

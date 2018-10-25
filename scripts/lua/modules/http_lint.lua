@@ -945,20 +945,6 @@ local known_parameters = {
 -- NAVIGATION
    ["page"]                    = validateSingleWord,            -- Currently active subpage tab
    ["tab"]                     = validateSingleWord,            -- Currently active tab, handled by javascript
-
--- TRAFFIC DUMP
-   ["dump_flow_to_disk"]       = validateBool,                  -- true if target flow should be dumped to disk
-   ["dump_traffic"]            = validateBool,                  -- true if target host traffic should be dumped to disk
-   ["dump_all_traffic"]        = validateBool,                  -- true if interface traffic should be dumped to disk
-   ["dump_traffic_to_tap"]     = validateBool,                  --
-   ["dump_traffic_to_disk"]    = validateBool,                  --
-   ["dump_unknown_to_disk"]    = validateBool,                  --
-   ["max_pkts_file"]           = validateEmptyOr(validateNumber), --
-   ["max_sec_file"]            = validateEmptyOr(validateNumber), --
-   ["max_files"]               = validateEmptyOr(validateNumber), --
-   ["capture_id"]              = validateNumber,                -- Live capture id
-   ["duration"]                = validateNumber,                --
-   ["bpf_filter"]              = validateEmptyOr(validateUnquoted), --
    
 -- OTHER
    ["_"]                       = validateEmptyOr(validateNumber), -- jQuery nonce in ajax requests used to prevent browser caching
@@ -1147,6 +1133,11 @@ local known_parameters = {
    ["network_discovery_interval"]                  = validateNumber,
    ["captive_portal_id_method"]                    = validateChoiceInline({"mac", "ip"}),
 --
+
+-- LIVE CAPTURE
+   ["capture_id"]              = validateNumber,                -- Live capture id
+   ["duration"]                = validateNumber,                --
+   ["bpf_filter"]              = validateEmptyOr(validateUnquoted), --
 
 -- TRAFFIC RECORDING
    ["disk_space"]                                  = validateNumber,

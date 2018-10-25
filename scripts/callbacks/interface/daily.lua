@@ -40,6 +40,3 @@ db_utils.harverstExpiredMySQLFlows(_ifname, mysql_retention, verbose)
 
 callback_utils.harverstOldRRDFiles(_ifname)
 
-if(interface.getInterfaceDumpDiskPolicy() == true) then
-   ntop.deleteDumpFiles(interface_id)
-end

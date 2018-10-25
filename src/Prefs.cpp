@@ -96,7 +96,6 @@ Prefs::Prefs(Ntop *_ntop) {
   dump_flows_on_nindex = false;
 #endif
   read_flows_from_mysql = false;
-  enable_taps = false;
 
   if(!(ifNames = (InterfaceInfo*)calloc(UNLIMITED_NUM_INTERFACES, sizeof(InterfaceInfo)))
      || !(deferred_interfaces_to_register = (char**)calloc(UNLIMITED_NUM_INTERFACES, sizeof(char*))))
@@ -372,7 +371,6 @@ void usage() {
 	 "                                    | 0=RX+TX (default), 1=RX only, 2=TX only\n"
 	 /* "--online-check                      | Check the license using the online service\n" */
 	 "--online-license-check              | Check the license online\n" /* set as deprecated as soon as --online-check is supported */
-	 "[--enable-taps|-T]                  | Enable tap interfaces for dumping traffic\n"
 	 "[--http-prefix|-Z <prefix>]         | HTTP prefix to be prepended to URLs.\n"
 	 "                                    | Useful when using ntopng behind a proxy.\n"
 	 "[--instance-name|-N <name>]         | Assign a name to this ntopng instance.\n"
@@ -698,7 +696,6 @@ static const struct option long_options[] = {
   { "export-flows",                      required_argument, NULL, 'I' },
   { "capture-direction",                 required_argument, NULL, 'Q' },
   { "sticky-hosts",                      required_argument, NULL, 'S' },
-  { "enable-taps",                       no_argument,       NULL, 'T' },
   { "user",                              required_argument, NULL, 'U' },
   { "version",                           no_argument,       NULL, 'V' },
   { "max-num-flows",                     required_argument, NULL, 'X' },
@@ -915,10 +912,6 @@ int Prefs::setOption(int optkey, char *optarg) {
     case 2:  setCaptureDirection(PCAP_D_OUT);   break;
     default: setCaptureDirection(PCAP_D_INOUT); break;
     }
-    break;
-
-  case 'T':
-    enable_taps = true;
     break;
 
   case 'h':

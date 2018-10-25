@@ -44,7 +44,6 @@ local ifstats = interface.getStats()
 
 ifId = ifstats.id
 
-local is_packetdump_enabled = isLocalPacketdumpEnabled()
 local host = nil
 local family = nil
 
@@ -1744,7 +1743,6 @@ elseif (page == "quotas" and ntop.isEnterprise() and host_pool_id ~= host_pools_
    host_pools_utils.printQuotas(host_pool_id, host, page_params)
 
 elseif (page == "config") then
-   local dump_status = host["dump_host_traffic"]
    local trigger_alerts = true
 
    if(not isAdministrator()) then
@@ -1755,14 +1753,6 @@ elseif (page == "config") then
    local is_top_hidden = swapKeysValues(top_hiddens)[hostkey_compact] ~= nil
 
    if _SERVER["REQUEST_METHOD"] == "POST" then
-      if(host["localhost"] == true and is_packetdump_enabled) then
-         if(_POST["dump_traffic"] == "1") then
-            dump_status = true
-         else
-            dump_status = false
-         end
-         interface.setHostDumpPolicy(dump_status, host_info["host"], host_vlan)
-      end
 
       if host["localhost"] == true then
          if _POST["trigger_alerts"] ~= "1" then
@@ -1803,16 +1793,6 @@ elseif (page == "config") then
 
          is_top_hidden = new_top_hidden
          interface.reloadHideFromTop()
-      end
-   end
-
-   if(host["localhost"] == true and is_packetdump_enabled) then
-      if(dump_status) then
-         dump_traffic_checked = 'checked="checked"'
-         dump_traffic_value = "false" -- Opposite
-      else
-         dump_traffic_checked = ""
-         dump_traffic_value = "true" -- Opposite
       end
    end
 
@@ -1868,31 +1848,6 @@ elseif (page == "config") then
                   <i class="fa fa-exclamation-triangle fa-lg"></i>
                   ]] print(i18n("host_config.trigger_alerts_for_host",{host=host["name"]})) print[[
                </input>
-         </td>
-      </tr>]]
-   end
-
-   if(host["localhost"] == true and is_packetdump_enabled and not have_nedge) then
-      print [[<tr>
-         <th>]] print(i18n("host_config.dump_host_traffic")) print[[</th>
-         <td>
-               <input type="checkbox" name="dump_traffic" value="1" ]] print(dump_traffic_checked) print[[>
-                  <i class="fa fa-hdd-o fa-lg"></i>
-                  <a href="]] print(ntop.getHttpPrefix()) print[[/lua/if_stats.lua?ifid=]] print(getInterfaceId(ifname).."") print[[&page=packetdump">]] print(i18n("host_config.dump_traffic")) print[[</a>
-               </input>]]
-
-      local dump_status_tap = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_tap')
-      local dump_status_disk = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_disk')
-      if dump_status_tap ~= "true" and dump_status_disk ~= "true" then
-	 print[[<small>]]
-	 print(i18n("host_config.dump_host_traffic_description",
-		    {to_disk = i18n("packetdump_page.packet_dump_to_disk"),
-		     to_tap = i18n("packetdump_page.dump_traffic_to_tap"),
-		     url = ntop.getHttpPrefix() .. "/lua/if_stats.lua?page=packetdump"}))
-	 print[[</small>]]
-      end
-
-      print[[
          </td>
       </tr>]]
    end

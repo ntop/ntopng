@@ -47,10 +47,10 @@ void PacketDumper::init(NetworkInterface *i) {
   char *name = i->get_name();
 
   iface = i, file_id = 1, sampling_rate = 1;
-  dump_end = 0, dumper = NULL;
+  dumper = NULL;
   num_sampled_packets = num_dumped_packets = 0;
   num_dumped_unknown_packets = num_dumped_unknown_files = 0;
-  sec_start = 0, max_pkts_per_file = 0, max_sec_per_file = 0;  
+  sec_start = 0, max_pkts_per_file = 0;
   num_pkts_cur_file = 0;
   out_path = NULL;
 
@@ -78,8 +78,7 @@ void PacketDumper::idle(time_t when) {
 /* ********************************************* */
 
 bool PacketDumper::checkClose(time_t when) {
-  if((num_pkts_cur_file > max_pkts_per_file)
-     || (when > dump_end)) {
+  if(num_pkts_cur_file > max_pkts_per_file) {
     closeDump();
     return(true);
   } else
@@ -89,46 +88,26 @@ bool PacketDumper::checkClose(time_t when) {
 /* ********************************************* */
 
 bool PacketDumper::openDump(time_t when, int sampling_rate) {
-  char pcap_path[MAX_PATH], hour_path[64];
-  int len;
-  time_t _when = when;
+  char pcap_path[MAX_PATH];
 
   if(dumper) return true;
 
   sec_start = when;
 
   this->sampling_rate = sampling_rate;
-  this->max_pkts_per_file = iface->getDumpTrafficMaxPktsPerFile();
-  this->max_sec_per_file = iface->getDumpTrafficMaxSecPerFile();
+  this->max_pkts_per_file = CONST_MAX_NUM_PACKETS_PER_DUMP;
 
-  if (!out_path) {
-    when -= when % 3600; /* Hourly directories */
-
-    strftime(hour_path, sizeof(hour_path), "%Y/%m/%d/%H", localtime(&when));
-    snprintf(pcap_path, sizeof(pcap_path), "%s/%d/pcap/%s",
-	     ntop->get_working_dir(), iface->get_id(), hour_path);
-
-    ntop->fixPath(pcap_path);
-  
-    Utils::mkdir_tree(pcap_path);
-  
-    len = strlen(pcap_path);
-    snprintf(&pcap_path[len], sizeof(pcap_path)-len-1, "/%u_%u.pcap",
-	     (unsigned int) when, file_id);
-  } else {
-    Utils::mkdir_tree(out_path);
-    snprintf(pcap_path, sizeof(pcap_path), "%s/%u.pcap", out_path, file_id);
-  }
+  Utils::mkdir_tree(out_path);
+  snprintf(pcap_path, sizeof(pcap_path), "%s/%u.pcap", out_path, file_id);
   
   if((dumper = pcap_dump_open(pcap_open_dead(iface_type, 16384 /* MTU */), pcap_path)) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to create pcap file %s", pcap_path);
     return false;
   } 
 
-  dump_end = _when + this->max_sec_per_file;
   num_pkts_cur_file = 0, file_id++;
-  ntop->getTrace()->traceEvent(TRACE_INFO, "Created pcap dump %s [max pkts=%u][max duration=%u sec]", \
-			       pcap_path, this->max_pkts_per_file, this->max_sec_per_file);
+  ntop->getTrace()->traceEvent(TRACE_INFO, "Created pcap dump %s [max pkts=%u]", \
+			       pcap_path, this->max_pkts_per_file);
 
   return true;
 }

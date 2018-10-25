@@ -227,8 +227,6 @@ class Host : public Checkpointable, public GenericHashEntry, public GenericTraff
   bool match(AddressTree *tree) { return(get_ip() ? get_ip()->match(tree) : false); };
   void updateHostPool(bool isInlineCall, bool firstUpdate=false);
   virtual bool dropAllTraffic()  { return(false); };
-  virtual bool dumpHostTraffic() { return(false); };
-  virtual void setDumpTrafficPolicy(bool new_policy) {};
   bool incFlowAlertHits(time_t when);
   virtual bool setRemoteToRemoteAlerts() { return(false); };
   bool serializeCheckpoint(json_object *my_object, DetailsLevel details_level);

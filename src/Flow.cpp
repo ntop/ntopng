@@ -40,8 +40,6 @@ Flow::Flow(NetworkInterface *_iface,
     flow_alerted = flow_dropped_counts_increased = false, vrfId = 0;
 
   l7_protocol_guessed = detection_completed = false,
-    flow_packets_head = flow_packets_tail = NULL,
-    dump_flow_traffic = false,
     memset(&ndpiDetectedProtocol, 0, sizeof(ndpiDetectedProtocol)),
   doNotExpireBefore = iface->getTimeLastPktRcvd() + DONT_NOT_EXPIRE_BEFORE_SEC;
 #ifdef HAVE_NEDGE
@@ -171,9 +169,6 @@ void Flow::freeDPIMemory() {
 /* *************************************** */
 
 Flow::~Flow() {
-  if(flow_packets_head)
-    flushBufferedPackets();
-
   if(cli_host) cli_host->decNumFlows(true, srv_host),  cli_host->decUses();
   if(srv_host) srv_host->decNumFlows(false, cli_host), srv_host->decUses();
 
@@ -551,7 +546,6 @@ void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
 #ifdef HAVE_NEDGE
     updateFlowShapers(true);
 #endif
-    flushBufferedPackets();
   }
 
 #ifdef NTOPNG_PRO
@@ -1652,8 +1646,6 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     if(iface->is_bridge_interface())
       lua_push_bool_table_entry(vm, "verdict.pass", isPassVerdict() ? (json_bool)1 : (json_bool)0);
 #endif
-
-    lua_push_bool_table_entry(vm, "dump.disk", getDumpFlowTraffic());
 
     if(protocol == IPPROTO_TCP) {
       lua_push_bool_table_entry(vm, "tcp.seq_problems",
@@ -3203,15 +3195,6 @@ bool Flow::checkPassVerdict(const struct tm *now) {
 
 /* *************************************** */
 
-bool Flow::dumpFlowTraffic() {
-  if(dump_flow_traffic) return true;
-  if(cli_host && srv_host)
-    return(cli_host->dumpHostTraffic() || srv_host->dumpHostTraffic());
-  return(false);
-}
-
-/* *************************************** */
-
 #ifdef HAVE_NEDGE
 
 bool Flow::updateDirectionShapers(bool src2dst_direction, TrafficShaper **ingress_shaper, TrafficShaper **egress_shaper) {
@@ -3622,111 +3605,6 @@ void Flow::setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
   }
 }
 #endif
-
-/* ***************************************************** */
-
-void Flow::addPacketToDump(const struct pcap_pkthdr *h, const u_char *packet) {
-  BufferedPacket *b = (BufferedPacket*)malloc(sizeof(BufferedPacket));
-
-  if(b) {
-    memcpy((void*)&b->h, (void*)h, sizeof(struct pcap_pkthdr));
-    b->packet = (u_char*)malloc(h->caplen);
-
-    if(!b->packet) {
-      free(b);
-      return;
-    }
-
-    memcpy(b->packet, packet, h->caplen);
-    b->next = NULL;
-
-    if(flow_packets_tail == NULL) {
-      flow_packets_head = flow_packets_tail = b;
-    } else {
-      flow_packets_tail->next = b;
-      flow_packets_tail = b;
-    }
-  }
-}
-
-/* ***************************************************** */
-
-/* NOTE: only for unknown protocol flows */
-void Flow::flushBufferedPackets() {
-  if(iface->do_dump_unknown_traffic()
-     && flow_packets_head
-     && (get_detected_protocol().app_protocol == NDPI_PROTOCOL_UNKNOWN)
-    ) {
-    bool do_dump_to_disk = true;
-
-    if(protocol == IPPROTO_TCP) {
-      u_int8_t mask = TH_SYN | TH_ACK | TH_PUSH;
-
-      /* Initial bytes are in and some data is present */
-      if((getTcpFlags() & mask) == mask)
-	do_dump_to_disk = true;
-      else
-	do_dump_to_disk = false; /* Initial flow bytes are missing */
-    } else
-      do_dump_to_disk = true;
-
-    if(do_dump_to_disk) {
-      char pcap_path[MAX_PATH], hour_path[64];
-      time_t when = flow_packets_head->h.ts.tv_sec;
-      pcap_dumper_t *dumper;
-      char buf1[32], buf2[32];
-
-      when -= when % 3600; /* Hourly directories */
-      strftime(hour_path, sizeof(hour_path), "%Y/%m/%d/%H", localtime(&when));
-      snprintf(pcap_path, sizeof(pcap_path), "%s/%d/pcap/ndpi_unknown/%s/",
-	       ntop->get_working_dir(), iface->get_id(), hour_path);
-      ntop->fixPath(pcap_path);
-      Utils::mkdir_tree(pcap_path);
-
-      snprintf(pcap_path, sizeof(pcap_path), "%s/%d/pcap/ndpi_unknown/%s/%s:%u_%s:%u_%u.pcap",
-	       ntop->get_working_dir(), iface->get_id(), hour_path,
-	       cli_host->get_ip()->print(buf1, sizeof(buf1)), ntohs(cli_port),
-	       srv_host->get_ip()->print(buf2, sizeof(buf2)), ntohs(srv_port),
-	       (unsigned int)flow_packets_head->h.ts.tv_sec
-	);
-
-      if((dumper = pcap_dump_open(pcap_open_dead(iface->get_datalink(),
-						 16384 /* MTU */), pcap_path)) == NULL)
-	ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to create pcap file %s", pcap_path);
-      else {
-	u_int num_pkts = 0;
-	PacketDumper *pkt_dumper;
-
-	while(flow_packets_head) {
-	  struct buffered_packet *tmp;
-
-	  pcap_dump((u_char*)dumper, &(flow_packets_head->h), flow_packets_head->packet);
-	  free(flow_packets_head->packet);
-	  tmp = flow_packets_head;
-	  flow_packets_head = flow_packets_head->next;
-	  free(tmp);
-	  num_pkts++;
-	}
-
-	pcap_dump_close(dumper);
-	ntop->getTrace()->traceEvent(TRACE_INFO, "Dumped %u packets onto file %s", num_pkts, pcap_path);
-
-	pkt_dumper = iface->getPacketDumper();
-	if(pkt_dumper) pkt_dumper->incUnknownPacketDump(num_pkts);
-      }
-    }
-  }
-
-  /* Even if we do not dump this flow, packets needs to be freed */
-  while(flow_packets_head) {
-    struct buffered_packet *tmp;
-
-    free(flow_packets_head->packet);
-    tmp = flow_packets_head;
-    flow_packets_head = flow_packets_head->next;
-    free(tmp);
-  }
-}
 
 /* ***************************************************** */
 

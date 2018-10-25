@@ -155,8 +155,7 @@ local function delete_interfaces_redis_keys(interfaces_list)
 	 --  ntopng.prefs.iface_3.scaling_factor
 	 string.format("%s.iface_%u.*", pref_prefix, if_id),
 	 -- examples:
-	 --  ntopng.prefs.enp1s0f0.dump_sampling_rate
-	 --  ntopng.prefs.enp1s0f0.dump_all_traffic
+	 --  ntopng.prefs.enp1s0f0.xxx
 	 string.format("%s.%s.*", pref_prefix, if_name),
 	 -- examples:
 	 --  ntopng.prefs.enp2s0f0_not_idle
