@@ -5559,6 +5559,8 @@ void NetworkInterface::findUserFlows(lua_State *vm, char *username) {
   bool walk_all = true;
 
   u.vm = vm, u.username = username;
+    
+  lua_newtable(vm);
   walker(&begin_slot, walk_all, walker_flows, userfinder_walker, &u);
 }
 
@@ -5602,6 +5604,8 @@ void NetworkInterface::findProcNameFlows(lua_State *vm, char *proc_name) {
   bool walk_all = true;
 
   u.vm = vm, u.proc_name = proc_name;
+
+  lua_newtable(vm);
   walker(&begin_slot, walk_all,  walker_flows, proc_name_finder_walker, &u);
 }
 
@@ -5635,6 +5639,8 @@ void NetworkInterface::findPidFlows(lua_State *vm, u_int32_t pid) {
   bool walk_all = true;
 
   u.vm = vm, u.pid = pid;
+
+  lua_newtable(vm);
   walker(&begin_slot, walk_all,  walker_flows, pidfinder_walker, &u);
 }
 
@@ -5663,6 +5669,8 @@ void NetworkInterface::findFatherPidFlows(lua_State *vm, u_int32_t father_pid) {
   bool walk_all = true;
 
   u.vm = vm, u.pid = father_pid;
+
+  lua_newtable(vm);
   walker(&begin_slot, walk_all,  walker_flows, father_pidfinder_walker, &u);
 }
 

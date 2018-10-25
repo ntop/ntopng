@@ -1,8 +1,8 @@
 --
--- (C) 2014-15-15 - ntop.org
+-- (C) 2018 - ntop.org
 --
 
-dirs = ntop.getDirs()
+local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
@@ -12,36 +12,36 @@ sendHTTPContentTypeHeader('text/html')
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 
-page = _GET["page"]
+local page = _GET["page"]
 if(page == nil) then page = "Protocols" end
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-pid_key = _GET["pid"]
-name_key = _GET["pid_name"]
-host_key = _GET["host"]
-application = _GET["application"]
+local pid_key = _GET["pid"]
+local name_key = _GET["pid_name"]
+local host_key = _GET["host"]
+local application = _GET["application"]
 
-general_process = 0
+local general_process = 0
 
-interface.select(ifname)
+local flows
 
 if((pid_key == nil) and (name_key == nil))then
    print("<div class=\"alert alert-danger\"><img src=/img/warning.png> "..i18n("processes_stats.missing_pid_name_message").."</div>")
 else
-  if ((name_key ~= nil) and (pid_key == nil) and (host_key == nil)) then
-    general_process = 1
-  end
-  -- Prepare displayed value
-  if (pid_key ~= nil) then
-   flows = interface.findPidFlows(tonumber(pid_key))
-   err_label = "PID"
-   err_val = pid_key
-  elseif (name_key ~= nil) then
-   flows = interface.findNameFlows(name_key)
-   err = "Name"
-   err_val = name_key
-  end
-  
+   if ((name_key ~= nil) and (pid_key == nil) and (host_key == nil)) then
+      general_process = 1
+   end
+   -- Prepare displayed value
+   if (pid_key ~= nil) then
+      flows = interface.findPidFlows(tonumber(pid_key))
+      err_label = "PID"
+      err_val = pid_key
+   elseif (name_key ~= nil) then
+      flows = interface.findNameFlows(name_key)
+      err = "Name"
+      err_val = name_key
+   end
+   
   num = 0;
 
   if(flows ~= nil) then
