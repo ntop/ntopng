@@ -7656,6 +7656,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "select",                   ntop_select_interface },
 
   { "getMaxIfSpeed",            ntop_get_max_if_speed },
+  { "hasVLANs",                 ntop_has_vlans },
   { "getStats",                 ntop_get_interface_stats },
   { "getInterfaceTimeseries",   ntop_get_interface_timeseries },
   { "resetCounters",            ntop_interface_reset_counters },
@@ -7995,7 +7996,6 @@ static const luaL_Reg ntop_reg[] = {
   { "execQuery",        ntop_sqlite_exec_query },
 
   /* Runtime */
-  { "hasVLANs",         ntop_has_vlans },
   { "hasGeoIP",         ntop_has_geoip },
   { "isWindows",        ntop_is_windows },
 
