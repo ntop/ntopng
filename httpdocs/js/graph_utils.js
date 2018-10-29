@@ -456,11 +456,10 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
         return false;
       }
 
-      if(is_user_zoom) {
-        var epoch = params.epoch_begin + (params.epoch_end - params.epoch_begin) / 2;
-        params.epoch_begin = Math.floor(epoch - max_interval / 2);
-        params.epoch_end = Math.ceil(epoch + max_interval / 2);
-      }
+      /* Ensure that a minimal number of points is available */
+      var epoch = params.epoch_begin + (params.epoch_end - params.epoch_begin) / 2;
+      params.epoch_begin = Math.floor(epoch - max_interval / 2);
+      params.epoch_end = Math.ceil(epoch + max_interval / 2);
 
       is_max_zoom = true;
       chart.zoomType(null); // disable zoom
