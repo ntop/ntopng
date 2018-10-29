@@ -338,6 +338,8 @@ void NetworkInterface::init() {
       next_insert_idx = next_remove_idx = 0;
     }
 #endif
+
+  PROFILING_INIT();
 }
 
 /* **************************************************** */
@@ -576,6 +578,17 @@ void NetworkInterface::deleteDataStructures() {
 /* **************************************************** */
 
 NetworkInterface::~NetworkInterface() {
+#ifdef PROFILING
+  u_int64_t n = ethStats.getNumIngressPackets();
+  if (n > 0) {
+    for (u_int i = 0; i < PROFILING_NUM_SECTIONS; i++) {
+      if (PROFILING_SECTION_LABEL(i) != NULL)
+        ntop->getTrace()->traceEvent(TRACE_NORMAL, "[PROFILING] Section #%d '%s': AVG %llu ticks",
+          i, PROFILING_SECTION_LABEL(i), PROFILING_SECTION_AVG(i, n));
+    }
+  }
+#endif
+
   if(getNumPackets() > 0) {
     ntop->getTrace()->traceEvent(TRACE_NORMAL,
 				 "Flushing host contacts for interface %s",
@@ -872,8 +885,10 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
      || (dstMac && Utils::macHash(dstMac->get_mac()) != 0))
     setSeenMacAddresses();
 
+  PROFILING_SECTION_ENTER("NetworkInterface::getFlow: flows_hash->find", 5);
   ret = flows_hash->find(src_ip, dst_ip, src_port, dst_port,
 			 vlan_id, l4_proto, src2dst_direction);
+  PROFILING_SECTION_EXIT(5);
 
   if(ret == NULL) {
     if(!create_if_missing)
@@ -882,10 +897,12 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
     *new_flow = true;
 
     try {
+      PROFILING_SECTION_ENTER("NetworkInterface::getFlow: new Flow", 6);
       ret = new Flow(this, vlan_id, l4_proto,
 		     srcMac, src_ip, src_port,
 		     dstMac, dst_ip, dst_port,
 		     first_seen, last_seen);
+      PROFILING_SECTION_EXIT(6);
     } catch(std::bad_alloc& ba) {
       static bool oom_warning_sent = false;
 
@@ -1515,9 +1532,11 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
   }
 #endif
 
+  PROFILING_SECTION_ENTER("NetworkInterface::processPacket: getFlow", 1);
   /* Updating Flow */
   flow = getFlow(srcMac, dstMac, vlan_id, 0, 0, 0, &src_ip, &dst_ip, src_port, dst_port,
 		 l4_proto, &src2dst_direction, last_pkt_rcvd, last_pkt_rcvd, rawsize, &new_flow, true);
+  PROFILING_SECTION_EXIT(1);
 
   if(flow == NULL) {
     incStats(ingressPacket, when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN,
@@ -1573,7 +1592,9 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
     tv_ts.tv_usec = h->ts.tv_usec;
     flow->incStats(src2dst_direction, rawsize, payload, payload_len, l4_proto, &tv_ts);
 #else
+    PROFILING_SECTION_ENTER("NetworkInterface::processPacket: flow->incStats", 2);
     flow->incStats(src2dst_direction, rawsize, payload, payload_len, l4_proto, &h->ts);
+    PROFILING_SECTION_EXIT(2);
 #endif
 #endif
   }
@@ -1828,9 +1849,11 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
   if(num_live_captures > 0)
     deliverLiveCapture(h, packet, flow);
 
+  PROFILING_SECTION_ENTER("NetworkInterface::processPacket: incStats", 4);
   incStats(ingressPacket, when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
 	   flow->get_detected_protocol().app_protocol,
 	   rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+  PROFILING_SECTION_EXIT(4);
 
   return(pass_verdict);
 }
@@ -2257,12 +2280,14 @@ decode_packet_eth:
 		   ip6->ip6_dst.u6_addr.u6_addr8[15] : iph->saddr + iph->daddr) % 0xFF;
 
       try {
+        PROFILING_SECTION_ENTER("NetworkInterface::dissectPacket: processPacket", 0);
 	pass_verdict = processPacket(bridge_iface_idx,
 				     ingressPacket, &h->ts, time,
 				     ethernet,
 				     vlan_id, iph,
 				     ip6, h->caplen - ip_offset, rawsize,
 				     h, packet, ndpiProtocol, srcHost, dstHost, flow);
+        PROFILING_SECTION_EXIT(0);
       } catch(std::bad_alloc& ba) {
 	static bool oom_warning_sent = false;
 
@@ -2391,12 +2416,14 @@ decode_packet_eth:
 	  vlan_id = (ip6 ? ip6->ip6_src.u6_addr.u6_addr8[15] + ip6->ip6_dst.u6_addr.u6_addr8[15] : iph->saddr + iph->daddr) % 0xFF;
 
 	try {
+          PROFILING_SECTION_ENTER("NetworkInterface::dissectPacket: processPacket", 0);
 	  pass_verdict = processPacket(bridge_iface_idx,
 				       ingressPacket, &h->ts, time,
 				       ethernet,
 				       vlan_id,
 				       iph, ip6, h->len - ip_offset, rawsize,
 				       h, packet, ndpiProtocol, srcHost, dstHost, flow);
+          PROFILING_SECTION_EXIT(0);
 	} catch(std::bad_alloc& ba) {
 	  static bool oom_warning_sent = false;
 
@@ -2574,8 +2601,10 @@ void NetworkInterface::findFlowHosts(u_int16_t vlanId,
 				     Mac *dst_mac, IpAddress *_dst_ip, Host **dst) {
   int16_t local_network_id;
 
+  PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: hosts_hash->get", 8);
   /* Do not look on sub interfaces, Flows are always created in the same interface of its hosts */
   (*src) = hosts_hash->get(vlanId, _src_ip);
+  PROFILING_SECTION_EXIT(8);
 
   if((*src) == NULL) {
     if(!hosts_hash->hasEmptyRoom()) {
@@ -2584,10 +2613,15 @@ void NetworkInterface::findFlowHosts(u_int16_t vlanId,
       return;
     }
 
-    if(_src_ip && (_src_ip->isLocalHost(&local_network_id) || _src_ip->isLocalInterfaceAddress()))
+    if(_src_ip && (_src_ip->isLocalHost(&local_network_id) || _src_ip->isLocalInterfaceAddress())) {
+      PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: new LocalHost", 9);
       (*src) = new LocalHost(this, src_mac, vlanId, _src_ip);
-    else
+      PROFILING_SECTION_EXIT(9);
+    } else {
+      PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: new RemoteHost", 10); 
       (*src) = new RemoteHost(this, src_mac, vlanId, _src_ip);
+      PROFILING_SECTION_EXIT(10);
+    }
 
     if(!hosts_hash->add(*src)) {
       //ntop->getTrace()->traceEvent(TRACE_WARNING, "Too many hosts in interface %s", ifname);
@@ -2604,7 +2638,9 @@ void NetworkInterface::findFlowHosts(u_int16_t vlanId,
 
   /* ***************************** */
 
+  PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: hosts_hash->get", 8);
   (*dst) = hosts_hash->get(vlanId, _dst_ip);
+  PROFILING_SECTION_EXIT(8);
 
   if((*dst) == NULL) {
     if(!hosts_hash->hasEmptyRoom()) {
@@ -2615,10 +2651,15 @@ void NetworkInterface::findFlowHosts(u_int16_t vlanId,
 
     if(_dst_ip
        && (_dst_ip->isLocalHost(&local_network_id)
-	   || _dst_ip->isLocalInterfaceAddress()))
+	   || _dst_ip->isLocalInterfaceAddress())) {
+      PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: new LocalHost", 9);
       (*dst) = new LocalHost(this, dst_mac, vlanId, _dst_ip);
-    else
+      PROFILING_SECTION_EXIT(9);
+    } else {
+      PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: new RemoteHost", 10);
       (*dst) = new RemoteHost(this, dst_mac, vlanId, _dst_ip);
+      PROFILING_SECTION_EXIT(10);
+    }
 
     if(!hosts_hash->add(*dst)) {
       // ntop->getTrace()->traceEvent(TRACE_WARNING, "Too many hosts in interface %s", ifname);

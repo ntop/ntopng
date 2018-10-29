@@ -71,7 +71,9 @@ Flow::Flow(NetworkInterface *_iface,
   memset(&protos, 0, sizeof(protos));
   memset(&flow_device, 0, sizeof(flow_device));
 
+  PROFILING_SUB_SECTION_ENTER(iface, "Flow::Flow: iface->findFlowHosts", 7);
   iface->findFlowHosts(_vlanId, _cli_mac, _cli_ip, &cli_host, _srv_mac, _srv_ip, &srv_host);
+  PROFILING_SUB_SECTION_EXIT(iface, 7);
   if(cli_host) { cli_host->incUses(); cli_host->incNumFlows(true, srv_host);  }
   if(srv_host) { srv_host->incUses(); srv_host->incNumFlows(false, cli_host); }
 

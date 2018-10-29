@@ -1752,16 +1752,13 @@ static void newString(String *str) {
 
 /* **************************************** */
 
-#ifdef WIN32
 ticks Utils::getticks() {
+#ifdef WIN32
   struct timeval tv;
   gettimeofday (&tv, 0);
 
   return (((ticks)tv.tv_usec) + (((ticks)tv.tv_sec) * 1000000LL));
-}
-
 #else
-ticks Utils::getticks() {
 #if defined(__i386__)
   ticks x;
 
@@ -1783,8 +1780,8 @@ ticks Utils::getticks() {
 
   return (((ticks)tv.tv_usec) + (((ticks)tv.tv_sec) * 1000000LL));
 #endif
-}
 #endif
+}
 
 /* **************************************** */
 

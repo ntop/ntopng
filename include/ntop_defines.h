@@ -913,4 +913,27 @@ inline struct ntopngLuaContext* getUserdata(lua_State *vm) {
 #define ALERT_ACTION_RELEASE          "release"
 #define ALERT_ACTION_STORE            "store"
 
+//#define PROFILING
+#ifdef PROFILING
+#define PROFILING_DECLARE(n) \
+        ticks __profiling_sect_start[n]; \
+        const char *__profiling_sect_label[n]; \
+        ticks __profiling_sect_tot[n]
+#define PROFILING_INIT() memset(__profiling_sect_tot, 0, sizeof(__profiling_sect_tot))
+#define PROFILING_SECTION_ENTER(l,i) __profiling_sect_start[i] = Utils::getticks(), __profiling_sect_label[i] = l
+#define PROFILING_SECTION_EXIT(i)    __profiling_sect_tot[i] += Utils::getticks() - __profiling_sect_start[i]
+#define PROFILING_SUB_SECTION_ENTER(f, l, i) f->profiling_section_enter(l, i)
+#define PROFILING_SUB_SECTION_EXIT(f, i)     f->profiling_section_exit(i)
+#define PROFILING_NUM_SECTIONS (sizeof(__profiling_sect_tot)/sizeof(ticks))
+#define PROFILING_SECTION_AVG(i,n) (__profiling_sect_tot[i] / n)
+#define PROFILING_SECTION_LABEL(i) __profiling_sect_label[i]
+#else
+#define PROFILING_DECLARE(n)
+#define PROFILING_INIT()
+#define PROFILING_SECTION_ENTER(l, i)
+#define PROFILING_SECTION_EXIT(i)
+#define PROFILING_SUB_SECTION_ENTER(f, l, i)
+#define PROFILING_SUB_SECTION_EXIT(f, i)
+#endif
+
 #endif /* _NTOP_DEFINES_H_ */

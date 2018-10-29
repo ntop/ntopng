@@ -177,6 +177,8 @@ class NetworkInterface : public Checkpointable {
   InterfaceStatsHash *interfaceStats;
   char checkpoint_compression_buffer[CONST_MAX_NUM_CHECKPOINTS][MAX_CHECKPOINT_COMPRESSION_BUFFER_SIZE];
 
+  PROFILING_DECLARE(24);
+
   void init();
   void deleteDataStructures();
   NetworkInterface* getSubInterface(u_int32_t criteria, bool parser_interface);
@@ -238,7 +240,7 @@ class NetworkInterface : public Checkpointable {
   void topItemsCommit(const struct timeval *when);
   void checkMacIPAssociation(bool triggerEvent, u_char *_mac, u_int32_t ipv4);
   void pollQueuedeBPFEvents();
-  
+
  public:
   /**
   * @brief A Constructor
@@ -683,6 +685,11 @@ class NetworkInterface : public Checkpointable {
   bool enqueueeBPFEvent(eBPFevent *event);
   bool dequeueeBPFEvent(eBPFevent **event);
   void delivereBPFEvent(eBPFevent *event);
+#endif
+
+#ifdef PROFILING
+  inline void profiling_section_enter(const char *label, int id) { PROFILING_SECTION_ENTER(label, id); };
+  inline void profiling_section_exit(int id) { PROFILING_SECTION_EXIT(id); };
 #endif
 };
 

@@ -78,11 +78,16 @@ void LocalHost::initialize() {
 
   systemHost = ip.isLocalInterfaceAddress();
 
+  PROFILING_SUB_SECTION_ENTER(iface, "LocalHost::initialize: readDHCPCache", 14);
   readDHCPCache();
+  PROFILING_SUB_SECTION_EXIT(iface, 14);
 
+  PROFILING_SUB_SECTION_ENTER(iface, "LocalHost::initialize: new Stats", 15);
   dns  = new DnsStats();
   http = new HTTPstats(iface->get_hosts_hash());
+  PROFILING_SUB_SECTION_EXIT(iface, 15);
 
+  PROFILING_SUB_SECTION_ENTER(iface, "LocalHost::initialize: local_host_cache", 16);
   if(ntop->getPrefs()->is_idle_local_host_cache_enabled()) {
     char *json = NULL;
     u_int json_len = 0;
@@ -106,16 +111,19 @@ void LocalHost::initialize() {
       if(json) free(json);
     }
   }  
+  PROFILING_SUB_SECTION_EXIT(iface, 16);
 
   attacker_max_num_syn_per_sec = ntop->getPrefs()->get_attacker_max_num_syn_per_sec();
   victim_max_num_syn_per_sec = ntop->getPrefs()->get_victim_max_num_syn_per_sec();
   attacker_max_num_flows_per_sec = ntop->getPrefs()->get_attacker_max_num_flows_per_sec();
   victim_max_num_flows_per_sec = ntop->getPrefs()->get_victim_max_num_flows_per_sec();
 
+  PROFILING_SUB_SECTION_ENTER(iface, "LocalHost::initialize: new AlertCounter", 17);
   syn_flood_attacker_alert = new AlertCounter(attacker_max_num_syn_per_sec, CONST_MAX_THRESHOLD_CROSS_DURATION);
   syn_flood_victim_alert = new AlertCounter(victim_max_num_syn_per_sec, CONST_MAX_THRESHOLD_CROSS_DURATION);
   flow_flood_attacker_alert = new AlertCounter(attacker_max_num_flows_per_sec, CONST_MAX_THRESHOLD_CROSS_DURATION);
   flow_flood_victim_alert = new AlertCounter(victim_max_num_flows_per_sec, CONST_MAX_THRESHOLD_CROSS_DURATION);
+  PROFILING_SUB_SECTION_EXIT(iface, 17);
 
   char host[96];
   char *strIP = ip.print(buf, sizeof(buf));
@@ -125,11 +133,15 @@ void LocalHost::initialize() {
   if(ntop->getRedis()->getAddress(strIP, rsp, sizeof(rsp), true) == 0)
     setName(rsp);
 
+  PROFILING_SUB_SECTION_ENTER(iface, "LocalHost::initialize: updateHostTrafficPolicy", 18);
   updateHostTrafficPolicy(host);
+  PROFILING_SUB_SECTION_EXIT(iface, 18);
 
   iface->incNumHosts(true /* Local Host */);
 
+  PROFILING_SUB_SECTION_ENTER(iface, "LocalHost::initialize: refreshHostAlertPrefs", 19);
   refreshHostAlertPrefs();
+  PROFILING_SUB_SECTION_EXIT(iface, 19);
 
 #ifdef LOCALHOST_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s is %s [%p]",
