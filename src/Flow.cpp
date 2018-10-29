@@ -1808,7 +1808,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 /* *************************************** */
 
 u_int32_t Flow::key() {
-  u_int32_t k = cli_port+srv_port+vlanId+protocol;
+  u_int32_t k = cli_port+srv_port /* +vlanId */ +protocol;
 
   if(cli_host) k += cli_host->key();
   if(srv_host) k += srv_host->key();
