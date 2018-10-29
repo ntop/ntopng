@@ -74,7 +74,8 @@ ntopng with administrative privileges.
 When using Posix accounts, the LDAP server should be configured as follows in order
 to work correctly with ntopng:
 
-- Into the LDAP user configuration, note down the "uid" parameter. You will it it below.
+- Into the LDAP user configuration, note down the "uid" parameter (called "User Name"
+  in OpenLDAP, not to be confused with "UidNumber"). You will it it below.
 
 - Into the LDAP group configuration, you should add a new custom field "memberUid", with
   the same value of the user "uid" field above.
@@ -82,3 +83,5 @@ to work correctly with ntopng:
 As an example, supposing there is a group "usersGroup" and a user "ntopngUser" as uid,
 a new field "memberUid" should be added to the "usersGroup" configuration with "ntopngUser" as
 value.
+
+The *memberUid* (ntopngUser in this case) is the username to use for the ntopng authentication.
