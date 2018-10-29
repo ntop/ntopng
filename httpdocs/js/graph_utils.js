@@ -792,8 +792,11 @@ function updateGraphsTableView(graph_table, view, graph_params, has_nindex, nind
       return {
         title: col[1],
         field: col[0],
-        css: { textAlign: col[2], width: col[3], },
-	    };
+          css: {
+	      textAlign: col[2], width: col[3],//
+	  },
+        hidden: col[4] ? true : false,
+      };
     });
 
     if(has_nindex) {

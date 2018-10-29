@@ -231,7 +231,7 @@ end
   end
   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/os_stats.lua">') print(i18n("operating_systems")) print('</a></li>')
 
-  if(ntop.hasVLANs()) then
+  if(interface.hasVLANs()) then
      print('<li><a href="'..ntop.getHttpPrefix()..'/lua/vlan_stats.lua">') print(i18n("vlan_stats.vlans")) print('</a></li>')
   end
 
