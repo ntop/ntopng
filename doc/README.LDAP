@@ -75,7 +75,7 @@ When using Posix accounts, the LDAP server should be configured as follows in or
 to work correctly with ntopng:
 
 - Into the LDAP user configuration, note down the "uid" parameter (called "User Name"
-  in OpenLDAP, not to be confused with "UidNumber"). You will it it below.
+  in OpenLDAP, not to be confused with "UidNumber"). You will need it below.
 
 - Into the LDAP group configuration, you should add a new custom field "memberUid", with
   the same value of the user "uid" field above.
