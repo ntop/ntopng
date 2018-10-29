@@ -288,8 +288,10 @@ local function getLocalTopTalkers(schema_id, tags, tstart, tend, options)
         local host_partials = ts_utils.queryTotal("host:traffic", tstart, tend, host_tags)
         local host_value = tonumber(host.value)
 
-        if host_partials ~= nil then
+        if not table.empty(host_partials) then
           host_value = ternary(direction == "senders", host_partials["bytes_sent"], host_partials["bytes_rcvd"])
+        else
+          host_partials = nil
         end
 
         if((host_value ~= nil) and (host_value > 0)) then

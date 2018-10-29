@@ -1253,6 +1253,7 @@ local lang = {
     ["tcp_rst_packets"] = "TCP RST Packets",
     ["tcp_syn_packets"] = "TCP SYN Packets",
     ["tcp_synack_packets"] = "TCP SYN+ACK Packets",
+    ["the_select_timeframe_too_small_top_talkers"] = "The selected timeframe is too small to determine the top talkers. Please select at least a 1 minute frame.",
     ["top_clients"] = "Top %{protocol} Clients",
     ["top_interfaces"] = "Top Interfaces",
     ["top_l7_contacts"] = "Top %{protocol} L7 Contacts",

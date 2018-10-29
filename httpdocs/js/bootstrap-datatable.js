@@ -130,7 +130,7 @@
 // ------------- Start ntop Patch ---------------
                 if(!res || res === undefined || !res.data || (res.data.length == 0 && !o.forceTable) ) {
 // ------------- End ntop Patch -----------------
-                  showError.call(that);
+                  showError.call(that, res);
                   return;
                 }
 
@@ -184,7 +184,7 @@
               }
             , error: function( e ) {
                 if(o.debug) console.log(e);
-                showError.call(that);
+                showError.call(that, null);
 
                 that.loading( false );
               }
@@ -1045,7 +1045,7 @@
     return false;
   }
 
-  function showError() {
+  function showError(data) {
     var o = this.options
       , $e = this.$element;
 
@@ -1060,7 +1060,12 @@
 
     this.loading( false );
 
-    if(this.$default) $e.append(this.$default);
+    if(data && typeof data.error === "string") {
+      $e.append($("<div></div>")
+        .addClass("alert alert-danger")
+        .html(data.error));
+    } else if(this.$default)
+      $e.append(this.$default);
   }
 
   function runFilter(that) {
