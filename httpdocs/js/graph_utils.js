@@ -765,7 +765,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
   }
 }
 
-function updateGraphsTableView(graph_table, view, graph_params, has_nindex, nindex_query) {
+function updateGraphsTableView(graph_table, view, graph_params, has_nindex, nindex_query, per_page) {
   nindex_query = nindex_query + "&begin_time_clause=" + graph_params.epoch_begin + "&end_time_clause=" + graph_params.epoch_end
 
   // TODO localize
@@ -816,6 +816,7 @@ function updateGraphsTableView(graph_table, view, graph_params, has_nindex, nind
     graph_table.datatable({
       title: "",
       url: url,
+      perPage: per_page,
       post: function() {
         var params = $.extend({}, graph_params);
         delete params.ts_compare;
