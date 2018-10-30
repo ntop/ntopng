@@ -218,17 +218,22 @@ local function getN2diskInterfaceName(ifid)
   end
 end
 
+-- Encode an interface name in a string that can be used in a n2disk configuration file name
+local function getConfigInterfaceName(ifid)
+  local ifname = getN2diskInterfaceName(ifid)
+  return ifname:gsub("%,", "_")
+end
+
 function recording_utils.createConfig(ifid, params)
   local ifname = getN2diskInterfaceName(ifid)
+  local real_ifname = ifname
 
-  if interface.isPacketInterface() then
-    full_ifname = ifname
-  else
+  if not interface.isPacketInterface() then
     if recording_utils.isZC(ifname) then
-      -- full_ifname = ifname -- DEBUG
-      full_ifname = "zc:"..ifname
+      -- real_ifname = ifname -- DEBUG
+      real_ifname = "zc:"..ifname
     else
-      full_ifname = ifname
+      real_ifname = ifname
     end
   end
 
@@ -237,7 +242,7 @@ function recording_utils.createConfig(ifid, params)
   end
 
   local conf_dir = dirs.workingdir.."/n2disk"
-  local filename = conf_dir.."/n2disk-"..ifname..".conf"
+  local filename = conf_dir.."/n2disk-" .. getConfigInterfaceName(ifid) .. ".conf"
   local storage_path = dirs.pcapdir
 
   if isEmptyString(storage_path) then
@@ -343,7 +348,7 @@ function recording_utils.createConfig(ifid, params)
   local pcap_path = recording_utils.getPcapPath(ifid)
   local timeline_path = recording_utils.getTimelinePath(ifid)
 
-  f:write("--interface="..full_ifname.."\n")
+  f:write("--interface="..real_ifname.."\n")
   f:write("--dump-directory="..pcap_path.."\n")
   f:write("--index\n")
   f:write("--timeline-dir="..timeline_path.."\n")
@@ -390,34 +395,34 @@ function recording_utils.isEnabled(ifid)
 end
 
 function recording_utils.isActive(ifid)
-  local ifname = getN2diskInterfaceName(ifid)
-  local check_cmd = n2disk_ctl_cmd.." is-active "..ifname
+  local confifname = getConfigInterfaceName(ifid)
+  local check_cmd = n2disk_ctl_cmd.." is-active "..confifname
   local is_active = executeWithOuput(check_cmd)
   return ternary(string.match(is_active, "^active"), true, false)
 end
 
 function recording_utils.restart(ifid)
-  local ifname = getN2diskInterfaceName(ifid)
-  os.execute(n2disk_ctl_cmd.." enable "..ifname)
-  os.execute(n2disk_ctl_cmd.." restart "..ifname)
+  local confifname = getConfigInterfaceName(ifid)
+  os.execute(n2disk_ctl_cmd.." enable "..confifname)
+  os.execute(n2disk_ctl_cmd.." restart "..confifname)
 end
 
 function recording_utils.stop(ifid)
-  local ifname = getN2diskInterfaceName(ifid)
-  os.execute(n2disk_ctl_cmd.." stop "..ifname)
-  os.execute(n2disk_ctl_cmd.." disable "..ifname)
+  local confifname = getConfigInterfaceName(ifid)
+  os.execute(n2disk_ctl_cmd.." stop "..confifname)
+  os.execute(n2disk_ctl_cmd.." disable "..confifname)
 end
 
 function recording_utils.log(ifid, rows)
-  local ifname = getN2diskInterfaceName(ifid)
-  local log = executeWithOuput(n2disk_ctl_cmd.." log "..ifname.."|tail -n"..rows)
+  local confifname = getConfigInterfaceName(ifid)
+  local log = executeWithOuput(n2disk_ctl_cmd.." log "..confifname.."|tail -n"..rows)
   return log
 end
 
 function recording_utils.stats(ifid)
-  local ifname = getN2diskInterfaceName(ifid)
+  local confifname = getConfigInterfaceName(ifid)
   local stats = {}
-  local proc_stats = executeWithOuput(n2disk_ctl_cmd.." stats "..ifname)
+  local proc_stats = executeWithOuput(n2disk_ctl_cmd.." stats "..confifname)
   local lines = split(proc_stats, "\n")
   for i = 1, #lines do
     local pair = split(lines[i], ": ")
