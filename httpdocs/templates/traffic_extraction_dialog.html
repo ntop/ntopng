@@ -13,27 +13,69 @@
           <input id="{{dialog.id}}_epoch_begin" name="epoch_begin" type="hidden" value="" />
           <input id="{{dialog.id}}_epoch_end" name="epoch_end" type="hidden" value="" />
           <div class="tab-content" style="height:100%;">
+
             <div class="row">
+              <div class="form-group col-md-12 has-feedback">
+                <label class="form-label">{{i18n("report.begin_date_time")}}</label>
+		<div class="input-group">
+                  <span id="{{dialog.id}}_begin"></span>
+		</div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="form-group col-md-12 has-feedback">
+                <label class="form-label">{{i18n("report.end_date_time")}}</label>
+		<div class="input-group">
+                  <span id="{{dialog.id}}_end"></span>
+		</div>
+              </div>
+            </div>
+
+            <div class="row" style="display: none" id="{{dialog.id}}_query_item">
+              <div class="form-group col-md-12 has-feedback">
+                <label class="form-label item-label">AAA</label>
+		<div class="input-group">
+                  <span class="item-value">BBB</span>
+		</div>
+              </div>
+            </div>
+
+	    <div id="{{dialog.id}}_query_items"></div>
+
+            <div class="row">
+              <div class="form-group col-md-12 has-feedback">
+                <button class="btn btn-sm btn-primary" type="button" data-toggle="collapse" data-target="#{{dialog.id}}_advanced" aria-expanded="false" aria-controls="{{dialog.id}}_advanced" id="{{dialog.id}}_advanced_btn">{{i18n("traffic_recording.edit_filter")}}</button>
+              </div>
+            </div>
+	    <script>
+	    $("#{{dialog.id}}_advanced_btn").click(function() {
+	      if ($("#{{dialog.id}}_advanced").hasClass("in")) $(this).addClass("btn-primary");
+	      else $(this).removeClass("btn-primary");
+	    });
+	    </script>
+
+            <div class="row collapse" id="{{dialog.id}}_advanced">
               <div class="form-group col-md-12 has-feedback">
                 <label class="form-label">{{i18n("traffic_recording.filter_bpf")}}</label>
                 <div class="input-group">
                   <span class="input-group-addon"><span class="glyphicon glyphicon-filter"></span></span>
                   <input id="{{dialog.id}}_bpf_filter" name="bpf_filter" class="form-control input-sm" data-bpf="bpf" autocomplete="off" spellcheck="false" />
                 </div>
+	        <br />
+	        <label class="form-label">{{i18n("traffic_recording.filter_examples")}}:</label>
+	        <br />
+	        <ul>
+	          <li>{{i18n("traffic_profiles.host_traffic")}}: <i>host 192.168.1.2</i></li>
+	          <li>{{i18n("traffic_profiles.http_traffic")}}: <i>tcp and port 80</i></li>
+	          <li>{{i18n("traffic_profiles.traffic_between")}}: <i>ip host 192.168.1.1 and 192.168.1.2</i></li>
+	          <li>{{i18n("traffic_profiles.traffic_from_to")}}: <i>ip src 192.168.1.1 and dst 192.168.1.2</i></li>
+	        </ul>
               </div>
             </div>
+
           </div>
         </form>
-
-
-        <label class="form-label">{{i18n("traffic_recording.filter_examples")}}:</label>
-        <br />
-        <ul>
-          <li>{{i18n("traffic_profiles.host_traffic")}}: <i>host 192.168.1.2</i></li>
-          <li>{{i18n("traffic_profiles.http_traffic")}}: <i>tcp and port 80</i></li>
-          <li>{{i18n("traffic_profiles.traffic_between")}}: <i>ip host 192.168.1.1 and 192.168.1.2</i></li>
-          <li>{{i18n("traffic_profiles.traffic_from_to")}}: <i>ip src 192.168.1.1 and dst 192.168.1.2</i></li>
-        </ul>
 
       </div>
       <div class="modal-footer">

@@ -2779,6 +2779,7 @@ local lang = {
     ["disk_space"] = "Max Disk Space",
     ["disk_space_note"] = "Maximum disk space used for recorded traffic on disk.",
     ["download"] = "Download",
+    ["edit_filter"] = "Edit Filter",
     ["ext_interface"] = "External Interface",
     ["extracted_bytes"] = "Bytes",
     ["extracted_packets"] = "Packets",
