@@ -1242,6 +1242,8 @@ local lang = {
     ["packet_drops"] = "Packet Drops",
     ["percentile"] = "95th <a href=\"%{url}\">Percentile</a>",
     ["pkt_drops"] = "Pkt Drops",
+    ["raw_flows"] = "Raw Flows",
+    ["raw_proto_flows"] = "Raw %{proto} Flows",
     ["reset_zoom"] = "Reset Zoom",
     ["right_axis_note"] = "(right axis)",
     ["rtt"] = "RTT",
