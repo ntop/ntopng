@@ -1,5 +1,5 @@
-ntopng Case Study
-#################
+ntopng Flow Collection
+######################
 
 Common and special ntopng case studies explained and described in this section.
 
