@@ -36,6 +36,12 @@ IPv4 and IPv6 flows, respectively.
 
   A MySQL Table with Dumped Flows
 
+MySQL flows dump examples are discussed thoroughly in the following blog posts
+
+- https://www.ntop.org/ntopng/exploring-historical-data-using-ntopng/
+- https://www.ntop.org/ntopng/exploring-historical-data-using-ntopng-part-2/
+
+
 ElasticSearch
 -------------
 
