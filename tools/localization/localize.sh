@@ -35,6 +35,15 @@ if [[ $# -lt 1 ]]; then
   usage
 fi
 
+lang_path=
+function get_lang_path {
+  if [[ -f "$root_path/pro/scripts/locales/${1}.lua" ]]; then
+    lang_path="$root_path/pro/scripts/locales/${1}.lua"
+  else
+    lang_path="$root_path/scripts/locales/${1}.lua"
+  fi
+}
+
 case $1 in
 sort)
   lang=$2
@@ -45,26 +54,23 @@ sort)
 status)
   lang=$2
   if [[ -z $lang ]]; then usage; fi
+  get_lang_path "$lang"
 
-  "$base_path/missing_localization.py" "$root_path/scripts/locales/en.lua" "$root_path/pro/scripts/locales/${lang}.lua" | grep -v ".nedge."
+  "$base_path/missing_localization.py" "$root_path/scripts/locales/en.lua" "$lang_path" | grep -v ".nedge."
   ;;
 missing)
   lang=$2
   if [[ -z $lang ]]; then usage; fi
+  get_lang_path "$lang"
 
-  "$base_path/missing_localization.py" "$root_path/scripts/locales/en.lua" "$root_path/pro/scripts/locales/${lang}.lua" | grep -v ".nedge." | awk '{ $1=""; $2 = ""; print $0; }'
+  "$base_path/missing_localization.py" "$root_path/scripts/locales/en.lua" "$lang_path" | grep -v ".nedge." | awk '{ $1=""; $2 = ""; print $0; }'
   ;;
 all)
   lang=$2
   if [[ -z $lang ]]; then usage; fi
-  loc_path=
+  get_lang_path "$lang"
 
-  if [[ $lang == "en" ]]; then
-    loc_path="$root_path/scripts/locales"
-  else
-    loc_path="$root_path/pro/scripts/locales"
-  fi
-  "$base_path/missing_localization.py" /dev/null "${loc_path}/${lang}.lua" | grep -v ".nedge." | awk '{ $1=""; $2 = ""; print $0; }'
+  "$base_path/missing_localization.py" /dev/null "$lang_path" | grep -v ".nedge." | awk '{ $1=""; $2 = ""; print $0; }'
   ;;
 extend)
   lang=$2

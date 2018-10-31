@@ -140,14 +140,14 @@ fi
 function prepare_cur_data_dir_path() {
     if [ "${DATADIR_SET}" = false ] && [ -f "${DEFAULT_CONF_FILE}" ]; then
 	# make sure there's at most one among -d and --data-dir
-	local DATADIR_COUNT="`cat "${DEFAULT_CONF_FILE}" | grep -v "#" | grep "\-d\|\-\-data\-dir"  | wc -l`"
+	local DATADIR_COUNT="`cat "${DEFAULT_CONF_FILE}" | grep -v "#" | grep "\-d[= ]\|\-\-data\-dir"  | wc -l`"
 
 	if [ "${DATADIR_COUNT}" -gt "1" ]; then
 	    [ $QUIET = false ] && echo "Cannot reliably determine the data dir from ${DEFAULT_CONF_FILE}"
 	    exit 1
 	elif [ "${DATADIR_COUNT}" -eq "1" ]; then
 	    # use awk to split on spaces or = signs and remove " and ' s, and take the last column that should be the path to the data directory
-	    local CUR_DATADIR=`cat "${DEFAULT_CONF_FILE}" | grep -v "#" | grep "\-d\|\-\-data\-dir" | awk -F"[= ]" '{print $NF}' | sed s/\"//g | sed s/\'//g`
+	    local CUR_DATADIR=`cat "${DEFAULT_CONF_FILE}" | grep -v "#" | grep "\-d[= ]\|\-\-data\-dir" | awk -F"[= ]" '{print $NF}' | sed s/\"//g | sed s/\'//g`
 
 	    if [ ! -d "${CUR_DATADIR}" ]; then
 		[ $QUIET = false ] && "Data dir ${CUR_DATADIR} read from ${DEFAULT_CONF_FILE} is not a directory on the system"
