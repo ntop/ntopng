@@ -647,7 +647,7 @@ int AlertsManager::storeAlert(AlertEntity alert_entity, const char *alert_entity
 
 int AlertsManager::storeFlowAlert(Flow *f) {
   if(!ntop->getPrefs()->are_alerts_disabled()) {
-    char alert_json[1024];
+    const char *alert_json;
     char cli_ip_buf[64], srv_ip_buf[64];
     char query[STORE_MANAGER_MAX_QUERY];
     sqlite3_stmt *stmt = NULL;
@@ -660,6 +660,7 @@ int AlertsManager::storeFlowAlert(Flow *f) {
     AlertLevel alert_severity;
     time_t now = time(NULL);
     char *info;
+    json_object *alert_json_obj;
  
     if(!store_initialized || !store_opened || !f)
       return(-1);
@@ -677,15 +678,12 @@ int AlertsManager::storeFlowAlert(Flow *f) {
 
     json_object *status_info = f->flow2statusinfojson();
 
-    if(snprintf(alert_json, sizeof(alert_json),
-		"{\"info\":\"%s\", \"status_info\":%s}",
-		info ? info : (char*)"",
-		status_info ? json_object_to_json_string(status_info) : (char*)"{}"
-	) >= (int)sizeof(alert_json))
-      snprintf(alert_json, sizeof(alert_json), "{\"info\":\"\"}");
+    if((alert_json_obj = json_object_new_object()) == NULL)
+      return(-1);
 
-    if(status_info)
-      json_object_put(status_info);
+    json_object_object_add(alert_json_obj, "info", json_object_new_string(info ? info : (char*)""));
+    json_object_object_add(alert_json_obj, "status_info", status_info ? status_info : json_object_new_object());
+    alert_json = json_object_to_json_string(alert_json_obj);
 
     notifyAlert(alert_entity_flow, "flow", NULL,
 		alert_type, alert_severity, alert_json,
@@ -776,6 +774,7 @@ int AlertsManager::storeFlowAlert(Flow *f) {
     f->setFlowAlerted();
 
     ntop->getTrace()->traceEvent(TRACE_INFO, "[%s] %s", msg, alert_json);
+    json_object_put(alert_json_obj);
 
     return rc;
   } else
