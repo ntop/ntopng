@@ -226,19 +226,15 @@ end
 
 function recording_utils.createConfig(ifid, params)
   local ifname = getN2diskInterfaceName(ifid)
-  local real_ifname = ifname
-
-  if not interface.isPacketInterface() then
-    if recording_utils.isZC(ifname) then
-      -- real_ifname = ifname -- DEBUG
-      real_ifname = "zc:"..ifname
-    else
-      real_ifname = ifname
-    end
-  end
 
   if isEmptyString(ifname) then
     return false
+  end
+
+  local real_ifname = ifname
+  if not interface.isPacketInterface() and recording_utils.isZC(ifname) then
+    -- real_ifname = ifname -- DEBUG
+    real_ifname = "zc:"..ifname
   end
 
   local conf_dir = dirs.workingdir.."/n2disk"
@@ -489,7 +485,7 @@ function recording_utils.getExtractionJobs(ifid)
     local job_json = ntop.getHashCache(extraction_jobs_key, id)
     local job = json.decode(job_json)
     if ifid == nil or job.ifid == ifid then
-      jobs[tonumber(id)] = json.decode(job_json)
+      jobs[tonumber(id)] = job
     end
   end
 
@@ -534,6 +530,21 @@ function recording_utils.scheduleExtraction(ifid, params)
   return job_info
 end
 
+local function setStuckJobsAsFailed()
+  local jobs = {}
+  local job_ids = ntop.getHashKeysCache(extraction_jobs_key) or {}
+
+  for id,_ in pairs(job_ids) do
+    local job_json = ntop.getHashCache(extraction_jobs_key, id)
+    local job = json.decode(job_json)
+    if job.status == "processing" then
+      job.status = "failed"
+      job.error_code = 9 -- stuck
+      ntop.setHashCache(extraction_jobs_key, job.id, json.encode(job)) 
+    end
+  end
+end
+
 local function setJobAsCompleted()
   local datapath_extractions = ntop.getExtractionStatus()
   for id,status in pairs(datapath_extractions) do
@@ -553,6 +564,7 @@ local function setJobAsCompleted()
       end
     end
   end
+  setStuckJobsAsFailed()
 end
 
 function recording_utils.checkExtractionJobs()
