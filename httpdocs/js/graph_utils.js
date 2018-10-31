@@ -298,7 +298,7 @@ function fixJumpButtons(epoch_end) {
 };
 
 // add a new updateStackedChart function
-function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id, flows_dt, params, step, align_step, show_all_smooth, initial_range) {
+function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id, params, step, align_step, show_all_smooth, initial_range) {
   var pending_request = null;
   var d3_sel = d3.select(chart_id);
   var $chart = $(chart_id);
@@ -753,6 +753,8 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
     if(first_load) {
       first_load = false;
     } else {
+      var flows_dt = $("#chart1-flows");
+
       /* Reload datatable */
       if(flows_dt.data("datatable"))
         flows_dt.data("datatable").render();
