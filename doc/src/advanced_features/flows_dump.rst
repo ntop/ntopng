@@ -7,9 +7,7 @@ instructed to dump expired flows to MySQL via the -F startup modifier.
 MySQL
 -----
 
-To dump expired flows to MySQL ntopng requires the -F modifier followed by a string in the following
-format:
-
+To dump flows to MySQL ntopng requires the -F modifier followed by a string in the following format:
 
 .. code:: bash
 
@@ -36,11 +34,58 @@ IPv4 and IPv6 flows, respectively.
 
   A MySQL Table with Dumped Flows
 
-MySQL flows dump examples are discussed thoroughly in the following blog posts
+By enabling MySQL integration, it's also possible to inspect the past flows via
+the ntopng Historical Explorer, which provides many filters and drillown capabilities.
+
+.. figure:: ../img/advanced_features_historical_explorer.png
+  :align: center
+  :alt: MySQL Historical Explorer
+  :scale: 60
+
+  Historical Explorer
+
+For a complete discussion on the explorer capabilities check out the following URLs:
 
 - https://www.ntop.org/ntopng/exploring-historical-data-using-ntopng/
 - https://www.ntop.org/ntopng/exploring-historical-data-using-ntopng-part-2/
 
+MySQL Performance
+-----------------
+
+Tuning MySQL parameters is an essential task to avoid dropped flows. The dropped
+flows percentage is shown into the Network Interface overview page.
+
+.. figure:: ../img/mysql_dropped_flows.png
+  :align: center
+  :alt: MySQL Export Statistics
+
+  MySQL Export Statistics
+
+Here are some tips to tune MySQL:
+
+  - key_buffer_size: typically, this is set to 30-40% of the available RAM memory.
+    Ideally, the sum of the sizes of all the .MYI files should be smaller than key_buffer_size
+    but this is not always doable nor practical. Default size is just 8M so an increase would definitely be beneficial.
+
+  - sort_buffer_size: this can have positive effects on the search queries rather
+    than on the insertion. The status variable sort_message_passes is the only one
+    that uses sort_buffer_size. You should check the sort_message_passes and if it is
+    a large number then an increase in the sort_buffer_size will have a positive effect.
+
+To improve performance, it's also important to set an appropriate retention time on data, because the more data
+MySQL has, the more it slows down. This can be configured from the "MySQL storage" preference into the Timeseries
+settings tab. Old data to delete is checked on a daily basis.
+
+.. figure:: ../img/mysql_storage_preference.png
+  :align: center
+  :alt: MySQL Retention Preference
+
+  MySQL Retention Preference
+
+The followings are the expected MySQL flow export rates with ntopng, assuming a fast disk and CPU are used:
+
+  - ~2k flows/sec (ntopng community, professional)
+  - ~10k flows/sec (ntopng enterprise)
 
 ElasticSearch
 -------------
