@@ -335,7 +335,7 @@ function driver:query(schema, tstart, tend, tags, options)
     else
       -- try to inherit label from existing series
       local label = series and series[1].label
-      total_serie = self:_makeTotalSerie(schema, tstart, tend, tags, options, url, time_step, label, unaligned_offset)
+      total_serie = self:_makeTotalSerie(schema, tstart + time_step, tend, tags, options, url, time_step, label, unaligned_offset)
     end
 
     if total_serie then
