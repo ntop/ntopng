@@ -8,7 +8,7 @@ ntopng can be used to visualize traffic data that has been generated or collecte
 
 The following picture summarizes the two scenarios highlighted above and demonstrates that they can also be combined together.
 
-.. figure:: ./../img/using_nprobe_with_ntopng.png
+.. figure:: ./img/using_nprobe_with_ntopng.png
   :align: center
   :alt: Using nProbe with ntopng
 
@@ -38,6 +38,8 @@ Following is a minimum, working, configuration example of nProbe and ntopng to o
 
 Option :code:`-T "@NTOPNG@"`, known as template, tells nprobe the minimum set of fields it has to export in order to ensure interoperability with ntopng. Specifying this option is recommended when using nProbe with ntopng. Other collectors may require different sets of fields in order to work. Templates and exported fields are discussed below.
 
+For more information about configuring nProbe for ntopng check out https://www.ntop.org/nprobe/best-practices-for-the-collection-of-flows-with-ntopng-and-nprobe .
+
 Exported Flow Fields
 ====================
 
@@ -59,6 +61,37 @@ Additional fields can be combined with the macro :code:`@NTOPNG@` to specify ext
 .. code:: bash
 
 	  nprobe --zmq "tcp://*:5556" -i eth1 -n none -T "@NTOPNG@ %IN_SRC_MAC %OUT_DST_MAC"
+
+Collecting from Multiple Exporters
+==================================
+
+There are two main ways to gather flows from multiple NetFlow/sFlow exporters and visualize data into ntopng:
+
+1. By running a single nProbe instance, and directing all the exporters to the same nProbe port.
+   This is the simpler option since adding a new exporter does not require any modification of
+   the nProbe/ntopng configurations. It is also possible to enable `Dynamic Interfaces Disaggregation`_
+   by Probe IP to separate the exporters flows.
+
+2. By running multiple nProbe instances, one for each exporter. This method is the most performant
+   because each exported data will be handled by a separate thread into ntopng so it can leverage
+   the cpu cores of a multicore system.
+
+Here is an example on how to configure multiple nProbe instances (second approach):
+
+.. code:: bash
+
+    ntopng -i "tcp://127.0.0.1:5556" -i "tcp://127.0.0.1:5557"
+    nprobe --zmq "tcp://*:5556" -i none -n none --collector-port 2055
+    nprobe --zmq "tcp://*:5557" -i none -n none --collector-port 6343
+
+In this examples two NetFlows exporters export flows to ports 2055 and 6343 respectively.
+nProbe uses two separate ZMQ channels to communicate with ntopng. The two exporters flows
+will be split into two separate virtual network interfaces into ntopng:
+
+     - `tcp://127.0.0.1:5556`: flows from exporter on port 2055
+     - `tcp://127.0.0.1:5557`: flows from exporter on port 6343
+
+.. _`Dynamic Interfaces Disaggregation`: advanced_features/dynamic_interfaces_disaggregation.html
 
 Using Behind a Firewall
 =======================
