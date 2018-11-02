@@ -99,3 +99,18 @@ via its recovery address as discussed in the device recovery_ section.
 .. _recovery: recovery.html
 .. _bridge: bridging.html
 .. _router: routing.html
+
+Running into a VM
+-----------------
+
+In order to run nEdge into a Virtual Machine, a feature called PCI Passthrough
+must be enabled on the VM hypervisor. The PCI Passthrough will give the VM guest
+full control on the physical network interface.
+
+Here is a guide to enable it on some virtualization platforms:
+https://www.ntop.org/guides/pf_ring/vm/virsh_hostdev.html .
+
+.. note::
+
+   The link above is just a reference to setup the Passthrough. PF_RING ZC will
+   be useless with nEdge.

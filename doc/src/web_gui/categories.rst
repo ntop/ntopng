@@ -1,8 +1,28 @@
 Categories
 ##########
 
-ntopng provides a classification of the network traffic into a set of logical categories.
-Streaming, SocialNetwork and Web are examples of categories.
+Traditionally nDPI was used by ntopng to detect flows L7 protocol. With the advent of
+more and more protocols, speaking about single protocols is often too difficult.
+Users usually are not interested in the specific protocol but rathen on a whole
+group of protocols. For example, it's easier to reason about VPN traffic as a
+whole rather than a particular VPN implementation.
+
+For these reasons, nDPI (and ntopng) has been extended to provide a logical
+grouping of protocols, called Categories. With Categories it's possible, for example,
+to get an idea of the network traffic of a host:
+
+.. figure:: ../img/host_category_overview.png
+  :align: center
+  :alt: Host Category Overview
+  :scale: 70
+
+  Host Category Overview
+
+Some use cases solved by the Categories include:
+
+- Block all advertisement sites (nEdge)
+- Trigger an alert whenever my employees access a malware site (ntopng, whereas in nEdge there is the ability to block this traffic)
+- Prevent clients from accessing the WiFi sites of competitors as they are using them for comparing prices (nEdge)
 
 .. figure:: ../img/web_gui_flow_category.png
   :align: center
@@ -17,12 +37,18 @@ associated to each protocol:
   :align: center
   :alt: The Protocol Category editor
 
-Category Hosts
---------------
+  The Protocol Category editor
 
-Apart from the protocol based mapping specified in the *Protocols* page above,
-ntopng also supports host-based rules. The host-based rules will be used to perform
-substring matching on some of the flow information:
+Custom Category Hosts
+---------------------
+
+As shown above, ntopng already assigns a default category to the known L7 protocols.
+Nevertheless, it's also possible for the user to specify a list of additional hosts
+to be included into a particular category. ntopng provides 5 empty "custom categories"
+dedicated to this task, but users are also free to modify the other categories.
+
+The custom category hosts can be specified via some host-based rules.
+The host-based rules will be used to perform substring matching on some of the flow information:
 
   - Client/Server IP
   - Host SNI
@@ -42,6 +68,8 @@ as part of the category.
   :align: center
   :alt: Edit Category Hosts
   :height: 400px
+
+  Edit Category Hosts
 
 The picture above shows some custom hosts defined for the Advertisement category.
 For example, the `.ads.` host rule will match any host containing `.ads.` . It is important
@@ -63,3 +91,5 @@ to a customized category.
 .. figure:: ../img/web_gui_add_host_to_category_dialog.png
   :align: center
   :alt: Edit Category Hosts
+
+  Add a Flow Host to a Category
