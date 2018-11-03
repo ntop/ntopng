@@ -294,7 +294,7 @@ class NetworkInterface : public Checkpointable {
   inline virtual bool is_ndpi_enabled()        { return(true);          }
   inline u_int  getNumnDPIProtocols()          { return(ndpi_get_num_supported_protocols(ndpi_struct)); };
   inline time_t getTimeLastPktRcvd()           { return(last_pkt_rcvd ? last_pkt_rcvd : last_pkt_rcvd_remote); };
-  inline void  setTimeLastPktRcvd(time_t t)    { last_pkt_rcvd = t; };
+  inline void  setTimeLastPktRcvd(time_t t)    { if(t > last_pkt_rcvd) last_pkt_rcvd = t; };
   inline ndpi_protocol_category_t get_ndpi_proto_category(ndpi_protocol proto) { return(ndpi_get_proto_category(ndpi_struct, proto)); };
   inline const char* get_ndpi_category_name(ndpi_protocol_category_t category) { return(ndpi_category_get_name(ndpi_struct, category)); };
   ndpi_protocol_category_t get_ndpi_proto_category(u_int protoid);
