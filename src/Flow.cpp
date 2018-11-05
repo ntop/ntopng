@@ -2207,7 +2207,7 @@ bool Flow::isIdleFlow() {
     return(isNetfilterIdleFlow());
 #endif
 
-  if(iface->getIfType() != interface_type_ZMQ) {
+  if((iface->getIfType() != interface_type_ZMQ) && (iface->is_purge_idle_interface())) {
     u_int32_t threshold_ms = CONST_MAX_IDLE_INTERARRIVAL_TIME;
     time_t now = iface->getTimeLastPktRcvd();
     
