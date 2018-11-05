@@ -1718,7 +1718,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
       if(isHTTP() && protos.http.last_url)
 	lua_push_str_table_entry(vm, "protos.http.last_url", protos.http.last_url);
 
-      if(host_server_name && (!mask_flow))
+      if(isHTTP() && host_server_name && (!mask_flow))
 	lua_push_str_table_entry(vm, "protos.http.server_name", host_server_name);
 
       if(isDNS() && protos.dns.last_query)
