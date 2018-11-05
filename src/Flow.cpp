@@ -1833,7 +1833,6 @@ u_int32_t Flow::key(Host *_cli, u_int16_t _cli_port,
 /* *************************************** */
 
 bool Flow::isReadyToPurge() {
-  return(false);
   if(idle_flow) return(idle_flow);
 
 #ifdef HAVE_NEDGE
