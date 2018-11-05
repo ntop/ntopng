@@ -7,6 +7,9 @@ to find the exact network activity that caused the problem.
 Continuous traffic recording provides a window into network history, that
 allows you to retrieve and analyse all the raw traffic in that period of time.
 
+Enabling Traffic Recording
+--------------------------
+
 *ntopng* includes support for continuous traffic recording leveraging on
 *n2disk*, an optimized traffic recording application part of the *ntop* suite
 available on Linux systems. For this reason, in order to be able to enable
@@ -85,7 +88,7 @@ of the recording service, statistics about processed traffic, the log trace.
 
   The Traffic Recording Status Page
 
-Traffic extraction
+Traffic Extraction
 ------------------
 
 All pcap files dumped to disk are indexed on-the-fly by *n2disk* to improve traffic 
@@ -93,7 +96,7 @@ extraction speed when recorded data need to be retrieved.
 It is possible to extract traffic from multiple places in *ntopng*, including the interface
 and the host *Historical Traffic Statistics* pages. 
 
-After enabling continuous traffic recording on an interface, a new "Extract pcap" button 
+After enabling continuous traffic recording on an interface, a new *Extract pcap* button 
 appears at the top right corner of the *Historical Traffic Statistics* page.
 
 .. figure:: ../img/web_gui_interfaces_extract_pcap.png
@@ -119,10 +122,32 @@ traffic matching the time interval selected on the chart.
   The Extract Pcap Dialog
 
 In addition to the time constraint, it is possible to configure a BPF-like filter, 
-to further reduce the extracted amount of data, by clicking on Edit Filter. The filter 
+to further reduce the extracted amount of data, by clicking on *Edit Filter*. The filter 
 format is described at `Packet Filtering <https://www.ntop.org/guides/n2disk/filters.html>`_.
 
 .. figure:: ../img/web_gui_interfaces_extract_pcap_dialog_filter.png
+  :align: center
+  :scale: 40 %
+  :alt: Extract pcap dialog filter
+
+  The Extract Pcap Dialog Filter
+
+The *Extract pcap* button is also available in several other places while browsing the
+historical data, an example is the list of the *Top Receivers* or *Top Senders* available 
+at the bottom of the *Interface Historical Traffic Statistics* page. In this case, a button
+on the left side of the row lets you download the traffic matching a specific host in the
+selected time interval.
+
+.. figure:: ../img/web_gui_interfaces_extract_pcap_from_list.png
+  :align: center
+  :alt: Extract pcap button
+
+  The Extract Pcap Button in the Top Receivers in the Interface Historical Traffic Statistics Page
+
+The dialog box in this case already contains a precomputed filter, that can be edited 
+by clicking on *Edit Filter* to refine the extraction.
+
+.. figure:: ../img/web_gui_interfaces_extract_pcap_dialog_filter_pre.png
   :align: center
   :scale: 40 %
   :alt: Extract pcap dialog filter
