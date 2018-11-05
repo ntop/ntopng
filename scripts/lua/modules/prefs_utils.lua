@@ -46,6 +46,11 @@ DNS_PRESETS = {
   {id="opendns_familyshield", label="OpenDNS - FamilyShield", url="https://www.opendns.com/setupguide/?url=familyshield", primary_dns="208.67.222.123", secondary_dns="208.67.220.123", child_safe=true},
   {id="quad9_security", label="Quad 9: Security", url="https://quad9.net", primary_dns="9.9.9.9", secondary_dns=""},
   {id="google", label="Google DNS", url="https://developers.google.com/speed/public-dns", primary_dns="8.8.8.8", secondary_dns="8.8.4.4"},
+  {id="cloudflare", label="Cloudflare DNS", url="https://www.cloudflare.com/learning/dns/what-is-1.1.1.1", primary_dns="1.1.1.1", secondary_dns="1.0.0.1"},
+  {id="cleanbrowsing_security", label="CleanBrowsing - Security", url="https://cleanbrowsing.org",  primary_dns="185.228.168.9", secondary_dns="185.228.169.9"},
+  {id="cleanbrwosing_adult", label="CleanBrowsing - Adult Filter", url="https://cleanbrowsing.org",  primary_dns="185.228.168.168", secondary_dns="185.228.169.168", child_safe=true},
+  {id="yandex_safe", label="Yandex - Safe", url="https://dns.yandex.com", primary_dns="77.88.8.88", secondary_dns="77.88.8.2"},
+  {id="yandex_family", label="Yandex - Family", url="https://dns.yandex.com", primary_dns="77.88.8.7", secondary_dns="77.88.8.3", child_safe=true},
 }
 
 function isSubpageAvailable(subpage, show_advanced_prefs)
