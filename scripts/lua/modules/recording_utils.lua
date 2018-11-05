@@ -4,7 +4,7 @@
 
 local dirs = ntop.getDirs()
 require "lua_utils"
-require "prefs_utils"
+--require "prefs_utils"
 local json = require("dkjson")
 
 prefs = ntop.getPrefs()
@@ -86,6 +86,27 @@ function recording_utils.isAvailable()
     return true
   end
   return false
+end
+
+function recording_utils.getN2diskInfo()
+  local info = {}
+  if ntop.exists(n2disk_ctl) then
+    local n2disk_version = executeWithOuput("n2disk --version")
+    local lines = split(n2disk_version, "\n")
+    for i = 1, #lines do
+      local line = lines[i]
+      line = string.gsub(line, "%s+", " ")
+      local pair = split(line, " ")
+      if pair[1] ~= nil and pair[2] ~= nil then
+        if pair[1] == "n2disk" then
+          info.version = trimString(pair[2])
+        elseif pair[1] == "SystemID:" then
+          info.systemid = trimString(pair[2])
+        end
+      end
+    end
+  end
+  return info
 end
 
 function recording_utils.setLicense(key)

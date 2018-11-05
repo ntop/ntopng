@@ -739,12 +739,16 @@ end
 -- ================================================================================
 
 function printRecording()
+  local n2disk_info = recording_utils.getN2diskInfo()
+
   print('<form method="post">')
   print('<table class="table">')
 
   print('<tr><th colspan=2 class="info">'..i18n("prefs.license")..'</th></tr>')
 
-  prefsInputFieldPrefs(subpage_active.entries["n2disk_license"].title, subpage_active.entries["n2disk_license"].description,
+  prefsInputFieldPrefs(subpage_active.entries["n2disk_license"].title, subpage_active.entries["n2disk_license"].description.."<br>"
+    ..ternary(n2disk_info.version ~= nil, i18n("prefs.n2disk_license_version", {version=n2disk_info.version}).."<br>", "")
+    ..ternary(n2disk_info.systemid ~= nil, i18n("prefs.n2disk_license_systemid", {systemid=n2disk_info.systemid}), ""),
 		       "ntopng.prefs.", "n2disk_license",
 		       "", false, nil, nil, nil, {style={width="25em;"}, min = 50, max = 64 })
 

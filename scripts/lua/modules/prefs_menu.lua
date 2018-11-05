@@ -1,5 +1,7 @@
 require "lua_utils"
 
+local recording_utils = require "recording_utils"
+
 local prefs = ntop.getPrefs()
 
 local have_nedge = ntop.isnEdge()
@@ -296,7 +298,7 @@ local menu_subpages = {
       title       = i18n("prefs.network_discovery_interval_title"),
       description = i18n("prefs.network_discovery_interval_description"),
     },
-  }}, {id="recording",     label=i18n("prefs.recording"),             advanced=false, pro_only=false,  hidden=false, entries={
+  }}, {id="recording",     label=i18n("prefs.recording"),             advanced=false, pro_only=false,  hidden=(not recording_utils.isAvailable()), entries={
     n2disk_license = {
       title       = i18n("prefs.n2disk_license_title"),
       description = i18n("prefs.n2disk_license_description", { purchase_url='http://shop.ntop.org/', universities_url='http://www.ntop.org/support/faq/do-you-charge-universities-no-profit-and-research/'}),
