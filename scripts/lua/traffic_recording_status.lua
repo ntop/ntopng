@@ -19,7 +19,7 @@ interface.select(ifname)
 
 if recording_utils.isAvailable then
   local ifstats = interface.getStats()
-  local storage_info = recording_utils.storageInfo()
+  local storage_info = recording_utils.storageInfo(ifstats.id)
 
   print("<hr /><h2>"..i18n("traffic_recording.traffic_recording_status").."</h2>")
 

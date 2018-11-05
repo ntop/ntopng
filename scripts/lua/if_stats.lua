@@ -16,6 +16,7 @@ local json = require "dkjson"
 local host_pools_utils = require "host_pools_utils"
 local template = require "template_utils"
 local os_utils = require "os_utils"
+local format_utils  = require "format_utils"
 
 require "lua_utils"
 require "prefs_utils"
@@ -1005,7 +1006,8 @@ elseif(page == "traffic_recording") then
   if recording_utils.isAvailable() then
     local record_traffic = ntop.getCache('ntopng.prefs.ifid_'..ifid..'.traffic_recording.enabled')
     local disk_space = ntop.getCache('ntopng.prefs.ifid_'..ifid..'.traffic_recording.disk_space')
-    local storage_info = recording_utils.storageInfo()
+    local storage_info = recording_utils.storageInfo(ifid)
+    local max_space = recording_utils.recommendedSpace(storage_info)
     if record_traffic == "true" then
       record_traffic_checked = 'checked="checked"'
       record_traffic_value = "false" -- Opposite
@@ -1015,7 +1017,7 @@ elseif(page == "traffic_recording") then
     end
 
     if isEmptyString(disk_space) then
-      disk_space = storage_info.avail - (storage_info.avail*0.2) -- default (recommended value)
+      disk_space = max_space
     end
     disk_space = tostring(math.floor(tonumber(disk_space)/1024))
 
@@ -1060,8 +1062,8 @@ elseif(page == "traffic_recording") then
           <tr>
             <th>]] print(i18n("traffic_recording.disk_space")) print [[</th>
             <td colspan=2>
-              <input type="number" style="width:127px;display:inline;" class="form-control" name="disk_space" placeholder="" min="1" step="1" max="]] print(storage_info.total/1024) print [[" value="]] print(disk_space) print [["></input><span style="vertical-align: middle"> GB</span><br>
-    <small>]] print(i18n("traffic_recording.disk_space_note")) print[[</small>
+              <input type="number" style="width:127px;display:inline;" class="form-control" name="disk_space" placeholder="" min="1" step="1" max="]] print(max_space/1024) print [[" value="]] print(disk_space) print [["></input><span style="vertical-align: middle"> GB</span><br>
+    <small>]] print(i18n("traffic_recording.disk_space_note") .. ternary(storage_info.if_used > 0, " "..i18n("traffic_recording.disk_space_note_in_use", {in_use=tostring(format_utils.round(storage_info.if_used/1024, 2))}), "")) print[[</small>
             </td>
           </tr>
 

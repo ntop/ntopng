@@ -88,6 +88,22 @@ function recording_utils.isAvailable()
   return false
 end
 
+function recording_utils.setLicense(key)
+  if ntop.exists(n2disk_ctl) then
+    os.execute(n2disk_ctl_cmd.." set-license "..key)
+    return true
+  else
+    return false
+  end
+end
+
+local function setLicenseFromRedis()
+  local n2disk_license = ntop.getCache('ntopng.prefs.n2disk_license')
+  if not isEmptyString(n2disk_license) then
+    recording_utils.setLicense(n2disk_license)
+  end
+end
+
 function recording_utils.isZC(ifname)
   local proc_info = io.open("/proc/net/pf_ring/dev/"..ifname.."/info", "r")
   if proc_info ~= nil then
@@ -167,29 +183,6 @@ local function dirname(s)
   end
 end
 
-function recording_utils.storageInfo()
-  local storage_info = {
-    path = dirs.pcapdir, dev = "", mount = "",
-    total = 0, used = 0, avail = 0, used_perc = 0,
-  }
-  local root_path = storage_info.path
-  while not ntop.isdir(root_path) and string.len(root_path) > 1 do
-    root_path = dirname(root_path) 
-  end
-  local line = executeWithOuput("df "..root_path.." 2>/dev/null|tail -n1")
-  line = line:gsub('%s+', ' ')
-  local values = split(line, ' ')
-  if #values >= 6 then
-    storage_info.dev = values[1]
-    storage_info.total = tonumber(values[2])/1024
-    storage_info.used = tonumber(values[3])/1024
-    storage_info.avail = tonumber(values[4])/1024
-    storage_info.used_perc = values[5]
-    storage_info.mount = values[6]
-  end
-  return storage_info
-end
-
 function recording_utils.getPcapPath(ifid)
   local storage_path = dirs.pcapdir
   return storage_path.."/"..ifid.."/pcap"
@@ -210,6 +203,51 @@ local function getPcapFilePath(job_id, ifid, file_id)
   return dir_path.."/"..file_id..".pcap"
 end
 
+function recording_utils.storageInfo(ifid)
+  local storage_info = {
+    path = dirs.pcapdir, dev = "", mount = "",
+    total = 0, used = 0, avail = 0, used_perc = 0,
+    if_used = 0
+  }
+
+  -- Global storage info
+  local root_path = storage_info.path
+  while not ntop.isdir(root_path) and string.len(root_path) > 1 do
+    root_path = dirname(root_path) 
+  end
+  local line = executeWithOuput("df "..root_path.." 2>/dev/null|tail -n1")
+  line = line:gsub('%s+', ' ')
+  local values = split(line, ' ')
+  if #values >= 6 then
+    storage_info.dev = values[1]
+    storage_info.total = tonumber(values[2])/1024
+    storage_info.used = tonumber(values[3])/1024
+    storage_info.avail = tonumber(values[4])/1024
+    storage_info.used_perc = values[5]
+    storage_info.mount = values[6]
+  end
+
+  -- Interface storage info
+  local pcap_path = recording_utils.getPcapPath(ifid)
+  local line = executeWithOuput("du -s "..pcap_path.." 2>/dev/null")
+  local values = split(line, '\t')
+  if #values >= 1 then
+    local if_used = tonumber(values[1])
+    if if_used ~= nil then
+      if_used = if_used/1024
+      storage_info.if_used = if_used
+    end
+  end
+
+  return storage_info
+end
+
+function recording_utils.recommendedSpace(storage_info)
+  local avail = storage_info.avail + storage_info.if_used
+  local recommended = avail - (avail*0.2)
+  return recommended
+end
+
 local function getN2diskInterfaceName(ifid)
   if interface.isPacketInterface() then
     return getInterfaceName(ifid)
@@ -226,6 +264,8 @@ end
 
 function recording_utils.createConfig(ifid, params)
   local ifname = getN2diskInterfaceName(ifid)
+
+  setLicenseFromRedis()
 
   if isEmptyString(ifname) then
     return false
@@ -427,10 +467,6 @@ function recording_utils.stats(ifid)
     end
   end
   return stats
-end
-
-function recording_utils.setLicense(key)
-  os.execute(n2disk_ctl_cmd.." set-license "..key)
 end
 
 function recording_utils.getJobFiles(id)

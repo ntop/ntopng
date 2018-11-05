@@ -2784,6 +2784,7 @@ local lang = {
     ["continuous_recording_and_flows"] = "Continuous Traffic Recording and Flow Visibility",
     ["disk_space"] = "Max Disk Space",
     ["disk_space_note"] = "Maximum disk space used for recorded traffic on disk.",
+    ["disk_space_note_in_use"] = "%{in_use} GB are already in use by this instance.",
     ["download"] = "Download",
     ["edit_filter"] = "Edit Filter",
     ["ext_interface"] = "External Interface",
