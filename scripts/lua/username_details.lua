@@ -21,12 +21,14 @@ local host_info    = url2hostinfo(_GET)
 local uid         = _GET["uid"]
 local application = _GET["application"]
 local name
+local ifstats = interface.getStats()
 local refresh_rate
 
-if ntop.isnEdge() then
-  refresh_rate = 5
+local have_nedge = ntop.isnEdge()
+if have_nedge then
+   refresh_rate = 5
 else
-   refresh_rate = getInterfaceRefreshRate(interface.getStats()["id"])
+   refresh_rate = getInterfaceRefreshRate(ifstats["id"])
 end
 
 if(user_key == nil) then
@@ -38,47 +40,47 @@ else
 	 name = host_info["host"]
       end
    end
-  print [[
+   print [[
             <nav class="navbar navbar-default" role="navigation">
               <div class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
 	    <li><a href="#">]]
 
-  if host_info then
-     print(string.format("%s: %s", i18n("host_details.host"), name))
-  end
+   if host_info then
+      print(string.format("%s: %s", i18n("host_details.host"), name))
+   end
 
-  print [[ <i class="fa fa-linux fa-lg"></i> ]] print(user_key)
+   print [[ <i class="fa fa-linux fa-lg"></i> ]] print(user_key)
 
-  print [[  </a></li>]]
-
-
-if(page == "username_processes") then active=' class="active"' else active = "" end
-print('<li'..active..'><a href="?username='.. user_key..'&uid='..uid)
-if host_info then
-   print('&'..hostinfo2url(host_info))
-end
-print('&page=username_processes">'..i18n("user_info.processes")..'</a></li>\n')
-
-if(page == "username_ndpi") then active=' class="active"' else active = "" end
-print('<li'..active..'><a href="?username='.. user_key..'&uid='..uid)
-if host_info then
-   print('&'..hostinfo2url(host_info))
-end
-print('&page=username_ndpi">'..i18n("protocols")..'</a></li>\n')
-
-if(page == "flows") then active=' class="active"' else active = "" end
-print('<li'..active..'><a href="?username='.. user_key..'&uid='..uid)
-if host_info then
-   print('&'..hostinfo2url(host_info))
-end
-print('&page=flows">'..i18n("flows")..'</a></li>\n')
+   print [[  </a></li>]]
 
 
-print('</ul>\n\t</div>\n\t\t</nav>\n')
+   if(page == "username_processes") then active=' class="active"' else active = "" end
+   print('<li'..active..'><a href="?username='.. user_key..'&uid='..uid)
+   if host_info then
+      print('&'..hostinfo2url(host_info))
+   end
+   print('&page=username_processes">'..i18n("user_info.processes")..'</a></li>\n')
 
-if(page == "username_processes") then
-print [[
+   if(page == "username_ndpi") then active=' class="active"' else active = "" end
+   print('<li'..active..'><a href="?username='.. user_key..'&uid='..uid)
+   if host_info then
+      print('&'..hostinfo2url(host_info))
+   end
+   print('&page=username_ndpi">'..i18n("protocols")..'</a></li>\n')
+
+   if(page == "flows") then active=' class="active"' else active = "" end
+   print('<li'..active..'><a href="?username='.. user_key..'&uid='..uid)
+   if host_info then
+      print('&'..hostinfo2url(host_info))
+   end
+   print('&page=flows">'..i18n("flows")..'</a></li>\n')
+
+
+   print('</ul>\n\t</div>\n\t\t</nav>\n')
+
+   if(page == "username_processes") then
+      print [[
     <table class="table table-bordered table-striped">
       <tr><th class="text-left">
       ]] print(i18n("user_info.processes_overview")) print[[
@@ -87,24 +89,24 @@ print [[
       </th>
     </tr>]]
 
-print [[
+      print [[
       </table>
 <script type='text/javascript'>
 window.onload=function() {
    var refresh = ]] print(refresh_rate..'') print[[000 /* ms */;
 		    do_pie("#topProcesses", ']]
-print (ntop.getHttpPrefix())
-print [[/lua/get_username_data.lua', { uid: "]] print(uid) print [[", username_data: "processes" ]] 
-if (host_info ~= nil) then print(", "..hostinfo2json(host_info)) end
-print [[
+      print (ntop.getHttpPrefix())
+      print [[/lua/get_username_data.lua', { uid: "]] print(uid) print [[", username_data: "processes" ]] 
+      if (host_info ~= nil) then print(", "..hostinfo2json(host_info)) end
+      print [[
  }, "", refresh);
 }
 </script>
 ]]
 
-elseif(page == "username_ndpi") then
+   elseif(page == "username_ndpi") then
 
-   print [[
+      print [[
 
   <table class="table table-bordered table-striped">
     <tr>
@@ -128,181 +130,195 @@ elseif(page == "username_ndpi") then
                var refresh = ]] print(refresh_rate..'') print[[000 /* ms */;
 	       window.onload=function() {]]
 
-   print[[ do_pie("#topApplicationProtocols", ']]
-   print (ntop.getHttpPrefix())
-   print [[/lua/get_username_data.lua', { uid: "]] print(uid) print [[", username_data: "applications" ]] 
-   if (host_info ~= nil) then print(", "..hostinfo2json(host_info)) end
-   print [[ }, "", refresh); ]]
+      print[[ do_pie("#topApplicationProtocols", ']]
+      print (ntop.getHttpPrefix())
+      print [[/lua/get_username_data.lua', { uid: "]] print(uid) print [[", username_data: "applications" ]] 
+      if (host_info ~= nil) then print(", "..hostinfo2json(host_info)) end
+      print [[ }, "", refresh); ]]
 
-   print[[ do_pie("#topApplicationCategories", ']]
-   print (ntop.getHttpPrefix())
-   print [[/lua/get_username_data.lua', { uid: "]] print(uid) print [[", username_data: "categories" ]] 
-   if (host_info ~= nil) then print(", "..hostinfo2json(host_info)) end
-   print [[ }, "", refresh); ]]
+      print[[ do_pie("#topApplicationCategories", ']]
+      print (ntop.getHttpPrefix())
+      print [[/lua/get_username_data.lua', { uid: "]] print(uid) print [[", username_data: "categories" ]] 
+      if (host_info ~= nil) then print(", "..hostinfo2json(host_info)) end
+      print [[ }, "", refresh); ]]
 
-   print[[do_pie("#topApplicationBreeds", ']]
-   print [[/lua/get_username_data.lua', { uid: "]] print(uid) print [[", username_data: "breeds" ]] 
-   if (host_info ~= nil) then print(", "..hostinfo2json(host_info)) end
-   print [[ }, "", refresh);]]
+      print[[do_pie("#topApplicationBreeds", ']]
+      print [[/lua/get_username_data.lua', { uid: "]] print(uid) print [[", username_data: "breeds" ]] 
+      if (host_info ~= nil) then print(", "..hostinfo2json(host_info)) end
+      print [[ }, "", refresh);]]
 
-   print[[
+      print[[
 				}
 
 	    </script>
 ]]
 
-elseif(page == "flows") then
+   elseif page == "flows" then
+      print [[
+      <div id="table-flows"></div>
+	 <script>
+   var url_update = "]]
+      print (ntop.getHttpPrefix())
+      print [[/lua/get_flows_data.lua?uid=]] print(uid)
+      if host_info then
+	 print ('&'..hostinfo2url(host_info))
+      end
+      print ('";')
 
-stats = interface.getnDPIStats()
-num_param = 0
+      ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/flows_stats_id.inc")
 
-print [[
-      <div id="table-hosts"></div>
-   <script>
-   $("#table-hosts").datatable({
-      url: "]]
-print (ntop.getHttpPrefix())
-print [[/lua/get_flows_data.lua]] 
-if(application ~= nil) then
-   print("?application="..application)
-   num_param = num_param + 1
-end
+      local show_vlan
+      if ifstats.vlan then show_vlan = true else show_vlan = false end
+      -- Set the host table option
+      if show_vlan then print ('flow_rows_option["vlan"] = true;\n') end
 
-if(user_key ~= nil) then
-  if (num_param > 0) then
-    print("&")
-  else
-    print("?")
-  end
-   print("username="..user_key)
-   num_param = num_param + 1
-end
+      local active_flows_msg = i18n("flows_page.active_flows",{filter=""})
+      if not interface.isPacketInterface() then
+	 active_flows_msg = i18n("flows_page.recently_active_flows",{filter=""})
+      elseif interface.isPcapDumpInterface() then
+	 active_flows_msg = i18n("flows")
+      end
 
-if(host_key ~= nil) then
-  if (num_param > 0) then
-    print("&")
-  else
-    print("?")
-  end
-  print("host="..host_key)
-  num_param = num_param + 1
-end
+      local dt_buttons = ''
+      -- TODO: add application filter, etc.
+      dt_buttons = "["..dt_buttons.."]"
 
-print [[",
+      print [[
+  flow_rows_option["type"] = 'host';
+	 $("#table-flows").datatable({
+         url: url_update,
+         buttons: ]] print(dt_buttons) print[[,
+         rowCallback: function ( row ) { return flow_table_setID(row); },
+         tableCallback: function()  { $("#dt-bottom-details > .pull-left > p").first().append('. ]]
+      print(i18n('flows_page.idle_flows_not_listed'))
+      print[['); },
          showPagination: true,
-         buttons: [ '<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("applications")) print[[<span class="caret"></span></button> <ul class="dropdown-menu" id="flow_dropdown">]]
+	       ]]
 
-print('<li><a href="'..ntop.getHttpPrefix()..'/lua/get_user_info.lua?username='.. user_key) if(host_key ~= nil) then print("&host="..host_key) end print('&page=flows">'..i18n("flows_page.all_proto")..'</a></li>')
-for key, value in pairsByKeys(stats["ndpi"], asc) do
-   class_active = ''
-   if(key == application) then
-      class_active = ' class="active"'
-   end
-   print('<li '..class_active..'><a href="'..ntop.getHttpPrefix()..'/lua/get_user_info.lua?username='.. user_key) if(host_key ~= nil) then print("&host="..host_key) end print('&page=flows&application=' .. key..'">'..key..'</a></li>')
-end
+      print('title: "'..active_flows_msg..'",')
 
+      -- Set the preference table
+      local preference = tablePreferences("rows_number", _GET["perPage"])
+      if preference ~= "" then
+	 print ('perPage: '..preference.. ",\n")
+      end
 
-print("</ul> </div>' ],\n")
+      print ('sort: [ ["' .. getDefaultTableSort("flows") ..'","' .. getDefaultTableSortOrder("flows").. '"] ],\n')
 
-
-print [[
-	       title: "]] print(i18n("sflows_stats.active_flows")) print[[",
+      print [[
 	        columns: [
-			     {
+           {
+        title: "Key",
          field: "key",
          hidden: true
-         	},
-         {
-			     title: "]] print(i18n("info")) print[[",
+         },
+			     {
+			     title: "",
 				 field: "column_key",
-	 	             css: { 
+	 	             css: {
 			        textAlign: 'center'
 			     }
 				 },
 			     {
-			     title: "]] print(i18n("application")) print[[",
+                             title: "]] print(i18n("application")) print[[",
 				 field: "column_ndpi",
 				 sortable: true,
-	 	             css: { 
+	 	             css: {
 			        textAlign: 'center'
 			     }
 				 },
 			     {
-			     title: "]] print(i18n("sflows_stats.l4_proto")) print[[",
+			     title: "]] print(i18n("flows_page.l4_proto")) print[[",
 				 field: "column_proto_l4",
 				 sortable: true,
-	 	             css: { 
+	 	             css: {
 			        textAlign: 'center'
 			     }
-				 },
-  			     {
-			     title: "]] print(i18n("sflows_stats.client_process")) print[[",
-				 field: "column_client_process",
-				 sortable: true,
-	 	             css: { 
-			        textAlign: 'center'
-			     }
-				 },
+				 },]]
+
+      if show_vlan then
+
+	 if ifstats.vlan then
+	    print('{ title: "'..i18n("vlan")..'",\n')
+	 end
+
+
+	 print [[
+         field: "column_vlan",
+         sortable: true,
+                 css: {
+              textAlign: 'center'
+           }
+
+         },
+]]
+      end
+      print [[
 			     {
-			     title: "]] print(i18n("sflows_stats.client_peer")) print[[",
+			     title: "]] print(i18n("client")) print[[",
 				 field: "column_client",
 				 sortable: true,
 				 },
 			     {
-                             title: "]] print(i18n("sflows_stats.server_process")) print[[",
-				 field: "column_server_process",
-				 sortable: true,
-	 	             css: { 
-			        textAlign: 'center'
-			     }
-				 },
-			     {
-			     title: "]] print(i18n("sflows_stats.server_peer")) print[[",
+			     title: "]] print(i18n("server")) print[[",
 				 field: "column_server",
 				 sortable: true,
 				 },
 			     {
-			     title: "]] print(i18n("duration")) print[[",
+                             title: "]] print(i18n("duration")) print[[",
 				 field: "column_duration",
 				 sortable: true,
-	 	             css: { 
+	 	             css: {
 			        textAlign: 'center'
 			       }
 			       },
-
-]]
-
-prefs = ntop.getPrefs()
-
-print [[
 			     {
-			     title: "]] print(i18n("breakdown")) print[[",
+                             title: "]] print(i18n("breakdown")) print[[",
 				 field: "column_breakdown",
-				 sortable: false,
-	 	             css: { 
+				 sortable: true,
+	 	             css: {
 			        textAlign: 'center'
+			       }
+			       },
+			     {
+			     title: "]] print(i18n("flows_page.actual_throughput")) print[[",
+				 field: "column_thpt",
+				 sortable: true,
+	 	             css: {
+			        textAlign: 'right'
 			     }
 				 },
 			     {
-			     title: "]] print(i18n("sflows_stats.total_bytes")) print[[",
+                             title: "]] print(i18n("flows_page.total_bytes")) print[[",
 				 field: "column_bytes",
 				 sortable: true,
-	 	             css: { 
+	 	             css: {
 			        textAlign: 'right'
+			     }
+
+				 }
+			     ,{
+                             title: "]] print(i18n("info")) print[[",
+				 field: "column_info",
+				 sortable: true,
+	 	             css: {
+			        textAlign: 'left'
 			     }
 				 }
 			     ]
 	       });
-       </script>
 ]]
 
+      if have_nedge then
+	 printBlockFlowJs()
+      end
 
+      print[[
+       </script>
 
+   ]]
 
-end -- If page
-
-
-
+   end
 end
 
 

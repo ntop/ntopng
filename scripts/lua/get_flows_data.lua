@@ -2,7 +2,7 @@
 -- (C) 2013-18 - ntop.org
 --
 
-dirs = ntop.getDirs()
+local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
@@ -30,6 +30,7 @@ local application = _GET["application"]
 local category    = _GET["category"]
 local network_id  = _GET["network"]
 local vlan        = _GET["vlan"]
+local uid         = _GET["uid"]
 
 local deviceIP    = _GET["deviceIP"]
 local inIfIdx     = _GET["inIfIdx"]
@@ -156,6 +157,10 @@ end
 
 if not isEmptyString(vlan) then
    pageinfo["vlanIdFilter"] = tonumber(vlan)
+end
+
+if not isEmptyString(uid) then
+   pageinfo["uidFilter"] = tonumber(uid)
 end
 
 if not isEmptyString(deviceIP) then

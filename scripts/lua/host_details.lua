@@ -1524,7 +1524,7 @@ print [[
 				 field: "column_duration",
 				 sortable: true,
 	 	             css: {
-			        textAlign: 'right'
+			        textAlign: 'center'
 			       }
 			       },
 			     {
