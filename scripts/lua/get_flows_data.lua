@@ -304,7 +304,11 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
       column_client = column_client..getFlag(info["country"])
    end
 
-   column_client = string.format("%s:%s %s", column_client, src_port, src_process)
+   column_client = string.format("%s%s%s %s",
+				 column_client,
+				 ternary(src_port ~= '', ':', ''),
+				 src_port,
+				 src_process)
    if(value["verdict.pass"] == false) then
      column_client = "<strike>"..column_client.."</strike>"
    end
@@ -317,7 +321,11 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
       column_server = column_server..getFlag(info["country"])
    end
 
-   column_server = string.format("%s:%s %s", column_server, dst_port, dst_process)
+   column_server = string.format("%s%s%s %s",
+				 column_server,
+				 ternary(dst_port ~= '', ':', ''),
+				 dst_port,
+				 dst_process)
    if(value["verdict.pass"] == false) then
      column_server = "<strike>"..column_server.."</strike>"
    end
