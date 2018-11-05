@@ -16,8 +16,11 @@ local username = _GET["username"]
 local uid      = _GET["uid"]
 
 local pageinfo = {
+   ["sortColumn"] = "column_bytes",
+   ["maxHits"] = 15,
+   ["a2zSortOrder"] = false,
    ["hostFilter"] = host,
-   ["uidFilter"]  = uid,
+   ["uidFilter"]  = tonumber(uid),
    ["detailsLevel"] = "high", -- to obtain processes information
 }
 
@@ -43,10 +46,12 @@ else
 	 elseif f["server_process"] and f["server_process"]["uid"] == tonumber(uid) then
 	    key = f["server_process"]["name"]
 	 end
-      elseif mode == "l7" then
+      elseif mode == "applications" then
 	 key = f["proto.ndpi"]
-      elseif mode == "l4" then
-	 key = f["proto.l4"]
+      elseif mode == "breeds" then
+	 key = f["proto.ndpi_breed"]
+      elseif mode == "categories" then
+	 key = f["proto.ndpi_cat"]
       end
 
       -- Do aggregation 

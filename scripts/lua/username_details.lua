@@ -17,28 +17,34 @@ if(page == nil) then page = "username_processes" end
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 local user_key    = _GET["username"]
-local host_key    = _GET["host"]
+local host_info    = url2hostinfo(_GET)
 local uid         = _GET["uid"]
 local application = _GET["application"]
-
 local name
+local refresh_rate
+
+if ntop.isnEdge() then
+  refresh_rate = 5
+else
+   refresh_rate = getInterfaceRefreshRate(interface.getStats()["id"])
+end
 
 if(user_key == nil) then
    print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> "..i18n("user_info.missing_user_name_message").."</div>")
 else
-  if host_key then
-     name = getResolvedAddress(hostkey2hostinfo(host_key))
-     if (name == nil) then
-	name = host_key
-     end
-  end
+   if host_info and host_info["host"] then
+      name = getResolvedAddress(hostkey2hostinfo(host_info["host"]))
+      if (name == nil) then
+	 name = host_info["host"]
+      end
+   end
   print [[
             <nav class="navbar navbar-default" role="navigation">
               <div class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
 	    <li><a href="#">]]
 
-  if host_key then
+  if host_info then
      print(string.format("%s: %s", i18n("host_details.host"), name))
   end
 
@@ -48,18 +54,28 @@ else
 
 
 if(page == "username_processes") then active=' class="active"' else active = "" end
-print('<li'..active..'><a href="?username='.. user_key) if(host_key ~= nil) then print("&host="..host_key) end print('&page=username_processes">'..i18n("user_info.processes")..'</a></li>\n')
+print('<li'..active..'><a href="?username='.. user_key..'&uid='..uid)
+if host_info then
+   print('&'..hostinfo2url(host_info))
+end
+print('&page=username_processes">'..i18n("user_info.processes")..'</a></li>\n')
 
 if(page == "username_ndpi") then active=' class="active"' else active = "" end
-print('<li'..active..'><a href="?username='.. user_key) if(host_key ~= nil) then print("&host="..host_key) end print('&page=username_ndpi">'..i18n("protocols")..'</a></li>\n')
+print('<li'..active..'><a href="?username='.. user_key..'&uid='..uid)
+if host_info then
+   print('&'..hostinfo2url(host_info))
+end
+print('&page=username_ndpi">'..i18n("protocols")..'</a></li>\n')
 
 if(page == "flows") then active=' class="active"' else active = "" end
-print('<li'..active..'><a href="?username='.. user_key) if(host_key ~= nil) then print("&host="..host_key) end print('&page=flows">'..i18n("flows")..'</a></li>\n')
+print('<li'..active..'><a href="?username='.. user_key..'&uid='..uid)
+if host_info then
+   print('&'..hostinfo2url(host_info))
+end
+print('&page=flows">'..i18n("flows")..'</a></li>\n')
 
 
 print('</ul>\n\t</div>\n\t\t</nav>\n')
-
-
 
 if(page == "username_processes") then
 print [[
@@ -71,15 +87,15 @@ print [[
       </th>
     </tr>]]
 
- print [[
+print [[
       </table>
 <script type='text/javascript'>
 window.onload=function() {
-   var refresh = 3000 /* ms */;
+   var refresh = ]] print(refresh_rate..'') print[[000 /* ms */;
 		    do_pie("#topProcesses", ']]
 print (ntop.getHttpPrefix())
 print [[/lua/get_username_data.lua', { uid: "]] print(uid) print [[", username_data: "processes" ]] 
-if (host_key ~= nil) then print(", host: \""..host_key.."\"") end
+if (host_info ~= nil) then print(", "..hostinfo2json(host_info)) end
 print [[
  }, "", refresh);
 }
@@ -88,62 +104,51 @@ print [[
 
 elseif(page == "username_ndpi") then
 
-print [[
-  <br>
-  <!-- Left Tab -->
-  <div class="tabbable tabs-left">
-    
-    <ul class="nav nav-tabs">
-      <li class="active"><a href="#l7" data-toggle="tab">]] print(i18n("l7_protocols")) print[[</a></li>
-      <li><a href="#l4" data-toggle="tab">]] print(i18n("l4_protocols")) print[[</a></li>
-    </ul>
-    
-      <!-- Tab content-->
-      <div class="tab-content">
+   print [[
 
-        <div class="tab-pane active" id="l7">
-          <table class="table table-bordered table-striped">
-            <tr>
-              <th class="text-center">]] print(i18n("user_info.top_l7_protocols")) print[[</th>
-              <td><div class="pie-chart" id="topL7"></div></td>
-          </tr>
-          </table>
-        </div> <!-- Tab l7-->
+  <table class="table table-bordered table-striped">
+    <tr>
+      <th class="text-left" colspan=2>]] print(i18n("ndpi_page.overview", {what = i18n("ndpi_page.application_protocol")})) print[[</th>
+      <td>
+        <div class="pie-chart" id="topApplicationProtocols"></div>
+      </td>
+      <td colspan=2>
+        <div class="pie-chart" id="topApplicationBreeds"></div>
+      </td>
+    </tr>
+    <tr>
+      <th class="text-left" colspan=2>]] print(i18n("ndpi_page.overview", {what = i18n("ndpi_page.application_protocol_category")})) print[[</th>
+      <td colspan=2>
+        <div class="pie-chart" id="topApplicationCategories"></div>
+      </td>
+    </tr>
+  </table>
 
+        <script type='text/javascript'>
+               var refresh = ]] print(refresh_rate..'') print[[000 /* ms */;
+	       window.onload=function() {]]
 
-        <div class="tab-pane" id="l4">
-          <table class="table table-bordered table-striped">
-            <tr>
-              <th class="text-center">]] print(i18n("user_info.top_l4_protocols")) print[[</th>
-              <td><div class="pie-chart" id="topL4"></div></td>
-          </tr>
-          </table>
-        </div> <!-- Tab l4-->
+   print[[ do_pie("#topApplicationProtocols", ']]
+   print (ntop.getHttpPrefix())
+   print [[/lua/get_username_data.lua', { uid: "]] print(uid) print [[", username_data: "applications" ]] 
+   if (host_info ~= nil) then print(", "..hostinfo2json(host_info)) end
+   print [[ }, "", refresh); ]]
 
-      </div> <!-- End Tab content-->
-    </div> <!-- End Left Tab -->
+   print[[ do_pie("#topApplicationCategories", ']]
+   print (ntop.getHttpPrefix())
+   print [[/lua/get_username_data.lua', { uid: "]] print(uid) print [[", username_data: "categories" ]] 
+   if (host_info ~= nil) then print(", "..hostinfo2json(host_info)) end
+   print [[ }, "", refresh); ]]
 
-]]
+   print[[do_pie("#topApplicationBreeds", ']]
+   print [[/lua/get_username_data.lua', { uid: "]] print(uid) print [[", username_data: "breeds" ]] 
+   if (host_info ~= nil) then print(", "..hostinfo2json(host_info)) end
+   print [[ }, "", refresh);]]
 
- print [[
-      </table>
-<script type='text/javascript'>
-window.onload=function() {
-   var refresh = 3000 /* ms */;
-		    do_pie("#topL7", ']]
-print (ntop.getHttpPrefix())
-print [[/lua/user_stats.lua', { username: "]] print(user_key) print [[", mode: "l7" ]] 
-if (host_key ~= nil) then print(", host: \""..host_key.."\"") end
-print [[
- }, "", refresh);
-		    do_pie("#topL4", ']]
-print (ntop.getHttpPrefix())
-print [[/lua/user_stats.lua', { username: "]] print(user_key) print [[", mode: "l4" ]] 
-if (host_key ~= nil) then print(", host: \""..host_key.."\"") end
-print [[
- }, "", refresh);
-}
-</script>
+   print[[
+				}
+
+	    </script>
 ]]
 
 elseif(page == "flows") then

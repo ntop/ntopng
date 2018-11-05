@@ -226,7 +226,7 @@ local function validateHttpMode(mode)
 end
 
 local function validateUsernameData(mode)
-   local modes = {"l4", "l7", "host", "processes"}
+   local modes = {"categories", "breeds", "applications", "processes"}
 
    return validateChoice(modes, mode)
 end
