@@ -29,6 +29,13 @@ if recording_utils.isAvailable then
 
   local stats = recording_utils.stats(ifstats.id)
 
+  if stats['Duration'] ~= nil then
+    local u = split(stats['Duration'], ':');
+    local uptime = tonumber(u[1])*24*60*60+tonumber(u[2])*60*60+tonumber(u[3])*60+u[4]
+    local start_time = os.time()-uptime
+    print("<tr><th nowrap>"..i18n("traffic_recording.active_since").."</th><td>"..formatEpoch(start_time).."</td></tr>\n")
+  end
+
   if stats['Bytes'] ~= nil and stats['Packets'] ~= nil then
     print("<tr><th nowrap>"..i18n("if_stats_overview.received_traffic").."</th><td>"..bytesToSize(stats['Bytes']).." ["..formatValue(stats['Packets']).." "..i18n("pkts").."]</td></tr>\n")
   end

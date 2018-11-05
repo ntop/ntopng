@@ -2779,6 +2779,7 @@ local lang = {
     ["traffic_profiles"] = "Traffic Profiles",
   },
   ["traffic_recording"] = {
+    ["active_since"] = "Active Since",
     ["completed"] = "Completed",
     ["continuous_recording"] = "Continuous Traffic Recording",
     ["continuous_recording_and_flows"] = "Continuous Traffic Recording and Flow Visibility",
