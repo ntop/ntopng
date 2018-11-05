@@ -44,10 +44,8 @@ DNS_PRESETS = {
   --{id="greenteam_internet", label="GreenTeam Internet", url="http://members.greentm.co.uk/", primary_dns="81.218.119.11", secondary_dns="209.88.198.133"},
   {id="opendns", label="OpenDNS", url="https://www.opendns.com/", primary_dns="208.67.222.222", secondary_dns="208.67.220.220"},
   {id="opendns_familyshield", label="OpenDNS - FamilyShield", url="https://www.opendns.com/setupguide/?url=familyshield", primary_dns="208.67.222.123", secondary_dns="208.67.220.123", child_safe=true},
-  {id="norton_connectsafe", label="Norton ConnectSafe: Security", url="https://dns.norton.com/configureRouter.html", primary_dns="199.85.126.10", secondary_dns="199.85.127.10"},
-  {id="norton_security_pornography", label="Norton ConnectSafe: Security + Pornography", url="https://dns.norton.com/", primary_dns="199.85.126.20", secondary_dns="199.85.127.20", child_safe=true},
-  {id="norton_security_other", label="Norton ConnectSafe: Security + Other", url="https://dns.norton.com/", primary_dns="199.85.126.30", secondary_dns="199.85.127.30"},
   {id="quad9_security", label="Quad 9: Security", url="https://quad9.net", primary_dns="9.9.9.9", secondary_dns=""},
+  {id="google", label="Google DNS", url="https://developers.google.com/speed/public-dns", primary_dns="8.8.8.8", secondary_dns="8.8.4.4"},
 }
 
 function isSubpageAvailable(subpage, show_advanced_prefs)
