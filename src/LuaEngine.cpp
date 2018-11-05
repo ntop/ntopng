@@ -2399,7 +2399,8 @@ static int ntop_get_interface_flows_info(lua_State* vm) {
   if(lua_type(vm, 2) == LUA_TTABLE)
     p->readOptions(vm, 2);
 
-  if(ntop_interface)
+  if(ntop_interface
+     && (!host_ip || host))
     numFlows = ntop_interface->getFlows(vm, get_allowed_nets(vm), host, p);
   else
     lua_pushnil(vm);

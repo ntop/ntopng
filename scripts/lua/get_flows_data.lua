@@ -260,7 +260,7 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
 	 src_port=""
       end
 
-      src_process = flowinfo2process(value["client_process"])
+      src_process = flowinfo2process(value["client_process"], hostinfo2url(value,"cli"))
    else
       src_key = shortenString(stripVlan(cli_name))
       src_port=":"..value["cli.port"]
@@ -277,7 +277,7 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
 	 dst_port=""
       end
 
-      dst_process = flowinfo2process(value["server_process"])
+      dst_process = flowinfo2process(value["server_process"], hostinfo2url(value,"srv"))
    else
       dst_key = shortenString(stripVlan(srv_name))
       dst_port=":"..value["srv.port"]

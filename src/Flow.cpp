@@ -1833,6 +1833,7 @@ u_int32_t Flow::key(Host *_cli, u_int16_t _cli_port,
 /* *************************************** */
 
 bool Flow::isReadyToPurge() {
+  return(false);
   if(idle_flow) return(idle_flow);
 
 #ifdef HAVE_NEDGE
@@ -2677,6 +2678,21 @@ u_int32_t Flow::getFatherPid(bool client) {
 
   return((proc == NULL) ? 0 : proc->father_pid);
 };
+
+/* *************************************** */
+
+u_int32_t Flow::get_uid(bool client) const {
+#ifdef WIN32
+  return false;
+#else
+  ProcessInfo *proc = client ? client_proc : server_proc;
+
+  if(proc)
+    return proc->uid;
+
+  return NO_UID;
+#endif
+}
 
 /* *************************************** */
 

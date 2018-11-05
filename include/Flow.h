@@ -275,6 +275,7 @@ class Flow : public GenericHashEntry {
 
   u_int32_t getPid(bool client);
   u_int32_t getFatherPid(bool client);
+  u_int32_t get_uid(bool client) const;
   char* get_username(bool client);
   char* get_proc_name(bool client);
   u_int32_t getNextTcpSeq(u_int8_t tcpFlags, u_int32_t tcpSeqNum, u_int32_t payloadLen) ;

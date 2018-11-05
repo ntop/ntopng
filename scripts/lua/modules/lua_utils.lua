@@ -1521,7 +1521,7 @@ function flowinfo2hostname(flow_info, host_type)
    return(host2name(name, flow_info["vlan"]))
 end
 
-function flowinfo2process(process)
+function flowinfo2process(process, host_info_to_url)
    local fmt, proc_name, proc_user_name = '', '', ''
 
    if process then
@@ -1533,8 +1533,13 @@ function flowinfo2process(process)
       end
 
       if not isEmptyString(process["user_name"]) then
-	 proc_user_name = string.format("<i class='fa fa-linux'></i> %s", process["user_name"])
-	 -- proc_user_name = string.format("<A HREF='%s/lua/tbd.lua'>%s</A>", ntop.getHttpPrefix(), proc_user_name)
+	 -- proc_user_name = string.format("<i class='fa fa-linux'></i> %s", process["user_name"])
+	 proc_user_name = string.format("<A HREF='%s/lua/username_details.lua?%s&username=%s&uid=%u'><i class='fa fa-linux'></i> %s</A>",
+					ntop.getHttpPrefix(),
+					host_info_to_url,
+					process["user_name"],
+					process["uid"],
+					process["user_name"])
       end
 
       fmt = string.format("[%s]", table.concat({proc_user_name, proc_name}, ' '))

@@ -2852,8 +2852,9 @@ local lang = {
     ["unassigned_devices"] = "Unassigned Devices",
   },
   ["user_info"] = {
+    ["processes"] = "Processes",
     ["missing_user_name_message"] = "Missing user name",
-    ["top_applications"] = "Top Applications",
+    ["processes_overview"] = "Processes Overview",
     ["top_l4_protocols"] = "Top L4 Protocols",
     ["top_l7_protocols"] = "Top L7 Protocols",
   },
