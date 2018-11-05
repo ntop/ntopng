@@ -296,6 +296,11 @@ local menu_subpages = {
       title       = i18n("prefs.network_discovery_interval_title"),
       description = i18n("prefs.network_discovery_interval_description"),
     },
+  }}, {id="recording",     label=i18n("prefs.recording"),             advanced=false, pro_only=false,  hidden=false, entries={
+    n2disk_license = {
+      title       = i18n("prefs.n2disk_license_title"),
+      description = i18n("prefs.n2disk_license_description", { purchase_url='http://shop.ntop.org/', universities_url='http://www.ntop.org/support/faq/do-you-charge-universities-no-profit-and-research/'}),
+    },
   }}, {id="misc",          label=i18n("prefs.misc"),                 advanced=false, pro_only=false,  hidden=false, entries={
     toggle_autologout = {
       title       = i18n("prefs.toggle_autologout_title"),

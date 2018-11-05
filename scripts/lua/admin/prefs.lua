@@ -13,6 +13,7 @@ local callback_utils = require "callback_utils"
 local lists_utils = require "lists_utils"
 local alert_consts = require "alert_consts"
 local slack_utils = require("slack")
+local recording_utils = require "recording_utils"
 
 if(ntop.isPro()) then
   package.path = dirs.installdir .. "/scripts/lua/pro/?.lua;" .. package.path
@@ -28,73 +29,81 @@ local message_severity = "alert-warning"
 
 if(haveAdminPrivileges()) then
    if(_POST["email_sender"] ~= nil) then
-    _POST["email_sender"] = unescapeHTML(_POST["email_sender"])
+      _POST["email_sender"] = unescapeHTML(_POST["email_sender"])
    end
+
    if(_POST["email_recipient"] ~= nil) then
-    _POST["email_recipient"] = unescapeHTML(_POST["email_recipient"])
+      _POST["email_recipient"] = unescapeHTML(_POST["email_recipient"])
    end
 
    if(_POST["flush_alerts_data"] ~= nil) then
-    require "alert_utils"
-    flushAlertsData()
+      require "alert_utils"
+      flushAlertsData()
+
    elseif(_POST["disable_alerts_generation"] == "1") then
-    require "alert_utils"
-    disableAlertsGeneration()
+      require "alert_utils"
+      disableAlertsGeneration()
+
    elseif(_POST["send_test_email"] ~= nil) then
-    local email_utils = require("email")
+      local email_utils = require("email")
 
-    local success = email_utils.sendEmail("TEST MAIL", "Email notification is working")
+      local success = email_utils.sendEmail("TEST MAIL", "Email notification is working")
 
-    if success then
-      message_info = i18n("prefs.email_sent_successfully")
-      message_severity = "alert-success"
-    else
-      message_info = i18n("prefs.email_send_error", {product=product})
-      message_severity = "alert-danger"
-    end
+      if success then
+         message_info = i18n("prefs.email_sent_successfully")
+         message_severity = "alert-success"
+      else
+         message_info = i18n("prefs.email_send_error", {product=product})
+         message_severity = "alert-danger"
+      end
+
    elseif(_POST["send_test_slack"] ~= nil) then
-    local success = slack_utils.sendMessage("interface", "info", "Slack notification is working")
+      local success = slack_utils.sendMessage("interface", "info", "Slack notification is working")
 
-    if success then
-      message_info = i18n("prefs.slack_sent_successfully", {channel=slack_utils.getChannelName("interface")})
-      message_severity = "alert-success"
-    else
-      message_info = i18n("prefs.slack_send_error", {product=product})
-      message_severity = "alert-danger"
-    end
+      if success then
+         message_info = i18n("prefs.slack_sent_successfully", {channel=slack_utils.getChannelName("interface")})
+         message_severity = "alert-success"
+      else
+         message_info = i18n("prefs.slack_send_error", {product=product})
+         message_severity = "alert-danger"
+      end
+
    elseif (_POST["timeseries_driver"] == "influxdb") then
-    local url = string.gsub(string.gsub( _POST["ts_post_data_url"], "http:__", "http://"), "https:__", "https://")
+      local url = string.gsub(string.gsub( _POST["ts_post_data_url"], "http:__", "http://"), "https:__", "https://")
 
-    if ntop.getPref("ntopng.prefs.timeseries_driver") ~= "influxdb"
+      if ntop.getPref("ntopng.prefs.timeseries_driver") ~= "influxdb"
         or (url ~= ntop.getPref("ntopng.prefs.ts_post_data_url"))
         or (_POST["influx_dbname"] ~= ntop.getPref("ntopng.prefs.influx_dbname"))
         or (_POST["influx_retention"] ~= ntop.getPref("ntopng.prefs.influx_retention"))
         or (_POST["toggle_influx_auth"] ~= ntop.getPref("ntopng.prefs.influx_auth_enabled"))
         or (_POST["influx_username"] ~= ntop.getPref("ntopng.prefs.influx_username"))
         or (_POST["influx_password"] ~= ntop.getPref("ntopng.prefs.influx_password")) then
-      package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/drivers/?.lua;" .. package.path
-      local influxdb = require("influxdb")
-      local username = nil
-      local password = nil
+         package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/drivers/?.lua;" .. package.path
+         local influxdb = require("influxdb")
+         local username = nil
+         local password = nil
 
-      if _POST["toggle_influx_auth"] == "1" then
-        username = _POST["influx_username"]
-        password = _POST["influx_password"]
+         if _POST["toggle_influx_auth"] == "1" then
+           username = _POST["influx_username"]
+           password = _POST["influx_password"]
+         end
+
+         local ok, message = influxdb.init(_POST["influx_dbname"], url, tonumber(_POST["influx_retention"]),
+            username, password, false --[[verbose]])
+         if not ok then
+            message_info = message
+            message_severity = "alert-danger"
+
+            -- reset driver to the old one
+            _POST["timeseries_driver"] = nil
+         elseif message then
+            message_info = message
+            message_severity = "alert-success"
+         end
       end
 
-      local ok, message = influxdb.init(_POST["influx_dbname"], url, tonumber(_POST["influx_retention"]),
-          username, password, false --[[verbose]])
-      if not ok then
-        message_info = message
-        message_severity = "alert-danger"
-
-        -- reset driver to the old one
-        _POST["timeseries_driver"] = nil
-      elseif message then
-        message_info = message
-        message_severity = "alert-success"
-      end
-    end
+   elseif(_POST["n2disk_license"] ~= nil) then
+      recording_utils.setLicense(_POST["n2disk_license"])
    end
 
    local slack_channels_key = "ntopng.prefs.alerts.slack_channels"
@@ -122,12 +131,12 @@ if(haveAdminPrivileges()) then
 
    prefs = ntop.getPrefs()
 
-if not isEmptyString(message_info) then
-  print[[<div class="alert ]] print(message_severity) print[[" role="alert">]]
-  print[[<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>]]
-  print(message_info)
-  print[[</div>]]
-end
+   if not isEmptyString(message_info) then
+      print[[<div class="alert ]] print(message_severity) print[[" role="alert">]]
+      print[[<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>]]
+      print(message_info)
+      print[[</div>]]
+   end
 
    print [[
 	    <h2>]] print(i18n("prefs.runtime_prefs")) print[[</h2>
@@ -723,6 +732,26 @@ function printNetworkDiscovery()
    print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
 
    print('</table>')
+  print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
+    </form>]]
+end
+
+-- ================================================================================
+
+function printRecording()
+  print('<form method="post">')
+  print('<table class="table">')
+
+  print('<tr><th colspan=2 class="info">'..i18n("prefs.license")..'</th></tr>')
+
+  prefsInputFieldPrefs(subpage_active.entries["n2disk_license"].title, subpage_active.entries["n2disk_license"].description,
+		       "ntopng.prefs.", "n2disk_license",
+		       "", false, nil, nil, nil, {style={width="25em;"}, min = 50, max = 64 })
+
+  -- ######################
+
+  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" onclick="return save_button_users();" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
+  print('</table>')
   print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
     </form>]]
 end
@@ -1419,6 +1448,10 @@ end
 
 if(tab == "discovery") then
    printNetworkDiscovery()
+end
+
+if(tab == "recording") then
+   printRecording()
 end
 
 if(tab == "misc") then

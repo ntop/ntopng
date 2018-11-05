@@ -145,13 +145,21 @@ end
 http_lint.validateUnchecked = validateUnchecked
 
 local function validateSingleWord(w)
-if (string.find(w, "% ") ~= nil) then
+   if (string.find(w, "% ") ~= nil) then
       return false
    else
       return validateUnquoted(w)
    end
 end
 http_lint.validateSingleWord = validateSingleWord
+
+local function validateSingleAlphanumericWord(w)
+   if (w:match("%W")) then
+     return false
+   else
+      return validateSingleWord(w)
+   end
+end
 
 local function validateUsername(p)
    -- A username (e.g. used in ntopng authentication)
@@ -1144,7 +1152,7 @@ local known_parameters = {
    ["file_id"]                                     = validateNumber,
    ["job_action"]                                  = validateExtractionJobAction,
    ["job_id"]                                      = validateNumber,
-   ["n2disk_license"]                              = validateSingleWord,
+   ["n2disk_license"]                              = validateSingleAlphanumericWord,
    ["record_traffic"]                              = validateBool,
 --
 
