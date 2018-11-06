@@ -63,21 +63,18 @@ function sankey() {
 active_sankey = "host"
 local debug = false
 
-if(_GET["sprobe"] ~= nil) then
-   print('d3.json("'..ntop.getHttpPrefix()..'/lua/sprobe_hosts_data.lua"');
+if(_GET["host"] ~= nil) then
+   print('d3.json("'..ntop.getHttpPrefix()..'/lua/iface_flows_sankey.lua?ifid='..(_ifstats.id)..'&' ..hostinfo2url(hostkey2hostinfo(_GET["host"])).. '"')
+elseif((_GET["hosts"] ~= nil) and (_GET["aggregation"] ~= nil)) then
+   print('d3.json("'..ntop.getHttpPrefix()..'/lua/hosts_comparison_sankey.lua?ifid='..(_ifstats.id)..'&'..'hosts='.._GET["hosts"] .. '&aggregation='.._GET["aggregation"] ..'"')
+   active_sankey = "comparison"
+elseif(_GET["hosts"] ~= nil) then
+   print('d3.json("'..ntop.getHttpPrefix()..'/lua/hosts_comparison_sankey.lua?ifid='..(_ifstats.id)..'&'..'hosts='.._GET["hosts"] ..'"')
+   active_sankey = "comparison"
 else
-   if(_GET["host"] ~= nil) then
-      print('d3.json("'..ntop.getHttpPrefix()..'/lua/iface_flows_sankey.lua?ifid='..(_ifstats.id)..'&' ..hostinfo2url(hostkey2hostinfo(_GET["host"])).. '"')
-   elseif((_GET["hosts"] ~= nil) and (_GET["aggregation"] ~= nil)) then
-      print('d3.json("'..ntop.getHttpPrefix()..'/lua/hosts_comparison_sankey.lua?ifid='..(_ifstats.id)..'&'..'hosts='.._GET["hosts"] .. '&aggregation='.._GET["aggregation"] ..'"')
-      active_sankey = "comparison"
-   elseif(_GET["hosts"] ~= nil) then
-      print('d3.json("'..ntop.getHttpPrefix()..'/lua/hosts_comparison_sankey.lua?ifid='..(_ifstats.id)..'&'..'hosts='.._GET["hosts"] ..'"')
-      active_sankey = "comparison"
-   else
-      print('d3.json("'..ntop.getHttpPrefix()..'/lua/iface_flows_sankey.lua"')
-   end
+   print('d3.json("'..ntop.getHttpPrefix()..'/lua/iface_flows_sankey.lua"')
 end
+
 
 if (debug) then io.write("Active sankey: "..active_sankey.."\n") end
 
