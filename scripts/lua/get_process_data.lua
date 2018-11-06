@@ -10,7 +10,7 @@ local json = require "dkjson"
 
 sendHTTPContentTypeHeader('text/html')
 
-local mode     = _GET["process_data"] or "applications"
+local mode     = _GET["ebpf_data"] or "applications"
 local host     = _GET["host"]
 local pid      = _GET["pid"]
 

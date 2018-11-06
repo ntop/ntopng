@@ -225,14 +225,8 @@ local function validateHttpMode(mode)
    return validateChoice(modes, mode)
 end
 
-local function validateUsernameData(mode)
+local function validateEBPFData(mode)
    local modes = {"categories", "breeds", "applications", "processes"}
-
-   return validateChoice(modes, mode)
-end
-
-local function validateProcessData(mode)
-   local modes = {"categories", "breeds", "applications"}
 
    return validateChoice(modes, mode)
 end
@@ -933,8 +927,7 @@ local known_parameters = {
    ["inIfIdx"]                 = validateNumber,                -- A switch/router INPUT port id (%INPUT_SNMP)
    ["outIfIdx"]                = validateNumber,                -- A switch/router OUTPUT port id (%OUTPUT_SNMP)
    ["deviceIP"]                = validateIPV4,                  -- The switch/router exporter ip address (%EXPORTER_IPV4_ADDRESS)
-   ["username_data"]           = validateUsernameData,          -- mode for get_username_data.lua
-   ["process_data" ]           = validateProcessData,           -- mode for get_process_data.lua
+   ["ebpf_data"]               = validateEBPFData,              -- mode for get_username_data.lua and get_process_data.lua
    ["uid"]                     = validateNumber,                -- user id
    ["pid_mode"]                = validatePidMode,               -- pid mode for pid_stats.lua
    ["pid_name"]                = validateSingleWord,            -- A process name
