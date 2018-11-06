@@ -168,7 +168,7 @@ class NetworkInterface : public Checkpointable {
   AlertsManager *alertsManager;
   HostPools *host_pools;
   VlanAddressTree *hide_from_top, *hide_from_top_shadow;
-  bool has_vlan_packets, has_mac_addresses;
+  bool has_vlan_packets, has_ebpf_events, has_mac_addresses;
   struct ndpi_detection_module_struct *ndpi_struct;
   time_t last_pkt_rcvd, last_pkt_rcvd_remote, /* Meaningful only for ZMQ interfaces */
     next_idle_flow_purge, next_idle_host_purge;
@@ -312,6 +312,8 @@ class NetworkInterface : public Checkpointable {
   inline bool get_inline_interface()           { return inline_interface;  }
   inline bool hasSeenVlanTaggedPackets()       { return(has_vlan_packets); }
   inline void setSeenVlanTaggedPackets()       { has_vlan_packets = true;  }
+  inline bool hasSeenEBPFEvents()              { return(has_ebpf_events);  }
+  inline void setSeenEBPFEvents()              { has_ebpf_events = true;   }
   inline bool hasSeenMacAddresses()            { return(has_mac_addresses); }
   inline void setSeenMacAddresses()            { has_mac_addresses = true;  }
   inline struct ndpi_detection_module_struct* get_ndpi_struct() { return(ndpi_struct);         };

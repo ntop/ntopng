@@ -231,7 +231,7 @@ end
      print('<li><a href="'..ntop.getHttpPrefix()..'/lua/vlan_stats.lua">') print(i18n("vlan_stats.vlans")) print('</a></li>')
   end
 
-  if(_ifstats.iface_sprobe) then
+  if(interface.hasEBPF()) then
    print('<li><a href="'..ntop.getHttpPrefix()..'/lua/processes_stats.lua">') print(i18n("sprobe_page.processes")) print('</a></li>')
 end
 
@@ -243,8 +243,8 @@ print('<li><a href="'..ntop.getHttpPrefix()..'/lua/http_servers_stats.lua">') pr
 print('<li><a href="'..ntop.getHttpPrefix()..'/lua/top_hosts.lua"><i class="fa fa-trophy"></i> ') print(i18n("processes_stats.top_hosts")) print('</a></li>')
 print('<li class="divider"></li>')
 
-if(_ifstats.iface_sprobe) then
-   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/sprobe.lua"><i class="fa fa-flag"></i> ') print(i18n("sprobe_page.system_interactions")) print('</a></li>\n')
+if(interface.hasEBPF()) then
+--   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/sprobe.lua"><i class="fa fa-flag"></i> ') print(i18n("sprobe_page.system_interactions")) print('</a></li>\n')
 end
 
 

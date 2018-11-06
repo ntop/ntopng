@@ -1521,13 +1521,29 @@ static int ntop_get_file_last_change(lua_State* vm) {
 /* ****************************************** */
 
 // ***API***
-static int ntop_has_vlans(lua_State* vm) {
+static int ntop_interface_has_vlans(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(ntop_interface)
     lua_pushboolean(vm, ntop_interface->hasSeenVlanTaggedPackets());
+  else
+    lua_pushboolean(vm, 0);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+// ***API***
+static int ntop_interface_has_ebpf(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_interface)
+    lua_pushboolean(vm, ntop_interface->hasSeenEBPFEvents());
   else
     lua_pushboolean(vm, 0);
 
@@ -7657,7 +7673,8 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "select",                   ntop_select_interface },
 
   { "getMaxIfSpeed",            ntop_get_max_if_speed },
-  { "hasVLANs",                 ntop_has_vlans },
+  { "hasVLANs",                 ntop_interface_has_vlans },
+  { "hasEBPF",                  ntop_interface_has_ebpf  },
   { "getStats",                 ntop_get_interface_stats },
   { "getInterfaceTimeseries",   ntop_get_interface_timeseries },
   { "resetCounters",            ntop_interface_reset_counters },

@@ -189,7 +189,8 @@ NetworkInterface::NetworkInterface(const char *name,
     last_pkt_rcvd = last_pkt_rcvd_remote = 0, pollLoopCreated = false,
       bridge_interface = false;
     next_idle_flow_purge = next_idle_host_purge = 0;
-    cpu_affinity = -1 /* no affinity */, has_vlan_packets = has_mac_addresses = false;
+    cpu_affinity = -1 /* no affinity */,
+      has_vlan_packets = has_ebpf_events = has_mac_addresses = false;
     arp_requests = arp_replies = 0;
 
     running = false, sprobe_interface = false,
@@ -268,7 +269,8 @@ NetworkInterface::NetworkInterface(const char *name,
 void NetworkInterface::init() {
   ifname = NULL, flows_hash = NULL, hosts_hash = NULL,
     bridge_lan_interface_id = bridge_wan_interface_id = 0, ndpi_struct = NULL,
-    sprobe_interface = inline_interface = false, has_vlan_packets = false,
+    sprobe_interface = inline_interface = false,
+    has_vlan_packets = false, has_ebpf_events = false,
     last_pkt_rcvd = last_pkt_rcvd_remote = 0,
     next_idle_flow_purge = next_idle_host_purge = 0,
     running = false, customIftype = NULL, is_dynamic_interface = false,
@@ -2580,7 +2582,8 @@ void NetworkInterface::shutdown() {
 
 void NetworkInterface::cleanup() {
   next_idle_flow_purge = next_idle_host_purge = 0;
-  cpu_affinity = -1, has_vlan_packets = false, has_mac_addresses = false;
+  cpu_affinity = -1,
+    has_vlan_packets = false, has_ebpf_events = false, has_mac_addresses = false;
   running = false, sprobe_interface = false, inline_interface = false;
 
   getStats()->cleanup();
@@ -6932,6 +6935,8 @@ void NetworkInterface::delivereBPFEvent(eBPFevent *event) {
     
     if(!enqueueeBPFEvent(tmp))
       free(tmp); /* Not enough space */
+    else if(!hasSeenEBPFEvents())
+      setSeenEBPFEvents();
   }
 }
 
