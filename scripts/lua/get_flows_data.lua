@@ -31,6 +31,7 @@ local category    = _GET["category"]
 local network_id  = _GET["network"]
 local vlan        = _GET["vlan"]
 local uid         = _GET["uid"]
+local pid         = _GET["pid"]
 
 local deviceIP    = _GET["deviceIP"]
 local inIfIdx     = _GET["inIfIdx"]
@@ -161,6 +162,10 @@ end
 
 if not isEmptyString(uid) then
    pageinfo["uidFilter"] = tonumber(uid)
+end
+
+if not isEmptyString(pid) then
+   pageinfo["pidFilter"] = tonumber(pid)
 end
 
 if not isEmptyString(deviceIP) then

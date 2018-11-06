@@ -1528,18 +1528,27 @@ function flowinfo2process(process, host_info_to_url)
       -- TODO: add links back once restored
 
       if not isEmptyString(process["name"]) then
-	 proc_name = string.format("<i class='fa fa-terminal'></i> %s", process["name"])
-	 -- proc_name = string.format("<A HREF='%s/lua/tbd.lua'>%s</A>", ntop.getHttpPrefix(), proc_name)
+	 local clean_name = process["name"]:gsub("'",'')
+
+	 -- proc_name = string.format("<i class='fa fa-terminal'></i> %s", clean_name)
+	 proc_name = string.format("<A HREF='%s/lua/process_details.lua?%s&pid_name=%s&pid=%u'><i class='fa fa-terminal'></i> %s</A>",
+				   ntop.getHttpPrefix(),
+				   host_info_to_url,
+				   clean_name,
+				   process["pid"],
+				   clean_name)
       end
 
       if not isEmptyString(process["user_name"]) then
-	 -- proc_user_name = string.format("<i class='fa fa-linux'></i> %s", process["user_name"])
+	 local clean_user_name = process["user_name"]:gsub("'", '')
+
+	 -- proc_user_name = string.format("<i class='fa fa-linux'></i> %s", clean_user_name)
 	 proc_user_name = string.format("<A HREF='%s/lua/username_details.lua?%s&username=%s&uid=%u'><i class='fa fa-linux'></i> %s</A>",
 					ntop.getHttpPrefix(),
 					host_info_to_url,
-					process["user_name"],
+					clean_user_name,
 					process["uid"],
-					process["user_name"])
+					clean_user_name)
       end
 
       fmt = string.format("[%s]", table.concat({proc_user_name, proc_name}, ' '))

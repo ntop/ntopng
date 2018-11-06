@@ -2695,6 +2695,21 @@ u_int32_t Flow::get_uid(bool client) const {
 
 /* *************************************** */
 
+u_int32_t Flow::get_pid(bool client) const {
+#ifdef WIN32
+  return false;
+#else
+  ProcessInfo *proc = client ? client_proc : server_proc;
+
+  if(proc)
+    return proc->pid;
+
+  return NO_PID;
+#endif
+}
+
+/* *************************************** */
+
 char* Flow::get_username(bool client) {
 #ifdef WIN32
   return(NULL);

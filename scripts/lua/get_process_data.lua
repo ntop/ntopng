@@ -1,5 +1,5 @@
 --
--- (C) 2018 - ntop.org
+-- (C) 2013-18 - ntop.org
 --
 
 local dirs = ntop.getDirs()
@@ -10,17 +10,16 @@ local json = require "dkjson"
 
 sendHTTPContentTypeHeader('text/html')
 
-local mode     = _GET["username_data"] or "processes"
+local mode     = _GET["process_data"] or "applications"
 local host     = _GET["host"]
-local username = _GET["username"]
-local uid      = _GET["uid"]
+local pid      = _GET["pid"]
 
 local pageinfo = {
    ["sortColumn"] = "column_bytes",
    ["maxHits"] = 15,
    ["a2zSortOrder"] = false,
    ["hostFilter"] = host,
-   ["uidFilter"]  = tonumber(uid),
+   ["pidFilter"]  = tonumber(pid),
    ["detailsLevel"] = "high", -- to obtain processes information
 }
 
@@ -40,13 +39,7 @@ else
       local key
 
       -- Prepare aggregation parameter
-      if mode == "processes" then
-	 if f["client_process"] and f["client_process"]["uid"] == tonumber(uid) then
-	    key = f["client_process"]["name"]
-	 elseif f["server_process"] and f["server_process"]["uid"] == tonumber(uid) then
-	    key = f["server_process"]["name"]
-	 end
-      elseif mode == "applications" then
+      if mode == "applications" then
 	 key = f["proto.ndpi"]
       elseif mode == "breeds" then
 	 key = f["proto.ndpi_breed"]

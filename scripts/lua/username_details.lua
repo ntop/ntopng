@@ -1,5 +1,5 @@
 --
--- (C) 2014-15-15 - ntop.org
+-- (C) 2018 - ntop.org
 --
 
 local dirs = ntop.getDirs()
@@ -19,7 +19,6 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 local user_key    = _GET["username"]
 local host_info    = url2hostinfo(_GET)
 local uid         = _GET["uid"]
-local application = _GET["application"]
 local name
 local ifstats = interface.getStats()
 local refresh_rate
@@ -36,13 +35,13 @@ if(user_key == nil) then
 else
    if host_info and host_info["host"] then
       name = getResolvedAddress(hostkey2hostinfo(host_info["host"]))
-      if (name == nil) then
+      if isEmptyString(name) then
 	 name = host_info["host"]
       end
    end
    print [[
-            <nav class="navbar navbar-default" role="navigation">
-              <div class="navbar-collapse collapse">
+	    <nav class="navbar navbar-default" role="navigation">
+	      <div class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
 	    <li><a href="#">]]
 
@@ -76,6 +75,7 @@ else
    end
    print('&page=flows">'..i18n("flows")..'</a></li>\n')
 
+   print [[ <li><a href="javascript:history.go(-1)"><i class='fa fa-reply'></i></a> ]]
 
    print('</ul>\n\t</div>\n\t\t</nav>\n')
 
@@ -84,8 +84,8 @@ else
     <table class="table table-bordered table-striped">
       <tr><th class="text-left">
       ]] print(i18n("user_info.processes_overview")) print[[
-        <td><div class="pie-chart" id="topProcesses"></div></td>
-      
+	<td><div class="pie-chart" id="topProcesses"></div></td>
+
       </th>
     </tr>]]
 
@@ -96,7 +96,7 @@ window.onload=function() {
    var refresh = ]] print(refresh_rate..'') print[[000 /* ms */;
 		    do_pie("#topProcesses", ']]
       print (ntop.getHttpPrefix())
-      print [[/lua/get_username_data.lua', { uid: "]] print(uid) print [[", username_data: "processes" ]] 
+      print [[/lua/get_username_data.lua', { uid: "]] print(uid) print [[", username_data: "processes" ]]
       if (host_info ~= nil) then print(", "..hostinfo2json(host_info)) end
       print [[
  }, "", refresh);
@@ -112,38 +112,39 @@ window.onload=function() {
     <tr>
       <th class="text-left" colspan=2>]] print(i18n("ndpi_page.overview", {what = i18n("ndpi_page.application_protocol")})) print[[</th>
       <td>
-        <div class="pie-chart" id="topApplicationProtocols"></div>
+	<div class="pie-chart" id="topApplicationProtocols"></div>
       </td>
       <td colspan=2>
-        <div class="pie-chart" id="topApplicationBreeds"></div>
+	<div class="pie-chart" id="topApplicationBreeds"></div>
       </td>
     </tr>
     <tr>
       <th class="text-left" colspan=2>]] print(i18n("ndpi_page.overview", {what = i18n("ndpi_page.application_protocol_category")})) print[[</th>
       <td colspan=2>
-        <div class="pie-chart" id="topApplicationCategories"></div>
+	<div class="pie-chart" id="topApplicationCategories"></div>
       </td>
     </tr>
   </table>
 
-        <script type='text/javascript'>
-               var refresh = ]] print(refresh_rate..'') print[[000 /* ms */;
+	<script type='text/javascript'>
+	       var refresh = ]] print(refresh_rate..'') print[[000 /* ms */;
 	       window.onload=function() {]]
 
       print[[ do_pie("#topApplicationProtocols", ']]
       print (ntop.getHttpPrefix())
-      print [[/lua/get_username_data.lua', { uid: "]] print(uid) print [[", username_data: "applications" ]] 
+      print [[/lua/get_username_data.lua', { uid: "]] print(uid) print [[", username_data: "applications" ]]
       if (host_info ~= nil) then print(", "..hostinfo2json(host_info)) end
       print [[ }, "", refresh); ]]
 
       print[[ do_pie("#topApplicationCategories", ']]
       print (ntop.getHttpPrefix())
-      print [[/lua/get_username_data.lua', { uid: "]] print(uid) print [[", username_data: "categories" ]] 
+      print [[/lua/get_username_data.lua', { uid: "]] print(uid) print [[", username_data: "categories" ]]
       if (host_info ~= nil) then print(", "..hostinfo2json(host_info)) end
       print [[ }, "", refresh); ]]
 
       print[[do_pie("#topApplicationBreeds", ']]
-      print [[/lua/get_username_data.lua', { uid: "]] print(uid) print [[", username_data: "breeds" ]] 
+      print (ntop.getHttpPrefix())
+      print [[/lua/get_username_data.lua', { uid: "]] print(uid) print [[", username_data: "breeds" ]]
       if (host_info ~= nil) then print(", "..hostinfo2json(host_info)) end
       print [[ }, "", refresh);]]
 
@@ -186,13 +187,13 @@ window.onload=function() {
       print [[
   flow_rows_option["type"] = 'host';
 	 $("#table-flows").datatable({
-         url: url_update,
-         buttons: ]] print(dt_buttons) print[[,
-         rowCallback: function ( row ) { return flow_table_setID(row); },
-         tableCallback: function()  { $("#dt-bottom-details > .pull-left > p").first().append('. ]]
+	 url: url_update,
+	 buttons: ]] print(dt_buttons) print[[,
+	 rowCallback: function ( row ) { return flow_table_setID(row); },
+	 tableCallback: function()  { $("#dt-bottom-details > .pull-left > p").first().append('. ]]
       print(i18n('flows_page.idle_flows_not_listed'))
       print[['); },
-         showPagination: true,
+	 showPagination: true,
 	       ]]
 
       print('title: "'..active_flows_msg..'",')
@@ -206,33 +207,33 @@ window.onload=function() {
       print ('sort: [ ["' .. getDefaultTableSort("flows") ..'","' .. getDefaultTableSortOrder("flows").. '"] ],\n')
 
       print [[
-	        columns: [
-           {
-        title: "Key",
-         field: "key",
-         hidden: true
-         },
+		columns: [
+	   {
+	title: "Key",
+	 field: "key",
+	 hidden: true
+	 },
 			     {
 			     title: "",
 				 field: "column_key",
-	 	             css: {
-			        textAlign: 'center'
+			     css: {
+				textAlign: 'center'
 			     }
 				 },
 			     {
-                             title: "]] print(i18n("application")) print[[",
+			     title: "]] print(i18n("application")) print[[",
 				 field: "column_ndpi",
 				 sortable: true,
-	 	             css: {
-			        textAlign: 'center'
+			     css: {
+				textAlign: 'center'
 			     }
 				 },
 			     {
 			     title: "]] print(i18n("flows_page.l4_proto")) print[[",
 				 field: "column_proto_l4",
 				 sortable: true,
-	 	             css: {
-			        textAlign: 'center'
+			     css: {
+				textAlign: 'center'
 			     }
 				 },]]
 
@@ -244,13 +245,13 @@ window.onload=function() {
 
 
 	 print [[
-         field: "column_vlan",
-         sortable: true,
-                 css: {
-              textAlign: 'center'
-           }
+	 field: "column_vlan",
+	 sortable: true,
+		 css: {
+	      textAlign: 'center'
+	   }
 
-         },
+	 },
 ]]
       end
       print [[
@@ -265,44 +266,44 @@ window.onload=function() {
 				 sortable: true,
 				 },
 			     {
-                             title: "]] print(i18n("duration")) print[[",
+			     title: "]] print(i18n("duration")) print[[",
 				 field: "column_duration",
 				 sortable: true,
-	 	             css: {
-			        textAlign: 'center'
+			     css: {
+				textAlign: 'center'
 			       }
 			       },
 			     {
-                             title: "]] print(i18n("breakdown")) print[[",
+			     title: "]] print(i18n("breakdown")) print[[",
 				 field: "column_breakdown",
 				 sortable: true,
-	 	             css: {
-			        textAlign: 'center'
+			     css: {
+				textAlign: 'center'
 			       }
 			       },
 			     {
 			     title: "]] print(i18n("flows_page.actual_throughput")) print[[",
 				 field: "column_thpt",
 				 sortable: true,
-	 	             css: {
-			        textAlign: 'right'
+			     css: {
+				textAlign: 'right'
 			     }
 				 },
 			     {
-                             title: "]] print(i18n("flows_page.total_bytes")) print[[",
+			     title: "]] print(i18n("flows_page.total_bytes")) print[[",
 				 field: "column_bytes",
 				 sortable: true,
-	 	             css: {
-			        textAlign: 'right'
+			     css: {
+				textAlign: 'right'
 			     }
 
 				 }
 			     ,{
-                             title: "]] print(i18n("info")) print[[",
+			     title: "]] print(i18n("info")) print[[",
 				 field: "column_info",
 				 sortable: true,
-	 	             css: {
-			        textAlign: 'left'
+			     css: {
+				textAlign: 'left'
 			     }
 				 }
 			     ]

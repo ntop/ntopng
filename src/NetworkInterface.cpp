@@ -3447,6 +3447,7 @@ struct flowHostRetriever {
   char *osFilter;
   u_int32_t asnFilter;
   u_int32_t uidFilter;
+  u_int32_t pidFilter;
   int16_t networkFilter;
   u_int16_t poolFilter;
   u_int8_t devtypeFilter;
@@ -3474,6 +3475,7 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
   bool unicast, unidirectional, alerted_flows;
   u_int32_t asn_filter;
   u_int32_t uid_filter;
+  u_int32_t pid_filter;
   u_int32_t deviceIP;
   u_int16_t inIndex, outIndex;
 #ifdef HAVE_NEDGE
@@ -3525,8 +3527,14 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
 
     if(retriever->pag
        && retriever->pag->uidFilter(&uid_filter)
-       && f->get_uid(true  /* as client */) != uid_filter
-       && f->get_uid(false /* as server */) != uid_filter)
+       && f->get_uid(true  /* client uid */) != uid_filter
+       && f->get_uid(false /* server uid */) != uid_filter)
+      return(false);
+
+    if(retriever->pag
+       && retriever->pag->pidFilter(&pid_filter)
+       && f->get_pid(true  /* client pid */) != pid_filter
+       && f->get_pid(false /* server pid */) != pid_filter)
       return(false);
 
     if(retriever->pag
