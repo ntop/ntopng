@@ -769,14 +769,20 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
 
 function updateGraphsTableView(graph_table, view, graph_params, has_nindex, nindex_query, per_page) {
   nindex_query = nindex_query + "&begin_time_clause=" + graph_params.epoch_begin + "&end_time_clause=" + graph_params.epoch_end
+  var nindex_buttons = "";
+  var params_obj = graph_params.ts_query.split(",").reduce(function(params, value) { var v = value.split(":"); params[v[0]] = v[1]; return params; }, {});
 
   // TODO localize
-  nindex_buttons = '<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">';
-  nindex_buttons += "IP Version";
-  nindex_buttons += '<span class="caret"></span></button><ul class="dropdown-menu" role="menu">';
-  nindex_buttons += '<li><a href="#" onclick="return onGraphMenuClick($(\'#ts-resolution-buttons .btn-warning\').index(), 4)">4</a></li>';
-  nindex_buttons += '<li><a href="#" onclick="return onGraphMenuClick($(\'#ts-resolution-buttons .btn-warning\').index(), 6)">6</a></li>';
-  nindex_buttons += '</span></div>';
+
+  /* Hide IP version selector when a host is selected */
+  if(!params_obj.host) {
+    nindex_buttons += '<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">';
+    nindex_buttons += "IP Version";
+    nindex_buttons += '<span class="caret"></span></button><ul class="dropdown-menu" role="menu">';
+    nindex_buttons += '<li><a href="#" onclick="return onGraphMenuClick(null, 4)">4</a></li>';
+    nindex_buttons += '<li><a href="#" onclick="return onGraphMenuClick(null, 6)">6</a></li>';
+    nindex_buttons += '</span></div>';
+  }
 
   nindex_buttons += '<div class="btn-group pull-right"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">';
   nindex_buttons += "Explorer";
@@ -787,7 +793,6 @@ function updateGraphsTableView(graph_table, view, graph_params, has_nindex, nind
 
   if(view.columns) {
     var url = http_prefix + (view.nindex_view ? "/lua/enterprise/get_nindex_flows.lua" : "/lua/enterprise/get_ts_table.lua");
-    var params_obj = graph_params.ts_query.split(",").reduce(function(params, value) { var v = value.split(":"); params[v[0]] = v[1]; return params; }, {});
 
     var columns = view.columns.map(function(col) {
       return {
