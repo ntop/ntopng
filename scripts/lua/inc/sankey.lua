@@ -201,13 +201,7 @@ print [[/lua/host_details.lua?host="+escape(d.host)+"@"+escape(d.vlan);  })
 
 elseif(active_sankey == "comparison") then
 
-_ifstats = interface.getStats()
-
-if(_ifstats.iface_sprobe) then
-   url = ntop.getHttpPrefix().."/lua/sflows_stats.lua?"
-else
-   url = ntop.getHttpPrefix().."/lua/flows_stats.lua?"
-end
+url = ntop.getHttpPrefix().."/lua/flows_stats.lua?"
 
 print [[
 

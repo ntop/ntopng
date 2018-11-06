@@ -186,11 +186,7 @@ end
 
 _ifstats = interface.getStats()
 
-if(_ifstats.iface_sprobe) then
-   url = ntop.getHttpPrefix().."/lua/sflows_stats.lua"
-else
-   url = ntop.getHttpPrefix().."/lua/flows_stats.lua"
-end
+url = ntop.getHttpPrefix().."/lua/flows_stats.lua"
 
 if(active_page == "flows") then
    print('<li class="active"><a href="'..url..'">') print(i18n("flows")) print('</a></li>')
