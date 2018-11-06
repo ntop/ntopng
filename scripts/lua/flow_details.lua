@@ -566,7 +566,7 @@ else
 	 print('<tr><th colspan=3><div id="sprobe"></div>')
 	 width  = 1024
 	 height = 200
-	 url = ntop.getHttpPrefix().."/lua/sprobe_flow_data.lua?flow_key="..flow_key
+	 url = ntop.getHttpPrefix().."/lua/get_flow_process_tree.lua?flow_key="..flow_key
 	 dofile(dirs.installdir .. "/scripts/lua/inc/sprobe.lua")
 	 print('</th></tr>\n')
       end

@@ -25,11 +25,11 @@ local function format_proc(name, pid)
 end
 
 local function proc_branch(host, proc)
-   local proc_link = ntop.getHttpPrefix().."/lua/get_process_info.lua?pid="..proc.pid.."&pid_name="..proc.name.."&host=".. host .."&page=Flows"
-   local proc_leaf = {name = format_proc(proc.name, proc.pid), link = proc_link, children = {}}
+   local proc_link = ntop.getHttpPrefix().."/lua/process_details.lua?pid="..proc.pid.."&pid_name="..proc.name.."&host=".. host .."&page=flows"
+   local proc_leaf = {name = format_proc(proc.name, proc.pid), link = proc_link, type = "proc", children = {}}
 
    if proc.pid ~= 1 then
-      local father_leaf = {name = format_proc(proc.father_name, proc.father_pid), children = {}}
+      local father_leaf = {name = format_proc(proc.father_name, proc.father_pid), type = "proc", children = {}}
 
       father_leaf["children"] = {proc_leaf}
       proc_leaf = father_leaf

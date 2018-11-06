@@ -275,6 +275,24 @@ if host["localhost"] == true then
    end
 end
 
+if host.systemhost then
+   if interface.hasEBPF() then
+      if(page == "processes") then
+	 print("<li class=\"active\"><a href=\"#\">"..i18n("user_info.processes").."</a></li>\n")
+      else
+	 print("<li><a href=\""..url.."&page=processes\">"..i18n("user_info.processes").."</a></li>")
+      end
+   end
+
+   if(page == "sprobe") then
+      print("<li class=\"active\"><a href=\"#\"><i class=\"fa fa-flag fa-lg\"></i></a></li>\n")
+   else
+      if(ifstats.sprobe) then
+	 print("<li><a href=\""..url.."&page=sprobe\"><i class=\"fa fa-flag fa-lg\"></i></a></li>")
+      end
+   end
+end
+
 if(not(isLoopback(ifname))) then
    if(page == "talkers") then
       print("<li class=\"active\"><a href=\"#\">"..i18n("talkers").."</a></li>\n")
@@ -291,16 +309,6 @@ if(not(isLoopback(ifname))) then
    end
 else
 
-end
-
-if(host.systemhost) then
-if(page == "sprobe") then
-  print("<li class=\"active\"><a href=\"#\"><i class=\"fa fa-flag fa-lg\"></i></a></li>\n")
-else
-   if(ifstats.sprobe) then
-      print("<li><a href=\""..url.."&page=sprobe\"><i class=\"fa fa-flag fa-lg\"></i></a></li>")
-   end
-end
 end
 
 if (host["ip"] ~= nil and host['localhost']) and areAlertsEnabled() and not ifstats.isView then
@@ -1597,6 +1605,9 @@ elseif(page == "snmp" and ntop.isEnterprise()) then
 
       print_snmp_device_system_table(snmp_device.get_device())
    end
+elseif(page == "processes") then
+   local ebpf_utils = require "ebpf_utils"
+   ebpf_utils.draw_processes_graph(host)
 
 elseif(page == "talkers") then
 print("<center>")
