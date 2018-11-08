@@ -1041,7 +1041,7 @@ elseif(page == "traffic_recording") then
             <td colspan=2>
               <select class="form-control" name="custom_name" value="]] print(ext_ifname) print [[">
       ]]
-      for ifname,info in pairs(ext_interfaces) do
+      for ifname,info in pairsByKeys(ext_interfaces, asc) do
         print("<option value=\""..ifname.."\" "..ternary(ifname == ext_ifname, "selected", "")..">"..info.ifdesc.."</option>")
       end
       print [[
