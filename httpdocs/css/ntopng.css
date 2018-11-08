@@ -397,3 +397,28 @@ tr.quotas > td {
   padding: 15px;
   padding-bottom: 0;
 }
+
+/* CSS for eBPF process charts */
+.link {
+  fill: none;
+  stroke: #666;
+  stroke-width: 1.5px;
+}
+
+.link.proc2host {
+  stroke-dasharray: 0,2 1;
+}
+
+.ebpf_circle {
+  fill: #ccc;
+  stroke: #333;
+  stroke-width: 1.5px;
+}
+
+.ebpf_text {
+  font: 10px sans-serif;
+  pointer-events: none;
+  text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, 0 -1px 0 #fff, -1px 0 0 #fff;
+}
+
+/* end of CSS for EBPF charts */

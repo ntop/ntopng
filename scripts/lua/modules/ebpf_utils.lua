@@ -11,8 +11,15 @@ local os_utils = require "os_utils"
 
 local ebpf_utils = {}
 
-function ebpf_utils.draw_processes_graph(host)
+function ebpf_utils.draw_processes_graph(host_info)
+   print[[
 
+<div align="center" id="chart"></div>
+
+<script>
+draw_processes_graph(']] print(ntop.getHttpPrefix()) print[[',']] print("chart") print[[',']] print(hostinfo2hostkey(host_info)) print[[');
+</script>
+]]
 end
 
 function ebpf_utils.draw_ndpi_piecharts(ifstats, url, host_info, uid, pid)

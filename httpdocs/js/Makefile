@@ -13,7 +13,7 @@ DEP_MIN_JS_SRC=ie_fix.js rickshaw.js pie-chart.js gauge.js \
 
 NTOP_MIN_JS=ntop.min.js
 NTOP_MIN_JS_SRC=springy-ntop.js springyui-ntop.js datatable_utils.js\
-		  ays_utils.js ntopng_utils.js graph_utils.js ntopng_validators.js
+		  ays_utils.js ntopng_utils.js graph_utils.js ebpf_utils.js ntopng_validators.js
 
 
 

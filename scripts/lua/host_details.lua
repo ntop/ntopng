@@ -1607,7 +1607,7 @@ elseif(page == "snmp" and ntop.isEnterprise()) then
    end
 elseif(page == "processes") then
    local ebpf_utils = require "ebpf_utils"
-   ebpf_utils.draw_processes_graph(host)
+   ebpf_utils.draw_processes_graph(host_info)
 
 elseif(page == "talkers") then
 print("<center>")
