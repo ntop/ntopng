@@ -14,6 +14,7 @@ can be obtained from the traffic captured by the server.
    web_gui/index
    using_with_nprobe
    advanced_features/index
+   operating_ntopng_on_large_networks
    api/index
 
 .. Indices and tables
