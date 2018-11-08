@@ -89,6 +89,7 @@ rm -fr $RPM_BUILD_ROOT
 /usr/bin/ntopng-utils-manage-config
 /usr/share/man/man8/ntopng.8.gz
 %config(noreplace) /etc/ntopng/ntopng.conf
+%config(noreplace) /usr/lib/systemd/system/ntopng.service
 %if 0%{?centos_ver} == 7
 /usr/lib/systemd/system/ntopng.service
 %else
