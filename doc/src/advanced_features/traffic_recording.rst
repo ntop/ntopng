@@ -30,7 +30,7 @@ according to your Linux distribution (we assume that you already configured the
    yum install n2disk
 
 Please make sure that *ntopng* is running using the *ntopng* user, which
-is the default since version 3.7, as reported in `this notice https://www.ntop.org/support/faq/migrate-the-data-directory-in-ntopng/`_.
+is the default since version 3.7, as reported in `this notice <https://www.ntop.org/support/faq/migrate-the-data-directory-in-ntopng/>`_.
 
 In order to use *n2disk* a license is also required, you can get one at
 `e-shop <http://shop.ntop.org>`_ or, if you are no-profit, research or an 
