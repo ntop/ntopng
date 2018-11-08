@@ -74,7 +74,13 @@ if recording_utils.isAvailable then
     if stats['FirstDumpedEpoch'] ~= nil then
       local first_epoch = tonumber(stats['FirstDumpedEpoch'])
       local last_epoch = tonumber(stats['LastDumpedEpoch'])
-      print("<tr><th nowrap>"..i18n("traffic_recording.dump_window").."</th><td>"..formatEpoch(first_epoch).." - "..formatEpoch(last_epoch).."</td></tr>\n")
+      print("<tr><th nowrap>"..i18n("traffic_recording.dump_window").."</th><td>")
+      if (first_epoch > 0 and last_epoch > 0) then
+        print(formatEpoch(first_epoch).." - "..formatEpoch(last_epoch))
+      else
+        print(i18n("traffic_recording.no_file"))
+      end
+      print("</td></tr>\n")
     end
 
     if stats['Bytes'] ~= nil and stats['Packets'] ~= nil then

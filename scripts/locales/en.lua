@@ -2806,6 +2806,7 @@ local lang = {
     ["job_id"] = "Job ID",
     ["logs"] = "Traffic Recording Logs",
     ["missing_parameters"] = "Mandatory parameters are missing",
+    ["no_file"] = "No files dumped yet",
     ["not_found"] = "File not found",
     ["not_granted"] = "Request not granted",
     ["pcap_download"] = "Extract pcap",
