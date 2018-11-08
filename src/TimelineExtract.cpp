@@ -121,7 +121,7 @@ bool TimelineExtract::extract(u_int32_t id, NetworkInterface *iface,
     h = (struct pcap_pkthdr *) &header;
     dumper->dumpPacket(h, packet, UNKNOWN, 1);
     stats.packets++;
-    stats.bytes += h->caplen;
+    stats.bytes += sizeof(struct pcap_disk_pkthdr) + h->caplen;
   }
 
   status_code = 0;
