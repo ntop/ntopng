@@ -3253,30 +3253,76 @@ void Utils::init_pcap_header(struct pcap_file_header * const h, NetworkInterface
 
 void Utils::listInterfaces(lua_State* vm) {
   char ebuf[PCAP_ERRBUF_SIZE];
-  pcap_if_t *devs, *devpointer;
+  pcap_if_t *pdevs, *pdev;
+#ifdef HAVE_PF_RING
+  pfring_if_t *pfdevs, *pfdev;
+#endif
 
-  if (pcap_findalldevs(&devs, ebuf) != 0) 
+  if (pcap_findalldevs(&pdevs, ebuf) != 0) 
     return;
 
-  devpointer = devs;
+#ifdef HAVE_PF_RING
+  pfdevs = pfring_findalldevs();
 
-  while (devpointer != NULL) {
-    if (Utils::validInterface(devpointer->description) && 
-        Utils::isInterfaceUp(devpointer->name)) {
+  pfdev = pfdevs;
+  while (pfdev != NULL) {
+
+    /* merge with info from pcap */
+    pdev = pdevs;
+    while (pdev != NULL) {
+      if (pfdev->system_name && strcmp(pfdev->system_name, pdev->name) == 0)
+        break;
+      pdev = pdev->next;
+    }
+
+    if (pdev == NULL /* not a standard interface (e.g. fpga) */
+        || (Utils::isInterfaceUp(pfdev->system_name) && Utils::validInterface(pdev->description))) {
       lua_newtable(vm);
-
-      lua_push_str_table_entry(vm, "description", devpointer->description ? devpointer->description : (char *) "");
-      // add more info here..
-
-      lua_pushstring(vm, devpointer->name);
+      lua_push_str_table_entry(vm, "description", (pdev && pdev->description) ? pdev->description : (char *) "");
+      lua_push_str_table_entry(vm, "module", pfdev->module);
+      lua_push_bool_table_entry(vm, "license", !!pfdev->license);
+      lua_pushstring(vm, pfdev->system_name ? pfdev->system_name : pfdev->name);
       lua_insert(vm, -2);
       lua_settable(vm, -3);
     }
 
-    devpointer = devpointer->next;
+    pfdev = pfdev->next;
+  }
+#endif
+
+  pdev = pdevs;
+  while (pdev != NULL) {
+    if (Utils::validInterface(pdev->description) && 
+        Utils::isInterfaceUp(pdev->name)) {
+
+#ifdef HAVE_PF_RING
+      /* check if already listed */
+      pfdev = pfdevs;
+      while (pfdev != NULL) {
+        if (strcmp(pfdev->system_name, pdev->name) == 0)
+          break;
+        pfdev = pfdev->next;
+      }
+
+      if (pfdev == NULL) {
+#endif
+        lua_newtable(vm);
+        lua_push_str_table_entry(vm, "description", pdev->description ? pdev->description : (char *) "");
+        lua_pushstring(vm, pdev->name);
+        lua_insert(vm, -2);
+        lua_settable(vm, -3);
+#ifdef HAVE_PF_RING
+      }
+#endif
+    }
+
+    pdev = pdev->next;
   }
 
-  pcap_freealldevs(devs);
+#ifdef HAVE_PF_RING 
+  pfring_freealldevs(pfdevs);
+#endif
+  pcap_freealldevs(pdevs);
 }
 
 /* ****************************************************** */
