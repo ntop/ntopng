@@ -105,6 +105,14 @@ function recording_utils.getN2diskInfo()
         end
       end
     end
+
+    local license_file = io.open("/etc/n2disk.license", "r")
+    if license_file ~= nil then
+      local license = license_file:read "*l"
+      info.license = license
+      license_file:close()
+    end
+
   end
   return info
 end
