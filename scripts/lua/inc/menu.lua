@@ -232,7 +232,8 @@ end
   end
 
   if(interface.hasEBPF()) then
-   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/processes_stats.lua">') print(i18n("sprobe_page.processes")) print('</a></li>')
+     -- TODO: decide whether a page with the list of processes should be done or not
+     -- print('<li><a href="'..ntop.getHttpPrefix()..'/lua/processes_stats.lua">') print(i18n("sprobe_page.processes")) print('</a></li>')
 end
 
 print('<li class="divider"></li>')
