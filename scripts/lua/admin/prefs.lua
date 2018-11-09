@@ -753,6 +753,14 @@ function printRecording()
     ternary(n2disk_info.license ~= nil, n2disk_info.license, ""),
     false, nil, nil, nil, {style={width="25em;"}, min = 50, max = 64 })
 
+  print('<tr><th colspan=2 class="info">'..i18n("traffic_recording.settings")..'</th></tr>')
+
+  prefsInputFieldPrefs(subpage_active.entries["max_extracted_pcap_mbytes"].title, 
+                       subpage_active.entries["max_extracted_pcap_mbytes"].description,
+		       "ntopng.prefs.", "max_extracted_pcap_mbytes", prefs.max_extracted_pcap_mbytes, "number",
+		       true,
+		       nil, nil, {min=1})
+
   -- ######################
 
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" onclick="return save_button_users();" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')

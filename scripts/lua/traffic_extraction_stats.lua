@@ -44,6 +44,15 @@ print(template.gen("modal_confirm_dialog.html", {
 print [[
   <div id="extractionjobs"></div>
 
+  <span>
+    <ul>]]
+print(i18n("notes"))
+print [[
+      <li>]] print(i18n("traffic_recording.note_dump")) print[[</li>]]
+   print[[
+    </ul>
+  </span>
+
   <script>
   $("#extractionjobs").datatable({
          title: "",

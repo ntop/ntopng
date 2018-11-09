@@ -57,7 +57,7 @@ Prefs::Prefs(Ntop *_ntop) {
   default_l7policy = PASS_ALL_SHAPER_ID;
   num_ts_slots = CONST_DEFAULT_TS_NUM_SLOTS, ts_num_steps = CONST_DEFAULT_TS_NUM_STEPS;
   device_protocol_policies_enabled = false, enable_vlan_trunk_bridge = false;
-
+  max_extracted_pcap_mbytes = CONST_DEFAULT_MAX_EXTR_PCAP_MBYTES; 
   install_dir = NULL, captureDirection = PCAP_D_INOUT;
   docs_dir = strdup(CONST_DEFAULT_DOCS_DIR);
   scripts_dir = strdup(CONST_DEFAULT_SCRIPTS_DIR);
@@ -576,6 +576,9 @@ void Prefs::reloadPrefsFromRedis() {
 							 CONST_DEFAULT_MAX_NUM_PACKETS_PER_TINY_FLOW),
     max_num_bytes_per_tiny_flow   = getDefaultPrefsValue(CONST_MAX_NUM_BYTES_PER_TINY_FLOW,
 							 CONST_DEFAULT_MAX_NUM_BYTES_PER_TINY_FLOW),
+
+    max_extracted_pcap_mbytes = getDefaultPrefsValue(CONST_MAX_EXTR_PCAP_MBYTES,
+                                                     CONST_DEFAULT_MAX_EXTR_PCAP_MBYTES); 
 
     ewma_alpha_percent = getDefaultPrefsValue(CONST_EWMA_ALPHA_PERCENT, CONST_DEFAULT_EWMA_ALPHA_PERCENT);
 
@@ -1615,6 +1618,8 @@ void Prefs::lua(lua_State* vm) {
 
   lua_push_int_table_entry(vm, "max_num_packets_per_tiny_flow", max_num_packets_per_tiny_flow);
   lua_push_int_table_entry(vm, "max_num_bytes_per_tiny_flow",   max_num_bytes_per_tiny_flow);
+
+  lua_push_int_table_entry(vm, "max_extracted_pcap_mbytes", max_extracted_pcap_mbytes);
 
   lua_push_int_table_entry(vm, "ewma_alpha_percent", ewma_alpha_percent);
 

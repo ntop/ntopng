@@ -1016,6 +1016,7 @@ elseif(page == "traffic_recording") then
       record_traffic_value = "true" -- Opposite
     end
 
+    max_space = math.floor(max_space/1024)*1024
     if isEmptyString(disk_space) then
       disk_space = max_space
     end

@@ -28,33 +28,25 @@ class PacketDumper {
  private:
   NetworkInterface *iface;
   pcap_dumper_t *dumper;
-  u_int64_t num_sampled_packets, num_dumped_packets, num_dumped_unknown_packets;
-  u_int32_t file_id, num_dumped_unknown_files;
+  u_int32_t file_id;
   u_int16_t iface_type;
-  time_t sec_start;
-  int sampling_rate;
-  unsigned int max_pkts_per_file;
-  unsigned int num_pkts_cur_file;
+  u_int64_t num_dumped_packets;
+  u_int64_t max_bytes_per_file;
+  u_int64_t num_bytes_cur_file;
   char *out_path;
 
  public:
-  PacketDumper(NetworkInterface *i);
   PacketDumper(NetworkInterface *i, const char *path);
   ~PacketDumper();
 
   void init(NetworkInterface *i);
   void closeDump();
-  void idle(time_t when);
-  bool checkClose(time_t when);
-  bool openDump(time_t when, int sampling_rate);
-  void dumpPacket(const struct pcap_pkthdr *h, const u_char *packet,
-                  dump_reason reason, int sampling_rate);
-  inline u_int64_t get_num_dumped_packets() { return(num_dumped_packets+num_dumped_unknown_packets); }
-  inline u_int64_t get_num_dumped_files()   { return(file_id+num_dumped_unknown_files); }
-  void lua(lua_State *vm);
-  inline void incUnknownPacketDump(u_int16_t num_pkts) {
-    num_dumped_unknown_packets += num_pkts, num_dumped_unknown_files++;
-  }
+  void idle();
+  bool checkClose();
+  bool openDump();
+  void dumpPacket(const struct pcap_pkthdr *h, const u_char *packet);
+  inline u_int64_t get_num_dumped_packets() { return num_dumped_packets; }
+  inline u_int64_t get_num_dumped_files()   { return file_id; }
 };
 
 #endif /* _PACKET_DUMPER_H_ */

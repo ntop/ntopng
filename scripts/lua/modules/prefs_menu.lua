@@ -303,6 +303,10 @@ local menu_subpages = {
       title       = i18n("prefs.n2disk_license_title"),
       description = i18n("prefs.n2disk_license_description", { purchase_url='http://shop.ntop.org/', universities_url='http://www.ntop.org/support/faq/do-you-charge-universities-no-profit-and-research/'}),
     },
+    max_extracted_pcap_mbytes = {
+      title       = i18n("traffic_recording.max_extracted_pcap_mbytes_title"),
+      description = i18n("traffic_recording.max_extracted_pcap_mbytes_description"),
+    },
   }}, {id="misc",          label=i18n("prefs.misc"),                 advanced=false, pro_only=false,  hidden=false, entries={
     toggle_autologout = {
       title       = i18n("prefs.toggle_autologout_title"),

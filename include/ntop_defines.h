@@ -247,10 +247,11 @@
 
 #define CONST_DEMO_MODE_DURATION       600 /* 10 min */
 #define CONST_MAX_DUMP_DURATION        300 /* 5 min */
-#define CONST_DUMP_SAMPLING_RATE       1   /* sampling disabled by default */
 #define CONST_MAX_NUM_PACKETS_PER_LIVE 100000 /* live captures via HTTP */
-#define CONST_MAX_NUM_PACKETS_PER_DUMP 1000000
 #define CONST_MAX_DUMP                 500000000
+
+#define CONST_MAX_EXTR_PCAP_MBYTES NTOPNG_PREFS_PREFIX".max_extracted_pcap_mbytes"
+#define CONST_DEFAULT_MAX_EXTR_PCAP_MBYTES 100
 
 #define MIN_CONNTRACK_UPDATE           3  /* sec */
 #define MIN_NETFILTER_UPDATE           30 /* sec */

@@ -76,6 +76,7 @@ class Prefs {
   int32_t max_num_alerts_per_entity, max_num_flow_alerts;
   u_int32_t safe_search_dns_ip, global_primary_dns_ip, global_secondary_dns_ip;
   u_int32_t max_num_packets_per_tiny_flow, max_num_bytes_per_tiny_flow;
+  u_int32_t max_extracted_pcap_mbytes;
   u_int32_t max_ui_strlen;
   u_int8_t default_l7policy;
   u_int8_t num_ts_slots, ts_num_steps;
@@ -323,8 +324,10 @@ class Prefs {
   inline int32_t   get_max_num_alerts_per_entity()       { return(max_num_alerts_per_entity); };
   inline int32_t   get_max_num_flow_alerts()             { return(max_num_flow_alerts); };
 
-  inline u_int32_t get_max_num_packets_per_tiny_flow()  { return(max_num_packets_per_tiny_flow); }
-  inline u_int32_t get_max_num_bytes_per_tiny_flow()    { return(max_num_bytes_per_tiny_flow); }
+  inline u_int32_t get_max_num_packets_per_tiny_flow()  { return(max_num_packets_per_tiny_flow); };
+  inline u_int32_t get_max_num_bytes_per_tiny_flow()    { return(max_num_bytes_per_tiny_flow); };
+
+  inline u_int64_t get_max_extracted_pcap_mbytes() { return max_extracted_pcap_mbytes; };
 
   inline u_int32_t get_safe_search_dns_ip()      { return(safe_search_dns_ip);                          };
   inline u_int32_t get_global_primary_dns_ip()   { return(global_primary_dns_ip);                       };

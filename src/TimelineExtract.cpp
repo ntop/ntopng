@@ -119,7 +119,7 @@ bool TimelineExtract::extract(u_int32_t id, NetworkInterface *iface,
   while (!shutdown && !ntop->getGlobals()->isShutdown() && 
          (rc = pfring_recv(handle, &packet, 0, &header, 0)) > 0) {
     h = (struct pcap_pkthdr *) &header;
-    dumper->dumpPacket(h, packet, UNKNOWN, 1);
+    dumper->dumpPacket(h, packet);
     stats.packets++;
     stats.bytes += sizeof(struct pcap_disk_pkthdr) + h->caplen;
   }
