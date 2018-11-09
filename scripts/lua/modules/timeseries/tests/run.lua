@@ -10,8 +10,11 @@ package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/tests/?.lua;"
 
 -- ##############################################
 
-local utils_test = require("utils_test")
-local influxdb_test = require("influxdb_test")
+local tests = {
+  require("utils_test"),
+  require("influxdb2series"),
+  require("influxdb_queries"),
+}
 
 -- ##############################################
 
@@ -31,6 +34,11 @@ end
 function test:success()
   print(self.name .. " OK<br>")
   return true
+end
+
+function test:fail(message)
+  print(self.name .. " FAILED: ".. message .."<br>")
+  return false
 end
 
 function test:assertion_failed(assertion)
@@ -53,5 +61,6 @@ local tester = {
 
 sendHTTPContentTypeHeader('text/html')
 
-utils_test.run(tester)
-influxdb_test.run(tester)
+for _, test in ipairs(tests) do
+  test.run(tester)
+end

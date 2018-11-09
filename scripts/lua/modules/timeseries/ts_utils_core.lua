@@ -196,7 +196,7 @@ end
 -- ##############################################
 
 -- Get some default options to use in queries.
-local function getQueryOptions(overrides)
+function ts_utils.getQueryOptions(overrides)
   return table.merge({
     max_num_points = 80,    -- maximum number of points per data serie
     fill_value = 0,         -- e.g. 0/0 for nan
@@ -223,7 +223,7 @@ function ts_utils.query(schema_name, tags, tstart, tend, options)
     return nil
   end
 
-  local query_options = getQueryOptions(options)
+  local query_options = ts_utils.getQueryOptions(options)
   local schema = ts_utils.getSchema(schema_name)
 
   if not schema then
@@ -341,7 +341,7 @@ end
 --! @param options (optional) query options.
 --! @return query result on success, nil on error.
 function ts_utils.queryTopk(schema_name, tags, tstart, tend, options)
-  local query_options = getQueryOptions(options)
+  local query_options = ts_utils.getQueryOptions(options)
   local top_items = nil
   local schema = nil
 
@@ -568,7 +568,7 @@ function ts_utils.queryTotal(schema_name, tstart, tend, tags, options)
     return nil
   end
 
-  local query_options = getQueryOptions(options)
+  local query_options = ts_utils.getQueryOptions(options)
 
   return driver:queryTotal(schema, tstart, tend, tags, query_options)
 end

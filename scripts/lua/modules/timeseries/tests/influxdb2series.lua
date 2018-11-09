@@ -3,25 +3,8 @@
 --
 
 local influxdb = require("influxdb")
+local test_utils = require("test_utils")
 local influx2Series = influxdb._influx2Series
-
-local function makeTimeStamp(series, tstart, tstep)
-  local v = {}
-
-  for idx, serie in ipairs(series) do
-    local data = {}
-    t = tstart
-
-    for i, pt in ipairs(serie.data) do
-      data[i] = {t, pt}
-      t = t + tstep
-    end
-
-    v[idx] = data
-  end
-
-  return v
-end
 
 -- Reproduces 12c8fc315654c1a0e7bf82f089ee47d45a98fc07 - Fix occasional series ponts differences in InfluxDB
 local function test_sampling1(test)
@@ -326,7 +309,7 @@ function test_datafill3(test)
   local time_step = 60 -- 60x sampling
   local tstart = 1534254780; tend = 1534256640
   local data1_series, data1_count = influx2Series(schema, tstart, tend, tags, options, data1.series[1], time_step)
-  local with_tstamp = makeTimeStamp(data1_series, tstart, time_step)[1]
+  local with_tstamp = test_utils.makeTimeStamp(data1_series, tstart, time_step)[1]
   local last_val = with_tstamp[#with_tstamp - 1]
   local last_expected_val = data1.series[1].values[#data1.series[1].values]
 
@@ -381,7 +364,7 @@ function test_no_derivative1(test)
   local time_step = 60 -- no sampling
   local tstart = 1534492620; tend = 1534493220
   local data1_series, data1_count = influx2Series(schema, tstart+time_step, tend, tags, options, data1.series[1], time_step)
-  local with_tstamp = makeTimeStamp(data1_series, tstart+time_step, time_step)[1]
+  local with_tstamp = test_utils.makeTimeStamp(data1_series, tstart+time_step, time_step)[1]
   local first_expected_val = data1.series[1].values[1]
 
   for _, pt in pairs(with_tstamp) do
@@ -439,7 +422,7 @@ function test_skip_initial1(test)
   local time_step = 60 -- no sampling
   local tstart = 1534502340; tend = 1534493220
   local data1_series, data1_count = influx2Series(schema, tstart, tend, tags, options, data1.series[1], time_step)
-  local with_tstamp = makeTimeStamp(data1_series, tstart, tstart)[1]
+  local with_tstamp = test_utils.makeTimeStamp(data1_series, tstart, tstart)[1]
   local first_expected_val = data1.series[1].values[2]
 
   for _, pt in ipairs(with_tstamp) do

@@ -334,7 +334,7 @@ function driver:query(schema, tstart, tend, tags, options)
       total_serie = table.clone(series[1].data)
     else
       -- try to inherit label from existing series
-      local label = series and series[1].label
+      local label = series and series[1] and series[1].label
       total_serie = self:_makeTotalSerie(schema, tstart + time_step, tend, tags, options, url, time_step, label, unaligned_offset)
     end
 
@@ -406,6 +406,26 @@ end
 
 -- ##############################################
 
+function driver:_exportTsFile(fname)
+  if not ntop.exists(fname) then
+    return nil
+  end
+
+  -- Delete the file after POST
+  local delete_file_after_post = true
+  local ret = ntop.postHTTPTextFile(self.username, self.password, self.url .. "/write?db=" .. self.db, fname, delete_file_after_post, 5 --[[ timeout ]])
+
+  if(ret ~= true) then
+    traceError(TRACE_ERROR, TRACE_CONSOLE, "POST of "..fname.." failed\n")
+
+    -- delete the file manually
+    os.remove(fname)
+    return nil
+  end
+
+  return ret
+end
+
 function driver:export()
   while(true) do
     local name_id = ntop.lpopCache("ntopng.influx_file_queue")
@@ -429,25 +449,16 @@ function driver:export()
     local prev_t = tonumber(ntop.getCache(time_key)) or 0
     local fname = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/ts_export/" .. export_id .. "_" .. time_ref)
 
-    if ntop.exists(fname) then
-      -- Delete the file after POST
-      local delete_file_after_post = true
+    --local t = os.time()
+    ret = self:_exportTsFile(fname)
 
-      local t = os.time()
-      ret = ntop.postHTTPTextFile(self.username, self.password, self.url .. "/write?db=" .. self.db, fname, delete_file_after_post, 5 --[[ timeout ]])
-
-      if(ret ~= true) then
-        traceError(TRACE_ERROR, TRACE_CONSOLE, "POST of "..fname.." failed\n")
-
-        -- delete the file manually
-        os.remove(fname)
-        break
-      end
-
-      -- Successfully exported
-      --tprint("Exported ".. fname .." in " .. (os.time() - t) .. " sec")
-      ntop.setCache(time_key, tostring(math.max(prev_t, time_ref)))
+    if ret == nil then
+      break
     end
+
+    -- Successfully exported
+    --tprint("Exported ".. fname .." in " .. (os.time() - t) .. " sec")
+    ntop.setCache(time_key, tostring(math.max(prev_t, time_ref)))
   end
 end
 
@@ -883,7 +894,10 @@ end
 function driver:delete(schema_prefix, tags)
   local url = self.url
   local measurement_pattern = ternary(schema_prefix == "", '//', '/^'.. schema_prefix ..':/')
-  local query = 'DELETE FROM '.. measurement_pattern ..' WHERE ' .. table.tconcat(tags, "=", " AND ", nil, "'")
+  local query = 'DELETE FROM '.. measurement_pattern
+  if not table.empty(tags) then
+    query = query .. ' WHERE ' .. table.tconcat(tags, "=", " AND ", nil, "'")
+  end
   local full_url = url .. "/query?db=".. self.db .."&q=" .. urlencode(query)
 
   local res = ntop.httpGet(full_url, self.username, self.password, INFLUX_QUERY_TIMEMOUT_SEC, true)

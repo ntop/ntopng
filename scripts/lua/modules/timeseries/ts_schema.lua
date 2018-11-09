@@ -60,7 +60,7 @@ function ts_schema:new(name, options)
   local step_info = ts_schema.supported_steps[tostring(options.step)]
 
   if not step_info then
-    traceError(TRACE_ERROR, TRACE_CONSOLE, "missing step option in schema " .. name)
+    traceError(TRACE_ERROR, TRACE_CONSOLE, "unsupported step option in schema " .. name)
     return nil
   end
 
