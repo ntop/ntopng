@@ -441,6 +441,15 @@ function recording_utils.createConfig(ifid, params)
   else
     f:write("--dont-change-user\n");
   end
+  if interface.isPacketInterface() then
+    if prefs.capture_direction == "in" then
+      f:write("--capture-direction=1\n")
+    elseif prefs.capture_direction == "out" then
+      f:write("--capture-direction=2\n")
+    else
+      f:write("--capture-direction=0\n")
+    end
+  end
   if config.zmq_endpoint ~= nil then
     f:write("--zmq="..config.zmq_endpoint.."\n")
     f:write("--zmq-probe-mode\n")

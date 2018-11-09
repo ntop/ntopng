@@ -3364,6 +3364,20 @@ const char* Utils::policySource2Str(L7PolicySource_t policy_source) {
 
 /* ****************************************************** */
 
+const char* Utils::captureDirection2Str(pcap_direction_t dir) {
+  switch(dir) {
+    case PCAP_D_IN:
+      return "in";
+    case PCAP_D_OUT:
+      return "out";
+    case PCAP_D_INOUT:
+    default:
+      return "inout";
+  }
+}
+
+/* ****************************************************** */
+
 bool Utils::shouldResolveHost(const char *host_ip) {
   if(!ntop->getPrefs()->is_dns_resolution_enabled())
     return false;

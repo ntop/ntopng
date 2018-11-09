@@ -109,6 +109,7 @@ class Utils {
   static bool isCriticalNetworkProtocol(u_int16_t protocol_id);
   static u_int32_t stringHash(const char *s);
   static const char* policySource2Str(L7PolicySource_t policy_source);
+  static const char* captureDirection2Str(pcap_direction_t dir);
   static bool shouldResolveHost(const char *host_ip);
 
   /* Patricia Tree */

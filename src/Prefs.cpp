@@ -1640,6 +1640,8 @@ void Prefs::lua(lua_State* vm) {
 
   lua_push_str_table_entry(vm, "cpu_affinity", cpu_affinity ? cpu_affinity : (char*)"");
   lua_push_str_table_entry(vm, "user", change_user ? user : (char*)"");
+
+  lua_push_str_table_entry(vm, "capture_direction", Utils::captureDirection2Str(captureDirection)); 
 }
 
 /* *************************************** */
