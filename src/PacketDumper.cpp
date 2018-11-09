@@ -88,7 +88,7 @@ bool PacketDumper::openDump() {
   if (dumper != NULL)
     return true;
 
-  max_bytes_per_file = ntop->getPrefs()->get_max_extracted_pcap_mbytes()*1024*2014;
+  max_bytes_per_file = ntop->getPrefs()->get_max_extracted_pcap_mbytes()*1024*1024;
 
   Utils::mkdir_tree(out_path);
   snprintf(pcap_path, sizeof(pcap_path), "%s/%u.pcap", out_path, file_id+1);
@@ -103,7 +103,7 @@ bool PacketDumper::openDump() {
   file_id++;
   num_bytes_cur_file = 0;
 
-  ntop->getTrace()->traceEvent(TRACE_INFO, "Created pcap dump %s [max pkts=%u]",
+  ntop->getTrace()->traceEvent(TRACE_INFO, "Created pcap dump %s [max bytes=%u]",
     pcap_path, max_bytes_per_file);
 
   return true;

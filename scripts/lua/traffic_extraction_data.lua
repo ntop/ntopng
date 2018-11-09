@@ -70,7 +70,17 @@ local jobs = recording_utils.getExtractionJobs(ifstats.id)
 
 local sorter = {}
 for id,job in pairs(jobs) do
-  sorter[id] = job.time
+  if sortColumn == "column_id" then
+    sorter[id] = job.id
+  elseif sortColumn == "column_extracted_packets" then
+    sorter[id] = job.extracted_pkts
+  elseif sortColumn == "column_extracted_bytes" then
+    sorter[id] = job.extracted_bytes
+  elseif sortColumn == "column_status" then
+    sorter[id] = job.status
+  else -- sortColumn == column_job_time
+    sorter[id] = job.time
+  end
 end
 
 local res = {}

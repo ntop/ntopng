@@ -61,6 +61,7 @@ print [[
            {
              title: "]] print(i18n("traffic_recording.job_id")) print [[",
              field: "column_id",
+             sortable: true,
              css: {textAlign:'center'},
            }, {
              title: "]] print(i18n("traffic_recording.job_date_time")) print [[",
@@ -68,6 +69,7 @@ print [[
              sortable: true,
            }, {
              title: "]] print(i18n("status")) print [[",
+             sortable: true,
              field: "column_status",
            }, {
              title: "]] print(i18n("report.begin_date_time")) print [[",
@@ -81,10 +83,12 @@ print [[
            }, {
              title: "]] print(i18n("traffic_recording.extracted_packets")) print [[",
              field: "column_extracted_packets",
+             sortable: true,
              css: {textAlign:'right'},
            }, {
              title: "]] print(i18n("traffic_recording.extracted_bytes")) print [[",
              field: "column_extracted_bytes",
+             sortable: true,
              css: {textAlign:'right'},
            }, {
              title: "]] print(i18n("actions")) print [[",
