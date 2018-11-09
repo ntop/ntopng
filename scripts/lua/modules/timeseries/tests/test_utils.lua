@@ -4,6 +4,8 @@
 
 local test_utils = {}
 
+-- ##############################################
+
 function test_utils.makeTimeStamp(series, tstart, tstep)
   local v = {}
 
@@ -21,6 +23,8 @@ function test_utils.makeTimeStamp(series, tstart, tstep)
 
   return v
 end
+
+-- ##############################################
 
 function test_utils.timestampAsKey(tstamped_series)
   local rv = {}

@@ -491,7 +491,7 @@ function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
   ]]
   local query = 'SELECT * FROM "' .. schema.name .. '" WHERE ' ..
       table.tconcat(tags_filter, "=", " AND ", nil, "'") ..
-      " AND time >= " .. start_time .. "000000000" ..
+      ternary(table.empty(tags_filter), "", " AND ") .. " time >= " .. start_time .. "000000000" ..
       ternary(not table.empty(wildcard_tags), " GROUP BY " .. table.concat(wildcard_tags, ","), "") ..
       " LIMIT " .. min_values
 

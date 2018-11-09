@@ -6,13 +6,18 @@ local ts_utils = require("ts_utils")
 local test_utils = require("test_utils")
 local influxdb = ts_utils.getQueryDriver()
 
+-- ##############################################
+
 -- use relative times to avoid retention policy issues
 local now = os.time()
+local options = ts_utils.getQueryOptions()
 local f = nil
 
 local schema = ts_utils.newSchema("test:test", {step=1})
 schema:addTag("t")
 schema:addMetric("v")
+
+-- ##############################################
 
 local function api_string(schema, tags, metrics, tstamp)
   return string.format("%s,%s %s %s000000000\n", schema, table.tconcat(tags, "=", ","), table.tconcat(metrics, "=", ","), tostring(tstamp))
@@ -22,13 +27,11 @@ local function insert(metrics, tstamp)
   f:write(api_string("test:test", {t="test"}, metrics, tstamp))
 end
 
-local function init_test(test, points)
+-- ##############################################
+
+local function add_points(test, points)
   local fname = "/tmp/test_influx_ts"
   f = io.open(fname, "w")
-
-  if not influxdb:delete("test") then
-    return test:fail("influxdb:delete failed")
-  end
 
   -- Insert values
   for _, point in ipairs(points) do
@@ -45,6 +48,16 @@ local function init_test(test, points)
   return true
 end
 
+local function init_test(test, points)
+  if not influxdb:delete("test") then
+    return test:fail("influxdb:delete failed")
+  end
+
+  return add_points(test, points)
+end
+
+-- ##############################################
+
 function test_simple_derivative(test)
   local test_data = {
     {{v=1000}, now},
@@ -55,7 +68,6 @@ function test_simple_derivative(test)
     return false
   end
 
-  local options = ts_utils.getQueryOptions()
   local res = influxdb:query(schema, now-20, now+20, {t="test"}, options)
 
   if table.empty(res) then
@@ -72,6 +84,8 @@ function test_simple_derivative(test)
 
   return test:success()
 end
+
+-- ##############################################
 
 function run(tester)
   local rv = tester.run_test("influx_query:test_simple_derivative", test_simple_derivative)

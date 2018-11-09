@@ -6,6 +6,8 @@ local influxdb = require("influxdb")
 local test_utils = require("test_utils")
 local influx2Series = influxdb._influx2Series
 
+-- ##############################################
+
 -- Reproduces 12c8fc315654c1a0e7bf82f089ee47d45a98fc07 - Fix occasional series ponts differences in InfluxDB
 local function test_sampling1(test)
   local schema = {
@@ -99,6 +101,8 @@ local function test_sampling1(test)
   return test:success()
 end
 
+-- ##############################################
+
 -- Reproduces e8955df951556421659c964a202cc006a4bf40d1 - Fix influx2Series points bug
 local function test_datafill1(test)
   local tags = {}
@@ -172,6 +176,8 @@ local function test_datafill1(test)
 
   return test:success()
 end
+
+-- ##############################################
 
 -- Reproduces 65b30e24c8eb851cdd8614917e328b54873d4a2c - Fix influx2Series points bug with sampling
 local function test_datafill2(test)
@@ -247,6 +253,8 @@ local function test_datafill2(test)
 
   return test:success()
 end
+
+-- ##############################################
 
 function test_datafill3(test)
   local tags = {}
@@ -326,6 +334,8 @@ function test_datafill3(test)
   return test:success()
 end
 
+-- ##############################################
+
 function test_no_derivative1(test)
   local tags = {}
   local options = {
@@ -379,6 +389,8 @@ function test_no_derivative1(test)
 
   return test:success()
 end
+
+-- ##############################################
 
 --http://127.0.0.1:3000/lua/get_ts.lua?ts_query=ifid:1&epoch_end=1534493220&ts_schema=iface:flows&epoch_begin=1534492620&initial_point=true&ts_compare=30m&limit=42
 
@@ -437,6 +449,8 @@ function test_skip_initial1(test)
 
   return test:success()
 end
+
+-- ##############################################
 
 function run(tester)
   local rv = tester.run_test("influx2Series:test_sampling1", test_sampling1)
