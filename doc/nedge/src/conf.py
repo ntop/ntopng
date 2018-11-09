@@ -214,8 +214,8 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'nedge.tex', u'nEdge Documentation',
-     u'Emanuele Faranda', 'manual'),
+    (master_doc, 'nedge.tex', u'nEdge User\'s Guide',
+     u'', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
