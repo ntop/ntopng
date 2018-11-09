@@ -8,6 +8,7 @@ section.
     :maxdepth: 2
     :numbered:
 
+    sflow_collection
     view_interfaces
     dynamic_interfaces_disaggregation
     traffic_profiles

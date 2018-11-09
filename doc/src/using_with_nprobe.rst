@@ -1,3 +1,5 @@
+.. _UsingNtopngWithNprobe:
+
 Using ntopng with nProbe
 ########################
 

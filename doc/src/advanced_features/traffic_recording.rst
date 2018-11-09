@@ -1,5 +1,5 @@
 Continuous Traffic Recording
-############################
+============================
 
 When it comes to troubleshoot a network issue or analyse a security event,
 going back in time and drilling down to the packet level could be crucial

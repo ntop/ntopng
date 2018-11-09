@@ -1,5 +1,5 @@
 Flows Dump
-##########
+==========
 
 Ntopng can dump expired flow information either to a MySQL database or ElasticSearch. Ntopng is
 instructed to dump expired flows to MySQL via the -F startup modifier.

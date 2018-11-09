@@ -1,5 +1,5 @@
 Traffic Profiles
-################
+================
 
 Traffic profiles allow the user to define logical aggregations of traffic. Examples of logical aggregates of
 traffic include ‘TCP traffic flowing from local network 192.160.1.0/24 to host 10.0.0.1’, ‘Facebook traffic

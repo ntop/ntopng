@@ -1,5 +1,5 @@
 Physical Interfaces Aggregation: Interface Views
-################################################
+================================================
 
 Ntopng can aggregate two or more physical interfaces into logical units, the so called Interface Views.
 Interface views are seen and treated in the web GUI as if they were real interfaces. In the background,
