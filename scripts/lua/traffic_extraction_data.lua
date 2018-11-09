@@ -117,10 +117,22 @@ for id, _ in pairsByValues(sorter, sOrder) do
     end
   end
 
+  local status_desc = i18n("traffic_recording."..job.status) 
+  if job.status == "failure" then
+    local error_desc
+    if job.error_code == 2 or job.error_code == 3 then error_desc = i18n("traffic_recording.err_alloc")
+    elseif job.error_code == 4 or job.error_code == 6 then error_desc = i18n("traffic_recording.err_open")
+    elseif job.error_code == 5 then error_desc = i18n("traffic_recording.err_filter")
+    elseif job.error_code == 9 then error_desc = i18n("traffic_recording.err_stuck")
+    else error_desc = i18n("traffic_recording.err_unknown")
+    end
+    status_desc = status_desc.." ("..error_desc..")"
+  end
+
   res[#res + 1] = { 
     column_id = job.id, 
     column_job_time = format_utils.formatEpoch(job.time), 
-    column_status = i18n("traffic_recording."..job.status), -- job.error_code 
+    column_status = status_desc,
     column_begin_time = format_utils.formatEpoch(job.time_from),
     column_end_time = format_utils.formatEpoch(job.time_to),
     column_bpf_filter = ternary(isEmptyString(job.filter), "-", job.filter),
