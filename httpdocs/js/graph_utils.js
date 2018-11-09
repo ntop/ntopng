@@ -797,8 +797,8 @@ function updateGraphsTableView(graph_table, view, graph_params, has_nindex, nind
   nindex_buttons += '<div class="btn-group pull-right"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">';
   nindex_buttons += "Explorer";
   nindex_buttons += '<span class="caret"></span></button><ul class="dropdown-menu" role="menu">';
-  nindex_buttons += '<li><a href="'+ http_prefix +'/lua/nindex_topk.lua'+ nindex_query +'">Top-K</a></li>';
-  nindex_buttons += '<li><a href="'+ http_prefix +'/lua/nindex.lua'+ nindex_query +'">Flows</a></li>';
+  nindex_buttons += '<li><a href="'+ http_prefix +'/lua/enterprise/nindex_topk.lua'+ nindex_query +'">Top-K</a></li>';
+  nindex_buttons += '<li><a href="'+ http_prefix +'/lua/enterprise/nindex.lua'+ nindex_query +'">Flows</a></li>';
   nindex_buttons += '</span></div>';
 
   if(view.columns) {
