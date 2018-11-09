@@ -5960,6 +5960,21 @@ static int ntop_generate_csrf_value(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_md5(lua_State* vm) {
+  char result[33];
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+
+  mg_md5(result, lua_tostring(vm, 1), NULL);
+
+  lua_pushstring(vm, result);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 struct ntopng_sqlite_state {
   lua_State* vm;
   u_int num_rows;
@@ -7855,6 +7870,7 @@ static const luaL_Reg ntop_reg[] = {
   { "getCookieAttributes", ntop_get_cookie_attributes },
   { "isAllowedInterface",  ntop_is_allowed_interface },
   { "isAllowedNetwork",    ntop_is_allowed_network },
+  { "md5",              ntop_md5 },
 
   /* Redis */
   { "getCache",          ntop_get_redis },
