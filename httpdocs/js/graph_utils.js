@@ -448,7 +448,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
 
     var cur_interval = (params.epoch_end - params.epoch_begin);
     var actual_step = findActualStep(step, params.epoch_begin);
-    max_interval = actual_step * 8;
+    max_interval = actual_step * 6; /* host traffic 30 min */
 
     if(cur_interval < max_interval) {
       if((is_max_zoom && (cur_interval < old_interval)) && !force_update) {
@@ -458,8 +458,15 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
 
       /* Ensure that a minimal number of points is available */
       var epoch = params.epoch_begin + (params.epoch_end - params.epoch_begin) / 2;
-      params.epoch_begin = Math.floor(epoch - max_interval / 2);
-      params.epoch_end = Math.ceil(epoch + max_interval / 2);
+      var new_end = Math.floor(epoch + max_interval / 2);
+
+      if(new_end * 1000 >= Date.now()) {
+        /* Only expand on the left side of the interval */
+        params.epoch_begin = params.epoch_end - max_interval;
+      } else {
+        params.epoch_begin = Math.floor(epoch - max_interval / 2);
+        params.epoch_end = Math.floor(epoch + max_interval / 2);
+      }
 
       is_max_zoom = true;
       chart.zoomType(null); // disable zoom
@@ -474,6 +481,9 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
       align_step = null;
     fixTimeRange(chart, params, align_step, actual_step);
 
+    if(first_load)
+      initial_range = [params.epoch_begin, params.epoch_end];
+
     if((old_start == params.epoch_begin) && (old_end == params.epoch_end))
       return false;
 
@@ -487,7 +497,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
 
     // Update datetime selection
     $("#period_begin").data("DateTimePicker").date(new Date(params.epoch_begin * 1000));
-    $("#period_end").data("DateTimePicker").date(new Date(params.epoch_end * 1000));
+    $("#period_end").data("DateTimePicker").date(new Date(Math.min(params.epoch_end * 1000, $.now())));
 
     // Load data via ajax
     pending_request = $.get(url, params, function(data) {
