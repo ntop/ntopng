@@ -37,7 +37,7 @@ print(template.gen("modal_confirm_dialog.html", {
     id      = "PcapDownloadDialog",
     title   = i18n("traffic_recording.download"),
     custom_alert_class = "alert alert-info",
-    message = ""
+    message = i18n("traffic_recording.multiple_extracted_files", { mb = prefs.max_extracted_pcap_mbytes })
  }
 }))
 
