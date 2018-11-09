@@ -2813,6 +2813,7 @@ local lang = {
     ["max_extracted_pcap_mbytes_description"] = "Maximum size for pcap files extracted from recorded data. In case of extractions exceeding this size, the output will be split into multiple files.",
     ["max_extracted_pcap_mbytes_title"] = "Max Extracted File Size (MB)",
     ["missing_parameters"] = "Mandatory parameters are missing",
+    ["no_data_in_interval"] = "There is no (or partial) pcap data on disk for the selected time interval. Please note that pcap data is dumped every minute (latest minute is not available) and old data is deleted (please check the current dump window in the <A HREF=\"%{page}\">status page</A>). Please try selecting a different time interval.",
     ["no_file"] = "No files dumped yet",
     ["not_found"] = "File not found",
     ["not_granted"] = "Request not granted",

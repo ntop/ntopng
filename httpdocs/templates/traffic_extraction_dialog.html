@@ -7,7 +7,7 @@
       </div>
 
       <div class="modal-body {{dialog.custom_dialog_class}}">
-        <div class="{{dialog.custom_alert_class or "alert alert-info"}}">{*dialog.message*}<span id="{{dialog.id}}_note"></span></div>
+        <div id="{{dialog.id}}_notice" class="{{dialog.custom_alert_class or "alert alert-info"}}">{*dialog.message*}<span id="{{dialog.id}}_note"></span></div>
         <form id="{{dialog.id}}Form" style="height:95%;" onkeypress="return event.keyCode != 13;" method="{{dialog.form_method or "post"}}" {% if dialog.form_action ~= nil then %} action="{{dialog.form_action}} {% end %}" {% if dialog.form_onsubmit ~= nil then %} onsubmit="return {{dialog.form_onsubmit}}(this)" {% end %}>
           <input id="{{dialog.id}}_csrf" name="csrf" type="hidden" value="{{ ntop.getRandomCSRFValue() }}" />
           <input id="{{dialog.id}}_epoch_begin" name="epoch_begin" type="hidden" value="" />

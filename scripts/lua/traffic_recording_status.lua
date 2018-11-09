@@ -75,7 +75,7 @@ if recording_utils.isAvailable then
       local first_epoch = tonumber(stats['FirstDumpedEpoch'])
       local last_epoch = tonumber(stats['LastDumpedEpoch'])
       print("<tr><th nowrap>"..i18n("traffic_recording.dump_window").."</th><td>")
-      if (first_epoch > 0 and last_epoch > 0) then
+      if first_epoch > 0 and last_epoch > 0 then
         print(formatEpoch(first_epoch).." - "..formatEpoch(last_epoch))
       else
         print(i18n("traffic_recording.no_file"))

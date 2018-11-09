@@ -513,6 +513,21 @@ function recording_utils.stats(ifid)
   return stats
 end
 
+function recording_utils.isDataAvailable(ifid, begin_epoch, end_epoch)
+  if recording_utils.isEnabled(ifid) then
+    local stats = recording_utils.stats(ifid)
+    if stats['FirstDumpedEpoch'] ~= nil and stats['LastDumpedEpoch'] ~= nil then
+      local first_epoch = tonumber(stats['FirstDumpedEpoch'])
+      local last_epoch = tonumber(stats['LastDumpedEpoch'])
+      if first_epoch > 0 and last_epoch > 0 and 
+         begin_epoch >= first_epoch and end_epoch <= last_epoch then
+        return true
+      end
+    end
+  end
+  return false
+end
+
 function recording_utils.getJobFiles(id)
   local job_json = ntop.getHashCache(extraction_jobs_key, id)
   local files = {}
