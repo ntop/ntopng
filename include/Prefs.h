@@ -60,9 +60,10 @@ class Prefs {
   u_int32_t other_rrd_raw_days, other_rrd_1min_days, other_rrd_1h_days, other_rrd_1d_days;
   u_int32_t housekeeping_frequency;
   bool disable_alerts, enable_top_talkers, enable_idle_local_hosts_cache,
-	  enable_active_local_hosts_cache;
-  bool enable_tiny_flows_export, enable_flow_device_port_rrd_creation,
-    enable_probing_alerts, enable_ssl_alerts, enable_ip_reassignment_alerts;
+    enable_active_local_hosts_cache;
+  bool enable_flow_device_port_rrd_creation, enable_probing_alerts,
+    enable_ssl_alerts, enable_ip_reassignment_alerts;
+  bool enable_tiny_flows_export, enable_aggregated_flows_export_limit;
   bool enable_dns_alerts, enable_remote_to_remote_alerts;
   bool enable_mining_alerts;
   bool enable_dropped_flows_alerts, enable_device_protocols_alerts;
@@ -76,6 +77,7 @@ class Prefs {
   int32_t max_num_alerts_per_entity, max_num_flow_alerts;
   u_int32_t safe_search_dns_ip, global_primary_dns_ip, global_secondary_dns_ip;
   u_int32_t max_num_packets_per_tiny_flow, max_num_bytes_per_tiny_flow;
+  u_int32_t max_num_aggregated_flows_per_export;
   u_int32_t max_extracted_pcap_mbytes;
   u_int32_t max_ui_strlen;
   u_int8_t default_l7policy;
@@ -294,7 +296,8 @@ class Prefs {
   inline bool  is_idle_local_host_cache_enabled()       { return(enable_idle_local_hosts_cache);    };
   inline bool  is_active_local_host_cache_enabled()     { return(enable_active_local_hosts_cache);  };
 
-  inline bool is_tiny_flows_export_enabled()             { return(enable_tiny_flows_export);  };
+  inline bool is_tiny_flows_export_enabled()             { return(enable_tiny_flows_export);            };
+  inline bool is_aggregated_flows_export_limit_enabled() { return(enable_aggregated_flows_export_limit);};
   inline bool is_flow_device_port_rrd_creation_enabled() { return(enable_flow_device_port_rrd_creation);};
   inline bool are_ip_reassignment_alerts_enabled()       { return(enable_ip_reassignment_alerts);       };
   inline bool are_probing_alerts_enabled()               { return(enable_probing_alerts);               };
@@ -324,8 +327,9 @@ class Prefs {
   inline int32_t   get_max_num_alerts_per_entity()       { return(max_num_alerts_per_entity); };
   inline int32_t   get_max_num_flow_alerts()             { return(max_num_flow_alerts); };
 
-  inline u_int32_t get_max_num_packets_per_tiny_flow()  { return(max_num_packets_per_tiny_flow); };
-  inline u_int32_t get_max_num_bytes_per_tiny_flow()    { return(max_num_bytes_per_tiny_flow); };
+  inline u_int32_t get_max_num_packets_per_tiny_flow()       { return(max_num_packets_per_tiny_flow);       };
+  inline u_int32_t get_max_num_bytes_per_tiny_flow()         { return(max_num_bytes_per_tiny_flow);         };
+  inline u_int32_t get_max_num_aggregated_flows_per_export() { return(max_num_aggregated_flows_per_export); };
 
   inline u_int64_t get_max_extracted_pcap_mbytes() { return max_extracted_pcap_mbytes; };
 

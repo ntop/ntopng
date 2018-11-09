@@ -41,17 +41,18 @@ Prefs::Prefs(Ntop *_ntop) {
   enable_flow_device_port_rrd_creation = false;
   enable_ip_reassignment_alerts = false;
   enable_top_talkers = false, enable_idle_local_hosts_cache = false;
-  enable_active_local_hosts_cache = false, enable_tiny_flows_export = true,
-  enable_probing_alerts = true, enable_ssl_alerts = true, enable_dns_alerts = true,
-  enable_mining_alerts = CONST_DEFAULT_ALERT_MINING_ENABLED,
-  enable_remote_to_remote_alerts = true,
-  enable_dropped_flows_alerts = true, enable_device_protocols_alerts = false,
-  enable_syslog_alerts = false, enable_captive_portal = false, mac_based_captive_portal = false,
-  enabled_malware_alerts = true,
-  enable_informative_captive_portal = false,
-  external_notifications_enabled = false, dump_flow_alerts_when_iface_alerted = false,
-  override_dst_with_post_nat_dst = false, override_src_with_post_nat_src = false,
-  hostMask = no_host_mask;
+  enable_active_local_hosts_cache = false,
+    enable_tiny_flows_export = true, enable_aggregated_flows_export_limit = false,
+    enable_probing_alerts = true, enable_ssl_alerts = true, enable_dns_alerts = true,
+    enable_mining_alerts = CONST_DEFAULT_ALERT_MINING_ENABLED,
+    enable_remote_to_remote_alerts = true,
+    enable_dropped_flows_alerts = true, enable_device_protocols_alerts = false,
+    enable_syslog_alerts = false, enable_captive_portal = false, mac_based_captive_portal = false,
+    enabled_malware_alerts = true,
+    enable_informative_captive_portal = false,
+    external_notifications_enabled = false, dump_flow_alerts_when_iface_alerted = false,
+    override_dst_with_post_nat_dst = false, override_src_with_post_nat_src = false,
+    hostMask = no_host_mask;
   enable_mac_ndpi_stats = false;
   auto_assigned_pool_id = NO_HOST_POOL_ID;
   default_l7policy = PASS_ALL_SHAPER_ID;
@@ -99,7 +100,7 @@ Prefs::Prefs(Ntop *_ntop) {
 
   if(!(ifNames = (InterfaceInfo*)calloc(UNLIMITED_NUM_INTERFACES, sizeof(InterfaceInfo)))
      || !(deferred_interfaces_to_register = (char**)calloc(UNLIMITED_NUM_INTERFACES, sizeof(char*))))
-     throw "Not enough memory";
+    throw "Not enough memory";
 
   dump_hosts_to_db = location_none;
   json_labels_string_format = true;
@@ -547,6 +548,8 @@ void Prefs::reloadPrefsFromRedis() {
 							       CONST_DEFAULT_IS_ACTIVE_LOCAL_HOSTS_CACHE_ENABLED),
     enable_tiny_flows_export        = getDefaultBoolPrefsValue(CONST_IS_TINY_FLOW_EXPORT_ENABLED,
 							       CONST_DEFAULT_IS_TINY_FLOW_EXPORT_ENABLED),
+    enable_aggregated_flows_export_limit  = getDefaultBoolPrefsValue(CONST_IS_AGGR_FLOWS_EXPORT_LIMIT_ENABLED,
+								     CONST_DEFAULT_IS_AGGR_FLOWS_EXPORT_LIMIT_ENABLED),
 
     max_num_alerts_per_entity = getDefaultPrefsValue(CONST_MAX_NUM_ALERTS_PER_ENTITY, ALERTS_MANAGER_MAX_ENTITY_ALERTS),
     max_num_flow_alerts = getDefaultPrefsValue(CONST_MAX_NUM_FLOW_ALERTS, ALERTS_MANAGER_MAX_FLOW_ALERTS),
@@ -576,6 +579,8 @@ void Prefs::reloadPrefsFromRedis() {
 							 CONST_DEFAULT_MAX_NUM_PACKETS_PER_TINY_FLOW),
     max_num_bytes_per_tiny_flow   = getDefaultPrefsValue(CONST_MAX_NUM_BYTES_PER_TINY_FLOW,
 							 CONST_DEFAULT_MAX_NUM_BYTES_PER_TINY_FLOW),
+    max_num_aggregated_flows_per_export = getDefaultPrefsValue(CONST_MAX_NUM_AGGR_FLOWS_PER_EXPORT,
+							       FLOW_AGGREGATION_MAX_AGGREGATES),
 
     max_extracted_pcap_mbytes = getDefaultPrefsValue(CONST_MAX_EXTR_PCAP_MBYTES,
                                                      CONST_DEFAULT_MAX_EXTR_PCAP_MBYTES); 
@@ -1608,7 +1613,8 @@ void Prefs::lua(lua_State* vm) {
   lua_push_bool_table_entry(vm, "are_top_talkers_enabled", enable_top_talkers);
   lua_push_bool_table_entry(vm, "is_active_local_hosts_cache_enabled", enable_active_local_hosts_cache);
 
-  lua_push_bool_table_entry(vm,"is_tiny_flows_export_enabled",  enable_tiny_flows_export);
+  lua_push_bool_table_entry(vm,"is_tiny_flows_export_enabled",             enable_tiny_flows_export);
+  lua_push_bool_table_entry(vm,"is_aggregated_flows_export_limit_enabled", enable_aggregated_flows_export_limit);
   lua_push_int_table_entry(vm, "max_num_alerts_per_entity", max_num_alerts_per_entity);
   lua_push_int_table_entry(vm, "max_num_flow_alerts", max_num_flow_alerts);
 
@@ -1618,6 +1624,7 @@ void Prefs::lua(lua_State* vm) {
 
   lua_push_int_table_entry(vm, "max_num_packets_per_tiny_flow", max_num_packets_per_tiny_flow);
   lua_push_int_table_entry(vm, "max_num_bytes_per_tiny_flow",   max_num_bytes_per_tiny_flow);
+  lua_push_int_table_entry(vm, "max_num_aggregated_flows_per_export", max_num_aggregated_flows_per_export);
 
   lua_push_int_table_entry(vm, "max_extracted_pcap_mbytes", max_extracted_pcap_mbytes);
 

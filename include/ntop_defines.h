@@ -579,12 +579,15 @@
 #define CONST_DEFAULT_OVERRIDE_DST_WITH_POST_NAT    NTOPNG_PREFS_PREFIX".override_dst_with_post_nat_dst"
 
 /* Tiny Flows */
-#define CONST_DEFAULT_IS_TINY_FLOW_EXPORT_ENABLED   true /* disabled by default */
+#define CONST_DEFAULT_IS_TINY_FLOW_EXPORT_ENABLED        true  /* disabled by default */
+#define CONST_DEFAULT_IS_AGGR_FLOWS_EXPORT_LIMIT_ENABLED false /* exports all the aggregated flows by default */
 #define CONST_DEFAULT_MAX_NUM_PACKETS_PER_TINY_FLOW 3
 #define CONST_DEFAULT_MAX_NUM_BYTES_PER_TINY_FLOW   64 /* Empty TCP */
-#define CONST_IS_TINY_FLOW_EXPORT_ENABLED   NTOPNG_PREFS_PREFIX".tiny_flows_export_enabled"
-#define CONST_MAX_NUM_PACKETS_PER_TINY_FLOW NTOPNG_PREFS_PREFIX".max_num_packets_per_tiny_flow"
-#define CONST_MAX_NUM_BYTES_PER_TINY_FLOW   NTOPNG_PREFS_PREFIX".max_num_bytes_per_tiny_flow"
+#define CONST_IS_AGGR_FLOWS_EXPORT_LIMIT_ENABLED   NTOPNG_PREFS_PREFIX".aggregated_flows_export_limit_enabled"
+#define CONST_MAX_NUM_AGGR_FLOWS_PER_EXPORT        NTOPNG_PREFS_PREFIX".max_num_aggregated_flows_per_export"
+#define CONST_IS_TINY_FLOW_EXPORT_ENABLED          NTOPNG_PREFS_PREFIX".tiny_flows_export_enabled"
+#define CONST_MAX_NUM_PACKETS_PER_TINY_FLOW        NTOPNG_PREFS_PREFIX".max_num_packets_per_tiny_flow"
+#define CONST_MAX_NUM_BYTES_PER_TINY_FLOW          NTOPNG_PREFS_PREFIX".max_num_bytes_per_tiny_flow"
 
 /* Exponentially Weighted Moving Average alpha config. */
 #define CONST_EWMA_ALPHA_PERCENT            NTOPNG_PREFS_PREFIX".ewma_alpha_percent"

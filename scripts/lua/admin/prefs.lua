@@ -1362,6 +1362,24 @@ function printFlowDBDump()
         "ntopng.prefs.", "max_num_bytes_per_tiny_flow", prefs.max_num_bytes_per_tiny_flow, "number",
 	true, false, nil, {min=1, max=2^32-1})
 
+  print('<tr><th colspan=2 class="info">'..i18n("prefs.aggregated_flows")..'</th></tr>')
+
+  local dump_to_switch = {"max_num_aggregated_flows_per_export"}
+  prefsToggleButton(subpage_active, {
+    field = "toggle_aggregated_flows_export_limit",
+    default = "0",
+    pref = "aggregated_flows_export_limit_enabled",
+    to_switch = dump_to_switch,
+  })
+
+  local showElement = ntop.getPref("ntopng.prefs.aggregated_flows_export_limit_enabled") == "1"
+
+  prefsInputFieldPrefs(subpage_active.entries["max_num_aggregated_flows_per_export"].title,
+		       subpage_active.entries["max_num_aggregated_flows_per_export"].description,
+		       "ntopng.prefs.", "max_num_aggregated_flows_per_export",
+		       prefs.max_num_aggregated_flows_per_export, "number", showElement, false, nil,
+		       {min = 1000, max = 2^32-1})
+
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
 
   print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />

@@ -362,7 +362,8 @@ void NetworkInterface::aggregatePartialFlow(Flow *flow) {
     if(aggregatedFlow == NULL) {
       if(!aggregated_flows_hash->hasEmptyRoom()) {
 	/* There is no more room in the hash table */
-      } else if(aggregated_flows_hash->getNumEntries() < FLOW_AGGREGATION_MAX_AGGREGATES) {
+      } else if(!ntop->getPrefs()->is_aggregated_flows_export_limit_enabled()
+		|| aggregated_flows_hash->getNumEntries() < ntop->getPrefs()->get_max_num_aggregated_flows_per_export()) {
 #ifdef AGGREGATED_FLOW_DEBUG
 	char buf[256];
 	ntop->getTrace()->traceEvent(TRACE_NORMAL, "AggregatedFlow not found [%s]. Creating it.",
@@ -396,7 +397,7 @@ void NetworkInterface::aggregatePartialFlow(Flow *flow) {
 
 #ifdef AGGREGATED_FLOW_DEBUG
 	ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				     "Maximum reached [maximum: %d]", FLOW_AGGREGATION_MAX_AGGREGATES);
+				     "Maximum reached [maximum: %d]", ntop->getPrefs()->get_max_num_aggregated_flows_per_export());
 #endif
       }
     }

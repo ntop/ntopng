@@ -278,6 +278,12 @@ local menu_subpages = {
     }, max_num_bytes_per_tiny_flow = {
       title       = i18n("prefs.max_num_bytes_per_tiny_flow_title"),
       description = i18n("prefs.max_num_bytes_per_tiny_flow_description"),
+    }, toggle_aggregated_flows_export_limit = {
+      title       = i18n("prefs.toggle_aggregated_flows_export_limit_title"),
+      description = i18n("prefs.toggle_aggregated_flows_export_limit_description"),
+    }, max_num_aggregated_flows_per_export = {
+      title       = i18n("prefs.max_num_aggregated_flows_per_export_title"),
+      description = i18n("prefs.max_num_aggregated_flows_per_export_description"),
     },
   }}, {id="snmp",          label=i18n("prefs.snmp"),                 advanced=true,  pro_only=true,   hidden=false, nedge_hidden=true, entries={
     toggle_snmp_rrds = {
