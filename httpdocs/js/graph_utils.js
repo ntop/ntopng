@@ -767,7 +767,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
 
       /* Reload datatable */
       if(flows_dt.data("datatable"))
-        flows_dt.data("datatable").render();
+        updateGraphsTableView(null, params);
     }
 
     if(typeof on_load_callback === "function")
@@ -777,7 +777,22 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
   }
 }
 
-function updateGraphsTableView(graph_table, view, graph_params, has_nindex, nindex_query, per_page) {
+var graph_old_view = null;
+var graph_old_has_nindex = null;
+var graph_old_nindex_query = null;
+
+function updateGraphsTableView(view, graph_params, has_nindex, nindex_query, per_page) {
+  if(view) {
+    graph_old_view = view;
+    graph_old_has_nindex = has_nindex;
+    graph_old_nindex_query = nindex_query;
+  } else {
+    view = graph_old_view;
+    has_nindex = graph_old_has_nindex;
+    nindex_query = graph_old_nindex_query;
+  }
+
+  var graph_table = $("#chart1-flows");
   nindex_query = nindex_query + "&begin_time_clause=" + graph_params.epoch_begin + "&end_time_clause=" + graph_params.epoch_end
   var nindex_buttons = "";
   var params_obj = graph_params.ts_query.split(",").reduce(function(params, value) { var v = value.split(":"); params[v[0]] = v[1]; return params; }, {});
