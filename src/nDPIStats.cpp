@@ -132,8 +132,8 @@ void nDPIStats::lua(NetworkInterface *iface, lua_State* vm, bool with_categories
             char buf[64];
 	    
             snprintf(buf, sizeof(buf), "%llu|%llu",
-		     counters[i]->bytes.sent,
-		     counters[i]->bytes.rcvd);
+		     (unsigned long long)counters[i]->bytes.sent,
+		     (unsigned long long)counters[i]->bytes.rcvd);
 
             lua_push_str_table_entry(vm, name, buf);
           }
