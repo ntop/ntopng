@@ -197,6 +197,13 @@ if (_GET["page"] ~= "historical") then
 
    if(protocol_name == nil) then protocol_name = protocol end
 
+   local charts_icon = ""
+   if not isEmptyString(protocol_name) then
+      charts_icon = " <a href='".. ntop.getHttpPrefix() .."/lua/if_stats.lua?ifid="..
+         ifstats.id .. "&page=historical&ts_schema=iface:ndpi&protocol=" .. protocol_name..
+         "'><i class='fa fa-sm fa-area-chart'></i></a>"
+   end
+
    function getPageTitle()
       local mode_label = ""
 
@@ -221,7 +228,7 @@ if (_GET["page"] ~= "historical") then
 		     ["os"] = os_ or "",
 		     country_asn_or_mac = country or asninfo or mac or pool_ or "",
 		     vlan = vlan_title or "",
-      })
+      }) .. charts_icon
    end
 
    print('title: "'..getPageTitle()..'",\n')
