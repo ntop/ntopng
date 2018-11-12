@@ -41,9 +41,11 @@ struct groupStats{
 };
 
 struct group {
-  int64_t group_id_i;
+  union {
+    int64_t i;
+    char *s;
+  } group_id;
   bool group_id_set;
-  char *group_id_s;
   char *group_label;
   groupStats stats;
 };
@@ -55,7 +57,8 @@ class Grouper {
   group **groups;
   int32_t numGroups;
 
-  int32_t newGroup(Host *h);
+  int32_t addGroup(group *g);
+  group * newGroup(Host *h);
   int32_t inGroup(Host *h);
 
  public:

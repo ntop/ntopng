@@ -34,8 +34,8 @@ Grouper::Grouper(sortField sf){
 Grouper::~Grouper(){
   for(int32_t i = 0; i < numGroups; i++) {
     if(groups[i]) {
-      if(groups[i]->group_id_s)
-        free(groups[i]->group_id_s);
+      if(sorter == column_country || sorter == column_os)
+        free(groups[i]->group_id.s);
       if(groups[i]->group_label)
         free(groups[i]->group_label);
       free(groups[i]);
@@ -47,62 +47,78 @@ Grouper::~Grouper(){
 
 /* *************************************** */
 
+/*
+ * Comparator callback for group_id.i
+ */
+int id_i_comparator(const void *_a, const void *_b) {
+  const group *a = *(const group **)_a;
+  const group *b = *(const group **)_b;
+
+  if(a->group_id.i < b->group_id.i)
+    return -1;
+
+  if(a->group_id.i == b->group_id.i)
+    return 0;
+
+//  if(a->group_id.i > b->group_id.i)
+  return 1;
+}
+
+/*
+ * Comparator callback for group_id.s
+ */
+int id_s_comparator(const void *_a, const void *_b) {
+  const group *a = *(const group **)_a;
+  const group *b = *(const group **)_b;
+
+  return strcmp(a->group_id.s, b->group_id.s);
+}
+
 /**
  * Returns group index. Calls newGroup() if no matching group is found.
  *
  * Returns -1 for unsupported sorting criteria, causes host to be skipped.
  */
 int32_t Grouper::inGroup(Host *h) {
+  group *k;
+  group **m = NULL;
+
   if(h == NULL)
     return -1;
 
-  for(int32_t i = 0; i < numGroups; i++) {
-  switch(sorter){
+  k = newGroup(h);
+  if(k == NULL)
+    return -1;
+
+  switch(sorter) {
     case column_asn:
-      if(h->get_asn() == groups[i]->group_id_i)
-        return i;
-  
     case column_vlan:
-      if(h->get_vlan_id() == groups[i]->group_id_i)
-        return i;
-  
     case column_local_network:
     case column_local_network_id:
-      if(h->get_local_network_id() == groups[i]->group_id_i)
-        return i;
-  
     case column_pool_id:
-      if(h->get_host_pool() == groups[i]->group_id_i)
-        return i;
-  
     case column_mac:
-      if(Utils::macaddr_int(h->get_mac()) == (u_int64_t)groups[i]->group_id_i)
-        return i;
-  
-    case column_country:
-      {
-        char buf[32], *c = h->get_country(buf, sizeof(buf));
-        if(groups[i]->group_id_s != NULL && strcmp(groups[i]->group_id_s, c) == 0)
-          return i;
-      }
+      m = (group **)bsearch(&k, groups, numGroups, sizeof(group *), id_i_comparator);
       break;
-      
+
+    case column_country:
     case column_os:
-      if(h->get_os()) {
-        if(groups[i]->group_id_s != NULL && strcmp(groups[i]->group_id_s, h->get_os()) == 0)
-          return i;
-      } else {
-        if(groups[i]->group_id_s != NULL && strcmp(groups[i]->group_id_s, (char*)UNKNOWN_OS) == 0)
-          return i;
-      }
-  
+      m = (group **)bsearch(&k, groups, numGroups, sizeof(group *), id_s_comparator);
+      break;
+
     default:
+      // Abort on unknown criteria
+      free(k);
       return -1;
-    };
+      break;
   }
 
-  /* if reached no matching group found, create new one. */
-  return newGroup(h);
+  if (m != NULL) {
+    // Found existing group, return that
+    return m - groups;
+  }
+
+  // No existing group matched, add a new one
+  return addGroup(k);
 }
 
 /* *************************************** */
@@ -110,13 +126,83 @@ int32_t Grouper::inGroup(Host *h) {
 /**
  * Creates a new group.
  *
- * returns group ID, -1 in case of errors or unsupported sorting criteria.
+ * Returns a pointer to a new group struct
  */
-int32_t Grouper::newGroup(Host *h) {
+group * Grouper::newGroup(Host *h) {
   char buf[32];
-  group **newg;
+  group *g;
 
   if(h == NULL)
+    return NULL;
+
+  g = (group *)malloc(sizeof(struct group));
+  if(g == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
+    return NULL;
+  }
+  memset(g, 0, sizeof(struct group));
+
+  switch(sorter) {
+  case column_asn:
+    g->group_id.i = h->get_asn();
+    g->group_label = strdup(h->get_asname() != NULL ? h->get_asname() : (char*)UNKNOWN_ASN);
+    break;
+
+  case column_vlan:
+    g->group_id.i = h->get_vlan_id();
+    sprintf(buf, "%i", h->get_vlan_id());
+    g->group_label = strdup(buf);
+    break;
+
+  case column_local_network:
+  case column_local_network_id:
+    g->group_id.i = h->get_local_network_id();
+    if(g->group_id.i >= 0)
+      g->group_label = strdup(ntop->getLocalNetworkName(h->get_local_network_id()));
+    else
+      g->group_label = strdup((char*)UNKNOWN_LOCAL_NETWORK);
+    break;
+
+  case column_pool_id:
+    g->group_id.i = h->get_host_pool();
+    sprintf(buf, "%i", h->get_host_pool());
+    g->group_label = strdup(buf);
+    break;
+
+  case column_mac:
+    g->group_id.i = Utils::macaddr_int(h->get_mac());
+    g->group_label = strdup(Utils::formatMac(h->get_mac(), buf, sizeof(buf)));
+    break;
+
+  case column_country:
+    {
+      char buf[32], *c = h->get_country(buf, sizeof(buf));
+      
+      g->group_id.s  = strdup(c);
+      g->group_label = strdup(g->group_id.s);
+    }
+    break;
+
+  case column_os:
+    g->group_id.s  = strdup(h->get_os() ? h->get_os() : (char*)UNKNOWN_OS);
+    g->group_label = strdup(g->group_id.s);
+    break;
+
+  default:
+    free(g); // Avoid memory leak
+    return NULL;
+  };
+
+  return g;
+}
+
+/* *************************************** */
+
+int32_t Grouper::addGroup(group *g)
+{
+  group **newg;
+
+  if(g == NULL)
     return -1;
 
   newg = (group **)realloc(groups, sizeof(struct group) * (numGroups + 1));
@@ -126,65 +212,30 @@ int32_t Grouper::newGroup(Host *h) {
   }
   groups = newg;
 
-  groups[numGroups] = (group *)malloc(sizeof(struct group));
-  if(groups[numGroups] == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
-    return -1;
-  }
-  memset(groups[numGroups], 0, sizeof(struct group));
+  groups[numGroups++] = g;
 
   switch(sorter) {
-  case column_asn:
-    groups[numGroups]->group_id_i = h->get_asn();
-    groups[numGroups]->group_label = strdup(h->get_asname() != NULL ? h->get_asname() : (char*)UNKNOWN_ASN);
-    break;
+    case column_asn:
+    case column_vlan:
+    case column_local_network:
+    case column_local_network_id:
+    case column_pool_id:
+    case column_mac:
+      qsort(groups, numGroups, sizeof(group *), id_i_comparator);
+      break;
 
-  case column_vlan:
-    groups[numGroups]->group_id_i = h->get_vlan_id();
-    sprintf(buf, "%i", h->get_vlan_id());
-    groups[numGroups]->group_label = strdup(buf);
-    break;
+    case column_country:
+    case column_os:
+      qsort(groups, numGroups, sizeof(group *), id_s_comparator);
+      break;
 
-  case column_local_network:
-  case column_local_network_id:
-    groups[numGroups]->group_id_i = h->get_local_network_id();
-    if(groups[numGroups]->group_id_i >= 0)
-      groups[numGroups]->group_label = strdup(ntop->getLocalNetworkName(h->get_local_network_id()));
-    else
-      groups[numGroups]->group_label = strdup((char*)UNKNOWN_LOCAL_NETWORK);
-    break;
-
-  case column_pool_id:
-    groups[numGroups]->group_id_i = h->get_host_pool();
-    sprintf(buf, "%i", h->get_host_pool());
-    groups[numGroups]->group_label = strdup(buf);
-    break;
-
-  case column_mac:
-    groups[numGroups]->group_id_i = Utils::macaddr_int(h->get_mac());
-    groups[numGroups]->group_label = strdup(Utils::formatMac(h->get_mac(), buf, sizeof(buf)));
-    break;
-
-  case column_country:
-    {
-      char buf[32], *c = h->get_country(buf, sizeof(buf));
-      
-      groups[numGroups]->group_id_s  = strdup(c);
-      groups[numGroups]->group_label = strdup(groups[numGroups]->group_id_s);
-    }
-    break;
-
-  case column_os:
-    groups[numGroups]->group_id_s  = strdup(h->get_os() ? h->get_os() : (char*)UNKNOWN_OS);
-    groups[numGroups]->group_label = strdup(groups[numGroups]->group_id_s);
-    break;
-
-  default:
-    free(groups[numGroups]); // Avoid memory leak
-    return -1;
-  };
-
-  numGroups++;
+    default:
+      // Unknown criteria, abort operation
+      free(g);
+      numGroups--;
+      return -1;
+      break;
+  }
 
   return numGroups - 1;
 }
@@ -229,56 +280,9 @@ int8_t Grouper::incStats(Host *h) {
 /* *************************************** */
 
 /*
- * qsort callbacks for group_id_i
- */
-int id_i_sorter(const void *_a, const void *_b) {
-  const group *a = *(const group **)_a;
-  const group *b = *(const group **)_b;
-
-  if(a->group_id_i < b->group_id_i)
-    return -1;
-
-  if(a->group_id_i == b->group_id_i)
-    return 0;
-
-//  if(a->group_id_i > b->group_id_i)
-  return 1;
-}
-
-/*
- * qsort callback for group_id_s
- */
-int id_s_sorter(const void *_a, const void *_b) {
-  const group *a = *(const group **)_a;
-  const group *b = *(const group **)_b;
-
-  return strcmp(a->group_id_s, b->group_id_s);
-}
-
-/*
- * Sort the group[] array and recursively add them to LUA tables.
+ * Recursively add groups to LUA tables.
  */
 void Grouper::lua(lua_State* vm) {
-  switch(sorter) {
-    case column_asn:
-    case column_vlan:
-    case column_local_network:
-    case column_local_network_id:
-    case column_pool_id:
-    case column_mac:
-      qsort(groups, numGroups, sizeof(group *), id_i_sorter);
-      break;
-
-    case column_country:
-    case column_os:
-      qsort(groups, numGroups, sizeof(group *), id_s_sorter);
-      break;
-
-    default:
-      // Skip sorting for unsupported criteria
-      break;
-  }
-
   for(int32_t i = 0; i < numGroups; i++) {
     lua_newtable(vm);
 
@@ -296,12 +300,28 @@ void Grouper::lua(lua_State* vm) {
     lua_push_float_table_entry(vm, "throughput_trend_bps_diff", max_val(groups[i]->stats.throughput_trend_bps_diff, 0));
     lua_push_str_table_entry(vm,   "country", strlen(groups[i]->stats.country) ? groups[i]->stats.country : (char*)"");
 
-    if(sorter == column_mac) // special case for mac
-      lua_push_str_table_entry(vm, "id", groups[i]->group_label);
-    else if(!groups[i]->group_id_s){ // integer group id
-      lua_push_int32_table_entry(vm, "id", groups[i]->group_id_i);
-    } else { // string group id
-      lua_push_str_table_entry(vm, "id", groups[i]->group_id_s);
+    switch(sorter) {
+      case column_mac:
+        lua_push_str_table_entry(vm, "id", groups[i]->group_label);
+        break;
+
+      case column_asn:
+      case column_vlan:
+      case column_local_network:
+      case column_local_network_id:
+      case column_pool_id:
+        lua_push_int32_table_entry(vm, "id", groups[i]->group_id.i);
+        break;
+
+      case column_country:
+      case column_os:
+        lua_push_str_table_entry(vm, "id", groups[i]->group_id.s);
+        break;
+
+      default:
+        // Unknown criteria, use 'unknown' string
+        lua_push_str_table_entry(vm, "id", "unknown");
+        break;
     }
 
     lua_rawseti(vm, -2, i); /* Use indexes to preserve order */
