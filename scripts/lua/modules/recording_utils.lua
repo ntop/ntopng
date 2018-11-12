@@ -30,6 +30,9 @@ local function executeWithOuput(c)
   return s
 end
 
+--! @brief Check if an interface is a ZMQ interface that can be used with external interfaces for traffic recording and flow import
+--! @param ifid the interface identifier 
+--! @return true if supported, false otherwise
 function recording_utils.isSupportedZMQInterface(ifid)
   local ifname = getInterfaceName(ifid)
   -- localhost in collectore mode is accepted
@@ -52,6 +55,9 @@ local function getZMQPort(addr)
   return nil
 end
 
+--! @brief Return the ZMQ endpoint that should be used by an external process (n2disk) to deliver flows to ntopng
+--! @param ifid the interface identifier 
+--! @return the endpoint
 function recording_utils.getZMQProbeAddr(ifid)
   local port = getZMQPort(getInterfaceName(ifid))
   if port == nil then
@@ -60,15 +66,9 @@ function recording_utils.getZMQProbeAddr(ifid)
   return "tcp://127.0.0.1:"..port
 end
 
-function recording_utils.isSupportedZMQInterface(ifid)
-  local ifname = getInterfaceName(ifid)
-  local zmq_prefix = "tcp://"
-  if ifname:sub(1, #zmq_prefix) == zmq_prefix and ifname:sub(-1) == "c" then
-    return true
-  end
-  return false
-end
-
+--! @brief Check if an interface is supported for recording (packet interface, or ZMQ interface that can be used with external interfaces for traffic dump and flow import)
+--! @param ifid the interface identifier 
+--! @return true if supported, false otherwise
 function recording_utils.isSupportedInterface(ifid)
   if interface.isPacketInterface() or 
      recording_utils.isSupportedZMQInterface(ifid) then
@@ -77,6 +77,8 @@ function recording_utils.isSupportedInterface(ifid)
   return false
 end
 
+--! @brief Check if traffic recording is available and allowed for the current user on an interface
+--! @return true if recording is available, false otherwise
 function recording_utils.isAvailable()
   if isAdministrator() and
      not ntop.isWindows() and
@@ -88,6 +90,8 @@ function recording_utils.isAvailable()
   return false
 end
 
+--! @brief Return information about the recording service (n2disk) including systemid and version
+--! @return a table with the information
 function recording_utils.getN2diskInfo()
   local info = {}
   if ntop.exists(n2disk_ctl) then
@@ -117,6 +121,9 @@ function recording_utils.getN2diskInfo()
   return info
 end
 
+--! @brief Install a license for n2disk
+--! @param key The license key
+--! @return true if the license is installed, false in case it is not possible
 function recording_utils.setLicense(key)
   if ntop.exists(n2disk_ctl) then
     os.execute(n2disk_ctl_cmd.." set-license "..key)
@@ -133,7 +140,7 @@ local function setLicenseFromRedis()
   end
 end
 
-function recording_utils.isZC(ifname)
+local function isZCInterface(ifname)
   local proc_info = io.open("/proc/net/pf_ring/dev/"..ifname.."/info", "r")
   if proc_info ~= nil then
     local info = proc_info:read "*a"
@@ -163,6 +170,9 @@ local function getInUseExtInterfaces(current_ifid)
   return inuse_ext_interfaces
 end
 
+--! @brief Return external interfaces, not in use by ntopng, that can be used through ZMQ interface for traffic recording and flow import
+--! @param ifid the interface identifier 
+--! @return a table with external interfaces information
 function recording_utils.getExtInterfaces(ifid)
   local ext_interfaces = {}
   local all_interfaces = ntop.listInterfaces()
@@ -218,12 +228,15 @@ local function dirname(s)
   end
 end
 
+--! @brief Return the root path for recorded pcap data
+--! @param ifid the interface identifier 
+--! @return the path
 function recording_utils.getPcapPath(ifid)
   local storage_path = dirs.pcapdir
   return storage_path.."/"..ifid.."/pcap"
 end
 
-function recording_utils.getTimelinePath(ifid)
+local function getTimelinePath(ifid)
   local storage_path = dirs.pcapdir
   return storage_path.."/"..ifid.."/timeline"
 end
@@ -238,6 +251,9 @@ local function getPcapFilePath(job_id, ifid, file_id)
   return dir_path.."/"..file_id..".pcap"
 end
 
+--! @brief Read information about the storage, including storage size and available space
+--! @param ifid the interface identifier 
+--! @return a table containing storage information
 function recording_utils.storageInfo(ifid)
   local storage_info = {
     path = dirs.pcapdir, dev = "", mount = "",
@@ -291,12 +307,15 @@ local function getN2diskInterfaceName(ifid)
   end
 end
 
--- Encode an interface name in a string that can be used in a n2disk configuration file name
+-- Encode an interface name in a string that can be used in the n2disk configuration file name
 local function getConfigInterfaceName(ifid)
   local ifname = getN2diskInterfaceName(ifid)
   return ifname:gsub("%,", "_")
 end
 
+--! @brief Generate a configuration for the traffic recording service (n2disk)
+--! @param ifid the interface identifier 
+--! @param params the traffic recording settings
 function recording_utils.createConfig(ifid, params)
   local ifname = getN2diskInterfaceName(ifid)
 
@@ -307,7 +326,7 @@ function recording_utils.createConfig(ifid, params)
   end
 
   local real_ifname = ifname
-  if not interface.isPacketInterface() and recording_utils.isZC(ifname) then
+  if not interface.isPacketInterface() and isZCInterface(ifname) then
     -- real_ifname = ifname -- DEBUG
     real_ifname = "zc:"..ifname
   end
@@ -417,7 +436,7 @@ function recording_utils.createConfig(ifid, params)
   end
 
   local pcap_path = recording_utils.getPcapPath(ifid)
-  local timeline_path = recording_utils.getTimelinePath(ifid)
+  local timeline_path = getTimelinePath(ifid)
 
   f:write("--interface="..real_ifname.."\n")
   f:write("--dump-directory="..pcap_path.."\n")
@@ -464,6 +483,9 @@ function recording_utils.createConfig(ifid, params)
   return true
 end
 
+--! @brief Check if traffic recording is available and enabled on an interface
+--! @param ifid the interface identifier 
+--! @return true if recording is enabled, false otherwise
 function recording_utils.isEnabled(ifid)
   if recording_utils.isAvailable() then
     local record_traffic = ntop.getCache('ntopng.prefs.ifid_'..ifid..'.traffic_recording.enabled')
@@ -474,6 +496,9 @@ function recording_utils.isEnabled(ifid)
   return false
 end
 
+--! @brief Check if the traffic recording service is running
+--! @param ifid the interface identifier 
+--! @return true if the service is running, false otherwise
 function recording_utils.isActive(ifid)
   local confifname = getConfigInterfaceName(ifid)
   local check_cmd = n2disk_ctl_cmd.." is-active "..confifname
@@ -481,24 +506,35 @@ function recording_utils.isActive(ifid)
   return ternary(string.match(is_active, "^active"), true, false)
 end
 
+--! @brief Start (or restart) the traffic recording service
+--! @param ifid the interface identifier 
 function recording_utils.restart(ifid)
   local confifname = getConfigInterfaceName(ifid)
   os.execute(n2disk_ctl_cmd.." enable "..confifname)
   os.execute(n2disk_ctl_cmd.." restart "..confifname)
 end
 
+--! @brief Stop the traffic recording service
+--! @param ifid the interface identifier 
 function recording_utils.stop(ifid)
   local confifname = getConfigInterfaceName(ifid)
   os.execute(n2disk_ctl_cmd.." stop "..confifname)
   os.execute(n2disk_ctl_cmd.." disable "..confifname)
 end
 
+--! @brief Return the log trace of the traffic recording service (n2disk)
+--! @param ifid the interface identifier 
+--! @param rows the number of lines to return
+--! @return the log trace
 function recording_utils.log(ifid, rows)
   local confifname = getConfigInterfaceName(ifid)
   local log = executeWithOuput(n2disk_ctl_cmd.." log "..confifname.."|tail -n"..rows)
   return log
 end
 
+--! @brief Return statistics from the traffic recording service (n2disk)
+--! @param ifid the interface identifier 
+--! @return the statistics
 function recording_utils.stats(ifid)
   local confifname = getConfigInterfaceName(ifid)
   local stats = {}
@@ -513,6 +549,11 @@ function recording_utils.stats(ifid)
   return stats
 end
 
+--! @brief Check if there is pcap data for a specified time interval (fully included in the dump window) 
+--! @param ifid the interface identifier 
+--! @param begin_epoch the begin time (epoch)
+--! @param end_epoch the end time (epoch)
+--! @return true if the specified interval is included in the dump window, false otherwise
 function recording_utils.isDataAvailable(ifid, begin_epoch, end_epoch)
   if recording_utils.isEnabled(ifid) then
     local stats = recording_utils.stats(ifid)
@@ -546,7 +587,6 @@ function recording_utils.getJobFiles(id)
   end
   return files
 end
-
 
 --! @brief Delete an extraction job and its pcap data on disk, if any
 --! @param job_id the job identifier 
