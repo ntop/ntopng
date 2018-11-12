@@ -352,7 +352,7 @@ function recording_utils.createConfig(ifid, params)
     -- zmq_endpoint = "tcp://*:5556" -- ZMQ endpoint for stats/flows
   }
 
-  local ifspeed = (interface.getMaxIfSpeed(ifname) or 1000)
+  local ifspeed = (getInterfaceSpeed(getInterfaceId(ifname)) or 1000)
 
   -- Reading system memory info
 
