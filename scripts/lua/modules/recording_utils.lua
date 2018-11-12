@@ -528,6 +528,9 @@ function recording_utils.isDataAvailable(ifid, begin_epoch, end_epoch)
   return false
 end
 
+--! @brief Return the list of pcap files extracted for a job
+--! @param job_id the job identifier 
+--! @return the list of pcap files (paths)
 function recording_utils.getJobFiles(id)
   local job_json = ntop.getHashCache(extraction_jobs_key, id)
   local files = {}
@@ -544,6 +547,9 @@ function recording_utils.getJobFiles(id)
   return files
 end
 
+
+--! @brief Delete an extraction job and its pcap data on disk, if any
+--! @param job_id the job identifier 
 function recording_utils.deleteJob(job_id)
   local job_json = ntop.getHashCache(extraction_jobs_key, job_id)
   if not isEmptyString(job_json) then
@@ -554,6 +560,9 @@ function recording_utils.deleteJob(job_id)
   end
 end
 
+--! @brief Return statistics about the extraction jobs.
+--! @param ifid the interface identifier 
+--! @return the jobs statistics (ready, total)
 function recording_utils.extractionJobsInfo(ifid)
   local job_ids = ntop.getHashKeysCache(extraction_jobs_key) or {}
   local jobs_info = { total = 0, ready = 0 }
@@ -572,6 +581,9 @@ function recording_utils.extractionJobsInfo(ifid)
   return jobs_info
 end
 
+--! @brief Return the list of scheduled extraction jobs.
+--! @param ifid the interface identifier 
+--! @return the list of jobs
 function recording_utils.getExtractionJobs(ifid)
   local jobs = {}
   local job_ids = ntop.getHashKeysCache(extraction_jobs_key) or {}
@@ -587,15 +599,16 @@ function recording_utils.getExtractionJobs(ifid)
   return jobs
 end
 
--- Stop an extraction
+--! @brief Stop a running extraction job.
+--! @param job_id the job identifier 
 function recording_utils.stopJob(job_id)
   ntop.rpushCache(extraction_stop_queue_key, job_id)
 end
 
--- Schedule an extraction
--- Note: 'params' should contain 'time_from', 'time_to', 'filter'
--- 'time_*' format is epoch (number)
--- 'filter' format is BPF
+--! @brief Schedule a new extraction job.
+--! @param ifid the interface identifier 
+--! @param params the extraction parameters. time_from/time_to (epoch) are mandatory. filter (nBPF format) is optional.
+--! @return the newly created job 
 function recording_utils.scheduleExtraction(ifid, params)
 
   if params.time_from == nil or params.time_to == nil then
@@ -662,6 +675,7 @@ local function setJobAsCompleted()
   setStuckJobsAsFailed()
 end
 
+-- Manages extraction jobs. This is called from a single, periodic script (housekeeping.lua) 
 function recording_utils.checkExtractionJobs()
 
   -- stop extractions for stopped jobs, if any

@@ -8,6 +8,7 @@ Here is a brief description of some of the most used Lua modules available into 
 - `alert_utils`: contains functions used to interact with ntopng alerts framework
 - `graph_utils`: contains functions used to create the charts
 - `ts_utils`: a framework to write and read timeseries data
+- `recording_utils`: contains functions used to control traffic recording and schedule extractions
 
 The following sections provide a more in depth look at some specific Lua modules.
 
@@ -16,3 +17,4 @@ The following sections provide a more in depth look at some specific Lua modules
     :numbered:
 
     timeseries/index
+    recording/index
