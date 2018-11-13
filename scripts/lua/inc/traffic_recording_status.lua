@@ -34,14 +34,8 @@ if recording_utils.isEnabled(ifstats.id) then
 end
 
 print("<h2>"..i18n("traffic_recording.traffic_recording_status"))
-if enabled and not running and not restart_req then
-  print[[<form style="display:inline" id="restart_rec_form" method="post">
-    <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[" />
-    <input type="hidden" name="action" value="restart" />
-</form>]]
-  print(" <small><a href='#' onclick='$(\"#restart_rec_form\").submit(); return false;' title='' data-original-title='"..i18n("traffic_recording.restart_service").."'><i class='fa fa-repeat fa-sm' aria-hidden='true' data-original-title='' title=''></i></a></small>")
-end
-print("</h2>")
+print(" <small><a href='#' onclick='location.reload(); return false;' title='' data-original-title='"..i18n("refresh").."'><i class='fa fa-refresh fa-sm' aria-hidden='true' data-original-title='' title=''></i></a></small>")
+print("</h2><br>")
 
 print("<table class=\"table table-bordered table-striped\">\n")
 
@@ -52,6 +46,12 @@ if running then
   print(i18n("traffic_recording.recording"))
 elseif enabled then
   print("<span style='float: left'>"..i18n("traffic_recording.failure")..". "..i18n("traffic_recording.failure_note").."</span>")
+
+  print[[<form style="display:inline" id="restart_rec_form" method="post">
+    <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[" />
+    <input type="hidden" name="action" value="restart" />
+</form>]]
+  print(" <small><a href='#' onclick='$(\"#restart_rec_form\").submit(); return false;' title='' data-original-title='"..i18n("traffic_recording.restart_service").."'><i class='fa fa-repeat fa-sm' aria-hidden='true' data-original-title='' title=''></i></a></small>")
 else
   print(i18n("traffic_recording.disabled"))
 end

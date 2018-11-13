@@ -20,7 +20,7 @@ if not isEmptyString(_POST["job_action"]) and not isEmptyString(_POST["job_id"])
   end
 end
 
-print("<H2>"..i18n("traffic_recording.traffic_extraction_jobs").."</H2>")
+print("<H2>"..i18n("traffic_recording.traffic_extraction_jobs") .. "</H2>")
 
 print(template.gen("modal_confirm_dialog.html", {
   dialog = {
@@ -71,29 +71,21 @@ print [[
              title: "]] print(i18n("traffic_recording.filter_bpf")) print [[",
              field: "column_bpf_filter",
            }, {
-             title: "]] print(i18n("traffic_recording.extracted_packets")) print [[",
+             title: "]] print(i18n("packets")) print [[",
              field: "column_extracted_packets",
              sortable: true,
              css: {textAlign:'right'},
            }, {
-             title: "]] print(i18n("traffic_recording.extracted_bytes")) print [[",
+             title: "]] print(i18n("bytes")) print [[",
              field: "column_extracted_bytes",
              sortable: true,
              css: {textAlign:'right'},
            }, {
              title: "]] print(i18n("actions")) print [[",
              field: "column_actions",
+             css: {textAlign:'center'},
            }
          ],
-  });
-
-  function reloadTable() {
-    $("#extractionjobs").data("datatable").render();
-    setTimeout(reloadTable, 10000); /* Refresh content every a few seconds */
-  }
-
-  $(document).ready(function() {
-    setTimeout(reloadTable, 10000); /* Refresh content every a few seconds */
   });
 
   function downloadJobFiles(links) {

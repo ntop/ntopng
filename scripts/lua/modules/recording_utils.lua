@@ -236,14 +236,19 @@ function recording_utils.getPcapPath(ifid)
   return storage_path.."/"..ifid.."/pcap"
 end
 
+local function getPcapExtractionPath(ifid)
+  local storage_path = dirs.pcapdir
+  return storage_path.."/"..ifid.."/extr_pcap"
+end
+
 local function getTimelinePath(ifid)
   local storage_path = dirs.pcapdir
   return storage_path.."/"..ifid.."/timeline"
 end
 
 local function getPcapFileDir(job_id, ifid)
-  local storage_path = dirs.pcapdir
-  return storage_path.."/"..ifid.."/extr_pcap/"..job_id
+  local dir_path = getPcapExtractionPath(ifid)
+  return dir_path.."/"..job_id
 end
 
 local function getPcapFilePath(job_id, ifid, file_id)
@@ -258,7 +263,7 @@ function recording_utils.storageInfo(ifid)
   local storage_info = {
     path = dirs.pcapdir, dev = "", mount = "",
     total = 0, used = 0, avail = 0, used_perc = 0,
-    if_used = 0
+    if_used = 0, extraction_used = 0,
   }
 
   -- Global storage info
@@ -287,6 +292,18 @@ function recording_utils.storageInfo(ifid)
     if if_used ~= nil then
       if_used = if_used/1024
       storage_info.if_used = if_used
+    end
+  end
+
+  -- PCAP Extraction storage info
+  local extraction_path = getPcapExtractionPath(ifid)
+  local line = executeWithOuput("du -s "..pcap_path.." 2>/dev/null")
+  local values = split(line, '\t')
+  if #values >= 1 then
+    local extraction_used = tonumber(values[1])
+    if extraction_used ~= nil then
+      extraction_used = extraction_used/1024
+      storage_info.extraction_used = extraction_used
     end
   end
 

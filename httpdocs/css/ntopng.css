@@ -398,6 +398,23 @@ tr.quotas > td {
   padding-bottom: 0;
 }
 
+.label-empty {
+  background-color: #EFEFEF !important;
+}
+
+.stacked-progress-legend {
+  margin-top: 4px;
+}
+
+.stacked-progress-legend > span span:not(:first-child) {
+  font-size: 0.8em;
+  margin-left: 3px;
+}
+
+.stacked-progress-legend > span:not(:first-child) {
+  margin-left: 20px;
+}
+
 /* CSS for eBPF process charts */
 .link {
   fill: none;

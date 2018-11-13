@@ -144,6 +144,57 @@ end
 
 -- ########################################################
 
+--! @brief Prints stacked progress bars with a legend
+--! @total the raw total value (associated to full bar width)
+--! @param bars a table with elements in the following format:
+--!    - title: the item legend title
+--!    - value: the item raw value
+--!    - class: the bootstrap color class, usually: "default", "info", "danger", "warning", "success"
+--! @param other_label optional name for the "other" part of the bar. If nil, it will not be shown.
+--! @param formatter an optional item value formatter
+--! @return html for the bar
+function stackedProgressBars(total, bars, other_label, formatter)
+   local res = {}
+   local cumulative = 0
+   formatter = formatter or (function(x) return x end)
+
+   -- The bars
+   res[#res + 1] = [[<div class="progress">]]
+
+   for _, bar in ipairs(bars) do
+      local percentage = round(bar.value * 100 / total, 2)
+      cumulative = cumulative + bar.value
+      res[#res + 1] = [[
+         <div class="progress-bar progress-bar-]] .. (bar.class) .. [[" role="progressbar" style="width:]] .. percentage .. [[%"></div>]]
+   end
+
+   res[#res + 1] = [[
+      </div>]]
+
+   -- The legend
+   res[#res + 1] = [[<div class="stacked-progress-legend">]]
+
+   local legend_items = bars
+
+   if other_label ~= nil then
+      legend_items = table.clone(bars)
+
+      legend_items[#legend_items + 1] = {
+         title = other_label,
+         class = "empty",
+         value = math.max(total - cumulative, 0),
+      }
+   end
+
+   for _, bar in ipairs(legend_items) do
+      res[#res + 1] = [[<span><span class="label label-]].. (bar.class) ..[[">&nbsp;</span><span>]] .. bar.title .. " (".. formatter(bar.value) ..")</span></span>"
+   end
+
+   return table.concat(res)
+end
+
+-- ########################################################
+
 -- label, relative_difference, seconds
 zoom_vals = {
    { "1m",  "now-60s",  60},

@@ -130,9 +130,28 @@ print [[
       <tr>
         <th>]] print(i18n("traffic_recording.storage_utilization")) print [[</th>
         <td>
-          <span style="width: 60%; float: left;">
-          <div class='progress'><div class='progress-bar progress-bar-warning' style='width: ]] print(storage_info.used_perc) print [[;'></div></div></span>
-        <span style="width: 40%; margin-left: 15px;"> ]] print(tostring(math.floor(storage_info.used/1024))) print [[ GB / ]] print(tostring(math.floor(storage_info.total/1024))) print [[ GB (]] print(storage_info.used_perc) print [[)</span>
+          <span style="width: 70%; float: left;">
+]]
+
+local system_used = storage_info.used - storage_info.if_used - storage_info.extraction_used
+
+print(stackedProgressBars(storage_info.total*1024*1024, {
+  {
+    title = i18n("system"),
+    value = system_used*1024*1024,
+    class = "info",
+  }, {
+    title = i18n("traffic_recording.packet_dumps"),
+    value = storage_info.if_used*1024*1024,
+    class = "primary",
+  }, {
+    title = i18n("traffic_recording.extracted_packets"),
+    value = storage_info.extraction_used*1024*1024,
+    class = "warning",
+  }
+}, i18n("free"), bytesToSize))
+
+print[[
         </td>
       </tr>
 ]]
