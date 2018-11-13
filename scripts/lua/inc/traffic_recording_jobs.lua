@@ -2,18 +2,13 @@
 -- (C) 2013-18 - ntop.org
 --
 
-dirs = ntop.getDirs()
-package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
--- io.write ("Session:".._SESSION["session"].."\n")
+local dirs = ntop.getDirs()
+
 require "lua_utils"
 local template = require "template_utils"
 local recording_utils = require "recording_utils"
 
-interface.select(ifname)
-
-sendHTTPContentTypeHeader('text/html')
-
-if not recording_utils.isAvailable() then
+if((not isAdministrator()) or (not recording_utils.isAvailable())) then
   return
 end
 
@@ -25,12 +20,7 @@ if not isEmptyString(_POST["job_action"]) and not isEmptyString(_POST["job_id"])
   end
 end
 
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
-
-active_page = "home"
-dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
-
-print("<HR><H2>"..i18n("traffic_recording.traffic_extraction_jobs").."</H2>")
+print("<H2>"..i18n("traffic_recording.traffic_extraction_jobs").."</H2>")
 
 print(template.gen("modal_confirm_dialog.html", {
   dialog = {
@@ -128,5 +118,3 @@ print [[
   }
   </script>
 ]]
-
-dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

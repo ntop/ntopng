@@ -408,7 +408,7 @@ print [[/lua/if_stats.lua\"><i class=\"fa fa-warning\" style=\"color: #B94A48;\"
                   status_label = "danger"; 
                   status_title = "]] print(i18n("traffic_recording.failure")) print [["; 
                 }
-   	        msg += "&nbsp;<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/traffic_recording_status.lua\">";
+   	        msg += "&nbsp;<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/if_stats.lua?ifid=]] print(tostring(getInterfaceId(ifname))) print[[&page=traffic_recording&tab=status\">";
  	        msg += "<span class=\"label label-"+status_label+"\" title=\""+addCommas(status_title)+"\">";
 		msg += "<i class=\"fa fa-hdd-o fa-lg\"></i></a></span>";
 	    }
@@ -417,7 +417,7 @@ print [[/lua/if_stats.lua\"><i class=\"fa fa-warning\" style=\"color: #B94A48;\"
                 var status_title="]] print(i18n("traffic_recording.traffic_extraction_jobs")) print [["; 
                 var status_label = "default";
                 if (rsp.traffic_extraction == "ready") status_label="primary";
-   	        msg += "&nbsp;<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/traffic_extraction_stats.lua\">";
+   	        msg += "&nbsp;<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/if_stats.lua?ifid=]] print(tostring(getInterfaceId(ifname))) print[[&page=traffic_recording&tab=jobs\">";
  	        msg += "<span class=\"label label-"+status_label+"\" title=\""+addCommas(status_title)+"\">";
 		msg += rsp.traffic_extraction_num_tasks+" <i class=\"fa fa-tasks fa-lg\"></i></a></span>";
 	    }
