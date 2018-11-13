@@ -255,7 +255,7 @@ static int ntop_dump_binary_file(lua_State* vm) {
     size_t n;
 
     while((n = fread(tmp, 1, sizeof(tmp), fd)) > 0) {
-      if (mg_write(conn, tmp, n) < (int) n) break;
+      if(mg_write(conn, tmp, n) < (int) n) break;
     }
 
     fclose(fd);
@@ -909,9 +909,9 @@ static int ntop_get_grouped_interface_hosts(lua_State* vm) {
 /* ****************************************** */
 
 static u_int8_t str_2_location(const char *s) {
-  if (! strcmp(s, "lan")) return located_on_lan_interface;
-  else if (! strcmp(s, "wan")) return located_on_wan_interface;
-  else if (! strcmp(s, "unknown")) return located_on_unknown_interface;
+  if(! strcmp(s, "lan")) return located_on_lan_interface;
+  else if(! strcmp(s, "wan")) return located_on_wan_interface;
+  else if(! strcmp(s, "unknown")) return located_on_unknown_interface;
   return (u_int8_t)-1;
 }
 
@@ -1767,7 +1767,7 @@ static int non_blocking_connect(int sock, struct sockaddr_in *sa, int timeout) {
   // Wndows sockets are created in blocking mode by default
   // currently on windows, there is no easy way to obtain the socket's current blocking mode since WSAIsBlocking was deprecated
   u_long f = 1;
-  if (ioctlsocket(sock, FIONBIO, &f) != NO_ERROR)
+  if(ioctlsocket(sock, FIONBIO, &f) != NO_ERROR)
     return -1;
 #else
   //set socket nonblocking flag
@@ -1780,7 +1780,7 @@ static int non_blocking_connect(int sock, struct sockaddr_in *sa, int timeout) {
 
   //initiate non-blocking connect
   if( (ret = connect(sock, (struct sockaddr *)sa, sizeof(struct sockaddr_in))) < 0 )
-    if (errno != EINPROGRESS)
+    if(errno != EINPROGRESS)
       return -1;
 
   if(ret == 0) // then connect succeeded right away
@@ -1797,7 +1797,7 @@ static int non_blocking_connect(int sock, struct sockaddr_in *sa, int timeout) {
   }
 
   // we had a positivite return so a descriptor is ready
-  if (FD_ISSET(sock, &rset) || FD_ISSET(sock, &wset)){
+  if(FD_ISSET(sock, &rset) || FD_ISSET(sock, &wset)){
     if(getsockopt(sock, SOL_SOCKET, SO_ERROR,
 #ifdef WIN32
 		  (char*)
@@ -1816,7 +1816,7 @@ done:
 #ifdef WIN32
   f = 0;
 
-  if (ioctlsocket(sock, FIONBIO, &f) != NO_ERROR)
+  if(ioctlsocket(sock, FIONBIO, &f) != NO_ERROR)
     return -1;
 #else
   //put socket back in blocking mode
@@ -3147,7 +3147,7 @@ static int ntop_drop_multiple_flows_traffic(lua_State* vm) {
   if((p = new(std::nothrow) Paginator()) == NULL) return(CONST_LUA_ERROR);
   p->readOptions(vm, 1);
 
-  if (ntop_interface->dropFlowsTraffic(ptree, p) < 0)
+  if(ntop_interface->dropFlowsTraffic(ptree, p) < 0)
     lua_pushboolean(vm, false);
   else
     lua_pushboolean(vm, true);
@@ -3914,12 +3914,13 @@ static const char **make_argv(lua_State * vm, u_int offset) {
 static int ntop_nindex_select(lua_State* vm) {
   u_int8_t id = 1;
   char *select = NULL, *where = NULL;
-  bool use_aggregated_flows;
+  bool use_aggregated_flows, export_results = false;
   char *timestamp_begin, *timestamp_end;
   unsigned long skip_initial_records, max_num_hits;
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   NIndexFlowDB *nindex;
-
+  struct mg_connection *conn;
+  
   if(!ntop_interface)
     return(CONST_LUA_ERROR);
   else {
@@ -3948,9 +3949,15 @@ static int ntop_nindex_select(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
   max_num_hits = (unsigned long)lua_tonumber(vm, id++);
 
+  if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TBOOLEAN) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  export_results = lua_toboolean(vm, id++) ? true : false;
+
+  conn = getLuaVMUserdata(vm, conn);
+  
   return(nindex->select(vm, use_aggregated_flows,
 			timestamp_begin, timestamp_end, select,
-			where, skip_initial_records, max_num_hits));
+			where, skip_initial_records, max_num_hits,
+			export_results ? conn : NULL));
 }
 
 /* ****************************************** */
@@ -5543,22 +5550,22 @@ static int ntop_run_extraction(lua_State *vm) {
   if(!Utils::isUserAdministrator(vm))
     return(CONST_LUA_ERROR);
 
-  if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK)
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK)
     return(CONST_LUA_PARAM_ERROR);
-  if (ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK)
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK)
     return(CONST_LUA_PARAM_ERROR);
-  if (ntop_lua_check(vm, __FUNCTION__, 3, LUA_TNUMBER) != CONST_LUA_OK)
+  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TNUMBER) != CONST_LUA_OK)
     return(CONST_LUA_PARAM_ERROR);
-  if (ntop_lua_check(vm, __FUNCTION__, 4, LUA_TNUMBER) != CONST_LUA_OK)
+  if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TNUMBER) != CONST_LUA_OK)
     return(CONST_LUA_PARAM_ERROR);
-  if (ntop_lua_check(vm, __FUNCTION__, 5, LUA_TSTRING) != CONST_LUA_OK)
+  if(ntop_lua_check(vm, __FUNCTION__, 5, LUA_TSTRING) != CONST_LUA_OK)
     return(CONST_LUA_PARAM_ERROR);
 
   id = lua_tointeger(vm, 1);
   ifid = lua_tointeger(vm, 2);
   time_from = lua_tointeger(vm, 3);
   time_to = lua_tointeger(vm, 4);
-  if ((filter = (char *) lua_tostring(vm, 5)) == NULL)  return(CONST_LUA_PARAM_ERROR);
+  if((filter = (char *) lua_tostring(vm, 5)) == NULL)  return(CONST_LUA_PARAM_ERROR);
 
   ntop->getTimelineExtract()->runExtractionJob(id, 
     ntop->getInterfaceById(ifid), time_from, time_to, filter);
@@ -5576,7 +5583,7 @@ static int ntop_stop_extraction(lua_State *vm) {
   if(!Utils::isUserAdministrator(vm))
     return(CONST_LUA_ERROR);
 
-  if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK)
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK)
     return(CONST_LUA_PARAM_ERROR);
 
   id = lua_tointeger(vm, 1);
@@ -7570,7 +7577,7 @@ static int ntop_lua_xfile(lua_State* L, bool ex) {
 
   ret = __ntop_lua_handlefile(L, script_path, ex);
 
-  if (ret && !lua_isnil(L, -1)) {
+  if(ret && (!lua_isnil(L, -1))) {
     const char *msg = lua_tostring(L, -1);
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure %s", msg);
   }
