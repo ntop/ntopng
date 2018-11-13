@@ -1363,6 +1363,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
   u_int16_t src_port = 0, dst_port = 0, payload_len = 0;
   struct ndpi_tcphdr *tcph = NULL;
   struct ndpi_udphdr *udph = NULL;
+  struct sctphdr *sctph    = NULL;
   u_int16_t l4_packet_len;
   u_int8_t *l4, tcp_flags = 0, *payload = NULL;
   u_int8_t *ip;
@@ -1507,6 +1508,21 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	       rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
       return(pass_verdict);
     }
+  } else if(l4_proto == IPPROTO_SCTP) {
+    if(l4_packet_len >= sizeof(struct sctphdr)) {
+      /* SCTP */
+      sctph = (struct sctphdr *)l4;
+      src_port = sctph->sport,  dst_port = sctph->dport;
+
+      payload = &l4[sizeof(struct sctphdr)];
+      payload_len = max_val(0, l4_packet_len - sizeof(struct sctphdr));
+    } else {
+      /* Packet too short: this is a faked packet */
+      ntop->getTrace()->traceEvent(TRACE_INFO, "Invalid SCTP packet received [%u bytes long]", l4_packet_len);
+      incStats(ingressPacket, when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN,
+	       rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+      return(pass_verdict);
+    }
   } else {
     /* non TCP/UDP protocols */
   }
@@ -1571,10 +1587,10 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
         if((flow->get_cli_host() && flow->get_cli_host()->isLocalHost())
 	   && (flow->get_srv_host() && flow->get_srv_host()->isLocalHost())) {
           /* Set correct direction in localhost ping */
-          if((icmp_type == 8) ||                  /* ICMP Echo [RFC792] */
+          if((icmp_type == ICMP_ECHO) ||                  /* ICMP Echo [RFC792] */
 	     (icmp_type == 128))                  /* ICMPV6 Echo Request [RFC4443] */
             src2dst_direction = true;
-          else if((icmp_type == 0) ||             /* ICMP Echo Reply [RFC792] */
+          else if((icmp_type == ICMP_ECHOREPLY) ||             /* ICMP Echo Reply [RFC792] */
 		  (icmp_type == 129))             /* ICMPV6 Echo Reply [RFC4443] */
 	    src2dst_direction = false;
         }
@@ -1847,6 +1863,9 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
     }
 #endif
   }
+
+  if(new_flow)
+    flow->updateCommunityIdFlowHash();
 
   /* Live packet dump to mongoose */
   if(num_live_captures > 0)

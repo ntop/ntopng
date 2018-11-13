@@ -605,6 +605,10 @@
 #define CONST_DEFAULT_NBOX_USER      "nbox"
 #define CONST_DEFAULT_NBOX_PASSWORD  "nbox"
 
+/* Sha-1 */
+#define BLOCK_LEN 64  // In bytes
+#define STATE_LEN 5  // In words
+
 #ifdef __cplusplus
 #define EXTERNC extern "C"
 #else

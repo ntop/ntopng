@@ -212,6 +212,7 @@ using namespace std;
 #include "HostPools.h"
 #include "Prefs.h"
 #include "Utils.h"
+#include "CommunityIdFlowHash.h"
 #include "DnsStats.h"
 #include "NetworkStats.h"
 #include "SNMP.h"

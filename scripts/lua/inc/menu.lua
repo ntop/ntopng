@@ -376,7 +376,7 @@ print [[
 end
 
 
-if(ntop.isEnterprise()) then
+if ntop.isEnterprise() and isAdministrator() then
    if active_page == "devices_stats" then
      print [[ <li class="dropdown active"> ]]
    else

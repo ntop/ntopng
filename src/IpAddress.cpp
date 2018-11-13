@@ -115,7 +115,7 @@ void IpAddress::checkIP() {
 
 /* ******************************************* */
 
-int IpAddress::compare(IpAddress *ip) {
+int IpAddress::compare(const IpAddress * const ip) const {
   if(ip == NULL) return(-1);
 
   if(addr.ipVersion < ip->addr.ipVersion) return(-1); else if(addr.ipVersion > ip->addr.ipVersion) return(1);

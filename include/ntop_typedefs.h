@@ -440,6 +440,15 @@ struct dhcp_packet {
   u_int8_t	options[308];
 } PACK_OFF;
 
+/* http://en.wikipedia.org/wiki/SCTP_packet_structure */
+PACK_ON
+struct sctphdr {
+  /* Common Header */
+  u_int16_t sport, dport;
+  u_int32_t verification_tag; /* A 32-bit random value created during initialization to distinguish stale packets from a previous connection. */
+  u_int32_t checksum; /*  CRC32c algorithm */
+} PACK_OFF;
+
 #ifdef NTOPNG_PRO
 
 typedef struct {

@@ -91,6 +91,7 @@ class Flow : public GenericHashEntry {
   custom_app_t custom_app;
   void *cli_id, *srv_id;
   char *json_info, *host_server_name, *bt_hash;
+  char *community_id_flow_hash;
 #ifdef HAVE_NEDGE
   u_int32_t last_conntrack_update; 
 #endif
@@ -300,6 +301,10 @@ class Flow : public GenericHashEntry {
 		       u_int16_t payload_len, bool src2dst_direction);
 
   void updateSeqNum(time_t when, u_int32_t sN, u_int32_t aN);
+  inline void updateCommunityIdFlowHash() {
+    if(!community_id_flow_hash)
+      community_id_flow_hash = CommunityIdFlowHash::get_community_id_flow_hash(this);
+  }
   void processDetectedProtocol();
   void setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection);
   void setCustomApp(custom_app_t ca) {
@@ -325,10 +330,10 @@ class Flow : public GenericHashEntry {
   inline u_int32_t get_srv_ipv4()                 { return(srv_host->get_ip()->get_ipv4());  };
   inline struct ndpi_in6_addr* get_cli_ipv6()     { return(cli_host->get_ip()->get_ipv6());  };
   inline struct ndpi_in6_addr* get_srv_ipv6()     { return(srv_host->get_ip()->get_ipv6());  };
-  inline u_int16_t get_cli_port()                 { return(ntohs(cli_port));                 };
-  inline u_int16_t get_srv_port()                 { return(ntohs(srv_port));                 };
+  inline u_int16_t get_cli_port() const           { return(ntohs(cli_port));                 };
+  inline u_int16_t get_srv_port() const           { return(ntohs(srv_port));                 };
   inline u_int16_t get_vlan_id()                  { return(vlanId);                          };
-  inline u_int8_t  get_protocol()                 { return(protocol);                        };
+  inline u_int8_t  get_protocol() const           { return(protocol);                        };
   inline u_int64_t get_bytes()                    { return(cli2srv_bytes+srv2cli_bytes);     };
   inline u_int64_t get_bytes_cli2srv()            { return(cli2srv_bytes);                   };
   inline u_int64_t get_bytes_srv2cli()            { return(srv2cli_bytes);                   };

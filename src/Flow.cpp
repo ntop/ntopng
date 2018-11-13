@@ -52,7 +52,7 @@ Flow::Flow(NetworkInterface *_iface,
   json_info = strdup("{}"), cli2srv_direction = true, twh_over = twh_ok = false,
     dissect_next_http_packet = false,
     check_tor = false, host_server_name = NULL, diff_num_http_requests = 0,
-    bt_hash = NULL;
+    bt_hash = NULL, community_id_flow_hash = NULL;
 
   src2dst_tcp_flags = 0, dst2src_tcp_flags = 0, last_update_time.tv_sec = 0, last_update_time.tv_usec = 0,
     bytes_thpt = 0, goodput_bytes_thpt = 0, top_bytes_thpt = 0, top_pkts_thpt = 0;
@@ -193,7 +193,8 @@ Flow::~Flow() {
     if(protos.ssl.server_certificate)  free(protos.ssl.server_certificate);
   }
 
-  if(bt_hash)          free(bt_hash);
+  if(bt_hash)                free(bt_hash);
+  if(community_id_flow_hash) free(community_id_flow_hash);
 
   freeDPIMemory();
 }
