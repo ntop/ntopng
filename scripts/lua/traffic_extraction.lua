@@ -15,7 +15,7 @@ local res = {}
 if not recording_utils.isAvailable() then
   res.error = i18n("traffic_recording.not_granted") 
 else
-  if _GET["epoch_begin"] == nil or _GET["epoch_end"] == nil then
+  if _POST["epoch_begin"] == nil or _POST["epoch_end"] == nil then
     res.error = i18n("traffic_recording.missing_parameters")
   else
 
@@ -23,9 +23,9 @@ else
 
     local ifstats = interface.getStats()
 
-    local filter = _GET["bpf_filter"]
-    local time_from = tonumber(_GET["epoch_begin"])
-    local time_to = tonumber(_GET["epoch_end"])
+    local filter = _POST["bpf_filter"]
+    local time_from = tonumber(_POST["epoch_begin"])
+    local time_to = tonumber(_POST["epoch_end"])
 
     local params = {
       time_from = time_from,

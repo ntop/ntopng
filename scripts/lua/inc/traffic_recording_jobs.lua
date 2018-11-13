@@ -139,7 +139,9 @@ print[[
             var job_id = data.column_id;
             var num_job_files = data.column_job_files;
             var job_status = data.column_status_raw;
-            var category_id = "a";
+
+            if(job_id == "]] print(_GET["job_id"] or "") print[[")
+              row.addClass("info");
 
             if(num_job_files > 1) {
               var links = "<ul>";
