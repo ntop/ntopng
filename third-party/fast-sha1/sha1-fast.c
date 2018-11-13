@@ -43,6 +43,10 @@ void sha1_compress(uint32_t state[5], const uint8_t block[64]) {
 #define ROUND2(a, b, c, d, e, i)   SCHEDULE(i)      ROUNDTAIL(a, b, e, ((b & c) ^ (b & d) ^ (c & d)), i, 0x8F1BBCDC)
 #define ROUND3(a, b, c, d, e, i)   SCHEDULE(i)      ROUNDTAIL(a, b, e, (b ^ c ^ d)                  , i, 0xCA62C1D6)
         
+#ifndef UINT32_C
+#define UINT32_C(c)c ## U
+#endif
+
 #define ROUNDTAIL(a, b, e, f, i, k)					\
   e = 0U + e + ROTL32(a, 5) + f + UINT32_C(k) + schedule[i & 0xF];	\
   b = ROTL32(b, 30);
