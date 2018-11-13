@@ -5618,6 +5618,50 @@ static int ntop_get_extraction_status(lua_State *vm) {
 
 /* ****************************************** */
 
+// ***API***
+static int ntop_run_live_extraction(lua_State *vm) {
+  struct ntopngLuaContext *c;
+  NetworkInterface *iface = getCurrentInterface(vm);
+  TimelineExtract timeline;
+  time_t time_from, time_to;
+  char *filter;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);  
+
+  if(!Utils::isUserAdministrator(vm))
+    return(CONST_LUA_ERROR);
+
+#ifdef DONT_USE_LUAJIT
+  lua_getglobal(vm, "userdata");
+  c = (struct ntopngLuaContext*)lua_touserdata(vm, lua_gettop(vm));
+#else
+  c = (struct ntopngLuaContext*)(G(vm)->userdata);
+#endif
+
+  if (!c)
+    return(CONST_LUA_ERROR);
+
+  if(!iface) return(CONST_LUA_ERROR);
+
+  if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK)
+    return(CONST_LUA_PARAM_ERROR);
+  if (ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK)
+    return(CONST_LUA_PARAM_ERROR);
+  if (ntop_lua_check(vm, __FUNCTION__, 3, LUA_TSTRING) != CONST_LUA_OK)
+    return(CONST_LUA_PARAM_ERROR);
+
+  time_from = lua_tointeger(vm, 1);
+  time_to = lua_tointeger(vm, 2);
+  if ((filter = (char *) lua_tostring(vm, 3)) == NULL)  return(CONST_LUA_PARAM_ERROR);
+
+  timeline.extractLive(c->conn, iface, time_from, time_to, filter);
+
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_interface_exec_sql_query(lua_State *vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   bool limit_rows = true;  // honour the limit by default
@@ -7846,6 +7890,9 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "isCaptureRunning",       ntop_is_capture_running                 },
   { "stopRunningCapture",     ntop_stop_running_capture               },
 
+  /* Live Extraction */
+  { "runLiveExtraction",      ntop_run_live_extraction                },
+
   /* Alert Generation */
   { "getCachedNumAlerts",     ntop_interface_get_cached_num_alerts    },
   { "queryAlertsRaw",         ntop_interface_query_alerts_raw         },
@@ -8056,8 +8103,8 @@ static const luaL_Reg ntop_reg[] = {
   { "reloadDeviceProtocols", ntop_reload_device_protocols },
 
   /* Traffic Recording/Extraction */
-  { "runExtraction",         ntop_run_extraction },
-  { "stopExtraction",        ntop_stop_extraction },
+  { "runExtraction",         ntop_run_extraction        },
+  { "stopExtraction",        ntop_stop_extraction       },
   { "isExtractionRunning",   ntop_is_extraction_running },
   { "getExtractionStatus",   ntop_get_extraction_status },
 

@@ -44,6 +44,10 @@ class TimelineExtract {
     char *bpf_filter;
   } extraction;
 
+#ifdef HAVE_PF_RING
+  pfring *openTimeline(NetworkInterface *iface, time_t from, time_t to, const char *bpf_filter);
+#endif
+
  public:
   TimelineExtract();
   ~TimelineExtract();
@@ -55,7 +59,8 @@ class TimelineExtract {
   inline bool isRunning() { return running; };
   void stop();
   /* sync */
-  bool extract(u_int32_t id, NetworkInterface *iface, time_t from, time_t to, const char *bpf_filter);
+  bool extractToDisk(u_int32_t id, NetworkInterface *iface, time_t from, time_t to, const char *bpf_filter);
+  bool extractLive(struct mg_connection *conn, NetworkInterface *iface, time_t from, time_t to, const char *bpf_filter);
   /* async */
   void runExtractionJob(u_int32_t id, NetworkInterface *iface, time_t from, time_t to, const char *bpf_filter);
   void stopExtractionJob(u_int32_t id);
