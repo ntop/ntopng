@@ -1864,8 +1864,10 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 #endif
   }
 
+#if 0
   if(new_flow)
     flow->updateCommunityIdFlowHash();
+#endif
 
   /* Live packet dump to mongoose */
   if(num_live_captures > 0)
