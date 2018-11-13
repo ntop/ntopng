@@ -297,7 +297,7 @@ function recording_utils.storageInfo(ifid)
 
   -- PCAP Extraction storage info
   local extraction_path = getPcapExtractionPath(ifid)
-  local line = executeWithOuput("du -s "..pcap_path.." 2>/dev/null")
+  local line = executeWithOuput("du -s "..extraction_path.." 2>/dev/null")
   local values = split(line, '\t')
   if #values >= 1 then
     local extraction_used = tonumber(values[1])
@@ -619,6 +619,18 @@ function recording_utils.deleteJob(job_id)
   end
 end
 
+--! @brief Delete and stop all the extraction jobs for the specified interface.
+--! @param ifid the interface identifier
+function recording_utils.deleteAndStopAllJobs(ifid)
+  for _, job in pairs(recording_utils.getExtractionJobs(ifid)) do
+    if job.status == "completed" then
+      recording_utils.deleteJob(job.id)
+    else
+      recording_utils.stopJob(job.id)
+    end
+  end
+end
+
 --! @brief Return statistics about the extraction jobs.
 --! @param ifid the interface identifier 
 --! @return the jobs statistics (ready, total)
@@ -641,7 +653,7 @@ function recording_utils.extractionJobsInfo(ifid)
 end
 
 --! @brief Return the list of scheduled extraction jobs.
---! @param ifid the interface identifier 
+--! @param ifid the interface identifier
 --! @return the list of jobs
 function recording_utils.getExtractionJobs(ifid)
   local jobs = {}

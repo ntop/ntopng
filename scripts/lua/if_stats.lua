@@ -968,8 +968,11 @@ elseif(page == "traffic_recording") then
    if recording_enabled then
       print('<li class="'.. ternary(tab == "status", "active", "") ..'"><a href="?ifid='.. ifstats.id
          ..'&page=traffic_recording&tab=status">'.. i18n("status") ..'</a></li>')
-      print('<li class="'.. ternary(tab == "jobs", "active", "") ..'"><a href="?ifid='.. ifstats.id
-         ..'&page=traffic_recording&tab=jobs">'.. i18n("traffic_recording.jobs") ..'</a></li>')
+
+      if ntop.isEnterprise() then
+         print('<li class="'.. ternary(tab == "jobs", "active", "") ..'"><a href="?ifid='.. ifstats.id
+            ..'&page=traffic_recording&tab=jobs">'.. i18n("traffic_recording.jobs") ..'</a></li>')
+      end
       print('</ul>')
    end
 

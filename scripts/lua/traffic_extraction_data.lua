@@ -96,25 +96,11 @@ for id, _ in pairsByValues(sorter, sOrder) do
   local job = jobs[id]
 
   local action_links = ""
-
-  if job.status == "processing" then
-    action_links = action_links.."<a onclick='stopJob("..job.id..")' style='cursor: pointer'><span class=\"label label-danger\">"..i18n("stop").."</span></a>"
-  else
-    action_links = action_links.."<a onclick='deleteJob("..job.id..")' style='cursor: pointer'><span class=\"label label-danger\">"..i18n("delete").."</span></a>"
-  end
+  local job_files = 0
 
   if job.status == "completed" or job.status == "stopped" then
-    local job_files = recording_utils.getJobFiles(job.id)
-    if #job_files > 1 then
-      local links = "<ul>"
-      for file_id = 1,#job_files do
-        links = links.."<li><a href=\\'"..ntop.getHttpPrefix().."/lua/get_extracted_traffic.lua?job_id="..job.id.."&file_id="..file_id.."\\'>"..i18n("download").." Pcap "..file_id.."</a></li>"
-      end
-      links = links.."<ul>"
-      action_links = action_links.." <a onclick=\"downloadJobFiles('"..links.."')\" style='cursor: pointer'><span class=\"label label-info\">"..i18n("download").."</span></a>"
-    elseif #job_files == 1 then
-      action_links = action_links.." <a href="..ntop.getHttpPrefix().."/lua/get_extracted_traffic.lua?job_id="..job.id.."><span class=\"label label-info\">"..i18n("download").."</span></a>"
-    end
+    job_files = recording_utils.getJobFiles(job.id)
+    job_files = #job_files
   end
 
   local status_desc = i18n("traffic_recording."..job.status) 
@@ -131,14 +117,15 @@ for id, _ in pairsByValues(sorter, sOrder) do
 
   res[#res + 1] = { 
     column_id = job.id, 
-    column_job_time = format_utils.formatEpoch(job.time), 
+    column_job_time = format_utils.formatEpoch(job.time),
+    column_job_files = job_files,
     column_status = status_desc,
+    column_status_raw = job.status,
     column_begin_time = format_utils.formatEpoch(job.time_from),
     column_end_time = format_utils.formatEpoch(job.time_to),
     column_bpf_filter = ternary(isEmptyString(job.filter), "-", job.filter),
     column_extracted_packets = ternary(job.status == "completed" and job.extracted_pkts, formatPackets(job.extracted_pkts), "-"),
     column_extracted_bytes = ternary(job.status == "completed" and job.extracted_bytes, bytesToSize(job.extracted_bytes), "-"),
-    column_actions = action_links
   }
 
   ::continue::
