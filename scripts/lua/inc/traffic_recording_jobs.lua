@@ -95,7 +95,16 @@ print[[
 
   $("#extractionjobs").datatable({
          title: "",
-         url: "/lua/traffic_extraction_data.lua",
+         url: "/lua/traffic_extraction_data.lua",]]
+
+  -- Sort by column_id if a specific job_id is set to show it in the first table page
+  if not isEmptyString(_GET["job_id"]) then
+    print[[
+      sort: [ ["column_id", "desc"] ],
+    ]]
+  end
+
+  print[[
          columns: [
            {
              title: "]] print(i18n("traffic_recording.job_id")) print [[",
