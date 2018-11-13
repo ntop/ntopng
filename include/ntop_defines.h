@@ -295,6 +295,19 @@
 #define BATADV15_UNICAST_TVLV    0x44
 #define BATADV15_UNICAST_MAX     0x7f
 
+// ICMP
+#ifndef ICMP_TIMESTAMP
+#define ICMP_TIMESTAMP 13
+#endif
+#ifndef ICMP_TIMESTAMPREPLY
+#define ICMP_TIMESTAMPREPLY 14
+#endif
+#ifndef ICMP_INFO_REQUEST
+#define ICMP_INFO_REQUEST 15
+#endif
+#ifndef ICMP_INFO_REPLY
+#define ICMP_INFO_REPLY 16
+#endif
 
 #ifndef TH_FIN
 #define	TH_FIN	0x01
