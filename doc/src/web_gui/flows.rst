@@ -32,10 +32,16 @@ Application is the Layer-7 program which is exchanging data through the flow. Th
 software that lays closest to the end user. Examples of Applications are Skype, Redis, HTTP, and Bit
 Torrent. Layer-7 applications are detected by the NTOP opensource Deep Packet Inspection (DPI) engine
 named nDPI [2]_. In case application detection fails, ntopng marks the flow as ‘Unknown’. If the detection
-succeeds, the application name and a thumb up (down) is shown if the application is deemed to be good
-(bad).
+succeeds, the application name and an informative icon are shown.
 
-Application name can be clicked to see all hosts generating traffic for the application.
+Here is a list of possible informative icons:
+  - The lock icon tells that the protocol carries information in a secure way (e.g. via SSL)
+  - The thumb-up icons tells that the protocol is generally not harmfull for network performance
+  - The thumb-down icons tells that the protocol is generally harmfull for network performance
+  - The smile face tells that the protocol is generally used for user entertainment
+  - The yellow triangle indicates a possible problem on the flow. By clicking a flow details it's possible to see what the reported problem is (e.g. flow with low goodput)
+
+The application name can be clicked to see all hosts generating traffic for the application.
 
 Layer-4 Protocol (L4 Proto)
 ---------------------------
