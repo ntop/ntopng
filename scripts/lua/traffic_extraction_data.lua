@@ -67,6 +67,7 @@ interface.select(ifname)
 local ifstats = interface.getStats()
 
 local jobs = recording_utils.getExtractionJobs(ifstats.id)
+local num_results = 0
 
 local sorter = {}
 for id,job in pairs(jobs) do
@@ -81,6 +82,8 @@ for id,job in pairs(jobs) do
   else -- sortColumn == column_job_time
     sorter[id] = job.time
   end
+
+  num_results = num_results + 1
 end
 
 local res = {}
@@ -134,7 +137,7 @@ end
 local result = {}
 result["perPage"] = perPage
 result["currentPage"] = currentPage
-result["totalRows"] = #res
+result["totalRows"] = num_results
 result["data"] = res
 result["sort"] = {{sortColumn, sortOrder}}
 

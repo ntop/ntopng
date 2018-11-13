@@ -156,12 +156,14 @@ end
 -- ##############################################
 
 function asc_insensitive(a,b)
+  if type(a) ~= "string" then return asc(a,b) end
   return (string.lower(a) < string.lower(b))
 end
 
 -- ##############################################
 
 function rev_insensitive(a,b)
+  if type(a) ~= "string" then return rev(a,b) end
   return (string.lower(a) > string.lower(b))
 end
 
