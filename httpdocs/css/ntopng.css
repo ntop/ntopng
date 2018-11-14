@@ -375,6 +375,14 @@ tr.quotas > td {
   outline:0 !important;
 }
 
+.chart-action-buttons button:not(:first-child) {
+  margin-left: 5px;
+}
+
+.chart-action-buttons button {
+  margin-top: 2px;
+}
+
 /* Hide second axis completely */
 /* #historical-tab-chart .nv-y2 { */
 
