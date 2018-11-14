@@ -1305,6 +1305,7 @@ local known_parameters = {
    ["ts_compare"]              = validateZoom,
    ["detail_view"]             = validateSingleWord,
    ["initial_point"]           = validateBool,
+   ["extract_now"]             = validateBool,
    ["custom_hosts"]            = validateListOfTypeInline(validateSingleWord),
 
    -- json POST DATA
