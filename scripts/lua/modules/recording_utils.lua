@@ -570,22 +570,32 @@ end
 
 --! @brief Check if there is pcap data for a specified time interval (fully included in the dump window) 
 --! @param ifid the interface identifier 
---! @param begin_epoch the begin time (epoch)
---! @param end_epoch the end time (epoch)
---! @return true if the specified interval is included in the dump window, false otherwise
-function recording_utils.isDataAvailable(ifid, begin_epoch, end_epoch)
+--! @param epoch_begin the begin time (epoch)
+--! @param epoch_end the end time (epoch)
+--! @return a table with 'available' = true if the specified interval is included in the dump window, 'epoch_begin'/'epoch_end' are also returned with the actual available window.
+function recording_utils.isDataAvailable(ifid, epoch_begin, epoch_end)
+  local info = {}
+  info.available = false
   if recording_utils.isEnabled(ifid) then
     local stats = recording_utils.stats(ifid)
     if stats['FirstDumpedEpoch'] ~= nil and stats['LastDumpedEpoch'] ~= nil then
       local first_epoch = tonumber(stats['FirstDumpedEpoch'])
       local last_epoch = tonumber(stats['LastDumpedEpoch'])
       if first_epoch > 0 and last_epoch > 0 and 
-         begin_epoch >= first_epoch and end_epoch <= last_epoch then
-        return true
+         epoch_end > first_epoch and epoch_begin < last_epoch then
+        info.epoch_begin = epoch_begin
+        info.epoch_end = epoch_end
+        if first_epoch > epoch_begin then
+          info.epoch_begin = first_epoch
+        end
+        if last_epoch < epoch_end then
+          info.epoch_end = last_epoch
+        end
+        info.available = true
       end
     end
   end
-  return false
+  return info
 end
 
 --! @brief Return the list of pcap files extracted for a job

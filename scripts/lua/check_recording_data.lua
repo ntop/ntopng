@@ -22,11 +22,6 @@ interface.select(ifname)
 
 local ifstats = interface.getStats()
 
-local result = {}
-if recording_utils.isDataAvailable(ifstats.id, epoch_begin, epoch_end) then
-  result["available"] = "true"
-else
-  result["available"] = "false"
-end
+local window_info = recording_utils.isDataAvailable(ifstats.id, epoch_begin, epoch_end)
 
-print(json.encode(result))
+print(json.encode(window_info))
