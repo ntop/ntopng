@@ -3951,8 +3951,8 @@ static int ntop_nindex_select(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
   max_num_hits = (unsigned long)lua_tonumber(vm, id++);
 
-  if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TBOOLEAN) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
-  export_results = lua_toboolean(vm, id++) ? true : false;
+    if(lua_type(vm, id) == LUA_TBOOLEAN)
+    export_results = lua_toboolean(vm, id++) ? true : false;
 
   conn = getLuaVMUserdata(vm, conn);
   
