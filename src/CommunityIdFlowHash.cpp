@@ -118,7 +118,7 @@ https://github.com/corelight/community-id-spec/blob/bda913f617389df07cdaa23606e1
 */
 char * CommunityIdFlowHash::get_community_id_flow_hash(Flow * const f) {
   u_int8_t *comm_buf;
-  u_int16_t comm_buf_len;
+  u_int16_t comm_buf_len = 0;
   u_int32_t cli_ipv4, srv_ipv4;
   u_int16_t cli_port, srv_port;
   u_int8_t  l4_proto;
