@@ -81,7 +81,8 @@
       </div>
       <div class="modal-footer">
         <button class="btn btn-default" data-dismiss="modal" aria-hidden="true">{{i18n("cancel")}}</button>
-        <button id="{{dialog.id}}SubmitBtn" class="btn btn-primary" onClick="$('#{{dialog.id}}Form').submit();">{{i18n("traffic_recording.start_extraction")}}</button>
+        <button id="{{dialog.id}}SubmitBtn" class="btn btn-primary" onClick="{{dialog.id}}Live=false;$('#{{dialog.id}}Form').submit();">{{i18n("traffic_recording.archive")}}</button>
+        <button id="{{dialog.id}}SubmitBtn" class="btn btn-primary" onClick="{{dialog.id}}Live=true;$('#{{dialog.id}}Form').submit();">{{i18n("traffic_recording.download")}}</button>
       </div>
     </div>
   </div>
