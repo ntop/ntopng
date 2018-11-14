@@ -498,7 +498,9 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
 
     // Update datetime selection
     $("#period_begin").data("DateTimePicker").date(new Date(params.epoch_begin * 1000));
-    $("#period_end").data("DateTimePicker").date(new Date(Math.min(params.epoch_end * 1000, $.now())));
+    $("#period_end").data("DateTimePicker")
+      .maxDate(new Date($.now()))
+      .date(new Date(Math.min(params.epoch_end * 1000, $.now())));
 
     // Load data via ajax
     pending_request = $.get(url, params, function(data) {
