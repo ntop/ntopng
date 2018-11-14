@@ -170,6 +170,19 @@ bool TimelineExtract::extractToDisk(u_int32_t id, NetworkInterface *iface,
 
 /* ********************************************* */
 
+bool __mg_write(struct mg_connection *conn, u_char *b, int len) {
+  int ret, sent = 0;
+  while (!ntop->getGlobals()->isShutdown()) {
+    ret = mg_write_async(conn, &b[sent], len-sent);
+    if (ret < 0)
+      return false;
+    sent += ret;
+    if (sent == len) return true;
+    usleep(100);
+  }
+  return false;
+}
+
 bool TimelineExtract::extractLive(struct mg_connection *conn, NetworkInterface *iface, time_t from, time_t to, const char *bpf_filter) {
   bool completed = false;
 #ifdef HAVE_PF_RING
@@ -186,7 +199,7 @@ bool TimelineExtract::extractLive(struct mg_connection *conn, NetworkInterface *
 
   Utils::init_pcap_header(&pcaphdr, iface);
 
-  if (mg_write_async(conn, &pcaphdr, sizeof(pcaphdr)) < (int) sizeof(pcaphdr))
+  if (!__mg_write(conn, (u_char *) &pcaphdr, sizeof(pcaphdr)))
     http_client_disconnected = true;
 
   handle = openTimeline(iface, from, to, bpf_filter);
@@ -203,11 +216,9 @@ bool TimelineExtract::extractLive(struct mg_connection *conn, NetworkInterface *
     pkthdr.caplen = h.caplen;
     pkthdr.len = h.len;
 
-    if (mg_write_async(conn, &pkthdr, sizeof(pkthdr)) < (int) sizeof(pkthdr) ||
-        mg_write_async(conn, packet, h.caplen) < (int) h.caplen)
+    if (!__mg_write(conn, (u_char *) &pkthdr, sizeof(pkthdr)) ||
+        !__mg_write(conn, (u_char *) packet, h.caplen))
       http_client_disconnected = true;
-
-    usleep(100); /* FIXX it seems that sendint too fast with mg_write_async breaks the connection */
 
     stats.packets++;
     stats.bytes += sizeof(struct pcap_disk_pkthdr) + h.caplen;
