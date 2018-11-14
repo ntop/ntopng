@@ -217,9 +217,11 @@ bool TimelineExtract::extractLive(struct mg_connection *conn, NetworkInterface *
   pfring_close(handle);
 
  error:
-#endif
   ntop->getTrace()->traceEvent(TRACE_INFO, "Live extraction %s %s", 
-    completed ? "completed" : "failed", http_client_disconnected ? "(disconnected)" : "");
+			       completed ? "completed" : "failed",
+			       http_client_disconnected ? "(disconnected)" : "");
+#endif
+  
   return completed;
 }
 
