@@ -123,6 +123,16 @@ for id, _ in pairsByValues(sorter, sOrder) do
     chart_link = '<a href="'.. job.chart_url ..'"><i class="fa fa-lg fa-area-chart"></i></a>'
   end
 
+  local bpf_filter = "-"
+  if not isEmptyString(job.filter) then
+    bpf_filter = shortenString(job.filter, 45)
+
+    if bpf_filter ~= job.filter then
+      -- string was shortened, show full filter into a tooltip
+      bpf_filter = '<span title="'.. job.filter ..'">' .. bpf_filter .. '</span>'
+    end
+  end
+
   res[#res + 1] = { 
     column_id = job.id, 
     column_job_time = format_utils.formatEpoch(job.time),
@@ -132,7 +142,7 @@ for id, _ in pairsByValues(sorter, sOrder) do
     column_status_raw = job.status,
     column_begin_time = format_utils.formatEpoch(job.time_from),
     column_end_time = format_utils.formatEpoch(job.time_to),
-    column_bpf_filter = ternary(isEmptyString(job.filter), "-", job.filter),
+    column_bpf_filter = bpf_filter,
     column_extracted_packets = ternary(job.status == "completed" and job.extracted_pkts, formatPackets(job.extracted_pkts), "-"),
     column_extracted_bytes = ternary(job.status == "completed" and job.extracted_bytes, bytesToSize(job.extracted_bytes), "-"),
   }

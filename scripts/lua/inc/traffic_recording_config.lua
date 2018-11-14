@@ -6,6 +6,7 @@ require "lua_utils"
 local recording_utils = require "recording_utils"
 local format_utils = require "format_utils"
 local ifstats = interface.getStats()
+local info = ntop.getInfo()
 
 if((not isAdministrator()) or (not recording_utils.isAvailable())) then
   return
@@ -74,6 +75,8 @@ if isEmptyString(disk_space) then
 end
 disk_space = tostring(math.floor(tonumber(disk_space)/1024))
 
+print("<h2>"..i18n("traffic_recording.traffic_recording_settings").."</h2><br>")
+
 print [[
   <form id="traffic_recording_form" class="form-inline" method="post">
     <table class="table table-striped table-bordered">
@@ -133,7 +136,7 @@ print [[
           <span style="width: 70%; float: left;">
 ]]
 
-local system_used = storage_info.used - storage_info.if_used - storage_info.extraction_used
+local system_used = storage_info.total - storage_info.avail - storage_info.if_used - storage_info.extraction_used
 
 print(stackedProgressBars(storage_info.total*1024*1024, {
   {
@@ -160,6 +163,16 @@ print [[
     </table>
     <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button><br><br>
   </form>
+  <span>]]
+
+print(i18n("notes"))
+print[[
+  <ul>
+      <li>]] print(i18n("traffic_recording.global_settings_note", {url=ntop.getHttpPrefix().."/lua/admin/prefs.lua?tab=recording"})) print[[</li>
+      <li>]] print(i18n("traffic_recording.storage_directory_config", {option="--pcap-dir", product=info.product})) print[[</li>
+    </ul>
+  </span>
+
   <script>
     aysHandleForm("#traffic_recording_form");
   </script>

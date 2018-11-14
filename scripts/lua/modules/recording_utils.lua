@@ -544,11 +544,13 @@ end
 --! @brief Return the log trace of the traffic recording service (n2disk)
 --! @param ifid the interface identifier 
 --! @param rows the number of lines to return
+--| @note lines are retuned in reverse order (most recent line first)
 --! @return the log trace
 function recording_utils.log(ifid, rows)
   local confifname = getConfigInterfaceName(ifid)
-  local log = executeWithOuput(n2disk_ctl_cmd.." log "..confifname.."|tail -n"..rows)
-  return log
+  local output = executeWithOuput(n2disk_ctl_cmd.." log "..confifname.."|tail -n"..rows .. "|tac")
+  
+  return output
 end
 
 --! @brief Return statistics from the traffic recording service (n2disk)
