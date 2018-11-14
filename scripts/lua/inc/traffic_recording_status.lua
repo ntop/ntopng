@@ -104,15 +104,7 @@ if stats ~= nil then
   if stats['Dropped'] ~= nil then
     print("<tr><th nowrap>"..i18n("if_stats_overview.dropped_packets").."</th><td>"..stats['Dropped'].." "..i18n("pkts").."</td></tr>\n")
   end
-
-  if stats['BytesOnDisk'] ~= nil then
-    print("<tr><th nowrap>"..i18n("traffic_recording.traffic_on_disk").."</th><td>"..bytesToSize(stats['BytesOnDisk']).."</td></tr>\n")
-  end
 end
-
-print("<tr><th nowrap>"..i18n("traffic_recording.storage_dir").."</th><td>"..recording_utils.getPcapPath(ifstats.id).."</td></tr>\n")
-
-print("<tr><th nowrap>"..i18n("traffic_recording.storage_utilization").."</th><td>"..tostring(math.floor(storage_info.used/1024)).." GB / "..tostring(math.floor(storage_info.total/1024)).." GB ("..storage_info.used_perc..")</td></tr>\n")
 
 print("<tr><th nowrap>"..i18n("about.last_log").."</th><td><code>\n")
 
