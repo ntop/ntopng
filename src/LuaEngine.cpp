@@ -36,6 +36,8 @@ extern "C" {
 
 struct keyval string_to_replace[MAX_NUM_HTTP_REPLACEMENTS] = { { NULL, NULL } };
 static Mutex rrd_lock;
+static int live_extraction_num = 0;
+static Mutex live_extraction_num_lock;
 static std::list<char*> new_custom_categories, custom_categories_to_purge;
 
 /* ******************************* */
@@ -5632,6 +5634,7 @@ static int ntop_run_live_extraction(lua_State *vm) {
   TimelineExtract timeline;
   time_t time_from, time_to;
   char *filter;
+  bool allow = false, success = false;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);  
 
@@ -5661,9 +5664,22 @@ static int ntop_run_live_extraction(lua_State *vm) {
   time_to = lua_tointeger(vm, 2);
   if ((filter = (char *) lua_tostring(vm, 3)) == NULL)  return(CONST_LUA_PARAM_ERROR);
 
-  timeline.extractLive(c->conn, iface, time_from, time_to, filter);
+  live_extraction_num_lock.lock(__FILE__, __LINE__);
+  if (live_extraction_num < CONST_MAX_NUM_LIVE_EXTRACTIONS) {
+    allow = true;
+    live_extraction_num++;
+  }
+  live_extraction_num_lock.unlock(__FILE__, __LINE__);
 
-  lua_pushnil(vm);
+  if (allow) {
+    success = timeline.extractLive(c->conn, iface, time_from, time_to, filter);
+
+    live_extraction_num_lock.lock(__FILE__, __LINE__);
+    live_extraction_num--;
+    live_extraction_num_lock.unlock(__FILE__, __LINE__);
+  }
+
+  lua_pushboolean(vm, success);
   return(CONST_LUA_OK);
 }
 

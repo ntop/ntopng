@@ -3438,3 +3438,24 @@ bool Utils::shouldResolveHost(const char *host_ip) {
 
   return true;
 }
+
+/* ****************************************************** */
+
+bool Utils::mg_write_retry(struct mg_connection *conn, u_char *b, int len) {
+  int ret, sent = 0;
+  time_t max_retry = 1000;
+
+  while (!ntop->getGlobals()->isShutdown() && --max_retry) {
+    ret = mg_write_async(conn, &b[sent], len-sent);
+    if (ret < 0)
+      return false;
+    sent += ret;
+    if (sent == len) return true;
+    usleep(100);
+  }
+
+  return false;
+}
+
+/* ****************************************************** */
+

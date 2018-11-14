@@ -250,6 +250,8 @@
 #define CONST_MAX_NUM_PACKETS_PER_LIVE 100000 /* live captures via HTTP */
 #define CONST_MAX_DUMP                 500000000
 
+#define CONST_MAX_NUM_LIVE_EXTRACTIONS 2
+
 #define CONST_MAX_EXTR_PCAP_MBYTES NTOPNG_PREFS_PREFIX".max_extracted_pcap_mbytes"
 #define CONST_DEFAULT_MAX_EXTR_PCAP_MBYTES 100
 

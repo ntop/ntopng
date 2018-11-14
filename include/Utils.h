@@ -112,6 +112,7 @@ class Utils {
   static const char* policySource2Str(L7PolicySource_t policy_source);
   static const char* captureDirection2Str(pcap_direction_t dir);
   static bool shouldResolveHost(const char *host_ip);
+  static bool mg_write_retry(struct mg_connection *conn, u_char *b, int len);
 
   /* Patricia Tree */
   static patricia_node_t* ptree_match(patricia_tree_t *tree, int family, void *addr, int bits);
