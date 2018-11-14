@@ -309,6 +309,14 @@
 #define ICMP_INFO_REPLY 16
 #endif
 
+// ICMP6
+#ifndef ICMP6_WRUREQUEST
+#define ICMP6_WRUREQUEST 139
+#endif
+#ifndef ICMP6_WRUREPLY
+#define ICMP6_WRUREPLY 140
+#endif
+
 #ifndef TH_FIN
 #define	TH_FIN	0x01
 #endif

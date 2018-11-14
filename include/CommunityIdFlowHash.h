@@ -30,7 +30,8 @@
 
 class CommunityIdFlowHash {
  private:
-static u_int8_t icmp_type_to_code_v4(u_int8_t icmp_type, u_int8_t icmp_code, bool * const is_one_way);
+  static u_int8_t icmp_type_to_code_v4(u_int8_t icmp_type, u_int8_t icmp_code, bool * const is_one_way);
+  static u_int8_t icmp_type_to_code_v6(u_int8_t icmp_type, u_int8_t icmp_code, bool * const is_one_way);
   static ssize_t buf_copy(u_int8_t * const dst, const void * const src, ssize_t len);
   static bool is_less_than(const IpAddress * const ip1, const IpAddress * const ip2, u_int16_t p1 = 0, u_int16_t p2 = 0);
   static void check_peers(IpAddress ** const ip1, IpAddress ** const ip2, u_int16_t * const p1, u_int16_t * const p2, bool is_icmp_one_way);

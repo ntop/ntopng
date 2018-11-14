@@ -1581,19 +1581,19 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
     case IPPROTO_ICMP:
     case IPPROTO_ICMPV6:
       if(l4_packet_len > 2) {
-        u_int8_t icmp_type = l4[0];
-        u_int8_t icmp_code = l4[1];
+	u_int8_t icmp_type = l4[0];
+	u_int8_t icmp_code = l4[1];
 
-        if((flow->get_cli_host() && flow->get_cli_host()->isLocalHost())
+	if((flow->get_cli_host() && flow->get_cli_host()->isLocalHost())
 	   && (flow->get_srv_host() && flow->get_srv_host()->isLocalHost())) {
-          /* Set correct direction in localhost ping */
-          if((icmp_type == ICMP_ECHO) ||                  /* ICMP Echo [RFC792] */
-	     (icmp_type == 128))                  /* ICMPV6 Echo Request [RFC4443] */
-            src2dst_direction = true;
-          else if((icmp_type == ICMP_ECHOREPLY) ||             /* ICMP Echo Reply [RFC792] */
-		  (icmp_type == 129))             /* ICMPV6 Echo Reply [RFC4443] */
+	  /* Set correct direction in localhost ping */
+	  if((icmp_type == ICMP_ECHO /* ICMP Echo [RFC792] */)
+	     || (icmp_type == ICMP6_ECHO_REQUEST /* ICMPV6 Echo Request [RFC4443] */))
+	    src2dst_direction = true;
+	  else if((icmp_type == ICMP_ECHOREPLY /* ICMP Echo Reply [RFC792] */)
+		  || (icmp_type == ICMP6_ECHO_REPLY /* ICMPV6 Echo Reply [RFC4443] */))
 	    src2dst_direction = false;
-        }
+	}
 
         flow->setICMP(src2dst_direction, icmp_type, icmp_code, l4);
 	if(l4_proto == IPPROTO_ICMP)

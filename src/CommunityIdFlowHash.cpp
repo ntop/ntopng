@@ -80,6 +80,47 @@ u_int8_t CommunityIdFlowHash::icmp_type_to_code_v4(u_int8_t icmp_type, u_int8_t 
 /* **************************************************** */
 
 /*
+  https://github.com/corelight/community-id-spec/blob/bda913f617389df07cdaa23606e11bbd318e265c/community-id.py#L83
+*/
+u_int8_t CommunityIdFlowHash::icmp_type_to_code_v6(u_int8_t icmp_type, u_int8_t icmp_code, bool * const is_one_way) {
+  *is_one_way = false;
+
+  switch(icmp_type) {
+  case ICMP6_ECHO_REQUEST:
+    return ICMP6_ECHO_REPLY;
+  case ICMP6_ECHO_REPLY:
+    return ICMP6_ECHO_REQUEST;
+  case ND_ROUTER_SOLICIT:
+    return ND_ROUTER_ADVERT;
+  case ND_ROUTER_ADVERT:
+    return ND_ROUTER_SOLICIT;
+  case ND_NEIGHBOR_SOLICIT:
+    return ND_NEIGHBOR_ADVERT;
+  case ND_NEIGHBOR_ADVERT:
+    return ND_NEIGHBOR_SOLICIT;
+  case MLD_LISTENER_QUERY:
+    return MLD_LISTENER_REPORT;
+  case MLD_LISTENER_REPORT:
+    return MLD_LISTENER_QUERY;
+  case ICMP6_WRUREQUEST:
+    return ICMP6_WRUREPLY;
+  case ICMP6_WRUREPLY:
+    return ICMP6_WRUREQUEST;
+  // Home Agent Address Discovery Request Message and reply
+  case 144:
+    return 145;
+  case 145:
+    return 144;
+
+  default:
+    *is_one_way = true;
+    return icmp_code;
+  }
+}
+
+/* **************************************************** */
+
+/*
   https://github.com/corelight/community-id-spec/blob/bda913f617389df07cdaa23606e11bbd318e265c/community-id.py#L164
 */
 bool CommunityIdFlowHash::is_less_than(const IpAddress * const ip1, const IpAddress * const ip2, u_int16_t p1, u_int16_t p2) {
@@ -148,14 +189,17 @@ char * CommunityIdFlowHash::get_community_id_flow_hash(Flow * const f) {
     cli_port = icmp_type, srv_port = icmp_type_to_code_v4(icmp_type, icmp_code, &icmp_one_way);
     break;
 
+  case IPPROTO_ICMPV6:
+    f->getICMP(&icmp_type, &icmp_code, &icmp_echo_id);
+    cli_port = icmp_type, srv_port = icmp_type_to_code_v6(icmp_type, icmp_code, &icmp_one_way);
+    break;
+
   case IPPROTO_SCTP:
   case IPPROTO_UDP:
   case IPPROTO_TCP:
     cli_port = f->get_cli_port(), srv_port = f->get_srv_port();
     break;
 
-  case IPPROTO_ICMPV6:
-    /* TODO: handle ICMP v6 */
   default:
     cli_port = srv_port = 0;
     break;
