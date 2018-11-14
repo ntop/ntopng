@@ -16,6 +16,7 @@ print[[
       "change_number_of_rows": "]] print(i18n("change_number_of_rows")) print[[",
       "no_data_available": "]] print(i18n("no_data_available")) print[[",
       "showing_x_to_y_rows": "]] print(i18n("showing_x_to_y_rows", {x="{0}", y="{1}", tot="{2}"})) print[[",
+      "actions": "]] print(i18n("actions")) print[[",
    };
 
    var http_prefix = "]] print(ntop.getHttpPrefix()) print[[";

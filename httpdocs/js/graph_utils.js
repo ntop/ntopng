@@ -782,6 +782,10 @@ var graph_old_view = null;
 var graph_old_has_nindex = null;
 var graph_old_nindex_query = null;
 
+function tsQueryToTags(ts_query) {
+  return ts_query.split(",").reduce(function(params, value) { var v = value.split(":"); params[v[0]] = v[1]; return params; }, {});
+}
+
 function updateGraphsTableView(view, graph_params, has_nindex, nindex_query, per_page) {
   if(view) {
     graph_old_view = view;
@@ -796,7 +800,7 @@ function updateGraphsTableView(view, graph_params, has_nindex, nindex_query, per
   var graph_table = $("#chart1-flows");
   nindex_query = nindex_query + "&begin_time_clause=" + graph_params.epoch_begin + "&end_time_clause=" + graph_params.epoch_end
   var nindex_buttons = "";
-  var params_obj = graph_params.ts_query.split(",").reduce(function(params, value) { var v = value.split(":"); params[v[0]] = v[1]; return params; }, {});
+  var params_obj = tsQueryToTags(graph_params.ts_query);
 
   // TODO localize
 
@@ -831,10 +835,10 @@ function updateGraphsTableView(view, graph_params, has_nindex, nindex_query, per
       };
     });
 
-    columns.unshift({
-      title: "",
+    columns.push({
+      title: i18n.actions,
       field: "drilldown",
-      css: {width: "1%", "white-space": "nowrap"},
+      css: {width: "1%", "white-space": "nowrap", "text-align": "center"},
     });
 
     /* Force reinstantiation */
@@ -866,7 +870,7 @@ function updateGraphsTableView(view, graph_params, has_nindex, nindex_query, per
 
         /* Remove the drilldown column if no drilldown is available */
         if(!has_drilldown)
-          $("table td:first-child, th:first-child", graph_table).remove();
+          $("table td:last-child, th:last-child", graph_table).remove();
 
         if(data && data.stats && data.stats.loading_time) {
            $("#flows-load-time").html(data.stats.loading_time);

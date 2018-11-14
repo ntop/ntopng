@@ -338,6 +338,10 @@ tr.quotas > td {
   min-width: 7em;
 }
 
+#chart1-flows td:last-child a:not(:first-child) {
+  margin-left: 5px;
+}
+
 /* NOTE: this is commented to avoid highliting overlapping line issues due to
  * curves interpolation.
 */
