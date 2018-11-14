@@ -699,6 +699,7 @@ function recording_utils.scheduleExtraction(ifid, params)
     time_from = tonumber(params.time_from),
     time_to = tonumber(params.time_to),
     filter = params.filter,
+    chart_url = params.chart_url,
   }
 
   ntop.setHashCache(extraction_jobs_key, job.id, json.encode(job))

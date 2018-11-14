@@ -18,7 +18,6 @@ else
   if _POST["epoch_begin"] == nil or _POST["epoch_end"] == nil then
     res.error = i18n("traffic_recording.missing_parameters")
   else
-
     interface.select(ifname)
 
     local ifstats = interface.getStats()
@@ -26,11 +25,13 @@ else
     local filter = _POST["bpf_filter"]
     local time_from = tonumber(_POST["epoch_begin"])
     local time_to = tonumber(_POST["epoch_end"])
+    local chart_url = _POST["url"]
 
     local params = {
       time_from = time_from,
       time_to = time_to,
       filter = filter,
+      chart_url = chart_url,
     }
 
     local job_info = recording_utils.scheduleExtraction(ifstats.id, params)

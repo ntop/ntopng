@@ -118,11 +118,17 @@ for id, _ in pairsByValues(sorter, sOrder) do
     status_desc = status_desc.." ("..error_desc..")"
   end
 
+  local chart_link = nil
+  if not isEmptyString(job.chart_url) then
+    chart_link = '<a href="'.. job.chart_url ..'"><i class="fa fa-lg fa-area-chart"></i></a>'
+  end
+
   res[#res + 1] = { 
     column_id = job.id, 
     column_job_time = format_utils.formatEpoch(job.time),
     column_job_files = job_files,
     column_status = status_desc,
+    column_chart = chart_link,
     column_status_raw = job.status,
     column_begin_time = format_utils.formatEpoch(job.time_from),
     column_end_time = format_utils.formatEpoch(job.time_to),

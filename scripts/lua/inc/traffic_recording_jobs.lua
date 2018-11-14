@@ -116,6 +116,11 @@ print[[
              field: "column_job_time",
              sortable: true,
            }, {
+             title: "]] print(i18n("chart")) print [[",
+             field: "column_chart",
+             sortable: false,
+             css: {textAlign:'center'},
+           }, {
              title: "]] print(i18n("status")) print [[",
              sortable: true,
              field: "column_status",
@@ -144,7 +149,7 @@ print[[
              css: {textAlign:'center'},
            }
          ], rowCallback: function(row, data) {
-            var actions_td_idx = 9;
+            var actions_td_idx = 10;
             var job_id = data.column_id;
             var num_job_files = data.column_job_files;
             var job_status = data.column_status_raw;
