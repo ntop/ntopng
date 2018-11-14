@@ -42,8 +42,32 @@ print("<table class=\"table table-bordered table-striped\">\n")
 print("<tr><th nowrap>"..i18n("interface").."</th><td>"..ifstats.name.."</td></tr>\n")
 
 print("<tr><th nowrap>"..i18n("status").."</th><td>")
+
+local first_epoch = nil
+local last_epoch = nil
+local start_time = nil
+local stats = nil
+
 if running then
+  stats = recording_utils.stats(ifstats.id)
+
+  if stats['FirstDumpedEpoch'] ~= nil then
+    first_epoch = tonumber(stats['FirstDumpedEpoch'])
+    last_epoch = tonumber(stats['LastDumpedEpoch'])
+  end
+
+  if stats['Duration'] ~= nil then
+    local u = split(stats['Duration'], ':');
+    local uptime = tonumber(u[1])*24*60*60+tonumber(u[2])*60*60+tonumber(u[3])*60+u[4]
+    start_time = os.time()-uptime
+  end
+
   print(i18n("traffic_recording.recording"))
+
+  if (start_time ~= nil) and (first_epoch ~= nil) and (start_time > first_epoch) then
+    print(' - <i class="fa fa-warning"></i> ')
+    print(i18n("traffic_recording.missing_data_msg"))
+  end
 elseif enabled then
   print("<span style='float: left'>"..i18n("traffic_recording.failure")..". "..i18n("traffic_recording.failure_note").."</span>")
 
@@ -58,20 +82,13 @@ end
 
 print("</td></tr>\n")
 
-if running then
-  local stats = recording_utils.stats(ifstats.id)
-
+if stats ~= nil then
   if stats['Duration'] ~= nil then
-    local u = split(stats['Duration'], ':');
-    local uptime = tonumber(u[1])*24*60*60+tonumber(u[2])*60*60+tonumber(u[3])*60+u[4]
-    local start_time = os.time()-uptime
     print("<tr><th nowrap>"..i18n("traffic_recording.active_since").."</th><td>"..formatEpoch(start_time).."</td></tr>\n")
   end
 
   if stats['FirstDumpedEpoch'] ~= nil then
-    local first_epoch = tonumber(stats['FirstDumpedEpoch'])
-    local last_epoch = tonumber(stats['LastDumpedEpoch'])
-    print("<tr><th nowrap>"..i18n("traffic_recording.dump_window").."</th><td>")
+    print("<tr><th width='15%' nowrap>"..i18n("traffic_recording.dump_window").."</th><td>")
     if first_epoch > 0 and last_epoch > 0 then
       print(formatEpoch(first_epoch).." - "..formatEpoch(last_epoch))
     else

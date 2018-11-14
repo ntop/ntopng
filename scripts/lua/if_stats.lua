@@ -957,7 +957,7 @@ elseif(page == "traffic_recording") then
    local tab = _GET["tab"] or "config"
    local recording_enabled = recording_utils.isEnabled(ifstats.id)
 
-   if(_SERVER["REQUEST_METHOD"] == "POST") and isEmptyString(page) then
+   if(_SERVER["REQUEST_METHOD"] == "POST") and (tab == "config") then
       recording_enabled = not isEmptyString(_POST["record_traffic"])
    end
 
@@ -973,9 +973,8 @@ elseif(page == "traffic_recording") then
          print('<li class="'.. ternary(tab == "jobs", "active", "") ..'"><a href="?ifid='.. ifstats.id
             ..'&page=traffic_recording&tab=jobs">'.. i18n("traffic_recording.jobs") ..'</a></li>')
       end
-      print('</ul>')
    end
-
+   print('</ul>')
    print('<div class="tab-content">')
 
    if tab == "status" then
