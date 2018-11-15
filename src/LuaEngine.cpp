@@ -5630,8 +5630,9 @@ static int ntop_get_extraction_status(lua_State *vm) {
 // ***API***
 static int ntop_run_live_extraction(lua_State *vm) {
   struct ntopngLuaContext *c;
-  NetworkInterface *iface = getCurrentInterface(vm);
+  NetworkInterface *iface;
   TimelineExtract timeline;
+  int ifid;
   time_t time_from, time_to;
   char *filter;
   bool allow = false, success = false;
@@ -5651,18 +5652,22 @@ static int ntop_run_live_extraction(lua_State *vm) {
   if (!c)
     return(CONST_LUA_ERROR);
 
-  if(!iface) return(CONST_LUA_ERROR);
-
-  if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK)
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK)
     return(CONST_LUA_PARAM_ERROR);
   if (ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK)
     return(CONST_LUA_PARAM_ERROR);
-  if (ntop_lua_check(vm, __FUNCTION__, 3, LUA_TSTRING) != CONST_LUA_OK)
+  if (ntop_lua_check(vm, __FUNCTION__, 3, LUA_TNUMBER) != CONST_LUA_OK)
+    return(CONST_LUA_PARAM_ERROR);
+  if (ntop_lua_check(vm, __FUNCTION__, 4, LUA_TSTRING) != CONST_LUA_OK)
     return(CONST_LUA_PARAM_ERROR);
 
-  time_from = lua_tointeger(vm, 1);
-  time_to = lua_tointeger(vm, 2);
-  if ((filter = (char *) lua_tostring(vm, 3)) == NULL)  return(CONST_LUA_PARAM_ERROR);
+  ifid = lua_tointeger(vm, 1);
+  time_from = lua_tointeger(vm, 2);
+  time_to = lua_tointeger(vm, 3);
+  if ((filter = (char *) lua_tostring(vm, 4)) == NULL)  return(CONST_LUA_PARAM_ERROR);
+
+  iface = ntop->getInterfaceById(ifid);
+  if(!iface) return(CONST_LUA_ERROR);
 
   live_extraction_num_lock.lock(__FILE__, __LINE__);
   if (live_extraction_num < CONST_MAX_NUM_LIVE_EXTRACTIONS) {

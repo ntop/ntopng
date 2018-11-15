@@ -23,9 +23,15 @@ else
   else
     interface.select(ifname)
 
+    local ifid = tonumber(_GET["ifid"])
     local filter = _GET["bpf_filter"]
     local time_from = tonumber(_GET["epoch_begin"])
     local time_to = tonumber(_GET["epoch_end"])
+
+    if ifid == nil then
+      local ifstats = interface.getStats()
+      ifid = ifstats.id
+    end
 
     if filter == nil then
       filter = ""
@@ -34,7 +40,7 @@ else
     local fname = time_from.."-"..time_to..".pcap"
     sendHTTPContentTypeHeader('application/vnd.tcpdump.pcap', 'attachment; filename="'..fname..'"')
 
-    interface.runLiveExtraction(time_from, time_to, filter)
+    interface.runLiveExtraction(ifid, time_from, time_to, filter)
 
   end
 end
