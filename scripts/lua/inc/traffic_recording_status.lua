@@ -16,7 +16,6 @@ local storage_info = recording_utils.storageInfo(ifstats.id)
 local enabled = false
 local running = false
 local restart_req = false
-local print_restart_button = false
 
 if _POST["action"] ~= nil and _POST["action"] == "restart" then
   restart_req = true
@@ -52,7 +51,7 @@ elseif enabled then
     <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[" />
     <input type="hidden" name="action" value="restart" />
 </form>]]
-  print(" <small><a href='#' onclick='$(\"#restart_rec_form\").submit(); return false;' title='' data-original-title='"..i18n("traffic_recording.restart_service").."'><i class='fa fa-repeat fa-sm' aria-hidden='true' data-original-title='' title=''></i></a></small>")
+  print(" <small><a href='#' onclick='$(\"#restart_rec_form\").submit(); return false;' title='' data-original-title='"..i18n("traffic_recording.restart_service").."'></small>&nbsp;<i class='fa fa-repeat fa-lg' aria-hidden='true' data-original-title='' title=''></i></a>")
 else
   print(i18n("traffic_recording.disabled"))
 end
