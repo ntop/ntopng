@@ -383,7 +383,7 @@ function recording_utils.createConfig(ifid, params)
   elseif ifspeed > 1000 then -- 10G
     defaults.max_file_size = 1*1024
   elseif ifspeed <= 100 then
-    defaults.max_file_size = 1*128
+    defaults.max_file_size = 1*64
   end
   defaults.buffer_size = 4*defaults.max_file_size
 
