@@ -13,6 +13,7 @@ can be obtained from the traffic captured by the server.
    cli_options
    web_gui/index
    using_with_nprobe
+   traffic_recording
    advanced_features/index
    operating_ntopng_on_large_networks
    api/index

@@ -16,5 +16,4 @@ section.
     bridging_and_policing
     flows_dump
     live_pcap_download
-    traffic_recording
     additional_features

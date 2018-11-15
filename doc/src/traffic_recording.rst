@@ -10,10 +10,10 @@ allows you to retrieve and analyse all the raw traffic in that period of time.
 Enabling Traffic Recording
 --------------------------
 
-*ntopng* includes support for continuous traffic recording leveraging on
-*n2disk*, an optimized traffic recording application part of the *ntop* suite
-available on Linux systems. For this reason, in order to be able to enable
-this feature, both *ntopng* and *n2disk* need to be installed from packages
+*ntopng*, since version 3.7, includes support for continuous traffic recording 
+leveraging on *n2disk*, an optimized traffic recording application part of the 
+*ntop* suite available on Linux systems. For this reason, in order to be able to 
+enable this feature, both *ntopng* and *n2disk* need to be installed from packages
 according to your Linux distribution (we assume that you already configured the 
 `ntop repository <http://packages.ntop.org>`_ and have *ntopng* installed).
 
@@ -40,7 +40,7 @@ The *n2disk* license can be installed directly from *ntopng* through the
 the installed *n2disk* version and SystemID, both required to generate
 the license.
 
-.. figure:: ../img/web_gui_preferences_recording_license.png
+.. figure:: img/web_gui_preferences_recording_license.png
   :align: center
   :alt: Traffic Recording License
 
@@ -64,7 +64,7 @@ the *Interfaces* menu, click on the disk icon, and configure the recording insta
    of the networks being monitored.
 3. Press the "Save Settings" button to actually start recording.
 
-.. figure:: ../img/web_gui_interfaces_recording.png
+.. figure:: img/web_gui_interfaces_recording.png
   :align: center
   :alt: Traffic Recording
 
@@ -74,7 +74,7 @@ At this point a new badge should appear on the right side of the footer.
 When the badge is blue, it means that traffic recording is running. Instead, when 
 the badge is red, it means that there is a failure. 
 
-.. figure:: ../img/web_gui_interfaces_recording_badge.png
+.. figure:: img/web_gui_interfaces_recording_badge.png
   :align: center
   :scale: 50 %
   :alt: Traffic Recording Badge
@@ -85,7 +85,7 @@ It is possible to get more information about the *n2disk* service status by
 clicking on the badge. The status page provides information including the uptime
 of the recording service, statistics about processed traffic, the log trace.
 
-.. figure:: ../img/web_gui_interfaces_recording_status.png
+.. figure:: img/web_gui_interfaces_recording_status.png
   :align: center
   :alt: Traffic Recording Status
 
@@ -102,13 +102,13 @@ and the host *Historical Traffic Statistics* pages.
 After enabling continuous traffic recording on an interface, a new *Extract pcap* button 
 appears at the top right corner of the *Historical Traffic Statistics* page.
 
-.. figure:: ../img/web_gui_interfaces_extract_pcap.png
+.. figure:: img/web_gui_interfaces_extract_pcap.png
   :align: center
   :alt: Extract pcap button
 
   The Extract Pcap Button in the Interface Historical Traffic Statistics page
 
-.. figure:: ../img/web_gui_hosts_extract_pcap.png
+.. figure:: img/web_gui_hosts_extract_pcap.png
   :align: center
   :alt: Extract pcap button
 
@@ -117,7 +117,7 @@ appears at the top right corner of the *Historical Traffic Statistics* page.
 By clicking on the button, a dialog box will let you run an extraction to retrieve the 
 traffic matching the time interval selected on the chart.
 
-.. figure:: ../img/web_gui_interfaces_extract_pcap_dialog.png
+.. figure:: img/web_gui_interfaces_extract_pcap_dialog.png
   :align: center
   :scale: 40 %
   :alt: Extract pcap dialog
@@ -128,7 +128,7 @@ In addition to the time constraint, it is possible to configure a BPF-like filte
 to further reduce the extracted amount of data, by clicking on *Edit Filter*. The filter 
 format is described at `Packet Filtering <https://www.ntop.org/guides/n2disk/filters.html>`_.
 
-.. figure:: ../img/web_gui_interfaces_extract_pcap_dialog_filter.png
+.. figure:: img/web_gui_interfaces_extract_pcap_dialog_filter.png
   :align: center
   :scale: 40 %
   :alt: Extract pcap dialog filter
@@ -141,7 +141,7 @@ at the bottom of the *Interface Historical Traffic Statistics* page. In this cas
 on the left side of the row lets you download the traffic matching a specific host in the
 selected time interval.
 
-.. figure:: ../img/web_gui_interfaces_extract_pcap_from_list.png
+.. figure:: img/web_gui_interfaces_extract_pcap_from_list.png
   :align: center
   :alt: Extract pcap button
 
@@ -150,7 +150,7 @@ selected time interval.
 The dialog box in this case already contains a precomputed filter, that can be edited 
 by clicking on *Edit Filter* to refine the extraction.
 
-.. figure:: ../img/web_gui_interfaces_extract_pcap_dialog_filter_pre.png
+.. figure:: img/web_gui_interfaces_extract_pcap_dialog_filter_pre.png
   :align: center
   :scale: 40 %
   :alt: Extract pcap dialog filter
@@ -167,7 +167,7 @@ to control the status and download the pcap file(s) as soon as the extraction is
 Extraction jobs can be stopped anytime using the *Stop* button, in case of extractions taking too 
 long, or removed using the *Delete* button (this will also delete the corresponding pcap files).
 
-.. figure:: ../img/web_gui_interfaces_extraction_jobs.png
+.. figure:: img/web_gui_interfaces_extraction_jobs.png
   :align: center
   :alt: Traffic Extraction Jobs
 
@@ -176,11 +176,35 @@ long, or removed using the *Delete* button (this will also delete the correspond
 It is possible to access the *Traffic Extraction Jobs* page also by clicking on the badge that 
 appears on the right side of the footer when there is at least one extraction job scheduled.
 
-.. figure:: ../img/web_gui_interfaces_extraction_badge.png
+.. figure:: img/web_gui_interfaces_extraction_badge.png
   :align: center
   :scale: 50 %
   :alt: Traffic Extraction Jobs Badge
 
   The Traffic Extraction Jobs Bagde in the Footer
 
+REST API
+~~~~~~~~
+
+The pcap file can also be downloaded directly through http, running a live extraction. 
+It is possible to use a command line tool such as `wget` or `curl` for this.
+The direct url for downloading the pcap is 
+:code:`http://<ntopng IP>:3000/lua/live_traffic_extraction.lua?ifid=<id>&epoch_begin=<epoch>&epoch_end=<epoch>[&bpf_filter=<filter>]`
+
+Where:
+
+- *ifid* is the interface Id as reported by *ntopng* in the interface page
+- *epoch_begin* is the start of the time interval to be extracted (epoch)>
+- *epoch_end* is the end of the time interval to be extracted (epoch)>
+- *bpf_filter* is a filter in `nBPF <https://www.ntop.org/guides/n2disk/filters.html>`_ format
+
+Please note that you should use cookies for authentication, as explained in the documentation. 
+For example with `curl` you can specify username and password with :code:`--cookie "user=<user>; password=<password>"`
+
+Command line tools are useful for example to process a pcap stream and pipe it to an analysis tool such as `tcpdump` or `tshark`/`wireshark`. 
+For example, to process the extracted traffic directly with `wireshark`, it is possible to use `curl` as in the example below:
+
+.. code:: bash
+	  
+   curl -s --cookie "user=admin; password=admin" "http://192.168.1.1:3000/lua/live_traffic_extraction.lua?ifid=1&epoch_begin=1542183525&epoch_end=1542184200" | wireshark -k -i -
 
