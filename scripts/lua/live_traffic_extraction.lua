@@ -40,7 +40,7 @@ else
     local fname = time_from.."-"..time_to..".pcap"
     sendHTTPContentTypeHeader('application/vnd.tcpdump.pcap', 'attachment; filename="'..fname..'"')
 
-    interface.runLiveExtraction(ifid, time_from, time_to, filter)
+    ntop.runLiveExtraction(ifid, time_from, time_to, filter)
 
   end
 end

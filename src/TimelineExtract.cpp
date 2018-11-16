@@ -110,7 +110,7 @@ error:
 /* ********************************************* */
 
 bool TimelineExtract::extractToDisk(u_int32_t id, NetworkInterface *iface,
-    time_t from, time_t to, const char *bpf_filter) {
+    time_t from, time_t to, const char *bpf_filter, u_int64_t max_bytes) {
   bool completed = false;
 #ifdef HAVE_PF_RING
   char out_path[MAX_PATH];
@@ -147,6 +147,8 @@ bool TimelineExtract::extractToDisk(u_int32_t id, NetworkInterface *iface,
     dumper->dumpPacket(h, packet);
     stats.packets++;
     stats.bytes += sizeof(struct pcap_disk_pkthdr) + h->caplen;
+    if (max_bytes != 0 && stats.bytes >= max_bytes) 
+      break;
   }
 
   status_code = 0; /* Successfully completed */
@@ -233,7 +235,8 @@ static void *extractionThread(void *ptr) {
     extr->getNetworkInterface(), 
     extr->getFrom(),
     extr->getTo(),
-    extr->getFilter()
+    extr->getFilter(),
+    extr->getMaxBytes()
   );
 
   extr->cleanupJob();
@@ -242,7 +245,7 @@ static void *extractionThread(void *ptr) {
 
 /* ********************************************* */
 
-void TimelineExtract::runExtractionJob(u_int32_t id, NetworkInterface *iface, time_t from, time_t to, const char *bpf_filter) {
+void TimelineExtract::runExtractionJob(u_int32_t id, NetworkInterface *iface, time_t from, time_t to, const char *bpf_filter, u_int64_t max_bytes) {
 
   running = true;
 
@@ -251,6 +254,7 @@ void TimelineExtract::runExtractionJob(u_int32_t id, NetworkInterface *iface, ti
   extraction.from = from;
   extraction.to = to;
   extraction.bpf_filter = strdup(bpf_filter);
+  extraction.max_bytes = max_bytes;
 
   pthread_create(&extraction_thread, NULL, extractionThread, (void *) this);
 }

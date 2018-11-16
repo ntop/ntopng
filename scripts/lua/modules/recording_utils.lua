@@ -794,7 +794,12 @@ function recording_utils.checkExtractionJobs()
       if not isEmptyString(job_json) then
         local job = json.decode(job_json)
 
-        ntop.runExtraction(job.id, tonumber(job.ifid), tonumber(job.time_from), tonumber(job.time_to), job.filter)
+        ntop.runExtraction(job.id, 
+          tonumber(job.ifid), 
+          tonumber(job.time_from), 
+          tonumber(job.time_to), 
+          job.filter, 
+          0) -- extraction limit (bytes)
 
         job.status = 'processing'
         ntop.setHashCache(extraction_jobs_key, job.id, json.encode(job))

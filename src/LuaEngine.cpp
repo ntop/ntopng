@@ -5546,6 +5546,7 @@ static int ntop_run_extraction(lua_State *vm) {
   int id, ifid;
   time_t time_from, time_to;
   char *filter;
+  u_int64_t max_bytes;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);  
 
@@ -5562,15 +5563,18 @@ static int ntop_run_extraction(lua_State *vm) {
     return(CONST_LUA_PARAM_ERROR);
   if(ntop_lua_check(vm, __FUNCTION__, 5, LUA_TSTRING) != CONST_LUA_OK)
     return(CONST_LUA_PARAM_ERROR);
+  if(lua_type(vm, 6) == LUA_TNUMBER) max_bytes = lua_tonumber(vm, 6);
+  else max_bytes = 0; /* optional */
 
   id = lua_tointeger(vm, 1);
   ifid = lua_tointeger(vm, 2);
   time_from = lua_tointeger(vm, 3);
   time_to = lua_tointeger(vm, 4);
   if((filter = (char *) lua_tostring(vm, 5)) == NULL)  return(CONST_LUA_PARAM_ERROR);
+  max_bytes = lua_tonumber(vm, 6);
 
   ntop->getTimelineExtract()->runExtractionJob(id, 
-    ntop->getInterfaceById(ifid), time_from, time_to, filter);
+    ntop->getInterfaceById(ifid), time_from, time_to, filter, max_bytes);
 
   return(CONST_LUA_OK);
 }
@@ -7918,9 +7922,6 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "isCaptureRunning",       ntop_is_capture_running                 },
   { "stopRunningCapture",     ntop_stop_running_capture               },
 
-  /* Live Extraction */
-  { "runLiveExtraction",      ntop_run_live_extraction                },
-
   /* Alert Generation */
   { "getCachedNumAlerts",     ntop_interface_get_cached_num_alerts    },
   { "queryAlertsRaw",         ntop_interface_query_alerts_raw         },
@@ -8135,6 +8136,7 @@ static const luaL_Reg ntop_reg[] = {
   { "stopExtraction",        ntop_stop_extraction       },
   { "isExtractionRunning",   ntop_is_extraction_running },
   { "getExtractionStatus",   ntop_get_extraction_status },
+  { "runLiveExtraction",     ntop_run_live_extraction   },
 
 #ifdef HAVE_NEDGE
   { "setHTTPBindAddr",       ntop_set_http_bind_addr       },

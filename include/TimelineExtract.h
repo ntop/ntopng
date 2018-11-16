@@ -42,6 +42,7 @@ class TimelineExtract {
     time_t from;
     time_t to;
     char *bpf_filter;
+    u_int64_t max_bytes;
   } extraction;
 
 #ifdef HAVE_PF_RING
@@ -56,13 +57,14 @@ class TimelineExtract {
   inline time_t getFrom() { return extraction.from; };
   inline time_t getTo() { return extraction.to; };
   inline const char *getFilter() { return extraction.bpf_filter; };
+  inline const u_int64_t getMaxBytes() { return extraction.max_bytes; };
   inline bool isRunning() { return running; };
   void stop();
   /* sync */
-  bool extractToDisk(u_int32_t id, NetworkInterface *iface, time_t from, time_t to, const char *bpf_filter);
+  bool extractToDisk(u_int32_t id, NetworkInterface *iface, time_t from, time_t to, const char *bpf_filter, u_int64_t max_bytes);
   bool extractLive(struct mg_connection *conn, NetworkInterface *iface, time_t from, time_t to, const char *bpf_filter);
   /* async */
-  void runExtractionJob(u_int32_t id, NetworkInterface *iface, time_t from, time_t to, const char *bpf_filter);
+  void runExtractionJob(u_int32_t id, NetworkInterface *iface, time_t from, time_t to, const char *bpf_filter, u_int64_t max_bytes);
   void stopExtractionJob(u_int32_t id);
   void cleanupJob();
   void getStatus(lua_State* vm);
