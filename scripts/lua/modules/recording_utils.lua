@@ -794,15 +794,39 @@ function recording_utils.checkExtractionJobs()
       if not isEmptyString(job_json) then
         local job = json.decode(job_json)
 
-        ntop.runExtraction(job.id, 
-          tonumber(job.ifid), 
-          tonumber(job.time_from), 
-          tonumber(job.time_to), 
-          job.filter, 
-          0) -- extraction limit (bytes)
+        -- computing available space as safety check
+        local extraction_limit = 0
+        local max_if_used = 0
+        local disk_space = ntop.getCache('ntopng.prefs.ifid_'..job.ifid..'.traffic_recording.disk_space')
+        if not isEmptyString(disk_space) then
+          max_if_used = tonumber(disk_space)
+        end
+        local storage_info = recording_utils.storageInfo(job.ifid)
+        local currently_avail = storage_info.total - storage_info.avail
+        if storage_info.avail > (max_if_used - storage_info.if_used) then
+          local avail = storage_info.avail - (max_if_used - storage_info.if_used)
+          extraction_limit = avail*1024*1024
+        else
+          extraction_limit = nil
+        end
 
-        job.status = 'processing'
-        ntop.setHashCache(extraction_jobs_key, job.id, json.encode(job))
+        if extraction_limit ~= nil then
+          -- running extraction
+          ntop.runExtraction(job.id, 
+            tonumber(job.ifid), 
+            tonumber(job.time_from), 
+            tonumber(job.time_to), 
+            job.filter, 
+            extraction_limit)
+
+          job.status = 'processing'
+          ntop.setHashCache(extraction_jobs_key, job.id, json.encode(job))
+        else
+          -- no space available - delay this job
+          job.status = 'waiting_nospace'
+          ntop.setHashCache(extraction_jobs_key, job.id, json.encode(job))
+          ntop.rpushCache(extraction_queue_key, tostring(job.id))
+        end
       end
     end
   end

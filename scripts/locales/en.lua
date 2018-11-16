@@ -2867,6 +2867,7 @@ local lang = {
     ["traffic_recording_status"] = "Traffic Recording Status",
     ["unsupported_fields"] = "Note that the selected chart provides a view of the traffic not fully supported by the extraction tool, extracted traffic will contain more traffic than expected.",
     ["waiting"] = "Waiting",
+    ["waiting_nospace"] = "Waiting (No Space On Disk)",
   },
   ["traffic_report"] = {
     ["current_day"] = "Current Day",
