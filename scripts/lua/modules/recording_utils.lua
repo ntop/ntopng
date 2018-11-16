@@ -378,14 +378,18 @@ function recording_utils.createConfig(ifid, params)
 
   -- Computing file and buffer size
 
+  local num_buffered_files = 4
   if ifspeed > 10000 then -- 40/100G
     defaults.max_file_size = 4*1024
   elseif ifspeed > 1000 then -- 10G
     defaults.max_file_size = 1*1024
-  elseif ifspeed <= 100 then
-    defaults.max_file_size = 1*64
+  elseif ifspeed > 100 then -- 1G
+    defaults.max_file_size = 256
+  else -- 10/100M
+    defaults.max_file_size = 64
+    num_buffered_files = 2
   end
-  defaults.buffer_size = 4*defaults.max_file_size
+  defaults.buffer_size = num_buffered_files * defaults.max_file_size
 
   local min_sys_mem = 1024 -- 1G reserved for system
   local min_n2disk_buffer_size = 128 -- min memory for n2disk to work
