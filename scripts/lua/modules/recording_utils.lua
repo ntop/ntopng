@@ -402,7 +402,7 @@ function recording_utils.createConfig(ifid, params)
       return false
     end
     defaults.buffer_size = (mem_total_mb - min_sys_mem) / 2 -- leave some room for index memory and other processes
-    defaults.max_file_size = math.floor(defaults.buffer_size/4)
+    defaults.max_file_size = math.floor(defaults.buffer_size/num_buffered_files)
   end
 
   -- Computing core affinity
