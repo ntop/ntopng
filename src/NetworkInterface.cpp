@@ -2048,7 +2048,6 @@ datalink_check:
     if(sender_mac) memcpy(&dummy_ethernet.h_source, sender_mac, 6);
     eth_type = (packet[eth_offset+14] << 8) + packet[eth_offset+15];
     ip_offset = 16 + eth_offset;
-    incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 #ifdef DLT_RAW
   } else if(pcap_datalink_type == DLT_RAW /* Linux TUN/TAP device in TUN mode; Raw IP capture */) {
     switch((packet[eth_offset] & 0xf0) >> 4) {
