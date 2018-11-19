@@ -517,8 +517,14 @@ local function validateApplication(app)
 
    if dot ~= nil then
       local master = string.sub(app, 1, dot-1)
-      local sub = string.sub(app, dot+1)
-      return validateChoiceByKeys(ndpi_protos, master) and validateChoiceByKeys(ndpi_protos, sub)
+      if not validateChoiceByKeys(ndpi_protos, master) then
+	 -- try to see if app is just an app with a dot (e.g., Musical.ly)
+	 return validateChoiceByKeys(ndpi_protos, app)
+      else
+	 -- master is a valid protocol, let's see if the application is valid as well
+	 local sub = string.sub(app, dot+1)
+	 return validateChoiceByKeys(ndpi_protos, sub)
+      end
    else
       return validateChoiceByKeys(ndpi_protos, app)
    end
