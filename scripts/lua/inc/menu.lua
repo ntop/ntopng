@@ -507,7 +507,7 @@ print(
 )
 print("</li>")
 
-print("</ul>\n<h3 class=\"muted\"><A href=\"http://www.ntop.org\">")
+print("</ul>\n<h3 class=\"muted\"><A href=\""..ntop.getHttpPrefix().."/\">")
 
 addLogoSvg()
 
