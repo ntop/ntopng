@@ -109,7 +109,7 @@ presets_utils.reloadAllDevicePolicies()
 -- ##################################################################
 
 initCustomnDPIProtoCategories()
-lists_utils.reloadListsNow()
+lists_utils.reloadLists() -- housekeeping will do the actual reload...
 
 -- TODO: migrate custom re-arm settings
 

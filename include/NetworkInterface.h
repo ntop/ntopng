@@ -240,7 +240,7 @@ class NetworkInterface : public Checkpointable {
   void topItemsCommit(const struct timeval *when);
   void checkMacIPAssociation(bool triggerEvent, u_char *_mac, u_int32_t ipv4);
   void pollQueuedeBPFEvents();
-
+  void reloadCustomCategories();
  public:
   /**
   * @brief A Constructor
@@ -600,7 +600,8 @@ class NetworkInterface : public Checkpointable {
   int updateHostTrafficPolicy(AddressTree* allowed_networks, char *host_ip, u_int16_t host_vlan);
 
   void reloadHideFromTop(bool refreshHosts=true);
-  inline void reloadCustomCategories()       { reload_custom_categories = true; }
+  inline void requestReloadCustomCategories()       { reload_custom_categories = true; }
+  inline bool customCategoriesReloadRequested()     { return reload_custom_categories; }
   void reloadHostsBlacklist();
   bool isHiddenFromTop(Host *host);
   inline virtual bool areTrafficDirectionsSupported() { return(false); };

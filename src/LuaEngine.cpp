@@ -1638,17 +1638,28 @@ static int ntop_loadCustomCategoryHost(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_reloadCustomCategories(lua_State* vm) {
+  int i, j, max_wait = 10;
+  NetworkInterface *iface;
+
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  for(int i=0; i<ntop->get_num_interfaces(); i++) {
-    NetworkInterface *iface;
-
+  for(i = 0; i<ntop->get_num_interfaces(); i++) {
     /* Note: we only load custom categories on packet interfaces right now */
-    if(((iface = ntop->getInterfaceAtId(vm, i)) != NULL) && iface->isPacketInterface())
-      iface->reloadCustomCategories();
+    if(((iface = ntop->getInterfaceAtId(vm, i)) != NULL) && iface->isPacketInterface()) {
+      iface->requestReloadCustomCategories();
+
+      for(j = 0; j < max_wait && iface->customCategoriesReloadRequested(); j++) {
+	/* Make sure the interface has reloaded the categories */
+	_usleep(500000);
+      }
+
+      if(j == max_wait) {
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "Interface didn't reload configugration on time");
+      }
+    }
   }
 
-  /* Remove old strings */
+  /* Now it is safe to remove old strings */
   for(std::list<char*>::iterator it = custom_categories_to_purge.begin(); it != custom_categories_to_purge.end(); it++)
     free(*it);
   custom_categories_to_purge.clear();

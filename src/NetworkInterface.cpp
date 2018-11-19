@@ -1988,12 +1988,7 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
   u_int32_t rawsize = h->len * scalingFactor;
 
   pollQueuedeBPFEvents();
-  
-  if(reload_custom_categories) {
-    ntop->getTrace()->traceEvent(TRACE_INFO, "Going to reload categories..");
-    ndpi_enable_loaded_categories(ndpi_struct);
-    reload_custom_categories = false;
-  }
+  reloadCustomCategories();
 
 #if 0
   static u_int n = 0;
@@ -2572,6 +2567,16 @@ void NetworkInterface::pollQueuedeBPFEvents() {
     }
   }
 #endif
+}
+
+/* **************************************************** */
+
+void NetworkInterface::reloadCustomCategories() {
+  if(customCategoriesReloadRequested()) {
+    ntop->getTrace()->traceEvent(TRACE_DEBUG, "Going to reload categories..");
+    ndpi_enable_loaded_categories(ndpi_struct);
+    reload_custom_categories = false;
+  }
 }
 
 /* **************************************************** */
@@ -4924,6 +4929,7 @@ u_int NetworkInterface::purgeIdleFlows() {
   time_t last_packet_time = getTimeLastPktRcvd();
 
   pollQueuedeBPFEvents();
+  reloadCustomCategories();
   
   if(!purge_idle_flows_hosts) return(0);
 
