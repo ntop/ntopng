@@ -23,15 +23,19 @@ local manuf_filter = _GET["manufacturer"]
 local devtype_filter = _GET["device_type"]
 local base_url = ntop.getHttpPrefix() .. "/lua/discover.lua"
 local page_params = {}
+local title = {operating_system = '', manufacturer = '', device_type = ''}
 
 if(not isEmptyString(os_filter)) then
    page_params.operating_system = os_filter
+   title.operating_system = getOperatingSystemName(tonumber(os_filter))
 end
 if(not isEmptyString(manuf_filter)) then
    page_params.manufacturer = manuf_filter
+   title.manufacturer = manuf_filter
 end
 if(not isEmptyString(devtype_filter)) then
    page_params.device_type = devtype_filter
+   title.device_type = discover.devtype2string(devtype_filter)
 end
 
 local discovery_requested = discover.networkDiscoveryRequested(ifId)
@@ -45,7 +49,7 @@ ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 -- print('<hr><H2>'..i18n("discover.network_discovery")..'&nbsp;</H2><br>')
-print('<hr><H2>'..i18n("discover.network_discovery")..'&nbsp;'..refresh_button..'</H2><br>')
+print('<hr><H2>'..i18n("discover.discovered_devices", {sys = title.operating_system, manuf = title.manufacturer, dev = title.device_type})..'&nbsp;'..refresh_button..'</H2><br>')
 
 local discovered = discover.discover2table(ifname)
 local manufactures = {}

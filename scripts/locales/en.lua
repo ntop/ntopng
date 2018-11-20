@@ -545,6 +545,7 @@ local lang = {
     ["error_unable_to_decode_json"] = "Unable to decode cache JSON discovery data.",
     ["ghost_icon_descr"] = "The %{ghost_icon} icon highlights ghost hosts (i.e. they do not belong to the interface IP address network)",
     ["network_discovery"] = "Network Discovery",
+    ["discovered_devices"] = "Discovered %{manuf} %{sys} %{dev} Devices",
     ["network_discovery_datetime"] = "Last Network Discovery",
     ["network_discovery_not_enabled"] = "Network discovery in progress",
   },

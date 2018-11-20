@@ -1235,7 +1235,8 @@ end
 -- #################################
 
 function getOperatingSystemName(id)
-   if(id == 1) then return("Linux")
+   if(id == 0) then return("Unknown")
+   elseif(id == 1) then return("Linux")
    elseif(id == 2) then return("Windows")
    elseif(id == 3) then return("MacOS")
    elseif(id == 4) then return("iOS")
