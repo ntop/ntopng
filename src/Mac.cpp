@@ -231,6 +231,13 @@ void Mac::lua(lua_State* vm, bool show_details, bool asListElement) {
     lua_settable(vm, -3);
   }
 }
+/* *************************************** */
+
+bool Mac::isNull() const {
+  u_int8_t zero_mac[6] = {0};
+
+  return !memcmp(mac, zero_mac, sizeof(mac));
+}
 
 /* *************************************** */
 
@@ -417,6 +424,9 @@ void Mac::updateFingerprint() {
 /* *************************************** */
 
 void Mac::checkDeviceTypeFromManufacturer() {
+  if(isNull())
+    return;
+
   if(strstr(manuf, "Networks") /* Arista, Juniper... */
      || strstr(manuf, "Brocade")
      || strstr(manuf, "Routerboard")

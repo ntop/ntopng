@@ -68,7 +68,7 @@ class Mac : public GenericHashEntry, public GenericTrafficElement {
   inline u_int32_t key()                       { return(Utils::macHash(mac)); }
   inline u_int8_t* get_mac()                   { return(mac);                 }
   inline const char * const get_manufacturer() { return manuf ? manuf : NULL; }
-  inline bool isNull()           { for(int i=0; i<6; i++) { if(mac[i] != 0) return(false); } return(true); }
+  bool isNull() const;
 
   bool equal(const u_int8_t _mac[6]);
   inline void incSentStats(u_int64_t num_pkts, u_int64_t num_bytes)  {
@@ -102,6 +102,9 @@ class Mac : public GenericHashEntry, public GenericTrafficElement {
   inline void setSeenIface(u_int32_t idx)  { bridge_seen_iface_id = idx; setSourceMac(); }
   inline u_int32_t getSeenIface()     { return(bridge_seen_iface_id); }
   inline void setDeviceType(DeviceType devtype) {
+    if(isNull())
+      return;
+
     /* Called by ntopng when it can guess a device type during normal packet processing */
     if(!lockDeviceTypeChanges)
       device_type = devtype;
