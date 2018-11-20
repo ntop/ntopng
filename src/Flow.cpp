@@ -501,6 +501,8 @@ void Flow::processDetectedProtocol() {
 void Flow::guessProtocol() {
   detection_completed = true; /* We give up */
 
+#if 0
+  /* This code should no longer be necessary as the nDPI API changed */
   if((protocol == IPPROTO_TCP) || (protocol == IPPROTO_UDP)) {
     if(cli_host && srv_host) {
       /* We can guess the protocol */
@@ -514,6 +516,7 @@ void Flow::guessProtocol() {
 
     l7_protocol_guessed = true;
   }
+#endif
 }
 
 /* *************************************** */

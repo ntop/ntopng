@@ -1631,7 +1631,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	struct ndpi_id_struct *srv = (struct ndpi_id_struct*)flow->get_srv_id();
 
 	if(flow->get_packets() >= NDPI_MIN_NUM_PACKETS) {
-	  flow->setDetectedProtocol(ndpi_detection_giveup(ndpi_struct, ndpi_flow), false);
+	  flow->setDetectedProtocol(ndpi_detection_giveup(ndpi_struct, ndpi_flow, 1), false);
 	} else
 	  flow->setDetectedProtocol(ndpi_detection_process_packet(ndpi_struct, ndpi_flow,
 								  ip, ipsize, (u_int32_t)packet_time,
