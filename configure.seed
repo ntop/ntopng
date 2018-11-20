@@ -492,6 +492,15 @@ if test -n "$MYSQLTOOL"; then
  fi
 fi
 
+AC_CHECK_LIB([radcli], [rc_read_config], radcli=true)
+if test x$radcli = xtrue
+then
+  AC_DEFINE_UNQUOTED([HAVE_RADCLI], 1, [We have raccli])
+  RADCLI_LIB="-lradcli"
+  AC_DEFINE_UNQUOTED(HAVE_RADIUS, 1, [RADIUS support is present])
+fi
+
+
 if test -f /usr/bin/lsb_release; then
   LINUX_OS_RELEASE=`lsb_release -r | cut -f 2|cut -d '.' -f 1`
 else
@@ -579,6 +588,7 @@ AC_SUBST(NDPI_LIB_DEP)
 AC_SUBST(HIREDIS_INC)
 AC_SUBST(HIREDIS_LIB)
 AC_SUBST(MAXMINDDB_LIB)
+AC_SUBST(RADCLI_LIB)
 AC_SUBST(SSL_INC)
 AC_SUBST(SSL_LIB)
 AC_SUBST(PRO_OBJECTS)

@@ -244,6 +244,10 @@ using namespace std;
 #if defined(NTOPNG_PRO) && defined(HAVE_NINDEX)
 #include "nindex_api.h"
 #endif
+#ifdef HAVE_RADIUS
+#include <radcli/radcli.h>
+#endif
+
 
 #include "TimeseriesPoint.h"
 #include "TimeseriesRingStatus.h"
