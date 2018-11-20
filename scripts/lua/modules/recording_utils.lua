@@ -209,11 +209,20 @@ local function nextFreeCore(num_cores, busy_cores, start)
   return start
 end
 
+-- Return memory information (values in MB)
 local function memInfo()
   local mem_info = {}
   for line in io.lines("/proc/meminfo") do 
-    local values = split(line, ':')
-    mem_info[values[1]] = trimString(values[2])
+    local pair = split(line, ':')
+    local k = pair[1]
+    if pair[2] ~= nil then
+      local value = split(trimString(pair[2]), ' ')
+      local v = tonumber(value[1])
+      if value[2] ~= nil and value[2] == 'kB' then
+        v = v/1024 -- kB to MB
+      end
+      mem_info[k] = math.floor(v)
+    end
   end
   return mem_info
 end
@@ -374,15 +383,18 @@ function recording_utils.createConfig(ifid, params)
   -- Reading system memory info
 
   local mem_info = memInfo()
-  local mem_total_mb = math.floor(tonumber(split(mem_info['MemTotal'], ' ')[1])/1024)
+  local mem_available_mb = mem_info['MemAvailable']
 
   -- Computing file and buffer size
 
   local num_buffered_files = 4
+  local min_file_size = 16 
   if ifspeed > 10000 then -- 40/100G
     defaults.max_file_size = 4*1024
+    min_file_size = 1024
   elseif ifspeed > 1000 then -- 10G
     defaults.max_file_size = 1*1024
+    min_file_size = 256
   elseif ifspeed > 100 then -- 1G
     defaults.max_file_size = 256
   else -- 10/100M
@@ -391,17 +403,15 @@ function recording_utils.createConfig(ifid, params)
   end
   defaults.buffer_size = num_buffered_files * defaults.max_file_size
 
-  local min_sys_mem = 1024 -- 1G reserved for system
-  local min_n2disk_buffer_size = 128 -- min memory for n2disk to work
   local total_n2disk_mem = defaults.buffer_size + (defaults.buffer_size/2) -- pcap + index buffer
-  if mem_total_mb < total_n2disk_mem + min_sys_mem then
-    local min_total_n2disk_mem = min_n2disk_buffer_size + (min_n2disk_buffer_size/2)
-    local min_total_mem = min_sys_mem + min_total_n2disk_mem
-    if mem_total_mb < min_total_mem then
-      traceError(TRACE_ERROR, TRACE_CONSOLE, "Not enough memory available ("..mem_total_mb.."MB total, min required is "..min_total_mem.."MB)") 
+  if mem_available_mb < total_n2disk_mem then
+    local min_n2disk_buffer_size = (min_file_size * num_buffered_files) -- min memory for n2disk to work
+    local min_n2disk_mem = min_n2disk_buffer_size + (min_n2disk_buffer_size/2)
+    if mem_available_mb < min_n2disk_mem then
+      traceError(TRACE_ERROR, TRACE_CONSOLE, "Not enough memory available ("..mem_available_mb.."MB available, min required is "..min_n2disk_mem.."MB)") 
       return false
     end
-    defaults.buffer_size = (mem_total_mb - min_sys_mem) / 2 -- leave some room for index memory and other processes
+    defaults.buffer_size = (mem_available_mb/2) -- leave some room for index memory and other processes
     defaults.max_file_size = math.floor(defaults.buffer_size/num_buffered_files)
   end
 
