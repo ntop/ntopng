@@ -265,6 +265,21 @@ local function getPcapFilePath(job_id, ifid, file_id)
   return dir_path.."/"..file_id..".pcap"
 end
 
+-- Read information about used disk space for an interface dump
+local function interfaceStorageUsed(ifid)
+  local pcap_path = recording_utils.getPcapPath(ifid)
+  local line = executeWithOuput("du -s "..pcap_path.." 2>/dev/null")
+  local values = split(line, '\t')
+  if #values >= 1 then
+    local if_used = tonumber(values[1])
+    if if_used ~= nil then
+      if_used = if_used/1024
+      return math.ceil(if_used)
+    end
+  end
+  return 0
+end
+
 --! @brief Read information about the storage, including storage size and available space
 --! @param ifid the interface identifier 
 --! @return a table containing storage information
@@ -293,16 +308,7 @@ function recording_utils.storageInfo(ifid)
   end
 
   -- Interface storage info
-  local pcap_path = recording_utils.getPcapPath(ifid)
-  local line = executeWithOuput("du -s "..pcap_path.." 2>/dev/null")
-  local values = split(line, '\t')
-  if #values >= 1 then
-    local if_used = tonumber(values[1])
-    if if_used ~= nil then
-      if_used = if_used/1024
-      storage_info.if_used = if_used
-    end
-  end
+  storage_info.if_used = interfaceStorageUsed(ifid)
 
   -- PCAP Extraction storage info
   local extraction_path = getPcapExtractionPath(ifid)
@@ -317,12 +323,6 @@ function recording_utils.storageInfo(ifid)
   end
 
   return storage_info
-end
-
-function recording_utils.recommendedSpace(storage_info)
-  local avail = storage_info.avail + storage_info.if_used
-  local recommended = avail - (avail*0.2)
-  return recommended
 end
 
 local function getN2diskInterfaceName(ifid)
@@ -584,6 +584,47 @@ function recording_utils.stats(ifid)
   return stats
 end
 
+-- Read information about used disk space for all ntopng interfaces 
+-- (skipping the provided ifid if not nil)
+local function allInterfacesStorageUsage(ifid)
+  local info = { reserved_disk_space = 0, used_disk_space = 0, delta_disk_space = 0 }
+  local ntopng_interfaces = interface.getIfNames()
+  for id,name in pairs(ntopng_interfaces) do
+    if ifid == nil or id ~= ifid then
+      local enabled = ntop.getCache('ntopng.prefs.ifid_'..id..'.traffic_recording.enabled')
+      if enabled == "true" then
+        local disk_space = ntop.getCache('ntopng.prefs.ifid_'..id..'.traffic_recording.disk_space')
+        local if_disk_space = 0
+        if not isEmptyString(disk_space) then
+          if_disk_space = tonumber(disk_space)
+        end
+        info.reserved_disk_space = info.reserved_disk_space + if_disk_space
+        info.used_disk_space = info.used_disk_space + interfaceStorageUsed(id)
+      end
+    end
+  end
+  if info.reserved_disk_space > info.used_disk_space then
+    info.delta_disk_space = info.reserved_disk_space - info.used_disk_space -- available, to be used
+  end
+  return info
+end
+
+function recording_utils.recommendedSpace(ifid, storage_info)
+  -- available disk space
+  local avail = storage_info.avail + storage_info.if_used
+
+  -- compute available disk space based on space reserved by other interfaces
+  local current = allInterfacesStorageUsage(ifid)
+  if avail > current.delta_disk_space then
+    avail = avail - current.delta_disk_space
+  else
+    avail = 0
+  end
+
+  local recommended = avail - (avail*0.2)
+  return math.floor(recommended)
+end
+
 --! @brief Check if there is pcap data for a specified time interval (fully included in the dump window) 
 --! @param ifid the interface identifier 
 --! @param epoch_begin the begin time (epoch)
@@ -806,19 +847,14 @@ function recording_utils.checkExtractionJobs()
 
         -- computing available space as safety check
         local extraction_limit = 0
-        local max_if_used = 0
-        local disk_space = ntop.getCache('ntopng.prefs.ifid_'..job.ifid..'.traffic_recording.disk_space')
-        if not isEmptyString(disk_space) then
-          max_if_used = tonumber(disk_space)
-        end
         local storage_info = recording_utils.storageInfo(job.ifid)
-        local currently_avail = storage_info.total - storage_info.avail
-        if storage_info.avail > (max_if_used - storage_info.if_used) then
-          local avail = storage_info.avail - (max_if_used - storage_info.if_used)
-          extraction_limit = avail*1024*1024
+        local usage = allInterfacesStorageUsage(nil)
+        if storage_info.avail > usage.delta_disk_space then
+          local avail = storage_info.avail - usage.delta_disk_space
+          extraction_limit = math.floor(avail*1024*1024)
         else
           extraction_limit = nil
-        end
+        end 
 
         if extraction_limit ~= nil then
           -- running extraction

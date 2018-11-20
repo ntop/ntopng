@@ -60,7 +60,7 @@ end
 local record_traffic = ntop.getCache('ntopng.prefs.ifid_'..ifid..'.traffic_recording.enabled')
 local disk_space = ntop.getCache('ntopng.prefs.ifid_'..ifid..'.traffic_recording.disk_space')
 local storage_info = recording_utils.storageInfo(ifid)
-local max_space = recording_utils.recommendedSpace(storage_info)
+local max_space = recording_utils.recommendedSpace(ifid, storage_info)
 if record_traffic == "true" then
   record_traffic_checked = 'checked="checked"'
   record_traffic_value = "false" -- Opposite
