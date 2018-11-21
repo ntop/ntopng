@@ -1011,6 +1011,7 @@ bool Ntop::checkUserPassword(const char * const user, const char * const passwor
 #ifdef HAVE_RADIUS
   bool radiusLocalAuth = true;
 #endif
+  bool httpLocalAuth = true;
 
   if((user == NULL) || (user[0] == '\0'))
     return(false);
@@ -1190,6 +1191,60 @@ bool Ntop::checkUserPassword(const char * const user, const char * const passwor
       return(false);
   }
   #endif
+
+  if(ntop->getRedis()->get((char*)PREF_NTOP_AUTHENTICATION_TYPE, val, sizeof(val)) >= 0) {
+    if(!strcmp(val, "http") /* http only */) httpLocalAuth = false;
+    if(strncmp(val, "http", 4) == 0) {
+      int postLen;
+      char *httpUrl = NULL, *postData = NULL, *returnData = NULL;
+      bool http_ret = false;
+      HTTPTranferStats stats;
+      HTTPAuthenticator auth;
+
+      memset(&auth, 0, sizeof(auth));
+      if (!password || !password[0])
+        return false;
+
+      postLen = 100 + strlen(user) + strlen(password);
+      if (!(httpUrl = (char*)calloc(sizeof(char), MAX_HTTP_AUTHENTICATOR_LEN)) ||
+          !(postData = (char*)calloc(sizeof(char), postLen + 1)) ||
+          !(returnData = (char*)calloc(sizeof(char), MAX_HTTP_AUTHENTICATOR_RETURN_DATA_LEN + 1))) {
+        ntop->getTrace()->traceEvent(TRACE_ERROR, "HTTP: unable to allocate memory");
+        goto http_auth_out;
+      }
+      ntop->getRedis()->get((char*)PREF_HTTP_AUTHENTICATOR_URL, httpUrl, MAX_HTTP_AUTHENTICATOR_LEN);
+      httpUrl = strdup("http://127.0.0.1:8080/");
+      if (!httpUrl[0]) {
+        ntop->getTrace()->traceEvent(TRACE_ERROR, "HTTP: no http url set !");
+        goto http_auth_out;
+      }
+      snprintf(postData, postLen, "{\"user\": \"%s\", \"password\": \"%s\"}",
+               user, password);
+      if(Utils::postHTTPJsonData(NULL, // no digest user
+                                 NULL, // no digest password
+                                 httpUrl,
+                                 postData, &stats,
+                                 returnData, MAX_HTTP_AUTHENTICATOR_RETURN_DATA_LEN)) {
+        // parse JSON
+        if (!Utils::parseAuthenticatorJson(&auth, returnData)) {
+          ntop->getTrace()->traceEvent(TRACE_ERROR, "HTTP: unable to parse json answer data !");
+          goto http_auth_out;
+        }
+
+        ntop->getRedis()->set(key, auth.admin ?  (char*)CONST_USER_GROUP_ADMIN : (char*)CONST_USER_GROUP_UNPRIVILEGED, 0);
+        http_ret = true;
+      }
+
+    http_auth_out:
+      if (httpUrl) free(httpUrl);
+      if (postData) free(postData);
+      if (returnData) free(returnData);
+      if (http_ret)
+        return(true);
+    }
+    if (!httpLocalAuth)
+      return(false);
+  }
 
   snprintf(key, sizeof(key), CONST_STR_USER_PASSWORD, user);
 

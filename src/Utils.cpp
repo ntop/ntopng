@@ -1299,6 +1299,74 @@ bool Utils::postHTTPJsonData(char *username, char *password, char *url,
 }
 
 /* **************************************** */
+/* Warning, only 200 response return true, other status code will return false */
+bool Utils::postHTTPJsonData(char *username, char *password, char *url,
+                             char *json, HTTPTranferStats *stats,
+                             char *return_data, int return_data_size) {
+  CURL *curl;
+  bool ret = false;
+
+  curl = curl_easy_init();
+  if(curl) {
+    CURLcode res;
+    struct curl_slist* headers = NULL;
+    curl_fetcher_t fetcher = {
+      /* .payload =  */ return_data,
+      /* .cur_size = */ 0,
+      /* .max_size = */ (size_t)return_data_size};
+
+    memset(stats, 0, sizeof(HTTPTranferStats));
+    curl_easy_setopt(curl, CURLOPT_URL, url);
+
+    if((username && (username[0] != '\0'))
+       || (password && (password[0] != '\0'))) {
+      char auth[64];
+
+      snprintf(auth, sizeof(auth), "%s:%s",
+               username ? username : "",
+               password ? password : "");
+      curl_easy_setopt(curl, CURLOPT_USERPWD, auth);
+      curl_easy_setopt(curl, CURLOPT_HTTPAUTH, (long)CURLAUTH_BASIC);
+    }
+
+    if(!strncmp(url, "https", 5)) {
+      curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+      curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+    }
+
+    curl_easy_setopt(curl, CURLOPT_POST, 1L);
+    headers = curl_slist_append(headers, "Content-Type: application/json");
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json);
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)strlen(json));
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &fetcher);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_get_writefunc);
+
+    res = curl_easy_perform(curl);
+
+    if(res != CURLE_OK) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING,
+                                   "Unable to post data to (%s): %s",
+                                   url, curl_easy_strerror(res));
+    } else {
+      long response_code;
+
+      ntop->getTrace()->traceEvent(TRACE_INFO, "Posted JSON to %s", url);
+      readCurlStats(curl, stats, NULL);
+      curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
+      if (response_code == 200)
+        ret = true;
+    }
+
+    /* always cleanup */
+    curl_slist_free_all(headers);
+    curl_easy_cleanup(curl);
+  }
+
+  return(ret);
+}
+
+/* **************************************** */
 
 static size_t read_callback(void *ptr, size_t size, size_t nmemb, void *stream) {
   return(fread(ptr, size, nmemb, (FILE*)stream));
@@ -3459,3 +3527,21 @@ bool Utils::mg_write_retry(struct mg_connection *conn, u_char *b, int len) {
 
 /* ****************************************************** */
 
+bool Utils::parseAuthenticatorJson(HTTPAuthenticator *auth, char *content) {
+  json_object *o;
+  enum json_tokener_error jerr = json_tokener_success;
+
+  o = json_tokener_parse_verbose(content, &jerr);
+  if (o) {
+    json_object *w;
+
+    if(json_object_object_get_ex(o, "admin", &w))
+      auth->admin  = (bool)json_object_get_boolean(w);
+
+    json_object_put(o);
+    return true;
+  }
+  return false;
+}
+
+/* ****************************************************** */
