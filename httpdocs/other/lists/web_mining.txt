@@ -3,6 +3,10 @@
 #   - https://raw.githubusercontent.com/hoshsadiq/adblock-nocoin-list/master/hosts.txt -O archive/nocoin.txt
 #   - https://raw.githubusercontent.com/greatis/Anti-WebMiner/master/hosts
 #
+# player.h-cdn.com is not a miner site
+# https://forums.malwarebytes.com/topic/231385-resolved-false-positive-detection-of-playerh-cdncom-domain-✅/
+#
+
 0x1f4b0.com	99
 1q2w3.fun	99
 1q2w3.website	99
@@ -261,7 +265,7 @@ pearno.com	99
 pertholin.com	99
 piti.bplaced.net	99
 play.video.estream.nu	99
-player.h-cdn.com	99
+#player.h-cdn.com	99
 playerassets.info	99
 povw1deo.com	99
 ppoi.org	99
