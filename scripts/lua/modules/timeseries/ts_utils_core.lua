@@ -50,7 +50,7 @@ function ts_utils.getSchema(name)
   local schema = loaded_schemas[name]
 
   if schema and ts_utils.hasHighResolutionTs() then
-    if schema.options.step == 300 then
+    if((schema.options.step == 300) and (not starts(schema.name, "snmp"))) then
       schema.options.insertion_step = 60
       schema.options.step = 60
 
