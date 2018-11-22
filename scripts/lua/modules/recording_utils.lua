@@ -212,6 +212,7 @@ end
 -- Return memory information (values in MB)
 local function memInfo()
   local mem_info = {}
+
   for line in io.lines("/proc/meminfo") do 
     local pair = split(line, ':')
     local k = pair[1]
@@ -224,6 +225,13 @@ local function memInfo()
       mem_info[k] = math.floor(v)
     end
   end
+
+  if mem_info['MemAvailable'] == nil and 
+     mem_info['MemFree'] ~= nil and 
+     mem_info['SReclaimable'] ~= nil then
+    mem_info['MemAvailable'] = mem_info['MemFree'] + mem_info['SReclaimable']
+  end
+
   return mem_info
 end
 
@@ -404,7 +412,8 @@ function recording_utils.createConfig(ifid, params)
   defaults.buffer_size = num_buffered_files * defaults.max_file_size
 
   local total_n2disk_mem = defaults.buffer_size + (defaults.buffer_size/2) -- pcap + index buffer
-  if mem_available_mb < total_n2disk_mem then
+
+  if mem_available_mb ~= nil and mem_available_mb < total_n2disk_mem then
     local min_n2disk_buffer_size = (min_file_size * num_buffered_files) -- min memory for n2disk to work
     local min_n2disk_mem = min_n2disk_buffer_size + (min_n2disk_buffer_size/2)
     if mem_available_mb < min_n2disk_mem then
