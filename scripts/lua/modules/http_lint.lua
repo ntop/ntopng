@@ -415,8 +415,7 @@ end
 
 local function validateSnmpAction(mode)
    local modes = {"delete", "delete_all", "add",
-		  "addNewDevice", "startPolling",
-		  "startPortMonitor", "stopPortMonitor"}
+		  "addNewDevice", "startPolling"}
 
    return validateChoice(modes, mode)
 end
