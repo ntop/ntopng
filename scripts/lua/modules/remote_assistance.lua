@@ -19,8 +19,7 @@ local remote_assistance = {}
 -- ########################################################
 
 function remote_assistance.isAvailable()
-  return true
-  --return isAdministrator() and os_utils.hasService(SERVICE_NAME)
+  return isAdministrator() and os_utils.hasService(SERVICE_NAME)
 end
 
 -- ########################################################
