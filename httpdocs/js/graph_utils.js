@@ -785,7 +785,18 @@ var graph_old_has_nindex = null;
 var graph_old_nindex_query = null;
 
 function tsQueryToTags(ts_query) {
-  return ts_query.split(",").reduce(function(params, value) { var v = value.split(":"); params[v[0]] = v[1]; return params; }, {});
+  return ts_query.split(",").
+    reduce(function(params, value) {
+      var pos = value.indexOf(":");
+
+      if(pos != -1) {
+        var k = value.slice(0, pos);
+        var v = value.slice(pos+1);
+        params[k] = v;
+      }
+
+      return params;
+  }, {});
 }
 
 function updateGraphsTableView(view, graph_params, has_nindex, nindex_query, per_page) {
