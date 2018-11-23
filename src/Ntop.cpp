@@ -1094,7 +1094,7 @@ bool Ntop::checkUserPassword(const char * const user, const char * const passwor
 #endif
 
   if((!strcmp(user, "admin")) &&
-     (ntop->getRedis()->get(TEMP_ADMIN_PASSWORD, val, sizeof(val)) >= 0) &&
+     (ntop->getRedis()->get((char*)TEMP_ADMIN_PASSWORD, val, sizeof(val)) >= 0) &&
      (val[0] != '\0') &&
      (!strcmp(val, password))) {
     return(true);

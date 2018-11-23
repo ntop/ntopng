@@ -45,7 +45,7 @@ Let's see how to read a particuar host nDPI traffic by using the provided API.
 
 The "host:ndpi" schema is defined in `ts_5min.lua` as follows:
 
-.. code-block:: lua
+.. code-block:: c
 
   schema = ts_utils.newSchema("host:ndpi", {step=300})
   schema:addTag("ifid")
