@@ -1008,6 +1008,10 @@ bool Ntop::checkUserPassword(const char * const user, const char * const passwor
 #if defined(NTOPNG_PRO) && defined(HAVE_LDAP)
   bool localAuth = true;
 #endif
+#ifdef HAVE_RADIUS
+  bool radiusLocalAuth = true;
+#endif
+  bool httpLocalAuth = true;
 
   if((user == NULL) || (user[0] == '\0'))
     return(false);
@@ -1092,6 +1096,155 @@ bool Ntop::checkUserPassword(const char * const user, const char * const passwor
 
   if(!localAuth) return(false);
 #endif
+
+#ifdef HAVE_RADIUS
+  if(ntop->getRedis()->get((char*)PREF_NTOP_AUTHENTICATION_TYPE, val, sizeof(val)) >= 0) {
+    if(!strcmp(val, "radius") /* radius only */) radiusLocalAuth = false;
+    if(strncmp(val, "radius", 4) == 0) {
+      int result;
+      bool radius_ret = false;
+      char *radiusServer = NULL, *radiusSecret = NULL, *authServer = NULL;
+      rc_handle       *rh = NULL;
+      VALUE_PAIR      *send = NULL, *received = NULL;
+
+      if (!password || !password[0])
+        return false;
+
+      if (!(radiusServer = (char*)calloc(sizeof(char), MAX_RADIUS_LEN)) ||
+          !(radiusSecret = (char*)calloc(sizeof(char), MAX_RADIUS_LEN)) ||
+          !(authServer = (char*)calloc(sizeof(char), MAX_RADIUS_LEN))) {
+        ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: unable to allocate memory");
+        goto radius_auth_out;
+      }
+      ntop->getRedis()->get((char*)PREF_RADIUS_SERVER, radiusServer, MAX_RADIUS_LEN);
+      ntop->getRedis()->get((char*)PREF_RADIUS_SECRET, radiusSecret, MAX_RADIUS_LEN);
+      if (!radiusServer[0] || !radiusSecret[0]) {
+        ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: no radius server or secret set !");
+        goto radius_auth_out;
+      }
+      snprintf(authServer, MAX_RADIUS_LEN - 1, "%s:1812:%s", radiusServer, radiusSecret);
+
+      rh = rc_new();
+      if (rh == NULL) {
+        ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: unable to allocate memory");
+        goto radius_auth_out;
+      }
+      rh = rc_config_init(rh);
+      if (rh == NULL) {
+        ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: failed to init configuration");
+        goto radius_auth_out;
+      }
+      rc_add_config(rh, "radius_retries", "3", "config", 0);
+      rc_add_config(rh, "radius_timeout", "5", "config", 0);
+      rc_add_config(rh, "authserver", authServer, "config", 0);
+      rc_add_config(rh, "dictionary", "/etc/radcli/dictionnary", "config", 0); // TODO fix file location
+      if (rc_read_dictionary(rh, rc_conf_str(rh, "dictionary")) != 0) {
+        ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: unable to read dictionnary");
+        goto radius_auth_out;
+      }
+      if (rc_avpair_add(rh, &received, PW_USER_NAME, user, -1, 0) == NULL) {
+        ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: unable to set username");
+        goto radius_auth_out;
+      }
+      if (rc_avpair_add(rh, &send, PW_USER_NAME, user, -1, 0) == NULL) {
+        ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: unable to set username");
+        goto radius_auth_out;
+      }
+      if (rc_avpair_add(rh, &send, PW_USER_PASSWORD, password, -1, 0) == NULL) {
+        ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: unable to set password");
+        goto radius_auth_out;
+      }
+
+      result = rc_auth(rh, 0, send, &received, NULL);
+      if (result == OK_RC) {
+        bool is_admin = false;
+        VALUE_PAIR *vp = received;
+        char name[128];
+        char value[128];
+
+        while (vp != NULL) {
+          if (rc_avpair_tostr(rh, vp, name, sizeof(name), value, sizeof(value)) == 0) {
+            if (strcmp(name, "Filter-Id") == 0 && strcmp(value, "admin") == 0) {
+              is_admin = true;
+            }
+          }
+          vp = vp->next;
+        }
+        snprintf(key, sizeof(key), PREF_LDAP_GROUP_OF_USER, user);
+        ntop->getRedis()->set(key, is_admin ?  (char*)CONST_USER_GROUP_ADMIN : (char*)CONST_USER_GROUP_UNPRIVILEGED, 0);
+        snprintf(key, sizeof(key), PREF_USER_TYPE_LOG, user);
+        ntop->getRedis()->set(key, (char*)"radius", 0);
+        radius_ret = true;
+      }
+
+    radius_auth_out:
+      if (rh) {
+        rc_destroy(rh);
+      }
+      if (radiusServer) free(radiusServer);
+      if (radiusSecret) free(radiusSecret);
+      if (authServer) free(authServer);
+      if (radius_ret)
+        return(true);
+    }
+    if (!radiusLocalAuth)
+      return(false);
+  }
+  #endif
+
+  if(ntop->getRedis()->get((char*)PREF_NTOP_AUTHENTICATION_TYPE, val, sizeof(val)) >= 0) {
+    if(!strcmp(val, "http") /* http only */) httpLocalAuth = false;
+    if(strncmp(val, "http", 4) == 0) {
+      int postLen;
+      char *httpUrl = NULL, *postData = NULL, *returnData = NULL;
+      bool http_ret = false;
+      HTTPTranferStats stats;
+      HTTPAuthenticator auth;
+
+      memset(&auth, 0, sizeof(auth));
+      if (!password || !password[0])
+        return false;
+
+      postLen = 100 + strlen(user) + strlen(password);
+      if (!(httpUrl = (char*)calloc(sizeof(char), MAX_HTTP_AUTHENTICATOR_LEN)) ||
+          !(postData = (char*)calloc(sizeof(char), postLen + 1)) ||
+          !(returnData = (char*)calloc(sizeof(char), MAX_HTTP_AUTHENTICATOR_RETURN_DATA_LEN + 1))) {
+        ntop->getTrace()->traceEvent(TRACE_ERROR, "HTTP: unable to allocate memory");
+        goto http_auth_out;
+      }
+      ntop->getRedis()->get((char*)PREF_HTTP_AUTHENTICATOR_URL, httpUrl, MAX_HTTP_AUTHENTICATOR_LEN);
+      httpUrl = strdup("http://127.0.0.1:8080/");
+      if (!httpUrl[0]) {
+        ntop->getTrace()->traceEvent(TRACE_ERROR, "HTTP: no http url set !");
+        goto http_auth_out;
+      }
+      snprintf(postData, postLen, "{\"user\": \"%s\", \"password\": \"%s\"}",
+               user, password);
+      if(Utils::postHTTPJsonData(NULL, // no digest user
+                                 NULL, // no digest password
+                                 httpUrl,
+                                 postData, &stats,
+                                 returnData, MAX_HTTP_AUTHENTICATOR_RETURN_DATA_LEN)) {
+        // parse JSON
+        if (!Utils::parseAuthenticatorJson(&auth, returnData)) {
+          ntop->getTrace()->traceEvent(TRACE_ERROR, "HTTP: unable to parse json answer data !");
+          goto http_auth_out;
+        }
+
+        ntop->getRedis()->set(key, auth.admin ?  (char*)CONST_USER_GROUP_ADMIN : (char*)CONST_USER_GROUP_UNPRIVILEGED, 0);
+        http_ret = true;
+      }
+
+    http_auth_out:
+      if (httpUrl) free(httpUrl);
+      if (postData) free(postData);
+      if (returnData) free(returnData);
+      if (http_ret)
+        return(true);
+    }
+    if (!httpLocalAuth)
+      return(false);
+  }
 
   snprintf(key, sizeof(key), CONST_STR_USER_PASSWORD, user);
 
