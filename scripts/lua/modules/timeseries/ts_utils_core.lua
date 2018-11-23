@@ -8,6 +8,8 @@ local ts_common = require "ts_common"
 
 ts_utils.metrics = ts_common.metrics
 ts_utils.schema = require "ts_schema"
+ts_utils.getLastError = ts_common.getLastError
+ts_utils.getLastErrorMessage = ts_common.getLastErrorMessage
 
 require "lua_trace"
 require "ntop_utils"
@@ -186,6 +188,8 @@ function ts_utils.append(schema_name, tags_and_metrics, timestamp)
 
   --traceError(TRACE_NORMAL, TRACE_CONSOLE, "TS.UPDATE [".. schema.name .."] " .. table.tconcat(tags_and_metrics, "=", ","))
 
+  ts_common.clearLastError()
+
   for _, driver in pairs(ts_utils.listActiveDrivers()) do
     rv = driver:append(schema, timestamp, tags, data) and rv
   end
@@ -240,6 +244,8 @@ function ts_utils.query(schema_name, tags, tstart, tend, options)
   if not driver then
     return nil
   end
+
+  ts_common.clearLastError()
 
   local rv = driver:query(schema, tstart, tend, tags, query_options)
 
@@ -354,6 +360,8 @@ function ts_utils.queryTopk(schema_name, tags, tstart, tend, options)
   if not driver then
     return nil
   end
+
+  ts_common.clearLastError()
 
   local pre_computed = getPrecomputedTops(schema_name, tags, tstart, tend, query_options)
 
@@ -504,6 +512,8 @@ function ts_utils.listSeries(schema_name, tags_filter, start_time)
     end
   end
 
+  ts_common.clearLastError()
+
   return driver:listSeries(schema, filter_tags, wildcard_tags, start_time)
 end
 
@@ -541,6 +551,8 @@ function ts_utils.delete(schema_prefix, tags)
 
   local rv = true
 
+  ts_common.clearLastError()
+
   for _, driver in pairs(ts_utils.listActiveDrivers()) do
     rv = driver:delete(schema_prefix, tags) and rv
   end
@@ -569,6 +581,8 @@ function ts_utils.queryTotal(schema_name, tstart, tend, tags, options)
   end
 
   local query_options = ts_utils.getQueryOptions(options)
+
+  ts_common.clearLastError()
 
   return driver:queryTotal(schema, tstart, tend, tags, query_options)
 end

@@ -1060,7 +1060,14 @@
 
     this.loading( false );
 
-    if(data && typeof data.error === "string") {
+    var custom_no_res = null;
+
+    if(o.noResultsCallback)
+      custom_no_res = o.noResultsCallback(this, data);
+
+    if(custom_no_res) {
+      $e.append(custom_no_res);
+    } else if(data && typeof data.error === "string") {
       $e.append($("<div></div>")
         .addClass("alert alert-danger")
         .html(data.error));

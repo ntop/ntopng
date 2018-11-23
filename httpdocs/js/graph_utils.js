@@ -295,7 +295,16 @@ function fixJumpButtons(epoch_end) {
     $("#btn-jump-time-ahead").addClass("disabled");
   else
     $("#btn-jump-time-ahead").removeClass("disabled");
-};
+}
+
+function queryNoTimeout() {
+  $("#query-slow-alert").hide();
+  location.href = location.href + "&no_timeout=1";
+}
+
+function showQuerySlow() {
+  $("#query-slow-alert").show();
+}
 
 // add a new updateStackedChart function
 function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id, params, step, align_step, show_all_smooth, initial_range) {
@@ -504,6 +513,13 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
 
     // Load data via ajax
     pending_request = $.get(url, params, function(data) {
+      if(data && data.error) {
+        chart.noData(data.error);
+
+        if(data.tsLastError == "OPERATION_TOO_SLOW")
+          showQuerySlow();
+      }
+
       if(!data || !data.series || !data.series.length || !checkSeriesConsinstency(schema_name, data.count, data.series)) {
         update_chart_data([]);
         return;
@@ -891,6 +907,9 @@ function updateGraphsTableView(view, graph_params, has_nindex, nindex_query, per
            stats_div.show();
         } else
           stats_div.hide();
+
+        if(data && data.tsLastError == "OPERATION_TOO_SLOW")
+          showQuerySlow();
       }, rowCallback: function(row, row_data) {
         if((typeof row_data.tags === "object") && (
           (params_obj.category && (row_data.tags.category === params_obj.category)) ||

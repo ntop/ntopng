@@ -1619,7 +1619,10 @@ bool Utils::httpGetPost(lua_State* vm, char *url, char *username,
 	lua_push_str_table_entry(vm, "CONTENT_TYPE", content_type);
 
       if(curl_easy_getinfo(curl, CURLINFO_EFFECTIVE_URL, &redirection) == CURLE_OK)
-	lua_push_str_table_entry(vm, "EFFECTIVE_URL", redirection);      
+	lua_push_str_table_entry(vm, "EFFECTIVE_URL", redirection);
+
+      if(!ret)
+	lua_push_bool_table_entry(vm, "IS_PARTIAL", true);
     }
 
     if(return_content && state)

@@ -194,4 +194,27 @@ end
 
 -- ##############################################
 
+local last_error = nil
+local last_error_msg = nil
+ts_common.ERR_OPERATION_TOO_SLOW = "OPERATION_TOO_SLOW"
+
+function ts_common.clearLastError()
+  err = nil
+end
+
+function ts_common.setLastError(err, msg)
+  last_error = err
+  last_error_msg = msg
+end
+
+function ts_common.getLastError()
+  return last_error
+end
+
+function ts_common.getLastErrorMessage()
+  return last_error_msg
+end
+
+-- ##############################################
+
 return ts_common

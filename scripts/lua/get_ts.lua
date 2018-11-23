@@ -29,6 +29,7 @@ local latest_tstamp = driver:getLatestTimestamp(tags.ifid or -1)
 local options = {
   max_num_points = tonumber(_GET["limit"]),
   initial_point = toboolean(_GET["initial_point"]),
+  no_timeout = _GET["no_timeout"],
   with_series = true,
 }
 
@@ -77,7 +78,14 @@ else
 end
 
 if res == nil then
-  print("[]")
+  res = {}
+
+  if(ts_utils.getLastError() ~= nil) then
+    res["tsLastError"] = ts_utils.getLastError()
+    res["error"] = ts_utils.getLastErrorMessage()
+  end
+
+  print(json.encode(res))
   return
 end
 

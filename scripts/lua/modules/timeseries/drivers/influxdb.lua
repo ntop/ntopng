@@ -62,10 +62,11 @@ end
 
 -- ##############################################
 
-local function influx_query(base_url, query, username, password)
+local function influx_query(base_url, query, username, password, options)
+  options = options or {}
   local full_url = base_url .."&q=" .. urlencode(query)
   local tstart = os.time()
-  local res = ntop.httpGet(full_url, username, password, INFLUX_QUERY_TIMEMOUT_SEC, true)
+  local res = ntop.httpGet(full_url, username, password, ternary(options.no_timeout, 99999999999, INFLUX_QUERY_TIMEMOUT_SEC), true)
   local tend = os.time()
   local debug_influxdb_queries = (ntop.getPref("ntopng.prefs.debug_influxdb_queries") == "1")
 
@@ -86,8 +87,8 @@ local function influx_query(base_url, query, username, password)
     return nil
   end
 
-  if res.CONTENT == nil then
-    traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing content")
+  if((res.CONTENT == nil) or (res.IS_PARTIAL)) then
+    ts_common.setLastError(ts_common.ERR_OPERATION_TOO_SLOW, i18n("graphs.query_too_slow"))
     return nil
   end
 
@@ -239,7 +240,7 @@ end
 function driver:_makeTotalSerie(schema, tstart, tend, tags, options, url, time_step, label, unaligned_offset)
   local data_type = schema.options.metrics_type
   local query = getTotalSerieQuery(schema, tstart, tend + unaligned_offset, tags, time_step, data_type, label)
-  local data = influx_query(url .. "/query?db=".. self.db .."&epoch=s", query, self.username, self.password)
+  local data = influx_query(url .. "/query?db=".. self.db .."&epoch=s", query, self.username, self.password, options)
 
   if table.empty(data) then
     local rv = {}
@@ -312,7 +313,7 @@ function driver:query(schema, tstart, tend, tags, options)
   local query = makeSeriesQuery(schema, metrics, tags, tstart, tend + unaligned_offset, time_step)
 
   local url = self.url
-  local data = influx_query(url .. "/query?db=".. self.db .."&epoch=s", query, self.username, self.password)
+  local data = influx_query(url .. "/query?db=".. self.db .."&epoch=s", query, self.username, self.password, options)
   local series, count
 
   if table.empty(data) then
@@ -361,7 +362,7 @@ function driver:query(schema, tstart, tend, tags, options)
     end
 
     local query = makeSeriesQuery(schema, metrics, tags, tstart-time_step, tstart+unaligned_offset, time_step)
-    local data = influx_query(url .. "/query?db=".. self.db .."&epoch=s", query, self.username, self.password)
+    local data = influx_query(url .. "/query?db=".. self.db .."&epoch=s", query, self.username, self.password, options)
 
     if table.empty(data) then
       -- Data fill
@@ -600,7 +601,7 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
   local query = 'SELECT TOP(value,'.. top_tag ..','.. options.top ..'), '.. all_metrics ..' FROM ' .. base_query
 
   local url = self.url
-  local data = influx_query(url .. "/query?db=".. self.db .."&epoch=s", query, self.username, self.password)
+  local data = influx_query(url .. "/query?db=".. self.db .."&epoch=s", query, self.username, self.password, options)
 
   if table.empty(data) then
     return data
@@ -708,7 +709,7 @@ function driver:queryTotal(schema, tstart, tend, tags, options)
   end
 
   local url = self.url
-  local data = influx_query(url .. "/query?db=".. self.db .."&epoch=s", query, self.username, self.password)
+  local data = influx_query(url .. "/query?db=".. self.db .."&epoch=s", query, self.username, self.password, options)
 
   if table.empty(data) then
     return data

@@ -1316,6 +1316,7 @@ local known_parameters = {
    ["assistance_key"]          = validateUnquoted,
    ["allow_admin_access"]      = validateBool,
    ["accept_tos"]              = validateBool,
+   ["no_timeout"]              = validateBool,
 
    -- json POST DATA
    ["payload"]                 = { jsonCleanup, validateJSON },
