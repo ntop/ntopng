@@ -51,6 +51,7 @@ third-party/zeromq-*/tools/.dirstamp
 third-party/zeromq-*/tools/curve_keygen.o
 httpdocs/geoip/*
 httpdocs/ssl/ntopng-cert.pem
+httpdocs/misc/ntopng-utils-manage-config
 include/config.h.in
 autom4te.cache*
 *#
@@ -64,6 +65,7 @@ doc/doxygen.conf
 nDPI
 ntopng
 packages/*.spec
+packages/etc/systemd/system/ntopng.service
 Makefile
 *.pcap
 *.lua.cpp

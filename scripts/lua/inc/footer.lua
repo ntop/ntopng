@@ -401,6 +401,15 @@ print [[/lua/if_stats.lua\"><i class=\"fa fa-warning\" style=\"color: #B94A48;\"
 		msg += addCommas(rsp.num_live_captures)+" <i class=\"fa fa-download fa-lg\"></i></A> </span> ";
 	    }
 
+	    if(typeof rsp.remote_assistance !== "undefined") {
+	      var status = rsp.remote_assistance.status;
+	      var status_label = (status == "active") ? "success" : "danger";
+	      
+	      msg += "&nbsp;<a href=\"]] print(ntop.getHttpPrefix()) print[[/lua/admin/remote_assistance.lua\"><span class=\"label label-" + status_label + "\" title=\"]]
+	      print(i18n("remote_assistance.remote_assistance")) print[[\">";
+	      msg += "<i class=\"fa fa-commenting fa-lg\"></i></span></a>";
+	    }
+
 	    if(typeof rsp.traffic_recording !== "undefined") {
                 var status_label="primary"; 
                 var status_title="]] print(i18n("traffic_recording.recording")) print [[";

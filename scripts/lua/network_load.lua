@@ -13,6 +13,7 @@ sendHTTPHeader('application/json')
 
 local callback_utils = require("callback_utils")
 local recording_utils = require("recording_utils")
+local remote_assistance = require("remote_assistance")
 
 local function userHasRestrictions()
    local allowed_nets = ntop.getPref("ntopng.user." .. (_SESSION["user"] or "") .. ".allowed_nets")
@@ -138,6 +139,14 @@ function dumpInterfaceStats(interface_name)
       end
 
       res["breed"] = stats["breeds"]
+
+      if remote_assistance.isAvailable() then
+	 if remote_assistance.isEnabled() then
+	    res["remote_assistance"] = {
+	       status = remote_assistance.getStatus(),
+	    }
+	 end
+      end
 
       if recording_utils.isAvailable() then
         if recording_utils.isEnabled(ifstats.id) then

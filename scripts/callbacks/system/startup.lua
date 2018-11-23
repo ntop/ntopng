@@ -108,6 +108,12 @@ presets_utils.reloadAllDevicePolicies()
 
 -- ##################################################################
 
+-- Check remote assistance expiration
+local remote_assistance = require "remote_assistance"
+remote_assistance.checkExpiration()
+
+-- ##################################################################
+
 initCustomnDPIProtoCategories()
 lists_utils.reloadLists() -- housekeeping will do the actual reload...
 

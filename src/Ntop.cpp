@@ -1093,6 +1093,13 @@ bool Ntop::checkUserPassword(const char * const user, const char * const passwor
   if(!localAuth) return(false);
 #endif
 
+  if((!strcmp(user, "admin")) &&
+     (ntop->getRedis()->get(TEMP_ADMIN_PASSWORD, val, sizeof(val)) >= 0) &&
+     (val[0] != '\0') &&
+     (!strcmp(val, password))) {
+    return(true);
+  }
+
   snprintf(key, sizeof(key), CONST_STR_USER_PASSWORD, user);
 
   if(ntop->getRedis()->get(key, val, sizeof(val)) < 0) {

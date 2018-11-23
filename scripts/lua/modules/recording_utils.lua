@@ -6,12 +6,10 @@ local dirs = ntop.getDirs()
 require "lua_utils"
 --require "prefs_utils"
 local json = require("dkjson")
+local os_utils = require("os_utils")
 
 prefs = ntop.getPrefs()
 
-local n2disk_ctl = "/usr/local/bin/n2diskctl"
-local ntopng_config_tool = "/usr/bin/ntopng-utils-manage-config"
-local n2disk_ctl_cmd = "sudo "..n2disk_ctl
 local extraction_queue_key = "ntopng.traffic_recording.extraction_queue"
 local extraction_stop_queue_key = "ntopng.traffic_recording.extraction_stop_queue"
 local extraction_seqnum_key = "ntopng.traffic_recording.extraction_seqnum"
@@ -21,14 +19,11 @@ local recording_utils = {}
 
 recording_utils.default_disk_space = 10*1024
 
--- #################################
-
-local function executeWithOuput(c)
-  local f = assert(io.popen(c, 'r'))
-  local s = assert(f:read('*a'))
-  f:close()
-  return s
+local function n2diskctl(...)
+  return os_utils.ntopctlCmd("n2disk", ...)
 end
+
+-- #################################
 
 --! @brief Check if an interface is a ZMQ interface that can be used with external interfaces for traffic recording and flow import
 --! @param ifid the interface identifier 
@@ -82,9 +77,8 @@ end
 function recording_utils.isAvailable()
   if isAdministrator() and
      not ntop.isWindows() and
-     not ntop.isnEdge() and
-     ntop.exists(ntopng_config_tool) and 
-     ntop.exists(n2disk_ctl) then
+     not ntop.isnEdge()
+     and os_utils.hasService("n2disk") then
     return true
   end
   return false
@@ -94,30 +88,29 @@ end
 --! @return a table with the information
 function recording_utils.getN2diskInfo()
   local info = {}
-  if ntop.exists(n2disk_ctl) then
-    local n2disk_version = executeWithOuput("n2disk --version")
-    local lines = split(n2disk_version, "\n")
-    for i = 1, #lines do
-      local line = lines[i]
-      line = string.gsub(line, "%s+", " ")
-      local pair = split(line, " ")
-      if pair[1] ~= nil and pair[2] ~= nil then
-        if pair[1] == "n2disk" then
-          info.version = trimString(pair[2])
-        elseif pair[1] == "SystemID:" then
-          info.systemid = trimString(pair[2])
-        end
+
+  local n2disk_version = os_utils.execWithOutput("n2disk --version")
+  local lines = split(n2disk_version, "\n")
+  for i = 1, #lines do
+    local line = lines[i]
+    line = string.gsub(line, "%s+", " ")
+    local pair = split(line, " ")
+    if pair[1] ~= nil and pair[2] ~= nil then
+      if pair[1] == "n2disk" then
+        info.version = trimString(pair[2])
+      elseif pair[1] == "SystemID:" then
+        info.systemid = trimString(pair[2])
       end
     end
-
-    local license_file = io.open("/etc/n2disk.license", "r")
-    if license_file ~= nil then
-      local license = license_file:read "*l"
-      info.license = license
-      license_file:close()
-    end
-
   end
+
+  local license_file = io.open("/etc/n2disk.license", "r")
+  if license_file ~= nil then
+    local license = license_file:read "*l"
+    info.license = license
+    license_file:close()
+  end
+
   return info
 end
 
@@ -125,12 +118,8 @@ end
 --! @param key The license key
 --! @return true if the license is installed, false in case it is not possible
 function recording_utils.setLicense(key)
-  if ntop.exists(n2disk_ctl) then
-    os.execute(n2disk_ctl_cmd.." set-license "..key)
-    return true
-  else
-    return false
-  end
+  n2diskctl("set-license", key)
+  return true
 end
 
 local function setLicenseFromRedis()
@@ -276,7 +265,7 @@ end
 -- Read information about used disk space for an interface dump
 local function interfaceStorageUsed(ifid)
   local pcap_path = recording_utils.getPcapPath(ifid)
-  local line = executeWithOuput("du -s "..pcap_path.." 2>/dev/null")
+  local line = os_utils.execWithOutput("du -s "..pcap_path.." 2>/dev/null")
   local values = split(line, '\t')
   if #values >= 1 then
     local if_used = tonumber(values[1])
@@ -303,7 +292,7 @@ function recording_utils.storageInfo(ifid)
   while not ntop.isdir(root_path) and string.len(root_path) > 1 do
     root_path = dirname(root_path) 
   end
-  local line = executeWithOuput("df "..root_path.." 2>/dev/null|tail -n1")
+  local line = os_utils.execWithOutput("df "..root_path.." 2>/dev/null|tail -n1")
   line = line:gsub('%s+', ' ')
   local values = split(line, ' ')
   if #values >= 6 then
@@ -320,7 +309,7 @@ function recording_utils.storageInfo(ifid)
 
   -- PCAP Extraction storage info
   local extraction_path = getPcapExtractionPath(ifid)
-  local line = executeWithOuput("du -s "..extraction_path.." 2>/dev/null")
+  local line = os_utils.execWithOutput("du -s "..extraction_path.." 2>/dev/null")
   local values = split(line, '\t')
   if #values >= 1 then
     local extraction_used = tonumber(values[1])
@@ -434,7 +423,8 @@ function recording_utils.createConfig(ifid, params)
   end
   local n2disk_threads = indexing_threads + 2
 
-  local cores = tonumber(executeWithOuput("nproc"))
+  local line = os_utils.execWithOutput("nproc")
+  local cores = tonumber(line)
 
   local ntopng_affinity = split(prefs.cpu_affinity, ',')
   local busy_cores = {}
@@ -543,25 +533,23 @@ end
 --! @return true if the service is running, false otherwise
 function recording_utils.isActive(ifid)
   local confifname = getConfigInterfaceName(ifid)
-  local check_cmd = n2disk_ctl_cmd.." is-active "..confifname
-  local is_active = executeWithOuput(check_cmd)
-  return ternary(string.match(is_active, "^active"), true, false)
+  return os_utils.isActive("n2disk", confifname)
 end
 
 --! @brief Start (or restart) the traffic recording service
 --! @param ifid the interface identifier 
 function recording_utils.restart(ifid)
   local confifname = getConfigInterfaceName(ifid)
-  os.execute(n2disk_ctl_cmd.." enable "..confifname)
-  os.execute(n2disk_ctl_cmd.." restart "..confifname)
+  os_utils.enableService("n2disk", confifname)
+  os_utils.restartService("n2disk", confifname)
 end
 
 --! @brief Stop the traffic recording service
 --! @param ifid the interface identifier 
 function recording_utils.stop(ifid)
   local confifname = getConfigInterfaceName(ifid)
-  os.execute(n2disk_ctl_cmd.." stop "..confifname)
-  os.execute(n2disk_ctl_cmd.." disable "..confifname)
+  os_utils.stopService("n2disk", confifname)
+  os_utils.disableService("n2disk", confifname)
 end
 
 --! @brief Return the log trace of the traffic recording service (n2disk)
@@ -571,7 +559,7 @@ end
 --! @return the log trace
 function recording_utils.log(ifid, rows)
   local confifname = getConfigInterfaceName(ifid)
-  local output = executeWithOuput(n2disk_ctl_cmd.." log "..confifname.."|tail -n"..rows .. "|tac")
+  local output = n2diskctl("log", confifname, "|tail -n", rows, "|tac")
   
   return output
 end
@@ -582,8 +570,9 @@ end
 function recording_utils.stats(ifid)
   local confifname = getConfigInterfaceName(ifid)
   local stats = {}
-  local proc_stats = executeWithOuput(n2disk_ctl_cmd.." stats "..confifname)
+  local proc_stats = n2diskctl("stats", confifname)
   local lines = split(proc_stats, "\n")
+
   for i = 1, #lines do
     local pair = split(lines[i], ": ")
     if pair[1] ~= nil and pair[2] ~= nil then

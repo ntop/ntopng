@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 if((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.scriptdir .. "/lua/modules/?.lua;" .. package.path end
 require "lua_utils"
 local recording_utils = require "recording_utils"
+local remote_assistance = require "remote_assistance"
 
 print[[
 <script>
@@ -428,6 +429,10 @@ end
 
 if(user_group == "administrator") then
    print("<li><a href=\""..ntop.getHttpPrefix().."/lua/admin/prefs.lua\"><i class=\"fa fa-flask\"></i> ") print(i18n("prefs.preferences")) print("</a></li>\n")
+
+   if remote_assistance.isAvailable() then
+      print("<li><a href=\""..ntop.getHttpPrefix().."/lua/admin/remote_assistance.lua\"><i class=\"fa fa-commenting\"></i> ") print(i18n("remote_assistance.remote_assistance")) print("</a></li>\n")
+   end
 
    if(ntop.isPro()) then
       print("<li><a href=\""..ntop.getHttpPrefix().."/lua/pro/admin/edit_profiles.lua\"><i class=\"fa fa-user-md\"></i> ") print(i18n("traffic_profiles.traffic_profiles")) print("</a></li>\n")
