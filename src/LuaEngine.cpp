@@ -5202,9 +5202,11 @@ void lua_push_int32_table_entry(lua_State *L, const char *key, int32_t value) {
   if(L) {
     lua_pushstring(L, key);
 
+#if defined(LUA_MAXINTEGER) && defined(LUA_MININTEGER)
     if((lua_Integer)value > LUA_MAXINTEGER || (lua_Integer)value < LUA_MININTEGER)
       lua_pushnumber(L, (lua_Number)value);
     else
+#endif
       lua_pushinteger(L, (lua_Integer)value);
 
     lua_settable(L, -3);
