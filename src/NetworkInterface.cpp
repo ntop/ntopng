@@ -2817,10 +2817,15 @@ static bool update_macs_stats(GenericHashEntry *node, void *user_data, bool *mat
 
 /* **************************************************** */
 
+// #define PERIODIC_STATS_UPDATE_DEBUG_TIMING
+
 void NetworkInterface::periodicStatsUpdate() {
   struct timeval tv;
   u_int32_t begin_slot = 0;
   bool walk_all = true;
+#ifdef PERIODIC_STATS_UPDATE_DEBUG_TIMING
+  struct timeval tdebug;
+#endif
 
   if(isView()) return;
 
@@ -2833,8 +2838,17 @@ void NetworkInterface::periodicStatsUpdate() {
   if(getHostPools()) getHostPools()->checkPoolsStatsReset();
 #endif
 
+#ifdef PERIODIC_STATS_UPDATE_DEBUG_TIMING
+  gettimeofday(&tdebug, NULL);
+#endif
+
   flows_hash->walk(&begin_slot, walk_all, flow_update_hosts_stats, (void*)&tv);
   topItemsCommit(&tv);
+
+#ifdef PERIODIC_STATS_UPDATE_DEBUG_TIMING
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "flows_hash->walk took %d seconds", time(NULL) - tdebug.tv_sec);
+  gettimeofday(&tdebug, NULL);
+#endif
 
   if(ntop->getGlobals()->isShutdownRequested())
     return;
@@ -2871,8 +2885,18 @@ void NetworkInterface::periodicStatsUpdate() {
   }
 #endif
 
+#ifdef PERIODIC_STATS_UPDATE_DEBUG_TIMING
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "flows aggregation took %d seconds", time(NULL) - tdebug.tv_sec);
+  gettimeofday(&tdebug, NULL);
+#endif
+
   begin_slot = 0;
   hosts_hash->walk(&begin_slot, walk_all, update_hosts_stats, (void*)&tv);
+
+#ifdef PERIODIC_STATS_UPDATE_DEBUG_TIMING
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "hosts_hash->walk took %d seconds", time(NULL) - tdebug.tv_sec);
+  gettimeofday(&tdebug, NULL);
+#endif
 
   begin_slot = 0;
   ases_hash->walk(&begin_slot, walk_all, update_ases_stats, (void*)&tv);
@@ -2885,6 +2909,11 @@ void NetworkInterface::periodicStatsUpdate() {
   begin_slot = 0;
   macs_hash->walk(&begin_slot, walk_all, update_macs_stats, (void*)&tv);
 
+#ifdef PERIODIC_STATS_UPDATE_DEBUG_TIMING
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "asn/macs/vlan->walk took %d seconds", time(NULL) - tdebug.tv_sec);
+  gettimeofday(&tdebug, NULL);
+#endif
+
   if(ntop->getGlobals()->isShutdownRequested())
     return;
 
@@ -2894,6 +2923,11 @@ void NetworkInterface::periodicStatsUpdate() {
 
     db->flush();
   }
+#endif
+
+#ifdef PERIODIC_STATS_UPDATE_DEBUG_TIMING
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "MySQL dump took %d seconds", time(NULL) - tdebug.tv_sec);
+  gettimeofday(&tdebug, NULL);
 #endif
 
 #ifdef NTOPNG_PRO
@@ -2911,6 +2945,11 @@ void NetworkInterface::periodicStatsUpdate() {
     /* Ownership of the point is passed to the ring */
     ts_ring->insert(pt, tv.tv_sec);
   }
+
+#ifdef PERIODIC_STATS_UPDATE_DEBUG_TIMING
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Timeseries update took %d seconds", time(NULL) - tdebug.tv_sec);
+  gettimeofday(&tdebug, NULL);
+#endif
 
   if((!read_from_pcap_dump()) &&
       (time(NULL) - tv.tv_sec) > ntop->getPrefs()->get_housekeeping_frequency())
