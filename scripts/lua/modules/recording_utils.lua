@@ -78,7 +78,7 @@ function recording_utils.isAvailable()
   if isAdministrator() and
      not ntop.isWindows() and
      not ntop.isnEdge()
-     and os_utils.hasService("n2disk") then
+     and os_utils.hasService("n2disk", getInterfaceName(getFirstInterfaceId())) then
     return true
   end
   return false

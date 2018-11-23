@@ -145,7 +145,7 @@ has_service() {
 		get_systemd_service_name
 		/bin/systemctl status ${SERVICE} 2>/dev/null >/dev/null
 
-		if [ $? -eq 0 ]; then
+		if [ $? -ne 4 ]; then
 			echo "yes"
 		else
 			echo "no"
