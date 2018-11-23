@@ -4248,7 +4248,7 @@ int NetworkInterface::getFlows(lua_State* vm,
   }
 
   lua_newtable(vm);
-  lua_push_int_table_entry(vm, "numFlows", retriever.actNumEntries);
+  lua_push_uint64_table_entry(vm, "numFlows", retriever.actNumEntries);
 
   lua_newtable(vm);
 
@@ -4693,8 +4693,8 @@ int NetworkInterface::getActiveHostsList(lua_State* vm,
 #endif
 
   lua_newtable(vm);
-  lua_push_int_table_entry(vm, "numHosts", retriever.actNumEntries);
-  lua_push_int_table_entry(vm, "nextSlot", *begin_slot);
+  lua_push_uint64_table_entry(vm, "numHosts", retriever.actNumEntries);
+  lua_push_uint64_table_entry(vm, "nextSlot", *begin_slot);
 
   lua_newtable(vm);
 
@@ -4776,7 +4776,7 @@ static bool hosts_get_macs(GenericHashEntry *he, void *user_data, bool *matched)
 
       if(lua_type(r->vm, -1) == LUA_TTABLE) {
         /* Add the ip address to the table */
-        lua_push_int_table_entry(r->vm, host->get_hostkey(ip_buf, sizeof(ip_buf)), host->get_ip()->isIPv4() ? 4 : 6);
+        lua_push_uint64_table_entry(r->vm, host->get_hostkey(ip_buf, sizeof(ip_buf)), host->get_ip()->isIPv4() ? 4 : 6);
       }
 
       lua_pop(r->vm, 1);
@@ -4913,12 +4913,12 @@ void NetworkInterface::getFlowsStats(lua_State* vm) {
   walker(&begin_slot, walk_all,  walker_flows, flow_stats_walker, (void*)&stats);
 
   lua_newtable(vm);
-  lua_push_int_table_entry(vm, "num_flows", stats.num_flows);
+  lua_push_uint64_table_entry(vm, "num_flows", stats.num_flows);
 
   lua_newtable(vm);
   for(int i=0; i<NDPI_MAX_SUPPORTED_PROTOCOLS+NDPI_MAX_NUM_CUSTOM_PROTOCOLS; i++) {
     if(stats.ndpi_bytes[i] > 0)
-      lua_push_int_table_entry(vm,
+      lua_push_uint64_table_entry(vm,
 			       ndpi_get_proto_name(get_ndpi_struct(), i),
 			       stats.ndpi_bytes[i]);
   }
@@ -4930,7 +4930,7 @@ void NetworkInterface::getFlowsStats(lua_State* vm) {
   lua_newtable(vm);
   for(int i=0; i<NUM_BREEDS; i++) {
     if(stats.breeds_bytes[i] > 0)
-      lua_push_int_table_entry(vm,
+      lua_push_uint64_table_entry(vm,
 			       ndpi_get_proto_breed_name(get_ndpi_struct(),
 							 (ndpi_protocol_breed_t)i),
 			       stats.breeds_bytes[i]);
@@ -5160,10 +5160,10 @@ void NetworkInterface::getFlowsStatus(lua_State *vm) {
 
   walker(&begin_slot, walk_all,  walker_flows, num_flows_state_walker, num_flows);
 
-  lua_push_int_table_entry(vm, "RST", num_flows[0]);
-  lua_push_int_table_entry(vm, "SYN", num_flows[1]);
-  lua_push_int_table_entry(vm, "Established", num_flows[2]);
-  lua_push_int_table_entry(vm, "FIN", num_flows[3]);
+  lua_push_uint64_table_entry(vm, "RST", num_flows[0]);
+  lua_push_uint64_table_entry(vm, "SYN", num_flows[1]);
+  lua_push_uint64_table_entry(vm, "Established", num_flows[2]);
+  lua_push_uint64_table_entry(vm, "FIN", num_flows[3]);
 }
 
 /* *************************************** */
@@ -5182,7 +5182,7 @@ void NetworkInterface::getnDPIFlowsCount(lua_State *vm) {
 
     for(int i=0; i<(int)num_supported_protocols; i++) {
       if(num_flows[i] > 0)
-	lua_push_int_table_entry(vm, proto_defaults[i].protoName,
+	lua_push_uint64_table_entry(vm, proto_defaults[i].protoName,
 				 num_flows[i]);
     }
 
@@ -5216,12 +5216,12 @@ void NetworkInterface::lua(lua_State *vm) {
 
   lua_push_str_table_entry(vm, "name", get_name());
   lua_push_str_table_entry(vm, "description", get_description());
-  lua_push_int_table_entry(vm, "scalingFactor", scalingFactor);
-  lua_push_int_table_entry(vm,  "id", id);
+  lua_push_uint64_table_entry(vm, "scalingFactor", scalingFactor);
+  lua_push_uint64_table_entry(vm,  "id", id);
   if(customIftype) lua_push_str_table_entry(vm, "customIftype", (char*)customIftype);
   lua_push_bool_table_entry(vm, "isView", isView()); /* View interface */
   lua_push_bool_table_entry(vm, "isDynamic", isDynamicInterface()); /* An runtime-instantiated interface */
-  lua_push_int_table_entry(vm,  "seen.last", getTimeLastPktRcvd());
+  lua_push_uint64_table_entry(vm,  "seen.last", getTimeLastPktRcvd());
   lua_push_bool_table_entry(vm, "sprobe", get_sprobe_interface());
   lua_push_bool_table_entry(vm, "inline", get_inline_interface());
   lua_push_bool_table_entry(vm, "vlan",     hasSeenVlanTaggedPackets());
@@ -5229,15 +5229,15 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_bool_table_entry(vm, "has_traffic_directions", areTrafficDirectionsSupported());
 
   lua_newtable(vm);
-  lua_push_int_table_entry(vm, "packets",     getNumPackets());
-  lua_push_int_table_entry(vm, "bytes",       getNumBytes());
-  lua_push_int_table_entry(vm, "flows",       getNumFlows());
-  lua_push_int_table_entry(vm, "hosts",       getNumHosts());
-  lua_push_int_table_entry(vm, "local_hosts", getNumLocalHosts());
-  lua_push_int_table_entry(vm, "http_hosts",  getNumHTTPHosts());
-  lua_push_int_table_entry(vm, "drops",       getNumPacketDrops());
-  lua_push_int_table_entry(vm, "devices",     getNumL2Devices());
-  lua_push_int_table_entry(vm, "num_live_captures", num_live_captures);
+  lua_push_uint64_table_entry(vm, "packets",     getNumPackets());
+  lua_push_uint64_table_entry(vm, "bytes",       getNumBytes());
+  lua_push_uint64_table_entry(vm, "flows",       getNumFlows());
+  lua_push_uint64_table_entry(vm, "hosts",       getNumHosts());
+  lua_push_uint64_table_entry(vm, "local_hosts", getNumLocalHosts());
+  lua_push_uint64_table_entry(vm, "http_hosts",  getNumHTTPHosts());
+  lua_push_uint64_table_entry(vm, "drops",       getNumPacketDrops());
+  lua_push_uint64_table_entry(vm, "devices",     getNumL2Devices());
+  lua_push_uint64_table_entry(vm, "num_live_captures", num_live_captures);
 
 #ifndef HAVE_NEDGE
   /* even if the counter is global, we put it here on every interface
@@ -5257,9 +5257,9 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_settable(vm, -3);
 
   lua_newtable(vm);
-  lua_push_int_table_entry(vm, "packets",     getNumPacketsSinceReset());
-  lua_push_int_table_entry(vm, "bytes",       getNumBytesSinceReset());
-  lua_push_int_table_entry(vm, "drops",       getNumPacketDropsSinceReset());
+  lua_push_uint64_table_entry(vm, "packets",     getNumPacketsSinceReset());
+  lua_push_uint64_table_entry(vm, "bytes",       getNumBytesSinceReset());
+  lua_push_uint64_table_entry(vm, "drops",       getNumPacketDropsSinceReset());
 
 #ifndef HAVE_NEDGE
   if(ntop->getPrefs()->do_dump_flows_on_es()) {
@@ -5275,16 +5275,16 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_insert(vm, -2);
   lua_settable(vm, -3);
 
-  lua_push_int_table_entry(vm, "remote_pps", last_remote_pps);
-  lua_push_int_table_entry(vm, "remote_bps", last_remote_bps);
+  lua_push_uint64_table_entry(vm, "remote_pps", last_remote_pps);
+  lua_push_uint64_table_entry(vm, "remote_bps", last_remote_bps);
   icmp_v4.lua(true, vm);
   icmp_v6.lua(false, vm);
-  lua_push_int_table_entry(vm, "arp.requests", arp_requests);
-  lua_push_int_table_entry(vm, "arp.replies", arp_replies);
+  lua_push_uint64_table_entry(vm, "arp.requests", arp_requests);
+  lua_push_uint64_table_entry(vm, "arp.replies", arp_replies);
   lua_push_str_table_entry(vm, "type", (char*)get_type());
-  lua_push_int_table_entry(vm, "speed", ifSpeed);
-  lua_push_int_table_entry(vm, "mtu", ifMTU);
-  lua_push_int_table_entry(vm, "alertLevel", alertLevel);
+  lua_push_uint64_table_entry(vm, "speed", ifSpeed);
+  lua_push_uint64_table_entry(vm, "mtu", ifMTU);
+  lua_push_uint64_table_entry(vm, "alertLevel", alertLevel);
   lua_push_str_table_entry(vm, "ip_addresses", (char*)getLocalIPAddresses());
 
   /* Anomalies */
@@ -6086,8 +6086,8 @@ int NetworkInterface::getActiveMacList(lua_State* vm,
   }
 
   lua_newtable(vm);
-  lua_push_int_table_entry(vm, "numMacs", retriever.actNumEntries);
-  lua_push_int_table_entry(vm, "nextSlot", *begin_slot);
+  lua_push_uint64_table_entry(vm, "numMacs", retriever.actNumEntries);
+  lua_push_uint64_table_entry(vm, "nextSlot", *begin_slot);
 
   lua_newtable(vm);
 
@@ -6139,7 +6139,7 @@ int NetworkInterface::getActiveASList(lua_State* vm, const Paginator *p) {
     details_level = details_normal;
 
   lua_newtable(vm);
-  lua_push_int_table_entry(vm, "numASes", retriever.actNumEntries);
+  lua_push_uint64_table_entry(vm, "numASes", retriever.actNumEntries);
 
   lua_newtable(vm);
 
@@ -6192,7 +6192,7 @@ int NetworkInterface::getActiveCountriesList(lua_State* vm, const Paginator *p) 
     details_level = details_normal;
 
   lua_newtable(vm);
-  lua_push_int_table_entry(vm, "numCountries", retriever.actNumEntries);
+  lua_push_uint64_table_entry(vm, "numCountries", retriever.actNumEntries);
 
   lua_newtable(vm);
 
@@ -6246,7 +6246,7 @@ int NetworkInterface::getActiveVLANList(lua_State* vm,
   }
 
   lua_newtable(vm);
-  lua_push_int_table_entry(vm, "numVLANs", retriever.actNumEntries);
+  lua_push_uint64_table_entry(vm, "numVLANs", retriever.actNumEntries);
 
   lua_newtable(vm);
 
@@ -6842,12 +6842,12 @@ void NetworkInterface::dumpLiveCaptures(lua_State* vm) {
        && !live_captures[i]->live_capture.stopped) {
       lua_newtable(vm);
 
-      lua_push_int_table_entry(vm, "id", i);
-      lua_push_int_table_entry(vm, "capture_until",
+      lua_push_uint64_table_entry(vm, "id", i);
+      lua_push_uint64_table_entry(vm, "capture_until",
 			       live_captures[i]->live_capture.capture_until);
-      lua_push_int_table_entry(vm, "capture_max_pkts",
+      lua_push_uint64_table_entry(vm, "capture_max_pkts",
 			       live_captures[i]->live_capture.capture_max_pkts);
-      lua_push_int_table_entry(vm, "num_captured_packets",
+      lua_push_uint64_table_entry(vm, "num_captured_packets",
 			       live_captures[i]->live_capture.num_captured_packets);
 
       if(live_captures[i]->live_capture.matching_host != NULL) {

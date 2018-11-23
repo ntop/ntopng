@@ -30,11 +30,11 @@ void NetworkInterfaceTsPoint::lua(lua_State* vm, NetworkInterface *iface) {
   packetStats.lua(vm, "pktSizeDistribution");
 
   lua_newtable(vm);
-  lua_push_int_table_entry(vm, "hosts", hosts);
-  lua_push_int_table_entry(vm, "local_hosts", local_hosts);
-  lua_push_int_table_entry(vm, "devices", devices);
-  lua_push_int_table_entry(vm, "flows", flows);
-  lua_push_int_table_entry(vm, "http_hosts", http_hosts);
+  lua_push_uint64_table_entry(vm, "hosts", hosts);
+  lua_push_uint64_table_entry(vm, "local_hosts", local_hosts);
+  lua_push_uint64_table_entry(vm, "devices", devices);
+  lua_push_uint64_table_entry(vm, "flows", flows);
+  lua_push_uint64_table_entry(vm, "http_hosts", http_hosts);
   lua_pushstring(vm, "stats");
   lua_insert(vm, -2);
   lua_settable(vm, -3);

@@ -92,21 +92,21 @@ bool AutonomousSystem::idle() {
 void AutonomousSystem::lua(lua_State* vm, DetailsLevel details_level, bool asListElement) {
   lua_newtable(vm);
 
-  lua_push_int_table_entry(vm, "asn", asn);
+  lua_push_uint64_table_entry(vm, "asn", asn);
   lua_push_str_table_entry(vm, "asname", asname ? asname : (char*)"");
 
-  lua_push_int_table_entry(vm, "bytes.sent", sent.getNumBytes());
-  lua_push_int_table_entry(vm, "bytes.rcvd", rcvd.getNumBytes());
+  lua_push_uint64_table_entry(vm, "bytes.sent", sent.getNumBytes());
+  lua_push_uint64_table_entry(vm, "bytes.rcvd", rcvd.getNumBytes());
 
   if(details_level >= details_high) {
     ((GenericTrafficElement*)this)->lua(vm, true);
 
-    lua_push_int_table_entry(vm, "seen.first", first_seen);
-    lua_push_int_table_entry(vm, "seen.last", last_seen);
-    lua_push_int_table_entry(vm, "duration", get_duration());
+    lua_push_uint64_table_entry(vm, "seen.first", first_seen);
+    lua_push_uint64_table_entry(vm, "seen.last", last_seen);
+    lua_push_uint64_table_entry(vm, "duration", get_duration());
 
-    lua_push_int_table_entry(vm, "num_hosts", getNumHosts());
-    lua_push_int_table_entry(vm, "round_trip_time", round_trip_time);
+    lua_push_uint64_table_entry(vm, "num_hosts", getNumHosts());
+    lua_push_uint64_table_entry(vm, "round_trip_time", round_trip_time);
 
     if(details_level >= details_higher)
       if(ndpiStats) ndpiStats->lua(iface, vm);

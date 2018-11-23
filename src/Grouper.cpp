@@ -190,14 +190,14 @@ void Grouper::lua(lua_State* vm) {
   lua_newtable(vm);
 
   lua_push_str_table_entry(vm,   "name", group_label);
-  lua_push_int_table_entry(vm,   "bytes.sent", stats.bytes_sent);
-  lua_push_int_table_entry(vm,   "bytes.rcvd", stats.bytes_rcvd);
-  lua_push_int_table_entry(vm,   "seen.first", stats.first_seen);
-  lua_push_int_table_entry(vm,   "seen.last", stats.last_seen);
-  lua_push_int_table_entry(vm,   "num_hosts", stats.num_hosts);
-  lua_push_int_table_entry(vm,   "num_flows", stats.num_flows);
-  lua_push_int_table_entry(vm,   "num_dropped_flows", stats.num_dropped_flows);
-  lua_push_int_table_entry(vm,   "num_alerts", stats.num_alerts);
+  lua_push_uint64_table_entry(vm,   "bytes.sent", stats.bytes_sent);
+  lua_push_uint64_table_entry(vm,   "bytes.rcvd", stats.bytes_rcvd);
+  lua_push_uint64_table_entry(vm,   "seen.first", stats.first_seen);
+  lua_push_uint64_table_entry(vm,   "seen.last", stats.last_seen);
+  lua_push_uint64_table_entry(vm,   "num_hosts", stats.num_hosts);
+  lua_push_uint64_table_entry(vm,   "num_flows", stats.num_flows);
+  lua_push_uint64_table_entry(vm,   "num_dropped_flows", stats.num_dropped_flows);
+  lua_push_uint64_table_entry(vm,   "num_alerts", stats.num_alerts);
   lua_push_float_table_entry(vm, "throughput_bps", max_val(stats.throughput_bps, 0));
   lua_push_float_table_entry(vm, "throughput_pps", max_val(stats.throughput_pps, 0));
   lua_push_float_table_entry(vm, "throughput_trend_bps_diff", max_val(stats.throughput_trend_bps_diff, 0));

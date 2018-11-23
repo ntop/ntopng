@@ -93,7 +93,7 @@ void TimeseriesRing::luaSinglePoint(lua_State* vm, NetworkInterface *iface,
   lua_newtable(vm);
 
   lua_newtable(vm);
-  lua_push_int_table_entry(vm, "instant", time(0));
+  lua_push_uint64_table_entry(vm, "instant", time(0));
   pt->lua(vm, iface);
   lua_rawseti(vm, -2, 1);
 }

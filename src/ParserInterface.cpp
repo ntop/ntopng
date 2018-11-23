@@ -1182,11 +1182,11 @@ void ParserInterface::lua(lua_State* vm) {
     if(zrs->remote_probe_public_address[0] != '\0')
       lua_push_str_table_entry(vm, "probe.public_ip", zrs->remote_probe_public_address);
 
-    lua_push_int_table_entry(vm, "zmq.num_flow_exports", zrs->num_flow_exports - zmq_remote_initial_exported_flows);
-    lua_push_int_table_entry(vm, "zmq.num_exporters", zrs->num_exporters);
+    lua_push_uint64_table_entry(vm, "zmq.num_flow_exports", zrs->num_flow_exports - zmq_remote_initial_exported_flows);
+    lua_push_uint64_table_entry(vm, "zmq.num_exporters", zrs->num_exporters);
 
-    lua_push_int_table_entry(vm, "timeout.lifetime", zrs->remote_lifetime_timeout);
-    lua_push_int_table_entry(vm, "timeout.idle", zrs->remote_idle_timeout);
+    lua_push_uint64_table_entry(vm, "timeout.lifetime", zrs->remote_lifetime_timeout);
+    lua_push_uint64_table_entry(vm, "timeout.idle", zrs->remote_idle_timeout);
   }
 }
 

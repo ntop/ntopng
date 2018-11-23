@@ -67,15 +67,15 @@ void Country::lua(lua_State* vm, DetailsLevel details_level, bool asListElement)
   lua_newtable(vm);
 
   lua_push_str_table_entry(vm, "country", country_name);
-  lua_push_int_table_entry(vm, "bytes", totstats.getNumBytes());
+  lua_push_uint64_table_entry(vm, "bytes", totstats.getNumBytes());
 
   if(details_level >= details_high) {
     dirstats.lua(vm);
-    lua_push_int_table_entry(vm, "seen.first", first_seen);
-    lua_push_int_table_entry(vm, "seen.last", last_seen);
-    lua_push_int_table_entry(vm, "duration", get_duration());
+    lua_push_uint64_table_entry(vm, "seen.first", first_seen);
+    lua_push_uint64_table_entry(vm, "seen.last", last_seen);
+    lua_push_uint64_table_entry(vm, "duration", get_duration());
 
-    lua_push_int_table_entry(vm, "num_hosts", getNumHosts());
+    lua_push_uint64_table_entry(vm, "num_hosts", getNumHosts());
   }
 
   if(asListElement) {

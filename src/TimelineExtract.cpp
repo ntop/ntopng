@@ -293,10 +293,10 @@ void TimelineExtract::getStatus(lua_State* vm) {
   if (extraction.id) {
     lua_newtable(vm);
 
-    lua_push_int_table_entry(vm, "id", extraction.id);
-    lua_push_int_table_entry(vm, "extracted_pkts", stats.packets);
-    lua_push_int_table_entry(vm, "extracted_bytes", stats.bytes);
-    lua_push_int_table_entry(vm, "status", status_code);
+    lua_push_uint64_table_entry(vm, "id", extraction.id);
+    lua_push_uint64_table_entry(vm, "extracted_pkts", stats.packets);
+    lua_push_uint64_table_entry(vm, "extracted_bytes", stats.bytes);
+    lua_push_uint64_table_entry(vm, "status", status_code);
 
     lua_pushnumber(vm, extraction.id);
     lua_insert(vm, -2);

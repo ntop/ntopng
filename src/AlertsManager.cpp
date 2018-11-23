@@ -1010,7 +1010,7 @@ int AlertsManager::getNumFlowAlerts(const char *sql_where_clause) {
 int AlertsManager::getCachedNumAlerts(lua_State *vm) {
   lua_newtable(vm);
 
-  lua_push_int_table_entry(vm, "num_alerts_engaged", num_alerts_engaged);
+  lua_push_uint64_table_entry(vm, "num_alerts_engaged", num_alerts_engaged);
   lua_push_bool_table_entry(vm, "alerts_stored", alerts_stored);
 
   return 0;

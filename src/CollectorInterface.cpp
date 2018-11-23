@@ -294,10 +294,10 @@ void CollectorInterface::lua(lua_State* vm) {
   ParserInterface::lua(vm);
 
   lua_newtable(vm);
-  lua_push_int_table_entry(vm, "flows", recvStats.num_flows);
-  lua_push_int_table_entry(vm, "events", recvStats.num_events);
-  lua_push_int_table_entry(vm, "counters", recvStats.num_counters);
-  lua_push_int_table_entry(vm, "zmq_msg_drops", recvStats.zmq_msg_drops);
+  lua_push_uint64_table_entry(vm, "flows", recvStats.num_flows);
+  lua_push_uint64_table_entry(vm, "events", recvStats.num_events);
+  lua_push_uint64_table_entry(vm, "counters", recvStats.num_counters);
+  lua_push_uint64_table_entry(vm, "zmq_msg_drops", recvStats.zmq_msg_drops);
   lua_pushstring(vm, "zmqRecvStats");
   lua_insert(vm, -2);
   lua_settable(vm, -3);

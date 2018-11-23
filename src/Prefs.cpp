@@ -1544,16 +1544,16 @@ void Prefs::lua(lua_State* vm) {
   lua_push_bool_table_entry(vm, "is_dns_resolution_enabled_for_all_hosts", resolve_all_host_ip);
   lua_push_bool_table_entry(vm, "is_dns_resolution_enabled", enable_dns_resolution);
   lua_push_bool_table_entry(vm, "is_autologout_enabled", enable_auto_logout);
-  lua_push_int_table_entry(vm, "http_port", http_port);
+  lua_push_uint64_table_entry(vm, "http_port", http_port);
 
-  lua_push_int_table_entry(vm, "max_num_hosts", max_num_hosts);
-  lua_push_int_table_entry(vm, "max_num_flows", max_num_flows);
+  lua_push_uint64_table_entry(vm, "max_num_hosts", max_num_hosts);
+  lua_push_uint64_table_entry(vm, "max_num_flows", max_num_flows);
   lua_push_bool_table_entry(vm, "is_dump_flows_enabled", dump_flows_on_es || dump_flows_on_mysql || dump_flows_on_ls);
   lua_push_bool_table_entry(vm, "is_dump_flows_to_mysql_enabled", dump_flows_on_mysql || read_flows_from_mysql);
   lua_push_bool_table_entry(vm, "is_flow_aggregation_enabled", is_flow_aggregation_enabled());
 
   if(is_flow_aggregation_enabled())
-    lua_push_int_table_entry(vm, "flow_aggregation_frequency", flow_aggregation_frequency());
+    lua_push_uint64_table_entry(vm, "flow_aggregation_frequency", flow_aggregation_frequency());
 
 #if defined(HAVE_NINDEX) && defined(NTOPNG_PRO)
   lua_push_bool_table_entry(vm, "is_nindex_enabled", dump_flows_on_nindex);
@@ -1563,9 +1563,9 @@ void Prefs::lua(lua_State* vm) {
   lua_push_bool_table_entry(vm, "is_dump_flows_to_es_enabled",    dump_flows_on_es);
   lua_push_bool_table_entry(vm, "is_dump_flows_to_ls_enabled", dump_flows_on_ls);
 
-  lua_push_int_table_entry(vm, "dump_hosts", dump_hosts_to_db);
+  lua_push_uint64_table_entry(vm, "dump_hosts", dump_hosts_to_db);
 
-  lua_push_int_table_entry(vm, "http.port", get_http_port());
+  lua_push_uint64_table_entry(vm, "http.port", get_http_port());
 
   lua_push_str_table_entry(vm, "instance_name", instance_name ? instance_name : (char*)"");
 
@@ -1593,42 +1593,42 @@ void Prefs::lua(lua_State* vm) {
   lua_push_str_table_entry(vm, "http_stats_base_dir", HTTP_stats_base_dir);
 #endif
 
-  lua_push_int_table_entry(vm, "housekeeping_frequency",    housekeeping_frequency);
-  lua_push_int_table_entry(vm, "local_host_cache_duration", local_host_cache_duration);
-  lua_push_int_table_entry(vm, "local_host_max_idle", local_host_max_idle);
-  lua_push_int_table_entry(vm, "non_local_host_max_idle", non_local_host_max_idle);
-  lua_push_int_table_entry(vm, "flow_max_idle", flow_max_idle);
+  lua_push_uint64_table_entry(vm, "housekeeping_frequency",    housekeeping_frequency);
+  lua_push_uint64_table_entry(vm, "local_host_cache_duration", local_host_cache_duration);
+  lua_push_uint64_table_entry(vm, "local_host_max_idle", local_host_max_idle);
+  lua_push_uint64_table_entry(vm, "non_local_host_max_idle", non_local_host_max_idle);
+  lua_push_uint64_table_entry(vm, "flow_max_idle", flow_max_idle);
   if(enable_active_local_hosts_cache)
-    lua_push_int_table_entry(vm, "active_local_hosts_cache_interval", active_local_hosts_cache_interval);
+    lua_push_uint64_table_entry(vm, "active_local_hosts_cache_interval", active_local_hosts_cache_interval);
 
-  lua_push_int_table_entry(vm, "intf_rrd_raw_days", intf_rrd_raw_days);
-  lua_push_int_table_entry(vm, "intf_rrd_1min_days", intf_rrd_1min_days);
-  lua_push_int_table_entry(vm, "intf_rrd_1h_days", intf_rrd_1h_days);
-  lua_push_int_table_entry(vm, "intf_rrd_1d_days", intf_rrd_1d_days);
-  lua_push_int_table_entry(vm, "other_rrd_raw_days", other_rrd_raw_days);
-  lua_push_int_table_entry(vm, "other_rrd_1min_days", other_rrd_1min_days);
-  lua_push_int_table_entry(vm, "other_rrd_1h_days", other_rrd_1h_days);
-  lua_push_int_table_entry(vm, "other_rrd_1d_days", other_rrd_1d_days);
+  lua_push_uint64_table_entry(vm, "intf_rrd_raw_days", intf_rrd_raw_days);
+  lua_push_uint64_table_entry(vm, "intf_rrd_1min_days", intf_rrd_1min_days);
+  lua_push_uint64_table_entry(vm, "intf_rrd_1h_days", intf_rrd_1h_days);
+  lua_push_uint64_table_entry(vm, "intf_rrd_1d_days", intf_rrd_1d_days);
+  lua_push_uint64_table_entry(vm, "other_rrd_raw_days", other_rrd_raw_days);
+  lua_push_uint64_table_entry(vm, "other_rrd_1min_days", other_rrd_1min_days);
+  lua_push_uint64_table_entry(vm, "other_rrd_1h_days", other_rrd_1h_days);
+  lua_push_uint64_table_entry(vm, "other_rrd_1d_days", other_rrd_1d_days);
 
   lua_push_bool_table_entry(vm, "are_top_talkers_enabled", enable_top_talkers);
   lua_push_bool_table_entry(vm, "is_active_local_hosts_cache_enabled", enable_active_local_hosts_cache);
 
   lua_push_bool_table_entry(vm,"is_tiny_flows_export_enabled",             enable_tiny_flows_export);
   lua_push_bool_table_entry(vm,"is_aggregated_flows_export_limit_enabled", enable_aggregated_flows_export_limit);
-  lua_push_int_table_entry(vm, "max_num_alerts_per_entity", max_num_alerts_per_entity);
-  lua_push_int_table_entry(vm, "max_num_flow_alerts", max_num_flow_alerts);
+  lua_push_uint64_table_entry(vm, "max_num_alerts_per_entity", max_num_alerts_per_entity);
+  lua_push_uint64_table_entry(vm, "max_num_flow_alerts", max_num_flow_alerts);
 
   lua_push_bool_table_entry(vm, "is_flow_device_port_rrd_creation_enabled", enable_flow_device_port_rrd_creation);
 
   lua_push_bool_table_entry(vm, "are_alerts_enabled", !disable_alerts);
 
-  lua_push_int_table_entry(vm, "max_num_packets_per_tiny_flow", max_num_packets_per_tiny_flow);
-  lua_push_int_table_entry(vm, "max_num_bytes_per_tiny_flow",   max_num_bytes_per_tiny_flow);
-  lua_push_int_table_entry(vm, "max_num_aggregated_flows_per_export", max_num_aggregated_flows_per_export);
+  lua_push_uint64_table_entry(vm, "max_num_packets_per_tiny_flow", max_num_packets_per_tiny_flow);
+  lua_push_uint64_table_entry(vm, "max_num_bytes_per_tiny_flow",   max_num_bytes_per_tiny_flow);
+  lua_push_uint64_table_entry(vm, "max_num_aggregated_flows_per_export", max_num_aggregated_flows_per_export);
 
-  lua_push_int_table_entry(vm, "max_extracted_pcap_mbytes", max_extracted_pcap_mbytes);
+  lua_push_uint64_table_entry(vm, "max_extracted_pcap_mbytes", max_extracted_pcap_mbytes);
 
-  lua_push_int_table_entry(vm, "ewma_alpha_percent", ewma_alpha_percent);
+  lua_push_uint64_table_entry(vm, "ewma_alpha_percent", ewma_alpha_percent);
 
   lua_push_str_table_entry(vm, "safe_search_dns",
 			   Utils::intoaV4(ntohl(safe_search_dns_ip), buf, sizeof(buf)));
@@ -1640,7 +1640,7 @@ void Prefs::lua(lua_State* vm) {
   lua_push_bool_table_entry(vm, "is_captive_portal_enabled", enable_captive_portal);
   lua_push_bool_table_entry(vm, "is_informative_captive_portal_enabled", enable_informative_captive_portal);
 
-  lua_push_int_table_entry(vm, "max_ui_strlen",   max_ui_strlen);
+  lua_push_uint64_table_entry(vm, "max_ui_strlen",   max_ui_strlen);
 
   lua_push_str_table_entry(vm, "config_file", config_file_path ? config_file_path : (char*)"");
   lua_push_str_table_entry(vm, "ndpi_proto_file", ndpi_proto_path ? ndpi_proto_path : (char*)"");

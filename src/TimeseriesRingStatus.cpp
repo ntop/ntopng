@@ -75,7 +75,7 @@ void TimeseriesRingStatus::lua(lua_State* vm, NetworkInterface *iface) {
       lua_newtable(vm);
 
       /* Process Point */
-      lua_push_int_table_entry(vm, "instant", pt->timestamp);
+      lua_push_uint64_table_entry(vm, "instant", pt->timestamp);
       pt->lua(vm, iface);
 
       lua_rawseti(vm, -2, i + 1);

@@ -192,21 +192,21 @@ void Mac::lua(lua_State* vm, bool show_details, bool asListElement) {
   lua_newtable(vm);
 
   lua_push_str_table_entry(vm, "mac", m = Utils::formatMac(mac, buf, sizeof(buf)));
-  lua_push_int_table_entry(vm, "bridge_seen_iface_id", bridge_seen_iface_id);
+  lua_push_uint64_table_entry(vm, "bridge_seen_iface_id", bridge_seen_iface_id);
 
   if(show_details) {
     if(manuf)
       lua_push_str_table_entry(vm, "manufacturer", (char*)manuf);
 
-    lua_push_int_table_entry(vm, "arp_requests.sent", arp_stats.sent_requests);
-    lua_push_int_table_entry(vm, "arp_requests.rcvd", arp_stats.rcvd_requests);
-    lua_push_int_table_entry(vm, "arp_replies.sent", arp_stats.sent_replies);
-    lua_push_int_table_entry(vm, "arp_replies.rcvd", arp_stats.rcvd_replies);
+    lua_push_uint64_table_entry(vm, "arp_requests.sent", arp_stats.sent_requests);
+    lua_push_uint64_table_entry(vm, "arp_requests.rcvd", arp_stats.rcvd_requests);
+    lua_push_uint64_table_entry(vm, "arp_replies.sent", arp_stats.sent_replies);
+    lua_push_uint64_table_entry(vm, "arp_replies.rcvd", arp_stats.rcvd_replies);
 
     lua_push_bool_table_entry(vm, "source_mac", source_mac);
     lua_push_bool_table_entry(vm, "special_mac", special_mac);
     lua_push_str_table_entry(vm, "location", (char *) location2str(locate()));
-    lua_push_int_table_entry(vm, "devtype", device_type);
+    lua_push_uint64_table_entry(vm, "devtype", device_type);
     if(model) lua_push_str_table_entry(vm, "model", (char*)model);
     if(ssid) lua_push_str_table_entry(vm, "ssid", (char*)ssid);
     if(ndpiStats) ndpiStats->lua(iface, vm, true);
@@ -216,14 +216,14 @@ void Mac::lua(lua_State* vm, bool show_details, bool asListElement) {
 
   lua_push_bool_table_entry(vm, "dhcpHost", dhcpHost);
   lua_push_str_table_entry(vm, "fingerprint", fingerprint ? fingerprint : (char*)"");
-  lua_push_int_table_entry(vm, "operatingSystem", os);
-  lua_push_int_table_entry(vm, "seen.first", first_seen);
-  lua_push_int_table_entry(vm, "seen.last", last_seen);
-  lua_push_int_table_entry(vm, "duration", get_duration());
+  lua_push_uint64_table_entry(vm, "operatingSystem", os);
+  lua_push_uint64_table_entry(vm, "seen.first", first_seen);
+  lua_push_uint64_table_entry(vm, "seen.last", last_seen);
+  lua_push_uint64_table_entry(vm, "duration", get_duration());
 
-  lua_push_int_table_entry(vm, "num_hosts", getNumHosts());
+  lua_push_uint64_table_entry(vm, "num_hosts", getNumHosts());
 
-  lua_push_int_table_entry(vm, "pool", get_host_pool());
+  lua_push_uint64_table_entry(vm, "pool", get_host_pool());
 
   if(asListElement) {
     lua_pushstring(vm, m);

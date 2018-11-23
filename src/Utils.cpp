@@ -1604,7 +1604,7 @@ bool Utils::httpGetPost(lua_State* vm, char *url, char *username,
 	
       if(return_content && vm) {
 	lua_push_str_table_entry(vm, "CONTENT", state->outbuf);
-	lua_push_int_table_entry(vm, "CONTENT_LEN", state->num_bytes);
+	lua_push_uint64_table_entry(vm, "CONTENT_LEN", state->num_bytes);
       }
       
       ret = true;
@@ -1613,7 +1613,7 @@ bool Utils::httpGetPost(lua_State* vm, char *url, char *username,
 
     if(vm) {
       if(curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code) == CURLE_OK)
-	lua_push_int_table_entry(vm, "RESPONSE_CODE", response_code);
+	lua_push_uint64_table_entry(vm, "RESPONSE_CODE", response_code);
 
       if((curl_easy_getinfo(curl, CURLINFO_CONTENT_TYPE, &content_type) == CURLE_OK) && content_type)
 	lua_push_str_table_entry(vm, "CONTENT_TYPE", content_type);
@@ -2857,8 +2857,8 @@ void Utils::luaCpuLoad(lua_State* vm) {
 	     &user, &nice, &system, &idle, &iowait, &irq, &softirq);
       fclose(fp);
 
-      lua_push_int_table_entry(vm, "cpu_load", user + nice + system + iowait + irq + softirq);
-      lua_push_int_table_entry(vm, "cpu_idle", idle);
+      lua_push_uint64_table_entry(vm, "cpu_load", user + nice + system + iowait + irq + softirq);
+      lua_push_uint64_table_entry(vm, "cpu_idle", idle);
     }
   }
 #endif
@@ -2878,17 +2878,17 @@ void Utils::luaMeminfo(lua_State* vm) {
     if((fp = fopen("/proc/meminfo", "r"))) {
       while ((read = getline(&line, &len, fp)) != -1) {
 	if(!strncmp(line, "MemTotal", strlen("MemTotal")) && sscanf(line, "%*s %lu kB", &memtotal))
-	  lua_push_int_table_entry(vm, "mem_total", memtotal);
+	  lua_push_uint64_table_entry(vm, "mem_total", memtotal);
 	else if(!strncmp(line, "MemFree", strlen("MemFree")) && sscanf(line, "%*s %lu kB", &memfree))
-	  lua_push_int_table_entry(vm, "mem_free", memfree);
+	  lua_push_uint64_table_entry(vm, "mem_free", memfree);
 	else if(!strncmp(line, "Buffers", strlen("Buffers")) && sscanf(line, "%*s %lu kB", &buffers))
-	  lua_push_int_table_entry(vm, "mem_buffers", buffers);
+	  lua_push_uint64_table_entry(vm, "mem_buffers", buffers);
 	else if(!strncmp(line, "Cached", strlen("Cached")) && sscanf(line, "%*s %lu kB", &cached))
-	  lua_push_int_table_entry(vm, "mem_cached", cached);
+	  lua_push_uint64_table_entry(vm, "mem_cached", cached);
 	else if(!strncmp(line, "SReclaimable", strlen("SReclaimable")) && sscanf(line, "%*s %lu kB", &sreclaimable))
-	  lua_push_int_table_entry(vm, "mem_sreclaimable", sreclaimable);
+	  lua_push_uint64_table_entry(vm, "mem_sreclaimable", sreclaimable);
 	else if(!strncmp(line, "Shmem", strlen("Shmem")) && sscanf(line, "%*s %lu kB", &shmem))
-	  lua_push_int_table_entry(vm, "mem_shmem", shmem);
+	  lua_push_uint64_table_entry(vm, "mem_shmem", shmem);
       }
 
       if(line)
@@ -2897,7 +2897,7 @@ void Utils::luaMeminfo(lua_State* vm) {
       fclose(fp);
 
       /* Equivalent to top utility mem used */
-      lua_push_int_table_entry(vm, "mem_used", memtotal - memfree - (buffers + cached + sreclaimable - shmem));
+      lua_push_uint64_table_entry(vm, "mem_used", memtotal - memfree - (buffers + cached + sreclaimable - shmem));
     }
   }
 #endif

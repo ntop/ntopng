@@ -70,9 +70,9 @@ json_object* TcpPacketStats::getJSONObject() {
 void TcpPacketStats::lua(lua_State* vm, const char *label) {
   lua_newtable(vm);
   
-  lua_push_int_table_entry(vm, "retransmissions", pktRetr);
-  lua_push_int_table_entry(vm, "out_of_order", pktOOO);
-  lua_push_int_table_entry(vm, "lost", pktLost);
+  lua_push_uint64_table_entry(vm, "retransmissions", pktRetr);
+  lua_push_uint64_table_entry(vm, "out_of_order", pktOOO);
+  lua_push_uint64_table_entry(vm, "lost", pktLost);
   
   lua_pushstring(vm, label);
   lua_insert(vm, -2);

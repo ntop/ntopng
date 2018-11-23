@@ -75,15 +75,15 @@ static bool http_stats_summary(GenericHashEntry *node, void *user_data, bool *ma
 	char ip_buf[64];
 
 	lua_push_str_table_entry(info->vm, "server.ip", ip->print(ip_buf, sizeof(ip_buf)));
-	lua_push_int_table_entry(info->vm, "server.vlan", info->h->get_vlan_id());
+	lua_push_uint64_table_entry(info->vm, "server.vlan", info->h->get_vlan_id());
       }
     }
 
-    lua_push_int_table_entry(info->vm, "bytes.sent", host->get_sent_bytes());
-    lua_push_int_table_entry(info->vm, "bytes.rcvd", host->get_rcvd_bytes());
-    lua_push_int_table_entry(info->vm, "http.requests", host->get_num_requests());
-    lua_push_int_table_entry(info->vm, "http.act_num_requests", host->get_diff_num_requests());
-    lua_push_int_table_entry(info->vm, "http.requests_trend", host->get_trend());
+    lua_push_uint64_table_entry(info->vm, "bytes.sent", host->get_sent_bytes());
+    lua_push_uint64_table_entry(info->vm, "bytes.rcvd", host->get_rcvd_bytes());
+    lua_push_uint64_table_entry(info->vm, "http.requests", host->get_num_requests());
+    lua_push_uint64_table_entry(info->vm, "http.act_num_requests", host->get_diff_num_requests());
+    lua_push_uint64_table_entry(info->vm, "http.requests_trend", host->get_trend());
 
     lua_pushstring(info->vm, host->get_name());
     lua_insert(info->vm, -2);
@@ -202,23 +202,23 @@ void HTTPstats::luaAddCounters(lua_State *vm, bool as_sender) {
   getResponses(&response[as_sender ? AS_SENDER : AS_RECEIVER], &num_1xx, &num_2xx, &num_3xx, &num_4xx, &num_5xx);
   
   lua_newtable(vm);
-  lua_push_int_table_entry(vm, "total", num_get+num_post+num_head+num_put+num_other);
-  lua_push_int_table_entry(vm, "num_get", num_get);
-  lua_push_int_table_entry(vm, "num_post", num_post);
-  lua_push_int_table_entry(vm, "num_head", num_head);
-  lua_push_int_table_entry(vm, "num_put", num_put);
-  lua_push_int_table_entry(vm, "num_other", num_other);
+  lua_push_uint64_table_entry(vm, "total", num_get+num_post+num_head+num_put+num_other);
+  lua_push_uint64_table_entry(vm, "num_get", num_get);
+  lua_push_uint64_table_entry(vm, "num_post", num_post);
+  lua_push_uint64_table_entry(vm, "num_head", num_head);
+  lua_push_uint64_table_entry(vm, "num_put", num_put);
+  lua_push_uint64_table_entry(vm, "num_other", num_other);
   lua_pushstring(vm, "query");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
 
   lua_newtable(vm);
-  lua_push_int_table_entry(vm, "total", num_1xx+num_2xx+num_3xx+num_4xx+num_5xx);
-  lua_push_int_table_entry(vm, "num_1xx", num_1xx);
-  lua_push_int_table_entry(vm, "num_2xx", num_2xx);
-  lua_push_int_table_entry(vm, "num_3xx", num_3xx);
-  lua_push_int_table_entry(vm, "num_4xx", num_4xx);
-  lua_push_int_table_entry(vm, "num_5xx", num_5xx);
+  lua_push_uint64_table_entry(vm, "total", num_1xx+num_2xx+num_3xx+num_4xx+num_5xx);
+  lua_push_uint64_table_entry(vm, "num_1xx", num_1xx);
+  lua_push_uint64_table_entry(vm, "num_2xx", num_2xx);
+  lua_push_uint64_table_entry(vm, "num_3xx", num_3xx);
+  lua_push_uint64_table_entry(vm, "num_4xx", num_4xx);
+  lua_push_uint64_table_entry(vm, "num_5xx", num_5xx);
   lua_pushstring(vm, "response");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
@@ -236,21 +236,21 @@ void HTTPstats::luaAddRates(lua_State *vm, bool as_sender) {
   lua_newtable(vm);
 
   lua_newtable(vm);
-  lua_push_int_table_entry(vm, "get", rate_get);
-  lua_push_int_table_entry(vm, "post", rate_post);
-  lua_push_int_table_entry(vm, "head", rate_head);
-  lua_push_int_table_entry(vm, "put", rate_put);
-  lua_push_int_table_entry(vm, "other", rate_other);
+  lua_push_uint64_table_entry(vm, "get", rate_get);
+  lua_push_uint64_table_entry(vm, "post", rate_post);
+  lua_push_uint64_table_entry(vm, "head", rate_head);
+  lua_push_uint64_table_entry(vm, "put", rate_put);
+  lua_push_uint64_table_entry(vm, "other", rate_other);
   lua_pushstring(vm, "query");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
 
   lua_newtable(vm);
-  lua_push_int_table_entry(vm, "1xx", rate_1xx);
-  lua_push_int_table_entry(vm, "2xx", rate_2xx);
-  lua_push_int_table_entry(vm, "3xx", rate_3xx);
-  lua_push_int_table_entry(vm, "4xx", rate_4xx);
-  lua_push_int_table_entry(vm, "5xx", rate_5xx);
+  lua_push_uint64_table_entry(vm, "1xx", rate_1xx);
+  lua_push_uint64_table_entry(vm, "2xx", rate_2xx);
+  lua_push_uint64_table_entry(vm, "3xx", rate_3xx);
+  lua_push_uint64_table_entry(vm, "4xx", rate_4xx);
+  lua_push_uint64_table_entry(vm, "5xx", rate_5xx);
   lua_pushstring(vm, "response");
   lua_insert(vm, -2);
   lua_settable(vm, -3);

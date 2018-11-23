@@ -516,11 +516,11 @@ void LocalHost::lua(lua_State* vm, AddressTree *ptree,
   /* Criteria */
   lua_newtable(vm);
 
-  lua_push_int_table_entry(vm, "upload", getNumBytesSent());
-  lua_push_int_table_entry(vm, "download", getNumBytesRcvd());
-  lua_push_int_table_entry(vm, "unknown", get_ndpi_stats()->getProtoBytes(NDPI_PROTOCOL_UNKNOWN));
-  lua_push_int_table_entry(vm, "incomingflows", getNumIncomingFlows());
-  lua_push_int_table_entry(vm, "outgoingflows", getNumOutgoingFlows());
+  lua_push_uint64_table_entry(vm, "upload", getNumBytesSent());
+  lua_push_uint64_table_entry(vm, "download", getNumBytesRcvd());
+  lua_push_uint64_table_entry(vm, "unknown", get_ndpi_stats()->getProtoBytes(NDPI_PROTOCOL_UNKNOWN));
+  lua_push_uint64_table_entry(vm, "incomingflows", getNumIncomingFlows());
+  lua_push_uint64_table_entry(vm, "outgoingflows", getNumOutgoingFlows());
 
   lua_pushstring(vm, "criteria");
   lua_insert(vm, -2);

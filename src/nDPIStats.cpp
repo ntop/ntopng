@@ -119,11 +119,11 @@ void nDPIStats::lua(NetworkInterface *iface, lua_State* vm, bool with_categories
 	    lua_newtable(vm);
 
 	    lua_push_str_table_entry(vm, "breed", iface->get_ndpi_proto_breed_name(i));
-	    lua_push_int_table_entry(vm, "packets.sent", counters[i]->packets.sent);
-	    lua_push_int_table_entry(vm, "packets.rcvd", counters[i]->packets.rcvd);
-	    lua_push_int_table_entry(vm, "bytes.sent", counters[i]->bytes.sent);
-	    lua_push_int_table_entry(vm, "bytes.rcvd", counters[i]->bytes.rcvd);
-	    lua_push_int_table_entry(vm, "duration", counters[i]->duration);
+	    lua_push_uint64_table_entry(vm, "packets.sent", counters[i]->packets.sent);
+	    lua_push_uint64_table_entry(vm, "packets.rcvd", counters[i]->packets.rcvd);
+	    lua_push_uint64_table_entry(vm, "bytes.sent", counters[i]->bytes.sent);
+	    lua_push_uint64_table_entry(vm, "bytes.rcvd", counters[i]->bytes.rcvd);
+	    lua_push_uint64_table_entry(vm, "duration", counters[i]->duration);
 
 	    lua_pushstring(vm, name);
 	    lua_insert(vm, -2);
@@ -155,17 +155,17 @@ void nDPIStats::lua(NetworkInterface *iface, lua_State* vm, bool with_categories
         if(!tsLua) {
           lua_newtable(vm);
 
-          lua_push_int_table_entry(vm, "category", i);
-          lua_push_int_table_entry(vm, "bytes", cat_counters[i].bytes.sent + cat_counters[i].bytes.rcvd);
-          lua_push_int_table_entry(vm, "bytes.sent", cat_counters[i].bytes.sent);
-          lua_push_int_table_entry(vm, "bytes.rcvd", cat_counters[i].bytes.rcvd);
-          lua_push_int_table_entry(vm, "duration", cat_counters[i].duration);
+          lua_push_uint64_table_entry(vm, "category", i);
+          lua_push_uint64_table_entry(vm, "bytes", cat_counters[i].bytes.sent + cat_counters[i].bytes.rcvd);
+          lua_push_uint64_table_entry(vm, "bytes.sent", cat_counters[i].bytes.sent);
+          lua_push_uint64_table_entry(vm, "bytes.rcvd", cat_counters[i].bytes.rcvd);
+          lua_push_uint64_table_entry(vm, "duration", cat_counters[i].duration);
 
           lua_pushstring(vm, name);
           lua_insert(vm, -2);
           lua_rawset(vm, -3);
         } else {
-          lua_push_int_table_entry(vm, name, cat_counters[i].bytes.sent + cat_counters[i].bytes.rcvd);
+          lua_push_uint64_table_entry(vm, name, cat_counters[i].bytes.sent + cat_counters[i].bytes.rcvd);
         }
       }
     }

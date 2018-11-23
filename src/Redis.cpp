@@ -1216,8 +1216,8 @@ u_int Redis::incr(const char *key) {
 void Redis::lua(lua_State *vm) {
   lua_newtable(vm);
 
-  lua_push_int_table_entry(vm, "num_requests", num_requests);
-  lua_push_int_table_entry(vm, "num_reconnections", num_reconnections);
+  lua_push_uint64_table_entry(vm, "num_requests", num_requests);
+  lua_push_uint64_table_entry(vm, "num_reconnections", num_reconnections);
 
   lua_pushstring(vm, "redis");
   lua_insert(vm, -2);

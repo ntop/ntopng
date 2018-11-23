@@ -120,21 +120,21 @@ json_object* PacketStats::getJSONObject() {
 void PacketStats::lua(lua_State* vm, const char *label) {
   lua_newtable(vm);
   
-  lua_push_int_table_entry(vm, "upTo64", upTo64);
-  lua_push_int_table_entry(vm, "upTo128", upTo128);
-  lua_push_int_table_entry(vm, "upTo256", upTo256);
-  lua_push_int_table_entry(vm, "upTo512", upTo512);
-  lua_push_int_table_entry(vm, "upTo1024", upTo1024);
-  lua_push_int_table_entry(vm, "upTo1518", upTo1518);
-  lua_push_int_table_entry(vm, "upTo2500", upTo2500);
-  lua_push_int_table_entry(vm, "upTo6500", upTo6500);
-  lua_push_int_table_entry(vm, "upTo9000", upTo9000);
-  lua_push_int_table_entry(vm, "above9000", above9000);
+  lua_push_uint64_table_entry(vm, "upTo64", upTo64);
+  lua_push_uint64_table_entry(vm, "upTo128", upTo128);
+  lua_push_uint64_table_entry(vm, "upTo256", upTo256);
+  lua_push_uint64_table_entry(vm, "upTo512", upTo512);
+  lua_push_uint64_table_entry(vm, "upTo1024", upTo1024);
+  lua_push_uint64_table_entry(vm, "upTo1518", upTo1518);
+  lua_push_uint64_table_entry(vm, "upTo2500", upTo2500);
+  lua_push_uint64_table_entry(vm, "upTo6500", upTo6500);
+  lua_push_uint64_table_entry(vm, "upTo9000", upTo9000);
+  lua_push_uint64_table_entry(vm, "above9000", above9000);
 
-  lua_push_int_table_entry(vm, "syn", syn);
-  lua_push_int_table_entry(vm, "synack", synack);
-  lua_push_int_table_entry(vm, "finack", finack);
-  lua_push_int_table_entry(vm, "rst", rst);
+  lua_push_uint64_table_entry(vm, "syn", syn);
+  lua_push_uint64_table_entry(vm, "synack", synack);
+  lua_push_uint64_table_entry(vm, "finack", finack);
+  lua_push_uint64_table_entry(vm, "rst", rst);
   
   lua_pushstring(vm, label);
   lua_insert(vm, -2);

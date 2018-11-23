@@ -615,8 +615,8 @@ void HostPools::lua(lua_State *vm) {
 
     if(cur_hosts || cur_l2) {
       lua_newtable(vm);
-      lua_push_int_table_entry(vm, "num_hosts", cur_hosts);
-      lua_push_int_table_entry(vm, "num_l2_devices", cur_l2);
+      lua_push_uint64_table_entry(vm, "num_hosts", cur_hosts);
+      lua_push_uint64_table_entry(vm, "num_l2_devices", cur_l2);
       snprintf(buf, sizeof(buf), "%d", i);
 
       lua_pushstring(vm, buf);
@@ -632,9 +632,9 @@ void HostPools::lua(lua_State *vm) {
   lua_settable(vm, -3);
 
   lua_newtable(vm);
-  lua_push_int_table_entry(vm, "num_hosts", hosts);
-  lua_push_int_table_entry(vm, "num_l2_devices", l2_devices);
-  lua_push_int_table_entry(vm, "num_active_pools", active_pools);
+  lua_push_uint64_table_entry(vm, "num_hosts", hosts);
+  lua_push_uint64_table_entry(vm, "num_l2_devices", l2_devices);
+  lua_push_uint64_table_entry(vm, "num_active_pools", active_pools);
 
   lua_pushstring(vm, "num_members");
   lua_insert(vm, -2);

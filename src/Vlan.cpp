@@ -80,13 +80,13 @@ void Vlan::lua(lua_State* vm, DetailsLevel details_level, bool asListElement) {
       if(ndpiStats) ndpiStats->lua(iface, vm);
   }
 
-  lua_push_int_table_entry(vm, "vlan_id", vlan_id);
+  lua_push_uint64_table_entry(vm, "vlan_id", vlan_id);
 
-  lua_push_int_table_entry(vm, "seen.first", first_seen);
-  lua_push_int_table_entry(vm, "seen.last", last_seen);
-  lua_push_int_table_entry(vm, "duration", get_duration());
+  lua_push_uint64_table_entry(vm, "seen.first", first_seen);
+  lua_push_uint64_table_entry(vm, "seen.last", last_seen);
+  lua_push_uint64_table_entry(vm, "duration", get_duration());
 
-  lua_push_int_table_entry(vm,   "num_hosts", getNumHosts());
+  lua_push_uint64_table_entry(vm,   "num_hosts", getNumHosts());
 
   if(asListElement) {
     lua_pushnumber(vm, vlan_id);

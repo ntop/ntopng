@@ -3867,7 +3867,7 @@ static int ntop_get_l7_policy_info(lua_State* vm) {
   }
 
   lua_newtable(vm);
-  lua_push_int_table_entry(vm, "shaper_id", shaper_id);
+  lua_push_uint64_table_entry(vm, "shaper_id", shaper_id);
   lua_push_str_table_entry(vm, "policy_source", (char*)Utils::policySource2Str(policy_source));
 
   return(CONST_LUA_OK);
@@ -5177,7 +5177,7 @@ void lua_push_bool_table_entry(lua_State *L, const char *key, bool value) {
 
 /* ****************************************** */
 
-void lua_push_int_table_entry(lua_State *L, const char *key, u_int64_t value) {
+void lua_push_uint64_table_entry(lua_State *L, const char *key, u_int64_t value) {
   if(L) {
     lua_pushstring(L, key);
     /* using LUA_NUMBER (double: 64 bit) in place of LUA_INTEGER (ptrdiff_t: 32 or 64 bit
@@ -5201,7 +5201,12 @@ void lua_push_int_table_entry(lua_State *L, const char *key, u_int64_t value) {
 void lua_push_int32_table_entry(lua_State *L, const char *key, int32_t value) {
   if(L) {
     lua_pushstring(L, key);
-    lua_pushnumber(L, (lua_Number)value);
+
+    if((lua_Integer)value > LUA_MAXINTEGER || (lua_Integer)value < LUA_MININTEGER)
+      lua_pushnumber(L, (lua_Number)value);
+    else
+      lua_pushinteger(L, (lua_Integer)value);
+
     lua_settable(L, -3);
   }
 }
@@ -5412,7 +5417,7 @@ static int ntop_find_member_pool(lua_State *vm) {
 
     if(pool_found) {
       lua_newtable(vm);
-      lua_push_int_table_entry(vm, "pool_id", pool_id);
+      lua_push_uint64_table_entry(vm, "pool_id", pool_id);
 
       if(target_node != NULL) {
         lua_push_str_table_entry(vm, "matched_prefix", (char *)inet_ntop(target_node->prefix->family,
@@ -5420,7 +5425,7 @@ static int ntop_find_member_pool(lua_State *vm) {
 									 (void*)(&target_node->prefix->add.sin6) :
 									 (void*)(&target_node->prefix->add.sin),
 									 buf, sizeof(buf)));
-        lua_push_int_table_entry(vm, "matched_bitmask", target_node->bit);
+        lua_push_uint64_table_entry(vm, "matched_bitmask", target_node->bit);
       }
     } else
       lua_pushnil(vm);
@@ -5821,7 +5826,7 @@ static int ntop_get_info(lua_State* vm) {
   lua_push_str_table_entry(vm, "version",   (char*)PACKAGE_VERSION);
   lua_push_str_table_entry(vm, "git",       (char*)NTOPNG_GIT_RELEASE);
 #ifndef WIN32
-  lua_push_int_table_entry(vm, "pid",       getpid());
+  lua_push_uint64_table_entry(vm, "pid",       getpid());
 #endif
 
   snprintf(rsp, sizeof(rsp), "%s [%s][%s]",
@@ -5834,8 +5839,8 @@ static int ntop_get_info(lua_State* vm) {
 			   (char*)PACKAGE_OS
 #endif
     );
-  lua_push_int_table_entry(vm, "bits", (sizeof(void*) == 4) ? 32 : 64);
-  lua_push_int_table_entry(vm, "uptime", ntop->getGlobals()->getUptime());
+  lua_push_uint64_table_entry(vm, "bits", (sizeof(void*) == 4) ? 32 : 64);
+  lua_push_uint64_table_entry(vm, "uptime", ntop->getGlobals()->getUptime());
   lua_push_str_table_entry(vm, "command_line", ntop->getPrefs()->get_command_line());
 
   if(verbose) {
@@ -5859,16 +5864,16 @@ static int ntop_get_info(lua_State* vm) {
     lua_push_bool_table_entry(vm, "version.nedge_enterprise_edition", ntop->getPrefs()->is_nedge_enterprise_edition());
 
     lua_push_bool_table_entry(vm, "pro.release", ntop->getPrefs()->is_pro_edition());
-    lua_push_int_table_entry(vm, "pro.demo_ends_at", ntop->getPrefs()->pro_edition_demo_ends_at());
+    lua_push_uint64_table_entry(vm, "pro.demo_ends_at", ntop->getPrefs()->pro_edition_demo_ends_at());
 #ifdef NTOPNG_PRO
     lua_push_str_table_entry(vm, "pro.license", ntop->getPro()->get_license());
     lua_push_bool_table_entry(vm, "pro.out_of_maintenance", ntop->getPro()->is_out_of_maintenance());
     lua_push_bool_table_entry(vm, "pro.use_redis_license", ntop->getPro()->use_redis_license());
     lua_push_str_table_entry(vm, "pro.systemid", ntop->getPro()->get_system_id());
 #endif
-    lua_push_int_table_entry(vm, "constants.max_num_host_pools", MAX_NUM_HOST_POOLS);
-    lua_push_int_table_entry(vm, "constants.max_num_pool_members",    MAX_NUM_POOL_MEMBERS);
-    lua_push_int_table_entry(vm, "constants.max_num_profiles",    MAX_NUM_PROFILES);
+    lua_push_uint64_table_entry(vm, "constants.max_num_host_pools", MAX_NUM_HOST_POOLS);
+    lua_push_uint64_table_entry(vm, "constants.max_num_pool_members",    MAX_NUM_POOL_MEMBERS);
+    lua_push_uint64_table_entry(vm, "constants.max_num_profiles",    MAX_NUM_PROFILES);
 
 #ifndef HAVE_NEDGE
     zmq_version(&major, &minor, &patch);

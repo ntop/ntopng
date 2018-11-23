@@ -71,7 +71,7 @@ void Logstash::updateStats(const struct timeval *tv) {
 /* ******************************************* */
 
 void Logstash::lua(lua_State *vm, bool since_last_checkpoint) const {
-  lua_push_int_table_entry(vm,   "flow_export_count",
+  lua_push_uint64_table_entry(vm,   "flow_export_count",
 			   elkExportedFlows - (since_last_checkpoint ? checkpointExportedFlows : 0));
   lua_push_int32_table_entry(vm, "flow_export_drops",
 			     elkDroppedFlowsQueueTooLong - (since_last_checkpoint ? checkpointDroppedFlows : 0));

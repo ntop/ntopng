@@ -878,7 +878,7 @@ void Ntop::getUsers(lua_State* vm) {
 
     snprintf(key, CONST_MAX_LEN_REDIS_VALUE, CONST_STR_USER_HOST_POOL_ID, username);
     if(ntop->getRedis()->get(key, val, CONST_MAX_LEN_REDIS_VALUE) >= 0)
-      lua_push_int_table_entry(vm, "host_pool_id", atoi(val));
+      lua_push_uint64_table_entry(vm, "host_pool_id", atoi(val));
 
 
     snprintf(key, CONST_MAX_LEN_REDIS_VALUE, CONST_STR_USER_EXPIRE, username);
