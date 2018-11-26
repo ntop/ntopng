@@ -6,6 +6,7 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local remote_assistance = require("remote_assistance")
+local template = require "template_utils"
 
 if((not isAdministrator()) or (not remote_assistance.isAvailable())) then
   return
@@ -42,6 +43,17 @@ sendHTTPContentTypeHeader('text/html')
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
+print(template.gen("modal_confirm_dialog.html", {
+  dialog = {
+    id      = "tos-accept-modal",
+    title   = i18n("remote_assistance.enable_remove_assistance"),
+    custom_alert_class = "alert alert-danger",
+    message = i18n("remote_assistance.tos_notice", {button=i18n("remote_assistance.accept_and_enable")}),
+    confirm = i18n("remote_assistance.accept_and_enable"),
+    action  = "acceptTos()",
+ }
+}))
+
 print("<hr>")
 print("<h2>") print(i18n("remote_assistance.product_remote_assistance", {product=info.product})) print("</h2>")
 print("<br>")
@@ -52,10 +64,10 @@ local assist_enabled = remote_assistance.isEnabled()
 
 if assist_enabled then
   assistace_checked = "checked"
-end
 
-if ntop.getPref("ntopng.prefs.remote_assistance.admin_access") == "1" then
-  admin_checked = "checked"
+  if ntop.getPref("ntopng.prefs.remote_assistance.admin_access") == "1" then
+    admin_checked = "checked"
+  end
 end
 
 print [[
@@ -88,12 +100,7 @@ print [[
       </table>
     </div>
 
-    <div id="tos-accept" style="]] print(ternary(assist_enabled, "", "display:none")) print[[">
-      <div class="form-group">
-        <input type="checkbox" name="accept_tos" data-ays-ignore="true" value="1" ]] print(ternary(assist_enabled, "required checked", "")) print[[ />
-      </div>
-      <span><b>]] print(i18n("remote_assistance.tos_notice")) print[[</b></span>
-    </div>
+    <input type="hidden" name="accept_tos" data-ays-ignore="true" value="0" class="hidden" />
 
     <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button>
   </form>
@@ -127,13 +134,24 @@ print[[
     $("#toggle_remote_assistance").change(function() {
       var is_enabled = $("#toggle_remote_assistance").is(":checked");
 
-      if(is_enabled) {
+      if(is_enabled)
         generate_credentials();
-        $("#tos-accept").show().find("input").attr("required", "required");
-      } else {
-        $("#tos-accept").hide().find("input").removeAttr("required");
+    });
+
+    $("#remote_assistance_form").on("submit", function() {
+      var is_enabled = $("#toggle_remote_assistance").is(":checked");
+      var tos_accepted = ($("input[name='accept_tos']").val() === "1");
+
+      if(is_enabled && !tos_accepted) {
+        $("#tos-accept-modal").modal("show");
+        return false;
       }
     });
+
+    function acceptTos() {
+      $("input[name='accept_tos']").val("1").attr("checked", "checked");
+      $("#remote_assistance_form").submit();
+    }
   </script>
 ]]
 
