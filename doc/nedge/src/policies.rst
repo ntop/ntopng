@@ -25,6 +25,24 @@ A protocol or category policy has the following fields:
 - A **daily time quota**: a limit for the specified protocol daily time usage
 
 
+Quotas
+------
+
+All the quotas are reset daily at midnight. Quotas cannot be applied to the "Not Assigned" user.
+
+.. figure:: img/policies_users_list.png
+  :align: center
+  :alt: Users List
+
+Active user quotas can be reviewed by clicking the "View Quotas" button for a user in the Users page.
+
+.. figure:: img/policies_user_quotas.png
+  :align: center
+  :alt: User Quotas
+
+A given protocol or category quota will be shown only if there has been some traffic for it since
+midnight. It is possible to reset all the user quotas manually by clicking the "Reset Quotas" button.
+
 Device Protocols Policies
 -------------------------
 
