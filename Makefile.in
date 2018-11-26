@@ -41,7 +41,7 @@ else ifeq ($(OS), $(filter $(OS), FreeBSD))
 endif
 
 ifeq ($(USE_LUAJIT), 0)
-  LUA_HOME=${PWD}/third-party/lua-5.2.4
+  LUA_HOME=${PWD}/third-party/lua-5.3.5
   LUA_INC=-I$(LUA_HOME)/src -DDONT_USE_LUAJIT
   LUA_LIB=$(LUA_HOME)/src/liblua.a
   HAS_LUAJIT=0

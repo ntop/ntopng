@@ -5852,7 +5852,7 @@ static int ntop_get_info(lua_State* vm) {
     lua_push_str_table_entry(vm, "version.git", (char*)NTOPNG_GIT_RELEASE);
     lua_push_str_table_entry(vm, "version.curl", (char*)LIBCURL_VERSION);
 #ifdef DONT_USE_LUAJIT
-    lua_push_str_table_entry(vm, "version.luajit", (char*)"Lua 5.x");
+    lua_push_str_table_entry(vm, "version.luajit", (char*)LUA_RELEASE);
 #else
     lua_push_str_table_entry(vm, "version.luajit", (char*)LUAJIT_VERSION);
 #endif
