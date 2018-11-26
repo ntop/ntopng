@@ -167,7 +167,7 @@ writers = {
 			else
 				local r, s = pcall(string.dump,item);
 				if r then
-					file:write(string.format("loadstring(%q)", s));
+					file:write(string.format("load(%q)", s));
 				else
 					file:write("nil --[[function could not be dumped]]");
 				end

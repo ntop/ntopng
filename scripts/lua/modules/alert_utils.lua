@@ -148,7 +148,7 @@ end
 --
 -- NOTE
 --
--- These functions are called by the loadstring function to evaluate
+-- These functions are called by the load function to evaluate
 -- threshold crosses.
 -- When reading a field from the "old" parameter, an "or" operator should be used
 -- to avoid working on nil value. Nil values can be found, for example, when a
@@ -322,17 +322,17 @@ local function entity_threshold_crossed(granularity, old_table, new_table, thres
    local threshold_info = table.clone(threshold)
 
    if old_table and new_table then -- meaningful checks require both new and old tables
-      -- Needed because Lua. loadstring() won't work otherwise.
+      -- Needed because Lua. load() won't work otherwise.
       old = old_table
       new = new_table
       duration = granularity2sec(granularity)
 
       local op = op2jsop(threshold.operator)
 
-      -- This is where magic happens: loadstring() evaluates the string
+      -- This is where magic happens: load() evaluates the string
       local what = "val = "..threshold.metric.."(old, new, duration); if(val ".. op .. " " .. threshold.edge .. ") then return(true) else return(false) end"
 
-      local f = loadstring(what)
+      local f = load(what)
 
       rc = f()
       threshold_info.value = val
