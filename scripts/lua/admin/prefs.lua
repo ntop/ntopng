@@ -1540,8 +1540,8 @@ if tonumber(_POST["ts_high_resolution"]) ~= nil then
     end
   end
 
-  ntop.setPref("ntopng.prefs.ts_write_slots", tostring(new_slots))
-  ntop.setPref("ntopng.prefs.ts_write_steps", tostring(new_steps))
+  ntop.setPref("ntopng.prefs.ts_write_slots", tostring(math.ceil(new_slots)))
+  ntop.setPref("ntopng.prefs.ts_write_steps", tostring(math.ceil(new_steps)))
 end
 
 if(_SERVER["REQUEST_METHOD"] == "POST") then
