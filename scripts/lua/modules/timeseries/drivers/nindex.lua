@@ -17,7 +17,7 @@ end
 
 function driver:query(schema, tstart, tend, tags, options)
   -- TODO, see rrd.lua sampleSeries
-  local time_step = (tend - tstart) / options.max_num_points
+  local time_step = math.floor((tend - tstart) / options.max_num_points)
   local count = options.max_num_points
   local series = {{label = "sent", data = {},}, {label = "rcvd", data = {},}}
 

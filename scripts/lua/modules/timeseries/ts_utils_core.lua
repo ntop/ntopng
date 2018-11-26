@@ -270,7 +270,7 @@ end
 local function getLocalTopTalkers(schema_id, tags, tstart, tend, options)
   package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
   local top_utils = require "top_utils"
-  local num_minutes = (tend-tstart)/60
+  local num_minutes = math.floor((tend - tstart) / 60)
   local top_talkers = top_utils.getAggregatedTop(getInterfaceName(ifId), tend, num_minutes)
 
   local direction
@@ -603,7 +603,7 @@ function ts_utils.queryMean(schema_name, tstart, tend, tags)
   end
 
   local rv = ts_utils.queryTotal(schema_name, tstart, tend, tags)
-  local intervals = (tend - tstart) / schema.options.step
+  local intervals = math.floor((tend - tstart) / schema.options.step)
 
   for i, total in pairs(rv or {}) do
     rv[i] = total / intervals

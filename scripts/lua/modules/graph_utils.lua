@@ -66,10 +66,10 @@ function queryEpochData(schema, tags, selectedEpoch, zoomLevel, options)
    if((selectedEpoch == nil) or (selectedEpoch == "")) then 
       selectedEpoch = os.time() 
       end_time = tonumber(selectedEpoch)   
-      start_time = end_time-d
+      start_time = end_time - d
    else
-      end_time = tonumber(selectedEpoch) + d/2
-      start_time = tonumber(selectedEpoch) - d/2
+      end_time = tonumber(selectedEpoch) + math.floor(d / 2)
+      start_time = tonumber(selectedEpoch) - math.floor(d / 2)
    end
 
    return ts_utils.query(schema, tags, start_time, end_time, options)
@@ -484,8 +484,8 @@ print[[
 	    nextZoomLevel = zoom_vals[k-1][1]
 	 end
 	 if(epoch ~= nil) then
-	    start_time = epoch - zoom_vals[k][3]/2
-	    end_time = epoch + zoom_vals[k][3]/2
+	    start_time = epoch - math.floor(zoom_vals[k][3] / 2)
+	    end_time = epoch + math.floor(zoom_vals[k][3] / 2)
 	 else
 	    end_time = os.time()
 	    start_time = end_time - zoom_vals[k][3]
