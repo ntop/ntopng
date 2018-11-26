@@ -14,6 +14,7 @@ local extraction_queue_key = "ntopng.traffic_recording.extraction_queue"
 local extraction_stop_queue_key = "ntopng.traffic_recording.extraction_stop_queue"
 local extraction_seqnum_key = "ntopng.traffic_recording.extraction_seqnum"
 local extraction_jobs_key = "ntopng.traffic_recording.extraction_jobs"
+local IS_AVAILABLE_KEY = "ntopng.cache.traffic_recording_available"
 
 local recording_utils = {}
 
@@ -72,13 +73,23 @@ function recording_utils.isSupportedInterface(ifid)
   return false
 end
 
+-- only called during boot
+function recording_utils.checkAvailable()
+  local is_available = false
+
+  if(not ntop.isWindows())
+    and (not ntop.isnEdge())
+    and os_utils.hasService("n2disk", getInterfaceName(getFirstInterfaceId())) then
+    is_available = true
+  end
+
+  ntop.setCache(IS_AVAILABLE_KEY, ternary(is_available, "1", "0"))
+end
+
 --! @brief Check if traffic recording is available and allowed for the current user on an interface
 --! @return true if recording is available, false otherwise
 function recording_utils.isAvailable()
-  if isAdministrator() and
-     not ntop.isWindows() and
-     not ntop.isnEdge()
-     and os_utils.hasService("n2disk", getInterfaceName(getFirstInterfaceId())) then
+  if isAdministrator() and (ntop.getCache(IS_AVAILABLE_KEY) == "1") then
     return true
   end
   return false

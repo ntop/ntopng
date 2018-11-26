@@ -14,12 +14,19 @@ local CONF_DIR = dirs.workingdir.."/n2n"
 local CONF_FILE = CONF_DIR .. "/edge.conf"
 local TEMP_ADMIN_PASSWORD_KEY = "ntopng.prefs.temp_admin_password"
 local REMOTE_ASSISTANCE_EXPIRATION = 86400 --[[ keep active for max 1 day ]]
+local IS_AVAILABLE_KEY = "ntopng.cache.remote_assistance_available"
 local remote_assistance = {}
 
 -- ########################################################
 
+function remote_assistance.checkAvailable()
+  ntop.setCache(IS_AVAILABLE_KEY, ternary(os_utils.hasService(SERVICE_NAME), "1", "0"))
+end
+
+-- ########################################################
+
 function remote_assistance.isAvailable()
-  return isAdministrator() and os_utils.hasService(SERVICE_NAME)
+  return isAdministrator() and (ntop.getCache(IS_AVAILABLE_KEY) == "1")
 end
 
 -- ########################################################

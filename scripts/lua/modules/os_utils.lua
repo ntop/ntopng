@@ -76,18 +76,12 @@ end
 --! @return true if service is available, false otherwise.
 function os_utils.hasService(service_name, ...)
    local cmd = ntopctl_cmd(service_name, "has-service", ...)
-   local key = "ntopng.cache.hasService." .. cmd:gsub(" ", "_")
-   local rv = ntop.getCache(key)
 
-   if rv == nil then
-      if not ntop.exists(NTOPNG_CONFIG_TOOL) then
-         return false
-      end
-
-      rv = os_utils.execWithOutput(cmd)
-      ntop.setCache(key, rv, 60)
+   if not ntop.exists(NTOPNG_CONFIG_TOOL) then
+      return false
    end
 
+   local rv = os_utils.execWithOutput(cmd)
    return(rv == "yes\n")
 end
  
