@@ -84,7 +84,7 @@ function os_utils.hasService(service_name, ...)
          return false
       end
 
-      local rv = os_utils.execWithOutput(cmd)
+      rv = os_utils.execWithOutput(cmd)
       ntop.setCache(key, rv, 60)
    end
 
