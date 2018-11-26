@@ -116,7 +116,7 @@ get_service_status() {
 is_active_service() {
 	if [ $SYSTEMD = true ]; then
 		get_systemd_service_name
-		/bin/systemctl is-active $SERVICE
+		/bin/systemctl show $SERVICE -p ActiveState | cut -f2 -d=
 	else
 		if [ $(/etc/init.d/${SERVICE_NAME} status ${SERVICE_PARAM} 2>/dev/null | grep "${SERVICE_NAME} running" | wc -l) -gt 0 ]; then
 			echo "active"
