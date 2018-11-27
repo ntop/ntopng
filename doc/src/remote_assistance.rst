@@ -6,11 +6,12 @@ Usually the user machine is behind a NAT or a firewall which blocks incoming con
 and it a problem for the non-technical user to setup port forwarding and firewall rules.
 
 In order to ease remote assistance, ntopng integrates n2n_ and provides a web console
-to enable remote access. This console is only available in the following linux distributions:
-
+to enable remote access. This console is only available only in systemd-based distro such as (at the time of writing):
 - Centos 7
-- Ubuntu 16
-- Ubuntu 18
+- Ubuntu 16/18
+
+.. warning::
+As ntopng assumes that certains script files are placed in certain locations by the packages, we expect you to use the packages version of our tools what pre-place such files at the correct location. This means that if you compile ntopng from source you need to make sure the files are properly installed at the right location.
 
 The console can be accessed from the `Remote Assistance` menu entry:
 
