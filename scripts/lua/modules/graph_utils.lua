@@ -942,13 +942,15 @@ function printProtocolQuota(proto, ndpi_stats, category_stats, quotas_to_show, s
       local bytes_exceeded = ((proto.traffic_quota ~= "0") and (total_bytes >= tonumber(proto.traffic_quota)))
       local lb_bytes = bytesToSize(total_bytes)
       local lb_bytes_quota = ternary(proto.traffic_quota ~= "0", bytesToSize(tonumber(proto.traffic_quota)), i18n("unlimited"))
-      local traffic_taken = ternary(proto.traffic_quota ~= "0", math.min(total_bytes, proto.traffic_quota), 0)
-      local traffic_remaining = math.max(proto.traffic_quota - traffic_taken, 0)
-      local traffic_quota_ratio = round(traffic_taken * 100 / (traffic_taken+traffic_remaining), 0)
+      local traffic_taken = ternary(proto.traffic_quota ~= "0", math.min(total_bytes, tonumber(proto.traffic_quota)), 0)
+      local traffic_remaining = math.max(tonumber(proto.traffic_quota) - traffic_taken, 0)
+      local traffic_quota_ratio = round(traffic_taken * 100 / (traffic_taken + traffic_remaining), 0)
+      if not traffic_quota_ratio then traffic_quota_ratio = 0 end
 
       if show_td then
         output[#output + 1] = [[<td class='text-right']]..ternary(bytes_exceeded, ' style=\'color:red;\'', '').."><span>"..lb_bytes..ternary(hide_limit, "", " / "..lb_bytes_quota).."</span>"
       end
+
       output[#output + 1] = [[
           <div class='progress' style=']]..(quotas_to_show.traffic_style or "")..[['>
             <div class='progress-bar progress-bar-warning' aria-valuenow=']]..traffic_quota_ratio..'\' aria-valuemin=\'0\' aria-valuemax=\'100\' style=\'width: '..traffic_quota_ratio..'%;\'>'..
