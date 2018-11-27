@@ -8223,7 +8223,10 @@ void LuaEngine::lua_register_classes(lua_State *L, bool http_mode) {
 #if defined(NTOPNG_PRO) || defined(HAVE_NEDGE)
   if(ntop->getPro()->has_valid_license()) {
     lua_register(L, "ntopRequire", ntop_lua_require);
-    luaL_dostring(L, "table.insert(package.loaders, 1, ntopRequire)");
+    /* Lua 5.2.x uses package.loaders   */
+    luaL_dostring(L, "package.loaders = { ntopRequire }");
+    /* Lua 5.3.x uses package.searchers */
+    luaL_dostring(L, "package.searchers = { ntopRequire }");
     lua_register(L, "dofile", ntop_lua_dofile);
     lua_register(L, "loadfile", ntop_lua_loadfile);
   }
