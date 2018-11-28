@@ -84,9 +84,9 @@ print [[/lua/runtime.lua"><i class="fa fa-hourglass-start"></i> ]] print(i18n("a
 
 if interface.isPcapDumpInterface() == false then
    if(active_page == "dashboard") then
-  print [[ <li class="dropdown active"> ]]
-else
-  print [[ <li class="dropdown"> ]]
+      print [[ <li class="dropdown active"> ]]
+   else
+      print [[ <li class="dropdown"> ]]
    end
 
    print [[

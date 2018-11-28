@@ -46,6 +46,7 @@ PcapInterface::PcapInterface(const char *name) : NetworkInterface(name) {
       /* stdin */
       pcap_handle = pcap_fopen_offline(stdin, pcap_error_buffer);
       pcap_datalink_type = DLT_EN10MB;
+      read_pkts_from_pcap_dump = false;
     } else if((pcap_handle = pcap_open_offline(ifname, pcap_error_buffer)) == NULL) {
       if((pcap_list = fopen(name, "r")) == NULL) {
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to open file %s", name);
