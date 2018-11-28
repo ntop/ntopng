@@ -110,14 +110,20 @@ print[[
             </div>
             <div style="margin-left: 0.5em; display:inline">]] print(remote_assistance.statusLabel()) print[[</div>
           </td>
-        </tr>
-        <!-- TODO remove localization if permanently hidden -->
+        </tr>]]
+
+if assist_enabled then
+  print[[
         <tr>
           <th>]] print(i18n("remote_assistance.connection_script")) print[[</th>
           <td><a href="?action=get_script"><i class="fa fa-floppy-o fa-lg"></i></a><br>
           <small>]] print(i18n("remote_assistance.connection_script_descr")) print[[</small>
           </td>
-        </tr>
+        </tr>]]
+end
+
+print[[
+        <!-- TODO remove localization if permanently hidden -->
         <tr class="hidden">
           <th>]] print(i18n("remote_assistance.community")) print[[</th>
           <td><input id="assistance_community" class="form-control" data-ays-ignore="true" name="assistance_community" value="]] print(ntop.getPref("ntopng.prefs.remote_assistance.community")) print[[" readonly /><br>

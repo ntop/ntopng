@@ -2488,8 +2488,8 @@ local lang = {
   },
   ["remote_assistance"] = {
     ["accept_and_enable"] = "Accept and Enable",
-    ["admin_access"] = "Enable Admin Access",
-    ["admin_access_descr"] = "Allow the support team access as admin user to the %{product} gui.",
+    ["admin_access"] = "Temporary Admin Access",
+    ["admin_access_descr"] = "Create a temporary admin password for remote assistance gui access.",
     ["ask_admin"] = "Ask the network administrator permission before doing this.",
     ["community"] = "Community",
     ["community_descr"] = "The virtual network unique number.",

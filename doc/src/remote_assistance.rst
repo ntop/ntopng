@@ -6,12 +6,16 @@ Usually the user machine is behind a NAT or a firewall which blocks incoming con
 and it a problem for the non-technical user to setup port forwarding and firewall rules.
 
 In order to ease remote assistance, ntopng integrates n2n_ and provides a web console
-to enable remote access. This console is only available only in systemd-based distro such as (at the time of writing):
+to enable remote access. This console is available only in systemd-based distro such as (at the time of writing):
+
 - Centos 7
 - Ubuntu 16/18
+- Debian 9
 
 .. warning::
-As ntopng assumes that certains script files are placed in certain locations by the packages, we expect you to use the packages version of our tools what pre-place such files at the correct location. This means that if you compile ntopng from source you need to make sure the files are properly installed at the right location.
+  ntopng assumes that certains script files are placed in certain locations, as installed by the ntopng prebuild package.
+  This means that, if ntopng is compiled from source, special care must be taken to place these files at the correct locations
+  in order to make remote assistance available.
 
 The console can be accessed from the `Remote Assistance` menu entry:
 
@@ -19,19 +23,22 @@ The console can be accessed from the `Remote Assistance` menu entry:
   :align: center
   :alt: Remote Assistance Menu Entry
 
-When the remote assistance is enabled, a unique key is generated. This key should
-only be provided to the ntop team via a *secure channel* (e.g. email).
-
-.. warning::
-  The secrecy of the remote assistance key is critical to avoid unauthorized access to the device
+When the remote assistance is enabled, the machine running ntopng will take part
+to a dedicated virtual network. By running the connection script, which can be
+downloaded from the gui, any linux system with the n2n software can take part to
+the machine virtual network to provide remote assistance **bypassing NAT and firewalls**.
+The connection script contains connection credentials so it must be sent only to trusted peers.
 
 .. figure:: img/remote_assistance_settings.png
   :align: center
   :alt: Remote Assistance Settings
 
-By enabling the remote assistance and providing the secret key to the ntop support
-team, the user machine will be part of a dedicated virtual network which can be used
-by the support team to connect to it, **bypassing NAT and firewalls**.
+By enabling the remote assistance and providing the connection script to the ntop support
+team, the user can receive remote assistance.
+
+If the `Temporary Admin Access` flag is checked, then the support team will also be able
+to connect to ntopng gui as the admin user by using the same credentials of the connection
+script. If it's not enabled, then gui credentials must be provided to the support team by the user.
 
 .. warning::
 
@@ -41,13 +48,18 @@ by the support team to connect to it, **bypassing NAT and firewalls**.
 
    It is the user responsability to ensure that the network security policies allow virtual networks creation
 
-If the `Enable Admin Access` flag is checked, then the support team will also be able
-to connect to ntopng gui as the admin user. If it's not enabled, then gui credentials
-must be provided to the support team by the user.
+Remote Assistance Status
+------------------------
 
 As long as the remote assistance is active, an icon will be displayed in the footer:
 
 .. figure:: img/remote_assistance_footer.png
+  :align: center
+  :alt: Remote Assistance Status
+
+By clicking on it, it's possible to check the service status and log.
+
+.. figure:: img/remote_assistance_status.png
   :align: center
   :alt: Remote Assistance Status
 
