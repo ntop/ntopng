@@ -83,7 +83,7 @@ if assist_enabled then
 end
 
 print [[
-<ul id="traffic-recording-nav" class="nav nav-tabs" role="tablist">]]
+<ul id="n2n-nav" class="nav nav-tabs" role="tablist">]]
 
 print('<li class="'.. ternary(tab == "config", "active", "") ..'"><a href="?tab=config"><i class="fa fa-cog"></i> '.. i18n("traffic_recording.settings") .. "</a>")
 
@@ -109,6 +109,15 @@ print[[
               <input id="toggle_remote_assistance" name="toggle_remote_assistance" type="checkbox" value="1" ]] print(assistace_checked) print [[/>
             </div>
             <div style="margin-left: 0.5em; display:inline">]] print(remote_assistance.statusLabel()) print[[</div>
+             <br><small>]]
+
+             if(remote_assistance.getStatus() == "active") then
+               print(i18n("remote_assistance.remote_ip_msg")) 
+             end
+
+           print [[</small>
+
+        
           </td>
         </tr>]]
 
@@ -116,7 +125,7 @@ if assist_enabled then
   print[[
         <tr>
           <th>]] print(i18n("remote_assistance.connection_script")) print[[</th>
-          <td><a href="?action=get_script"><i class="fa fa-floppy-o fa-lg"></i></a><br>
+          <td><a href="?action=get_script"><i class="fa fa-download fa-lg"></i> <i class="fa fa-terminal fa-lg"></i></a><br>
           <small>]] print(i18n("remote_assistance.connection_script_descr")) print[[</small>
           </td>
         </tr>]]
@@ -139,7 +148,14 @@ print[[
         <tr>
           <th>]] print(i18n("remote_assistance.admin_access")) print[[</th>
           <td><input name="allow_admin_access" type="checkbox" value="1" ]] print(admin_checked) print [[/><br>
-          <small>]] print(i18n("remote_assistance.admin_access_descr", {product = info.product})) print[[</small>
+          <small>]] print(i18n("remote_assistance.admin_access_descr", {product = info.product}))
+
+if((admin_checked == "checked") and (remote_assistance.getStatus() == "active")) then
+print(i18n("remote_assistance.admin_access_key_descr", {pwd = ntop.getPref("ntopng.prefs.remote_assistance.key")}))
+end
+
+
+          print [[
           </td>
         </tr>
       </table>
