@@ -76,6 +76,12 @@ end
 --! @return true if service is available, false otherwise.
 function os_utils.hasService(service_name, ...)
    local cmd = ntopctl_cmd(service_name, "has-service", ...)
+   local has_ntopctl = os_utils.execWithOutput("which ntopctl >/dev/null 2>/dev/null")
+
+   if has_ntopctl == nil then
+      -- ntopctl is not available
+      return false
+   end
 
    if not ntop.exists(NTOPNG_CONFIG_TOOL) then
       return false
