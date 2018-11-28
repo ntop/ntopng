@@ -576,11 +576,11 @@ function formatTcpFlags(flags)
    end
 
    rsp = "<A HREF=\"http://en.wikipedia.org/wiki/Transmission_Control_Protocol\">"
-   if(bit.band(flags, 1) == 2)  then rsp = rsp .. " SYN "  end
-   if(bit.band(flags, 16) == 16) then rsp = rsp .. " ACK "  end
-   if(bit.band(flags, 1) == 1)  then rsp = rsp .. " FIN "  end
-   if(bit.band(flags, 4) == 4)  then rsp = rsp .. " RST "  end
-   if(bit.band(flags, 8) == 8 )  then rsp = rsp .. " PUSH " end
+   if((flags & 1) == 2)  then rsp = rsp .. " SYN "  end
+   if((flags & 16) == 16) then rsp = rsp .. " ACK "  end
+   if((flags & 1) == 1)  then rsp = rsp .. " FIN "  end
+   if((flags & 4) == 4)  then rsp = rsp .. " RST "  end
+   if((flags & 8) == 8 )  then rsp = rsp .. " PUSH " end
 
    return(rsp .. "</A>")
 end
