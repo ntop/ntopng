@@ -13,30 +13,42 @@ if((not isAdministrator()) or (not remote_assistance.isAvailable())) then
 end
 
 local info = ntop.getInfo()
+local tab = _GET["tab"] or "config"
 
 if not table.empty(_POST) then
-  local enabled = (_POST["toggle_remote_assistance"] == "1") and (_POST["accept_tos"] == "1")
+  if tab == "config" then
+    local enabled = (_POST["toggle_remote_assistance"] == "1") and (_POST["accept_tos"] == "1")
 
-  if enabled then
-    local admin_access = _POST["allow_admin_access"]
-    local community = _POST["assistance_key"]
-    local key = community
+    if enabled then
+      local admin_access = _POST["allow_admin_access"]
+      local community = _POST["assistance_community"]
+      local key = _POST["assistance_key"]
 
-    if admin_access == "1" then
-      remote_assistance.enableTempAdminAccess(key)
+      if admin_access == "1" then
+        remote_assistance.enableTempAdminAccess(key)
+      else
+        remote_assistance.disableTempAdminAccess()
+      end
+
+      ntop.setPref("ntopng.prefs.remote_assistance.community", community)
+      ntop.setPref("ntopng.prefs.remote_assistance.key", key)
+      ntop.setPref("ntopng.prefs.remote_assistance.admin_access", admin_access or "0")
+      remote_assistance.createConfig(community, key)
+      remote_assistance.enableAndStart()
     else
       remote_assistance.disableTempAdminAccess()
+      remote_assistance.disableAndStop()
     end
-
-    ntop.setPref("ntopng.prefs.remote_assistance.community", community)
-    ntop.setPref("ntopng.prefs.remote_assistance.key", key)
-    ntop.setPref("ntopng.prefs.remote_assistance.admin_access", admin_access or "0")
-    remote_assistance.createConfig(community, key)
-    remote_assistance.enableAndStart()
-  else
-    remote_assistance.disableTempAdminAccess()
-    remote_assistance.disableAndStop()
+  else -- tab == "status"
+    if _POST["action"] == "restart" then
+      remote_assistance.restart()
+    end
   end
+elseif _GET["action"] == "get_script" then
+  sendHTTPContentTypeHeader('text/x-shellscript', 'attachment; filename="n2n_assistance.sh"')
+  print("#!/bin/sh\n")
+  print(remote_assistance.getConnectionCommand())
+  return
 end
 
 sendHTTPContentTypeHeader('text/html')
@@ -71,6 +83,20 @@ if assist_enabled then
 end
 
 print [[
+<ul id="traffic-recording-nav" class="nav nav-tabs" role="tablist">]]
+
+print('<li class="'.. ternary(tab == "config", "active", "") ..'"><a href="?tab=config"><i class="fa fa-cog"></i> '.. i18n("traffic_recording.settings") .. "</a>")
+
+if assist_enabled then
+  print('<li class="'.. ternary(tab == "status", "active", "") ..'"><a href="?tab=status">'.. i18n("status") .. "</a>")
+end
+
+print[[</ul>]]
+
+print('<div class="tab-content">')
+
+if tab == "config" then
+print[[
   <form id="remote_assistance_form" class="form-inline" method="post">
     <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
 
@@ -85,7 +111,20 @@ print [[
             <div style="margin-left: 0.5em; display:inline">]] print(remote_assistance.statusLabel()) print[[</div>
           </td>
         </tr>
+        <!-- TODO remove localization if permanently hidden -->
         <tr>
+          <th>]] print(i18n("remote_assistance.connection_script")) print[[</th>
+          <td><a href="?action=get_script"><i class="fa fa-floppy-o fa-lg"></i></a><br>
+          <small>]] print(i18n("remote_assistance.connection_script_descr")) print[[</small>
+          </td>
+        </tr>
+        <tr class="hidden">
+          <th>]] print(i18n("remote_assistance.community")) print[[</th>
+          <td><input id="assistance_community" class="form-control" data-ays-ignore="true" name="assistance_community" value="]] print(ntop.getPref("ntopng.prefs.remote_assistance.community")) print[[" readonly /><br>
+          <small>]] print(i18n("remote_assistance.community_descr")) print[[</small>
+          </td>
+        </tr>
+        <tr class="hidden">
           <th>]] print(i18n("key")) print[[</th>
           <td><input id="assistance_key" class="form-control" data-ays-ignore="true" name="assistance_key" value="]] print(ntop.getPref("ntopng.prefs.remote_assistance.key")) print[[" readonly /><br>
           <small>]] print(i18n("remote_assistance.key_descr")) print[[</small>
@@ -120,15 +159,26 @@ print[[
   <script>
     aysHandleForm("#remote_assistance_form");
 
-    function genNumericId() {
+    /* Returns random [0-9a-zA-Z] ~10 chars */
+    function genRandomString() {
+      var uppercase_prob = 0.4;
+
+      /* Note: this returns [0-9a-z] chars */
+      var s = Math.random().toString(36).slice(2);
+      var res = [];
+
+      for(var i=0; i<s.length; i++)
+        res.push((Math.random() <= uppercase_prob) ? s[i].toUpperCase() : s[i]);
+
       // 10 digits
-      return Math.random().toString().substring(2,12);
+      return res.join("");
     }
 
     function generate_credentials() {
       var today = Math.floor($.now() / 1000 / 86400); // days since first epoch
 
-      $("#assistance_key").val(genNumericId());
+      $("#assistance_community").val(genRandomString());
+      $("#assistance_key").val(genRandomString());
     }
 
     $("#toggle_remote_assistance").change(function() {
@@ -154,5 +204,33 @@ print[[
     }
   </script>
 ]]
+else -- tab == "status"
+  print("<table class=\"table table-bordered table-striped\">\n")
+  print("<tr><th width='15%' nowrap>"..i18n("interface").."</th><td>".. remote_assistance.getInterfaceName() .."</td></tr>\n")
+  print("<tr><th width='15%' nowrap>"..i18n("ip_address").."</th><td>".. remote_assistance.getIpAddress() .."</td></tr>\n")
+  print("<tr><th nowrap>"..i18n("status").."</th><td>") print(noHtml(remote_assistance.statusLabel()) .. ". ")
+  print[[<form style="display:inline" id="restart-service-form" method="post">
+    <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[" />
+    <input type="hidden" name="action" value="restart" />
+</form>]]
+  print(" <small><a href='#' onclick='$(\"#restart-service-form\").submit(); return false;' title='' data-original-title='"..i18n("traffic_recording.restart_service").."'></small>&nbsp;<i class='fa fa-repeat fa-lg' aria-hidden='true' data-original-title='' title=''></i></a>")
+  print("</td></tr>")
+
+  print("<tr><th nowrap>"..i18n("about.last_log").."</th><td><code>")
+  local log = remote_assistance.log(32)
+
+  local logs = split(log, "\n")
+  for i = 1, #logs do
+    local row = split(logs[i], "]: ")
+    if row[2] ~= nil then
+      print(row[2].."<br>\n")
+    else
+      print(row[1].."<br>\n")
+    end
+  end
+
+  print("</code></td></tr>")
+  print("</table>\n")
+end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

@@ -61,7 +61,7 @@ end
 
 local function ntopctl_cmd(service_name, ...)
    local cmd = {NTOPCTL_CMD, service_name, ...}
-   return table.concat(cmd, " ") .. " 2>/dev/null"
+   return table.concat(cmd, " ")
 end
 
 --! @brief Execute service control tool and get its output.

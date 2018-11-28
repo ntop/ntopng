@@ -234,6 +234,10 @@ case "$1" in
 	n2n)
 	SERVICE_NAME="edge"
 	CONFIG_INSTALL_TARGET="install-n2n-conf"
+
+	if [ ! -z "$3" ]; then
+		SERVICE_PARAM="$3"
+	fi
 	;;
 
 	*)

@@ -1314,6 +1314,7 @@ local known_parameters = {
    ["extract_now"]             = validateBool,
    ["custom_hosts"]            = validateListOfTypeInline(validateSingleWord),
    ["assistance_key"]          = validateUnquoted,
+   ["assistance_community"]    = validateUnquoted,
    ["allow_admin_access"]      = validateBool,
    ["accept_tos"]              = validateBool,
    ["no_timeout"]              = validateBool,

@@ -18,7 +18,7 @@
 #
 MY_IP="192.168.166.10"
 CLIENT_IP="192.168.166.1"
-N2N_IFACE="n2n0"
+N2N_IFACE="n2n_assistance"
 N2N_SUPERNODE="dns.ntop.org:7777"
 
 ########################################
@@ -35,13 +35,13 @@ if [[ ! -x "$N2N_BIN" ]]; then
   exit 1
 fi
 
-if [[ $# -ne 1 ]]; then
-  echo "Usage: `basename $0` key" >&2
+if [[ $# -ne 2 ]]; then
+  echo "Usage: `basename $0` community key" >&2
   exit 1
 fi
 
 N2N_COMMUNITY="$1"
-N2N_KEY="$1"
+N2N_KEY="$2"
 
 # Try to differentiate the IP
 if which ip 2>/dev/null >/dev/null ; then
