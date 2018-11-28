@@ -27,7 +27,16 @@ When the remote assistance is enabled, the machine running ntopng will take part
 to a dedicated virtual network. By running the connection script, which can be
 downloaded from the gui, any linux system with the n2n software can take part to
 the machine virtual network to provide remote assistance **bypassing NAT and firewalls**.
-The connection script contains connection credentials so it must be sent only to trusted peers.
+The script can be run from the terminal as follows:
+
+.. code:: bash
+
+    chmod +x n2n_assistance.sh
+    ./n2n_assistance.sh
+
+.. warning::
+
+  The connection script contains connection credentials so it must be sent only to trusted peers
 
 .. figure:: img/remote_assistance_settings.png
   :align: center

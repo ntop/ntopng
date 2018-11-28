@@ -435,7 +435,7 @@ function install_n2n_conf() {
     mkdir -p "${DEST_PATH}"
 
     if [ "${INTERFACE}" != "" ]; then
-	DEST_PATH="${DEST_PATH}/edge@${INTERFACE}.conf"
+	DEST_PATH="${DEST_PATH}/edge-${INTERFACE}.conf"
     fi
 
     ln -sf "${SOURCE_FILE}" "${DEST_PATH}"
