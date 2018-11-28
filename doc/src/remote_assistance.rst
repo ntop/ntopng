@@ -43,11 +43,11 @@ The script can be run from the terminal as follows:
   :alt: Remote Assistance Settings
 
 By enabling the remote assistance and providing the connection script to the ntop support
-team, the user can receive remote assistance.
+team, the user can receive remote assistance. When remote assistance is enabled, the ntopng instance will be available at IP address 192.168.166.1
 
 If the `Temporary Admin Access` flag is checked, then the support team will also be able
-to connect to ntopng gui as the admin user by using the same credentials of the connection
-script. If it's not enabled, then gui credentials must be provided to the support team by the user.
+to connect to ntopng GUI as the admin user by using the same credentials of the connection
+script. If it's not enabled, then GUI credentials must be provided to the support team by the user.
 
 .. warning::
 
@@ -73,14 +73,14 @@ By clicking on it, it's possible to check the service status and log.
   :alt: Remote Assistance Status
 
 The remote assistance service will stay active even when ntopng is stopped. This
-must be manually disabled from the ntopng gui when remote assistance is concluded.
+must be manually disabled from the ntopng GUI when remote assistance is concluded.
 
 Security Considerations
 -----------------------
 
 Here are some consideration about the remote assistance security:
 
-- All the traffic is end-to-end encrypted to prevent MITM attacks
+- All the traffic is end-to-end encrypted to prevent MITM (Man In The Middle) attacks
 - The remote assistance is automatically disabled after 24 hours
 - By enabling remote assistance, the support team *will not have* console access
   to the machine. Console access, if necessary, must be manually configured by the user.
