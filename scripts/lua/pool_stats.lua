@@ -7,11 +7,13 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 
+local page_utils = require("page_utils")
+
 local have_nedge = ntop.isnEdge()
 
 sendHTTPContentTypeHeader('text/html')
 
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
+page_utils.print_header(i18n("host_pools.host_pools"))
 
 local active_page = "hosts"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")

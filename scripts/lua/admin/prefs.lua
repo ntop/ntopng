@@ -14,6 +14,7 @@ local lists_utils = require "lists_utils"
 local alert_consts = require "alert_consts"
 local slack_utils = require("slack")
 local recording_utils = require "recording_utils"
+local page_utils = require("page_utils")
 
 if(ntop.isPro()) then
   package.path = dirs.installdir .. "/scripts/lua/pro/?.lua;" .. package.path
@@ -124,7 +125,7 @@ if(haveAdminPrivileges()) then
     end
    end
 
-   ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
+   page_utils.print_header(i18n("prefs.preferences"))
 
    active_page = "admin"
    dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")

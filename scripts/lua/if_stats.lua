@@ -17,6 +17,7 @@ local host_pools_utils = require "host_pools_utils"
 local template = require "template_utils"
 local os_utils = require "os_utils"
 local format_utils  = require "format_utils"
+local page_utils = require("page_utils")
 
 require "lua_utils"
 require "prefs_utils"
@@ -142,7 +143,7 @@ if (isAdministrator()) then
    end
 end
 
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
+page_utils.print_header(i18n("interface_ifname", { ifname=if_name }))
 
 print("<link href=\""..ntop.getHttpPrefix().."/css/tablesorted.css\" rel=\"stylesheet\">")
 

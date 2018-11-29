@@ -8,6 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 
 local discover = require "discover_utils"
+local page_utils = require("page_utils")
 local ifId = getInterfaceId(ifname)
 local refresh_button = '<small><a href="'..ntop.getHttpPrefix()..'/lua/discover.lua?request_discovery=true" title="Refresh"><i class="fa fa-refresh fa-sm" aria-hidden="true"></i></a></small>'
 
@@ -45,7 +46,9 @@ if discovery_requested then
 end
 
 sendHTTPContentTypeHeader('text/html')
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
+
+page_utils.print_header(i18n("discover.network_discovery"))
+
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 -- print('<hr><H2>'..i18n("discover.network_discovery")..'&nbsp;</H2><br>')

@@ -9,6 +9,8 @@ require "lua_utils"
 local template = require "template_utils"
 local categories_utils = require "categories_utils"
 local lists_utils = require "lists_utils"
+local page_utils = require("page_utils")
+
 sendHTTPContentTypeHeader('text/html')
 
 local category_filter = _GET["l7proto"]
@@ -18,7 +20,8 @@ if not haveAdminPrivileges() then
   return
 end
 
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
+page_utils.print_header(i18n("users.categories"))
+
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 local category_warnings = {}

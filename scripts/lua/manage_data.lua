@@ -8,6 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local delete_data_utils = require "delete_data_utils"
 local template = require "template_utils"
+local page_utils = require("page_utils")
 
 local page        = _GET["page"] or _POST["page"]
 
@@ -15,7 +16,7 @@ local delete_data_utils = require "delete_data_utils"
 
 sendHTTPContentTypeHeader('text/html')
 
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
+page_utils.print_header(i18n("manage_data.manage_data"))
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 

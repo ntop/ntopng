@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local remote_assistance = require("remote_assistance")
 local template = require "template_utils"
+local page_utils = require("page_utils")
 
 if((not isAdministrator()) or (not remote_assistance.isAvailable())) then
   return
@@ -52,7 +53,9 @@ elseif _GET["action"] == "get_script" then
 end
 
 sendHTTPContentTypeHeader('text/html')
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
+
+page_utils.print_header(i18n("remote_assistance.remote_assistance"))
+
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 print(template.gen("modal_confirm_dialog.html", {

@@ -62,6 +62,7 @@ local lang = {
   ["from"] = "from",
   ["gateway"] = "Gateway",
   ["host"] = "Host %{host}",
+  ["hosts"] = "Hosts",
   ["hour"] = "Hour",
   ["http"] = "HTTP",
   ["icmp"] = "ICMP",

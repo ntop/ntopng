@@ -8,12 +8,13 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local host_pools_utils = require "host_pools_utils"
 local ts_utils = require("ts_utils")
+local page_utils = require("page_utils")
 
 local have_nedge = ntop.isnEdge()
 
 sendHTTPContentTypeHeader('text/html')
 
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
+page_utils.print_header(i18n("hosts"))
 
 local protocol     = _GET["protocol"]
 local asn          = _GET["asn"]

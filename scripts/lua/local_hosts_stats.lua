@@ -7,9 +7,11 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 
+local page_utils = require("page_utils")
+
 sendHTTPContentTypeHeader('text/html')
 
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
+page_utils.print_header(i18n("local_hosts_stats.looking_glass"))
 
 criteria    = _GET["criteria"]
 ipversion   = _GET["version"]

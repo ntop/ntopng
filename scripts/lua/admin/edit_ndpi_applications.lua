@@ -8,6 +8,8 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 require "graph_utils"
 local template = require "template_utils"
+local page_utils = require("page_utils")
+
 sendHTTPContentTypeHeader('text/html')
 
 local proto_filter = _GET["l7proto"]
@@ -19,7 +21,8 @@ if not haveAdminPrivileges() then
   return
 end
 
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
+page_utils.print_header(i18n("protocols"))
+
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 local base_url = ntop.getHttpPrefix() .. "/lua/admin/edit_ndpi_applications.lua"

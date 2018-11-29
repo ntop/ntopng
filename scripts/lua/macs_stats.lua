@@ -7,14 +7,15 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 local discover = require("discover_utils")
+local page_utils = require("page_utils")
 
 sendHTTPContentTypeHeader('text/html')
+
+page_utils.print_header(i18n("layer_2"))
 
 if (group_col == nil) then
    group_col = "mac"
 end
-
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 
 local have_nedge = ntop.isnEdge()
 
@@ -34,7 +35,6 @@ if(not isEmptyString(_GET["devices_mode"])) then
    page_params["devices_mode"] = _GET["devices_mode"]
    devices_mode_filter = '<span class="glyphicon glyphicon-filter"></span>'
 end
-
 
 local manufacturer = nil
 local manufacturer_filter = ""
