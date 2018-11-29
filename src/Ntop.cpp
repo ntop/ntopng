@@ -1005,23 +1005,14 @@ bool Ntop::checkUserInterfaces(const char * const user) const {
 // Return 1 if username/password is allowed, 0 otherwise.
 bool Ntop::checkUserPassword(const char * const user, const char * const password) const {
   char key[64], val[64], password_hash[33];
-#if defined(NTOPNG_PRO) && defined(HAVE_LDAP)
-  bool localAuth = true;
-#endif
-#ifdef HAVE_RADIUS
-  bool radiusLocalAuth = true;
-#endif
-  bool httpLocalAuth = true;
 
   if((user == NULL) || (user[0] == '\0'))
     return(false);
 
 #if defined(NTOPNG_PRO) && defined(HAVE_LDAP)
   if(ntop->getPro()->has_valid_license()) {
-    if(ntop->getRedis()->get((char*)PREF_NTOP_AUTHENTICATION_TYPE, val, sizeof(val)) >= 0) {
-      if(!strcmp(val, "ldap") /* LDAP only */) localAuth = false;
-
-      if(strncmp(val, "ldap", 4) == 0) {
+    if(ntop->getRedis()->get((char*)PREF_NTOP_LDAP_AUTH, val, sizeof(val)) >= 0) {
+      if(val[0] == '1') {
 	bool ldap_ret = false;
         bool is_admin;
 	char *ldapServer = NULL, *ldapAccountType = NULL,  *ldapAnonymousBind = NULL,
@@ -1096,9 +1087,8 @@ bool Ntop::checkUserPassword(const char * const user, const char * const passwor
 #endif
 
 #ifdef HAVE_RADIUS
-  if(ntop->getRedis()->get((char*)PREF_NTOP_AUTHENTICATION_TYPE, val, sizeof(val)) >= 0) {
-    if(!strcmp(val, "radius") /* radius only */) radiusLocalAuth = false;
-    if(strncmp(val, "radius", 4) == 0) {
+  if(ntop->getRedis()->get((char*)PREF_NTOP_RADIUS_AUTH, val, sizeof(val)) >= 0) {
+    if(val[0] == '1') {
       int result;
       bool radius_ret = false;
       char *radiusServer = NULL, *radiusSecret = NULL, *authServer = NULL;
@@ -1185,14 +1175,11 @@ bool Ntop::checkUserPassword(const char * const user, const char * const passwor
       if (radius_ret)
         return(true);
     }
-    if (!radiusLocalAuth)
-      return(false);
   }
   #endif
 
-  if(ntop->getRedis()->get((char*)PREF_NTOP_AUTHENTICATION_TYPE, val, sizeof(val)) >= 0) {
-    if(!strcmp(val, "http") /* http only */) httpLocalAuth = false;
-    if(strncmp(val, "http", 4) == 0) {
+  if(ntop->getRedis()->get((char*)PREF_NTOP_HTTP_AUTH, val, sizeof(val)) >= 0) {
+    if(val[0] == '1') {
       int postLen;
       char *httpUrl = NULL, *postData = NULL, *returnData = NULL;
       bool http_ret = false;
@@ -1240,11 +1227,11 @@ bool Ntop::checkUserPassword(const char * const user, const char * const passwor
       if (http_ret)
         return(true);
     }
-    if (!httpLocalAuth)
-      return(false);
   }
 
-  if(!localAuth) return(false);
+  /* Check local auth */
+  if((ntop->getRedis()->get((char*)PREF_NTOP_LOCAL_AUTH, val, sizeof(val)) >= 0) && val[0] == '0')
+    return(false);
 
   if((!strcmp(user, "admin")) &&
      (ntop->getRedis()->get((char*)TEMP_ADMIN_PASSWORD, val, sizeof(val)) >= 0) &&
