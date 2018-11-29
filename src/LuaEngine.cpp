@@ -3810,7 +3810,7 @@ static int ntop_get_policy_change_marker(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
   if(ntop_interface && (ntop_interface->getIfType() == interface_type_NETFILTER))
-    lua_pushnumber(vm, ((NetfilterInterface *)ntop_interface)->getPolicyChangeMarker());
+    lua_pushinteger(vm, ((NetfilterInterface *)ntop_interface)->getPolicyChangeMarker());
   else
     lua_pushnil(vm);
 
