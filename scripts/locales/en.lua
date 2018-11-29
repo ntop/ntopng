@@ -633,6 +633,7 @@ local lang = {
     ["flow_blocked_by_bridge"] = "Flow blocked due to configured policies",
     ["flow_cannot_be_found_message"] = "This flow cannot be found.",
     ["flow_completed_msg"] = "This flow is completed and will expire soon",
+    ["flow_details"] = "Flow Details",
     ["flow_emitted"] = "Flow emitted when network interface was alerted",
     ["flow_peer_roles_inaccurate_msg"] = "However, flow begin has not been seen: peer roles (client/server) might be inaccurate",
     ["flow_peers_client_server"] = "Flow Peers [ Client / Server ]",

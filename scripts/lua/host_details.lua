@@ -21,6 +21,8 @@ local json = require ("dkjson")
 local host_pools_utils = require "host_pools_utils"
 local discover = require "discover_utils"
 local ts_utils = require "ts_utils"
+local page_utils = require("page_utils")
+
 local info = ntop.getInfo()
 
 local have_nedge = ntop.isnEdge()
@@ -55,7 +57,7 @@ local labelKey = host_info["host"].."@"..host_info["vlan"]
 
 if((host_name == nil) or (host_ip == nil)) then
    sendHTTPContentTypeHeader('text/html')
-   ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
+   page_utils.print_header()
    dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
    print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> " .. i18n("host_details.host_parameter_missing_message") .. "</div>")
    return
@@ -107,7 +109,7 @@ if(host == nil) and (not only_historical) then
       -- We need to check if this is an aggregated host
       if(not(restoreFailed) and (host_info ~= nil) and (host_info["host"] ~= nil)) then json = ntop.getCache(host_info["host"].. "." .. ifId .. ".json") end
       sendHTTPContentTypeHeader('text/html')
-      ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
+      page_utils.print_header()
       if page == "alerts" then
 	 print('<script>window.location.href = "')
 	 print(ntop.getHttpPrefix())
@@ -133,7 +135,9 @@ if(host == nil) and (not only_historical) then
    end
 else
    sendHTTPContentTypeHeader('text/html')
-   ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
+
+   page_utils.print_header(i18n("host", { host = host_info["host"] }))
+
    print("<link href=\""..ntop.getHttpPrefix().."/css/tablesorted.css\" rel=\"stylesheet\">\n")
    dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 

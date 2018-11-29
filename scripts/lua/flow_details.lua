@@ -22,10 +22,12 @@ local template = require "template_utils"
 local categories_utils = require "categories_utils"
 local discover = require("discover_utils")
 local json = require ("dkjson")
+local page_utils = require("page_utils")
 
 sendHTTPContentTypeHeader('text/html')
 
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
+page_utils.print_header(i18n("flow_details.flow_details"))
+
 warn_shown = 0
 
 local alert_banners = {}
