@@ -164,6 +164,7 @@ local lang = {
   ["warning"] = "Warning",
   ["week"] = "Week",
   ["welcome"] = "Welcome",
+  ["welcome_to"] = "Welcome to %{product}",
   ["yes"] = "Yes",
   ["about"] = {
     ["about"] = "About",

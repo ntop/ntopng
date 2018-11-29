@@ -4696,6 +4696,16 @@ static int ntop_http_get_prefix(lua_State* vm) {
 /* ****************************************** */
 
 // ***API***
+static int ntop_http_get_startup_epoch(lua_State* vm) {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  lua_pushstring(vm, ntop->getStarttimeString());
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+// ***API***
 static int ntop_http_purify_param(lua_State* vm) {
   char *str, *buf;
   bool strict = false, allowURL = false, allowDots = false;
@@ -8069,9 +8079,10 @@ static const luaL_Reg ntop_reg[] = {
   { "getPrefs",         ntop_get_prefs },
 
   /* HTTP utils */
-  { "httpRedirect",         ntop_http_redirect        },
-  { "getHttpPrefix",        ntop_http_get_prefix      },
-  { "httpPurifyParam",      ntop_http_purify_param    },
+  { "httpRedirect",         ntop_http_redirect          },
+  { "getHttpPrefix",        ntop_http_get_prefix        },
+  { "getStartupEpoch",      ntop_http_get_startup_epoch },
+  { "httpPurifyParam",      ntop_http_purify_param      },
   
   /* Admin */
   { "getNologinUser",       ntop_get_nologin_username },

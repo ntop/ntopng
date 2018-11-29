@@ -12,9 +12,10 @@ require "flow_utils"
 local have_nedge = ntop.isnEdge()
 
 sendHTTPContentTypeHeader('text/html')
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 
 active_page = "flows"
+active_page_title = i18n("flows")
+dofile(dirs.installdir .. "/scripts/lua/inc/header.lua")
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 -- nDPI application and category
