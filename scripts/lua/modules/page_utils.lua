@@ -8,13 +8,11 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 local page_utils = {}
 
-page_utils.default_title = i18n("welcome_to", { product=info.product })
-
 function page_utils.print_header(title)
   local http_prefix = ntop.getHttpPrefix()
   local startup_epoch = ntop.getStartupEpoch()
-  local page_title = page_utils.default_title
 
+  local page_title = i18n("welcome_to", { product=info.product })
   if title ~= nil then
     page_title = info.product .. " - " .. title
   end
@@ -69,8 +67,8 @@ end
 
 function page_utils.print_header_minimal(title)
   local http_prefix = ntop.getHttpPrefix()
-  local page_title = page_utils.default_title
 
+  local page_title = i18n("welcome_to", { product=info.product })
   if title ~= nil then
     page_title = info.product .. " - " .. title
   end

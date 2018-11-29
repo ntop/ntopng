@@ -13,6 +13,7 @@ end
 require "lua_utils"
 require "graph_utils"
 require "alert_utils"
+local page_utils = require("page_utils")
 local ts_utils = require("ts_utils")
 
 local network        = _GET["network"]
@@ -28,7 +29,9 @@ local network_vlan   = tonumber(_GET["vlan"])
 if network_vlan == nil then network_vlan = 0 end
 
 sendHTTPContentTypeHeader('text/html')
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
+
+page_utils.print_header()
+
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 if(network == nil) then

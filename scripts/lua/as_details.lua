@@ -13,6 +13,7 @@ end
 require "lua_utils"
 require "graph_utils"
 local ts_utils = require("ts_utils")
+local page_utils = require("page_utils")
 
 local asn         = tonumber(_GET["asn"])
 local page        = _GET["page"]
@@ -31,7 +32,9 @@ if not isEmptyString(asname) then
 end
 
 sendHTTPContentTypeHeader('text/html')
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
+
+page_utils.print_header()
+
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 if isEmptyString(asn) then

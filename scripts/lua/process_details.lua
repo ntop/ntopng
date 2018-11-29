@@ -6,11 +6,12 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
+local page_utils = require("page_utils")
 local ebpf_utils = require "ebpf_utils"
 
 sendHTTPContentTypeHeader('text/html')
 
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
+page_utils.print_header()
 
 local page = _GET["page"]
 if isEmptyString(page) then page = "process_ndpi" end

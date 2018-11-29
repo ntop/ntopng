@@ -4,12 +4,11 @@
 
 -- Ntop lua class example
 
-
-
 -- Set package.path information to be able to require lua module
 dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
+local page_utils = require("page_utils")
 
 function printTable(table,key)
 
@@ -32,7 +31,9 @@ end
 require "lua_utils"
 
 sendHTTPContentTypeHeader('text/html')
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
+
+page_utils.print_header()
+
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 

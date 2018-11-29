@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 -- io.write ("Session:".._SESSION["session"].."\n")
 require "lua_utils"
 
+local page_utils = require("page_utils")
 
 interface.select(ifname)
 
@@ -33,7 +34,7 @@ end
 
 sendHTTPContentTypeHeader('text/html')
 
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
+page_utils.print_header()
 
 -- NOTE: in the home page, footer.lua checks the ntopng version
 -- so in case we change it, footer.lua must also be updated

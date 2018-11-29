@@ -14,6 +14,7 @@ locales_utils = require "locales_utils"
 local os_utils = require "os_utils"
 local format_utils = require "format_utils"
 local alert_consts = require "alert_consts"
+local page_utils = require("page_utils")
 
 -- ##############################################
 -- TODO: replace those globals with locals everywhere
@@ -2155,7 +2156,7 @@ function haveAdminPrivileges()
    if(isAdministrator()) then
       return(true)
    else
-      ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
+      page_utils.print_header()
       dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
       print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> Access forbidden</div>")
       return(false)

@@ -7,20 +7,22 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 
+local page_utils = require("page_utils")
+
 host_ip   = _GET["host"]
 host_name = _GET["pid_name"]
 host_id   = _GET["pid"]
 
 if(mode ~= "embed") then
    sendHTTPContentTypeHeader('text/html')
-   ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
+   page_utils.print_header()
    active_page = "hosts"
    dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 end
 
 print("<hr><h2><A HREF='"..ntop.getHttpPrefix().."/lua/host_details.lua?host="..host_ip.."'>"..host_name.."</A> Processes Interaction</H2>")
 
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/sprobe_process_header.inc")
+page_utils.print_header()
 
 print('d3.json("'..ntop.getHttpPrefix()..'/lua/sprobe_host_process_data.lua?host='..host_ip..'&pid='..host_id..'",')
 

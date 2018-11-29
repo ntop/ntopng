@@ -15,6 +15,8 @@ require "graph_utils"
 require "alert_utils"
 require "historical_utils"
 require "discover_utils"
+
+local page_utils = require("page_utils")
 local ts_utils = require("ts_utils")
 
 local have_nedge = ntop.isnEdge()
@@ -70,7 +72,9 @@ local devicekey = hostinfo2hostkey(host_info)
 if(vlanId == nil) then vlanId = 0 end
 
 sendHTTPContentTypeHeader('text/html')
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
+
+page_utils.print_header()
+
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 if(mac == nil) then

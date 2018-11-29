@@ -14,6 +14,7 @@ end
 require "lua_utils"
 require "graph_utils"
 require "alert_utils"
+local page_utils = require("page_utils")
 local host_pools_utils = require "host_pools_utils"
 local template = require "template_utils"
 local ts_utils = require "ts_utils"
@@ -38,7 +39,9 @@ if _POST["reset_quotas"] ~= nil then
 end
 
 sendHTTPContentTypeHeader('text/html')
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
+
+page_utils.print_header()
+
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 local base_url = ntop.getHttpPrefix()..'/lua/pool_details.lua'
