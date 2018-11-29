@@ -58,7 +58,7 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 print(template.gen("modal_confirm_dialog.html", {
   dialog = {
     id      = "tos-accept-modal",
-    title   = i18n("remote_assistance.enable_remove_assistance"),
+    title   = i18n("remote_assistance.enable_remote_assistance"),
     custom_alert_class = "alert alert-danger",
     message = i18n("remote_assistance.tos_notice", {button=i18n("remote_assistance.accept_and_enable")}),
     confirm = i18n("remote_assistance.accept_and_enable"),
@@ -112,7 +112,7 @@ print[[
              <br><small>]]
 
              if(remote_assistance.getStatus() == "active") then
-               print(i18n("remote_assistance.remote_ip_msg")) 
+               print(i18n("remote_assistance.remote_ip_msg", {product=info.product, ip = remote_assistance.getIpAddress()})) 
              end
 
            print [[</small>
@@ -132,19 +132,19 @@ if assist_enabled then
 end
 
 print[[
-        <!-- TODO remove localization if permanently hidden -->
         <tr class="hidden">
-          <th>]] print(i18n("remote_assistance.community")) print[[</th>
+          <th></th>
           <td><input id="assistance_community" class="form-control" data-ays-ignore="true" name="assistance_community" value="]] print(ntop.getPref("ntopng.prefs.remote_assistance.community")) print[[" readonly /><br>
-          <small>]] print(i18n("remote_assistance.community_descr")) print[[</small>
+          <small></small>
           </td>
         </tr>
         <tr class="hidden">
-          <th>]] print(i18n("key")) print[[</th>
+          <th></th>
           <td><input id="assistance_key" class="form-control" data-ays-ignore="true" name="assistance_key" value="]] print(ntop.getPref("ntopng.prefs.remote_assistance.key")) print[[" readonly /><br>
-          <small>]] print(i18n("remote_assistance.key_descr")) print[[</small>
+          <small></small>
           </td>
         </tr>
+
         <tr>
           <th>]] print(i18n("remote_assistance.admin_access")) print[[</th>
           <td><input name="allow_admin_access" type="checkbox" value="1" ]] print(admin_checked) print [[/><br>
@@ -171,7 +171,7 @@ end
 print(i18n("notes"))
 print[[
   <ul>
-      <li>]] print(i18n("remote_assistance.note_sensitive")) print[[</li>
+      <li>]] print(i18n("remote_assistance.note_sensitive", {product=info.product})) print[[</li>
       <li>]] print(i18n("remote_assistance.remember_disable")) print[[</li>
       <li>]] print(i18n("remote_assistance.will_create_virtual_network") .. " " .. i18n("remote_assistance.ask_admin")) print[[</li>]]
    print[[
