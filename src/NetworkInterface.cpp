@@ -4258,7 +4258,7 @@ int NetworkInterface::getFlows(lua_State* vm,
 
       retriever.elems[i].flow->lua(vm, allowed_hosts, highDetails, true);
 
-      lua_pushnumber(vm, num + 1);
+      lua_pushinteger(vm, num + 1);
       lua_insert(vm, -2);
       lua_settable(vm, -3);
 
@@ -4271,7 +4271,7 @@ int NetworkInterface::getFlows(lua_State* vm,
 
       retriever.elems[i].flow->lua(vm, allowed_hosts, highDetails, true);
 
-      lua_pushnumber(vm, num + 1);
+      lua_pushinteger(vm, num + 1);
       lua_insert(vm, -2);
       lua_settable(vm, -3);
 
@@ -5668,7 +5668,7 @@ static bool userfinder_walker(GenericHashEntry *node, void *user_data, bool *mat
 
   if(user && (strcmp(user, info->username) == 0)) {
     f->lua(info->vm, NULL, details_normal /* Minimum details */, false);
-    lua_pushnumber(info->vm, f->key()); // Key
+    lua_pushinteger(info->vm, f->key()); // Key
     lua_insert(info->vm, -2);
     lua_settable(info->vm, -3);
     *matched = true;
@@ -5704,7 +5704,7 @@ static bool proc_name_finder_walker(GenericHashEntry *node, void *user_data, boo
 
   if(name && (strcmp(name, info->proc_name) == 0)) {
     f->lua(info->vm, NULL, details_normal /* Minimum details */, false);
-    lua_pushnumber(info->vm, f->key()); // Key
+    lua_pushinteger(info->vm, f->key()); // Key
     lua_insert(info->vm, -2);
     lua_settable(info->vm, -3);
   } else {
@@ -5712,7 +5712,7 @@ static bool proc_name_finder_walker(GenericHashEntry *node, void *user_data, boo
 
     if(name && (strcmp(name, info->proc_name) == 0)) {
       f->lua(info->vm, NULL, details_normal /* Minimum details */, false);
-      lua_pushnumber(info->vm, f->key()); // Key
+      lua_pushinteger(info->vm, f->key()); // Key
       lua_insert(info->vm, -2);
       lua_settable(info->vm, -3);
     }
@@ -5748,7 +5748,7 @@ static bool pidfinder_walker(GenericHashEntry *node, void *pid_data, bool *match
 
   if((f->getPid(true) == info->pid) || (f->getPid(false) == info->pid)) {
     f->lua(info->vm, NULL, details_normal /* Minimum details */, false);
-    lua_pushnumber(info->vm, f->key()); // Key
+    lua_pushinteger(info->vm, f->key()); // Key
     lua_insert(info->vm, -2);
     lua_settable(info->vm, -3);
     *matched = true;
@@ -5778,7 +5778,7 @@ static bool father_pidfinder_walker(GenericHashEntry *node, void *father_pid_dat
 
   if((f->getFatherPid(true) == info->pid) || (f->getFatherPid(false) == info->pid)) {
     f->lua(info->vm, NULL, details_normal /* Minimum details */, false);
-    lua_pushnumber(info->vm, f->key()); // Key
+    lua_pushinteger(info->vm, f->key()); // Key
     lua_insert(info->vm, -2);
     lua_settable(info->vm, -3);
     *matched = true;
@@ -6366,8 +6366,8 @@ int NetworkInterface::getActiveDeviceTypes(lua_State* vm,
 
     if(m->getDeviceType() != cur_devtype) {
       if(cur_count) {
-        lua_pushnumber(vm, cur_devtype);
-        lua_pushnumber(vm, cur_count);
+        lua_pushinteger(vm, cur_devtype);
+        lua_pushinteger(vm, cur_count);
         lua_settable(vm, -3);
       }
 
@@ -6380,8 +6380,8 @@ int NetworkInterface::getActiveDeviceTypes(lua_State* vm,
   }
 
   if(cur_count) {
-    lua_pushnumber(vm, cur_devtype);
-    lua_pushnumber(vm, cur_count);
+    lua_pushinteger(vm, cur_devtype);
+    lua_pushinteger(vm, cur_count);
     lua_settable(vm, -3);
   }
 
@@ -6858,7 +6858,7 @@ void NetworkInterface::dumpLiveCaptures(lua_State* vm) {
 				 h->get_ip()->print(buf, sizeof(buf)));
       }
 
-      lua_pushnumber(vm, ++capture_id);
+      lua_pushinteger(vm, ++capture_id);
       lua_insert(vm, -2);
       lua_settable(vm, -3);
     }

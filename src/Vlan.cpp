@@ -89,7 +89,7 @@ void Vlan::lua(lua_State* vm, DetailsLevel details_level, bool asListElement) {
   lua_push_uint64_table_entry(vm,   "num_hosts", getNumHosts());
 
   if(asListElement) {
-    lua_pushnumber(vm, vlan_id);
+    lua_pushinteger(vm, vlan_id);
     lua_insert(vm, -2);
     lua_settable(vm, -3);
   }

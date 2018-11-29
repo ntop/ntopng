@@ -389,12 +389,12 @@ static int ntop_get_max_if_speed(lua_State* vm) {
 
   if(lua_type(vm, 1) == LUA_TSTRING) {
     ifname = (char*)lua_tostring(vm, 1);
-    lua_pushnumber(vm, Utils::getMaxIfSpeed(ifname));
+    lua_pushinteger(vm, Utils::getMaxIfSpeed(ifname));
   } else if(lua_type(vm, 1) == LUA_TNUMBER) {
     ifid = lua_tointeger(vm, 1);
 
     if((iface = ntop->getInterfaceById(ifid)) != NULL) {
-      lua_pushnumber(vm, iface->getMaxSpeed());
+      lua_pushinteger(vm, iface->getMaxSpeed());
     } else {
       lua_pushnil(vm);
     }
@@ -621,7 +621,7 @@ static int ntop_get_ndpi_protocol_id(lua_State* vm) {
   proto = (char*)lua_tostring(vm, 1);
 
   if(ntop_interface && proto)
-    lua_pushnumber(vm, ntop_interface->get_ndpi_proto_id(proto));
+    lua_pushinteger(vm, ntop_interface->get_ndpi_proto_id(proto));
   else
     lua_pushnil(vm);
 
@@ -642,7 +642,7 @@ static int ntop_get_ndpi_category_id(lua_State* vm) {
   category = (char*)lua_tostring(vm, 1);
 
   if(ntop_interface && category)
-    lua_pushnumber(vm, ntop_interface->get_ndpi_category_id(category));
+    lua_pushinteger(vm, ntop_interface->get_ndpi_category_id(category));
   else
     lua_pushnil(vm);
 
@@ -1513,9 +1513,9 @@ static int ntop_get_file_last_change(lua_State* vm) {
   path = (char*)lua_tostring(vm, 1);
 
   if(stat(path, &buf) == 0)
-    lua_pushnumber(vm, (lua_Number)buf.st_mtime);
+    lua_pushinteger(vm, (lua_Integer)buf.st_mtime);
   else
-    lua_pushnumber(vm, -1); /* not found */
+    lua_pushinteger(vm, -1); /* not found */
 
   return(CONST_LUA_OK);
 }
@@ -1688,7 +1688,7 @@ static int ntop_match_custom_category(lua_State* vm) {
   if((!iface) || (ndpi_get_custom_category_match(iface->get_ndpi_struct(), host_to_match, &match) != 0))
     lua_pushnil(vm);
   else
-    lua_pushnumber(vm, (int)match);
+    lua_pushinteger(vm, (int)match);
 
   return(CONST_LUA_OK);
 }
@@ -3086,7 +3086,7 @@ static int ntop_get_interface_flow_key(lua_State* vm) {
      ||(srv = ntop_interface->getHost(srv_name, srv_vlan)) == NULL) {
     lua_pushnil(vm);
   } else
-    lua_pushnumber(vm, Flow::key(cli, cli_port, srv, srv_port, cli_vlan, protocol));
+    lua_pushinteger(vm, Flow::key(cli, cli_port, srv, srv_port, cli_vlan, protocol));
 
   return(CONST_LUA_OK);
 }
@@ -4351,8 +4351,8 @@ static int ntop_rrd_lastupdate(lua_State* vm) {
   if(ntop_rrd_get_lastupdate(filename, &last_update, &ds_count) == -1) {
     return(CONST_LUA_ERROR);
   } else {
-    lua_pushnumber(vm, last_update);
-    lua_pushnumber(vm, ds_count);
+    lua_pushinteger(vm, last_update);
+    lua_pushinteger(vm, ds_count);
     return(2 /* 2 values returned */);
   }
 }
@@ -4447,8 +4447,8 @@ static int ntop_rrd_fetch(lua_State* vm) {
 						 &step, &ds_cnt, &names, &data),
 				 filename, cf)) != CONST_LUA_OK) return status;
 
-  lua_pushnumber(vm, (lua_Number) start);
-  lua_pushnumber(vm, (lua_Number) step);
+  lua_pushinteger(vm, (lua_Integer) start);
+  lua_pushinteger(vm, (lua_Integer) step);
   /* fprintf(stderr, "%lu, %lu, %lu, %lu\n", start, end, step, num_points); */
 
   /* create the ds names array */
@@ -4518,7 +4518,7 @@ static int ntop_rrd_fetch(lua_State* vm) {
   // rrd_lock.unlock(__FILE__, __LINE__);
 
   /* return the end as the last value */
-  lua_pushnumber(vm, (lua_Number) end);
+  lua_pushinteger(vm, (lua_Integer) end);
 
   /* number of return values: start, step, names, data, end */
   return(5);
@@ -4572,8 +4572,8 @@ static int ntop_rrd_fetch_columns(lua_State* vm) {
 
   npoints = (end - start) / step;
 
-  lua_pushnumber(vm, (lua_Number) start);
-  lua_pushnumber(vm, (lua_Number) step);
+  lua_pushinteger(vm, (lua_Integer) start);
+  lua_pushinteger(vm, (lua_Integer) step);
 
   /* create the data series table */
   lua_createtable(vm, 0, ds_cnt);
@@ -4600,8 +4600,8 @@ static int ntop_rrd_fetch_columns(lua_State* vm) {
   rrd_freemem(data);
 
   /* end and npoints as last values */
-  lua_pushnumber(vm, (lua_Number) end);
-  lua_pushnumber(vm, (lua_Number) npoints);
+  lua_pushinteger(vm, (lua_Integer) end);
+  lua_pushinteger(vm, (lua_Integer) npoints);
   // rrd_lock.unlock(__FILE__, __LINE__);
 
   /* number of return values */
@@ -5190,8 +5190,7 @@ void lua_push_bool_table_entry(lua_State *L, const char *key, bool value) {
 void lua_push_uint64_table_entry(lua_State *L, const char *key, u_int64_t value) {
   if(L) {
     lua_pushstring(L, key);
-    /* using LUA_NUMBER (double: 64 bit) in place of LUA_INTEGER (ptrdiff_t: 32 or 64 bit
-     * according to the platform, as defined in luaconf.h) to handle big counters */
+    /* NOTE since LUA 5.3 integers are 64 bits */
 
 #if defined(__i686__)
     if(value > 0x7FFFFFFF)
@@ -5464,7 +5463,7 @@ static int ntop_find_mac_pool(lua_State *vm) {
 
   if(ntop_interface && ntop_interface->getHostPools()) {
     if(ntop_interface->getHostPools()->findMacPool(mac_parsed, &pool_id))
-      lua_pushnumber(vm, pool_id);
+      lua_pushinteger(vm, pool_id);
     else
       lua_pushnil(vm);
 

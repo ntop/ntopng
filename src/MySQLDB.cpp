@@ -875,7 +875,7 @@ int MySQLDB::exec_sql_query(lua_State *vm, char *sql, bool limitRows, bool wait_
       for(int i = 0; i < num_fields; i++)
 	lua_push_str_table_entry(vm, (const char*)fields[i], row[i] ? row[i] : (char*)"");
 
-      lua_pushnumber(vm, ++num);
+      lua_pushinteger(vm, ++num);
       lua_insert(vm, -2);
       lua_settable(vm, -3);
 

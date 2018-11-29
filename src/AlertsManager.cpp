@@ -910,7 +910,7 @@ static int getAlertsCallback(void *data, int argc, char **argv, char **azColName
     lua_push_str_table_entry(vm, azColName[i], argv[i]);
   }
 
-  lua_pushnumber(vm, ++ar->current_offset);
+  lua_pushinteger(vm, ++ar->current_offset);
   lua_insert(vm, -2);
   lua_settable(vm, -3);
 

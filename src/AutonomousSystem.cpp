@@ -113,7 +113,7 @@ void AutonomousSystem::lua(lua_State* vm, DetailsLevel details_level, bool asLis
   }
 
   if(asListElement) {
-    lua_pushnumber(vm, asn);
+    lua_pushinteger(vm, asn);
     lua_insert(vm, -2);
     lua_settable(vm, -3);
   }

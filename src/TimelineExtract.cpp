@@ -298,7 +298,7 @@ void TimelineExtract::getStatus(lua_State* vm) {
     lua_push_uint64_table_entry(vm, "extracted_bytes", stats.bytes);
     lua_push_uint64_table_entry(vm, "status", status_code);
 
-    lua_pushnumber(vm, extraction.id);
+    lua_pushinteger(vm, extraction.id);
     lua_insert(vm, -2);
     lua_settable(vm, -3);
   }
