@@ -258,7 +258,14 @@ int Redis::get(char *key, char *rsp, u_int rsp_len, bool cache_it) {
 
   HASH_FIND_STR(stringCache, key, cached);
   if(cached) {
-    snprintf(rsp, rsp_len, "%s", cached->value);
+    if((cached->expire > 0) && (time(NULL) >= cached->expire)) {
+#ifdef CACHE_DEBUG
+      printf("**** Cache expired %s\n", key);
+#endif
+      HASH_DEL(stringCache, cached);
+      rsp[0] = '\0';
+    } else
+      snprintf(rsp, rsp_len, "%s", cached->value);
 
 #ifdef CACHE_DEBUG
     printf("**** Read from cache %s=%s\n", key, rsp);
@@ -283,8 +290,25 @@ int Redis::get(char *key, char *rsp, u_int rsp_len, bool cache_it) {
   } else
     rsp[0] = 0, rc = -1;
 
-  if(cache_it || cacheable)
-    addToCache(key, rsp, 0);
+  if(cache_it || cacheable) {
+    u_int expire_sec = 0;
+
+    if(reply) freeReplyObject(reply);
+    num_requests++;
+    reply = (redisReply*)redisCommand(redis, "TTL %s", key);
+    if(!reply) reconnectRedis();
+    if(reply && (reply->type != REDIS_REPLY_INTEGER))
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
+
+    if(reply && (((int32_t)reply->integer)) >= 0)
+      expire_sec = reply->integer;
+
+#ifdef CACHE_DEBUG
+    printf("**** ADD TO CACHE %s=%s [expire_sec=%u]\n", key, rsp, expire_sec);
+#endif
+
+    addToCache(key, rsp, expire_sec);
+  }
 
   if(reply) freeReplyObject(reply);
   l->unlock(__FILE__, __LINE__);
