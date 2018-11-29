@@ -79,7 +79,7 @@ class Utils {
 		      const char * const username, const char * const password,
 		      int timeout,
 		      char * const resp, const u_int resp_len);
-  static char* urlEncode(char *url);
+  static char* urlEncode(const char *url);
   static ticks getticks();
   static char* getURL(char *url, char *buf, u_int buf_len);
   static bool discardOldFilesExceeding(const char *path, const unsigned long max_size);

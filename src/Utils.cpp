@@ -1725,56 +1725,27 @@ char* Utils::getURL(char *url, char *buf, u_int buf_len) {
     return(url);
 }
 
-/* **************************************** */
-
-// Support functions for 'urlEncode'.
-
-#ifdef NOTUSED
-static char to_hex(char code) {
-  static char hex[] = "0123456789ABCDEF";
-  return hex[code & 15];
-}
-#endif
-
 /* **************************************************** */
 
-#ifdef NOTUSED
-static int alphanum(char code) {
-  int i;
-  static char alnum[] = "0123456789abcdefghijklmnopqrstuvwxyz";
-  for (i = 0; i < 36; i++) {
-    if(code == alnum[i]) return 1;
-  }
-  return 0;
-}
-#endif
+/* URL encodes the given string. The caller must free the returned string after use. */
+char* Utils::urlEncode(const char *url) {
+  CURL *curl;
 
-/* **************************************************** */
+  if(url) {
+    curl = curl_easy_init();
 
-// Encodes a URL to hexadecimal format.
-#ifdef NOTUSED
-char* Utils::urlEncode(char *url) {
-  char *pstr = url;
-  char *buf = (char *) malloc(strlen(url) * 3 + 1);
-  char *pbuf = buf;
-  while (*pstr) {
-    if(alphanum(*pstr) || *pstr == '-' || *pstr == '_' || *pstr == '.' || *pstr == '~') {
-      *pbuf++ = *pstr;
+    if(curl) {
+      char *escaped = curl_easy_escape(curl, url, strlen(url));
+      char *output = strdup(escaped);
+      curl_free(escaped);
+      curl_easy_cleanup(curl);
+
+      return output;
     }
-    else {
-      if(*pstr == ' ') *pbuf++ = '+';
-      else {
-        *pbuf++ = '%';
-        *pbuf++ = to_hex(*pstr >> 4);
-        *pbuf++ = to_hex(*pstr & 15);
-      }
-    }
-    pstr++;
   }
-  *pbuf = '\0';
-  return buf;
+
+  return NULL;
 }
-#endif
 
 /* **************************************** */
 

@@ -482,12 +482,25 @@ void HTTPserver::setCaptiveRedirectAddress(const char *addr) {
 
 /* ****************************************** */
 
+static char* make_referer(struct mg_connection *conn, char *buf, int bufsize) {
+  snprintf(buf, bufsize, "%s%s%s%s",
+	  mg_get_header(conn, "Host") ? mg_get_header(conn, "Host") : (char*)"",
+	  conn->request_info.uri,
+	  conn->request_info.query_string ? "?" : "",
+	  conn->request_info.query_string ? conn->request_info.query_string : "");
+
+  return buf;
+}
+
+/* ****************************************** */
+
 // Redirect user to the login form. In the cookie, store the original URL
 // we came from, so that after the authorization we could redirect back.
 static void redirect_to_login(struct mg_connection *conn,
                               const struct mg_request_info *request_info,
 			      const char * const referer) {
   char session_id[33], buf[128];
+  char *referer_enc = NULL;
 
   if(isCaptiveConnection(conn)) {
     const char *wispr_data = ntop->get_HTTPserver()->getWisprCaptiveData();
@@ -503,7 +516,7 @@ static void redirect_to_login(struct mg_connection *conn,
               ntop->get_HTTPserver()->getCaptiveRedirectAddress(),
 	      ntop->getPrefs()->get_http_prefix(), ntop->getPrefs()->getCaptivePortalUrl(),
 	      referer ? (char*)"?referer=" : "",
-	      referer ? referer : (char*)"",
+	      referer ? (referer_enc = Utils::urlEncode(referer)) : (char*)"",
               wispr_data);
   } else {
 #ifdef DEBUG
@@ -515,25 +528,19 @@ static void redirect_to_login(struct mg_connection *conn,
     mg_get_cookie(conn, "session", session_id, sizeof(session_id));
     ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] %s(%s)", __FUNCTION__, session_id);
 
-    if(referer)
-      mg_printf(conn,
-		"HTTP/1.1 302 Found\r\n"
-		"Set-Cookie: session=%s; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0;%s\r\n"  // Session ID
-		"Location: %s%s?referer=%s\r\n\r\n",
-		session_id,
-		get_secure_cookie_attributes(request_info),
-		ntop->getPrefs()->get_http_prefix(),
-		Utils::getURL((char*)LOGIN_URL, buf, sizeof(buf)), referer);
-    else
-      mg_printf(conn,
+    mg_printf(conn,
 	      "HTTP/1.1 302 Found\r\n"
 	      "Set-Cookie: session=%s; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0;%s\r\n"  // Session ID
-	      "Location: %s%s\r\n\r\n",
+	      "Location: %s%s%s%s\r\n\r\n",
 	      session_id,
 	      get_secure_cookie_attributes(request_info),
-	      ntop->getPrefs()->get_http_prefix(),
-	      Utils::getURL((char*)LOGIN_URL, buf, sizeof(buf)));
+	      ntop->getPrefs()->get_http_prefix(), Utils::getURL((char*)LOGIN_URL, buf, sizeof(buf)),
+	      referer ? (char*)"?referer=" : "",
+	      referer ? (referer_enc = Utils::urlEncode(referer)) : (char*)"");
   }
+
+  if(referer_enc)
+    free(referer_enc);
 }
 
 /* ****************************************** */
@@ -546,7 +553,10 @@ static void redirect_to_login(struct mg_connection *conn,
 static void redirect_to_please_wait(struct mg_connection *conn,
 				    const struct mg_request_info *request_info) {
   char session_id[33], buf[128];
+  char referer[255];
+  char *referer_enc = NULL;
 
+  make_referer(conn, referer, sizeof(referer));
   mg_get_cookie(conn, "session", session_id, sizeof(session_id));
   ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] %s(%s)", __FUNCTION__, session_id);
 
@@ -555,14 +565,15 @@ static void redirect_to_please_wait(struct mg_connection *conn,
 	    // "HTTP/1.1 401 Unauthorized\r\n"
 	    // "WWW-Authenticate: Basic\r\n"
 	    "Set-Cookie: session=%s; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0;%s\r\n"  // Session ID
-	    "Location: %s%s?referer=%s%s%s\r\n\r\n",
+	    "Location: %s%s%s%s\r\n\r\n",
 	    session_id,
 	    get_secure_cookie_attributes(request_info),
-	    ntop->getPrefs()->get_http_prefix(),
-	    Utils::getURL((char*)PLEASE_WAIT_URL, buf, sizeof(buf)),
-	    conn->request_info.uri,
-	    conn->request_info.query_string ? "%3F" /* ? */: "",
-	    conn->request_info.query_string ? conn->request_info.query_string : "");
+	    ntop->getPrefs()->get_http_prefix(), Utils::getURL((char*)PLEASE_WAIT_URL, buf, sizeof(buf)),
+	    referer ? (char*)"?referer=" : "",
+	    referer ? (referer_enc = Utils::urlEncode(referer)) : (char*)"");
+
+  if(referer_enc)
+    free(referer_enc);
 }
 #endif
 
@@ -571,22 +582,25 @@ static void redirect_to_please_wait(struct mg_connection *conn,
 static void redirect_to_password_change(struct mg_connection *conn,
 				    const struct mg_request_info *request_info) {
   char session_id[33], buf[128];
+  char referer[255];
+  char *referer_enc = NULL;
 
+  make_referer(conn, referer, sizeof(referer));
   mg_get_cookie(conn, "session", session_id, sizeof(session_id));
   ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] %s(%s)", __FUNCTION__, session_id);
 
     mg_printf(conn,
 	      "HTTP/1.1 302 Found\r\n"
 	      "Set-Cookie: session=%s; path=/;%s\r\n"  // Session ID
-	      "Location: %s%s?referer=%s%s%s%s\r\n\r\n", /* FIX */
+	      "Location: %s%s%s%s\r\n\r\n", /* FIX */
 	      session_id,
 	      get_secure_cookie_attributes(request_info),
-	      ntop->getPrefs()->get_http_prefix(),
-	      Utils::getURL((char*)CHANGE_PASSWORD_ULR, buf, sizeof(buf)),
-	      mg_get_header(conn, "Host") ? mg_get_header(conn, "Host") : (char*)"",
-	      conn->request_info.uri,
-	      conn->request_info.query_string ? "%3F" /* ? */: "",
-	      conn->request_info.query_string ? conn->request_info.query_string : "");
+	      ntop->getPrefs()->get_http_prefix(), Utils::getURL((char*)CHANGE_PASSWORD_ULR, buf, sizeof(buf)),
+	      referer ? (char*)"?referer=" : "",
+	      referer ? (referer_enc = Utils::urlEncode(referer)) : (char*)"");
+
+  if(referer_enc)
+    free(referer_enc);
 }
 
 /* ****************************************** */
@@ -796,13 +810,8 @@ static int handle_lua_request(struct mg_connection *conn) {
       return(send_error(conn, 403 /* Forbidden */, request_info->uri, "Login Required"));
     } else {
       char referer[255];
-      snprintf(referer, sizeof(referer), "%s%s%s%s",
-	      mg_get_header(conn, "Host") ? mg_get_header(conn, "Host") : (char*)"",
-	      conn->request_info.uri,
-	      conn->request_info.query_string ? "%3F" /* ? */: "",
-	      conn->request_info.query_string ? conn->request_info.query_string : "");
 
-      redirect_to_login(conn, request_info, referer);
+      redirect_to_login(conn, request_info, make_referer(conn, referer, sizeof(referer)));
     }
 
     return(1);

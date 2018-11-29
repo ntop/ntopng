@@ -66,21 +66,7 @@ print[[
 
 local r = _GET["referer"]
 
-local additional_keys = {
-      "host",
-      "ifname",
-      "ifid",
-      "page"
-}
-
-for _,id in ipairs(additional_keys) do
-  if(_GET[id] ~= nil) then
-    r = r .. "&" .. id .. "=" .._GET[id]
-  end
-end
-
 print(r or "")
-
 
 print [[">
     <button class="btn btn-lg btn-primary btn-block" type="submit">]] print(i18n("login.login")) print[[</button>
