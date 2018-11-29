@@ -560,6 +560,10 @@ typedef enum {
 } AfterShutdownAction;
 
 typedef struct {
+  bool admin;
+} HTTPAuthenticator;
+
+typedef struct {
   double namelookup, connect, appconnect, pretransfer, redirect, start, total;
 } HTTPTranferStats;
 

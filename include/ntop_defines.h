@@ -818,6 +818,14 @@
 #ifdef HAVE_LDAP
 #define MAX_LDAP_LEN     256  /* Keep it in sync with lua preferences file prefs.lua */
 #endif
+#define PREF_RADIUS_SERVER              NTOPNG_PREFS_PREFIX".radius.radius_server_address"
+#define PREF_RADIUS_SECRET              NTOPNG_PREFS_PREFIX".radius.radius_secret"
+#ifdef HAVE_RADIUS
+#define MAX_RADIUS_LEN   256
+#endif
+#define PREF_HTTP_AUTHENTICATOR_URL   NTOPNG_PREFS_PREFIX".http_authenticator.url"
+#define MAX_HTTP_AUTHENTICATOR_LEN    256
+#define MAX_HTTP_AUTHENTICATOR_RETURN_DATA_LEN      4096
 #define PREF_USER_TYPE_LOG            NTOPNG_PREFS_PREFIX".user.%s.type_log"
 
 /* Elastic Search */
