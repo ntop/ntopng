@@ -9,13 +9,15 @@ require "lua_utils"
 require "graph_utils"
 require "flow_utils"
 
+local page_utils = require("page_utils")
+
 local have_nedge = ntop.isnEdge()
 
 sendHTTPContentTypeHeader('text/html')
 
+page_utils.print_header(i18n("flows"))
+
 active_page = "flows"
-active_page_title = i18n("flows")
-dofile(dirs.installdir .. "/scripts/lua/inc/header.lua")
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 -- nDPI application and category
