@@ -805,7 +805,7 @@
 #define HOST_LOW_GOODPUT_THRESHOLD  25 /* No more than X low goodput flows per host */
 #define FLOW_GOODPUT_THRESHOLD      40 /* 40% */
 
-#define PREF_NTOP_AUTHENTICATION_TYPE NTOPNG_PREFS_PREFIX".auth_type"
+#define PREF_NTOP_LDAP_AUTH           NTOPNG_PREFS_PREFIX".ldap.auth_enabled"
 #define PREF_LDAP_ACCOUNT_TYPE        NTOPNG_PREFS_PREFIX".ldap.account_type"
 #define PREF_LDAP_SERVER              NTOPNG_PREFS_PREFIX".ldap.ldap_server_address"
 #define PREF_LDAP_BIND_ANONYMOUS      NTOPNG_PREFS_PREFIX".ldap.anonymous_bind"
@@ -818,7 +818,19 @@
 #ifdef HAVE_LDAP
 #define MAX_LDAP_LEN     256  /* Keep it in sync with lua preferences file prefs.lua */
 #endif
+#define PREF_NTOP_RADIUS_AUTH           NTOPNG_PREFS_PREFIX".radius.auth_enabled"
+#define PREF_RADIUS_SERVER              NTOPNG_PREFS_PREFIX".radius.radius_server_address"
+#define PREF_RADIUS_SECRET              NTOPNG_PREFS_PREFIX".radius.radius_secret"
+#define PREF_RADIUS_ADMIN_GROUP         NTOPNG_PREFS_PREFIX".radius.radius_admin_group"
+#ifdef HAVE_RADIUS
+#define MAX_RADIUS_LEN   256
+#endif
+#define PREF_NTOP_HTTP_AUTH           NTOPNG_PREFS_PREFIX".http_authenticator.auth_enabled"
+#define PREF_HTTP_AUTHENTICATOR_URL   NTOPNG_PREFS_PREFIX".http_authenticator.http_auth_url"
+#define MAX_HTTP_AUTHENTICATOR_LEN    256
+#define MAX_HTTP_AUTHENTICATOR_RETURN_DATA_LEN      4096
 #define PREF_USER_TYPE_LOG            NTOPNG_PREFS_PREFIX".user.%s.type_log"
+#define PREF_NTOP_LOCAL_AUTH          NTOPNG_PREFS_PREFIX".local.auth_enabled"
 
 /* Elastic Search */
 #define NTOP_ES_TEMPLATE              "ntopng_template_elk.json"

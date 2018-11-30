@@ -871,6 +871,7 @@ local known_parameters = {
    ["search_path"]             = validateUnquoted,
    ["user_group"]              = validateUnquoted,
    ["admin_group"]             = validateUnquoted,
+   ["radius_admin_group"]      = validateUnquoted,
    ["ts_post_data_url"]        = validateUnquoted,             -- URL for influxdb
 
    -- nIndex
@@ -1083,6 +1084,10 @@ local known_parameters = {
    ["toggle_external_alerts"]                      = validateBool,
    ["toggle_influx_auth"]                          = validateBool,
    ["toggle_remote_assistance"]                    = validateBool,
+   ["toggle_ldap_auth"]                            = validateBool,
+   ["toggle_local_auth"]                           = validateBool,
+   ["toggle_radius_auth"]                          = validateBool,
+   ["toggle_http_auth"]                            = validateBool,
 
    -- Input fields
    ["minute_top_talkers_retention"]                = validateNumber,
@@ -1101,6 +1106,9 @@ local known_parameters = {
    ["nagios_send_nsca_config"]                     = validateAbsolutePath,
    ["google_apis_browser_key"]                     = validateSingleWord,
    ["ldap_server_address"]                         = validateSingleWord,
+   ["radius_server_address"]                       = validateSingleWord,
+   ["http_auth_url"]                               = validateSingleWord,
+   ["radius_secret"]                               = validateSingleWord,
    ["local_host_max_idle"]                         = validateNumber,
    ["non_local_host_max_idle"]                     = validateNumber,
    ["flow_max_idle"]                               = validateNumber,

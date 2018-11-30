@@ -1,0 +1,16 @@
+RADIUS authentication can be enabled from the ntopng preferences page.
+
+NTOP will request an Access-Request to a radius server.
+
+User is granted if Access-Accept is return, anything else user is
+not granted.
+
+If attribute Filter-Id is set to admin user will inherit administrator grant.
+
+Radius authentication parameters are discussed below.
+
+* Radius server
+The fqdn / ip of the radius server
+
+* Radius secret
+The shared secret between NTOP and radius server.

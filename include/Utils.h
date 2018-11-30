@@ -70,6 +70,7 @@ class Utils {
   static bool purifyHTTPparam(char * const param, bool strict, bool allowURL, bool allowDots);
   static char* stripHTML(const char * const str);
   static bool postHTTPJsonData(char *username, char *password, char *url, char *json, HTTPTranferStats *stats);
+  static bool postHTTPJsonData(char *username, char *password, char *url, char *json, HTTPTranferStats *stats, char *return_data, int return_data_size);
   static bool sendMail(char *from, char *to, char *message, char *smtp_server);
   static bool postHTTPTextFile(char *username, char *password, char *url, char *path, int timeout, HTTPTranferStats *stats);
   static bool httpGetPost(lua_State* vm, char *url, char *username,
@@ -113,6 +114,7 @@ class Utils {
   static const char* captureDirection2Str(pcap_direction_t dir);
   static bool shouldResolveHost(const char *host_ip);
   static bool mg_write_retry(struct mg_connection *conn, u_char *b, int len);
+  static bool parseAuthenticatorJson(HTTPAuthenticator *auth, char *content);
 
   /* Patricia Tree */
   static patricia_node_t* ptree_match(patricia_tree_t *tree, int family, void *addr, int bits);
