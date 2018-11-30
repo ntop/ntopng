@@ -825,8 +825,8 @@
 #ifdef HAVE_RADIUS
 #define MAX_RADIUS_LEN   256
 #endif
-#define PREF_NTOP_HTTP_AUTH           NTOPNG_PREFS_PREFIX".http.auth_enabled"
-#define PREF_HTTP_AUTHENTICATOR_URL   NTOPNG_PREFS_PREFIX".http_authenticator.url"
+#define PREF_NTOP_HTTP_AUTH           NTOPNG_PREFS_PREFIX".http_authenticator.auth_enabled"
+#define PREF_HTTP_AUTHENTICATOR_URL   NTOPNG_PREFS_PREFIX".http_authenticator.http_auth_url"
 #define MAX_HTTP_AUTHENTICATOR_LEN    256
 #define MAX_HTTP_AUTHENTICATOR_RETURN_DATA_LEN      4096
 #define PREF_USER_TYPE_LOG            NTOPNG_PREFS_PREFIX".user.%s.type_log"

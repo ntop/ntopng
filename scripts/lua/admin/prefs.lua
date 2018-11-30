@@ -28,7 +28,33 @@ local product = ntop.getInfo().product
 local message_info = ""
 local message_severity = "alert-warning"
 
+-- NOTE: all the auth methods should be listed below
+local auth_toggles = {
+  ["local"] = "toggle_local_auth",
+  ["ldap"] = "toggle_ldap_auth",
+  ["http"] = "toggle_http_auth",
+  ["radius"] = "toggle_radius_auth",
+}
+
 if(haveAdminPrivileges()) then
+  if not table.empty(_POST) then
+    if _GET["tab"] == "auth" then
+      local one_enabled = false
+
+      for k, v in pairs(auth_toggles) do
+        if _POST[v] == "1" then
+          one_enabled = true
+          break
+        end
+      end
+
+      if not one_enabled then
+        -- at least one auth method should be enabled
+        _POST["toggle_local_auth"] = "1"
+      end
+    end
+  end
+
    if(_POST["email_sender"] ~= nil) then
       _POST["email_sender"] = unescapeHTML(_POST["email_sender"])
    end
@@ -227,7 +253,7 @@ function printInterfaces()
 
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
   print('</table>')
-  print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
+  print [[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
   </form> ]]
 end
 
@@ -419,7 +445,7 @@ function printAlerts()
   print('<button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button>')
   print('</th></tr>')
   print('</table>')
-  print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
+  print [[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
   </form>
 
   <script>
@@ -621,7 +647,7 @@ function printExternalAlertsReport()
   
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
   print('</table>')
-  print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
+  print [[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
   </form> ]]
 
   print[[<script>
@@ -694,7 +720,7 @@ function printProtocolPrefs()
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
 
   print('</table>')
-  print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
+  print [[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
   </form> ]]
 end
 
@@ -733,7 +759,7 @@ function printNetworkDiscovery()
    print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
 
    print('</table>')
-  print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
+  print [[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
     </form>]]
 end
 
@@ -764,9 +790,9 @@ function printRecording()
 
   -- ######################
 
-  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" onclick="return save_button_users();" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
+  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
   print('</table>')
-  print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
+  print [[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
     </form>]]
 end
 
@@ -839,28 +865,24 @@ function printMisc()
 
   -- #####################
 
-  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" onclick="return save_button_users();" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
+  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
   print('</table>')
-  print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
+  print [[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
     </form>]]
 
 end
 
 -- ================================================================================
 
-function printAuthentication()
+local function printLdapAuth()
   if not ntop.isPro() then return end
 
-  print('<form method="post">')
-  print('<table class="table">')
+  print('<tr><th colspan=2 class="info">'..i18n("prefs.ldap_authentication")..'</th></tr>')
 
-  print('<tr><th colspan=2 class="info">'..i18n("prefs.authentication")..'</th></tr>')
-  local labels = {i18n("prefs.local"), i18n("prefs.ldap"), i18n("prefs.ldap_local")}
-  local values = {"local","ldap","ldap_local"}
   local elementToSwitch = {"row_multiple_ldap_account_type", "row_toggle_ldap_anonymous_bind","server","bind_dn", "bind_pwd", "ldap_server_address", "search_path", "user_group", "admin_group"}
-  local showElementArray = {false, true, true}
+
   local javascriptAfterSwitch = "";
-  javascriptAfterSwitch = javascriptAfterSwitch.."  if($(\"#id-toggle-multiple_ldap_authentication\").val() != \"local\"  ) {\n"
+  javascriptAfterSwitch = javascriptAfterSwitch.."  if($(\"#toggle_ldap_auth_input\").val() == \"1\") {\n"
   javascriptAfterSwitch = javascriptAfterSwitch.."    if($(\"#toggle_ldap_anonymous_bind_input\").val() == \"0\") {\n"
   javascriptAfterSwitch = javascriptAfterSwitch.."      $(\"#bind_dn\").css(\"display\",\"table-row\");\n"
   javascriptAfterSwitch = javascriptAfterSwitch.."      $(\"#bind_pwd\").css(\"display\",\"table-row\");\n"
@@ -869,15 +891,16 @@ function printAuthentication()
   javascriptAfterSwitch = javascriptAfterSwitch.."      $(\"#bind_pwd\").css(\"display\",\"none\");\n"
   javascriptAfterSwitch = javascriptAfterSwitch.."    }\n"
   javascriptAfterSwitch = javascriptAfterSwitch.."  }\n"
-  local retVal = multipleTableButtonPrefs(subpage_active.entries["multiple_ldap_authentication"].title,
-           subpage_active.entries["multiple_ldap_authentication"].description,
-           labels, values, "local", "primary", "multiple_ldap_authentication", "ntopng.prefs.auth_type", nil,
-           elementToSwitch, showElementArray, javascriptAfterSwitch)
 
-  local showElements = true;
-  if ntop.getPref("ntopng.prefs.auth_type") == "local" then
-  showElements = false
-  end
+  prefsToggleButton(subpage_active, {
+	      field = auth_toggles.ldap,
+	      pref = "ldap.auth_enabled",
+	      default = "0",
+	      to_switch = elementToSwitch,
+        js_after_switch = javascriptAfterSwitch,
+	})
+
+  local showElements = (ntop.getPref("ntopng.prefs.ldap.auth_enabled") == "1")
 
   local labels_account = {i18n("prefs.posix"), i18n("prefs.samaccount")}
   local values_account = {"posix","samaccount"}
@@ -911,10 +934,87 @@ function printAuthentication()
   prefsInputFieldPrefs(subpage_active.entries["search_path"].title, subpage_active.entries["search_path"].description, "ntopng.prefs.ldap", "search_path", "", "text", showElements, nil, nil, {attributes={spellcheck="false", maxlength=255}})
   prefsInputFieldPrefs(subpage_active.entries["user_group"].title, subpage_active.entries["user_group"].description, "ntopng.prefs.ldap", "user_group", "", "text", showElements, nil, nil, {attributes={spellcheck="false", maxlength=255}})
   prefsInputFieldPrefs(subpage_active.entries["admin_group"].title, subpage_active.entries["admin_group"].description, "ntopng.prefs.ldap", "admin_group", "", "text", showElements, nil, nil, {attributes={spellcheck="false", maxlength=255}})
+end
 
-  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" onclick="return save_button_users();" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
+-- #####################
+
+local function printRadiusAuth()
+  print('<tr><th colspan=2 class="info">'..i18n("prefs.radius_auth")..'</th></tr>')
+
+  local elementToSwitch = {"radius_server_address", "radius_secret", "radius_admin_group"}
+
+  prefsToggleButton(subpage_active, {
+	      field = auth_toggles.radius,
+	      pref = "radius.auth_enabled",
+	      default = "0",
+	      to_switch = elementToSwitch,
+	})
+
+  local showElements = (ntop.getPref("ntopng.prefs.radius.auth_enabled") == "1")
+
+  prefsInputFieldPrefs(subpage_active.entries["radius_server"].title, subpage_active.entries["radius_server"].description,
+    "ntopng.prefs.radius", "radius_server_address", "127.0.0.1:1812", nil, showElements, true, false,
+    {attributes={spellcheck="false", maxlength=255, required="required", pattern="[0-9.\\-A-Za-z]+:[0-9]+"}})
+
+  prefsInputFieldPrefs(subpage_active.entries["radius_secret"].title, subpage_active.entries["radius_secret"].description,
+    "ntopng.prefs.radius", "radius_secret", "", "password", showElements, true, false,
+    {attributes={spellcheck="false", maxlength=255, required="required", pattern="[^\\s]+"}})
+
+  prefsInputFieldPrefs(subpage_active.entries["radius_admin_group"].title, subpage_active.entries["radius_admin_group"].description,
+    "ntopng.prefs.radius", "radius_admin_group", "", nil, showElements, true, false,
+    {attributes={spellcheck="false", maxlength=255, pattern="[^\\s]+"}})
+end
+
+-- #####################
+
+local function printHttpAuth()
+  print('<tr><th colspan=2 class="info">'..i18n("prefs.http_auth")..'</th></tr>')
+
+  local elementToSwitch = {"http_auth_url"}
+
+  prefsToggleButton(subpage_active, {
+	      field = auth_toggles.http,
+	      pref = "http_authenticator.auth_enabled",
+	      default = "0",
+	      to_switch = elementToSwitch,
+	})
+
+  local showElements = (ntop.getPref("ntopng.prefs.http_authenticator.auth_enabled") == "1")
+
+  prefsInputFieldPrefs(subpage_active.entries["http_auth_server"].title, subpage_active.entries["http_auth_server"].description,
+    "ntopng.prefs.http_authenticator", "http_auth_url", "", nil, showElements, true, true --[[ allowUrls ]],
+    {attributes={spellcheck="false", maxlength=255, required="required", pattern="(http://)?[0-9.\\-A-Za-z]+(:[0-9]+)?"}})
+end
+
+-- #####################
+
+local function printLocalAuth()
+  print('<tr><th colspan=2 class="info">'..i18n("prefs.local_auth")..'</th></tr>')
+
+  prefsToggleButton(subpage_active, {
+	      field = auth_toggles["local"],
+	      pref = "local.auth_enabled",
+	      default = "1",
+	})
+end
+
+-- #####################
+
+function printAuthentication()
+  print('<form method="post">')
+  print('<table class="table">')
+
+  -- Note: order must correspond to evaluation order in Ntop.cpp
+  printLdapAuth()
+  printRadiusAuth()
+  printHttpAuth()
+  printLocalAuth()
+
+  prefsInformativeField(i18n("notes"), i18n("prefs.auth_methods_order"))
+
+  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
   print('</table>')
-  print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />]]
+  print [[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />]]
   print('</form>')
 end
 
@@ -982,7 +1082,7 @@ function printInMemory()
 
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
   print('</table>')
-  print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
+  print [[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
   </form>
 
   <script>
@@ -1084,7 +1184,7 @@ function printStatsTimeseries()
   prefsInputFieldPrefs(subpage_active.entries["influxdb_password"].title, subpage_active.entries["influxdb_password"].description,
 		       "ntopng.prefs.",
 		       "influx_password", "",
-           false, auth_enabled, nil, nil,  {attributes={spellcheck="false"}, pattern="[^\\s]+"})
+           "password", auth_enabled, nil, nil,  {attributes={spellcheck="false"}, pattern="[^\\s]+"})
 
   local ts_slots_labels = {"10s", "30s", "1m"}
   local ts_slots_values = {"10", "30", "60"}
@@ -1269,7 +1369,7 @@ end
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
   print('</table>')
 
-  print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
+  print [[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
   </form> ]]
 end
 
@@ -1305,7 +1405,7 @@ function printLogging()
 
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
 
-  print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
+  print [[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
   </form>
   </table>]]
 end
@@ -1337,7 +1437,7 @@ function printSnmp()
 
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
 
-  print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
+  print [[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
   </form>
   </table>]]
 end
@@ -1383,7 +1483,7 @@ function printFlowDBDump()
 
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
 
-  print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
+  print [[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
   </form>
   </table>]]
 end
@@ -1420,7 +1520,7 @@ print[[
 
             <div id="prefs_toggle" class="btn-group">
               <form method="post">
-<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
+<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
 <input type=hidden name="show_advanced_prefs" value="]]if show_advanced_prefs then print("false") else print("true") end print[["/>
 
 

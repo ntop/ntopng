@@ -1095,6 +1095,7 @@ bool Ntop::checkUserPassword(const char * const user, const char * const passwor
     if(val[0] == '1') {
       int result;
       bool radius_ret = false;
+      char dict_path[MAX_RADIUS_LEN];
       char *radiusServer = NULL, *radiusSecret = NULL, *authServer = NULL, *radiusAdminGroup = NULL;
       rc_handle       *rh = NULL;
       VALUE_PAIR      *send = NULL, *received = NULL;
@@ -1152,7 +1153,8 @@ bool Ntop::checkUserPassword(const char * const user, const char * const passwor
         goto radius_auth_out;
       }
 
-      if (rc_add_config(rh, "dictionary", "third-party/radcli/dictionary", "config", 0) != 0) { // TODO fix file location
+      snprintf(dict_path, sizeof(dict_path), "%s/other/radcli_dictionary.txt", ntop->getPrefs()->get_docs_dir());
+      if (rc_add_config(rh, "dictionary", dict_path, "config", 0) != 0) {
         ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: Unable to set dictionary config");
         goto radius_auth_out;
       }
