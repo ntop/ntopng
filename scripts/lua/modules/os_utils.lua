@@ -75,9 +75,13 @@ end
 --! @brief Check if a service is available into the system.
 --! @return true if service is available, false otherwise.
 function os_utils.hasService(service_name, ...)
-   local cmd = ntopctl_cmd(service_name, "has-service", ...)
-   local has_ntopctl = os_utils.execWithOutput("which ntopctl >/dev/null 2>/dev/null")
+   local prefs = ntop.getPrefs()
 
+   if not isEmptyString(prefs.user) and prefs.user ~= "ntopng" then
+     return false
+   end
+
+   local has_ntopctl = os_utils.execWithOutput("which ntopctl >/dev/null 2>/dev/null")
    if has_ntopctl == nil then
       -- ntopctl is not available
       return false
@@ -87,6 +91,7 @@ function os_utils.hasService(service_name, ...)
       return false
    end
 
+   local cmd = ntopctl_cmd(service_name, "has-service", ...)
    local rv = os_utils.execWithOutput(cmd)
    return(rv == "yes\n")
 end
