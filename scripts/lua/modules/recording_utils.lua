@@ -411,11 +411,11 @@ function recording_utils.createConfig(ifid, params)
   end
   defaults.buffer_size = num_buffered_files * defaults.max_file_size
 
-  local total_n2disk_mem = defaults.buffer_size + (defaults.buffer_size/2) -- pcap + index buffer
+  local total_n2disk_mem = defaults.buffer_size * 2 -- pcap + index buffer
 
   if mem_available_mb ~= nil and mem_available_mb < total_n2disk_mem then
     local min_n2disk_buffer_size = (min_file_size * num_buffered_files) -- min memory for n2disk to work
-    local min_n2disk_mem = min_n2disk_buffer_size + (min_n2disk_buffer_size/2)
+    local min_n2disk_mem = min_n2disk_buffer_size * 2 -- pcap + index buffer
     if mem_available_mb < min_n2disk_mem then
       traceError(TRACE_ERROR, TRACE_CONSOLE, "Not enough memory available ("..mem_available_mb.."MB available, min required is "..min_n2disk_mem.."MB)") 
       return false
