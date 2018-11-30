@@ -112,8 +112,7 @@ addProtocolByName('multimedia', 'client', 'LastFM',      presets_utils.ALLOW)
 addProtocolByName('multimedia', 'client', 'SoundCloud',  presets_utils.ALLOW)
 addProtocolByName('multimedia', 'client', 'Spotify',     presets_utils.ALLOW)
 addProtocolByName('multimedia', 'client', 'Skype',       presets_utils.ALLOW)
-addProtocolByName('multimedia', 'client', 'SkypeCallIn', presets_utils.ALLOW)
-addProtocolByName('multimedia', 'client', 'SkypeCallOut',presets_utils.ALLOW)
+addProtocolByName('multimedia', 'client', 'SkypeCall',   presets_utils.ALLOW)
 
 addPresetFrom('tv', 'multimedia')
 
