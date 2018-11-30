@@ -1013,6 +1013,8 @@ bool Ntop::checkUserPassword(const char * const user, const char * const passwor
   if(ntop->getPro()->has_valid_license()) {
     if(ntop->getRedis()->get((char*)PREF_NTOP_LDAP_AUTH, val, sizeof(val)) >= 0) {
       if(val[0] == '1') {
+        ntop->getTrace()->traceEvent(TRACE_INFO, "Checking LDAP auth");
+
 	bool ldap_ret = false;
         bool is_admin;
 	char *ldapServer = NULL, *ldapAccountType = NULL,  *ldapAnonymousBind = NULL,
@@ -1088,10 +1090,12 @@ bool Ntop::checkUserPassword(const char * const user, const char * const passwor
 
 #ifdef HAVE_RADIUS
   if(ntop->getRedis()->get((char*)PREF_NTOP_RADIUS_AUTH, val, sizeof(val)) >= 0) {
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Checking RADIUS auth");
+
     if(val[0] == '1') {
       int result;
       bool radius_ret = false;
-      char *radiusServer = NULL, *radiusSecret = NULL, *authServer = NULL;
+      char *radiusServer = NULL, *radiusSecret = NULL, *authServer = NULL, *radiusAdminGroup = NULL;
       rc_handle       *rh = NULL;
       VALUE_PAIR      *send = NULL, *received = NULL;
 
@@ -1100,17 +1104,19 @@ bool Ntop::checkUserPassword(const char * const user, const char * const passwor
 
       if (!(radiusServer = (char*)calloc(sizeof(char), MAX_RADIUS_LEN)) ||
           !(radiusSecret = (char*)calloc(sizeof(char), MAX_RADIUS_LEN)) ||
+          !(radiusAdminGroup = (char*)calloc(sizeof(char), MAX_RADIUS_LEN)) ||
           !(authServer = (char*)calloc(sizeof(char), MAX_RADIUS_LEN))) {
         ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: unable to allocate memory");
         goto radius_auth_out;
       }
       ntop->getRedis()->get((char*)PREF_RADIUS_SERVER, radiusServer, MAX_RADIUS_LEN);
       ntop->getRedis()->get((char*)PREF_RADIUS_SECRET, radiusSecret, MAX_RADIUS_LEN);
+      ntop->getRedis()->get((char*)PREF_RADIUS_ADMIN_GROUP, radiusAdminGroup, MAX_RADIUS_LEN);
       if (!radiusServer[0] || !radiusSecret[0]) {
         ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: no radius server or secret set !");
         goto radius_auth_out;
       }
-      snprintf(authServer, MAX_RADIUS_LEN - 1, "%s:1812:%s", radiusServer, radiusSecret);
+      snprintf(authServer, MAX_RADIUS_LEN - 1, "%s:%s", radiusServer, radiusSecret);
 
       /* NOTE: this is an handle to the radius lib. It will be passed to multiple functions and cleaned up at the end.
        * https://github.com/FreeRADIUS/freeradius-client/blob/master/src/radembedded.c
@@ -1120,23 +1126,57 @@ bool Ntop::checkUserPassword(const char * const user, const char * const passwor
         ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: unable to allocate memory");
         goto radius_auth_out;
       }
+
+      /* ********* */
+
       rh = rc_config_init(rh);
+
       if (rh == NULL) {
         ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: failed to init configuration");
         goto radius_auth_out;
       }
-      rc_add_config(rh, "radius_retries", "3", "config", 0);
-      rc_add_config(rh, "radius_timeout", "5", "config", 0);
-      rc_add_config(rh, "authserver", authServer, "config", 0);
-      rc_add_config(rh, "dictionary", "/etc/radcli/dictionnary", "config", 0); // TODO fix file location
+
+      /* RADIUS only auth */
+      if (rc_add_config(rh, "auth_order", "radius", "config", 0) != 0) {
+        ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: Unable to set auth_order");
+        goto radius_auth_out;
+      }
+
+      if (rc_add_config(rh, "radius_retries", "3", "config", 0) != 0) {
+        ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: Unable to set retries config");
+        goto radius_auth_out;
+      }
+
+      if (rc_add_config(rh, "radius_timeout", "5", "config", 0)  != 0) {
+        ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: Unable to set timeout config");
+        goto radius_auth_out;
+      }
+
+      if (rc_add_config(rh, "dictionary", "third-party/radcli/dictionary", "config", 0) != 0) { // TODO fix file location
+        ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: Unable to set dictionary config");
+        goto radius_auth_out;
+      }
+
+      if (rc_add_config(rh, "authserver", authServer, "config", 0) != 0) {
+        ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: Unable to set authserver config: \"%s\"", authServer);
+        goto radius_auth_out;
+      }
+
+#ifdef HAVE_RC_APPLY_CONFIG
+      /* Necessary since radcli release 1.2.10 */
+      if (rc_apply_config(rh) != 0) {
+        ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: rc_apply_config failed");
+        goto radius_auth_out;
+      }
+#endif
+
+      /* ********* */
+
       if (rc_read_dictionary(rh, rc_conf_str(rh, "dictionary")) != 0) {
-        ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: unable to read dictionnary");
+        ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: unable to read dictionary");
         goto radius_auth_out;
       }
-      if (rc_avpair_add(rh, &received, PW_USER_NAME, user, -1, 0) == NULL) {
-        ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: unable to set username");
-        goto radius_auth_out;
-      }
+
       if (rc_avpair_add(rh, &send, PW_USER_NAME, user, -1, 0) == NULL) {
         ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: unable to set username");
         goto radius_auth_out;
@@ -1149,18 +1189,22 @@ bool Ntop::checkUserPassword(const char * const user, const char * const passwor
       result = rc_auth(rh, 0, send, &received, NULL);
       if (result == OK_RC) {
         bool is_admin = false;
-        VALUE_PAIR *vp = received;
-        char name[128];
-        char value[128];
 
-        while (vp != NULL) {
-          if (rc_avpair_tostr(rh, vp, name, sizeof(name), value, sizeof(value)) == 0) {
-            if (strcmp(name, "Filter-Id") == 0 && strcmp(value, "admin") == 0) {
-              is_admin = true;
+        if(radiusAdminGroup[0] != '\0') {
+          VALUE_PAIR *vp = received;
+          char name[128];
+          char value[128];
+
+          while(vp != NULL) {
+            if(rc_avpair_tostr(rh, vp, name, sizeof(name), value, sizeof(value)) == 0) {
+              if((strcmp(name, "Filter-Id") == 0) && (strcmp(value, radiusAdminGroup) == 0))
+                is_admin = true;
             }
+
+            vp = vp->next;
           }
-          vp = vp->next;
         }
+
         snprintf(key, sizeof(key), PREF_LDAP_GROUP_OF_USER, user);
         ntop->getRedis()->set(key, is_admin ?  (char*)CONST_USER_GROUP_ADMIN : (char*)CONST_USER_GROUP_UNPRIVILEGED, 0);
         snprintf(key, sizeof(key), PREF_USER_TYPE_LOG, user);
@@ -1172,6 +1216,7 @@ bool Ntop::checkUserPassword(const char * const user, const char * const passwor
       if (send) rc_avpair_free(send);
       if (received) rc_avpair_free(received);
       if (rh) rc_destroy(rh);
+      if (radiusAdminGroup) free(radiusAdminGroup);
       if (radiusServer) free(radiusServer);
       if (radiusSecret) free(radiusSecret);
       if (authServer) free(authServer);
@@ -1182,6 +1227,8 @@ bool Ntop::checkUserPassword(const char * const user, const char * const passwor
   #endif
 
   if(ntop->getRedis()->get((char*)PREF_NTOP_HTTP_AUTH, val, sizeof(val)) >= 0) {
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Checking HTTP auth");
+
     if(val[0] == '1') {
       int postLen;
       char *httpUrl = NULL, *postData = NULL, *returnData = NULL;
@@ -1234,6 +1281,8 @@ bool Ntop::checkUserPassword(const char * const user, const char * const passwor
   /* Check local auth */
   if((ntop->getRedis()->get((char*)PREF_NTOP_LOCAL_AUTH, val, sizeof(val)) >= 0) && val[0] == '0')
     return(false);
+
+  ntop->getTrace()->traceEvent(TRACE_INFO, "Checking Local auth");
 
   if((!strcmp(user, "admin")) &&
      (ntop->getRedis()->get((char*)TEMP_ADMIN_PASSWORD, val, sizeof(val)) >= 0) &&

@@ -821,6 +821,7 @@
 #define PREF_NTOP_RADIUS_AUTH           NTOPNG_PREFS_PREFIX".radius.auth_enabled"
 #define PREF_RADIUS_SERVER              NTOPNG_PREFS_PREFIX".radius.radius_server_address"
 #define PREF_RADIUS_SECRET              NTOPNG_PREFS_PREFIX".radius.radius_secret"
+#define PREF_RADIUS_ADMIN_GROUP         NTOPNG_PREFS_PREFIX".radius.radius_admin_group"
 #ifdef HAVE_RADIUS
 #define MAX_RADIUS_LEN   256
 #endif
