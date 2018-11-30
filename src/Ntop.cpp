@@ -1112,6 +1112,9 @@ bool Ntop::checkUserPassword(const char * const user, const char * const passwor
       }
       snprintf(authServer, MAX_RADIUS_LEN - 1, "%s:1812:%s", radiusServer, radiusSecret);
 
+      /* NOTE: this is an handle to the radius lib. It will be passed to multiple functions and cleaned up at the end.
+       * https://github.com/FreeRADIUS/freeradius-client/blob/master/src/radembedded.c
+       */
       rh = rc_new();
       if (rh == NULL) {
         ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: unable to allocate memory");
@@ -1166,9 +1169,9 @@ bool Ntop::checkUserPassword(const char * const user, const char * const passwor
       }
 
     radius_auth_out:
-      if (rh) {
-        rc_destroy(rh);
-      }
+      if (send) rc_avpair_free(send);
+      if (received) rc_avpair_free(received);
+      if (rh) rc_destroy(rh);
       if (radiusServer) free(radiusServer);
       if (radiusSecret) free(radiusSecret);
       if (authServer) free(authServer);
@@ -1198,7 +1201,6 @@ bool Ntop::checkUserPassword(const char * const user, const char * const passwor
         goto http_auth_out;
       }
       ntop->getRedis()->get((char*)PREF_HTTP_AUTHENTICATOR_URL, httpUrl, MAX_HTTP_AUTHENTICATOR_LEN);
-      httpUrl = strdup("http://127.0.0.1:8080/");
       if (!httpUrl[0]) {
         ntop->getTrace()->traceEvent(TRACE_ERROR, "HTTP: no http url set !");
         goto http_auth_out;
