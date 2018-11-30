@@ -311,7 +311,11 @@ local function reloadDevicePoliciesByDir(device_type, client_or_server)
    local device_policies = getDevicePoliciesByDir(device_type, client_or_server)
    for k,v in pairs(device_policies) do 
       if v.actionId == presets_utils.ALLOW then
-         allowed_protocols[tonumber(v.protoId)] = tonumber(presets_utils.ALLOW)
+	 v.protoId = tonumber(v.protoId)
+
+	 if(v.protoId ~= -1) then
+	    allowed_protocols[v.protoId] = tonumber(presets_utils.ALLOW)
+	 end
       end
    end   
 
