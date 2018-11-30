@@ -6660,7 +6660,7 @@ void NetworkInterface::checkMacIPAssociation(bool triggerEvent, u_char *_mac, u_
 void NetworkInterface::finishInitialization() {
   if(!isView()) {
 #if defined(NTOPNG_PRO) && defined(HAVE_NINDEX)
-    if(ntop->getPrefs()->do_dump_flows_on_nindex()) {
+    if(ntop->getPrefs()->is_enterprise_edition() && ntop->getPrefs()->do_dump_flows_on_nindex()) {
       db = new NIndexFlowDB(this);
       goto enable_aggregation;
     }

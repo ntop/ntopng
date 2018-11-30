@@ -309,7 +309,7 @@ void usage() {
 #ifndef HAVE_NEDGE
 	 "[--dump-flows|-F] <mode>            | Dump expired flows. Mode:\n"
 #ifdef HAVE_NINDEX
-	 "                                    | nindex        Dump in nIndex\n\n"
+	 "                                    | nindex        Dump in nIndex (Enterprise only)\n\n"
 #endif
 	 "                                    | es            Dump in ElasticSearch database\n"
 	 "                                    |   Format:\n"
@@ -1119,7 +1119,7 @@ int Prefs::setOption(int optkey, char *optarg) {
     else
 #if defined(NTOPNG_PRO) && defined(HAVE_NINDEX)
     if(strncmp(optarg, "nindex", 2) == 0) {
-	dump_flows_on_nindex = true;
+      dump_flows_on_nindex = is_enterprise_edition() ? true : false;
     } else
 #endif
     if((strncmp(optarg, "es", 2) == 0) && (strlen(optarg) > 3)) {
