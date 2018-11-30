@@ -1832,6 +1832,8 @@ void Ntop::refreshAllowedProtocolPresets(DeviceType device_type, bool client, lu
     u_int key_proto = lua_tointeger(L, -2);
     int t = lua_type(L, -1);
 
+    if((int)key_proto < 0) continue;
+    
     switch (t) {
       case LUA_TNUMBER:
       {
