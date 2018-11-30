@@ -6,7 +6,7 @@ local format_utils = {}
 
 function format_utils.round(num, idp)
    if(num == nil) then return(0) end
-   return tonumber(string.format("%." .. (idp or 0) .. "f", num))
+   return tonumber(string.format("%." .. (idp or 0) .. "f", num)) or 0
 end
 local round = format_utils.round
 

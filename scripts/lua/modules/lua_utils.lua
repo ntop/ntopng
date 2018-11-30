@@ -753,12 +753,6 @@ end
 --   print(_key .. "=" .. _value .. "\n")
 --end
 
-function round(num, idp)
-   if(num == nil) then return(0) end
-   return tonumber(string.format("%." .. (idp or 0) .. "f", num))
-end
---function round(num) return math.floor(num+.5) end
-
 function truncate(x)
    return x<0 and math.ceil(x) or math.floor(x)
 end
