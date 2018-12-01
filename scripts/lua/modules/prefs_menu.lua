@@ -6,6 +6,7 @@ local prefs = ntop.getPrefs()
 
 local have_nedge = ntop.isnEdge()
 local info = ntop.getInfo(false)
+local hasRadius = ntop.hasRadiusSupport()
 
 -- This table is used both to control access to the preferences and to filter preferences results
 local menu_subpages = {
@@ -16,6 +17,7 @@ local menu_subpages = {
     }, toggle_radius_auth = {
       title       = i18n("prefs.toggle_radius_auth"),
       description = i18n("prefs.toggle_radius_auth_descr", {product=info.product}),
+      hidden      = (not hasRadius),
     }, toggle_http_auth = {
       title       = i18n("prefs.toggle_http_auth"),
       description = i18n("prefs.toggle_http_auth_descr"),
@@ -49,12 +51,15 @@ local menu_subpages = {
     }, radius_server = {
       title       = i18n("prefs.radius_server_title"),
       description = i18n("prefs.radius_server_description", {example="127.0.0.1:1812"}),
+      hidden      = (not hasRadius),
     }, radius_secret = {
       title       = i18n("prefs.radius_secret_title"),
       description = i18n("prefs.radius_secret_descroption"),
+      hidden      = (not hasRadius),
     }, radius_admin_group = {
       title       = i18n("prefs.radius_admin_group_title"),
       description = i18n("prefs.radius_admin_group_description"),
+      hidden      = (not hasRadius),
     }, http_auth_server = {
       title       = i18n("prefs.http_auth_server_title"),
       description = i18n("prefs.http_auth_server_description"),

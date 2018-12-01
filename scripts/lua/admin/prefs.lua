@@ -939,6 +939,10 @@ end
 -- #####################
 
 local function printRadiusAuth()
+  if subpage_active.entries["toggle_radius_auth"].hidden then
+    return
+  end
+
   print('<tr><th colspan=2 class="info">'..i18n("prefs.radius_auth")..'</th></tr>')
 
   local elementToSwitch = {"radius_server_address", "radius_secret", "radius_admin_group"}
