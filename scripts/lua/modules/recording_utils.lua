@@ -543,6 +543,8 @@ end
 --! @param ifid the interface identifier 
 --! @return true if the service is running, false otherwise
 function recording_utils.isActive(ifid)
+  if not recording_utils.isAvailable() then return false end
+
   local confifname = getConfigInterfaceName(ifid)
   return os_utils.isActive("n2disk", confifname)
 end
