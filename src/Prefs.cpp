@@ -1119,7 +1119,7 @@ int Prefs::setOption(int optkey, char *optarg) {
     else
 #if defined(NTOPNG_PRO) && defined(HAVE_NINDEX)
     if(strncmp(optarg, "nindex", 2) == 0) {
-      dump_flows_on_nindex = is_enterprise_edition() ? true : false;
+      dump_flows_on_nindex = true;
     } else
 #endif
     if((strncmp(optarg, "es", 2) == 0) && (strlen(optarg) > 3)) {
