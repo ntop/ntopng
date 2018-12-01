@@ -569,8 +569,8 @@ static void redirect_to_please_wait(struct mg_connection *conn,
 	    session_id,
 	    get_secure_cookie_attributes(request_info),
 	    ntop->getPrefs()->get_http_prefix(), Utils::getURL((char*)PLEASE_WAIT_URL, buf, sizeof(buf)),
-	    referer ? (char*)"?referer=" : "",
-	    referer ? (referer_enc = Utils::urlEncode(referer)) : (char*)"");
+	    (referer[0] != '\0') ? (char*)"?referer=" : (char*)"",
+	    (referer[0] != '\0') ? (referer_enc = Utils::urlEncode(referer)) : (char*)"");
 
   if(referer_enc)
     free(referer_enc);
@@ -596,8 +596,8 @@ static void redirect_to_password_change(struct mg_connection *conn,
 	      session_id,
 	      get_secure_cookie_attributes(request_info),
 	      ntop->getPrefs()->get_http_prefix(), Utils::getURL((char*)CHANGE_PASSWORD_ULR, buf, sizeof(buf)),
-	      referer ? (char*)"?referer=" : "",
-	      referer ? (referer_enc = Utils::urlEncode(referer)) : (char*)"");
+	      (referer[0] != '\0') ? (char*)"?referer=" : (char*)"",
+	      (referer[0] != '\0') ? (referer_enc = Utils::urlEncode(referer)) : (char*)"");
 
   if(referer_enc)
     free(referer_enc);
