@@ -4,13 +4,16 @@ Remote Assistance
 A common problem when requesting remote assistance is to get access to the user machine.
 Usually the user machine is behind a NAT or a firewall which blocks incoming connections,
 and it a problem for the non-technical user to setup port forwarding and firewall rules.
+Remote access is available for user support. It is handy whenever you need for instance to access your ntopng behind a firewall and you do not want to setup a VPN. As n2n relies on the concept of supernode, ntop has setup on your behalf a public supernode for avoid you doing that. However we encourage you to setup your private supernode and configure it in ntopng preferences, so that you can have a fully private remote access infrastructure.
 
+.. warning::
+   Enabling the remote assistance you enable people to connect to your ntopng host by providing them the right credentials. The ntop team has no access to your ntopng instance unless you provide them credentials.
+
+   
 In order to ease remote assistance, ntopng integrates n2n_ and provides a web console
-to enable remote access. This console is available only in systemd-based distro such as (at the time of writing):
+to enable remote access. This console is available only for distributions where the n2n package
+is available. Please refer to http://packages.ntop.org for more information about the n2n package.
 
-- Centos 7
-- Ubuntu 16/18
-- Debian 9
 
 .. warning::
   ntopng assumes that certains script files are placed in certain locations, as installed by the ntopng prebuild package.
@@ -24,9 +27,9 @@ The console can be accessed from the `Remote Assistance` menu entry:
   :alt: Remote Assistance Menu Entry
 
 When the remote assistance is enabled, the machine running ntopng will take part
-to a dedicated virtual network. By running the connection script, which can be
-downloaded from the gui, any linux system with the n2n software can take part to
-the machine virtual network to provide remote assistance **bypassing NAT and firewalls**.
+to a dedicated virtual network. You can download the connection script from the user interface so
+your Linux (with little changes it can also run on other platforms such as Windows and OSX) with the n2n package installed can
+can take part to the machine virtual network to provide remote assistance **bypassing NAT and firewalls**.
 The script can be run from the terminal as follows:
 
 .. code:: bash
@@ -45,17 +48,13 @@ The script can be run from the terminal as follows:
 By enabling the remote assistance and providing the connection script to the ntop support
 team, the user can receive remote assistance. When remote assistance is enabled, the ntopng instance will be available at IP address 192.168.166.1
 
-If the `Temporary Admin Access` flag is checked, then the support team will also be able
-to connect to ntopng GUI as the admin user by using the same credentials of the connection
-script. If it's not enabled, then GUI credentials must be provided to the support team by the user.
+If the `Temporary Admin Access` flag is checked, you enable a temporary access as admin (this to avoid disclosing the admin credentials to third parties). If this option is not enabled, the regular admin (or any other user) password has to be provided to the remote end for connection.
 
 .. warning::
 
-   ntop is not responsible for any damage, security violation or vulnerability caused by enabling remote assistance
-
-.. warning::
-
-   It is the user responsability to ensure that the network security policies allow virtual networks creation
+   - ntop is not responsible for any damage, security violation or vulnerability caused by enabling remote assistance
+   - It is the user responsability to ensure that the network security policies allow virtual networks creation
+   - Enabling remote assistance you grant access to the host where ntopng is running (i.e. it is an encrypted VPN) so the remote host is also accessible (i.e. you can SSH to it for instance) and not just the ntopng web interface.
 
 Remote Assistance Status
 ------------------------
@@ -73,7 +72,7 @@ By clicking on it, it's possible to check the service status and log.
   :alt: Remote Assistance Status
 
 The remote assistance service will stay active even when ntopng is stopped. This
-must be manually disabled from the ntopng GUI when remote assistance is concluded.
+must be manually disabled from the ntopng GUI in the Settings panel,  when remote assistance is concluded.
 
 Security Considerations
 -----------------------
@@ -82,9 +81,7 @@ Here are some consideration about the remote assistance security:
 
 - All the traffic is end-to-end encrypted to prevent MITM (Man In The Middle) attacks
 - The remote assistance is automatically disabled after 24 hours
-- By enabling remote assistance, the support team *will not have* console access
-  to the machine. Console access, if necessary, must be manually configured by the user.
-- Traffic forwarding via the virtual network interface is disabled to increase security
+- Traffic forwarding via the virtual network interface (i.e. the remote host where ntopng is running will not route traffic via n2n) is disabled to increase security
 
 
 
