@@ -847,18 +847,21 @@ bool Flow::dumpFlow(bool dump_alert) {
       /* idle flows always dumped */
     }
 
-    if(cli_host) {
-      if(ntop->getPrefs()->do_dump_flows_on_mysql())
-	cli_host->getInterface()->dumpDBFlow(last_seen, this);
-      else if(ntop->getPrefs()->do_dump_flows_on_es())
-	cli_host->getInterface()->dumpEsFlow(last_seen, this);
-      else if(ntop->getPrefs()->do_dump_flows_on_ls())
-        cli_host->getInterface()->dumpLsFlow(last_seen, this);
-#if defined(HAVE_NINDEX) && defined(NTOPNG_PRO)
-      else if(ntop->getPrefs()->do_dump_flows_on_nindex())
-        cli_host->getInterface()->dumpnIndexFlow(last_seen, this);
+#ifdef NTOPNG_PRO
+    if(ntop->getPro()->has_valid_license() && ntop->getPrefs()->is_enterprise_edition())
+      getInterface()->aggregatePartialFlow(this);
 #endif
-    }
+
+    if(ntop->getPrefs()->do_dump_flows_on_mysql())
+      getInterface()->dumpDBFlow(last_seen, this);
+    else if(ntop->getPrefs()->do_dump_flows_on_es())
+      getInterface()->dumpEsFlow(last_seen, this);
+    else if(ntop->getPrefs()->do_dump_flows_on_ls())
+      getInterface()->dumpLsFlow(last_seen, this);
+#if defined(HAVE_NINDEX) && defined(NTOPNG_PRO)
+    else if(ntop->getPrefs()->do_dump_flows_on_nindex())
+      getInterface()->dumpnIndexFlow(last_seen, this);
+#endif
 
 #ifndef HAVE_NEDGE
     if(ntop->get_export_interface()) {
@@ -974,11 +977,6 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
     diff_rcvd_bytes = rcvd_bytes - srv2cli_last_bytes, diff_rcvd_goodput_bytes = rcvd_goodput_bytes - srv2cli_last_goodput_bytes;
   prev_srv2cli_last_bytes = srv2cli_last_bytes, prev_srv2cli_last_goodput_bytes = srv2cli_last_goodput_bytes,
     prev_srv2cli_last_packets = srv2cli_last_packets;
-
-#ifdef NTOPNG_PRO
-  if(ntop->getPro()->has_valid_license() && ntop->getPrefs()->is_enterprise_edition())
-    iface->aggregatePartialFlow(this); /* must go before updating _last_ updates as it uses them */
-#endif
 
   cli2srv_last_packets = sent_packets, cli2srv_last_bytes = sent_bytes,
     cli2srv_last_goodput_bytes = sent_goodput_bytes;
@@ -3581,14 +3579,6 @@ bool Flow::isTiny() {
     return(true);
   else
     return(false);
-}
-
-/* ***************************************************** */
-
-void Flow::fixAggregatedFlowFields() {
-  ndpiDetectedProtocol.master_protocol = ntohs(cli_port),
-    ndpiDetectedProtocol.app_protocol = ntohs(srv_port);
-  cli_port = srv_port = 0;
 }
 
 /* ***************************************************** */
