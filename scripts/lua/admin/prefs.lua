@@ -14,6 +14,7 @@ local lists_utils = require "lists_utils"
 local alert_consts = require "alert_consts"
 local slack_utils = require("slack")
 local recording_utils = require "recording_utils"
+local remote_assistance = require "remote_assistance"
 local page_utils = require("page_utils")
 
 if(ntop.isPro()) then
@@ -789,6 +790,28 @@ function printRecording()
 		       nil, nil, {min=1})
 
   -- ######################
+
+  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
+  print('</table>')
+  print [[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
+    </form>]]
+end
+
+-- ================================================================================
+
+function printRemoteAssitance()
+  if not remote_assistance.isAvailable() then
+    return
+  end
+
+  print('<form method="post">')
+  print('<table class="table">')
+
+  print('<tr><th colspan=2 class="info">'..i18n("remote_assistance.remote_assistance")..'</th></tr>')
+  prefsInputFieldPrefs(subpage_active.entries["n2n_supernode"].title, 
+                       subpage_active.entries["n2n_supernode"].description,
+		       "ntopng.prefs.remote_assistance.", "supernode", remote_assistance.getSupernode(), nil,
+		       true, nil, nil, {attributes = {pattern = "[0-9.\\-A-Za-z]+(:[0-9]+)?", required = "required"}})
 
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
   print('</table>')
@@ -1588,6 +1611,10 @@ end
 
 if(tab == "recording") then
    printRecording()
+end
+
+if(tab == "remote_assistance") then
+   printRemoteAssitance()
 end
 
 if(tab == "misc") then

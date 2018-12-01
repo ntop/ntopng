@@ -11,7 +11,7 @@ local SERVICE_NAME = "n2n"
 local N2N_INTERFACE_NAME = "n2n_assistance"
 local DEVICE_IP = "192.168.166.1"
 local ASSISTANT_IP = "192.168.166.10"
-local SUPERNODE_ADDRESS = "dns.ntop.org:7777"
+local DEFAULT_SUPERNODE = "supernode.ntop.org:7777"
 local CONF_DIR = dirs.workingdir.."/n2n"
 local CONF_FILE = CONF_DIR .. "/edge.conf"
 local TEMP_ADMIN_PASSWORD_KEY = "ntopng.prefs.temp_admin_password"
@@ -61,6 +61,12 @@ end
 -- ########################################################
 
 function remote_assistance.createConfig(community, key)
+  local supernode = ntop.getPref("ntopng.prefs.remote_assistance.supernode")
+
+  if not isEmptyString(supernode) then
+    supernode = DEFAULT_SUPERNODE
+  end
+
   if not ntop.mkdir(CONF_DIR) then
     return false
   end
@@ -72,7 +78,7 @@ function remote_assistance.createConfig(community, key)
   end
 
   f:write("-d=".. N2N_INTERFACE_NAME .."\n")
-  f:write("-l=".. SUPERNODE_ADDRESS .."\n")
+  f:write("-l=".. supernode .."\n")
   f:write("-c=".. community .."\n")
   f:write("-k=".. key .."\n")
 
@@ -86,6 +92,8 @@ function remote_assistance.createConfig(community, key)
   f:write("-a=".. DEVICE_IP .."\n")
 
   f:close()
+
+  ntop.setPref("ntopng.prefs.remote_assistance.active_supernode", supernode)
 
   return true
 end
@@ -162,12 +170,26 @@ end
 
 -- ########################################################
 
+-- Get the active supernode
+function remote_assistance.getSupernode()
+  local val = ntop.getPref("ntopng.prefs.remote_assistance.active_supernode")
+
+  if not isEmptyString(val) then
+    return val
+  end
+
+  return DEFAULT_SUPERNODE
+end
+
+-- ########################################################
+
 function remote_assistance.getConnectionCommand()
   local community = ntop.getPref("ntopng.prefs.remote_assistance.community")
   local key = ntop.getPref("ntopng.prefs.remote_assistance.key")
+  local supernode = remote_assistance.getSupernode()
 
   -- sudo "n2n " -d $N2N_IFACE -c $N2N_COMMUNITY -k $N2N_KEY -u `id -u` -g `id -g` -a $MY_IP -f -l $N2N_SUPERNODE
-  local cmd = {"sudo edge -d ", N2N_INTERFACE_NAME, " -c ", community, " -k ", key, " -u `id -u` -g `id -g` -a ", ASSISTANT_IP, " -f -l ", SUPERNODE_ADDRESS}
+  local cmd = {"sudo edge -d ", N2N_INTERFACE_NAME, " -c ", community, " -k ", key, " -u `id -u` -g `id -g` -a ", ASSISTANT_IP, " -f -l ", supernode}
   return table.concat(cmd)
 end
 

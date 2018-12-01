@@ -135,18 +135,8 @@ if assist_enabled then
 end
 
 print[[
-        <tr class="hidden">
-          <th></th>
-          <td><input id="assistance_community" class="form-control" data-ays-ignore="true" name="assistance_community" value="]] print(ntop.getPref("ntopng.prefs.remote_assistance.community")) print[[" readonly /><br>
-          <small></small>
-          </td>
-        </tr>
-        <tr class="hidden">
-          <th></th>
-          <td><input id="assistance_key" class="form-control" data-ays-ignore="true" name="assistance_key" value="]] print(ntop.getPref("ntopng.prefs.remote_assistance.key")) print[[" readonly /><br>
-          <small></small>
-          </td>
-        </tr>
+        <input type="hidden" id="assistance_community" class="form-control" data-ays-ignore="true" name="assistance_community" value="]] print(ntop.getPref("ntopng.prefs.remote_assistance.community")) print[[" readonly />
+        <input type="hidden" id="assistance_key" class="form-control" data-ays-ignore="true" name="assistance_key" value="]] print(ntop.getPref("ntopng.prefs.remote_assistance.key")) print[[" readonly />
 
         <tr>
           <th>]] print(i18n("remote_assistance.admin_access")) print[[</th>
@@ -174,7 +164,6 @@ end
 print(i18n("notes"))
 print[[
   <ul>
-      <li>]] print(i18n("remote_assistance.note_sensitive", {product=info.product})) print[[</li>
       <li>]] print(i18n("remote_assistance.remember_disable")) print[[</li>
       <li>]] print(i18n("remote_assistance.will_create_virtual_network") .. " " .. i18n("remote_assistance.ask_admin")) print[[</li>]]
    print[[
@@ -233,6 +222,7 @@ else -- tab == "status"
   print("<table class=\"table table-bordered table-striped\">\n")
   print("<tr><th width='15%' nowrap>"..i18n("interface").."</th><td>".. remote_assistance.getInterfaceName() .."</td></tr>\n")
   print("<tr><th width='15%' nowrap>"..i18n("ip_address").."</th><td>".. remote_assistance.getIpAddress() .."</td></tr>\n")
+  print("<tr><th width='15%' nowrap>"..i18n("prefs.n2n_supernode_title").."</th><td>".. remote_assistance.getSupernode() .." <a href=\"".. ntop.getHttpPrefix() .."/lua/admin/prefs.lua?tab=remote_assistance\"><i class=\"fa fa-cog fa-lg\"></i></a></td></tr>\n")
   print("<tr><th nowrap>"..i18n("status").."</th><td>") print(noHtml(remote_assistance.statusLabel()) .. ". ")
   print[[<form style="display:inline" id="restart-service-form" method="post">
     <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[" />

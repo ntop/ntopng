@@ -1326,6 +1326,7 @@ local known_parameters = {
    ["allow_admin_access"]      = validateBool,
    ["accept_tos"]              = validateBool,
    ["no_timeout"]              = validateBool,
+   ["supernode"]               = validateSingleWord,
 
    -- json POST DATA
    ["payload"]                 = { jsonCleanup, validateJSON },
