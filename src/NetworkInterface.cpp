@@ -2524,7 +2524,7 @@ void NetworkInterface::pollQueuedeBPFEvents() {
 
       sport = htons(sport), dport = htons(dport);
 
-      if(proto == IPPROTO_TCP) {
+      /* if(proto == IPPROTO_TCP) */ {
 	flow = getFlow(NULL /* srcMac */, NULL /* dstMac */,
 		       0 /* vlan_id */,
 		       0 /* deviceIP */,
