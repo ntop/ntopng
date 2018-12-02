@@ -3648,8 +3648,8 @@ void Flow::setProcessInfo(eBPFevent *event, bool client_process) {
     struct taskInfo *proc, *father;
     ProcessInfo *c = *process_info /* , *s */;
 
-    proc = (event->ip_version == 4)   ? &event->event.v4.proc   : &event->event.v6.proc;
-    father = (event->ip_version == 4) ? &event->event.v4.father : &event->event.v6.father;
+    proc = (event->ip_version == 4)   ? &event->proc   : &event->proc;
+    father = (event->ip_version == 4) ? &event->father : &event->father;
 
     c->pid = proc->tid ? proc->tid : proc->pid,
       c->father_pid = father->tid ? father->tid : father->pid,
