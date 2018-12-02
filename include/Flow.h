@@ -69,7 +69,7 @@ class Flow : public GenericHashEntry {
   u_int32_t vrfId;
   u_int8_t protocol, src2dst_tcp_flags, dst2src_tcp_flags;
   struct ndpi_flow_struct *ndpiFlow;
-  bool detection_completed, protocol_processed, idle_flow,
+  bool detection_completed, protocol_processed,
     cli2srv_direction, twh_over, twh_ok, dissect_next_http_packet, passVerdict,
     check_tor, l7_protocol_guessed, flow_alerted, flow_dropped_counts_increased,
     good_low_flow_detected, good_ssl_hs,
@@ -204,6 +204,7 @@ class Flow : public GenericHashEntry {
   bool isLowGoodput();
   void updatePacketStats(InterarrivalStats *stats, const struct timeval *when);
   void dumpPacketStats(lua_State* vm, bool cli2srv_direction);
+  bool isReadyToPurge();
   inline bool isBlacklistedFlow() {
     return(cli_host && srv_host && (cli_host->isBlacklisted()
 				    || srv_host->isBlacklisted()
@@ -213,10 +214,6 @@ class Flow : public GenericHashEntry {
       return(!cli_host || !srv_host ||
         ((cli_host->getDeviceAllowedProtocolStatus(ndpiDetectedProtocol, true) == device_proto_allowed) &&
          (srv_host->getDeviceAllowedProtocolStatus(ndpiDetectedProtocol, false) == device_proto_allowed)));
-  }
-  inline u_int32_t getCurrentInterArrivalTime(time_t now, bool cli2srv_direction) {
-    return(1000 /* msec */
-	   * (now - (cli2srv_direction ? cli2srvStats.pktTime.lastTime.tv_sec : srv2cliStats.pktTime.lastTime.tv_sec)));
   }
   char* printTCPflags(u_int8_t flags, char *buf, u_int buf_len);
   inline bool isProto(u_int16_t p ) { return((ndpi_get_lower_proto(ndpiDetectedProtocol) == p) ? true : false); }
@@ -387,8 +384,7 @@ class Flow : public GenericHashEntry {
   u_int64_t get_current_packets_cli2srv();
   u_int64_t get_current_packets_srv2cli();
   void handle_process(ProcessInfo *pinfo, bool client_process);
-  inline bool idle() { return(idle_flow); }
-  bool isReadyToPurge();
+  inline bool idle() { return(is_ready_to_be_purged()); }
   inline bool is_l7_protocol_guessed() { return(l7_protocol_guessed); };
   char* print(char *buf, u_int buf_len);
   void update_hosts_stats(struct timeval *tv, bool dump_alert);
@@ -402,13 +398,11 @@ class Flow : public GenericHashEntry {
 	     u_int16_t _cli_port, u_int16_t _srv_port,
 	     u_int16_t _vlanId, u_int8_t _protocol,
 	     bool *src2srv_direction);
+  bool clientLessThanServer() const;
   void sumStats(nDPIStats *stats);
   void guessProtocol();
   bool dumpFlow(bool dump_alert);
   bool match(AddressTree *ptree);
-  inline Host* get_real_client() { return(cli2srv_direction ? cli_host : srv_host); }
-  inline Host* get_real_server() { return(cli2srv_direction ? srv_host : cli_host); }
-  inline bool isSuspiciousFlowThpt();
   void dissectSSL(u_int8_t *payload, u_int16_t payload_len, const struct bpf_timeval *when, bool cli2srv);
   void dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_len);
   void dissectSSDP(bool src2dst_direction, char *payload, u_int16_t payload_len);
@@ -446,9 +440,6 @@ class Flow : public GenericHashEntry {
   /* http://bradhedlund.com/2008/12/19/how-to-calculate-tcp-throughput-for-long-distance-links/ */
   inline float getCli2SrvMaxThpt() { return(rttSec ? ((float)(cli2srv_window*8)/rttSec) : 0); }
   inline float getSrv2CliMaxThpt() { return(rttSec ? ((float)(srv2cli_window*8)/rttSec) : 0); }
-
-  inline u_int32_t getCli2SrvCurrentInterArrivalTime(time_t now) { return(getCurrentInterArrivalTime(now, true));  }
-  inline u_int32_t getSrv2CliCurrentInterArrivalTime(time_t now) { return(getCurrentInterArrivalTime(now, false)); }
 
   inline u_int32_t getCli2SrvMinInterArrivalTime()  { return(cli2srvStats.pktTime.min_ms); }
   inline u_int32_t getCli2SrvMaxInterArrivalTime()  { return(cli2srvStats.pktTime.max_ms); }

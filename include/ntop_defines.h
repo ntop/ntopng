@@ -158,7 +158,7 @@
 #define HOST_FAMILY_ID            ((u_int16_t)-1)
 #define FLOW_PURGE_FREQUENCY      2 /* sec */
 #define HOST_PURGE_FREQUENCY      2 /* sec */
-#define MAX_TCP_FLOW_IDLE        15 /* sec - how long to wait before idling a TCP flow with FIN/RST set */
+#define MAX_TCP_FLOW_IDLE        15 /* sec - how long to wait before idling a TCP flow with FIN/RST set or with incomplete TWH */
 #define MAX_FLOW_IDLE            60 /* sec */
 #define MAX_LOCAL_HOST_IDLE     300 /* sec */
 #define MAX_REMOTE_HOST_IDLE     60 /* sec */
@@ -587,14 +587,6 @@
 
 #define CONST_ANY_ADDRESS              "" /* Good for v4 and v6 */
 #define CONST_LOOPBACK_ADDRESS         "127.0.0.1"
-#define CONST_MAX_IDLE_INTERARRIVAL_TIME  60000 /* 1 min (msec) */
-#define CONST_MAX_IDLE_INTERARRIVAL_TIME_NO_TWH         3000  /* 3 sec (msec) */
-#define CONST_MAX_IDLE_INTERARRIVAL_TIME_NO_TWH_SYN_ACK 6  /* 6 sec */
-#define CONST_MAX_IDLE_NO_DATA_AFTER_ACK  10 /* 10 sec */
-#define CONST_SSL_MAX_DELTA            CONST_MAX_IDLE_INTERARRIVAL_TIME_NO_TWH
-#define CONST_MAX_IDLE_PKT_TIME        CONST_MAX_IDLE_INTERARRIVAL_TIME_NO_TWH
-#define CONST_MAX_IDLE_FLOW_TIME       10*CONST_MAX_IDLE_INTERARRIVAL_TIME
-#define CONST_MAX_SSL_IDLE_TIME        46000 /* 46 sec */
 #define CONST_EPP_MAX_CMD_NUM          34
 #define CONST_DEFAULT_MAX_PACKET_SIZE  1522
 

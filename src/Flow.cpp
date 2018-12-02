@@ -61,7 +61,7 @@ Flow::Flow(NetworkInterface *_iface,
   pkts_thpt = 0, pkts_thpt_cli2srv = 0, pkts_thpt_srv2cli = 0;
   cli2srv_last_bytes = 0, prev_cli2srv_last_bytes = 0, srv2cli_last_bytes = 0, prev_srv2cli_last_bytes = 0;
   cli2srv_last_packets = 0, prev_cli2srv_last_packets = 0, srv2cli_last_packets = 0, prev_srv2cli_last_packets = 0;
-  top_bytes_thpt = 0, top_goodput_bytes_thpt = 0, applLatencyMsec = 0, idle_flow = false;
+  top_bytes_thpt = 0, top_goodput_bytes_thpt = 0, applLatencyMsec = 0;
 
   last_db_dump.cli2srv_packets = 0, last_db_dump.srv2cli_packets = 0,
     last_db_dump.cli2srv_bytes = 0, last_db_dump.srv2cli_bytes = 0,
@@ -839,12 +839,12 @@ bool Flow::dumpFlow(bool dump_alert) {
       return(rc);
     }
 
-    if(!idle_flow) {
+    if(!idle()) {
       if((now - get_first_seen()) < CONST_DB_DUMP_FREQUENCY
 	 || (now - last_db_dump.last_dump) < CONST_DB_DUMP_FREQUENCY)
 	return(rc);
     } else {
-      /* idle flows always dumped */
+      /* flows idle, i.e., ready to be purged, are always dumped */
     }
 
 #ifdef NTOPNG_PRO
@@ -939,7 +939,7 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
     setDetectedProtocol(proto_id, true);
   }
 
-  if((idle_flow |= isReadyToPurge())) {
+  if(isReadyToPurge()) {
     /* Marked as ready to be purged, will be purged by NetworkInterface::purgeIdleFlows */
     set_to_purge();
   }
@@ -1225,7 +1225,7 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
 	if(top_bytes_thpt < bytes_thpt) top_bytes_thpt = bytes_thpt;
 	if(top_goodput_bytes_thpt < goodput_bytes_thpt) top_goodput_bytes_thpt = goodput_bytes_thpt;
 
-	if(!idle_flow /* set_to_purge() deals with low goodput flows when they become idle */
+	if(!idle() /* set_to_purge() deals with low goodput flows when they become idle */
 	   && iface->getIfType() != interface_type_ZMQ
 	   && protocol == IPPROTO_TCP
 	   && get_goodput_bytes() > 0
@@ -1400,6 +1400,19 @@ bool Flow::equal(IpAddress *_cli_ip, IpAddress *_srv_ip, u_int16_t _cli_port,
     return(true);
   } else
     return(false);
+}
+
+/* *************************************** */
+
+bool Flow::clientLessThanServer() const {
+  if(cli_host && srv_host)
+    return cli_host->get_ip()->compare(srv_host->get_ip()) < 0;
+  else if(cli_host && !cli_host->get_ip()->isEmpty())
+    return false; /* Assumes server is zero and cli_host > 0 */
+  else if(srv_host && !srv_host->get_ip()->isEmpty())
+    return true; /*  Assumes server is >0 and cli_host is zero */
+  else
+    return false;
 }
 
 /* *************************************** */
@@ -1800,7 +1813,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     }
   }
 
-  lua_push_bool_table_entry(vm, "flow.idle", idle_flow);
+  lua_push_bool_table_entry(vm, "flow.idle", idle());
   lua_push_uint64_table_entry(vm, "flow.status", getFlowStatus());
 
   // this is used to dynamicall update entries in the GUI
@@ -1835,33 +1848,35 @@ u_int32_t Flow::key(Host *_cli, u_int16_t _cli_port,
 /* *************************************** */
 
 bool Flow::isReadyToPurge() {
-  if(idle_flow) return(idle_flow);
+  if(idle()) return(true);
 
 #ifdef HAVE_NEDGE
-  if(iface->getIfType() == interface_type_NETFILTER) {
-    if(isNetfilterIdleFlow())
-      return(idle_flow = true);
-  } else
+  if(iface->getIfType() == interface_type_NETFILTER)
+    return(isNetfilterIdleFlow());
 #endif
-    {
-      if(!iface->is_purge_idle_interface())
-	return(false);
 
-      if(protocol == IPPROTO_TCP) {
-	u_int8_t tcp_flags = src2dst_tcp_flags | dst2src_tcp_flags;
+  if(!iface->is_purge_idle_interface())
+    return(false);
 
-	/* If this flow is idle for at least MAX_TCP_FLOW_IDLE */
-	if(((tcp_flags & TH_FIN) || (tcp_flags & TH_RST))
-	   /* Flows won't expire if less than DONT_NOT_EXPIRE_BEFORE_SEC old */
-	   && iface->getTimeLastPktRcvd() > doNotExpireBefore
-	   && isIdle(MAX_TCP_FLOW_IDLE)) {
-	  /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "[TCP] Early flow expire"); */
-	  return(idle_flow = true);
-	}
-      }
+  if(protocol == IPPROTO_TCP) {
+    u_int8_t tcp_flags = src2dst_tcp_flags | dst2src_tcp_flags;
+
+    /* The flow is considered idle after a MAX_TCP_FLOW_IDLE
+       when RST/FIN are set or when the TWH is not completed.
+       This prevents finalized/reset flows, or flows with an imcomplete
+       TWH from staying in memory for too long. */
+    if((tcp_flags & TH_FIN
+	|| tcp_flags & TH_RST
+	|| !isThreeWayHandshakeOK())
+       /* Flows won't expire if less than DONT_NOT_EXPIRE_BEFORE_SEC old */
+       && iface->getTimeLastPktRcvd() > doNotExpireBefore
+       && isIdle(MAX_TCP_FLOW_IDLE)) {
+      /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "[TCP] Early flow expire"); */
+      return(true);
     }
+  }
 
-  return(idle_flow |= isIdle(ntop->getPrefs()->get_flow_max_idle()));
+  return(isIdle(ntop->getPrefs()->get_flow_max_idle()));
 }
 
 /* *************************************** */
@@ -2157,7 +2172,7 @@ json_object* Flow::flow2json() {
 #ifdef HAVE_NEDGE
 
 bool Flow::isNetfilterIdleFlow() {
-  if(idle_flow) return(idle_flow);
+  if(idle()) return(true);
 
   /*
      Note that on netfilter interfaces we never observe the
@@ -2179,7 +2194,7 @@ bool Flow::isNetfilterIdleFlow() {
       by conntrack
     */
     if(iface->getTimeLastPktRcvd() > (last_conntrack_update+(3*MIN_CONNTRACK_UPDATE)))
-      return(idle_flow = true);
+      return(true);
   }
 
   return(false);
@@ -2196,70 +2211,6 @@ void Flow::housekeep() {
     }
   }
 #endif
-}
-
-/* *************************************** */
-
-/* https://blogs.akamai.com/2013/09/slow-dos-on-the-rise.html */
-bool Flow::isIdleFlow() {
-  if(idle_flow) return(idle_flow);
-
-#ifdef HAVE_NEDGE
-  if(iface->getIfType() == interface_type_NETFILTER)
-    return(isNetfilterIdleFlow());
-#endif
-
-  if((iface->getIfType() != interface_type_ZMQ) && (iface->is_purge_idle_interface())) {
-    u_int32_t threshold_ms = CONST_MAX_IDLE_INTERARRIVAL_TIME;
-    time_t now = iface->getTimeLastPktRcvd();
-    
-    if(protocol == IPPROTO_TCP) {
-      if(!twh_over) {
-	if((synAckTime.tv_sec > 0) /* We have seen SYN|ACK but 3WH is NOT over */
-	   && ((now - synAckTime.tv_sec) > CONST_MAX_IDLE_INTERARRIVAL_TIME_NO_TWH_SYN_ACK))
-	  return(idle_flow = true); /* The client has not completed the 3WH within the expected time */
-
-	if(synTime.tv_sec > 0) {
-	  /* We have seen the beginning of the flow */
-	  threshold_ms = CONST_MAX_IDLE_INTERARRIVAL_TIME_NO_TWH;
-	  /* We are checking if the 3WH process takes too long and thus if this is a possible attack */
-	}
-      } else {
-	/* The 3WH has been completed */
-#ifdef STRICT_TIMEOUT_ENFORCEMENT
-1	if((applLatencyMsec == 0) /* The client has not yet completed the request or
-				     the connection is idle after its setup */
-	   && (ackTime.tv_sec > 0)
-	   && ((now - ackTime.tv_sec) > CONST_MAX_IDLE_NO_DATA_AFTER_ACK))
-	  return(idle_flow = true);  /* Connection established and no data exchanged yet */ 
-	else if((getCli2SrvCurrentInterArrivalTime(now) > CONST_MAX_IDLE_INTERARRIVAL_TIME)
-		|| ((srv2cli_packets > 0) && (getSrv2CliCurrentInterArrivalTime(now) > CONST_MAX_IDLE_INTERARRIVAL_TIME)))
-	  return(idle_flow = true);
-	else
-#endif
-	  {
-	  switch(ndpi_get_lower_proto(ndpiDetectedProtocol)) {
-	  case NDPI_PROTOCOL_SSL:
-	    if((protos.ssl.hs_delta_time > CONST_SSL_MAX_DELTA)
-	       || (protos.ssl.delta_firstData > CONST_SSL_MAX_DELTA)
-	       || (protos.ssl.deltaTime_data > CONST_MAX_SSL_IDLE_TIME)
-	       || (getCli2SrvCurrentInterArrivalTime(now) > CONST_MAX_SSL_IDLE_TIME)
-	       || ((srv2cli_packets > 0) && getSrv2CliCurrentInterArrivalTime(now) > CONST_MAX_SSL_IDLE_TIME)) {
-	      return(idle_flow = true);
-	    }
-            break;
-	  }
-	}
-      }
-    }
-
-    /* Check if there is no traffic for a long time on this flow */
-    if((getCli2SrvCurrentInterArrivalTime(now) > threshold_ms)
-       || ((srv2cli_packets > 0) && (getSrv2CliCurrentInterArrivalTime(now) > threshold_ms)))
-      return(idle_flow = true);
-  }
-
-  return(false); /* Not idle */
 }
 
 /* *************************************** */
@@ -3326,27 +3277,6 @@ void Flow::recheckQuota(const struct tm *now) {
 
 /* *************************************** */
 
-bool Flow::isSuspiciousFlowThpt() {
-#ifndef HAVE_NEDGE
-  if(protocol == IPPROTO_TCP) {
-    float compareTime = Utils::timeval2ms(&clientNwLatency)*1.5;
-
-    if(cli2srv_direction && isLowGoodput()) {
-      if((cli2srvStats.pktTime.min_ms > compareTime)
-	 || ((ndpi_get_lower_proto(ndpiDetectedProtocol) == NDPI_PROTOCOL_HTTP)
-	     && (cli2srvStats.pktTime.min_ms > CONST_MAX_IDLE_PKT_TIME))
-	 || (cli2srvStats.pktTime.min_ms > CONST_MAX_IDLE_FLOW_TIME)
-	 )
-	return(true);
-    }
-  }
-#endif // HAVE_NEDGE
-
-  return(false);
-}
-
-/* *************************************** */
-
 bool Flow::isLowGoodput() {
 #ifdef HAVE_NEDGE
   return(false);
@@ -3485,7 +3415,7 @@ FlowStatus Flow::getFlowStatus() {
     /* ZMQ flows */
   } else {
     /* Packet flows */
-    bool isIdle = isIdleFlow();
+    bool isIdle = idle();
 
 #ifndef HAVE_NEDGE
     bool lowGoodput = isLowGoodput();
