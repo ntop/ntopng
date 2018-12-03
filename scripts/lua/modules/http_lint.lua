@@ -7,6 +7,35 @@ local http_lint = {}
 local json = require "dkjson"
 local alert_consts = require "alert_consts"
 
+--[[
+local function tracker(f)
+   return function(...)
+      local f_name = debug.getinfo(1, "n").name
+
+      local args_print = {}
+      for k, v in pairs({...}) do
+	 args_print[k] = tostring(v)
+      end
+
+      local fmt = string.format("%s(%s)\n", f_name, table.concat(args_print or {}, " "))
+      io.write(fmt)
+
+      local result = {f(...)}
+
+      return table.unpack(result)
+   end
+end
+
+local fns = {"resetUserPassword"}
+local mt = getmetatable(ntop).__index
+
+for _, fn in pairs(fns) do
+   if mt[fn] and type(mt[fn]) == "function" then
+      mt[fn] = tracker(mt[fn])
+   end
+end
+--]]
+
 -- #################################################################
 
 -- UTILITY FUNCTIONS
