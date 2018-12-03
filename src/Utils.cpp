@@ -3564,6 +3564,9 @@ bool Utils::parseAuthenticatorJson(HTTPAuthenticator *auth, char *content) {
     if(json_object_object_get_ex(o, "admin", &w))
       auth->admin  = (bool)json_object_get_boolean(w);
 
+    if(json_object_object_get_ex(o, "allowedNets", &w))
+      auth->allowedNets  = strdup((char *)json_object_get_string(w));
+
     json_object_put(o);
     return true;
   }
