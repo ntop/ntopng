@@ -19,4 +19,4 @@ end
 -- TODO: make 30 configurable
 harvestJSONTopTalkers(30)
 
-lists_utils.reloadListsNow()
+lists_utils.reloadLists()
