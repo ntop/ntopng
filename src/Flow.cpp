@@ -501,22 +501,22 @@ void Flow::processDetectedProtocol() {
 void Flow::guessProtocol() {
   detection_completed = true; /* We give up */
 
-#if 0
-  /* This code should no longer be necessary as the nDPI API changed */
-  if((protocol == IPPROTO_TCP) || (protocol == IPPROTO_UDP)) {
-    if(cli_host && srv_host) {
-      /* We can guess the protocol */
-      IpAddress *cli_ip = cli_host->get_ip(), *srv_ip = srv_host->get_ip();
-      ndpiDetectedProtocol = ndpi_guess_undetected_protocol(iface->get_ndpi_struct(), NULL, protocol,
-							    ntohl(cli_ip ? cli_ip->get_ipv4() : 0),
-							    ntohs(cli_port),
-							    ntohl(srv_ip ? srv_ip->get_ipv4() : 0),
-							    ntohs(srv_port));
+  if(iface->get_type() == CONST_INTERFACE_TYPE_ZMQ) {
+    /* This code should no longer be necessary as the nDPI API changed */
+    if((protocol == IPPROTO_TCP) || (protocol == IPPROTO_UDP)) {
+      if(cli_host && srv_host) {
+	/* We can guess the protocol */
+	IpAddress *cli_ip = cli_host->get_ip(), *srv_ip = srv_host->get_ip();
+	ndpiDetectedProtocol = ndpi_guess_undetected_protocol(iface->get_ndpi_struct(), NULL, protocol,
+							      ntohl(cli_ip ? cli_ip->get_ipv4() : 0),
+							      ntohs(cli_port),
+							      ntohl(srv_ip ? srv_ip->get_ipv4() : 0),
+							      ntohs(srv_port));
+      }
+      
+      l7_protocol_guessed = true;
     }
-
-    l7_protocol_guessed = true;
   }
-#endif
 }
 
 /* *************************************** */
