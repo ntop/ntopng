@@ -501,7 +501,7 @@ void Flow::processDetectedProtocol() {
 void Flow::guessProtocol() {
   detection_completed = true; /* We give up */
 
-  if(iface->get_type() == CONST_INTERFACE_TYPE_ZMQ) {
+  if(iface->getIfType() == interface_type_ZMQ) { /* ZMQ interface */
     /* This code should no longer be necessary as the nDPI API changed */
     if((protocol == IPPROTO_TCP) || (protocol == IPPROTO_UDP)) {
       if(cli_host && srv_host) {
