@@ -876,7 +876,15 @@ yAxis.render();
 $("#chart").click(function() {
   if(hover.selected_epoch)
     window.location.href = ']]
-print(baseurl .. '&ts_schema=' .. schema .. '&zoom=' .. nextZoomLevel .. '&epoch=')
+print(baseurl .. '&ts_schema=' .. schema .. '&zoom=' .. nextZoomLevel)
+
+if tags.protocol ~= nil then
+   print("&protocol=" .. tags.protocol)
+elseif tags.category ~= nil then
+   print("&category=" .. tags.category)
+end
+
+print('&epoch=')
 print[['+hover.selected_epoch;
 });
 
