@@ -10,6 +10,9 @@ If you want to grant a user as an administrator, webservice must
 reply a JSON like:
 { "admin": true }
 
+You can set allowed network via allowedNets field:
+{ "allowedNets": "10.0.0.0/24,192.168.0.0/16" }
+
 HTTP authentication parameters are discussed below.
 
 * HTTP Url
