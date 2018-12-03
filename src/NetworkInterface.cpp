@@ -2505,57 +2505,58 @@ void NetworkInterface::pollQueuedeBPFEvents() {
     if(dequeueeBPFEvent(&event)) {
       Flow *flow = NULL;
       IpAddress src, dst;
-      bool src2dst_direction, new_flow, swap_peers = false;
+      bool src2dst_direction, new_flow;
       u_int16_t proto, sport, dport;
 
-      // ntop->getTrace()->traceEvent(TRACE_ERROR, "%s(FOUND)", __FUNCTION__);
-
+#ifdef EBPF_DEBUG
+      if(event->ip_version == 4) {
+	char buf1[32], buf2[32];
+	
+	ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				     "[%s][IPv4/%s][%s][pid/tid: %u/%u (%s), uid/gid: %u/%u][father pid/tid: %u/%u (%s), uid/gid: %u/%u][addr: %s:%u <-> %s:%u][latency: %.2f msec]\n",
+				     event->ifname, (event->event.v4.net.proto == IPPROTO_TCP) ? "TCP" : "UDP", event->cgroup_id,
+				     event->proc.pid, event->proc.tid, event->proc.task,
+				     event->proc.uid, event->proc.gid,
+				     event->father.pid, event->father.tid,
+				     event->father.task, event->father.uid, event->father.gid,
+				     Utils::intoaV4(htonl(event->event.v4.saddr), buf1, sizeof(buf1)),
+				     event->event.v4.net.sport,
+				     Utils::intoaV4(htonl(event->event.v4.daddr), buf2, sizeof(buf2)),
+				     event->event.v4.net.dport,
+				     ((float)event->event.v4.net.latency_usec)/(float)1000);
+      }
+#endif
+      
       if(event->ip_version == 4) {
 	src.set(event->event.v4.saddr), dst.set(event->event.v4.daddr),
 	  sport = event->event.v4.net.sport, dport = event->event.v4.net.dport,
-	  proto = event->event.v4.net.is_tcp ? IPPROTO_TCP : IPPROTO_UDP;
-	if(event->event.v4.net.client_srv == 0 /* accept */) swap_peers = true;
+	  proto = event->event.v4.net.proto;
       } else {
 	src.set((struct ndpi_in6_addr*)&event->event.v6.saddr),
 	  dst.set((struct ndpi_in6_addr*)&event->event.v6.daddr),
 	  sport = event->event.v6.net.sport, dport = event->event.v6.net.dport,
-	  proto = event->event.v6.net.is_tcp ? IPPROTO_TCP : IPPROTO_UDP;
-	if(event->event.v6.net.client_srv == 0 /* accept */) swap_peers = true;
+	  proto = event->event.v6.net.proto;
       }
 
       sport = htons(sport), dport = htons(dport);
 
-      if(proto == IPPROTO_TCP) {
-	if(swap_peers)
-	  /* Swap peers */
-	  flow = getFlow(NULL /* srcMac */, NULL /* dstMac */,
-			 0 /* vlan_id */,
-			 0 /* deviceIP */,
-			 0 /* inIndex */, 1 /* outIndex */,
-			 &dst, &src,
-			 dport, sport,
-			 proto,
-			 &src2dst_direction,
-			 0, 0, 0, &new_flow,
-			 true);
-	else
-	  flow = getFlow(NULL /* srcMac */, NULL /* dstMac */,
-			 0 /* vlan_id */,
-			 0 /* deviceIP */,
-			 0 /* inIndex */, 1 /* outIndex */,
-			 &src, &dst,
-			 sport, dport,
-			 proto,
-			 &src2dst_direction,
-			 0, 0, 0, &new_flow,
-			 true);
-      }
+      flow = getFlow(NULL /* srcMac */, NULL /* dstMac */,
+		     0 /* vlan_id */,
+		     0 /* deviceIP */,
+		     0 /* inIndex */, 1 /* outIndex */,
+		     &src, &dst,
+		     sport, dport,
+		     proto,
+		     &src2dst_direction,
+		     0, 0, 0, &new_flow,
+		     true);
 
-      if(flow) flow->setProcessInfo(event, !swap_peers);
+      
+      if(flow) flow->setProcessInfo(event, false);
 
 #ifdef EBPF_DEBUG
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[swap peers: %u][new flow: %u][src2dst_direction: %u]",
-				   swap_peers ? 1 : 0, new_flow ? 1 : 0, src2dst_direction ? 1 : 0);
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new flow: %u][src2dst_direction: %u]",
+				   new_flow ? 1 : 0, src2dst_direction ? 1 : 0);
 
       if(event->ip_version == 4)
 	IPV4Handler(flow, &event->event.v4);
