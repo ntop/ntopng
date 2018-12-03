@@ -1268,10 +1268,18 @@ bool Ntop::checkUserPassword(const char * const user, const char * const passwor
         }
 
         ntop->getRedis()->set(key, auth.admin ?  (char*)CONST_USER_GROUP_ADMIN : (char*)CONST_USER_GROUP_UNPRIVILEGED, 0);
+        if(auth.allowedNets != NULL) {
+          if(!Ntop::changeAllowedNets((char*)user, auth.allowedNets)) {
+            ntop->getTrace()->traceEvent(TRACE_ERROR, "HTTP: unable to set allowed nets for user %s", user);
+            goto http_auth_out;
+          }
+        }
+
         http_ret = true;
       }
 
     http_auth_out:
+      if(auth.allowedNets) free(auth.allowedNets);
       if(httpUrl) free(httpUrl);
       if(postData) free(postData);
       if(returnData) free(returnData);
