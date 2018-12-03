@@ -74,7 +74,19 @@ interface.select(ifname)
 
 local to_skip = (currentPage-1) * perPage
 
-if(sortOrder == "desc") then sOrder = rev_insensitive else sOrder = asc_insensitive end
+if(sortOrder == "desc") then
+  if sortColumn == "column_ip" then
+    sOrder = ip_address_rev
+  else
+    sOrder = rev_insensitive
+  end
+else
+  if sortColumn == "column_ip" then
+    sOrder = ip_address_asc
+  else
+    sOrder = asc_insensitive
+  end
+end
 
 local res = {data={}}
 
@@ -87,6 +99,7 @@ if(enable_doa_ox) then
 end
 
 local sort_2_field = {
+  column_ip = "ip",
   column_name = "name",
   column_manufacturer = "manufacturer",
   column_os = "os",

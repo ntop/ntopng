@@ -1379,6 +1379,22 @@ static int ntop_list_interfaces(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_ip_cmp(lua_State* vm) {
+  IpAddress a, b;
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+
+  a.set((char*)lua_tostring(vm, 1));
+  b.set((char*)lua_tostring(vm, 2));
+
+  lua_pushinteger(vm, a.compare(&b));
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 #ifdef HAVE_NEDGE
 static int ntop_set_routing_mode(lua_State* vm) {
   bool routing_enabled;
@@ -8170,6 +8186,7 @@ static const luaL_Reg ntop_reg[] = {
   { "getHostInformation",   ntop_get_host_information },
   { "isShutdown",           ntop_is_shutdown          },
   { "listInterfaces",       ntop_list_interfaces      },
+  { "ipCmp",                ntop_ip_cmp               },
 
   /* Device Protocols */
   { "reloadDeviceProtocols", ntop_reload_device_protocols },

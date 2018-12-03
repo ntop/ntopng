@@ -3398,6 +3398,17 @@ end
 
 -- ###########################################
 
+-- Compares IPv4 / IPv6 addresses
+function ip_address_asc(a, b)
+   return(ntop.ipCmp(a, b) < 0)
+end
+
+function ip_address_rev(a, b)
+   return(ntop.ipCmp(a, b) > 0)
+end
+
+-- ###########################################
+
 --
 -- IMPORTANT
 -- Leave it at the end so it can use the functions

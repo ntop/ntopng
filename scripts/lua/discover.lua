@@ -199,7 +199,7 @@ elseif discovered["status"]["code"] == "OK" then -- everything is ok
          columns: [{
             title: "]] print(i18n("ip_address")) print[[",
             field: "column_ip",
-            //sortable: "true", /* cannot sort ip right now */
+            sortable: "true",
          }, {
             title: "]] print(i18n("name")) print[[",
             field: "column_name",
