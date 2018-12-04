@@ -12,6 +12,7 @@ local json = require("dkjson")
 local host_pools_utils = require("host_pools_utils")
 local recovery_utils = require "recovery_utils"
 local alert_consts = require "alert_consts"
+local format_utils = require "format_utils"
 
 package.path = dirs.installdir .. "/scripts/lua/modules/alert_endpoints/?.lua;" .. package.path
 
@@ -672,36 +673,72 @@ function formatRawUserActivity(record, activity_json)
   local decoded = json.decode(activity_json)
   local user = record.alert_entity_val
 
-  -- tprint(decoded)
-
   if decoded.scope ~= nil then
+
     if decoded.scope == 'login' and decoded.status ~= nil then
+
       if decoded.status == 'authorized' then
         return i18n('user_activity.login_successful', {user=user})
       else
         return i18n('user_activity.login_not_authorized', {user=user})
       end
+
     elseif decoded.scope == 'function' and decoded.name ~= nil then
-      if decoded.name == 'enableService' then
+
+      if decoded.name == 'addUser' and decoded.params[1] ~= nil then
+        local add_user = decoded.params[1]
+        return  i18n('user_activity.user_added', {user=user, add_user=add_user})
+
+      elseif decoded.name == 'deleteUser' and decoded.params[1] ~= nil then
+        local del_user = decoded.params[1]
+        return  i18n('user_activity.user_deleted', {user=user, del_user=del_user})
+
+      elseif decoded.name == 'disableService' and decoded.params[1] ~= nil then
         local service_name = decoded.params[1]
-        if service_name == 'n2disk' then
-          local service_instance = decoded.params[2]
-          return i18n('user_activity.recording_enabled', {user=user, ifname=service_instance})
-        elseif service_name == 'n2n' then
-          return i18n('user_activity.remote_assistance_enabled', {user=user})
-        end
-      elseif decoded.name == 'disableService' then
-        local service_name = decoded.params[1]
-        if service_name == 'n2disk' then
+        if service_name == 'n2disk' and decoded.params[2] ~= nil then
           local service_instance = decoded.params[2]
           return i18n('user_activity.recording_disabled', {user=user, ifname=service_instance})
         elseif service_name == 'n2n' then
           return i18n('user_activity.remote_assistance_disabled', {user=user})
         end
+
+      elseif decoded.name == 'dumpBinaryFile' and decoded.params[1] ~= nil then
+        local file_name = decoded.params[1]
+        return  i18n('user_activity.file_downloaded', {user=user, file=file_name})
+
+      elseif decoded.name == 'enableService' and decoded.params[1] ~= nil then
+        local service_name = decoded.params[1]
+        if service_name == 'n2disk' and decoded.params[2] ~= nil then
+          local service_instance = decoded.params[2]
+          return i18n('user_activity.recording_enabled', {user=user, ifname=service_instance})
+        elseif service_name == 'n2n' then
+          return i18n('user_activity.remote_assistance_enabled', {user=user})
+        end
+
+      elseif decoded.name == 'resetUserPassword' and decoded.params[2] ~= nil then
+        local pwd_user = decoded.params[2]
+        return  i18n('user_activity.password_changed', {user=user, pwd_user=pwd_user}) 
+
+      elseif decoded.name == 'liveCapture' then
+        local filter = decoded.params[3]
+        if not isEmptyString(decoded.params[1]) then
+          local host = decoded.params[1]
+          return i18n('user_activity.live_capture_host', {user=user,host=host,filter=filter})
+        else
+          return i18n('user_activity.live_capture', {user=user,filter=filter})
+        end
+
+      elseif decoded.name == 'runLiveExtraction' and decoded.params[1] ~= nil then
+        local ifname = getInterfaceName(decoded.params[1])
+        local time_from = format_utils.formatEpoch(decoded.params[2])
+        local time_to = format_utils.formatEpoch(decoded.params[3])
+        local filter = decoded.params[4]
+        return i18n('user_activity.live_extraction', {user=user,ifname=ifname,from=time_from,to=time_to,filter=filter})
+
       end
     end
   end
-  return ""
+  return i18n('user_activity.unknown_activity', {user=user})
 end
 
 -- #################################

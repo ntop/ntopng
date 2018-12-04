@@ -18,7 +18,13 @@ function tracker.hook(f, name)
     if f_name ~= nil then
       local args_print = {}
       for k, v in pairs({...}) do
-        args_print[k] = tostring(v)
+        if (f_name == 'addUser'           and k == 3) or
+           (f_name == 'resetUserPassword' and k == 4) then
+          -- hiding password
+          args_print[k] = ''
+        else
+          args_print[k] = tostring(v)
+        end
       end
 
       local jobj = { 
@@ -28,16 +34,16 @@ function tracker.hook(f, name)
       }
 
       local entity = alertEntity("user")
-      local entity_value = _SESSION["user"]
+      local entity_value = ternary(_SESSION["user"] ~= nil, _SESSION["user"], 'system')
       local alert_type = alertType("alert_user_activity")
       local alert_severity = alertSeverity("info")
       local alert_json = json.encode(jobj)
 
-      local old_iface = interface.getStats().id
-      interface.select(tostring(getFirstInterfaceId()))
+      -- tprint(alert_json)
 
-      -- local fmt = string.format("%s(%s)\n", f_name, table.concat(args_print or {}, ", "))
-      -- io.write(fmt)
+      local old_iface = interface.getStats().id
+      local sys_iface = getFirstInterfaceId()
+      interface.select(tostring(sys_iface))
 
       interface.storeAlert(entity, entity_value, alert_type, alert_severity, alert_json)
 
