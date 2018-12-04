@@ -1621,6 +1621,7 @@ void Prefs::lua(lua_State* vm) {
   lua_push_bool_table_entry(vm, "is_flow_device_port_rrd_creation_enabled", enable_flow_device_port_rrd_creation);
 
   lua_push_bool_table_entry(vm, "are_alerts_enabled", !disable_alerts);
+  lua_push_bool_table_entry(vm, "is_users_login_enabled", enable_users_login);
 
   lua_push_uint64_table_entry(vm, "max_num_packets_per_tiny_flow", max_num_packets_per_tiny_flow);
   lua_push_uint64_table_entry(vm, "max_num_bytes_per_tiny_flow",   max_num_bytes_per_tiny_flow);
