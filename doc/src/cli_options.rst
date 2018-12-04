@@ -206,15 +206,15 @@ Some of the most important parameters are briefly discussed here.
 
    .. code:: bash
 
-      nprobe -i eth0 -n none --zmq tcp://*:5556
-      ntopng -i tcp://<nprobe host ip>:5556
+      nprobe -i eth0 -n none --zmq "tcp://*:5556"
+      ntopng -i "tcp://<nprobe host ip>:5556"
 
    It is also possible to operate ntopng in collector mode and nProbe in probe mode (this can be useful for example when nProbe is behind a NAT) as follows (note the trailing c after the collection port)
 
    .. code:: bash
 
-      nprobe -i eth0 -n none --zmq-probe-mode --zmq tcp://*:5556
-      ntopng -i tcp://<nprobe host ip>:5556c
+      nprobe -i eth0 -n none --zmq-probe-mode --zmq "tcp://<ntopng host ip>:5556"
+      ntopng -i "tcp://*:5556c"
 
    ntopng is also able to compute statistics based on pcap traffic files:
    
