@@ -45,14 +45,15 @@ cp $HOME/ntopng/ntopng $RPM_BUILD_ROOT/usr/bin
 cp $HOME/ntopng/ntopng.8 $RPM_BUILD_ROOT/usr/share/man/man8/ 
 cp -Lr $HOME/ntopng/httpdocs $HOME/ntopng/scripts $RPM_BUILD_ROOT/usr/share/ntopng  # L to dereference symlinks
 mv $RPM_BUILD_ROOT/usr/share/ntopng/httpdocs/misc/ntopng-utils-manage-config $RPM_BUILD_ROOT/usr/bin
-# Make sure dat files are not packaged by ntopng as they belong to ntopng-data
-rm -f $RPM_BUILD_ROOT/usr/share/ntopng/httpdocs/geoip/*dat
+# Make sure .mmdb files are not packaged by ntopng as they belong to ntopng-data                                                                 
+rm -f $RPM_BUILD_ROOT/usr/share/ntopng/httpdocs/geoip/*.mmdb
 mv $RPM_BUILD_ROOT/usr/share/ntopng/httpdocs/ssl/ntopng-cert.pem.dummy $RPM_BUILD_ROOT/usr/share/ntopng/httpdocs/ssl/ntopng-cert.pem
 if test -d "$HOME/ntopng/pro"; then
    cd $HOME/ntopng/pro; make; cd -
    mkdir $RPM_BUILD_ROOT/usr/share/ntopng/pro
    cp -r $HOME/ntopng/pro/httpdocs $RPM_BUILD_ROOT/usr/share/ntopng/pro
    cp -r $HOME/ntopng/pro/scripts $RPM_BUILD_ROOT/usr/share/ntopng/pro
+   rm -rf $RPM_BUILD_ROOT/usr/share/ntopng/pro/scripts/lua/nedge
    cd $RPM_BUILD_ROOT/usr/share/ntopng/scripts/lua; ln -s ../../pro/scripts/lua pro
    find $RPM_BUILD_ROOT/usr/share/ntopng/pro -name "*.lua" -type f -exec $HOME/ntopng/pro/utils/snzip -c -i {} -o {}r \;
    find $RPM_BUILD_ROOT/usr/share/ntopng/pro -name "*.lua" -type f -exec /bin/rm  {} ';'
