@@ -45,6 +45,7 @@ alert_consts.alert_type_keys = {
    { "<i class='fa fa-angle-double-down'></i> " .. i18n("alerts_dashboard.nfq_flushed"),           22, "nfq_flushed"                },
    { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.slow_stats_update"),           23, "slow_stats_update"          },
    { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.suspicious_device_protocol"),  24, "alert_device_protocol_not_allowed" },
+   { "<i class='fa fa-user'></i> " .. i18n("alerts_dashboard.user_activity"),                      25, "alert_user_activity"        },
 }
 
 -- Keep in sync with ntop_typedefs.h:AlertEntity
@@ -57,6 +58,7 @@ alert_consts.alert_entity_keys = {
    { "Device",          5, "mac"           },
    { "Host Pool",       6, "host_pool"     },
    { "Process",         7, "process"       },
+   { "User",            8, "user"          },
 }
 
 alert_consts.alert_engine_keys = {

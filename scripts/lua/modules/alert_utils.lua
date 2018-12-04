@@ -668,6 +668,23 @@ end
 
 -- #################################
 
+function formatRawUserActivity(record, activity_json)
+  local decoded = json.decode(activity_json)
+  local user = record.alert_entity_val
+  if decoded.scope ~= nil then
+    if decoded.scope == 'login' then
+      if decoded.status == 'authorized' then
+        return i18n('user_activity.login_successful', {user=user})
+      else
+        return i18n('user_activity.login_not_authorized', {user=user})
+      end
+    end
+  end
+  return ""
+end
+
+-- #################################
+
 local function drawDropdown(status, selection_name, active_entry, entries_table, button_label)
    -- alert_consts.alert_severity_keys and alert_consts.alert_type_keys are defined in lua_utils
    local id_to_label

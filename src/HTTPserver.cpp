@@ -119,6 +119,41 @@ bool HTTPserver::authorized_localhost_user_login(const struct mg_connection *con
 
 /* ****************************************** */
 
+static void traceLogin(const char *user, bool authorized) {
+  NetworkInterface *ntop_interface;
+  AlertsManager *am;
+  const char *alert_json;
+  time_t when = time(NULL);
+  json_object *jobj;
+
+  ntop_interface = ntop->getFirstInterface();
+
+  if (ntop_interface == NULL)
+    return;
+
+  am = ntop_interface->getAlertsManager();
+
+  if (am == NULL)
+    return;
+
+  jobj = json_object_new_object();
+  if (jobj == NULL) return;
+
+  json_object_object_add(jobj, "scope",  json_object_new_string("login"));
+  json_object_object_add(jobj, "status", json_object_new_string(authorized ? "authorized" : "unauthorized"));
+
+  alert_json = json_object_to_json_string(jobj);
+
+  if (alert_json) {
+    am->storeGenericAlert(alert_entity_user, user, alert_user_activity, 
+      authorized ? alert_level_info : alert_level_warning, alert_json, when);
+  }
+
+  json_object_put(jobj);
+}
+
+/* ****************************************** */
+
 static void set_cookie(const struct mg_connection *conn,
                        char *user, char *referer) {
   char key[256], session_id[64], random[64];
@@ -170,6 +205,8 @@ static void set_cookie(const struct mg_connection *conn,
 
   ntop->getRedis()->set(key, user, session_duration);
   ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] Set session sessions.%s", session_id);
+
+  traceLogin(user, true);
 }
 
 /* ****************************************** */
@@ -611,6 +648,7 @@ static void authorize(struct mg_connection *conn,
                       const struct mg_request_info *request_info,
 		      char *username, u_int username_len) {
   char user[32] = { '\0' }, password[32] = { '\0' }, referer[256] = { '\0' };
+  bool pwd_check = true;
 
   if(!strcmp(request_info->request_method, "POST")) {
     char post_data[1024];
@@ -637,9 +675,10 @@ static void authorize(struct mg_connection *conn,
 
   if(isCaptiveConnection(conn)
      || ntop->isCaptivePortalUser(user)
-     || !ntop->checkUserPassword(user, password)) {
+     || !(pwd_check = ntop->checkUserPassword(user, password))) {
     // Authentication failure, redirect to login
     redirect_to_login(conn, request_info, (referer[0] == '\0') ? NULL : referer);
+    if (!pwd_check) traceLogin(user, false);
   } else {
     /* Referer url must begin with '/' */
     if((referer[0] != '/') || (strcmp(referer, AUTHORIZE_URL) == 0)) {

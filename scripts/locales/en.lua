@@ -281,6 +281,7 @@ local lang = {
     ["total_alerts"] = "Total Alerts",
     ["trailing_msg"] = "Time Window",
     ["unresponsive_device"] = "Unresponsive Device",
+    ["user_activity"] = "User Activity",
     ["warning"] = "Warning",
     ["web_mining"] = "Web Mining",
   },
@@ -2939,6 +2940,10 @@ local lang = {
     ["no_pools"] = "An host pool must be created in order to assign unknown devices to.",
     ["select_pool"] = "Please select an host pool from the dropdown below to assign '%{mac}' to:",
     ["unassigned_devices"] = "Unassigned Devices",
+  },
+  ["user_activity"] = {
+    ["login_not_authorized"] = "Login denied for user '%{user}'",
+    ["login_successful"] = "User '%{user}' logged in",
   },
   ["user_info"] = {
     ["missing_user_name_message"] = "Missing user name",
