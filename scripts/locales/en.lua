@@ -2944,6 +2944,10 @@ local lang = {
   ["user_activity"] = {
     ["login_not_authorized"] = "Login denied for user '%{user}'",
     ["login_successful"] = "User '%{user}' logged in",
+    ["recording_disabled"] = "User '%{user}' disabled Traffic Recording on interface '%{ifname}'",
+    ["recording_enabled"] = "User '%{user}' enabled Traffic Recording on interface '%{ifname}'",
+    ["remote_assistance_disabled"] = "User '%{user}' disabled Remote Assistance",
+    ["remote_assistance_enabled"] = "User '%{user}' enabled Remote Assistance",
   },
   ["user_info"] = {
     ["missing_user_name_message"] = "Missing user name",

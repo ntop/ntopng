@@ -671,12 +671,33 @@ end
 function formatRawUserActivity(record, activity_json)
   local decoded = json.decode(activity_json)
   local user = record.alert_entity_val
+
+  -- tprint(decoded)
+
   if decoded.scope ~= nil then
-    if decoded.scope == 'login' then
+    if decoded.scope == 'login' and decoded.status ~= nil then
       if decoded.status == 'authorized' then
         return i18n('user_activity.login_successful', {user=user})
       else
         return i18n('user_activity.login_not_authorized', {user=user})
+      end
+    elseif decoded.scope == 'function' and decoded.name ~= nil then
+      if decoded.name == 'enableService' then
+        local service_name = decoded.params[1]
+        if service_name == 'n2disk' then
+          local service_instance = decoded.params[2]
+          return i18n('user_activity.recording_enabled', {user=user, ifname=service_instance})
+        elseif service_name == 'n2n' then
+          return i18n('user_activity.remote_assistance_enabled', {user=user})
+        end
+      elseif decoded.name == 'disableService' then
+        local service_name = decoded.params[1]
+        if service_name == 'n2disk' then
+          local service_instance = decoded.params[2]
+          return i18n('user_activity.recording_disabled', {user=user, ifname=service_instance})
+        elseif service_name == 'n2n' then
+          return i18n('user_activity.remote_assistance_disabled', {user=user})
+        end
       end
     end
   end

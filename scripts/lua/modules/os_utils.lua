@@ -168,8 +168,6 @@ end
 -- TRACKER HOOK
 
 local tracker = require "tracker"
-tracker.track(os_utils, 'stopService')
-tracker.track(os_utils, 'restartService')
 tracker.track(os_utils, 'enableService')
 tracker.track(os_utils, 'disableService')
 

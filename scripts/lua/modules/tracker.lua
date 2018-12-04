@@ -21,9 +21,27 @@ function tracker.hook(f, name)
         args_print[k] = tostring(v)
       end
 
-      -- TODO push alert
+      local jobj = { 
+        scope = 'function',
+        name = f_name,
+        params = args_print
+      }
+
+      local entity = alertEntity("user")
+      local entity_value = _SESSION["user"]
+      local alert_type = alertType("alert_user_activity")
+      local alert_severity = alertSeverity("info")
+      local alert_json = json.encode(jobj)
+
+      local old_iface = interface.getStats().id
+      interface.select(tostring(getFirstInterfaceId()))
+
       -- local fmt = string.format("%s(%s)\n", f_name, table.concat(args_print or {}, ", "))
       -- io.write(fmt)
+
+      interface.storeAlert(entity, entity_value, alert_type, alert_severity, alert_json)
+
+      interface.select(tostring(old_iface))
     end
 
     local result = {f(...)}
