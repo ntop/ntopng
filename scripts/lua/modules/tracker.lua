@@ -6,6 +6,10 @@ local json = require "dkjson"
 
 local tracker = {}
 
+
+--! @brief Log a function call providing name and arguments
+--! @param f_name is the function name
+--! @param f_args is a table with the arguments
 function tracker.log(f_name, f_args)
   local jobj = { 
     scope = 'function',
@@ -19,8 +23,6 @@ function tracker.log(f_name, f_args)
   local alert_severity = alertSeverity("info")
   local alert_json = json.encode(jobj)
 
-  -- tprint(alert_json)
-
   local old_iface = interface.getStats().id
   local sys_iface = getFirstInterfaceId()
   interface.select(tostring(sys_iface))
@@ -30,6 +32,9 @@ function tracker.log(f_name, f_args)
   interface.select(tostring(old_iface))
 end
 
+--! @brief Filter setPref calls to be logged based on the actual preference
+--! @param key is the preference key in redis
+--! @return true if the preference should be logged, false otherwise
 local function tracker_filter_pref(key)
   local k = key:gsub("^ntopng%.prefs%.", "")
 
@@ -66,6 +71,10 @@ local function tracker_filter_pref(key)
   return false
 end
 
+--! @brief Filter function calls to be logged based on function name or arguments
+--! @param f_name is the function name
+--! @param f_args is a table with the arguments
+--! @return true if the call should be logged, false otherwise
 local function tracker_filter(f_name, f_args)
   if (f_name == 'setPref' and (f_args[1] == nil or not tracker_filter_pref(f_args[1]))) then
     return false
@@ -74,6 +83,10 @@ local function tracker_filter(f_name, f_args)
   return true
 end
 
+--! @brief Return a 'wrapper' function to be used for tracking function calls
+--! @param f is the function to wrap
+--! @param name is the name of the function (optional, debug.getinfo will be used if name is not provided)
+--! @return the wrapper function to be used in place of the original function
 function tracker.hook(f, name)
   return function(...)
     local f_name = name
@@ -103,6 +116,7 @@ function tracker.hook(f, name)
   end
 end
 
+--! @brief Set hooks to track selected functions from the 'ntop' C API
 function tracker.track_ntop()
   local fns = {
     "addUser",
@@ -120,6 +134,7 @@ function tracker.track_ntop()
   end
 end
 
+--! @brief Set hooks to track selected functions from the 'interface' C API
 function tracker.track_interface()
   local fns = {
     "liveCapture",
@@ -132,6 +147,9 @@ function tracker.track_interface()
   end
 end
 
+--! @brief Set a hook for a function defined in the provided table to track it, providing the function name
+--! @param table is the table containing the function to track
+--! @param fn is the name of the function to track
 function tracker.track(table, fn)
   if table[fn] ~= nil and type(table[fn]) == "function" then 
     table[fn] = tracker.hook(table[fn], fn)
