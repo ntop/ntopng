@@ -3512,13 +3512,27 @@ bool Utils::parseAuthenticatorJson(HTTPAuthenticator *auth, char *content) {
     if(json_object_object_get_ex(o, "admin", &w))
       auth->admin  = (bool)json_object_get_boolean(w);
 
+    if(json_object_object_get_ex(o, "allowedIfname", &w))
+      auth->allowedIfname  = strdup((char *)json_object_get_string(w));
+
     if(json_object_object_get_ex(o, "allowedNets", &w))
       auth->allowedNets  = strdup((char *)json_object_get_string(w));
+
+    if(json_object_object_get_ex(o, "language", &w))
+      auth->language  = strdup((char *)json_object_get_string(w));
 
     json_object_put(o);
     return true;
   }
   return false;
+}
+
+void Utils::freeAuthenticator(HTTPAuthenticator *auth) {
+  if(auth == NULL)
+    return;
+  if(auth->allowedIfname) free(auth->allowedIfname);
+  if(auth->allowedNets) free(auth->allowedNets);
+  if(auth->language) free(auth->language);
 }
 
 /* ****************************************************** */

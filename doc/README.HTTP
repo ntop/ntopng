@@ -10,8 +10,15 @@ If you want to grant a user as an administrator, webservice must
 reply a JSON like:
 { "admin": true }
 
-You can set allowed network via allowedNets field:
+Some optionals fields can personalize user.
+You can set allowed ifname via optional allowedIfname field:
+{ "allowedIfname": "ethX" }
+
+You can set allowed network via optional allowedNets field:
 { "allowedNets": "10.0.0.0/24,192.168.0.0/16" }
+
+You can set language via optional language field:
+{ "language": "en" }
 
 HTTP authentication parameters are discussed below.
 

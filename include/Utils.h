@@ -115,6 +115,7 @@ class Utils {
   static bool shouldResolveHost(const char *host_ip);
   static bool mg_write_retry(struct mg_connection *conn, u_char *b, int len);
   static bool parseAuthenticatorJson(HTTPAuthenticator *auth, char *content);
+  static void freeAuthenticator(HTTPAuthenticator *auth);
 
   /* Patricia Tree */
   static patricia_node_t* ptree_match(patricia_tree_t *tree, int family, void *addr, int bits);
