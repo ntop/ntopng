@@ -1321,6 +1321,19 @@ bool Ntop::checkUserPassword(const char * const user, const char * const passwor
               goto http_auth_out;
             }
           }
+          if(auth.allowedIfname != NULL) {
+            if(!Ntop::changeAllowedIfname((char*)user, auth.allowedIfname)) {
+              ntop->getTrace()->traceEvent(TRACE_ERROR, "HTTP: unable to set allowed ifname for user %s", user);
+              goto http_auth_out;
+            }
+          }
+          if(auth.language != NULL) {
+            if(!Ntop::changeUserLanguage((char*)user, auth.language)) {
+              ntop->getTrace()->traceEvent(TRACE_ERROR, "HTTP: unable to set language for user %s", user);
+              goto http_auth_out;
+            }
+          }
+
           http_ret = true;
         } else
           ntop->getTrace()->traceEvent(TRACE_WARNING, "HTTP: authentication rejected [code=%d]", rc);
@@ -1328,7 +1341,7 @@ bool Ntop::checkUserPassword(const char * const user, const char * const passwor
         ntop->getTrace()->traceEvent(TRACE_WARNING, "HTTP: could not contact the HTTP authenticator");
 
     http_auth_out:
-      if(auth.allowedNets) free(auth.allowedNets);
+      Utils::freeAuthenticator(&auth);
       if(httpUrl) free(httpUrl);
       if(postData) free(postData);
       if(returnData) free(returnData);

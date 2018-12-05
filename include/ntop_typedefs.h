@@ -587,7 +587,9 @@ typedef enum {
 
 typedef struct {
   bool admin;
+  char *allowedIfname;
   char *allowedNets;
+  char *language;
 } HTTPAuthenticator;
 
 typedef struct {
