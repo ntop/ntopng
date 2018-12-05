@@ -8,6 +8,7 @@ section.
     :maxdepth: 2
     :numbered:
 
+    authentication
     sflow_collection
     view_interfaces
     dynamic_interfaces_disaggregation
