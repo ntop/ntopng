@@ -56,6 +56,32 @@ CollectorInterface::CollectorInterface(const char *_endpoint) : ParserInterface(
     if(zmq_setsockopt(subscriber[num_subscribers].socket, ZMQ_RCVBUF, &val, sizeof(val)) != 0)
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to enlarge ZMQ buffer size");
 
+    if(!strncmp(e, (char*)"tcp://", 6)) {
+      val = DEFAULT_ZMQ_TCP_KEEPALIVE;
+      if(zmq_setsockopt(subscriber[num_subscribers].socket, ZMQ_TCP_KEEPALIVE, &val, sizeof(val)) != 0)
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to set tcp keepalive");
+      else
+	ntop->getTrace()->traceEvent(TRACE_INFO, "Tcp keepalive set");
+
+      val = DEFAULT_ZMQ_TCP_KEEPALIVE_IDLE;
+      if(zmq_setsockopt(subscriber[num_subscribers].socket, ZMQ_TCP_KEEPALIVE_IDLE, &val, sizeof(val)) != 0)
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to set tcp keepalive idle to %u seconds", val);
+      else
+	ntop->getTrace()->traceEvent(TRACE_INFO, "Tcp keepalive idle set to %u seconds", val);
+
+      val = DEFAULT_ZMQ_TCP_KEEPALIVE_CNT;
+      if(zmq_setsockopt(subscriber[num_subscribers].socket, ZMQ_TCP_KEEPALIVE_CNT, &val, sizeof(val)) != 0)
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to set tcp keepalive count to %u", val);
+      else
+	ntop->getTrace()->traceEvent(TRACE_INFO, "Tcp keepalive count set to %u", val);
+
+      val = DEFAULT_ZMQ_TCP_KEEPALIVE_INTVL;
+      if(zmq_setsockopt(subscriber[num_subscribers].socket, ZMQ_TCP_KEEPALIVE_INTVL, &val, sizeof(val)) != 0)
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to set tcp keepalive interval to %u seconds", val);
+      else
+	ntop->getTrace()->traceEvent(TRACE_INFO, "Tcp keepalive interval set to %u seconds", val);
+    }
+
     if(last_char == 'c')
       is_collector = true, e[l] = '\0';
 

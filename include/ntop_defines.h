@@ -927,7 +927,10 @@ inline struct ntopngLuaContext* getUserdata(lua_State *vm) {
 
 /* Keep in sync with nProbe */
 #define MAX_ZMQ_FLOW_BUF             4096
-
+#define DEFAULT_ZMQ_TCP_KEEPALIVE       1  /* Keepalive ON */
+#define DEFAULT_ZMQ_TCP_KEEPALIVE_IDLE  30 /* Keepalive after 30 seconds */
+#define DEFAULT_ZMQ_TCP_KEEPALIVE_CNT   3  /* Keepalive send 3 probes */
+#define DEFAULT_ZMQ_TCP_KEEPALIVE_INTVL 3  /* Keepalive probes sent every 3 seconds */
 #define PERIODIC_TASK_POOL_SIZE      8 /* Threads */
 
 #define MIN_NUM_HASH_WALK_ELEMS      512
