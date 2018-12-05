@@ -2943,6 +2943,7 @@ local lang = {
   },
   ["user_activity"] = {
     ["file_downloaded"] = "User '%{user}' downloaded file '%{file}'",
+    ["host_json_downloaded"] = "User '%{user}' downloaded a JSON for host '%{host}'",
     ["live_capture"] = "User '%{user}' captured live traffic matching filter '%{filter}'",
     ["live_capture_host"] = "User '%{user}' captured live traffic from host %{host} matching filter '%{filter}'",
     ["live_extraction"] = "User '%{user}' downloaded traffic from interface %{ifname} from %{from} to %{to} matching filter '%{filter}'",

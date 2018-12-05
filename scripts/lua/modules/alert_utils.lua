@@ -687,11 +687,11 @@ function formatRawUserActivity(record, activity_json)
 
       if decoded.name == 'addUser' and decoded.params[1] ~= nil then
         local add_user = decoded.params[1]
-        return  i18n('user_activity.user_added', {user=user, add_user=add_user})
+        return i18n('user_activity.user_added', {user=user, add_user=add_user})
 
       elseif decoded.name == 'deleteUser' and decoded.params[1] ~= nil then
         local del_user = decoded.params[1]
-        return  i18n('user_activity.user_deleted', {user=user, del_user=del_user})
+        return i18n('user_activity.user_deleted', {user=user, del_user=del_user})
 
       elseif decoded.name == 'disableService' and decoded.params[1] ~= nil then
         local service_name = decoded.params[1]
@@ -704,7 +704,7 @@ function formatRawUserActivity(record, activity_json)
 
       elseif decoded.name == 'dumpBinaryFile' and decoded.params[1] ~= nil then
         local file_name = decoded.params[1]
-        return  i18n('user_activity.file_downloaded', {user=user, file=file_name})
+        return i18n('user_activity.file_downloaded', {user=user, file=file_name})
 
       elseif decoded.name == 'enableService' and decoded.params[1] ~= nil then
         local service_name = decoded.params[1]
@@ -714,6 +714,10 @@ function formatRawUserActivity(record, activity_json)
         elseif service_name == 'n2n' then
           return i18n('user_activity.remote_assistance_enabled', {user=user})
         end
+
+      elseif decoded.name == 'host_get_json' and decoded.params[1] ~= nil then
+        local host = decoded.params[1]
+        return i18n('user_activity.host_json_downloaded', {user=user, host=host})
 
       elseif decoded.name == 'resetUserPassword' and decoded.params[2] ~= nil then
         local pwd_user = decoded.params[2]

@@ -8,6 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local json = require ("dkjson")
 local page_utils = require("page_utils")
+local tracker = require("tracker")
 
 -- whether to return host statistics: on by default
 local host_stats           = _GET["host_stats"]
@@ -123,5 +124,8 @@ else
       hj["flows_count"] = total
    end
    print(json.encode(hj, nil))
+
+   -- TRACKER HOOK
+   tracker.log("host_get_json", {host_info["host"], host_info["vlan"]})
 end
 

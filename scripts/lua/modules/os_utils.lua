@@ -4,6 +4,8 @@
 
 local dirs = ntop.getDirs()
 
+local tracker = require "tracker"
+
 local os_utils = {}
 local NTOPCTL_CMD = "sudo ntopctl"
 local NTOPNG_CONFIG_TOOL = "/usr/bin/ntopng-utils-manage-config"
@@ -167,7 +169,6 @@ end
 
 -- TRACKER HOOK
 
-local tracker = require "tracker"
 tracker.track(os_utils, 'enableService')
 tracker.track(os_utils, 'disableService')
 

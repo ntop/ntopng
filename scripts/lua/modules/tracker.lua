@@ -6,6 +6,30 @@ local json = require "dkjson"
 
 local tracker = {}
 
+function tracker.log(f_name, f_args)
+  local jobj = { 
+    scope = 'function',
+    name = f_name,
+    params = f_args
+  }
+
+  local entity = alertEntity("user")
+  local entity_value = ternary(_SESSION["user"] ~= nil, _SESSION["user"], 'system')
+  local alert_type = alertType("alert_user_activity")
+  local alert_severity = alertSeverity("info")
+  local alert_json = json.encode(jobj)
+
+  -- tprint(alert_json)
+
+  local old_iface = interface.getStats().id
+  local sys_iface = getFirstInterfaceId()
+  interface.select(tostring(sys_iface))
+
+  interface.storeAlert(entity, entity_value, alert_type, alert_severity, alert_json)
+
+  interface.select(tostring(old_iface))
+end
+
 function tracker.hook(f, name)
   return function(...)
     local f_name
@@ -16,38 +40,18 @@ function tracker.hook(f, name)
     end
 
     if f_name ~= nil then
-      local args_print = {}
+      local f_args = {}
       for k, v in pairs({...}) do
         if (f_name == 'addUser'           and k == 3) or
            (f_name == 'resetUserPassword' and k == 4) then
           -- hiding password
-          args_print[k] = ''
+          f_args[k] = ''
         else
-          args_print[k] = tostring(v)
+          f_args[k] = tostring(v)
         end
       end
-
-      local jobj = { 
-        scope = 'function',
-        name = f_name,
-        params = args_print
-      }
-
-      local entity = alertEntity("user")
-      local entity_value = ternary(_SESSION["user"] ~= nil, _SESSION["user"], 'system')
-      local alert_type = alertType("alert_user_activity")
-      local alert_severity = alertSeverity("info")
-      local alert_json = json.encode(jobj)
-
-      -- tprint(alert_json)
-
-      local old_iface = interface.getStats().id
-      local sys_iface = getFirstInterfaceId()
-      interface.select(tostring(sys_iface))
-
-      interface.storeAlert(entity, entity_value, alert_type, alert_severity, alert_json)
-
-      interface.select(tostring(old_iface))
+      
+      tracker.log(f_name, f_args)
     end
 
     local result = {f(...)}
