@@ -13,6 +13,7 @@ local host_pools_utils = require("host_pools_utils")
 local recovery_utils = require "recovery_utils"
 local alert_consts = require "alert_consts"
 local format_utils = require "format_utils"
+local tracker = require "tracker"
 
 package.path = dirs.installdir .. "/scripts/lua/modules/alert_endpoints/?.lua;" .. package.path
 
@@ -551,6 +552,10 @@ function checkDeleteStoredAlerts()
       end
 
       deleteAlerts(_GET["status"], _GET)
+
+      -- TRACKER HOOK
+      tracker.log("checkDeleteStoredAlerts", {_GET["status"], _POST["id_to_delete"]})
+
       -- to avoid performing the delete again
       _POST["id_to_delete"] = nil
       -- to avoid filtering by id
@@ -689,9 +694,24 @@ function formatRawUserActivity(record, activity_json)
         local add_user = decoded.params[1]
         return i18n('user_activity.user_added', {user=user, add_user=add_user})
 
+      elseif decoded.name == 'checkDeleteStoredAlerts' and decoded.params[1] ~= nil then
+        local status = decoded.params[1]
+        return i18n('user_activity.alerts_deleted', {user=user, status=status})
+
       elseif decoded.name == 'deleteUser' and decoded.params[1] ~= nil then
         local del_user = decoded.params[1]
         return i18n('user_activity.user_deleted', {user=user, del_user=del_user})
+
+      elseif decoded.name == 'delete_all_interfaces_data' then
+        return i18n('user_activity.deleted_all_interfaces_data', {user=user})
+
+      elseif decoded.name == 'delete_host' and decoded.params[1] ~= nil then
+        local ifname = getInterfaceName(decoded.params[1])
+        -- We should also read the host here (argument is table host_info)
+        return i18n('user_activity.deleted_host_data', {user=user, ifname=ifname})
+
+      elseif decoded.name == 'delete_inactive_interfaces' then
+        return i18n('user_activity.deleted_inactive_interfaces_data', {user=user})
 
       elseif decoded.name == 'disableService' and decoded.params[1] ~= nil then
         local service_name = decoded.params[1]
@@ -715,6 +735,15 @@ function formatRawUserActivity(record, activity_json)
           return i18n('user_activity.remote_assistance_enabled', {user=user})
         end
 
+      elseif decoded.name ==  'export_data' and decoded.params[1] ~= nil then
+        local mode = decoded.params[1]
+        if decoded.params[2] ~= nil then
+          local host = decoded.params[1]
+          return i18n('user_activity.exported_data_host', {user=user, mode=mode, host=host})
+        else
+          return i18n('user_activity.exported_data', {user=user, mode=mode})
+        end
+
       elseif decoded.name == 'host_get_json' and decoded.params[1] ~= nil then
         local host = decoded.params[1]
         return i18n('user_activity.host_json_downloaded', {user=user, host=host})
@@ -727,21 +756,27 @@ function formatRawUserActivity(record, activity_json)
         local filter = decoded.params[3]
         if not isEmptyString(decoded.params[1]) then
           local host = decoded.params[1]
-          return i18n('user_activity.live_capture_host', {user=user,host=host,filter=filter})
+          return i18n('user_activity.live_capture_host', {user=user, host=host, filter=filter})
         else
           return i18n('user_activity.live_capture', {user=user,filter=filter})
         end
+
+      elseif decoded.name == 'request_delete_active_interface_data' and decoded.params[1] ~= nil then
+        local ifname = decoded.params[1]
+        return i18n('user_activity.deleted_interface_data', {user=user, ifname=ifname})
 
       elseif decoded.name == 'runLiveExtraction' and decoded.params[1] ~= nil then
         local ifname = getInterfaceName(decoded.params[1])
         local time_from = format_utils.formatEpoch(decoded.params[2])
         local time_to = format_utils.formatEpoch(decoded.params[3])
         local filter = decoded.params[4]
-        return i18n('user_activity.live_extraction', {user=user,ifname=ifname,from=time_from,to=time_to,filter=filter})
+        return i18n('user_activity.live_extraction', {user=user, ifname=ifname, 
+                    from=time_from, to=time_to, filter=filter})
 
       end
     end
   end
+
   return i18n('user_activity.unknown_activity', {user=user})
 end
 

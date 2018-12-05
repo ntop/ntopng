@@ -32,29 +32,28 @@ end
 
 function tracker.hook(f, name)
   return function(...)
-    local f_name
-    if name ~= nil then
-      f_name = name
-    else
+    local f_name = name
+
+    if f_name == nil then
       f_name = debug.getinfo(1, "n").name
     end
 
-    if f_name ~= nil then
-      local f_args = {}
-      for k, v in pairs({...}) do
-        if (f_name == 'addUser'           and k == 3) or
-           (f_name == 'resetUserPassword' and k == 4) then
-          -- hiding password
-          f_args[k] = ''
-        else
-          f_args[k] = tostring(v)
-        end
+    local f_args = {}
+    for k, v in pairs({...}) do
+      if (f_name == 'addUser'           and k == 3) or
+         (f_name == 'resetUserPassword' and k == 4) then
+        -- hiding password
+        f_args[k] = ''
+      else
+        f_args[k] = tostring(v)
       end
-      
-      tracker.log(f_name, f_args)
     end
 
     local result = {f(...)}
+
+    if f_name ~= nil then
+      tracker.log(f_name, f_args)
+    end
 
     return table.unpack(result)
   end
@@ -90,7 +89,11 @@ function tracker.track_interface()
 end
 
 function tracker.track(table, fn)
-  table[fn] = tracker.hook(table[fn], fn)
+  if table[fn] ~= nil and type(table[fn]) == "function" then 
+    table[fn] = tracker.hook(table[fn], fn)
+  else
+    io.write("tracker: "..fn.." is not defined or not a function\n")
+  end
 end
 
 -- #################################

@@ -4,6 +4,7 @@
 local dirs = ntop.getDirs()
 local ts_utils = require("ts_utils")
 local os_utils = require("os_utils")
+local tracker = require "tracker"
 
 local delete_data_utils = {}
 local dry_run = false
@@ -434,6 +435,15 @@ function delete_data_utils.delete_inactive_interfaces()
 
    return res
 end
+
+-- ################################################################
+
+-- TRACKER HOOK
+
+tracker.track(delete_data_utils, 'delete_all_interfaces_data')
+tracker.track(delete_data_utils, 'delete_inactive_interfaces')
+tracker.track(delete_data_utils, 'request_delete_active_interface_data')
+tracker.track(delete_data_utils, 'delete_host')
 
 -- ################################################################
 
