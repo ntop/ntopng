@@ -1105,14 +1105,14 @@ bool Ntop::checkUserPassword(const char * const user, const char * const passwor
         return false;
 
       if(!(radiusServer = (char*)calloc(sizeof(char), MAX_RADIUS_LEN)) ||
-          !(radiusSecret = (char*)calloc(sizeof(char), MAX_RADIUS_LEN)) ||
+          !(radiusSecret = (char*)calloc(sizeof(char), MAX_SECRET_LENGTH + 1)) ||
           !(radiusAdminGroup = (char*)calloc(sizeof(char), MAX_RADIUS_LEN)) ||
           !(authServer = (char*)calloc(sizeof(char), MAX_RADIUS_LEN))) {
         ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: unable to allocate memory");
         goto radius_auth_out;
       }
       ntop->getRedis()->get((char*)PREF_RADIUS_SERVER, radiusServer, MAX_RADIUS_LEN);
-      ntop->getRedis()->get((char*)PREF_RADIUS_SECRET, radiusSecret, MAX_RADIUS_LEN);
+      ntop->getRedis()->get((char*)PREF_RADIUS_SECRET, radiusSecret, MAX_SECRET_LENGTH + 1);
       ntop->getRedis()->get((char*)PREF_RADIUS_ADMIN_GROUP, radiusAdminGroup, MAX_RADIUS_LEN);
       if(!radiusServer[0] || !radiusSecret[0]) {
         ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: no radius server or secret set !");
@@ -1189,14 +1189,16 @@ bool Ntop::checkUserPassword(const char * const user, const char * const passwor
         goto radius_auth_out;
       }
 
+      ntop->getTrace()->traceEvent(TRACE_INFO, "Radius: performing auth for user %s\n", user);
+
       result = rc_auth(rh, 0, send, &received, NULL);
       if(result == OK_RC) {
         bool is_admin = false;
 
         if(radiusAdminGroup[0] != '\0') {
           VALUE_PAIR *vp = received;
-          char name[128];
-          char value[128];
+          char name[sizeof(vp->name)];
+          char value[sizeof(vp->strvalue)];
 
           while(vp != NULL) {
             if(rc_avpair_tostr(rh, vp, name, sizeof(name), value, sizeof(value)) == 0) {
@@ -1213,6 +1215,17 @@ bool Ntop::checkUserPassword(const char * const user, const char * const passwor
         snprintf(key, sizeof(key), PREF_USER_TYPE_LOG, user);
         ntop->getRedis()->set(key, (char*)"radius", 0);
         radius_ret = true;
+      } else {
+        switch(result) {
+          case TIMEOUT_RC:
+            ntop->getTrace()->traceEvent(TRACE_WARNING, "Radius Authentication timeout for user \"%s\"", user);
+            break;
+          case REJECT_RC:
+            ntop->getTrace()->traceEvent(TRACE_WARNING, "Radius Authentication rejected for user \"%s\"", user);
+            break;
+          default:
+            ntop->getTrace()->traceEvent(TRACE_WARNING, "Radius Authentication failure[%d]: user \"%s\"", result, user);
+        }
       }
 
     radius_auth_out:

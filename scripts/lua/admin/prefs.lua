@@ -983,9 +983,10 @@ local function printRadiusAuth()
     "ntopng.prefs.radius", "radius_server_address", "127.0.0.1:1812", nil, showElements, true, false,
     {attributes={spellcheck="false", maxlength=255, required="required", pattern="[0-9.\\-A-Za-z]+:[0-9]+"}})
 
+  -- https://github.com/FreeRADIUS/freeradius-client/blob/7b7473ab78ca5f99e083e5e6c16345b7c2569db1/include/freeradius-client.h#L395
   prefsInputFieldPrefs(subpage_active.entries["radius_secret"].title, subpage_active.entries["radius_secret"].description,
     "ntopng.prefs.radius", "radius_secret", "", "password", showElements, true, false,
-    {attributes={spellcheck="false", maxlength=255, required="required", pattern="[^\\s]+"}})
+    {attributes={spellcheck="false", maxlength=48, required="required"}})
 
   prefsInputFieldPrefs(subpage_active.entries["radius_admin_group"].title, subpage_active.entries["radius_admin_group"].description,
     "ntopng.prefs.radius", "radius_admin_group", "", nil, showElements, true, false,
