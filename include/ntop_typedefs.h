@@ -496,6 +496,7 @@ struct ntopngLuaContext {
   AddressTree *allowedNets;
   NetworkInterface *iface;
   SNMP *snmp;
+  int (*luaL_pcall)(lua_State *);
 
   /* Packet capture */
   struct {

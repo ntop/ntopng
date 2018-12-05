@@ -8231,6 +8231,25 @@ static const luaL_Reg ntop_reg[] = {
 
 /* ****************************************** */
 
+static int ntop_lua_pcall(lua_State *L) {
+  int (*original_pcall)(lua_State *) = getLuaVMUserdata(L, luaL_pcall);
+
+  if(original_pcall) {
+    int rv = original_pcall(L);
+    int err_str_idx = lua_gettop(L);
+    int t = lua_type(L, err_str_idx);
+
+    if(t == LUA_TSTRING)
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure %s", lua_tostring(L, err_str_idx));
+
+    return rv;
+  }
+
+  return(CONST_LUA_ERROR);
+}
+
+/* ****************************************** */
+
 void LuaEngine::luaRegister(lua_State *L, const ntop_class_reg *reg) {
   static const luaL_Reg _meta[] = { { NULL, NULL } };
   int lib_id, meta_id;
@@ -8291,6 +8310,25 @@ void LuaEngine::lua_register_classes(lua_State *L, bool http_mode) {
     lua_register(L, "loadfile", ntop_lua_loadfile);
   }
 #endif
+
+  /* Add a wrapper on the pcall to handle errors */
+  lua_getglobal(L, "pcall");
+  int (*original_pcall)(lua_State *) = (int (*)(lua_State*)) lua_topointer(L, lua_gettop(L));
+
+  if(original_pcall) {
+    struct ntopngLuaContext *ctx;
+
+#ifdef DONT_USE_LUAJIT
+    lua_getglobal(L, "userdata");
+    ctx = (struct ntopngLuaContext*)lua_touserdata(L, lua_gettop(L));
+#else
+    ctx = (struct ntopngLuaContext*)(G(L)->userdata);
+#endif
+
+    ctx->luaL_pcall = original_pcall;
+    lua_pop(L, 1); // pop the lua_getglobal value
+    lua_register(L, "pcall", ntop_lua_pcall);
+  }
 }
 
 /* ****************************************** */
