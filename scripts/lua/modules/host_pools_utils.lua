@@ -626,7 +626,7 @@ function host_pools_utils.resetPoolsQuotas(ifid, pool_filter)
   if pool_filter ~= nil then
     keys_to_del = {[pool_filter]=1, }
   else
-    keys_to_del = ntop.getHashKeysCache(serialized_key)
+    keys_to_del = ntop.getHashKeysCache(serialized_key) or {}
   end
 
   -- Delete the redis serialization

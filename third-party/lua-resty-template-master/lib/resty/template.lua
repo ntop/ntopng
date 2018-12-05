@@ -50,8 +50,8 @@ local CODE_ENTITIES = {
 
 local VAR_PHASES
 
-local ok, newtab = pcall(require, "table.new")
-if not ok then newtab = function() return {} end end
+--local ok, newtab = pcall(require, "table.new")
+newtab = function() return {} end
 
 local caching = true
 local template = newtab(0, 12)
