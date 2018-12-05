@@ -334,6 +334,23 @@ static int ntop_get_interface_names(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_get_first_interface_id(lua_State* vm) {
+  NetworkInterface *iface;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  iface = ntop->getFirstInterface();
+
+  if(iface) {
+    lua_pushinteger(vm, iface->get_id());
+    return(CONST_LUA_OK);
+  }
+
+  return(CONST_LUA_ERROR);
+}
+
+/* ****************************************** */
+
 static AddressTree* get_allowed_nets(lua_State* vm) {
   AddressTree *ptree;
 
@@ -7818,6 +7835,7 @@ static int ntop_trace_event(lua_State* vm) {
 static const luaL_Reg ntop_interface_reg[] = {
   { "setActiveInterfaceId",     ntop_set_active_interface_id },
   { "getIfNames",               ntop_get_interface_names },
+  { "getFirstInterfaceId",      ntop_get_first_interface_id },
   { "select",                   ntop_select_interface },
 
   { "getMaxIfSpeed",            ntop_get_max_if_speed },

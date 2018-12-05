@@ -102,13 +102,13 @@ end
 -- ##############################################
 
 function getFirstInterfaceId()
-   local ifnames = interface.getIfNames()
+   local ifid = interface.getFirstInterfaceId()
 
-   for if_id, if_name in pairs(ifnames) do
-      return tonumber(if_id), if_name
+   if ifid ~= nil then
+      return ifid, getInterfaceName(ifid)
    end
 
-   return -1, "" -- NOTREACHED
+   return -1, ""
 end
 
 -- ##############################################
