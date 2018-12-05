@@ -907,17 +907,18 @@ void Ntop::getUserGroup(lua_State* vm) {
     return;
   }
 
-#if defined(NTOPNG_PRO) && defined(HAVE_LDAP)
   snprintf(key, sizeof(key), PREF_USER_TYPE_LOG, username);
-  if (ntop->getRedis()->get(key, val, sizeof(val)) >= 0){
-    if( !strcmp(val,"ldap") ) {
-      snprintf(key, sizeof(key), PREF_LDAP_GROUP_OF_USER, username);
-      lua_pushstring(vm,
-    		 (ntop->getRedis()->get(key, val, sizeof(val)) >= 0) ? val : (char*)"unknown");
-      return;
+  if(ntop->getRedis()->get(key, val, sizeof(val)) >= 0) {
+    if(strcmp(val, "local") != 0) {
+      /* This is a non-local auth, use the group provided by the authenticator */
+      snprintf(key, sizeof(key), CUSTOM_GROUP_OF_USER, username);
+
+      if((ntop->getRedis()->get(key, val, sizeof(val)) >= 0) && val[0]) {
+        lua_pushstring(vm, val);
+        return;
+      }
     }
   }
-#endif
 
   snprintf(key, sizeof(key), CONST_STR_USER_GROUP, username);
   lua_pushstring(vm,
@@ -1065,7 +1066,7 @@ bool Ntop::checkUserPassword(const char * const user, const char * const passwor
 						       &is_admin);
 
 	  if(ldap_ret) {
-	    snprintf(key, sizeof(key), PREF_LDAP_GROUP_OF_USER, user);
+	    snprintf(key, sizeof(key), CUSTOM_GROUP_OF_USER, user);
 	    ntop->getRedis()->set(key, is_admin ?  (char*)CONST_USER_GROUP_ADMIN : (char*)CONST_USER_GROUP_UNPRIVILEGED, 0);
             snprintf(key, sizeof(key), PREF_USER_TYPE_LOG, user);
 	    ntop->getRedis()->set(key, (char*)"ldap", 0);
@@ -1207,7 +1208,7 @@ bool Ntop::checkUserPassword(const char * const user, const char * const passwor
           }
         }
 
-        snprintf(key, sizeof(key), PREF_LDAP_GROUP_OF_USER, user);
+        snprintf(key, sizeof(key), CUSTOM_GROUP_OF_USER, user);
         ntop->getRedis()->set(key, is_admin ?  (char*)CONST_USER_GROUP_ADMIN : (char*)CONST_USER_GROUP_UNPRIVILEGED, 0);
         snprintf(key, sizeof(key), PREF_USER_TYPE_LOG, user);
         ntop->getRedis()->set(key, (char*)"radius", 0);
@@ -1267,7 +1268,10 @@ bool Ntop::checkUserPassword(const char * const user, const char * const passwor
           goto http_auth_out;
         }
 
+        snprintf(key, sizeof(key), CUSTOM_GROUP_OF_USER, user);
         ntop->getRedis()->set(key, auth.admin ?  (char*)CONST_USER_GROUP_ADMIN : (char*)CONST_USER_GROUP_UNPRIVILEGED, 0);
+        snprintf(key, sizeof(key), PREF_USER_TYPE_LOG, user);
+        ntop->getRedis()->set(key, (char*)"http", 0);
         http_ret = true;
       }
 
@@ -1299,10 +1303,8 @@ bool Ntop::checkUserPassword(const char * const user, const char * const passwor
   } else {
     mg_md5(password_hash, password, NULL);
     if(strcmp(password_hash, val) == 0) {
-#if defined(NTOPNG_PRO) && defined(HAVE_LDAP)
       snprintf(key, sizeof(key), PREF_USER_TYPE_LOG, user);
       ntop->getRedis()->set(key, (char*)"local", 0);
-#endif
       return(true);
     } else {
       return(false);

@@ -797,6 +797,7 @@
 #define HOST_LOW_GOODPUT_THRESHOLD  25 /* No more than X low goodput flows per host */
 #define FLOW_GOODPUT_THRESHOLD      40 /* 40% */
 
+#define CUSTOM_GROUP_OF_USER          NTOPNG_PREFS_PREFIX".auth.%s.custom_group_of_user"
 #define PREF_NTOP_LDAP_AUTH           NTOPNG_PREFS_PREFIX".ldap.auth_enabled"
 #define PREF_LDAP_ACCOUNT_TYPE        NTOPNG_PREFS_PREFIX".ldap.account_type"
 #define PREF_LDAP_SERVER              NTOPNG_PREFS_PREFIX".ldap.ldap_server_address"
@@ -806,7 +807,6 @@
 #define PREF_LDAP_SEARCH_PATH         NTOPNG_PREFS_PREFIX".ldap.search_path"
 #define PREF_LDAP_USER_GROUP          NTOPNG_PREFS_PREFIX".ldap.user_group"
 #define PREF_LDAP_ADMIN_GROUP         NTOPNG_PREFS_PREFIX".ldap.admin_group"
-#define PREF_LDAP_GROUP_OF_USER       NTOPNG_PREFS_PREFIX".ldap.%s.group_of_user"
 #ifdef HAVE_LDAP
 #define MAX_LDAP_LEN     256  /* Keep it in sync with lua preferences file prefs.lua */
 #endif
