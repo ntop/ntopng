@@ -2943,10 +2943,13 @@ local lang = {
   },
   ["user_activity"] = {
     ["alerts_deleted"] = "User '%{user}' purged '%{status}' alerts",
+    ["changed_preference"] = "User '%{user}' changed a preference for %{pref}",
     ["deleted_all_interfaces_data"] = "User '%{user}' deleted data for all interfaces",
     ["deleted_host_data"] = "User '%{user}' deleted host data on interface %{ifname}",
     ["deleted_inactive_interfaces_data"] = "User '%{user}' deleted data for all inactive interfaces",
     ["deleted_interface_data"] = "User '%{user}' deleted data for interface %{ifname}",
+    ["disabled_preference"] = "User '%{user}' disabled preference %{pref}",
+    ["enabled_preference"] = "User '%{user}' enabled preference %{pref}",
     ["exported_data"] = "User '%{user}' exported JSON data for '%{mode}' hosts",
     ["exported_data_host"] = "User '%{user}' exported JSON data for '%{mode}' host '%{host}'",
     ["file_downloaded"] = "User '%{user}' downloaded file '%{file}'",

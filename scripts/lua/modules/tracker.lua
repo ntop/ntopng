@@ -30,6 +30,50 @@ function tracker.log(f_name, f_args)
   interface.select(tostring(old_iface))
 end
 
+local function tracker_filter_pref(key)
+  local k = key:gsub("^ntopng%.prefs%.", "")
+
+  if k == "disable_alerts_generation" or
+     k == "mining_alerts" or
+     k == "probing_alerts" or
+     k == "ssl_alerts" or
+     k == "dns_alerts" or
+     k == "ip_reassignment_alerts" or
+     k == "remote_to_remote_alerts" or
+     k == "mining_alerts" or
+     k == "host_blacklist" or
+     k == "device_protocols_alerts" or
+     k == "alerts.device_first_seen_alert" or
+     k == "alerts.device_connection_alert" or
+     k == "alerts.pool_connection_alert" or
+     k == "alerts.external_notifications_enabled" 
+     --[[ FIXX By enaling alert endpoints, setPref is called for all endpoints settings pushing many alerts
+     or
+     k == "alerts.email_notifications_enabled" or
+     k == "alerts.slack_notifications_enabled" or
+     k == "alerts.syslog_notifications_enabled" or
+     k == "alerts.nagios_notifications_enabled" or
+     starts(k, "alerts.email_") or 
+     starts(k, "alerts.smtp_") or 
+     starts(k, "alerts.slack_") or 
+     starts(k, "alerts.nagios_") or 
+     starts(k, "nagios_"
+     --]]
+  then
+    return true
+  end
+
+  return false
+end
+
+local function tracker_filter(f_name, f_args)
+  if (f_name == 'setPref' and (f_args[1] == nil or not tracker_filter_pref(f_args[1]))) then
+    return false
+  end
+
+  return true
+end
+
 function tracker.hook(f, name)
   return function(...)
     local f_name = name
@@ -51,7 +95,7 @@ function tracker.hook(f, name)
 
     local result = {f(...)}
 
-    if f_name ~= nil then
+    if f_name ~= nil and tracker_filter(f_name, f_args) then 
       tracker.log(f_name, f_args)
     end
 
@@ -66,7 +110,7 @@ function tracker.track_ntop()
     "resetUserPassword",
     "runLiveExtraction",
     "dumpBinaryFile",
-    --"setPref",
+    "setPref",
   }
 
   for _, fn in pairs(fns) do

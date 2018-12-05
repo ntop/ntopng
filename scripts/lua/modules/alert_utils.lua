@@ -773,6 +773,49 @@ function formatRawUserActivity(record, activity_json)
         return i18n('user_activity.live_extraction', {user=user, ifname=ifname, 
                     from=time_from, to=time_to, filter=filter})
 
+      elseif decoded.name == 'setPref' and decoded.params[1] ~= nil and decoded.params[2] ~= nil then
+        local key = decoded.params[1]
+        local value = decoded.params[2]
+        local k = key:gsub("^ntopng%.prefs%.", "")
+        local pref_desc
+
+        if k == "disable_alerts_generation" then pref_desc = i18n("prefs.disable_alerts_generation_title")
+        elseif k == "mining_alerts" then pref_desc = i18n("prefs.toggle_mining_alerts_title")
+        elseif k == "probing_alerts" then pref_desc = i18n("prefs.toggle_alert_probing_title")
+        elseif k == "ssl_alerts" then pref_desc = i18n("prefs.toggle_ssl_alerts_title")
+        elseif k == "dns_alerts" then pref_desc = i18n("prefs.toggle_dns_alerts_title")
+        elseif k == "ip_reassignment_alerts" then pref_desc = i18n("prefs.toggle_ip_reassignment_title")
+        elseif k == "remote_to_remote_alerts" then pref_desc = i18n("prefs.toggle_remote_to_remote_alerts_title")
+        elseif k == "mining_alerts" then pref_desc = i18n("prefs.toggle_mining_alerts_title")
+        elseif k == "host_blacklist" then pref_desc = i18n("prefs.toggle_malware_probing_title")
+        elseif k == "device_protocols_alerts" then pref_desc = i18n("prefs.toggle_device_protocols_title")
+        elseif k == "alerts.device_first_seen_alert" then pref_desc = i18n("prefs.toggle_device_first_seen_alert_title")
+        elseif k == "alerts.device_connection_alert" then pref_desc = i18n("prefs.toggle_device_activation_alert_title")
+        elseif k == "alerts.pool_connection_alert" then pref_desc = i18n("prefs.toggle_pool_activation_alert_title")
+        elseif k == "alerts.external_notifications_enabled" then pref_desc = i18n("prefs.toggle_alerts_notifications_title")
+        elseif k == "alerts.email_notifications_enabled" then pref_desc = i18n("prefs.toggle_email_notification_title")
+        elseif k == "alerts.slack_notifications_enabled" then pref_desc = i18n("prefs.toggle_slack_notification_title", {url="http://www.slack.com"})
+        elseif k == "alerts.syslog_notifications_enabled" then pref_desc = i18n("prefs.toggle_alert_syslog_title")
+        elseif k == "alerts.nagios_notifications_enabled" then pref_desc = i18n("prefs.toggle_alert_nagios_title")
+        elseif starts(k, "alerts.email_") then pref_desc = i18n("prefs.toggle_email_notification_title")
+        elseif starts(k, "alerts.smtp_") then pref_desc = i18n("prefs.toggle_email_notification_title")
+        elseif starts(k, "alerts.slack_") then pref_desc = i18n("prefs.toggle_slack_notification_title")
+        elseif starts(k, "alerts.nagios_") then pref_desc = i18n("prefs.toggle_alert_nagios_title")
+        elseif starts(k, "nagios_") then pref_desc = i18n("prefs.toggle_alert_nagios_title")
+        else pref_desc = k -- last resort if not handled
+        end
+
+        if k == "disable_alerts_generation" then
+          if value == "1" then value = "0" else value = "1" end
+        end 
+
+        if value == "1" then 
+          return i18n('user_activity.enabled_preference', {user=user, pref=pref_desc})
+        elseif value == "0" then 
+          return i18n('user_activity.disabled_preference', {user=user, pref=pref_desc})
+        else
+          return i18n('user_activity.changed_preference', {user=user, pref=pref_desc})
+        end
       end
     end
   end
