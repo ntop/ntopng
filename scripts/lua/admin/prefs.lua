@@ -1011,7 +1011,7 @@ local function printHttpAuth()
 
   prefsInputFieldPrefs(subpage_active.entries["http_auth_server"].title, subpage_active.entries["http_auth_server"].description,
     "ntopng.prefs.http_authenticator", "http_auth_url", "", nil, showElements, true, true --[[ allowUrls ]],
-    {attributes={spellcheck="false", maxlength=255, required="required", pattern="(http://)?[0-9.\\-A-Za-z]+(:[0-9]+)?"}})
+    {attributes={spellcheck="false", maxlength=255, required="required", pattern=getURLPattern()}})
 end
 
 -- #####################

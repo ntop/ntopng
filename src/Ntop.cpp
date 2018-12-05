@@ -1249,6 +1249,7 @@ bool Ntop::checkUserPassword(const char * const user, const char * const passwor
       int postLen;
       char *httpUrl = NULL, *postData = NULL, *returnData = NULL;
       bool http_ret = false;
+      int rc = 0;
       HTTPTranferStats stats;
       HTTPAuthenticator auth;
 
@@ -1270,23 +1271,28 @@ bool Ntop::checkUserPassword(const char * const user, const char * const passwor
       }
       snprintf(postData, postLen, "{\"user\": \"%s\", \"password\": \"%s\"}",
                user, password);
+
       if(Utils::postHTTPJsonData(NULL, // no digest user
                                  NULL, // no digest password
                                  httpUrl,
                                  postData, &stats,
-                                 returnData, MAX_HTTP_AUTHENTICATOR_RETURN_DATA_LEN)) {
-        // parse JSON
-        if(!Utils::parseAuthenticatorJson(&auth, returnData)) {
-          ntop->getTrace()->traceEvent(TRACE_ERROR, "HTTP: unable to parse json answer data !");
-          goto http_auth_out;
-        }
+                                 returnData, MAX_HTTP_AUTHENTICATOR_RETURN_DATA_LEN, &rc)) {
+        if(rc == 200) {
+          // parse JSON
+          if(!Utils::parseAuthenticatorJson(&auth, returnData)) {
+            ntop->getTrace()->traceEvent(TRACE_ERROR, "HTTP: unable to parse json answer data !");
+            goto http_auth_out;
+          }
 
-        snprintf(key, sizeof(key), CUSTOM_GROUP_OF_USER, user);
-        ntop->getRedis()->set(key, auth.admin ?  (char*)CONST_USER_GROUP_ADMIN : (char*)CONST_USER_GROUP_UNPRIVILEGED, 0);
-        snprintf(key, sizeof(key), PREF_USER_TYPE_LOG, user);
-        ntop->getRedis()->set(key, (char*)"http", 0);
-        http_ret = true;
-      }
+          snprintf(key, sizeof(key), CUSTOM_GROUP_OF_USER, user);
+          ntop->getRedis()->set(key, auth.admin ?  (char*)CONST_USER_GROUP_ADMIN : (char*)CONST_USER_GROUP_UNPRIVILEGED, 0);
+          snprintf(key, sizeof(key), PREF_USER_TYPE_LOG, user);
+          ntop->getRedis()->set(key, (char*)"http", 0);
+          http_ret = true;
+        } else
+          ntop->getTrace()->traceEvent(TRACE_WARNING, "HTTP: authentication rejected [code=%d]", rc);
+      } else
+        ntop->getTrace()->traceEvent(TRACE_WARNING, "HTTP: could not contact the HTTP authenticator");
 
     http_auth_out:
       if(httpUrl) free(httpUrl);

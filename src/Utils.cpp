@@ -1299,10 +1299,10 @@ bool Utils::postHTTPJsonData(char *username, char *password, char *url,
 }
 
 /* **************************************** */
-/* Warning, only 200 response return true, other status code will return false */
+
 bool Utils::postHTTPJsonData(char *username, char *password, char *url,
                              char *json, HTTPTranferStats *stats,
-                             char *return_data, int return_data_size) {
+                             char *return_data, int return_data_size, int *response_code) {
   CURL *curl;
   bool ret = false;
 
@@ -1349,13 +1349,12 @@ bool Utils::postHTTPJsonData(char *username, char *password, char *url,
                                    "Unable to post data to (%s): %s",
                                    url, curl_easy_strerror(res));
     } else {
-      long response_code;
-
+      long rc;
       ntop->getTrace()->traceEvent(TRACE_INFO, "Posted JSON to %s", url);
       readCurlStats(curl, stats, NULL);
-      curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
-      if (response_code == 200)
-        ret = true;
+      curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &rc);
+      *response_code = rc;
+      ret = true;
     }
 
     /* always cleanup */
