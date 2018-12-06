@@ -208,6 +208,15 @@ local menu_subpages = {
     }, toggle_device_protocols_alerts = {
       title       = i18n("prefs.toggle_device_protocols_title"),
       description = i18n(ternary(have_nedge, "prefs.toggle_device_protocols_description_nedge", "prefs.toggle_device_protocols_description"), {url=getDeviceProtocolPoliciesUrl()}),
+    }, toggle_elephant_flows_alerts = {
+      title       = i18n("prefs.toggle_elephant_flows_alerts_title"),
+      description = i18n("prefs.toggle_elephant_flows_alerts_description"),
+    }, elephant_flow_local_to_remote_bytes = {
+      title       = i18n("prefs.elephant_flow_local_to_remote_bytes_title"),
+      description = i18n("prefs.elephant_flow_local_to_remote_bytes_description"),
+    }, elephant_flow_remote_to_local_bytes = {
+      title       = i18n("prefs.elephant_flow_remote_to_local_bytes_title"),
+      description = i18n("prefs.elephant_flow_remote_to_local_bytes_description"),
     }, max_num_alerts_per_entity = {
       title       = i18n("prefs.max_num_alerts_per_entity_title"),
       description = i18n("prefs.max_num_alerts_per_entity_description"),

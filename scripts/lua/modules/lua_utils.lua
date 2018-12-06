@@ -2502,6 +2502,8 @@ function getFlowStatus(status, flowstatus_info)
   elseif(status == 14) then return(""..i18n("flow_details.flow_blocked_by_bridge").."")
   elseif(status == 15) then return(""..i18n("flow_details.web_mining_detected").."")
   elseif(status == 16) then return(formatSuspiciousDeviceProtocolAlert(flowstatus_info))
+  elseif(status == 17) then return("<font color=orange>"..i18n("flow_details.elephant_flow_l2r").."</font>")
+  elseif(status == 18) then return("<font color=orange>"..i18n("flow_details.elephant_flow_r2l").."</font>")
   else return("<font color=orange>"..i18n("flow_details.unknown_status",{status=status}).."</font>")
   end
 end

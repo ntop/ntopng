@@ -74,12 +74,14 @@ class Prefs {
   bool override_dst_with_post_nat_dst, override_src_with_post_nat_src;
   bool routing_mode_enabled, global_dns_forging_enabled;
   bool device_protocol_policies_enabled, enable_vlan_trunk_bridge;
+  bool enable_elephant_flows_alerts;
   int32_t max_num_alerts_per_entity, max_num_flow_alerts;
   u_int32_t safe_search_dns_ip, global_primary_dns_ip, global_secondary_dns_ip;
   u_int32_t max_num_packets_per_tiny_flow, max_num_bytes_per_tiny_flow;
   u_int32_t max_num_aggregated_flows_per_export;
   u_int32_t max_extracted_pcap_mbytes;
   u_int32_t max_ui_strlen;
+  u_int64_t elephant_flow_remote_to_local_bytes, elephant_flow_local_to_remote_bytes;
   u_int8_t default_l7policy;
   u_int8_t num_ts_slots, ts_num_steps;
   HostMask hostMask;
@@ -311,6 +313,7 @@ class Prefs {
   inline bool are_ext_alerts_notifications_enabled()     { return(external_notifications_enabled);      };
   inline bool are_malware_alerts_enabled()               { return(enabled_malware_alerts);              };
   inline bool do_dump_flow_alerts_when_iface_alerted()   { return(dump_flow_alerts_when_iface_alerted); };
+  inline bool are_elephant_flows_alerts_enabled()        { return(enable_elephant_flows_alerts);        };
 
   inline bool do_override_dst_with_post_nat_dst()   { return(override_dst_with_post_nat_dst); };
   inline bool do_override_src_with_post_nat_src()   { return(override_src_with_post_nat_src); };
@@ -330,6 +333,8 @@ class Prefs {
   inline u_int32_t get_max_num_packets_per_tiny_flow()       { return(max_num_packets_per_tiny_flow);       };
   inline u_int32_t get_max_num_bytes_per_tiny_flow()         { return(max_num_bytes_per_tiny_flow);         };
   inline u_int32_t get_max_num_aggregated_flows_per_export() { return(max_num_aggregated_flows_per_export); };
+  inline u_int64_t get_elephant_flow_remote_to_local_bytes() { return(elephant_flow_remote_to_local_bytes); };
+  inline u_int64_t get_elephant_flow_local_to_remote_bytes() { return(elephant_flow_local_to_remote_bytes); };
 
   inline u_int64_t get_max_extracted_pcap_mbytes() { return max_extracted_pcap_mbytes; };
 

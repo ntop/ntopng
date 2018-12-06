@@ -275,6 +275,8 @@ typedef enum {
   status_blocked /* 14 */,
   status_web_mining_detected /* 15 */,
   status_device_protocol_not_allowed /* 16 */,
+  status_elephant_local_to_remote, /* 17 */
+  status_elephant_remote_to_local, /* 18 */
 } FlowStatus;
 
 typedef enum {

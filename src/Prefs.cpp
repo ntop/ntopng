@@ -48,7 +48,7 @@ Prefs::Prefs(Ntop *_ntop) {
     enable_remote_to_remote_alerts = true,
     enable_dropped_flows_alerts = true, enable_device_protocols_alerts = false,
     enable_syslog_alerts = false, enable_captive_portal = false, mac_based_captive_portal = false,
-    enabled_malware_alerts = true,
+    enabled_malware_alerts = true, enable_elephant_flows_alerts = false,
     enable_informative_captive_portal = false,
     external_notifications_enabled = false, dump_flow_alerts_when_iface_alerted = false,
     override_dst_with_post_nat_dst = false, override_src_with_post_nat_src = false,
@@ -567,6 +567,8 @@ void Prefs::reloadPrefsFromRedis() {
 							       CONST_DEFAULT_ALERT_DROPPED_FLOWS_ENABLED),
     enable_device_protocols_alerts  = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_ALERT_DEVICE_PROTOCOLS,
 							       CONST_DEFAULT_ALERT_DEVICE_PROTOCOLS_ENABLED),
+    enable_elephant_flows_alerts  = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_ALERT_ELEPHANT_FLOWS,
+							     CONST_DEFAULT_ALERT_ELEPHANT_FLOWS_ENABLED),
     enable_syslog_alerts  = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_ALERT_SYSLOG, CONST_DEFAULT_ALERT_SYSLOG_ENABLED),
     enabled_malware_alerts = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_MALWARE_ALERTS, CONST_DEFAULT_MALWARE_ALERTS_ENABLED),
     external_notifications_enabled         = getDefaultBoolPrefsValue(ALERTS_MANAGER_EXTERNAL_NOTIFICATIONS_ENABLED, false),
@@ -581,7 +583,10 @@ void Prefs::reloadPrefsFromRedis() {
 							 CONST_DEFAULT_MAX_NUM_BYTES_PER_TINY_FLOW),
     max_num_aggregated_flows_per_export = getDefaultPrefsValue(CONST_MAX_NUM_AGGR_FLOWS_PER_EXPORT,
 							       FLOW_AGGREGATION_MAX_AGGREGATES),
-
+    elephant_flow_local_to_remote_bytes = getDefaultPrefsValue(CONST_ELEPHANT_FLOW_LOCAL_TO_REMOTE_BYTES,
+							       CONST_DEFAULT_ELEPHANT_FLOW_LOCAL_TO_REMOTE_BYTES),
+    elephant_flow_remote_to_local_bytes = getDefaultPrefsValue(CONST_ELEPHANT_FLOW_REMOTE_TO_LOCAL_BYTES,
+							       CONST_DEFAULT_ELEPHANT_FLOW_REMOTE_TO_LOCAL_BYTES),
     max_extracted_pcap_mbytes = getDefaultPrefsValue(CONST_MAX_EXTR_PCAP_MBYTES,
                                                      CONST_DEFAULT_MAX_EXTR_PCAP_MBYTES); 
 
@@ -1626,6 +1631,8 @@ void Prefs::lua(lua_State* vm) {
   lua_push_uint64_table_entry(vm, "max_num_packets_per_tiny_flow", max_num_packets_per_tiny_flow);
   lua_push_uint64_table_entry(vm, "max_num_bytes_per_tiny_flow",   max_num_bytes_per_tiny_flow);
   lua_push_uint64_table_entry(vm, "max_num_aggregated_flows_per_export", max_num_aggregated_flows_per_export);
+  lua_push_uint64_table_entry(vm, "elephant_flow_local_to_remote_bytes", elephant_flow_local_to_remote_bytes);
+  lua_push_uint64_table_entry(vm, "elephant_flow_remote_to_local_bytes", elephant_flow_remote_to_local_bytes);
 
   lua_push_uint64_table_entry(vm, "max_extracted_pcap_mbytes", max_extracted_pcap_mbytes);
 

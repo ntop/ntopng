@@ -288,6 +288,11 @@ void Flow::dumpFlowAlert() {
     case status_device_protocol_not_allowed:
       do_dump = ntop->getPrefs()->are_device_protocols_alerts_enabled();
       break;
+
+    case status_elephant_local_to_remote:
+    case status_elephant_remote_to_local:
+      do_dump = ntop->getPrefs()->are_elephant_flows_alerts_enabled();
+      break;
     }
 
 #ifdef HAVE_NEDGE
@@ -305,8 +310,9 @@ void Flow::dumpFlowAlert() {
          ||(srv_host && srv_host->incFlowAlertHits(when)))
       do_dump = false;
 
-    if(do_dump)
+    if(do_dump) {
       iface->getAlertsManager()->storeFlowAlert(this);
+    }
   }
 }
 
@@ -3485,6 +3491,23 @@ FlowStatus Flow::getFlowStatus() {
      && ! cli_host->get_ip()->isMulticastAddress()
      && ! srv_host->get_ip()->isMulticastAddress())
     return status_remote_to_remote;
+
+  if(cli_host && srv_host) {
+    u_int64_t local_to_remote_bytes = 0, remote_to_local_bytes = 0;
+
+    if(cli_host->isLocalHost() && ! srv_host->isLocalHost()) {
+      local_to_remote_bytes = cli2srv_goodput_bytes;
+      remote_to_local_bytes = srv2cli_goodput_bytes;
+    } else if(srv_host->isLocalHost() && ! cli_host->isLocalHost()) {
+      local_to_remote_bytes = srv2cli_goodput_bytes;
+      remote_to_local_bytes = cli2srv_goodput_bytes;
+    }
+
+    if(local_to_remote_bytes > ntop->getPrefs()->get_elephant_flow_local_to_remote_bytes())
+      return status_elephant_local_to_remote;
+    if(remote_to_local_bytes > ntop->getPrefs()->get_elephant_flow_remote_to_local_bytes())
+      return status_elephant_remote_to_local;
+  }
 
 #ifdef HAVE_NEDGE
   /* Leave this at the end. A more specific status should be returned above if avaialble. */

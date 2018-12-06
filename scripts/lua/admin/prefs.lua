@@ -286,7 +286,7 @@ function printAlerts()
 
  local elementToSwitch = { "max_num_alerts_per_entity", "max_num_flow_alerts", "row_toggle_alert_probing",
 			   "row_toggle_malware_probing", "row_toggle_dns_alerts",
-			   "row_toggle_flow_alerts_iface", "row_alerts_retention_header", "row_alerts_security_header",
+			   "row_toggle_flow_alerts_iface", "row_alerts_retention_header", "row_alerts_settings_header", "row_alerts_security_header",
 			   "row_toggle_ssl_alerts", "row_toggle_dns_alerts", "row_toggle_remote_to_remote_alerts",
 			   "row_toggle_ip_reassignment_alerts", "row_toggle_dropped_flows_alerts", "row_alerts_informative_header",
 			   "row_toggle_device_first_seen_alert", "row_toggle_device_activation_alert", "row_toggle_pool_activation_alert", "row_toggle_quota_exceeded_alert", "row_toggle_mining_alerts", "row_toggle_device_protocols_alerts"}
@@ -392,6 +392,23 @@ function printAlerts()
     default = "0",
     hidden = not showElements,
   })
+
+  prefsToggleButton(subpage_active, {
+    field = "toggle_elephant_flows_alerts",
+    pref = "elephant_flows_alerts",
+    default = "0",
+    hidden = not showElements,
+  })
+
+  prefsInputFieldPrefs(subpage_active.entries["elephant_flow_local_to_remote_bytes"].title, 
+     subpage_active.entries["elephant_flow_local_to_remote_bytes"].description,
+    "ntopng.prefs.", "elephant_flow_local_to_remote_bytes", prefs.elephant_flow_local_to_remote_bytes, 
+    "number", showElements, nil, nil, {min=1024, format_spec = FMT_TO_DATA_BYTES, tformat="kmg"})
+
+  prefsInputFieldPrefs(subpage_active.entries["elephant_flow_remote_to_local_bytes"].title, 
+     subpage_active.entries["elephant_flow_remote_to_local_bytes"].description,
+    "ntopng.prefs.", "elephant_flow_remote_to_local_bytes", prefs.elephant_flow_remote_to_local_bytes, 
+    "number", showElements, nil, nil, {min=1024, format_spec = FMT_TO_DATA_BYTES, tformat="kmg"})
 
   print('<tr id="row_alerts_informative_header" ')
   if (showElements == false) then print(' style="display:none;"') end

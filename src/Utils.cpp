@@ -488,6 +488,12 @@ const char* Utils::flowStatus2str(FlowStatus s, AlertType *aType, AlertLevel *aL
     *aType = alert_device_protocol_not_allowed;
     *aLevel = alert_level_warning;
     return("Protocol not allowed for this device type");
+  case status_elephant_local_to_remote:
+    return("Elephant flow (local to remote");
+    break;
+  case status_elephant_remote_to_local:
+    return("Elephant flow (remote to local)");
+    break;
   default:
     return("Unknown status");
     break;
