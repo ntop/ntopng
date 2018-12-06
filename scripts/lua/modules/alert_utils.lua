@@ -748,10 +748,6 @@ function formatRawUserActivity(record, activity_json)
         local host = decoded.params[1]
         return i18n('user_activity.host_json_downloaded', {user=user, host=host})
 
-      elseif decoded.name == 'resetUserPassword' and decoded.params[2] ~= nil then
-        local pwd_user = decoded.params[2]
-        return  i18n('user_activity.password_changed', {user=user, pwd_user=pwd_user}) 
-
       elseif decoded.name == 'liveCapture' then
         local filter = decoded.params[3]
         if not isEmptyString(decoded.params[1]) then
@@ -760,6 +756,11 @@ function formatRawUserActivity(record, activity_json)
         else
           return i18n('user_activity.live_capture', {user=user,filter=filter})
         end
+
+      elseif decoded.name == 'nIndexSelect' and decoded.params[2] ~= nil and decoded.params[3] ~= nil then
+        local time_from = format_utils.formatEpoch(decoded.params[2])
+        local time_to = format_utils.formatEpoch(decoded.params[3])
+        return i18n('user_activity.flows_downloaded', {user=user, from=time_from, to=time_to })
 
       elseif decoded.name == 'request_delete_active_interface_data' and decoded.params[1] ~= nil then
         local ifname = decoded.params[1]
@@ -772,6 +773,10 @@ function formatRawUserActivity(record, activity_json)
         local filter = decoded.params[4]
         return i18n('user_activity.live_extraction', {user=user, ifname=ifname, 
                     from=time_from, to=time_to, filter=filter})
+
+      elseif decoded.name == 'resetUserPassword' and decoded.params[2] ~= nil then
+        local pwd_user = decoded.params[2]
+        return  i18n('user_activity.password_changed', {user=user, pwd_user=pwd_user}) 
 
       elseif decoded.name == 'setPref' and decoded.params[1] ~= nil and decoded.params[2] ~= nil then
         local key = decoded.params[1]

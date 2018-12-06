@@ -2954,6 +2954,7 @@ local lang = {
     ["exported_data"] = "User '%{user}' exported JSON data for '%{mode}' hosts",
     ["exported_data_host"] = "User '%{user}' exported JSON data for '%{mode}' host '%{host}'",
     ["file_downloaded"] = "User '%{user}' downloaded file '%{file}'",
+    ["flows_downloaded"] = "User '%{user}' downloaded flows data from %{from} to %{to}",
     ["host_json_downloaded"] = "User '%{user}' downloaded JSON data for host '%{host}'",
     ["live_capture"] = "User '%{user}' captured live traffic matching filter '%{filter}'",
     ["live_capture_host"] = "User '%{user}' captured live traffic from host %{host} matching filter '%{filter}'",

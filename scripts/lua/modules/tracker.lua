@@ -23,6 +23,8 @@ function tracker.log(f_name, f_args)
   local alert_severity = alertSeverity("info")
   local alert_json = json.encode(jobj)
 
+  -- tprint(alert_json)
+
   local old_iface = interface.getStats().id
   local sys_iface = getFirstInterfaceId()
   interface.select(tostring(sys_iface))
