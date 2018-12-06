@@ -757,9 +757,9 @@ function formatRawUserActivity(record, activity_json)
           return i18n('user_activity.live_capture', {user=user,filter=filter})
         end
 
-      elseif decoded.name == 'nIndexSelect' and decoded.params[2] ~= nil and decoded.params[3] ~= nil then
-        local time_from = format_utils.formatEpoch(decoded.params[2])
-        local time_to = format_utils.formatEpoch(decoded.params[3])
+      elseif decoded.name == 'live_flows_extraction' and decoded.params[1] ~= nil and decoded.params[2] ~= nil then
+        local time_from = format_utils.formatEpoch(decoded.params[1])
+        local time_to = format_utils.formatEpoch(decoded.params[2])
         return i18n('user_activity.flows_downloaded', {user=user, from=time_from, to=time_to })
 
       elseif decoded.name == 'request_delete_active_interface_data' and decoded.params[1] ~= nil then
