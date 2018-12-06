@@ -9,3 +9,4 @@ ntopng centers and has been developed around some basic concepts that include in
     interfaces
     hosts
     alerts
+    timeseries
