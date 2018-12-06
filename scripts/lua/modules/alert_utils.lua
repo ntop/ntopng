@@ -694,6 +694,10 @@ function formatRawUserActivity(record, activity_json)
         local add_user = decoded.params[1]
         return i18n('user_activity.user_added', {user=user, add_user=add_user})
 
+      elseif decoded.name == 'add_snmp_device' and decoded.params[1] ~= nil then
+        local device_ip = decoded.params[1]
+        return i18n('user_activity.snmp_device_added', {user=user, ip=device_ip})
+
       elseif decoded.name == 'checkDeleteStoredAlerts' and decoded.params[1] ~= nil then
         local status = decoded.params[1]
         return i18n('user_activity.alerts_deleted', {user=user, status=status})
@@ -712,6 +716,10 @@ function formatRawUserActivity(record, activity_json)
 
       elseif decoded.name == 'delete_inactive_interfaces' then
         return i18n('user_activity.deleted_inactive_interfaces_data', {user=user})
+
+      elseif decoded.name == 'del_snmp_device' and decoded.params[1] ~= nil then
+        local device_ip = decoded.params[1]
+        return i18n('user_activity.snmp_device_deleted', {user=user, ip=device_ip})
 
       elseif decoded.name == 'disableService' and decoded.params[1] ~= nil then
         local service_name = decoded.params[1]
