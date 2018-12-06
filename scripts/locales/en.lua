@@ -2956,7 +2956,7 @@ local lang = {
   },
   ["user_activity"] = {
     ["alerts_deleted"] = "User '%{user}' purged '%{status}' alerts",
-    ["changed_preference"] = "User '%{user}' changed a preference for %{pref}",
+    ["changed_preference"] = "User '%{user}' changed settings for %{pref}",
     ["deleted_all_interfaces_data"] = "User '%{user}' deleted data for all interfaces",
     ["deleted_host_data"] = "User '%{user}' deleted host data on interface %{ifname}",
     ["deleted_inactive_interfaces_data"] = "User '%{user}' deleted data for all inactive interfaces",

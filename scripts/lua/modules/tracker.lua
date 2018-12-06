@@ -53,9 +53,7 @@ local function tracker_filter_pref(key)
      k == "alerts.device_first_seen_alert" or
      k == "alerts.device_connection_alert" or
      k == "alerts.pool_connection_alert" or
-     k == "alerts.external_notifications_enabled" 
-     --[[ FIXX By enaling alert endpoints, setPref is called for all endpoints settings pushing many alerts
-     or
+     k == "alerts.external_notifications_enabled" or
      k == "alerts.email_notifications_enabled" or
      k == "alerts.slack_notifications_enabled" or
      k == "alerts.syslog_notifications_enabled" or
@@ -64,8 +62,7 @@ local function tracker_filter_pref(key)
      starts(k, "alerts.smtp_") or 
      starts(k, "alerts.slack_") or 
      starts(k, "alerts.nagios_") or 
-     starts(k, "nagios_"
-     --]]
+     starts(k, "nagios_")
   then
     return true
   end

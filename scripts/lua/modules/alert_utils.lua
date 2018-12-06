@@ -690,21 +690,35 @@ function formatRawUserActivity(record, activity_json)
 
     elseif decoded.scope == 'function' and decoded.name ~= nil then
 
+      -- User add/del/password
+
       if decoded.name == 'addUser' and decoded.params[1] ~= nil then
         local add_user = decoded.params[1]
         return i18n('user_activity.user_added', {user=user, add_user=add_user})
+
+      elseif decoded.name == 'deleteUser' and decoded.params[1] ~= nil then
+        local del_user = decoded.params[1]
+        return i18n('user_activity.user_deleted', {user=user, del_user=del_user})
+
+      elseif decoded.name == 'resetUserPassword' and decoded.params[2] ~= nil then
+        local pwd_user = decoded.params[2]
+        return  i18n('user_activity.password_changed', {user=user, pwd_user=pwd_user}) 
+
+      -- SNMP device add/del
 
       elseif decoded.name == 'add_snmp_device' and decoded.params[1] ~= nil then
         local device_ip = decoded.params[1]
         return i18n('user_activity.snmp_device_added', {user=user, ip=device_ip})
 
-      elseif decoded.name == 'checkDeleteStoredAlerts' and decoded.params[1] ~= nil then
-        local status = decoded.params[1]
-        return i18n('user_activity.alerts_deleted', {user=user, status=status})
+      elseif decoded.name == 'del_snmp_device' and decoded.params[1] ~= nil then
+        local device_ip = decoded.params[1]
+        return i18n('user_activity.snmp_device_deleted', {user=user, ip=device_ip})
 
-      elseif decoded.name == 'deleteUser' and decoded.params[1] ~= nil then
-        local del_user = decoded.params[1]
-        return i18n('user_activity.user_deleted', {user=user, del_user=del_user})
+      -- Stored data
+
+      elseif decoded.name == 'request_delete_active_interface_data' and decoded.params[1] ~= nil then
+        local ifname = decoded.params[1]
+        return i18n('user_activity.deleted_interface_data', {user=user, ifname=ifname})
 
       elseif decoded.name == 'delete_all_interfaces_data' then
         return i18n('user_activity.deleted_all_interfaces_data', {user=user})
@@ -717,9 +731,7 @@ function formatRawUserActivity(record, activity_json)
       elseif decoded.name == 'delete_inactive_interfaces' then
         return i18n('user_activity.deleted_inactive_interfaces_data', {user=user})
 
-      elseif decoded.name == 'del_snmp_device' and decoded.params[1] ~= nil then
-        local device_ip = decoded.params[1]
-        return i18n('user_activity.snmp_device_deleted', {user=user, ip=device_ip})
+      -- Service enable/disable
 
       elseif decoded.name == 'disableService' and decoded.params[1] ~= nil then
         local service_name = decoded.params[1]
@@ -730,10 +742,6 @@ function formatRawUserActivity(record, activity_json)
           return i18n('user_activity.remote_assistance_disabled', {user=user})
         end
 
-      elseif decoded.name == 'dumpBinaryFile' and decoded.params[1] ~= nil then
-        local file_name = decoded.params[1]
-        return i18n('user_activity.file_downloaded', {user=user, file=file_name})
-
       elseif decoded.name == 'enableService' and decoded.params[1] ~= nil then
         local service_name = decoded.params[1]
         if service_name == 'n2disk' and decoded.params[2] ~= nil then
@@ -742,6 +750,12 @@ function formatRawUserActivity(record, activity_json)
         elseif service_name == 'n2n' then
           return i18n('user_activity.remote_assistance_enabled', {user=user})
         end
+
+      -- File download
+
+      elseif decoded.name == 'dumpBinaryFile' and decoded.params[1] ~= nil then
+        local file_name = decoded.params[1]
+        return i18n('user_activity.file_downloaded', {user=user, file=file_name})
 
       elseif decoded.name ==  'export_data' and decoded.params[1] ~= nil then
         local mode = decoded.params[1]
@@ -756,6 +770,13 @@ function formatRawUserActivity(record, activity_json)
         local host = decoded.params[1]
         return i18n('user_activity.host_json_downloaded', {user=user, host=host})
 
+      elseif decoded.name == 'live_flows_extraction' and decoded.params[1] ~= nil and decoded.params[2] ~= nil then
+        local time_from = format_utils.formatEpoch(decoded.params[1])
+        local time_to = format_utils.formatEpoch(decoded.params[2])
+        return i18n('user_activity.flows_downloaded', {user=user, from=time_from, to=time_to })
+
+      -- Live capture
+
       elseif decoded.name == 'liveCapture' then
         local filter = decoded.params[3]
         if not isEmptyString(decoded.params[1]) then
@@ -765,14 +786,7 @@ function formatRawUserActivity(record, activity_json)
           return i18n('user_activity.live_capture', {user=user,filter=filter})
         end
 
-      elseif decoded.name == 'live_flows_extraction' and decoded.params[1] ~= nil and decoded.params[2] ~= nil then
-        local time_from = format_utils.formatEpoch(decoded.params[1])
-        local time_to = format_utils.formatEpoch(decoded.params[2])
-        return i18n('user_activity.flows_downloaded', {user=user, from=time_from, to=time_to })
-
-      elseif decoded.name == 'request_delete_active_interface_data' and decoded.params[1] ~= nil then
-        local ifname = decoded.params[1]
-        return i18n('user_activity.deleted_interface_data', {user=user, ifname=ifname})
+      -- Live extraction
 
       elseif decoded.name == 'runLiveExtraction' and decoded.params[1] ~= nil then
         local ifname = getInterfaceName(decoded.params[1])
@@ -782,9 +796,11 @@ function formatRawUserActivity(record, activity_json)
         return i18n('user_activity.live_extraction', {user=user, ifname=ifname, 
                     from=time_from, to=time_to, filter=filter})
 
-      elseif decoded.name == 'resetUserPassword' and decoded.params[2] ~= nil then
-        local pwd_user = decoded.params[2]
-        return  i18n('user_activity.password_changed', {user=user, pwd_user=pwd_user}) 
+      -- Alerts
+
+      elseif decoded.name == 'checkDeleteStoredAlerts' and decoded.params[1] ~= nil then
+        local status = decoded.params[1]
+        return i18n('user_activity.alerts_deleted', {user=user, status=status})
 
       elseif decoded.name == 'setPref' and decoded.params[1] ~= nil and decoded.params[2] ~= nil then
         local key = decoded.params[1]
@@ -810,11 +826,11 @@ function formatRawUserActivity(record, activity_json)
         elseif k == "alerts.slack_notifications_enabled" then pref_desc = i18n("prefs.toggle_slack_notification_title", {url="http://www.slack.com"})
         elseif k == "alerts.syslog_notifications_enabled" then pref_desc = i18n("prefs.toggle_alert_syslog_title")
         elseif k == "alerts.nagios_notifications_enabled" then pref_desc = i18n("prefs.toggle_alert_nagios_title")
-        elseif starts(k, "alerts.email_") then pref_desc = i18n("prefs.toggle_email_notification_title")
-        elseif starts(k, "alerts.smtp_") then pref_desc = i18n("prefs.toggle_email_notification_title")
-        elseif starts(k, "alerts.slack_") then pref_desc = i18n("prefs.toggle_slack_notification_title")
-        elseif starts(k, "alerts.nagios_") then pref_desc = i18n("prefs.toggle_alert_nagios_title")
-        elseif starts(k, "nagios_") then pref_desc = i18n("prefs.toggle_alert_nagios_title")
+        elseif starts(k, "alerts.email_") then pref_desc = i18n("prefs.email_notification")
+        elseif starts(k, "alerts.smtp_") then pref_desc = i18n("prefs.email_notification")
+        elseif starts(k, "alerts.slack_") then pref_desc = i18n("prefs.slack_integration")
+        elseif starts(k, "alerts.nagios_") then pref_desc = i18n("prefs.nagios_integration")
+        elseif starts(k, "nagios_") then pref_desc = i18n("prefs.nagios_integration")
         else pref_desc = k -- last resort if not handled
         end
 
