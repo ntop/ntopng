@@ -182,8 +182,7 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
 
     v_cache = ntop.getPref(k)
     value = v_cache
-    if ((v_cache==nil) or (v ~= v_cache)) then
-
+    if ((v_cache==nil) or (v_s ~= v_cache)) then
       if(v ~= nil and (v > 0) and (v <= 86400)) then
         ntop.setPref(k, tostring(v))
         value = v
@@ -210,7 +209,7 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
     value = v_s
     if((v_s==nil) or (v_s=="") or (v_s=="nil")) then
       value = default_value
-      if not isEmptyString(prekey) then
+      if not isEmptyString(prekey) and (ntop.getPref(k) ~= tostring(default_value)) then
         ntop.setPref(k, tostring(default_value))
         notifyNtopng(key)
       end
@@ -572,11 +571,16 @@ function multipleTableButtonPrefs(label, comment, array_labels, array_values, de
    local value
   if not skip_redis then
    if(_POST[submit_field] ~= nil) then
-    ntop.setPref(redis_key, _POST[submit_field])
+    local old_v = ntop.getPref(redis_key)
     value = _POST[submit_field]
-    notifyNtopng(submit_field)
+
+    if old_v ~= _POST[submit_field] then
+      ntop.setPref(redis_key, _POST[submit_field])
+      notifyNtopng(submit_field)
+    end
    else
     value = initialValue or ntop.getPref(redis_key)
+
     if(value == "") then
       if(default_value ~= nil) then
         ntop.setPref(redis_key, default_value)
