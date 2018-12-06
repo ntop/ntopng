@@ -287,6 +287,7 @@ void Logstash::sendLSdata() {
             // Err occured
             // don't clear postbuf as it hasn't been sent
             // and skip dequeue next time
+	    ntop->getTrace()->traceEvent(TRACE_WARNING, "[LS] TCP send failed [%d]", retval);
             skipDequeue = 1;
 	    break;
           }
@@ -299,6 +300,7 @@ void Logstash::sendLSdata() {
         retval = sendto(sockfd, postbuf, sizeof(postbuf), 0,
 			(struct sockaddr *)&serv_addr, sizeof(serv_addr));
 	if(retval <= 0) {
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "[LS] UDP send failed [%d]", retval);
 	  skipDequeue = 1;
 	  break;
 	}
