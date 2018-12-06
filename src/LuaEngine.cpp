@@ -5007,7 +5007,6 @@ static int ntop_http_post(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_post_http_text_file(lua_State* vm) {
   char *username, *password, *url, *path;
   bool delete_file_after_post = false;
@@ -5035,18 +5034,16 @@ static int ntop_post_http_text_file(lua_State* vm) {
   if(timeout < 1)
     timeout = 1;
 
-  if(Utils::postHTTPTextFile(username, password, url, path, timeout, &stats)) {
+  if(Utils::postHTTPTextFile(vm, username, password, url, path, timeout, &stats)) {
     if(delete_file_after_post) {
       if(unlink(path) != 0)
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to delete file %s", path);
       else
 	ntop->getTrace()->traceEvent(TRACE_INFO, "Deleted file %s", path);
     }
+  }
 
-    lua_pushboolean(vm, true);
-    return(CONST_LUA_OK);
-  } else
-    return(CONST_LUA_ERROR);
+  return(CONST_LUA_OK);
 }
 
 /* ****************************************** */

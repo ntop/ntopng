@@ -77,7 +77,8 @@ typedef enum {
   alert_flow_web_mining = 21,
   alert_nfq_flushed = 22,
   alert_device_protocol_not_allowed = 24,
-  alert_user_activity,
+  alert_user_activity = 25,
+  alert_influxdb_export_failure = 26,
 } AlertType; /*
 	       NOTE:
 	       keep it in sync with alert_type_keys
@@ -105,6 +106,7 @@ typedef enum {
   alert_entity_host_pool,
   alert_entity_process,
   alert_entity_user,
+  alert_entity_influx_db,
 } AlertEntity;
 
 typedef enum {

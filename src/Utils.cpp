@@ -61,6 +61,9 @@ static cap_value_t cap_values[] = {
 int num_cap = sizeof(cap_values)/sizeof(cap_value_t);
 #endif
 
+static size_t curl_writefunc_to_lua(char *buffer, size_t size, size_t nitems, void *userp);
+static size_t curl_hdf(char *buffer, size_t size, size_t nitems, void *userp);
+
 /* ****************************************************** */
 
 char* Utils::jsonLabel(int label, const char *label_str,char *buf, u_int buf_len){
@@ -1371,7 +1374,7 @@ static size_t read_callback(void *ptr, size_t size, size_t nmemb, void *stream) 
   return(fread(ptr, size, nmemb, (FILE*)stream));
 }
 
-bool Utils::postHTTPTextFile(char *username, char *password, char *url,
+bool Utils::postHTTPTextFile(lua_State* vm, char *username, char *password, char *url,
 			     char *path, int timeout, HTTPTranferStats *stats) {
   CURL *curl;
   bool ret = true;
@@ -1387,6 +1390,7 @@ bool Utils::postHTTPTextFile(char *username, char *password, char *url,
   curl = curl_easy_init();
   if(curl) {
     CURLcode res;
+    DownloadState *state = NULL;
     struct curl_slist* headers = NULL;
 
     memset(stats, 0, sizeof(HTTPTranferStats));
@@ -1422,18 +1426,50 @@ bool Utils::postHTTPTextFile(char *username, char *password, char *url,
 #ifdef CURLOPT_CONNECTTIMEOUT_MS
     curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, timeout*1000);
 #endif
-    
+
+    state = (DownloadState*)malloc(sizeof(DownloadState));
+    if(state != NULL) {
+      memset(state, 0, sizeof(DownloadState));
+
+      curl_easy_setopt(curl, CURLOPT_WRITEDATA, state);
+      curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_writefunc_to_lua);
+      curl_easy_setopt(curl, CURLOPT_HEADERDATA, state);
+      curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, curl_hdf);
+
+      state->vm = vm, state->header_over = 0;
+    } else {
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Out of memory");
+      curl_easy_cleanup(curl);
+      if(vm) lua_pushnil(vm);
+      return(false);
+    }
+
+    if(vm) lua_newtable(vm);
+
     res = curl_easy_perform(curl);
 
     if(res != CURLE_OK) {
       ntop->getTrace()->traceEvent(TRACE_WARNING,
 				   "Unable to post data to (%s): %s",
 				   url, curl_easy_strerror(res));
+      lua_push_str_table_entry(vm, "error_msg", curl_easy_strerror(res));
       ret = false;
     } else {
       ntop->getTrace()->traceEvent(TRACE_INFO, "Posted JSON to %s", url);
       readCurlStats(curl, stats, NULL);
+
+      if(vm) {
+        long response_code;
+        lua_push_str_table_entry(vm, "CONTENT", state->outbuf);
+        lua_push_uint64_table_entry(vm, "CONTENT_LEN", state->num_bytes);
+
+        if(curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code) == CURLE_OK)
+          lua_push_uint64_table_entry(vm, "RESPONSE_CODE", response_code);
+      }
     }
+
+    if(state)
+      free(state);
 
     fclose(fd);
     

@@ -28,17 +28,6 @@ function ntop.httpPost(string url, string data, string username=nil, string pass
 --! @note HTTP header "Content-Type: application/json" is sent.
 function ntop.postHTTPJsonData(string username, string password, string url, string json)
 
---! @brief Send an HTTP POST request with a file contents.
---! @param username for HTTP authentication. Pass empty string to disable authentication.
---! @param password for HTTP authentication. Pass empty string to disable authentication.
---! @param url the target URL.
---! @param path the source file path.
---! @param delete_file_after_post if true, source file is deleted after a successful POST.
---! @param timeout maximum connection timeout in seconds.
---! @return true on success, nil otherwise.
---! @note HTTP header "Content-Type: text/plain; charset=utf-8" is sent.
-function ntop.postHTTPTextFile(string username, string password, string url, string path, bool delete_file_after_post=false, int timeout=nil)
-
 --! @brief Send raw UDP data to a given host and port.
 --! @param host the host IP address.
 --! @param port the host port.

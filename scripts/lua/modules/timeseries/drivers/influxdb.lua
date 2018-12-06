@@ -407,6 +407,33 @@ end
 
 -- ##############################################
 
+function driver:_exportErrorMsg(ret)
+  local err_msg = i18n("delete_data.msg_err_unknown")
+  local suffix = ""
+
+  if ret ~= nil then
+    if ret.error_msg ~= nil then
+      err_msg = ret.error_msg .. "."
+    elseif ret.CONTENT ~= nil then
+      local content = json.decode(ret.CONTENT)
+
+      if((content ~= nil) and (content.error ~= nil)) then
+        err_msg = content.error
+
+        if string.find(err_msg, "max-values-per-tag limit exceeded", nil, true) ~= nil then
+          suffix = ". " .. i18n("alert_messages.influxdb_partial_write")
+        end
+      elseif ret.RESPONSE_CODE ~= nil then
+        err_msg = err_msg .. " [" .. ret.RESPONSE_CODE .. "]"
+      end
+    elseif ret.RESPONSE_CODE ~= nil then
+        err_msg = err_msg .. " [" .. ret.RESPONSE_CODE .. "]"
+    end
+  end
+
+  return i18n("alert_messages.influxdb_write_error", {influxdb=self.url, err=err_msg}) .. suffix
+end
+
 function driver:_exportTsFile(fname)
   if not ntop.exists(fname) then
     return nil
@@ -416,10 +443,11 @@ function driver:_exportTsFile(fname)
   local delete_file_after_post = true
   local ret = ntop.postHTTPTextFile(self.username, self.password, self.url .. "/write?db=" .. self.db, fname, delete_file_after_post, 5 --[[ timeout ]])
 
-  if(ret ~= true) then
-    traceError(TRACE_ERROR, TRACE_CONSOLE, "POST of "..fname.." failed\n")
+  if((ret == nil) or ((ret.RESPONSE_CODE ~= 200) and (ret.RESPONSE_CODE ~= 204))) then
+    local msg = self:_exportErrorMsg(ret)
+    interface.storeAlert(alertEntity("influx_db"), self.url, alertType("influxdb_export_failure"), alertSeverity("error"), msg)
 
-    -- delete the file manually
+     --delete the file manually
     os.remove(fname)
     return nil
   end
