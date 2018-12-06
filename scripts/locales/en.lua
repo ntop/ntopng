@@ -2514,6 +2514,7 @@ local lang = {
     ["admin_access_descr"] = "Create a temporary admin password for remote assistance GUI access.",
     ["admin_access_key_descr"] = "The temporary admin password is <b>%{pwd}</b>",
     ["ask_admin"] = "Ask the network administrator permission before doing this.",
+    ["check_out_the_preferences"] = "More remote assistance parameters can be tuned from the <a href=\"%{url}\"><i class=\"fa fa-flask\"></i> Remote Assistance Preferences</a>.",
     ["connection_script"] = "Connection Script",
     ["connection_script_descr"] = "Download a script you can use to connect to this machine for remote assistance. The script will work on systems where the n2n package is installed.",
     ["enable_remote_assistance"] = "Enable Remote Assistance",

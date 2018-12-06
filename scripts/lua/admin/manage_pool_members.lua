@@ -21,7 +21,7 @@ return ret
 
 local assn = _POST["payload"]
 assn = json.decode(assn) or {}
-tprint(_POST)
+
 local r = {}
 for _, ifname in pairs(interface.getIfNames()) do
    interface.select(ifname)
