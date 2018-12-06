@@ -821,11 +821,15 @@ function formatRawUserActivity(record, activity_json)
         else
           return i18n('user_activity.changed_preference', {user=user, pref=pref_desc})
         end
+
+      else
+        return i18n('user_activity.unknown_activity_function', {user=user, name=decoded.name})
+
       end
     end
   end
 
-  return i18n('user_activity.unknown_activity', {user=user})
+  return i18n('user_activity.unknown_activity', {user=user, scope=decoded.scope})
 end
 
 -- #################################
