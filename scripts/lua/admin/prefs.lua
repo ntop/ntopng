@@ -1315,10 +1315,13 @@ function printStatsTimeseries()
 				    "ntopng.prefs.l2_device_ndpi_timeseries_creation", nil,
 				    elementToSwitch, showElementArray, javascriptAfterSwitch, showElement)
 
+-- TODO: implement this as a timeseries driver API if needed
+--[[
   prefsInputFieldPrefs(subpage_active.entries["rrd_files_retention"].title, subpage_active.entries["rrd_files_retention"].description,
 		       "ntopng.prefs.", "rrd_files_retention", 30, "number",
 		       showElement,
-		       nil, nil, {min=1, max=365, --[[ TODO check min/max ]]})
+		       nil, nil, {min=1, max=365})
+]]
 
   print('<tr><th colspan=2 class="info">'..i18n('prefs.other_timeseries')..'</th></tr>')
 
