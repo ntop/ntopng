@@ -792,13 +792,15 @@ local function setStuckJobsAsFailed()
   local jobs = {}
   local job_ids = ntop.getHashKeysCache(extraction_jobs_key) or {}
 
-  for id,_ in pairs(job_ids) do
+  for id,_ in pairsByKeys(job_ids, rev) do
     local job_json = ntop.getHashCache(extraction_jobs_key, id)
     local job = json.decode(job_json)
     if job.status == "processing" then
       job.status = "failed"
       job.error_code = 9 -- stuck
-      ntop.setHashCache(extraction_jobs_key, job.id, json.encode(job)) 
+      ntop.setHashCache(extraction_jobs_key, job.id, json.encode(job))
+    else
+      break -- optimization
     end
   end
 end
