@@ -73,6 +73,16 @@ local function tracker_filter_pref(key)
   return false
 end
 
+local function enablingAlertsGeneration(f_name, f_args)
+  return (f_name == "setPref" and 
+          f_args[1] ~= nil and f_args[1] == "ntopng.prefs.disable_alerts_generation" and 
+          f_args[2] ~= nil and f_args[2] == "0")
+end
+
+local function purgingAlerts(f_name)
+  return (f_name == "checkDeleteStoredAlerts")
+end
+
 --! @brief Filter function calls to be logged based on function name or arguments
 --! @param f_name is the function name
 --! @param f_args is a table with the arguments
@@ -108,9 +118,16 @@ function tracker.hook(f, name)
       end
     end
 
+    local track_call = (f_name ~= nil and tracker_filter(f_name, f_args))
+    local track_after_call = (track_call and (purgingAlerts(f_name) or enablingAlertsGeneration(f_name, f_args)))
+
+    if track_call and not track_after_call then 
+      tracker.log(f_name, f_args)
+    end
+
     local result = {f(...)}
 
-    if f_name ~= nil and tracker_filter(f_name, f_args) then 
+    if track_after_call then
       tracker.log(f_name, f_args)
     end
 
