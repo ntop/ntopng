@@ -41,7 +41,12 @@ local always_show_hist = _GET["always_show_hist"]
 local ntopinfo    = ntop.getInfo()
 local active_page = "hosts"
 
-interface.select(ifname)
+if not isEmptyString(_GET["ifid"]) then
+  interface.select(_GET["ifid"])
+else
+  interface.select(ifname)
+end
+
 local ifstats = interface.getStats()
 
 ifId = ifstats.id

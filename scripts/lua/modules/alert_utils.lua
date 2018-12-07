@@ -689,6 +689,7 @@ function formatRawUserActivity(record, activity_json)
       end
 
     elseif decoded.scope == 'function' and decoded.name ~= nil then
+      local ifname = getInterfaceName(decoded.ifid)
 
       -- User add/del/password
 
@@ -717,14 +718,12 @@ function formatRawUserActivity(record, activity_json)
       -- Stored data
 
       elseif decoded.name == 'request_delete_active_interface_data' and decoded.params[1] ~= nil then
-        local ifname = decoded.params[1]
         return i18n('user_activity.deleted_interface_data', {user=user, ifname=ifname})
 
       elseif decoded.name == 'delete_all_interfaces_data' then
         return i18n('user_activity.deleted_all_interfaces_data', {user=user})
 
       elseif decoded.name == 'delete_host' and decoded.params[1] ~= nil then
-        local ifname = getInterfaceName(decoded.params[1])
         -- We should also read the host here (argument is table host_info)
         return i18n('user_activity.deleted_host_data', {user=user, ifname=ifname})
 
@@ -761,14 +760,20 @@ function formatRawUserActivity(record, activity_json)
         local mode = decoded.params[1]
         if decoded.params[2] ~= nil then
           local host = decoded.params[1]
-          return i18n('user_activity.exported_data_host', {user=user, mode=mode, host=host})
+          local hostinfo = hostkey2hostinfo(host)
+          local hostname = host2name(hostinfo.host, hostinfo.vlan)
+          local host_url = "<a href=\"".. ntop.getHttpPrefix() .. "/lua/host_details.lua?ifid="..decoded.ifid.."&host="..host.."\">"..hostname .."</a>" 
+          return i18n('user_activity.exported_data_host', {user=user, mode=mode, host=host_url})
         else
           return i18n('user_activity.exported_data', {user=user, mode=mode})
         end
 
       elseif decoded.name == 'host_get_json' and decoded.params[1] ~= nil then
         local host = decoded.params[1]
-        return i18n('user_activity.host_json_downloaded', {user=user, host=host})
+        local hostinfo = hostkey2hostinfo(host)
+        local hostname = host2name(hostinfo.host, hostinfo.vlan)
+        local host_url = "<a href=\"".. ntop.getHttpPrefix() .. "/lua/host_details.lua?ifid="..decoded.ifid.."&host="..host.."\">"..hostname .."</a>" 
+        return i18n('user_activity.host_json_downloaded', {user=user, host=host_url})
 
       elseif decoded.name == 'live_flows_extraction' and decoded.params[1] ~= nil and decoded.params[2] ~= nil then
         local time_from = format_utils.formatEpoch(decoded.params[1])
@@ -780,25 +785,27 @@ function formatRawUserActivity(record, activity_json)
       elseif decoded.name == 'liveCapture' then
         if not isEmptyString(decoded.params[1]) then
           local host = decoded.params[1]
+          local hostinfo = hostkey2hostinfo(host)
+          local hostname = host2name(hostinfo.host, hostinfo.vlan)
+          local host_url = "<a href=\"".. ntop.getHttpPrefix() .. "/lua/host_details.lua?ifid="..decoded.ifid.."&host="..host.."\">"..hostname .."</a>" 
           if not isEmptyString(decoded.params[3]) then
             local filter = decoded.params[3]
-            return i18n('user_activity.live_capture_host_with_filter', {user=user, host=host, filter=filter})
+            return i18n('user_activity.live_capture_host_with_filter', {user=user, host=host_url, filter=filter, ifname=ifname})
           else
-            return i18n('user_activity.live_capture_host', {user=user, host=host})
+            return i18n('user_activity.live_capture_host', {user=user, host=host_url, ifname=ifname})
           end
         else
           if not isEmptyString(decoded.params[3]) then
             local filter = decoded.params[3]
-            return i18n('user_activity.live_capture_with_filter', {user=user,filter=filter})
+            return i18n('user_activity.live_capture_with_filter', {user=user,filter=filter, ifname=ifname})
           else
-            return i18n('user_activity.live_capture', {user=user})
+            return i18n('user_activity.live_capture', {user=user, ifname=ifname})
           end
         end
 
       -- Live extraction
 
       elseif decoded.name == 'runLiveExtraction' and decoded.params[1] ~= nil then
-        local ifname = getInterfaceName(decoded.params[1])
         local time_from = format_utils.formatEpoch(decoded.params[2])
         local time_to = format_utils.formatEpoch(decoded.params[3])
         local filter = decoded.params[4]

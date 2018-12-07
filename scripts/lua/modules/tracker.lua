@@ -11,10 +11,13 @@ local tracker = {}
 --! @param f_name is the function name
 --! @param f_args is a table with the arguments
 function tracker.log(f_name, f_args)
+  local ifid = interface.getStats().id
+
   local jobj = { 
     scope = 'function',
     name = f_name,
-    params = f_args
+    params = f_args,
+    ifid = ifid
   }
 
   local entity = alertEntity("user")
@@ -25,7 +28,7 @@ function tracker.log(f_name, f_args)
 
   -- tprint(alert_json)
 
-  local old_iface = interface.getStats().id
+  local old_iface = ifid
   local sys_iface = getFirstInterfaceId()
   interface.select(tostring(sys_iface))
 
