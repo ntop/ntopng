@@ -813,6 +813,7 @@
 #define PREF_LDAP_SEARCH_PATH         NTOPNG_PREFS_PREFIX".ldap.search_path"
 #define PREF_LDAP_USER_GROUP          NTOPNG_PREFS_PREFIX".ldap.user_group"
 #define PREF_LDAP_ADMIN_GROUP         NTOPNG_PREFS_PREFIX".ldap.admin_group"
+#define PREF_LDAP_FOLLOW_REFERRALS    NTOPNG_PREFS_PREFIX".ldap.follow_referrals"
 #ifdef HAVE_LDAP
 #define MAX_LDAP_LEN     256  /* Keep it in sync with lua preferences file prefs.lua */
 #endif

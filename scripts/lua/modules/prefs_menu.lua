@@ -49,6 +49,9 @@ local menu_subpages = {
     }, toggle_ldap_anonymous_bind = {
       title       = i18n("prefs.toggle_ldap_anonymous_bind_title"),
       description = i18n("prefs.toggle_ldap_anonymous_bind_description"),
+    }, toggle_ldap_referrals = {
+      title       = i18n("prefs.toggle_ldap_referrals_title"),
+      description = i18n("prefs.toggle_ldap_referrals_description"),
     }, radius_server = {
       title       = i18n("prefs.radius_server_title"),
       description = i18n("prefs.radius_server_description", {example="127.0.0.1:1812"}),

@@ -920,7 +920,7 @@ local function printLdapAuth()
 
   print('<tr><th colspan=2 class="info">'..i18n("prefs.ldap_authentication")..'</th></tr>')
 
-  local elementToSwitch = {"row_multiple_ldap_account_type", "row_toggle_ldap_anonymous_bind","server","bind_dn", "bind_pwd", "ldap_server_address", "search_path", "user_group", "admin_group"}
+  local elementToSwitch = {"row_multiple_ldap_account_type", "row_toggle_ldap_anonymous_bind","server","bind_dn", "bind_pwd", "ldap_server_address", "search_path", "user_group", "admin_group", "row_toggle_ldap_referrals"}
 
   local javascriptAfterSwitch = "";
   javascriptAfterSwitch = javascriptAfterSwitch.."  if($(\"#toggle_ldap_auth_input\").val() == \"1\") {\n"
@@ -975,6 +975,14 @@ local function printLdapAuth()
   prefsInputFieldPrefs(subpage_active.entries["search_path"].title, subpage_active.entries["search_path"].description, "ntopng.prefs.ldap", "search_path", "", "text", showElements, nil, nil, {attributes={spellcheck="false", maxlength=255}})
   prefsInputFieldPrefs(subpage_active.entries["user_group"].title, subpage_active.entries["user_group"].description, "ntopng.prefs.ldap", "user_group", "", "text", showElements, nil, nil, {attributes={spellcheck="false", maxlength=255}})
   prefsInputFieldPrefs(subpage_active.entries["admin_group"].title, subpage_active.entries["admin_group"].description, "ntopng.prefs.ldap", "admin_group", "", "text", showElements, nil, nil, {attributes={spellcheck="false", maxlength=255}})
+
+  prefsToggleButton(subpage_active, {
+    field = "toggle_ldap_referrals",
+    default = "1",
+    pref = "ldap.follow_referrals",
+    reverse_switch = true,
+    hidden = not showElements,
+  })
 end
 
 -- #####################

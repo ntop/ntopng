@@ -1097,6 +1097,7 @@ local known_parameters = {
    ["toggle_local_auth"]                           = validateBool,
    ["toggle_radius_auth"]                          = validateBool,
    ["toggle_http_auth"]                            = validateBool,
+   ["toggle_ldap_referrals"]                       = validateBool,
 
    -- Input fields
    ["minute_top_talkers_retention"]                = validateNumber,
