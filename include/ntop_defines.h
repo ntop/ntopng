@@ -253,8 +253,8 @@
 
 #define CONST_MAX_NUM_LIVE_EXTRACTIONS 2
 
-#define CONST_MAX_EXTR_PCAP_MBYTES NTOPNG_PREFS_PREFIX".max_extracted_pcap_mbytes"
-#define CONST_DEFAULT_MAX_EXTR_PCAP_MBYTES 100
+#define CONST_MAX_EXTR_PCAP_BYTES NTOPNG_PREFS_PREFIX".max_extracted_pcap_bytes"
+#define CONST_DEFAULT_MAX_EXTR_PCAP_BYTES (100*1024*1024)
 
 #define MIN_CONNTRACK_UPDATE           3  /* sec */
 #define MIN_NETFILTER_UPDATE           30 /* sec */

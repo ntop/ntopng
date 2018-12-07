@@ -79,7 +79,7 @@ class Prefs {
   u_int32_t safe_search_dns_ip, global_primary_dns_ip, global_secondary_dns_ip;
   u_int32_t max_num_packets_per_tiny_flow, max_num_bytes_per_tiny_flow;
   u_int32_t max_num_aggregated_flows_per_export;
-  u_int32_t max_extracted_pcap_mbytes;
+  u_int32_t max_extracted_pcap_bytes;
   u_int32_t max_ui_strlen;
   u_int64_t elephant_flow_remote_to_local_bytes, elephant_flow_local_to_remote_bytes;
   u_int8_t default_l7policy;
@@ -336,7 +336,7 @@ class Prefs {
   inline u_int64_t get_elephant_flow_remote_to_local_bytes() { return(elephant_flow_remote_to_local_bytes); };
   inline u_int64_t get_elephant_flow_local_to_remote_bytes() { return(elephant_flow_local_to_remote_bytes); };
 
-  inline u_int64_t get_max_extracted_pcap_mbytes() { return max_extracted_pcap_mbytes; };
+  inline u_int64_t get_max_extracted_pcap_bytes() { return max_extracted_pcap_bytes; };
 
   inline u_int32_t get_safe_search_dns_ip()      { return(safe_search_dns_ip);                          };
   inline u_int32_t get_global_primary_dns_ip()   { return(global_primary_dns_ip);                       };

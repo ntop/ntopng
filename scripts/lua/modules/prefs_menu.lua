@@ -345,9 +345,9 @@ local menu_subpages = {
       title       = i18n("prefs.n2disk_license_title"),
       description = i18n("prefs.n2disk_license_description", { purchase_url='http://shop.ntop.org/', universities_url='http://www.ntop.org/support/faq/do-you-charge-universities-no-profit-and-research/'}),
     },
-    max_extracted_pcap_mbytes = {
-      title       = i18n("traffic_recording.max_extracted_pcap_mbytes_title"),
-      description = i18n("traffic_recording.max_extracted_pcap_mbytes_description"),
+    max_extracted_pcap_bytes = {
+      title       = i18n("traffic_recording.max_extracted_pcap_bytes_title"),
+      description = i18n("traffic_recording.max_extracted_pcap_bytes_description"),
     },
   }}, {id="remote_assistance", label=i18n("remote_assistance.remote_assistance"), advanced=true,  pro_only=false, hidden=(not remote_assistance.isAvailable()), entries={
     n2n_supernode = {

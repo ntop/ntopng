@@ -58,7 +58,7 @@ Prefs::Prefs(Ntop *_ntop) {
   default_l7policy = PASS_ALL_SHAPER_ID;
   num_ts_slots = CONST_DEFAULT_TS_NUM_SLOTS, ts_num_steps = CONST_DEFAULT_TS_NUM_STEPS;
   device_protocol_policies_enabled = false, enable_vlan_trunk_bridge = false;
-  max_extracted_pcap_mbytes = CONST_DEFAULT_MAX_EXTR_PCAP_MBYTES; 
+  max_extracted_pcap_bytes = CONST_DEFAULT_MAX_EXTR_PCAP_BYTES; 
   install_dir = NULL, captureDirection = PCAP_D_INOUT;
   docs_dir = strdup(CONST_DEFAULT_DOCS_DIR);
   scripts_dir = strdup(CONST_DEFAULT_SCRIPTS_DIR);
@@ -587,8 +587,8 @@ void Prefs::reloadPrefsFromRedis() {
 							       CONST_DEFAULT_ELEPHANT_FLOW_LOCAL_TO_REMOTE_BYTES),
     elephant_flow_remote_to_local_bytes = getDefaultPrefsValue(CONST_ELEPHANT_FLOW_REMOTE_TO_LOCAL_BYTES,
 							       CONST_DEFAULT_ELEPHANT_FLOW_REMOTE_TO_LOCAL_BYTES),
-    max_extracted_pcap_mbytes = getDefaultPrefsValue(CONST_MAX_EXTR_PCAP_MBYTES,
-                                                     CONST_DEFAULT_MAX_EXTR_PCAP_MBYTES); 
+    max_extracted_pcap_bytes = getDefaultPrefsValue(CONST_MAX_EXTR_PCAP_BYTES,
+                                                     CONST_DEFAULT_MAX_EXTR_PCAP_BYTES); 
 
     ewma_alpha_percent = getDefaultPrefsValue(CONST_EWMA_ALPHA_PERCENT, CONST_DEFAULT_EWMA_ALPHA_PERCENT);
 
@@ -1634,7 +1634,7 @@ void Prefs::lua(lua_State* vm) {
   lua_push_uint64_table_entry(vm, "elephant_flow_local_to_remote_bytes", elephant_flow_local_to_remote_bytes);
   lua_push_uint64_table_entry(vm, "elephant_flow_remote_to_local_bytes", elephant_flow_remote_to_local_bytes);
 
-  lua_push_uint64_table_entry(vm, "max_extracted_pcap_mbytes", max_extracted_pcap_mbytes);
+  lua_push_uint64_table_entry(vm, "max_extracted_pcap_bytes", max_extracted_pcap_bytes);
 
   lua_push_uint64_table_entry(vm, "ewma_alpha_percent", ewma_alpha_percent);
 

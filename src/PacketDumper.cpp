@@ -88,7 +88,7 @@ bool PacketDumper::openDump() {
   if (dumper != NULL)
     return true;
 
-  max_bytes_per_file = ntop->getPrefs()->get_max_extracted_pcap_mbytes()*1024*1024;
+  max_bytes_per_file = ntop->getPrefs()->get_max_extracted_pcap_bytes();
 
   Utils::mkdir_tree(out_path);
   snprintf(pcap_path, sizeof(pcap_path), "%s/%u.pcap", out_path, file_id+1);

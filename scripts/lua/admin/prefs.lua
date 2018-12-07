@@ -800,11 +800,10 @@ function printRecording()
 
   print('<tr><th colspan=2 class="info">'..i18n("traffic_recording.settings")..'</th></tr>')
 
-  prefsInputFieldPrefs(subpage_active.entries["max_extracted_pcap_mbytes"].title, 
-                       subpage_active.entries["max_extracted_pcap_mbytes"].description,
-		       "ntopng.prefs.", "max_extracted_pcap_mbytes", prefs.max_extracted_pcap_mbytes, "number",
-		       true,
-		       nil, nil, {min=1})
+  prefsInputFieldPrefs(subpage_active.entries["max_extracted_pcap_bytes"].title, 
+     subpage_active.entries["max_extracted_pcap_bytes"].description,
+    "ntopng.prefs.", "max_extracted_pcap_bytes", prefs.max_extracted_pcap_bytes, 
+    "number", true, nil, nil, {min=10*1024*1024, format_spec = FMT_TO_DATA_BYTES, tformat="mg"})
 
   -- ######################
 

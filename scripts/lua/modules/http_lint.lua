@@ -1189,7 +1189,7 @@ local known_parameters = {
    ["job_id"]                                      = validateNumber,
    ["n2disk_license"]                              = validateSingleAlphanumericWord,
    ["record_traffic"]                              = validateBool,
-   ["max_extracted_pcap_mbytes"]                   = validateNumber,
+   ["max_extracted_pcap_bytes"]                    = validateNumber,
 --
 
 -- PAGE SPECIFIC
