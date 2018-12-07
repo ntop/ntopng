@@ -678,6 +678,8 @@ function formatRawUserActivity(record, activity_json)
   local decoded = json.decode(activity_json)
   local user = record.alert_entity_val
 
+  -- tprint(activity_json)
+
   if decoded.scope ~= nil then
 
     if decoded.scope == 'login' and decoded.status ~= nil then
@@ -724,8 +726,11 @@ function formatRawUserActivity(record, activity_json)
         return i18n('user_activity.deleted_all_interfaces_data', {user=user})
 
       elseif decoded.name == 'delete_host' and decoded.params[1] ~= nil then
-        -- We should also read the host here (argument is table host_info)
-        return i18n('user_activity.deleted_host_data', {user=user, ifname=ifname})
+        local host = decoded.params[1]
+        local hostinfo = hostkey2hostinfo(host)
+        local hostname = host2name(hostinfo.host, hostinfo.vlan)
+        local host_url = "<a href=\"".. ntop.getHttpPrefix() .. "/lua/host_details.lua?ifid="..decoded.ifid.."&host="..host.."\">"..hostname .."</a>" 
+        return i18n('user_activity.deleted_host_data', {user=user, ifname=ifname, host=host_url})
 
       elseif decoded.name == 'delete_inactive_interfaces' then
         return i18n('user_activity.deleted_inactive_interfaces_data', {user=user})

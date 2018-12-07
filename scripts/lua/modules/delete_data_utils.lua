@@ -117,6 +117,9 @@ function delete_data_utils.delete_host(interface_id, host_info)
    local h_rk = delete_host_redis_keys(interface_id, host_info)
    local h_db = delete_host_mysql_flows(interface_id, host_info)
 
+   -- TRACKER HOOK
+   tracker.log('delete_host', { hostinfo2hostkey(host_info) })
+
    return {delete_host_timeseries_data = h_ts, delete_host_redis_keys = h_rk, delete_host_mysql_flows = h_db}
 end
 
@@ -443,7 +446,6 @@ end
 tracker.track(delete_data_utils, 'delete_all_interfaces_data')
 tracker.track(delete_data_utils, 'delete_inactive_interfaces')
 tracker.track(delete_data_utils, 'request_delete_active_interface_data')
-tracker.track(delete_data_utils, 'delete_host')
 
 -- ################################################################
 
