@@ -8,10 +8,14 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 local shaper_utils
 require "lua_utils"
 local have_nedge = ntop.isnEdge()
+local NfConfig = nil
 
 if ntop.isPro() then
    package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
    shaper_utils = require("shaper_utils")
+
+   package.path = dirs.installdir .. "/scripts/lua/pro/nedge/modules/?.lua;" .. package.path
+   NfConfig = require("nf_config")
 end
 
 require "historical_utils"
@@ -304,6 +308,13 @@ else
          printFlowQuota(ifstats.id, flow, false --[[ server ]])
          print("</td>")
          print("</tr>")
+      end
+
+      -- ENABLE MARKER DEBUG
+      if false then
+        print("<tr><th width=30%>"..i18n("flow_details.flow_marker").."</th>")
+        print("<td colspan=2>".. NfConfig.formatMarker(flow["marker"]) .."</td>")
+        print("</tr>")
       end
 
       local status_info = flow2statusinfo(flow)

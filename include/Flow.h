@@ -94,6 +94,7 @@ class Flow : public GenericHashEntry {
   char *community_id_flow_hash;
 #ifdef HAVE_NEDGE
   u_int32_t last_conntrack_update; 
+  u_int32_t marker;
 #endif
   
   union {
@@ -267,6 +268,8 @@ class Flow : public GenericHashEntry {
 #ifdef HAVE_NEDGE
   bool checkPassVerdict(const struct tm *now);
   bool isPassVerdict();
+  inline void setConntrackMarker(u_int32_t marker) 	{ this->marker = marker; }
+  inline u_int32_t getConntrackMarker() 		{ return(marker); }
 #endif
   void setDropVerdict();
   void incFlowDroppedCounters();

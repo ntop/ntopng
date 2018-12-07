@@ -44,6 +44,7 @@ Flow::Flow(NetworkInterface *_iface,
   doNotExpireBefore = iface->getTimeLastPktRcvd() + DONT_NOT_EXPIRE_BEFORE_SEC;
 #ifdef HAVE_NEDGE
   last_conntrack_update = 0;
+  marker = MARKER_NO_ACTION;
 #endif
 
   memset(&cli2srvStats, 0, sizeof(cli2srvStats)), memset(&srv2cliStats, 0, sizeof(srv2cliStats));
@@ -1714,6 +1715,8 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     }
 
 #ifdef HAVE_NEDGE
+    lua_push_uint64_table_entry(vm, "marker", marker);
+
     if(cli_host && srv_host) {
       /* Shapers */
       lua_push_uint64_table_entry(vm,

@@ -612,6 +612,7 @@ local lang = {
     ["c_ip_addresses"] = "C IP Addresses",
     ["call_canceled"] = "Call Canceled",
     ["call_completed"] = "Call Completed",
+    flow_marker = "Flow Marker",
     ["call_error"] = "Call Error",
     ["call_id"] = "Call-ID",
     ["call_initiator"] = "Call Initiator",
