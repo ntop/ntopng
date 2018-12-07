@@ -1004,7 +1004,7 @@ end
 -- Compute the difference in seconds between local time and UTC.
 function get_timezone()
   local now = os.time()
-  return os.difftime(now, os.time(os.date("!*t", now)))
+  return math.floor(os.difftime(now, os.time(os.date("!*t", now))))
 end
 
 function getCategoriesWithProtocols()
