@@ -1751,8 +1751,8 @@ if  test -f /usr/bin/lsb_release ; then
   EXTRA_DEPS=", debconf, libnuma1, $ZMQ_DEP, libnetfilter-queue1"
 
   if  test -d $HOME/PF_RING ; then
-    PFRING_VERS=`cat $HOME/PF_RING/kernel/linux/pf_ring.h | grep RING_VERSION | head -1 | cut -d '"' -f 2`
-    PFRING_RELEASE=`cd $HOME/PF_RING ; git rev-list --all |wc -l | tr -d '[:space:]'`
+    PFRING_VERS=`$HOME/PF_RING/package/version.sh --release`
+    PFRING_RELEASE=`$HOME/PF_RING/package/version.sh --revision`
     PFRING_DEP="pfring (=$PFRING_VERS-$PFRING_RELEASE)"
   else
     PFRING_VERS=""

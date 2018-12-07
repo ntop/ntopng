@@ -354,12 +354,12 @@ fi
 if test "${with_nedge+set}" != set; then
  PFRING_GIT_RELEASE=""
  if test -d $HOME/PF_RING; then
-   PFRING_GIT_RELEASE=`cd $HOME/PF_RING ; git rev-list --all |wc -l`
+  PFRING_GIT_RELEASE=`$HOME/PF_RING/package/version.sh --revision`
  fi
 
  PFRING_VERSION=""
  if test -f "$HOME/PF_RING/kernel/linux/pf_ring.h"; then
-  PFRING_VERSION=`cat $HOME/PF_RING/kernel/linux/pf_ring.h | grep RING_VERSION | head -1 | cut -d '"' -f 2`
+  PFRING_VERSION=`$HOME/PF_RING/package/version.sh --release`
  fi
 fi
 
