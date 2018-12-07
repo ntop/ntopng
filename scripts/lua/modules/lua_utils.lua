@@ -2761,7 +2761,7 @@ function makeTimeStamp(d, tzoffset)
       -- tprint("post-timestamp is:"..timestamp)
    end
 
-   return timestamp.."";
+   return math.floor(timestamp).."";
 end
 
 -- ###########################################

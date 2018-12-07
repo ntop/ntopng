@@ -24,8 +24,8 @@ if l7proto == nil or l7proto == "" then
    l7proto = _GET["l7_proto_id"]
 end
 
-local currentPage = _GET["currentPage"]
-local perPage = _GET["perPage"]
+local currentPage = tonumber(_GET["currentPage"])
+local perPage = tonumber(_GET["perPage"])
 local sortColumn = _GET["sortColumn"]
 local sortOrder = _GET["sortOrder"]
 
@@ -36,6 +36,7 @@ local l4proto = _GET["l4proto"]
 if l4proto == nil or l4proto == "" then
    l4proto = _GET["l4_proto_id"]
 end
+
 local port = _GET["port"]
 local info = _GET["info"]
 local vlan = _GET["vlan"]
