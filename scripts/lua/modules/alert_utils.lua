@@ -778,12 +778,21 @@ function formatRawUserActivity(record, activity_json)
       -- Live capture
 
       elseif decoded.name == 'liveCapture' then
-        local filter = decoded.params[3]
         if not isEmptyString(decoded.params[1]) then
           local host = decoded.params[1]
-          return i18n('user_activity.live_capture_host', {user=user, host=host, filter=filter})
+          if not isEmptyString(decoded.params[3]) then
+            local filter = decoded.params[3]
+            return i18n('user_activity.live_capture_host_with_filter', {user=user, host=host, filter=filter})
+          else
+            return i18n('user_activity.live_capture_host', {user=user, host=host})
+          end
         else
-          return i18n('user_activity.live_capture', {user=user,filter=filter})
+          if not isEmptyString(decoded.params[3]) then
+            local filter = decoded.params[3]
+            return i18n('user_activity.live_capture_with_filter', {user=user,filter=filter})
+          else
+            return i18n('user_activity.live_capture', {user=user})
+          end
         end
 
       -- Live extraction
