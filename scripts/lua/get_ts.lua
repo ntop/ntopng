@@ -39,8 +39,8 @@ if tend > latest_tstamp then
   local alignment = (tend - tstart) / options.max_num_points
 
   delta = delta + (alignment - delta % alignment)
-  tend = tend - delta
-  tstart = tstart - delta
+  tend = math.floor(tend - delta)
+  tstart = math.floor(tstart - delta)
 end
 
 if tags.ifid then
