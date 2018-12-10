@@ -319,6 +319,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
   var url = http_prefix + "/lua/get_ts.lua";
   var first_load = true;
   var first_time_loaded = true;
+  var manual_trigger_cmp_serie = false;
   var datetime_format = "dd/MM/yyyy hh:mm:ss";
   var max_over_total_ratio = 3;
   chart.is_zoomed = ((current_zoom_level > 0) || has_initial_zoom());
@@ -363,6 +364,9 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
   }
 
   chart.legend.dispatch.on('legendClick', function(d,i) {
+    if(d.legend_key.indexOf("ago") != -1)
+      manual_trigger_cmp_serie = true;
+
     if(typeof localStorage !== "undefined")
       localStorage.setItem("chart_series.disabled." + d.legend_key, (!d.disabled) ? true : false);
   });
@@ -600,7 +604,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
           past_serie = serie_data; // TODO: more reliable way to determine past serie
 
           /* Hide comparison serie at first load if it's too high */
-          if(first_time_loaded && (ratio_over_total > max_over_total_ratio))
+          if((first_time_loaded || !manual_trigger_cmp_serie) && (ratio_over_total > max_over_total_ratio))
             is_disabled = true;
 
           res.push({
@@ -894,6 +898,11 @@ function updateGraphsTableView(view, graph_params, has_nindex, nindex_query, per
       buttons: view.nindex_view ? [nindex_buttons, ] : [],
       tableCallback: function() {
         var data = this.resultset;
+
+        /* The user changed page */
+        if(data.currentPage > 1)
+          graph_table.data("has_interaction", true);
+
         var stats_div = $("#chart1-flows-stats");
         var has_drilldown = (data && data.data.some(function(row) { return row.drilldown; }));
 
