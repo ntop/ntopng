@@ -78,7 +78,12 @@ The parameters above should be modified according to the actual configuration in
 It is important to configure the LDAP server properly in order to correctly expose the necessary
 group metadata to ntopng, otherwise authentication will not work properly. The following
 link contains recommendations to be applied to an OpenLDAP server for ntopng communication:
-https://github.com/ntop/ntopng/blob/dev/doc/README.LDAP .
+https://github.com/ntop/ntopng/blob/dev/doc/README.LDAP.
+
+A detailed blog post that discusses LDAP authentication and shows how
+to configure an LDAP server can be found at:
+https://www.ntop.org/ntopng/remote-ntopng-authentication-with-radius-and-ldap/
+
 
 RADIUS Authentication
 #####################
@@ -123,7 +128,12 @@ Upon a successfully authentication, the command above should return the followin
   rad_recv: Access-Accept packet from host 127.0.0.1 port 1812, id=4, length=20
 
 The following link provides more information on the RADIUS setup for ntopng:
-https://github.com/ntop/ntopng/blob/dev/doc/README.RADIUS .
+https://github.com/ntop/ntopng/blob/dev/doc/README.RADIUS.
+
+A detailed blog post that discusses RADIUS authentication in ntopng,
+and shows how to set up a RADIUS server can be found at:
+https://www.ntop.org/ntopng/remote-ntopng-authentication-with-radius-and-ldap/
+
 
 HTTP Authentication
 ###################

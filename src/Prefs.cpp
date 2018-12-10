@@ -48,7 +48,7 @@ Prefs::Prefs(Ntop *_ntop) {
     enable_remote_to_remote_alerts = true,
     enable_dropped_flows_alerts = true, enable_device_protocols_alerts = false,
     enable_syslog_alerts = false, enable_captive_portal = false, mac_based_captive_portal = false,
-    enabled_malware_alerts = true, enable_elephant_flows_alerts = false,
+    enabled_malware_alerts = true, enable_elephant_flows_alerts = false, enable_longlived_flows_alerts = true,
     enable_informative_captive_portal = false,
     external_notifications_enabled = false, dump_flow_alerts_when_iface_alerted = false,
     override_dst_with_post_nat_dst = false, override_src_with_post_nat_src = false,
@@ -569,6 +569,8 @@ void Prefs::reloadPrefsFromRedis() {
 							       CONST_DEFAULT_ALERT_DEVICE_PROTOCOLS_ENABLED),
     enable_elephant_flows_alerts  = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_ALERT_ELEPHANT_FLOWS,
 							     CONST_DEFAULT_ALERT_ELEPHANT_FLOWS_ENABLED),
+    enable_longlived_flows_alerts  = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_ALERT_LONGLIVED_FLOWS,
+							      CONST_DEFAULT_ALERT_LONGLIVED_FLOWS_ENABLED),
     enable_syslog_alerts  = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_ALERT_SYSLOG, CONST_DEFAULT_ALERT_SYSLOG_ENABLED),
     enabled_malware_alerts = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_MALWARE_ALERTS, CONST_DEFAULT_MALWARE_ALERTS_ENABLED),
     external_notifications_enabled         = getDefaultBoolPrefsValue(ALERTS_MANAGER_EXTERNAL_NOTIFICATIONS_ENABLED, false),
@@ -587,6 +589,8 @@ void Prefs::reloadPrefsFromRedis() {
 							       CONST_DEFAULT_ELEPHANT_FLOW_LOCAL_TO_REMOTE_BYTES),
     elephant_flow_remote_to_local_bytes = getDefaultPrefsValue(CONST_ELEPHANT_FLOW_REMOTE_TO_LOCAL_BYTES,
 							       CONST_DEFAULT_ELEPHANT_FLOW_REMOTE_TO_LOCAL_BYTES),
+    longlived_flow_duration = getDefaultPrefsValue(CONST_LONGLIVED_FLOW_DURATION,
+						   CONST_DEFAULT_LONGLIVED_FLOW_DURATION),
     max_extracted_pcap_bytes = getDefaultPrefsValue(CONST_MAX_EXTR_PCAP_BYTES,
                                                      CONST_DEFAULT_MAX_EXTR_PCAP_BYTES); 
 
@@ -1626,6 +1630,7 @@ void Prefs::lua(lua_State* vm) {
   lua_push_bool_table_entry(vm, "is_flow_device_port_rrd_creation_enabled", enable_flow_device_port_rrd_creation);
 
   lua_push_bool_table_entry(vm, "are_alerts_enabled", !disable_alerts);
+  lua_push_bool_table_entry(vm, "are_longlived_flows_alerts_enabled", enable_longlived_flows_alerts);
   lua_push_bool_table_entry(vm, "is_users_login_enabled", enable_users_login);
 
   lua_push_uint64_table_entry(vm, "max_num_packets_per_tiny_flow", max_num_packets_per_tiny_flow);
@@ -1633,6 +1638,7 @@ void Prefs::lua(lua_State* vm) {
   lua_push_uint64_table_entry(vm, "max_num_aggregated_flows_per_export", max_num_aggregated_flows_per_export);
   lua_push_uint64_table_entry(vm, "elephant_flow_local_to_remote_bytes", elephant_flow_local_to_remote_bytes);
   lua_push_uint64_table_entry(vm, "elephant_flow_remote_to_local_bytes", elephant_flow_remote_to_local_bytes);
+  lua_push_uint64_table_entry(vm, "longlived_flow_duration", longlived_flow_duration);
 
   lua_push_uint64_table_entry(vm, "max_extracted_pcap_bytes", max_extracted_pcap_bytes);
 

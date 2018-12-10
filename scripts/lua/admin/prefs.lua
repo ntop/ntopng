@@ -290,7 +290,7 @@ function printAlerts()
 			   "row_toggle_ssl_alerts", "row_toggle_dns_alerts", "row_toggle_remote_to_remote_alerts",
 			   "row_toggle_ip_reassignment_alerts", "row_toggle_dropped_flows_alerts", "row_alerts_informative_header",
 			   "row_toggle_device_first_seen_alert", "row_toggle_device_activation_alert", "row_toggle_pool_activation_alert", "row_toggle_quota_exceeded_alert", "row_toggle_mining_alerts", "row_toggle_device_protocols_alerts",
-			   "row_toggle_elephant_flows_alerts", "elephant_flow_local_to_remote_bytes", "elephant_flow_remote_to_local_bytes"
+			   "row_toggle_longlived_flows_alerts", "longlived_flow_duration", "row_toggle_elephant_flows_alerts", "elephant_flow_local_to_remote_bytes", "elephant_flow_remote_to_local_bytes"
 			}
  
  if not subpage_active.entries["toggle_mysql_check_open_files_limit"].hidden then
@@ -394,6 +394,18 @@ function printAlerts()
     default = "0",
     hidden = not showElements,
   })
+
+  prefsToggleButton(subpage_active, {
+    field = "toggle_longlived_flows_alerts",
+    pref = "longlived_flows_alerts",
+    default = prefs.are_longlived_flows_alerts_enabled,
+    hidden = not showElements,
+  })
+
+  prefsInputFieldPrefs(subpage_active.entries["longlived_flow_duration"].title, 
+     subpage_active.entries["longlived_flow_duration"].description,
+    "ntopng.prefs.", "longlived_flow_duration", prefs.longlived_flow_duration, 
+    "number", showElements, nil, nil, {min=1, max=60*60*24*7, tformat="hd"})
 
   prefsToggleButton(subpage_active, {
     field = "toggle_elephant_flows_alerts",
