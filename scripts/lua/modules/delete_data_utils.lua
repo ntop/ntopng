@@ -441,6 +441,68 @@ end
 
 -- ################################################################
 
+-- NOTE: this has 1 day accuracy
+local function harvestDateBasedDirTree(dir, retention, now)
+   for year in pairs(ntop.readdir(dir) or {}) do
+      local year_path = os_utils.fixPath(dir .. "/" .. year)
+      local num_deleted_months = 0
+      local tot_months = 0
+
+      for month in pairs(ntop.readdir(year_path) or {}) do
+	 local month_path = os_utils.fixPath(year_path .. "/" .. month)
+	 local num_deleted_days = 0
+	 local tot_days = 0
+
+	 for day in pairs(ntop.readdir(month_path) or {}) do
+	    local tstamp = os.time({day=tonumber(day), month=tonumber(month), year=tonumber(year), hour=0, min=0, sec=0})
+	    local days_diff = (now - tstamp) / 86400
+
+	    if(days_diff > retention) then
+	       local day_path = os_utils.fixPath(month_path .. "/" .. day)
+	       --tprint(os.date('PURGE %Y-%m-%d %H:%M:%S', tstamp))
+	       ntop.rmdir(day_path)
+	       num_deleted_days = num_deleted_days + 1
+	    end
+
+	    tot_days = tot_days + 1
+	 end
+
+	 if num_deleted_days == tot_days then
+	    --tprint("PURGE month: ".. month .."/" .. year)
+	    ntop.rmdir(month_path)
+	    num_deleted_months = num_deleted_months + 1
+	 end
+
+	 tot_months = tot_months + 1
+      end
+
+      if num_deleted_months == tot_months then
+	 --tprint("PURGE year " .. year)
+	 ntop.rmdir(year_path)
+      end
+   end
+end
+
+-- ################################################################
+
+function delete_data_utils.delete_old_nindex_flows()
+   local retention = tonumber(ntop.getPref("ntopng.prefs.nindex_retention_days")) or 365
+   local if_list = list_all_interfaces()
+
+   for ifid in pairs(if_list) do
+      local data_dir = ntop.getDirs()["workingdir"]
+      local ifdir = os_utils.fixPath(string.format("%s/%u/", data_dir, ifid))
+      local flows_dir = os_utils.fixPath(ifdir .. "/flows")
+      local aggrflows_dir = os_utils.fixPath(ifdir .. "/aggregatedflows")
+      local now = os.time()
+
+      harvestDateBasedDirTree(flows_dir, retention, now)
+      harvestDateBasedDirTree(aggrflows_dir, retention, now)
+   end
+end
+
+-- ################################################################
+
 -- TRACKER HOOK
 
 tracker.track(delete_data_utils, 'delete_all_interfaces_data')

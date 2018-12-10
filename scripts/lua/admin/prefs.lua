@@ -1406,7 +1406,11 @@ function printStatsTimeseries()
   --default value
   minute_top_talkers_retention = 365
   prefsInputFieldPrefs(subpage_active.entries["minute_top_talkers_retention"].title, subpage_active.entries["minute_top_talkers_retention"].description,
-      "ntopng.prefs.", "minute_top_talkers_retention", minute_top_talkers_retention, "number", nil, nil, nil, {min=1, max=365*10, --[[ TODO check min/max ]]})
+      "ntopng.prefs.", "minute_top_talkers_retention", minute_top_talkers_retention, "number", nil, nil, nil, {min=1, max=365*10})
+
+  prefsInputFieldPrefs(subpage_active.entries["nindex_retention"].title, subpage_active.entries["nindex_retention"].description,
+      "ntopng.prefs.", "nindex_retention_days", 365, "number", nil, nil, nil, {min=1, max=365*10})
+
   print('</table>')
 
   print('<table class="table">')

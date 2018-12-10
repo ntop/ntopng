@@ -176,6 +176,10 @@ local menu_subpages = {
       title       = i18n("prefs.mysql_retention_title"),
       description = i18n("prefs.mysql_retention_description"),
       hidden      = (prefs.is_dump_flows_to_mysql_enabled == false),
+    }, nindex_retention = {
+      title       = i18n("prefs.nindex_retention_title"),
+      description = i18n("prefs.nindex_retention_description"),
+      hidden      = not hasNindexSupport(),
     }
   }}, {id="alerts",        label=i18n("show_alerts.alerts"),               advanced=false, pro_only=false,  hidden=(prefs.has_cmdl_disable_alerts == true), entries={
     disable_alerts_generation = {

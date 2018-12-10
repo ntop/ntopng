@@ -1101,6 +1101,7 @@ local known_parameters = {
 
    -- Input fields
    ["minute_top_talkers_retention"]                = validateNumber,
+   ["nindex_retention_days"]                       = validateNumber,
    ["mysql_retention"]                             = validateNumber,
    ["influx_retention"]                            = validateNumber,
    ["rrd_files_retention"]                         = validateNumber,
