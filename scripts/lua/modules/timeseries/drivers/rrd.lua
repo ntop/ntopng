@@ -663,6 +663,9 @@ function driver:delete(schema_prefix, tags)
     }, mac = {
       tags = {ifid=1, mac=1},
       path = function(tags) return getRRDName(tags.ifid, tags.mac) end,
+    }, snmp_if = {
+      tags = {ifid=1, device=1},
+      path = function(tags) return getRRDName(tags.ifid, "snmp:" .. tags.device) end,
     }
   }
 
@@ -703,7 +706,6 @@ function driver:deleteOldData(ifid)
   local dirs = ntop.getDirs()
   local ifaces = ntop.listInterfaces()
   local retention_days = tonumber(ntop.getPref("ntopng.prefs.old_rrd_files_retention")) or 365
-  tprint(retention_days)
 
   for _, path in pairs(paths) do
     local ifpath = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/".. path .."/")
