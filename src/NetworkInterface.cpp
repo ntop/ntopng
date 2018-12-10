@@ -1906,39 +1906,19 @@ void NetworkInterface::purgeIdle(time_t when) {
 
 #ifdef EBPF_DEBUG
 
-static void IPV4Handler(Flow *f, struct ipv4_kernel_data *event) {  
+static void IPV4Handler(Flow *f, eBPFevent *e) {
+  struct ipv4_kernel_data *event = &e->event.v4;
   char buf1[32], buf2[32];
-
-#ifdef USER_READLINK
-  char what[256], sym[256] = { '\0' };
-  char fwhat[256], fsym[256] = { '\0' };
-
-  snprintf(what, sizeof(what), "/proc/%u/exe", event->proc.pid);
-  readlink(what, sym, sizeof(sym));
-  
-  snprintf(fwhat, sizeof(fwhat), "/proc/%u/exe", event->father.pid);
-  readlink(fwhat, fsym, sizeof(fsym));
-#endif
   
   ntop->getTrace()->traceEvent(TRACE_NORMAL,
-			       "[%s][IPv4/%s][%s][pid/tid: %u/%u (%s), uid/gid: %u/%u][father pid/tid: %u/%u (%s), uid/gid: %u/%u][addr: %s:%u <-> %s:%u][latency: %.2f msec]\n",
-			       f ? "** MATCH **" : "NOT MATCH", event->net.is_tcp ? "TCP" : "UDP",
-			       event->net.client_srv ? (event->net.is_tcp ? "connect" : "send") : (event->net.is_tcp ? "accept" : "recv"),
-			       event->proc.pid, event->proc.tid,
-#ifdef USER_READLINK
-			       sym
-#else
-			       event->proc.task
-#endif
-			       , event->proc.uid, event->proc.gid,
-			       event->father.pid, event->father.tid,
-#ifdef USER_READLINK
-			       fsym
-#else
-			       event->father.task
-#endif
-			       ,
-			       event->father.uid, event->father.gid,
+			       "[%s][IPv4][%s][pid/tid: %u/%u (%s), uid/gid: %u/%u][father pid/tid: %u/%u (%s), uid/gid: %u/%u][addr: %s:%u <-> %s:%u][latency: %.2f msec]\n",
+			       e->ifname, (event->net.proto == IPPROTO_TCP) ? "TCP" : "UDP",
+			       e->proc.pid, e->proc.tid,
+			       e->proc.full_task_path ? e->proc.full_task_path : e->proc.task,
+			       e->proc.uid, e->proc.gid,
+			       e->father.pid, e->father.tid,
+			       e->father.full_task_path ? e->father.full_task_path : e->father.task,
+			       e->father.uid, e->father.gid,
 			       Utils::intoaV4(htonl(event->saddr), buf1, sizeof(buf1)), event->net.sport,
 			       Utils::intoaV4(htonl(event->daddr), buf2, sizeof(buf2)), event->net.dport,
 			       ((float)event->net.latency_usec)/(float)1000);
@@ -1946,7 +1926,8 @@ static void IPV4Handler(Flow *f, struct ipv4_kernel_data *event) {
 
 /* ***************************************************** */
 
-static void IPV6Handler(Flow *f, struct ipv6_kernel_data *event) {
+static void IPV6Handler(Flow *f, eBPFevent *e) {
+  struct ipv6_kernel_data *event = &e->event.v6;
   char buf1[32], buf2[32];
   struct ndpi_in6_addr saddr, daddr;
 
@@ -1954,11 +1935,14 @@ static void IPV6Handler(Flow *f, struct ipv6_kernel_data *event) {
   memcpy(&daddr, &event->daddr, sizeof(daddr));
   
   ntop->getTrace()->traceEvent(TRACE_NORMAL,
-			       "[%s][IPv6/%s][%s][pid/tid: %u/%u (%s), uid/gid: %u/%u][father pid/tid: %u/%u (%s), uid/gid: %u/%u][addr: %s:%u <-> %s:%u][latency: %.2f msec]\n",
-			       f ? "** MATCH **" : "NOT MATCH", event->net.is_tcp ? "TCP" : "UDP",
-			       event->net.client_srv ? (event->net.is_tcp ? "connect" : "send") : (event->net.is_tcp ? "accept" : "recv"),
-			       event->proc.pid, event->proc.tid, event->proc.task, event->proc.uid, event->proc.gid,
-			       event->father.pid, event->father.tid, event->father.task, event->father.uid, event->father.gid,
+			       "[%s][IPv6][%s][pid/tid: %u/%u (%s), uid/gid: %u/%u][father pid/tid: %u/%u (%s), uid/gid: %u/%u][addr: %s:%u <-> %s:%u][latency: %.2f msec]\n",
+			       e->ifname, (event->net.proto == IPPROTO_TCP) ? "TCP" : "UDP",
+			       e->proc.pid, e->proc.tid,
+			       e->proc.full_task_path ? e->proc.full_task_path : e->proc.task,
+			       e->proc.uid, e->proc.gid,
+			       e->father.pid, e->father.tid,
+			       e->father.full_task_path ? e->father.full_task_path : e->father.task,
+			       e->father.uid, e->father.gid,
 			       Utils::intoaV6(saddr, 128, buf1, sizeof(buf1)),
 			       event->net.sport,
 			       Utils::intoaV6(daddr, 128, buf2, sizeof(buf2)),
@@ -2508,25 +2492,6 @@ void NetworkInterface::pollQueuedeBPFEvents() {
       bool src2dst_direction, new_flow;
       u_int16_t proto, sport, dport;
 
-#ifdef EBPF_DEBUG
-      if(event->ip_version == 4) {
-	char buf1[32], buf2[32];
-	
-	ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				     "[%s][IPv4/%s][%s][pid/tid: %u/%u (%s), uid/gid: %u/%u][father pid/tid: %u/%u (%s), uid/gid: %u/%u][addr: %s:%u <-> %s:%u][latency: %.2f msec]\n",
-				     event->ifname, (event->event.v4.net.proto == IPPROTO_TCP) ? "TCP" : "UDP", event->cgroup_id,
-				     event->proc.pid, event->proc.tid, event->proc.task,
-				     event->proc.uid, event->proc.gid,
-				     event->father.pid, event->father.tid,
-				     event->father.task, event->father.uid, event->father.gid,
-				     Utils::intoaV4(htonl(event->event.v4.saddr), buf1, sizeof(buf1)),
-				     event->event.v4.net.sport,
-				     Utils::intoaV4(htonl(event->event.v4.daddr), buf2, sizeof(buf2)),
-				     event->event.v4.net.dport,
-				     ((float)event->event.v4.net.latency_usec)/(float)1000);
-      }
-#endif
-      
       if(event->ip_version == 4) {
 	src.set(event->event.v4.saddr), dst.set(event->event.v4.daddr),
 	  sport = event->event.v4.net.sport, dport = event->event.v4.net.dport,
@@ -2549,21 +2514,21 @@ void NetworkInterface::pollQueuedeBPFEvents() {
 		     proto,
 		     &src2dst_direction,
 		     0, 0, 0, &new_flow,
-		     true);
+		     true /* create_if_missing */);
 
       
-      if(flow) flow->setProcessInfo(event, false);
+      if(flow) flow->setProcessInfo(event, event->sent_packet);
 
 #ifdef EBPF_DEBUG
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new flow: %u][src2dst_direction: %u]",
-				   new_flow ? 1 : 0, src2dst_direction ? 1 : 0);
+      // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new flow: %u][src2dst_direction: %u]", new_flow ? 1 : 0, src2dst_direction ? 1 : 0);
 
       if(event->ip_version == 4)
-	IPV4Handler(flow, &event->event.v4);
+	IPV4Handler(flow, event);
       else
-	IPV6Handler(flow, &event->event.v6);
+	IPV6Handler(flow, event);
 #endif
 
+      ebpf_free_event(event);
       free(event);
     }
   }
@@ -6955,8 +6920,7 @@ void NetworkInterface::reloadHostsBlacklist() {
 
 bool NetworkInterface::enqueueeBPFEvent(eBPFevent *event) {
 #ifdef EBPF_DEBUG
-  ntop->getTrace()->traceEvent(TRACE_ERROR, "[%s] %s(%d/%d)",
-			       ifname, __FUNCTION__, next_insert_idx, next_remove_idx);
+  // ntop->getTrace()->traceEvent(TRACE_ERROR, "[%s] %s(%d/%d)", ifname, __FUNCTION__, next_insert_idx, next_remove_idx);
 #endif
   
   if(ebpfEvents[next_insert_idx] != (eBPFevent*)NULL)
@@ -6978,8 +6942,7 @@ bool NetworkInterface::dequeueeBPFEvent(eBPFevent **event) {
   }
 
 #ifdef EBPF_DEBUG
-  ntop->getTrace()->traceEvent(TRACE_ERROR, "[%s] %s(%d/%d)",
-			       ifname, __FUNCTION__, next_insert_idx, next_remove_idx);
+  // ntop->getTrace()->traceEvent(TRACE_ERROR, "[%s] %s(%d/%d)", ifname, __FUNCTION__, next_insert_idx, next_remove_idx);
 #endif
   
   *event = ebpfEvents[next_remove_idx];
@@ -6993,8 +6956,11 @@ bool NetworkInterface::dequeueeBPFEvent(eBPFevent **event) {
 void NetworkInterface::delivereBPFEvent(eBPFevent *event) {
   eBPFevent *tmp;
 
-  if(ebpfEvents == NULL) return;
-
+  if(ebpfEvents == NULL)
+    return; /* No events */
+  else if((event->ifname[0] != '\0') && strcmp(event->ifname, ifname))
+    return; /* Not for this interface */
+    
   if((tmp = (eBPFevent*)malloc(sizeof(eBPFevent))) != NULL) {
     memcpy(tmp, event, sizeof(eBPFevent));
 

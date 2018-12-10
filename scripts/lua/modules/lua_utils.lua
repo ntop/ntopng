@@ -1524,13 +1524,16 @@ function flowinfo2process(process, host_info_to_url)
       -- TODO: add links back once restored
 
       if not isEmptyString(process["name"]) then
-	 local clean_name = process["name"]:gsub("'",'')
+	 local full_clean_name = process["name"]:gsub("'",'')
+	 local t = split(full_clean_name, "/")
+	 
+	 clean_name = t[#t]
 
 	 -- proc_name = string.format("<i class='fa fa-terminal'></i> %s", clean_name)
 	 proc_name = string.format("<A HREF='%s/lua/process_details.lua?%s&pid_name=%s&pid=%u'><i class='fa fa-terminal'></i> %s</A>",
 				   ntop.getHttpPrefix(),
 				   host_info_to_url,
-				   clean_name,
+				   full_clean_name,
 				   process["pid"],
 				   clean_name)
       end

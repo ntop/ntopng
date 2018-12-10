@@ -176,9 +176,17 @@ Flow::~Flow() {
   if(srv_host) srv_host->decNumFlows(false, cli_host), srv_host->decUses();
 
   if(json_info)        free(json_info);
-  if(client_proc)      free(client_proc);
-  if(server_proc)      free(server_proc);
   if(host_server_name) free(host_server_name);
+
+  if(client_proc) {
+    if(client_proc->process_name) free(client_proc->process_name);
+    if(client_proc->father_process_name) free(client_proc->father_process_name);
+    free(client_proc);
+  }
+  
+  if(server_proc) {
+    free(server_proc);
+  }
 
   if(isHTTP()) {
     if(protos.http.last_method) free(protos.http.last_method);
@@ -1488,7 +1496,7 @@ void Flow::processLua(lua_State* vm, ProcessInfo *proc, bool client) {
   Host *src = get_cli_host(), *dst = get_srv_host();
   struct passwd *pwd;
   
-  if((src == NULL) || (dst == NULL)) return;
+  if((src == NULL) || (dst == NULL) || (proc->pid == 0)) return;
 
   lua_newtable(vm);
 
@@ -1546,7 +1554,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     lua_push_str_table_entry(vm, "cli.ip",
 			     src->get_ip()->printMask(buf, sizeof(buf),
 						      src->isLocalHost()));
-    if(src->get_vlan_id())
+   if(src->get_vlan_id())
       lua_push_uint64_table_entry(vm, "cli.vlan", src->get_vlan_id());
 
     lua_push_uint64_table_entry(vm, "cli.key", mask_cli_host ? 0 : src->key());
@@ -3609,10 +3617,13 @@ void Flow::setProcessInfo(eBPFevent *event, bool client_process) {
 
     c->pid = proc->tid ? proc->tid : proc->pid,
       c->father_pid = father->tid ? father->tid : father->pid,
-      snprintf(c->process_name, sizeof(c->process_name), "%s", proc->task),
-      snprintf(c->father_process_name, sizeof(c->father_process_name), "%s", father->task),
       c->uid = proc->uid, c->gid = proc->gid,
       c->father_uid = father->uid, c->father_gid = father->gid;
+
+    if(c->process_name) free(c->process_name);
+    c->process_name = strdup(proc->full_task_path ? proc->full_task_path : proc->task);
+    if(c->father_process_name) free(c->father_process_name);
+    c->father_process_name = strdup(father->full_task_path ? father->full_task_path : father->task);
 
     /* TODO: handle latency_usec */
   }
