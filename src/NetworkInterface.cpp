@@ -2517,7 +2517,7 @@ void NetworkInterface::pollQueuedeBPFEvents() {
 		     true /* create_if_missing */);
 
       
-      if(flow) flow->setProcessInfo(event, event->sent_packet);
+      if(flow) flow->setProcessInfo(event, src2dst_direction ? event->sent_packet : !event->sent_packet);
 
 #ifdef EBPF_DEBUG
       // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new flow: %u][src2dst_direction: %u]", new_flow ? 1 : 0, src2dst_direction ? 1 : 0);
