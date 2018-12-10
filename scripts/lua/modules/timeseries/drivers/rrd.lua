@@ -698,4 +698,22 @@ end
 
 -- ##############################################
 
+function driver:deleteOldData(ifid)
+  local paths = getRRDPaths()
+  local dirs = ntop.getDirs()
+  local ifaces = ntop.listInterfaces()
+  local retention_days = tonumber(ntop.getPref("ntopng.prefs.old_rrd_files_retention")) or 365
+  tprint(retention_days)
+
+  for _, path in pairs(paths) do
+    local ifpath = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/".. path .."/")
+
+    ntop.deleteOldRRDs(ifpath, retention_days * 86400)
+  end
+
+  return true
+end
+
+-- ##############################################
+
 return driver

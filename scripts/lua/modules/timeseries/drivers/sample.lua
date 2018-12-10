@@ -82,6 +82,12 @@ end
 function driver:delete(schema_prefix, tags)
 end
 
+--! @brief Delete old data.
+--! @param ifid: the interface ID to process
+--! @return true if operation was successful, false otherwise.
+function driver:deleteOldData(ifid)
+end
+
 -- ##############################################
 
 return driver

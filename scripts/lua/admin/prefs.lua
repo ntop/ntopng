@@ -1192,6 +1192,9 @@ function printStatsTimeseries()
   javascriptAfterSwitch = javascriptAfterSwitch.."      $(\"#influx_username\").css(\"display\",\"none\");\n"
   javascriptAfterSwitch = javascriptAfterSwitch.."      $(\"#influx_password\").css(\"display\",\"none\");\n"
   javascriptAfterSwitch = javascriptAfterSwitch.."    }\n"
+  javascriptAfterSwitch = javascriptAfterSwitch.."    $(\"#old_rrd_files_retention\").css(\"display\",\"none\");\n"
+  javascriptAfterSwitch = javascriptAfterSwitch.."  } else {\n"
+  javascriptAfterSwitch = javascriptAfterSwitch.."    $(\"#old_rrd_files_retention\").css(\"display\",\"table-row\");\n"
   javascriptAfterSwitch = javascriptAfterSwitch.."  }\n"
 
   multipleTableButtonPrefs(subpage_active.entries["multiple_timeseries_database"].title,
@@ -1254,7 +1257,12 @@ function printStatsTimeseries()
 				    nil, nil, nil, influx_active)
 
   prefsInputFieldPrefs(subpage_active.entries["influxdb_storage"].title, subpage_active.entries["influxdb_storage"].description,
-      "ntopng.prefs.", "influx_retention", 365, "number", influx_active, nil, nil, {min=0, max=365*10, --[[ TODO check min/max ]]})
+      "ntopng.prefs.", "influx_retention", 365, "number", influx_active, nil, nil, {min=0, max=365*10})
+
+  prefsInputFieldPrefs(subpage_active.entries["rrd_files_retention"].title, subpage_active.entries["rrd_files_retention"].description,
+		       "ntopng.prefs.", "old_rrd_files_retention", 365, "number",
+		       not influx_active,
+		       nil, nil, {min=1, max=365*10})
 
   mysql_retention = 7
   prefsInputFieldPrefs(subpage_active.entries["mysql_retention"].title, subpage_active.entries["mysql_retention"].description .. "-F mysql;&lt;host|socket&gt;;&lt;dbname&gt;;&lt;table name&gt;;&lt;user&gt;;&lt;pw&gt;.",
@@ -1322,7 +1330,7 @@ function printStatsTimeseries()
     field = "toggle_l2_devices_traffic_rrd_creation",
     default = "0",
     pref = "l2_device_rrd_creation",
-    to_switch = {"row_l2_devices_ndpi_timeseries_creation", "rrd_files_retention"},
+    to_switch = {"row_l2_devices_ndpi_timeseries_creation"},
   })
 
   local l7_rrd_labels = {i18n("prefs.none"),
@@ -1341,13 +1349,6 @@ function printStatsTimeseries()
 				    "ntopng.prefs.l2_device_ndpi_timeseries_creation", nil,
 				    elementToSwitch, showElementArray, javascriptAfterSwitch, showElement)
 
--- TODO: implement this as a timeseries driver API if needed
---[[
-  prefsInputFieldPrefs(subpage_active.entries["rrd_files_retention"].title, subpage_active.entries["rrd_files_retention"].description,
-		       "ntopng.prefs.", "rrd_files_retention", 30, "number",
-		       showElement,
-		       nil, nil, {min=1, max=365})
-]]
 
   print('<tr><th colspan=2 class="info">'..i18n('prefs.other_timeseries')..'</th></tr>')
 

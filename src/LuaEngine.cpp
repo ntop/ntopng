@@ -6690,27 +6690,67 @@ static int ntop_stats_get_samplings_of_days_from_epoch(lua_State *vm) {
 
 /* ****************************************** */
 
-static int ntop_delete_old_rrd_files(lua_State *vm) {
-  int ifid;
+static bool ntop_delete_old_rrd_files_recursive(const char *dir_name, time_t now, int older_than_seconds) {
+  struct dirent *result;
+  int path_length;
   char path[MAX_PATH];
-  NetworkInterface *iface;
+  DIR *d;
+  time_t last_update;
+  unsigned long ds_count;
+
+  if(!dir_name || strlen(dir_name) > MAX_PATH)
+    return false;
+
+  d = opendir(dir_name);
+  if(!d) return false;
+
+  while((result = readdir(d)) != NULL) {
+    if(result->d_type & DT_REG) {
+      if((path_length = snprintf(path, MAX_PATH, "%s/%s", dir_name, result->d_name)) <= MAX_PATH) {
+        ntop->fixPath(path);
+
+        if(ntop_rrd_get_lastupdate(path, &last_update, &ds_count) == 0) {
+          if((now >= last_update) && ((now - last_update) > older_than_seconds)) {
+            //printf("DELETE %s\n", path);
+            unlink(path);
+          }
+        }
+      }
+    } else if(result->d_type & DT_DIR) {
+      if(strncmp(result->d_name, "..", 2) && strncmp(result->d_name, ".", 1)) {
+        if((path_length = snprintf(path, MAX_PATH, "%s/%s", dir_name, result->d_name)) <= MAX_PATH) {
+          ntop->fixPath(path);
+
+          ntop_delete_old_rrd_files_recursive(path, now, older_than_seconds);
+        }
+      }
+    }
+  }
+
+  rmdir(dir_name); /* Remove the directory, if empty */
+  closedir(d);
+
+  return true;
+}
+
+/* ****************************************** */
+
+static int ntop_delete_old_rrd_files(lua_State *vm) {
+  char path[PATH_MAX];
   int older_than_seconds;
+  time_t now = time(NULL);
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  if((ifid = lua_tointeger(vm, 1)) < 0) return(CONST_LUA_ERROR);
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  strncpy(path, lua_tostring(vm, 1), sizeof(path));
 
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   if((older_than_seconds = lua_tointeger(vm, 2)) < 0) return(CONST_LUA_ERROR);
 
-  if(!(iface = ntop->getNetworkInterface(ifid))) return(CONST_LUA_ERROR);
-
-  snprintf(path, sizeof(path), "%s/%d/rrd/macs/",
-	   ntop->get_working_dir(), ifid);
   ntop->fixPath(path);
 
-  if(Utils::discardOldFiles(path, older_than_seconds))
+  if(ntop_delete_old_rrd_files_recursive(path, now, older_than_seconds))
     return(CONST_LUA_ERROR);
 
   lua_pushnil(vm);

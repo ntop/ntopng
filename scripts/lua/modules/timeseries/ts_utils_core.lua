@@ -562,6 +562,26 @@ end
 
 -- ##############################################
 
+--! @brief Delete old data.
+--! @param ifid: the interface ID to process
+--! @return true if operation was successful, false otherwise.
+function ts_utils.deleteOldData(ifid)
+  if not isAdministrator() then
+    traceError(TRACE_ERROR, TRACE_CONSOLE, "Not Admin")
+    return false
+  end
+
+  ts_common.clearLastError()
+
+  for _, driver in pairs(ts_utils.listActiveDrivers()) do
+    rv = driver:deleteOldData(ifid) and rv
+  end
+
+  return rv
+end
+
+-- ##############################################
+
 function ts_utils.queryTotal(schema_name, tstart, tend, tags, options)
   if not isUserAccessAllowed(tags) then
     return nil

@@ -941,4 +941,12 @@ end
 
 -- ##############################################
 
+function driver:deleteOldData(ifid)
+  -- NOTE: retention is perfomed automatically based on the database retention policy,
+  -- no need for manual intervention
+  return true
+end
+
+-- ##############################################
+
 return driver

@@ -2016,60 +2016,6 @@ bool Utils::discardOldFilesExceeding(const char *path, const unsigned long max_s
 
 /* **************************************** */
 
-bool ntop_delete_old_files(const char *dir_name, time_t now, int older_than_seconds) {
-  struct dirent *result;
-  int path_length;
-  char path[MAX_PATH];
-  DIR *d;
-  struct stat file_stats;
-
-  if(!dir_name || strlen(dir_name) > MAX_PATH)
-    return false;
-
-  d = opendir(dir_name);
-  if(!d) return false;
-
-  while((result = readdir(d)) != NULL) {
-    if(result->d_type & DT_REG) {
-      if((path_length = snprintf(path, MAX_PATH, "%s/%s", dir_name, result->d_name)) <= MAX_PATH) {
-	ntop->fixPath(path);
-
-	if(!stat(path, &file_stats)) {
-	  if(file_stats.st_mtime <= now - older_than_seconds)
-	    unlink(path);
-	}
-      }
-    } else if(result->d_type & DT_DIR) {
-      if(strncmp(result->d_name, "..", 2) && strncmp(result->d_name, ".", 1)) {
-        if((path_length = snprintf(path, MAX_PATH, "%s/%s", dir_name, result->d_name)) <= MAX_PATH) {
-	  ntop->fixPath(path);
-
-	  ntop_delete_old_files(path, now, older_than_seconds);
-	}
-      }
-    }
-  }
-
-  rmdir(dir_name); /* Remove the directory, if empty */
-  closedir(d);
-
-  return true;
-}
-
-/* **************************************** */
-
-bool Utils::discardOldFiles(char *path, int older_than_seconds) {
-  time_t now = time(NULL);
-
-  if(!path || strlen(path) > MAX_PATH)
-    return false;
-
-  ntop->fixPath(path);
-  return ntop_delete_old_files(path, now, older_than_seconds);
-}
-
-/* **************************************** */
-
 char* Utils::formatMac(u_int8_t *mac, char *buf, u_int buf_len) {
   if((mac == NULL) || (ntop->getPrefs()->getHostMask() != no_host_mask))
     snprintf(buf, buf_len, "00:00:00:00:00:00");
