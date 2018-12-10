@@ -3499,11 +3499,11 @@ FlowStatus Flow::getFlowStatus() {
     u_int64_t local_to_remote_bytes = 0, remote_to_local_bytes = 0;
 
     if(cli_host->isLocalHost() && ! srv_host->isLocalHost()) {
-      local_to_remote_bytes = cli2srv_goodput_bytes;
-      remote_to_local_bytes = srv2cli_goodput_bytes;
+      local_to_remote_bytes = get_bytes_cli2srv();
+      remote_to_local_bytes = get_bytes_srv2cli();
     } else if(srv_host->isLocalHost() && ! cli_host->isLocalHost()) {
-      local_to_remote_bytes = srv2cli_goodput_bytes;
-      remote_to_local_bytes = cli2srv_goodput_bytes;
+      local_to_remote_bytes = get_bytes_srv2cli();
+      remote_to_local_bytes = get_bytes_cli2srv();
     }
 
     if(local_to_remote_bytes > ntop->getPrefs()->get_elephant_flow_local_to_remote_bytes())
