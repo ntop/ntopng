@@ -402,8 +402,6 @@ function printAlerts()
     hidden = not showElements,
   })
 
-tprint(prefs.are_longlived_flows_alerts_enabled)
-
   prefsInputFieldPrefs(subpage_active.entries["longlived_flow_duration"].title, 
      subpage_active.entries["longlived_flow_duration"].description,
     "ntopng.prefs.", "longlived_flow_duration", prefs.longlived_flow_duration, 
