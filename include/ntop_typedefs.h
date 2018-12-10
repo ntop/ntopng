@@ -277,6 +277,7 @@ typedef enum {
   status_device_protocol_not_allowed /* 16 */,
   status_elephant_local_to_remote, /* 17 */
   status_elephant_remote_to_local, /* 18 */
+  status_longlived, /* 19 */
 } FlowStatus;
 
 typedef enum {

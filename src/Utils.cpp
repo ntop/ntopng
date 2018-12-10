@@ -494,6 +494,9 @@ const char* Utils::flowStatus2str(FlowStatus s, AlertType *aType, AlertLevel *aL
   case status_elephant_remote_to_local:
     return("Elephant flow (remote to local)");
     break;
+  case status_longlived:
+    return("Long-lived flow");
+    break;
   default:
     return("Unknown status");
     break;

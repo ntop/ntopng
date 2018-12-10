@@ -294,6 +294,10 @@ void Flow::dumpFlowAlert() {
     case status_elephant_remote_to_local:
       do_dump = ntop->getPrefs()->are_elephant_flows_alerts_enabled();
       break;
+
+    case status_longlived:
+      do_dump = ntop->getPrefs()->are_longlived_flows_alerts_enabled();
+       break;
     }
 
 #ifdef HAVE_NEDGE
@@ -3488,14 +3492,21 @@ FlowStatus Flow::getFlowStatus() {
     }
   }
 
-  if(cli_host && ! cli_host->isLocalHost() && srv_host && ! srv_host->isLocalHost()
-     && ! cli_host->get_ip()->isBroadcastAddress()
-     && ! srv_host->get_ip()->isBroadcastAddress()
-     && ! cli_host->get_ip()->isMulticastAddress()
-     && ! srv_host->get_ip()->isMulticastAddress()
-     && ! cli_host->get_ip()->isEmpty()
-     && ! srv_host->get_ip()->isEmpty())
-    return status_remote_to_remote;
+  if(cli_host && srv_host
+      && ! cli_host->get_ip()->isEmpty()
+      && ! srv_host->get_ip()->isEmpty()
+      && ! cli_host->get_ip()->isBroadcastAddress()
+      && ! srv_host->get_ip()->isBroadcastAddress()
+      && ! cli_host->get_ip()->isMulticastAddress()
+      && ! srv_host->get_ip()->isMulticastAddress()) {
+
+    if(! cli_host->isLocalHost() && 
+       ! srv_host->isLocalHost())
+      return status_remote_to_remote;
+
+    if(get_duration() > ntop->getPrefs()->get_longlived_flow_duration())
+      return status_longlived;
+  }
 
   if(cli_host && srv_host) {
     u_int64_t local_to_remote_bytes = 0, remote_to_local_bytes = 0;

@@ -2504,6 +2504,7 @@ function getFlowStatus(status, flowstatus_info)
   elseif(status == 16) then return(formatSuspiciousDeviceProtocolAlert(flowstatus_info))
   elseif(status == 17) then return("<font color=orange>"..i18n("flow_details.elephant_flow_l2r").."</font>")
   elseif(status == 18) then return("<font color=orange>"..i18n("flow_details.elephant_flow_r2l").."</font>")
+  elseif(status == 19) then return("<font color=orange>"..i18n("flow_details.longlived_flow").."</font>")
   else return("<font color=orange>"..i18n("flow_details.unknown_status",{status=status}).."</font>")
   end
 end
