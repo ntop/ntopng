@@ -3492,7 +3492,9 @@ FlowStatus Flow::getFlowStatus() {
      && ! cli_host->get_ip()->isBroadcastAddress()
      && ! srv_host->get_ip()->isBroadcastAddress()
      && ! cli_host->get_ip()->isMulticastAddress()
-     && ! srv_host->get_ip()->isMulticastAddress())
+     && ! srv_host->get_ip()->isMulticastAddress()
+     && ! cli_host->get_ip()->isEmpty()
+     && ! srv_host->get_ip()->isEmpty())
     return status_remote_to_remote;
 
   if(cli_host && srv_host) {
