@@ -136,7 +136,9 @@ print[[
 
     /* Remove duplicate hosts */
     $.each($("#category-hosts-list").val().split("\n"), function(i, host) {
+      var whitelisted = (host.charAt(0) === '!');
       host = cleanCustomHostUrl(host);
+      if (whitelisted) host = "!" + host;
 
       if($.inArray(host, unique_hosts) === -1)
         unique_hosts.push(host);

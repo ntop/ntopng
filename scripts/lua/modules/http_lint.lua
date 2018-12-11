@@ -1482,7 +1482,6 @@ local function lintParams()
                if(debug) then io.write("[LINT] Parameter "..k.." is empty but we are in relax mode, so it can pass\n") end
             else
                local success, message = validateParameter(k, v)
-
                if not success then
                   if message ~= nil then
                      http_lint.validationError(id, k, v, message)

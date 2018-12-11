@@ -68,12 +68,13 @@ end
 function categories_utils.getAllCustomCategoryHosts()
   local k = getCustomCategoryKey()
   local cat_to_hosts = ntop.getHashAllCache(k) or {}
+  local custum_categories = {}
 
   for cat, hosts_list in pairs(cat_to_hosts) do
-    cat_to_hosts[cat] = split(hosts_list, ",")
+    custum_categories[tonumber(cat)] = split(hosts_list, ",")
   end
 
-  return cat_to_hosts
+  return custum_categories
 end
 
 -- ##############################################
