@@ -972,6 +972,18 @@ bool Utils::isUserAdministrator(lua_State* vm) {
   if(!strncmp(username, NTOP_NOLOGIN_USER, strlen(username)))
     return(true);
 
+  snprintf(key, sizeof(key), PREF_USER_TYPE_LOG, username);
+
+  if(ntop->getRedis()->get(key, val, sizeof(val)) >= 0) {
+    if(val[0] && (strcmp(val, "local") != 0)) {
+      /* This is a non-local auth, use the group provided by the authenticator */
+      snprintf(key, sizeof(key), CUSTOM_GROUP_OF_USER, username);
+
+      if((ntop->getRedis()->get(key, val, sizeof(val)) >= 0) && val[0])
+        return(!strcmp(val, CONST_ADMINISTRATOR_USER));
+    }
+  }
+
   snprintf(key, sizeof(key), CONST_STR_USER_GROUP, username);
   if(ntop->getRedis()->get(key, val, sizeof(val)) >= 0) {
     return(!strcmp(val, NTOP_NOLOGIN_USER) ||

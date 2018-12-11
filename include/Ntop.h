@@ -386,6 +386,7 @@ class Ntop {
   bool getInterfaceAllowed(lua_State* vm, char *ifname)         const;
   bool isInterfaceAllowed(lua_State* vm, const char *ifname)    const;
   bool isInterfaceAllowed(lua_State* vm, int ifid)              const;
+  bool isNonLocalUser(lua_State* vm);
   bool checkUserPassword(const char * const user, const char * const password) const;
   bool checkUserInterfaces(const char * const user)             const;
   bool resetUserPassword(char *username, char *old_password, char *new_password);

@@ -982,6 +982,33 @@ bool Ntop::isInterfaceAllowed(lua_State* vm, const char *ifname) const {
 
 /* ******************************************* */
 
+bool Ntop::isNonLocalUser(lua_State* vm) {
+  char key[64], val[64];
+  struct mg_connection *conn;
+  char *username;
+
+  if((conn = getLuaVMUservalue(vm,conn)) == NULL) {
+    /* this is an internal script (e.g. periodic script), admin check should pass */
+    return(false);
+  }
+
+  if((username = getLuaVMUserdata(vm,user)) == NULL) {
+    return(false);
+  }
+
+  snprintf(key, sizeof(key), PREF_USER_TYPE_LOG, username);
+  if(ntop->getRedis()->get(key, val, sizeof(val)) >= 0) {
+    if(val[0] && (strcmp(val, "local") != 0)) {
+      /* non local user */
+      return(true);
+    }
+  }
+
+  return(false);
+}
+
+/* ******************************************* */
+
 bool Ntop::isInterfaceAllowed(lua_State* vm, int ifid) const {
   return isInterfaceAllowed(vm, prefs->get_if_name(ifid));
 }

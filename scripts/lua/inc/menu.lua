@@ -420,11 +420,13 @@ print [[
 
 user_group = ntop.getUserGroup()
 
-if(user_group == "administrator") then
-  print[[<li><a href="]] print(ntop.getHttpPrefix())
-  print[[/lua/admin/users.lua"><i class="fa fa-user"></i> ]] print(i18n("manage_users.manage_users")) print[[</a></li>]]
-else
-  print [[<li><a href="#password_dialog"  data-toggle="modal"><i class="fa fa-user"></i> ]] print(i18n("login.change_password")) print[[</a></li>]]
+if _SESSION["localuser"] then
+   if(user_group == "administrator") then
+     print[[<li><a href="]] print(ntop.getHttpPrefix())
+     print[[/lua/admin/users.lua"><i class="fa fa-user"></i> ]] print(i18n("manage_users.manage_users")) print[[</a></li>]]
+   else
+     print [[<li><a href="#password_dialog"  data-toggle="modal"><i class="fa fa-user"></i> ]] print(i18n("login.change_password")) print[[</a></li>]]
+   end
 end
 
 if(user_group == "administrator") then
