@@ -104,8 +104,8 @@ static void redirect_to_ssl(struct mg_connection *conn,
 // Generate session ID. buf must be 33 bytes in size.
 // Note that it is easy to steal session cookies by sniffing traffic.
 // This is why all communication must be SSL-ed.
-static void generate_session_id(char *buf, const char *random, const char *user) {
-  mg_md5(buf, random, user, NULL);
+static void generate_session_id(char *buf, const char *random, const char *user, const char *group) {
+  mg_md5(buf, random, user, group, NULL);
 }
 
 /* ****************************************** */
@@ -155,8 +155,9 @@ static void traceLogin(const char *user, bool authorized) {
 /* ****************************************** */
 
 static void set_cookie(const struct mg_connection *conn,
-                       char *user, char *referer) {
+                       char *user, char*group, bool localuser, char *referer) {
   char key[256], session_id[64], random[64];
+  char val[128];
   u_int session_duration = HTTP_SESSION_DURATION;
 
   if(!strcmp(mg_get_request_info((struct mg_connection*)conn)->uri, "/metrics")
@@ -180,7 +181,7 @@ static void set_cookie(const struct mg_connection *conn,
 
   snprintf(random, sizeof(random), "%d", rand());
 
-  generate_session_id(session_id, random, user);
+  generate_session_id(session_id, random, user, group);
 
   // ntop->getTrace()->traceEvent(TRACE_ERROR, "==> %s\t%s", random, session_id);
 
@@ -202,8 +203,9 @@ static void set_cookie(const struct mg_connection *conn,
 
   /* Save session in redis */
   snprintf(key, sizeof(key), "sessions.%s", session_id);
+  snprintf(val, sizeof(val), "%s|%s|%c", user, group, localuser ? '1' : '0');
 
-  ntop->getRedis()->set(key, user, session_duration);
+  ntop->getRedis()->set(key, val, session_duration);
   ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] Set session sessions.%s", session_id);
 
   traceLogin(user, true);
@@ -326,10 +328,11 @@ static int isWhitelistedURI(const char * const uri) {
 // which can also be "" or NTOP_NOLOGIN_USER .
 static int getAuthorizedUser(const struct mg_connection *conn,
                          const struct mg_request_info *request_info,
-			 char *username, u_int username_len) {
-  char session_id[33];
-  char key[64];
+			 char *username, char *group, bool *localuser) {
+  char session_id[NTOP_SESSION_ID_LENGTH];
+  char key[64], val[128];
   char password[MAX_PASSWORD_LEN];
+  char localuser_ch;
   const char *auth_header_p;
   string auth_type = "", auth_string = "";
   bool user_login_disabled = !ntop->getPrefs()->is_users_login_enabled() ||
@@ -337,6 +340,8 @@ static int getAuthorizedUser(const struct mg_connection *conn,
 
   /* Default */
   username[0] = '\0';
+  group[0] = '\0';
+  *localuser = false;
 
 #ifdef DEBUG
   ntop->getTrace()->traceEvent(TRACE_WARNING, "[AUTHORIZATION] [%s][%s]",
@@ -366,10 +371,10 @@ static int getAuthorizedUser(const struct mg_connection *conn,
       /* Here the captive portal is not just informative; it requires authentication.
          For this reason it is necessary to check submitted username and password. */
       if(request_info->query_string) {
-	get_qsvar(request_info, "username", username, username_len);
+	get_qsvar(request_info, "username", username, NTOP_USERNAME_MAXLEN);
 	get_qsvar(request_info, "password", password, sizeof(password));
 
-	return(ntop->checkUserPassword(username, password)
+	return(ntop->checkUserPassword(username, password, group, localuser)
 	     && checkCaptive(conn, request_info, username, password));
       }
     }
@@ -380,7 +385,7 @@ static int getAuthorizedUser(const struct mg_connection *conn,
   }
 
   if(user_login_disabled) {
-    strncpy(username, NTOP_NOLOGIN_USER, username_len);
+    strncpy(username, NTOP_NOLOGIN_USER, NTOP_USERNAME_MAXLEN);
     return(1);
   }
 
@@ -398,8 +403,8 @@ static int getAuthorizedUser(const struct mg_connection *conn,
     getline(authss, user_s, ':');
     getline(authss, pword_s, ':');
 
-    strncpy(username, user_s.c_str(), username_len);
-    return ntop->checkUserPassword(username, pword_s.c_str());
+    strncpy(username, user_s.c_str(), NTOP_USERNAME_MAXLEN);
+    return ntop->checkUserPassword(username, pword_s.c_str(), group, localuser);
   }
 
   /* NOTE: this is the only cookie needed for gui authentication */
@@ -407,21 +412,32 @@ static int getAuthorizedUser(const struct mg_connection *conn,
 
   if(session_id[0] == '\0') {
     /* Explicit username + password */
-    mg_get_cookie(conn, "user", username, username_len);
+    mg_get_cookie(conn, "user", username, NTOP_USERNAME_MAXLEN);
     mg_get_cookie(conn, "password", password, sizeof(password));
 
     if(username[0] && password[0])
-      return(ntop->checkUserPassword(username, password));
+      return(ntop->checkUserPassword(username, password, group, localuser));
   }
 
   /* Important: validate the session */
   snprintf(key, sizeof(key), "sessions.%s", session_id);
 
-  username[0] = '\0';
-  if((ntop->getRedis()->get(key, username, username_len, true) < 0) || (!username[0])) {
+  val[0] = '\0';
+  if((ntop->getRedis()->get(key, val, sizeof(val), true) < 0) || (!val[0])) {
     ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] Session %s is expired", session_id);
     return(0);
   }
+
+  snprintf(key, sizeof(key), "%%%u[^|]|%%%u[^|]|%%c", NTOP_USERNAME_MAXLEN-1, NTOP_GROUP_MAXLEN-1);
+
+  if(sscanf(val, key, username, group, &localuser_ch) != 3) {
+    ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] Old Session format %s not supported", session_id);
+    return(0);
+  }
+
+  username[NTOP_USERNAME_MAXLEN-1] = '\0';
+  group[NTOP_GROUP_MAXLEN-1] = '\0';
+  *localuser = (localuser_ch == '1' ? true : false);
 
   //ntop->getTrace()->traceEvent(TRACE_NORMAL, "[HTTP] Session %s successfully authenticated for %s", session_id, username);
 
@@ -536,7 +552,7 @@ static char* make_referer(struct mg_connection *conn, char *buf, int bufsize) {
 static void redirect_to_login(struct mg_connection *conn,
                               const struct mg_request_info *request_info,
 			      const char * const referer) {
-  char session_id[33], buf[128];
+  char session_id[NTOP_SESSION_ID_LENGTH], buf[128];
   char *referer_enc = NULL;
 
   if(isCaptiveConnection(conn)) {
@@ -589,7 +605,7 @@ static void redirect_to_login(struct mg_connection *conn,
 */
 static void redirect_to_please_wait(struct mg_connection *conn,
 				    const struct mg_request_info *request_info) {
-  char session_id[33], buf[128];
+  char session_id[NTOP_SESSION_ID_LENGTH], buf[128];
   char referer[255];
   char *referer_enc = NULL;
 
@@ -618,7 +634,7 @@ static void redirect_to_please_wait(struct mg_connection *conn,
 
 static void redirect_to_password_change(struct mg_connection *conn,
 				    const struct mg_request_info *request_info) {
-  char session_id[33], buf[128];
+  char session_id[NTOP_SESSION_ID_LENGTH], buf[128];
   char referer[255];
   char *referer_enc = NULL;
 
@@ -646,7 +662,7 @@ static void redirect_to_password_change(struct mg_connection *conn,
 // Login page form sends user name and password to this endpoint.
 static void authorize(struct mg_connection *conn,
                       const struct mg_request_info *request_info,
-		      char *username, u_int username_len) {
+		      char *username, char *group, bool *localuser) {
   char user[32] = { '\0' }, password[32] = { '\0' }, referer[256] = { '\0' };
   bool pwd_check = true;
 
@@ -675,7 +691,7 @@ static void authorize(struct mg_connection *conn,
 
   if(isCaptiveConnection(conn)
      || ntop->isCaptivePortalUser(user)
-     || !(pwd_check = ntop->checkUserPassword(user, password))) {
+     || !(pwd_check = ntop->checkUserPassword(user, password, group, localuser))) {
     // Authentication failure, redirect to login
     redirect_to_login(conn, request_info, (referer[0] == '\0') ? NULL : referer);
     if (!pwd_check) traceLogin(user, false);
@@ -691,8 +707,8 @@ static void authorize(struct mg_connection *conn,
     }
 
     /* Send session cookie and set user for the new session */
-    set_cookie(conn, user, referer);
-    strncpy(username, user, username_len);
+    set_cookie(conn, user, group, *localuser, referer);
+    strncpy(username, user, NTOP_USERNAME_MAXLEN);
   }
 }
 
@@ -728,9 +744,13 @@ static int handle_lua_request(struct mg_connection *conn) {
   struct mg_request_info *request_info = mg_get_request_info(conn);
   char *crlf;
   u_int len;
-  char username[33] = { 0 };
+  char username[NTOP_USERNAME_MAXLEN] = { 0 };
+  char group[NTOP_GROUP_MAXLEN] = { 0 };
+  bool localuser = false;
   char *referer = (char*)mg_get_header(conn, "Referer");
   u_int8_t whitelisted, authorized;
+
+  strncpy(group, NTOP_UNKNOWN_GROUP, NTOP_GROUP_MAXLEN-1);
 
   if(referer == NULL)
     referer = (char*)"";
@@ -819,11 +839,11 @@ static int handle_lua_request(struct mg_connection *conn) {
 #endif
 
   whitelisted = isWhitelistedURI(request_info->uri);
-  authorized = getAuthorizedUser(conn, request_info, username, sizeof(username));
+  authorized = getAuthorizedUser(conn, request_info, username, group, &localuser);
 
   /* Make sure there are existing interfaces for username. */
   if(!ntop->checkUserInterfaces(username)) {
-    char session_id[33];
+    char session_id[NTOP_SESSION_ID_LENGTH];
     mg_get_cookie(conn, "session", session_id, sizeof(session_id));
 
     ntop->getTrace()->traceEvent(TRACE_WARNING, "[HTTP] user %s cannot login due to non-existent allowed_interface", username);
@@ -861,7 +881,7 @@ static int handle_lua_request(struct mg_connection *conn) {
     redirect_to_password_change(conn, request_info);
     return(1);
   } else if(strcmp(request_info->uri, AUTHORIZE_URL) == 0) {
-    authorize(conn, request_info, username, sizeof(username));
+    authorize(conn, request_info, username, group, &localuser);
     return(1);
   }
 
@@ -941,7 +961,7 @@ static int handle_lua_request(struct mg_connection *conn) {
 
       // NOTE: username is stored into the engine context, so we must guarantee
       // that LuaEngine is destroyed after username goes out of context! Indeeed we delete LuaEngine below.
-      l->handle_script_request(conn, request_info, path, &attack_attempt, username);
+      l->handle_script_request(conn, request_info, path, &attack_attempt, username, group, localuser);
 
       if(attack_attempt) {
 	char buf[32];

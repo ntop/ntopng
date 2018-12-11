@@ -807,7 +807,10 @@
 #define HOST_LOW_GOODPUT_THRESHOLD  25 /* No more than X low goodput flows per host */
 #define FLOW_GOODPUT_THRESHOLD      40 /* 40% */
 
-#define CUSTOM_GROUP_OF_USER          NTOPNG_PREFS_PREFIX".auth.%s.custom_group_of_user"
+#define NTOP_USERNAME_MAXLEN        33 /* NOTE: do not change, is this bound to mg_md5 ? */
+#define NTOP_GROUP_MAXLEN           33
+#define NTOP_SESSION_ID_LENGTH      33
+#define NTOP_UNKNOWN_GROUP "unknown"
 #define PREF_NTOP_LDAP_AUTH           NTOPNG_PREFS_PREFIX".ldap.auth_enabled"
 #define PREF_LDAP_ACCOUNT_TYPE        NTOPNG_PREFS_PREFIX".ldap.account_type"
 #define PREF_LDAP_SERVER              NTOPNG_PREFS_PREFIX".ldap.ldap_server_address"
@@ -832,7 +835,6 @@
 #define PREF_HTTP_AUTHENTICATOR_URL   NTOPNG_PREFS_PREFIX".http_authenticator.http_auth_url"
 #define MAX_HTTP_AUTHENTICATOR_LEN    256
 #define MAX_HTTP_AUTHENTICATOR_RETURN_DATA_LEN      4096
-#define PREF_USER_TYPE_LOG            NTOPNG_PREFS_PREFIX".user.%s.type_log"
 #define PREF_NTOP_LOCAL_AUTH          NTOPNG_PREFS_PREFIX".local.auth_enabled"
 
 /* Elastic Search */

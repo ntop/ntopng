@@ -855,7 +855,7 @@ void Ntop::getUsers(lua_State* vm) {
     if(ntop->getRedis()->get(key, val, CONST_MAX_LEN_REDIS_VALUE) >= 0)
       lua_push_str_table_entry(vm, "group", val);
     else
-      lua_push_str_table_entry(vm, "group", (char*)"unknown");
+      lua_push_str_table_entry(vm, "group", (char*)NTOP_UNKNOWN_GROUP);
 
     snprintf(key, CONST_MAX_LEN_REDIS_VALUE, CONST_STR_USER_LANGUAGE, username);
     if(ntop->getRedis()->get(key, val, CONST_MAX_LEN_REDIS_VALUE) >= 0)
@@ -898,31 +898,44 @@ void Ntop::getUsers(lua_State* vm) {
 
 /* ******************************************* */
 
-void Ntop::getUserGroup(lua_State* vm) {
-  char key[64], val[64];
-  const char *username = getLuaVMUservalue(vm, user);
+/**
+ * @brief Check if the current user is an administrator
+ *
+ * @param vm   The lua state.
+ * @return true if the current user is an administrator, false otherwise.
+ */
+bool Ntop::isUserAdministrator(lua_State* vm) {
+  struct mg_connection *conn;
+  char *username, *group;
 
-  if(!username || !strncmp(username, NTOP_NOLOGIN_USER, strlen(username))) {
-    lua_pushstring(vm, CONST_USER_GROUP_ADMIN);
-    return;
+#ifdef DONT_USE_LUAJIT
+  lua_getglobal(vm, "userdata");
+#endif
+
+  if(!ntop->getPrefs()->is_users_login_enabled())
+    return(true); /* login disabled for all users, everyone's an admin */
+
+  if((conn = getLuaVMUservalue(vm,conn)) == NULL) {
+    /* this is an internal script (e.g. periodic script), admin check should pass */
+    return(true);
+  } else if(HTTPserver::authorized_localhost_user_login(conn))
+    return(true); /* login disabled from localhost, everyone's connecting from localhost is an admin */
+
+  if((username = getLuaVMUserdata(vm,user)) == NULL) {
+    // ntop->getTrace()->traceEvent(TRACE_WARNING, "%s(%s): NO", __FUNCTION__, "???");
+    return(false); /* Unknown */
   }
 
-  snprintf(key, sizeof(key), PREF_USER_TYPE_LOG, username);
-  if(ntop->getRedis()->get(key, val, sizeof(val)) >= 0) {
-    if(strcmp(val, "local") != 0) {
-      /* This is a non-local auth, use the group provided by the authenticator */
-      snprintf(key, sizeof(key), CUSTOM_GROUP_OF_USER, username);
+  if(!strncmp(username, NTOP_NOLOGIN_USER, strlen(username)))
+    return(true);
 
-      if((ntop->getRedis()->get(key, val, sizeof(val)) >= 0) && val[0]) {
-        lua_pushstring(vm, val);
-        return;
-      }
-    }
+  if((group = getLuaVMUserdata(vm,group)) != NULL) {
+    return(!strcmp(group, NTOP_NOLOGIN_USER) ||
+           !strcmp(group, CONST_ADMINISTRATOR_USER));
+  } else {
+    // ntop->getTrace()->traceEvent(TRACE_WARNING, "%s(%s): NO", __FUNCTION__, username);
+    return(false); /* Unknown */
   }
-
-  snprintf(key, sizeof(key), CONST_STR_USER_GROUP, username);
-  lua_pushstring(vm,
-		 (ntop->getRedis()->get(key, val, sizeof(val)) >= 0) ? val : (char*)"unknown");
 }
 
 /* ******************************************* */
@@ -982,29 +995,16 @@ bool Ntop::isInterfaceAllowed(lua_State* vm, const char *ifname) const {
 
 /* ******************************************* */
 
-bool Ntop::isNonLocalUser(lua_State* vm) {
+bool Ntop::isLocalUser(lua_State* vm) {
   char key[64], val[64];
   struct mg_connection *conn;
-  char *username;
 
   if((conn = getLuaVMUservalue(vm,conn)) == NULL) {
     /* this is an internal script (e.g. periodic script), admin check should pass */
-    return(false);
+    return(true);
   }
 
-  if((username = getLuaVMUserdata(vm,user)) == NULL) {
-    return(false);
-  }
-
-  snprintf(key, sizeof(key), PREF_USER_TYPE_LOG, username);
-  if(ntop->getRedis()->get(key, val, sizeof(val)) >= 0) {
-    if(val[0] && (strcmp(val, "local") != 0)) {
-      /* non local user */
-      return(true);
-    }
-  }
-
-  return(false);
+  return getLuaVMUserdata(vm,localuser);
 }
 
 /* ******************************************* */
@@ -1031,8 +1031,9 @@ bool Ntop::checkUserInterfaces(const char * const user) const {
 /* ******************************************* */
 
 // Return 1 if username/password is allowed, 0 otherwise.
-bool Ntop::checkUserPassword(const char * const user, const char * const password) const {
+bool Ntop::checkUserPassword(const char * const user, const char * const password, char *group, bool *localuser) const {
   char key[64], val[64], password_hash[33];
+  *localuser = false;
 
   if((user == NULL) || (user[0] == '\0'))
     return(false);
@@ -1046,7 +1047,7 @@ bool Ntop::checkUserPassword(const char * const user, const char * const passwor
 	bool ldap_ret = false;
         bool is_admin;
 	char *ldapServer = NULL, *ldapAccountType = NULL,  *ldapAnonymousBind = NULL,
-	  *bind_dn = NULL, *bind_pwd = NULL, *group = NULL,
+	  *bind_dn = NULL, *bind_pwd = NULL, *user_group = NULL,
 	  *search_path = NULL, *admin_group = NULL;
 
 	if(!(ldapServer = (char*)calloc(sizeof(char), MAX_LDAP_LEN))
@@ -1054,7 +1055,7 @@ bool Ntop::checkUserPassword(const char * const user, const char * const passwor
 	   || !(ldapAnonymousBind = (char*)calloc(sizeof(char), MAX_LDAP_LEN)) /* either '1' or '0' */
 	   || !(bind_dn = (char*)calloc(sizeof(char), MAX_LDAP_LEN))
 	   || !(bind_pwd = (char*)calloc(sizeof(char), MAX_LDAP_LEN))
-	   || !(group = (char*)calloc(sizeof(char), MAX_LDAP_LEN))
+	   || !(user_group = (char*)calloc(sizeof(char), MAX_LDAP_LEN))
 	   || !(search_path = (char*)calloc(sizeof(char), MAX_LDAP_LEN))
 	   || !(admin_group = (char*)calloc(sizeof(char), MAX_LDAP_LEN))) {
 	  static bool ldap_nomem = false;
@@ -1077,7 +1078,7 @@ bool Ntop::checkUserPassword(const char * const user, const char * const passwor
         ntop->getRedis()->get((char*)PREF_LDAP_BIND_DN, bind_dn, MAX_LDAP_LEN);
         ntop->getRedis()->get((char*)PREF_LDAP_BIND_PWD, bind_pwd, MAX_LDAP_LEN);
         ntop->getRedis()->get((char*)PREF_LDAP_SEARCH_PATH, search_path, MAX_LDAP_LEN);
-        ntop->getRedis()->get((char*)PREF_LDAP_USER_GROUP, group, MAX_LDAP_LEN);
+        ntop->getRedis()->get((char*)PREF_LDAP_USER_GROUP, user_group, MAX_LDAP_LEN);
         ntop->getRedis()->get((char*)PREF_LDAP_ADMIN_GROUP, admin_group, MAX_LDAP_LEN);
 
         if(ldapServer[0]) {
@@ -1088,15 +1089,13 @@ bool Ntop::checkUserPassword(const char * const user, const char * const passwor
 						       search_path[0] != '\0' ? search_path : NULL,
 						       user,
 						       password[0] != '\0' ? password : NULL,
-						       group[0] != '\0' ? group : NULL,
+						       user_group[0] != '\0' ? user_group : NULL,
 						       admin_group[0] != '\0' ? admin_group : NULL,
 						       &is_admin);
 
 	  if(ldap_ret) {
-	    snprintf(key, sizeof(key), CUSTOM_GROUP_OF_USER, user);
-	    ntop->getRedis()->set(key, is_admin ?  (char*)CONST_USER_GROUP_ADMIN : (char*)CONST_USER_GROUP_UNPRIVILEGED, 0);
-            snprintf(key, sizeof(key), PREF_USER_TYPE_LOG, user);
-	    ntop->getRedis()->set(key, (char*)"ldap", 0);
+      strncpy(group, is_admin ? CONST_USER_GROUP_ADMIN : CONST_USER_GROUP_UNPRIVILEGED, NTOP_GROUP_MAXLEN);
+      group[NTOP_GROUP_MAXLEN - 1] = '\0';
 	  }
         }
 
@@ -1105,7 +1104,7 @@ bool Ntop::checkUserPassword(const char * const user, const char * const passwor
 	if(ldapAnonymousBind) free(ldapAnonymousBind);
 	if(bind_dn) free(bind_dn);
 	if(bind_pwd) free(bind_pwd);
-	if(group) free(group);
+	if(user_group) free(user_group);
 	if(search_path) free(search_path);
 	if(admin_group) free(admin_group);
 
@@ -1237,10 +1236,8 @@ bool Ntop::checkUserPassword(const char * const user, const char * const passwor
           }
         }
 
-        snprintf(key, sizeof(key), CUSTOM_GROUP_OF_USER, user);
-        ntop->getRedis()->set(key, is_admin ?  (char*)CONST_USER_GROUP_ADMIN : (char*)CONST_USER_GROUP_UNPRIVILEGED, 0);
-        snprintf(key, sizeof(key), PREF_USER_TYPE_LOG, user);
-        ntop->getRedis()->set(key, (char*)"radius", 0);
+        strncpy(group, is_admin ? CONST_USER_GROUP_ADMIN : CONST_USER_GROUP_UNPRIVILEGED, NTOP_GROUP_MAXLEN);
+        group[NTOP_GROUP_MAXLEN - 1] = '\0';
         radius_ret = true;
       } else {
         switch(result) {
@@ -1311,10 +1308,8 @@ bool Ntop::checkUserPassword(const char * const user, const char * const passwor
             goto http_auth_out;
           }
 
-          snprintf(key, sizeof(key), CUSTOM_GROUP_OF_USER, user);
-          ntop->getRedis()->set(key, auth.admin ?  (char*)CONST_USER_GROUP_ADMIN : (char*)CONST_USER_GROUP_UNPRIVILEGED, 0);
-          snprintf(key, sizeof(key), PREF_USER_TYPE_LOG, user);
-          ntop->getRedis()->set(key, (char*)"http", 0);
+          strncpy(group, auth.admin ? CONST_USER_GROUP_ADMIN : CONST_USER_GROUP_UNPRIVILEGED, NTOP_GROUP_MAXLEN);
+          group[NTOP_GROUP_MAXLEN - 1] = '\0';
           http_ret = true;
         } else
           ntop->getTrace()->traceEvent(TRACE_WARNING, "HTTP: authentication rejected [code=%d]", rc);
@@ -1348,9 +1343,14 @@ bool Ntop::checkUserPassword(const char * const user, const char * const passwor
     return(false);
   } else {
     mg_md5(password_hash, password, NULL);
+
     if(strcmp(password_hash, val) == 0) {
-      snprintf(key, sizeof(key), PREF_USER_TYPE_LOG, user);
-      ntop->getRedis()->set(key, (char*)"local", 0);
+      snprintf(key, sizeof(key), CONST_STR_USER_GROUP, user);
+      strncpy(group, ((ntop->getRedis()->get(key, val, sizeof(val)) >= 0) ? val : NTOP_UNKNOWN_GROUP), NTOP_GROUP_MAXLEN);
+      group[NTOP_GROUP_MAXLEN - 1] = '\0';
+
+      /* mark the user as local */
+      *localuser = true;
       return(true);
     } else {
       return(false);
@@ -1376,11 +1376,16 @@ bool Ntop::mustChangePassword(const char *user) {
 bool Ntop::resetUserPassword(char *username, char *old_password, char *new_password) {
   char key[64];
   char password_hash[33];
+  char group[NTOP_GROUP_MAXLEN];
+  bool localuser = false;
 
   if((old_password != NULL) && (old_password[0] != '\0')) {
-    if(!checkUserPassword(username, old_password))
+    if(!checkUserPassword(username, old_password, group, &localuser))
       return(false);
   }
+
+  if(!localuser)
+    return(false);
 
   snprintf(key, sizeof(key), CONST_STR_USER_PASSWORD, username);
   mg_md5(password_hash, new_password, NULL);

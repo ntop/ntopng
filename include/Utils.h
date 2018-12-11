@@ -66,7 +66,6 @@ class Utils {
   static int ifname2id(const char *name);
   static char* sanitizeHostName(char *str);
   static char* urlDecode(const char *src, char *dst, u_int dst_len);
-  static bool isUserAdministrator(lua_State* vm);
   static bool purifyHTTPparam(char * const param, bool strict, bool allowURL, bool allowDots);
   static char* stripHTML(const char * const str);
   static bool postHTTPJsonData(char *username, char *password, char *url, char *json, HTTPTranferStats *stats);

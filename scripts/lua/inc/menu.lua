@@ -9,6 +9,8 @@ require "lua_utils"
 local recording_utils = require "recording_utils"
 local remote_assistance = require "remote_assistance"
 
+local is_admin = isAdministrator()
+
 print[[
 <script>
    /* Some localization strings to pass from lua to javacript */
@@ -418,10 +420,8 @@ print [[
       </a>
     <ul class="dropdown-menu">]]
 
-user_group = ntop.getUserGroup()
-
 if _SESSION["localuser"] then
-   if(user_group == "administrator") then
+   if(is_admin) then
      print[[<li><a href="]] print(ntop.getHttpPrefix())
      print[[/lua/admin/users.lua"><i class="fa fa-user"></i> ]] print(i18n("manage_users.manage_users")) print[[</a></li>]]
    else
@@ -429,7 +429,7 @@ if _SESSION["localuser"] then
    end
 end
 
-if(user_group == "administrator") then
+if(is_admin) then
    print("<li><a href=\""..ntop.getHttpPrefix().."/lua/admin/prefs.lua\"><i class=\"fa fa-flask\"></i> ") print(i18n("prefs.preferences")) print("</a></li>\n")
 
    if remote_assistance.isAvailable() then
@@ -452,16 +452,17 @@ if(user_group == "administrator") then
    end
 end
 
-
-print [[
+if _SESSION["localuser"] or is_admin then
+   print [[
       <li class="divider"></li>]]
+end
 
 print [[
       <li><a href="]]
 print(ntop.getHttpPrefix())
 print [[/lua/manage_data.lua"><i class="fa fa-share"></i> ]] print(i18n("manage_data.manage_data")) print[[</a></li>]]
 
-if(user_group == "administrator") then
+if(is_admin) then
   print [[
       <li><a href="]]
   print(ntop.getHttpPrefix())
@@ -493,7 +494,7 @@ print [[/lua/logout.lua"><i class="fa fa-sign-out"></i> ]] print(i18n("login.log
 end
 
 
-if(user_group ~= "administrator") then
+if(not is_admin) then
    dofile(dirs.installdir .. "/scripts/lua/inc/password_dialog.lua")
 end
 print("<li>")

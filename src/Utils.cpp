@@ -941,63 +941,6 @@ char* Utils::urlDecode(const char *src, char *dst, u_int dst_len) {
 /* **************************************************** */
 
 /**
- * @brief Check if the current user is an administrator
- *
- * @param vm   The lua state.
- * @return true if the current user is an administrator, false otherwise.
- */
-bool Utils::isUserAdministrator(lua_State* vm) {
-  struct mg_connection *conn;
-  char *username;
-  char key[64], val[64];
-
-#ifdef DONT_USE_LUAJIT
-  lua_getglobal(vm, "userdata");
-#endif
-
-  if(!ntop->getPrefs()->is_users_login_enabled())
-    return(true); /* login disabled for all users, everyone's an admin */
-
-  if((conn = getLuaVMUservalue(vm,conn)) == NULL) {
-    /* this is an internal script (e.g. periodic script), admin check should pass */
-    return(true);
-  } else if(HTTPserver::authorized_localhost_user_login(conn))
-    return(true); /* login disabled from localhost, everyone's connecting from localhost is an admin */
-
-  if((username = getLuaVMUserdata(vm,user)) == NULL) {
-    // ntop->getTrace()->traceEvent(TRACE_WARNING, "%s(%s): NO", __FUNCTION__, "???");
-    return(false); /* Unknown */
-  }
-
-  if(!strncmp(username, NTOP_NOLOGIN_USER, strlen(username)))
-    return(true);
-
-  snprintf(key, sizeof(key), PREF_USER_TYPE_LOG, username);
-
-  if(ntop->getRedis()->get(key, val, sizeof(val)) >= 0) {
-    if(val[0] && (strcmp(val, "local") != 0)) {
-      /* This is a non-local auth, use the group provided by the authenticator */
-      snprintf(key, sizeof(key), CUSTOM_GROUP_OF_USER, username);
-
-      if((ntop->getRedis()->get(key, val, sizeof(val)) >= 0) && val[0])
-        return(!strcmp(val, CONST_ADMINISTRATOR_USER));
-    }
-  }
-
-  snprintf(key, sizeof(key), CONST_STR_USER_GROUP, username);
-  if(ntop->getRedis()->get(key, val, sizeof(val)) >= 0) {
-    return(!strcmp(val, NTOP_NOLOGIN_USER) ||
-           !strcmp(val, CONST_ADMINISTRATOR_USER));
-  } else {
-    // ntop->getTrace()->traceEvent(TRACE_WARNING, "%s(%s): NO", __FUNCTION__, username);
-    return(false); /* Unknown */
-  }
-}
-
-/* **************************************************** */
-
-
-/**
  * @brief Purify the HTTP parameter
  *
  * @param param   The parameter to purify (remove unliked chars with _)

@@ -495,12 +495,13 @@ typedef struct {
 class SNMP; /* Forward */
 
 struct ntopngLuaContext {
-  char *allowed_ifname, *user;
+  char *allowed_ifname, *user, *group;
   void *zmq_context, *zmq_subscriber;
   struct mg_connection *conn;
   AddressTree *allowedNets;
   NetworkInterface *iface;
   SNMP *snmp;
+  bool localuser;
   int (*luaL_pcall)(lua_State *);
 
   /* Packet capture */

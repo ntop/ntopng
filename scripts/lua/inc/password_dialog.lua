@@ -2,6 +2,8 @@ require("lua_utils")
 local host_pools_utils = require 'host_pools_utils'
 require("prefs_utils")
 
+local is_admin = isAdministrator()
+
 print [[
 
  <style type='text/css'>
@@ -24,7 +26,7 @@ print [[
     <li class="active"><a href="#change-password-dialog" role="tab" data-toggle="tab"> ]] print(i18n("login.password")) print[[ </a></li>
 ]]
 
-if(user_group=="administrator") then
+if(is_admin) then
    print[[<li><a href="#change-prefs-dialog" role="tab" data-toggle="tab"> ]] print(i18n("prefs.preferences")) print[[ </a></li>]]
 end
    print[[
@@ -51,12 +53,11 @@ print [[
 <div class="control-group">
    ]]
 
-local user_group = ntop.getUserGroup()
 local col_md_size = "6"
 
 print('<br><div class="row">')
 
-if(user_group ~= "administrator") then
+if(is_admin) then
    col_md_size = "4"
 print [[
   <div class='form-group col-md-]] print(col_md_size) print[[ has-feedback'>
@@ -98,7 +99,7 @@ print [[
 </div> <!-- closes div "change-password-dialog" -->
 ]]
 
-if(user_group=="administrator") then
+if(is_admin) then
 
 print [[
 </div>
@@ -246,7 +247,7 @@ print [[<script>
           password_alert.error(response.message);
     ]]
 
-if(user_group ~= "administrator") then
+if(is_admin) then
    print('$("old_password_input").text("");\n');
 end
 

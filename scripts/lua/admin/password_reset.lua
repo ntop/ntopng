@@ -13,8 +13,9 @@ local old_password         = _POST["old_password"]
 local new_password         = _POST["new_password"]
 local confirm_new_password = _POST["confirm_password"]
 
-user_group = ntop.getUserGroup()
-if(user_group == "administrator") then
+local is_admin = isAdministrator()
+
+if(is_admin) then
    old_password = ""
 else
    -- Check to avoid that this user changes password for other users
