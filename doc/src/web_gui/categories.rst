@@ -75,8 +75,14 @@ The picture above shows some custom hosts defined for the Advertisement category
 For example, the `.ads.` host rule will match any host containing `.ads.` . It is important
 to play with the dots to avoid excessive matching (e.g. a simple `ads` rule would also match `mads.com`).
 
-Host matching based on IP addresses is currently limited to IPv4 flows. So, this currently does *not*
+Note: host matching based on IP addresses is currently limited to IPv4 flows and this currently does *not*
 include ICMP flows.
+
+ntopng also supports external lists to define custom categories, loaded from text file (local) or online 
+services (e.g. *emergingthreats* for the *Malware* category). Since lists are also used to raise alerts 
+(e.g. for hosts in the Malware or Mining category), you may need to add exceptions to those lists,
+whitelisting selected hosts. This is possible adding an host to the list, prepending "!" to the IP/hostname
+(e.g. !1.2.3.4).
 
 Flow Shortcut
 -------------
