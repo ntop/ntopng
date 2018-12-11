@@ -502,7 +502,6 @@ struct ntopngLuaContext {
   NetworkInterface *iface;
   SNMP *snmp;
   bool localuser;
-  int (*luaL_pcall)(lua_State *);
 
   /* Packet capture */
   struct {
