@@ -71,7 +71,9 @@ function categories_utils.getAllCustomCategoryHosts()
   local custum_categories = {}
 
   for cat, hosts_list in pairs(cat_to_hosts) do
-    custum_categories[tonumber(cat)] = split(hosts_list, ",")
+    if tonumber(cat) ~= nil then
+      custum_categories[tonumber(cat)] = split(hosts_list, ",")
+    end
   end
 
   return custum_categories
