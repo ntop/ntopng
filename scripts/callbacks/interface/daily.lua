@@ -14,7 +14,7 @@ local ts_utils = require "ts_utils"
 
 if(ntop.isPro()) then
    package.path = dirs.installdir .. "/pro/scripts/callbacks/interface/?.lua;" .. package.path
-   pcall(require, 'daily')
+   require('daily')
 end
 
 -- ########################################################

@@ -10,7 +10,7 @@ local lists_utils = require "lists_utils"
 
 if(ntop.isPro()) then
    package.path = dirs.installdir .. "/pro/scripts/callbacks/system/?.lua;" .. package.path
-   pcall(require, 'daily')
+   require('daily')
 end
 
 -- ########################################################
