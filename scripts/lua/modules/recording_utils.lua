@@ -276,13 +276,15 @@ end
 -- Read information about used disk space for an interface dump
 local function interfaceStorageUsed(ifid)
   local pcap_path = recording_utils.getPcapPath(ifid)
-  local line = os_utils.execWithOutput("du -s "..pcap_path.." 2>/dev/null")
-  local values = split(line, '\t')
-  if #values >= 1 then
-    local if_used = tonumber(values[1])
-    if if_used ~= nil then
-      if_used = if_used*1024
-      return math.ceil(if_used)
+  if ntop.isdir(pcap_path) then
+    local line = os_utils.execWithOutput("du -s "..pcap_path.." 2>/dev/null")
+    local values = split(line, '\t')
+    if #values >= 1 then
+      local if_used = tonumber(values[1])
+      if if_used ~= nil then
+        if_used = if_used*1024
+        return math.ceil(if_used)
+      end
     end
   end
   return 0
@@ -303,16 +305,18 @@ function recording_utils.storageInfo(ifid)
   while not ntop.isdir(root_path) and string.len(root_path) > 1 do
     root_path = dirname(root_path) 
   end
-  local line = os_utils.execWithOutput("df "..root_path.." 2>/dev/null|tail -n1")
-  line = line:gsub('%s+', ' ')
-  local values = split(line, ' ')
-  if #values >= 6 then
-    storage_info.dev = values[1]
-    storage_info.total = tonumber(values[2])*1024
-    storage_info.used = tonumber(values[3])*1024
-    storage_info.avail = tonumber(values[4])*1024
-    storage_info.used_perc = values[5]
-    storage_info.mount = values[6]
+  if ntop.isdir(root_path) then
+    local line = os_utils.execWithOutput("df "..root_path.." 2>/dev/null|tail -n1")
+    line = line:gsub('%s+', ' ')
+    local values = split(line, ' ')
+    if #values >= 6 then
+      storage_info.dev = values[1]
+      storage_info.total = tonumber(values[2])*1024
+      storage_info.used = tonumber(values[3])*1024
+      storage_info.avail = tonumber(values[4])*1024
+      storage_info.used_perc = values[5]
+      storage_info.mount = values[6]
+    end
   end
 
   -- Interface storage info
@@ -320,12 +324,14 @@ function recording_utils.storageInfo(ifid)
 
   -- PCAP Extraction storage info
   local extraction_path = getPcapExtractionPath(ifid)
-  local line = os_utils.execWithOutput("du -s "..extraction_path.." 2>/dev/null")
-  local values = split(line, '\t')
-  if #values >= 1 then
-    local extraction_used = tonumber(values[1])
-    if extraction_used ~= nil then
-      storage_info.extraction_used = extraction_used*1024
+  if ntop.isdir(extraction_path) then
+    local line = os_utils.execWithOutput("du -s "..extraction_path.." 2>/dev/null")
+    local values = split(line, '\t')
+    if #values >= 1 then
+      local extraction_used = tonumber(values[1])
+      if extraction_used ~= nil then
+        storage_info.extraction_used = extraction_used*1024
+      end
     end
   end
 

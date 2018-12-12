@@ -26,6 +26,7 @@ require "graph_utils"
 require "alert_utils"
 require "db_utils"
 local ts_utils = require "ts_utils"
+local rrd_utils = require "rrd_utils"
 local recording_utils = require "recording_utils"
 
 local have_nedge = ntop.isnEdge()
@@ -576,16 +577,15 @@ if(ifstats.zmqRecvStats ~= nil) then
       local storage_items = {}
       local total_used = 0
 
-      if ts_utils.getDriverName() == "rrd" then
-        local rrd_utils = require "rrd_utils"
+      -- if ts_utils.getDriverName() == "rrd" then
         local rrd_storage_info = rrd_utils.storageInfo(ifid)
         table.insert(storage_items, {
           title = i18n("prefs.timeseries"),
           value = rrd_storage_info.total,
-          class = "warning",
+          class = "primary",
         })
         total_used = total_used + rrd_storage_info.total
-      end
+      -- end
 
       if ntop.isEnterprise() and hasNindexSupport() then
         local nindex_utils = require "nindex_utils"
@@ -598,16 +598,16 @@ if(ifstats.zmqRecvStats ~= nil) then
         total_used = total_used + flows_storage_info.total
       end
 
-      if recording_utils.isAvailable() and ntop.isdir(recording_utils.getPcapPath(ifid)) then 
+      -- if recording_utils.isAvailable() then 
         local pcap_storage_info = recording_utils.storageInfo(ifid)
         local total_pcap_dump_used = (pcap_storage_info.if_used + pcap_storage_info.extraction_used)
         table.insert(storage_items, {
           title = i18n("traffic_recording.packet_dumps"),
           value = total_pcap_dump_used,
-          class = "primary",
+          class = "warning",
         })
         total_used = total_used + total_pcap_dump_used
-      end
+      -- end
 
       if #storage_items > 0 then
         print("<tr><th>"..i18n("traffic_recording.storage_utilization").."</th><td colspan=4>")

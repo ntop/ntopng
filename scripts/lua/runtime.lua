@@ -5,8 +5,10 @@
 dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
+require "graph_utils"
 local ts_utils = require("ts_utils")
 local page_utils = require("page_utils")
+local storage_utils = require("storage_utils")
 
 sendHTTPContentTypeHeader('text/html')
 
@@ -31,6 +33,31 @@ end
 if system_host_stats["mem_total"] ~= nil then
    print("<tr><th nowrap>"..i18n("about.ram_memory").."</th><td><span id='ram-used'></span></td></tr>\n")
 end
+
+local storage_info = storage_utils.storageInfo()
+
+local storage_items = {}
+local classes = { "primary", "info", "warning", "success", "default" }
+local colors = { "blue", "salmon", "seagreen", "cyan", "green", "magenta", "orange", "red", "violet" }
+local col = 1
+local num_items = 0
+for if_id, if_info in pairs(storage_info.interfaces) do
+  local item = { title = getInterfaceName(if_id), value = if_info.total }
+  if num_items < #classes then
+    item.class = classes[num_items+1]
+  else
+    item.style = "background-image: linear-gradient(to bottom, "..colors[col].." 0%, dark"..colors[col].." 100%)"
+    col = col + 1
+    if col > #colors then col = 1 end 
+  end
+  table.insert(storage_items, item)
+  num_items = num_items + 1
+end
+
+print("<tr><th>"..i18n("traffic_recording.storage_utilization").."</th><td>")
+print("<span style='float: left;'>")
+print(stackedProgressBars(storage_info.total, storage_items, nil, bytesToSize))
+print("</td></tr>\n")
 
 vers = string.split(info["version.git"], ":")
 if((vers ~= nil) and (vers[2] ~= nil)) then

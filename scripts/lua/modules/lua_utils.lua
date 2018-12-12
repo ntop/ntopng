@@ -3411,14 +3411,16 @@ function getFolderSize(path)
    if ntop.isWindows() then
      -- TODO
    else
-     local line = os_utils.execWithOutput("du -s "..path.." 2>/dev/null")
-     local values = split(line, '\t')
-     if #values >= 1 then
-        local used = tonumber(values[1])
-        if used ~= nil then
-           size = used*1024
-        end
-     end
+      if ntop.isdir(path) then
+         local line = os_utils.execWithOutput("du -s "..path.." 2>/dev/null")
+         local values = split(line, '\t')
+         if #values >= 1 then
+            local used = tonumber(values[1])
+            if used ~= nil then
+               size = used*1024
+            end
+         end
+      end
    end
 
    return size
