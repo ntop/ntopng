@@ -184,6 +184,7 @@ function stackedProgressBars(total, bars, other_label, formatter)
       legend_items[#legend_items + 1] = {
          title = other_label,
          class = "empty",
+         style = "",
          value = math.max(total - cumulative, 0),
       }
    end
