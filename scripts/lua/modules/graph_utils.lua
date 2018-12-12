@@ -161,15 +161,11 @@ function stackedProgressBars(total, bars, other_label, formatter)
    -- The bars
    res[#res + 1] = [[<div class="progress">]]
 
-   local sum = 0
-   for _, bar in ipairs(bars) do
-      sum = sum + bar.value
-   end
-   if total > sum then total = sum end
+   for _, bar in ipairs(bars) do cumulative = cumulative + bar.value end
+   if cumulative > total then total = cumulative end
 
    for _, bar in ipairs(bars) do
       local percentage = round(bar.value * 100 / total, 2)
-      cumulative = cumulative + bar.value
       if bar.class == nil then bar.class = "primary" end
       if bar.style == nil then bar.style = "" end
       res[#res + 1] = [[
