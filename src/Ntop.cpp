@@ -996,7 +996,6 @@ bool Ntop::isInterfaceAllowed(lua_State* vm, const char *ifname) const {
 /* ******************************************* */
 
 bool Ntop::isLocalUser(lua_State* vm) {
-  char key[64], val[64];
   struct mg_connection *conn;
 
   if((conn = getLuaVMUservalue(vm,conn)) == NULL) {
@@ -1004,7 +1003,7 @@ bool Ntop::isLocalUser(lua_State* vm) {
     return(true);
   }
 
-  return getLuaVMUserdata(vm,localuser);
+  return getLuaVMUservalue(vm,localuser);
 }
 
 /* ******************************************* */
