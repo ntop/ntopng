@@ -12,7 +12,6 @@ if((not isAdministrator()) or (not recording_utils.isAvailable())) then
 end
 
 local ifstats = interface.getStats()
-local storage_info = recording_utils.storageInfo(ifstats.id)
 local enabled = false
 local running = false
 local restart_req = false

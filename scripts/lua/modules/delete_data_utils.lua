@@ -486,18 +486,18 @@ end
 -- ################################################################
 
 function delete_data_utils.delete_old_nindex_flows()
-   local retention = tonumber(ntop.getPref("ntopng.prefs.nindex_retention_days")) or 365
-   local if_list = list_all_interfaces()
+   if ntop.isEnterprise() and hasNindexSupport() then
+      local nindex_utils = require "nindex_utils"
 
-   for ifid in pairs(if_list) do
-      local data_dir = ntop.getDirs()["workingdir"]
-      local ifdir = os_utils.fixPath(string.format("%s/%u/", data_dir, ifid))
-      local flows_dir = os_utils.fixPath(ifdir .. "/flows")
-      local aggrflows_dir = os_utils.fixPath(ifdir .. "/aggregatedflows")
-      local now = os.time()
+      local retention = tonumber(ntop.getPref("ntopng.prefs.nindex_retention_days")) or 365
+      local if_list = list_all_interfaces()
 
-      harvestDateBasedDirTree(flows_dir, retention, now)
-      harvestDateBasedDirTree(aggrflows_dir, retention, now)
+      for ifid in pairs(if_list) do
+         local now = os.time()
+         local flows_dirs = nindex_utils.getDirs(ifid)
+         harvestDateBasedDirTree(flows_dirs.flows, retention, now)
+         harvestDateBasedDirTree(flows_dirs.aggregatedflows, retention, now)
+      end
    end
 end
 

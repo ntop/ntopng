@@ -1,5 +1,6 @@
 local os_utils = require "os_utils"
 require "lua_utils"
+require "rrd_paths"
 
 SECONDS_IN_A_HOUR = 3600
 SECONDS_IN_A_DAY = SECONDS_IN_A_HOUR*24
@@ -279,5 +280,24 @@ function rrd_interval_integrate(epoch_start, epoch_end, resolution, start, rawda
   if with_activity then rawdata.activity = activity end
   return times
 end
+
+-- ########################################################
+
+-- Read information about the disk space used by rrd (size is in bytes)
+function rrd_utils.storageInfo(ifid)
+  local dirs = ntop.getDirs()
+  local paths = getRRDPaths()
+  local info = { total = 0 }
+
+  for _, path in pairs(paths) do
+    local absolute_path = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/".. path .."/")
+    info[path] = getFolderSize(absolute_path)
+    info["total"] = info["total"] + info[path]
+  end
+
+  return info
+end
+
+-- ########################################################
 
 return rrd_utils

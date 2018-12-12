@@ -281,7 +281,7 @@ local function interfaceStorageUsed(ifid)
   if #values >= 1 then
     local if_used = tonumber(values[1])
     if if_used ~= nil then
-      if_used = if_used/1024
+      if_used = if_used*1024
       return math.ceil(if_used)
     end
   end
@@ -290,7 +290,7 @@ end
 
 --! @brief Read information about the storage, including storage size and available space
 --! @param ifid the interface identifier 
---! @return a table containing storage information
+--! @return a table containing storage information (size is in bytes)
 function recording_utils.storageInfo(ifid)
   local storage_info = {
     path = dirs.pcapdir, dev = "", mount = "",
@@ -308,9 +308,9 @@ function recording_utils.storageInfo(ifid)
   local values = split(line, ' ')
   if #values >= 6 then
     storage_info.dev = values[1]
-    storage_info.total = tonumber(values[2])/1024
-    storage_info.used = tonumber(values[3])/1024
-    storage_info.avail = tonumber(values[4])/1024
+    storage_info.total = tonumber(values[2])*1024
+    storage_info.used = tonumber(values[3])*1024
+    storage_info.avail = tonumber(values[4])*1024
     storage_info.used_perc = values[5]
     storage_info.mount = values[6]
   end
@@ -325,8 +325,7 @@ function recording_utils.storageInfo(ifid)
   if #values >= 1 then
     local extraction_used = tonumber(values[1])
     if extraction_used ~= nil then
-      extraction_used = extraction_used/1024
-      storage_info.extraction_used = extraction_used
+      storage_info.extraction_used = extraction_used*1024
     end
   end
 
@@ -609,7 +608,7 @@ local function allInterfacesStorageUsage(ifid)
         if not isEmptyString(disk_space) then
           if_disk_space = tonumber(disk_space)
         end
-        info.reserved_disk_space = info.reserved_disk_space + if_disk_space
+        info.reserved_disk_space = info.reserved_disk_space + (if_disk_space*1024*1024)
         info.used_disk_space = info.used_disk_space + interfaceStorageUsed(id)
       end
     end
@@ -864,7 +863,7 @@ function recording_utils.checkExtractionJobs()
         local usage = allInterfacesStorageUsage(nil)
         if storage_info.avail > usage.delta_disk_space then
           local avail = storage_info.avail - usage.delta_disk_space
-          extraction_limit = math.floor(avail*1024*1024)
+          extraction_limit = math.floor(avail)
         else
           extraction_limit = nil
         end 

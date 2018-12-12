@@ -3404,6 +3404,28 @@ end
 
 -- ###########################################
 
+-- Returns the size of a folder (size is in bytes)
+function getFolderSize(path)
+   local size = 0
+
+   if ntop.isWindows() then
+     -- TODO
+   else
+     local line = os_utils.execWithOutput("du -s "..path.." 2>/dev/null")
+     local values = split(line, '\t')
+     if #values >= 1 then
+        local used = tonumber(values[1])
+        if used ~= nil then
+           size = used*1024
+        end
+     end
+   end
+
+   return size
+end
+
+-- ###########################################
+
 -- Compares IPv4 / IPv6 addresses
 function ip_address_asc(a, b)
    return(ntop.ipCmp(a, b) < 0)
