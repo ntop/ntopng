@@ -400,7 +400,7 @@ if (_GET["page"] ~= "historical") then
 			     }
 
 				 },  {
-			     title: "]] print(i18n("if_stats_overview.dropped_flows")) print[[",
+			     title: "]] print(i18n("if_stats_overview.blocked_flows")) print[[",
 				 field: "column_num_dropped_flows",
 				 sortable: true,
                                  hidden: ]]
