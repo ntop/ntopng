@@ -8,10 +8,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 require "graph_utils"
 local template = require "template_utils"
-local page_utils = require("page_utils")
-active_page = "admin"
-
-sendHTTPContentTypeHeader('text/html')
 
 local proto_filter = _GET["l7proto"]
 local category_filter = _GET["category"]
@@ -22,14 +18,11 @@ if not haveAdminPrivileges() then
   return
 end
 
-page_utils.print_header(i18n("protocols"))
-
-dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
-
-local base_url = ntop.getHttpPrefix() .. "/lua/admin/edit_ndpi_applications.lua"
+local base_url = ntop.getHttpPrefix() .. "/lua/admin/edit_categories.lua"
 local page_params = {
   l7proto = proto_filter,
   category = category_filter,
+  tab = "protocols"
 }
 
 local catid = nil
@@ -63,25 +56,20 @@ if not table.empty(_POST) then
   end
 end
 
-print [[<hr>
+print [[<br>
 <table><tbody><tr>
-  <td style="white-space:nowrap; padding-right:1em;">
-    <h2 style="margin-top:0">]]
-
-  if catid == nil then
-    print(i18n("protocols"))
-  else
+  <td style="white-space:nowrap; padding-right:1em;">]]
+  if catid ~= nil then
     print(i18n("users.cat_protocols", {cat=interface.getnDPICategoryName(tonumber(catid))}))
   end
-
-  print[[</h2>
-  </td>]]
+  print[[</td>]]
 
 if not isEmptyString(proto_filter) then
   local proto_name = interface.getnDPIProtoName(tonumber(proto_filter))
 
   print[[<td>
-    <form>
+    <form action="]] print(base_url) print [[" method="get">
+      <input type="hidden" name="tab" value="protocols" />
       <button type="button" class="btn btn-default btn-sm" onclick="$(this).closest('form').submit();">
         <i class="fa fa-close fa-lg" aria-hidden="true" data-original-title="" title=""></i> ]] print(proto_name) print[[
       </button>
@@ -100,9 +88,10 @@ print(
       base_id     = "t_app",
       action      = base_url,
       parameters  = {
-                      ifid = tostring(ifId),
-                      category = category_filter,
-                    },
+        ifid = tostring(ifId),
+        category = category_filter,
+        tab = "protocols"
+      },
       json_key    = "key",
       query_field = "l7proto",
       query_url   = ntop.getHttpPrefix() .. "/lua/find_app.lua",
@@ -199,4 +188,3 @@ print [[
 
 ]]
 
-dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
