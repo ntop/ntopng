@@ -598,6 +598,7 @@ if(ifstats.zmqRecvStats ~= nil) then
           title = i18n("traffic_recording.packet_dumps"),
           value = storage_info.pcap,
           class = "warning",
+          link = ntop.getHttpPrefix() .. "/lua/if_stats.lua?ifid=" .. ifid .. "&page=traffic_recording"
         })
       end
 

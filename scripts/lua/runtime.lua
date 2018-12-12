@@ -42,7 +42,11 @@ local colors = { "blue", "salmon", "seagreen", "cyan", "green", "magenta", "oran
 local col = 1
 local num_items = 0
 for if_id, if_info in pairs(storage_info.interfaces) do
-  local item = { title = getInterfaceName(if_id), value = if_info.total }
+  local item = { 
+    title = getInterfaceName(if_id), 
+    value = if_info.total,
+    link = ntop.getHttpPrefix() .. "/lua/if_stats.lua?ifid=" .. if_id
+  }
   if num_items < #classes then
     item.class = classes[num_items+1]
   else
