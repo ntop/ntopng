@@ -213,7 +213,7 @@ case "$1" in
 	n2disk)
 	CONFIG_INSTALL_TARGET="install-n2disk-conf"
 	SERVICE_STATS=get_n2disk_stats
-	SERVICE_NAME="n2disk"
+	SERVICE_NAME="n2disk-ntopng"
 
 	if [ -z "$3" ]; then
 		print_usage
@@ -232,7 +232,7 @@ case "$1" in
 	;;
 
 	n2n)
-	SERVICE_NAME="edge"
+	SERVICE_NAME="edge-ntopng"
 	CONFIG_INSTALL_TARGET="install-n2n-conf"
 
 	if [ ! -z "$3" ]; then
