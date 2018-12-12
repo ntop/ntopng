@@ -1256,7 +1256,7 @@ elseif(page == "sites") then
       local top_len = table.len(top_sites)          if(top_len > 10) then top_len = 10 end
       if(old_top_len > top_len) then num = old_top_len else num = top_len end
 
-      print("<tr><th rowspan="..(1+num)..">"..i18n("http_page.top_visited_sites").."</th><th>"..i18n("http_page.current_sites").."</th><th>"..i18n("http_page.contacts").."</th><th>"..i18n("http_page.last_5_minutes_sites").."</th><th>"..i18n("http_page.contacts").."</th></tr>\n")
+      print("<tr><th rowspan="..(1+num)..">"..i18n("sites_page.top_visited_sites").."</th><th>"..i18n("sites_page.current_sites").."</th><th>"..i18n("sites_page.contacts").."</th><th>"..i18n("sites_page.last_5_minutes_sites").."</th><th>"..i18n("sites_page.contacts").."</th></tr>\n")
       local sites = {}
       for k,v in pairsByValues(top_sites, rev) do
 	 table.insert(sites, { k, v })
