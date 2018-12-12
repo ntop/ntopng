@@ -1602,11 +1602,12 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	  icmp_v6.incStats(icmp_type, icmp_code, is_sent_packet, NULL);
 
 	if(l4_proto == IPPROTO_ICMP) {
-	  ndpi_protocol icmp_proto;
+	  ndpi_protocol icmp_proto = flow->get_detected_protocol();
 
-	  icmp_proto = flow->get_detected_protocol();
-	  ndpi_fill_ip_protocol_category(ndpi_struct, (struct ndpi_iphdr *)ip, &icmp_proto);
-	  flow->setDetectedProtocol(icmp_proto, false);
+	  if(icmp_proto.category == NDPI_PROTOCOL_CATEGORY_UNSPECIFIED) {
+	    ndpi_fill_ip_protocol_category(ndpi_struct, (struct ndpi_iphdr *)ip, &icmp_proto);
+	    flow->setDetectedProtocol(icmp_proto, false);
+	  }
 	}
       }
       break;
