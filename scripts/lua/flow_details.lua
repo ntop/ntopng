@@ -228,7 +228,7 @@ else
 
    ifstats = interface.getStats()
    print("<table class=\"table table-bordered table-striped\">\n")
-   if (ifstats.vlan and (flow["vlan"] ~= nil)) then
+   if ifstats.vlan and flow["vlan"] > 0 then
       print("<tr><th width=30%>")
       if(ifstats.sprobe) then
 	 print(i18n("details.source_id"))
