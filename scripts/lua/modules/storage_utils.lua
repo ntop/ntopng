@@ -12,6 +12,7 @@ end
 
 require "lua_utils"
 
+local json = require("dkjson")
 local rrd_utils = require "rrd_utils"
 local recording_utils = require "recording_utils"
 
@@ -21,27 +22,35 @@ local storage_utils = {}
 
 function storage_utils.interfaceStorageInfo(ifid)
   local info = { total = 0}
-  local total_used = 0
-  
-  -- if ts_utils.getDriverName() == "rrd" then
-    local rrd_storage_info = rrd_utils.storageInfo(ifid)
-    info["rrd"] = rrd_storage_info.total
-    info["total"] = info["total"] + rrd_storage_info.total
-  -- end
+  local key = "ntopng.cache."..ifid..".storage_info"
 
-  if ntop.isEnterprise() and hasNindexSupport() then
-    local nindex_utils = require "nindex_utils"
-    local flows_storage_info = nindex_utils.storageInfo(ifid)
-    info["flows"] = flows_storage_info.total
-    info["total"] = info["total"] + flows_storage_info.total
+  local info_json = ntop.getCache(key)
+
+  if not isEmptyString(info_json) then
+    info = json.decode(info_json)
+  else
+    -- if ts_utils.getDriverName() == "rrd" then
+      local rrd_storage_info = rrd_utils.storageInfo(ifid)
+      info["rrd"] = rrd_storage_info.total
+      info["total"] = info["total"] + rrd_storage_info.total
+    -- end
+
+    if ntop.isEnterprise() and hasNindexSupport() then
+      local nindex_utils = require "nindex_utils"
+      local flows_storage_info = nindex_utils.storageInfo(ifid)
+      info["flows"] = flows_storage_info.total
+      info["total"] = info["total"] + flows_storage_info.total
+    end
+
+    -- if recording_utils.isAvailable() then 
+      local pcap_storage_info = recording_utils.storageInfo(ifid)
+      local total_pcap_dump_used = (pcap_storage_info.if_used + pcap_storage_info.extraction_used)
+      info["pcap"] = total_pcap_dump_used
+      info["total"] = info["total"] + total_pcap_dump_used
+    -- end
+
+    ntop.setCache(key, json.encode(info), 60)
   end
-
-  -- if recording_utils.isAvailable() then 
-    local pcap_storage_info = recording_utils.storageInfo(ifid)
-    local total_pcap_dump_used = (pcap_storage_info.if_used + pcap_storage_info.extraction_used)
-    info["pcap"] = total_pcap_dump_used
-    info["total"] = info["total"] + total_pcap_dump_used
-  -- end
 
   return info
 end
