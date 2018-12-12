@@ -39,6 +39,8 @@ local host_name   = hostinfo2hostkey(host_info)
 local host_vlan   = host_info["vlan"] or 0
 local always_show_hist = _GET["always_show_hist"]
 
+local top_sites, top_sites_old = {}, {}
+
 local ntopinfo    = ntop.getInfo()
 local active_page = "hosts"
 
@@ -276,6 +278,23 @@ else
 end
 
 if host["localhost"] == true then
+   if not isEmptyString(host["sites"]) then
+      top_sites = json.decode(host["sites"]) or {}
+   end
+   if not isEmptyString(host["sites.old"]) then
+      top_sites_old = json.decode(host["sites.old"]) or {}
+   end
+
+   if not prefs.are_top_talkers_enabled or table.len(top_sites) > 0 or table.len(top_sites_old) > 0 then
+      if(page == "sites") then
+	 print("<li class=\"active\"><a href=\"#\">"..i18n("sites_page.sites").."</a></li>\n")
+      else
+	 if(host["ip"] ~= nil) then
+	    print("<li><a href=\""..url.."&page=sites\">"..i18n("sites_page.sites").."</a></li>")
+	 end
+      end
+   end
+
    if ntop.isEnterprise() then
       if(page == "snmp") then
 	 print("<li class=\"active\"><a href=\"#\">"..i18n("host_details.snmp").."</a></li>\n")
@@ -1166,44 +1185,6 @@ print [[
       if(http ~= nil) then
 	 print("<table class=\"table table-bordered table-striped\">\n")
 
-	 if(host["sites"] ~= nil) then
-	    local top_sites = json.decode(host["sites"], 1, nil)
-	    local top_sites_old = json.decode(host["sites.old"], 1, nil)
-	    local old_top_len = table.len(top_sites_old)  if(old_top_len > 10) then old_top_len = 10 end
-	    local top_len = table.len(top_sites)          if(top_len > 10) then top_len = 10 end
-	    if(old_top_len > top_len) then num = old_top_len else num = top_len end
-
-	    print("<tr><th rowspan="..(1+num)..">"..i18n("http_page.top_visited_sites").."</th><th>"..i18n("http_page.current_sites").."</th><th>"..i18n("http_page.contacts").."</th><th>"..i18n("http_page.last_5_minutes_sites").."</th><th>"..i18n("http_page.contacts").."</th></tr>\n")
-	    local sites = {}
-	    for k,v in pairsByValues(top_sites, rev) do
-	       table.insert(sites, { k, v })
-	    end
-
-	    local sites_old = {}
-	    for k,v in pairsByValues(top_sites_old, rev) do
-	       table.insert(sites_old, { k, v })
-	    end
-
-	    for i = 1,num do
-	       if(sites[i] == nil) then sites[i] = { "", 0 } end
-	       if(sites_old[i] == nil) then sites_old[i] = { "", 0 } end
-	       print("<tr><th>")
-	       if(sites[i][1] ~= "") then
-		  print(formatWebSite(sites[i][1]).."</th><td align=right>"..sites[i][2].."</td>\n")
-	       else
-		  print("&nbsp;</th><td>&nbsp;</td>\n")
-	       end
-
-	       if(sites_old[i][1] ~= "") then
-		  print("<th>"..formatWebSite(sites_old[i][1]).."</th><td align=right>"..sites_old[i][2].."</td>\n")
-	       else
-		  print("<th>&nbsp;</th><td>&nbsp;</td>\n")
-	       end
-
-	       print("</tr>")
-	    end
-	 end
-
 	 print("<tr><th rowspan=6 width=20%><A HREF='http://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol#Request_methods'>"..i18n("http_page.http_queries").."</A></th><th width=20%>"..i18n("http_page.method").."</th><th width=20%>"..i18n("http_page.requests").."</th><th colspan=2>"..i18n("http_page.distribution").."</th></tr>")
 	 print("<tr><th>GET</th><td style=\"text-align: right;\"><span id=http_query_num_get>".. formatValue(http["sender"]["query"]["num_get"]) .."</span> <span id=trend_http_query_num_get></span></td><td colspan=2 rowspan=5>")
 
@@ -1263,6 +1244,54 @@ print [[/lua/host_http_breakdown.lua', { ]] print(hostinfo2json(host_info)) prin
 
 	 print("</table>\n")
       end
+elseif(page == "sites") then
+   if not prefs.are_top_talkers_enabled then
+      local msg = i18n("sites_page.top_sites_not_enabled_message",{url=ntop.getHttpPrefix().."/lua/admin/prefs.lua?tab=protocols"})
+      print("<div class='alert alert-info'><i class='fa fa-info-circle fa-lg' aria-hidden='true'></i> "..msg.."</div>")
+
+   elseif table.len(top_sites) > 0 or table.len(top_sites_old) > 0 then
+      print("<table class=\"table table-bordered table-striped\">\n")
+
+      local old_top_len = table.len(top_sites_old)  if(old_top_len > 10) then old_top_len = 10 end
+      local top_len = table.len(top_sites)          if(top_len > 10) then top_len = 10 end
+      if(old_top_len > top_len) then num = old_top_len else num = top_len end
+
+      print("<tr><th rowspan="..(1+num)..">"..i18n("http_page.top_visited_sites").."</th><th>"..i18n("http_page.current_sites").."</th><th>"..i18n("http_page.contacts").."</th><th>"..i18n("http_page.last_5_minutes_sites").."</th><th>"..i18n("http_page.contacts").."</th></tr>\n")
+      local sites = {}
+      for k,v in pairsByValues(top_sites, rev) do
+	 table.insert(sites, { k, v })
+      end
+
+      local sites_old = {}
+      for k,v in pairsByValues(top_sites_old, rev) do
+	 table.insert(sites_old, { k, v })
+      end
+
+      for i = 1,num do
+	 if(sites[i] == nil) then sites[i] = { "", 0 } end
+	 if(sites_old[i] == nil) then sites_old[i] = { "", 0 } end
+	 print("<tr><th>")
+	 if(sites[i][1] ~= "") then
+	    print(formatWebSite(sites[i][1]).."</th><td align=right>"..sites[i][2].."</td>\n")
+	 else
+	    print("&nbsp;</th><td>&nbsp;</td>\n")
+	 end
+
+	 if(sites_old[i][1] ~= "") then
+	    print("<th>"..formatWebSite(sites_old[i][1]).."</th><td align=right>"..sites_old[i][2].."</td>\n")
+	 else
+	    print("<th>&nbsp;</th><td>&nbsp;</td>\n")
+	 end
+
+	 print("</tr>")
+      end
+      print("</table>\n")
+   else
+      local msg = i18n("sites_page.top_sites_not_seen")
+      print("<div class='alert alert-info'><i class='fa fa-info-circle fa-lg' aria-hidden='true'></i> "..msg.."</div>")
+
+   end
+
    elseif(page == "flows") then
       require("flow_utils")
 

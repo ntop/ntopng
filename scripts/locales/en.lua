@@ -1425,6 +1425,11 @@ local lang = {
     ["user_title"] = "for User %{poolname}",
     ["vlan_title"] = "VLAN %{vlan}",
   },
+  ["sites_page"] = {
+     ["sites"] = "Sites",
+     ["top_sites_not_enabled_message"] = "To keep track of visited sites, enable the creation of top visited web sites for local hosts from the <a href=\"%{url}\"><i class=\"fa fa-flask\"></i> Preferences</a>.",
+     ["top_sites_not_seen"] = "Current local host has not visited any website yet.",
+  },
   ["http_page"] = {
     ["contacts"] = "Contacts",
     ["current_sites"] = "Current Sites",
