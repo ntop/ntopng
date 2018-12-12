@@ -133,7 +133,7 @@ print [[
       <tr>
         <th>]] print(i18n("traffic_recording.storage_utilization")) print [[</th>
         <td>
-          <span style="float: left;">
+          <span style="width: 400px; float: left">
 ]]
 
 local system_used = storage_info.total - storage_info.avail - storage_info.if_used - storage_info.extraction_used
@@ -155,6 +155,7 @@ print(stackedProgressBars(storage_info.total, {
 }, i18n("free"), bytesToSize))
 
 print[[
+          </span>
         </td>
       </tr>
 ]]
