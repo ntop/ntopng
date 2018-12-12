@@ -17,6 +17,7 @@ can be obtained from the traffic captured by the server.
    traffic_recording
    advanced_features/index
    operating_ntopng_on_large_networks
+   faq
    api/index
 
 .. Indices and tables

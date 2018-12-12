@@ -39,6 +39,8 @@ associated to each protocol:
 
   The Protocol Category editor
 
+.. _CustomCategoryHosts:
+  
 Custom Category Hosts
 ---------------------
 

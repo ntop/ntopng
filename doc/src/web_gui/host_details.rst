@@ -115,6 +115,8 @@ virtual server table.
 
   The HTTP View of the Host Details Page with Virtual Hosts
 
+.. _Sites:
+
 Sites
 -----
 
@@ -149,7 +151,8 @@ been visited. Every time the host visit a site, the corresponding
    This page is only available in the Host Details page menu when
    there is at least one visited website.
 
-
+.. _Flows:
+   
 Flows
 -----
 
