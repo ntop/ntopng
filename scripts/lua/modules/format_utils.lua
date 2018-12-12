@@ -5,9 +5,26 @@
 local format_utils = {}
 
 function format_utils.round(num, idp)
-   if(num == nil) then return(0) end
-   return tonumber(string.format("%." .. (idp or 0) .. "f", num)) or 0
+   num = tonumber(num)
+   local res
+
+   if num == nil then
+      return 0
+   end
+
+   if num == math.floor(num) then
+      -- This is an integer, so represent it
+      -- without decimals
+      res = string.format("%d", math.floor(num))
+   else
+      -- This is a number with decimal, so represent
+      -- it with a number of decimal digits equal to idp
+      res = string.format("%." .. (idp or 0) .. "f", num)
+   end
+
+   return tonumber(res) or 0
 end
+
 local round = format_utils.round
 
 function format_utils.secondsToTime(seconds)
