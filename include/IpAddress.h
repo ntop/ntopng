@@ -70,6 +70,7 @@ class IpAddress {
   inline bool isPrivateAddress()                      { return(addr.privateIP); };
   inline bool isMulticastAddress()                    { return(addr.multicastIP); };
   inline bool isBroadcastAddress()                    { return(addr.broadcastIP); };
+  inline bool isNonEmptyUnicastAddress()              { return(!isMulticastAddress() && !isBroadcastAddress() && !isEmpty()); };
   inline u_int8_t getVersion()                        { return(addr.ipVersion); };
   inline void setVersion(u_int8_t version)            { addr.ipVersion = version; };
   char* print(char *str, u_int str_len, u_int8_t bitmask = 0xFF);

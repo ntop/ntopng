@@ -1154,6 +1154,8 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
 
     /* Check and possibly enqueue host remote-to-remote alerts */
     if(!cli_host->isLocalHost() && !srv_host->isLocalHost()
+       && cli_host->get_ip()->isNonEmptyUnicastAddress()
+       && srv_host->get_ip()->isNonEmptyUnicastAddress()
        && ntop->getPrefs()->are_remote_to_remote_alerts_enabled()
        && !cli_host->setRemoteToRemoteAlerts()) {
       json_object *jo = cli_host->getJSONObject(details_normal);
@@ -3501,12 +3503,8 @@ FlowStatus Flow::getFlowStatus() {
   }
 
   if(cli_host && srv_host
-      && ! cli_host->get_ip()->isEmpty()
-      && ! srv_host->get_ip()->isEmpty()
-      && ! cli_host->get_ip()->isBroadcastAddress()
-      && ! srv_host->get_ip()->isBroadcastAddress()
-      && ! cli_host->get_ip()->isMulticastAddress()
-      && ! srv_host->get_ip()->isMulticastAddress()) {
+      && cli_host->get_ip()->isNonEmptyUnicastAddress()
+      && srv_host->get_ip()->isNonEmptyUnicastAddress()) {
 
     if(! cli_host->isLocalHost() && 
        ! srv_host->isLocalHost())
