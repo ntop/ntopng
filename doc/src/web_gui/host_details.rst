@@ -115,6 +115,41 @@ virtual server table.
 
   The HTTP View of the Host Details Page with Virtual Hosts
 
+Sites
+-----
+
+ntopng can keep track of top visited sites for any monitored local
+host. Enabling the tracking of top visited sites requires preference
+"Top HTTP Sites" to be set using the ntopng preferences page.
+
+.. figure:: ../img/web_gui_visited_sites_preference.png
+  :align: center
+  :alt: Enabling Visited Sites
+
+  The Preferences Page to Enable Visited Sites
+
+Once the preference has been enabled, this page will start showing
+visited websites, which are shown over the two most recent 5-minute
+intevals. Newly visited sites are placed under the "Current
+Sites". Every 5 minutes ntopng moves the "Current Sites" under "Last 5
+Minute Sites", and starts over with a clean "Current Sites".
+
+.. figure:: ../img/web_gui_visited_sites.png
+  :align: center
+  :alt: Host Sites View
+
+  The Sites View of the Host Details Page
+
+Column "Contacts" count the number of time a particular website has
+been visited. Every time the host visit a site, the corresponding
+"Contacts" counter is increased by one.
+
+.. note::
+
+   This page is only available in the Host Details page menu when
+   there is at least one visited website.
+
+
 Flows
 -----
 
