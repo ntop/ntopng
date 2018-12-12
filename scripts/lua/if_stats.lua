@@ -577,37 +577,42 @@ if(ifstats.zmqRecvStats ~= nil) then
       local storage_items = {}
       local total_used = 0
 
-      -- if ts_utils.getDriverName() == "rrd" then
-        local rrd_storage_info = rrd_utils.storageInfo(ifid)
+      local rrd_storage_info = rrd_utils.storageInfo(ifid)
+      if -- ts_utils.getDriverName() == "rrd" and
+         rrd_storage_info.total > 0 then
         table.insert(storage_items, {
           title = i18n("prefs.timeseries"),
           value = rrd_storage_info.total,
           class = "primary",
         })
         total_used = total_used + rrd_storage_info.total
-      -- end
+      end
 
       if ntop.isEnterprise() and hasNindexSupport() then
         local nindex_utils = require "nindex_utils"
         local flows_storage_info = nindex_utils.storageInfo(ifid)
-        table.insert(storage_items, {
-          title = i18n("flows"),
-          value = flows_storage_info.total,
-          class = "info",
-        })
-        total_used = total_used + flows_storage_info.total
+        if flows_storage_info.total > 0 then
+          table.insert(storage_items, {
+            title = i18n("flows"),
+            value = flows_storage_info.total,
+            class = "info",
+          })
+          total_used = total_used + flows_storage_info.total
+        end
       end
 
-      -- if recording_utils.isAvailable() then 
+      if recording_utils.isAvailable() then 
         local pcap_storage_info = recording_utils.storageInfo(ifid)
         local total_pcap_dump_used = (pcap_storage_info.if_used + pcap_storage_info.extraction_used)
-        table.insert(storage_items, {
-          title = i18n("traffic_recording.packet_dumps"),
-          value = total_pcap_dump_used,
-          class = "warning",
-        })
-        total_used = total_used + total_pcap_dump_used
-      -- end
+        if total_pcap_dump_used > 0 then
+          table.insert(storage_items, {
+            title = i18n("traffic_recording.packet_dumps"),
+            value = total_pcap_dump_used,
+            class = "warning",
+          })
+          total_used = total_used + total_pcap_dump_used
+        end
+      end
 
       if #storage_items > 0 then
         print("<tr><th>"..i18n("traffic_recording.storage_utilization").."</th><td colspan=4>")
