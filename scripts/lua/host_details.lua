@@ -17,6 +17,7 @@ require "graph_utils"
 require "alert_utils"
 require "historical_utils"
 
+active_page = "hosts"
 local json = require ("dkjson")
 local host_pools_utils = require "host_pools_utils"
 local discover = require "discover_utils"

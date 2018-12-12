@@ -13,6 +13,7 @@ end
 require "lua_utils"
 require "graph_utils"
 require "alert_utils"
+active_page = "hosts"
 local page_utils = require("page_utils")
 local ts_utils = require("ts_utils")
 

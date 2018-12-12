@@ -9,6 +9,7 @@ require "lua_utils"
 local delete_data_utils = require "delete_data_utils"
 local template = require "template_utils"
 local page_utils = require("page_utils")
+active_page = "admin"
 
 local page        = _GET["page"] or _POST["page"]
 

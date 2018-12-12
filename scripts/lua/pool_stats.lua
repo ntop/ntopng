@@ -6,9 +6,9 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
-
 local page_utils = require("page_utils")
 
+active_page = "hosts"
 local have_nedge = ntop.isnEdge()
 
 sendHTTPContentTypeHeader('text/html')

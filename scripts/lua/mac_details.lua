@@ -19,6 +19,7 @@ require "discover_utils"
 local page_utils = require("page_utils")
 local ts_utils = require("ts_utils")
 
+active_page = "hosts"
 local have_nedge = ntop.isnEdge()
 
 local info = ntop.getInfo(false)

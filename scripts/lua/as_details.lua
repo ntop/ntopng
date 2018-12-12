@@ -15,6 +15,8 @@ require "graph_utils"
 local ts_utils = require("ts_utils")
 local page_utils = require("page_utils")
 
+active_page = "hosts"
+
 local asn         = tonumber(_GET["asn"])
 local page        = _GET["page"]
 

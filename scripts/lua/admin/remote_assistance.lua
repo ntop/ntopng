@@ -8,6 +8,7 @@ require "lua_utils"
 local remote_assistance = require("remote_assistance")
 local template = require "template_utils"
 local page_utils = require("page_utils")
+active_page = "admin"
 
 if((not isAdministrator()) or (not remote_assistance.isAvailable())) then
   return

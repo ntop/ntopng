@@ -10,6 +10,7 @@ local template = require "template_utils"
 local categories_utils = require "categories_utils"
 local lists_utils = require "lists_utils"
 local page_utils = require("page_utils")
+active_page = "admin"
 
 sendHTTPContentTypeHeader('text/html')
 
