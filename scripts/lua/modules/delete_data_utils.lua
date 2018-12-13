@@ -302,8 +302,7 @@ end
 
 -- ################################################################
 
--- no need to make it global yet
-local function list_all_interfaces()
+function delete_data_utils.list_all_interfaces()
    return list_interfaces(false --[[ all interfaces, active and inactive --]])
 end
 
@@ -358,7 +357,7 @@ function delete_data_utils.delete_all_interfaces_data()
       return
    end
 
-   local if_list = list_all_interfaces()
+   local if_list = delete_data_utils.list_all_interfaces()
 
    return delete_interfaces_from_list(if_list)
 end
@@ -442,7 +441,7 @@ end
 -- ################################################################
 
 -- NOTE: this has 1 day accuracy
-local function harvestDateBasedDirTree(dir, retention, now)
+function delete_data_utils.harvestDateBasedDirTree(dir, retention, now)
    for year in pairs(ntop.readdir(dir) or {}) do
       local year_path = os_utils.fixPath(dir .. "/" .. year)
       local num_deleted_months = 0
@@ -479,24 +478,6 @@ local function harvestDateBasedDirTree(dir, retention, now)
       if num_deleted_months == tot_months then
 	 --tprint("PURGE year " .. year)
 	 ntop.rmdir(year_path)
-      end
-   end
-end
-
--- ################################################################
-
-function delete_data_utils.delete_old_nindex_flows()
-   if ntop.isEnterprise() and hasNindexSupport() then
-      local nindex_utils = require "nindex_utils"
-
-      local retention = tonumber(ntop.getPref("ntopng.prefs.nindex_retention_days")) or 365
-      local if_list = list_all_interfaces()
-
-      for ifid in pairs(if_list) do
-         local now = os.time()
-         local flows_dirs = nindex_utils.getDirs(ifid)
-         harvestDateBasedDirTree(flows_dirs.flows, retention, now)
-         harvestDateBasedDirTree(flows_dirs.aggregatedflows, retention, now)
       end
    end
 end
