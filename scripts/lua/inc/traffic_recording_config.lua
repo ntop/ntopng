@@ -133,7 +133,7 @@ print [[
       <tr>
         <th>]] print(i18n("traffic_recording.storage_utilization")) print [[</th>
         <td>
-          <span style="width: 400px; float: left">
+          <span style="float: left">
 ]]
 
 local system_used = storage_info.total - storage_info.avail - storage_info.if_used - storage_info.extraction_used

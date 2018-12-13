@@ -387,6 +387,10 @@ tr.quotas > td {
   margin-top: 2px;
 }
 
+.ntop-progress-stacked {
+  width: 400px;
+}
+
 /* Hide second axis completely */
 /* #historical-tab-chart .nv-y2 { */
 

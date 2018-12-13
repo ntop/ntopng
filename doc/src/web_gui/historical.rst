@@ -71,6 +71,8 @@ Currently, the following views are implemented:
 
   - Top Receivers: the top local receiver hosts and their traffic.
 
+  - Top Interfaces: the top interfaces of a SNMP device.
+
 .. |permalink_icon| image:: ../img/permalink_icon.png
 .. |pcap_download_icon| image:: ../img/pcap_download_icon.png
 .. _`recorded timeseries data`: ../basic_concepts/timeseries.html

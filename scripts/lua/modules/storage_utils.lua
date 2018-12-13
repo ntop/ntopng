@@ -65,6 +65,14 @@ function storage_utils.storageInfo()
     local ifid = tonumber(id)
     local if_info = storage_utils.interfaceStorageInfo(ifid)
     info.interfaces[ifid] = if_info
+    info.interfaces[ifid + 20] = if_info
+    info.interfaces[ifid + 30] = if_info
+    info.interfaces[ifid + 40] = if_info
+    info.interfaces[ifid + 50] = if_info
+    info.interfaces[ifid + 60] = if_info
+    info.interfaces[ifid + 70] = if_info
+    info.interfaces[ifid + 80] = if_info
+    info.interfaces[ifid + 90] = if_info
     info.total = info.total + if_info.total
   end
 

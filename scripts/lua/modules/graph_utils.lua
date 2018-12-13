@@ -152,15 +152,16 @@ end
 --!    - class: the bootstrap color class, usually: "default", "info", "danger", "warning", "success"
 --! @param other_label optional name for the "other" part of the bar. If nil, it will not be shown.
 --! @param formatter an optional item value formatter
+--! @param css_class an optional css class to apply to the progress div
 --! @return html for the bar
-function stackedProgressBars(total, bars, other_label, formatter)
+function stackedProgressBars(total, bars, other_label, formatter, css_class)
    local res = {}
    local cumulative = 0
    local cumulative_perc = 0
    formatter = formatter or (function(x) return x end)
 
    -- The bars
-   res[#res + 1] = [[<div class="progress">]]
+   res[#res + 1] = [[<div class=' ]] .. (css_class or "ntop-progress-stacked") .. [['><div class="progress">]]
 
    for _, bar in ipairs(bars) do cumulative = cumulative + bar.value end
    if cumulative > total then total = cumulative end
@@ -178,7 +179,7 @@ function stackedProgressBars(total, bars, other_label, formatter)
    end
 
    res[#res + 1] = [[
-      </div>]]
+      </div></div>]]
 
    -- The legend
    res[#res + 1] = [[<div class="stacked-progress-legend">]]

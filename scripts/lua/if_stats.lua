@@ -594,19 +594,23 @@ if(ifstats.zmqRecvStats ~= nil) then
       end
 
       if storage_info.pcap ~= nil and storage_info.pcap > 0 then
+        local link = nil
+
+        if recording_utils.isAvailable(ifstats.id) then
+          link = ntop.getHttpPrefix() .. "/lua/if_stats.lua?ifid=" .. ifid .. "&page=traffic_recording"
+        end
+
         table.insert(storage_items, {
           title = i18n("traffic_recording.packet_dumps"),
           value = storage_info.pcap,
           class = "warning",
-          link = ntop.getHttpPrefix() .. "/lua/if_stats.lua?ifid=" .. ifid .. "&page=traffic_recording"
+          link = link
         })
       end
 
       if #storage_items > 0 then
         print("<tr><th>"..i18n("traffic_recording.storage_utilization").."</th><td colspan=4>")
-        print("<span style='width: 400px; float: left'>")
         print(stackedProgressBars(storage_info.total, storage_items, nil, bytesToSize))
-        print("</span>");
         print("</td></tr>\n")
       end
    end

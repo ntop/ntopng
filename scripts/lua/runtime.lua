@@ -59,9 +59,7 @@ for if_id, if_info in pairs(storage_info.interfaces) do
 end
 
 print("<tr><th>"..i18n("traffic_recording.storage_utilization").."</th><td>")
-print("<span style='width: 400px; float: left'>")
 print(stackedProgressBars(storage_info.total, storage_items, nil, bytesToSize))
-print("</span>");
 print("</td></tr>\n")
 
 vers = string.split(info["version.git"], ":")
