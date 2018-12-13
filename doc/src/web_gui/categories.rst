@@ -1,15 +1,13 @@
 Categories
 ##########
 
-Traditionally nDPI was used by ntopng to detect flows L7 protocol. With the advent of
-more and more protocols, speaking about single protocols is often too difficult.
-Users usually are not interested in the specific protocol but rathen on a whole
-group of protocols. For example, it's easier to reason about VPN traffic as a
-whole rather than a particular VPN implementation.
+Traditionally nDPI was used by ntopng to detect flows L7 protocol. With the advent of more and more protocols, 
+speaking about single protocols is often too difficult. Users usually are not interested in the specific protocol
+but rathen on a whole group of protocols. For example, it's easier to reason about VPN traffic as a whole rather 
+than a particular VPN implementation.
 
-For these reasons, nDPI (and ntopng) has been extended to provide a logical
-grouping of protocols, called Categories. With Categories it's possible, for example,
-to get an idea of the network traffic of a host:
+For these reasons, nDPI (and ntopng) has been extended to provide a logical grouping of protocols, called Categories. 
+With Categories it's possible, for example, to get an idea of the network traffic of a host:
 
 .. figure:: ../img/host_category_overview.png
   :align: center
@@ -28,16 +26,33 @@ Some use cases solved by the Categories include:
   :align: center
   :alt: The Category reported on the flow details
 
-The picture above shows the Collaborative category being reported on the flow
-details of a Github/DNS flow. The flow Category is usually determined based on the
-flow protocols. The *Protocols* page can be used to review and modify the category
-associated to each protocol:
+The picture above shows the *Collaborative* category being reported on the flow details of a Github/DNS flow. 
 
-.. figure:: ../img/web_gui_protocols_category.png
+Protocol Category
+-----------------
+
+The flow Category is usually determined based on the flow protocol. It is possible to review and modify the category 
+associated to each protocol through the *Protocols* tab in the *Categories* page:
+
+.. figure:: ../img/web_gui_categories_protocols.png
   :align: center
   :alt: The Protocol Category editor
 
   The Protocol Category editor
+
+Please note that in addition to the built-in protocols, it is possible to define custom protocols providing
+a nDPI protocol file to ntopng through the *--ndpi-protocols|-p <file>* option, with the following format:
+
+.. code:: text
+
+   # host:"<value>",host:"<value>",.....@<subproto>
+   host:"googlesyndacation.com"@Google
+   host:"venere.com"@Venere
+
+An example for this configuration file is available `here <https://github.com/ntop/nDPI/blob/dev/example/protos.txt>`_.
+
+After providing the protocols file to ntopng, the *Protocols* page will show the new protocols, and it will we possible 
+to associate them to categories.
 
 .. _CustomCategoryHosts:
   
