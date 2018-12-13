@@ -7,7 +7,8 @@ local prefs = ntop.getPrefs()
 
 local have_nedge = ntop.isnEdge()
 local info = ntop.getInfo(false)
-local hasRadius = ntop.hasRadiusSupport()
+local hasRadius = ntop.hasRadiusSupport
+local hasNindex = hasNindexSupport()
 
 -- This table is used both to control access to the preferences and to filter preferences results
 local menu_subpages = {
@@ -166,21 +167,10 @@ local menu_subpages = {
     }, timeseries_resolution_resolution = {
       title       = i18n("prefs.timeseries_resolution_resolution_title"),
       description = i18n("prefs.timeseries_resolution_resolution_description"),
-    }, minute_top_talkers_retention = {
-      title       = i18n("prefs.minute_top_talkers_retention_title"),
-      description = i18n("prefs.minute_top_talkers_retention_description"),
     }, rrd_files_retention = {
       title       = i18n("prefs.rrd_files_retention_title"),
       description = i18n("prefs.rrd_files_retention_description"),
-    }, mysql_retention = {
-      title       = i18n("prefs.mysql_retention_title"),
-      description = i18n("prefs.mysql_retention_description"),
-      hidden      = (prefs.is_dump_flows_to_mysql_enabled == false),
-    }, nindex_retention = {
-      title       = i18n("prefs.nindex_retention_title"),
-      description = i18n("prefs.nindex_retention_description"),
-      hidden      = not hasNindexSupport(),
-    }
+    },
   }}, {id="alerts",        label=i18n("show_alerts.alerts"),               advanced=false, pro_only=false,  hidden=(prefs.has_cmdl_disable_alerts == true), entries={
     disable_alerts_generation = {
       title       = i18n("prefs.disable_alerts_generation_title"),
@@ -333,7 +323,16 @@ local menu_subpages = {
     }, max_num_aggregated_flows_per_export = {
       title       = i18n("prefs.max_num_aggregated_flows_per_export_title"),
       description = i18n("prefs.max_num_aggregated_flows_per_export_description"),
-    },
+    }, mysql_retention = {
+      title       = i18n("prefs.mysql_retention_title"),
+      description = i18n("prefs.mysql_retention_description"),
+    }
+  }}, {id="flow_db_dump_nindex",  label=i18n("prefs.flow_database_dump"),   advanced=true,  pro_only=false,  hidden=(not hasNindex), entries={
+    nindex_retention = {
+      title       = i18n("prefs.nindex_retention_title"),
+      description = i18n("prefs.nindex_retention_description"),
+      hidden      = not hasNindex,
+    }
   }}, {id="snmp",          label=i18n("prefs.snmp"),                 advanced=true,  pro_only=true,   hidden=false, nedge_hidden=true, entries={
     toggle_snmp_rrds = {
       title       = i18n("prefs.toggle_snmp_rrds_title"),
@@ -389,7 +388,10 @@ local menu_subpages = {
     }, topk_heuristic_precision = {
       title       = i18n("prefs.topk_heuristic_precision_title"),
       description = i18n("prefs.topk_heuristic_precision_description"),
-    },
+    }, minute_top_talkers_retention = {
+      title       = i18n("prefs.minute_top_talkers_retention_title"),
+      description = i18n("prefs.minute_top_talkers_retention_description"),
+    }
   }},
 }
 

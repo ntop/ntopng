@@ -882,6 +882,15 @@ function printMisc()
 
   -- ######################
 
+  print('<tr><th colspan=2 class="info">'..i18n("prefs.databases")..'</th></tr>')
+
+  --default value
+  minute_top_talkers_retention = 365
+  prefsInputFieldPrefs(subpage_active.entries["minute_top_talkers_retention"].title, subpage_active.entries["minute_top_talkers_retention"].description,
+      "ntopng.prefs.", "minute_top_talkers_retention", minute_top_talkers_retention, "number", nil, nil, nil, {min=1, max=365*10})
+  
+  -- ######################
+
   print('<tr><th colspan=2 class="info">'..i18n("prefs.report")..'</th></tr>')
 
   local t_labels = {i18n("bytes"), i18n("packets")}
@@ -1278,10 +1287,6 @@ function printStatsTimeseries()
 		       not influx_active,
 		       nil, nil, {min=1, max=365*10})
 
-  mysql_retention = 7
-  prefsInputFieldPrefs(subpage_active.entries["mysql_retention"].title, subpage_active.entries["mysql_retention"].description .. "-F mysql;&lt;host|socket&gt;;&lt;dbname&gt;;&lt;table name&gt;;&lt;user&gt;;&lt;pw&gt;.",
-    "ntopng.prefs.", "mysql_retention", mysql_retention, "number", not subpage_active.entries["mysql_retention"].hidden, nil, nil, {min=1, max=365*5, --[[ TODO check min/max ]]})
-
   print('<tr><th colspan=2 class="info">'..i18n('prefs.interfaces_timeseries')..'</th></tr>')
 
   -- TODO: make also per-category interface RRDs
@@ -1416,19 +1421,6 @@ function printStatsTimeseries()
   print('</table>')
 
   print('<table class="table">')
-  print('<tr><th colspan=2 class="info">'..i18n("prefs.databases")..'</th></tr>')
-  
-  --default value
-  minute_top_talkers_retention = 365
-  prefsInputFieldPrefs(subpage_active.entries["minute_top_talkers_retention"].title, subpage_active.entries["minute_top_talkers_retention"].description,
-      "ntopng.prefs.", "minute_top_talkers_retention", minute_top_talkers_retention, "number", nil, nil, nil, {min=1, max=365*10})
-
-  prefsInputFieldPrefs(subpage_active.entries["nindex_retention"].title, subpage_active.entries["nindex_retention"].description,
-      "ntopng.prefs.", "nindex_retention_days", 365, "number", nil, nil, nil, {min=1, max=365*10})
-
-  print('</table>')
-
-  print('<table class="table">')
 if show_advanced_prefs and false --[[ hide these settings for now ]] then
   print('<tr><th colspan=2 class="info">Network Interface Timeseries</th></tr>')
   prefsInputFieldPrefs("Days for raw stats", "Number of days for which raw stats are kept. Default: 1.", "ntopng.prefs.", "intf_rrd_raw_days", prefs.intf_rrd_raw_days, "number", nil, nil, nil, {min=1, max=365*5, --[[ TODO check min/max ]]})
@@ -1557,8 +1549,29 @@ function printFlowDBDump()
 		       prefs.max_num_aggregated_flows_per_export, "number", showElement, false, nil,
 		       {min = 1000, max = 2^32-1})
 
+  print('<tr><th colspan=2 class="info">'..i18n("prefs.databases")..'</th></tr>')
+
+  mysql_retention = 7
+  prefsInputFieldPrefs(subpage_active.entries["mysql_retention"].title, subpage_active.entries["mysql_retention"].description .. "-F mysql;&lt;host|socket&gt;;&lt;dbname&gt;;&lt;table name&gt;;&lt;user&gt;;&lt;pw&gt;.",
+    "ntopng.prefs.", "mysql_retention", mysql_retention, "number", not subpage_active.entries["mysql_retention"].hidden, nil, nil, {min=1, max=365*5, --[[ TODO check min/max ]]})
+
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
 
+  print [[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
+  </form>
+  </table>]]
+end
+
+function printFlowDBNindexDump()
+  print('<form method="post">')
+  print('<table class="table">')
+
+  print('<tr><th colspan=2 class="info">'..i18n("prefs.flow_database_dump")..'</th></tr>')
+
+  prefsInputFieldPrefs(subpage_active.entries["nindex_retention"].title, subpage_active.entries["nindex_retention"].description,
+      "ntopng.prefs.", "nindex_retention_days", 365, "number", nil, nil, nil, {min=1, max=365*10})
+  
+  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
   print [[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
   </form>
   </table>]]
@@ -1683,6 +1696,9 @@ if(tab == "snmp") then
 end
 if(tab == "flow_db_dump") then
    printFlowDBDump()
+end
+if(tab == "flow_db_dump_nindex") then
+   printFlowDBNindexDump()
 end
 
 print[[
