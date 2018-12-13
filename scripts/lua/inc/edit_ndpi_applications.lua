@@ -60,7 +60,7 @@ print [[<br>
 <table><tbody><tr>
   <td style="white-space:nowrap; padding-right:1em;">]]
   if catid ~= nil then
-    print(i18n("users.cat_protocols", {cat=interface.getnDPICategoryName(tonumber(catid))}))
+    print("<h2>"..i18n("users.cat_protocols", {cat=interface.getnDPICategoryName(tonumber(catid))}).."</h2>")
   end
   print[[</td>]]
 
@@ -138,7 +138,11 @@ print[[
   $("#table-edit-ndpi-applications").datatable({
     url: url_update ,
     class: "table table-striped table-bordered table-condensed",
-    buttons: []] printCategoryDropdownButton(true, catid, base_url, page_params) print[[],
+    buttons: []] 
+  if isEmptyString(proto_filter) then 
+    printCategoryDropdownButton(true, catid, base_url, page_params)
+  end
+  print[[],
 ]]
 
 -- Set the preference table
