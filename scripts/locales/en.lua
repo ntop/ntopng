@@ -2766,6 +2766,7 @@ local lang = {
     ["remove_snmp_device"] = "Remove SNMP Device",
     ["remove_snmp_device_confirm"] = "Do you really want to delete the SNMP device %{device}?",
     ["snmp_all_interfaces"] = "All Interfaces",
+    ["snmp_also_seen_on"] = "Also seen on",
     ["snmp_community"] = "SNMP Community",
     ["snmp_device"] = "SNMP Device",
     ["snmp_device_does_not_respond"] = "The SNMP device does not respond.",
