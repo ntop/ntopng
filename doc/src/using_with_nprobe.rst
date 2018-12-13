@@ -49,20 +49,20 @@ One of the benefits of exporting flows in JSON is that it has no fixed format. A
 
 .. code:: text
 
-	  %L7_PROTO %IPV4_SRC_ADDR %IPV4_DST_ADDR %L4_SRC_PORT %L4_DST_PORT %IPV6_SRC_ADDR %IPV6_DST_ADDR %IP_PROTOCOL_VERSION %PROTOCOL %IN_BYTES %IN_PKTS %OUT_BYTES %OUT_PKTS %FIRST_SWITCHED %LAST_SWITCHED %SRC_VLAN  %FLOW_TO_APPLICATION_ID %FLOW_TO_USER_ID %INITIATOR_GW_IP_ADDR %EXPORTER_IPV4_ADDRESS
+	  %IN_SRC_MAC %IN_DST_MAC %SRC_VLAN %IPV4_SRC_ADDR %IPV4_DST_ADDR %L4_SRC_PORT %L4_DST_PORT %IPV6_SRC_ADDR %IPV6_DST_ADDR %IP_PROTOCOL_VERSION %PROTOCOL %L7_PROTO %IN_BYTES %IN_PKTS %OUT_BYTES %OUT_PKTS %FIRST_SWITCHED %LAST_SWITCHED %FLOW_TO_APPLICATION_ID %FLOW_TO_USER_ID %INITIATOR_GW_IP_ADDR %EXPORTER_IPV4_ADDRESS
 
 Rather that specifying all the fields above one by one, an handy macro :code:`@NTOPNG@` can be used as an alias for all the fields. nProbe will automatically expand such macro during startup. Hence, the following two configurations are equivalent:
 
 .. code:: bash
 
 	  nprobe --zmq "tcp://*:5556" -i eth1 -n none -T "@NTOPNG@"
-	  nprobe --zmq "tcp://*:5556" -i eth1 -n none -T "%L7_PROTO %IPV4_SRC_ADDR %IPV4_DST_ADDR %L4_SRC_PORT %L4_DST_PORT %IPV6_SRC_ADDR %IPV6_DST_ADDR %IP_PROTOCOL_VERSION %PROTOCOL %IN_BYTES %IN_PKTS %OUT_BYTES %OUT_PKTS %FIRST_SWITCHED %LAST_SWITCHED %SRC_VLAN  %FLOW_TO_APPLICATION_ID %FLOW_TO_USER_ID %INITIATOR_GW_IP_ADDR %EXPORTER_IPV4_ADDRESS"
+	  nprobe --zmq "tcp://*:5556" -i eth1 -n none -T "%IN_SRC_MAC %IN_DST_MAC %SRC_VLAN %IPV4_SRC_ADDR %IPV4_DST_ADDR %L4_SRC_PORT %L4_DST_PORT %IPV6_SRC_ADDR %IPV6_DST_ADDR %IP_PROTOCOL_VERSION %PROTOCOL %L7_PROTO %IN_BYTES %IN_PKTS %OUT_BYTES %OUT_PKTS %FIRST_SWITCHED %LAST_SWITCHED"
 
-Additional fields can be combined with the macro :code:`@NTOPNG@` to specify extra fields that will be added to the minimum set. For example, one can add source and destination MACs as:
+Additional fields can be combined with the macro :code:`@NTOPNG@` to specify extra fields that will be added to the minimum set. For example:
 
 .. code:: bash
 
-	  nprobe --zmq "tcp://*:5556" -i eth1 -n none -T "@NTOPNG@ %IN_SRC_MAC %OUT_DST_MAC"
+	  nprobe --zmq "tcp://*:5556" -i eth1 -n none -T "@NTOPNG@ %FLOW_TO_APPLICATION_ID %FLOW_TO_USER_ID %INITIATOR_GW_IP_ADDR %EXPORTER_IPV4_ADDRESS"
 
 Collecting from Multiple Exporters
 ==================================
