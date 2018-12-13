@@ -143,7 +143,7 @@ is_service_enabled() {
 has_service() {
 	if [ $SYSTEMD = true ]; then
 		get_systemd_service_name
-		/bin/systemd-analyze verify ${SERVICE} 2>/dev/null >/dev/null
+		/bin/systemd-analyze verify ${SERVICE}.service 2>/dev/null >/dev/null
 
 		if [ $? -eq 0 ]; then
 			echo "yes"
