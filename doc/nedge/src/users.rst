@@ -69,6 +69,48 @@ authentication by assigning the device to the "Not Assigned" user.
 
 .. _programmatic_configuration:
 
+Segmenting the Network
+----------------------
+
+Applying policies to individual devices can be difficult on a large or dynamic network.
+This could be solved by enabling a `captive portal`_ and enforcing the devices authentication
+through it. However, in some cases it is desiderable to avoid displaying the captive portal
+at all for example for an internal network. In this case, the LAN network should be segmented
+by the means of routers and nEdge configured properly to include all the LAN segments via a
+network CIDR. Here is an example.
+
+.. figure:: img/segmented_lan_network.png
+  :align: center
+  :scale: 80%
+  :alt: Segmenting LAN Network
+
+  Segmenting LAN Network
+
+In this example, all the devices connected to the Private access point should be able
+to access the internet without captive portal authentication, whereas the devices connecting
+to the Public access point must be authenticated. By using two routers, and thus segmentating
+the LAN network, it's now possible to identify the devices groups by their network address.
+In particular, the private network is identified by the CIDR `192.168.1.0/24` whereas
+the public network by `192.168.0.0/24`. From the users management page is now possible to
+create a user "private" and then to add the network `192.168.1.0/24` to its members.
+
+.. figure:: img/adding_network_to_user.png
+  :align: center
+  :scale: 80%
+  :alt: Binding the private LAN to a user
+
+  Binding the private LAN to a user
+
+All the devices with an IP address inside the `192.168.1.0/24` will now be part of the
+"private" user, so no captive portal will be shown for them.
+
+.. note::
+  The LAN network now consists of two subnets. In order to correctly identify both
+  subnets as local in nEdge, it's necessary to set an appropriate CIDR into the LAN
+  network configuration to include both subnets (`/23` in this case).
+
+.. _`captive portal`: captive_portal.html
+
 Programmatic Configuration
 --------------------------
 
