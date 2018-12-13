@@ -137,7 +137,7 @@ CollectorInterface::~CollectorInterface() {
 /* **************************************************** */
 
 void CollectorInterface::collect_flows() {
-  struct zmq_msg_hdr h;
+  struct zmq_msg_hdr h; /* NOTE: in network-byte-order format */
   char payload[8192];
   u_int payload_len = sizeof(payload)-1;
   zmq_pollitem_t items[MAX_ZMQ_SUBSCRIBERS];
@@ -181,13 +181,15 @@ void CollectorInterface::collect_flows() {
 	if(size == sizeof(struct zmq_msg_hdr_v0)) {
 	  /* Legacy version */
 	  msg_id = 0;
-	} else if((size != sizeof(h)) || (h.version != ZMQ_MSG_VERSION)) {
+	} else if((size != sizeof(h)) || ((h.version != ZMQ_MSG_VERSION) && (h.version != ZMQ_COMPATIBILITY_MSG_VERSION))) {
 	  ntop->getTrace()->traceEvent(TRACE_WARNING,
 				       "Unsupported publisher version: your nProbe sender is outdated? [%u][%u]",
 				       sizeof(struct zmq_msg_hdr), sizeof(h));
 	  continue;
-	} else
-	  msg_id = h.msg_id;
+	} else if(h.version == ZMQ_COMPATIBILITY_MSG_VERSION)
+	  msg_id = h.msg_id; // host byte order
+	else
+	  msg_id = ntohl(h.msg_id);
 
 	if((!is_collector) && (msg_id > 0)) {
 	  /* 
