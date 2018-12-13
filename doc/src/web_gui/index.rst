@@ -67,3 +67,4 @@ Finally, in the right side of the footer there is the uptime information, direct
     administration
     alerts
     host_search
+    storage_monitor
