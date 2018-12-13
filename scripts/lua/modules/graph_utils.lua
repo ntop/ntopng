@@ -156,6 +156,7 @@ end
 function stackedProgressBars(total, bars, other_label, formatter)
    local res = {}
    local cumulative = 0
+   local cumulative_perc = 0
    formatter = formatter or (function(x) return x end)
 
    -- The bars
@@ -166,6 +167,8 @@ function stackedProgressBars(total, bars, other_label, formatter)
 
    for _, bar in ipairs(bars) do
       local percentage = round(bar.value * 100 / total, 2)
+      if cumulative_perc + percentage > 100 then percentage = 100 - cumulative_perc end
+      cumulative_perc = cumulative_perc + percentage
       if bar.class == nil then bar.class = "primary" end
       if bar.style == nil then bar.style = "" end
       if bar.link ~= nil then res[#res + 1] = [[<a href="]] .. bar.link .. [[">]] end
