@@ -716,8 +716,10 @@ char* Host::get_visual_name(char *buf, u_int buf_len, bool from_info) {
     if(sym_name && sym_name[0]) {
       if(ip.isIPv6() && strcmp(ip.print(ipbuf, sizeof(ipbuf)), sym_name)) {
 	snprintf(buf, buf_len, "%s [IPv6]", sym_name);
-      } else
+      } else {
 	strncpy(buf, sym_name, buf_len);
+	buf[buf_len-1] = '\0';
+}
     } else
       buf[0] = '\0';
   } else

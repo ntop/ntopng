@@ -290,10 +290,12 @@ const char * const ElasticSearch::get_es_version() {
 	if(json_object_object_get_ex(o, "version", &obj)
 	   && json_object_object_get_ex(obj, "number", &obj2)) {
 	  const char *ver = json_object_get_string(obj2);
+	  size_t size = min(strlen(ver) + 1, (size_t)64);
 
 	  if(es_version) free(es_version);
-	  if((es_version = (char*)malloc(strlen(ver) + 1))) {
-	    strcpy(es_version, ver);
+	  if((es_version = (char*)malloc(size))) {
+	    strncpy(es_version, ver, size-1);
+	    es_version[size - 1] = '\0';
 	    version_inited = true;
 	  }
 	}

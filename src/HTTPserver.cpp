@@ -386,6 +386,7 @@ static int getAuthorizedUser(const struct mg_connection *conn,
 
   if(user_login_disabled) {
     strncpy(username, NTOP_NOLOGIN_USER, NTOP_USERNAME_MAXLEN);
+    username[NTOP_USERNAME_MAXLEN - 1] = '\0';
     return(1);
   }
 
@@ -404,6 +405,7 @@ static int getAuthorizedUser(const struct mg_connection *conn,
     getline(authss, pword_s, ':');
 
     strncpy(username, user_s.c_str(), NTOP_USERNAME_MAXLEN);
+    username[NTOP_USERNAME_MAXLEN - 1] = '\0';
     return ntop->checkUserPassword(username, pword_s.c_str(), group, localuser);
   }
 
@@ -709,6 +711,7 @@ static void authorize(struct mg_connection *conn,
     /* Send session cookie and set user for the new session */
     set_cookie(conn, user, group, *localuser, referer);
     strncpy(username, user, NTOP_USERNAME_MAXLEN);
+    username[NTOP_USERNAME_MAXLEN - 1] = '\0';
   }
 }
 
@@ -751,6 +754,7 @@ static int handle_lua_request(struct mg_connection *conn) {
   u_int8_t whitelisted, authorized;
 
   strncpy(group, NTOP_UNKNOWN_GROUP, NTOP_GROUP_MAXLEN-1);
+  group[NTOP_GROUP_MAXLEN - 1] = '\0';
 
   if(referer == NULL)
     referer = (char*)"";

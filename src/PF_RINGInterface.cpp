@@ -98,6 +98,7 @@ PF_RINGInterface::PF_RINGInterface(const char *name) : NetworkInterface(name) {
     /* This looks like a list of ZC interfaces, aggregation need to be done here */
 
     strncpy(name_list, ifname, sizeof(name_list));
+    name_list[sizeof(name_list) - 1] = '\0';
     name = strtok_r(name_list, ",", &tmp);
     while (name != NULL && num_pfring_handles < PF_RING_MAX_SOCKETS) {
 

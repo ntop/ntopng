@@ -47,6 +47,7 @@ AlertsManager::AlertsManager(int interface_id, const char *filename) : StoreMana
 
   /* open the newest */
   strncpy(fileName, filename, sizeof(fileName));
+  fileName[sizeof(fileName) - 1] = '\0';
   snprintf(fileFullPath, sizeof(fileFullPath), "%s/%d/alerts/%s",
 	   ntop->get_working_dir(), ifid, filename);
   ntop->fixPath(filePath);

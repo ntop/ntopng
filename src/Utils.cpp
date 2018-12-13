@@ -2078,7 +2078,7 @@ u_int32_t Utils::readIPv4(char *ifname) {
   int fd;
   
   memset(&ifr, 0, sizeof(ifr));
-  strncpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name));
+  strncpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name)-1);
   ifr.ifr_addr.sa_family = AF_INET;
 
   if((fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP)) < 0) {
@@ -2107,7 +2107,7 @@ u_int16_t Utils::getIfMTU(const char *ifname) {
   int fd;
 
   memset(&ifr, 0, sizeof(ifr));
-  strncpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name));
+  strncpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name)-1);
   ifr.ifr_addr.sa_family = AF_INET;
 
   if((fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
@@ -2797,7 +2797,7 @@ bool Utils::isInterfaceUp(char *ifname) {
     ifname = colon+1;
 
   memset(&ifr, 0, sizeof(ifr));
-  strcpy(ifr.ifr_name, ifname);
+  strncpy(ifr.ifr_name, ifname, IFNAMSIZ-1);
 
   if (ioctl(sock, SIOCGIFFLAGS, &ifr) < 0) {
     close(sock);

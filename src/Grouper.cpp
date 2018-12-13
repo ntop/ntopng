@@ -179,7 +179,10 @@ int8_t Grouper::incStats(Host *h) {
   if(h->get_last_seen() > stats.last_seen)
     stats.last_seen = h->get_last_seen();  
  
-  if(c) strncpy(stats.country, c, sizeof(stats.country));
+  if(c) {
+    strncpy(stats.country, c, sizeof(stats.country));
+    stats.country[sizeof(stats.country) - 1] = '\0';
+  }
 
   return 0;
 }

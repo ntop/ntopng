@@ -68,7 +68,8 @@ Ntop::Ntop(char *appName) {
 
 #ifdef WIN32
   if(SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, working_dir) != S_OK) {
-    strcpy(working_dir, "C:\\Windows\\Temp\\ntopng"); // Fallback: it should never happen
+    strncpy(working_dir, "C:\\Windows\\Temp\\ntopng", sizeof(working_dir)); // Fallback: it should never happen
+    working_dir[sizeof(working_dir) - 1] = '\0';
   } else {
     int l = strlen(working_dir);
 
@@ -950,6 +951,7 @@ void Ntop::getAllowedNetworks(lua_State* vm) {
 
 /* ******************************************* */
 
+// NOTE: ifname must be of size MAX_INTERFACE_NAME_LEN
 bool Ntop::getInterfaceAllowed(lua_State* vm, char *ifname) const {
   char *allowed_ifname;
 
@@ -963,7 +965,8 @@ bool Ntop::getInterfaceAllowed(lua_State* vm, char *ifname) const {
     return false;
   }
 
-  strncpy(ifname, allowed_ifname, strlen(allowed_ifname));
+  strncpy(ifname, allowed_ifname, MAX_INTERFACE_NAME_LEN);
+  ifname[MAX_INTERFACE_NAME_LEN - 1] = '\0';
   return true;
 }
 
