@@ -917,15 +917,22 @@
 #ifdef DONT_USE_LUAJIT
 inline struct ntopngLuaContext* getUserdata(lua_State *vm) {
   if(vm) {
+    struct ntopngLuaContext *userdata;
+
     lua_getglobal(vm, "userdata");
-    return((struct ntopngLuaContext*)lua_touserdata(vm, lua_gettop(vm)));
+    userdata = (struct ntopngLuaContext*) lua_touserdata(vm, lua_gettop(vm));
+    lua_pop(vm, 1); // undo the push done by lua_getglobal
+
+    return(userdata);
   } else
     return(NULL);
 }
 
+#define getLuaVMContext(a)      (a ? getUserdata(a) : NULL)
 #define getLuaVMUserdata(a,b)   (a ? getUserdata(a)->b : NULL)
 #define getLuaVMUservalue(a,b)  getUserdata(a)->b
 #else
+#define getLuaVMContext(a)      (a ? ((struct ntopngLuaContext*)G(a)->userdata) : NULL)
 #define getLuaVMUserdata(a,b)   (a ? ((struct ntopngLuaContext*)G(a)->userdata)->b : NULL)
 #define getLuaVMUservalue(a,b)  ((struct ntopngLuaContext*)G(a)->userdata)->b
 #endif

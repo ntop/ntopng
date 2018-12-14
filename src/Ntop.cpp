@@ -909,10 +909,6 @@ bool Ntop::isUserAdministrator(lua_State* vm) {
   struct mg_connection *conn;
   char *username, *group;
 
-#ifdef DONT_USE_LUAJIT
-  lua_getglobal(vm, "userdata");
-#endif
-
   if(!ntop->getPrefs()->is_users_login_enabled())
     return(true); /* login disabled for all users, everyone's an admin */
 

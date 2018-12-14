@@ -118,12 +118,7 @@ LuaEngine::~LuaEngine() {
     stackDump(L);
 #endif
 
-#ifdef DONT_USE_LUAJIT
-    lua_getglobal(L, "userdata");
-    ctx = (struct ntopngLuaContext*)lua_touserdata(L, lua_gettop(L));
-#else
-    ctx = (struct ntopngLuaContext*)(G(L)->userdata);
-#endif
+    ctx = getLuaVMContext(L);
 
     if(ctx) {
       SNMP *snmp = ctx->snmp;
@@ -3586,12 +3581,7 @@ static int ntop_interface_live_capture(lua_State* vm) {
   
   if(!iface) return(CONST_LUA_ERROR);
 
-#ifdef DONT_USE_LUAJIT
-  lua_getglobal(vm, "userdata");
-  c = (struct ntopngLuaContext*)lua_touserdata(vm, lua_gettop(vm));
-#else
-  c = (struct ntopngLuaContext*)(G(vm)->userdata);
-#endif
+  c = getLuaVMContext(vm);
 
   if((!ntop_interface) || (!c))
     return(CONST_LUA_ERROR);
@@ -4127,12 +4117,7 @@ static int ntop_capture_to_pcap(lua_State* vm) {
 
   if(!ntop->isUserAdministrator(vm)) return(CONST_LUA_ERROR);
 
-#ifdef DONT_USE_LUAJIT
-  lua_getglobal(vm, "userdata");
-  c = (struct ntopngLuaContext*)lua_touserdata(vm, lua_gettop(vm));
-#else
-  c = (struct ntopngLuaContext*)(G(vm)->userdata);
-#endif
+  c = getLuaVMContext(vm);
 
   if((!ntop_interface) || (!c))
     return(CONST_LUA_ERROR);
@@ -4205,12 +4190,7 @@ static int ntop_is_capture_running(lua_State* vm) {
 
   if(!ntop->isUserAdministrator(vm)) return(CONST_LUA_ERROR);
 
-#ifdef DONT_USE_LUAJIT
-  lua_getglobal(vm, "userdata");
-  c = (struct ntopngLuaContext*)lua_touserdata(vm, lua_gettop(vm));
-#else
-  c = (struct ntopngLuaContext*)(G(vm)->userdata);
-#endif
+  c = getLuaVMContext(vm);
 
   if((!ntop_interface) || (!c))
     return(CONST_LUA_ERROR);
@@ -4227,12 +4207,7 @@ static int ntop_stop_running_capture(lua_State* vm) {
 
   if(!ntop->isUserAdministrator(vm)) return(CONST_LUA_ERROR);
 
-#ifdef DONT_USE_LUAJIT
-  lua_getglobal(vm, "userdata");
-  c = (struct ntopngLuaContext*)lua_touserdata(vm, lua_gettop(vm));
-#else
-  c = (struct ntopngLuaContext*)(G(vm)->userdata);
-#endif
+  c = getLuaVMContext(vm);
 
   if((!ntop_interface) || (!c))
     return(CONST_LUA_ERROR);
@@ -5710,12 +5685,7 @@ static int ntop_run_live_extraction(lua_State *vm) {
   if(!ntop->isUserAdministrator(vm))
     return(CONST_LUA_ERROR);
 
-#ifdef DONT_USE_LUAJIT
-  lua_getglobal(vm, "userdata");
-  c = (struct ntopngLuaContext*)lua_touserdata(vm, lua_gettop(vm));
-#else
-  c = (struct ntopngLuaContext*)(G(vm)->userdata);
-#endif
+  c = getLuaVMContext(vm);
 
   if (!c)
     return(CONST_LUA_ERROR);
