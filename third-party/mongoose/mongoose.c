@@ -1738,6 +1738,17 @@ int mg_write_async(struct mg_connection *conn, const void *buf, size_t len) {
   return(total);
 }
 
+int mg_is_client_connected(struct mg_connection *conn) {
+  char c;
+  int rv = recv(conn->client.sock, &c, 1, MSG_PEEK | MSG_DONTWAIT | MSG_NOSIGNAL);
+
+  return(rv != 0);
+}
+
+SOCKET* mg_get_client_socket(struct mg_connection *conn) {
+  return &conn->client.sock;
+}
+
 // Print message to buffer. If buffer is large enough to hold the message,
 // return buffer. If buffer is to small, allocate large enough buffer on heap,
 // and return allocated buffer.

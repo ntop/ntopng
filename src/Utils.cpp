@@ -43,6 +43,11 @@ typedef struct {
   lua_State* vm;
 } DownloadState;
 
+typedef struct {
+  lua_State* vm;
+  time_t last_conn_check;
+} ProgressState;
+
 #ifdef HAVE_LIBCAP
 /* 
    The include below can be found in libcap-dev 
@@ -1582,6 +1587,28 @@ static size_t curl_hdf(char *buffer, size_t size, size_t nitems, void *userp) {
 
 /* **************************************** */
 
+static int progress_callback(void *clientp, double dltotal, double dlnow, double ultotal, double ulnow) {
+  struct mg_connection *conn;
+  ProgressState *progressState = (ProgressState*) clientp;
+  time_t now = time(0);
+
+  if(progressState->vm &&
+		    ((now - progressState->last_conn_check) >= 1) &&
+		    (conn = getLuaVMUserdata(progressState->vm, conn))) {
+    progressState->last_conn_check = now;
+
+    if(!mg_is_client_connected(conn)) {
+      /* connection to the client was closed, stop the transfer */
+      return(1);
+    }
+  }
+
+  /* continue */
+  return(0);
+}
+
+/* **************************************** */
+
 /* form_data is in format param=value&param1=&value1... */
 bool Utils::httpGetPost(lua_State* vm, char *url, char *username,
 		    char *password, int timeout,
@@ -1595,6 +1622,7 @@ bool Utils::httpGetPost(lua_State* vm, char *url, char *username,
 
   if(curl) {
     DownloadState *state = NULL;
+    ProgressState progressState;
     long response_code;
     char *content_type, *redirection;
     char ua[64];
@@ -1655,6 +1683,15 @@ bool Utils::httpGetPost(lua_State* vm, char *url, char *username,
     curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
     curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout);
     curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, timeout);
+
+    if(!form_data) {
+      /* A GET request, track client connection status */
+      progressState.vm = vm;
+      progressState.last_conn_check = 0;
+      curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
+      curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progress_callback);
+      curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &progressState);
+    }
     
 #ifdef CURLOPT_CONNECTTIMEOUT_MS
     curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, timeout*1000);

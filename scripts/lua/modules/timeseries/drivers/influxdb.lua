@@ -82,7 +82,7 @@ local function influx_query(base_url, query, username, password, options)
     return nil
   end
 
-  if res.RESPONSE_CODE ~= 200 then
+  if((res.RESPONSE_CODE ~= 200) and (not res.IS_PARTIAL)) then
     traceError(TRACE_ERROR, TRACE_CONSOLE, "Bad response code[" .. res.RESPONSE_CODE .. "]: " .. (res.CONTENT or ""))
     return nil
   end
