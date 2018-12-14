@@ -1745,10 +1745,6 @@ int mg_is_client_connected(struct mg_connection *conn) {
   return(rv != 0);
 }
 
-SOCKET* mg_get_client_socket(struct mg_connection *conn) {
-  return &conn->client.sock;
-}
-
 // Print message to buffer. If buffer is large enough to hold the message,
 // return buffer. If buffer is to small, allocate large enough buffer on heap,
 // and return allocated buffer.
