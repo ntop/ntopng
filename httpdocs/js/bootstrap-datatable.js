@@ -26,6 +26,7 @@
   var DataTable = function ( element, options ) {
     this.$element = $(element);
     this.options = options;
+    this.pendingRequest = null;
     this.enabled = true;
     this.columns = [];
     this.rows = [];
@@ -44,9 +45,7 @@
     this.$default = this.$element.children().length ?
       this.$element.children() :
       $("<div></div>")
-// ------------- Start ntop Patch ---------------
         .addClass("alert alert-danger")
-// ------------- End ntop Patch ---------------        
         .html(i18n.no_results_found);
 
     this.$element.addClass("clearfix");
@@ -109,9 +108,11 @@
         if(o.url !== "") {
           var req_data = (typeof o.post === "function") ? o.post() : o.post;
 
-          $.ajax({
+          if(this.pendingRequest)
+            this.pendingRequest.abort();
+
+          this.pendingRequest = $.ajax({
               url: o.url
-// ------------- Start ntop Patch ---------------
             , type: "GET"
             , dataType: "json"
             , data: $.extend({}, req_data, {
@@ -119,17 +120,16 @@
                 , perPage: o.perPage
                 , sortColumn: (o.sort.length > 0) ? o.sort[0][0] : null
                 , sortOrder: (o.sort.length > 0) ? o.sort[0][1] : null
- // ------------- End ntop Patch -----------------
                 , filter: o.filter
               })
-            , success: function( res ) {
+            , success: function(res, status, xhr) {
+                that.pendingRequest = null;
+
                 if(o.dataAdapter)
                   res = o.dataAdapter(res, o);
 
                 that.resultset = res;                  
-// ------------- Start ntop Patch ---------------
                 if(!res || res === undefined || !res.data || (res.data.length == 0 && !o.forceTable) ) {
-// ------------- End ntop Patch -----------------
                   showError.call(that, res);
                   return;
                 }
@@ -169,9 +169,7 @@
                   that.$bottom_details.append(that.pagination().clone(true));
 
                 // update the details for the results
-// ------------- Start ntop Patch ---------------
                 if(! o.hideDetails)     that.details();
-// ------------- End ntop Patch ---------------
 
                 // initialize the toolbar
                 _initToolbar.call(that);
@@ -182,9 +180,10 @@
 
                 that.loading( false );
               }
-            , error: function( e ) {
-                if(o.debug) console.log(e);
-                showError.call(that, null);
+            , error: function(xhr, status, e) {
+                that.pendingRequest = null;
+                console.error("Datatable: error while loading data: " + e);
+                showError.call(that, null, status, e);
 
                 that.loading( false );
               }
@@ -211,13 +210,11 @@
             })
             .append(
               $("<div></div>")
-// ------------- Start ntop Patch ---------------              
                 .addClass("progress progress-striped")
                 .append(
                   $("<div></div>")
                     .addClass("progress-bar progress-bar-info")
                     .attr('style', "width: 40%")
-// ------------- End ntop Patch -----------------                    
                 )
             )
             .appendTo(document.body)
@@ -671,9 +668,7 @@
     var o = this.options;
 
     // create the perpage dropdown
-// ------------- Start ntop Patch ---------------
     if(! o.hidePerPage)   _initPerPage.call(this);
-// ------------- End ntop Patch ---------------
 
     // handle filter options
     if(o.filterModal)     _initFilterModal.call(this);
@@ -1045,7 +1040,7 @@
     return false;
   }
 
-  function showError(data) {
+  function showError(data, status, err_msg) {
     var o = this.options
       , $e = this.$element;
 
@@ -1067,10 +1062,20 @@
 
     if(custom_no_res) {
       $e.append(custom_no_res);
+    } else if(err_msg && (status != "abort")) {
+      $e.append($("<div></div>")
+        .addClass("alert alert-danger")
+        .html(err_msg));
     } else if(data && typeof data.error === "string") {
       $e.append($("<div></div>")
         .addClass("alert alert-danger")
         .html(data.error));
+    } else if(o.noResultsMessage) {
+      var msg = o.noResultsMessage(this, data);
+
+      $e.append($("<div></div>")
+        .addClass("alert alert-danger")
+        .html(msg));
     } else if(this.$default)
       $e.append(this.$default);
   }

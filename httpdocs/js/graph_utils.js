@@ -297,18 +297,18 @@ function fixJumpButtons(epoch_end) {
     $("#btn-jump-time-ahead").removeClass("disabled");
 }
 
-function queryNoTimeout() {
-  $("#query-slow-alert").hide();
-  location.href = location.href + "&no_timeout=1";
-}
-
 function showQuerySlow() {
   $("#query-slow-alert").show();
 }
 
+function hideQuerySlow() {
+  $("#query-slow-alert").hide();
+}
+
 // add a new updateStackedChart function
 function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id, params, step, align_step, show_all_smooth, initial_range) {
-  var pending_request = null;
+  var pending_chart_request = null;
+  var pending_table_request = null;
   var d3_sel = d3.select(chart_id);
   var $chart = $(chart_id);
   var $zoom_reset = $(zoom_reset_id);
@@ -322,6 +322,10 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
   var manual_trigger_cmp_serie = false;
   var datetime_format = "dd/MM/yyyy hh:mm:ss";
   var max_over_total_ratio = 3;
+  var query_timer = null;
+  var seconds_before_query_slow = 6;
+  var query_completed = 0;
+  var query_was_aborted = false;
   chart.is_zoomed = ((current_zoom_level > 0) || has_initial_zoom());
 
   //var spinner = $("<img class='chart-loading-spinner' src='" + spinner_url + "'/>");
@@ -348,7 +352,6 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
 
     d3_sel.datum(new_data).transition().call(chart);
     nv.utils.windowResize(chart.update);
-    pending_request = null;
     spinner.remove();
   }
 
@@ -453,6 +456,51 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
       $zoom_reset.hide();
   }
 
+  function checkQueryCompleted() {
+    var flows_dt = $("#chart1-flows");
+    var wait_num_queries = flows_dt.data("datatable") ? 2 : 1;
+
+    query_completed += 1;
+
+    if(query_completed >= wait_num_queries) {
+      if(query_timer) {
+        clearInterval(query_timer);
+        query_timer = null;
+      }
+
+      hideQuerySlow();
+    }
+  }
+
+  chart.queryWasAborted = function() {
+    return query_was_aborted;
+  }
+
+  chart.abortQuery = function() {
+    query_was_aborted = true;
+
+    if(pending_chart_request) {
+      pending_chart_request.abort();
+      chart.noData(i18n.query_was_aborted);
+      update_chart_data([]);
+    }
+
+    if(pending_table_request)
+      pending_table_request.abort();
+
+    if(query_timer) {
+      clearInterval(query_timer);
+      query_timer = null;
+    }
+
+    hideQuerySlow();
+  }
+
+  chart.tableRequestCompleted = function() {
+    checkQueryCompleted();
+    pending_table_request = null;
+  }
+
   var old_start, old_end, old_interval;
 
   /* Returns false if zoom update is rejected. */
@@ -504,8 +552,11 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
     old_start = params.epoch_begin;
     old_end = params.epoch_end;
 
-    if(pending_request)
-      pending_request.abort();
+    if(pending_table_request)
+      pending_table_request.abort();
+
+    if(pending_chart_request)
+      pending_chart_request.abort();
     else if(!no_spinner)
       spinner.appendTo($chart.parent());
 
@@ -515,14 +566,19 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
       .maxDate(new Date($.now()))
       .date(new Date(Math.min(params.epoch_end * 1000, $.now())));
 
-    // Load data via ajax
-    pending_request = $.get(url, params, function(data) {
-      if(data && data.error) {
-        chart.noData(data.error);
+    if(query_timer)
+      clearInterval(query_timer);
 
-        if(data.tsLastError == "OPERATION_TOO_SLOW")
-          showQuerySlow();
-      }
+    query_timer = setInterval(showQuerySlow, seconds_before_query_slow * 1000);
+    query_completed = 0;
+    query_was_aborted = false;
+    chart.noData(i18n.no_data_available);
+    hideQuerySlow();
+
+    // Load data via ajax
+    pending_chart_request = $.get(url, params, function(data) {
+      if(data && data.error)
+        chart.noData(data.error);
 
       if(!data || !data.series || !data.series.length || !checkSeriesConsinstency(schema_name, data.count, data.series)) {
         update_chart_data([]);
@@ -780,17 +836,31 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
       }
 
       console.error("Error while retrieving the timeseries data [" + status + "]: " + error);
+      chart.noData(error);
       update_chart_data([]);
+    }).always(function(data, status, xhr) {
+      checkQueryCompleted();
+      pending_chart_request = null;
     });
 
     if(first_load) {
       first_load = false;
+
+      /* Wait for page load because datatable is not instantiated yet right now */
+      $(function() {
+        var flows_dt = $("#chart1-flows").data("datatable");
+        if(flows_dt)
+          pending_table_request = flows_dt.pendingRequest;
+      });
     } else {
       var flows_dt = $("#chart1-flows");
 
       /* Reload datatable */
-      if(flows_dt.data("datatable"))
+      if(flows_dt.data("datatable")) {
+        /* note: flows_dt.data("datatable") will change after this call */
         updateGraphsTableView(null, params);
+        pending_table_request = flows_dt.data("datatable").pendingRequest;
+      }
     }
 
     if(typeof on_load_callback === "function")
@@ -874,6 +944,10 @@ function updateGraphsTableView(view, graph_params, has_nindex, nindex_query, per
       css: {width: "1%", "white-space": "nowrap", "text-align": "center"},
     });
 
+    var old_dt = graph_table.data("datatable");
+    if(old_dt && old_dt.pendingRequest)
+      old_dt.pendingRequest.abort();
+
     /* Force reinstantiation */
     graph_table.removeData('datatable');
     graph_table.html("");
@@ -882,6 +956,12 @@ function updateGraphsTableView(view, graph_params, has_nindex, nindex_query, per
       title: "",
       url: url,
       perPage: per_page,
+      noResultsMessage: function() {
+        if(ts_chart.queryWasAborted())
+          return i18n.query_was_aborted;
+        else
+          return i18n.no_results_found;
+      },
       post: function() {
         var params = $.extend({}, graph_params);
         delete params.ts_compare;
@@ -898,6 +978,12 @@ function updateGraphsTableView(view, graph_params, has_nindex, nindex_query, per
       buttons: view.nindex_view ? [nindex_buttons, ] : [],
       tableCallback: function() {
         var data = this.resultset;
+        ts_chart.tableRequestCompleted();
+
+        if(!data) {
+          // error
+          return;
+        }
 
         /* The user changed page */
         if(data.currentPage > 1)
@@ -916,9 +1002,6 @@ function updateGraphsTableView(view, graph_params, has_nindex, nindex_query, per
            stats_div.show();
         } else
           stats_div.hide();
-
-        if(data && data.tsLastError == "OPERATION_TOO_SLOW")
-          showQuerySlow();
       }, rowCallback: function(row, row_data) {
         if((typeof row_data.tags === "object") && (
           (params_obj.category && (row_data.tags.category === params_obj.category)) ||
