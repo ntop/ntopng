@@ -182,7 +182,8 @@
               }
             , error: function(xhr, status, e) {
                 that.pendingRequest = null;
-                console.error("Datatable: error while loading data: " + e);
+                if(status !== "abort")
+                  console.error("Datatable: error while loading data: " + e);
                 showError.call(that, null, status, e);
 
                 that.loading( false );
