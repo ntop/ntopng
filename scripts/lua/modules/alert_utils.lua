@@ -962,6 +962,7 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
    local num_engaged_alerts, num_past_alerts, num_flow_alerts = 0,0,0
    local tab = _GET["tab"]
    local have_nedge = ntop.isnEdge()
+   options = options or {}
 
    -- This code controls which entries to show under the tabs Every Minute/Hourly/Daily
    local descr
@@ -1058,11 +1059,15 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
       )
    end
 
-   for _,e in pairs(alert_consts.alerts_granularity) do
+   for _,e in ipairs(alert_consts.alerts_granularity) do
       local k = e[1]
       local l = e[2]
-      l = '<i class="fa fa-cog" aria-hidden="true"></i>&nbsp;'..l
-      printTab(k, l, tab)
+      local resolution = e[3]
+
+      if (not options.remote_host) or resolution <= 60 then
+	 l = '<i class="fa fa-cog" aria-hidden="true"></i>&nbsp;'..l
+	 printTab(k, l, tab)
+      end
    end
 
    local anomalies_config = {
@@ -1129,13 +1134,16 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
       end
 
       if _POST["to_delete"] ~= "local" then
+	 if not table.empty(_POST) then
+	    to_save = true
+	 end
+
          for k,_ in pairs(descr) do
 	    value    = _POST["value_"..k]
 	    operator = _POST["op_"..k]
 
 	    if((value ~= nil) and (operator ~= nil)) then
 	       --io.write("\t"..k.."\n")
-	       to_save = true
 	       value = tonumber(value)
 	       if(value ~= nil) then
 		  if(alerts ~= "") then alerts = alerts .. "," end
@@ -1240,6 +1248,7 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
       print[[</th></tr>]]
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 
+   if not options.remote_host then
       for key,v in pairsByKeys(descr, asc) do
          print("<tr><td><b>".. alert_consts.alert_functions_info[key].label .."</b><br>")
          print("<small>"..v.."</small>\n")
@@ -1260,6 +1269,7 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
 	 end
          print("</td></tr>\n")
       end
+   end
 
       if (entity_type == "host") and (tab == "min") then
          local vals = table.merge(anomalies, global_anomalies)
@@ -2391,9 +2401,14 @@ function check_host_alerts(ifid, working_status, host)
 end
 
 function check_hosts_alerts(ifid, working_status)
-   local hosts_iterator = callback_utils.getLocalHostsIterator(false --[[no details]])
+   local local_hosts_iterator = callback_utils.getLocalHostsIterator(false --[[no details]])
+   local remote_hosts_iterator = callback_utils.getRemoteHostsIterator(false --[[no details]], nil, true --[[ only hosts with anomalies ]])
 
-   for host, _ in hosts_iterator do
+   for host, _ in local_hosts_iterator do
+      check_host_alerts(ifid, working_status, host)
+   end
+
+   for host, _ in remote_hosts_iterator do
       check_host_alerts(ifid, working_status, host)
    end
 end

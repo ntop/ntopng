@@ -48,10 +48,6 @@ LocalHost::~LocalHost() {
   if(http)            delete http;
   if(icmp)            delete icmp;
 
-  if(syn_flood_attacker_alert)  delete syn_flood_attacker_alert;
-  if(syn_flood_victim_alert)    delete syn_flood_victim_alert;
-  if(flow_flood_attacker_alert) delete flow_flood_attacker_alert;
-  if(flow_flood_victim_alert)   delete flow_flood_victim_alert;
   if(ts_ring)                   delete ts_ring;
 }
 
@@ -67,9 +63,7 @@ void LocalHost::initialize() {
   old_sites = strdup("{}");
   dhcpUpdated = false;
   icmp = NULL;
-  num_alerts_detected = 0;
   drop_all_host_traffic = false;
-  trigger_host_alerts = false;
 
   os[0] = '\0';
 
@@ -113,18 +107,6 @@ void LocalHost::initialize() {
   }  
   PROFILING_SUB_SECTION_EXIT(iface, 16);
 
-  attacker_max_num_syn_per_sec = ntop->getPrefs()->get_attacker_max_num_syn_per_sec();
-  victim_max_num_syn_per_sec = ntop->getPrefs()->get_victim_max_num_syn_per_sec();
-  attacker_max_num_flows_per_sec = ntop->getPrefs()->get_attacker_max_num_flows_per_sec();
-  victim_max_num_flows_per_sec = ntop->getPrefs()->get_victim_max_num_flows_per_sec();
-
-  PROFILING_SUB_SECTION_ENTER(iface, "LocalHost::initialize: new AlertCounter", 17);
-  syn_flood_attacker_alert = new AlertCounter(attacker_max_num_syn_per_sec, CONST_MAX_THRESHOLD_CROSS_DURATION);
-  syn_flood_victim_alert = new AlertCounter(victim_max_num_syn_per_sec, CONST_MAX_THRESHOLD_CROSS_DURATION);
-  flow_flood_attacker_alert = new AlertCounter(attacker_max_num_flows_per_sec, CONST_MAX_THRESHOLD_CROSS_DURATION);
-  flow_flood_victim_alert = new AlertCounter(victim_max_num_flows_per_sec, CONST_MAX_THRESHOLD_CROSS_DURATION);
-  PROFILING_SUB_SECTION_EXIT(iface, 17);
-
   char host[96];
   char *strIP = ip.print(buf, sizeof(buf));
   snprintf(host, sizeof(host), "%s@%u", strIP, vlan_id);
@@ -138,10 +120,6 @@ void LocalHost::initialize() {
   PROFILING_SUB_SECTION_EXIT(iface, 18);
 
   iface->incNumHosts(true /* Local Host */);
-
-  PROFILING_SUB_SECTION_ENTER(iface, "LocalHost::initialize: refreshHostAlertPrefs", 19);
-  refreshHostAlertPrefs();
-  PROFILING_SUB_SECTION_EXIT(iface, 19);
 
 #ifdef LOCALHOST_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s is %s [%p]",
@@ -157,30 +135,6 @@ void LocalHost::initialize() {
 
 /* *************************************** */
 
-void LocalHost::loadAlertsCounter() {
-  char buf[64], counters_key[64];
-  char rsp[16];
-  char *key = get_hostkey(buf, sizeof(buf), true /* force vlan */);
-
-  if(ntop->getPrefs()->are_alerts_disabled()) {
-    num_alerts_detected = 0;
-    return;
-  }
-
-  snprintf(counters_key, sizeof(counters_key), CONST_HOSTS_ALERT_COUNTERS, iface->get_id());
-
-  if (ntop->getRedis()->hashGet(counters_key, key, rsp, sizeof(rsp)) == 0)
-    num_alerts_detected = atoi(rsp);
-  else
-    num_alerts_detected = 0;
-
-#if 0
-  printf("%s: num_alerts_detected = %d\n", key, num_alerts_detected);
-#endif
-}
-
-/* *************************************** */
-
 void LocalHost::incICMP(u_int8_t icmp_type, u_int8_t icmp_code, bool sent, Host *peer) {
   if(!icmp) icmp = new ICMPstats();
   if(icmp)  icmp->incStats(icmp_type, icmp_code, sent, peer);
@@ -189,18 +143,13 @@ void LocalHost::incICMP(u_int8_t icmp_type, u_int8_t icmp_code, bool sent, Host 
 /* *************************************** */
 
 void LocalHost::incNumFlows(bool as_client, Host *peer) {
-  AlertCounter *counter;
   map<Host*, u_int16_t> *contacts_map;
-
   Host::incNumFlows(as_client, peer);
 
-  if(as_client) {
-    counter = flow_flood_attacker_alert;
+  if(as_client)
     contacts_map = &contacts_as_cli;
-  } else {
-    counter = flow_flood_victim_alert;
+  else
     contacts_map = &contacts_as_srv;
-  }
 
   if(peer) {
     (*contacts_map)[peer] += 1;
@@ -212,9 +161,6 @@ void LocalHost::incNumFlows(bool as_client, Host *peer) {
 	peer->get_string_key(buf2, sizeof(buf2)), (*contacts_map)[peer]);
 #endif
   }
-
-  if(triggerAlerts())
-    counter->incHits(time(0));
 }
 
 /* *************************************** */
@@ -418,15 +364,6 @@ bool LocalHost::deserialize(char *json_str, char *key) {
 
 /* *************************************** */
 
-void LocalHost::updateSynFlags(time_t when, u_int8_t flags, Flow *f, bool syn_sent) {
-  AlertCounter *counter = syn_sent ? syn_flood_attacker_alert : syn_flood_victim_alert;
-
-  if(triggerAlerts())
-    counter->incHits(when);
-}
-
-/* *************************************** */
-
 void LocalHost::updateHostTrafficPolicy(char *key) {
   char buf[64], *host;
 
@@ -442,42 +379,6 @@ void LocalHost::updateHostTrafficPolicy(char *key) {
     else
       drop_all_host_traffic = true;
 
-  }
-}
-
-/* *************************************** */
-
-bool LocalHost::hasAnomalies() {
-  time_t now = time(0);
-
-  return syn_flood_victim_alert->isAboveThreshold(now)
-    || syn_flood_attacker_alert->isAboveThreshold(now)
-    || flow_flood_victim_alert->isAboveThreshold(now)
-    || flow_flood_attacker_alert->isAboveThreshold(now);
-}
-
-/* *************************************** */
-
-void LocalHost::luaAnomalies(lua_State* vm) {
-  if(!vm)
-    return;
-
-  if(hasAnomalies()) {
-    time_t now = time(0);
-    lua_newtable(vm);
-
-    if(syn_flood_victim_alert->isAboveThreshold(now))
-      syn_flood_victim_alert->lua(vm, "syn_flood_victim");
-    if(syn_flood_attacker_alert->isAboveThreshold(now))
-      syn_flood_attacker_alert->lua(vm, "syn_flood_attacker");
-    if(flow_flood_victim_alert->isAboveThreshold(now))
-      flow_flood_victim_alert->lua(vm, "flows_flood_victim");
-    if(flow_flood_attacker_alert->isAboveThreshold(now))
-      flow_flood_attacker_alert->lua(vm, "flows_flood_attacker");
-
-    lua_pushstring(vm, "anomalies");
-    lua_insert(vm, -2);
-    lua_settable(vm, -3);
   }
 }
 
@@ -534,8 +435,6 @@ void LocalHost::lua(lua_State* vm, AddressTree *ptree,
   if(verbose) {
     if(dns)            dns->lua(vm);
     if(http)           http->lua(vm);
-
-    if(hasAnomalies()) luaAnomalies(vm);
   }
 
   if(asListElement) {
@@ -545,106 +444,6 @@ void LocalHost::lua(lua_State* vm, AddressTree *ptree,
     lua_insert(vm, -2);
     lua_settable(vm, -3);
   }
-}
-
-/* *************************************** */
-
-void LocalHost::refreshHostAlertPrefs() {
-  bool alerts_read = false;
-
-  if(!ntop->getPrefs()->are_alerts_disabled()
-      && (!ip.isEmpty())) {
-    char *key, ip_buf[48], rsp[64], rkey[128];
-
-    /* This value always contains vlan information */
-    key = get_hostkey(ip_buf, sizeof(ip_buf), true);
-
-    if(key) {
-      snprintf(rkey, sizeof(rkey), CONST_SUPPRESSED_ALERT_PREFS, getInterface()->get_id());
-      if(ntop->getRedis()->hashGet(rkey, key, rsp, sizeof(rsp)) == 0)
-	trigger_host_alerts = ((strcmp(rsp, "false") == 0) ? 0 : 1);
-      else
-	trigger_host_alerts = true;
-
-      alerts_read = true;
-
-      if(trigger_host_alerts) {
-	/* Defaults */
-	int flow_attacker_pref = ntop->getPrefs()->get_attacker_max_num_flows_per_sec();
-	int flow_victim_pref = ntop->getPrefs()->get_victim_max_num_flows_per_sec();
-	int syn_attacker_pref = ntop->getPrefs()->get_attacker_max_num_syn_per_sec();
-	int syn_victim_pref = ntop->getPrefs()->get_victim_max_num_syn_per_sec();
-
-	key = ip.print(ip_buf, sizeof(ip_buf));
-	snprintf(rkey, sizeof(rkey), CONST_HOST_ANOMALIES_THRESHOLD, key, vlan_id);
-
-	/* per-host values */
-	if((ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0) && (rsp[0] != '\0')) {
-	  /* Note: the order of the fields must match that of anomalies_config into alerts_utils.lua
-	     e.g., %i|%i|%i|%i*/
-	  char *a, *_t;
-
-	  a = strtok_r(rsp, "|", &_t);
-	  if(a && strncmp(a, "global", strlen("global")))
-	    flow_attacker_pref = atoi(a);
-
-	  a = strtok_r(NULL, "|", &_t);
-	  if(a && strncmp(a, "global", strlen("global")))
-	    flow_victim_pref = atoi(a);
-
-	  a = strtok_r(NULL, "|", &_t);
-	  if(a && strncmp(a, "global", strlen("global")))
-	    syn_attacker_pref = atoi(a);
-
-	  a = strtok_r(NULL, "|", &_t);
-	  if(a && strncmp(a, "global", strlen("global")))
-	    syn_victim_pref = atoi(a);
-
-#if 0
-	  printf("%s: %s\n", rkey, rsp);
-#endif
-	}
-
-	/* Counter reload logic */
-	if((u_int32_t)flow_attacker_pref != attacker_max_num_flows_per_sec) {
-	  attacker_max_num_flows_per_sec = flow_attacker_pref;
-	  flow_flood_attacker_alert->resetThresholds(attacker_max_num_flows_per_sec, CONST_MAX_THRESHOLD_CROSS_DURATION);
-#if 0
-	  printf("%s: attacker_max_num_flows_per_sec = %d\n", key, attacker_max_num_flows_per_sec);
-#endif
-	}
-
-	if((u_int32_t)flow_victim_pref != victim_max_num_flows_per_sec) {
-	  victim_max_num_flows_per_sec = flow_victim_pref;
-	  flow_flood_victim_alert->resetThresholds(victim_max_num_flows_per_sec, CONST_MAX_THRESHOLD_CROSS_DURATION);
-#if 0
-	  printf("%s: victim_max_num_flows_per_sec = %d\n", key, victim_max_num_flows_per_sec);
-#endif
-	}
-
-	if((u_int32_t)syn_attacker_pref != attacker_max_num_syn_per_sec) {
-	  attacker_max_num_syn_per_sec = syn_attacker_pref;
-	  syn_flood_attacker_alert->resetThresholds(attacker_max_num_syn_per_sec, CONST_MAX_THRESHOLD_CROSS_DURATION);
-
-#if 0
-	  printf("%s: attacker_max_num_syn_per_sec = %d\n", key, attacker_max_num_syn_per_sec);
-#endif
-	}
-
-	if((u_int32_t)syn_victim_pref != victim_max_num_syn_per_sec) {
-	  victim_max_num_syn_per_sec = syn_victim_pref;
-	  syn_flood_victim_alert->resetThresholds(victim_max_num_syn_per_sec, CONST_MAX_THRESHOLD_CROSS_DURATION);
-
-#if 0
-	  printf("%s: victim_max_num_syn_per_sec = %d\n", key, victim_max_num_syn_per_sec);
-#endif
-	}
-      }
-    }
-  }
-
-  if(!alerts_read)
-    trigger_host_alerts = false;
 }
 
 /* *************************************** */
@@ -705,21 +504,6 @@ void LocalHost::updateStats(struct timeval *tv) {
     /* Ownership of the point is passed to the ring */
     ts_ring->insert(pt, last_update_time.tv_sec);
   }
-}
-
-/* *************************************** */
-
-u_int32_t LocalHost::getNumAlerts(bool from_alertsmanager) {
-  if(!from_alertsmanager)
-    return(num_alerts_detected);
-
-  num_alerts_detected = iface->getAlertsManager()->getNumHostAlerts(this, true);
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG,
-			       "Refreshing alerts from alertsmanager [num: %i]",
-			       num_alerts_detected);
-
-  return(num_alerts_detected);
 }
 
 /* *************************************** */

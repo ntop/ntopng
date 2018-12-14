@@ -340,7 +340,7 @@ else
 
 end
 
-if (host["ip"] ~= nil and host['localhost']) and areAlertsEnabled() and not ifstats.isView then
+if (host["ip"] ~= nil) and areAlertsEnabled() and not ifstats.isView then
    if(page == "alerts") then
       print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-warning fa-lg\"></i></a></li>\n")
    elseif interface.isPcapDumpInterface() == false then
@@ -1786,7 +1786,7 @@ elseif(page == "alerts") then
    drawAlertSourceSettings("host", hostkey,
       i18n("show_alerts.host_delete_config_btn", {host=host_name}), "show_alerts.host_delete_config_confirm",
       "host_details.lua", {ifid=ifId, host=hostkey},
-      host_name, "host", {host_ip=host_ip, host_vlan=host_vlan})
+      host_name, "host", {host_ip=host_ip, host_vlan=host_vlan, remote_host = (not host["localhost"])})
 
 elseif (page == "quotas" and ntop.isEnterprise() and host_pool_id ~= host_pools_utils.DEFAULT_POOL_ID and ifstats.inline) then
    local page_params = {ifid=ifId, pool=host_pool_id, host=hostkey, page=page}
@@ -1804,7 +1804,6 @@ elseif (page == "config") then
 
    if _SERVER["REQUEST_METHOD"] == "POST" then
 
-      if host["localhost"] == true then
          if _POST["trigger_alerts"] ~= "1" then
             trigger_alerts = false
          else
@@ -1815,7 +1814,6 @@ elseif (page == "config") then
 
          interface.select(ifname)
          interface.refreshHostsAlertsConfiguration(host_ip, host_vlan)
-      end
 
       if(ifstats.inline and (host.localhost or host.systemhost)) then
          local drop_host_traffic = _POST["drop_host_traffic"]
@@ -1848,7 +1846,6 @@ elseif (page == "config") then
 
    local trigger_alerts_checked
 
-   if host["localhost"] == true then
       trigger_alerts = ntop.getHashCache(get_alerts_suppressed_hash_name(getInterfaceId(ifname)), hostkey)
 
       if trigger_alerts == "false" then
@@ -1858,7 +1855,6 @@ elseif (page == "config") then
          trigger_alerts = true
          trigger_alerts_checked = "checked"
       end
-   end
 
    print[[
    <form id="host_config" class="form-inline" method="post">
@@ -1888,10 +1884,7 @@ elseif (page == "config") then
                   ]] print(i18n("host_config.hide_host_from_top_descr", {host=host["name"]})) print[[
                </input>
          </td>
-      </tr>]]
-
-   if host["localhost"] then
-      print [[<tr>
+      </tr><tr>
          <th>]] print(i18n("host_config.trigger_host_alerts")) print[[</th>
          <td>
                <input type="checkbox" name="trigger_alerts" value="1" ]] print(trigger_alerts_checked) print[[>
@@ -1900,7 +1893,6 @@ elseif (page == "config") then
                </input>
          </td>
       </tr>]]
-   end
 
    if(ifstats.inline and (host.localhost or host.systemhost)) then
       -- Traffic policy

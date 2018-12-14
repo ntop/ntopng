@@ -36,6 +36,11 @@ class Host : public Checkpointable, public GenericHashEntry, public GenericTraff
   TrafficStats other_ip_sent, other_ip_rcvd;
   TrafficStats ingress_drops, egress_drops;
   PacketStats sent_stats, recv_stats;
+  u_int32_t num_alerts_detected;
+  AlertCounter *syn_flood_attacker_alert, *syn_flood_victim_alert;
+  AlertCounter *flow_flood_attacker_alert, *flow_flood_victim_alert;
+  bool trigger_host_alerts;
+
   struct {
     u_int32_t pktRetr, pktOOO, pktLost, pktKeepAlive;
   } tcpPacketStats; /* Sent packets */
@@ -197,7 +202,7 @@ class Host : public Checkpointable, public GenericHashEntry, public GenericTraff
   virtual void  serialize2redis() {};
   bool addIfMatching(lua_State* vm, AddressTree * ptree, char *key);
   bool addIfMatching(lua_State* vm, u_int8_t *mac);
-  virtual void updateSynFlags(time_t when, u_int8_t flags, Flow *f, bool syn_sent) {};
+  void updateSynFlags(time_t when, u_int8_t flags, Flow *f, bool syn_sent);
   inline void updateRoundTripTime(u_int32_t rtt_msecs) {
     if(as) as->updateRoundTripTime(rtt_msecs);
   }
@@ -212,16 +217,11 @@ class Host : public Checkpointable, public GenericHashEntry, public GenericTraff
   virtual void incNumDNSQueriesRcvd(u_int16_t query_type) { };
   virtual void incNumDNSResponsesSent(u_int32_t ret_code) { };
   virtual void incNumDNSResponsesRcvd(u_int32_t ret_code) { };
-  virtual bool triggerAlerts()                            { return(false); };
-  virtual u_int32_t getNumAlerts(bool from_alertsmanager = false) { return(0); };
-  virtual void setNumAlerts(u_int32_t num) {};
   virtual void postHashAdd();
-  virtual void loadAlertsCounter() {};
 
   virtual NetworkStats* getNetworkStats(int16_t networkId) { return(NULL);   };
   inline Country* getCountryStats()                        { return country; };
 
-  virtual void refreshHostAlertPrefs() {};
   virtual void updateHTTPHostRequest(char *virtual_host_name, u_int32_t num_req, u_int32_t bytes_sent, u_int32_t bytes_rcvd) {};
 
   bool match(AddressTree *tree) { return(get_ip() ? get_ip()->match(tree) : false); };
@@ -249,6 +249,14 @@ class Host : public Checkpointable, public GenericHashEntry, public GenericTraff
   inline bool isOneWayTraffic() { return !(rcvd.getNumBytes() > 0 && sent.getNumBytes() > 0); };
   virtual void tsLua(lua_State* vm) { lua_pushnil(vm); };
   DeviceProtoStatus getDeviceAllowedProtocolStatus(ndpi_protocol proto, bool as_client);
+
+  bool hasAnomalies();
+  void luaAnomalies(lua_State* vm);
+  void loadAlertsCounter();
+  bool triggerAlerts()                                   { return(trigger_host_alerts); };
+  void refreshHostAlertPrefs();
+  u_int32_t getNumAlerts(bool from_alertsmanager = false);
+  void setNumAlerts(u_int32_t num)                       { num_alerts_detected = num; };
 
   inline void setSSDPLocation(char *url) {
      if(url) {

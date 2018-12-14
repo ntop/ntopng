@@ -37,13 +37,7 @@ class LocalHost : public Host {
   time_t nextSitesUpdate;
   bool systemHost;
   bool dhcpUpdated;
-  bool trigger_host_alerts;
   bool drop_all_host_traffic;
-  u_int32_t num_alerts_detected;
-  u_int32_t attacker_max_num_flows_per_sec, victim_max_num_flows_per_sec;
-  u_int32_t attacker_max_num_syn_per_sec, victim_max_num_syn_per_sec;
-  AlertCounter *syn_flood_attacker_alert, *syn_flood_victim_alert;
-  AlertCounter *flow_flood_attacker_alert, *flow_flood_victim_alert;
   TimeseriesRing *ts_ring;
   map<Host*, u_int16_t> contacts_as_cli, contacts_as_srv;
 
@@ -69,19 +63,10 @@ class LocalHost : public Host {
 
   virtual bool dropAllTraffic()  { return(drop_all_host_traffic); };
 
-  bool hasAnomalies();
-  void luaAnomalies(lua_State* vm);
-  virtual void loadAlertsCounter();
-
   virtual void incNumFlows(bool as_client, Host *peer);
   virtual void decNumFlows(bool as_client, Host *peer);
-  virtual void refreshHostAlertPrefs();
   void incrVisitedWebSite(char *hostname);
-  virtual bool triggerAlerts()                            { return(trigger_host_alerts); };
-  virtual u_int32_t getNumAlerts(bool from_alertsmanager = false);
-  virtual void setNumAlerts(u_int32_t num) { num_alerts_detected = num; };
   virtual void setOS(char *_os);
-  virtual void updateSynFlags(time_t when, u_int8_t flags, Flow *f, bool syn_sent);
   virtual void updateStats(struct timeval *tv);
   virtual void updateHostTrafficPolicy(char *key);
   virtual void updateHTTPHostRequest(char *virtual_host_name, u_int32_t num_req, u_int32_t bytes_sent, u_int32_t bytes_rcvd);

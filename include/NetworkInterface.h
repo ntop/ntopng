@@ -202,7 +202,7 @@ class NetworkInterface : public Checkpointable {
 		u_int16_t vlan_id, char *osFilter,
 		u_int32_t asnFilter, int16_t networkFilter,
 		u_int16_t pool_filter, bool filtered_hosts,
-		bool blacklisted_hosts, bool hide_top_hidden,
+		bool blacklisted_hosts, bool hide_top_hidden, bool anomalousOnly,
 		u_int8_t ipver_filter, int proto_filter,
 		TrafficType traffic_type_filter,
 		char *sortColumn);
@@ -424,7 +424,7 @@ class NetworkInterface : public Checkpointable {
 			 u_int32_t asnFilter, int16_t networkFilter,
 			 u_int16_t pool_filter, bool filtered_hosts, bool blacklisted_hosts, bool hide_top_hidden,
        u_int8_t ipver_filter, int proto_filter,
-       TrafficType traffic_type_filter, bool tsLua,
+       TrafficType traffic_type_filter, bool tsLua, bool anomalousOnly,
 			 char *sortColumn, u_int32_t maxHits,
 			 u_int32_t toSkip, bool a2zSortOrder);
   int getActiveHostsGroup(lua_State* vm,

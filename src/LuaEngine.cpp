@@ -781,12 +781,14 @@ static int ntop_get_batched_interface_hosts(lua_State* vm, LocationPolicy locati
   u_int32_t toSkip = 0, maxHits = CONST_MAX_NUM_HITS;
   u_int32_t begin_slot = 0;
   bool walk_all = false;
+  bool anomalousOnly = false;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(lua_type(vm, 1) == LUA_TNUMBER)  begin_slot     = (u_int32_t)lua_tonumber(vm, 1);
   if(lua_type(vm, 2) == LUA_TBOOLEAN) show_details   = lua_toboolean(vm, 2) ? true : false;
   if(lua_type(vm, 3) == LUA_TNUMBER)  maxHits        = (u_int32_t)lua_tonumber(vm, 3);
+  if(lua_type(vm, 4) == LUA_TBOOLEAN) anomalousOnly  = lua_toboolean(vm, 4);
 
   if((!ntop_interface)
      || ntop_interface->getActiveHostsList(vm,
@@ -799,7 +801,7 @@ static int ntop_get_batched_interface_hosts(lua_State* vm, LocationPolicy locati
 					   network_filter, pool_filter, filtered_hosts, blacklisted_hosts, hide_top_hidden,
 					   ipver_filter, proto_filter,
 					   traffic_type_filter, tsLua /* host->tsLua | host->lua */,
-					   sortColumn, maxHits,
+             anomalousOnly, sortColumn, maxHits,
 					   toSkip, a2zSortOrder) < 0)
     return(CONST_LUA_ERROR);
 
@@ -824,6 +826,7 @@ static int ntop_get_interface_hosts(lua_State* vm, LocationPolicy location) {
   u_int32_t begin_slot = 0;
   bool walk_all = true;
   bool hide_top_hidden = false;
+  bool anomalousOnly = false;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -856,7 +859,7 @@ static int ntop_get_interface_hosts(lua_State* vm, LocationPolicy location) {
 					   vlan_filter, os_filter, asn_filter,
 					   network_filter, pool_filter, filtered_hosts, blacklisted_hosts, hide_top_hidden,
 					   ipver_filter, proto_filter,
-					   traffic_type_filter, false /* host->lua */,
+					   traffic_type_filter, false /* host->lua */, anomalousOnly,
 					   sortColumn, maxHits,
 					   toSkip, a2zSortOrder) < 0)
     return(CONST_LUA_ERROR);

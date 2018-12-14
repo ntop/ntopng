@@ -99,6 +99,11 @@ function callback_utils.getLocalHostsIterator(...)
    return getBatchedIterator(interface.getBatchedLocalHostsInfo, "hosts", { ... })
 end
 
+-- A batched iterator over the remote hosts
+function callback_utils.getRemoteHostsIterator(...)
+   return getBatchedIterator(interface.getBatchedRemoteHostsInfo, "hosts", { ... })
+end
+
 -- A batched iterator over the hosts (both local and remote)
 function callback_utils.getHostsIterator(...)
    return getBatchedIterator(interface.getBatchedHostsInfo, "hosts", { ... })
