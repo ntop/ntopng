@@ -12,7 +12,10 @@ function format_utils.round(num, idp)
       return 0
    end
 
-   if num == math.floor(num) then
+   if math.abs(num) == math.huge then
+      -- This is an infinite, e.g., 1/0 or -1/0
+      res = num
+   elseif num == math.floor(num) then
       -- This is an integer, so represent it
       -- without decimals
       res = string.format("%d", math.floor(num))
