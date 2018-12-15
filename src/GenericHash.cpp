@@ -144,7 +144,7 @@ bool GenericHash::walk(u_int32_t *begin_slot,
   bool found = false;
   u_int16_t tot_matched = 0;
 
-  if(ntop->getGlobals()->isShutdown())
+  if(ntop->getGlobals()->isShutdown() && !ntop->getPrefs()->flushFlowsOnShutdown())
     return(found);
 
   for(u_int hash_id = *begin_slot; hash_id < num_hashes; hash_id++) {

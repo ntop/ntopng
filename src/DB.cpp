@@ -29,6 +29,7 @@ DB::DB(NetworkInterface *_iface) {
 
   iface = _iface;
   log_fd = NULL;
+  running = false;
 
   open_log();
 }
@@ -87,5 +88,11 @@ bool DB::dumpAggregatedFlow(time_t when, AggregatedFlow *f) {
   return(false);
 }
 #endif
+
+/* ******************************************* */
+
+void DB::shutdown() {
+  running = false;
+}
 
 /* ******************************************* */

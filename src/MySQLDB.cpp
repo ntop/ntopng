@@ -44,7 +44,7 @@ void* MySQLDB::queryLoop() {
   if(ntop->getGlobals()->isShutdown() || !connectToDB(&mysql_alt, true))
     return(NULL);
 
-  while(!ntop->getGlobals()->isShutdown()) {
+  while(isRunning()) {
     int rc = r->lpop(CONST_SQL_QUEUE, sql, sizeof(sql));
 
     if(rc == 0) {
@@ -484,13 +484,26 @@ MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
 /* ******************************************* */
 
 MySQLDB::~MySQLDB() {
+  shutdown();
   disconnectFromDB(&mysql);
 }
 
 /* ******************************************* */
 
 void MySQLDB::startDBLoop() {
+  running = true;
   pthread_create(&queryThreadLoop, NULL, ::queryLoop, (void*)this);
+}
+
+/* ******************************************* */
+
+void MySQLDB::shutdown() {
+  if(running) {
+    void *res;
+
+    DB::shutdown();
+    pthread_join(queryThreadLoop, &res);
+  }
 }
 
 /* ******************************************* */

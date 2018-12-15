@@ -414,6 +414,7 @@ class Ntop {
   void shutdown();
   void shutdownAll();
   void runHousekeepingTasks();
+  void runShutdownTasks();
   bool isLocalInterfaceAddress(int family, void *addr)       { return(local_interface_addresses.findAddress(family, addr) == -1 ? false : true);    };
   inline char* getLocalNetworkName(int16_t local_network_id) {
     return(address->get_local_network((u_int8_t)local_network_id));

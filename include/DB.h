@@ -33,6 +33,7 @@ class DB {
   FILE *log_fd;
   NetworkInterface *iface;
   Mutex *m;
+  bool running;
 
   void open_log();
  public:
@@ -43,6 +44,8 @@ class DB {
   virtual int exec_sql_query(lua_State *vm, char *sql,
 			     bool limit_rows, bool wait_for_db_created = true);
   virtual void startDBLoop();
+  inline int isRunning() { return running; };
+  virtual void shutdown();
   virtual void flush() {};
   virtual bool createDBSchema(bool set_db_created = true) {
 	  return false; /* override in non-schemaless subclasses */ };

@@ -649,7 +649,6 @@ NetworkInterface::~NetworkInterface() {
 /* **************************************************** */
 
 int NetworkInterface::dumpFlow(time_t when, Flow *f) {
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Dumping flow.");
 
   if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
     return(dumpDBFlow(when, f));
@@ -2727,7 +2726,7 @@ static bool flow_update_hosts_stats(GenericHashEntry *node,
   struct timeval *tv = (struct timeval*)user_data;
   bool dump_alert = ((time(NULL) - tv->tv_sec) < ntop->getPrefs()->get_housekeeping_frequency()) ? true : false;
 
-  if(ntop->getGlobals()->isShutdownRequested())
+  if(ntop->getGlobals()->isShutdownRequested() && !ntop->getPrefs()->flushFlowsOnShutdown())
     return(true); /* true = stop walking */
 
   flow->update_hosts_stats(tv, dump_alert);
@@ -5321,6 +5320,19 @@ void NetworkInterface::runHousekeepingTasks() {
   */
 
   periodicStatsUpdate();
+}
+
+/* **************************************************** */
+
+void NetworkInterface::runShutdownTasks() {
+  /* NOTE NOTE NOTE
+     This task runs asynchronously with respect to the datapath
+  */
+
+  if (ntop->getPrefs()->flushFlowsOnShutdown()) {
+    /* Setting all flows as "ready to purge" (see isReadyToPurge) and dump them to the DB */
+    periodicStatsUpdate();
+  }
 }
 
 /* **************************************************** */

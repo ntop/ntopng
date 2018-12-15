@@ -484,6 +484,8 @@ void Ntop::start() {
 				 nap);
     _usleep(nap);
   }
+
+  runShutdownTasks();
 }
 
 /* ******************************************* */
@@ -1950,6 +1952,14 @@ void Ntop::runHousekeepingTasks() {
 #ifdef NTOPNG_PRO
   pro->runHousekeepingTasks();
 #endif
+}
+
+/* ******************************************* */
+
+void Ntop::runShutdownTasks() {
+  for(int i=0; i<num_defined_interfaces; i++) {
+    iface[i]->runShutdownTasks();
+  }
 }
 
 /* ******************************************* */

@@ -65,6 +65,7 @@ class MySQLDB : public DB {
   virtual void flush() { ; };
   int exec_sql_query(lua_State *vm, char *sql, bool limitRows, bool wait_for_db_created = true);
   void startDBLoop();
+  void shutdown();
   void updateStats(const struct timeval *tv);
   void lua(lua_State* vm, bool since_last_checkpoint) const;
 #ifdef NTOPNG_PRO

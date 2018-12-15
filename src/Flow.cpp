@@ -1871,6 +1871,11 @@ u_int32_t Flow::key(Host *_cli, u_int16_t _cli_port,
 /* *************************************** */
 
 bool Flow::isReadyToPurge() {
+
+  if (ntop->getPrefs()->flushFlowsOnShutdown()
+      && (ntop->getGlobals()->isShutdownRequested() || ntop->getGlobals()->isShutdown()))
+    return(true);
+
   if(idle()) return(true);
 
 #ifdef HAVE_NEDGE
