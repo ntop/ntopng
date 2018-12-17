@@ -10,3 +10,4 @@ ntopng centers and has been developed around some basic concepts that include in
     hosts
     alerts
     timeseries
+    disk_space

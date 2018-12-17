@@ -95,3 +95,11 @@ opportunely categorized
   The Flow Details Page of a Flow with a Custom Category
 
 Additional details and examples can be found at :ref:`CustomCategoryHosts`.
+
+How can I estimate the disk space required by ntopng?
+=====================================================
+
+The following blog post gives accurate estimations of the disk space
+required by ntopng to store timeseries and flows:
+https://www.ntop.org/ntopng/ntopng-disk-requirements-for-timeseries-and-flows/
+
