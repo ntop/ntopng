@@ -100,12 +100,8 @@ LuaEngine::LuaEngine() {
     throw bax;
   }
 
-#ifdef DONT_USE_LUAJIT
   lua_pushlightuserdata(L, ctx);
   lua_setglobal(L, "userdata");
-#else
-  G(L)->userdata = ctx;
-#endif
 }
 
 /* ******************************* */

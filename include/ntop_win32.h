@@ -190,9 +190,6 @@ struct win_in6_addr
 typedef SSIZE_T ssize_t;
 #endif
 
-/* We use the non-JIT version of Lua */
-//#define DONT_USE_LUAJIT
-
 struct ip6_hdr
 {
   union

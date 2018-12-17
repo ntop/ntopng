@@ -922,7 +922,6 @@
 #define FLOW_AGGREGATION_DURATION       60
 #define FLOW_AGGREGATION_MAX_AGGREGATES 1000
 
-#ifdef DONT_USE_LUAJIT
 inline struct ntopngLuaContext* getUserdata(lua_State *vm) {
   if(vm) {
     struct ntopngLuaContext *userdata;
@@ -939,11 +938,6 @@ inline struct ntopngLuaContext* getUserdata(lua_State *vm) {
 #define getLuaVMContext(a)      (a ? getUserdata(a) : NULL)
 #define getLuaVMUserdata(a,b)   (a ? getUserdata(a)->b : NULL)
 #define getLuaVMUservalue(a,b)  getUserdata(a)->b
-#else
-#define getLuaVMContext(a)      (a ? ((struct ntopngLuaContext*)G(a)->userdata) : NULL)
-#define getLuaVMUserdata(a,b)   (a ? ((struct ntopngLuaContext*)G(a)->userdata)->b : NULL)
-#define getLuaVMUservalue(a,b)  ((struct ntopngLuaContext*)G(a)->userdata)->b
-#endif
 
 /*
    We assume that a host with more than CONST_MAX_NUM_HOST_USES

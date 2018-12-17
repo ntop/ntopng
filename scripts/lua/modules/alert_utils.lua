@@ -25,7 +25,7 @@ local shaper_utils = nil
 local CONST_DEFAULT_PACKETS_DROP_PERCENTAGE_ALERT = "5"
 local MAX_NUM_PER_MODULE_QUEUED_ALERTS = 1024 -- should match ALERTS_MANAGER_MAX_ENTITY_ALERTS on the AlertsManager
 
-if(ntop.isPro()) then
+if(ntop.isnEdge()) then
    package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
    shaper_utils = require("shaper_utils")
 end
