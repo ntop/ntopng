@@ -2539,7 +2539,7 @@ local lang = {
     ["ask_admin"] = "Ask the network administrator permission before doing this.",
     ["check_out_the_preferences"] = "More remote assistance parameters can be tuned from the <a href=\"%{url}\"><i class=\"fa fa-flask\"></i> Remote Assistance Preferences</a>.",
     ["connection_script"] = "Connection Script",
-    ["connection_script_descr"] = "Download a script you can use to connect to this machine for remote assistance. The script will work on systems where the n2n package is installed.",
+    ["connection_script_descr"] = "Download the connection script and provide it to the support team to let them connect to this ntopng instance. The script will work on systems where the n2n package is installed.",
     ["enable_remote_assistance"] = "Enable Remote Assistance",
     ["product_remote_assistance"] = "%{product} Remote Assistance",
     ["remember_disable"] = "Remember to disable the remote assistance when not needed.",
