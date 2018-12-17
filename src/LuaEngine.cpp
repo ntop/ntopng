@@ -42,6 +42,21 @@ static std::list<char*> new_custom_categories, custom_categories_to_purge;
 
 /* ******************************* */
 
+struct ntopngLuaContext* getUserdata(struct lua_State *vm) {
+	if(vm) {
+		struct ntopngLuaContext *userdata;
+
+		lua_getglobal(vm, "userdata");
+		userdata = (struct ntopngLuaContext*) lua_touserdata(vm, lua_gettop(vm));
+		lua_pop(vm, 1); // undo the push done by lua_getglobal
+
+		return(userdata);
+	} else
+		return(NULL);
+}
+
+/* ******************************* */
+
 #ifdef DUMP_STACK
 static void stackDump(lua_State *L) {
   int i;

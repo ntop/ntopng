@@ -922,19 +922,7 @@
 #define FLOW_AGGREGATION_DURATION       60
 #define FLOW_AGGREGATION_MAX_AGGREGATES 1000
 
-inline struct ntopngLuaContext* getUserdata(lua_State *vm) {
-  if(vm) {
-    struct ntopngLuaContext *userdata;
-
-    lua_getglobal(vm, "userdata");
-    userdata = (struct ntopngLuaContext*) lua_touserdata(vm, lua_gettop(vm));
-    lua_pop(vm, 1); // undo the push done by lua_getglobal
-
-    return(userdata);
-  } else
-    return(NULL);
-}
-
+extern struct ntopngLuaContext* getUserdata(struct lua_State *vm);
 #define getLuaVMContext(a)      (a ? getUserdata(a) : NULL)
 #define getLuaVMUserdata(a,b)   (a ? getUserdata(a)->b : NULL)
 #define getLuaVMUservalue(a,b)  getUserdata(a)->b
