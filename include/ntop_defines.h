@@ -345,6 +345,11 @@
 
 #define MAX_NUM_DB_SPINS            5 /* sec */
 
+#ifdef WIN32
+#define ICMP_ECHO		     8	/* Echo Request			*/
+#define ICMP_ECHOREPLY	   	 0	/* Echo Reply			*/
+#endif
+
 #ifndef MAX_PATH
 #define MAX_PATH                  256
 #endif

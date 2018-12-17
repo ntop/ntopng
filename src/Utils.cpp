@@ -3475,7 +3475,7 @@ bool Utils::mg_write_retry(struct mg_connection *conn, u_char *b, int len) {
       return false;
     sent += ret;
     if (sent == len) return true;
-    usleep(100);
+    _usleep(100);
   }
 
   return false;
