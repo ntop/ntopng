@@ -75,15 +75,6 @@ if stats ~= nil then
     start_time = os.time()-uptime
   end
 
-  if start_time ~= nil then
-    print("<tr><th nowrap>"..i18n("traffic_recording.active_since").."</th><td>"..formatEpoch(start_time))
-    if (start_time ~= nil) and (first_epoch ~= nil) and (start_time > first_epoch) then
-      print(' - <i class="fa fa-warning"></i> ')
-      print(i18n("traffic_recording.missing_data_msg"))
-    end
-    print("</td></tr>\n")
-  end
-
   if stats['FirstDumpedEpoch'] ~= nil then
     print("<tr><th width='15%' nowrap>"..i18n("traffic_recording.dump_window").."</th><td>")
     if first_epoch ~= nil and last_epoch ~= nil and 
@@ -91,6 +82,15 @@ if stats ~= nil then
       print(formatEpoch(first_epoch).." - "..formatEpoch(last_epoch))
     else
       print(i18n("traffic_recording.no_file"))
+    end
+    print("</td></tr>\n")
+  end
+
+  if start_time ~= nil then
+    print("<tr><th nowrap>"..i18n("traffic_recording.active_since").."</th><td>"..formatEpoch(start_time))
+    if (start_time ~= nil) and (first_epoch ~= nil) and (first_epoch > 0) and (start_time > first_epoch) then
+      print(' - <i class="fa fa-warning"></i> ')
+      print(i18n("traffic_recording.missing_data_msg"))
     end
     print("</td></tr>\n")
   end
