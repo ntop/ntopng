@@ -1360,11 +1360,13 @@ bool Ntop::checkUserPassword(const char * const user, const char * const passwor
 
 /* ******************************************* */
 
-static int getLoginAttempts(const struct mg_request_info *request_info) {
+static int getLoginAttempts(struct mg_connection *conn) {
   char ipbuf[32], key[128], val[16];
   int cur_attempts = 0;
+  IpAddress client_addr;
 
-  snprintf(key, sizeof(key), CONST_STR_FAILED_LOGIN_KEY, Utils::intoaV4((unsigned int)request_info->remote_ip, ipbuf, sizeof(ipbuf)));
+  client_addr.set(mg_get_client_address(conn));
+  snprintf(key, sizeof(key), CONST_STR_FAILED_LOGIN_KEY, client_addr.print(ipbuf, sizeof(ipbuf)));
 
   if((ntop->getRedis()->get(key, val, sizeof(val)) >= 0) && val[0])
     cur_attempts = atoi(val);
@@ -1374,25 +1376,29 @@ static int getLoginAttempts(const struct mg_request_info *request_info) {
 
 /* ******************************************* */
 
-bool Ntop::isBlacklistedLogin(const struct mg_request_info *request_info) const {
-  return(getLoginAttempts(request_info) >= MAX_FAILED_LOGIN_ATTEMPTS);
+bool Ntop::isBlacklistedLogin(struct mg_connection *conn) const {
+  return(getLoginAttempts(conn) >= MAX_FAILED_LOGIN_ATTEMPTS);
 }
 
 /* ******************************************* */
 
-bool Ntop::checkGuiUserPassword(const struct mg_request_info *request_info,
+bool Ntop::checkGuiUserPassword(struct mg_connection *conn,
           const char * const user, const char * const password,
           char *group, bool *localuser) const {
-  char *remote_ip, ipbuf[32], key[128], val[16];
+  char *remote_ip, ipbuf[64], key[128], val[16];
   int cur_attempts = 0;
   bool rv;
+  struct mg_request_info *request_info = mg_get_request_info(conn);
+  IpAddress client_addr;
+
+  client_addr.set(mg_get_client_address(conn));
 
   if(ntop->isCaptivePortalUser(user))
     return false;
 
-  remote_ip = Utils::intoaV4((unsigned int)request_info->remote_ip, ipbuf, sizeof(ipbuf));
+  remote_ip = client_addr.print(ipbuf, sizeof(ipbuf));
 
-  if((cur_attempts = getLoginAttempts(request_info)) >= MAX_FAILED_LOGIN_ATTEMPTS) {
+  if((cur_attempts = getLoginAttempts(conn)) >= MAX_FAILED_LOGIN_ATTEMPTS) {
     ntop->getTrace()->traceEvent(TRACE_INFO, "Login denied for '%s' from blacklisted IP %s", user, remote_ip);
     return false;
   }

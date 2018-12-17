@@ -326,7 +326,7 @@ static int isWhitelistedURI(const char * const uri) {
 // Return 1 if request is authorized, 0 otherwise.
 // If 1 is returned, the username parameter will contain the authenticated user,
 // which can also be "" or NTOP_NOLOGIN_USER .
-static int getAuthorizedUser(const struct mg_connection *conn,
+static int getAuthorizedUser(struct mg_connection *conn,
                          const struct mg_request_info *request_info,
 			 char *username, char *group, bool *localuser) {
   char session_id[NTOP_SESSION_ID_LENGTH];
@@ -406,7 +406,7 @@ static int getAuthorizedUser(const struct mg_connection *conn,
 
     strncpy(username, user_s.c_str(), NTOP_USERNAME_MAXLEN);
     username[NTOP_USERNAME_MAXLEN - 1] = '\0';
-    return ntop->checkGuiUserPassword(request_info, username, pword_s.c_str(), group, localuser);
+    return ntop->checkGuiUserPassword(conn, username, pword_s.c_str(), group, localuser);
   }
 
   /* NOTE: this is the only cookie needed for gui authentication */
@@ -418,7 +418,7 @@ static int getAuthorizedUser(const struct mg_connection *conn,
     mg_get_cookie(conn, "password", password, sizeof(password));
 
     if(username[0] && password[0])
-      return(ntop->checkGuiUserPassword(request_info, username, password, group, localuser));
+      return(ntop->checkGuiUserPassword(conn, username, password, group, localuser));
   }
 
   /* Important: validate the session */
@@ -692,7 +692,7 @@ static void authorize(struct mg_connection *conn,
 
   if(isCaptiveConnection(conn)
      || ntop->isCaptivePortalUser(user)
-     || !ntop->checkGuiUserPassword(request_info, user, password, group, localuser)) {
+     || !ntop->checkGuiUserPassword(conn, user, password, group, localuser)) {
     // Authentication failure, redirect to login
     redirect_to_login(conn, request_info, (referer[0] == '\0') ? NULL : referer);
   } else {
@@ -742,7 +742,7 @@ static void uri_encode(const char *src, char *dst, u_int dst_len) {
 /* ****************************************** */
 
 static int handle_lua_request(struct mg_connection *conn) {
-  struct mg_request_info *request_info = mg_get_request_info(conn);
+  struct mg_request_info *request_info = (struct mg_request_info *)mg_get_request_info(conn);
   char *crlf;
   u_int len;
   char username[NTOP_USERNAME_MAXLEN] = { 0 };

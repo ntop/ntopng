@@ -48,6 +48,17 @@ void IpAddress::set(char *sym_addr) {
 
 /* ******************************************* */
 
+void IpAddress::set(union usa *ip) {
+  if(ip->sin.sin_family != AF_INET6) {
+    addr.ipVersion = 4, addr.localHost = 0, addr.ipType.ipv4 = ip->sin.sin_addr.s_addr;
+  } else {
+    memcpy(&addr.ipType.ipv6, &ip->sin6.sin6_addr.s6_addr, sizeof(struct ndpi_in6_addr));
+    addr.ipVersion = 6, addr.localHost = 0;
+  }
+}
+
+/* ******************************************* */
+
 bool IpAddress::isEmpty() {
   if((addr.ipVersion == 0)
      || ((addr.ipVersion == 4) && (addr.ipType.ipv4 == 0))) {

@@ -389,8 +389,8 @@ class Ntop {
   bool isInterfaceAllowed(lua_State* vm, int ifid)              const;
   bool isLocalUser(lua_State* vm);
   bool checkCaptiveUserPassword(const char * const user, const char * const password, char *group) const;
-  bool checkGuiUserPassword(const struct mg_request_info *request_info, const char * const user, const char * const password, char *group, bool *localuser) const;
-  bool isBlacklistedLogin(const struct mg_request_info *request_info) const;
+  bool checkGuiUserPassword(struct mg_connection *conn, const char * const user, const char * const password, char *group, bool *localuser) const;
+  bool isBlacklistedLogin(struct mg_connection *conn) const;
   bool checkUserInterfaces(const char * const user)             const;
   bool resetUserPassword(char *username, char *old_password, char *new_password);
   bool mustChangePassword(const char *user);

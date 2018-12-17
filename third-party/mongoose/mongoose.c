@@ -465,18 +465,6 @@ static const char *month_names[] = {
   "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
 };
 
-// Unified socket address. For IPv6 support, add IPv6 address structure
-// in the union u.
-union usa {
-  struct sockaddr sa;
-  struct sockaddr_in sin;
-#if defined(USE_IPV6)
-  struct sockaddr_in6 sin6;
-#else
-  struct sockaddr sin6;
-#endif
-};
-
 // Describes a string (chunk of memory).
 struct vec {
   const char *ptr;
@@ -748,6 +736,10 @@ const char *mg_version(void) {
 
 struct mg_request_info *mg_get_request_info(struct mg_connection *conn) {
   return &conn->request_info;
+}
+
+union usa *mg_get_client_address(struct mg_connection *conn) {
+  return &conn->client.rsa;
 }
 
 static void mg_strlcpy(char *dst, const char *src, size_t n) {

@@ -7786,7 +7786,7 @@ static int ntop_is_login_blacklisted(lua_State* vm) {
   if((conn = getLuaVMUserdata(vm, conn)) == NULL)
     return(CONST_LUA_ERROR);
 
-  lua_pushboolean(vm, ntop->isBlacklistedLogin(mg_get_request_info(conn)));
+  lua_pushboolean(vm, ntop->isBlacklistedLogin(conn));
   return(CONST_LUA_OK);
 }
 
