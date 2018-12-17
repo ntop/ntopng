@@ -1,5 +1,8 @@
 Alerts
-######
+======
+
+ntopng includes an alerting engine to report different kind of events. Please read the `Basic Concepts <../basic_concepts/alerts.html>`_ 
+section to learn more about this feature.
 
 The Alerts Menu opens a page with the list of alerts that was fired. This icon is hidden if no alerts was
 triggered or after purge operation. Each row in the Alerts page presents an alert detected by ntopng with
