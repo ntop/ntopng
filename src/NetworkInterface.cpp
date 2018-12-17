@@ -561,12 +561,6 @@ void NetworkInterface::deleteDataStructures() {
   }
 #endif
 
-  if(ifname) {
-    //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Interface %s shutdown", ifname);
-    free(ifname);
-    ifname = NULL;
-  }
-
 #ifdef HAVE_EBPF
   if(ebpfEvents) {
     for(u_int16_t i=0; i<EBPF_QUEUE_LEN; i++)
@@ -591,6 +585,8 @@ NetworkInterface::~NetworkInterface() {
     }
   }
 #endif
+
+  if(db) db->shutdown();
 
   if(getNumPackets() > 0) {
     ntop->getTrace()->traceEvent(TRACE_NORMAL,
@@ -644,6 +640,8 @@ NetworkInterface::~NetworkInterface() {
   if(tsExporter)            delete tsExporter;
   if(ts_ring)               delete ts_ring;
   if(mdns)                  delete mdns; /* Leave it at the end so the mdns resolved has time to initialize */
+
+  if(ifname)                free(ifname);
 }
 
 /* **************************************************** */

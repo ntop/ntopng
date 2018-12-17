@@ -1388,7 +1388,6 @@ bool Ntop::checkGuiUserPassword(struct mg_connection *conn,
   char *remote_ip, ipbuf[64], key[128], val[16];
   int cur_attempts = 0;
   bool rv;
-  struct mg_request_info *request_info = mg_get_request_info(conn);
   IpAddress client_addr;
 
   client_addr.set(mg_get_client_address(conn));
