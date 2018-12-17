@@ -121,9 +121,10 @@ LuaEngine::~LuaEngine() {
     ctx = getLuaVMContext(L);
 
     if(ctx) {
+#ifndef HAVE_NEDGE
       SNMP *snmp = ctx->snmp;
-
       if(snmp) delete snmp;
+#endif
 
       if(ctx->pkt_capture.end_capture > 0) {
 	ctx->pkt_capture.end_capture = 0; /* Force stop */
@@ -2799,6 +2800,7 @@ static int ntop_mdns_batch_any_query(lua_State* vm) {
 
 /* ****************************************** */
 
+#ifndef HAVE_NEDGE
 static int ntop_snmp_batch_get(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *oid[SNMP_MAX_NUM_OIDS] = { NULL };
@@ -2832,9 +2834,11 @@ static int ntop_snmp_batch_get(lua_State* vm) {
 
   return(CONST_LUA_OK);
 }
+#endif
 
 /* ****************************************** */
 
+#ifndef HAVE_NEDGE
 static int ntop_snmp_read_responses(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   SNMP *snmp;
@@ -2849,6 +2853,7 @@ static int ntop_snmp_read_responses(lua_State* vm) {
   snmp->snmp_fetch_responses(vm);
   return(CONST_LUA_OK);
 }
+#endif
 
 /* ****************************************** */
 
@@ -6008,8 +6013,10 @@ static int ntop_get_resolved_address(lua_State* vm) {
 
 /* ****************************************** */
 
+#ifndef HAVE_NEDGE
 static int ntop_snmpget(lua_State* vm)     { SNMP s; return(s.get(vm));     }
 static int ntop_snmpgetnext(lua_State* vm) { SNMP s; return(s.getnext(vm)); }
+#endif
 
 /* ****************************************** */
 
@@ -7985,8 +7992,10 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "mdnsQueueNameToResolve",          ntop_mdns_queue_name_to_resolve },
   { "mdnsQueueAnyQuery",               ntop_mdns_batch_any_query       },
   { "mdnsReadQueuedResponses",         ntop_mdns_read_queued_responses },
+#ifndef HAVE_NEDGE
   { "snmpGetBatch",                    ntop_snmp_batch_get             },
   { "snmpReadResponses",               ntop_snmp_read_responses        },
+#endif
 
   /* DB */
   { "execSQLQuery",                    ntop_interface_exec_sql_query   },
@@ -8190,8 +8199,10 @@ static const luaL_Reg ntop_reg[] = {
   { "traceEvent",        ntop_trace_event },
 
   /* SNMP */
+#ifndef HAVE_NEDGE
   { "snmpget",          ntop_snmpget },
   { "snmpgetnext",      ntop_snmpgetnext },
+#endif
 
   /* SQLite */
   { "execQuery",        ntop_sqlite_exec_query },

@@ -492,7 +492,9 @@ typedef struct {
   NDPI_PROTOCOL_BITMASK clientAllowed, serverAllowed;
 } DeviceProtocolBitmask;
 
+#ifndef HAVE_NEDGE
 class SNMP; /* Forward */
+#endif
 
 struct ntopngLuaContext {
   char *allowed_ifname, *user, *group;
@@ -500,7 +502,9 @@ struct ntopngLuaContext {
   struct mg_connection *conn;
   AddressTree *allowedNets;
   NetworkInterface *iface;
+#ifndef HAVE_NEDGE
   SNMP *snmp;
+#endif
   bool localuser;
 
   /* Packet capture */

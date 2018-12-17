@@ -216,7 +216,9 @@ using namespace std;
 #include "CommunityIdFlowHash.h"
 #include "DnsStats.h"
 #include "NetworkStats.h"
+#ifndef HAVE_NEDGE
 #include "SNMP.h"
+#endif
 #include "NetworkDiscovery.h"
 #include "ICMPstats.h"
 #include "Grouper.h"

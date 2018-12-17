@@ -21,6 +21,8 @@
 
 #include "ntop_includes.h"
 
+#ifndef HAVE_NEDGE
+
 extern "C" {
 #include "../third-party/snmp/snmp.c"
 #include "../third-party/snmp/asn1.c"
@@ -199,3 +201,5 @@ void SNMP::snmp_fetch_responses(lua_State* vm) {
     }
   }
 }
+
+#endif /* HAVE_NEDGE */
