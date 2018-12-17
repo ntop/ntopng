@@ -12,7 +12,7 @@ local hasNindex = hasNindexSupport()
 
 -- This table is used both to control access to the preferences and to filter preferences results
 local menu_subpages = {
-  {id="auth",          label=i18n("prefs.user_authentication"),  advanced=false, pro_only=true, nedge_hidden=true, hidden=not(prefs.is_users_login_enabled), entries={
+  {id="auth",          label=i18n("prefs.user_authentication"),  advanced=false, pro_only=false, nedge_hidden=true, hidden=not(prefs.is_users_login_enabled), entries={
     toggle_ldap_auth = {
       title       = i18n("prefs.toggle_ldap_auth"),
       description = i18n("prefs.toggle_ldap_auth_descr"),

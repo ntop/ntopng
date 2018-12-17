@@ -163,7 +163,7 @@ if (_GET["page"] ~= "historical") then
    end
 
    if(_GET["pool"] ~= nil) then
-      local charts_available = ts_utils.exists("host_pool:traffic", {ifid=ifstats.id, pool=_GET["pool"]})
+      local charts_available = ts_utils.exists("host_pool:traffic", {ifid=ifstats.id, pool=_GET["pool"]}) and ntop.isPro()
       local pool_edit = ""
 
       -- TODO enable on nEdge when devices list will be implemented

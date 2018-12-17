@@ -492,13 +492,20 @@ print[[
       return
    end
 
+   local min_zoom = getMinZoomResolution(schema)
+   local min_zoom_k = 1
+
    nextZoomLevel = zoomLevel;
    epoch = tonumber(selectedEpoch);
 
    for k,v in ipairs(zoom_vals) do
+      if zoom_vals[k][1] == min_zoom then
+         min_zoom_k = k
+      end
+
       if(zoom_vals[k][1] == zoomLevel) then
 	 if(k > 1) then
-	    nextZoomLevel = zoom_vals[k-1][1]
+	    nextZoomLevel = zoom_vals[math.max(k-1, min_zoom_k)][1]
 	 end
 	 if(epoch ~= nil) then
 	    start_time = epoch - math.floor(zoom_vals[k][3] / 2)
@@ -587,8 +594,6 @@ if(options.timeseries) then
 end -- options.timeseries
 
 print('&nbsp;Timeframe:  <div class="btn-group" data-toggle="buttons" id="graph_zoom">\n')
-
-local min_zoom = getMinZoomResolution(schema)
 
 for k,v in ipairs(zoom_vals) do
    -- display 1 minute button only for networks and interface stats
@@ -890,6 +895,10 @@ var yAxis = new Rickshaw.Graph.Axis.Y({
 
 yAxis.render();
 
+]]
+
+if zoomLevel ~= nextZoomLevel then
+print[[
 $("#chart").click(function() {
   if(hover.selected_epoch)
     window.location.href = ']]
@@ -903,8 +912,10 @@ end
 
 print('&epoch=')
 print[['+hover.selected_epoch;
-});
+});]]
+end
 
+print[[
 </script>
 
 ]]
