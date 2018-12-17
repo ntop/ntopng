@@ -1455,19 +1455,21 @@ bool Ntop::mustChangePassword(const char *user) {
 
 /* ******************************************* */
 
+/* NOTE: the admin vs local user checks must be performed by the caller */
 bool Ntop::resetUserPassword(char *username, char *old_password, char *new_password) {
   char key[64];
   char password_hash[33];
   char group[NTOP_GROUP_MAXLEN];
-  bool localuser = false;
 
   if((old_password != NULL) && (old_password[0] != '\0')) {
+    bool localuser = false;
+
     if(!checkUserPassword(username, old_password, group, &localuser))
       return(false);
-  }
 
-  if(!localuser)
-    return(false);
+    if(!localuser)
+      return(false);
+  }
 
   snprintf(key, sizeof(key), CONST_STR_USER_PASSWORD, username);
   mg_md5(password_hash, new_password, NULL);

@@ -4808,6 +4808,7 @@ static int ntop_is_administrator(lua_State* vm) {
 // ***API***
 static int ntop_reset_user_password(lua_State* vm) {
   char *who, *username, *old_password, *new_password;
+  bool is_admin = ntop->isUserAdministrator(vm);
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -4828,7 +4829,12 @@ static int ntop_reset_user_password(lua_State* vm) {
   if(!ntop->isLocalUser(vm))
     return(CONST_LUA_ERROR);
 
-  if((!ntop->isUserAdministrator(vm)) && (strcmp(who, username)))
+  /* only the administrator can change other users passwords */
+  if(!is_admin && (strcmp(who, username)))
+    return(CONST_LUA_ERROR);
+
+  /* only the administrator can use and empty old password */
+  if((old_password[0] == '\0') && !is_admin)
     return(CONST_LUA_ERROR);
 
   lua_pushboolean(vm, ntop->resetUserPassword(username, old_password, new_password));

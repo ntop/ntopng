@@ -57,7 +57,7 @@ local col_md_size = "6"
 
 print('<br><div class="row">')
 
-if(is_admin) then
+if(not is_admin) then
    col_md_size = "4"
 print [[
   <div class='form-group col-md-]] print(col_md_size) print[[ has-feedback'>
@@ -247,7 +247,7 @@ print [[<script>
           password_alert.error(response.message);
     ]]
 
-if(is_admin) then
+if(not is_admin) then
    print('$("old_password_input").text("");\n');
 end
 
