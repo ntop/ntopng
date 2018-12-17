@@ -47,6 +47,7 @@ class HTTPserver {
 
   bool valid_user_pwd(char *user, char *pass);
   static bool authorized_localhost_user_login(const struct mg_connection *conn);
+  static void traceLogin(const char *user, bool authorized);
 
   inline char*     get_docs_dir()    { return(docs_dir);         };
   inline char*     get_scripts_dir() { return(scripts_dir);      };

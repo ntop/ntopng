@@ -1706,6 +1706,7 @@ local lang = {
     ["add_captive_portal_user"] = "Add Captive Portal User",
     ["add_web_user"] = "Add Web User",
     ["auth_success"] = "Authentication Successful",
+    ["blacklisted_ip_notice"] = "Too many failed authentication attempts. Please retry after a while.",
     ["change_password"] = "Change Password",
     ["confirm_password"] = "Confirm Password",
     ["device_label"] = "Device Label",

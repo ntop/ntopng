@@ -7779,6 +7779,19 @@ static int ntop_is_login_disabled(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_is_login_blacklisted(lua_State* vm) {
+  struct mg_connection *conn;
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if((conn = getLuaVMUserdata(vm, conn)) == NULL)
+    return(CONST_LUA_ERROR);
+
+  lua_pushboolean(vm, ntop->isBlacklistedLogin(mg_get_request_info(conn)));
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 // ***API***
 static int ntop_network_name_by_id(lua_State* vm) {
   int id;
@@ -8171,6 +8184,7 @@ static const luaL_Reg ntop_reg[] = {
   { "clearUserLifetime",    ntop_clear_user_lifetime },
   { "deleteUser",           ntop_delete_user },
   { "isLoginDisabled",      ntop_is_login_disabled },
+  { "isLoginBlacklisted",   ntop_is_login_blacklisted },
   { "getNetworkNameById",   ntop_network_name_by_id },
 
   /* Security */

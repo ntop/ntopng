@@ -1360,6 +1360,82 @@ bool Ntop::checkUserPassword(const char * const user, const char * const passwor
 
 /* ******************************************* */
 
+static int getLoginAttempts(const struct mg_request_info *request_info) {
+  char ipbuf[32], key[128], val[16];
+  int cur_attempts = 0;
+
+  snprintf(key, sizeof(key), CONST_STR_FAILED_LOGIN_KEY, Utils::intoaV4((unsigned int)request_info->remote_ip, ipbuf, sizeof(ipbuf)));
+
+  if((ntop->getRedis()->get(key, val, sizeof(val)) >= 0) && val[0])
+    cur_attempts = atoi(val);
+
+  return(cur_attempts);
+}
+
+/* ******************************************* */
+
+bool Ntop::isBlacklistedLogin(const struct mg_request_info *request_info) const {
+  return(getLoginAttempts(request_info) >= MAX_FAILED_LOGIN_ATTEMPTS);
+}
+
+/* ******************************************* */
+
+bool Ntop::checkGuiUserPassword(const struct mg_request_info *request_info,
+          const char * const user, const char * const password,
+          char *group, bool *localuser) const {
+  char *remote_ip, ipbuf[32], key[128], val[16];
+  int cur_attempts = 0;
+  bool rv;
+
+  if(ntop->isCaptivePortalUser(user))
+    return false;
+
+  remote_ip = Utils::intoaV4((unsigned int)request_info->remote_ip, ipbuf, sizeof(ipbuf));
+
+  if((cur_attempts = getLoginAttempts(request_info)) >= MAX_FAILED_LOGIN_ATTEMPTS) {
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Login denied for '%s' from blacklisted IP %s", user, remote_ip);
+    return false;
+  }
+
+  rv = checkUserPassword(user, password, group, localuser);
+  snprintf(key, sizeof(key), CONST_STR_FAILED_LOGIN_KEY, remote_ip);
+
+  if(!rv) {
+    cur_attempts++;
+    snprintf(val, sizeof(val), "%d", cur_attempts);
+    ntop->getRedis()->set(key, val, FAILED_LOGIN_ATTEMPTS_INTERVAL);
+
+    if(cur_attempts >= MAX_FAILED_LOGIN_ATTEMPTS)
+      ntop->getTrace()->traceEvent(TRACE_INFO, "IP %s is now blacklisted from login for %d seconds",
+          remote_ip, FAILED_LOGIN_ATTEMPTS_INTERVAL);
+
+    HTTPserver::traceLogin(user, false);
+  } else
+    ntop->getRedis()->del(key);
+
+  return(rv);
+}
+
+/* ******************************************* */
+
+bool Ntop::checkCaptiveUserPassword(const char * const user, const char * const password, char *group) const {
+  bool localuser = false;
+  bool rv;
+
+  if(!ntop->isCaptivePortalUser(user))
+    return false;
+
+  rv = checkUserPassword(user, password, group, &localuser);
+
+  /* only local user auth supported right now */
+  if(!localuser)
+    return false;
+
+  return(rv);
+}
+
+/* ******************************************* */
+
 bool Ntop::mustChangePassword(const char *user) {
   char val[8];
 

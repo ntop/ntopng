@@ -211,6 +211,9 @@
 #define MAX_NUM_INTERFACE_IDS   256
 #define DUMMY_BRIDGE_INTERFACE_ID       1 /* Anything but zero */
 #define MAX_CSRF_DURATION       300 /* 5 mins */
+#define MAX_FAILED_LOGIN_ATTEMPTS       5
+#define FAILED_LOGIN_ATTEMPTS_INTERVAL  300 /* seconds */
+#define CONST_STR_FAILED_LOGIN_KEY     "ntopng.cache.failed_logins.%s"
 #define NTOP_NOLOGIN_USER	"nologin"
 #define NTOP_DEFAULT_USER_LANG  "en"
 #define MAX_OPTIONS             24

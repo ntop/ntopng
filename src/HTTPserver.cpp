@@ -119,7 +119,7 @@ bool HTTPserver::authorized_localhost_user_login(const struct mg_connection *con
 
 /* ****************************************** */
 
-static void traceLogin(const char *user, bool authorized) {
+void HTTPserver::traceLogin(const char *user, bool authorized) {
   NetworkInterface *ntop_interface;
   AlertsManager *am;
   const char *alert_json;
@@ -208,7 +208,7 @@ static void set_cookie(const struct mg_connection *conn,
   ntop->getRedis()->set(key, val, session_duration);
   ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] Set session sessions.%s", session_id);
 
-  traceLogin(user, true);
+  HTTPserver::traceLogin(user, true);
 }
 
 /* ****************************************** */
@@ -374,7 +374,7 @@ static int getAuthorizedUser(const struct mg_connection *conn,
 	get_qsvar(request_info, "username", username, NTOP_USERNAME_MAXLEN);
 	get_qsvar(request_info, "password", password, sizeof(password));
 
-	return(ntop->checkUserPassword(username, password, group, localuser)
+	return(ntop->checkCaptiveUserPassword(username, password, group)
 	     && checkCaptive(conn, request_info, username, password));
       }
     }
@@ -406,7 +406,7 @@ static int getAuthorizedUser(const struct mg_connection *conn,
 
     strncpy(username, user_s.c_str(), NTOP_USERNAME_MAXLEN);
     username[NTOP_USERNAME_MAXLEN - 1] = '\0';
-    return ntop->checkUserPassword(username, pword_s.c_str(), group, localuser);
+    return ntop->checkGuiUserPassword(request_info, username, pword_s.c_str(), group, localuser);
   }
 
   /* NOTE: this is the only cookie needed for gui authentication */
@@ -418,7 +418,7 @@ static int getAuthorizedUser(const struct mg_connection *conn,
     mg_get_cookie(conn, "password", password, sizeof(password));
 
     if(username[0] && password[0])
-      return(ntop->checkUserPassword(username, password, group, localuser));
+      return(ntop->checkGuiUserPassword(request_info, username, password, group, localuser));
   }
 
   /* Important: validate the session */
@@ -666,7 +666,6 @@ static void authorize(struct mg_connection *conn,
                       const struct mg_request_info *request_info,
 		      char *username, char *group, bool *localuser) {
   char user[32] = { '\0' }, password[32] = { '\0' }, referer[256] = { '\0' };
-  bool pwd_check = true;
 
   if(!strcmp(request_info->request_method, "POST")) {
     char post_data[1024];
@@ -693,10 +692,9 @@ static void authorize(struct mg_connection *conn,
 
   if(isCaptiveConnection(conn)
      || ntop->isCaptivePortalUser(user)
-     || !(pwd_check = ntop->checkUserPassword(user, password, group, localuser))) {
+     || !ntop->checkGuiUserPassword(request_info, user, password, group, localuser)) {
     // Authentication failure, redirect to login
     redirect_to_login(conn, request_info, (referer[0] == '\0') ? NULL : referer);
-    if (!pwd_check) traceLogin(user, false);
   } else {
     /* Referer url must begin with '/' */
     if((referer[0] != '/') || (strcmp(referer, AUTHORIZE_URL) == 0)) {
