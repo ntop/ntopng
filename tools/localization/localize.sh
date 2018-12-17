@@ -56,21 +56,28 @@ status)
   if [[ -z $lang ]]; then usage; fi
   get_lang_path "$lang"
 
-  "$base_path/missing_localization.py" "$root_path/scripts/locales/en.lua" "$lang_path" | grep -v ".nedge."
+  "$base_path/missing_localization.py" cmp "$root_path/scripts/locales/en.lua" "$lang_path" | grep -v ".nedge."
   ;;
 missing)
   lang=$2
   if [[ -z $lang ]]; then usage; fi
   get_lang_path "$lang"
 
-  "$base_path/missing_localization.py" "$root_path/scripts/locales/en.lua" "$lang_path" | grep -v ".nedge." | awk '{ $1=""; $2 = ""; print $0; }'
+  lua "$base_path/sort_localization_file.lua" "$lang"
+  missing_lines=`"$base_path/missing_localization.py" missing "$root_path/scripts/locales/en.lua" "$lang_path"`
+  if [[ ! -z $missing_lines ]]; then
+    echo "*** REMOVE THE FOLLOWING LINES FROM ${lang}.lua BEFORE PROCEEDING ****" >&2
+    echo -e "$missing_lines" >&2
+  else
+    "$base_path/missing_localization.py" cmp "$root_path/scripts/locales/en.lua" "$lang_path" | grep -v ".nedge." | awk '{ $1=""; $2 = ""; print $0; }'
+  fi
   ;;
 all)
   lang=$2
   if [[ -z $lang ]]; then usage; fi
   get_lang_path "$lang"
 
-  "$base_path/missing_localization.py" /dev/null "$lang_path" | grep -v ".nedge." | awk '{ $1=""; $2 = ""; print $0; }'
+  "$base_path/missing_localization.py" cmp /dev/null "$lang_path" | grep -v ".nedge." | awk '{ $1=""; $2 = ""; print $0; }'
   ;;
 extend)
   lang=$2
