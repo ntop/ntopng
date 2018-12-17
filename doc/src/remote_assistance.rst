@@ -74,20 +74,14 @@ By clicking on it, it's possible to check the service status and log.
   :align: center
   :alt: Remote Assistance Status
 
-The remote assistance service will stay active even when ntopng is stopped. This
-must be manually disabled from the ntopng GUI in the Settings panel,  when remote assistance is concluded.
-
 Security Considerations
 -----------------------
 
 Here are some consideration about the remote assistance security:
 
 - All the traffic is end-to-end encrypted to prevent MITM (Man In The Middle) attacks
-- The remote assistance is automatically disabled after 24 hours
+- The remote assistance service must be manually disabled from the ntopng GUI in the Settings panel, when remote assistance is concluded, otherwise it is automatically disabled after 24 hours.
 - Traffic forwarding via the virtual network interface (i.e. the remote host where ntopng is running will not route traffic via n2n) is disabled to increase security
-
-
-
 
 
 .. _n2n: https://github.com/ntop/n2n
