@@ -176,7 +176,7 @@ print_service_log() {
 
 get_n2disk_stats() {
 	if [ $SYSTEMD = true ]; then
-		PID=$(/bin/systemctl show -p MainPID n2disk@${IFNAME} | cut -d'=' -f2)
+		PID=$(/bin/systemctl show -p MainPID ${SERVICE_NAME}@${IFNAME} | cut -d'=' -f2)
 	fi
 	if [ -n "$PID" ] && [ "$PID" -ne "0" ]; then
 		/bin/cat /proc/net/pf_ring/stats/${PID}-* 2>/dev/null
