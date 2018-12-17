@@ -398,7 +398,7 @@ function printAlerts()
   prefsToggleButton(subpage_active, {
     field = "toggle_longlived_flows_alerts",
     pref = "longlived_flows_alerts",
-    default = prefs.are_longlived_flows_alerts_enabled,
+    default = ternary(prefs.are_longlived_flows_alerts_enabled, "1", "0"),
     hidden = not showElements,
   })
 
