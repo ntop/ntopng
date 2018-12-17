@@ -1,6 +1,38 @@
 FAQ
 ###
 
+Cannot Login into the GUI
+=========================
+
+If you locked yourself out of the ntopng GUI after a change in the `authentication method`_,
+you can reset the ntopng login method to the default one (local authentication) with the following command:
+
+.. code:: bash
+
+  # For ntopng 3.7 and above:
+  redis-cli set ntopng.prefs.local.auth_enabled 1
+
+  # For ntopng 3.6 and below:
+  redis-cli set ntopng.prefs.auth_type local
+
+After restarting ntopng, you should be able to login with the administrator credentials.
+
+If you forgot the administrator password, you can reset it with the following command:
+
+.. code:: bash
+
+  redis-cli del ntopng.user.admin.password
+
+After restarting ntopng, you can login with the default ntopng credentials (admin, admin).
+
+.. warning::
+
+   Some browser plugins that perform javascript blocking may interfere with the login.
+   Sometimes adding an exception for ntopng is not enough. Try to disable them before
+   reporting an issue.
+
+.. _`authentication method`: advanced_features/authentication.html
+
 How can I monitor the sites visited by an host?
 ===============================================
 
