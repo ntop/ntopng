@@ -79,7 +79,8 @@ Security Considerations
 
 Here are some consideration about the remote assistance security:
 
-- All the traffic is end-to-end encrypted to prevent MITM (Man In The Middle) attacks
+- The supernode cannot decode the virtual network traffic as it's encrypted.
+- When the ntopng service is stopped, the remote assistance will be stopped too.
 - The remote assistance service must be manually disabled from the ntopng GUI in the Settings panel, when remote assistance is concluded, otherwise it is automatically disabled after 24 hours.
 - Traffic forwarding via the virtual network interface (i.e. the remote host where ntopng is running will not route traffic via n2n) is disabled to increase security
 
