@@ -74,6 +74,10 @@ function ts_utils.getSchema(name)
     end
   end
 
+  if schema and (name == "iface:traffic") and ntop.isnEdge() then
+    schema.options.step = 4
+  end
+
   return schema
 end
 
