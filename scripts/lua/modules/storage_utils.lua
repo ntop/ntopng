@@ -42,11 +42,13 @@ function storage_utils.interfaceStorageInfo(ifid)
       info["total"] = info["total"] + flows_storage_info.total
     end
 
-    -- if recording_utils.isAvailable() then 
+    -- if recording_utils.isAvailable() then
+    if not ntop.isWindows() then
       local pcap_storage_info = recording_utils.storageInfo(ifid)
       local total_pcap_dump_used = (pcap_storage_info.if_used + pcap_storage_info.extraction_used)
       info["pcap"] = total_pcap_dump_used
       info["total"] = info["total"] + total_pcap_dump_used
+    end
     -- end
 
     ntop.setCache(key, json.encode(info), 60)

@@ -2727,7 +2727,7 @@ function check_host_pools_alerts(ifid, working_status)
 	 local pool_exceeded_quotas = quota_exceeded_pools[pool] or {}
 
 	 -- Pool quota
-	 if pool_stats then
+	 if((pool_stats ~= nil) and (shaper_utils ~= nil)) then
 	    local quotas_info = shaper_utils.getQuotasInfo(ifid, pool, pool_stats)
 
 	    for proto, info in pairs(quotas_info) do
