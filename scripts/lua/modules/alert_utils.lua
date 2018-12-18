@@ -2851,7 +2851,7 @@ function disableAlertsGeneration()
    -- Ensure we do not conflict with others
    ntop.setPref("ntopng.prefs.disable_alerts_generation", "1")
    ntop.reloadPreferences()
-   os.execute("sleep 3")
+   ntop.msleep(3000)
 
    local selected_interface = ifname
    local ifnames = interface.getIfNames()
@@ -2893,7 +2893,7 @@ function flushAlertsData()
 
    if(verbose) then io.write("[Alerts] Temporary disabling alerts generation...\n") end
    ntop.setAlertsTemporaryDisabled(true);
-   os.execute("sleep 3")
+   ntop.msleep(3000)
 
    callback_utils.foreachInterface(ifnames, nil, function(ifname, ifstats)
 				      if(verbose) then io.write("[Alerts] Processing interface "..ifname.."...\n") end
