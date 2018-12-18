@@ -484,7 +484,9 @@ if(ifstats.zmqRecvStats ~= nil) then
    print("<tr><th nowrap>"..i18n("if_stats_overview.collected_flows").."</th><td width=20%><span id=if_zmq_flows>"..formatValue(ifstats.zmqRecvStats.flows).."</span></td>")
    print("<th nowrap>"..i18n("if_stats_overview.interface_rx_updates").."</th><td width=20%><span id=if_zmq_events>"..formatValue(ifstats.zmqRecvStats.events).."</span></td>")
    print("<th nowrap>"..i18n("if_stats_overview.sflow_counter_updates").."</th><td width=20%><span id=if_zmq_counters>"..formatValue(ifstats.zmqRecvStats.counters).."</span></td></tr>")
-   print("<tr><th nowrap>"..i18n("if_stats_overview.zmq_message_drops").."</th><td width=20%><span id=if_zmq_msg_drops>"..formatValue(ifstats.zmqRecvStats.zmq_msg_drops).."</span></td></tr>")
+   print("<tr><th nowrap>"..i18n("if_stats_overview.zmq_message_drops").."</th><td width=20%><span id=if_zmq_msg_drops>"..formatValue(ifstats.zmqRecvStats.zmq_msg_drops).."</span></td>")
+   -- empty placeholder, can be used for future items
+   print("<th nowrap colspan=4></th></tr>")
    end
 
    print("<tr><th colspan=7 nowrap>"..i18n("if_stats_overview.ingress_traffic").."</th></tr>\n")
@@ -609,14 +611,14 @@ if(ifstats.zmqRecvStats ~= nil) then
       end
 
       if #storage_items > 0 then
-        print("<tr><th>"..i18n("traffic_recording.storage_utilization").."</th><td colspan=4>")
+        print("<tr><th>"..i18n("traffic_recording.storage_utilization").."</th><td colspan=5>")
         print(stackedProgressBars(storage_info.total, storage_items, nil, bytesToSize))
         print("</td></tr>\n")
       end
    end
  
    if (isAdministrator() and ifstats.isView == false and ifstats.isDynamic == false) then
-      print("<tr><th>"..i18n("download").."&nbsp;<i class=\"fa fa-download fa-lg\"></i></th><td colspan=4>")
+      print("<tr><th>"..i18n("download").."&nbsp;<i class=\"fa fa-download fa-lg\"></i></th><td colspan=5>")
 
       local live_traffic_utils = require("live_traffic_utils")
       live_traffic_utils.printLiveTrafficForm(ifId)
