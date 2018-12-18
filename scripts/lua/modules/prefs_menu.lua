@@ -12,10 +12,11 @@ local hasNindex = hasNindexSupport()
 
 -- This table is used both to control access to the preferences and to filter preferences results
 local menu_subpages = {
-  {id="auth",          label=i18n("prefs.user_authentication"),  advanced=false, pro_only=false, nedge_hidden=true, hidden=not(prefs.is_users_login_enabled), entries={
+  {id="auth",          label=i18n("prefs.user_authentication"),  advanced=false, pro_only=false, nedge_hidden=false, hidden=(not(prefs.is_users_login_enabled) and not have_nedge), entries={
     toggle_ldap_auth = {
       title       = i18n("prefs.toggle_ldap_auth"),
       description = i18n("prefs.toggle_ldap_auth_descr"),
+      hidden      = have_nedge,
     }, toggle_radius_auth = {
       title       = i18n("prefs.toggle_radius_auth"),
       description = i18n("prefs.toggle_radius_auth_descr", {product=info.product}),
@@ -23,36 +24,46 @@ local menu_subpages = {
     }, toggle_http_auth = {
       title       = i18n("prefs.toggle_http_auth"),
       description = i18n("prefs.toggle_http_auth_descr"),
+      hidden      = have_nedge,
     }, toggle_local_auth = {
       title       = i18n("prefs.toggle_local_auth"),
       description = i18n("prefs.toggle_local_auth_descr", {product=info.product}),
     }, multiple_ldap_account_type = {
       title       = i18n("prefs.multiple_ldap_account_type_title"),
       description = i18n("prefs.multiple_ldap_account_type_description"),
+      hidden      = have_nedge,
     }, ldap_server_address = {
       title       = i18n("prefs.ldap_server_address_title"),
       description = i18n("prefs.ldap_server_address_description"),
+      hidden      = have_nedge,
     }, bind_dn = {
       title       = i18n("prefs.bind_dn_title"),
       description = i18n("prefs.bind_dn_description"),
+      hidden      = have_nedge,
     }, bind_pwd = {
       title       = i18n("prefs.bind_pwd_title"),
       description = i18n("prefs.bind_pwd_description"),
+      hidden      = have_nedge,
     }, search_path = {
       title       = i18n("prefs.search_path_title"),
       description = i18n("prefs.search_path_description"),
+      hidden      = have_nedge,
     }, user_group = {
       title       = i18n("prefs.user_group_title"),
       description = i18n("prefs.user_group_description"),
+      hidden      = have_nedge,
     }, admin_group = {
       title       = i18n("prefs.admin_group_title"),
       description = i18n("prefs.admin_group_description"),
+      hidden      = have_nedge,
     }, toggle_ldap_anonymous_bind = {
       title       = i18n("prefs.toggle_ldap_anonymous_bind_title"),
       description = i18n("prefs.toggle_ldap_anonymous_bind_description"),
+      hidden      = have_nedge,
     }, toggle_ldap_referrals = {
       title       = i18n("prefs.toggle_ldap_referrals_title"),
       description = i18n("prefs.toggle_ldap_referrals_description"),
+      hidden      = have_nedge,
     }, radius_server = {
       title       = i18n("prefs.radius_server_title"),
       description = i18n("prefs.radius_server_description", {example="127.0.0.1:1812"}),
@@ -68,6 +79,7 @@ local menu_subpages = {
     }, http_auth_server = {
       title       = i18n("prefs.http_auth_server_title"),
       description = i18n("prefs.http_auth_server_description"),
+      hidden      = have_nedge,
     },
   }}, {id="ifaces",    label=i18n("prefs.network_interfaces"),   advanced=true,  pro_only=false,  hidden=false, nedge_hidden=true, entries={
     dynamic_interfaces_creation = {

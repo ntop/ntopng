@@ -1432,10 +1432,6 @@ bool Ntop::checkCaptiveUserPassword(const char * const user, const char * const 
 
   rv = checkUserPassword(user, password, group, &localuser);
 
-  /* only local user auth supported right now */
-  if(!localuser)
-    return false;
-
   return(rv);
 }
 
