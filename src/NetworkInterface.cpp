@@ -1585,10 +1585,10 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	   && (flow->get_srv_host() && flow->get_srv_host()->isLocalHost())) {
 	  /* Set correct direction in localhost ping */
 	  if((icmp_type == ICMP_ECHO /* ICMP Echo [RFC792] */)
-	     || (icmp_type == ICMP6_ECHO_REQUEST /* ICMPV6 Echo Request [RFC4443] */))
+	     || (icmp_type == 128 /* ICMP6_ECHO_REQUEST - ICMPV6 Echo Request [RFC4443] */))
 	    src2dst_direction = true;
 	  else if((icmp_type == ICMP_ECHOREPLY /* ICMP Echo Reply [RFC792] */)
-		  || (icmp_type == ICMP6_ECHO_REPLY /* ICMPV6 Echo Reply [RFC4443] */))
+		  || (icmp_type == 129 /* ICMP6_ECHO_REPLY - ICMPV6 Echo Reply [RFC4443] */))
 	    src2dst_direction = false;
 	}
 
