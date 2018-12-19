@@ -307,15 +307,17 @@ function recording_utils.storageInfo(ifid)
   end
   if ntop.isdir(root_path) then
     local line = os_utils.execWithOutput("df "..root_path.." 2>/dev/null|tail -n1")
-    line = line:gsub('%s+', ' ')
-    local values = split(line, ' ')
-    if #values >= 6 then
-      storage_info.dev = values[1]
-      storage_info.total = tonumber(values[2])*1024
-      storage_info.used = tonumber(values[3])*1024
-      storage_info.avail = tonumber(values[4])*1024
-      storage_info.used_perc = values[5]
-      storage_info.mount = values[6]
+    if line ~= nil then
+      line = line:gsub('%s+', ' ')
+      local values = split(line, ' ')
+      if #values >= 6 then
+        storage_info.dev = values[1]
+        storage_info.total = tonumber(values[2])*1024
+        storage_info.used = tonumber(values[3])*1024
+        storage_info.avail = tonumber(values[4])*1024
+        storage_info.used_perc = values[5]
+        storage_info.mount = values[6]
+      end
     end
   end
 
