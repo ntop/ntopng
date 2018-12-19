@@ -74,7 +74,8 @@ print(
 		      title   = i18n("manage_data.delete"),
 		      message = i18n("delete_data.delete_confirmation",
 				     {host = '<span id="modal_host"></span><span id="modal_vlan"></span>'}),
-		      confirm = i18n("delete")
+		      confirm = i18n("delete"),
+                      confirm_button = "btn-danger",
 		   }
    })
 )
@@ -89,7 +90,8 @@ if not delete_active_interface_requested then
 			 title   = i18n("manage_data.delete_active_interface"),
 			 message = i18n("delete_data.delete_active_interface_confirmation",
 					{ifname = ifname, product = ntop.getInfo().product}),
-			 confirm = i18n("delete")
+			 confirm = i18n("delete"),
+                         confirm_button = "btn-danger",
 		      }
       })
    )
@@ -119,7 +121,8 @@ if num_inactive_interfaces > 0 then
 			 title   = i18n("manage_data.delete_inactive_interfaces"),
 			 message = i18n("delete_data.delete_inactive_interfaces_confirmation",
 					{interfaces_list = inactive_list}),
-			 confirm = i18n("delete")
+			 confirm = i18n("delete"),
+                         confirm_button = "btn-danger",
 		      }
       })
    )
@@ -426,8 +429,9 @@ print [[/lua/find_host.lua', { query: query }, function (data) {
     }
 
     $("#host_data_form_delete")
-      .validator(validator_options)
-      .find("[type='submit']").addClass("disabled");
+      .validator(validator_options);
+
+    aysHandleForm("#host_data_form_delete");
   });
 </script>
 
