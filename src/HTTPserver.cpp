@@ -658,6 +658,48 @@ static void redirect_to_password_change(struct mg_connection *conn,
     free(referer_enc);
 }
 
+static int ssl_authorize(struct mg_connection *conn,const struct mg_request_info *request_info,char *username,char *group,bool *localuser)
+{
+	long r;
+	X509 *cert=NULL;
+	X509_NAME *subj=NULL;
+	char subject[256],user[256];
+	char referer[256]={'\0'};
+	char key[64],val[64];
+	if((cert=SSL_get_peer_certificate(conn->ssl))) {
+		if((subj=X509_get_subject_name(cert))) {
+			X509_NAME_oneline(subj,subject,sizeof(subject));
+			if((r=SSL_get_verify_result(conn->ssl))==X509_V_OK) {
+				X509_NAME_get_text_by_NID(subj,NID_commonName,user,sizeof(user));
+				ntop->getTrace()->traceEvent(TRACE_NORMAL,"SSL user %s auth (%s)",user,subject);
+				for(int i=0;request_info->http_headers[i].name!=NULL;i++) {
+					if(!strcmp(request_info->http_headers[i].name,"Referer")) {
+	  					snprintf(referer,sizeof(referer),"%s",request_info->http_headers[i].value);
+	  					break;
+					}
+				}
+				if(referer[0]!='/') {
+					char *r=strchr(referer,'/');
+					if(r) memmove(referer,r,strlen(r)+1);
+					else strcpy(referer, "/");
+				}
+				*localuser=true;
+				snprintf(key,sizeof(key),CONST_STR_USER_GROUP,user);
+				strncpy(group,((ntop->getRedis()->get(key,val,sizeof(val))>= 0)?val:NTOP_UNKNOWN_GROUP),NTOP_GROUP_MAXLEN);
+				set_cookie(conn,user,group,*localuser,referer);
+    			strncpy(username, user, NTOP_USERNAME_MAXLEN);
+    			username[NTOP_USERNAME_MAXLEN - 1] = '\0';
+				X509_free(cert);
+				return 1;
+			}
+			else ntop->getTrace()->traceEvent(TRACE_NORMAL,"SSL user unauth: unknow certificate (err %i) %s",r,subject);
+		}
+		X509_free(cert);
+	}
+	else ntop->getTrace()->traceEvent(TRACE_NORMAL,"SSL user unauth: could not get certificate");
+	return 0;
+};
+
 /* ****************************************** */
 
 // A handler for the /authorize endpoint.
@@ -666,6 +708,7 @@ static void authorize(struct mg_connection *conn,
                       const struct mg_request_info *request_info,
 		      char *username, char *group, bool *localuser) {
   char user[32] = { '\0' }, password[32] = { '\0' }, referer[256] = { '\0' };
+
 
   if(!strcmp(request_info->request_method, "POST")) {
     char post_data[1024];
@@ -866,6 +909,10 @@ static int handle_lua_request(struct mg_connection *conn) {
   if(isStaticResourceUrl(request_info, len))
     ;
   else if((!whitelisted) && (!authorized)) {
+
+	if(request_info->is_ssl) {
+		if(ssl_authorize(conn,request_info,username,group,&localuser)) return 1;
+	}
     if(strcmp(request_info->uri, NETWORK_LOAD_URL) == 0) {
       // avoid sending login redirect to allow js itself to redirect the user
       return(send_error(conn, 403 /* Forbidden */, request_info->uri, "Login Required"));
@@ -1065,6 +1112,58 @@ void HTTPserver::parseACL(char * const acl, u_int acl_len) {
   free(acl_key);
 }
 
+// Forse non necessaria???
+int handle_ssl_verify(int ok, X509_STORE_CTX *ctx)
+{
+	X509 *cert;
+	char buf[256];
+	int err,depth;
+	cert=X509_STORE_CTX_get_current_cert(ctx);
+	err=X509_STORE_CTX_get_error(ctx);
+	depth=X509_STORE_CTX_get_error_depth(ctx);
+	X509_NAME_oneline(X509_get_subject_name(cert),buf,sizeof(buf));
+	ntop->getTrace()->traceEvent(TRACE_DEBUG,"ssl verify pre=%d cert=%s err=%i depth=%i",ok,buf,err,depth);
+	return ok;
+};
+
+static int ssl_session_ctx_id=1;
+
+int handle_ssl_init(void *ctx)
+{
+	char buf[256];
+	char ssl_ca_path[1024];
+	char ssl_cert_path[1024];
+	STACK_OF(X509_NAME) *certnames;
+
+  	snprintf(ssl_cert_path,sizeof(ssl_cert_path),"%s/ssl/%s",ntop->getPrefs()->get_docs_dir(),CONST_HTTPS_CERT_NAME);
+  	snprintf(ssl_ca_path,sizeof(ssl_ca_path),"%s/ssl/%s",ntop->getPrefs()->get_docs_dir(),CONST_HTTPS_AUTHCA_FILE);
+	ntop->getTrace()->traceEvent(TRACE_NORMAL,"SSL INIT %s",ssl_ca_path);
+
+	if(!SSL_CTX_set_session_id_context((SSL_CTX*)ctx,(unsigned char*)&ssl_session_ctx_id,sizeof(ssl_session_ctx_id))) {
+		ntop->getTrace()->traceEvent(TRACE_WARNING,"SSL session init failed: %s",ERR_reason_error_string(ERR_get_error()));
+		return 0;
+	}
+	if(!SSL_CTX_load_verify_locations((SSL_CTX*)ctx,ssl_ca_path,NULL)) {
+		ntop->getTrace()->traceEvent(TRACE_WARNING,"SSL load client CA from '%s' failed: %s",ssl_ca_path,ERR_reason_error_string(ERR_get_error()));
+		return 0;
+	}
+	if(!SSL_CTX_use_certificate_file((SSL_CTX*)ctx,ssl_cert_path,1) || !SSL_CTX_use_PrivateKey_file((SSL_CTX*)ctx,ssl_cert_path,1)) return 0;
+	if((certnames=SSL_load_client_CA_file(ssl_ca_path))) {
+		SSL_CTX_set_client_CA_list((SSL_CTX*)ctx,certnames);
+		if((certnames=SSL_CTX_get_client_CA_list((SSL_CTX*)ctx))) {
+			for(int i=0;i<sk_X509_NAME_num(certnames);i++) {
+				X509_NAME_oneline(sk_X509_NAME_value(certnames,i),buf,sizeof(buf));
+				ntop->getTrace()->traceEvent(TRACE_NORMAL,"SSL loaded CA #%i: %s",i,buf);
+			}
+		}
+	}
+	else ntop->getTrace()->traceEvent(TRACE_WARNING,"No SSL client loaded");
+	SSL_CTX_set_verify((SSL_CTX*)ctx,SSL_VERIFY_PEER/*|SSL_VERIFY_FAIL_IF_NO_PEER_CERT|SSL_VERIFY_CLIENT_ONCE*/,handle_ssl_verify);
+	//SSL_CTX_set_session_cache_mode((SSL_CTX*)ctx,SSL_SESS_CACHE_OFF);
+	return 1;
+};
+
+
 /* ****************************************** */
 
 HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
@@ -1096,6 +1195,7 @@ HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
   memset(&callbacks, 0, sizeof(callbacks));
   callbacks.begin_request = handle_lua_request;
   callbacks.log_message = handle_http_message;
+  if(ntop->getPrefs()->is_https_auth()) callbacks.init_ssl=handle_ssl_init;
 
   /* Randomize data */
   gettimeofday(&tv, NULL);

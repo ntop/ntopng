@@ -1082,6 +1082,12 @@ function printAuthentication()
   print('<table class="table">')
 
   -- Note: order must correspond to evaluation order in Ntop.cpp
+  print('<tr><th class="info" colspan="2">'..i18n("prefs.https_auth")..'</th></tr>')
+  prefsToggleButton(subpage_active,{
+	field = "toggle_https_auth",
+	default = "0",
+	pref = "is_https_auth",
+  })
   printLdapAuth()
   printRadiusAuth()
   printHttpAuth()

@@ -68,6 +68,9 @@ local menu_subpages = {
     }, http_auth_server = {
       title       = i18n("prefs.http_auth_server_title"),
       description = i18n("prefs.http_auth_server_description"),
+    }, toggle_https_auth = {
+	  title 	  = i18n("prefs.https_auth_title"),
+	  description = i18n("prefs.https_auth_description"),
     },
   }}, {id="ifaces",    label=i18n("prefs.network_interfaces"),   advanced=true,  pro_only=false,  hidden=false, nedge_hidden=true, entries={
     dynamic_interfaces_creation = {
