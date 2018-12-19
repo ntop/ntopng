@@ -173,7 +173,7 @@ function tolongint(what)
    if(what == nil) then
       return(0)
    else
-      return(string.format("%u", what))
+      return(string.format("%u", math.floor(what)))
    end
 end
 
