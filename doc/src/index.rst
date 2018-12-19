@@ -15,6 +15,7 @@ can be obtained from the traffic captured by the server.
    using_with_nprobe
    remote_assistance
    traffic_recording
+   historical_flows
    advanced_features/index
    operating_ntopng_on_large_networks
    faq
