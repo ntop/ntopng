@@ -329,7 +329,7 @@ class NetworkInterface : public Checkpointable {
   int dumpEsFlow(time_t when, Flow *f);
   int dumpLsFlow(time_t when, Flow *f);
 #if defined(HAVE_NINDEX) && defined(NTOPNG_PRO)
-  inline bool dumpnIndexFlow(time_t when, Flow *f)  { return(db->dumpFlow(when, f, NULL)); };
+  inline bool dumpnIndexFlow(time_t when, Flow *f)  { return(db ? db->dumpFlow(when, f, NULL) : false); };
 #endif
   int dumpLocalHosts2redis(bool disable_purge);
   inline void incRetransmittedPkts(u_int32_t num)   { tcpPacketStats.incRetr(num); };
@@ -579,7 +579,7 @@ class NetworkInterface : public Checkpointable {
 #endif
 
   void getFlowsStatus(lua_State *vm);
-  void startDBLoop() { if(db) db->startDBLoop(); };
+  void startDBLoop()               { if(db) db->startDBLoop();                 };
   inline bool createDBSchema()     { if(db) { return db->createDBSchema();     } return false;   };
   inline bool createNprobeDBView() { if(db) { return db->createNprobeDBView(); } return false;   };
 #ifdef NTOPNG_PRO

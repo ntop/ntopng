@@ -128,6 +128,10 @@ print("<tr><th><a href=\"http://twitter.github.io/\" target=\"_blank\"><i class=
 print("<tr><th><a href=\"http://fortawesome.github.io/Font-Awesome/\" target=\"_blank\"><i class=\'fa fa-flag fa-lg'></i> Font Awesome</A></th><td>4.x</td></tr>\n")
 print("<tr><th><a href=\"http://www.rrdtool.org/\" target=\"_blank\">RRDtool</A></th><td>"..info["version.rrd"].."</td></tr>\n")
 
+if(info["version.nindex"] ~= nil) then
+   print("<tr><th>nIndex</th><td>"..info["version.nindex"].."</td></tr>\n")
+end
+
 local l7_resolution = "5m"
 
 if ts_utils.getDriverName() == "influxdb" then

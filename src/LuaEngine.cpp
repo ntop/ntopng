@@ -5906,6 +5906,9 @@ static int ntop_get_info(lua_State* vm) {
     lua_push_bool_table_entry(vm, "pro.out_of_maintenance", ntop->getPro()->is_out_of_maintenance());
     lua_push_bool_table_entry(vm, "pro.use_redis_license", ntop->getPro()->use_redis_license());
     lua_push_str_table_entry(vm, "pro.systemid", ntop->getPro()->get_system_id());
+#if defined(HAVE_NINDEX)
+    lua_push_str_table_entry(vm, "version.nindex", nindex_version());
+#endif
 #endif
     lua_push_uint64_table_entry(vm, "constants.max_num_host_pools", MAX_NUM_HOST_POOLS);
     lua_push_uint64_table_entry(vm, "constants.max_num_pool_members",    MAX_NUM_POOL_MEMBERS);
@@ -8046,8 +8049,8 @@ static const luaL_Reg ntop_interface_reg[] = {
 
 #if defined(HAVE_NINDEX) && defined(NTOPNG_PRO)
   /* nIndex */
-  { "nIndexSelect",                    ntop_nindex_select             },
-  { "nIndexTopK",                      ntop_nindex_topk               },
+  { "nIndexSelect",                    ntop_nindex_select              },
+  { "nIndexTopK",                      ntop_nindex_topk                },
 #endif
 
   /* Live Capture */
