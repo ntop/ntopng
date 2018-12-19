@@ -1235,7 +1235,11 @@ function printStatsTimeseries()
   javascriptAfterSwitch = javascriptAfterSwitch.."    $(\"#old_rrd_files_retention\").css(\"display\",\"table-row\");\n"
   javascriptAfterSwitch = javascriptAfterSwitch.."  }\n"
 
-  multipleTableButtonPrefs(subpage_active.entries["multiple_timeseries_database"].title,
+  local active_driver = "rrd"
+  local influx_active = false
+
+  if not ntop.isWindows() then
+    multipleTableButtonPrefs(subpage_active.entries["multiple_timeseries_database"].title,
 				    subpage_active.entries["multiple_timeseries_database"].description,
 				    {"RRD", "InfluxDB"}, {"rrd", "influxdb"},
 				    "rrd",
@@ -1244,8 +1248,9 @@ function printStatsTimeseries()
 				    "ntopng.prefs.timeseries_driver", nil,
 				    elementToSwitch, showElementArray, javascriptAfterSwitch, true--[[show]])
 
-  local active_driver = ntop.getPref("ntopng.prefs.timeseries_driver")
-  local influx_active = (active_driver == "influxdb")
+    active_driver = ntop.getPref("ntopng.prefs.timeseries_driver")
+    influx_active = (active_driver == "influxdb")
+  end
 
   prefsInputFieldPrefs(subpage_active.entries["influxdb_url"].title,
 		       subpage_active.entries["influxdb_url"].description,

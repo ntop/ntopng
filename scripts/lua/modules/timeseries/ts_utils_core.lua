@@ -99,6 +99,10 @@ function ts_utils.listActiveDrivers()
   local driver = ts_utils.getDriverName()
   local active_drivers = {}
 
+  if ntop.isWindows() then
+    driver = "rrd"
+  end
+
   if driver == "rrd" then
     local dirs = ntop.getDirs()
     local rrd_driver = require("rrd"):new({base_path = (dirs.workingdir .. "/rrd_new")})
