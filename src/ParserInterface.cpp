@@ -508,7 +508,7 @@ u_int8_t ParserInterface::parseEvent(char *payload, int payload_size,
 
   // payload[payload_size] = '\0';
 
-  //ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", payload);
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", payload);
   o = json_tokener_parse_verbose(payload, &jerr);
 
   if(o && (zrs = (ZMQ_RemoteStats*)calloc(1, sizeof(ZMQ_RemoteStats)))) {
@@ -549,8 +549,8 @@ u_int8_t ParserInterface::parseEvent(char *payload, int payload_size,
     }
 
     if(json_object_object_get_ex(o, "drops", &w)) {
-      if(json_object_object_get_ex(w, "export_queue_too_long", &z))
-	zrs->export_queue_too_long = (u_int32_t)json_object_get_int64(z);
+      if(json_object_object_get_ex(w, "export_queue_full", &z))
+	zrs->export_queue_full = (u_int32_t)json_object_get_int64(z);
 
       if(json_object_object_get_ex(w, "too_many_flows", &z))
 	zrs->too_many_flows = (u_int32_t)json_object_get_int64(z);
@@ -1184,6 +1184,9 @@ void ParserInterface::lua(lua_State* vm) {
 
     lua_push_uint64_table_entry(vm, "zmq.num_flow_exports", zrs->num_flow_exports - zmq_remote_initial_exported_flows);
     lua_push_uint64_table_entry(vm, "zmq.num_exporters", zrs->num_exporters);
+
+    if(zrs->export_queue_full > 0)
+      lua_push_uint64_table_entry(vm, "zmq.drops.export_queue_full", zrs->export_queue_full);
 
     lua_push_uint64_table_entry(vm, "timeout.lifetime", zrs->remote_lifetime_timeout);
     lua_push_uint64_table_entry(vm, "timeout.idle", zrs->remote_idle_timeout);

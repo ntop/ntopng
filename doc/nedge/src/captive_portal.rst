@@ -88,3 +88,20 @@ segments. Check out the `users documentation`_ for more details.
 
 .. _users: users.html
 .. _`users documentation`: users.html#segmenting-the-network
+
+Radius Integration
+------------------
+
+nEdge can use an external RADIUS server to authenticate the captive portal users
+as well as gui users. Check out the ntopng `user authentication documentation`_ for
+more details.
+
+.. note::
+
+  When RADIUS is used for captive portal authentication, only the configured `nEdge users`_
+  will be able to authenticate. This constrain is necessary since a user is used to
+  associate the device to a policy.
+
+.. _`nEdge users`: users.html
+
+.. _`user authentication documentation`: https://www.ntop.org/guides/ntopng/advanced_features/authentication.html

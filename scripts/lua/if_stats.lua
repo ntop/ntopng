@@ -329,9 +329,9 @@ if((page == "overview") or (page == nil)) then
    end
 
    if(ifstats["remote.name"] ~= nil) then
-
       local remote_if_addr, remote_probe_ip, remote_probe_public_ip = '', '', ''
       local num_remote_flow_exports, num_remote_flow_exporters = '', ''
+
 
       if not isEmptyString(ifstats["remote.if_addr"]) then
 	 remote_if_addr = "<b>"..i18n("if_stats_overview.interface_ip").."</b>: "..ifstats["remote.if_addr"]
@@ -360,17 +360,32 @@ if((page == "overview") or (page == nil)) then
       print("</tr>\n")
 
       print("<tr>")
-      local colspan = 3
+      local colspan = 4
+
       if ifstats["timeout.lifetime"] > 0 then
         print("<td nowrap><b>"..i18n("if_stats_overview.probe_timeout_lifetime").."</b>: "..secondsToTime(ifstats["timeout.lifetime"]).."</td>")
       else
-        colspan = colspan + 1
+        colspan = colspan - 1
       end
       if ifstats["timeout.idle"] > 0 then
         print("<td nowrap><b>"..i18n("if_stats_overview.probe_timeout_idle").."</b>: "..secondsToTime(ifstats["timeout.idle"]).."</td>")
       else
-        colspan = colspan + 1
+        colspan = colspan - 1
       end
+
+      if not isEmptyString(ifstats["zmq.drops.export_queue_full"]) then
+	 local num_full = tonumber(ifstats["zmq.drops.export_queue_full"])
+	 local span_class = ' '
+	 if num_full > 0 then
+	    span_class = 'class="label label-danger"'
+	 end
+	 print("<td><b>"..i18n("if_stats_overview.probe_zmq_drops_export_queue_full").."</b>: <span "..span_class.." id=if_zmq_drops_export_queue_full>"..formatValue(ifstats["zmq.drops.export_queue_full"]).."</span>")
+	 print("<br><small><b>"..i18n("if_stats_overview.note")..":</b> "..i18n("if_stats_overview.note_probe_zmq_drops_export_queue_full").."</small>")
+	 print("</td>")
+      else
+        colspan = colspan - 1
+      end
+
       print("<td nowrap colspan="..colspan..">"..num_remote_flow_exporters.."</td>")
       print("</tr>")
    end
@@ -484,7 +499,9 @@ if(ifstats.zmqRecvStats ~= nil) then
    print("<tr><th nowrap>"..i18n("if_stats_overview.collected_flows").."</th><td width=20%><span id=if_zmq_flows>"..formatValue(ifstats.zmqRecvStats.flows).."</span></td>")
    print("<th nowrap>"..i18n("if_stats_overview.interface_rx_updates").."</th><td width=20%><span id=if_zmq_events>"..formatValue(ifstats.zmqRecvStats.events).."</span></td>")
    print("<th nowrap>"..i18n("if_stats_overview.sflow_counter_updates").."</th><td width=20%><span id=if_zmq_counters>"..formatValue(ifstats.zmqRecvStats.counters).."</span></td></tr>")
-   print("<tr><th nowrap>"..i18n("if_stats_overview.zmq_message_drops").."</th><td width=20%><span id=if_zmq_msg_drops>"..formatValue(ifstats.zmqRecvStats.zmq_msg_drops).."</span></td></tr>")
+   print("<tr><th nowrap>"..i18n("if_stats_overview.zmq_message_drops").."</th><td width=20%><span id=if_zmq_msg_drops>"..formatValue(ifstats.zmqRecvStats.zmq_msg_drops).."</span></td>")
+   -- empty placeholder, can be used for future items
+   print("<th nowrap colspan=4></th></tr>")
    end
 
    print("<tr><th colspan=7 nowrap>"..i18n("if_stats_overview.ingress_traffic").."</th></tr>\n")
@@ -609,14 +626,14 @@ if(ifstats.zmqRecvStats ~= nil) then
       end
 
       if #storage_items > 0 then
-        print("<tr><th>"..i18n("traffic_recording.storage_utilization").."</th><td colspan=4>")
+        print("<tr><th>"..i18n("traffic_recording.storage_utilization").."</th><td colspan=5>")
         print(stackedProgressBars(storage_info.total, storage_items, nil, bytesToSize))
         print("</td></tr>\n")
       end
    end
  
    if (isAdministrator() and ifstats.isView == false and ifstats.isDynamic == false) then
-      print("<tr><th>"..i18n("download").."&nbsp;<i class=\"fa fa-download fa-lg\"></i></th><td colspan=4>")
+      print("<tr><th>"..i18n("download").."&nbsp;<i class=\"fa fa-download fa-lg\"></i></th><td colspan=5>")
 
       local live_traffic_utils = require("live_traffic_utils")
       live_traffic_utils.printLiveTrafficForm(ifId)

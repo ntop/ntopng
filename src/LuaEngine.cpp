@@ -6119,6 +6119,20 @@ static int ntop_has_radius_support(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_has_ldap_support(lua_State* vm) {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+#if defined(NTOPNG_PRO) && defined(HAVE_LDAP) && !defined(HAVE_NEDGE)
+  lua_pushboolean(vm, true);
+#else
+  lua_pushboolean(vm, false);
+#endif
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 struct ntopng_sqlite_state {
   lua_State* vm;
   u_int num_rows;
@@ -8072,6 +8086,7 @@ static const luaL_Reg ntop_reg[] = {
   { "isAllowedNetwork",    ntop_is_allowed_network },
   { "md5",              ntop_md5 },
   { "hasRadiusSupport", ntop_has_radius_support },
+  { "hasLdapSupport",   ntop_has_ldap_support },
 
   /* Redis */
   { "getCache",          ntop_get_redis },

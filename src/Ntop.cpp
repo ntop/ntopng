@@ -1392,8 +1392,10 @@ bool Ntop::checkGuiUserPassword(struct mg_connection *conn,
 
   client_addr.set(mg_get_client_address(conn));
 
-  if(ntop->isCaptivePortalUser(user))
+  if(ntop->isCaptivePortalUser(user)) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "User %s is not a gui user. Login is denied.", user);
     return false;
+  }
 
   remote_ip = client_addr.print(ipbuf, sizeof(ipbuf));
 
@@ -1427,14 +1429,12 @@ bool Ntop::checkCaptiveUserPassword(const char * const user, const char * const 
   bool localuser = false;
   bool rv;
 
-  if(!ntop->isCaptivePortalUser(user))
+  if(!ntop->isCaptivePortalUser(user)) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "User %s is not a captive portal user. Login is denied.", user);
     return false;
+  }
 
   rv = checkUserPassword(user, password, group, &localuser);
-
-  /* only local user auth supported right now */
-  if(!localuser)
-    return false;
 
   return(rv);
 }

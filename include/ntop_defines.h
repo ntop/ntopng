@@ -349,6 +349,16 @@
 #ifdef WIN32
 #define ICMP_ECHO		     8	/* Echo Request			*/
 #define ICMP_ECHOREPLY	   	 0	/* Echo Reply			*/
+
+/*
+#ifndef ICMP6_ECHO_REQUEST
+#define ICMP6_ECHO_REQUEST   128
+#endif
+
+#ifndef ICMP6_ECHO_REPLY
+#define ICMP6_ECHO_REPLY     129
+#endif
+*/
 #endif
 
 #ifndef MAX_PATH

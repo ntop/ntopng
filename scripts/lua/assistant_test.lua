@@ -628,7 +628,7 @@ function handler_tcp_dump()
      ntop.setPref("ntopng.prefs.dump_file_path", path)
 
     if(interface.isCaptureRunning()) then
-      os.execute("sleep 1")
+      ntop.msleep(1000)
     end
     
     interface.stopRunningCapture()

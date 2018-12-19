@@ -1081,6 +1081,8 @@ function printAuthentication()
   print('<form method="post">')
   print('<table class="table">')
 
+  local entries = subpage_active.entries
+
   -- Note: order must correspond to evaluation order in Ntop.cpp
   print('<tr><th class="info" colspan="2">'..i18n("prefs.https_auth")..'</th></tr>')
   prefsToggleButton(subpage_active,{
@@ -1088,12 +1090,25 @@ function printAuthentication()
 	default = "0",
 	pref = "is_https_auth",
   })
-  printLdapAuth()
-  printRadiusAuth()
-  printHttpAuth()
-  printLocalAuth()
+  if not entries.toggle_ldap_auth.hidden then
+    printLdapAuth()
+  end
+  if not entries.toggle_radius_auth.hidden then
+    printRadiusAuth()
+  end
+  if not entries.toggle_http_auth.hidden then
+    printHttpAuth()
+  end
+  if not entries.toggle_local_auth.hidden then
+    printLocalAuth()
+  end
 
-  prefsInformativeField(i18n("notes"), i18n("prefs.auth_methods_order"))
+  if not ntop.isnEdge() then
+    prefsInformativeField(i18n("notes"), i18n("prefs.auth_methods_order"))
+  else
+    prefsInformativeField(i18n("notes"), i18n("nedge.authentication_gui_and_captive_portal",
+      {product = product, url = ntop.getHttpPrefix() .. "/lua/pro/nedge/system_setup/captive_portal.lua"}))
+  end
 
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
   print('</table>')

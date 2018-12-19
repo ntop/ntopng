@@ -335,10 +335,14 @@ function driver:query(schema, tstart, tend, tags, options)
   --tprint("rrdtool fetch ".. rrdfile.. " " .. RRD_CONSOLIDATION_FUNCTION .. " -s ".. tstart .. " -e " .. tend)
   local fstart, fstep, fdata, fend, fcount = ntop.rrd_fetch_columns(rrdfile, RRD_CONSOLIDATION_FUNCTION, tstart, tend)
 
+  if fdata == nil then
+    return nil
+  end
+
   local count = 0
   local series = {}
 
-  for name_key, serie in pairs(fdata or {}) do
+  for name_key, serie in pairs(fdata) do
     local serie_idx = map_rrd_column_to_metrics(schema, name_key)
     local name = schema._metrics[serie_idx]
     local max_val = ts_common.getMaxPointValue(schema, name, tags)
@@ -525,6 +529,11 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
 
     local fstart, fstep, fdata, fend, fcount = ntop.rrd_fetch_columns(rrdfile, RRD_CONSOLIDATION_FUNCTION, query_start, tend)
     local sum = 0
+
+    if fdata == nil then
+      goto continue
+    end
+
     step = fstep
 
     local partials = {}
@@ -564,6 +573,7 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
 
     items[serie_tags[top_tag]] = sum * step
     tag_2_series[serie_tags[top_tag]] = {serie_tags, partials}
+    ::continue::
   end
 
   local topk = {}
@@ -626,7 +636,7 @@ function driver:queryTotal(schema, tstart, tend, tags, options)
   local fstart, fstep, fdata, fend, fcount = ntop.rrd_fetch_columns(rrdfile, RRD_CONSOLIDATION_FUNCTION, tstart, tend)
   local totals = {}
 
-  for name_key, serie in pairs(fdata) do
+  for name_key, serie in pairs(fdata or {}) do
     local serie_idx = map_rrd_column_to_metrics(schema, name_key)
     local name = schema._metrics[serie_idx]
     local max_val = ts_common.getMaxPointValue(schema, name, tags)

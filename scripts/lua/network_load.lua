@@ -48,7 +48,6 @@ function dumpInterfaceStats(interface_name)
    interface.select(interface_name)
 
    local ifstats = interface.getStats()
-   local stats = interface.getFlowsStats()
 
    local res = {}
    if(ifstats ~= nil) then
@@ -137,8 +136,6 @@ function dumpInterfaceStats(interface_name)
       if(ifstats["profiles"] ~= nil) then
 	 res["profiles"] = ifstats["profiles"]
       end
-
-      res["breed"] = stats["breeds"]
 
       if remote_assistance.isAvailable() then
 	 if remote_assistance.isEnabled() then
