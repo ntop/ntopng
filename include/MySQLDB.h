@@ -29,7 +29,8 @@ class MySQLDB : public DB {
   MYSQL mysql;
   bool db_operational;
   struct timeval lastUpdateTime;
-  u_int32_t mysqlDroppedFlows;
+  u_int32_t mysqlDroppedFlows, mysqlConsumerDroppedFlows;
+  u_int32_t mysqlEnqueuedFlows;
   u_int64_t mysqlExportedFlows, mysqlLastExportedFlows;
   float mysqlExportRate;
 
@@ -55,9 +56,9 @@ class MySQLDB : public DB {
   void checkPointCounters(bool drops_only) {
     if(!drops_only)
       checkpointExportedFlows = mysqlExportedFlows;
-    checkpointDroppedFlows = mysqlDroppedFlows;
+    checkpointDroppedFlows = mysqlDroppedFlows + mysqlConsumerDroppedFlows;
   };
-  inline u_int32_t numDroppedFlows() const { return mysqlDroppedFlows; };
+  inline u_int32_t numDroppedFlows() const { return mysqlDroppedFlows + mysqlConsumerDroppedFlows; };
   inline float exportRate()          const { return mysqlExportRate; };
   static char *escapeAphostrophes(const char *unescaped);
   int flow2InsertValues(Flow *f, char *json, char *values_buf, size_t values_buf_len) const;

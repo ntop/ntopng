@@ -96,7 +96,7 @@ class Flow : public GenericHashEntry {
   u_int32_t last_conntrack_update; 
   u_int32_t marker;
 #endif
-  
+ 
   union {
     struct {
       char *last_url, *last_method;

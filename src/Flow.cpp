@@ -859,9 +859,11 @@ bool Flow::dumpFlow(bool dump_alert) {
     }
 
     if(!idle()) {
-      if((now - get_first_seen()) < CONST_DB_DUMP_FREQUENCY
-	 || (now - last_db_dump.last_dump) < CONST_DB_DUMP_FREQUENCY)
+      if(iface->getIfType() == interface_type_PCAP_DUMP
+         || (now - get_first_seen()) < CONST_DB_DUMP_FREQUENCY
+	 || (now - last_db_dump.last_dump) < CONST_DB_DUMP_FREQUENCY) {
 	return(rc);
+      }
     } else {
       /* flows idle, i.e., ready to be purged, are always dumped */
     }

@@ -586,8 +586,6 @@ NetworkInterface::~NetworkInterface() {
   }
 #endif
 
-  if(db) db->shutdown();
-
   if(getNumPackets() > 0) {
     ntop->getTrace()->traceEvent(TRACE_NORMAL,
 				 "Flushing host contacts for interface %s",
@@ -597,7 +595,11 @@ NetworkInterface::~NetworkInterface() {
 
   deleteDataStructures();
 
-  if(db)             delete db;
+  if(db) {
+    /* note: keep this after deleteDataStructures to flush aggregated flows */
+    db->shutdown();
+    delete db;
+  }
   if(host_pools)     delete host_pools;     /* note: this requires ndpi_struct */
   if(ifDescription)  free(ifDescription);
   if(discovery)      delete discovery;
@@ -5339,6 +5341,7 @@ void NetworkInterface::runShutdownTasks() {
   if (ntop->getPrefs()->flushFlowsOnShutdown()) {
     /* Setting all flows as "ready to purge" (see isReadyToPurge) and dump them to the DB */
     periodicStatsUpdate();
+    flushFlowDump();
   }
 }
 
