@@ -155,7 +155,10 @@ print [[
     </div>
 </div>
 <br>
+]]
 
+if not ntop.isnEdge() then
+print[[
 <div class="row">
     <div class="form-group col-md-6 has-feedback">
       <label class="form-label">]] print(i18n("language")) print[[</label>
@@ -178,9 +181,10 @@ print[[
       </div>
     </div>
 </div>
+<br>]]
+end
 
-<br>
-
+print[[
 <div class="row">
     <div class="form-group col-md-12 has-feedback">
       <button id="pref_change" class="btn btn-primary btn-block">]] print(i18n("manage_users.change_user_preferences")) print[[</button>
