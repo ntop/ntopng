@@ -63,6 +63,7 @@ missing)
   if [[ -z $lang ]]; then usage; fi
   get_lang_path "$lang"
 
+  lua "$base_path/sort_localization_file.lua" "en"
   lua "$base_path/sort_localization_file.lua" "$lang"
   missing_lines=`"$base_path/missing_localization.py" missing "$root_path/scripts/locales/en.lua" "$lang_path"`
   if [[ ! -z $missing_lines ]]; then
