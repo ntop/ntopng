@@ -149,6 +149,7 @@ local lang = {
   ["system"] = "System",
   ["talkers"] = "Talkers",
   ["tcp_flags"] = "TCP Flags",
+  ["tcp_stats"] = "TCP Statistics",
   ["throughput"] = "Throughput",
   ["time"] = "Time",
   ["timeframe"] = "Timeframe",

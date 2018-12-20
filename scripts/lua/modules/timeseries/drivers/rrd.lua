@@ -425,7 +425,7 @@ end
 -- *Limitation*
 -- tags_filter is expected to contain all the tags of the schema except the last
 -- one. For such tag, a list of available values will be returned.
-local function _listSeries(schema, tags_filter, wildcard_tags, start_time, with_l4)
+local function _listSeries(schema, tags_filter, wildcard_tags, start_time)
   if #wildcard_tags > 1 then
     traceError(TRACE_ERROR, TRACE_CONSOLE, "RRD driver does not support listSeries on multiple tags")
     return nil
@@ -449,9 +449,6 @@ local function _listSeries(schema, tags_filter, wildcard_tags, start_time, with_
     return nil
   end
 
-  -- TODO remove after migration
-  local l4_keys = {tcp=1, udp=1, icmp=1}
-
   local base, rrd = schema_get_path(schema, table.merge(tags_filter, {[wildcard_tag] = ""}))
   local files = ntop.readdir(base)
   local res = {}
@@ -466,9 +463,18 @@ local function _listSeries(schema, tags_filter, wildcard_tags, start_time, with_
       if last_update ~= nil and last_update >= start_time then
         -- TODO remove after migration
         local value = v[1]
+        local toadd = false
 
-        if ((wildcard_tag ~= "protocol") or (with_l4 and l4_keys[value] ~= nil) or ((l4_keys[value] == nil) and (interface.getnDPIProtoId(value) ~= -1))) and
+        if wildcard_tag == "l4proto" then
+          if L4_PROTO_KEYS[value] ~= nil then
+            toadd = true
+          end
+        elseif ((wildcard_tag ~= "protocol") or ((L4_PROTO_KEYS[value] == nil) and (interface.getnDPIProtoId(value) ~= -1))) and
             ((wildcard_tag ~= "category") or (interface.getnDPICategoryId(value) ~= -1)) then
+          toadd = true
+        end
+
+        if toadd then
           res[#res + 1] = table.merge(tags_filter, {[wildcard_tag] = value})
         end
       end
@@ -489,7 +495,7 @@ end
 -- ##############################################
 
 function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
-  return _listSeries(schema, tags_filter, wildcard_tags, start_time, true --[[ with l4 protos ]])
+  return _listSeries(schema, tags_filter, wildcard_tags, start_time)
 end
 
 -- ##############################################
@@ -507,7 +513,7 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
     return nil
   end
 
-  local series = _listSeries(schema, tags, top_tags, tstart, false --[[ no l4 protos ]])
+  local series = _listSeries(schema, tags, top_tags, tstart)
   if not series then
     return nil
   end

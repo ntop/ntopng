@@ -144,6 +144,8 @@ l4_keys = {
   { "Other IP", "other_ip", -1 }
 }
 
+L4_PROTO_KEYS = {tcp=6, udp=17, icmp=1, other_ip=-1}
+
 function __FILE__() return debug.getinfo(2,'S').source end
 function __LINE__() return debug.getinfo(2, 'l').currentline end
 

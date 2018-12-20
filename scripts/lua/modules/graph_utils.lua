@@ -284,9 +284,13 @@ function graphMenuDivider()
    graph_menu_entries[#graph_menu_entries + 1] = {html='<li class="divider"></li>'}
 end
 
+function graphMenuHeader(label)
+   graph_menu_entries[#graph_menu_entries + 1] = {html='<li class="dropdown-header">'.. label ..'</li>'}
+end
+
 function graphMenuGetActive(schema, params)
    -- These tags are used to determine the active timeseries entry
-   local match_tags = {ts_schema=1, ts_query=1, protocol=1, category=1, snmp_port_idx=1}
+   local match_tags = {ts_schema=1, ts_query=1, protocol=1, category=1, snmp_port_idx=1, l4proto=1}
 
    for _, entry in pairs(graph_menu_entries) do
       if entry.schema == schema and entry.params then
@@ -334,6 +338,7 @@ end
 function printSeries(options, tags, start_time, base_url, params)
    local series = options.timeseries
    local needs_separator = false
+   local separator_label = nil
 
    for _, serie in ipairs(series) do
       if (have_nedge and serie.nedge_exclude) or (not have_nedge and serie.nedge_only) then
@@ -342,6 +347,7 @@ function printSeries(options, tags, start_time, base_url, params)
 
       if serie.separator then
          needs_separator = true
+         separator_label = serie.label
      else
          local k = serie.schema
          local v = serie.label
@@ -375,6 +381,11 @@ function printSeries(options, tags, start_time, base_url, params)
             if needs_separator then
                -- Only add the separator if there are actually some entries in the group
                graphMenuDivider()
+
+               if separator_label then
+                  graphMenuHeader(separator_label)
+               end
+
                needs_separator = false
             end
 
@@ -395,6 +406,7 @@ function printSeries(options, tags, start_time, base_url, params)
 
       if not table.empty(series) then
          graphMenuDivider()
+         graphMenuHeader(i18n("l7_protocols"))
 
          local by_protocol = {}
 
@@ -409,6 +421,46 @@ function printSeries(options, tags, start_time, base_url, params)
       end
    end
 
+   -- L4 protocols
+   if options.l4_protocols then
+      local schema = options.l4_protocols
+      local l4_tags = table.clone(tags)
+      l4_tags.l4proto = nil
+
+      local series = ts_utils.listSeries(schema, l4_tags, start_time)
+
+      if not table.empty(series) then
+         graphMenuDivider()
+         graphMenuHeader(i18n("l4_protocols"))
+
+         local by_protocol = {}
+
+         for _, serie in pairs(series) do
+            local sortkey = serie.l4proto
+
+            if sortkey == "other_ip" then
+               -- place at the end
+               sortkey = "z" .. sortkey
+            end
+
+            by_protocol[sortkey] = serie.l4proto
+         end
+
+         for _, protocol in pairsByKeys(by_protocol, asc) do
+            local proto_id = protocol
+            local label
+
+            if proto_id == "other_ip" then
+               label = i18n("other")
+            else
+               label = string.upper(protocol)
+            end
+
+            populateGraphMenuEntry(label, base_url, table.merge(params, {ts_schema=schema, l4proto=proto_id}))
+         end
+      end
+   end
+
    -- nDPI application categories
    if options.top_categories then
       local schema = split(options.top_categories, "top:")[2]
@@ -418,6 +470,7 @@ function printSeries(options, tags, start_time, base_url, params)
 
       if not table.empty(series) then
          graphMenuDivider()
+         graphMenuHeader(i18n("categories"))
 
          local by_category = {}
 

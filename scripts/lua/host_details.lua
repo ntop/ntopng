@@ -1957,6 +1957,7 @@ local tags = {
    host = host_key,
    protocol = _GET["protocol"],
    category = _GET["category"],
+   l4proto = _GET["l4proto"],
 }
 
 local url = ntop.getHttpPrefix()..'/lua/host_details.lua?ifid='..ifId..'&'..host_url..'&page=historical'
@@ -1964,6 +1965,7 @@ local url = ntop.getHttpPrefix()..'/lua/host_details.lua?ifid='..ifId..'&'..host
 drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
    top_protocols = "top:host:ndpi",
    top_categories = "top:host:ndpi_categories",
+   l4_protocols = "host:l4protos",
    show_historical = true,
    timeseries = {
       {schema="host:traffic",                label=i18n("traffic")},
