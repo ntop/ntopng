@@ -32,8 +32,7 @@ class LocalHost : public Host {
   HTTPstats *http;
   ICMPstats *icmp;
   FrequentStringItems *top_sites;
-  char *old_sites;
-  char os[16];
+  char *old_sites, *os;
   time_t nextSitesUpdate;
   bool systemHost;
   bool dhcpUpdated;
@@ -59,7 +58,7 @@ class LocalHost : public Host {
   virtual NetworkStats* getNetworkStats(int16_t networkId){ return(iface->getNetworkStats(networkId));   };
   virtual u_int32_t getActiveHTTPHosts()             { return(http ? http->get_num_virtual_hosts() : 0); };
   virtual HTTPstats* getHTTPstats()                  { return(http);                  };
-  virtual char* get_os()                             { return(os);                    };
+  virtual char* get_os()                             { return(os ? os : (char*)"");                    };
 
   virtual bool dropAllTraffic()  { return(drop_all_host_traffic); };
 

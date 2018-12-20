@@ -47,8 +47,8 @@ LocalHost::~LocalHost() {
   if(dns)             delete dns;
   if(http)            delete http;
   if(icmp)            delete icmp;
-
-  if(ts_ring)                   delete ts_ring;
+  if(os)              free(os);
+  if(ts_ring)         delete ts_ring;
 }
 
 /* *************************************** */
@@ -64,8 +64,7 @@ void LocalHost::initialize() {
   dhcpUpdated = false;
   icmp = NULL;
   drop_all_host_traffic = false;
-
-  os[0] = '\0';
+  os = NULL;
 
   ip.isLocalHost(&local_network_id);
   networkStats = getNetworkStats(local_network_id);
@@ -517,8 +516,10 @@ void LocalHost::setOS(char *_os) {
      || (mac->getDeviceType() == device_networking)
      ) return;
 
-  if(os[0] == '\0')
-    snprintf(os, sizeof(os), "%s", _os);
+  if(os == NULL)
+    os = strdup(_os);
+
+  if (!os) return;
 
   if(strcasestr(os, "iPhone")
      || strcasestr(os, "Android")

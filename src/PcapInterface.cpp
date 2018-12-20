@@ -285,7 +285,7 @@ void PcapInterface::shutdown() {
 
 u_int32_t PcapInterface::getNumDroppedPackets() {
 #ifndef WIN32
-	/* For some reson it crashes under Windows: maybe a lock is needed ?*/
+  /* It seems this leads to crashes on Windows */
   struct pcap_stat pcapStat;
 
   if(pcap_handle && (pcap_stats(pcap_handle, &pcapStat) >= 0)) {
