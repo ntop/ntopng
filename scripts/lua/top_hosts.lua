@@ -84,7 +84,7 @@ print [[/lua/get_host_traffic.lua?host="+name, function(data) {
 	      }	     
 	    }
 	    callback(null, values = values.slice((start - stop) / step));
-	  }, symname);
+	  }, (name + "|" + symname));
       }
 
 var width = 800;
