@@ -58,9 +58,11 @@ for if_id, if_info in pairs(storage_info.interfaces) do
   num_items = num_items + 1
 end
 
-print("<tr><th>"..i18n("traffic_recording.storage_utilization").."</th><td>")
-print(stackedProgressBars(storage_info.total, storage_items, nil, bytesToSize))
-print("</td></tr>\n")
+if not ntop.isWindows() then
+   print("<tr><th>"..i18n("traffic_recording.storage_utilization").."</th><td>")
+   print(stackedProgressBars(storage_info.total, storage_items, nil, bytesToSize))
+   print("</td></tr>\n")
+end
 
 vers = string.split(info["version.git"], ":")
 if((vers ~= nil) and (vers[2] ~= nil)) then
