@@ -9,6 +9,7 @@ require "lua_utils"
 require "alert_utils"
 require "flow_utils"
 
+local format_utils = require "format_utils"
 local json = require "dkjson"
 
 sendHTTPContentTypeHeader('text/html')
@@ -88,8 +89,10 @@ for _key,_value in ipairs(alerts) do
       alert_entity_val = ""
    end
 
-   if(tdiff < 60) then
-      column_date  = secondsToTime(tdiff).." ago"
+   if(tdiff <= 600) then
+      column_date  = secondsToTime(tdiff).. " " ..i18n("details.ago")
+   else
+      column_date = format_utils.formatPastEpochShort(_value["alert_tstamp"])
    end
 
    if engaged == true then

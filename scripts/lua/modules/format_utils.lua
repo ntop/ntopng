@@ -218,4 +218,8 @@ function format_utils.formatEpochShort(epoch_begin, epoch_end, epoch)
    return format_utils.formatEpoch(epoch)
 end
 
+function format_utils.formatPastEpochShort(epoch)
+   return format_utils.formatEpochShort(epoch, os.time(), epoch)
+end
+
 return format_utils
