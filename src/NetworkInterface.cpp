@@ -1043,6 +1043,7 @@ NetworkInterface* NetworkInterface::getSubInterface(u_int32_t criteria, bool par
 	  h->iface->setDynamicInterface();
 	  HASH_ADD_INT(flowHashing, criteria, h);
 	  numVirtualInterfaces++;
+	  ntop->getRedis()->set(CONST_STR_RELOAD_LISTS, (const char * const)"1");
 	}
       } else
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
@@ -1375,7 +1376,6 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       bool ret;
 
       vIface->setTimeLastPktRcvd(h->ts.tv_sec);
-      vIface->purgeIdle(h->ts.tv_sec);
       ret = vIface->processPacket(bridge_iface_idx,
 				  ingressPacket, when, packet_time,
 				  eth, vlan_id,
@@ -1903,6 +1903,15 @@ void NetworkInterface::purgeIdle(time_t when) {
     if((m = purgeIdleHostsMacsASesVlans()) > 0)
       ntop->getTrace()->traceEvent(TRACE_DEBUG, "Purged %u/%u idle hosts/macs on %s",
 				   m, getNumHosts()+getNumMacs(), ifname);
+  }
+
+  if(flowHashing) {
+    FlowHashing *current, *tmp;
+
+    HASH_ITER(hh, flowHashing, current, tmp) {
+      if(current->iface)
+	current->iface->purgeIdle(when);
+    }
   }
 }
 
@@ -2545,7 +2554,7 @@ void NetworkInterface::pollQueuedeBPFEvents() {
 
 void NetworkInterface::reloadCustomCategories() {
   if(customCategoriesReloadRequested()) {
-    ntop->getTrace()->traceEvent(TRACE_DEBUG, "Going to reload categories..");
+    ntop->getTrace()->traceEvent(TRACE_DEBUG, "Going to reload categories [iface: %s]", get_name());
     ndpi_enable_loaded_categories(ndpi_struct);
     reload_custom_categories = false;
   }
@@ -4946,7 +4955,7 @@ u_int NetworkInterface::purgeIdleFlows() {
 
   pollQueuedeBPFEvents();
   reloadCustomCategories();
-  
+
   if(!purge_idle_flows_hosts) return(0);
 
   if(next_idle_flow_purge == 0) {

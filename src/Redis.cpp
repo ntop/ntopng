@@ -165,7 +165,7 @@ int Redis::expire(char *key, u_int expire_secs) {
 
 /* **************************************** */
 
-bool Redis::isCacheable(char *key) {
+bool Redis::isCacheable(const char * const key) {
   if((strstr(key, "ntopng.cache."))
      || (strstr(key, "ntopng.prefs."))
      || (strstr(key, "ntopng.user.") && (!strstr(key, ".password"))))
@@ -212,7 +212,7 @@ void Redis::checkDumpable(const char * const key) {
 /* **************************************** */
 
 /* NOTE: We assume that the addToCache() caller locks this instance */
-void Redis::addToCache(char *key, char *value, u_int expire_secs) {
+void Redis::addToCache(const char * const key, const char * const value, u_int expire_secs) {
   StringCache_t *cached = NULL;
   if(!initializationCompleted) return;
 
@@ -429,7 +429,7 @@ int Redis::hashDel(const char * const key, const char * const field) {
 
 /* **************************************** */
 
-int Redis::set(char *key, char *value, u_int expire_secs) {
+int Redis::set(const char * const key, const char * const value, u_int expire_secs) {
   int rc;
   redisReply *reply;
 

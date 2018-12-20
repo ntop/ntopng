@@ -1703,13 +1703,14 @@ static int ntop_reloadCustomCategories(lua_State* vm) {
     if(((iface = ntop->getInterfaceAtId(vm, i)) != NULL) && iface->isPacketInterface()) {
       iface->requestReloadCustomCategories();
 
+      _usleep(5e4);
       for(j = 0; j < max_wait && iface->customCategoriesReloadRequested(); j++) {
 	/* Make sure the interface has reloaded the categories */
-	_usleep(500000);
+	_usleep(5e5);
       }
 
       if(j == max_wait) {
-	ntop->getTrace()->traceEvent(TRACE_ERROR, "Interface didn't reload configugration on time");
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "Interface didn't reload configugration on time [iface: %s]", iface->get_name());
       }
     }
   }

@@ -214,6 +214,7 @@
 #define MAX_FAILED_LOGIN_ATTEMPTS       5
 #define FAILED_LOGIN_ATTEMPTS_INTERVAL  300 /* seconds */
 #define CONST_STR_FAILED_LOGIN_KEY     "ntopng.cache.failed_logins.%s"
+#define CONST_STR_RELOAD_LISTS  "ntopng.cache.reload_lists_utils" /* sync with lists_utils.lua */
 #define NTOP_NOLOGIN_USER	"nologin"
 #define NTOP_DEFAULT_USER_LANG  "en"
 #define MAX_OPTIONS             24
