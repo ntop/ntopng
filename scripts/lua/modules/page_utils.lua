@@ -43,7 +43,6 @@ function page_utils.print_header(title)
     <!-- http://kamisama.github.io/cal-heatmap/v2/ -->
     <link href="]] print(http_prefix) print[[/css/cal-heatmap.css" rel="stylesheet">
     <link href="]] print(http_prefix) print[[/css/nv.d3.css" rel="stylesheet">
-    <link href="]] print(http_prefix) print[[/css/bootstrap-duallistbox.css" rel="stylesheet">
     <link href="]] print(http_prefix) print[[/css/bootstrap-slider.css" rel="stylesheet">
     <link href="]] print(http_prefix) print[[/css/bootstrap-nav-wizard.css" rel="stylesheet">
 
