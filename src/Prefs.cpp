@@ -1412,7 +1412,12 @@ int Prefs::checkOptions() {
 int Prefs::loadFromCLI(int argc, char *argv[]) {
   u_char c;
 
-  while((c = getopt_long(argc, argv,
+  while((c = getopt_long(
+#ifdef WIN32
+	  (int *(__cdecl *)(void))argc, (char *const **(__cdecl *)(void))argv,
+#else
+	  argc, argv,
+#endif
 			 "k:eg:hi:w:r:sg:m:n:p:qd:t:x:1:2:3:4:5:l:uv:A:B:CD:E:F:N:G:I:O:Q:S:TU:X:W:VZ:",
 			 long_options, NULL)) != '?') {
     if(c == 255) break;

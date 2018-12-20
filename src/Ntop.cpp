@@ -163,11 +163,12 @@ Ntop::Ntop(char *appName) {
 
 void Ntop::initTimezone() {
 #ifdef WIN32
-  time_offset = -timezone;
+  time_offset = -_timezone;
 #else
   time_t t = time(NULL);
+  struct tm *l = localtime(&t);
 
-  time_offset = localtime(&t)->tm_gmtoff;
+  time_offset = l->tm_gmtoff;
 #endif
 }
 
@@ -236,22 +237,26 @@ Ntop::~Ntop() {
 /* ******************************************* */
 
 void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
-  struct stat statbuf;
+#ifdef WIN32
+	struct _stat64 buf;
+#else
+	struct buf;
+#endif
 
   prefs = _prefs;
 
   if(!quick_registration) {
-    if(stat(prefs->get_data_dir(), &statbuf)
-       || (!(statbuf.st_mode & S_IFDIR))  /* It's not a directory */
-       || (!(statbuf.st_mode & S_IWRITE)) /* It's not writable    */) {
+    if(stat(prefs->get_data_dir(), &buf)
+       || (!(buf.st_mode & S_IFDIR))  /* It's not a directory */
+       || (!(buf.st_mode & S_IWRITE)) /* It's not writable    */) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Invalid directory %s specified",
 				   prefs->get_data_dir());
       exit(-1);
     }
 
-    if(stat(prefs->get_callbacks_dir(), &statbuf)
-       || (!(statbuf.st_mode & S_IFDIR))  /* It's not a directory */
-       || (!(statbuf.st_mode & S_IREAD)) /* It's not readable    */) {
+    if(stat(prefs->get_callbacks_dir(), &buf)
+       || (!(buf.st_mode & S_IFDIR))  /* It's not a directory */
+       || (!(buf.st_mode & S_IREAD)) /* It's not readable    */) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Invalid directory %s specified",
 				   prefs->get_callbacks_dir());
       exit(-1);
@@ -1783,7 +1788,11 @@ void Ntop::fixPath(char *str, bool replaceDots) {
 
 char* Ntop::getValidPath(char *__path) {
   char _path[MAX_PATH+8];
-  struct stat buf;
+#ifdef WIN32
+  struct _stat64 buf;
+#else
+  struct buf;
+#endif
 #ifdef WIN32
   const char *install_dir = (const char *)get_install_dir();
 #endif

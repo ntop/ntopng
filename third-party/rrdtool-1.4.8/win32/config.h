@@ -41,7 +41,7 @@
 #define isnan _isnan
 #endif
 #define finite _finite
-#define snprintf _snprintf
+//#define snprintf _snprintf
 //#define vsnprintf _vsnprintf
 //#define strftime strftime_
 

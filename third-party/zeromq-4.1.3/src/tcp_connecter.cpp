@@ -207,7 +207,7 @@ int zmq::tcp_connecter_t::get_new_reconnect_ivl ()
         options.reconnect_ivl_max > options.reconnect_ivl)
         //  Calculate the next interval
         current_reconnect_ivl =
-            std::min (current_reconnect_ivl * 2, options.reconnect_ivl_max);
+            min (current_reconnect_ivl * 2, options.reconnect_ivl_max);
     return interval;
 }
 

@@ -1508,7 +1508,11 @@ static int ntop_is_dir(lua_State* vm) {
 // ***API***
 static int ntop_is_not_empty_file(lua_State* vm) {
   char *path;
+#ifdef WIN32
+  struct _stat64 buf;
+#else
   struct stat buf;
+#endif
   int rc;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
@@ -1528,7 +1532,11 @@ static int ntop_is_not_empty_file(lua_State* vm) {
 // ***API***
 static int ntop_get_file_dir_exists(lua_State* vm) {
   char *path;
-  struct stat buf;
+#ifdef WIN32
+  struct _stat64 buf;
+#else
+  struct buf;
+#endif
   int rc;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
@@ -1548,7 +1556,11 @@ static int ntop_get_file_dir_exists(lua_State* vm) {
 // ***API***
 static int ntop_get_file_last_change(lua_State* vm) {
   char *path;
-  struct stat buf;
+#ifdef WIN32
+  struct _stat64 buf;
+#else
+  struct buf;
+#endif
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -4279,12 +4291,16 @@ static int ntop_rrd_create(lua_State* vm) {
 static int ntop_rrd_update(lua_State* vm) {
   const char *filename, *when = NULL, *v1 = NULL, *v2 = NULL, *v3 = NULL;
   int status;
-  struct stat stat_buf;
+#ifdef WIN32
+  struct _stat64 s;
+#else
+  struct s;
+#endif
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
   if((filename = (const char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
 
-  if(stat(filename, &stat_buf) != 0) {
+  if(stat(filename, &s) != 0) {
     char error_buf[256];
 
     snprintf(error_buf, sizeof(error_buf), "File %s does not exist", filename);
@@ -6172,7 +6188,11 @@ static int ntop_sqlite_exec_query(lua_State* vm) {
   sqlite3 *db;
   char *zErrMsg = 0;
   struct ntopng_sqlite_state state;
-  struct stat buf;
+#ifdef WIN32
+  struct _stat64 buf;
+#else
+  struct buf;
+#endif
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -6804,7 +6824,11 @@ static int ntop_list_reports(lua_State* vm) {
 
     while ((ent = readdir(dir)) != NULL) {
       char filepath[MAX_PATH+3];
-      struct stat buf;
+#ifdef WIN32
+	  struct _stat64 buf;
+#else
+	  struct buf;
+#endif
       
       snprintf(filepath, sizeof(filepath), "%s/%s", fullpath, ent->d_name);
       ntop->fixPath(filepath);
@@ -8548,7 +8572,7 @@ void LuaEngine::purifyHTTPParameter(char *param) {
 #endif
 /* ****************************************** */
 
-void LuaEngine::setInterface(const char * user, char * const ifname, ssize_t ifname_len, bool * const is_allowed) const {
+void LuaEngine::setInterface(const char * user, char * const ifname, u_int16_t ifname_len, bool * const is_allowed) const {
   NetworkInterface *iface = NULL;
   char key[CONST_MAX_LEN_REDIS_KEY];
   ifname[0] = '\0';

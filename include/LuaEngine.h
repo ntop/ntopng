@@ -91,7 +91,7 @@ class LuaEngine {
   static void luaRegister(lua_State *L, const ntop_class_reg *reg);
   static void luaRegisterInternalRegs(lua_State *L);
 
-  void setInterface(const char * user, char * const ifname, ssize_t ifname_len, bool * const is_allowed) const;
+  void setInterface(const char * user, char * const ifname, u_int16_t ifname_len, bool * const is_allowed) const;
 };
 
 /**

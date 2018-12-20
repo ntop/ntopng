@@ -909,7 +909,11 @@ static int handle_lua_request(struct mg_connection *conn) {
      || (strcmp(request_info->uri, "/") == 0)) {
     /* Lua Script */
     char path[255] = { 0 }, uri[2048];
-    struct stat buf;
+#ifdef WIN32
+	struct _stat64 buf;
+#else
+	struct stat buf;
+#endif
     bool found;
 
     if(strstr(request_info->uri, "/lua/pro")
@@ -1004,14 +1008,18 @@ static int handle_http_message(const struct mg_connection *conn, const char *mes
 /* ****************************************** */
 
 bool HTTPserver::check_ssl_cert(char *ssl_cert_path, size_t ssl_cert_path_len) {
-  struct stat statsBuf;
+#ifdef WIN32
+  struct _stat64 s;
+#else
+  struct stat s;
+#endif
   int stat_rc;
   ssl_cert_path[0] = '\0';
 
   snprintf(ssl_cert_path, ssl_cert_path_len, "%s/ssl/%s",
 	   docs_dir, CONST_HTTPS_CERT_NAME);
 
-  stat_rc = stat(ssl_cert_path, &statsBuf);
+  stat_rc = stat(ssl_cert_path, &s);
 
   if(stat_rc == 0) {
     ntop->getTrace()->traceEvent(TRACE_INFO, "Found SSL certificate %s", ssl_cert_path);

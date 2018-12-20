@@ -269,7 +269,12 @@ bool Utils::file_exists(const char *path) {
 /* ****************************************************** */
 
 bool Utils::dir_exists(const char * const path) {
-  struct stat buf;
+#ifdef WIN32
+	struct _stat64 buf;
+#else
+	struct buf;
+#endif
+
   return !((stat(path, &buf) != 0) || (!S_ISDIR(buf.st_mode)));
 }
 
@@ -343,7 +348,11 @@ int Utils::remove_recursively(const char * const path) {
       buf = (char *) malloc(len);
 
       if(buf) {
-        struct stat statbuf;
+#ifdef WIN32
+		  struct _stat64 statbuf;
+#else
+		  struct statbuf;
+#endif
 
         snprintf(buf, len, "%s/%s", path, p->d_name);
 
@@ -371,7 +380,11 @@ int Utils::remove_recursively(const char * const path) {
 
 bool Utils::mkdir_tree(char *path) {
   int rc;
-  struct stat s;
+#ifdef WIN32
+  struct _stat64 s;
+#else
+  struct s;
+#endif
 
   ntop->fixPath(path);
 
@@ -1347,14 +1360,18 @@ bool Utils::postHTTPTextFile(lua_State* vm, char *username, char *password, char
 			     char *path, int timeout, HTTPTranferStats *stats) {
   CURL *curl;
   bool ret = true;
-  struct stat file_info;
+#ifdef WIN32
+  struct _stat64 buf;
+#else
+  struct buf;
+#endif
   size_t file_len;
   FILE *fd = fopen(path, "r");
   
-  if((fd == NULL) || (stat(path, &file_info) != 0))
+  if((fd == NULL) || (stat(path, &buf) != 0))
     return(false);
   else
-    file_len = (size_t)file_info.st_size;
+    file_len = (size_t)buf.st_size;
   
   curl = curl_easy_init();
   if(curl) {
@@ -1809,7 +1826,11 @@ long Utils::httpGet(const char * const url,
 /* **************************************** */
 
 char* Utils::getURL(char *url, char *buf, u_int buf_len) {
-  struct stat s;
+#ifdef WIN32
+	struct _stat64 s;
+#else
+	struct s;
+#endif
 
   if(!ntop->getPrefs()->is_pro_edition())
     return(url);
@@ -1910,7 +1931,11 @@ static bool scan_dir(const char * dir_name,
   int path_length;
   char path[MAX_PATH+2];
   DIR *d;
-  struct stat file_stats;
+#ifdef WIN32
+  struct _stat64 buf;
+#else
+  struct buf;
+#endif
 
   d = opendir(dir_name);
   if(!d) return false;
@@ -1925,12 +1950,12 @@ static bool scan_dir(const char * dir_name,
 
     if(entry->d_type & DT_REG) {
       snprintf(path, sizeof(path), "%s/%s", dir_name, entry->d_name);
-      if(!stat(path, &file_stats)) {
+      if(!stat(path, &buf)) {
         struct dirent *temp = (struct dirent *)malloc(sizeof(struct dirent));
         memcpy(temp, entry, sizeof(struct dirent));
         dirlist->push_back(make_pair(temp, strndup(path, MAX_PATH)));
 	if(total)
-	  *total += file_stats.st_size;
+	  *total += buf.st_size;
       }
 
     } else if(entry->d_type & DT_DIR) {
@@ -1955,7 +1980,12 @@ static bool scan_dir(const char * dir_name,
 /* **************************************** */
 
 bool file_mtime_compare(const pair<struct dirent *, char * > &d1, const pair<struct dirent *, char * > &d2) {
-  struct stat sa, sb;
+#ifdef WIN32
+  struct _stat64 sa, sb;
+#else
+  struct sa, sb;
+#endif
+
   if(!d1.second || !d2.second)
     return false;
 
@@ -1971,7 +2001,11 @@ bool Utils::discardOldFilesExceeding(const char *path, const unsigned long max_s
   unsigned long total = 0;
   list<pair<struct dirent *, char * > > fileslist;
   list<pair<struct dirent *, char * > >::iterator it;
-  struct stat st;
+#ifdef WIN32
+  struct _stat64 st;
+#else
+  struct st;
+#endif
 
   if(path == NULL || !strncmp(path, "", MAX_PATH))
     return false;

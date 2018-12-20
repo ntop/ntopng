@@ -31,7 +31,11 @@
 
 PcapInterface::PcapInterface(const char *name) : NetworkInterface(name) {
   char pcap_error_buffer[PCAP_ERRBUF_SIZE];
-  struct stat buf;
+#ifdef WIN32
+  struct _stat64 buf;
+#else
+  struct buf;
+#endif
 
   pcap_handle = NULL, pcap_list = NULL;
   memset(&last_pcap_stat, 0, sizeof(last_pcap_stat));
@@ -280,11 +284,14 @@ void PcapInterface::shutdown() {
 /* **************************************************** */
 
 u_int32_t PcapInterface::getNumDroppedPackets() {
+#ifndef WIN32
+	/* For some reson it crashes under Windows: maybe a lock is needed ?*/
   struct pcap_stat pcapStat;
 
   if(pcap_handle && (pcap_stats(pcap_handle, &pcapStat) >= 0)) {
     return(pcapStat.ps_drop);
   } else
+#endif
     return 0;
 }
 

@@ -136,13 +136,17 @@ void ThreadedActivity::run() {
 
 /* Run a one-shot script / accurate (e.g. second) periodic script */
 void ThreadedActivity::runScript() {
-  struct stat statbuf;
+#ifdef WIN32
+	struct _stat64 buf;
+#else
+	struct buf;
+#endif
   char script_path[MAX_PATH];
   
   snprintf(script_path, sizeof(script_path), "%s/system/%s",
 	   ntop->get_callbacks_dir(), path);
 
-  if(stat(script_path, &statbuf) == 0) {
+  if(stat(script_path, &buf) == 0) {
     runScript(script_path, NULL);
   } else
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to find script %s", path);
@@ -256,14 +260,18 @@ void ThreadedActivity::periodicActivityBody() {
 void ThreadedActivity::schedulePeriodicActivity(ThreadPool *pool) {
   /* Schedule per system / interface */
   char script_path[MAX_PATH];
-  struct stat statbuf;
+#ifdef WIN32
+  struct _stat64 buf;
+#else
+  struct buf;
+#endif
 
   if(!systemTaskRunning) {
     /* Schedule system script */
     snprintf(script_path, sizeof(script_path), "%s/system/%s",
 	     ntop->get_callbacks_dir(), path);
     
-    if(stat(script_path, &statbuf) == 0) {
+    if(stat(script_path, &buf) == 0) {
       pool->queueJob(this, script_path, NULL);
 #ifdef THREAD_DEBUG
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Queued system job %s", script_path);
@@ -275,7 +283,7 @@ void ThreadedActivity::schedulePeriodicActivity(ThreadPool *pool) {
   snprintf(script_path, sizeof(script_path), "%s/interface/%s",
 	   ntop->get_callbacks_dir(), path);
 
-  if(stat(script_path, &statbuf) == 0) {
+  if(stat(script_path, &buf) == 0) {
     for(int i = 0; i < ntop->get_num_interfaces(); i++) {
       NetworkInterface *iface = ntop->getInterface(i);
 
