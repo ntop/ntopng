@@ -12,6 +12,7 @@ local page_utils = require("page_utils")
 active_page = "admin"
 
 local page        = _GET["page"] or _POST["page"]
+local info = ntop.getInfo()
 
 local delete_data_utils = require "delete_data_utils"
 
@@ -144,7 +145,8 @@ else
    print[[<li><a data-toggle="tab" href="#export">]] print(i18n("manage_data.export_tab")) print[[</a></li>]]
 end
 
-if isAdministrator() then
+-- TODO show delete tab also in oem after https://github.com/ntop/ntopng/issues/2258 is fixed
+if isAdministrator() and (not info.oem) then
    if((page == "delete")) then
       tab_delete_active = " in active"
       print[[<li class="active"><a data-toggle="tab" href="#delete">]] print(i18n("manage_data.delete_tab")) print[[</a></li>]]
