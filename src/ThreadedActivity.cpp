@@ -137,9 +137,9 @@ void ThreadedActivity::run() {
 /* Run a one-shot script / accurate (e.g. second) periodic script */
 void ThreadedActivity::runScript() {
 #ifdef WIN32
-	struct _stat64 buf;
+  struct _stat64 buf;
 #else
-	struct buf;
+  struct stat buf;
 #endif
   char script_path[MAX_PATH];
   
@@ -263,7 +263,7 @@ void ThreadedActivity::schedulePeriodicActivity(ThreadPool *pool) {
 #ifdef WIN32
   struct _stat64 buf;
 #else
-  struct buf;
+  struct stat buf;
 #endif
 
   if(!systemTaskRunning) {

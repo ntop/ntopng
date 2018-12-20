@@ -58,9 +58,9 @@ typedef struct {
 #include <sys/prctl.h>
 
 static cap_value_t cap_values[] = { 
-  CAP_DAC_OVERRIDE, /* Bypass file read, write, and execute permission checks  */
-  CAP_NET_RAW,      /* Use RAW and PACKET sockets */
-  CAP_NET_ADMIN     /* Perform various network-related operations */
+				   CAP_DAC_OVERRIDE, /* Bypass file read, write, and execute permission checks  */
+				   CAP_NET_RAW,      /* Use RAW and PACKET sockets */
+				   CAP_NET_ADMIN     /* Perform various network-related operations */
 };
 
 int num_cap = sizeof(cap_values)/sizeof(cap_value_t);
@@ -223,7 +223,7 @@ char *Utils::trim(char *s) {
 /* ****************************************************** */
 
 u_int32_t Utils::hashString(char *key) {
-	u_int32_t hash = 0, len = (u_int32_t)strlen(key);
+  u_int32_t hash = 0, len = (u_int32_t)strlen(key);
 
   for(u_int32_t i=0; i<len; i++)
     hash += ((u_int32_t)key[i])*i;
@@ -260,7 +260,7 @@ float Utils::msTimevalDiff(const struct timeval *end, const struct timeval *begi
 bool Utils::file_exists(const char *path) {
   std::ifstream infile(path);
 
- /*  ntop->getTrace()->traceEvent(TRACE_WARNING, "%s(): %s", __FUNCTION__, path); */
+  /*  ntop->getTrace()->traceEvent(TRACE_WARNING, "%s(): %s", __FUNCTION__, path); */
   bool ret = infile.good();
   infile.close();
   return ret;
@@ -270,9 +270,9 @@ bool Utils::file_exists(const char *path) {
 
 bool Utils::dir_exists(const char * const path) {
 #ifdef WIN32
-	struct _stat64 buf;
+  struct _stat64 buf;
 #else
-	struct buf;
+  struct stat buf;
 #endif
 
   return !((stat(path, &buf) != 0) || (!S_ISDIR(buf.st_mode)));
@@ -349,9 +349,9 @@ int Utils::remove_recursively(const char * const path) {
 
       if(buf) {
 #ifdef WIN32
-		  struct _stat64 statbuf;
+	struct _stat64 statbuf;
 #else
-		  struct statbuf;
+	struct stat statbuf;
 #endif
 
         snprintf(buf, len, "%s/%s", path, p->d_name);
@@ -383,7 +383,7 @@ bool Utils::mkdir_tree(char *path) {
 #ifdef WIN32
   struct _stat64 s;
 #else
-  struct s;
+  struct stat s;
 #endif
 
   ntop->fixPath(path);
@@ -730,9 +730,9 @@ void Utils::sha1_hash(const uint8_t message[], size_t len, uint32_t hash[STATE_L
   block[rem] = 0x80;
   rem++;
   if (BLOCK_LEN - rem < LENGTH_SIZE) {
-  sha1_compress(hash, block);
-  memset(block, 0, sizeof(block));
-}
+    sha1_compress(hash, block);
+    memset(block, 0, sizeof(block));
+  }
     
   block[BLOCK_LEN - 1] = (uint8_t)((len & 0x1FU) << 3);
   len >>= 5;
@@ -807,31 +807,31 @@ double Utils::JaccardSimilarity(activity_bitmap *x, activity_bitmap *y) {
 
 #ifdef WIN32
 extern "C" {
-	const char *strcasestr(const char *haystack, const char *needle) {
-		int i = -1;
+  const char *strcasestr(const char *haystack, const char *needle) {
+    int i = -1;
 
-		while (haystack[++i] != '\0') {
-			if(tolower(haystack[i]) == tolower(needle[0])) {
-				int j = i, k = 0, match = 0;
-				while (tolower(haystack[++j]) == tolower(needle[++k])) {
-					match = 1;
-					// Catch case when they match at the end
-					//printf("j:%d, k:%d\n",j,k);
-					if(haystack[j] == '\0' && needle[k] == '\0') {
-						//printf("Mj:%d, k:%d\n",j,k);
-						return &haystack[i];
-					}
-				}
-				// Catch normal case
-				if(match && needle[k] == '\0'){
-					// printf("Norm j:%d, k:%d\n",j,k);
-					return &haystack[i];
-				}
-			}
-		}
-
-		return NULL;
+    while (haystack[++i] != '\0') {
+      if(tolower(haystack[i]) == tolower(needle[0])) {
+	int j = i, k = 0, match = 0;
+	while (tolower(haystack[++j]) == tolower(needle[++k])) {
+	  match = 1;
+	  // Catch case when they match at the end
+	  //printf("j:%d, k:%d\n",j,k);
+	  if(haystack[j] == '\0' && needle[k] == '\0') {
+	    //printf("Mj:%d, k:%d\n",j,k);
+	    return &haystack[i];
+	  }
 	}
+	// Catch normal case
+	if(match && needle[k] == '\0'){
+	  // printf("Norm j:%d, k:%d\n",j,k);
+	  return &haystack[i];
+	}
+      }
+    }
+
+    return NULL;
+  }
 };
 #endif
 
@@ -893,33 +893,33 @@ char* Utils::sanitizeHostName(char *str) {
 /* **************************************************** */
 
 char* Utils::stripHTML(const char * const str) {
-    if(!str) return NULL;
-    int len = strlen(str), j = 0;
-    char *stripped_str = NULL;
-    try {
-        stripped_str = new char[len + 1];
-    } catch(std::bad_alloc& ba) {
-      static bool oom_warning_sent = false;
-      if(!oom_warning_sent) {
-	ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
-	oom_warning_sent = true;
-      }
-      return NULL;
+  if(!str) return NULL;
+  int len = strlen(str), j = 0;
+  char *stripped_str = NULL;
+  try {
+    stripped_str = new char[len + 1];
+  } catch(std::bad_alloc& ba) {
+    static bool oom_warning_sent = false;
+    if(!oom_warning_sent) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
+      oom_warning_sent = true;
     }
+    return NULL;
+  }
 
-    // scan string
-    for (int i = 0; i < len; i++) {
-        // found an open '<', scan for its close
-        if(str[i] == '<') {
-            // charge ahead in the string until it runs out or we find what we're looking for
-            for (; i < len && str[i] != '>'; i++);
-        } else {
-            stripped_str[j] = str[i];
-            j++;
-        }
+  // scan string
+  for (int i = 0; i < len; i++) {
+    // found an open '<', scan for its close
+    if(str[i] == '<') {
+      // charge ahead in the string until it runs out or we find what we're looking for
+      for (; i < len && str[i] != '>'; i++);
+    } else {
+      stripped_str[j] = str[i];
+      j++;
     }
-    stripped_str[j] = 0;
-    return stripped_str;
+  }
+  stripped_str[j] = 0;
+  return stripped_str;
 }
 
 /* **************************************************** */
@@ -941,7 +941,7 @@ char* Utils::urlDecode(const char *src, char *dst, u_int dst_len) {
       char hexval = (char)strtol(h, (char **)NULL, 16);
 
       //      if(iswprint(hexval))
-	*dst++ = hexval;
+      *dst++ = hexval;
 
       src += 3;
     } else if(*src == '+') {
@@ -965,32 +965,32 @@ char* Utils::urlDecode(const char *src, char *dst, u_int dst_len) {
  */
 
 static const char* xssAttempts[] = {
-  "<?import",
-  "<applet",
-  "<base",
-  "<embed",
-  "<frame",
-  "<iframe",
-  "<implementation",
-  "<import",
-  "<link",
-  "<meta",
-  "<object",
-  "<script",
-  "<style",
-  "charset",
-  "classid",
-  "code",
-  "codetype",
-  /* "data", */
-  "href",
-  "http-equiv",
-  "javascript:",
-  "vbscript:",
-  "vmlframe",
-  "xlink:href",
-  "=",
-  NULL
+				    "<?import",
+				    "<applet",
+				    "<base",
+				    "<embed",
+				    "<frame",
+				    "<iframe",
+				    "<implementation",
+				    "<import",
+				    "<link",
+				    "<meta",
+				    "<object",
+				    "<script",
+				    "<style",
+				    "charset",
+				    "classid",
+				    "code",
+				    "codetype",
+				    /* "data", */
+				    "href",
+				    "http-equiv",
+				    "javascript:",
+				    "vbscript:",
+				    "vmlframe",
+				    "xlink:href",
+				    "=",
+				    NULL
 };
 
 /* ************************************************************ */
@@ -1133,20 +1133,20 @@ struct snmp_upload_status {
 };
 
 static int curl_debugfunc(CURL *handle, curl_infotype type, char *data,
-          size_t size, void *userptr) {
+			  size_t size, void *userptr) {
   char dir = '\0';
 
   switch(type) {
-    case CURLINFO_HEADER_IN:
-    case CURLINFO_DATA_IN:
-      dir = '<';
-      break;
-    case CURLINFO_DATA_OUT:
-    case CURLINFO_HEADER_OUT:
-      dir = '>';
-      break;
-    default:
-      break;
+  case CURLINFO_HEADER_IN:
+  case CURLINFO_DATA_IN:
+    dir = '<';
+    break;
+  case CURLINFO_DATA_OUT:
+  case CURLINFO_HEADER_OUT:
+    dir = '>';
+    break;
+  default:
+    break;
   }
 
   if(dir) {
@@ -1296,9 +1296,9 @@ bool Utils::postHTTPJsonData(char *username, char *password, char *url,
     CURLcode res;
     struct curl_slist* headers = NULL;
     curl_fetcher_t fetcher = {
-      /* .payload =  */ return_data,
-      /* .cur_size = */ 0,
-      /* .max_size = */ (size_t)return_data_size};
+			      /* .payload =  */ return_data,
+			      /* .cur_size = */ 0,
+			      /* .max_size = */ (size_t)return_data_size};
 
     memset(stats, 0, sizeof(HTTPTranferStats));
     curl_easy_setopt(curl, CURLOPT_URL, url);
@@ -1363,7 +1363,7 @@ bool Utils::postHTTPTextFile(lua_State* vm, char *username, char *password, char
 #ifdef WIN32
   struct _stat64 buf;
 #else
-  struct buf;
+  struct stat buf;
 #endif
   size_t file_len;
   FILE *fd = fopen(path, "r");
@@ -1610,8 +1610,8 @@ static int progress_callback(void *clientp, double dltotal, double dlnow, double
   time_t now = time(0);
 
   if(progressState->vm &&
-		    ((now - progressState->last_conn_check) >= 1) &&
-		    (conn = getLuaVMUserdata(progressState->vm, conn))) {
+     ((now - progressState->last_conn_check) >= 1) &&
+     (conn = getLuaVMUserdata(progressState->vm, conn))) {
     progressState->last_conn_check = now;
 
     if(!mg_is_client_connected(conn)) {
@@ -1628,10 +1628,10 @@ static int progress_callback(void *clientp, double dltotal, double dlnow, double
 
 /* form_data is in format param=value&param1=&value1... */
 bool Utils::httpGetPost(lua_State* vm, char *url, char *username,
-		    char *password, int timeout,
-		    bool return_content,
-		    bool use_cookie_authentication,
-		    HTTPTranferStats *stats, const char *form_data) {
+			char *password, int timeout,
+			bool return_content,
+			bool use_cookie_authentication,
+			HTTPTranferStats *stats, const char *form_data) {
   CURL *curl;
   bool ret = true;
 
@@ -1770,9 +1770,9 @@ long Utils::httpGet(const char * const url,
     char *content_type;
     char ua[64];
     curl_fetcher_t fetcher = {
-      /* .payload =  */ resp,
-      /* .cur_size = */ 0,
-      /* .max_size = */ resp_len};
+			      /* .payload =  */ resp,
+			      /* .cur_size = */ 0,
+			      /* .max_size = */ resp_len};
 
     curl_easy_setopt(curl, CURLOPT_URL, url);
 
@@ -1827,9 +1827,9 @@ long Utils::httpGet(const char * const url,
 
 char* Utils::getURL(char *url, char *buf, u_int buf_len) {
 #ifdef WIN32
-	struct _stat64 s;
+  struct _stat64 s;
 #else
-	struct s;
+  struct stat s;
 #endif
 
   if(!ntop->getPrefs()->is_pro_edition())
@@ -1934,7 +1934,7 @@ static bool scan_dir(const char * dir_name,
 #ifdef WIN32
   struct _stat64 buf;
 #else
-  struct buf;
+  struct stat buf;
 #endif
 
   d = opendir(dir_name);
@@ -1960,7 +1960,7 @@ static bool scan_dir(const char * dir_name,
 
     } else if(entry->d_type & DT_DIR) {
       if(strncmp (d_name, "..", 2) != 0 &&
-          strncmp (d_name, ".", 1) != 0) {
+	 strncmp (d_name, ".", 1) != 0) {
         path_length = snprintf (path, MAX_PATH,
                                 "%s/%s", dir_name, d_name);
 
@@ -1983,7 +1983,7 @@ bool file_mtime_compare(const pair<struct dirent *, char * > &d1, const pair<str
 #ifdef WIN32
   struct _stat64 sa, sb;
 #else
-  struct sa, sb;
+  struct stat sa, sb;
 #endif
 
   if(!d1.second || !d2.second)
@@ -2004,7 +2004,7 @@ bool Utils::discardOldFilesExceeding(const char *path, const unsigned long max_s
 #ifdef WIN32
   struct _stat64 st;
 #else
-  struct st;
+  struct stat st;
 #endif
 
   if(path == NULL || !strncmp(path, "", MAX_PATH))
@@ -2050,9 +2050,9 @@ char* Utils::formatMac(u_int8_t *mac, char *buf, u_int buf_len) {
     snprintf(buf, buf_len, "00:00:00:00:00:00");
   else
     snprintf(buf, buf_len, "%02X:%02X:%02X:%02X:%02X:%02X",
-	   mac[0] & 0xFF, mac[1] & 0xFF,
-	   mac[2] & 0xFF, mac[3] & 0xFF,
-	   mac[4] & 0xFF, mac[5] & 0xFF);
+	     mac[0] & 0xFF, mac[1] & 0xFF,
+	     mac[2] & 0xFF, mac[3] & 0xFF,
+	     mac[4] & 0xFF, mac[5] & 0xFF);
   return(buf);
 }
 
@@ -2142,7 +2142,7 @@ void Utils::readMac(char *ifname, dump_mac_t mac_addr) {
 /* **************************************** */
 
 u_int32_t Utils::readIPv4(char *ifname) {
- u_int32_t ret_ip = 0;
+  u_int32_t ret_ip = 0;
 
 #ifndef WIN32
   struct ifreq ifr;
@@ -2785,8 +2785,8 @@ void Utils::initRedis(Redis **r, const char *redis_host, const char *redis_passw
 /* ******************************************* */
 
 /*
-   IMPORTANT: line buffer is large enough to contain the replaced string
- */
+  IMPORTANT: line buffer is large enough to contain the replaced string
+*/
 void Utils::replacestr(char *line, const char *search, const char *replace) {
   char *sp;
   int search_len, replace_len, tail_len;
@@ -2851,7 +2851,7 @@ u_int32_t Utils::getHostManagementIPv4Address() {
 
 bool Utils::isInterfaceUp(char *ifname) {
 #ifdef WIN32
-	return(true);
+  return(true);
 #else
   struct ifreq ifr;
   char *colon;
@@ -2992,7 +2992,7 @@ char* Utils::getInterfaceDescription(char *ifname, char *buf, int buf_len) {
 
 int Utils::bindSockToDevice(int sock, int family, const char* devicename) {
 #ifdef WIN32
-	return(-1);
+  return(-1);
 #else
   struct ifaddrs* pList = NULL;
   struct ifaddrs* pAdapter = NULL;
@@ -3057,7 +3057,7 @@ int Utils::retainWriteCapabilities() {
 #endif
 #endif
 
-return(rc);
+  return(rc);
 }
 
 /* ****************************************************** */
@@ -3095,10 +3095,10 @@ static int _setWriteCapabilities(int enable) {
 
   file = io.open(path, "w")
   if(file ~= nil) then
-    file:write("-- End of the test.lua file")
-    file:close()
+  file:write("-- End of the test.lua file")
+  file:close()
   else
-    print("Unable to create file "..path.."<p>")
+  print("Unable to create file "..path.."<p>")
   end
 
   ntop.dropWriteCapabilities()
@@ -3159,8 +3159,8 @@ void Utils::maximizeSocketBuffer(int sock_fd, bool rx_buffer, u_int max_buf_mb) 
     return;
   } else {
     if(debug) ntop->getTrace()->traceEvent(TRACE_INFO, "Default socket %s buffer size is %d",
-				buf_type == SO_RCVBUF ? "receive" : "send",
-				rcv_buffsize_base);
+					   buf_type == SO_RCVBUF ? "receive" : "send",
+					   rcv_buffsize_base);
   }
 
   for(i=2;; i++) {
@@ -3279,7 +3279,7 @@ u_int32_t Utils::roundTime(u_int32_t now, u_int32_t rounder, int32_t offset_from
   now+1m   (month)
   now+1min (minute)
   now+1y   (year)
- */
+*/
 u_int32_t Utils::parsetime(char *str) {
   if(!strncmp(str, "now", 3)) {
     char op = str[3];
@@ -3446,18 +3446,18 @@ bool Utils::validInterface(char *name) {
 
 const char* Utils::policySource2Str(L7PolicySource_t policy_source) {
   switch(policy_source) {
-    case policy_source_pool:
-      return "policy_source_pool";
-    case policy_source_protocol:
-      return "policy_source_protocol";
-    case policy_source_category:
-      return "policy_source_category";
-    case policy_source_device_protocol:
-      return "policy_source_device_protocol";
-    case policy_source_schedule:
-      return "policy_source_schedule";
-    default:
-      return "policy_source_default";
+  case policy_source_pool:
+    return "policy_source_pool";
+  case policy_source_protocol:
+    return "policy_source_protocol";
+  case policy_source_category:
+    return "policy_source_category";
+  case policy_source_device_protocol:
+    return "policy_source_device_protocol";
+  case policy_source_schedule:
+    return "policy_source_schedule";
+  default:
+    return "policy_source_default";
   }
 }
 
@@ -3465,13 +3465,13 @@ const char* Utils::policySource2Str(L7PolicySource_t policy_source) {
 
 const char* Utils::captureDirection2Str(pcap_direction_t dir) {
   switch(dir) {
-    case PCAP_D_IN:
-      return "in";
-    case PCAP_D_OUT:
-      return "out";
-    case PCAP_D_INOUT:
-    default:
-      return "inout";
+  case PCAP_D_IN:
+    return "in";
+  case PCAP_D_OUT:
+    return "out";
+  case PCAP_D_INOUT:
+  default:
+    return "inout";
   }
 }
 

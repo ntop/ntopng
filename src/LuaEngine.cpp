@@ -43,16 +43,16 @@ static std::list<char*> new_custom_categories, custom_categories_to_purge;
 /* ******************************* */
 
 struct ntopngLuaContext* getUserdata(struct lua_State *vm) {
-	if(vm) {
-		struct ntopngLuaContext *userdata;
+  if(vm) {
+    struct ntopngLuaContext *userdata;
 
-		lua_getglobal(vm, "userdata");
-		userdata = (struct ntopngLuaContext*) lua_touserdata(vm, lua_gettop(vm));
-		lua_pop(vm, 1); // undo the push done by lua_getglobal
+    lua_getglobal(vm, "userdata");
+    userdata = (struct ntopngLuaContext*) lua_touserdata(vm, lua_gettop(vm));
+    lua_pop(vm, 1); // undo the push done by lua_getglobal
 
-		return(userdata);
-	} else
-		return(NULL);
+    return(userdata);
+  } else
+    return(NULL);
 }
 
 /* ******************************* */
@@ -304,7 +304,7 @@ static int ntop_set_active_interface_id(lua_State* vm) {
 
 static inline bool matches_allowed_ifname(char *allowed_ifname, char *iface) {
   return (((allowed_ifname == NULL) || (allowed_ifname[0] == '\0')) /* Periodic script / unrestricted user */
-    || (!strncmp(allowed_ifname, iface, strlen(allowed_ifname))));
+	  || (!strncmp(allowed_ifname, iface, strlen(allowed_ifname))));
 }
 
 /* ****************************************** */
@@ -320,9 +320,9 @@ static int ntop_get_interface_names(lua_State* vm) {
   for(int i=0; i<ntop->get_num_interfaces(); i++) {
     NetworkInterface *iface;
     /*
-       We should not call ntop->getInterfaceAtId() as it
-       manipulates the vm that has been already modified with
-       lua_newtable(vm) a few lines above.
+      We should not call ntop->getInterfaceAtId() as it
+      manipulates the vm that has been already modified with
+      lua_newtable(vm) a few lines above.
     */
 
     if((iface = ntop->getInterface(i)) != NULL) {
@@ -808,7 +808,7 @@ static int ntop_get_batched_interface_hosts(lua_State* vm, LocationPolicy locati
 					   network_filter, pool_filter, filtered_hosts, blacklisted_hosts, hide_top_hidden,
 					   ipver_filter, proto_filter,
 					   traffic_type_filter, tsLua /* host->tsLua | host->lua */,
-             anomalousOnly, sortColumn, maxHits,
+					   anomalousOnly, sortColumn, maxHits,
 					   toSkip, a2zSortOrder) < 0)
     return(CONST_LUA_ERROR);
 
@@ -1535,7 +1535,7 @@ static int ntop_get_file_dir_exists(lua_State* vm) {
 #ifdef WIN32
   struct _stat64 buf;
 #else
-  struct buf;
+  struct stat buf;
 #endif
   int rc;
 
@@ -1559,7 +1559,7 @@ static int ntop_get_file_last_change(lua_State* vm) {
 #ifdef WIN32
   struct _stat64 buf;
 #else
-  struct buf;
+  struct stat buf;
 #endif
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
@@ -1629,7 +1629,7 @@ static int ntop_is_windows(lua_State* vm) {
 #else
 		  0
 #endif
-    );
+		  );
 
   return(CONST_LUA_OK);
 }
@@ -1880,7 +1880,7 @@ static int non_blocking_connect(int sock, struct sockaddr_in *sa, int timeout) {
     return -1;
   }
 
-done:
+ done:
 #ifdef WIN32
   f = 0;
 
@@ -2405,7 +2405,7 @@ static inline int concat_table_fields(lua_State *L, int index, char *buf, int si
 
   while(lua_next(L, index) != 0) {
     int l = snprintf(buf, size, "%s%s=%s", first ? "" : ",",
-         lua_tostring(L, -2), lua_tostring(L, -1));
+		     lua_tostring(L, -2), lua_tostring(L, -1));
     buf += l;
     size -= l;
     first = false;
@@ -3125,7 +3125,7 @@ static int ntop_get_interface_flow_key(lua_State* vm) {
      || (ntop_lua_check(vm, __FUNCTION__, 3, LUA_TSTRING) != CONST_LUA_OK) /* srv_host@srv_vlan */
      || (ntop_lua_check(vm, __FUNCTION__, 4, LUA_TNUMBER) != CONST_LUA_OK) /* srv port          */
      || (ntop_lua_check(vm, __FUNCTION__, 5, LUA_TNUMBER) != CONST_LUA_OK) /* protocol          */
-    ) return(CONST_LUA_ERROR);
+     ) return(CONST_LUA_ERROR);
 
   get_host_vlan_info((char*)lua_tostring(vm, 1), &cli_name, &cli_vlan, cli_buf, sizeof(cli_buf));
   cli_port = htons((u_int16_t)lua_tonumber(vm, 2));
@@ -4294,7 +4294,7 @@ static int ntop_rrd_update(lua_State* vm) {
 #ifdef WIN32
   struct _stat64 s;
 #else
-  struct s;
+  struct stat s;
 #endif
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
@@ -6191,7 +6191,7 @@ static int ntop_sqlite_exec_query(lua_State* vm) {
 #ifdef WIN32
   struct _stat64 buf;
 #else
-  struct buf;
+  struct stat buf;
 #endif
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
@@ -6827,7 +6827,7 @@ static int ntop_list_reports(lua_State* vm) {
 #ifdef WIN32
 	  struct _stat64 buf;
 #else
-	  struct buf;
+	  struct stat buf;
 #endif
       
       snprintf(filepath, sizeof(filepath), "%s/%s", fullpath, ent->d_name);

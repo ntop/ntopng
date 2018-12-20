@@ -34,7 +34,7 @@ PcapInterface::PcapInterface(const char *name) : NetworkInterface(name) {
 #ifdef WIN32
   struct _stat64 buf;
 #else
-  struct buf;
+  struct stat buf;
 #endif
 
   pcap_handle = NULL, pcap_list = NULL;

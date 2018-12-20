@@ -62,9 +62,9 @@ void PeriodicActivities::sendShutdownSignal() {
 
 void PeriodicActivities::startPeriodicActivitiesLoop() {
 #ifdef WIN32
-	struct _stat64 buf;
+  struct _stat64 buf;
 #else
-	struct buf;
+  struct stat buf;
 #endif
   ThreadedActivity *startup_activity;
   static u_int8_t num_threads = DEFAULT_THREAD_POOL_SIZE;
