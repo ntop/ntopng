@@ -2156,7 +2156,10 @@ decode_packet_eth:
 	if(gre.flags_and_version & GRE_HEADER_SEQ_NUM)  offset += 4;
 
 	if(h->caplen >= offset) {
-	  if(gre.proto == ETHERTYPE_IP) {
+	  if(gre.proto == 0x6558 /* Transparent Ethernet Bridging */) {
+	    eth_offset = offset;
+	    goto datalink_check;
+	  } else if(gre.proto == ETHERTYPE_IP) {
 	    ip_offset = offset;
 	    goto decode_packet_eth;
 	  } else if(gre.proto == ETHERTYPE_IPV6) {
