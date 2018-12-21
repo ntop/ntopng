@@ -5341,7 +5341,9 @@ void NetworkInterface::runShutdownTasks() {
   if (ntop->getPrefs()->flushFlowsOnShutdown()) {
     /* Setting all flows as "ready to purge" (see isReadyToPurge) and dump them to the DB */
     periodicStatsUpdate();
+#ifdef NTOPNG_PRO
     flushFlowDump();
+#endif
   }
 }
 
