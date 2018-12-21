@@ -298,7 +298,7 @@ bool LocalHost::deserialize(char *json_str, char *key) {
   if(json_object_object_get_ex(o, "seen.last", &obj))  last_seen  = json_object_get_int64(obj);
 
   if(json_object_object_get_ex(o, "symbolic_name", &obj))  { if(symbolic_name) free(symbolic_name); symbolic_name = strdup(json_object_get_string(obj)); }
-  if(json_object_object_get_ex(o, "os", &obj))             { snprintf(os, sizeof(os), "%s", json_object_get_string(obj)); }
+  if(json_object_object_get_ex(o, "os", &obj))             { if(os) free(os); os = strdup(json_object_get_string(obj)); }
   if(json_object_object_get_ex(o, "tcp_sent", &obj))  tcp_sent.deserialize(obj);
   if(json_object_object_get_ex(o, "tcp_rcvd", &obj))  tcp_rcvd.deserialize(obj);
   if(json_object_object_get_ex(o, "udp_sent", &obj))  udp_sent.deserialize(obj);
