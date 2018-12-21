@@ -1980,7 +1980,7 @@ int Ntop::getInterfaceIdByName(lua_State *vm, const char * const name) {
 /* ****************************************** */
 
 void Ntop::registerInterface(NetworkInterface *_if) {
-  _if->finishInitialization();
+  _if->finishInitialization(num_defined_interfaces);
   _if->checkAggregationMode();
 
   for(int i = 0; i < num_defined_interfaces; i++) {

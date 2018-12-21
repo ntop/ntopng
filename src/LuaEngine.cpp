@@ -4094,6 +4094,14 @@ static int ntop_nindex_topk(lua_State* vm) {
 		      max_num_hits, topToBottomSort));
 }
 
+static int ntop_nindex_enabed(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  lua_pushboolean(vm, ntop_interface && ntop_interface->getNindex());
+
+  return(CONST_LUA_OK);
+}
+
 #endif
 
 /* ****************************************** */
@@ -8074,6 +8082,7 @@ static const luaL_Reg ntop_interface_reg[] = {
 
 #if defined(HAVE_NINDEX) && defined(NTOPNG_PRO)
   /* nIndex */
+  { "nIndexEnabled",                   ntop_nindex_enabed              },
   { "nIndexSelect",                    ntop_nindex_select              },
   { "nIndexTopK",                      ntop_nindex_topk                },
 #endif

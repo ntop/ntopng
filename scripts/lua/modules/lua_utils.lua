@@ -745,10 +745,12 @@ function hasNindexSupport()
    if prefs == nil then
     prefs = ntop.getPrefs()
    end
-   local rc = prefs.is_nindex_enabled
 
-   if(rc == nil) then rc = false end
-   return rc
+   if prefs.is_nindex_enabled and interface.nIndexEnabled() then
+      return true
+   end
+
+   return false
 end
 
 --for _key, _value in pairsByKeys(vals, rev) do

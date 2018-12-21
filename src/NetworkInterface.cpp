@@ -6661,12 +6661,22 @@ void NetworkInterface::checkMacIPAssociation(bool triggerEvent, u_char *_mac, u_
   Put here all the code that is executed when the NIC initialization
   is succesful
  */
-void NetworkInterface::finishInitialization() {
+void NetworkInterface::finishInitialization(u_int8_t num_defined_interfaces) {
   if(!isView()) {
 #if defined(NTOPNG_PRO) && defined(HAVE_NINDEX)
     if(ntop->getPrefs()->is_enterprise_edition() && ntop->getPrefs()->do_dump_flows_on_nindex()) {
-      db = new NIndexFlowDB(this);
-      goto enable_aggregation;
+      if(num_defined_interfaces + 1 >= NINDEX_MAX_NUM_INTERFACES) {
+	ntop->getTrace()->traceEvent(TRACE_ERROR,
+				     "nIndex cannot be enabled for %s.", get_name());
+	ntop->getTrace()->traceEvent(TRACE_ERROR,
+				     "The maximum number of interfaces that can be used with nIndex is %d.",
+				     NINDEX_MAX_NUM_INTERFACES);
+	ntop->getTrace()->traceEvent(TRACE_ERROR,
+				     "Interface will continue to work without nIndex support.");
+      } else {
+	db = new NIndexFlowDB(this);
+	goto enable_aggregation;
+      }
     }
 #endif
 

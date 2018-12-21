@@ -1570,7 +1570,7 @@ void Prefs::lua(lua_State* vm) {
     lua_push_uint64_table_entry(vm, "flow_aggregation_frequency", flow_aggregation_frequency());
 
 #if defined(HAVE_NINDEX) && defined(NTOPNG_PRO)
-  lua_push_bool_table_entry(vm, "is_nindex_enabled", dump_flows_on_nindex);
+  lua_push_bool_table_entry(vm, "is_nindex_enabled", do_dump_flows_on_nindex());
 #endif
     
   if(mysql_dbname) lua_push_str_table_entry(vm, "mysql_dbname", mysql_dbname);
