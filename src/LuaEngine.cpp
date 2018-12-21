@@ -1709,8 +1709,8 @@ static int ntop_reloadCustomCategories(lua_State* vm) {
 	_usleep(5e5);
       }
 
-      if(j == max_wait) {
-	ntop->getTrace()->traceEvent(TRACE_ERROR, "Interface didn't reload configugration on time [iface: %s]", iface->get_name());
+      if((j == max_wait) && (!iface->read_from_pcap_dump() /* reload with small PCAP files may not occur */)) {
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "Interface didn't reload custom categories on time [iface: %s]", iface->get_name());
       }
     }
   }
