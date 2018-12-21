@@ -180,7 +180,7 @@ NetworkInterface::NetworkInterface(const char *name,
 
     memset(d_port, 0, sizeof(d_port));
     ndpi_set_proto_defaults(ndpi_struct, NDPI_PROTOCOL_UNRATED, NTOPNG_NDPI_OS_PROTO_ID,
-			    no_master, no_master, (char*)"Operating System",
+			    0, no_master, no_master, (char*)"Operating System",
 			    NDPI_PROTOCOL_CATEGORY_SYSTEM_OS, d_port, d_port);
 
     // enable all protocols
@@ -1682,7 +1682,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	    flow->flushBufferedPackets();
 	  }
 
-	  flow->setDetectedProtocol(ndpi_detection_giveup(ndpi_struct, ndpi_flow), false);
+	  flow->setDetectedProtocol(ndpi_detection_giveup(ndpi_struct, ndpi_flow, 1), false);
 	} else
 	  flow->setDetectedProtocol(ndpi_detection_process_packet(ndpi_struct, ndpi_flow,
 								  ip, ipsize, (u_int32_t)packet_time,
