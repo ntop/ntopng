@@ -403,11 +403,21 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
     chart.fixChartButtons();
   }
 
-  $chart.on('dblclick', function() {
-    if(current_zoom_level) {
+  $chart.on('dblclick', function(event) {
+    //if(current_zoom_level) {
+      // Zoom out from history
       //console.log("zoom OUT");
-      history.back();
-    }
+      //history.back();
+    //} else {
+    // Zoom out with fixed interval
+    var delta = zoom_out_value;
+    if((params.epoch_end + delta/2)*1000 <= $.now())
+      delta /= 2;
+
+    $("#period_begin").data("DateTimePicker").date(new Date((params.epoch_begin - delta) * 1000));
+    $("#period_end").data("DateTimePicker").date(new Date((params.epoch_end + delta) * 1000));
+    updateChartFromPickers();
+    //}
   });
 
   $zoom_reset.on("click", function() {
