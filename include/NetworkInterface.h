@@ -203,6 +203,7 @@ class NetworkInterface : public Checkpointable {
 		u_int32_t asnFilter, int16_t networkFilter,
 		u_int16_t pool_filter, bool filtered_hosts,
 		bool blacklisted_hosts, bool hide_top_hidden,
+		bool anomalousOnly,
 		u_int8_t ipver_filter, int proto_filter,
 		TrafficType traffic_type_filter,
 		char *sortColumn);
@@ -218,6 +219,7 @@ class NetworkInterface : public Checkpointable {
 		u_int32_t asnFilter, int16_t networkFilter,
 		u_int16_t pool_filter, bool filtered_hosts,
 		bool blacklisted_hosts, bool hide_top_hidden,
+		bool anomalousOnly,
 		u_int8_t ipver_filter, int proto_filter,
 		TrafficType traffic_type_filter,
 		char *sortColumn, u_int32_t maxHits,

@@ -21,28 +21,57 @@
 
 #include "ntop_includes.h"
 
+#define FNV_32_PRIME ((u_int32_t)0x01000193)
+#define FNV1_32A_INIT ((u_int32_t)0x811c9dc5)
+
 /* *************************************** */
 
 Grouper::Grouper(sortField sf){
   sorter = sf;
   numGroups = 0;
-  groups = NULL;
 }
 
 /* *************************************** */
 
 Grouper::~Grouper(){
-  for(int32_t i = 0; i < numGroups; i++) {
-    if(groups[i]) {
+  group *n;
+
+  for(int32_t i = 0; i < HASH_SIZE; i++) {
+    while(hash[i]) {
+      n = hash[i]->next;
       if(sorter == column_country || sorter == column_os)
-        free(groups[i]->group_id.s);
-      if(groups[i]->group_label)
-        free(groups[i]->group_label);
-      free(groups[i]);
+        free(hash[i]->group_id.s);
+      if(hash[i]->group_label)
+        free(hash[i]->group_label);
+      free(hash[i]);
+      hash[i] = n;
     }
   }
-  if(groups)
-    free(groups);
+}
+/* *************************************** */
+
+/*
+ * use FNV hash for strings
+ */
+u_int32_t fnv_32a(char *str)
+{
+  unsigned char *s = (unsigned char *)str;
+  u_int32_t hval = FNV1_32A_INIT;
+
+  while (*s) {
+    hval ^= (u_int32_t)*s++;
+    hval *= FNV_32_PRIME;
+  }
+
+  return hval % HASH_SIZE;
+}
+
+/*
+ * very simplistic integer hash
+ */
+u_int32_t int_hash(int64_t n)
+{
+  return (u_int32_t)n % HASH_SIZE;
 }
 
 /* *************************************** */
@@ -79,16 +108,16 @@ int id_s_comparator(const void *_a, const void *_b) {
  *
  * Returns -1 for unsupported sorting criteria, causes host to be skipped.
  */
-int32_t Grouper::inGroup(Host *h) {
+group * Grouper::inGroup(Host *h) {
   group *k;
-  group **m = NULL;
+  int32_t pos;
 
   if(h == NULL)
-    return -1;
+    return NULL;
 
   k = newGroup(h);
   if(k == NULL)
-    return -1;
+    return NULL;
 
   switch(sorter) {
     case column_asn:
@@ -97,28 +126,35 @@ int32_t Grouper::inGroup(Host *h) {
     case column_local_network_id:
     case column_pool_id:
     case column_mac:
-      m = (group **)bsearch(&k, groups, numGroups, sizeof(group *), id_i_comparator);
+      pos = int_hash(k->group_id.i);
+      while(hash[pos]) {
+        if(hash[pos]->group_id.i == k->group_id.i) {
+          return hash[pos];
+        }
+        hash[pos] = hash[pos]->next;
+      }
       break;
 
     case column_country:
     case column_os:
-      m = (group **)bsearch(&k, groups, numGroups, sizeof(group *), id_s_comparator);
+      pos = fnv_32a(k->group_id.s);
+      while(hash[pos]) {
+        if(strcmp(hash[pos]->group_id.s, k->group_id.s) == 0) {
+          return hash[pos];
+        }
+        hash[pos] = hash[pos]->next;
+      }
       break;
 
     default:
       // Abort on unknown criteria
       free(k);
-      return -1;
+      return NULL;
       break;
   }
 
-  if (m != NULL) {
-    // Found existing group, return that
-    return m - groups;
-  }
-
   // No existing group matched, add a new one
-  return addGroup(k);
+  return addGroup(k, pos);
 }
 
 /* *************************************** */
@@ -135,12 +171,11 @@ group * Grouper::newGroup(Host *h) {
   if(h == NULL)
     return NULL;
 
-  g = (group *)malloc(sizeof(struct group));
+  g = (group *)calloc(1, sizeof(struct group));
   if(g == NULL) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
     return NULL;
   }
-  memset(g, 0, sizeof(struct group));
 
   switch(sorter) {
   case column_asn:
@@ -198,21 +233,71 @@ group * Grouper::newGroup(Host *h) {
 
 /* *************************************** */
 
-int32_t Grouper::addGroup(group *g)
+group * Grouper::addGroup(group *g, int32_t pos)
 {
-  group **newg;
-
   if(g == NULL)
+    return NULL;
+
+  g->next = hash[pos];
+  hash[pos] = g;
+  numGroups++;
+
+  return hash[pos];
+}
+
+/* *************************************** */
+
+/**
+ * Increments stats in the correct group for host h, as reported by inGroup().
+ */
+int8_t Grouper::incStats(Host *h) {
+  char buf[32], *c = h->get_country(buf, sizeof(buf));
+  group *g;
+
+  g = inGroup(h);
+
+  if(h == NULL || g == NULL)
     return -1;
 
-  newg = (group **)realloc(groups, sizeof(struct group) * (numGroups + 1));
-  if(newg == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
-    return -1;
+  g->stats.num_hosts++,
+    g->stats.bytes_sent += h->getNumBytesSent(),
+    g->stats.bytes_rcvd += h->getNumBytesRcvd(),
+    g->stats.num_flows += h->getNumActiveFlows(),
+    g->stats.num_dropped_flows += h->getNumDroppedFlows(),
+    g->stats.num_alerts += h->getNumAlerts(),
+    g->stats.throughput_bps += h->getBytesThpt(),
+    g->stats.throughput_pps += h->getPacketsThpt(),
+    g->stats.throughput_trend_bps_diff += h->getThptTrendDiff();
+
+  if(g->stats.first_seen == 0 || h->get_first_seen() < g->stats.first_seen)
+    g->stats.first_seen = h->get_first_seen();
+  if(h->get_last_seen() > g->stats.last_seen)
+    g->stats.last_seen = h->get_last_seen();
+
+  if(c) {
+    strncpy(g->stats.country, c, sizeof(g->stats.country));
+    g->stats.country[sizeof(g->stats.country) - 1] = '\0';
   }
-  groups = newg;
 
-  groups[numGroups++] = g;
+  return 0;
+}
+
+/* *************************************** */
+
+/*
+ * Recursively add groups to LUA tables.
+ */
+void Grouper::lua(lua_State* vm) {
+  group *g, **groups = (group **)calloc(numGroups, sizeof(group *));
+
+  /* Flatten hash to an array */
+  for(int32_t i = 0, j = 0; i < HASH_SIZE; i++) {
+    g = hash[i];
+    while(g) {
+      groups[j++] = g;
+      g = hash[i]->next;
+    }
+  }
 
   switch(sorter) {
     case column_asn:
@@ -230,59 +315,11 @@ int32_t Grouper::addGroup(group *g)
       break;
 
     default:
-      // Unknown criteria, abort operation
-      free(g);
-      numGroups--;
-      return -1;
+      // Unknown criteria, return empty list
+      return;
       break;
   }
 
-  return numGroups - 1;
-}
-
-/* *************************************** */
-
-/**
- * Increments stats in the correct group for host h, as reported by inGroup().
- */
-int8_t Grouper::incStats(Host *h) {
-  char buf[32], *c = h->get_country(buf, sizeof(buf));
-  int32_t gid;
-
-  gid = inGroup(h);
-
-  if(h == NULL || gid == -1)
-    return -1;
-
-  groups[gid]->stats.num_hosts++,
-    groups[gid]->stats.bytes_sent += h->getNumBytesSent(),
-    groups[gid]->stats.bytes_rcvd += h->getNumBytesRcvd(),
-    groups[gid]->stats.num_flows += h->getNumActiveFlows(),
-    groups[gid]->stats.num_dropped_flows += h->getNumDroppedFlows(),
-    groups[gid]->stats.num_alerts += h->getNumAlerts(),
-    groups[gid]->stats.throughput_bps += h->getBytesThpt(),
-    groups[gid]->stats.throughput_pps += h->getPacketsThpt(),
-    groups[gid]->stats.throughput_trend_bps_diff += h->getThptTrendDiff();
-
-  if(groups[gid]->stats.first_seen == 0 || h->get_first_seen() < groups[gid]->stats.first_seen)
-    groups[gid]->stats.first_seen = h->get_first_seen();
-  if(h->get_last_seen() > groups[gid]->stats.last_seen)
-    groups[gid]->stats.last_seen = h->get_last_seen();
-
-  if(c) {
-    strncpy(groups[gid]->stats.country, c, sizeof(groups[gid]->stats.country));
-    groups[gid]->stats.country[sizeof(groups[gid]->stats.country) - 1] = '\0';
-  }
-
-  return 0;
-}
-
-/* *************************************** */
-
-/*
- * Recursively add groups to LUA tables.
- */
-void Grouper::lua(lua_State* vm) {
   for(int32_t i = 0; i < numGroups; i++) {
     lua_newtable(vm);
 

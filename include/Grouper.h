@@ -24,6 +24,8 @@
 
 #include "ntop_includes.h"
 
+#define HASH_SIZE 256
+
 class Host;
 
 struct groupStats{
@@ -48,18 +50,19 @@ struct group {
   bool group_id_set;
   char *group_label;
   groupStats stats;
+  group *next;
 };
 
 class Grouper {
  private:
   sortField sorter;
 
-  group **groups;
+  group *hash[HASH_SIZE] = {NULL};
   int32_t numGroups;
 
-  int32_t addGroup(group *g);
+  group * addGroup(group *g, int32_t pos);
   group * newGroup(Host *h);
-  int32_t inGroup(Host *h);
+  group * inGroup(Host *h);
 
  public:
   Grouper(sortField sf);
