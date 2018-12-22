@@ -306,7 +306,7 @@ function hideQuerySlow() {
 }
 
 // add a new updateStackedChart function
-function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id, params, step, align_step, show_all_smooth, initial_range) {
+function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id, params, step, align_step, show_all_smooth, initial_range, ts_table_shown) {
   var pending_chart_request = null;
   var pending_table_request = null;
   var d3_sel = d3.select(chart_id);
@@ -458,7 +458,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
 
   function checkQueryCompleted() {
     var flows_dt = $("#chart1-flows");
-    var wait_num_queries = flows_dt.data("datatable") ? 2 : 1;
+    var wait_num_queries = (ts_table_shown && ($("#chart1-flows").css("display") !== "none")) ? 2 : 1;
 
     query_completed += 1;
 
@@ -856,10 +856,12 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
       var flows_dt = $("#chart1-flows");
 
       /* Reload datatable */
-      if(flows_dt.data("datatable")) {
+      if(ts_table_shown) {
         /* note: flows_dt.data("datatable") will change after this call */
         updateGraphsTableView(null, params);
-        pending_table_request = flows_dt.data("datatable").pendingRequest;
+
+        if($("#chart1-flows").css("display") !== "none")
+          pending_table_request = flows_dt.data("datatable").pendingRequest;
       }
     }
 
@@ -889,9 +891,74 @@ function tsQueryToTags(ts_query) {
   }, {});
 }
 
+/* Hide or show the timeseries table items based on the current time range */
+function recheckGraphTableEntries() {
+  var table_view = graph_table_views;
+  var tdiff = (graph_params.epoch_end - graph_params.epoch_begin);
+  var reset_selection = false;
+  $("#chart1-flows").show();
+  $("#graphs-table-selector").show();
+
+  for(view_id in table_view) {
+    var view = table_view[view_id];
+    var elem = $("#" + view.html_id);
+
+    if(tdiff <= view.min_step) {
+      if(graph_old_view.id === view_id)
+        reset_selection = true;
+
+      elem.hide();
+    } else
+      elem.show();
+  }
+
+  /* Hide/show the headers */
+  var items_ul = $("#graphs-table-active-view").closest(".btn-group").find("ul:first");
+
+  items_ul.find("li.dropdown-header").each(function(idx,e) {
+    var next_item = $(e).nextAll("li").filter(function(idx,e) {
+      return(($(e).css("display") !== "none") || (!$(e).attr("data-view-id")));
+    }).first();
+    var divider = $(e).nextAll(".divider").first();
+
+    if(!next_item.attr("data-view-id")) {
+      $(e).hide();
+      divider.hide();
+    } else {
+      $(e).show();
+      divider.show();
+    }
+  });
+
+  if(reset_selection) {
+    /* Select the first available view */
+    var first_view = items_ul.find("li[data-view-id]").filter(function(idx,e) {
+        return($(e).css("display") !== "none");
+      }).first();
+
+    if(first_view.length)
+      setActiveGraphsTableView(first_view.attr("data-view-id"));
+    else {
+      $("#chart1-flows").hide();
+      $("#graphs-table-selector").hide();
+    }
+
+    return false;
+  }
+
+  return true;
+}
+
 function updateGraphsTableView(view, graph_params, has_nindex, nindex_query, per_page) {
-  if(view) {
+  if(view)
     graph_old_view = view;
+
+  if(!recheckGraphTableEntries(graph_params)) {
+    /* handled by setActiveGraphsTableView */
+    return;
+  }
+
+  if(view) {
     graph_old_has_nindex = has_nindex;
     graph_old_nindex_query = nindex_query;
   } else {
