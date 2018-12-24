@@ -359,17 +359,17 @@ if((page == "historical") or ts_utils.exists("host:traffic", {ifid=ifId, host=ho
 end
 
 if not only_historical then
-if (host["localhost"] == true) and (ts_utils.getDriverName() == "rrd") then
-   if(ntop.isEnterprise()) then
-      if(page == "traffic_report") then
-         print("\n<li class=\"active\"><a href=\"#\"><i class='fa fa-file-text report-icon'></i></a></li>\n")
+   if host["localhost"] and ts_utils.getDriverName() == "rrd" then
+      if ntop.isEnterprise() or ntop.isnEdgeEnterprise() then
+	 if(page == "traffic_report") then
+	    print("\n<li class=\"active\"><a href=\"#\"><i class='fa fa-file-text report-icon'></i></a></li>\n")
+	 else
+	    print("\n<li><a href=\""..url.."&page=traffic_report\"><i class='fa fa-file-text report-icon'></i></a></li>")
+	 end
       else
-         print("\n<li><a href=\""..url.."&page=traffic_report\"><i class='fa fa-file-text report-icon'></i></a></li>")
+	 print("\n<li><a href=\"#\" title=\""..i18n('enterpriseOnly').."\"><i class='fa fa-file-text report-icon'></i></A></li>\n")
       end
-   elseif not have_nedge then
-      print("\n<li><a href=\"#\" title=\""..i18n('enterpriseOnly').."\"><i class='fa fa-file-text report-icon'></i></A></li>\n")
    end
-end
 
 if ntop.isEnterprise() and ifstats.inline and host_pool_id ~= host_pools_utils.DEFAULT_POOL_ID then
   if page == "quotas" then

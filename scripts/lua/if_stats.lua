@@ -246,15 +246,15 @@ if(isAdministrator() and areAlertsEnabled() and not ifstats.isView) then
 end
 
 if ts_utils.getDriverName() == "rrd" then
-if(ntop.isEnterprise()) then
+   if ntop.isEnterprise() or ntop.isnEdgeEnterprise() then
       if(page == "traffic_report") then
          print("\n<li class=\"active\"><a href=\"#\"><i class='fa fa-file-text report-icon'></i></a></li>\n")
       else
          print("\n<li><a href=\""..url.."&page=traffic_report\"><i class='fa fa-file-text report-icon'></i></a></li>")
       end
-elseif not have_nedge then
+   else
       print("\n<li><a href=\"#\" title=\""..i18n('enterpriseOnly').."\"><i class='fa fa-file-text report-icon'></i></A></li>\n")
-end
+   end
 end
 
 if(isAdministrator()) then
