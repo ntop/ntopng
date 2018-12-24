@@ -22,6 +22,10 @@ enable this feature, both *ntopng* and *n2disk* need to be installed from packag
 according to your Linux distribution (we assume that you already configured the 
 `ntop repository <http://packages.ntop.org>`_ and have *ntopng* installed).
 
+.. warning::
+
+  This feature does not support Zero Copy (ZC) interfaces.
+
 *apt*
 
 .. code:: bash
