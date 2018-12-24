@@ -360,7 +360,7 @@ end
 
 if not only_historical then
    if host["localhost"] and ts_utils.getDriverName() == "rrd" then
-      if ntop.isEnterprise() or ntop.isnEdgeEnterprise() then
+      if ntop.isEnterprise() or ntop.isnEdge() then
 	 if(page == "traffic_report") then
 	    print("\n<li class=\"active\"><a href=\"#\"><i class='fa fa-file-text report-icon'></i></a></li>\n")
 	 else
