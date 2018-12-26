@@ -10,6 +10,14 @@ local info = ntop.getInfo(false)
 local hasRadius = ntop.hasRadiusSupport()
 local hasNindex = hasNindexSupport()
 local hasLdap = ntop.hasLdapSupport()
+local max_nindex_retention = 0
+
+if ntop.isPro() then
+  package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
+  local nindex_utils = require("nindex_utils")
+
+  _, max_nindex_retention = nindex_utils.getRetention()
+end
 
 -- This table is used both to control access to the preferences and to filter preferences results
 local menu_subpages = {
@@ -343,7 +351,7 @@ local menu_subpages = {
   }}, {id="flow_db_dump_nindex",  label=i18n("prefs.flow_database_dump"),   advanced=true,  pro_only=false,  hidden=(not hasNindex), entries={
     nindex_retention = {
       title       = i18n("prefs.nindex_retention_title"),
-      description = i18n("prefs.nindex_retention_description") .. ternary(not ntop.isEnterprise(), "<br><b>" .. i18n("prefs.flows_dump_limited_days", {days=7}), "") .. "</b>",
+      description = i18n("prefs.nindex_retention_description") .. ternary(not ntop.isEnterprise(), "<br><b>" .. i18n("prefs.flows_dump_limited_days", {days=max_nindex_retention}), "") .. "</b>",
       hidden      = not hasNindex,
     }
   }}, {id="snmp",          label=i18n("prefs.snmp"),                 advanced=true,  pro_only=true,   hidden=false, nedge_hidden=true, entries={
