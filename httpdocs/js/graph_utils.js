@@ -997,12 +997,12 @@ function updateGraphsTableView(view, graph_params, has_nindex, nindex_query, per
   nindex_buttons += '<div class="btn-group pull-right"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">';
   nindex_buttons += "Explorer";
   nindex_buttons += '<span class="caret"></span></button><ul class="dropdown-menu" role="menu">';
-  nindex_buttons += '<li><a href="'+ http_prefix +'/lua/enterprise/nindex_topk.lua'+ nindex_query +'">Top-K</a></li>';
-  nindex_buttons += '<li><a href="'+ http_prefix +'/lua/enterprise/nindex.lua'+ nindex_query +'">Flows</a></li>';
+  nindex_buttons += '<li><a href="'+ http_prefix +'/lua/pro/nindex_topk.lua'+ nindex_query +'">Top-K</a></li>';
+  nindex_buttons += '<li><a href="'+ http_prefix +'/lua/pro/nindex.lua'+ nindex_query +'">Flows</a></li>';
   nindex_buttons += '</span></div>';
 
   if(view.columns) {
-    var url = http_prefix + (view.nindex_view ? "/lua/enterprise/get_nindex_flows.lua" : "/lua/enterprise/get_ts_table.lua");
+    var url = http_prefix + (view.nindex_view ? "/lua/pro/get_nindex_flows.lua" : "/lua/enterprise/get_ts_table.lua");
 
     var columns = view.columns.map(function(col) {
       return {

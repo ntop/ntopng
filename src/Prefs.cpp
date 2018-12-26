@@ -1126,7 +1126,7 @@ int Prefs::setOption(int optkey, char *optarg) {
     if(!optarg)
       ntop->getTrace()->traceEvent(TRACE_ERROR, "No connection specified, -F ignored");
     else
-#if defined(NTOPNG_PRO) && defined(HAVE_NINDEX)
+#if defined(NTOPNG_PRO) && defined(HAVE_NINDEX) && !defined(HAVE_NEDGE) /* NOTE: currently disable on nEdge */
     if(strncmp(optarg, "nindex", 2) == 0) {
       dump_flows_on_nindex = true;
     } else

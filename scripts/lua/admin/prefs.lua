@@ -16,9 +16,12 @@ local slack_utils = require("slack")
 local recording_utils = require "recording_utils"
 local remote_assistance = require "remote_assistance"
 local page_utils = require("page_utils")
+local nindex_utils = nil
 
 if(ntop.isPro()) then
   package.path = dirs.installdir .. "/scripts/lua/pro/?.lua;" .. package.path
+  package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
+  nindex_utils = require("nindex_utils")
 end
 
 sendHTTPContentTypeHeader('text/html')
@@ -1588,8 +1591,10 @@ function printFlowDBNindexDump()
 
   print('<tr><th colspan=2 class="info">'..i18n("prefs.flow_database_dump")..'</th></tr>')
 
+  local cur_retention, max_retention, default_retention = nindex_utils.getRetention()
+
   prefsInputFieldPrefs(subpage_active.entries["nindex_retention"].title, subpage_active.entries["nindex_retention"].description,
-      "ntopng.prefs.", "nindex_retention_days", 365, "number", nil, nil, nil, {min=1, max=365*10})
+      "ntopng.prefs.", "nindex_retention_days", default_retention, "number", nil, nil, nil, {min=1, max=max_retention})
   
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
   print [[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
@@ -1717,7 +1722,7 @@ end
 if(tab == "flow_db_dump") then
    printFlowDBDump()
 end
-if(tab == "flow_db_dump_nindex") then
+if((tab == "flow_db_dump_nindex") and (nindex_utils ~= nil))then
    printFlowDBNindexDump()
 end
 

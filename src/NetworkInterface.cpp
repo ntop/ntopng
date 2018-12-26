@@ -6667,7 +6667,7 @@ void NetworkInterface::checkMacIPAssociation(bool triggerEvent, u_char *_mac, u_
 void NetworkInterface::finishInitialization(u_int8_t num_defined_interfaces) {
   if(!isView()) {
 #if defined(NTOPNG_PRO) && defined(HAVE_NINDEX)
-    if(ntop->getPrefs()->is_enterprise_edition() && ntop->getPrefs()->do_dump_flows_on_nindex()) {
+    if(ntop->getPrefs()->do_dump_flows_on_nindex()) {
       if(num_defined_interfaces + 1 >= NINDEX_MAX_NUM_INTERFACES) {
 	ntop->getTrace()->traceEvent(TRACE_ERROR,
 				     "nIndex cannot be enabled for %s.", get_name());

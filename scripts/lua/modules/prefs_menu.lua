@@ -343,7 +343,7 @@ local menu_subpages = {
   }}, {id="flow_db_dump_nindex",  label=i18n("prefs.flow_database_dump"),   advanced=true,  pro_only=false,  hidden=(not hasNindex), entries={
     nindex_retention = {
       title       = i18n("prefs.nindex_retention_title"),
-      description = i18n("prefs.nindex_retention_description"),
+      description = i18n("prefs.nindex_retention_description") .. ternary(not ntop.isEnterprise(), "<br><b>" .. i18n("prefs.flows_dump_limited_days", {days=7}), "") .. "</b>",
       hidden      = not hasNindex,
     }
   }}, {id="snmp",          label=i18n("prefs.snmp"),                 advanced=true,  pro_only=true,   hidden=false, nedge_hidden=true, entries={
