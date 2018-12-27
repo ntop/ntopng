@@ -159,8 +159,40 @@ automatically.
 Amount of time between two consecutive refreshes of dashboard and footer charts. Useful for example
 when using ntopng in combination with nProbe to collect remote NetFlow of sFlow.
 
-**Scaling Factor**:
-A constant used to up-scale interface traffic. This is useful when ntopng is processing sampled traffic.
+**Ingress Packets Sampling Rate**
+Packets arriving on the interface could have been sampled upstream,
+for example by a packet broker or another device. This setting allows
+to specify the sampling rate to enable ntopng to perform proper
+upscaling.
+
+**Hide from Top Networks**
+This setting allows to specify a comma-separated list of networks
+containing hosts that have to be hidden from the top statistics. 
+Hosts belonging to the specified networks will not be shown in the top
+statistics.
+
+**Trigger Interface Alerts**
+This setting toggles the alert generation of the selected
+interface. No alert will be generated when this setting is unticked,
+including alerts associated with hosts, blacklisted flows, and
+networks.
+
+**Create Interface Timeseries**
+This setting toggles the generation of timeseries for the selected
+interface. No timeseries will be generated when this setting in
+unticked, including timeseries associated with local hosts and networks.
+
+**Mirrored Traffic**
+Tick this setting when the interface is receiving traffic from a
+mirror/SPAN port. Typically, such interfaces does not have any IP
+address associated. ntopng uses this information to skip certain kind
+of activities that cannot be performed on mirrored interfaces,
+including network device discovery and eBPF events processing.
+
+**Periodic Interface Network Discovery**
+This setting toggles ntopng periodic network discovery. Network
+discovery frequency can be controlled from the preferences and it
+defaults to 15 minutes.
 
 Host Pools
 ----------
