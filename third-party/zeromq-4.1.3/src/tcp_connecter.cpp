@@ -58,6 +58,8 @@
 #endif
 #endif
 
+#define min(a, b)  ((b < a) ? b : a)
+
 zmq::tcp_connecter_t::tcp_connecter_t (class io_thread_t *io_thread_,
       class session_base_t *session_, const options_t &options_,
       address_t *addr_, bool delayed_start_) :
