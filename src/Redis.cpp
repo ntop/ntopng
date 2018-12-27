@@ -66,77 +66,94 @@ Redis::~Redis() {
 
 void Redis::reconnectRedis() {
   struct timeval timeout = { 1, 500000 }; // 1.5 seconds
-  redisReply *reply;
-  u_int num_attempts = 10;
+  redisReply *reply = NULL;
+  u_int num_attempts;
+  bool connected;
 
-  operational = false;
+  operational = connected = false;
 
-  if(redis != NULL) {
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Redis has disconnected: reconnecting...");
-    redisFree(redis);
-  }
-#ifdef __linux__
-  struct stat buf;
-
-  if(!stat(redis_host, &buf) && S_ISSOCK(buf.st_mode))
-    redis = redisConnectUnixWithTimeout(redis_host, timeout), is_socket_connection = true;
-  else
-#endif
-    redis = redisConnectWithTimeout(redis_host, redis_port, timeout);
-
-  if(redis_password) {
-    num_requests++;
-    reply = (redisReply*)redisCommand(redis, "AUTH %s", redis_password);
-    if(reply && (reply->type == REDIS_REPLY_ERROR)) {
-      ntop->getTrace()->traceEvent(TRACE_ERROR,
-				   "Redis authentication failed: %s", reply->str ? reply->str : "???");
-      goto redis_error_handler;
+  for(num_attempts = CONST_MAX_REDIS_CONN_RETRIES; num_attempts > 0; num_attempts--) {
+    if(redis) {
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Redis has disconnected, reconnecting [remaining attempts: %u]",
+				   num_attempts - 1);
+      redisFree(redis);
     }
-  }
 
-  while(redis && num_attempts > 0) {
+#ifdef __linux__
+    struct stat buf;
+
+    if(!stat(redis_host, &buf) && S_ISSOCK(buf.st_mode))
+      redis = redisConnectUnixWithTimeout(redis_host, timeout), is_socket_connection = true;
+    else
+#endif
+      redis = redisConnectWithTimeout(redis_host, redis_port, timeout);
+
+    if(redis == NULL || redis->err) {
+      if(redis)
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "Connection error [%s]", redis->errstr);
+
+      goto conn_retry;
+    }
+
+    if(redis_password) {
+      num_requests++;
+      reply = (redisReply*)redisCommand(redis, "AUTH %s", redis_password);
+      if(reply && (reply->type == REDIS_REPLY_ERROR)) {
+	ntop->getTrace()->traceEvent(TRACE_ERROR,
+				     "Redis authentication failed: %s", reply->str ? reply->str : "???");
+
+	break;
+      }
+    }
+
+    freeReplyObject(reply);
     num_requests++;
     reply = (redisReply*)redisCommand(redis, "PING");
     if(reply && (reply->type == REDIS_REPLY_ERROR)) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
-      sleep(1);
-      num_attempts--;
-    } else
-      break;
-  }
 
-  if((redis == NULL) || (reply == NULL)) {
-  redis_error_handler:
-    if(ntop->getTrace()->get_trace_level() == 0) ntop->getTrace()->set_trace_level(MAX_TRACE_LEVEL);
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "ntopng requires redis server to be up and running");
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Please start it and try again or use -r");
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "to specify a redis server other than the default");
-    exit(0);
-  } else {
+      goto conn_retry;
+    }
+
     freeReplyObject(reply);
-
     num_requests++;
     reply = (redisReply*)redisCommand(redis, "SELECT %u", redis_db_id);
     if(reply && (reply->type == REDIS_REPLY_ERROR)) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
-      goto redis_error_handler;
-    } else {
-      freeReplyObject(reply);
-#ifdef __linux__
-      if(!is_socket_connection)
-	ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				     "Successfully connected to redis %s:%u@%u",
-				     redis_host, redis_port, redis_db_id);
-      else
-#endif
-	ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				     "Successfully connected to redis %s@%u",
-				     redis_host, redis_db_id);
-      operational = true;
+
+      goto conn_retry;
     }
+
+    freeReplyObject(reply);
+    connected = true;
+    break;
+
+  conn_retry:
+    sleep(1);
   }
 
+  if(!connected) {
+    if(ntop->getTrace()->get_trace_level() == 0) ntop->getTrace()->set_trace_level(MAX_TRACE_LEVEL);
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "ntopng requires redis server to be up and running");
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Please start it and try again or use -r");
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "to specify a redis server other than the default");
+
+    exit(1);
+  }
+
+#ifdef __linux__
+  if(!is_socket_connection)
+    ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				 "Successfully connected to redis %s:%u@%u",
+				 redis_host, redis_port, redis_db_id);
+  else
+#endif
+    ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				 "Successfully connected to redis %s@%u",
+				 redis_host, redis_db_id);
+
   num_reconnections++;
+  operational = true;
 }
 
 /* **************************************** */

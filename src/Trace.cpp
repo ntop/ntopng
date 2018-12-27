@@ -184,11 +184,11 @@ void Trace::traceEvent(int eventTraceLevel, const char* _file,
 
     printf("%s\n", out_buf);
     fflush(stdout);
-    
-    if(traceRedis)
+
+    if(traceRedis && traceRedis->isOperational() && ntop->getRedis()->isOperational())
       traceRedis->lpush(NTOPNG_TRACE, out_buf, MAX_NUM_NTOPNG_TRACES,
-			false /* Do not re-trace errors, re-tracing would yield a deadlock */);
-    
+    			false /* Do not re-trace errors, re-tracing would yield a deadlock */);
+
     va_end(va_ap);
   }
 }
