@@ -283,7 +283,9 @@ void zmq::socks_connecter_t::start_timer ()
     socket->event_connect_retried (endpoint, interval);
 }
 
+#ifndef min
 #define min(a, b)  ((b < a) ? b : a)
+#endif
 
 int zmq::socks_connecter_t::get_new_reconnect_ivl ()
 {
