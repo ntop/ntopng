@@ -49,8 +49,13 @@ case "$1" in
 	if [ "$1" = "upgrade" ]; then promt_license_expired; fi
         echo "Stopping ntopng services..."
 	if hash systemctl 2>/dev/null; then
-		systemctl stop ntopng
-		systemctl disable ntopng
+                if hash deb-systemd-invoke 2>/dev/null; then
+                       deb-systemd-invoke stop ntopng
+                       deb-systemd-invoke disable ntopng
+                else
+                       systemctl stop ntopng
+                       systemctl disable ntopng
+                fi
 		systemctl daemon-reload
 		systemctl reset-failed
 	elif [ -f /etc/init.d/ntopng ]; then
