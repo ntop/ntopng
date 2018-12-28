@@ -1251,7 +1251,6 @@ local lang = {
     ["flows_vs_traffic"] = "Active Flows vs Traffic",
     ["get_permanent_link"] = "Get permanent link",
     ["graph_info"] = "Graph Info",
-    ["hover_the_mouse_to"] = "Hover the mouse on the chart to display minute top traffic statistics",
     ["max"] = "Max",
     ["minute_interface_top_stats"] = "Minute Interface Top Traffic Statistics",
     ["note_ases_rcvd"] = "Traffic received the traffic received by the autonomous system.",

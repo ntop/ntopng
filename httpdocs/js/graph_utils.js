@@ -1002,7 +1002,7 @@ function updateGraphsTableView(view, graph_params, has_nindex, nindex_query, per
   nindex_buttons += '</span></div>';
 
   if(view.columns) {
-    var url = http_prefix + (view.nindex_view ? "/lua/pro/get_nindex_flows.lua" : "/lua/enterprise/get_ts_table.lua");
+    var url = http_prefix + (view.nindex_view ? "/lua/pro/get_nindex_flows.lua" : "/lua/pro/get_ts_table.lua");
 
     var columns = view.columns.map(function(col) {
       return {
