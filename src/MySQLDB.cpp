@@ -33,41 +33,29 @@ static void* queryLoop(void* ptr) {
 
 void* MySQLDB::queryLoop() {
   Redis *r = ntop->getRedis();
-  MYSQL mysql_alt;
   char sql[CONST_MAX_SQL_QUERY_LEN];
+  bool queue_not_empty = false;
 
   while(!ntop->getGlobals()->isShutdown()
 	&& !MySQLDB::isDbCreated() /* wait until the db has been created */) {
     sleep(1);
   }
 
-  if(ntop->getGlobals()->isShutdown() || !connectToDB(&mysql_alt, true))
+  if(ntop->getGlobals()->isShutdown() || !mysql_alt_connected)
     return(NULL);
 
-  while(isRunning()) {
+  while(isRunning() || queue_not_empty) {
     int rc = r->lpop(CONST_SQL_QUEUE, sql, sizeof(sql));
 
     if(rc == 0) {
-      if (strlen(sql) >= CONST_MAX_SQL_QUERY_LEN - 1){
-	ntop->getTrace()->traceEvent(TRACE_WARNING,
-				     "Tried to execute a query longer than %u. Skipping.",
-				     CONST_MAX_SQL_QUERY_LEN - 2);
-	continue;  // prevents overflown queries to generate mysql errors
-      } else if((rc = exec_sql_query(&mysql_alt, sql, true /* Attempt to reconnect */, true /* Don't print errors */, false)) < 0) {
-	ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s [rc=%d]", get_last_db_error(&mysql_alt), rc);
-	ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", sql);
-
-	/* Don't give up, manually re-connect */
-	disconnectFromDB(&mysql_alt);
-	if(!connectToDB(&mysql_alt, true)) _usleep(100);
-      } else {
-	mysqlExportedFlows++;
-      }
-    } else
-      sleep(1);    
+      queue_not_empty = true;
+      try_exec_sql_query(&mysql_alt, sql);
+    } else {
+      queue_not_empty = false;
+      _usleep(10000);
+    }
   }
 
-  disconnectFromDB(&mysql_alt);
   return(NULL);
 }
 
@@ -480,12 +468,14 @@ MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
   checkpointDroppedFlows = checkpointExportedFlows = 0;
   lastUpdateTime.tv_sec = 0, lastUpdateTime.tv_usec = 0;
   connectToDB(&mysql, false);
+  mysql_alt_connected = connectToDB(&mysql_alt, true);
 }
 
 /* ******************************************* */
 
 MySQLDB::~MySQLDB() {
   shutdown();
+  disconnectFromDB(&mysql_alt);
   disconnectFromDB(&mysql);
 }
 
@@ -644,6 +634,26 @@ int MySQLDB::flow2InsertValues(Flow *f, char *json,
 
 /* ******************************************* */
 
+void MySQLDB::try_exec_sql_query(MYSQL *conn, char *sql) {
+  int rc;
+
+  if (strlen(sql) >= CONST_MAX_SQL_QUERY_LEN - 1) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Tried to execute a query longer than %u. Skipping.",
+      CONST_MAX_SQL_QUERY_LEN - 2);
+  } else if((rc = exec_sql_query(conn, sql, true /* Attempt to reconnect */, true /* Don't print errors */, false)) < 0) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s [rc=%d]", get_last_db_error(conn), rc);
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", sql);
+
+    /* Don't give up, manually re-connect */
+    disconnectFromDB(conn);
+    if(!connectToDB(conn, true)) _usleep(100);
+  } else {
+    mysqlExportedFlows++;
+  }
+}
+
+/* ******************************************* */
+
 bool MySQLDB::dumpFlow(time_t when, Flow *f, char *json) {
   char sql[CONST_MAX_SQL_QUERY_LEN];
 
@@ -660,17 +670,28 @@ bool MySQLDB::dumpFlow(time_t when, Flow *f, char *json) {
   /* do the actual flow insertion as a tuple */
   flow2InsertValues(f, json, &sql[strlen(sql)], sizeof(sql) - strlen(sql) - 1);
 
-  if (ntop->getRedis()->llen(CONST_SQL_QUEUE) < CONST_MAX_MYSQL_QUEUE_LEN) {
-    /* We know that we should have locked before evaluating the condition
+  if (iface->read_from_pcap_dump()) {
+    /* 
+     Inserting inline in case of PCAP file as interrupting the datapath
+     is not an issue and also avoids flows drops due to the redis queue 
+     maximum length
+    */
+    try_exec_sql_query(&mysql_alt, sql);
+
+  } else {
+    if (ntop->getRedis()->llen(CONST_SQL_QUEUE) < CONST_MAX_MYSQL_QUEUE_LEN) {
+      /* 
+       We know that we should have locked before evaluating the condition
        above as another thread, via the lpush below, can invalidate the condition.
        However, we prefer to avoid an additional lock as the lpush guarantees
        that no more than CONST_MAX_MYSQL_QUEUE_LEN will ever be in the queue.
        The drawback is that the counter mysqlDroppedFlows
        is not guaranteed to be 100% accurate but we can tolerate this.
-    */
-    ntop->getRedis()->lpush(CONST_SQL_QUEUE, sql, CONST_MAX_MYSQL_QUEUE_LEN);
-  } else {
-    mysqlDroppedFlows++;
+      */
+      ntop->getRedis()->lpush(CONST_SQL_QUEUE, sql, CONST_MAX_MYSQL_QUEUE_LEN);
+    } else {
+      mysqlDroppedFlows++;
+    }
   }
 
   return(true);

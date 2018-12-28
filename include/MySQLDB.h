@@ -27,7 +27,8 @@
 class MySQLDB : public DB {
  protected:
   MYSQL mysql;
-  bool db_operational;
+  MYSQL mysql_alt;
+  bool db_operational, mysql_alt_connected;
   struct timeval lastUpdateTime;
   u_int32_t mysqlDroppedFlows, mysqlConsumerDroppedFlows;
   u_int32_t mysqlEnqueuedFlows;
@@ -43,6 +44,7 @@ class MySQLDB : public DB {
   char* get_last_db_error(MYSQL *conn) { return((char*)mysql_error(conn)); }
   int exec_sql_query(MYSQL *conn, const char *sql, bool doReconnect = true,
 		     bool ignoreErrors = false, bool doLock = true);
+  void try_exec_sql_query(MYSQL *conn, char *sql);
 
  public:
   MySQLDB(NetworkInterface *_iface);
