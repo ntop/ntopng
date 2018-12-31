@@ -960,12 +960,17 @@ setInterval(update_icmp_table, 5000);
 elseif((page == "ndpi")) then
    if(host["ndpi"] ~= nil) then
       print [[
-
-  <table class="table table-bordered table-striped">
-]]
+  <ul id="ndpiNav" class="nav nav-tabs" role="tablist">
+    <li class="active"><a data-toggle="tab" role="tab" href="#applications" active>]] print(i18n("ndpi_page.application_protocols")) print[[</a></li>
+    <li><a data-toggle="tab" role="tab" href="#categories">]] print(i18n("ndpi_page.application_protocol_categories")) print[[</a></li>
+  </ul>
+  <div class="tab-content">
+    <div id="applications" class="tab-pane fade in active">
+      <br>
+  <table class="table table-bordered table-striped">]]
 
       if ntop.isPro() and host["custom_apps"] then
-      print[[
+	 print[[
     <tr>
       <th class="text-left">]] print(i18n("ndpi_page.overview", {what = i18n("ndpi_page.custom_applications")})) print [[</th>
       <td colspan=5><div class="pie-chart" id="topCustomApps"></div></td>
@@ -975,86 +980,98 @@ elseif((page == "ndpi")) then
 
       print[[
     <tr>
-      <th class="text-left" colspan=2>]] print(i18n("ndpi_page.overview", {what = i18n("ndpi_page.application_protocol")})) print[[</th>
-      <td>
-        <div class="pie-chart" id="topApplicationProtocols"></div>
-      </td>
-      <td colspan=2>
-        <div class="pie-chart" id="topApplicationBreeds"></div>
-      </td>
+      <th class="text-left" colspan=2>]] print(i18n("ndpi_page.overview", {what = i18n("ndpi_page.application_protocols")})) print[[</th>
+      <td><div class="pie-chart" id="topApplicationProtocols"></div></td>
+      <td colspan=2><div class="pie-chart" id="topApplicationBreeds"></div></td>
     </tr>
-    <tr>
-      <th class="text-left" colspan=2>]] print(i18n("ndpi_page.overview", {what = i18n("ndpi_page.application_protocol_category")})) print[[</th>
-      <td colspan=2>
-        <div class="pie-chart" id="topApplicationCategories"></div>
-      </td>
-    </tr>
-  </table>
+  </table>]]
 
-        <script type='text/javascript'>
+      local direction_filter = ""
+      local base_url = ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url(host_info).."&page=ndpi";
+
+      if(direction ~= nil) then
+	 direction_filter = '<span class="glyphicon glyphicon-filter"></span>'
+      end
+
+      print('<div class="dt-toolbar btn-toolbar pull-right">')
+      print('<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">Direction ' .. direction_filter .. '<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" id="direction_dropdown">')
+      print('<li><a href="'..base_url..'">'..i18n("all")..'</a></li>')
+      print('<li><a href="'..base_url..'&direction=sent">'..i18n("ndpi_page.sent_only")..'</a></li>')
+      print('<li><a href="'..base_url..'&direction=recv">'..i18n("ndpi_page.received_only")..'</a></li>')
+      print('</ul></div></div>')
+
+      print [[
+     <table class="table table-bordered table-striped">
+       <thead>
+	 <tr>
+	   <th>]] print(i18n("ndpi_page.application_protocol")) print[[</th>
+	   <th>]] print(i18n("duration")) print[[</th>
+	   <th>]] print(i18n("sent")) print[[</th>
+	   <th>]] print(i18n("received")) print[[</th>
+	   <th>]] print(i18n("breakdown")) print[[</th>
+	   <th colspan=2>]] print(i18n("total")) print[[</th>
+	 </tr>
+       </thead>
+       <tbody id="host_details_ndpi_applications_tbody"></tbody>
+     </table>
+    </div>
+    <div id="categories" class="tab-pane">
+      <br>
+      <table class="table table-bordered table-striped">
+        <tr>
+        <th class="text-left" colspan=2>]] print(i18n("ndpi_page.overview", {what = i18n("ndpi_page.application_protocol_category")})) print[[</th>
+        <td colspan=2><div class="pie-chart" id="topApplicationCategories"></div></td>
+      </tr>
+      </table>
+     <table class="table table-bordered table-striped">
+       <thead>
+	 <tr>
+	   <th>]] print(i18n("ndpi_page.application_protocol_categories")) print[[</th>
+	   <th>]] print(i18n("duration")) print[[</th>
+	   <th colspan=2>]] print(i18n("total")) print[[</th>
+	 </tr>
+       </thead>
+       <tbody id="host_details_ndpi_categories_tbody"></tbody>
+     </table>
+    </div>
+]]
+
+      print[[
+
+	<script type='text/javascript'>
 	       window.onload=function() {]]
 
-   if ntop.isPro() and host["custom_apps"] then
-      print[[do_pie("#topCustomApps", ']]
-      print (ntop.getHttpPrefix())
-      print [[/lua/pro/get_custom_app_stats.lua', { ifid: "]] print(ifId.."") print ("\" , ") print(hostinfo2json(host_info)) print [[ }, "", refresh);
+      if ntop.isPro() and host["custom_apps"] then
+	 print[[do_pie("#topCustomApps", ']]
+	 print (ntop.getHttpPrefix())
+	 print [[/lua/pro/get_custom_app_stats.lua', { ifid: "]] print(ifId.."") print ("\" , ") print(hostinfo2json(host_info)) print [[ }, "", refresh);
 ]]
-   end
+      end
 
-				   print[[ do_pie("#topApplicationProtocols", ']]
-print (ntop.getHttpPrefix())
-print [[/lua/iface_ndpi_stats.lua', { ifid: "]] print(ifId.."") print ("\" , ") print(hostinfo2json(host_info)) print [[ }, "", refresh);
+      print[[ do_pie("#topApplicationProtocols", ']]
+      print (ntop.getHttpPrefix())
+      print [[/lua/iface_ndpi_stats.lua', { ifid: "]] print(ifId.."") print ("\" , ") print(hostinfo2json(host_info)) print [[ }, "", refresh);
 
 				   do_pie("#topApplicationCategories", ']]
-print (ntop.getHttpPrefix())
-print [[/lua/iface_ndpi_stats.lua', { ndpi_category: "true", ifid: "]] print(ifId.."") print ("\" , ") print(hostinfo2json(host_info)) print [[ }, "", refresh);
+      print (ntop.getHttpPrefix())
+      print [[/lua/iface_ndpi_stats.lua', { ndpi_category: "true", ifid: "]] print(ifId.."") print ("\" , ") print(hostinfo2json(host_info)) print [[ }, "", refresh);
 
 				   do_pie("#topApplicationBreeds", ']]
-print (ntop.getHttpPrefix())
-print [[/lua/iface_ndpi_stats.lua', { breed: "true", ifid: "]] print(ifId.."") print ("\" , ") print(hostinfo2json(host_info)) print [[ }, "", refresh);
+      print (ntop.getHttpPrefix())
+      print [[/lua/iface_ndpi_stats.lua', { breed: "true", ifid: "]] print(ifId.."") print ("\" , ") print(hostinfo2json(host_info)) print [[ }, "", refresh);
 
 
 				}
 
-	    </script>
-           <p>
-	]]
-
-  local direction_filter = ""
-  local base_url = ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url(host_info).."&page=ndpi";
-
-  if(direction ~= nil) then
-    direction_filter = '<span class="glyphicon glyphicon-filter"></span>'
-  end
-
-  print('<div class="dt-toolbar btn-toolbar pull-right">')
-  print('<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">Direction ' .. direction_filter .. '<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" id="direction_dropdown">')
-  print('<li><a href="'..base_url..'">'..i18n("all")..'</a></li>')
-  print('<li><a href="'..base_url..'&direction=sent">'..i18n("ndpi_page.sent_only")..'</a></li>')
-  print('<li><a href="'..base_url..'&direction=recv">'..i18n("ndpi_page.received_only")..'</a></li>')
-  print('</ul></div></div>')
-
-  print [[
-     <table class="table table-bordered table-striped">
-     ]]
-
-  print("<thead><tr><th>"..i18n("ndpi_page.application_protocol").."</th><th>"..i18n("duration").."</th><th>"..i18n("sent").."</th><th>"..i18n("received").."</th><th>"..i18n("breakdown").."</th><th colspan=2>"..i18n("total").."</th></tr></thead>\n")
-
-  print ('<tbody id="host_details_ndpi_applications_tbody">\n')
-  print ("</tbody>")
-  print("</table>\n")
-
-  print [[
-<script>
 function update_ndpi_table() {
   $.ajax({
     type: 'GET',
     url: ']]
-  print(ntop.getHttpPrefix())
-  print [[/lua/host_details_ndpi.lua',
+      print(ntop.getHttpPrefix())
+      print [[/lua/host_details_ndpi.lua',
     data: { ifid: "]] print(ifId.."") print ("\" , ") print(hostinfo2json(host_info))
-  if direction ~= nil then print(", sflow_filter:\"") print(direction..'"') end
-  print [[ },
+      if direction ~= nil then print(", sflow_filter:\"") print(direction..'"') end
+      print [[ },
     success: function(content) {
       $('#host_details_ndpi_applications_tbody').html(content);
       // Let the TableSorter plugin know that we updated the table
@@ -1064,28 +1081,13 @@ function update_ndpi_table() {
 }
 update_ndpi_table();
 setInterval(update_ndpi_table, 5000);
-</script>
 
-]]
-
-  print [[
-     <table class="table table-bordered table-striped">
-     ]]
-
-  print("<thead><tr><th>"..i18n("ndpi_page.application_protocol_category").."</th><th>"..i18n("duration").."</th><th colspan=2>"..i18n("total").."</th></tr></thead>\n")
-
-  print ('<tbody id="host_details_ndpi_categories_tbody">\n')
-  print ("</tbody>")
-  print("</table>\n")
-
-  print [[
-<script>
 function update_ndpi_categories_table() {
   $.ajax({
     type: 'GET',
     url: ']]
-  print(ntop.getHttpPrefix())
-  print [[/lua/host_details_ndpi_categories.lua',
+      print(ntop.getHttpPrefix())
+      print [[/lua/host_details_ndpi_categories.lua',
     data: { ifid: "]] print(ifId.."") print ("\" , ") print(hostinfo2json(host_info)) print [[ },
     success: function(content) {
       $('#host_details_ndpi_categories_tbody').html(content);
@@ -1099,22 +1101,22 @@ setInterval(update_ndpi_categories_table, 5000);
 
 </script>
 ]]
-  
-  local host_ndpi_timeseries_creation = ntop.getCache("ntopng.prefs.host_ndpi_timeseries_creation")
 
-  print("<b>"..i18n("notes").."</b>")
+      local host_ndpi_timeseries_creation = ntop.getCache("ntopng.prefs.host_ndpi_timeseries_creation")
 
-  if host_ndpi_timeseries_creation ~= "both" and host_ndpi_timeseries_creation ~= "per_protocol" then
-     print("<li>"..i18n("ndpi_page.note_historical_per_protocol_traffic",{what=i18n("ndpi_page.application_protocol"), url=ntop.getHttpPrefix().."/lua/admin/prefs.lua?tab=on_disk_ts",flask_icon="<i class=\"fa fa-flask\"></i>"}).." ")
-  end
+      print("<b>"..i18n("notes").."</b>")
 
-  if host_ndpi_timeseries_creation ~= "both" and host_ndpi_timeseries_creation ~= "per_category" then
-     print("<li>"..i18n("ndpi_page.note_historical_per_protocol_traffic",{what=i18n("ndpi_page.application_protocol_category"), url=ntop.getHttpPrefix().."/lua/admin/prefs.lua",flask_icon="<i class=\"fa fa-flask\"></i>"}).." ")
-  end
+      if host_ndpi_timeseries_creation ~= "both" and host_ndpi_timeseries_creation ~= "per_protocol" then
+	 print("<li>"..i18n("ndpi_page.note_historical_per_protocol_traffic",{what=i18n("ndpi_page.application_protocol"), url=ntop.getHttpPrefix().."/lua/admin/prefs.lua?tab=on_disk_ts",flask_icon="<i class=\"fa fa-flask\"></i>"}).." ")
+      end
 
-  print("<li>"..i18n("ndpi_page.note_possible_probing_alert",{icon="<i class=\"fa fa-warning fa-sm\" style=\"color: orange;\"></i>",url=ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&host=".._GET["host"].."&page=historical"}))
-  print("<li>"..i18n("ndpi_page.note_protocol_usage_time"))
-  print("</ul>")
+      if host_ndpi_timeseries_creation ~= "both" and host_ndpi_timeseries_creation ~= "per_category" then
+	 print("<li>"..i18n("ndpi_page.note_historical_per_protocol_traffic",{what=i18n("ndpi_page.application_protocol_category"), url=ntop.getHttpPrefix().."/lua/admin/prefs.lua",flask_icon="<i class=\"fa fa-flask\"></i>"}).." ")
+      end
+
+      print("<li>"..i18n("ndpi_page.note_possible_probing_alert",{icon="<i class=\"fa fa-warning fa-sm\" style=\"color: orange;\"></i>",url=ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&host=".._GET["host"].."&page=historical"}))
+      print("<li>"..i18n("ndpi_page.note_protocol_usage_time"))
+      print("</ul>")
 
 
    end
