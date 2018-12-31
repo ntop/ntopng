@@ -98,7 +98,7 @@ function os_utils.hasService(service_name, ...)
       return false
    end
 
-   local cmd = ntopctl_cmd(service_name, true, "has-service", ...)
+   local cmd = ntopctl_cmd(service_name, false, "has-service", ...)
    local rv = os_utils.execWithOutput(cmd)
    return(rv == "yes\n")
 end
