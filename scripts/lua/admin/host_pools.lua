@@ -260,7 +260,6 @@ local manage_url = "?ifid="..ifId.."&page=pools&pool="..selected_pool.id.."#mana
 
 print [[
 
-<br>
   <ul id="hostPoolsNav" class="nav nav-tabs" role="tablist">
     <li><a data-toggle="tab" role="tab" href="#manage">]] print(i18n("host_pools.manage_pools")) print[[</a></li>
     <li><a data-toggle="tab" role="tab" href="#create">]] print(i18n("host_pools.create_pools")) print[[</a></li>

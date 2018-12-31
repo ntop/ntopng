@@ -724,45 +724,74 @@ elseif((page == "packets")) then
       </script><p>
   ]]
 elseif(page == "ndpi") then
-
---fc = interface.getnDPIFlowsCount()
---for k,v in pairs(fc) do
---   io.write(k.."="..v.."\n")
---end
-
-   print [[
-<script type="text/javascript" src="]] print(ntop.getHttpPrefix()) print [[/js/jquery.tablesorter.js"></script>
-  <table class="table table-bordered table-striped">
+print[[
+  <ul id="ndpiNav" class="nav nav-tabs" role="tablist">
+    <li class="active"><a data-toggle="tab" role="tab" href="#applications" active>]] print(i18n("ndpi_page.application_protocols")) print[[</a></li>
+    <li><a data-toggle="tab" role="tab" href="#categories">]] print(i18n("ndpi_page.application_protocol_categories")) print[[</a></li>
+  </ul>
+  <div class="tab-content">
+    <div id="applications" class="tab-pane fade in active">
+      <br>
+      <table class="table table-bordered table-striped">
 ]]
 
    if ntop.isPro() and ifstats["custom_apps"] then
       print[[
-    <tr>
-      <th class="text-left">]] print(i18n("ndpi_page.overview", {what = i18n("ndpi_page.custom_applications")})) print [[</th>
-      <td colspan=5><div class="pie-chart" id="topCustomApps"></div></td>
-    </tr>
+        <tr>
+          <th class="text-left">]] print(i18n("ndpi_page.overview", {what = i18n("ndpi_page.custom_applications")})) print [[</th>
+          <td colspan=5><div class="pie-chart" id="topCustomApps"></td>
+        </tr>
 ]]
    end
 
    print[[
-    <tr>
-      <th class="text-left">]] print(i18n("ndpi_page.overview", {what = i18n("ndpi_page.application_protocol")})) print [[</th>
-      <td colspan=3><div class="pie-chart" id="topApplicationProtocols"></div></td>
-      <td colspan=2><div class="pie-chart" id="topApplicationBreeds"></div></td>
-    </tr>
-    <tr>
-      <th class="text-left">]] print(i18n("ndpi_page.overview", {what = i18n("ndpi_page.application_protocol_category")})) print [[</th>
-      <td colspan=5><div class="pie-chart" id="topApplicationCategories"></div></td>
-    </tr>
-    <tr>
-      <th class="text-left">]] print(i18n("ndpi_page.live_flows_count")) print [[</th>
-      <td colspan=3><div class="pie-chart" id="topFlowsCount"></div></td>
-      <td colspan=2><div class="pie-chart" id="topTCPFlowsStats"></div>
-        <br><small><b>]] print(i18n("ndpi_page.note")) print [[ :</b>]] print(i18n("ndpi_page.note_live_flows_chart")) print [[
-      </td>
-    </tr>
-  </div>
+        <tr>
+          <th class="text-left">]] print(i18n("ndpi_page.overview", {what = i18n("ndpi_page.application_protocols")})) print [[</th>
+          <td colspan=3><div class="pie-chart" id="topApplicationProtocols"></td>
+          <td colspan=2><div class="pie-chart" id="topApplicationBreeds"></td>
+        </tr>
+        <tr>
+          <th class="text-left">]] print(i18n("ndpi_page.live_flows_count")) print [[</th>
+          <td colspan=3><div class="pie-chart" id="topFlowsCount"></td>
+          <td colspan=2><div class="pie-chart" id="topTCPFlowsStats">
+          <br><small><b>]] print(i18n("ndpi_page.note")) print [[ :</b>]] print(i18n("ndpi_page.note_live_flows_chart")) print [[
+          </td>
+        </tr>
+      </table>
+     <table id="if_stats_ndpi" class="table table-bordered table-striped tablesorter">
+       <thead>
+         <tr>
+           <th>]] print(i18n("ndpi_page.application_protocol")) print[[</th>
+           <th>]] print(i18n("ndpi_page.total_since_startup")) print[[</th>
+           <th>]] print(i18n("percentage")) print[[</th>
+         </tr>
+       </thead>
+       <tbody id="if_stats_ndpi_tbody"></tbody>
+     </table>
+    </div>
+    <div id="categories" class="tab-pane">
+      <br>
+      <table class="table table-bordered table-striped">
+        <tr>
+          <th class="text-left">]] print(i18n("ndpi_page.overview", {what = i18n("ndpi_page.application_protocol_categories")})) print [[</th>
+          <td colspan=5><div class="pie-chart" id="topApplicationCategories"></td>
+        </tr>
+      </table>
+     <table id="if_stats_ndpi_categories" class="table table-bordered table-striped tablesorter">
+       <thead>
+         <tr>
+           <th>]] print(i18n("ndpi_page.application_protocol_category")) print[[</th>
+           <th>]] print(i18n("ndpi_page.total_since_startup")) print[[</th>
+           <th>]] print(i18n("percentage")) print[[</th>
+         </tr>
+       </thead>
+       <tbody id="if_stats_ndpi_categories_tbody"></tbody>
+     </table>
+    </div>
+]]
 
+print [[
+<script type="text/javascript" src="]] print(ntop.getHttpPrefix()) print [[/js/jquery.tablesorter.js"></script>
 	<script type='text/javascript'>
 	 window.onload=function() {]]
 
@@ -794,21 +823,6 @@ elseif(page == "ndpi") then
    print [[/lua/iface_tcp_stats.lua', { ifid: "]] print(ifid) print [[" }, "", refresh);
     }
 
-      </script><p>
-  </table>
-  ]]
-
-   print [[
-     <table id="if_stats_ndpi" class="table table-bordered table-striped tablesorter">
-     ]]
-
-   print("<thead><tr><th>" .. i18n("ndpi_page.application_protocol") .. "</th><th>" .. i18n("ndpi_page.total_since_startup") .. "</th><th>" .. i18n("percentage") .. "</th></tr></thead>\n")
-
-   print ('<tbody id="if_stats_ndpi_tbody">\n')
-   print ("</tbody>")
-   print("</table>\n")
-   print [[
-<script>
 function update_ndpi_table() {
   $.ajax({
     type: 'GET',
@@ -828,21 +842,6 @@ function update_ndpi_table() {
 update_ndpi_table();
 setInterval(update_ndpi_table, 5000);
 
-</script>
-]]
-
-   
-   print [[
-     <table id="if_stats_ndpi_categories" class="table table-bordered table-striped tablesorter">
-     ]]
-
-   print("<thead><tr><th>" .. i18n("ndpi_page.application_protocol_category") .. "</th><th>" .. i18n("ndpi_page.total_since_startup") .. "</th><th>" .. i18n("percentage") .. "</th></tr></thead>\n")
-
-   print ('<tbody id="if_stats_ndpi_categories_tbody">\n')
-   print ("</tbody>")
-   print("</table>\n")
-   print [[
-<script>
 function update_ndpi_categories_table() {
   $.ajax({
     type: 'GET',
