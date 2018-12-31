@@ -206,6 +206,7 @@
 #define MAC_SERIALIZED_KEY      "ntopng.serialized_macs.ifid_%u__%s"
 #define HOST_POOL_SERIALIZED_KEY "ntopng.serialized_host_pools.ifid_%u"
 #define NTOPNG_PREFS_PREFIX     "ntopng.prefs"
+#define NTOPNG_CACHE_PREFIX     "ntopng.cache"
 #define MAC_CUSTOM_DEVICE_TYPE  NTOPNG_PREFS_PREFIX".device_types.%s"
 #define NTOP_HOSTS_SERIAL       "ntopng.host_serial"
 #define MAX_NUM_INTERFACE_IDS   256
@@ -582,6 +583,8 @@
 #define DISAGGREGATION_INGRESS_VRF_ID                  "ingress_vrf_id"
 #define DISAGGREGATION_VLAN                            "vlan"
 #define DISAGGREGATION_NONE                            "none"
+#define CONST_FIELD_MAP_CACHE_KEY                      NTOPNG_CACHE_PREFIX".ifid_%d.field_map.pen_%u"
+#define CONST_FIELD_VALUE_MAP_CACHE_KEY                NTOPNG_CACHE_PREFIX".ifid_%d.field_value_map.pen_%u.field_%u"
 #ifdef NTOPNG_PRO
 #define MAX_NUM_CUSTOM_APPS  128
 #define CONST_RUNTIME_PREFS_ALERT_NAGIOS             NTOPNG_PREFS_PREFIX".alerts.nagios_notifications_enabled"    /* 0 / 1 */

@@ -231,6 +231,16 @@ typedef struct zmq_remote_stats {
   u_int32_t export_queue_full, too_many_flows, elk_flow_drops, sflow_pkt_sample_drops;
 } ZMQ_RemoteStats;
 
+typedef struct zmq_field_map {
+  u_int32_t pen, field;
+  const char *map;
+} ZMQ_FieldMap;
+
+typedef struct zmq_field_value_map {
+  u_int32_t pen, field, value;
+  const char *map;
+} ZMQ_FieldValueMap;
+
 struct vm_ptree {
   lua_State* vm;
   AddressTree *ptree;
