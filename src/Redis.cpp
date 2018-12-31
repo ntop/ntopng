@@ -106,7 +106,7 @@ void Redis::reconnectRedis() {
       }
     }
 
-    freeReplyObject(reply);
+    if(reply) freeReplyObject(reply);
     num_requests++;
     reply = (redisReply*)redisCommand(redis, "PING");
     if(reply && (reply->type == REDIS_REPLY_ERROR)) {
@@ -115,7 +115,7 @@ void Redis::reconnectRedis() {
       goto conn_retry;
     }
 
-    freeReplyObject(reply);
+    if(reply) freeReplyObject(reply);
     num_requests++;
     reply = (redisReply*)redisCommand(redis, "SELECT %u", redis_db_id);
     if(reply && (reply->type == REDIS_REPLY_ERROR)) {
@@ -124,7 +124,7 @@ void Redis::reconnectRedis() {
       goto conn_retry;
     }
 
-    freeReplyObject(reply);
+    if(reply) freeReplyObject(reply);
     connected = true;
     break;
 
