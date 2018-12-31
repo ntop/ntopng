@@ -817,9 +817,11 @@ function update_ndpi_table() {
    print [[/lua/if_stats_ndpi.lua',
     data: { ifid: "]] print(ifid) print [[" },
     success: function(content) {
-      $('#if_stats_ndpi_tbody').html(content);
-      // Let the TableSorter plugin know that we updated the table
-      $('#if_stats_ndpi_tbody').trigger("update");
+      if(content) {
+         $('#if_stats_ndpi_tbody').html(content);
+         // Let the TableSorter plugin know that we updated the table
+         $('#if_stats_ndpi_tbody').trigger("update");
+      }
     }
   });
 }
@@ -849,9 +851,11 @@ function update_ndpi_categories_table() {
    print [[/lua/if_stats_ndpi_categories.lua',
     data: { ifid: "]] print(ifid) print [[" },
     success: function(content) {
-      $('#if_stats_ndpi_categories_tbody').html(content);
-      // Let the TableSorter plugin know that we updated the table
-      $('#if_stats_ndpi_categories_tbody').trigger("update");
+      if(content) {
+         $('#if_stats_ndpi_categories_tbody').html(content);
+         // Let the TableSorter plugin know that we updated the table
+         $('#if_stats_ndpi_categories_tbody').trigger("update");
+      }
     }
   });
 }
@@ -879,8 +883,10 @@ function update_icmp_table() {
   print [[/lua/get_icmp_data.lua',
     data: { ifid: "]] print(ifId.."")  print [[" },
     success: function(content) {
-      $('#iface_details_icmp_tbody').html(content);
-      $('#icmp_table').trigger("update");
+      if(content) {
+         $('#iface_details_icmp_tbody').html(content);
+         $('#icmp_table').trigger("update");
+      }
     }
   });
 }
@@ -908,8 +914,10 @@ function update_arp_table() {
   print [[/lua/get_arp_data.lua',
     data: { ifid: "]] print(ifId.."")  print [[" },
     success: function(content) {
-      $('#iface_details_arp_tbody').html(content);
-      $('#arp_table').trigger("update");
+      if(content) {
+         $('#iface_details_arp_tbody').html(content);
+         $('#arp_table').trigger("update");
+      }
     }
   });
 }

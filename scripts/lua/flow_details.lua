@@ -778,14 +778,16 @@ print [[/lua/flow_stats.lua',
 			$('#srv2cli').html(addCommas(rsp["srv2cli.packets"])+" Pkts / "+bytesToVolume(rsp["srv2cli.bytes"]));
 			$('#throughput').html(rsp.throughput);
 
-			$('#c2sOOO').html(formatPackets(rsp["c2sOOO"]));
-			$('#s2cOOO').html(formatPackets(rsp["s2cOOO"]));
-			$('#c2slost').html(formatPackets(rsp["c2slost"]));
-			$('#s2clost').html(formatPackets(rsp["s2clost"]));
-			$('#c2skeep_alive').html(formatPackets(rsp["c2skeep_alive"]));
-			$('#s2ckeep_alive').html(formatPackets(rsp["s2ckeep_alive"]));
-			$('#c2sretr').html(formatPackets(rsp["c2sretr"]));
-			$('#s2cretr').html(formatPackets(rsp["s2cretr"]));
+			if(typeof rsp["c2sOOO"] !== "undefined") {
+			   $('#c2sOOO').html(formatPackets(rsp["c2sOOO"]));
+			   $('#s2cOOO').html(formatPackets(rsp["s2cOOO"]));
+			   $('#c2slost').html(formatPackets(rsp["c2slost"]));
+			   $('#s2clost').html(formatPackets(rsp["s2clost"]));
+			   $('#c2skeep_alive').html(formatPackets(rsp["c2skeep_alive"]));
+			   $('#s2ckeep_alive').html(formatPackets(rsp["s2ckeep_alive"]));
+			   $('#c2sretr').html(formatPackets(rsp["c2sretr"]));
+			   $('#s2cretr').html(formatPackets(rsp["s2cretr"]));
+			}
 			if (rsp["cli2srv_quota"]) $('#cli2srv_quota').html(rsp["cli2srv_quota"]);
 			if (rsp["srv2cli_quota"]) $('#srv2cli_quota').html(rsp["srv2cli_quota"]);
 
