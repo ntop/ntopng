@@ -145,7 +145,9 @@ function dumpInterfaceStats(interface_name)
 	 end
       end
 
-      if recording_utils.isAvailable() then
+      if recording_utils.isManualServiceActive(ifstats.id) then
+	 res["traffic_recording"] = "recording"
+      elseif recording_utils.isAvailable() then
         if recording_utils.isEnabled(ifstats.id) then
           if recording_utils.isActive(ifstats.id) then
             res["traffic_recording"] = "recording"

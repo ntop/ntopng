@@ -556,6 +556,17 @@ function recording_utils.isActive(ifid)
   return os_utils.isActive("n2disk-ntopng", confifname)
 end
 
+--! @brief Check if there is a manually-started n2disk instance running for this interface
+--! @param ifid the interface identifier 
+--! @return true if the service is running, false otherwise
+function recording_utils.isManualServiceActive(ifid)
+  -- manual services are controlled by the system administrator with systemd
+  -- for example systemctl start n2disk@eno1
+  -- in this case, ntopng passively detect such service but doesn't manage it 
+  local n2disk_ifname = getN2diskInterfaceName(ifid)
+  return os_utils.isActive("n2disk", n2disk_ifname)
+end
+
 --! @brief Start (or restart) the traffic recording service
 --! @param ifid the interface identifier 
 function recording_utils.restart(ifid)
@@ -577,9 +588,9 @@ end
 --! @param rows the number of lines to return
 --| @note lines are retuned in reverse order (most recent line first)
 --! @return the log trace
-function recording_utils.log(ifid, rows)
+function recording_utils.log(ifid, rows, manual_service)
   local confifname = getConfigInterfaceName(ifid)
-  local output = n2diskctl("log", confifname, "|tail -n", rows, "|tac")
+  local output = os_utils.ntopctlCmd(ternary(manual_service, "n2disk", "n2disk-ntopng"), "log", confifname, "|tail -n", rows, "|tac")
   
   return output
 end

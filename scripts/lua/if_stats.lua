@@ -222,9 +222,12 @@ if not have_nedge and (table.len(ifstats.profiles) > 0) then
   end
 end
 
-if recording_utils.isAvailable() and (interface.isPacketInterface() or 
-   (recording_utils.isSupportedZMQInterface(ifid) and not table.empty(ext_interfaces))) then
+local has_traffic_recording_page = recording_utils.isManualServiceActive(ifid)
+   or (recording_utils.isAvailable()
+	  and (interface.isPacketInterface()
+		  or (recording_utils.isSupportedZMQInterface(ifid) and not table.empty(ext_interfaces))))
 
+if has_traffic_recording_page then
    if(page == "traffic_recording") then
       print("<li class=\"active\"><a href=\""..url.."&page=traffic_recording\"><i class=\"fa fa-hdd-o fa-lg\"></i></a></li>")
    else
@@ -1022,17 +1025,33 @@ print [[
    </script>
 ]]
 
-elseif(page == "traffic_recording") then
+elseif(page == "traffic_recording" and has_traffic_recording_page) then
    local tab = _GET["tab"] or "config"
-   local recording_enabled = recording_utils.isEnabled(ifstats.id)
+   local recording_enabled = recording_utils.isEnabled(ifstats.id) or recording_utils.isManualServiceActive(ifstats.id)
+   -- config tab is only shown if the ntopng-managed recording service is active
+   -- or if a manual recording service for this interface is *NOT* active.
+   -- then ntopng-managed service 'wins' over the manually-started service:
+   -- ** if the ntopng-managed service is not running, we only show the config if there is no manual service running
+   -- ** if the ntopng-managed service is running, we show its rettings, regardless if there's another manual service activated for the same interface
+   local config_enabled  = recording_utils.isActive(ifstats.id) or not recording_utils.isManualServiceActive(ifstats.id)
+
+   if tab == "config" and not config_enabled then
+      if recording_enabled then tab = "status" else tab = "" end
+   end
+   if (tab == "status" or tab == "jobs") and not recording_enabled then
+      if config_enabled then tab = "config" else tab = "" end
+   end
 
    if(_SERVER["REQUEST_METHOD"] == "POST") and (tab == "config") then
       recording_enabled = not isEmptyString(_POST["record_traffic"])
    end
 
    print('<ul id="traffic-recording-nav" class="nav nav-tabs" role="tablist">')
-   print('<li class="'.. ternary(tab == "config", "active", "") ..'"><a href="?ifid='.. ifstats.id
-      ..'&page=traffic_recording"><i class="fa fa-cog"></i> '.. i18n("traffic_recording.settings") ..'</a></li>')
+
+   if config_enabled then
+      print('<li class="'.. ternary(tab == "config", "active", "") ..'"><a href="?ifid='.. ifstats.id
+	       ..'&page=traffic_recording"><i class="fa fa-cog"></i> '.. i18n("traffic_recording.settings") ..'</a></li>')
+   end
 
    if recording_enabled then
       print('<li class="'.. ternary(tab == "status", "active", "") ..'"><a href="?ifid='.. ifstats.id
@@ -1043,14 +1062,15 @@ elseif(page == "traffic_recording") then
             ..'&page=traffic_recording&tab=jobs">'.. i18n("traffic_recording.jobs") ..'</a></li>')
       end
    end
+
    print('</ul>')
    print('<div class="tab-content">')
 
-   if tab == "status" then
+   if recording_enabled and tab == "status" then
       dofile(dirs.installdir .. "/scripts/lua/inc/traffic_recording_status.lua")
-   elseif tab == "jobs" then
+   elseif recording_enabled and ntop.isEnterprise() and tab == "jobs" then
       dofile(dirs.installdir .. "/scripts/lua/inc/traffic_recording_jobs.lua")
-   else -- config, default
+   elseif config_enabled and tab == "config" then -- config, default
       dofile(dirs.installdir .. "/scripts/lua/inc/traffic_recording_config.lua")
    end
 
