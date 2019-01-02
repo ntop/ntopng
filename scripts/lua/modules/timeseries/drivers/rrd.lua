@@ -667,13 +667,25 @@ end
 
 -- ##############################################
 
+local function deleteAllData(ifid)
+  local paths = getRRDPaths()
+
+  for _, path in pairs(paths) do
+    local ifpath = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/".. path .."/")
+    local path_to_del = os_utils.fixPath(ifpath)
+
+    if ntop.exists(path_to_del) and not ntop.rmdir(path_to_del) then
+      return false
+    end
+  end
+
+  return true
+end
+
 function driver:delete(schema_prefix, tags)
   -- NOTE: delete support in this driver is currently limited to a specific set of schemas and tags
   local supported_prefixes = {
-    [""] = {
-      tags = {ifid=1},
-      path = function(tags) return getRRDName(tags.ifid) end,
-    }, host = {
+    host = {
       tags = {ifid=1, host=1},
       path = function(tags) return getRRDName(tags.ifid, tags.host) end,
     }, mac = {
@@ -687,6 +699,11 @@ function driver:delete(schema_prefix, tags)
       path = function(tags) return getRRDName(tags.ifid, "net:" .. tags.subnet) end,
     }
   }
+
+  if schema_prefix == "" then
+    -- Delete all data
+    return deleteAllData(tags.ifid)
+  end
 
   local delete_info = supported_prefixes[schema_prefix]
 
