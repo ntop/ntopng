@@ -14,7 +14,7 @@ local is_windows = ntop.isWindows()
 -- ########################################################
 
 function os_utils.getPathDivider()
-   if(ntop.isWindows()) then
+   if(is_windows) then
       return "\\"
    else
       return "/"
@@ -27,7 +27,7 @@ end
 function os_utils.fixPath(path)
    path = string.gsub(path, "//+", '/') -- removes possibly empty parts of the path
 
-   if(ntop.isWindows() and (string.len(path) > 2)) then
+   if(is_windows and (string.len(path) > 2)) then
       path = string.gsub(path, "/", os_utils.getPathDivider())
    end
 
@@ -88,7 +88,7 @@ function os_utils.hasService(service_name, ...)
      return false
    end
 
-   local has_ntopctl = os_utils.execWithOutput("which ntopctl >/dev/null 2>/dev/null")
+   local has_ntopctl = os_utils.execWithOutput("which ntopctl >/dev/null 2>&1")
    if has_ntopctl == nil then
       -- ntopctl is not available
       return false

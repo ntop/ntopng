@@ -743,7 +743,7 @@ function formatRawUserActivity(record, activity_json)
 
       elseif decoded.name == 'disableService' and decoded.params[1] ~= nil then
         local service_name = decoded.params[1]
-        if service_name == 'n2disk' and decoded.params[2] ~= nil then
+        if service_name == 'n2disk-ntopng' and decoded.params[2] ~= nil then
           local service_instance = decoded.params[2]
           return i18n('user_activity.recording_disabled', {user=user, ifname=service_instance})
         elseif service_name == 'n2n' then
@@ -752,7 +752,7 @@ function formatRawUserActivity(record, activity_json)
 
       elseif decoded.name == 'enableService' and decoded.params[1] ~= nil then
         local service_name = decoded.params[1]
-        if service_name == 'n2disk' and decoded.params[2] ~= nil then
+        if service_name == 'n2disk-ntopng' and decoded.params[2] ~= nil then
           local service_instance = decoded.params[2]
           return i18n('user_activity.recording_enabled', {user=user, ifname=service_instance})
         elseif service_name == 'n2n' then

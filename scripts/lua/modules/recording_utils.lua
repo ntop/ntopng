@@ -8,20 +8,20 @@ require "lua_utils"
 local json = require("dkjson")
 local os_utils = require("os_utils")
 
-prefs = ntop.getPrefs()
+local prefs = ntop.getPrefs()
 
 local extraction_queue_key = "ntopng.traffic_recording.extraction_queue"
 local extraction_stop_queue_key = "ntopng.traffic_recording.extraction_stop_queue"
 local extraction_seqnum_key = "ntopng.traffic_recording.extraction_seqnum"
 local extraction_jobs_key = "ntopng.traffic_recording.extraction_jobs"
-local IS_AVAILABLE_KEY = "ntopng.cache.traffic_recording_available"
+local is_available_key = "ntopng.cache.traffic_recording_available"
 
 local recording_utils = {}
 
-recording_utils.default_disk_space = 10*1024
+recording_utils.default_disk_space = 10 * 1024
 
 local function n2diskctl(...)
-  return os_utils.ntopctlCmd("n2disk", ...)
+  return os_utils.ntopctlCmd("n2disk-ntopng", ...)
 end
 
 -- #################################
@@ -79,17 +79,17 @@ function recording_utils.checkAvailable()
 
   if(not ntop.isWindows())
     and (not ntop.isnEdge())
-    and os_utils.hasService("n2disk", getInterfaceName(getFirstInterfaceId())) then
+    and os_utils.hasService("n2disk-ntopng", getInterfaceName(getFirstInterfaceId())) then
     is_available = true
   end
 
-  ntop.setCache(IS_AVAILABLE_KEY, ternary(is_available, "1", "0"))
+  ntop.setCache(is_available_key, ternary(is_available, "1", "0"))
 end
 
 --! @brief Check if traffic recording is available and allowed for the current user on an interface
 --! @return true if recording is available, false otherwise
 function recording_utils.isAvailable()
-  if isAdministrator() and (ntop.getCache(IS_AVAILABLE_KEY) == "1") then
+  if isAdministrator() and (ntop.getCache(is_available_key) == "1") then
     return true
   end
   return false
@@ -553,23 +553,23 @@ function recording_utils.isActive(ifid)
   if not recording_utils.isAvailable() then return false end
 
   local confifname = getConfigInterfaceName(ifid)
-  return os_utils.isActive("n2disk", confifname)
+  return os_utils.isActive("n2disk-ntopng", confifname)
 end
 
 --! @brief Start (or restart) the traffic recording service
 --! @param ifid the interface identifier 
 function recording_utils.restart(ifid)
   local confifname = getConfigInterfaceName(ifid)
-  os_utils.enableService("n2disk", confifname)
-  os_utils.restartService("n2disk", confifname)
+  os_utils.enableService("n2disk-ntopng", confifname)
+  os_utils.restartService("n2disk-ntopng", confifname)
 end
 
 --! @brief Stop the traffic recording service
 --! @param ifid the interface identifier 
 function recording_utils.stop(ifid)
   local confifname = getConfigInterfaceName(ifid)
-  os_utils.stopService("n2disk", confifname)
-  os_utils.disableService("n2disk", confifname)
+  os_utils.stopService("n2disk-ntopng", confifname)
+  os_utils.disableService("n2disk-ntopng", confifname)
 end
 
 --! @brief Return the log trace of the traffic recording service (n2disk)

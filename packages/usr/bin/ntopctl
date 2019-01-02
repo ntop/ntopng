@@ -13,9 +13,7 @@ SERVICE=
 START_FILE=
 
 # The followings are only set if the given program supports them
-SERVICE_STATS=
 LOG_FILE=
-LICENSE_INSTALLER=
 CONFIG_INSTALL_TARGET=
 
 # #######################################################
@@ -203,8 +201,15 @@ install_service_conf() {
 
 # #######################################################
 
+ALLOWED_OPTIONS_N2DISK="is-active|is-enabled"
+ALLOWED_OPTIONS_N2DISK_NTOPNG="start|stop|restart|enable|disable|status|is-active|is-enabled|has-service|log|stats|set-license"
+ALLOWED_OPTIONS_N2N="start|stop|restart|enable|disable|status|is-active|is-enabled|has-service|log"
+
 print_usage() {
-	echo "Usage: {n2disk|n2n} {start|stop|restart|enable|disable|status|is-active|is-enabled|has-service|log|set-license} <params>"
+	echo "Usage:"
+	echo " n2n {${ALLOWED_OPTIONS_N2N}} [params]"
+	echo " n2disk-ntopng {${ALLOWED_OPTIONS_N2DISK_NTOPNG}} [params]"
+	echo " n2disk {${ALLOWED_OPTIONS_N2DISK}} [params]"
 	exit 1
 }
 
@@ -212,11 +217,27 @@ if hash systemctl 2>/dev/null; then
 	SYSTEMD=true
 fi
 
+check_allowed_options() {
+	local ALLOWED_OPTIONS=`echo $2 | sed 's/|/ /g'`
+	local OPTION=$1
+
+	for i in ${ALLOWED_OPTIONS}; do
+		if [ "${OPTION}" = "${i}" ]; then return; fi
+	done
+
+	print_usage
+}
+
 # Program check
 case "$1" in
 	n2disk)
+	check_allowed_options "$2" "${ALLOWED_OPTIONS_N2DISK}"
+	;;
+
+	n2disk-ntopng)
+	check_allowed_options "$2" "${ALLOWED_OPTIONS_N2DISK_NTOPNG}"
+
 	CONFIG_INSTALL_TARGET="install-n2disk-conf"
-	SERVICE_STATS=get_n2disk_stats
 	SERVICE_NAME="n2disk-ntopng"
 
 	if [ -z "$3" ]; then
@@ -226,7 +247,6 @@ case "$1" in
 	if [ "$2" = "set-license" ]; then
 		LICENSE="$3"
 		check_license
-		LICENSE_INSTALLER=set_n2disk_license
 	else
 		IFNAME="$3"
 		check_interface
@@ -236,6 +256,8 @@ case "$1" in
 	;;
 
 	n2n)
+	check_allowed_options "$2" "${ALLOWED_OPTIONS_N2N}"
+
 	SERVICE_NAME="edge-ntopng"
 	CONFIG_INSTALL_TARGET="install-n2n-conf"
 
@@ -248,7 +270,7 @@ case "$1" in
 	print_usage
 esac
 
-# Action check
+# Action
 case "$2" in
 	start)
 	install_service_conf
@@ -293,21 +315,13 @@ case "$2" in
 	has_service;
 	;;
 
-# n2disk
+# n2disk-ntopng
 	stats)
-	if [ -z $SERVICE_STATS ]; then
-		echo "Unsupported command"
-		exit 1
-	fi
-	$SERVICE_STATS;
+	get_n2disk_stats
 	;;
 
 	set-license)
-	if [ -z $LICENSE_INSTALLER ]; then
-		echo "Unsupported command"
-		exit 1
-	fi
-	$LICENSE_INSTALLER;
+	set_n2disk_license
 	;;
 
 	*)
