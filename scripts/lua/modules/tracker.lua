@@ -11,7 +11,16 @@ local tracker = {}
 --! @param f_name is the function name
 --! @param f_args is a table with the arguments
 function tracker.log(f_name, f_args)
-  local ifid = interface.getStats().id
+  local stats = interface.getStats()
+
+  if stats == nil then
+    -- this is running before interfaces are instantiated
+    traceError(TRACE_INFO, TRACE_CONSOLE,
+      "Cannot log " .. f_name .. " call as interfaces are not instantiated yet!")
+    return
+  end
+
+  local ifid = stats.id
 
   local jobj = { 
     scope = 'function',
