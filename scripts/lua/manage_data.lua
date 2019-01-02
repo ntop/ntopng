@@ -49,8 +49,14 @@ if _POST and table.len(_POST) > 0 and isAdministrator() then
 
    else -- we're deleting an host
       local host_info = url2hostinfo(_POST)
+      local parts = split(host_info["host"], "/")
+      local res
 
-      local res = delete_data_utils.delete_host(_POST["ifid"], host_info)
+      if (#parts == 2) and (tonumber(parts[2]) ~= nil) then
+        res = delete_data_utils.delete_network(_POST["ifid"], parts[1], parts[2], host_info["vlan"] or 0)
+      else
+        res = delete_data_utils.delete_host(_POST["ifid"], host_info)
+      end
 
       local err_msgs = {}
       for what, what_res in pairs(res) do
@@ -133,7 +139,7 @@ print[[
 <hr>
 <h2>]] print(i18n("manage_data.manage_data")) print[[</h2>
 <br>
-<ul class="nav nav-tabs">]]
+<ul id="manage-data-nav" class="nav nav-tabs">]]
 
 local tab_export_active = ""
 local tab_delete_active = ""
@@ -366,6 +372,7 @@ params.ifid = ']] print(tostring(getInterfaceId(ifname))) print[[';
 
             var form = paramsToForm('<form method="post"></form>', params);
 
+            aysResetForm($("#host_data_form_delete")); // clean the form to void alert message
             form.appendTo('body').submit();
          };
 
@@ -387,6 +394,10 @@ var delete_interfaces_data = function(action) {
 
   form.appendTo('body').submit();
 };
+
+function setActiveHashTab(hash) {
+   $('#manage-data-nav a[href="' + hash + '"]').tab('show');
+}
 
 var prepare_typeahead = function(host_id, vlan_id, buttons_id) {
   $('#' + host_id).val('');
@@ -417,6 +428,21 @@ print [[/lua/find_host.lua', { query: query }, function (data) {
   });
 }
 
+  function deleteHostValidator(input) {
+    if(hostOrMacValidator(input))
+      return true;
+
+    /* check for a /24-/32 IPv4 network */
+    if(is_network_mask(input.val(), false /* mandatory mask */)) {
+      var elems = input.val().split("/");
+
+      if((elems.length == 2) && is_good_ipv4(elems[0]) && (parseInt(elems[1]) >= 24))
+        return true;
+    }
+
+    return false;
+  }
+
   $(document).ready(function(){
     prepare_typeahead('export_host', 'export_vlan', 'export_hosts_buttons');
     prepare_typeahead('delete_host', 'delete_vlan', 'delete_hosts_buttons');
@@ -424,7 +450,7 @@ print [[/lua/find_host.lua', { query: query }, function (data) {
     var validator_options = {
       disable: true,
       custom: {
-         host: hostOrMacValidator,
+         host: deleteHostValidator,
       }, errors: {
          host: "]] print(i18n("manage_data.mac_or_ip_required")) print[[.",
       }
@@ -435,6 +461,15 @@ print [[/lua/find_host.lua', { query: query }, function (data) {
 
     aysHandleForm("#host_data_form_delete");
   });
+
+  /* Handle tab state across requests */
+  $("ul.nav-tabs > li > a").on("shown.bs.tab", function(e) {
+      var id = $(e.target).attr("href").substr(1);
+      history.replaceState(null, null, "#"+id);
+  });
+
+  if(window.location.hash)
+    setActiveHashTab(window.location.hash)
 </script>
 
 

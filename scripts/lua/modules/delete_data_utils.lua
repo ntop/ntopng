@@ -112,15 +112,64 @@ end
 
 -- ################################################################
 
-function delete_data_utils.delete_host(interface_id, host_info)
+local function _delete_host(interface_id, host_info)
    local h_ts = delete_host_timeseries_data(interface_id, host_info)
    local h_rk = delete_host_redis_keys(interface_id, host_info)
    local h_db = delete_host_mysql_flows(interface_id, host_info)
 
+   return {delete_host_timeseries_data = h_ts, delete_host_redis_keys = h_rk, delete_host_mysql_flows = h_db}
+end
+
+-- ################################################################
+
+function delete_data_utils.delete_host(interface_id, host_info)
    -- TRACKER HOOK
    tracker.log('delete_host', { hostinfo2hostkey(host_info) })
 
-   return {delete_host_timeseries_data = h_ts, delete_host_redis_keys = h_rk, delete_host_mysql_flows = h_db}
+   return _delete_host(interface_id, host_info)
+end
+
+-- ################################################################
+
+function delete_data_utils.delete_network(interface_id, netaddr, mask, vlan)
+   mask = tonumber(mask)
+
+   -- TRACKER HOOK
+   tracker.log('delete_network', { hostinfo2hostkey({host=netaddr.."/"..mask, vlan=vlan}) })
+
+   if not isIPv4(netaddr) then
+      return {delete_network = {status = "ERR_INVALID_IPV4_NETWORK"}}
+   end
+
+   if (mask < 24) or (mask > 32) then
+      return {delete_network = {status = "ERR_NETWORK_TOO_BIG"}}
+   end
+
+   local prefix = ntop.networkPrefix(netaddr, tonumber(mask))
+   local parts = string.split(prefix, "%.")
+   local start = tonumber(parts[4])
+
+   local size = 1 << (32-mask)
+
+   for i=0,size-1 do
+      parts[4] = tostring(start + i)
+
+      local ip = table.concat(parts, ".")
+      local status = _delete_host(interface_id, {host=ip, vlan=vlan})
+
+      for what, what_res in pairs(status) do
+	 if what_res["status"] ~= "OK" then
+	    return status
+	 end
+      end
+   end
+
+   -- Delete network ts data
+   if not ts_utils.delete("subnet", {ifid=interface_id, subnet=prefix.."/"..mask}) then
+      return {delete_network_timeseries = {status = "ERR_TS_DELETE"}}
+   end
+
+   return {delete_network = {status = "OK"}}
 end
 
 -- ################################################################

@@ -682,6 +682,9 @@ function driver:delete(schema_prefix, tags)
     }, snmp_if = {
       tags = {ifid=1, device=1},
       path = function(tags) return getRRDName(tags.ifid, "snmp:" .. tags.device) end,
+    }, subnet = {
+      tags = {ifid=1, subnet=1},
+      path = function(tags) return getRRDName(tags.ifid, "net:" .. tags.subnet) end,
     }
   }
 

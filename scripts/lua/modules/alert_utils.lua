@@ -732,6 +732,10 @@ function formatRawUserActivity(record, activity_json)
         local host_url = "<a href=\"".. ntop.getHttpPrefix() .. "/lua/host_details.lua?ifid="..decoded.ifid.."&host="..host.."\">"..hostname .."</a>" 
         return i18n('user_activity.deleted_host_data', {user=user, ifname=ifname, host=host_url})
 
+      elseif decoded.name == 'delete_network' and decoded.params[1] ~= nil then
+        local network = decoded.params[1]
+        return i18n('user_activity.deleted_network_data', {user=user, ifname=ifname, network=network})
+
       elseif decoded.name == 'delete_inactive_interfaces' then
         return i18n('user_activity.deleted_inactive_interfaces_data', {user=user})
 
