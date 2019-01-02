@@ -110,7 +110,10 @@ print [[
     </div>
 </div>
 <br>
+]]
 
+if not ntop.isnEdge() then
+  print[[
 <div class="row">
     <div class="form-group col-md-6 has-feedback">
       <label class="form-label">]] print(i18n("language")) print[[</label>
@@ -118,11 +121,11 @@ print [[
         <span class="input-group-addon"><i class="fa fa-language" aria-hidden="true"></i></span>
         <select name="user_language" id="user_language" class="form-control">]]
 
-for _, lang in pairs(locales_utils.getAvailableLocales()) do
-   print('<option value="'..lang["code"]..'">'..i18n("locales." .. lang["code"])..'</option>')
-end
+  for _, lang in pairs(locales_utils.getAvailableLocales()) do
+     print('<option value="'..lang["code"]..'">'..i18n("locales." .. lang["code"])..'</option>')
+  end
 
-print[[
+  print[[
         </select>
       </div>
     </div>
@@ -133,9 +136,11 @@ print[[
       </div>
     </div>
 </div>
-
 <br>
+]]
+end
 
+print[[
 <div class="row">
     <div class="form-group col-md-12 has-feedback">
       <button type="submit" id="add_user_submit" class="btn btn-primary btn-block">]] print(i18n("manage_users.add_new_user")) print[[</button>

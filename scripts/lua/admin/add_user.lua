@@ -21,7 +21,7 @@ if(haveAdminPrivileges()) then
    limited_lifetime = _POST["lifetime_limited"]
    lifetime_secs = tonumber((_POST["lifetime_secs"] or -1))
 
-   if(username == nil or full_name == nil or password == nil or confirm_password == nil or host_role == nil or networks == nil or allowed_interface == nil or language == nil) then
+   if(username == nil or full_name == nil or password == nil or confirm_password == nil or host_role == nil or networks == nil or allowed_interface == nil) then
       print ("{ \"result\" : -1, \"message\" : \"Invalid parameters\" }")
       return
    end
