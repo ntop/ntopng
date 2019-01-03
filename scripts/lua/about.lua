@@ -8,6 +8,7 @@ require "lua_utils"
 local ts_utils = require("ts_utils")
 local info = ntop.getInfo() 
 local page_utils = require("page_utils")
+local format_utils = require("format_utils")
 
 sendHTTPContentTypeHeader('text/html')
 
@@ -39,7 +40,7 @@ if(info["pro.systemid"] and (info["pro.systemid"] ~= "")) then
    v = split(info["version"], " ")
 
    print(" [ SystemId: <A HREF=\"https://shop.ntop.org/mkntopng/?systemid=".. info["pro.systemid"].."&".."version=".. v[1] .."&edition=")
-   
+
    if(info["version.embedded_edition"] == true) then
       print("embedded")
    elseif(info["version.enterprise_edition"] == true) then
@@ -82,6 +83,11 @@ print[[</small>
       else
 	 if(info["pro.license"]) then
 	    print(i18n("about.licence")..": ".. info["pro.license"] .."\n")
+	    if info["pro.license_ends_at"] ~= nil and info["pro.license_days_left"] ~= nil then
+	       print("<br>"..i18n("about.maintenance", {
+				     _until = format_utils.formatEpoch(info["pro.license_ends_at"]),
+				     days_left = info["pro.license_days_left"]}))
+	    end
 	 end
       end
    end

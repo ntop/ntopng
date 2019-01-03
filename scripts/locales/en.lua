@@ -180,6 +180,7 @@ local lang = {
     ["datadir_warning"] = "Data directory migration notice",
     ["last_log"] = "Last Log Trace",
     ["licence"] = "License",
+    ["maintenance"] = "Maintenance: Until %{_until} [%{days_left} days left]",
     ["licence_expires_in"] = "License expires in %{time}",
     ["licence_generation"] = "Click on the above URL to generate your professional version license, or <br>purchase a license at <a href=\"%{purchase_url}\">e-shop</a>. If you are no-profit, research or an education<br>institution please read <a href=\"%{universities_url}\">this</a>.",
     ["maintenance_expired"] = "%{product} maintenance is expired",

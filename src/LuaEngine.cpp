@@ -5932,6 +5932,14 @@ static int ntop_get_info(lua_State* vm) {
     lua_push_bool_table_entry(vm, "pro.release", ntop->getPrefs()->is_pro_edition());
     lua_push_uint64_table_entry(vm, "pro.demo_ends_at", ntop->getPrefs()->pro_edition_demo_ends_at());
 #ifdef NTOPNG_PRO
+#ifndef FORCE_VALID_LICENSE
+    time_t until_then;
+    int days_left;
+    if(ntop->getPro()->get_maintenance_expiration_time(&until_then, &days_left)) {
+      lua_push_uint64_table_entry(vm, "pro.license_ends_at", (u_int64_t)until_then);
+      lua_push_uint64_table_entry(vm, "pro.license_days_left", days_left);
+    }
+#endif
     lua_push_str_table_entry(vm, "pro.license", ntop->getPro()->get_license());
     lua_push_bool_table_entry(vm, "pro.out_of_maintenance", ntop->getPro()->is_out_of_maintenance());
     lua_push_bool_table_entry(vm, "pro.use_redis_license", ntop->getPro()->use_redis_license());
