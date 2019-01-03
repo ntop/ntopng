@@ -1814,7 +1814,7 @@ fi
 \cd debian.ntopng
 
 if test "${with_nedge+set}" = set; then
- ln -s control.nedge.in control.in
+ ln -s control.nedge.$UBUNTU_RELEASE.in control.in
  DEFAULT_TARGET=nedge
 else
  ln -s control.$UBUNTU_RELEASE.in control.in
