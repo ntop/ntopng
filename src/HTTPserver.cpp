@@ -784,7 +784,7 @@ static int handle_lua_request(struct mg_connection *conn) {
      || (ntop->getRedis() == NULL /* Starting up... */)
      || (ntop->get_HTTPserver() == NULL))
     return(send_error(conn, 403 /* Forbidden */, request_info->uri,
-		      "Unexpected HTTP method or ntopng still starting up..."));
+		      "Unable to serve requests at this time, possibly starting up or shutting down."));
 
 #ifdef DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "################# [HTTP] %s [%s]",
