@@ -174,7 +174,7 @@ end
 
 -- ################################################################
 
-local function delete_interfaces_redis_keys(interfaces_list)
+local function delete_interfaces_redis_keys(interfaces_list, preserve_prefs)
    local pref_prefix = "ntopng.prefs"
    local status = "OK"
 
@@ -219,21 +219,13 @@ local function delete_interfaces_redis_keys(interfaces_list)
 	 local matching_keys = ntop.getKeysCache(pattern)
 
 	 for matching_key, _ in pairs(matching_keys or {}) do
-	    if not dry_run then
-	       ntop.delCache(matching_key)
+	    if((not preserve_prefs) or
+		  ((not starts(matching_key, "ntopng.prefs.")) and
+		   (not starts(matching_key, "ntopng.user.")))) then
+	       if not dry_run then
+		  ntop.delCache(matching_key)
+	       end
 	    end
-	 end
-      end
-   end
-
-   if ntop.isnEdge() then
-      -- clear captive portal users
-      -- (their host pools have already been deleted above)
-      local ntop_users = ntop.getUsers()
-
-      for username, user_details in pairs(ntop_users) do
-	 if user_details["group"] == "captive_portal" then
-	    ntop.deleteUser(username)
 	 end
       end
    end
@@ -360,10 +352,11 @@ end
 local function delete_interfaces_from_list(interfaces_list, preserve_interface_ids, preserve_redis_keys)
    local if_dt = delete_interfaces_data(interfaces_list)
    local if_db = delete_interfaces_db_flows(interfaces_list)
+   local preserve_prefs = ternary(ntop.isnEdge(), true, false)
 
    local if_rk
    if not preserve_redis_keys then
-      if_rk = delete_interfaces_redis_keys(interfaces_list)
+      if_rk = delete_interfaces_redis_keys(interfaces_list, preserve_prefs)
    end
 
    -- last step is to also free the ids that can thus be recycled
