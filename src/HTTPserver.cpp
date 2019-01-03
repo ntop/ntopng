@@ -564,8 +564,8 @@ static void redirect_to_login(struct mg_connection *conn,
 	      "Expires: 0\r\n"
 	      "Cache-Control: no-store, no-cache, must-revalidate\t\n"
 	      "Pragma: no-cache\r\n"
-              "Content-Type: text/html; charset=UTF-8\r\n"
-              "Content-Length: %lu\r\n"
+	      "Content-Type: text/html; charset=UTF-8\r\n"
+	      "Content-Length: %lu\r\n"
 	      "Location: http://%s%s%s%s%s\r\n\r\n%s",
               strlen(wispr_data),
               ntop->get_HTTPserver()->getCaptiveRedirectAddress(),
@@ -586,6 +586,8 @@ static void redirect_to_login(struct mg_connection *conn,
     mg_printf(conn,
 	      "HTTP/1.1 302 Found\r\n"
 	      "Set-Cookie: session=%s; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0;%s\r\n"  // Session ID
+	      "Set-Cookie: user=; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0;\r\n"
+	      "Set-Cookie: password=; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0;\r\n"
 	      "Location: %s%s%s%s\r\n\r\n",
 	      session_id,
 	      get_secure_cookie_attributes(request_info),
@@ -749,7 +751,7 @@ static int handle_lua_request(struct mg_connection *conn) {
   char group[NTOP_GROUP_MAXLEN] = { 0 };
   bool localuser = false;
   char *referer = (char*)mg_get_header(conn, "Referer");
-  u_int8_t whitelisted, authorized;
+  u_int8_t whitelisted;
 
   strncpy(group, NTOP_UNKNOWN_GROUP, NTOP_GROUP_MAXLEN-1);
   group[NTOP_GROUP_MAXLEN - 1] = '\0';
@@ -840,9 +842,6 @@ static int handle_lua_request(struct mg_connection *conn) {
   }
 #endif
 
-  whitelisted = isWhitelistedURI(request_info->uri);
-  authorized = getAuthorizedUser(conn, request_info, username, group, &localuser);
-
   /* Make sure there are existing interfaces for username. */
   if(!ntop->checkUserInterfaces(username)) {
     char session_id[NTOP_SESSION_ID_LENGTH];
@@ -863,28 +862,33 @@ static int handle_lua_request(struct mg_connection *conn) {
     return(1);
   }
 
-  if(isStaticResourceUrl(request_info, len))
-    ;
-  else if((!whitelisted) && (!authorized)) {
-    if(strcmp(request_info->uri, NETWORK_LOAD_URL) == 0) {
-      // avoid sending login redirect to allow js itself to redirect the user
-      return(send_error(conn, 403 /* Forbidden */, request_info->uri, "Login Required"));
-    } else {
-      char referer[255];
+  whitelisted = isWhitelistedURI(request_info->uri);
 
-      redirect_to_login(conn, request_info, make_referer(conn, referer, sizeof(referer)));
+  if(!isStaticResourceUrl(request_info, len)) {
+    /* Only check authorized for non-static resources */
+    u_int8_t authorized = getAuthorizedUser(conn, request_info, username, group, &localuser);
+
+    if((!whitelisted) && (!authorized)) {
+      if(strcmp(request_info->uri, NETWORK_LOAD_URL) == 0) {
+        // avoid sending login redirect to allow js itself to redirect the user
+        return(send_error(conn, 403 /* Forbidden */, request_info->uri, "Login Required"));
+      } else {
+        char referer[255];
+
+        redirect_to_login(conn, request_info, make_referer(conn, referer, sizeof(referer)));
+      }
+
+      return(1);
+    } else if ((strcmp(request_info->uri, CHANGE_PASSWORD_ULR) != 0)
+        && (strcmp(request_info->uri, LOGOUT_URL) != 0)
+         && authorized
+        && ntop->mustChangePassword(username)) {
+      redirect_to_password_change(conn, request_info);
+      return(1);
+    } else if(strcmp(request_info->uri, AUTHORIZE_URL) == 0) {
+      authorize(conn, request_info, username, group, &localuser);
+      return(1);
     }
-
-    return(1);
-  } else if ((strcmp(request_info->uri, CHANGE_PASSWORD_ULR) != 0)
-      && (strcmp(request_info->uri, LOGOUT_URL) != 0)
-	     && authorized
-      && ntop->mustChangePassword(username)) {
-    redirect_to_password_change(conn, request_info);
-    return(1);
-  } else if(strcmp(request_info->uri, AUTHORIZE_URL) == 0) {
-    authorize(conn, request_info, username, group, &localuser);
-    return(1);
   }
 
 #ifdef DEBUG
