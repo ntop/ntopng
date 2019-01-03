@@ -619,10 +619,7 @@ static void redirect_to_please_wait(struct mg_connection *conn,
 	    "HTTP/1.1 302 Found\r\n"
 	    // "HTTP/1.1 401 Unauthorized\r\n"
 	    // "WWW-Authenticate: Basic\r\n"
-	    "Set-Cookie: session=%s; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0;%s\r\n"  // Session ID
 	    "Location: %s%s%s%s\r\n\r\n",
-	    session_id,
-	    get_secure_cookie_attributes(request_info),
 	    ntop->getPrefs()->get_http_prefix(), Utils::getURL((char*)PLEASE_WAIT_URL, buf, sizeof(buf)),
 	    (referer[0] != '\0') ? (char*)"?referer=" : (char*)"",
 	    (referer[0] != '\0') ? (referer_enc = Utils::urlEncode(referer)) : (char*)"");

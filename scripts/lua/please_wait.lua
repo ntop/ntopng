@@ -96,13 +96,21 @@ if #res >= 1 then
 ]]
 end
 
+local host
+
+if not isEmptyString(_GET["referer"]) then
+  host = getHttpUrlPrefix().._GET["referer"]
+else
+  host = _SERVER["HTTP_HOST"]
+end
+
 print[[</div>
 </div> <!-- /container -->
 
 <script type="text/javascript">
 var intervalID = setInterval(
   function() {
-   window.location.replace("]] print(ntop.getHttpPrefix().._GET["referer"]) print[[");
+   window.location.replace("]] print(host) print[[");
   },
   5000);
 </script>

@@ -3432,6 +3432,16 @@ end
 
 -- ###########################################
 
+function getHttpUrlPrefix()
+   if starts(_SERVER["HTTP_HOST"], 'https://') then
+      return "https://"
+   else
+      return "http://"
+   end
+end
+
+-- ###########################################
+
 -- Compares IPv4 / IPv6 addresses
 function ip_address_asc(a, b)
    return(ntop.ipCmp(a, b) < 0)
