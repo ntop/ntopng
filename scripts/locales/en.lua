@@ -1908,6 +1908,7 @@ local lang = {
     ["edit_quotas"] = "Edit Quotas",
     ["edit_routing_policy"] = "Edit Routing Policy",
     ["edit_static_route"] = "Edit Static Route",
+    ["edit_user"] = "Edit User",
     ["edit_users"] = "Edit Users",
     ["enable_device_protocols_policies"] = "Device Protocols Policies",
     ["enable_interface"] = "Enable Interface",

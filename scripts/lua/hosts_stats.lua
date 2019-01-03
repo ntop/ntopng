@@ -166,17 +166,21 @@ if (_GET["page"] ~= "historical") then
       local charts_available = ts_utils.exists("host_pool:traffic", {ifid=ifstats.id, pool=_GET["pool"]}) and ntop.isPro()
       local pool_edit = ""
 
-      -- TODO enable on nEdge when devices list will be implemented
-      if (_GET["pool"] ~= host_pools_utils.DEFAULT_POOL_ID) and (not have_nedge) then
+      if (_GET["pool"] ~= host_pools_utils.DEFAULT_POOL_ID) or (have_nedge) then
 	 local pool_link
+    local title
 
 	 if have_nedge then
-	    pool_link = "/lua/pro/nedge/admin/nf_edit_user.lua?username=" .. host_pools_utils.poolIdToUsername(_GET["pool"]) .. "&page=devices"
+	    pool_link = "/lua/pro/nedge/admin/nf_edit_user.lua?username=" ..
+         ternary(_GET["pool"] == host_pools_utils.DEFAULT_POOL_ID, "", host_pools_utils.poolIdToUsername(_GET["pool"]))
+       title = i18n("nedge.edit_user")
 	 else
 	    pool_link = "/lua/if_stats.lua?page=pools&pool=".._GET["pool"]
+       title = i18n("host_pools.manage_pools")
 	 end
 
-	 pool_edit = "&nbsp; <A HREF='"..ntop.getHttpPrefix()..pool_link.."'><i class='fa fa-cog fa-sm' title='"..i18n("host_pools.manage_pools") .. "'></i></A>"
+	 pool_edit = "&nbsp; <A HREF='"..ntop.getHttpPrefix()..pool_link.."'><i class='fa fa-cog fa-sm' title='"..title .. "'></i></A>"
+
       end
 
       pool_ = " "..i18n(ternary(have_nedge, "hosts_stats.user_title", "hosts_stats.pool_title"),
