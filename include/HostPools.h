@@ -171,11 +171,11 @@ class HostPools {
   void purgeExpiredVolatileMembers();
 
   inline bool isChildrenSafePool(u_int16_t pool_id) {
-    return(((pool_id != NO_HOST_POOL_ID) && (pool_id < max_num_pools)) ? children_safe[pool_id] : false);
+    return((pool_id < max_num_pools) ? children_safe[pool_id] : false);
   }
 
   inline bool forgeGlobalDns(u_int16_t pool_id) {
-    return(((pool_id != NO_HOST_POOL_ID) && (pool_id < max_num_pools)) ? forge_global_dns[pool_id] : false);
+    return((pool_id < max_num_pools) ? forge_global_dns[pool_id] : false);
   }
 
   inline u_int8_t getRoutingPolicy(u_int16_t pool_id) {
