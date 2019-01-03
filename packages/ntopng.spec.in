@@ -122,14 +122,26 @@ rm -fr $RPM_BUILD_ROOT
 # un-install:                          preun       -> (delete)     -> postun
 
 %pre
+
 if ! grep -q ntopng /etc/group; then
   echo 'Creating ntopng group'
   /usr/sbin/groupadd -r ntopng
 fi
+
 if ! /usr/bin/id -u ntopng > /dev/null 2>&1; then 
   echo 'Creating ntopng user'
   /usr/sbin/useradd -M -N -g ntopng -r ntopng
 fi
+
+if [ $(getent group n2disk) ] && [ $(getent passwd ntopng) ]; then
+    # this is necessary to allow ntopng to extract pcaps
+    # recorded with n2disk
+    if ! id -nG ntopng | grep -qw "n2disk"; then
+	echo "Adding user ntopng to group n2disk..."
+	/usr/sbin/usermod -a -G n2disk ntopng
+    fi
+fi
+
 %if 0%{?centos_ver} != 7
 case "$1" in
   1)

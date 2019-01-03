@@ -39,15 +39,12 @@ TimelineExtract::~TimelineExtract() {
 /* ********************************************* */
 
 #ifdef HAVE_PF_RING
-pfring *TimelineExtract::openTimeline(NetworkInterface *iface, time_t from, time_t to, const char *bpf_filter) {
-  char timeline_path[MAX_PATH];
+pfring *TimelineExtract::openTimeline(const char * const timeline_path, time_t from, time_t to, const char * const bpf_filter) {
   char from_buff[24], to_buff[24];
   pfring *handle = NULL;
   char *filter; 
   struct tm *time_info;
   int rc;
-
-  snprintf(timeline_path, sizeof(timeline_path), "timeline:%s/%d/timeline", ntop->getPrefs()->get_pcap_dir(), iface->get_id());
 
   handle = pfring_open(timeline_path, 16384, 0);
 
@@ -105,12 +102,24 @@ close_pfring:
 error:
   return NULL;
 }
+
+/* ********************************************* */
+
+pfring *TimelineExtract::openTimelineFromInterface(NetworkInterface *iface, time_t from, time_t to, const char * const bpf_filter) {
+  char timeline_path[MAX_PATH];
+
+  snprintf(timeline_path, sizeof(timeline_path), "timeline:%s/%d/timeline", ntop->getPrefs()->get_pcap_dir(), iface->get_id());
+
+  return openTimeline(timeline_path, from, to, bpf_filter);
+}
+
 #endif
 
 /* ********************************************* */
 
 bool TimelineExtract::extractToDisk(u_int32_t id, NetworkInterface *iface,
-    time_t from, time_t to, const char *bpf_filter, u_int64_t max_bytes) {
+				    time_t from, time_t to, const char *bpf_filter, u_int64_t max_bytes,
+				    const char * const timeline_path) {
   bool completed = false;
 #ifdef HAVE_PF_RING
   char out_path[MAX_PATH];
@@ -134,7 +143,10 @@ bool TimelineExtract::extractToDisk(u_int32_t id, NetworkInterface *iface,
     goto error;
   }
 
-  handle = openTimeline(iface, from, to, bpf_filter);
+  if(!timeline_path || timeline_path[0] == '\0')
+    handle = openTimelineFromInterface(iface, from, to, bpf_filter);
+  else
+    handle = openTimeline(timeline_path, from, to, bpf_filter);
 
   if (handle == NULL)
     goto delete_dumper;
@@ -172,7 +184,7 @@ bool TimelineExtract::extractToDisk(u_int32_t id, NetworkInterface *iface,
 
 /* ********************************************* */
 
-bool TimelineExtract::extractLive(struct mg_connection *conn, NetworkInterface *iface, time_t from, time_t to, const char *bpf_filter) {
+bool TimelineExtract::extractLive(struct mg_connection *conn, NetworkInterface *iface, time_t from, time_t to, const char *bpf_filter, const char * const timeline_path) {
   bool completed = false;
 #ifdef HAVE_PF_RING
   pfring  *handle;
@@ -181,6 +193,7 @@ bool TimelineExtract::extractLive(struct mg_connection *conn, NetworkInterface *
   struct pcap_file_header pcaphdr;
   struct pcap_disk_pkthdr pkthdr;
   bool http_client_disconnected = false;
+  int rc;
 
   stats.packets = stats.bytes = 0;
 
@@ -191,14 +204,17 @@ bool TimelineExtract::extractLive(struct mg_connection *conn, NetworkInterface *
   if (!Utils::mg_write_retry(conn, (u_char *) &pcaphdr, sizeof(pcaphdr)))
     http_client_disconnected = true;
 
-  handle = openTimeline(iface, from, to, bpf_filter);
+  if(!timeline_path || timeline_path[0] == '\0')
+    handle = openTimelineFromInterface(iface, from, to, bpf_filter);
+  else
+    handle = openTimeline(timeline_path, from, to, bpf_filter);
 
   if (handle == NULL)
     goto error;
 
   while (!http_client_disconnected && 
          !ntop->getGlobals()->isShutdown() && 
-         pfring_recv(handle, &packet, 0, &h, 0) > 0) {
+         (rc = pfring_recv(handle, &packet, 0, &h, 0)) > 0) {
 
     pkthdr.ts.tv_sec = h.ts.tv_sec;
     pkthdr.ts.tv_usec = h.ts.tv_usec,
@@ -236,7 +252,8 @@ static void *extractionThread(void *ptr) {
     extr->getFrom(),
     extr->getTo(),
     extr->getFilter(),
-    extr->getMaxBytes()
+    extr->getMaxBytes(),
+    extr->getTimelinePath()
   );
 
   extr->cleanupJob();
@@ -245,7 +262,7 @@ static void *extractionThread(void *ptr) {
 
 /* ********************************************* */
 
-void TimelineExtract::runExtractionJob(u_int32_t id, NetworkInterface *iface, time_t from, time_t to, const char *bpf_filter, u_int64_t max_bytes) {
+void TimelineExtract::runExtractionJob(u_int32_t id, NetworkInterface *iface, time_t from, time_t to, const char *bpf_filter, u_int64_t max_bytes, const char * const timeline_path) {
 
   running = true;
 
@@ -255,6 +272,7 @@ void TimelineExtract::runExtractionJob(u_int32_t id, NetworkInterface *iface, ti
   extraction.to = to;
   extraction.bpf_filter = strdup(bpf_filter);
   extraction.max_bytes = max_bytes;
+  extraction.timeline_path = timeline_path;
 
   pthread_create(&extraction_thread, NULL, extractionThread, (void *) this);
 }

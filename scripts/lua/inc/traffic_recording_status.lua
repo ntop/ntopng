@@ -15,13 +15,13 @@ local ifstats = interface.getStats()
 local enabled = false
 local running = false
 local restart_req = false
-local manual_service_active = recording_utils.isManualServiceActive(ifstats.id)
+local manual_service = recording_utils.isManualServiceActive(ifstats.id) and not recording_utils.isActive(ifstats.id)
 
 if _POST["action"] ~= nil and _POST["action"] == "restart" then
   restart_req = true
 end
 
-if manual_service_active then
+if manual_service then
    enabled = true
    running = true
 elseif recording_utils.isEnabled(ifstats.id) then
@@ -110,7 +110,7 @@ end
 
 print("<tr><th nowrap>"..i18n("about.last_log").."</th><td><code>\n")
 
-local log = recording_utils.log(ifstats.id, 32, manual_service_active)
+local log = recording_utils.log(ifstats.id, 32, manual_service)
 local logs = split(log, "\n")
 for i = 1, #logs do
   local row = split(logs[i], "]: ")

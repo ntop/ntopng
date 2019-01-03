@@ -2,7 +2,7 @@
 -- (C) 2013-18 - ntop.org
 --
 
-dirs = ntop.getDirs()
+local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local json = require("dkjson")
@@ -37,10 +37,15 @@ else
       filter = ""
     end
 
+    local timeline_path
+    if recording_utils.isManualServiceActive(ifid) then
+       timeline_path = recording_utils.getManualServiceTimelinePath(ifid)
+    end
+
     local fname = time_from.."-"..time_to..".pcap"
     sendHTTPContentTypeHeader('application/vnd.tcpdump.pcap', 'attachment; filename="'..fname..'"')
 
-    ntop.runLiveExtraction(ifid, time_from, time_to, filter)
+    ntop.runLiveExtraction(ifid, time_from, time_to, filter, timeline_path)
 
   end
 end

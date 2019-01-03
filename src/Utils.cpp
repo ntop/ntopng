@@ -583,7 +583,14 @@ int Utils::dropPrivileges() {
     }
 
     /* Drop privileges */
-    if((setgid(pw->pw_gid) != 0) || (setuid(pw->pw_uid) != 0)) {
+    /* Dear programmer, initgroups() is necessary as there may be extra groups for the user that we are going to
+       drop privileges to that are not yet visible. This can happen for newely created groups, or when a user has
+       been added to a new group.
+       Don't remove it or you will waste hours of life.
+     */
+    if((initgroups(pw->pw_name, pw->pw_gid) != 0)
+       || (setgid(pw->pw_gid) != 0)
+       || (setuid(pw->pw_uid) != 0)) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to drop privileges [%s]",
 				   strerror(errno));
       return -1;

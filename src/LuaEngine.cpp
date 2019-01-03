@@ -5633,6 +5633,7 @@ static int ntop_run_extraction(lua_State *vm) {
   time_t time_from, time_to;
   char *filter;
   u_int64_t max_bytes;
+  char * timeline_path = NULL;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);  
 
@@ -5651,6 +5652,7 @@ static int ntop_run_extraction(lua_State *vm) {
     return(CONST_LUA_PARAM_ERROR);
   if(lua_type(vm, 6) == LUA_TNUMBER) max_bytes = lua_tonumber(vm, 6);
   else max_bytes = 0; /* optional */
+  if(lua_tostring(vm, 7)) timeline_path = (char *)lua_tostring(vm, 7);
 
   id = lua_tointeger(vm, 1);
   ifid = lua_tointeger(vm, 2);
@@ -5660,7 +5662,7 @@ static int ntop_run_extraction(lua_State *vm) {
   max_bytes = lua_tonumber(vm, 6);
 
   ntop->getTimelineExtract()->runExtractionJob(id, 
-    ntop->getInterfaceById(ifid), time_from, time_to, filter, max_bytes);
+					       ntop->getInterfaceById(ifid), time_from, time_to, filter, max_bytes, timeline_path);
 
   return(CONST_LUA_OK);
 }
@@ -5726,6 +5728,7 @@ static int ntop_run_live_extraction(lua_State *vm) {
   time_t time_from, time_to;
   char *filter;
   bool allow = false, success = false;
+  char * timeline_path = NULL;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);  
 
@@ -5750,6 +5753,8 @@ static int ntop_run_live_extraction(lua_State *vm) {
   time_from = lua_tointeger(vm, 2);
   time_to = lua_tointeger(vm, 3);
   if ((filter = (char *) lua_tostring(vm, 4)) == NULL)  return(CONST_LUA_PARAM_ERROR);
+  if(lua_tostring(vm, 5)) timeline_path = (char *)lua_tostring(vm, 5);
+     
 
   iface = ntop->getInterfaceById(ifid);
   if(!iface) return(CONST_LUA_ERROR);
@@ -5762,7 +5767,7 @@ static int ntop_run_live_extraction(lua_State *vm) {
   live_extraction_num_lock.unlock(__FILE__, __LINE__);
 
   if (allow) {
-    success = timeline.extractLive(c->conn, iface, time_from, time_to, filter);
+    success = timeline.extractLive(c->conn, iface, time_from, time_to, filter, timeline_path);
 
     live_extraction_num_lock.lock(__FILE__, __LINE__);
     live_extraction_num--;

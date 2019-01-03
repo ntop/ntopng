@@ -20,8 +20,14 @@ local recording_utils = {}
 
 recording_utils.default_disk_space = 10 * 1024
 
-local function n2diskctl(...)
-  return os_utils.ntopctlCmd("n2disk-ntopng", ...)
+local function n2disk_service_name(manual_service)
+  -- a service that is started manually by the sysadmin is normally called n2disk
+  -- a service that is started and managed by ntopng is called n2disk-ntopng
+  return ternary(manual_service, "n2disk", "n2disk-ntopng")
+end
+
+local function n2diskctl(manual_service, ...)
+  return os_utils.ntopctlCmd(n2disk_service_name(manual_service), ...)
 end
 
 -- #################################
@@ -129,7 +135,7 @@ end
 --! @param key The license key
 --! @return true if the license is installed, false in case it is not possible
 function recording_utils.setLicense(key)
-  n2diskctl("set-license", key)
+  n2diskctl(false, "set-license", key)
   return true
 end
 
@@ -567,6 +573,17 @@ function recording_utils.isManualServiceActive(ifid)
   return os_utils.isActive("n2disk", n2disk_ifname)
 end
 
+--! @brief Parse the configuration file of a manually-started n2disk and returns the timeline if found
+--! @param ifid the interface identifier 
+--! @return the timeline, if found, or nil
+function recording_utils.getManualServiceTimelinePath(ifid)
+   local stats = recording_utils.stats(ifid, true)
+
+   if stats["TimelinePath"] and ntop.exists(stats["TimelinePath"]) then
+      return "timeline:"..stats["TimelinePath"]
+   end
+end
+
 --! @brief Start (or restart) the traffic recording service
 --! @param ifid the interface identifier 
 function recording_utils.restart(ifid)
@@ -590,7 +607,7 @@ end
 --! @return the log trace
 function recording_utils.log(ifid, rows, manual_service)
   local confifname = getConfigInterfaceName(ifid)
-  local output = os_utils.ntopctlCmd(ternary(manual_service, "n2disk", "n2disk-ntopng"), "log", confifname, "|tail -n", rows, "|tac")
+  local output = n2diskctl(manual_service, "log", confifname, "|tail -n", rows, "|tac")
   
   return output
 end
@@ -598,10 +615,10 @@ end
 --! @brief Return statistics from the traffic recording service (n2disk)
 --! @param ifid the interface identifier 
 --! @return the statistics
-function recording_utils.stats(ifid)
+function recording_utils.stats(ifid, manual_service)
   local confifname = getConfigInterfaceName(ifid)
   local stats = {}
-  local proc_stats = n2diskctl("stats", confifname)
+  local proc_stats = n2diskctl(manual_service, "stats", confifname)
   local lines = split(proc_stats, "\n")
 
   for i = 1, #lines do
@@ -662,11 +679,15 @@ end
 function recording_utils.isDataAvailable(ifid, epoch_begin, epoch_end)
   local info = {}
   info.available = false
-  if recording_utils.isEnabled(ifid) then
-    local stats = recording_utils.stats(ifid)
+  local manual_service = recording_utils.isManualServiceActive(ifid)
+
+  if recording_utils.isEnabled(ifid) or manual_service then
+    local stats = recording_utils.stats(ifid, manual_service)
+
     if stats['FirstDumpedEpoch'] ~= nil and stats['LastDumpedEpoch'] ~= nil then
       local first_epoch = tonumber(stats['FirstDumpedEpoch'])
       local last_epoch = tonumber(stats['LastDumpedEpoch'])
+
       if first_epoch > 0 and last_epoch > 0 and 
          epoch_end > first_epoch and epoch_begin < last_epoch then
         info.epoch_begin = epoch_begin
@@ -681,6 +702,7 @@ function recording_utils.isDataAvailable(ifid, epoch_begin, epoch_end)
       end
     end
   end
+
   return info
 end
 
@@ -796,6 +818,7 @@ function recording_utils.scheduleExtraction(ifid, params)
     time_to = tonumber(params.time_to),
     filter = params.filter,
     chart_url = params.chart_url,
+    timeline_path = params.timeline_path
   }
 
   ntop.setHashCache(extraction_jobs_key, job.id, json.encode(job))
@@ -894,7 +917,8 @@ function recording_utils.checkExtractionJobs()
             tonumber(job.time_from), 
             tonumber(job.time_to), 
             job.filter, 
-            extraction_limit)
+            extraction_limit,
+	    job.timeline_path)
 
           job.status = 'processing'
           ntop.setHashCache(extraction_jobs_key, job.id, json.encode(job))

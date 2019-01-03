@@ -208,7 +208,7 @@ install_service_conf() {
 
 # #######################################################
 
-ALLOWED_OPTIONS_N2DISK="is-active|log"
+ALLOWED_OPTIONS_N2DISK="is-active|log|stats"
 ALLOWED_OPTIONS_N2DISK_NTOPNG="start|stop|restart|enable|disable|status|is-active|is-enabled|has-service|log|stats|set-license"
 ALLOWED_OPTIONS_N2N="start|stop|restart|enable|disable|status|is-active|is-enabled|has-service|log"
 
