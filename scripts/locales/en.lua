@@ -194,6 +194,7 @@ local lang = {
     ["save_licence"] = "Save Licence",
     ["specify_licence"] = "Specify here your ntopng License",
     ["startup_line"] = "Startup Line",
+    ["system"] = "System",
     ["system_id"] = "System Id",
     ["telegram"] = "Help and News",
     ["upgrade_to_professional"] = "Upgrade to Professional version",
