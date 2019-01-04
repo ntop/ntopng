@@ -17,7 +17,7 @@ page_utils.print_header(i18n("about.runtime_status"))
 active_page = "about"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-info = ntop.getInfo()
+local info = ntop.getInfo()
 print("<hr /><h2>"..info["product"].." "..i18n("about.runtime_status").."</h2>")
 
 print("<table class=\"table table-bordered table-striped\">\n")
@@ -64,7 +64,7 @@ if not ntop.isWindows() then
    print("</td></tr>\n")
 end
 
-vers = string.split(info["version.git"], ":")
+local vers = string.split(info["version.git"], ":")
 if((vers ~= nil) and (vers[2] ~= nil)) then
    ntopng_git_url = "<A HREF=\"https://github.com/ntop/ntopng/commit/".. vers[2] .."\">"..info["version"].."</A>"
 else
