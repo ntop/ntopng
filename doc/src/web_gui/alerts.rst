@@ -28,6 +28,22 @@ Generated alerts can also be sent to third-party endpoints. Currently supported 
 
 Endpoints can be enabled and configured from the ntopng preferences page.
 
+Email
+~~~~~
+
+Ntopng only supports sending emails to a SMTP server without authentication. Since ntopng
+does not authenticate with the SMTP server, the server may reject the email. For
+this reason, it is suggested to setup a local mail server (e.g. postfix_) and use
+it as the email forwarder to the actual mail server.
+
+It is possible to test the email sending functionality by using the "Send Test Email"
+button. If an error occurs, an error message will be printed to the ntopng log.
+It is possible to get a detailed log of the communication between ntopng and the mail server
+by adding the `-v 6` option to the ntopng configuration. After doing this, the email
+log will be printed in the console. It is advisable to use the `grep` command
+(e.g. `ntopng -v6 | grep "Utils.cpp"`) to only filter out the email log information.
+
+.. _postfix: https://www.digitalocean.com/community/tutorials/how-to-install-and-configure-postfix-on-ubuntu-16-04
 
 Syslog
 ~~~~~~

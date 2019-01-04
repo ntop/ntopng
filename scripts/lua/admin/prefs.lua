@@ -84,7 +84,7 @@ if(haveAdminPrivileges()) then
          message_info = i18n("prefs.email_sent_successfully")
          message_severity = "alert-success"
       else
-         message_info = i18n("prefs.email_send_error", {product=product})
+         message_info = i18n("prefs.email_send_error", {url="https://www.ntop.org/guides/ntopng/web_gui/alerts.html#email"})
          message_severity = "alert-danger"
       end
 
