@@ -417,10 +417,12 @@ function install_n2disk_conf() {
     fi
 
     local DEST_PATH="/etc/n2disk"
+    local DEST_FILE="${DEST_PATH}/n2disk-ntopng-${INTERFACE}.conf"
 
     mkdir -p "${DEST_PATH}"
 
-    ln -sf "${SOURCE_FILE}" "${DEST_PATH}"
+    rm -rf "${DEST_FILE}"
+    ln -sf "${SOURCE_FILE}" "${DEST_FILE}"
 }
 
 function install_n2n_conf() {
