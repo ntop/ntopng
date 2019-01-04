@@ -55,14 +55,23 @@ local HOST_PREFIX_MAP = {
   snmp_if = "snmp:",
   host_pool = "pool:",
 }
+local WILDCARD_TAGS = {protocol=1, category=1, l4proto=1}
 
 local function get_fname_for_schema(schema, tags)
   if schema.options.rrd_fname ~= nil then
     return schema.options.rrd_fname
   end
 
-  -- return the last defined tag
-  return tags[schema._tags[#schema._tags]]
+  local last_tag = schema._tags[#schema._tags]
+
+  if WILDCARD_TAGS[last_tag] then
+    -- return the last defined tag
+    return tags[last_tag]
+  end
+
+  -- e.g. host:contacts -> contacts
+  local suffix = split(schema.name, ":")[2]
+  return suffix
 end
 
 local function schema_get_path(schema, tags)
