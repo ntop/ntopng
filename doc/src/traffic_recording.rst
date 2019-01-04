@@ -100,6 +100,13 @@ of the recording service, statistics about processed traffic, the log trace.
 
   The Traffic Recording Status Page
 
+.. note::
+
+   In case n2disk processes are managed manually using configuration
+   files, ntopng will not show a settings tab nor it will allow any
+   configuration change. However, extractions will still be possible
+   as described in the following section.
+
 Traffic Extraction
 ------------------
 
