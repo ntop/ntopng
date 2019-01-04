@@ -2956,6 +2956,12 @@ local lang = {
     ["unsupported_fields"] = "Note that the selected chart provides a view of the traffic not fully supported by the extraction tool, extracted traffic will contain more traffic than expected.",
     ["waiting"] = "Waiting",
     ["waiting_nospace"] = "Waiting (No Space On Disk)",
+    ["traffic_extractions"] = "Extractions",
+    ["msg_err_missing_timeline"] = "Unable to determine the timeline of the currently running n2disk. Extractions can only be performed when n2disk is up-to-date and run with option --timeline-dir.",
+    ["msg_err_timeline_path_not_existing"] = "Timeline path not found in the system.",
+    ["msg_err_unable_to_access_timeline"] = "Unable to read recorded data. Insufficient permissions. Make sure the user running ntopng is in the same group of the user running n2disk.",
+    ["msg_err_unknown"] = "Unknown status.",
+    ["msg_ok"] = "Ready to extract",
   },
   ["traffic_report"] = {
     ["current_day"] = "Current Day",

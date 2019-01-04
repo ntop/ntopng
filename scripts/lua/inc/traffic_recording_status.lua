@@ -16,6 +16,7 @@ local enabled = false
 local running = false
 local restart_req = false
 local manual_service = recording_utils.isManualServiceActive(ifstats.id) and not recording_utils.isActive(ifstats.id)
+local extraction_checks_ok, extraction_checks_msg
 
 if _POST["action"] ~= nil and _POST["action"] == "restart" then
   restart_req = true
@@ -24,6 +25,8 @@ end
 if manual_service then
    enabled = true
    running = true
+   extraction_checks_ok, extraction_checks_msg = recording_utils.checkManualServiceExtraction(ifstats.id)
+
 elseif recording_utils.isEnabled(ifstats.id) then
   enabled = true
   if recording_utils.isActive(ifstats.id) then
@@ -106,6 +109,16 @@ if stats ~= nil then
   if stats['Dropped'] ~= nil then
     print("<tr><th nowrap>"..i18n("if_stats_overview.dropped_packets").."</th><td>"..stats['Dropped'].." "..i18n("pkts").."</td></tr>\n")
   end
+end
+
+if manual_service then
+   local warn = ''
+
+   if not extraction_checks_ok then
+      warn = '<i class="fa fa-warning"></i> '
+   end
+
+   print("<tr><th nowrap>"..i18n("traffic_recording.traffic_extractions").."</th><td>"..warn..extraction_checks_msg.."</td></tr>\n")
 end
 
 print("<tr><th nowrap>"..i18n("about.last_log").."</th><td><code>\n")
