@@ -154,8 +154,11 @@ void HTTPserver::traceLogin(const char *user, bool authorized) {
 
 /* ****************************************** */
 
-static void set_cookie(const struct mg_connection *conn,
-                       char *user, char*group, bool localuser, char *referer) {
+static void set_cookie(const struct mg_connection * const conn,
+                       const char * const user,
+		       const char * const group,
+		       bool localuser,
+		       const char * const referer) {
   char key[256], session_id[64], random[64];
   char val[128];
   u_int session_duration = HTTP_SESSION_DURATION;
@@ -659,12 +662,48 @@ static void redirect_to_password_change(struct mg_connection *conn,
 
 /* ****************************************** */
 
+static int ssl_authorize(const struct mg_connection * const conn, const struct mg_request_info * const request_info, char * const group) {
+  long r;
+  X509 *cert = NULL;
+  X509_NAME *subj = NULL;
+  char subject[256], user[NTOP_USERNAME_MAXLEN];
+  char key[CONST_MAX_LEN_REDIS_KEY], val[NTOP_GROUP_MAXLEN];
+
+  if((cert = SSL_get_peer_certificate(conn->ssl))) {
+    if((subj = X509_get_subject_name(cert))) {
+      X509_NAME_oneline(subj, subject, sizeof(subject));
+
+      if((r = SSL_get_verify_result(conn->ssl)) == X509_V_OK) {
+	X509_NAME_get_text_by_NID(subj, NID_commonName, user, sizeof(user));
+	ntop->getTrace()->traceEvent(TRACE_NORMAL,"SSL user %s auth (%s)", user, subject);
+
+	snprintf(key, sizeof(key), CONST_STR_USER_GROUP, user);
+	strncpy(group, ((ntop->getRedis()->get(key, val, sizeof(val))>= 0) ? val : NTOP_UNKNOWN_GROUP), NTOP_GROUP_MAXLEN);
+
+	set_cookie(conn, user, group, true /* local user */, mg_get_header(conn, "Referer"));
+	X509_free(cert);
+
+	return 1;
+      } else
+	ntop->getTrace()->traceEvent(TRACE_NORMAL,"SSL user: unknow certificate (err %i) %s",r,subject);
+    }
+
+    X509_free(cert);
+  } else
+    ntop->getTrace()->traceEvent(TRACE_NORMAL,"SSL user: could not get certificate");
+
+  return 0;
+};
+
+/* ****************************************** */
+
 // A handler for the /authorize endpoint.
 // Login page form sends user name and password to this endpoint.
 static void authorize(struct mg_connection *conn,
                       const struct mg_request_info *request_info,
 		      char *username, char *group, bool *localuser) {
   char user[32] = { '\0' }, password[32] = { '\0' }, referer[256] = { '\0' };
+
 
   if(!strcmp(request_info->request_method, "POST")) {
     char post_data[1024];
@@ -866,6 +905,11 @@ static int handle_lua_request(struct mg_connection *conn) {
     u_int8_t authorized = getAuthorizedUser(conn, request_info, username, group, &localuser);
 
     if((!whitelisted) && (!authorized)) {
+      if(request_info->is_ssl) {
+	if(ssl_authorize(conn, request_info, group))
+	  return 1;
+      }
+
       if(strcmp(request_info->uri, NETWORK_LOAD_URL) == 0) {
         // avoid sending login redirect to allow js itself to redirect the user
         return(send_error(conn, 403 /* Forbidden */, request_info->uri, "Login Required"));
@@ -1076,6 +1120,75 @@ void HTTPserver::parseACL(char * const acl, u_int acl_len) {
 
 /* ****************************************** */
 
+// Forse non necessaria???
+int handle_ssl_verify(int ok, X509_STORE_CTX *ctx) {
+  X509 *cert;
+  char buf[256];
+  int err, depth;
+
+  cert = X509_STORE_CTX_get_current_cert(ctx);
+  err = X509_STORE_CTX_get_error(ctx);
+  depth = X509_STORE_CTX_get_error_depth(ctx);
+  X509_NAME_oneline(X509_get_subject_name(cert), buf, sizeof(buf));
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "ssl verify pre=%d cert=%s err=%i depth=%i",ok,buf,err,depth);
+  return ok;
+};
+
+/* ****************************************** */
+
+static int ssl_session_ctx_id = 1;
+
+/* ****************************************** */
+
+int handle_ssl_init(void *ctx) {
+  char buf[256];
+  char ssl_ca_path[MAX_PATH];
+  char ssl_cert_path[MAX_PATH];
+  STACK_OF(X509_NAME) *certnames;
+
+  snprintf(ssl_cert_path, sizeof(ssl_cert_path), "%s/ssl/%s", ntop->getPrefs()->get_docs_dir(), CONST_HTTPS_CERT_NAME);
+  snprintf(ssl_ca_path, sizeof(ssl_ca_path), "%s/ssl/%s", ntop->getPrefs()->get_docs_dir(),CONST_HTTPS_AUTHCA_FILE);
+
+  ntop->fixPath(ssl_ca_path),
+    ntop->fixPath(ssl_cert_path);
+
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "SSL init [ssl_ca_path: %s][ssl_cert_path: %s]", ssl_ca_path, ssl_cert_path);
+
+  if(!SSL_CTX_set_session_id_context((SSL_CTX*)ctx, (unsigned char*)&ssl_session_ctx_id, sizeof(ssl_session_ctx_id))) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "SSL session init failed: %s", ERR_reason_error_string(ERR_get_error()));
+    return 0;
+  }
+
+  if(!SSL_CTX_load_verify_locations((SSL_CTX*)ctx, ssl_ca_path, NULL)) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "SSL load client CA from '%s' failed: %s",ssl_ca_path, ERR_reason_error_string(ERR_get_error()));
+    return 0;
+  }
+
+  if(!SSL_CTX_use_certificate_file((SSL_CTX*)ctx, ssl_cert_path, 1)
+     || !SSL_CTX_use_PrivateKey_file((SSL_CTX*)ctx, ssl_cert_path, 1))
+    return 0;
+
+  if((certnames = SSL_load_client_CA_file(ssl_ca_path))) {
+    SSL_CTX_set_client_CA_list((SSL_CTX*)ctx, certnames);
+
+    if((certnames=SSL_CTX_get_client_CA_list((SSL_CTX*)ctx))) {
+      for(int i = 0; i < sk_X509_NAME_num(certnames); i++) {
+	X509_NAME_oneline(sk_X509_NAME_value(certnames, i), buf, sizeof(buf));
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "SSL loaded CA #%i: %s", i, buf);
+      }
+    }
+  } else
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "No SSL client loaded");
+
+  SSL_CTX_set_verify((SSL_CTX*)ctx, SSL_VERIFY_PEER/*|SSL_VERIFY_FAIL_IF_NO_PEER_CERT|SSL_VERIFY_CLIENT_ONCE*/, handle_ssl_verify);
+  //SSL_CTX_set_session_cache_mode((SSL_CTX*)ctx,SSL_SESS_CACHE_OFF);
+
+  return 1;
+};
+
+/* ****************************************** */
+
 HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
   struct mg_callbacks callbacks;
   static char ports[256] = { 0 }, acl_management[64], ssl_cert_path[MAX_PATH], access_log_path[MAX_PATH] = { 0 };
@@ -1105,6 +1218,7 @@ HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
   memset(&callbacks, 0, sizeof(callbacks));
   callbacks.begin_request = handle_lua_request;
   callbacks.log_message = handle_http_message;
+  if(ntop->getPrefs()->is_https_auth()) callbacks.init_ssl=handle_ssl_init;
 
   /* Randomize data */
   gettimeofday(&tv, NULL);

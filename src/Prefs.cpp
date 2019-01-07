@@ -80,6 +80,7 @@ Prefs::Prefs(Ntop *_ntop) {
   http_binding_address2 = NULL;
   https_binding_address1 = NULL; // CONST_ANY_ADDRESS;
   https_binding_address2 = NULL;
+  enable_https_auth=false;
   lan_interface = NULL;
   cpu_affinity = NULL;
   redis_host = strdup("127.0.0.1");
@@ -631,6 +632,7 @@ void Prefs::reloadPrefsFromRedis() {
   }
 
   global_dns_forging_enabled = getDefaultBoolPrefsValue(CONST_PREFS_GLOBAL_DNS_FORGING_ENABLED, false);
+  enable_https_auth=getDefaultBoolPrefsValue(CONST_PREFS_AUTH_HTTPS,false);
 
   setTraceLevelFromRedis();
   refreshHostsAlertsPrefs();
