@@ -13,6 +13,7 @@ local callback_utils = require "callback_utils"
 local lists_utils = require "lists_utils"
 local alert_consts = require "alert_consts"
 local slack_utils = require("slack")
+local webhook_utils = require("webhook")
 local recording_utils = require "recording_utils"
 local remote_assistance = require "remote_assistance"
 local page_utils = require("page_utils")
@@ -96,6 +97,17 @@ if(haveAdminPrivileges()) then
          message_severity = "alert-success"
       else
          message_info = i18n("prefs.slack_send_error", {product=product})
+         message_severity = "alert-danger"
+      end
+
+   elseif(_POST["send_test_webhook"] ~= nil) then
+      local success = webhook_utils.sendMessage({})
+
+      if success then
+         message_info = i18n("prefs.webhook_sent_successfully")
+         message_severity = "alert-success"
+      else
+         message_info = i18n("prefs.webhook_send_error", {product=product})
          message_severity = "alert-danger"
       end
 
@@ -633,14 +645,14 @@ function printExternalAlertsReport()
       end
 
 
-  retVal = multipleTableButtonPrefs(subpage_active.entries["syslog_alert_format"].title,
-				    subpage_active.entries["syslog_alert_format"].description,
-				    format_labels, format_values,
-				    "plaintext",
-				    "primary",
-				    "syslog_alert_format",
-				    "ntopng.prefs.syslog_alert_format", nil,
-				    nil, nil, nil, alertsEnabled)
+      retVal = multipleTableButtonPrefs(subpage_active.entries["syslog_alert_format"].title,
+				        subpage_active.entries["syslog_alert_format"].description,
+				        format_labels, format_values,
+				        "plaintext",
+				        "primary",
+				        "syslog_alert_format",
+				        "ntopng.prefs.syslog_alert_format", nil,
+				        nil, nil, nil, alertsEnabled)
 
     end
 
@@ -661,24 +673,67 @@ function printExternalAlertsReport()
         to_switch = elementToSwitch,
       })
 
+      local showNagiosElements = showElements
       if ntop.getPref(getAlertNotificationModuleEnableKey("nagios")) == "0" then
-        showElements = false
+        showNagiosElements = false
       end
-      showElements = alertsEnabled and showElements
+      showNagiosElements = alertsEnabled and showNagiosElements
 
       multipleTableButtonPrefs(subpage_active.entries["slack_notification_severity_preference"].title, subpage_active.entries["slack_notification_severity_preference"].description,
                  alert_sev_labels, alert_sev_values, "error", "primary", "nagios_notification_severity_preference",
-           getAlertNotificationModuleSeverityKey("nagios"), nil, nil, nil, nil, showElements, false)
+           getAlertNotificationModuleSeverityKey("nagios"), nil, nil, nil, nil, showNagiosElements, false)
 
-      prefsInputFieldPrefs(subpage_active.entries["nagios_nsca_host"].title, subpage_active.entries["nagios_nsca_host"].description, "ntopng.prefs.", "nagios_nsca_host", prefs.nagios_nsca_host, nil, showElements, false)
-      prefsInputFieldPrefs(subpage_active.entries["nagios_nsca_port"].title, subpage_active.entries["nagios_nsca_port"].description, "ntopng.prefs.", "nagios_nsca_port", prefs.nagios_nsca_port, "number", showElements, false, nil, {min=1, max=65535})
-      prefsInputFieldPrefs(subpage_active.entries["nagios_send_nsca_executable"].title, subpage_active.entries["nagios_send_nsca_executable"].description, "ntopng.prefs.", "nagios_send_nsca_executable", prefs.nagios_send_nsca_executable, nil, showElements, false)
-      prefsInputFieldPrefs(subpage_active.entries["nagios_send_nsca_config"].title, subpage_active.entries["nagios_send_nsca_config"].description, "ntopng.prefs.", "nagios_send_nsca_config", prefs.nagios_send_nsca_conf, nil, showElements, false)
-      prefsInputFieldPrefs(subpage_active.entries["nagios_host_name"].title, subpage_active.entries["nagios_host_name"].description, "ntopng.prefs.", "nagios_host_name", prefs.nagios_host_name, nil, showElements, false)
-      prefsInputFieldPrefs(subpage_active.entries["nagios_service_name"].title, subpage_active.entries["nagios_service_name"].description, "ntopng.prefs.", "nagios_service_name", prefs.nagios_service_name, nil, showElements)
+      prefsInputFieldPrefs(subpage_active.entries["nagios_nsca_host"].title, subpage_active.entries["nagios_nsca_host"].description, "ntopng.prefs.", "nagios_nsca_host", prefs.nagios_nsca_host, nil, showNagiosElements, false)
+      prefsInputFieldPrefs(subpage_active.entries["nagios_nsca_port"].title, subpage_active.entries["nagios_nsca_port"].description, "ntopng.prefs.", "nagios_nsca_port", prefs.nagios_nsca_port, "number", showNagiosElements, false, nil, {min=1, max=65535})
+      prefsInputFieldPrefs(subpage_active.entries["nagios_send_nsca_executable"].title, subpage_active.entries["nagios_send_nsca_executable"].description, "ntopng.prefs.", "nagios_send_nsca_executable", prefs.nagios_send_nsca_executable, nil, showNagiosElements, false)
+      prefsInputFieldPrefs(subpage_active.entries["nagios_send_nsca_config"].title, subpage_active.entries["nagios_send_nsca_config"].description, "ntopng.prefs.", "nagios_send_nsca_config", prefs.nagios_send_nsca_conf, nil, showNagiosElements, false)
+      prefsInputFieldPrefs(subpage_active.entries["nagios_host_name"].title, subpage_active.entries["nagios_host_name"].description, "ntopng.prefs.", "nagios_host_name", prefs.nagios_host_name, nil, showNagiosElements, false)
+      prefsInputFieldPrefs(subpage_active.entries["nagios_service_name"].title, subpage_active.entries["nagios_service_name"].description, "ntopng.prefs.", "nagios_service_name", prefs.nagios_service_name, nil, showNagiosElements)
     end
-  end
 
+    -- Webhook
+    print('<tr><th colspan=2 class="info">'..i18n('prefs.webhook_notification')..'</th></tr>')
+
+    local elementToSwitchWebhook = {"row_webhook_notification_severity_preference", "webhook_url", "webhook_sharedsecret", "webhook_test", "webhook_username", "webhook_password"}
+
+    prefsToggleButton(subpage_active, {
+      field = "toggle_webhook_notification",
+      pref = getAlertNotificationModuleEnableKey("webhook", true),
+      default = "0",
+      disabled = showElements==false,
+      to_switch = elementToSwitchWebhook,
+    })
+
+    local showWebhookNotificationPrefs = false
+    if ntop.getPref(getAlertNotificationModuleEnableKey("webhook")) == "1" then
+       showWebhookNotificationPrefs = true
+    else
+       showWebhookNotificationPrefs = false
+    end
+
+    multipleTableButtonPrefs(subpage_active.entries["webhook_notification_severity_preference"].title, subpage_active.entries["webhook_notification_severity_preference"].description,
+                 alert_sev_labels, alert_sev_values, "error", "primary", "webhook_notification_severity_preference",
+           getAlertNotificationModuleSeverityKey("webhook"), nil, nil, nil, nil, showElements and showWebhookNotificationPrefs)
+
+    prefsInputFieldPrefs(subpage_active.entries["webhook_url"].title, subpage_active.entries["webhook_url"].description,
+             "ntopng.prefs.alerts.", "webhook_url",
+             "", nil, showElements and showWebhookNotificationPrefs, true, true, {attributes={spellcheck="false"}, style={width="43em"}, required=true, pattern=getURLPattern()})
+
+    prefsInputFieldPrefs(subpage_active.entries["webhook_sharedsecret"].title, subpage_active.entries["webhook_sharedsecret"].description,
+             "ntopng.prefs.alerts.", "webhook_sharedsecret",
+             "", nil, showElements and showWebhookNotificationPrefs, false, nil, {attributes={spellcheck="false"}, required=false})
+
+  prefsInputFieldPrefs(subpage_active.entries["webhook_username"].title, subpage_active.entries["webhook_username"].description,
+	     "ntopng.prefs.alerts.", "webhook_username", 
+             "", false, showElements and showWebhookNotificationPrefs, nil, nil,  {attributes={spellcheck="false"}, pattern="[^\\s]+", required=false})
+
+  prefsInputFieldPrefs(subpage_active.entries["webhook_password"].title, subpage_active.entries["webhook_password"].description,
+	     "ntopng.prefs.alerts.", "webhook_password", 
+             "", "password", showElements and showWebhookNotificationPrefs, nil, nil,  {attributes={spellcheck="false"}, pattern="[^\\s]+", required=false})
+
+    print('<tr id="webhook_test" style="' .. ternary(showWebhookNotificationPrefs, "", "display:none;").. '"><td><button class="btn btn-default disable-on-dirty" type="button" onclick="sendTestWebhook();" style="width:230px; float:left;">'..i18n("prefs.send_test_webhook")..'</button></td></tr>')
+
+  end
   
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
   print('</table>')
@@ -700,6 +755,16 @@ function printExternalAlertsReport()
       var params = {};
 
       params.send_test_slack = "";
+      params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
+
+      var form = paramsToForm('<form method="post"></form>', params);
+      form.appendTo('body').submit();
+    }
+
+    function sendTestWebhook() {
+      var params = {};
+
+      params.send_test_webhook = "";
       params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
 
       var form = paramsToForm('<form method="post"></form>', params);

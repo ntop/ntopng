@@ -879,6 +879,10 @@ local known_parameters = {
    ["admin_group"]             = validateUnquoted,
    ["radius_admin_group"]      = validateUnquoted,
    ["ts_post_data_url"]        = validateUnquoted,             -- URL for influxdb
+   ["webhook_url"]             = validateUnquoted,
+   ["webhook_sharedsecret"]    = validateEmptyOr(validateSingleWord),
+   ["webhook_username"]        = validateEmptyOr(validateSingleWord),
+   ["webhook_password"]        = validateEmptyOr(validateSingleWord),
 
    -- nIndex
    ["select_clause"]           = validateUnquoted,
@@ -1097,6 +1101,7 @@ local known_parameters = {
    ["toggle_radius_auth"]                          = validateBool,
    ["toggle_http_auth"]                            = validateBool,
    ["toggle_ldap_referrals"]                       = validateBool,
+   ["toggle_webhook_notification"]                 = validateBool,
 
    -- Input fields
    ["minute_top_talkers_retention"]                = validateNumber,
@@ -1161,6 +1166,7 @@ local known_parameters = {
    ["slack_notification_severity_preference"]      = validateNotificationSeverity,
    ["nagios_notification_severity_preference"]     = validateNotificationSeverity,
    ["email_notification_severity_preference"]      = validateNotificationSeverity,
+   ["webhook_notification_severity_preference"]    = validateNotificationSeverity,
    ["multiple_ldap_authentication"]                = validateChoiceInline({"local","ldap","ldap_local"}),
    ["multiple_ldap_account_type"]                  = validateChoiceInline({"posix","samaccount"}),
    ["toggle_logging_level"]                        = validateChoiceInline({"trace", "debug", "info", "normal", "warning", "error"}),
@@ -1175,6 +1181,7 @@ local known_parameters = {
    ["flush_alerts_data"]                           = validateEmpty,
    ["send_test_email"]                             = validateEmpty,
    ["send_test_slack"]                             = validateEmpty,
+   ["send_test_webhook"]                           = validateEmpty,
    ["network_discovery_interval"]                  = validateNumber,
    ["captive_portal_id_method"]                    = validateChoiceInline({"mac", "ip"}),
 --
