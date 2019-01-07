@@ -453,8 +453,6 @@ static int getAuthorizedUser(struct mg_connection *conn,
 /* ****************************************** */
 
 static int isCaptiveConnection(struct mg_connection *conn) {
-  char *host = (char*)mg_get_header(conn, "Host");
-
   return(ntop->getPrefs()->isCaptivePortalEnabled()
 	 && (ntohs(conn->client.lsa.sin.sin_port) == CAPTIVE_PORTAL_PORT)
 	 );
@@ -490,6 +488,7 @@ static bool isStaticResourceUrl(const struct mg_request_info *request_info, u_in
 
 /* ****************************************** */
 
+/* this corresponds to the LAN interface address */
 void HTTPserver::setCaptiveRedirectAddress(const char *addr) {
 #ifdef NTOPNG_PRO
   size_t max_wispr_size = 1024;
@@ -518,13 +517,13 @@ void HTTPserver::setCaptiveRedirectAddress(const char *addr) {
     <AccessProcedure>1.0</AccessProcedure>\n\
     <AccessLocation>%s Network</AccessLocation>\n\
     <LocationName>%s</LocationName>\n\
-    <LoginURL>http://%s%s%s</LoginURL>\n\
+    <LoginURL>http://%s:%u%s%s</LoginURL>\n\
     <MessageType>100</MessageType>\n\
     <ResponseCode>0</ResponseCode>\n\
   </Redirect>\n\
 </WISPAccessGatewayParam>\n\
 -->\n\
-</HTML>", name, name, addr,
+</HTML>", name, name, addr, CAPTIVE_PORTAL_PORT,
 	ntop->getPrefs()->get_http_prefix(),
 	ntop->getPrefs()->getCaptivePortalUrl());
 #endif
@@ -561,9 +560,10 @@ static void redirect_to_login(struct mg_connection *conn,
 	      "Pragma: no-cache\r\n"
 	      "Content-Type: text/html; charset=UTF-8\r\n"
 	      "Content-Length: %lu\r\n"
-	      "Location: http://%s%s%s%s%s\r\n\r\n%s",
+	      "Location: http://%s:%u%s%s%s%s\r\n\r\n%s",
               strlen(wispr_data),
-              ntop->get_HTTPserver()->getCaptiveRedirectAddress(),
+              ntop->get_HTTPserver()->getCaptiveRedirectAddress(), // LAN address
+              CAPTIVE_PORTAL_PORT,
 	      ntop->getPrefs()->get_http_prefix(), ntop->getPrefs()->getCaptivePortalUrl(),
 	      referer ? (char*)"?referer=" : "",
 	      referer ? (referer_enc = Utils::urlEncode(referer)) : (char*)"",
@@ -824,9 +824,10 @@ static int handle_lua_request(struct mg_connection *conn) {
 	      "Cache-Control: no-store, no-cache, must-revalidate\t\n"
 	      "Pragma: no-cache\r\n"
 	      "Referer: %s\r\n"
-	      "Location: http://%s%s%s%s\r\n\r\n",
+	      "Location: http://%s:%u%s%s%s\r\n\r\n",
 	      request_info->uri,
 	      mg_get_header(conn, "Host") ? mg_get_header(conn, "Host") : (char*)"",
+	      CAPTIVE_PORTAL_PORT,
 	      ntop->getPrefs()->getCaptivePortalUrl(),
 	      request_info->query_string ? "?" : "",
 	      request_info->query_string ? request_info->query_string : "");
