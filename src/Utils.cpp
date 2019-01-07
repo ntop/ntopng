@@ -609,7 +609,6 @@ int Utils::dropPrivileges() {
   return 0;
 }
 
-
 /* **************************************************** */
 
 /* http://www.adp-gmbh.ch/cpp/common/base64.html */

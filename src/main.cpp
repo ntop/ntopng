@@ -279,12 +279,6 @@ int main(int argc, char *argv[])
     if((iface = new ViewInterface(ifName)))
       ntop->registerInterface(iface);
   }
-
-#ifndef HAVE_NEDGE
-  ntop->createExportInterface();
-  ntop->getElasticSearch()->startFlowDump();
-  ntop->getLogstash()->startFlowDump();
-#endif
   
   if(ntop->getFirstInterface() == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Startup error: missing super-user privileges ?");
@@ -327,10 +321,25 @@ int main(int argc, char *argv[])
     Utils::dropPrivileges();
   }
 
+#ifndef HAVE_NEDGE
+  ntop->createExportInterface();
+  ntop->getElasticSearch()->startFlowDump();
+  ntop->getLogstash()->startFlowDump();
+#endif
+
   ntop->loadGeolocation(prefs->get_docs_dir());
   ntop->loadMacManufacturers(prefs->get_docs_dir());
   ntop->loadTrackers();
   ntop->registerHTTPserver(new HTTPserver(prefs->get_docs_dir(), prefs->get_scripts_dir()));
+
+  /* initInterface writes DB data on disk, keep it after changing user
+   * Note: privileges can be dropped by mongoose (creating HTTPserver) */
+  for(int i = 0; i < MAX_NUM_INTERFACE_IDS; i++) {
+    NetworkInterface *iface;
+
+    if((iface = ntop->getInterface(i)) != NULL)
+      ntop->initInterface(iface);
+  }
 
   /*
     If mysql flows dump is enabled, then it is necessary to create
