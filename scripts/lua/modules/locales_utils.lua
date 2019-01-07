@@ -26,30 +26,28 @@ end
 
 i18n.setLocale(language)
 
-local common_locales = {
-   {code="en", name=i18n("locales.en")},
-}
-
-local pro_only_locales = {
-   {code="it", name=i18n("locales.it")},
-   {code="de", name=i18n("locales.de")},
+local supported_locales = {
+   en = {code = "en"},
+   it = {code = "it"},
+   de = {code = "de"},
+   jp = {code = "jp"}
 }
 
 local function lookupLocale(localename, is_pro)
-   local base_path
-   local arr
+   local base_path = dirs.installdir..'/scripts/locales/'
+   local locale_path = base_path .. localename .. ".lua"
 
-   if not is_pro then
-      base_path = dirs.installdir..'/scripts/locales/'
-      arr = common_locales
-   else
-      base_path = dirs.installdir..'/scripts/lua/pro/../locales/'
-      arr = pro_only_locales
+   if ntop.exists(locale_path) and supported_locales[localename] then
+      return locale_path
    end
 
-   for _, locale in pairs(arr) do
-      if locale.code == localename then
-         return base_path .. localename .. ".lua"
+   -- Look for pro-only locales
+   if ntop.isPro() then
+      base_path = dirs.installdir..'/scripts/lua/pro/../locales/'
+      locale_path = base_path .. localename .. ".lua"
+
+      if ntop.exists(locale_path) and supported_locales[localename] then
+	 return locale_path
       end
    end
 
@@ -58,7 +56,7 @@ end
 
 -- Note: en already loaded
 if (language ~= "en") and (not ntop.isnEdge()) then
-   local locale_path = lookupLocale(language, false) or (ntop.isPro() and lookupLocale(language, true))
+   local locale_path = lookupLocale(language)
 
    if locale_path then
       i18n.loadLocaleFile(locale_path, language)
@@ -67,12 +65,8 @@ end
 
 local available_locales = {}
 
-for _, locale in ipairs(common_locales) do
-   available_locales[#available_locales + 1] = locale
-end
-
-if ntop.isPro() then
-   for _, locale in ipairs(pro_only_locales) do
+for localename, locale in pairs(supported_locales) do
+   if lookupLocale(localename) then
       available_locales[#available_locales + 1] = locale
    end
 end
