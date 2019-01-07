@@ -7,7 +7,7 @@ local dirs = ntop.getDirs()
 local tracker = require "tracker"
 
 local os_utils = {}
-local NTOPCTL_CMD = "ntopctl"
+local NTOPCTL_CMD = "/usr/bin/ntopctl"
 local NTOPNG_CONFIG_TOOL = "/usr/bin/ntopng-utils-manage-config"
 local is_windows = ntop.isWindows()
 
@@ -62,6 +62,10 @@ end
 -- ########################################################
 
 local function ntopctl_cmd(service_name, use_sudo, ...)
+   if not ntop.exists(NTOPCTL_CMD) then
+      return nil
+   end
+
    local cmd = {NTOPCTL_CMD, service_name, ...}
 
    if use_sudo then
@@ -74,7 +78,9 @@ end
 --! @brief Execute service control tool and get its output.
 --! @return Command output. See os_utils.execWithOutput for details.
 function os_utils.ntopctlCmd(service_name, ...)
-   return os_utils.execWithOutput(ntopctl_cmd(service_name, true, ...))
+   local cmd = ntopctl_cmd(service_name, true, ...)
+   if not cmd then return nil end
+   return os_utils.execWithOutput(cmd)
 end
 
 -- ########################################################
@@ -99,6 +105,7 @@ function os_utils.hasService(service_name, ...)
    end
 
    local cmd = ntopctl_cmd(service_name, false, "has-service", ...)
+   if not cmd then return false end
    local rv = os_utils.execWithOutput(cmd)
    return(rv == "yes\n")
 end
@@ -108,7 +115,11 @@ end
 --! @brief Enable a service
 --! @return true if service was enabled successfully, false otherwise
 function os_utils.enableService(service_name, ...)
-   os_utils.execWithOutput(ntopctl_cmd(service_name, true, "enable", ...))
+   local cmd = ntopctl_cmd(service_name, true, "enable", ...)
+   if not cmd then return false end
+
+   os_utils.execWithOutput(cmd)
+
    return os_utils.isEnabled(service_name)
 end
 
@@ -117,7 +128,11 @@ end
 --! @brief Disable a service
 --! @return true if service was disabled successfully, false otherwise
 function os_utils.disableService(service_name, ...)
-   os_utils.execWithOutput(ntopctl_cmd(service_name, true, "disable", ...))
+   local cmd = ntopctl_cmd(service_name, true, "disable", ...)
+   if not cmd then return false end
+
+   os_utils.execWithOutput(cmd)
+
    return not os_utils.isEnabled(service_name)
 end
 
@@ -126,7 +141,11 @@ end
 --! @brief Restart a service
 --! @note See os_utils.execWithOutput for return value
 function os_utils.restartService(service_name, ...)
-   os_utils.execWithOutput(ntopctl_cmd(service_name, true, "restart", ...))
+   local cmd = ntopctl_cmd(service_name, true, "restart", ...)
+   if not cmd then return false end
+
+   os_utils.execWithOutput(cmd)
+
    return(os_utils.serviceStatus(service_name) == "active")
 end
 
@@ -135,7 +154,11 @@ end
 --! @brief Stop a service
 --! @note See os_utils.execWithOutput for return value
 function os_utils.stopService(service_name, ...)
-   os_utils.execWithOutput(ntopctl_cmd(service_name, true, "stop", ...))
+   local cmd = ntopctl_cmd(service_name, true, "stop", ...)
+   if not cmd then return false end
+
+   os_utils.execWithOutput(cmd)
+
    return(os_utils.serviceStatus(service_name) == "inactive")
 end
 
@@ -144,7 +167,10 @@ end
 --! @brief Check the service status.
 --! @return active|inactive|error
 function os_utils.serviceStatus(service_name, ...)
-   local rv = os_utils.execWithOutput(ntopctl_cmd(service_name, false, "is-active", ...))
+   local cmd = ntopctl_cmd(service_name, false, "is-active", ...)
+   if not cmd then return "error" end
+
+   local rv = os_utils.execWithOutput(cmd)
 
    if rv == "active\n" then
       return "active"
@@ -166,7 +192,11 @@ end
 -- ########################################################
 
 function os_utils.isEnabled(service_name, ...)
-   local rv = os_utils.execWithOutput(ntopctl_cmd(service_name, false, "is-enabled", ...))
+   local cmd = ntopctl_cmd(service_name, false, "is-enabled", ...)
+   if not cmd then return false end
+
+   local rv = os_utils.execWithOutput(cmd)
+
    return(rv == "enabled")
 end
 
