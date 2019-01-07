@@ -398,6 +398,10 @@
 #define CONST_MAX_NUM_FIND_HITS       10
 #define CONST_MAX_NUM_HITS         32768 /* Decrease it for small installations */
 
+/* NOTE: keep in sync with nf_config.lua */
+#define DNS_MAPPING_PORT            3003
+#define CAPTIVE_PORTAL_PORT         3004
+
 #define CONST_LUA_FLOW_CREATE       "flowCreate"
 #define CONST_LUA_FLOW_DELETE       "flowDelete"
 #define CONST_LUA_FLOW_UPDATE       "flowUpdate"

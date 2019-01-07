@@ -456,12 +456,7 @@ static int isCaptiveConnection(struct mg_connection *conn) {
   char *host = (char*)mg_get_header(conn, "Host");
 
   return(ntop->getPrefs()->isCaptivePortalEnabled()
-	 && (ntohs(conn->client.lsa.sin.sin_port) == 80
-	     /* HTTPs captive portal connections not supported.
-		|| ntohs(conn->client.lsa.sin.sin_port) == 443 */
-	     )
-	 && host
-	 && (strcasestr(host, CONST_HELLO_HOST) == NULL)
+	 && (ntohs(conn->client.lsa.sin.sin_port) == CAPTIVE_PORTAL_PORT)
 	 );
 }
 
@@ -1231,8 +1226,10 @@ HTTPserver::~HTTPserver() {
 
 void HTTPserver::startCaptiveServer() {
   struct mg_callbacks captive_callbacks;
-  static char * captive_port = (char*)"80";
+  char captive_port[64];
   char access_log_path[MAX_PATH] = {0};
+
+  snprintf(captive_port, sizeof(captive_port), "%u", CAPTIVE_PORTAL_PORT);
 
   static const char * http_captive_options[] = {
     (char*)"listening_ports", captive_port,
