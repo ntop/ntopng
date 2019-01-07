@@ -1304,7 +1304,7 @@ bool Ntop::checkUserPassword(const char * const user, const char * const passwor
       if(Utils::postHTTPJsonData(NULL, // no digest user
                                  NULL, // no digest password
                                  httpUrl,
-                                 postData, &stats,
+                                 postData, 0, &stats,
                                  returnData, MAX_HTTP_AUTHENTICATOR_RETURN_DATA_LEN, &rc)) {
         if(rc == 200) {
           // parse JSON

@@ -9,6 +9,8 @@ local webhook = {}
 
 webhook.EXPORT_FREQUENCY = 60
 webhook.API_VERSION = "0.1"
+webhook.REQUEST_TIMEOUT = 1
+webhook.ITERATION_TIMEOUT = 3
 local MAX_ALERTS_PER_REQUEST = 10
 
 function webhook.sendMessage(alerts)
@@ -29,13 +31,21 @@ function webhook.sendMessage(alerts)
 
   local json_message = json.encode(message)
 
-  return ntop.postHTTPJsonData(username, password, url, json_message)
+  return ntop.postHTTPJsonData(username, password, url, json_message, webhook.REQUEST_TIMEOUT)
 end
 
 function webhook.dequeueAlerts(queue)
+  local start_time = os.time()
+
   local alerts = {}
 
   while true do
+
+    local diff = os.time() - start_time
+    if diff >= webhook.ITERATION_TIMEOUT then
+      break
+    end
+
     local json_alert = ntop.lpopCache(queue)
 
     if not json_alert then

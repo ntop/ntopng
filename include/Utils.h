@@ -68,8 +68,8 @@ class Utils {
   static char* urlDecode(const char *src, char *dst, u_int dst_len);
   static bool purifyHTTPparam(char * const param, bool strict, bool allowURL, bool allowDots);
   static char* stripHTML(const char * const str);
-  static bool postHTTPJsonData(char *username, char *password, char *url, char *json, HTTPTranferStats *stats);
-  static bool postHTTPJsonData(char *username, char *password, char *url, char *json, HTTPTranferStats *stats, char *return_data, int return_data_size, int *response_code);
+  static bool postHTTPJsonData(char *username, char *password, char *url, char *json, int timeout, HTTPTranferStats *stats);
+  static bool postHTTPJsonData(char *username, char *password, char *url, char *json, int timeout, HTTPTranferStats *stats, char *return_data, int return_data_size, int *response_code);
   static bool sendMail(char *from, char *to, char *message, char *smtp_server);
   static bool postHTTPTextFile(lua_State* vm, char *username, char *password, char *url, char *path, int timeout, HTTPTranferStats *stats);
   static bool httpGetPost(lua_State* vm, char *url, char *username,

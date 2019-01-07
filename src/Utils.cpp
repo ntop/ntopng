@@ -1234,7 +1234,7 @@ static void readCurlStats(CURL *curl, HTTPTranferStats *stats, lua_State* vm) {
 /* **************************************** */
 
 bool Utils::postHTTPJsonData(char *username, char *password, char *url,
-			     char *json, HTTPTranferStats *stats) {
+			     char *json, int timeout, HTTPTranferStats *stats) {
   CURL *curl;
   bool ret = true;
 
@@ -1269,6 +1269,14 @@ bool Utils::postHTTPJsonData(char *username, char *password, char *url,
     curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)strlen(json));
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_post_writefunc);
 
+    if (timeout) {
+      curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout);
+      curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, timeout);
+#ifdef CURLOPT_CONNECTTIMEOUT_MS
+      curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, timeout*1000);
+#endif
+    }
+
     res = curl_easy_perform(curl);
 
     if(res != CURLE_OK) {
@@ -1292,7 +1300,7 @@ bool Utils::postHTTPJsonData(char *username, char *password, char *url,
 /* **************************************** */
 
 bool Utils::postHTTPJsonData(char *username, char *password, char *url,
-                             char *json, HTTPTranferStats *stats,
+                             char *json, int timeout, HTTPTranferStats *stats,
                              char *return_data, int return_data_size, int *response_code) {
   CURL *curl;
   bool ret = false;
@@ -1332,6 +1340,14 @@ bool Utils::postHTTPJsonData(char *username, char *password, char *url,
     curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)strlen(json));
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &fetcher);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_get_writefunc);
+
+    if (timeout) {
+      curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout);
+      curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, timeout);
+#ifdef CURLOPT_CONNECTTIMEOUT_MS
+      curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, timeout*1000);
+#endif
+    }
 
     res = curl_easy_perform(curl);
 

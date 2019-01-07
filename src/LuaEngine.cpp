@@ -4978,6 +4978,7 @@ static int ntop_change_user_language(lua_State* vm) {
 static int ntop_post_http_json_data(lua_State* vm) {
   char *username, *password, *url, *json;
   HTTPTranferStats stats;
+  int timeout = 0;
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
   if((username = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
@@ -4991,7 +4992,10 @@ static int ntop_post_http_json_data(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
   if((json = (char*)lua_tostring(vm, 4)) == NULL) return(CONST_LUA_PARAM_ERROR);
 
-  bool rv = Utils::postHTTPJsonData(username, password, url, json, &stats);
+  /* Optional timeout */
+  if(lua_type(vm, 5) == LUA_TNUMBER) timeout = lua_tonumber(vm, 5);
+
+  bool rv = Utils::postHTTPJsonData(username, password, url, json, timeout, &stats);
 
   lua_pushboolean(vm, rv);
   return(CONST_LUA_OK);

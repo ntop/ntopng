@@ -222,7 +222,7 @@ void ElasticSearch::indexESdata() {
       if(!Utils::postHTTPJsonData(ntop->getPrefs()->get_es_user(),
 				  ntop->getPrefs()->get_es_pwd(),
 				  ntop->getPrefs()->get_es_url(),
-				  postbuf, &stats)) {
+				  postbuf, 0, &stats)) {
 	/* Post failure */
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "ES: POST request for %d flows (%d bytes) failed", num_flows, len);
 	sleep(1);
@@ -339,7 +339,7 @@ void ElasticSearch::pushEStemplate() {
   while(max_attempts > 0) {
     if(!Utils::postHTTPJsonData(ntop->getPrefs()->get_es_user(),
 				ntop->getPrefs()->get_es_pwd(),
-				es_template_push_url, postbuf, &stats)) {
+				es_template_push_url, postbuf, 0, &stats)) {
       /* Post failure */
       sleep(1);
     } else {
