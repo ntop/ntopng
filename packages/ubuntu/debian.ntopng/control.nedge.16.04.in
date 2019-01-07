@@ -12,7 +12,7 @@ Architecture: @EXTN@
 Recommends: ntopng-data
 Suggests: ntopng-data
 Pre-Depends:
-Conflicts: dnsmasq, dnsmasq-base, network-manager, network-manager-gnome, ntp
+Conflicts: network-manager, network-manager-gnome, ntp
 Provides:
 Replaces: ntopng
 Description: Web-based edge traffic policer

@@ -5,8 +5,9 @@ nEdge requires at least **two wired network interfaces** in order to run.
 
 .. warning::
    nEdge will change the system configuration of the device where it's installed.
-   The original network configuration file is stored in `/etc/network/interfaces.old`.
-   The nEdge package will force the removal of dnsmasq and network manager as they
+   The original network configuration file is stored in `/etc/network/interfaces.old` in
+   Ubuntu 16 or in `/etc/netplan/*.yaml.old` in case of Ubuntu 18.
+   The nEdge package will force the removal of the network manager as it
    conflicts with the nEdge operation.
 
 Before installing nEdge, it's necessary to add the ntop repo to the system, by following the
