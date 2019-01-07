@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-18 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -649,13 +649,12 @@ NetworkInterface::~NetworkInterface() {
 /* **************************************************** */
 
 int NetworkInterface::dumpFlow(time_t when, Flow *f) {
-
   if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
     return(dumpDBFlow(when, f));
   } else if(ntop->getPrefs()->do_dump_flows_on_es()) {
     return(dumpEsFlow(when, f));
   } else if(ntop->getPrefs()->do_dump_flows_on_ls()) {
-    return(dumpLsFlow(when,f));
+    return(dumpLsFlow(when, f));
 #if defined(HAVE_NINDEX) && defined(NTOPNG_PRO)
   } else if(ntop->getPrefs()->do_dump_flows_on_nindex()) {
     return(dumpnIndexFlow(when, f) ? 0 : -1);
