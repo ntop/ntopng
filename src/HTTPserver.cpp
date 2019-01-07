@@ -370,9 +370,12 @@ static int getAuthorizedUser(struct mg_connection *conn,
     } else {
       /* Here the captive portal is not just informative; it requires authentication.
          For this reason it is necessary to check submitted username and password. */
-      if(request_info->query_string) {
-	get_qsvar(request_info, "username", username, NTOP_USERNAME_MAXLEN);
-	get_qsvar(request_info, "password", password, sizeof(password));
+        if(!strcmp(request_info->request_method, "POST")) {
+          char post_data[1024];
+          int post_data_len = mg_read(conn, post_data, sizeof(post_data));
+
+          mg_get_var(post_data, post_data_len, "username", username, sizeof(username));
+          mg_get_var(post_data, post_data_len, "password", password, sizeof(password));
 
 	return(ntop->checkCaptiveUserPassword(username, password, group)
 	     && checkCaptive(conn, request_info, username, password));
