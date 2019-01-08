@@ -109,7 +109,7 @@ print[[
         <select name="user_language" id="user_language" class="form-control">]]
 
 for _, lang in pairs(locales_utils.getAvailableLocales()) do
-   print('<option value="'..lang["code"]..'">'..lang["name"]..'</option>')
+   print('<option value="'..lang["code"]..'">'..i18n("locales." .. lang["code"])..'</option>')
 end
 
 print[[
