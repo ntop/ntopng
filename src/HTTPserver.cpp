@@ -310,7 +310,6 @@ static int isWhitelistedURI(const char * const uri) {
   /* URL whitelist */
   if((!strcmp(uri,    LOGIN_URL))
      || (!strcmp(uri, AUTHORIZE_URL))
-     || (!strcmp(uri, PLEASE_WAIT_URL))
      || (!strcmp(uri, HOTSPOT_DETECT_URL))
      || (!strcmp(uri, HOTSPOT_DETECT_LUA_URL))
      || (!strcmp(uri, ntop->getPrefs()->getCaptivePortalUrl()))
@@ -789,13 +788,6 @@ static int handle_lua_request(struct mg_connection *conn) {
 			       request_info->uri, referer);
 #endif
 
-#ifdef HAVE_MYSQL
-  if(ntop->getPrefs()->do_dump_flows_on_mysql()
-     && !MySQLDB::isDbCreated()
-     && strcmp(request_info->uri, PLEASE_WAIT_URL)) {
-    redirect_to_please_wait(conn, request_info);
-  } else
-#endif
 #ifndef HAVE_NEDGE
   if(ntop->get_HTTPserver()->is_ssl_enabled()
      && (!request_info->is_ssl)
@@ -881,6 +873,14 @@ static int handle_lua_request(struct mg_connection *conn) {
         && ntop->mustChangePassword(username)) {
       redirect_to_password_change(conn, request_info);
       return(1);
+#ifdef HAVE_MYSQL
+    } else if(!whitelisted /* e.g. login.lua */
+        && ntop->getPrefs()->do_dump_flows_on_mysql()
+        && !MySQLDB::isDbCreated()
+        && strcmp(request_info->uri, PLEASE_WAIT_URL)) {
+      redirect_to_please_wait(conn, request_info);
+      return(1);
+#endif
     } else if(strcmp(request_info->uri, AUTHORIZE_URL) == 0) {
       authorize(conn, request_info, username, group, &localuser);
       return(1);
