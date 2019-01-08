@@ -25,6 +25,7 @@ Generated alerts can also be sent to third-party endpoints. Currently supported 
 - Slack
 - Syslog
 - Nagios
+- Webhook
 
 Endpoints can be enabled and configured from the ntopng preferences page.
 
@@ -44,6 +45,32 @@ log will be printed in the console. It is advisable to use the `grep` command
 (e.g. `ntopng -v6 | grep "Utils.cpp"`) to only filter out the email log information.
 
 .. _postfix: https://www.digitalocean.com/community/tutorials/how-to-install-and-configure-postfix-on-ubuntu-16-04
+
+Webhook
+~~~~~~~
+
+Webhooks allow you to subscribe to alerts by configuring a HTTP endpoint. Alerts are encoded
+in JSON messages and sent to the configured URL where they can be processed or used to trigger 
+automations. 
+
+You can add an endpoint by defining the URL and shared secret (optional). The shared secret is 
+a user-defined secret to be validated by the webhook receiver. If the HTTP server requires HTTP 
+authentication, you should also configure username and password.
+
+.. figure:: ../img/web_gui_preferences_alerts_webhook.png
+  :align: center
+  :alt: Webhook Notification Preferences
+
+  The Webhook Notification Preferences Page
+
+It is possible to test the endpoint to make sure it is active and reachable by using the 
+“Send Test Message” button. If an error occurs, an error message will be reported.
+
+Example of alert sent to the webhook endpoint:
+
+.. code:: text
+
+   {version:0.1,sharedsecret:0123456789,alerts:[{"severity":"info","entity_value":"ntopng","ifid":1,"action":"store","tstamp":1536245738,"type":"process_notification","entity_type":"host","message":"[<tstamp>]][Process] Stopped ntopng v.3.7.180906 (CentOS Linux release 7.5.1804 (Core) ) [pid: 4783][options: --interface \"eno1\" --interface \"lo\" --dump-flows \"[hidden]\" --https-port \"4433\" --dont-change-user ]"}]}
 
 Syslog
 ~~~~~~
