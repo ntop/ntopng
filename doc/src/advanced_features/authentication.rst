@@ -1,6 +1,41 @@
 User Authentication
 ===================
 
+Only authenticated users can access the ntopng web GUI. After a
+successful authentication, ntopng creates an authenticated session and
+send it to the web user inside an HTTP cookie. From that point on, the
+web user will be able to transmit the received session back to ntopng
+inside another HTTP cookie along with every request made. ntopng, upon
+seeing the session, will recognize the user and consider he/she as
+authenticated.
+
+Session handling is generally done automatically by the web browser of
+the user. This means that cookie handling and session transmission
+will be transparent to the web user and handled behind the scenes.
+
+Authenticated sessions have a duration. After an amount of time equal
+to the session duration, the session is terminated and ntopng will no
+longer recognize it, requiring the web user to re-authenticate again.
+
+The session duration is configurable as shown in the following picture
+and can go from 1 minute up to 7 days. The shorter the session
+duration, the more secure the ntopng accesses are. Indeed, a
+compromised session could be used by an attacker for the whole
+duration time. It is up to the administrator to choose a duration that
+can guarantee enough security, depending on the environment of the
+operations. The administrator can also decide to terminate all
+the active sessions at midnight, simply by toggling the preference
+shown in the figure. This will force all the web users to
+re-authenticate again, regardless of their residual session duration.
+
+.. figure:: ../img/advanced_features_authentication_duration.png
+  :align: center
+  :alt: ntopng Authentication Duration
+  :scale: 80
+
+  ntopng Authentication Duration
+
+
 ntopng supports multiple methods to authenticate users into the ntopng gui. Individual methods
 can be enabled from the ntopng "User Authentication" preferences.
 
