@@ -158,7 +158,7 @@ static void set_cookie(const struct mg_connection *conn,
                        char *user, char*group, bool localuser, char *referer) {
   char key[256], session_id[64], random[64];
   char val[128];
-  u_int session_duration = HTTP_SESSION_DURATION;
+  u_int session_duration = ntop->getPrefs()->get_auth_session_duration();
 
   if(!strcmp(mg_get_request_info((struct mg_connection*)conn)->uri, "/metrics")
      || !strncmp(mg_get_request_info((struct mg_connection*)conn)->uri, LIVE_TRAFFIC_URL, strlen(LIVE_TRAFFIC_URL))

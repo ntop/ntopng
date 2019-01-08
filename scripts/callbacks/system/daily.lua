@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 local lists_utils = require "lists_utils"
+local auth_sessions_utils = require "auth_sessions_utils"
 
 if(ntop.isPro()) then
    package.path = dirs.installdir .. "/pro/scripts/callbacks/system/?.lua;" .. package.path
@@ -20,3 +21,4 @@ end
 harvestJSONTopTalkers(30)
 
 lists_utils.reloadLists()
+auth_sessions_utils.midnightCheck()

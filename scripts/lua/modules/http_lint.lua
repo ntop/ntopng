@@ -1102,6 +1102,7 @@ local known_parameters = {
    ["toggle_http_auth"]                            = validateBool,
    ["toggle_ldap_referrals"]                       = validateBool,
    ["toggle_webhook_notification"]                 = validateBool,
+   ["toggle_auth_session_midnight_expiration"]     = validateBool,
 
    -- Input fields
    ["minute_top_talkers_retention"]                = validateNumber,
@@ -1131,6 +1132,8 @@ local known_parameters = {
    ["non_local_host_max_idle"]                     = validateNumber,
    ["flow_max_idle"]                               = validateNumber,
    ["active_local_host_cache_interval"]            = validateNumber,
+   ["auth_session_duration"]                       = validateNumber,
+   ["local_host_cache_duration"]                   = validateNumber,
    ["local_host_cache_duration"]                   = validateNumber,
    ["housekeeping_frequency"]                      = validateNumber,
    ["intf_rrd_raw_days"]                           = validateNumber,

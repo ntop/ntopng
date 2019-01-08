@@ -1006,6 +1006,25 @@ end
 
 -- ================================================================================
 
+local function printAuthDuration()
+  print('<tr><th colspan=2 class="info">'..i18n("prefs.authentication_duration")..'</th></tr>')
+
+  prefsInputFieldPrefs(subpage_active.entries["authentication_duration"].title, subpage_active.entries["authentication_duration"].description,
+		       "ntopng.prefs.","auth_session_duration",
+		       prefs.auth_session_duration, "number", true, nil, nil,
+		       {min = 60 --[[ 1 minute --]], max = 86400 * 7 --[[ 7 days --]],
+			tformat="mhd"})
+
+  prefsToggleButton(subpage_active, {
+  		       field = "toggle_auth_session_midnight_expiration",
+  		       default = "0",
+  		       pref = "auth_session_midnight_expiration",
+  })
+
+end
+
+-- ================================================================================
+
 local function printLdapAuth()
   if not ntop.isPro() then return end
 
@@ -1150,6 +1169,8 @@ function printAuthentication()
   print('<table class="table">')
 
   local entries = subpage_active.entries
+
+  printAuthDuration()
 
   -- Note: order must correspond to evaluation order in Ntop.cpp
   if not entries.toggle_ldap_auth.hidden then

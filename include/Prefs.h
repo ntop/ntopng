@@ -53,6 +53,9 @@ class Prefs {
     flow_aggregation_enabled,
     enable_mac_ndpi_stats;
 
+  u_int32_t auth_session_duration;
+  bool auth_session_midnight_expiration;
+
   u_int32_t non_local_host_max_idle, local_host_cache_duration,
 	  local_host_max_idle, flow_max_idle;
   u_int32_t active_local_hosts_cache_interval;
@@ -288,10 +291,10 @@ class Prefs {
   inline pcap_direction_t getCaptureDirection() { return(captureDirection); }
   inline void setCaptureDirection(pcap_direction_t dir) { captureDirection = dir; }
   inline bool hasCmdlTraceLevel()      { return has_cmdl_trace_lvl;      }
-
+  inline u_int32_t get_auth_session_duration()          { return(auth_session_duration);  };
+  inline bool get_auth_session_midnight_expiration()    { return(auth_session_midnight_expiration);  };
   inline u_int32_t get_housekeeping_frequency()         { return(housekeeping_frequency); };
   inline u_int32_t flow_aggregation_frequency()         { return(get_housekeeping_frequency() * FLOW_AGGREGATION_DURATION); };
-
   inline u_int32_t get_host_max_idle(bool localHost)    { return(localHost ? local_host_max_idle : non_local_host_max_idle);  };
   inline u_int32_t get_local_host_cache_duration()      { return(local_host_cache_duration);          };
   inline u_int32_t get_flow_max_idle()                  { return(flow_max_idle);          };

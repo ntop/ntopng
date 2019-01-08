@@ -124,7 +124,8 @@
 #define POOL_MEMBERS_ASSOC_URL    "/lua/admin/manage_pool_members.lua"
 #define NETWORK_LOAD_URL          "/lua/network_load.lua"
 #define MAX_PASSWORD_LEN          32 + 1 /* \0 */
-#define HTTP_SESSION_DURATION     43200
+#define HTTP_SESSION_DURATION              43200  // 12h
+#define HTTP_SESSION_MIDNIGHT_EXPIRATION   false
 #define EXTENDED_HTTP_SESSION_DURATION     604800 // 7d
 #define CONST_HTTPS_CERT_NAME     "ntopng-cert.pem"
 #define CONST_NTOP_INTERFACE      "ntop_interface"
@@ -539,7 +540,8 @@
 #define CONST_USER_GROUP_UNPRIVILEGED      "unprivileged"
 #define CONST_USER_GROUP_CAPTIVE_PORTAL    "captive_portal"
 #define CONST_CAPTIVE_PORTAL_INFORM_SECS   86400
-
+#define CONST_AUTH_SESSION_DURATION_PREFS      NTOPNG_PREFS_PREFIX".auth_session_duration"
+#define CONST_AUTH_SESSION_MIDNIGHT_EXP_PREFS  NTOPNG_PREFS_PREFIX".auth_session_midnight_expiration"
 #define CONST_LOCAL_HOST_CACHE_DURATION_PREFS  NTOPNG_PREFS_PREFIX".local_host_cache_duration"
 #define CONST_LOCAL_HOST_IDLE_PREFS            NTOPNG_PREFS_PREFIX".local_host_max_idle"
 

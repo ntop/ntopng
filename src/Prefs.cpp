@@ -58,7 +58,9 @@ Prefs::Prefs(Ntop *_ntop) {
   default_l7policy = PASS_ALL_SHAPER_ID;
   num_ts_slots = CONST_DEFAULT_TS_NUM_SLOTS, ts_num_steps = CONST_DEFAULT_TS_NUM_STEPS;
   device_protocol_policies_enabled = false, enable_vlan_trunk_bridge = false;
-  max_extracted_pcap_bytes = CONST_DEFAULT_MAX_EXTR_PCAP_BYTES; 
+  max_extracted_pcap_bytes = CONST_DEFAULT_MAX_EXTR_PCAP_BYTES;
+  auth_session_duration = HTTP_SESSION_DURATION;
+  auth_session_midnight_expiration = HTTP_SESSION_MIDNIGHT_EXPIRATION;
   install_dir = NULL, captureDirection = PCAP_D_INOUT;
   docs_dir = strdup(CONST_DEFAULT_DOCS_DIR);
   scripts_dir = strdup(CONST_DEFAULT_SCRIPTS_DIR);
@@ -519,6 +521,10 @@ void Prefs::reloadPrefsFromRedis() {
   // alert preferences
   enable_access_log     = getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_ACCESS_LOG, false);
   enable_sql_log        = getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_SQL_LOG, false);
+
+  // auth session preferences
+  auth_session_duration              = getDefaultPrefsValue(CONST_AUTH_SESSION_DURATION_PREFS, HTTP_SESSION_DURATION),
+    auth_session_midnight_expiration = getDefaultBoolPrefsValue(CONST_AUTH_SESSION_MIDNIGHT_EXP_PREFS, HTTP_SESSION_MIDNIGHT_EXPIRATION);
 
   /* Runtime Preferences */
   housekeeping_frequency      = getDefaultPrefsValue(CONST_RUNTIME_PREFS_HOUSEKEEPING_FREQUENCY, HOUSEKEEPING_FREQUENCY),
@@ -1606,6 +1612,9 @@ void Prefs::lua(lua_State* vm) {
   strncat(HTTP_stats_base_dir, "/httpstats/", MAX_PATH);
   lua_push_str_table_entry(vm, "http_stats_base_dir", HTTP_stats_base_dir);
 #endif
+
+  lua_push_uint64_table_entry(vm, "auth_session_duration", get_auth_session_duration());
+  lua_push_bool_table_entry(vm, "auth_session_midnight_expiration", get_auth_session_midnight_expiration());
 
   lua_push_uint64_table_entry(vm, "housekeeping_frequency",    housekeeping_frequency);
   lua_push_uint64_table_entry(vm, "local_host_cache_duration", local_host_cache_duration);

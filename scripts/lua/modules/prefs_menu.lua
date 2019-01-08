@@ -22,7 +22,13 @@ end
 -- This table is used both to control access to the preferences and to filter preferences results
 local menu_subpages = {
   {id="auth",          label=i18n("prefs.user_authentication"),  advanced=false, pro_only=false, nedge_hidden=false, hidden=(not(prefs.is_users_login_enabled) and not have_nedge), entries={
-    toggle_ldap_auth = {
+    authentication_duration = {
+      title       = i18n("prefs.authentication_duration_title"),
+      description = i18n("prefs.authentication_duration_descr"),
+    }, toggle_auth_session_midnight_expiration = {
+      title       = i18n("prefs.authentication_midnight_expiration_title"),
+      description = i18n("prefs.authentication_midnight_expiration_descr"),
+    }, toggle_ldap_auth = {
       title       = i18n("prefs.toggle_ldap_auth"),
       description = i18n("prefs.toggle_ldap_auth_descr"),
       hidden      = (not hasLdap),
