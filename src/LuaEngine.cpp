@@ -5844,6 +5844,24 @@ static int ntop_interface_exec_sql_query(lua_State *vm) {
 
 /* ****************************************** */
 
+static int ntop_interface_exec_single_sql_query(lua_State *vm) {
+  char *sql;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  if((sql = (char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
+
+#ifdef HAVE_MYSQL
+  MySQLDB::exec_single_query(vm, sql);
+  return(CONST_LUA_OK);
+#else
+  return(CONST_LUA_ERROR);
+#endif
+}
+
+/* ****************************************** */
+
 // ***API***
 static int ntop_get_dirs(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
@@ -8170,6 +8188,7 @@ static const luaL_Reg ntop_reg[] = {
   { "md5",              ntop_md5 },
   { "hasRadiusSupport", ntop_has_radius_support },
   { "hasLdapSupport",   ntop_has_ldap_support },
+  { "execSingleSQLQuery", ntop_interface_exec_single_sql_query },
 
   /* Redis */
   { "getCache",          ntop_get_redis },

@@ -707,23 +707,9 @@ void MySQLDB::disconnectFromDB(MYSQL *conn) {
 
 /* ******************************************* */
 
-bool MySQLDB::connectToDB(MYSQL *conn, bool select_db) {
+static MYSQL *mysql_try_connect(MYSQL *conn, const char *dbname) {
   MYSQL *rc;
   unsigned long flags = CLIENT_COMPRESS;
-  char *dbname = select_db ? ntop->getPrefs()->get_mysql_dbname() : NULL;
-
-  db_operational = false;
-
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Attempting to connect to MySQL for interface %s...",
-			       iface->get_name());
-
-  if(m) m->lock(__FILE__, __LINE__);
-
-  if(mysql_init(conn) == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Failed to initialize MySQL connection");
-    if(m) m->unlock(__FILE__, __LINE__);
-    return(false);
-  }
 
   if(ntop->getPrefs()->get_mysql_host()[0] == '/') /* Use socketD */
     rc = mysql_real_connect(conn,
@@ -741,6 +727,69 @@ bool MySQLDB::connectToDB(MYSQL *conn, bool select_db) {
 			    dbname,
 			    ntop->getPrefs()->get_mysql_port(),
 			    NULL /* socket */, flags);
+
+  return(rc);
+}
+
+/* ******************************************* */
+
+void mysql_result_to_lua(lua_State *vm, MYSQL_RES *result, bool limitRows) {
+  MYSQL_ROW row;
+  char *fields[MYSQL_MAX_NUM_FIELDS] = { NULL };
+  int num_fields = min_val(mysql_num_fields(result), MYSQL_MAX_NUM_FIELDS);
+  int num = 0;
+  lua_newtable(vm);
+
+  while((row = mysql_fetch_row(result))) {
+    lua_newtable(vm);
+
+    if(num == 0) {
+      for(int i = 0; i < num_fields; i++) {
+	MYSQL_FIELD *field = mysql_fetch_field(result);
+
+	fields[i] = field->name;
+      }
+    }
+
+    for(int i = 0; i < num_fields; i++)
+      lua_push_str_table_entry(vm, (const char*)fields[i], row[i] ? row[i] : (char*)"");
+
+    lua_pushinteger(vm, ++num);
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
+
+    if(num > MYSQL_MAX_NUM_ROWS) {
+      static bool warning_shown = false;
+      if(!warning_shown) {
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "Too many results returned from MySQL, reduce query result set");
+	warning_shown = true;
+      }
+    }
+
+    if(limitRows && num >= MYSQL_MAX_NUM_ROWS) break;
+  }
+}
+
+/* ******************************************* */
+
+bool MySQLDB::connectToDB(MYSQL *conn, bool select_db) {
+  MYSQL *rc;
+  char *dbname = select_db ? ntop->getPrefs()->get_mysql_dbname() : NULL;
+
+  db_operational = false;
+
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Attempting to connect to MySQL for interface %s...",
+			       iface->get_name());
+
+  if(m) m->lock(__FILE__, __LINE__);
+
+  if(mysql_init(conn) == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Failed to initialize MySQL connection");
+    if(m) m->unlock(__FILE__, __LINE__);
+    return(false);
+  }
+
+  rc = mysql_try_connect(conn, dbname);
 
   if(rc == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Failed to connect to MySQL: %s [%s@%s:%i]\n",
@@ -763,6 +812,36 @@ bool MySQLDB::connectToDB(MYSQL *conn, bool select_db) {
 
   if(m) m->unlock(__FILE__, __LINE__);
   return(true);
+}
+
+/* ******************************************* */
+
+int MySQLDB::exec_single_query(lua_State *vm, char *sql) {
+  MYSQL conn;
+  MYSQL_RES *result;
+  bool result_ok = false;
+
+  if(mysql_init(&conn) != NULL) {
+    if((mysql_try_connect(&conn, NULL /* no db */) != NULL) &&
+	  (mysql_query(&conn, sql) == 0) &&
+	  ((result = mysql_store_result(&conn)) != NULL)) {
+        if(mysql_field_count(&conn) != 0) {
+          mysql_result_to_lua(vm, result, false);
+          result_ok = true;
+        }
+
+        mysql_free_result(result);
+    }
+
+    mysql_close(&conn);
+  }
+
+  if(!result_ok) {
+    lua_pushnil(vm);
+    return(-1);
+  }
+
+  return(0);
 }
 
 /* ******************************************* */
@@ -833,9 +912,7 @@ int MySQLDB::exec_sql_query(MYSQL *conn, const char *sql,
 
 int MySQLDB::exec_sql_query(lua_State *vm, char *sql, bool limitRows, bool wait_for_db_created) {
   MYSQL_RES *result;
-  MYSQL_ROW row;
-  char *fields[MYSQL_MAX_NUM_FIELDS] = { NULL };
-  int num_fields, rc, num = 0;
+  int rc;
 
   if((wait_for_db_created && !MySQLDB::db_created /* Make sure the db exists before doing queries */)
      || !db_operational)
@@ -892,39 +969,7 @@ int MySQLDB::exec_sql_query(lua_State *vm, char *sql, bool limitRows, bool wait_
   if((result == NULL) || (mysql_field_count(&mysql) == 0)) {
     lua_pushnil(vm);
   } else {
-    num_fields = min_val(mysql_num_fields(result), MYSQL_MAX_NUM_FIELDS);
-    lua_newtable(vm);
-
-    num = 0;
-    while((row = mysql_fetch_row(result))) {
-      lua_newtable(vm);
-
-      if(num == 0) {
-	for(int i = 0; i < num_fields; i++) {
-	  MYSQL_FIELD *field = mysql_fetch_field(result);
-
-	  fields[i] = field->name;
-	}
-      }
-
-      for(int i = 0; i < num_fields; i++)
-	lua_push_str_table_entry(vm, (const char*)fields[i], row[i] ? row[i] : (char*)"");
-
-      lua_pushinteger(vm, ++num);
-      lua_insert(vm, -2);
-      lua_settable(vm, -3);
-
-      if(num > MYSQL_MAX_NUM_ROWS) {
-	static bool warning_shown = false;
-	if(!warning_shown) {
-	  ntop->getTrace()->traceEvent(TRACE_WARNING, "Too many results returned from MySQL, reduce query result set");
-	  warning_shown = true;
-	}
-      }
-
-      if(limitRows && num >= MYSQL_MAX_NUM_ROWS) break;
-    }
-
+    mysql_result_to_lua(vm, result, limitRows);
     mysql_free_result(result);
   }
   
