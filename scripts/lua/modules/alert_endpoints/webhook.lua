@@ -31,7 +31,17 @@ function webhook.sendMessage(alerts)
 
   local json_message = json.encode(message)
 
-  return ntop.postHTTPJsonData(username, password, url, json_message, webhook.REQUEST_TIMEOUT)
+  local rc = false
+  local retry_attempts = 3
+  while retry_attempts > 0 do
+    if ntop.postHTTPJsonData(username, password, url, json_message, webhook.REQUEST_TIMEOUT) then 
+      rc = true
+      break 
+    end
+    retry_attempts = retry_attempts - 1
+  end
+
+  return rc
 end
 
 function webhook.dequeueAlerts(queue)
@@ -58,6 +68,7 @@ function webhook.dequeueAlerts(queue)
 
     if #alerts >= MAX_ALERTS_PER_REQUEST then
       if not webhook.sendMessage(alerts) then
+        ntop.delCache(queue)
         return {success=false, error_message="Unable to send alerts to the webhook"}
       end
       alerts = {}
@@ -66,6 +77,7 @@ function webhook.dequeueAlerts(queue)
 
   if #alerts > 0 then
     if not webhook.sendMessage(alerts) then
+      ntop.delCache(queue)
       return {success=false, error_message="Unable to send alerts to the webhook"}
     end
   end
