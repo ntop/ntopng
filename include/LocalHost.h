@@ -26,19 +26,28 @@
 
 class LocalHost : public Host {
  private:
-  int16_t local_network_id;
-  NetworkStats *networkStats;
+/*** BEGIN Host data ****/
+  /* Written by NetworkInterface::processPacket thread */
   DnsStats *dns;
   HTTPstats *http;
   ICMPstats *icmp;
   FrequentStringItems *top_sites;
-  char *old_sites, *os;
-  time_t nextSitesUpdate;
-  bool systemHost;
+  char *os;
+  map<Host*, u_int16_t> contacts_as_cli, contacts_as_srv;
+
+  /* Written by NetworkInterface::periodicStatsUpdate thread */
+  char *old_sites;
+  TimeseriesRing *ts_ring;
+
+  /* Written by multiple threads */
   bool dhcpUpdated;
   bool drop_all_host_traffic;
-  TimeseriesRing *ts_ring;
-  map<Host*, u_int16_t> contacts_as_cli, contacts_as_srv;
+/*** END Host data ***/
+
+  int16_t local_network_id;
+  NetworkStats *networkStats;
+  time_t nextSitesUpdate;
+  bool systemHost;
 
   void initialize();
   virtual bool readDHCPCache();

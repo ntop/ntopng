@@ -35,6 +35,7 @@ class PacketStats {
  public:
   PacketStats();
 
+  void resetStats();
   void incFlagStats(u_int8_t flags);
   void incStats(u_int pkt_len);
   char* serialize();

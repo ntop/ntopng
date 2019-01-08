@@ -140,8 +140,6 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   last_update_time.tv_sec = 0, last_update_time.tv_usec = 0, vlan_id = 0;
   low_goodput_client_flows = low_goodput_server_flows = 0;
   // readStats(); - Commented as if put here it's too early and the key is not yet set
-  goodput_bytes_thpt = last_goodput_bytes_thpt = bytes_goodput_thpt_diff = 0;
-  bytes_goodput_thpt_trend = trend_unknown;
 
 #ifdef NTOPNG_PRO
   has_blocking_quota = has_blocking_shaper = false;
@@ -638,12 +636,6 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
     lua_push_uint64_table_entry(vm, "other_ip.bytes.sent", other_ip_sent.getNumBytes());
     lua_push_uint64_table_entry(vm, "other_ip.packets.rcvd",  other_ip_rcvd.getNumPkts());
     lua_push_uint64_table_entry(vm, "other_ip.bytes.rcvd", other_ip_rcvd.getNumBytes());
-
-    /* Host ingress/egress drops */
-    lua_push_uint64_table_entry(vm, "bridge.ingress_drops.bytes", ingress_drops.getNumBytes());
-    lua_push_uint64_table_entry(vm, "bridge.ingress_drops.packets",  ingress_drops.getNumPkts());
-    lua_push_uint64_table_entry(vm, "bridge.egress_drops.bytes", egress_drops.getNumBytes());
-    lua_push_uint64_table_entry(vm, "bridge.egress_drops.packets",  egress_drops.getNumPkts());
 
     lua_push_uint64_table_entry(vm, "low_goodput_flows.as_client", low_goodput_client_flows);
     lua_push_uint64_table_entry(vm, "low_goodput_flows.as_server", low_goodput_server_flows);

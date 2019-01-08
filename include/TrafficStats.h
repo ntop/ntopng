@@ -33,6 +33,7 @@ class TrafficStats {
   
   inline void incStats(u_int64_t num_pkts, u_int64_t num_bytes) { numPkts += num_pkts, numBytes += num_bytes; };  
   inline void incStats(u_int pkt_len)       { numPkts++, numBytes += pkt_len; };
+  inline void resetStats()                  { numPkts = numBytes = 0;         };
   inline u_int64_t getNumPkts()             { return(numPkts);                };
   inline u_int64_t getNumBytes()            { return(numBytes);               };
   void printStats();

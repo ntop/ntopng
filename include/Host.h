@@ -28,58 +28,66 @@ class Host : public Checkpointable, public GenericHashEntry, public GenericTraff
  protected:
   IpAddress ip;
   Mac *mac;
-  char *symbolic_name;
-  char *asname, *info;
+  char *asname;
+
+/*** BEGIN Host data ****/
+  /* Written by NetworkInterface::periodicStatsUpdate thread */
+  // NOTE: GenericTrafficElement inherited data is updated periodically too
   TrafficStats tcp_sent, tcp_rcvd;
   TrafficStats udp_sent, udp_rcvd;
   TrafficStats icmp_sent, icmp_rcvd;
   TrafficStats other_ip_sent, other_ip_rcvd;
-  TrafficStats ingress_drops, egress_drops;
+  u_int32_t total_activity_time /* sec */;
+  bool host_label_set;
+  char *info;
+#ifdef NTOPNG_PRO
+  HostPoolStats *quota_enforcement_stats, *quota_enforcement_stats_shadow;
+#endif
+
+  /* Written by NetworkInterface::processPacket thread */
   PacketStats sent_stats, recv_stats;
+  char *ssdpLocation, *ssdpLocation_shadow;
+  struct {
+    u_int32_t pktRetr, pktOOO, pktLost, pktKeepAlive;
+  } tcpPacketStats; /* Sent packets */
+
+  /* Written by minute activity thread */
+  u_int64_t checkpoint_sent_bytes, checkpoint_rcvd_bytes;
+  bool checkpoint_set;
+
+  /* Written by multiple threads */
+#ifdef NTOPNG_PRO
+  bool has_blocking_quota, has_blocking_shaper;
+#endif
+  char *symbolic_name; /* write protected by mutex */
+/*** END Host data ***/
+
   u_int32_t num_alerts_detected;
   AlertCounter *syn_flood_attacker_alert, *syn_flood_victim_alert;
   AlertCounter *flow_flood_attacker_alert, *flow_flood_victim_alert;
   bool trigger_host_alerts;
 
-  struct {
-    u_int32_t pktRetr, pktOOO, pktLost, pktKeepAlive;
-  } tcpPacketStats; /* Sent packets */
   u_int32_t total_num_flows_as_client, total_num_flows_as_server;
-  u_int32_t total_activity_time /* sec */;
-
- private:
+  u_int32_t num_active_flows_as_client, num_active_flows_as_server;
   u_int32_t low_goodput_client_flows, low_goodput_server_flows;
   u_int32_t last_epoch_update; /* useful to avoid multiple updates */
-
-  /* Throughput */
-  float goodput_bytes_thpt, last_goodput_bytes_thpt, bytes_goodput_thpt_diff;
-  ValueTrend bytes_goodput_thpt_trend;
 
   u_int32_t asn;
   AutonomousSystem *as;
   Country *country;
   Vlan *vlan;
-  bool host_label_set;
   bool blacklisted_host;
-  u_int32_t host_quota_mb;
 
   Mutex *m;
   u_int32_t mac_last_seen;
   u_int8_t num_resolve_attempts;
   time_t nextResolveAttempt;
 
-  u_int32_t num_active_flows_as_client, num_active_flows_as_server;
   bool good_low_flow_detected;
   FlowAlertCounter *flow_alert_counter;
-
-  char *ssdpLocation, *ssdpLocation_shadow;
 #ifdef NTOPNG_PRO
-  bool has_blocking_quota, has_blocking_shaper;
-  HostPoolStats *quota_enforcement_stats, *quota_enforcement_stats_shadow;
   TrafficShaper **host_traffic_shapers;
 #endif
-  u_int64_t checkpoint_sent_bytes, checkpoint_rcvd_bytes;
-  bool checkpoint_set;
   bool hidden_from_top;
 
   void initialize(Mac *_mac, u_int16_t _vlan_id, bool init_all);
@@ -211,8 +219,6 @@ class Host : public Checkpointable, public GenericHashEntry, public GenericTraff
   virtual void decNumFlows(bool as_client, Host *peer);
 
   inline void incFlagStats(bool as_client, u_int8_t flags)  { if (as_client) sent_stats.incFlagStats(flags); else recv_stats.incFlagStats(flags); };
-  inline void incIngressDrops(u_int num_bytes)           { ingress_drops.incStats(num_bytes); };
-  inline void incEgressDrops(u_int num_bytes)            { egress_drops.incStats(num_bytes);  };
   virtual void incNumDNSQueriesSent(u_int16_t query_type) { };
   virtual void incNumDNSQueriesRcvd(u_int16_t query_type) { };
   virtual void incNumDNSResponsesSent(u_int32_t ret_code) { };
