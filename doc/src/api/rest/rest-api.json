@@ -147,7 +147,7 @@
                "200":{
                   "description":"successful operation",
                   "schema":{
-                     "$ref":"#/definitions/Interface"
+                     "$ref":"#/definitions/Alert"
                   }
                },
                "400":{
@@ -217,10 +217,7 @@
             ],
             "responses":{
                "200":{
-                  "description":"successful operation",
-                  "schema":{
-                     "$ref":"#/definitions/Interface"
-                  }
+                  "description":"successful operation"
                },
                "400":{
                   "description":"Invalid status value"
@@ -310,10 +307,7 @@
             ],
             "responses":{
                "200":{
-                  "description":"successful operation",
-                  "schema":{
-                     "$ref":"#/definitions/Interface"
-                  }
+                  "description":"successful operation"
                },
                "400":{
                   "description":"Invalid status value"
@@ -367,10 +361,7 @@
             ],
             "responses":{
                "200":{
-                  "description":"successful operation",
-                  "schema":{
-                     "$ref":"#/definitions/Interface"
-                  }
+                  "description":"successful operation"
                },
                "400":{
                   "description":"Invalid status value"
@@ -477,8 +468,150 @@
          }
       },
       "Host":{
-
-      }
+          "type":"object",
+          "properties":{
+             "localHost":{
+                "type":"boolean"
+             },
+             "ifid":{
+                 "type":"integer",
+                 "format":"int32"
+             },
+             "mac_address":{
+                "type":"string"
+             },
+             "symbolic_name":{
+                "type":"string"
+             },
+             "seen.first":{
+                "type":"integer",
+                "format":"int32"
+             },
+             "seen.last":{
+                "type":"integer",
+                "format":"int32"
+             },
+             "flows.as_client":{
+                 "type":"integer",
+                 "format":"int32"
+             },
+             "flows.as_server":{
+                 "type":"integer",
+                 "format":"int32"
+             },
+             "throughput_pps":{
+                 "type":"number"
+             },
+             "throughput_bps":{
+                 "type":"number"
+             },
+             "os":{
+                "type":"string"
+             },
+             "systemHost":{
+                "type":"boolean"
+             },
+             "throughput_trend_pps":{
+                "type":"string"
+             },
+             "throughput_trend_bps":{
+                "type":"string"
+             },
+             "total_activity_time":{
+                "type":"integer",
+                "format":"int32"
+             },
+             "num_alerts":{
+                "type":"integer",
+                "format":"int32"
+             },
+             "is_blacklisted":{
+                "type":"boolean"
+             },
+             "asn":{
+                "type":"integer",
+                "format":"int32"
+             },
+             "rcvd":{
+                "type":"object",
+                "properties":{
+	                "packets":{
+	                   "type":"integer",
+	                   "format":"int32"
+	                },
+	                "bytes":{
+	                   "type":"integer",
+	                   "format":"int32"
+	                }
+				}
+             },
+             "sent":{
+                "type":"object",
+                "properties":{
+	                "packets":{
+	                   "type":"integer",
+	                   "format":"int32"
+	                },
+	                "bytes":{
+	                   "type":"integer",
+	                   "format":"int32"
+	                }
+				}
+             },
+             "ip":{
+                "type":"object",
+                "properties":{
+	                "localHost":{
+	                   "type":"boolean"
+	                },
+	                "ip":{
+	                   "type":"string"
+	                },
+	                "ipVersion":{
+	                   "type":"integer",
+	                   "format":"int32"
+	                }
+				}
+             }
+		 }
+      },
+      "Alert":{
+          "type":"object",
+          "properties":{
+             "data":{
+				 "type":"array",
+				 "items":{
+                    "type":"object",
+					"properties":{
+	  	              "column_entity":{
+	  	                 "type":"string"
+	  	              },
+	  	              "column_msg":{
+	  	                 "type":"string"
+	  	              },
+	  	              "column_duration":{
+	  	                 "type":"string"
+	  	              },
+	  	              "column_date":{
+	  	                 "type":"string"
+	  	              },
+	  	              "column_type":{
+	  	                 "type":"string"
+	  	              },
+	  	              "column_key":{
+	  	                 "type":"string"
+	  	              },
+	  	              "column_entity_val":{
+	  	                 "type":"string"
+	  	              },
+	  	              "column_severity":{
+	  	                 "type":"string"
+	  	              }
+					}
+	             }
+             }
+		 }
+	  }
    }
 }
 
