@@ -197,7 +197,7 @@ var footerRefresh = function() {
       type: 'GET',
 	  url: ']]
 print (ntop.getHttpPrefix())
-print [[/lua/network_load.lua',
+print [[/lua/get_interface_data.lua',
 	  data: { },
 	  /* error: function(content) { alert("JSON Error (session expired?): logging out"); window.location.replace("]]
 print (ntop.getHttpPrefix())
