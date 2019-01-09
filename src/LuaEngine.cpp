@@ -200,7 +200,8 @@ static void get_host_vlan_info(char* lua_ip, char** host_ip,
 static NetworkInterface* handle_null_interface(lua_State* vm) {
   char allowed_ifname[MAX_INTERFACE_NAME_LEN];
 
-  ntop->getTrace()->traceEvent(TRACE_INFO, "NULL interface: did you restart ntopng in the meantime?");
+  // this is normal, no need to generate a trace
+  //ntop->getTrace()->traceEvent(TRACE_INFO, "NULL interface: did you restart ntopng in the meantime?");
 
   if(ntop->getInterfaceAllowed(vm, allowed_ifname))
     return ntop->getNetworkInterface(allowed_ifname);
