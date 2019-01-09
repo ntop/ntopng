@@ -12,7 +12,7 @@ require "flow_utils"
 local format_utils = require "format_utils"
 local json = require "dkjson"
 
-sendHTTPContentTypeHeader('text/html')
+sendHTTPHeader('application/json')
 
 local status          = _GET["status"]
 

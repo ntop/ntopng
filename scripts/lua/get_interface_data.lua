@@ -14,8 +14,6 @@ local callback_utils = require("callback_utils")
 local recording_utils = require("recording_utils")
 local remote_assistance = require("remote_assistance")
 
-
-
 local function userHasRestrictions()
    local allowed_nets = ntop.getPref("ntopng.user." .. (_SESSION["user"] or "") .. ".allowed_nets")
 

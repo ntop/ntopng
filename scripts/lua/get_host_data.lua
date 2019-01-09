@@ -6,8 +6,7 @@ dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 
-sendHTTPContentTypeHeader('text/html')
-
+sendHTTPHeader('application/json')
 
 function getNetworkStats(network)
    local hosts_stats = interface.getHostsInfo()
