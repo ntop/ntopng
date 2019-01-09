@@ -1,4 +1,4 @@
 RESTful API
 ===========
 
-.. swaggerv2doc:: swagger.json
+.. swaggerv2doc:: rest-api.json
