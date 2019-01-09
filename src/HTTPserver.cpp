@@ -61,7 +61,7 @@ int send_error(struct mg_connection *conn, int status, const char *reason, const
     conn->num_bytes_sent += mg_write(conn, buf, len);
 
     if(ntop->getTrace()->get_trace_level() >= TRACE_LEVEL_INFO)
-      cry(conn, buf);
+      cry(conn, "%s", buf);
     else
       cry_connection(conn, buf);
   }
