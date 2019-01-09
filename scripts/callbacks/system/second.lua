@@ -35,4 +35,10 @@ callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, functio
       -- Packet interface
       ts_utils.append("iface:drops", {ifid=ifstats.id, packets=ifstats.stats.drops}, when)
    end
+
+   -- Flow export stats
+   if(ifstats.stats.flow_export_count ~= nil) then
+      ts_utils.append("iface:exported_flows", {ifid=ifstats.id, num_flows=ifstats.stats.flow_export_count}, when)
+      ts_utils.append("iface:dropped_flows", {ifid=ifstats.id, num_flows=ifstats.stats.flow_export_drops}, when)
+   end
 end)

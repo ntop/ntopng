@@ -65,7 +65,7 @@ function getSerieLabel(schema, serie) {
 }
 
 // Value formatter
-function getValueFormatter(schema, series) {
+function getValueFormatter(schema, metric_type, series) {
   if(series && series.length && series[0].label) {
     var label = series[0].label;
 
@@ -76,9 +76,9 @@ function getValueFormatter(schema, series) {
         return [fbits_from_bytes, bytesToSize];
     } else if(label.contains("packets"))
       return [fpackets, formatPackets];
-    else if(label.contains("flows"))
-      return [formatValue, formatFlows, formatFlows];
-    else if(label.contains("millis"))
+    else if(label.contains("flows")) {
+      return [(metric_type === "counter") ? fflows : formatValue, formatFlows, (metric_type === "counter") ? fflows : formatFlows];
+    } else if(label.contains("millis"))
       return [fmillis, fmillis];
   }
 
@@ -306,7 +306,8 @@ function hideQuerySlow() {
 }
 
 // add a new updateStackedChart function
-function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id, params, step, align_step, show_all_smooth, initial_range, ts_table_shown) {
+function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id, params, step,
+          metric_type, align_step, show_all_smooth, initial_range, ts_table_shown) {
   var pending_chart_request = null;
   var pending_table_request = null;
   var d3_sel = d3.select(chart_id);
@@ -756,7 +757,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
       }
 
       // get the value formatter
-      var formatter1 = getValueFormatter(schema_name, series.filter(function(d) { return(d.axis != 2); }));
+      var formatter1 = getValueFormatter(schema_name, metric_type, series.filter(function(d) { return(d.axis != 2); }));
       var value_formatter = formatter1[0];
       var tot_formatter = formatter1[1];
       var stats_formatter = formatter1[2] || value_formatter;
@@ -764,7 +765,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
       chart.yAxis1_formatter = value_formatter;
 
       var second_axis_series = series.filter(function(d) { return(d.axis == 2); });
-      var formatter2 = getValueFormatter(schema_name, second_axis_series);
+      var formatter2 = getValueFormatter(schema_name, metric_type, second_axis_series);
       var value_formatter2 = formatter2[0];
       chart.yAxis2.tickFormat(value_formatter2);
       chart.yAxis2_formatter = value_formatter2;

@@ -25,6 +25,18 @@ schema:addMetric("num_flows")
 
 -- ##############################################
 
+schema = ts_utils.newSchema("iface:exported_flows", {step=1, rrd_fname="exported_flows"})
+schema:addTag("ifid")
+schema:addMetric("num_flows")
+
+-- ##############################################
+
+schema = ts_utils.newSchema("iface:dropped_flows", {step=1, rrd_fname="dropped_flows"})
+schema:addTag("ifid")
+schema:addMetric("num_flows")
+
+-- ##############################################
+
 schema = ts_utils.newSchema("iface:drops", {step=1, rrd_fname="drops"})
 schema:addTag("ifid")
 schema:addMetric("packets")
