@@ -10,5 +10,6 @@ The ntopng API is split into two parts:
 .. toctree::
     :maxdepth: 2
 
+    rest/index
     lua_c/index
     lua/index

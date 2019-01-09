@@ -1,0 +1,100 @@
+{
+   "swagger":"2.0",
+   "info":{
+      "version":"3.9",
+      "title":"ntopng",
+      "description":"ntopng RESTful API documentation"
+   },
+   "tags":[
+      {
+         "name":"Interfaces",
+         "description":"Everything about interfaces"
+      },
+      {
+         "name":"Hosts",
+         "description":"Everything about hosts"
+      }
+   ],
+   "schemes":[
+      "https",
+      "http"
+   ],
+   "paths":{
+      "/lua/get_interface_data.lua":{
+         "get":{
+            "tags":[
+               "Interfaces"
+            ],
+            "summary":"Get interface data",
+            "description":"Interface data is returned",
+            "operationId":"get_interface_data",
+            "produces":[
+               "application/json"
+            ],
+            "parameters":[
+               {
+                  "name":"ifid",
+                  "in":"query",
+                  "description":"Interface identifier",
+                  "required":true,
+                  "type":"integer",
+                  "format":"int32"
+               }
+            ],
+            "responses":{
+               "200":{
+                  "description":"successful operation",
+                  "schema":{
+                     "$ref":"#/definitions/Interface"
+                  }
+               },
+               "400":{
+                  "description":"Invalid status value"
+               }
+            }
+         }
+      },
+      "/lua/host_get_json.lua":{
+         "get":{
+            "tags":[
+               "Hosts"
+            ],
+            "summary":"Get host data",
+            "description":"Host data is returned",
+            "operationId":"host_get_json",
+            "produces":[
+               "application/json"
+            ],
+            "parameters":[
+               {
+                  "name":"ifid",
+                  "in":"query",
+                  "description":"Interface identifier",
+                  "required":true,
+                  "type":"integer",
+                  "format":"int32"
+               },
+               {
+                  "name":"host",
+                  "in":"query",
+                  "description":"Host address",
+                  "required":true,
+                  "type":"string"
+               }
+            ],
+            "responses":{
+               "200":{
+                  "description":"successful operation",
+                  "schema":{
+                     "$ref":"#/definitions/Host"
+                  }
+               },
+               "400":{
+                  "description":"Invalid status value"
+               }
+            }
+         }
+      }
+   }
+}
+
