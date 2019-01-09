@@ -95,6 +95,9 @@ local menu_subpages = {
       title       = i18n("prefs.http_auth_server_title"),
       description = i18n("prefs.http_auth_server_description"),
       hidden      = have_nedge,
+    }, toggle_client_x509_auth = {
+      title       = i18n("prefs.client_x509_auth_title"),
+      description = i18n("prefs.client_x509_auth_descr"),
     },
   }}, {id="ifaces",    label=i18n("prefs.network_interfaces"),   advanced=true,  pro_only=false,  hidden=false, nedge_hidden=true, entries={
     dynamic_interfaces_creation = {

@@ -42,6 +42,7 @@ class Prefs {
   char **deferred_interfaces_to_register, *cli;
   char *http_binding_address1, *http_binding_address2;
   char *https_binding_address1, *https_binding_address2;
+  bool enable_client_x509_auth;
   char *lan_interface;
   Ntop *ntop;
   bool enable_dns_resolution, sniff_dns_responses,
@@ -218,9 +219,10 @@ class Prefs {
   inline bool  do_auto_logout_at_runtime()              { return(enable_auto_logout_at_runtime);    };
   inline bool  do_ignore_vlans()                        { return(ignore_vlans);                     };
   inline bool  do_simulate_vlans()                      { return(simulate_vlans);                   };
-  inline char* get_cpu_affinity()                       { return(cpu_affinity);   };
-  inline u_int get_http_port()                          { return(http_port);      };
-  inline u_int get_https_port()                         { return(https_port);     };
+  inline char* get_cpu_affinity()                       { return(cpu_affinity);            };
+  inline u_int get_http_port()                          { return(http_port);               };
+  inline u_int get_https_port()                         { return(https_port);              };
+  inline bool  is_client_x509_auth_enabled()            { return(enable_client_x509_auth); };
   inline char* get_redis_host()                         { return(redis_host);     }
   inline char* get_redis_password()                     { return(redis_password); }
   inline u_int get_redis_port()                         { return(redis_port);     };

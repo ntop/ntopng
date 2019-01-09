@@ -128,6 +128,7 @@
 #define HTTP_SESSION_MIDNIGHT_EXPIRATION   false
 #define EXTENDED_HTTP_SESSION_DURATION     604800 // 7d
 #define CONST_HTTPS_CERT_NAME     "ntopng-cert.pem"
+#define CONST_HTTPS_AUTHCA_FILE   "ntopng-ca.crt"
 #define CONST_NTOP_INTERFACE      "ntop_interface"
 
 #define PCAP_MAGIC                0xa1b2c3d4
@@ -535,6 +536,8 @@
 #define HOST_POOL_MEMBERS_KEY               NTOPNG_PREFS_PREFIX".%u.host_pools.members.%s"
 #define HOST_POOL_SHAPERS_KEY               NTOPNG_PREFS_PREFIX".%u.l7_policies.%s"
 #define HOST_POOL_DETAILS_KEY               NTOPNG_PREFS_PREFIX".%u.host_pools.details.%u"
+
+#define CONST_PREFS_CLIENT_X509_AUTH        NTOPNG_PREFS_PREFIX".is_client_x509_auth_enabled"
 
 #define CONST_USER_GROUP_ADMIN             "administrator"
 #define CONST_USER_GROUP_UNPRIVILEGED      "unprivileged"

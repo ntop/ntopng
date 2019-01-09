@@ -1103,6 +1103,7 @@ local known_parameters = {
    ["toggle_ldap_referrals"]                       = validateBool,
    ["toggle_webhook_notification"]                 = validateBool,
    ["toggle_auth_session_midnight_expiration"]     = validateBool,
+   ["toggle_client_x509_auth"]                     = validateBool,
 
    -- Input fields
    ["minute_top_talkers_retention"]                = validateNumber,
