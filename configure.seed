@@ -227,7 +227,7 @@ if test "${with_nedge+set}" != set; then
 
   if test -f "${NINDEX_HOME}/libnindex.a"; then
     PRO_INCS="${PRO_INCS} -I ${NINDEX_HOME}/include"
-    PRO_LIBS="${PRO_LIBS} ${NINDEX_HOME}/libnindex.a ${NINDEX_HOME}/../CRoaring/build/src/libroaring.a"
+    PRO_LIBS="${PRO_LIBS} ${NINDEX_HOME}/libnindex.a ${NINDEX_HOME}/CRoaring/build/src/libroaring.a"
     AC_DEFINE_UNQUOTED(HAVE_NINDEX, 1, [nIndex support is present])
     echo "checking for nIndex... found on ${NINDEX_HOME}"
   fi
