@@ -1585,19 +1585,30 @@ bool Ntop::changeUserLanguage(const char * const username, const char * const la
 
   return(true);
 }
+/* ******************************************* */
+
+bool Ntop::existsUser(const char * const username) const {
+  char key[CONST_MAX_LEN_REDIS_KEY], val[2] /* Don't care about the content */;
+
+  snprintf(key, sizeof(key), CONST_STR_USER_GROUP, username);
+  if(ntop->getRedis()->get(key, val, sizeof(val)) >= 0)
+    return(true); // user already exists
+
+  return(false);
+}
 
 /* ******************************************* */
 
 bool Ntop::addUser(char *username, char *full_name, char *password, char *host_role,
 		   char *allowed_networks, char *allowed_ifname, char *host_pool_id,
 		   char *language) {
-  char key[64], val[64];
+  char key[CONST_MAX_LEN_REDIS_KEY];
   char password_hash[33];
 
-  snprintf(key, sizeof(key), CONST_STR_USER_FULL_NAME, username);
-  if(ntop->getRedis()->get(key, val, sizeof(val)) >= 0)
-    return(false); // user already exists
+  if(existsUser(username))
+    return(false);
 
+  snprintf(key, sizeof(key), CONST_STR_USER_FULL_NAME, username);
   ntop->getRedis()->set(key, full_name, 0);
 
   snprintf(key, sizeof(key), CONST_STR_USER_GROUP, username);

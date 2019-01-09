@@ -1087,11 +1087,11 @@ function printAuthentication()
   local entries = subpage_active.entries
 
   -- Note: order must correspond to evaluation order in Ntop.cpp
-  print('<tr><th class="info" colspan="2">'..i18n("prefs.https_auth")..'</th></tr>')
+  print('<tr><th class="info" colspan="2">'..i18n("prefs.client_x509_auth")..'</th></tr>')
   prefsToggleButton(subpage_active,{
-	field = "toggle_https_auth",
+	field = "toggle_client_x509_auth",
 	default = "0",
-	pref = "is_https_auth",
+	pref = "is_client_x509_auth_enabled",
   })
   if not entries.toggle_ldap_auth.hidden then
     printLdapAuth()

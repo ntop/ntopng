@@ -326,6 +326,48 @@ static int isWhitelistedURI(const char * const uri) {
 
 /* ****************************************** */
 
+static bool ssl_client_x509_auth(const struct mg_connection * const conn, const struct mg_request_info * const request_info,
+				 char * const username, char * const group, bool * const localuser) {
+  bool ret = false;
+  X509 *cert = NULL;
+  X509_NAME *subj = NULL;
+  char subject[256];
+  char key[CONST_MAX_LEN_REDIS_KEY];
+
+  if((cert = SSL_get_peer_certificate(conn->ssl))) {
+    if((subj = X509_get_subject_name(cert))) {
+      X509_NAME_oneline(subj, subject, sizeof(subject));
+
+      if(SSL_get_verify_result(conn->ssl) == X509_V_OK
+	 && X509_NAME_get_text_by_NID(subj, NID_commonName, username, NTOP_USERNAME_MAXLEN) >= 0) {
+	snprintf(key, sizeof(key), CONST_STR_USER_GROUP, username);
+
+	bool group_exists = ntop->getRedis()->get(key, group, NTOP_GROUP_MAXLEN) >= 0;
+
+	if(ntop->existsUser(username)
+	   && group_exists) {
+	  *localuser = true;
+	  ntop->getTrace()->traceEvent(TRACE_INFO,"SSL user authenticated [username: %s][group: %s][subject: %s]", username, group, subject);
+
+	  ret = true;
+	} else
+	  ntop->getTrace()->traceEvent(TRACE_INFO,"SSL user: not found [user: %s]", username);
+      } else
+	ntop->getTrace()->traceEvent(TRACE_INFO,"SSL user: unknow certificate or missing NID_commonName [subject: %s]", subject);
+    }
+
+    X509_free(cert);
+  } else
+    ntop->getTrace()->traceEvent(TRACE_INFO,"SSL user: could not get certificate");
+
+  if(!ret)
+    username[0] = '\0', group[0] = '\0';
+
+  return ret;
+};
+
+/* ****************************************** */
+
 // Return 1 if request is authorized, 0 otherwise.
 // If 1 is returned, the username parameter will contain the authenticated user,
 // which can also be "" or NTOP_NOLOGIN_USER .
@@ -392,6 +434,12 @@ static int getAuthorizedUser(struct mg_connection *conn,
     username[NTOP_USERNAME_MAXLEN - 1] = '\0';
     return(1);
   }
+
+  /* Try to authenticate using client TLS/SSL certificate */
+  if(request_info->is_ssl
+     && ntop->getPrefs()->is_client_x509_auth_enabled()
+     && ssl_client_x509_auth(conn, request_info, username, group, localuser))
+    return(1);
 
   /* Try to decode Authorization header if present */
   auth_header_p = mg_get_header(conn, "Authorization");
@@ -662,41 +710,6 @@ static void redirect_to_password_change(struct mg_connection *conn,
 
 /* ****************************************** */
 
-static int ssl_authorize(const struct mg_connection * const conn, const struct mg_request_info * const request_info, char * const group) {
-  long r;
-  X509 *cert = NULL;
-  X509_NAME *subj = NULL;
-  char subject[256], user[NTOP_USERNAME_MAXLEN];
-  char key[CONST_MAX_LEN_REDIS_KEY], val[NTOP_GROUP_MAXLEN];
-
-  if((cert = SSL_get_peer_certificate(conn->ssl))) {
-    if((subj = X509_get_subject_name(cert))) {
-      X509_NAME_oneline(subj, subject, sizeof(subject));
-
-      if((r = SSL_get_verify_result(conn->ssl)) == X509_V_OK) {
-	X509_NAME_get_text_by_NID(subj, NID_commonName, user, sizeof(user));
-	ntop->getTrace()->traceEvent(TRACE_NORMAL,"SSL user %s auth (%s)", user, subject);
-
-	snprintf(key, sizeof(key), CONST_STR_USER_GROUP, user);
-	strncpy(group, ((ntop->getRedis()->get(key, val, sizeof(val))>= 0) ? val : NTOP_UNKNOWN_GROUP), NTOP_GROUP_MAXLEN);
-
-	set_cookie(conn, user, group, true /* local user */, mg_get_header(conn, "Referer"));
-	X509_free(cert);
-
-	return 1;
-      } else
-	ntop->getTrace()->traceEvent(TRACE_NORMAL,"SSL user: unknow certificate (err %i) %s",r,subject);
-    }
-
-    X509_free(cert);
-  } else
-    ntop->getTrace()->traceEvent(TRACE_NORMAL,"SSL user: could not get certificate");
-
-  return 0;
-};
-
-/* ****************************************** */
-
 // A handler for the /authorize endpoint.
 // Login page form sends user name and password to this endpoint.
 static void authorize(struct mg_connection *conn,
@@ -878,38 +891,33 @@ static int handle_lua_request(struct mg_connection *conn) {
   }
 #endif
 
-  /* Make sure there are existing interfaces for username. */
-  if(!ntop->checkUserInterfaces(username)) {
-    char session_id[NTOP_SESSION_ID_LENGTH];
-    mg_get_cookie(conn, "session", session_id, sizeof(session_id));
-
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "[HTTP] user %s cannot login due to non-existent allowed_interface", username);
-
-    // send error and expire session cookie
-    mg_printf(conn,
-	 "HTTP/1.1 403 Forbidden\r\n"
-	 "Content-Type: text/html\r\n"
-	 "Set-Cookie: session=%s; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0;%s\r\n"  // Session ID
-	 "Connection: close\r\n"
-	 "\r\n\r\n%s", session_id,
-	 get_secure_cookie_attributes(request_info),
-	 ACCESS_DENIED_INTERFACES);
-
-    return(1);
-  }
-
   whitelisted = isWhitelistedURI(request_info->uri);
 
   if(!isStaticResourceUrl(request_info, len)) {
     /* Only check authorized for non-static resources */
     u_int8_t authorized = getAuthorizedUser(conn, request_info, username, group, &localuser);
 
-    if((!whitelisted) && (!authorized)) {
-      if(request_info->is_ssl) {
-	if(ssl_authorize(conn, request_info, group))
-	  return 1;
-      }
+    /* Make sure there are existing interfaces for username. */
+    if(!ntop->checkUserInterfaces(username)) {
+      char session_id[NTOP_SESSION_ID_LENGTH];
+      mg_get_cookie(conn, "session", session_id, sizeof(session_id));
 
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "[HTTP] user %s cannot login due to non-existent allowed_interface", username);
+
+      // send error and expire session cookie
+      mg_printf(conn,
+		"HTTP/1.1 403 Forbidden\r\n"
+		"Content-Type: text/html\r\n"
+		"Set-Cookie: session=%s; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0;%s\r\n"  // Session ID
+		"Connection: close\r\n"
+		"\r\n\r\n%s", session_id,
+		get_secure_cookie_attributes(request_info),
+		ACCESS_DENIED_INTERFACES);
+
+      return(1);
+    }
+
+    if((!whitelisted) && (!authorized)) {
       if(strcmp(request_info->uri, NETWORK_LOAD_URL) == 0) {
         // avoid sending login redirect to allow js itself to redirect the user
         return(send_error(conn, 403 /* Forbidden */, request_info->uri, "Login Required"));
@@ -1120,7 +1128,7 @@ void HTTPserver::parseACL(char * const acl, u_int acl_len) {
 
 /* ****************************************** */
 
-// Forse non necessaria???
+// Not necessary?
 int handle_ssl_verify(int ok, X509_STORE_CTX *ctx) {
   X509 *cert;
   char buf[256];
@@ -1141,7 +1149,7 @@ static int ssl_session_ctx_id = 1;
 
 /* ****************************************** */
 
-int handle_ssl_init(void *ctx) {
+int init_client_x509_auth(void *ctx) {
   char buf[256];
   char ssl_ca_path[MAX_PATH];
   char ssl_cert_path[MAX_PATH];
@@ -1153,15 +1161,15 @@ int handle_ssl_init(void *ctx) {
   ntop->fixPath(ssl_ca_path),
     ntop->fixPath(ssl_cert_path);
 
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "SSL init [ssl_ca_path: %s][ssl_cert_path: %s]", ssl_ca_path, ssl_cert_path);
-
   if(!SSL_CTX_set_session_id_context((SSL_CTX*)ctx, (unsigned char*)&ssl_session_ctx_id, sizeof(ssl_session_ctx_id))) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "SSL session init failed: %s", ERR_reason_error_string(ERR_get_error()));
     return 0;
   }
 
   if(!SSL_CTX_load_verify_locations((SSL_CTX*)ctx, ssl_ca_path, NULL)) {
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "SSL load client CA from '%s' failed: %s",ssl_ca_path, ERR_reason_error_string(ERR_get_error()));
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "SSL load client CA from '%s' failed: %s",
+				 ssl_ca_path,
+				 ERR_reason_error_string(ERR_get_error()));
     return 0;
   }
 
@@ -1172,7 +1180,7 @@ int handle_ssl_init(void *ctx) {
   if((certnames = SSL_load_client_CA_file(ssl_ca_path))) {
     SSL_CTX_set_client_CA_list((SSL_CTX*)ctx, certnames);
 
-    if((certnames=SSL_CTX_get_client_CA_list((SSL_CTX*)ctx))) {
+    if((certnames = SSL_CTX_get_client_CA_list((SSL_CTX*)ctx))) {
       for(int i = 0; i < sk_X509_NAME_num(certnames); i++) {
 	X509_NAME_oneline(sk_X509_NAME_value(certnames, i), buf, sizeof(buf));
 	ntop->getTrace()->traceEvent(TRACE_NORMAL, "SSL loaded CA #%i: %s", i, buf);
@@ -1183,6 +1191,8 @@ int handle_ssl_init(void *ctx) {
 
   SSL_CTX_set_verify((SSL_CTX*)ctx, SSL_VERIFY_PEER/*|SSL_VERIFY_FAIL_IF_NO_PEER_CERT|SSL_VERIFY_CLIENT_ONCE*/, handle_ssl_verify);
   //SSL_CTX_set_session_cache_mode((SSL_CTX*)ctx,SSL_SESS_CACHE_OFF);
+
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "SSL init [ssl_ca_path: %s][ssl_cert_path: %s]", ssl_ca_path, ssl_cert_path);
 
   return 1;
 };
@@ -1218,7 +1228,8 @@ HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
   memset(&callbacks, 0, sizeof(callbacks));
   callbacks.begin_request = handle_lua_request;
   callbacks.log_message = handle_http_message;
-  if(ntop->getPrefs()->is_https_auth()) callbacks.init_ssl=handle_ssl_init;
+  if(ntop->getPrefs()->is_client_x509_auth_enabled())
+    callbacks.init_ssl = init_client_x509_auth;
 
   /* Randomize data */
   gettimeofday(&tv, NULL);

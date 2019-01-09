@@ -532,7 +532,7 @@
 #define HOST_POOL_SHAPERS_KEY               NTOPNG_PREFS_PREFIX".%u.l7_policies.%s"
 #define HOST_POOL_DETAILS_KEY               NTOPNG_PREFS_PREFIX".%u.host_pools.details.%u"
 
-#define CONST_PREFS_AUTH_HTTPS			   NTOPNG_PREFS_PREFIX".is_https_auth"
+#define CONST_PREFS_CLIENT_X509_AUTH        NTOPNG_PREFS_PREFIX".is_client_x509_auth_enabled"
 
 #define CONST_USER_GROUP_ADMIN             "administrator"
 #define CONST_USER_GROUP_UNPRIVILEGED      "unprivileged"

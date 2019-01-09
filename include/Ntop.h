@@ -399,6 +399,7 @@ class Ntop {
   bool changeAllowedIfname(char *username, char *allowed_ifname) const;
   bool changeUserHostPool(const char * const username, const char * const host_pool_id) const;
   bool changeUserLanguage(const char * const username, const char * const language) const;
+  bool existsUser(const char * const username) const;
   bool addUser(char *username, char *full_name, char *password, char *host_role,
 	       char *allowed_networks, char *allowed_ifname, char *host_pool_id,
 	       char *language);
