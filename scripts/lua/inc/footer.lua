@@ -186,7 +186,7 @@ var footerRefresh = function() {
 	  url: ']]
 print (ntop.getHttpPrefix())
 print [[/lua/get_interface_data.lua',
-	  data: { },
+	  data: { ifid: ]] print(tostring(getInterfaceId(ifname))) print[[ },
 	  /* error: function(content) { alert("JSON Error (session expired?): logging out"); window.location.replace("]]
 print (ntop.getHttpPrefix())
 print [[/lua/logout.lua");  }, */
