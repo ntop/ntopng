@@ -70,7 +70,7 @@ local function get_fname_for_schema(schema, tags)
   end
 
   -- e.g. host:contacts -> contacts
-  local suffix = split(schema.name, ":")[2]
+  local suffix = string.split(schema.name, ":")[2]
   return suffix
 end
 
@@ -84,7 +84,7 @@ local function schema_get_path(schema, tags)
   local host_or_network = nil
 
   if string.find(schema.name, "iface:") == nil then
-    local parts = split(schema.name, ":")
+    local parts = string.split(schema.name, ":")
     host_or_network = (HOST_PREFIX_MAP[parts[1]] or (parts[1] .. ":")) .. tags[schema._tags[2]]
 
     if parts[1] == "snmp_if" then
@@ -110,7 +110,7 @@ end
 -- TODO remove after migration
 function find_schema(rrdFile, rrdfname, tags, ts_utils)
   -- try to guess additional tags
-  local v = split(rrdfname, ".rrd")
+  local v = string.split(rrdfname, "%.rrd")
   if #v == 2 then
     local app = v[1]
 
@@ -463,7 +463,7 @@ local function _listSeries(schema, tags_filter, wildcard_tags, start_time)
   local res = {}
 
   for f in pairs(files or {}) do
-    local v = split(f, ".rrd")
+    local v = string.split(f, "%.rrd")
     local fpath = base .. "/" .. f
 
     if #v == 2 then
