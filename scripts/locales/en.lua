@@ -1296,6 +1296,7 @@ local lang = {
     ["top_receivers"] = "Top Receivers",
     ["top_senders"] = "Top Senders",
     ["top_servers"] = "Top %{protocol} Servers",
+    ["traffic_txrx"] = "Traffic TX/RX",
     ["trend"] = "Trend",
     ["zmq_received_flows"] = "ZMQ Received Flows",
     ["metrics_prefixes"] = {

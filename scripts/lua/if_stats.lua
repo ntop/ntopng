@@ -955,6 +955,7 @@ elseif(page == "historical") then
          {schema="iface:devices",               label=i18n("graphs.active_devices")},
          {schema="iface:http_hosts",            label=i18n("graphs.active_http_servers"), nedge_exclude=1},
          {schema="iface:traffic",               label=i18n("traffic")},
+         {schema="iface:traffic_rxtx",          label=i18n("graphs.traffic_txrx")},
 
          {schema="iface:1d_delta_traffic_volume",  label="1 Day Traffic Delta"}, -- TODO localize
          {schema="iface:1d_delta_flows",           label="1 Day Active Flows Delta"}, -- TODO localize
