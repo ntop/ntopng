@@ -28,6 +28,11 @@ callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, functio
    ts_utils.append("iface:traffic", {ifid=ifstats.id, bytes=ifstats.stats.bytes}, when)
    ts_utils.append("iface:packets", {ifid=ifstats.id, packets=ifstats.stats.packets}, when)
 
+   if ifstats.has_traffic_directions then
+      ts_utils.append("iface:traffic_rxtx", {ifid=ifstats.id,
+         bytes_sent=ifstats.eth.egress.bytes, bytes_rcvd=ifstats.eth.ingress.bytes}, when)
+   end
+
    -- ZMQ stats
    if ifstats.zmqRecvStats ~= nil then
       ts_utils.append("iface:zmq_recv_flows", {ifid=ifstats.id, num_flows=ifstats.zmqRecvStats.flows}, when)
