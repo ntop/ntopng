@@ -577,35 +577,33 @@
       },
       "Alert":{
          "type":"array",
-	    "items":{
-               "type":"object",
-	          "properties":{
-	  	     "entity":{
-	  	        "type":"string"
-	  	     },
-  	             "msg":{
-  	                "type":"string"
-  	             },
-  	             "duration":{
-  	                "type":"string"
-  	             },
-  	             "date":{
-  	                "type":"string"
-  	             },
-  	             "type":{
-  	                "type":"string"
-  	             },
-  	             "key":{
-  	                "type":"string"
-  	             },
-  	             "entity_val":{
-  	                "type":"string"
-  	             },
-  	             "severity":{
-  	                "type":"string"
-  	             }
-		  }
-	       }
+	 "items":{
+            "type":"object",
+	    "properties":{
+	       "entity":{
+	          "type":"string"
+	       },
+  	       "msg":{
+  	          "type":"string"
+  	       },
+  	       "duration":{
+  	          "type":"string"
+  	       },
+  	       "date":{
+  	          "type":"string"
+  	       },
+  	       "type":{
+  	          "type":"string"
+  	       },
+  	       "key":{
+  	          "type":"string"
+  	       },
+  	       "entity_val":{
+  	          "type":"string"
+  	       },
+  	       "severity":{
+  	          "type":"string"
+  	       }
             }
 	 }
       }
