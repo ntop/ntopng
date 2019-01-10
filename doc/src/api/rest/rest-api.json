@@ -576,42 +576,39 @@
 		 }
       },
       "Alert":{
-          "type":"object",
-          "properties":{
-             "data":{
-				 "type":"array",
-				 "items":{
-                    "type":"object",
-					"properties":{
-	  	              "column_entity":{
-	  	                 "type":"string"
-	  	              },
-	  	              "column_msg":{
-	  	                 "type":"string"
-	  	              },
-	  	              "column_duration":{
-	  	                 "type":"string"
-	  	              },
-	  	              "column_date":{
-	  	                 "type":"string"
-	  	              },
-	  	              "column_type":{
-	  	                 "type":"string"
-	  	              },
-	  	              "column_key":{
-	  	                 "type":"string"
-	  	              },
-	  	              "column_entity_val":{
-	  	                 "type":"string"
-	  	              },
-	  	              "column_severity":{
-	  	                 "type":"string"
-	  	              }
-					}
-	             }
-             }
-		 }
-	  }
+         "type":"array",
+	    "items":{
+               "type":"object",
+	          "properties":{
+	  	     "entity":{
+	  	        "type":"string"
+	  	     },
+  	             "msg":{
+  	                "type":"string"
+  	             },
+  	             "duration":{
+  	                "type":"string"
+  	             },
+  	             "date":{
+  	                "type":"string"
+  	             },
+  	             "type":{
+  	                "type":"string"
+  	             },
+  	             "key":{
+  	                "type":"string"
+  	             },
+  	             "entity_val":{
+  	                "type":"string"
+  	             },
+  	             "severity":{
+  	                "type":"string"
+  	             }
+		  }
+	       }
+            }
+	 }
+      }
    }
 }
 

@@ -1610,7 +1610,7 @@ function getCurrentStatus() {
          // append the li to the tabs
 
 	 $("#]] print(t["div-id"]) print[[").datatable({
-			url: "]] print(ntop.getHttpPrefix()) print [[/lua/get_alerts_data.lua?" + $.param(]] print(tableToJsObject(getTabParameters(url_params, t["status"]))) print [[),
+			url: "]] print(ntop.getHttpPrefix()) print [[/lua/get_alerts_table_data.lua?" + $.param(]] print(tableToJsObject(getTabParameters(url_params, t["status"]))) print [[),
                showFilter: true,
 	       showPagination: true,
                buttons: [']]
