@@ -2790,6 +2790,7 @@ local lang = {
     ["ifindex"] = "Index",
     ["in_bytes"] = "In Bytes",
     ["in_discards"] = "In Discards",
+    ["in_errors"] = "In Errors",
     ["last_change"] = "Last Change",
     ["low_port_speed"] = "Low port speed",
     ["multiple_macs_non_trunk"] = "Multiple MACs on non-trunk port",
