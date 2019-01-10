@@ -682,6 +682,7 @@ class NetworkInterface : public Checkpointable {
 
   virtual void sendTermination()             { ; }
   virtual bool read_from_pcap_dump()         { return(false); };
+  virtual void updateDirectionStats()        { ; }
   void makeTsPoint(NetworkInterfaceTsPoint *pt);
   void tsLua(lua_State* vm);
 #ifdef HAVE_EBPF

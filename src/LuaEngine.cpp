@@ -5300,6 +5300,7 @@ void lua_push_float_table_entry(lua_State *L, const char *key, float value) {
 
 static int ntop_get_interface_stats(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  bool get_direction_stats = false;
 
   /*
     ntop_interface->getAlertsManager()->engageAlert(alert_entity_host, "127.0.0.1",
@@ -5316,9 +5317,15 @@ static int ntop_get_interface_stats(lua_State* vm) {
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if(ntop_interface)
+  if(lua_type(vm, 1) == LUA_TBOOLEAN)
+    get_direction_stats = lua_toboolean(vm, 1);
+
+  if(ntop_interface) {
+    if(get_direction_stats)
+      ntop_interface->updateDirectionStats();
+
     ntop_interface->lua(vm);
-  else
+  } else
     lua_pushnil(vm);
 
   return(CONST_LUA_OK);

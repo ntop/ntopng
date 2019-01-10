@@ -3499,6 +3499,41 @@ const char* Utils::captureDirection2Str(pcap_direction_t dir) {
 
 /* ****************************************************** */
 
+bool Utils::readInterfaceStats(const char *ifname, ProtoStats *in_stats, ProtoStats *out_stats) {
+  bool rv = false;
+#ifndef WIN32
+  FILE *f = fopen("/proc/net/dev", "r");
+
+  if(f) {
+    char line[512];
+    char found_ifname[IFNAMSIZ+1];
+
+    while(fgets(line, sizeof(line), f)) {
+      u_int64_t in_bytes, out_bytes, in_packets, out_packets;
+
+      if(sscanf(line, " %[^:]: %lu %lu %*u %*u %*u %*u %*u %*u %lu %lu",
+         found_ifname, &in_bytes, &in_packets, &out_bytes, &out_packets) == 5) {
+        if(!strcmp(found_ifname, ifname)) {
+          in_stats->setBytes(in_bytes);
+          in_stats->setPkts(in_packets);
+          out_stats->setBytes(out_bytes);
+          out_stats->setPkts(out_packets);
+          rv = true;
+          break;
+        }
+      }
+    }
+  }
+
+  if(f)
+    fclose(f);
+#endif
+
+  return rv;
+}
+
+/* ****************************************************** */
+
 bool Utils::shouldResolveHost(const char *host_ip) {
   if(!ntop->getPrefs()->is_dns_resolution_enabled())
     return false;

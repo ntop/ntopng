@@ -110,6 +110,7 @@ class Utils {
   static u_int32_t stringHash(const char *s);
   static const char* policySource2Str(L7PolicySource_t policy_source);
   static const char* captureDirection2Str(pcap_direction_t dir);
+  static bool readInterfaceStats(const char* ifname, ProtoStats *in_stats, ProtoStats *out_stats);
   static bool shouldResolveHost(const char *host_ip);
   static bool mg_write_retry(struct mg_connection *conn, u_char *b, int len);
   static bool parseAuthenticatorJson(HTTPAuthenticator *auth, char *content);

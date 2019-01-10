@@ -39,6 +39,7 @@ PcapInterface::PcapInterface(const char *name) : NetworkInterface(name) {
 
   pcap_handle = NULL, pcap_list = NULL;
   memset(&last_pcap_stat, 0, sizeof(last_pcap_stat));
+  emulate_traffic_directions = false;
   
   if((stat(name, &buf) == 0) || (name[0] == '-') || !strncmp(name, "stdin", 5)) {
     /*
@@ -97,6 +98,9 @@ PcapInterface::PcapInterface(const char *name) : NetworkInterface(name) {
 #ifndef WIN32
       if(pcap_setdirection(pcap_handle, ntop->getPrefs()->getCaptureDirection()) != 0)
 		ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to set packet capture direction");
+
+      if(Utils::readInterfaceStats(ifname, &initial_stats_in, &initial_stats_out))
+	emulate_traffic_directions = true;
 #endif
     } else
       throw errno;
@@ -311,8 +315,31 @@ bool PcapInterface::set_packet_filter(char *filter) {
     return(false);
   } else {
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Packet capture filter on %s set to \"%s\"", ifname, filter);
+    /* can't get consistent stats while bpf is set */
+    emulate_traffic_directions = false;
     return(true);
   }
 };
+
+/* **************************************************** */
+
+void PcapInterface::updateDirectionStats() {
+  ProtoStats current_stats_in, current_stats_out;
+
+  if(emulate_traffic_directions &&
+     Utils::readInterfaceStats(ifname, &current_stats_in, &current_stats_out)) {
+    pcap_direction_t capture_dir = ntop->getPrefs()->getCaptureDirection();
+
+    if((capture_dir == PCAP_D_INOUT) || (capture_dir == PCAP_D_IN)) {
+      ethStats.setNumPackets(true, current_stats_in.getPkts() - initial_stats_in.getPkts());
+      ethStats.setNumBytes(true, current_stats_in.getBytes() - initial_stats_in.getBytes());
+    }
+
+    if((capture_dir == PCAP_D_INOUT) || (capture_dir == PCAP_D_OUT)) {
+      ethStats.setNumPackets(false, current_stats_out.getPkts() - initial_stats_out.getPkts());
+      ethStats.setNumBytes(false, current_stats_out.getBytes() - initial_stats_out.getBytes());
+    }
+  }
+}
 
 #endif

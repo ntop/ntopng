@@ -208,6 +208,7 @@ using namespace std;
 #include "FrequentTrafficItems.h"
 #include "HostPools.h"
 #include "Prefs.h"
+#include "ProtoStats.h"
 #include "Utils.h"
 #include "CommunityIdFlowHash.h"
 #include "DnsStats.h"
@@ -220,7 +221,6 @@ using namespace std;
 #include "Grouper.h"
 #include "FlowGrouper.h"
 #include "PacketStats.h"
-#include "ProtoStats.h"
 #include "TcpPacketStats.h"
 #include "EthStats.h"
 
