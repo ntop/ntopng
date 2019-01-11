@@ -3506,21 +3506,21 @@ bool Utils::readInterfaceStats(const char *ifname, ProtoStats *in_stats, ProtoSt
 
   if(f) {
     char line[512];
-    char found_ifname[IFNAMSIZ+1];
+    char to_find[IFNAMSIZ+2];
+    snprintf(to_find, sizeof(to_find), "%s:", ifname);
 
     while(fgets(line, sizeof(line), f)) {
-      u_int64_t in_bytes, out_bytes, in_packets, out_packets;
+      long long unsigned int in_bytes, out_bytes, in_packets, out_packets;
 
-      if(sscanf(line, " %[^:]: %lu %lu %*u %*u %*u %*u %*u %*u %lu %lu",
-         found_ifname, &in_bytes, &in_packets, &out_bytes, &out_packets) == 5) {
-        if(!strcmp(found_ifname, ifname)) {
-          in_stats->setBytes(in_bytes);
-          in_stats->setPkts(in_packets);
-          out_stats->setBytes(out_bytes);
-          out_stats->setPkts(out_packets);
-          rv = true;
-          break;
-        }
+      if(strstr(line, to_find) &&
+         sscanf(line, "%*[^:]: %llu %llu %*u %*u %*u %*u %*u %*u %llu %llu",
+           &in_bytes, &in_packets, &out_bytes, &out_packets) == 4) {
+        in_stats->setBytes(in_bytes);
+        in_stats->setPkts(in_packets);
+        out_stats->setBytes(out_bytes);
+        out_stats->setPkts(out_packets);
+        rv = true;
+        break;
       }
     }
   }
