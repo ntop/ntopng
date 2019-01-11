@@ -3214,7 +3214,7 @@ function notify_snmp_device_interface_errors(snmp_host, snmp_interface)
    local entity_value = string.format("%s_ifidx%d", snmp_host, snmp_interface["index"])
    local obj = {entity_type = alertEntity("snmp_device"),
 		entity_value = entity_value,
-		type = alertType("port_error"),
+		type = alertType("port_errors"),
 		severity = alertSeverity("info"),
 		message = msg, when = os.time()
 	       }

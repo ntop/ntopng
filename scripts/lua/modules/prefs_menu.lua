@@ -392,6 +392,12 @@ local menu_subpages = {
     }, default_snmp_proto_version = {
        title       = i18n("prefs.default_snmp_proto_version_title"),
        description = i18n("prefs.default_snmp_proto_version_description"),
+    }, toggle_snmp_alerts_port_status_change = {
+       title       = i18n("prefs.toggle_snmp_alerts_port_status_change_title"),
+       description = i18n("prefs.toggle_snmp_alerts_port_status_change_description"),
+    }, toggle_snmp_alerts_port_errors = {
+       title       = i18n("prefs.toggle_snmp_alerts_port_errors_title"),
+       description = i18n("prefs.toggle_snmp_alerts_port_errors_description"),
     },
   }}, {id="discovery",     label=i18n("prefs.network_discovery"),     advanced=false,  pro_only=false,   hidden=false, entries={
     toggle_network_discovery = {

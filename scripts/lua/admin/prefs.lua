@@ -1618,6 +1618,20 @@ function printSnmp()
 		       "default_snmp_community",
 		       "public", false, nil, nil, nil,  {attributes={spellcheck="false", maxlength=64}})
 
+  prefsToggleButton(subpage_active, {
+    field = "toggle_snmp_alerts_port_status_change",
+    default = "1",
+    pref = "alerts.snmp_port_status_change",
+    disabled = not info["version.enterprise_edition"],
+  })
+
+  prefsToggleButton(subpage_active, {
+    field = "toggle_snmp_alerts_port_errors",
+    default = "1",
+    pref = "alerts.snmp_port_errors",
+    disabled = not info["version.enterprise_edition"],
+  })
+
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
 
   print [[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />

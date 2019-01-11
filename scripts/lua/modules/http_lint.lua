@@ -1104,6 +1104,8 @@ local known_parameters = {
    ["toggle_webhook_notification"]                 = validateBool,
    ["toggle_auth_session_midnight_expiration"]     = validateBool,
    ["toggle_client_x509_auth"]                     = validateBool,
+   ["toggle_snmp_alerts_port_status_change"]       = validateBool,
+   ["toggle_snmp_alerts_port_errors"]              = validateBool,
 
    -- Input fields
    ["minute_top_talkers_retention"]                = validateNumber,
