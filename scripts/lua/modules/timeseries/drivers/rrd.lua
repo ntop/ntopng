@@ -111,7 +111,7 @@ end
 function find_schema(rrdFile, rrdfname, tags, ts_utils)
   -- try to guess additional tags
   local v = string.split(rrdfname, "%.rrd")
-  if #v == 2 then
+  if((v ~= nil) and (#v == 2)) then
     local app = v[1]
 
     if interface.getnDPIProtoId(app) ~= -1 then
@@ -466,7 +466,7 @@ local function _listSeries(schema, tags_filter, wildcard_tags, start_time)
     local v = string.split(f, "%.rrd")
     local fpath = base .. "/" .. f
 
-    if #v == 2 then
+    if((v ~= nil) and (#v == 2)) then
       local last_update = ntop.rrd_lastupdate(fpath)
 
       if last_update ~= nil and last_update >= start_time then
