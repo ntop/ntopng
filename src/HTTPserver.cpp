@@ -839,31 +839,31 @@ static int handle_lua_request(struct mg_connection *conn) {
   }
 #endif
 
-  /* Make sure there are existing interfaces for username. */
-  if(!ntop->checkUserInterfaces(username)) {
-    char session_id[NTOP_SESSION_ID_LENGTH];
-    mg_get_cookie(conn, "session", session_id, sizeof(session_id));
-
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "[HTTP] user %s cannot login due to non-existent allowed_interface", username);
-
-    // send error and expire session cookie
-    mg_printf(conn,
-	 "HTTP/1.1 403 Forbidden\r\n"
-	 "Content-Type: text/html\r\n"
-	 "Set-Cookie: session=%s; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0;%s\r\n"  // Session ID
-	 "Connection: close\r\n"
-	 "\r\n\r\n%s", session_id,
-	 get_secure_cookie_attributes(request_info),
-	 ACCESS_DENIED_INTERFACES);
-
-    return(1);
-  }
-
   whitelisted = isWhitelistedURI(request_info->uri);
 
   if(!isStaticResourceUrl(request_info, len)) {
     /* Only check authorized for non-static resources */
     u_int8_t authorized = getAuthorizedUser(conn, request_info, username, group, &localuser);
+
+    /* Make sure there are existing interfaces for username. */
+    if(!ntop->checkUserInterfaces(username)) {
+      char session_id[NTOP_SESSION_ID_LENGTH];
+      mg_get_cookie(conn, "session", session_id, sizeof(session_id));
+
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "[HTTP] user %s cannot login due to non-existent allowed_interface", username);
+
+      // send error and expire session cookie
+      mg_printf(conn,
+		"HTTP/1.1 403 Forbidden\r\n"
+		"Content-Type: text/html\r\n"
+		"Set-Cookie: session=%s; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0;%s\r\n"  // Session ID
+		"Connection: close\r\n"
+		"\r\n\r\n%s", session_id,
+		get_secure_cookie_attributes(request_info),
+		ACCESS_DENIED_INTERFACES);
+
+      return(1);
+    }
 
     if((!whitelisted) && (!authorized)) {
       if(strcmp(request_info->uri, NETWORK_LOAD_URL) == 0) {
