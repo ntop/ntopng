@@ -949,6 +949,7 @@
    is 5 secs, a flow aggregation duration of 12 equals to 1 minute. */
 #define FLOW_AGGREGATION_DURATION       60
 #define FLOW_AGGREGATION_MAX_AGGREGATES 1000
+#define FLOW_AGGREGATION_NUM_TOP_AGGRS  1000
 
 extern struct ntopngLuaContext* getUserdata(struct lua_State *vm);
 #define getLuaVMContext(a)      (a ? getUserdata(a) : NULL)

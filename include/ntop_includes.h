@@ -155,6 +155,7 @@ extern "C" {
 #include <fstream>
 #include <map>
 #include <set>
+#include <algorithm>
 #include <vector>
 #include <list>
 #include <iostream>

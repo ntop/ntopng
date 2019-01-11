@@ -322,7 +322,7 @@ class NetworkInterface : public Checkpointable {
   inline void enable_sprobe()                  { sprobe_interface = true; };
   int dumpFlow(time_t when, Flow *f);
 #ifdef NTOPNG_PRO
-  void dumpAggregatedFlow(time_t when, AggregatedFlow *f);
+  void dumpAggregatedFlow(time_t when, AggregatedFlow *f, bool is_top_aggregated_flow);
   void flushFlowDump();
 #endif
   int dumpDBFlow(time_t when, Flow *f);

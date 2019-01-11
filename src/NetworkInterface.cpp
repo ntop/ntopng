@@ -724,15 +724,15 @@ int NetworkInterface::dumpDBFlow(time_t when, Flow *f) {
 
 #ifdef NTOPNG_PRO
 
-void NetworkInterface::dumpAggregatedFlow(time_t when, AggregatedFlow *f) {
+void NetworkInterface::dumpAggregatedFlow(time_t when, AggregatedFlow *f, bool is_top_aggregated_flow) {
   if(db
      && f && (f->get_packets() > 0)
      && ntop->getPrefs()->is_enterprise_edition()) {
 #ifdef DUMP_AGGREGATED_FLOW_DEBUG
     char buf[256];
     ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				 "Going to dump AggregatedFlow to database [%s]",
-				 f->print(buf, sizeof(buf)));
+				 "Going to dump AggregatedFlow to database [%s][is_top: %u]",
+				 f->print(buf, sizeof(buf)), is_top_aggregated_flow ? 1 : 0);
 #endif
 
     if(!ntop->getPrefs()->is_tiny_flows_export_enabled() && f->isTiny()) {
@@ -742,7 +742,7 @@ void NetworkInterface::dumpAggregatedFlow(time_t when, AggregatedFlow *f) {
 				   f->print(buf, sizeof(buf)));
 #endif
     } else {
-      db->dumpAggregatedFlow(when, f);
+      db->dumpAggregatedFlow(when, f, is_top_aggregated_flow);
     }
   }
 }
