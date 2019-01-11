@@ -832,7 +832,7 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
    ssh_rsp = probeSSH(ip)
 
    -- Last resort is HTTP
-   http_rsp = ntop.httpGet("http://"..ip, "", "", 1)
+   http_rsp = ntop.httpGet("http://"..ip, nil, nil, 1)
    if((http_rsp ~= nil) and (http_rsp.HTTP_HEADER ~= nil)) then
       local server = http_rsp.HTTP_HEADER["server"]
 
