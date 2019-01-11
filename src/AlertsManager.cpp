@@ -925,7 +925,7 @@ int AlertsManager::getNumAlerts(bool engaged, const char *sql_where_clause, bool
     char query[STORE_MANAGER_MAX_QUERY];
     sqlite3_stmt *stmt = NULL;
     int rc;
-    int num = -1;
+    int num = 0;
 
     snprintf(query, sizeof(query),
 	     "SELECT count(*) "
