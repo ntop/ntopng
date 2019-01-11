@@ -79,6 +79,7 @@ typedef enum {
   alert_device_protocol_not_allowed = 24,
   alert_user_activity = 25,
   alert_influxdb_export_failure = 26,
+  alert_port_errors = 27,
 } AlertType; /*
 	       NOTE:
 	       keep it in sync with alert_type_keys

@@ -281,6 +281,8 @@ local lang = {
     ["slow_stats_update"] = "Slow Statistics Update",
     ["snmp_device_is_unresponsive"] = "SNMP device <a href=\"%{url}\">%{device}</a> is unresponsive",
     ["snmp_port_changed_operational_status"] = "Interface <a href=\"%{port_url}\">%{port}</a> on SNMP device <a href=\"%{url}\">%{device}</a> changed its status to %{new_op}",
+    ["snmp_port_errors"] = "Interface Errors",
+    ["snmp_port_errors_increased"] = "Discard/error counters increased on interface <a href=\"%{port_url}\">%{port}</a> on SNMP device <a href=\"%{url}\">%{device}</a>",
     ["snmp_port_status_change"] = "Interface Status Change",
     ["starting_on"] = "starting on",
     ["submit"] = "Update Dashboard",

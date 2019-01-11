@@ -2591,6 +2591,7 @@ function check_process_alerts()
 	 if(verbose) then io.write("JSON Decoding error: "..message.."\n") end
       else 
 	 interface.select(if_name)
+
 	 interface.storeAlert(decoded.entity_type,
 			      decoded.entity_value,
 			      decoded.type,
@@ -3196,6 +3197,24 @@ function notify_snmp_device_interface_status_change(snmp_host, snmp_interface)
    local obj = {entity_type = alertEntity("snmp_device"),
 		entity_value = entity_value,
 		type = alertType("port_status_change"),
+		severity = alertSeverity("info"),
+		message = msg, when = os.time()
+	       }
+
+   ntop.rpushCache(alert_process_queue, json.encode(obj))
+end
+
+function notify_snmp_device_interface_errors(snmp_host, snmp_interface)
+   local msg = i18n("alerts_dashboard.snmp_port_errors_increased",
+		    {device = snmp_host,
+		     port = snmp_interface["name"] or snmp_interface["index"],
+		     url = ntop.getHttpPrefix()..string.format("/lua/pro/enterprise/snmp_device_details.lua?host=%s", snmp_host),
+		     port_url = ntop.getHttpPrefix()..string.format("/lua/pro/enterprise/snmp_interface_details.lua?host=%s&snmp_port_idx=%d", snmp_host, snmp_interface["index"])})
+
+   local entity_value = string.format("%s_ifidx%d", snmp_host, snmp_interface["index"])
+   local obj = {entity_type = alertEntity("snmp_device"),
+		entity_value = entity_value,
+		type = alertType("port_error"),
 		severity = alertSeverity("info"),
 		message = msg, when = os.time()
 	       }

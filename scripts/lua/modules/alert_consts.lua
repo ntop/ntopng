@@ -46,7 +46,8 @@ alert_consts.alert_type_keys = {
    { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.slow_stats_update"),           23, "slow_stats_update"          },
    { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.suspicious_device_protocol"),  24, "alert_device_protocol_not_allowed" },
    { "<i class='fa fa-user'></i> " .. i18n("alerts_dashboard.user_activity"),                      25, "alert_user_activity"        },
-   { "<i class='fa fa-database'></i> " .. i18n("alerts_dashboard.influxdb_export_failure"),        26, "influxdb_export_failure"     },
+   { "<i class='fa fa-database'></i> " .. i18n("alerts_dashboard.influxdb_export_failure"),        26, "influxdb_export_failure"    },
+   { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.snmp_port_errors"),            27, "port_errors"                },
 }
 
 -- Keep in sync with ntop_typedefs.h:AlertEntity
