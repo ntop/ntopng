@@ -394,6 +394,7 @@ local lang = {
     ["lastday_traffic"] = "Network Interfaces: Last Day View",
     ["realtime_app_traffic"] = "Realtime Top Application Traffic",
     ["realtime_traffic"] = "Network Interfaces: Realtime Traffic",
+    ["slow_dashboard_message"] = "Too much latency in the %{product} response. Consider setting an higher <a href='%{url}'>Realtime Stats Refresh Rate</a>.",
     ["top_local_talkers"] = "Top Local Talkers",
     ["top_remote_destinations"] = "Top Remote Destinations",
     ["traffic_dashboard"] = "Traffic Dashboard",
