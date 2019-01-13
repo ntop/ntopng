@@ -73,7 +73,7 @@ class MySQLDB : public DB {
   void lua(lua_State* vm, bool since_last_checkpoint) const;
   static int exec_single_query(lua_State *vm, char *sql);
 #ifdef NTOPNG_PRO
-  bool dumpAggregatedFlow(time_t when, AggregatedFlow *f) { return(false); };
+  bool dumpAggregatedFlow(time_t when, AggregatedFlow *f, bool is_top_aggregated_flow) { return(false); };
 #endif
 
 };
