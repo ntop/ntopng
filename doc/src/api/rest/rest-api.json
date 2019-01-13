@@ -140,7 +140,7 @@
             }
          }
       },
-      "/lua/pro/get_flows_data.lua":{
+      "/lua/pro/get_flows_db_data.lua":{
          "get":{
             "tags":[
                "Flows"
@@ -209,7 +209,7 @@
             }
          }
       },
-      "/lua/pro/get_topk_data.lua":{
+      "/lua/pro/get_flows_db_topk_data.lua":{
          "get":{
             "tags":[
                "Flows"
