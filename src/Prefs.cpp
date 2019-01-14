@@ -1570,7 +1570,7 @@ void Prefs::lua(lua_State* vm) {
 
   lua_push_uint64_table_entry(vm, "max_num_hosts", max_num_hosts);
   lua_push_uint64_table_entry(vm, "max_num_flows", max_num_flows);
-  lua_push_bool_table_entry(vm, "is_dump_flows_enabled", dump_flows_on_es || dump_flows_on_mysql || dump_flows_on_ls);
+  lua_push_bool_table_entry(vm, "is_dump_flows_enabled", dump_flows_on_es || dump_flows_on_mysql || dump_flows_on_ls || dump_flows_on_nindex);
   lua_push_bool_table_entry(vm, "is_dump_flows_to_mysql_enabled", dump_flows_on_mysql || read_flows_from_mysql);
   lua_push_bool_table_entry(vm, "is_flow_aggregation_enabled", is_flow_aggregation_enabled());
 

@@ -37,46 +37,12 @@ Logstash::Logstash() {
   head = NULL;
   tail = NULL;
   reportDrops = false;
-  checkpointDroppedFlows = checkpointExportedFlows = 0;
-  lastUpdateTime.tv_sec = 0, lastUpdateTime.tv_usec = 0;
 }
 
 /* **************************************** */
 
 Logstash::~Logstash() {
 
-}
-
-/* ******************************************* */
-
-void Logstash::updateStats(const struct timeval *tv) {
-  if(tv == NULL)
-    return;
-
-  if(lastUpdateTime.tv_sec > 0) {
-    float tdiffMsec = Utils::msTimevalDiff(tv, &lastUpdateTime);
-
-    if(tdiffMsec >= 1000) { /* al least one second */
-      u_int64_t diffFlows = elkExportedFlows - elkLastExportedFlows;
-
-      elkLastExportedFlows = elkExportedFlows;
-      elkExportRate = ((float)(diffFlows * 1000)) / tdiffMsec;
-      if(elkExportRate < 0) elkExportRate = 0;
-    }
-  }
-
-  memcpy(&lastUpdateTime, tv, sizeof(struct timeval));
-}
-
-/* ******************************************* */
-
-void Logstash::lua(lua_State *vm, bool since_last_checkpoint) const {
-  lua_push_uint64_table_entry(vm,   "flow_export_count",
-			   elkExportedFlows - (since_last_checkpoint ? checkpointExportedFlows : 0));
-  lua_push_int32_table_entry(vm, "flow_export_drops",
-			     elkDroppedFlowsQueueTooLong - (since_last_checkpoint ? checkpointDroppedFlows : 0));
-  lua_push_float_table_entry(vm, "flow_export_rate",
-			     elkExportRate >= 0 ? elkExportRate : 0);
 }
 
 /* **************************************** */
@@ -96,9 +62,9 @@ int Logstash::sendToLS(char* msg) {
       reportDrops = true;
     }
 
-    elkDroppedFlowsQueueTooLong++;
+    incNumQueueDroppedFlows();
     ntop->getTrace()->traceEvent(TRACE_INFO, "[LS] Message dropped. Total messages dropped: %lu\n",
-				 elkDroppedFlowsQueueTooLong);
+				 getNumDroppedFlows());
 
     return(-1);
   }
@@ -313,7 +279,7 @@ void Logstash::sendLSdata() {
       }
 
       // If all steps succeded, increment exported flows
-      elkExportedFlows += num_flows;
+      incNumExportedFlows(num_flows);
       // Reset dequeue flag
       skipDequeue = 0;
     } else {

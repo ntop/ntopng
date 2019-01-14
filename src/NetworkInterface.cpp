@@ -2903,13 +2903,10 @@ void NetworkInterface::periodicStatsUpdate() {
   if(ntop->getGlobals()->isShutdownRequested())
     return;
 
-#ifdef HAVE_MYSQL
-  if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
-    static_cast<MySQLDB*>(db)->updateStats(&tv);
-
+  if(db) {
+    db->updateStats(&tv);
     db->flush();
   }
-#endif
 
 #ifdef PERIODIC_STATS_UPDATE_DEBUG_TIMING
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "MySQL dump took %d seconds", time(NULL) - tdebug.tv_sec);
@@ -5236,8 +5233,8 @@ void NetworkInterface::lua(lua_State *vm) {
   */
   if(ntop->getPrefs()->do_dump_flows_on_es()) {
     ntop->getElasticSearch()->lua(vm, false /* Overall */);
-  } else if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
-    if(db) db->lua(vm, false /* Overall */);
+  } else if(db) {
+    db->lua(vm, false /* Overall */);
   } else if(ntop->getPrefs()->do_dump_flows_on_ls()) {
     ntop->getLogstash()->lua(vm, false /* Overall */);
   }
@@ -5255,8 +5252,8 @@ void NetworkInterface::lua(lua_State *vm) {
 #ifndef HAVE_NEDGE
   if(ntop->getPrefs()->do_dump_flows_on_es()) {
     ntop->getElasticSearch()->lua(vm, true /* Since last checkpoint */);
-  } else if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
-    if(db) db->lua(vm, true /* Since last checkpoint */);
+  } else if(db) {
+    db->lua(vm, true /* Since last checkpoint */);
   } else if(ntop->getPrefs()->do_dump_flows_on_ls()) {
     ntop->getLogstash()->lua(vm, true /* Since last checkpoint */);
   }
@@ -5945,10 +5942,10 @@ void NetworkInterface::checkPointCounters(bool drops_only) {
 #ifndef HAVE_NEDGE
   if(ntop->getPrefs()->do_dump_flows_on_es()) {
     ntop->getElasticSearch()->checkPointCounters(drops_only);
-  } else if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
-    if(db) db->checkPointCounters(drops_only);
   } else if(ntop->getPrefs()->do_dump_flows_on_ls()) {
     ntop->getLogstash()->checkPointCounters(drops_only);
+  } else if(db) {
+    db->checkPointCounters(drops_only);
   }
 #endif
 }

@@ -553,6 +553,9 @@ if(ifstats.zmqRecvStats ~= nil) then
       if prefs.is_dump_flows_to_ls_enabled == true then
 	 dump_to = "Logstash"
       end
+      if prefs.is_nindex_enabled == true then
+	 dump_to = "nIndex"
+      end
 
       local export_count     = ifstats.stats.flow_export_count
       local export_rate      = ifstats.stats.flow_export_rate

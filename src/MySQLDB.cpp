@@ -460,13 +460,15 @@ bool MySQLDB::createNprobeDBView() {
 
 /* ******************************************* */
 
-MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
-  mysqlDroppedFlows = mysqlConsumerDroppedFlows = 0;
+MySQLDB::MySQLDB(NetworkInterface *_iface) : DB() {
+  if((m = new(std::nothrow) Mutex()) == NULL)
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: NULL mutex. Are you running out of memory?");
+
   mysqlEnqueuedFlows = 0;
-  mysqlExportedFlows = 0, mysqlLastExportedFlows = 0;
-  mysqlExportRate = 0;
-  checkpointDroppedFlows = checkpointExportedFlows = 0;
-  lastUpdateTime.tv_sec = 0, lastUpdateTime.tv_usec = 0;
+  iface = _iface;
+  log_fd = NULL;
+  open_log();
+
   connectToDB(&mysql, false);
   mysql_alt_connected = connectToDB(&mysql_alt, true);
 }
@@ -477,6 +479,27 @@ MySQLDB::~MySQLDB() {
   shutdown();
   disconnectFromDB(&mysql_alt);
   disconnectFromDB(&mysql);
+
+  if(m) delete m;
+  if(log_fd) fclose(log_fd);
+}
+
+/* ******************************************* */
+
+void MySQLDB::open_log() {
+  static char sql_log_path[MAX_PATH];
+
+  if(ntop->getPrefs()->is_sql_log_enabled()) {
+    snprintf(sql_log_path, sizeof(sql_log_path), "%s/%d/ntopng_sql.log",
+	     ntop->get_working_dir(), iface->get_id());
+
+    log_fd = fopen(sql_log_path, "a");
+
+    if(!log_fd)
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create log %s", sql_log_path);
+    else
+      chmod(sql_log_path, CONST_DEFAULT_FILE_MODE);
+  }
 }
 
 /* ******************************************* */
@@ -495,36 +518,6 @@ void MySQLDB::shutdown() {
     DB::shutdown();
     pthread_join(queryThreadLoop, &res);
   }
-}
-
-/* ******************************************* */
-
-void MySQLDB::updateStats(const struct timeval *tv) {
-  if(tv == NULL) return;
-
-  if(lastUpdateTime.tv_sec > 0) {
-    float tdiffMsec = ((float)(tv->tv_sec-lastUpdateTime.tv_sec)*1000)+((tv->tv_usec-lastUpdateTime.tv_usec)/(float)1000);
-    if(tdiffMsec >= 1000) { /* al least one second */
-      u_int64_t diffFlows = mysqlExportedFlows - mysqlLastExportedFlows;
-      mysqlLastExportedFlows = mysqlExportedFlows;
-
-      mysqlExportRate = ((float)(diffFlows * 1000)) / tdiffMsec;
-      if (mysqlExportRate < 0) mysqlExportRate = 0;
-    }
-  }
-
-  memcpy(&lastUpdateTime, tv, sizeof(struct timeval));
-}
-
-/* ******************************************* */
-
-void MySQLDB::lua(lua_State *vm, bool since_last_checkpoint) const {
-  lua_push_uint64_table_entry(vm, "flow_export_count",
-			   mysqlExportedFlows - (since_last_checkpoint ? checkpointExportedFlows : 0));
-  lua_push_int32_table_entry(vm, "flow_export_drops",
-			     (mysqlDroppedFlows + mysqlConsumerDroppedFlows) - (since_last_checkpoint ? checkpointDroppedFlows : 0));
-  lua_push_float_table_entry(vm, "flow_export_rate",
-			     mysqlExportRate >= 0 ? mysqlExportRate : 0);
 }
 
 /* ******************************************* */
@@ -648,7 +641,7 @@ void MySQLDB::try_exec_sql_query(MYSQL *conn, char *sql) {
     disconnectFromDB(conn);
     if(!connectToDB(conn, true)) _usleep(100);
   } else {
-    mysqlExportedFlows++;
+    incNumExportedFlows();
   }
 }
 
@@ -690,7 +683,7 @@ bool MySQLDB::dumpFlow(time_t when, Flow *f, char *json) {
       */
       ntop->getRedis()->lpush(CONST_SQL_QUEUE, sql, CONST_MAX_MYSQL_QUEUE_LEN);
     } else {
-      mysqlDroppedFlows++;
+      incNumDroppedFlows();
     }
   }
 

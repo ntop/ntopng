@@ -29,18 +29,29 @@ class AggregatedFlow;
 #endif
 
 class DB {
+ private:
+  struct timeval lastUpdateTime;
+  float exportRate;
+  u_int64_t exportedFlows, lastExportedFlows;
+  u_int32_t droppedFlows, queueDroppedFlows;
+  u_int64_t checkpointExportedFlows;
+  u_int32_t checkpointDroppedFlows, checkpointQueueDroppedFlows;
+
  protected:
-  FILE *log_fd;
-  NetworkInterface *iface;
-  Mutex *m;
   bool running;
 
-  void open_log();
+  inline void incNumExportedFlows(u_int64_t num = 1)        { exportedFlows += num; };
+  inline void incNumDroppedFlows(u_int32_t num = 1)         { droppedFlows += num; };
+  inline void incNumQueueDroppedFlows(u_int32_t num = 1)    { queueDroppedFlows += num; };
+
  public:
-  DB(NetworkInterface *_iface);
-  virtual ~DB();
-  
-  virtual bool dumpFlow(time_t when, Flow *f, char *json);
+  DB();
+  virtual ~DB() {};
+  inline u_int32_t getNumDroppedFlows()  const              { return(queueDroppedFlows + droppedFlows); };
+  void updateStats(const struct timeval *tv);
+  void checkPointCounters(bool drops_only);
+
+  virtual bool dumpFlow(time_t when, Flow *f, char *json);  // TODO make this pure virtual
   virtual int exec_sql_query(lua_State *vm, char *sql,
 			     bool limit_rows, bool wait_for_db_created = true);
   virtual void startDBLoop();
@@ -50,9 +61,7 @@ class DB {
   virtual bool createDBSchema(bool set_db_created = true) {
 	  return false; /* override in non-schemaless subclasses */ };
   virtual bool createNprobeDBView() { return false; };
-  virtual void updateStats(const struct timeval *tv) {};
-  virtual void checkPointCounters(bool drops_only) {};
-  virtual void lua(lua_State* vm, bool since_last_checkpoint) const {};
+  virtual void lua(lua_State* vm, bool since_last_checkpoint) const;
 #ifdef NTOPNG_PRO
   virtual bool dumpAggregatedFlow(time_t when, AggregatedFlow *f, bool is_top_aggregated_flow);
 #endif

@@ -29,18 +29,16 @@ class MySQLDB : public DB {
   MYSQL mysql;
   MYSQL mysql_alt;
   bool db_operational, mysql_alt_connected;
-  struct timeval lastUpdateTime;
-  u_int32_t mysqlDroppedFlows, mysqlConsumerDroppedFlows;
+  FILE *log_fd;
   u_int32_t mysqlEnqueuedFlows;
-  u_int64_t mysqlExportedFlows, mysqlLastExportedFlows;
-  float mysqlExportRate;
-
-  u_int64_t checkpointDroppedFlows, checkpointExportedFlows; /* Those will hold counters at checkpoints */
+  Mutex *m;
+  NetworkInterface *iface;
 
   static volatile bool db_created;
   pthread_t queryThreadLoop;
 
   bool connectToDB(MYSQL *conn, bool select_db);
+  void open_log();
   char* get_last_db_error(MYSQL *conn) { return((char*)mysql_error(conn)); }
   int exec_sql_query(MYSQL *conn, const char *sql, bool doReconnect = true,
 		     bool ignoreErrors = false, bool doLock = true);
@@ -55,22 +53,12 @@ class MySQLDB : public DB {
   virtual bool createNprobeDBView();
   void disconnectFromDB(MYSQL *conn);
   static volatile bool isDbCreated() { return db_created; };
-  void checkPointCounters(bool drops_only) {
-    if(!drops_only)
-      checkpointExportedFlows = mysqlExportedFlows;
-    checkpointDroppedFlows = mysqlDroppedFlows + mysqlConsumerDroppedFlows;
-  };
-  inline u_int32_t numDroppedFlows() const { return mysqlDroppedFlows + mysqlConsumerDroppedFlows; };
-  inline float exportRate()          const { return mysqlExportRate; };
   static char *escapeAphostrophes(const char *unescaped);
   int flow2InsertValues(Flow *f, char *json, char *values_buf, size_t values_buf_len) const;
   virtual bool dumpFlow(time_t when, Flow *f, char *json);
-  virtual void flush() { ; };
   int exec_sql_query(lua_State *vm, char *sql, bool limitRows, bool wait_for_db_created = true);
   void startDBLoop();
   void shutdown();
-  void updateStats(const struct timeval *tv);
-  void lua(lua_State* vm, bool since_last_checkpoint) const;
   static int exec_single_query(lua_State *vm, char *sql);
 #ifdef NTOPNG_PRO
   bool dumpAggregatedFlow(time_t when, AggregatedFlow *f, bool is_top_aggregated_flow) { return(false); };
