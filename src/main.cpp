@@ -323,8 +323,6 @@ int main(int argc, char *argv[])
 
 #ifndef HAVE_NEDGE
   ntop->createExportInterface();
-  ntop->getElasticSearch()->startFlowDump();
-  ntop->getLogstash()->startFlowDump();
 #endif
 
   ntop->loadGeolocation(prefs->get_docs_dir());

@@ -54,8 +54,6 @@ Ntop::Ntop(char *appName) {
   custom_ndpi_protos = NULL;
   prefs = NULL, redis = NULL;
 #ifndef HAVE_NEDGE
-  elastic_search = NULL;
-  logstash = NULL;
   export_interface = NULL;
 #endif
   trackers_automa = NULL;
@@ -201,10 +199,6 @@ Ntop::~Ntop() {
 
   if(trackers_automa)     ndpi_free_automa(trackers_automa);
   if(custom_ndpi_protos)  delete(custom_ndpi_protos);
-#ifndef HAVE_NEDGE
-  if(elastic_search)      delete(elastic_search);
-  if(logstash)            delete(logstash);
-#endif
 
   delete address;
   if(pa)    delete pa;
@@ -283,9 +277,6 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
     exit(-1);
   }
 
-  initElasticSearch();
-  initLogstash();
-
 #ifdef NTOPNG_PRO
   pro->init_license();
 #endif
@@ -351,24 +342,6 @@ void Ntop::resetNetworkInterfaces() {
   memset(iface, 0, (sizeof(NetworkInterface*) * MAX_NUM_DEFINED_INTERFACES));
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "Interfaces Available: %u", MAX_NUM_DEFINED_INTERFACES);
-}
-
-/* ******************************************* */
-
-void Ntop::initLogstash(){
-#ifndef HAVE_NEDGE
-  if(logstash) delete(logstash);
-  logstash = new Logstash();
-#endif
-}
-
-/* ******************************************* */
-
-void Ntop::initElasticSearch() {
-#ifndef HAVE_NEDGE
-  if(elastic_search) delete(elastic_search);
-  elastic_search = new ElasticSearch();
-#endif
 }
 
 /* ******************************************* */
@@ -2041,21 +2014,6 @@ void Ntop::runHousekeepingTasks() {
   }
 
   if(globals->isShutdownRequested()) return;
-
-#ifndef HAVE_NEDGE
-  /* ES stats are updated once as the present implementation is not per-interface  */
-  if (ntop->getPrefs()->do_dump_flows_on_es()) {
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-    ntop->getElasticSearch()->updateStats(&tv);
-  }
-
-  if(ntop->getPrefs()->do_dump_flows_on_ls()){
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-    ntop->getLogstash()->updateStats(&tv);
-  }
-#endif
 
   if(globals->isShutdownRequested()) return;
 

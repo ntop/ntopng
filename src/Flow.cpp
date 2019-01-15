@@ -821,12 +821,7 @@ bool Flow::dumpFlow(bool dump_alert) {
      && ((srv2cli_packets - last_db_dump.srv2cli_packets) == 0))
       return(rc);
 
-  if(ntop->getPrefs()->do_dump_flows_on_mysql()
-     || ntop->getPrefs()->do_dump_flows_on_es()
-     || ntop->getPrefs()->do_dump_flows_on_ls()
-#if defined(HAVE_NINDEX) && defined(NTOPNG_PRO)
-     || ntop->getPrefs()->do_dump_flows_on_nindex()
-#endif
+  if(ntop->getPrefs()->do_dump_flows()
 #ifndef HAVE_NEDGE
      || ntop->get_export_interface()
 #endif
@@ -873,16 +868,7 @@ bool Flow::dumpFlow(bool dump_alert) {
       getInterface()->aggregatePartialFlow(this);
 #endif
 
-    if(ntop->getPrefs()->do_dump_flows_on_mysql())
-      getInterface()->dumpDBFlow(last_seen, this);
-    else if(ntop->getPrefs()->do_dump_flows_on_es())
-      getInterface()->dumpEsFlow(last_seen, this);
-    else if(ntop->getPrefs()->do_dump_flows_on_ls())
-      getInterface()->dumpLsFlow(last_seen, this);
-#if defined(HAVE_NINDEX) && defined(NTOPNG_PRO)
-    else if(ntop->getPrefs()->do_dump_flows_on_nindex())
-      getInterface()->dumpnIndexFlow(last_seen, this);
-#endif
+    getInterface()->dumpFlow(last_seen, this);
 
 #ifndef HAVE_NEDGE
     if(ntop->get_export_interface()) {

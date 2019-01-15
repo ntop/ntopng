@@ -26,13 +26,14 @@
 /* **************************************************** */
 
 static void* lsLoop(void* ptr) {
-  ntop->getLogstash()->sendLSdata();
+  Logstash *ls = (Logstash *) ptr;
+  ls->sendLSdata();
   return(NULL);
 }
 
 /* **************************************** */
 
-Logstash::Logstash() {
+Logstash::Logstash(NetworkInterface *_iface) : DB(_iface) {
   num_queued_elems = 0;
   head = NULL;
   tail = NULL;
@@ -47,13 +48,12 @@ Logstash::~Logstash() {
 
 /* **************************************** */
 
-int Logstash::sendToLS(char* msg) {
+bool Logstash::dumpFlow(time_t when, Flow *f, char *msg) {
   struct string_list *e;
-  int rc = 0;
+  bool rc = true;
 
-  if(!msg || !strcmp(msg,"")) {
-    return(-1);
-  }
+  if(!msg || !strcmp(msg,""))
+    return(false);
 
   if(num_queued_elems >= LS_MAX_QUEUE_LEN) {
     if(!reportDrops) {
@@ -66,7 +66,7 @@ int Logstash::sendToLS(char* msg) {
     ntop->getTrace()->traceEvent(TRACE_INFO, "[LS] Message dropped. Total messages dropped: %lu\n",
 				 getNumDroppedFlows());
 
-    return(-1);
+    return(false);
   }
 
   listMutex.lock(__FILE__, __LINE__);
@@ -82,21 +82,21 @@ int Logstash::sendToLS(char* msg) {
 	tail = e;
       num_queued_elems++;
 
-      rc = 0;
+      rc = true;
     } else {
       /* Out of memory */
       free(e);
-      rc = -1;
+      rc = false;
     }
   }
 
   listMutex.unlock(__FILE__, __LINE__);
-  return rc;
+  return(rc);
 }
 
 /* **************************************** */
 
-void Logstash::startFlowDump() {
+void Logstash::startLoop() {
   if(ntop->getPrefs()->do_dump_flows_on_ls()) {
     pthread_create(&lsThreadLoop, NULL, lsLoop, (void*)this);
   }
@@ -159,7 +159,7 @@ void Logstash::sendLSdata() {
   memcpy((char*)&serv_addr.sin_addr.s_addr, (char*)server->h_addr, server->h_length);
   serv_addr.sin_port = htons(portno);
 
-  while(!ntop->getGlobals()->isShutdown()) {
+  while(!ntop->getGlobals()->isShutdown() && isRunning()) {
     if(num_queued_elems >= watermark) {
       if(sockfd<0||skipDequeue==1) {
         if(sockfd<0) {

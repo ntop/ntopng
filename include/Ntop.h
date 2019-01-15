@@ -374,8 +374,6 @@ class Ntop {
   inline Redis*            getRedis()                { return(redis);               };
   inline TimelineExtract*  getTimelineExtract()      { return(extract); };
 #ifndef HAVE_NEDGE
-  inline ElasticSearch*    getElasticSearch()        { return(elastic_search);      };
-  inline Logstash*         getLogstash()             { return(logstash);            };
   inline ExportInterface*  get_export_interface()    { return(export_interface);    };
 #endif
 

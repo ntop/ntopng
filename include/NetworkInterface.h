@@ -325,12 +325,6 @@ class NetworkInterface : public Checkpointable {
   void dumpAggregatedFlow(time_t when, AggregatedFlow *f, bool is_top_aggregated_flow);
   void flushFlowDump();
 #endif
-  int dumpDBFlow(time_t when, Flow *f);
-  int dumpEsFlow(time_t when, Flow *f);
-  int dumpLsFlow(time_t when, Flow *f);
-#if defined(HAVE_NINDEX) && defined(NTOPNG_PRO)
-  inline bool dumpnIndexFlow(time_t when, Flow *f)  { return(db ? db->dumpFlow(when, f, NULL) : false); };
-#endif
   int dumpLocalHosts2redis(bool disable_purge);
   inline void incRetransmittedPkts(u_int32_t num)   { tcpPacketStats.incRetr(num); };
   inline void incOOOPkts(u_int32_t num)             { tcpPacketStats.incOOO(num);  };
@@ -561,7 +555,9 @@ class NetworkInterface : public Checkpointable {
   inline const char* getLocalIPAddresses()         { return(ip_addresses.c_str());    }
   void addInterfaceAddress(char *addr);
   inline int exec_sql_query(lua_State *vm, char *sql, bool limit_rows, bool wait_for_db_created = true) {
-    return(db ? db->exec_sql_query(vm, sql, limit_rows, wait_for_db_created) : -1);
+    if(dynamic_cast<MySQLDB*>(db) != nullptr)
+      return ((MySQLDB*)db)->exec_sql_query(vm, sql, limit_rows, wait_for_db_created);
+    return(-1);
   };
   NetworkStats* getNetworkStats(u_int8_t networkId);
   void allocateNetworkStats();
@@ -580,8 +576,8 @@ class NetworkInterface : public Checkpointable {
 
   void getFlowsStatus(lua_State *vm);
   void startDBLoop()               { if(db) db->startDBLoop();                 };
-  inline bool createDBSchema()     { if(db) { return db->createDBSchema();     } return false;   };
-  inline bool createNprobeDBView() { if(db) { return db->createNprobeDBView(); } return false;   };
+  inline bool createDBSchema()     { if((dynamic_cast<MySQLDB*>(db) != nullptr)) { return ((MySQLDB*)db)->createDBSchema();     } return false;   };
+  inline bool createNprobeDBView() { if((dynamic_cast<MySQLDB*>(db) != nullptr)) { return ((MySQLDB*)db)->createNprobeDBView();     } return false;   };
 #ifdef NTOPNG_PRO
   inline void getFlowDevices(lua_State *vm) {
     if(flow_interfaces_stats) flow_interfaces_stats->luaDeviceList(vm); else lua_newtable(vm);

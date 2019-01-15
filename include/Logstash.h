@@ -33,11 +33,12 @@ class Logstash : public DB {
   bool reportDrops;
 
  public:
-  Logstash();
+  Logstash(NetworkInterface *_iface);
   virtual ~Logstash();
-  int sendToLS(char* msg);
   void sendLSdata();
-  void startFlowDump();
+
+  virtual bool dumpFlow(time_t when, Flow *f, char *json);
+  virtual void startLoop();
 };
 
 

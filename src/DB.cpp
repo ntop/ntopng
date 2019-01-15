@@ -23,33 +23,14 @@
 
 /* ******************************************* */
 
-DB::DB() {
+DB::DB(NetworkInterface *_iface) {
   running = false;
+  iface = _iface;
 
   lastUpdateTime.tv_sec = 0, lastUpdateTime.tv_usec = 0;
   droppedFlows = queueDroppedFlows = exportedFlows = lastExportedFlows = 0;
   checkpointDroppedFlows = checkpointQueueDroppedFlows = checkpointExportedFlows = 0;
   exportRate = 0;
-}
-
-/* ******************************************* */
-
-bool DB::dumpFlow(time_t when, Flow *f, char *json) {
-  ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error");
-  return(false);
-}
-
-/* ******************************************* */
-
-int DB::exec_sql_query(lua_State *vm, char *sql, bool limit_rows, bool wait_for_db_created) {
-  ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error");
-  return(false);
-}
-
-/* ******************************************* */
-
-void DB::startDBLoop() {
-  ntop->getTrace()->traceEvent(TRACE_WARNING, "*** Internal error ***");
 }
 
 /* ******************************************* */

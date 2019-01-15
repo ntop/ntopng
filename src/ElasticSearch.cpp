@@ -26,14 +26,15 @@
 /* **************************************************** */
 
 static void* esLoop(void* ptr) {
-  ntop->getElasticSearch()->pushEStemplate();  // sends ES ntopng template
-  ntop->getElasticSearch()->indexESdata();
+  ElasticSearch *es = (ElasticSearch *) ptr;
+  es->pushEStemplate();  // sends ES ntopng template
+  es->indexESdata();
   return(NULL);
 }
 
 /* **************************************** */
 
-ElasticSearch::ElasticSearch() {
+ElasticSearch::ElasticSearch(NetworkInterface *_iface) : DB(_iface) {
   char *es_url, *es_host;
 
   es_version = NULL;
@@ -77,9 +78,9 @@ ElasticSearch::~ElasticSearch() {
 
 /* **************************************** */
 
-int ElasticSearch::sendToES(char* msg) {
+bool ElasticSearch::dumpFlow(time_t when, Flow *f, char *msg) {
   struct string_list *e;
-  int rc = 0;
+  bool rc = true;
 
   if(num_queued_elems >= ES_MAX_QUEUE_LEN) {
     if(!reportDrops) {
@@ -92,7 +93,7 @@ int ElasticSearch::sendToES(char* msg) {
     ntop->getTrace()->traceEvent(TRACE_INFO, "[ES] Message dropped. Total messages dropped: %lu\n",
 				 getNumDroppedFlows());
 
-    return(-1);
+    return(false);
   }
 
   listMutex.lock(__FILE__, __LINE__);
@@ -109,22 +110,22 @@ int ElasticSearch::sendToES(char* msg) {
 	tail = e;
       num_queued_elems++;
 
-      rc = 0;
+      rc = true;
     } else {
       /* Out of memory */
       free(e);
-      rc = -1;
+      rc = false;
     }
   }
 
   listMutex.unlock(__FILE__, __LINE__);
 
-  return rc;
+  return(rc);
 }
 
 /* **************************************** */
 
-void ElasticSearch::startFlowDump() {
+void ElasticSearch::startLoop() {
   if(ntop->getPrefs()->do_dump_flows_on_es())
     pthread_create(&esThreadLoop, NULL, esLoop, (void*)this);
 }
@@ -142,7 +143,7 @@ void ElasticSearch::indexESdata() {
     return;
   }
 
-  while(!ntop->getGlobals()->isShutdown()) {
+  while(!ntop->getGlobals()->isShutdown() && isRunning()) {
     time_t now = time(0);
 
     if((num_queued_elems >= min_buffered_flows)

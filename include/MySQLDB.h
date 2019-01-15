@@ -32,7 +32,6 @@ class MySQLDB : public DB {
   FILE *log_fd;
   u_int32_t mysqlEnqueuedFlows;
   Mutex *m;
-  NetworkInterface *iface;
 
   static volatile bool db_created;
   pthread_t queryThreadLoop;
@@ -57,7 +56,7 @@ class MySQLDB : public DB {
   int flow2InsertValues(Flow *f, char *json, char *values_buf, size_t values_buf_len) const;
   virtual bool dumpFlow(time_t when, Flow *f, char *json);
   int exec_sql_query(lua_State *vm, char *sql, bool limitRows, bool wait_for_db_created = true);
-  void startDBLoop();
+  void startLoop();
   void shutdown();
   static int exec_single_query(lua_State *vm, char *sql);
 #ifdef NTOPNG_PRO

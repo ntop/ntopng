@@ -460,12 +460,11 @@ bool MySQLDB::createNprobeDBView() {
 
 /* ******************************************* */
 
-MySQLDB::MySQLDB(NetworkInterface *_iface) : DB() {
+MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
   if((m = new(std::nothrow) Mutex()) == NULL)
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: NULL mutex. Are you running out of memory?");
 
   mysqlEnqueuedFlows = 0;
-  iface = _iface;
   log_fd = NULL;
   open_log();
 
@@ -504,8 +503,7 @@ void MySQLDB::open_log() {
 
 /* ******************************************* */
 
-void MySQLDB::startDBLoop() {
-  running = true;
+void MySQLDB::startLoop() {
   pthread_create(&queryThreadLoop, NULL, ::queryLoop, (void*)this);
 }
 

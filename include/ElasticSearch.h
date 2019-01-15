@@ -35,17 +35,20 @@ class ElasticSearch : public DB {
   char *es_template_push_url, *es_version_query_url;
   char *es_version;
   const char * const get_es_version();
+
  public:
-  ElasticSearch();
+  ElasticSearch(NetworkInterface *_iface);
   ~ElasticSearch();
+
   inline bool atleast_version_6() {
     const char * const ver = get_es_version();
     return ver && strcmp(ver, "6") >= 0;
   };
-  int sendToES(char* msg);
   void pushEStemplate();
   void indexESdata();
-  void startFlowDump();
+
+  virtual bool dumpFlow(time_t when, Flow *f, char *json);
+  virtual void startLoop();
 };
 
 

@@ -649,73 +649,21 @@ NetworkInterface::~NetworkInterface() {
 /* **************************************************** */
 
 int NetworkInterface::dumpFlow(time_t when, Flow *f) {
-  if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
-    return(dumpDBFlow(when, f));
-  } else if(ntop->getPrefs()->do_dump_flows_on_es()) {
-    return(dumpEsFlow(when, f));
-  } else if(ntop->getPrefs()->do_dump_flows_on_ls()) {
-    return(dumpLsFlow(when, f));
-#if defined(HAVE_NINDEX) && defined(NTOPNG_PRO)
-  } else if(ntop->getPrefs()->do_dump_flows_on_nindex()) {
-    return(dumpnIndexFlow(when, f) ? 0 : -1);
-#endif
-  } else {
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error");
+  char *json;
+  int rc = -1;
+
+#ifndef HAVE_NEDGE
+  if(!db)
     return(-1);
-  }
-}
 
-/* **************************************************** */
-
-int NetworkInterface::dumpLsFlow(time_t when, Flow *f) {
-#ifndef HAVE_NEDGE
-  char *json = f->serialize(true);
-  int rc;
-
-  if(json && ntop->getLogstash()) {
-    ntop->getTrace()->traceEvent(TRACE_INFO, "[LS] %s", json);
-    rc = ntop->getLogstash()->sendToLS(json);
-    free(json);
-  } else
-    rc = -1;
-
-  return(rc);
-#else
-  return(-1);
-#endif
-}
-
-/* **************************************************** */
-
-int NetworkInterface::dumpEsFlow(time_t when, Flow *f) {
-#ifndef HAVE_NEDGE
-  char *json = f->serialize(true);
-  int rc;
-
-  if(json) {
-    ntop->getTrace()->traceEvent(TRACE_INFO, "[ES] %s", json);
-    rc = ntop->getElasticSearch()->sendToES(json);
-    free(json);
-  } else
-    rc = -1;
-
-  return(rc);
-#else
-  return(-1);
-#endif
-}
-
-/* **************************************************** */
-
-int NetworkInterface::dumpDBFlow(time_t when, Flow *f) {
-  char *json = f->serialize(false);
-  int rc;
+  json = f->serialize(false);
 
   if(json) {
     rc = db->dumpFlow(when, f, json);
     free(json);
   } else
     rc = -1;
+#endif
 
   return(rc);
 }
@@ -5227,18 +5175,7 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_uint64_table_entry(vm, "devices",     getNumL2Devices());
   lua_push_uint64_table_entry(vm, "num_live_captures", num_live_captures);
 
-#ifndef HAVE_NEDGE
-  /* even if the counter is global, we put it here on every interface
-     as we may decide to make an elasticsearch thread per interface.
-  */
-  if(ntop->getPrefs()->do_dump_flows_on_es()) {
-    ntop->getElasticSearch()->lua(vm, false /* Overall */);
-  } else if(db) {
-    db->lua(vm, false /* Overall */);
-  } else if(ntop->getPrefs()->do_dump_flows_on_ls()) {
-    ntop->getLogstash()->lua(vm, false /* Overall */);
-  }
-#endif
+  if(db) db->lua(vm, false /* Overall */);
 
   lua_pushstring(vm, "stats");
   lua_insert(vm, -2);
@@ -5249,15 +5186,7 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_uint64_table_entry(vm, "bytes",       getNumBytesSinceReset());
   lua_push_uint64_table_entry(vm, "drops",       getNumPacketDropsSinceReset());
 
-#ifndef HAVE_NEDGE
-  if(ntop->getPrefs()->do_dump_flows_on_es()) {
-    ntop->getElasticSearch()->lua(vm, true /* Since last checkpoint */);
-  } else if(db) {
-    db->lua(vm, true /* Since last checkpoint */);
-  } else if(ntop->getPrefs()->do_dump_flows_on_ls()) {
-    ntop->getLogstash()->lua(vm, true /* Since last checkpoint */);
-  }
-#endif
+  if(db) db->lua(vm, true /* Since last checkpoint */);
 
   lua_pushstring(vm, "stats_since_reset");
   lua_insert(vm, -2);
@@ -5939,15 +5868,7 @@ void NetworkInterface::checkPointCounters(bool drops_only) {
   }
   checkpointPktDropCount = getNumPacketDrops();
 
-#ifndef HAVE_NEDGE
-  if(ntop->getPrefs()->do_dump_flows_on_es()) {
-    ntop->getElasticSearch()->checkPointCounters(drops_only);
-  } else if(ntop->getPrefs()->do_dump_flows_on_ls()) {
-    ntop->getLogstash()->checkPointCounters(drops_only);
-  } else if(db) {
-    db->checkPointCounters(drops_only);
-  }
-#endif
+  if(db) db->checkPointCounters(drops_only);
 }
 
 /* **************************************************** */
@@ -6680,34 +6601,38 @@ void NetworkInterface::finishInitialization(u_int8_t num_defined_interfaces) {
     }
 #endif
 
-    if((db == NULL)
-       && (ntop->getPrefs()->do_dump_flows_on_mysql()
-	   || ntop->getPrefs()->do_read_flows_from_nprobe_mysql())) {
+    if(db == NULL) {
+	if(ntop->getPrefs()->do_dump_flows_on_mysql()
+	     || ntop->getPrefs()->do_read_flows_from_nprobe_mysql()) {
 #ifdef NTOPNG_PRO
-      if(ntop->getPrefs()->is_enterprise_edition()
-	 && !ntop->getPrefs()->do_read_flows_from_nprobe_mysql()) {
+	if(ntop->getPrefs()->is_enterprise_edition()
+	   && !ntop->getPrefs()->do_read_flows_from_nprobe_mysql()) {
 #ifdef HAVE_MYSQL
-	db = new BatchedMySQLDB(this);
+	  db = new BatchedMySQLDB(this);
 #endif
 
 #if defined(NTOPNG_PRO) && defined(HAVE_NINDEX)
-      enable_aggregation:
+	enable_aggregation:
 #endif
-	aggregated_flows_hash = new AggregatedFlowHash(this, num_hashes,
-						       ntop->getPrefs()->get_max_num_flows());
+	  aggregated_flows_hash = new AggregatedFlowHash(this, num_hashes,
+							 ntop->getPrefs()->get_max_num_flows());
 
-	ntop->getPrefs()->enable_flow_aggregation();
-	nextFlowAggregation = FLOW_AGGREGATION_DURATION;
-      } else
-	aggregated_flows_hash = NULL;
+	  ntop->getPrefs()->enable_flow_aggregation();
+	  nextFlowAggregation = FLOW_AGGREGATION_DURATION;
+	} else
+	  aggregated_flows_hash = NULL;
 #endif
 
 #ifdef HAVE_MYSQL
-      if(db == NULL)
-	db = new MySQLDB(this);
+	if(db == NULL)
+	  db = new MySQLDB(this);
 #endif
 
-      if(!db) throw "Not enough memory";
+	if(!db) throw "Not enough memory";
+      } else if (ntop->getPrefs()->do_dump_flows_on_es())
+	db = new ElasticSearch(this);
+      else if (ntop->getPrefs()->do_dump_flows_on_ls())
+	db = new Logstash(this);
     }
   }
 }
