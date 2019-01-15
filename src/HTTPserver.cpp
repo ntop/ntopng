@@ -1131,7 +1131,8 @@ void HTTPserver::parseACL(char * const acl, u_int acl_len) {
 
 /* ****************************************** */
 
-// Not necessary?
+static unsigned char ssl_session_ctx_id[] = PACKAGE_NAME "-" NTOPNG_GIT_RELEASE;
+
 int handle_ssl_verify(int ok, X509_STORE_CTX *ctx) {
   X509 *cert;
   char buf[256];
@@ -1143,14 +1144,9 @@ int handle_ssl_verify(int ok, X509_STORE_CTX *ctx) {
   X509_NAME_oneline(X509_get_subject_name(cert), buf, sizeof(buf));
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "ssl verify pre=%d cert=%s err=%i depth=%i",ok,buf,err,depth);
-  return ok;
+  // Never fail, continue SSL/TLS handshake, if client cert is invalid we want to fallback to explicit login 
+  return 1;
 };
-
-/* ****************************************** */
-
-static int ssl_session_ctx_id = 1;
-
-/* ****************************************** */
 
 int init_client_x509_auth(void *ctx) {
   char buf[256];
@@ -1162,9 +1158,9 @@ int init_client_x509_auth(void *ctx) {
   snprintf(ssl_ca_path, sizeof(ssl_ca_path), "%s/ssl/%s", ntop->getPrefs()->get_docs_dir(),CONST_HTTPS_AUTHCA_FILE);
 
   ntop->fixPath(ssl_ca_path),
-    ntop->fixPath(ssl_cert_path);
+  ntop->fixPath(ssl_cert_path);
 
-  if(!SSL_CTX_set_session_id_context((SSL_CTX*)ctx, (unsigned char*)&ssl_session_ctx_id, sizeof(ssl_session_ctx_id))) {
+  if(!SSL_CTX_set_session_id_context((SSL_CTX*)ctx, ssl_session_ctx_id, sizeof(ssl_session_ctx_id)>SSL_MAX_SSL_SESSION_ID_LENGTH?SSL_MAX_SSL_SESSION_ID_LENGTH:sizeof(ssl_session_ctx_id))) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "SSL session init failed: %s", ERR_reason_error_string(ERR_get_error()));
     return 0;
   }
@@ -1192,8 +1188,7 @@ int init_client_x509_auth(void *ctx) {
   } else
     ntop->getTrace()->traceEvent(TRACE_WARNING, "No SSL client loaded");
 
-  SSL_CTX_set_verify((SSL_CTX*)ctx, SSL_VERIFY_PEER/*|SSL_VERIFY_FAIL_IF_NO_PEER_CERT|SSL_VERIFY_CLIENT_ONCE*/, handle_ssl_verify);
-  //SSL_CTX_set_session_cache_mode((SSL_CTX*)ctx,SSL_SESS_CACHE_OFF);
+  SSL_CTX_set_verify((SSL_CTX*)ctx, SSL_VERIFY_PEER, handle_ssl_verify);
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "SSL init [ssl_ca_path: %s][ssl_cert_path: %s]", ssl_ca_path, ssl_cert_path);
 
