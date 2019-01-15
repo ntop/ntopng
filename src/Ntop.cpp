@@ -369,6 +369,8 @@ static void* ebpfLoopFctn(void* ptr) {
 /* ******************************************* */
 
 void Ntop::start() {
+  struct timeval begin, end;
+  u_long usec_diff;
   char daybuf[64], buf[32];
   time_t when = time(NULL);
   int i = 0;
@@ -443,12 +445,30 @@ void Ntop::start() {
   }
 #endif
 
+  /* Align to the next 5-th second of the clock to make sure
+     housekeeping starts alinged (and remains aligned when
+     the housekeeping frequency is a multiple of 5 seconds) */
+  gettimeofday(&begin, NULL);
+  _usleep((5 - begin.tv_sec % 5) * 1e6 - begin.tv_usec);
+
   while((!globals->isShutdown()) && (!globals->isShutdownRequested())) {
-    struct timeval begin, end;
-    u_long usec_diff;
     u_long nap = ntop->getPrefs()->get_housekeeping_frequency() * 1e6;
 
     gettimeofday(&begin, NULL);
+
+#ifdef HOUSEKEEPING_DEBUG
+    char tmbuf[64], buf[64];
+    time_t nowtime;
+    struct tm *nowtm;
+
+    nowtime = begin.tv_sec;
+    nowtm = localtime(&nowtime);
+    strftime(tmbuf, sizeof tmbuf, "%Y-%m-%d %H:%M:%S", nowtm);
+    snprintf(buf, sizeof buf, "%s.%06ld", tmbuf, begin.tv_usec);
+
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Housekeeping: %s", buf);
+#endif
+
     runHousekeepingTasks();
     gettimeofday(&end, NULL);
 
