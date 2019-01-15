@@ -649,10 +649,11 @@ NetworkInterface::~NetworkInterface() {
 /* **************************************************** */
 
 int NetworkInterface::dumpFlow(time_t when, Flow *f) {
-  char *json;
   int rc = -1;
 
 #ifndef HAVE_NEDGE
+  char *json;
+  
   if(!db)
     return(-1);
 
@@ -6629,10 +6630,13 @@ void NetworkInterface::finishInitialization(u_int8_t num_defined_interfaces) {
 #endif
 
 	if(!db) throw "Not enough memory";
-      } else if (ntop->getPrefs()->do_dump_flows_on_es())
-	db = new ElasticSearch(this);
-      else if (ntop->getPrefs()->do_dump_flows_on_ls())
-	db = new Logstash(this);
+      }
+#ifndef HAVE_NEDGE
+	else if (ntop->getPrefs()->do_dump_flows_on_es())
+	  db = new ElasticSearch(this);
+	else if (ntop->getPrefs()->do_dump_flows_on_ls())
+	  db = new Logstash(this);
+#endif
     }
   }
 }

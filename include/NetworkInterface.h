@@ -555,8 +555,10 @@ class NetworkInterface : public Checkpointable {
   inline const char* getLocalIPAddresses()         { return(ip_addresses.c_str());    }
   void addInterfaceAddress(char *addr);
   inline int exec_sql_query(lua_State *vm, char *sql, bool limit_rows, bool wait_for_db_created = true) {
+#ifdef HAVE_MYSQL
     if(dynamic_cast<MySQLDB*>(db) != NULL)
       return ((MySQLDB*)db)->exec_sql_query(vm, sql, limit_rows, wait_for_db_created);
+#endif
     return(-1);
   };
   NetworkStats* getNetworkStats(u_int8_t networkId);
@@ -576,8 +578,18 @@ class NetworkInterface : public Checkpointable {
 
   void getFlowsStatus(lua_State *vm);
   void startDBLoop()               { if(db) db->startDBLoop();                 };
-  inline bool createDBSchema()     { if((dynamic_cast<MySQLDB*>(db) != NULL)) { return ((MySQLDB*)db)->createDBSchema();     } return false;   };
-  inline bool createNprobeDBView() { if((dynamic_cast<MySQLDB*>(db) != NULL)) { return ((MySQLDB*)db)->createNprobeDBView();     } return false;   };
+  inline bool createDBSchema()     {
+#ifdef HAVE_MYSQL
+    if((dynamic_cast<MySQLDB*>(db) != NULL)) { return ((MySQLDB*)db)->createDBSchema();     }
+#endif
+    return false;
+  };
+  inline bool createNprobeDBView() {
+#ifdef HAVE_MYSQL
+    if((dynamic_cast<MySQLDB*>(db) != NULL)) { return ((MySQLDB*)db)->createNprobeDBView();     }
+#endif
+    return false;
+  };
 #ifdef NTOPNG_PRO
   inline void getFlowDevices(lua_State *vm) {
     if(flow_interfaces_stats) flow_interfaces_stats->luaDeviceList(vm); else lua_newtable(vm);
