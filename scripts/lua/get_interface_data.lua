@@ -106,6 +106,8 @@ function dumpInterfaceStats(interface_name)
       res["remote2local"] = ifstats["localstats"]["bytes"]["remote2local"]
       res["bytes_upload"] = ifstats["eth"]["egress"]["bytes"]
       res["bytes_download"] = ifstats["eth"]["ingress"]["bytes"]
+      res["packets_upload"] = ifstats["eth"]["egress"]["packets"]
+      res["packets_download"] = ifstats["eth"]["ingress"]["packets"]
 
       if ntop.isnEdge() and ifstats.type == "netfilter" and ifstats.netfilter then
 	 res["netfilter"] = ifstats.netfilter

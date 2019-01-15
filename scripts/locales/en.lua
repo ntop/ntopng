@@ -1669,6 +1669,7 @@ local lang = {
     ["snmp"] = "SNMP",
     ["state"] = "State",
     ["traffic_breakdown"] = "Traffic Breakdown",
+    ["traffic_statistics"] = "Traffic Statistics",
     ["zmq_message_drops"] = "ZMQ Message Drops",
     ["zmq_rx_statistics"] = "ZMQ RX Statistics",
   },

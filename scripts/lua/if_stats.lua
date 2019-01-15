@@ -507,8 +507,9 @@ if(ifstats.zmqRecvStats ~= nil) then
    print("<th nowrap colspan=4></th></tr>")
    end
 
-   print("<tr><th colspan=7 nowrap>"..i18n("if_stats_overview.ingress_traffic").."</th></tr>\n")
-   print("<tr><th nowrap>"..i18n("if_stats_overview.received_traffic").."</th><td width=20%><span id=if_bytes>"..bytesToSize(ifstats.stats.bytes).."</span> [<span id=if_pkts>".. formatValue(ifstats.stats.packets) .. " ".. label .."</span>] ")
+   print("<tr><th colspan=7 nowrap>"..i18n("if_stats_overview.traffic_statistics").."</th></tr>\n")
+   print("<tr><th nowrap>"..i18n("report.total_traffic").."</th><td width=20%><span id=if_bytes>"..bytesToSize(ifstats.stats.bytes).."</span> [<span id=if_pkts>".. formatValue(ifstats.stats.packets) .. " ".. label .."</span>] ")
+
    print("<span id=pkts_trend></span></td>")
 
    if ifstats.isDynamic == false then
@@ -544,6 +545,11 @@ if(ifstats.zmqRecvStats ~= nil) then
    end      
 
    print("</tr>")
+
+   if(ifstats.has_traffic_directions) then
+      print("<tr><th nowrap>"..i18n("http_page.traffic_sent").."</th><td width=20%><span id=if_out_bytes>"..bytesToSize(ifstats.eth.egress.bytes).."</span> [<span id=if_out_pkts>".. formatValue(ifstats.eth.egress.packets) .. " ".. label .."</span>] <span id=pkts_out_trend></span></td>")
+      print("<th nowrap>"..i18n("http_page.traffic_received").."</th><td width=20%><span id=if_in_bytes>"..bytesToSize(ifstats.eth.ingress.bytes).."</span> [<span id=if_in_pkts>".. formatValue(ifstats.eth.ingress.packets) .. " ".. label .."</span>] <span id=pkts_in_trend></span><td></td></tr>")
+   end
 
    if(prefs.is_dump_flows_enabled and ifstats.isView == false) then
       local dump_to = "MySQL"
@@ -1475,6 +1481,8 @@ end
 
 print("<script>\n")
 print("var last_pkts  = " .. ifstats.stats.packets .. ";\n")
+print("var last_in_pkts  = " .. ifstats.eth.ingress.packets .. ";\n")
+print("var last_out_pkts  = " .. ifstats.eth.egress.packets .. ";\n")
 print("var last_drops = " .. ifstats.stats.drops .. ";\n")
 
 if(ifstats.zmqRecvStats ~= nil) then
@@ -1516,6 +1524,15 @@ print [[/lua/get_interface_data.lua',
 
 	var v = bytesToVolume(rsp.bytes);
 	$('#if_bytes').html(v);
+
+   $('#if_in_bytes').html(bytesToVolume(rsp.bytes_download));
+	$('#if_out_bytes').html(bytesToVolume(rsp.bytes_upload));
+   $('#if_in_pkts').html(addCommas(rsp.packets_download) + " Pkts");
+	$('#if_out_pkts').html(addCommas(rsp.packets_upload)  + " Pkts");
+   $('#pkts_in_trend').html(get_trend(last_in_pkts, rsp.bytes_download));
+   $('#pkts_out_trend').html(get_trend(last_out_pkts, rsp.bytes_upload));
+   last_in_pkts = rsp.bytes_download;
+   last_out_pkts = rsp.bytes_upload;
 
         if (typeof rsp.zmqRecvStats !== 'undefined') {
            var diff, time_diff, label;
