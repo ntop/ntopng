@@ -503,6 +503,18 @@ end
 
 -- ########################################################
 
+function printNotes(notes_items)
+   print("<b>" .. i18n("notes").. "</b><ul>")
+
+   for _, note in ipairs(notes_items) do
+      print("<li>" ..note .. "</li>")
+   end
+
+   print("</ul>")
+end
+
+-- ########################################################
+
 function drawGraphs(ifid, schema, tags, zoomLevel, baseurl, selectedEpoch, options)
    local debug_rrd = false
    options = options or {}

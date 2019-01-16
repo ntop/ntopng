@@ -2823,11 +2823,23 @@ end
 -- NOTE: this does *not* perform a deep merge. Only first level is merged.
 function table.merge(a, b)
   local merged = {}
+  a = a or {}
+  b = b or {}
 
-  for _, t in ipairs({a, b}) do
-    for k,v in pairs(t) do
-      merged[k] = v
-    end
+  if((a[1] ~= nil) and (b[1] ~= nil)) then
+    -- index based tables
+    for _, t in ipairs({a, b}) do
+       for _,v in pairs(t) do
+         merged[#merged + 1] = v
+       end
+   end
+  else
+     -- key based tables
+     for _, t in ipairs({a, b}) do
+       for k,v in pairs(t) do
+         merged[k] = v
+       end
+     end
   end
 
   return merged
