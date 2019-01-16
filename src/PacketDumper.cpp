@@ -48,8 +48,10 @@ void PacketDumper::init(NetworkInterface *i) {
   num_bytes_cur_file = 0;
   out_path = NULL;
 
-  if (strcmp(name, "lo") == 0)
+  if(strcmp(name, "lo") == 0)
     iface_type = DLT_NULL;
+  else if(!i->isPacketInterface())
+    iface_type = DLT_EN10MB;
   else
     iface_type = i->get_datalink();
 }

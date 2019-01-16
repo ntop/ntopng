@@ -3367,7 +3367,7 @@ void Utils::init_pcap_header(struct pcap_file_header * const h, NetworkInterface
   h->thiszone = 0;
   h->sigfigs  = 0;
   h->snaplen  = ntop->getGlobals()->getSnaplen();
-  h->linktype = iface->get_datalink();
+  h->linktype = iface->isPacketInterface() ? iface->get_datalink() : DLT_EN10MB;
 }
 
 /* ****************************************************** */

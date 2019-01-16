@@ -222,9 +222,23 @@ if not have_nedge and (table.len(ifstats.profiles) > 0) then
   end
 end
 
+if _SERVER["REQUEST_METHOD"] == "POST" and not isEmptyString(_POST["traffic_recording_provider"]) then
+   local prev_provider = recording_utils.getCurrentTrafficRecordingProvider(ifstats.id)
+
+   -- if the current provider is the builtin ntopng and we are changing to another provider
+   -- then it may be necessary to stop the builtin ntopng
+   if prev_provider == "ntopng" and _POST["traffic_recording_provider"] ~= "ntopng" then
+      recording_utils.stop(ifstats.id)
+      ntop.setCache('ntopng.prefs.ifid_'..ifstats.id..'.traffic_recording.enabled', "false")
+   end
+
+   recording_utils.setCurrentTrafficRecordingProvider(ifstats.id, _POST["traffic_recording_provider"])
+end
+
 local has_traffic_recording_page =  (recording_utils.isAvailable()
 	  and (interface.isPacketInterface()
-		  or (recording_utils.isSupportedZMQInterface(ifid) and not table.empty(ext_interfaces))))
+		  or ((recording_utils.isSupportedZMQInterface(ifid) and not table.empty(ext_interfaces)))
+		  or (recording_utils.getCurrentTrafficRecordingProvider(ifid) ~= "ntopng")))
 
 if has_traffic_recording_page then
    if(page == "traffic_recording") then
@@ -643,7 +657,7 @@ if(ifstats.zmqRecvStats ~= nil) then
       end
    end
  
-   if (isAdministrator() and ifstats.isView == false and ifstats.isDynamic == false) then
+   if (isAdministrator() and ifstats.isView == false and ifstats.isDynamic == false and interface.isPacketInterface()) then
       print("<tr><th>"..i18n("download").."&nbsp;<i class=\"fa fa-download fa-lg\"></i></th><td colspan=5>")
 
       local live_traffic_utils = require("live_traffic_utils")
@@ -1300,20 +1314,7 @@ elseif(page == "config") then
       </tr>]]
    end
 
-   if has_traffic_recording_page then
-      if _SERVER["REQUEST_METHOD"] == "POST" and not isEmptyString(_POST["traffic_recording_provider"]) then
-	 local prev_provider = recording_utils.getCurrentTrafficRecordingProvider(ifstats.id)
-
-	 -- if the current provider is the builtin ntopng and we are changing to another provider
-	 -- then it may be necessary to stop the builtin ntopng
-	 if prev_provider == "ntopng" and _POST["traffic_recording_provider"] ~= "ntopng" then
-	    recording_utils.stop(ifstats.id)
-	    ntop.setCache('ntopng.prefs.ifid_'..ifstats.id..'.traffic_recording.enabled', "false")
-	 end
-
-	 recording_utils.setCurrentTrafficRecordingProvider(ifstats.id, _POST["traffic_recording_provider"])
-      end
-
+   if has_traffic_recording_page or (true) then
       local cur_provider = recording_utils.getCurrentTrafficRecordingProvider(ifstats.id)
       local providers = recording_utils.getAvailableTrafficRecordingProviders()
 
@@ -1330,6 +1331,11 @@ elseif(page == "config") then
 	    local label = string.format("%s", provider["name"])
 	    if provider["conf"] then
 	       label = string.format("%s (%s)", provider["name"], provider["conf"])
+	    end
+
+	    if provider["name"] == "ntopng" and not interface.isPacketInterface() then
+	       -- non-packet interfaces
+	       label = "none"
 	    end
 
 	    print[[<option value="]] print(provider["name"]) print[[" ]] if cur_provider == provider["name"] then print('selected="selected"') end print[[">]] print(label) print[[</option>]]

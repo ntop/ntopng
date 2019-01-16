@@ -621,18 +621,17 @@ end
       print("<tr><th>"..i18n("download").."&nbsp;<i class=\"fa fa-download fa-lg\"></i></th><td")
       if(not isAdministrator()) then print(" colspan=2") end
       print("><A HREF='"..ntop.getHttpPrefix().."/lua/host_get_json.lua?ifid="..ifId.."&"..hostinfo2url(host_info).."'>JSON</A></td>")
-
-      if(isAdministrator()) then
-	 print [[<td>]]
-
-         local live_traffic_utils = require("live_traffic_utils")
-         live_traffic_utils.printLiveTrafficForm(ifId, host_info)
-
-         print[[</td>]]
+      print [[<td>]]
+      if (isAdministrator() and ifstats.isView == false and ifstats.isDynamic == false and interface.isPacketInterface()) then
+	 
+	 local live_traffic_utils = require("live_traffic_utils")
+	 live_traffic_utils.printLiveTrafficForm(ifId, host_info)
       end
 
+      print[[</td>]]
       print("</tr>\n")
    end
+
 
    if(host["ssdp"] ~= nil) then
       print("<tr><th><A HREF='https://en.wikipedia.org/wiki/Simple_Service_Discovery_Protocol'>SSDP (UPnP)</A></th><td colspan=2><i class=\"fa fa-external-link fa-lg\"></i> <A HREF='"..host["ssdp"].."'>"..host["ssdp"].."<A></td></tr>\n")
