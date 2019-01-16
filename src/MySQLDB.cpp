@@ -504,6 +504,26 @@ void MySQLDB::open_log() {
 /* ******************************************* */
 
 void MySQLDB::startLoop() {
+  /*
+    If mysql flows dump is enabled, then it is necessary to create
+    and update the database schema. This must be executed only once.
+   */
+  if(!MySQLDB::db_created) {
+    if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
+      if(!createDBSchema()){
+	ntop->getTrace()->traceEvent(TRACE_ERROR,
+				     "Unable to create database schema, quitting.");
+	exit(EXIT_FAILURE);
+      }
+    } else if(ntop->getPrefs()->do_read_flows_from_nprobe_mysql()) {
+      if(!createNprobeDBView()){
+	ntop->getTrace()->traceEvent(TRACE_ERROR,
+				     "Unable to create a view on the nProbe database.");
+	exit(EXIT_FAILURE);
+      }
+    }
+  }
+
   pthread_create(&queryThreadLoop, NULL, ::queryLoop, (void*)this);
 }
 

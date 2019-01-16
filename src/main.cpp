@@ -340,26 +340,6 @@ int main(int argc, char *argv[])
   }
 
   /*
-    If mysql flows dump is enabled, then it is necessary to create
-    and update the database schema
-   */
-  if(prefs->do_dump_flows_on_mysql()) {
-    /* create the schema only one time, no need to call it for every interface */
-    if(!ntop->getFirstInterface()->createDBSchema()){
-      ntop->getTrace()->traceEvent(TRACE_ERROR,
-				   "Unable to create database schema, quitting.");
-      exit(EXIT_FAILURE);
-    }
-  } else if(prefs->do_read_flows_from_nprobe_mysql()) {
-    /* Create a view only one time for the first interface */
-    if(!ntop->getFirstInterface()->createNprobeDBView()){
-      ntop->getTrace()->traceEvent(TRACE_ERROR,
-				   "Unable to create a view on the nProbe database.");
-      exit(EXIT_FAILURE);
-    }
-  }
-
-  /*
     We have created the network interface and thus changed user. Let's now check
     if we can write on the data directory
   */

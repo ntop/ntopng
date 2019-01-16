@@ -42,19 +42,20 @@ class MySQLDB : public DB {
   int exec_sql_query(MYSQL *conn, const char *sql, bool doReconnect = true,
 		     bool ignoreErrors = false, bool doLock = true);
   void try_exec_sql_query(MYSQL *conn, char *sql);
+  virtual bool createDBSchema(bool set_db_created = true);
+  bool createNprobeDBView();
 
  public:
   MySQLDB(NetworkInterface *_iface);
   virtual ~MySQLDB();
 
   virtual void* queryLoop();
-  virtual bool createDBSchema(bool set_db_created = true);
-  virtual bool createNprobeDBView();
+  virtual bool dumpFlow(time_t when, Flow *f, char *json);
+
   void disconnectFromDB(MYSQL *conn);
   static volatile bool isDbCreated() { return db_created; };
   static char *escapeAphostrophes(const char *unescaped);
   int flow2InsertValues(Flow *f, char *json, char *values_buf, size_t values_buf_len) const;
-  virtual bool dumpFlow(time_t when, Flow *f, char *json);
   int exec_sql_query(lua_State *vm, char *sql, bool limitRows, bool wait_for_db_created = true);
   void startLoop();
   void shutdown();
