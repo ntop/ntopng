@@ -3515,6 +3515,9 @@ bool Utils::readInterfaceStats(const char *ifname, ProtoStats *in_stats, ProtoSt
       if(strstr(line, to_find) &&
          sscanf(line, "%*[^:]: %llu %llu %*u %*u %*u %*u %*u %*u %llu %llu",
            &in_bytes, &in_packets, &out_bytes, &out_packets) == 4) {
+        ntop->getTrace()->traceEvent(TRACE_DEBUG,
+          "iface_counters: in_bytes=%llu in_packets=%llu - out_bytes=%llu out_packets=%llu",
+          in_bytes, in_packets, out_bytes, out_packets);
         in_stats->setBytes(in_bytes);
         in_stats->setPkts(in_packets);
         out_stats->setBytes(out_bytes);
