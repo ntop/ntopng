@@ -1680,29 +1680,21 @@ function printFlowDBDump()
 
   print('<tr><th colspan=2 class="info">'..i18n("prefs.databases")..'</th></tr>')
 
-  mysql_retention = 7
-  prefsInputFieldPrefs(subpage_active.entries["mysql_retention"].title, subpage_active.entries["mysql_retention"].description .. "-F mysql;&lt;host|socket&gt;;&lt;dbname&gt;;&lt;table name&gt;;&lt;user&gt;;&lt;pw&gt;.",
+  if hasNindexSupport() then
+    -- nIndex specific settings
+    local cur_retention, max_retention, default_retention = nindex_utils.getRetention()
+
+    prefsInputFieldPrefs(subpage_active.entries["nindex_retention"].title, subpage_active.entries["nindex_retention"].description,
+        "ntopng.prefs.", "nindex_retention_days", default_retention, "number", nil, nil, nil, {min=1, max=max_retention})
+  else
+    -- MySQL specific settings
+    local mysql_retention = 7
+    prefsInputFieldPrefs(subpage_active.entries["mysql_retention"].title, subpage_active.entries["mysql_retention"].description .. "-F mysql;&lt;host|socket&gt;;&lt;dbname&gt;;&lt;table name&gt;;&lt;user&gt;;&lt;pw&gt;.",
     "ntopng.prefs.", "mysql_retention", mysql_retention, "number", not subpage_active.entries["mysql_retention"].hidden, nil, nil, {min=1, max=365*5, --[[ TODO check min/max ]]})
+  end
 
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
 
-  print [[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
-  </form>
-  </table>]]
-end
-
-function printFlowDBNindexDump()
-  print('<form method="post">')
-  print('<table class="table">')
-
-  print('<tr><th colspan=2 class="info">'..i18n("prefs.flow_database_dump")..'</th></tr>')
-
-  local cur_retention, max_retention, default_retention = nindex_utils.getRetention()
-
-  prefsInputFieldPrefs(subpage_active.entries["nindex_retention"].title, subpage_active.entries["nindex_retention"].description,
-      "ntopng.prefs.", "nindex_retention_days", default_retention, "number", nil, nil, nil, {min=1, max=max_retention})
-  
-  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
   print [[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
   </form>
   </table>]]
@@ -1827,9 +1819,6 @@ if(tab == "snmp") then
 end
 if(tab == "flow_db_dump") then
    printFlowDBDump()
-end
-if((tab == "flow_db_dump_nindex") and (nindex_utils ~= nil))then
-   printFlowDBNindexDump()
 end
 
 print[[

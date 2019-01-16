@@ -375,9 +375,8 @@ local menu_subpages = {
     }, mysql_retention = {
       title       = i18n("prefs.mysql_retention_title"),
       description = i18n("prefs.mysql_retention_description"),
-    }
-  }}, {id="flow_db_dump_nindex",  label=i18n("prefs.flow_database_dump"),   advanced=true,  pro_only=false,  hidden=(not hasNindex), entries={
-    nindex_retention = {
+      hidden      = hasNindex,
+    }, nindex_retention = {
       title       = i18n("prefs.nindex_retention_title"),
       description = i18n("prefs.nindex_retention_description") .. ternary(not ntop.isEnterprise(), "<br><b>" .. i18n("prefs.flows_dump_limited_days", {days=max_nindex_retention}), "") .. "</b>",
       hidden      = not hasNindex,
