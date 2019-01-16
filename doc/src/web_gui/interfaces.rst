@@ -209,12 +209,6 @@ of the Host Pools page.
 Once an Host Pool is created, it is possible to add members to it. Host Pool members are added using the
 “plus” button in the “Manage Pool Membership” tab of the Host Pools page.
 
-Each pool member can be a:
-
-- Layer 2 device (specified with a Mac Address)
-- Layer 3 host (specified with an IPv4/IPv6 Address and, optionally, a VLAN)
-- Layer 3 network (specified with an IPv4/IPv6 network in CIDR format and, optionally, a VLAN)
-
 An “Alias” can be associated to each pool member to ease the its identification. Typically, one would
 assign a mnemonic label as member alias (e.g., “John’s iPhone” or “Smart TV”). A “Device Type” can be
 associated to each member as well. Devices types are used to categorise members on the basis of the
@@ -228,8 +222,8 @@ The image below shows an “IoT Devices” Host Pool with two members, namely a 
 
   The Edit Host Pools “Manage Pool Membership” of the Interface Details Page
 
-A view of every host pool is accessible from the “Hosts” menu, entry “Host Pools” as discussed earlier in
-this document. The view shows live pool information (e.g., overall pool throughput) and provides access to
+A view of every host pool is accessible from the “Hosts” menu, entry “Host Pools” as discussed in the
+`relevant section`_. The view shows live pool information (e.g., overall pool throughput) and provides access to
 the historical pool traffic timeseries (Professional version) as well as to the currently active pool members.
 
 Host pools can also be used to enforce traffic policies (e.g, block YouTube traffic for the “John” pool and
@@ -237,3 +231,4 @@ limit Facebook traffic at 1 Mbps for the “Guests” pool). This feature is onl
 inline and is a feature only available in the professional version. ntopng inline is described in the
 “Advanced ntopng Features” of this document.
 
+.. _`relevant section`: hosts.html#host-pools
