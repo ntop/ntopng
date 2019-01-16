@@ -183,6 +183,28 @@ print_service_log() {
 # n2disk
 # #######################################################
 
+list_n2disk_services() {
+    # find all the n2disk configuration files, except those that are managed by ntopng
+    # which have a name starting with n2disk-ntopng
+
+    for N2DISK_CONF_FILE in `find /etc/n2disk/ -name "n2disk-*.conf"  ! -name "n2disk-ntopng-*"`; do
+	local N2DISK_SERVICE_NAME=`basename $N2DISK_CONF_FILE`;
+
+	# strip the trailing .conf and the leading ntopng-
+	N2DISK_SERVICE_NAME="${N2DISK_SERVICE_NAME//\.conf/}"
+	N2DISK_SERVICE_NAME="${N2DISK_SERVICE_NAME//n2disk\-/}"
+	# add ntopng@ to build the actual service name
+	N2DISK_SERVICE_NAME="n2disk@${N2DISK_SERVICE_NAME}"
+
+	# print the service name along with it's status (active or inactive)
+	# it seems impossible but the systemd is not able to just print the service
+	# with the status using systemctl is-active 'n2disk@*'. It will just print
+	# a series of meaningless active active active inactive without a way to
+	# associate the status back to the service
+	echo "${N2DISK_SERVICE_NAME}" `systemctl is-active "${N2DISK_SERVICE_NAME}"` "${N2DISK_CONF_FILE}"
+    done
+}
+
 get_n2disk_stats() {
     if [ $SYSTEMD = true ]; then
 	PID=$(/bin/systemctl show -p MainPID ${SERVICE_NAME}@${IFNAME} | cut -d'=' -f2)
@@ -208,7 +230,7 @@ install_service_conf() {
 
 # #######################################################
 
-ALLOWED_OPTIONS_N2DISK="is-active|log|stats"
+ALLOWED_OPTIONS_N2DISK="is-active|log|stats|list"
 ALLOWED_OPTIONS_N2DISK_NTOPNG="start|stop|restart|enable|disable|status|is-active|is-enabled|has-service|log|stats|set-license"
 ALLOWED_OPTIONS_N2N="start|stop|restart|enable|disable|status|is-active|is-enabled|has-service|log"
 
@@ -241,11 +263,13 @@ case "$1" in
 	check_allowed_options "$2" "${ALLOWED_OPTIONS_N2DISK}"
 	SERVICE_NAME="n2disk"
 
-	if [ -z "$3" ]; then
+	if [ -z "$3" ] && [ "$2" != "list" ]; then
 	    print_usage
 	fi
 
-	check_interface "$3"
+	if [ ! -z "$3" ]; then
+	    check_interface "$3"
+	fi
 	;;
 
     n2disk-ntopng)
@@ -324,6 +348,10 @@ case "$2" in
 
     has-service)
 	has_service;
+	;;
+
+    list)
+	list_n2disk_services;
 	;;
 
     # n2disk-ntopng

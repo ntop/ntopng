@@ -15,20 +15,11 @@ local extraction_stop_queue_key = "ntopng.traffic_recording.extraction_stop_queu
 local extraction_seqnum_key = "ntopng.traffic_recording.extraction_seqnum"
 local extraction_jobs_key = "ntopng.traffic_recording.extraction_jobs"
 local is_available_key = "ntopng.cache.traffic_recording_available"
+local provider_key = "ntopng.prefs.traffic_recording.ifid_%d.provider"
 
 local recording_utils = {}
 
 recording_utils.default_disk_space = 10 * 1024
-
-local function n2disk_service_name(manual_service)
-  -- a service that is started manually by the sysadmin is normally called n2disk
-  -- a service that is started and managed by ntopng is called n2disk-ntopng
-  return ternary(manual_service, "n2disk", "n2disk-ntopng")
-end
-
-local function n2diskctl(manual_service, ...)
-  return os_utils.ntopctlCmd(n2disk_service_name(manual_service), ...)
-end
 
 -- #################################
 
@@ -148,8 +139,7 @@ end
 --! @param key The license key
 --! @return true if the license is installed, false in case it is not possible
 function recording_utils.setLicense(key)
-  n2diskctl(false, "set-license", key)
-  return true
+   return os_utils.ntopctlCmd("n2disk-ntopng", "set-license", key)
 end
 
 local function setLicenseFromRedis()
@@ -360,17 +350,39 @@ function recording_utils.storageInfo(ifid)
 end
 
 local function getN2diskInterfaceName(ifid)
-  if interface.isPacketInterface() then
-    return getInterfaceName(ifid)
-  else
-    return ntop.getCache('ntopng.prefs.ifid_'..ifid..'.traffic_recording.ext_ifname')
-  end
+   local cur_provider = recording_utils.getCurrentTrafficRecordingProvider(ifid)
+
+   if cur_provider == "ntopng" then
+      if interface.isPacketInterface() then
+	 return getInterfaceName(ifid)
+      else
+	 return ntop.getCache('ntopng.prefs.ifid_'..ifid..'.traffic_recording.ext_ifname')
+      end
+   else
+      -- custom provider starts with n2disk@...
+      -- the interface name of a custom provider it is assumed to be the one
+      -- following the initial n2disk@
+      return cur_provider:gsub("^n2disk@", "")
+   end
 end
 
 -- Encode an interface name in a string that can be used in the n2disk configuration file name
 local function getConfigInterfaceName(ifid)
   local ifname = getN2diskInterfaceName(ifid)
   return ifname:gsub("%,", "_")
+end
+
+local function n2disk_service_name(provider)
+   -- a service that is started manually by the sysadmin is normally called n2disk
+   -- a service that is started and managed by ntopng is called n2disk-ntopng
+   return ternary(provider ~= "ntopng", "n2disk", "n2disk-ntopng")
+end
+
+local function n2diskctl(command, ifid, ...)
+   local cur_provider = recording_utils.getCurrentTrafficRecordingProvider(ifid)
+   local confifname = getConfigInterfaceName(ifid)
+
+   return os_utils.ntopctlCmd(n2disk_service_name(cur_provider), command, confifname, ...)
 end
 
 --! @brief Generate a configuration for the traffic recording service (n2disk)
@@ -556,54 +568,107 @@ end
 --! @param ifid the interface identifier 
 --! @return true if recording is enabled, false otherwise
 function recording_utils.isEnabled(ifid)
-  if recording_utils.isAvailable() then
-    local record_traffic = ntop.getCache('ntopng.prefs.ifid_'..ifid..'.traffic_recording.enabled')
-    if record_traffic == "true" then
-      return true
-    end
-  end
-  return false
+   if recording_utils.isAvailable() then
+      local cur_provider = recording_utils.getCurrentTrafficRecordingProvider(ifid)
+
+      if cur_provider == "ntopng" then
+	 local record_traffic = ntop.getCache('ntopng.prefs.ifid_'..ifid..'.traffic_recording.enabled')
+	 if record_traffic == "true" then
+	    return true
+	 end
+      else
+	 -- if the user has specified a custom provider different than ntopng, it is
+	 -- assumed that he/she wants the recording so the service is considered enabled
+	 return true
+      end
+   end
+   return false
 end
 
 --! @brief Check if the traffic recording service is running
 --! @param ifid the interface identifier 
 --! @return true if the service is running, false otherwise
 function recording_utils.isActive(ifid)
-  if not recording_utils.isAvailable() then return false end
+   if not recording_utils.isAvailable() then
+      return false
+   end
 
-  local confifname = getConfigInterfaceName(ifid)
-  return os_utils.isActive("n2disk-ntopng", confifname)
+   local cur_provider = recording_utils.getCurrentTrafficRecordingProvider(ifid)
+   local confifname = getConfigInterfaceName(ifid)
+
+   if cur_provider == "ntopng" then
+      return os_utils.isActive("n2disk-ntopng", confifname)
+   else
+      return os_utils.isActive("n2disk", confifname)
+   end
+
+   return false
 end
 
---! @brief Check if there is a manually-started n2disk instance running for this interface
---! @param ifid the interface identifier 
---! @return true if the service is running, false otherwise
-function recording_utils.isManualServiceActive(ifid)
-  -- manual services are controlled by the system administrator with systemd
-  -- for example systemctl start n2disk@eno1
-  -- in this case, ntopng passively detect such service but doesn't manage it 
-  local n2disk_ifname = getN2diskInterfaceName(ifid)
-  return os_utils.isActive("n2disk", n2disk_ifname)
+function recording_utils.getAvailableTrafficRecordingProviders()
+   local res = {}
+
+   local list_with_status = os_utils.serviceListWithStatus("n2disk")
+   for _, provider in ipairs(list_with_status) do
+      res[#res + 1] = provider
+   end
+
+   -- this is the default provider, that is, ntopng
+   -- when it manages an n2disk instance for the recording of traffic
+   res[#res + 1] = {name = "ntopng"}
+
+   return res
 end
 
---! @brief Parse the configuration file of a manually-started n2disk and returns the timeline if found
+function recording_utils.getCurrentTrafficRecordingProvider(ifid)
+   local traffic_recording_provider_pref = string.format("ntopng.prefs.traffic_recording.ifid_%d.provider", ifid)
+   local provider = ntop.getCache(traffic_recording_provider_pref)
+
+   return ternary(isEmptyString(provider), "ntopng", provider)
+end
+
+function recording_utils.setCurrentTrafficRecordingProvider(ifid, cur_provider)
+   local traffic_recording_provider_pref = string.format("ntopng.prefs.traffic_recording.ifid_%d.provider", ifid)
+   if cur_provider == "ntopng" then
+      ntop.setCache(traffic_recording_provider_pref, cur_provider)
+      return true
+   end
+
+   local providers = recording_utils.getAvailableTrafficRecordingProviders()
+
+   for _, provider in ipairs(providers) do
+      if provider["name"] == cur_provider then
+	 ntop.setCache(traffic_recording_provider_pref, cur_provider)
+	 return true
+      end
+   end
+
+   return false
+end
+
+--! @brief Returns the path to the timeline of the selected traffic recorder
 --! @param ifid the interface identifier 
 --! @return the timeline, if found, or nil
-function recording_utils.getManualServiceTimelinePath(ifid)
-   local stats = recording_utils.stats(ifid, true)
+function recording_utils.getCurrentTrafficRecordingProviderTimelinePath(ifid)
+   local cur_provider = recording_utils.getCurrentTrafficRecordingProvider(ifid)
 
-   if stats["TimelinePath"] and ntop.exists(stats["TimelinePath"]) then
-      return "timeline:"..stats["TimelinePath"]
+   if cur_provider == "ntopng" then
+      return getTimelinePath(ifid)
+   else
+      local stats = recording_utils.stats(ifid)
+      if stats["TimelinePath"] and ntop.exists(stats["TimelinePath"]) then
+	 return "timeline:"..stats["TimelinePath"]
+      end
    end
 end
 
 --! @brief Parse the configuration file of a manually-started n2disk and returns the timeline if found
 --! @param ifid the interface identifier 
 --! @return true if extraction is possible and false otherwise, along with a check message
-function recording_utils.checkManualServiceExtraction(ifid)
+function recording_utils.checkExtraction(ifid)
    local res = {}
    -- try and open the timeline. Failing to open the timeline would cause failing to do the extractions
-   local timeline_path = recording_utils.getManualServiceTimelinePath(ifid)
+   local timeline_path = recording_utils.getCurrentTrafficRecordingProviderTimelinePath(ifid)
 
    if not timeline_path then
       res = {status = "ERR_MISSING_TIMELINE"}
@@ -652,29 +717,27 @@ end
 --! @param rows the number of lines to return
 --| @note lines are retuned in reverse order (most recent line first)
 --! @return the log trace
-function recording_utils.log(ifid, rows, manual_service)
-  local confifname = getConfigInterfaceName(ifid)
-  local output = n2diskctl(manual_service, "log", confifname, "|tail -n", rows, "|tac")
-  
-  return output
+function recording_utils.log(ifid, rows)
+   return n2diskctl("log", ifid, "|tail -n", rows, "|tac")
 end
 
 --! @brief Return statistics from the traffic recording service (n2disk)
---! @param ifid the interface identifier 
+--! @param ifid the interface identifier
 --! @return the statistics
-function recording_utils.stats(ifid, manual_service)
-  local confifname = getConfigInterfaceName(ifid)
-  local stats = {}
-  local proc_stats = n2diskctl(manual_service, "stats", confifname)
-  local lines = split(proc_stats, "\n")
+function recording_utils.stats(ifid)
+   local stats = {}
+   local proc_stats = n2diskctl("stats", ifid)
 
-  for i = 1, #lines do
-    local pair = split(lines[i], ": ")
-    if pair[1] ~= nil and pair[2] ~= nil then
-      stats[pair[1]] = trimString(pair[2])
-    end
-  end
-  return stats
+   local lines = split(proc_stats, "\n") or {}
+
+   for i = 1, #lines do
+      local pair = split(lines[i], ": ")
+      if pair[1] ~= nil and pair[2] ~= nil then
+	 stats[pair[1]] = trimString(pair[2])
+      end
+   end
+
+   return stats
 end
 
 -- Read information about used disk space for all ntopng interfaces 
@@ -724,61 +787,60 @@ end
 --! @param epoch_end the end time (epoch)
 --! @return a table with 'available' = true if the specified interval is included in the dump window, 'epoch_begin'/'epoch_end' are also returned with the actual available window.
 function recording_utils.isDataAvailable(ifid, epoch_begin, epoch_end)
-  local info = {}
-  info.available = false
-  local manual_service = recording_utils.isManualServiceActive(ifid)
+   local info = {}
+   info.available = false
 
-  if recording_utils.isEnabled(ifid) or manual_service then
-    local stats = recording_utils.stats(ifid, manual_service)
+   if recording_utils.isEnabled(ifid) then
+      local stats = recording_utils.stats(ifid)
 
-    if stats['FirstDumpedEpoch'] ~= nil and stats['LastDumpedEpoch'] ~= nil then
-      local first_epoch = tonumber(stats['FirstDumpedEpoch'])
-      local last_epoch = tonumber(stats['LastDumpedEpoch'])
+      if stats['FirstDumpedEpoch'] ~= nil and stats['LastDumpedEpoch'] ~= nil then
+	 local first_epoch = tonumber(stats['FirstDumpedEpoch'])
+	 local last_epoch = tonumber(stats['LastDumpedEpoch'])
 
-      if first_epoch > 0 and last_epoch > 0 and 
+	 if first_epoch > 0 and last_epoch > 0 and 
          epoch_end > first_epoch and epoch_begin < last_epoch then
-        info.epoch_begin = epoch_begin
-        info.epoch_end = epoch_end
-        if first_epoch > epoch_begin then
-          info.epoch_begin = first_epoch
-        end
-        if last_epoch < epoch_end then
-          info.epoch_end = last_epoch
-        end
-        info.available = true
+	    info.epoch_begin = epoch_begin
+	    info.epoch_end = epoch_end
+	    if first_epoch > epoch_begin then
+	       info.epoch_begin = first_epoch
+	    end
+	    if last_epoch < epoch_end then
+	       info.epoch_end = last_epoch
+	    end
+	    info.available = true
+	 end
       end
-    end
-  end
+   end
 
-  if manual_service then
-     local extraction_checks_ok, extraction_checks_msg = recording_utils.checkManualServiceExtraction(ifid)
+   if recording_utils.getCurrentTrafficRecordingProvider(ifid) ~= "ntopng" then
+      local extraction_checks_ok, extraction_checks_msg = recording_utils.checkExtraction(ifid)
 
-     if not extraction_checks_ok then
-	info.available = nil
-	info.extraction_checks_msg = extraction_checks_msg
-     end
-  end
+      if not extraction_checks_ok then
+	 info.available = nil
+	 info.extraction_checks_msg = extraction_checks_msg
+      end
+   end
 
-  return info
+   return info
 end
 
 --! @brief Return the list of pcap files extracted for a job
 --! @param job_id the job identifier 
 --! @return the list of pcap files (paths)
 function recording_utils.getJobFiles(id)
-  local job_json = ntop.getHashCache(extraction_jobs_key, id)
-  local files = {}
-  if not isEmptyString(job_json) then
-    local job = json.decode(job_json)
-    local file_id = 1
-    local file = getPcapFilePath(job.id, job.ifid, file_id)
-    while ntop.exists(file) do
-      table.insert(files, file)
-      file_id = file_id + 1
-      file = getPcapFilePath(job.id, job.ifid, file_id) 
-    end
-  end
-  return files
+   local job_json = ntop.getHashCache(extraction_jobs_key, id)
+   local files = {}
+   if not isEmptyString(job_json) then
+      local job = json.decode(job_json)
+      local file_id = 1
+      local file = getPcapFilePath(job.id, job.ifid, file_id)
+      while ntop.exists(file) do
+	 table.insert(files, file)
+	 file_id = file_id + 1
+	 file = getPcapFilePath(job.id, job.ifid, file_id) 
+      end
+   end
+   return files
 end
 
 --! @brief Delete an extraction job and its pcap data on disk, if any

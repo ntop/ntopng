@@ -105,6 +105,7 @@ function os_utils.hasService(service_name, ...)
    end
 
    local cmd = ntopctl_cmd(service_name, false, "has-service", ...)
+
    if not cmd then return false end
    local rv = os_utils.execWithOutput(cmd)
    return(rv == "yes\n")
@@ -179,6 +180,31 @@ function os_utils.serviceStatus(service_name, ...)
    else
       return "error"
    end
+end
+
+-- ########################################################
+
+--! @brief List a series of services along with their status
+--! @return a table with one or more <service name>="[active|inactive]"
+function os_utils.serviceListWithStatus(service_name)
+   local cmd = ntopctl_cmd(service_name, false, "list")
+   if not cmd then return "error" end
+
+   local rv = os_utils.execWithOutput(cmd) or ""
+   rv = rv:split("\n") or {}
+
+   local res = {}
+
+   for _, service in ipairs(rv) do
+      service = service:split(" ") or {}
+
+      if #service == 3 then
+	 local service_name, service_status, service_conf = service[1], service[2], service[3]
+	 res[#res + 1] = {name = service_name, status = service_status, conf = service_conf}
+      end
+   end
+   
+   return res
 end
  
 -- ########################################################

@@ -38,8 +38,8 @@ else
     end
 
     local timeline_path
-    if recording_utils.isManualServiceActive(ifid) then
-       timeline_path = recording_utils.getManualServiceTimelinePath(ifid)
+    if recording_utils.getCurrentTrafficRecordingProvider(ifid) ~= "ntopng" then
+       timeline_path = recording_utils.getCurrentTrafficRecordingProviderTimelinePath(ifid)
     end
 
     local fname = time_from.."-"..time_to..".pcap"

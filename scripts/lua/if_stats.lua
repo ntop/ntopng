@@ -222,8 +222,7 @@ if not have_nedge and (table.len(ifstats.profiles) > 0) then
   end
 end
 
-local has_traffic_recording_page = recording_utils.isManualServiceActive(ifid)
-   or (recording_utils.isAvailable()
+local has_traffic_recording_page =  (recording_utils.isAvailable()
 	  and (interface.isPacketInterface()
 		  or (recording_utils.isSupportedZMQInterface(ifid) and not table.empty(ext_interfaces))))
 
@@ -1039,13 +1038,10 @@ print [[
 
 elseif(page == "traffic_recording" and has_traffic_recording_page) then
    local tab = _GET["tab"] or "config"
-   local recording_enabled = recording_utils.isEnabled(ifstats.id) or recording_utils.isManualServiceActive(ifstats.id)
-   -- config tab is only shown if the ntopng-managed recording service is active
-   -- or if a manual recording service for this interface is *NOT* active.
-   -- then ntopng-managed service 'wins' over the manually-started service:
-   -- ** if the ntopng-managed service is not running, we only show the config if there is no manual service running
-   -- ** if the ntopng-managed service is running, we show its rettings, regardless if there's another manual service activated for the same interface
-   local config_enabled  = recording_utils.isActive(ifstats.id) or not recording_utils.isManualServiceActive(ifstats.id)
+   local recording_enabled = recording_utils.isEnabled(ifstats.id)
+   -- config tab is only shown when the recording service is managed by ntopng
+   -- otherwise it is assumed that the user is managing the service manually with n2disk
+   local config_enabled  = (recording_utils.getCurrentTrafficRecordingProvider(ifstats.id) == "ntopng")
 
    if tab == "config" and not config_enabled then
       if recording_enabled then tab = "status" else tab = "" end
@@ -1067,11 +1063,11 @@ elseif(page == "traffic_recording" and has_traffic_recording_page) then
 
    if recording_enabled then
       print('<li class="'.. ternary(tab == "status", "active", "") ..'"><a href="?ifid='.. ifstats.id
-         ..'&page=traffic_recording&tab=status">'.. i18n("status") ..'</a></li>')
+	 ..'&page=traffic_recording&tab=status">'.. i18n("status") ..'</a></li>')
 
       if ntop.isEnterprise() then
-         print('<li class="'.. ternary(tab == "jobs", "active", "") ..'"><a href="?ifid='.. ifstats.id
-            ..'&page=traffic_recording&tab=jobs">'.. i18n("traffic_recording.jobs") ..'</a></li>')
+	 print('<li class="'.. ternary(tab == "jobs", "active", "") ..'"><a href="?ifid='.. ifstats.id
+	    ..'&page=traffic_recording&tab=jobs">'.. i18n("traffic_recording.jobs") ..'</a></li>')
       end
    end
 
@@ -1303,6 +1299,49 @@ elseif(page == "config") then
 	 </td>
       </tr>]]
    end
+
+   if has_traffic_recording_page then
+      if _SERVER["REQUEST_METHOD"] == "POST" and not isEmptyString(_POST["traffic_recording_provider"]) then
+	 local prev_provider = recording_utils.getCurrentTrafficRecordingProvider(ifstats.id)
+
+	 -- if the current provider is the builtin ntopng and we are changing to another provider
+	 -- then it may be necessary to stop the builtin ntopng
+	 if prev_provider == "ntopng" and _POST["traffic_recording_provider"] ~= "ntopng" then
+	    recording_utils.stop(ifstats.id)
+	    ntop.setCache('ntopng.prefs.ifid_'..ifstats.id..'.traffic_recording.enabled', "false")
+	 end
+
+	 recording_utils.setCurrentTrafficRecordingProvider(ifstats.id, _POST["traffic_recording_provider"])
+      end
+
+      local cur_provider = recording_utils.getCurrentTrafficRecordingProvider(ifstats.id)
+      local providers = recording_utils.getAvailableTrafficRecordingProviders()
+
+      -- only 1 provider means there's only the default ntopng
+      -- so no need to show this extra menu entry
+      if table.len(providers) > 1 then
+	 print [[
+       <tr>
+	 <th>]] print(i18n("traffic_recording.traffic_recording_provider")) print[[</th>
+	 <td>
+	   <select name="traffic_recording_provider" class="form-control" style="width:36em; display:inline;">]]
+
+	 for _, provider in pairs(providers) do
+	    local label = string.format("%s", provider["name"])
+	    if provider["conf"] then
+	       label = string.format("%s (%s)", provider["name"], provider["conf"])
+	    end
+
+	    print[[<option value="]] print(provider["name"]) print[[" ]] if cur_provider == provider["name"] then print('selected="selected"') end print[[">]] print(label) print[[</option>]]
+	 end
+
+	 print[[
+	   </select>
+	 </td>
+       </tr>]]
+      end
+   end
+
 
       print[[
    </table>

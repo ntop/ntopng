@@ -141,11 +141,8 @@ function dumpInterfaceStats(interface_name)
 	 end
       end
 
-      local is_manual_recording_active = recording_utils.isManualServiceActive(ifstats.id)
-      if recording_utils.isAvailable() or is_manual_recording_active then
-	 if is_manual_recording_active then
-	    res["traffic_recording"] = "recording"
-	 elseif recording_utils.isEnabled(ifstats.id) then
+      if recording_utils.isAvailable() then
+	 if recording_utils.isEnabled(ifstats.id) then
 	    if recording_utils.isActive(ifstats.id) then
 	       res["traffic_recording"] = "recording"
 	    else
@@ -153,7 +150,7 @@ function dumpInterfaceStats(interface_name)
 	    end
 	 end
 
-	 if recording_utils.isEnabled(ifstats.id) or is_manual_recording_active then
+	 if recording_utils.isEnabled(ifstats.id) then
 	    local jobs_info = recording_utils.extractionJobsInfo(ifstats.id)
 	    if jobs_info.ready > 0 then
 	       res["traffic_extraction"] = "ready"

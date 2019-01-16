@@ -169,6 +169,14 @@ local function validateSingleAlphanumericWord(w)
    end
 end
 
+local function validateTrafficRecordingProvider(w)
+   if w == "ntopng" or (w:starts("n2disk@") and validateSingleWord(w)) then
+      return true
+   end
+
+   return false
+end
+
 local function validateUsername(p)
    -- A username (e.g. used in ntopng authentication)
    return validateSingleWord(p)
@@ -1205,6 +1213,7 @@ local known_parameters = {
    ["n2disk_license"]                              = validateSingleAlphanumericWord,
    ["record_traffic"]                              = validateBool,
    ["max_extracted_pcap_bytes"]                    = validateNumber,
+   ["traffic_recording_provider"]                  = validateTrafficRecordingProvider,
 --
 
 -- PAGE SPECIFIC

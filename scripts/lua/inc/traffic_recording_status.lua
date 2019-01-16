@@ -15,17 +15,17 @@ local ifstats = interface.getStats()
 local enabled = false
 local running = false
 local restart_req = false
-local manual_service = recording_utils.isManualServiceActive(ifstats.id) and not recording_utils.isActive(ifstats.id)
+local custom_provider = (recording_utils.getCurrentTrafficRecordingProvider(ifstats.id) ~= "ntopng")
 local extraction_checks_ok, extraction_checks_msg
 
 if _POST["action"] ~= nil and _POST["action"] == "restart" then
   restart_req = true
 end
 
-if manual_service then
+if custom_provider then
    enabled = true
-   running = true
-   extraction_checks_ok, extraction_checks_msg = recording_utils.checkManualServiceExtraction(ifstats.id)
+   running = recording_utils.isActive(ifstats.id)
+   extraction_checks_ok, extraction_checks_msg = recording_utils.checkExtraction(ifstats.id)
 
 elseif recording_utils.isEnabled(ifstats.id) then
   enabled = true
@@ -53,11 +53,13 @@ if running then
 elseif enabled then
   print("<span style='float: left'>"..i18n("traffic_recording.failure")..". "..i18n("traffic_recording.failure_note").."</span>")
 
-  print[[<form style="display:inline" id="restart_rec_form" method="post">
+  if not custom_provider then
+     print[[<form style="display:inline" id="restart_rec_form" method="post">
     <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[" />
     <input type="hidden" name="action" value="restart" />
 </form>]]
-  print(" <small><a href='#' onclick='$(\"#restart_rec_form\").submit(); return false;' title='' data-original-title='"..i18n("traffic_recording.restart_service").."'></small>&nbsp;<i class='fa fa-repeat fa-lg' aria-hidden='true' data-original-title='' title=''></i></a>")
+     print(" <small><a href='#' onclick='$(\"#restart_rec_form\").submit(); return false;' title='' data-original-title='"..i18n("traffic_recording.restart_service").."'></small>&nbsp;<i class='fa fa-repeat fa-lg' aria-hidden='true' data-original-title='' title=''></i></a>")
+  end
 else
   print(i18n("traffic_recording.disabled"))
 end
@@ -111,7 +113,7 @@ if stats ~= nil then
   end
 end
 
-if manual_service then
+if custom_provider then
    local warn = ''
 
    if not extraction_checks_ok then
@@ -123,7 +125,7 @@ end
 
 print("<tr><th nowrap>"..i18n("about.last_log").."</th><td><code>\n")
 
-local log = recording_utils.log(ifstats.id, 32, manual_service)
+local log = recording_utils.log(ifstats.id, 32)
 local logs = split(log, "\n")
 for i = 1, #logs do
   local row = split(logs[i], "]: ")

@@ -27,8 +27,8 @@ else
     local time_to = tonumber(_POST["epoch_end"])
     local chart_url = _POST["url"]
     local timeline_path
-    if recording_utils.isManualServiceActive(ifstats.id) then
-       timeline_path = recording_utils.getManualServiceTimelinePath(ifstats.id)
+    if recording_utils.getCurrentTrafficRecordingProvider(ifstats.id) ~= "ntopng" then
+       timeline_path = recording_utils.getCurrentTrafficRecordingProviderTimelinePath(ifstats.id)
     end
 
     local params = {

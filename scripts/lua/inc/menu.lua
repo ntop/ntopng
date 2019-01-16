@@ -305,7 +305,7 @@ for v,k in pairs(iface_names) do
    ifdescr[_ifstats.id] = _ifstats.description
    --io.write("["..k.."/"..v.."][".._ifstats.id.."] "..ifnames[_ifstats.id].."=".._ifstats.id.."\n")
    if(_ifstats.isView == true) then views[k] = true end
-   if(recording_utils.isEnabled(_ifstats.id) or recording_utils.isManualServiceActive(_ifstats.id)) then recording[k] = true end
+   if(recording_utils.isEnabled(_ifstats.id)) then recording[k] = true end
    if(interface.isPacketInterface()) then packetinterfaces[k] = true end
    if(_ifstats.stats_since_reset.drops * 100 > _ifstats.stats_since_reset.packets) then
       drops[k] = true
