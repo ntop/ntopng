@@ -330,14 +330,21 @@ void PcapInterface::updateDirectionStats() {
      Utils::readInterfaceStats(ifname, &current_stats_in, &current_stats_out)) {
     pcap_direction_t capture_dir = ntop->getPrefs()->getCaptureDirection();
 
-    if((capture_dir == PCAP_D_INOUT) || (capture_dir == PCAP_D_IN)) {
-      ethStats.setNumPackets(true, current_stats_in.getPkts() - initial_stats_in.getPkts());
-      ethStats.setNumBytes(true, current_stats_in.getBytes() - initial_stats_in.getBytes());
-    }
+    /* grsec check, the new ntopng user may not able to read the stats anymore */
+    if((initial_stats_in.getPkts() || initial_stats_out.getPkts()) &&
+      !(current_stats_in.getPkts() || current_stats_out.getPkts())) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Cannot read interface stats after user change (grsec kernel hardening in place?)");
+      emulate_traffic_directions = false;
+    } else {
+      if((capture_dir == PCAP_D_INOUT) || (capture_dir == PCAP_D_IN)) {
+	ethStats.setNumPackets(true, current_stats_in.getPkts() - initial_stats_in.getPkts());
+	ethStats.setNumBytes(true, current_stats_in.getBytes() - initial_stats_in.getBytes());
+      }
 
-    if((capture_dir == PCAP_D_INOUT) || (capture_dir == PCAP_D_OUT)) {
-      ethStats.setNumPackets(false, current_stats_out.getPkts() - initial_stats_out.getPkts());
-      ethStats.setNumBytes(false, current_stats_out.getBytes() - initial_stats_out.getBytes());
+      if((capture_dir == PCAP_D_INOUT) || (capture_dir == PCAP_D_OUT)) {
+	ethStats.setNumPackets(false, current_stats_out.getPkts() - initial_stats_out.getPkts());
+	ethStats.setNumBytes(false, current_stats_out.getBytes() - initial_stats_out.getBytes());
+      }
     }
   }
 }
