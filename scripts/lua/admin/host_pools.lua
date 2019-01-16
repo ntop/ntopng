@@ -611,6 +611,9 @@ print [[
     function decPoolMembers() { curDisplayedMembers--; numPoolMembers--; }
 
     function addPoolMember() {
+      if($("#addPoolMemberBtn").attr("disabled"))
+        return;
+
       if (datatableIsEmpty("#table-manage"))
          datatableRemoveEmptyRow("#table-manage");
 
@@ -910,6 +913,9 @@ print [[
     }
 
     function addPool() {
+      if($("#addNewPoolBtn").attr("disabled"))
+        return;
+
       var pool_id = nextPoolId();
 
       if (pool_id < maxPoolsNum) {
