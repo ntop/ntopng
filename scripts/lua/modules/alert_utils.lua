@@ -2837,6 +2837,14 @@ function scanAlerts(granularity, ifstats)
    check_macs_alerts(ifid, working_status)
    check_host_pools_alerts(ifid, working_status)
 
+   if ntop.getInfo()["test_mode"] then
+      package.path = dirs.installdir .. "/scripts/lua/modules/test/?.lua;" .. package.path
+      local test_utils = require "test_utils"
+      if test_utils then
+	 test_utils.check_alerts(ifid, working_status)
+      end
+   end
+
    finalizeAlertsWorkingStatus(working_status)
 end
 
