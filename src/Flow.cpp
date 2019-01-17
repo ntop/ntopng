@@ -245,6 +245,10 @@ void Flow::dumpFlowAlert() {
       do_dump = false;
       break;
 
+    case status_not_purged:
+      do_dump = true;
+      break;
+
     case status_web_mining_detected:
       do_dump = ntop->getPrefs()->are_mining_alerts_enabled();
       break;
@@ -1859,7 +1863,6 @@ u_int32_t Flow::key(Host *_cli, u_int16_t _cli_port,
 /* *************************************** */
 
 bool Flow::isReadyToPurge() {
-
   if (ntop->getPrefs()->flushFlowsOnShutdown()
       && (ntop->getGlobals()->isShutdownRequested() || ntop->getGlobals()->isShutdown()))
     return(true);
@@ -3409,6 +3412,11 @@ FlowStatus Flow::getFlowStatus() {
   u_int16_t l7proto = ndpi_get_lower_proto(ndpiDetectedProtocol);
 
   /* NOTE: evaluation order is important here! */
+
+  if(iface->isPacketInterface() && !is_ready_to_be_purged() && isIdle(5 * ntop->getPrefs()->get_flow_max_idle())) {
+    /* Should've already been marked as idle and purged */
+    return status_not_purged;
+  }
 
   if(isBlacklistedFlow())
     return status_blacklisted;

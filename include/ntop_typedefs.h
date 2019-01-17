@@ -289,6 +289,7 @@ typedef enum {
   status_elephant_local_to_remote, /* 17 */
   status_elephant_remote_to_local, /* 18 */
   status_longlived, /* 19 */
+  status_not_purged, /* 20 */
 } FlowStatus;
 
 typedef enum {

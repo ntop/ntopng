@@ -673,6 +673,7 @@ local lang = {
     ["io_wait_time_percentage"] = "I/O Wait Time Percentage",
     ["jitter"] = "Jitter",
     ["longlived_flow"] = "Long-Lived Flow",
+    ["not_purged"] = "Flow does not seem to be active and it should have been purged from memory.",
     ["looks_like_idle_flow_message"] = "This looks like an <font color=red>idle flow</font> with periodic transmissions just to keep it alive.",
     ["lost_packets"] = "Lost Packets",
     ["low_goodput"] = "Low Goodput",
