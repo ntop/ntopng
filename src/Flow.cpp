@@ -2223,11 +2223,15 @@ bool Flow::isNetfilterIdleFlow() {
       seconds an active flow should have been updated
       by conntrack
     */
-    if(iface->getTimeLastPktRcvd() > (last_conntrack_update+(3*MIN_CONNTRACK_UPDATE)))
+    if(iface->getTimeLastPktRcvd() > (last_conntrack_update + (3 * MIN_CONNTRACK_UPDATE)))
       return(true);
-  }
 
-  return(false);
+    return(false);
+  } else {
+    /* if an conntrack update hasn't been seen for this flow
+       we use the standard idleness check */
+    return(isIdle(ntop->getPrefs()->get_flow_max_idle()));
+  }
 }
 #endif
 
