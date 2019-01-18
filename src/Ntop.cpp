@@ -773,7 +773,7 @@ void Ntop::loadLocalInterfaceAddress() {
 
 /* ******************************************* */
 
-void Ntop::loadGeolocation(char *dir) {
+void Ntop::loadGeolocation(const char * const dir) {
   if(geo != NULL) delete geo;
   geo = new Geolocation(dir);
 }

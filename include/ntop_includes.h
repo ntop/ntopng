@@ -91,6 +91,9 @@
 #include <assert.h>
 #include <fcntl.h>
 #include <grp.h>
+#ifdef HAVE_TEST_MODE
+#include <libgen.h>
+#endif
 #if defined(linux)
 #include <linux/ethtool.h> // ethtool
 #include <linux/sockios.h> // sockios

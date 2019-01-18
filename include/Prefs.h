@@ -129,7 +129,9 @@ class Prefs {
   char *ls_host,*ls_port,*ls_proto;
   bool has_cmdl_trace_lvl; /**< Indicate whether a verbose level 
 			      has been provided on the command line.*/
-
+#ifdef HAVE_TEST_MODE
+  char *test_script_path;
+#endif
   inline void help()      { usage();     }
   inline void nDPIhelp()  { nDPIusage(); }
   void setCommandLineString(int optkey, const char * optarg);
@@ -203,14 +205,17 @@ class Prefs {
   void getDefaultStringPrefsValue(const char *pref_key, char **buffer, const char *default_value);
   char* get_if_name(int id);
   char* get_if_descr(int id);
-  inline char* get_config_file_path()                   { return(config_file_path); };
-  inline char* get_ndpi_proto_file_path()               { return(ndpi_proto_path); };
-  inline char* get_data_dir()                           { return(data_dir);       };
-  inline char* get_docs_dir()                           { return(docs_dir);       }; // HTTP docs
-  inline char* get_scripts_dir()                        { return(scripts_dir);    };
-  inline char* get_callbacks_dir()                      { return(callbacks_dir);  };
-  inline char* get_prefs_dir()                          { return(prefs_dir);      };
-  inline char* get_pcap_dir()                           { return(pcap_dir);       };
+  inline const char* get_config_file_path()                   { return(config_file_path); };
+  inline const char* get_ndpi_proto_file_path()               { return(ndpi_proto_path); };
+  inline char* get_data_dir()                                 { return(data_dir);       };
+  inline char* get_docs_dir()                                 { return(docs_dir);       }; // HTTP docs
+  inline const char* get_scripts_dir()                        { return(scripts_dir);    };
+  inline const char* get_callbacks_dir()                      { return(callbacks_dir);  };
+  inline const char* get_prefs_dir()                          { return(prefs_dir);      };
+  inline const char* get_pcap_dir()                           { return(pcap_dir);       };
+#ifdef HAVE_TEST_MODE
+  inline const char* get_test_script_path()                   { return(test_script_path); };
+#endif
   inline char* get_export_endpoint()                    { return(export_endpoint);};
   inline char* get_categorization_key()                 { return(categorization_key); };
   inline char* get_http_prefix()                        { return(http_prefix); };

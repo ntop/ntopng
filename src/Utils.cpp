@@ -378,7 +378,7 @@ int Utils::remove_recursively(const char * const path) {
 
 /* ****************************************************** */
 
-bool Utils::mkdir_tree(char *path) {
+bool Utils::mkdir_tree(char * const path) {
   int rc;
 #ifdef WIN32
   struct _stat64 s;

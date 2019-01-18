@@ -123,7 +123,7 @@ void Geolocation::testme() {
 
 /* *************************************** */
 
-Geolocation::Geolocation(char *db_home) {
+Geolocation::Geolocation(const char * const db_home) {
   char path[MAX_PATH];
   snprintf(path, sizeof(path), "%s/geoip", db_home);
 

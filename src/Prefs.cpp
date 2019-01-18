@@ -67,6 +67,9 @@ Prefs::Prefs(Ntop *_ntop) {
   callbacks_dir = strdup(CONST_DEFAULT_CALLBACKS_DIR);
   pcap_dir = NULL;
   prefs_dir = NULL;
+#ifdef HAVE_TEST_MODE
+  test_script_path = NULL;
+#endif
   config_file_path = ndpi_proto_path = NULL;
   http_port = CONST_DEFAULT_NTOP_PORT;
   http_prefix = strdup(""), zmq_encryption_pwd = NULL;
@@ -740,11 +743,15 @@ static const struct option long_options[] = {
   { "simulate-vlans",                    no_argument,       NULL, 214 },
   { "zmq-encrypt-pwd",                   required_argument, NULL, 215 },
   { "ignore-vlans",                      no_argument,       NULL, 217 },
+  #ifdef HAVE_TEST_MODE
+  { "test-script",                       required_argument, NULL, 218 },
+#endif
 #ifdef NTOPNG_PRO
   { "check-maintenance",                 no_argument,       NULL, 252 },
   { "check-license",                     no_argument,       NULL, 253 },
   { "community",                         no_argument,       NULL, 254 },
 #endif
+
   /* End of options */
   { NULL,                                no_argument,       NULL,  0 }
 };
@@ -1357,6 +1364,13 @@ int Prefs::setOption(int optkey, char *optarg) {
 
   case 254:
     ntop->getPro()->do_force_community_edition();
+    break;
+#endif
+
+#ifdef HAVE_TEST_MODE
+  case 218:
+    if(test_script_path) free(test_script_path);
+    test_script_path = strdup(optarg);
     break;
 #endif
 

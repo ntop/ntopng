@@ -156,7 +156,7 @@ class Ntop {
    *
    * @param dir Path to database home directory.
    */
-  void loadGeolocation(char *dir);
+  void loadGeolocation(const char * const dir);
   /**
    * @brief Load the @ref MacManufacturers module.
    * @details Initialize the variable @ref dir with the input directory.
@@ -227,16 +227,16 @@ class Ntop {
    * @param id Index of ifName.
    * @return ....
    */
-  inline char* get_if_name(int id)                   { return(prefs->get_if_name(id));     };
-  inline char* get_if_descr(int id)                  { return(prefs->get_if_descr(id));    };
-  inline char* get_data_dir()                        { return(prefs->get_data_dir());      };
-  inline char* get_callbacks_dir()                   { return(prefs->get_callbacks_dir()); };
+  inline char* get_if_name(int id)                         { return(prefs->get_if_name(id));     };
+  inline const char* get_if_descr(int id)                  { return(prefs->get_if_descr(id));    };
+  inline char* get_data_dir()                              { return(prefs->get_data_dir());      };
+  inline const char* get_callbacks_dir()                   { return(prefs->get_callbacks_dir()); };
   /**
    * @brief Get the current httpdocs directory.
    *
    * @return The absolute path of the httpdocs directory.
    */
-  inline char* get_docs_dir()                     { return(prefs->get_docs_dir());      };
+  inline const char* get_docs_dir()                     { return(prefs->get_docs_dir());      };
 
   /**
    * @brief Register the network interface.

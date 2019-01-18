@@ -257,6 +257,34 @@ static void* packetPollLoop(void* ptr) {
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Terminated packet polling for %s",
 			       iface->get_name());
 
+#ifdef HAVE_TEST_MODE
+  char test_path[MAX_PATH];
+  const char * test_script_path = ntop->getPrefs()->get_test_script_path();
+  const char *sep;
+
+  if(test_script_path) {
+    if((sep = strrchr(test_script_path, '/')) == NULL)
+      sep = test_script_path;
+    else
+      sep++;
+
+    snprintf(test_path, sizeof(test_path), "%s/lua/modules/test/%s",
+	     ntop->getPrefs()->get_scripts_dir(),
+	     sep);
+
+    if(test_script_path && Utils::file_exists(test_path)) {
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Executing script %s",
+				   test_path);
+
+	LuaEngine *l = new (std::nothrow)LuaEngine();
+	if(l) {
+	  l->run_script(test_path, iface);
+	  delete l;
+	}
+    }
+  }
+#endif
+
   if(ntop->getPrefs()->shutdownWhenDone())
     ntop->getGlobals()->shutdown();
 
