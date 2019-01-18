@@ -26,7 +26,6 @@
 GenericTrafficElement::GenericTrafficElement() {
   /* NOTE NOTE NOTE: keep in sync with copy constructor below */
   ndpiStats = NULL;
-  host_pool_id = NO_HOST_POOL_ID;
 
   /* Stats */
   resetStats();
@@ -43,7 +42,7 @@ void GenericTrafficElement::resetStats() {
   last_bytes = 0, last_bytes_thpt = bytes_thpt = 0, bytes_thpt_trend = trend_unknown;
   bytes_thpt_diff = 0;
   last_packets = 0, last_pkts_thpt = pkts_thpt = 0, pkts_thpt_trend = trend_unknown;
-  last_update_time.tv_sec = 0, last_update_time.tv_usec = 0, vlan_id = 0;
+  last_update_time.tv_sec = 0, last_update_time.tv_usec = 0;
   total_num_dropped_flows = 0;
 
   sent = TrafficStats();
@@ -54,14 +53,12 @@ void GenericTrafficElement::resetStats() {
 
 GenericTrafficElement::GenericTrafficElement(const GenericTrafficElement &gte) {
     ndpiStats = (gte.ndpiStats) ? new nDPIStats(*gte.ndpiStats) : NULL;
-    host_pool_id = gte.host_pool_id;
 
     /* Stats */
     last_bytes = gte.last_bytes, bytes_thpt = gte.bytes_thpt, last_bytes_thpt = gte.last_bytes_thpt, bytes_thpt_trend = gte.bytes_thpt_trend;
     bytes_thpt_diff = gte.bytes_thpt_diff;
     last_packets = gte.last_packets, pkts_thpt = gte.pkts_thpt, last_pkts_thpt = gte.last_pkts_thpt, pkts_thpt_trend = gte.pkts_thpt_trend;
     last_update_time = gte.last_update_time;
-    vlan_id = gte.vlan_id;
     total_num_dropped_flows = gte.total_num_dropped_flows;
 
     sent = gte.sent;
@@ -107,8 +104,6 @@ void GenericTrafficElement::updateStats(struct timeval *tv) {
 /* *************************************** */
 
 void GenericTrafficElement::lua(lua_State* vm, bool host_details) {
-  lua_push_uint64_table_entry(vm, "vlan", vlan_id);
-
   lua_push_float_table_entry(vm, "throughput_bps", bytes_thpt);
   lua_push_float_table_entry(vm, "last_throughput_bps", last_bytes_thpt);
   lua_push_uint64_table_entry(vm, "throughput_trend_bps", bytes_thpt_trend);

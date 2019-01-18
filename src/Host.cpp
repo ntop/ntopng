@@ -55,9 +55,6 @@ Host::~Host() {
   if(country)       country->decUses();
   if(vlan)          vlan->decUses();
 #ifdef NTOPNG_PRO
-  if(quota_enforcement_stats)        delete quota_enforcement_stats;
-  if(quota_enforcement_stats_shadow) delete quota_enforcement_stats_shadow;
-
   if(host_traffic_shapers) {
     for(int i = 0; i < NUM_TRAFFIC_SHAPERS; i++) {
       if(host_traffic_shapers[i])
@@ -74,12 +71,16 @@ Host::~Host() {
   if(ssdpLocation)        free(ssdpLocation);
   if(m)                  delete m;
   if(flow_alert_counter) delete flow_alert_counter;
+  if(info_shadow)     free(info_shadow);
   if(info)            free(info);
 
   if(syn_flood_attacker_alert)  delete syn_flood_attacker_alert;
   if(syn_flood_victim_alert)    delete syn_flood_victim_alert;
   if(flow_flood_attacker_alert) delete flow_flood_attacker_alert;
   if(flow_flood_victim_alert)   delete flow_flood_victim_alert;
+
+  if(stats)              delete stats;
+  if(stats_shadow)       delete stats_shadow;
 
   /* Pool counters are updated both in and outside the datapath.
      So decPoolNumHosts must stay in the destructor to preserve counters
@@ -131,20 +132,15 @@ void Host::set_host_label(char *label_name, bool ignoreIfPresent) {
 /* *************************************** */
 
 void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
-  ndpiStats = new nDPIStats();
-//printf("SIZE: %lu, %lu, %lu\n", sizeof(nDPIStats), MAX_NDPI_PROTOS, NDPI_PROTOCOL_NUM_CATEGORIES);
-  last_bytes = 0, last_bytes_thpt = bytes_thpt = 0, bytes_thpt_trend = trend_unknown;
-  bytes_thpt_diff = 0, last_epoch_update = 0;
-  total_activity_time = 0;
-  last_packets = 0, last_pkts_thpt = pkts_thpt = 0, pkts_thpt_trend = trend_unknown;
-  last_update_time.tv_sec = 0, last_update_time.tv_usec = 0, vlan_id = 0;
-  low_goodput_client_flows = low_goodput_server_flows = 0;
+  stats = NULL; /* it will be instantiated by specialized classes */
+  stats_shadow = NULL;
+  data_delete_requested = false, stats_reset_requested = false;
+
   // readStats(); - Commented as if put here it's too early and the key is not yet set
 
 #ifdef NTOPNG_PRO
-  has_blocking_quota = has_blocking_shaper = false;
-  quota_enforcement_stats = quota_enforcement_stats_shadow = NULL;
   host_traffic_shapers = NULL;
+  has_blocking_quota = has_blocking_shaper = false;
 #endif
 
   if((mac = _mac))
@@ -154,21 +150,18 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
     vlan->incUses();
 
   num_resolve_attempts = 0, ssdpLocation = NULL, ssdpLocation_shadow = NULL;
+  low_goodput_client_flows = low_goodput_server_flows = 0;
+  num_active_flows_as_client = num_active_flows_as_server = 0;
 
   flow_alert_counter = NULL;
   good_low_flow_detected = false;
-  nextResolveAttempt = 0, info = NULL;
+  nextResolveAttempt = 0, info = NULL, info_shadow = NULL;
   host_label_set = false;
   num_uses = 0, symbolic_name = NULL, vlan_id = _vlanId % MAX_NUM_VLAN,
-    total_num_flows_as_client = total_num_flows_as_server = 0,
-    num_active_flows_as_client = num_active_flows_as_server = 0;
   first_seen = last_seen = iface->getTimeLastPktRcvd();
-  checkpoint_set = false;
-  checkpoint_sent_bytes = checkpoint_rcvd_bytes = 0;
   if((m = new(std::nothrow) Mutex()) == NULL)
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: NULL mutex. Are you running out of memory?");
 
-  memset(&tcpPacketStats, 0, sizeof(tcpPacketStats));
   asn = 0, asname = NULL;
   as = NULL, country = NULL;
   blacklisted_host = false, reloadHostBlacklist();
@@ -201,7 +194,6 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
       country->incUses();
   }
 
-  updateHostPool(true /* inline with packet processing */, true /* first inc */);
   reloadHideFromTop();
 }
 
@@ -332,43 +324,11 @@ void Host::updateHostPool(bool isInlineCall, bool firstUpdate) {
 
     if(hp && hp->enforceQuotasPerPoolMember(get_host_pool())) {
       /* must allocate a structure to keep track of used quotas */
-      if(!quota_enforcement_stats) {
-	quota_enforcement_stats = new HostPoolStats(iface);
-
-#ifdef HOST_POOLS_DEBUG
-	char buf[128];
-	ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				     "Allocating quota stats for %s [quota_enforcement_stats: %p] [host pool: %i]",
-				     ip.print(buf, sizeof(buf)), (void*)quota_enforcement_stats, host_pool_id);
-#endif
-
-      }
+      stats->allocateQuotaEnforcementStats();
     } else { /* Free the structure that is no longer needed */
       /* It is ensured by the caller that this method is called no more than 1 time per second.
-	 Therefore, it is safe to delete a previously allocated shadow class */
-      if(quota_enforcement_stats_shadow) {
-	delete quota_enforcement_stats_shadow;
-	quota_enforcement_stats_shadow = NULL;
-
-#ifdef HOST_POOLS_DEBUG
-	char buf[128];
-	ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				     "Freeing shadow pointer of longer quota stats for %s [host pool: %i]",
-				     ip.print(buf, sizeof(buf)), host_pool_id);
-#endif
-
-      }
-      if(quota_enforcement_stats) {
-	quota_enforcement_stats_shadow = quota_enforcement_stats;
-	quota_enforcement_stats = NULL;
-
-#ifdef HOST_POOLS_DEBUG
-	char buf[128];
-	ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				     "Moving quota stats to the shadow pointer for %s [host pool: %i]",
-				     ip.print(buf, sizeof(buf)), host_pool_id);
-#endif
-      }
+      Therefore, it is safe to delete a previously allocated shadow class */
+      stats->deleteQuotaEnforcementStats();
     }
 
     if(hp && hp->enforceShapersPerPoolMember(get_host_pool())) {
@@ -519,13 +479,11 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   lua_push_str_table_entry(vm, "ip", (ipaddr = printMask(ip_buf, sizeof(ip_buf))));
   lua_push_uint64_table_entry(vm, "ipkey", ip.key());
   lua_push_bool_table_entry(vm, "localhost", isLocalHost());
+  lua_push_uint64_table_entry(vm, "vlan", vlan_id);
 
   lua_push_str_table_entry(vm, "mac", Utils::formatMac(m ? m->get_mac() : NULL, buf, sizeof(buf)));
   lua_push_uint64_table_entry(vm, "devtype", m ? m->getDeviceType() : device_unknown);
   lua_push_uint64_table_entry(vm, "operatingSystem", m ? m->getOperatingSystem() : os_unknown);
-
-  lua_push_uint64_table_entry(vm, "bytes.sent", sent.getNumBytes());
-  lua_push_uint64_table_entry(vm, "bytes.rcvd", rcvd.getNumBytes());
 
   lua_push_bool_table_entry(vm, "privatehost", isPrivateHost());
   lua_push_bool_table_entry(vm, "hiddenFromTop", isHiddenFromTop());
@@ -543,6 +501,8 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   lua_push_uint64_table_entry(vm, "host_pool_id", host_pool_id);
   lua_push_str_table_entry(vm, "asname", asname ? asname : (char*)"");
   lua_push_str_table_entry(vm, "os", get_os());
+
+  stats->lua(vm, mask_host, host_details, verbose);
 
   if(mac && mac->isDhcpHost()) lua_push_bool_table_entry(vm, "dhcpHost", true);
   lua_push_uint64_table_entry(vm, "active_flows.as_client", num_active_flows_as_client);
@@ -571,36 +531,6 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
       lua_push_str_table_entry(vm, "ssdp", ssdpLocation);
   }
 
-  /* TCP stats */
-  if(host_details) {
-    lua_push_uint64_table_entry(vm, "tcp.packets.sent",  tcp_sent.getNumPkts());
-    lua_push_uint64_table_entry(vm, "tcp.packets.rcvd",  tcp_rcvd.getNumPkts());
-
-    lua_push_uint64_table_entry(vm, "tcp.bytes.sent", tcp_sent.getNumBytes());
-    lua_push_uint64_table_entry(vm, "tcp.bytes.rcvd", tcp_rcvd.getNumBytes());
-
-    lua_push_bool_table_entry(vm, "tcp.packets.seq_problems",
-			      (tcpPacketStats.pktRetr
-			       || tcpPacketStats.pktOOO
-			       || tcpPacketStats.pktLost
-			       || tcpPacketStats.pktKeepAlive) ? true : false);
-    lua_push_uint64_table_entry(vm, "tcp.packets.retransmissions", tcpPacketStats.pktRetr);
-    lua_push_uint64_table_entry(vm, "tcp.packets.out_of_order", tcpPacketStats.pktOOO);
-    lua_push_uint64_table_entry(vm, "tcp.packets.lost", tcpPacketStats.pktLost);
-    lua_push_uint64_table_entry(vm, "tcp.packets.keep_alive", tcpPacketStats.pktKeepAlive);
-
-  } else {
-    /* Limit tcp information to anomalies when host_details aren't required */
-    if(tcpPacketStats.pktRetr)
-      lua_push_uint64_table_entry(vm, "tcp.packets.retransmissions", tcpPacketStats.pktRetr);
-    if(tcpPacketStats.pktOOO)
-      lua_push_uint64_table_entry(vm, "tcp.packets.out_of_order", tcpPacketStats.pktOOO);
-    if(tcpPacketStats.pktLost)
-      lua_push_uint64_table_entry(vm, "tcp.packets.lost", tcpPacketStats.pktLost);
-    if(tcpPacketStats.pktKeepAlive)
-      lua_push_uint64_table_entry(vm, "tcp.packets.keep_alive", tcpPacketStats.pktKeepAlive);
-  }
-
   if(host_details) {
     char *continent = NULL, *country_name = NULL, *city = NULL;
     float latitude = 0, longitude = 0;
@@ -618,25 +548,6 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
     lua_push_str_table_entry(vm, "city", city ? city : (char*)"");
     ntop->getGeolocation()->freeInfo(&continent, &country_name, &city);
 
-    lua_push_uint64_table_entry(vm, "total_activity_time", total_activity_time);
-    lua_push_uint64_table_entry(vm, "flows.as_client", total_num_flows_as_client);
-    lua_push_uint64_table_entry(vm, "flows.as_server", total_num_flows_as_server);
-
-    lua_push_uint64_table_entry(vm, "udp.packets.sent",  udp_sent.getNumPkts());
-    lua_push_uint64_table_entry(vm, "udp.bytes.sent", udp_sent.getNumBytes());
-    lua_push_uint64_table_entry(vm, "udp.packets.rcvd",  udp_rcvd.getNumPkts());
-    lua_push_uint64_table_entry(vm, "udp.bytes.rcvd", udp_rcvd.getNumBytes());
-
-    lua_push_uint64_table_entry(vm, "icmp.packets.sent",  icmp_sent.getNumPkts());
-    lua_push_uint64_table_entry(vm, "icmp.bytes.sent", icmp_sent.getNumBytes());
-    lua_push_uint64_table_entry(vm, "icmp.packets.rcvd",  icmp_rcvd.getNumPkts());
-    lua_push_uint64_table_entry(vm, "icmp.bytes.rcvd", icmp_rcvd.getNumBytes());
-
-    lua_push_uint64_table_entry(vm, "other_ip.packets.sent",  other_ip_sent.getNumPkts());
-    lua_push_uint64_table_entry(vm, "other_ip.bytes.sent", other_ip_sent.getNumBytes());
-    lua_push_uint64_table_entry(vm, "other_ip.packets.rcvd",  other_ip_rcvd.getNumPkts());
-    lua_push_uint64_table_entry(vm, "other_ip.bytes.rcvd", other_ip_rcvd.getNumBytes());
-
     lua_push_uint64_table_entry(vm, "low_goodput_flows.as_client", low_goodput_client_flows);
     lua_push_uint64_table_entry(vm, "low_goodput_flows.as_server", low_goodput_server_flows);
   }
@@ -649,24 +560,14 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
 
   if(verbose) {
     char *rsp = serialize();
-
-    if(ndpiStats)        ndpiStats->lua(iface, vm, true);
-#ifdef NTOPNG_PRO
-    if(custom_app_stats) custom_app_stats->lua(vm);
-#endif
     lua_push_str_table_entry(vm, "json", rsp);
     free(rsp);
-
-    sent_stats.lua(vm, "pktStats.sent");
-    recv_stats.lua(vm, "pktStats.recv");
 
     if(hasAnomalies()) luaAnomalies(vm);
   }
 
   if(!returnHost)
     host_id = get_hostkey(buf_id, sizeof(buf_id));
-
-  ((GenericTrafficElement*)this)->lua(vm, host_details);
 
   if(asListElement) {
     lua_pushstring(vm, host_id);
@@ -757,51 +658,11 @@ void Host::incStats(u_int32_t when, u_int8_t l4_proto, u_int ndpi_proto,
 		    u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes) {
 
   if(sent_packets || rcvd_packets) {
-    sent.incStats(sent_packets, sent_bytes), rcvd.incStats(rcvd_packets, rcvd_bytes);
-
-    if(ndpiStats) {
-      ndpiStats->incStats(when, ndpi_proto, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes),
-	ndpiStats->incCategoryStats(when,
-				    getInterface()->get_ndpi_proto_category(ndpi_proto),
-				    sent_bytes, rcvd_bytes);
-
-    }
-
-#ifdef NTOPNG_PRO
-    if(custom_app.pen
-       && (custom_app_stats || (custom_app_stats = new(std::nothrow) CustomAppStats(iface)))) {
-      custom_app_stats->incStats(custom_app.remapped_app_id, sent_bytes + rcvd_bytes); 
-    }
-#endif
-
-    if(when && when - last_epoch_update >= ntop->getPrefs()->get_housekeeping_frequency())
-      total_activity_time += ntop->getPrefs()->get_housekeeping_frequency(), last_epoch_update = when;
+    stats->incStats(when, l4_proto, ndpi_proto, custom_app,
+        sent_packets, sent_bytes, sent_goodput_bytes, rcvd_packets,
+        rcvd_bytes, rcvd_goodput_bytes);
 
     updateSeen();
-
-    /* Packet stats sent_stats and rcvd_stats are incremented in Flow::incStats */
-
-    switch(l4_proto) {
-    case 0:
-      /* Unknown protocol */
-      break;
-    case IPPROTO_UDP:
-      udp_rcvd.incStats(rcvd_packets, rcvd_bytes),
-	udp_sent.incStats(sent_packets, sent_bytes);
-      break;
-    case IPPROTO_TCP:
-      tcp_rcvd.incStats(rcvd_packets, rcvd_bytes),
-	tcp_sent.incStats(sent_packets, sent_bytes);
-      break;
-    case IPPROTO_ICMP:
-      icmp_rcvd.incStats(rcvd_packets, rcvd_bytes),
-	icmp_sent.incStats(sent_packets, sent_bytes);
-      break;
-    default:
-      other_ip_rcvd.incStats(rcvd_packets, rcvd_bytes),
-	other_ip_sent.incStats(sent_packets, sent_bytes);
-      break;
-    }
   }
 }
 
@@ -825,6 +686,8 @@ json_object* Host::getJSONObject(DetailsLevel details_level) {
 
   if((my_object = json_object_new_object()) == NULL) return(NULL);
 
+  stats->getJSONObject(my_object, details_level);
+
   json_object_object_add(my_object, "ip", ip.getJSONObject());
   if(vlan_id != 0)        json_object_object_add(my_object, "vlan_id",   json_object_new_int(vlan_id));
   json_object_object_add(my_object, "mac_address", json_object_new_string(Utils::formatMac(m ? m->get_mac() : NULL, buf, sizeof(buf))));
@@ -842,49 +705,9 @@ json_object* Host::getJSONObject(DetailsLevel details_level) {
     json_object_object_add(my_object, "localHost", json_object_new_boolean(isLocalHost()));
     json_object_object_add(my_object, "systemHost", json_object_new_boolean(isSystemHost()));
     json_object_object_add(my_object, "is_blacklisted", json_object_new_boolean(isBlacklisted()));
-    json_object_object_add(my_object, "tcp_sent", tcp_sent.getJSONObject());
-    json_object_object_add(my_object, "tcp_rcvd", tcp_rcvd.getJSONObject());
-    json_object_object_add(my_object, "udp_sent", udp_sent.getJSONObject());
-    json_object_object_add(my_object, "udp_rcvd", udp_rcvd.getJSONObject());
-    json_object_object_add(my_object, "icmp_sent", icmp_sent.getJSONObject());
-    json_object_object_add(my_object, "icmp_rcvd", icmp_rcvd.getJSONObject());
-    json_object_object_add(my_object, "other_ip_sent", other_ip_sent.getJSONObject());
-    json_object_object_add(my_object, "other_ip_rcvd", other_ip_rcvd.getJSONObject());
-
-    /* packet stats */
-    json_object_object_add(my_object, "pktStats.sent", sent_stats.getJSONObject());
-    json_object_object_add(my_object, "pktStats.recv", recv_stats.getJSONObject());
-
-    /* TCP packet stats (serialize only anomalies) */
-    if(tcpPacketStats.pktRetr) json_object_object_add(my_object,
-						      "tcpPacketStats.pktRetr",
-						      json_object_new_int(tcpPacketStats.pktRetr));
-    if(tcpPacketStats.pktOOO)  json_object_object_add(my_object,
-						      "tcpPacketStats.pktOOO",
-						      json_object_new_int(tcpPacketStats.pktOOO));
-    if(tcpPacketStats.pktLost) json_object_object_add(my_object,
-						      "tcpPacketStats.pktLost",
-						      json_object_new_int(tcpPacketStats.pktLost));
-    if(tcpPacketStats.pktKeepAlive) json_object_object_add(my_object,
-							   "tcpPacketStats.pktKeepAlive",
-							   json_object_new_int(tcpPacketStats.pktKeepAlive));
-
-    /* throughput stats */
-    json_object_object_add(my_object, "throughput_bps", json_object_new_double(bytes_thpt));
-    json_object_object_add(my_object, "throughput_trend_bps", json_object_new_string(Utils::trend2str(bytes_thpt_trend)));
-    json_object_object_add(my_object, "throughput_pps", json_object_new_double(pkts_thpt));
-    json_object_object_add(my_object, "throughput_trend_pps", json_object_new_string(Utils::trend2str(pkts_thpt_trend)));
-    json_object_object_add(my_object, "flows.as_client", json_object_new_int(total_num_flows_as_client));
-    json_object_object_add(my_object, "flows.as_server", json_object_new_int(total_num_flows_as_server));
-    if(total_num_dropped_flows)
-      json_object_object_add(my_object, "flows.dropped", json_object_new_int(total_num_dropped_flows));
 
     /* Generic Host */
     json_object_object_add(my_object, "num_alerts", json_object_new_int(triggerAlerts() ? getNumAlerts() : 0));
-    json_object_object_add(my_object, "sent", sent.getJSONObject());
-    json_object_object_add(my_object, "rcvd", rcvd.getJSONObject());
-    json_object_object_add(my_object, "ndpiStats", ndpiStats->getJSONObject(iface));
-    json_object_object_add(my_object, "total_activity_time", json_object_new_int(total_activity_time));
   }
 
   /* The value below is handled by reading dumps on disk as otherwise the string will be too long */
@@ -961,14 +784,16 @@ void Host::incNumFlows(bool as_client, Host *peer) {
 
   if(as_client) {
     counter = flow_flood_attacker_alert;
-    total_num_flows_as_client++, num_active_flows_as_client++;
+    num_active_flows_as_client++;
   } else {
     counter = flow_flood_victim_alert;
-    total_num_flows_as_server++, num_active_flows_as_server++;
+    num_active_flows_as_server++;
   }
 
   if(triggerAlerts())
     counter->incHits(time(0));
+
+  stats->incNumFlows(as_client, peer);
 }
 
 /* *************************************** */
@@ -985,6 +810,8 @@ void Host::decNumFlows(bool as_client, Host *peer) {
     else
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: invalid counter value");
   }
+
+  stats->decNumFlows(as_client, peer);
 }
 
 /* *************************************** */
@@ -1067,7 +894,7 @@ bool Host::checkQuota(ndpi_protocol ndpiProtocol, L7PolicySource_t *quota_source
   if((policer = iface->getL7Policer()) == NULL)
     return false;
 
-  is_above = policer->checkQuota(get_host_pool(), quota_enforcement_stats, ndpiProtocol, quota_source, now);
+  is_above = policer->checkQuota(get_host_pool(), stats->getQuotaEnforcementStats(), ndpiProtocol, quota_source, now);
 
 #ifdef SHAPER_DEBUG
   char buf[128], protobuf[32];
@@ -1076,7 +903,7 @@ bool Host::checkQuota(ndpi_protocol ndpiProtocol, L7PolicySource_t *quota_source
        ndpi_protocol2name(iface->get_ndpi_struct(), ndpiProtocol, protobuf, sizeof(protobuf)),
        ip.print(buf, sizeof(buf)), vlan_id,
        is_above ? (char*)"EXCEEDED" : (char*)"ok",
-       quota_enforcement_stats ? "[QUOTAS enforced per pool member]" : "");
+       stats->getQuotaEnforcementStats() ? "[QUOTAS enforced per pool member]" : "");
 #endif
 
   has_blocking_quota |= is_above;
@@ -1086,18 +913,14 @@ bool Host::checkQuota(ndpi_protocol ndpiProtocol, L7PolicySource_t *quota_source
 /* *************************************** */
 
 void Host::luaUsedQuotas(lua_State* vm) {
-  if(quota_enforcement_stats)
-    quota_enforcement_stats->lua(vm, iface);
+  HostPoolStats *quota_stats = stats->getQuotaEnforcementStats();
+
+  if(quota_stats)
+    quota_stats->lua(vm, iface);
   else
     lua_newtable(vm);
 }
 #endif
-
-/* *************************************** */
-
-void Host::updateStats(struct timeval *tv) {
-  GenericTrafficElement::updateStats(tv);
-}
 
 /* *************************************** */
 
@@ -1114,55 +937,6 @@ bool Host::incFlowAlertHits(time_t when) {
   }
 
   return false; 
-}
-
-/* *************************************** */
-
-bool Host::serializeCheckpoint(json_object *my_object, DetailsLevel details_level) {
-  json_object_object_add(my_object, "sent", sent.getJSONObject());
-  json_object_object_add(my_object, "rcvd", rcvd.getJSONObject());
-
-  if (details_level >= details_high) {
-    json_object_object_add(my_object, "total_activity_time", json_object_new_int(total_activity_time));
-    json_object_object_add(my_object, "seen.last", json_object_new_int64(last_seen));
-    json_object_object_add(my_object, "ndpiStats", ndpiStats->getJSONObjectForCheckpoint(iface));
-    json_object_object_add(my_object, "flows.as_client", json_object_new_int(total_num_flows_as_client));
-    json_object_object_add(my_object, "flows.as_server", json_object_new_int(total_num_flows_as_server));
-  }
-
-  return true;
-}
-
-/* *************************************** */
-
-void Host::checkPointHostTalker(lua_State *vm, bool saveCheckpoint) {
-  lua_newtable(vm);
-
-  if (! checkpoint_set) {
-    if(saveCheckpoint) checkpoint_set = true;
-  } else {
-    lua_newtable(vm);
-    lua_push_uint64_table_entry(vm, "sent", checkpoint_sent_bytes);
-    lua_push_uint64_table_entry(vm, "rcvd", checkpoint_rcvd_bytes);
-    lua_pushstring(vm, "previous");
-    lua_insert(vm, -2);
-    lua_settable(vm, -3);
-  }
-
-  u_int32_t sent_bytes = sent.getNumBytes();
-  u_int32_t rcvd_bytes = rcvd.getNumBytes();
-
-  if(saveCheckpoint) {
-    checkpoint_sent_bytes = sent_bytes;
-    checkpoint_rcvd_bytes = rcvd_bytes;
-  }
-
-  lua_newtable(vm);
-  lua_push_uint64_table_entry(vm, "sent", sent_bytes);
-  lua_push_uint64_table_entry(vm, "rcvd", rcvd_bytes);
-  lua_pushstring(vm, "current");
-  lua_insert(vm, -2);
-  lua_settable(vm, -3);
 }
 
 /* *************************************** */
@@ -1329,4 +1103,48 @@ DeviceProtoStatus Host::getDeviceAllowedProtocolStatus(ndpi_protocol proto, bool
     return ntop->getDeviceAllowedProtocolStatus(getMac()->getDeviceType(), proto, get_host_pool(), as_client);
 
   return device_proto_allowed;
+}
+
+/* *************************************** */
+
+void Host::updateStats(struct timeval *tv) {
+  if(stats_shadow) {
+    delete stats_shadow;
+    stats_shadow = NULL;
+  }
+
+  if(stats_reset_requested) {
+    HostStats *new_stats = allocateStats();
+    stats_shadow = stats;
+    stats = new_stats;
+
+    /* Reset internal state */
+#ifdef NTOPNG_PRO
+    has_blocking_quota = false;
+#endif
+
+    stats_reset_requested = false;
+  }
+
+  stats->updateStats(tv);
+}
+
+/* *************************************** */
+
+/* NOTE: this must be executed on the packet capture thread to avoid concurrency issues */
+void Host::checkDataReset() {
+  if(data_delete_requested) {
+    deleteHostData();
+    data_delete_requested = false;
+  }
+}
+
+/* *************************************** */
+
+void Host::deleteHostData() {
+  setName((char*)"");
+  setInfo(NULL);
+  setSSDPLocation(NULL);
+  host_label_set = false;
+  first_seen = last_seen;
 }

@@ -61,6 +61,7 @@ end
 
 local function delete_host_redis_keys(interface_id, host_info)
    local status = "OK"
+   local hostkey = hostinfo2hostkey(host_info, nil, true)
    local serialized_k, dns_k, devnames_k, devtypes_k
 
    if not isMacAddress(host_info["host"]) then
@@ -72,6 +73,8 @@ local function delete_host_redis_keys(interface_id, host_info)
       serialized_k = string.format("ntopng.serialized_macs.ifid_%u__%s", interface_id, host_info["host"])
       devnames_k = string.format("ntopng.cache.devnames.%s", host_info["host"])
       devtypes_k = string.format("ntopng.prefs.device_types.%s", host_info["host"])
+
+      ntop.delHashCache("ntopng.prefs.drop_host_traffic", hostkey)
    end
 
    if not dry_run then
@@ -116,7 +119,7 @@ local function _delete_host(interface_id, host_info)
    local old_ifname = interface.getStats().name
    interface.select(getInterfaceName(interface_id))
 
-   interface.resetHostData(hostinfo2hostkey(host_info))
+   interface.deleteHostData(hostinfo2hostkey(host_info))
    local h_ts = delete_host_timeseries_data(interface_id, host_info)
    local h_rk = delete_host_redis_keys(interface_id, host_info)
    local h_db = delete_host_mysql_flows(interface_id, host_info)

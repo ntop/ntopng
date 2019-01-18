@@ -26,27 +26,11 @@
 
 class LocalHost : public Host {
  private:
-/*** BEGIN Host data ****/
-  /* Written by NetworkInterface::processPacket thread */
-  DnsStats *dns;
-  HTTPstats *http;
-  ICMPstats *icmp;
-  FrequentStringItems *top_sites;
-  char *os;
-  map<Host*, u_int16_t> contacts_as_cli, contacts_as_srv;
-
-  /* Written by NetworkInterface::periodicStatsUpdate thread */
-  char *old_sites;
-  TimeseriesRing *ts_ring;
-
-  /* Written by multiple threads */
+  char *os, *os_shadow;
   bool dhcpUpdated;
   bool drop_all_host_traffic;
-/*** END Host data ***/
-
   int16_t local_network_id;
   NetworkStats *networkStats;
-  time_t nextSitesUpdate;
   bool systemHost;
 
   void initialize();
@@ -63,32 +47,27 @@ class LocalHost : public Host {
   virtual void  serialize2redis();
   bool deserialize(char *json_str, char *key);
 
-  virtual json_object* getJSONObject(DetailsLevel details_level);
   virtual NetworkStats* getNetworkStats(int16_t networkId){ return(iface->getNetworkStats(networkId));   };
-  virtual u_int32_t getActiveHTTPHosts()             { return(http ? http->get_num_virtual_hosts() : 0); };
-  virtual HTTPstats* getHTTPstats()                  { return(http);                  };
+  virtual u_int32_t getActiveHTTPHosts()             { return(getHTTPstats() ? getHTTPstats()->get_num_virtual_hosts() : 0); };
   virtual char* get_os()                             { return(os ? os : (char*)"");                    };
+  virtual HostStats* allocateStats()                 { return(new LocalHostStats(this));               };
 
   virtual bool dropAllTraffic()  { return(drop_all_host_traffic); };
-
-  virtual void incNumFlows(bool as_client, Host *peer);
-  virtual void decNumFlows(bool as_client, Host *peer);
-  void incrVisitedWebSite(char *hostname);
-  virtual void setOS(char *_os);
-  virtual void updateStats(struct timeval *tv);
+  virtual void setOS(char *_os, bool ignoreIfPresent=true);
   virtual void updateHostTrafficPolicy(char *key);
-  virtual void updateHTTPHostRequest(char *virtual_host_name, u_int32_t num_req, u_int32_t bytes_sent, u_int32_t bytes_rcvd);
+  virtual void deleteHostData();
 
-  virtual void incICMP(u_int8_t icmp_type, u_int8_t icmp_code, bool sent, Host *peer);
-  virtual void incNumDNSQueriesSent(u_int16_t query_type) { if(dns) dns->incNumDNSQueriesSent(query_type); };
-  virtual void incNumDNSQueriesRcvd(u_int16_t query_type) { if(dns) dns->incNumDNSQueriesRcvd(query_type); };
-  virtual void incNumDNSResponsesSent(u_int32_t ret_code) { if(dns) dns->incNumDNSResponsesSent(ret_code); };
-  virtual void incNumDNSResponsesRcvd(u_int32_t ret_code) { if(dns) dns->incNumDNSResponsesRcvd(ret_code); };
+  virtual void incICMP(u_int8_t icmp_type, u_int8_t icmp_code, bool sent, Host *peer) { stats->incICMP(icmp_type, icmp_code, sent, peer); };
+  virtual void incNumDNSQueriesSent(u_int16_t query_type) { stats->incNumDNSQueriesSent(query_type); };
+  virtual void incNumDNSQueriesRcvd(u_int16_t query_type) { stats->incNumDNSQueriesRcvd(query_type); };
+  virtual void incNumDNSResponsesSent(u_int32_t ret_code) { stats->incNumDNSResponsesSent(ret_code); };
+  virtual void incNumDNSResponsesRcvd(u_int32_t ret_code) { stats->incNumDNSResponsesRcvd(ret_code); };
+  virtual void incrVisitedWebSite(char *hostname)         { stats->incrVisitedWebSite(hostname); };
+  virtual HTTPstats* getHTTPstats()                       { return(stats->getHTTPstats());  };
 
   virtual void lua(lua_State* vm, AddressTree * ptree, bool host_details,
 		   bool verbose, bool returnHost, bool asListElement);
   virtual void tsLua(lua_State* vm);
-  void makeTsPoint(HostTimeseriesPoint *pt);
 };
 
 #endif /* _LOCAL_HOST_H_ */

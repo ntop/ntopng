@@ -34,7 +34,7 @@ RemoteHost::RemoteHost(NetworkInterface *_iface, Mac *_mac, u_int16_t _vlanId, I
 /* *************************************** */
 
 RemoteHost::RemoteHost(NetworkInterface *_iface, char *ipAddress, u_int16_t _vlanId) : Host(_iface, ipAddress, _vlanId) {
-
+  initialize();
 }
 
 /* *************************************** */
@@ -49,6 +49,9 @@ void RemoteHost::initialize() {
   char *strIP = ip.print(buf, sizeof(buf));
   snprintf(host, sizeof(host), "%s@%u", strIP, vlan_id);
   char rsp[256];
+
+  stats = allocateStats();
+  updateHostPool(true /* inline with packet processing */, true /* first inc */);
 
   if(ntop->getPrefs()->is_dns_resolution_enabled_for_all_hosts()) {
     if(ntop->getRedis()->getAddress(host, rsp, sizeof(rsp), true) == 0)

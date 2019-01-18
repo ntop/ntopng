@@ -23,6 +23,7 @@ local host_pools_utils = require "host_pools_utils"
 local discover = require "discover_utils"
 local ts_utils = require "ts_utils"
 local page_utils = require("page_utils")
+local template = require "template_utils"
 
 local info = ntop.getInfo()
 
@@ -152,6 +153,15 @@ else
    --   Added global javascript variable, in order to disable the refresh of pie chart in case
    --  of historical interface
    print('\n<script>var refresh = 3000 /* ms */;</script>\n')
+
+   if _POST["action"] == "reset_stats" then
+      if interface.resetHostStats(hostkey) then
+         print("<div class=\"alert alert alert-success\">")
+         print[[<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>]]
+         print(i18n("host_details.reset_stats_in_progress"))
+         print("</div>")
+      end
+   end
 
    if host == nil then
       -- only_historical = true here
@@ -494,6 +504,9 @@ if((page == "overview") or (page == nil)) then
       if(host["name"] == nil) then
 	 host["name"] = getResolvedAddress(hostkey2hostinfo(host["ip"]))
       end
+      if(isEmptyString(host["name"])) then
+         host["name"] = host["ip"]
+      end
       
       print("<tr><th>"..i18n("name").."</th>")
 
@@ -609,6 +622,25 @@ end
       print("<tr></th><th>"..i18n("details.keep_alive").."</th><td align=right><span id=pkt_keep_alive>".. formatPackets(host["tcp.packets.keep_alive"]) .."</span> <span id=pkt_keep_alive_trend></span></td></tr>\n")
    end
 
+   -- Stats reset
+   print(
+     template.gen("modal_confirm_dialog.html", {
+       dialog={
+         id      = "reset_host_stats_dialog",
+         action  = "$('#reset_host_stats_form').submit();",
+         title   = i18n("host_details.reset_host_stats"),
+         message = i18n("host_details.reset_host_stats_confirm", {host=host["name"]}) .. "<br><br>" .. i18n("host_details.reset_host_stats_note"),
+         confirm = i18n("reset"),
+       }
+     })
+   )
+   print[[<tr><th width=30% >]] print(i18n("host_details.reset_host_stats"))
+   print[[</th><td colspan=2><form id='reset_host_stats_form' method="POST">
+      <input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
+      <input name="action" type="hidden" value="reset_stats" />
+   </form>
+   <button class="btn btn-default" onclick="$('#reset_host_stats_dialog').modal('show')">]] print(i18n("host_details.reset_host_stats")) print[[</button>
+   </td></tr>]]
    
    if((host["info"] ~= nil) or (host["label"] ~= nil))then
       print("<tr><th>"..i18n("details.further_host_names_information").."</th><td colspan=2>")

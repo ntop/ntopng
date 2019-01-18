@@ -73,6 +73,8 @@ bool Vlan::idle() {
 void Vlan::lua(lua_State* vm, DetailsLevel details_level, bool asListElement) {
   lua_newtable(vm);
 
+  lua_push_uint64_table_entry(vm, "vlan", vlan_id);
+
   if(details_level >= details_high) {
     ((GenericTrafficElement*)this)->lua(vm, true);
 

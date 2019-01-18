@@ -31,6 +31,7 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6])
   source_mac = false, fingerprint = NULL, dhcpHost = false;
   bridge_seen_iface_id = 0, lockDeviceTypeChanges = false;
   device_type = device_unknown, os = os_unknown;
+  host_pool_id = NO_HOST_POOL_ID;
 #ifdef NTOPNG_PRO
   captive_portal_notified = 0;
 #endif

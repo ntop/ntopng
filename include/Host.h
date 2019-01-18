@@ -24,53 +24,24 @@
 
 #include "ntop_includes.h"
 
-class Host : public Checkpointable, public GenericHashEntry, public GenericTrafficElement {
+class Host : public GenericHashEntry {
  protected:
   IpAddress ip;
   Mac *mac;
-  char *asname;
-
-/*** BEGIN Host data ****/
-  /* Written by NetworkInterface::periodicStatsUpdate thread */
-  // NOTE: GenericTrafficElement inherited data is updated periodically too
-  TrafficStats tcp_sent, tcp_rcvd;
-  TrafficStats udp_sent, udp_rcvd;
-  TrafficStats icmp_sent, icmp_rcvd;
-  TrafficStats other_ip_sent, other_ip_rcvd;
-  u_int32_t total_activity_time /* sec */;
-  bool host_label_set;
-  char *info;
-#ifdef NTOPNG_PRO
-  HostPoolStats *quota_enforcement_stats, *quota_enforcement_stats_shadow;
-#endif
-
-  /* Written by NetworkInterface::processPacket thread */
-  PacketStats sent_stats, recv_stats;
+  char *asname, *info, *info_shadow;
+  bool stats_reset_requested, data_delete_requested, host_label_set;
+  u_int16_t vlan_id, host_pool_id;
+  HostStats *stats, *stats_shadow;
   char *ssdpLocation, *ssdpLocation_shadow;
-  struct {
-    u_int32_t pktRetr, pktOOO, pktLost, pktKeepAlive;
-  } tcpPacketStats; /* Sent packets */
-
-  /* Written by minute activity thread */
-  u_int64_t checkpoint_sent_bytes, checkpoint_rcvd_bytes;
-  bool checkpoint_set;
-
-  /* Written by multiple threads */
-#ifdef NTOPNG_PRO
-  bool has_blocking_quota, has_blocking_shaper;
-#endif
   char *symbolic_name; /* write protected by mutex */
-/*** END Host data ***/
 
   u_int32_t num_alerts_detected;
   AlertCounter *syn_flood_attacker_alert, *syn_flood_victim_alert;
   AlertCounter *flow_flood_attacker_alert, *flow_flood_victim_alert;
   bool trigger_host_alerts;
 
-  u_int32_t total_num_flows_as_client, total_num_flows_as_server;
   u_int32_t num_active_flows_as_client, num_active_flows_as_server;
   u_int32_t low_goodput_client_flows, low_goodput_server_flows;
-  u_int32_t last_epoch_update; /* useful to avoid multiple updates */
 
   u_int32_t asn;
   AutonomousSystem *as;
@@ -87,6 +58,7 @@ class Host : public Checkpointable, public GenericHashEntry, public GenericTraff
   FlowAlertCounter *flow_alert_counter;
 #ifdef NTOPNG_PRO
   TrafficShaper **host_traffic_shapers;
+  bool has_blocking_quota, has_blocking_shaper;
 #endif
   bool hidden_from_top;
 
@@ -108,12 +80,13 @@ class Host : public Checkpointable, public GenericHashEntry, public GenericTraff
   virtual bool isSystemHost() = 0;
   inline void setSystemHost()               { /* TODO: remove */ };
 
-  inline nDPIStats* get_ndpi_stats()       { return(ndpiStats);               };
+  inline nDPIStats* get_ndpi_stats()       { return(stats->getnDPIStats()); };
 
   virtual void set_to_purge() { /* Saves 1 extra-step of purge idle */
     iface->decNumHosts(isLocalHost());
     GenericHashEntry::set_to_purge();
   };
+  virtual void deleteHostData();
 
   inline bool isChildSafe() {
 #ifdef NTOPNG_PRO
@@ -131,23 +104,27 @@ class Host : public Checkpointable, public GenericHashEntry, public GenericTraff
 #endif
   };
 
-  virtual void updateStats(struct timeval *tv);
+  virtual HostStats* allocateStats()                { return(new HostStats(this)); };
+  void updateStats(struct timeval *tv);
   void incLowGoodputFlows(bool asClient);
   void decLowGoodputFlows(bool asClient);
+  inline u_int16_t get_host_pool()         { return(host_pool_id);   };
+  inline u_int16_t get_vlan_id()           { return(vlan_id);        };
 
-  inline void incRetransmittedPkts(u_int32_t num)   { tcpPacketStats.pktRetr += num;      };
-  inline void incOOOPkts(u_int32_t num)             { tcpPacketStats.pktOOO += num;       };
-  inline void incLostPkts(u_int32_t num)            { tcpPacketStats.pktLost += num;      };
-  inline void incKeepAlivePkts(u_int32_t num)       { tcpPacketStats.pktKeepAlive += num; };
+  inline void incRetransmittedPkts(u_int32_t num)   { stats->incRetransmittedPkts(num);      };
+  inline void incOOOPkts(u_int32_t num)             { stats->incOOOPkts(num);                };
+  inline void incLostPkts(u_int32_t num)            { stats->incLostPkts(num);               };
+  inline void incKeepAlivePkts(u_int32_t num)       { stats->incKeepAlivePkts(num);          };
+  inline void incSentStats(u_int pkt_len)           { stats->incSentStats(pkt_len);          };
+  inline void incRecvStats(u_int pkt_len)           { stats->incRecvStats(pkt_len);          };
+  
   virtual int16_t get_local_network_id() = 0;
-  inline PacketStats* get_sent_stats()              { return(&sent_stats);           };
-  inline PacketStats* get_recv_stats()              { return(&recv_stats);           };
   virtual HTTPstats* getHTTPstats()                  { return(NULL);                 };
   inline void set_ipv4(u_int32_t _ipv4)             { ip.set(_ipv4);                 };
   inline void set_ipv6(struct ndpi_in6_addr *_ipv6) { ip.set(_ipv6);                 };
   inline u_int32_t key()                            { return(ip.key());              };
   char* getJSON();
-  virtual void setOS(char *_os) {};
+  virtual void setOS(char *_os, bool ignoreIfPresent=true) {};
   inline IpAddress* get_ip()                   { return(&ip);              }
   void set_mac(Mac  *m);
   void set_mac(char *m);
@@ -161,24 +138,36 @@ class Host : public Checkpointable, public GenericHashEntry, public GenericTraff
 #ifdef NTOPNG_PRO
   inline TrafficShaper *get_ingress_shaper(ndpi_protocol ndpiProtocol) { return(get_shaper(ndpiProtocol, true)); }
   inline TrafficShaper *get_egress_shaper(ndpi_protocol ndpiProtocol)  { return(get_shaper(ndpiProtocol, false)); }
+  inline void resetQuotaStats()                                        { stats->resetQuotaStats(); }
   bool checkQuota(ndpi_protocol ndpiProtocol, L7PolicySource_t *quota_source, const struct tm *now);
+  inline bool hasBlockedTraffic() { return has_blocking_quota || has_blocking_shaper; };
+  inline void resetBlockedTrafficStatus(){ has_blocking_quota = has_blocking_shaper = false; };
+  void luaUsedQuotas(lua_State* vm);
+
   inline void incQuotaEnforcementStats(u_int32_t when, u_int16_t ndpi_proto,
 				       u_int64_t sent_packets, u_int64_t sent_bytes,
 				       u_int64_t rcvd_packets, u_int64_t rcvd_bytes) {
-    if(quota_enforcement_stats)
-      quota_enforcement_stats->incStats(when, ndpi_proto, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes);
-  };
+    stats->incQuotaEnforcementStats(when, ndpi_proto, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes);
+  }
+
   inline void incQuotaEnforcementCategoryStats(u_int32_t when,
 				       ndpi_protocol_category_t category_id,
 				       u_int64_t sent_bytes, u_int64_t rcvd_bytes) {
-    if(quota_enforcement_stats)
-      quota_enforcement_stats->incCategoryStats(when, category_id, sent_bytes, rcvd_bytes);
+    stats->incQuotaEnforcementCategoryStats(when, category_id, sent_bytes, rcvd_bytes);
   }
-  inline bool hasBlockedTraffic() { return has_blocking_quota || has_blocking_shaper; };
-  inline void resetBlockedTrafficStatus(){ has_blocking_quota = has_blocking_shaper = false; };
-  inline void resetQuotaStats() { if(quota_enforcement_stats) quota_enforcement_stats->resetStats(); }
-  void luaUsedQuotas(lua_State* vm);
 #endif
+
+  inline u_int64_t getNumBytesSent()           { return(stats->getNumBytesSent());   }
+  inline u_int64_t getNumBytesRcvd()           { return(stats->getNumBytesRcvd());   }
+  inline u_int64_t getNumDroppedFlows()        { return(stats->getNumDroppedFlows());}
+  inline u_int64_t getNumBytes()               { return(stats->getNumBytes());}
+  inline bool checkpoint(lua_State* vm, NetworkInterface *iface,
+					      u_int8_t checkpoint_id,
+					      DetailsLevel details_level)    { return(stats->checkpoint(vm, iface, checkpoint_id, details_level)); }
+  inline float getThptTrendDiff()              { return(stats->getThptTrendDiff());  }
+  inline float getBytesThpt()                  { return(stats->getBytesThpt());      }
+  inline float getPacketsThpt()                { return(stats->getPacketsThpt());    }
+  inline void incNumDroppedFlows()             { stats->incNumDroppedFlows();        }
 
   inline u_int32_t get_asn()                   { return(asn);              }
   inline char*     get_asname()                { return(asname);           }
@@ -215,10 +204,10 @@ class Host : public Checkpointable, public GenericHashEntry, public GenericTraff
     if(as) as->updateRoundTripTime(rtt_msecs);
   }
 
-  virtual void incNumFlows(bool as_client, Host *peer);
-  virtual void decNumFlows(bool as_client, Host *peer);
+  void incNumFlows(bool as_client, Host *peer);
+  void decNumFlows(bool as_client, Host *peer);
 
-  inline void incFlagStats(bool as_client, u_int8_t flags)  { if (as_client) sent_stats.incFlagStats(flags); else recv_stats.incFlagStats(flags); };
+  inline void incFlagStats(bool as_client, u_int8_t flags)  { stats->incFlagStats(as_client, flags); };
   virtual void incNumDNSQueriesSent(u_int16_t query_type) { };
   virtual void incNumDNSQueriesRcvd(u_int16_t query_type) { };
   virtual void incNumDNSResponsesSent(u_int32_t ret_code) { };
@@ -228,16 +217,17 @@ class Host : public Checkpointable, public GenericHashEntry, public GenericTraff
   virtual NetworkStats* getNetworkStats(int16_t networkId) { return(NULL);   };
   inline Country* getCountryStats()                        { return country; };
 
-  virtual void updateHTTPHostRequest(char *virtual_host_name, u_int32_t num_req, u_int32_t bytes_sent, u_int32_t bytes_rcvd) {};
-
   bool match(AddressTree *tree) { return(get_ip() ? get_ip()->match(tree) : false); };
   void updateHostPool(bool isInlineCall, bool firstUpdate=false);
   virtual bool dropAllTraffic()  { return(false); };
   bool incFlowAlertHits(time_t when);
   virtual bool setRemoteToRemoteAlerts() { return(false); };
-  bool serializeCheckpoint(json_object *my_object, DetailsLevel details_level);
-  void checkPointHostTalker(lua_State *vm, bool saveCheckpoint);
-  inline void setInfo(char *s) { if(info) free(info); info = strdup(s); }
+  inline void checkPointHostTalker(lua_State *vm, bool saveCheckpoint) { stats->checkPointHostTalker(vm, saveCheckpoint); }
+  inline void setInfo(char *s) {
+    if(info_shadow) free(info_shadow);
+    info_shadow = info;
+    info = s ? strdup(s) : NULL;
+  }
   inline char* getInfo(char *buf, uint buf_len) { return get_visual_name(buf, buf_len, true); }
   virtual void incrVisitedWebSite(char *hostname) {};
   virtual u_int32_t getActiveHTTPHosts()  { return(0); };
@@ -252,10 +242,13 @@ class Host : public Checkpointable, public GenericHashEntry, public GenericTraff
   inline u_int16_t getVlanId() { return (vlan ? vlan->get_vlan_id() : 0); }
   inline void reloadHideFromTop() { hidden_from_top = iface->isHiddenFromTop(this); }
   inline bool isHiddenFromTop() { return hidden_from_top; }
-  inline bool isOneWayTraffic() { return !(rcvd.getNumBytes() > 0 && sent.getNumBytes() > 0); };
+  inline bool isOneWayTraffic() { return !(stats->getRecvBytes() > 0 && stats->getSentBytes() > 0); };
   virtual void tsLua(lua_State* vm) { lua_pushnil(vm); };
   DeviceProtoStatus getDeviceAllowedProtocolStatus(ndpi_protocol proto, bool as_client);
 
+  inline void requestStatsReset()                        { stats_reset_requested = true; };
+  inline void requestDataReset()                         { data_delete_requested = true; requestStatsReset(); };
+  void checkDataReset();
   bool hasAnomalies();
   void luaAnomalies(lua_State* vm);
   void loadAlertsCounter();
@@ -265,11 +258,9 @@ class Host : public Checkpointable, public GenericHashEntry, public GenericTraff
   void setNumAlerts(u_int32_t num)                       { num_alerts_detected = num; };
 
   inline void setSSDPLocation(char *url) {
-     if(url) {
-	if(ssdpLocation_shadow) free(ssdpLocation_shadow);
-	ssdpLocation_shadow = ssdpLocation;
-	ssdpLocation = strdup(url);
-     }
+    if(ssdpLocation_shadow) free(ssdpLocation_shadow);
+    ssdpLocation_shadow = ssdpLocation;
+    ssdpLocation = url ? strdup(url) : NULL;
   }
 };
 

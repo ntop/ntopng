@@ -27,6 +27,7 @@
 class Mac : public GenericHashEntry, public GenericTrafficElement {
  private:
   u_int8_t mac[6];
+  u_int16_t host_pool_id;
   u_int32_t bridge_seen_iface_id; /* != 0 for bridge interfaces only */
   char *fingerprint;
   const char *manuf, *model, *ssid;
@@ -138,6 +139,7 @@ class Mac : public GenericHashEntry, public GenericTrafficElement {
   inline char* getModel() { return((char*)model); }
   void setSSID(char* s);
   inline char* getSSID()  { return((char*)ssid);  }
+  inline u_int16_t get_host_pool() { return(host_pool_id); }
 };
 
 #endif /* _MAC_H_ */
