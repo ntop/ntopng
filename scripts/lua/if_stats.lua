@@ -29,10 +29,6 @@ local ts_utils = require "ts_utils"
 local recording_utils = require "recording_utils"
 local storage_utils = require "storage_utils"
 
-
-package.path = dirs.installdir .. "/scripts/lua/modules/test/?.lua;" .. package.path
-require "test_ping_req_reply"
-
 local have_nedge = ntop.isnEdge()
 
 if ntop.isPro() then
