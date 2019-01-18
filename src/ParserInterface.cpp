@@ -972,6 +972,9 @@ void ParserInterface::parseSingleFlow(json_object *o,
     json_object_iter_next(&it);
   } // while json_object_iter_equal
 
+  if(flow.core.vlan_id && ntop->getPrefs()->do_ignore_vlans())
+    flow.core.vlan_id = 0;
+
   /* Handle zero IPv4/IPv6 discrepacies */
   if(flow_ip_version == 0) {
     if(flow.core.src_ip.getVersion() != flow.core.dst_ip.getVersion()) {
