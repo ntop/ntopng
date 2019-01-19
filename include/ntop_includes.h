@@ -314,6 +314,7 @@ using namespace std;
 #include "Vlan.h"
 #include "AutonomousSystem.h"
 #include "Country.h"
+#include "MacStats.h"
 #include "Mac.h"
 #include "HostStats.h"
 #include "LocalHostStats.h"

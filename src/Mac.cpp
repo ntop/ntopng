@@ -24,9 +24,8 @@
 /* *************************************** */
 
 Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6])
-  : GenericHashEntry(_iface), GenericTrafficElement() {
+  : GenericHashEntry(_iface) {
   memcpy(mac, _mac, 6);
-  memset(&arp_stats, 0, sizeof(arp_stats));
   special_mac = Utils::isSpecialMac(mac);
   source_mac = false, fingerprint = NULL, dhcpHost = false;
   bridge_seen_iface_id = 0, lockDeviceTypeChanges = false;
@@ -35,7 +34,11 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6])
 #ifdef NTOPNG_PRO
   captive_portal_notified = 0;
 #endif
-  ndpiStats = NULL, model = NULL, ssid = NULL;
+  model = NULL, ssid = NULL;
+  model_shadow = ssid_shadow = fingerprint_shadow = NULL;
+  stats_reset_requested = data_delete_requested = false;
+  stats = new MacStats(_iface);
+  stats_shadow = NULL;
 
   char redis_key[64], buf1[64], rsp[8];
   char *mac_ptr = Utils::formatMac(mac, buf1, sizeof(buf1));
@@ -103,11 +106,17 @@ Mac::~Mac() {
 
   if(!special_mac) {
     char key[64], buf1[64];
-    char *json = serialize();
 
     snprintf(key, sizeof(key), MAC_SERIALIZED_KEY, iface->get_id(), Utils::formatMac(mac, buf1, sizeof(buf1)));
-    ntop->getRedis()->set(key, json, ntop->getPrefs()->get_local_host_cache_duration());
-    free(json);
+
+    if(data_delete_requested) {
+      ntop->getTrace()->traceEvent(TRACE_INFO, "Delete serialization %s", key);
+      ntop->getRedis()->del(key);
+    } else {
+      char *json = serialize();
+      ntop->getRedis()->set(key, json, ntop->getPrefs()->get_local_host_cache_duration());
+      free(json);
+    }
   }
 
   /* Pool counters are updated both in and outside the datapath.
@@ -132,15 +141,13 @@ Mac::~Mac() {
 #endif
 
   if(model) free((void*)model);
+  if(model_shadow) free((void*)model_shadow);
   if(ssid) free((void*)ssid);
-  
-  if(ndpiStats) {
-    delete ndpiStats;
-    ndpiStats = NULL;
-  }
-
-  if(fingerprint)
-    free(fingerprint);
+  if(ssid_shadow) free((void*)ssid_shadow);
+  if(fingerprint) free(fingerprint);
+  if(fingerprint_shadow) free(fingerprint_shadow);
+  if(stats) delete(stats);
+  if(stats_shadow) delete(stats_shadow);
 
 #ifdef DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deleted %s [total %u][%s]",
@@ -199,21 +206,15 @@ void Mac::lua(lua_State* vm, bool show_details, bool asListElement) {
     if(manuf)
       lua_push_str_table_entry(vm, "manufacturer", (char*)manuf);
 
-    lua_push_uint64_table_entry(vm, "arp_requests.sent", arp_stats.sent_requests);
-    lua_push_uint64_table_entry(vm, "arp_requests.rcvd", arp_stats.rcvd_requests);
-    lua_push_uint64_table_entry(vm, "arp_replies.sent", arp_stats.sent_replies);
-    lua_push_uint64_table_entry(vm, "arp_replies.rcvd", arp_stats.rcvd_replies);
-
     lua_push_bool_table_entry(vm, "source_mac", source_mac);
     lua_push_bool_table_entry(vm, "special_mac", special_mac);
     lua_push_str_table_entry(vm, "location", (char *) location2str(locate()));
     lua_push_uint64_table_entry(vm, "devtype", device_type);
     if(model) lua_push_str_table_entry(vm, "model", (char*)model);
     if(ssid) lua_push_str_table_entry(vm, "ssid", (char*)ssid);
-    if(ndpiStats) ndpiStats->lua(iface, vm, true);
   }
 
-  ((GenericTrafficElement*)this)->lua(vm, true);
+  stats->lua(vm, show_details);
 
   lua_push_bool_table_entry(vm, "dhcpHost", dhcpHost);
   lua_push_str_table_entry(vm, "fingerprint", fingerprint ? fingerprint : (char*)"");
@@ -289,8 +290,8 @@ void Mac::deserialize(char *key, char *json_str) {
   if(json_object_object_get_ex(o, "fingerprint", &obj)) setFingerprint((char*)json_object_get_string(obj));
   if(json_object_object_get_ex(o, "operatingSystem", &obj)) setOperatingSystem((OperatingSystem)json_object_get_int(obj));
   if(json_object_object_get_ex(o, "dhcpHost", &obj))    dhcpHost = json_object_get_boolean(obj);
-  if(ndpiStats && json_object_object_get_ex(o, "ndpiStats", &obj)) ndpiStats->deserialize(iface, obj);
-  if(json_object_object_get_ex(o, "flows.dropped", &obj)) total_num_dropped_flows = json_object_get_int(obj);
+
+  stats->deserialize(o);
 
   json_object_put(o);
 }
@@ -312,8 +313,9 @@ json_object* Mac::getJSONObject() {
   json_object_object_add(my_object, "dhcpHost", json_object_new_boolean(dhcpHost));
   json_object_object_add(my_object, "operatingSystem", json_object_new_int(os));
   if(fingerprint) json_object_object_add(my_object, "fingerprint", json_object_new_string(fingerprint));
-  if(ndpiStats) json_object_object_add(my_object, "ndpiStats", ndpiStats->getJSONObject(iface));
-  if(total_num_dropped_flows) json_object_object_add(my_object, "flows.dropped", json_object_new_int(total_num_dropped_flows));
+
+  if(!stats_reset_requested)
+    stats->getJSONObject(my_object);
 
   return my_object;
 }
@@ -461,7 +463,8 @@ void Mac::checkDeviceTypeFromManufacturer() {
 /* *************************************** */
 
 void Mac::setModel(char* m) {
-  if(model) free((void*)model);
+  if(model_shadow) free((void*)model_shadow);
+  model_shadow = model;
   model = strdup(m);
 
   if(strstr(model, "AppleTV") != NULL) setDeviceType(device_multimedia);
@@ -474,7 +477,47 @@ void Mac::setModel(char* m) {
 /* *************************************** */
 
 void Mac::setSSID(char* s) {
-  if(ssid) free((void*)ssid);
+  if(ssid_shadow) free((void*)ssid_shadow);
+  ssid_shadow = ssid;
   ssid = strdup(s);
+
   setDeviceType(device_wifi);
+}
+
+/* *************************************** */
+
+void Mac::checkDataReset() {
+  if(data_delete_requested) {
+    deleteMacData();
+    data_delete_requested = false;
+  }
+}
+
+/* *************************************** */
+
+void Mac::updateStats(struct timeval *tv) {
+  if(stats_reset_requested) {
+    MacStats *new_stats = new MacStats(iface);
+    stats_shadow = stats;
+    stats = new_stats;
+
+    stats_reset_requested = false;
+  }
+
+  stats->updateStats(tv);
+}
+
+/* *************************************** */
+
+void Mac::deleteMacData() {
+  setFingerprint((char *)"");
+  setModel((char *)"");
+  setSSID((char *)"");
+  os = os_unknown;
+  source_mac = dhcpHost = false;
+  device_type = device_unknown; /* note: put after setSSID, otherwise will be overwritten */
+#ifdef NTOPNG_PRO
+  captive_portal_notified = false;
+#endif
+  first_seen = last_seen;
 }

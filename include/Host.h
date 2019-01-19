@@ -28,12 +28,17 @@ class Host : public GenericHashEntry {
  protected:
   IpAddress ip;
   Mac *mac;
-  char *asname, *info, *info_shadow;
-  bool stats_reset_requested, data_delete_requested, host_label_set;
+  char *asname;
+  bool stats_reset_requested, data_delete_requested;
   u_int16_t vlan_id, host_pool_id;
   HostStats *stats, *stats_shadow;
-  char *ssdpLocation, *ssdpLocation_shadow;
+
+  /* Host data: update Host::deleteHostData when adding new fields */
   char *symbolic_name; /* write protected by mutex */
+  char *info, *info_shadow;
+  char *ssdpLocation, *ssdpLocation_shadow;
+  bool host_label_set;
+  /* END Host data: */
 
   u_int32_t num_alerts_detected;
   AlertCounter *syn_flood_attacker_alert, *syn_flood_victim_alert;
@@ -70,6 +75,7 @@ class Host : public GenericHashEntry {
 #endif
 
   char* printMask(char *str, u_int str_len) { return ip.printMask(str, str_len, isLocalHost()); };
+  virtual void deleteHostData();
  public:
   Host(NetworkInterface *_iface, char *ipAddress, u_int16_t _vlanId);
   Host(NetworkInterface *_iface, Mac *_mac, u_int16_t _vlanId, IpAddress *_ip);
@@ -86,7 +92,6 @@ class Host : public GenericHashEntry {
     iface->decNumHosts(isLocalHost());
     GenericHashEntry::set_to_purge();
   };
-  virtual void deleteHostData();
 
   inline bool isChildSafe() {
 #ifdef NTOPNG_PRO

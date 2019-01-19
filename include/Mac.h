@@ -24,21 +24,30 @@
 
 #include "ntop_includes.h"
 
-class Mac : public GenericHashEntry, public GenericTrafficElement {
+class Mac : public GenericHashEntry {
  private:
   u_int8_t mac[6];
   u_int16_t host_pool_id;
   u_int32_t bridge_seen_iface_id; /* != 0 for bridge interfaces only */
-  char *fingerprint;
-  const char *manuf, *model, *ssid;
+  bool special_mac, lockDeviceTypeChanges;
+  bool stats_reset_requested, data_delete_requested;
+  const char *manuf;
+  MacStats *stats, *stats_shadow;
+
+  /* Mac data: update Mac::deleteMacData when adding new fields */
+  char *fingerprint, *fingerprint_shadow;
+  const char *model, *model_shadow;
+  const char *ssid, *ssid_shadow;
   OperatingSystem os;
-  bool source_mac, special_mac, dhcpHost, lockDeviceTypeChanges;
-  ArpStats arp_stats;
+  bool source_mac, dhcpHost;
   DeviceType device_type;
 #ifdef NTOPNG_PRO
   time_t captive_portal_notified;
 #endif
+  /* END Mac data: */
+
   void checkDeviceTypeFromManufacturer();
+  void deleteMacData();
 
  public:
   Mac(NetworkInterface *_iface, u_int8_t _mac[6]);
@@ -72,30 +81,7 @@ class Mac : public GenericHashEntry, public GenericTrafficElement {
   bool isNull() const;
 
   bool equal(const u_int8_t _mac[6]);
-  inline void incSentStats(u_int64_t num_pkts, u_int64_t num_bytes)  {
-    sent.incStats(num_pkts, num_bytes);
-    if(first_seen == 0) first_seen = iface->getTimeLastPktRcvd();
-    last_seen = iface->getTimeLastPktRcvd();
-  }
-  inline void incRcvdStats(u_int64_t num_pkts, u_int64_t num_bytes) {
-    rcvd.incStats(num_pkts, num_bytes);
-  }
-  inline void incnDPIStats(u_int32_t when, u_int16_t protocol,
-	    u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
-	    u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes) {
-    if(ndpiStats || (ndpiStats = new nDPIStats())) {
-      //ndpiStats->incStats(when, protocol.master_proto, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes);
-      //ndpiStats->incStats(when, protocol.app_proto, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes);
-      ndpiStats->incCategoryStats(when,
-				  getInterface()->get_ndpi_proto_category(protocol),
-				  sent_bytes, rcvd_bytes);
-    }
-  }
 
-  inline void incSentArpRequests()   { arp_stats.sent_requests++;         }
-  inline void incSentArpReplies()    { arp_stats.sent_replies++;          }
-  inline void incRcvdArpRequests()   { arp_stats.rcvd_requests++;         }
-  inline void incRcvdArpReplies()    { arp_stats.rcvd_replies++;          }
 #ifdef NTOPNG_PRO
   inline time_t getNotifiedTime()    { return captive_portal_notified;       };
   inline void   setNotifiedTime()    { captive_portal_notified = time(NULL); };
@@ -118,8 +104,6 @@ class Mac : public GenericHashEntry, public GenericTrafficElement {
     if(!lockDeviceTypeChanges) lockDeviceTypeChanges = true;
   }
   inline DeviceType getDeviceType()        { return (device_type); }
-  inline u_int64_t  getNumSentArp()   { return (u_int64_t)arp_stats.sent_requests + arp_stats.sent_replies; }
-  inline u_int64_t  getNumRcvdArp()   { return (u_int64_t)arp_stats.rcvd_requests + arp_stats.rcvd_replies; }
 
   bool idle();
   void lua(lua_State* vm, bool show_details, bool asListElement);
@@ -134,12 +118,47 @@ class Mac : public GenericHashEntry, public GenericTrafficElement {
   inline void setOperatingSystem(OperatingSystem _os) { os = _os;   }
   inline OperatingSystem getOperatingSystem()         { return(os); }
   inline char* getFingerprint()                       { return(fingerprint); }
-  inline void setFingerprint(char *f) { if(f) { if(fingerprint) free(fingerprint); fingerprint = strdup(f); updateFingerprint(); } }
+  inline void setFingerprint(char *f) {
+    if(f) {
+      if(fingerprint_shadow) free(fingerprint_shadow);
+      fingerprint_shadow = fingerprint;
+      fingerprint = strdup(f); updateFingerprint();
+    }
+  }
   void setModel(char* m);
   inline char* getModel() { return((char*)model); }
   void setSSID(char* s);
   inline char* getSSID()  { return((char*)ssid);  }
   inline u_int16_t get_host_pool() { return(host_pool_id); }
+
+  inline void requestStatsReset()                        { stats_reset_requested = true; };
+  inline void requestDataReset()                         { data_delete_requested = true; requestStatsReset(); };
+  void checkDataReset();
+
+  inline void incSentStats(u_int64_t num_pkts, u_int64_t num_bytes)  {
+    if(first_seen == 0) first_seen = iface->getTimeLastPktRcvd();
+    stats->incSentStats(num_pkts, num_bytes);
+    last_seen = iface->getTimeLastPktRcvd();
+  }
+  inline void incnDPIStats(u_int32_t when, u_int16_t protocol,
+	    u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
+	    u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes) {
+    stats->incnDPIStats(when, protocol, sent_packets, sent_bytes, sent_goodput_bytes,
+      rcvd_packets, rcvd_bytes, rcvd_goodput_bytes);
+  }
+  inline void incRcvdStats(u_int64_t num_pkts, u_int64_t num_bytes)  { stats->incRcvdStats(num_pkts, num_bytes); }
+
+  inline u_int64_t  getNumSentArp()  { return(stats->getNumSentArp());      }
+  inline u_int64_t  getNumRcvdArp()  { return(stats->getNumRcvdArp());      }
+  inline void incNumDroppedFlows()   { stats->incNumDroppedFlows(); }
+  inline void incSentArpRequests()   { stats->incSentArpRequests(); }
+  inline void incSentArpReplies()    { stats->incSentArpReplies();  }
+  inline void incRcvdArpRequests()   { stats->incRcvdArpRequests(); }
+  inline void incRcvdArpReplies()    { stats->incRcvdArpReplies();  }
+  void updateStats(struct timeval *tv);
+  inline u_int64_t getNumBytes()              { return(stats->getNumBytes());      }
+  inline float getThptTrendDiff()             { return(stats->getThptTrendDiff()); }
+  inline float getBytesThpt()                 { return(stats->getBytesThpt());     }
 };
 
 #endif /* _MAC_H_ */

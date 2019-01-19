@@ -6351,6 +6351,35 @@ bool NetworkInterface::getMacInfo(lua_State* vm, char *mac) {
 
 /* **************************************** */
 
+bool NetworkInterface::resetMacStats(lua_State* vm, char *mac, bool delete_data) {
+  struct mac_find_info info;
+  bool ret;
+  u_int32_t begin_slot = 0;
+  bool walk_all = true;
+
+  memset(&info, 0, sizeof(info));
+  Utils::parseMac(info.mac, mac);
+
+  disablePurge(false);
+
+  walker(&begin_slot, walk_all,  walker_macs, find_mac_by_name, (void*)&info);
+
+  if(info.m) {
+    if(delete_data)
+      info.m->requestDataReset();
+    else
+      info.m->requestStatsReset();
+    ret = true;
+  } else
+    ret = false;
+
+  enablePurge(false);
+
+  return ret;
+}
+
+/* **************************************** */
+
 bool NetworkInterface::setMacOperatingSystem(lua_State* vm, char *strmac, OperatingSystem os) {
   u_int8_t mac[6];
   Mac *m;

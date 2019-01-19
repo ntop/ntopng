@@ -1139,6 +1139,9 @@ void Host::checkDataReset() {
     deleteHostData();
     data_delete_requested = false;
   }
+
+  if(mac)
+    mac->checkDataReset();
 }
 
 /* *************************************** */

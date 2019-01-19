@@ -82,6 +82,7 @@ local function delete_host_redis_keys(interface_id, host_info)
       if devnames_k   then ntop.delCache(devnames_k) end
       if devtypes_k   then ntop.delCache(devtypes_k) end
       if dns_k        then ntop.delCache(dns_k) end
+      ntop.delHashCache("ntopng.host_labels", hostkey)
    end
 
    return {status = status}
@@ -117,9 +118,15 @@ end
 
 local function _delete_host(interface_id, host_info)
    local old_ifname = interface.getStats().name
+   local is_mac = isMacAddress(host_info["host"])
    interface.select(getInterfaceName(interface_id))
 
-   interface.deleteHostData(hostinfo2hostkey(host_info))
+   if is_mac then
+      interface.deleteMacData(host_info["host"])
+   else
+      interface.deleteHostData(hostinfo2hostkey(host_info))
+   end
+
    local h_ts = delete_host_timeseries_data(interface_id, host_info)
    local h_rk = delete_host_redis_keys(interface_id, host_info)
    local h_db = delete_host_mysql_flows(interface_id, host_info)
