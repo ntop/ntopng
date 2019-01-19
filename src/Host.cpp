@@ -677,6 +677,7 @@ char* Host::serialize() {
 
   return(rsp);
 }
+
 /* *************************************** */
 
 json_object* Host::getJSONObject(DetailsLevel details_level) {
@@ -686,7 +687,8 @@ json_object* Host::getJSONObject(DetailsLevel details_level) {
 
   if((my_object = json_object_new_object()) == NULL) return(NULL);
 
-  stats->getJSONObject(my_object, details_level);
+  if(!stats_reset_requested)
+    stats->getJSONObject(my_object, details_level);
 
   json_object_object_add(my_object, "ip", ip.getJSONObject());
   if(vlan_id != 0)        json_object_object_add(my_object, "vlan_id",   json_object_new_int(vlan_id));

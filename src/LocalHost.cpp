@@ -40,8 +40,7 @@ LocalHost::LocalHost(NetworkInterface *_iface, char *ipAddress, u_int16_t _vlanI
 /* *************************************** */
 
 LocalHost::~LocalHost() {
-  if(!data_delete_requested && !stats_reset_requested)
-    serialize2redis(); /* possibly dumps counters and data to redis */
+  serialize2redis(); /* possibly dumps counters and data to redis */
 
   if(os)              free(os);
   if(os_shadow)       free(os_shadow);
@@ -145,14 +144,18 @@ bool LocalHost::readDHCPCache() {
 /* *************************************** */
 
 void LocalHost::serialize2redis() {
-  if((ntop->getPrefs()->is_idle_local_host_cache_enabled()
+  char host_key[128], key[128];
+  char *k = ip.print(host_key, sizeof(host_key));
+  snprintf(key, sizeof(key), HOST_SERIALIZED_KEY, iface->get_id(), k, vlan_id);
+
+  if(data_delete_requested) {
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Delete serialization %s", k);
+    ntop->getRedis()->del(key);
+  } else if((ntop->getPrefs()->is_idle_local_host_cache_enabled()
       || ntop->getPrefs()->is_active_local_host_cache_enabled())
      && (!ip.isEmpty())) {
     char *json = serialize();
-    char host_key[128], key[128];
-    char *k = ip.print(host_key, sizeof(host_key));
 
-    snprintf(key, sizeof(key), HOST_SERIALIZED_KEY, iface->get_id(), k, vlan_id);
     ntop->getRedis()->set(key, json, ntop->getPrefs()->get_local_host_cache_duration());
     ntop->getTrace()->traceEvent(TRACE_INFO, "Dumping serialization %s", k);
     //ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s => %s", k, json);
