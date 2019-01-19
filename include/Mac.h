@@ -33,6 +33,7 @@ class Mac : public GenericHashEntry {
   bool stats_reset_requested, data_delete_requested;
   const char *manuf;
   MacStats *stats, *stats_shadow;
+  time_t last_stats_reset;
 
   /* Mac data: update Mac::deleteMacData when adding new fields */
   char *fingerprint, *fingerprint_shadow;
@@ -48,6 +49,8 @@ class Mac : public GenericHashEntry {
 
   void checkDeviceTypeFromManufacturer();
   void deleteMacData();
+  bool statsResetRequested();
+  void checkStatsReset();
 
  public:
   Mac(NetworkInterface *_iface, u_int8_t _mac[6]);

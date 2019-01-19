@@ -32,6 +32,7 @@ class Host : public GenericHashEntry {
   bool stats_reset_requested, data_delete_requested;
   u_int16_t vlan_id, host_pool_id;
   HostStats *stats, *stats_shadow;
+  time_t last_stats_reset;
 
   /* Host data: update Host::deleteHostData when adding new fields */
   char *symbolic_name; /* write protected by mutex */
@@ -68,6 +69,8 @@ class Host : public GenericHashEntry {
   bool hidden_from_top;
 
   void initialize(Mac *_mac, u_int16_t _vlan_id, bool init_all);
+  bool statsResetRequested();
+  void checkStatsReset();
   virtual bool readDHCPCache() { return false; };
 #ifdef NTOPNG_PRO
   TrafficShaper *get_shaper(ndpi_protocol ndpiProtocol, bool isIngress);

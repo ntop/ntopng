@@ -5911,6 +5911,17 @@ static int ntop_interface_exec_single_sql_query(lua_State *vm) {
 
 /* ****************************************** */
 
+static int ntop_reset_stats(lua_State* vm) {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  ntop->resetStats();
+
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 // ***API***
 static int ntop_get_dirs(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
@@ -8245,6 +8256,7 @@ static const luaL_Reg ntop_reg[] = {
   { "hasRadiusSupport", ntop_has_radius_support },
   { "hasLdapSupport",   ntop_has_ldap_support },
   { "execSingleSQLQuery", ntop_interface_exec_single_sql_query },
+  { "resetStats",       ntop_reset_stats },
 
   /* Redis */
   { "getCache",          ntop_get_redis },

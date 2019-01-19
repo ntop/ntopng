@@ -114,7 +114,10 @@ local menu_subpages = {
       description = i18n("prefs.toggle_dst_with_post_nat_dst_description"),
     },
   }}, {id="in_memory",     label=i18n("prefs.cache_settings"),             advanced=true,  pro_only=false,  hidden=false, entries={
-    local_host_max_idle = {
+    toggle_midnight_stats_reset = {
+      title       = i18n("prefs.toggle_midnight_stats_reset_title"),
+      description = i18n("prefs.toggle_midnight_stats_reset_description"),
+    }, local_host_max_idle = {
       title       = i18n("prefs.local_host_max_idle_title"),
       description = i18n("prefs.local_host_max_idle_description"),
     }, non_local_host_max_idle = {

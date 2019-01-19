@@ -39,6 +39,7 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6])
   stats_reset_requested = data_delete_requested = false;
   stats = new MacStats(_iface);
   stats_shadow = NULL;
+  last_stats_reset = ntop->getLastStatsReset(); /* assume fresh stats, may be changed by deserialize */
 
   char redis_key[64], buf1[64], rsp[8];
   char *mac_ptr = Utils::formatMac(mac, buf1, sizeof(buf1));
@@ -284,6 +285,7 @@ void Mac::deserialize(char *key, char *json_str) {
 
   if(json_object_object_get_ex(o, "seen.first", &obj))  first_seen = json_object_get_int64(obj);
   if(json_object_object_get_ex(o, "seen.last", &obj))   last_seen = json_object_get_int64(obj);
+  if(json_object_object_get_ex(o, "last_stats_reset", &obj)) last_stats_reset = json_object_get_int64(obj);
   if(json_object_object_get_ex(o, "devtype", &obj))     device_type = (DeviceType)json_object_get_int(obj);
   if(json_object_object_get_ex(o, "model", &obj))       setModel((char*)json_object_get_string(obj));
   if(json_object_object_get_ex(o, "ssid", &obj))        setSSID((char*)json_object_get_string(obj));
@@ -294,6 +296,13 @@ void Mac::deserialize(char *key, char *json_str) {
   stats->deserialize(o);
 
   json_object_put(o);
+  checkStatsReset();
+}
+
+/* *************************************** */
+
+bool Mac::statsResetRequested() {
+  return(stats_reset_requested || (last_stats_reset < ntop->getLastStatsReset()));
 }
 
 /* *************************************** */
@@ -307,6 +316,7 @@ json_object* Mac::getJSONObject() {
   json_object_object_add(my_object, "mac", json_object_new_string(Utils::formatMac(get_mac(), buf, sizeof(buf))));
   json_object_object_add(my_object, "seen.first", json_object_new_int64(first_seen));
   json_object_object_add(my_object, "seen.last",  json_object_new_int64(last_seen));
+  json_object_object_add(my_object, "last_stats_reset",  json_object_new_int64(last_stats_reset));
   json_object_object_add(my_object, "devtype", json_object_new_int(device_type));
   if(model) json_object_object_add(my_object, "model", json_object_new_string(model));
   if(ssid) json_object_object_add(my_object, "ssid", json_object_new_string(ssid));
@@ -314,7 +324,7 @@ json_object* Mac::getJSONObject() {
   json_object_object_add(my_object, "operatingSystem", json_object_new_int(os));
   if(fingerprint) json_object_object_add(my_object, "fingerprint", json_object_new_string(fingerprint));
 
-  if(!stats_reset_requested)
+  if(!statsResetRequested())
     stats->getJSONObject(my_object);
 
   return my_object;
@@ -495,15 +505,20 @@ void Mac::checkDataReset() {
 
 /* *************************************** */
 
-void Mac::updateStats(struct timeval *tv) {
-  if(stats_reset_requested) {
+void Mac::checkStatsReset() {
+  if(statsResetRequested()) {
     MacStats *new_stats = new MacStats(iface);
     stats_shadow = stats;
     stats = new_stats;
-
+    last_stats_reset = ntop->getLastStatsReset();
     stats_reset_requested = false;
   }
+}
 
+/* *************************************** */
+
+void Mac::updateStats(struct timeval *tv) {
+  checkStatsReset();
   stats->updateStats(tv);
 }
 

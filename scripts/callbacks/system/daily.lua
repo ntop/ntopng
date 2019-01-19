@@ -22,3 +22,8 @@ harvestJSONTopTalkers(30)
 
 lists_utils.reloadLists()
 auth_sessions_utils.midnightCheck()
+
+if ntop.getPref("ntopng.prefs.midnight_stats_reset_enabled") == "1" then
+   -- Reset host/mac statistics
+   ntop.resetStats()
+end

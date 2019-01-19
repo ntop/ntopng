@@ -135,6 +135,7 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   stats = NULL; /* it will be instantiated by specialized classes */
   stats_shadow = NULL;
   data_delete_requested = false, stats_reset_requested = false;
+  last_stats_reset = ntop->getLastStatsReset(); /* assume fresh stats, may be changed by deserialize */
 
   // readStats(); - Commented as if put here it's too early and the key is not yet set
 
@@ -687,7 +688,7 @@ json_object* Host::getJSONObject(DetailsLevel details_level) {
 
   if((my_object = json_object_new_object()) == NULL) return(NULL);
 
-  if(!stats_reset_requested)
+  if(!statsResetRequested())
     stats->getJSONObject(my_object, details_level);
 
   json_object_object_add(my_object, "ip", ip.getJSONObject());
@@ -698,6 +699,7 @@ json_object* Host::getJSONObject(DetailsLevel details_level) {
   if(details_level >= details_high) {
     json_object_object_add(my_object, "seen.first", json_object_new_int64(first_seen));
     json_object_object_add(my_object, "seen.last",  json_object_new_int64(last_seen));
+    json_object_object_add(my_object, "last_stats_reset", json_object_new_int64(last_stats_reset));
     json_object_object_add(my_object, "asn", json_object_new_int(asn));
     if(symbolic_name)       json_object_object_add(my_object, "symbolic_name", json_object_new_string(symbolic_name));
     if(asname)              json_object_object_add(my_object, "asname",    json_object_new_string(asname ? asname : (char*)""));
@@ -1109,13 +1111,26 @@ DeviceProtoStatus Host::getDeviceAllowedProtocolStatus(ndpi_protocol proto, bool
 
 /* *************************************** */
 
+bool Host::statsResetRequested() {
+  return(stats_reset_requested || (last_stats_reset < ntop->getLastStatsReset()));
+}
+
+/* *************************************** */
+
 void Host::updateStats(struct timeval *tv) {
   if(stats_shadow) {
     delete stats_shadow;
     stats_shadow = NULL;
   }
 
-  if(stats_reset_requested) {
+  checkStatsReset();
+  stats->updateStats(tv);
+}
+
+/* *************************************** */
+
+void Host::checkStatsReset() {
+  if(statsResetRequested()) {
     HostStats *new_stats = allocateStats();
     stats_shadow = stats;
     stats = new_stats;
@@ -1125,10 +1140,9 @@ void Host::updateStats(struct timeval *tv) {
     has_blocking_quota = false;
 #endif
 
+    last_stats_reset = ntop->getLastStatsReset();
     stats_reset_requested = false;
   }
-
-  stats->updateStats(tv);
 }
 
 /* *************************************** */

@@ -92,7 +92,7 @@ void LocalHost::initialize() {
 
       if(json) free(json);
     }
-  }  
+  }
   PROFILING_SUB_SECTION_EXIT(iface, 16);
 
   char host[96];
@@ -194,6 +194,7 @@ bool LocalHost::deserialize(char *json_str, char *key) {
 
   if(json_object_object_get_ex(o, "seen.first", &obj)) first_seen = json_object_get_int64(obj);
   if(json_object_object_get_ex(o, "seen.last", &obj))  last_seen  = json_object_get_int64(obj);
+  if(json_object_object_get_ex(o, "last_stats_reset", &obj)) last_stats_reset = json_object_get_int64(obj);
 
   if(json_object_object_get_ex(o, "symbolic_name", &obj))  { if(symbolic_name) free(symbolic_name); symbolic_name = strdup(json_object_get_string(obj)); }
   if(json_object_object_get_ex(o, "os", &obj))             { if(os) free(os); os = strdup(json_object_get_string(obj)); }
@@ -205,6 +206,7 @@ bool LocalHost::deserialize(char *json_str, char *key) {
 #endif
 
   json_object_put(o);
+  checkStatsReset();
 
   return(true);
 }
