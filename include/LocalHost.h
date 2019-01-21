@@ -25,16 +25,19 @@
 #include "ntop_includes.h"
 
 class LocalHost : public Host {
- private:
-  char *os, *os_shadow;
-  bool dhcpUpdated;
-  bool drop_all_host_traffic;
+ protected:
   int16_t local_network_id;
   NetworkStats *networkStats;
   bool systemHost;
 
+  /* LocalHost data: update LocalHost::deleteHostData when adding new fields */
+  char *os, *os_shadow;
+  bool dhcpUpdated, drop_all_host_traffic;
+  /* END Host data: */
+
   void initialize();
   virtual bool readDHCPCache();
+  virtual void deleteHostData();
  public:
   LocalHost(NetworkInterface *_iface, Mac *_mac, u_int16_t _vlanId, IpAddress *_ip);
   LocalHost(NetworkInterface *_iface, char *ipAddress, u_int16_t _vlanId);
@@ -55,7 +58,6 @@ class LocalHost : public Host {
   virtual bool dropAllTraffic()  { return(drop_all_host_traffic); };
   virtual void setOS(char *_os, bool ignoreIfPresent=true);
   virtual void updateHostTrafficPolicy(char *key);
-  virtual void deleteHostData();
 
   virtual void incICMP(u_int8_t icmp_type, u_int8_t icmp_code, bool sent, Host *peer) { stats->incICMP(icmp_type, icmp_code, sent, peer); };
   virtual void incNumDNSQueriesSent(u_int16_t query_type) { stats->incNumDNSQueriesSent(query_type); };

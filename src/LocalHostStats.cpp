@@ -176,12 +176,8 @@ void LocalHostStats::deserialize(json_object *o) {
     if(http) http->deserialize(obj);
   }
 
-  if(ndpiStats) {
-    delete ndpiStats;
-    ndpiStats = NULL;
-  }
-
   if(json_object_object_get_ex(o, "ndpiStats", &obj)) {
+    if(ndpiStats) delete ndpiStats;
     ndpiStats = new nDPIStats();
     ndpiStats->deserialize(iface, obj);
   }

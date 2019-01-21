@@ -1211,6 +1211,13 @@ function printInMemory()
   print('<form id="localRemoteTimeoutForm" method="post">')
 
   print('<table class="table">')
+  print('<tr><th colspan=2 class="info">'..i18n("prefs.stats_reset")..'</th></tr>')
+  prefsToggleButton(subpage_active, {
+    field = "toggle_midnight_stats_reset",
+    default = "0",
+    pref = "midnight_stats_reset_enabled",
+  })
+
   print('<tr><th colspan=2 class="info">'..i18n("prefs.local_hosts_cache_settings")..'</th></tr>')
 
   prefsToggleButton(subpage_active, {

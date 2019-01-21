@@ -40,8 +40,7 @@ LocalHost::LocalHost(NetworkInterface *_iface, char *ipAddress, u_int16_t _vlanI
 /* *************************************** */
 
 LocalHost::~LocalHost() {
-  if(!data_delete_requested && !stats_reset_requested)
-    serialize2redis(); /* possibly dumps counters and data to redis */
+  serialize2redis(); /* possibly dumps counters and data to redis */
 
   if(os)              free(os);
   if(os_shadow)       free(os_shadow);
@@ -93,7 +92,7 @@ void LocalHost::initialize() {
 
       if(json) free(json);
     }
-  }  
+  }
   PROFILING_SUB_SECTION_EXIT(iface, 16);
 
   char host[96];
@@ -145,14 +144,18 @@ bool LocalHost::readDHCPCache() {
 /* *************************************** */
 
 void LocalHost::serialize2redis() {
-  if((ntop->getPrefs()->is_idle_local_host_cache_enabled()
+  char host_key[128], key[128];
+  char *k = ip.print(host_key, sizeof(host_key));
+  snprintf(key, sizeof(key), HOST_SERIALIZED_KEY, iface->get_id(), k, vlan_id);
+
+  if(data_delete_requested) {
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Delete serialization %s", k);
+    ntop->getRedis()->del(key);
+  } else if((ntop->getPrefs()->is_idle_local_host_cache_enabled()
       || ntop->getPrefs()->is_active_local_host_cache_enabled())
      && (!ip.isEmpty())) {
     char *json = serialize();
-    char host_key[128], key[128];
-    char *k = ip.print(host_key, sizeof(host_key));
 
-    snprintf(key, sizeof(key), HOST_SERIALIZED_KEY, iface->get_id(), k, vlan_id);
     ntop->getRedis()->set(key, json, ntop->getPrefs()->get_local_host_cache_duration());
     ntop->getTrace()->traceEvent(TRACE_INFO, "Dumping serialization %s", k);
     //ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s => %s", k, json);
@@ -191,6 +194,7 @@ bool LocalHost::deserialize(char *json_str, char *key) {
 
   if(json_object_object_get_ex(o, "seen.first", &obj)) first_seen = json_object_get_int64(obj);
   if(json_object_object_get_ex(o, "seen.last", &obj))  last_seen  = json_object_get_int64(obj);
+  if(json_object_object_get_ex(o, "last_stats_reset", &obj)) last_stats_reset = json_object_get_int64(obj);
 
   if(json_object_object_get_ex(o, "symbolic_name", &obj))  { if(symbolic_name) free(symbolic_name); symbolic_name = strdup(json_object_get_string(obj)); }
   if(json_object_object_get_ex(o, "os", &obj))             { if(os) free(os); os = strdup(json_object_get_string(obj)); }
@@ -202,6 +206,7 @@ bool LocalHost::deserialize(char *json_str, char *key) {
 #endif
 
   json_object_put(o);
+  checkStatsReset();
 
   return(true);
 }

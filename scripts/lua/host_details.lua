@@ -154,7 +154,7 @@ else
    --  of historical interface
    print('\n<script>var refresh = 3000 /* ms */;</script>\n')
 
-   if _POST["action"] == "reset_stats" then
+   if _POST["action"] == "reset_stats" and isAdministrator() then
       if interface.resetHostStats(hostkey) then
          print("<div class=\"alert alert alert-success\">")
          print[[<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>]]
@@ -173,7 +173,7 @@ else
       host_info["host"] = host["ip"]
    end
 
-   if(_POST["custom_name"] ~=nil) then
+   if(_POST["custom_name"] ~=nil) and isAdministrator() then
       setHostAltName(hostinfo2hostkey(host_info), _POST["custom_name"])
    end
 

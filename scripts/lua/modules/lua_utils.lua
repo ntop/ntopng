@@ -1615,7 +1615,7 @@ function hostinfo2hostkey(host_info,host_type,show_vlan)
   end
 
   if(((host_info["vlan"] ~= nil) and (host_info["vlan"] ~= 0))
-     or ((show_vlan ~= nil) and show_vlan))  then
+     or ((show_vlan ~= nil) and show_vlan and (host_info["vlan"] ~= nil)))  then
     rsp = rsp..'@'..tostring(host_info["vlan"])
   end
 

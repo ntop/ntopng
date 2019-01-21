@@ -61,6 +61,7 @@ Ntop::Ntop(char *appName) {
   num_defined_interfaces = 0;
   iface = NULL;
   start_time = 0, epoch_buf[0] = '\0'; /* It will be initialized by start() */
+  last_stats_reset = 0;
 
   httpd = NULL, geo = NULL, mac_manufacturers = NULL;
 
@@ -231,6 +232,8 @@ Ntop::~Ntop() {
 /* ******************************************* */
 
 void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
+  char value[32];
+
 #ifdef WIN32
   struct _stat64 buf;
 #else
@@ -283,6 +286,10 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
 
   /* License check could have increased the number of interfaces available */
   resetNetworkInterfaces();
+
+  /* Read the old last_stats_reset */
+  if(ntop->getRedis()->get((char*)LAST_RESET_TIME, value, sizeof(value)) >= 0)
+    last_stats_reset = atol(value);
 
 #if defined(NTOPNG_PRO) && defined(HAVE_NINDEX)
 #if 0
@@ -2272,4 +2279,16 @@ DeviceProtoStatus Ntop::getDeviceAllowedProtocolStatus(DeviceType dev_type, ndpi
   }
 
   return device_proto_allowed;
+}
+
+/* ******************************************* */
+
+void Ntop::resetStats() {
+  char buf[32];
+  last_stats_reset = time(NULL);
+
+  snprintf(buf, sizeof(buf), "%ld", last_stats_reset);
+
+  /* Saving this is essential to reset inactive hosts across ntopng restarts */
+  getRedis()->set(LAST_RESET_TIME, buf);
 }

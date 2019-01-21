@@ -604,6 +604,7 @@ class NetworkInterface : public Checkpointable {
   inline virtual bool areTrafficDirectionsSupported() { return(false); };
   inline virtual bool isView() { return(false); };
   bool getMacInfo(lua_State* vm, char *mac);
+  bool resetMacStats(lua_State* vm, char *mac, bool delete_data);
   bool setMacDeviceType(char *strmac, DeviceType dtype, bool alwaysOverwrite);
   bool setMacOperatingSystem(lua_State* vm, char *mac, OperatingSystem os);
   bool getASInfo(lua_State* vm, u_int32_t asn);

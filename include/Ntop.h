@@ -64,6 +64,7 @@ class Ntop {
   void *trackers_automa;
   long time_offset;
   time_t start_time; /**< Time when start() was called */
+  time_t last_stats_reset;
   int udp_socket;
   NtopPro *pro;
   DeviceProtocolBitmask deviceProtocolPresets[device_max_type];
@@ -467,6 +468,8 @@ class Ntop {
   DeviceProtoStatus getDeviceAllowedProtocolStatus(DeviceType dev_type, ndpi_protocol proto, u_int16_t pool_id, bool as_client);
 
   void sendNetworkInterfacesTermination();
+  inline time_t getLastStatsReset() { return(last_stats_reset); }
+  void resetStats();
 };
 
 extern Ntop *ntop;

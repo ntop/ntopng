@@ -26,6 +26,7 @@ local info = ntop.getInfo(false)
 local os_utils = require "os_utils"
 local discover = require "discover_utils"
 local host_pools_utils = require "host_pools_utils"
+local template = require "template_utils"
 local page        = _GET["page"]
 local host_info = url2hostinfo(_GET)
 
@@ -39,8 +40,7 @@ local ifId = ifstats.id
 local prefs = ntop.getPrefs()
 
 if isAdministrator() then
-
-   if _SERVER["REQUEST_METHOD"] == "POST" then
+   if (_SERVER["REQUEST_METHOD"] == "POST") and (page == "config") then
       setHostAltName(mac, _POST["custom_name"])
 
       local devtype = tonumber(_POST["device_type"])
@@ -51,12 +51,12 @@ if isAdministrator() then
       local prev_pool = host_pools_utils.getMacPool(mac)
 
       if pool_id ~= prev_pool then
-	 local key = mac
-	 if not host_pools_utils.changeMemberPool(ifId, key, pool_id) then
-	    pool_id = nil
-	 else
-	    interface.reloadHostPools()
-	 end
+         local key = mac
+         if not host_pools_utils.changeMemberPool(ifId, key, pool_id) then
+            pool_id = nil
+         else
+            interface.reloadHostPools()
+         end
       end
    end
 end
@@ -81,6 +81,17 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 if(mac == nil) then
    print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png>" .. " " .. i18n("mac_details.mac_parameter_missing_message") .. "</div>")
    return
+end
+
+if isAdministrator() then
+   if _POST["action"] == "reset_stats" then
+      if interface.resetMacStats(mac) then
+         print("<div class=\"alert alert alert-success\">")
+         print[[<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>]]
+         print(i18n("mac_details.reset_stats_in_progress"))
+         print("</div>")
+      end
+   end
 end
 
 local mac_info = interface.getMacInfo(mac)
@@ -177,7 +188,7 @@ if((page == "overview") or (page == nil)) then
       print('<a href="'..ntop.getHttpPrefix()..'/lua/mac_details.lua?'..hostinfo2url(mac_info)..'&page=config"><i class="fa fa-cog"></i></a>\n')
    end
 
-   if(mac_info.model ~= nil) then
+   if(not isEmptyString(mac_info.model)) then
       local _model = discover.apple_products[mac_info.model] or mac_info.model
       print(" [ "..i18n("model")..": ".. _model .." ]")
    end
@@ -281,6 +292,27 @@ print([[<tr>
    <td><span id="arp_replies_sent">]]..formatValue(mac_info["arp_replies.sent"])..[[</span> ]]..i18n("sent")..[[ / <span id="arp_replies_rcvd">]]..formatValue(mac_info["arp_replies.rcvd"])..[[</span> ]]..i18n("received")..[[</td>
 </tr>]])
 end
+
+   -- Stats reset
+   print(
+     template.gen("modal_confirm_dialog.html", {
+       dialog={
+         id      = "reset_mac_stats_dialog",
+         action  = "$('#reset_mac_stats_form').submit();",
+         title   = i18n("mac_details.reset_mac_stats"),
+         message = i18n("host_details.reset_host_stats_confirm", {host=mac}) .. "<br><br>" .. i18n("mac_details.reset_mac_stats_note"),
+         confirm = i18n("reset"),
+       }
+     })
+   )
+   print[[<tr><th width=30% >]] print(i18n("mac_details.reset_mac_stats"))
+   print[[</th><td colspan=2><form id='reset_mac_stats_form' method="POST">
+      <input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
+      <input name="action" type="hidden" value="reset_stats" />
+   </form>
+   <button class="btn btn-default" onclick="$('#reset_mac_stats_dialog').modal('show')">]] print(i18n("mac_details.reset_mac_stats")) print[[</button>
+   </td></tr>]]
+
    print("</table>")
 
    print('<script type="text/javascript">')

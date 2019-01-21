@@ -5353,16 +5353,13 @@ static int ntop_interface_reset_counters(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_interface_reset_host_stats(lua_State* vm) {
+static int ntop_interface_reset_host_stats(lua_State* vm, bool delete_data) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char buf[64], *host_ip;
   Host *host;
   u_int16_t vlan_id;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(!ntop_interface)
-    return(CONST_LUA_ERROR);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
   get_host_vlan_info((char*)lua_tostring(vm, 1), &host_ip, &vlan_id, buf, sizeof(buf));
@@ -5371,8 +5368,12 @@ static int ntop_interface_reset_host_stats(lua_State* vm) {
 
   host = ntop_interface->findHostByIP(get_allowed_nets(vm), host_ip, vlan_id);
 
-  if(host)
-    host->requestStatsReset();
+  if(host) {
+    if(delete_data)
+      host->requestDataReset();
+    else
+      host->requestStatsReset();
+  }
 
   lua_pushboolean(vm, (host != NULL));
   return(CONST_LUA_OK);
@@ -5380,29 +5381,43 @@ static int ntop_interface_reset_host_stats(lua_State* vm) {
 
 /* ****************************************** */
 
+static inline int ntop_interface_reset_host_stats(lua_State* vm) {
+  return(ntop_interface_reset_host_stats(vm, false));
+}
+
+/* ****************************************** */
+
 static int ntop_interface_delete_host_data(lua_State* vm) {
+  return(ntop_interface_reset_host_stats(vm, true));
+}
+
+/* ****************************************** */
+
+static int ntop_interface_reset_mac_stats(lua_State* vm, bool delete_data) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  char buf[64], *host_ip;
-  Host *host;
-  u_int16_t vlan_id;
+  char *mac;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if(!ntop_interface)
-    return(CONST_LUA_ERROR);
-
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
-  get_host_vlan_info((char*)lua_tostring(vm, 1), &host_ip, &vlan_id, buf, sizeof(buf));
+  mac = (char*)lua_tostring(vm, 1);
 
   if(!ntop_interface) return(CONST_LUA_ERROR);
 
-  host = ntop_interface->findHostByIP(get_allowed_nets(vm), host_ip, vlan_id);
-
-  if(host)
-    host->requestDataReset();
-
-  lua_pushboolean(vm, (host != NULL));
+  lua_pushboolean(vm, ntop_interface->resetMacStats(vm, mac, delete_data));
   return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static inline int ntop_interface_reset_mac_stats(lua_State* vm) {
+  return(ntop_interface_reset_mac_stats(vm, false));
+}
+
+/* ****************************************** */
+
+static int ntop_interface_delete_mac_data(lua_State* vm) {
+  return(ntop_interface_reset_mac_stats(vm, true));
 }
 
 /* ****************************************** */
@@ -5892,6 +5907,17 @@ static int ntop_interface_exec_single_sql_query(lua_State *vm) {
 #else
   return(CONST_LUA_ERROR);
 #endif
+}
+
+/* ****************************************** */
+
+static int ntop_reset_stats(lua_State* vm) {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  ntop->resetStats();
+
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
 }
 
 /* ****************************************** */
@@ -8044,6 +8070,8 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "resetCounters",            ntop_interface_reset_counters },
   { "resetHostStats",           ntop_interface_reset_host_stats },
   { "deleteHostData",           ntop_interface_delete_host_data },
+  { "resetMacStats",            ntop_interface_reset_mac_stats },
+  { "deleteMacData",            ntop_interface_delete_mac_data },
 
   { "getnDPIStats",             ntop_get_ndpi_interface_stats },
   { "getnDPIProtoName",         ntop_get_ndpi_protocol_name },
@@ -8228,6 +8256,7 @@ static const luaL_Reg ntop_reg[] = {
   { "hasRadiusSupport", ntop_has_radius_support },
   { "hasLdapSupport",   ntop_has_ldap_support },
   { "execSingleSQLQuery", ntop_interface_exec_single_sql_query },
+  { "resetStats",       ntop_reset_stats },
 
   /* Redis */
   { "getCache",          ntop_get_redis },

@@ -1114,6 +1114,7 @@ local known_parameters = {
    ["toggle_client_x509_auth"]                     = validateBool,
    ["toggle_snmp_alerts_port_status_change"]       = validateBool,
    ["toggle_snmp_alerts_port_errors"]              = validateBool,
+   ["toggle_midnight_stats_reset"]                 = validateBool,
 
    -- Input fields
    ["minute_top_talkers_retention"]                = validateNumber,
