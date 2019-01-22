@@ -2608,7 +2608,7 @@ static int fill_prefix_mac(prefix_t *prefix, u_int8_t *mac, int bits, int maxbit
 
 /* ******************************************* */
 
-static patricia_node_t* add_to_ptree(patricia_tree_t *tree, int family, void *addr, int bits) {
+patricia_node_t* Utils::add_to_ptree(patricia_tree_t *tree, int family, void *addr, int bits) {
   prefix_t prefix;
   patricia_node_t *node;
 
@@ -2648,7 +2648,7 @@ static int remove_from_ptree(patricia_tree_t *tree, int family, void *addr, int 
 
 /* ******************************************* */
 
-patricia_node_t* Utils::ptree_match(patricia_tree_t *tree, int family, void *addr, int bits) {
+patricia_node_t* Utils::ptree_match(patricia_tree_t *tree, int family, const void * const addr, int bits) {
   prefix_t prefix;
 
   if(family == AF_INET)

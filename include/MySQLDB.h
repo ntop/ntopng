@@ -61,7 +61,9 @@ class MySQLDB : public DB {
   void shutdown();
   static int exec_single_query(lua_State *vm, char *sql);
 #ifdef NTOPNG_PRO
-  bool dumpAggregatedFlow(time_t when, AggregatedFlow *f, bool is_top_aggregated_flow) { return(false); };
+  bool dumpAggregatedFlow(time_t when, AggregatedFlow *f, bool is_top_aggregated_flow, bool is_top_cli, bool is_top_srv) {
+    return(false);
+  };
 #endif
 
 };

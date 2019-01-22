@@ -36,7 +36,7 @@ DB::DB(NetworkInterface *_iface) {
 /* ******************************************* */
 
 #ifdef NTOPNG_PRO
-bool DB::dumpAggregatedFlow(time_t when, AggregatedFlow *f, bool is_top_aggregated_flow) {
+bool DB::dumpAggregatedFlow(time_t when, AggregatedFlow *f, bool is_top_aggregated_flow, bool is_top_cli, bool is_top_srv) {
   ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error");
   return(false);
 }

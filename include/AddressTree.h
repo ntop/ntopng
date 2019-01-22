@@ -30,6 +30,8 @@ typedef struct {
   UT_hash_handle hh; /* makes this structure hashable */
 } MacKey_t;
 
+class IpAddress;
+
 class AddressTree {
  private:
   u_int16_t numAddresses;
@@ -50,12 +52,14 @@ class AddressTree {
 
   inline patricia_tree_t* getTree(bool isV4) { return(isV4 ? ptree_v4 : ptree_v6); }
   bool addAddress(char *_net, const int16_t user_data = -1);
+  patricia_node_t *addAddress(const IpAddress * const ipa);
   bool addAddresses(char *net, const int16_t user_data = -1);
   void getAddresses(lua_State* vm);
   int16_t findAddress(int family, void *addr, u_int8_t *network_mask_bits = NULL);
   int16_t findMac(u_int8_t addr[]);
   bool match(char *addr);
   void dump();
+  void walk(void_fn3_t func, void * const user_data) const;
 };
 
 #endif /* _ADDRESS_TREE_H_ */

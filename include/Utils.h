@@ -116,7 +116,8 @@ class Utils {
   static bool parseAuthenticatorJson(HTTPAuthenticator *auth, char *content);
 
   /* Patricia Tree */
-  static patricia_node_t* ptree_match(patricia_tree_t *tree, int family, void *addr, int bits);
+  static patricia_node_t* add_to_ptree(patricia_tree_t *tree, int family, void *addr, int bits);
+  static patricia_node_t* ptree_match(patricia_tree_t *tree, int family, const void * const addr, int bits);
   static patricia_node_t* ptree_add_rule(patricia_tree_t *ptree, char *line);
   static int ptree_remove_rule(patricia_tree_t *ptree, char *line);
 

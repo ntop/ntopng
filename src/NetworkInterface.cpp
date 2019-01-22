@@ -673,7 +673,7 @@ int NetworkInterface::dumpFlow(time_t when, Flow *f) {
 
 #ifdef NTOPNG_PRO
 
-void NetworkInterface::dumpAggregatedFlow(time_t when, AggregatedFlow *f, bool is_top_aggregated_flow) {
+void NetworkInterface::dumpAggregatedFlow(time_t when, AggregatedFlow *f, bool is_top_aggregated_flow, bool is_top_cli, bool is_top_srv) {
   if(db
      && f && (f->get_packets() > 0)
      && ntop->getPrefs()->is_enterprise_edition()) {
@@ -691,7 +691,7 @@ void NetworkInterface::dumpAggregatedFlow(time_t when, AggregatedFlow *f, bool i
 				   f->print(buf, sizeof(buf)));
 #endif
     } else {
-      db->dumpAggregatedFlow(when, f, is_top_aggregated_flow);
+      db->dumpAggregatedFlow(when, f, is_top_aggregated_flow, is_top_cli, is_top_srv);
     }
   }
 }
