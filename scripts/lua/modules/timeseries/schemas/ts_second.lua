@@ -30,10 +30,9 @@ schema = ts_utils.newSchema("iface:zmq_recv_flows", {step=1, rrd_fname="num_zmq_
 schema:addTag("ifid")
 schema:addMetric("num_flows")
 
-
 -- ##############################################
 
-schema = ts_utils.newSchema("iface:zmq_flow_coll_drops", {step=1, rrd_fname="num_zmq_flow_coll_drops"})
+schema = ts_utils.newSchema("iface:zmq_flow_coll_drops", {step = 1, rrd_fname = "zmq_flow_coll_drops"})
 schema:addTag("ifid")
 schema:addMetric("drops")
 
