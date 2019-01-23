@@ -508,7 +508,7 @@ u_int8_t ParserInterface::parseEvent(const char * const payload, int payload_siz
 
   // payload[payload_size] = '\0';
 
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", payload);
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", payload);
   o = json_tokener_parse_verbose(payload, &jerr);
 
   if(o && (zrs = (ZMQ_RemoteStats*)calloc(1, sizeof(ZMQ_RemoteStats)))) {
