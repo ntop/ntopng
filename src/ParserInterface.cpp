@@ -31,6 +31,8 @@ ParserInterface::ParserInterface(const char *endpoint, const char *custom_interf
   zmq_remote_stats = zmq_remote_stats_shadow = NULL;
   zmq_remote_initial_exported_flows = 0;
   map = NULL, once = false;
+  latest_flow_collection_drops_check = 0;
+  latest_flow_collection_drops = 0;
 #ifdef NTOPNG_PRO
   custom_app_maps = NULL;
 #endif
@@ -1280,6 +1282,41 @@ u_int8_t ParserInterface::parseOption(const char * const payload, int payload_si
 
 /* **************************************** */
 
+void ParserInterface::checkRemoteStats() {
+  time_t now;
+  int32_t delta_flow_collection_drops;
+  json_object *jobject;
+
+  if(!zmq_remote_stats)
+    return;
+
+  now = time(NULL);
+  delta_flow_collection_drops = zmq_remote_stats->flow_collection_drops - latest_flow_collection_drops;
+
+  if(delta_flow_collection_drops < 0)
+    /* nProbe has been restarted, let's do a reset */
+    latest_flow_collection_drops = latest_flow_collection_drops_check = 0;
+  else if(delta_flow_collection_drops > 0
+	  && (latest_flow_collection_drops_check == 0 /* First check */
+	      || latest_flow_collection_drops_check + CONST_ALERT_GRACE_PERIOD < now /* Additional check after grace period */)) {
+    latest_flow_collection_drops_check = now;
+    latest_flow_collection_drops = zmq_remote_stats->flow_collection_drops;
+
+    /* Add the issue to an alerts queue */
+    if((jobject = json_object_new_object()) != NULL) {
+      json_object_object_add(jobject, "ifname", json_object_new_string(get_name()));
+      json_object_object_add(jobject, "ifid", json_object_new_int(id));
+      json_object_object_add(jobject, "delta_flow_collection_drops", json_object_new_int(delta_flow_collection_drops));
+
+      ntop->getRedis()->rpush(CONST_ALERT_ZMQ_COLL_DROPS_QUEUE, json_object_to_json_string(jobject), 0 /* No trim */);
+
+      json_object_put(jobject);
+    }
+  }
+}
+
+/* **************************************** */
+
 void ParserInterface::setRemoteStats(ZMQ_RemoteStats *zrs) {
   if(!zrs) return;
 
@@ -1296,6 +1333,8 @@ void ParserInterface::setRemoteStats(ZMQ_RemoteStats *zrs) {
   if(zmq_remote_initial_exported_flows == 0 /* ntopng has been restarted */
      || zrs->num_flow_exports < zmq_remote_initial_exported_flows) /* nProbe has been restarted */
     zmq_remote_initial_exported_flows = zrs->num_flow_exports;
+
+  checkRemoteStats();
 
   if(zmq_remote_stats_shadow) free(zmq_remote_stats_shadow);
   zmq_remote_stats_shadow = zmq_remote_stats;
