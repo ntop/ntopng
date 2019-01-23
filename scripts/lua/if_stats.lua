@@ -369,7 +369,7 @@ if((page == "overview") or (page == nil)) then
 	 num_remote_flow_exporters = "<b>"..i18n("if_stats_overview.probe_zmq_num_endpoints").."</b>: <span id=if_num_remote_zmq_exporters>"..formatValue(ifstats["zmq.num_exporters"]).."</span>"
       end
 
-      print("<tr><th rowspan=2>"..i18n("if_stats_overview.remote_probe").."</th><td nowrap><b>"..i18n("if_stats_overview.interface_name").."</b>: "..ifstats["remote.name"].." [ ".. maxRateToString(ifstats.speed*1000) .." ]</td>")
+      print("<tr><th rowspan=3>"..i18n("if_stats_overview.remote_probe").."</th><td nowrap><b>"..i18n("if_stats_overview.interface_name").."</b>: "..ifstats["remote.name"].." [ ".. maxRateToString(ifstats.speed*1000) .." ]</td>")
       print("<td nowrap>"..remote_if_addr.."</td>")
       print("<td nowrap>"..remote_probe_ip.."</td>")
       print("<td nowrap colspan=2>"..remote_probe_public_ip.."</td>\n")
@@ -389,20 +389,49 @@ if((page == "overview") or (page == nil)) then
         colspan = colspan - 1
       end
 
-      if not isEmptyString(ifstats["zmq.drops.export_queue_full"]) then
-	 local num_full = tonumber(ifstats["zmq.drops.export_queue_full"])
-	 local span_class = ' '
-	 if num_full > 0 then
-	    span_class = 'class="label label-danger"'
-	 end
-	 print("<td><b>"..i18n("if_stats_overview.probe_zmq_drops_export_queue_full").."</b>: <span "..span_class.." id=if_zmq_drops_export_queue_full>"..formatValue(ifstats["zmq.drops.export_queue_full"]).."</span>")
-	 print("<br><small><b>"..i18n("if_stats_overview.note")..":</b> "..i18n("if_stats_overview.note_probe_zmq_drops_export_queue_full").."</small>")
-	 print("</td>")
+      print("<td nowrap colspan="..colspan..">"..num_remote_flow_exporters.."</td>")
+      print("</tr>")
+
+      local has_remote_drops = not isEmptyString(ifstats["zmq.drops.export_queue_full"]) or not isEmptyString(ifstats["zmq.drops.flow_collection_drops"])
+
+      if not has_remote_drops then
+	 print('<tr style="display: none;">')
       else
-        colspan = colspan - 1
+	 print("<tr>")
+	 local export_queue_full, flow_collection_drops
+	 local colspan = 5
+
+	 if not isEmptyString(ifstats["zmq.drops.export_queue_full"]) then
+	    local num_full = tonumber(ifstats["zmq.drops.export_queue_full"])
+	    local span_class = ' '
+	    if num_full > 0 then
+	       span_class = 'class="label label-danger"'
+	    end
+	    export_queue_full = "<b>"..i18n("if_stats_overview.probe_zmq_drops_export_queue_full").." <sup><i class='fa fa-info-circle' title='"..i18n("if_stats_overview.note_probe_zmq_drops_export_queue_full").."'></i></sup></b>: <span "..span_class.." id=if_zmq_drops_export_queue_full>"..formatValue(ifstats["zmq.drops.export_queue_full"]).."</span>"
+	 end
+
+	 if not isEmptyString(ifstats["zmq.drops.flow_collection_drops"]) then
+	    local num_full = tonumber(ifstats["zmq.drops.flow_collection_drops"])
+	    local span_class = ' '
+	    if num_full > 0 then
+	       span_class = 'class="label label-danger"'
+	    end
+	    flow_collection_drops = "<b>"..i18n("if_stats_overview.probe_zmq_drops_flow_collection_drops").." <sup><i class='fa fa-info-circle' title='"..i18n("if_stats_overview.note_probe_zmq_drops_flow_collection_drops").."'></i></sup></b>: <span "..span_class.." id=if_zmq_drops_flow_collection_drops>"..formatValue(ifstats["zmq.drops.flow_collection_drops"]).."</span>"
+	 end
+
+	 if export_queue_full then
+	    print("<td>"..export_queue_full.."</td>")
+	    colspan = colspan - 1
+	 end
+	 if flow_collection_drops then
+	    print("<td>"..flow_collection_drops.."</td>")
+	    colspan = colspan - 1
+	 end
+	 if colspan then
+	    print("<td colspan="..colspan.."></td>")
+	 end
       end
 
-      print("<td nowrap colspan="..colspan..">"..num_remote_flow_exporters.."</td>")
       print("</tr>")
    end
 

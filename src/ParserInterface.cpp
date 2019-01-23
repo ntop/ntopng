@@ -508,7 +508,7 @@ u_int8_t ParserInterface::parseEvent(const char * const payload, int payload_siz
 
   // payload[payload_size] = '\0';
 
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", payload);
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", payload);
   o = json_tokener_parse_verbose(payload, &jerr);
 
   if(o && (zrs = (ZMQ_RemoteStats*)calloc(1, sizeof(ZMQ_RemoteStats)))) {
@@ -560,6 +560,9 @@ u_int8_t ParserInterface::parseEvent(const char * const payload, int payload_siz
 
       if(json_object_object_get_ex(w, "sflow_pkt_sample_drops", &z))
 	zrs->sflow_pkt_sample_drops = (u_int32_t)json_object_get_int64(z);
+
+      if(json_object_object_get_ex(w, "flow_collection_drops", &z))
+	zrs->flow_collection_drops = (u_int32_t)json_object_get_int64(z);
     }
 
     if(json_object_object_get_ex(o, "zmq", &w)) {
@@ -1338,6 +1341,9 @@ void ParserInterface::lua(lua_State* vm) {
 
     if(zrs->export_queue_full > 0)
       lua_push_uint64_table_entry(vm, "zmq.drops.export_queue_full", zrs->export_queue_full);
+
+    if(zrs->flow_collection_drops > 0)
+      lua_push_uint64_table_entry(vm, "zmq.drops.flow_collection_drops", zrs->flow_collection_drops);
 
     lua_push_uint64_table_entry(vm, "timeout.lifetime", zrs->remote_lifetime_timeout);
     lua_push_uint64_table_entry(vm, "timeout.idle", zrs->remote_idle_timeout);

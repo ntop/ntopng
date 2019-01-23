@@ -371,7 +371,7 @@ void Flow::processDetectedProtocol() {
 
   case NDPI_PROTOCOL_MDNS:
     /*
-      The statement below can craete issues sometimes as devices publish
+      The statement below can create issues sometimes as devices publish
       themselves with varisous names depending on the context (**)
     */
     if((ndpiFlow->protos.mdns.answer[0] != '\0') && cli_host) {
