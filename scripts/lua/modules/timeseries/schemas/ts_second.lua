@@ -26,9 +26,9 @@ schema:addMetric("packets")
 
 -- ##############################################
 
-schema = ts_utils.newSchema("iface:zmq_recv_flows", {step=1, rrd_fname="num_zmq_rcvd_flows", metrics_type=ts_utils.metrics.gauge})
+schema = ts_utils.newSchema("iface:zmq_recv_flows", {step=1, rrd_fname = "zmq_rcvd_flows"})
 schema:addTag("ifid")
-schema:addMetric("num_flows")
+schema:addMetric("flows")
 
 -- ##############################################
 
