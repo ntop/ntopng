@@ -1303,6 +1303,7 @@ local lang = {
     ["traffic_txrx"] = "Traffic TX/RX",
     ["trend"] = "Trend",
     ["zmq_received_flows"] = "ZMQ Received Flows",
+    ["zmq_flow_coll_drops"] = "ZMQ Flow Collection Drops",
     ["metrics_prefixes"] = {
       ["broadcast_bytes"] = "Broadcast Bytes",
       ["drops"] = "Drops",
