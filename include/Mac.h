@@ -36,7 +36,7 @@ class Mac : public GenericHashEntry {
   time_t last_stats_reset;
 
   /* Mac data: update Mac::deleteMacData when adding new fields */
-  char *fingerprint, *fingerprint_shadow;
+  char *fingerprint;
   const char *model;
   const char *ssid, *ssid_shadow;
   OperatingSystem os;
@@ -47,6 +47,7 @@ class Mac : public GenericHashEntry {
 #endif
   /* END Mac data: */
 
+  void updateFingerprint();
   void checkDeviceTypeFromManufacturer();
   void deleteMacData();
   bool statsResetRequested();
@@ -116,19 +117,12 @@ class Mac : public GenericHashEntry {
   char* serialize();
   void deserialize(char *key, char *json_str);
   json_object* getJSONObject();
-  void updateFingerprint();
   void updateHostPool(bool isInlineCall);
   inline void setOperatingSystem(OperatingSystem _os) { os = _os;   }
   inline OperatingSystem getOperatingSystem()         { return(os); }
   inline char* getFingerprint()                       { return(fingerprint); }
-  inline void setFingerprint(char *f) {
-    if(f) {
-      if(fingerprint_shadow) free(fingerprint_shadow);
-      fingerprint_shadow = fingerprint;
-      fingerprint = strdup(f); updateFingerprint();
-    }
-  }
   void inlineSetModel(const char * const m);
+  void inlineSetFingerprint(const char * const f);
   void setSSID(char* s);
   inline char* getSSID()  { return((char*)ssid);  }
   inline u_int16_t get_host_pool() { return(host_pool_id); }

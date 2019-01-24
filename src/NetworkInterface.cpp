@@ -1664,7 +1664,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 #ifdef DHCP_DEBUG
 	      ntop->getTrace()->traceEvent(TRACE_WARNING, "%s = %s", mac->print(buf, sizeof(buf)),fingerprint);
 #endif
-	      mac->setFingerprint((char*)flow->get_ndpi_flow()->protos.dhcp.fingerprint);
+	      mac->inlineSetFingerprint((char*)flow->get_ndpi_flow()->protos.dhcp.fingerprint);
 	    }
 	  } else if(id == 0xFF)
 	    break; /* End of options */
