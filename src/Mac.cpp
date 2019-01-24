@@ -35,7 +35,7 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6])
   captive_portal_notified = 0;
 #endif
   model = NULL, ssid = NULL;
-  model_shadow = ssid_shadow = fingerprint_shadow = NULL;
+  ssid_shadow = fingerprint_shadow = NULL;
   stats_reset_requested = data_delete_requested = false;
   stats = new MacStats(_iface);
   stats_shadow = NULL;
@@ -142,7 +142,6 @@ Mac::~Mac() {
 #endif
 
   if(model) free((void*)model);
-  if(model_shadow) free((void*)model_shadow);
   if(ssid) free((void*)ssid);
   if(ssid_shadow) free((void*)ssid_shadow);
   if(fingerprint) free(fingerprint);
@@ -287,7 +286,7 @@ void Mac::deserialize(char *key, char *json_str) {
   if(json_object_object_get_ex(o, "seen.last", &obj))   last_seen = json_object_get_int64(obj);
   if(json_object_object_get_ex(o, "last_stats_reset", &obj)) last_stats_reset = json_object_get_int64(obj);
   if(json_object_object_get_ex(o, "devtype", &obj))     device_type = (DeviceType)json_object_get_int(obj);
-  if(json_object_object_get_ex(o, "model", &obj))       setModel((char*)json_object_get_string(obj));
+  if(json_object_object_get_ex(o, "model", &obj))       inlineSetModel((char*)json_object_get_string(obj));
   if(json_object_object_get_ex(o, "ssid", &obj))        setSSID((char*)json_object_get_string(obj));
   if(json_object_object_get_ex(o, "fingerprint", &obj)) setFingerprint((char*)json_object_get_string(obj));
   if(json_object_object_get_ex(o, "operatingSystem", &obj)) setOperatingSystem((OperatingSystem)json_object_get_int(obj));
@@ -472,16 +471,14 @@ void Mac::checkDeviceTypeFromManufacturer() {
 
 /* *************************************** */
 
-void Mac::setModel(char* m) {
-  if(model_shadow) free((void*)model_shadow);
-  model_shadow = model;
-  model = strdup(m);
-
-  if(strstr(model, "AppleTV") != NULL) setDeviceType(device_multimedia);
-  else if(strstr(model, "MacBook") != NULL) setDeviceType(device_laptop);
-  else if(strstr(model, "AirPort") != NULL) setDeviceType(device_wifi);
-  else if(strstr(model, "Mac")     != NULL) setDeviceType(device_workstation);
-  else if(strstr(model, "TimeCapsule") != NULL) setDeviceType(device_nas);
+void Mac::inlineSetModel(const char * const m) {
+  if(!model && (model = strdup(m))) {
+    if(strstr(model, "AppleTV") != NULL) setDeviceType(device_multimedia);
+    else if(strstr(model, "MacBook") != NULL) setDeviceType(device_laptop);
+    else if(strstr(model, "AirPort") != NULL) setDeviceType(device_wifi);
+    else if(strstr(model, "Mac")     != NULL) setDeviceType(device_workstation);
+    else if(strstr(model, "TimeCapsule") != NULL) setDeviceType(device_nas);
+  }
 }
 
 /* *************************************** */
@@ -526,7 +523,6 @@ void Mac::updateStats(struct timeval *tv) {
 
 void Mac::deleteMacData() {
   setFingerprint((char *)"");
-  setModel((char *)"");
   setSSID((char *)"");
   os = os_unknown;
   source_mac = dhcpHost = false;

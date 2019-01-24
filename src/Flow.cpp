@@ -2957,7 +2957,6 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
     struct mdns_rsp_entry rsp;
     u_int j;
     u_int16_t rsp_type, data_len;
-    bool device_info = false;
     DeviceType dtype = device_unknown;
 
     memset(_name, 0, sizeof(_name));
@@ -3031,7 +3030,7 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
 #endif
 
     if(strstr(name, "._device-info._"))
-      device_info = true;
+      ;
     else if(strstr(name, "._airplay._") || strstr(name, "._spotify-connect._") )
       dtype = device_multimedia;
     else if(strstr(name, "_ssh._"))
@@ -3104,12 +3103,7 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
 		Mac *mac = cli_host->getMac();
 
 		if(mac) {
-		  if(device_info) {
-		    /* Overrite only if model is empty */
-		    if(mac->getModel() == NULL)
-		      mac->setModel((char*)model);
-		  } else
-		    mac->setModel((char*)model);
+		    mac->inlineSetModel(model);
 		}
 	      }
 
