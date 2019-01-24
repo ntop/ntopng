@@ -34,8 +34,6 @@ class ParserInterface : public NetworkInterface {
  private:
   struct FlowFieldMap *map;
   bool once;
-  time_t latest_flow_collection_drops_check;
-  u_int32_t latest_flow_collection_drops;
   u_int64_t zmq_initial_bytes, zmq_initial_pkts,
     zmq_remote_initial_exported_flows;
   ZMQ_RemoteStats *zmq_remote_stats, *zmq_remote_stats_shadow;
@@ -61,7 +59,6 @@ class ParserInterface : public NetworkInterface {
   u_int8_t parseCounter(const char * const payload, int payload_size, u_int8_t source_id, void *data);
   u_int8_t parseOption(const char * const payload, int payload_size, u_int8_t source_id, void *data);
 
-  void checkRemoteStats();
   virtual void setRemoteStats(ZMQ_RemoteStats *zrs);
 #ifdef NTOPNG_PRO
   virtual bool getCustomAppDetails(u_int32_t remapped_app_id, u_int32_t *const pen, u_int32_t *const app_field, u_int32_t *const app_id);

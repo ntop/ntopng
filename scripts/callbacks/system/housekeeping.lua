@@ -21,7 +21,6 @@ check_mac_ip_association_alerts()
 if ntop.isnEdge() then
    check_nfq_flushed_queue_alerts()
 end
-check_zmq_flow_collection_drops_alerts()
 check_host_remote_to_remote_alerts()
 check_process_alerts()
 callback_utils.uploadTSdata()

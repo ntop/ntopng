@@ -49,7 +49,6 @@ alert_consts.alert_type_keys = {
    { "<i class='fa fa-database'></i> " .. i18n("alerts_dashboard.influxdb_export_failure"),        26, "influxdb_export_failure"    },
    { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.snmp_port_errors"),            27, "port_errors"                },
    { "<i class='fa fa-exclamation'></i> Test failed",                                              28, "test_failed"                },
-   { "<i class='fa fa-tint'></i> " .. i18n("alerts_dashboard.zmq_flow_collection_drops"),          29, "zmq_flow_collection_drops"  },
 }
 
 -- Keep in sync with ntop_typedefs.h:AlertEntity

@@ -2511,35 +2511,6 @@ function check_mac_ip_association_alerts()
    end   
 end
 
--- Global function
-function check_zmq_flow_collection_drops_alerts()
-   while(true) do
-      local message = ntop.lpopCache("ntopng.alert_zmq_flow_collection_drops")
-      local elems
-
-      if((message == nil) or (message == "")) then
-	 break
-      end
-
-      elems = json.decode(message)
-
-      if elems ~= nil then
-	 local entity = alertEntity("interface")
-	 local entity_value = "iface_"..elems.ifid
-	 local alert_type = alertType("zmq_flow_collection_drops")
-	 local alert_severity = alertSeverity("error")
-
-	 -- tprint(elems)
-	 -- io.write(elems.ip.." ==> "..message.."[".. elems.ifname .."]\n")
-
-	 interface.select(elems.ifname)
-	 interface.storeAlert(entity, entity_value, alert_type, alert_severity,
-		  i18n("alert_messages.zmq_flow_collection_drops",
-		       {name = elems.ifname, drops = elems.delta_flow_collection_drops,
-			url = ntop.getHttpPrefix().."/lua/if_stats.lua?ifid="..elems.ifid}))
-      end
-   end
-end
 
 -- Global function
 function check_nfq_flushed_queue_alerts()
