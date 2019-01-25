@@ -140,8 +140,8 @@ Mac::~Mac() {
 			       iface->getHostPools()->getNumPoolL2Devices(get_host_pool()));
 #endif
 
-  if(model) free((void*)model);
-  if(ssid) free((void*)ssid);
+  if(model) free(model);
+  if(ssid) free(ssid);
   if(fingerprint) free(fingerprint);
   if(stats) delete(stats);
   if(stats_shadow) delete(stats_shadow);
@@ -524,7 +524,7 @@ void Mac::updateStats(struct timeval *tv) {
 void Mac::deleteMacData() {
   os = os_unknown;
   source_mac = dhcpHost = false;
-  device_type = device_unknown; /* note: put after setSSID, otherwise will be overwritten */
+  device_type = device_unknown;
 #ifdef NTOPNG_PRO
   captive_portal_notified = false;
 #endif
