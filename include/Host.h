@@ -76,6 +76,7 @@ class Host : public GenericHashEntry {
   TrafficShaper *get_shaper(ndpi_protocol ndpiProtocol, bool isIngress);
   void get_quota(u_int16_t protocol, u_int64_t *bytes_quota, u_int32_t *secs_quota, u_int32_t *schedule_bitmap, bool *is_category);
 #endif
+  char* get_name(char *buf, u_int buf_len, bool force_resolution_if_not_found);
   void luaStrTableEntryLocked(lua_State * const vm, const char * const entry_name, const char * const entry) const;
   char* printMask(char *str, u_int str_len) { return ip.printMask(str, str_len, isLocalHost()); };
   virtual void deleteHostData();
@@ -181,7 +182,6 @@ class Host : public GenericHashEntry {
   inline AutonomousSystem* get_as()            { return(as);               }
   inline bool isPrivateHost()                  { return(ip.isPrivateAddress()); }
   bool isLocalInterfaceAddress();
-  char* get_name(char *buf, u_int buf_len, bool force_resolution_if_not_found);
   char* get_visual_name(char *buf, u_int buf_len);
   inline char* get_string_key(char *buf, u_int buf_len) { return(ip.print(buf, buf_len)); };
   char* get_hostkey(char *buf, u_int buf_len, bool force_vlan=false);

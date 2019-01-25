@@ -759,7 +759,7 @@ char* Host::get_visual_name(char *buf, u_int buf_len) {
       } else {
 	strncpy(buf, sym_name, buf_len);
 	buf[buf_len-1] = '\0';
-}
+      }
     } else
       buf[0] = '\0';
   } else
@@ -977,20 +977,8 @@ void Host::incLowGoodputFlows(bool asClient) {
   }
 
   /* TODO: decide if an alert should be sent in a future version */
-  if(alert && (!good_low_flow_detected)) {
-#if 0
-    char alert_msg[1024], *c, c_buf[64];
-
-    c = get_ip()->print(c_buf, sizeof(c_buf));
-
-    snprintf(alert_msg, sizeof(alert_msg),
-	     "Host <A HREF='%s/lua/host_details.lua?host=%s&ifid=%s'>%s</A> has %d low goodput active %s flows",
-	     ntop->getPrefs()->get_http_prefix(),
-	     c, iface->get_id(), get_name() ? get_name() : c,
-	     HOST_LOW_GOODPUT_THRESHOLD, asClient ? "client" : "server");
-#endif
+  if(alert && (!good_low_flow_detected))
     good_low_flow_detected = true;
-  }
 }
 
 /* *************************************** */
