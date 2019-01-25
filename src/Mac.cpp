@@ -515,6 +515,7 @@ void Mac::checkStatsReset() {
 /* *************************************** */
 
 void Mac::updateStats(struct timeval *tv) {
+  checkDataReset();
   checkStatsReset();
   stats->updateStats(tv);
 }

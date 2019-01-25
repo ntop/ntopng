@@ -67,12 +67,10 @@ Host::~Host() {
 #endif
 
   if(symbolic_name)   free(symbolic_name);
-  if(ssdpLocation_shadow) free(ssdpLocation_shadow);
   if(ssdpLocation)        free(ssdpLocation);
   if(m)                  delete m;
   if(flow_alert_counter) delete flow_alert_counter;
-  if(info_shadow)     free(info_shadow);
-  if(info)            free(info);
+  if(mdns_info)            free(mdns_info);
 
   if(syn_flood_attacker_alert)  delete syn_flood_attacker_alert;
   if(syn_flood_victim_alert)    delete syn_flood_victim_alert;
@@ -150,13 +148,13 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   if((vlan = iface->getVlan(_vlanId, true)) != NULL)
     vlan->incUses();
 
-  num_resolve_attempts = 0, ssdpLocation = NULL, ssdpLocation_shadow = NULL;
+  num_resolve_attempts = 0, ssdpLocation = NULL;
   low_goodput_client_flows = low_goodput_server_flows = 0;
   num_active_flows_as_client = num_active_flows_as_server = 0;
 
   flow_alert_counter = NULL;
   good_low_flow_detected = false;
-  nextResolveAttempt = 0, info = NULL, info_shadow = NULL;
+  nextResolveAttempt = 0, mdns_info = NULL;
   host_label_set = false;
   num_uses = 0, symbolic_name = NULL, vlan_id = _vlanId % MAX_NUM_VLAN,
   first_seen = last_seen = iface->getTimeLastPktRcvd();
@@ -453,6 +451,20 @@ void Host::luaAnomalies(lua_State* vm) {
 
 /* *************************************** */
 
+void Host::luaStrTableEntryLocked(lua_State * const vm, const char * const entry_name, const char * const entry_value) const {
+  /* Perform access to const entry values using a lock as entry value can change for example during a data reset */
+  if(entry_name) {
+    if(m) m->lock(__FILE__, __LINE__);
+
+    if(entry_value)
+      lua_push_str_table_entry(vm, entry_name, entry_value);
+
+    if(m) m->unlock(__FILE__, __LINE__);
+  }
+}
+
+/* *************************************** */
+
 void Host::lua(lua_State* vm, AddressTree *ptree,
 	       bool host_details, bool verbose,
 	       bool returnHost, bool asListElement) {
@@ -528,8 +540,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
       ntop->getRedis()->pushHostToResolve(ipaddr, false, true /* Fake to resolve it ASAP */);
     }
 
-    if(ssdpLocation)
-      lua_push_str_table_entry(vm, "ssdp", ssdpLocation);
+    luaStrTableEntryLocked(vm, "ssdp", ssdpLocation); /* locked to protect against data-reset changes */
   }
 
   if(host_details) {
@@ -539,7 +550,8 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
     /* ifid is useful for example for view interfaces to detemine
        the actual, original interface the host is associated to. */
     lua_push_uint64_table_entry(vm, "ifid", iface->get_id());
-    if(info) lua_push_str_table_entry(vm, "info", getInfo(buf, sizeof(buf)));
+    if(!mask_host)
+      luaStrTableEntryLocked(vm, "info", mdns_info); /* locked to protect against data-reset changes */
 
     ntop->getGeolocation()->getInfo(&ip, &continent, &country_name, &city, &latitude, &longitude);
     lua_push_str_table_entry(vm, "continent", continent ? continent : (char*)"");
@@ -722,14 +734,14 @@ json_object* Host::getJSONObject(DetailsLevel details_level) {
 
 /* *************************************** */
 
-char* Host::get_visual_name(char *buf, u_int buf_len, bool from_info) {
+char* Host::get_visual_name(char *buf, u_int buf_len) {
   bool mask_host = Utils::maskHost(isLocalHost());
   char buf2[64];
   char ipbuf[64];
   char *sym_name;
 
   if(! mask_host) {
-    sym_name = from_info ? info : get_name(buf2, sizeof(buf2), false);
+    sym_name = get_name(buf2, sizeof(buf2), false);
 
     if(sym_name && sym_name[0]) {
       if(ip.isIPv6() && strcmp(ip.print(ipbuf, sizeof(ipbuf)), sym_name)) {
@@ -1020,7 +1032,8 @@ void Host::reloadHostBlacklist() {
 
 /* *************************************** */
 
-void Host::setMDSNInfo(char *str) {
+void Host::inlineSetMDNSInfo(char * const str) {
+  char *cur_info;
   const char *tokens[] = {
     "._http._tcp.local",
     "._sftp-ssh._tcp.local",
@@ -1031,22 +1044,37 @@ void Host::setMDSNInfo(char *str) {
     NULL
   };
 
-  if(strstr(str, ".ip6.arpa")) return; /* Ignored for the time being */
+  if(mdns_info || !str)
+    return; /* Already set */
 
-  for(int i=0; tokens[i] != NULL; i++) {
+  if(strstr(str, ".ip6.arpa"))
+    return; /* Ignored for the time being */
+
+  for(int i = 0; tokens[i] != NULL; i++) {
     if(strstr(str, tokens[i])) {
       str[strlen(str)-strlen(tokens[i])] = '\0';
-      setInfo(str);
 
-      for(i=0; info[i] != '\0'; i++) {
-	if(!isascii(info[i]))
-	  info[i] = ' ';
+      if((cur_info = strdup(str))) {
+	for(i = 0; cur_info[i] != '\0'; i++) {
+	  if(!isascii(cur_info[i]))
+	    cur_info[i] = ' ';
+	}
+
+	/* Time to set the actual info */
+	mdns_info = cur_info;
+	set_host_label(mdns_info, true);
       }
 
-      set_host_label(info, true);
       return;
     }
   }
+}
+
+/* *************************************** */
+
+void Host::inlineSetSSDPLocation(const char * const url) {
+  if(!ssdpLocation && url && (ssdpLocation = strdup(url)))
+    ;
 }
 
 /* *************************************** */
@@ -1123,6 +1151,7 @@ void Host::updateStats(struct timeval *tv) {
     stats_shadow = NULL;
   }
 
+  checkDataReset();
   checkStatsReset();
   stats->updateStats(tv);
 }
@@ -1147,23 +1176,21 @@ void Host::checkStatsReset() {
 
 /* *************************************** */
 
-/* NOTE: this must be executed on the packet capture thread to avoid concurrency issues */
 void Host::checkDataReset() {
   if(data_delete_requested) {
     deleteHostData();
     data_delete_requested = false;
   }
-
-  if(mac)
-    mac->checkDataReset();
 }
 
 /* *************************************** */
 
 void Host::deleteHostData() {
-  setName((char*)"");
-  setInfo(NULL);
-  setSSDPLocation(NULL);
+  if(m) m->lock(__FILE__, __LINE__);
+  // setName((char*)""); // TODO: handle setName reset
+  if(mdns_info)    { free(mdns_info); mdns_info = NULL; }
+  if(ssdpLocation) { free(ssdpLocation); ssdpLocation = NULL; }
   host_label_set = false;
   first_seen = last_seen;
+  if(m) m->unlock(__FILE__, __LINE__);
 }

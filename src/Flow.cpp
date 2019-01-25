@@ -376,7 +376,7 @@ void Flow::processDetectedProtocol() {
     */
     if((ndpiFlow->protos.mdns.answer[0] != '\0') && cli_host) {
       ntop->getTrace()->traceEvent(TRACE_INFO, "[MDNS] %s", ndpiFlow->protos.mdns.answer);
-      cli_host->setMDSNInfo(ndpiFlow->protos.mdns.answer);
+      cli_host->inlineSetMDNSInfo(ndpiFlow->protos.mdns.answer);
     }
     break;
 
@@ -3158,7 +3158,7 @@ void Flow::dissectSSDP(bool src2dst_direction, char *payload, u_int16_t payload_
 
 	url[i] = '\0';
 	// ntop->getTrace()->traceEvent(TRACE_NORMAL, "[SSDP URL:] %s", url);
-	if(cli_host) cli_host->setSSDPLocation(url);
+	if(cli_host) cli_host->inlineSetSSDPLocation(url);
 	break;
       }
     }

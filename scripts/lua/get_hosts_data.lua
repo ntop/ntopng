@@ -227,10 +227,10 @@ for _key, _value in pairsByKeys(vals, funct) do
 
    local column_ip = "<A HREF='"..url.."' "..
       ternary((have_nedge and drop_traffic), "style='text-decoration: line-through'", "")..
-      ">"..mapOS2Icon(stripVlan(key)).." </A> "
+      ">"..mapOS2Icon(stripVlan(key)).." </A>"
 
    if((value.operatingSystem ~= 0) and (value["os"] == "")) then
-      column_ip = column_ip .. " "..getOperatingSystemIcon(value.operatingSystem).." "
+      column_ip = column_ip .. " "..getOperatingSystemIcon(value.operatingSystem)
    end
 
    if value["systemhost"]    then column_ip = column_ip .. "&nbsp;<i class='fa fa-flag'></i>" end
@@ -243,7 +243,7 @@ for _key, _value in pairsByKeys(vals, funct) do
    end
 
    local icon = getOSIcon(value["os"])
-   icon = icon .. discover.devtype2icon(host.devtype)
+   icon = icon .." ".. discover.devtype2icon(host.devtype)
    icon = icon:gsub('"',"'")
    column_ip = column_ip .. icon
 

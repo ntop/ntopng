@@ -36,8 +36,8 @@ class Host : public GenericHashEntry {
 
   /* Host data: update Host::deleteHostData when adding new fields */
   char *symbolic_name; /* write protected by mutex */
-  char *info, *info_shadow;
-  char *ssdpLocation, *ssdpLocation_shadow;
+  char *mdns_info;
+  char *ssdpLocation;
   bool host_label_set;
   /* END Host data: */
 
@@ -76,7 +76,7 @@ class Host : public GenericHashEntry {
   TrafficShaper *get_shaper(ndpi_protocol ndpiProtocol, bool isIngress);
   void get_quota(u_int16_t protocol, u_int64_t *bytes_quota, u_int32_t *secs_quota, u_int32_t *schedule_bitmap, bool *is_category);
 #endif
-
+  void luaStrTableEntryLocked(lua_State * const vm, const char * const entry_name, const char * const entry) const;
   char* printMask(char *str, u_int str_len) { return ip.printMask(str, str_len, isLocalHost()); };
   virtual void deleteHostData();
  public:
@@ -183,7 +183,7 @@ class Host : public GenericHashEntry {
   inline bool isPrivateHost()                  { return(ip.isPrivateAddress()); }
   bool isLocalInterfaceAddress();
   char* get_name(char *buf, u_int buf_len, bool force_resolution_if_not_found);
-  char* get_visual_name(char *buf, u_int buf_len, bool from_info=false);
+  char* get_visual_name(char *buf, u_int buf_len);
   inline char* get_string_key(char *buf, u_int buf_len) { return(ip.print(buf, buf_len)); };
   char* get_hostkey(char *buf, u_int buf_len, bool force_vlan=false);
   bool idle();
@@ -231,19 +231,12 @@ class Host : public GenericHashEntry {
   bool incFlowAlertHits(time_t when);
   virtual bool setRemoteToRemoteAlerts() { return(false); };
   inline void checkPointHostTalker(lua_State *vm, bool saveCheckpoint) { stats->checkPointHostTalker(vm, saveCheckpoint); }
-  inline void setInfo(char *s) {
-    if(info_shadow) free(info_shadow);
-    info_shadow = info;
-    info = s ? strdup(s) : NULL;
-  }
-  inline char* getInfo(char *buf, uint buf_len) { return get_visual_name(buf, buf_len, true); }
   virtual void incrVisitedWebSite(char *hostname) {};
   virtual u_int32_t getActiveHTTPHosts()  { return(0); };
   inline u_int32_t getNumOutgoingFlows()  { return(num_active_flows_as_client); }
   inline u_int32_t getNumIncomingFlows()  { return(num_active_flows_as_server); }
   inline u_int32_t getNumActiveFlows()    { return(getNumOutgoingFlows()+getNumIncomingFlows()); }
   void splitHostVlan(const char *at_sign_str, char *buf, int bufsize, u_int16_t *vlan_id);
-  void setMDSNInfo(char *str);
   char* get_country(char *buf, u_int buf_len);
   char* get_city(char *buf, u_int buf_len);
   void get_geocoordinates(float *latitude, float *longitude);
@@ -264,12 +257,8 @@ class Host : public GenericHashEntry {
   void refreshHostAlertPrefs();
   u_int32_t getNumAlerts(bool from_alertsmanager = false);
   void setNumAlerts(u_int32_t num)                       { num_alerts_detected = num; };
-
-  inline void setSSDPLocation(char *url) {
-    if(ssdpLocation_shadow) free(ssdpLocation_shadow);
-    ssdpLocation_shadow = ssdpLocation;
-    ssdpLocation = url ? strdup(url) : NULL;
-  }
+  void inlineSetSSDPLocation(const char * const url);
+  void inlineSetMDNSInfo(char * const s);
 };
 
 #endif /* _HOST_H_ */

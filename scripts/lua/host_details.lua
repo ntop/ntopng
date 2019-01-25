@@ -644,7 +644,7 @@ end
    
    if((host["info"] ~= nil) or (host["label"] ~= nil))then
       print("<tr><th>"..i18n("details.further_host_names_information").."</th><td colspan=2>")
-      if(host["info"] ~= nil) then  print(host["info"]) end
+      if(host["info"] ~= nil) then  print(host["info"].." ") end
       if((host["label"] ~= nil) and (host["info"] ~= host["label"])) then print(host["label"]) end
       print("</td></tr>\n")
    end

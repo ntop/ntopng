@@ -1108,8 +1108,6 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
   if(flow == NULL)
     return;
 
-  flow->checkHostsDataReset();
-
   if(zflow->core.absolute_packet_octet_counters) {
     /* Ajdust bytes and packets counters if the zflow update contains absolute values.
 
@@ -1519,8 +1517,6 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
     *srcHost = src2dst_direction ? flow->get_cli_host() : flow->get_srv_host();
     *dstHost = src2dst_direction ? flow->get_srv_host() : flow->get_cli_host();
     *hostFlow = flow;
-
-    flow->checkHostsDataReset();
 
     switch(l4_proto) {
     case IPPROTO_TCP:
