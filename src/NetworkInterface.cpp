@@ -3696,7 +3696,7 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data, bool *matc
      (r->mac           && (h->getMac()) && (!h->getMac()->equal(r->mac)))    ||
      ((r->poolFilter != (u_int16_t)-1)    && (r->poolFilter    != h->get_host_pool()))    ||
      (r->country  && strlen(r->country)  && strcmp(h->get_country(buf, sizeof(buf)), r->country)) ||
-     (r->osFilter && strlen(r->osFilter) && (!h->get_os()      || strcmp(h->get_os(), r->osFilter)))     ||
+     (r->osFilter && strlen(r->osFilter) && strcmp(h->get_os(buf, sizeof(buf)), r->osFilter))     ||
      (r->blacklistedHosts && !h->isBlacklisted())     ||
      (r->anomalousOnly && !h->hasAnomalies())         ||
      (r->hideTopHidden && h->isHiddenFromTop())       ||
@@ -3729,7 +3729,7 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data, bool *matc
     break;
 
   case column_os:
-    r->elems[r->actNumEntries++].stringValue = strdup(h->get_os() ? h->get_os() : (char*)"");
+    r->elems[r->actNumEntries++].stringValue = strdup(h->get_os(buf, sizeof(buf)));
     break;
 
   case column_vlan:

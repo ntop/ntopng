@@ -1386,6 +1386,7 @@ function getHostAltName(host_ip, host_mac)
    end
 
    alt_name = ntop.getHashCache(getHostAltNamesKey(), host_ip)
+
    if (isEmptyString(alt_name) and (host_mac ~= nil)) then
       alt_name = ntop.getHashCache(getHostAltNamesKey(), host_mac)
    end

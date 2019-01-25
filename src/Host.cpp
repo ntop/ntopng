@@ -513,7 +513,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   lua_push_uint64_table_entry(vm, "asn", asn);
   lua_push_uint64_table_entry(vm, "host_pool_id", host_pool_id);
   lua_push_str_table_entry(vm, "asname", asname ? asname : (char*)"");
-  lua_push_str_table_entry(vm, "os", get_os());
+  lua_push_str_table_entry(vm, "os", get_os(buf, sizeof(buf)));
 
   stats->lua(vm, mask_host, host_details, verbose);
 
@@ -639,6 +639,15 @@ char* Host::get_name(char *buf, u_int buf_len, bool force_resolution_if_not_foun
 
 /* ***************************************** */
 
+char * Host::get_os(char * const buf, ssize_t buf_len) const {
+  if(buf && buf_len)
+    buf[0] = '\0';
+
+  return buf;
+}
+
+/* ***************************************** */
+
 bool Host::idle() {
   if((num_uses > 0) || (!iface->is_purge_idle_interface()))
     return(false);
@@ -695,7 +704,7 @@ char* Host::serialize() {
 
 json_object* Host::getJSONObject(DetailsLevel details_level) {
   json_object *my_object;
-  char buf[32];
+  char buf[64];
   Mac *m = mac;
 
   if((my_object = json_object_new_object()) == NULL) return(NULL);
@@ -715,7 +724,8 @@ json_object* Host::getJSONObject(DetailsLevel details_level) {
     json_object_object_add(my_object, "asn", json_object_new_int(asn));
     if(symbolic_name)       json_object_object_add(my_object, "symbolic_name", json_object_new_string(symbolic_name));
     if(asname)              json_object_object_add(my_object, "asname",    json_object_new_string(asname ? asname : (char*)""));
-    if(strlen(get_os()))    json_object_object_add(my_object, "os",        json_object_new_string(get_os()));
+    get_os(buf, sizeof(buf));
+    if(strlen(buf))    json_object_object_add(my_object, "os",        json_object_new_string(buf));
 
 
     json_object_object_add(my_object, "localHost", json_object_new_boolean(isLocalHost()));
@@ -1190,7 +1200,7 @@ void Host::deleteHostData() {
   // setName((char*)""); // TODO: handle setName reset
   if(mdns_info)    { free(mdns_info); mdns_info = NULL; }
   if(ssdpLocation) { free(ssdpLocation); ssdpLocation = NULL; }
+  if(m) m->unlock(__FILE__, __LINE__);
   host_label_set = false;
   first_seen = last_seen;
-  if(m) m->unlock(__FILE__, __LINE__);
 }

@@ -62,19 +62,20 @@ end
 local function delete_host_redis_keys(interface_id, host_info)
    local status = "OK"
    local hostkey = hostinfo2hostkey(host_info, nil, true)
-   local serialized_k, dns_k, devnames_k, devtypes_k
+   local serialized_k, dns_k, devnames_k, devtypes_k, drop_k, label_k, dhcp_k
 
    if not isMacAddress(host_info["host"]) then
       -- this is an IP address, see HOST_SERIALIZED_KEY (ntop_defines.h)
       serialized_k = string.format("ntopng.serialized_hosts.ifid_%u__%s@%d", interface_id, host_info["host"], host_info["vlan"] or "0")
       dns_k = string.format("ntopng.dns.cache.%s", host_info["host"]) -- neither vlan nor ifid implemented for the dns cache
-   elseif isIPv4(host_info["host"]) or isIPv6(host_info["host"]) then
+      drop_k = "ntopng.prefs.drop_host_traffic"
+      label_k = "ntopng.host_labels"
+   else
       -- is a mac address, see MAC_SERIALIED_KEY (see ntop_defines.h)
       serialized_k = string.format("ntopng.serialized_macs.ifid_%u__%s", interface_id, host_info["host"])
       devnames_k = string.format("ntopng.cache.devnames.%s", host_info["host"])
       devtypes_k = string.format("ntopng.prefs.device_types.%s", host_info["host"])
-
-      ntop.delHashCache("ntopng.prefs.drop_host_traffic", hostkey)
+      dhcp_k = getDhcpNamesKey(interface_id)
    end
 
    if not dry_run then
@@ -82,7 +83,9 @@ local function delete_host_redis_keys(interface_id, host_info)
       if devnames_k   then ntop.delCache(devnames_k) end
       if devtypes_k   then ntop.delCache(devtypes_k) end
       if dns_k        then ntop.delCache(dns_k) end
-      ntop.delHashCache("ntopng.host_labels", hostkey)
+      if dhcp_k       then ntop.delHashCache(dhcp_k, host_info["host"]) end
+      if drop_k       then ntop.delHashCache(drop_k, hostkey) end
+      if label_k      then ntop.delHashCache(label_k, hostkey) end
    end
 
    return {status = status}

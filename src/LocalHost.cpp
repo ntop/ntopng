@@ -43,7 +43,6 @@ LocalHost::~LocalHost() {
   serialize2redis(); /* possibly dumps counters and data to redis */
 
   if(os)              free(os);
-  if(os_shadow)       free(os_shadow);
 }
 
 /* *************************************** */
@@ -58,7 +57,7 @@ void LocalHost::initialize() {
   local_network_id = -1;
   dhcpUpdated = false;
   drop_all_host_traffic = false;
-  os = NULL, os_shadow = NULL;
+  os = NULL;
 
   ip.isLocalHost(&local_network_id);
   networkStats = getNetworkStats(local_network_id);
@@ -197,7 +196,7 @@ bool LocalHost::deserialize(char *json_str, char *key) {
   if(json_object_object_get_ex(o, "last_stats_reset", &obj)) last_stats_reset = json_object_get_int64(obj);
 
   if(json_object_object_get_ex(o, "symbolic_name", &obj))  { if(symbolic_name) free(symbolic_name); symbolic_name = strdup(json_object_get_string(obj)); }
-  if(json_object_object_get_ex(o, "os", &obj))             { if(os) free(os); os = strdup(json_object_get_string(obj)); }
+  if(json_object_object_get_ex(o, "os", &obj))             { inlineSetOS(json_object_get_string(obj)); }
 
   /* We commented the line below to avoid strings too long */
 #if 0
@@ -229,6 +228,18 @@ void LocalHost::updateHostTrafficPolicy(char *key) {
       drop_all_host_traffic = true;
 
   }
+}
+
+/* ***************************************** */
+
+char * LocalHost::get_os(char * const buf, ssize_t buf_len) const {
+  if(buf && buf_len) {
+    if(m) m->lock(__FILE__, __LINE__);
+    snprintf(buf, buf_len, "%s", os ? os : "");
+    if(m) m->unlock(__FILE__, __LINE__);
+  }
+
+  return buf;
 }
 
 /* *************************************** */
@@ -280,7 +291,7 @@ void LocalHost::lua(lua_State* vm, AddressTree *ptree,
 
 /* *************************************** */
 
-void LocalHost::setOS(char *_os, bool ignoreIfPresent) {
+void LocalHost::inlineSetOS(const char * const _os) {
   if((mac == NULL)
      /*
        When this happens then this is a (NAT+)router and
@@ -289,24 +300,22 @@ void LocalHost::setOS(char *_os, bool ignoreIfPresent) {
      || (mac->getDeviceType() == device_networking)
      ) return;
 
-  if((os == NULL) || ignoreIfPresent) {
-    if(os_shadow) free(os_shadow);
-    os_shadow = os;
-    os = _os ? strdup(_os) : NULL;
+  if(os || !_os)
+    return; /* Already set */
+  
+
+  if((os = strdup(_os))) {
+    if(strcasestr(os, "iPhone")
+       || strcasestr(os, "Android")
+       || strcasestr(os, "mobile"))
+      mac->setDeviceType(device_phone);
+    else if(strcasestr(os, "Mac OS")
+	    || strcasestr(os, "Windows")
+	    || strcasestr(os, "Linux"))
+      mac->setDeviceType(device_workstation);
+    else if(strcasestr(os, "iPad") || strcasestr(os, "tablet"))
+      mac->setDeviceType(device_tablet);
   }
-
-  if (!os) return;
-
-  if(strcasestr(os, "iPhone")
-     || strcasestr(os, "Android")
-     || strcasestr(os, "mobile"))
-    mac->setDeviceType(device_phone);
-  else if(strcasestr(os, "Mac OS")
-	  || strcasestr(os, "Windows")
-	  || strcasestr(os, "Linux"))
-    mac->setDeviceType(device_workstation);
-  else if(strcasestr(os, "iPad") || strcasestr(os, "tablet"))
-    mac->setDeviceType(device_tablet);
 }
 
 /* *************************************** */
@@ -327,7 +336,10 @@ void LocalHost::tsLua(lua_State* vm) {
 void LocalHost::deleteHostData() {
   Host::deleteHostData();
 
-  setOS(NULL, false /* overwrite */);
+  if(m) m->lock(__FILE__, __LINE__);
+  if(os) { free(os); os = NULL; }
+  if(m) m->unlock(__FILE__, __LINE__);
+
   dhcpUpdated = false;
   updateHostTrafficPolicy(NULL);
 }

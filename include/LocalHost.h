@@ -31,7 +31,7 @@ class LocalHost : public Host {
   bool systemHost;
 
   /* LocalHost data: update LocalHost::deleteHostData when adding new fields */
-  char *os, *os_shadow;
+  char *os;
   bool dhcpUpdated, drop_all_host_traffic;
   /* END Host data: */
 
@@ -43,6 +43,7 @@ class LocalHost : public Host {
   LocalHost(NetworkInterface *_iface, char *ipAddress, u_int16_t _vlanId);
   virtual ~LocalHost();
 
+  virtual char * get_os(char * const buf, ssize_t buf_len) const;
   virtual int16_t get_local_network_id() { return(local_network_id);  };
   virtual bool isLocalHost()             { return(true);              };
   virtual bool isSystemHost()            { return(systemHost);        };
@@ -56,7 +57,7 @@ class LocalHost : public Host {
   virtual HostStats* allocateStats()                 { return(new LocalHostStats(this));               };
 
   virtual bool dropAllTraffic()  { return(drop_all_host_traffic); };
-  virtual void setOS(char *_os, bool ignoreIfPresent=true);
+  virtual void inlineSetOS(const char * const _os);
   virtual void updateHostTrafficPolicy(char *key);
 
   virtual void incICMP(u_int8_t icmp_type, u_int8_t icmp_code, bool sent, Host *peer) { stats->incICMP(icmp_type, icmp_code, sent, peer); };

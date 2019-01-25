@@ -500,7 +500,7 @@ void Flow::processDetectedProtocol() {
 	doublecol[0] = '\0';
 
       if(srv_host && (ndpiFlow->protos.http.detected_os[0] != '\0') && cli_host)
-	cli_host->setOS((char*)ndpiFlow->protos.http.detected_os);
+	cli_host->inlineSetOS((char*)ndpiFlow->protos.http.detected_os);
 
       if(cli_host && cli_host->isLocalHost())
 	cli_host->incrVisitedWebSite(host_server_name);

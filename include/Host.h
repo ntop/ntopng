@@ -132,7 +132,6 @@ class Host : public GenericHashEntry {
   inline void set_ipv6(struct ndpi_in6_addr *_ipv6) { ip.set(_ipv6);                 };
   inline u_int32_t key()                            { return(ip.key());              };
   char* getJSON();
-  virtual void setOS(char *_os, bool ignoreIfPresent=true) {};
   inline IpAddress* get_ip()                   { return(&ip);              }
   void set_mac(Mac  *m);
   void set_mac(char *m);
@@ -141,7 +140,7 @@ class Host : public GenericHashEntry {
   void reloadHostBlacklist();
   inline u_int8_t*  get_mac()                  { return(mac ? mac->get_mac() : NULL);      }
   inline Mac* getMac()                         { return(mac);              }
-  virtual char* get_os()                       { return((char*)"");        }
+  virtual char * get_os(char * const buf, ssize_t buf_len) const;
   inline char* get_name()                      { return(symbolic_name);    }
 #ifdef NTOPNG_PRO
   inline TrafficShaper *get_ingress_shaper(ndpi_protocol ndpiProtocol) { return(get_shaper(ndpiProtocol, true)); }
@@ -257,6 +256,7 @@ class Host : public GenericHashEntry {
   void refreshHostAlertPrefs();
   u_int32_t getNumAlerts(bool from_alertsmanager = false);
   void setNumAlerts(u_int32_t num)                       { num_alerts_detected = num; };
+  virtual void inlineSetOS(const char * const _os) {};
   void inlineSetSSDPLocation(const char * const url);
   void inlineSetMDNSInfo(char * const s);
 };
