@@ -3113,7 +3113,7 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
 
 	      if(strncmp(txt_buf, "ssid=", 3) == 0) {
 		if(cli_host && cli_host->getMac())
-		  cli_host->getMac()->setSSID(&txt_buf[5]);
+		  cli_host->getMac()->inlineSetSSID(&txt_buf[5]);
 	      }
 	    }
 	  } else

@@ -38,7 +38,7 @@ class Mac : public GenericHashEntry {
   /* Mac data: update Mac::deleteMacData when adding new fields */
   char *fingerprint;
   const char *model;
-  const char *ssid, *ssid_shadow;
+  const char *ssid;
   OperatingSystem os;
   bool source_mac, dhcpHost;
   DeviceType device_type;
@@ -123,7 +123,7 @@ class Mac : public GenericHashEntry {
   inline char* getFingerprint()                       { return(fingerprint); }
   void inlineSetModel(const char * const m);
   void inlineSetFingerprint(const char * const f);
-  void setSSID(char* s);
+  void inlineSetSSID(const char * const s);
   inline char* getSSID()  { return((char*)ssid);  }
   inline u_int16_t get_host_pool() { return(host_pool_id); }
 

@@ -35,7 +35,6 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6])
   captive_portal_notified = 0;
 #endif
   model = NULL, ssid = NULL;
-  ssid_shadow = NULL;
   stats_reset_requested = data_delete_requested = false;
   stats = new MacStats(_iface);
   stats_shadow = NULL;
@@ -143,7 +142,6 @@ Mac::~Mac() {
 
   if(model) free((void*)model);
   if(ssid) free((void*)ssid);
-  if(ssid_shadow) free((void*)ssid_shadow);
   if(fingerprint) free(fingerprint);
   if(stats) delete(stats);
   if(stats_shadow) delete(stats_shadow);
@@ -286,7 +284,7 @@ void Mac::deserialize(char *key, char *json_str) {
   if(json_object_object_get_ex(o, "last_stats_reset", &obj)) last_stats_reset = json_object_get_int64(obj);
   if(json_object_object_get_ex(o, "devtype", &obj))     device_type = (DeviceType)json_object_get_int(obj);
   if(json_object_object_get_ex(o, "model", &obj))       inlineSetModel((char*)json_object_get_string(obj));
-  if(json_object_object_get_ex(o, "ssid", &obj))        setSSID((char*)json_object_get_string(obj));
+  if(json_object_object_get_ex(o, "ssid", &obj))        inlineSetSSID((char*)json_object_get_string(obj));
   if(json_object_object_get_ex(o, "fingerprint", &obj)) inlineSetFingerprint((char*)json_object_get_string(obj));
   if(json_object_object_get_ex(o, "operatingSystem", &obj)) setOperatingSystem((OperatingSystem)json_object_get_int(obj));
   if(json_object_object_get_ex(o, "dhcpHost", &obj))    dhcpHost = json_object_get_boolean(obj);
@@ -488,12 +486,9 @@ void Mac::inlineSetFingerprint(const char * const f) {
 
 /* *************************************** */
 
-void Mac::setSSID(char* s) {
-  if(ssid_shadow) free((void*)ssid_shadow);
-  ssid_shadow = ssid;
-  ssid = strdup(s);
-
-  setDeviceType(device_wifi);
+void Mac::inlineSetSSID(const char * const s) {
+  if(!ssid && s && (ssid = strdup(s)))
+    setDeviceType(device_wifi);
 }
 
 /* *************************************** */
@@ -527,7 +522,6 @@ void Mac::updateStats(struct timeval *tv) {
 /* *************************************** */
 
 void Mac::deleteMacData() {
-  setSSID((char *)"");
   os = os_unknown;
   source_mac = dhcpHost = false;
   device_type = device_unknown; /* note: put after setSSID, otherwise will be overwritten */
