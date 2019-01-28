@@ -195,8 +195,12 @@ bool LocalHost::deserialize(char *json_str, char *key) {
   if(json_object_object_get_ex(o, "seen.last", &obj))  last_seen  = json_object_get_int64(obj);
   if(json_object_object_get_ex(o, "last_stats_reset", &obj)) last_stats_reset = json_object_get_int64(obj);
 
-  if(json_object_object_get_ex(o, "symbolic_name", &obj))  { if(symbolic_name) free(symbolic_name); symbolic_name = strdup(json_object_get_string(obj)); }
-  if(json_object_object_get_ex(o, "os", &obj))             { inlineSetOS(json_object_get_string(obj)); }
+  if(json_object_object_get_ex(o, "symbolic_name", &obj))  {
+    if(names.symbolic_name) free(names.symbolic_name);
+    names.symbolic_name = strdup(json_object_get_string(obj));
+  }
+  if(json_object_object_get_ex(o, "os", &obj))
+    inlineSetOS(json_object_get_string(obj));
 
   /* We commented the line below to avoid strings too long */
 #if 0

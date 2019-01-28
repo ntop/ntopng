@@ -35,7 +35,10 @@ class Host : public GenericHashEntry {
   time_t last_stats_reset;
 
   /* Host data: update Host::deleteHostData when adding new fields */
-  char *symbolic_name; /* write protected by mutex */
+  struct {
+    char *symbolic_name; /* write protected by mutex */
+  } names;
+
   char *mdns_info;
   char *ssdpLocation;
   bool host_label_set;
@@ -142,7 +145,7 @@ class Host : public GenericHashEntry {
   inline u_int8_t*  get_mac()                  { return(mac ? mac->get_mac() : NULL);      }
   inline Mac* getMac()                         { return(mac);              }
   virtual char * get_os(char * const buf, ssize_t buf_len) const;
-  inline char* get_name()                      { return(symbolic_name);    }
+  inline char* get_name()                      { return(names.symbolic_name);    }
 #ifdef NTOPNG_PRO
   inline TrafficShaper *get_ingress_shaper(ndpi_protocol ndpiProtocol) { return(get_shaper(ndpiProtocol, true)); }
   inline TrafficShaper *get_egress_shaper(ndpi_protocol ndpiProtocol)  { return(get_shaper(ndpiProtocol, false)); }

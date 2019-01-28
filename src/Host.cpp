@@ -66,7 +66,7 @@ Host::~Host() {
 
 #endif
 
-  if(symbolic_name)   free(symbolic_name);
+  if(names.symbolic_name)   free(names.symbolic_name);
   if(ssdpLocation)        free(ssdpLocation);
   if(m)                  delete m;
   if(flow_alert_counter) delete flow_alert_counter;
@@ -156,8 +156,10 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   good_low_flow_detected = false;
   nextResolveAttempt = 0, mdns_info = NULL;
   host_label_set = false;
-  num_uses = 0, symbolic_name = NULL, vlan_id = _vlanId % MAX_NUM_VLAN,
+  num_uses = 0, vlan_id = _vlanId % MAX_NUM_VLAN,
   first_seen = last_seen = iface->getTimeLastPktRcvd();
+  memset(&names, 0, sizeof(names));
+
   if((m = new(std::nothrow) Mutex()) == NULL)
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: NULL mutex. Are you running out of memory?");
 
@@ -534,7 +536,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
       This has been disabled as in case of an attack, most hosts do not have a name and we will waste
       a lot of time doing activities that are not necessary
     */
-    if((symbolic_name == NULL) || (strcmp(symbolic_name, ipaddr) == 0)) {
+    if((names.symbolic_name == NULL) || (strcmp(names.symbolic_name, ipaddr) == 0)) {
       /* We resolve immediately the IP address by queueing on the top of address queue */
 
       ntop->getRedis()->pushHostToResolve(ipaddr, false, true /* Fake to resolve it ASAP */);
@@ -597,9 +599,9 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
 */
 void Host::setName(char *name) {
   if(m) m->lock(__FILE__, __LINE__);
-  if((symbolic_name == NULL) || (symbolic_name && strcmp(symbolic_name, name))) {
-    if(symbolic_name) free(symbolic_name);
-    symbolic_name = strdup(name);
+  if((names.symbolic_name == NULL) || (names.symbolic_name && strcmp(names.symbolic_name, name))) {
+    if(names.symbolic_name) free(names.symbolic_name);
+    names.symbolic_name = strdup(name);
   }
 
   if(m) m->unlock(__FILE__, __LINE__);
@@ -614,17 +616,17 @@ char* Host::get_name(char *buf, u_int buf_len, bool force_resolution_if_not_foun
 
   if(nextResolveAttempt
      && ((num_resolve_attempts > 1) || (nextResolveAttempt > now) || (nextResolveAttempt == (time_t)-1))) {
-    return(symbolic_name);
+    return(names.symbolic_name);
   } else
     nextResolveAttempt = ntop->getPrefs()->is_dns_resolution_enabled() ? now + MIN_HOST_RESOLUTION_FREQUENCY : (time_t)-1;
 
   num_resolve_attempts++;
   addr = ip.print(buf, buf_len);
 
-  if((symbolic_name != NULL) && strcmp(symbolic_name, addr))
-    return(symbolic_name);
+  if((names.symbolic_name != NULL) && strcmp(names.symbolic_name, addr))
+    return(names.symbolic_name);
 
-  if(readDHCPCache() && symbolic_name) return(symbolic_name);
+  if(readDHCPCache() && names.symbolic_name) return(names.symbolic_name);
 
   rc = ntop->getRedis()->getAddress(addr, redis_buf, sizeof(redis_buf),
 				    force_resolution_if_not_found);
@@ -634,7 +636,7 @@ char* Host::get_name(char *buf, u_int buf_len, bool force_resolution_if_not_foun
   else
     setName(addr);
 
-  return(symbolic_name);
+  return(names.symbolic_name);
 }
 
 /* ***************************************** */
@@ -722,7 +724,7 @@ json_object* Host::getJSONObject(DetailsLevel details_level) {
     json_object_object_add(my_object, "seen.last",  json_object_new_int64(last_seen));
     json_object_object_add(my_object, "last_stats_reset", json_object_new_int64(last_stats_reset));
     json_object_object_add(my_object, "asn", json_object_new_int(asn));
-    if(symbolic_name)       json_object_object_add(my_object, "symbolic_name", json_object_new_string(symbolic_name));
+    if(names.symbolic_name)       json_object_object_add(my_object, "symbolic_name", json_object_new_string(names.symbolic_name));
     if(asname)              json_object_object_add(my_object, "asname",    json_object_new_string(asname ? asname : (char*)""));
     get_os(buf, sizeof(buf));
     if(strlen(buf))    json_object_object_add(my_object, "os",        json_object_new_string(buf));
