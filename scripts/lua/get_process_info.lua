@@ -112,9 +112,9 @@ print [[
    <ul class="nav nav-tabs">
 ]]
 
-print [[<li class="active"><a href="#l7" data-toggle="tab">]] print(i18n("l7_protocols")) print[[</a></li> ]]
+print [[<li class="active"><a href="#l7" data-toggle="tab">]] print(i18n("applications")) print[[</a></li> ]]
 
-print [[<li><a href="#l4" data-toggle="tab">]] print(i18n("l4_protocols")) print[[</a></li>]]
+print [[<li><a href="#l4" data-toggle="tab">]] print(i18n("protocols")) print[[</a></li>]]
 
 print [[
     </ul>
@@ -127,7 +127,7 @@ print [[
         <div class="tab-pane active" id="l7">
           <table class="table table-bordered table-striped">
             <tr>
-              <th class="text-center">]] print(i18n("processes_stats.top_l7_protocols")) print[[</th>
+              <th class="text-center">]] print(i18n("user_info.top_l7_protocols")) print[[</th>
               <td><div class="pie-chart" id="topL7"></div></td>
           </tr>
           </table>
@@ -139,7 +139,7 @@ print [[
         <div class="tab-pane" id="l4">
           <table class="table table-bordered table-striped">
             <tr>
-              <th class="text-center">]] print(i18n("processes_stats.top_l4_protocols")) print[[</th>
+              <th class="text-center">]] print(i18n("user_info.top_l4_protocols")) print[[</th>
               <td><div class="pie-chart" id="topL4"></div></td>
           </tr>
           </table>
@@ -302,7 +302,7 @@ print [[
 			     }
 				 },
 			     {
-			     title: "]] print(i18n("sflows_stats.l4_proto")) print[[",
+			     title: "]] print(i18n("protocol")) print[[",
 				 field: "column_proto_l4",
 				 sortable: true,
 	 	             css: { 

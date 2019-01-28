@@ -35,7 +35,7 @@ print [[
 <ul id="n2n-nav" class="nav nav-tabs" role="tablist">]]
 
 print('<li class="'.. ternary(tab ~= "protocols", "active", "") ..'"><a href="?tab=hosts">'.. i18n("categories") .. "</a>")
-print('<li class="'.. ternary(tab == "protocols", "active", "") ..'"><a href="?tab=protocols">'.. i18n("protocols") .. "</a>")
+print('<li class="'.. ternary(tab == "protocols", "active", "") ..'"><a href="?tab=protocols">'.. i18n("applications") .. "</a>")
 
 print[[</ul>]]
 

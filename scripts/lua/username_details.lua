@@ -69,7 +69,7 @@ else
    if host_info then
       print('&'..hostinfo2url(host_info))
    end
-   print('&page=username_ndpi">'..i18n("protocols")..'</a></li>\n')
+   print('&page=username_ndpi">'..i18n("applications")..'</a></li>\n')
 
    if(page == "flows") then active=' class="active"' else active = "" end
    print('<li'..active..'><a href="?username='.. user_key..'&uid='..uid)

@@ -93,8 +93,8 @@ print [[
   <div class="tabbable tabs-left">
     
     <ul class="nav nav-tabs">
-      <li class="active"><a href="#l7" data-toggle="tab">]] print(i18n("l7_protocols")) print[[</a></li>
-      <li><a href="#l4" data-toggle="tab">]] print(i18n("l4_protocols")) print[[</a></li>
+      <li class="active"><a href="#l7" data-toggle="tab">]] print(i18n("applications")) print[[</a></li>
+      <li><a href="#l4" data-toggle="tab">]] print(i18n("protocols")) print[[</a></li>
     </ul>
     
       <!-- Tab content-->
@@ -222,7 +222,7 @@ print [[
 			     }
 				 },
 			     {
-			     title: "]] print(i18n("sflows_stats.l4_proto")) print[[",
+			     title: "]] print(i18n("protocol")) print[[",
 				 field: "column_proto_l4",
 				 sortable: true,
 	 	             css: { 

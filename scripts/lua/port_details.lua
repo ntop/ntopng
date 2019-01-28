@@ -68,7 +68,7 @@ print [[
 			     }
 				 },
 			     {
-			     title: "]] print(i18n("details.l4_proto")) print[[",
+			     title: "]] print(i18n("protocol")) print[[",
 				 field: "column_proto_l4",
 				 sortable: true,
 	 	             css: {

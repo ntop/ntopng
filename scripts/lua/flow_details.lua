@@ -243,7 +243,7 @@ else
 
    print("<tr><th width=30%>"..i18n("flow_details.flow_peers_client_server").."</th><td colspan=2>"..getFlowLabel(flow, true, true).."</td></tr>\n")
 
-   print("<tr><th width=30%>"..i18n("db_explorer.l4_proto").." / "..i18n("application").."</th>")
+   print("<tr><th width=30%>"..i18n("protocol").." / "..i18n("application").."</th>")
    if((ifstats.inline and flow["verdict.pass"]) or (flow.vrfId ~= nil)) then
       print("<td>")
    else

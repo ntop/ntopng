@@ -635,14 +635,14 @@ function formatRawFlow(record, flow_json)
    local l4_proto_label, l4_proto = l4_proto_to_string(record["proto"] or 0) or ""
 
    if not isEmptyString(l4_proto_label) then
-      flow = flow.."[" .. i18n("l4_protocol") .. ": " .. l4_proto_label .. "] "
+      flow = flow.."[" .. i18n("protocol") .. ": " .. l4_proto_label .. "] "
    end
 
    if (l4_proto == "tcp") or (l4_proto =="udp") then
       local l7proto_name = interface.getnDPIProtoName(tonumber(record["l7_proto"]) or 0)
 
       if not isEmptyString(l7proto_name) then
-	 flow = flow.."["..i18n("db_explorer.application_protocol")..": <A HREF='"..ntop.getHttpPrefix().."/lua/hosts_stats.lua?protocol="..record["l7_proto"].."'> " ..l7proto_name.."</A>] "
+	 flow = flow.."["..i18n("application")..": <A HREF='"..ntop.getHttpPrefix().."/lua/hosts_stats.lua?protocol="..record["l7_proto"].."'> " ..l7proto_name.."</A>] "
       end
    end
 

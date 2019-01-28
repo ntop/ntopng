@@ -67,7 +67,7 @@ else
       if host_info then
 	 print("&"..hostinfo2url(host_info))
       end
-      print('&page=process_ndpi">'..i18n("protocols")..'</a></li>\n')
+      print('&page=process_ndpi">'..i18n("applications")..'</a></li>\n')
 
       active = ''
       if page == "flows" then

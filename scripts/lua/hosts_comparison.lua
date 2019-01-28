@@ -70,10 +70,10 @@ else
 end
 
 if(page == "ndpi") then
-  print("<li class=\"active\"><a href=\"#\">"..i18n("protocols").."</a></li>\n")
+  print("<li class=\"active\"><a href=\"#\">"..i18n("applications").."</a></li>\n")
 else
    if(active_ndpi) then
-      print("<li><a href=\""..url.."&page=ndpi\">"..i18n("protocols").."</a></li>")
+      print("<li><a href=\""..url.."&page=ndpi\">"..i18n("applications").."</a></li>")
    end
 end
 
@@ -97,7 +97,7 @@ if(show_aggregation) then
 ]]
 
 print('<li><a  href="'..url .. '&aggregation=ndpi">'.. i18n("application") ..'</a></li>\n')
-print('<li><a  href="'..url .. '&aggregation=l4proto">'.. i18n("flows_page.l4_proto") ..'</a></li>\n')
+print('<li><a  href="'..url .. '&aggregation=l4proto">'.. i18n("protocol") ..'</a></li>\n')
 print('<li><a  href="'..url .. '&aggregation=port">'.. i18n("port") ..'</a></li>\n')
 print [[
   </ul>
@@ -154,7 +154,7 @@ if(show_aggregation) then
   <button id="aggregation_bubble_displayed" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown">]] print(i18n("aggregation")) print[[ <span class="caret"></span></button>
   <ul class="dropdown-menu" id="aggregation_bubble">
     <li><a>]] print(i18n("application")) print[[</a></li>
-    <li><a>]] print(i18n("l4_protocol")) print[[</a></li>
+    <li><a>]] print(i18n("protocol")) print[[</a></li>
     <li><a>]] print(i18n("port")) print[[</a></li>
   </ul>
 </div><!-- /btn-group -->

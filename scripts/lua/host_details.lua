@@ -249,10 +249,10 @@ end
 
 if(page == "ndpi") then
   direction = _GET["direction"]
-  print("<li class=\"active\"><a href=\"#\">" .. i18n("protocols") .."</a></li>\n")
+  print("<li class=\"active\"><a href=\"#\">" .. i18n("applications") .."</a></li>\n")
 else
    if(host["ip"] ~= nil) then
-      print("<li><a href=\""..url.."&page=ndpi\">" .. i18n("protocols") .. "</a></li>")
+      print("<li><a href=\""..url.."&page=ndpi\">" .. i18n("applications") .. "</a></li>")
    end
 end
 
@@ -790,7 +790,7 @@ if(found) then
         <thead>
         <tr class="header">
             <th>]] print(i18n("peers_page.host")) print[[</th>
-            <th>]] print(i18n("l7_protocol")) print[[</th>
+            <th>]] print(i18n("application")) print[[</th>
             <th>]] print(i18n("peers_page.traffic_volume")) print[[</th>
         </tr>
         </thead>
@@ -992,8 +992,8 @@ elseif((page == "ndpi")) then
    if(host["ndpi"] ~= nil) then
       print [[
   <ul id="ndpiNav" class="nav nav-tabs" role="tablist">
-    <li class="active"><a data-toggle="tab" role="tab" href="#applications" active>]] print(i18n("ndpi_page.application_protocols")) print[[</a></li>
-    <li><a data-toggle="tab" role="tab" href="#categories">]] print(i18n("ndpi_page.application_protocol_categories")) print[[</a></li>
+    <li class="active"><a data-toggle="tab" role="tab" href="#applications" active>]] print(i18n("applications")) print[[</a></li>
+    <li><a data-toggle="tab" role="tab" href="#categories">]] print(i18n("categories")) print[[</a></li>
   </ul>
   <div class="tab-content">
     <div id="applications" class="tab-pane fade in active">
@@ -1011,7 +1011,7 @@ elseif((page == "ndpi")) then
 
       print[[
     <tr>
-      <th class="text-left" colspan=2>]] print(i18n("ndpi_page.overview", {what = i18n("ndpi_page.application_protocols")})) print[[</th>
+      <th class="text-left" colspan=2>]] print(i18n("ndpi_page.overview", {what = i18n("applications")})) print[[</th>
       <td><div class="pie-chart" id="topApplicationProtocols"></div></td>
       <td colspan=2><div class="pie-chart" id="topApplicationBreeds"></div></td>
     </tr>
@@ -1035,7 +1035,7 @@ elseif((page == "ndpi")) then
      <table class="table table-bordered table-striped">
        <thead>
 	 <tr>
-	   <th>]] print(i18n("ndpi_page.application_protocol")) print[[</th>
+	   <th>]] print(i18n("application")) print[[</th>
 	   <th>]] print(i18n("duration")) print[[</th>
 	   <th>]] print(i18n("sent")) print[[</th>
 	   <th>]] print(i18n("received")) print[[</th>
@@ -1050,14 +1050,14 @@ elseif((page == "ndpi")) then
       <br>
       <table class="table table-bordered table-striped">
         <tr>
-        <th class="text-left" colspan=2>]] print(i18n("ndpi_page.overview", {what = i18n("ndpi_page.application_protocol_category")})) print[[</th>
+        <th class="text-left" colspan=2>]] print(i18n("ndpi_page.overview", {what = i18n("categories")})) print[[</th>
         <td colspan=2><div class="pie-chart" id="topApplicationCategories"></div></td>
       </tr>
       </table>
      <table class="table table-bordered table-striped">
        <thead>
 	 <tr>
-	   <th>]] print(i18n("ndpi_page.application_protocol_categories")) print[[</th>
+	   <th>]] print(i18n("category")) print[[</th>
 	   <th>]] print(i18n("duration")) print[[</th>
 	   <th colspan=2>]] print(i18n("total")) print[[</th>
 	 </tr>
@@ -1138,11 +1138,11 @@ setInterval(update_ndpi_categories_table, 5000);
       print("<b>"..i18n("notes").."</b>")
 
       if host_ndpi_timeseries_creation ~= "both" and host_ndpi_timeseries_creation ~= "per_protocol" then
-	 print("<li>"..i18n("ndpi_page.note_historical_per_protocol_traffic",{what=i18n("ndpi_page.application_protocol"), url=ntop.getHttpPrefix().."/lua/admin/prefs.lua?tab=on_disk_ts",flask_icon="<i class=\"fa fa-flask\"></i>"}).." ")
+	 print("<li>"..i18n("ndpi_page.note_historical_per_protocol_traffic",{what=i18n("application"), url=ntop.getHttpPrefix().."/lua/admin/prefs.lua?tab=on_disk_ts",flask_icon="<i class=\"fa fa-flask\"></i>"}).." ")
       end
 
       if host_ndpi_timeseries_creation ~= "both" and host_ndpi_timeseries_creation ~= "per_category" then
-	 print("<li>"..i18n("ndpi_page.note_historical_per_protocol_traffic",{what=i18n("ndpi_page.application_protocol_category"), url=ntop.getHttpPrefix().."/lua/admin/prefs.lua",flask_icon="<i class=\"fa fa-flask\"></i>"}).." ")
+	 print("<li>"..i18n("ndpi_page.note_historical_per_protocol_traffic",{what=i18n("category"), url=ntop.getHttpPrefix().."/lua/admin/prefs.lua",flask_icon="<i class=\"fa fa-flask\"></i>"}).." ")
       end
 
       print("<li>"..i18n("ndpi_page.note_possible_probing_alert",{icon="<i class=\"fa fa-warning fa-sm\" style=\"color: orange;\"></i>",url=ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&host=".._GET["host"].."&page=historical"}))
@@ -1446,7 +1446,7 @@ print [[
 			     }
 				 },
 			     {
-			     title: "]] print(i18n("sflows_stats.l4_proto")) print[[",
+			     title: "]] print(i18n("protocol")) print[[",
 				 field: "column_proto_l4",
 				 sortable: true,
 	 	             css: { 
@@ -1559,7 +1559,7 @@ print [[
 			     }
 				 },
 			     {
-			     title: "]] print(i18n("flows_page.l4_proto")) print[[",
+			     title: "]] print(i18n("protocol")) print[[",
 				 field: "column_proto_l4",
 				 sortable: true,
 	 	             css: {

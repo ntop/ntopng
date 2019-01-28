@@ -818,7 +818,7 @@ totalRows: 100,
 	  {title: "]] print(i18n("key")) print[[",         field: "idx",            hidden: true},
 	  {title: "",            field: "FLOW_URL",       sortable:false, css:{textAlign:'center'}},
 	  {title: "]] print(i18n("application")) print[[", field: "L7_PROTO",       sortable: true, css:{textAlign:'center'}},
-	  {title: "]] print(i18n("db_explorer.l4_proto")) print[[",    field: "PROTOCOL",       sortable: true, css:{textAlign:'center'}},
+	  {title: "]] print(i18n("protocol")) print[[",    field: "PROTOCOL",       sortable: true, css:{textAlign:'center'}},
 	  {title: "]] print(i18n("client")) print[[",      field: "CLIENT",         sortable: false},
 	  {title: "]] print(i18n("server")) print[[",      field: "SERVER",         sortable: false},
 	  {title: "]] print(i18n("begin")) print[[",       field: "FIRST_SWITCHED", sortable: true, css:{textAlign:'center'}},
@@ -917,7 +917,7 @@ function historicalTopApplicationsTable(ifid, epoch_begin, epoch_end, host, vlan
     <div class="form-group">
     <div class='col-md-3'>
       <form name="top_apps_faves">
-	<i class="fa fa-heart"></i> &nbsp;]] print(i18n("protocols")) print[[ <span style="float:right"><small><a onclick="removeAllFavourites('top_applications', 'app', 'top_applications_app')"><i class="fa fa-trash"></i> ]] print(i18n("db_explorer.all")) print[[ </a></small></span>
+	<i class="fa fa-heart"></i> &nbsp;]] print(i18n("applications")) print[[ <span style="float:right"><small><a onclick="removeAllFavourites('top_applications', 'app', 'top_applications_app')"><i class="fa fa-trash"></i> ]] print(i18n("db_explorer.all")) print[[ </a></small></span>
 	<select name="top_applications_app" id="top_applications_app" class="form-control">
 	</select>
     </div>
@@ -1277,7 +1277,7 @@ totalRows: 100,
 	  {title: "]] print(i18n("key")) print[[",         field: "idx",            hidden: true},
 	  {title: "",            field: "FLOW_URL",       sortable:false, css:{textAlign:'center'}},
 	  {title: "]] print(i18n("application")) print[[", field: "L7_PROTO",       sortable: true, css:{textAlign:'center'}},
-	  {title: "]] print(i18n("db_explorer.l4_proto")) print[[",    field: "PROTOCOL",       sortable: true, css:{textAlign:'center'}},
+	  {title: "]] print(i18n("protocol")) print[[",    field: "PROTOCOL",       sortable: true, css:{textAlign:'center'}},
 	  {title: "]] print(i18n("client")) print[[",      field: "CLIENT",         sortable: false},
 	  {title: "]] print(i18n("server")) print[[",      field: "SERVER",         sortable: false},
 	  {title: "]] print(i18n("begin")) print[[",       field: "FIRST_SWITCHED", sortable: true, css:{textAlign:'center'}},
@@ -1773,7 +1773,7 @@ print [[
 							  }
 						       },
 						       {
-							  title: "]] print(i18n("db_explorer.l4_proto")) print[[",
+							  title: "]] print(i18n("protocol")) print[[",
 							  field: "PROTOCOL",
 							  sortable: true,
 							  css: {
@@ -1926,7 +1926,7 @@ print [[
 							  }
 						       },
 						       {
-							  title: "]] print(i18n("db_explorer.l4_proto")) print[[",
+							  title: "]] print(i18n("protocol")) print[[",
 							  field: "PROTOCOL",
 							  sortable: true,
 							  css: {

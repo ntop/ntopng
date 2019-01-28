@@ -406,7 +406,7 @@ function printSeries(options, tags, start_time, base_url, params)
 
       if not table.empty(series) then
          graphMenuDivider()
-         graphMenuHeader(i18n("l7_protocols"))
+         graphMenuHeader(i18n("applications"))
 
          local by_protocol = {}
 
@@ -431,7 +431,7 @@ function printSeries(options, tags, start_time, base_url, params)
 
       if not table.empty(series) then
          graphMenuDivider()
-         graphMenuHeader(i18n("l4_protocols"))
+         graphMenuHeader(i18n("protocols"))
 
          local by_protocol = {}
 

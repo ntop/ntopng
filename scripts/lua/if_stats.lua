@@ -184,9 +184,9 @@ if((ifstats ~= nil) and (ifstats.stats.packets > 0)) then
    end
 
    if(page == "ndpi") then
-      print("<li class=\"active\"><a href=\"#\">" .. i18n("protocols") .. "</a></li>\n")
+      print("<li class=\"active\"><a href=\"#\">" .. i18n("applications") .. "</a></li>\n")
    else
-      print("<li><a href=\""..url.."&page=ndpi\">" .. i18n("protocols") .. "</a></li>")
+      print("<li><a href=\""..url.."&page=ndpi\">" .. i18n("applications") .. "</a></li>")
    end
 end
 
@@ -782,8 +782,8 @@ elseif((page == "packets")) then
 elseif(page == "ndpi") then
 print[[
   <ul id="ndpiNav" class="nav nav-tabs" role="tablist">
-    <li class="active"><a data-toggle="tab" role="tab" href="#applications" active>]] print(i18n("ndpi_page.application_protocols")) print[[</a></li>
-    <li><a data-toggle="tab" role="tab" href="#categories">]] print(i18n("ndpi_page.application_protocol_categories")) print[[</a></li>
+    <li class="active"><a data-toggle="tab" role="tab" href="#applications" active>]] print(i18n("applications")) print[[</a></li>
+    <li><a data-toggle="tab" role="tab" href="#categories">]] print(i18n("categories")) print[[</a></li>
   </ul>
   <div class="tab-content">
     <div id="applications" class="tab-pane fade in active">
@@ -802,7 +802,7 @@ print[[
 
    print[[
         <tr>
-          <th class="text-left">]] print(i18n("ndpi_page.overview", {what = i18n("ndpi_page.application_protocols")})) print [[</th>
+          <th class="text-left">]] print(i18n("ndpi_page.overview", {what = i18n("applications")})) print [[</th>
           <td colspan=3><div class="pie-chart" id="topApplicationProtocols"></td>
           <td colspan=2><div class="pie-chart" id="topApplicationBreeds"></td>
         </tr>
@@ -817,7 +817,7 @@ print[[
      <table id="if_stats_ndpi" class="table table-bordered table-striped tablesorter">
        <thead>
          <tr>
-           <th>]] print(i18n("ndpi_page.application_protocol")) print[[</th>
+           <th>]] print(i18n("application")) print[[</th>
            <th>]] print(i18n("ndpi_page.total_since_startup")) print[[</th>
            <th>]] print(i18n("percentage")) print[[</th>
          </tr>
@@ -829,14 +829,14 @@ print[[
       <br>
       <table class="table table-bordered table-striped">
         <tr>
-          <th class="text-left">]] print(i18n("ndpi_page.overview", {what = i18n("ndpi_page.application_protocol_categories")})) print [[</th>
+          <th class="text-left">]] print(i18n("ndpi_page.overview", {what = i18n("categories")})) print [[</th>
           <td colspan=5><div class="pie-chart" id="topApplicationCategories"></td>
         </tr>
       </table>
      <table id="if_stats_ndpi_categories" class="table table-bordered table-striped tablesorter">
        <thead>
          <tr>
-           <th>]] print(i18n("ndpi_page.application_protocol_category")) print[[</th>
+           <th>]] print(i18n("category")) print[[</th>
            <th>]] print(i18n("ndpi_page.total_since_startup")) print[[</th>
            <th>]] print(i18n("percentage")) print[[</th>
          </tr>
