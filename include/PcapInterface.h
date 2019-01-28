@@ -33,6 +33,7 @@ class PcapInterface : public NetworkInterface {
 
   pcap_stat last_pcap_stat;
   u_int32_t getNumDroppedPackets();
+  void cleanupPcapDumpDir();
 
  public:
   PcapInterface(const char *name);
