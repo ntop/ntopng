@@ -26,6 +26,7 @@
 
 class Mac : public GenericHashEntry {
  private:
+  Mutex *m;
   u_int8_t mac[6];
   u_int16_t host_pool_id;
   u_int32_t bridge_seen_iface_id; /* != 0 for bridge interfaces only */
@@ -35,9 +36,14 @@ class Mac : public GenericHashEntry {
   MacStats *stats, *stats_shadow;
   time_t last_stats_reset;
 
+  struct {
+    char * dhcp; /* Extracted from DHCP dissection */
+  } names;
+
   char * fingerprint;
   char * model;
   char * ssid;
+  
   OperatingSystem os;
   bool source_mac, dhcpHost;
   DeviceType device_type;
@@ -48,6 +54,8 @@ class Mac : public GenericHashEntry {
 
   void updateFingerprint();
   void checkDeviceTypeFromManufacturer();
+  void readDHCPCache();
+  void freeMacData();
   void deleteMacData();
   bool statsResetRequested();
   void checkStatsReset();
@@ -107,7 +115,7 @@ class Mac : public GenericHashEntry {
     if(!lockDeviceTypeChanges) lockDeviceTypeChanges = true;
   }
   inline DeviceType getDeviceType()        { return (device_type); }
-
+  char * getDHCPName(char * const buf, ssize_t buf_size) const;
   bool idle();
   void lua(lua_State* vm, bool show_details, bool asListElement);
   inline char* get_string_key(char *buf, u_int buf_len) { return(Utils::formatMac(mac, buf, buf_len)); };
@@ -122,6 +130,7 @@ class Mac : public GenericHashEntry {
   void inlineSetModel(const char * const m);
   void inlineSetFingerprint(const char * const f);
   void inlineSetSSID(const char * const s);
+  void inlineSetDHCPName(const char * const dhcp_name);
   inline u_int16_t get_host_pool() { return(host_pool_id); }
 
   inline void requestStatsReset()                        { stats_reset_requested = true; };

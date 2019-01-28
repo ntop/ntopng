@@ -29,6 +29,7 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6])
   special_mac = Utils::isSpecialMac(mac);
   source_mac = false, fingerprint = NULL, dhcpHost = false;
   bridge_seen_iface_id = 0, lockDeviceTypeChanges = false;
+  memset(&names, 0, sizeof(names));
   device_type = device_unknown, os = os_unknown;
   host_pool_id = NO_HOST_POOL_ID;
 #ifdef NTOPNG_PRO
@@ -39,6 +40,9 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6])
   stats = new MacStats(_iface);
   stats_shadow = NULL;
   last_stats_reset = ntop->getLastStatsReset(); /* assume fresh stats, may be changed by deserialize */
+
+  if((m = new(std::nothrow) Mutex()) == NULL)
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: NULL mutex. Are you running out of memory?");
 
   char redis_key[64], buf1[64], rsp[8];
   char *mac_ptr = Utils::formatMac(mac, buf1, sizeof(buf1));
@@ -95,6 +99,8 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6])
   if((ntop->getRedis()->get(redis_key, rsp, sizeof(rsp)) == 0) && rsp[0])
     forceDeviceType((DeviceType)atoi(rsp));
 
+  readDHCPCache();
+
   updateHostPool(true /* Inline */);
 }
 
@@ -143,8 +149,10 @@ Mac::~Mac() {
   if(model) free(model);
   if(ssid) free(ssid);
   if(fingerprint) free(fingerprint);
+  freeMacData();
   if(stats) delete(stats);
   if(stats_shadow) delete(stats_shadow);
+  if(m) delete m;
 
 #ifdef DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deleted %s [total %u][%s]",
@@ -432,6 +440,18 @@ void Mac::updateFingerprint() {
 
 /* *************************************** */
 
+char * Mac::getDHCPName(char * const buf, ssize_t buf_size) const {
+  if(buf && buf_size) {
+    if(m) m->lock(__FILE__, __LINE__);
+    snprintf(buf, buf_size, "%s", names.dhcp ? names.dhcp : "");
+    if(m) m->unlock(__FILE__, __LINE__);
+  }
+
+  return buf;
+}
+
+/* *************************************** */
+
 void Mac::checkDeviceTypeFromManufacturer() {
   if(isNull())
     return;
@@ -493,6 +513,13 @@ void Mac::inlineSetSSID(const char * const s) {
 
 /* *************************************** */
 
+void Mac::inlineSetDHCPName(const char * const dhcp_name) {
+  if(!names.dhcp && dhcp_name && (names.dhcp = strdup(dhcp_name)))
+    ;
+}
+
+/* *************************************** */
+
 void Mac::checkDataReset() {
   if(data_delete_requested) {
     deleteMacData();
@@ -522,7 +549,33 @@ void Mac::updateStats(struct timeval *tv) {
 
 /* *************************************** */
 
+void Mac::readDHCPCache() {
+  /* Check DHCP cache */
+  char mac_str[24], buf[64], key[64];  
+
+  if(!names.dhcp && !isNull()) {
+    Utils::formatMac(get_mac(), mac_str, sizeof(mac_str));
+
+    snprintf(key, sizeof(key), DHCP_CACHE, iface->get_id());
+    if(ntop->getRedis()->hashGet(key, mac_str, buf, sizeof(buf)) == 0) {
+      names.dhcp = strdup(buf);
+    }
+  }
+}
+
+/* *************************************** */
+
+void Mac::freeMacData() {
+  // TODO: allow fingerprint, ssid, and model to be resettable
+  if(names.dhcp) { free(names.dhcp); names.dhcp = NULL; }
+}
+
+/* *************************************** */
+
 void Mac::deleteMacData() {
+  if(m) m->lock(__FILE__, __LINE__);
+  freeMacData();
+  if(m) m->unlock(__FILE__, __LINE__);
   os = os_unknown;
   source_mac = dhcpHost = false;
   device_type = device_unknown;

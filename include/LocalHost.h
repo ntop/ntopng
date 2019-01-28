@@ -32,11 +32,11 @@ class LocalHost : public Host {
 
   /* LocalHost data: update LocalHost::deleteHostData when adding new fields */
   char *os;
-  bool dhcpUpdated, drop_all_host_traffic;
+  bool drop_all_host_traffic;
   /* END Host data: */
 
   void initialize();
-  virtual bool readDHCPCache();
+  void freeLocalHostData();
   virtual void deleteHostData();
  public:
   LocalHost(NetworkInterface *_iface, Mac *_mac, u_int16_t _vlanId, IpAddress *_ip);

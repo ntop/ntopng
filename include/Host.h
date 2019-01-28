@@ -36,9 +36,8 @@ class Host : public GenericHashEntry {
 
   /* Host data: update Host::deleteHostData when adding new fields */
   struct {
-    char * symbolic_name; /* write protected by mutex */
-    char * dhcp; /* Extracted from DHCP dissection */
-    char * mdns, *mdns_txt;
+    char * mdns, * mdns_txt;
+    char * resolved; /* The name as resolved by ntopng DNS requests */
   } names;
 
   char *mdns_info;
@@ -76,14 +75,13 @@ class Host : public GenericHashEntry {
   void initialize(Mac *_mac, u_int16_t _vlan_id, bool init_all);
   bool statsResetRequested();
   void checkStatsReset();
-  virtual bool readDHCPCache() { return false; };
 #ifdef NTOPNG_PRO
   TrafficShaper *get_shaper(ndpi_protocol ndpiProtocol, bool isIngress);
   void get_quota(u_int16_t protocol, u_int64_t *bytes_quota, u_int32_t *secs_quota, u_int32_t *schedule_bitmap, bool *is_category);
 #endif
-  char* get_name(char *buf, u_int buf_len, bool force_resolution_if_not_found);
   void luaStrTableEntryLocked(lua_State * const vm, const char * const entry_name, const char * const entry) const;
   char* printMask(char *str, u_int str_len) { return ip.printMask(str, str_len, isLocalHost()); };
+  void freeHostData();
   virtual void deleteHostData();
  public:
   Host(NetworkInterface *_iface, char *ipAddress, u_int16_t _vlanId);
@@ -124,6 +122,7 @@ class Host : public GenericHashEntry {
   void decLowGoodputFlows(bool asClient);
   inline u_int16_t get_host_pool()         { return(host_pool_id);   };
   inline u_int16_t get_vlan_id()           { return(vlan_id);        };
+  char* get_name(char *buf, u_int buf_len, bool force_resolution_if_not_found);
 
   inline void incRetransmittedPkts(u_int32_t num)   { stats->incRetransmittedPkts(num);      };
   inline void incOOOPkts(u_int32_t num)             { stats->incOOOPkts(num);                };
@@ -146,8 +145,10 @@ class Host : public GenericHashEntry {
   void reloadHostBlacklist();
   inline u_int8_t*  get_mac()                  { return(mac ? mac->get_mac() : NULL);      }
   inline Mac* getMac()                         { return(mac);              }
+  char * getResolvedName(char * const buf, ssize_t buf_len) const;
+  char * getMDNSName(char * const buf, ssize_t buf_len) const;
+  char * getMDNSTXTName(char * const buf, ssize_t buf_len) const;
   virtual char * get_os(char * const buf, ssize_t buf_len) const;
-  inline char* get_name()                      { return(names.symbolic_name);    }
 #ifdef NTOPNG_PRO
   inline TrafficShaper *get_ingress_shaper(ndpi_protocol ndpiProtocol) { return(get_shaper(ndpiProtocol, true)); }
   inline TrafficShaper *get_egress_shaper(ndpi_protocol ndpiProtocol)  { return(get_shaper(ndpiProtocol, false)); }
@@ -195,7 +196,6 @@ class Host : public GenericHashEntry {
   virtual void lua(lua_State* vm, AddressTree * ptree, bool host_details,
 	   bool verbose, bool returnHost, bool asListElement);
   void resolveHostName();
-  void setName(char *name);
   void set_host_label(char *label_name, bool ignoreIfPresent);
   inline bool is_label_set() { return(host_label_set); };
   inline int compare(Host *h) { return(ip.compare(&h->ip)); };
@@ -266,6 +266,6 @@ class Host : public GenericHashEntry {
   void inlineSetMDNSInfo(char * const s);
   void inlineSetMDNSName(const char * const n);
   void inlineSetMDNSTXTName(const char * const n);
+  void setResolvedName(const char * const resolved_name);
 };
-
 #endif /* _HOST_H_ */

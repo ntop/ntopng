@@ -66,11 +66,10 @@ Host::~Host() {
 
 #endif
 
-  if(names.symbolic_name)   free(names.symbolic_name);
-  if(ssdpLocation)        free(ssdpLocation);
+  freeHostData();
+
   if(m)                  delete m;
   if(flow_alert_counter) delete flow_alert_counter;
-  if(mdns_info)            free(mdns_info);
 
   if(syn_flood_attacker_alert)  delete syn_flood_attacker_alert;
   if(syn_flood_victim_alert)    delete syn_flood_victim_alert;
@@ -536,9 +535,9 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
       This has been disabled as in case of an attack, most hosts do not have a name and we will waste
       a lot of time doing activities that are not necessary
     */
-    if((names.symbolic_name == NULL) || (strcmp(names.symbolic_name, ipaddr) == 0)) {
+    get_name(buf, sizeof(buf), false);
+    if(strlen(buf) == 0 || strcmp(buf, ipaddr) == 0) {
       /* We resolve immediately the IP address by queueing on the top of address queue */
-
       ntop->getRedis()->pushHostToResolve(ipaddr, false, true /* Fake to resolve it ASAP */);
     }
 
@@ -593,50 +592,90 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
 
 /* ***************************************** */
 
-/*
-  As this method can be called from Lua, in order to avoid concurrency issues
-  we need to lock/unlock
-*/
-void Host::setName(char *name) {
-  if(m) m->lock(__FILE__, __LINE__);
-  if((names.symbolic_name == NULL) || (names.symbolic_name && strcmp(names.symbolic_name, name))) {
-    if(names.symbolic_name) free(names.symbolic_name);
-    names.symbolic_name = strdup(name);
-  }
-
-  if(m) m->unlock(__FILE__, __LINE__);
-}
-
-/* ***************************************** */
-
 char* Host::get_name(char *buf, u_int buf_len, bool force_resolution_if_not_found) {
-  char *addr, redis_buf[64];
-  int rc;
+  Mac *m = getMac(); /* Cache it as it can change */
+  char *addr = NULL, name_buf[96];
+  int rc = -1;
   time_t now = time(NULL);
+  bool skip_resolution = false;
 
   if(nextResolveAttempt
      && ((num_resolve_attempts > 1) || (nextResolveAttempt > now) || (nextResolveAttempt == (time_t)-1))) {
-    return(names.symbolic_name);
+    skip_resolution = true;
   } else
     nextResolveAttempt = ntop->getPrefs()->is_dns_resolution_enabled() ? now + MIN_HOST_RESOLUTION_FREQUENCY : (time_t)-1;
 
   num_resolve_attempts++;
-  addr = ip.print(buf, buf_len);
 
-  if((names.symbolic_name != NULL) && strcmp(names.symbolic_name, addr))
-    return(names.symbolic_name);
+  if(m) {
+    m->getDHCPName(name_buf, sizeof(name_buf));
+    if(strlen(name_buf))
+      goto out;
+  }
 
-  if(readDHCPCache() && names.symbolic_name) return(names.symbolic_name);
+  getMDNSName(name_buf, sizeof(name_buf));
+  if(strlen(name_buf))
+    goto out;
 
-  rc = ntop->getRedis()->getAddress(addr, redis_buf, sizeof(redis_buf),
-				    force_resolution_if_not_found);
+  getMDNSTXTName(name_buf, sizeof(name_buf));
+  if(strlen(name_buf))
+    goto out;
+
+  getResolvedName(name_buf, sizeof(name_buf));
+  if(strlen(name_buf))
+    goto out;
+
+  if(!skip_resolution) {
+    addr = ip.print(buf, buf_len);
+    rc = ntop->getRedis()->getAddress(addr, name_buf, sizeof(name_buf),
+				      force_resolution_if_not_found);
+  }
 
   if(rc == 0)
-    setName(redis_buf);
+    setResolvedName(name_buf);
   else
-    setName(addr);
+    addr = ip.print(name_buf, sizeof(name_buf));
 
-  return(names.symbolic_name);
+ out:
+  snprintf(buf, buf_len, "%s", name_buf);
+  return(buf);
+}
+
+/* ***************************************** */
+
+char * Host::getResolvedName(char * const buf, ssize_t buf_len) const {
+  if(buf && buf_len) {
+    if(m) m->lock(__FILE__, __LINE__);
+    snprintf(buf, buf_len, "%s", names.resolved ? names.resolved : "");
+    if(m) m->unlock(__FILE__, __LINE__);
+  }
+
+  return buf;
+}
+
+/* ***************************************** */
+
+char * Host::getMDNSName(char * const buf, ssize_t buf_len) const {
+  if(buf && buf_len) {
+    if(m) m->lock(__FILE__, __LINE__);
+    snprintf(buf, buf_len, "%s", names.mdns ? names.mdns : "");
+    if(m) m->unlock(__FILE__, __LINE__);
+  }
+
+  return buf;
+}
+
+
+/* ***************************************** */
+
+char * Host::getMDNSTXTName(char * const buf, ssize_t buf_len) const {
+  if(buf && buf_len) {
+    if(m) m->lock(__FILE__, __LINE__);
+    snprintf(buf, buf_len, "%s", names.mdns_txt ? names.mdns_txt : "");
+    if(m) m->unlock(__FILE__, __LINE__);
+  }
+
+  return buf;
 }
 
 /* ***************************************** */
@@ -706,7 +745,7 @@ char* Host::serialize() {
 
 json_object* Host::getJSONObject(DetailsLevel details_level) {
   json_object *my_object;
-  char buf[64];
+  char buf[96];
   Mac *m = mac;
 
   if((my_object = json_object_new_object()) == NULL) return(NULL);
@@ -724,10 +763,12 @@ json_object* Host::getJSONObject(DetailsLevel details_level) {
     json_object_object_add(my_object, "seen.last",  json_object_new_int64(last_seen));
     json_object_object_add(my_object, "last_stats_reset", json_object_new_int64(last_stats_reset));
     json_object_object_add(my_object, "asn", json_object_new_int(asn));
-    if(names.symbolic_name)       json_object_object_add(my_object, "symbolic_name", json_object_new_string(names.symbolic_name));
-    if(asname)              json_object_object_add(my_object, "asname",    json_object_new_string(asname ? asname : (char*)""));
+
+    get_name(buf, sizeof(buf), false);
+    if(strlen(buf)) json_object_object_add(my_object, "symbolic_name", json_object_new_string(buf));
+    if(asname)      json_object_object_add(my_object, "asname",    json_object_new_string(asname ? asname : (char*)""));
     get_os(buf, sizeof(buf));
-    if(strlen(buf))    json_object_object_add(my_object, "os",        json_object_new_string(buf));
+    if(strlen(buf)) json_object_object_add(my_object, "os",        json_object_new_string(buf));
 
 
     json_object_object_add(my_object, "localHost", json_object_new_boolean(isLocalHost()));
@@ -1093,6 +1134,18 @@ void Host::inlineSetMDNSTXTName(const char * const mdns_n_txt) {
 
 /* *************************************** */
 
+void Host::setResolvedName(const char * const resolved_name) {
+  /* This is NOT set inline, so we must lock. */
+  if(resolved_name) {
+    if(m) m->lock(__FILE__, __LINE__);
+    if(!names.resolved && (names.resolved = strdup(resolved_name)))
+      ;
+    if(m) m->unlock(__FILE__, __LINE__); 
+  }
+}
+
+/* *************************************** */
+
 char* Host::get_country(char *buf, u_int buf_len) {
   char *continent = NULL, *country_name = NULL, *city = NULL;
   float latitude = 0, longitude = 0;
@@ -1199,13 +1252,19 @@ void Host::checkDataReset() {
 
 /* *************************************** */
 
-void Host::deleteHostData() {
-  if(m) m->lock(__FILE__, __LINE__);
-  // setName((char*)""); // TODO: handle setName reset
+void Host::freeHostData() {
   if(mdns_info)      { free(mdns_info); mdns_info = NULL;           }
   if(ssdpLocation)   { free(ssdpLocation); ssdpLocation = NULL;     }
   if(names.mdns)     { free(names.mdns); names.mdns = NULL;         }
   if(names.mdns_txt) { free(names.mdns_txt); names.mdns_txt = NULL; }
+  if(names.resolved) { free(names.resolved); names.resolved = NULL; }
+}
+
+/* *************************************** */
+
+void Host::deleteHostData() {
+  if(m) m->lock(__FILE__, __LINE__);
+  freeHostData();
   if(m) m->unlock(__FILE__, __LINE__);
   host_label_set = false;
   first_seen = last_seen;

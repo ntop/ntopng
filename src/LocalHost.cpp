@@ -42,7 +42,7 @@ LocalHost::LocalHost(NetworkInterface *_iface, char *ipAddress, u_int16_t _vlanI
 LocalHost::~LocalHost() {
   serialize2redis(); /* possibly dumps counters and data to redis */
 
-  if(os)              free(os);
+  freeLocalHostData();
 }
 
 /* *************************************** */
@@ -55,7 +55,6 @@ void LocalHost::initialize() {
   updateHostPool(true /* inline with packet processing */, true /* first inc */);
 
   local_network_id = -1;
-  dhcpUpdated = false;
   drop_all_host_traffic = false;
   os = NULL;
 
@@ -63,10 +62,6 @@ void LocalHost::initialize() {
   networkStats = getNetworkStats(local_network_id);
 
   systemHost = ip.isLocalInterfaceAddress();
-
-  PROFILING_SUB_SECTION_ENTER(iface, "LocalHost::initialize: readDHCPCache", 14);
-  readDHCPCache();
-  PROFILING_SUB_SECTION_EXIT(iface, 14);
 
   PROFILING_SUB_SECTION_ENTER(iface, "LocalHost::initialize: local_host_cache", 16);
   if(ntop->getPrefs()->is_idle_local_host_cache_enabled()) {
@@ -99,8 +94,7 @@ void LocalHost::initialize() {
   snprintf(host, sizeof(host), "%s@%u", strIP, vlan_id);
   char rsp[256];
 
-  if(ntop->getRedis()->getAddress(strIP, rsp, sizeof(rsp), true) == 0)
-    setName(rsp);
+  ntop->getRedis()->getAddress(strIP, rsp, sizeof(rsp), true);
 
   PROFILING_SUB_SECTION_ENTER(iface, "LocalHost::initialize: updateHostTrafficPolicy", 18);
   updateHostTrafficPolicy(host);
@@ -113,31 +107,6 @@ void LocalHost::initialize() {
 			       ip.print(buf, sizeof(buf)),
 			       isSystemHost() ? "systemHost" : "", this);
 #endif
-}
-
-/* *************************************** */
-
-bool LocalHost::readDHCPCache() {
-  Mac *m = mac; /* Cache it as it can be replaced with secondary_mac */
-
-  if(m && (!dhcpUpdated)) {
-    /* Check DHCP cache */
-    char client_mac[24], buf[64], key[64];
-
-    dhcpUpdated = true;
-
-    if(!m->isNull()) {
-      Utils::formatMac(m->get_mac(), client_mac, sizeof(client_mac));
-
-      snprintf(key, sizeof(key), DHCP_CACHE, iface->get_id());
-      if(ntop->getRedis()->hashGet(key, client_mac, buf, sizeof(buf)) == 0) {
-	setName(buf);
-	return true;
-      }
-    }
-  }
-
-  return false;
 }
 
 /* *************************************** */
@@ -195,10 +164,6 @@ bool LocalHost::deserialize(char *json_str, char *key) {
   if(json_object_object_get_ex(o, "seen.last", &obj))  last_seen  = json_object_get_int64(obj);
   if(json_object_object_get_ex(o, "last_stats_reset", &obj)) last_stats_reset = json_object_get_int64(obj);
 
-  if(json_object_object_get_ex(o, "symbolic_name", &obj))  {
-    if(names.symbolic_name) free(names.symbolic_name);
-    names.symbolic_name = strdup(json_object_get_string(obj));
-  }
   if(json_object_object_get_ex(o, "os", &obj))
     inlineSetOS(json_object_get_string(obj));
 
@@ -337,13 +302,19 @@ void LocalHost::tsLua(lua_State* vm) {
 
 /* *************************************** */
 
+void LocalHost::freeLocalHostData() {
+  /* Better not to use a virtual function as it is called in the destructor as well */
+  if(os) { free(os); os = NULL; }
+}
+
+/* *************************************** */
+
 void LocalHost::deleteHostData() {
   Host::deleteHostData();
 
   if(m) m->lock(__FILE__, __LINE__);
-  if(os) { free(os); os = NULL; }
+  freeLocalHostData();
   if(m) m->unlock(__FILE__, __LINE__);
 
-  dhcpUpdated = false;
   updateHostTrafficPolicy(NULL);
 }

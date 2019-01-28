@@ -1609,7 +1609,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
     case NDPI_PROTOCOL_DHCP:
       /* TODO case NDPI_PROTOCOL_DHCPV6: */
     {
-      Mac *mac = (*srcHost)->getMac();
+      Mac *mac = (*srcHost)->getMac(), *payload_cli_mac;
 
       if(mac && (payload_len > 240)) {
 	struct dhcp_packet *dhcpp = (struct dhcp_packet*)payload;
@@ -1642,6 +1642,10 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 
 	    snprintf(key, sizeof(key), DHCP_CACHE, get_id());
 	    ntop->getRedis()->hashSet(key, client_mac, name);
+
+	    if((payload_cli_mac = getMac(&payload[28], false)))
+	       payload_cli_mac->inlineSetDHCPName(name);
+
 #ifdef DHCP_DEBUG
 	  ntop->getTrace()->traceEvent(TRACE_WARNING, "[DHCP] %s = '%s'", client_mac, name);
 #endif
@@ -3136,6 +3140,9 @@ struct mac_find_info {
 static bool find_host_by_name(GenericHashEntry *h, void *user_data, bool *matched) {
   struct host_find_info *info = (struct host_find_info*)user_data;
   Host *host                  = (Host*)h;
+  char ip_buf[32], name_buf[96];
+  name_buf[0] = '\0';
+  
 
 #ifdef DEBUG
   char buf[64];
@@ -3145,16 +3152,20 @@ static bool find_host_by_name(GenericHashEntry *h, void *user_data, bool *matche
 #endif
 
   if((info->h == NULL) && (host->get_vlan_id() == info->vlan_id)) {
-    if((host->get_name() == NULL) && host->get_ip()) {
-      char ip_buf[32], name_buf[96];
+    host->get_name(name_buf, sizeof(name_buf), false);
+
+    if(strlen(name_buf) == 0 && host->get_ip()) {
       char *ipaddr = host->get_ip()->print(ip_buf, sizeof(ip_buf));
       int rc = ntop->getRedis()->getAddress(ipaddr, name_buf, sizeof(name_buf),
 					    false /* Don't resolve it if not known */);
 
-      if(rc == 0 /* found */) host->setName(name_buf);
+      if(rc == 0 /* found */)
+	host->setResolvedName(name_buf);
+      else
+	name_buf[0] = '\0';
     }
 
-    if(host->get_name() && (!strcmp(host->get_name(), info->host_to_find))) {
+    if(!strcmp(name_buf, info->host_to_find)) {
       info->h = host;
       *matched = true;
       return(true); /* found */
