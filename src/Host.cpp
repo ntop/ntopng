@@ -1079,6 +1079,20 @@ void Host::inlineSetSSDPLocation(const char * const url) {
 
 /* *************************************** */
 
+void Host::inlineSetMDNSName(const char * const mdns_n) {
+  if(!names.mdns && mdns_n && (names.mdns = strdup(mdns_n)))
+    ;
+}
+
+/* *************************************** */
+
+void Host::inlineSetMDNSTXTName(const char * const mdns_n_txt) {
+  if(!names.mdns_txt && mdns_n_txt && (names.mdns_txt = strdup(mdns_n_txt)))
+    ;
+}
+
+/* *************************************** */
+
 char* Host::get_country(char *buf, u_int buf_len) {
   char *continent = NULL, *country_name = NULL, *city = NULL;
   float latitude = 0, longitude = 0;
@@ -1188,8 +1202,10 @@ void Host::checkDataReset() {
 void Host::deleteHostData() {
   if(m) m->lock(__FILE__, __LINE__);
   // setName((char*)""); // TODO: handle setName reset
-  if(mdns_info)    { free(mdns_info); mdns_info = NULL; }
-  if(ssdpLocation) { free(ssdpLocation); ssdpLocation = NULL; }
+  if(mdns_info)      { free(mdns_info); mdns_info = NULL;           }
+  if(ssdpLocation)   { free(ssdpLocation); ssdpLocation = NULL;     }
+  if(names.mdns)     { free(names.mdns); names.mdns = NULL;         }
+  if(names.mdns_txt) { free(names.mdns_txt); names.mdns_txt = NULL; }
   if(m) m->unlock(__FILE__, __LINE__);
   host_label_set = false;
   first_seen = last_seen;

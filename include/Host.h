@@ -36,7 +36,9 @@ class Host : public GenericHashEntry {
 
   /* Host data: update Host::deleteHostData when adding new fields */
   struct {
-    char *symbolic_name; /* write protected by mutex */
+    char * symbolic_name; /* write protected by mutex */
+    char * dhcp; /* Extracted from DHCP dissection */
+    char * mdns, *mdns_txt;
   } names;
 
   char *mdns_info;
@@ -262,6 +264,8 @@ class Host : public GenericHashEntry {
   virtual void inlineSetOS(const char * const _os) {};
   void inlineSetSSDPLocation(const char * const url);
   void inlineSetMDNSInfo(char * const s);
+  void inlineSetMDNSName(const char * const n);
+  void inlineSetMDNSTXTName(const char * const n);
 };
 
 #endif /* _HOST_H_ */

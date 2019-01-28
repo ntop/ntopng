@@ -3069,8 +3069,10 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
 	  c[0] = '\0';
       }
 
-      if(cli_host)
+      if(cli_host) {
 	cli_host->setName(name); /* See (**) */
+	cli_host->inlineSetMDNSName(name);
+      }
 
       if((rsp_type == 0x10 /* TXT */) && (data_len > 0)) {
 	char *txt = (char*)&payload[i+sizeof(rsp)], txt_buf[256];
@@ -3108,7 +3110,10 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
 	      }
 
 	      if(strncmp(txt_buf, "nm=", 3) == 0) {
-		if(cli_host) cli_host->setName(&txt_buf[3]);
+		if(cli_host) {
+		  cli_host->setName(&txt_buf[3]);
+		  cli_host->inlineSetMDNSTXTName(&txt_buf[3]);
+		}
 	      }
 
 	      if(strncmp(txt_buf, "ssid=", 3) == 0) {
