@@ -16,6 +16,7 @@ local extraction_seqnum_key = "ntopng.traffic_recording.extraction_seqnum"
 local extraction_jobs_key = "ntopng.traffic_recording.extraction_jobs"
 local is_available_key = "ntopng.cache.traffic_recording_available"
 local provider_key = "ntopng.prefs.traffic_recording.ifid_%d.provider"
+local external_providers_reminder_dismissed_key = "ntopng.prefs.traffic_recording.ifid_%d.reminder_dismissed"
 
 local recording_utils = {}
 
@@ -81,6 +82,36 @@ function recording_utils.isSupportedInterface(ifid)
     return true
   end
   return false
+end
+
+--! @brief Check if a reminder that warns the user about available external traffic rec. providers has to be shown
+--! @return true if the reminder has to be shown, false otherwise
+function recording_utils.isExternalProvidersReminderDismissed(ifid)
+   local k = string.format(external_providers_reminder_dismissed_key, ifid)
+   ntop.delCache(k)
+   local cur_pref = ntop.getPref(k)
+
+   if cur_pref == "true" then
+      return true -- reminder has been explicitly dismissed
+   end
+
+   if recording_utils.getCurrentTrafficRecordingProvider(ifid) ~= "ntopng" then
+      return true -- an external traffic recording provider has already been selected
+   end
+
+   local providers = recording_utils.getAvailableTrafficRecordingProviders()
+   if #providers == 1 then
+      return true -- there's only one provider
+   end
+
+   return false
+end
+
+--! @brief Dismiss the reminder for external traffic recording providers
+--! @return nil
+function recording_utils.dismissExternalProvidersReminder(ifid)
+   local k = string.format(external_providers_reminder_dismissed_key, ifid)
+   ntop.setPref(k, "true")
 end
 
 -- only called during boot

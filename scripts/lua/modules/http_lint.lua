@@ -1215,6 +1215,7 @@ local known_parameters = {
    ["record_traffic"]                              = validateBool,
    ["max_extracted_pcap_bytes"]                    = validateNumber,
    ["traffic_recording_provider"]                  = validateTrafficRecordingProvider,
+   ["dismiss_external_providers_reminder"]         = validateBool,
 --
 
 -- PAGE SPECIFIC

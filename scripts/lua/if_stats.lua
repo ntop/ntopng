@@ -240,12 +240,20 @@ local has_traffic_recording_page =  (recording_utils.isAvailable()
 		  or ((recording_utils.isSupportedZMQInterface(ifid) and not table.empty(ext_interfaces)))
 		  or (recording_utils.getCurrentTrafficRecordingProvider(ifid) ~= "ntopng")))
 
+local dismiss_recording_providers_reminder = recording_utils.isExternalProvidersReminderDismissed(ifstats.id)
+   
 if has_traffic_recording_page then
    if(page == "traffic_recording") then
-      print("<li class=\"active\"><a href=\""..url.."&page=traffic_recording\"><i class=\"fa fa-hdd-o fa-lg\"></i></a></li>")
+      print("<li class=\"active\"><a href=\""..url.."&page=traffic_recording\"><i class=\"fa fa-hdd-o fa-lg\"></i>")
    else
-      print("<li><a href=\""..url.."&page=traffic_recording\"><i class=\"fa fa-hdd-o fa-lg\"></i></a></li>")
+      print("<li><a href=\""..url.."&page=traffic_recording\"><i class=\"fa fa-hdd-o fa-lg\"></i>")
    end
+
+   if not dismiss_recording_providers_reminder then
+      print("<span class='badge badge-top-right'><i class=\"fa fa-cog fa-sm\"></i></span>")
+   end
+
+   print("</a></li>")
 end
 
 if(isAdministrator() and areAlertsEnabled() and not ifstats.isView) then
@@ -1083,6 +1091,29 @@ print [[
 ]]
 
 elseif(page == "traffic_recording" and has_traffic_recording_page) then
+   if not dismiss_recording_providers_reminder then
+      print('<div id="traffic-recording-providers-detected" class="alert alert-info alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-label="close">&times;</button>'..i18n('traffic_recording.msg_external_providers_detected', {url = ntop.getHttpPrefix().."/lua/if_stats.lua?page=config"})..'</div>')
+
+      print [[
+  <script>
+    $('#traffic-recording-providers-detected').on('close.bs.alert', function () {
+         var dismiss_notice = $.ajax({
+          type: 'POST',
+          url: ']]
+   print (ntop.getHttpPrefix())
+   print [[/lua/traffic_recording_config.lua',
+          data: { ifid: ]] print(tostring(ifstats.id)) print[[,
+                  dismiss_external_providers_reminder: true,
+                  csrf: "]] print(ntop.getRandomCSRFValue()) print[["},
+          success: function()  {},
+          complete: function() {},
+        });
+
+    });
+  </script>
+]]
+   end
+
    local tab = _GET["tab"] or "config"
    local recording_enabled = recording_utils.isEnabled(ifstats.id)
    -- config tab is only shown when the recording service is managed by ntopng

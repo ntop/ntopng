@@ -2996,6 +2996,7 @@ local lang = {
     ["unsupported_fields"] = "Note that the selected chart provides a view of the traffic not fully supported by the extraction tool, extracted traffic will contain more traffic than expected.",
     ["waiting"] = "Waiting",
     ["waiting_nospace"] = "Waiting (No Space On Disk)",
+    ["msg_external_providers_detected"] = "External traffic recording providers detected. ntopng can automatically bind this interface to an external provider. You can let ntopng take care of the recording using this page, or you can <a href=\"%{url}\"><i class=\"fa fa-cog\"></i> configure</a> an external traffic recording provider.",
   },
   ["traffic_report"] = {
     ["current_day"] = "Current Day",
