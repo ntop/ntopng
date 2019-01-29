@@ -41,9 +41,6 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6])
   stats_shadow = NULL;
   last_stats_reset = ntop->getLastStatsReset(); /* assume fresh stats, may be changed by deserialize */
 
-  if((m = new(std::nothrow) Mutex()) == NULL)
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: NULL mutex. Are you running out of memory?");
-
   char redis_key[64], buf1[64], rsp[8];
   char *mac_ptr = Utils::formatMac(mac, buf1, sizeof(buf1));
 
@@ -152,7 +149,6 @@ Mac::~Mac() {
   freeMacData();
   if(stats) delete(stats);
   if(stats_shadow) delete(stats_shadow);
-  if(m) delete m;
 
 #ifdef DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deleted %s [total %u][%s]",
@@ -440,11 +436,11 @@ void Mac::updateFingerprint() {
 
 /* *************************************** */
 
-char * Mac::getDHCPName(char * const buf, ssize_t buf_size) const {
+char * Mac::getDHCPName(char * const buf, ssize_t buf_size) {
   if(buf && buf_size) {
-    if(m) m->lock(__FILE__, __LINE__);
+    m.lock(__FILE__, __LINE__);
     snprintf(buf, buf_size, "%s", names.dhcp ? names.dhcp : "");
-    if(m) m->unlock(__FILE__, __LINE__);
+    m.unlock(__FILE__, __LINE__);
   }
 
   return buf;
@@ -488,8 +484,8 @@ void Mac::checkDeviceTypeFromManufacturer() {
 
 /* *************************************** */
 
-void Mac::inlineSetModel(const char * const m) {
-  if(!model && m && (model = strdup(m))) {
+void Mac::inlineSetModel(const char * const the_model) {
+  if(!model && the_model && (model = strdup(the_model))) {
     if(strstr(model, "AppleTV") != NULL) setDeviceType(device_multimedia);
     else if(strstr(model, "MacBook") != NULL) setDeviceType(device_laptop);
     else if(strstr(model, "AirPort") != NULL) setDeviceType(device_wifi);
@@ -573,9 +569,9 @@ void Mac::freeMacData() {
 /* *************************************** */
 
 void Mac::deleteMacData() {
-  if(m) m->lock(__FILE__, __LINE__);
+  m.lock(__FILE__, __LINE__);
   freeMacData();
-  if(m) m->unlock(__FILE__, __LINE__);
+  m.unlock(__FILE__, __LINE__);
   os = os_unknown;
   source_mac = dhcpHost = false;
   device_type = device_unknown;

@@ -31,7 +31,7 @@ class MySQLDB : public DB {
   bool db_operational, mysql_alt_connected;
   FILE *log_fd;
   u_int32_t mysqlEnqueuedFlows;
-  Mutex *m;
+  Mutex m;
 
   static volatile bool db_created;
   pthread_t queryThreadLoop;

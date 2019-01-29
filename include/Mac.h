@@ -26,7 +26,7 @@
 
 class Mac : public GenericHashEntry {
  private:
-  Mutex *m;
+  Mutex m;
   u_int8_t mac[6];
   u_int16_t host_pool_id;
   u_int32_t bridge_seen_iface_id; /* != 0 for bridge interfaces only */
@@ -115,7 +115,7 @@ class Mac : public GenericHashEntry {
     if(!lockDeviceTypeChanges) lockDeviceTypeChanges = true;
   }
   inline DeviceType getDeviceType()        { return (device_type); }
-  char * getDHCPName(char * const buf, ssize_t buf_size) const;
+  char * getDHCPName(char * const buf, ssize_t buf_size);
   bool idle();
   void lua(lua_State* vm, bool show_details, bool asListElement);
   inline char* get_string_key(char *buf, u_int buf_len) { return(Utils::formatMac(mac, buf, buf_len)); };

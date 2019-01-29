@@ -43,7 +43,7 @@ class LocalHost : public Host {
   LocalHost(NetworkInterface *_iface, char *ipAddress, u_int16_t _vlanId);
   virtual ~LocalHost();
 
-  virtual char * get_os(char * const buf, ssize_t buf_len) const;
+  virtual char * get_os(char * const buf, ssize_t buf_len);
   virtual int16_t get_local_network_id() { return(local_network_id);  };
   virtual bool isLocalHost()             { return(true);              };
   virtual bool isSystemHost()            { return(systemHost);        };

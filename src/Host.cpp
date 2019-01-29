@@ -68,7 +68,6 @@ Host::~Host() {
 
   freeHostData();
 
-  if(m)                  delete m;
   if(flow_alert_counter) delete flow_alert_counter;
 
   if(syn_flood_attacker_alert)  delete syn_flood_attacker_alert;
@@ -158,10 +157,6 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   num_uses = 0, vlan_id = _vlanId % MAX_NUM_VLAN,
   first_seen = last_seen = iface->getTimeLastPktRcvd();
   memset(&names, 0, sizeof(names));
-
-  if((m = new(std::nothrow) Mutex()) == NULL)
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: NULL mutex. Are you running out of memory?");
-
   asn = 0, asname = NULL;
   as = NULL, country = NULL;
   blacklisted_host = false, reloadHostBlacklist();
@@ -452,15 +447,15 @@ void Host::luaAnomalies(lua_State* vm) {
 
 /* *************************************** */
 
-void Host::luaStrTableEntryLocked(lua_State * const vm, const char * const entry_name, const char * const entry_value) const {
+void Host::luaStrTableEntryLocked(lua_State * const vm, const char * const entry_name, const char * const entry_value) {
   /* Perform access to const entry values using a lock as entry value can change for example during a data reset */
   if(entry_name) {
-    if(m) m->lock(__FILE__, __LINE__);
+    m.lock(__FILE__, __LINE__);
 
     if(entry_value)
       lua_push_str_table_entry(vm, entry_name, entry_value);
 
-    if(m) m->unlock(__FILE__, __LINE__);
+    m.unlock(__FILE__, __LINE__);
   }
 }
 
@@ -593,7 +588,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
 /* ***************************************** */
 
 char* Host::get_name(char *buf, u_int buf_len, bool force_resolution_if_not_found) {
-  Mac *m = getMac(); /* Cache it as it can change */
+  Mac *cur_mac = getMac(); /* Cache it as it can change */
   char *addr = NULL, name_buf[96];
   int rc = -1;
   time_t now = time(NULL);
@@ -607,8 +602,8 @@ char* Host::get_name(char *buf, u_int buf_len, bool force_resolution_if_not_foun
 
   num_resolve_attempts++;
 
-  if(m) {
-    m->getDHCPName(name_buf, sizeof(name_buf));
+  if(cur_mac) {
+    cur_mac->getDHCPName(name_buf, sizeof(name_buf));
     if(strlen(name_buf))
       goto out;
   }
@@ -643,11 +638,11 @@ char* Host::get_name(char *buf, u_int buf_len, bool force_resolution_if_not_foun
 
 /* ***************************************** */
 
-char * Host::getResolvedName(char * const buf, ssize_t buf_len) const {
+char * Host::getResolvedName(char * const buf, ssize_t buf_len) {
   if(buf && buf_len) {
-    if(m) m->lock(__FILE__, __LINE__);
+    m.lock(__FILE__, __LINE__);
     snprintf(buf, buf_len, "%s", names.resolved ? names.resolved : "");
-    if(m) m->unlock(__FILE__, __LINE__);
+    m.unlock(__FILE__, __LINE__);
   }
 
   return buf;
@@ -655,11 +650,11 @@ char * Host::getResolvedName(char * const buf, ssize_t buf_len) const {
 
 /* ***************************************** */
 
-char * Host::getMDNSName(char * const buf, ssize_t buf_len) const {
+char * Host::getMDNSName(char * const buf, ssize_t buf_len) {
   if(buf && buf_len) {
-    if(m) m->lock(__FILE__, __LINE__);
+    m.lock(__FILE__, __LINE__);
     snprintf(buf, buf_len, "%s", names.mdns ? names.mdns : "");
-    if(m) m->unlock(__FILE__, __LINE__);
+    m.unlock(__FILE__, __LINE__);
   }
 
   return buf;
@@ -668,11 +663,11 @@ char * Host::getMDNSName(char * const buf, ssize_t buf_len) const {
 
 /* ***************************************** */
 
-char * Host::getMDNSTXTName(char * const buf, ssize_t buf_len) const {
+char * Host::getMDNSTXTName(char * const buf, ssize_t buf_len) {
   if(buf && buf_len) {
-    if(m) m->lock(__FILE__, __LINE__);
+    m.lock(__FILE__, __LINE__);
     snprintf(buf, buf_len, "%s", names.mdns_txt ? names.mdns_txt : "");
-    if(m) m->unlock(__FILE__, __LINE__);
+    m.unlock(__FILE__, __LINE__);
   }
 
   return buf;
@@ -680,7 +675,7 @@ char * Host::getMDNSTXTName(char * const buf, ssize_t buf_len) const {
 
 /* ***************************************** */
 
-char * Host::get_os(char * const buf, ssize_t buf_len) const {
+char * Host::get_os(char * const buf, ssize_t buf_len) {
   if(buf && buf_len)
     buf[0] = '\0';
 
@@ -1137,10 +1132,10 @@ void Host::inlineSetMDNSTXTName(const char * const mdns_n_txt) {
 void Host::setResolvedName(const char * const resolved_name) {
   /* This is NOT set inline, so we must lock. */
   if(resolved_name) {
-    if(m) m->lock(__FILE__, __LINE__);
+    m.lock(__FILE__, __LINE__);
     if(!names.resolved && (names.resolved = strdup(resolved_name)))
       ;
-    if(m) m->unlock(__FILE__, __LINE__); 
+    m.unlock(__FILE__, __LINE__); 
   }
 }
 
@@ -1263,9 +1258,9 @@ void Host::freeHostData() {
 /* *************************************** */
 
 void Host::deleteHostData() {
-  if(m) m->lock(__FILE__, __LINE__);
+  m.lock(__FILE__, __LINE__);
   freeHostData();
-  if(m) m->unlock(__FILE__, __LINE__);
+  m.unlock(__FILE__, __LINE__);
   host_label_set = false;
   first_seen = last_seen;
 }

@@ -59,7 +59,7 @@ class Host : public GenericHashEntry {
   Vlan *vlan;
   bool blacklisted_host;
 
-  Mutex *m;
+  Mutex m;
   u_int32_t mac_last_seen;
   u_int8_t num_resolve_attempts;
   time_t nextResolveAttempt;
@@ -79,7 +79,7 @@ class Host : public GenericHashEntry {
   TrafficShaper *get_shaper(ndpi_protocol ndpiProtocol, bool isIngress);
   void get_quota(u_int16_t protocol, u_int64_t *bytes_quota, u_int32_t *secs_quota, u_int32_t *schedule_bitmap, bool *is_category);
 #endif
-  void luaStrTableEntryLocked(lua_State * const vm, const char * const entry_name, const char * const entry) const;
+  void luaStrTableEntryLocked(lua_State * const vm, const char * const entry_name, const char * const entry);
   char* printMask(char *str, u_int str_len) { return ip.printMask(str, str_len, isLocalHost()); };
   void freeHostData();
   virtual void deleteHostData();
@@ -145,10 +145,10 @@ class Host : public GenericHashEntry {
   void reloadHostBlacklist();
   inline u_int8_t*  get_mac()                  { return(mac ? mac->get_mac() : NULL);      }
   inline Mac* getMac()                         { return(mac);              }
-  char * getResolvedName(char * const buf, ssize_t buf_len) const;
-  char * getMDNSName(char * const buf, ssize_t buf_len) const;
-  char * getMDNSTXTName(char * const buf, ssize_t buf_len) const;
-  virtual char * get_os(char * const buf, ssize_t buf_len) const;
+  char * getResolvedName(char * const buf, ssize_t buf_len);
+  char * getMDNSName(char * const buf, ssize_t buf_len);
+  char * getMDNSTXTName(char * const buf, ssize_t buf_len);
+  virtual char * get_os(char * const buf, ssize_t buf_len);
 #ifdef NTOPNG_PRO
   inline TrafficShaper *get_ingress_shaper(ndpi_protocol ndpiProtocol) { return(get_shaper(ndpiProtocol, true)); }
   inline TrafficShaper *get_egress_shaper(ndpi_protocol ndpiProtocol)  { return(get_shaper(ndpiProtocol, false)); }

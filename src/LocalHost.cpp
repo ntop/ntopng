@@ -201,11 +201,11 @@ void LocalHost::updateHostTrafficPolicy(char *key) {
 
 /* ***************************************** */
 
-char * LocalHost::get_os(char * const buf, ssize_t buf_len) const {
+char * LocalHost::get_os(char * const buf, ssize_t buf_len) {
   if(buf && buf_len) {
-    if(m) m->lock(__FILE__, __LINE__);
+    m.lock(__FILE__, __LINE__);
     snprintf(buf, buf_len, "%s", os ? os : "");
-    if(m) m->unlock(__FILE__, __LINE__);
+    m.unlock(__FILE__, __LINE__);
   }
 
   return buf;
@@ -312,9 +312,9 @@ void LocalHost::freeLocalHostData() {
 void LocalHost::deleteHostData() {
   Host::deleteHostData();
 
-  if(m) m->lock(__FILE__, __LINE__);
+  m.lock(__FILE__, __LINE__);
   freeLocalHostData();
-  if(m) m->unlock(__FILE__, __LINE__);
+  m.unlock(__FILE__, __LINE__);
 
   updateHostTrafficPolicy(NULL);
 }

@@ -461,9 +461,6 @@ bool MySQLDB::createNprobeDBView() {
 /* ******************************************* */
 
 MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
-  if((m = new(std::nothrow) Mutex()) == NULL)
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: NULL mutex. Are you running out of memory?");
-
   mysqlEnqueuedFlows = 0;
   log_fd = NULL;
   open_log();
@@ -479,7 +476,6 @@ MySQLDB::~MySQLDB() {
   disconnectFromDB(&mysql_alt);
   disconnectFromDB(&mysql);
 
-  if(m) delete m;
   if(log_fd) fclose(log_fd);
 }
 
@@ -792,11 +788,11 @@ bool MySQLDB::connectToDB(MYSQL *conn, bool select_db) {
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Attempting to connect to MySQL for interface %s...",
 			       iface->get_name());
 
-  if(m) m->lock(__FILE__, __LINE__);
+  m.lock(__FILE__, __LINE__);
 
   if(mysql_init(conn) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Failed to initialize MySQL connection");
-    if(m) m->unlock(__FILE__, __LINE__);
+    m.unlock(__FILE__, __LINE__);
     return(false);
   }
 
@@ -809,7 +805,7 @@ bool MySQLDB::connectToDB(MYSQL *conn, bool select_db) {
 				 ntop->getPrefs()->get_mysql_host(),
                  ntop->getPrefs()->get_mysql_port());
 
-    if(m) m->unlock(__FILE__, __LINE__);
+    m.unlock(__FILE__, __LINE__);
     return(false);
   }
 
@@ -821,7 +817,7 @@ bool MySQLDB::connectToDB(MYSQL *conn, bool select_db) {
 			       ntop->getPrefs()->get_mysql_port(),
 			       iface->get_name());
 
-  if(m) m->unlock(__FILE__, __LINE__);
+  m.unlock(__FILE__, __LINE__);
   return(true);
 }
 
@@ -873,7 +869,7 @@ int MySQLDB::exec_sql_query(MYSQL *conn, const char *sql,
   if(!db_operational)
     return(-2);
 
-  if(doLock && m) m->lock(__FILE__, __LINE__);
+  if(doLock) m.lock(__FILE__, __LINE__);
   if((rc = mysql_query(conn, sql)) != 0) {
     if(!ignoreErrors)
       ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: [%s][%s]",
@@ -884,7 +880,7 @@ int MySQLDB::exec_sql_query(MYSQL *conn, const char *sql,
     case CR_SERVER_LOST:
       if(doReconnect) {
 	disconnectFromDB(conn);
-	if(doLock && m) m->unlock(__FILE__, __LINE__);
+	if(doLock) m.unlock(__FILE__, __LINE__);
 
 	connectToDB(conn, true);
 
@@ -914,7 +910,7 @@ int MySQLDB::exec_sql_query(MYSQL *conn, const char *sql,
     }
   }
 
-  if(doLock && m) m->unlock(__FILE__, __LINE__);
+  if(doLock) m.unlock(__FILE__, __LINE__);
 
   return(rc);
 }
@@ -929,7 +925,7 @@ int MySQLDB::exec_sql_query(lua_State *vm, char *sql, bool limitRows, bool wait_
      || !db_operational)
     return(-2);
 
-  if(m) m->lock(__FILE__, __LINE__);
+  m.lock(__FILE__, __LINE__);
 
 
   if(ntop->getPrefs()->is_sql_log_enabled() && log_fd && sql) {
@@ -950,13 +946,13 @@ int MySQLDB::exec_sql_query(lua_State *vm, char *sql, bool limitRows, bool wait_
   if((rc = mysql_query(&mysql, sql)) != 0) {
     /* retry */
     disconnectFromDB(&mysql);
-    if(m) m->unlock(__FILE__, __LINE__);
+    m.unlock(__FILE__, __LINE__);
     connectToDB(&mysql, true);
 
     if(!db_operational)
       return(-2);
 
-    if(m) m->lock(__FILE__, __LINE__);
+    m.lock(__FILE__, __LINE__);
     rc = mysql_query(&mysql, sql);
   }
 
@@ -973,7 +969,7 @@ int MySQLDB::exec_sql_query(lua_State *vm, char *sql, bool limitRows, bool wait_
       lua_pushnil(vm);
     }
 
-    if(m) m->unlock(__FILE__, __LINE__);
+    m.unlock(__FILE__, __LINE__);
     return(rc);
   }
 
@@ -984,7 +980,7 @@ int MySQLDB::exec_sql_query(lua_State *vm, char *sql, bool limitRows, bool wait_
     mysql_free_result(result);
   }
   
-  if(m) m->unlock(__FILE__, __LINE__);
+  m.unlock(__FILE__, __LINE__);
 
   return(0);
 }
