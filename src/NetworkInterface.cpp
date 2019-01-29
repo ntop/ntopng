@@ -2433,7 +2433,9 @@ decode_packet_eth:
 	arp_spa = arpp->arp_spa; /* Sender protocol address */
 	arp_spa_ipa.set(arp_spa);
 
-	if(arp_spa_ipa.isNonEmptyUnicastAddress() && (arp_spa_h = getHost(&arp_spa_ipa, vlan_id)))
+	if(arp_spa_ipa.isNonEmptyUnicastAddress()
+	   && (arp_spa_h = getHost(&arp_spa_ipa, vlan_id))
+	   && !arp_spa_h->isBroadcastDomainHost())
 	  arp_spa_h->setBroadcastDomainHost();
 
 	if(arp_opcode == 0x1 /* ARP request */) {

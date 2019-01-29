@@ -163,6 +163,8 @@ bool LocalHost::deserialize(char *json_str, char *key) {
   if(json_object_object_get_ex(o, "seen.first", &obj)) first_seen = json_object_get_int64(obj);
   if(json_object_object_get_ex(o, "seen.last", &obj))  last_seen  = json_object_get_int64(obj);
   if(json_object_object_get_ex(o, "last_stats_reset", &obj)) last_stats_reset = json_object_get_int64(obj);
+  if(json_object_object_get_ex(o, "broadcastDomainHost", &obj) && json_object_get_boolean(obj))
+    setBroadcastDomainHost();
 
   if(json_object_object_get_ex(o, "os", &obj))
     inlineSetOS(json_object_get_string(obj));
