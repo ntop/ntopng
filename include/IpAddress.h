@@ -49,7 +49,7 @@ class IpAddress {
  public:
   IpAddress();
 
-  bool isEmpty();
+  bool isEmpty() const;
   inline void reset()                                 { memset(&addr, 0, sizeof(addr));               }
   inline bool isIPv4() const                          { return((addr.ipVersion == 4) ? true : false); }
   inline bool isIPv6() const                          { return((addr.ipVersion == 6) ? true : false); }
@@ -68,10 +68,10 @@ class IpAddress {
   inline void set(struct ipAddress *ip)               { memcpy(&addr, ip, sizeof(struct ipAddress)); compute_key(); };
   void set(union usa *ip);
   void set(char *ip);
-  inline bool isPrivateAddress()                      { return(addr.privateIP); };
-  inline bool isMulticastAddress()                    { return(addr.multicastIP); };
-  inline bool isBroadcastAddress()                    { return(addr.broadcastIP); };
-  inline bool isNonEmptyUnicastAddress()              { return(!isMulticastAddress() && !isBroadcastAddress() && !isEmpty()); };
+  inline bool isPrivateAddress()         const        { return(addr.privateIP); };
+  inline bool isMulticastAddress()       const        { return(addr.multicastIP); };
+  inline bool isBroadcastAddress()       const        { return(addr.broadcastIP); };
+  inline bool isNonEmptyUnicastAddress() const        { return(!isMulticastAddress() && !isBroadcastAddress() && !isEmpty()); };
   inline u_int8_t getVersion()                        { return(addr.ipVersion); };
   inline void setVersion(u_int8_t version)            { addr.ipVersion = version; };
   char* print(char *str, u_int str_len, u_int8_t bitmask = 0xFF);

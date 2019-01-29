@@ -295,6 +295,19 @@ Host* ViewInterface::getHost(char *host_ip, u_int16_t vlan_id) {
 
   return(h);
 }
+
+/* **************************************************** */
+
+Host* ViewInterface::getHost(IpAddress * const host_ip, u_int16_t vlan_id) const {
+  Host *h = NULL;
+
+  for(u_int8_t s = 0; s < numSubInterfaces; s++) {
+    if((h = subInterfaces[s]->getHost(host_ip, vlan_id)))
+      break;
+  }
+
+  return(h);
+}
 /* **************************************************** */
 
 Mac* ViewInterface::getMac(u_int8_t _mac[6], bool createIfNotPresent) {

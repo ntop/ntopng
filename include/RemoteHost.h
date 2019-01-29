@@ -35,9 +35,9 @@ class RemoteHost : public Host {
   virtual ~RemoteHost();
 
   virtual bool setRemoteToRemoteAlerts();
-  virtual int16_t get_local_network_id() { return(-1);                };
-  virtual bool isLocalHost()             { return(false);             };
-  virtual bool isSystemHost()            { return(false);             };
+  virtual int16_t get_local_network_id() const { return(-1);                };
+  virtual bool isLocalHost()  const            { return(false);             };
+  virtual bool isSystemHost() const            { return(false);             };
 };
 
 #endif /* _REMOTE_HOST_H_ */

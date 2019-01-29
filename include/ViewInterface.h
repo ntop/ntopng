@@ -59,6 +59,7 @@ class ViewInterface : public NetworkInterface {
   virtual u_int32_t getFlowsHashSize();
   virtual Mac*  getMac(u_int8_t _mac[6], bool createIfNotPresent);
   virtual Host* getHost(char *host_ip, u_int16_t vlan_id);
+  virtual Host* getHost(IpAddress * const host_ip, u_int16_t vlan_id) const;
   virtual Flow* findFlowByKey(u_int32_t key, AddressTree *allowed_hosts);
 
   virtual bool walker(u_int32_t *begin_slot, bool walk_all,

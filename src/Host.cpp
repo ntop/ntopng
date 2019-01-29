@@ -160,6 +160,7 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   asn = 0, asname = NULL;
   as = NULL, country = NULL;
   blacklisted_host = false, reloadHostBlacklist();
+  is_in_broadcast_domain = false;
 
   num_alerts_detected = 0;
   trigger_host_alerts = false;
@@ -491,7 +492,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   lua_push_uint64_table_entry(vm, "vlan", vlan_id);
 
   lua_push_str_table_entry(vm, "mac", Utils::formatMac(m ? m->get_mac() : NULL, buf, sizeof(buf)));
-  lua_push_uint64_table_entry(vm, "devtype", m ? m->getDeviceType() : device_unknown);
+  lua_push_uint64_table_entry(vm, "devtype", isBroadcastDomainHost() && m ? m->getDeviceType() : device_unknown);
   lua_push_uint64_table_entry(vm, "operatingSystem", m ? m->getOperatingSystem() : os_unknown);
 
   lua_push_bool_table_entry(vm, "privatehost", isPrivateHost());
@@ -768,6 +769,7 @@ json_object* Host::getJSONObject(DetailsLevel details_level) {
 
     json_object_object_add(my_object, "localHost", json_object_new_boolean(isLocalHost()));
     json_object_object_add(my_object, "systemHost", json_object_new_boolean(isSystemHost()));
+    json_object_object_add(my_object, "broadcastDomainHost", json_object_new_boolean(isBroadcastDomainHost()));
     json_object_object_add(my_object, "is_blacklisted", json_object_new_boolean(isBlacklisted()));
 
     /* Generic Host */

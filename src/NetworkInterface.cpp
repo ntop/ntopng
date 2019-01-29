@@ -2426,6 +2426,15 @@ decode_packet_eth:
       if((eth_type == ETHERTYPE_ARP) && (h->caplen >= (sizeof(arp_header)+sizeof(struct ndpi_ethhdr)))) {
 	struct arp_header *arpp = (struct arp_header*)&packet[ip_offset];
 	u_int16_t arp_opcode = ntohs(arpp->ar_op);
+	u_int32_t arp_spa;
+	IpAddress arp_spa_ipa;
+	Host *arp_spa_h;
+
+	arp_spa = arpp->arp_spa; /* Sender protocol address */
+	arp_spa_ipa.set(arp_spa);
+
+	if(arp_spa_ipa.isNonEmptyUnicastAddress() && (arp_spa_h = getHost(&arp_spa_ipa, vlan_id)))
+	  arp_spa_h->setBroadcastDomainHost();
 
 	if(arp_opcode == 0x1 /* ARP request */) {
 	  arp_requests++;
@@ -3282,6 +3291,13 @@ Host* NetworkInterface::getHost(char *host_ip, u_int16_t vlan_id) {
   }
 
   return(h);
+}
+
+
+/* **************************************************** */
+
+Host* NetworkInterface::getHost(IpAddress * const host_ip, u_int16_t vlan_id) const {
+  return(hosts_hash->get(vlan_id, host_ip));
 }
 
 /* **************************************************** */

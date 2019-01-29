@@ -62,7 +62,7 @@ void IpAddress::set(union usa *ip) {
 
 /* ******************************************* */
 
-bool IpAddress::isEmpty() {
+bool IpAddress::isEmpty() const {
   if((addr.ipVersion == 0)
      || ((addr.ipVersion == 4) && (addr.ipType.ipv4 == 0))) {
     return true;

@@ -71,6 +71,7 @@ class Host : public GenericHashEntry {
   bool has_blocking_quota, has_blocking_shaper;
 #endif
   bool hidden_from_top;
+  bool is_in_broadcast_domain;
 
   void initialize(Mac *_mac, u_int16_t _vlan_id, bool init_all);
   bool statsResetRequested();
@@ -89,9 +90,11 @@ class Host : public GenericHashEntry {
 
   virtual ~Host();
 
-  virtual bool isLocalHost()  = 0;
-  virtual bool isSystemHost() = 0;
-  inline void setSystemHost()               { /* TODO: remove */ };
+  virtual bool isLocalHost()  const = 0;
+  virtual bool isSystemHost() const = 0;
+  inline  bool isBroadcastDomainHost() const { return(is_in_broadcast_domain); };
+  inline void setBroadcastDomainHost()       { is_in_broadcast_domain = true;  };
+  inline void setSystemHost()                { /* TODO: remove */              };
 
   inline nDPIStats* get_ndpi_stats()       { return(stats->getnDPIStats()); };
 
@@ -131,7 +134,7 @@ class Host : public GenericHashEntry {
   inline void incSentStats(u_int pkt_len)           { stats->incSentStats(pkt_len);          };
   inline void incRecvStats(u_int pkt_len)           { stats->incRecvStats(pkt_len);          };
   
-  virtual int16_t get_local_network_id() = 0;
+  virtual int16_t get_local_network_id() const = 0;
   virtual HTTPstats* getHTTPstats()                  { return(NULL);                 };
   inline void set_ipv4(u_int32_t _ipv4)             { ip.set(_ipv4);                 };
   inline void set_ipv6(struct ndpi_in6_addr *_ipv6) { ip.set(_ipv6);                 };

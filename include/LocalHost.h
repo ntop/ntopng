@@ -44,9 +44,9 @@ class LocalHost : public Host {
   virtual ~LocalHost();
 
   virtual char * get_os(char * const buf, ssize_t buf_len);
-  virtual int16_t get_local_network_id() { return(local_network_id);  };
-  virtual bool isLocalHost()             { return(true);              };
-  virtual bool isSystemHost()            { return(systemHost);        };
+  virtual int16_t get_local_network_id() const { return(local_network_id);  };
+  virtual bool isLocalHost()  const            { return(true);              };
+  virtual bool isSystemHost() const            { return(systemHost);        };
 
   virtual void  serialize2redis();
   bool deserialize(char *json_str, char *key);
