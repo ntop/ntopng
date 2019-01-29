@@ -100,6 +100,23 @@ of the recording service, statistics about processed traffic, the log trace.
 
   The Traffic Recording Status Page
 
+External Traffic Recording Providers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+One can manage n2disk services manually using the command line. In
+this case, one can configure ntopng to bind to an external traffic
+recording provider. Traffic recording providers are configured from
+the interface settings page. A dropdown menu with the list of
+available recording providers is shown.
+
+
+.. figure:: img/web_gui_interfaces_recording_external_providers.png
+  :align: center
+  :scale: 50 %
+  :alt: Traffic Recording External Providers Selection
+
+  The Selection of External Traffic Recording Providers
+
 .. note::
 
    In case n2disk processes are managed manually using configuration

@@ -233,8 +233,8 @@ for _key, _value in pairsByKeys(vals, funct) do
       column_ip = column_ip .. " "..getOperatingSystemIcon(value.operatingSystem)
    end
 
-   if value["systemhost"]    then column_ip = column_ip .. "&nbsp;<i class='fa fa-flag'></i>" end
-   if value["hiddenFromTop"] then column_ip = column_ip .. "&nbsp;<i class='fa fa-eye-slash'></i>" end
+   if value["systemhost"]    then column_ip = column_ip .. "&nbsp;<i class='fa fa-flag'></i> " end
+   if value["hiddenFromTop"] then column_ip = column_ip .. "&nbsp;<i class='fa fa-eye-slash'></i> " end
    if value["childSafe"]     then column_ip = column_ip .. getSafeChildIcon() end
 
    local host = interface.getHostInfo(hosts_stats[key].ip, hosts_stats[key].vlan)
