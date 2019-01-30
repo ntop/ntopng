@@ -593,6 +593,11 @@ typedef struct {
   double namelookup, connect, appconnect, pretransfer, redirect, start, total;
 } HTTPTranferStats;
 
+typedef struct {
+  lua_State* vm;
+  time_t last_conn_check;
+} ProgressState;
+
 struct pcap_disk_timeval {
   u_int32_t tv_sec;
   u_int32_t tv_usec;

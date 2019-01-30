@@ -43,11 +43,6 @@ typedef struct {
   lua_State* vm;
 } DownloadState;
 
-typedef struct {
-  lua_State* vm;
-  time_t last_conn_check;
-} ProgressState;
-
 #ifdef HAVE_LIBCAP
 /* 
    The include below can be found in libcap-dev 
@@ -1602,9 +1597,8 @@ static size_t curl_hdf(char *buffer, size_t size, size_t nitems, void *userp) {
 
 /* **************************************** */
 
-static int progress_callback(void *clientp, double dltotal, double dlnow, double ultotal, double ulnow) {
+bool Utils::progressCanContinue(ProgressState *progressState) {
   struct mg_connection *conn;
-  ProgressState *progressState = (ProgressState*) clientp;
   time_t now = time(0);
 
   if(progressState->vm &&
@@ -1612,14 +1606,20 @@ static int progress_callback(void *clientp, double dltotal, double dlnow, double
      (conn = getLuaVMUserdata(progressState->vm, conn))) {
     progressState->last_conn_check = now;
 
-    if(!mg_is_client_connected(conn)) {
-      /* connection to the client was closed, stop the transfer */
-      return(1);
-    }
+    if(!mg_is_client_connected(conn))
+      /* connection to the client was closed, should not continue */
+      return(false);
   }
 
-  /* continue */
-  return(0);
+  return(true);
+}
+
+/* **************************************** */
+
+static int progress_callback(void *clientp, double dltotal, double dlnow, double ultotal, double ulnow) {
+  ProgressState *progressState = (ProgressState*) clientp;
+
+  return Utils::progressCanContinue(progressState) ? 0 /* continue */ : 1 /* stop transfer */;
 }
 
 /* **************************************** */
@@ -1701,8 +1701,8 @@ bool Utils::httpGetPost(lua_State* vm, char *url, char *username,
 
     if(!form_data) {
       /* A GET request, track client connection status */
+      memset(&progressState, 0, sizeof(progressState));
       progressState.vm = vm;
-      progressState.last_conn_check = 0;
       curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
       curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progress_callback);
       curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &progressState);
