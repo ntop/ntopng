@@ -655,9 +655,11 @@ end
       print("<th>"..i18n("details.source").."</th><th>"..i18n("name").."</th></tr>\n")
 
       for source, name in pairs(extra_names) do
-	 if source == "resolved" then source = "DNS Resolution" end
-	 if source == "mdns" then source = "MDNS" end
-	 if source == "mdns_txt" then source = "MDNS TXT Record" end
+	 if source == "resolved" then
+	    source = "DNS Resolution"
+	 else
+	    source = source:upper()
+	 end
 
 	 print("<tr><td>"..source.."</td><td>"..name.."</td></tr>\n")
       end
