@@ -1065,7 +1065,7 @@ print [[
 		    type: 'GET',
 		    url: ']]
    print (ntop.getHttpPrefix())
-   print [[/lua/get_interface_data.lua',
+   print [[/lua/rest/get/interface/data.lua',
 		    data: { iffilter: "]] print(tostring(interface.name2id(if_name))) print [[" },
 		    success: function(content) {
 			var profiles = content;
@@ -1626,7 +1626,7 @@ setInterval(function() {
 	  type: 'GET',
 	  url: ']]
 print (ntop.getHttpPrefix())
-print [[/lua/get_interface_data.lua',
+print [[/lua/rest/get/interface/data.lua',
 	  data: { iffilter: "]] print(tostring(interface.name2id(ifstats.name))) print [[" },
 	  success: function(rsp) {
 

@@ -8,7 +8,7 @@ Get Interface Data
 
 .. code:: bash
 	  
-   curl -s --cookie "user=admin; password=admin" "http://192.168.1.1:3000/lua/get_interface_data.lua?ifid=3"
+   curl -s --cookie "user=admin; password=admin" "http://192.168.1.1:3000/lua/rest/get/interface/data.lua?ifid=3"
 
 Response:
 
@@ -68,7 +68,7 @@ Get Host Data
 
 .. code:: bash
 	  
-   curl -s --cookie "user=admin; password=admin" "http://192.168.1.1:3000/lua/host_get_json.lua?ifid=3&host=192.168.1.2"
+   curl -s --cookie "user=admin; password=admin" "http://192.168.1.1:3000/lua/rest/get/host/data.lua?ifid=3&host=192.168.1.2"
 
 Response:
 
@@ -327,7 +327,7 @@ Get Flows Data
 
 .. code:: bash
 	  
-   curl -s --cookie "user=admin; password=admin" "http://192.168.1.1:3000/lua/pro/get_flows_db_data.lua?select_clause=*&where_clause=%28IPV4_SRC_ADDR%3D192.168.1.1+OR+IPV4_DST_ADDR%3D192.168.1.1%29&begin_time_clause=1547223290&end_time_clause=1547225090&flow_clause=flows&maxhits_clause=10"
+   curl -s --cookie "user=admin; password=admin" "http://192.168.1.1:3000/lua/pro/rest/get/db/flows.lua?select_clause=*&where_clause=%28IPV4_SRC_ADDR%3D192.168.1.1+OR+IPV4_DST_ADDR%3D192.168.1.1%29&begin_time_clause=1547223290&end_time_clause=1547225090&flow_clause=flows&maxhits_clause=10"
 
 Response:
 
@@ -391,7 +391,7 @@ Get Past Alerts Data
 
 .. code:: bash
 	  
-   curl -s --cookie "user=admin; password=admin" "http://192.168.1.1:3000/lua/get_alerts_data.lua?status=historical"
+   curl -s --cookie "user=admin; password=admin" "http://192.168.1.1:3000/lua/rest/get/alert/data.lua?status=historical"
 
 Response:
 

@@ -217,7 +217,7 @@ REST API
 The pcap file can also be downloaded directly through http, running a live extraction. 
 It is possible to use a command line tool such as `wget` or `curl` for this.
 The direct url for downloading the pcap is 
-:code:`http://<ntopng IP>:3000/lua/live_traffic_extraction.lua?ifid=<id>&epoch_begin=<epoch>&epoch_end=<epoch>[&bpf_filter=<filter>]`
+:code:`http://<ntopng IP>:3000/lua/rest/get/pcap/live_extraction.lua?ifid=<id>&epoch_begin=<epoch>&epoch_end=<epoch>[&bpf_filter=<filter>]`
 
 Where:
 
@@ -234,5 +234,5 @@ For example, to process the extracted traffic directly with `wireshark`, it is p
 
 .. code:: bash
 	  
-   curl -s --cookie "user=admin; password=admin" "http://192.168.1.1:3000/lua/live_traffic_extraction.lua?ifid=1&epoch_begin=1542183525&epoch_end=1542184200" | wireshark -k -i -
+   curl -s --cookie "user=admin; password=admin" "http://192.168.1.1:3000/lua/rest/get/pcap/live_extraction.lua?ifid=1&epoch_begin=1542183525&epoch_end=1542184200" | wireshark -k -i -
 

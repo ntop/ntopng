@@ -13,7 +13,7 @@ command line:
 
 .. code:: bash
 	  
-   curl -s --cookie "user=admin; password=admin" "http://192.168.1.1:3000/lua/host_get_json.lua?ifid=1&host=192.168.1.2"
+   curl -s --cookie "user=admin; password=admin" "http://192.168.1.1:3000/lua/rest/get/host/data.lua?ifid=1&host=192.168.1.2"
 
 Please check the *Examples* section for more examples.
 

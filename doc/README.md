@@ -50,7 +50,7 @@ Accessing ntopng URLs from command line tools (no web browser)
 You need to specify the user and password as specified below (please note the space in the cookie).
 Note that you can optionally also specify the interface name.
 
-`curl --cookie "user=admin; password=admin" "http://127.0.0.1:3000/lua/get_interface_data.lua?ifid=0"`
+`curl --cookie "user=admin; password=admin" "http://127.0.0.1:3000/lua/rest/get/interface/data.lua?ifid=0"`
 
 
 Using ntopng from Windows

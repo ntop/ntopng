@@ -32,7 +32,7 @@
       "http"
    ],
    "paths":{
-      "/lua/get_interface_data.lua":{
+      "/lua/rest/get/interface/data.lua":{
          "get":{
             "tags":[
                "Interfaces"
@@ -66,7 +66,7 @@
             }
          }
       },
-      "/lua/host_get_json.lua":{
+      "/lua/rest/get/host/data.lua":{
          "get":{
             "tags":[
                "Hosts"
@@ -107,7 +107,7 @@
             }
          }
       },
-      "/lua/get_alerts_data.lua":{
+      "/lua/rest/get/alert/data.lua":{
          "get":{
             "tags":[
                "Alerts"
@@ -140,7 +140,7 @@
             }
          }
       },
-      "/lua/pro/get_flows_db_data.lua":{
+      "/lua/pro/rest/get/db/flows.lua":{
          "get":{
             "tags":[
                "Flows"
@@ -209,7 +209,7 @@
             }
          }
       },
-      "/lua/pro/get_flows_db_topk_data.lua":{
+      "/lua/pro/rest/get/db/topk_flows.lua":{
          "get":{
             "tags":[
                "Flows"
@@ -299,7 +299,7 @@
             }
          }
       },
-      "/lua/live_traffic_extraction.lua":{
+      "/lua/rest/get/pcap/live_extraction.lua":{
          "get":{
             "tags":[
                "PCAP"

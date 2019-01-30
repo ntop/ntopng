@@ -656,7 +656,7 @@ end
    if(host["json"] ~= nil) then
       print("<tr><th>"..i18n("download").."&nbsp;<i class=\"fa fa-download fa-lg\"></i></th><td")
       if(not isAdministrator()) then print(" colspan=2") end
-      print("><A HREF='"..ntop.getHttpPrefix().."/lua/host_get_json.lua?ifid="..ifId.."&"..hostinfo2url(host_info).."'>JSON</A></td>")
+      print("><A HREF='"..ntop.getHttpPrefix().."/lua/rest/get/host/data.lua?ifid="..ifId.."&"..hostinfo2url(host_info).."'>JSON</A></td>")
       print [[<td>]]
       if (isAdministrator() and ifstats.isView == false and ifstats.isDynamic == false and interface.isPacketInterface()) then
 	 
