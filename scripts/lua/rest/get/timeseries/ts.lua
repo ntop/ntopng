@@ -2,6 +2,12 @@
 -- (C) 2013-18 - ntop.org
 --
 
+--
+-- Example of REST call
+-- 
+-- curl -u admin:admin -X POST -d '{"ts_schema":"host:traffic", "ts_query": "ifid:3,host:192.168.1.98", "epoch_begin": "1532180495", "epoch_end": "1548839346"}' -H "Content-Type: application/json" "http://127.0.0.1:3000/lua/rest/get/timeseries/ts.lua"
+--
+
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 local nv_graph_utils
@@ -22,17 +28,6 @@ local tstart    = _GET["epoch_begin"]
 local tend      = _GET["epoch_end"]
 local compare_backward = _GET["ts_compare"]
 local tags      = _GET["ts_query"]
-
-if(_POST["payload"] ~= nil) then
-   local info, pos, err = json.decode(_POST["payload"], 1, nil)
-   
-   ts_schema = info["ts_schema"]
-   query     = info["ts_query"]
-   tstart    = info["epoch_begin"]
-   tend      = info["epoch_end"]
-   compare_backward = info["ts_compare"]
-   tags      = info["ts_query"]   
-end
 
 tstart = tonumber(tstart) or (os.time() - 3600)
 tend = tonumber(tend) or os.time()

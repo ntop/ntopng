@@ -1534,6 +1534,18 @@ end
 
 -- #################################################################
 
+local function parsePOSTpayload()
+   if((_POST ~= nil) and (_POST["payload"] ~= nil)) then
+      local info, pos, err = json.decode(_POST["payload"], 1, nil)
+      
+      for k,v in pairs(info) do
+	 _GET[k] = v
+      end
+   end
+end
+
+-- #################################################################
+
 local function clearNotAllowedParams()
    if ntop.isnEdge() then
       -- Captive portal urls that can be clobbered with unrecognized
@@ -1568,6 +1580,7 @@ end
 -- #################################################################
 
 if(pragma_once) then
+   parsePOSTpayload()
    clearNotAllowedParams()
    lintParams()
    pragma_once = 0

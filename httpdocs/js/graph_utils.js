@@ -317,7 +317,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
   var max_interval = findActualStep(step, params.epoch_begin) * 8;
   var initial_interval = (params.epoch_end - params.epoch_begin);
   var is_max_zoom = (initial_interval <= max_interval);
-  var url = http_prefix + "/lua/get_ts.lua";
+  var url = http_prefix + "/lua/rest/get/timeseries/ts.lua";
   var first_load = true;
   var first_time_loaded = true;
   var manual_trigger_cmp_serie = false;
