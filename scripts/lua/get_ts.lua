@@ -17,11 +17,26 @@ local ts_utils = require("ts_utils")
 local json = require("dkjson")
 
 local ts_schema = _GET["ts_schema"]
-local query = _GET["ts_query"]
-local tstart = tonumber(_GET["epoch_begin"]) or (os.time() - 3600)
-local tend = tonumber(_GET["epoch_end"]) or os.time()
+local query     = _GET["ts_query"]
+local tstart    = _GET["epoch_begin"]
+local tend      = _GET["epoch_end"]
 local compare_backward = _GET["ts_compare"]
-local tags = tsQueryToTags(_GET["ts_query"])
+local tags      = _GET["ts_query"]
+
+if(_POST["payload"] ~= nil) then
+   local info, pos, err = json.decode(_POST["payload"], 1, nil)
+   
+   ts_schema = info["ts_schema"]
+   query     = info["ts_query"]
+   tstart    = info["epoch_begin"]
+   tend      = info["epoch_end"]
+   compare_backward = info["ts_compare"]
+   tags      = info["ts_query"]   
+end
+
+tstart = tonumber(tstart) or (os.time() - 3600)
+tend = tonumber(tend) or os.time()
+tags = tsQueryToTags(tags)
 
 local driver = ts_utils.getQueryDriver()
 local latest_tstamp = driver:getLatestTimestamp(tags.ifid or -1)
