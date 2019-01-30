@@ -224,7 +224,7 @@ local function validateOnOff(mode)
 end
 
 local function validateMode(mode)
-   local modes = {"all", "local", "remote", "filtered", "blacklisted", "restore"}
+   local modes = {"all", "local", "remote", "broadcast_domain", "filtered", "blacklisted", "restore"}
 
    return validateChoice(modes, mode)
 end

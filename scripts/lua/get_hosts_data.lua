@@ -122,6 +122,8 @@ if mode == "local" then
    hosts_retrv_function = interface.getLocalHostsInfo
 elseif mode == "remote" then
    hosts_retrv_function = interface.getRemoteHostsInfo
+elseif mode == "broadcast_domain" then
+   hosts_retrv_function = interface.getBroadcastDomainHostsInfo
 elseif mode == "filtered" then
    filtered_hosts = true
 elseif mode == "blacklisted" then
@@ -357,6 +359,11 @@ for _key, _value in pairsByKeys(vals, funct) do
       else
 	 column_location = "<span class='label label-default'>"..i18n("hosts_stats.label_remote_host").."</span>"
       end
+
+      if value["broadcast_domain_host"] then
+	 column_location = column_location.." <span class='label label-info'><i class='fa fa-sitemap' title='"..i18n("hosts_stats.label_broadcast_domain_host").."'></i></span>"
+      end
+
       if value["is_blacklisted"] == true then
 	 column_location = column_location .. " <span class='label label-danger'>"..i18n("hosts_stats.label_blacklisted_host").."</span>"
       end

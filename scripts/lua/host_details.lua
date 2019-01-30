@@ -532,7 +532,11 @@ if((page == "overview") or (page == nil)) then
       elseif(host["is_broadcast"] == true) then print(' <span class="label label-default">Broadcast</span> ')
       else print('<span class="label label-default">'..i18n("details.label_remote")..'</span>')
       end
-      
+
+      if host["broadcast_domain_host"] then
+	 print(" <span class='label label-info'><i class='fa fa-sitemap' title='"..i18n("hosts_stats.label_broadcast_domain_host").."'></i></span>")
+      end
+
       if(host["privatehost"] == true) then print(' <span class="label label-warning">'..i18n("details.label_private_ip")..'</span>') end
       if(host["systemhost"] == true) then print(' <span class="label label-info">'..i18n("details.label_system_ip")..' '..'<i class=\"fa fa-flag\"></i></span>') end
       if(host["is_blacklisted"] == true) then print(' <span class="label label-danger">'..i18n("details.label_blacklisted_host")..'</span>') end

@@ -44,6 +44,7 @@ typedef enum {
   location_none = 0,
   location_local_only,
   location_remote_only,
+  location_broadcast_domain_only,
   location_all,
 } LocationPolicy;
 

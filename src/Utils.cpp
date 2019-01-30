@@ -747,30 +747,6 @@ void Utils::sha1_hash(const uint8_t message[], size_t len, uint32_t hash[STATE_L
   sha1_compress(hash, block);
 }
 
-/* **************************************************** */
-
-bool Utils::dumpHostToDB(IpAddress *host, LocationPolicy policy) {
-  bool do_dump = false;
-  int16_t network_id;
-
-  switch(policy) {
-  case location_local_only:
-    if(host->isLocalHost(&network_id)) do_dump = true;
-    break;
-  case location_remote_only:
-    if(!host->isLocalHost(&network_id)) do_dump = true;
-    break;
-  case location_all:
-    do_dump = true;
-    break;
-  case location_none:
-    do_dump = false;
-    break;
-  }
-
-  return(do_dump);
-}
-
 /* *************************************** */
 
 double Utils::pearsonValueCorrelation(activity_bitmap *x, activity_bitmap *y) {

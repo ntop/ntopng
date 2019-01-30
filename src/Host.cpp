@@ -503,6 +503,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   lua_push_str_table_entry(vm, "name", get_visual_name(buf, sizeof(buf)));
 
   lua_push_bool_table_entry(vm, "systemhost", isSystemHost());
+  lua_push_bool_table_entry(vm, "broadcast_domain_host", isBroadcastDomainHost());
   lua_push_bool_table_entry(vm, "is_blacklisted", isBlacklisted());
   lua_push_bool_table_entry(vm, "is_broadcast", ip.isBroadcastAddress());
   lua_push_bool_table_entry(vm, "is_multicast", ip.isMulticastAddress());
@@ -690,6 +691,7 @@ bool Host::idle() {
     return(false);
 
   switch(ntop->getPrefs()->get_host_stickiness()) {
+  case location_broadcast_domain_only:
   case location_none:
     break;
 

@@ -1536,11 +1536,32 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	   && (flow->get_srv_host() && flow->get_srv_host()->isLocalHost())) {
 	  /* Set correct direction in localhost ping */
 	  if((icmp_type == ICMP_ECHO /* ICMP Echo [RFC792] */)
-	     || (icmp_type == 128 /* ICMP6_ECHO_REQUEST - ICMPV6 Echo Request [RFC4443] */))
+	     || (icmp_type == ICMP6_ECHO_REQUEST /* 128 - ICMPV6 Echo Request [RFC4443] */))
 	    src2dst_direction = true;
 	  else if((icmp_type == ICMP_ECHOREPLY /* ICMP Echo Reply [RFC792] */)
-		  || (icmp_type == 129 /* ICMP6_ECHO_REPLY - ICMPV6 Echo Reply [RFC4443] */))
+		  || (icmp_type == ICMP6_ECHO_REPLY /* 129 - ICMPV6 Echo Reply [RFC4443] */))
 	    src2dst_direction = false;
+	}
+
+	if((icmp_type == ND_NEIGHBOR_ADVERT || icmp_type == ND_NEIGHBOR_SOLICIT)
+	   && l4_packet_len >= 24) {
+	  /* Neighbor Solicitation and Neighbor Advertisement
+	     have the Target Address at offset 8.
+
+	     https://tools.ietf.org/html/rfc2461#section-4.1
+	   */
+	  Host * target_address_h;
+	  IpAddress target_address;
+	  target_address.set((ndpi_in6_addr*)&l4[8]);
+
+	  if(target_address.isNonEmptyUnicastAddress()
+	     && (target_address_h = getHost(&target_address, vlan_id))
+	     && !target_address_h->isBroadcastDomainHost()) {
+	    target_address_h->setBroadcastDomainHost();
+
+	  char buf[64];
+	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s]", target_address.print(buf, sizeof(buf)));
+	  }
 	}
 
         flow->setICMP(src2dst_direction, icmp_type, icmp_code, l4);
@@ -3714,8 +3735,9 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data, bool *matc
   if(!h || h->idle() || !h->match(r->allowed_hosts))
     return(false);
 
-  if((r->location == location_local_only      && !h->isLocalHost())                       ||
-     (r->location == location_remote_only     && h->isLocalHost())                        ||
+  if((r->location == location_local_only            && !h->isLocalHost())                 ||
+     (r->location == location_remote_only           && h->isLocalHost())                  ||
+     (r->location == location_broadcast_domain_only && !h->isBroadcastDomainHost())       ||
      ((r->vlan_id != ((u_int16_t)-1)) && (r->vlan_id != h->get_vlan_id()))                ||
      ((r->ndpi_proto != -1) && (h->get_ndpi_stats()->getProtoBytes(r->ndpi_proto) == 0))  ||
      ((r->asnFilter != (u_int32_t)-1)     && (r->asnFilter       != h->get_asn()))        ||

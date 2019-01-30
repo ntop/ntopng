@@ -1469,6 +1469,11 @@ static int ntop_get_interface_remote_hosts_info(lua_State* vm) {
   return(ntop_get_interface_hosts(vm, location_remote_only));
 }
 
+// ***API***
+static int ntop_get_interface_broadcast_domain_hosts_info(lua_State* vm) {
+  return(ntop_get_interface_hosts(vm, location_broadcast_domain_only));
+}
+
 /* ****************************************** */
 
 static int ntop_get_batched_interface_hosts_info(lua_State* vm) {
@@ -8088,9 +8093,10 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getHostsInfo",             ntop_get_interface_hosts_info },
   { "getLocalHostsInfo",        ntop_get_interface_local_hosts_info },
   { "getRemoteHostsInfo",       ntop_get_interface_remote_hosts_info },
-  { "getBatchedHostsInfo",        ntop_get_batched_interface_hosts_info },
-  { "getBatchedLocalHostsInfo",   ntop_get_batched_interface_local_hosts_info },
-  { "getBatchedRemoteHostsInfo",  ntop_get_batched_interface_remote_hosts_info },
+  { "getBroadcastDomainHostsInfo", ntop_get_interface_broadcast_domain_hosts_info },
+  { "getBatchedHostsInfo",         ntop_get_batched_interface_hosts_info },
+  { "getBatchedLocalHostsInfo",    ntop_get_batched_interface_local_hosts_info },
+  { "getBatchedRemoteHostsInfo",   ntop_get_batched_interface_remote_hosts_info },
   { "getBatchedLocalHostsTs",   ntop_get_batched_interface_local_hosts_ts },
   { "getHostInfo",              ntop_get_interface_host_info },
   { "getHostTimeseries",        ntop_get_interface_host_timeseries },
