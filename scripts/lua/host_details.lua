@@ -645,12 +645,22 @@ end
    </form>
    <button class="btn btn-default" onclick="$('#reset_host_stats_dialog').modal('show')">]] print(i18n("host_details.reset_host_stats")) print[[</button>
    </td></tr>]]
-   
-   if((host["info"] ~= nil) or (host["label"] ~= nil))then
-      print("<tr><th>"..i18n("details.further_host_names_information").."</th><td colspan=2>")
-      if(host["info"] ~= nil) then  print(host["info"].." ") end
-      if((host["label"] ~= nil) and (host["info"] ~= host["label"])) then print(host["label"]) end
-      print("</td></tr>\n")
+
+   local num_extra_names = 0
+   local extra_names = host["names"]
+   local num_extra_names = table.len(extra_names)
+
+   if num_extra_names > 0 then
+      print('<tr><td width=35% rowspan='..(num_extra_names + 1)..'><b>'.. i18n("details.further_host_names_information") ..' </a></b></td>')
+      print("<th>"..i18n("details.source").."</th><th>"..i18n("name").."</th></tr>\n")
+
+      for source, name in pairs(extra_names) do
+	 if source == "resolved" then source = "DNS Resolution" end
+	 if source == "mdns" then source = "MDNS" end
+	 if source == "mdns_txt" then source = "MDNS TXT Record" end
+
+	 print("<tr><td>"..source.."</td><td>"..name.."</td></tr>\n")
+      end
    end
    
    if(host["json"] ~= nil) then

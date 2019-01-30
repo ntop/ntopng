@@ -3191,7 +3191,7 @@ static bool find_host_by_name(GenericHashEntry *h, void *user_data, bool *matche
       int rc = ntop->getRedis()->getAddress(ipaddr, name_buf, sizeof(name_buf),
 					    false /* Don't resolve it if not known */);
 
-      if(rc == 0 /* found */)
+      if(rc == 0 /* found */ && strcmp(ipaddr, name_buf))
 	host->setResolvedName(name_buf);
       else
 	name_buf[0] = '\0';

@@ -462,13 +462,39 @@ void Host::luaStrTableEntryLocked(lua_State * const vm, const char * const entry
 
 /* *************************************** */
 
+void Host::luaNames(lua_State * const vm, char * const buf, ssize_t buf_size) {
+  Mac * cur_mac = getMac();
+
+  lua_newtable(vm);
+
+  getMDNSName(buf, buf_size);
+  if(buf[0]) lua_push_str_table_entry(vm, "mdns", buf);
+
+  getMDNSTXTName(buf, buf_size);
+  if(buf[0]) lua_push_str_table_entry(vm, "mdns_txt", buf);
+
+  getResolvedName(buf, buf_size);
+  if(buf[0]) lua_push_str_table_entry(vm, "resolved", buf);
+
+  if(cur_mac) {
+    cur_mac->getDHCPName(buf, buf_size);
+    if(buf[0]) lua_push_str_table_entry(vm, "dhcp", buf);
+  }
+
+  lua_pushstring(vm, "names");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+}
+
+/* *************************************** */
+
 void Host::lua(lua_State* vm, AddressTree *ptree,
 	       bool host_details, bool verbose,
 	       bool returnHost, bool asListElement) {
   char buf[64], buf_id[64], *host_id = buf_id;
   char ip_buf[64], *ipaddr = NULL;
   bool mask_host = Utils::maskHost(isLocalHost());
-  Mac *m = mac; /* Cache macs as they can be swapped/updated */
+  Mac *cur_mac = mac; /* Cache macs as they can be swapped/updated */
 
   if((ptree && (!match(ptree))) || mask_host)
     return;
@@ -491,9 +517,9 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   lua_push_bool_table_entry(vm, "localhost", isLocalHost());
   lua_push_uint64_table_entry(vm, "vlan", vlan_id);
 
-  lua_push_str_table_entry(vm, "mac", Utils::formatMac(m ? m->get_mac() : NULL, buf, sizeof(buf)));
-  lua_push_uint64_table_entry(vm, "devtype", isBroadcastDomainHost() && m ? m->getDeviceType() : device_unknown);
-  lua_push_uint64_table_entry(vm, "operatingSystem", m ? m->getOperatingSystem() : os_unknown);
+  lua_push_str_table_entry(vm, "mac", Utils::formatMac(cur_mac ? cur_mac->get_mac() : NULL, buf, sizeof(buf)));
+  lua_push_uint64_table_entry(vm, "devtype", isBroadcastDomainHost() && cur_mac ? cur_mac->getDeviceType() : device_unknown);
+  lua_push_uint64_table_entry(vm, "operatingSystem", cur_mac ? cur_mac->getOperatingSystem() : os_unknown);
 
   lua_push_bool_table_entry(vm, "privatehost", isPrivateHost());
   lua_push_bool_table_entry(vm, "hiddenFromTop", isHiddenFromTop());
@@ -515,7 +541,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
 
   stats->lua(vm, mask_host, host_details, verbose);
 
-  if(mac && mac->isDhcpHost()) lua_push_bool_table_entry(vm, "dhcpHost", true);
+  if(cur_mac && cur_mac->isDhcpHost()) lua_push_bool_table_entry(vm, "dhcpHost", true);
   lua_push_uint64_table_entry(vm, "active_flows.as_client", num_active_flows_as_client);
   lua_push_uint64_table_entry(vm, "active_flows.as_server", num_active_flows_as_server);
 
@@ -550,6 +576,8 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
     lua_push_uint64_table_entry(vm, "ifid", iface->get_id());
     if(!mask_host)
       luaStrTableEntryLocked(vm, "info", mdns_info); /* locked to protect against data-reset changes */
+
+    luaNames(vm, buf, sizeof(buf));
 
     ntop->getGeolocation()->getInfo(&ip, &continent, &country_name, &city, &latitude, &longitude);
     lua_push_str_table_entry(vm, "continent", continent ? continent : (char*)"");
@@ -628,7 +656,7 @@ char* Host::get_name(char *buf, u_int buf_len, bool force_resolution_if_not_foun
 				      force_resolution_if_not_found);
   }
 
-  if(rc == 0)
+  if(rc == 0 && strcmp(addr, name_buf))
     setResolvedName(name_buf);
   else
     addr = ip.print(name_buf, sizeof(name_buf));

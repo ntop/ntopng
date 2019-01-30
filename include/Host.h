@@ -80,6 +80,7 @@ class Host : public GenericHashEntry {
   TrafficShaper *get_shaper(ndpi_protocol ndpiProtocol, bool isIngress);
   void get_quota(u_int16_t protocol, u_int64_t *bytes_quota, u_int32_t *secs_quota, u_int32_t *schedule_bitmap, bool *is_category);
 #endif
+  void luaNames(lua_State * const vm, char * const buf, ssize_t buf_size);
   void luaStrTableEntryLocked(lua_State * const vm, const char * const entry_name, const char * const entry);
   char* printMask(char *str, u_int str_len) { return ip.printMask(str, str_len, isLocalHost()); };
   void freeHostData();
@@ -147,7 +148,7 @@ class Host : public GenericHashEntry {
   inline bool isBlacklisted()                  { return(blacklisted_host);  };
   void reloadHostBlacklist();
   inline u_int8_t*  get_mac()                  { return(mac ? mac->get_mac() : NULL);      }
-  inline Mac* getMac()                         { return(mac);              }
+  inline Mac* getMac() const                   { return(mac);              }
   char * getResolvedName(char * const buf, ssize_t buf_len);
   char * getMDNSName(char * const buf, ssize_t buf_len);
   char * getMDNSTXTName(char * const buf, ssize_t buf_len);

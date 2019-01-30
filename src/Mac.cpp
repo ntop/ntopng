@@ -547,12 +547,13 @@ void Mac::updateStats(struct timeval *tv) {
 
 void Mac::readDHCPCache() {
   /* Check DHCP cache */
-  char mac_str[24], buf[64], key[64];  
+  char mac_str[24], buf[64], key[CONST_MAX_LEN_REDIS_KEY];
 
   if(!names.dhcp && !isNull()) {
     Utils::formatMac(get_mac(), mac_str, sizeof(mac_str));
 
     snprintf(key, sizeof(key), DHCP_CACHE, iface->get_id());
+
     if(ntop->getRedis()->hashGet(key, mac_str, buf, sizeof(buf)) == 0) {
       names.dhcp = strdup(buf);
     }
