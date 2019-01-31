@@ -17,6 +17,8 @@ if((host_info ~= nil) and (host_info["host"] ~= nil)) then
    host = interface.getHostInfo(host_info["host"], host_info["vlan"]) 
    if(host == nil) then
       host = "{}"
+   elseif(isEmptyString(host["name"])) then
+      host["name"] = getResolvedAddress(hostkey2hostinfo(host["ip"]))
    end
 else
    host = "{}"
