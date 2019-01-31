@@ -17,6 +17,7 @@ local webhook_utils = require("webhook")
 local recording_utils = require "recording_utils"
 local remote_assistance = require "remote_assistance"
 local page_utils = require("page_utils")
+local ts_utils = require("ts_utils")
 local nindex_utils = nil
 
 if(ntop.isPro()) then
