@@ -87,7 +87,7 @@ void AddressResolution::resolveHostName(char *_numeric_ip, char *symbolic, u_int
       return;
 
     /* Check if this is a symbolic IP */
-    if(!isdigit(numeric_ip[numeric_ip_len])) {
+    if(!isxdigit(numeric_ip[numeric_ip_len]) && (numeric_ip[numeric_ip_len] != ':')) {
       /* This is a symbolic IP -> numeric IP */
       struct hostent *h;
 
