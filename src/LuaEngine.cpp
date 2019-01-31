@@ -5386,12 +5386,14 @@ static int ntop_interface_reset_host_stats(lua_State* vm, bool delete_data) {
 
 /* ****************************************** */
 
+// ***API***
 static inline int ntop_interface_reset_host_stats(lua_State* vm) {
   return(ntop_interface_reset_host_stats(vm, false));
 }
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_interface_delete_host_data(lua_State* vm) {
   return(ntop_interface_reset_host_stats(vm, true));
 }
@@ -5415,12 +5417,14 @@ static int ntop_interface_reset_mac_stats(lua_State* vm, bool delete_data) {
 
 /* ****************************************** */
 
+// ***API***
 static inline int ntop_interface_reset_mac_stats(lua_State* vm) {
   return(ntop_interface_reset_mac_stats(vm, false));
 }
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_interface_delete_mac_data(lua_State* vm) {
   return(ntop_interface_reset_mac_stats(vm, true));
 }
@@ -5916,6 +5920,7 @@ static int ntop_interface_exec_single_sql_query(lua_State *vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_reset_stats(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 

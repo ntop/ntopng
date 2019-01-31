@@ -60,3 +60,14 @@ function interface.findHost(string query)
 --! @param mac the mac address filter.
 --! @return the found hosts information on success, nil otherwise.
 function interface.findHostByMac(string mac)
+
+--! @brief Reset the stats (e.g. traffic and application data) for the given host.
+--! @param host_ip host/host@vlan.
+--! @return true if the reset request was successful, false otherwise.
+--! @note The host must be active in order to reset it. See also interface.resetStats
+function interface.resetHostStats(string host_ip)
+
+--! @brief Delete all the data stored for the given host.
+--! @param host_ip host/host@vlan.
+--! @return true if the delete request was successful, false otherwise.
+function interface.deleteHostData(string host_ip)
