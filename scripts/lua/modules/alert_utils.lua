@@ -19,6 +19,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/alert_endpoints/?.lua;" 
 
 local alert_process_queue = "ntopng.alert_process_queue"
 local host_remote_to_remote_alerts_queue = "ntopng.alert_host_remote_to_remote"
+local inactive_hosts_hash_key = "ntopng.prefs.alerts.ifid_%d.inactive_hosts_alerts"
 
 local shaper_utils = nil
 
@@ -2421,6 +2422,48 @@ end
 
 -- #################################
 
+local function check_inactive_hosts_alerts(ifid, working_status)
+   local inactive_hosts_hash = string.format(inactive_hosts_hash_key, ifid)
+   local engaged_cache = working_status.engaged_cache
+   local engine = working_status.engine
+   local entity_type = "host"
+   local atype = "inactive_host"
+   local akey = "inactive"
+
+   local keys = ntop.getHashAllCache(inactive_hosts_hash) or {}
+
+   for inactive_host, alert_status in pairs(keys) do
+      local entity_value = inactive_host
+
+      local hk = hostkey2hostinfo(inactive_host)
+      local host_info = interface.getHostInfo(hk["host"], hk["vlan"])
+
+      if not host_info then
+	 if not engaged_cache[entity_type]
+	    or not engaged_cache[entity_type][entity_value]
+	    or not engaged_cache[entity_type][entity_value][atype]
+	 or not engaged_cache[entity_type][entity_value][atype][akey] then
+	    -- ENGAGE
+	    -- engageAlert(ifid, engine, entity_type, entity_value, atype, akey, entity_info, alert_info)
+	    working_status.dirty_cache = true
+	 end
+      elseif host_info then
+	 if engaged_cache[entity_type]
+	    and engaged_cache[entity_type][entity_value]
+	    and engaged_cache[entity_type][entity_value][atype]
+	 and engaged_cache[entity_type][entity_value][atype][akey] then
+	    -- RELEASE
+	    -- releaseAlert(ifid, engine, entity_type, entity_value, atype, akey, entity_info, alert_info)
+	    working_status.dirty_cache = true
+	 end
+      end
+
+      -- tprint({inactive_host=inactive_host, alert_status = alert_status, ip = hk["host"], vlan = hk["vlan"]})
+   end
+end
+
+-- #################################
+
 function newAlertsWorkingStatus(ifstats, granularity)
    local res = {
       granularity = granularity,
@@ -2834,6 +2877,9 @@ function scanAlerts(granularity, ifstats)
    check_interface_alerts(ifid, working_status)
    check_networks_alerts(ifid, working_status)
    check_hosts_alerts(ifid, working_status)
+   if granularity == "min" then
+      check_inactive_hosts_alerts(ifid, working_status)
+   end
    check_macs_alerts(ifid, working_status)
    check_host_pools_alerts(ifid, working_status)
 
