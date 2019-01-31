@@ -1556,12 +1556,8 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 
 	  if(target_address.isNonEmptyUnicastAddress()
 	     && (target_address_h = getHost(&target_address, vlan_id))
-	     && !target_address_h->isBroadcastDomainHost()) {
+	     && !target_address_h->isBroadcastDomainHost())
 	    target_address_h->setBroadcastDomainHost();
-
-	  char buf[64];
-	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s]", target_address.print(buf, sizeof(buf)));
-	  }
 	}
 
         flow->setICMP(src2dst_direction, icmp_type, icmp_code, l4);
