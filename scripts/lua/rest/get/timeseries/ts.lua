@@ -20,6 +20,7 @@ end
 require "lua_utils"
 require "graph_utils"
 local ts_utils = require("ts_utils")
+local ts_common = require("ts_common")
 local json = require("dkjson")
 
 local ts_schema = _GET["ts_schema"]
@@ -28,6 +29,12 @@ local tstart    = _GET["epoch_begin"]
 local tend      = _GET["epoch_end"]
 local compare_backward = _GET["ts_compare"]
 local tags      = _GET["ts_query"]
+local extended_times  = _GET["extended"]
+
+if _POST["payload"] ~= nil then
+  -- REST request, use extended mode
+  extended_times = true
+end
 
 tstart = tonumber(tstart) or (os.time() - 3600)
 tend = tonumber(tend) or os.time()
@@ -39,7 +46,7 @@ local latest_tstamp = driver:getLatestTimestamp(tags.ifid or -1)
 local options = {
   max_num_points = tonumber(_GET["limit"]),
   initial_point = toboolean(_GET["initial_point"]),
-  no_timeout = _GET["no_timeout"],
+  no_timeout = true,
   with_series = true,
 }
 
@@ -99,6 +106,11 @@ if res == nil then
   return
 end
 
+-- Add metadata
+res.schema = ts_schema
+res.query = tags
+res.max_points = options.max_num_points
+
 if not isEmptyString(compare_backward) and compare_backward ~= "1Y" then
   local backward_sec = getZoomDuration(compare_backward)
   local tstart_cmp = tstart - backward_sec
@@ -116,6 +128,19 @@ local extend_labels = true
 
 if extend_labels and ntop.isPro() then
   extendLabels(res)
+end
+
+if extended_times then
+  if res.series then
+    for k, serie in pairs(res.series) do
+      serie.data = ts_common.serieWithTimestamp(serie.data, tstart, res.step)
+    end
+  end
+  if res.additional_series then
+    for k, serie in pairs(res.additional_series) do
+      res.additional_series[k] = ts_common.serieWithTimestamp(serie, tstart, res.step)
+    end
+  end
 end
 
 print(json.encode(res))

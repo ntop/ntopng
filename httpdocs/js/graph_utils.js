@@ -512,6 +512,14 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
     pending_table_request = null;
   }
 
+  chart.getDataUrl = function() {
+    var data_params = jQuery.extend({}, params);
+    delete data_params.zoom;
+    delete data_params.ts_compare;
+    data_params.extended = 1; /* with extended timestamps */
+    return url + "?" + $.param(data_params, true);
+  }
+
   var old_start, old_end, old_interval;
 
   /* Returns false if zoom update is rejected. */

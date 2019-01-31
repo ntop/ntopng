@@ -194,6 +194,20 @@ end
 
 -- ##############################################
 
+function ts_common.serieWithTimestamp(serie, tstart, tstep)
+  local data = {}
+  local t = tstart
+
+  for i, pt in ipairs(serie) do
+    data[t] = pt
+    t = t + tstep
+  end
+
+  return data
+end
+
+-- ##############################################
+
 local last_error = nil
 local last_error_msg = nil
 ts_common.ERR_OPERATION_TOO_SLOW = "OPERATION_TOO_SLOW"
