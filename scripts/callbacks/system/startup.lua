@@ -22,6 +22,7 @@ local host_pools_utils = require "host_pools_utils"
 local os_utils = require "os_utils"
 local lists_utils = require "lists_utils"
 local recovery_utils = require "recovery_utils"
+local ts_utils = require "ts_utils"
 
 local prefs = ntop.getPrefs()
 
@@ -157,3 +158,6 @@ if not recovery_utils.check_clean_shutdown() then
 end
 
 recovery_utils.unmark_clean_shutdown()
+
+-- Need to run setup at startup since the schemas may be changed
+ts_utils.setupAgain()

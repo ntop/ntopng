@@ -763,4 +763,10 @@ end
 
 -- ##############################################
 
+function driver:setup(ts_utils)
+  return true
+end
+
+-- ##############################################
+
 return driver

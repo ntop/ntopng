@@ -149,6 +149,10 @@ if(haveAdminPrivileges()) then
       recording_utils.setLicense(_POST["n2disk_license"])
    end
 
+   if _POST["timeseries_driver"] ~= nil then
+    ts_utils.setupAgain()
+   end
+
    local slack_channels_key = "ntopng.prefs.alerts.slack_channels"
 
    for k, v in pairs(_POST) do

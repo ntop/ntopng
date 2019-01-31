@@ -81,6 +81,15 @@ function ts_utils.getSchema(name)
   return schema
 end
 
+function ts_utils.loadSchemas()
+  -- This should include all the available schemas
+  require("ts_second")
+  require("ts_minute")
+  require("ts_5min")
+  require("ts_hour")
+  require("ts_custom")
+end
+
 function ts_utils.getLoadedSchemas()
   return loaded_schemas
 end
@@ -638,6 +647,34 @@ function ts_utils.queryMean(schema_name, tstart, tend, tags)
   end
 
   return rv
+end
+
+-- ##############################################
+
+local SETUP_OK_KEY = "ntopng.cache.ts_setup_ok"
+
+function ts_utils.setupAgain()
+  -- will run the setup again
+  ntop.delCache(SETUP_OK_KEY)
+end
+
+-- ##############################################
+
+function ts_utils.setup()
+  local setup_ok = ntop.getPref(SETUP_OK_KEY)
+
+  if (ntop.getCache(SETUP_OK_KEY) ~= "1") and
+      (ntop.getPref("ntopng.prefs.beta_rollup") == "1" --[[ TODO remove after test ]]) then
+    if ts_utils.getQueryDriver():setup(ts_utils) then
+      -- success, update version
+      ntop.setCache(SETUP_OK_KEY, "1")
+      return true
+    end
+
+    return false
+  end
+
+  return true
 end
 
 -- ##############################################
