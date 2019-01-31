@@ -491,7 +491,7 @@ if((page == "overview") or (page == nil)) then
    end
 
    if(host["ip"] ~= nil) then
-      if(host["name"] == nil) then
+      if(isEmptyString(host["name"])) then
 	 host["name"] = getResolvedAddress(hostkey2hostinfo(host["ip"]))
       end
       
