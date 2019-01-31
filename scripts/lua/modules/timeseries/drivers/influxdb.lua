@@ -953,7 +953,7 @@ end
 
 function driver:_multiQuery(queries)
   local query_str = table.concat(queries, ";")
-  local res = ntop.httpPost(self.url .. "/query", "q=" .. query_str, self.username, self.password, INFLUX_QUERY_TIMEMOUT_SEC, true)
+  local res = ntop.httpPost(self.url .. "/query", "q=" .. urlencode(query_str), self.username, self.password, INFLUX_QUERY_TIMEMOUT_SEC, true)
 
   if not res then
     traceError(TRACE_ERROR, TRACE_CONSOLE, "Invalid response for query: " .. query_str)
