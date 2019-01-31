@@ -122,6 +122,7 @@ void LocalHost::serialize2redis() {
   } else if((ntop->getPrefs()->is_idle_local_host_cache_enabled()
       || ntop->getPrefs()->is_active_local_host_cache_enabled())
      && (!ip.isEmpty())) {
+    checkStatsReset();
     char *json = serialize();
 
     ntop->getRedis()->set(key, json, ntop->getPrefs()->get_local_host_cache_duration());
