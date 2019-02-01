@@ -165,8 +165,23 @@ print [[
 
 local traffic_peity_width = ternary(have_nedge, "140", "64")
 
+local host_ts_mode = ntop.getPref("ntopng.prefs.host_ndpi_timeseries_creation")
+if ntop.getPref("ntopng.prefs.host_rrd_creation") ~= "1" then
+  host_ts_mode = "none"
+end
+
+-- Only show the message if the host protocol/category timeseries are enabled
+local message_enabled = ((host_ts_mode ~= "none") and (host_ts_mode ~= ""))
+
 print('var is_historical = false;')
 print [[
+function checkMigrationMessage(data) {
+  var max_local_hosts = 500;
+  var enabled = ]] print(ternary(message_enabled, "true", "false")) print[[;
+
+  if(enabled && (data.num_local_hosts > max_local_hosts))
+    $("#move-rrd-to-influxdb").show();
+}
 
 var updatingChart_upload = $(".network-load-chart-upload").peity("line", { width: ]] print(traffic_peity_width) print[[, max: null });
 var updatingChart_download = $(".network-load-chart-download").peity("line", { width: ]] print(traffic_peity_width) print[[, max: null, fill: "lightgreen"});
@@ -315,6 +330,8 @@ print [[/lua/hosts_stats.lua?mode=local\">";
 
 		  msg += "<span class=\"label label-success\">";
 		  msg += addCommas(rsp.num_local_hosts)+" <i class=\"fa fa-laptop\" aria-hidden=\"true\"></i></span></a>";
+
+		  checkMigrationMessage(rsp);
 		}
 
 	    msg += "&nbsp;<a href=\"]]

@@ -176,6 +176,7 @@ local lang = {
     ["copyright"] = "Copyright",
     ["cpu_load"] = "CPU load",
     ["datadir_warning"] = "Data directory migration notice",
+    ["influxdb_migration_msg"] = "You have a lot of local hosts. Please consider <a href='%{url}'>moving from RRD to InfluxDB</a> for timeseries storage to improve performance.",
     ["last_log"] = "Last Log Trace",
     ["licence"] = "License",
     ["licence_expires_in"] = "License expires in %{time}",

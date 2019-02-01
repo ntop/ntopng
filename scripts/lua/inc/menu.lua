@@ -530,3 +530,8 @@ if(dirs.workingdir == "/var/tmp/ntopng") then
    print('</a></div>')
 end
 
+-- Hidden by default, will be shown by the footer if necessary
+print('<br><div id="move-rrd-to-influxdb" class="alert alert-warning" style="display:none" role="alert"><i class="fa fa-warning fa-lg" id="alerts-menu-triangle"></i> ')
+print(i18n("about.influxdb_migration_msg", {url="https://www.ntop.org/ntopng/ntopng-and-time-series-from-rrd-to-influxdb-new-charts-with-time-shift/"}))
+print('</div>')
+
