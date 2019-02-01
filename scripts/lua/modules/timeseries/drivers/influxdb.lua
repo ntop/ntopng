@@ -50,11 +50,19 @@ local function getResponseError(res)
   if res.CONTENT and res.CONTENT_TYPE == "application/json" then
     local jres = json.decode(res.CONTENT)
 
-    if jres and jres.error then
-      if res.RESPONSE_CODE then
-        return "[".. res.RESPONSE_CODE .. "] " ..jres.error
-      else
-        return jres.error
+    if jres then
+      if jres.error then
+        if res.RESPONSE_CODE then
+          return "[".. res.RESPONSE_CODE .. "] " ..jres.error
+        else
+          return jres.error
+        end
+      elseif jres.results then
+        for _, single_res in pairs(jres.results) do
+          if single_res.error then
+            return single_res.error
+          end
+        end
       end
     end
   end
@@ -966,6 +974,12 @@ function driver:_multiQuery(queries)
     return false
   end
 
+  local err = getResponseError(res)
+  if err ~= 200 then
+    traceError(TRACE_ERROR, TRACE_CONSOLE, "Unexpected query error: " .. err)
+    return false
+  end
+
   return true
 end
 
@@ -992,11 +1006,11 @@ local function getCqQuery(dbname, metrics, tags, schema, source, dest, resemple)
             FROM "%s"."%s"
             GROUP BY time(%us),%s
             FILL(0)
-        ) GROUP BY time(1h),%s
+        ) GROUP BY time(%s),%s
     END]], cq_name, dbname, resemple_s,
     metrics, dest, schema.name,
     metrics, source, schema.name,
-    schema.options.step, tags, tags)
+    schema.options.step, tags, dest, tags)
 end
 
 function driver:setup(ts_utils)
@@ -1023,6 +1037,9 @@ function driver:setup(ts_utils)
 
     local cq_1h = getCqQuery(self.db, metrics, tags, schema, "autogen", "1h", "2h")
     local cq_1d = getCqQuery(self.db, metrics, tags, schema, "1h", "1d")
+
+    -- TODO temporary fix to alter existing queries, remove after beta end
+    queries[#queries + 1] = string.format('DROP CONTINUOUS QUERY "%s__1d" ON %s', schema.name, self.db)
 
     queries[#queries + 1] = cq_1h:gsub("\n", ""):gsub("%s%s+", " ")
     queries[#queries + 1] = cq_1d:gsub("\n", ""):gsub("%s%s+", " ")
