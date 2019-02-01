@@ -245,11 +245,13 @@ for _key, _value in pairsByKeys(vals, funct) do
    end
 
    local icon = getOSIcon(value["os"])
-   icon = icon .." ".. discover.devtype2icon(host.devtype)
+   if(host ~= nil) then
+      icon = icon .." ".. discover.devtype2icon(host.devtype)
+   end
    icon = icon:gsub('"',"'")
    column_ip = column_ip .. icon
 
-   if((host.ip ~= "0.0.0.0") and (not string.contains(host.ip, ":"))) then
+   if((host ~= nil) and (host.ip ~= "0.0.0.0") and (not string.contains(host.ip, ":"))) then
       if(value.dhcpHost) then column_ip = column_ip .. "&nbsp;<i class='fa fa-flash fa-lg' title='DHCP Host'></i>" end
    end
 
@@ -336,7 +338,7 @@ for _key, _value in pairsByKeys(vals, funct) do
       .."<span class='label label-info'>"..i18n("flows").."</span>"
       .."</a>"
 
-   if have_nedge and (host.localhost or host.systemhost) then
+   if have_nedge and (host ~= nil) and (host.localhost or host.systemhost) then
       column_info = column_info.." <span title='"..
 	 (ternary(drop_traffic, i18n("host_config.unblock_host_traffic"), i18n("host_config.drop_all_host_traffic")))..
 	 "' class='label label-"..(ternary(drop_traffic, "danger", "default")).." block-badge' "..
