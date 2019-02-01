@@ -204,6 +204,13 @@ SERVICE_AFTER="network.target syslog.target redis.service pf_ring.service cluste
 SERVICE_WANTS="pf_ring.service cluster.service"
 fi
 
+APP=
+if test "${with_nedge+set}" = "set"; then
+APP=nedge
+else
+APP=ntopng
+fi
+
 if test -d "pro"; then :
 AC_MSG_RESULT(yes)
 PRO_OBJECTS='$(patsubst pro/%.cpp, pro/%.o, $(wildcard pro/*.cpp))'
@@ -622,6 +629,7 @@ AC_SUBST(SERVICE_AFTER)
 AC_SUBST(SERVICE_REQUIRES)
 AC_SUBST(SERVICE_WANTS)
 AC_SUBST(SERVICE_ALIAS)
+AC_SUBST(APP)
 AC_SUBST(CENTOS_N2N_DEP)
 AC_CONFIG_HEADERS(include/config.h)
 AC_CONFIG_FILES(packages/ntopng.spec)

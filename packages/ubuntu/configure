@@ -1857,6 +1857,10 @@ ac_config_files="$ac_config_files debian.ntopng/control"
 
 ac_config_files="$ac_config_files debian.ntopng/rules"
 
+ac_config_files="$ac_config_files debian.ntopng/postinst"
+
+ac_config_files="$ac_config_files debian.ntopng/prerm"
+
 ac_config_files="$ac_config_files debian.ntopng-data/changelog"
 
 ac_config_files="$ac_config_files debian.ntopng-data/files"
