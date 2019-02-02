@@ -2506,7 +2506,7 @@
     ["toggle_traffic_rrd_creation_description"] = "bytes and packets timeseriesの生成をオン・オフします",
     ["toggle_traffic_rrd_creation_title"] = "Traffic",
     ["toggle_users_rrds_description"] = "定義したユーザに対してbytes and application プロトコル timeseriesの生成のオン・オフします",
-    ["toggle_users_rrds_title"] = "",
+    ["toggle_users_rrds_title"] = "aaa",
     ["toggle_vlan_rrds_description"] = "VLANに関するbytes and application timeseriesの生成をオン・オフします",
     ["toggle_vlan_rrds_title"] = "VLANs",
     ["topk_heuristic_precision_description"] = "traffic reportを作成する際のhistorical top hosts, countries等をaggregateするときに履歴を使用します。 長期間のレポートを作成するときに役立ちます",
