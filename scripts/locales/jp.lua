@@ -194,10 +194,10 @@
     ["specify_licence"] = "ntopng Licenseをここで指定してください",
     ["startup_line"] = "起動コマンドライン",
     ["system_id"] = "システムId",
-    ["telegram"] = "Help and News",
+    ["telegram"] = "ヘルプとニュース",
     ["upgrade_to_professional"] = "プロフェッショナルバージョンにアップグレード",
-    ["uptime"] = "Uptime",
-    ["version"] = "Version",
+    ["uptime"] = "起動時間",
+    ["version"] = "バージョン",
     ["you_have_too_many_flows"] = "%{product} 設定におけるhosts/flowsの設定が多すぎます。これはパケットロスとCPUの高負荷を生み出します. -xと-Xを増やして%{product} を再起動してください"
   },
   ["activities_page"] = {
@@ -389,7 +389,7 @@
     ["realtime_traffic"] = "Network Interfaces: Realtime Traffic",
     ["top_local_talkers"] = "Top Local Talkers",
     ["top_remote_destinations"] = "Top Remote Destinations",
-    ["traffic_dashboard"] = "Traffic Dashboard",
+    ["traffic_dashboard"] = "トラフィックダッシュボード",
   },
   ["db_explorer"] = {
     ["abort"] = "Abort",
@@ -556,7 +556,7 @@
     ["error_no_discovery_cached"] = "discovery dataはまだキャッシュされていません",
     ["error_unable_to_decode_json"] = "JSON形式のdiscovery dataをデコードできません.",
     ["ghost_icon_descr"] = "%{ghost_icon} アイコンはghost hostsをハイライトしています (例. それらはIPアドレスネットワークに所属していません)",
-    ["network_discovery"] = "Network Discovery",
+    ["network_discovery"] = "ネットワーク検索",
     ["network_discovery_datetime"] = "Last Network Discovery",
     ["network_discovery_not_enabled"] = "Network discovery in progress",
   },
