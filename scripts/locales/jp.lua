@@ -193,7 +193,7 @@
     ["save_licence"] = "ライセンスを保存する",
     ["specify_licence"] = "ntopng Licenseをここで指定してください",
     ["startup_line"] = "起動コマンドライン",
-    ["system_id"] = "System Id",
+    ["system_id"] = "システムId",
     ["telegram"] = "Help and News",
     ["upgrade_to_professional"] = "プロフェッショナルバージョンにアップグレード",
     ["uptime"] = "Uptime",
