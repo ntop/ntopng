@@ -59,7 +59,7 @@ class HostStats: public Checkpointable, public GenericTrafficElement {
 
   void checkPointHostTalker(lua_State *vm, bool saveCheckpoint);
   bool serializeCheckpoint(json_object *my_object, DetailsLevel details_level);
-  void incStats(u_int32_t when, u_int8_t l4_proto, u_int ndpi_proto,
+  void incStats(time_t when, u_int8_t l4_proto, u_int ndpi_proto,
 		    custom_app_t custom_app,
 		    u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
 		    u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes);
@@ -83,15 +83,15 @@ class HostStats: public Checkpointable, public GenericTrafficElement {
   virtual void lua(lua_State* vm, bool mask_host, bool host_details, bool verbose);
 
 #ifdef NTOPNG_PRO
-  inline void incQuotaEnforcementStats(u_int32_t when, u_int16_t ndpi_proto,
+  inline void incQuotaEnforcementStats(time_t when, u_int16_t ndpi_proto,
 				       u_int64_t sent_packets, u_int64_t sent_bytes,
 				       u_int64_t rcvd_packets, u_int64_t rcvd_bytes) {
     if(quota_enforcement_stats)
       quota_enforcement_stats->incStats(when, ndpi_proto, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes);
   };
-  inline void incQuotaEnforcementCategoryStats(u_int32_t when,
-				       ndpi_protocol_category_t category_id,
-				       u_int64_t sent_bytes, u_int64_t rcvd_bytes) {
+  inline void incQuotaEnforcementCategoryStats(time_t when,
+					       ndpi_protocol_category_t category_id,
+					       u_int64_t sent_bytes, u_int64_t rcvd_bytes) {
     if(quota_enforcement_stats)
       quota_enforcement_stats->incCategoryStats(when, category_id, sent_bytes, rcvd_bytes);
   }

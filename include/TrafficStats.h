@@ -31,7 +31,7 @@ class TrafficStats {
  public:
   TrafficStats();
   
-  inline void incStats(u_int64_t num_pkts, u_int64_t num_bytes) { numPkts.inc(num_pkts), numBytes.inc(num_bytes); };  
+  inline void incStats(time_t t, u_int64_t num_pkts, u_int64_t num_bytes) { numPkts.inc(t, num_pkts), numBytes.inc(t, num_bytes); };  
   inline void resetStats()                  { numPkts.reset(), numBytes.reset();    };
   inline u_int64_t getNumPkts()             { return(numPkts.get());                };
   inline u_int64_t getNumBytes()            { return(numBytes.get());               };

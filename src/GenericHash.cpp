@@ -260,7 +260,7 @@ u_int GenericHash::purgeIdle() {
 
 	  /* Purge at the next run */
 	  if(head->idle())
-	    head->set_to_purge();
+	    head->set_to_purge(iface->getTimeLastPktRcvd());
 
 	  prev = head;
 	  head = next;

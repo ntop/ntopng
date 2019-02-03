@@ -75,8 +75,8 @@ Flow::Flow(NetworkInterface *_iface,
   PROFILING_SUB_SECTION_ENTER(iface, "Flow::Flow: iface->findFlowHosts", 7);
   iface->findFlowHosts(_vlanId, _cli_mac, _cli_ip, &cli_host, _srv_mac, _srv_ip, &srv_host);
   PROFILING_SUB_SECTION_EXIT(iface, 7);
-  if(cli_host) { cli_host->incUses(); cli_host->incNumFlows(true, srv_host);  }
-  if(srv_host) { srv_host->incUses(); srv_host->incNumFlows(false, cli_host); }
+  if(cli_host) { cli_host->incUses(); cli_host->incNumFlows(last_seen, true, srv_host);  }
+  if(srv_host) { srv_host->incUses(); srv_host->incNumFlows(last_seen, false, cli_host); }
 
   memset(&custom_app, 0, sizeof(custom_app));
 
@@ -172,8 +172,8 @@ void Flow::freeDPIMemory() {
 /* *************************************** */
 
 Flow::~Flow() {
-  if(cli_host) cli_host->decNumFlows(true, srv_host),  cli_host->decUses();
-  if(srv_host) srv_host->decNumFlows(false, cli_host), srv_host->decUses();
+  if(cli_host) cli_host->decNumFlows(last_seen, true, srv_host),  cli_host->decUses();
+  if(srv_host) srv_host->decNumFlows(last_seen, false, cli_host), srv_host->decUses();
 
   if(json_info)        free(json_info);
   if(host_server_name) free(host_server_name);
@@ -952,7 +952,7 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
 
   if(isReadyToPurge()) {
     /* Marked as ready to be purged, will be purged by NetworkInterface::purgeIdleFlows */
-    set_to_purge();
+    set_to_purge(tv->tv_sec);
   }
 
   if(check_tor && (ndpiDetectedProtocol.app_protocol == NDPI_PROTOCOL_SSL)) {
@@ -1063,13 +1063,13 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
       // update per-subnet byte counters
       if(cli_network_stats) { // only if the network is known and local
 	if(!cli_and_srv_in_same_subnet) {
-	  cli_network_stats->incEgress(diff_sent_packets, diff_sent_bytes,
+	  cli_network_stats->incEgress(tv->tv_sec, diff_sent_packets, diff_sent_bytes,
 				       srv_host->get_ip()->isBroadcastAddress());
-	  cli_network_stats->incIngress(diff_rcvd_packets, diff_rcvd_bytes,
+	  cli_network_stats->incIngress(tv->tv_sec, diff_rcvd_packets, diff_rcvd_bytes,
 					cli_host->get_ip()->isBroadcastAddress());
 	} else // client and server ARE in the same subnet
 	  // need to update the inner counter (just one time, will intentionally skip this for srv_host)
-	  cli_network_stats->incInner(diff_sent_packets + diff_rcvd_packets,
+	  cli_network_stats->incInner(tv->tv_sec, diff_sent_packets + diff_rcvd_packets,
 				      diff_sent_bytes + diff_rcvd_bytes,
 				      srv_host->get_ip()->isBroadcastAddress()
 				      || cli_host->get_ip()->isBroadcastAddress());
@@ -1085,9 +1085,9 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
       if(srv_network_stats) {
 	// local and known server network
 	if(!cli_and_srv_in_same_subnet) {
-	  srv_network_stats->incIngress(diff_sent_packets, diff_sent_bytes,
+	  srv_network_stats->incIngress(tv->tv_sec, diff_sent_packets, diff_sent_bytes,
 					srv_host->get_ip()->isBroadcastAddress());
-	  srv_network_stats->incEgress(diff_rcvd_packets, diff_rcvd_bytes,
+	  srv_network_stats->incEgress(tv->tv_sec, diff_rcvd_packets, diff_rcvd_bytes,
 				       cli_host->get_ip()->isBroadcastAddress());
 	}
       }
@@ -1109,13 +1109,13 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
 
       if(cli_country_stats) {
 	if(!cli_and_srv_in_same_country) {
-	  cli_country_stats->incEgress(diff_sent_packets, diff_sent_bytes,
+	  cli_country_stats->incEgress(tv->tv_sec, diff_sent_packets, diff_sent_bytes,
 				       srv_host->get_ip()->isBroadcastAddress());
-	  cli_country_stats->incIngress(diff_rcvd_packets, diff_rcvd_bytes,
+	  cli_country_stats->incIngress(tv->tv_sec, diff_rcvd_packets, diff_rcvd_bytes,
 					cli_host->get_ip()->isBroadcastAddress());
 	} else // client and server ARE in the same country
 	  // need to update the inner counter (just one time, will intentionally skip this for srv_host)
-	  cli_country_stats->incInner(diff_sent_packets + diff_rcvd_packets,
+	  cli_country_stats->incInner(tv->tv_sec, diff_sent_packets + diff_rcvd_packets,
 				      diff_sent_bytes + diff_rcvd_bytes,
 				      srv_host->get_ip()->isBroadcastAddress()
 				      || cli_host->get_ip()->isBroadcastAddress());
@@ -1123,9 +1123,9 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
 
       if(srv_country_stats) {
 	if(!cli_and_srv_in_same_country) {
-	  srv_country_stats->incIngress(diff_sent_packets, diff_sent_bytes,
+	  srv_country_stats->incIngress(tv->tv_sec, diff_sent_packets, diff_sent_bytes,
 					srv_host->get_ip()->isBroadcastAddress());
-	  srv_country_stats->incEgress(diff_rcvd_packets, diff_rcvd_bytes,
+	  srv_country_stats->incEgress(tv->tv_sec, diff_rcvd_packets, diff_rcvd_bytes,
 				       cli_host->get_ip()->isBroadcastAddress());
 	}
       }
@@ -1135,9 +1135,9 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
 	 && (ndpi_is_proto(ndpiDetectedProtocol, NDPI_PROTOCOL_HTTP)
 	     || ndpi_is_proto(ndpiDetectedProtocol, NDPI_PROTOCOL_HTTP_PROXY))) {
 	if(srv_host->getHTTPstats())
-	  srv_host->getHTTPstats()->updateHTTPHostRequest(host_server_name,
-					diff_num_http_requests,
-					diff_sent_bytes, diff_rcvd_bytes);
+	  srv_host->getHTTPstats()->updateHTTPHostRequest(tv->tv_sec, host_server_name,
+							  diff_num_http_requests,
+							  diff_sent_bytes, diff_rcvd_bytes);
 	diff_num_http_requests = 0; /*
 				      As this is a difference it is reset
 				      whenever we update the counters
@@ -1246,15 +1246,15 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
 	   && ndpiDetectedProtocol.app_protocol != NDPI_PROTOCOL_SSH) {
 	  if(isLowGoodput()) {
 	    if(!good_low_flow_detected) {
-	      if(cli_host) cli_host->incLowGoodputFlows(true);
-	      if(srv_host) srv_host->incLowGoodputFlows(false);
+	      if(cli_host) cli_host->incLowGoodputFlows(tv->tv_sec, true);
+	      if(srv_host) srv_host->incLowGoodputFlows(tv->tv_sec, false);
 	      good_low_flow_detected = true;
 	    }
 	  } else {
 	    if(good_low_flow_detected) {
 	      /* back to normal */
-	      if(cli_host) cli_host->decLowGoodputFlows(true);
-	      if(srv_host) srv_host->decLowGoodputFlows(false);
+	      if(cli_host) cli_host->decLowGoodputFlows(tv->tv_sec, true);
+	      if(srv_host) srv_host->decLowGoodputFlows(tv->tv_sec, false);
 	      good_low_flow_detected = false;
 	    }
 	  }

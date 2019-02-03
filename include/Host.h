@@ -99,9 +99,9 @@ class Host : public GenericHashEntry {
 
   inline nDPIStats* get_ndpi_stats()       { return(stats->getnDPIStats()); };
 
-  virtual void set_to_purge() { /* Saves 1 extra-step of purge idle */
+  virtual void set_to_purge(time_t t) { /* Saves 1 extra-step of purge idle */
     iface->decNumHosts(isLocalHost());
-    GenericHashEntry::set_to_purge();
+    GenericHashEntry::set_to_purge(t);
   };
 
   inline bool isChildSafe() {
@@ -122,8 +122,8 @@ class Host : public GenericHashEntry {
 
   virtual HostStats* allocateStats()                { return(new HostStats(this)); };
   void updateStats(struct timeval *tv);
-  void incLowGoodputFlows(bool asClient);
-  void decLowGoodputFlows(bool asClient);
+  void incLowGoodputFlows(time_t t, bool asClient);
+  void decLowGoodputFlows(time_t t, bool asClient);
   inline u_int16_t get_host_pool()         { return(host_pool_id);   };
   inline u_int16_t get_vlan_id()           { return(vlan_id);        };
   char* get_name(char *buf, u_int buf_len, bool force_resolution_if_not_found);
@@ -220,8 +220,8 @@ class Host : public GenericHashEntry {
     if(as) as->updateRoundTripTime(rtt_msecs);
   }
 
-  void incNumFlows(bool as_client, Host *peer);
-  void decNumFlows(bool as_client, Host *peer);
+  void incNumFlows(time_t t, bool as_client, Host *peer);
+  void decNumFlows(time_t t, bool as_client, Host *peer);
 
   inline void incFlagStats(bool as_client, u_int8_t flags)  { stats->incFlagStats(as_client, flags); };
   virtual void incNumDNSQueriesSent(u_int16_t query_type) { };

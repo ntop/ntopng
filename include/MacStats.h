@@ -41,9 +41,9 @@ class MacStats: public GenericTrafficElement {
   inline void incRcvdArpRequests()   { arp_stats.rcvd_requests++;         }
   inline void incRcvdArpReplies()    { arp_stats.rcvd_replies++;          }
 
-  inline void incSentStats(u_int64_t num_pkts, u_int64_t num_bytes)  { sent.incStats(num_pkts, num_bytes); }
-  inline void incRcvdStats(u_int64_t num_pkts, u_int64_t num_bytes)  { rcvd.incStats(num_pkts, num_bytes); }
-  inline void incnDPIStats(u_int32_t when, u_int16_t protocol,
+  inline void incSentStats(time_t t, u_int64_t num_pkts, u_int64_t num_bytes)  { sent.incStats(t, num_pkts, num_bytes); }
+  inline void incRcvdStats(time_t t, u_int64_t num_pkts, u_int64_t num_bytes)  { rcvd.incStats(t, num_pkts, num_bytes); }
+  inline void incnDPIStats(time_t when, u_int16_t protocol,
 	    u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
 	    u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes) {
     if(ndpiStats || (ndpiStats = new nDPIStats())) {

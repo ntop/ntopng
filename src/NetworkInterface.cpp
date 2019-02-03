@@ -259,7 +259,7 @@ NetworkInterface::NetworkInterface(const char *name,
 #endif
 
   is_loopback = (strncmp(ifname, "lo", 2) == 0) ? true : false;
-    
+
   reloadHideFromTop(false);
   updateTrafficMirrored();
 }
@@ -566,7 +566,7 @@ void NetworkInterface::deleteDataStructures() {
     for(u_int16_t i=0; i<EBPF_QUEUE_LEN; i++)
       if(ebpfEvents[i])
 	free(ebpfEvents[i]);
-    
+
     free(ebpfEvents);
   }
 #endif
@@ -653,7 +653,7 @@ int NetworkInterface::dumpFlow(time_t when, Flow *f) {
 
 #ifndef HAVE_NEDGE
   char *json;
-  
+
   if(!db)
     return(-1);
 
@@ -901,7 +901,7 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
 	    /* NOTE: in nEdge, stats are updated into Flow::update_hosts_stats */
 #ifndef HAVE_NEDGE
 	    if(ret->get_packets_cli2srv() == 1 /* first packet */)
-	      srcMac->incRcvdStats(1, ret->get_bytes_cli2srv() /* size of the last packet */);
+	      srcMac->incRcvdStats(getTimeLastPktRcvd(), 1, ret->get_bytes_cli2srv() /* size of the last packet */);
 #endif
 	  }
 	}
@@ -928,7 +928,7 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
       }
     }
   }
-  
+
   return(ret);
 }
 
@@ -1188,18 +1188,18 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
      source mac (srcMac) and destination mac (dstMac)
   */
   if(likely(srcMac != NULL)) {
-    srcMac->incSentStats(zflow->core.pkt_sampling_rate * zflow->core.in_pkts,
+    srcMac->incSentStats(getTimeLastPktRcvd(), zflow->core.pkt_sampling_rate * zflow->core.in_pkts,
 			 zflow->core.pkt_sampling_rate * zflow->core.in_bytes);
-    srcMac->incRcvdStats(zflow->core.pkt_sampling_rate * zflow->core.out_pkts,
+    srcMac->incRcvdStats(getTimeLastPktRcvd(), zflow->core.pkt_sampling_rate * zflow->core.out_pkts,
 			 zflow->core.pkt_sampling_rate * zflow->core.out_bytes);
 
     srcMac->setSourceMac();
   }
 
   if(likely(dstMac != NULL)) {
-    dstMac->incSentStats(zflow->core.pkt_sampling_rate * zflow->core.out_pkts,
+    dstMac->incSentStats(getTimeLastPktRcvd(), zflow->core.pkt_sampling_rate * zflow->core.out_pkts,
 			 zflow->core.pkt_sampling_rate * zflow->core.out_bytes);
-    dstMac->incRcvdStats(zflow->core.pkt_sampling_rate * zflow->core.in_pkts,
+    dstMac->incRcvdStats(getTimeLastPktRcvd(), zflow->core.pkt_sampling_rate * zflow->core.in_pkts,
 			 zflow->core.pkt_sampling_rate * zflow->core.in_bytes);
   }
 
@@ -1224,12 +1224,13 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
       flow_interfaces_stats = new FlowInterfacesStats();
 
     if(flow_interfaces_stats) {
-      flow_interfaces_stats->incStats(zflow->core.deviceIP, zflow->core.inIndex,    zflow->core.out_bytes, zflow->core.in_bytes);
+      flow_interfaces_stats->incStats(getTimeLastPktRcvd(), zflow->core.deviceIP, zflow->core.inIndex,
+				      zflow->core.out_bytes, zflow->core.in_bytes);
       /* If the SNMP device is actually an host with an SNMP agent, then traffic can enter and leave it
 	 from the same interface (think to a management interface). For this reason it is important to check
 	 the outIndex and increase its counters only if it is different from inIndex to avoid double counting. */
       if(zflow->core.outIndex != zflow->core.inIndex)
-	flow_interfaces_stats->incStats(zflow->core.deviceIP, zflow->core.outIndex,
+	flow_interfaces_stats->incStats(getTimeLastPktRcvd(), zflow->core.deviceIP, zflow->core.outIndex,
 					zflow->core.in_bytes, zflow->core.out_bytes);
     }
   }
@@ -1269,7 +1270,7 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
 
     if(custom_app_stats || (custom_app_stats = new(std::nothrow) CustomAppStats(this))) {
       custom_app_stats->incStats(zflow->custom_app.remapped_app_id,
-				zflow->core.pkt_sampling_rate * (zflow->core.in_bytes + zflow->core.out_bytes));
+				 zflow->core.pkt_sampling_rate * (zflow->core.in_bytes + zflow->core.out_bytes));
     }
   }
 #endif
@@ -1344,7 +1345,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
   if((srcMac = getMac(eth->h_source, true))) {
     /* NOTE: in nEdge, stats are updated into Flow::update_hosts_stats */
 #ifndef HAVE_NEDGE
-    srcMac->incSentStats(1, rawsize);
+    srcMac->incSentStats(getTimeLastPktRcvd(), 1, rawsize);
 #endif
     srcMac->setSeenIface(bridge_iface_idx);
 
@@ -1369,7 +1370,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
   if((dstMac = getMac(eth->h_dest, true))) {
     /* NOTE: in nEdge, stats are updated into Flow::update_hosts_stats */
 #ifndef HAVE_NEDGE
-    dstMac->incRcvdStats(1, rawsize);
+    dstMac->incRcvdStats(getTimeLastPktRcvd(), 1, rawsize);
 #endif
   }
 
@@ -1894,7 +1895,7 @@ void NetworkInterface::purgeIdle(time_t when) {
 static void IPV4Handler(Flow *f, eBPFevent *e) {
   struct ipv4_kernel_data *event = &e->event.v4;
   char buf1[32], buf2[32];
-  
+
   ntop->getTrace()->traceEvent(TRACE_NORMAL,
 			       "[%s][IPv4][%s][pid/tid: %u/%u (%s), uid/gid: %u/%u][father pid/tid: %u/%u (%s), uid/gid: %u/%u][addr: %s:%u <-> %s:%u][latency: %.2f msec]\n",
 			       e->ifname, (event->net.proto == IPPROTO_TCP) ? "TCP" : "UDP",
@@ -1918,7 +1919,7 @@ static void IPV6Handler(Flow *f, eBPFevent *e) {
 
   memcpy(&saddr, &event->saddr, sizeof(saddr));
   memcpy(&daddr, &event->daddr, sizeof(daddr));
-  
+
   ntop->getTrace()->traceEvent(TRACE_NORMAL,
 			       "[%s][IPv6][%s][pid/tid: %u/%u (%s), uid/gid: %u/%u][father pid/tid: %u/%u (%s), uid/gid: %u/%u][addr: %s:%u <-> %s:%u][latency: %.2f msec]\n",
 			       e->ifname, (event->net.proto == IPPROTO_TCP) ? "TCP" : "UDP",
@@ -2432,8 +2433,8 @@ decode_packet_eth:
 
     /* NOTE: in nEdge, stats are updated into Flow::update_hosts_stats */
 #ifndef HAVE_NEDGE
-    if(srcMac) srcMac->incSentStats(1, rawsize);
-    if(dstMac) dstMac->incRcvdStats(1, rawsize);
+    if(srcMac) srcMac->incSentStats(h->ts.tv_sec, 1, rawsize);
+    if(dstMac) dstMac->incRcvdStats(h->ts.tv_sec, 1, rawsize);
 #endif
 
     if(srcMac && dstMac) {
@@ -2515,7 +2516,7 @@ void NetworkInterface::pollQueuedeBPFEvents() {
 		     0, 0, 0, &new_flow,
 		     true /* create_if_missing */);
 
-      
+
       if(flow) flow->setProcessInfo(event, src2dst_direction ? event->sent_packet : !event->sent_packet);
 
 #ifdef EBPF_DEBUG
@@ -2612,7 +2613,7 @@ void NetworkInterface::findFlowHosts(u_int16_t vlanId,
       (*src) = new LocalHost(this, src_mac, vlanId, _src_ip);
       PROFILING_SECTION_EXIT(9);
     } else {
-      PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: new RemoteHost", 10); 
+      PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: new RemoteHost", 10);
       (*src) = new RemoteHost(this, src_mac, vlanId, _src_ip);
       PROFILING_SECTION_EXIT(10);
     }
@@ -3170,7 +3171,7 @@ static bool find_host_by_name(GenericHashEntry *h, void *user_data, bool *matche
   Host *host                  = (Host*)h;
   char ip_buf[32], name_buf[96];
   name_buf[0] = '\0';
-  
+
 
 #ifdef DEBUG
   char buf[64];
@@ -5664,7 +5665,7 @@ void NetworkInterface::findUserFlows(lua_State *vm, char *username) {
   bool walk_all = true;
 
   u.vm = vm, u.username = username;
-    
+
   lua_newtable(vm);
   walker(&begin_slot, walk_all, walker_flows, userfinder_walker, &u);
 }
@@ -6973,12 +6974,12 @@ bool NetworkInterface::enqueueeBPFEvent(eBPFevent *event) {
 #ifdef EBPF_DEBUG
   // ntop->getTrace()->traceEvent(TRACE_ERROR, "[%s] %s(%d/%d)", ifname, __FUNCTION__, next_insert_idx, next_remove_idx);
 #endif
-  
+
   if(ebpfEvents[next_insert_idx] != (eBPFevent*)NULL)
     return(false);
 
   ebpf_preprocess_event(event);
-  
+
   ebpfEvents[next_insert_idx] = event;
   next_insert_idx = (next_insert_idx + 1) % EBPF_QUEUE_LEN;
   return(true);
@@ -6986,7 +6987,7 @@ bool NetworkInterface::enqueueeBPFEvent(eBPFevent *event) {
 
 /* *************************************** */
 
-bool NetworkInterface::dequeueeBPFEvent(eBPFevent **event) { 
+bool NetworkInterface::dequeueeBPFEvent(eBPFevent **event) {
   if(ebpfEvents[next_remove_idx] == (eBPFevent*)NULL) {
     *event = NULL;
     return(false);
@@ -6995,10 +6996,10 @@ bool NetworkInterface::dequeueeBPFEvent(eBPFevent **event) {
 #ifdef EBPF_DEBUG
   // ntop->getTrace()->traceEvent(TRACE_ERROR, "[%s] %s(%d/%d)", ifname, __FUNCTION__, next_insert_idx, next_remove_idx);
 #endif
-  
+
   *event = ebpfEvents[next_remove_idx];
   ebpfEvents[next_remove_idx] = NULL;
-  next_remove_idx = (next_remove_idx + 1) % EBPF_QUEUE_LEN;  
+  next_remove_idx = (next_remove_idx + 1) % EBPF_QUEUE_LEN;
   return(true);
 }
 
@@ -7011,12 +7012,12 @@ void NetworkInterface::delivereBPFEvent(eBPFevent *event) {
     return; /* No events */
   else if((event->ifname[0] != '\0') && strcmp(event->ifname, ifname))
     return; /* Not for this interface */
-    
+
   if((tmp = (eBPFevent*)malloc(sizeof(eBPFevent))) != NULL) {
     memcpy(tmp, event, sizeof(eBPFevent));
 
     // ntop->getTrace()->traceEvent(TRACE_ERROR, "%s()", __FUNCTION__);
-    
+
     if(!enqueueeBPFEvent(tmp))
       free(tmp); /* Not enough space */
     else if(!hasSeenEBPFEvents())

@@ -137,18 +137,21 @@ class Mac : public GenericHashEntry {
   inline void requestDataReset()                         { data_delete_requested = true; requestStatsReset(); };
   void checkDataReset();
 
-  inline void incSentStats(u_int64_t num_pkts, u_int64_t num_bytes)  {
-    if(first_seen == 0) first_seen = iface->getTimeLastPktRcvd();
-    stats->incSentStats(num_pkts, num_bytes);
-    last_seen = iface->getTimeLastPktRcvd();
+  inline void incSentStats(time_t t, u_int64_t num_pkts, u_int64_t num_bytes)  {
+    if(first_seen == 0) first_seen = t;
+    stats->incSentStats(t, num_pkts, num_bytes), last_seen = t;
   }
-  inline void incnDPIStats(u_int32_t when, u_int16_t protocol,
+  
+  inline void incnDPIStats(time_t when, u_int16_t protocol,
 	    u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
 	    u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes) {
     stats->incnDPIStats(when, protocol, sent_packets, sent_bytes, sent_goodput_bytes,
       rcvd_packets, rcvd_bytes, rcvd_goodput_bytes);
   }
-  inline void incRcvdStats(u_int64_t num_pkts, u_int64_t num_bytes)  { stats->incRcvdStats(num_pkts, num_bytes); }
+  
+  inline void incRcvdStats(time_t t,u_int64_t num_pkts, u_int64_t num_bytes) {
+    stats->incRcvdStats(t, num_pkts, num_bytes);
+  }
 
   inline u_int64_t  getNumSentArp()  { return(stats->getNumSentArp());      }
   inline u_int64_t  getNumRcvdArp()  { return(stats->getNumRcvdArp());      }

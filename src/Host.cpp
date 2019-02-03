@@ -147,8 +147,8 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
     vlan->incUses();
 
   num_resolve_attempts = 0, ssdpLocation = NULL;
-  low_goodput_client_flows = low_goodput_server_flows = 0;
-  num_active_flows_as_client = num_active_flows_as_server = 0;
+  low_goodput_client_flows.reset(), low_goodput_server_flows.reset();
+  num_active_flows_as_client.reset(), num_active_flows_as_server.reset();
 
   flow_alert_counter = NULL;
   good_low_flow_detected = false;
@@ -874,34 +874,34 @@ bool Host::addIfMatching(lua_State* vm, u_int8_t *_mac) {
 
 /* *************************************** */
 
-void Host::incNumFlows(bool as_client, Host *peer) {
+void Host::incNumFlows(time_t t, bool as_client, Host *peer) {
   AlertCounter *counter;
 
   if(as_client) {
     counter = flow_flood_attacker_alert;
-    num_active_flows_as_client.inc(1);
+    num_active_flows_as_client.inc(t, 1);
   } else {
     counter = flow_flood_victim_alert;
-    num_active_flows_as_server.inc(1);
+    num_active_flows_as_server.inc(t, 1);
   }
 
   if(triggerAlerts())
-    counter->incHits(time(0));
+    counter->incHits(t);
 
   stats->incNumFlows(as_client, peer);
 }
 
 /* *************************************** */
 
-void Host::decNumFlows(bool as_client, Host *peer) {
+void Host::decNumFlows(time_t t, bool as_client, Host *peer) {
   if(as_client) {
     if(num_active_flows_as_client.get())
-      num_active_flows_as_client.dec(1);
+      num_active_flows_as_client.dec(t, 1);
     else
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: invalid counter value");
   } else {
     if(num_active_flows_as_server.get())
-      num_active_flows_as_server.dec(1);
+      num_active_flows_as_server.dec(t, 1);
     else
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: invalid counter value");
   }
@@ -1036,14 +1036,14 @@ bool Host::incFlowAlertHits(time_t when) {
 
 /* *************************************** */
 
-void Host::incLowGoodputFlows(bool asClient) {
+void Host::incLowGoodputFlows(time_t t, bool asClient) {
   bool alert = false;
 
   if(asClient) {
-    low_goodput_client_flows.inc(1);
+    low_goodput_client_flows.inc(t, 1);
     if(low_goodput_client_flows.get() > HOST_LOW_GOODPUT_THRESHOLD) alert = true;
   } else {
-    low_goodput_server_flows.inc(1);
+    low_goodput_server_flows.inc(t, 1);
     if(low_goodput_server_flows.get() > HOST_LOW_GOODPUT_THRESHOLD) alert = true;
   }
 
@@ -1054,19 +1054,19 @@ void Host::incLowGoodputFlows(bool asClient) {
 
 /* *************************************** */
 
-void Host::decLowGoodputFlows(bool asClient) {
+void Host::decLowGoodputFlows(time_t t, bool asClient) {
   bool alert = false;
 
   if(asClient) {
-    low_goodput_client_flows.dec(1);
+    low_goodput_client_flows.dec(t, 1);
     
-    if(low_goodput_client_flows.is_anomalous()
+    if(low_goodput_client_flows.is_anomalous(t)
        || (low_goodput_client_flows.get() < HOST_LOW_GOODPUT_THRESHOLD))
       alert = true;
   } else {
-    low_goodput_server_flows.dec(1);
+    low_goodput_server_flows.dec(t, 1);
     
-    if(low_goodput_server_flows.is_anomalous()
+    if(low_goodput_server_flows.is_anomalous(t)
        || (low_goodput_server_flows.get() < HOST_LOW_GOODPUT_THRESHOLD))
       alert = true;
   }

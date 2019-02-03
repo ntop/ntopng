@@ -229,17 +229,18 @@ void HostStats::checkPointHostTalker(lua_State *vm, bool saveCheckpoint) {
 
 /* *************************************** */
 
-void HostStats::incStats(u_int32_t when, u_int8_t l4_proto, u_int ndpi_proto,
-		    custom_app_t custom_app,
-		    u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
-		    u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes) {
-  sent.incStats(sent_packets, sent_bytes), rcvd.incStats(rcvd_packets, rcvd_bytes);
-
+void HostStats::incStats(time_t when, u_int8_t l4_proto, u_int ndpi_proto,
+			 custom_app_t custom_app,
+			 u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
+			 u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes) {
+  sent.incStats(when, sent_packets, sent_bytes),
+    rcvd.incStats(when, rcvd_packets, rcvd_bytes);
+  
   if(ndpiStats) {
     ndpiStats->incStats(when, ndpi_proto, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes),
-ndpiStats->incCategoryStats(when,
-          iface->get_ndpi_proto_category(ndpi_proto),
-          sent_bytes, rcvd_bytes);
+      ndpiStats->incCategoryStats(when,
+				  iface->get_ndpi_proto_category(ndpi_proto),
+				  sent_bytes, rcvd_bytes);
   }
 
 #ifdef NTOPNG_PRO
@@ -259,20 +260,20 @@ ndpiStats->incCategoryStats(when,
     /* Unknown protocol */
     break;
   case IPPROTO_UDP:
-    udp_rcvd.incStats(rcvd_packets, rcvd_bytes),
-udp_sent.incStats(sent_packets, sent_bytes);
+    udp_rcvd.incStats(when, rcvd_packets, rcvd_bytes),
+udp_sent.incStats(when, sent_packets, sent_bytes);
     break;
   case IPPROTO_TCP:
-    tcp_rcvd.incStats(rcvd_packets, rcvd_bytes),
-tcp_sent.incStats(sent_packets, sent_bytes);
+    tcp_rcvd.incStats(when, rcvd_packets, rcvd_bytes),
+tcp_sent.incStats(when, sent_packets, sent_bytes);
     break;
   case IPPROTO_ICMP:
-    icmp_rcvd.incStats(rcvd_packets, rcvd_bytes),
-icmp_sent.incStats(sent_packets, sent_bytes);
+    icmp_rcvd.incStats(when, rcvd_packets, rcvd_bytes),
+icmp_sent.incStats(when, sent_packets, sent_bytes);
     break;
   default:
-    other_ip_rcvd.incStats(rcvd_packets, rcvd_bytes),
-other_ip_sent.incStats(sent_packets, sent_bytes);
+    other_ip_rcvd.incStats(when, rcvd_packets, rcvd_bytes),
+other_ip_sent.incStats(when, sent_packets, sent_bytes);
     break;
   }
 }

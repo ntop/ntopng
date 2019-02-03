@@ -25,61 +25,79 @@
 
 template <typename COUNTERTYPE> class MonitoredCounter {
  private:
-  COUNTERTYPE last_value, gains, losses, losses_prev, gains_prev;
-  u_int32_t num_loops;
-  u_int16_t observation_window;
-
- public:
-  MonitoredCounter(u_int16_t window_len = 10) {
-    observation_window = window_len, reset();
-  }
-  inline void reset()      { last_value = gains = losses = losses_prev = gains_prev = 0, num_loops = 0; }
-  inline COUNTERTYPE get() { return(last_value); }
-
-  inline bool is_anomalous(u_int8_t low_threshold = 25, u_int8_t high_threshold = 75) {
-    return(((last_value < low_threshold) || (last_value > high_threshold))
-	   && (num_loops > observation_window) ? true : false);
-  }
-  inline u_int8_t dec(COUNTERTYPE value) { return(inc(-value)); }
-  inline u_int8_t inc(COUNTERTYPE value) {
-    int64_t delta;
-    u_int8_t rsi_val;
-
-    if(num_loops > 0) {
-      u_int64_t losses_diff;
-
-      delta = (int64_t)(value-last_value);
+  COUNTERTYPE value, last_value, gains, losses, prev_diff;
+  time_t      last_update;
+  COUNTERTYPE anomaly_index;
+  
+  inline void computeMinuteAnomalyIndex(time_t when) {
+    if((when - last_update) > 60 /* Do not update more frequently than a minute */) {
+      /* https://en.wikipedia.org/wiki/Relative_strength_index RSI-like index */
+      COUNTERTYPE diff = value - last_value;
+      int64_t delta = (int64_t)(diff - prev_diff);
       
       if(delta > 0)
-	gains = gains + delta;
+	gains = ewma(delta, gains);
       else
-	losses = losses - delta;
+	losses = ewma(-delta, losses);
 
-      /* https://en.wikipedia.org/wiki/Relative_strength_index */
-      if((losses_diff = losses-losses_prev) > 0)
-	rsi_val = (u_int8_t)(100 - (100 / (1 + ((gains-gains_prev) / losses_diff))));
+      if(losses > 0)
+	anomaly_index = (100 - (100 / (float)(1 + ((float)gains / (float)losses))));
       else
-	rsi_val = 0;
+	anomaly_index = 0;
 
 #ifdef MONITOREDCOUNTER_DEBUG
-      if((num_loops > observation_window) && (rsi_val > 0) && ((rsi_val < 25) || (rsi_val > 75)) && (gains > 0))
-	printf("%s[%s] Anomaly [RSI %u][%ld delta][gains: %lu][losses: %lu]\n",
-	       ((rsi_val < 25) || (rsi_val > 75)) ? "<<<***>>>" : "",
-	       __FUNCTION__, rsi_val, (long)delta, (unsigned long)gains, (unsigned long)losses);
+      printf("=> [value: %lu][diff/prev_diff: %lu/%lu][delta: %ld][RSI: %lu][gains: %lu][losses: %lu]\n",
+	     (unsigned long)value, (unsigned long)diff, (unsigned long)prev_diff, (long)delta,
+	     (unsigned long)anomaly_index, (unsigned long)gains, (unsigned long)losses);
+      
+      if((anomaly_index > 0) /* && ((anomaly_index < 25) || (anomaly_index > 75)) && (gains > 0) */)
+	printf("%s[%s] [RSI %u][gains: %lu][losses: %lu]\n",
+	       ((anomaly_index < 25) || (anomaly_index > 75)) ? "<<<***>>> Anomaly " : "",
+	       __FUNCTION__, (unsigned int)anomaly_index, (unsigned long)gains, (unsigned long)losses);
+      
 #endif
       
-      if(num_loops > observation_window) {
-	if(delta > 0)
-	  gains_prev = gains_prev + delta;
-	else
-	  losses_prev = losses_prev - delta;
-      }
-    } else
-      rsi_val = 0;
+      last_update = when, last_value = value, prev_diff = diff;
+    }
+  }
+  
+  inline COUNTERTYPE ewma(COUNTERTYPE sample, COUNTERTYPE ewma, u_int8_t alpha_percent = 30) {
+    // if(alpha_percent > 100) alpha_percent = 100;
+    return((alpha_percent * sample + (100 - alpha_percent) * ewma) / 100);
+  }
 
-    last_value += value, num_loops++;
+public:
+  MonitoredCounter() {
+    reset();
+  }
 
-    return(rsi_val);
+  inline void reset() {
+    prev_diff = value = last_value = gains = losses = 0, last_update = 0, anomaly_index = 0;
+  }
+
+  inline COUNTERTYPE get() {
+    return(last_value);
+  }
+
+  inline bool is_anomalous(time_t when, u_int8_t low_threshold = 25, u_int8_t high_threshold = 75) {
+    computeMinuteAnomalyIndex(when); /* Update if necesary */
+    return(((anomaly_index < low_threshold) || (anomaly_index > high_threshold)) ? true : false);
+  }
+  
+  inline void setInitialValue(COUNTERTYPE v) {
+    reset(), value = v;
+  }
+
+  inline float dec(time_t when, COUNTERTYPE v) {
+    return(inc(when, -v));
+  }
+
+  inline float inc(time_t when, COUNTERTYPE v) {
+    value += v;
+    
+    computeMinuteAnomalyIndex(when); /* Update if necesary */
+         
+    return(anomaly_index /* Last computed */);
   }
 };
 
