@@ -62,11 +62,12 @@ template <typename COUNTERTYPE> class MonitoredCounter {
 	rsi_val = 0;
 
 #ifdef MONITOREDCOUNTER_DEBUG
-      if((num_loops > observation_window) && (rsi_val > 0) && (gains > 0))
+      if((num_loops > observation_window) && (rsi_val > 0) && ((rsi_val < 25) || (rsi_val > 75)) && (gains > 0))
 	printf("%s[%s] Anomaly [RSI %u][%ld delta][gains: %lu][losses: %lu]\n",
 	       ((rsi_val < 25) || (rsi_val > 75)) ? "<<<***>>>" : "",
 	       __FUNCTION__, rsi_val, (long)delta, (unsigned long)gains, (unsigned long)losses);
 #endif
+      
       if(num_loops > observation_window) {
 	if(delta > 0)
 	  gains_prev = gains_prev + delta;
@@ -76,7 +77,7 @@ template <typename COUNTERTYPE> class MonitoredCounter {
     } else
       rsi_val = 0;
 
-    last_value = value, num_loops++;
+    last_value += value, num_loops++;
 
     return(rsi_val);
   }
