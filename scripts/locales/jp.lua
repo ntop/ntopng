@@ -2013,7 +2013,7 @@
     ["setup_apply"] = "適用",
     ["setup_config_edited_descr"] = "新しい設定を有効にするために変更を適用します。あるいは現状の設定を利用するために変更を破棄します",
     ["setup_config_edited_title"] = "システム 設定 編集ed!",
-    ["setup_discard"] = "Discard",
+    ["setup_discard"] = "破棄",
     ["setup_mode"] = "Operating Mode",
     ["setup_network"] = "ネットワーク",
     ["shapers"] = "Bandwidth Control",
