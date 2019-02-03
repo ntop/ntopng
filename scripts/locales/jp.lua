@@ -2294,7 +2294,7 @@
     ["mgmt_acl_title"] = "Access Control List",
     ["minute_top_talkers_retention_description"] = "1分間隔のtop talkers statisticsを保持する日数。Default: 365 days.",
     ["minute_top_talkers_retention_title"] = "Top Talkers Storage",
-    ["misc"] = "Misc",
+    ["misc"] = "その他",
     ["multiple_ldap_account_type_description"] = "Choose your account タイプ",
     ["multiple_ldap_account_type_title"] = "LDAP Accounts タイプ",
     ["multiple_timeseries_database_description"] = "timeseriesデータを蓄積／取得するためのドライバー.",
