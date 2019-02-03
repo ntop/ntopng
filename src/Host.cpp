@@ -542,8 +542,8 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   stats->lua(vm, mask_host, host_details, verbose);
 
   if(cur_mac && cur_mac->isDhcpHost()) lua_push_bool_table_entry(vm, "dhcpHost", true);
-  lua_push_uint64_table_entry(vm, "active_flows.as_client", num_active_flows_as_client);
-  lua_push_uint64_table_entry(vm, "active_flows.as_server", num_active_flows_as_server);
+  lua_push_uint64_table_entry(vm, "active_flows.as_client", num_active_flows_as_client.get());
+  lua_push_uint64_table_entry(vm, "active_flows.as_server", num_active_flows_as_server.get());
 
 #ifdef NTOPNG_PRO
   lua_push_bool_table_entry(vm, "has_blocking_quota", has_blocking_quota);
@@ -587,8 +587,8 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
     lua_push_str_table_entry(vm, "city", city ? city : (char*)"");
     ntop->getGeolocation()->freeInfo(&continent, &country_name, &city);
 
-    lua_push_uint64_table_entry(vm, "low_goodput_flows.as_client", low_goodput_client_flows);
-    lua_push_uint64_table_entry(vm, "low_goodput_flows.as_server", low_goodput_server_flows);
+    lua_push_uint64_table_entry(vm, "low_goodput_flows.as_client", low_goodput_client_flows.get());
+    lua_push_uint64_table_entry(vm, "low_goodput_flows.as_server", low_goodput_server_flows.get());
   }
 
   lua_push_uint64_table_entry(vm, "seen.first", first_seen);
@@ -879,10 +879,10 @@ void Host::incNumFlows(bool as_client, Host *peer) {
 
   if(as_client) {
     counter = flow_flood_attacker_alert;
-    num_active_flows_as_client++;
+    num_active_flows_as_client.inc(1);
   } else {
     counter = flow_flood_victim_alert;
-    num_active_flows_as_server++;
+    num_active_flows_as_server.inc(1);
   }
 
   if(triggerAlerts())
@@ -895,13 +895,13 @@ void Host::incNumFlows(bool as_client, Host *peer) {
 
 void Host::decNumFlows(bool as_client, Host *peer) {
   if(as_client) {
-    if(num_active_flows_as_client)
-      num_active_flows_as_client--;
+    if(num_active_flows_as_client.get())
+      num_active_flows_as_client.dec(1);
     else
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: invalid counter value");
   } else {
-    if(num_active_flows_as_server)
-      num_active_flows_as_server--;
+    if(num_active_flows_as_server.get())
+      num_active_flows_as_server.dec(1);
     else
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: invalid counter value");
   }
@@ -1040,9 +1040,11 @@ void Host::incLowGoodputFlows(bool asClient) {
   bool alert = false;
 
   if(asClient) {
-    if(++low_goodput_client_flows > HOST_LOW_GOODPUT_THRESHOLD) alert = true;
+    low_goodput_client_flows.inc(1);
+    if(low_goodput_client_flows.get() > HOST_LOW_GOODPUT_THRESHOLD) alert = true;
   } else {
-    if(++low_goodput_server_flows > HOST_LOW_GOODPUT_THRESHOLD) alert = true;
+    low_goodput_server_flows.inc(1);
+    if(low_goodput_server_flows.get() > HOST_LOW_GOODPUT_THRESHOLD) alert = true;
   }
 
   /* TODO: decide if an alert should be sent in a future version */
@@ -1056,9 +1058,17 @@ void Host::decLowGoodputFlows(bool asClient) {
   bool alert = false;
 
   if(asClient) {
-    if(--low_goodput_client_flows < HOST_LOW_GOODPUT_THRESHOLD) alert = true;
+    low_goodput_client_flows.dec(1);
+    
+    if(low_goodput_client_flows.is_anomalous()
+       || (low_goodput_client_flows.get() < HOST_LOW_GOODPUT_THRESHOLD))
+      alert = true;
   } else {
-    if(--low_goodput_server_flows < HOST_LOW_GOODPUT_THRESHOLD) alert = true;
+    low_goodput_server_flows.dec(1);
+    
+    if(low_goodput_server_flows.is_anomalous()
+       || (low_goodput_server_flows.get() < HOST_LOW_GOODPUT_THRESHOLD))
+      alert = true;
   }
 
   if(alert && good_low_flow_detected) {

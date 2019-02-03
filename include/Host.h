@@ -50,9 +50,9 @@ class Host : public GenericHashEntry {
   AlertCounter *flow_flood_attacker_alert, *flow_flood_victim_alert;
   bool trigger_host_alerts;
 
-  u_int32_t num_active_flows_as_client, num_active_flows_as_server;
-  u_int32_t low_goodput_client_flows, low_goodput_server_flows;
-
+  MonitoredCounter<u_int32_t> num_active_flows_as_client, num_active_flows_as_server,
+    low_goodput_client_flows, low_goodput_server_flows;
+  
   u_int32_t asn;
   AutonomousSystem *as;
   Country *country;
@@ -241,8 +241,8 @@ class Host : public GenericHashEntry {
   inline void checkPointHostTalker(lua_State *vm, bool saveCheckpoint) { stats->checkPointHostTalker(vm, saveCheckpoint); }
   virtual void incrVisitedWebSite(char *hostname) {};
   virtual u_int32_t getActiveHTTPHosts()  { return(0); };
-  inline u_int32_t getNumOutgoingFlows()  { return(num_active_flows_as_client); }
-  inline u_int32_t getNumIncomingFlows()  { return(num_active_flows_as_server); }
+  inline u_int32_t getNumOutgoingFlows()  { return(num_active_flows_as_client.get()); }
+  inline u_int32_t getNumIncomingFlows()  { return(num_active_flows_as_server.get()); }
   inline u_int32_t getNumActiveFlows()    { return(getNumOutgoingFlows()+getNumIncomingFlows()); }
   void splitHostVlan(const char *at_sign_str, char *buf, int bufsize, u_int16_t *vlan_id);
   char* get_country(char *buf, u_int buf_len);

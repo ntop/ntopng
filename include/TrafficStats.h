@@ -26,16 +26,15 @@
 
 class TrafficStats {
  private:
-  u_int64_t numPkts, numBytes;
+  MonitoredCounter<u_int64_t> numPkts, numBytes;
 
  public:
   TrafficStats();
   
-  inline void incStats(u_int64_t num_pkts, u_int64_t num_bytes) { numPkts += num_pkts, numBytes += num_bytes; };  
-  inline void incStats(u_int pkt_len)       { numPkts++, numBytes += pkt_len; };
-  inline void resetStats()                  { numPkts = numBytes = 0;         };
-  inline u_int64_t getNumPkts()             { return(numPkts);                };
-  inline u_int64_t getNumBytes()            { return(numBytes);               };
+  inline void incStats(u_int64_t num_pkts, u_int64_t num_bytes) { numPkts.inc(num_pkts), numBytes.inc(num_bytes); };  
+  inline void resetStats()                  { numPkts.reset(), numBytes.reset();    };
+  inline u_int64_t getNumPkts()             { return(numPkts.get());                };
+  inline u_int64_t getNumBytes()            { return(numBytes.get());               };
   void printStats();
 
   char* serialize();

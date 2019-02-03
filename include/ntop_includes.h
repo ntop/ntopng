@@ -174,6 +174,7 @@ using namespace std;
 #include "ntop_defines.h"
 #include "Mutex.h"
 #include "RwLock.h"
+#include "MonitoredCounter.h"
 #include "MDNS.h"
 #include "AddressTree.h"
 #include "VlanAddressTree.h"
