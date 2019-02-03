@@ -2770,7 +2770,7 @@
     ["out_bytes"] = "Out バイト",
     ["port_macs"] = "Mac アドレス",
     ["port_macs_short"] = "MACs",
-    ["remove_all_snmp_devices"] = "削除 すべての SNMP デバイス",
+    ["remove_all_snmp_devices"] = "すべての SNMP デバイスを削除",
     ["remove_all_snmp_devices_confirm"] = "すべてのSNMPデバイスを本当に削除しますか?",
     ["remove_snmp_device"] = "削除 SNMP デバイス",
     ["remove_snmp_device_confirm"] = "Do you really want to delete the SNMP デバイス %{device}?",
