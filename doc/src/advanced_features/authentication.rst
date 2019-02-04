@@ -31,7 +31,7 @@ re-authenticate again, regardless of their residual session duration.
 .. figure:: ../img/advanced_features_authentication_duration.png
   :align: center
   :alt: ntopng Authentication Duration
-  :scale: 80
+  :scale: 40
 
   ntopng Authentication Duration
 
@@ -211,4 +211,6 @@ Unable to Login
 ###############
 
 Instructions on how to recover after being locked out of the ntopng gui can be found
-at this link: https://github.com/ntop/ntopng/tree/dev/doc#resetting-admin-user-password .
+in the `FAQ page`_.
+
+.. _`FAQ page`: ../faq.html#cannot-login-into-the-gui
