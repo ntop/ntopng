@@ -544,6 +544,8 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   if(cur_mac && cur_mac->isDhcpHost()) lua_push_bool_table_entry(vm, "dhcpHost", true);
   lua_push_uint64_table_entry(vm, "active_flows.as_client", num_active_flows_as_client.get());
   lua_push_uint64_table_entry(vm, "active_flows.as_server", num_active_flows_as_server.get());
+  lua_push_uint64_table_entry(vm, "active_flows.as_client.anomaly_index", num_active_flows_as_client.getAnomalyIndex());
+  lua_push_uint64_table_entry(vm, "active_flows.as_server.anomaly_index", num_active_flows_as_server.getAnomalyIndex());
 
 #ifdef NTOPNG_PRO
   lua_push_bool_table_entry(vm, "has_blocking_quota", has_blocking_quota);
@@ -580,15 +582,17 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
     luaNames(vm, buf, sizeof(buf));
 
     ntop->getGeolocation()->getInfo(&ip, &continent, &country_name, &city, &latitude, &longitude);
-    lua_push_str_table_entry(vm, "continent", continent ? continent : (char*)"");
-    lua_push_str_table_entry(vm, "country", country_name ? country_name  : (char*)"");
+    lua_push_str_table_entry(vm,   "continent", continent ? continent : (char*)"");
+    lua_push_str_table_entry(vm,   "country", country_name ? country_name  : (char*)"");
     lua_push_float_table_entry(vm, "latitude", latitude);
     lua_push_float_table_entry(vm, "longitude", longitude);
-    lua_push_str_table_entry(vm, "city", city ? city : (char*)"");
+    lua_push_str_table_entry(vm,   "city", city ? city : (char*)"");
     ntop->getGeolocation()->freeInfo(&continent, &country_name, &city);
 
     lua_push_uint64_table_entry(vm, "low_goodput_flows.as_client", low_goodput_client_flows.get());
     lua_push_uint64_table_entry(vm, "low_goodput_flows.as_server", low_goodput_server_flows.get());
+    lua_push_uint64_table_entry(vm, "low_goodput_flows.as_client.anomaly_index", low_goodput_client_flows.getAnomalyIndex());
+    lua_push_uint64_table_entry(vm, "low_goodput_flows.as_server.anomaly_index", low_goodput_server_flows.getAnomalyIndex());
   }
 
   lua_push_uint64_table_entry(vm, "seen.first", first_seen);

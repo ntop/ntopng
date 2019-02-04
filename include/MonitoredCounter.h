@@ -75,9 +75,8 @@ public:
     prev_diff = value = last_value = gains = losses = 0, last_update = 0, anomaly_index = 0;
   }
 
-  inline COUNTERTYPE get() {
-    return(last_value);
-  }
+  inline COUNTERTYPE get()             { return(last_value);    }
+  inline COUNTERTYPE getAnomalyIndex() { return(anomaly_index); }
 
   inline bool is_anomalous(time_t when, u_int8_t low_threshold = 25, u_int8_t high_threshold = 75) {
     computeMinuteAnomalyIndex(when); /* Update if necesary */

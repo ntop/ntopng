@@ -74,6 +74,8 @@ json_object* TrafficStats::getJSONObject() {
   if(my_object) {
     json_object_object_add(my_object, "packets", json_object_new_int64(numPkts.get()));
     json_object_object_add(my_object, "bytes", json_object_new_int64(numBytes.get()));
+    json_object_object_add(my_object, "packets.anomaly_index", json_object_new_int64(numPkts.getAnomalyIndex()));
+    json_object_object_add(my_object, "bytes.anomaly_index", json_object_new_int64(numBytes.getAnomalyIndex()));
   }
 
   return(my_object);
