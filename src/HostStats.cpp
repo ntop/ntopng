@@ -108,6 +108,15 @@ void HostStats::lua(lua_State* vm, bool mask_host, bool host_details, bool verbo
     lua_push_uint64_table_entry(vm, "tcp.packets.lost", tcpPacketStats.pktLost);
     lua_push_uint64_table_entry(vm, "tcp.packets.keep_alive", tcpPacketStats.pktKeepAlive);
 
+    /* Bytes anomalies */
+    lua_push_uint64_table_entry(vm, "tcp.bytes.sent.anomaly_index", tcp_sent.getBytesAnomaly());
+    lua_push_uint64_table_entry(vm, "tcp.bytes.rcvd.anomaly_index", tcp_sent.getBytesAnomaly());
+    lua_push_uint64_table_entry(vm, "udp.bytes.sent.anomaly_index", udp_sent.getBytesAnomaly());
+    lua_push_uint64_table_entry(vm, "udp.bytes.rcvd.anomaly_index", udp_sent.getBytesAnomaly());
+    lua_push_uint64_table_entry(vm, "icmp.bytes.sent.anomaly_index", icmp_sent.getBytesAnomaly());
+    lua_push_uint64_table_entry(vm, "icmp.bytes.rcvd.anomaly_index", icmp_sent.getBytesAnomaly());
+    lua_push_uint64_table_entry(vm, "other_ip.bytes.sent.anomaly_index", other_ip_sent.getBytesAnomaly());
+    lua_push_uint64_table_entry(vm, "other_ip.bytes.rcvd.anomaly_index", other_ip_sent.getBytesAnomaly());    
   } else {
     /* Limit tcp information to anomalies when host_details aren't required */
     if(tcpPacketStats.pktRetr)

@@ -122,5 +122,10 @@ void GenericTrafficElement::lua(lua_State* vm, bool host_details) {
     lua_push_uint64_table_entry(vm, "bytes.rcvd", rcvd.getNumBytes());
     lua_push_uint64_table_entry(vm, "packets.sent", sent.getNumPkts());
     lua_push_uint64_table_entry(vm, "packets.rcvd", rcvd.getNumPkts());
+    
+    lua_push_uint64_table_entry(vm, "bytes.sent.anomaly_index", sent.getBytesAnomaly());
+    lua_push_uint64_table_entry(vm, "bytes.rcvd.anomaly_index", rcvd.getBytesAnomaly());
+    lua_push_uint64_table_entry(vm, "packets.sent.anomaly_index", sent.getPktsAnomaly());
+    lua_push_uint64_table_entry(vm, "packets.rcvd.anomaly_index", rcvd.getPktsAnomaly());
   }
 }
