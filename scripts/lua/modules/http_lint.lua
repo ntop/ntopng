@@ -1364,6 +1364,7 @@ local known_parameters = {
    ["accept_tos"]              = validateBool,
    ["no_timeout"]              = validateBool,
    ["supernode"]               = validateSingleWord,
+   ["ts_aggregation"]          = validateChoiceInline({"raw", "1h", "1d"}),
 
    -- json POST DATA
    ["payload"]                 = { jsonCleanup, validateJSON },

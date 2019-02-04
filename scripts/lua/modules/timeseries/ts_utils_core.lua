@@ -422,6 +422,7 @@ function ts_utils.queryTopk(schema_name, tags, tstart, tend, options)
     local options = table.merge(query_options, {calculate_stats = false})
     local count = 0
     local step = nil
+    local raw_step = nil
     local start = 0
 
     for _, top in ipairs(top_items.topk) do
@@ -459,6 +460,11 @@ function ts_utils.queryTopk(schema_name, tags, tstart, tend, options)
       else
         step = top_res.step
       end
+      if raw_step then
+        raw_step = math.min(raw_step, top_res.raw_step)
+      else
+        raw_step = top_res.raw_step
+      end
 
       for _, serie in ipairs(top_res.series) do
         serie.tags = top.tags
@@ -484,6 +490,7 @@ function ts_utils.queryTopk(schema_name, tags, tstart, tend, options)
 
     top_items.count = count
     top_items.step = step
+    top_items.raw_step = raw_step
     top_items.start = start
   else
     top_items.additional_series = nil

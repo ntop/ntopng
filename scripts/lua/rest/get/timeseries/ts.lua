@@ -30,6 +30,7 @@ local tend      = _GET["epoch_end"]
 local compare_backward = _GET["ts_compare"]
 local tags      = _GET["ts_query"]
 local extended_times  = _GET["extended"]
+local ts_aggregation  = _GET["ts_aggregation"]
 
 if _POST["payload"] ~= nil then
   -- REST request, use extended mode
@@ -48,6 +49,7 @@ local options = {
   initial_point = toboolean(_GET["initial_point"]),
   no_timeout = true,
   with_series = true,
+  target_aggregation = ts_aggregation,
 }
 
 -- Check end time bound and realign if necessary

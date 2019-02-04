@@ -565,7 +565,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
     if(first_load)
       initial_range = [params.epoch_begin, params.epoch_end];
 
-    if((old_start == params.epoch_begin) && (old_end == params.epoch_end))
+    if((old_start == params.epoch_begin) && (old_end == params.epoch_end) && (!force_update))
       return false;
 
     old_start = params.epoch_begin;
@@ -849,6 +849,9 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
 
       update_chart_data(res);
       first_time_loaded = false;
+
+      if(data.source_aggregation)
+        $("#data-aggr-dropdown > button > span:first").html(data.source_aggregation);
     }).fail(function(xhr, status, error) {
       if (xhr.statusText =='abort') {
         return;

@@ -159,14 +159,14 @@ end
 
 -- ##############################################
 
-function ts_common.calculateSampledTimeStep(schema, tstart, tend, options)
-  local estimed_num_points = math.ceil((tend - tstart) / schema.options.step)
-  local time_step = schema.options.step
+function ts_common.calculateSampledTimeStep(raw_step, tstart, tend, options)
+  local estimed_num_points = math.ceil((tend - tstart) / raw_step)
+  local time_step = raw_step
 
   if estimed_num_points > options.max_num_points then
     -- downsample
     local num_samples = math.ceil(estimed_num_points / options.max_num_points)
-    time_step = num_samples * schema.options.step
+    time_step = num_samples * raw_step
   end
 
   return time_step
