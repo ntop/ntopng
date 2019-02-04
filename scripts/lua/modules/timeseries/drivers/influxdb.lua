@@ -21,6 +21,7 @@ local INFLUX_QUERY_TIMEMOUT_SEC = 5
 local MIN_INFLUXDB_SUPPORTED_VERSION = "1.5.1"
 local RP_1H_DURATION = "30d"
 local RP_1D_DURATION = "365d"
+local FIRST_AGGREGATION_TIME_KEY = "ntopng.prefs.influxdb.first_aggregation_time"
 
 -- ##############################################
 
@@ -1060,6 +1061,22 @@ function driver:setup(ts_utils)
       traceError(TRACE_ERROR, TRACE_CONSOLE, "InfluxDB setup() failed")
       return false
     end
+  end
+
+  if tonumber(ntop.getPref(FIRST_AGGREGATION_TIME_KEY)) == nil then
+    local res = influx_query(self.url .. "/query?db=".. self.db .."&epoch=s",
+      'SELECT FIRST(bytes) FROM "1h"."iface:traffic"', self.username, self.password)
+    local first_t = os.time()
+
+    if res and res.series and res.series[1].values then
+      local v = res.series[1].values[1][1]
+
+      if v ~= nil then
+        first_t = v
+      end
+    end
+
+    ntop.setPref(FIRST_AGGREGATION_TIME_KEY, tostring(first_t))
   end
 
   return true
