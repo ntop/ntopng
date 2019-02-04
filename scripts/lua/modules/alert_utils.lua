@@ -2076,6 +2076,11 @@ local function formatTooManyPacketDrops(ifid, engine, entity_type, entity_value,
       " has too many dropped packets [&gt " .. max_drop_perc .. "%]"
 end
 
+local function formatInactivity(ifid, engine, entity_type, entity_value, entity_info, alert_key, alert_info)
+   return firstToUpper(formatAlertEntity(ifid, entity_type, entity_value, entity_info))..
+      " is inactive."
+end
+
 -- returns the pair (message, severity)
 local function formatAlertMessage(ifid, engine, entity_type, entity_value, atype, akey, entity_info, alert_info)
    -- Defaults
@@ -2094,6 +2099,8 @@ local function formatAlertMessage(ifid, engine, entity_type, entity_value, atype
       msg = formatSlowStatsUpdate(ifid, engine, entity_type, entity_value, entity_info, akey, alert_info)
    elseif atype == "too_many_drops" then
       msg = formatTooManyPacketDrops(ifid, engine, entity_type, entity_value, entity_info, akey, alert_info)
+   elseif atype == "inactivity" then
+      msg = formatInactivity(ifid, engine, entity_type, entity_value, entity_info, akey, alert_info)
    end
 
    return msg, severity
@@ -2427,38 +2434,42 @@ local function check_inactive_hosts_alerts(ifid, working_status)
    local engaged_cache = working_status.engaged_cache
    local engine = working_status.engine
    local entity_type = "host"
-   local atype = "inactive_host"
-   local akey = "inactive"
+   local atype = "inactivity"
+   local akey = working_status.granularity
 
-   local keys = ntop.getHashAllCache(inactive_hosts_hash) or {}
+   local keys = ntop.getMembersCache(inactive_hosts_hash) or {}
 
-   for inactive_host, alert_status in pairs(keys) do
-      local entity_value = inactive_host
-
+   for _, inactive_host in pairs(keys) do
       local hk = hostkey2hostinfo(inactive_host)
+      local entity_value = hostinfo2hostkey(hk, nil, true --[[force vlan]])
       local host_info = interface.getHostInfo(hk["host"], hk["vlan"])
 
-      if not host_info then
-	 if not engaged_cache[entity_type]
-	    or not engaged_cache[entity_type][entity_value]
-	    or not engaged_cache[entity_type][entity_value][atype]
-	 or not engaged_cache[entity_type][entity_value][atype][akey] then
-	    -- ENGAGE
-	    -- engageAlert(ifid, engine, entity_type, entity_value, atype, akey, entity_info, alert_info)
-	    working_status.dirty_cache = true
-	 end
-      elseif host_info then
-	 if engaged_cache[entity_type]
-	    and engaged_cache[entity_type][entity_value]
-	    and engaged_cache[entity_type][entity_value][atype]
-	 and engaged_cache[entity_type][entity_value][atype][akey] then
-	    -- RELEASE
-	    -- releaseAlert(ifid, engine, entity_type, entity_value, atype, akey, entity_info, alert_info)
-	    working_status.dirty_cache = true
-	 end
-      end
+      -- tprint({engaged_cache = engaged_cache})
+      -- tprint({inactive_host=inactive_host, alert_status = alert_status, ip = hk["host"], vlan = hk["vlan"], hostkey = hk, entity_type = entity_type or "nil", entity_value = entity_value or "nil", atype  = atype or "nil", akey = akey or "nil"})
 
-      -- tprint({inactive_host=inactive_host, alert_status = alert_status, ip = hk["host"], vlan = hk["vlan"]})
+      if engaged_cache[entity_type]
+	 and engaged_cache[entity_type][entity_value]
+	 and engaged_cache[entity_type][entity_value][atype]
+      and engaged_cache[entity_type][entity_value][atype][akey] then
+	 -- mark it as "processed" otherwise the weird undocumented function
+	 -- finalizefinalizeAlertsWorkingStatus will release the alert even
+	 -- when it should not be released.
+	 engaged_cache[entity_type][entity_value][atype][akey] = "processed"
+
+	 if host_info then
+	    -- RELEASE
+	    releaseAlert(ifid, engine, entity_type, entity_value, atype, akey)
+	    working_status.dirty_cache = true
+	 end
+      elseif not host_info and
+	 (not engaged_cache[entity_type]
+	     or not engaged_cache[entity_type][entity_value]
+	     or not engaged_cache[entity_type][entity_value][atype]
+	  or not engaged_cache[entity_type][entity_value][atype][akey]) then
+	    -- ENGAGE
+	    engageAlert(ifid, engine, entity_type, entity_value, atype, akey)
+	    working_status.dirty_cache = true
+      end
    end
 end
 
