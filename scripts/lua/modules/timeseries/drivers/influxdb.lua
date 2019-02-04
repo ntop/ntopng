@@ -84,16 +84,26 @@ local function getSchemaRetentionPolicy(schema, tstart, tend, options)
     return "raw"
   end
 
-  if options.target_aggregation then
-    -- user override
-    return options.target_aggregation
-  end
-
   -- RP selection logic
-  local oldest_1d_data = math.max(os.time() - RP_1D_DURATION_SECS, first_aggr_time)
-  local oldest_1h_data = math.max(os.time() - RP_1H_DURATION_SECS, first_aggr_time)
+  local oldest_1d_data = os.time() - RP_1D_DURATION_SECS
+  local oldest_1h_data = os.time() - RP_1H_DURATION_SECS
   local oldest_raw_data = tonumber(ntop.getPref("ntopng.prefs.influx_retention")) or 365 -- TODO make in common with prefs.lua
   local max_raw_interval = 12 * 3600 -- after 12 hours begin to use the aggregated data
+
+  if options.target_aggregation then
+    if((options.target_aggregation == "1h") and (tstart < oldest_1h_data)) or
+      ((options.target_aggregation == "raw") and (tstart < oldest_raw_data)) then
+      -- cannot satisfy the target_aggregation
+    else
+      -- user override
+      return options.target_aggregation
+    end
+  end
+
+  -- Fix the limits to ensure that the first_aggr_time is not crossed
+  -- Crossing it is still acceptable for the options.target_aggregation check above
+  oldest_1d_data = math.max(oldest_1d_data, first_aggr_time)
+  oldest_1h_data = math.max(oldest_1h_data, first_aggr_time)
 
   if tstart < oldest_1d_data then
     return "raw"

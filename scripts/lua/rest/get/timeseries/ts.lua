@@ -68,8 +68,10 @@ end
 
 sendHTTPHeader('application/json')
 
-local function performQuery(tstart, tend, keep_total)
+local function performQuery(tstart, tend, keep_total, additional_options)
   local res
+  additional_options = additional_options or {}
+  local options = table.merge(options, additional_options)
 
   if starts(ts_schema, "top:") then
     local ts_schema = split(ts_schema, "top:")[2]
@@ -117,11 +119,24 @@ if not isEmptyString(compare_backward) and compare_backward ~= "1Y" then
   local backward_sec = getZoomDuration(compare_backward)
   local tstart_cmp = tstart - backward_sec
   local tend_cmp = tend - backward_sec
-  local res_cmp = performQuery(tstart_cmp, tend_cmp, true)
 
-  if res_cmp and res_cmp.additional_series and res_cmp.additional_series.total then
+  -- Try to use the same aggregation as the original query
+  local res_cmp = performQuery(tstart_cmp, tend_cmp, true, {target_aggregation=res.source_aggregation})
+  local total_cmp_serie = nil
+
+  if res_cmp and res_cmp.additional_series and res_cmp.additional_series.total and res_cmp.step >= res.step then
+    total_cmp_serie = res_cmp.additional_series.total
+
+    if res_cmp.step > res.step then
+      -- The steps may not still correspond if the past query overlaps a retention policy
+      -- bound (it will have less points, but with an higher step), upscale to solve this
+      total_cmp_serie = ts_common.upsampleSerie(total_cmp_serie, res.count)
+    end
+  end
+
+  if total_cmp_serie then
     res.additional_series = res.additional_series or {}
-    res.additional_series[compare_backward.. " " ..i18n("details.ago")] = res_cmp.additional_series.total
+    res.additional_series[compare_backward.. " " ..i18n("details.ago")] = total_cmp_serie
   end
 end
 
