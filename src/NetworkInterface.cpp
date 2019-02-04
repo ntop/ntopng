@@ -1224,13 +1224,13 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
       flow_interfaces_stats = new FlowInterfacesStats();
 
     if(flow_interfaces_stats) {
-      flow_interfaces_stats->incStats(now, zflow->core.deviceIP, zflow->core.inIndex,
+      flow_interfaces_stats->incStats(zflow->core.deviceIP, zflow->core.inIndex,
 				      zflow->core.out_bytes, zflow->core.in_bytes);
       /* If the SNMP device is actually an host with an SNMP agent, then traffic can enter and leave it
 	 from the same interface (think to a management interface). For this reason it is important to check
 	 the outIndex and increase its counters only if it is different from inIndex to avoid double counting. */
       if(zflow->core.outIndex != zflow->core.inIndex)
-	flow_interfaces_stats->incStats(now, zflow->core.deviceIP, zflow->core.outIndex,
+	flow_interfaces_stats->incStats(zflow->core.deviceIP, zflow->core.outIndex,
 					zflow->core.in_bytes, zflow->core.out_bytes);
     }
   }
