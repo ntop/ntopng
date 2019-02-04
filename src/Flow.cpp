@@ -1006,8 +1006,8 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
 
       if(srv_host->get_mac()) {
 #ifdef HAVE_NEDGE
-        srv_host->getMac()->incSentStats(diff_rcvd_packets, diff_rcvd_bytes);
-        srv_host->getMac()->incRcvdStats(diff_sent_packets, diff_sent_bytes);
+        srv_host->getMac()->incSentStats(tv->tv_sec, diff_rcvd_packets, diff_rcvd_bytes);
+        srv_host->getMac()->incRcvdStats(tv->tv_sec, diff_sent_packets, diff_sent_bytes);
 #endif
 
         if(ntop->getPrefs()->areMacNdpiStatsEnabled()) {
@@ -1020,8 +1020,8 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
 
       if(cli_host->getMac()) {
 #ifdef HAVE_NEDGE
-        cli_host->getMac()->incSentStats(diff_sent_packets, diff_sent_bytes);
-        cli_host->getMac()->incRcvdStats(diff_rcvd_packets, diff_rcvd_bytes);
+        cli_host->getMac()->incSentStats(tv->tv_sec, diff_sent_packets, diff_sent_bytes);
+        cli_host->getMac()->incRcvdStats(tv->tv_sec, diff_rcvd_packets, diff_rcvd_bytes);
 #endif
 
         if(ntop->getPrefs()->areMacNdpiStatsEnabled()) {
@@ -2231,7 +2231,7 @@ void Flow::housekeep() {
 #ifdef HAVE_NEDGE
   if(iface->getIfType() == interface_type_NETFILTER) {
     if(isNetfilterIdleFlow()) {
-      set_to_purge();
+      set_to_purge(iface->getTimeLastPktRcvd());
     }
   }
 #endif
