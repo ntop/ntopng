@@ -50,7 +50,7 @@ class Host : public GenericHashEntry {
   AlertCounter *flow_flood_attacker_alert, *flow_flood_victim_alert;
   bool trigger_host_alerts;
 
-  MonitoredCounter<u_int32_t> num_active_flows_as_client, num_active_flows_as_server,
+  MonitoredGauge<u_int32_t> num_active_flows_as_client, num_active_flows_as_server,
     low_goodput_client_flows, low_goodput_server_flows;
   
   u_int32_t asn;

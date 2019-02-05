@@ -1260,6 +1260,12 @@ void Host::updateStats(struct timeval *tv) {
 
   checkDataReset();
   checkStatsReset();
+
+  num_active_flows_as_client.computeMinuteAnomalyIndex(tv->tv_sec),
+    num_active_flows_as_server.computeMinuteAnomalyIndex(tv->tv_sec),
+    low_goodput_client_flows.computeMinuteAnomalyIndex(tv->tv_sec),
+    low_goodput_server_flows.computeMinuteAnomalyIndex(tv->tv_sec);
+
   stats->updateStats(tv);
 }
 

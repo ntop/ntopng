@@ -19,38 +19,35 @@
  *
  */
 
-#ifndef _MONITORED_COUNTER_H_
-#define _MONITORED_COUNTER_H_
+#ifndef _MONITORED_GAUGE_H_
+#define _MONITORED_GAUGE_H_
 
 
-template <typename METRICTYPE> class MonitoredCounter : public MonitoredMetric<METRICTYPE> {
- private:
-  METRICTYPE last_diff;
-
+template <typename METRICTYPE> class MonitoredGauge : public MonitoredMetric<METRICTYPE> {
  public:
   void computeMinuteAnomalyIndex(time_t when) {
     if((when - this->last_update) > 60 /* Do not update more frequently than a minute */) {
       /* https://en.wikipedia.org/wiki/Relative_strength_index RSI-like index */
-      METRICTYPE diff = this->value - this->last_value;
-      int64_t delta = (int64_t)(diff) - last_diff;
+      int64_t delta = ((int64_t)(this->value) - this->last_value) / (when - this->last_update);
 
       this->updateAnomalyIndex(when, delta);
 
-#ifdef MONITOREDCOUNTER_DEBUG
-      printf("%s[MonitoredCounter][value: %lu][diff: %lu][last_diff: %lu][delta: %ld][RSI: %lu][gains: %lu][losses: %lu]\n",
-             ((this->anomaly_index < 25) || (this->anomaly_index > 75)) ? "<<<***>>> Anomaly " : "",
-             (unsigned long)this->value, (unsigned long)diff, (unsigned long)last_diff, (long)delta,
-	     (unsigned long)this->anomaly_index, (unsigned long)this->gains, (unsigned long)this->losses);
+#ifdef MONITOREDGAUGE_DEBUG
+      if(this->anomaly_index)
+	printf("%s[MonitoredGauge][value: %lu][delta: %ld][RSI: %lu][gains: %lu][losses: %lu]\n",
+	       ((this->anomaly_index < 25) || (this->anomaly_index > 75)) ? "<<<***>>> Anomaly " : "",
+	       (unsigned long)this->value, (long)delta,
+	       (unsigned long)this->anomaly_index, (unsigned long)this->gains, (unsigned long)this->losses);
 #endif
 
-      this->last_update = when, this->last_value = this->value, this->last_diff = diff;
+      this->last_update = when, this->last_value = this->value;
     }
   }
-
-  virtual void reset() {
-    last_diff = 0;
-    MonitoredMetric<METRICTYPE>::reset();
+  
+  inline float dec(time_t when, METRICTYPE v) {
+    /* Don't worry about int/u_int, look at the arithmetics and you will see that is always works */
+    return(this->inc(when, -v));
   }
 };
 
-#endif /* _MONITORED_COUNTER_H_ */
+#endif /* _MONITORED_GAUGE_H_ */
