@@ -1097,7 +1097,6 @@ local function getCqQuery(dbname, tags, schema, source, dest, step, resemple)
       INTO "1h"."iface:packets" FROM (
         SELECT NON_NEGATIVE_DIFFERENCE(packets) as packets
           FROM "autogen"."iface:packets"
-          GROUP BY time(1s),ifid
       ) GROUP BY time(1h),ifid
     END]]
     return string.format([[
@@ -1111,12 +1110,11 @@ local function getCqQuery(dbname, tags, schema, source, dest, step, resemple)
             SELECT
               %s
               FROM "%s"."%s"
-              GROUP BY time(%us),%s
           ) GROUP BY time(%s),%s
       END]], cq_name, dbname, resemple_s,
       sums, dest, schema.name,
       diffs, source, schema.name,
-      step, tags, dest, tags)
+      dest, tags)
   else
     local means = {}
 
