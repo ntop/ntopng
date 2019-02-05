@@ -5,6 +5,7 @@
 dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 if((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.scriptdir .. "/lua/modules/?.lua;" .. package.path end
+active_page = "if_stats"
 
 if ntop.isPro() then
    package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
@@ -26,6 +27,7 @@ require "alert_utils"
 require "db_utils"
 local ts_utils = require "ts_utils"
 local recording_utils = require "recording_utils"
+local storage_utils = require "storage_utils"
 
 local have_nedge = ntop.isnEdge()
 
@@ -182,9 +184,9 @@ if((ifstats ~= nil) and (ifstats.stats.packets > 0)) then
    end
 
    if(page == "ndpi") then
-      print("<li class=\"active\"><a href=\"#\">" .. i18n("protocols") .. "</a></li>\n")
+      print("<li class=\"active\"><a href=\"#\">" .. i18n("applications") .. "</a></li>\n")
    else
-      print("<li><a href=\""..url.."&page=ndpi\">" .. i18n("protocols") .. "</a></li>")
+      print("<li><a href=\""..url.."&page=ndpi\">" .. i18n("applications") .. "</a></li>")
    end
 end
 
@@ -220,14 +222,38 @@ if not have_nedge and (table.len(ifstats.profiles) > 0) then
   end
 end
 
-if recording_utils.isAvailable() and (interface.isPacketInterface() or 
-   (recording_utils.isSupportedZMQInterface(ifid) and not table.empty(ext_interfaces))) then
+if _SERVER["REQUEST_METHOD"] == "POST" and not isEmptyString(_POST["traffic_recording_provider"]) then
+   local prev_provider = recording_utils.getCurrentTrafficRecordingProvider(ifstats.id)
 
-   if(page == "traffic_recording") then
-      print("<li class=\"active\"><a href=\""..url.."&page=traffic_recording\"><i class=\"fa fa-hdd-o fa-lg\"></i></a></li>")
-   else
-      print("<li><a href=\""..url.."&page=traffic_recording\"><i class=\"fa fa-hdd-o fa-lg\"></i></a></li>")
+   -- if the current provider is the builtin ntopng and we are changing to another provider
+   -- then it may be necessary to stop the builtin ntopng
+   if prev_provider == "ntopng" and _POST["traffic_recording_provider"] ~= "ntopng" then
+      recording_utils.stop(ifstats.id)
+      ntop.setCache('ntopng.prefs.ifid_'..ifstats.id..'.traffic_recording.enabled', "false")
    end
+
+   recording_utils.setCurrentTrafficRecordingProvider(ifstats.id, _POST["traffic_recording_provider"])
+end
+
+local has_traffic_recording_page =  (recording_utils.isAvailable()
+	  and (interface.isPacketInterface()
+		  or ((recording_utils.isSupportedZMQInterface(ifid) and not table.empty(ext_interfaces)))
+		  or (recording_utils.getCurrentTrafficRecordingProvider(ifid) ~= "ntopng")))
+
+local dismiss_recording_providers_reminder = recording_utils.isExternalProvidersReminderDismissed(ifstats.id)
+   
+if has_traffic_recording_page then
+   if(page == "traffic_recording") then
+      print("<li class=\"active\"><a href=\""..url.."&page=traffic_recording\"><i class=\"fa fa-hdd-o fa-lg\"></i>")
+   else
+      print("<li><a href=\""..url.."&page=traffic_recording\"><i class=\"fa fa-hdd-o fa-lg\"></i>")
+   end
+
+   if not dismiss_recording_providers_reminder then
+      print("<span class='badge badge-top-right'><i class=\"fa fa-cog fa-sm\"></i></span>")
+   end
+
+   print("</a></li>")
 end
 
 if(isAdministrator() and areAlertsEnabled() and not ifstats.isView) then
@@ -244,15 +270,15 @@ if(isAdministrator() and areAlertsEnabled() and not ifstats.isView) then
 end
 
 if ts_utils.getDriverName() == "rrd" then
-if(ntop.isEnterprise()) then
+   if ntop.isEnterprise() or ntop.isnEdge() then
       if(page == "traffic_report") then
          print("\n<li class=\"active\"><a href=\"#\"><i class='fa fa-file-text report-icon'></i></a></li>\n")
       else
          print("\n<li><a href=\""..url.."&page=traffic_report\"><i class='fa fa-file-text report-icon'></i></a></li>")
       end
-elseif not have_nedge then
+   else
       print("\n<li><a href=\"#\" title=\""..i18n('enterpriseOnly').."\"><i class='fa fa-file-text report-icon'></i></A></li>\n")
-end
+   end
 end
 
 if(isAdministrator()) then
@@ -327,9 +353,9 @@ if((page == "overview") or (page == nil)) then
    end
 
    if(ifstats["remote.name"] ~= nil) then
-
       local remote_if_addr, remote_probe_ip, remote_probe_public_ip = '', '', ''
       local num_remote_flow_exports, num_remote_flow_exporters = '', ''
+
 
       if not isEmptyString(ifstats["remote.if_addr"]) then
 	 remote_if_addr = "<b>"..i18n("if_stats_overview.interface_ip").."</b>: "..ifstats["remote.if_addr"]
@@ -351,25 +377,71 @@ if((page == "overview") or (page == nil)) then
 	 num_remote_flow_exporters = "<b>"..i18n("if_stats_overview.probe_zmq_num_endpoints").."</b>: <span id=if_num_remote_zmq_exporters>"..formatValue(ifstats["zmq.num_exporters"]).."</span>"
       end
 
-      print("<tr><th rowspan=2>"..i18n("if_stats_overview.remote_probe").."</th><td nowrap><b>"..i18n("if_stats_overview.interface_name").."</b>: "..ifstats["remote.name"].." [ ".. maxRateToString(ifstats.speed*1000) .." ]</td>")
+      print("<tr><th rowspan=3>"..i18n("if_stats_overview.remote_probe").."</th><td nowrap><b>"..i18n("if_stats_overview.interface_name").."</b>: "..ifstats["remote.name"].." [ ".. maxRateToString(ifstats.speed*1000) .." ]</td>")
       print("<td nowrap>"..remote_if_addr.."</td>")
       print("<td nowrap>"..remote_probe_ip.."</td>")
       print("<td nowrap colspan=2>"..remote_probe_public_ip.."</td>\n")
       print("</tr>\n")
 
       print("<tr>")
-      local colspan = 3
+      local colspan = 4
+
       if ifstats["timeout.lifetime"] > 0 then
         print("<td nowrap><b>"..i18n("if_stats_overview.probe_timeout_lifetime").."</b>: "..secondsToTime(ifstats["timeout.lifetime"]).."</td>")
       else
-        colspan = colspan + 1
+        colspan = colspan - 1
       end
       if ifstats["timeout.idle"] > 0 then
         print("<td nowrap><b>"..i18n("if_stats_overview.probe_timeout_idle").."</b>: "..secondsToTime(ifstats["timeout.idle"]).."</td>")
       else
-        colspan = colspan + 1
+        colspan = colspan - 1
       end
+
       print("<td nowrap colspan="..colspan..">"..num_remote_flow_exporters.."</td>")
+      print("</tr>")
+
+      local has_drops_export_queue_full = (tonumber(ifstats["zmq.drops.export_queue_full"]) and tonumber(ifstats["zmq.drops.export_queue_full"]) > 0)
+      local has_drops_flow_collection_drops = (tonumber(ifstats["zmq.drops.flow_collection_drops"]) and tonumber(ifstats["zmq.drops.flow_collection_drops"]) > 0)
+      local has_remote_drops = (has_drops_export_queue_full or has_drops_flow_collection_drops)
+
+      if not has_remote_drops then
+	 print('<tr style="display: none;">')
+      else
+	 print("<tr>")
+	 local export_queue_full, flow_collection_drops
+	 local colspan = 5
+
+	 if has_drops_export_queue_full then
+	    local num_full = tonumber(ifstats["zmq.drops.export_queue_full"])
+	    local span_class = ' '
+	    if num_full > 0 then
+	       span_class = 'class="label label-danger"'
+	    end
+	    export_queue_full = "<b>"..i18n("if_stats_overview.probe_zmq_drops_export_queue_full").." <sup><i class='fa fa-info-circle' title='"..i18n("if_stats_overview.note_probe_zmq_drops_export_queue_full").."'></i></sup></b>: <span "..span_class.." id=if_zmq_drops_export_queue_full>"..formatValue(ifstats["zmq.drops.export_queue_full"]).."</span>"
+	 end
+
+	 if has_drops_flow_collection_drops then
+	    local num_full = tonumber(ifstats["zmq.drops.flow_collection_drops"])
+	    local span_class = ' '
+	    if num_full > 0 then
+	       span_class = 'class="label label-danger"'
+	    end
+	    flow_collection_drops = "<b>"..i18n("if_stats_overview.probe_zmq_drops_flow_collection_drops").." <sup><i class='fa fa-info-circle' title='"..i18n("if_stats_overview.note_probe_zmq_drops_flow_collection_drops").."'></i></sup></b>: <span "..span_class.." id=if_zmq_drops_flow_collection_drops>"..formatValue(ifstats["zmq.drops.flow_collection_drops"]).."</span>"
+	 end
+
+	 if export_queue_full then
+	    print("<td>"..export_queue_full.."</td>")
+	    colspan = colspan - 1
+	 end
+	 if flow_collection_drops then
+	    print("<td>"..flow_collection_drops.."</td>")
+	    colspan = colspan - 1
+	 end
+	 if colspan then
+	    print("<td colspan="..colspan.."></td>")
+	 end
+      end
+
       print("</tr>")
    end
 
@@ -477,16 +549,19 @@ print [[ }
 ]]
 print("</script>\n")
 
-   if(ifstats.zmqRecvStats ~= nil) then
+if(ifstats.zmqRecvStats ~= nil) then
    print("<tr><th colspan=7 nowrap>"..i18n("if_stats_overview.zmq_rx_statistics").."</th></tr>\n")
    print("<tr><th nowrap>"..i18n("if_stats_overview.collected_flows").."</th><td width=20%><span id=if_zmq_flows>"..formatValue(ifstats.zmqRecvStats.flows).."</span></td>")
    print("<th nowrap>"..i18n("if_stats_overview.interface_rx_updates").."</th><td width=20%><span id=if_zmq_events>"..formatValue(ifstats.zmqRecvStats.events).."</span></td>")
    print("<th nowrap>"..i18n("if_stats_overview.sflow_counter_updates").."</th><td width=20%><span id=if_zmq_counters>"..formatValue(ifstats.zmqRecvStats.counters).."</span></td></tr>")
-   print("<tr><th nowrap>"..i18n("if_stats_overview.zmq_message_drops").."</th><td width=20%><span id=if_zmq_msg_drops>"..formatValue(ifstats.zmqRecvStats.zmq_msg_drops).."</span></td></tr>")
+   print("<tr><th nowrap>"..i18n("if_stats_overview.zmq_message_drops").."</th><td width=20%><span id=if_zmq_msg_drops>"..formatValue(ifstats.zmqRecvStats.zmq_msg_drops).."</span></td>")
+   -- empty placeholder, can be used for future items
+   print("<th nowrap colspan=4></th></tr>")
    end
 
-   print("<tr><th colspan=7 nowrap>"..i18n("if_stats_overview.ingress_traffic").."</th></tr>\n")
-   print("<tr><th nowrap>"..i18n("if_stats_overview.received_traffic").."</th><td width=20%><span id=if_bytes>"..bytesToSize(ifstats.stats.bytes).."</span> [<span id=if_pkts>".. formatValue(ifstats.stats.packets) .. " ".. label .."</span>] ")
+   print("<tr><th colspan=7 nowrap>"..i18n("if_stats_overview.traffic_statistics").."</th></tr>\n")
+   print("<tr><th nowrap>"..i18n("report.total_traffic").."</th><td width=20%><span id=if_bytes>"..bytesToSize(ifstats.stats.bytes).."</span> [<span id=if_pkts>".. formatValue(ifstats.stats.packets) .. " ".. label .."</span>] ")
+
    print("<span id=pkts_trend></span></td>")
 
    if ifstats.isDynamic == false then
@@ -523,6 +598,11 @@ print("</script>\n")
 
    print("</tr>")
 
+   if(ifstats.has_traffic_directions) then
+      print("<tr><th nowrap>"..i18n("http_page.traffic_sent").."</th><td width=20%><span id=if_out_bytes>"..bytesToSize(ifstats.eth.egress.bytes).."</span> [<span id=if_out_pkts>".. formatValue(ifstats.eth.egress.packets) .. " ".. label .."</span>] <span id=pkts_out_trend></span></td>")
+      print("<th nowrap>"..i18n("http_page.traffic_received").."</th><td width=20%><span id=if_in_bytes>"..bytesToSize(ifstats.eth.ingress.bytes).."</span> [<span id=if_in_pkts>".. formatValue(ifstats.eth.ingress.packets) .. " ".. label .."</span>] <span id=pkts_in_trend></span><td></td></tr>")
+   end
+
    if(prefs.is_dump_flows_enabled and ifstats.isView == false) then
       local dump_to = "MySQL"
       if prefs.is_dump_flows_to_es_enabled == true then
@@ -530,6 +610,9 @@ print("</script>\n")
       end
       if prefs.is_dump_flows_to_ls_enabled == true then
 	 dump_to = "Logstash"
+      end
+      if prefs.is_nindex_enabled == true then
+	 dump_to = "nIndex"
       end
 
       local export_count     = ifstats.stats.flow_export_count
@@ -570,9 +653,51 @@ print("</script>\n")
       print("<td colspan=3>&nbsp;</td>")
       print("</tr>")
    end
-   
-   if (isAdministrator() and ifstats.isView == false and ifstats.isDynamic == false) then
-      print("<tr><th>"..i18n("download").."&nbsp;<i class=\"fa fa-download fa-lg\"></i></th><td colspan=4>")
+  
+   if isAdministrator() and ifstats.isView == false then
+      local storage_info = storage_utils.interfaceStorageInfo(ifid) 
+      local storage_items = {}
+
+      if storage_info.rrd ~= nil and storage_info.rrd > 0 then
+        table.insert(storage_items, {
+          title = i18n("prefs.timeseries"),
+          value = storage_info.rrd,
+          class = "primary",
+        })
+      end
+
+      if storage_info.flows ~= nil and storage_info.flows > 0 then
+        table.insert(storage_items, {
+          title = i18n("flows"),
+          value = storage_info.flows,
+          class = "info",
+        })
+      end
+
+      if storage_info.pcap ~= nil and storage_info.pcap > 0 then
+        local link = nil
+
+        if recording_utils.isAvailable(ifstats.id) then
+          link = ntop.getHttpPrefix() .. "/lua/if_stats.lua?ifid=" .. ifid .. "&page=traffic_recording"
+        end
+
+        table.insert(storage_items, {
+          title = i18n("traffic_recording.packet_dumps"),
+          value = storage_info.pcap,
+          class = "warning",
+          link = link
+        })
+      end
+
+      if #storage_items > 0 then
+        print("<tr><th>"..i18n("traffic_recording.storage_utilization").."</th><td colspan=5>")
+        print(stackedProgressBars(storage_info.total, storage_items, nil, bytesToSize))
+        print("</td></tr>\n")
+      end
+   end
+ 
+   if (isAdministrator() and ifstats.isView == false and ifstats.isDynamic == false and interface.isPacketInterface()) then
+      print("<tr><th>"..i18n("download").."&nbsp;<i class=\"fa fa-download fa-lg\"></i></th><td colspan=5>")
 
       local live_traffic_utils = require("live_traffic_utils")
       live_traffic_utils.printLiveTrafficForm(ifId)
@@ -663,45 +788,74 @@ elseif((page == "packets")) then
       </script><p>
   ]]
 elseif(page == "ndpi") then
-
---fc = interface.getnDPIFlowsCount()
---for k,v in pairs(fc) do
---   io.write(k.."="..v.."\n")
---end
-
-   print [[
-<script type="text/javascript" src="]] print(ntop.getHttpPrefix()) print [[/js/jquery.tablesorter.js"></script>
-  <table class="table table-bordered table-striped">
+print[[
+  <ul id="ndpiNav" class="nav nav-tabs" role="tablist">
+    <li class="active"><a data-toggle="tab" role="tab" href="#applications" active>]] print(i18n("applications")) print[[</a></li>
+    <li><a data-toggle="tab" role="tab" href="#categories">]] print(i18n("categories")) print[[</a></li>
+  </ul>
+  <div class="tab-content">
+    <div id="applications" class="tab-pane fade in active">
+      <br>
+      <table class="table table-bordered table-striped">
 ]]
 
    if ntop.isPro() and ifstats["custom_apps"] then
       print[[
-    <tr>
-      <th class="text-left">]] print(i18n("ndpi_page.overview", {what = i18n("ndpi_page.custom_applications")})) print [[</th>
-      <td colspan=5><div class="pie-chart" id="topCustomApps"></div></td>
-    </tr>
+        <tr>
+          <th class="text-left">]] print(i18n("ndpi_page.overview", {what = i18n("ndpi_page.custom_applications")})) print [[</th>
+          <td colspan=5><div class="pie-chart" id="topCustomApps"></td>
+        </tr>
 ]]
    end
 
    print[[
-    <tr>
-      <th class="text-left">]] print(i18n("ndpi_page.overview", {what = i18n("ndpi_page.application_protocol")})) print [[</th>
-      <td colspan=3><div class="pie-chart" id="topApplicationProtocols"></div></td>
-      <td colspan=2><div class="pie-chart" id="topApplicationBreeds"></div></td>
-    </tr>
-    <tr>
-      <th class="text-left">]] print(i18n("ndpi_page.overview", {what = i18n("ndpi_page.application_protocol_category")})) print [[</th>
-      <td colspan=5><div class="pie-chart" id="topApplicationCategories"></div></td>
-    </tr>
-    <tr>
-      <th class="text-left">]] print(i18n("ndpi_page.live_flows_count")) print [[</th>
-      <td colspan=3><div class="pie-chart" id="topFlowsCount"></div></td>
-      <td colspan=2><div class="pie-chart" id="topTCPFlowsStats"></div>
-        <br><small><b>]] print(i18n("ndpi_page.note")) print [[ :</b>]] print(i18n("ndpi_page.note_live_flows_chart")) print [[
-      </td>
-    </tr>
-  </div>
+        <tr>
+          <th class="text-left">]] print(i18n("ndpi_page.overview", {what = i18n("applications")})) print [[</th>
+          <td colspan=3><div class="pie-chart" id="topApplicationProtocols"></td>
+          <td colspan=2><div class="pie-chart" id="topApplicationBreeds"></td>
+        </tr>
+        <tr>
+          <th class="text-left">]] print(i18n("ndpi_page.live_flows_count")) print [[</th>
+          <td colspan=3><div class="pie-chart" id="topFlowsCount"></td>
+          <td colspan=2><div class="pie-chart" id="topTCPFlowsStats">
+          <br><small><b>]] print(i18n("ndpi_page.note")) print [[ :</b>]] print(i18n("ndpi_page.note_live_flows_chart")) print [[
+          </td>
+        </tr>
+      </table>
+     <table id="if_stats_ndpi" class="table table-bordered table-striped tablesorter">
+       <thead>
+         <tr>
+           <th>]] print(i18n("application")) print[[</th>
+           <th>]] print(i18n("ndpi_page.total_since_startup")) print[[</th>
+           <th>]] print(i18n("percentage")) print[[</th>
+         </tr>
+       </thead>
+       <tbody id="if_stats_ndpi_tbody"></tbody>
+     </table>
+    </div>
+    <div id="categories" class="tab-pane">
+      <br>
+      <table class="table table-bordered table-striped">
+        <tr>
+          <th class="text-left">]] print(i18n("ndpi_page.overview", {what = i18n("categories")})) print [[</th>
+          <td colspan=5><div class="pie-chart" id="topApplicationCategories"></td>
+        </tr>
+      </table>
+     <table id="if_stats_ndpi_categories" class="table table-bordered table-striped tablesorter">
+       <thead>
+         <tr>
+           <th>]] print(i18n("category")) print[[</th>
+           <th>]] print(i18n("ndpi_page.total_since_startup")) print[[</th>
+           <th>]] print(i18n("percentage")) print[[</th>
+         </tr>
+       </thead>
+       <tbody id="if_stats_ndpi_categories_tbody"></tbody>
+     </table>
+    </div>
+]]
 
+print [[
+<script type="text/javascript" src="]] print(ntop.getHttpPrefix()) print [[/js/jquery.tablesorter.js"></script>
 	<script type='text/javascript'>
 	 window.onload=function() {]]
 
@@ -733,21 +887,6 @@ elseif(page == "ndpi") then
    print [[/lua/iface_tcp_stats.lua', { ifid: "]] print(ifid) print [[" }, "", refresh);
     }
 
-      </script><p>
-  </table>
-  ]]
-
-   print [[
-     <table id="if_stats_ndpi" class="table table-bordered table-striped tablesorter">
-     ]]
-
-   print("<thead><tr><th>" .. i18n("ndpi_page.application_protocol") .. "</th><th>" .. i18n("ndpi_page.total_since_startup") .. "</th><th>" .. i18n("percentage") .. "</th></tr></thead>\n")
-
-   print ('<tbody id="if_stats_ndpi_tbody">\n')
-   print ("</tbody>")
-   print("</table>\n")
-   print [[
-<script>
 function update_ndpi_table() {
   $.ajax({
     type: 'GET',
@@ -756,30 +895,17 @@ function update_ndpi_table() {
    print [[/lua/if_stats_ndpi.lua',
     data: { ifid: "]] print(ifid) print [[" },
     success: function(content) {
-      $('#if_stats_ndpi_tbody').html(content);
-      // Let the TableSorter plugin know that we updated the table
-      $('#if_stats_ndpi_tbody').trigger("update");
+      if(content) {
+         $('#if_stats_ndpi_tbody').html(content);
+         // Let the TableSorter plugin know that we updated the table
+         $('#if_stats_ndpi_tbody').trigger("update");
+      }
     }
   });
 }
 update_ndpi_table();
 setInterval(update_ndpi_table, 5000);
 
-</script>
-]]
-
-   
-   print [[
-     <table id="if_stats_ndpi_categories" class="table table-bordered table-striped tablesorter">
-     ]]
-
-   print("<thead><tr><th>" .. i18n("ndpi_page.application_protocol_category") .. "</th><th>" .. i18n("ndpi_page.total_since_startup") .. "</th><th>" .. i18n("percentage") .. "</th></tr></thead>\n")
-
-   print ('<tbody id="if_stats_ndpi_categories_tbody">\n')
-   print ("</tbody>")
-   print("</table>\n")
-   print [[
-<script>
 function update_ndpi_categories_table() {
   $.ajax({
     type: 'GET',
@@ -788,9 +914,11 @@ function update_ndpi_categories_table() {
    print [[/lua/if_stats_ndpi_categories.lua',
     data: { ifid: "]] print(ifid) print [[" },
     success: function(content) {
-      $('#if_stats_ndpi_categories_tbody').html(content);
-      // Let the TableSorter plugin know that we updated the table
-      $('#if_stats_ndpi_categories_tbody').trigger("update");
+      if(content) {
+         $('#if_stats_ndpi_categories_tbody').html(content);
+         // Let the TableSorter plugin know that we updated the table
+         $('#if_stats_ndpi_categories_tbody').trigger("update");
+      }
     }
   });
 }
@@ -818,8 +946,10 @@ function update_icmp_table() {
   print [[/lua/get_icmp_data.lua',
     data: { ifid: "]] print(ifId.."")  print [[" },
     success: function(content) {
-      $('#iface_details_icmp_tbody').html(content);
-      $('#icmp_table').trigger("update");
+      if(content) {
+         $('#iface_details_icmp_tbody').html(content);
+         $('#icmp_table').trigger("update");
+      }
     }
   });
 }
@@ -847,8 +977,10 @@ function update_arp_table() {
   print [[/lua/get_arp_data.lua',
     data: { ifid: "]] print(ifId.."")  print [[" },
     success: function(content) {
-      $('#iface_details_arp_tbody').html(content);
-      $('#arp_table').trigger("update");
+      if(content) {
+         $('#iface_details_arp_tbody').html(content);
+         $('#arp_table').trigger("update");
+      }
     }
   });
 }
@@ -884,6 +1016,7 @@ elseif(page == "historical") then
          {schema="iface:devices",               label=i18n("graphs.active_devices")},
          {schema="iface:http_hosts",            label=i18n("graphs.active_http_servers"), nedge_exclude=1},
          {schema="iface:traffic",               label=i18n("traffic")},
+         {schema="iface:traffic_rxtx",          label=i18n("graphs.traffic_txrx")},
 
          {schema="iface:1d_delta_traffic_volume",  label="1 Day Traffic Delta"}, -- TODO localize
          {schema="iface:1d_delta_flows",           label="1 Day Active Flows Delta"}, -- TODO localize
@@ -893,12 +1026,15 @@ elseif(page == "historical") then
          {schema="iface:nfq_pct",               label=i18n("graphs.num_nfq_pct"), nedge_only=1},
 
          {schema="iface:zmq_recv_flows",        label=i18n("graphs.zmq_received_flows"), nedge_exclude=1},
-         {separator=1, nedge_exclude=1},
+	 {schema="iface:zmq_flow_coll_drops",   label=i18n("graphs.zmq_flow_coll_drops"), nedge_exclude=1},
+         {schema="iface:exported_flows",        label=i18n("if_stats_overview.exported_flows"), nedge_exclude=1},
+         {schema="iface:dropped_flows",         label=i18n("if_stats_overview.dropped_flows"), nedge_exclude=1},
+         {separator=1, nedge_exclude=1, label=i18n("tcp_stats")},
          {schema="iface:tcp_lost",              label=i18n("graphs.tcp_packets_lost"), nedge_exclude=1},
          {schema="iface:tcp_out_of_order",      label=i18n("graphs.tcp_packets_ooo"), nedge_exclude=1},
          --{schema="tcp_retr_ooo_lost",   label=i18n("graphs.tcp_retr_ooo_lost"), nedge_exclude=1},
          {schema="iface:tcp_retransmissions",   label=i18n("graphs.tcp_packets_retr"), nedge_exclude=1},
-         {separator=1},
+         {separator=1, label=i18n("tcp_flags")},
          {schema="iface:tcp_syn",               label=i18n("graphs.tcp_syn_packets"), nedge_exclude=1},
          {schema="iface:tcp_synack",            label=i18n("graphs.tcp_synack_packets"), nedge_exclude=1},
          {schema="iface:tcp_finack",            label=i18n("graphs.tcp_finack_packets"), nedge_exclude=1},
@@ -929,7 +1065,7 @@ print [[
 		    type: 'GET',
 		    url: ']]
    print (ntop.getHttpPrefix())
-   print [[/lua/network_load.lua',
+   print [[/lua/rest/get/interface/data.lua',
 		    data: { iffilter: "]] print(tostring(interface.name2id(if_name))) print [[" },
 		    success: function(content) {
 			var profiles = content;
@@ -954,35 +1090,72 @@ print [[
    </script>
 ]]
 
-elseif(page == "traffic_recording") then
+elseif(page == "traffic_recording" and has_traffic_recording_page) then
+   if not dismiss_recording_providers_reminder then
+      print('<div id="traffic-recording-providers-detected" class="alert alert-info alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-label="close">&times;</button>'..i18n('traffic_recording.msg_external_providers_detected', {url = ntop.getHttpPrefix().."/lua/if_stats.lua?page=config"})..'</div>')
+
+      print [[
+  <script>
+    $('#traffic-recording-providers-detected').on('close.bs.alert', function () {
+         var dismiss_notice = $.ajax({
+          type: 'POST',
+          url: ']]
+   print (ntop.getHttpPrefix())
+   print [[/lua/traffic_recording_config.lua',
+          data: { ifid: ]] print(tostring(ifstats.id)) print[[,
+                  dismiss_external_providers_reminder: true,
+                  csrf: "]] print(ntop.getRandomCSRFValue()) print[["},
+          success: function()  {},
+          complete: function() {},
+        });
+
+    });
+  </script>
+]]
+   end
+
    local tab = _GET["tab"] or "config"
    local recording_enabled = recording_utils.isEnabled(ifstats.id)
+   -- config tab is only shown when the recording service is managed by ntopng
+   -- otherwise it is assumed that the user is managing the service manually with n2disk
+   local config_enabled  = (recording_utils.getCurrentTrafficRecordingProvider(ifstats.id) == "ntopng")
+
+   if tab == "config" and not config_enabled then
+      if recording_enabled then tab = "status" else tab = "" end
+   end
+   if (tab == "status" or tab == "jobs") and not recording_enabled then
+      if config_enabled then tab = "config" else tab = "" end
+   end
 
    if(_SERVER["REQUEST_METHOD"] == "POST") and (tab == "config") then
       recording_enabled = not isEmptyString(_POST["record_traffic"])
    end
 
    print('<ul id="traffic-recording-nav" class="nav nav-tabs" role="tablist">')
-   print('<li class="'.. ternary(tab == "config", "active", "") ..'"><a href="?ifid='.. ifstats.id
-      ..'&page=traffic_recording"><i class="fa fa-cog"></i> '.. i18n("traffic_recording.settings") ..'</a></li>')
+
+   if config_enabled then
+      print('<li class="'.. ternary(tab == "config", "active", "") ..'"><a href="?ifid='.. ifstats.id
+	       ..'&page=traffic_recording"><i class="fa fa-cog"></i> '.. i18n("traffic_recording.settings") ..'</a></li>')
+   end
 
    if recording_enabled then
       print('<li class="'.. ternary(tab == "status", "active", "") ..'"><a href="?ifid='.. ifstats.id
-         ..'&page=traffic_recording&tab=status">'.. i18n("status") ..'</a></li>')
+	 ..'&page=traffic_recording&tab=status">'.. i18n("status") ..'</a></li>')
 
       if ntop.isEnterprise() then
-         print('<li class="'.. ternary(tab == "jobs", "active", "") ..'"><a href="?ifid='.. ifstats.id
-            ..'&page=traffic_recording&tab=jobs">'.. i18n("traffic_recording.jobs") ..'</a></li>')
+	 print('<li class="'.. ternary(tab == "jobs", "active", "") ..'"><a href="?ifid='.. ifstats.id
+	    ..'&page=traffic_recording&tab=jobs">'.. i18n("traffic_recording.jobs") ..'</a></li>')
       end
    end
+
    print('</ul>')
    print('<div class="tab-content">')
 
-   if tab == "status" then
+   if recording_enabled and tab == "status" then
       dofile(dirs.installdir .. "/scripts/lua/inc/traffic_recording_status.lua")
-   elseif tab == "jobs" then
+   elseif recording_enabled and ntop.isEnterprise() and tab == "jobs" then
       dofile(dirs.installdir .. "/scripts/lua/inc/traffic_recording_jobs.lua")
-   else -- config, default
+   elseif config_enabled and tab == "config" then -- config, default
       dofile(dirs.installdir .. "/scripts/lua/inc/traffic_recording_config.lua")
    end
 
@@ -1204,6 +1377,41 @@ elseif(page == "config") then
       </tr>]]
    end
 
+   if has_traffic_recording_page or (true) then
+      local cur_provider = recording_utils.getCurrentTrafficRecordingProvider(ifstats.id)
+      local providers = recording_utils.getAvailableTrafficRecordingProviders()
+
+      -- only 1 provider means there's only the default ntopng
+      -- so no need to show this extra menu entry
+      if table.len(providers) > 1 then
+	 print [[
+       <tr>
+	 <th>]] print(i18n("traffic_recording.traffic_recording_provider")) print[[</th>
+	 <td>
+	   <select name="traffic_recording_provider" class="form-control" style="width:36em; display:inline;">]]
+
+	 for _, provider in pairs(providers) do
+	    local label = string.format("%s", provider["name"])
+	    if provider["conf"] then
+	       label = string.format("%s (%s)", provider["name"], provider["conf"])
+	    end
+
+	    if provider["name"] == "ntopng" and not interface.isPacketInterface() then
+	       -- non-packet interfaces
+	       label = "none"
+	    end
+
+	    print[[<option value="]] print(provider["name"]) print[[" ]] if cur_provider == provider["name"] then print('selected="selected"') end print[[">]] print(label) print[[</option>]]
+	 end
+
+	 print[[
+	   </select>
+	 </td>
+       </tr>]]
+      end
+   end
+
+
       print[[
    </table>
    <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button><br><br>
@@ -1381,6 +1589,8 @@ end
 
 print("<script>\n")
 print("var last_pkts  = " .. ifstats.stats.packets .. ";\n")
+print("var last_in_pkts  = " .. ifstats.eth.ingress.packets .. ";\n")
+print("var last_out_pkts  = " .. ifstats.eth.egress.packets .. ";\n")
 print("var last_drops = " .. ifstats.stats.drops .. ";\n")
 
 if(ifstats.zmqRecvStats ~= nil) then
@@ -1416,12 +1626,21 @@ setInterval(function() {
 	  type: 'GET',
 	  url: ']]
 print (ntop.getHttpPrefix())
-print [[/lua/network_load.lua',
+print [[/lua/rest/get/interface/data.lua',
 	  data: { iffilter: "]] print(tostring(interface.name2id(ifstats.name))) print [[" },
 	  success: function(rsp) {
 
 	var v = bytesToVolume(rsp.bytes);
 	$('#if_bytes').html(v);
+
+   $('#if_in_bytes').html(bytesToVolume(rsp.bytes_download));
+	$('#if_out_bytes').html(bytesToVolume(rsp.bytes_upload));
+   $('#if_in_pkts').html(addCommas(rsp.packets_download) + " Pkts");
+	$('#if_out_pkts').html(addCommas(rsp.packets_upload)  + " Pkts");
+   $('#pkts_in_trend').html(get_trend(last_in_pkts, rsp.bytes_download));
+   $('#pkts_out_trend').html(get_trend(last_out_pkts, rsp.bytes_upload));
+   last_in_pkts = rsp.bytes_download;
+   last_out_pkts = rsp.bytes_upload;
 
         if (typeof rsp.zmqRecvStats !== 'undefined') {
            var diff, time_diff, label;

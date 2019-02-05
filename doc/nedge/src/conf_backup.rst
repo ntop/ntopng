@@ -1,15 +1,16 @@
 Configuration Backup
 ############################
 
-From the `System Setup` menu, into the `Misc` tab, it is possible to download the nEdge
-configuartion by clicking on the `Backup Configuration` button. This downloads a copy of 
-the nEdge configuration, as compressed tarball (.tar.gz), including:
+By clicking on "Backup Configuration" under the |cog_icon| icon, it is possible to download the nEdge
+configuration. This downloads a copy of the nEdge configuration as compressed tarball (.tar.gz), including:
 
 - Configuration file (unless command line is used for providing the options)
 - System configuration (system.config)
 - Runtime configuration (runtimeprefs.json)
 - /etc/ntopng folder
 - License file
+
+.. |cog_icon| image:: img/cog_icon.png
 
 Configuration Restore
 #####################

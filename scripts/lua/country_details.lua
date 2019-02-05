@@ -17,6 +17,7 @@ interface.select(ifname)
 local ifstats = interface.getStats()
 local ifId = ifstats.id
 local ts_utils = require("ts_utils")
+active_page = "hosts"
 
 sendHTTPContentTypeHeader('text/html')
 

@@ -832,7 +832,7 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
    ssh_rsp = probeSSH(ip)
 
    -- Last resort is HTTP
-   http_rsp = ntop.httpGet("http://"..ip, "", "", 1)
+   http_rsp = ntop.httpGet("http://"..ip, nil, nil, 1)
    if((http_rsp ~= nil) and (http_rsp.HTTP_HEADER ~= nil)) then
       local server = http_rsp.HTTP_HEADER["server"]
 
@@ -1111,14 +1111,16 @@ function discover.discover2table(interface_name, recache)
 
 	 interface.mdnsQueueNameToResolve(ip)
 
-	 interface.snmpGetBatch(ip, snmp_community, "1.3.6.1.2.1.1.5.0", 0)
+	 if interface.snmpGetBatch then
+	    interface.snmpGetBatch(ip, snmp_community, "1.3.6.1.2.1.1.5.0", 0)
 
-	 if(string.contains(manufacturer, "HP")
+	    if(string.contains(manufacturer, "HP")
 	       or string.contains(manufacturer, "Hewlett Packard")
 	       or string.contains(manufacturer, "Hon Hai")
-	 ) then
-	    -- Query printer model
-	    interface.snmpGetBatch(ip, snmp_community, "1.3.6.1.2.1.25.3.2.1.3.1", 0)
+	    ) then
+	       -- Query printer model
+	       interface.snmpGetBatch(ip, snmp_community, "1.3.6.1.2.1.25.3.2.1.3.1", 0)
+	    end
 	 end
       else
 	 local ip_addr = mac
@@ -1160,10 +1162,14 @@ function discover.discover2table(interface_name, recache)
    setDiscoveryProgress("[50 %]")
    
    if(discover.debug) then io.write("Collecting SNMP responses\n") end
-   local snmp = interface.snmpReadResponses()
+   local snmp = {}
+
+   if interface.snmpReadResponses then
+      snmp = interface.snmpReadResponses() or {}
+   end
 
    -- Query sysDescr for the hosts that have replied
-   for ip,rsp in pairsByValues(snmp, asc) do
+   for ip,rsp in pairsByValues(snmp , asc) do
       -- io.write("Requesting sysDescr for "..ip.."\n")
       interface.snmpGetBatch(ip, snmp_community, "1.3.6.1.2.1.1.1.0", 0)
    end
@@ -1179,8 +1185,12 @@ function discover.discover2table(interface_name, recache)
       end
    end
    setDiscoveryProgress("[70 %]")
-   
-   local snmpSysDescr = interface.snmpReadResponses()
+
+   local snmpSysDescr = {}
+
+   if interface.snmpReadResponses then
+      snmpSysDescr = interface.snmpReadResponses()
+   end
 
    if(discover.debug) then
       for ip,rsp in pairsByValues(snmpSysDescr, asc) do

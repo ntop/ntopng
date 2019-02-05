@@ -20,7 +20,7 @@ local menu_subpages = require "prefs_menu"
 local query = _GET["query"] or ""
 
 local function matchesQuery(value, query)
-  return string.find(string.lower(value), string.lower(query))
+  return string.find(string.lower(noHtml(value)), string.lower(query))
 end
 
 local function queryResultShorten(result, query, context)

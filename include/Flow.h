@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-18 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -94,8 +94,9 @@ class Flow : public GenericHashEntry {
   char *community_id_flow_hash;
 #ifdef HAVE_NEDGE
   u_int32_t last_conntrack_update; 
+  u_int32_t marker;
 #endif
-  
+ 
   union {
     struct {
       char *last_url, *last_method;
@@ -233,14 +234,15 @@ class Flow : public GenericHashEntry {
        time_t _first_seen, time_t _last_seen);
   ~Flow();
 
-  virtual void set_to_purge() {
+  virtual void set_to_purge(time_t t) {
     /* not called from the datapath for flows, so it is only
        safe to touch low goodput uses */
     if(good_low_flow_detected) {
-      if(cli_host) cli_host->decLowGoodputFlows(true);
-      if(srv_host) srv_host->decLowGoodputFlows(false);
+      if(cli_host) cli_host->decLowGoodputFlows(t, true);
+      if(srv_host) srv_host->decLowGoodputFlows(t, false);
     }
-    GenericHashEntry::set_to_purge();
+    
+    GenericHashEntry::set_to_purge(t);
   };
 
   FlowStatus getFlowStatus();
@@ -267,6 +269,8 @@ class Flow : public GenericHashEntry {
 #ifdef HAVE_NEDGE
   bool checkPassVerdict(const struct tm *now);
   bool isPassVerdict();
+  inline void setConntrackMarker(u_int32_t marker) 	{ this->marker = marker; }
+  inline u_int32_t getConntrackMarker() 		{ return(marker); }
 #endif
   void setDropVerdict();
   void incFlowDroppedCounters();
@@ -290,8 +294,8 @@ class Flow : public GenericHashEntry {
   void updateTcpFlags(const struct bpf_timeval *when,
 		      u_int8_t flags, bool src2dst_direction);
   void incTcpBadStats(bool src2dst_direction,
-          u_int32_t ooo_pkts, u_int32_t retr_pkts, u_int32_t lost_pkts);
-
+		      u_int32_t ooo_pkts, u_int32_t retr_pkts, u_int32_t lost_pkts);
+  
   void updateTcpSeqNum(const struct bpf_timeval *when,
 		       u_int32_t seq_num, u_int32_t ack_seq_num,
 		       u_int16_t window, u_int8_t flags,

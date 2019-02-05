@@ -9,6 +9,7 @@ require "lua_utils"
 local template = require "template_utils"
 local os_utils = require "os_utils"
 local page_utils = require("page_utils")
+active_page = "admin"
 
 sendHTTPContentTypeHeader('text/html')
 

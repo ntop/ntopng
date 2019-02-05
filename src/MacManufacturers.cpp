@@ -1,6 +1,6 @@
- /*
+/*
  *
- * (C) 2013-18 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -41,7 +41,11 @@ MacManufacturers::MacManufacturers(const char * const home) {
 /* *************************************** */
 
 void MacManufacturers::init() {
+#ifdef WIN32
+  struct _stat64 buf;
+#else
   struct stat buf;
+#endif
   FILE *fd;
   char line[256], *cr;
   int _mac[3];
@@ -84,13 +88,13 @@ void MacManufacturers::init() {
 	/* Lines are like:
 	   00:05:02        Apple                  # Apple, Inc.
 	   So it is possible to use '# ' as the full manufacturer name separator
-	 */
+	*/
 	tmp = strstr(manuf, "# ");
 	if(tmp)
 	  manuf = &tmp[2];
 
 	if((cr = strchr(manuf, '\n')))
-	   *cr = '\0';
+	  *cr = '\0';
 
 	mac[0] = (u_int8_t)_mac[0], mac[1] = (u_int8_t)_mac[1], mac[2] = (u_int8_t)_mac[2];
 	HASH_FIND(hh, mac_manufacturers, mac, 3, s);

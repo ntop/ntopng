@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-18 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -202,7 +202,7 @@ class NetworkInterface : public Checkpointable {
 		u_int16_t vlan_id, char *osFilter,
 		u_int32_t asnFilter, int16_t networkFilter,
 		u_int16_t pool_filter, bool filtered_hosts,
-		bool blacklisted_hosts, bool hide_top_hidden,
+		bool blacklisted_hosts, bool hide_top_hidden, bool anomalousOnly,
 		u_int8_t ipver_filter, int proto_filter,
 		TrafficType traffic_type_filter,
 		char *sortColumn);
@@ -252,7 +252,7 @@ class NetworkInterface : public Checkpointable {
   NetworkInterface(const char *name, const char *custom_interface_type = NULL);
   virtual ~NetworkInterface();
 
-  void finishInitialization();
+  void finishInitialization(u_int8_t num_defined_interfaces);
   virtual u_int32_t getASesHashSize();
   virtual u_int32_t getCountriesHashSize();
   virtual u_int32_t getVLANsHashSize();
@@ -305,9 +305,9 @@ class NetworkInterface : public Checkpointable {
     return(ndpi_get_proto_breed_name(ndpi_struct, ndpi_get_proto_breed(ndpi_struct, id))); };
   inline u_int get_flow_size()                 { return(ndpi_detection_get_sizeof_ndpi_flow_struct()); };
   inline u_int get_size_id()                   { return(ndpi_detection_get_sizeof_ndpi_id_struct());   };
-  inline char* get_name()                      { return(ifname);                                       };
-  inline char* get_description()               { return(ifDescription);                                };
-  inline int  get_id()                         { return(id);                                           };
+  inline char* get_name() const                { return(ifname);                                       };
+  inline char* get_description() const         { return(ifDescription);                                };
+  inline int  get_id() const                   { return(id);                                           };
   inline bool get_sprobe_interface()           { return sprobe_interface;  }
   inline bool get_inline_interface()           { return inline_interface;  }
   inline bool hasSeenVlanTaggedPackets()       { return(has_vlan_packets); }
@@ -322,14 +322,8 @@ class NetworkInterface : public Checkpointable {
   inline void enable_sprobe()                  { sprobe_interface = true; };
   int dumpFlow(time_t when, Flow *f);
 #ifdef NTOPNG_PRO
-  void dumpAggregatedFlow(time_t when, AggregatedFlow *f);
+  void dumpAggregatedFlow(time_t when, AggregatedFlow *f, bool is_top_aggregated_flow, bool is_top_cli, bool is_top_srv);
   void flushFlowDump();
-#endif
-  int dumpDBFlow(time_t when, Flow *f);
-  int dumpEsFlow(time_t when, Flow *f);
-  int dumpLsFlow(time_t when, Flow *f);
-#if defined(HAVE_NINDEX) && defined(NTOPNG_PRO)
-  inline bool dumpnIndexFlow(time_t when, Flow *f)  { return(db->dumpFlow(when, f, NULL)); };
 #endif
   int dumpLocalHosts2redis(bool disable_purge);
   inline void incRetransmittedPkts(u_int32_t num)   { tcpPacketStats.incRetr(num); };
@@ -424,7 +418,7 @@ class NetworkInterface : public Checkpointable {
 			 u_int32_t asnFilter, int16_t networkFilter,
 			 u_int16_t pool_filter, bool filtered_hosts, bool blacklisted_hosts, bool hide_top_hidden,
        u_int8_t ipver_filter, int proto_filter,
-       TrafficType traffic_type_filter, bool tsLua,
+       TrafficType traffic_type_filter, bool tsLua, bool anomalousOnly,
 			 char *sortColumn, u_int32_t maxHits,
 			 u_int32_t toSkip, bool a2zSortOrder);
   int getActiveHostsGroup(lua_State* vm,
@@ -501,11 +495,13 @@ class NetworkInterface : public Checkpointable {
   inline u_int64_t  getNumPacketDropsSinceReset() { return getNumPacketDrops() - getCheckPointNumPacketDrops(); }
 
   void runHousekeepingTasks();
+  void runShutdownTasks();
   Vlan* getVlan(u_int16_t vlanId, bool createIfNotPresent);
   AutonomousSystem *getAS(IpAddress *ipa, bool createIfNotPresent);
   Country* getCountry(const char *country_name, bool createIfNotPresent);
   virtual Mac*  getMac(u_int8_t _mac[6], bool createIfNotPresent);
   virtual Host* getHost(char *host_ip, u_int16_t vlan_id);
+  virtual Host* getHost(IpAddress * const host_ip, u_int16_t vlan_id) const;
   bool getHostInfo(lua_State* vm, AddressTree *allowed_hosts, char *host_ip, u_int16_t vlan_id);
   void findUserFlows(lua_State *vm, char *username);
   void findPidFlows(lua_State *vm, u_int32_t pid);
@@ -560,7 +556,11 @@ class NetworkInterface : public Checkpointable {
   inline const char* getLocalIPAddresses()         { return(ip_addresses.c_str());    }
   void addInterfaceAddress(char *addr);
   inline int exec_sql_query(lua_State *vm, char *sql, bool limit_rows, bool wait_for_db_created = true) {
-    return(db ? db->exec_sql_query(vm, sql, limit_rows, wait_for_db_created) : -1);
+#ifdef HAVE_MYSQL
+    if(dynamic_cast<MySQLDB*>(db) != NULL)
+      return ((MySQLDB*)db)->exec_sql_query(vm, sql, limit_rows, wait_for_db_created);
+#endif
+    return(-1);
   };
   NetworkStats* getNetworkStats(u_int8_t networkId);
   void allocateNetworkStats();
@@ -578,9 +578,7 @@ class NetworkInterface : public Checkpointable {
 #endif
 
   void getFlowsStatus(lua_State *vm);
-  void startDBLoop() { if(db) db->startDBLoop(); };
-  inline bool createDBSchema()     { if(db) { return db->createDBSchema();     } return false;   };
-  inline bool createNprobeDBView() { if(db) { return db->createNprobeDBView(); } return false;   };
+  void startDBLoop()               { if(db) db->startDBLoop();                 };
 #ifdef NTOPNG_PRO
   inline void getFlowDevices(lua_State *vm) {
     if(flow_interfaces_stats) flow_interfaces_stats->luaDeviceList(vm); else lua_newtable(vm);
@@ -607,6 +605,7 @@ class NetworkInterface : public Checkpointable {
   inline virtual bool areTrafficDirectionsSupported() { return(false); };
   inline virtual bool isView() { return(false); };
   bool getMacInfo(lua_State* vm, char *mac);
+  bool resetMacStats(lua_State* vm, char *mac, bool delete_data);
   bool setMacDeviceType(char *strmac, DeviceType dtype, bool alwaysOverwrite);
   bool setMacOperatingSystem(lua_State* vm, char *mac, OperatingSystem os);
   bool getASInfo(lua_State* vm, u_int32_t asn);
@@ -681,6 +680,7 @@ class NetworkInterface : public Checkpointable {
 
   virtual void sendTermination()             { ; }
   virtual bool read_from_pcap_dump()         { return(false); };
+  virtual void updateDirectionStats()        { ; }
   void makeTsPoint(NetworkInterfaceTsPoint *pt);
   void tsLua(lua_State* vm);
 #ifdef HAVE_EBPF

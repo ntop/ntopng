@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-18 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -26,13 +26,16 @@
 
 class Vlan : public GenericHashEntry, public GenericTrafficElement {
  private:
-  inline void incSentStats(u_int64_t num_pkts, u_int64_t num_bytes)  {
-    sent.incStats(num_pkts, num_bytes);
+  u_int16_t vlan_id;
+  
+  inline void incSentStats(time_t t, u_int64_t num_pkts, u_int64_t num_bytes)  {
     if(first_seen == 0) first_seen = iface->getTimeLastPktRcvd();
     last_seen = iface->getTimeLastPktRcvd();
+    sent.incStats(t, num_pkts, num_bytes);
   }
-  inline void incRcvdStats(u_int64_t num_pkts, u_int64_t num_bytes) {
-    rcvd.incStats(num_pkts, num_bytes);
+  
+  inline void incRcvdStats(time_t t, u_int64_t num_pkts, u_int64_t num_bytes) {
+    rcvd.incStats(t, num_pkts, num_bytes);
   }
 
  public:
@@ -45,13 +48,13 @@ class Vlan : public GenericHashEntry, public GenericTrafficElement {
 
   bool equal(u_int16_t _vlan_id);
 
-  inline void incStats(u_int32_t when, u_int16_t proto_id,
+  inline void incStats(time_t when, u_int16_t proto_id,
 		       u_int64_t sent_packets, u_int64_t sent_bytes,
 		       u_int64_t rcvd_packets, u_int64_t rcvd_bytes) {
     if(ndpiStats || (ndpiStats = new nDPIStats()))
       ndpiStats->incStats(when, proto_id, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes);
-    incSentStats(sent_packets, sent_bytes);
-    incRcvdStats(rcvd_packets, rcvd_bytes);
+    incSentStats(when, sent_packets, sent_bytes);
+    incRcvdStats(when, rcvd_packets, rcvd_bytes);
   }
 
   bool idle();

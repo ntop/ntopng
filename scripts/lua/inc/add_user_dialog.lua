@@ -30,7 +30,7 @@ print [[
  <form data-toggle="validator" id="form_add_user" class="form-inline" method="post" action="add_user.lua" accept-charset="UTF-8">
 			   ]]
 
-print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+print('<input name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 
 print [[
 
@@ -75,7 +75,7 @@ print [[
     <div class="form-group col-md-6 has-feedback">
       <label class="form-label">]] print(i18n("manage_users.user_role")) print[[</label>
       <div class="input-group" style="width:100%;">
-        <select id="host_role_select" name="user_role" class="form-control" style="width:100%;">
+        <select name="user_role" class="form-control" style="width:100%;">
           <option value="unprivileged">]] print(i18n("manage_users.non_privileged_user")) print[[</option>
           <option value="administrator">]] print(i18n("manage_users.administrator")) print[[</option>
         </select>
@@ -85,7 +85,7 @@ print [[
     <div class="form-group col-md-6 has-feedback">
       <label class="form-label">]] print(i18n("manage_users.allowed_interface")) print[[</label>
       <div class="input-group" style="width:100%;">
-        <select name="allowed_interface" id="allowed_interface" class="form-control">
+        <select name="allowed_interface" class="form-control">
           <option value="">]] print(i18n("manage_users.any_interface")) print[[</option>
 ]]
 
@@ -110,19 +110,22 @@ print [[
     </div>
 </div>
 <br>
+]]
 
+if not ntop.isnEdge() then
+  print[[
 <div class="row">
     <div class="form-group col-md-6 has-feedback">
       <label class="form-label">]] print(i18n("language")) print[[</label>
       <div class="input-group">
         <span class="input-group-addon"><i class="fa fa-language" aria-hidden="true"></i></span>
-        <select name="user_language" id="user_language" class="form-control">]]
+        <select name="user_language" class="form-control">]]
 
-for _, lang in pairs(locales_utils.getAvailableLocales()) do
-   print('<option value="'..lang["code"]..'">'..i18n("locales." .. lang["code"])..'</option>')
-end
+  for _, lang in pairs(locales_utils.getAvailableLocales()) do
+     print('<option value="'..lang["code"]..'">'..i18n("locales." .. lang["code"])..'</option>')
+  end
 
-print[[
+  print[[
         </select>
       </div>
     </div>
@@ -133,9 +136,11 @@ print[[
       </div>
     </div>
 </div>
-
 <br>
+]]
+end
 
+print[[
 <div class="row">
     <div class="form-group col-md-12 has-feedback">
       <button type="submit" id="add_user_submit" class="btn btn-primary btn-block">]] print(i18n("manage_users.add_new_user")) print[[</button>

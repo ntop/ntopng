@@ -24,6 +24,11 @@ PRO_HEADERS=
 PRO_LIBS=
 
 AC_ARG_WITH(nedge,          [  --with-nedge          Enable nEdge device build])
+AC_ARG_WITH(nedge,          [  --with-test-mode      Enable ntopng/nEdge test mode])
+
+if test "${with_test_mode+set}" = set; then
+   AC_DEFINE(HAVE_TEST_MODE, 1, [ntopng/nEdge test mode enabled])
+fi
 
 NEDGE=0
 if test "${with_nedge+set}" = set; then
@@ -199,6 +204,13 @@ SERVICE_AFTER="network.target syslog.target redis.service pf_ring.service cluste
 SERVICE_WANTS="pf_ring.service cluster.service"
 fi
 
+APP=
+if test "${with_nedge+set}" = "set"; then
+APP=nedge
+else
+APP=ntopng
+fi
+
 if test -d "pro"; then :
 AC_MSG_RESULT(yes)
 PRO_OBJECTS='$(patsubst pro/%.cpp, pro/%.o, $(wildcard pro/*.cpp))'
@@ -227,7 +239,7 @@ if test "${with_nedge+set}" != set; then
 
   if test -f "${NINDEX_HOME}/libnindex.a"; then
     PRO_INCS="${PRO_INCS} -I ${NINDEX_HOME}/include"
-    PRO_LIBS="${PRO_LIBS} ${NINDEX_HOME}/libnindex.a ${NINDEX_HOME}/../CRoaring/build/src/libroaring.a"
+    PRO_LIBS="${PRO_LIBS} ${NINDEX_HOME}/libnindex.a ${NINDEX_HOME}/CRoaring/build/src/libroaring.a"
     AC_DEFINE_UNQUOTED(HAVE_NINDEX, 1, [nIndex support is present])
     echo "checking for nIndex... found on ${NINDEX_HOME}"
   fi
@@ -354,12 +366,12 @@ fi
 if test "${with_nedge+set}" != set; then
  PFRING_GIT_RELEASE=""
  if test -d $HOME/PF_RING; then
-   PFRING_GIT_RELEASE=`cd $HOME/PF_RING ; git rev-list --all |wc -l`
+  PFRING_GIT_RELEASE=`$HOME/PF_RING/package/version.sh --revision`
  fi
 
  PFRING_VERSION=""
  if test -f "$HOME/PF_RING/kernel/linux/pf_ring.h"; then
-  PFRING_VERSION=`cat $HOME/PF_RING/kernel/linux/pf_ring.h | grep RING_VERSION | head -1 | cut -d '"' -f 2`
+  PFRING_VERSION=`$HOME/PF_RING/package/version.sh --release`
  fi
 fi
 
@@ -617,6 +629,7 @@ AC_SUBST(SERVICE_AFTER)
 AC_SUBST(SERVICE_REQUIRES)
 AC_SUBST(SERVICE_WANTS)
 AC_SUBST(SERVICE_ALIAS)
+AC_SUBST(APP)
 AC_SUBST(CENTOS_N2N_DEP)
 AC_CONFIG_HEADERS(include/config.h)
 AC_CONFIG_FILES(packages/ntopng.spec)

@@ -565,7 +565,7 @@ function host_pools_utils.printQuotas(pool_id, host, page_params)
     <table class="table table-bordered table-striped">
     <thead>
       <tr>
-        <th>]] print(i18n("protocol")) print[[</th>
+        <th>]] print(i18n("application")) print[[</th>
         <th class="text-center">]] print(i18n("shaping.daily_traffic")) print[[</th>
         <th class="text-center">]] print(i18n("shaping.daily_time")) print[[</th>
       </tr>
@@ -626,7 +626,7 @@ function host_pools_utils.resetPoolsQuotas(ifid, pool_filter)
   if pool_filter ~= nil then
     keys_to_del = {[pool_filter]=1, }
   else
-    keys_to_del = ntop.getHashKeysCache(serialized_key)
+    keys_to_del = ntop.getHashKeysCache(serialized_key) or {}
   end
 
   -- Delete the redis serialization

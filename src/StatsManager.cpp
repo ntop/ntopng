@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-18 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -32,6 +32,7 @@ StatsManager::StatsManager(int interface_id, const char *filename) : StoreManage
   snprintf(filePath, sizeof(filePath), "%s/%d/top_talkers/",
            ntop->get_working_dir(), ifid);
   strncpy(fileName, filename, sizeof(fileName));
+  fileName[sizeof(fileName) - 1] = '\0';
   snprintf(fileFullPath, sizeof(fileFullPath), "%s/%d/top_talkers/%s",
 	   ntop->get_working_dir(), ifid, filename);
   ntop->fixPath(filePath);

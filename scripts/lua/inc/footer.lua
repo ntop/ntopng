@@ -129,32 +129,20 @@ if (interface.isPcapDumpInterface() == false) and (not have_nedge) then
    end
 
    addGauge('networkload', ntop.getHttpPrefix()..'/lua/if_stats.lua?ifid='..getInterfaceId(ifname).."&page=config", 100, 100, 50)
-   print [[ <div class="text-center" title="All traffic detected by NTOP: Local2Local, Remote2Local, Local2Remote" id="gauge_text_allTraffic"></div> ]]
+   print [[ <div class="text-center" title="All traffic detected by NTOP: Local2Local, download, upload" id="gauge_text_allTraffic"></div> ]]
 
    print [[
 	</div>
 	<div>]]
-   print [[  <a href="]]
-   print (ntop.getHttpPrefix())
-   print [[/lua/if_stats.lua">
-	    <table style="border-collapse:collapse; !important">
-	    <tr><td title="Local to Remote Traffic"><i class="fa fa-cloud-upload"></i>&nbsp;</td><td class="network-load-chart-local2remote">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</td><td class="text-right" id="chart-local2remote-text"></td></tr>
-	    <tr><td title="Remote to Local Traffic"><i class="fa fa-cloud-download"></i>&nbsp;</td><td class="network-load-chart-remote2local">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</td><td class="text-right" id="chart-remote2local-text"></td></tr>
-	    </table>
-	    </div>
-	    <div class="col-xs-6 col-sm-4">
-	    </a>
-]]
-
 end -- closes interface.isPcapDumpInterface() == false 
 
-if have_nedge then
+if _ifstats.has_traffic_directions then
    print [[  <a href="]]
    print (ntop.getHttpPrefix())
    print [[/lua/if_stats.lua">
 	    <table style="border-collapse:collapse; !important">
-	    <tr><td title="Upload"><i class="fa fa-cloud-upload"></i>&nbsp;</td><td class="network-load-chart-local2remote">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</td><td class="text-right" id="chart-local2remote-text"></td></tr>
-	    <tr><td title="Download"><i class="fa fa-cloud-download"></i>&nbsp;</td><td class="network-load-chart-remote2local">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</td><td class="text-right" id="chart-remote2local-text"></td></tr>
+	    <tr><td><i class="fa fa-arrow-up" title="]] print(i18n("iface_upload", {iface=_ifstats.name})) print[["></i>&nbsp;</td><td class="network-load-chart-upload">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</td><td class="text-right" id="chart-upload-text"></td></tr>
+	    <tr><td><i class="fa fa-arrow-down" title="]] print(i18n("iface_download", {iface=_ifstats.name})) print[["></i>&nbsp;</td><td class="network-load-chart-download">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</td><td class="text-right" id="chart-download-text"></td></tr>
 	    </table>
 	    </div>
 	    <div class="col-xs-6 col-sm-4">
@@ -177,16 +165,31 @@ print [[
 
 local traffic_peity_width = ternary(have_nedge, "140", "64")
 
+local host_ts_mode = ntop.getPref("ntopng.prefs.host_ndpi_timeseries_creation")
+if ntop.getPref("ntopng.prefs.host_rrd_creation") ~= "1" then
+  host_ts_mode = "none"
+end
+
+-- Only show the message if the host protocol/category timeseries are enabled
+local message_enabled = ((host_ts_mode ~= "none") and (host_ts_mode ~= ""))
+
 print('var is_historical = false;')
 print [[
+function checkMigrationMessage(data) {
+  var max_local_hosts = 500;
+  var enabled = ]] print(ternary(message_enabled, "true", "false")) print[[;
 
-var updatingChart_local2remote = $(".network-load-chart-local2remote").peity("line", { width: ]] print(traffic_peity_width) print[[, max: null });
-var updatingChart_remote2local = $(".network-load-chart-remote2local").peity("line", { width: ]] print(traffic_peity_width) print[[, max: null, fill: "lightgreen"});
+  if(enabled && (data.num_local_hosts > max_local_hosts))
+    $("#move-rrd-to-influxdb").show();
+}
+
+var updatingChart_upload = $(".network-load-chart-upload").peity("line", { width: ]] print(traffic_peity_width) print[[, max: null });
+var updatingChart_download = $(".network-load-chart-download").peity("line", { width: ]] print(traffic_peity_width) print[[, max: null, fill: "lightgreen"});
 
 var prev_bytes   = 0;
 var prev_packets = 0;
-var prev_local   = 0;
-var prev_remote  = 0;
+var prev_upload   = 0;
+var prev_download  = 0;
 var prev_epoch   = 0;
 
 var prev_cpu_load = 0;
@@ -197,59 +200,47 @@ var footerRefresh = function() {
       type: 'GET',
 	  url: ']]
 print (ntop.getHttpPrefix())
-print [[/lua/network_load.lua',
-	  data: { },
+print [[/lua/rest/get/interface/data.lua',
+	  data: { ifid: ]] print(tostring(getInterfaceId(ifname))) print[[ },
 	  /* error: function(content) { alert("JSON Error (session expired?): logging out"); window.location.replace("]]
 print (ntop.getHttpPrefix())
 print [[/lua/logout.lua");  }, */
 	  success: function(rsp) {
     
 	  try {
-]]
-
-if have_nedge then
-  -- Use bytes up / down on edge
-  print[[
-            rsp.local2remote = rsp.bytes_upload;
-            rsp.remote2local = rsp.bytes_download;
-  ]]
-end
-
-print[[
-
 	    if (prev_bytes > 0) {
 	      if (rsp.packets < prev_packets) {
 	        prev_bytes   = rsp.bytes;
 	        prev_packets = rsp.packets;
-	        prev_local   = rsp.local2remote;
-	        prev_remote  = rsp.remote2local;
+	        prev_upload   = rsp.bytes_upload;
+	        prev_download  = rsp.bytes_download;
 	      }
 
-              var values = updatingChart_local2remote.text().split(",")
-	      var values1 = updatingChart_remote2local.text().split(",")
+              var values = updatingChart_upload.text().split(",")
+	      var values1 = updatingChart_download.text().split(",")
 	      var bytes_diff   = Math.max(rsp.bytes-prev_bytes, 0);
 	      var packets_diff = Math.max(rsp.packets-prev_packets, 0);
-	      var local_diff   = Math.max(rsp.local2remote-prev_local, 0);
-	      var remote_diff  = Math.max(rsp.remote2local-prev_remote, 0);
+	      var upload_diff   = Math.max(rsp.bytes_upload-prev_upload, 0);
+	      var download_diff  = Math.max(rsp.bytes_download-prev_download, 0);
 	      var epoch_diff   = Math.max(rsp.epoch - prev_epoch, 0);
 
 	      if(epoch_diff > 0) {
 		if(bytes_diff > 0) {
-		   var v = local_diff-remote_diff;
+		   var v = upload_diff-download_diff;
 		   var v_label;
 
 		  values.shift();
-		  values.push(local_diff);
-		  updatingChart_local2remote.text(values.join(",")).change();
+		  values.push(upload_diff);
+		  updatingChart_upload.text(values.join(",")).change();
 		  values1.shift();
-		  values1.push(-remote_diff);
-		  updatingChart_remote2local.text(values1.join(",")).change();
+		  values1.push(-download_diff);
+		  updatingChart_download.text(values1.join(",")).change();
 		}
 
 		var pps = Math.floor(packets_diff / epoch_diff);
 		var bps = Math.round((bytes_diff*8) / epoch_diff );
-		var bps_local2remote = Math.round((local_diff*8) / epoch_diff);
-		var bps_remote2local = Math.round((remote_diff*8) / epoch_diff);
+		var bps_upload = Math.round((upload_diff*8) / epoch_diff);
+		var bps_download = Math.round((download_diff*8) / epoch_diff);
 
                 if(rsp.remote_pps != 0) {
                   pps = Math.max(rsp.remote_pps, 0);
@@ -264,19 +255,17 @@ print[[
       print[[
 
 		$('#gauge_text_allTraffic').html("<small>"+bitsToSize(Math.min(bps, ]] print(maxSpeed) print[[), 1000) + " [" + addCommas(pps) + " pps]</small>");
-		$('#chart-local2remote-text').html("&nbsp;"+bitsToSize(bps_local2remote, 1000));
-		$('#chart-remote2local-text').html("&nbsp;"+bitsToSize(bps_remote2local, 1000));
 		var v = Math.round(Math.min((bps*100)/]] print(maxSpeed) print[[, 100));
 		$('#networkload').css("width", v+"%")
 		$('#networkload').html(v+"%");
 
 ]]
-   elseif have_nedge then
-     print[[
-		$('#chart-local2remote-text').html("&nbsp;"+bitsToSize(bps_local2remote, 1000));
-		$('#chart-remote2local-text').html("&nbsp;"+bitsToSize(bps_remote2local, 1000));
-     ]]
    end
+
+     print[[
+		$('#chart-upload-text').html("&nbsp;"+bitsToSize(bps_upload, 1000));
+		$('#chart-download-text').html("&nbsp;"+bitsToSize(bps_download, 1000));
+     ]]
 
 print[[
 }
@@ -341,6 +330,8 @@ print [[/lua/hosts_stats.lua?mode=local\">";
 
 		  msg += "<span class=\"label label-success\">";
 		  msg += addCommas(rsp.num_local_hosts)+" <i class=\"fa fa-laptop\" aria-hidden=\"true\"></i></span></a>";
+
+		  checkMigrationMessage(rsp);
 		}
 
 	    msg += "&nbsp;<a href=\"]]
@@ -440,8 +431,8 @@ print [[/lua/if_stats.lua\"><i class=\"fa fa-warning\" style=\"color: #B94A48;\"
 
 	    prev_bytes   = rsp.bytes;
 	    prev_packets = rsp.packets;
-            prev_local   = rsp.local2remote;
-            prev_remote  = rsp.remote2local;
+            prev_upload   = rsp.bytes_upload;
+            prev_download  = rsp.bytes_download;
 	    prev_epoch   = rsp.epoch;
             if(rsp.system_host_stats.cpu_load !== undefined) {
               prev_cpu_load = rsp.system_host_stats.cpu_load;

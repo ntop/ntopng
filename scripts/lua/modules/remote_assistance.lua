@@ -63,7 +63,7 @@ end
 function remote_assistance.createConfig(community, key)
   local supernode = ntop.getPref("ntopng.prefs.remote_assistance.supernode")
 
-  if not isEmptyString(supernode) then
+  if isEmptyString(supernode) then
     supernode = DEFAULT_SUPERNODE
   end
 

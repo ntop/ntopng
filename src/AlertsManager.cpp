@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-18 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *o
  * This program is free software; you can redistribute it and/or modify
@@ -47,6 +47,7 @@ AlertsManager::AlertsManager(int interface_id, const char *filename) : StoreMana
 
   /* open the newest */
   strncpy(fileName, filename, sizeof(fileName));
+  fileName[sizeof(fileName) - 1] = '\0';
   snprintf(fileFullPath, sizeof(fileFullPath), "%s/%d/alerts/%s",
 	   ntop->get_working_dir(), ifid, filename);
   ntop->fixPath(filePath);
@@ -654,7 +655,7 @@ int AlertsManager::storeFlowAlert(Flow *f) {
     int rc = 0;
     Host *cli, *srv;
     char *cli_ip = NULL, *srv_ip = NULL;
-    char cb[64], cb1[64];
+    char cb[64], cb1[64], cli_os[64], srv_os[64];
     const char *msg;
     AlertType alert_type;
     AlertLevel alert_severity;
@@ -728,8 +729,8 @@ int AlertsManager::storeFlowAlert(Flow *f) {
        || sqlite3_bind_int(stmt,   9, f->get_last_seen())
        || sqlite3_bind_text(stmt, 10, cli ? cli->get_country(cb, sizeof(cb)) : NULL, -1, SQLITE_STATIC)
        || sqlite3_bind_text(stmt, 11, srv ? srv->get_country(cb1, sizeof(cb1)) : NULL, -1, SQLITE_STATIC)
-       || sqlite3_bind_text(stmt, 12, cli ? cli->get_os() : NULL, -1, SQLITE_STATIC)
-       || sqlite3_bind_text(stmt, 13, srv ? srv->get_os() : NULL, -1, SQLITE_STATIC)
+       || sqlite3_bind_text(stmt, 12, cli ? cli->get_os(cli_os, sizeof(cli_os)) : NULL, -1, SQLITE_STATIC)
+       || sqlite3_bind_text(stmt, 13, srv ? srv->get_os(srv_os, sizeof(srv_os)) : NULL, -1, SQLITE_STATIC)
        || sqlite3_bind_int(stmt,  14, cli ? cli->get_asn() : 0)
        || sqlite3_bind_int(stmt,  15, srv ? srv->get_asn() : 0)
        || sqlite3_bind_text(stmt, 16, cli_ip, -1, SQLITE_STATIC)
@@ -924,7 +925,7 @@ int AlertsManager::getNumAlerts(bool engaged, const char *sql_where_clause, bool
     char query[STORE_MANAGER_MAX_QUERY];
     sqlite3_stmt *stmt = NULL;
     int rc;
-    int num = -1;
+    int num = 0;
 
     snprintf(query, sizeof(query),
 	     "SELECT count(*) "

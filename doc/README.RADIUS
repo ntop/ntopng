@@ -1,16 +1,21 @@
 RADIUS authentication can be enabled from the ntopng preferences page.
 
-NTOP will request an Access-Request to a radius server.
+ntopng will request an Access-Request to a radius server and, if an Access-Accept
+is returned, the user will be authenticated.
 
-User is granted if Access-Accept is return, anything else user is
-not granted.
+In order to distinguish between admin and normal users, a `Filter-Id` attribute is
+used https://tools.ietf.org/html/rfc2865#section-5.11 . The `Filter-Id` for admin
+users should correspond to the `RADIUS Admin Group` set into the ntopng RADIUS preferences.
 
-If attribute Filter-Id is set to admin user will inherit administrator grant.
+# Setting up a FreeRadius server
 
-Radius authentication parameters are discussed below.
+Check out https://www.packet6.com/install-freeradius-ubuntu-server . `testing123` is the default
+secret for localhost. In order to set up the Filter-Id attribute for a user, the following lines should be added to `/etc/freeradius/users`
 
-* Radius server
-The fqdn / ip of the radius server
+```
+testuser Cleartext-Password := "Password123"
+  Filter-Id = "ntopAdmin"
+```
 
-* Radius secret
-The shared secret between NTOP and radius server.
+In order for authentication to work properly, testuser must actually exist as a linux user
+in the system where FreeRadius is installed.

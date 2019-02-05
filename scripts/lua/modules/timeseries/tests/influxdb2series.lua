@@ -392,7 +392,7 @@ end
 
 -- ##############################################
 
---http://127.0.0.1:3000/lua/get_ts.lua?ts_query=ifid:1&epoch_end=1534493220&ts_schema=iface:flows&epoch_begin=1534492620&initial_point=true&ts_compare=30m&limit=42
+--http://127.0.0.1:3000/lua/rest/get/timeseries/ts.lua?ts_query=ifid:1&epoch_end=1534493220&ts_schema=iface:flows&epoch_begin=1534492620&initial_point=true&ts_compare=30m&limit=42
 
 function test_skip_initial1(test)
   local tags = {}
@@ -434,7 +434,7 @@ function test_skip_initial1(test)
   local time_step = 60 -- no sampling
   local tstart = 1534502340; tend = 1534493220
   local data1_series, data1_count = influx2Series(schema, tstart, tend, tags, options, data1.series[1], time_step)
-  local with_tstamp = test_utils.makeTimeStamp(data1_series, tstart, tstart)[1]
+  local with_tstamp = test_utils.makeTimeStamp(data1_series, tstart, time_step)[1]
   local first_expected_val = data1.series[1].values[2]
 
   for _, pt in ipairs(with_tstamp) do
@@ -452,6 +452,75 @@ end
 
 -- ##############################################
 
+function test_heartbeat(test)
+  local tags = {}
+  local options = {
+    fill_value = 0,
+    min_value = 0,
+    max_value = math.huge,
+  }
+
+  local data1 = {
+    statement_id = 0,
+    series = {
+      {
+        name = "iface:traffic",
+        columns = {
+          "time", "bytes"
+        },
+        values = {
+          {1534254780, 5000},
+          {1534254784, 5600},
+          {1534254790, 5800},
+        },
+      }
+    }
+  }
+
+  local schema = {
+    options = {
+      step = 1,
+      metrics_type = "counter",
+      rrd_heartbeat = 5,
+    }
+  }
+
+  local time_step = 1 -- no sampling
+  local tstart = 1534254780; tend = 1534254790
+  local data1_series, data1_count = influx2Series(schema, tstart, tend, tags, options, data1.series[1], time_step)
+  local with_tstamp = test_utils.timestampAsKey(test_utils.makeTimeStamp(data1_series, tstart, time_step))[1]
+
+  local t0 = data1.series[1].values[1][1]
+  local v0 = data1.series[1].values[1][2]
+  local t1 = data1.series[1].values[2][1]
+  local v1 = data1.series[1].values[2][2]
+  local cur_v = v0
+  local v_step = (v1 - v0) / (t1 - t0)
+
+  -- test interpolated values (within heartbeat)
+  for t=t0,t1,time_step do
+    if(not(with_tstamp[t] == cur_v)) then
+      return test:assertion_failed("with_tstamp[t = ".. t .."] == ".. cur_v .."\n")
+    end
+
+    cur_v = cur_v + v_step
+  end
+
+  -- test other values (outside heartbeat)
+  local t0 = data1.series[1].values[2][1]
+  local t1 = data1.series[1].values[3][1]
+
+  for t=t0+time_step,t1-time_step,time_step do
+    if(not(with_tstamp[t] == options.fill_value)) then
+      return test:assertion_failed("with_tstamp[t = ".. t .."] == ".. options.fill_value .."\n")
+    end
+  end
+
+  return test:success()
+end
+
+-- ##############################################
+
 function run(tester)
   local rv = tester.run_test("influx2Series:test_sampling1", test_sampling1)
   rv = tester.run_test("influx2Series:test_datafill1", test_datafill1) and rv
@@ -459,6 +528,7 @@ function run(tester)
   rv = tester.run_test("influx2Series:test_datafill3", test_datafill3) and rv
   rv = tester.run_test("influx2Series:test_no_derivative1", test_no_derivative1) and rv
   rv = tester.run_test("influx2Series:test_skip_initial1", test_skip_initial1) and rv
+  --rv = tester.run_test("influx2Series:heartbeat", test_heartbeat) and rv
 
   return rv
 end

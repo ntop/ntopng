@@ -19,6 +19,11 @@ require("ntop_utils")
 
 local INFLUX_QUERY_TIMEMOUT_SEC = 5
 local MIN_INFLUXDB_SUPPORTED_VERSION = "1.5.1"
+local RP_1H_DURATION = "30d" -- NOTE keep in sync with RP_1H_DURATION_SECS below
+local RP_1H_DURATION_SECS = 2592000
+local RP_1D_DURATION = "365d"  -- NOTE keep in sync with RP_1D_DURATION_SECS below
+local RP_1D_DURATION_SECS = 31536000
+local FIRST_AGGREGATION_TIME_KEY = "ntopng.prefs.influxdb.first_aggregation_time"
 
 -- ##############################################
 
@@ -48,16 +53,95 @@ local function getResponseError(res)
   if res.CONTENT and res.CONTENT_TYPE == "application/json" then
     local jres = json.decode(res.CONTENT)
 
-    if jres and jres.error then
-      if res.RESPONSE_CODE then
-        return "[".. res.RESPONSE_CODE .. "] " ..jres.error
-      else
-        return jres.error
+    if jres then
+      if jres.error then
+        if res.RESPONSE_CODE then
+          return "[".. res.RESPONSE_CODE .. "] " ..jres.error
+        else
+          return jres.error
+        end
+      elseif jres.results then
+        for _, single_res in pairs(jres.results) do
+          if single_res.error then
+            return single_res.error
+          end
+        end
       end
     end
   end
 
   return res.RESPONSE_CODE or "unknown error"
+end
+
+-- ##############################################
+
+-- Determines the most appropriate retention policy
+local function getSchemaRetentionPolicy(schema, tstart, tend, options)
+  options = options or {}
+  local first_aggr_time = tonumber(ntop.getPref(FIRST_AGGREGATION_TIME_KEY))
+
+  if not first_aggr_time then
+    return "raw"
+  end
+
+  -- RP selection logic
+  local oldest_1d_data = os.time() - RP_1D_DURATION_SECS
+  local oldest_1h_data = os.time() - RP_1H_DURATION_SECS
+  local oldest_raw_data = tonumber(ntop.getPref("ntopng.prefs.influx_retention")) or 365 -- TODO make in common with prefs.lua
+  local max_raw_interval = 12 * 3600 -- after 12 hours begin to use the aggregated data
+
+  if options.target_aggregation then
+    if((options.target_aggregation == "1h") and (tstart < oldest_1h_data)) or
+      ((options.target_aggregation == "raw") and (tstart < oldest_raw_data)) then
+      -- cannot satisfy the target_aggregation
+    else
+      -- user override
+      return options.target_aggregation
+    end
+  end
+
+  -- Fix the limits to ensure that the first_aggr_time is not crossed
+  -- Crossing it is still acceptable for the options.target_aggregation check above
+  oldest_1d_data = math.max(oldest_1d_data, first_aggr_time)
+  oldest_1h_data = math.max(oldest_1h_data, first_aggr_time)
+
+  if tstart < oldest_1d_data then
+    return "raw"
+  elseif tstart < oldest_1h_data then
+    return "1d"
+  elseif tstart < oldest_raw_data then
+    return "1h"
+  end
+
+  local interval = tend - tstart
+
+  if interval >= max_raw_interval then
+    return "1h"
+  end
+
+  return "raw"
+end
+
+-- ##############################################
+
+-- returns schema_name, step
+local function retentionPolicyToSchema(schema, rp)
+  if rp == "raw" then
+    rp = nil
+  end
+
+  if not isEmptyString(rp) then
+    return string.format('"%s"."%s"', rp, schema.name), ternary(rp == "1d", 86400, 3600)
+  end
+
+  -- raw
+  return string.format('"%s"', schema.name), schema.options.step
+end
+
+-- ##############################################
+
+local function getQuerySchema(schema, tstart, tend, options)
+  return retentionPolicyToSchema(schema, getSchemaRetentionPolicy(schema, tstart, tend, options))
 end
 
 -- ##############################################
@@ -82,7 +166,7 @@ local function influx_query(base_url, query, username, password, options)
     return nil
   end
 
-  if res.RESPONSE_CODE ~= 200 then
+  if((res.RESPONSE_CODE ~= 200) and (not res.IS_PARTIAL)) then
     traceError(TRACE_ERROR, TRACE_CONSOLE, "Bad response code[" .. res.RESPONSE_CODE .. "]: " .. (res.CONTENT or ""))
     return nil
   end
@@ -183,7 +267,7 @@ driver._influx2Series = influx2Series
 
  --##############################################
 
-local function getTotalSerieQuery(schema, tstart, tend, tags, time_step, data_type, label)
+local function getTotalSerieQuery(schema, query_schema, raw_step, tstart, tend, tags, time_step, data_type, label)
   label = label or "total_serie"
 
   --[[
@@ -197,7 +281,7 @@ local function getTotalSerieQuery(schema, tstart, tend, tags, time_step, data_ty
       GROUP BY time(600s))
   ]]
   local is_single_serie = schema:allTagsDefined(tags)
-  local simplified_query = 'SELECT (' .. table.concat(schema._metrics, " + ") ..') AS "'.. label ..'" FROM "'.. schema.name ..'" WHERE ' ..
+  local simplified_query = 'SELECT (' .. table.concat(schema._metrics, " + ") ..') AS "'.. label ..'" FROM '.. query_schema ..' WHERE ' ..
     table.tconcat(tags, "=", " AND ", nil, "'") .. ' AND time >= ' .. tstart .. '000000000 AND time <= ' .. tend .. '000000000'
 
   local query
@@ -207,10 +291,10 @@ local function getTotalSerieQuery(schema, tstart, tend, tags, time_step, data_ty
     query = simplified_query
   else
     query = 'SELECT SUM("'.. label ..'") AS "'.. label ..'" FROM ('.. simplified_query ..')'..
-      ' GROUP BY time('.. schema.options.step ..'s)'
+      ' GROUP BY time('.. raw_step ..'s)'
   end
 
-  if time_step and (schema.options.step ~= time_step) then
+  if time_step and (raw_step ~= time_step) then
     -- sample the points
     query = 'SELECT MEAN("'.. label ..'") AS "'.. label ..'" FROM ('.. query ..') GROUP BY time('.. time_step ..'s)'
   end
@@ -237,9 +321,9 @@ end
 
 -- ##############################################
 
-function driver:_makeTotalSerie(schema, tstart, tend, tags, options, url, time_step, label, unaligned_offset)
+function driver:_makeTotalSerie(schema, query_schema, raw_step, tstart, tend, tags, options, url, time_step, label, unaligned_offset)
   local data_type = schema.options.metrics_type
-  local query = getTotalSerieQuery(schema, tstart, tend + unaligned_offset, tags, time_step, data_type, label)
+  local query = getTotalSerieQuery(schema, query_schema, raw_step, tstart, tend + unaligned_offset, tags, time_step, data_type, label)
   local data = influx_query(url .. "/query?db=".. self.db .."&epoch=s", query, self.username, self.password, options)
 
   if table.empty(data) then
@@ -279,19 +363,21 @@ end
 
 -- ##############################################
 
-local function makeSeriesQuery(schema, metrics, tags, tstart, tend, time_step)
-  return 'SELECT '.. table.concat(metrics, ",") ..' FROM "' .. schema.name .. '" WHERE ' ..
+local function makeSeriesQuery(query_schema, metrics, tags, tstart, tend, time_step)
+  return 'SELECT '.. table.concat(metrics, ",") ..' FROM ' .. query_schema .. ' WHERE ' ..
       table.tconcat(tags, "=", " AND ", nil, "'") .. " AND time >= " .. tstart .. "000000000 AND time <= " .. tend .. "000000000" ..
       " GROUP BY TIME(".. time_step .."s)"
 end
 
 function driver:query(schema, tstart, tend, tags, options)
   local metrics = {}
-  local time_step = ts_common.calculateSampledTimeStep(schema, tstart, tend, options)
   local data_type = schema.options.metrics_type
+  local retention_policy = getSchemaRetentionPolicy(schema, tstart, tend, options)
+  local query_schema, raw_step = retentionPolicyToSchema(schema, retention_policy)
+  local time_step = ts_common.calculateSampledTimeStep(raw_step, tstart, tend, options)
 
   -- NOTE: this offset is necessary to fix graph edge points when data insertion is not aligned with tstep
-  local unaligned_offset = schema.options.step - 1
+  local unaligned_offset = raw_step - 1
 
   for i, metric in ipairs(schema._metrics) do
     -- NOTE: why we need to device by time_step ? is MEAN+GROUP BY TIME bugged?
@@ -310,7 +396,7 @@ function driver:query(schema, tstart, tend, tags, options)
     AND time >= 1531991910000000000 AND time <= 1532002710000000000
     GROUP BY TIME(60s)
   ]]
-  local query = makeSeriesQuery(schema, metrics, tags, tstart, tend + unaligned_offset, time_step)
+  local query = makeSeriesQuery(query_schema, metrics, tags, tstart, tend + unaligned_offset, time_step)
 
   local url = self.url
   local data = influx_query(url .. "/query?db=".. self.db .."&epoch=s", query, self.username, self.password, options)
@@ -336,7 +422,7 @@ function driver:query(schema, tstart, tend, tags, options)
     else
       -- try to inherit label from existing series
       local label = series and series[1] and series[1].label
-      total_serie = self:_makeTotalSerie(schema, tstart + time_step, tend, tags, options, url, time_step, label, unaligned_offset)
+      total_serie = self:_makeTotalSerie(schema, query_schema, raw_step, tstart + time_step, tend, tags, options, url, time_step, label, unaligned_offset)
     end
 
     if total_serie then
@@ -344,8 +430,8 @@ function driver:query(schema, tstart, tend, tags, options)
 
       if stats.total ~= nil then
         -- override total and average
-        local stats_query = "(SELECT ".. table.concat(schema._metrics, " + ") .. ' AS value FROM "' .. schema.name..
-          '" ' ..getWhereClause(tags, tstart, tend, unaligned_offset) .. ")"
+        local stats_query = "(SELECT ".. table.concat(schema._metrics, " + ") .. ' AS value FROM ' .. query_schema ..
+          ' ' ..getWhereClause(tags, tstart, tend, unaligned_offset) .. ")"
         stats_query = "(SELECT NON_NEGATIVE_DIFFERENCE(value) as value FROM " .. stats_query .. ")"
         stats_query = "SELECT SUM(value) FROM " .. stats_query
 
@@ -361,7 +447,7 @@ function driver:query(schema, tstart, tend, tags, options)
       initial_metrics[idx] = "FIRST(" .. metric .. ")"
     end
 
-    local query = makeSeriesQuery(schema, metrics, tags, tstart-time_step, tstart+unaligned_offset, time_step)
+    local query = makeSeriesQuery(query_schema, metrics, tags, tstart-time_step, tstart+unaligned_offset, time_step)
     local data = influx_query(url .. "/query?db=".. self.db .."&epoch=s", query, self.username, self.password, options)
 
     if table.empty(data) then
@@ -380,7 +466,7 @@ function driver:query(schema, tstart, tend, tags, options)
 
     if total_serie then
       local label = series and series[1].label
-      local additional_pt = self:_makeTotalSerie(schema, tstart-time_step, tstart, tags, options, url, time_step, label, unaligned_offset) or {options.fill_value}
+      local additional_pt = self:_makeTotalSerie(schema, query_schema, raw_step, tstart-time_step, tstart, tags, options, url, time_step, label, unaligned_offset) or {options.fill_value}
       table.insert(total_serie, 1, additional_pt[1])
     end
 
@@ -394,9 +480,11 @@ function driver:query(schema, tstart, tend, tags, options)
   local rv = {
     start = tstart,
     step = time_step,
+    raw_step = raw_step,
     count = count,
     series = series,
     statistics = stats,
+    source_aggregation = retention_policy or "raw",
     additional_series = {
       total = total_serie,
     },
@@ -407,6 +495,33 @@ end
 
 -- ##############################################
 
+function driver:_exportErrorMsg(ret)
+  local err_msg = i18n("delete_data.msg_err_unknown")
+  local suffix = ""
+
+  if ret ~= nil then
+    if ret.error_msg ~= nil then
+      err_msg = ret.error_msg .. "."
+    elseif ret.CONTENT ~= nil then
+      local content = json.decode(ret.CONTENT)
+
+      if((content ~= nil) and (content.error ~= nil)) then
+        err_msg = content.error
+
+        if string.find(err_msg, "max-values-per-tag limit exceeded", nil, true) ~= nil then
+          suffix = ". " .. i18n("alert_messages.influxdb_partial_write")
+        end
+      elseif ret.RESPONSE_CODE ~= nil then
+        err_msg = err_msg .. " [" .. ret.RESPONSE_CODE .. "]"
+      end
+    elseif ret.RESPONSE_CODE ~= nil then
+        err_msg = err_msg .. " [" .. ret.RESPONSE_CODE .. "]"
+    end
+  end
+
+  return i18n("alert_messages.influxdb_write_error", {influxdb=self.url, err=err_msg}) .. suffix
+end
+
 function driver:_exportTsFile(fname)
   if not ntop.exists(fname) then
     return nil
@@ -416,10 +531,11 @@ function driver:_exportTsFile(fname)
   local delete_file_after_post = true
   local ret = ntop.postHTTPTextFile(self.username, self.password, self.url .. "/write?db=" .. self.db, fname, delete_file_after_post, 5 --[[ timeout ]])
 
-  if(ret ~= true) then
-    traceError(TRACE_ERROR, TRACE_CONSOLE, "POST of "..fname.." failed\n")
+  if((ret == nil) or ((ret.RESPONSE_CODE ~= 200) and (ret.RESPONSE_CODE ~= 204))) then
+    local msg = self:_exportErrorMsg(ret)
+    interface.storeAlert(alertEntity("influx_db"), self.url, alertType("influxdb_export_failure"), alertSeverity("error"), msg)
 
-    -- delete the file manually
+     --delete the file manually
     os.remove(fname)
     return nil
   end
@@ -481,6 +597,7 @@ end
 function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
   -- At least 2 values are needed otherwise derivative will return empty
   local min_values = 2
+  -- NOTE: do not use getQuerySchema here, otherwise we'll miss series
 
   -- NOTE: time based query not currently supported on show tags/series, using select
   -- https://github.com/influxdata/influxdb/issues/5668
@@ -562,9 +679,11 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
   end
 
   local top_tag = top_tags[1]
+  local retention_policy = getSchemaRetentionPolicy(schema, tstart, tend, options)
+  local query_schema, raw_step = retentionPolicyToSchema(schema, retention_policy)
 
   -- NOTE: this offset is necessary to fix graph edge points when data insertion is not aligned with tstep
-  local unaligned_offset = schema.options.step - 1
+  local unaligned_offset = raw_step - 1
 
   local derivate_metrics = {}
   local sum_metrics = {}
@@ -586,8 +705,8 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
   ]]
   -- Aggregate into 1 metric and filter
   local base_query = '(SELECT '.. top_tag ..', (' .. table.concat(schema._metrics, " + ") ..') AS "value", '..
-      all_metrics .. ' FROM "'.. schema.name ..
-      '" '.. getWhereClause(tags, tstart, tend, unaligned_offset) ..')'
+      all_metrics .. ' FROM '.. query_schema ..
+      ' '.. getWhereClause(tags, tstart, tend, unaligned_offset) ..')'
 
    -- Calculate difference between counter values
   base_query = '(SELECT NON_NEGATIVE_DIFFERENCE(value) as value, '.. table.concat(derivate_metrics, ", ")  ..
@@ -640,9 +759,9 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
     end
   end
 
-  local time_step = ts_common.calculateSampledTimeStep(schema, tstart, tend, options)
+  local time_step = ts_common.calculateSampledTimeStep(raw_step, tstart, tend, options)
   local label = series and series[1].label
-  local total_serie = self:_makeTotalSerie(schema, tstart, tend, tags, options, url, time_step, label, unaligned_offset)
+  local total_serie = self:_makeTotalSerie(schema, query_schema, raw_step, tstart, tend, tags, options, url, time_step, label, unaligned_offset)
   local stats = nil
 
   if options.calculate_stats and total_serie then
@@ -659,7 +778,7 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
   end
 
   if options.initial_point and total_serie then
-    local additional_pt = self:_makeTotalSerie(schema, tstart-time_step, tstart, tags, options, url, time_step, label, unaligned_offset) or {options.fill_value}
+    local additional_pt = self:_makeTotalSerie(schema, query_schema, raw_step, tstart-time_step, tstart, tags, options, url, time_step, label, unaligned_offset) or {options.fill_value}
     table.insert(total_serie, 1, additional_pt[1])
   end
 
@@ -670,7 +789,8 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
   return {
     topk = sorted,
     statistics = stats,
-     additional_series = {
+    source_aggregation = retention_policy or "raw",
+    additional_series = {
       total = total_serie,
     },
   }
@@ -680,6 +800,7 @@ end
 
 function driver:queryTotal(schema, tstart, tend, tags, options)
   local data_type = schema.options.metrics_type
+  local query_schema = getQuerySchema(schema, tstart, tend, options)
   local query
 
   if data_type == ts_common.metrics.counter then
@@ -695,7 +816,7 @@ function driver:queryTotal(schema, tstart, tend, tags, options)
     --  (SELECT DIFFERENCE("bytes_sent") AS "bytes_sent", DIFFERENCE("bytes_rcvd") AS "bytes_rcvd"
     --    FROM "host:traffic" WHERE ifid='1' AND host='192.168.1.1' AND time >= 1536321770000000000 AND time <= 1536322070000000000)
     query = 'SELECT ' .. table.concat(sum_metrics, ", ") .. ' FROM ' ..
-    '(SELECT ' .. table.concat(metrics, ", ") .. ' FROM "'.. schema.name ..'" WHERE ' ..
+    '(SELECT ' .. table.concat(metrics, ", ") .. ' FROM '.. query_schema ..' WHERE ' ..
       table.tconcat(tags, "=", " AND ", nil, "'") .. ' AND time >= ' .. tstart .. '000000000 AND time <= ' .. tend .. '000000000)'
   else
     local metrics = {}
@@ -704,7 +825,7 @@ function driver:queryTotal(schema, tstart, tend, tags, options)
       metrics[i] = "SUM(" .. metric .. ") as " .. metric
     end
 
-    query = 'SELECT ' .. table.concat(metrics, ", ") .. ' FROM "' .. schema.name ..'" WHERE ' ..
+    query = 'SELECT ' .. table.concat(metrics, ", ") .. ' FROM ' .. query_schema ..' WHERE ' ..
       table.tconcat(tags, "=", " AND ", nil, "'") .. ' AND time >= ' .. tstart .. '000000000 AND time <= ' .. tend .. '000000000'
   end
 
@@ -732,12 +853,13 @@ end
 
 function driver:queryMean(schema, tags, tstart, tend)
   local metrics = {}
+  local query_schema = getQuerySchema(schema, tstart, tend)
 
   for i, metric in ipairs(schema._metrics) do
     metrics[i] = "MEAN(" .. metric .. ") as " .. metric
   end
 
-  local query = 'SELECT ' .. table.concat(metrics, ", ") .. ' FROM "'.. schema.name ..'" WHERE ' ..
+  local query = 'SELECT ' .. table.concat(metrics, ", ") .. ' FROM '.. query_schema ..' WHERE ' ..
       table.tconcat(tags, "=", " AND ", nil, "'") .. ' AND time >= ' .. tstart .. '000000000 AND time <= ' .. tend .. '000000000'
 
   local url = self.url
@@ -906,6 +1028,138 @@ function driver:delete(schema_prefix, tags)
   if not res or (res.RESPONSE_CODE ~= 200) then
     traceError(TRACE_ERROR, TRACE_CONSOLE, getResponseError(res))
     return false
+  end
+
+  return true
+end
+
+-- ##############################################
+
+function driver:deleteOldData(ifid)
+  -- NOTE: retention is perfomed automatically based on the database retention policy,
+  -- no need for manual intervention
+  return true
+end
+
+-- ##############################################
+
+function driver:_multiQuery(queries)
+  local query_str = table.concat(queries, ";")
+  local res = ntop.httpPost(self.url .. "/query", "q=" .. urlencode(query_str), self.username, self.password, INFLUX_QUERY_TIMEMOUT_SEC, true)
+
+  if not res then
+    traceError(TRACE_ERROR, TRACE_CONSOLE, "Invalid response for query: " .. query_str)
+    return false
+  end
+
+  if res.RESPONSE_CODE ~= 200 then
+    traceError(TRACE_ERROR, TRACE_CONSOLE, "Bad response code[" .. res.RESPONSE_CODE .. "]: " .. getResponseError(res))
+    --tprint(query_str)
+    return false
+  end
+
+  local err = getResponseError(res)
+  if err ~= 200 then
+    traceError(TRACE_ERROR, TRACE_CONSOLE, "Unexpected query error: " .. err)
+    return false
+  end
+
+  return true
+end
+
+-- ##############################################
+
+local function getCqQuery(dbname, metrics, tags, schema, source, dest, resemple)
+  local cq_name = string.format("%s__%s", schema.name, dest)
+  local resemple_s = ""
+
+  if resemple then
+    resemple_s = "RESAMPLE FOR " .. resemple
+  end
+
+  return string.format([[
+    CREATE CONTINUOUS QUERY "%s" ON %s
+    %s
+    BEGIN
+      SELECT
+        %s
+        INTO "%s"."%s"
+        FROM (
+          SELECT
+            %s
+            FROM "%s"."%s"
+            GROUP BY time(%us),%s
+            FILL(0)
+        ) GROUP BY time(%s),%s
+    END]], cq_name, dbname, resemple_s,
+    metrics, dest, schema.name,
+    metrics, source, schema.name,
+    schema.options.step, tags, dest, tags)
+end
+
+function driver:setup(ts_utils)
+  local queries = {}
+  local max_batch_size = 25 -- note: each query is about 400 characters
+
+  queries[#queries + 1] = string.format('CREATE RETENTION POLICY "1h" ON %s DURATION %s REPLICATION 1', self.db, RP_1H_DURATION)
+  queries[#queries + 1] = string.format('CREATE RETENTION POLICY "1d" ON %s DURATION %s REPLICATION 1', self.db, RP_1D_DURATION)
+
+  ts_utils.loadSchemas()
+  local schemas = ts_utils.getLoadedSchemas()
+
+  for _, schema in pairs(schemas) do
+    local tags = table.concat(schema._tags, ",")
+    local metrics = {}
+    for _, metric in ipairs(schema._metrics) do
+      metrics[#metrics + 1] = string.format('MEAN(%s) as %s', metric, metric)
+    end
+
+    if #metrics == 0 then
+      goto continue
+    end
+    metrics = table.concat(metrics, ",")
+
+    local cq_1h = getCqQuery(self.db, metrics, tags, schema, "autogen", "1h", "2h")
+    local cq_1d = getCqQuery(self.db, metrics, tags, schema, "1h", "1d")
+
+    -- TODO temporary fix to alter existing queries, remove after beta end
+    queries[#queries + 1] = string.format('DROP CONTINUOUS QUERY "%s__1d" ON %s', schema.name, self.db)
+
+    queries[#queries + 1] = cq_1h:gsub("\n", ""):gsub("%s%s+", " ")
+    queries[#queries + 1] = cq_1d:gsub("\n", ""):gsub("%s%s+", " ")
+
+    if #queries >= max_batch_size then
+      if not self:_multiQuery(queries) then
+        traceError(TRACE_ERROR, TRACE_CONSOLE, "InfluxDB setup failed")
+        return false
+      end
+      queries = {}
+    end
+
+    ::continue::
+  end
+
+  if #queries >= 0 then
+    if not self:_multiQuery(queries) then
+      traceError(TRACE_ERROR, TRACE_CONSOLE, "InfluxDB setup() failed")
+      return false
+    end
+  end
+
+  if tonumber(ntop.getPref(FIRST_AGGREGATION_TIME_KEY)) == nil then
+    local res = influx_query(self.url .. "/query?db=".. self.db .."&epoch=s",
+      'SELECT FIRST(bytes) FROM "1h"."iface:traffic"', self.username, self.password)
+    local first_t = os.time()
+
+    if res and res.series and res.series[1].values then
+      local v = res.series[1].values[1][1]
+
+      if v ~= nil then
+        first_t = v
+      end
+    end
+
+    ntop.setPref(FIRST_AGGREGATION_TIME_KEY, tostring(first_t))
   end
 
   return true

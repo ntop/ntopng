@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-18 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -53,6 +53,7 @@ class AlertCounter {
   
   bool incHits(time_t when);
   inline u_int32_t getCurrentHits()          { return(num_hits_since_first_alert);  };
+  inline u_int32_t getMaxHitsPerSecond()     { return(max_num_hits_sec);  };
   inline u_int8_t getOverThresholdDuration() { return(over_threshold_duration_sec); };
   inline bool isAboveThreshold(time_t when)  { return(thresholdTrepassed && (time_last_hit >= (when-1)) ); };
   void resetThresholds(u_int32_t _max_num_hits_sec, u_int8_t _over_threshold_duration_sec);

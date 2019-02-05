@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2015-18 - ntop.org
+ * (C) 2015-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -48,8 +48,10 @@ void PacketDumper::init(NetworkInterface *i) {
   num_bytes_cur_file = 0;
   out_path = NULL;
 
-  if (strcmp(name, "lo") == 0)
+  if(strcmp(name, "lo") == 0)
     iface_type = DLT_NULL;
+  else if(!i->isPacketInterface())
+    iface_type = DLT_EN10MB;
   else
     iface_type = i->get_datalink();
 }
@@ -88,7 +90,7 @@ bool PacketDumper::openDump() {
   if (dumper != NULL)
     return true;
 
-  max_bytes_per_file = ntop->getPrefs()->get_max_extracted_pcap_mbytes()*1024*1024;
+  max_bytes_per_file = ntop->getPrefs()->get_max_extracted_pcap_bytes();
 
   Utils::mkdir_tree(out_path);
   snprintf(pcap_path, sizeof(pcap_path), "%s/%u.pcap", out_path, file_id+1);

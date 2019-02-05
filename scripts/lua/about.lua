@@ -8,6 +8,7 @@ require "lua_utils"
 local ts_utils = require("ts_utils")
 local info = ntop.getInfo() 
 local page_utils = require("page_utils")
+local format_utils = require("format_utils")
 
 sendHTTPContentTypeHeader('text/html')
 
@@ -39,7 +40,7 @@ if(info["pro.systemid"] and (info["pro.systemid"] ~= "")) then
    v = split(info["version"], " ")
 
    print(" [ SystemId: <A HREF=\"https://shop.ntop.org/mkntopng/?systemid=".. info["pro.systemid"].."&".."version=".. v[1] .."&edition=")
-   
+
    if(info["version.embedded_edition"] == true) then
       print("embedded")
    elseif(info["version.enterprise_edition"] == true) then
@@ -82,6 +83,11 @@ print[[</small>
       else
 	 if(info["pro.license"]) then
 	    print(i18n("about.licence")..": ".. info["pro.license"] .."\n")
+	    if info["pro.license_ends_at"] ~= nil and info["pro.license_days_left"] ~= nil then
+	       print("<br>"..i18n("about.maintenance", {
+				     _until = format_utils.formatEpoch(info["pro.license_ends_at"]),
+				     days_left = info["pro.license_days_left"]}))
+	    end
 	 end
       end
    end
@@ -127,6 +133,10 @@ print("<tr><th><a href=\"https://curl.haxx.se\" target=\"_blank\">cURL</A></th><
 print("<tr><th><a href=\"http://twitter.github.io/\" target=\"_blank\"><i class=\'fa fa-twitter fa-lg'></i> Twitter Bootstrap</A></th><td>3.x</td></tr>\n")
 print("<tr><th><a href=\"http://fortawesome.github.io/Font-Awesome/\" target=\"_blank\"><i class=\'fa fa-flag fa-lg'></i> Font Awesome</A></th><td>4.x</td></tr>\n")
 print("<tr><th><a href=\"http://www.rrdtool.org/\" target=\"_blank\">RRDtool</A></th><td>"..info["version.rrd"].."</td></tr>\n")
+
+if(info["version.nindex"] ~= nil) then
+   print("<tr><th>nIndex</th><td>"..info["version.nindex"].."</td></tr>\n")
+end
 
 local l7_resolution = "5m"
 

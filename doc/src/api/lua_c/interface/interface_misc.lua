@@ -20,6 +20,10 @@ function interface.getMaxIfSpeed(string ifname)
 --! @param only_drops if true, only reset the packet drops counter
 function interface.resetCounters(bool only_drops=true)
 
+--! @brief Reset all the hosts and L2 devices stats (e.g. traffic and application data).
+--! @note this will also reset the stats of the inactive hosts.
+function interface.resetStats()
+
 --! @brief Get the name of the remote probe when connected via ZMQ.
 --! @return endpoint name on success, nil otherwise.
 function interface.getEndpoint()

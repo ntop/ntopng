@@ -1,5 +1,5 @@
 [Unit]
-Description=ntopng high-speed web-based traffic monitoring and analysis tool
+Description=@APP@ high-speed web-based traffic monitoring and analysis tool
 After=@SERVICE_AFTER@
 Requires=@SERVICE_REQUIRES@
 Wants=@SERVICE_WANTS@
@@ -8,15 +8,15 @@ PartOf=@SERVICE_WANTS@
 [Service]
 Type=simple
 
-ExecStartPre=/bin/sh -c '/bin/echo "$(/bin/date) ntopng StartPre" >> /var/log/ntop-systemd.log'
+ExecStartPre=/bin/sh -c '/bin/echo "$(/bin/date) @APP@ StartPre" >> /var/log/ntop-systemd.log'
 ExecStartPre=/bin/sh -c '/usr/bin/ntopng-utils-manage-config -a check-restore  && /usr/bin/ntopng-utils-manage-config -a restore || true'
 ExecStartPre=/bin/sh -c '/bin/sed "/^[ ]*-e.*$\\|^[ ]*-G.*\\|^[ ]*--daemon.*\\|^[ ]*--pid.*/s/^/#/" /etc/ntopng/ntopng.conf > /run/ntopng.conf'
 
-ExecStart=/usr/local/bin/ntopng /run/ntopng.conf
+ExecStart=/usr/local/bin/@APP@ /run/ntopng.conf
 
-ExecStartPost=/bin/sh -c '/bin/echo "$(/bin/date) ntopng StartPost" >> /var/log/ntop-systemd.log'
+ExecStartPost=/bin/sh -c '/bin/echo "$(/bin/date) @APP@ StartPost" >> /var/log/ntop-systemd.log'
 ExecStopPost=-/bin/rm -rf /run/ntopng.conf
-ExecStopPost=/bin/sh -c '/bin/echo "$(/bin/date) ntopng StopPost" >> /var/log/ntop-systemd.log'
+ExecStopPost=/bin/sh -c '/bin/echo "$(/bin/date) @APP@ StopPost" >> /var/log/ntop-systemd.log'
 
 Restart=on-abnormal
 RestartSec=5

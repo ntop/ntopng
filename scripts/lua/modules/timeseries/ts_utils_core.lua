@@ -52,7 +52,7 @@ function ts_utils.getSchema(name)
   local schema = loaded_schemas[name]
 
   if schema and ts_utils.hasHighResolutionTs() then
-    if((schema.options.step == 300) and (not starts(schema.name, "snmp"))) then
+    if((schema.options.step == 300) and (not starts(schema.name, "snmp")) and (not starts(schema.name, "local_"))) then
       schema.options.insertion_step = 60
       schema.options.step = 60
 
@@ -74,7 +74,20 @@ function ts_utils.getSchema(name)
     end
   end
 
+  if schema and (name == "iface:traffic") and ntop.isnEdge() then
+    schema.options.step = 4
+  end
+
   return schema
+end
+
+function ts_utils.loadSchemas()
+  -- This should include all the available schemas
+  require("ts_second")
+  require("ts_minute")
+  require("ts_5min")
+  require("ts_hour")
+  require("ts_custom")
 end
 
 function ts_utils.getLoadedSchemas()
@@ -94,6 +107,10 @@ function ts_utils.listActiveDrivers()
 
   local driver = ts_utils.getDriverName()
   local active_drivers = {}
+
+  if ntop.isWindows() then
+    driver = "rrd"
+  end
 
   if driver == "rrd" then
     local dirs = ntop.getDirs()
@@ -405,6 +422,7 @@ function ts_utils.queryTopk(schema_name, tags, tstart, tend, options)
     local options = table.merge(query_options, {calculate_stats = false})
     local count = 0
     local step = nil
+    local raw_step = nil
     local start = 0
 
     for _, top in ipairs(top_items.topk) do
@@ -442,6 +460,11 @@ function ts_utils.queryTopk(schema_name, tags, tstart, tend, options)
       else
         step = top_res.step
       end
+      if raw_step then
+        raw_step = math.min(raw_step, top_res.raw_step)
+      else
+        raw_step = top_res.raw_step
+      end
 
       for _, serie in ipairs(top_res.series) do
         serie.tags = top.tags
@@ -467,6 +490,7 @@ function ts_utils.queryTopk(schema_name, tags, tstart, tend, options)
 
     top_items.count = count
     top_items.step = step
+    top_items.raw_step = raw_step
     top_items.start = start
   else
     top_items.additional_series = nil
@@ -562,6 +586,26 @@ end
 
 -- ##############################################
 
+--! @brief Delete old data.
+--! @param ifid: the interface ID to process
+--! @return true if operation was successful, false otherwise.
+function ts_utils.deleteOldData(ifid)
+  if not isAdministrator() then
+    traceError(TRACE_ERROR, TRACE_CONSOLE, "Not Admin")
+    return false
+  end
+
+  ts_common.clearLastError()
+
+  for _, driver in pairs(ts_utils.listActiveDrivers()) do
+    rv = driver:deleteOldData(ifid) and rv
+  end
+
+  return rv
+end
+
+-- ##############################################
+
 function ts_utils.queryTotal(schema_name, tstart, tend, tags, options)
   if not isUserAccessAllowed(tags) then
     return nil
@@ -610,6 +654,34 @@ function ts_utils.queryMean(schema_name, tstart, tend, tags)
   end
 
   return rv
+end
+
+-- ##############################################
+
+local SETUP_OK_KEY = "ntopng.cache.ts_setup_ok"
+
+function ts_utils.setupAgain()
+  -- will run the setup again
+  ntop.delCache(SETUP_OK_KEY)
+end
+
+-- ##############################################
+
+function ts_utils.setup()
+  local setup_ok = ntop.getPref(SETUP_OK_KEY)
+
+  if (ntop.getCache(SETUP_OK_KEY) ~= "1") and
+      (ntop.getPref("ntopng.prefs.beta_rollup") == "1" --[[ TODO remove after test ]]) then
+    if ts_utils.getQueryDriver():setup(ts_utils) then
+      -- success, update version
+      ntop.setCache(SETUP_OK_KEY, "1")
+      return true
+    end
+
+    return false
+  end
+
+  return true
 end
 
 -- ##############################################

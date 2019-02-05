@@ -28,8 +28,6 @@ MONGOOSE_HOME=${PWD}/third-party/mongoose
 MONGOOSE_INC=-I$(MONGOOSE_HOME)
 ######
 
-# Set USE_LUAJIT=0 to use the standard Lua (no JIT)
-USE_LUAJIT=0
 LUA_PLATFORM=generic
 
 ifeq ($(OS),Linux)
@@ -40,17 +38,9 @@ else ifeq ($(OS), $(filter $(OS), FreeBSD))
 	LUA_PLATFORM=freebsd
 endif
 
-ifeq ($(USE_LUAJIT), 0)
-  LUA_HOME=${PWD}/third-party/lua-5.3.5
-  LUA_INC=-I$(LUA_HOME)/src -DDONT_USE_LUAJIT
-  LUA_LIB=$(LUA_HOME)/src/liblua.a
-  HAS_LUAJIT=0
-else
-  # LUA_HOME=${PWD}/third-party/LuaJIT-2.1.0-beta3
-  LUA_HOME=${PWD}/third-party/LuaJIT-2.1.0-git
-  LUA_INC=-I$(LUA_HOME)/src
-  LUA_LIB=$(LUA_HOME)/src/libluajit.a
-endif
+LUA_HOME=${PWD}/third-party/lua-5.3.5
+LUA_INC=-I$(LUA_HOME)/src -DDONT_USE_LUAJIT
+LUA_LIB=$(LUA_HOME)/src/liblua.a
 
 ######
 LIBRRDTOOL_HOME=${PWD}/third-party/rrdtool-1.4.8

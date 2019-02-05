@@ -2,7 +2,7 @@
 -- (C) 2013-18 - ntop.org
 --
 
-dirs = ntop.getDirs()
+local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local json = require("dkjson")
@@ -26,12 +26,17 @@ else
     local time_from = tonumber(_POST["epoch_begin"])
     local time_to = tonumber(_POST["epoch_end"])
     local chart_url = _POST["url"]
+    local timeline_path
+    if recording_utils.getCurrentTrafficRecordingProvider(ifstats.id) ~= "ntopng" then
+       timeline_path = recording_utils.getCurrentTrafficRecordingProviderTimelinePath(ifstats.id)
+    end
 
     local params = {
       time_from = time_from,
       time_to = time_to,
       filter = filter,
       chart_url = chart_url,
+      timeline_path = timeline_path
     }
 
     local job_info = recording_utils.scheduleExtraction(ifstats.id, params)

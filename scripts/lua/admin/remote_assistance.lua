@@ -8,6 +8,7 @@ require "lua_utils"
 local remote_assistance = require("remote_assistance")
 local template = require "template_utils"
 local page_utils = require("page_utils")
+active_page = "admin"
 
 if((not isAdministrator()) or (not remote_assistance.isAvailable())) then
   return
@@ -163,10 +164,10 @@ end
   <span>]]
 print(i18n("notes"))
 print[[
-  <ul>
+    <ul>
       <li>]] print(i18n("remote_assistance.remember_disable")) print[[</li>
-      <li>]] print(i18n("remote_assistance.will_create_virtual_network") .. " " .. i18n("remote_assistance.ask_admin")) print[[</li>]]
-   print[[
+      <li>]] print(i18n("remote_assistance.will_create_virtual_network") .. " " .. i18n("remote_assistance.ask_admin")) print[[</li>
+      <li>]] print(i18n("remote_assistance.check_out_the_preferences", {url=ntop.getHttpPrefix() .. "/lua/admin/prefs.lua?tab=remote_assistance"})) print[[</li>
     </ul>
   </span>
 

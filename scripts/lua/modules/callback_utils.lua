@@ -13,12 +13,13 @@ local callback_utils = {}
 
 -- Iterates available interfaces, excluding PCAP interfaces.
 -- Each valid interface is select-ed and passed to the callback.
-function callback_utils.foreachInterface(ifnames, condition, callback)
+-- NOTE: get_direction_stats should only be used by second.lua
+function callback_utils.foreachInterface(ifnames, condition, callback, get_direction_stats)
    for _,_ifname in pairs(ifnames) do
       if(ntop.isShutdown()) then return true end
 
       interface.select(_ifname)
-      local ifstats = interface.getStats()
+      local ifstats = interface.getStats(get_direction_stats)
 
       if condition == nil or condition(ifstats.id) then
 	 if((ifstats.type ~= "pcap dump") and (ifstats.type ~= "unknown")) then
@@ -97,6 +98,11 @@ end
 -- A batched iterator over the local hosts
 function callback_utils.getLocalHostsIterator(...)
    return getBatchedIterator(interface.getBatchedLocalHostsInfo, "hosts", { ... })
+end
+
+-- A batched iterator over the remote hosts
+function callback_utils.getRemoteHostsIterator(...)
+   return getBatchedIterator(interface.getBatchedRemoteHostsInfo, "hosts", { ... })
 end
 
 -- A batched iterator over the hosts (both local and remote)
@@ -189,42 +195,6 @@ function callback_utils.foreachLocalHost(ifname, deadline, callback)
    return true
 end
 
-function callback_utils.foreachSNMPDevice(callback)
-   if not ntop.isPro() or not callback then
-      return
-   end
-
-   local cbs = {}
-   local snmpdevs = get_snmp_devices()
-
-   if type(callback) == "function" then
-      cbs = {callback}
-   elseif type(callback) == "table" and callback[1] ~= nil then
-      cbs = callback
-   end
-
-   for _, device in pairs(snmpdevs) do
-      local snmp_device = require "snmp_device"
-      snmp_device.init(device["ip"])
-
-      for _, cb in ipairs(cbs) do
-	 if ntop.isShutdown() then
-	    return true
-	 end
-
-	 if isSNMPDeviceUnresponsive(device["ip"]) or is_snmp_polling_disabled(device["ip"]) then
-	    goto next_device
-	 end
-
-	 if not cb(snmp_device) then
-	    goto next_device
-	 end
-      end
-
-      ::next_device::
-   end
-end
-
 -- Iterates each device on the ifname interface.
 -- Each device is passed to the callback with some more information.
 function callback_utils.foreachDevice(ifname, deadline, callback)
@@ -251,19 +221,10 @@ end
 
 -- ########################################################
 
-function callback_utils.harverstOldRRDFiles(ifname)
-   -- currently this is only implemented for old devices files. It should actually be implemented for other rrds as well
-   local rrd_max_days = ntop.getPref("ntopng.prefs.rrd_files_retention")
-   if isEmptyString(rrd_max_days) then rrd_max_days = 30 end
-
-   ntop.deleteOldRRDs(getInterfaceId(ifname), tonumber(rrd_max_days) * 60 * 60 * 24)
-end
-
--- ########################################################
-
 function callback_utils.uploadTSdata()
    local ts_utils = require("ts_utils_core")
    local drivers = ts_utils.listActiveDrivers()
+   ts_utils.setup()
 
    for _, driver in ipairs(drivers) do
       driver:export()

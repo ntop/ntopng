@@ -10,12 +10,21 @@ allows you to retrieve and analyse all the raw traffic in that period of time.
 Enabling Traffic Recording
 --------------------------
 
+.. warning::
+
+  This is a beta feature. The dump format may change in future releases without
+  backward compatibility.
+
 *ntopng*, since version 3.7, includes support for continuous traffic recording 
 leveraging on *n2disk*, an optimized traffic recording application part of the 
 *ntop* suite available on Linux systems. For this reason, in order to be able to 
 enable this feature, both *ntopng* and *n2disk* need to be installed from packages
 according to your Linux distribution (we assume that you already configured the 
 `ntop repository <http://packages.ntop.org>`_ and have *ntopng* installed).
+
+.. warning::
+
+  This feature does not support Zero Copy (ZC) interfaces.
 
 *apt*
 
@@ -91,6 +100,30 @@ of the recording service, statistics about processed traffic, the log trace.
 
   The Traffic Recording Status Page
 
+External Traffic Recording Providers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+One can manage n2disk services manually using the command line. In
+this case, one can configure ntopng to bind to an external traffic
+recording provider. Traffic recording providers are configured from
+the interface settings page. A dropdown menu with the list of
+available recording providers is shown.
+
+
+.. figure:: img/web_gui_interfaces_recording_external_providers.png
+  :align: center
+  :scale: 50 %
+  :alt: Traffic Recording External Providers Selection
+
+  The Selection of External Traffic Recording Providers
+
+.. note::
+
+   In case n2disk processes are managed manually using configuration
+   files, ntopng will not show a settings tab nor it will allow any
+   configuration change. However, extractions will still be possible
+   as described in the following section.
+
 Traffic Extraction
 ------------------
 
@@ -99,8 +132,8 @@ extraction speed when recorded data need to be retrieved.
 It is possible to extract traffic from multiple places in *ntopng*, including the interface
 and the host *Historical Traffic Statistics* pages. 
 
-After enabling continuous traffic recording on an interface, a new *Extract pcap* button 
-appears at the top right corner of the *Historical Traffic Statistics* page.
+After enabling continuous traffic recording on an interface, a new button for extracting
+traffic appears at the top right corner of the *Historical Traffic Statistics* page.
 
 .. figure:: img/web_gui_interfaces_extract_pcap.png
   :align: center
@@ -115,7 +148,11 @@ appears at the top right corner of the *Historical Traffic Statistics* page.
   The Extract Pcap Button in the Host Historical Traffic Statistics Page
 
 By clicking on the button, a dialog box will let you run an extraction to retrieve the 
-traffic matching the time interval selected on the chart.
+traffic matching the time interval selected on the chart. It is possible to download the
+extracted traffic directly (this should be used when the expected amount of extracted 
+traffic is low) or queue the extraction job to process traffic in background (this should 
+be used for extractions taking too long, or to archive extracted data on the machine running 
+ntopng).
 
 .. figure:: img/web_gui_interfaces_extract_pcap_dialog.png
   :align: center
@@ -125,8 +162,8 @@ traffic matching the time interval selected on the chart.
   The Extract Pcap Dialog
 
 In addition to the time constraint, it is possible to configure a BPF-like filter, 
-to further reduce the extracted amount of data, by clicking on *Edit Filter*. The filter 
-format is described at `Packet Filtering <https://www.ntop.org/guides/n2disk/filters.html>`_.
+to further reduce the extracted amount of data, by clicking on the *Advanced*. button 
+The filter format is described at `Packet Filtering <https://www.ntop.org/guides/n2disk/filters.html>`_.
 
 .. figure:: img/web_gui_interfaces_extract_pcap_dialog_filter.png
   :align: center
@@ -135,7 +172,7 @@ format is described at `Packet Filtering <https://www.ntop.org/guides/n2disk/fil
 
   The Extract Pcap Dialog Filter
 
-The *Extract pcap* button is also available in several other places while browsing the
+The extraction button is also available in several other places while browsing the
 historical data, an example is the list of the *Top Receivers* or *Top Senders* available 
 at the bottom of the *Interface Historical Traffic Statistics* page. In this case, a button
 on the left side of the row lets you download the traffic matching a specific host in the
@@ -147,19 +184,10 @@ selected time interval.
 
   The Extract Pcap Button in the Top Receivers in the Interface Historical Traffic Statistics Page
 
-The dialog box in this case already contains a precomputed filter, that can be edited 
-by clicking on *Edit Filter* to refine the extraction.
-
-.. figure:: img/web_gui_interfaces_extract_pcap_dialog_filter_pre.png
-  :align: center
-  :scale: 40 %
-  :alt: Extract pcap dialog filter
-
-  The Extract Pcap Dialog Filter
-
-The *Start Extraction* button will schedule the extraction, that will be processed in background.
-It usually requires a few seconds, depending on a few factors, including: the time interval, the
-amount of recorded data, the extraction filter. 
+When an extraction job is scheduled for background processing by selecting the *Queue as Job* option, 
+ntopng extracts the traffic and creates new *pcap* files with the traffic. This usually requires a few 
+seconds, depending on a few factors, including: the time interval, the amount of recorded data, the 
+extraction filter. 
 
 A reference for the extraction job (a link to the *Traffic Extraction Jobs* page with the list of 
 scheduled extractions, and the extraction *ID*) is provided after starting the extraction, in order 
@@ -189,7 +217,7 @@ REST API
 The pcap file can also be downloaded directly through http, running a live extraction. 
 It is possible to use a command line tool such as `wget` or `curl` for this.
 The direct url for downloading the pcap is 
-:code:`http://<ntopng IP>:3000/lua/live_traffic_extraction.lua?ifid=<id>&epoch_begin=<epoch>&epoch_end=<epoch>[&bpf_filter=<filter>]`
+:code:`http://<ntopng IP>:3000/lua/rest/get/pcap/live_extraction.lua?ifid=<id>&epoch_begin=<epoch>&epoch_end=<epoch>[&bpf_filter=<filter>]`
 
 Where:
 
@@ -206,5 +234,5 @@ For example, to process the extracted traffic directly with `wireshark`, it is p
 
 .. code:: bash
 	  
-   curl -s --cookie "user=admin; password=admin" "http://192.168.1.1:3000/lua/live_traffic_extraction.lua?ifid=1&epoch_begin=1542183525&epoch_end=1542184200" | wireshark -k -i -
+   curl -s --cookie "user=admin; password=admin" "http://192.168.1.1:3000/lua/rest/get/pcap/live_extraction.lua?ifid=1&epoch_begin=1542183525&epoch_end=1542184200" | wireshark -k -i -
 

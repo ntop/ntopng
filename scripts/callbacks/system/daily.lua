@@ -7,10 +7,11 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 local lists_utils = require "lists_utils"
+local auth_sessions_utils = require "auth_sessions_utils"
 
 if(ntop.isPro()) then
    package.path = dirs.installdir .. "/pro/scripts/callbacks/system/?.lua;" .. package.path
-   pcall(require, 'daily')
+   require('daily')
 end
 
 -- ########################################################
@@ -19,4 +20,10 @@ end
 -- TODO: make 30 configurable
 harvestJSONTopTalkers(30)
 
-lists_utils.reloadListsNow()
+lists_utils.reloadLists()
+auth_sessions_utils.midnightCheck()
+
+if ntop.getPref("ntopng.prefs.midnight_stats_reset_enabled") == "1" then
+   -- Reset host/mac statistics
+   ntop.resetStats()
+end

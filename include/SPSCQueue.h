@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2014-18 - ntop.org
+ * (C) 2014-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -32,6 +32,7 @@ class SPSCQueue {
   Mutex *m;
     
  public:
+
   SPSCQueue(bool multi_consumer = false) {
     q = (spsc_queue_t *) calloc(1, sizeof(spsc_queue_t));
     if(q == NULL) throw 1;
@@ -47,6 +48,18 @@ class SPSCQueue {
   /* ************************************** */
 
   ~SPSCQueue() { free(q); if(m) delete m; }
+
+  /* ************************************** */
+
+  inline bool isNotEmpty() {
+    u_int32_t next_tail;
+    bool rc;
+    if(m) m->lock(__FILE__, __LINE__); 
+    next_tail = (q->shadow_tail + 1) & QUEUE_ITEMS_MASK;
+    rc = (next_tail != q->head);
+    if(m) m->unlock(__FILE__, __LINE__);
+    return(rc);
+  }
 
   /* ************************************** */
 

@@ -8,10 +8,16 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 local shaper_utils
 require "lua_utils"
 local have_nedge = ntop.isnEdge()
+local NfConfig = nil
 
 if ntop.isPro() then
    package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
    shaper_utils = require("shaper_utils")
+
+   if ntop.isnEdge() then
+      package.path = dirs.installdir .. "/scripts/lua/pro/nedge/modules/?.lua;" .. package.path
+      NfConfig = require("nf_config")
+   end
 end
 
 require "historical_utils"
@@ -224,7 +230,7 @@ else
 
    ifstats = interface.getStats()
    print("<table class=\"table table-bordered table-striped\">\n")
-   if (ifstats.vlan and (flow["vlan"] ~= nil)) then
+   if ifstats.vlan and flow["vlan"] > 0 then
       print("<tr><th width=30%>")
       if(ifstats.sprobe) then
 	 print(i18n("details.source_id"))
@@ -237,7 +243,7 @@ else
 
    print("<tr><th width=30%>"..i18n("flow_details.flow_peers_client_server").."</th><td colspan=2>"..getFlowLabel(flow, true, true).."</td></tr>\n")
 
-   print("<tr><th width=30%>"..i18n("db_explorer.l4_proto").." / "..i18n("application").."</th>")
+   print("<tr><th width=30%>"..i18n("protocol").." / "..i18n("application").."</th>")
    if((ifstats.inline and flow["verdict.pass"]) or (flow.vrfId ~= nil)) then
       print("<td>")
    else
@@ -304,6 +310,13 @@ else
          printFlowQuota(ifstats.id, flow, false --[[ server ]])
          print("</td>")
          print("</tr>")
+      end
+
+      -- ENABLE MARKER DEBUG
+      if ntop.isnEdge() and false then
+        print("<tr><th width=30%>"..i18n("flow_details.flow_marker").."</th>")
+        print("<td colspan=2>".. NfConfig.formatMarker(flow["marker"]) .."</td>")
+        print("</tr>")
       end
 
       local status_info = flow2statusinfo(flow)
@@ -765,14 +778,16 @@ print [[/lua/flow_stats.lua',
 			$('#srv2cli').html(addCommas(rsp["srv2cli.packets"])+" Pkts / "+bytesToVolume(rsp["srv2cli.bytes"]));
 			$('#throughput').html(rsp.throughput);
 
-			$('#c2sOOO').html(formatPackets(rsp["c2sOOO"]));
-			$('#s2cOOO').html(formatPackets(rsp["s2cOOO"]));
-			$('#c2slost').html(formatPackets(rsp["c2slost"]));
-			$('#s2clost').html(formatPackets(rsp["s2clost"]));
-			$('#c2skeep_alive').html(formatPackets(rsp["c2skeep_alive"]));
-			$('#s2ckeep_alive').html(formatPackets(rsp["s2ckeep_alive"]));
-			$('#c2sretr').html(formatPackets(rsp["c2sretr"]));
-			$('#s2cretr').html(formatPackets(rsp["s2cretr"]));
+			if(typeof rsp["c2sOOO"] !== "undefined") {
+			   $('#c2sOOO').html(formatPackets(rsp["c2sOOO"]));
+			   $('#s2cOOO').html(formatPackets(rsp["s2cOOO"]));
+			   $('#c2slost').html(formatPackets(rsp["c2slost"]));
+			   $('#s2clost').html(formatPackets(rsp["s2clost"]));
+			   $('#c2skeep_alive').html(formatPackets(rsp["c2skeep_alive"]));
+			   $('#s2ckeep_alive').html(formatPackets(rsp["s2ckeep_alive"]));
+			   $('#c2sretr').html(formatPackets(rsp["c2sretr"]));
+			   $('#s2cretr').html(formatPackets(rsp["s2cretr"]));
+			}
 			if (rsp["cli2srv_quota"]) $('#cli2srv_quota').html(rsp["cli2srv_quota"]);
 			if (rsp["srv2cli_quota"]) $('#srv2cli_quota').html(rsp["srv2cli_quota"]);
 

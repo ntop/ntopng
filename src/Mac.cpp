@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-18 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -24,17 +24,22 @@
 /* *************************************** */
 
 Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6])
-  : GenericHashEntry(_iface), GenericTrafficElement() {
+  : GenericHashEntry(_iface) {
   memcpy(mac, _mac, 6);
-  memset(&arp_stats, 0, sizeof(arp_stats));
   special_mac = Utils::isSpecialMac(mac);
   source_mac = false, fingerprint = NULL, dhcpHost = false;
   bridge_seen_iface_id = 0, lockDeviceTypeChanges = false;
+  memset(&names, 0, sizeof(names));
   device_type = device_unknown, os = os_unknown;
+  host_pool_id = NO_HOST_POOL_ID;
 #ifdef NTOPNG_PRO
   captive_portal_notified = 0;
 #endif
-  ndpiStats = NULL, model = NULL, ssid = NULL;
+  model = NULL, ssid = NULL;
+  stats_reset_requested = data_delete_requested = false;
+  stats = new MacStats(_iface);
+  stats_shadow = NULL;
+  last_stats_reset = ntop->getLastStatsReset(); /* assume fresh stats, may be changed by deserialize */
 
   char redis_key[64], buf1[64], rsp[8];
   char *mac_ptr = Utils::formatMac(mac, buf1, sizeof(buf1));
@@ -91,6 +96,8 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6])
   if((ntop->getRedis()->get(redis_key, rsp, sizeof(rsp)) == 0) && rsp[0])
     forceDeviceType((DeviceType)atoi(rsp));
 
+  readDHCPCache();
+
   updateHostPool(true /* Inline */);
 }
 
@@ -102,11 +109,17 @@ Mac::~Mac() {
 
   if(!special_mac) {
     char key[64], buf1[64];
-    char *json = serialize();
 
     snprintf(key, sizeof(key), MAC_SERIALIZED_KEY, iface->get_id(), Utils::formatMac(mac, buf1, sizeof(buf1)));
-    ntop->getRedis()->set(key, json, ntop->getPrefs()->get_local_host_cache_duration());
-    free(json);
+
+    if(data_delete_requested) {
+      ntop->getTrace()->traceEvent(TRACE_INFO, "Delete serialization %s", key);
+      ntop->getRedis()->del(key);
+    } else {
+      char *json = serialize();
+      ntop->getRedis()->set(key, json, ntop->getPrefs()->get_local_host_cache_duration());
+      free(json);
+    }
   }
 
   /* Pool counters are updated both in and outside the datapath.
@@ -130,16 +143,12 @@ Mac::~Mac() {
 			       iface->getHostPools()->getNumPoolL2Devices(get_host_pool()));
 #endif
 
-  if(model) free((void*)model);
-  if(ssid) free((void*)ssid);
-  
-  if(ndpiStats) {
-    delete ndpiStats;
-    ndpiStats = NULL;
-  }
-
-  if(fingerprint)
-    free(fingerprint);
+  if(model) free(model);
+  if(ssid) free(ssid);
+  if(fingerprint) free(fingerprint);
+  freeMacData();
+  if(stats) delete(stats);
+  if(stats_shadow) delete(stats_shadow);
 
 #ifdef DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deleted %s [total %u][%s]",
@@ -198,21 +207,15 @@ void Mac::lua(lua_State* vm, bool show_details, bool asListElement) {
     if(manuf)
       lua_push_str_table_entry(vm, "manufacturer", (char*)manuf);
 
-    lua_push_uint64_table_entry(vm, "arp_requests.sent", arp_stats.sent_requests);
-    lua_push_uint64_table_entry(vm, "arp_requests.rcvd", arp_stats.rcvd_requests);
-    lua_push_uint64_table_entry(vm, "arp_replies.sent", arp_stats.sent_replies);
-    lua_push_uint64_table_entry(vm, "arp_replies.rcvd", arp_stats.rcvd_replies);
-
     lua_push_bool_table_entry(vm, "source_mac", source_mac);
     lua_push_bool_table_entry(vm, "special_mac", special_mac);
     lua_push_str_table_entry(vm, "location", (char *) location2str(locate()));
     lua_push_uint64_table_entry(vm, "devtype", device_type);
     if(model) lua_push_str_table_entry(vm, "model", (char*)model);
     if(ssid) lua_push_str_table_entry(vm, "ssid", (char*)ssid);
-    if(ndpiStats) ndpiStats->lua(iface, vm, true);
   }
 
-  ((GenericTrafficElement*)this)->lua(vm, true);
+  stats->lua(vm, show_details);
 
   lua_push_bool_table_entry(vm, "dhcpHost", dhcpHost);
   lua_push_str_table_entry(vm, "fingerprint", fingerprint ? fingerprint : (char*)"");
@@ -282,16 +285,24 @@ void Mac::deserialize(char *key, char *json_str) {
 
   if(json_object_object_get_ex(o, "seen.first", &obj))  first_seen = json_object_get_int64(obj);
   if(json_object_object_get_ex(o, "seen.last", &obj))   last_seen = json_object_get_int64(obj);
+  if(json_object_object_get_ex(o, "last_stats_reset", &obj)) last_stats_reset = json_object_get_int64(obj);
   if(json_object_object_get_ex(o, "devtype", &obj))     device_type = (DeviceType)json_object_get_int(obj);
-  if(json_object_object_get_ex(o, "model", &obj))       setModel((char*)json_object_get_string(obj));
-  if(json_object_object_get_ex(o, "ssid", &obj))        setSSID((char*)json_object_get_string(obj));
-  if(json_object_object_get_ex(o, "fingerprint", &obj)) setFingerprint((char*)json_object_get_string(obj));
+  if(json_object_object_get_ex(o, "model", &obj))       inlineSetModel((char*)json_object_get_string(obj));
+  if(json_object_object_get_ex(o, "ssid", &obj))        inlineSetSSID((char*)json_object_get_string(obj));
+  if(json_object_object_get_ex(o, "fingerprint", &obj)) inlineSetFingerprint((char*)json_object_get_string(obj));
   if(json_object_object_get_ex(o, "operatingSystem", &obj)) setOperatingSystem((OperatingSystem)json_object_get_int(obj));
   if(json_object_object_get_ex(o, "dhcpHost", &obj))    dhcpHost = json_object_get_boolean(obj);
-  if(ndpiStats && json_object_object_get_ex(o, "ndpiStats", &obj)) ndpiStats->deserialize(iface, obj);
-  if(json_object_object_get_ex(o, "flows.dropped", &obj)) total_num_dropped_flows = json_object_get_int(obj);
+
+  stats->deserialize(o);
 
   json_object_put(o);
+  checkStatsReset();
+}
+
+/* *************************************** */
+
+bool Mac::statsResetRequested() {
+  return(stats_reset_requested || (last_stats_reset < ntop->getLastStatsReset()));
 }
 
 /* *************************************** */
@@ -305,14 +316,16 @@ json_object* Mac::getJSONObject() {
   json_object_object_add(my_object, "mac", json_object_new_string(Utils::formatMac(get_mac(), buf, sizeof(buf))));
   json_object_object_add(my_object, "seen.first", json_object_new_int64(first_seen));
   json_object_object_add(my_object, "seen.last",  json_object_new_int64(last_seen));
+  json_object_object_add(my_object, "last_stats_reset",  json_object_new_int64(last_stats_reset));
   json_object_object_add(my_object, "devtype", json_object_new_int(device_type));
   if(model) json_object_object_add(my_object, "model", json_object_new_string(model));
   if(ssid) json_object_object_add(my_object, "ssid", json_object_new_string(ssid));
   json_object_object_add(my_object, "dhcpHost", json_object_new_boolean(dhcpHost));
   json_object_object_add(my_object, "operatingSystem", json_object_new_int(os));
   if(fingerprint) json_object_object_add(my_object, "fingerprint", json_object_new_string(fingerprint));
-  if(ndpiStats) json_object_object_add(my_object, "ndpiStats", ndpiStats->getJSONObject(iface));
-  if(total_num_dropped_flows) json_object_object_add(my_object, "flows.dropped", json_object_new_int(total_num_dropped_flows));
+
+  if(!statsResetRequested())
+    stats->getJSONObject(my_object);
 
   return my_object;
 }
@@ -423,6 +436,18 @@ void Mac::updateFingerprint() {
 
 /* *************************************** */
 
+char * Mac::getDHCPName(char * const buf, ssize_t buf_size) {
+  if(buf && buf_size) {
+    m.lock(__FILE__, __LINE__);
+    snprintf(buf, buf_size, "%s", names.dhcp ? names.dhcp : "");
+    m.unlock(__FILE__, __LINE__);
+  }
+
+  return buf;
+}
+
+/* *************************************** */
+
 void Mac::checkDeviceTypeFromManufacturer() {
   if(isNull())
     return;
@@ -459,21 +484,100 @@ void Mac::checkDeviceTypeFromManufacturer() {
 
 /* *************************************** */
 
-void Mac::setModel(char* m) {
-  if(model) free((void*)model);
-  model = strdup(m);
+void Mac::inlineSetModel(const char * const the_model) {
+  if(!model && the_model && (model = strdup(the_model))) {
+    if(strstr(model, "AppleTV") != NULL) setDeviceType(device_multimedia);
+    else if(strstr(model, "MacBook") != NULL) setDeviceType(device_laptop);
+    else if(strstr(model, "AirPort") != NULL) setDeviceType(device_wifi);
+    else if(strstr(model, "Mac")     != NULL) setDeviceType(device_workstation);
+    else if(strstr(model, "TimeCapsule") != NULL) setDeviceType(device_nas);
+  }
+}
+/* *************************************** */
 
-  if(strstr(model, "AppleTV") != NULL) setDeviceType(device_multimedia);
-  else if(strstr(model, "MacBook") != NULL) setDeviceType(device_laptop);
-  else if(strstr(model, "AirPort") != NULL) setDeviceType(device_wifi);
-  else if(strstr(model, "Mac")     != NULL) setDeviceType(device_workstation);
-  else if(strstr(model, "TimeCapsule") != NULL) setDeviceType(device_nas);
+void Mac::inlineSetFingerprint(const char * const f) {
+  if(!fingerprint && f && (fingerprint = strdup(f)))
+    updateFingerprint();
 }
 
 /* *************************************** */
 
-void Mac::setSSID(char* s) {
-  if(ssid) free((void*)ssid);
-  ssid = strdup(s);
-  setDeviceType(device_wifi);
+void Mac::inlineSetSSID(const char * const s) {
+  if(!ssid && s && (ssid = strdup(s)))
+    setDeviceType(device_wifi);
+}
+
+/* *************************************** */
+
+void Mac::inlineSetDHCPName(const char * const dhcp_name) {
+  if(!names.dhcp && dhcp_name && (names.dhcp = strdup(dhcp_name)))
+    ;
+}
+
+/* *************************************** */
+
+void Mac::checkDataReset() {
+  if(data_delete_requested) {
+    deleteMacData();
+    data_delete_requested = false;
+  }
+}
+
+/* *************************************** */
+
+void Mac::checkStatsReset() {
+  if(statsResetRequested()) {
+    MacStats *new_stats = new MacStats(iface);
+    stats_shadow = stats;
+    stats = new_stats;
+    last_stats_reset = ntop->getLastStatsReset();
+    stats_reset_requested = false;
+  }
+}
+
+/* *************************************** */
+
+void Mac::updateStats(struct timeval *tv) {
+  checkDataReset();
+  checkStatsReset();
+  stats->updateStats(tv);
+}
+
+/* *************************************** */
+
+void Mac::readDHCPCache() {
+  /* Check DHCP cache */
+  char mac_str[24], buf[64], key[CONST_MAX_LEN_REDIS_KEY];
+
+  if(!names.dhcp && !isNull()) {
+    Utils::formatMac(get_mac(), mac_str, sizeof(mac_str));
+
+    snprintf(key, sizeof(key), DHCP_CACHE, iface->get_id());
+
+    if(ntop->getRedis()->hashGet(key, mac_str, buf, sizeof(buf)) == 0) {
+      names.dhcp = strdup(buf);
+    }
+  }
+}
+
+/* *************************************** */
+
+void Mac::freeMacData() {
+  // TODO: allow fingerprint, ssid, and model to be resettable
+  if(names.dhcp) { free(names.dhcp); names.dhcp = NULL; }
+}
+
+/* *************************************** */
+
+void Mac::deleteMacData() {
+  m.lock(__FILE__, __LINE__);
+  freeMacData();
+  m.unlock(__FILE__, __LINE__);
+  os = os_unknown;
+  source_mac = dhcpHost = false;
+  device_type = device_unknown;
+#ifdef NTOPNG_PRO
+  captive_portal_notified = false;
+#endif
+  first_seen = last_seen;
 }

@@ -48,8 +48,7 @@ function row_update(host_key) {
     type: 'GET',
     url: url,
     cache: false,
-    success: function(content) {
-      var data = jQuery.parseJSON(content);
+    success: function(data) {
       // console.log(url);
       // console.log(data);
       $('td[id="'+host_key+'_since"]').html(data.column_since);

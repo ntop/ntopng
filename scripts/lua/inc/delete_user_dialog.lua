@@ -21,7 +21,7 @@ print [[
 
   <form id="form_delete_user" class="form-horizontal" method="post" action="delete_user.lua">
 			      ]]
-print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+print('<input name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 
 local location_href = ntop.getHttpPrefix().."/lua/admin/users.lua"
 

@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-18 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -26,15 +26,17 @@
 
 class TrafficStats {
  private:
-  u_int64_t numPkts, numBytes;
+  MonitoredCounter<u_int64_t> numPkts, numBytes;
 
  public:
   TrafficStats();
   
-  inline void incStats(u_int64_t num_pkts, u_int64_t num_bytes) { numPkts += num_pkts, numBytes += num_bytes; };  
-  inline void incStats(u_int pkt_len)       { numPkts++, numBytes += pkt_len; };
-  inline u_int64_t getNumPkts()             { return(numPkts);                };
-  inline u_int64_t getNumBytes()            { return(numBytes);               };
+  inline void incStats(time_t t, u_int64_t num_pkts, u_int64_t num_bytes) { numPkts.inc(t, num_pkts), numBytes.inc(t, num_bytes); };  
+  inline void resetStats()                  { numPkts.reset(), numBytes.reset(); };
+  inline u_int64_t getNumPkts()             { return(numPkts.get());             };
+  inline u_int64_t getNumBytes()            { return(numBytes.get());            };
+  inline u_int64_t getPktsAnomaly()         { return(numPkts.getAnomalyIndex()); };
+  inline u_int64_t getBytesAnomaly()        { return(numBytes.getAnomalyIndex());};
   void printStats();
 
   char* serialize();

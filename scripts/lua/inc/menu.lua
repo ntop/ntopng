@@ -9,6 +9,8 @@ require "lua_utils"
 local recording_utils = require "recording_utils"
 local remote_assistance = require "remote_assistance"
 
+local is_admin = isAdministrator()
+
 print[[
 <script>
    /* Some localization strings to pass from lua to javacript */
@@ -18,6 +20,7 @@ print[[
       "no_data_available": "]] print(i18n("no_data_available")) print[[",
       "showing_x_to_y_rows": "]] print(i18n("showing_x_to_y_rows", {x="{0}", y="{1}", tot="{2}"})) print[[",
       "actions": "]] print(i18n("actions")) print[[",
+      "query_was_aborted": "]] print(i18n("graphs.query_was_aborted")) print[[",
    };
 
    var http_prefix = "]] print(ntop.getHttpPrefix()) print[[";
@@ -114,7 +117,7 @@ if(ntop.isPro()) then
   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/report.lua"><i class="fa fa-area-chart"></i> ') print(i18n("report.traffic_report")) print('</a></li>')
 end
 
-if ntop.isPro() and prefs.is_dump_flows_to_mysql_enabled then
+if ntop.isPro() and prefs.is_dump_flows_to_mysql_enabled and not ifs.isView then
   print('<li class="divider"></li>')
   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/db_explorer.lua?ifid='..ifId..'"><i class="fa fa-history"></i> ') print(i18n("db_explorer.historical_data_explorer")) print('</a></li>')
 end
@@ -418,16 +421,16 @@ print [[
       </a>
     <ul class="dropdown-menu">]]
 
-user_group = ntop.getUserGroup()
-
-if(user_group == "administrator") then
-  print[[<li><a href="]] print(ntop.getHttpPrefix())
-  print[[/lua/admin/users.lua"><i class="fa fa-user"></i> ]] print(i18n("manage_users.manage_users")) print[[</a></li>]]
-else
-  print [[<li><a href="#password_dialog"  data-toggle="modal"><i class="fa fa-user"></i> ]] print(i18n("login.change_password")) print[[</a></li>]]
+if _SESSION["localuser"] then
+   if(is_admin) then
+     print[[<li><a href="]] print(ntop.getHttpPrefix())
+     print[[/lua/admin/users.lua"><i class="fa fa-user"></i> ]] print(i18n("manage_users.manage_users")) print[[</a></li>]]
+   else
+     print [[<li><a href="#password_dialog"  data-toggle="modal"><i class="fa fa-user"></i> ]] print(i18n("login.change_password")) print[[</a></li>]]
+   end
 end
 
-if(user_group == "administrator") then
+if(is_admin) then
    print("<li><a href=\""..ntop.getHttpPrefix().."/lua/admin/prefs.lua\"><i class=\"fa fa-flask\"></i> ") print(i18n("prefs.preferences")) print("</a></li>\n")
 
    if remote_assistance.isAvailable() then
@@ -439,10 +442,9 @@ if(user_group == "administrator") then
       if(false) then
 	 print("<li><a href=\""..ntop.getHttpPrefix().."/lua/pro/admin/list_reports.lua\"><i class=\"fa fa-archive\"></i> Reports Archive</a></li>\n")
       end
-
-      print("<li><a href=\""..ntop.getHttpPrefix().."/lua/admin/edit_ndpi_applications.lua\"><i class=\"fa fa-tags\"></i> ") print(i18n("protocols")) print("</a></li>\n")
-      print("<li><a href=\""..ntop.getHttpPrefix().."/lua/admin/edit_categories.lua\"><i class=\"fa fa-sticky-note\"></i> ") print(i18n("users.categories")) print("</a></li>\n")
    end
+
+   print("<li><a href=\""..ntop.getHttpPrefix().."/lua/admin/edit_categories.lua\"><i class=\"fa fa-tags\"></i> ") print(i18n("users.categories")) print("</a></li>\n")
 
    local device_protocols_alerts = _POST["toggle_device_protocols_alerts"] or ntop.getPref("ntopng.prefs.device_protocols_alerts")
    if (device_protocols_alerts == "1") then
@@ -450,16 +452,17 @@ if(user_group == "administrator") then
    end
 end
 
-
-print [[
+if _SESSION["localuser"] or is_admin then
+   print [[
       <li class="divider"></li>]]
+end
 
 print [[
       <li><a href="]]
 print(ntop.getHttpPrefix())
 print [[/lua/manage_data.lua"><i class="fa fa-share"></i> ]] print(i18n("manage_data.manage_data")) print[[</a></li>]]
 
-if(user_group == "administrator") then
+if(is_admin) then
   print [[
       <li><a href="]]
   print(ntop.getHttpPrefix())
@@ -491,7 +494,7 @@ print [[/lua/logout.lua"><i class="fa fa-sign-out"></i> ]] print(i18n("login.log
 end
 
 
-if(user_group ~= "administrator") then
+if(not is_admin) then
    dofile(dirs.installdir .. "/scripts/lua/inc/password_dialog.lua")
 end
 print("<li>")
@@ -526,4 +529,9 @@ if(dirs.workingdir == "/var/tmp/ntopng") then
    print(i18n("about.datadir_warning"))
    print('</a></div>')
 end
+
+-- Hidden by default, will be shown by the footer if necessary
+print('<br><div id="move-rrd-to-influxdb" class="alert alert-warning" style="display:none" role="alert"><i class="fa fa-warning fa-lg" id="alerts-menu-triangle"></i> ')
+print(i18n("about.influxdb_migration_msg", {url="https://www.ntop.org/ntopng/ntopng-and-time-series-from-rrd-to-influxdb-new-charts-with-time-shift/"}))
+print('</div>')
 

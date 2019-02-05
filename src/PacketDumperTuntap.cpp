@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2015-18 - ntop.org
+ * (C) 2015-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -71,7 +71,7 @@ int PacketDumperTuntap::openTap(char *dev, /* user-definable interface name, eg.
   memset(&ifr, 0, sizeof(ifr));
   ifr.ifr_flags = IFF_TAP|IFF_NO_PI; /* Want a TAP device for layer 2 frames. */
   if(dev)
-    strncpy(ifr.ifr_name, dev, IFNAMSIZ);
+    strncpy(ifr.ifr_name, dev, IFNAMSIZ-1);
 
   rc = ioctl(fd, TUNSETIFF, (void *)&ifr);
   if(rc < 0) {
@@ -83,8 +83,9 @@ int PacketDumperTuntap::openTap(char *dev, /* user-definable interface name, eg.
   }
 
   /* Store the device name for later reuse */
-  strncpy(dev_name, ifr.ifr_name,
-          (IFNAMSIZ < DUMP_IFNAMSIZ ? IFNAMSIZ : DUMP_IFNAMSIZ) );
+  int size = (IFNAMSIZ < DUMP_IFNAMSIZ ? IFNAMSIZ : DUMP_IFNAMSIZ);
+  strncpy(dev_name, ifr.ifr_name, size);
+  dev_name[size-1] = '\0';
   snprintf(buf, sizeof(buf), "/sbin/ifconfig %s up mtu %d",
            ifr.ifr_name, DUMP_MTU);
   rc = system(buf);
@@ -179,7 +180,7 @@ void PacketDumperTuntap::up() {
 
   memset(&ifr, 0, sizeof ifr);
 
-  strncpy(ifr.ifr_name, dev_name, IFNAMSIZ);
+  strncpy(ifr.ifr_name, dev_name, IFNAMSIZ-1);
 
   ifr.ifr_flags |= IFF_UP;
   if(ioctl(sockfd, SIOCSIFFLAGS, &ifr) < 0)

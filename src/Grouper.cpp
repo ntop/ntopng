@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2015-18 - ntop.org
+ * (C) 2015-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -45,6 +45,8 @@ Grouper::~Grouper(){
 /* *************************************** */
 
 bool Grouper::inGroup(Host *h) {
+  char buf[64], *c;
+
   if(h == NULL || group_id_set == false)
     return false;
 
@@ -67,15 +69,17 @@ bool Grouper::inGroup(Host *h) {
 
   case column_country:
     {
-      char buf[32], *c = h->get_country(buf, sizeof(buf));
+      c = h->get_country(buf, sizeof(buf));
       return (strcmp(group_id_s, c) == 0) ? true : false;
     }
     break;
     
   case column_os:
-    return h->get_os() ?
-      !strcmp(group_id_s, h->get_os()) :
-      !strcmp(group_id_s, (char*)UNKNOWN_OS);
+    {
+      c = h->get_os(buf, sizeof(buf));
+      return (strcmp(group_id_s, c) == 0) ? true : false;
+    }
+    break;
 
   default:
     return false;
@@ -85,7 +89,7 @@ bool Grouper::inGroup(Host *h) {
 /* *************************************** */
 
 int8_t Grouper::newGroup(Host *h) {
-  char buf[32];
+  char buf[64], *c;
 
   if(h == NULL)
     return -1;
@@ -136,7 +140,7 @@ int8_t Grouper::newGroup(Host *h) {
 
   case column_country:
     {
-      char buf[32], *c = h->get_country(buf, sizeof(buf));
+      c = h->get_country(buf, sizeof(buf));
       
       group_id_s  = strdup(c);
       group_label = strdup(group_id_s);
@@ -144,7 +148,8 @@ int8_t Grouper::newGroup(Host *h) {
     break;
 
   case column_os:
-    group_id_s  = strdup(h->get_os() ? h->get_os() : (char*)UNKNOWN_OS);
+    c = h->get_os(buf, sizeof(buf));
+    group_id_s  = strdup(c);
     group_label = strdup(group_id_s);
     break;
 
@@ -179,7 +184,10 @@ int8_t Grouper::incStats(Host *h) {
   if(h->get_last_seen() > stats.last_seen)
     stats.last_seen = h->get_last_seen();  
  
-  if(c) strncpy(stats.country, c, sizeof(stats.country));
+  if(c) {
+    strncpy(stats.country, c, sizeof(stats.country));
+    stats.country[sizeof(stats.country) - 1] = '\0';
+  }
 
   return 0;
 }

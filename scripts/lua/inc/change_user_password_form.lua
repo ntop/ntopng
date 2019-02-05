@@ -19,7 +19,7 @@ print [[
 
   <form id="form_password_reset" class="form-horizontal" method="post" action="]]  print(ntop.getHttpPrefix())  print[[/lua/admin/password_reset.lua" accept-charset="UTF-8">
 			   ]]
-print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+print('<input name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 
 local user = ""
 if (_SESSION["user"] ~= nil) then

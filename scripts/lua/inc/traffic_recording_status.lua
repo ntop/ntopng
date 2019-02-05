@@ -12,16 +12,22 @@ if((not isAdministrator()) or (not recording_utils.isAvailable())) then
 end
 
 local ifstats = interface.getStats()
-local storage_info = recording_utils.storageInfo(ifstats.id)
 local enabled = false
 local running = false
 local restart_req = false
+local custom_provider = (recording_utils.getCurrentTrafficRecordingProvider(ifstats.id) ~= "ntopng")
+local extraction_checks_ok, extraction_checks_msg
 
 if _POST["action"] ~= nil and _POST["action"] == "restart" then
   restart_req = true
 end
 
-if recording_utils.isEnabled(ifstats.id) then
+if custom_provider then
+   enabled = true
+   running = recording_utils.isActive(ifstats.id)
+   extraction_checks_ok, extraction_checks_msg = recording_utils.checkExtraction(ifstats.id)
+
+elseif recording_utils.isEnabled(ifstats.id) then
   enabled = true
   if recording_utils.isActive(ifstats.id) then
     running = true
@@ -47,11 +53,13 @@ if running then
 elseif enabled then
   print("<span style='float: left'>"..i18n("traffic_recording.failure")..". "..i18n("traffic_recording.failure_note").."</span>")
 
-  print[[<form style="display:inline" id="restart_rec_form" method="post">
+  if not custom_provider then
+     print[[<form style="display:inline" id="restart_rec_form" method="post">
     <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[" />
     <input type="hidden" name="action" value="restart" />
 </form>]]
-  print(" <small><a href='#' onclick='$(\"#restart_rec_form\").submit(); return false;' title='' data-original-title='"..i18n("traffic_recording.restart_service").."'></small>&nbsp;<i class='fa fa-repeat fa-lg' aria-hidden='true' data-original-title='' title=''></i></a>")
+     print(" <small><a href='#' onclick='$(\"#restart_rec_form\").submit(); return false;' title='' data-original-title='"..i18n("traffic_recording.restart_service").."'></small>&nbsp;<i class='fa fa-repeat fa-lg' aria-hidden='true' data-original-title='' title=''></i></a>")
+  end
 else
   print(i18n("traffic_recording.disabled"))
 end
@@ -76,15 +84,6 @@ if stats ~= nil then
     start_time = os.time()-uptime
   end
 
-  if start_time ~= nil then
-    print("<tr><th nowrap>"..i18n("traffic_recording.active_since").."</th><td>"..formatEpoch(start_time))
-    if (start_time ~= nil) and (first_epoch ~= nil) and (start_time > first_epoch) then
-      print(' - <i class="fa fa-warning"></i> ')
-      print(i18n("traffic_recording.missing_data_msg"))
-    end
-    print("</td></tr>\n")
-  end
-
   if stats['FirstDumpedEpoch'] ~= nil then
     print("<tr><th width='15%' nowrap>"..i18n("traffic_recording.dump_window").."</th><td>")
     if first_epoch ~= nil and last_epoch ~= nil and 
@@ -96,6 +95,15 @@ if stats ~= nil then
     print("</td></tr>\n")
   end
 
+  if start_time ~= nil then
+    print("<tr><th nowrap>"..i18n("traffic_recording.active_since").."</th><td>"..formatEpoch(start_time))
+    if (start_time ~= nil) and (first_epoch ~= nil) and (first_epoch > 0) and (start_time > first_epoch) then
+      print(' - <i class="fa fa-warning"></i> ')
+      print(i18n("traffic_recording.missing_data_msg"))
+    end
+    print("</td></tr>\n")
+  end
+
   if stats['Bytes'] ~= nil and stats['Packets'] ~= nil then
     print("<tr><th nowrap>"..i18n("if_stats_overview.received_traffic").."</th><td>"..bytesToSize(stats['Bytes']).." ["..formatValue(stats['Packets']).." "..i18n("pkts").."]</td></tr>\n")
   end
@@ -103,6 +111,16 @@ if stats ~= nil then
   if stats['Dropped'] ~= nil then
     print("<tr><th nowrap>"..i18n("if_stats_overview.dropped_packets").."</th><td>"..stats['Dropped'].." "..i18n("pkts").."</td></tr>\n")
   end
+end
+
+if custom_provider then
+   local warn = ''
+
+   if not extraction_checks_ok then
+      warn = '<i class="fa fa-warning"></i> '
+   end
+
+   print("<tr><th nowrap>"..i18n("traffic_recording.traffic_extractions").."</th><td>"..warn..extraction_checks_msg.."</td></tr>\n")
 end
 
 print("<tr><th nowrap>"..i18n("about.last_log").."</th><td><code>\n")

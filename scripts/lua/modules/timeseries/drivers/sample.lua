@@ -82,6 +82,18 @@ end
 function driver:delete(schema_prefix, tags)
 end
 
+--! @brief Delete old data.
+--! @param ifid: the interface ID to process
+--! @return true if operation was successful, false otherwise.
+function driver:deleteOldData(ifid)
+end
+
+--! @brief This is called when some driver configuration changes.
+--! @param ts_utils: a reference to the ts_utils module
+--! @return true if operation was successful, false otherwise.
+function driver:setup(ts_utils)
+end
+
 -- ##############################################
 
 return driver

@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-18 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -33,41 +33,29 @@ static void* queryLoop(void* ptr) {
 
 void* MySQLDB::queryLoop() {
   Redis *r = ntop->getRedis();
-  MYSQL mysql_alt;
   char sql[CONST_MAX_SQL_QUERY_LEN];
+  bool queue_not_empty = false;
 
   while(!ntop->getGlobals()->isShutdown()
 	&& !MySQLDB::isDbCreated() /* wait until the db has been created */) {
     sleep(1);
   }
 
-  if(ntop->getGlobals()->isShutdown() || !connectToDB(&mysql_alt, true))
+  if(ntop->getGlobals()->isShutdown() || !mysql_alt_connected)
     return(NULL);
 
-  while(!ntop->getGlobals()->isShutdown()) {
+  while(isRunning() || queue_not_empty) {
     int rc = r->lpop(CONST_SQL_QUEUE, sql, sizeof(sql));
 
     if(rc == 0) {
-      if (strlen(sql) >= CONST_MAX_SQL_QUERY_LEN - 1){
-	ntop->getTrace()->traceEvent(TRACE_WARNING,
-				     "Tried to execute a query longer than %u. Skipping.",
-				     CONST_MAX_SQL_QUERY_LEN - 2);
-	continue;  // prevents overflown queries to generate mysql errors
-      } else if((rc = exec_sql_query(&mysql_alt, sql, true /* Attempt to reconnect */, true /* Don't print errors */, false)) < 0) {
-	ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s [rc=%d]", get_last_db_error(&mysql_alt), rc);
-	ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", sql);
-
-	/* Don't give up, manually re-connect */
-	disconnectFromDB(&mysql_alt);
-	if(!connectToDB(&mysql_alt, true)) _usleep(100);
-      } else {
-	mysqlExportedFlows++;
-      }
-    } else
-      sleep(1);    
+      queue_not_empty = true;
+      try_exec_sql_query(&mysql_alt, sql);
+    } else {
+      queue_not_empty = false;
+      _usleep(10000);
+    }
   }
 
-  disconnectFromDB(&mysql_alt);
   return(NULL);
 }
 
@@ -473,54 +461,77 @@ bool MySQLDB::createNprobeDBView() {
 /* ******************************************* */
 
 MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
-  mysqlDroppedFlows = 0;
-  mysqlExportedFlows = 0, mysqlLastExportedFlows = 0;
-  mysqlExportRate = 0;
-  checkpointDroppedFlows = checkpointExportedFlows = 0;
-  lastUpdateTime.tv_sec = 0, lastUpdateTime.tv_usec = 0;
+  mysqlEnqueuedFlows = 0;
+  log_fd = NULL;
+  open_log();
+
   connectToDB(&mysql, false);
+  mysql_alt_connected = connectToDB(&mysql_alt, true);
 }
 
 /* ******************************************* */
 
 MySQLDB::~MySQLDB() {
+  shutdown();
+  disconnectFromDB(&mysql_alt);
   disconnectFromDB(&mysql);
+
+  if(log_fd) fclose(log_fd);
 }
 
 /* ******************************************* */
 
-void MySQLDB::startDBLoop() {
+void MySQLDB::open_log() {
+  static char sql_log_path[MAX_PATH];
+
+  if(ntop->getPrefs()->is_sql_log_enabled()) {
+    snprintf(sql_log_path, sizeof(sql_log_path), "%s/%d/ntopng_sql.log",
+	     ntop->get_working_dir(), iface->get_id());
+
+    log_fd = fopen(sql_log_path, "a");
+
+    if(!log_fd)
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create log %s", sql_log_path);
+    else
+      chmod(sql_log_path, CONST_DEFAULT_FILE_MODE);
+  }
+}
+
+/* ******************************************* */
+
+void MySQLDB::startLoop() {
+  /*
+    If mysql flows dump is enabled, then it is necessary to create
+    and update the database schema. This must be executed only once.
+   */
+  if(!MySQLDB::db_created) {
+    if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
+      if(!createDBSchema()){
+	ntop->getTrace()->traceEvent(TRACE_ERROR,
+				     "Unable to create database schema, quitting.");
+	exit(EXIT_FAILURE);
+      }
+    } else if(ntop->getPrefs()->do_read_flows_from_nprobe_mysql()) {
+      if(!createNprobeDBView()){
+	ntop->getTrace()->traceEvent(TRACE_ERROR,
+				     "Unable to create a view on the nProbe database.");
+	exit(EXIT_FAILURE);
+      }
+    }
+  }
+
   pthread_create(&queryThreadLoop, NULL, ::queryLoop, (void*)this);
 }
 
 /* ******************************************* */
 
-void MySQLDB::updateStats(const struct timeval *tv) {
-  if(tv == NULL) return;
+void MySQLDB::shutdown() {
+  if(running) {
+    void *res;
 
-  if(lastUpdateTime.tv_sec > 0) {
-    float tdiffMsec = ((float)(tv->tv_sec-lastUpdateTime.tv_sec)*1000)+((tv->tv_usec-lastUpdateTime.tv_usec)/(float)1000);
-    if(tdiffMsec >= 1000) { /* al least one second */
-      u_int64_t diffFlows = mysqlExportedFlows - mysqlLastExportedFlows;
-      mysqlLastExportedFlows = mysqlExportedFlows;
-
-      mysqlExportRate = ((float)(diffFlows * 1000)) / tdiffMsec;
-      if (mysqlExportRate < 0) mysqlExportRate = 0;
-    }
+    DB::shutdown();
+    pthread_join(queryThreadLoop, &res);
   }
-
-  memcpy(&lastUpdateTime, tv, sizeof(struct timeval));
-}
-
-/* ******************************************* */
-
-void MySQLDB::lua(lua_State *vm, bool since_last_checkpoint) const {
-  lua_push_uint64_table_entry(vm, "flow_export_count",
-			   mysqlExportedFlows - (since_last_checkpoint ? checkpointExportedFlows : 0));
-  lua_push_int32_table_entry(vm, "flow_export_drops",
-			     mysqlDroppedFlows - (since_last_checkpoint ? checkpointDroppedFlows : 0));
-  lua_push_float_table_entry(vm, "flow_export_rate",
-			     mysqlExportRate >= 0 ? mysqlExportRate : 0);
 }
 
 /* ******************************************* */
@@ -630,6 +641,26 @@ int MySQLDB::flow2InsertValues(Flow *f, char *json,
 
 /* ******************************************* */
 
+void MySQLDB::try_exec_sql_query(MYSQL *conn, char *sql) {
+  int rc;
+
+  if (strlen(sql) >= CONST_MAX_SQL_QUERY_LEN - 1) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Tried to execute a query longer than %u. Skipping.",
+      CONST_MAX_SQL_QUERY_LEN - 2);
+  } else if((rc = exec_sql_query(conn, sql, true /* Attempt to reconnect */, true /* Don't print errors */, false)) < 0) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s [rc=%d]", get_last_db_error(conn), rc);
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", sql);
+
+    /* Don't give up, manually re-connect */
+    disconnectFromDB(conn);
+    if(!connectToDB(conn, true)) _usleep(100);
+  } else {
+    incNumExportedFlows();
+  }
+}
+
+/* ******************************************* */
+
 bool MySQLDB::dumpFlow(time_t when, Flow *f, char *json) {
   char sql[CONST_MAX_SQL_QUERY_LEN];
 
@@ -646,17 +677,28 @@ bool MySQLDB::dumpFlow(time_t when, Flow *f, char *json) {
   /* do the actual flow insertion as a tuple */
   flow2InsertValues(f, json, &sql[strlen(sql)], sizeof(sql) - strlen(sql) - 1);
 
-  if (ntop->getRedis()->llen(CONST_SQL_QUEUE) < CONST_MAX_MYSQL_QUEUE_LEN) {
-    /* We know that we should have locked before evaluating the condition
+  if (iface->read_from_pcap_dump()) {
+    /* 
+     Inserting inline in case of PCAP file as interrupting the datapath
+     is not an issue and also avoids flows drops due to the redis queue 
+     maximum length
+    */
+    try_exec_sql_query(&mysql_alt, sql);
+
+  } else {
+    if (ntop->getRedis()->llen(CONST_SQL_QUEUE) < CONST_MAX_MYSQL_QUEUE_LEN) {
+      /* 
+       We know that we should have locked before evaluating the condition
        above as another thread, via the lpush below, can invalidate the condition.
        However, we prefer to avoid an additional lock as the lpush guarantees
        that no more than CONST_MAX_MYSQL_QUEUE_LEN will ever be in the queue.
        The drawback is that the counter mysqlDroppedFlows
        is not guaranteed to be 100% accurate but we can tolerate this.
-    */
-    ntop->getRedis()->lpush(CONST_SQL_QUEUE, sql, CONST_MAX_MYSQL_QUEUE_LEN);
-  } else {
-    mysqlDroppedFlows++;
+      */
+      ntop->getRedis()->lpush(CONST_SQL_QUEUE, sql, CONST_MAX_MYSQL_QUEUE_LEN);
+    } else {
+      incNumDroppedFlows();
+    }
   }
 
   return(true);
@@ -672,23 +714,9 @@ void MySQLDB::disconnectFromDB(MYSQL *conn) {
 
 /* ******************************************* */
 
-bool MySQLDB::connectToDB(MYSQL *conn, bool select_db) {
+static MYSQL *mysql_try_connect(MYSQL *conn, const char *dbname) {
   MYSQL *rc;
   unsigned long flags = CLIENT_COMPRESS;
-  char *dbname = select_db ? ntop->getPrefs()->get_mysql_dbname() : NULL;
-
-  db_operational = false;
-
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Attempting to connect to MySQL for interface %s...",
-			       iface->get_name());
-
-  if(m) m->lock(__FILE__, __LINE__);
-
-  if(mysql_init(conn) == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Failed to initialize MySQL connection");
-    if(m) m->unlock(__FILE__, __LINE__);
-    return(false);
-  }
 
   if(ntop->getPrefs()->get_mysql_host()[0] == '/') /* Use socketD */
     rc = mysql_real_connect(conn,
@@ -707,6 +735,69 @@ bool MySQLDB::connectToDB(MYSQL *conn, bool select_db) {
 			    ntop->getPrefs()->get_mysql_port(),
 			    NULL /* socket */, flags);
 
+  return(rc);
+}
+
+/* ******************************************* */
+
+void mysql_result_to_lua(lua_State *vm, MYSQL_RES *result, bool limitRows) {
+  MYSQL_ROW row;
+  char *fields[MYSQL_MAX_NUM_FIELDS] = { NULL };
+  int num_fields = min_val(mysql_num_fields(result), MYSQL_MAX_NUM_FIELDS);
+  int num = 0;
+  lua_newtable(vm);
+
+  while((row = mysql_fetch_row(result))) {
+    lua_newtable(vm);
+
+    if(num == 0) {
+      for(int i = 0; i < num_fields; i++) {
+	MYSQL_FIELD *field = mysql_fetch_field(result);
+
+	fields[i] = field->name;
+      }
+    }
+
+    for(int i = 0; i < num_fields; i++)
+      lua_push_str_table_entry(vm, (const char*)fields[i], row[i] ? row[i] : (char*)"");
+
+    lua_pushinteger(vm, ++num);
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
+
+    if(num > MYSQL_MAX_NUM_ROWS) {
+      static bool warning_shown = false;
+      if(!warning_shown) {
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "Too many results returned from MySQL, reduce query result set");
+	warning_shown = true;
+      }
+    }
+
+    if(limitRows && num >= MYSQL_MAX_NUM_ROWS) break;
+  }
+}
+
+/* ******************************************* */
+
+bool MySQLDB::connectToDB(MYSQL *conn, bool select_db) {
+  MYSQL *rc;
+  char *dbname = select_db ? ntop->getPrefs()->get_mysql_dbname() : NULL;
+
+  db_operational = false;
+
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Attempting to connect to MySQL for interface %s...",
+			       iface->get_name());
+
+  m.lock(__FILE__, __LINE__);
+
+  if(mysql_init(conn) == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Failed to initialize MySQL connection");
+    m.unlock(__FILE__, __LINE__);
+    return(false);
+  }
+
+  rc = mysql_try_connect(conn, dbname);
+
   if(rc == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Failed to connect to MySQL: %s [%s@%s:%i]\n",
 				 mysql_error(conn),
@@ -714,7 +805,7 @@ bool MySQLDB::connectToDB(MYSQL *conn, bool select_db) {
 				 ntop->getPrefs()->get_mysql_host(),
                  ntop->getPrefs()->get_mysql_port());
 
-    if(m) m->unlock(__FILE__, __LINE__);
+    m.unlock(__FILE__, __LINE__);
     return(false);
   }
 
@@ -726,8 +817,38 @@ bool MySQLDB::connectToDB(MYSQL *conn, bool select_db) {
 			       ntop->getPrefs()->get_mysql_port(),
 			       iface->get_name());
 
-  if(m) m->unlock(__FILE__, __LINE__);
+  m.unlock(__FILE__, __LINE__);
   return(true);
+}
+
+/* ******************************************* */
+
+int MySQLDB::exec_single_query(lua_State *vm, char *sql) {
+  MYSQL conn;
+  MYSQL_RES *result;
+  bool result_ok = false;
+
+  if(mysql_init(&conn) != NULL) {
+    if((mysql_try_connect(&conn, NULL /* no db */) != NULL) &&
+	  (mysql_query(&conn, sql) == 0) &&
+	  ((result = mysql_store_result(&conn)) != NULL)) {
+        if(mysql_field_count(&conn) != 0) {
+          mysql_result_to_lua(vm, result, false);
+          result_ok = true;
+        }
+
+        mysql_free_result(result);
+    }
+
+    mysql_close(&conn);
+  }
+
+  if(!result_ok) {
+    lua_pushnil(vm);
+    return(-1);
+  }
+
+  return(0);
 }
 
 /* ******************************************* */
@@ -748,7 +869,7 @@ int MySQLDB::exec_sql_query(MYSQL *conn, const char *sql,
   if(!db_operational)
     return(-2);
 
-  if(doLock && m) m->lock(__FILE__, __LINE__);
+  if(doLock) m.lock(__FILE__, __LINE__);
   if((rc = mysql_query(conn, sql)) != 0) {
     if(!ignoreErrors)
       ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: [%s][%s]",
@@ -759,7 +880,7 @@ int MySQLDB::exec_sql_query(MYSQL *conn, const char *sql,
     case CR_SERVER_LOST:
       if(doReconnect) {
 	disconnectFromDB(conn);
-	if(doLock && m) m->unlock(__FILE__, __LINE__);
+	if(doLock) m.unlock(__FILE__, __LINE__);
 
 	connectToDB(conn, true);
 
@@ -789,7 +910,7 @@ int MySQLDB::exec_sql_query(MYSQL *conn, const char *sql,
     }
   }
 
-  if(doLock && m) m->unlock(__FILE__, __LINE__);
+  if(doLock) m.unlock(__FILE__, __LINE__);
 
   return(rc);
 }
@@ -798,15 +919,13 @@ int MySQLDB::exec_sql_query(MYSQL *conn, const char *sql,
 
 int MySQLDB::exec_sql_query(lua_State *vm, char *sql, bool limitRows, bool wait_for_db_created) {
   MYSQL_RES *result;
-  MYSQL_ROW row;
-  char *fields[MYSQL_MAX_NUM_FIELDS] = { NULL };
-  int num_fields, rc, num = 0;
+  int rc;
 
   if((wait_for_db_created && !MySQLDB::db_created /* Make sure the db exists before doing queries */)
      || !db_operational)
     return(-2);
 
-  if(m) m->lock(__FILE__, __LINE__);
+  m.lock(__FILE__, __LINE__);
 
 
   if(ntop->getPrefs()->is_sql_log_enabled() && log_fd && sql) {
@@ -827,13 +946,13 @@ int MySQLDB::exec_sql_query(lua_State *vm, char *sql, bool limitRows, bool wait_
   if((rc = mysql_query(&mysql, sql)) != 0) {
     /* retry */
     disconnectFromDB(&mysql);
-    if(m) m->unlock(__FILE__, __LINE__);
+    m.unlock(__FILE__, __LINE__);
     connectToDB(&mysql, true);
 
     if(!db_operational)
       return(-2);
 
-    if(m) m->lock(__FILE__, __LINE__);
+    m.lock(__FILE__, __LINE__);
     rc = mysql_query(&mysql, sql);
   }
 
@@ -850,50 +969,18 @@ int MySQLDB::exec_sql_query(lua_State *vm, char *sql, bool limitRows, bool wait_
       lua_pushnil(vm);
     }
 
-    if(m) m->unlock(__FILE__, __LINE__);
+    m.unlock(__FILE__, __LINE__);
     return(rc);
   }
 
   if((result == NULL) || (mysql_field_count(&mysql) == 0)) {
     lua_pushnil(vm);
   } else {
-    num_fields = min_val(mysql_num_fields(result), MYSQL_MAX_NUM_FIELDS);
-    lua_newtable(vm);
-
-    num = 0;
-    while((row = mysql_fetch_row(result))) {
-      lua_newtable(vm);
-
-      if(num == 0) {
-	for(int i = 0; i < num_fields; i++) {
-	  MYSQL_FIELD *field = mysql_fetch_field(result);
-
-	  fields[i] = field->name;
-	}
-      }
-
-      for(int i = 0; i < num_fields; i++)
-	lua_push_str_table_entry(vm, (const char*)fields[i], row[i] ? row[i] : (char*)"");
-
-      lua_pushinteger(vm, ++num);
-      lua_insert(vm, -2);
-      lua_settable(vm, -3);
-
-      if(num > MYSQL_MAX_NUM_ROWS) {
-	static bool warning_shown = false;
-	if(!warning_shown) {
-	  ntop->getTrace()->traceEvent(TRACE_WARNING, "Too many results returned from MySQL, reduce query result set");
-	  warning_shown = true;
-	}
-      }
-
-      if(limitRows && num >= MYSQL_MAX_NUM_ROWS) break;
-    }
-
+    mysql_result_to_lua(vm, result, limitRows);
     mysql_free_result(result);
   }
   
-  if(m) m->unlock(__FILE__, __LINE__);
+  m.unlock(__FILE__, __LINE__);
 
   return(0);
 }

@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-18 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -49,7 +49,7 @@ class Geolocation {
   void testme();
 #endif
  public:
-  Geolocation(char *db_home);
+  Geolocation(const char * const db_home);
   ~Geolocation();
 
   void getAS(IpAddress *addr, u_int32_t *asn, char **asname);

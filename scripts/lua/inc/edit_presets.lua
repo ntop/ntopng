@@ -347,7 +347,7 @@ local function printDeviceProtocolsPage()
               hidden: true,
               sortable: false,
             },{
-              title: "]] print(i18n("application_protocol")) print[[ ",
+              title: "]] print(i18n("application")) print[[ ",
               field: "column_ndpi_application",
               sortable: true,
                 css: {

@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-18 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -51,8 +51,8 @@ class Redis {
   int pushHost(const char* ns_cache, const char* ns_list, char *hostname,
 	       bool dont_check_for_existence, bool localHost);
   int popHost(const char* ns_list, char *hostname, u_int hostname_len);
-  void addToCache(char *key, char *value, u_int expire_secs);
-  bool isCacheable(char *key);
+  void addToCache(const char * const key, const char * const value, u_int expire_secs);
+  bool isCacheable(const char * const key);
   bool expireCache(char *key, u_int expire_sec);
 
   void checkDumpable(const char * const key);
@@ -75,7 +75,7 @@ class Redis {
   int hashDel(const char * const key, const char * const field);
   int hashSet(const char * const key, const char * const field, const char * const value);
   int delHash(char *key, char *member);
-  int set(char *key, char *value, u_int expire_secs=0);
+  int set(const char * const key, const char * const value, u_int expire_secs=0);
   int keys(const char *pattern, char ***keys_p);
   int hashKeys(const char *pattern, char ***keys_p);
   int hashGetAll(const char *key, char ***keys_p, char ***values_p);

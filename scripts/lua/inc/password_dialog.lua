@@ -2,6 +2,8 @@ require("lua_utils")
 local host_pools_utils = require 'host_pools_utils'
 require("prefs_utils")
 
+local is_admin = isAdministrator()
+
 print [[
 
  <style type='text/css'>
@@ -24,7 +26,7 @@ print [[
     <li class="active"><a href="#change-password-dialog" role="tab" data-toggle="tab"> ]] print(i18n("login.password")) print[[ </a></li>
 ]]
 
-if(user_group=="administrator") then
+if(is_admin) then
    print[[<li><a href="#change-prefs-dialog" role="tab" data-toggle="tab"> ]] print(i18n("prefs.preferences")) print[[ </a></li>]]
 end
    print[[
@@ -43,7 +45,7 @@ end
   <form data-toggle="validator" id="form_password_reset" class="form-inline" method="post" action="]] print(ntop.getHttpPrefix()) print[[/lua/admin/password_reset.lua" accept-charset="UTF-8">
 ]]
 
-   print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+   print('<input name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 
 print [[
     <input id="password_dialog_username" type="hidden" name="username" value="" />
@@ -51,12 +53,11 @@ print [[
 <div class="control-group">
    ]]
 
-local user_group = ntop.getUserGroup()
 local col_md_size = "6"
 
 print('<br><div class="row">')
 
-if(user_group ~= "administrator") then
+if(not is_admin) then
    col_md_size = "4"
 print [[
   <div class='form-group col-md-]] print(col_md_size) print[[ has-feedback'>
@@ -98,14 +99,14 @@ print [[
 </div> <!-- closes div "change-password-dialog" -->
 ]]
 
-if(user_group=="administrator") then
+if(is_admin) then
 
 print [[
 </div>
 <div class="tab-pane" id="change-prefs-dialog">
 
   <form data-toggle="validator" id="form_pref_change" class="form-inline" method="post" action="]] print(ntop.getHttpPrefix()) print[[/lua/admin/change_user_prefs.lua">
-    <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
+    <input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
   <input id="pref_dialog_username" type="hidden" name="username" value="" />
 
 <br>
@@ -154,7 +155,10 @@ print [[
     </div>
 </div>
 <br>
+]]
 
+if not ntop.isnEdge() then
+print[[
 <div class="row">
     <div class="form-group col-md-6 has-feedback">
       <label class="form-label">]] print(i18n("language")) print[[</label>
@@ -177,9 +181,10 @@ print[[
       </div>
     </div>
 </div>
+<br>]]
+end
 
-<br>
-
+print[[
 <div class="row">
     <div class="form-group col-md-12 has-feedback">
       <button id="pref_change" class="btn btn-primary btn-block">]] print(i18n("manage_users.change_user_preferences")) print[[</button>
@@ -246,7 +251,7 @@ print [[<script>
           password_alert.error(response.message);
     ]]
 
-if(user_group ~= "administrator") then
+if(not is_admin) then
    print('$("old_password_input").text("");\n');
 end
 

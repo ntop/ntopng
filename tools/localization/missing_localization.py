@@ -79,17 +79,10 @@ class LocalizationReaderWrapper(object):
   def getLineInfo(self, line_id):
     return self.line_id_to_line[line_id]
 
-if __name__ == "__main__":
-  def usage():
-    print("Usage: " + sys.argv[0] + " base_file cmp_file")
-    exit(1)
-
-  if len(sys.argv) != 3:
-    usage()
-
-  base_file = LocalizationReaderWrapper(LocalizationFile(sys.argv[1]))
-  cmp_file = LocalizationReaderWrapper(LocalizationFile(sys.argv[2]))
+def doCompare(base_file, cmp_file):
   difftool = difflib.Differ()
+  base_file = LocalizationReaderWrapper(base_file)
+  cmp_file = LocalizationReaderWrapper(cmp_file)
   diff = difftool.compare(base_file, cmp_file)
 
   for line in diff:
@@ -109,3 +102,32 @@ if __name__ == "__main__":
         line,
         line_info[2],
       ))
+
+def doMissing(base_file, cmp_file):
+    existing = set([line[0] for line in base_file])
+  
+    for line in cmp_file:
+      stringid = line[0]
+
+      if not stringid in existing:
+        print(stringid)
+
+if __name__ == "__main__":
+  def usage():
+    print("Usage: " + sys.argv[0] + " [cmp|missing] base_file cmp_file")
+    exit(1)
+
+  if len(sys.argv) != 4:
+    usage()
+
+  mode = sys.argv[1]
+  if not mode in ("cmp", "missing"):
+    usage()
+
+  base_file = LocalizationFile(sys.argv[2])
+  cmp_file = LocalizationFile(sys.argv[3])
+
+  if mode == "cmp":
+    doCompare(base_file, cmp_file)
+  elif mode == "missing":
+    doMissing(base_file, cmp_file)

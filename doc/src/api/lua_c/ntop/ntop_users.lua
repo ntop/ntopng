@@ -18,10 +18,6 @@ function ntop.addUser(string username, string full_name, string password, string
 --! @return true on success, false otherwise.
 function ntop.deleteUser(string username)
 
---! @brief Get the group of the current ntopng user.
---! @return the user group.
-function ntop.getUserGroup()
-
 --! @brief Get a string representing the networks the current ntopng user is allowed to see.
 --! @return allowed networks string.
 function ntop.getAllowedNetworks()

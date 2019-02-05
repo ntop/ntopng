@@ -152,24 +152,34 @@ end
 --!    - class: the bootstrap color class, usually: "default", "info", "danger", "warning", "success"
 --! @param other_label optional name for the "other" part of the bar. If nil, it will not be shown.
 --! @param formatter an optional item value formatter
+--! @param css_class an optional css class to apply to the progress div
 --! @return html for the bar
-function stackedProgressBars(total, bars, other_label, formatter)
+function stackedProgressBars(total, bars, other_label, formatter, css_class)
    local res = {}
    local cumulative = 0
+   local cumulative_perc = 0
    formatter = formatter or (function(x) return x end)
 
    -- The bars
-   res[#res + 1] = [[<div class="progress">]]
+   res[#res + 1] = [[<div class=' ]] .. (css_class or "ntop-progress-stacked") .. [['><div class="progress">]]
+
+   for _, bar in ipairs(bars) do cumulative = cumulative + bar.value end
+   if cumulative > total then total = cumulative end
 
    for _, bar in ipairs(bars) do
       local percentage = round(bar.value * 100 / total, 2)
-      cumulative = cumulative + bar.value
+      if cumulative_perc + percentage > 100 then percentage = 100 - cumulative_perc end
+      cumulative_perc = cumulative_perc + percentage
+      if bar.class == nil then bar.class = "primary" end
+      if bar.style == nil then bar.style = "" end
+      if bar.link ~= nil then res[#res + 1] = [[<a href="]] .. bar.link .. [[">]] end
       res[#res + 1] = [[
-         <div class="progress-bar progress-bar-]] .. (bar.class) .. [[" role="progressbar" style="width:]] .. percentage .. [[%"></div>]]
+         <div class="progress-bar progress-bar-]] .. (bar.class) .. [[" role="progressbar" style="width:]] .. percentage .. [[%;]] .. bar.style .. [["></div></a>]]
+      if bar.link ~= nil then res[#res + 1] = [[</a>]] end
    end
 
    res[#res + 1] = [[
-      </div>]]
+      </div></div>]]
 
    -- The legend
    res[#res + 1] = [[<div class="stacked-progress-legend">]]
@@ -182,13 +192,20 @@ function stackedProgressBars(total, bars, other_label, formatter)
       legend_items[#legend_items + 1] = {
          title = other_label,
          class = "empty",
+         style = "",
          value = math.max(total - cumulative, 0),
       }
    end
 
    for _, bar in ipairs(legend_items) do
-      res[#res + 1] = [[<span><span class="label label-]].. (bar.class) ..[[">&nbsp;</span><span>]] .. bar.title .. " (".. formatter(bar.value) ..")</span></span>"
+      res[#res + 1] = [[<span>]]
+      if bar.link ~= nil then res[#res + 1] = [[<a href="]] .. bar.link .. [[">]] end
+      res[#res + 1] = [[<span class="label label-]].. (bar.class) ..[[" style="]] .. bar.style .. [[">&nbsp;</span>]]
+      if bar.link ~= nil then res[#res + 1] = [[</a>]] end
+      res[#res + 1] = [[<span>]] .. bar.title .. " (".. formatter(bar.value) ..")</span></span>"
    end
+
+   res[#res + 1] = [[<span style="margin-left: 0"><span></span><span>&nbsp;&nbsp;-&nbsp;&nbsp;]] .. i18n("total") .. ": ".. formatter(total) .."</span></span>"
 
    return table.concat(res)
 end
@@ -267,9 +284,13 @@ function graphMenuDivider()
    graph_menu_entries[#graph_menu_entries + 1] = {html='<li class="divider"></li>'}
 end
 
+function graphMenuHeader(label)
+   graph_menu_entries[#graph_menu_entries + 1] = {html='<li class="dropdown-header">'.. label ..'</li>'}
+end
+
 function graphMenuGetActive(schema, params)
    -- These tags are used to determine the active timeseries entry
-   local match_tags = {ts_schema=1, ts_query=1, protocol=1, category=1, snmp_port_idx=1}
+   local match_tags = {ts_schema=1, ts_query=1, protocol=1, category=1, snmp_port_idx=1, l4proto=1}
 
    for _, entry in pairs(graph_menu_entries) do
       if entry.schema == schema and entry.params then
@@ -317,6 +338,7 @@ end
 function printSeries(options, tags, start_time, base_url, params)
    local series = options.timeseries
    local needs_separator = false
+   local separator_label = nil
 
    for _, serie in ipairs(series) do
       if (have_nedge and serie.nedge_exclude) or (not have_nedge and serie.nedge_only) then
@@ -325,6 +347,7 @@ function printSeries(options, tags, start_time, base_url, params)
 
       if serie.separator then
          needs_separator = true
+         separator_label = serie.label
      else
          local k = serie.schema
          local v = serie.label
@@ -358,6 +381,11 @@ function printSeries(options, tags, start_time, base_url, params)
             if needs_separator then
                -- Only add the separator if there are actually some entries in the group
                graphMenuDivider()
+
+               if separator_label then
+                  graphMenuHeader(separator_label)
+               end
+
                needs_separator = false
             end
 
@@ -378,6 +406,7 @@ function printSeries(options, tags, start_time, base_url, params)
 
       if not table.empty(series) then
          graphMenuDivider()
+         graphMenuHeader(i18n("applications"))
 
          local by_protocol = {}
 
@@ -392,6 +421,46 @@ function printSeries(options, tags, start_time, base_url, params)
       end
    end
 
+   -- L4 protocols
+   if options.l4_protocols then
+      local schema = options.l4_protocols
+      local l4_tags = table.clone(tags)
+      l4_tags.l4proto = nil
+
+      local series = ts_utils.listSeries(schema, l4_tags, start_time)
+
+      if not table.empty(series) then
+         graphMenuDivider()
+         graphMenuHeader(i18n("protocols"))
+
+         local by_protocol = {}
+
+         for _, serie in pairs(series) do
+            local sortkey = serie.l4proto
+
+            if sortkey == "other_ip" then
+               -- place at the end
+               sortkey = "z" .. sortkey
+            end
+
+            by_protocol[sortkey] = serie.l4proto
+         end
+
+         for _, protocol in pairsByKeys(by_protocol, asc) do
+            local proto_id = protocol
+            local label
+
+            if proto_id == "other_ip" then
+               label = i18n("other")
+            else
+               label = string.upper(protocol)
+            end
+
+            populateGraphMenuEntry(label, base_url, table.merge(params, {ts_schema=schema, l4proto=proto_id}))
+         end
+      end
+   end
+
    -- nDPI application categories
    if options.top_categories then
       local schema = split(options.top_categories, "top:")[2]
@@ -401,6 +470,7 @@ function printSeries(options, tags, start_time, base_url, params)
 
       if not table.empty(series) then
          graphMenuDivider()
+         graphMenuHeader(i18n("categories"))
 
          local by_category = {}
 
@@ -429,6 +499,18 @@ function getMinZoomResolution(schema)
    end
 
    return '1m'
+end
+
+-- ########################################################
+
+function printNotes(notes_items)
+   print("<b>" .. i18n("notes").. "</b><ul>")
+
+   for _, note in ipairs(notes_items) do
+      print("<li>" ..note .. "</li>")
+   end
+
+   print("</ul>")
 end
 
 -- ########################################################
@@ -475,13 +557,20 @@ print[[
       return
    end
 
+   local min_zoom = getMinZoomResolution(schema)
+   local min_zoom_k = 1
+
    nextZoomLevel = zoomLevel;
    epoch = tonumber(selectedEpoch);
 
    for k,v in ipairs(zoom_vals) do
+      if zoom_vals[k][1] == min_zoom then
+         min_zoom_k = k
+      end
+
       if(zoom_vals[k][1] == zoomLevel) then
 	 if(k > 1) then
-	    nextZoomLevel = zoom_vals[k-1][1]
+	    nextZoomLevel = zoom_vals[math.max(k-1, min_zoom_k)][1]
 	 end
 	 if(epoch ~= nil) then
 	    start_time = epoch - math.floor(zoom_vals[k][3] / 2)
@@ -570,8 +659,6 @@ if(options.timeseries) then
 end -- options.timeseries
 
 print('&nbsp;Timeframe:  <div class="btn-group" data-toggle="buttons" id="graph_zoom">\n')
-
-local min_zoom = getMinZoomResolution(schema)
 
 for k,v in ipairs(zoom_vals) do
    -- display 1 minute button only for networks and interface stats
@@ -873,13 +960,27 @@ var yAxis = new Rickshaw.Graph.Axis.Y({
 
 yAxis.render();
 
+]]
+
+if zoomLevel ~= nextZoomLevel then
+print[[
 $("#chart").click(function() {
   if(hover.selected_epoch)
     window.location.href = ']]
-print(baseurl .. '&ts_schema=' .. schema .. '&zoom=' .. nextZoomLevel .. '&epoch=')
-print[['+hover.selected_epoch;
-});
+print(baseurl .. '&ts_schema=' .. schema .. '&zoom=' .. nextZoomLevel)
 
+if tags.protocol ~= nil then
+   print("&protocol=" .. tags.protocol)
+elseif tags.category ~= nil then
+   print("&category=" .. tags.category)
+end
+
+print('&epoch=')
+print[['+hover.selected_epoch;
+});]]
+end
+
+print[[
 </script>
 
 ]]

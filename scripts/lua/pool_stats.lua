@@ -6,9 +6,9 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
-
 local page_utils = require("page_utils")
 
+active_page = "hosts"
 local have_nedge = ntop.isnEdge()
 
 sendHTTPContentTypeHeader('text/html')
@@ -34,7 +34,15 @@ print [[
         url: url_update ,
         ]]
 
-print('title: "'..i18n(ternary(have_nedge, "nedge.users_list", "pool_stats.host_pool_list"))..'",\n')
+local title
+
+if have_nedge then
+    title = i18n("nedge.users_list") .. " <small><a title='".. i18n("manage_users.manage_users") .."' href='".. ntop.getHttpPrefix() .."/lua/pro/nedge/admin/nf_list_users.lua'><i class='fa fa-cog'></i></a></small>"
+else
+    title = i18n("pool_stats.host_pool_list")
+end
+
+print('title: "'..title..'",\n')
 print ('rowCallback: function ( row ) { return pool_table_setID(row); },')
 
 -- Set the preference table
@@ -93,7 +101,7 @@ print[[
             }
         },
         {
-            title: "]] print(i18n("if_stats_overview.dropped_flows")) print[[",
+            title: "]] print(i18n("if_stats_overview.blocked_flows")) print[[",
             field: "column_num_dropped_flows",
             sortable: true,
             hidden: ]]

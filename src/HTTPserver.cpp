@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-18 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -59,7 +59,11 @@ int send_error(struct mg_connection *conn, int status, const char *reason, const
     len = mg_vsnprintf(conn, buf, sizeof(buf), fmt, ap);
     va_end(ap);
     conn->num_bytes_sent += mg_write(conn, buf, len);
-    cry_connection(conn, buf);
+
+    if(ntop->getTrace()->get_trace_level() >= TRACE_LEVEL_INFO)
+      cry(conn, "%s", buf);
+    else
+      cry_connection(conn, buf);
   }
 
   return(1);
@@ -104,8 +108,8 @@ static void redirect_to_ssl(struct mg_connection *conn,
 // Generate session ID. buf must be 33 bytes in size.
 // Note that it is easy to steal session cookies by sniffing traffic.
 // This is why all communication must be SSL-ed.
-static void generate_session_id(char *buf, const char *random, const char *user) {
-  mg_md5(buf, random, user, NULL);
+static void generate_session_id(char *buf, const char *random, const char *user, const char *group) {
+  mg_md5(buf, random, user, group, NULL);
 }
 
 /* ****************************************** */
@@ -119,10 +123,49 @@ bool HTTPserver::authorized_localhost_user_login(const struct mg_connection *con
 
 /* ****************************************** */
 
-static void set_cookie(const struct mg_connection *conn,
-                       char *user, char *referer) {
+void HTTPserver::traceLogin(const char *user, bool authorized) {
+  NetworkInterface *ntop_interface;
+  AlertsManager *am;
+  const char *alert_json;
+  time_t when = time(NULL);
+  json_object *jobj;
+
+  ntop_interface = ntop->getFirstInterface();
+
+  if (ntop_interface == NULL)
+    return;
+
+  am = ntop_interface->getAlertsManager();
+
+  if (am == NULL)
+    return;
+
+  jobj = json_object_new_object();
+  if (jobj == NULL) return;
+
+  json_object_object_add(jobj, "scope",  json_object_new_string("login"));
+  json_object_object_add(jobj, "status", json_object_new_string(authorized ? "authorized" : "unauthorized"));
+
+  alert_json = json_object_to_json_string(jobj);
+
+  if (alert_json) {
+    am->storeGenericAlert(alert_entity_user, user, alert_user_activity, 
+      authorized ? alert_level_info : alert_level_warning, alert_json, when);
+  }
+
+  json_object_put(jobj);
+}
+
+/* ****************************************** */
+
+static void set_cookie(const struct mg_connection * const conn,
+                       const char * const user,
+		       const char * const group,
+		       bool localuser,
+		       const char * const referer) {
   char key[256], session_id[64], random[64];
-  u_int session_duration = HTTP_SESSION_DURATION;
+  char val[128];
+  u_int session_duration = ntop->getPrefs()->get_auth_session_duration();
 
   if(!strcmp(mg_get_request_info((struct mg_connection*)conn)->uri, "/metrics")
      || !strncmp(mg_get_request_info((struct mg_connection*)conn)->uri, LIVE_TRAFFIC_URL, strlen(LIVE_TRAFFIC_URL))
@@ -145,7 +188,7 @@ static void set_cookie(const struct mg_connection *conn,
 
   snprintf(random, sizeof(random), "%d", rand());
 
-  generate_session_id(session_id, random, user);
+  generate_session_id(session_id, random, user, group);
 
   // ntop->getTrace()->traceEvent(TRACE_ERROR, "==> %s\t%s", random, session_id);
 
@@ -167,9 +210,12 @@ static void set_cookie(const struct mg_connection *conn,
 
   /* Save session in redis */
   snprintf(key, sizeof(key), "sessions.%s", session_id);
+  snprintf(val, sizeof(val), "%s|%s|%c", user, group, localuser ? '1' : '0');
 
-  ntop->getRedis()->set(key, user, session_duration);
+  ntop->getRedis()->set(key, val, session_duration);
   ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] Set session sessions.%s", session_id);
+
+  HTTPserver::traceLogin(user, true);
 }
 
 /* ****************************************** */
@@ -271,7 +317,6 @@ static int isWhitelistedURI(const char * const uri) {
   /* URL whitelist */
   if((!strcmp(uri,    LOGIN_URL))
      || (!strcmp(uri, AUTHORIZE_URL))
-     || (!strcmp(uri, PLEASE_WAIT_URL))
      || (!strcmp(uri, HOTSPOT_DETECT_URL))
      || (!strcmp(uri, HOTSPOT_DETECT_LUA_URL))
      || (!strcmp(uri, ntop->getPrefs()->getCaptivePortalUrl()))
@@ -284,15 +329,58 @@ static int isWhitelistedURI(const char * const uri) {
 
 /* ****************************************** */
 
+static bool ssl_client_x509_auth(const struct mg_connection * const conn, const struct mg_request_info * const request_info,
+				 char * const username, char * const group, bool * const localuser) {
+  bool ret = false;
+  X509 *cert = NULL;
+  X509_NAME *subj = NULL;
+  char subject[256];
+  char key[CONST_MAX_LEN_REDIS_KEY];
+
+  if((cert = SSL_get_peer_certificate(conn->ssl))) {
+    if((subj = X509_get_subject_name(cert))) {
+      X509_NAME_oneline(subj, subject, sizeof(subject));
+
+      if(SSL_get_verify_result(conn->ssl) == X509_V_OK
+	 && X509_NAME_get_text_by_NID(subj, NID_commonName, username, NTOP_USERNAME_MAXLEN) >= 0) {
+	snprintf(key, sizeof(key), CONST_STR_USER_GROUP, username);
+
+	bool group_exists = ntop->getRedis()->get(key, group, NTOP_GROUP_MAXLEN) >= 0;
+
+	if(ntop->existsUser(username)
+	   && group_exists) {
+	  *localuser = true;
+	  ntop->getTrace()->traceEvent(TRACE_INFO,"SSL user authenticated [username: %s][group: %s][subject: %s]", username, group, subject);
+
+	  ret = true;
+	} else
+	  ntop->getTrace()->traceEvent(TRACE_INFO,"SSL user: not found [user: %s]", username);
+      } else
+	ntop->getTrace()->traceEvent(TRACE_INFO,"SSL user: unknow certificate or missing NID_commonName [subject: %s]", subject);
+    }
+
+    X509_free(cert);
+  } else
+    ntop->getTrace()->traceEvent(TRACE_INFO,"SSL user: could not get certificate");
+
+  if(!ret)
+    username[0] = '\0', group[0] = '\0';
+
+  return ret;
+};
+
+/* ****************************************** */
+
 // Return 1 if request is authorized, 0 otherwise.
 // If 1 is returned, the username parameter will contain the authenticated user,
 // which can also be "" or NTOP_NOLOGIN_USER .
-static int getAuthorizedUser(const struct mg_connection *conn,
+static int getAuthorizedUser(struct mg_connection *conn,
                          const struct mg_request_info *request_info,
-			 char *username, u_int username_len) {
-  char session_id[33];
-  char key[64];
+			 char *username, char *group, bool *localuser) {
+  char session_id[NTOP_SESSION_ID_LENGTH];
+  char key[64], val[128];
   char password[MAX_PASSWORD_LEN];
+  char localuser_ch;
   const char *auth_header_p;
   string auth_type = "", auth_string = "";
   bool user_login_disabled = !ntop->getPrefs()->is_users_login_enabled() ||
@@ -300,6 +388,8 @@ static int getAuthorizedUser(const struct mg_connection *conn,
 
   /* Default */
   username[0] = '\0';
+  group[0] = '\0';
+  *localuser = false;
 
 #ifdef DEBUG
   ntop->getTrace()->traceEvent(TRACE_WARNING, "[AUTHORIZATION] [%s][%s]",
@@ -328,11 +418,14 @@ static int getAuthorizedUser(const struct mg_connection *conn,
     } else {
       /* Here the captive portal is not just informative; it requires authentication.
          For this reason it is necessary to check submitted username and password. */
-      if(request_info->query_string) {
-	get_qsvar(request_info, "username", username, username_len);
-	get_qsvar(request_info, "password", password, sizeof(password));
+        if(!strcmp(request_info->request_method, "POST")) {
+          char post_data[1024];
+          int post_data_len = mg_read(conn, post_data, sizeof(post_data));
 
-	return(ntop->checkUserPassword(username, password)
+          mg_get_var(post_data, post_data_len, "username", username, sizeof(username));
+          mg_get_var(post_data, post_data_len, "password", password, sizeof(password));
+
+	return(ntop->checkCaptiveUserPassword(username, password, group)
 	     && checkCaptive(conn, request_info, username, password));
       }
     }
@@ -343,9 +436,16 @@ static int getAuthorizedUser(const struct mg_connection *conn,
   }
 
   if(user_login_disabled) {
-    strncpy(username, NTOP_NOLOGIN_USER, username_len);
+    strncpy(username, NTOP_NOLOGIN_USER, NTOP_USERNAME_MAXLEN);
+    username[NTOP_USERNAME_MAXLEN - 1] = '\0';
     return(1);
   }
+
+  /* Try to authenticate using client TLS/SSL certificate */
+  if(request_info->is_ssl
+     && ntop->getPrefs()->is_client_x509_auth_enabled()
+     && ssl_client_x509_auth(conn, request_info, username, group, localuser))
+    return(1);
 
   /* Try to decode Authorization header if present */
   auth_header_p = mg_get_header(conn, "Authorization");
@@ -361,8 +461,9 @@ static int getAuthorizedUser(const struct mg_connection *conn,
     getline(authss, user_s, ':');
     getline(authss, pword_s, ':');
 
-    strncpy(username, user_s.c_str(), username_len);
-    return ntop->checkUserPassword(username, pword_s.c_str());
+    strncpy(username, user_s.c_str(), NTOP_USERNAME_MAXLEN);
+    username[NTOP_USERNAME_MAXLEN - 1] = '\0';
+    return ntop->checkGuiUserPassword(conn, username, pword_s.c_str(), group, localuser);
   }
 
   /* NOTE: this is the only cookie needed for gui authentication */
@@ -370,21 +471,32 @@ static int getAuthorizedUser(const struct mg_connection *conn,
 
   if(session_id[0] == '\0') {
     /* Explicit username + password */
-    mg_get_cookie(conn, "user", username, username_len);
+    mg_get_cookie(conn, "user", username, NTOP_USERNAME_MAXLEN);
     mg_get_cookie(conn, "password", password, sizeof(password));
 
     if(username[0] && password[0])
-      return(ntop->checkUserPassword(username, password));
+      return(ntop->checkGuiUserPassword(conn, username, password, group, localuser));
   }
 
   /* Important: validate the session */
   snprintf(key, sizeof(key), "sessions.%s", session_id);
 
-  username[0] = '\0';
-  if((ntop->getRedis()->get(key, username, username_len, true) < 0) || (!username[0])) {
+  val[0] = '\0';
+  if((ntop->getRedis()->get(key, val, sizeof(val), true) < 0) || (!val[0])) {
     ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] Session %s is expired", session_id);
     return(0);
   }
+
+  snprintf(key, sizeof(key), "%%%u[^|]|%%%u[^|]|%%c", NTOP_USERNAME_MAXLEN-1, NTOP_GROUP_MAXLEN-1);
+
+  if(sscanf(val, key, username, group, &localuser_ch) != 3) {
+    ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] Old Session format %s not supported", session_id);
+    return(0);
+  }
+
+  username[NTOP_USERNAME_MAXLEN-1] = '\0';
+  group[NTOP_GROUP_MAXLEN-1] = '\0';
+  *localuser = (localuser_ch == '1' ? true : false);
 
   //ntop->getTrace()->traceEvent(TRACE_NORMAL, "[HTTP] Session %s successfully authenticated for %s", session_id, username);
 
@@ -398,15 +510,8 @@ static int getAuthorizedUser(const struct mg_connection *conn,
 /* ****************************************** */
 
 static int isCaptiveConnection(struct mg_connection *conn) {
-  char *host = (char*)mg_get_header(conn, "Host");
-
   return(ntop->getPrefs()->isCaptivePortalEnabled()
-	 && (ntohs(conn->client.lsa.sin.sin_port) == 80
-	     /* HTTPs captive portal connections not supported.
-		|| ntohs(conn->client.lsa.sin.sin_port) == 443 */
-	     )
-	 && host
-	 && (strcasestr(host, CONST_HELLO_HOST) == NULL)
+	 && (ntohs(conn->client.lsa.sin.sin_port) == CAPTIVE_PORTAL_PORT)
 	 );
 }
 
@@ -440,6 +545,7 @@ static bool isStaticResourceUrl(const struct mg_request_info *request_info, u_in
 
 /* ****************************************** */
 
+/* this corresponds to the LAN interface address */
 void HTTPserver::setCaptiveRedirectAddress(const char *addr) {
 #ifdef NTOPNG_PRO
   size_t max_wispr_size = 1024;
@@ -468,13 +574,13 @@ void HTTPserver::setCaptiveRedirectAddress(const char *addr) {
     <AccessProcedure>1.0</AccessProcedure>\n\
     <AccessLocation>%s Network</AccessLocation>\n\
     <LocationName>%s</LocationName>\n\
-    <LoginURL>http://%s%s%s</LoginURL>\n\
+    <LoginURL>http://%s:%u%s%s</LoginURL>\n\
     <MessageType>100</MessageType>\n\
     <ResponseCode>0</ResponseCode>\n\
   </Redirect>\n\
 </WISPAccessGatewayParam>\n\
 -->\n\
-</HTML>", name, name, addr,
+</HTML>", name, name, addr, CAPTIVE_PORTAL_PORT,
 	ntop->getPrefs()->get_http_prefix(),
 	ntop->getPrefs()->getCaptivePortalUrl());
 #endif
@@ -499,7 +605,7 @@ static char* make_referer(struct mg_connection *conn, char *buf, int bufsize) {
 static void redirect_to_login(struct mg_connection *conn,
                               const struct mg_request_info *request_info,
 			      const char * const referer) {
-  char session_id[33], buf[128];
+  char session_id[NTOP_SESSION_ID_LENGTH], buf[128];
   char *referer_enc = NULL;
 
   if(isCaptiveConnection(conn)) {
@@ -509,11 +615,12 @@ static void redirect_to_login(struct mg_connection *conn,
 	      "Expires: 0\r\n"
 	      "Cache-Control: no-store, no-cache, must-revalidate\t\n"
 	      "Pragma: no-cache\r\n"
-              "Content-Type: text/html; charset=UTF-8\r\n"
-              "Content-Length: %lu\r\n"
-	      "Location: http://%s%s%s%s%s\r\n\r\n%s",
+	      "Content-Type: text/html; charset=UTF-8\r\n"
+	      "Content-Length: %lu\r\n"
+	      "Location: http://%s:%u%s%s%s%s\r\n\r\n%s",
               strlen(wispr_data),
-              ntop->get_HTTPserver()->getCaptiveRedirectAddress(),
+              ntop->get_HTTPserver()->getCaptiveRedirectAddress(), // LAN address
+              CAPTIVE_PORTAL_PORT,
 	      ntop->getPrefs()->get_http_prefix(), ntop->getPrefs()->getCaptivePortalUrl(),
 	      referer ? (char*)"?referer=" : "",
 	      referer ? (referer_enc = Utils::urlEncode(referer)) : (char*)"",
@@ -531,6 +638,8 @@ static void redirect_to_login(struct mg_connection *conn,
     mg_printf(conn,
 	      "HTTP/1.1 302 Found\r\n"
 	      "Set-Cookie: session=%s; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0;%s\r\n"  // Session ID
+	      "Set-Cookie: user=; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0;\r\n"
+	      "Set-Cookie: password=; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0;\r\n"
 	      "Location: %s%s%s%s\r\n\r\n",
 	      session_id,
 	      get_secure_cookie_attributes(request_info),
@@ -552,7 +661,7 @@ static void redirect_to_login(struct mg_connection *conn,
 */
 static void redirect_to_please_wait(struct mg_connection *conn,
 				    const struct mg_request_info *request_info) {
-  char session_id[33], buf[128];
+  char session_id[NTOP_SESSION_ID_LENGTH], buf[128];
   char referer[255];
   char *referer_enc = NULL;
 
@@ -564,10 +673,7 @@ static void redirect_to_please_wait(struct mg_connection *conn,
 	    "HTTP/1.1 302 Found\r\n"
 	    // "HTTP/1.1 401 Unauthorized\r\n"
 	    // "WWW-Authenticate: Basic\r\n"
-	    "Set-Cookie: session=%s; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0;%s\r\n"  // Session ID
 	    "Location: %s%s%s%s\r\n\r\n",
-	    session_id,
-	    get_secure_cookie_attributes(request_info),
 	    ntop->getPrefs()->get_http_prefix(), Utils::getURL((char*)PLEASE_WAIT_URL, buf, sizeof(buf)),
 	    (referer[0] != '\0') ? (char*)"?referer=" : (char*)"",
 	    (referer[0] != '\0') ? (referer_enc = Utils::urlEncode(referer)) : (char*)"");
@@ -581,7 +687,7 @@ static void redirect_to_please_wait(struct mg_connection *conn,
 
 static void redirect_to_password_change(struct mg_connection *conn,
 				    const struct mg_request_info *request_info) {
-  char session_id[33], buf[128];
+  char session_id[NTOP_SESSION_ID_LENGTH], buf[128];
   char referer[255];
   char *referer_enc = NULL;
 
@@ -609,8 +715,9 @@ static void redirect_to_password_change(struct mg_connection *conn,
 // Login page form sends user name and password to this endpoint.
 static void authorize(struct mg_connection *conn,
                       const struct mg_request_info *request_info,
-		      char *username, u_int username_len) {
+		      char *username, char *group, bool *localuser) {
   char user[32] = { '\0' }, password[32] = { '\0' }, referer[256] = { '\0' };
+
 
   if(!strcmp(request_info->request_method, "POST")) {
     char post_data[1024];
@@ -637,7 +744,7 @@ static void authorize(struct mg_connection *conn,
 
   if(isCaptiveConnection(conn)
      || ntop->isCaptivePortalUser(user)
-     || !ntop->checkUserPassword(user, password)) {
+     || !ntop->checkGuiUserPassword(conn, user, password, group, localuser)) {
     // Authentication failure, redirect to login
     redirect_to_login(conn, request_info, (referer[0] == '\0') ? NULL : referer);
   } else {
@@ -652,8 +759,9 @@ static void authorize(struct mg_connection *conn,
     }
 
     /* Send session cookie and set user for the new session */
-    set_cookie(conn, user, referer);
-    strncpy(username, user, username_len);
+    set_cookie(conn, user, group, *localuser, referer);
+    strncpy(username, user, NTOP_USERNAME_MAXLEN);
+    username[NTOP_USERNAME_MAXLEN - 1] = '\0';
   }
 }
 
@@ -686,12 +794,17 @@ static void uri_encode(const char *src, char *dst, u_int dst_len) {
 /* ****************************************** */
 
 static int handle_lua_request(struct mg_connection *conn) {
-  struct mg_request_info *request_info = mg_get_request_info(conn);
+  struct mg_request_info *request_info = (struct mg_request_info *)mg_get_request_info(conn);
   char *crlf;
   u_int len;
-  char username[33] = { 0 };
+  char username[NTOP_USERNAME_MAXLEN] = { 0 };
+  char group[NTOP_GROUP_MAXLEN] = { 0 };
+  bool localuser = false;
   char *referer = (char*)mg_get_header(conn, "Referer");
-  u_int8_t whitelisted, authorized;
+  u_int8_t whitelisted;
+
+  strncpy(group, NTOP_UNKNOWN_GROUP, NTOP_GROUP_MAXLEN-1);
+  group[NTOP_GROUP_MAXLEN - 1] = '\0';
 
   if(referer == NULL)
     referer = (char*)"";
@@ -724,20 +837,13 @@ static int handle_lua_request(struct mg_connection *conn) {
      || (ntop->getRedis() == NULL /* Starting up... */)
      || (ntop->get_HTTPserver() == NULL))
     return(send_error(conn, 403 /* Forbidden */, request_info->uri,
-		      "Unexpected HTTP method or ntopng still starting up..."));
+		      "Unable to serve requests at this time, possibly starting up or shutting down."));
 
 #ifdef DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "################# [HTTP] %s [%s]",
 			       request_info->uri, referer);
 #endif
 
-#ifdef HAVE_MYSQL
-  if(ntop->getPrefs()->do_dump_flows_on_mysql()
-     && !MySQLDB::isDbCreated()
-     && strcmp(request_info->uri, PLEASE_WAIT_URL)) {
-    redirect_to_please_wait(conn, request_info);
-  } else
-#endif
 #ifndef HAVE_NEDGE
   if(ntop->get_HTTPserver()->is_ssl_enabled()
      && (!request_info->is_ssl)
@@ -769,9 +875,10 @@ static int handle_lua_request(struct mg_connection *conn) {
 	      "Cache-Control: no-store, no-cache, must-revalidate\t\n"
 	      "Pragma: no-cache\r\n"
 	      "Referer: %s\r\n"
-	      "Location: http://%s%s%s%s\r\n\r\n",
+	      "Location: http://%s:%u%s%s%s\r\n\r\n",
 	      request_info->uri,
 	      mg_get_header(conn, "Host") ? mg_get_header(conn, "Host") : (char*)"",
+	      CAPTIVE_PORTAL_PORT,
 	      ntop->getPrefs()->getCaptivePortalUrl(),
 	      request_info->query_string ? "?" : "",
 	      request_info->query_string ? request_info->query_string : "");
@@ -780,50 +887,60 @@ static int handle_lua_request(struct mg_connection *conn) {
 #endif
 
   whitelisted = isWhitelistedURI(request_info->uri);
-  authorized = getAuthorizedUser(conn, request_info, username, sizeof(username));
 
-  /* Make sure there are existing interfaces for username. */
-  if(!ntop->checkUserInterfaces(username)) {
-    char session_id[33];
-    mg_get_cookie(conn, "session", session_id, sizeof(session_id));
+  if(!isStaticResourceUrl(request_info, len)) {
+    /* Only check authorized for non-static resources */
+    u_int8_t authorized = getAuthorizedUser(conn, request_info, username, group, &localuser);
 
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "[HTTP] user %s cannot login due to non-existent allowed_interface", username);
+    /* Make sure there are existing interfaces for username. */
+    if(!ntop->checkUserInterfaces(username)) {
+      char session_id[NTOP_SESSION_ID_LENGTH];
+      mg_get_cookie(conn, "session", session_id, sizeof(session_id));
 
-    // send error and expire session cookie
-    mg_printf(conn,
-	 "HTTP/1.1 403 Forbidden\r\n"
-	 "Content-Type: text/html\r\n"
-	 "Set-Cookie: session=%s; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0;%s\r\n"  // Session ID
-	 "Connection: close\r\n"
-	 "\r\n\r\n%s", session_id,
-	 get_secure_cookie_attributes(request_info),
-	 ACCESS_DENIED_INTERFACES);
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "[HTTP] user %s cannot login due to non-existent allowed_interface", username);
 
-    return(1);
-  }
+      // send error and expire session cookie
+      mg_printf(conn,
+		"HTTP/1.1 403 Forbidden\r\n"
+		"Content-Type: text/html\r\n"
+		"Set-Cookie: session=%s; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0;%s\r\n"  // Session ID
+		"Connection: close\r\n"
+		"\r\n\r\n%s", session_id,
+		get_secure_cookie_attributes(request_info),
+		ACCESS_DENIED_INTERFACES);
 
-  if(isStaticResourceUrl(request_info, len))
-    ;
-  else if((!whitelisted) && (!authorized)) {
-    if(strcmp(request_info->uri, NETWORK_LOAD_URL) == 0) {
-      // avoid sending login redirect to allow js itself to redirect the user
-      return(send_error(conn, 403 /* Forbidden */, request_info->uri, "Login Required"));
-    } else {
-      char referer[255];
-
-      redirect_to_login(conn, request_info, make_referer(conn, referer, sizeof(referer)));
+      return(1);
     }
 
-    return(1);
-  } else if ((strcmp(request_info->uri, CHANGE_PASSWORD_ULR) != 0)
-      && (strcmp(request_info->uri, LOGOUT_URL) != 0)
-	     && authorized
-      && ntop->mustChangePassword(username)) {
-    redirect_to_password_change(conn, request_info);
-    return(1);
-  } else if(strcmp(request_info->uri, AUTHORIZE_URL) == 0) {
-    authorize(conn, request_info, username, sizeof(username));
-    return(1);
+    if((!whitelisted) && (!authorized)) {
+      if(strcmp(request_info->uri, INTERFACE_DATA_URL) == 0) {
+        // avoid sending login redirect to allow js itself to redirect the user
+        return(send_error(conn, 403 /* Forbidden */, request_info->uri, "Login Required"));
+      } else {
+        char referer[255];
+
+        redirect_to_login(conn, request_info, make_referer(conn, referer, sizeof(referer)));
+      }
+
+      return(1);
+    } else if ((strcmp(request_info->uri, CHANGE_PASSWORD_ULR) != 0)
+        && (strcmp(request_info->uri, LOGOUT_URL) != 0)
+         && authorized
+        && ntop->mustChangePassword(username)) {
+      redirect_to_password_change(conn, request_info);
+      return(1);
+#ifdef HAVE_MYSQL
+    } else if(!whitelisted /* e.g. login.lua */
+        && ntop->getPrefs()->do_dump_flows_on_mysql()
+        && !MySQLDB::isDbCreated()
+        && strcmp(request_info->uri, PLEASE_WAIT_URL)) {
+      redirect_to_please_wait(conn, request_info);
+      return(1);
+#endif
+    } else if(strcmp(request_info->uri, AUTHORIZE_URL) == 0) {
+      authorize(conn, request_info, username, group, &localuser);
+      return(1);
+    }
   }
 
 #ifdef DEBUG
@@ -848,7 +965,11 @@ static int handle_lua_request(struct mg_connection *conn) {
      || (strcmp(request_info->uri, "/") == 0)) {
     /* Lua Script */
     char path[255] = { 0 }, uri[2048];
-    struct stat buf;
+#ifdef WIN32
+	struct _stat64 buf;
+#else
+	struct stat buf;
+#endif
     bool found;
 
     if(strstr(request_info->uri, "/lua/pro")
@@ -902,7 +1023,7 @@ static int handle_lua_request(struct mg_connection *conn) {
 
       // NOTE: username is stored into the engine context, so we must guarantee
       // that LuaEngine is destroyed after username goes out of context! Indeeed we delete LuaEngine below.
-      l->handle_script_request(conn, request_info, path, &attack_attempt, username);
+      l->handle_script_request(conn, request_info, path, &attack_attempt, username, group, localuser);
 
       if(attack_attempt) {
 	char buf[32];
@@ -943,14 +1064,18 @@ static int handle_http_message(const struct mg_connection *conn, const char *mes
 /* ****************************************** */
 
 bool HTTPserver::check_ssl_cert(char *ssl_cert_path, size_t ssl_cert_path_len) {
-  struct stat statsBuf;
+#ifdef WIN32
+  struct _stat64 s;
+#else
+  struct stat s;
+#endif
   int stat_rc;
   ssl_cert_path[0] = '\0';
 
   snprintf(ssl_cert_path, ssl_cert_path_len, "%s/ssl/%s",
 	   docs_dir, CONST_HTTPS_CERT_NAME);
 
-  stat_rc = stat(ssl_cert_path, &statsBuf);
+  stat_rc = stat(ssl_cert_path, &s);
 
   if(stat_rc == 0) {
     ntop->getTrace()->traceEvent(TRACE_INFO, "Found SSL certificate %s", ssl_cert_path);
@@ -1006,6 +1131,72 @@ void HTTPserver::parseACL(char * const acl, u_int acl_len) {
 
 /* ****************************************** */
 
+static unsigned char ssl_session_ctx_id[] = PACKAGE_NAME "-" NTOPNG_GIT_RELEASE;
+
+int handle_ssl_verify(int ok, X509_STORE_CTX *ctx) {
+  X509 *cert;
+  char buf[256];
+  int err, depth;
+
+  cert = X509_STORE_CTX_get_current_cert(ctx);
+  err = X509_STORE_CTX_get_error(ctx);
+  depth = X509_STORE_CTX_get_error_depth(ctx);
+  X509_NAME_oneline(X509_get_subject_name(cert), buf, sizeof(buf));
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "ssl verify pre=%d cert=%s err=%i depth=%i",ok,buf,err,depth);
+  // Never fail, continue SSL/TLS handshake, if client cert is invalid we want to fallback to explicit login 
+  return 1;
+};
+
+int init_client_x509_auth(void *ctx) {
+  char buf[256];
+  char ssl_ca_path[MAX_PATH];
+  char ssl_cert_path[MAX_PATH];
+  STACK_OF(X509_NAME) *certnames;
+
+  snprintf(ssl_cert_path, sizeof(ssl_cert_path), "%s/ssl/%s", ntop->getPrefs()->get_docs_dir(), CONST_HTTPS_CERT_NAME);
+  snprintf(ssl_ca_path, sizeof(ssl_ca_path), "%s/ssl/%s", ntop->getPrefs()->get_docs_dir(),CONST_HTTPS_AUTHCA_FILE);
+
+  ntop->fixPath(ssl_ca_path),
+  ntop->fixPath(ssl_cert_path);
+
+  if(!SSL_CTX_set_session_id_context((SSL_CTX*)ctx, ssl_session_ctx_id, sizeof(ssl_session_ctx_id)>SSL_MAX_SSL_SESSION_ID_LENGTH?SSL_MAX_SSL_SESSION_ID_LENGTH:sizeof(ssl_session_ctx_id))) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "SSL session init failed: %s", ERR_reason_error_string(ERR_get_error()));
+    return 0;
+  }
+
+  if(!SSL_CTX_load_verify_locations((SSL_CTX*)ctx, ssl_ca_path, NULL)) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "SSL load client CA from '%s' failed: %s",
+				 ssl_ca_path,
+				 ERR_reason_error_string(ERR_get_error()));
+    return 0;
+  }
+
+  if(!SSL_CTX_use_certificate_file((SSL_CTX*)ctx, ssl_cert_path, 1)
+     || !SSL_CTX_use_PrivateKey_file((SSL_CTX*)ctx, ssl_cert_path, 1))
+    return 0;
+
+  if((certnames = SSL_load_client_CA_file(ssl_ca_path))) {
+    SSL_CTX_set_client_CA_list((SSL_CTX*)ctx, certnames);
+
+    if((certnames = SSL_CTX_get_client_CA_list((SSL_CTX*)ctx))) {
+      for(int i = 0; i < sk_X509_NAME_num(certnames); i++) {
+	X509_NAME_oneline(sk_X509_NAME_value(certnames, i), buf, sizeof(buf));
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "SSL loaded CA #%i: %s", i, buf);
+      }
+    }
+  } else
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "No SSL client loaded");
+
+  SSL_CTX_set_verify((SSL_CTX*)ctx, SSL_VERIFY_PEER, handle_ssl_verify);
+
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "SSL init [ssl_ca_path: %s][ssl_cert_path: %s]", ssl_ca_path, ssl_cert_path);
+
+  return 1;
+};
+
+/* ****************************************** */
+
 HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
   struct mg_callbacks callbacks;
   static char ports[256] = { 0 }, acl_management[64], ssl_cert_path[MAX_PATH], access_log_path[MAX_PATH] = { 0 };
@@ -1035,6 +1226,8 @@ HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
   memset(&callbacks, 0, sizeof(callbacks));
   callbacks.begin_request = handle_lua_request;
   callbacks.log_message = handle_http_message;
+  if(ntop->getPrefs()->is_client_x509_auth_enabled())
+    callbacks.init_ssl = init_client_x509_auth;
 
   /* Randomize data */
   gettimeofday(&tv, NULL);
@@ -1161,8 +1354,10 @@ HTTPserver::~HTTPserver() {
 
 void HTTPserver::startCaptiveServer() {
   struct mg_callbacks captive_callbacks;
-  static char * captive_port = (char*)"80";
+  char captive_port[64];
   char access_log_path[MAX_PATH] = {0};
+
+  snprintf(captive_port, sizeof(captive_port), "%u", CAPTIVE_PORTAL_PORT);
 
   static const char * http_captive_options[] = {
     (char*)"listening_ports", captive_port,

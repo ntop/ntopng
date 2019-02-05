@@ -19,6 +19,7 @@ local host_pools_utils = require "host_pools_utils"
 local template = require "template_utils"
 local ts_utils = require "ts_utils"
 
+active_page = "hosts"
 local have_nedge = ntop.isnEdge()
 
 local pool_id     = _GET["pool"]

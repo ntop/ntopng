@@ -4,15 +4,17 @@
 
 local dirs = ntop.getDirs()
 
+local tracker = require "tracker"
+
 local os_utils = {}
-local NTOPCTL_CMD = "sudo ntopctl"
+local NTOPCTL_CMD = "/usr/bin/ntopctl"
 local NTOPNG_CONFIG_TOOL = "/usr/bin/ntopng-utils-manage-config"
 local is_windows = ntop.isWindows()
 
 -- ########################################################
 
 function os_utils.getPathDivider()
-   if(ntop.isWindows()) then
+   if(is_windows) then
       return "\\"
    else
       return "/"
@@ -25,7 +27,7 @@ end
 function os_utils.fixPath(path)
    path = string.gsub(path, "//+", '/') -- removes possibly empty parts of the path
 
-   if(ntop.isWindows() and (string.len(path) > 2)) then
+   if(is_windows and (string.len(path) > 2)) then
       path = string.gsub(path, "/", os_utils.getPathDivider())
    end
 
@@ -59,15 +61,26 @@ end
 
 -- ########################################################
 
-local function ntopctl_cmd(service_name, ...)
+local function ntopctl_cmd(service_name, use_sudo, ...)
+   if not ntop.exists(NTOPCTL_CMD) then
+      return nil
+   end
+
    local cmd = {NTOPCTL_CMD, service_name, ...}
+
+   if use_sudo then
+      table.insert(cmd, 1, "sudo")
+   end
+
    return table.concat(cmd, " ")
 end
 
 --! @brief Execute service control tool and get its output.
 --! @return Command output. See os_utils.execWithOutput for details.
 function os_utils.ntopctlCmd(service_name, ...)
-   return os_utils.execWithOutput(ntopctl_cmd(service_name, ...))
+   local cmd = ntopctl_cmd(service_name, true, ...)
+   if not cmd then return nil end
+   return os_utils.execWithOutput(cmd)
 end
 
 -- ########################################################
@@ -81,7 +94,7 @@ function os_utils.hasService(service_name, ...)
      return false
    end
 
-   local has_ntopctl = os_utils.execWithOutput("which ntopctl >/dev/null 2>/dev/null")
+   local has_ntopctl = os_utils.execWithOutput("which ntopctl >/dev/null 2>&1")
    if has_ntopctl == nil then
       -- ntopctl is not available
       return false
@@ -91,7 +104,9 @@ function os_utils.hasService(service_name, ...)
       return false
    end
 
-   local cmd = ntopctl_cmd(service_name, "has-service", ...)
+   local cmd = ntopctl_cmd(service_name, false, "has-service", ...)
+
+   if not cmd then return false end
    local rv = os_utils.execWithOutput(cmd)
    return(rv == "yes\n")
 end
@@ -101,7 +116,11 @@ end
 --! @brief Enable a service
 --! @return true if service was enabled successfully, false otherwise
 function os_utils.enableService(service_name, ...)
-   os_utils.execWithOutput(ntopctl_cmd(service_name, "enable", ...))
+   local cmd = ntopctl_cmd(service_name, true, "enable", ...)
+   if not cmd then return false end
+
+   os_utils.execWithOutput(cmd)
+
    return os_utils.isEnabled(service_name)
 end
 
@@ -110,7 +129,11 @@ end
 --! @brief Disable a service
 --! @return true if service was disabled successfully, false otherwise
 function os_utils.disableService(service_name, ...)
-   os_utils.execWithOutput(ntopctl_cmd(service_name, "disable", ...))
+   local cmd = ntopctl_cmd(service_name, true, "disable", ...)
+   if not cmd then return false end
+
+   os_utils.execWithOutput(cmd)
+
    return not os_utils.isEnabled(service_name)
 end
 
@@ -119,7 +142,11 @@ end
 --! @brief Restart a service
 --! @note See os_utils.execWithOutput for return value
 function os_utils.restartService(service_name, ...)
-   os_utils.execWithOutput(ntopctl_cmd(service_name, "restart", ...))
+   local cmd = ntopctl_cmd(service_name, true, "restart", ...)
+   if not cmd then return false end
+
+   os_utils.execWithOutput(cmd)
+
    return(os_utils.serviceStatus(service_name) == "active")
 end
 
@@ -128,7 +155,11 @@ end
 --! @brief Stop a service
 --! @note See os_utils.execWithOutput for return value
 function os_utils.stopService(service_name, ...)
-   os_utils.execWithOutput(ntopctl_cmd(service_name, "stop", ...))
+   local cmd = ntopctl_cmd(service_name, true, "stop", ...)
+   if not cmd then return false end
+
+   os_utils.execWithOutput(cmd)
+
    return(os_utils.serviceStatus(service_name) == "inactive")
 end
 
@@ -137,7 +168,10 @@ end
 --! @brief Check the service status.
 --! @return active|inactive|error
 function os_utils.serviceStatus(service_name, ...)
-   local rv = os_utils.execWithOutput(ntopctl_cmd(service_name, "is-active", ...))
+   local cmd = ntopctl_cmd(service_name, false, "is-active", ...)
+   if not cmd then return "error" end
+
+   local rv = os_utils.execWithOutput(cmd)
 
    if rv == "active\n" then
       return "active"
@@ -146,6 +180,31 @@ function os_utils.serviceStatus(service_name, ...)
    else
       return "error"
    end
+end
+
+-- ########################################################
+
+--! @brief List a series of services along with their status
+--! @return a table with one or more <service name>="[active|inactive]"
+function os_utils.serviceListWithStatus(service_name)
+   local cmd = ntopctl_cmd(service_name, false, "list")
+   if not cmd then return "error" end
+
+   local rv = os_utils.execWithOutput(cmd) or ""
+   rv = rv:split("\n") or {}
+
+   local res = {}
+
+   for _, service in ipairs(rv) do
+      service = service:split(" ") or {}
+
+      if #service == 3 then
+	 local service_name, service_status, service_conf = service[1], service[2], service[3]
+	 res[#res + 1] = {name = service_name, status = service_status, conf = service_conf}
+      end
+   end
+   
+   return res
 end
  
 -- ########################################################
@@ -159,9 +218,20 @@ end
 -- ########################################################
 
 function os_utils.isEnabled(service_name, ...)
-   local rv = os_utils.execWithOutput(ntopctl_cmd(service_name, "is-enabled", ...))
+   local cmd = ntopctl_cmd(service_name, false, "is-enabled", ...)
+   if not cmd then return false end
+
+   local rv = os_utils.execWithOutput(cmd)
+
    return(rv == "enabled")
 end
+
+-- ########################################################
+
+-- TRACKER HOOK
+
+tracker.track(os_utils, 'enableService')
+tracker.track(os_utils, 'disableService')
 
 -- ########################################################
 

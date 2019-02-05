@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-18 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -24,68 +24,66 @@
 /* ******************************************* */
 
 DB::DB(NetworkInterface *_iface) {
-  if((m = new(std::nothrow) Mutex()) == NULL)
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: NULL mutex. Are you running out of memory?");
-
+  running = false;
   iface = _iface;
-  log_fd = NULL;
 
-  open_log();
-}
-
-/* ******************************* */
-
-void DB::open_log() {
-  static char sql_log_path[MAX_PATH];
-
-  if(ntop->getPrefs()->is_sql_log_enabled()) {
-    snprintf(sql_log_path, sizeof(sql_log_path), "%s/%d/ntopng_sql.log",
-	     ntop->get_working_dir(), iface->get_id());
-
-    log_fd = fopen(sql_log_path, "a");
-
-    if(!log_fd)
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create log %s", sql_log_path);
-    else
-      chmod(sql_log_path, CONST_DEFAULT_FILE_MODE);
-  }
-}
-
-
-/* ******************************************* */
-
-DB::~DB() {
-  if(m) delete m;
-  if(log_fd) fclose(log_fd);
-}
-
-/* ******************************************* */
-
-bool DB::dumpFlow(time_t when, Flow *f, char *json) {
-  ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error");
-  return(false);
-}
-
-/* ******************************************* */
-
-int DB::exec_sql_query(lua_State *vm, char *sql, bool limit_rows, bool wait_for_db_created) {
-  ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error");
-  return(false);
-}
-
-/* ******************************************* */
-
-void DB::startDBLoop() {
-  ntop->getTrace()->traceEvent(TRACE_WARNING, "*** Internal error ***");
+  lastUpdateTime.tv_sec = 0, lastUpdateTime.tv_usec = 0;
+  droppedFlows = queueDroppedFlows = exportedFlows = lastExportedFlows = 0;
+  checkpointDroppedFlows = checkpointQueueDroppedFlows = checkpointExportedFlows = 0;
+  exportRate = 0;
 }
 
 /* ******************************************* */
 
 #ifdef NTOPNG_PRO
-bool DB::dumpAggregatedFlow(time_t when, AggregatedFlow *f) {
+bool DB::dumpAggregatedFlow(time_t when, AggregatedFlow *f, bool is_top_aggregated_flow, bool is_top_cli, bool is_top_srv) {
   ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error");
   return(false);
 }
 #endif
 
 /* ******************************************* */
+
+void DB::shutdown() {
+  running = false;
+}
+
+/* ******************************************* */
+
+void DB::lua(lua_State *vm, bool since_last_checkpoint) const {
+  lua_push_uint64_table_entry(vm, "flow_export_count",
+			   exportedFlows - (since_last_checkpoint ? checkpointExportedFlows : 0));
+  lua_push_int32_table_entry(vm, "flow_export_drops",
+			   getNumDroppedFlows() - (since_last_checkpoint ? (checkpointDroppedFlows + checkpointQueueDroppedFlows) : 0));
+  lua_push_float_table_entry(vm, "flow_export_rate",
+			   exportRate >= 0 ? exportRate : 0);
+}
+
+/* ******************************************* */
+
+void DB::checkPointCounters(bool drops_only) {
+  if(!drops_only)
+    checkpointExportedFlows = exportedFlows;
+
+  checkpointDroppedFlows = droppedFlows;
+  checkpointQueueDroppedFlows = queueDroppedFlows;
+};
+
+/* ******************************************* */
+
+void DB::updateStats(const struct timeval *tv) {
+  if(tv == NULL) return;
+
+  if(lastUpdateTime.tv_sec > 0) {
+    float tdiffMsec = Utils::msTimevalDiff(tv, &lastUpdateTime);
+    if(tdiffMsec >= 1000) { /* al least one second */
+      u_int64_t diffFlows = exportedFlows - lastExportedFlows;
+      lastExportedFlows = exportedFlows;
+
+      exportRate = ((float)(diffFlows * 1000)) / tdiffMsec;
+      if (exportRate < 0) exportRate = 0;
+    }
+  }
+
+  memcpy(&lastUpdateTime, tv, sizeof(struct timeval));
+}

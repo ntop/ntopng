@@ -55,6 +55,18 @@ struct mg_request_info {
 #define USE_IPV6 1
 #endif
 
+// Unified socket address. For IPv6 support, add IPv6 address structure
+// in the union u.
+union usa {
+  struct sockaddr sa;
+  struct sockaddr_in sin;
+#if defined(USE_IPV6)
+  struct sockaddr_in6 sin6;
+#else
+  struct sockaddr sin6;
+#endif
+};
+
 // This structure needs to be passed to mg_start(), to let mongoose know
 // which callbacks to invoke. For detailed description, see
 // https://github.com/valenok/mongoose/blob/master/UserManual.md
@@ -156,6 +168,9 @@ int mg_write(struct mg_connection *, const void *buf, size_t len);
 
 int mg_write_async(struct mg_connection *, const void *buf, size_t len);
 
+int mg_is_client_connected(struct mg_connection *);
+
+union usa *mg_get_client_address(struct mg_connection *);
 
 #undef PRINTF_FORMAT_STRING
 #if _MSC_VER >= 1400

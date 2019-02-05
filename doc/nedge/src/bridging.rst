@@ -41,7 +41,7 @@ in order to avoid losing management access. This usually is performed in one of 
 - by using a dedicated network interface (this setup requires at least 3 network interfaces)
 - by using a virtual network interface on a VLAN (only 2 network interfaces required)
 
-The management interface configuration should be written to the
+On Ubuntu 16, the management interface configuration should be written to the
 `/etc/network/interfaces.d/nedge_mgmt.conf` configuration file. Here is an example
 on how to set up a virtual network interface for the VLAN case above (the dedicated
 interface case is trivial):

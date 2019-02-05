@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-18 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -485,7 +485,8 @@ void HTTPstats::incResponse(struct http_response_stats *r, const char *return_co
 
 /* ******************************************* */
 
-bool HTTPstats::updateHTTPHostRequest(char *virtual_host_name, u_int32_t num_requests,
+bool HTTPstats::updateHTTPHostRequest(time_t t,
+				      char *virtual_host_name, u_int32_t num_requests,
 				      u_int32_t bytes_sent, u_int32_t bytes_rcvd) {
   VirtualHost *vh;
   bool rc = false;
@@ -528,7 +529,7 @@ bool HTTPstats::updateHTTPHostRequest(char *virtual_host_name, u_int32_t num_req
   m.unlock(__FILE__, __LINE__);
 
   if(vh)
-    vh->incStats(num_requests, bytes_sent, bytes_rcvd);
+    vh->incStats(t, num_requests, bytes_sent, bytes_rcvd);
 
   return(rc);
 }

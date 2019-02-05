@@ -13,6 +13,7 @@ end
 require "lua_utils"
 require "graph_utils"
 require "alert_utils"
+active_page = "hosts"
 local page_utils = require("page_utils")
 local ts_utils = require("ts_utils")
 
@@ -71,17 +72,17 @@ if areAlertsEnabled() and not ifstats.isView then
     end
 end
 
-   if ts_utils.getDriverName() == "rrd" then
-   if(ntop.isEnterprise()) then
+if ts_utils.getDriverName() == "rrd" then
+   if ntop.isEnterprise() or ntop.isnEdge() then
       if(page == "traffic_report") then
          print("\n<li class=\"active\"><a href=\"#\"><i class='fa fa-file-text report-icon'></i></a></li>\n")
       else
          print("\n<li><a href=\""..nav_url.."&page=traffic_report\"><i class='fa fa-file-text report-icon'></i></a></li>")
       end
-   elseif not have_nedge then
+   else
       print("\n<li><a href=\"#\" title=\""..i18n('enterpriseOnly').."\"><i class='fa fa-file-text report-icon'></i></A></li>\n")
    end
-   end
+end
    
 if((network ~= nil) and (areAlertsEnabled())) then
     if(page == "config") then

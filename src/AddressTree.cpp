@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-18 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -49,7 +49,9 @@ AddressTree::AddressTree(const AddressTree &at) {
 
 /* **************************************** */
 
-static void free_ptree_data(void *data) { ; }
+static void free_ptree_data(void *data) {
+  if(data) free(data);
+}
 
 /* **************************************** */
 
@@ -62,6 +64,21 @@ void AddressTree::init() {
 
 AddressTree::~AddressTree() {
   cleanup();
+}
+
+/* ******************************************* */
+
+patricia_node_t *AddressTree::addAddress(const IpAddress * const ipa) {
+  if(!ipa)
+    return NULL;
+
+  bool is_v4 = ipa->isIPv4();
+  patricia_tree_t *cur_ptree = is_v4 ? ptree_v4 : ptree_v6;
+  int cur_family = is_v4 ? AF_INET : AF_INET6;
+  int cur_bits = is_v4 ? 32 : 128;
+  void *cur_addr = is_v4 ? (void*)&ipa->getIP()->ipType.ipv4 : (void*)&ipa->getIP()->ipType.ipv6;
+
+  return Utils::add_to_ptree(cur_ptree, cur_family, cur_addr, cur_bits);
 }
 
 /* ******************************************* */
@@ -219,6 +236,12 @@ void AddressTree::getAddresses(lua_State* vm) {
       lua_push_str_table_entry(vm, key, val);
     }
   }
+}
+/* **************************************************** */
+
+void AddressTree::walk(void_fn3_t func, void * const user_data) const {
+  if(ptree_v4->head)  patricia_walk_inorder(ptree_v4->head, func, user_data);
+  if(ptree_v6->head)  patricia_walk_inorder(ptree_v6->head, func, user_data);
 }
 
 /* **************************************************** */

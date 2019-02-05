@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-18 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -44,6 +44,7 @@ Flow::Flow(NetworkInterface *_iface,
   doNotExpireBefore = iface->getTimeLastPktRcvd() + DONT_NOT_EXPIRE_BEFORE_SEC;
 #ifdef HAVE_NEDGE
   last_conntrack_update = 0;
+  marker = MARKER_NO_ACTION;
 #endif
 
   memset(&cli2srvStats, 0, sizeof(cli2srvStats)), memset(&srv2cliStats, 0, sizeof(srv2cliStats));
@@ -74,8 +75,8 @@ Flow::Flow(NetworkInterface *_iface,
   PROFILING_SUB_SECTION_ENTER(iface, "Flow::Flow: iface->findFlowHosts", 7);
   iface->findFlowHosts(_vlanId, _cli_mac, _cli_ip, &cli_host, _srv_mac, _srv_ip, &srv_host);
   PROFILING_SUB_SECTION_EXIT(iface, 7);
-  if(cli_host) { cli_host->incUses(); cli_host->incNumFlows(true, srv_host);  }
-  if(srv_host) { srv_host->incUses(); srv_host->incNumFlows(false, cli_host); }
+  if(cli_host) { cli_host->incUses(); cli_host->incNumFlows(last_seen, true, srv_host);  }
+  if(srv_host) { srv_host->incUses(); srv_host->incNumFlows(last_seen, false, cli_host); }
 
   memset(&custom_app, 0, sizeof(custom_app));
 
@@ -171,13 +172,21 @@ void Flow::freeDPIMemory() {
 /* *************************************** */
 
 Flow::~Flow() {
-  if(cli_host) cli_host->decNumFlows(true, srv_host),  cli_host->decUses();
-  if(srv_host) srv_host->decNumFlows(false, cli_host), srv_host->decUses();
+  if(cli_host) cli_host->decNumFlows(last_seen, true, srv_host),  cli_host->decUses();
+  if(srv_host) srv_host->decNumFlows(last_seen, false, cli_host), srv_host->decUses();
 
   if(json_info)        free(json_info);
-  if(client_proc)      free(client_proc);
-  if(server_proc)      free(server_proc);
   if(host_server_name) free(host_server_name);
+
+  if(client_proc) {
+    if(client_proc->process_name) free(client_proc->process_name);
+    if(client_proc->father_process_name) free(client_proc->father_process_name);
+    free(client_proc);
+  }
+  
+  if(server_proc) {
+    free(server_proc);
+  }
 
   if(isHTTP()) {
     if(protos.http.last_method) free(protos.http.last_method);
@@ -236,6 +245,10 @@ void Flow::dumpFlowAlert() {
       do_dump = false;
       break;
 
+    case status_not_purged:
+      do_dump = true;
+      break;
+
     case status_web_mining_detected:
       do_dump = ntop->getPrefs()->are_mining_alerts_enabled();
       break;
@@ -288,6 +301,15 @@ void Flow::dumpFlowAlert() {
     case status_device_protocol_not_allowed:
       do_dump = ntop->getPrefs()->are_device_protocols_alerts_enabled();
       break;
+
+    case status_elephant_local_to_remote:
+    case status_elephant_remote_to_local:
+      do_dump = ntop->getPrefs()->are_elephant_flows_alerts_enabled();
+      break;
+
+    case status_longlived:
+      do_dump = ntop->getPrefs()->are_longlived_flows_alerts_enabled();
+       break;
     }
 
 #ifdef HAVE_NEDGE
@@ -305,8 +327,9 @@ void Flow::dumpFlowAlert() {
          ||(srv_host && srv_host->incFlowAlertHits(when)))
       do_dump = false;
 
-    if(do_dump)
+    if(do_dump) {
       iface->getAlertsManager()->storeFlowAlert(this);
+    }
   }
 }
 
@@ -348,12 +371,12 @@ void Flow::processDetectedProtocol() {
 
   case NDPI_PROTOCOL_MDNS:
     /*
-      The statement below can craete issues sometimes as devices publish
+      The statement below can create issues sometimes as devices publish
       themselves with varisous names depending on the context (**)
     */
     if((ndpiFlow->protos.mdns.answer[0] != '\0') && cli_host) {
       ntop->getTrace()->traceEvent(TRACE_INFO, "[MDNS] %s", ndpiFlow->protos.mdns.answer);
-      cli_host->setMDSNInfo(ndpiFlow->protos.mdns.answer);
+      cli_host->inlineSetMDNSInfo(ndpiFlow->protos.mdns.answer);
     }
     break;
 
@@ -477,7 +500,7 @@ void Flow::processDetectedProtocol() {
 	doublecol[0] = '\0';
 
       if(srv_host && (ndpiFlow->protos.http.detected_os[0] != '\0') && cli_host)
-	cli_host->setOS((char*)ndpiFlow->protos.http.detected_os);
+	cli_host->inlineSetOS((char*)ndpiFlow->protos.http.detected_os);
 
       if(cli_host && cli_host->isLocalHost())
 	cli_host->incrVisitedWebSite(host_server_name);
@@ -501,22 +524,22 @@ void Flow::processDetectedProtocol() {
 void Flow::guessProtocol() {
   detection_completed = true; /* We give up */
 
-#if 0
-  /* This code should no longer be necessary as the nDPI API changed */
-  if((protocol == IPPROTO_TCP) || (protocol == IPPROTO_UDP)) {
-    if(cli_host && srv_host) {
-      /* We can guess the protocol */
-      IpAddress *cli_ip = cli_host->get_ip(), *srv_ip = srv_host->get_ip();
-      ndpiDetectedProtocol = ndpi_guess_undetected_protocol(iface->get_ndpi_struct(), NULL, protocol,
-							    ntohl(cli_ip ? cli_ip->get_ipv4() : 0),
-							    ntohs(cli_port),
-							    ntohl(srv_ip ? srv_ip->get_ipv4() : 0),
-							    ntohs(srv_port));
+  if(iface->getIfType() == interface_type_ZMQ) { /* ZMQ interface */
+    /* This code should no longer be necessary as the nDPI API changed */
+    if((protocol == IPPROTO_TCP) || (protocol == IPPROTO_UDP)) {
+      if(cli_host && srv_host) {
+	/* We can guess the protocol */
+	IpAddress *cli_ip = cli_host->get_ip(), *srv_ip = srv_host->get_ip();
+	ndpiDetectedProtocol = ndpi_guess_undetected_protocol(iface->get_ndpi_struct(), NULL, protocol,
+							      ntohl(cli_ip ? cli_ip->get_ipv4() : 0),
+							      ntohs(cli_port),
+							      ntohl(srv_ip ? srv_ip->get_ipv4() : 0),
+							      ntohs(srv_port));
+      }
+      
+      l7_protocol_guessed = true;
     }
-
-    l7_protocol_guessed = true;
   }
-#endif
 }
 
 /* *************************************** */
@@ -802,12 +825,7 @@ bool Flow::dumpFlow(bool dump_alert) {
      && ((srv2cli_packets - last_db_dump.srv2cli_packets) == 0))
       return(rc);
 
-  if(ntop->getPrefs()->do_dump_flows_on_mysql()
-     || ntop->getPrefs()->do_dump_flows_on_es()
-     || ntop->getPrefs()->do_dump_flows_on_ls()
-#if defined(HAVE_NINDEX) && defined(NTOPNG_PRO)
-     || ntop->getPrefs()->do_dump_flows_on_nindex()
-#endif
+  if(ntop->getPrefs()->do_dump_flows()
 #ifndef HAVE_NEDGE
      || ntop->get_export_interface()
 #endif
@@ -840,9 +858,11 @@ bool Flow::dumpFlow(bool dump_alert) {
     }
 
     if(!idle()) {
-      if((now - get_first_seen()) < CONST_DB_DUMP_FREQUENCY
-	 || (now - last_db_dump.last_dump) < CONST_DB_DUMP_FREQUENCY)
+      if(iface->getIfType() == interface_type_PCAP_DUMP
+         || (now - get_first_seen()) < CONST_DB_DUMP_FREQUENCY
+	 || (now - last_db_dump.last_dump) < CONST_DB_DUMP_FREQUENCY) {
 	return(rc);
+      }
     } else {
       /* flows idle, i.e., ready to be purged, are always dumped */
     }
@@ -852,16 +872,7 @@ bool Flow::dumpFlow(bool dump_alert) {
       getInterface()->aggregatePartialFlow(this);
 #endif
 
-    if(ntop->getPrefs()->do_dump_flows_on_mysql())
-      getInterface()->dumpDBFlow(last_seen, this);
-    else if(ntop->getPrefs()->do_dump_flows_on_es())
-      getInterface()->dumpEsFlow(last_seen, this);
-    else if(ntop->getPrefs()->do_dump_flows_on_ls())
-      getInterface()->dumpLsFlow(last_seen, this);
-#if defined(HAVE_NINDEX) && defined(NTOPNG_PRO)
-    else if(ntop->getPrefs()->do_dump_flows_on_nindex())
-      getInterface()->dumpnIndexFlow(last_seen, this);
-#endif
+    getInterface()->dumpFlow(last_seen, this);
 
 #ifndef HAVE_NEDGE
     if(ntop->get_export_interface()) {
@@ -941,7 +952,7 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
 
   if(isReadyToPurge()) {
     /* Marked as ready to be purged, will be purged by NetworkInterface::purgeIdleFlows */
-    set_to_purge();
+    set_to_purge(tv->tv_sec);
   }
 
   if(check_tor && (ndpiDetectedProtocol.app_protocol == NDPI_PROTOCOL_SSL)) {
@@ -995,8 +1006,8 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
 
       if(srv_host->get_mac()) {
 #ifdef HAVE_NEDGE
-        srv_host->getMac()->incSentStats(diff_rcvd_packets, diff_rcvd_bytes);
-        srv_host->getMac()->incRcvdStats(diff_sent_packets, diff_sent_bytes);
+        srv_host->getMac()->incSentStats(tv->tv_sec, diff_rcvd_packets, diff_rcvd_bytes);
+        srv_host->getMac()->incRcvdStats(tv->tv_sec, diff_sent_packets, diff_sent_bytes);
 #endif
 
         if(ntop->getPrefs()->areMacNdpiStatsEnabled()) {
@@ -1009,8 +1020,8 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
 
       if(cli_host->getMac()) {
 #ifdef HAVE_NEDGE
-        cli_host->getMac()->incSentStats(diff_sent_packets, diff_sent_bytes);
-        cli_host->getMac()->incRcvdStats(diff_rcvd_packets, diff_rcvd_bytes);
+        cli_host->getMac()->incSentStats(tv->tv_sec, diff_sent_packets, diff_sent_bytes);
+        cli_host->getMac()->incRcvdStats(tv->tv_sec, diff_rcvd_packets, diff_rcvd_bytes);
 #endif
 
         if(ntop->getPrefs()->areMacNdpiStatsEnabled()) {
@@ -1052,13 +1063,13 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
       // update per-subnet byte counters
       if(cli_network_stats) { // only if the network is known and local
 	if(!cli_and_srv_in_same_subnet) {
-	  cli_network_stats->incEgress(diff_sent_packets, diff_sent_bytes,
+	  cli_network_stats->incEgress(tv->tv_sec, diff_sent_packets, diff_sent_bytes,
 				       srv_host->get_ip()->isBroadcastAddress());
-	  cli_network_stats->incIngress(diff_rcvd_packets, diff_rcvd_bytes,
+	  cli_network_stats->incIngress(tv->tv_sec, diff_rcvd_packets, diff_rcvd_bytes,
 					cli_host->get_ip()->isBroadcastAddress());
 	} else // client and server ARE in the same subnet
 	  // need to update the inner counter (just one time, will intentionally skip this for srv_host)
-	  cli_network_stats->incInner(diff_sent_packets + diff_rcvd_packets,
+	  cli_network_stats->incInner(tv->tv_sec, diff_sent_packets + diff_rcvd_packets,
 				      diff_sent_bytes + diff_rcvd_bytes,
 				      srv_host->get_ip()->isBroadcastAddress()
 				      || cli_host->get_ip()->isBroadcastAddress());
@@ -1074,9 +1085,9 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
       if(srv_network_stats) {
 	// local and known server network
 	if(!cli_and_srv_in_same_subnet) {
-	  srv_network_stats->incIngress(diff_sent_packets, diff_sent_bytes,
+	  srv_network_stats->incIngress(tv->tv_sec, diff_sent_packets, diff_sent_bytes,
 					srv_host->get_ip()->isBroadcastAddress());
-	  srv_network_stats->incEgress(diff_rcvd_packets, diff_rcvd_bytes,
+	  srv_network_stats->incEgress(tv->tv_sec, diff_rcvd_packets, diff_rcvd_bytes,
 				       cli_host->get_ip()->isBroadcastAddress());
 	}
       }
@@ -1098,13 +1109,13 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
 
       if(cli_country_stats) {
 	if(!cli_and_srv_in_same_country) {
-	  cli_country_stats->incEgress(diff_sent_packets, diff_sent_bytes,
+	  cli_country_stats->incEgress(tv->tv_sec, diff_sent_packets, diff_sent_bytes,
 				       srv_host->get_ip()->isBroadcastAddress());
-	  cli_country_stats->incIngress(diff_rcvd_packets, diff_rcvd_bytes,
+	  cli_country_stats->incIngress(tv->tv_sec, diff_rcvd_packets, diff_rcvd_bytes,
 					cli_host->get_ip()->isBroadcastAddress());
 	} else // client and server ARE in the same country
 	  // need to update the inner counter (just one time, will intentionally skip this for srv_host)
-	  cli_country_stats->incInner(diff_sent_packets + diff_rcvd_packets,
+	  cli_country_stats->incInner(tv->tv_sec, diff_sent_packets + diff_rcvd_packets,
 				      diff_sent_bytes + diff_rcvd_bytes,
 				      srv_host->get_ip()->isBroadcastAddress()
 				      || cli_host->get_ip()->isBroadcastAddress());
@@ -1112,9 +1123,9 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
 
       if(srv_country_stats) {
 	if(!cli_and_srv_in_same_country) {
-	  srv_country_stats->incIngress(diff_sent_packets, diff_sent_bytes,
+	  srv_country_stats->incIngress(tv->tv_sec, diff_sent_packets, diff_sent_bytes,
 					srv_host->get_ip()->isBroadcastAddress());
-	  srv_country_stats->incEgress(diff_rcvd_packets, diff_rcvd_bytes,
+	  srv_country_stats->incEgress(tv->tv_sec, diff_rcvd_packets, diff_rcvd_bytes,
 				       cli_host->get_ip()->isBroadcastAddress());
 	}
       }
@@ -1123,9 +1134,10 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
 	 && isThreeWayHandshakeOK()
 	 && (ndpi_is_proto(ndpiDetectedProtocol, NDPI_PROTOCOL_HTTP)
 	     || ndpi_is_proto(ndpiDetectedProtocol, NDPI_PROTOCOL_HTTP_PROXY))) {
-	srv_host->updateHTTPHostRequest(host_server_name,
-					diff_num_http_requests,
-					diff_sent_bytes, diff_rcvd_bytes);
+	if(srv_host->getHTTPstats())
+	  srv_host->getHTTPstats()->updateHTTPHostRequest(tv->tv_sec, host_server_name,
+							  diff_num_http_requests,
+							  diff_sent_bytes, diff_rcvd_bytes);
 	diff_num_http_requests = 0; /*
 				      As this is a difference it is reset
 				      whenever we update the counters
@@ -1135,6 +1147,8 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
 
     /* Check and possibly enqueue host remote-to-remote alerts */
     if(!cli_host->isLocalHost() && !srv_host->isLocalHost()
+       && cli_host->get_ip()->isNonEmptyUnicastAddress()
+       && srv_host->get_ip()->isNonEmptyUnicastAddress()
        && ntop->getPrefs()->are_remote_to_remote_alerts_enabled()
        && !cli_host->setRemoteToRemoteAlerts()) {
       json_object *jo = cli_host->getJSONObject(details_normal);
@@ -1232,15 +1246,15 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
 	   && ndpiDetectedProtocol.app_protocol != NDPI_PROTOCOL_SSH) {
 	  if(isLowGoodput()) {
 	    if(!good_low_flow_detected) {
-	      if(cli_host) cli_host->incLowGoodputFlows(true);
-	      if(srv_host) srv_host->incLowGoodputFlows(false);
+	      if(cli_host) cli_host->incLowGoodputFlows(tv->tv_sec, true);
+	      if(srv_host) srv_host->incLowGoodputFlows(tv->tv_sec, false);
 	      good_low_flow_detected = true;
 	    }
 	  } else {
 	    if(good_low_flow_detected) {
 	      /* back to normal */
-	      if(cli_host) cli_host->decLowGoodputFlows(true);
-	      if(srv_host) srv_host->decLowGoodputFlows(false);
+	      if(cli_host) cli_host->decLowGoodputFlows(tv->tv_sec, true);
+	      if(srv_host) srv_host->decLowGoodputFlows(tv->tv_sec, false);
 	      good_low_flow_detected = false;
 	    }
 	  }
@@ -1481,7 +1495,7 @@ void Flow::processLua(lua_State* vm, ProcessInfo *proc, bool client) {
   Host *src = get_cli_host(), *dst = get_srv_host();
   struct passwd *pwd;
   
-  if((src == NULL) || (dst == NULL)) return;
+  if((src == NULL) || (dst == NULL) || (proc->pid == 0)) return;
 
   lua_newtable(vm);
 
@@ -1539,7 +1553,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     lua_push_str_table_entry(vm, "cli.ip",
 			     src->get_ip()->printMask(buf, sizeof(buf),
 						      src->isLocalHost()));
-    if(src->get_vlan_id())
+   if(src->get_vlan_id())
       lua_push_uint64_table_entry(vm, "cli.vlan", src->get_vlan_id());
 
     lua_push_uint64_table_entry(vm, "cli.key", mask_cli_host ? 0 : src->key());
@@ -1708,6 +1722,8 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     }
 
 #ifdef HAVE_NEDGE
+    lua_push_uint64_table_entry(vm, "marker", marker);
+
     if(cli_host && srv_host) {
       /* Shapers */
       lua_push_uint64_table_entry(vm,
@@ -1848,6 +1864,10 @@ u_int32_t Flow::key(Host *_cli, u_int16_t _cli_port,
 /* *************************************** */
 
 bool Flow::isReadyToPurge() {
+  if (ntop->getPrefs()->flushFlowsOnShutdown()
+      && (ntop->getGlobals()->isShutdownRequested() || ntop->getGlobals()->isShutdown()))
+    return(true);
+
   if(idle()) return(true);
 
 #ifdef HAVE_NEDGE
@@ -2193,11 +2213,15 @@ bool Flow::isNetfilterIdleFlow() {
       seconds an active flow should have been updated
       by conntrack
     */
-    if(iface->getTimeLastPktRcvd() > (last_conntrack_update+(3*MIN_CONNTRACK_UPDATE)))
+    if(iface->getTimeLastPktRcvd() > (last_conntrack_update + (3 * MIN_CONNTRACK_UPDATE)))
       return(true);
-  }
 
-  return(false);
+    return(false);
+  } else {
+    /* if an conntrack update hasn't been seen for this flow
+       we use the standard idleness check */
+    return(isIdle(ntop->getPrefs()->get_flow_max_idle()));
+  }
 }
 #endif
 
@@ -2207,7 +2231,7 @@ void Flow::housekeep() {
 #ifdef HAVE_NEDGE
   if(iface->getIfType() == interface_type_NETFILTER) {
     if(isNetfilterIdleFlow()) {
-      set_to_purge();
+      set_to_purge(iface->getTimeLastPktRcvd());
     }
   }
 #endif
@@ -2275,10 +2299,10 @@ void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
 
   if(cli2srv_direction) {
     cli2srv_packets++, cli2srv_bytes += pkt_len, cli2srv_goodput_bytes += payload_len;
-      cli_host->get_sent_stats()->incStats(pkt_len), srv_host->get_recv_stats()->incStats(pkt_len);
+      cli_host->incSentStats(pkt_len), srv_host->incRecvStats(pkt_len);
   } else {
     srv2cli_packets++, srv2cli_bytes += pkt_len, srv2cli_goodput_bytes += payload_len;
-    cli_host->get_recv_stats()->incStats(pkt_len), srv_host->get_sent_stats()->incStats(pkt_len);
+    cli_host->incRecvStats(pkt_len), srv_host->incSentStats(pkt_len);
   }
 
   if((applLatencyMsec == 0) && (payload_len > 0)) {
@@ -2933,7 +2957,6 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
     struct mdns_rsp_entry rsp;
     u_int j;
     u_int16_t rsp_type, data_len;
-    bool device_info = false;
     DeviceType dtype = device_unknown;
 
     memset(_name, 0, sizeof(_name));
@@ -3007,7 +3030,7 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
 #endif
 
     if(strstr(name, "._device-info._"))
-      device_info = true;
+      ;
     else if(strstr(name, "._airplay._") || strstr(name, "._spotify-connect._") )
       dtype = device_multimedia;
     else if(strstr(name, "_ssh._"))
@@ -3047,7 +3070,7 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
       }
 
       if(cli_host)
-	cli_host->setName(name); /* See (**) */
+	cli_host->inlineSetMDNSName(name); /* See (**) */
 
       if((rsp_type == 0x10 /* TXT */) && (data_len > 0)) {
 	char *txt = (char*)&payload[i+sizeof(rsp)], txt_buf[256];
@@ -3080,22 +3103,18 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
 		Mac *mac = cli_host->getMac();
 
 		if(mac) {
-		  if(device_info) {
-		    /* Overrite only if model is empty */
-		    if(mac->getModel() == NULL)
-		      mac->setModel((char*)model);
-		  } else
-		    mac->setModel((char*)model);
+		    mac->inlineSetModel(model);
 		}
 	      }
 
 	      if(strncmp(txt_buf, "nm=", 3) == 0) {
-		if(cli_host) cli_host->setName(&txt_buf[3]);
+		if(cli_host)
+		  cli_host->inlineSetMDNSTXTName(&txt_buf[3]);
 	      }
 
 	      if(strncmp(txt_buf, "ssid=", 3) == 0) {
 		if(cli_host && cli_host->getMac())
-		  cli_host->getMac()->setSSID(&txt_buf[5]);
+		  cli_host->getMac()->inlineSetSSID(&txt_buf[5]);
 	      }
 	    }
 	  } else
@@ -3140,7 +3159,7 @@ void Flow::dissectSSDP(bool src2dst_direction, char *payload, u_int16_t payload_
 
 	url[i] = '\0';
 	// ntop->getTrace()->traceEvent(TRACE_NORMAL, "[SSDP URL:] %s", url);
-	if(cli_host) cli_host->setSSDPLocation(url);
+	if(cli_host) cli_host->inlineSetSSDPLocation(url);
 	break;
       }
     }
@@ -3390,6 +3409,11 @@ FlowStatus Flow::getFlowStatus() {
 
   /* NOTE: evaluation order is important here! */
 
+  if(iface->isPacketInterface() && !is_ready_to_be_purged() && isIdle(5 * ntop->getPrefs()->get_flow_max_idle())) {
+    /* Should've already been marked as idle and purged */
+    return status_not_purged;
+  }
+
   if(isBlacklistedFlow())
     return status_blacklisted;
 
@@ -3479,12 +3503,34 @@ FlowStatus Flow::getFlowStatus() {
     }
   }
 
-  if(cli_host && ! cli_host->isLocalHost() && srv_host && ! srv_host->isLocalHost()
-     && ! cli_host->get_ip()->isBroadcastAddress()
-     && ! srv_host->get_ip()->isBroadcastAddress()
-     && ! cli_host->get_ip()->isMulticastAddress()
-     && ! srv_host->get_ip()->isMulticastAddress())
-    return status_remote_to_remote;
+  if(cli_host && srv_host
+      && cli_host->get_ip()->isNonEmptyUnicastAddress()
+      && srv_host->get_ip()->isNonEmptyUnicastAddress()) {
+
+    if(! cli_host->isLocalHost() && 
+       ! srv_host->isLocalHost())
+      return status_remote_to_remote;
+
+    if(get_duration() > ntop->getPrefs()->get_longlived_flow_duration())
+      return status_longlived;
+  }
+
+  if(cli_host && srv_host) {
+    u_int64_t local_to_remote_bytes = 0, remote_to_local_bytes = 0;
+
+    if(cli_host->isLocalHost() && ! srv_host->isLocalHost()) {
+      local_to_remote_bytes = get_bytes_cli2srv();
+      remote_to_local_bytes = get_bytes_srv2cli();
+    } else if(srv_host->isLocalHost() && ! cli_host->isLocalHost()) {
+      local_to_remote_bytes = get_bytes_srv2cli();
+      remote_to_local_bytes = get_bytes_cli2srv();
+    }
+
+    if(local_to_remote_bytes > ntop->getPrefs()->get_elephant_flow_local_to_remote_bytes())
+      return status_elephant_local_to_remote;
+    if(remote_to_local_bytes > ntop->getPrefs()->get_elephant_flow_remote_to_local_bytes())
+      return status_elephant_remote_to_local;
+  }
 
 #ifdef HAVE_NEDGE
   /* Leave this at the end. A more specific status should be returned above if avaialble. */
@@ -3578,15 +3624,18 @@ void Flow::setProcessInfo(eBPFevent *event, bool client_process) {
     struct taskInfo *proc, *father;
     ProcessInfo *c = *process_info /* , *s */;
 
-    proc = (event->ip_version == 4)   ? &event->event.v4.proc   : &event->event.v6.proc;
-    father = (event->ip_version == 4) ? &event->event.v4.father : &event->event.v6.father;
+    proc = (event->ip_version == 4)   ? &event->proc   : &event->proc;
+    father = (event->ip_version == 4) ? &event->father : &event->father;
 
     c->pid = proc->tid ? proc->tid : proc->pid,
       c->father_pid = father->tid ? father->tid : father->pid,
-      snprintf(c->process_name, sizeof(c->process_name), "%s", proc->task),
-      snprintf(c->father_process_name, sizeof(c->father_process_name), "%s", father->task),
       c->uid = proc->uid, c->gid = proc->gid,
       c->father_uid = father->uid, c->father_gid = father->gid;
+
+    if(c->process_name) free(c->process_name);
+    c->process_name = strdup(proc->full_task_path ? proc->full_task_path : proc->task);
+    if(c->father_process_name) free(c->father_process_name);
+    c->father_process_name = strdup(father->full_task_path ? father->full_task_path : father->task);
 
     /* TODO: handle latency_usec */
   }

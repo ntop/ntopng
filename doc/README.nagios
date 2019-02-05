@@ -106,7 +106,7 @@ if [[ "$NTOPNG_HOST" == "" ]] || [[ "$NTOPNG_PORT" == "" ]] ||
   exit $STATE_WARNING
 fi
 
-RESULT_JSON=`curl -s -u ${NTOPNG_USER}:${NTOPNG_PASS} 'http://'${NTOPNG_HOST}':'${NTOPNG_PORT}'/lua/host_get_json.lua?ifname='${CHECK_INTF}'&host='${CHECK_HOST}`
+RESULT_JSON=`curl -s -u ${NTOPNG_USER}:${NTOPNG_PASS} 'http://'${NTOPNG_HOST}':'${NTOPNG_PORT}'/lua/rest/get/host/data.lua?ifname='${CHECK_INTF}'&host='${CHECK_HOST}`
 
 # Handle result and return appropriate status
 echo $RESULT_JSON
@@ -114,7 +114,7 @@ if [[ "$RESULT_JSON" == "" ]]; then
   exit $STATE_CRITICAL
 fi
 
-#wget --auth-no-challenge -mk --user $NTOPNG_USER --password $NTOPNG_PASS 'http://'${NTOPNG_HOST}':'${NTOPNG_PORT}'/lua/host_get_json.lua?ifname='${CHECK_INTF}'&host='${CHECK_HOST}
+#wget --auth-no-challenge -mk --user $NTOPNG_USER --password $NTOPNG_PASS 'http://'${NTOPNG_HOST}':'${NTOPNG_PORT}'/lua/rest/get/host/data.lua?ifname='${CHECK_INTF}'&host='${CHECK_HOST}
 
 exit $STATE_OK
 

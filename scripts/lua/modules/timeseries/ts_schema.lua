@@ -120,16 +120,17 @@ function ts_schema:verifyTagsAndMetrics(tags_and_metrics)
 
   for tag in pairs(self.tags) do
     if not tags_and_metrics[tag] then
-      traceError(TRACE_ERROR, TRACE_CONSOLE, "missing tag '" .. tag .. "' in schema " .. self.name)
+      traceError(TRACE_ERROR, TRACE_CONSOLE, "Failing to use mandatory tag '" .. tag .. "' when working on schema " .. self.name)
       return nil
     end
 
     tags[tag] = tags_and_metrics[tag]
   end
 
+
   for metric in pairs(self.metrics) do
-    if not tags_and_metrics[metric] then
-      traceError(TRACE_ERROR, TRACE_CONSOLE, "missing metric '" .. metric .. "' in schema " .. self.name)
+     if not tags_and_metrics[metric] then
+	traceError(TRACE_ERROR, TRACE_CONSOLE, "Failing to use mandatory metric '" .. metric .. "' when working on schema " .. self.name)
       return nil
     end
 

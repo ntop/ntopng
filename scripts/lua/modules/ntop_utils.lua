@@ -173,7 +173,7 @@ function tolongint(what)
    if(what == nil) then
       return(0)
    else
-      return(string.format("%u", what))
+      return(string.format("%u", math.floor(what)))
    end
 end
 
@@ -234,11 +234,5 @@ end
 -- ##############################################
 
 function isAdministrator()
-   local user_group = ntop.getUserGroup()
-
-   if(user_group == "administrator") or (user_group == "") then
-      return(true)
-   else
-      return(false)
-   end
+   return ntop.isAdministrator()
 end

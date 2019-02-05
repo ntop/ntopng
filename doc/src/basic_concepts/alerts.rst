@@ -1,7 +1,7 @@
 .. _BasicConceptAlerts:
 
 Alerts
-######
+======
 
 ntopng generates alerts to report the occurrence of events and user-configurable thresholds.
 
@@ -13,6 +13,7 @@ Events include, but are not limited to:
 - The detection of a new device
 - The status change of a switch port detected via SNMP
 - The contact of a malware host
+- A user activity
 
 Events are monitored continuously by ntopng and the corresponding alerts can be triggered at any time withouth any pre-defined, periodic check.
 
@@ -101,12 +102,39 @@ During its execution, ntopng can detect anomalous or suspicious flows for which 
 
   Flow Alerts Page
 
+User Activities
+---------------
+
+ntopng keeps track of user activities that are related to system management and security, storing them as alerts. 
+These activities include:
+
+- Users management: user added or remove, password changed
+- Live traffic downloaded
+- Traffic extraction (live or PCAP downloaded)
+- Host JSON downlaoded
+- Flows data downloaded
+- Alerts settings changes: alerts disabled or enabled, alerts data deleted
+- Failed or successful logins
+- Remote assistance enabled or disabled
+- Traffic recording enabeld or disabled
+- Hosts/interfaces data deleted
+- SNMP deviced added or removeed
+
+User activities are available in the *Past Alerts* page as standard event alerts.
+
+.. figure:: ../img/web_gui_alerts_user_activities.png
+  :align: center
+  :alt: Past Alerts Page with User Activities
+
+  Past Alerts Page with User Activities
+
+
 Severity
 --------
 
 Event and threshold alerts are always associated with a severity that tells the importance of such occurrence. For example, the contact of a blacklisted host is emphasized with a *warning*, whereas a threshold crossed by an host is highlighted with an *error*. Currently, severity levels available are three:
 
-- *Info*. Used for informative alerts, such as devices connections and disconnections, that don't directly represent any anomalous event or threshold. Identified with a light blu badge.
+- *Info*. Used for informative alerts, such as devices connections and disconnections or user activities, that don't directly represent any anomalous event or threshold. Identified with a light blu badge.
 - *Warning*. Used for alerts that deserve further investigation, such as a SYN probing. Identified with an orange badge.
 - *Error*. Used with user-configurable thresholds, for example a traffic threshold crossed by an host. Identified with a red badge.
 
@@ -124,6 +152,7 @@ Every alert has an entity and an entity value associated. The entity is the subj
 - **Devices**: Layer-2 Mac addresses
 - **Host Pools**: the user-created host pools
 - **Process**: the ntopng process itself
+- **User**: the ntopng UI user
 
 For example, an alert triggered for host :code:`192.168.1.2` that has exceeded a traffic threshold will have *"host"* as entity and "*192.168.1.2"* as entity value. Similarly, network :code:`192.168.2.0/24` that has exceeded a traffic threshold will have *"network*" as entity and *"192.168.2.0/24"* as entity value.
 

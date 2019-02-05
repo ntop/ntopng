@@ -1,7 +1,7 @@
 In order to use SSL with ntopng (i.e. HTTPS) you need a certificate; you can create your own self signed certificate (1) or obtain it by a Certification Authorities (CA) (2):
 - obtain the .pem files
 - concatenate the privateKeyFile(.pem) and the certificate/certificateChainFile(.pem)
-- Rename it in ntiong-cert.pem and put inside ntopng/httpdocs/ssl/.
+- Rename it in ntopng-cert.pem and put inside ntopng/httpdocs/ssl/.
 
 The HTTPS server will start on port 3001
 
@@ -83,3 +83,43 @@ Below you can find instructions on how to run ntopng with either a self signed o
 
 Please read https://www.ntop.org/ntopng/securing-ntopng-with-ssl-and-lets-encrypt/ for
 a complete tutorial on using Let's Encrypt to secure ntopng.
+
+
+=== HTTPS Client Authentication ===
+
+By enabling this feature you may grant access to ntopng by the means of X.509 client certificates.
+
+Clients that provides a valid certificate, issued by a trusted CA, are authenticated 
+without the need of a password, if the X.509 Common Name (CN) matches an existing ntopng user.
+
+Clients that otherwise fails to provide a certificate or a valid one, fallback to the usual 
+login process.
+
+Trusted CAs are read from httpdocs/ssl/ntopng-ca.crt, this file must contain the concatenated 
+list of CAs certificates, in PEM format. Any change to this file requires a restart of ntopng
+to take effect.
+
+Using openssl you may easily activate the feature and create client certificates 
+with the following instructions.
+
+1. Create your own CA:
+
+	openssl genrsa -des3 -out ca.key 2048				# create key
+	openssl req -new -x509 -days 365 -key ca.key -out ca.crt 	# create CA self-signed cert
+
+	cat ca.crt >> ntopng/httpdocs/ssl/ntopng-ca.crt			# add cert to trusted CAs
+	
+
+2. Create one or more Client Certificates:
+
+	openssl genrsa -des3 -out client.key 2048			# create key
+	openssl req -new -key client.key -out client.csr		# create client cert request
+	openssl x509 -req -days 365 -in client.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out client.crt														# create client cert signed by CA
+	
+3. Export Client to preferred browser format (usually pkcs12):
+
+	openssl pkcs12 -export -clcerts -in client.crt -inkey client.key -out client.p12
+
+Then import client certificate in the browser and restart ntopng. 
+Remember first to enable HTTPS Client Authentication in the Preferences->User Authetication.
+

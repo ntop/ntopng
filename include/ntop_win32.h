@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-18 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -187,11 +187,8 @@ struct win_in6_addr
 
 #if defined(_MSC_VER)
 #include <BaseTsd.h>
-typedef SSIZE_T ssize_t;
+#define SSIZE_T ssize_t
 #endif
-
-/* We use the non-JIT version of Lua */
-//#define DONT_USE_LUAJIT
 
 struct ip6_hdr
 {

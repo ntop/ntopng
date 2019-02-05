@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-18 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -286,6 +286,19 @@ u_int32_t ViewInterface::getVLANsHashSize() {
 /* **************************************************** */
 
 Host* ViewInterface::getHost(char *host_ip, u_int16_t vlan_id) {
+  Host *h = NULL;
+
+  for(u_int8_t s = 0; s < numSubInterfaces; s++) {
+    if((h = subInterfaces[s]->getHost(host_ip, vlan_id)))
+      break;
+  }
+
+  return(h);
+}
+
+/* **************************************************** */
+
+Host* ViewInterface::getHost(IpAddress * const host_ip, u_int16_t vlan_id) const {
   Host *h = NULL;
 
   for(u_int8_t s = 0; s < numSubInterfaces; s++) {

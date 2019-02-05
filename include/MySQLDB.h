@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-18 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -27,48 +27,43 @@
 class MySQLDB : public DB {
  protected:
   MYSQL mysql;
-  bool db_operational;
-  struct timeval lastUpdateTime;
-  u_int32_t mysqlDroppedFlows;
-  u_int64_t mysqlExportedFlows, mysqlLastExportedFlows;
-  float mysqlExportRate;
-
-  u_int64_t checkpointDroppedFlows, checkpointExportedFlows; /* Those will hold counters at checkpoints */
+  MYSQL mysql_alt;
+  bool db_operational, mysql_alt_connected;
+  FILE *log_fd;
+  u_int32_t mysqlEnqueuedFlows;
+  Mutex m;
 
   static volatile bool db_created;
   pthread_t queryThreadLoop;
 
   bool connectToDB(MYSQL *conn, bool select_db);
+  void open_log();
   char* get_last_db_error(MYSQL *conn) { return((char*)mysql_error(conn)); }
   int exec_sql_query(MYSQL *conn, const char *sql, bool doReconnect = true,
 		     bool ignoreErrors = false, bool doLock = true);
+  void try_exec_sql_query(MYSQL *conn, char *sql);
+  virtual bool createDBSchema(bool set_db_created = true);
+  bool createNprobeDBView();
 
  public:
   MySQLDB(NetworkInterface *_iface);
   virtual ~MySQLDB();
 
   virtual void* queryLoop();
-  virtual bool createDBSchema(bool set_db_created = true);
-  virtual bool createNprobeDBView();
+  virtual bool dumpFlow(time_t when, Flow *f, char *json);
+
   void disconnectFromDB(MYSQL *conn);
   static volatile bool isDbCreated() { return db_created; };
-  void checkPointCounters(bool drops_only) {
-    if(!drops_only)
-      checkpointExportedFlows = mysqlExportedFlows;
-    checkpointDroppedFlows = mysqlDroppedFlows;
-  };
-  inline u_int32_t numDroppedFlows() const { return mysqlDroppedFlows; };
-  inline float exportRate()          const { return mysqlExportRate; };
   static char *escapeAphostrophes(const char *unescaped);
   int flow2InsertValues(Flow *f, char *json, char *values_buf, size_t values_buf_len) const;
-  virtual bool dumpFlow(time_t when, Flow *f, char *json);
-  virtual void flush() { ; };
   int exec_sql_query(lua_State *vm, char *sql, bool limitRows, bool wait_for_db_created = true);
-  void startDBLoop();
-  void updateStats(const struct timeval *tv);
-  void lua(lua_State* vm, bool since_last_checkpoint) const;
+  void startLoop();
+  void shutdown();
+  static int exec_single_query(lua_State *vm, char *sql);
 #ifdef NTOPNG_PRO
-  bool dumpAggregatedFlow(time_t when, AggregatedFlow *f) { return(false); };
+  bool dumpAggregatedFlow(time_t when, AggregatedFlow *f, bool is_top_aggregated_flow, bool is_top_cli, bool is_top_srv) {
+    return(false);
+  };
 #endif
 
 };

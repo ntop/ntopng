@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-18 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -26,14 +26,15 @@
 /* **************************************************** */
 
 static void* esLoop(void* ptr) {
-  ntop->getElasticSearch()->pushEStemplate();  // sends ES ntopng template
-  ntop->getElasticSearch()->indexESdata();
+  ElasticSearch *es = (ElasticSearch *) ptr;
+  es->pushEStemplate();  // sends ES ntopng template
+  es->indexESdata();
   return(NULL);
 }
 
 /* **************************************** */
 
-ElasticSearch::ElasticSearch() {
+ElasticSearch::ElasticSearch(NetworkInterface *_iface) : DB(_iface) {
   char *es_url, *es_host;
 
   es_version = NULL;
@@ -41,11 +42,6 @@ ElasticSearch::ElasticSearch() {
   head = NULL;
   tail = NULL;
   reportDrops = false;
-  elkDroppedFlowsQueueTooLong = 0;
-  elkExportedFlows = 0, elkLastExportedFlows = 0;
-  elkExportRate = 0;
-  checkpointDroppedFlows = checkpointExportedFlows = 0;
-  lastUpdateTime.tv_sec = 0, lastUpdateTime.tv_usec = 0;
 
   if (!(es_template_push_url = (char*)malloc(MAX_PATH))
       || !(es_version_query_url = (char*)malloc(MAX_PATH))
@@ -80,41 +76,11 @@ ElasticSearch::~ElasticSearch() {
   if(es_version_query_url) free(es_version_query_url);
 }
 
-/* ******************************************* */
-
-void ElasticSearch::updateStats(const struct timeval *tv) {
-  if(tv == NULL) return;
-
-  if(lastUpdateTime.tv_sec > 0) {
-    float tdiffMsec = Utils::msTimevalDiff(tv, &lastUpdateTime);
-    if(tdiffMsec >= 1000) { /* al least one second */
-      u_int64_t diffFlows = elkExportedFlows - elkLastExportedFlows;
-      elkLastExportedFlows = elkExportedFlows;
-
-      elkExportRate = ((float)(diffFlows * 1000)) / tdiffMsec;
-      if (elkExportRate < 0) elkExportRate = 0;
-    }
-  }
-
-  memcpy(&lastUpdateTime, tv, sizeof(struct timeval));
-}
-
-/* ******************************************* */
-
-void ElasticSearch::lua(lua_State *vm, bool since_last_checkpoint) const {
-  lua_push_uint64_table_entry(vm,   "flow_export_count",
-			   elkExportedFlows - (since_last_checkpoint ? checkpointExportedFlows : 0));
-  lua_push_int32_table_entry(vm, "flow_export_drops",
-			     elkDroppedFlowsQueueTooLong - (since_last_checkpoint ? checkpointDroppedFlows : 0));
-  lua_push_float_table_entry(vm, "flow_export_rate",
-			     elkExportRate >= 0 ? elkExportRate : 0);
-}
-
 /* **************************************** */
 
-int ElasticSearch::sendToES(char* msg) {
+bool ElasticSearch::dumpFlow(time_t when, Flow *f, char *msg) {
   struct string_list *e;
-  int rc = 0;
+  bool rc = true;
 
   if(num_queued_elems >= ES_MAX_QUEUE_LEN) {
     if(!reportDrops) {
@@ -123,11 +89,11 @@ int ElasticSearch::sendToES(char* msg) {
       reportDrops = true;
     }
 
-    elkDroppedFlowsQueueTooLong++;
+    incNumQueueDroppedFlows();
     ntop->getTrace()->traceEvent(TRACE_INFO, "[ES] Message dropped. Total messages dropped: %lu\n",
-				 elkDroppedFlowsQueueTooLong);
+				 getNumDroppedFlows());
 
-    return(-1);
+    return(false);
   }
 
   listMutex.lock(__FILE__, __LINE__);
@@ -144,22 +110,22 @@ int ElasticSearch::sendToES(char* msg) {
 	tail = e;
       num_queued_elems++;
 
-      rc = 0;
+      rc = true;
     } else {
       /* Out of memory */
       free(e);
-      rc = -1;
+      rc = false;
     }
   }
 
   listMutex.unlock(__FILE__, __LINE__);
 
-  return rc;
+  return(rc);
 }
 
 /* **************************************** */
 
-void ElasticSearch::startFlowDump() {
+void ElasticSearch::startLoop() {
   if(ntop->getPrefs()->do_dump_flows_on_es())
     pthread_create(&esThreadLoop, NULL, esLoop, (void*)this);
 }
@@ -177,7 +143,7 @@ void ElasticSearch::indexESdata() {
     return;
   }
 
-  while(!ntop->getGlobals()->isShutdown()) {
+  while(!ntop->getGlobals()->isShutdown() && isRunning()) {
     time_t now = time(0);
 
     if((num_queued_elems >= min_buffered_flows)
@@ -222,13 +188,14 @@ void ElasticSearch::indexESdata() {
       if(!Utils::postHTTPJsonData(ntop->getPrefs()->get_es_user(),
 				  ntop->getPrefs()->get_es_pwd(),
 				  ntop->getPrefs()->get_es_url(),
-				  postbuf, &stats)) {
+				  postbuf, 0, &stats)) {
 	/* Post failure */
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "ES: POST request for %d flows (%d bytes) failed", num_flows, len);
+	incNumDroppedFlows(num_flows);
 	sleep(1);
       } else {
 	ntop->getTrace()->traceEvent(TRACE_INFO, "Sent %u flow(s) to ES", num_flows);
-	elkExportedFlows += num_flows;
+	incNumExportedFlows(num_flows);
       }
 
       last_dump = now;
@@ -290,10 +257,12 @@ const char * const ElasticSearch::get_es_version() {
 	if(json_object_object_get_ex(o, "version", &obj)
 	   && json_object_object_get_ex(obj, "number", &obj2)) {
 	  const char *ver = json_object_get_string(obj2);
+	  size_t size = min(strlen(ver) + 1, (size_t)64);
 
 	  if(es_version) free(es_version);
-	  if((es_version = (char*)malloc(strlen(ver) + 1))) {
-	    strcpy(es_version, ver);
+	  if((es_version = (char*)malloc(size))) {
+	    strncpy(es_version, ver, size-1);
+	    es_version[size - 1] = '\0';
 	    version_inited = true;
 	  }
 	}
@@ -337,7 +306,7 @@ void ElasticSearch::pushEStemplate() {
   while(max_attempts > 0) {
     if(!Utils::postHTTPJsonData(ntop->getPrefs()->get_es_user(),
 				ntop->getPrefs()->get_es_pwd(),
-				es_template_push_url, postbuf, &stats)) {
+				es_template_push_url, postbuf, 0, &stats)) {
       /* Post failure */
       sleep(1);
     } else {

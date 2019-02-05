@@ -6,6 +6,14 @@ local pragma_once = 1
 local http_lint = {}
 local json = require "dkjson"
 local alert_consts = require "alert_consts"
+local tracker = require "tracker"
+
+-- #################################################################
+
+-- TRACKER HOOK (ntop.*, interface.*)
+
+tracker.track_ntop()
+tracker.track_interface()
 
 -- #################################################################
 
@@ -161,6 +169,14 @@ local function validateSingleAlphanumericWord(w)
    end
 end
 
+local function validateTrafficRecordingProvider(w)
+   if w == "ntopng" or (w:starts("n2disk@") and validateSingleWord(w)) then
+      return true
+   end
+
+   return false
+end
+
 local function validateUsername(p)
    -- A username (e.g. used in ntopng authentication)
    return validateSingleWord(p)
@@ -208,7 +224,7 @@ local function validateOnOff(mode)
 end
 
 local function validateMode(mode)
-   local modes = {"all", "local", "remote", "filtered", "blacklisted", "restore"}
+   local modes = {"all", "local", "remote", "broadcast_domain", "filtered", "blacklisted", "restore"}
 
    return validateChoice(modes, mode)
 end
@@ -577,10 +593,8 @@ local function validateApplication(app)
 end
 
 local function validateProtocolId(p)
-   local l4 = {"icmp", "tcp", "udp"}
-
    return validateChoice(ndpi_protos, p) or
-      validateChoice(l4, p) or
+      validateChoiceByKeys(L4_PROTO_KEYS, p) or
       validateChoiceByKeys(ndpi_protos, p)
 end
 
@@ -873,6 +887,10 @@ local known_parameters = {
    ["admin_group"]             = validateUnquoted,
    ["radius_admin_group"]      = validateUnquoted,
    ["ts_post_data_url"]        = validateUnquoted,             -- URL for influxdb
+   ["webhook_url"]             = validateUnquoted,
+   ["webhook_sharedsecret"]    = validateEmptyOr(validateSingleWord),
+   ["webhook_username"]        = validateEmptyOr(validateSingleWord),
+   ["webhook_password"]        = validateEmptyOr(validateSingleWord),
 
    -- nIndex
    ["select_clause"]           = validateUnquoted,
@@ -1042,7 +1060,9 @@ local known_parameters = {
    ["toggle_dropped_flows_alerts"]                 = validateBool,
    ["toggle_malware_probing"]                      = validateBool,
    ["toggle_device_protocols_alerts"]              = validateBool,
+   ["toggle_elephant_flows_alerts"]                = validateBool,
    ["toggle_ip_reassignment_alerts"]               = validateBool,
+   ["toggle_longlived_flows_alerts"]               = validateBool,
    ["toggle_flow_db_dump_export"]                  = validateBool,
    ["toggle_alert_syslog"]                         = validateBool,
    ["toggle_slack_notification"]                   = validateBool,
@@ -1088,14 +1108,24 @@ local known_parameters = {
    ["toggle_local_auth"]                           = validateBool,
    ["toggle_radius_auth"]                          = validateBool,
    ["toggle_http_auth"]                            = validateBool,
+   ["toggle_ldap_referrals"]                       = validateBool,
+   ["toggle_webhook_notification"]                 = validateBool,
+   ["toggle_auth_session_midnight_expiration"]     = validateBool,
+   ["toggle_client_x509_auth"]                     = validateBool,
+   ["toggle_snmp_alerts_port_status_change"]       = validateBool,
+   ["toggle_snmp_alerts_port_errors"]              = validateBool,
+   ["toggle_midnight_stats_reset"]                 = validateBool,
 
    -- Input fields
    ["minute_top_talkers_retention"]                = validateNumber,
+   ["nindex_retention_days"]                       = validateNumber,
    ["mysql_retention"]                             = validateNumber,
    ["influx_retention"]                            = validateNumber,
-   ["rrd_files_retention"]                         = validateNumber,
+   ["old_rrd_files_retention"]                     = validateNumber,
    ["minute_top_talkers_retention"]                = validateNumber,
    ["max_num_alerts_per_entity"]                   = validateNumber,
+   ["elephant_flow_remote_to_local_bytes"]         = validateNumber,
+   ["elephant_flow_local_to_remote_bytes"]         = validateNumber,
    ["max_num_flow_alerts"]                         = validateNumber,
    ["max_num_packets_per_tiny_flow"]               = validateNumber,
    ["max_num_bytes_per_tiny_flow"]                 = validateNumber,
@@ -1108,11 +1138,14 @@ local known_parameters = {
    ["ldap_server_address"]                         = validateSingleWord,
    ["radius_server_address"]                       = validateSingleWord,
    ["http_auth_url"]                               = validateSingleWord,
-   ["radius_secret"]                               = validateSingleWord,
+   ["radius_secret"]                               = validateUnquoted,
    ["local_host_max_idle"]                         = validateNumber,
+   ["longlived_flow_duration"]                     = validateNumber,
    ["non_local_host_max_idle"]                     = validateNumber,
    ["flow_max_idle"]                               = validateNumber,
    ["active_local_host_cache_interval"]            = validateNumber,
+   ["auth_session_duration"]                       = validateNumber,
+   ["local_host_cache_duration"]                   = validateNumber,
    ["local_host_cache_duration"]                   = validateNumber,
    ["housekeeping_frequency"]                      = validateNumber,
    ["intf_rrd_raw_days"]                           = validateNumber,
@@ -1148,6 +1181,7 @@ local known_parameters = {
    ["slack_notification_severity_preference"]      = validateNotificationSeverity,
    ["nagios_notification_severity_preference"]     = validateNotificationSeverity,
    ["email_notification_severity_preference"]      = validateNotificationSeverity,
+   ["webhook_notification_severity_preference"]    = validateNotificationSeverity,
    ["multiple_ldap_authentication"]                = validateChoiceInline({"local","ldap","ldap_local"}),
    ["multiple_ldap_account_type"]                  = validateChoiceInline({"posix","samaccount"}),
    ["toggle_logging_level"]                        = validateChoiceInline({"trace", "debug", "info", "normal", "warning", "error"}),
@@ -1162,6 +1196,7 @@ local known_parameters = {
    ["flush_alerts_data"]                           = validateEmpty,
    ["send_test_email"]                             = validateEmpty,
    ["send_test_slack"]                             = validateEmpty,
+   ["send_test_webhook"]                           = validateEmpty,
    ["network_discovery_interval"]                  = validateNumber,
    ["captive_portal_id_method"]                    = validateChoiceInline({"mac", "ip"}),
 --
@@ -1178,7 +1213,9 @@ local known_parameters = {
    ["job_id"]                                      = validateNumber,
    ["n2disk_license"]                              = validateSingleAlphanumericWord,
    ["record_traffic"]                              = validateBool,
-   ["max_extracted_pcap_mbytes"]                   = validateNumber,
+   ["max_extracted_pcap_bytes"]                    = validateNumber,
+   ["traffic_recording_provider"]                  = validateTrafficRecordingProvider,
+   ["dismiss_external_providers_reminder"]         = validateBool,
 --
 
 -- PAGE SPECIFIC
@@ -1327,6 +1364,7 @@ local known_parameters = {
    ["accept_tos"]              = validateBool,
    ["no_timeout"]              = validateBool,
    ["supernode"]               = validateSingleWord,
+   ["ts_aggregation"]          = validateChoiceInline({"raw", "1h", "1d"}),
 
    -- json POST DATA
    ["payload"]                 = { jsonCleanup, validateJSON },
@@ -1467,7 +1505,6 @@ local function lintParams()
                if(debug) then io.write("[LINT] Parameter "..k.." is empty but we are in relax mode, so it can pass\n") end
             else
                local success, message = validateParameter(k, v)
-
                if not success then
                   if message ~= nil then
                      http_lint.validationError(id, k, v, message)
@@ -1492,6 +1529,18 @@ local function lintParams()
                end
             end
          end
+      end
+   end
+end
+
+-- #################################################################
+
+local function parsePOSTpayload()
+   if((_POST ~= nil) and (_POST["payload"] ~= nil)) then
+      local info, pos, err = json.decode(_POST["payload"], 1, nil)
+      
+      for k,v in pairs(info) do
+	 _GET[k] = v
       end
    end
 end
@@ -1532,6 +1581,7 @@ end
 -- #################################################################
 
 if(pragma_once) then
+   parsePOSTpayload()
    clearNotAllowedParams()
    lintParams()
    pragma_once = 0

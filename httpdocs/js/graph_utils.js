@@ -65,7 +65,7 @@ function getSerieLabel(schema, serie) {
 }
 
 // Value formatter
-function getValueFormatter(schema, series) {
+function getValueFormatter(schema, metric_type, series) {
   if(series && series.length && series[0].label) {
     var label = series[0].label;
 
@@ -76,9 +76,9 @@ function getValueFormatter(schema, series) {
         return [fbits_from_bytes, bytesToSize];
     } else if(label.contains("packets"))
       return [fpackets, formatPackets];
-    else if(label.contains("flows"))
-      return [formatValue, formatFlows, formatFlows];
-    else if(label.contains("millis"))
+    else if(label.contains("flows")) {
+      return [(metric_type === "counter") ? fflows : formatValue, formatFlows, (metric_type === "counter") ? fflows : formatFlows];
+    } else if(label.contains("millis"))
       return [fmillis, fmillis];
   }
 
@@ -297,18 +297,19 @@ function fixJumpButtons(epoch_end) {
     $("#btn-jump-time-ahead").removeClass("disabled");
 }
 
-function queryNoTimeout() {
-  $("#query-slow-alert").hide();
-  location.href = location.href + "&no_timeout=1";
-}
-
 function showQuerySlow() {
   $("#query-slow-alert").show();
 }
 
+function hideQuerySlow() {
+  $("#query-slow-alert").hide();
+}
+
 // add a new updateStackedChart function
-function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id, params, step, align_step, show_all_smooth, initial_range) {
-  var pending_request = null;
+function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id, params, step,
+          metric_type, align_step, show_all_smooth, initial_range, ts_table_shown) {
+  var pending_chart_request = null;
+  var pending_table_request = null;
   var d3_sel = d3.select(chart_id);
   var $chart = $(chart_id);
   var $zoom_reset = $(zoom_reset_id);
@@ -316,11 +317,16 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
   var max_interval = findActualStep(step, params.epoch_begin) * 8;
   var initial_interval = (params.epoch_end - params.epoch_begin);
   var is_max_zoom = (initial_interval <= max_interval);
-  var url = http_prefix + "/lua/get_ts.lua";
+  var url = http_prefix + "/lua/rest/get/timeseries/ts.lua";
   var first_load = true;
   var first_time_loaded = true;
+  var manual_trigger_cmp_serie = false;
   var datetime_format = "dd/MM/yyyy hh:mm:ss";
   var max_over_total_ratio = 3;
+  var query_timer = null;
+  var seconds_before_query_slow = 6;
+  var query_completed = 0;
+  var query_was_aborted = false;
   chart.is_zoomed = ((current_zoom_level > 0) || has_initial_zoom());
 
   //var spinner = $("<img class='chart-loading-spinner' src='" + spinner_url + "'/>");
@@ -347,7 +353,6 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
 
     d3_sel.datum(new_data).transition().call(chart);
     nv.utils.windowResize(chart.update);
-    pending_request = null;
     spinner.remove();
   }
 
@@ -363,6 +368,9 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
   }
 
   chart.legend.dispatch.on('legendClick', function(d,i) {
+    if(d.legend_key.indexOf("ago") != -1)
+      manual_trigger_cmp_serie = true;
+
     if(typeof localStorage !== "undefined")
       localStorage.setItem("chart_series.disabled." + d.legend_key, (!d.disabled) ? true : false);
   });
@@ -396,11 +404,21 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
     chart.fixChartButtons();
   }
 
-  $chart.on('dblclick', function() {
-    if(current_zoom_level) {
+  $chart.on('dblclick', function(event) {
+    //if(current_zoom_level) {
+      // Zoom out from history
       //console.log("zoom OUT");
-      history.back();
-    }
+      //history.back();
+    //} else {
+    // Zoom out with fixed interval
+    var delta = zoom_out_value;
+    if((params.epoch_end + delta/2)*1000 <= $.now())
+      delta /= 2;
+
+    $("#period_begin").data("DateTimePicker").date(new Date((params.epoch_begin - delta) * 1000));
+    $("#period_end").data("DateTimePicker").date(new Date((params.epoch_end + delta) * 1000));
+    updateChartFromPickers();
+    //}
   });
 
   $zoom_reset.on("click", function() {
@@ -449,6 +467,59 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
       $zoom_reset.hide();
   }
 
+  function checkQueryCompleted() {
+    var flows_dt = $("#chart1-flows");
+    var wait_num_queries = (ts_table_shown && ($("#chart1-flows").css("display") !== "none")) ? 2 : 1;
+
+    query_completed += 1;
+
+    if(query_completed >= wait_num_queries) {
+      if(query_timer) {
+        clearInterval(query_timer);
+        query_timer = null;
+      }
+
+      hideQuerySlow();
+    }
+  }
+
+  chart.queryWasAborted = function() {
+    return query_was_aborted;
+  }
+
+  chart.abortQuery = function() {
+    query_was_aborted = true;
+
+    if(pending_chart_request) {
+      pending_chart_request.abort();
+      chart.noData(i18n.query_was_aborted);
+      update_chart_data([]);
+    }
+
+    if(pending_table_request)
+      pending_table_request.abort();
+
+    if(query_timer) {
+      clearInterval(query_timer);
+      query_timer = null;
+    }
+
+    hideQuerySlow();
+  }
+
+  chart.tableRequestCompleted = function() {
+    checkQueryCompleted();
+    pending_table_request = null;
+  }
+
+  chart.getDataUrl = function() {
+    var data_params = jQuery.extend({}, params);
+    delete data_params.zoom;
+    delete data_params.ts_compare;
+    data_params.extended = 1; /* with extended timestamps */
+    return url + "?" + $.param(data_params, true);
+  }
+
   var old_start, old_end, old_interval;
 
   /* Returns false if zoom update is rejected. */
@@ -466,20 +537,22 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
         return false;
       }
 
-      /* Ensure that a minimal number of points is available */
-      var epoch = params.epoch_begin + (params.epoch_end - params.epoch_begin) / 2;
-      var new_end = Math.floor(epoch + max_interval / 2);
+      if(!force_update) {
+        /* Ensure that a minimal number of points is available */
+        var epoch = params.epoch_begin + (params.epoch_end - params.epoch_begin) / 2;
+        var new_end = Math.floor(epoch + max_interval / 2);
 
-      if(new_end * 1000 >= Date.now()) {
-        /* Only expand on the left side of the interval */
-        params.epoch_begin = params.epoch_end - max_interval;
-      } else {
-        params.epoch_begin = Math.floor(epoch - max_interval / 2);
-        params.epoch_end = Math.floor(epoch + max_interval / 2);
+        if(new_end * 1000 >= Date.now()) {
+          /* Only expand on the left side of the interval */
+          params.epoch_begin = params.epoch_end - max_interval;
+        } else {
+          params.epoch_begin = Math.floor(epoch - max_interval / 2);
+          params.epoch_end = Math.floor(epoch + max_interval / 2);
+        }
+
+        is_max_zoom = true;
+        chart.zoomType(null); // disable zoom
       }
-
-      is_max_zoom = true;
-      chart.zoomType(null); // disable zoom
     } else if (cur_interval > max_interval) {
       is_max_zoom = false;
       chart.zoomType('x'); // enable zoom
@@ -494,14 +567,17 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
     if(first_load)
       initial_range = [params.epoch_begin, params.epoch_end];
 
-    if((old_start == params.epoch_begin) && (old_end == params.epoch_end))
+    if((old_start == params.epoch_begin) && (old_end == params.epoch_end) && (!force_update))
       return false;
 
     old_start = params.epoch_begin;
     old_end = params.epoch_end;
 
-    if(pending_request)
-      pending_request.abort();
+    if(pending_table_request)
+      pending_table_request.abort();
+
+    if(pending_chart_request)
+      pending_chart_request.abort();
     else if(!no_spinner)
       spinner.appendTo($chart.parent());
 
@@ -511,14 +587,19 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
       .maxDate(new Date($.now()))
       .date(new Date(Math.min(params.epoch_end * 1000, $.now())));
 
-    // Load data via ajax
-    pending_request = $.get(url, params, function(data) {
-      if(data && data.error) {
-        chart.noData(data.error);
+    if(query_timer)
+      clearInterval(query_timer);
 
-        if(data.tsLastError == "OPERATION_TOO_SLOW")
-          showQuerySlow();
-      }
+    query_timer = setInterval(showQuerySlow, seconds_before_query_slow * 1000);
+    query_completed = 0;
+    query_was_aborted = false;
+    chart.noData(i18n.no_data_available);
+    hideQuerySlow();
+
+    // Load data via ajax
+    pending_chart_request = $.get(url, params, function(data) {
+      if(data && data.error)
+        chart.noData(data.error);
 
       if(!data || !data.series || !data.series.length || !checkSeriesConsinstency(schema_name, data.count, data.series)) {
         update_chart_data([]);
@@ -600,7 +681,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
           past_serie = serie_data; // TODO: more reliable way to determine past serie
 
           /* Hide comparison serie at first load if it's too high */
-          if(first_time_loaded && (ratio_over_total > max_over_total_ratio))
+          if((first_time_loaded || !manual_trigger_cmp_serie) && (ratio_over_total > max_over_total_ratio))
             is_disabled = true;
 
           res.push({
@@ -686,7 +767,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
       }
 
       // get the value formatter
-      var formatter1 = getValueFormatter(schema_name, series.filter(function(d) { return(d.axis != 2); }));
+      var formatter1 = getValueFormatter(schema_name, metric_type, series.filter(function(d) { return(d.axis != 2); }));
       var value_formatter = formatter1[0];
       var tot_formatter = formatter1[1];
       var stats_formatter = formatter1[2] || value_formatter;
@@ -694,7 +775,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
       chart.yAxis1_formatter = value_formatter;
 
       var second_axis_series = series.filter(function(d) { return(d.axis == 2); });
-      var formatter2 = getValueFormatter(schema_name, second_axis_series);
+      var formatter2 = getValueFormatter(schema_name, metric_type, second_axis_series);
       var value_formatter2 = formatter2[0];
       chart.yAxis2.tickFormat(value_formatter2);
       chart.yAxis2_formatter = value_formatter2;
@@ -770,23 +851,42 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
 
       update_chart_data(res);
       first_time_loaded = false;
+
+      if(data.source_aggregation)
+        $("#data-aggr-dropdown > button > span:first").html(data.source_aggregation);
     }).fail(function(xhr, status, error) {
       if (xhr.statusText =='abort') {
         return;
       }
 
       console.error("Error while retrieving the timeseries data [" + status + "]: " + error);
+      chart.noData(error);
       update_chart_data([]);
+    }).always(function(data, status, xhr) {
+      checkQueryCompleted();
+      pending_chart_request = null;
     });
 
     if(first_load) {
       first_load = false;
+
+      /* Wait for page load because datatable is not instantiated yet right now */
+      $(function() {
+        var flows_dt = $("#chart1-flows").data("datatable");
+        if(flows_dt)
+          pending_table_request = flows_dt.pendingRequest;
+      });
     } else {
       var flows_dt = $("#chart1-flows");
 
       /* Reload datatable */
-      if(flows_dt.data("datatable"))
+      if(ts_table_shown) {
+        /* note: flows_dt.data("datatable") will change after this call */
         updateGraphsTableView(null, params);
+
+        if($("#chart1-flows").css("display") !== "none")
+          pending_table_request = flows_dt.data("datatable").pendingRequest;
+      }
     }
 
     if(typeof on_load_callback === "function")
@@ -815,9 +915,74 @@ function tsQueryToTags(ts_query) {
   }, {});
 }
 
+/* Hide or show the timeseries table items based on the current time range */
+function recheckGraphTableEntries() {
+  var table_view = graph_table_views;
+  var tdiff = (graph_params.epoch_end - graph_params.epoch_begin);
+  var reset_selection = false;
+  $("#chart1-flows").show();
+  $("#graphs-table-selector").show();
+
+  for(view_id in table_view) {
+    var view = table_view[view_id];
+    var elem = $("#" + view.html_id);
+
+    if(tdiff <= view.min_step) {
+      if(graph_old_view.id === view_id)
+        reset_selection = true;
+
+      elem.hide();
+    } else
+      elem.show();
+  }
+
+  /* Hide/show the headers */
+  var items_ul = $("#graphs-table-active-view").closest(".btn-group").find("ul:first");
+
+  items_ul.find("li.dropdown-header").each(function(idx,e) {
+    var next_item = $(e).nextAll("li").filter(function(idx,e) {
+      return(($(e).css("display") !== "none") || (!$(e).attr("data-view-id")));
+    }).first();
+    var divider = $(e).nextAll(".divider").first();
+
+    if(!next_item.attr("data-view-id")) {
+      $(e).hide();
+      divider.hide();
+    } else {
+      $(e).show();
+      divider.show();
+    }
+  });
+
+  if(reset_selection) {
+    /* Select the first available view */
+    var first_view = items_ul.find("li[data-view-id]").filter(function(idx,e) {
+        return($(e).css("display") !== "none");
+      }).first();
+
+    if(first_view.length)
+      setActiveGraphsTableView(first_view.attr("data-view-id"));
+    else {
+      $("#chart1-flows").hide();
+      $("#graphs-table-selector").hide();
+    }
+
+    return false;
+  }
+
+  return true;
+}
+
 function updateGraphsTableView(view, graph_params, has_nindex, nindex_query, per_page) {
-  if(view) {
+  if(view)
     graph_old_view = view;
+
+  if(!recheckGraphTableEntries(graph_params)) {
+    /* handled by setActiveGraphsTableView */
+    return;
+  }
+
+  if(view) {
     graph_old_has_nindex = has_nindex;
     graph_old_nindex_query = nindex_query;
   } else {
@@ -846,12 +1011,12 @@ function updateGraphsTableView(view, graph_params, has_nindex, nindex_query, per
   nindex_buttons += '<div class="btn-group pull-right"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">';
   nindex_buttons += "Explorer";
   nindex_buttons += '<span class="caret"></span></button><ul class="dropdown-menu" role="menu">';
-  nindex_buttons += '<li><a href="'+ http_prefix +'/lua/enterprise/nindex_topk.lua'+ nindex_query +'">Top-K</a></li>';
-  nindex_buttons += '<li><a href="'+ http_prefix +'/lua/enterprise/nindex.lua'+ nindex_query +'">Flows</a></li>';
+  nindex_buttons += '<li><a href="'+ http_prefix +'/lua/pro/nindex_topk.lua'+ nindex_query +'">Top-K</a></li>';
+  nindex_buttons += '<li><a href="'+ http_prefix +'/lua/pro/nindex.lua'+ nindex_query +'">Flows</a></li>';
   nindex_buttons += '</span></div>';
 
   if(view.columns) {
-    var url = http_prefix + (view.nindex_view ? "/lua/enterprise/get_nindex_flows.lua" : "/lua/enterprise/get_ts_table.lua");
+    var url = http_prefix + (view.nindex_view ? "/lua/pro/get_nindex_flows.lua" : "/lua/pro/get_ts_table.lua");
 
     var columns = view.columns.map(function(col) {
       return {
@@ -870,6 +1035,10 @@ function updateGraphsTableView(view, graph_params, has_nindex, nindex_query, per
       css: {width: "1%", "white-space": "nowrap", "text-align": "center"},
     });
 
+    var old_dt = graph_table.data("datatable");
+    if(old_dt && old_dt.pendingRequest)
+      old_dt.pendingRequest.abort();
+
     /* Force reinstantiation */
     graph_table.removeData('datatable');
     graph_table.html("");
@@ -878,6 +1047,12 @@ function updateGraphsTableView(view, graph_params, has_nindex, nindex_query, per
       title: "",
       url: url,
       perPage: per_page,
+      noResultsMessage: function() {
+        if(ts_chart.queryWasAborted())
+          return i18n.query_was_aborted;
+        else
+          return i18n.no_results_found;
+      },
       post: function() {
         var params = $.extend({}, graph_params);
         delete params.ts_compare;
@@ -894,6 +1069,17 @@ function updateGraphsTableView(view, graph_params, has_nindex, nindex_query, per
       buttons: view.nindex_view ? [nindex_buttons, ] : [],
       tableCallback: function() {
         var data = this.resultset;
+        ts_chart.tableRequestCompleted();
+
+        if(!data) {
+          // error
+          return;
+        }
+
+        /* The user changed page */
+        if(data.currentPage > 1)
+          graph_table.data("has_interaction", true);
+
         var stats_div = $("#chart1-flows-stats");
         var has_drilldown = (data && data.data.some(function(row) { return row.drilldown; }));
 
@@ -907,9 +1093,6 @@ function updateGraphsTableView(view, graph_params, has_nindex, nindex_query, per
            stats_div.show();
         } else
           stats_div.hide();
-
-        if(data && data.tsLastError == "OPERATION_TOO_SLOW")
-          showQuerySlow();
       }, rowCallback: function(row, row_data) {
         if((typeof row_data.tags === "object") && (
           (params_obj.category && (row_data.tags.category === params_obj.category)) ||

@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-18 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -90,6 +90,10 @@
 #include <zmq.h>
 #include <assert.h>
 #include <fcntl.h>
+#include <grp.h>
+#ifdef HAVE_TEST_MODE
+#include <libgen.h>
+#endif
 #if defined(linux)
 #include <linux/ethtool.h> // ethtool
 #include <linux/sockios.h> // sockios
@@ -110,12 +114,7 @@ extern "C" {
 #endif
 
 #include "ndpi_main.h"
-#ifdef DONT_USE_LUAJIT
 #include "lua.h"
-#else
-#include "lj_obj.h"
-#include "luajit.h"
-#endif
 #include "lauxlib.h"
 #include "lualib.h"
 #ifdef HAVE_PF_RING
@@ -159,6 +158,7 @@ extern "C" {
 #include <fstream>
 #include <map>
 #include <set>
+#include <algorithm>
 #include <vector>
 #include <list>
 #include <iostream>
@@ -174,6 +174,7 @@ using namespace std;
 #include "ntop_defines.h"
 #include "Mutex.h"
 #include "RwLock.h"
+#include "MonitoredCounter.h"
 #include "MDNS.h"
 #include "AddressTree.h"
 #include "VlanAddressTree.h"
@@ -212,17 +213,19 @@ using namespace std;
 #include "FrequentTrafficItems.h"
 #include "HostPools.h"
 #include "Prefs.h"
+#include "ProtoStats.h"
 #include "Utils.h"
 #include "CommunityIdFlowHash.h"
 #include "DnsStats.h"
 #include "NetworkStats.h"
+#ifndef HAVE_NEDGE
 #include "SNMP.h"
+#endif
 #include "NetworkDiscovery.h"
 #include "ICMPstats.h"
 #include "Grouper.h"
 #include "FlowGrouper.h"
 #include "PacketStats.h"
-#include "ProtoStats.h"
 #include "TcpPacketStats.h"
 #include "EthStats.h"
 
@@ -312,7 +315,10 @@ using namespace std;
 #include "Vlan.h"
 #include "AutonomousSystem.h"
 #include "Country.h"
+#include "MacStats.h"
 #include "Mac.h"
+#include "HostStats.h"
+#include "LocalHostStats.h"
 #include "Host.h"
 #include "LocalHost.h"
 #include "RemoteHost.h"

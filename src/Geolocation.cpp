@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-18 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -123,7 +123,7 @@ void Geolocation::testme() {
 
 /* *************************************** */
 
-Geolocation::Geolocation(char *db_home) {
+Geolocation::Geolocation(const char * const db_home) {
   char path[MAX_PATH];
   snprintf(path, sizeof(path), "%s/geoip", db_home);
 

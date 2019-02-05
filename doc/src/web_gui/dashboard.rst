@@ -1,3 +1,5 @@
+.. _Dashboard:
+
 Dashboard
 #########
 Dashboard is a dynamic page and provides an updated snapshot of the current traffic for the selected interface or interface view being monitored by ntopng. Community and Professional version have two different dashboards.
@@ -100,6 +102,8 @@ Senders view provides a pie chart representation of top flow senders currently a
   :alt: Pie Chart of Top Senders
 
   Pie Chart of Top Senders
+
+.. _DashboardPro:
 
 Dashboard in the Professional Version
 -------------------------------------

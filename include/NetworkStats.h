@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2015-18 - ntop.org
+ * (C) 2015-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -36,17 +36,20 @@ class NetworkStats: public Checkpointable {
   inline bool trafficSeen(){
     return ingress.getNumPkts() || egress.getNumPkts() || inner.getNumPkts();
   };
-  inline void incIngress(u_int64_t num_pkts, u_int64_t num_bytes, bool broadcast) {
-    ingress.incStats(num_pkts, num_bytes);
-    if(broadcast) ingress_broadcast.incStats(num_pkts, num_bytes);
+  
+  inline void incIngress(time_t t, u_int64_t num_pkts, u_int64_t num_bytes, bool broadcast) {
+    ingress.incStats(t, num_pkts, num_bytes);
+    if(broadcast) ingress_broadcast.incStats(t, num_pkts, num_bytes);
   };
-  inline void incEgress(u_int64_t num_pkts, u_int64_t num_bytes, bool broadcast) {
-    egress.incStats(num_pkts, num_bytes);
-    if(broadcast) egress_broadcast.incStats(num_pkts, num_bytes);
+  
+  inline void incEgress(time_t t, u_int64_t num_pkts, u_int64_t num_bytes, bool broadcast) {
+    egress.incStats(t, num_pkts, num_bytes);
+    if(broadcast) egress_broadcast.incStats(t, num_pkts, num_bytes);
   };
-  inline void incInner(u_int64_t num_pkts, u_int64_t num_bytes, bool broadcast) {
-    inner.incStats(num_pkts, num_bytes);
-    if(broadcast) inner_broadcast.incStats(num_pkts, num_bytes);
+  
+  inline void incInner(time_t t, u_int64_t num_pkts, u_int64_t num_bytes, bool broadcast) {
+    inner.incStats(t, num_pkts, num_bytes);
+    if(broadcast) inner_broadcast.incStats(t, num_pkts, num_bytes);
   };
 
   void lua(lua_State* vm);

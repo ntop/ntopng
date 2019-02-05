@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-18 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -44,6 +44,7 @@ typedef enum {
   location_none = 0,
   location_local_only,
   location_remote_only,
+  location_broadcast_domain_only,
   location_all,
 } LocationPolicy;
 
@@ -77,6 +78,9 @@ typedef enum {
   alert_flow_web_mining = 21,
   alert_nfq_flushed = 22,
   alert_device_protocol_not_allowed = 24,
+  alert_user_activity = 25,
+  alert_influxdb_export_failure = 26,
+  alert_port_errors = 27,
 } AlertType; /*
 	       NOTE:
 	       keep it in sync with alert_type_keys
@@ -102,7 +106,9 @@ typedef enum {
   alert_entity_flow,
   alert_entity_mac,
   alert_entity_host_pool,
-  alert_entity_process
+  alert_entity_process,
+  alert_entity_user,
+  alert_entity_influx_db,
 } AlertEntity;
 
 typedef enum {
@@ -163,7 +169,7 @@ typedef struct ether80211q {
 
 typedef struct {
   u_int32_t pid, father_pid;
-  char process_name[16], father_process_name[16];
+  char *process_name, *father_process_name;
   u_int32_t uid /* User Id */, gid; /* Group Id */
   u_int32_t father_uid /* User Id */, father_gid; /* Group Id */
 #if 0
@@ -224,8 +230,19 @@ typedef struct zmq_remote_stats {
   u_int64_t remote_bytes, remote_pkts, num_flow_exports;
   u_int32_t remote_ifspeed, remote_time, avg_bps, avg_pps;
   u_int32_t remote_lifetime_timeout, remote_idle_timeout;
-  u_int32_t export_queue_too_long, too_many_flows, elk_flow_drops, sflow_pkt_sample_drops;
+  u_int32_t export_queue_full, too_many_flows, elk_flow_drops,
+    sflow_pkt_sample_drops, flow_collection_drops;
 } ZMQ_RemoteStats;
+
+typedef struct zmq_field_map {
+  u_int32_t pen, field;
+  const char *map;
+} ZMQ_FieldMap;
+
+typedef struct zmq_field_value_map {
+  u_int32_t pen, field, value;
+  const char *map;
+} ZMQ_FieldValueMap;
 
 struct vm_ptree {
   lua_State* vm;
@@ -271,6 +288,10 @@ typedef enum {
   status_blocked /* 14 */,
   status_web_mining_detected /* 15 */,
   status_device_protocol_not_allowed /* 16 */,
+  status_elephant_local_to_remote, /* 17 */
+  status_elephant_remote_to_local, /* 18 */
+  status_longlived, /* 19 */
+  status_not_purged, /* 20 */
 } FlowStatus;
 
 typedef enum {
@@ -485,15 +506,20 @@ typedef struct {
   NDPI_PROTOCOL_BITMASK clientAllowed, serverAllowed;
 } DeviceProtocolBitmask;
 
+#ifndef HAVE_NEDGE
 class SNMP; /* Forward */
+#endif
 
 struct ntopngLuaContext {
-  char *allowed_ifname, *user;
+  char *allowed_ifname, *user, *group;
   void *zmq_context, *zmq_subscriber;
   struct mg_connection *conn;
   AddressTree *allowedNets;
   NetworkInterface *iface;
+#ifndef HAVE_NEDGE
   SNMP *snmp;
+#endif
+  bool localuser;
 
   /* Packet capture */
   struct {
@@ -566,6 +592,11 @@ typedef struct {
 typedef struct {
   double namelookup, connect, appconnect, pretransfer, redirect, start, total;
 } HTTPTranferStats;
+
+typedef struct {
+  lua_State* vm;
+  time_t last_conn_check;
+} ProgressState;
 
 struct pcap_disk_timeval {
   u_int32_t tv_sec;

@@ -159,8 +159,40 @@ automatically.
 Amount of time between two consecutive refreshes of dashboard and footer charts. Useful for example
 when using ntopng in combination with nProbe to collect remote NetFlow of sFlow.
 
-**Scaling Factor**:
-A constant used to up-scale interface traffic. This is useful when ntopng is processing sampled traffic.
+**Ingress Packets Sampling Rate**
+Packets arriving on the interface could have been sampled upstream,
+for example by a packet broker or another device. This setting allows
+to specify the sampling rate to enable ntopng to perform proper
+upscaling.
+
+**Hide from Top Networks**
+This setting allows to specify a comma-separated list of networks
+containing hosts that have to be hidden from the top statistics. 
+Hosts belonging to the specified networks will not be shown in the top
+statistics.
+
+**Trigger Interface Alerts**
+This setting toggles the alert generation of the selected
+interface. No alert will be generated when this setting is unticked,
+including alerts associated with hosts, blacklisted flows, and
+networks.
+
+**Create Interface Timeseries**
+This setting toggles the generation of timeseries for the selected
+interface. No timeseries will be generated when this setting in
+unticked, including timeseries associated with local hosts and networks.
+
+**Mirrored Traffic**
+Tick this setting when the interface is receiving traffic from a
+mirror/SPAN port. Typically, such interfaces does not have any IP
+address associated. ntopng uses this information to skip certain kind
+of activities that cannot be performed on mirrored interfaces,
+including network device discovery and eBPF events processing.
+
+**Periodic Interface Network Discovery**
+This setting toggles ntopng periodic network discovery. Network
+discovery frequency can be controlled from the preferences and it
+defaults to 15 minutes.
 
 Host Pools
 ----------
@@ -177,12 +209,6 @@ of the Host Pools page.
 Once an Host Pool is created, it is possible to add members to it. Host Pool members are added using the
 “plus” button in the “Manage Pool Membership” tab of the Host Pools page.
 
-Each pool member can be a:
-
-- Layer 2 device (specified with a Mac Address)
-- Layer 3 host (specified with an IPv4/IPv6 Address and, optionally, a VLAN)
-- Layer 3 network (specified with an IPv4/IPv6 network in CIDR format and, optionally, a VLAN)
-
 An “Alias” can be associated to each pool member to ease the its identification. Typically, one would
 assign a mnemonic label as member alias (e.g., “John’s iPhone” or “Smart TV”). A “Device Type” can be
 associated to each member as well. Devices types are used to categorise members on the basis of the
@@ -196,8 +222,8 @@ The image below shows an “IoT Devices” Host Pool with two members, namely a 
 
   The Edit Host Pools “Manage Pool Membership” of the Interface Details Page
 
-A view of every host pool is accessible from the “Hosts” menu, entry “Host Pools” as discussed earlier in
-this document. The view shows live pool information (e.g., overall pool throughput) and provides access to
+A view of every host pool is accessible from the “Hosts” menu, entry “Host Pools” as discussed in the
+`relevant section`_. The view shows live pool information (e.g., overall pool throughput) and provides access to
 the historical pool traffic timeseries (Professional version) as well as to the currently active pool members.
 
 Host pools can also be used to enforce traffic policies (e.g, block YouTube traffic for the “John” pool and
@@ -205,3 +231,4 @@ limit Facebook traffic at 1 Mbps for the “Guests” pool). This feature is onl
 inline and is a feature only available in the professional version. ntopng inline is described in the
 “Advanced ntopng Features” of this document.
 
+.. _`relevant section`: hosts.html#host-pools

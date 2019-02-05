@@ -9,7 +9,7 @@ Source: ntopng-%{version}.tgz
 Packager: Luca Deri <deri@ntop.org>
 # Temporary location where the RPM will be built
 BuildRoot:  %{_tmppath}/%{name}-%{version}-root
-Requires: pfring = @PFRING_VERSION@-@PFRING_GIT_RELEASE@, redis >= 2.4.0, rrdtool >= 1.3.8, numactl, libcurl, ntopng-data, logrotate, zeromq >= 4.0.0, openldap, openssl, hiredis, mysql, ethtool, libcap, libzstd, libmaxminddb@CENTOS_N2N_DEP@
+Requires: pfring = @PFRING_VERSION@-@PFRING_GIT_RELEASE@, redis >= 2.4.0, rrdtool >= 1.3.8, numactl, libcurl, ntopng-data, logrotate, zeromq >= 4.0.0, openldap, radcli, openssl, hiredis, mysql, ethtool, libcap, libzstd, libmaxminddb@CENTOS_N2N_DEP@
 # Disable shared libs dependency check (needed by FPGA libs)
 AutoReqProv: no
 
@@ -48,14 +48,15 @@ cp $HOME/ntopng/ntopng.8 $RPM_BUILD_ROOT/usr/share/man/man8/
 cp -Lr $HOME/ntopng/httpdocs $HOME/ntopng/scripts $RPM_BUILD_ROOT/usr/share/ntopng  # L to dereference symlinks
 mv $RPM_BUILD_ROOT/usr/share/ntopng/httpdocs/misc/ntopng-utils-manage-config $RPM_BUILD_ROOT/usr/bin
 cp $HOME/ntopng/packages/usr/bin/ntopctl $RPM_BUILD_ROOT/usr/bin/
-# Make sure dat files are not packaged by ntopng as they belong to ntopng-data
-rm -f $RPM_BUILD_ROOT/usr/share/ntopng/httpdocs/geoip/*dat
+# Make sure .mmdb files are not packaged by ntopng as they belong to ntopng-data
+rm -f $RPM_BUILD_ROOT/usr/share/ntopng/httpdocs/geoip/*.mmdb
 mv $RPM_BUILD_ROOT/usr/share/ntopng/httpdocs/ssl/ntopng-cert.pem.dummy $RPM_BUILD_ROOT/usr/share/ntopng/httpdocs/ssl/ntopng-cert.pem
 if test -d "$HOME/ntopng/pro"; then
    cd $HOME/ntopng/pro; make; cd -
    mkdir $RPM_BUILD_ROOT/usr/share/ntopng/pro
    cp -r $HOME/ntopng/pro/httpdocs $RPM_BUILD_ROOT/usr/share/ntopng/pro
    cp -r $HOME/ntopng/pro/scripts $RPM_BUILD_ROOT/usr/share/ntopng/pro
+   rm -rf $RPM_BUILD_ROOT/usr/share/ntopng/pro/scripts/lua/nedge
    cd $RPM_BUILD_ROOT/usr/share/ntopng/scripts/lua; ln -s ../../pro/scripts/lua pro
    find $RPM_BUILD_ROOT/usr/share/ntopng/pro -name "*.lua" -type f -exec $HOME/ntopng/pro/utils/snzip -c -i {} -o {}r \;
    find $RPM_BUILD_ROOT/usr/share/ntopng/pro -name "*.lua" -type f -exec /bin/rm  {} ';'
@@ -121,14 +122,26 @@ rm -fr $RPM_BUILD_ROOT
 # un-install:                          preun       -> (delete)     -> postun
 
 %pre
+
 if ! grep -q ntopng /etc/group; then
   echo 'Creating ntopng group'
   /usr/sbin/groupadd -r ntopng
 fi
+
 if ! /usr/bin/id -u ntopng > /dev/null 2>&1; then 
   echo 'Creating ntopng user'
   /usr/sbin/useradd -M -N -g ntopng -r ntopng
 fi
+
+if [ $(getent group n2disk) ] && [ $(getent passwd ntopng) ]; then
+    # this is necessary to allow ntopng to extract pcaps
+    # recorded with n2disk
+    if ! id -nG ntopng | grep -qw "n2disk"; then
+	echo "Adding user ntopng to group n2disk..."
+	/usr/sbin/usermod -a -G n2disk ntopng
+    fi
+fi
+
 %if 0%{?centos_ver} != 7
 case "$1" in
   1)
@@ -151,8 +164,7 @@ if test -d /usr/local/share/ntopng ; then  mv /usr/local/share/ntopng /usr/local
 if [ ! -f /.dockerenv ]; then
 %if 0%{?centos_ver} == 7
 /bin/systemctl daemon-reload
-/bin/systemctl enable ntopng.service
-/bin/systemctl restart ntopng.service
+%systemd_post ntopng.service
 %else
 /sbin/chkconfig --add ntopng
 %endif
@@ -186,13 +198,20 @@ esac
 %endif
 
 %if 0%{?centos_ver} == 7
-  /bin/systemctl disable ntopng.service
-  /bin/systemctl stop ntopng.service
+  %systemd_preun ntopng.service
 %else
   /sbin/chkconfig --del ntopng
 %endif
 fi
 
+%postun
+if [ ! -f /.dockerenv ]; then
+%if 0%{?centos_ver} == 7
+  %systemd_postun_with_restart ntopng.service
+%endif
+fi
+
 if [ $1 == 0 ] ; then
+    # Package removal, not upgrade
     rm -f /usr/local/bin/ntopng > /dev/null 2>&1
 fi

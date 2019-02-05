@@ -260,7 +260,6 @@ local manage_url = "?ifid="..ifId.."&page=pools&pool="..selected_pool.id.."#mana
 
 print [[
 
-<br>
   <ul id="hostPoolsNav" class="nav nav-tabs" role="tablist">
     <li><a data-toggle="tab" role="tab" href="#manage">]] print(i18n("host_pools.manage_pools")) print[[</a></li>
     <li><a data-toggle="tab" role="tab" href="#create">]] print(i18n("host_pools.create_pools")) print[[</a></li>
@@ -612,6 +611,9 @@ print [[
     function decPoolMembers() { curDisplayedMembers--; numPoolMembers--; }
 
     function addPoolMember() {
+      if($("#addPoolMemberBtn").attr("disabled"))
+        return;
+
       if (datatableIsEmpty("#table-manage"))
          datatableRemoveEmptyRow("#table-manage");
 
@@ -911,6 +913,9 @@ print [[
     }
 
     function addPool() {
+      if($("#addNewPoolBtn").attr("disabled"))
+        return;
+
       var pool_id = nextPoolId();
 
       if (pool_id < maxPoolsNum) {

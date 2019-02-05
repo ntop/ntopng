@@ -9,7 +9,7 @@ require "lua_utils"
 local host_pools_utils = require "host_pools_utils"
 local ts_utils = require("ts_utils")
 local page_utils = require("page_utils")
-
+active_page = "hosts"
 local have_nedge = ntop.isnEdge()
 
 sendHTTPContentTypeHeader('text/html')
@@ -163,20 +163,24 @@ if (_GET["page"] ~= "historical") then
    end
 
    if(_GET["pool"] ~= nil) then
-      local charts_available = ts_utils.exists("host_pool:traffic", {ifid=ifstats.id, pool=_GET["pool"]})
+      local charts_available = ts_utils.exists("host_pool:traffic", {ifid=ifstats.id, pool=_GET["pool"]}) and ntop.isPro()
       local pool_edit = ""
 
-      -- TODO enable on nEdge when devices list will be implemented
-      if (_GET["pool"] ~= host_pools_utils.DEFAULT_POOL_ID) and (not have_nedge) then
+      if (_GET["pool"] ~= host_pools_utils.DEFAULT_POOL_ID) or (have_nedge) then
 	 local pool_link
+    local title
 
 	 if have_nedge then
-	    pool_link = "/lua/pro/nedge/admin/nf_edit_user.lua?username=" .. host_pools_utils.poolIdToUsername(_GET["pool"]) .. "&page=devices"
+	    pool_link = "/lua/pro/nedge/admin/nf_edit_user.lua?username=" ..
+         ternary(_GET["pool"] == host_pools_utils.DEFAULT_POOL_ID, "", host_pools_utils.poolIdToUsername(_GET["pool"]))
+       title = i18n("nedge.edit_user")
 	 else
 	    pool_link = "/lua/if_stats.lua?page=pools&pool=".._GET["pool"]
+       title = i18n("host_pools.manage_pools")
 	 end
 
-	 pool_edit = "&nbsp; <A HREF='"..ntop.getHttpPrefix()..pool_link.."'><i class='fa fa-cog fa-sm' title='"..i18n("host_pools.manage_pools") .. "'></i></A>"
+	 pool_edit = "&nbsp; <A HREF='"..ntop.getHttpPrefix()..pool_link.."'><i class='fa fa-cog fa-sm' title='"..title .. "'></i></A>"
+
       end
 
       pool_ = " "..i18n(ternary(have_nedge, "hosts_stats.user_title", "hosts_stats.pool_title"),
@@ -299,6 +303,13 @@ if (_GET["page"] ~= "historical") then
    print (getPageUrl(base_url, hosts_filter_params))
    print ('">'..i18n("hosts_stats.remote_hosts_only")..'</a></li>')
 
+   hosts_filter_params.mode = "broadcast_domain"
+   print('<li')
+   if mode == hosts_filter_params.mode then print(' class="active"') end
+   print('><a href="')
+   print (getPageUrl(base_url, hosts_filter_params))
+   print ('">'..i18n("hosts_stats.broadcast_domain_hosts_only")..'</a></li>')
+
    hosts_filter_params.mode = "blacklisted"
    print('<li')
    if mode == hosts_filter_params.mode then print(' class="active"') end
@@ -400,7 +411,7 @@ if (_GET["page"] ~= "historical") then
 			     }
 
 				 },  {
-			     title: "]] print(i18n("if_stats_overview.dropped_flows")) print[[",
+			     title: "]] print(i18n("if_stats_overview.blocked_flows")) print[[",
 				 field: "column_num_dropped_flows",
 				 sortable: true,
                                  hidden: ]]

@@ -30,6 +30,7 @@ function toEpoch(datestring)
    local pattern = "(%d+)%-(%d+)%-(%d+)%a(%d+)%:(%d+)%:([%d%.]+)([Z%p])"
    local year, month, day, hour, minute, seconds, tzoffset = datestring:match(pattern)
    assert(tzoffset == "Z")
+   seconds = seconds:gsub("%..*", "")
    local timestamp = os.time( { year=year, month=month, day=day, hour=hour, min=minute, sec=seconds })
 
    -- convert to localtime
@@ -37,7 +38,7 @@ function toEpoch(datestring)
    local d1 = os.date("*t",  timestamp)
    local d2 = os.date("!*t", timestamp)
    d1.isdst = false
-   local zone_diff = os.difftime(os.time(d1), os.time(d2))
+   local zone_diff = math.floor(os.difftime(os.time(d1), os.time(d2)))
 
    -- now we can perform the conversion (dt -> ux_time):
    timestamp = timestamp + zone_diff

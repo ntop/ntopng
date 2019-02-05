@@ -102,13 +102,13 @@ end
 -- ##############################################
 
 function getFirstInterfaceId()
-   local ifnames = interface.getIfNames()
+   local ifid = interface.getFirstInterfaceId()
 
-   for if_id, if_name in pairs(ifnames) do
-      return tonumber(if_id), if_name
+   if ifid ~= nil then
+      return ifid, getInterfaceName(ifid)
    end
 
-   return -1, "" -- NOTREACHED
+   return -1, ""
 end
 
 -- ##############################################
@@ -143,6 +143,8 @@ l4_keys = {
   { "ICMP", "icmp", 1 },
   { "Other IP", "other_ip", -1 }
 }
+
+L4_PROTO_KEYS = {tcp=6, udp=17, icmp=1, other_ip=-1}
 
 function __FILE__() return debug.getinfo(2,'S').source end
 function __LINE__() return debug.getinfo(2, 'l').currentline end
@@ -743,10 +745,12 @@ function hasNindexSupport()
    if prefs == nil then
     prefs = ntop.getPrefs()
    end
-   local rc = prefs.is_nindex_enabled
 
-   if(rc == nil) then rc = false end
-   return rc
+   if prefs.is_nindex_enabled and interface.nIndexEnabled() then
+      return true
+   end
+
+   return false
 end
 
 --for _key, _value in pairsByKeys(vals, rev) do
@@ -861,6 +865,10 @@ function formatEpoch(epoch)
 end
 
 function starts(String,Start)
+   if((String == nil) or (Start == nil)) then
+      return(false)
+   end
+
   return string.sub(String,1,string.len(Start))==Start
 end
 
@@ -1004,7 +1012,7 @@ end
 -- Compute the difference in seconds between local time and UTC.
 function get_timezone()
   local now = os.time()
-  return os.difftime(now, os.time(os.date("!*t", now)))
+  return math.floor(os.difftime(now, os.time(os.date("!*t", now))))
 end
 
 function getCategoriesWithProtocols()
@@ -1382,6 +1390,7 @@ function getHostAltName(host_ip, host_mac)
    end
 
    alt_name = ntop.getHashCache(getHostAltNamesKey(), host_ip)
+
    if (isEmptyString(alt_name) and (host_mac ~= nil)) then
       alt_name = ntop.getHashCache(getHostAltNamesKey(), host_mac)
    end
@@ -1524,13 +1533,16 @@ function flowinfo2process(process, host_info_to_url)
       -- TODO: add links back once restored
 
       if not isEmptyString(process["name"]) then
-	 local clean_name = process["name"]:gsub("'",'')
+	 local full_clean_name = process["name"]:gsub("'",'')
+	 local t = split(full_clean_name, "/")
+	 
+	 clean_name = t[#t]
 
 	 -- proc_name = string.format("<i class='fa fa-terminal'></i> %s", clean_name)
 	 proc_name = string.format("<A HREF='%s/lua/process_details.lua?%s&pid_name=%s&pid=%u'><i class='fa fa-terminal'></i> %s</A>",
 				   ntop.getHttpPrefix(),
 				   host_info_to_url,
-				   clean_name,
+				   full_clean_name,
 				   process["pid"],
 				   clean_name)
       end
@@ -1608,7 +1620,7 @@ function hostinfo2hostkey(host_info,host_type,show_vlan)
   end
 
   if(((host_info["vlan"] ~= nil) and (host_info["vlan"] ~= 0))
-     or ((show_vlan ~= nil) and show_vlan))  then
+     or ((show_vlan ~= nil) and show_vlan and (host_info["vlan"] ~= nil)))  then
     rsp = rsp..'@'..tostring(host_info["vlan"])
   end
 
@@ -2502,6 +2514,10 @@ function getFlowStatus(status, flowstatus_info)
   elseif(status == 14) then return(""..i18n("flow_details.flow_blocked_by_bridge").."")
   elseif(status == 15) then return(""..i18n("flow_details.web_mining_detected").."")
   elseif(status == 16) then return(formatSuspiciousDeviceProtocolAlert(flowstatus_info))
+  elseif(status == 17) then return("<font color=orange>"..i18n("flow_details.elephant_flow_l2r").."</font>")
+  elseif(status == 18) then return("<font color=orange>"..i18n("flow_details.elephant_flow_r2l").."</font>")
+  elseif(status == 19) then return("<font color=orange>"..i18n("flow_details.longlived_flow").."</font>")
+  elseif(status == 20) then return("<font color=orange>"..i18n("flow_details.not_purged").."</font>")
   else return("<font color=orange>"..i18n("flow_details.unknown_status",{status=status}).."</font>")
   end
 end
@@ -2759,7 +2775,7 @@ function makeTimeStamp(d, tzoffset)
       -- tprint("post-timestamp is:"..timestamp)
    end
 
-   return timestamp.."";
+   return math.floor(timestamp).."";
 end
 
 -- ###########################################
@@ -2813,11 +2829,23 @@ end
 -- NOTE: this does *not* perform a deep merge. Only first level is merged.
 function table.merge(a, b)
   local merged = {}
+  a = a or {}
+  b = b or {}
 
-  for _, t in ipairs({a, b}) do
-    for k,v in pairs(t) do
-      merged[k] = v
-    end
+  if((a[1] ~= nil) and (b[1] ~= nil)) then
+    -- index based tables
+    for _, t in ipairs({a, b}) do
+       for _,v in pairs(t) do
+         merged[#merged + 1] = v
+       end
+   end
+  else
+     -- key based tables
+     for _, t in ipairs({a, b}) do
+       for k,v in pairs(t) do
+         merged[k] = v
+       end
+     end
   end
 
   return merged
@@ -3394,6 +3422,51 @@ function printMessageBanners(banners)
       print[[
   </div>]]
    end
+end
+
+-- ###########################################
+
+-- Returns the size of a folder (size is in bytes)
+function getFolderSize(path)
+   local size = 0
+
+   if ntop.isWindows() then
+     -- TODO
+   else
+      if ntop.isdir(path) then
+         local line = os_utils.execWithOutput("du -s "..path.." 2>/dev/null")
+         local values = split(line, '\t')
+         if #values >= 1 then
+            local used = tonumber(values[1])
+            if used ~= nil then
+               size = used*1024
+            end
+         end
+      end
+   end
+
+   return size
+end
+
+-- ###########################################
+
+function getHttpUrlPrefix()
+   if starts(_SERVER["HTTP_HOST"], 'https://') then
+      return "https://"
+   else
+      return "http://"
+   end
+end
+
+-- ###########################################
+
+-- Compares IPv4 / IPv6 addresses
+function ip_address_asc(a, b)
+   return(ntop.ipCmp(a, b) < 0)
+end
+
+function ip_address_rev(a, b)
+   return(ntop.ipCmp(a, b) > 0)
 end
 
 -- ###########################################

@@ -27,6 +27,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+
 #include <new>
 #include <string>
 
@@ -282,6 +283,10 @@ void zmq::socks_connecter_t::start_timer ()
     socket->event_connect_retried (endpoint, interval);
 }
 
+#ifndef min
+#define min(a, b)  ((b < a) ? b : a)
+#endif
+
 int zmq::socks_connecter_t::get_new_reconnect_ivl ()
 {
     //  The new interval is the current interval + random value.
@@ -294,7 +299,7 @@ int zmq::socks_connecter_t::get_new_reconnect_ivl ()
         options.reconnect_ivl_max > options.reconnect_ivl)
         //  Calculate the next interval
         current_reconnect_ivl =
-            std::min (current_reconnect_ivl * 2, options.reconnect_ivl_max);
+            min (current_reconnect_ivl * 2, options.reconnect_ivl_max);
     return interval;
 }
 
@@ -476,3 +481,4 @@ int zmq::socks_connecter_t::parse_address (
     }
     return 0;
 }
+
