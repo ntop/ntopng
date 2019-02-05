@@ -1069,7 +1069,7 @@ end
 
 -- ##############################################
 
-local function getCqQuery(dbname, metrics, tags, schema, source, dest, resemple)
+local function getCqQuery(dbname, tags, schema, source, dest, step, resemple)
   local cq_name = string.format("%s__%s", schema.name, dest)
   local resemple_s = ""
 
@@ -1077,24 +1077,85 @@ local function getCqQuery(dbname, metrics, tags, schema, source, dest, resemple)
     resemple_s = "RESAMPLE FOR " .. resemple
   end
 
-  return string.format([[
-    CREATE CONTINUOUS QUERY "%s" ON %s
-    %s
+  if schema.options.metrics_type == ts_common.metrics.counter then
+    local sums = {}
+    local diffs = {}
+
+    for _, metric in ipairs(schema._metrics) do
+      sums[#sums + 1] = string.format('SUM(%s) as %s', metric, metric)
+      diffs[#diffs + 1] = string.format('NON_NEGATIVE_DIFFERENCE(%s) as %s', metric, metric)
+    end
+
+    sums = table.concat(sums, ",")
+    diffs = table.concat(diffs, ",")
+
+    --[[
+    CREATE CONTINUOUS QUERY "iface:packets__1h" ON ntopng
+    RESAMPLE FOR 2h
     BEGIN
-      SELECT
-        %s
-        INTO "%s"."%s"
-        FROM (
-          SELECT
-            %s
-            FROM "%s"."%s"
-            GROUP BY time(%us),%s
-            FILL(0)
-        ) GROUP BY time(%s),%s
-    END]], cq_name, dbname, resemple_s,
-    metrics, dest, schema.name,
-    metrics, source, schema.name,
-    schema.options.step, tags, dest, tags)
+      SELECT SUM(packets) as packets
+      INTO "1h"."iface:packets" FROM (
+        SELECT NON_NEGATIVE_DIFFERENCE(packets) as packets
+          FROM "autogen"."iface:packets"
+          GROUP BY time(1s),ifid
+      ) GROUP BY time(1h),ifid
+    END]]
+    return string.format([[
+      CREATE CONTINUOUS QUERY "%s" ON %s
+      %s
+      BEGIN
+        SELECT
+          %s
+          INTO "%s"."%s"
+          FROM (
+            SELECT
+              %s
+              FROM "%s"."%s"
+              GROUP BY time(%us),%s
+          ) GROUP BY time(%s),%s
+      END]], cq_name, dbname, resemple_s,
+      sums, dest, schema.name,
+      diffs, source, schema.name,
+      step, tags, dest, tags)
+  else
+    local means = {}
+
+    for _, metric in ipairs(schema._metrics) do
+      means[#means + 1] = string.format('MEAN(%s) as %s', metric, metric)
+    end
+
+    means = table.concat(means, ",")
+
+    --[[
+    CREATE CONTINUOUS QUERY "asn:rtt__1h" ON ntopng
+    RESAMPLE FOR 2h
+    BEGIN
+      SELECT MEAN(millis_rtt) as millis_rtt
+      INTO "1h"."asn:rtt" FROM (
+        SELECT MEAN(millis_rtt) as millis_rtt
+        FROM "autogen"."asn:rtt"
+        GROUP BY time(300s),ifid,asn FILL(0)
+      ) GROUP BY time(1h),ifid,asn
+    END]]
+    return string.format([[
+      CREATE CONTINUOUS QUERY "%s" ON %s
+      %s
+      BEGIN
+        SELECT
+          %s
+          INTO "%s"."%s"
+          FROM (
+            SELECT
+              %s
+              FROM "%s"."%s"
+              GROUP BY time(%us),%s
+              FILL(0)
+          ) GROUP BY time(%s),%s
+      END]], cq_name, dbname, resemple_s,
+      means, dest, schema.name,
+      means, source, schema.name,
+      step, tags, dest, tags)
+  end
 end
 
 function driver:setup(ts_utils)
@@ -1109,21 +1170,17 @@ function driver:setup(ts_utils)
 
   for _, schema in pairs(schemas) do
     local tags = table.concat(schema._tags, ",")
-    local metrics = {}
-    for _, metric in ipairs(schema._metrics) do
-      metrics[#metrics + 1] = string.format('MEAN(%s) as %s', metric, metric)
-    end
 
-    if #metrics == 0 then
+    if #schema._metrics == 0 then
       goto continue
     end
-    metrics = table.concat(metrics, ",")
 
-    local cq_1h = getCqQuery(self.db, metrics, tags, schema, "autogen", "1h", "2h")
-    local cq_1d = getCqQuery(self.db, metrics, tags, schema, "1h", "1d")
+    local cq_1h = getCqQuery(self.db, tags, schema, "autogen", "1h", schema.options.step, "2h")
+    local cq_1d = getCqQuery(self.db, tags, schema, "1h", "1d", 3600)
 
     -- TODO temporary fix to alter existing queries, remove after beta end
     queries[#queries + 1] = string.format('DROP CONTINUOUS QUERY "%s__1d" ON %s', schema.name, self.db)
+    queries[#queries + 1] = string.format('DROP CONTINUOUS QUERY "%s__1h" ON %s', schema.name, self.db)
 
     queries[#queries + 1] = cq_1h:gsub("\n", ""):gsub("%s%s+", " ")
     queries[#queries + 1] = cq_1d:gsub("\n", ""):gsub("%s%s+", " ")
