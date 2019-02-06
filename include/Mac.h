@@ -122,7 +122,7 @@ class Mac : public GenericHashEntry {
   inline int16_t findAddress(AddressTree *ptree)        { return ptree ? ptree->findMac(mac) : -1;     };
   inline char* print(char *str, u_int str_len)          { return(Utils::formatMac(mac, str, str_len)); };
   char* serialize();
-  void deserialize(char *key, char *json_str);
+  bool deserialize(char *key, char *json_str);
   json_object* getJSONObject();
   void updateHostPool(bool isInlineCall);
   inline void setOperatingSystem(OperatingSystem _os) { os = _os;   }

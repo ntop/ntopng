@@ -81,7 +81,8 @@ void LocalHost::initialize() {
 	// ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s => %s", redis_key, json);
 	ntop->getTrace()->traceEvent(TRACE_INFO, "Deserializing %s", redis_key);
 
-	deserialize(json, redis_key);
+	if(!deserialize(json, redis_key))
+	  ntop->getRedis()->del(redis_key);
       }
 
       if(json) free(json);
