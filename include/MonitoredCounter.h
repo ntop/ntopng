@@ -28,7 +28,7 @@ template <typename METRICTYPE> class MonitoredCounter : public MonitoredMetric<M
   METRICTYPE last_diff;
 
  public:
-  void computeMinuteAnomalyIndex(time_t when) {
+  void computeAnomalyIndex(time_t when) {
     if((when - this->last_update) > 60 /* Do not update more frequently than a minute */) {
       /* https://en.wikipedia.org/wiki/Relative_strength_index RSI-like index */
       METRICTYPE diff = this->value - this->last_value;

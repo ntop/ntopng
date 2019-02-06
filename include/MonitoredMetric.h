@@ -65,9 +65,9 @@ public:
   }
   inline METRICTYPE get()             const { return(value);         }
   inline METRICTYPE getAnomalyIndex() const { return(anomaly_index); }
-  virtual void computeMinuteAnomalyIndex(time_t when) = 0;
+  virtual void computeAnomalyIndex(time_t when) = 0;
   inline bool is_anomalous(time_t when, u_int8_t low_threshold = 25, u_int8_t high_threshold = 75) const {
-    return(((anomaly_index < low_threshold) || (anomaly_index > high_threshold)) ? true : false);
+    return(((anomaly_index > 0 && anomaly_index < low_threshold) || (anomaly_index > high_threshold)) ? true : false);
   }
   
   inline void setInitialValue(METRICTYPE v) {
@@ -78,6 +78,16 @@ public:
   inline float inc(time_t when, METRICTYPE v) {
     value += v;
     return(anomaly_index /* Last computed */);
+  }
+  const char * const print(char * const buf, ssize_t buf_size) {
+    if(buf && buf_size) {
+      snprintf(buf, buf_size, "%s[value: %lu][last_value: %lu][RSI: %lu][gains: %lu][losses: %lu]\n",
+	       this->is_anomalous(0) ? "<<<***>>> Anomaly " : "",
+	       (unsigned long)this->value, (unsigned long)this->last_value,
+	       (unsigned long)this->anomaly_index, (unsigned long)this->gains, (unsigned long)this->losses);
+    }
+
+    return buf;
   }
 };
 

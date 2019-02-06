@@ -1261,10 +1261,20 @@ void Host::updateStats(struct timeval *tv) {
   checkDataReset();
   checkStatsReset();
 
-  num_active_flows_as_client.computeMinuteAnomalyIndex(tv->tv_sec),
-    num_active_flows_as_server.computeMinuteAnomalyIndex(tv->tv_sec),
-    low_goodput_client_flows.computeMinuteAnomalyIndex(tv->tv_sec),
-    low_goodput_server_flows.computeMinuteAnomalyIndex(tv->tv_sec);
+  num_active_flows_as_client.computeAnomalyIndex(tv->tv_sec),
+    num_active_flows_as_server.computeAnomalyIndex(tv->tv_sec),
+    low_goodput_client_flows.computeAnomalyIndex(tv->tv_sec),
+    low_goodput_server_flows.computeAnomalyIndex(tv->tv_sec);
+
+#ifdef MONITOREDGAUGE_DEBUG
+  char buf[64], buf2[128];
+
+  if(num_active_flows_as_client.is_anomalous(tv->tv_sec))
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[num_active_flows_as_client] %s %s", ip.print(buf, sizeof(buf)), num_active_flows_as_client.print(buf2, sizeof(buf2)));
+
+  if(num_active_flows_as_server.is_anomalous(tv->tv_sec))
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[num_active_flows_as_server] %s %s", ip.print(buf, sizeof(buf)), num_active_flows_as_server.print(buf2, sizeof(buf2)));
+#endif
 
   stats->updateStats(tv);
 }

@@ -25,7 +25,7 @@
 
 template <typename METRICTYPE> class MonitoredGauge : public MonitoredMetric<METRICTYPE> {
  public:
-  void computeMinuteAnomalyIndex(time_t when) {
+  void computeAnomalyIndex(time_t when) {
     if((when - this->last_update) > 60 /* Do not update more frequently than a minute */) {
       /* https://en.wikipedia.org/wiki/Relative_strength_index RSI-like index */
       int64_t delta = ((int64_t)(this->value) - this->last_value) / (when - this->last_update);
