@@ -1581,7 +1581,10 @@ end
 -- #################################################################
 
 if(pragma_once) then
-   parsePOSTpayload()
+   if(ignore_post_payload_parse == nil) then
+    parsePOSTpayload()
+   end
+
    clearNotAllowedParams()
    lintParams()
    pragma_once = 0

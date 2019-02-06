@@ -37,10 +37,12 @@ template <typename METRICTYPE> class MonitoredCounter : public MonitoredMetric<M
       this->updateAnomalyIndex(when, delta);
 
 #ifdef MONITOREDCOUNTER_DEBUG
+#if 0
       printf("%s[MonitoredCounter][value: %lu][diff: %lu][last_diff: %lu][delta: %ld][RSI: %lu][gains: %lu][losses: %lu]\n",
              ((this->anomaly_index < 25) || (this->anomaly_index > 75)) ? "<<<***>>> Anomaly " : "",
              (unsigned long)this->value, (unsigned long)diff, (unsigned long)last_diff, (long)delta,
 	     (unsigned long)this->anomaly_index, (unsigned long)this->gains, (unsigned long)this->losses);
+#endif
 #endif
 
       this->last_update = when, this->last_value = this->value, this->last_diff = diff;

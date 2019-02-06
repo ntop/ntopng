@@ -42,7 +42,7 @@ template <typename METRICTYPE> class MonitoredMetric {
       anomaly_index = 0;
     
 #ifdef MONITOREDMETRIC_DEBUG
-    if((anomaly_index > 0) /* && ((anomaly_index < 25) || (anomaly_index > 75)) && (gains > 0) */)
+    if((anomaly_index > 0) && ((anomaly_index < 25) || (anomaly_index > 75)) && (gains > 0))
       printf("%s[%s] [RSI: %u][gains: %lu][losses: %lu]\n",
 	     ((anomaly_index < 25) || (anomaly_index > 75)) ? "<<<***>>> Anomaly " : "",
 	     __FUNCTION__, (unsigned int)anomaly_index, (unsigned long)gains, (unsigned long)losses);
