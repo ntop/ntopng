@@ -27,7 +27,7 @@
 
 CollectorInterface::CollectorInterface(const char *_endpoint) : ParserInterface(_endpoint) {
   char *tmp, *e, *t;
-  const char *topics[] = { "flow", "event", "counter", NULL };
+  const char *topics[] = { "flow", "event", "counter", "template", "option", NULL };
 
   memset(&recvStats, 0, sizeof(recvStats));
   num_subscribers = 0;
@@ -244,24 +244,36 @@ void CollectorInterface::collect_flows() {
 
 	  if(ntop->getPrefs()->get_zmq_encryption_pwd())
 	    Utils::xor_encdec((u_char*)uncompressed, uncompressed_len, (u_char*)ntop->getPrefs()->get_zmq_encryption_pwd());
-	  
-	  ntop->getTrace()->traceEvent(TRACE_INFO, "%s [msg_id=%u]", uncompressed, msg_id);
 
-	  switch(h.url[0]) {
-	  case 'e': /* event */
-	    recvStats.num_events++;
-	    parseEvent(uncompressed, uncompressed_len, source_id, this);
-	    break;
+	  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[url: %s]", h.url);
+	  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [msg_id=%u][url: %s]", uncompressed, msg_id, h.url);
 
-	  case 'f': /* flow */
-	    recvStats.num_flows += parseFlow(uncompressed, uncompressed_len, source_id, this);
-	    break;
+          switch(h.url[0]) {
+          case 'e': /* event */
+            recvStats.num_events++;
+            parseEvent(uncompressed, uncompressed_len, source_id, this);
+            break;
 
-	  case 'c': /* counter */
-	    recvStats.num_counters++;
-	    parseCounter(uncompressed, uncompressed_len, source_id, this);
-	    break;
-	  }
+          case 'f': /* flow */
+            recvStats.num_flows += parseFlow(uncompressed, uncompressed_len, source_id, this);
+            break;
+
+          case 'c': /* counter */
+            recvStats.num_counters++;
+            parseCounter(uncompressed, uncompressed_len, source_id, this);
+            break;
+
+          case 't': /* template */
+            recvStats.num_templates++;
+            parseTemplate(uncompressed, uncompressed_len, source_id, this);
+            break;
+
+          case 'o': /* option */
+            recvStats.num_options++;
+            parseOption(uncompressed, uncompressed_len, source_id, this);
+            break;
+
+          }
 
 	  /* ntop->getTrace()->traceEvent(TRACE_INFO, "[%s] %s", h.url, uncompressed); */
 

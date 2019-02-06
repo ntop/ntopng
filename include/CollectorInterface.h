@@ -37,7 +37,9 @@ class CollectorInterface : public ParserInterface {
  private:
   void *context;
   struct {
-    u_int32_t num_flows, num_events, num_counters, zmq_msg_drops, last_zmq_msg_id;
+    u_int32_t num_flows, num_events, num_counters,
+      num_templates, num_options,
+      zmq_msg_drops, last_zmq_msg_id;
   } recvStats;
   bool is_collector;
   u_int8_t num_subscribers;

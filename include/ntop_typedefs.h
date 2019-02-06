@@ -234,6 +234,11 @@ typedef struct zmq_remote_stats {
     sflow_pkt_sample_drops, flow_collection_drops;
 } ZMQ_RemoteStats;
 
+typedef struct zmq_template {
+  u_int32_t pen, field;
+  const char *format, *name, *descr;
+} ZMQ_Template;
+
 typedef struct zmq_field_map {
   u_int32_t pen, field;
   const char *map;

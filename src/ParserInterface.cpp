@@ -1132,6 +1132,65 @@ u_int8_t ParserInterface::parseCounter(const char * const payload, int payload_s
 
 /* **************************************************** */
 
+u_int8_t ParserInterface::parseTemplate(const char * const payload, int payload_size, u_int8_t source_id, void *data) {
+  /* The format that is currently defined for templates is a JSON as follows:
+
+     [{"PEN":0,"field":1,"len":4,"format":"formatted_uint","name":"IN_BYTES","descr":"Incoming flow bytes (src->dst)"},{"PEN":0,"field":2,"len":4,"format":"formatted_uint","name":"IN_PKTS","descr":"Incoming flow packets (src->dst)"},]
+  */
+  ZMQ_Template zmq_template;
+  json_object *obj, *w, *z;
+  enum json_tokener_error jerr = json_tokener_success;
+
+  memset(&zmq_template, 0, sizeof(zmq_template));
+  obj = json_tokener_parse_verbose(payload, &jerr);
+
+  if(obj) {
+    if(json_object_get_type(obj) == json_type_array) {
+      int i, num_elements = json_object_array_length(obj);
+
+      for(i = 0; i < num_elements; i++) {
+	w = json_object_array_get_idx(obj, i);
+
+	if(json_object_object_get_ex(w, "PEN", &z))
+	  zmq_template.pen = (u_int32_t)json_object_get_int(z);
+
+	if(json_object_object_get_ex(w, "field", &z))
+	  zmq_template.field = (u_int32_t)json_object_get_int(z);
+
+	if(json_object_object_get_ex(w, "format", &z))
+	  zmq_template.format = json_object_get_string(z);
+
+	if(json_object_object_get_ex(w, "name", &z))
+	  zmq_template.name = json_object_get_string(z);
+
+	if(json_object_object_get_ex(w, "descr", &z))
+	  zmq_template.descr = json_object_get_string(z);
+
+	// ntop->getTrace()->traceEvent(TRACE_NORMAL, "Template [PEN: %u][field: %u][format: %s][name: %s][descr: %s]",
+	// 			     zmq_template.pen, zmq_template.field, zmq_template.format, zmq_template.name, zmq_template.descr)
+	  ;
+      }
+    }
+    json_object_put(obj);
+  } else {
+    // if o != NULL
+    if(!once) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING,
+				   "Invalid message received: your nProbe sender is outdated, data encrypted or invalid JSON?");
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "JSON Parse error [%s] payload size: %u payload: %s",
+				   json_tokener_error_desc(jerr),
+				   payload_size,
+				   payload);
+    }
+    once = true;
+    return -1;
+  }
+
+  return 0;
+}
+
+/* **************************************************** */
+
 void ParserInterface::setFieldMap(const ZMQ_FieldMap * const field_map) const {
   char hname[CONST_MAX_LEN_REDIS_KEY], key[32];
   snprintf(hname, sizeof(hname), CONST_FIELD_MAP_CACHE_KEY, get_id(), field_map->pen);
