@@ -84,7 +84,8 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6])
 	/* Found saved copy of the host so let's start from the previous state */
 	// ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s => %s", redis_key, json);
 	ntop->getTrace()->traceEvent(TRACE_INFO, "Deserializing %s", redis_key);
-	deserialize(redis_key, json);
+	if(!deserialize(redis_key, json))
+	  ntop->getRedis()->del(redis_key);
       }
 
       if(json) free(json);
@@ -269,7 +270,7 @@ char* Mac::serialize() {
 
 /* *************************************** */
 
-void Mac::deserialize(char *key, char *json_str) {
+bool Mac::deserialize(char *key, char *json_str) {
   json_object *o, *obj;
   enum json_tokener_error jerr = json_tokener_success;
 
@@ -280,7 +281,7 @@ void Mac::deserialize(char *key, char *json_str) {
 				 json_tokener_error_desc(jerr),
 				 key,
 				 json_str);
-    return;
+    return false;
   }
 
   if(json_object_object_get_ex(o, "seen.first", &obj))  first_seen = json_object_get_int64(obj);
@@ -297,6 +298,8 @@ void Mac::deserialize(char *key, char *json_str) {
 
   json_object_put(o);
   checkStatsReset();
+
+  return true;
 }
 
 /* *************************************** */
