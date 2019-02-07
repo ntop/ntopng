@@ -668,7 +668,7 @@ else
       -- Convert the array to symbolic identifiers if necessary
       local syminfo = {}
       for key, value in pairs(info) do
-	 key, value = flow_field_value_maps.map_field_value(key, value)
+	 key, value = flow_field_value_maps.map_field_value(ifid, key, value)
 
 	 local k = rtemplate[tonumber(key)]
 	 if(k ~= nil) then

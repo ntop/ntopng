@@ -493,7 +493,7 @@ int ParserInterface::getKeyId(char *sym) {
 
   HASH_FIND_STR(map, sym, s);  /* s: output pointer */
 
-  return(s ? s->value : -1);
+  return(s ? s->value : UNKNOWN_FLOW_ELEMENT);
 }
 
 /* **************************************************** */
@@ -660,6 +660,9 @@ void ParserInterface::parseSingleFlow(json_object *o,
       key_id = getKeyId((char*)key);
 
       switch(key_id) {
+      case UNKNOWN_FLOW_ELEMENT:
+	/* Unknown field, possibly waiting for its definition via nProbe templates */
+	break;
       case 0: //json additional object added by Flow::serialize()
 	if((additional_o != NULL) && (strcmp(key,"json") == 0)) {
 	  struct json_object_iterator additional_it = json_object_iter_begin(additional_o);
@@ -1137,6 +1140,9 @@ u_int8_t ParserInterface::parseTemplate(const char * const payload, int payload_
 
      [{"PEN":0,"field":1,"len":4,"format":"formatted_uint","name":"IN_BYTES","descr":"Incoming flow bytes (src->dst)"},{"PEN":0,"field":2,"len":4,"format":"formatted_uint","name":"IN_PKTS","descr":"Incoming flow packets (src->dst)"},]
   */
+
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", payload);
+
   ZMQ_Template zmq_template;
   json_object *obj, *w, *z;
   enum json_tokener_error jerr = json_tokener_success;
@@ -1244,34 +1250,29 @@ u_int8_t ParserInterface::parseOptionFieldMap(json_object * const jo) const {
 
 /* **************************************************** */
 
-u_int8_t ParserInterface::parseOptionFieldValueMap(json_object * const jo) const {
-  int arraylen = json_object_array_length(jo);
-  json_object *w, *z;
+u_int8_t ParserInterface::parseOptionFieldValueMap(json_object * const w) const {
+  json_object *z;
   ZMQ_FieldValueMap field_value_map;
   memset(&field_value_map, 0, sizeof(field_value_map));
 
-  for(int i = 0; i < arraylen; i++) {
-    w = json_object_array_get_idx(jo, i);
+  if(json_object_object_get_ex(w, "PEN", &z))
+    field_value_map.pen = (u_int32_t)json_object_get_int(z);
 
-    if(json_object_object_get_ex(w, "PEN", &z))
-      field_value_map.pen = (u_int32_t)json_object_get_int(z);
+  if(json_object_object_get_ex(w, "field", &z)) {
+    field_value_map.field = (u_int32_t)json_object_get_int(z);
 
-    if(json_object_object_get_ex(w, "field", &z)) {
-      field_value_map.field = (u_int32_t)json_object_get_int(z);
+    if(json_object_object_get_ex(w, "value", &z)) {
+      field_value_map.value = (u_int32_t)json_object_get_int(z);
 
-      if(json_object_object_get_ex(w, "value", &z)) {
-	field_value_map.value = (u_int32_t)json_object_get_int(z);
+      if(json_object_object_get_ex(w, "map", &z)) {
+	field_value_map.map = json_object_to_json_string(z);
 
-	if(json_object_object_get_ex(w, "map", &z)) {
-	  field_value_map.map = json_object_to_json_string(z);
-
-	  setFieldValueMap(&field_value_map);
+	setFieldValueMap(&field_value_map);
 
 #ifdef CUSTOM_APP_DEBUG
-	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Option FieldValueMap [PEN: %u][field: %u][value: %u][map: %s]",
-				       field_value_map.pen, field_value_map.field, field_value_map.value, field_value_map.map);
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Option FieldValueMap [PEN: %u][field: %u][value: %u][map: %s]",
+				     field_value_map.pen, field_value_map.field, field_value_map.value, field_value_map.map);
 #endif
-	}
       }
     }
   }
@@ -1284,17 +1285,14 @@ u_int8_t ParserInterface::parseOptionFieldValueMap(json_object * const jo) const
 u_int8_t ParserInterface::parseOption(const char * const payload, int payload_size, u_int8_t source_id, void *data) {
   /* The format that is currently defined for options is a JSON as follows:
 
-    char opt[] = "{\"field_map\" : ["
-    "{\"PEN\":8741, \"field\": 22, \"map\":{\"name\":\"FLOW_TO_APPLICATION_ID\"}},"
-    "{\"PEN\":8741, \"field\": 23, \"map\":{\"name\":\"FLOW_TO_USER_ID\"}}"
-    "],"
-    "\"field_value_map\" : ["
+    char opt[] = "
     "{\"PEN\":8741, \"field\": 22, \"value\":1, \"map\":{\"name\":\"Skype\"}},"
-    "{\"PEN\":8741, \"field\": 22, \"value\":3, \"map\":{\"name\":\"Winni\"}}"
-    "]"
-    "}";
+    "{\"PEN\":8741, \"field\": 22, \"value\":3, \"map\":{\"name\":\"Winni\"}}";
+
     parseOption(opt, strlen(opt), source_id, this);
   */
+
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", payload);
 
   json_object *o;
   enum json_tokener_error jerr = json_tokener_success;
@@ -1302,23 +1300,7 @@ u_int8_t ParserInterface::parseOption(const char * const payload, int payload_si
   o = json_tokener_parse_verbose(payload, &jerr);
 
   if(o != NULL) {
-    struct json_object_iterator it = json_object_iter_begin(o);
-    struct json_object_iterator itEnd = json_object_iter_end(o);
-
-    while(!json_object_iter_equal(&it, &itEnd)) {
-      const char *key   = json_object_iter_peek_name(&it);
-      json_object *v    = json_object_iter_peek_value(&it);
-      const char *value = json_object_get_string(v);
-
-      if((key != NULL) && (value != NULL)) {
-	if(!strcmp(key, "field_map"))            parseOptionFieldMap(v);
-	else if(!strcmp(key, "field_value_map")) parseOptionFieldValueMap(v);
-      }
-
-      /* Move to the next element */
-      json_object_iter_next(&it);
-    } // while json_object_iter_equal
-
+    parseOptionFieldValueMap(o);
     json_object_put(o);
   } else {
     // if o != NULL

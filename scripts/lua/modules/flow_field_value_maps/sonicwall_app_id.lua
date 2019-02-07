@@ -669,7 +669,7 @@ local type_value_map = {
 
 -- ################################################################################
 
-function sonicwall.map_field_value(field_type, value)
+function sonicwall.map_field_value(ifid, field_type, value)
    if type_value_map[field_type] and type_value_map[field_type][value] then
       value = type_value_map[field_type][value]
    end
