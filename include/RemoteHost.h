@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-18 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -26,6 +26,7 @@
 
 class RemoteHost : public Host {
  private:
+  bool remote_to_remote_alerts;
   void initialize();
 
  public:
@@ -33,9 +34,10 @@ class RemoteHost : public Host {
   RemoteHost(NetworkInterface *_iface, char *ipAddress, u_int16_t _vlanId);
   virtual ~RemoteHost();
 
-  virtual int16_t get_local_network_id() { return(-1);                };
-  virtual bool isLocalHost()             { return(false);             };
-  virtual bool isSystemHost()            { return(false);             };
+  virtual bool setRemoteToRemoteAlerts();
+  virtual int16_t get_local_network_id() const { return(-1);                };
+  virtual bool isLocalHost()  const            { return(false);             };
+  virtual bool isSystemHost() const            { return(false);             };
 };
 
 #endif /* _REMOTE_HOST_H_ */

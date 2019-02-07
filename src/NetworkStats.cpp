@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2015-18 - ntop.org
+ * (C) 2015-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -29,14 +29,14 @@ NetworkStats::NetworkStats() {
 /* *************************************** */
 
 void NetworkStats::lua(lua_State* vm) {
-  lua_push_int_table_entry(vm, "ingress", ingress.getNumBytes());
-  lua_push_int_table_entry(vm, "egress", egress.getNumBytes());
-  lua_push_int_table_entry(vm, "inner", inner.getNumBytes());
+  lua_push_uint64_table_entry(vm, "ingress", ingress.getNumBytes());
+  lua_push_uint64_table_entry(vm, "egress", egress.getNumBytes());
+  lua_push_uint64_table_entry(vm, "inner", inner.getNumBytes());
 
   lua_newtable(vm);
-  lua_push_int_table_entry(vm, "ingress", ingress_broadcast.getNumBytes());
-  lua_push_int_table_entry(vm, "egress", egress_broadcast.getNumBytes());
-  lua_push_int_table_entry(vm, "inner", inner_broadcast.getNumBytes());
+  lua_push_uint64_table_entry(vm, "ingress", ingress_broadcast.getNumBytes());
+  lua_push_uint64_table_entry(vm, "egress", egress_broadcast.getNumBytes());
+  lua_push_uint64_table_entry(vm, "inner", inner_broadcast.getNumBytes());
   lua_pushstring(vm, "broadcast");
   lua_insert(vm, -2);
   lua_settable(vm, -3);  

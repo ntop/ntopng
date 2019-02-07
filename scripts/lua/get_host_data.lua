@@ -2,18 +2,18 @@
 -- (C) 2013-18 - ntop.org
 --
 
-dirs = ntop.getDirs()
+local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
+local json = require "dkjson"
 
-sendHTTPContentTypeHeader('text/html')
-
+sendHTTPHeader('application/json')
 
 function getNetworkStats(network)
    local hosts_stats = interface.getHostsInfo()
    hosts_stats = hosts_stats["hosts"]
 
-   my_network = nil
+   local my_network
 
    for key, value in pairs(hosts_stats) do
       h = hosts_stats[key]
@@ -51,16 +51,10 @@ function getNetworkStats(network)
    return(my_network)
 end
 
+local host_info = url2hostinfo(_GET)
 
--- sendHTTPHeader('application/json')
-interface.select(ifname)
-
-host_info = url2hostinfo(_GET)
-
-criteria = _GET["criteria"]
+local criteria = _GET["criteria"]
 if(criteria == nil) then criteria = "" end
-
-interface.select(ifname)
 
 if(host_info["host"] ~= nil) then
    if(string.contains(host_info["host"], "/")) then
@@ -73,65 +67,64 @@ else
    host = interface.getAggregatedHostInfo(host_info["host"])
 end
 
+local res = {}
 
-if(host == nil) then
-   print('{}')
-else
-   print('{')
-   now = os.time()
+if host then
+   local now = os.time()
    -- Get from redis the throughput type bps or pps
-   throughput_type = getThroughputType()
+   local throughput_type = getThroughputType()
 
-   --tprint(host)
+   res["column_since"] = secondsToTime(now-host["seen.first"]+1)
+   res["column_last"] = secondsToTime(now-host["seen.last"]+1)
+   res["column_traffic"] = bytesToSize(host["bytes.sent"]+host["bytes.rcvd"])
 
-   print("\"column_since\" : \"" .. secondsToTime(now-host["seen.first"]+1) .. "\", ")
-   print("\"column_last\" : \"" .. secondsToTime(now-host["seen.last"]+1) .. "\", ")
-   print("\"column_traffic\" : \"" .. bytesToSize(host["bytes.sent"]+host["bytes.rcvd"]).. "\", ")
+   local label, fnctn = label2criteriakey(criteria)
 
-   label, fnctn = label2criteriakey(criteria)
-
-   c = host.criteria
-   if(c ~= nil) then print("\"column_"..criteria.."\" : \"" .. fnctn(c[label]).. "\", ") end
+   local c = host.criteria
+   if(c ~= nil) then
+      res["column_"..criteria..""] = fnctn(c[label])
+   end
    
    if((host["throughput_trend_"..throughput_type] ~= nil)
    and (host["throughput_trend_"..throughput_type] > 0)) then
+      local res_thpt
+
       if(throughput_type == "pps") then
-	 print ("\"column_thpt\" : \"" .. pktsToSize(host["throughput_bps"]).. " ")
+	 res_thpt = pktsToSize(host["throughput_bps"])
       else
-	 print ("\"column_thpt\" : \"" .. bitsToSize(8*host["throughput_bps"]).. " ")
+	 res_thpt = bitsToSize(8*host["throughput_bps"])
       end
       
       if(host["throughput_"..throughput_type] > host["last_throughput_"..throughput_type]) then
-	 print("<i class='fa fa-arrow-up'></i>")
+	 res_thpt = res_thpt .. " <i class='fa fa-arrow-up'></i>"
 	 elseif(host["throughput_"..throughput_type] < host["last_throughput_"..throughput_type]) then
-	 print("<i class='fa fa-arrow-down'></i>")
+	 res_thpt = res_thpt .. " <i class='fa fa-arrow-down'></i>"
       else
-	 print("<i class='fa fa-minus'></i>")
+	 res_thpt = res_thpt .. " <i class='fa fa-minus'></i>"
       end
-      print("\",")
+
+      res["column_thpt"] = res_thpt
    else
-      print ("\"column_thpt\" : \"0 "..throughput_type.."\",")
+      res["column_thpt"] = "0 "..throughput_type
    end
 
-   print ("\"column_num_flows\" : \""..host["active_flows.as_client"]+host["active_flows.as_server"].."\",")
+   res["column_num_flows"] = host["active_flows.as_client"] + host["active_flows.as_server"]
 
    if isBridgeInterface(interface.getStats()) then
-      print ("\"column_num_dropped_flows\" : \""..(host["flows.dropped"] or 0).."\",")
+      res["column_num_dropped_flows"] = (host["flows.dropped"] or 0)
    end
 
-   print ("\"column_alerts\" : \"")
    if((host["num_alerts"] ~= nil) and (host["num_alerts"] > 0)) then
-      print(""..host["num_alerts"].."\",")
+      res["column_alerts"] = host["num_alerts"]
    else
-      print("0\",")
+      res["column_alerts"] = 0
    end
    
    sent2rcvd = round((host["bytes.sent"] * 100) / (host["bytes.sent"]+host["bytes.rcvd"]), 0)
    if(sent2rcvd == nil) then sent2rcvd = 0 end
-   print ("\"column_breakdown\" : \"<div class='progress'><div class='progress-bar progress-bar-warning' style='width: "
-	  .. sent2rcvd .."%;'>Sent</div><div class='progress-bar progress-bar-info' style='width: " .. (100-sent2rcvd) .. "%;'>Rcvd</div></div>")
-
-   
-   print("\" } ")
+   res["column_breakdown"] = "<div class='progress'><div class='progress-bar progress-bar-warning' style='width: "
+	  .. sent2rcvd .."%;'>Sent</div><div class='progress-bar progress-bar-info' style='width: " .. (100-sent2rcvd) .. "%;'>Rcvd</div></div>"
 
 end
+
+print(json.encode(res))

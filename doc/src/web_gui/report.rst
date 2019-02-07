@@ -84,3 +84,35 @@ In the remainder of this section are screenshots of reported information discuss
   :alt: Application Breakdown
 
   Report - Application Breakdown
+
+Activity Report
+---------------
+
+In the enterprise version of ntopng it's also possible to get a detailed tabular
+report of a single host, interface or network traffic over a specific time frame.
+
+.. figure:: ../img/web_gui_report_activity_report.png
+  :align: center
+  :alt: Host Activity Report
+
+  Host Activity Report
+
+.. warning::
+
+   The report is currently *not available* when using InfluxDB as the timeseries
+   driver.
+
+The report provides daily, weekly and monthly details on the total traffic made
+by the entity (host in this case) and the total duration the host has been active
+on the network. It also provides the previous period data as long as comparison
+columns to easily analyze the difference between the two periods.
+
+Via the date picker at the top of the chart it's possible to easily jump to another
+period. The right and left arrows provide a conveniente way to jump to the next and
+previous period respectively. Via the "Today" button it's possible to jump to the
+current day view, which show the traffic entity during the different hours of the day.
+
+.. note::
+
+  The report is based on the timeseries data. It is necessary to enable the traffic
+  timeseries in order to display it.

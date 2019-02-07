@@ -28,6 +28,11 @@ function host_pools_utils.poolIdToUsername(pool_id)
   local ifid = getInterfaceId(ifname)
   return host_pools_utils.getPoolName(ifid, pool_id)
 end
+
+function host_pools_utils.getUserUrl(pool_id)
+  return ntop.getHttpPrefix() .."/lua/pro/nedge/admin/nf_edit_user.lua?username=" ..
+    ternary(tostring(pool_id) == host_pools_utils.DEFAULT_POOL_ID, "", host_pools_utils.poolIdToUsername(pool_id))
+end
 --
 -- END NEDGE specific code
 --
@@ -491,9 +496,9 @@ function host_pools_utils.purgeExpiredPoolsMembers()
    for _, ifname in pairs(ifnames) do
       interface.select(ifname)
 
-      if isCaptivePortalActive() then
-        interface.purgeExpiredPoolsMembers()
-      end
+      -- Currently, volatile pool members are no longer used,
+      -- so there's no need to purge them.
+      -- interface.purgeExpiredPoolsMembers()
    end
 end
 
@@ -560,7 +565,7 @@ function host_pools_utils.printQuotas(pool_id, host, page_params)
     <table class="table table-bordered table-striped">
     <thead>
       <tr>
-        <th>]] print(i18n("protocol")) print[[</th>
+        <th>]] print(i18n("application")) print[[</th>
         <th class="text-center">]] print(i18n("shaping.daily_traffic")) print[[</th>
         <th class="text-center">]] print(i18n("shaping.daily_time")) print[[</th>
       </tr>
@@ -621,7 +626,7 @@ function host_pools_utils.resetPoolsQuotas(ifid, pool_filter)
   if pool_filter ~= nil then
     keys_to_del = {[pool_filter]=1, }
   else
-    keys_to_del = ntop.getHashKeysCache(serialized_key)
+    keys_to_del = ntop.getHashKeysCache(serialized_key) or {}
   end
 
   -- Delete the redis serialization

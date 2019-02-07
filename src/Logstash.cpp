@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-18 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -26,19 +26,18 @@
 /* **************************************************** */
 
 static void* lsLoop(void* ptr) {
-  ntop->getLogstash()->sendLSdata();
+  Logstash *ls = (Logstash *) ptr;
+  ls->sendLSdata();
   return(NULL);
 }
 
 /* **************************************** */
 
-Logstash::Logstash() {
+Logstash::Logstash(NetworkInterface *_iface) : DB(_iface) {
   num_queued_elems = 0;
   head = NULL;
   tail = NULL;
   reportDrops = false;
-  checkpointDroppedFlows = checkpointExportedFlows = 0;
-  lastUpdateTime.tv_sec = 0, lastUpdateTime.tv_usec = 0;
 }
 
 /* **************************************** */
@@ -47,47 +46,14 @@ Logstash::~Logstash() {
 
 }
 
-/* ******************************************* */
-
-void Logstash::updateStats(const struct timeval *tv) {
-  if(tv == NULL)
-    return;
-
-  if(lastUpdateTime.tv_sec > 0) {
-    float tdiffMsec = Utils::msTimevalDiff(tv, &lastUpdateTime);
-
-    if(tdiffMsec >= 1000) { /* al least one second */
-      u_int64_t diffFlows = elkExportedFlows - elkLastExportedFlows;
-
-      elkLastExportedFlows = elkExportedFlows;
-      elkExportRate = ((float)(diffFlows * 1000)) / tdiffMsec;
-      if(elkExportRate < 0) elkExportRate = 0;
-    }
-  }
-
-  memcpy(&lastUpdateTime, tv, sizeof(struct timeval));
-}
-
-/* ******************************************* */
-
-void Logstash::lua(lua_State *vm, bool since_last_checkpoint) const {
-  lua_push_int_table_entry(vm,   "flow_export_count",
-			   elkExportedFlows - (since_last_checkpoint ? checkpointExportedFlows : 0));
-  lua_push_int32_table_entry(vm, "flow_export_drops",
-			     elkDroppedFlowsQueueTooLong - (since_last_checkpoint ? checkpointDroppedFlows : 0));
-  lua_push_float_table_entry(vm, "flow_export_rate",
-			     elkExportRate >= 0 ? elkExportRate : 0);
-}
-
 /* **************************************** */
 
-int Logstash::sendToLS(char* msg) {
+bool Logstash::dumpFlow(time_t when, Flow *f, char *msg) {
   struct string_list *e;
-  int rc = 0;
+  bool rc = true;
 
-  if(!msg || !strcmp(msg,"")) {
-    return(-1);
-  }
+  if(!msg || !strcmp(msg,""))
+    return(false);
 
   if(num_queued_elems >= LS_MAX_QUEUE_LEN) {
     if(!reportDrops) {
@@ -96,11 +62,11 @@ int Logstash::sendToLS(char* msg) {
       reportDrops = true;
     }
 
-    elkDroppedFlowsQueueTooLong++;
+    incNumQueueDroppedFlows();
     ntop->getTrace()->traceEvent(TRACE_INFO, "[LS] Message dropped. Total messages dropped: %lu\n",
-				 elkDroppedFlowsQueueTooLong);
+				 getNumDroppedFlows());
 
-    return(-1);
+    return(false);
   }
 
   listMutex.lock(__FILE__, __LINE__);
@@ -116,21 +82,21 @@ int Logstash::sendToLS(char* msg) {
 	tail = e;
       num_queued_elems++;
 
-      rc = 0;
+      rc = true;
     } else {
       /* Out of memory */
       free(e);
-      rc = -1;
+      rc = false;
     }
   }
 
   listMutex.unlock(__FILE__, __LINE__);
-  return rc;
+  return(rc);
 }
 
 /* **************************************** */
 
-void Logstash::startFlowDump() {
+void Logstash::startLoop() {
   if(ntop->getPrefs()->do_dump_flows_on_ls()) {
     pthread_create(&lsThreadLoop, NULL, lsLoop, (void*)this);
   }
@@ -193,7 +159,7 @@ void Logstash::sendLSdata() {
   memcpy((char*)&serv_addr.sin_addr.s_addr, (char*)server->h_addr, server->h_length);
   serv_addr.sin_port = htons(portno);
 
-  while(!ntop->getGlobals()->isShutdown()) {
+  while(!ntop->getGlobals()->isShutdown() && isRunning()) {
     if(num_queued_elems >= watermark) {
       if(sockfd<0||skipDequeue==1) {
         if(sockfd<0) {
@@ -287,6 +253,7 @@ void Logstash::sendLSdata() {
             // Err occured
             // don't clear postbuf as it hasn't been sent
             // and skip dequeue next time
+	    ntop->getTrace()->traceEvent(TRACE_WARNING, "[LS] TCP send failed [%d]", retval);
             skipDequeue = 1;
 	    break;
           }
@@ -299,6 +266,7 @@ void Logstash::sendLSdata() {
         retval = sendto(sockfd, postbuf, sizeof(postbuf), 0,
 			(struct sockaddr *)&serv_addr, sizeof(serv_addr));
 	if(retval <= 0) {
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "[LS] UDP send failed [%d]", retval);
 	  skipDequeue = 1;
 	  break;
 	}
@@ -311,7 +279,7 @@ void Logstash::sendLSdata() {
       }
 
       // If all steps succeded, increment exported flows
-      elkExportedFlows += num_flows;
+      incNumExportedFlows(num_flows);
       // Reset dequeue flag
       skipDequeue = 0;
     } else {

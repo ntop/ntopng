@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-18 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -20,6 +20,8 @@
  */
 
 #include "ntop_includes.h"
+
+#ifndef HAVE_NEDGE
 
 extern "C" {
 #include "../third-party/snmp/snmp.c"
@@ -199,3 +201,5 @@ void SNMP::snmp_fetch_responses(lua_State* vm) {
     }
   }
 }
+
+#endif /* HAVE_NEDGE */

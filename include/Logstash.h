@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-18 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -24,35 +24,21 @@
 
 #include "ntop_includes.h"
 
-class Logstash {
+class Logstash : public DB {
  private:
   pthread_t lsThreadLoop;
   u_int num_queued_elems;
   struct string_list *head, *tail;
   Mutex listMutex;
   bool reportDrops;
-  struct timeval lastUpdateTime;
-  u_int32_t elkDroppedFlowsQueueTooLong;
-  u_int64_t elkExportedFlows, elkLastExportedFlows;
-  float elkExportRate;
-  u_int64_t checkpointDroppedFlows,
-    checkpointExportedFlows; /* Those will hold counters at checkpoints */
 
  public:
-  Logstash();
+  Logstash(NetworkInterface *_iface);
   virtual ~Logstash();
-  void checkPointCounters(bool drops_only) {
-    if(!drops_only)
-      checkpointExportedFlows = elkExportedFlows;
-    checkpointDroppedFlows = elkDroppedFlowsQueueTooLong;
-  };
-  inline u_int32_t numDroppedFlows() const { return elkDroppedFlowsQueueTooLong; };
-  int sendToLS(char* msg);
   void sendLSdata();
-  void startFlowDump();
 
-  void updateStats(const struct timeval *tv);
-  void lua(lua_State* vm, bool since_last_checkpoint) const;
+  virtual bool dumpFlow(time_t when, Flow *f, char *json);
+  virtual void startLoop();
 };
 
 

@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-18 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -44,8 +44,25 @@ typedef enum {
   location_none = 0,
   location_local_only,
   location_remote_only,
+  location_broadcast_domain_only,
   location_all,
 } LocationPolicy;
+
+typedef enum {
+  traffic_type_all,
+  traffic_type_one_way,
+  traffic_type_bidirectional,
+} TrafficType;
+
+/* keep in sync with Utils::policySource */
+typedef enum {
+  policy_source_default = 0,
+  policy_source_pool = 1,
+  policy_source_protocol = 2,
+  policy_source_category = 3,
+  policy_source_device_protocol = 4,
+  policy_source_schedule = 5,
+} L7PolicySource_t;
 
 typedef enum {
   alert_none = -1,
@@ -61,6 +78,9 @@ typedef enum {
   alert_flow_web_mining = 21,
   alert_nfq_flushed = 22,
   alert_device_protocol_not_allowed = 24,
+  alert_user_activity = 25,
+  alert_influxdb_export_failure = 26,
+  alert_port_errors = 27,
 } AlertType; /*
 	       NOTE:
 	       keep it in sync with alert_type_keys
@@ -86,7 +106,9 @@ typedef enum {
   alert_entity_flow,
   alert_entity_mac,
   alert_entity_host_pool,
-  alert_entity_process
+  alert_entity_process,
+  alert_entity_user,
+  alert_entity_influx_db,
 } AlertEntity;
 
 typedef enum {
@@ -147,10 +169,14 @@ typedef struct ether80211q {
 
 typedef struct {
   u_int32_t pid, father_pid;
-  char name[48], father_name[48], user_name[48];
+  char *process_name, *father_process_name;
+  u_int32_t uid /* User Id */, gid; /* Group Id */
+  u_int32_t father_uid /* User Id */, father_gid; /* Group Id */
+#if 0
   u_int32_t actual_memory, peak_memory;
   float average_cpu_load, percentage_iowait_time;
   u_int32_t num_vm_page_faults;
+#endif
 } ProcessInfo;
 
 typedef struct zmq_flow_core {
@@ -204,8 +230,24 @@ typedef struct zmq_remote_stats {
   u_int64_t remote_bytes, remote_pkts, num_flow_exports;
   u_int32_t remote_ifspeed, remote_time, avg_bps, avg_pps;
   u_int32_t remote_lifetime_timeout, remote_idle_timeout;
-  u_int32_t export_queue_too_long, too_many_flows, elk_flow_drops, sflow_pkt_sample_drops;
+  u_int32_t export_queue_full, too_many_flows, elk_flow_drops,
+    sflow_pkt_sample_drops, flow_collection_drops;
 } ZMQ_RemoteStats;
+
+typedef struct zmq_template {
+  u_int32_t pen, field;
+  const char *format, *name, *descr;
+} ZMQ_Template;
+
+typedef struct zmq_field_map {
+  u_int32_t pen, field;
+  const char *map;
+} ZMQ_FieldMap;
+
+typedef struct zmq_field_value_map {
+  u_int32_t pen, field, value;
+  const char *map;
+} ZMQ_FieldValueMap;
 
 struct vm_ptree {
   lua_State* vm;
@@ -251,6 +293,10 @@ typedef enum {
   status_blocked /* 14 */,
   status_web_mining_detected /* 15 */,
   status_device_protocol_not_allowed /* 16 */,
+  status_elephant_local_to_remote, /* 17 */
+  status_elephant_remote_to_local, /* 18 */
+  status_longlived, /* 19 */
+  status_not_purged, /* 20 */
 } FlowStatus;
 
 typedef enum {
@@ -350,6 +396,12 @@ typedef enum {
   flowhashing_vrfid /* VRF Id */
 } FlowHashingEnum;
 
+typedef enum {
+  device_proto_allowed = 0,
+  device_proto_forbidden_master,
+  device_proto_forbidden_app
+} DeviceProtoStatus;
+
 struct keyval {
   const char *key;
   char *val;
@@ -414,6 +466,15 @@ struct dhcp_packet {
   u_int8_t	options[308];
 } PACK_OFF;
 
+/* http://en.wikipedia.org/wiki/SCTP_packet_structure */
+PACK_ON
+struct sctphdr {
+  /* Common Header */
+  u_int16_t sport, dport;
+  u_int32_t verification_tag; /* A 32-bit random value created during initialization to distinguish stale packets from a previous connection. */
+  u_int32_t checksum; /*  CRC32c algorithm */
+} PACK_OFF;
+
 #ifdef NTOPNG_PRO
 
 typedef struct {
@@ -450,15 +511,20 @@ typedef struct {
   NDPI_PROTOCOL_BITMASK clientAllowed, serverAllowed;
 } DeviceProtocolBitmask;
 
+#ifndef HAVE_NEDGE
 class SNMP; /* Forward */
+#endif
 
 struct ntopngLuaContext {
-  char *allowed_ifname, *user;
+  char *allowed_ifname, *user, *group;
   void *zmq_context, *zmq_subscriber;
   struct mg_connection *conn;
   AddressTree *allowedNets;
   NetworkInterface *iface;
+#ifndef HAVE_NEDGE
   SNMP *snmp;
+#endif
+  bool localuser;
 
   /* Packet capture */
   struct {
@@ -525,8 +591,17 @@ typedef enum {
 } AfterShutdownAction;
 
 typedef struct {
+  bool admin;
+} HTTPAuthenticator;
+
+typedef struct {
   double namelookup, connect, appconnect, pretransfer, redirect, start, total;
 } HTTPTranferStats;
+
+typedef struct {
+  lua_State* vm;
+  time_t last_conn_check;
+} ProgressState;
 
 struct pcap_disk_timeval {
   u_int32_t tv_sec;

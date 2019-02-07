@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-18 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -66,77 +66,94 @@ Redis::~Redis() {
 
 void Redis::reconnectRedis() {
   struct timeval timeout = { 1, 500000 }; // 1.5 seconds
-  redisReply *reply;
-  u_int num_attempts = 10;
+  redisReply *reply = NULL;
+  u_int num_attempts;
+  bool connected;
 
-  operational = false;
+  operational = connected = false;
 
-  if(redis != NULL) {
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Redis has disconnected: reconnecting...");
-    redisFree(redis);
-  }
-#ifdef __linux__
-  struct stat buf;
-
-  if(!stat(redis_host, &buf) && S_ISSOCK(buf.st_mode))
-    redis = redisConnectUnixWithTimeout(redis_host, timeout), is_socket_connection = true;
-  else
-#endif
-    redis = redisConnectWithTimeout(redis_host, redis_port, timeout);
-
-  if(redis_password) {
-    num_requests++;
-    reply = (redisReply*)redisCommand(redis, "AUTH %s", redis_password);
-    if(reply && (reply->type == REDIS_REPLY_ERROR)) {
-      ntop->getTrace()->traceEvent(TRACE_ERROR,
-				   "Redis authentication failed: %s", reply->str ? reply->str : "???");
-      goto redis_error_handler;
+  for(num_attempts = CONST_MAX_REDIS_CONN_RETRIES; num_attempts > 0; num_attempts--) {
+    if(redis) {
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Redis has disconnected, reconnecting [remaining attempts: %u]",
+				   num_attempts - 1);
+      redisFree(redis);
     }
-  }
 
-  while(redis && num_attempts > 0) {
+#ifdef __linux__
+    struct stat buf;
+
+    if(!stat(redis_host, &buf) && S_ISSOCK(buf.st_mode))
+      redis = redisConnectUnixWithTimeout(redis_host, timeout), is_socket_connection = true;
+    else
+#endif
+      redis = redisConnectWithTimeout(redis_host, redis_port, timeout);
+
+    if(redis == NULL || redis->err) {
+      if(redis)
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "Connection error [%s]", redis->errstr);
+
+      goto conn_retry;
+    }
+
+    if(redis_password) {
+      num_requests++;
+      reply = (redisReply*)redisCommand(redis, "AUTH %s", redis_password);
+      if(reply && (reply->type == REDIS_REPLY_ERROR)) {
+	ntop->getTrace()->traceEvent(TRACE_ERROR,
+				     "Redis authentication failed: %s", reply->str ? reply->str : "???");
+
+	break;
+      }
+    }
+
+    if(reply) freeReplyObject(reply);
     num_requests++;
     reply = (redisReply*)redisCommand(redis, "PING");
     if(reply && (reply->type == REDIS_REPLY_ERROR)) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
-      sleep(1);
-      num_attempts--;
-    } else
-      break;
-  }
 
-  if((redis == NULL) || (reply == NULL)) {
-  redis_error_handler:
-    if(ntop->getTrace()->get_trace_level() == 0) ntop->getTrace()->set_trace_level(MAX_TRACE_LEVEL);
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "ntopng requires redis server to be up and running");
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Please start it and try again or use -r");
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "to specify a redis server other than the default");
-    exit(0);
-  } else {
-    freeReplyObject(reply);
+      goto conn_retry;
+    }
 
+    if(reply) freeReplyObject(reply);
     num_requests++;
     reply = (redisReply*)redisCommand(redis, "SELECT %u", redis_db_id);
     if(reply && (reply->type == REDIS_REPLY_ERROR)) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
-      goto redis_error_handler;
-    } else {
-      freeReplyObject(reply);
-#ifdef __linux__
-      if(!is_socket_connection)
-	ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				     "Successfully connected to redis %s:%u@%u",
-				     redis_host, redis_port, redis_db_id);
-      else
-#endif
-	ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				     "Successfully connected to redis %s@%u",
-				     redis_host, redis_db_id);
-      operational = true;
+
+      goto conn_retry;
     }
+
+    if(reply) freeReplyObject(reply);
+    connected = true;
+    break;
+
+  conn_retry:
+    sleep(1);
   }
 
+  if(!connected) {
+    if(ntop->getTrace()->get_trace_level() == 0) ntop->getTrace()->set_trace_level(MAX_TRACE_LEVEL);
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "ntopng requires redis server to be up and running");
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Please start it and try again or use -r");
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "to specify a redis server other than the default");
+
+    exit(1);
+  }
+
+#ifdef __linux__
+  if(!is_socket_connection)
+    ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				 "Successfully connected to redis %s:%u@%u",
+				 redis_host, redis_port, redis_db_id);
+  else
+#endif
+    ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				 "Successfully connected to redis %s@%u",
+				 redis_host, redis_db_id);
+
   num_reconnections++;
+  operational = true;
 }
 
 /* **************************************** */
@@ -165,7 +182,7 @@ int Redis::expire(char *key, u_int expire_secs) {
 
 /* **************************************** */
 
-bool Redis::isCacheable(char *key) {
+bool Redis::isCacheable(const char * const key) {
   if((strstr(key, "ntopng.cache."))
      || (strstr(key, "ntopng.prefs."))
      || (strstr(key, "ntopng.user.") && (!strstr(key, ".password"))))
@@ -212,7 +229,7 @@ void Redis::checkDumpable(const char * const key) {
 /* **************************************** */
 
 /* NOTE: We assume that the addToCache() caller locks this instance */
-void Redis::addToCache(char *key, char *value, u_int expire_secs) {
+void Redis::addToCache(const char * const key, const char * const value, u_int expire_secs) {
   StringCache_t *cached = NULL;
   if(!initializationCompleted) return;
 
@@ -258,7 +275,14 @@ int Redis::get(char *key, char *rsp, u_int rsp_len, bool cache_it) {
 
   HASH_FIND_STR(stringCache, key, cached);
   if(cached) {
-    snprintf(rsp, rsp_len, "%s", cached->value);
+    if((cached->expire > 0) && (time(NULL) >= cached->expire)) {
+#ifdef CACHE_DEBUG
+      printf("**** Cache expired %s\n", key);
+#endif
+      HASH_DEL(stringCache, cached);
+      rsp[0] = '\0';
+    } else
+      snprintf(rsp, rsp_len, "%s", cached->value);
 
 #ifdef CACHE_DEBUG
     printf("**** Read from cache %s=%s\n", key, rsp);
@@ -283,8 +307,25 @@ int Redis::get(char *key, char *rsp, u_int rsp_len, bool cache_it) {
   } else
     rsp[0] = 0, rc = -1;
 
-  if(cache_it || cacheable)
-    addToCache(key, rsp, 0);
+  if(cache_it || cacheable) {
+    u_int expire_sec = 0;
+
+    if(reply) freeReplyObject(reply);
+    num_requests++;
+    reply = (redisReply*)redisCommand(redis, "TTL %s", key);
+    if(!reply) reconnectRedis();
+    if(reply && (reply->type != REDIS_REPLY_INTEGER))
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
+
+    if(reply && (((int32_t)reply->integer)) >= 0)
+      expire_sec = reply->integer;
+
+#ifdef CACHE_DEBUG
+    printf("**** ADD TO CACHE %s=%s [expire_sec=%u]\n", key, rsp, expire_sec);
+#endif
+
+    addToCache(key, rsp, expire_sec);
+  }
 
   if(reply) freeReplyObject(reply);
   l->unlock(__FILE__, __LINE__);
@@ -338,7 +379,7 @@ int Redis::del(char *key){
 
 /* **************************************** */
 
-int Redis::hashGet(char *key, char *field, char *rsp, u_int rsp_len) {
+int Redis::hashGet(const char * const key, const char * const field, char * const rsp, u_int rsp_len) {
   int rc;
   redisReply *reply;
 
@@ -361,7 +402,7 @@ int Redis::hashGet(char *key, char *field, char *rsp, u_int rsp_len) {
 
 /* **************************************** */
 
-int Redis::hashSet(char *key, char *field, char *value) {
+int Redis::hashSet(const char * const key, const char * const field, const char * const value) {
   int rc = 0;
   redisReply *reply;
 
@@ -381,7 +422,7 @@ int Redis::hashSet(char *key, char *field, char *value) {
 
 /* **************************************** */
 
-int Redis::hashDel(char *key, char *field) {
+int Redis::hashDel(const char * const key, const char * const field) {
   int rc;
   redisReply *reply;
 
@@ -405,7 +446,7 @@ int Redis::hashDel(char *key, char *field) {
 
 /* **************************************** */
 
-int Redis::set(char *key, char *value, u_int expire_secs) {
+int Redis::set(const char * const key, const char * const value, u_int expire_secs) {
   int rc;
   redisReply *reply;
 
@@ -557,18 +598,8 @@ int Redis::pushHostToResolve(char *hostname, bool dont_check_for_existence, bool
   if(!ntop->getPrefs()->is_dns_resolution_enabled()) return(0);
   if(hostname == NULL) return(-1);
 
-  if(!ntop->getPrefs()->is_dns_resolution_enabled_for_all_hosts()) {
-    /*
-      In case only local addresses need to be resolved, skip
-      remote hosts
-    */
-    IpAddress ip;
-    int16_t network_id;
-
-    ip.set(hostname);
-    if(!ip.isLocalHost(&network_id))
-      return(-1);
-  }
+  if(!Utils::shouldResolveHost(hostname))
+    return(-1);
 
   return(pushHost(DNS_CACHE, DNS_TO_RESOLVE, hostname, dont_check_for_existence, localHost));
 }
@@ -880,20 +911,20 @@ int Redis::smembers(const char *set_name, char ***members) {
 /* ******************************************* */
 
 /*  Add at the top of queue */
-int Redis::lpush(const char *queue_name, char *msg, u_int queue_trim_size, bool trace_errors) {
+int Redis::lpush(const char * const queue_name, const char * const msg, u_int queue_trim_size, bool trace_errors) {
   return(msg_push("LPUSH", queue_name, msg, queue_trim_size, trace_errors));
 }
 
 /* ******************************************* */
 
 /* Add at the bottom of the queue */
-int Redis::rpush(const char *queue_name, char *msg, u_int queue_trim_size) {
+int Redis::rpush(const char * const queue_name, const char * const msg, u_int queue_trim_size) {
   return(msg_push("RPUSH", queue_name, msg, queue_trim_size, true, false));
 }
 
 /* ******************************************* */
 
-int Redis::msg_push(const char *cmd, const char *queue_name, char *msg,
+int Redis::msg_push(const char * const cmd, const char * const queue_name, const char * const msg,
           u_int queue_trim_size, bool trace_errors, bool head_trim) {
   redisReply *reply;
   int rc = 0;
@@ -959,6 +990,34 @@ u_int Redis::len(const char * const key) {
   return(num);
 
 }
+
+/* **************************************** */
+
+#if 0 /* Only available since Redis 3.2.0 */
+u_int Redis::hstrlen(const char * const key, const char * const value) {
+  redisReply *reply;
+  u_int num = 0;
+
+  l->lock(__FILE__, __LINE__);
+
+  num_requests++;
+  reply = (redisReply*)redisCommand(redis, "HSTRLEN %s %s", key, value);
+
+  if(!reply) reconnectRedis();
+  if(reply) {
+    if(reply->type == REDIS_REPLY_ERROR)
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
+    else
+      num = (u_int)reply->integer;
+  }
+
+  l->unlock(__FILE__, __LINE__);
+  if(reply) freeReplyObject(reply);
+
+  return(num);
+
+}
+#endif
 
 /* ******************************************* */
 
@@ -1171,13 +1230,35 @@ int Redis::ltrim(const char *queue_name, int start_idx, int end_idx) {
   return(rc);
 }
 
+/* ******************************************* */
+
+u_int Redis::incr(const char *key) {
+  redisReply *reply;
+  u_int num = 0;
+
+  l->lock(__FILE__, __LINE__);
+  num_requests++;
+  reply = (redisReply*)redisCommand(redis, "INCR %s", key);
+  if(!reply) reconnectRedis();
+  if(reply) {
+    if(reply->type == REDIS_REPLY_ERROR)
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
+    else
+      num = (u_int)reply->integer;
+  }
+  l->unlock(__FILE__, __LINE__);
+  if(reply) freeReplyObject(reply);
+
+  return(num);
+}
+
 /* **************************************** */
 
 void Redis::lua(lua_State *vm) {
   lua_newtable(vm);
 
-  lua_push_int_table_entry(vm, "num_requests", num_requests);
-  lua_push_int_table_entry(vm, "num_reconnections", num_reconnections);
+  lua_push_uint64_table_entry(vm, "num_requests", num_requests);
+  lua_push_uint64_table_entry(vm, "num_reconnections", num_reconnections);
 
   lua_pushstring(vm, "redis");
   lua_insert(vm, -2);

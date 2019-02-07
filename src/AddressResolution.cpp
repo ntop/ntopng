@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-18 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -83,8 +83,11 @@ void AddressResolution::resolveHostName(char *_numeric_ip, char *symbolic, u_int
     struct sockaddr_in6 in6;
     int rc, len;
 
+    if(!ntop->getPrefs()->is_dns_resolution_enabled())
+      return;
+
     /* Check if this is a symbolic IP */
-    if(!isdigit(numeric_ip[numeric_ip_len])) {
+    if(!isxdigit(numeric_ip[numeric_ip_len]) && (numeric_ip[numeric_ip_len] != ':')) {
       /* This is a symbolic IP -> numeric IP */
       struct hostent *h;
 

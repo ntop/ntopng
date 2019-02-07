@@ -4,12 +4,14 @@
 local dirs = ntop.getDirs()
 local ts_utils = require("ts_utils")
 local os_utils = require("os_utils")
+local tracker = require "tracker"
 
 local delete_data_utils = {}
 local dry_run = false
 
-local ALL_INTERFACES_HASH_KEYS      = "ntopng.prefs.iface_id"
-local ACTIVE_INTERFACES_DELETE_HASH = "ntopng.prefs.delete_active_interfaces_data"
+local ALL_INTERFACES_HASH_KEYS         = "ntopng.prefs.iface_id"
+local ACTIVE_INTERFACES_DELETE_HASH    = "ntopng.prefs.delete_active_interfaces_data"
+local PCAP_DUMP_INTERFACES_DELETE_HASH = "ntopng.prefs.delete_pcap_dump_interfaces_data"
 
 -- ################################################################
 
@@ -59,17 +61,21 @@ end
 
 local function delete_host_redis_keys(interface_id, host_info)
    local status = "OK"
-   local serialized_k, dns_k, devnames_k, devtypes_k
+   local hostkey = hostinfo2hostkey(host_info, nil, true)
+   local serialized_k, dns_k, devnames_k, devtypes_k, drop_k, label_k, dhcp_k
 
    if not isMacAddress(host_info["host"]) then
       -- this is an IP address, see HOST_SERIALIZED_KEY (ntop_defines.h)
       serialized_k = string.format("ntopng.serialized_hosts.ifid_%u__%s@%d", interface_id, host_info["host"], host_info["vlan"] or "0")
       dns_k = string.format("ntopng.dns.cache.%s", host_info["host"]) -- neither vlan nor ifid implemented for the dns cache
-   elseif isIPv4(host_info["host"]) or isIPv6(host_info["host"]) then
+      drop_k = "ntopng.prefs.drop_host_traffic"
+      label_k = "ntopng.host_labels"
+   else
       -- is a mac address, see MAC_SERIALIED_KEY (see ntop_defines.h)
       serialized_k = string.format("ntopng.serialized_macs.ifid_%u__%s", interface_id, host_info["host"])
       devnames_k = string.format("ntopng.cache.devnames.%s", host_info["host"])
       devtypes_k = string.format("ntopng.prefs.device_types.%s", host_info["host"])
+      dhcp_k = getDhcpNamesKey(interface_id)
    end
 
    if not dry_run then
@@ -77,6 +83,9 @@ local function delete_host_redis_keys(interface_id, host_info)
       if devnames_k   then ntop.delCache(devnames_k) end
       if devtypes_k   then ntop.delCache(devtypes_k) end
       if dns_k        then ntop.delCache(dns_k) end
+      if dhcp_k       then ntop.delHashCache(dhcp_k, host_info["host"]) end
+      if drop_k       then ntop.delHashCache(drop_k, hostkey) end
+      if label_k      then ntop.delHashCache(label_k, hostkey) end
    end
 
    return {status = status}
@@ -110,17 +119,80 @@ end
 
 -- ################################################################
 
-function delete_data_utils.delete_host(interface_id, host_info)
+local function _delete_host(interface_id, host_info)
+   local old_ifname = interface.getStats().name
+   local is_mac = isMacAddress(host_info["host"])
+   interface.select(getInterfaceName(interface_id))
+
+   if is_mac then
+      interface.deleteMacData(host_info["host"])
+   else
+      interface.deleteHostData(hostinfo2hostkey(host_info))
+   end
+
    local h_ts = delete_host_timeseries_data(interface_id, host_info)
    local h_rk = delete_host_redis_keys(interface_id, host_info)
    local h_db = delete_host_mysql_flows(interface_id, host_info)
 
+   interface.select(old_ifname)
    return {delete_host_timeseries_data = h_ts, delete_host_redis_keys = h_rk, delete_host_mysql_flows = h_db}
 end
 
 -- ################################################################
 
-local function delete_interfaces_redis_keys(interfaces_list)
+function delete_data_utils.delete_host(interface_id, host_info)
+   -- TRACKER HOOK
+   tracker.log('delete_host', { hostinfo2hostkey(host_info) })
+
+   return _delete_host(interface_id, host_info)
+end
+
+-- ################################################################
+
+function delete_data_utils.delete_network(interface_id, netaddr, mask, vlan)
+   mask = tonumber(mask)
+
+   -- TRACKER HOOK
+   tracker.log('delete_network', { hostinfo2hostkey({host=netaddr.."/"..mask, vlan=vlan}) })
+
+   if not isIPv4(netaddr) then
+      return {delete_network = {status = "ERR_INVALID_IPV4_NETWORK"}}
+   end
+
+   if (mask < 24) or (mask > 32) then
+      return {delete_network = {status = "ERR_NETWORK_TOO_BIG"}}
+   end
+
+   local prefix = ntop.networkPrefix(netaddr, tonumber(mask))
+   local parts = string.split(prefix, "%.")
+   local start = tonumber(parts[4])
+
+   local size = 1 << (32-mask)
+
+   for i=0,size-1 do
+      parts[4] = tostring(start + i)
+
+      local ip = table.concat(parts, ".")
+      local status = _delete_host(interface_id, {host=ip, vlan=vlan})
+
+      for what, what_res in pairs(status) do
+	 if what_res["status"] ~= "OK" then
+	    return status
+	 end
+      end
+   end
+
+   -- Delete network ts data
+   if not ts_utils.delete("subnet", {ifid=interface_id, subnet=prefix.."/"..mask}) then
+      return {delete_network_timeseries = {status = "ERR_TS_DELETE"}}
+   end
+
+   return {delete_network = {status = "OK"}}
+end
+
+-- ################################################################
+
+local function delete_interfaces_redis_keys(interfaces_list, preserve_prefs)
    local pref_prefix = "ntopng.prefs"
    local status = "OK"
 
@@ -154,8 +226,7 @@ local function delete_interfaces_redis_keys(interfaces_list)
 	 --  ntopng.prefs.iface_3.scaling_factor
 	 string.format("%s.iface_%u.*", pref_prefix, if_id),
 	 -- examples:
-	 --  ntopng.prefs.enp1s0f0.dump_sampling_rate
-	 --  ntopng.prefs.enp1s0f0.dump_all_traffic
+	 --  ntopng.prefs.enp1s0f0.xxx
 	 string.format("%s.%s.*", pref_prefix, if_name),
 	 -- examples:
 	 --  ntopng.prefs.enp2s0f0_not_idle
@@ -166,21 +237,13 @@ local function delete_interfaces_redis_keys(interfaces_list)
 	 local matching_keys = ntop.getKeysCache(pattern)
 
 	 for matching_key, _ in pairs(matching_keys or {}) do
-	    if not dry_run then
-	       ntop.delCache(matching_key)
+	    if((not preserve_prefs) or
+		  ((not starts(matching_key, "ntopng.prefs.")) and
+		   (not starts(matching_key, "ntopng.user.")))) then
+	       if not dry_run then
+		  ntop.delCache(matching_key)
+	       end
 	    end
-	 end
-      end
-   end
-
-   if ntop.isnEdge() then
-      -- clear captive portal users
-      -- (their host pools have already been deleted above)
-      local ntop_users = ntop.getUsers()
-
-      for username, user_details in pairs(ntop_users) do
-	 if user_details["group"] == "captive_portal" then
-	    ntop.deleteUser(username)
 	 end
       end
    end
@@ -298,8 +361,7 @@ end
 
 -- ################################################################
 
--- no need to make it global yet
-local function list_all_interfaces()
+function delete_data_utils.list_all_interfaces()
    return list_interfaces(false --[[ all interfaces, active and inactive --]])
 end
 
@@ -308,10 +370,11 @@ end
 local function delete_interfaces_from_list(interfaces_list, preserve_interface_ids, preserve_redis_keys)
    local if_dt = delete_interfaces_data(interfaces_list)
    local if_db = delete_interfaces_db_flows(interfaces_list)
+   local preserve_prefs = ternary(ntop.isnEdge(), true, false)
 
    local if_rk
    if not preserve_redis_keys then
-      if_rk = delete_interfaces_redis_keys(interfaces_list)
+      if_rk = delete_interfaces_redis_keys(interfaces_list, preserve_prefs)
    end
 
    -- last step is to also free the ids that can thus be recycled
@@ -327,15 +390,20 @@ local function delete_interfaces_from_list(interfaces_list, preserve_interface_i
       end
    end
 
-   return {delete_if_data = if_dt, delete_if_redis_keys = if_rk, delete_if_db = if_db, delete_if_ids = if_in}
-end
+   local res = {delete_if_data = if_dt, delete_if_redis_keys = if_rk, delete_if_db = if_db, delete_if_ids = if_in}
 
--- ################################################################
+   for op, op_res in pairs(res or {}) do
+      local trace_level = TRACE_NORMAL
+      local status = op_res["status"]
 
-function delete_data_utils.delete_inactive_interfaces()
-   local inactive_if_list = delete_data_utils.list_inactive_interfaces()
+      if status ~= "OK" then
+	 trace_level = TRACE_ERROR
+      end
 
-   return delete_interfaces_from_list(inactive_if_list)
+      traceError(trace_level, TRACE_CONSOLE, string.format("Deleting data [%s][%s]", op, status))
+   end
+
+   return res
 end
 
 -- ################################################################
@@ -349,7 +417,7 @@ function delete_data_utils.delete_all_interfaces_data()
       return
    end
 
-   local if_list = list_all_interfaces()
+   local if_list = delete_data_utils.list_all_interfaces()
 
    return delete_interfaces_from_list(if_list)
 end
@@ -398,6 +466,89 @@ function delete_data_utils.delete_active_interface_data_requested(if_name)
 
    return false
 end
+
+-- ################################################################
+
+function delete_data_utils.delete_pcap_dump_interfaces_data()
+   local if_list = ntop.getHashAllCache(PCAP_DUMP_INTERFACES_DELETE_HASH)
+   local res = {}
+
+   if if_list and table.len(if_list) > 0 then
+      res = delete_interfaces_from_list(if_list)
+
+      ntop.delCache(PCAP_DUMP_INTERFACES_DELETE_HASH)
+   end
+
+   return res
+end
+
+-- ################################################################
+
+function delete_data_utils.delete_inactive_interfaces()
+   delete_data_utils.delete_pcap_dump_interfaces_data()
+
+   local inactive_if_list = delete_data_utils.list_inactive_interfaces()
+
+   local res = delete_interfaces_from_list(inactive_if_list)
+
+   for if_id, _ in pairs(inactive_if_list) do
+      ntop.delHashCache(PCAP_DUMP_INTERFACES_DELETE_HASH, if_id)
+   end
+
+   return res
+end
+
+-- ################################################################
+
+-- NOTE: this has 1 day accuracy
+function delete_data_utils.harvestDateBasedDirTree(dir, retention, now)
+   for year in pairs(ntop.readdir(dir) or {}) do
+      local year_path = os_utils.fixPath(dir .. "/" .. year)
+      local num_deleted_months = 0
+      local tot_months = 0
+
+      for month in pairs(ntop.readdir(year_path) or {}) do
+	 local month_path = os_utils.fixPath(year_path .. "/" .. month)
+	 local num_deleted_days = 0
+	 local tot_days = 0
+
+	 for day in pairs(ntop.readdir(month_path) or {}) do
+	    local tstamp = os.time({day=tonumber(day), month=tonumber(month), year=tonumber(year), hour=0, min=0, sec=0})
+	    local days_diff = (now - tstamp) / 86400
+
+	    if(days_diff > retention) then
+	       local day_path = os_utils.fixPath(month_path .. "/" .. day)
+	       --tprint(os.date('PURGE %Y-%m-%d %H:%M:%S', tstamp))
+	       ntop.rmdir(day_path)
+	       num_deleted_days = num_deleted_days + 1
+	    end
+
+	    tot_days = tot_days + 1
+	 end
+
+	 if num_deleted_days == tot_days then
+	    --tprint("PURGE month: ".. month .."/" .. year)
+	    ntop.rmdir(month_path)
+	    num_deleted_months = num_deleted_months + 1
+	 end
+
+	 tot_months = tot_months + 1
+      end
+
+      if num_deleted_months == tot_months then
+	 --tprint("PURGE year " .. year)
+	 ntop.rmdir(year_path)
+      end
+   end
+end
+
+-- ################################################################
+
+-- TRACKER HOOK
+
+tracker.track(delete_data_utils, 'delete_all_interfaces_data')
+tracker.track(delete_data_utils, 'delete_inactive_interfaces')
+tracker.track(delete_data_utils, 'request_delete_active_interface_data')
 
 -- ################################################################
 

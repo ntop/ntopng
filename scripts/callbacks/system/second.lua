@@ -28,11 +28,23 @@ callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, functio
    ts_utils.append("iface:traffic", {ifid=ifstats.id, bytes=ifstats.stats.bytes}, when)
    ts_utils.append("iface:packets", {ifid=ifstats.id, packets=ifstats.stats.packets}, when)
 
+   if ifstats.has_traffic_directions then
+      ts_utils.append("iface:traffic_rxtx", {ifid=ifstats.id,
+         bytes_sent=ifstats.eth.egress.bytes, bytes_rcvd=ifstats.eth.ingress.bytes}, when)
+   end
+
    -- ZMQ stats
    if ifstats.zmqRecvStats ~= nil then
-      ts_utils.append("iface:zmq_recv_flows", {ifid=ifstats.id, num_flows=ifstats.zmqRecvStats.flows}, when)
+      ts_utils.append("iface:zmq_recv_flows", {ifid = ifstats.id, flows = ifstats.zmqRecvStats.flows or 0}, when)
+      ts_utils.append("iface:zmq_flow_coll_drops", {ifid = ifstats.id, drops = ifstats["zmq.drops.flow_collection_drops"] or 0}, when)
    else
       -- Packet interface
       ts_utils.append("iface:drops", {ifid=ifstats.id, packets=ifstats.stats.drops}, when)
    end
-end)
+
+   -- Flow export stats
+   if(ifstats.stats.flow_export_count ~= nil) then
+      ts_utils.append("iface:exported_flows", {ifid=ifstats.id, num_flows=ifstats.stats.flow_export_count}, when)
+      ts_utils.append("iface:dropped_flows", {ifid=ifstats.id, num_flows=ifstats.stats.flow_export_drops}, when)
+   end
+end, true --[[ get direction stats ]])

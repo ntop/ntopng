@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-18 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -78,7 +78,7 @@ class LuaEngine {
    */
   int handle_script_request(struct mg_connection *conn,
 			    const struct mg_request_info *request_info, 
-			    char *script_path, bool *attack_attempt, const char *user);
+			    char *script_path, bool *attack_attempt, const char *user, const char *group, bool localuser);
 
   bool setParamsTable(lua_State* vm,
 		      const struct mg_request_info *request_info,
@@ -91,7 +91,7 @@ class LuaEngine {
   static void luaRegister(lua_State *L, const ntop_class_reg *reg);
   static void luaRegisterInternalRegs(lua_State *L);
 
-  void setInterface(const char * user, char * const ifname, ssize_t ifname_len, bool * const is_allowed) const;
+  void setInterface(const char * user, char * const ifname, u_int16_t ifname_len, bool * const is_allowed) const;
 };
 
 /**
@@ -101,7 +101,7 @@ class LuaEngine {
  * @param key The key of hash table.
  * @param value The value of hash table.
  */
-extern void lua_push_str_table_entry(lua_State *L, const char *key, char *value);
+extern void lua_push_str_table_entry(lua_State *L, const char * const key, const char * const value);
 
 /**
  * @brief Push null value to table entry specify the key.
@@ -118,7 +118,7 @@ extern void lua_push_nil_table_entry(lua_State *L, const char *key);
  * @param key The key of hash table.
  * @param value The value of hash table.
  */
-extern void lua_push_int_table_entry(lua_State *L, const char *key, u_int64_t value);
+extern void lua_push_uint64_table_entry(lua_State *L, const char *key, u_int64_t value);
 
 /**
  * @brief Push int32 value to table entry specify the key.

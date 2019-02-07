@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-18 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -20,6 +20,10 @@
  */
 
 #include "ntop_includes.h"
+
+extern "C" {
+#include "third-party/fast-sha1/sha1-fast.c"
+}
 
 #if defined(__OpenBSD__) || defined(__APPLE__)
 #include <net/if_dl.h>
@@ -49,13 +53,16 @@ typedef struct {
 #include <sys/prctl.h>
 
 static cap_value_t cap_values[] = { 
-  CAP_DAC_OVERRIDE, /* Bypass file read, write, and execute permission checks  */
-  CAP_NET_RAW,      /* Use RAW and PACKET sockets */
-  CAP_NET_ADMIN     /* Perform various network-related operations */
+				   CAP_DAC_OVERRIDE, /* Bypass file read, write, and execute permission checks  */
+				   CAP_NET_RAW,      /* Use RAW and PACKET sockets */
+				   CAP_NET_ADMIN     /* Perform various network-related operations */
 };
 
 int num_cap = sizeof(cap_values)/sizeof(cap_value_t);
 #endif
+
+static size_t curl_writefunc_to_lua(char *buffer, size_t size, size_t nitems, void *userp);
+static size_t curl_hdf(char *buffer, size_t size, size_t nitems, void *userp);
 
 /* ****************************************************** */
 
@@ -211,7 +218,7 @@ char *Utils::trim(char *s) {
 /* ****************************************************** */
 
 u_int32_t Utils::hashString(char *key) {
-	u_int32_t hash = 0, len = (u_int32_t)strlen(key);
+  u_int32_t hash = 0, len = (u_int32_t)strlen(key);
 
   for(u_int32_t i=0; i<len; i++)
     hash += ((u_int32_t)key[i])*i;
@@ -248,7 +255,7 @@ float Utils::msTimevalDiff(const struct timeval *end, const struct timeval *begi
 bool Utils::file_exists(const char *path) {
   std::ifstream infile(path);
 
- /*  ntop->getTrace()->traceEvent(TRACE_WARNING, "%s(): %s", __FUNCTION__, path); */
+  /*  ntop->getTrace()->traceEvent(TRACE_WARNING, "%s(): %s", __FUNCTION__, path); */
   bool ret = infile.good();
   infile.close();
   return ret;
@@ -257,7 +264,12 @@ bool Utils::file_exists(const char *path) {
 /* ****************************************************** */
 
 bool Utils::dir_exists(const char * const path) {
+#ifdef WIN32
+  struct _stat64 buf;
+#else
   struct stat buf;
+#endif
+
   return !((stat(path, &buf) != 0) || (!S_ISDIR(buf.st_mode)));
 }
 
@@ -310,9 +322,64 @@ size_t Utils::file_read(const char *path, char **content) {
 
 /* ****************************************************** */
 
-bool Utils::mkdir_tree(char *path) {
+int Utils::remove_recursively(const char * const path) {
+  DIR *d = opendir(path);
+  size_t path_len = strlen(path);
+  int r = -1;
+  size_t len;
+  char *buf;
+
+  if(d) {
+    struct dirent *p;
+
+    r = 0;
+
+    while ((r==0) && (p=readdir(d))) {
+      /* Skip the names "." and ".." as we don't want to recurse on them. */
+      if(!strcmp(p->d_name, ".") || !strcmp(p->d_name, ".."))
+	continue;
+
+      len = path_len + strlen(p->d_name) + 2;
+      buf = (char *) malloc(len);
+
+      if(buf) {
+#ifdef WIN32
+	struct _stat64 statbuf;
+#else
+	struct stat statbuf;
+#endif
+
+        snprintf(buf, len, "%s/%s", path, p->d_name);
+
+        if(stat(buf, &statbuf) == 0) {
+          if(S_ISDIR(statbuf.st_mode))
+            r = remove_recursively(buf);
+          else
+            r = unlink(buf);
+        }
+
+        free(buf);
+      }
+    }
+
+    closedir(d);
+  }
+
+  if(r == 0)
+    r = rmdir(path);
+
+  return r;  
+}
+
+/* ****************************************************** */
+
+bool Utils::mkdir_tree(char * const path) {
   int rc;
+#ifdef WIN32
+  struct _stat64 s;
+#else
   struct stat s;
+#endif
 
   ntop->fixPath(path);
 
@@ -434,6 +501,15 @@ const char* Utils::flowStatus2str(FlowStatus s, AlertType *aType, AlertLevel *aL
     *aType = alert_device_protocol_not_allowed;
     *aLevel = alert_level_warning;
     return("Protocol not allowed for this device type");
+  case status_elephant_local_to_remote:
+    return("Elephant flow (local to remote");
+    break;
+  case status_elephant_remote_to_local:
+    return("Elephant flow (remote to local)");
+    break;
+  case status_longlived:
+    return("Long-lived flow");
+    break;
   default:
     return("Unknown status");
     break;
@@ -502,7 +578,14 @@ int Utils::dropPrivileges() {
     }
 
     /* Drop privileges */
-    if((setgid(pw->pw_gid) != 0) || (setuid(pw->pw_uid) != 0)) {
+    /* Dear programmer, initgroups() is necessary as there may be extra groups for the user that we are going to
+       drop privileges to that are not yet visible. This can happen for newely created groups, or when a user has
+       been added to a new group.
+       Don't remove it or you will waste hours of life.
+     */
+    if((initgroups(pw->pw_name, pw->pw_gid) != 0)
+       || (setgid(pw->pw_gid) != 0)
+       || (setuid(pw->pw_uid) != 0)) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to drop privileges [%s]",
 				   strerror(errno));
       return -1;
@@ -521,7 +604,6 @@ int Utils::dropPrivileges() {
   return 0;
 }
 
-
 /* **************************************************** */
 
 /* http://www.adp-gmbh.ch/cpp/common/base64.html */
@@ -537,8 +619,9 @@ static inline bool is_base64(unsigned char c) {
 
 /* **************************************************** */
 
-#ifdef NOTUSED
-std::string Utils::base64_encode(unsigned char const* bytes_to_encode, unsigned int in_len) {
+char* Utils::base64_encode(unsigned char const* bytes_to_encode, ssize_t in_len) {
+  char *res = NULL;
+  ssize_t res_len = 0;
   std::string ret;
   int i = 0;
   unsigned char char_array_3[3];
@@ -572,12 +655,15 @@ std::string Utils::base64_encode(unsigned char const* bytes_to_encode, unsigned 
 
     while((i++ < 3))
       ret += '=';
-
   }
 
-  return ret;
+  if((res = (char*)calloc(sizeof(char), ret.size() + 1))) {
+    res_len = ret.copy(res, ret.size());
+    res[res_len] = '\0';
+  }
+
+  return res;
 }
-#endif
 
 /* **************************************************** */
 
@@ -625,26 +711,35 @@ std::string Utils::base64_decode(std::string const& encoded_string) {
 
 /* **************************************************** */
 
-bool Utils::dumpHostToDB(IpAddress *host, LocationPolicy policy) {
-  bool do_dump = false;
-  int16_t network_id;
-
-  switch(policy) {
-  case location_local_only:
-    if(host->isLocalHost(&network_id)) do_dump = true;
-    break;
-  case location_remote_only:
-    if(!host->isLocalHost(&network_id)) do_dump = true;
-    break;
-  case location_all:
-    do_dump = true;
-    break;
-  case location_none:
-    do_dump = false;
-    break;
+void Utils::sha1_hash(const uint8_t message[], size_t len, uint32_t hash[STATE_LEN]) {
+  hash[0] = UINT32_C(0x67452301);
+  hash[1] = UINT32_C(0xEFCDAB89);
+  hash[2] = UINT32_C(0x98BADCFE);
+  hash[3] = UINT32_C(0x10325476);
+  hash[4] = UINT32_C(0xC3D2E1F0);
+    
+#define LENGTH_SIZE 8  // In bytes
+    
+  size_t off;
+  for (off = 0; len - off >= BLOCK_LEN; off += BLOCK_LEN)
+    sha1_compress(hash, &message[off]);
+    
+  uint8_t block[BLOCK_LEN] = {0};
+  size_t rem = len - off;
+  memcpy(block, &message[off], rem);
+    
+  block[rem] = 0x80;
+  rem++;
+  if (BLOCK_LEN - rem < LENGTH_SIZE) {
+    sha1_compress(hash, block);
+    memset(block, 0, sizeof(block));
   }
-
-  return(do_dump);
+    
+  block[BLOCK_LEN - 1] = (uint8_t)((len & 0x1FU) << 3);
+  len >>= 5;
+  for (int i = 1; i < LENGTH_SIZE; i++, len >>= 8)
+    block[BLOCK_LEN - 1 - i] = (uint8_t)(len & 0xFFU);
+  sha1_compress(hash, block);
 }
 
 /* *************************************** */
@@ -689,31 +784,31 @@ double Utils::JaccardSimilarity(activity_bitmap *x, activity_bitmap *y) {
 
 #ifdef WIN32
 extern "C" {
-	const char *strcasestr(const char *haystack, const char *needle) {
-		int i = -1;
+  const char *strcasestr(const char *haystack, const char *needle) {
+    int i = -1;
 
-		while (haystack[++i] != '\0') {
-			if(tolower(haystack[i]) == tolower(needle[0])) {
-				int j = i, k = 0, match = 0;
-				while (tolower(haystack[++j]) == tolower(needle[++k])) {
-					match = 1;
-					// Catch case when they match at the end
-					//printf("j:%d, k:%d\n",j,k);
-					if(haystack[j] == '\0' && needle[k] == '\0') {
-						//printf("Mj:%d, k:%d\n",j,k);
-						return &haystack[i];
-					}
-				}
-				// Catch normal case
-				if(match && needle[k] == '\0'){
-					// printf("Norm j:%d, k:%d\n",j,k);
-					return &haystack[i];
-				}
-			}
-		}
-
-		return NULL;
+    while (haystack[++i] != '\0') {
+      if(tolower(haystack[i]) == tolower(needle[0])) {
+	int j = i, k = 0, match = 0;
+	while (tolower(haystack[++j]) == tolower(needle[++k])) {
+	  match = 1;
+	  // Catch case when they match at the end
+	  //printf("j:%d, k:%d\n",j,k);
+	  if(haystack[j] == '\0' && needle[k] == '\0') {
+	    //printf("Mj:%d, k:%d\n",j,k);
+	    return &haystack[i];
+	  }
 	}
+	// Catch normal case
+	if(match && needle[k] == '\0'){
+	  // printf("Norm j:%d, k:%d\n",j,k);
+	  return &haystack[i];
+	}
+      }
+    }
+
+    return NULL;
+  }
 };
 #endif
 
@@ -775,33 +870,33 @@ char* Utils::sanitizeHostName(char *str) {
 /* **************************************************** */
 
 char* Utils::stripHTML(const char * const str) {
-    if(!str) return NULL;
-    int len = strlen(str), j = 0;
-    char *stripped_str = NULL;
-    try {
-        stripped_str = new char[len + 1];
-    } catch(std::bad_alloc& ba) {
-      static bool oom_warning_sent = false;
-      if(!oom_warning_sent) {
-	ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
-	oom_warning_sent = true;
-      }
-      return NULL;
+  if(!str) return NULL;
+  int len = strlen(str), j = 0;
+  char *stripped_str = NULL;
+  try {
+    stripped_str = new char[len + 1];
+  } catch(std::bad_alloc& ba) {
+    static bool oom_warning_sent = false;
+    if(!oom_warning_sent) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
+      oom_warning_sent = true;
     }
+    return NULL;
+  }
 
-    // scan string
-    for (int i = 0; i < len; i++) {
-        // found an open '<', scan for its close
-        if(str[i] == '<') {
-            // charge ahead in the string until it runs out or we find what we're looking for
-            for (; i < len && str[i] != '>'; i++);
-        } else {
-            stripped_str[j] = str[i];
-            j++;
-        }
+  // scan string
+  for (int i = 0; i < len; i++) {
+    // found an open '<', scan for its close
+    if(str[i] == '<') {
+      // charge ahead in the string until it runs out or we find what we're looking for
+      for (; i < len && str[i] != '>'; i++);
+    } else {
+      stripped_str[j] = str[i];
+      j++;
     }
-    stripped_str[j] = 0;
-    return stripped_str;
+  }
+  stripped_str[j] = 0;
+  return stripped_str;
 }
 
 /* **************************************************** */
@@ -823,7 +918,7 @@ char* Utils::urlDecode(const char *src, char *dst, u_int dst_len) {
       char hexval = (char)strtol(h, (char **)NULL, 16);
 
       //      if(iswprint(hexval))
-	*dst++ = hexval;
+      *dst++ = hexval;
 
       src += 3;
     } else if(*src == '+') {
@@ -841,83 +936,38 @@ char* Utils::urlDecode(const char *src, char *dst, u_int dst_len) {
 /* **************************************************** */
 
 /**
- * @brief Check if the current user is an administrator
- *
- * @param vm   The lua state.
- * @return true if the current user is an administrator, false otherwise.
- */
-bool Utils::isUserAdministrator(lua_State* vm) {
-  struct mg_connection *conn;
-  char *username;
-  char key[64], val[64];
-
-#ifdef DONT_USE_LUAJIT
-  lua_getglobal(vm, "userdata");
-#endif
-
-  if(!ntop->getPrefs()->is_users_login_enabled())
-    return(true); /* login disabled for all users, everyone's an admin */
-
-  if((conn = getLuaVMUservalue(vm,conn)) == NULL) {
-    /* this is an internal script (e.g. periodic script), admin check should pass */
-    return(true);
-  } else if(HTTPserver::authorized_localhost_user_login(conn))
-    return(true); /* login disabled from localhost, everyone's connecting from localhost is an admin */
-
-  if((username = getLuaVMUserdata(vm,user)) == NULL) {
-    // ntop->getTrace()->traceEvent(TRACE_WARNING, "%s(%s): NO", __FUNCTION__, "???");
-    return(false); /* Unknown */
-  }
-
-  if(!strncmp(username, NTOP_NOLOGIN_USER, strlen(username)))
-    return(true);
-
-  snprintf(key, sizeof(key), CONST_STR_USER_GROUP, username);
-  if(ntop->getRedis()->get(key, val, sizeof(val)) >= 0) {
-    return(!strcmp(val, NTOP_NOLOGIN_USER) ||
-           !strcmp(val, CONST_ADMINISTRATOR_USER));
-  } else {
-    // ntop->getTrace()->traceEvent(TRACE_WARNING, "%s(%s): NO", __FUNCTION__, username);
-    return(false); /* Unknown */
-  }
-}
-
-/* **************************************************** */
-
-
-/**
  * @brief Purify the HTTP parameter
  *
  * @param param   The parameter to purify (remove unliked chars with _)
  */
 
 static const char* xssAttempts[] = {
-  "<?import",
-  "<applet",
-  "<base",
-  "<embed",
-  "<frame",
-  "<iframe",
-  "<implementation",
-  "<import",
-  "<link",
-  "<meta",
-  "<object",
-  "<script",
-  "<style",
-  "charset",
-  "classid",
-  "code",
-  "codetype",
-  /* "data", */
-  "href",
-  "http-equiv",
-  "javascript:",
-  "vbscript:",
-  "vmlframe",
-  "xlink:href",
-  "=",
-  NULL
+				    "<?import",
+				    "<applet",
+				    "<base",
+				    "<embed",
+				    "<frame",
+				    "<iframe",
+				    "<implementation",
+				    "<import",
+				    "<link",
+				    "<meta",
+				    "<object",
+				    "<script",
+				    "<style",
+				    "charset",
+				    "classid",
+				    "code",
+				    "codetype",
+				    /* "data", */
+				    "href",
+				    "http-equiv",
+				    "javascript:",
+				    "vbscript:",
+				    "vmlframe",
+				    "xlink:href",
+				    "=",
+				    NULL
 };
 
 /* ************************************************************ */
@@ -1060,20 +1110,20 @@ struct snmp_upload_status {
 };
 
 static int curl_debugfunc(CURL *handle, curl_infotype type, char *data,
-          size_t size, void *userptr) {
+			  size_t size, void *userptr) {
   char dir = '\0';
 
   switch(type) {
-    case CURLINFO_HEADER_IN:
-    case CURLINFO_DATA_IN:
-      dir = '<';
-      break;
-    case CURLINFO_DATA_OUT:
-    case CURLINFO_HEADER_OUT:
-      dir = '>';
-      break;
-    default:
-      break;
+  case CURLINFO_HEADER_IN:
+  case CURLINFO_DATA_IN:
+    dir = '<';
+    break;
+  case CURLINFO_DATA_OUT:
+  case CURLINFO_HEADER_OUT:
+    dir = '>';
+    break;
+  default:
+    break;
   }
 
   if(dir) {
@@ -1155,7 +1205,7 @@ static void readCurlStats(CURL *curl, HTTPTranferStats *stats, lua_State* vm) {
 /* **************************************** */
 
 bool Utils::postHTTPJsonData(char *username, char *password, char *url,
-			     char *json, HTTPTranferStats *stats) {
+			     char *json, int timeout, HTTPTranferStats *stats) {
   CURL *curl;
   bool ret = true;
 
@@ -1190,6 +1240,14 @@ bool Utils::postHTTPJsonData(char *username, char *password, char *url,
     curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)strlen(json));
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_post_writefunc);
 
+    if (timeout) {
+      curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout);
+      curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, timeout);
+#ifdef CURLOPT_CONNECTTIMEOUT_MS
+      curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, timeout*1000);
+#endif
+    }
+
     res = curl_easy_perform(curl);
 
     if(res != CURLE_OK) {
@@ -1212,26 +1270,106 @@ bool Utils::postHTTPJsonData(char *username, char *password, char *url,
 
 /* **************************************** */
 
+bool Utils::postHTTPJsonData(char *username, char *password, char *url,
+                             char *json, int timeout, HTTPTranferStats *stats,
+                             char *return_data, int return_data_size, int *response_code) {
+  CURL *curl;
+  bool ret = false;
+
+  curl = curl_easy_init();
+  if(curl) {
+    CURLcode res;
+    struct curl_slist* headers = NULL;
+    curl_fetcher_t fetcher = {
+			      /* .payload =  */ return_data,
+			      /* .cur_size = */ 0,
+			      /* .max_size = */ (size_t)return_data_size};
+
+    memset(stats, 0, sizeof(HTTPTranferStats));
+    curl_easy_setopt(curl, CURLOPT_URL, url);
+
+    if((username && (username[0] != '\0'))
+       || (password && (password[0] != '\0'))) {
+      char auth[64];
+
+      snprintf(auth, sizeof(auth), "%s:%s",
+               username ? username : "",
+               password ? password : "");
+      curl_easy_setopt(curl, CURLOPT_USERPWD, auth);
+      curl_easy_setopt(curl, CURLOPT_HTTPAUTH, (long)CURLAUTH_BASIC);
+    }
+
+    if(!strncmp(url, "https", 5)) {
+      curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+      curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+    }
+
+    curl_easy_setopt(curl, CURLOPT_POST, 1L);
+    headers = curl_slist_append(headers, "Content-Type: application/json");
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json);
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)strlen(json));
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &fetcher);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_get_writefunc);
+
+    if (timeout) {
+      curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout);
+      curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, timeout);
+#ifdef CURLOPT_CONNECTTIMEOUT_MS
+      curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, timeout*1000);
+#endif
+    }
+
+    res = curl_easy_perform(curl);
+
+    if(res != CURLE_OK) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING,
+                                   "Unable to post data to (%s): %s",
+                                   url, curl_easy_strerror(res));
+    } else {
+      long rc;
+      ntop->getTrace()->traceEvent(TRACE_INFO, "Posted JSON to %s", url);
+      readCurlStats(curl, stats, NULL);
+      curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &rc);
+      *response_code = rc;
+      ret = true;
+    }
+
+    /* always cleanup */
+    curl_slist_free_all(headers);
+    curl_easy_cleanup(curl);
+  }
+
+  return(ret);
+}
+
+/* **************************************** */
+
 static size_t read_callback(void *ptr, size_t size, size_t nmemb, void *stream) {
   return(fread(ptr, size, nmemb, (FILE*)stream));
 }
 
-bool Utils::postHTTPTextFile(char *username, char *password, char *url,
+bool Utils::postHTTPTextFile(lua_State* vm, char *username, char *password, char *url,
 			     char *path, int timeout, HTTPTranferStats *stats) {
   CURL *curl;
   bool ret = true;
-  struct stat file_info;
+#ifdef WIN32
+  struct _stat64 buf;
+#else
+  struct stat buf;
+#endif
   size_t file_len;
   FILE *fd = fopen(path, "r");
   
-  if((fd == NULL) || (stat(path, &file_info) != 0))
+  if((fd == NULL) || (stat(path, &buf) != 0))
     return(false);
   else
-    file_len = (size_t)file_info.st_size;
+    file_len = (size_t)buf.st_size;
   
   curl = curl_easy_init();
   if(curl) {
     CURLcode res;
+    DownloadState *state = NULL;
     struct curl_slist* headers = NULL;
 
     memset(stats, 0, sizeof(HTTPTranferStats));
@@ -1267,18 +1405,50 @@ bool Utils::postHTTPTextFile(char *username, char *password, char *url,
 #ifdef CURLOPT_CONNECTTIMEOUT_MS
     curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, timeout*1000);
 #endif
-    
+
+    state = (DownloadState*)malloc(sizeof(DownloadState));
+    if(state != NULL) {
+      memset(state, 0, sizeof(DownloadState));
+
+      curl_easy_setopt(curl, CURLOPT_WRITEDATA, state);
+      curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_writefunc_to_lua);
+      curl_easy_setopt(curl, CURLOPT_HEADERDATA, state);
+      curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, curl_hdf);
+
+      state->vm = vm, state->header_over = 0;
+    } else {
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Out of memory");
+      curl_easy_cleanup(curl);
+      if(vm) lua_pushnil(vm);
+      return(false);
+    }
+
+    if(vm) lua_newtable(vm);
+
     res = curl_easy_perform(curl);
 
     if(res != CURLE_OK) {
       ntop->getTrace()->traceEvent(TRACE_WARNING,
 				   "Unable to post data to (%s): %s",
 				   url, curl_easy_strerror(res));
+      lua_push_str_table_entry(vm, "error_msg", curl_easy_strerror(res));
       ret = false;
     } else {
       ntop->getTrace()->traceEvent(TRACE_INFO, "Posted JSON to %s", url);
       readCurlStats(curl, stats, NULL);
+
+      if(vm) {
+        long response_code;
+        lua_push_str_table_entry(vm, "CONTENT", state->outbuf);
+        lua_push_uint64_table_entry(vm, "CONTENT_LEN", state->num_bytes);
+
+        if(curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code) == CURLE_OK)
+          lua_push_uint64_table_entry(vm, "RESPONSE_CODE", response_code);
+      }
     }
+
+    if(state)
+      free(state);
 
     fclose(fd);
     
@@ -1427,12 +1597,39 @@ static size_t curl_hdf(char *buffer, size_t size, size_t nitems, void *userp) {
 
 /* **************************************** */
 
+bool Utils::progressCanContinue(ProgressState *progressState) {
+  struct mg_connection *conn;
+  time_t now = time(0);
+
+  if(progressState->vm &&
+     ((now - progressState->last_conn_check) >= 1) &&
+     (conn = getLuaVMUserdata(progressState->vm, conn))) {
+    progressState->last_conn_check = now;
+
+    if(!mg_is_client_connected(conn))
+      /* connection to the client was closed, should not continue */
+      return(false);
+  }
+
+  return(true);
+}
+
+/* **************************************** */
+
+static int progress_callback(void *clientp, double dltotal, double dlnow, double ultotal, double ulnow) {
+  ProgressState *progressState = (ProgressState*) clientp;
+
+  return Utils::progressCanContinue(progressState) ? 0 /* continue */ : 1 /* stop transfer */;
+}
+
+/* **************************************** */
+
 /* form_data is in format param=value&param1=&value1... */
 bool Utils::httpGetPost(lua_State* vm, char *url, char *username,
-		    char *password, int timeout,
-		    bool return_content,
-		    bool use_cookie_authentication,
-		    HTTPTranferStats *stats, const char *form_data) {
+			char *password, int timeout,
+			bool return_content,
+			bool use_cookie_authentication,
+			HTTPTranferStats *stats, const char *form_data) {
   CURL *curl;
   bool ret = true;
 
@@ -1440,6 +1637,7 @@ bool Utils::httpGetPost(lua_State* vm, char *url, char *username,
 
   if(curl) {
     DownloadState *state = NULL;
+    ProgressState progressState;
     long response_code;
     char *content_type, *redirection;
     char ua[64];
@@ -1500,6 +1698,15 @@ bool Utils::httpGetPost(lua_State* vm, char *url, char *username,
     curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
     curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout);
     curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, timeout);
+
+    if(!form_data) {
+      /* A GET request, track client connection status */
+      memset(&progressState, 0, sizeof(progressState));
+      progressState.vm = vm;
+      curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
+      curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progress_callback);
+      curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &progressState);
+    }
     
 #ifdef CURLOPT_CONNECTTIMEOUT_MS
     curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, timeout*1000);
@@ -1516,7 +1723,7 @@ bool Utils::httpGetPost(lua_State* vm, char *url, char *username,
 	
       if(return_content && vm) {
 	lua_push_str_table_entry(vm, "CONTENT", state->outbuf);
-	lua_push_int_table_entry(vm, "CONTENT_LEN", state->num_bytes);
+	lua_push_uint64_table_entry(vm, "CONTENT_LEN", state->num_bytes);
       }
       
       ret = true;
@@ -1525,13 +1732,16 @@ bool Utils::httpGetPost(lua_State* vm, char *url, char *username,
 
     if(vm) {
       if(curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code) == CURLE_OK)
-	lua_push_int_table_entry(vm, "RESPONSE_CODE", response_code);
+	lua_push_uint64_table_entry(vm, "RESPONSE_CODE", response_code);
 
       if((curl_easy_getinfo(curl, CURLINFO_CONTENT_TYPE, &content_type) == CURLE_OK) && content_type)
 	lua_push_str_table_entry(vm, "CONTENT_TYPE", content_type);
 
       if(curl_easy_getinfo(curl, CURLINFO_EFFECTIVE_URL, &redirection) == CURLE_OK)
-	lua_push_str_table_entry(vm, "EFFECTIVE_URL", redirection);      
+	lua_push_str_table_entry(vm, "EFFECTIVE_URL", redirection);
+
+      if(!ret)
+	lua_push_bool_table_entry(vm, "IS_PARTIAL", true);
     }
 
     if(return_content && state)
@@ -1558,9 +1768,9 @@ long Utils::httpGet(const char * const url,
     char *content_type;
     char ua[64];
     curl_fetcher_t fetcher = {
-      /* .payload =  */ resp,
-      /* .cur_size = */ 0,
-      /* .max_size = */ resp_len};
+			      /* .payload =  */ resp,
+			      /* .cur_size = */ 0,
+			      /* .max_size = */ resp_len};
 
     curl_easy_setopt(curl, CURLOPT_URL, url);
 
@@ -1614,7 +1824,11 @@ long Utils::httpGet(const char * const url,
 /* **************************************** */
 
 char* Utils::getURL(char *url, char *buf, u_int buf_len) {
+#ifdef WIN32
+  struct _stat64 s;
+#else
   struct stat s;
+#endif
 
   if(!ntop->getPrefs()->is_pro_edition())
     return(url);
@@ -1634,56 +1848,27 @@ char* Utils::getURL(char *url, char *buf, u_int buf_len) {
     return(url);
 }
 
-/* **************************************** */
-
-// Support functions for 'urlEncode'.
-
-#ifdef NOTUSED
-static char to_hex(char code) {
-  static char hex[] = "0123456789ABCDEF";
-  return hex[code & 15];
-}
-#endif
-
 /* **************************************************** */
 
-#ifdef NOTUSED
-static int alphanum(char code) {
-  int i;
-  static char alnum[] = "0123456789abcdefghijklmnopqrstuvwxyz";
-  for (i = 0; i < 36; i++) {
-    if(code == alnum[i]) return 1;
-  }
-  return 0;
-}
-#endif
+/* URL encodes the given string. The caller must free the returned string after use. */
+char* Utils::urlEncode(const char *url) {
+  CURL *curl;
 
-/* **************************************************** */
+  if(url) {
+    curl = curl_easy_init();
 
-// Encodes a URL to hexadecimal format.
-#ifdef NOTUSED
-char* Utils::urlEncode(char *url) {
-  char *pstr = url;
-  char *buf = (char *) malloc(strlen(url) * 3 + 1);
-  char *pbuf = buf;
-  while (*pstr) {
-    if(alphanum(*pstr) || *pstr == '-' || *pstr == '_' || *pstr == '.' || *pstr == '~') {
-      *pbuf++ = *pstr;
+    if(curl) {
+      char *escaped = curl_easy_escape(curl, url, strlen(url));
+      char *output = strdup(escaped);
+      curl_free(escaped);
+      curl_easy_cleanup(curl);
+
+      return output;
     }
-    else {
-      if(*pstr == ' ') *pbuf++ = '+';
-      else {
-        *pbuf++ = '%';
-        *pbuf++ = to_hex(*pstr >> 4);
-        *pbuf++ = to_hex(*pstr & 15);
-      }
-    }
-    pstr++;
   }
-  *pbuf = '\0';
-  return buf;
+
+  return NULL;
 }
-#endif
 
 /* **************************************** */
 
@@ -1705,16 +1890,13 @@ static void newString(String *str) {
 
 /* **************************************** */
 
-#ifdef WIN32
 ticks Utils::getticks() {
+#ifdef WIN32
   struct timeval tv;
   gettimeofday (&tv, 0);
 
   return (((ticks)tv.tv_usec) + (((ticks)tv.tv_sec) * 1000000LL));
-}
-
 #else
-ticks Utils::getticks() {
 #if defined(__i386__)
   ticks x;
 
@@ -1736,8 +1918,8 @@ ticks Utils::getticks() {
 
   return (((ticks)tv.tv_usec) + (((ticks)tv.tv_sec) * 1000000LL));
 #endif
-}
 #endif
+}
 
 /* **************************************** */
 
@@ -1747,7 +1929,11 @@ static bool scan_dir(const char * dir_name,
   int path_length;
   char path[MAX_PATH+2];
   DIR *d;
-  struct stat file_stats;
+#ifdef WIN32
+  struct _stat64 buf;
+#else
+  struct stat buf;
+#endif
 
   d = opendir(dir_name);
   if(!d) return false;
@@ -1762,17 +1948,17 @@ static bool scan_dir(const char * dir_name,
 
     if(entry->d_type & DT_REG) {
       snprintf(path, sizeof(path), "%s/%s", dir_name, entry->d_name);
-      if(!stat(path, &file_stats)) {
+      if(!stat(path, &buf)) {
         struct dirent *temp = (struct dirent *)malloc(sizeof(struct dirent));
         memcpy(temp, entry, sizeof(struct dirent));
         dirlist->push_back(make_pair(temp, strndup(path, MAX_PATH)));
 	if(total)
-	  *total += file_stats.st_size;
+	  *total += buf.st_size;
       }
 
     } else if(entry->d_type & DT_DIR) {
       if(strncmp (d_name, "..", 2) != 0 &&
-          strncmp (d_name, ".", 1) != 0) {
+	 strncmp (d_name, ".", 1) != 0) {
         path_length = snprintf (path, MAX_PATH,
                                 "%s/%s", dir_name, d_name);
 
@@ -1792,7 +1978,12 @@ static bool scan_dir(const char * dir_name,
 /* **************************************** */
 
 bool file_mtime_compare(const pair<struct dirent *, char * > &d1, const pair<struct dirent *, char * > &d2) {
+#ifdef WIN32
+  struct _stat64 sa, sb;
+#else
   struct stat sa, sb;
+#endif
+
   if(!d1.second || !d2.second)
     return false;
 
@@ -1808,7 +1999,11 @@ bool Utils::discardOldFilesExceeding(const char *path, const unsigned long max_s
   unsigned long total = 0;
   list<pair<struct dirent *, char * > > fileslist;
   list<pair<struct dirent *, char * > >::iterator it;
+#ifdef WIN32
+  struct _stat64 st;
+#else
   struct stat st;
+#endif
 
   if(path == NULL || !strncmp(path, "", MAX_PATH))
     return false;
@@ -1848,68 +2043,14 @@ bool Utils::discardOldFilesExceeding(const char *path, const unsigned long max_s
 
 /* **************************************** */
 
-bool ntop_delete_old_files(const char *dir_name, time_t now, int older_than_seconds) {
-  struct dirent *result;
-  int path_length;
-  char path[MAX_PATH];
-  DIR *d;
-  struct stat file_stats;
-
-  if(!dir_name || strlen(dir_name) > MAX_PATH)
-    return false;
-
-  d = opendir(dir_name);
-  if(!d) return false;
-
-  while((result = readdir(d)) != NULL) {
-    if(result->d_type & DT_REG) {
-      if((path_length = snprintf(path, MAX_PATH, "%s/%s", dir_name, result->d_name)) <= MAX_PATH) {
-	ntop->fixPath(path);
-
-	if(!stat(path, &file_stats)) {
-	  if(file_stats.st_mtime <= now - older_than_seconds)
-	    unlink(path);
-	}
-      }
-    } else if(result->d_type & DT_DIR) {
-      if(strncmp(result->d_name, "..", 2) && strncmp(result->d_name, ".", 1)) {
-        if((path_length = snprintf(path, MAX_PATH, "%s/%s", dir_name, result->d_name)) <= MAX_PATH) {
-	  ntop->fixPath(path);
-
-	  ntop_delete_old_files(path, now, older_than_seconds);
-	}
-      }
-    }
-  }
-
-  rmdir(dir_name); /* Remove the directory, if empty */
-  closedir(d);
-
-  return true;
-}
-
-/* **************************************** */
-
-bool Utils::discardOldFiles(char *path, int older_than_seconds) {
-  time_t now = time(NULL);
-
-  if(!path || strlen(path) > MAX_PATH)
-    return false;
-
-  ntop->fixPath(path);
-  return ntop_delete_old_files(path, now, older_than_seconds);
-}
-
-/* **************************************** */
-
 char* Utils::formatMac(u_int8_t *mac, char *buf, u_int buf_len) {
   if((mac == NULL) || (ntop->getPrefs()->getHostMask() != no_host_mask))
     snprintf(buf, buf_len, "00:00:00:00:00:00");
   else
     snprintf(buf, buf_len, "%02X:%02X:%02X:%02X:%02X:%02X",
-	   mac[0] & 0xFF, mac[1] & 0xFF,
-	   mac[2] & 0xFF, mac[3] & 0xFF,
-	   mac[4] & 0xFF, mac[5] & 0xFF);
+	     mac[0] & 0xFF, mac[1] & 0xFF,
+	     mac[2] & 0xFF, mac[3] & 0xFF,
+	     mac[4] & 0xFF, mac[5] & 0xFF);
   return(buf);
 }
 
@@ -1999,14 +2140,14 @@ void Utils::readMac(char *ifname, dump_mac_t mac_addr) {
 /* **************************************** */
 
 u_int32_t Utils::readIPv4(char *ifname) {
- u_int32_t ret_ip = 0;
+  u_int32_t ret_ip = 0;
 
 #ifndef WIN32
   struct ifreq ifr;
   int fd;
   
   memset(&ifr, 0, sizeof(ifr));
-  strncpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name));
+  strncpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name)-1);
   ifr.ifr_addr.sa_family = AF_INET;
 
   if((fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP)) < 0) {
@@ -2035,7 +2176,7 @@ u_int16_t Utils::getIfMTU(const char *ifname) {
   int fd;
 
   memset(&ifr, 0, sizeof(ifr));
-  strncpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name));
+  strncpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name)-1);
   ifr.ifr_addr.sa_family = AF_INET;
 
   if((fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
@@ -2443,7 +2584,7 @@ static int fill_prefix_mac(prefix_t *prefix, u_int8_t *mac, int bits, int maxbit
 
 /* ******************************************* */
 
-static patricia_node_t* add_to_ptree(patricia_tree_t *tree, int family, void *addr, int bits) {
+patricia_node_t* Utils::add_to_ptree(patricia_tree_t *tree, int family, void *addr, int bits) {
   prefix_t prefix;
   patricia_node_t *node;
 
@@ -2483,7 +2624,7 @@ static int remove_from_ptree(patricia_tree_t *tree, int family, void *addr, int 
 
 /* ******************************************* */
 
-patricia_node_t* Utils::ptree_match(patricia_tree_t *tree, int family, void *addr, int bits) {
+patricia_node_t* Utils::ptree_match(patricia_tree_t *tree, int family, const void * const addr, int bits) {
   prefix_t prefix;
 
   if(family == AF_INET)
@@ -2642,8 +2783,8 @@ void Utils::initRedis(Redis **r, const char *redis_host, const char *redis_passw
 /* ******************************************* */
 
 /*
-   IMPORTANT: line buffer is large enough to contain the replaced string
- */
+  IMPORTANT: line buffer is large enough to contain the replaced string
+*/
 void Utils::replacestr(char *line, const char *search, const char *replace) {
   char *sp;
   int search_len, replace_len, tail_len;
@@ -2708,11 +2849,16 @@ u_int32_t Utils::getHostManagementIPv4Address() {
 
 bool Utils::isInterfaceUp(char *ifname) {
 #ifdef WIN32
-	return(true);
+  return(true);
 #else
   struct ifreq ifr;
   char *colon;
-  int sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
+  int sock;
+
+  sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
+
+  if (sock == -1)
+    return(false);
 
   /* Handle PF_RING interfaces zc:ens2f1@3 */
   colon = strchr(ifname, ':');
@@ -2720,10 +2866,10 @@ bool Utils::isInterfaceUp(char *ifname) {
     ifname = colon+1;
 
   memset(&ifr, 0, sizeof(ifr));
-  strcpy(ifr.ifr_name, ifname);
+  strncpy(ifr.ifr_name, ifname, IFNAMSIZ-1);
 
-  if(ioctl(sock, SIOCGIFFLAGS, &ifr) < 0) {
-    /* perror("SIOCGIFFLAGS"); */
+  if (ioctl(sock, SIOCGIFFLAGS, &ifr) < 0) {
+    close(sock);
     return(false);
   }
 
@@ -2767,8 +2913,8 @@ void Utils::luaCpuLoad(lua_State* vm) {
 	     &user, &nice, &system, &idle, &iowait, &irq, &softirq);
       fclose(fp);
 
-      lua_push_int_table_entry(vm, "cpu_load", user + nice + system + iowait + irq + softirq);
-      lua_push_int_table_entry(vm, "cpu_idle", idle);
+      lua_push_uint64_table_entry(vm, "cpu_load", user + nice + system + iowait + irq + softirq);
+      lua_push_uint64_table_entry(vm, "cpu_idle", idle);
     }
   }
 #endif
@@ -2788,17 +2934,17 @@ void Utils::luaMeminfo(lua_State* vm) {
     if((fp = fopen("/proc/meminfo", "r"))) {
       while ((read = getline(&line, &len, fp)) != -1) {
 	if(!strncmp(line, "MemTotal", strlen("MemTotal")) && sscanf(line, "%*s %lu kB", &memtotal))
-	  lua_push_int_table_entry(vm, "mem_total", memtotal);
+	  lua_push_uint64_table_entry(vm, "mem_total", memtotal);
 	else if(!strncmp(line, "MemFree", strlen("MemFree")) && sscanf(line, "%*s %lu kB", &memfree))
-	  lua_push_int_table_entry(vm, "mem_free", memfree);
+	  lua_push_uint64_table_entry(vm, "mem_free", memfree);
 	else if(!strncmp(line, "Buffers", strlen("Buffers")) && sscanf(line, "%*s %lu kB", &buffers))
-	  lua_push_int_table_entry(vm, "mem_buffers", buffers);
+	  lua_push_uint64_table_entry(vm, "mem_buffers", buffers);
 	else if(!strncmp(line, "Cached", strlen("Cached")) && sscanf(line, "%*s %lu kB", &cached))
-	  lua_push_int_table_entry(vm, "mem_cached", cached);
+	  lua_push_uint64_table_entry(vm, "mem_cached", cached);
 	else if(!strncmp(line, "SReclaimable", strlen("SReclaimable")) && sscanf(line, "%*s %lu kB", &sreclaimable))
-	  lua_push_int_table_entry(vm, "mem_sreclaimable", sreclaimable);
+	  lua_push_uint64_table_entry(vm, "mem_sreclaimable", sreclaimable);
 	else if(!strncmp(line, "Shmem", strlen("Shmem")) && sscanf(line, "%*s %lu kB", &shmem))
-	  lua_push_int_table_entry(vm, "mem_shmem", shmem);
+	  lua_push_uint64_table_entry(vm, "mem_shmem", shmem);
       }
 
       if(line)
@@ -2807,7 +2953,7 @@ void Utils::luaMeminfo(lua_State* vm) {
       fclose(fp);
 
       /* Equivalent to top utility mem used */
-      lua_push_int_table_entry(vm, "mem_used", memtotal - memfree - (buffers + cached + sreclaimable - shmem));
+      lua_push_uint64_table_entry(vm, "mem_used", memtotal - memfree - (buffers + cached + sreclaimable - shmem));
     }
   }
 #endif
@@ -2844,7 +2990,7 @@ char* Utils::getInterfaceDescription(char *ifname, char *buf, int buf_len) {
 
 int Utils::bindSockToDevice(int sock, int family, const char* devicename) {
 #ifdef WIN32
-	return(-1);
+  return(-1);
 #else
   struct ifaddrs* pList = NULL;
   struct ifaddrs* pAdapter = NULL;
@@ -2909,7 +3055,7 @@ int Utils::retainWriteCapabilities() {
 #endif
 #endif
 
-return(rc);
+  return(rc);
 }
 
 /* ****************************************************** */
@@ -2947,10 +3093,10 @@ static int _setWriteCapabilities(int enable) {
 
   file = io.open(path, "w")
   if(file ~= nil) then
-    file:write("-- End of the test.lua file")
-    file:close()
+  file:write("-- End of the test.lua file")
+  file:close()
   else
-    print("Unable to create file "..path.."<p>")
+  print("Unable to create file "..path.."<p>")
   end
 
   ntop.dropWriteCapabilities()
@@ -3011,8 +3157,8 @@ void Utils::maximizeSocketBuffer(int sock_fd, bool rx_buffer, u_int max_buf_mb) 
     return;
   } else {
     if(debug) ntop->getTrace()->traceEvent(TRACE_INFO, "Default socket %s buffer size is %d",
-				buf_type == SO_RCVBUF ? "receive" : "send",
-				rcv_buffsize_base);
+					   buf_type == SO_RCVBUF ? "receive" : "send",
+					   rcv_buffsize_base);
   }
 
   for(i=2;; i++) {
@@ -3131,7 +3277,7 @@ u_int32_t Utils::roundTime(u_int32_t now, u_int32_t rounder, int32_t offset_from
   now+1m   (month)
   now+1min (minute)
   now+1y   (year)
- */
+*/
 u_int32_t Utils::parsetime(char *str) {
   if(!strncmp(str, "now", 3)) {
     char op = str[3];
@@ -3197,5 +3343,231 @@ void Utils::init_pcap_header(struct pcap_file_header * const h, NetworkInterface
   h->thiszone = 0;
   h->sigfigs  = 0;
   h->snaplen  = ntop->getGlobals()->getSnaplen();
-  h->linktype = iface->get_datalink();
+  h->linktype = iface->isPacketInterface() ? iface->get_datalink() : DLT_EN10MB;
 }
+
+/* ****************************************************** */
+
+void Utils::listInterfaces(lua_State* vm) {
+  char ebuf[PCAP_ERRBUF_SIZE];
+  pcap_if_t *pdevs, *pdev;
+#ifdef HAVE_PF_RING
+  pfring_if_t *pfdevs, *pfdev;
+#endif
+
+  if (pcap_findalldevs(&pdevs, ebuf) != 0) 
+    return;
+
+#ifdef HAVE_PF_RING
+  pfdevs = pfring_findalldevs();
+
+  pfdev = pfdevs;
+  while (pfdev != NULL) {
+
+    /* merge with info from pcap */
+    pdev = pdevs;
+    while (pdev != NULL) {
+      if (pfdev->system_name && strcmp(pfdev->system_name, pdev->name) == 0)
+        break;
+      pdev = pdev->next;
+    }
+
+    if (pdev == NULL /* not a standard interface (e.g. fpga) */
+        || (Utils::isInterfaceUp(pfdev->system_name) && Utils::validInterface(pdev->description))) {
+      lua_newtable(vm);
+      lua_push_str_table_entry(vm, "description", (pdev && pdev->description) ? pdev->description : (char *) "");
+      lua_push_str_table_entry(vm, "module", pfdev->module);
+      lua_push_bool_table_entry(vm, "license", !!pfdev->license);
+      lua_pushstring(vm, pfdev->system_name ? pfdev->system_name : pfdev->name);
+      lua_insert(vm, -2);
+      lua_settable(vm, -3);
+    }
+
+    pfdev = pfdev->next;
+  }
+#endif
+
+  pdev = pdevs;
+  while (pdev != NULL) {
+    if (Utils::validInterface(pdev->description) && 
+        Utils::isInterfaceUp(pdev->name)) {
+
+#ifdef HAVE_PF_RING
+      /* check if already listed */
+      pfdev = pfdevs;
+      while (pfdev != NULL) {
+        if (strcmp(pfdev->system_name, pdev->name) == 0)
+          break;
+        pfdev = pfdev->next;
+      }
+
+      if (pfdev == NULL) {
+#endif
+        lua_newtable(vm);
+        lua_push_str_table_entry(vm, "description", pdev->description ? pdev->description : (char *) "");
+        lua_pushstring(vm, pdev->name);
+        lua_insert(vm, -2);
+        lua_settable(vm, -3);
+#ifdef HAVE_PF_RING
+      }
+#endif
+    }
+
+    pdev = pdev->next;
+  }
+
+#ifdef HAVE_PF_RING 
+  pfring_freealldevs(pfdevs);
+#endif
+  pcap_freealldevs(pdevs);
+}
+
+/* ****************************************************** */
+
+bool Utils::validInterface(char *name) {
+#ifdef HAVE_NEDGE
+  return((name && (strncmp(name, "nf:", 3) == 0)) ? true : false);
+#else
+  if(name &&
+     (strstr(name, "PPP")            /* Avoid to use the PPP interface              */
+      || strstr(name, "dialup")      /* Avoid to use the dialup interface           */
+      || strstr(name, "ICSHARE")     /* Avoid to use the internet sharing interface */
+      || strstr(name, "NdisWan"))) { /* Avoid to use the internet sharing interface */
+    return(false);
+  }
+
+  return(true);
+#endif
+}
+
+/* ****************************************************** */
+
+const char* Utils::policySource2Str(L7PolicySource_t policy_source) {
+  switch(policy_source) {
+  case policy_source_pool:
+    return "policy_source_pool";
+  case policy_source_protocol:
+    return "policy_source_protocol";
+  case policy_source_category:
+    return "policy_source_category";
+  case policy_source_device_protocol:
+    return "policy_source_device_protocol";
+  case policy_source_schedule:
+    return "policy_source_schedule";
+  default:
+    return "policy_source_default";
+  }
+}
+
+/* ****************************************************** */
+
+const char* Utils::captureDirection2Str(pcap_direction_t dir) {
+  switch(dir) {
+  case PCAP_D_IN:
+    return "in";
+  case PCAP_D_OUT:
+    return "out";
+  case PCAP_D_INOUT:
+  default:
+    return "inout";
+  }
+}
+
+/* ****************************************************** */
+
+bool Utils::readInterfaceStats(const char *ifname, ProtoStats *in_stats, ProtoStats *out_stats) {
+  bool rv = false;
+#ifndef WIN32
+  FILE *f = fopen("/proc/net/dev", "r");
+
+  if(f) {
+    char line[512];
+    char to_find[IFNAMSIZ+2];
+    snprintf(to_find, sizeof(to_find), "%s:", ifname);
+
+    while(fgets(line, sizeof(line), f)) {
+      long long unsigned int in_bytes, out_bytes, in_packets, out_packets;
+
+      if(strstr(line, to_find) &&
+         sscanf(line, "%*[^:]: %llu %llu %*u %*u %*u %*u %*u %*u %llu %llu",
+           &in_bytes, &in_packets, &out_bytes, &out_packets) == 4) {
+        ntop->getTrace()->traceEvent(TRACE_DEBUG,
+          "iface_counters: in_bytes=%llu in_packets=%llu - out_bytes=%llu out_packets=%llu",
+          in_bytes, in_packets, out_bytes, out_packets);
+        in_stats->setBytes(in_bytes);
+        in_stats->setPkts(in_packets);
+        out_stats->setBytes(out_bytes);
+        out_stats->setPkts(out_packets);
+        rv = true;
+        break;
+      }
+    }
+  }
+
+  if(f)
+    fclose(f);
+#endif
+
+  return rv;
+}
+
+/* ****************************************************** */
+
+bool Utils::shouldResolveHost(const char *host_ip) {
+  if(!ntop->getPrefs()->is_dns_resolution_enabled())
+    return false;
+
+  if(!ntop->getPrefs()->is_dns_resolution_enabled_for_all_hosts()) {
+    /*
+      In case only local addresses need to be resolved, skip
+      remote hosts
+    */
+    IpAddress ip;
+    int16_t network_id;
+
+    ip.set((char*)host_ip);
+    if(!ip.isLocalHost(&network_id))
+      return false;
+  }
+
+  return true;
+}
+
+/* ****************************************************** */
+
+bool Utils::mg_write_retry(struct mg_connection *conn, u_char *b, int len) {
+  int ret, sent = 0;
+  time_t max_retry = 1000;
+
+  while (!ntop->getGlobals()->isShutdown() && --max_retry) {
+    ret = mg_write_async(conn, &b[sent], len-sent);
+    if (ret < 0)
+      return false;
+    sent += ret;
+    if (sent == len) return true;
+    _usleep(100);
+  }
+
+  return false;
+}
+
+/* ****************************************************** */
+
+bool Utils::parseAuthenticatorJson(HTTPAuthenticator *auth, char *content) {
+  json_object *o;
+  enum json_tokener_error jerr = json_tokener_success;
+
+  o = json_tokener_parse_verbose(content, &jerr);
+  if (o) {
+    json_object *w;
+
+    if(json_object_object_get_ex(o, "admin", &w))
+      auth->admin  = (bool)json_object_get_boolean(w);
+
+    json_object_put(o);
+    return true;
+  }
+  return false;
+}
+
+/* ****************************************************** */

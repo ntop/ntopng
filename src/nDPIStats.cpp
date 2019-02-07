@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-18 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -106,27 +106,37 @@ void nDPIStats::print(NetworkInterface *iface) {
 
 /* *************************************** */
 
-void nDPIStats::lua(NetworkInterface *iface, lua_State* vm, bool with_categories) {
+void nDPIStats::lua(NetworkInterface *iface, lua_State* vm, bool with_categories, bool tsLua) {
   lua_newtable(vm);
 
   for(int i=0; i<MAX_NDPI_PROTOS; i++)
-    if(counters[i] != NULL) {
+    if(unlikely(counters[i] != NULL)) {
       char *name = iface->get_ndpi_proto_name(i);
 
       if(name != NULL) {
 	if(counters[i]->packets.sent || counters[i]->packets.rcvd) {
-	  lua_newtable(vm);
+          if(!tsLua) {
+	    lua_newtable(vm);
 
-	  lua_push_str_table_entry(vm, "breed", iface->get_ndpi_proto_breed_name(i));
-	  lua_push_int_table_entry(vm, "packets.sent", counters[i]->packets.sent);
-	  lua_push_int_table_entry(vm, "packets.rcvd", counters[i]->packets.rcvd);
-	  lua_push_int_table_entry(vm, "bytes.sent", counters[i]->bytes.sent);
-	  lua_push_int_table_entry(vm, "bytes.rcvd", counters[i]->bytes.rcvd);
-	  lua_push_int_table_entry(vm, "duration", counters[i]->duration);
+	    lua_push_str_table_entry(vm, "breed", iface->get_ndpi_proto_breed_name(i));
+	    lua_push_uint64_table_entry(vm, "packets.sent", counters[i]->packets.sent);
+	    lua_push_uint64_table_entry(vm, "packets.rcvd", counters[i]->packets.rcvd);
+	    lua_push_uint64_table_entry(vm, "bytes.sent", counters[i]->bytes.sent);
+	    lua_push_uint64_table_entry(vm, "bytes.rcvd", counters[i]->bytes.rcvd);
+	    lua_push_uint64_table_entry(vm, "duration", counters[i]->duration);
 
-	  lua_pushstring(vm, name);
-	  lua_insert(vm, -2);
-	  lua_settable(vm, -3);
+	    lua_pushstring(vm, name);
+	    lua_insert(vm, -2);
+	    lua_rawset(vm, -3);
+          } else {
+            char buf[64];
+	    
+            snprintf(buf, sizeof(buf), "%llu|%llu",
+		     (unsigned long long)counters[i]->bytes.sent,
+		     (unsigned long long)counters[i]->bytes.rcvd);
+
+            lua_push_str_table_entry(vm, name, buf);
+          }
 	}
       }
     }
@@ -139,18 +149,24 @@ void nDPIStats::lua(NetworkInterface *iface, lua_State* vm, bool with_categories
     lua_newtable(vm);
 
     for (int i=0; i<NDPI_PROTOCOL_NUM_CATEGORIES; i++) {
-      if(cat_counters[i].bytes.sent + cat_counters[i].bytes.rcvd > 0) {
-        lua_newtable(vm);
+      if(unlikely(cat_counters[i].bytes.sent + cat_counters[i].bytes.rcvd > 0)) {
+        const char *name = iface->get_ndpi_category_name((ndpi_protocol_category_t)i);
 
-        lua_push_int_table_entry(vm, "category", i);
-        lua_push_int_table_entry(vm, "bytes", cat_counters[i].bytes.sent + cat_counters[i].bytes.rcvd);
-        lua_push_int_table_entry(vm, "bytes.sent", cat_counters[i].bytes.sent);
-        lua_push_int_table_entry(vm, "bytes.rcvd", cat_counters[i].bytes.rcvd);
-        lua_push_int_table_entry(vm, "duration", cat_counters[i].duration);
+        if(!tsLua) {
+          lua_newtable(vm);
 
-        lua_pushstring(vm, iface->get_ndpi_category_name((ndpi_protocol_category_t)i));
-        lua_insert(vm, -2);
-        lua_settable(vm, -3);
+          lua_push_uint64_table_entry(vm, "category", i);
+          lua_push_uint64_table_entry(vm, "bytes", cat_counters[i].bytes.sent + cat_counters[i].bytes.rcvd);
+          lua_push_uint64_table_entry(vm, "bytes.sent", cat_counters[i].bytes.sent);
+          lua_push_uint64_table_entry(vm, "bytes.rcvd", cat_counters[i].bytes.rcvd);
+          lua_push_uint64_table_entry(vm, "duration", cat_counters[i].duration);
+
+          lua_pushstring(vm, name);
+          lua_insert(vm, -2);
+          lua_rawset(vm, -3);
+        } else {
+          lua_push_uint64_table_entry(vm, name, cat_counters[i].bytes.sent + cat_counters[i].bytes.rcvd);
+        }
       }
     }
 

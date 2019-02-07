@@ -10,10 +10,11 @@ require "alert_utils"
 
 local callback_utils = require "callback_utils"
 local db_utils = require "db_utils"
+local ts_utils = require "ts_utils"
 
 if(ntop.isPro()) then
    package.path = dirs.installdir .. "/pro/scripts/callbacks/interface/?.lua;" .. package.path
-   pcall(require, 'daily')
+   require('daily')
 end
 
 -- ########################################################
@@ -38,8 +39,4 @@ ntop.deleteMinuteStatsOlderThan(interface_id, tonumber(minute_top_talkers_retent
 
 db_utils.harverstExpiredMySQLFlows(_ifname, mysql_retention, verbose)
 
-callback_utils.harverstOldRRDFiles(_ifname)
-
-if(interface.getInterfaceDumpDiskPolicy() == true) then
-   ntop.deleteDumpFiles(interface_id)
-end
+ts_utils.deleteOldData(interface_id)

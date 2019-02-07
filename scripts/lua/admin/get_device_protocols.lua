@@ -10,7 +10,12 @@ require "lua_utils"
 
 local presets_utils = require "presets_utils"
 local json = require("dkjson")
+
 sendHTTPContentTypeHeader('text/html')
+
+if not isAdministrator() then
+   return
+end
 
 -- ################################################
 -- Table parameters
@@ -23,6 +28,10 @@ local device_type = _GET["device_type"]
 local policy_filter = _GET["policy_filter"]
 local proto_filter = _GET["l7proto"]
 local category = _GET["category"]
+
+interface.select(ifname)
+
+presets_utils.init()
 
 -- ################################################
 --  Sorting and Pagination
@@ -57,8 +66,6 @@ else
 end
 
 -- ################################################
-
-interface.select(ifname)
 
 local to_skip = (currentPage-1) * perPage
 

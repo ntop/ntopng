@@ -9,6 +9,14 @@ local os_utils = require("os_utils")
 
 -- ########################################################
 
+-- NOTE: avoid creating new paths, put them under the /rrd directory
+function getRRDPaths()
+   return {"subnetstats", "profilestats", "vlanstats", "host_pools", "snmpstats",
+      "flow_devices", "sflow", "asnstats", "countrystats", "rrd"}
+end
+
+-- ########################################################
+
 -- host_or_network: host or network name.
 -- If network, must be prefixed with 'net:'
 -- If profile, must be prefixed with 'profile:'

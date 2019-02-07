@@ -28,23 +28,19 @@ MONGOOSE_HOME=${PWD}/third-party/mongoose
 MONGOOSE_INC=-I$(MONGOOSE_HOME)
 ######
 
-# Set USE_LUAJIT=0 to use the standard Lua (no JIT)
-USE_LUAJIT=1
+LUA_PLATFORM=generic
 
-ifeq ($(OS),Darwin)
-USE_LUAJIT=0
+ifeq ($(OS),Linux)
+	LUA_PLATFORM=linux
+else ifeq ($(OS),Darwin)
+	LUA_PLATFORM=macosx
+else ifeq ($(OS), $(filter $(OS), FreeBSD))
+	LUA_PLATFORM=freebsd
 endif
 
-ifeq ($(USE_LUAJIT), 0)
-  LUAJIT_INC = $(shell pkg-config --cflags lua) -DDONT_USE_LUAJIT
-  LUAJIT_LIB = $(shell pkg-config --libs lua)
-  HAS_LUAJIT=0
-else
-  # LUAJIT_HOME=${PWD}/third-party/LuaJIT-2.1.0-beta3
-  LUAJIT_HOME=${PWD}/third-party/LuaJIT-2.1.0-git
-  LUAJIT_INC=-I$(LUAJIT_HOME)/src
-  LUAJIT_LIB=$(LUAJIT_HOME)/src/libluajit.a
-endif
+LUA_HOME=${PWD}/third-party/lua-5.3.5
+LUA_INC=-I$(LUA_HOME)/src -DDONT_USE_LUAJIT
+LUA_LIB=$(LUA_HOME)/src/liblua.a
 
 ######
 LIBRRDTOOL_HOME=${PWD}/third-party/rrdtool-1.4.8
@@ -119,8 +115,8 @@ endif
 
 ######
 TARGET = ntopng
-NLIBS = $(NDPI_LIB) $(LIBPCAP) $(LUAJIT_LIB) $(LIBRRDTOOL_LIB) $(LIBNBPF_LIB) $(ZEROMQ_LIB) $(JSON_LIB) @MAXMINDDB_LIB@ $(SODIUM_LIB) @HIREDIS_LIB@ @SQLITE_LIB@ @MYSQL_LIB@ @SSL_LIB@ @LINK_OPTS@ @LDFLAGS@ @PRO_LIBS@ $(ZSTD_LIB) -lm -lpthread
-CPPFLAGS = -g @CFLAGS@ @HIREDIS_INC@ $(MONGOOSE_INC) $(JSON_INC) $(SODIUM_INC) $(NDPI_INC) $(LUAJIT_INC) $(LIBRRDTOOL_INC) $(ZEROMQ_INC) @MYSQL_INC@ @CPPFLAGS@ -I$(HTTPCLIENT_INC) @SSL_INC@ @PRO_INCS@ -DDATA_DIR='"$(datadir)"' -I${PWD}/third-party/libgeohash -I${PWD}/third-party/patricia # -D_GLIBCXX_DEBUG
+NLIBS = $(NDPI_LIB) $(LIBPCAP) $(LUA_LIB) $(LIBRRDTOOL_LIB) $(LIBNBPF_LIB) $(ZEROMQ_LIB) $(JSON_LIB) @MAXMINDDB_LIB@ $(SODIUM_LIB) @HIREDIS_LIB@ @SQLITE_LIB@ @MYSQL_LIB@ @RADCLI_LIB@ @SSL_LIB@ @LINK_OPTS@ @LDFLAGS@ @PRO_LIBS@ $(ZSTD_LIB) -lm -lpthread
+CPPFLAGS = -g @CFLAGS@ @HIREDIS_INC@ $(MONGOOSE_INC) $(JSON_INC) $(SODIUM_INC) $(NDPI_INC) $(LUA_INC) $(LIBRRDTOOL_INC) $(ZEROMQ_INC) @MYSQL_INC@ @CPPFLAGS@ -I$(HTTPCLIENT_INC) @SSL_INC@ @PRO_INCS@ -DDATA_DIR='"$(datadir)"' -I${PWD}/third-party/libgeohash -I${PWD}/third-party/patricia # -D_GLIBCXX_DEBUG
 ######
 # ntopng-1.0_1234.x86_64.rpm
 PLATFORM = `uname -p`
@@ -131,11 +127,7 @@ RPM_PKG = $(TARGET)-$(NTOPNG_VERSION)-@REVISION@.$(PLATFORM).rpm
 RPM_DATA_PKG = $(TARGET)-data-$(NTOPNG_VERSION)-@REVISION@.noarch.rpm
 ######
 
-LIB_TARGETS =
-
-ifneq ($(HAS_LUAJIT), 0)
-LIB_TARGETS += $(LUAJIT_LIB)
-endif
+LIB_TARGETS = $(LUA_LIB)
 
 ifneq ($(HAS_ZEROMQ), 0)
 LIB_TARGETS += $(ZEROMQ_LIB)
@@ -166,11 +158,11 @@ HEADERS = $(wildcard include/*.h) @PRO_HEADERS@
 
 .PRECIOUS: $(TARGET) $(OBJECTS)
 
-$(TARGET): $(OBJECTS) $(LIBRRDTOOL) Makefile
+$(TARGET): $(OBJECTS) $(LIB_TARGETS) Makefile
 	$(GPP) $(OBJECTS) -Wall $(NLIBS) -o $@
 
-$(LUAJIT_LIB):
-	cd $(LUAJIT_HOME); @GMAKE@
+$(LUA_LIB):
+	cd $(LUA_HOME); @GMAKE@ $(LUA_PLATFORM)
 
 $(ZEROMQ_LIB):
 	cd $(ZEROMQ_HOME); ./configure --without-documentation --without-libsodium; @GMAKE@
@@ -199,7 +191,6 @@ veryclean: clean
 	-rm -rf nDPI
 
 geoip:
-	# check if local cache exists
 	if test -d ../dat_files/; then \
 		cp ../dat_files/*.mmdb httpdocs/geoip; \
 	else \
@@ -281,7 +272,7 @@ minify:
 #	./autogen.sh
 
 cppcheck:
-	cppcheck --template='{file}:{line}:{severity}:{message}' --quiet --enable=all --force -I include/ @HIREDIS_INC@ $(MONGOOSE_INC) $(JSON_INC) $(NDPI_INC) $(LUAJIT_INC) $(LIBRRDTOOL_INC) $(ZEROMQ_INC) src/*.cpp
+	cppcheck --template='{file}:{line}:{severity}:{message}' --quiet --enable=all --force -I include/ @HIREDIS_INC@ $(MONGOOSE_INC) $(JSON_INC) $(NDPI_INC) $(LUA_INC) $(LIBRRDTOOL_INC) $(ZEROMQ_INC) src/*.cpp
 
 test: test_version
 

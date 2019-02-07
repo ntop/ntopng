@@ -18,18 +18,23 @@ function printTable(table,key)
   end
   print("</ul>")
 end
+
 -- Set package.path information to be able to require lua module
 dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 if ( (dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.scriptdir .. "/lua/modules/?.lua;" .. package.path end
 require "lua_utils"
 
+local page_utils = require("page_utils")
+
 -- Here you can choose the type of your HTTP message {'text/html','application/json',...}. There are two main function that you can use:
 -- function sendHTTPHeaderIfName(mime, ifname, maxage)
 -- function sendHTTPHeader(mime)
 -- For more information please read the scripts/lua/modules/lua_utils.lua file.
 sendHTTPContentTypeHeader('text/html')
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
+
+page_utils.print_header()
+
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 print('<html><head><title>ntopng API Lua example</title></head>')

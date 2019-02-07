@@ -14,6 +14,7 @@ locales_utils = require "locales_utils"
 local os_utils = require "os_utils"
 local format_utils = require "format_utils"
 local alert_consts = require "alert_consts"
+local page_utils = require("page_utils")
 
 -- ##############################################
 -- TODO: replace those globals with locals everywhere
@@ -101,13 +102,13 @@ end
 -- ##############################################
 
 function getFirstInterfaceId()
-   local ifnames = interface.getIfNames()
+   local ifid = interface.getFirstInterfaceId()
 
-   for if_id, if_name in pairs(ifnames) do
-      return tonumber(if_id), if_name
+   if ifid ~= nil then
+      return ifid, getInterfaceName(ifid)
    end
 
-   return -1, "" -- NOTREACHED
+   return -1, ""
 end
 
 -- ##############################################
@@ -142,6 +143,8 @@ l4_keys = {
   { "ICMP", "icmp", 1 },
   { "Other IP", "other_ip", -1 }
 }
+
+L4_PROTO_KEYS = {tcp=6, udp=17, icmp=1, other_ip=-1}
 
 function __FILE__() return debug.getinfo(2,'S').source end
 function __LINE__() return debug.getinfo(2, 'l').currentline end
@@ -339,6 +342,32 @@ function printVLANFilterDropdown(base_url, page_params)
    end
    print[[
 
+      </ul>]]
+end
+
+-- ##############################################
+
+function printTrafficTypeFilterDropdown(base_url, page_params)
+   local traffic_type = _GET["traffic_type"]
+   local traffic_type_filter = ''
+   if not isEmptyString(traffic_type) then
+      traffic_type_filter = '<span class="glyphicon glyphicon-filter"></span>'
+   end
+
+   local traffic_type_params = table.clone(page_params)
+   traffic_type_params["traffic_type"] = nil
+
+   print[[\
+      <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("flows_page.direction")) print[[]] print(traffic_type_filter) print[[<span class="caret"></span></button>\
+      <ul class="dropdown-menu" role="menu" id="flow_dropdown">\
+         <li><a href="]] print(getPageUrl(base_url, traffic_type_params)) print[[">]] print(i18n("hosts_stats.traffic_type_all")) print[[</a></li>\]]
+
+   -- now forthe one-way
+   traffic_type_params["traffic_type"] = "one_way"
+   print[[
+         <li>\
+           <a href="]] print(getPageUrl(base_url, traffic_type_params)) print[[">]] print(i18n("hosts_stats.traffic_type_one_way")) print[[</a></li>\]]
+   print[[
       </ul>]]
 end
 
@@ -716,18 +745,17 @@ function hasNindexSupport()
    if prefs == nil then
     prefs = ntop.getPrefs()
    end
-   return prefs.is_nindex_enabled
+
+   if prefs.is_nindex_enabled and interface.nIndexEnabled() then
+      return true
+   end
+
+   return false
 end
 
 --for _key, _value in pairsByKeys(vals, rev) do
 --   print(_key .. "=" .. _value .. "\n")
 --end
-
-function round(num, idp)
-   if(num == nil) then return(0) end
-   return tonumber(string.format("%." .. (idp or 0) .. "f", num))
-end
---function round(num) return math.floor(num+.5) end
 
 function truncate(x)
    return x<0 and math.ceil(x) or math.floor(x)
@@ -837,6 +865,10 @@ function formatEpoch(epoch)
 end
 
 function starts(String,Start)
+   if((String == nil) or (Start == nil)) then
+      return(false)
+   end
+
   return string.sub(String,1,string.len(Start))==Start
 end
 
@@ -901,7 +933,7 @@ function isBroadcastMulticast(ip)
 end
 
 function isIPv4(address)
-  local chunks = {address:match("(%d+)%.(%d+)%.(%d+)%.(%d+)$")}
+  local chunks = {address:match("^(%d+)%.(%d+)%.(%d+)%.(%d+)$")}
 
   if #chunks == 4 then
     for _, v in pairs(chunks) do
@@ -980,7 +1012,7 @@ end
 -- Compute the difference in seconds between local time and UTC.
 function get_timezone()
   local now = os.time()
-  return os.difftime(now, os.time(os.date("!*t", now)))
+  return math.floor(os.difftime(now, os.time(os.date("!*t", now))))
 end
 
 function getCategoriesWithProtocols()
@@ -1206,7 +1238,8 @@ end
 -- #################################
 
 function getOperatingSystemName(id)
-   if(id == 1) then return("Linux")
+   if(id == 0) then return("Unknown")
+   elseif(id == 1) then return("Linux")
    elseif(id == 2) then return("Windows")
    elseif(id == 3) then return("MacOS")
    elseif(id == 4) then return("iOS")
@@ -1262,6 +1295,13 @@ function getApplicationLabel(name)
 
   name = name:gsub("^%l", string.upper)
   return(icon.." "..name)
+end
+
+-- #################################
+
+function getCategoryLabel(cat_name)
+  cat_name = cat_name:gsub("^%l", string.upper)
+  return(cat_name)
 end
 
 function mapOS2Icon(name)
@@ -1350,6 +1390,7 @@ function getHostAltName(host_ip, host_mac)
    end
 
    alt_name = ntop.getHashCache(getHostAltNamesKey(), host_ip)
+
    if (isEmptyString(alt_name) and (host_mac ~= nil)) then
       alt_name = ntop.getHashCache(getHostAltNamesKey(), host_mac)
    end
@@ -1485,6 +1526,44 @@ function flowinfo2hostname(flow_info, host_type)
    return(host2name(name, flow_info["vlan"]))
 end
 
+function flowinfo2process(process, host_info_to_url)
+   local fmt, proc_name, proc_user_name = '', '', ''
+
+   if process then
+      -- TODO: add links back once restored
+
+      if not isEmptyString(process["name"]) then
+	 local full_clean_name = process["name"]:gsub("'",'')
+	 local t = split(full_clean_name, "/")
+	 
+	 clean_name = t[#t]
+
+	 -- proc_name = string.format("<i class='fa fa-terminal'></i> %s", clean_name)
+	 proc_name = string.format("<A HREF='%s/lua/process_details.lua?%s&pid_name=%s&pid=%u'><i class='fa fa-terminal'></i> %s</A>",
+				   ntop.getHttpPrefix(),
+				   host_info_to_url,
+				   full_clean_name,
+				   process["pid"],
+				   clean_name)
+      end
+
+      if not isEmptyString(process["user_name"]) then
+	 local clean_user_name = process["user_name"]:gsub("'", '')
+
+	 -- proc_user_name = string.format("<i class='fa fa-linux'></i> %s", clean_user_name)
+	 proc_user_name = string.format("<A HREF='%s/lua/username_details.lua?%s&username=%s&uid=%u'><i class='fa fa-linux'></i> %s</A>",
+					ntop.getHttpPrefix(),
+					host_info_to_url,
+					clean_user_name,
+					process["uid"],
+					clean_user_name)
+      end
+
+      fmt = string.format("[%s]", table.concat({proc_user_name, proc_name}, ' '))
+   end
+
+   return fmt
+end
 
 -- URL Util --
 
@@ -1541,7 +1620,7 @@ function hostinfo2hostkey(host_info,host_type,show_vlan)
   end
 
   if(((host_info["vlan"] ~= nil) and (host_info["vlan"] ~= 0))
-     or ((show_vlan ~= nil) and show_vlan))  then
+     or ((show_vlan ~= nil) and show_vlan and (host_info["vlan"] ~= nil)))  then
     rsp = rsp..'@'..tostring(host_info["vlan"])
   end
 
@@ -1837,16 +1916,6 @@ function isLoopback(name)
   end
 end
 
-function isLocalPacketdumpEnabled()
-   local nbox_integration = ntop.getCache("ntopng.prefs.nbox_integration")
-   if nbox_integration == nil or nbox_integration ~= "1" then
-      nbox_integration = false
-   else
-      nbox_integration = true
-   end
-   return isAdministrator() and not nbox_integration and interface.isPacketInterface() and not ntop.isnEdge()
-end
-
 function processColor(proc)
   if(proc == nil) then
     return("")
@@ -2093,7 +2162,7 @@ function haveAdminPrivileges()
    if(isAdministrator()) then
       return(true)
    else
-      ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
+      page_utils.print_header()
       dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
       print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> Access forbidden</div>")
       return(false)
@@ -2339,6 +2408,14 @@ end
 
 -- ###############################################
 
+-- removes trailing/leading spaces
+function trimString(s)
+  return (s:gsub("^%s*(.-)%s*$", "%1"))
+end
+
+-- ###############################################
+
+-- removes all spaces
 function trimSpace(what)
    if(what == nil) then return("") end
    return(string.gsub(string.gsub(what, "%s+", ""), "+%s", ""))
@@ -2370,7 +2447,7 @@ end
 -- ###############################################
 
 -- NOTE: "flowstatus_info" is a lua table in a common format used
--- to dump accurate flow alert information. See flow2statusinfo and flow2statusinfo
+-- to dump accurate flow alert information. See flow2statusinfo and alert2statusinfo
 -- below.
 
 -- Uses a flow returned by interface.getFlowsInfo() to create a flowstatus_info.
@@ -2379,12 +2456,6 @@ function flow2statusinfo(flow)
    if flow["status_info"] then
       local json = require("dkjson")
       local res = json.decode(flow["status_info"])
-
-      if res then
-         -- Add additional information
-         res["proto.ndpi"] = flow["proto.ndpi"]
-         res["proto.ndpi_id"] = flow["proto.ndpi_id"]
-      end
 
       return res
    end
@@ -2397,12 +2468,6 @@ end
 function alert2statusinfo(flow_json, alert_json)
    local res = table.clone(flow_json.status_info)
 
-   if res then
-      -- Add additional information
-      res["proto.ndpi"] = interface.getnDPIProtoName(tonumber(alert_json["l7_proto"]))
-      res["proto.ndpi_id"] = alert_json["l7_proto"]
-   end
-
    return res
 end
 
@@ -2411,8 +2476,9 @@ end
 function formatSuspiciousDeviceProtocolAlert(flowstatus_info)
    local msg, devtype
    local discover = require("discover_utils")
+   local forbidden_proto = flowstatus_info["devproto_forbidden_id"] or 0
 
-   if not flowstatus_info["cli.devtype_proto_allowed"] then
+   if (flowstatus_info["devproto_forbidden_peer"] == "cli") then
       msg = "flow_details.suspicious_client_device_protocol"
       devtype = flowstatus_info["cli.devtype"]
    else
@@ -2421,9 +2487,9 @@ function formatSuspiciousDeviceProtocolAlert(flowstatus_info)
    end
 
    local label = discover.devtype2string(devtype)
-   return i18n(msg, {proto=flowstatus_info["proto.ndpi"], devtype=label,
+   return i18n(msg, {proto=interface.getnDPIProtoName(forbidden_proto), devtype=label,
       url=getDeviceProtocolPoliciesUrl("device_type="..
-      devtype.."&l7proto="..flowstatus_info["proto.ndpi_id"])})
+      devtype.."&l7proto="..forbidden_proto)})
 end
 
 -- ###############################################
@@ -2448,6 +2514,10 @@ function getFlowStatus(status, flowstatus_info)
   elseif(status == 14) then return(""..i18n("flow_details.flow_blocked_by_bridge").."")
   elseif(status == 15) then return(""..i18n("flow_details.web_mining_detected").."")
   elseif(status == 16) then return(formatSuspiciousDeviceProtocolAlert(flowstatus_info))
+  elseif(status == 17) then return("<font color=orange>"..i18n("flow_details.elephant_flow_l2r").."</font>")
+  elseif(status == 18) then return("<font color=orange>"..i18n("flow_details.elephant_flow_r2l").."</font>")
+  elseif(status == 19) then return("<font color=orange>"..i18n("flow_details.longlived_flow").."</font>")
+  elseif(status == 20) then return("<font color=orange>"..i18n("flow_details.not_purged").."</font>")
   else return("<font color=orange>"..i18n("flow_details.unknown_status",{status=status}).."</font>")
   end
 end
@@ -2705,7 +2775,7 @@ function makeTimeStamp(d, tzoffset)
       -- tprint("post-timestamp is:"..timestamp)
    end
 
-   return timestamp.."";
+   return math.floor(timestamp).."";
 end
 
 -- ###########################################
@@ -2759,11 +2829,23 @@ end
 -- NOTE: this does *not* perform a deep merge. Only first level is merged.
 function table.merge(a, b)
   local merged = {}
+  a = a or {}
+  b = b or {}
 
-  for _, t in ipairs({a, b}) do
-    for k,v in pairs(t) do
-      merged[k] = v
-    end
+  if((a[1] ~= nil) and (b[1] ~= nil)) then
+    -- index based tables
+    for _, t in ipairs({a, b}) do
+       for _,v in pairs(t) do
+         merged[#merged + 1] = v
+       end
+   end
+  else
+     -- key based tables
+     for _, t in ipairs({a, b}) do
+       for k,v in pairs(t) do
+         merged[k] = v
+       end
+     end
   end
 
   return merged
@@ -3130,78 +3212,6 @@ function isBridgeInterface(ifstats)
   return ifstats.inline
 end
 
-function hasBridgeInterfaces(skip_netfilter)
-  local curif = ifname
-  local ifnames = interface.getIfNames()
-  local found = false
-
-  for _,ifname in pairs(ifnames) do
-    interface.select(ifname)
-
-    local ifstats = interface.getStats()
-    if isBridgeInterface(ifstats)
-        and (skip_netfilter~=true or ifstats.type ~= "netfilter") then
-      found = true
-      break
-    end
-  end
-
-  interface.select(curif)
-  return found
-end
-
--- Returns true if the captive portal can be started with the current configuration
-function isCaptivePortalSupported(ifstats, prefs, skip_interface_check)
-   if not ntop.isEnterprise() and not ntop.isnEdge() then
-      return false
-   end
-
-   local is_bridge_iface
-
-   if not skip_interface_check then
-      local ifstats = ifstats or interface.getStats()
-      is_bridge_iface = isBridgeInterface(ifstats)
-   else
-      is_bridge_iface = true
-   end
-
-   local prefs = prefs or ntop.getPrefs()
-   return is_bridge_iface and (prefs["http.port"] ~= 80)
-end
-
--- Returns true if the captive portal is active right now
-function isCaptivePortalActive(ifstats, prefs)
-  if not ntop.isEnterprise() then
-    return false
-  end
-
-  local ifstats = ifstats or interface.getStats()
-  local prefs = prefs or ntop.getPrefs()
-  local is_bridge_iface = isBridgeInterface(ifstats)
-
-  return is_bridge_iface and prefs["is_captive_portal_enabled"] and isCaptivePortalSupported(ifstats, prefs)
-end
-
-function getCaptivePortalUsers()
-  local keys = ntop.getKeysCache("ntopng.user.*.host_pool_id")
-  local users = {}
-
-  for key in pairs(keys or {}) do
-    local host_pool = ntop.getCache(key)
-
-    if not isEmptyString(host_pool) then
-      local username = split(key, "%.")[3]
-      users[username] = host_pool
-    end
-  end
-
-  return users
-end
-
-function getBridgeInitializedKey(ifid)
-  return "ntopng.prefs.iface_"..ifid..".bridge_initialized"
-end
-
 function hasSnmpDevices(ifid)
   if (not ntop.isEnterprise()) or (not isAdministrator()) then
     return false
@@ -3388,6 +3398,75 @@ function getDeviceProtocolPoliciesUrl(params_str)
    end
 
    return ntop.getHttpPrefix() .. url
+end
+
+-- ###########################################
+
+-- Banner format: {type="success|warning|danger", text="..."}
+function printMessageBanners(banners)
+   for _, msg in ipairs(banners) do
+      print[[
+  <div class="alert alert-]] print(msg.type) print([[ alert-dismissible" style="margin-top:2em; margin-bottom:0em;">
+    <button type="button" class="close" data-dismiss="alert" aria-label="]]..i18n("close")..[[">
+      <span aria-hidden="true">&times;</span>
+    </button>]])
+
+      if (msg.type == "warning") then
+         print("<b>".. i18n("warning") .. "</b>: ")
+      elseif (msg.type == "danger") then
+         print("<b>".. i18n("error") .. "</b>: ")
+      end
+
+      print(msg.text)
+    
+      print[[
+  </div>]]
+   end
+end
+
+-- ###########################################
+
+-- Returns the size of a folder (size is in bytes)
+function getFolderSize(path)
+   local size = 0
+
+   if ntop.isWindows() then
+     -- TODO
+   else
+      if ntop.isdir(path) then
+         local line = os_utils.execWithOutput("du -s "..path.." 2>/dev/null")
+         local values = split(line, '\t')
+         if #values >= 1 then
+            local used = tonumber(values[1])
+            if used ~= nil then
+               size = used*1024
+            end
+         end
+      end
+   end
+
+   return size
+end
+
+-- ###########################################
+
+function getHttpUrlPrefix()
+   if starts(_SERVER["HTTP_HOST"], 'https://') then
+      return "https://"
+   else
+      return "http://"
+   end
+end
+
+-- ###########################################
+
+-- Compares IPv4 / IPv6 addresses
+function ip_address_asc(a, b)
+   return(ntop.ipCmp(a, b) < 0)
+end
+
+function ip_address_rev(a, b)
+   return(ntop.ipCmp(a, b) > 0)
 end
 
 -- ###########################################

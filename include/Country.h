@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-18 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -33,9 +33,8 @@ class Country : public GenericHashEntry {
   TrafficStats totstats;
   NetworkStats dirstats;
 
-  inline void incStats(u_int64_t num_pkts, u_int64_t num_bytes) {
-    totstats.incStats(num_pkts, num_bytes);
-    last_seen = iface->getTimeLastPktRcvd();
+  inline void incStats(time_t t, u_int64_t num_pkts, u_int64_t num_bytes) {
+    last_seen = t, totstats.incStats(t, num_pkts, num_bytes);    
   }
 
  public:
@@ -49,19 +48,19 @@ class Country : public GenericHashEntry {
   bool equal(const char *country);
   inline bool equal(Country *country)          { return equal(country->get_country_name()); }
 
-  inline void incEgress(u_int64_t num_pkts, u_int64_t num_bytes, bool broadcast) {
-    incStats(num_pkts, num_bytes);
-    dirstats.incEgress(num_pkts, num_bytes, broadcast);
+  inline void incEgress(time_t t, u_int64_t num_pkts, u_int64_t num_bytes, bool broadcast) {
+    incStats(t, num_pkts, num_bytes);
+    dirstats.incEgress(t, num_pkts, num_bytes, broadcast);
   }
 
-  inline void incIngress(u_int64_t num_pkts, u_int64_t num_bytes, bool broadcast) {
-    incStats(num_pkts, num_bytes);
-    dirstats.incIngress(num_pkts, num_bytes, broadcast);
+  inline void incIngress(time_t t, u_int64_t num_pkts, u_int64_t num_bytes, bool broadcast) {
+    incStats(t, num_pkts, num_bytes);
+    dirstats.incIngress(t, num_pkts, num_bytes, broadcast);
   }
 
-  inline void incInner(u_int64_t num_pkts, u_int64_t num_bytes, bool broadcast) {
-    incStats(num_pkts, num_bytes);
-    dirstats.incInner(num_pkts, num_bytes, broadcast);
+  inline void incInner(time_t t, u_int64_t num_pkts, u_int64_t num_bytes, bool broadcast) {
+    incStats(t, num_pkts, num_bytes);
+    dirstats.incInner(t, num_pkts, num_bytes, broadcast);
   }
 
   bool idle();

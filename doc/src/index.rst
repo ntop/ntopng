@@ -12,8 +12,13 @@ can be obtained from the traffic captured by the server.
    how_to_start/index
    cli_options
    web_gui/index
-   case_study/index
+   using_with_nprobe
+   remote_assistance
+   traffic_recording
+   historical_flows
    advanced_features/index
+   operating_ntopng_on_large_networks
+   faq
    api/index
 
 .. Indices and tables

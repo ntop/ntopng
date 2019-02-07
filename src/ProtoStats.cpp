@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-18 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -44,8 +44,8 @@ void ProtoStats::lua(lua_State *vm, const char *prefix) {
   char key_buf[32];
 
   snprintf(key_buf, sizeof(key_buf), "%sbytes", prefix);
-  lua_push_int_table_entry(vm, key_buf, numBytes);
+  lua_push_uint64_table_entry(vm, key_buf, numBytes);
 
   snprintf(key_buf, sizeof(key_buf), "%spackets", prefix);
-  lua_push_int_table_entry(vm, key_buf, numPkts);
+  lua_push_uint64_table_entry(vm, key_buf, numPkts);
 }

@@ -11,7 +11,7 @@ local callback_utils = require "callback_utils"
 
 if (ntop.isPro()) then
   package.path = dirs.installdir .. "/pro/scripts/callbacks/interface/?.lua;" .. package.path
-  pcall(require, 'hourly')
+  require('hourly')
 end
 
 -- ########################################################

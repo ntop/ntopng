@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-18 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -26,7 +26,6 @@
 
 class GenericTrafficElement {
  protected:
-  u_int16_t vlan_id;
   TrafficStats sent, rcvd;
   nDPIStats *ndpiStats;
 #ifdef NTOPNG_PRO
@@ -41,8 +40,6 @@ class GenericTrafficElement {
   u_int64_t last_bytes, last_packets;
   struct timeval last_update_time;
 
-  u_int16_t host_pool_id;
-
  public:
   GenericTrafficElement();
   GenericTrafficElement(const GenericTrafficElement &gte);
@@ -53,8 +50,6 @@ class GenericTrafficElement {
     if(custom_app_stats) delete custom_app_stats;
 #endif
   };
-  inline u_int16_t get_host_pool()         { return(host_pool_id);   };
-  inline u_int16_t get_vlan_id()           { return(vlan_id);        };
   inline void incNumDroppedFlows()         { total_num_dropped_flows++;      };
   inline u_int32_t getNumDroppedFlows()    { return total_num_dropped_flows; };
   virtual void updateStats(struct timeval *tv);

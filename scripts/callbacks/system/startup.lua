@@ -22,6 +22,7 @@ local host_pools_utils = require "host_pools_utils"
 local os_utils = require "os_utils"
 local lists_utils = require "lists_utils"
 local recovery_utils = require "recovery_utils"
+local ts_utils = require "ts_utils"
 
 local prefs = ntop.getPrefs()
 
@@ -74,6 +75,23 @@ end
 
 -- ##################################################################
 
+-- Migration from old ntop auth_type to new separeted keys
+local old_auth_val = ntop.getPref("ntopng.prefs.auth_type")
+local new_local_auth = ntop.getPref("ntopng.prefs.local.auth_enabled")
+local new_ldap_auth = ntop.getPref("ntopng.prefs.ldap.auth_enabled")
+
+if((not isEmptyString(old_auth_val)) and isEmptyString(new_ldap_auth) and isEmptyString(new_local_auth)) then
+   if old_auth_val == "ldap" then
+      ntop.setPref("ntopng.prefs.local.auth_enabled", "0")
+      ntop.setPref("ntopng.prefs.ldap.auth_enabled", "1")
+   elseif old_auth_val == "ldap_local" then
+      ntop.setPref("ntopng.prefs.local.auth_enabled", "1")
+      ntop.setPref("ntopng.prefs.ldap.auth_enabled", "1")
+   end
+end
+
+-- ##################################################################
+
 -- Remove the json dumps previously needed for alerts generation
 for _, ifname in pairs(interface.getIfNames()) do
    interface.select(ifname)
@@ -101,12 +119,27 @@ end
 
 -- Initialize device policies (presets)
 local presets_utils = require "presets_utils"
-presets_utils.initPolicies()
+local ifid, ifname = getFirstInterfaceId()
+interface.select(ifname)
+presets_utils.init()
+presets_utils.reloadAllDevicePolicies()
+
+-- ##################################################################
+
+-- Check remote assistance expiration
+local remote_assistance = require "remote_assistance"
+remote_assistance.checkAvailable()
+remote_assistance.checkExpiration()
+
+-- ##################################################################
+
+local recording_utils = require "recording_utils"
+recording_utils.checkAvailable()
 
 -- ##################################################################
 
 initCustomnDPIProtoCategories()
-lists_utils.reloadLists()
+lists_utils.reloadLists() -- housekeeping will do the actual reload...
 
 -- TODO: migrate custom re-arm settings
 
@@ -125,3 +158,6 @@ if not recovery_utils.check_clean_shutdown() then
 end
 
 recovery_utils.unmark_clean_shutdown()
+
+-- Need to run setup at startup since the schemas may be changed
+ts_utils.setupAgain()

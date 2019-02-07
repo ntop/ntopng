@@ -7,13 +7,15 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 
+local page_utils = require("page_utils")
+
 sendHTTPContentTypeHeader('text/html')
 
 if (group_col == nil) then
    group_col = "asn"
 end
 
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
+page_utils.print_header()
 
 active_page = "hosts"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")

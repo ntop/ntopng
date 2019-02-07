@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-18 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -43,14 +43,22 @@ class ParserInterface : public NetworkInterface {
   int getKeyId(char *sym);
   void addMapping(const char *sym, int num);
   void parseSingleFlow(json_object *o, u_int8_t source_id, NetworkInterface *iface);
+
+  void setFieldMap(const ZMQ_FieldMap * const field_map) const;
+  void setFieldValueMap(const ZMQ_FieldValueMap * const field_value_map) const;
+
+  u_int8_t parseOptionFieldMap(json_object * const jo) const;
+  u_int8_t parseOptionFieldValueMap(json_object * const jo) const;
     
  public:
   ParserInterface(const char *endpoint, const char *custom_interface_type = NULL);
   ~ParserInterface();
 
-  u_int8_t parseFlow(char *payload, int payload_size, u_int8_t source_id, void *data);
-  u_int8_t parseEvent(char *payload, int payload_size, u_int8_t source_id, void *data);
-  u_int8_t parseCounter(char *payload, int payload_size, u_int8_t source_id, void *data);
+  u_int8_t parseFlow(const char * const payload, int payload_size, u_int8_t source_id, void *data);
+  u_int8_t parseEvent(const char * const payload, int payload_size, u_int8_t source_id, void *data);
+  u_int8_t parseCounter(const char * const payload, int payload_size, u_int8_t source_id, void *data);
+  u_int8_t parseTemplate(const char * const payload, int payload_size, u_int8_t source_id, void *data);
+  u_int8_t parseOption(const char * const payload, int payload_size, u_int8_t source_id, void *data);
 
   virtual void setRemoteStats(ZMQ_RemoteStats *zrs);
 #ifdef NTOPNG_PRO

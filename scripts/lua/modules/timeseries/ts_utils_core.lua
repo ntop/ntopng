@@ -8,6 +8,8 @@ local ts_common = require "ts_common"
 
 ts_utils.metrics = ts_common.metrics
 ts_utils.schema = require "ts_schema"
+ts_utils.getLastError = ts_common.getLastError
+ts_utils.getLastErrorMessage = ts_common.getLastErrorMessage
 
 require "lua_trace"
 require "ntop_utils"
@@ -50,7 +52,7 @@ function ts_utils.getSchema(name)
   local schema = loaded_schemas[name]
 
   if schema and ts_utils.hasHighResolutionTs() then
-    if schema.options.step == 300 then
+    if((schema.options.step == 300) and (not starts(schema.name, "snmp")) and (not starts(schema.name, "local_"))) then
       schema.options.insertion_step = 60
       schema.options.step = 60
 
@@ -72,7 +74,20 @@ function ts_utils.getSchema(name)
     end
   end
 
+  if schema and (name == "iface:traffic") and ntop.isnEdge() then
+    schema.options.step = 4
+  end
+
   return schema
+end
+
+function ts_utils.loadSchemas()
+  -- This should include all the available schemas
+  require("ts_second")
+  require("ts_minute")
+  require("ts_5min")
+  require("ts_hour")
+  require("ts_custom")
 end
 
 function ts_utils.getLoadedSchemas()
@@ -81,11 +96,21 @@ end
 
 -- ##############################################
 
+local cached_active_drivers = nil
+
 --! @brief Return a list of active timeseries drivers.
 --! @return list of driver objects.
 function ts_utils.listActiveDrivers()
+  if cached_active_drivers ~= nil then
+    return cached_active_drivers
+  end
+
   local driver = ts_utils.getDriverName()
   local active_drivers = {}
+
+  if ntop.isWindows() then
+    driver = "rrd"
+  end
 
   if driver == "rrd" then
     local dirs = ntop.getDirs()
@@ -102,6 +127,9 @@ function ts_utils.listActiveDrivers()
     })
     active_drivers[#active_drivers + 1] = influxdb_driver
   end
+
+  -- cache for future calls
+  cached_active_drivers = active_drivers
 
   return active_drivers
 end
@@ -177,6 +205,8 @@ function ts_utils.append(schema_name, tags_and_metrics, timestamp)
 
   --traceError(TRACE_NORMAL, TRACE_CONSOLE, "TS.UPDATE [".. schema.name .."] " .. table.tconcat(tags_and_metrics, "=", ","))
 
+  ts_common.clearLastError()
+
   for _, driver in pairs(ts_utils.listActiveDrivers()) do
     rv = driver:append(schema, timestamp, tags, data) and rv
   end
@@ -187,7 +217,7 @@ end
 -- ##############################################
 
 -- Get some default options to use in queries.
-local function getQueryOptions(overrides)
+function ts_utils.getQueryOptions(overrides)
   return table.merge({
     max_num_points = 80,    -- maximum number of points per data serie
     fill_value = 0,         -- e.g. 0/0 for nan
@@ -214,7 +244,7 @@ function ts_utils.query(schema_name, tags, tstart, tend, options)
     return nil
   end
 
-  local query_options = getQueryOptions(options)
+  local query_options = ts_utils.getQueryOptions(options)
   local schema = ts_utils.getSchema(schema_name)
 
   if not schema then
@@ -232,6 +262,8 @@ function ts_utils.query(schema_name, tags, tstart, tend, options)
     return nil
   end
 
+  ts_common.clearLastError()
+
   local rv = driver:query(schema, tstart, tend, tags, query_options)
 
   if rv == nil then
@@ -248,10 +280,14 @@ end
 
 -- ##############################################
 
+local function host_rev(a, b)
+  return rev(a.value, b.value)
+end
+
 local function getLocalTopTalkers(schema_id, tags, tstart, tend, options)
   package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
   local top_utils = require "top_utils"
-  local num_minutes = (tend-tstart)/60
+  local num_minutes = math.floor((tend - tstart) / 60)
   local top_talkers = top_utils.getAggregatedTop(getInterfaceName(ifId), tend, num_minutes)
 
   local direction
@@ -270,22 +306,31 @@ local function getLocalTopTalkers(schema_id, tags, tstart, tend, options)
   for idx1, vlan in pairs(top_talkers.vlan or {}) do
     for idx2, host in pairs(vlan.hosts[1][direction] or {}) do
       if host["local"] == "true" then
-        tophosts[idx1.."_"..idx2] = host.value
+        -- need to recalculate total value
+        local host_tags = {ifid=tags.ifid, host=host.address}
+        local host_partials = ts_utils.queryTotal("host:traffic", tstart, tend, host_tags)
+        local host_value = tonumber(host.value)
+
+        if not table.empty(host_partials) then
+          host_value = ternary(direction == "senders", host_partials["bytes_sent"], host_partials["bytes_rcvd"])
+        else
+          host_partials = nil
+        end
+
+        if((host_value ~= nil) and (host_value > 0)) then
+          tophosts[host.address] = {
+            value = host_value,
+            tags = host_tags,
+            partials = host_partials,
+          }
+        end
       end
     end
   end
 
   local res = {}
-  for item in pairsByValues(tophosts, rev) do
-    local parts = split(item, "_")
-    local idx1 = tonumber(parts[1])
-    local idx2 = tonumber(parts[2])
-    local host = top_talkers.vlan[idx1].hosts[1][direction][idx2]
-
-    res[#res + 1] = {
-      value = host.value,
-      tags = {ifid=tags.ifid, host=host.address},
-    }
+  for _, host in pairsByValues(tophosts, host_rev) do
+    res[#res + 1] = host
 
     if #res >= options.top then
       break
@@ -295,6 +340,7 @@ local function getLocalTopTalkers(schema_id, tags, tstart, tend, options)
   return {
     topk = res,
     schema = ts_utils.getSchema("host:traffic"),
+    statistics = stats,
   }
 end
 
@@ -318,7 +364,7 @@ end
 --! @param options (optional) query options.
 --! @return query result on success, nil on error.
 function ts_utils.queryTopk(schema_name, tags, tstart, tend, options)
-  local query_options = getQueryOptions(options)
+  local query_options = ts_utils.getQueryOptions(options)
   local top_items = nil
   local schema = nil
 
@@ -331,6 +377,8 @@ function ts_utils.queryTopk(schema_name, tags, tstart, tend, options)
   if not driver then
     return nil
   end
+
+  ts_common.clearLastError()
 
   local pre_computed = getPrecomputedTops(schema_name, tags, tstart, tend, query_options)
 
@@ -374,6 +422,7 @@ function ts_utils.queryTopk(schema_name, tags, tstart, tend, options)
     local options = table.merge(query_options, {calculate_stats = false})
     local count = 0
     local step = nil
+    local raw_step = nil
     local start = 0
 
     for _, top in ipairs(top_items.topk) do
@@ -411,6 +460,11 @@ function ts_utils.queryTopk(schema_name, tags, tstart, tend, options)
       else
         step = top_res.step
       end
+      if raw_step then
+        raw_step = math.min(raw_step, top_res.raw_step)
+      else
+        raw_step = top_res.raw_step
+      end
 
       for _, serie in ipairs(top_res.series) do
         serie.tags = top.tags
@@ -436,6 +490,7 @@ function ts_utils.queryTopk(schema_name, tags, tstart, tend, options)
 
     top_items.count = count
     top_items.step = step
+    top_items.raw_step = raw_step
     top_items.start = start
   else
     top_items.additional_series = nil
@@ -481,6 +536,8 @@ function ts_utils.listSeries(schema_name, tags_filter, start_time)
     end
   end
 
+  ts_common.clearLastError()
+
   return driver:listSeries(schema, filter_tags, wildcard_tags, start_time)
 end
 
@@ -518,6 +575,8 @@ function ts_utils.delete(schema_prefix, tags)
 
   local rv = true
 
+  ts_common.clearLastError()
+
   for _, driver in pairs(ts_utils.listActiveDrivers()) do
     rv = driver:delete(schema_prefix, tags) and rv
   end
@@ -527,8 +586,27 @@ end
 
 -- ##############################################
 
--- TODO make standard and document
-function ts_utils.queryTotal(schema_name, tags, tstart, tend)
+--! @brief Delete old data.
+--! @param ifid: the interface ID to process
+--! @return true if operation was successful, false otherwise.
+function ts_utils.deleteOldData(ifid)
+  if not isAdministrator() then
+    traceError(TRACE_ERROR, TRACE_CONSOLE, "Not Admin")
+    return false
+  end
+
+  ts_common.clearLastError()
+
+  for _, driver in pairs(ts_utils.listActiveDrivers()) do
+    rv = driver:deleteOldData(ifid) and rv
+  end
+
+  return rv
+end
+
+-- ##############################################
+
+function ts_utils.queryTotal(schema_name, tstart, tend, tags, options)
   if not isUserAccessAllowed(tags) then
     return nil
   end
@@ -546,13 +624,17 @@ function ts_utils.queryTotal(schema_name, tags, tstart, tend)
     return nil
   end
 
-  return driver:queryTotal(schema, tags, tstart, tend)
+  local query_options = ts_utils.getQueryOptions(options)
+
+  ts_common.clearLastError()
+
+  return driver:queryTotal(schema, tstart, tend, tags, query_options)
 end
 
 -- ##############################################
 
 -- TODO make standard and document
-function ts_utils.queryMean(schema_name, tags, tstart, tend)
+function ts_utils.queryMean(schema_name, tstart, tend, tags)
   if not isUserAccessAllowed(tags) then
     return nil
   end
@@ -564,14 +646,42 @@ function ts_utils.queryMean(schema_name, tags, tstart, tend)
     return nil
   end
 
-  local rv = ts_utils.queryTotal(schema_name, tags, tstart, tend)
-  local intervals = (tend - tstart) / schema.options.step
+  local rv = ts_utils.queryTotal(schema_name, tstart, tend, tags)
+  local intervals = math.floor((tend - tstart) / schema.options.step)
 
   for i, total in pairs(rv or {}) do
     rv[i] = total / intervals
   end
 
   return rv
+end
+
+-- ##############################################
+
+local SETUP_OK_KEY = "ntopng.cache.ts_setup_ok"
+
+function ts_utils.setupAgain()
+  -- will run the setup again
+  ntop.delCache(SETUP_OK_KEY)
+end
+
+-- ##############################################
+
+function ts_utils.setup()
+  local setup_ok = ntop.getPref(SETUP_OK_KEY)
+
+  if (ntop.getCache(SETUP_OK_KEY) ~= "1") and
+      (ntop.getPref("ntopng.prefs.beta_rollup") == "1" --[[ TODO remove after test ]]) then
+    if ts_utils.getQueryDriver():setup(ts_utils) then
+      -- success, update version
+      ntop.setCache(SETUP_OK_KEY, "1")
+      return true
+    end
+
+    return false
+  end
+
+  return true
 end
 
 -- ##############################################

@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2015-18 - ntop.org
+ * (C) 2015-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -390,7 +390,8 @@ void HostPools::incPoolStats(u_int32_t when, u_int16_t host_pool_id, u_int16_t n
   if(!hps) return;
 
   /* Important to use the assigned hps as a swap can make stats[host_pool_id] NULL */
-  hps->incStats(when, ndpi_proto, category_id, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes);
+  hps->incStats(when, ndpi_proto, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes);
+  hps->incCategoryStats(when, category_id, sent_bytes, rcvd_bytes);
 };
 
 /* *************************************** */
@@ -614,8 +615,8 @@ void HostPools::lua(lua_State *vm) {
 
     if(cur_hosts || cur_l2) {
       lua_newtable(vm);
-      lua_push_int_table_entry(vm, "num_hosts", cur_hosts);
-      lua_push_int_table_entry(vm, "num_l2_devices", cur_l2);
+      lua_push_uint64_table_entry(vm, "num_hosts", cur_hosts);
+      lua_push_uint64_table_entry(vm, "num_l2_devices", cur_l2);
       snprintf(buf, sizeof(buf), "%d", i);
 
       lua_pushstring(vm, buf);
@@ -631,9 +632,9 @@ void HostPools::lua(lua_State *vm) {
   lua_settable(vm, -3);
 
   lua_newtable(vm);
-  lua_push_int_table_entry(vm, "num_hosts", hosts);
-  lua_push_int_table_entry(vm, "num_l2_devices", l2_devices);
-  lua_push_int_table_entry(vm, "num_active_pools", active_pools);
+  lua_push_uint64_table_entry(vm, "num_hosts", hosts);
+  lua_push_uint64_table_entry(vm, "num_l2_devices", l2_devices);
+  lua_push_uint64_table_entry(vm, "num_active_pools", active_pools);
 
   lua_pushstring(vm, "num_members");
   lua_insert(vm, -2);
@@ -645,7 +646,7 @@ void HostPools::lua(lua_State *vm) {
 void HostPools::reloadPools() {
   char kname[CONST_MAX_LEN_REDIS_KEY];
   char **pools, **pool_members, *at, *member;
-  int num_pools, num_members;
+  int num_pools, num_members, actual_num_members;
   u_int16_t _pool_id, vlan_id;
   VlanAddressTree *new_tree;
 #ifdef NTOPNG_PRO
@@ -684,14 +685,16 @@ void HostPools::reloadPools() {
   num_pools = redis->smembers(kname, &pools);
 
   for(int i = 0; i < num_pools; i++) {
-
-
     if(!pools[i])
       continue;
 
     _pool_id = (u_int16_t)atoi(pools[i]);
-    if(_pool_id >= MAX_NUM_HOST_POOLS)
+    if(_pool_id >= MAX_NUM_HOST_POOLS) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Ignoring pool [pool id: %2d]. "
+				   "Maximum number of host pools for this license is %u, inclusive of the Not Assigned pool.",
+				   _pool_id, MAX_NUM_HOST_POOLS);
       continue;
+    }
 
 #ifdef NTOPNG_PRO
     if(_pool_id != 0) { /* Pool id 0 stats already updated */
@@ -745,9 +748,15 @@ void HostPools::reloadPools() {
     /* Pool members are the elements of the list */
     if((num_members = redis->smembers(kname, &pool_members)) > 0) {
       // NOTE: the auto-assigned host_pool must not be limited as it receives devices assigments automatically
-      num_members = min_val((u_int32_t)num_members, ((_pool_id == ntop->getPrefs()->get_auto_assigned_pool_id()) ? MAX_NUM_INTERFACE_HOSTS : MAX_NUM_POOL_MEMBERS));
+      actual_num_members = min_val((u_int32_t)num_members, ((_pool_id == ntop->getPrefs()->get_auto_assigned_pool_id()) ? MAX_NUM_INTERFACE_HOSTS : MAX_NUM_POOL_MEMBERS));
 
-      for(int k = 0; k < num_members; k++) {
+      if(actual_num_members < num_members) {
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "Too many members [pool id: %2d][pool members: %d]. "
+				     "Maximum number of pool members for this license is %u, so %u pool members will be ignored.",
+				     _pool_id, num_members, actual_num_members, num_members - actual_num_members, actual_num_members);
+      }
+
+      for(int k = 0; k < actual_num_members; k++) {
 	member = pool_members[k];
 
 	if(!member) continue;

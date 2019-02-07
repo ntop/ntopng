@@ -2,7 +2,7 @@
 -- (C) 2013-18 - ntop.org
 --
 
-dirs = ntop.getDirs()
+local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
@@ -30,6 +30,8 @@ local application = _GET["application"]
 local category    = _GET["category"]
 local network_id  = _GET["network"]
 local vlan        = _GET["vlan"]
+local uid         = _GET["uid"]
+local pid         = _GET["pid"]
 
 local deviceIP    = _GET["deviceIP"]
 local inIfIdx     = _GET["inIfIdx"]
@@ -158,6 +160,14 @@ if not isEmptyString(vlan) then
    pageinfo["vlanIdFilter"] = tonumber(vlan)
 end
 
+if not isEmptyString(uid) then
+   pageinfo["uidFilter"] = tonumber(uid)
+end
+
+if not isEmptyString(pid) then
+   pageinfo["pidFilter"] = tonumber(pid)
+end
+
 if not isEmptyString(deviceIP) then
    pageinfo["deviceIpFilter"] = deviceIP
 
@@ -231,6 +241,9 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
    local srv_name = flowinfo2hostname(value, "srv")
    local cli_name = flowinfo2hostname(value, "cli")
 
+   local src_port, dst_port = '', ''
+   local src_process, dst_process = '', ''
+
    if(cli_name == nil) then cli_name = "???" end
    if(srv_name == nil) then srv_name = "???" end
 
@@ -249,23 +262,15 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
       src_key="<A HREF='"..ntop.getHttpPrefix().."/lua/host_details.lua?" .. hostinfo2url(value,"cli").. "' data-toggle='tooltip' title='" ..cli_tooltip.. "' >".. shortenString(stripVlan(cli_name))
       if(value["cli.systemhost"] == true) then src_key = src_key .. "&nbsp;<i class='fa fa-flag'></i>" end
 
-      -- Flow username
-      local i, j
-      if(value["moreinfo.json"] ~= nil) then
-	 i, j = string.find(value["moreinfo.json"], '"57593":')
-      end
-      if(i ~= nil) then
-	 has_user = string.sub(value["moreinfo.json"], j+2, j+3)
-	 if(has_user == '""') then has_user = nil end
-      end
-      if(has_user ~= nil) then src_key = src_key .. " <i class='fa fa-user'></i>" end
       src_key = src_key .. "</A>"
 
       if(value["cli.port"] > 0) then
-	 src_port=":<A HREF='"..ntop.getHttpPrefix().."/lua/port_details.lua?port=" .. value["cli.port"] .. "'>"..ntop.getservbyport(value["cli.port"], string.lower(value["proto.l4"])).."</A>"
+	 src_port="<A HREF='"..ntop.getHttpPrefix().."/lua/port_details.lua?port=" .. value["cli.port"] .. "'>"..ntop.getservbyport(value["cli.port"], string.lower(value["proto.l4"])).."</A>"
       else
 	 src_port=""
       end
+
+      src_process = flowinfo2process(value["client_process"], hostinfo2url(value,"cli"))
    else
       src_key = shortenString(stripVlan(cli_name))
       src_port=":"..value["cli.port"]
@@ -277,10 +282,12 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
       dst_key = dst_key .. "</A>"
 
       if(value["srv.port"] > 0) then
-	 dst_port=":<A HREF='"..ntop.getHttpPrefix().."/lua/port_details.lua?port=" .. value["srv.port"] .. "'>"..ntop.getservbyport(value["srv.port"], string.lower(value["proto.l4"])).."</A>"
+	 dst_port="<A HREF='"..ntop.getHttpPrefix().."/lua/port_details.lua?port=" .. value["srv.port"] .. "'>"..ntop.getservbyport(value["srv.port"], string.lower(value["proto.l4"])).."</A>"
       else
 	 dst_port=""
       end
+
+      dst_process = flowinfo2process(value["server_process"], hostinfo2url(value,"srv"))
    else
       dst_key = shortenString(stripVlan(srv_name))
       dst_port=":"..value["srv.port"]
@@ -294,7 +301,7 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
      if (value["verdict.pass"]) then
        column_key = column_key.." <span title='"..i18n("flow_details.drop_flow_traffic_btn").."' class='label label-default block-badge' "..(ternary(isAdministrator(), "onclick='block_flow("..value["ntopng.key"]..");' style='cursor: pointer;'", "")).."><i class='fa fa-ban' /></span>"
      else
-       column_key = column_key.." <span title='"..i18n("flow_details.drop_flow_traffic_btn").."' class='label label-danger block-badge'><i class='fa fa-ban' /></span>"
+       column_key = column_key.." <span title='"..i18n("flow_details.flow_traffic_is_dropped").."' class='label label-danger block-badge'><i class='fa fa-ban' /></span>"
      end
    end
    record["column_key"] = column_key
@@ -307,10 +314,15 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
       column_client = column_client..getFlag(info["country"])
    end
 
-   column_client = column_client..src_port
+   column_client = string.format("%s%s%s %s",
+				 column_client,
+				 ternary(src_port ~= '', ':', ''),
+				 src_port,
+				 src_process)
    if(value["verdict.pass"] == false) then
      column_client = "<strike>"..column_client.."</strike>"
    end
+
    record["column_client"] = column_client
 
    local column_server = dst_key
@@ -319,7 +331,11 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
       column_server = column_server..getFlag(info["country"])
    end
 
-   column_server = column_server..dst_port
+   column_server = string.format("%s%s%s %s",
+				 column_server,
+				 ternary(dst_port ~= '', ':', ''),
+				 dst_port,
+				 dst_process)
    if(value["verdict.pass"] == false) then
      column_server = "<strike>"..column_server.."</strike>"
    end

@@ -1,5 +1,90 @@
 # Changelog
 
+#### ntopng 3.8 (December 2018)
+
+## New features
+
+* Remote assistance to temporarily grant encrypted ntopng access to remote
+parties
+  * Works with a transparent overlay-network spawned on-demand just
+  for the time necessary for the assistance
+  * Passes through firewalls and NATs
+  * https://www.ntop.org/ntopng/use-remote-assistance-to-connect-to-ntopng-instances/
+* Custom URLs and IP addresses mappings to traffic categories
+  * Ability to associate websites (HTTP and HTTPS) to certain traffic
+  categories using their names
+  * Ability to use IP addresses (IPv4 and IPv6) to associate hosts to
+  traffic categories
+  * https://www.ntop.org/guides/ntopng/web_gui/categories.html?highlight=categories#custom-category-hosts
+* Continuous traffic recording
+  * Interfaces with n2disk for the recording and extraction of traffic
+  * https://www.ntop.org/guides/ntopng/traffic_recording.html
+* Download live pcap captures of monitored hosts and interfaces
+  * Delivers packets in pcap format over the web
+  * Works with single hosts, interfaces
+  * Allows BPF filters
+  * https://www.ntop.org/guides/ntopng/advanced_features/live_pcap_download.html?highlight=pcap#live-pcap-download
+* User activities logging
+  * Records an alerts ntopng web users activities, including changes
+  in the configurations, deletion/addition of new users, login
+  attempts, and password changes.
+  * http://www.ntop.org/guides/ntopng/basic_concepts/alerts.html
+* Extended chart metrics
+  * Relative-Strength Index (RSI)
+  * Moving and Exponentially-Moving Averages
+  * https://www.ntop.org/guides/ntopng/web_gui/historical.html
+
+## Improvements
+
+* Alerts
+  * Scan-detection for remote hosts
+  * Configurable alerts for long-lived and elephant flows
+  * InfluxDB export failed alerts
+  * Remote-to-remote host alerts
+  * Optional JSON alerts export to Syslog
+* Improved InfluxDB support
+  * Handles slow and aborted queries
+  * Uses authentication
+* Adds RADIUS and HTTP authenticators
+ * Options to allow users login via RADIUS and HTTP
+ * https://www.ntop.org/ntopng/remote-ntopng-authentication-with-radius-and-ldap/
+* Lua 5.3 support
+ * Improved performance
+ * Better memory management
+ * Native support for 64-bit integers
+ * Native support for bitwise operations
+* Adds the new libmaxminddb geolocation library
+* Storage utilization indicators
+  * Global storage indicator to show the disk used by each interface
+  * Per-interface storage indicator to show the disk used to store timeseries and flows 
+* Support for Sonicwall PEN field names
+* Option to disable LDAP referrals
+* Requests and configures Keepalive support for ZMQ sockets
+* Three-way-handshake detection
+* Adds SNMP mac addresses to the search function
+
+## nEdge
+
+* Implement nEdge policies test page
+* Implement device presets
+* DNS
+  * Add more DNS servers
+  * Remove deprecated DNS
+
+
+## Fixes
+
+* Fixes missing flows dump on shutdown
+* HTTP dissection fixes
+* SNMP
+  * Fix SNMP step when high resolution timeseries are enabled
+  * Fixes SNMP devices permissions to prevent non-admins to delete or add devices
+* Properly handles endianness over ZMQ
+  * Fixes early expiration of some TCP flows
+  * Fixes non-deterministic expiration of flows
+
+----------------------------------------------------------------
+
 #### ntopng 3.6 (August 2018)
 
 ## New features

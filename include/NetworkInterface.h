@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-18 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -85,6 +85,12 @@ class NetworkInterface : public Checkpointable {
   NetworkDiscovery *discovery;
   MDNS *mdns;
 
+#ifdef HAVE_EBPF
+  /* eBPF */
+  u_int16_t next_insert_idx, next_remove_idx;
+  eBPFevent **ebpfEvents; 
+#endif
+  
   /* Live Capture */
   Mutex active_captures_lock;
   u_int8_t num_live_captures;
@@ -97,7 +103,7 @@ class NetworkInterface : public Checkpointable {
   
   string ip_addresses;
   int id;
-  bool bridge_interface, is_dynamic_interface, is_traffic_mirrored;
+  bool bridge_interface, is_dynamic_interface, is_traffic_mirrored, is_loopback;
   bool reload_custom_categories;
 #ifdef NTOPNG_PRO
   L7Policer *policer;
@@ -156,24 +162,22 @@ class NetworkInterface : public Checkpointable {
 
   /* Hosts */
   HostHash *hosts_hash; /**< Hash used to store hosts information. */
-  bool purge_idle_flows_hosts, sprobe_interface, inline_interface,
-    dump_all_traffic, dump_to_tap, dump_to_disk, dump_unknown_traffic;
+  bool purge_idle_flows_hosts, sprobe_interface, inline_interface;
   DB *db;
-  u_int dump_sampling_rate, dump_max_pkts_file, dump_max_duration, dump_max_files;
   StatsManager  *statsManager;
   AlertsManager *alertsManager;
   HostPools *host_pools;
   VlanAddressTree *hide_from_top, *hide_from_top_shadow;
-  bool has_vlan_packets, has_mac_addresses;
+  bool has_vlan_packets, has_ebpf_events, has_mac_addresses;
   struct ndpi_detection_module_struct *ndpi_struct;
   time_t last_pkt_rcvd, last_pkt_rcvd_remote, /* Meaningful only for ZMQ interfaces */
     next_idle_flow_purge, next_idle_host_purge;
   bool running, is_idle;
-  PacketDumper *pkt_dumper;
-  PacketDumperTuntap *pkt_dumper_tap;
   NetworkStats *networkStats;
   InterfaceStatsHash *interfaceStats;
   char checkpoint_compression_buffer[CONST_MAX_NUM_CHECKPOINTS][MAX_CHECKPOINT_COMPRESSION_BUFFER_SIZE];
+
+  PROFILING_DECLARE(24);
 
   void init();
   void deleteDataStructures();
@@ -186,7 +190,7 @@ class NetworkInterface : public Checkpointable {
 		bool *src2dst_direction,
 		time_t first_seen, time_t last_seen,
 		u_int32_t rawsize,
-		bool *new_flow);
+		bool *new_flow, bool create_if_missing);
   int sortHosts(u_int32_t *begin_slot,
 		bool walk_all,
 		struct flowHostRetriever *retriever,
@@ -198,8 +202,9 @@ class NetworkInterface : public Checkpointable {
 		u_int16_t vlan_id, char *osFilter,
 		u_int32_t asnFilter, int16_t networkFilter,
 		u_int16_t pool_filter, bool filtered_hosts,
-    bool blacklisted_hosts, bool hide_top_hidden,
-    u_int8_t ipver_filter, int proto_filter,
+		bool blacklisted_hosts, bool hide_top_hidden, bool anomalousOnly,
+		u_int8_t ipver_filter, int proto_filter,
+		TrafficType traffic_type_filter,
 		char *sortColumn);
   int sortASes(struct flowHostRetriever *retriever,
 	       char *sortColumn);
@@ -224,11 +229,7 @@ class NetworkInterface : public Checkpointable {
 		const char *sortColumn);
 
   bool isNumber(const char *str);
-  bool validInterface(char *name);
-  bool isInterfaceUp(char *name);
   bool checkIdle();
-  void dumpPacketDisk(const struct pcap_pkthdr *h, const u_char *packet, dump_reason reason);
-  void dumpPacketTap(const struct pcap_pkthdr *h, const u_char *packet, dump_reason reason);
 
   void disablePurge(bool on_flows);
   void enablePurge(bool on_flows);
@@ -238,7 +239,8 @@ class NetworkInterface : public Checkpointable {
 
   void topItemsCommit(const struct timeval *when);
   void checkMacIPAssociation(bool triggerEvent, u_char *_mac, u_int32_t ipv4);
-
+  void pollQueuedeBPFEvents();
+  void reloadCustomCategories();
  public:
   /**
   * @brief A Constructor
@@ -250,7 +252,7 @@ class NetworkInterface : public Checkpointable {
   NetworkInterface(const char *name, const char *custom_interface_type = NULL);
   virtual ~NetworkInterface();
 
-  void finishInitialization();
+  void finishInitialization(u_int8_t num_defined_interfaces);
   virtual u_int32_t getASesHashSize();
   virtual u_int32_t getCountriesHashSize();
   virtual u_int32_t getVLANsHashSize();
@@ -286,13 +288,13 @@ class NetworkInterface : public Checkpointable {
                       isDiscoverableInterface(){ return(false);                              }
   inline virtual char* altDiscoverableName()   { return(NULL);                               }
   inline virtual const char* get_type()        { return(customIftype ? customIftype : CONST_INTERFACE_TYPE_UNKNOWN); }
-  inline virtual InterfaceType getIfType()     { return(interface_type_UNKNOWN); }
+  virtual InterfaceType getIfType()            { return(interface_type_UNKNOWN); }
   inline FlowHash *get_flows_hash()            { return flows_hash;     }
   inline TcpFlowStats* getTcpFlowStats()       { return(&tcpFlowStats); }
   inline virtual bool is_ndpi_enabled()        { return(true);          }
   inline u_int  getNumnDPIProtocols()          { return(ndpi_get_num_supported_protocols(ndpi_struct)); };
   inline time_t getTimeLastPktRcvd()           { return(last_pkt_rcvd ? last_pkt_rcvd : last_pkt_rcvd_remote); };
-  inline void  setTimeLastPktRcvd(time_t t)    { last_pkt_rcvd = t; };
+  inline void  setTimeLastPktRcvd(time_t t)    { if(t > last_pkt_rcvd) last_pkt_rcvd = t; };
   inline ndpi_protocol_category_t get_ndpi_proto_category(ndpi_protocol proto) { return(ndpi_get_proto_category(ndpi_struct, proto)); };
   inline const char* get_ndpi_category_name(ndpi_protocol_category_t category) { return(ndpi_category_get_name(ndpi_struct, category)); };
   ndpi_protocol_category_t get_ndpi_proto_category(u_int protoid);
@@ -303,13 +305,15 @@ class NetworkInterface : public Checkpointable {
     return(ndpi_get_proto_breed_name(ndpi_struct, ndpi_get_proto_breed(ndpi_struct, id))); };
   inline u_int get_flow_size()                 { return(ndpi_detection_get_sizeof_ndpi_flow_struct()); };
   inline u_int get_size_id()                   { return(ndpi_detection_get_sizeof_ndpi_id_struct());   };
-  inline char* get_name()                      { return(ifname);                                       };
-  inline char* get_description()               { return(ifDescription);                                };
-  inline int  get_id()                         { return(id);                                           };
+  inline char* get_name() const                { return(ifname);                                       };
+  inline char* get_description() const         { return(ifDescription);                                };
+  inline int  get_id() const                   { return(id);                                           };
   inline bool get_sprobe_interface()           { return sprobe_interface;  }
   inline bool get_inline_interface()           { return inline_interface;  }
   inline bool hasSeenVlanTaggedPackets()       { return(has_vlan_packets); }
   inline void setSeenVlanTaggedPackets()       { has_vlan_packets = true;  }
+  inline bool hasSeenEBPFEvents()              { return(has_ebpf_events);  }
+  inline void setSeenEBPFEvents()              { has_ebpf_events = true;   }
   inline bool hasSeenMacAddresses()            { return(has_mac_addresses); }
   inline void setSeenMacAddresses()            { has_mac_addresses = true;  }
   inline struct ndpi_detection_module_struct* get_ndpi_struct() { return(ndpi_struct);         };
@@ -318,14 +322,8 @@ class NetworkInterface : public Checkpointable {
   inline void enable_sprobe()                  { sprobe_interface = true; };
   int dumpFlow(time_t when, Flow *f);
 #ifdef NTOPNG_PRO
-  void dumpAggregatedFlow(AggregatedFlow *f);
+  void dumpAggregatedFlow(time_t when, AggregatedFlow *f, bool is_top_aggregated_flow, bool is_top_cli, bool is_top_srv);
   void flushFlowDump();
-#endif
-  int dumpDBFlow(time_t when, Flow *f);
-  int dumpEsFlow(time_t when, Flow *f);
-  int dumpLsFlow(time_t when, Flow *f);
-#if defined(HAVE_NINDEX) && defined(NTOPNG_PRO)
-  inline bool dumpnIndexFlow(time_t when, Flow *f)  { return(db->dumpFlow(when, f, NULL)); };
 #endif
   int dumpLocalHosts2redis(bool disable_purge);
   inline void incRetransmittedPkts(u_int32_t num)   { tcpPacketStats.incRetr(num); };
@@ -347,7 +345,7 @@ class NetworkInterface : public Checkpointable {
 			u_int16_t eth_proto, u_int16_t ndpi_proto,
 		       u_int pkt_len, u_int num_pkts, u_int pkt_overhead) {
     ethStats.incStats(ingressPacket, eth_proto, num_pkts, pkt_len, pkt_overhead);
-    ndpiStats.incStats(when, ndpi_proto, 0, 0, 1, pkt_len);
+    ndpiStats.incStats(when, ndpi_proto, 0, 0, num_pkts, pkt_len);
     // Note: here we are not currently interested in packet direction, so we tell it is receive
     ndpiStats.incCategoryStats(when, get_ndpi_proto_category(ndpi_proto), 0 /* see above comment */, pkt_len);
     pktStats.incStats(pkt_len);
@@ -403,7 +401,6 @@ class NetworkInterface : public Checkpointable {
 		     Host **srcHost, Host **dstHost, Flow **flow);
   void processFlow(ZMQ_Flow *zflow);
   void processInterfaceStats(sFlowInterfaceStats *stats);
-  void dumpFlows();
   void getnDPIStats(nDPIStats *stats, AddressTree *allowed_hosts, const char *host_ip, u_int16_t vlan_id);
   void periodicStatsUpdate();
   virtual void lua(lua_State* vm);
@@ -421,6 +418,7 @@ class NetworkInterface : public Checkpointable {
 			 u_int32_t asnFilter, int16_t networkFilter,
 			 u_int16_t pool_filter, bool filtered_hosts, bool blacklisted_hosts, bool hide_top_hidden,
        u_int8_t ipver_filter, int proto_filter,
+       TrafficType traffic_type_filter, bool tsLua, bool anomalousOnly,
 			 char *sortColumn, u_int32_t maxHits,
 			 u_int32_t toSkip, bool a2zSortOrder);
   int getActiveHostsGroup(lua_State* vm,
@@ -497,11 +495,13 @@ class NetworkInterface : public Checkpointable {
   inline u_int64_t  getNumPacketDropsSinceReset() { return getNumPacketDrops() - getCheckPointNumPacketDrops(); }
 
   void runHousekeepingTasks();
+  void runShutdownTasks();
   Vlan* getVlan(u_int16_t vlanId, bool createIfNotPresent);
   AutonomousSystem *getAS(IpAddress *ipa, bool createIfNotPresent);
   Country* getCountry(const char *country_name, bool createIfNotPresent);
   virtual Mac*  getMac(u_int8_t _mac[6], bool createIfNotPresent);
   virtual Host* getHost(char *host_ip, u_int16_t vlan_id);
+  virtual Host* getHost(IpAddress * const host_ip, u_int16_t vlan_id) const;
   bool getHostInfo(lua_State* vm, AddressTree *allowed_hosts, char *host_ip, u_int16_t vlan_id);
   void findUserFlows(lua_State *vm, char *username);
   void findPidFlows(lua_State *vm, u_int32_t pid);
@@ -522,8 +522,6 @@ class NetworkInterface : public Checkpointable {
 #endif
   inline HostPools* getHostPools()                     { return(host_pools);    }
 
-  PacketDumper *getPacketDumper(void)                  { return pkt_dumper;     }
-  PacketDumperTuntap *getPacketDumperTap(void)         { return pkt_dumper_tap; }
   bool registerLiveCapture(struct ntopngLuaContext * const luactx, int *id);
   bool deregisterLiveCapture(struct ntopngLuaContext * const luactx);
   void dumpLiveCaptures(lua_State* vm);
@@ -541,21 +539,6 @@ class NetworkInterface : public Checkpointable {
   inline u_int16_t getHostPool(Host *h) { if(h && host_pools) return host_pools->getPool(h); return NO_HOST_POOL_ID; };
   inline u_int16_t getHostPool(Mac *m)  { if(m && host_pools) return host_pools->getPool(m); return NO_HOST_POOL_ID; };
 
-  bool updateDumpAllTrafficPolicy(void);
-  bool updateDumpTrafficDiskPolicy();
-  bool updateDumpTrafficTapPolicy();
-  int updateDumpTrafficSamplingRate();
-  int updateDumpTrafficMaxPktsPerFile();
-  int updateDumpTrafficMaxSecPerFile();
-  int updateDumpTrafficMaxFiles(void);
-  inline bool getDumpTrafficDiskPolicy()      { return(dump_to_disk);       }
-  inline bool getDumpTrafficTapPolicy()       { return(dump_to_tap);        }
-  inline u_int getDumpTrafficSamplingRate()   { return(dump_sampling_rate); }
-  inline u_int getDumpTrafficMaxPktsPerFile() { return(dump_max_pkts_file); }
-  inline u_int getDumpTrafficMaxSecPerFile()  { return(dump_max_duration);  }
-  inline u_int getDumpTrafficMaxFiles()       { return(dump_max_files);     }
-  inline char* getDumpTrafficTapName()        { return(pkt_dumper_tap ? pkt_dumper_tap->getName() : (char*)""); }
-  void loadDumpPrefs();
   void loadScalingFactorPrefs();
   void loadPacketsDropsAlertPrefs();
   void getnDPIFlowsCount(lua_State *vm);
@@ -573,7 +556,11 @@ class NetworkInterface : public Checkpointable {
   inline const char* getLocalIPAddresses()         { return(ip_addresses.c_str());    }
   void addInterfaceAddress(char *addr);
   inline int exec_sql_query(lua_State *vm, char *sql, bool limit_rows, bool wait_for_db_created = true) {
-    return(db ? db->exec_sql_query(vm, sql, limit_rows, wait_for_db_created) : -1);
+#ifdef HAVE_MYSQL
+    if(dynamic_cast<MySQLDB*>(db) != NULL)
+      return ((MySQLDB*)db)->exec_sql_query(vm, sql, limit_rows, wait_for_db_created);
+#endif
+    return(-1);
   };
   NetworkStats* getNetworkStats(u_int8_t networkId);
   void allocateNetworkStats();
@@ -591,9 +578,7 @@ class NetworkInterface : public Checkpointable {
 #endif
 
   void getFlowsStatus(lua_State *vm);
-  void startDBLoop() { if(db) db->startDBLoop(); };
-  inline bool createDBSchema()     { if(db) { return db->createDBSchema();     } return false;   };
-  inline bool createNprobeDBView() { if(db) { return db->createNprobeDBView(); } return false;   };
+  void startDBLoop()               { if(db) db->startDBLoop();                 };
 #ifdef NTOPNG_PRO
   inline void getFlowDevices(lua_State *vm) {
     if(flow_interfaces_stats) flow_interfaces_stats->luaDeviceList(vm); else lua_newtable(vm);
@@ -611,15 +596,16 @@ class NetworkInterface : public Checkpointable {
 
   void refreshHostsAlertPrefs(bool full_refresh);
   int updateHostTrafficPolicy(AddressTree* allowed_networks, char *host_ip, u_int16_t host_vlan);
-  int setHostDumpTrafficPolicy(AddressTree* allowed_networks, char *host_ip, u_int16_t host_vlan, bool dump_traffic_to_disk);
 
   void reloadHideFromTop(bool refreshHosts=true);
-  inline void reloadCustomCategories()       { reload_custom_categories = true; }
+  inline void requestReloadCustomCategories()       { reload_custom_categories = true; }
+  inline bool customCategoriesReloadRequested()     { return reload_custom_categories; }
   void reloadHostsBlacklist();
   bool isHiddenFromTop(Host *host);
   inline virtual bool areTrafficDirectionsSupported() { return(false); };
   inline virtual bool isView() { return(false); };
   bool getMacInfo(lua_State* vm, char *mac);
+  bool resetMacStats(lua_State* vm, char *mac, bool delete_data);
   bool setMacDeviceType(char *strmac, DeviceType dtype, bool alwaysOverwrite);
   bool setMacOperatingSystem(lua_State* vm, char *mac, OperatingSystem os);
   bool getASInfo(lua_State* vm, u_int32_t asn);
@@ -685,29 +671,29 @@ class NetworkInterface : public Checkpointable {
     if (host_pools) host_pools->decNumL2Devices(id, isInlineCall);
   };
   Host* findHostByIP(AddressTree *allowed_hosts, char *host_ip, u_int16_t vlan_id);
-  inline bool do_dump_unknown_traffic() { return(dump_unknown_traffic); }
-  inline bool do_dump_all_traffic()     { return(dump_unknown_traffic); }
 #ifdef HAVE_NINDEX
   NIndexFlowDB* getNindex();
 #endif
   inline TimeseriesExporter* getTSExporter() { if(!tsExporter) tsExporter = new TimeseriesExporter(this); return(tsExporter); }
-  inline uint32_t getMaxSpeed()              { return(ifSpeed); }
+  inline uint32_t getMaxSpeed()              { return(ifSpeed);     }
+  inline bool isLoopback()                   { return(is_loopback); }
+
   virtual void sendTermination()             { ; }
   virtual bool read_from_pcap_dump()         { return(false); };
+  virtual void updateDirectionStats()        { ; }
   void makeTsPoint(NetworkInterfaceTsPoint *pt);
   void tsLua(lua_State* vm);
-};
+#ifdef HAVE_EBPF
+  inline bool iseBPFEventAvailable() { return((ebpfEvents && (ebpfEvents[next_remove_idx] != NULL)) ? true : false); }
+  bool enqueueeBPFEvent(eBPFevent *event);
+  bool dequeueeBPFEvent(eBPFevent **event);
+  void delivereBPFEvent(eBPFevent *event);
+#endif
 
-class NetworkInterfaceTsPoint: public TimeseriesPoint {
- public:
-  nDPIStats ndpi;
-  LocalTrafficStats local_stats;
-  u_int hosts, local_hosts;
-  u_int devices, flows, http_hosts;
-  TcpPacketStats tcpPacketStats;
-  PacketStats packetStats;
-
-  virtual void lua(lua_State* vm, NetworkInterface *iface);
+#ifdef PROFILING
+  inline void profiling_section_enter(const char *label, int id) { PROFILING_SECTION_ENTER(label, id); };
+  inline void profiling_section_exit(int id) { PROFILING_SECTION_EXIT(id); };
+#endif
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */

@@ -1,3 +1,7 @@
+--
+-- (C) 2018 - ntop.org
+--
+
 dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/?.lua;" .. package.path
 if((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.scriptdir .. "/lua/modules/?.lua;" .. package.path end

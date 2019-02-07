@@ -2,16 +2,20 @@
 -- (C) 2013-18 - ntop.org
 --
 
-dirs = ntop.getDirs()
+local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 require "graph_utils"
+require "flow_utils"
+
+local page_utils = require("page_utils")
 
 local have_nedge = ntop.isnEdge()
 
 sendHTTPContentTypeHeader('text/html')
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
+
+page_utils.print_header(i18n("flows"))
 
 active_page = "flows"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
@@ -378,7 +382,7 @@ print[[
             textAlign: 'center'
          }
       }, {
-         title: "]] print(i18n("db_explorer.l4_proto")) print[[",
+         title: "]] print(i18n("protocol")) print[[",
          field: "column_proto_l4",
          sortable: true,
          css: {
@@ -451,36 +455,7 @@ print[[
 ]]
 
 if(have_nedge) then
-  print[[
-  var block_flow_csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
-
-  function block_flow(flow_key) {
-    var url = "]] print(ntop.getHttpPrefix()) print[[/lua/pro/nedge/block_flow.lua";
-    $.ajax({
-      type: 'GET',
-      url: url,
-      cache: false,
-      data: {
-        csrf: block_flow_csrf,
-        flow_key: flow_key
-      },
-      success: function(content) {
-        var data = jQuery.parseJSON(content);
-        block_flow_csrf = data.csrf;
-        if (data.status == "BLOCKED") {
-          $('#'+flow_key+'_info').find('.block-badge')
-            .removeClass('label-default')
-            .addClass('label-danger');
-          $('#'+flow_key+'_application, #'+flow_key+'_l4, #'+flow_key+'_client, #'+flow_key+'_server')
-            .css("text-decoration", "line-through");
-        }
-      },
-      error: function(content) {
-        console.log("error");
-      }
-    });
-  }
-  ]]
+  printBlockFlowJs()
 end
 
 print[[

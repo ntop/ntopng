@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-18 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -37,6 +37,7 @@ class Paginator {
   u_int8_t ip_version /* Either 4 or 6 */;
   int8_t unicast_traffic, unidirectional_traffic, alerted_flows, filtered_flows;
   u_int32_t asn_filter;
+  u_int32_t uid_filter, pid_filter;
   u_int32_t deviceIP;
   u_int16_t inIndex, outIndex;
   u_int16_t pool_filter;
@@ -123,6 +124,14 @@ class Paginator {
 
   inline bool asnFilter(u_int32_t *f) const {
     if(asn_filter != (u_int32_t)-1) { (*f) = asn_filter; return true; } return false;
+  }
+
+  inline bool uidFilter(u_int32_t *f) const {
+    if(uid_filter != NO_UID) { (*f) = uid_filter; return true; } return false;
+  }
+
+  inline bool pidFilter(u_int32_t *f) const {
+    if(pid_filter != NO_PID) { (*f) = pid_filter; return true; } return false;
   }
 
   inline bool unidirectionalTraffic(bool *f) const {

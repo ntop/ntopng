@@ -15,7 +15,7 @@ Prerequisites
 - libmysqlclient-dev
 
 On Ubuntu/Debian
-- apt-get install build-essential git bison flex libxml2-dev libpcap-dev libtool libtool-bin rrdtool librrd-dev autoconf pkg-config automake autogen redis-server wget libsqlite3-dev libhiredis-dev libmaxminddb-dev libcurl4-openssl-dev libpango1.0-dev libcairo2-dev libnetfilter-queue-dev zlib1g-dev libssl-dev libcap-dev libnetfilter-conntrack-dev
+- apt-get install build-essential git bison flex libxml2-dev libpcap-dev libtool libtool-bin rrdtool librrd-dev autoconf pkg-config automake autogen redis-server wget libsqlite3-dev libhiredis-dev libmaxminddb-dev libcurl4-openssl-dev libpango1.0-dev libcairo2-dev libnetfilter-queue-dev zlib1g-dev libssl-dev libcap-dev libnetfilter-conntrack-dev libreadline-dev
 
 On Debian 9 you need to do
 - apt-get install libpng-dev libzmq5-dev default-libmysqlclient-dev
@@ -31,13 +31,13 @@ On Debian/Ubuntu if you plan to build packages you should also install
 
 On Fedora/CentOS
 - yum groupinstall "Development tools"
-- yum install git autoconf automake autogen bison flex libpcap-devel libmaxminddb-devel hiredis-devel redis glib2-devel libxml2-devel sqlite-devel gcc-c++ libtool wget libcurl-devel pango-devel cairo-devel libpng-devel mysql-devel libnetfilter_queue-devel zlib-devel which libcap-devel
+- yum install git autoconf automake autogen bison flex libpcap-devel libmaxminddb-devel hiredis-devel redis glib2-devel libxml2-devel sqlite-devel gcc-c++ libtool wget libcurl-devel pango-devel cairo-devel libpng-devel mysql-devel libnetfilter_queue-devel zlib-devel which libcap-devel readline-devel zeromq-devel
 
 On MacOSX (using http://brew.sh)
-brew install redis hiredis autoconf automake libtool rrdtool wget pkg-config git mysql lua
+brew install redis hiredis autoconf automake libtool rrdtool wget pkg-config git mysql
 
 On MacOSX (using mac ports)
-port install redis hiredis autoconf automake libtool rrdtool wget pkgconfig git lua
+port install redis hiredis autoconf automake libtool rrdtool wget pkgconfig git
 
 On FreeBSD
 See README.FreeBSD

@@ -7,9 +7,11 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 
+local page_utils = require("page_utils")
+
 sendHTTPContentTypeHeader('text/html')
 
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
+page_utils.print_header()
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
@@ -66,7 +68,7 @@ print [[
 			     }
 				 },
 			     {
-			     title: "]] print(i18n("details.l4_proto")) print[[",
+			     title: "]] print(i18n("protocol")) print[[",
 				 field: "column_proto_l4",
 				 sortable: true,
 	 	             css: {

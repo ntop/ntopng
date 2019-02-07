@@ -29,7 +29,7 @@ end
 function rrd_dump.asn_update_rrds(when, ifstats, verbose)
   local asn_info = interface.getASesInfo({detailsLevel = "higher"})
 
-  for _, asn_stats in ipairs(asn_info["ASes"]) do
+  for _, asn_stats in pairs(asn_info["ASes"]) do
     local asn = asn_stats["asn"]
 
     -- Save ASN bytes
@@ -55,7 +55,7 @@ end
 function rrd_dump.country_update_rrds(when, ifstats, verbose)
   local countries_info = interface.getCountriesInfo({detailsLevel = "higher", sortColumn = "column_country"})
 
-  for _, country_stats in ipairs(countries_info["Countries"] or {}) do
+  for _, country_stats in pairs(countries_info["Countries"] or {}) do
     local country = country_stats.country
 
     ts_utils.append("country:traffic", {ifid=ifstats.id, country=country,
@@ -176,7 +176,7 @@ function rrd_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
             as_client=host["contacts.as_client"], as_server=host["contacts.as_server"]}, when, verbose)
 
   -- L4 Protocols
-  for id, _ in ipairs(l4_keys) do
+  for id, _ in pairs(l4_keys) do
     k = l4_keys[id][2]
     if((host[k..".bytes.sent"] ~= nil) and (host[k..".bytes.rcvd"] ~= nil)) then
       ts_utils.append("host:l4protos", {ifid=ifstats.id, host=hostname,
@@ -190,17 +190,21 @@ end
 
 function rrd_dump.host_update_ndpi_rrds(when, hostname, host, ifstats, verbose)
   -- nDPI Protocols
-  for k in pairs(host["ndpi"] or {}) do
+  for k, value in pairs(host["ndpi"] or {}) do
+    local sep = string.find(value, "|")
+    local bytes_sent = string.sub(value, 1, sep-1)
+    local bytes_rcvd = string.sub(value, sep+1)
+
     ts_utils.append("host:ndpi", {ifid=ifstats.id, host=hostname, protocol=k,
-              bytes_sent=host["ndpi"][k]["bytes.sent"], bytes_rcvd=host["ndpi"][k]["bytes.rcvd"]}, when, verbose)
+              bytes_sent=bytes_sent, bytes_rcvd=bytes_rcvd}, when, verbose)
   end
 end
 
 function rrd_dump.host_update_categories_rrds(when, hostname, host, ifstats, verbose)
   -- nDPI Protocol CATEGORIES
-  for k, cat in pairs(host["ndpi_categories"] or {}) do
+  for k, bytes in pairs(host["ndpi_categories"] or {}) do
     ts_utils.append("host:ndpi_categories", {ifid=ifstats.id, host=hostname, category=k,
-              bytes=cat["bytes"]}, when, verbose)
+              bytes=bytes}, when, verbose)
   end
 end
 
@@ -243,6 +247,8 @@ function rrd_dump.run_5min_dump(_ifname, ifstats, config, when, time_threshold, 
     -- will scan the hosts alerts below
   end
 
+  local dump_tstart = os.time()
+
   -- Save hosts stats (if enabled from the preferences)
   if (is_rrd_creation_enabled and (config.host_rrd_creation ~= "0")) or are_alerts_enabled then
     local in_time = callback_utils.foreachLocalRRDHost(_ifname, time_threshold, is_rrd_creation_enabled, function (hostname, host_ts)
@@ -275,7 +281,7 @@ function rrd_dump.run_5min_dump(_ifname, ifstats, config, when, time_threshold, 
     end
   end
 
-  --tprint("Dump of ".. num_processed_hosts .. ": completed in " .. (os.time() - when) .. " seconds")
+  --tprint("Dump of ".. num_processed_hosts .. " hosts: completed in " .. (os.time() - dump_tstart) .. " seconds")
 
   if is_rrd_creation_enabled then
     if config.l2_device_rrd_creation ~= "0" then

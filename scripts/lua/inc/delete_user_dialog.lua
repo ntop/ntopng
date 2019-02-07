@@ -21,12 +21,9 @@ print [[
 
   <form id="form_delete_user" class="form-horizontal" method="post" action="delete_user.lua">
 			      ]]
-print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+print('<input name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 
 local location_href = ntop.getHttpPrefix().."/lua/admin/users.lua"
-if is_captive_portal_active and _GET["captive_portal_users"] ~= nil then
-   location_href = location_href.."?captive_portal_users=1"
-end
 
 print [[
     <input id="delete_dialog_username" type="hidden" name="username" value="" />

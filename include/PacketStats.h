@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-18 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -35,6 +35,7 @@ class PacketStats {
  public:
   PacketStats();
 
+  void resetStats();
   void incFlagStats(u_int8_t flags);
   void incStats(u_int pkt_len);
   char* serialize();

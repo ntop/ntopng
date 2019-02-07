@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-18 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -55,6 +55,7 @@ class Ntop {
   Logstash *logstash; /**< Pointer of Logstash. */
   ExportInterface *export_interface;
 #endif
+  TimelineExtract *extract;
   PeriodicActivities *pa; /**< Instance of periodical activities. */
   AddressResolution *address;
   Prefs *prefs;
@@ -63,6 +64,7 @@ class Ntop {
   void *trackers_automa;
   long time_offset;
   time_t start_time; /**< Time when start() was called */
+  time_t last_stats_reset;
   int udp_socket;
   NtopPro *pro;
   DeviceProtocolBitmask deviceProtocolPresets[device_max_type];
@@ -73,11 +75,10 @@ class Ntop {
 #endif
   FlowChecker *flow_checker;
 #endif
-  AddressTree *hostBlacklist, *hostBlacklistShadow;
 
   void loadLocalInterfaceAddress();
-
   void initAllowedProtocolPresets();
+  bool checkUserPassword(const char * const user, const char * const password, char *group, bool *localuser) const;
 
  public:
   /**
@@ -156,7 +157,7 @@ class Ntop {
    *
    * @param dir Path to database home directory.
    */
-  void loadGeolocation(char *dir);
+  void loadGeolocation(const char * const dir);
   /**
    * @brief Load the @ref MacManufacturers module.
    * @details Initialize the variable @ref dir with the input directory.
@@ -227,24 +228,32 @@ class Ntop {
    * @param id Index of ifName.
    * @return ....
    */
-  inline char* get_if_name(int id)                   { return(prefs->get_if_name(id));     };
-  inline char* get_if_descr(int id)                  { return(prefs->get_if_descr(id));    };
-  inline char* get_data_dir()                        { return(prefs->get_data_dir());      };
-  inline char* get_callbacks_dir()                   { return(prefs->get_callbacks_dir()); };
+  inline char* get_if_name(int id)                         { return(prefs->get_if_name(id));     };
+  inline const char* get_if_descr(int id)                  { return(prefs->get_if_descr(id));    };
+  inline char* get_data_dir()                              { return(prefs->get_data_dir());      };
+  inline const char* get_callbacks_dir()                   { return(prefs->get_callbacks_dir()); };
   /**
    * @brief Get the current httpdocs directory.
    *
    * @return The absolute path of the httpdocs directory.
    */
-  inline char* get_docs_dir()                     { return(prefs->get_docs_dir());      };
+  inline const char* get_docs_dir()                     { return(prefs->get_docs_dir());      };
 
   /**
    * @brief Register the network interface.
    * @details Check for duplicated interface and add the network interface in to @ref iface.
    *
    * @param i Network interface.
+   * @return true on success, false otherwise
    */
-  void registerInterface(NetworkInterface *i);
+  bool registerInterface(NetworkInterface *i);
+
+  /**
+   * @brief Finalize the network interface initialization.
+   *
+   * @param i Network interface.
+   */
+  void initInterface(NetworkInterface *i);
 
   /**
    * @brief Get the number of defined network interfaces.
@@ -364,9 +373,8 @@ class Ntop {
   inline NtopGlobals*      getGlobals()              { return(globals); };
   inline Trace*            getTrace()                { return(globals->getTrace()); };
   inline Redis*            getRedis()                { return(redis);               };
+  inline TimelineExtract*  getTimelineExtract()      { return(extract); };
 #ifndef HAVE_NEDGE
-  inline ElasticSearch*    getElasticSearch()        { return(elastic_search);      };
-  inline Logstash*         getLogstash()             { return(logstash);            };
   inline ExportInterface*  get_export_interface()    { return(export_interface);    };
 #endif
 
@@ -381,12 +389,15 @@ class Ntop {
 #endif
 
   void getUsers(lua_State* vm);
-  void getUserGroup(lua_State* vm);
+  bool isUserAdministrator(lua_State* vm);
   void getAllowedNetworks(lua_State* vm);
   bool getInterfaceAllowed(lua_State* vm, char *ifname)         const;
   bool isInterfaceAllowed(lua_State* vm, const char *ifname)    const;
   bool isInterfaceAllowed(lua_State* vm, int ifid)              const;
-  bool checkUserPassword(const char * const user, const char * const password) const;
+  bool isLocalUser(lua_State* vm);
+  bool checkCaptiveUserPassword(const char * const user, const char * const password, char *group) const;
+  bool checkGuiUserPassword(struct mg_connection *conn, const char * const user, const char * const password, char *group, bool *localuser) const;
+  bool isBlacklistedLogin(struct mg_connection *conn) const;
   bool checkUserInterfaces(const char * const user)             const;
   bool resetUserPassword(char *username, char *old_password, char *new_password);
   bool mustChangePassword(const char *user);
@@ -395,6 +406,7 @@ class Ntop {
   bool changeAllowedIfname(char *username, char *allowed_ifname) const;
   bool changeUserHostPool(const char * const username, const char * const host_pool_id) const;
   bool changeUserLanguage(const char * const username, const char * const language) const;
+  bool existsUser(const char * const username) const;
   bool addUser(char *username, char *full_name, char *password, char *host_role,
 	       char *allowed_networks, char *allowed_ifname, char *host_pool_id,
 	       char *language);
@@ -413,6 +425,7 @@ class Ntop {
   void shutdown();
   void shutdownAll();
   void runHousekeepingTasks();
+  void runShutdownTasks();
   bool isLocalInterfaceAddress(int family, void *addr)       { return(local_interface_addresses.findAddress(family, addr) == -1 ? false : true);    };
   inline char* getLocalNetworkName(int16_t local_network_id) {
     return(address->get_local_network((u_int8_t)local_network_id));
@@ -420,7 +433,7 @@ class Ntop {
   void getLocalNetworkIp(int16_t local_network_id, IpAddress **network_ip, u_int8_t *network_prefix);
   inline void addLocalNetwork(const char *network)           { address->setLocalNetwork((char*)network); }
   void createExportInterface();
-  void initNetworkInterfaces();
+  void resetNetworkInterfaces();
   void initElasticSearch();
   void initLogstash(); 
 
@@ -438,10 +451,6 @@ class Ntop {
   inline u_int8_t getNumLocalNetworks()       { return(address->getNumLocalNetworks()); };
   void loadTrackers();
   bool isATrackerHost(char *host);
-  void allocHostBlacklist();
-  void swapHostBlacklist();
-  void addToHostBlacklist(char *net);
-  bool isBlacklistedIP(IpAddress *ip);
   bool isExistingInterface(const char * const name) const;
   inline NetworkInterface* getFirstInterface() { return(iface[0]);         }
   inline NetworkInterface* getInterface(int i) { return(((i < num_defined_interfaces) && iface[i]) ? iface[i] : NULL); }
@@ -449,12 +458,18 @@ class Ntop {
   bool addToNotifiedInformativeCaptivePortal(u_int32_t client_ip);
   bool addIPToLRUMatches(u_int32_t client_ip, u_int16_t user_pool_id,
 			 char *label, int32_t lifetime_secs, char *ifname);
+#ifdef HAVE_EBPF
+  void deliverEventToInterfaces(eBPFevent *event);
+#endif
 #endif /* NTOPNG_PRO */
   
   DeviceProtocolBitmask* getDeviceAllowedProtocols(DeviceType t) { return(&deviceProtocolPresets[t]); }
   void refreshAllowedProtocolPresets(DeviceType t, bool client, lua_State *L, int index);
+  DeviceProtoStatus getDeviceAllowedProtocolStatus(DeviceType dev_type, ndpi_protocol proto, u_int16_t pool_id, bool as_client);
 
   void sendNetworkInterfacesTermination();
+  inline time_t getLastStatsReset() { return(last_stats_reset); }
+  void resetStats();
 };
 
 extern Ntop *ntop;

@@ -5,11 +5,6 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
-if(ntop.isPro()) then
-  package.path = dirs.installdir .. "/pro/scripts/callbacks/interface/?.lua;" .. package.path
-  pcall(require, '5min')
-end
-
 require "lua_utils"
 local ts_utils = require("ts_utils_core")
 local rrd_dump = require "rrd_5min_dump_utils"

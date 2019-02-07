@@ -1,80 +1,26 @@
-LDAP authentication can be enabled from the ntopng preferences page.
+# OpenLDAP as Active Directory proxy
 
-By default, authentication is set to 'Local', meaning that
-local ntopng users are used instead of those found in LDAP.
+When using the sAMAccount account type in combination with OpenLDAP as an Active Directory proxy,
+the ntopng auth will not work because the "memberOf" attribute used by ntopng is not found.
+In fact, OpenLDAP does not understand the "memberOf" attribute of AD and so it creates a
+MEMBEROF (uppercase) pseudo attribute, which is not standard.
 
-To enable LDAP authentication there are two options, namely LDAP and
-LDAP/Local. The latter tries LDAP authentication and, in case of
-failure, it resorts to the local ntopng authentication. The former
-simply tires LDAP authentication without resorting to the local ntopng
-authentication upon failure.
+In order to make this setup work properly, the following should be added to the OpenLDAP config:
 
-LDAP/Local authentication may be useful, for example, to prevent
-possible locked-out situations determined by connectivity issues of
-the LDAP server. An administrator can configure a local ntopng
-'recovery' user that will be used automatically in case the LDAP
-server is not reachable.
-
-LDAP authentication parameters are discussed below.
-
-* LDAP Accounts Type
-Allows to choose between 'Posix' and 'sAMAccount'.
-
-* LDAP Server Address
-Specifies LDAP server host IP address and port. Both LDAP and LDAPS
-are handled. Examples are:
-    ldap://192.168.1.1:389
-    ldaps://192.168.1.1:636
-Ports 389 and 636 are the default ports for ldap and ldaps, respectively.
-
-* LDAP Anonymous Binding
-An LDAP server, during the binding phase, can request binding
-credential to the client.
-If no binding credentials are requested by the server, then the field
-"LDAP Anonymous Binding" has to be set to "on". Alternatively, if the
-binding credentials are required, then the field must be set to "off"
-and two additional fields have to be provided, namely "LDAP Bind DN"
-and "LDAP Bind Authentication Password".
-
-* LDAP Bind DN
-In case "LDAP Anonymous Binding" is disabled, then this option
-has to be specified and contains Bind Distinguished Names (DN).
-An example is:
-cn=admin,dc=example,dc=com
-
-* LDAP Bind Authentication Password
-In case "LDAP Anonymous Binding" is disabled, a binding password has
-to be provided in this field.
-
-* LDAP Search Path
-The "LDAP Search Path" indicates the root of the tree among which
-users and groups are searched. 
-An example is:
-dc=example,dc=com
-Assuming the field is populated with the example above, then an
-hypothetical user "foo" will be searched in the subtress having root
-dc=example,dc=com.
-
-* LDAP User Group
-This field specifies the group that contains users without
-administrative privileges. This field has to be composed of a simple
-identification string, e.g., "usersGroup". This resource will be
-searched in the subtrees rooted at "LDAP Search Path". Users that
-belong to this group will be able to use ntopng without
-administrative privileges.
-
-* LDAP Admin Group
-The same description of "LDAP User Group" applies, with the only
-difference that users belonging to this group will be able to use
-ntopng with administrative privileges.
-
+```
+attributetype ( 1.2.840.113556.1.2.102
+  NAME 'memberOf'
+  SYNTAX '1.3.6.1.4.1.1466.115.121.1.12'
+)
+```
 
 *IMPORTANT*
 
 When using Posix accounts, the LDAP server should be configured as follows in order
 to work correctly with ntopng:
 
-- Into the LDAP user configuration, note down the "uid" parameter. You will it it below.
+- Into the LDAP user configuration, note down the "uid" parameter (called "User Name"
+  in OpenLDAP, not to be confused with "UidNumber"). You will need it below.
 
 - Into the LDAP group configuration, you should add a new custom field "memberUid", with
   the same value of the user "uid" field above.
@@ -82,3 +28,5 @@ to work correctly with ntopng:
 As an example, supposing there is a group "usersGroup" and a user "ntopngUser" as uid,
 a new field "memberUid" should be added to the "usersGroup" configuration with "ntopngUser" as
 value.
+
+The *memberUid* (ntopngUser in this case) is the username to use for the ntopng authentication.

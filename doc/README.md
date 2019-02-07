@@ -50,7 +50,7 @@ Accessing ntopng URLs from command line tools (no web browser)
 You need to specify the user and password as specified below (please note the space in the cookie).
 Note that you can optionally also specify the interface name.
 
-`curl --cookie "user=admin; password=admin" "http://127.0.0.1:3000/lua/network_load.lua?ifname=en0"`
+`curl --cookie "user=admin; password=admin" "http://127.0.0.1:3000/lua/rest/get/interface/data.lua?ifid=0"`
 
 
 Using ntopng from Windows
@@ -65,13 +65,10 @@ The ntopng default user is 'admin' (without `'`) and the default
 password is also 'admin' (without `'`)
 
 
-Resetting admin user password
------------------------------
-1. shutdown ntopng
-2. run `redis-cli del ntopng.user.admin.password`
-3. delete file `runtimeprefs.json` from the ntopng data directory
-4. restart ntopng and now the admin password has been reset
+Unable to Login
+---------------
 
+Check out https://www.ntop.org/guides/ntopng/faq.html#cannot-login-into-the-gui
 
 Running multiple ntopng instances on the same host
 --------------------------------------------------

@@ -8,6 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 
 local discover = require "discover_utils"
+local page_utils = require("page_utils")
 local ifId = getInterfaceId(ifname)
 local refresh_button = '<small><a href="'..ntop.getHttpPrefix()..'/lua/discover.lua?request_discovery=true" title="Refresh"><i class="fa fa-refresh fa-sm" aria-hidden="true"></i></a></small>'
 
@@ -23,15 +24,19 @@ local manuf_filter = _GET["manufacturer"]
 local devtype_filter = _GET["device_type"]
 local base_url = ntop.getHttpPrefix() .. "/lua/discover.lua"
 local page_params = {}
+local title = {operating_system = '', manufacturer = '', device_type = ''}
 
 if(not isEmptyString(os_filter)) then
    page_params.operating_system = os_filter
+   title.operating_system = getOperatingSystemName(tonumber(os_filter))
 end
 if(not isEmptyString(manuf_filter)) then
    page_params.manufacturer = manuf_filter
+   title.manufacturer = manuf_filter
 end
 if(not isEmptyString(devtype_filter)) then
    page_params.device_type = devtype_filter
+   title.device_type = discover.devtype2string(devtype_filter)
 end
 
 local discovery_requested = discover.networkDiscoveryRequested(ifId)
@@ -41,11 +46,13 @@ if discovery_requested then
 end
 
 sendHTTPContentTypeHeader('text/html')
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
+
+page_utils.print_header(i18n("discover.network_discovery"))
+
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 -- print('<hr><H2>'..i18n("discover.network_discovery")..'&nbsp;</H2><br>')
-print('<hr><H2>'..i18n("discover.network_discovery")..'&nbsp;'..refresh_button..'</H2><br>')
+print('<hr><H2>'..i18n("discover.discovered_devices", {sys = title.operating_system, manuf = title.manufacturer, dev = title.device_type})..'&nbsp;'..refresh_button..'</H2><br>')
 
 local discovered = discover.discover2table(ifname)
 local manufactures = {}
@@ -192,7 +199,7 @@ elseif discovered["status"]["code"] == "OK" then -- everything is ok
          columns: [{
             title: "]] print(i18n("ip_address")) print[[",
             field: "column_ip",
-            //sortable: "true", /* cannot sort ip right now */
+            sortable: "true",
          }, {
             title: "]] print(i18n("name")) print[[",
             field: "column_name",

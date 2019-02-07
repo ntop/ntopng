@@ -15,6 +15,7 @@ local perPage      = _GET["perPage"]
 local sortColumn   = _GET["sortColumn"]
 local sortOrder    = _GET["sortOrder"]
 local proto_filter = _GET["l7proto"]
+local category_filter = _GET["category"]
 
 local sortPrefs = "ndpi_application_category"
 
@@ -50,6 +51,10 @@ else
 end
 
 interface.select(ifname)
+
+if category_filter ~= nil and starts(category_filter, "cat_") then
+   category_filter = split(category_filter, "cat_")[2]
+end
 
 local to_skip = (currentPage-1) * perPage
 
@@ -96,6 +101,12 @@ for app, _ in pairsByValues(sorter, sOrder) do
      if tostring(app["app_id"]) ~= proto_filter then
        goto continue
      end
+   end
+
+   if not isEmptyString(category_filter) then
+      if tostring(app.cat.id) ~= category_filter then
+       goto continue
+      end
    end
 
    cur_num = cur_num + 1

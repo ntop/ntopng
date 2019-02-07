@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-18 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -62,6 +62,7 @@
 #include <netinet/tcp.h>
 #include <netinet/udp.h>
 #include <netinet/ip_icmp.h>
+#include <netinet/icmp6.h>
 #include <unistd.h>
 #include <netdb.h>
 #include <sys/ioctl.h>
@@ -89,6 +90,10 @@
 #include <zmq.h>
 #include <assert.h>
 #include <fcntl.h>
+#include <grp.h>
+#ifdef HAVE_TEST_MODE
+#include <libgen.h>
+#endif
 #if defined(linux)
 #include <linux/ethtool.h> // ethtool
 #include <linux/sockios.h> // sockios
@@ -109,12 +114,7 @@ extern "C" {
 #endif
 
 #include "ndpi_main.h"
-#ifdef DONT_USE_LUAJIT
 #include "lua.h"
-#else
-#include "lj_obj.h"
-#include "luajit.h"
-#endif
 #include "lauxlib.h"
 #include "lualib.h"
 #ifdef HAVE_PF_RING
@@ -151,9 +151,14 @@ extern "C" {
 #endif
 };
 
+#ifdef HAVE_EBPF
+#include "ebpf_flow.h"
+#endif
+
 #include <fstream>
 #include <map>
 #include <set>
+#include <algorithm>
 #include <vector>
 #include <list>
 #include <iostream>
@@ -169,6 +174,9 @@ using namespace std;
 #include "ntop_defines.h"
 #include "Mutex.h"
 #include "RwLock.h"
+#include "MonitoredMetric.h"
+#include "MonitoredCounter.h"
+#include "MonitoredGauge.h"
 #include "MDNS.h"
 #include "AddressTree.h"
 #include "VlanAddressTree.h"
@@ -207,16 +215,19 @@ using namespace std;
 #include "FrequentTrafficItems.h"
 #include "HostPools.h"
 #include "Prefs.h"
+#include "ProtoStats.h"
 #include "Utils.h"
+#include "CommunityIdFlowHash.h"
 #include "DnsStats.h"
 #include "NetworkStats.h"
+#ifndef HAVE_NEDGE
 #include "SNMP.h"
+#endif
 #include "NetworkDiscovery.h"
 #include "ICMPstats.h"
 #include "Grouper.h"
 #include "FlowGrouper.h"
 #include "PacketStats.h"
-#include "ProtoStats.h"
 #include "TcpPacketStats.h"
 #include "EthStats.h"
 
@@ -224,6 +235,7 @@ using namespace std;
 #include "PacketDumperGeneric.h"
 #include "PacketDumper.h"
 #include "PacketDumperTuntap.h"
+#include "TimelineExtract.h"
 #include "TcpFlowStats.h"
 #include "StoreManager.h"
 #include "StatsManager.h"
@@ -237,6 +249,10 @@ using namespace std;
 #if defined(NTOPNG_PRO) && defined(HAVE_NINDEX)
 #include "nindex_api.h"
 #endif
+#ifdef HAVE_RADIUS
+#include <radcli/radcli.h>
+#endif
+
 
 #include "TimeseriesPoint.h"
 #include "TimeseriesRingStatus.h"
@@ -244,6 +260,8 @@ using namespace std;
 #include "TimeseriesExporter.h"
 #include "TimeseriesRing.h"
 #include "HostTimeseriesPoint.h"
+#include "SPSCQueue.h"
+#include "NetworkInterfaceTsPoint.h"
 #include "NetworkInterface.h"
 #ifndef HAVE_NEDGE
 #include "PcapInterface.h"
@@ -253,6 +271,7 @@ using namespace std;
 #include "PF_RINGInterface.h"
 #endif
 #include "AlertCounter.h"
+#include "FlowAlertCounter.h"
 #include "GenericHash.h"
 #include "VirtualHost.h"
 #include "VirtualHostHash.h"
@@ -274,7 +293,6 @@ using namespace std;
 #include "BatchedMySQLDB.h"
 #include "BatchedMySQLDBEntry.h"
 #endif
-#include "SPSCQueue.h"
 #include "LuaHandler.h"
 #ifndef WIN32
 #include "NagiosManager.h"
@@ -299,7 +317,10 @@ using namespace std;
 #include "Vlan.h"
 #include "AutonomousSystem.h"
 #include "Country.h"
+#include "MacStats.h"
 #include "Mac.h"
+#include "HostStats.h"
+#include "LocalHostStats.h"
 #include "Host.h"
 #include "LocalHost.h"
 #include "RemoteHost.h"

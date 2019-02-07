@@ -58,6 +58,10 @@
 #endif
 #endif
 
+#ifndef min
+#define min(a, b)  ((b < a) ? b : a)
+#endif
+
 zmq::tcp_connecter_t::tcp_connecter_t (class io_thread_t *io_thread_,
       class session_base_t *session_, const options_t &options_,
       address_t *addr_, bool delayed_start_) :
@@ -207,7 +211,7 @@ int zmq::tcp_connecter_t::get_new_reconnect_ivl ()
         options.reconnect_ivl_max > options.reconnect_ivl)
         //  Calculate the next interval
         current_reconnect_ivl =
-            std::min (current_reconnect_ivl * 2, options.reconnect_ivl_max);
+            min (current_reconnect_ivl * 2, options.reconnect_ivl_max);
     return interval;
 }
 

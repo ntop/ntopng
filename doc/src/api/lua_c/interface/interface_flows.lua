@@ -42,7 +42,3 @@ function interface.findFlowByKey(int key)
 --! @note this is only effective when running in inline mode.
 function interface.dropFlowTraffic(int key)
 
---! @brief Enable or disable an active flow traffic dump to disk.
---! @param key the flow key.
---! @param enable or disable the dump.
-function interface.dumpFlowTraffic(int key, int enable)

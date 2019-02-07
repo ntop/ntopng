@@ -56,6 +56,7 @@ binary-arch: build install
 		cp ../etc/ntopng/nedge.conf  ./debian/@APP@/etc/ntopng/ntopng.conf; \
 		cp ../../pro/nedge/tools/nedge_pinger  ./debian/@APP@/usr/bin; \
 		cp ../../pro/nedge/tools/nedge_pinger.service  ./debian/@APP@/etc/systemd/system; \
+		mv ./debian/@APP@/usr/bin/ntopng ./debian/@APP@/usr/bin/nedge; \
 	fi
 	rm -rf ./debian/@APP@/etc/ntopng/nedge.conf
 	rm -rf ./debian/@APP@/usr/share/ntopng/httpdocs/geoip/*.dat

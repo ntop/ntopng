@@ -338,6 +338,10 @@ tr.quotas > td {
   min-width: 7em;
 }
 
+#chart1-flows td:last-child a:not(:first-child) {
+  margin-left: 5px;
+}
+
 /* NOTE: this is commented to avoid highliting overlapping line issues due to
  * curves interpolation.
 */
@@ -367,12 +371,30 @@ tr.quotas > td {
 }
 
 .zoom-reset {
-  margin-right: 90px;
+  margin-right: 8px;
   font-size: 0.75em;
 }
 
 .zoom-reset:hover, .zoom-reset:focus {
   outline:0 !important;
+}
+
+.chart-action-buttons button:not(:first-child) {
+  margin-left: 5px;
+}
+
+.chart-action-buttons button {
+  margin-top: 2px;
+}
+
+.ntop-progress-stacked {
+  width: 400px;
+}
+
+
+/* ntop fix: Keep old behaviour after commit https://github.com/twbs/bootstrap/commit/a15c24410be8b94671dcfc3b154e0034a3aaf35f */
+.form-inline .input-group .input-group-addon {
+  width: 1% !important;
 }
 
 /* Hide second axis completely */
@@ -392,3 +414,50 @@ tr.quotas > td {
   left: auto !important;
   right: 0;
 }
+
+.dialog-body-full-height {
+  padding: 15px;
+  padding-bottom: 0;
+}
+
+.label-empty {
+  background-color: #EFEFEF !important;
+}
+
+.stacked-progress-legend {
+  margin-top: 4px;
+}
+
+.stacked-progress-legend > span span:not(:first-child) {
+  font-size: 0.8em;
+  margin-left: 3px;
+}
+
+.stacked-progress-legend > span:not(:first-child) {
+  margin-left: 20px;
+}
+
+/* CSS for eBPF process charts */
+.link {
+  fill: none;
+  stroke: #666;
+  stroke-width: 1.5px;
+}
+
+.link.proc2host {
+  stroke-dasharray: 0,2 1;
+}
+
+.ebpf_circle {
+  fill: #ccc;
+  stroke: #333;
+  stroke-width: 1.5px;
+}
+
+.ebpf_text {
+  font: 10px sans-serif;
+  pointer-events: none;
+  text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, 0 -1px 0 #fff, -1px 0 0 #fff;
+}
+
+/* end of CSS for EBPF charts */

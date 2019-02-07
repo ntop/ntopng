@@ -8,6 +8,8 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 require "graph_utils"
 
+local page_utils = require("page_utils")
+
 page        = _GET["page"]
 hosts_ip     = _GET["hosts"]
 
@@ -23,15 +25,15 @@ show_aggregation = true
 
 active_page = "hosts"
 sendHTTPContentTypeHeader('text/html')
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
-dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
+page_utils.print_header()
+
+dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 if(hosts_ip == nil) then
    print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> "..i18n("hosts_comparison.hosts_parameter_missing_message").."</div>")
    return
 end
-
 
 print [[
   <nav class="navbar navbar-default" role="navigation">
@@ -68,10 +70,10 @@ else
 end
 
 if(page == "ndpi") then
-  print("<li class=\"active\"><a href=\"#\">"..i18n("protocols").."</a></li>\n")
+  print("<li class=\"active\"><a href=\"#\">"..i18n("applications").."</a></li>\n")
 else
    if(active_ndpi) then
-      print("<li><a href=\""..url.."&page=ndpi\">"..i18n("protocols").."</a></li>")
+      print("<li><a href=\""..url.."&page=ndpi\">"..i18n("applications").."</a></li>")
    end
 end
 
@@ -95,7 +97,7 @@ if(show_aggregation) then
 ]]
 
 print('<li><a  href="'..url .. '&aggregation=ndpi">'.. i18n("application") ..'</a></li>\n')
-print('<li><a  href="'..url .. '&aggregation=l4proto">'.. i18n("flows_page.l4_proto") ..'</a></li>\n')
+print('<li><a  href="'..url .. '&aggregation=l4proto">'.. i18n("protocol") ..'</a></li>\n')
 print('<li><a  href="'..url .. '&aggregation=port">'.. i18n("port") ..'</a></li>\n')
 print [[
   </ul>
@@ -152,7 +154,7 @@ if(show_aggregation) then
   <button id="aggregation_bubble_displayed" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown">]] print(i18n("aggregation")) print[[ <span class="caret"></span></button>
   <ul class="dropdown-menu" id="aggregation_bubble">
     <li><a>]] print(i18n("application")) print[[</a></li>
-    <li><a>]] print(i18n("l4_protocol")) print[[</a></li>
+    <li><a>]] print(i18n("protocol")) print[[</a></li>
     <li><a>]] print(i18n("port")) print[[</a></li>
   </ul>
 </div><!-- /btn-group -->

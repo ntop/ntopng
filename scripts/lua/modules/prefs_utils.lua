@@ -44,10 +44,13 @@ DNS_PRESETS = {
   --{id="greenteam_internet", label="GreenTeam Internet", url="http://members.greentm.co.uk/", primary_dns="81.218.119.11", secondary_dns="209.88.198.133"},
   {id="opendns", label="OpenDNS", url="https://www.opendns.com/", primary_dns="208.67.222.222", secondary_dns="208.67.220.220"},
   {id="opendns_familyshield", label="OpenDNS - FamilyShield", url="https://www.opendns.com/setupguide/?url=familyshield", primary_dns="208.67.222.123", secondary_dns="208.67.220.123", child_safe=true},
-  {id="norton_connectsafe", label="Norton ConnectSafe: Security", url="https://dns.norton.com/configureRouter.html", primary_dns="199.85.126.10", secondary_dns="199.85.127.10"},
-  {id="norton_security_pornography", label="Norton ConnectSafe: Security + Pornography", url="https://dns.norton.com/", primary_dns="199.85.126.20", secondary_dns="199.85.127.20", child_safe=true},
-  {id="norton_security_other", label="Norton ConnectSafe: Security + Other", url="https://dns.norton.com/", primary_dns="199.85.126.30", secondary_dns="199.85.127.30"},
   {id="quad9_security", label="Quad 9: Security", url="https://quad9.net", primary_dns="9.9.9.9", secondary_dns=""},
+  {id="google", label="Google DNS", url="https://developers.google.com/speed/public-dns", primary_dns="8.8.8.8", secondary_dns="8.8.4.4"},
+  {id="cloudflare", label="Cloudflare DNS", url="https://www.cloudflare.com/learning/dns/what-is-1.1.1.1", primary_dns="1.1.1.1", secondary_dns="1.0.0.1"},
+  {id="cleanbrowsing_security", label="CleanBrowsing - Security", url="https://cleanbrowsing.org",  primary_dns="185.228.168.9", secondary_dns="185.228.169.9"},
+  {id="cleanbrwosing_adult", label="CleanBrowsing - Adult Filter", url="https://cleanbrowsing.org",  primary_dns="185.228.168.168", secondary_dns="185.228.169.168", child_safe=true},
+  {id="yandex_safe", label="Yandex - Safe", url="https://dns.yandex.com", primary_dns="77.88.8.88", secondary_dns="77.88.8.2"},
+  {id="yandex_family", label="Yandex - Family", url="https://dns.yandex.com", primary_dns="77.88.8.7", secondary_dns="77.88.8.3", child_safe=true},
 }
 
 function isSubpageAvailable(subpage, show_advanced_prefs)
@@ -66,9 +69,9 @@ function isSubpageAvailable(subpage, show_advanced_prefs)
   return true
 end
 
-local subpage_active = nil
-
 function prefsGetActiveSubpage(show_advanced_prefs, tab)
+  local subpage_active = nil
+
   for _, subpage in ipairs(menu_subpages) do
     if not isSubpageAvailable(subpage, show_advanced_prefs) then
       subpage.hidden = true
@@ -179,8 +182,7 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
 
     v_cache = ntop.getPref(k)
     value = v_cache
-    if ((v_cache==nil) or (v ~= v_cache)) then
-
+    if ((v_cache==nil) or (v_s ~= v_cache)) then
       if(v ~= nil and (v > 0) and (v <= 86400)) then
         ntop.setPref(k, tostring(v))
         value = v
@@ -207,7 +209,7 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
     value = v_s
     if((v_s==nil) or (v_s=="") or (v_s=="nil")) then
       value = default_value
-      if not isEmptyString(prekey) then
+      if not isEmptyString(prekey) and (ntop.getPref(k) ~= tostring(default_value)) then
         ntop.setPref(k, tostring(default_value))
         notifyNtopng(key)
       end
@@ -539,7 +541,7 @@ local function get_pref_redis_key(options)
   return prefix .. ternary(options.pref ~= nil, options.pref, options.field)
 end
 
-function prefsToggleButton(params)
+function prefsToggleButton(subpage_active, params)
   defaults = {
     to_switch = {},             -- a list of elements to be switched on or off
     on_text = "On",             -- The text when the button is on
@@ -569,11 +571,16 @@ function multipleTableButtonPrefs(label, comment, array_labels, array_values, de
    local value
   if not skip_redis then
    if(_POST[submit_field] ~= nil) then
-    ntop.setPref(redis_key, _POST[submit_field])
+    local old_v = ntop.getPref(redis_key)
     value = _POST[submit_field]
-    notifyNtopng(submit_field)
+
+    if old_v ~= _POST[submit_field] then
+      ntop.setPref(redis_key, _POST[submit_field])
+      notifyNtopng(submit_field)
+    end
    else
     value = initialValue or ntop.getPref(redis_key)
+
     if(value == "") then
       if(default_value ~= nil) then
         ntop.setPref(redis_key, default_value)

@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-18 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -48,13 +48,12 @@ extern struct keyval string_to_replace[]; /* Lua.cpp */
 Ntop::Ntop(char *appName) {
   ntop = this;
   globals = new NtopGlobals();
+  extract = new TimelineExtract();
   pa = new PeriodicActivities();
   address = new AddressResolution();
   custom_ndpi_protos = NULL;
   prefs = NULL, redis = NULL;
 #ifndef HAVE_NEDGE
-  elastic_search = NULL;
-  logstash = NULL;
   export_interface = NULL;
 #endif
   trackers_automa = NULL;
@@ -62,19 +61,20 @@ Ntop::Ntop(char *appName) {
   num_defined_interfaces = 0;
   iface = NULL;
   start_time = 0, epoch_buf[0] = '\0'; /* It will be initialized by start() */
-  
-  httpd = NULL, geo = NULL, mac_manufacturers = NULL,
-    hostBlacklistShadow = hostBlacklist = NULL;
+  last_stats_reset = 0;
+
+  httpd = NULL, geo = NULL, mac_manufacturers = NULL;
 
 #ifdef WIN32
   if(SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, working_dir) != S_OK) {
-    strcpy(working_dir, "C:\\Windows\\Temp\\ntopng"); // Fallback: it should never happen
+    strncpy(working_dir, "C:\\Windows\\Temp\\ntopng", sizeof(working_dir)); // Fallback: it should never happen
+    working_dir[sizeof(working_dir) - 1] = '\0';
   } else {
     int l = strlen(working_dir);
-    
+
     snprintf(&working_dir[l], sizeof(working_dir), "%s", "\\ntopng");
   }
-  
+
   // Get the full path and filename of this program
   if(GetModuleFileName(NULL, startup_dir, sizeof(startup_dir)) == 0) {
     startup_dir[0] = '\0';
@@ -143,7 +143,7 @@ Ntop::Ntop(char *appName) {
   ntop->getTrace()->traceEvent(TRACE_INFO, "System Timezone offset: %+ld", time_offset);
 
   initAllowedProtocolPresets();
-  
+
   udp_socket = socket(AF_INET, SOCK_DGRAM, 0);
 
 #ifndef WIN32
@@ -162,11 +162,12 @@ Ntop::Ntop(char *appName) {
 
 void Ntop::initTimezone() {
 #ifdef WIN32
-  time_offset = -timezone;
+  time_offset = -_timezone;
 #else
   time_t t = time(NULL);
+  struct tm *l = localtime(&t);
 
-  time_offset = localtime(&t)->tm_gmtoff;
+  time_offset = l->tm_gmtoff;
 #endif
 }
 
@@ -199,12 +200,6 @@ Ntop::~Ntop() {
 
   if(trackers_automa)     ndpi_free_automa(trackers_automa);
   if(custom_ndpi_protos)  delete(custom_ndpi_protos);
-#ifndef HAVE_NEDGE
-  if(elastic_search)      delete(elastic_search);
-  if(logstash)            delete(logstash);
-#endif
-  if(hostBlacklist)       delete hostBlacklist;
-  if(hostBlacklistShadow) delete hostBlacklistShadow;
 
   delete address;
   if(pa)    delete pa;
@@ -237,22 +232,28 @@ Ntop::~Ntop() {
 /* ******************************************* */
 
 void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
-  struct stat statbuf;
+  char value[32];
+
+#ifdef WIN32
+  struct _stat64 buf;
+#else
+  struct stat buf;
+#endif
 
   prefs = _prefs;
 
   if(!quick_registration) {
-    if(stat(prefs->get_data_dir(), &statbuf)
-       || (!(statbuf.st_mode & S_IFDIR))  /* It's not a directory */
-       || (!(statbuf.st_mode & S_IWRITE)) /* It's not writable    */) {
+    if(stat(prefs->get_data_dir(), &buf)
+       || (!(buf.st_mode & S_IFDIR))  /* It's not a directory */
+       || (!(buf.st_mode & S_IWRITE)) /* It's not writable    */) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Invalid directory %s specified",
 				   prefs->get_data_dir());
       exit(-1);
     }
 
-    if(stat(prefs->get_callbacks_dir(), &statbuf)
-       || (!(statbuf.st_mode & S_IFDIR))  /* It's not a directory */
-       || (!(statbuf.st_mode & S_IREAD)) /* It's not readable    */) {
+    if(stat(prefs->get_callbacks_dir(), &buf)
+       || (!(buf.st_mode & S_IFDIR))  /* It's not a directory */
+       || (!(buf.st_mode & S_IREAD)) /* It's not readable    */) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Invalid directory %s specified",
 				   prefs->get_callbacks_dir());
       exit(-1);
@@ -279,15 +280,16 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
     exit(-1);
   }
 
-  initElasticSearch();
-  initLogstash();
-
 #ifdef NTOPNG_PRO
   pro->init_license();
 #endif
 
   /* License check could have increased the number of interfaces available */
-  initNetworkInterfaces();
+  resetNetworkInterfaces();
+
+  /* Read the old last_stats_reset */
+  if(ntop->getRedis()->get((char*)LAST_RESET_TIME, value, sizeof(value)) >= 0)
+    last_stats_reset = atol(value);
 
 #if defined(NTOPNG_PRO) && defined(HAVE_NINDEX)
 #if 0
@@ -295,7 +297,7 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
     for(int i=0; i<NUM_NSERIES; i++) {
       char path[MAX_PATH];
       const char *base;
-      
+
       switch(i) {
       case 0: base = "sec"; break;
       case 1: base = "min"; break;
@@ -303,9 +305,9 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
       default:
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error");
       }
-      
+
       snprintf(path, sizeof(path), "%s/nseries/%s", ntop->get_working_dir(), base);
-      
+
       if(!Utils::mkdir_tree(path))
 	ntop->getTrace()->traceEvent(TRACE_WARNING,
 				     "Unable to create directory %s: nSeries will be disabled", path);
@@ -338,7 +340,7 @@ void Ntop::registerNagios(void) {
 
 /* ******************************************* */
 
-void Ntop::initNetworkInterfaces() {
+void Ntop::resetNetworkInterfaces() {
   if(iface) delete []iface;
 
   if((iface = new NetworkInterface*[MAX_NUM_DEFINED_INTERFACES]) == NULL)
@@ -347,24 +349,6 @@ void Ntop::initNetworkInterfaces() {
   memset(iface, 0, (sizeof(NetworkInterface*) * MAX_NUM_DEFINED_INTERFACES));
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "Interfaces Available: %u", MAX_NUM_DEFINED_INTERFACES);
-}
-
-/* ******************************************* */
-
-void Ntop::initLogstash(){
-#ifndef HAVE_NEDGE
-  if(logstash) delete(logstash);
-  logstash = new Logstash();
-#endif
-}
-
-/* ******************************************* */
-
-void Ntop::initElasticSearch() {
-#ifndef HAVE_NEDGE
-  if(elastic_search) delete(elastic_search);
-  elastic_search = new ElasticSearch();
-#endif
 }
 
 /* ******************************************* */
@@ -380,13 +364,26 @@ void Ntop::createExportInterface() {
 
 /* ******************************************* */
 
+#ifdef HAVE_EBPF
+static void* ebpfLoopFctn(void* ptr) {
+  Ntop *ntop = (Ntop*)ptr;
+
+  ntop->getPro()->ebpfLoop();
+  return(NULL);
+}
+#endif
+
+/* ******************************************* */
+
 void Ntop::start() {
+  struct timeval begin, end;
+  u_long usec_diff;
   char daybuf[64], buf[32];
   time_t when = time(NULL);
   int i = 0;
 
   getTrace()->traceEvent(TRACE_NORMAL,
-			 "Welcome to %s %s v.%s - (C) 1998-18 ntop.org",
+			 "Welcome to %s %s v.%s - (C) 1998-19 ntop.org",
 #ifdef HAVE_NEDGE
 			 "ntopng edge",
 #else
@@ -439,22 +436,46 @@ void Ntop::start() {
     get_HTTPserver()->startCaptiveServer();
 #endif
 
-  for(int i=0; i<num_defined_interfaces; i++) {
+  for(int i=0; i<num_defined_interfaces; i++)
     iface[i]->startPacketPolling();
-  }
 
   sleep(2);
 
-  for(int i=0; i<num_defined_interfaces; i++) {
+  for(int i=0; i<num_defined_interfaces; i++)
     iface[i]->checkPointCounters(true); /* Reset drop counters */
+
+#ifdef HAVE_EBPF
+  {
+    pthread_t ebpfLoop;
+
+    pthread_create(&ebpfLoop, NULL, ebpfLoopFctn, (void*)this);
   }
+#endif
+
+  /* Align to the next 5-th second of the clock to make sure
+     housekeeping starts alinged (and remains aligned when
+     the housekeeping frequency is a multiple of 5 seconds) */
+  gettimeofday(&begin, NULL);
+  _usleep((5 - begin.tv_sec % 5) * 1e6 - begin.tv_usec);
 
   while((!globals->isShutdown()) && (!globals->isShutdownRequested())) {
-    struct timeval begin, end;
-    u_long usec_diff;
     u_long nap = ntop->getPrefs()->get_housekeeping_frequency() * 1e6;
 
     gettimeofday(&begin, NULL);
+
+#ifdef HOUSEKEEPING_DEBUG
+    char tmbuf[64], buf[64];
+    time_t nowtime;
+    struct tm *nowtm;
+
+    nowtime = begin.tv_sec;
+    nowtm = localtime(&nowtime);
+    strftime(tmbuf, sizeof tmbuf, "%Y-%m-%d %H:%M:%S", nowtm);
+    snprintf(buf, sizeof buf, "%s.%06ld", tmbuf, begin.tv_usec);
+
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Housekeeping: %s", buf);
+#endif
+
     runHousekeepingTasks();
     gettimeofday(&end, NULL);
 
@@ -468,6 +489,8 @@ void Ntop::start() {
 				 nap);
     _usleep(nap);
   }
+
+  runShutdownTasks();
 }
 
 /* ******************************************* */
@@ -757,7 +780,7 @@ void Ntop::loadLocalInterfaceAddress() {
 
 /* ******************************************* */
 
-void Ntop::loadGeolocation(char *dir) {
+void Ntop::loadGeolocation(const char * const dir) {
   if(geo != NULL) delete geo;
   geo = new Geolocation(dir);
 }
@@ -807,7 +830,7 @@ void Ntop::getUsers(lua_State* vm) {
   lua_newtable(vm);
 
   if((rc = ntop->getRedis()->keys("ntopng.user.*.password", &usernames)) <= 0)
-    return;  
+    return;
 
   if((key = (char*)malloc(CONST_MAX_LEN_REDIS_VALUE)) == NULL)
     return;
@@ -815,7 +838,7 @@ void Ntop::getUsers(lua_State* vm) {
     free(key);
     return;
   }
-  
+
   for(i = 0; i < rc; i++) {
     if(usernames[i] == NULL) continue; /* safety check */
     if(strtok_r(usernames[i], ".", &holder) == NULL) continue;
@@ -840,7 +863,7 @@ void Ntop::getUsers(lua_State* vm) {
     if(ntop->getRedis()->get(key, val, CONST_MAX_LEN_REDIS_VALUE) >= 0)
       lua_push_str_table_entry(vm, "group", val);
     else
-      lua_push_str_table_entry(vm, "group", (char*)"unknown");
+      lua_push_str_table_entry(vm, "group", (char*)NTOP_UNKNOWN_GROUP);
 
     snprintf(key, CONST_MAX_LEN_REDIS_VALUE, CONST_STR_USER_LANGUAGE, username);
     if(ntop->getRedis()->get(key, val, CONST_MAX_LEN_REDIS_VALUE) >= 0)
@@ -863,7 +886,7 @@ void Ntop::getUsers(lua_State* vm) {
 
     snprintf(key, CONST_MAX_LEN_REDIS_VALUE, CONST_STR_USER_HOST_POOL_ID, username);
     if(ntop->getRedis()->get(key, val, CONST_MAX_LEN_REDIS_VALUE) >= 0)
-      lua_push_int_table_entry(vm, "host_pool_id", atoi(val));
+      lua_push_uint64_table_entry(vm, "host_pool_id", atoi(val));
 
 
     snprintf(key, CONST_MAX_LEN_REDIS_VALUE, CONST_STR_USER_EXPIRE, username);
@@ -883,30 +906,40 @@ void Ntop::getUsers(lua_State* vm) {
 
 /* ******************************************* */
 
-void Ntop::getUserGroup(lua_State* vm) {
-  char key[64], val[64];
-  const char *username = getLuaVMUservalue(vm, user);
+/**
+ * @brief Check if the current user is an administrator
+ *
+ * @param vm   The lua state.
+ * @return true if the current user is an administrator, false otherwise.
+ */
+bool Ntop::isUserAdministrator(lua_State* vm) {
+  struct mg_connection *conn;
+  char *username, *group;
 
-  if(!username || !strncmp(username, NTOP_NOLOGIN_USER, strlen(username))) {
-    lua_pushstring(vm, CONST_USER_GROUP_ADMIN);
-    return;
+  if(!ntop->getPrefs()->is_users_login_enabled())
+    return(true); /* login disabled for all users, everyone's an admin */
+
+  if((conn = getLuaVMUservalue(vm,conn)) == NULL) {
+    /* this is an internal script (e.g. periodic script), admin check should pass */
+    return(true);
+  } else if(HTTPserver::authorized_localhost_user_login(conn))
+    return(true); /* login disabled from localhost, everyone's connecting from localhost is an admin */
+
+  if((username = getLuaVMUserdata(vm,user)) == NULL) {
+    // ntop->getTrace()->traceEvent(TRACE_WARNING, "%s(%s): NO", __FUNCTION__, "???");
+    return(false); /* Unknown */
   }
 
-#if defined(NTOPNG_PRO) && defined(HAVE_LDAP)
-  snprintf(key, sizeof(key), PREF_USER_TYPE_LOG, username);
-  if (ntop->getRedis()->get(key, val, sizeof(val)) >= 0){
-    if( !strcmp(val,"ldap") ) {
-      snprintf(key, sizeof(key), PREF_LDAP_GROUP_OF_USER, username);
-      lua_pushstring(vm,
-    		 (ntop->getRedis()->get(key, val, sizeof(val)) >= 0) ? val : (char*)"unknown");
-      return;
-    }
-  }
-#endif
+  if(!strncmp(username, NTOP_NOLOGIN_USER, strlen(username)))
+    return(true);
 
-  snprintf(key, sizeof(key), CONST_STR_USER_GROUP, username);
-  lua_pushstring(vm,
-		 (ntop->getRedis()->get(key, val, sizeof(val)) >= 0) ? val : (char*)"unknown");
+  if((group = getLuaVMUserdata(vm,group)) != NULL) {
+    return(!strcmp(group, NTOP_NOLOGIN_USER) ||
+           !strcmp(group, CONST_ADMINISTRATOR_USER));
+  } else {
+    // ntop->getTrace()->traceEvent(TRACE_WARNING, "%s(%s): NO", __FUNCTION__, username);
+    return(false); /* Unknown */
+  }
 }
 
 /* ******************************************* */
@@ -921,6 +954,7 @@ void Ntop::getAllowedNetworks(lua_State* vm) {
 
 /* ******************************************* */
 
+// NOTE: ifname must be of size MAX_INTERFACE_NAME_LEN
 bool Ntop::getInterfaceAllowed(lua_State* vm, char *ifname) const {
   char *allowed_ifname;
 
@@ -933,8 +967,9 @@ bool Ntop::getInterfaceAllowed(lua_State* vm, char *ifname) const {
     ifname = NULL;
     return false;
   }
-  
-  strncpy(ifname, allowed_ifname, strlen(allowed_ifname));
+
+  strncpy(ifname, allowed_ifname, MAX_INTERFACE_NAME_LEN);
+  ifname[MAX_INTERFACE_NAME_LEN - 1] = '\0';
   return true;
 }
 
@@ -943,12 +978,12 @@ bool Ntop::getInterfaceAllowed(lua_State* vm, char *ifname) const {
 bool Ntop::isInterfaceAllowed(lua_State* vm, const char *ifname) const {
   char *allowed_ifname;
   bool ret;
-    
+
   if(vm == NULL || ifname == NULL)
-    return true; /* Always return true when no lua state is passed */  
+    return true; /* Always return true when no lua state is passed */
 
   allowed_ifname = getLuaVMUserdata(vm, allowed_ifname);
-  
+
   if((allowed_ifname == NULL) || (allowed_ifname[0] == '\0')) {
     ntop->getTrace()->traceEvent(TRACE_DEBUG,
 				 "No allowed interface found for %s", ifname);
@@ -962,6 +997,19 @@ bool Ntop::isInterfaceAllowed(lua_State* vm, const char *ifname) const {
   }
 
   return ret;
+}
+
+/* ******************************************* */
+
+bool Ntop::isLocalUser(lua_State* vm) {
+  struct mg_connection *conn;
+
+  if((conn = getLuaVMUservalue(vm,conn)) == NULL) {
+    /* this is an internal script (e.g. periodic script), admin check should pass */
+    return(true);
+  }
+
+  return getLuaVMUservalue(vm,localuser);
 }
 
 /* ******************************************* */
@@ -988,25 +1036,23 @@ bool Ntop::checkUserInterfaces(const char * const user) const {
 /* ******************************************* */
 
 // Return 1 if username/password is allowed, 0 otherwise.
-bool Ntop::checkUserPassword(const char * const user, const char * const password) const {
+bool Ntop::checkUserPassword(const char * const user, const char * const password, char *group, bool *localuser) const {
   char key[64], val[64], password_hash[33];
-#if defined(NTOPNG_PRO) && defined(HAVE_LDAP)
-  bool localAuth = true;
-#endif
+  *localuser = false;
 
   if((user == NULL) || (user[0] == '\0'))
     return(false);
 
 #if defined(NTOPNG_PRO) && defined(HAVE_LDAP)
   if(ntop->getPro()->has_valid_license()) {
-    if(ntop->getRedis()->get((char*)PREF_NTOP_AUTHENTICATION_TYPE, val, sizeof(val)) >= 0) {
-      if(!strcmp(val, "ldap") /* LDAP only */) localAuth = false;
+    if(ntop->getRedis()->get((char*)PREF_NTOP_LDAP_AUTH, val, sizeof(val)) >= 0) {
+      if(val[0] == '1') {
+        ntop->getTrace()->traceEvent(TRACE_INFO, "Checking LDAP auth");
 
-      if(strncmp(val, "ldap", 4) == 0) {
 	bool ldap_ret = false;
         bool is_admin;
 	char *ldapServer = NULL, *ldapAccountType = NULL,  *ldapAnonymousBind = NULL,
-	  *bind_dn = NULL, *bind_pwd = NULL, *group = NULL,
+	  *bind_dn = NULL, *bind_pwd = NULL, *user_group = NULL,
 	  *search_path = NULL, *admin_group = NULL;
 
 	if(!(ldapServer = (char*)calloc(sizeof(char), MAX_LDAP_LEN))
@@ -1014,7 +1060,7 @@ bool Ntop::checkUserPassword(const char * const user, const char * const passwor
 	   || !(ldapAnonymousBind = (char*)calloc(sizeof(char), MAX_LDAP_LEN)) /* either '1' or '0' */
 	   || !(bind_dn = (char*)calloc(sizeof(char), MAX_LDAP_LEN))
 	   || !(bind_pwd = (char*)calloc(sizeof(char), MAX_LDAP_LEN))
-	   || !(group = (char*)calloc(sizeof(char), MAX_LDAP_LEN))
+	   || !(user_group = (char*)calloc(sizeof(char), MAX_LDAP_LEN))
 	   || !(search_path = (char*)calloc(sizeof(char), MAX_LDAP_LEN))
 	   || !(admin_group = (char*)calloc(sizeof(char), MAX_LDAP_LEN))) {
 	  static bool ldap_nomem = false;
@@ -1037,7 +1083,7 @@ bool Ntop::checkUserPassword(const char * const user, const char * const passwor
         ntop->getRedis()->get((char*)PREF_LDAP_BIND_DN, bind_dn, MAX_LDAP_LEN);
         ntop->getRedis()->get((char*)PREF_LDAP_BIND_PWD, bind_pwd, MAX_LDAP_LEN);
         ntop->getRedis()->get((char*)PREF_LDAP_SEARCH_PATH, search_path, MAX_LDAP_LEN);
-        ntop->getRedis()->get((char*)PREF_LDAP_USER_GROUP, group, MAX_LDAP_LEN);
+        ntop->getRedis()->get((char*)PREF_LDAP_USER_GROUP, user_group, MAX_LDAP_LEN);
         ntop->getRedis()->get((char*)PREF_LDAP_ADMIN_GROUP, admin_group, MAX_LDAP_LEN);
 
         if(ldapServer[0]) {
@@ -1048,15 +1094,13 @@ bool Ntop::checkUserPassword(const char * const user, const char * const passwor
 						       search_path[0] != '\0' ? search_path : NULL,
 						       user,
 						       password[0] != '\0' ? password : NULL,
-						       group[0] != '\0' ? group : NULL,
+						       user_group[0] != '\0' ? user_group : NULL,
 						       admin_group[0] != '\0' ? admin_group : NULL,
 						       &is_admin);
 
 	  if(ldap_ret) {
-	    snprintf(key, sizeof(key), PREF_LDAP_GROUP_OF_USER, user);
-	    ntop->getRedis()->set(key, is_admin ?  (char*)CONST_USER_GROUP_ADMIN : (char*)CONST_USER_GROUP_UNPRIVILEGED, 0);
-            snprintf(key, sizeof(key), PREF_USER_TYPE_LOG, user);
-	    ntop->getRedis()->set(key, (char*)"ldap", 0);
+      strncpy(group, is_admin ? CONST_USER_GROUP_ADMIN : CONST_USER_GROUP_UNPRIVILEGED, NTOP_GROUP_MAXLEN);
+      group[NTOP_GROUP_MAXLEN - 1] = '\0';
 	  }
         }
 
@@ -1065,7 +1109,7 @@ bool Ntop::checkUserPassword(const char * const user, const char * const passwor
 	if(ldapAnonymousBind) free(ldapAnonymousBind);
 	if(bind_dn) free(bind_dn);
 	if(bind_pwd) free(bind_pwd);
-	if(group) free(group);
+	if(user_group) free(user_group);
 	if(search_path) free(search_path);
 	if(admin_group) free(admin_group);
 
@@ -1074,9 +1118,229 @@ bool Ntop::checkUserPassword(const char * const user, const char * const passwor
       }
     }
   }
-
-  if(!localAuth) return(false);
 #endif
+
+#ifdef HAVE_RADIUS
+  if(ntop->getRedis()->get((char*)PREF_NTOP_RADIUS_AUTH, val, sizeof(val)) >= 0) {
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Checking RADIUS auth");
+
+    if(val[0] == '1') {
+      int result;
+      bool radius_ret = false;
+      char dict_path[MAX_RADIUS_LEN];
+      char *radiusServer = NULL, *radiusSecret = NULL, *authServer = NULL, *radiusAdminGroup = NULL;
+      rc_handle       *rh = NULL;
+      VALUE_PAIR      *send = NULL, *received = NULL;
+
+      if(!password || !password[0])
+        return false;
+
+      if(!(radiusServer = (char*)calloc(sizeof(char), MAX_RADIUS_LEN)) ||
+          !(radiusSecret = (char*)calloc(sizeof(char), MAX_SECRET_LENGTH + 1)) ||
+          !(radiusAdminGroup = (char*)calloc(sizeof(char), MAX_RADIUS_LEN)) ||
+          !(authServer = (char*)calloc(sizeof(char), MAX_RADIUS_LEN))) {
+        ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: unable to allocate memory");
+        goto radius_auth_out;
+      }
+      ntop->getRedis()->get((char*)PREF_RADIUS_SERVER, radiusServer, MAX_RADIUS_LEN);
+      ntop->getRedis()->get((char*)PREF_RADIUS_SECRET, radiusSecret, MAX_SECRET_LENGTH + 1);
+      ntop->getRedis()->get((char*)PREF_RADIUS_ADMIN_GROUP, radiusAdminGroup, MAX_RADIUS_LEN);
+      if(!radiusServer[0] || !radiusSecret[0]) {
+        ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: no radius server or secret set !");
+        goto radius_auth_out;
+      }
+      snprintf(authServer, MAX_RADIUS_LEN - 1, "%s:%s", radiusServer, radiusSecret);
+
+      /* NOTE: this is an handle to the radius lib. It will be passed to multiple functions and cleaned up at the end.
+       * https://github.com/FreeRADIUS/freeradius-client/blob/master/src/radembedded.c
+       */
+      rh = rc_new();
+      if(rh == NULL) {
+        ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: unable to allocate memory");
+        goto radius_auth_out;
+      }
+
+      /* ********* */
+
+      rh = rc_config_init(rh);
+
+      if(rh == NULL) {
+        ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: failed to init configuration");
+        goto radius_auth_out;
+      }
+
+      /* RADIUS only auth */
+      if(rc_add_config(rh, "auth_order", "radius", "config", 0) != 0) {
+        ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: Unable to set auth_order");
+        goto radius_auth_out;
+      }
+
+      if(rc_add_config(rh, "radius_retries", "3", "config", 0) != 0) {
+        ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: Unable to set retries config");
+        goto radius_auth_out;
+      }
+
+      if(rc_add_config(rh, "radius_timeout", "5", "config", 0)  != 0) {
+        ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: Unable to set timeout config");
+        goto radius_auth_out;
+      }
+
+      snprintf(dict_path, sizeof(dict_path), "%s/other/radcli_dictionary.txt", ntop->getPrefs()->get_docs_dir());
+      if(rc_add_config(rh, "dictionary", dict_path, "config", 0) != 0) {
+        ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: Unable to set dictionary config");
+        goto radius_auth_out;
+      }
+
+      if(rc_add_config(rh, "authserver", authServer, "config", 0) != 0) {
+        ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: Unable to set authserver config: \"%s\"", authServer);
+        goto radius_auth_out;
+      }
+
+#ifdef HAVE_RC_APPLY_CONFIG
+      /* Necessary since radcli release 1.2.10 */
+      if(rc_apply_config(rh) != 0) {
+        ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: rc_apply_config failed");
+        goto radius_auth_out;
+      }
+#endif
+
+      /* ********* */
+
+      if(rc_read_dictionary(rh, rc_conf_str(rh, "dictionary")) != 0) {
+        ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: unable to read dictionary");
+        goto radius_auth_out;
+      }
+
+      if(rc_avpair_add(rh, &send, PW_USER_NAME, user, -1, 0) == NULL) {
+        ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: unable to set username");
+        goto radius_auth_out;
+      }
+      if(rc_avpair_add(rh, &send, PW_USER_PASSWORD, password, -1, 0) == NULL) {
+        ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: unable to set password");
+        goto radius_auth_out;
+      }
+
+      ntop->getTrace()->traceEvent(TRACE_INFO, "Radius: performing auth for user %s\n", user);
+
+      result = rc_auth(rh, 0, send, &received, NULL);
+      if(result == OK_RC) {
+        bool is_admin = false;
+
+        if(radiusAdminGroup[0] != '\0') {
+          VALUE_PAIR *vp = received;
+          char name[sizeof(vp->name)];
+          char value[sizeof(vp->strvalue)];
+
+          while(vp != NULL) {
+            if(rc_avpair_tostr(rh, vp, name, sizeof(name), value, sizeof(value)) == 0) {
+              if((strcmp(name, "Filter-Id") == 0) && (strcmp(value, radiusAdminGroup) == 0))
+                is_admin = true;
+            }
+
+            vp = vp->next;
+          }
+        }
+
+        strncpy(group, is_admin ? CONST_USER_GROUP_ADMIN : CONST_USER_GROUP_UNPRIVILEGED, NTOP_GROUP_MAXLEN);
+        group[NTOP_GROUP_MAXLEN - 1] = '\0';
+        radius_ret = true;
+      } else {
+        switch(result) {
+          case TIMEOUT_RC:
+            ntop->getTrace()->traceEvent(TRACE_WARNING, "Radius Authentication timeout for user \"%s\"", user);
+            break;
+          case REJECT_RC:
+            ntop->getTrace()->traceEvent(TRACE_WARNING, "Radius Authentication rejected for user \"%s\"", user);
+            break;
+          default:
+            ntop->getTrace()->traceEvent(TRACE_WARNING, "Radius Authentication failure[%d]: user \"%s\"", result, user);
+        }
+      }
+
+    radius_auth_out:
+      if(send) rc_avpair_free(send);
+      if(received) rc_avpair_free(received);
+      if(rh) rc_destroy(rh);
+      if(radiusAdminGroup) free(radiusAdminGroup);
+      if(radiusServer) free(radiusServer);
+      if(radiusSecret) free(radiusSecret);
+      if(authServer) free(authServer);
+      if(radius_ret)
+        return(true);
+    }
+  }
+#endif
+
+  if(ntop->getRedis()->get((char*)PREF_NTOP_HTTP_AUTH, val, sizeof(val)) >= 0) {
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Checking HTTP auth");
+
+    if(val[0] == '1') {
+      int postLen;
+      char *httpUrl = NULL, *postData = NULL, *returnData = NULL;
+      bool http_ret = false;
+      int rc = 0;
+      HTTPTranferStats stats;
+      HTTPAuthenticator auth;
+
+      memset(&auth, 0, sizeof(auth));
+      if(!password || !password[0])
+        return false;
+
+      postLen = 100 + strlen(user) + strlen(password);
+      if(!(httpUrl = (char*)calloc(sizeof(char), MAX_HTTP_AUTHENTICATOR_LEN)) ||
+          !(postData = (char*)calloc(sizeof(char), postLen + 1)) ||
+          !(returnData = (char*)calloc(sizeof(char), MAX_HTTP_AUTHENTICATOR_RETURN_DATA_LEN + 1))) {
+        ntop->getTrace()->traceEvent(TRACE_ERROR, "HTTP: unable to allocate memory");
+        goto http_auth_out;
+      }
+      ntop->getRedis()->get((char*)PREF_HTTP_AUTHENTICATOR_URL, httpUrl, MAX_HTTP_AUTHENTICATOR_LEN);
+      if(!httpUrl[0]) {
+        ntop->getTrace()->traceEvent(TRACE_ERROR, "HTTP: no http url set !");
+        goto http_auth_out;
+      }
+      snprintf(postData, postLen, "{\"user\": \"%s\", \"password\": \"%s\"}",
+               user, password);
+
+      if(Utils::postHTTPJsonData(NULL, // no digest user
+                                 NULL, // no digest password
+                                 httpUrl,
+                                 postData, 0, &stats,
+                                 returnData, MAX_HTTP_AUTHENTICATOR_RETURN_DATA_LEN, &rc)) {
+        if(rc == 200) {
+          // parse JSON
+          if(!Utils::parseAuthenticatorJson(&auth, returnData)) {
+            ntop->getTrace()->traceEvent(TRACE_ERROR, "HTTP: unable to parse json answer data !");
+            goto http_auth_out;
+          }
+
+          strncpy(group, auth.admin ? CONST_USER_GROUP_ADMIN : CONST_USER_GROUP_UNPRIVILEGED, NTOP_GROUP_MAXLEN);
+          group[NTOP_GROUP_MAXLEN - 1] = '\0';
+          http_ret = true;
+        } else
+          ntop->getTrace()->traceEvent(TRACE_WARNING, "HTTP: authentication rejected [code=%d]", rc);
+      } else
+        ntop->getTrace()->traceEvent(TRACE_WARNING, "HTTP: could not contact the HTTP authenticator");
+
+    http_auth_out:
+      if(httpUrl) free(httpUrl);
+      if(postData) free(postData);
+      if(returnData) free(returnData);
+      if(http_ret)
+        return(true);
+    }
+  }
+
+  /* Check local auth */
+  if((ntop->getRedis()->get((char*)PREF_NTOP_LOCAL_AUTH, val, sizeof(val)) >= 0) && val[0] == '0')
+    return(false);
+
+  ntop->getTrace()->traceEvent(TRACE_INFO, "Checking Local auth");
+
+  if((!strcmp(user, "admin")) &&
+     (ntop->getRedis()->get((char*)TEMP_ADMIN_PASSWORD, val, sizeof(val)) >= 0) &&
+     (val[0] != '\0') &&
+     (!strcmp(val, password)))
+    return(true);
 
   snprintf(key, sizeof(key), CONST_STR_USER_PASSWORD, user);
 
@@ -1084,16 +1348,100 @@ bool Ntop::checkUserPassword(const char * const user, const char * const passwor
     return(false);
   } else {
     mg_md5(password_hash, password, NULL);
+
     if(strcmp(password_hash, val) == 0) {
-#if defined(NTOPNG_PRO) && defined(HAVE_LDAP)
-      snprintf(key, sizeof(key), PREF_USER_TYPE_LOG, user);
-      ntop->getRedis()->set(key, (char*)"local", 0);
-#endif
+      snprintf(key, sizeof(key), CONST_STR_USER_GROUP, user);
+      strncpy(group, ((ntop->getRedis()->get(key, val, sizeof(val)) >= 0) ? val : NTOP_UNKNOWN_GROUP), NTOP_GROUP_MAXLEN);
+      group[NTOP_GROUP_MAXLEN - 1] = '\0';
+
+      /* mark the user as local */
+      *localuser = true;
       return(true);
     } else {
       return(false);
     }
   }
+}
+
+/* ******************************************* */
+
+static int getLoginAttempts(struct mg_connection *conn) {
+  char ipbuf[32], key[128], val[16];
+  int cur_attempts = 0;
+  IpAddress client_addr;
+
+  client_addr.set(mg_get_client_address(conn));
+  snprintf(key, sizeof(key), CONST_STR_FAILED_LOGIN_KEY, client_addr.print(ipbuf, sizeof(ipbuf)));
+
+  if((ntop->getRedis()->get(key, val, sizeof(val)) >= 0) && val[0])
+    cur_attempts = atoi(val);
+
+  return(cur_attempts);
+}
+
+/* ******************************************* */
+
+bool Ntop::isBlacklistedLogin(struct mg_connection *conn) const {
+  return(getLoginAttempts(conn) >= MAX_FAILED_LOGIN_ATTEMPTS);
+}
+
+/* ******************************************* */
+
+bool Ntop::checkGuiUserPassword(struct mg_connection *conn,
+          const char * const user, const char * const password,
+          char *group, bool *localuser) const {
+  char *remote_ip, ipbuf[64], key[128], val[16];
+  int cur_attempts = 0;
+  bool rv;
+  IpAddress client_addr;
+
+  client_addr.set(mg_get_client_address(conn));
+
+  if(ntop->isCaptivePortalUser(user)) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "User %s is not a gui user. Login is denied.", user);
+    return false;
+  }
+
+  remote_ip = client_addr.print(ipbuf, sizeof(ipbuf));
+
+  if((cur_attempts = getLoginAttempts(conn)) >= MAX_FAILED_LOGIN_ATTEMPTS) {
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Login denied for '%s' from blacklisted IP %s", user, remote_ip);
+    return false;
+  }
+
+  rv = checkUserPassword(user, password, group, localuser);
+  snprintf(key, sizeof(key), CONST_STR_FAILED_LOGIN_KEY, remote_ip);
+
+  if(!rv) {
+    cur_attempts++;
+    snprintf(val, sizeof(val), "%d", cur_attempts);
+    ntop->getRedis()->set(key, val, FAILED_LOGIN_ATTEMPTS_INTERVAL);
+
+    if(cur_attempts >= MAX_FAILED_LOGIN_ATTEMPTS)
+      ntop->getTrace()->traceEvent(TRACE_INFO, "IP %s is now blacklisted from login for %d seconds",
+          remote_ip, FAILED_LOGIN_ATTEMPTS_INTERVAL);
+
+    HTTPserver::traceLogin(user, false);
+  } else
+    ntop->getRedis()->del(key);
+
+  return(rv);
+}
+
+/* ******************************************* */
+
+bool Ntop::checkCaptiveUserPassword(const char * const user, const char * const password, char *group) const {
+  bool localuser = false;
+  bool rv;
+
+  if(!ntop->isCaptivePortalUser(user)) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "User %s is not a captive portal user. Login is denied.", user);
+    return false;
+  }
+
+  rv = checkUserPassword(user, password, group, &localuser);
+
+  return(rv);
 }
 
 /* ******************************************* */
@@ -1111,12 +1459,19 @@ bool Ntop::mustChangePassword(const char *user) {
 
 /* ******************************************* */
 
+/* NOTE: the admin vs local user checks must be performed by the caller */
 bool Ntop::resetUserPassword(char *username, char *old_password, char *new_password) {
   char key[64];
   char password_hash[33];
+  char group[NTOP_GROUP_MAXLEN];
 
   if((old_password != NULL) && (old_password[0] != '\0')) {
-    if(!checkUserPassword(username, old_password))
+    bool localuser = false;
+
+    if(!checkUserPassword(username, old_password, group, &localuser))
+      return(false);
+
+    if(!localuser)
       return(false);
   }
 
@@ -1230,19 +1585,30 @@ bool Ntop::changeUserLanguage(const char * const username, const char * const la
 
   return(true);
 }
+/* ******************************************* */
+
+bool Ntop::existsUser(const char * const username) const {
+  char key[CONST_MAX_LEN_REDIS_KEY], val[2] /* Don't care about the content */;
+
+  snprintf(key, sizeof(key), CONST_STR_USER_GROUP, username);
+  if(ntop->getRedis()->get(key, val, sizeof(val)) >= 0)
+    return(true); // user already exists
+
+  return(false);
+}
 
 /* ******************************************* */
 
 bool Ntop::addUser(char *username, char *full_name, char *password, char *host_role,
 		   char *allowed_networks, char *allowed_ifname, char *host_pool_id,
 		   char *language) {
-  char key[64], val[64];
+  char key[CONST_MAX_LEN_REDIS_KEY];
   char password_hash[33];
 
-  snprintf(key, sizeof(key), CONST_STR_USER_FULL_NAME, username);
-  if(ntop->getRedis()->get(key, val, sizeof(val)) >= 0)
-    return(false); // user already exists
+  if(existsUser(username))
+    return(false);
 
+  snprintf(key, sizeof(key), CONST_STR_USER_FULL_NAME, username);
   ntop->getRedis()->set(key, full_name, 0);
 
   snprintf(key, sizeof(key), CONST_STR_USER_GROUP, username);
@@ -1433,7 +1799,11 @@ void Ntop::fixPath(char *str, bool replaceDots) {
 
 char* Ntop::getValidPath(char *__path) {
   char _path[MAX_PATH+8];
+#ifdef WIN32
+  struct _stat64 buf;
+#else
   struct stat buf;
+#endif
 #ifdef WIN32
   const char *install_dir = (const char *)get_install_dir();
 #endif
@@ -1620,16 +1990,14 @@ int Ntop::getInterfaceIdByName(lua_State *vm, const char * const name) {
 
 /* ****************************************** */
 
-void Ntop::registerInterface(NetworkInterface *_if) {
-  _if->finishInitialization();
-  _if->checkAggregationMode();
+bool Ntop::registerInterface(NetworkInterface *_if) {
 
   for(int i = 0; i < num_defined_interfaces; i++) {
     if(strcmp(iface[i]->get_name(), _if->get_name()) == 0) {
       ntop->getTrace()->traceEvent(TRACE_WARNING,
 				   "Skipping duplicated interface %s", _if->get_name());
       delete _if;
-      return;
+      return false;
     }
   }
 
@@ -1637,15 +2005,24 @@ void Ntop::registerInterface(NetworkInterface *_if) {
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Registered interface %s [id: %d]",
 				 _if->get_name(), _if->get_id());
     iface[num_defined_interfaces++] = _if;
-    _if->startDBLoop();
+    return true;
   } else {
     static bool too_many_interfaces_error = false;
     if(!too_many_interfaces_error) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Too many interfaces defined");
       too_many_interfaces_error = true;
     }
+    return false;
   }
 };
+
+/* ******************************************* */
+
+void Ntop::initInterface(NetworkInterface *_if) {
+  _if->finishInitialization(num_defined_interfaces);
+  _if->checkAggregationMode();
+  _if->startDBLoop();
+}
 
 /* ******************************************* */
 
@@ -1665,26 +2042,19 @@ void Ntop::runHousekeepingTasks() {
 
   if(globals->isShutdownRequested()) return;
 
-#ifndef HAVE_NEDGE
-  /* ES stats are updated once as the present implementation is not per-interface  */
-  if (ntop->getPrefs()->do_dump_flows_on_es()) {
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-    ntop->getElasticSearch()->updateStats(&tv);
-  }
-
-  if(ntop->getPrefs()->do_dump_flows_on_ls()){
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-    ntop->getLogstash()->updateStats(&tv);
-  }
-#endif
-
   if(globals->isShutdownRequested()) return;
 
 #ifdef NTOPNG_PRO
   pro->runHousekeepingTasks();
 #endif
+}
+
+/* ******************************************* */
+
+void Ntop::runShutdownTasks() {
+  for(int i=0; i<num_defined_interfaces; i++) {
+    iface[i]->runShutdownTasks();
+  }
 }
 
 /* ******************************************* */
@@ -1715,29 +2085,29 @@ void Ntop::shutdownAll() {
   ThreadedActivity *shutdown_activity;
 
   if(pa) pa->sendShutdownSignal();
-  
+
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Terminating periodic activities");
+
+  /* Wait until currently executing periodic activities are completed,
+   Periodic activites should not run during interfaces shutdown */
+  ntop->shutdownPeriodicActivities();
+
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Executing shutdown script");
-  
+
   /* Exec shutdown script before shutting down ntopng */
   if((shutdown_activity = new ThreadedActivity(SHUTDOWN_SCRIPT_PATH))) {
     /* Don't call run() as by the time the script will be run the delete below will free the memory */
     shutdown_activity->runScript();
     delete shutdown_activity;
-  }    
-
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Terminating periodic activities");
-  
-  /* Wait until currently executing periodic activities are completed,
-   Periodic activites should not run during interfaces shutdown */
-  ntop->shutdownPeriodicActivities();
+  }
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Terminating network interfaces");
-  
+
   /* Now it is time to trear down running interfaces */
   ntop->sendNetworkInterfacesTermination();
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Waiting for the application to shutdown");
-  
+
   ntop->getGlobals()->shutdown();
   sleep(2); /* Wait until all threads know that we're shutting down... */
   ntop->shutdown();
@@ -1755,45 +2125,6 @@ void Ntop::shutdownAll() {
 
 /* ******************************************* */
 
-void Ntop::allocHostBlacklist() {
-  if(hostBlacklistShadow != NULL) {
-    delete hostBlacklistShadow;
-    hostBlacklistShadow = NULL;
-  }
-
-  hostBlacklistShadow = new AddressTree();
-}
-
-/* ******************************************* */
-
-void Ntop::swapHostBlacklist() {
-  AddressTree *cp = hostBlacklist;
-
-  hostBlacklist = hostBlacklistShadow;
-  hostBlacklistShadow = cp;
-}
-
-/* ******************************************* */
-
-void Ntop::addToHostBlacklist(char *net) {
-  if(hostBlacklistShadow) {
-    ntop->getTrace()->traceEvent(TRACE_INFO, "Loading blacklist %s", net);
-    hostBlacklistShadow->addAddresses(net);
-  }
-}
-
-/* ******************************************* */
-
-bool Ntop::isBlacklistedIP(IpAddress *ip) {
-  bool rc = (hostBlacklist && ip->findAddress(hostBlacklist)) ? true : false;
-
-  // if(rc) ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Found blacklist [%p]", n);
-
-  return(rc);
-}
-
-/* ******************************************* */
-
 void Ntop::loadTrackers() {
   FILE *fd;
   char line[MAX_PATH];
@@ -1807,7 +2138,7 @@ void Ntop::loadTrackers() {
       return;
     }
 
-	while (fgets(line, MAX_PATH, fd) != NULL)
+    while(fgets(line, MAX_PATH, fd) != NULL)
       ndpi_add_string_to_automa(trackers_automa, line);
 
     fclose(fd);
@@ -1845,10 +2176,12 @@ void Ntop::refreshAllowedProtocolPresets(DeviceType device_type, bool client, lu
   if (client) NDPI_BITMASK_RESET(b->clientAllowed);
   else        NDPI_BITMASK_RESET(b->serverAllowed);
 
-  while (lua_next(L, index) != 0) {
+  while(lua_next(L, index) != 0) {
     u_int key_proto = lua_tointeger(L, -2);
     int t = lua_type(L, -1);
 
+    if((int)key_proto < 0) continue;
+    
     switch (t) {
       case LUA_TNUMBER:
       {
@@ -1897,4 +2230,65 @@ bool Ntop::addToNotifiedInformativeCaptivePortal(u_int32_t client_ip) {
   return true;
 }
 
+/* ******************************************* */
+
+#ifdef HAVE_EBPF
+void Ntop::deliverEventToInterfaces(eBPFevent *event) {
+  bool loopback_only = ((event->ip_version == 4) && (event->event.v4.saddr ==  0x0100007f /* 127.0.0.1 */)) ? true : false;
+ 
+  for(int i = 0; i < num_defined_interfaces; i++) {
+    bool pass;
+    
+    if(loopback_only)
+      pass = iface[i]->isLoopback() ? true : false;
+    else
+      pass = iface[i]->isLoopback() ? false : true;
+	
+    if(pass)
+      iface[i]->delivereBPFEvent(event);
+  }
+}
 #endif
+
+#endif
+
+/* ******************************************* */
+
+DeviceProtoStatus Ntop::getDeviceAllowedProtocolStatus(DeviceType dev_type, ndpi_protocol proto, u_int16_t pool_id, bool as_client) {
+  /* Check if this application protocol is allowd for the specified device type */
+  DeviceProtocolBitmask *bitmask = getDeviceAllowedProtocols(dev_type);
+  NDPI_PROTOCOL_BITMASK *direction_bitmask = as_client ? (&bitmask->clientAllowed) : (&bitmask->serverAllowed);
+
+#ifdef HAVE_NEDGE
+  /* On nEdge the concept of device protocol policies is only applied to unassigned devices on LAN */
+  if(pool_id != NO_HOST_POOL_ID)
+    return device_proto_allowed;
+#endif
+
+  /* Always allow network critical protocols */
+  if(Utils::isCriticalNetworkProtocol(proto.master_protocol) ||
+      Utils::isCriticalNetworkProtocol(proto.app_protocol))
+    return device_proto_allowed;
+
+  if((proto.master_protocol != NDPI_PROTOCOL_UNKNOWN) &&
+      (!NDPI_ISSET(direction_bitmask, proto.master_protocol))) {
+    return device_proto_forbidden_master;
+  } else if((!NDPI_ISSET(direction_bitmask, proto.app_protocol))) {
+    /* We consider NDPI_PROTOCOL_UNKNOWN as a protocol to be allowed */
+    return device_proto_forbidden_app;
+  }
+
+  return device_proto_allowed;
+}
+
+/* ******************************************* */
+
+void Ntop::resetStats() {
+  char buf[32];
+  last_stats_reset = time(NULL);
+
+  snprintf(buf, sizeof(buf), "%ld", last_stats_reset);
+
+  /* Saving this is essential to reset inactive hosts across ntopng restarts */
+  getRedis()->set(LAST_RESET_TIME, buf);
+}

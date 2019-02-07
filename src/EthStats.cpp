@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-18 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -67,17 +67,17 @@ void EthStats::lua(lua_State *vm) {
   eth_ARP.lua(vm,   "ARP_");
   eth_MPLS.lua(vm,  "MPLS_");
   eth_other.lua(vm, "other_");
-  lua_push_int_table_entry(vm, "bytes",   getNumBytes());
-  lua_push_int_table_entry(vm, "packets", getNumPackets());
+  lua_push_uint64_table_entry(vm, "bytes",   getNumBytes());
+  lua_push_uint64_table_entry(vm, "packets", getNumPackets());
 
   lua_newtable(vm);
-  lua_push_int_table_entry(vm, "bytes",   getNumIngressBytes());
-  lua_push_int_table_entry(vm, "packets", getNumIngressPackets());
+  lua_push_uint64_table_entry(vm, "bytes",   getNumIngressBytes());
+  lua_push_uint64_table_entry(vm, "packets", getNumIngressPackets());
   lua_pushstring(vm, "ingress"); lua_insert(vm, -2); lua_settable(vm, -3);
 
   lua_newtable(vm);
-  lua_push_int_table_entry(vm, "bytes",   getNumEgressBytes());
-  lua_push_int_table_entry(vm, "packets", getNumEgressPackets());
+  lua_push_uint64_table_entry(vm, "bytes",   getNumEgressBytes());
+  lua_push_uint64_table_entry(vm, "packets", getNumEgressPackets());
   lua_pushstring(vm, "egress"); lua_insert(vm, -2); lua_settable(vm, -3);
 
   lua_pushstring(vm, "eth"); lua_insert(vm, -2); lua_settable(vm, -3);

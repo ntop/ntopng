@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-18 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -27,7 +27,7 @@
 
 CollectorInterface::CollectorInterface(const char *_endpoint) : ParserInterface(_endpoint) {
   char *tmp, *e, *t;
-  const char *topics[] = { "flow", "event", "counter", NULL };
+  const char *topics[] = { "flow", "event", "counter", "template", "option", NULL };
 
   memset(&recvStats, 0, sizeof(recvStats));
   num_subscribers = 0;
@@ -55,6 +55,32 @@ CollectorInterface::CollectorInterface(const char *_endpoint) : ParserInterface(
     val = 131072;
     if(zmq_setsockopt(subscriber[num_subscribers].socket, ZMQ_RCVBUF, &val, sizeof(val)) != 0)
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to enlarge ZMQ buffer size");
+
+    if(!strncmp(e, (char*)"tcp://", 6)) {
+      val = DEFAULT_ZMQ_TCP_KEEPALIVE;
+      if(zmq_setsockopt(subscriber[num_subscribers].socket, ZMQ_TCP_KEEPALIVE, &val, sizeof(val)) != 0)
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to set tcp keepalive");
+      else
+	ntop->getTrace()->traceEvent(TRACE_INFO, "Tcp keepalive set");
+
+      val = DEFAULT_ZMQ_TCP_KEEPALIVE_IDLE;
+      if(zmq_setsockopt(subscriber[num_subscribers].socket, ZMQ_TCP_KEEPALIVE_IDLE, &val, sizeof(val)) != 0)
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to set tcp keepalive idle to %u seconds", val);
+      else
+	ntop->getTrace()->traceEvent(TRACE_INFO, "Tcp keepalive idle set to %u seconds", val);
+
+      val = DEFAULT_ZMQ_TCP_KEEPALIVE_CNT;
+      if(zmq_setsockopt(subscriber[num_subscribers].socket, ZMQ_TCP_KEEPALIVE_CNT, &val, sizeof(val)) != 0)
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to set tcp keepalive count to %u", val);
+      else
+	ntop->getTrace()->traceEvent(TRACE_INFO, "Tcp keepalive count set to %u", val);
+
+      val = DEFAULT_ZMQ_TCP_KEEPALIVE_INTVL;
+      if(zmq_setsockopt(subscriber[num_subscribers].socket, ZMQ_TCP_KEEPALIVE_INTVL, &val, sizeof(val)) != 0)
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to set tcp keepalive interval to %u seconds", val);
+      else
+	ntop->getTrace()->traceEvent(TRACE_INFO, "Tcp keepalive interval set to %u seconds", val);
+    }
 
     if(last_char == 'c')
       is_collector = true, e[l] = '\0';
@@ -111,7 +137,7 @@ CollectorInterface::~CollectorInterface() {
 /* **************************************************** */
 
 void CollectorInterface::collect_flows() {
-  struct zmq_msg_hdr h;
+  struct zmq_msg_hdr h; /* NOTE: in network-byte-order format */
   char payload[8192];
   u_int payload_len = sizeof(payload)-1;
   zmq_pollitem_t items[MAX_ZMQ_SUBSCRIBERS];
@@ -155,13 +181,15 @@ void CollectorInterface::collect_flows() {
 	if(size == sizeof(struct zmq_msg_hdr_v0)) {
 	  /* Legacy version */
 	  msg_id = 0;
-	} else if((size != sizeof(h)) || (h.version != ZMQ_MSG_VERSION)) {
+	} else if((size != sizeof(h)) || ((h.version != ZMQ_MSG_VERSION) && (h.version != ZMQ_COMPATIBILITY_MSG_VERSION))) {
 	  ntop->getTrace()->traceEvent(TRACE_WARNING,
 				       "Unsupported publisher version: your nProbe sender is outdated? [%u][%u]",
 				       sizeof(struct zmq_msg_hdr), sizeof(h));
 	  continue;
-	} else
-	  msg_id = h.msg_id;
+	} else if(h.version == ZMQ_COMPATIBILITY_MSG_VERSION)
+	  msg_id = h.msg_id; // host byte order
+	else
+	  msg_id = ntohl(h.msg_id);
 
 	if((!is_collector) && (msg_id > 0)) {
 	  /* 
@@ -216,24 +244,36 @@ void CollectorInterface::collect_flows() {
 
 	  if(ntop->getPrefs()->get_zmq_encryption_pwd())
 	    Utils::xor_encdec((u_char*)uncompressed, uncompressed_len, (u_char*)ntop->getPrefs()->get_zmq_encryption_pwd());
-	  
-	  ntop->getTrace()->traceEvent(TRACE_INFO, "%s [msg_id=%u]", uncompressed, msg_id);
 
-	  switch(h.url[0]) {
-	  case 'e': /* event */
-	    recvStats.num_events++;
-	    parseEvent(uncompressed, uncompressed_len, source_id, this);
-	    break;
+	  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[url: %s]", h.url);
+	  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [msg_id=%u][url: %s]", uncompressed, msg_id, h.url);
 
-	  case 'f': /* flow */
-	    recvStats.num_flows += parseFlow(uncompressed, uncompressed_len, source_id, this);
-	    break;
+          switch(h.url[0]) {
+          case 'e': /* event */
+            recvStats.num_events++;
+            parseEvent(uncompressed, uncompressed_len, source_id, this);
+            break;
 
-	  case 'c': /* counter */
-	    recvStats.num_counters++;
-	    parseCounter(uncompressed, uncompressed_len, source_id, this);
-	    break;
-	  }
+          case 'f': /* flow */
+            recvStats.num_flows += parseFlow(uncompressed, uncompressed_len, source_id, this);
+            break;
+
+          case 'c': /* counter */
+            recvStats.num_counters++;
+            parseCounter(uncompressed, uncompressed_len, source_id, this);
+            break;
+
+          case 't': /* template */
+            recvStats.num_templates++;
+            parseTemplate(uncompressed, uncompressed_len, source_id, this);
+            break;
+
+          case 'o': /* option */
+            recvStats.num_options++;
+            parseOption(uncompressed, uncompressed_len, source_id, this);
+            break;
+
+          }
 
 	  /* ntop->getTrace()->traceEvent(TRACE_INFO, "[%s] %s", h.url, uncompressed); */
 
@@ -294,10 +334,10 @@ void CollectorInterface::lua(lua_State* vm) {
   ParserInterface::lua(vm);
 
   lua_newtable(vm);
-  lua_push_int_table_entry(vm, "flows", recvStats.num_flows);
-  lua_push_int_table_entry(vm, "events", recvStats.num_events);
-  lua_push_int_table_entry(vm, "counters", recvStats.num_counters);
-  lua_push_int_table_entry(vm, "zmq_msg_drops", recvStats.zmq_msg_drops);
+  lua_push_uint64_table_entry(vm, "flows", recvStats.num_flows);
+  lua_push_uint64_table_entry(vm, "events", recvStats.num_events);
+  lua_push_uint64_table_entry(vm, "counters", recvStats.num_counters);
+  lua_push_uint64_table_entry(vm, "zmq_msg_drops", recvStats.zmq_msg_drops);
   lua_pushstring(vm, "zmqRecvStats");
   lua_insert(vm, -2);
   lua_settable(vm, -3);

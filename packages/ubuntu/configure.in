@@ -50,9 +50,13 @@ if [ test -f /usr/bin/lsb_release ]; then
   EXTRA_DEPS=", debconf, libnuma1, $ZMQ_DEP, libnetfilter-queue1"
 
   if [ test -d $HOME/PF_RING ]; then
-    PFRING_VERS=`cat $HOME/PF_RING/kernel/linux/pf_ring.h | grep RING_VERSION | head -1 | cut -d '"' -f 2`
-    PFRING_RELEASE=`cd $HOME/PF_RING ; git rev-list --all |wc -l | tr -d '[[:space:]]'`
-    PFRING_DEP="pfring (=$PFRING_VERS-$PFRING_RELEASE)"
+    PFRING_VERS=`$HOME/PF_RING/package/version.sh --release`
+    PFRING_RELEASE=`$HOME/PF_RING/package/version.sh --revision`
+    if [ ! "x$PFRING_VERS" = "x" ]; then
+      PFRING_DEP="pfring (=$PFRING_VERS-$PFRING_RELEASE)"
+    else
+      PFRING_DEP="pfring"
+    fi
   else
     PFRING_VERS=""
     PFRING_RELEASE=""
@@ -109,7 +113,7 @@ fi
 \cd debian.ntopng
 
 if test "${with_nedge+set}" = set; then
- ln -s control.nedge.in control.in
+ ln -s control.nedge.$UBUNTU_RELEASE.in control.in
  DEFAULT_TARGET=nedge
 else
  ln -s control.$UBUNTU_RELEASE.in control.in
@@ -147,6 +151,8 @@ AC_CONFIG_FILES(debian.ntopng/changelog)
 AC_CONFIG_FILES(debian.ntopng/files)
 AC_CONFIG_FILES(debian.ntopng/control)
 AC_CONFIG_FILES(debian.ntopng/rules)
+AC_CONFIG_FILES(debian.ntopng/postinst)
+AC_CONFIG_FILES(debian.ntopng/prerm)
 AC_CONFIG_FILES(debian.ntopng-data/changelog)
 AC_CONFIG_FILES(debian.ntopng-data/files)
 AC_CONFIG_FILES(debian.ntopng-data/control)

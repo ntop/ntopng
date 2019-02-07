@@ -55,14 +55,23 @@ local HOST_PREFIX_MAP = {
   snmp_if = "snmp:",
   host_pool = "pool:",
 }
+local WILDCARD_TAGS = {protocol=1, category=1, l4proto=1}
 
 local function get_fname_for_schema(schema, tags)
   if schema.options.rrd_fname ~= nil then
     return schema.options.rrd_fname
   end
 
-  -- return the last defined tag
-  return tags[schema._tags[#schema._tags]]
+  local last_tag = schema._tags[#schema._tags]
+
+  if WILDCARD_TAGS[last_tag] then
+    -- return the last defined tag
+    return tags[last_tag]
+  end
+
+  -- e.g. host:contacts -> contacts
+  local suffix = string.split(schema.name, ":")[2]
+  return suffix
 end
 
 local function schema_get_path(schema, tags)
@@ -75,7 +84,7 @@ local function schema_get_path(schema, tags)
   local host_or_network = nil
 
   if string.find(schema.name, "iface:") == nil then
-    local parts = split(schema.name, ":")
+    local parts = string.split(schema.name, ":")
     host_or_network = (HOST_PREFIX_MAP[parts[1]] or (parts[1] .. ":")) .. tags[schema._tags[2]]
 
     if parts[1] == "snmp_if" then
@@ -101,8 +110,8 @@ end
 -- TODO remove after migration
 function find_schema(rrdFile, rrdfname, tags, ts_utils)
   -- try to guess additional tags
-  local v = split(rrdfname, ".rrd")
-  if #v == 2 then
+  local v = string.split(rrdfname, "%.rrd")
+  if((v ~= nil) and (#v == 1)) then
     local app = v[1]
 
     if interface.getnDPIProtoId(app) ~= -1 then
@@ -335,10 +344,14 @@ function driver:query(schema, tstart, tend, tags, options)
   --tprint("rrdtool fetch ".. rrdfile.. " " .. RRD_CONSOLIDATION_FUNCTION .. " -s ".. tstart .. " -e " .. tend)
   local fstart, fstep, fdata, fend, fcount = ntop.rrd_fetch_columns(rrdfile, RRD_CONSOLIDATION_FUNCTION, tstart, tend)
 
+  if fdata == nil then
+    return nil
+  end
+
   local count = 0
   local series = {}
 
-  for name_key, serie in pairs(fdata or {}) do
+  for name_key, serie in pairs(fdata) do
     local serie_idx = map_rrd_column_to_metrics(schema, name_key)
     local name = schema._metrics[serie_idx]
     local max_val = ts_common.getMaxPointValue(schema, name, tags)
@@ -421,7 +434,7 @@ end
 -- *Limitation*
 -- tags_filter is expected to contain all the tags of the schema except the last
 -- one. For such tag, a list of available values will be returned.
-local function _listSeries(schema, tags_filter, wildcard_tags, start_time, with_l4)
+local function _listSeries(schema, tags_filter, wildcard_tags, start_time)
   if #wildcard_tags > 1 then
     traceError(TRACE_ERROR, TRACE_CONSOLE, "RRD driver does not support listSeries on multiple tags")
     return nil
@@ -445,26 +458,32 @@ local function _listSeries(schema, tags_filter, wildcard_tags, start_time, with_
     return nil
   end
 
-  -- TODO remove after migration
-  local l4_keys = {tcp=1, udp=1, icmp=1}
-
   local base, rrd = schema_get_path(schema, table.merge(tags_filter, {[wildcard_tag] = ""}))
   local files = ntop.readdir(base)
   local res = {}
 
   for f in pairs(files or {}) do
-    local v = split(f, ".rrd")
+    local v = string.split(f, "%.rrd")
     local fpath = base .. "/" .. f
 
-    if #v == 2 then
+    if((v ~= nil) and (#v == 1)) then
       local last_update = ntop.rrd_lastupdate(fpath)
 
       if last_update ~= nil and last_update >= start_time then
         -- TODO remove after migration
         local value = v[1]
+        local toadd = false
 
-        if ((wildcard_tag ~= "protocol") or (with_l4 and l4_keys[value] ~= nil) or (interface.getnDPIProtoId(value) ~= -1)) and
+        if wildcard_tag == "l4proto" then
+          if L4_PROTO_KEYS[value] ~= nil then
+            toadd = true
+          end
+        elseif ((wildcard_tag ~= "protocol") or ((L4_PROTO_KEYS[value] == nil) and (interface.getnDPIProtoId(value) ~= -1))) and
             ((wildcard_tag ~= "category") or (interface.getnDPICategoryId(value) ~= -1)) then
+          toadd = true
+        end
+
+        if toadd then
           res[#res + 1] = table.merge(tags_filter, {[wildcard_tag] = value})
         end
       end
@@ -485,7 +504,7 @@ end
 -- ##############################################
 
 function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
-  return _listSeries(schema, tags_filter, wildcard_tags, start_time, true --[[ with l4 protos ]])
+  return _listSeries(schema, tags_filter, wildcard_tags, start_time)
 end
 
 -- ##############################################
@@ -503,7 +522,7 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
     return nil
   end
 
-  local series = _listSeries(schema, tags, top_tags, tstart, false --[[ no l4 protos ]])
+  local series = _listSeries(schema, tags, top_tags, tstart)
   if not series then
     return nil
   end
@@ -525,6 +544,11 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
 
     local fstart, fstep, fdata, fend, fcount = ntop.rrd_fetch_columns(rrdfile, RRD_CONSOLIDATION_FUNCTION, query_start, tend)
     local sum = 0
+
+    if fdata == nil then
+      goto continue
+    end
+
     step = fstep
 
     local partials = {}
@@ -564,6 +588,7 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
 
     items[serie_tags[top_tag]] = sum * step
     tag_2_series[serie_tags[top_tag]] = {serie_tags, partials}
+    ::continue::
   end
 
   local topk = {}
@@ -614,20 +639,80 @@ end
 
 -- ##############################################
 
+function driver:queryTotal(schema, tstart, tend, tags, options)
+  local rrdfile = schema_get_full_path(schema, tags)
+
+  if not ntop.exists(rrdfile) then
+     return nil
+  end
+
+  touchRRD(rrdfile)
+
+  local fstart, fstep, fdata, fend, fcount = ntop.rrd_fetch_columns(rrdfile, RRD_CONSOLIDATION_FUNCTION, tstart, tend)
+  local totals = {}
+
+  for name_key, serie in pairs(fdata or {}) do
+    local serie_idx = map_rrd_column_to_metrics(schema, name_key)
+    local name = schema._metrics[serie_idx]
+    local max_val = ts_common.getMaxPointValue(schema, name, tags)
+    local sum = 0
+
+    -- Remove the last value: RRD seems to give an additional point
+    serie[#serie] = nil
+
+    for i, v in pairs(serie) do
+      local v = ts_common.normalizeVal(v, max_val, options)
+
+      if type(v) == "number" then
+        sum = sum + v * fstep
+      end
+    end
+
+    totals[name] = sum
+  end
+
+  return totals
+end
+
+-- ##############################################
+
+local function deleteAllData(ifid)
+  local paths = getRRDPaths()
+
+  for _, path in pairs(paths) do
+    local ifpath = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/".. path .."/")
+    local path_to_del = os_utils.fixPath(ifpath)
+
+    if ntop.exists(path_to_del) and not ntop.rmdir(path_to_del) then
+      return false
+    end
+  end
+
+  return true
+end
+
 function driver:delete(schema_prefix, tags)
   -- NOTE: delete support in this driver is currently limited to a specific set of schemas and tags
   local supported_prefixes = {
-    [""] = {
-      tags = {ifid=1},
-      path = function(tags) return getRRDName(tags.ifid) end,
-    }, host = {
+    host = {
       tags = {ifid=1, host=1},
       path = function(tags) return getRRDName(tags.ifid, tags.host) end,
     }, mac = {
       tags = {ifid=1, mac=1},
       path = function(tags) return getRRDName(tags.ifid, tags.mac) end,
+    }, snmp_if = {
+      tags = {ifid=1, device=1},
+      path = function(tags) return getRRDName(tags.ifid, "snmp:" .. tags.device) end,
+    }, subnet = {
+      tags = {ifid=1, subnet=1},
+      path = function(tags) return getRRDName(tags.ifid, "net:" .. tags.subnet) end,
     }
   }
+
+  if schema_prefix == "" then
+    -- Delete all data
+    return deleteAllData(tags.ifid)
+  end
 
   local delete_info = supported_prefixes[schema_prefix]
 
@@ -656,6 +741,29 @@ function driver:delete(schema_prefix, tags)
      return false
   end
 
+  return true
+end
+
+-- ##############################################
+
+function driver:deleteOldData(ifid)
+  local paths = getRRDPaths()
+  local dirs = ntop.getDirs()
+  local ifaces = ntop.listInterfaces()
+  local retention_days = tonumber(ntop.getPref("ntopng.prefs.old_rrd_files_retention")) or 365
+
+  for _, path in pairs(paths) do
+    local ifpath = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/".. path .."/")
+
+    ntop.deleteOldRRDs(ifpath, retention_days * 86400)
+  end
+
+  return true
+end
+
+-- ##############################################
+
+function driver:setup(ts_utils)
   return true
 end
 

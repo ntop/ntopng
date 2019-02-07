@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-18 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -28,7 +28,7 @@ Prefs::Prefs(Ntop *_ntop) {
   ntop = _ntop, sticky_hosts = location_none,
     ignore_vlans = false, simulate_vlans = false;
   local_networks = strdup(CONST_DEFAULT_HOME_NET "," CONST_DEFAULT_LOCAL_NETS);
-  local_networks_set = false, shutdown_when_done = false;
+  local_networks_set = false, shutdown_when_done = false, flush_flows_on_shutdown = true;
   enable_users_login = true, disable_localhost_login = false;
   enable_dns_resolution = sniff_dns_responses = true, use_promiscuous_mode = true;
   resolve_all_host_ip = false, online_license_check = false, service_license_check = false;
@@ -41,26 +41,35 @@ Prefs::Prefs(Ntop *_ntop) {
   enable_flow_device_port_rrd_creation = false;
   enable_ip_reassignment_alerts = false;
   enable_top_talkers = false, enable_idle_local_hosts_cache = false;
-  enable_active_local_hosts_cache = false, enable_tiny_flows_export = true,
-  enable_probing_alerts = true, enable_ssl_alerts = true, enable_dns_alerts = true,
-  enable_mining_alerts = CONST_DEFAULT_ALERT_MINING_ENABLED,
-  enable_remote_to_remote_alerts = true,
-  enable_dropped_flows_alerts = true, enable_device_protocols_alerts = false,
-  enable_syslog_alerts = false, enable_captive_portal = false,
-  enable_informative_captive_portal = false,
-  external_notifications_enabled = false, dump_flow_alerts_when_iface_alerted = false,
-  override_dst_with_post_nat_dst = false, override_src_with_post_nat_src = false,
-  hostMask = no_host_mask;
+  enable_active_local_hosts_cache = false,
+    enable_tiny_flows_export = true, enable_aggregated_flows_export_limit = false,
+    enable_probing_alerts = true, enable_ssl_alerts = true, enable_dns_alerts = true,
+    enable_mining_alerts = CONST_DEFAULT_ALERT_MINING_ENABLED,
+    enable_remote_to_remote_alerts = true,
+    enable_dropped_flows_alerts = true, enable_device_protocols_alerts = false,
+    enable_syslog_alerts = false, enable_captive_portal = false, mac_based_captive_portal = false,
+    enabled_malware_alerts = true, enable_elephant_flows_alerts = false, enable_longlived_flows_alerts = true,
+    enable_informative_captive_portal = false,
+    external_notifications_enabled = false, dump_flow_alerts_when_iface_alerted = false,
+    override_dst_with_post_nat_dst = false, override_src_with_post_nat_src = false,
+    hostMask = no_host_mask;
   enable_mac_ndpi_stats = false;
   auto_assigned_pool_id = NO_HOST_POOL_ID;
   default_l7policy = PASS_ALL_SHAPER_ID;
   num_ts_slots = CONST_DEFAULT_TS_NUM_SLOTS, ts_num_steps = CONST_DEFAULT_TS_NUM_STEPS;
-
+  device_protocol_policies_enabled = false, enable_vlan_trunk_bridge = false;
+  max_extracted_pcap_bytes = CONST_DEFAULT_MAX_EXTR_PCAP_BYTES;
+  auth_session_duration = HTTP_SESSION_DURATION;
+  auth_session_midnight_expiration = HTTP_SESSION_MIDNIGHT_EXPIRATION;
   install_dir = NULL, captureDirection = PCAP_D_INOUT;
   docs_dir = strdup(CONST_DEFAULT_DOCS_DIR);
   scripts_dir = strdup(CONST_DEFAULT_SCRIPTS_DIR);
   callbacks_dir = strdup(CONST_DEFAULT_CALLBACKS_DIR);
+  pcap_dir = NULL;
   prefs_dir = NULL;
+#ifdef HAVE_TEST_MODE
+  test_script_path = NULL;
+#endif
   config_file_path = ndpi_proto_path = NULL;
   http_port = CONST_DEFAULT_NTOP_PORT;
   http_prefix = strdup(""), zmq_encryption_pwd = NULL;
@@ -76,6 +85,7 @@ Prefs::Prefs(Ntop *_ntop) {
   http_binding_address2 = NULL;
   https_binding_address1 = NULL; // CONST_ANY_ADDRESS;
   https_binding_address2 = NULL;
+  enable_client_x509_auth = false;
   lan_interface = NULL;
   cpu_affinity = NULL;
   redis_host = strdup("127.0.0.1");
@@ -93,11 +103,10 @@ Prefs::Prefs(Ntop *_ntop) {
   dump_flows_on_nindex = false;
 #endif
   read_flows_from_mysql = false;
-  enable_taps = false;
 
   if(!(ifNames = (InterfaceInfo*)calloc(UNLIMITED_NUM_INTERFACES, sizeof(InterfaceInfo)))
      || !(deferred_interfaces_to_register = (char**)calloc(UNLIMITED_NUM_INTERFACES, sizeof(char*))))
-     throw "Not enough memory";
+    throw "Not enough memory";
 
   dump_hosts_to_db = location_none;
   json_labels_string_format = true;
@@ -153,6 +162,7 @@ Prefs::~Prefs() {
   if(scripts_dir)      free(scripts_dir);
   if(callbacks_dir)    free(callbacks_dir);
   if(prefs_dir)        free(prefs_dir);
+  if(pcap_dir)         free(pcap_dir);
   if(config_file_path) free(config_file_path);
   if(user)             free(user);
   if(pid_path)         free(pid_path);
@@ -237,6 +247,9 @@ void usage() {
 	 "                                    | and deserialize file\n"
 	 "                                    | containing runtime preferences.\n"
 	 "                                    | Default: %s\n"
+	 "[--pcap-dir|-5] <path>              | Storage directory used for continuous traffic\n"
+	 "                                    | recording in PCAP format.\n"
+	 "                                    | Default: %s\n"
 	 "[--no-promisc|-u]                   | Don't set the interface in promisc mode.\n"
 	 "[--http-port|-w] <[addr:]port>      | HTTP. Set to 0 to disable http server.\n"
 	 "                                    | Addr can be an IPv4 (192.168.1.1)\n"
@@ -302,7 +315,7 @@ void usage() {
 #ifndef HAVE_NEDGE
 	 "[--dump-flows|-F] <mode>            | Dump expired flows. Mode:\n"
 #ifdef HAVE_NINDEX
-	 "                                    | nindex        Dump in nIndex\n"
+	 "                                    | nindex        Dump in nIndex (Enterprise only)\n\n"
 #endif
 	 "                                    | es            Dump in ElasticSearch database\n"
 	 "                                    |   Format:\n"
@@ -365,7 +378,6 @@ void usage() {
 	 "                                    | 0=RX+TX (default), 1=RX only, 2=TX only\n"
 	 /* "--online-check                      | Check the license using the online service\n" */
 	 "--online-license-check              | Check the license online\n" /* set as deprecated as soon as --online-check is supported */
-	 "[--enable-taps|-T]                  | Enable tap interfaces for dumping traffic\n"
 	 "[--http-prefix|-Z <prefix>]         | HTTP prefix to be prepended to URLs.\n"
 	 "                                    | Useful when using ntopng behind a proxy.\n"
 	 "[--instance-name|-N <name>]         | Assign a name to this ntopng instance.\n"
@@ -392,6 +404,7 @@ void usage() {
 #endif
 	 CONST_DEFAULT_DOCS_DIR, CONST_DEFAULT_SCRIPTS_DIR,
          CONST_DEFAULT_CALLBACKS_DIR,
+	 CONST_DEFAULT_DATA_DIR,
 	 CONST_DEFAULT_DATA_DIR,
 	 CONST_DEFAULT_NTOP_PORT, CONST_DEFAULT_NTOP_PORT+1,
          CONST_DEFAULT_NTOP_USER,
@@ -513,6 +526,10 @@ void Prefs::reloadPrefsFromRedis() {
   enable_access_log     = getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_ACCESS_LOG, false);
   enable_sql_log        = getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_SQL_LOG, false);
 
+  // auth session preferences
+  auth_session_duration              = getDefaultPrefsValue(CONST_AUTH_SESSION_DURATION_PREFS, HTTP_SESSION_DURATION),
+    auth_session_midnight_expiration = getDefaultBoolPrefsValue(CONST_AUTH_SESSION_MIDNIGHT_EXP_PREFS, HTTP_SESSION_MIDNIGHT_EXPIRATION);
+
   /* Runtime Preferences */
   housekeeping_frequency      = getDefaultPrefsValue(CONST_RUNTIME_PREFS_HOUSEKEEPING_FREQUENCY, HOUSEKEEPING_FREQUENCY),
     local_host_cache_duration = getDefaultPrefsValue(CONST_LOCAL_HOST_CACHE_DURATION_PREFS, LOCAL_HOSTS_CACHE_DURATION),
@@ -541,6 +558,8 @@ void Prefs::reloadPrefsFromRedis() {
 							       CONST_DEFAULT_IS_ACTIVE_LOCAL_HOSTS_CACHE_ENABLED),
     enable_tiny_flows_export        = getDefaultBoolPrefsValue(CONST_IS_TINY_FLOW_EXPORT_ENABLED,
 							       CONST_DEFAULT_IS_TINY_FLOW_EXPORT_ENABLED),
+    enable_aggregated_flows_export_limit  = getDefaultBoolPrefsValue(CONST_IS_AGGR_FLOWS_EXPORT_LIMIT_ENABLED,
+								     CONST_DEFAULT_IS_AGGR_FLOWS_EXPORT_LIMIT_ENABLED),
 
     max_num_alerts_per_entity = getDefaultPrefsValue(CONST_MAX_NUM_ALERTS_PER_ENTITY, ALERTS_MANAGER_MAX_ENTITY_ALERTS),
     max_num_flow_alerts = getDefaultPrefsValue(CONST_MAX_NUM_FLOW_ALERTS, ALERTS_MANAGER_MAX_FLOW_ALERTS),
@@ -558,7 +577,12 @@ void Prefs::reloadPrefsFromRedis() {
 							       CONST_DEFAULT_ALERT_DROPPED_FLOWS_ENABLED),
     enable_device_protocols_alerts  = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_ALERT_DEVICE_PROTOCOLS,
 							       CONST_DEFAULT_ALERT_DEVICE_PROTOCOLS_ENABLED),
+    enable_elephant_flows_alerts  = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_ALERT_ELEPHANT_FLOWS,
+							     CONST_DEFAULT_ALERT_ELEPHANT_FLOWS_ENABLED),
+    enable_longlived_flows_alerts  = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_ALERT_LONGLIVED_FLOWS,
+							      CONST_DEFAULT_ALERT_LONGLIVED_FLOWS_ENABLED),
     enable_syslog_alerts  = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_ALERT_SYSLOG, CONST_DEFAULT_ALERT_SYSLOG_ENABLED),
+    enabled_malware_alerts = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_MALWARE_ALERTS, CONST_DEFAULT_MALWARE_ALERTS_ENABLED),
     external_notifications_enabled         = getDefaultBoolPrefsValue(ALERTS_MANAGER_EXTERNAL_NOTIFICATIONS_ENABLED, false),
     dump_flow_alerts_when_iface_alerted = getDefaultBoolPrefsValue(ALERTS_DUMP_DURING_IFACE_ALERTED, false),
 
@@ -569,11 +593,23 @@ void Prefs::reloadPrefsFromRedis() {
 							 CONST_DEFAULT_MAX_NUM_PACKETS_PER_TINY_FLOW),
     max_num_bytes_per_tiny_flow   = getDefaultPrefsValue(CONST_MAX_NUM_BYTES_PER_TINY_FLOW,
 							 CONST_DEFAULT_MAX_NUM_BYTES_PER_TINY_FLOW),
+    max_num_aggregated_flows_per_export = getDefaultPrefsValue(CONST_MAX_NUM_AGGR_FLOWS_PER_EXPORT,
+							       FLOW_AGGREGATION_MAX_AGGREGATES),
+    elephant_flow_local_to_remote_bytes = getDefaultPrefsValue(CONST_ELEPHANT_FLOW_LOCAL_TO_REMOTE_BYTES,
+							       CONST_DEFAULT_ELEPHANT_FLOW_LOCAL_TO_REMOTE_BYTES),
+    elephant_flow_remote_to_local_bytes = getDefaultPrefsValue(CONST_ELEPHANT_FLOW_REMOTE_TO_LOCAL_BYTES,
+							       CONST_DEFAULT_ELEPHANT_FLOW_REMOTE_TO_LOCAL_BYTES),
+    longlived_flow_duration = getDefaultPrefsValue(CONST_LONGLIVED_FLOW_DURATION,
+						   CONST_DEFAULT_LONGLIVED_FLOW_DURATION),
+    max_extracted_pcap_bytes = getDefaultPrefsValue(CONST_MAX_EXTR_PCAP_BYTES,
+                                                     CONST_DEFAULT_MAX_EXTR_PCAP_BYTES); 
 
     ewma_alpha_percent = getDefaultPrefsValue(CONST_EWMA_ALPHA_PERCENT, CONST_DEFAULT_EWMA_ALPHA_PERCENT);
 
     enable_captive_portal = getDefaultBoolPrefsValue(CONST_PREFS_CAPTIVE_PORTAL, false),
+    mac_based_captive_portal = getDefaultBoolPrefsValue(CONST_PREFS_MAC_CAPTIVE_PORTAL, true),
     enable_informative_captive_portal = getDefaultBoolPrefsValue(CONST_PREFS_INFORM_CAPTIVE_PORTAL, false),
+    enable_vlan_trunk_bridge = getDefaultBoolPrefsValue(CONST_PREFS_VLAN_TRUNK_MODE_ENABLED, false),
     default_l7policy = getDefaultPrefsValue(CONST_PREFS_DEFAULT_L7_POLICY, PASS_ALL_SHAPER_ID),
 
     max_ui_strlen = getDefaultPrefsValue(CONST_RUNTIME_MAX_UI_STRLEN, CONST_DEFAULT_MAX_UI_STRLEN),
@@ -605,9 +641,11 @@ void Prefs::reloadPrefsFromRedis() {
   }
 
   global_dns_forging_enabled = getDefaultBoolPrefsValue(CONST_PREFS_GLOBAL_DNS_FORGING_ENABLED, false);
+  enable_client_x509_auth = getDefaultBoolPrefsValue(CONST_PREFS_CLIENT_X509_AUTH, false);
 
   setTraceLevelFromRedis();
   refreshHostsAlertsPrefs();
+  refreshDeviceProtocolsPolicyPref();
 
 #ifdef PREFS_RELOAD_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Updated IPs "
@@ -686,7 +724,6 @@ static const struct option long_options[] = {
   { "export-flows",                      required_argument, NULL, 'I' },
   { "capture-direction",                 required_argument, NULL, 'Q' },
   { "sticky-hosts",                      required_argument, NULL, 'S' },
-  { "enable-taps",                       no_argument,       NULL, 'T' },
   { "user",                              required_argument, NULL, 'U' },
   { "version",                           no_argument,       NULL, 'V' },
   { "max-num-flows",                     required_argument, NULL, 'X' },
@@ -697,6 +734,7 @@ static const struct option long_options[] = {
   { "scripts-dir",                       required_argument, NULL, '2' },
   { "callbacks-dir",                     required_argument, NULL, '3' },
   { "prefs-dir",                         required_argument, NULL, '4' },
+  { "pcap-dir",                          required_argument, NULL, '5' },
   { "online-check",                      no_argument,       NULL, 209 },
   { "print-ndpi-protocols",              no_argument,       NULL, 210 },
   { "online-license-check",              no_argument,       NULL, 211 },
@@ -705,11 +743,15 @@ static const struct option long_options[] = {
   { "simulate-vlans",                    no_argument,       NULL, 214 },
   { "zmq-encrypt-pwd",                   required_argument, NULL, 215 },
   { "ignore-vlans",                      no_argument,       NULL, 217 },
+  #ifdef HAVE_TEST_MODE
+  { "test-script",                       required_argument, NULL, 218 },
+#endif
 #ifdef NTOPNG_PRO
   { "check-maintenance",                 no_argument,       NULL, 252 },
   { "check-license",                     no_argument,       NULL, 253 },
   { "community",                         no_argument,       NULL, 254 },
 #endif
+
   /* End of options */
   { NULL,                                no_argument,       NULL,  0 }
 };
@@ -904,12 +946,8 @@ int Prefs::setOption(int optkey, char *optarg) {
     }
     break;
 
-  case 'T':
-    enable_taps = true;
-    break;
-
   case 'h':
-    ntop->registerPrefs(this, true);
+    //    ntop->registerPrefs(this, true);
     help();
     break;
 
@@ -1053,6 +1091,11 @@ int Prefs::setOption(int optkey, char *optarg) {
     prefs_dir = strdup(optarg);
     break;
 
+  case '5':
+    if(pcap_dir) free(pcap_dir);
+    pcap_dir = strdup(optarg);
+    break;
+
   case 'l':
     switch(atoi(optarg)) {
     case 0:
@@ -1098,9 +1141,9 @@ int Prefs::setOption(int optkey, char *optarg) {
     if(!optarg)
       ntop->getTrace()->traceEvent(TRACE_ERROR, "No connection specified, -F ignored");
     else
-#if defined(NTOPNG_PRO) && defined(HAVE_NINDEX)
+#if defined(NTOPNG_PRO) && defined(HAVE_NINDEX) && !defined(HAVE_NEDGE) /* NOTE: currently disable on nEdge */
     if(strncmp(optarg, "nindex", 2) == 0) {
-	dump_flows_on_nindex = true;
+      dump_flows_on_nindex = true;
     } else
 #endif
     if((strncmp(optarg, "es", 2) == 0) && (strlen(optarg) > 3)) {
@@ -1324,6 +1367,13 @@ int Prefs::setOption(int optkey, char *optarg) {
     break;
 #endif
 
+#ifdef HAVE_TEST_MODE
+  case 218:
+    if(test_script_path) free(test_script_path);
+    test_script_path = strdup(optarg);
+    break;
+#endif
+
   default:
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unknown option -%c: Ignored.", (char)optkey);
     return(-1);
@@ -1344,6 +1394,9 @@ int Prefs::checkOptions() {
   if(!prefs_dir)
     prefs_dir = strdup(ntop->get_working_dir());
 
+  if(!pcap_dir) 
+    pcap_dir = strdup(ntop->get_working_dir());
+
   docs_dir      = ntop->getValidPath(docs_dir);
   scripts_dir   = ntop->getValidPath(scripts_dir);
   callbacks_dir = ntop->getValidPath(callbacks_dir);
@@ -1353,11 +1406,13 @@ int Prefs::checkOptions() {
   if(!scripts_dir[0])   { ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to locate scripts dir");   return(-1); }
   if(!callbacks_dir[0]) { ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to locate callbacks dir"); return(-1); }
   if(!prefs_dir[0])     { ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to locate prefs dir");     return(-1); }
+  if(!pcap_dir[0])      { ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to locate pcap dir");   return(-1); }
 
   ntop->removeTrailingSlash(docs_dir);
   ntop->removeTrailingSlash(scripts_dir);
   ntop->removeTrailingSlash(callbacks_dir);
   ntop->removeTrailingSlash(prefs_dir);
+  ntop->removeTrailingSlash(pcap_dir);
 
   if(http_binding_address1 == NULL) http_binding_address1 = strdup(CONST_ANY_ADDRESS);
   if(http_binding_address2 == NULL) http_binding_address2 = strdup(CONST_ANY_ADDRESS);
@@ -1378,8 +1433,13 @@ int Prefs::checkOptions() {
 int Prefs::loadFromCLI(int argc, char *argv[]) {
   u_char c;
 
-  while((c = getopt_long(argc, argv,
-			 "k:eg:hi:w:r:sg:m:n:p:qd:t:x:1:2:3:4:l:uv:A:B:CD:E:F:N:G:I:O:Q:S:TU:X:W:VZ:",
+  while((c = getopt_long(
+#ifdef WIN32
+	  (int *(__cdecl *)(void))argc, (char *const **(__cdecl *)(void))argv,
+#else
+	  argc, argv,
+#endif
+			 "k:eg:hi:w:r:sg:m:n:p:qd:t:x:1:2:3:4:5:l:uv:A:B:CD:E:F:N:G:I:O:Q:S:TU:X:W:VZ:",
 			 long_options, NULL)) != '?') {
     if(c == 255) break;
     setOption(c, optarg);
@@ -1520,28 +1580,28 @@ void Prefs::lua(lua_State* vm) {
   lua_push_bool_table_entry(vm, "is_dns_resolution_enabled_for_all_hosts", resolve_all_host_ip);
   lua_push_bool_table_entry(vm, "is_dns_resolution_enabled", enable_dns_resolution);
   lua_push_bool_table_entry(vm, "is_autologout_enabled", enable_auto_logout);
-  lua_push_int_table_entry(vm, "http_port", http_port);
+  lua_push_uint64_table_entry(vm, "http_port", http_port);
 
-  lua_push_int_table_entry(vm, "max_num_hosts", max_num_hosts);
-  lua_push_int_table_entry(vm, "max_num_flows", max_num_flows);
-  lua_push_bool_table_entry(vm, "is_dump_flows_enabled", dump_flows_on_es || dump_flows_on_mysql || dump_flows_on_ls);
+  lua_push_uint64_table_entry(vm, "max_num_hosts", max_num_hosts);
+  lua_push_uint64_table_entry(vm, "max_num_flows", max_num_flows);
+  lua_push_bool_table_entry(vm, "is_dump_flows_enabled", do_dump_flows());
   lua_push_bool_table_entry(vm, "is_dump_flows_to_mysql_enabled", dump_flows_on_mysql || read_flows_from_mysql);
   lua_push_bool_table_entry(vm, "is_flow_aggregation_enabled", is_flow_aggregation_enabled());
 
   if(is_flow_aggregation_enabled())
-    lua_push_int_table_entry(vm, "flow_aggregation_frequency", flow_aggregation_frequency());
+    lua_push_uint64_table_entry(vm, "flow_aggregation_frequency", flow_aggregation_frequency());
 
 #if defined(HAVE_NINDEX) && defined(NTOPNG_PRO)
-  lua_push_bool_table_entry(vm, "is_nindex_enabled", dump_flows_on_nindex);
+  lua_push_bool_table_entry(vm, "is_nindex_enabled", do_dump_flows_on_nindex());
 #endif
     
   if(mysql_dbname) lua_push_str_table_entry(vm, "mysql_dbname", mysql_dbname);
   lua_push_bool_table_entry(vm, "is_dump_flows_to_es_enabled",    dump_flows_on_es);
   lua_push_bool_table_entry(vm, "is_dump_flows_to_ls_enabled", dump_flows_on_ls);
 
-  lua_push_int_table_entry(vm, "dump_hosts", dump_hosts_to_db);
+  lua_push_uint64_table_entry(vm, "dump_hosts", dump_hosts_to_db);
 
-  lua_push_int_table_entry(vm, "http.port", get_http_port());
+  lua_push_uint64_table_entry(vm, "http.port", get_http_port());
 
   lua_push_str_table_entry(vm, "instance_name", instance_name ? instance_name : (char*)"");
 
@@ -1569,38 +1629,50 @@ void Prefs::lua(lua_State* vm) {
   lua_push_str_table_entry(vm, "http_stats_base_dir", HTTP_stats_base_dir);
 #endif
 
-  lua_push_int_table_entry(vm, "housekeeping_frequency",    housekeeping_frequency);
-  lua_push_int_table_entry(vm, "local_host_cache_duration", local_host_cache_duration);
-  lua_push_int_table_entry(vm, "local_host_max_idle", local_host_max_idle);
-  lua_push_int_table_entry(vm, "non_local_host_max_idle", non_local_host_max_idle);
-  lua_push_int_table_entry(vm, "flow_max_idle", flow_max_idle);
-  if(enable_active_local_hosts_cache)
-    lua_push_int_table_entry(vm, "active_local_hosts_cache_interval", active_local_hosts_cache_interval);
+  lua_push_uint64_table_entry(vm, "auth_session_duration", get_auth_session_duration());
+  lua_push_bool_table_entry(vm, "auth_session_midnight_expiration", get_auth_session_midnight_expiration());
 
-  lua_push_int_table_entry(vm, "intf_rrd_raw_days", intf_rrd_raw_days);
-  lua_push_int_table_entry(vm, "intf_rrd_1min_days", intf_rrd_1min_days);
-  lua_push_int_table_entry(vm, "intf_rrd_1h_days", intf_rrd_1h_days);
-  lua_push_int_table_entry(vm, "intf_rrd_1d_days", intf_rrd_1d_days);
-  lua_push_int_table_entry(vm, "other_rrd_raw_days", other_rrd_raw_days);
-  lua_push_int_table_entry(vm, "other_rrd_1min_days", other_rrd_1min_days);
-  lua_push_int_table_entry(vm, "other_rrd_1h_days", other_rrd_1h_days);
-  lua_push_int_table_entry(vm, "other_rrd_1d_days", other_rrd_1d_days);
+  lua_push_uint64_table_entry(vm, "housekeeping_frequency",    housekeeping_frequency);
+  lua_push_uint64_table_entry(vm, "local_host_cache_duration", local_host_cache_duration);
+  lua_push_uint64_table_entry(vm, "local_host_max_idle", local_host_max_idle);
+  lua_push_uint64_table_entry(vm, "non_local_host_max_idle", non_local_host_max_idle);
+  lua_push_uint64_table_entry(vm, "flow_max_idle", flow_max_idle);
+  if(enable_active_local_hosts_cache)
+    lua_push_uint64_table_entry(vm, "active_local_hosts_cache_interval", active_local_hosts_cache_interval);
+
+  lua_push_uint64_table_entry(vm, "intf_rrd_raw_days", intf_rrd_raw_days);
+  lua_push_uint64_table_entry(vm, "intf_rrd_1min_days", intf_rrd_1min_days);
+  lua_push_uint64_table_entry(vm, "intf_rrd_1h_days", intf_rrd_1h_days);
+  lua_push_uint64_table_entry(vm, "intf_rrd_1d_days", intf_rrd_1d_days);
+  lua_push_uint64_table_entry(vm, "other_rrd_raw_days", other_rrd_raw_days);
+  lua_push_uint64_table_entry(vm, "other_rrd_1min_days", other_rrd_1min_days);
+  lua_push_uint64_table_entry(vm, "other_rrd_1h_days", other_rrd_1h_days);
+  lua_push_uint64_table_entry(vm, "other_rrd_1d_days", other_rrd_1d_days);
 
   lua_push_bool_table_entry(vm, "are_top_talkers_enabled", enable_top_talkers);
   lua_push_bool_table_entry(vm, "is_active_local_hosts_cache_enabled", enable_active_local_hosts_cache);
 
-  lua_push_bool_table_entry(vm,"is_tiny_flows_export_enabled",  enable_tiny_flows_export);
-  lua_push_int_table_entry(vm, "max_num_alerts_per_entity", max_num_alerts_per_entity);
-  lua_push_int_table_entry(vm, "max_num_flow_alerts", max_num_flow_alerts);
+  lua_push_bool_table_entry(vm,"is_tiny_flows_export_enabled",             enable_tiny_flows_export);
+  lua_push_bool_table_entry(vm,"is_aggregated_flows_export_limit_enabled", enable_aggregated_flows_export_limit);
+  lua_push_uint64_table_entry(vm, "max_num_alerts_per_entity", max_num_alerts_per_entity);
+  lua_push_uint64_table_entry(vm, "max_num_flow_alerts", max_num_flow_alerts);
 
   lua_push_bool_table_entry(vm, "is_flow_device_port_rrd_creation_enabled", enable_flow_device_port_rrd_creation);
 
   lua_push_bool_table_entry(vm, "are_alerts_enabled", !disable_alerts);
+  lua_push_bool_table_entry(vm, "are_longlived_flows_alerts_enabled", enable_longlived_flows_alerts);
+  lua_push_bool_table_entry(vm, "is_users_login_enabled", enable_users_login);
 
-  lua_push_int_table_entry(vm, "max_num_packets_per_tiny_flow", max_num_packets_per_tiny_flow);
-  lua_push_int_table_entry(vm, "max_num_bytes_per_tiny_flow",   max_num_bytes_per_tiny_flow);
+  lua_push_uint64_table_entry(vm, "max_num_packets_per_tiny_flow", max_num_packets_per_tiny_flow);
+  lua_push_uint64_table_entry(vm, "max_num_bytes_per_tiny_flow",   max_num_bytes_per_tiny_flow);
+  lua_push_uint64_table_entry(vm, "max_num_aggregated_flows_per_export", max_num_aggregated_flows_per_export);
+  lua_push_uint64_table_entry(vm, "elephant_flow_local_to_remote_bytes", elephant_flow_local_to_remote_bytes);
+  lua_push_uint64_table_entry(vm, "elephant_flow_remote_to_local_bytes", elephant_flow_remote_to_local_bytes);
+  lua_push_uint64_table_entry(vm, "longlived_flow_duration", longlived_flow_duration);
 
-  lua_push_int_table_entry(vm, "ewma_alpha_percent", ewma_alpha_percent);
+  lua_push_uint64_table_entry(vm, "max_extracted_pcap_bytes", max_extracted_pcap_bytes);
+
+  lua_push_uint64_table_entry(vm, "ewma_alpha_percent", ewma_alpha_percent);
 
   lua_push_str_table_entry(vm, "safe_search_dns",
 			   Utils::intoaV4(ntohl(safe_search_dns_ip), buf, sizeof(buf)));
@@ -1612,10 +1684,15 @@ void Prefs::lua(lua_State* vm) {
   lua_push_bool_table_entry(vm, "is_captive_portal_enabled", enable_captive_portal);
   lua_push_bool_table_entry(vm, "is_informative_captive_portal_enabled", enable_informative_captive_portal);
 
-  lua_push_int_table_entry(vm, "max_ui_strlen",   max_ui_strlen);
+  lua_push_uint64_table_entry(vm, "max_ui_strlen",   max_ui_strlen);
 
   lua_push_str_table_entry(vm, "config_file", config_file_path ? config_file_path : (char*)"");
   lua_push_str_table_entry(vm, "ndpi_proto_file", ndpi_proto_path ? ndpi_proto_path : (char*)"");
+
+  lua_push_str_table_entry(vm, "cpu_affinity", cpu_affinity ? cpu_affinity : (char*)"");
+  lua_push_str_table_entry(vm, "user", change_user ? user : (char*)"");
+
+  lua_push_str_table_entry(vm, "capture_direction", Utils::captureDirection2Str(captureDirection)); 
 }
 
 /* *************************************** */
@@ -1646,6 +1723,12 @@ void Prefs::refreshHostsAlertsPrefs() {
     victim_max_num_syn_per_sec = atol(rsp);
   else
     victim_max_num_syn_per_sec = CONST_MAX_NUM_SYN_PER_SECOND;
+}
+
+/* *************************************** */
+
+void Prefs::refreshDeviceProtocolsPolicyPref() {
+  device_protocol_policies_enabled = getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_DEVICE_PROTOCOL_POLICIES, false);
 }
 
 /* *************************************** */

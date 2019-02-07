@@ -26,7 +26,7 @@ alert_consts.alert_type_keys = {
    { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.suspicious_activity"),          3, "suspicious_activity"        },
    { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.interface_alerted"),            4, "interface_alerted"          },
    { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.flow_misbehaviour"),            5, "flow_misbehaviour"          },
-   { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.remote_to_remote_flow"),        6, "flow_remote_to_remote"      },
+   { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.remote_to_remote"),             6, "remote_to_remote"           },
    { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.blacklisted_flow"),             7, "flow_blacklisted"           },
    { "<i class='fa fa-ban'></i> " .. i18n("alerts_dashboard.blocked_flow"),                         8, "flow_blocked"               },
    { "<i class='fa fa-asterisk'></i> " .. i18n("alerts_dashboard.new_device"),                      9, "new_device"                 },
@@ -45,6 +45,11 @@ alert_consts.alert_type_keys = {
    { "<i class='fa fa-angle-double-down'></i> " .. i18n("alerts_dashboard.nfq_flushed"),           22, "nfq_flushed"                },
    { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.slow_stats_update"),           23, "slow_stats_update"          },
    { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.suspicious_device_protocol"),  24, "alert_device_protocol_not_allowed" },
+   { "<i class='fa fa-user'></i> " .. i18n("alerts_dashboard.user_activity"),                      25, "alert_user_activity"        },
+   { "<i class='fa fa-database'></i> " .. i18n("alerts_dashboard.influxdb_export_failure"),        26, "influxdb_export_failure"    },
+   { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.snmp_port_errors"),            27, "port_errors"                },
+   { "<i class='fa fa-exclamation'></i> Test failed",                                              28, "test_failed"                },
+   { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.inactivity"),                  29, "inactivity"                 },
 }
 
 -- Keep in sync with ntop_typedefs.h:AlertEntity
@@ -57,6 +62,9 @@ alert_consts.alert_entity_keys = {
    { "Device",          5, "mac"           },
    { "Host Pool",       6, "host_pool"     },
    { "Process",         7, "process"       },
+   { "User",            8, "user"          },
+   { "Influx DB",       9, "influx_db"     },
+   { "Test",           10, "test"          },
 }
 
 alert_consts.alert_engine_keys = {

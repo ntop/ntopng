@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-18 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -61,7 +61,11 @@ void PeriodicActivities::sendShutdownSignal() {
 /* ******************************************* */
 
 void PeriodicActivities::startPeriodicActivitiesLoop() {
+#ifdef WIN32
+  struct _stat64 buf;
+#else
   struct stat buf;
+#endif
   ThreadedActivity *startup_activity;
   static u_int8_t num_threads = DEFAULT_THREAD_POOL_SIZE;
     
@@ -98,7 +102,7 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
     { FIVE_MINUTES_SCRIPT_PATH, 300,   false, num_threads },
     { HOURLY_SCRIPT_PATH,       3600,  false, num_threads },
     { DAILY_SCRIPT_PATH,        86400, true,  1           },
-    { HOUSEKEEPING_SCRIPT_PATH, 3,     false, num_threads },
+    { HOUSEKEEPING_SCRIPT_PATH, 3,     false, 1           },
     { DISCOVER_SCRIPT_PATH,     5,     false, 1           },
 #ifdef HAVE_NEDGE
     { PINGER_SCRIPT_PATH,       5,     false, 1           },

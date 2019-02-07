@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-18 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -245,9 +245,6 @@ int main(int argc, char *argv[])
 #endif
 
     if(iface) {
-      /* NOTE: allocate the PacketDumper only after setting the pcap_datalink_type */
-      iface->loadDumpPrefs();
-
       if(affinity != NULL) {
 	char *tmp;
 	
@@ -282,12 +279,6 @@ int main(int argc, char *argv[])
     if((iface = new ViewInterface(ifName)))
       ntop->registerInterface(iface);
   }
-
-#ifndef HAVE_NEDGE
-  ntop->createExportInterface();
-  ntop->getElasticSearch()->startFlowDump();
-  ntop->getLogstash()->startFlowDump();
-#endif
   
   if(ntop->getFirstInterface() == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Startup error: missing super-user privileges ?");
@@ -330,29 +321,22 @@ int main(int argc, char *argv[])
     Utils::dropPrivileges();
   }
 
+#ifndef HAVE_NEDGE
+  ntop->createExportInterface();
+#endif
+
   ntop->loadGeolocation(prefs->get_docs_dir());
   ntop->loadMacManufacturers(prefs->get_docs_dir());
   ntop->loadTrackers();
   ntop->registerHTTPserver(new HTTPserver(prefs->get_docs_dir(), prefs->get_scripts_dir()));
 
-  /*
-    If mysql flows dump is enabled, then it is necessary to create
-    and update the database schema
-   */
-  if(prefs->do_dump_flows_on_mysql()) {
-    /* create the schema only one time, no need to call it for every interface */
-    if(!ntop->getFirstInterface()->createDBSchema()){
-      ntop->getTrace()->traceEvent(TRACE_ERROR,
-				   "Unable to create database schema, quitting.");
-      exit(EXIT_FAILURE);
-    }
-  } else if(prefs->do_read_flows_from_nprobe_mysql()) {
-    /* Create a view only one time for the first interface */
-    if(!ntop->getFirstInterface()->createNprobeDBView()){
-      ntop->getTrace()->traceEvent(TRACE_ERROR,
-				   "Unable to create a view on the nProbe database.");
-      exit(EXIT_FAILURE);
-    }
+  /* initInterface writes DB data on disk, keep it after changing user
+   * Note: privileges can be dropped by mongoose (creating HTTPserver) */
+  for(int i = 0; i < MAX_NUM_INTERFACE_IDS; i++) {
+    NetworkInterface *iface;
+
+    if((iface = ntop->getInterface(i)) != NULL)
+      ntop->initInterface(iface);
   }
 
   /*

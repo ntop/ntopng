@@ -8,10 +8,13 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 require "alert_utils"
 
+local page_utils = require("page_utils")
+
 interface.select(ifname)
 
 sendHTTPContentTypeHeader('text/html')
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
+
+page_utils.print_header(i18n("show_alerts.detected_alerts"))
 
 checkDeleteStoredAlerts()
 

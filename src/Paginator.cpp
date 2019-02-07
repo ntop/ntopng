@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-18 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -52,6 +52,9 @@ Paginator::Paginator() {
 
   deviceIP = inIndex = outIndex = 0;
   asn_filter = (u_int32_t)-1;
+
+  uid_filter = NO_UID;
+  pid_filter = NO_PID;
 
   details_level = details_normal;
   details_level_set = false;
@@ -156,6 +159,10 @@ void Paginator::readOptions(lua_State *L, int index) {
 	  pool_filter = lua_tointeger(L, -1);
 	else if(!strcmp(key, "asnFilter"))
 	  asn_filter = lua_tointeger(L, -1);
+	else if(!strcmp(key, "uidFilter"))
+	  uid_filter = lua_tointeger(L, -1);
+	else if(!strcmp(key, "pidFilter"))
+	  pid_filter = lua_tointeger(L, -1);
 
 	//else
 	  //ntop->getTrace()->traceEvent(TRACE_ERROR, "Invalid int type (%d) for option %s", lua_tointeger(L, -1), key);

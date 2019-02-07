@@ -1,0 +1,16 @@
+HTTP authentication can be enabled from the ntopng preferences page.
+
+NTOP will request a POST to an url with a JSON content:
+{ "user": "username", "password": "password" }
+
+User is granted if webservice return code 200, anything else
+user is not granted. Content-type and answser content are not checked.
+
+If you want to grant a user as an administrator, webservice must
+reply a JSON like:
+{ "admin": true }
+
+# Setting up a simple HTTP authenticator
+The python script https://github.com/ntop/ntopng/blob/dev/tools/http_authenticator.py
+shows how to implement a simple HTTP authenticator. It assumes that a `/login` path
+is used to indicate the login path.

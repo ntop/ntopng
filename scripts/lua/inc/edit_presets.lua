@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
 
 require "lua_utils"
+require "graph_utils"
 local template = require "template_utils"
 
 local host_pools_utils = require "host_pools_utils"
@@ -24,9 +25,14 @@ local policy_filter = _GET["policy_filter"] or ""
 local proto_filter = _GET["l7proto"] or ""
 local device_type = _GET["device_type"] or "0" -- unknown by default
 local category = _GET["category"] or ""
+local is_nedge = ntop.isnEdge()
+
+interface.select(ifname)
+
+presets_utils.init()
 
 local base_url = ""
-if ntop.isnEdge() then
+if is_nedge then
    base_url = "/lua/pro/nedge/admin/nf_edit_user.lua"
 else
    base_url = "/lua/admin/edit_device_protocols.lua"
@@ -102,7 +108,7 @@ local function printDeviceProtocolsPage()
    local table_id = "device-protocols-table"
 
    print[[ <h2 style="margin-top: 0; margin-bottom: 20px;">]]
-   if ntop.isnEdge() then
+   if is_nedge then
       local pool_name = host_pools_utils.DEFAULT_POOL_NAME
       print(i18n("nedge.user_device_protocols", {user=pool_name})) 
    else
@@ -179,6 +185,18 @@ local function printDeviceProtocolsPage()
 	 })
       )
 
+      if is_nedge and (ntop.getPref("ntopng.prefs.device_protocols_policing") ~= "1") then
+        print([[
+  <div class="alert alert-warning alert-dismissible" style="margin-top:2em; margin-bottom:0em;">
+    <button type="button" class="close" data-dismiss="alert" aria-label="]]..i18n("close")..[[">
+      <span aria-hidden="true">&times;</span>
+    </button><b>]]..i18n("warning")..[[</b>: ]].. i18n("nedge.device_protocols_blocked_warning", {
+      device_protocols_policies = '<a href="'.. ntop.getHttpPrefix() ..
+         '/lua/pro/nedge/admin/nf_edit_user.lua?page=settings">'.. i18n("nedge.enable_device_protocols_policies") .. '</a>',
+    }) ..[[
+  </div><br>]])
+   end
+
    -- Table form
    print[[<form id="]] print(form_id) print[[" lass="form-inline" style="margin-bottom: 0px;" method="post">
       <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[">
@@ -190,17 +208,21 @@ local function printDeviceProtocolsPage()
 
    <br>]]
  
-   print[[<span>]]
-   if ntop.isnEdge() then
-     print(i18n("notes")) print[[
-     <ul>
+   print[[
+     <span>
+       <ul>]]
+   print(i18n("notes"))
+   if is_nedge then
+      print [[
        <li>]] print(i18n("nedge.device_protocol_policy_has_higher_priority")) print[[</li>
-       <li>]] print(i18n("nedge.protocol_policy_has_higher_priority")) print[[</li>
-     </ul>]]
+       <li>]] print(i18n("nedge.protocol_policy_has_higher_priority")) print[[</li>]]
    else
-     print[[<br/>]]
+      print [[
+       <li>]] print(i18n("device_protocols_description")) print[[</li>]]
    end
-   print[[</span>]]
+   print[[
+       </ul>
+     </span>]]
 
    print[[
    <script type="text/javascript">
@@ -227,8 +249,8 @@ local function printDeviceProtocolsPage()
       datatableForEachRow($("#]] print(table_id) print[["), function() {
         var row = $(this);
         var proto_id = $("td:nth-child(1)", row).html();
-        var client_action_id = $("td:nth-child(3)", row).find("input[type=radio]:checked").val();
-        var server_action_id = $("td:nth-child(4)", row).find("input[type=radio]:checked").val();
+        var client_action_id = $("td:nth-child(4)", row).find("input[type=radio]:checked").val();
+        var server_action_id = $("td:nth-child(5)", row).find("input[type=radio]:checked").val();
         params["client_policy_" + proto_id] = client_action_id;
         params["server_policy_" + proto_id] = server_action_id;
       });
@@ -297,17 +319,11 @@ local function printDeviceProtocolsPage()
    end
    page_params["policy_filter"] = policy_filter
    print('</ul></div>\', ')
-       
-   -- 'Category' button
-   print('\'<div class="btn-group pull-right"><div class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..
-         i18n("category") .. ternary(not isEmptyString(category), '<span class="glyphicon glyphicon-filter"></span>', '') ..
-         '<span class="caret"></span></div> <ul class="dropdown-menu" role="menu" style="min-width: 90px;">')
 
-   -- 'Category' dropdown menu
+   -- Category filter
    local device_policies = presets_utils.getDevicePolicies(device_type)
-   local entries = { {text=i18n("all"), id=""} }
-   entries[#entries + 1] = ""
-   for cat_name, cat_id in pairsByKeys(interface.getnDPICategories()) do
+
+   local function categoryCountCallback(cat_id, cat_name)
       local cat_count = 0
       for proto_id,p in pairs(device_policies) do
          local cat = interface.getnDPIProtoCategory(tonumber(proto_id))
@@ -316,20 +332,11 @@ local function printDeviceProtocolsPage()
             cat_count = cat_count + 1
          end
       end
-      if cat_count > 0 then
-         entries[#entries + 1] = {text=cat_name.." ("..cat_count..")", id=cat_name}
-      end
+
+      return cat_count
    end
-   for _, entry in pairs(entries) do
-      if entry ~= "" then
-         page_params["category"] = entry.id
-         print('<li' .. ternary(category == entry.id, ' class="active"', '') .. '><a href="' .. getPageUrl(base_url, page_params) .. '">' .. (entry.icon or "") .. entry.text .. '</a></li>')
-      else
-         print('<li role="separator" class="divider"></li>')
-      end
-   end
-   page_params["category"] = category
-   print('</ul></div>\', ')
+
+   printCategoryDropdownButton(false, category, base_url, page_params, categoryCountCallback)
 
    -- datatable columns definition
    print[[],
@@ -340,7 +347,7 @@ local function printDeviceProtocolsPage()
               hidden: true,
               sortable: false,
             },{
-              title: "]] print(i18n("application_protocol")) print[[ ",
+              title: "]] print(i18n("application")) print[[ ",
               field: "column_ndpi_application",
               sortable: true,
                 css: {

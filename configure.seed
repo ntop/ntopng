@@ -15,7 +15,20 @@ NTOPNG_SHORT_VERSION="@SHORT_VERSION@"
 MACHINE=`uname -m`
 SYSTEM=`uname -s`
 
+PRO_MAKEFILE_INC=
+PRO_INCS=
+PRO_LIBS=
+ADDITIONAL_PRO_OBJECTS=
+PRO_OBJECTS=
+PRO_HEADERS=
+PRO_LIBS=
+
 AC_ARG_WITH(nedge,          [  --with-nedge          Enable nEdge device build])
+AC_ARG_WITH(nedge,          [  --with-test-mode      Enable ntopng/nEdge test mode])
+
+if test "${with_test_mode+set}" = set; then
+   AC_DEFINE(HAVE_TEST_MODE, 1, [ntopng/nEdge test mode enabled])
+fi
 
 NEDGE=0
 if test "${with_nedge+set}" = set; then
@@ -109,6 +122,17 @@ AC_ARG_WITH(ndpi-includes,
       NDPI_CUST_INC="-I$withval -I$withval/../lib/third_party/include"
    ])
 
+EBPF_HOME="../ebpf/libebpfflow/"
+AC_MSG_CHECKING(for ebpfflowlib)
+if test -f "$EBPF_HOME/libebpfflow.a" ; then :
+       AC_MSG_RESULT(found $EBPF_HOME)
+       PRO_INCS="${PRO_INCS} -I ${EBPF_HOME}"
+       PRO_LIBS="${PRO_LIBS} -L${EBPF_HOME} -lebpfflow -lbcc"
+       AC_DEFINE_UNQUOTED(HAVE_EBPF, 1, [Building with eBPF support])
+else
+       AC_MSG_RESULT(not found)
+fi
+
 PKG_CHECK_MODULES([NDPI], [libndpi >= 2.0], [
    NDPI_INC=`echo $NDPI_CFLAGS | sed -e "s/[ ]*$//"`/libndpi
    # Use static libndpi library as building against the dynamic library fails
@@ -158,20 +182,13 @@ if test -z "$NDPI_INC" || test -z "$NDPI_LIB" ; then :
 fi
 dnl finish: nDPI handling
 
-if test -d "/usr/include/openssl"; then :
+if test -z `pkg-config --exists libssl`; then
  AC_DEFINE_UNQUOTED(NO_SSL_DL, 1, [has openssl])
  SSL_INC="`pkg-config --cflags libssl` -I/usr/include/openssl"
  SSL_LIB="`pkg-config --libs libssl` -lssl -lcrypto"
 fi
 
 AC_MSG_CHECKING(for ntopng professional edition)
-PRO_MAKEFILE_INC=
-PRO_INCS=
-PRO_LIBS=
-ADDITIONAL_PRO_OBJECTS=
-PRO_OBJECTS=
-PRO_HEADERS=
-PRO_LIBS=
 
 SERVICE_ALIAS=
 SERVICE_REQUIRES=
@@ -185,6 +202,13 @@ SERVICE_ALIAS="nedge.service"
 else
 SERVICE_AFTER="network.target syslog.target redis.service pf_ring.service cluster.service mysql.service"
 SERVICE_WANTS="pf_ring.service cluster.service"
+fi
+
+APP=
+if test "${with_nedge+set}" = "set"; then
+APP=nedge
+else
+APP=ntopng
 fi
 
 if test -d "pro"; then :
@@ -215,7 +239,7 @@ if test "${with_nedge+set}" != set; then
 
   if test -f "${NINDEX_HOME}/libnindex.a"; then
     PRO_INCS="${PRO_INCS} -I ${NINDEX_HOME}/include"
-    PRO_LIBS="${PRO_LIBS} ${NINDEX_HOME}/libnindex.a ${NINDEX_HOME}/../CRoaring/build/src/libroaring.a"
+    PRO_LIBS="${PRO_LIBS} ${NINDEX_HOME}/libnindex.a ${NINDEX_HOME}/CRoaring/build/src/libroaring.a"
     AC_DEFINE_UNQUOTED(HAVE_NINDEX, 1, [nIndex support is present])
     echo "checking for nIndex... found on ${NINDEX_HOME}"
   fi
@@ -342,12 +366,12 @@ fi
 if test "${with_nedge+set}" != set; then
  PFRING_GIT_RELEASE=""
  if test -d $HOME/PF_RING; then
-   PFRING_GIT_RELEASE=`cd $HOME/PF_RING ; git rev-list --all |wc -l`
+  PFRING_GIT_RELEASE=`$HOME/PF_RING/package/version.sh --revision`
  fi
 
  PFRING_VERSION=""
  if test -f "$HOME/PF_RING/kernel/linux/pf_ring.h"; then
-  PFRING_VERSION=`cat $HOME/PF_RING/kernel/linux/pf_ring.h | grep RING_VERSION | head -1 | cut -d '"' -f 2`
+  PFRING_VERSION=`$HOME/PF_RING/package/version.sh --release`
  fi
 fi
 
@@ -397,6 +421,7 @@ else
     fi
 fi
 
+CENTOS_N2N_DEP=""
 CFLAGS="-Wall $CFLAGS"
 OS=""
 if test $SYSTEM = "Darwin"; then
@@ -415,7 +440,10 @@ if test $SYSTEM = "Darwin"; then
 else
   if test $SYSTEM = "Linux"; then
     if [ test -f /etc/redhat-release ]; then
-        OS=`cat /etc/redhat-release`
+       if [ test -f /usr/bin/lsb_release ]; then
+       	  dnl> CentOS 7
+	  CENTOS_N2N_DEP=", n2n"
+       fi
     else
         if [ test -f /usr/bin/lsb_release ]; then
          OS=`/usr/bin/lsb_release -d|cut -d ':' -f 2`
@@ -479,6 +507,20 @@ if test -n "$MYSQLTOOL"; then
    exit 1
  fi
 fi
+
+AC_CHECK_LIB([radcli], [rc_read_config], radcli=true)
+if test x$radcli = xtrue
+then
+  RADCLI_LIB="-lradcli"
+  AC_DEFINE_UNQUOTED(HAVE_RADIUS, 1, [RADIUS support is present])
+
+  AC_CHECK_LIB([radcli], [rc_apply_config], rc_apply_config=true)
+  if test x$rc_apply_config = xtrue
+  then
+    AC_DEFINE_UNQUOTED(HAVE_RC_APPLY_CONFIG, 1, [rc_apply_config exists in radcli])
+  fi
+fi
+
 
 if test -f /usr/bin/lsb_release; then
   LINUX_OS_RELEASE=`lsb_release -r | cut -f 2|cut -d '.' -f 1`
@@ -567,6 +609,7 @@ AC_SUBST(NDPI_LIB_DEP)
 AC_SUBST(HIREDIS_INC)
 AC_SUBST(HIREDIS_LIB)
 AC_SUBST(MAXMINDDB_LIB)
+AC_SUBST(RADCLI_LIB)
 AC_SUBST(SSL_INC)
 AC_SUBST(SSL_LIB)
 AC_SUBST(PRO_OBJECTS)
@@ -586,6 +629,8 @@ AC_SUBST(SERVICE_AFTER)
 AC_SUBST(SERVICE_REQUIRES)
 AC_SUBST(SERVICE_WANTS)
 AC_SUBST(SERVICE_ALIAS)
+AC_SUBST(APP)
+AC_SUBST(CENTOS_N2N_DEP)
 AC_CONFIG_HEADERS(include/config.h)
 AC_CONFIG_FILES(packages/ntopng.spec)
 AC_CONFIG_FILES(packages/ntopng-data.spec)

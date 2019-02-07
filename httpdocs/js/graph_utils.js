@@ -65,7 +65,7 @@ function getSerieLabel(schema, serie) {
 }
 
 // Value formatter
-function getValueFormatter(schema, series) {
+function getValueFormatter(schema, metric_type, series) {
   if(series && series.length && series[0].label) {
     var label = series[0].label;
 
@@ -76,9 +76,9 @@ function getValueFormatter(schema, series) {
         return [fbits_from_bytes, bytesToSize];
     } else if(label.contains("packets"))
       return [fpackets, formatPackets];
-    else if(label.contains("flows"))
-      return [formatValue, formatFlows, formatFlows];
-    else if(label.contains("millis"))
+    else if(label.contains("flows")) {
+      return [(metric_type === "counter") ? fflows : formatValue, formatFlows, (metric_type === "counter") ? fflows : formatFlows];
+    } else if(label.contains("millis"))
       return [fmillis, fmillis];
   }
 
@@ -205,27 +205,27 @@ function fixTimeRange(chart, params, align_step, actual_step) {
 
   // must be sorted by ascending max_diff
   // max_diff / tick_step indicates the number of ticks, which should be <= 15
-  // max_diff / resolution indicates the number of actual points, which should be ~60
+  // max_diff / resolution indicates the number of actual points, which should be ~300
   var range_params = [
     // max_diff, resolution, x_format, alignment, tick_step
     [15, 1, "%H:%M:%S", 1, 1],                          // <= 15 sec
     [60, 1, "%H:%M:%S", 1, 5],                          // <= 1 min
-    [120, 5, "%H:%M:%S", 10, 10],                       // <= 2 min
-    [300, 5, "%H:%M:%S", 10, 30],                       // <= 5 min
-    [600, 10, "%H:%M:%S", 30, 60],                      // <= 10 min
-    [1200, 30, "%H:%M:%S", 60, 120],                    // <= 20 min
-    [3600, 60, "%H:%M:%S", 60, 300],                    // <= 1 h
-    [5400, 120, "%H:%M", 300, 900],                     // <= 1.5 h
-    [10800, 300, "%H:%M", 300, 900],                    // <= 3 h
-    [21600, 300, "%H:%M", 3600, 1800],                  // <= 6 h
-    [43200, 600, "%H:%M", 3600, 3600],                  // <= 12 h
-    [86400, 600, "%H:%M", 3600, 7200],                  // <= 1 d
-    [172800, 3600, "%a, %H:%M", 3600, 14400],           // <= 2 d
-    [604800, 3600, "%Y-%m-%d", 86400, 86400],           // <= 7 d
-    [1209600, 7200, "%Y-%m-%d", 86400, 172800],         // <= 14 d
-    [2678400, 21600, "%Y-%m-%d", 86400, 259200],        // <= 1 m
-    [15768000, 175200, "%Y-%m-%d", 2678400, 1314000],   // <= 6 m
-    [31622400, 175200, "%Y-%m-%d", 2678400, 2678400],   // <= 1 y
+    [120, 1, "%H:%M:%S", 10, 10],                       // <= 2 min
+    [300, 1, "%H:%M:%S", 10, 30],                       // <= 5 min
+    [600, 5, "%H:%M:%S", 30, 60],                       // <= 10 min
+    [1200, 5, "%H:%M:%S", 60, 120],                     // <= 20 min
+    [3600, 10, "%H:%M:%S", 60, 300],                    // <= 1 h
+    [5400, 15, "%H:%M", 300, 900],                      // <= 1.5 h
+    [10800, 30, "%H:%M", 300, 900],                     // <= 3 h
+    [21600, 60, "%H:%M", 3600, 1800],                   // <= 6 h
+    [43200, 120, "%H:%M", 3600, 3600],                  // <= 12 h
+    [86400, 240, "%H:%M", 3600, 7200],                  // <= 1 d
+    [172800, 480, "%a, %H:%M", 3600, 14400],            // <= 2 d
+    [604800, 1800, "%Y-%m-%d", 86400, 86400],           // <= 7 d
+    [1209600, 3600, "%Y-%m-%d", 86400, 172800],         // <= 14 d
+    [2678400, 7200, "%Y-%m-%d", 86400, 259200],         // <= 1 m
+    [15768000, 43200, "%Y-%m-%d", 2678400, 1314000],    // <= 6 m
+    [31622400, 86400, "%Y-%m-%d", 2678400, 2678400],    // <= 1 y
   ];
 
   for(var i=0; i<range_params.length; i++) {
@@ -283,21 +283,51 @@ function findActualStep(raw_step, tstart) {
   return raw_step;
 }
 
+function has_initial_zoom() {
+  return typeof parseQuery(window.location.search).epoch_begin !== "undefined";
+}
+
+var current_zoom_level = (history.state) ? (history.state.zoom_level) : 0;
+
+function fixJumpButtons(epoch_end) {
+  var duration = $("#btn-jump-time-ahead").data("duration");
+  if((epoch_end + duration)*1000 > $.now())
+    $("#btn-jump-time-ahead").addClass("disabled");
+  else
+    $("#btn-jump-time-ahead").removeClass("disabled");
+}
+
+function showQuerySlow() {
+  $("#query-slow-alert").show();
+}
+
+function hideQuerySlow() {
+  $("#query-slow-alert").hide();
+}
+
 // add a new updateStackedChart function
-function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id, flows_dt, params, step, align_step, show_all_smooth, has_initial_zoom) {
-  var pending_request = null;
+function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id, params, step,
+          metric_type, align_step, show_all_smooth, initial_range, ts_table_shown) {
+  var pending_chart_request = null;
+  var pending_table_request = null;
   var d3_sel = d3.select(chart_id);
   var $chart = $(chart_id);
   var $zoom_reset = $(zoom_reset_id);
   var $graph_zoom = $("#graph_zoom");
   var max_interval = findActualStep(step, params.epoch_begin) * 8;
-  var is_max_zoom = false;
-  var zoom_stack = [];
-  var url = http_prefix + "/lua/get_ts.lua";
+  var initial_interval = (params.epoch_end - params.epoch_begin);
+  var is_max_zoom = (initial_interval <= max_interval);
+  var url = http_prefix + "/lua/rest/get/timeseries/ts.lua";
   var first_load = true;
   var first_time_loaded = true;
+  var manual_trigger_cmp_serie = false;
   var datetime_format = "dd/MM/yyyy hh:mm:ss";
   var max_over_total_ratio = 3;
+  var query_timer = null;
+  var seconds_before_query_slow = 6;
+  var query_completed = 0;
+  var query_was_aborted = false;
+  chart.is_zoomed = ((current_zoom_level > 0) || has_initial_zoom());
 
   //var spinner = $("<img class='chart-loading-spinner' src='" + spinner_url + "'/>");
   var spinner = $('<i class="chart-loading-spinner fa fa-spinner fa-lg fa-spin"></i>');
@@ -323,7 +353,6 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
 
     d3_sel.datum(new_data).transition().call(chart);
     nv.utils.windowResize(chart.update);
-    pending_request = null;
     spinner.remove();
   }
 
@@ -339,6 +368,9 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
   }
 
   chart.legend.dispatch.on('legendClick', function(d,i) {
+    if(d.legend_key.indexOf("ago") != -1)
+      manual_trigger_cmp_serie = true;
+
     if(typeof localStorage !== "undefined")
       localStorage.setItem("chart_series.disabled." + d.legend_key, (!d.disabled) ? true : false);
   });
@@ -352,77 +384,175 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
     chart.is_zoomed = true;
 
     if(chart.updateStackedChart(t_start, t_end, false, is_user_zoom)) {
-      zoom_stack.push(cur_zoom);
-      $zoom_reset.show();
+      if(is_user_zoom || e.push_state) {
+        //console.log("zoom IN!");
+        current_zoom_level += 1;
+        var url = getHistoryParameters({epoch_begin: t_start, epoch_end: t_end});
+        history.pushState({zoom_level: current_zoom_level, range: [t_start, t_end]}, "", url);
+      }
+
+      chart.fixChartButtons();
+    } else
+      chart.is_zoomed = old_zoomed;
+  });
+
+  function updateZoom(zoom, is_user_zoom, force) {
+    var t_start = zoom[0];
+    var t_end = zoom[1];
+
+    chart.updateStackedChart(t_start, t_end, false, is_user_zoom, null, force);
+    chart.fixChartButtons();
+  }
+
+  $chart.on('dblclick', function(event) {
+    //if(current_zoom_level) {
+      // Zoom out from history
+      //console.log("zoom OUT");
+      //history.back();
+    //} else {
+    // Zoom out with fixed interval
+    var delta = zoom_out_value;
+    if((params.epoch_end + delta/2)*1000 <= $.now())
+      delta /= 2;
+
+    $("#period_begin").data("DateTimePicker").date(new Date((params.epoch_begin - delta) * 1000));
+    $("#period_end").data("DateTimePicker").date(new Date((params.epoch_end + delta) * 1000));
+    updateChartFromPickers();
+    //}
+  });
+
+  $zoom_reset.on("click", function() {
+    if(current_zoom_level) {
+      //console.log("zoom RESET");
+      history.go(-current_zoom_level);
+    }
+  });
+
+  window.addEventListener('popstate', function(e) {
+    var zoom = initial_range;
+    //console.log("popstate: ", e.state);
+
+    if(e.state) {
+      zoom = e.state.range;
+      current_zoom_level = e.state.zoom_level;
+    } else
+      current_zoom_level = 0;
+
+    updateZoom(zoom, true, true /* force */);
+  });
+
+  chart.fixChartButtons = function() {
+    if((current_zoom_level > 0) || has_initial_zoom()) {
       $graph_zoom.find(".btn-warning:not(.custom-zoom-btn)")
         .addClass("initial-zoom-sel")
         .removeClass("btn-warning");
-      $graph_zoom.find(".custom-zoom-btn").show();
+      $graph_zoom.find(".custom-zoom-btn").css("visibility", "visible");
 
       var zoom_link = $graph_zoom.find(".custom-zoom-btn input");
       var link = zoom_link.val().replace(/&epoch_begin=.*/, "");
       link += "&epoch_begin=" + params.epoch_begin + "&epoch_end=" + params.epoch_end;
       zoom_link.val(link);
-    } else
-      chart.is_zoomed = old_zoomed;
-  });
-
-  function updateZoom(zoom, is_user_zoom) {
-    var t_start = zoom[0];
-    var t_end = zoom[1];
-
-    chart.updateStackedChart(t_start, t_end, false, is_user_zoom);
-
-    if(!zoom_stack.length) {
-      $zoom_reset.hide();
-
+    } else {
       $graph_zoom.find(".initial-zoom-sel")
         .addClass("btn-warning");
-      $graph_zoom.find(".custom-zoom-btn").hide();
+      $graph_zoom.find(".custom-zoom-btn").css("visibility", "hidden");
       chart.is_zoomed = false;
+    }
+
+    fixJumpButtons(params.epoch_end);
+
+    if(current_zoom_level > 0)
+      $zoom_reset.show();
+    else
+      $zoom_reset.hide();
+  }
+
+  function checkQueryCompleted() {
+    var flows_dt = $("#chart1-flows");
+    var wait_num_queries = (ts_table_shown && ($("#chart1-flows").css("display") !== "none")) ? 2 : 1;
+
+    query_completed += 1;
+
+    if(query_completed >= wait_num_queries) {
+      if(query_timer) {
+        clearInterval(query_timer);
+        query_timer = null;
+      }
+
+      hideQuerySlow();
     }
   }
 
-  $chart.on('dblclick', function() {
-    if(zoom_stack.length) {
-      var zoom = zoom_stack.pop();
-      updateZoom(zoom, true);
-    }
-  });
+  chart.queryWasAborted = function() {
+    return query_was_aborted;
+  }
 
-  $zoom_reset.on("click", function() {
-    if(zoom_stack.length) {
-      var zoom = zoom_stack[0];
-      zoom_stack = [];
-      updateZoom(zoom, true);
+  chart.abortQuery = function() {
+    query_was_aborted = true;
+
+    if(pending_chart_request) {
+      pending_chart_request.abort();
+      chart.noData(i18n.query_was_aborted);
+      update_chart_data([]);
     }
-  });
+
+    if(pending_table_request)
+      pending_table_request.abort();
+
+    if(query_timer) {
+      clearInterval(query_timer);
+      query_timer = null;
+    }
+
+    hideQuerySlow();
+  }
+
+  chart.tableRequestCompleted = function() {
+    checkQueryCompleted();
+    pending_table_request = null;
+  }
+
+  chart.getDataUrl = function() {
+    var data_params = jQuery.extend({}, params);
+    delete data_params.zoom;
+    delete data_params.ts_compare;
+    data_params.extended = 1; /* with extended timestamps */
+    return url + "?" + $.param(data_params, true);
+  }
 
   var old_start, old_end, old_interval;
 
   /* Returns false if zoom update is rejected. */
-  chart.updateStackedChart = function (tstart, tend, no_spinner, is_user_zoom, on_load_callback) {
+  chart.updateStackedChart = function (tstart, tend, no_spinner, is_user_zoom, on_load_callback, force_update) {
     if(tstart) params.epoch_begin = tstart;
     if(tend) params.epoch_end = tend;
 
     var cur_interval = (params.epoch_end - params.epoch_begin);
     var actual_step = findActualStep(step, params.epoch_begin);
-    max_interval = actual_step * 8;
+    max_interval = actual_step * 6; /* host traffic 30 min */
 
     if(cur_interval < max_interval) {
-      if(is_max_zoom && (cur_interval < old_interval)) {
+      if((is_max_zoom && (cur_interval < old_interval)) && !force_update) {
         old_interval = cur_interval;
         return false;
       }
 
-      if(is_user_zoom) {
+      if(!force_update) {
+        /* Ensure that a minimal number of points is available */
         var epoch = params.epoch_begin + (params.epoch_end - params.epoch_begin) / 2;
-        params.epoch_begin = Math.floor(epoch - max_interval / 2);
-        params.epoch_end = Math.ceil(epoch + max_interval / 2);
-      }
+        var new_end = Math.floor(epoch + max_interval / 2);
 
-      is_max_zoom = true;
-      chart.zoomType(null); // disable zoom
+        if(new_end * 1000 >= Date.now()) {
+          /* Only expand on the left side of the interval */
+          params.epoch_begin = params.epoch_end - max_interval;
+        } else {
+          params.epoch_begin = Math.floor(epoch - max_interval / 2);
+          params.epoch_end = Math.floor(epoch + max_interval / 2);
+        }
+
+        is_max_zoom = true;
+        chart.zoomType(null); // disable zoom
+      }
     } else if (cur_interval > max_interval) {
       is_max_zoom = false;
       chart.zoomType('x'); // enable zoom
@@ -430,27 +560,47 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
 
     old_interval = cur_interval;
 
-    if(!first_load || has_initial_zoom)
+    if(!first_load || has_initial_zoom() || force_update)
       align_step = null;
     fixTimeRange(chart, params, align_step, actual_step);
 
-    if((old_start == params.epoch_begin) && (old_end == params.epoch_end))
+    if(first_load)
+      initial_range = [params.epoch_begin, params.epoch_end];
+
+    if((old_start == params.epoch_begin) && (old_end == params.epoch_end) && (!force_update))
       return false;
 
     old_start = params.epoch_begin;
     old_end = params.epoch_end;
 
-    if(pending_request)
-      pending_request.abort();
+    if(pending_table_request)
+      pending_table_request.abort();
+
+    if(pending_chart_request)
+      pending_chart_request.abort();
     else if(!no_spinner)
       spinner.appendTo($chart.parent());
 
     // Update datetime selection
     $("#period_begin").data("DateTimePicker").date(new Date(params.epoch_begin * 1000));
-    $("#period_end").data("DateTimePicker").date(new Date(params.epoch_end * 1000));
+    $("#period_end").data("DateTimePicker")
+      .maxDate(new Date($.now()))
+      .date(new Date(Math.min(params.epoch_end * 1000, $.now())));
+
+    if(query_timer)
+      clearInterval(query_timer);
+
+    query_timer = setInterval(showQuerySlow, seconds_before_query_slow * 1000);
+    query_completed = 0;
+    query_was_aborted = false;
+    chart.noData(i18n.no_data_available);
+    hideQuerySlow();
 
     // Load data via ajax
-    pending_request = $.get(url, params, function(data) {
+    pending_chart_request = $.get(url, params, function(data) {
+      if(data && data.error)
+        chart.noData(data.error);
+
       if(!data || !data.series || !data.series.length || !checkSeriesConsinstency(schema_name, data.count, data.series)) {
         update_chart_data([]);
         return;
@@ -531,7 +681,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
           past_serie = serie_data; // TODO: more reliable way to determine past serie
 
           /* Hide comparison serie at first load if it's too high */
-          if(first_time_loaded && (ratio_over_total > max_over_total_ratio))
+          if((first_time_loaded || !manual_trigger_cmp_serie) && (ratio_over_total > max_over_total_ratio))
             is_disabled = true;
 
           res.push({
@@ -617,7 +767,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
       }
 
       // get the value formatter
-      var formatter1 = getValueFormatter(schema_name, series.filter(function(d) { return(d.axis != 2); }));
+      var formatter1 = getValueFormatter(schema_name, metric_type, series.filter(function(d) { return(d.axis != 2); }));
       var value_formatter = formatter1[0];
       var tot_formatter = formatter1[1];
       var stats_formatter = formatter1[2] || value_formatter;
@@ -625,12 +775,12 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
       chart.yAxis1_formatter = value_formatter;
 
       var second_axis_series = series.filter(function(d) { return(d.axis == 2); });
-      var formatter2 = getValueFormatter(schema_name, second_axis_series);
+      var formatter2 = getValueFormatter(schema_name, metric_type, second_axis_series);
       var value_formatter2 = formatter2[0];
       chart.yAxis2.tickFormat(value_formatter2);
       chart.yAxis2_formatter = value_formatter2;
 
-      var stats_table = $chart.closest("table").find(".graph-statistics");
+      var stats_table = $("#ts-chart-stats");
       var stats = data.statistics;
 
       if(stats) {
@@ -701,21 +851,42 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
 
       update_chart_data(res);
       first_time_loaded = false;
+
+      if(data.source_aggregation)
+        $("#data-aggr-dropdown > button > span:first").html(data.source_aggregation);
     }).fail(function(xhr, status, error) {
       if (xhr.statusText =='abort') {
         return;
       }
 
       console.error("Error while retrieving the timeseries data [" + status + "]: " + error);
+      chart.noData(error);
       update_chart_data([]);
+    }).always(function(data, status, xhr) {
+      checkQueryCompleted();
+      pending_chart_request = null;
     });
 
     if(first_load) {
       first_load = false;
+
+      /* Wait for page load because datatable is not instantiated yet right now */
+      $(function() {
+        var flows_dt = $("#chart1-flows").data("datatable");
+        if(flows_dt)
+          pending_table_request = flows_dt.pendingRequest;
+      });
     } else {
+      var flows_dt = $("#chart1-flows");
+
       /* Reload datatable */
-      if(flows_dt.data("datatable"))
-        flows_dt.data("datatable").render();
+      if(ts_table_shown) {
+        /* note: flows_dt.data("datatable") will change after this call */
+        updateGraphsTableView(null, params);
+
+        if($("#chart1-flows").css("display") !== "none")
+          pending_table_request = flows_dt.data("datatable").pendingRequest;
+      }
     }
 
     if(typeof on_load_callback === "function")
@@ -725,18 +896,148 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
   }
 }
 
-function updateGraphsTableView(graph_table, view, graph_params, nindex_buttons) {
+var graph_old_view = null;
+var graph_old_has_nindex = null;
+var graph_old_nindex_query = null;
+
+function tsQueryToTags(ts_query) {
+  return ts_query.split(",").
+    reduce(function(params, value) {
+      var pos = value.indexOf(":");
+
+      if(pos != -1) {
+        var k = value.slice(0, pos);
+        var v = value.slice(pos+1);
+        params[k] = v;
+      }
+
+      return params;
+  }, {});
+}
+
+/* Hide or show the timeseries table items based on the current time range */
+function recheckGraphTableEntries() {
+  var table_view = graph_table_views;
+  var tdiff = (graph_params.epoch_end - graph_params.epoch_begin);
+  var reset_selection = false;
+  $("#chart1-flows").show();
+  $("#graphs-table-selector").show();
+
+  for(view_id in table_view) {
+    var view = table_view[view_id];
+    var elem = $("#" + view.html_id);
+
+    if(tdiff <= view.min_step) {
+      if(graph_old_view.id === view_id)
+        reset_selection = true;
+
+      elem.hide();
+    } else
+      elem.show();
+  }
+
+  /* Hide/show the headers */
+  var items_ul = $("#graphs-table-active-view").closest(".btn-group").find("ul:first");
+
+  items_ul.find("li.dropdown-header").each(function(idx,e) {
+    var next_item = $(e).nextAll("li").filter(function(idx,e) {
+      return(($(e).css("display") !== "none") || (!$(e).attr("data-view-id")));
+    }).first();
+    var divider = $(e).nextAll(".divider").first();
+
+    if(!next_item.attr("data-view-id")) {
+      $(e).hide();
+      divider.hide();
+    } else {
+      $(e).show();
+      divider.show();
+    }
+  });
+
+  if(reset_selection) {
+    /* Select the first available view */
+    var first_view = items_ul.find("li[data-view-id]").filter(function(idx,e) {
+        return($(e).css("display") !== "none");
+      }).first();
+
+    if(first_view.length)
+      setActiveGraphsTableView(first_view.attr("data-view-id"));
+    else {
+      $("#chart1-flows").hide();
+      $("#graphs-table-selector").hide();
+    }
+
+    return false;
+  }
+
+  return true;
+}
+
+function updateGraphsTableView(view, graph_params, has_nindex, nindex_query, per_page) {
+  if(view)
+    graph_old_view = view;
+
+  if(!recheckGraphTableEntries(graph_params)) {
+    /* handled by setActiveGraphsTableView */
+    return;
+  }
+
+  if(view) {
+    graph_old_has_nindex = has_nindex;
+    graph_old_nindex_query = nindex_query;
+  } else {
+    view = graph_old_view;
+    has_nindex = graph_old_has_nindex;
+    nindex_query = graph_old_nindex_query;
+  }
+
+  var graph_table = $("#chart1-flows");
+  nindex_query = nindex_query + "&begin_time_clause=" + graph_params.epoch_begin + "&end_time_clause=" + graph_params.epoch_end
+  var nindex_buttons = "";
+  var params_obj = tsQueryToTags(graph_params.ts_query);
+
+  // TODO localize
+
+  /* Hide IP version selector when a host is selected */
+  if(!params_obj.host) {
+    nindex_buttons += '<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">';
+    nindex_buttons += "IP Version";
+    nindex_buttons += '<span class="caret"></span></button><ul class="dropdown-menu" role="menu">';
+    nindex_buttons += '<li><a href="#" onclick="return onGraphMenuClick(null, 4)">4</a></li>';
+    nindex_buttons += '<li><a href="#" onclick="return onGraphMenuClick(null, 6)">6</a></li>';
+    nindex_buttons += '</span></div>';
+  }
+
+  nindex_buttons += '<div class="btn-group pull-right"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">';
+  nindex_buttons += "Explorer";
+  nindex_buttons += '<span class="caret"></span></button><ul class="dropdown-menu" role="menu">';
+  nindex_buttons += '<li><a href="'+ http_prefix +'/lua/pro/nindex_topk.lua'+ nindex_query +'">Top-K</a></li>';
+  nindex_buttons += '<li><a href="'+ http_prefix +'/lua/pro/nindex.lua'+ nindex_query +'">Flows</a></li>';
+  nindex_buttons += '</span></div>';
+
   if(view.columns) {
-    var url = http_prefix + (view.nindex_view ? "/lua/enterprise/get_flows.lua" : "/lua/enterprise/get_ts_table.lua");
-    var params_obj = graph_params.ts_query.split(",").reduce(function(params, value) { var v = value.split(":"); params[v[0]] = v[1]; return params; }, {});
+    var url = http_prefix + (view.nindex_view ? "/lua/pro/get_nindex_flows.lua" : "/lua/pro/get_ts_table.lua");
 
     var columns = view.columns.map(function(col) {
       return {
         title: col[1],
         field: col[0],
-        css: { textAlign: col[2], width: col[3], },
-	    };
+          css: {
+	      textAlign: col[2], width: col[3],//
+	  },
+        hidden: col[4] ? true : false,
+      };
     });
+
+    columns.push({
+      title: i18n.actions,
+      field: "drilldown",
+      css: {width: "1%", "white-space": "nowrap", "text-align": "center"},
+    });
+
+    var old_dt = graph_table.data("datatable");
+    if(old_dt && old_dt.pendingRequest)
+      old_dt.pendingRequest.abort();
 
     /* Force reinstantiation */
     graph_table.removeData('datatable');
@@ -745,6 +1046,13 @@ function updateGraphsTableView(graph_table, view, graph_params, nindex_buttons) 
     graph_table.datatable({
       title: "",
       url: url,
+      perPage: per_page,
+      noResultsMessage: function() {
+        if(ts_chart.queryWasAborted())
+          return i18n.query_was_aborted;
+        else
+          return i18n.no_results_found;
+      },
       post: function() {
         var params = $.extend({}, graph_params);
         delete params.ts_compare;
@@ -761,7 +1069,23 @@ function updateGraphsTableView(graph_table, view, graph_params, nindex_buttons) 
       buttons: view.nindex_view ? [nindex_buttons, ] : [],
       tableCallback: function() {
         var data = this.resultset;
+        ts_chart.tableRequestCompleted();
+
+        if(!data) {
+          // error
+          return;
+        }
+
+        /* The user changed page */
+        if(data.currentPage > 1)
+          graph_table.data("has_interaction", true);
+
         var stats_div = $("#chart1-flows-stats");
+        var has_drilldown = (data && data.data.some(function(row) { return row.drilldown; }));
+
+        /* Remove the drilldown column if no drilldown is available */
+        if(!has_drilldown)
+          $("table td:last-child, th:last-child", graph_table).remove();
 
         if(data && data.stats && data.stats.loading_time) {
            $("#flows-load-time").html(data.stats.loading_time);
@@ -770,8 +1094,10 @@ function updateGraphsTableView(graph_table, view, graph_params, nindex_buttons) 
         } else
           stats_div.hide();
       }, rowCallback: function(row, row_data) {
-        if((params_obj.category && (row_data.tags.category === params_obj.category)) ||
-            (params_obj.protocol && (row_data.tags.protocol === params_obj.protocol))) {
+        if((typeof row_data.tags === "object") && (
+          (params_obj.category && (row_data.tags.category === params_obj.category)) ||
+          (params_obj.protocol && (row_data.tags.protocol === params_obj.protocol))
+        )) {
           /* Highlight the row */
           row.addClass("info");
         }

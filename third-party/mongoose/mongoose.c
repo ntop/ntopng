@@ -465,18 +465,6 @@ static const char *month_names[] = {
   "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
 };
 
-// Unified socket address. For IPv6 support, add IPv6 address structure
-// in the union u.
-union usa {
-  struct sockaddr sa;
-  struct sockaddr_in sin;
-#if defined(USE_IPV6)
-  struct sockaddr_in6 sin6;
-#else
-  struct sockaddr sin6;
-#endif
-};
-
 // Describes a string (chunk of memory).
 struct vec {
   const char *ptr;
@@ -748,6 +736,10 @@ const char *mg_version(void) {
 
 struct mg_request_info *mg_get_request_info(struct mg_connection *conn) {
   return &conn->request_info;
+}
+
+union usa *mg_get_client_address(struct mg_connection *conn) {
+  return &conn->client.rsa;
 }
 
 static void mg_strlcpy(char *dst, const char *src, size_t n) {
@@ -1736,6 +1728,17 @@ int mg_write_async(struct mg_connection *conn, const void *buf, size_t len) {
   */
 
   return(total);
+}
+
+int mg_is_client_connected(struct mg_connection *conn) {
+  char c;
+  int rv = recv(conn->client.sock, &c, 1, MSG_PEEK
+#ifndef WIN32
+	  | MSG_DONTWAIT
+#endif
+	  | MSG_NOSIGNAL);
+
+  return(rv != 0);
 }
 
 // Print message to buffer. If buffer is large enough to hold the message,
@@ -4770,6 +4773,8 @@ static int load_dll(struct mg_context *ctx, const char *dll_name,
 }
 #endif // NO_SSL_DL
 
+// #ifdef UNUSED_CODE
+
 static unsigned long ssl_id_callback(void) {
   return (unsigned long) pthread_self();
 }
@@ -4786,6 +4791,7 @@ static void ssl_locking_callback(int mode, int mutex_num, const char *file,
   }
 }
 
+// #endif /* UNUSED_CODE */
 
 // Dynamically load SSL library. Set up ctx->ssl_ctx pointer.
 static int set_ssl_option(struct mg_context *ctx) {

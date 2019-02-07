@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-18 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -25,79 +25,52 @@
 #include "ntop_includes.h"
 
 class LocalHost : public Host {
- private:
+ protected:
   int16_t local_network_id;
   NetworkStats *networkStats;
-  DnsStats *dns;
-  HTTPstats *http;
-  ICMPstats *icmp;
-  FrequentStringItems *top_sites;
-  char *old_sites;
-  char os[16];
-  time_t nextSitesUpdate;
   bool systemHost;
-  bool dhcpUpdated;
-  bool trigger_host_alerts;
-  bool drop_all_host_traffic, dump_host_traffic;
-  u_int32_t num_alerts_detected;
-  u_int32_t attacker_max_num_flows_per_sec, victim_max_num_flows_per_sec;
-  u_int32_t attacker_max_num_syn_per_sec, victim_max_num_syn_per_sec;
-  AlertCounter *syn_flood_attacker_alert, *syn_flood_victim_alert;
-  AlertCounter *flow_flood_attacker_alert, *flow_flood_victim_alert;
-  TimeseriesRing *ts_ring;
-  map<Host*, u_int16_t> contacts_as_cli, contacts_as_srv;
+
+  /* LocalHost data: update LocalHost::deleteHostData when adding new fields */
+  char *os;
+  bool drop_all_host_traffic;
+  /* END Host data: */
 
   void initialize();
-  virtual bool readDHCPCache();
+  void freeLocalHostData();
+  virtual void deleteHostData();
  public:
   LocalHost(NetworkInterface *_iface, Mac *_mac, u_int16_t _vlanId, IpAddress *_ip);
   LocalHost(NetworkInterface *_iface, char *ipAddress, u_int16_t _vlanId);
   virtual ~LocalHost();
 
-  virtual int16_t get_local_network_id() { return(local_network_id);  };
-  virtual bool isLocalHost()             { return(true);              };
-  virtual bool isSystemHost()            { return(systemHost);        };
+  virtual char * get_os(char * const buf, ssize_t buf_len);
+  virtual int16_t get_local_network_id() const { return(local_network_id);  };
+  virtual bool isLocalHost()  const            { return(true);              };
+  virtual bool isSystemHost() const            { return(systemHost);        };
 
   virtual void  serialize2redis();
   bool deserialize(char *json_str, char *key);
 
-  virtual json_object* getJSONObject();
   virtual NetworkStats* getNetworkStats(int16_t networkId){ return(iface->getNetworkStats(networkId));   };
-  virtual u_int32_t getActiveHTTPHosts()             { return(http ? http->get_num_virtual_hosts() : 0); };
-  virtual HTTPstats* getHTTPstats()                  { return(http);                  };
-  virtual char* get_os()                             { return(os);                    };
+  virtual u_int32_t getActiveHTTPHosts()             { return(getHTTPstats() ? getHTTPstats()->get_num_virtual_hosts() : 0); };
+  virtual char* get_os()                             { return(os ? os : (char*)"");                    };
+  virtual HostStats* allocateStats()                 { return(new LocalHostStats(this));               };
 
   virtual bool dropAllTraffic()  { return(drop_all_host_traffic); };
-  virtual bool dumpHostTraffic() { return(dump_host_traffic);     };
-
-  bool hasAnomalies();
-  void luaAnomalies(lua_State* vm);
-  virtual void loadAlertsCounter();
-
-  virtual void incNumFlows(bool as_client, Host *peer);
-  virtual void decNumFlows(bool as_client, Host *peer);
-  virtual void refreshHostAlertPrefs();
-  void incrVisitedWebSite(char *hostname);
-  virtual bool triggerAlerts()                            { return(trigger_host_alerts); };
-  virtual u_int32_t getNumAlerts(bool from_alertsmanager = false);
-  virtual void setNumAlerts(u_int32_t num) { num_alerts_detected = num; };
-  virtual void setDumpTrafficPolicy(bool new_policy);
-  virtual void setOS(char *_os);
-  virtual void updateSynFlags(time_t when, u_int8_t flags, Flow *f, bool syn_sent);
-  virtual void updateStats(struct timeval *tv);
+  virtual void inlineSetOS(const char * const _os);
   virtual void updateHostTrafficPolicy(char *key);
-  virtual void updateHTTPHostRequest(char *virtual_host_name, u_int32_t num_req, u_int32_t bytes_sent, u_int32_t bytes_rcvd);
 
-  virtual void incICMP(u_int8_t icmp_type, u_int8_t icmp_code, bool sent, Host *peer);
-  virtual void incNumDNSQueriesSent(u_int16_t query_type) { if(dns) dns->incNumDNSQueriesSent(query_type); };
-  virtual void incNumDNSQueriesRcvd(u_int16_t query_type) { if(dns) dns->incNumDNSQueriesRcvd(query_type); };
-  virtual void incNumDNSResponsesSent(u_int32_t ret_code) { if(dns) dns->incNumDNSResponsesSent(ret_code); };
-  virtual void incNumDNSResponsesRcvd(u_int32_t ret_code) { if(dns) dns->incNumDNSResponsesRcvd(ret_code); };
+  virtual void incICMP(u_int8_t icmp_type, u_int8_t icmp_code, bool sent, Host *peer) { stats->incICMP(icmp_type, icmp_code, sent, peer); };
+  virtual void incNumDNSQueriesSent(u_int16_t query_type) { stats->incNumDNSQueriesSent(query_type); };
+  virtual void incNumDNSQueriesRcvd(u_int16_t query_type) { stats->incNumDNSQueriesRcvd(query_type); };
+  virtual void incNumDNSResponsesSent(u_int32_t ret_code) { stats->incNumDNSResponsesSent(ret_code); };
+  virtual void incNumDNSResponsesRcvd(u_int32_t ret_code) { stats->incNumDNSResponsesRcvd(ret_code); };
+  virtual void incrVisitedWebSite(char *hostname)         { stats->incrVisitedWebSite(hostname); };
+  virtual HTTPstats* getHTTPstats()                       { return(stats->getHTTPstats());  };
 
   virtual void lua(lua_State* vm, AddressTree * ptree, bool host_details,
 		   bool verbose, bool returnHost, bool asListElement);
   virtual void tsLua(lua_State* vm);
-  void makeTsPoint(HostTimeseriesPoint *pt);
 };
 
 #endif /* _LOCAL_HOST_H_ */

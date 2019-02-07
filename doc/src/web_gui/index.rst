@@ -56,8 +56,10 @@ Finally, in the right side of the footer there is the uptime information, direct
 
     home_menu
     dashboard
+    historical
     report
     flows
+    categories
     hosts
     host_details
     interfaces
@@ -65,3 +67,4 @@ Finally, in the right side of the footer there is the uptime information, direct
     administration
     alerts
     host_search
+    storage_monitor

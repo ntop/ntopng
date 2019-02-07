@@ -57,4 +57,4 @@ On a linux client, this can be done by adding the following line to `/etc/resolv
 
 `options single-request-reopen`
 
-.. _bug: https://patchwork.kernel.org/patch/9785641
+.. _bug: https://www.weave.works/blog/racy-conntrack-and-dns-lookup-timeouts

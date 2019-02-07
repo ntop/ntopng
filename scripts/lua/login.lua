@@ -7,9 +7,12 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 -- io.write ("Session:".._SESSION["session"].."\n")
 require "lua_utils"
 
+local page_utils = require("page_utils")
+
 sendHTTPContentTypeHeader('text/html')
 
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
+page_utils.print_header()
+
 info = ntop.getInfo()
 
 print [[
@@ -53,34 +56,32 @@ print [[
 
 <div class="container">
 ]]
+
+local blacklisted = ntop.isLoginBlacklisted()
+
 -- must specify the accept-charset here or the encoding for the special characters will be different from the encoding used when saving/updating passwords
 print[[
 	 <form id="form_add_user" role="form" data-toggle="validator" class="form-signin" onsubmit="return makeUsernameLowercase();" action="]] print(ntop.getHttpPrefix()) print[[/authorize.html" method="POST" accept-charset="UTF-8"> 
 	 <h2 class="form-signin-heading" style="font-weight: bold;">]] print(i18n("login.welcome_to", {product=info["product"]})) print[[</h2>
   <div class="form-group has-feedback">
       <input type="hidden" class="form-control" name="user">
-      <input type="text" class="form-control" name="_username" placeholder="]] print(i18n("login.username_ph")) print[[" required>
-      <input type="password" class="form-control" name="password" placeholder="]] print(i18n("login.password_ph")) print[[" pattern="]] print(getPasswordInputPattern()) print[[" required>
+      <input type="text" class="form-control" name="_username" placeholder="]] print(i18n("login.username_ph")) print[[" required]] print(ternary(blacklisted, " disabled", "")) print[[>
+      <input type="password" class="form-control" name="password" placeholder="]] print(i18n("login.password_ph")) print[[" pattern="]] print(getPasswordInputPattern()) print[[" required]] print(ternary(blacklisted, " disabled", "")) print[[>
+]]
+
+if blacklisted then
+  print[[
+      <span class="text-danger">]] print(i18n("login.blacklisted_ip_notice")) print[[</span>
+]]
+end
+
+print[[
 </div>
 	 <input type="hidden" class="form-control" name="referer" value="]] 
 
 local r = _GET["referer"]
 
-local additional_keys = {
-      "host",
-      "ifname",
-      "ifid",
-      "page"
-}
-
-for _,id in ipairs(additional_keys) do
-  if(_GET[id] ~= nil) then
-    r = r .. "&" .. id .. "=" .._GET[id]
-  end
-end
-
 print(r or "")
-
 
 print [[">
     <button class="btn btn-lg btn-primary btn-block" type="submit">]] print(i18n("login.login")) print[[</button>

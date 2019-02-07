@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-18 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -91,9 +91,9 @@ static int key_sort(ICMPstats_t *a, ICMPstats_t *b) {
 
 void ICMPstats::addToTable(const char *label, lua_State *vm, ICMPstats_t *curr) {
   lua_newtable(vm);
-  lua_push_int_table_entry(vm, "sent", curr->pkt_sent);
+  lua_push_uint64_table_entry(vm, "sent", curr->pkt_sent);
   lua_push_str_table_entry(vm, "last_host_sent_peer", curr->last_host_sent_peer);
-  lua_push_int_table_entry(vm, "rcvd", curr->pkt_rcvd);
+  lua_push_uint64_table_entry(vm, "rcvd", curr->pkt_rcvd);
   lua_push_str_table_entry(vm, "last_host_rcvd_peer", curr->last_host_rcvd_peer);
   lua_pushstring(vm, label);
   lua_insert(vm, -2);

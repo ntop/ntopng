@@ -45,5 +45,6 @@ Footnote reference [1]_
 
 .. [1] This is a footnote
 
-What is ntopng
---------------
+See `another page`_ for more details
+
+.. _`another page`: another_page.html

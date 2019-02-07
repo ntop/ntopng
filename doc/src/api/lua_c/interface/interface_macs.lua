@@ -52,3 +52,14 @@ function interface.getMacDeviceTypes(int max_hits=32768, bool sourceMacsOnly=fal
 --! @return the device pool id on success, nil otherwise.
 --! @note nil is also returned for devices which do not belong to any pool.
 function interface.findMacPool(string mac)
+
+--! @brief Reset the stats (e.g. traffic and application data) for the given device.
+--! @oaram mac L2 device MAC address.
+--! @return true if the reset request was successful, false otherwise.
+--! @note The device must be active in order to reset it. See also interface.resetStats
+function interface.resetMacStats(string mac)
+
+--! @brief Delete all the data stored for the given host.
+--! @oaram mac L2 device MAC address.
+--! @return true if the delete request was successful, false otherwise.
+function interface.deleteMacData(string mac)

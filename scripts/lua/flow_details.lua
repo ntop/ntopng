@@ -8,29 +8,131 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 local shaper_utils
 require "lua_utils"
 local have_nedge = ntop.isnEdge()
+local NfConfig = nil
 
 if ntop.isPro() then
    package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
    shaper_utils = require("shaper_utils")
+
+   if ntop.isnEdge() then
+      package.path = dirs.installdir .. "/scripts/lua/pro/nedge/modules/?.lua;" .. package.path
+      NfConfig = require("nf_config")
+   end
 end
 
 require "historical_utils"
 require "flow_utils"
 require "voip_utils"
 
+local template = require "template_utils"
+local categories_utils = require "categories_utils"
 local discover = require("discover_utils")
 local json = require ("dkjson")
+local page_utils = require("page_utils")
 
 sendHTTPContentTypeHeader('text/html')
 
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
+page_utils.print_header(i18n("flow_details.flow_details"))
+
 warn_shown = 0
 
-function displayProc(proc)
-   print("<tr><th width=30%>"..i18n("flow_details.user_name").."</th><td colspan=2><A HREF=\""..ntop.getHttpPrefix().."/lua/get_user_info.lua?username=".. proc.user_name .."&".. hostinfo2url(flow,"cli").."\">".. proc.user_name .."</A></td></tr>\n")
-   print("<tr><th width=30%>"..i18n("flow_details.process_pid_name").."</th><td colspan=2><A HREF=\""..ntop.getHttpPrefix().."/lua/get_process_info.lua?pid=".. proc.pid .."&".. hostinfo2url(flow,"srv").. "\">".. proc.pid .. "/" .. proc.name .. "</A>")
+local alert_banners = {}
+
+if isAdministrator() then
+   if _POST["custom_hosts"] and _POST["category"] then
+      local lists_utils = require("lists_utils")
+      local category_id = tonumber(split(_POST["category"], "cat_")[2])
+
+      if categories_utils.addCustomCategoryHost(category_id, _POST["custom_hosts"]) then
+	 lists_utils.reloadLists()
+
+	 alert_banners[#alert_banners + 1] = {
+	    type="success",
+	    text=i18n("flow_details.host_successfully_added_to_category",
+	       {host=_POST["custom_hosts"], category=interface.getnDPICategoryName(category_id),
+	       url = ntop.getHttpPrefix() .. "/lua/admin/edit_categories.lua?l7proto=" .. category_id})
+	 }
+      else
+	 alert_banners[#alert_banners + 1] = {
+	    type="danger",
+	    text=i18n("flow_details.could_not_add_host_to_category",
+	       {host=_POST["custom_hosts"], category=interface.getnDPICategoryName(category_id)})
+	 }
+      end
+   end
+end
+
+local function printAddHostoToCustomizedCategories(full_url)
+   if not isAdministrator() then
+      return
+   end
+
+   local categories = interface.getnDPICategories()
+   local short_url = categories_utils.getSuggestedHostName(full_url)
+
+   -- Fill the dropdown
+   local cat_select_dropdown = '<select id="categories_target_category" class="form-control">'
+
+   for cat_name, cat_id in pairsByKeys(categories, asc_insensitive) do
+      cat_select_dropdown = cat_select_dropdown .. [[<option value="cat_]] ..cat_id .. [[">]] .. cat_name .. [[</option>]]
+   end
+   cat_select_dropdown = cat_select_dropdown .. "</select>"
+
+   -- Put a note if the URL is already assigned to another customized category
+   local existing_note = ""
+   local matched_category = ntop.matchCustomCategory(full_url)
+
+   if matched_category ~= nil then
+      existing_note = "<br>" .. i18n("details.note") .. ": " ..
+	 i18n("custom_categories.similar_host_found", {host=full_url, category=interface.getnDPICategoryName(matched_category)})
+   end
+
+   print(
+     template.gen("modal_confirm_dialog.html", {
+       dialog={
+	 id      = "add_to_customized_categories",
+	 action  = "addToCustomizedCategories()",
+	 custom_alert_class = "",
+	 custom_dialog_class = "dialog-body-full-height",
+	 title   = i18n("custom_categories.custom_host_category"),
+	 message = i18n("custom_categories.select_url_category") .. "<br>" ..
+	    cat_select_dropdown .. "<br>" .. i18n("custom_categories.the_following_url_will_be_added") ..
+	    '<br><input id="categories_url_add" class="form-control" required value="'.. short_url ..'">' .. existing_note,
+	 confirm = i18n("custom_categories.add"),
+       }
+     })
+   )
+
+   print(' <a href="#" onclick="$(\'#add_to_customized_categories\').modal(\'show\'); return false;"><i title="'.. i18n("custom_categories.add_to_categories") ..'" class="fa fa-plus"></i></a>')
+
+   print[[<script>
+   function addToCustomizedCategories() {
+      var target_category = $("#categories_target_category").val();
+      var target_url = cleanCustomHostUrl($("#categories_url_add").val());
+
+      if(!target_category || !target_url)
+	 return;
+
+      var params = {};
+      params.category = target_category;
+      params.custom_hosts = target_url;
+      params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
+
+      paramsToForm('<form method="post"></form>', params).appendTo('body').submit();
+   }
+</script>]]
+end
+
+function displayProc(proc, label)
+   if(proc.pid == 0) then return end
+
+   print(label)
+   
+   print("<tr><th width=30%>"..i18n("flow_details.user_name").."</th><td colspan=2><A HREF=\""..ntop.getHttpPrefix().."/lua/username_details.lua?uid=" .. proc.uid .. "&username=".. proc.user_name .."&".. hostinfo2url(flow,"cli").."\">".. proc.user_name .."</A></td></tr>\n")
+   print("<tr><th width=30%>"..i18n("flow_details.process_pid_name").."</th><td colspan=2><A HREF=\""..ntop.getHttpPrefix().."/lua/process_details.lua?pid=".. proc.pid .."&pid_name=".. proc.name .. "&" .. hostinfo2url(flow,"srv").. "\">".. proc.pid .. "/" .. proc.name .. "</A>")
    print(" ["..i18n("flow_details.son_of_father_process",{url=ntop.getHttpPrefix().."/lua/get_process_info.lua?pid="..proc.father_pid,proc_father_pid=proc.father_pid,proc_father_name=proc.father_name}).."]</td></tr>\n")
 
+   if(false) then
    if(proc.actual_memory > 0) then
       print("<tr><th width=30%>"..i18n("flow_details.average_cpu_load").."</th><td colspan=2><span id=average_cpu_load_"..proc.pid..">")
 
@@ -67,6 +169,7 @@ function displayProc(proc)
 	 print("<font color=green>"..proc.num_vm_page_faults.."</font>")
       end
       print("</span></td></tr>\n")
+end -- fix
    end
 
    if(proc.actual_memory == 0) then
@@ -80,13 +183,17 @@ end
 active_page = "flows"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
+printMessageBanners(alert_banners)
+
+if not table.empty(alert_banners) then
+   print("<br>")
+end
 
 throughput_type = getThroughputType()
 
 flow_key = _GET["flow_key"]
 
 interface.select(ifname)
-is_packetdump_enabled = isLocalPacketdumpEnabled()
 if(flow_key == nil) then
    flow = nil
 else
@@ -119,15 +226,11 @@ else
 	 interface.dropFlowTraffic(tonumber(flow_key))
 	 flow["verdict.pass"] = false
       end
-      if(_POST["dump_flow_to_disk"] ~= nil and is_packetdump_enabled) then
-	 interface.dumpFlowTraffic(tonumber(flow_key), ternary(_POST["dump_flow_to_disk"] == "true", 1, 0))
-	 flow["dump.disk"] = ternary(_POST["dump_flow_to_disk"] == "true", true, false)
-      end
    end
 
    ifstats = interface.getStats()
    print("<table class=\"table table-bordered table-striped\">\n")
-   if (ifstats.vlan and (flow["vlan"] ~= nil)) then
+   if ifstats.vlan and flow["vlan"] > 0 then
       print("<tr><th width=30%>")
       if(ifstats.sprobe) then
 	 print(i18n("details.source_id"))
@@ -140,7 +243,7 @@ else
 
    print("<tr><th width=30%>"..i18n("flow_details.flow_peers_client_server").."</th><td colspan=2>"..getFlowLabel(flow, true, true).."</td></tr>\n")
 
-   print("<tr><th width=30%>"..i18n("protocol").."</th>")
+   print("<tr><th width=30%>"..i18n("protocol").." / "..i18n("application").."</th>")
    if((ifstats.inline and flow["verdict.pass"]) or (flow.vrfId ~= nil)) then
       print("<td>")
    else
@@ -151,8 +254,11 @@ else
    print(flow["proto.l4"].." / <A HREF=\""..ntop.getHttpPrefix().."/lua/")
    if((flow.client_process ~= nil) or (flow.server_process ~= nil))then	print("s") end
    print("flows_stats.lua?application=" .. flow["proto.ndpi"] .. "\">")
-   print(getApplicationLabel(flow["proto.ndpi"]).." ("..flow["proto.ndpi_id"]..")")
-   print("</A> ".. formatBreed(flow["proto.ndpi_breed"]))
+   print(getApplicationLabel(flow["proto.ndpi"]).."</A> ")
+   print("(<A HREF=\""..ntop.getHttpPrefix().."/lua/")
+   print("flows_stats.lua?category=" .. flow["proto.ndpi_cat"] .. "\">")
+   print(getCategoryLabel(flow["proto.ndpi_cat"]))
+   print("</A>) ".. formatBreed(flow["proto.ndpi_breed"]))
    if(flow["verdict.pass"] == false) then print("</strike>") end
    historicalProtoHostHref(ifid, flow["cli.ip"], nil, flow["proto.ndpi_id"], flow["protos.ssl.certificate"])
 
@@ -173,32 +279,44 @@ else
    print("</tr>\n")
    
    if(ntop.isPro() and ifstats.inline and (flow["shaper.cli2srv_ingress"] ~= nil)) then
+      local host_pools_utils = require("host_pools_utils")
       print("<tr><th width=30% rowspan=2>"..i18n("flow_details.flow_shapers").."</th>")
       c = flowinfo2hostname(flow,"cli")
       s = flowinfo2hostname(flow,"srv")
 
-      cli_max_rate = shaper_utils.getShaperMaxRate(ifstats.id, flow["shaper.cli2srv_ingress"]) if(cli_max_rate == "") then cli_max_rate = -1 end
-      srv_max_rate = shaper_utils.getShaperMaxRate(ifstats.id, flow["shaper.cli2srv_egress"]) if(srv_max_rate == "") then srv_max_rate = -1 end
-      max_rate = getFlowMaxRate(cli_max_rate, srv_max_rate)
-      print("<td nowrap>"..c.." <i class='fa fa-arrow-right'></i> "..s.."</td><td>"..shaper_utils.shaperRateToString(max_rate).."</td></tr>")
+      if flow["cli.pool_id"] ~= nil then
+        c = c .. " (<a href='".. host_pools_utils.getUserUrl(flow["cli.pool_id"]) .."'>".. host_pools_utils.poolIdToUsername(flow["cli.pool_id"]) .."</a>)"
+      end
 
-      cli_max_rate = shaper_utils.getShaperMaxRate(ifstats.id, flow["shaper.srv2cli_ingress"]) if(cli_max_rate == "") then cli_max_rate = -1 end
-      srv_max_rate = shaper_utils.getShaperMaxRate(ifstats.id, flow["shaper.srv2cli_egress"])  if(srv_max_rate == "") then srv_max_rate = -1 end
-      max_rate = getFlowMaxRate(cli_max_rate, srv_max_rate)
-      print("<td nowrap>"..c.." <i class='fa fa-arrow-left'></i> "..s.."</td><td>"..shaper_utils.shaperRateToString(max_rate).."</td></tr>")
+      if flow["srv.pool_id"] ~= nil then
+        s = s .. " (<a href='".. host_pools_utils.getUserUrl(flow["srv.pool_id"]) .."'>".. host_pools_utils.poolIdToUsername(flow["srv.pool_id"]) .."</a>)"
+      end
+
+      local shaper = shaper_utils.nedge_shaper_id_to_shaper(flow["shaper.cli2srv_egress"])
+      print("<td nowrap>"..c.."</td><td>".. shaper.icon .. " " .. shaper.text .."</td></tr>")
+
+      local shaper = shaper_utils.nedge_shaper_id_to_shaper(flow["shaper.cli2srv_ingress"])
+      print("<td nowrap>"..s.."</td><td>".. shaper.icon .. " " .. shaper.text.."</td></tr>")
       print("</tr>")
 
       if flow["cli.pool_id"] ~= nil and flow["srv.pool_id"] ~= nil then
          print("<tr><th width=30% rowspan=2>"..i18n("flow_details.flow_quota").."</th>")
-         print("<td>"..c.." <i class='fa fa-arrow-right'></i> "..s.."</td>")
+         print("<td>"..c.."</td>")
          print("<td id='cli2srv_quota'>")
          printFlowQuota(ifstats.id, flow, true --[[ client ]])
          print("</td></tr>")
-         print("<td nowrap>"..c.." <i class='fa fa-arrow-left'></i> "..s.."</td>")
+         print("<td nowrap>"..s.."</td>")
          print("<td id='srv2cli_quota'>")
          printFlowQuota(ifstats.id, flow, false --[[ server ]])
          print("</td>")
          print("</tr>")
+      end
+
+      -- ENABLE MARKER DEBUG
+      if ntop.isnEdge() and false then
+        print("<tr><th width=30%>"..i18n("flow_details.flow_marker").."</th>")
+        print("<td colspan=2>".. NfConfig.formatMarker(flow["marker"]) .."</td>")
+        print("</tr>")
       end
 
       local status_info = flow2statusinfo(flow)
@@ -206,28 +324,32 @@ else
       if status_info then
          local cli_mac = flow["cli.mac"] and interface.getMacInfo(flow["cli.mac"])
          local srv_mac = flow["srv.mac"] and interface.getMacInfo(flow["srv.mac"])
+         local cli_show = (cli_mac and cli_mac.location == "lan" and flow["cli.pool_id"] == 0)
+         local srv_show = (srv_mac and srv_mac.location == "lan" and flow["srv.pool_id"] == 0)
          local num_rows = 0
 
-         if cli_mac and cli_mac.location == "lan" then
+         if cli_show then
            num_rows = num_rows + 1
          end
-         if srv_mac and srv_mac.location == "lan" then
+         if srv_show then
            num_rows = num_rows + 1
          end
 
          if num_rows > 0 then
            print("<tr><th width=30% rowspan=".. num_rows ..">"..i18n("device_protocols.device_protocol_policy").."</th>")
-           if cli_mac and cli_mac.location == "lan" then
-             print("<td>"..i18n("device_protocols.devtype_as_proto_client", {devtype=discover.devtype2string(status_info["cli.devtype"]), proto=flow["proto.ndpi"]}).."</td>")
-             print("<td><a href=\"".. getDeviceProtocolPoliciesUrl("device_type=" .. status_info["cli.devtype"]) .."&l7proto=".. flow["proto.ndpi_id"] .."\">")
-             print(i18n(ternary(status_info["cli.devtype_proto_allowed"], "allowed", "forbidden")))
+	   local proto = status_info["devproto_forbidden_id"] or flow["proto.ndpi_id"]
+
+           if cli_show then
+             print("<td>"..i18n("device_protocols.devtype_as_proto_client", {devtype=discover.devtype2string(status_info["cli.devtype"]), proto=interface.getnDPIProtoName(proto)}).."</td>")
+             print("<td><a href=\"".. getDeviceProtocolPoliciesUrl("device_type=" .. status_info["cli.devtype"]) .."&l7proto=".. proto .."\">")
+             print(i18n(ternary(status_info["devproto_forbidden_peer"] ~= "cli", "allowed", "forbidden")))
              print("</a></td></tr><tr>")
            end
 
-           if srv_mac and srv_mac.location == "lan" then
-             print("<td>"..i18n("device_protocols.devtype_as_proto_server", {devtype=discover.devtype2string(status_info["srv.devtype"]), proto=flow["proto.ndpi"]}).."</td>")
-             print("<td><a href=\"".. getDeviceProtocolPoliciesUrl("device_type=" .. status_info["srv.devtype"]) .."&l7proto=".. flow["proto.ndpi_id"] .."\">")
-             print(i18n(ternary(status_info["srv.devtype_proto_allowed"], "allowed", "forbidden")))
+           if srv_show then
+             print("<td>"..i18n("device_protocols.devtype_as_proto_server", {devtype=discover.devtype2string(status_info["srv.devtype"]), proto=interface.getnDPIProtoName(proto)}).."</td>")
+             print("<td><a href=\"".. getDeviceProtocolPoliciesUrl("device_type=" .. status_info["srv.devtype"]) .."&l7proto=".. proto .."\">")
+             print(i18n(ternary(status_info["devproto_forbidden_peer"] ~= "srv", "allowed", "forbidden")))
              print("</a></td></tr><tr>")
            end
          end
@@ -350,6 +472,7 @@ else
       print(i18n("flow_details.client_requested")..": <A HREF=\"http://"..flow["protos.ssl.certificate"].."\">"..flow["protos.ssl.certificate"].."</A> <i class=\"fa fa-external-link\"></i>")
       if(flow["category"] ~= nil) then print(" "..getCategoryIcon(flow["protos.ssl.certificate"], flow["category"])) end
       historicalProtoHostHref(ifid, nil, nil, nil, flow["protos.ssl.certificate"])
+      printAddHostoToCustomizedCategories(flow["protos.ssl.certificate"])
       print("</td>")
 
       if(flow["protos.ssl.server_certificate"] ~= nil) then
@@ -458,18 +581,18 @@ else
 	 print('<tr><th colspan=3><div id="sprobe"></div>')
 	 width  = 1024
 	 height = 200
-	 url = ntop.getHttpPrefix().."/lua/sprobe_flow_data.lua?flow_key="..flow_key
+	 url = ntop.getHttpPrefix().."/lua/get_flow_process_tree.lua?flow_key="..flow_key
 	 dofile(dirs.installdir .. "/scripts/lua/inc/sprobe.lua")
 	 print('</th></tr>\n')
       end
 
       if(flow.client_process ~= nil) then
-	 print("<tr><th colspan=3 class=\"info\">"..i18n("flow_details.client_process_information").."</th></tr>\n")
-	 displayProc(flow.client_process)
+	 displayProc(flow.client_process,
+	     "<tr><th colspan=3 class=\"info\">"..i18n("flow_details.client_process_information").."</th></tr>\n")
       end
-      if(flow.server_process ~= nil) then
-	 print("<tr><th colspan=3 class=\"info\">"..i18n("flow_details.server_process_information").."</th></tr>\n")
-	 displayProc(flow.server_process)
+      if(flow.server_process ~= nil) then	 
+	 displayProc(flow.server_process,
+                     "<tr><th colspan=3 class=\"info\">"..i18n("flow_details.server_process_information").."</th></tr>\n")
       end
    end
 
@@ -484,6 +607,8 @@ else
       if(flow["category"] ~= nil) then
 	 print(" "..getCategoryIcon(flow["protos.dns.last_query"], flow["category"]))
       end
+
+      printAddHostoToCustomizedCategories(flow["protos.dns.last_query"])
 
       print("</td></tr>\n")
    end
@@ -506,8 +631,9 @@ else
       if(not isEmptyString(flow["host_server_name"])) then
 	 s = flow["host_server_name"]
       end
-      print("<A HREF=\"http://"..s.."\">"..s.."</A> <i class=\"fa fa-external-link\">")
+      print("<A HREF=\"http://"..s.."\">"..s.."</A> <i class=\"fa fa-external-link\"></i>")
       if(flow["category"] ~= nil) then print(" "..getCategoryIcon(flow["host_server_name"], flow["category"])) end
+      printAddHostoToCustomizedCategories(s)
       print("</td></tr>\n")
 
       print("<tr><th>"..i18n("flow_details.url").."</th><td colspan=2>")
@@ -521,32 +647,16 @@ else
       end
    else
       if((flow["host_server_name"] ~= nil) and (flow["protos.dns.last_query"] == nil)) then
-	 print("<tr><th width=30%>"..i18n("flow_details.server_name").."</th><td colspan=2><A HREF=\"http://"..flow["host_server_name"].."\">"..flow["host_server_name"].."</A> <i class=\"fa fa-external-link\"></td></tr>\n")
+	 print("<tr><th width=30%>"..i18n("flow_details.server_name").."</th><td colspan=2><A HREF=\"http://"..flow["host_server_name"].."\">"..flow["host_server_name"].."</A> <i class=\"fa fa-external-link\"></i>")
+	 if not isEmptyString(flow["protos.http.server_name"]) then
+	    printAddHostoToCustomizedCategories(flow["protos.http.server_name"])
+	 end
+	 print("</td></tr>\n")
       end
    end
 
    if(flow["profile"] ~= nil) then
       print("<tr><th width=30%><A HREF=\"".. ntop.getHttpPrefix() .."/lua/pro/admin/edit_profiles.lua\">"..i18n("flow_details.profile_name").."</A></th><td colspan=2><span class='label label-primary'>"..flow["profile"].."</span></td></tr>\n")
-   end
-
-   if is_packetdump_enabled then
-      dump_flow_to_disk = flow["dump.disk"]
-      if(dump_flow_to_disk == true) then
-	 dump_flow_to_disk_checked = 'checked="checked"'
-	 dump_flow_to_disk_value = "false" -- Opposite
-      else
-	 dump_flow_to_disk_checked = ""
-	 dump_flow_to_disk_value = "true" -- Opposite
-      end
-
-      print("<tr><th width=30%>"..i18n("flow_details.dump_flow_traffic").."</th><td colspan=2>")
-      print [[
-        <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">]]
-      print('<input type="hidden" name="dump_flow_to_disk" value="'..dump_flow_to_disk_value..'"><input type="checkbox" value="1" '..dump_flow_to_disk_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i>')
-      print(' </input>')
-      print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-      print('</form>')
-      print("</td></tr>\n")
    end
 
    if (flow["moreinfo.json"] ~= nil) then
@@ -668,14 +778,16 @@ print [[/lua/flow_stats.lua',
 			$('#srv2cli').html(addCommas(rsp["srv2cli.packets"])+" Pkts / "+bytesToVolume(rsp["srv2cli.bytes"]));
 			$('#throughput').html(rsp.throughput);
 
-			$('#c2sOOO').html(formatPackets(rsp["c2sOOO"]));
-			$('#s2cOOO').html(formatPackets(rsp["s2cOOO"]));
-			$('#c2slost').html(formatPackets(rsp["c2slost"]));
-			$('#s2clost').html(formatPackets(rsp["s2clost"]));
-			$('#c2skeep_alive').html(formatPackets(rsp["c2skeep_alive"]));
-			$('#s2ckeep_alive').html(formatPackets(rsp["s2ckeep_alive"]));
-			$('#c2sretr').html(formatPackets(rsp["c2sretr"]));
-			$('#s2cretr').html(formatPackets(rsp["s2cretr"]));
+			if(typeof rsp["c2sOOO"] !== "undefined") {
+			   $('#c2sOOO').html(formatPackets(rsp["c2sOOO"]));
+			   $('#s2cOOO').html(formatPackets(rsp["s2cOOO"]));
+			   $('#c2slost').html(formatPackets(rsp["c2slost"]));
+			   $('#s2clost').html(formatPackets(rsp["s2clost"]));
+			   $('#c2skeep_alive').html(formatPackets(rsp["c2skeep_alive"]));
+			   $('#s2ckeep_alive').html(formatPackets(rsp["s2ckeep_alive"]));
+			   $('#c2sretr').html(formatPackets(rsp["c2sretr"]));
+			   $('#s2cretr').html(formatPackets(rsp["s2cretr"]));
+			}
 			if (rsp["cli2srv_quota"]) $('#cli2srv_quota').html(rsp["cli2srv_quota"]);
 			if (rsp["srv2cli_quota"]) $('#srv2cli_quota').html(rsp["srv2cli_quota"]);
 

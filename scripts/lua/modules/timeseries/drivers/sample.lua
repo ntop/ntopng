@@ -22,7 +22,7 @@ end
 function driver:append(schema, timestamp, tags, metrics)
 end
 
---! @brief Append a new data point to the timeseries.
+--! @brief Query timeseries data.
 --! @param schema the schema object.
 --! @param tstart lower time bound for the query.
 --! @param tend upper time bound for the query.
@@ -30,6 +30,16 @@ end
 --! @param options query options.
 --! @return a (possibly empty) query result on success, nil on failure.
 function driver:query(schema, tstart, tend, tags, options)
+end
+
+--! @brief Calculate a sum on the timeseries metrics.
+--! @param schema the schema object.
+--! @param tstart lower time bound for the query.
+--! @param tend upper time bound for the query.
+--! @param tags a list of filter tags. It contains exactly the tags defined in the schema.
+--! @param options query options.
+--! @return a table containing metric->metric_total mappings on success, nil on failure.
+function driver:queryTotal(schema_name, tstart, tend, tags, options)
 end
 
 --! @brief List all available timeseries for the specified schema, tags and time.
@@ -70,6 +80,18 @@ end
 --! @return true if operation was successful, false otherwise.
 --! @note E.g. "iface" schema_prefix matches any schema starting with "iface:". Empty prefix is allowed and matches all the schemas.
 function driver:delete(schema_prefix, tags)
+end
+
+--! @brief Delete old data.
+--! @param ifid: the interface ID to process
+--! @return true if operation was successful, false otherwise.
+function driver:deleteOldData(ifid)
+end
+
+--! @brief This is called when some driver configuration changes.
+--! @param ts_utils: a reference to the ts_utils module
+--! @return true if operation was successful, false otherwise.
+function driver:setup(ts_utils)
 end
 
 -- ##############################################

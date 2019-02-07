@@ -113,10 +113,6 @@ local function getHistoricalTopTalkers(ifid, ifname, epoch, add_vlan)
    return getTopTalkersFromJSON(res, add_vlan)
 end
 
-if (module == nil) then
-  print("[ ]\n")
-else
-  epoch = epoch+60 -- we return the minute before the event as epochs are stored in the DB 'past' the time period
-  top = getHistoricalTopTalkers(ifid, ifname, epoch, add_vlan)
-  print(top)
-end
+epoch = epoch+60 -- we return the minute before the event as epochs are stored in the DB 'past' the time period
+top = getHistoricalTopTalkers(ifid, ifname, epoch, add_vlan)
+print(top)

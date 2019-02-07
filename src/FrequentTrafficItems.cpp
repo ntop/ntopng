@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2017-18 - ntop.org
+ * (C) 2017-19 - ntop.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -102,8 +102,8 @@ void FrequentTrafficItems::luaTopPoolsProtocols(lua_State *vm) {
 
   for(curr=q_committed; curr != NULL; curr = (FrequentTrafficNode_t*)curr->hh.next) {
     lua_newtable(vm);
-    lua_push_int_table_entry(vm, "pool", curr->key.pool_proto.pool_id);
-    lua_push_int_table_entry(vm, "proto", curr->key.pool_proto.proto_id);
+    lua_push_uint64_table_entry(vm, "pool", curr->key.pool_proto.pool_id);
+    lua_push_uint64_table_entry(vm, "proto", curr->key.pool_proto.proto_id);
     lua_push_float_table_entry(vm, "Bps", curr->value * 1000 / last_diff);
     lua_push_float_table_entry(vm, "ratio", curr->value * 100.f / last_values_sum);
     lua_rawseti(vm, -2, ++i);
@@ -142,7 +142,7 @@ void FrequentTrafficItems::luaTopMacsProtocols(lua_State *vm) {
   for(curr=q_committed; curr != NULL; curr = (FrequentTrafficNode_t*)curr->hh.next) {
     lua_newtable(vm);
     lua_push_str_table_entry(vm, "mac", Utils::formatMac(curr->key.mac_proto.mac, buf, sizeof(buf)));
-    lua_push_int_table_entry(vm, "proto", curr->key.mac_proto.proto_id);
+    lua_push_uint64_table_entry(vm, "proto", curr->key.mac_proto.proto_id);
     lua_push_float_table_entry(vm, "Bps", curr->value * 1000 / last_diff);
     lua_push_float_table_entry(vm, "ratio", curr->value * 100.f / last_values_sum);
     lua_rawseti(vm, -2, ++i);

@@ -7,6 +7,8 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 -- io.write ("Session:".._SESSION["session"].."\n")
 require "lua_utils"
 
+local page_utils = require("page_utils")
+
 local error_msg
 
 if not isEmptyString(_POST["user_language"]) then
@@ -32,7 +34,8 @@ end
 
 sendHTTPContentTypeHeader('text/html')
 
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
+page_utils.print_header()
+
 info = ntop.getInfo()
 
 print [[
@@ -106,7 +109,7 @@ print[[
         <select name="user_language" id="user_language" class="form-control">]]
 
 for _, lang in pairs(locales_utils.getAvailableLocales()) do
-   print('<option value="'..lang["code"]..'">'..lang["name"]..'</option>')
+   print('<option value="'..lang["code"]..'">'..i18n("locales." .. lang["code"])..'</option>')
 end
 
 print[[

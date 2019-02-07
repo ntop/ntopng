@@ -5,8 +5,9 @@ nEdge requires at least **two wired network interfaces** in order to run.
 
 .. warning::
    nEdge will change the system configuration of the device where it's installed.
-   The original network configuration file is stored in `/etc/network/interfaces.old`.
-   The nEdge package will force the removal of dnsmasq and network manager as they
+   The original network configuration file is stored in `/etc/network/interfaces.old` in
+   Ubuntu 16 or in `/etc/netplan/*.yaml.old` in case of Ubuntu 18.
+   The nEdge package will force the removal of the network manager as it
    conflicts with the nEdge operation.
 
 Before installing nEdge, it's necessary to add the ntop repo to the system, by following the
@@ -99,3 +100,18 @@ via its recovery address as discussed in the device recovery_ section.
 .. _recovery: recovery.html
 .. _bridge: bridging.html
 .. _router: routing.html
+
+Running into a VM
+-----------------
+
+In order to run nEdge into a Virtual Machine, a feature called PCI Passthrough
+must be enabled on the VM hypervisor. The PCI Passthrough will give the VM guest
+full control on the physical network interface.
+
+Here is a guide to enable it on some virtualization platforms:
+https://www.ntop.org/guides/pf_ring/vm/virsh_hostdev.html .
+
+.. note::
+
+   The link above is just a reference to setup the Passthrough. PF_RING ZC will
+   be useless with nEdge.

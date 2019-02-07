@@ -6,6 +6,14 @@ local pragma_once = 1
 local http_lint = {}
 local json = require "dkjson"
 local alert_consts = require "alert_consts"
+local tracker = require "tracker"
+
+-- #################################################################
+
+-- TRACKER HOOK (ntop.*, interface.*)
+
+tracker.track_ntop()
+tracker.track_interface()
 
 -- #################################################################
 
@@ -145,13 +153,29 @@ end
 http_lint.validateUnchecked = validateUnchecked
 
 local function validateSingleWord(w)
-if (string.find(w, "% ") ~= nil) then
+   if (string.find(w, "% ") ~= nil) then
       return false
    else
       return validateUnquoted(w)
    end
 end
 http_lint.validateSingleWord = validateSingleWord
+
+local function validateSingleAlphanumericWord(w)
+   if (w:match("%W")) then
+     return false
+   else
+      return validateSingleWord(w)
+   end
+end
+
+local function validateTrafficRecordingProvider(w)
+   if w == "ntopng" or (w:starts("n2disk@") and validateSingleWord(w)) then
+      return true
+   end
+
+   return false
+end
 
 local function validateUsername(p)
    -- A username (e.g. used in ntopng authentication)
@@ -200,7 +224,7 @@ local function validateOnOff(mode)
 end
 
 local function validateMode(mode)
-   local modes = {"all", "local", "remote", "filtered", "blacklisted", "restore"}
+   local modes = {"all", "local", "remote", "broadcast_domain", "filtered", "blacklisted", "restore"}
 
    return validateChoice(modes, mode)
 end
@@ -213,6 +237,12 @@ end
 
 local function validateHttpMode(mode)
    local modes = {"responses", "queries"}
+
+   return validateChoice(modes, mode)
+end
+
+local function validateEBPFData(mode)
+   local modes = {"categories", "breeds", "applications", "processes"}
 
    return validateChoice(modes, mode)
 end
@@ -279,6 +309,7 @@ end
 
 local function validateBroadcastUnicast(mode)
    local modes = {"unicast", "broadcast_multicast",
+		  "one_way",
 		  "one_way_unicast", "one_way_broadcast_multicast"}
 
    return validateChoice(modes, mode)
@@ -349,12 +380,6 @@ local function validatenEdgeAction(mode)
    return validateChoice(modes, mode)
 end
 
-local function validateNboxAction(mode)
-   local modes = {"status", "schedule"}
-
-   return validateChoice(modes, mode)
-end
-
 local function validateFavouriteAction(mode)
    local modes = {"set", "get", "del", "del_all"}
 
@@ -406,8 +431,13 @@ end
 
 local function validateSnmpAction(mode)
    local modes = {"delete", "delete_all", "add",
-		  "addNewDevice", "startPolling",
-		  "startPortMonitor", "stopPortMonitor"}
+		  "addNewDevice", "startPolling"}
+
+   return validateChoice(modes, mode)
+end
+
+local function validateExtractionJobAction(mode)
+   local modes = {"delete", "stop"}
 
    return validateChoice(modes, mode)
 end
@@ -549,18 +579,22 @@ local function validateApplication(app)
 
    if dot ~= nil then
       local master = string.sub(app, 1, dot-1)
-      local sub = string.sub(app, dot+1)
-      return validateChoiceByKeys(ndpi_protos, master) and validateChoiceByKeys(ndpi_protos, sub)
+      if not validateChoiceByKeys(ndpi_protos, master) then
+	 -- try to see if app is just an app with a dot (e.g., Musical.ly)
+	 return validateChoiceByKeys(ndpi_protos, app)
+      else
+	 -- master is a valid protocol, let's see if the application is valid as well
+	 local sub = string.sub(app, dot+1)
+	 return validateChoiceByKeys(ndpi_protos, sub)
+      end
    else
       return validateChoiceByKeys(ndpi_protos, app)
    end
 end
 
 local function validateProtocolId(p)
-   local l4 = {"icmp", "tcp", "udp"}
-
    return validateChoice(ndpi_protos, p) or
-      validateChoice(l4, p) or
+      validateChoiceByKeys(L4_PROTO_KEYS, p) or
       validateChoiceByKeys(ndpi_protos, p)
 end
 
@@ -808,6 +842,12 @@ end
 
 -- #################################################################
 
+local function validatenIndexQueryType(qt)
+   return validateChoice({"top_clients", "top_servers", "top_protocols", "top_contacts"}, qt)
+end
+
+-- #################################################################
+
 local function validateCIDR(m)
    return validateChoice({"24", "32"}, m)
 end
@@ -841,11 +881,16 @@ local known_parameters = {
    ["nagios_host_name"]        = validateUnquoted,
    ["nagios_service_name"]     = validateUnquoted,
    ["bind_dn"]                 = validateUnquoted,
-   ["bind_pwd"]                = validateUnquoted,
+   ["bind_pwd"]                = { passwordCleanup, validatePassword }, -- LDAP Bind Authentication Password
    ["search_path"]             = validateUnquoted,
    ["user_group"]              = validateUnquoted,
    ["admin_group"]             = validateUnquoted,
+   ["radius_admin_group"]      = validateUnquoted,
    ["ts_post_data_url"]        = validateUnquoted,             -- URL for influxdb
+   ["webhook_url"]             = validateUnquoted,
+   ["webhook_sharedsecret"]    = validateEmptyOr(validateSingleWord),
+   ["webhook_username"]        = validateEmptyOr(validateSingleWord),
+   ["webhook_password"]        = validateEmptyOr(validateSingleWord),
 
    -- nIndex
    ["select_clause"]           = validateUnquoted,
@@ -858,6 +903,8 @@ local known_parameters = {
    ["flow_clause"]             = validateSingleWord,
    ["topk_clause"]             = validateSingleWord,
    ["maxhits_clause"]          = validateNumber,
+   ["ni_query_type"]           = validatenIndexQueryType,
+   ["ni_query_filter"]         = validateListOfTypeInline(validateSingleWord),
    
 -- HOST SPECIFICATION
    ["host"]                    = validateHost,                  -- an IPv4 (optional @vlan), IPv6 (optional @vlan), or MAC address
@@ -904,6 +951,8 @@ local known_parameters = {
    ["inIfIdx"]                 = validateNumber,                -- A switch/router INPUT port id (%INPUT_SNMP)
    ["outIfIdx"]                = validateNumber,                -- A switch/router OUTPUT port id (%OUTPUT_SNMP)
    ["deviceIP"]                = validateIPV4,                  -- The switch/router exporter ip address (%EXPORTER_IPV4_ADDRESS)
+   ["ebpf_data"]               = validateEBPFData,              -- mode for get_username_data.lua and get_process_data.lua
+   ["uid"]                     = validateNumber,                -- user id
    ["pid_mode"]                = validatePidMode,               -- pid mode for pid_stats.lua
    ["pid_name"]                = validateSingleWord,            -- A process name
    ["pid"]                     = validateNumber,                -- A process ID
@@ -936,20 +985,6 @@ local known_parameters = {
 -- NAVIGATION
    ["page"]                    = validateSingleWord,            -- Currently active subpage tab
    ["tab"]                     = validateSingleWord,            -- Currently active tab, handled by javascript
-
--- TRAFFIC DUMP
-   ["dump_flow_to_disk"]       = validateBool,                  -- true if target flow should be dumped to disk
-   ["dump_traffic"]            = validateBool,                  -- true if target host traffic should be dumped to disk
-   ["dump_all_traffic"]        = validateBool,                  -- true if interface traffic should be dumped to disk
-   ["dump_traffic_to_tap"]     = validateBool,                  --
-   ["dump_traffic_to_disk"]    = validateBool,                  --
-   ["dump_unknown_to_disk"]    = validateBool,                  --
-   ["max_pkts_file"]           = validateEmptyOr(validateNumber), --
-   ["max_sec_file"]            = validateEmptyOr(validateNumber), --
-   ["max_files"]               = validateEmptyOr(validateNumber), --
-   ["capture_id"]              = validateNumber,                -- Live capture id
-   ["duration"]                = validateNumber,                --
-   ["bpf_filter"]              = validateEmptyOr(validateUnquoted), --
    
 -- OTHER
    ["_"]                       = validateEmptyOr(validateNumber), -- jQuery nonce in ajax requests used to prevent browser caching
@@ -1025,7 +1060,9 @@ local known_parameters = {
    ["toggle_dropped_flows_alerts"]                 = validateBool,
    ["toggle_malware_probing"]                      = validateBool,
    ["toggle_device_protocols_alerts"]              = validateBool,
+   ["toggle_elephant_flows_alerts"]                = validateBool,
    ["toggle_ip_reassignment_alerts"]               = validateBool,
+   ["toggle_longlived_flows_alerts"]               = validateBool,
    ["toggle_flow_db_dump_export"]                  = validateBool,
    ["toggle_alert_syslog"]                         = validateBool,
    ["toggle_slack_notification"]                   = validateBool,
@@ -1034,7 +1071,6 @@ local known_parameters = {
    ["toggle_top_sites"]                            = validateBool,
    ["toggle_captive_portal"]                       = validateBool,
    ["toggle_informative_captive_portal"]           = validateBool,
-   ["toggle_nbox_integration"]                     = validateBool,
    ["toggle_autologout"]                           = validateBool,
    ["toggle_ldap_anonymous_bind"]                  = validateBool,
    ["toggle_local"]                                = validateBool,
@@ -1052,6 +1088,7 @@ local known_parameters = {
    ["toggle_log_to_file"]                          = validateBool,
    ["toggle_snmp_rrds"]                            = validateBool,
    ["toggle_tiny_flows_export"]                    = validateBool,
+   ["toggle_aggregated_flows_export_limit"]        = validateBool,
    ["toggle_vlan_rrds"]                            = validateBool,
    ["toggle_asn_rrds"]                             = validateBool,
    ["toggle_country_rrds"]                         = validateBool,
@@ -1066,29 +1103,49 @@ local known_parameters = {
    ["toggle_quota_exceeded_alert"]                 = validateBool,
    ["toggle_external_alerts"]                      = validateBool,
    ["toggle_influx_auth"]                          = validateBool,
+   ["toggle_remote_assistance"]                    = validateBool,
+   ["toggle_ldap_auth"]                            = validateBool,
+   ["toggle_local_auth"]                           = validateBool,
+   ["toggle_radius_auth"]                          = validateBool,
+   ["toggle_http_auth"]                            = validateBool,
+   ["toggle_ldap_referrals"]                       = validateBool,
+   ["toggle_webhook_notification"]                 = validateBool,
+   ["toggle_auth_session_midnight_expiration"]     = validateBool,
+   ["toggle_client_x509_auth"]                     = validateBool,
+   ["toggle_snmp_alerts_port_status_change"]       = validateBool,
+   ["toggle_snmp_alerts_port_errors"]              = validateBool,
+   ["toggle_midnight_stats_reset"]                 = validateBool,
 
    -- Input fields
    ["minute_top_talkers_retention"]                = validateNumber,
+   ["nindex_retention_days"]                       = validateNumber,
    ["mysql_retention"]                             = validateNumber,
    ["influx_retention"]                            = validateNumber,
-   ["rrd_files_retention"]                         = validateNumber,
+   ["old_rrd_files_retention"]                     = validateNumber,
    ["minute_top_talkers_retention"]                = validateNumber,
    ["max_num_alerts_per_entity"]                   = validateNumber,
+   ["elephant_flow_remote_to_local_bytes"]         = validateNumber,
+   ["elephant_flow_local_to_remote_bytes"]         = validateNumber,
    ["max_num_flow_alerts"]                         = validateNumber,
    ["max_num_packets_per_tiny_flow"]               = validateNumber,
    ["max_num_bytes_per_tiny_flow"]                 = validateNumber,
+   ["max_num_aggregated_flows_per_export"]         = validateNumber,
    ["syslog_alert_format"]                         = validateEmptyOr(validateSyslogFormat),
    ["nagios_nsca_port"]                            = validateEmptyOr(validatePort),
    ["nagios_send_nsca_executable"]                 = validateAbsolutePath,
    ["nagios_send_nsca_config"]                     = validateAbsolutePath,
-   ["nbox_user"]                                   = validateSingleWord,
-   ["nbox_password"]                               = validateSingleWord,
    ["google_apis_browser_key"]                     = validateSingleWord,
    ["ldap_server_address"]                         = validateSingleWord,
+   ["radius_server_address"]                       = validateSingleWord,
+   ["http_auth_url"]                               = validateSingleWord,
+   ["radius_secret"]                               = validateUnquoted,
    ["local_host_max_idle"]                         = validateNumber,
+   ["longlived_flow_duration"]                     = validateNumber,
    ["non_local_host_max_idle"]                     = validateNumber,
    ["flow_max_idle"]                               = validateNumber,
    ["active_local_host_cache_interval"]            = validateNumber,
+   ["auth_session_duration"]                       = validateNumber,
+   ["local_host_cache_duration"]                   = validateNumber,
    ["local_host_cache_duration"]                   = validateNumber,
    ["housekeeping_frequency"]                      = validateNumber,
    ["intf_rrd_raw_days"]                           = validateNumber,
@@ -1124,6 +1181,7 @@ local known_parameters = {
    ["slack_notification_severity_preference"]      = validateNotificationSeverity,
    ["nagios_notification_severity_preference"]     = validateNotificationSeverity,
    ["email_notification_severity_preference"]      = validateNotificationSeverity,
+   ["webhook_notification_severity_preference"]    = validateNotificationSeverity,
    ["multiple_ldap_authentication"]                = validateChoiceInline({"local","ldap","ldap_local"}),
    ["multiple_ldap_account_type"]                  = validateChoiceInline({"posix","samaccount"}),
    ["toggle_logging_level"]                        = validateChoiceInline({"trace", "debug", "info", "normal", "warning", "error"}),
@@ -1138,7 +1196,26 @@ local known_parameters = {
    ["flush_alerts_data"]                           = validateEmpty,
    ["send_test_email"]                             = validateEmpty,
    ["send_test_slack"]                             = validateEmpty,
+   ["send_test_webhook"]                           = validateEmpty,
    ["network_discovery_interval"]                  = validateNumber,
+   ["captive_portal_id_method"]                    = validateChoiceInline({"mac", "ip"}),
+--
+
+-- LIVE CAPTURE
+   ["capture_id"]              = validateNumber,                -- Live capture id
+   ["duration"]                = validateNumber,                --
+   ["bpf_filter"]              = validateEmptyOr(validateUnquoted), --
+
+-- TRAFFIC RECORDING
+   ["disk_space"]                                  = validateNumber,
+   ["file_id"]                                     = validateNumber,
+   ["job_action"]                                  = validateExtractionJobAction,
+   ["job_id"]                                      = validateNumber,
+   ["n2disk_license"]                              = validateSingleAlphanumericWord,
+   ["record_traffic"]                              = validateBool,
+   ["max_extracted_pcap_bytes"]                    = validateNumber,
+   ["traffic_recording_provider"]                  = validateTrafficRecordingProvider,
+   ["dismiss_external_providers_reminder"]         = validateBool,
 --
 
 -- PAGE SPECIFIC
@@ -1149,7 +1226,6 @@ local known_parameters = {
    ["report_zoom"]             = validateBool,                  -- True if we are zooming in the report
    ["format"]                  = validatePrintFormat,           -- a print format
    ["nedge_config_action"]     = validatenEdgeAction,           -- system_setup_utils.lua
-   ["nbox_action"]             = validateNboxAction,            -- get_nbox_data.lua
    ["fav_action"]              = validateFavouriteAction,       -- get_historical_favourites.lua
    ["favourite_type"]          = validateFavouriteType,         -- get_historical_favourites.lua
    ["locale"]                  = validateCountry,               -- locale used in test_locale.lua
@@ -1167,7 +1243,6 @@ local known_parameters = {
    ["refresh"]                 = validateNumber,                -- top flow refresh in seconds, index.lua
    ["sprobe"]                  = validateEmpty,                 -- sankey.lua
    ["always_show_hist"]        = validateBool,                  -- host_details.lua
-   ["task_id"]                 = validateSingleWord,            -- get_nbox_data
    ["host_stats"]              = validateBool,                  -- host_get_json
    ["captive_portal_users"]    = validateBool,                  -- to show or hide captive portal users
    ["long_names"]              = validateBool,                  -- get_hosts_data
@@ -1217,10 +1292,9 @@ local known_parameters = {
    ["devices_mode"]            = validateDevicesMode,           -- macs_stats.lua
    ["flow_mode"]               = validateFlowMode   ,           -- if_stats.lua
    ["unassigned_devices"]      = validateUnassignedDevicesMode, -- unknown_device.lua
-   ["create_guests_pool"]      = validateOnOff,                 -- bridge wizard
-   ["show_wizard"]             = validateEmpty,                 -- bridge wizard
    ["delete_all_policies"]     = validateEmpty,                 -- traffic policies
    ["safe_search"]             = validateOnOff,                 -- users
+   ["device_protocols_policing"] = validateOnOff,               -- users
    ["forge_global_dns"]        = validateBool,                  -- users
    ["default_policy"]          = validateNumber,                -- users
    ["lan_interfaces"]          = validateListOfTypeInline(validateNetworkInterface),
@@ -1282,6 +1356,15 @@ local known_parameters = {
    ["ts_compare"]              = validateZoom,
    ["detail_view"]             = validateSingleWord,
    ["initial_point"]           = validateBool,
+   ["extract_now"]             = validateBool,
+   ["custom_hosts"]            = validateListOfTypeInline(validateSingleWord),
+   ["assistance_key"]          = validateUnquoted,
+   ["assistance_community"]    = validateUnquoted,
+   ["allow_admin_access"]      = validateBool,
+   ["accept_tos"]              = validateBool,
+   ["no_timeout"]              = validateBool,
+   ["supernode"]               = validateSingleWord,
+   ["ts_aggregation"]          = validateChoiceInline({"raw", "1h", "1d"}),
 
    -- json POST DATA
    ["payload"]                 = { jsonCleanup, validateJSON },
@@ -1422,7 +1505,6 @@ local function lintParams()
                if(debug) then io.write("[LINT] Parameter "..k.." is empty but we are in relax mode, so it can pass\n") end
             else
                local success, message = validateParameter(k, v)
-
                if not success then
                   if message ~= nil then
                      http_lint.validationError(id, k, v, message)
@@ -1453,15 +1535,44 @@ end
 
 -- #################################################################
 
-local function clearNotAllowedParams()
-   local not_allowed_uris = { "/lua/info_portal.lua", "/lua/captive_portal.lua"}
+local function parsePOSTpayload()
+   if((_POST ~= nil) and (_POST["payload"] ~= nil)) then
+      local info, pos, err = json.decode(_POST["payload"], 1, nil)
+      
+      for k,v in pairs(info) do
+	 _GET[k] = v
+      end
+   end
+end
 
-   if (table.len(_GET) > 0 or table.len(_POST) > 0) and _SERVER["URI"] then
-      for _, uri in pairs(not_allowed_uris) do
-	 if string.ends(uri, _SERVER["URI"]) then
-	    _GET  = { }
-	    _POST = { }
-	    break
+-- #################################################################
+
+local function clearNotAllowedParams()
+   if ntop.isnEdge() then
+      -- Captive portal urls that can be clobbered with unrecognized
+      -- and unvalid params as devices could have http requests open that are redirected
+      -- to the captive portal.
+      -- This function removes all the params except a minimum allowed set.
+      local not_allowed_uris = {"/lua/info_portal.lua", "/lua/captive_portal.lua"}
+      -- the referer must go through or the captive portal won't be able to do
+      -- a proper redirect
+      local allowed_params = {referer = 1,}
+
+      if (table.len(_GET) > 0 or table.len(_POST) > 0) and _SERVER["URI"] then
+	 for _, uri in pairs(not_allowed_uris) do
+	    if string.ends(uri, _SERVER["URI"]) then
+	       local param_tables = {_GET or {}, _POST or {}}
+
+	       for _, param_table in pairs(param_tables) do
+		  for param_key, param_value in pairs(param_table) do
+		     if not allowed_params[param_key] then
+			param_table[param_key] = nil
+		     end
+		  end
+	       end
+
+	       break
+	    end
 	 end
       end
    end
@@ -1470,6 +1581,10 @@ end
 -- #################################################################
 
 if(pragma_once) then
+   if(ignore_post_payload_parse == nil) then
+    parsePOSTpayload()
+   end
+
    clearNotAllowedParams()
    lintParams()
    pragma_once = 0

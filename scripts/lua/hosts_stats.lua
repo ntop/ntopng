@@ -8,12 +8,13 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local host_pools_utils = require "host_pools_utils"
 local ts_utils = require("ts_utils")
-
+local page_utils = require("page_utils")
+active_page = "hosts"
 local have_nedge = ntop.isnEdge()
 
 sendHTTPContentTypeHeader('text/html')
 
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
+page_utils.print_header(i18n("hosts"))
 
 local protocol     = _GET["protocol"]
 local asn          = _GET["asn"]
@@ -25,6 +26,7 @@ local os_          = _GET["os"]
 local community    = _GET["community"]
 local pool         = _GET["pool"]
 local ipversion    = _GET["version"]
+local traffic_type = _GET["traffic_type"]
 
 local base_url = ntop.getHttpPrefix() .. "/lua/hosts_stats.lua"
 local page_params = {}
@@ -112,6 +114,14 @@ if (_GET["page"] ~= "historical") then
       ipver_title = ""
    end
 
+   local traffic_type_title
+   if not isEmptyString(traffic_type) then
+      page_params["traffic_type"] = traffic_type
+      traffic_type_title = i18n("hosts_stats.traffic_type_one_way")
+   else
+      traffic_type_title = ""
+   end
+
    print [[
       <hr>
       <div id="table-hosts"></div>
@@ -153,20 +163,24 @@ if (_GET["page"] ~= "historical") then
    end
 
    if(_GET["pool"] ~= nil) then
-      local charts_available = ts_utils.exists("host_pool:traffic", {ifid=ifstats.id, pool=_GET["pool"]})
+      local charts_available = ts_utils.exists("host_pool:traffic", {ifid=ifstats.id, pool=_GET["pool"]}) and ntop.isPro()
       local pool_edit = ""
 
-      -- TODO enable on nEdge when devices list will be implemented
-      if (_GET["pool"] ~= host_pools_utils.DEFAULT_POOL_ID) and (not have_nedge) then
+      if (_GET["pool"] ~= host_pools_utils.DEFAULT_POOL_ID) or (have_nedge) then
 	 local pool_link
+    local title
 
 	 if have_nedge then
-	    pool_link = "/lua/pro/nedge/admin/nf_edit_user.lua?username=" .. host_pools_utils.poolIdToUsername(_GET["pool"]) .. "&page=devices"
+	    pool_link = "/lua/pro/nedge/admin/nf_edit_user.lua?username=" ..
+         ternary(_GET["pool"] == host_pools_utils.DEFAULT_POOL_ID, "", host_pools_utils.poolIdToUsername(_GET["pool"]))
+       title = i18n("nedge.edit_user")
 	 else
 	    pool_link = "/lua/if_stats.lua?page=pools&pool=".._GET["pool"]
+       title = i18n("host_pools.manage_pools")
 	 end
 
-	 pool_edit = "&nbsp; <A HREF='"..ntop.getHttpPrefix()..pool_link.."'><i class='fa fa-cog fa-sm' title='"..i18n("host_pools.manage_pools") .. "'></i></A>"
+	 pool_edit = "&nbsp; <A HREF='"..ntop.getHttpPrefix()..pool_link.."'><i class='fa fa-cog fa-sm' title='"..title .. "'></i></A>"
+
       end
 
       pool_ = " "..i18n(ternary(have_nedge, "hosts_stats.user_title", "hosts_stats.pool_title"),
@@ -188,6 +202,13 @@ if (_GET["page"] ~= "historical") then
 
    if(protocol_name == nil) then protocol_name = protocol end
 
+   local charts_icon = ""
+   if not isEmptyString(protocol_name) then
+      charts_icon = " <a href='".. ntop.getHttpPrefix() .."/lua/if_stats.lua?ifid="..
+         ifstats.id .. "&page=historical&ts_schema=iface:ndpi&protocol=" .. protocol_name..
+         "'><i class='fa fa-sm fa-area-chart'></i></a>"
+   end
+
    function getPageTitle()
       local mode_label = ""
 
@@ -204,6 +225,7 @@ if (_GET["page"] ~= "historical") then
       -- Note: we must use the empty string as fallback. Multiple spaces will be collapsed into one automatically.
       return i18n("hosts_stats.hosts_page_title", {
 		     all = isEmptyString(mode_label) and i18n("hosts_stats.all") or "",
+		     traffic_type = traffic_type_title or "",
 		     local_remote = mode_label,
 		     protocol = protocol_name or "",
 		     network = not isEmptyString(network_name) and i18n("hosts_stats.in_network", {network=network_name}) or "",
@@ -211,7 +233,7 @@ if (_GET["page"] ~= "historical") then
 		     ["os"] = os_ or "",
 		     country_asn_or_mac = country or asninfo or mac or pool_ or "",
 		     vlan = vlan_title or "",
-      })
+      }) .. charts_icon
    end
 
    print('title: "'..getPageTitle()..'",\n')
@@ -253,6 +275,10 @@ if (_GET["page"] ~= "historical") then
       print[[</div>']]
    end
 
+   print[[, '<div class="btn-group pull-right">]]
+   printTrafficTypeFilterDropdown(base_url, page_params)
+   print[[</div>']]
+
    -- Hosts filter
    local hosts_filter_params = table.clone(page_params)
 
@@ -276,6 +302,13 @@ if (_GET["page"] ~= "historical") then
    print('><a href="')
    print (getPageUrl(base_url, hosts_filter_params))
    print ('">'..i18n("hosts_stats.remote_hosts_only")..'</a></li>')
+
+   hosts_filter_params.mode = "broadcast_domain"
+   print('<li')
+   if mode == hosts_filter_params.mode then print(' class="active"') end
+   print('><a href="')
+   print (getPageUrl(base_url, hosts_filter_params))
+   print ('">'..i18n("hosts_stats.broadcast_domain_hosts_only")..'</a></li>')
 
    hosts_filter_params.mode = "blacklisted"
    print('<li')
@@ -378,7 +411,7 @@ if (_GET["page"] ~= "historical") then
 			     }
 
 				 },  {
-			     title: "]] print(i18n("if_stats_overview.dropped_flows")) print[[",
+			     title: "]] print(i18n("if_stats_overview.blocked_flows")) print[[",
 				 field: "column_num_dropped_flows",
 				 sortable: true,
                                  hidden: ]]

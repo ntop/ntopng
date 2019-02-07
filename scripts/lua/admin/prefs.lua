@@ -13,9 +13,17 @@ local callback_utils = require "callback_utils"
 local lists_utils = require "lists_utils"
 local alert_consts = require "alert_consts"
 local slack_utils = require("slack")
+local webhook_utils = require("webhook")
+local recording_utils = require "recording_utils"
+local remote_assistance = require "remote_assistance"
+local page_utils = require("page_utils")
+local ts_utils = require("ts_utils")
+local nindex_utils = nil
 
 if(ntop.isPro()) then
   package.path = dirs.installdir .. "/scripts/lua/pro/?.lua;" .. package.path
+  package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
+  nindex_utils = require("nindex_utils")
 end
 
 sendHTTPContentTypeHeader('text/html')
@@ -26,75 +34,124 @@ local product = ntop.getInfo().product
 local message_info = ""
 local message_severity = "alert-warning"
 
+-- NOTE: all the auth methods should be listed below
+local auth_toggles = {
+  ["local"] = "toggle_local_auth",
+  ["ldap"] = "toggle_ldap_auth",
+  ["http"] = "toggle_http_auth",
+  ["radius"] = "toggle_radius_auth",
+}
+
 if(haveAdminPrivileges()) then
+  if not table.empty(_POST) then
+    if _GET["tab"] == "auth" then
+      local one_enabled = false
+
+      for k, v in pairs(auth_toggles) do
+        if _POST[v] == "1" then
+          one_enabled = true
+          break
+        end
+      end
+
+      if not one_enabled then
+        -- at least one auth method should be enabled
+        _POST["toggle_local_auth"] = "1"
+      end
+    end
+  end
+
    if(_POST["email_sender"] ~= nil) then
-    _POST["email_sender"] = unescapeHTML(_POST["email_sender"])
+      _POST["email_sender"] = unescapeHTML(_POST["email_sender"])
    end
+
    if(_POST["email_recipient"] ~= nil) then
-    _POST["email_recipient"] = unescapeHTML(_POST["email_recipient"])
+      _POST["email_recipient"] = unescapeHTML(_POST["email_recipient"])
    end
 
    if(_POST["flush_alerts_data"] ~= nil) then
-    require "alert_utils"
-    flushAlertsData()
+      require "alert_utils"
+      flushAlertsData()
+
    elseif(_POST["disable_alerts_generation"] == "1") then
-    require "alert_utils"
-    disableAlertsGeneration()
+      require "alert_utils"
+      disableAlertsGeneration()
+
    elseif(_POST["send_test_email"] ~= nil) then
-    local email_utils = require("email")
+      local email_utils = require("email")
 
-    local success = email_utils.sendEmail("TEST MAIL", "Email notification is working")
+      local success = email_utils.sendEmail("TEST MAIL", "Email notification is working")
 
-    if success then
-      message_info = i18n("prefs.email_sent_successfully")
-      message_severity = "alert-success"
-    else
-      message_info = i18n("prefs.email_send_error", {product=product})
-      message_severity = "alert-danger"
-    end
+      if success then
+         message_info = i18n("prefs.email_sent_successfully")
+         message_severity = "alert-success"
+      else
+         message_info = i18n("prefs.email_send_error", {url="https://www.ntop.org/guides/ntopng/web_gui/alerts.html#email"})
+         message_severity = "alert-danger"
+      end
+
    elseif(_POST["send_test_slack"] ~= nil) then
-    local success = slack_utils.sendMessage("interface", "info", "Slack notification is working")
+      local success = slack_utils.sendMessage("interface", "info", "Slack notification is working")
 
-    if success then
-      message_info = i18n("prefs.slack_sent_successfully", {channel=slack_utils.getChannelName("interface")})
-      message_severity = "alert-success"
-    else
-      message_info = i18n("prefs.slack_send_error", {product=product})
-      message_severity = "alert-danger"
-    end
+      if success then
+         message_info = i18n("prefs.slack_sent_successfully", {channel=slack_utils.getChannelName("interface")})
+         message_severity = "alert-success"
+      else
+         message_info = i18n("prefs.slack_send_error", {product=product})
+         message_severity = "alert-danger"
+      end
+
+   elseif(_POST["send_test_webhook"] ~= nil) then
+      local success = webhook_utils.sendMessage({})
+
+      if success then
+         message_info = i18n("prefs.webhook_sent_successfully")
+         message_severity = "alert-success"
+      else
+         message_info = i18n("prefs.webhook_send_error", {product=product})
+         message_severity = "alert-danger"
+      end
+
    elseif (_POST["timeseries_driver"] == "influxdb") then
-    local url = string.gsub(string.gsub( _POST["ts_post_data_url"], "http:__", "http://"), "https:__", "https://")
+      local url = string.gsub(string.gsub( _POST["ts_post_data_url"], "http:__", "http://"), "https:__", "https://")
 
-    if ntop.getPref("ntopng.prefs.timeseries_driver") ~= "influxdb"
+      if ntop.getPref("ntopng.prefs.timeseries_driver") ~= "influxdb"
         or (url ~= ntop.getPref("ntopng.prefs.ts_post_data_url"))
         or (_POST["influx_dbname"] ~= ntop.getPref("ntopng.prefs.influx_dbname"))
         or (_POST["influx_retention"] ~= ntop.getPref("ntopng.prefs.influx_retention"))
         or (_POST["toggle_influx_auth"] ~= ntop.getPref("ntopng.prefs.influx_auth_enabled"))
         or (_POST["influx_username"] ~= ntop.getPref("ntopng.prefs.influx_username"))
         or (_POST["influx_password"] ~= ntop.getPref("ntopng.prefs.influx_password")) then
-      package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/drivers/?.lua;" .. package.path
-      local influxdb = require("influxdb")
-      local username = nil
-      local password = nil
+         package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/drivers/?.lua;" .. package.path
+         local influxdb = require("influxdb")
+         local username = nil
+         local password = nil
 
-      if _POST["toggle_influx_auth"] == "1" then
-        username = _POST["influx_username"]
-        password = _POST["influx_password"]
+         if _POST["toggle_influx_auth"] == "1" then
+           username = _POST["influx_username"]
+           password = _POST["influx_password"]
+         end
+
+         local ok, message = influxdb.init(_POST["influx_dbname"], url, tonumber(_POST["influx_retention"]),
+            username, password, false --[[verbose]])
+         if not ok then
+            message_info = message
+            message_severity = "alert-danger"
+
+            -- reset driver to the old one
+            _POST["timeseries_driver"] = nil
+         elseif message then
+            message_info = message
+            message_severity = "alert-success"
+         end
       end
 
-      local ok, message = influxdb.init(_POST["influx_dbname"], url, tonumber(_POST["influx_retention"]),
-          username, password, false --[[verbose]])
-      if not ok then
-        message_info = message
-        message_severity = "alert-danger"
+   elseif(_POST["n2disk_license"] ~= nil) then
+      recording_utils.setLicense(_POST["n2disk_license"])
+   end
 
-        -- reset driver to the old one
-        _POST["timeseries_driver"] = nil
-      elseif message then
-        message_info = message
-        message_severity = "alert-success"
-      end
-    end
+   if _POST["timeseries_driver"] ~= nil then
+    ts_utils.setupAgain()
    end
 
    local slack_channels_key = "ntopng.prefs.alerts.slack_channels"
@@ -115,19 +172,19 @@ if(haveAdminPrivileges()) then
     end
    end
 
-   ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
+   page_utils.print_header(i18n("prefs.preferences"))
 
    active_page = "admin"
    dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
    prefs = ntop.getPrefs()
 
-if not isEmptyString(message_info) then
-  print[[<div class="alert ]] print(message_severity) print[[" role="alert">]]
-  print[[<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>]]
-  print(message_info)
-  print[[</div>]]
-end
+   if not isEmptyString(message_info) then
+      print[[<div class="alert ]] print(message_severity) print[[" role="alert">]]
+      print[[<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>]]
+      print(message_info)
+      print[[</div>]]
+   end
 
    print [[
 	    <h2>]] print(i18n("prefs.runtime_prefs")) print[[</h2>
@@ -203,13 +260,13 @@ function printInterfaces()
 		       "",
 		       false, nil, nil, nil,  {attributes={spellcheck="false", pattern="^([0-9]+,)*[0-9]+$", maxlength=32}})
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
 	field = "toggle_dst_with_post_nat_dst",
 	default = "0",
 	pref = "override_dst_with_post_nat_dst",
   })
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
 	field = "toggle_src_with_post_nat_src",
 	default = "0",
 	pref = "override_src_with_post_nat_src",
@@ -217,7 +274,7 @@ function printInterfaces()
 
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
   print('</table>')
-  print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
+  print [[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
   </form> ]]
 end
 
@@ -249,16 +306,18 @@ function printAlerts()
 
  local elementToSwitch = { "max_num_alerts_per_entity", "max_num_flow_alerts", "row_toggle_alert_probing",
 			   "row_toggle_malware_probing", "row_toggle_dns_alerts",
-			   "row_toggle_flow_alerts_iface", "row_alerts_retention_header", "row_alerts_security_header",
+			   "row_toggle_flow_alerts_iface", "row_alerts_retention_header", "row_alerts_settings_header", "row_alerts_security_header",
 			   "row_toggle_ssl_alerts", "row_toggle_dns_alerts", "row_toggle_remote_to_remote_alerts",
 			   "row_toggle_ip_reassignment_alerts", "row_toggle_dropped_flows_alerts", "row_alerts_informative_header",
-			   "row_toggle_device_first_seen_alert", "row_toggle_device_activation_alert", "row_toggle_pool_activation_alert", "row_toggle_quota_exceeded_alert"}
+			   "row_toggle_device_first_seen_alert", "row_toggle_device_activation_alert", "row_toggle_pool_activation_alert", "row_toggle_quota_exceeded_alert", "row_toggle_mining_alerts", "row_toggle_device_protocols_alerts",
+			   "row_toggle_longlived_flows_alerts", "longlived_flow_duration", "row_toggle_elephant_flows_alerts", "elephant_flow_local_to_remote_bytes", "elephant_flow_remote_to_local_bytes"
+			}
  
  if not subpage_active.entries["toggle_mysql_check_open_files_limit"].hidden then
     elementToSwitch[#elementToSwitch+1] = "row_toggle_mysql_check_open_files_limit"
   end
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
     field = "disable_alerts_generation",
     default = "0",
     to_switch = elementToSwitch,
@@ -273,14 +332,14 @@ function printAlerts()
   end
 
   --[[
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
     field = "toggle_flow_alerts_iface",
     default = "0",
     pref = "alerts.dump_alerts_when_iface_is_alerted",
     hidden = not showElements,
   })]]
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
     field = "toggle_mysql_check_open_files_limit",
     default = "1",
     pref = "alerts.mysql_check_open_files_limit",
@@ -291,43 +350,43 @@ function printAlerts()
   if (showElements == false) then print(' style="display:none;"') end
   print('><th colspan=2 class="info">'..i18n("prefs.security_alerts")..'</th></tr>')
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
     field = "toggle_alert_probing",
     pref = "probing_alerts",
     default = "0",
     hidden = not showElements,
   })
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
     field = "toggle_ssl_alerts",
     pref = "ssl_alerts",
     default = "0",
     hidden = not showElements,
   })
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
     field = "toggle_dns_alerts",
     pref = "dns_alerts",
     default = "0",
     hidden = not showElements,
   })
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
   field = "toggle_ip_reassignment_alerts",
   pref = "ip_reassignment_alerts",
   default = "0",
   hidden = not showElements,
   })
   
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
     field = "toggle_remote_to_remote_alerts",
     pref = "remote_to_remote_alerts",
     default = "0",
     hidden = not showElements,
   })
 
-  if hasBridgeInterfaces(false) then
-     prefsToggleButton({
+  if ntop.isnEdge() then
+     prefsToggleButton(subpage_active, {
   field = "toggle_dropped_flows_alerts",
   pref = "dropped_flows_alerts",
   default = "0",
@@ -335,32 +394,61 @@ function printAlerts()
      })
   end
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
     field = "toggle_mining_alerts",
     pref = "mining_alerts",
     default = "1",
     hidden = not showElements,
   })
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
     field = "toggle_malware_probing",
     pref = "host_blacklist",
     default = "1",
     hidden = not showElements,
   })
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
     field = "toggle_device_protocols_alerts",
     pref = "device_protocols_alerts",
     default = "0",
     hidden = not showElements,
   })
 
+  prefsToggleButton(subpage_active, {
+    field = "toggle_longlived_flows_alerts",
+    pref = "longlived_flows_alerts",
+    default = ternary(prefs.are_longlived_flows_alerts_enabled, "1", "0"),
+    hidden = not showElements,
+  })
+
+  prefsInputFieldPrefs(subpage_active.entries["longlived_flow_duration"].title, 
+     subpage_active.entries["longlived_flow_duration"].description,
+    "ntopng.prefs.", "longlived_flow_duration", prefs.longlived_flow_duration, 
+    "number", showElements, nil, nil, {min=1, max=60*60*24*7, tformat="hd"})
+
+  prefsToggleButton(subpage_active, {
+    field = "toggle_elephant_flows_alerts",
+    pref = "elephant_flows_alerts",
+    default = "0",
+    hidden = not showElements,
+  })
+
+  prefsInputFieldPrefs(subpage_active.entries["elephant_flow_local_to_remote_bytes"].title, 
+     subpage_active.entries["elephant_flow_local_to_remote_bytes"].description,
+    "ntopng.prefs.", "elephant_flow_local_to_remote_bytes", prefs.elephant_flow_local_to_remote_bytes, 
+    "number", showElements, nil, nil, {min=1024, format_spec = FMT_TO_DATA_BYTES, tformat="kmg"})
+
+  prefsInputFieldPrefs(subpage_active.entries["elephant_flow_remote_to_local_bytes"].title, 
+     subpage_active.entries["elephant_flow_remote_to_local_bytes"].description,
+    "ntopng.prefs.", "elephant_flow_remote_to_local_bytes", prefs.elephant_flow_remote_to_local_bytes, 
+    "number", showElements, nil, nil, {min=1024, format_spec = FMT_TO_DATA_BYTES, tformat="kmg"})
+
   print('<tr id="row_alerts_informative_header" ')
   if (showElements == false) then print(' style="display:none;"') end
   print('><th colspan=2 class="info">'..i18n("prefs.status_alerts")..'</th></tr>')
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
       field = "toggle_device_first_seen_alert",
       pref = "device_first_seen_alert",
       default = "0",
@@ -368,7 +456,7 @@ function printAlerts()
       redis_prefix = "ntopng.prefs.alerts.",
     })
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
       field = "toggle_device_activation_alert",
       pref = "device_connection_alert",
       default = "0",
@@ -376,7 +464,7 @@ function printAlerts()
       redis_prefix = "ntopng.prefs.alerts.",
     })
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
       field = "toggle_pool_activation_alert",
       pref = "pool_connection_alert",
       default = "0",
@@ -384,8 +472,8 @@ function printAlerts()
       redis_prefix = "ntopng.prefs.alerts.",
     })
 
-  if ntop.isPro() and hasBridgeInterfaces(false) then
-    prefsToggleButton({
+  if ntop.isnEdge() then
+    prefsToggleButton(subpage_active, {
       field = "toggle_quota_exceeded_alert",
       pref = "quota_exceeded_alert",
       default = "0",
@@ -409,7 +497,7 @@ function printAlerts()
   print('<button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button>')
   print('</th></tr>')
   print('</table>')
-  print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
+  print [[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
   </form>
 
   <script>
@@ -441,7 +529,7 @@ function printExternalAlertsReport()
 
   print('<tr><th colspan="2" class="info">'..i18n("prefs.alerts_notifications")..'</th></tr>')
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
     field = "toggle_external_alerts",
     pref = "alerts.external_notifications_enabled",
     default = "0",
@@ -457,7 +545,7 @@ function printExternalAlertsReport()
 	
 	local elementToSwitch = {"row_email_notification_severity_preference", "email_sender", "email_recipient", "smtp_server", "alerts_test"}
 
-	prefsToggleButton({
+	prefsToggleButton(subpage_active, {
 	      field = "toggle_email_notification",
 	      pref = getAlertNotificationModuleEnableKey("email", true),
 	      default = "0",
@@ -497,7 +585,7 @@ function printExternalAlertsReport()
 
      local elementToSwitchSlack = {"row_slack_notification_severity_preference", "slack_sender_username", "slack_webhook", "slack_test", "slack_channels"}
 
-    prefsToggleButton({
+    prefsToggleButton(subpage_active, {
       field = "toggle_slack_notification",
       pref = getAlertNotificationModuleEnableKey("slack", true),
       default = "0",
@@ -546,7 +634,7 @@ function printExternalAlertsReport()
       local alertsEnabled = showElements
       local elementToSwitch = {"row_syslog_alert_format"}
 
-      prefsToggleButton({
+      prefsToggleButton(subpage_active, {
         field = "toggle_alert_syslog",
         pref = getAlertNotificationModuleEnableKey("syslog", true),
         default = "0",
@@ -562,14 +650,14 @@ function printExternalAlertsReport()
       end
 
 
-  retVal = multipleTableButtonPrefs(subpage_active.entries["syslog_alert_format"].title,
-				    subpage_active.entries["syslog_alert_format"].description,
-				    format_labels, format_values,
-				    "plaintext",
-				    "primary",
-				    "syslog_alert_format",
-				    "ntopng.prefs.syslog_alert_format", nil,
-				    nil, nil, nil, alertsEnabled)
+      retVal = multipleTableButtonPrefs(subpage_active.entries["syslog_alert_format"].title,
+				        subpage_active.entries["syslog_alert_format"].description,
+				        format_labels, format_values,
+				        "plaintext",
+				        "primary",
+				        "syslog_alert_format",
+				        "ntopng.prefs.syslog_alert_format", nil,
+				        nil, nil, nil, alertsEnabled)
 
     end
 
@@ -582,7 +670,7 @@ function printExternalAlertsReport()
         "nagios_send_nsca_config","nagios_host_name","nagios_service_name",
         "row_nagios_notification_severity_preference"}
 
-      prefsToggleButton({
+      prefsToggleButton(subpage_active, {
         field = "toggle_alert_nagios",
         pref = getAlertNotificationModuleEnableKey("nagios", true),
         default = "0",
@@ -590,28 +678,71 @@ function printExternalAlertsReport()
         to_switch = elementToSwitch,
       })
 
+      local showNagiosElements = showElements
       if ntop.getPref(getAlertNotificationModuleEnableKey("nagios")) == "0" then
-        showElements = false
+        showNagiosElements = false
       end
-      showElements = alertsEnabled and showElements
+      showNagiosElements = alertsEnabled and showNagiosElements
 
       multipleTableButtonPrefs(subpage_active.entries["slack_notification_severity_preference"].title, subpage_active.entries["slack_notification_severity_preference"].description,
                  alert_sev_labels, alert_sev_values, "error", "primary", "nagios_notification_severity_preference",
-           getAlertNotificationModuleSeverityKey("nagios"), nil, nil, nil, nil, showElements, false)
+           getAlertNotificationModuleSeverityKey("nagios"), nil, nil, nil, nil, showNagiosElements, false)
 
-      prefsInputFieldPrefs(subpage_active.entries["nagios_nsca_host"].title, subpage_active.entries["nagios_nsca_host"].description, "ntopng.prefs.", "nagios_nsca_host", prefs.nagios_nsca_host, nil, showElements, false)
-      prefsInputFieldPrefs(subpage_active.entries["nagios_nsca_port"].title, subpage_active.entries["nagios_nsca_port"].description, "ntopng.prefs.", "nagios_nsca_port", prefs.nagios_nsca_port, "number", showElements, false, nil, {min=1, max=65535})
-      prefsInputFieldPrefs(subpage_active.entries["nagios_send_nsca_executable"].title, subpage_active.entries["nagios_send_nsca_executable"].description, "ntopng.prefs.", "nagios_send_nsca_executable", prefs.nagios_send_nsca_executable, nil, showElements, false)
-      prefsInputFieldPrefs(subpage_active.entries["nagios_send_nsca_config"].title, subpage_active.entries["nagios_send_nsca_config"].description, "ntopng.prefs.", "nagios_send_nsca_config", prefs.nagios_send_nsca_conf, nil, showElements, false)
-      prefsInputFieldPrefs(subpage_active.entries["nagios_host_name"].title, subpage_active.entries["nagios_host_name"].description, "ntopng.prefs.", "nagios_host_name", prefs.nagios_host_name, nil, showElements, false)
-      prefsInputFieldPrefs(subpage_active.entries["nagios_service_name"].title, subpage_active.entries["nagios_service_name"].description, "ntopng.prefs.", "nagios_service_name", prefs.nagios_service_name, nil, showElements)
+      prefsInputFieldPrefs(subpage_active.entries["nagios_nsca_host"].title, subpage_active.entries["nagios_nsca_host"].description, "ntopng.prefs.", "nagios_nsca_host", prefs.nagios_nsca_host, nil, showNagiosElements, false)
+      prefsInputFieldPrefs(subpage_active.entries["nagios_nsca_port"].title, subpage_active.entries["nagios_nsca_port"].description, "ntopng.prefs.", "nagios_nsca_port", prefs.nagios_nsca_port, "number", showNagiosElements, false, nil, {min=1, max=65535})
+      prefsInputFieldPrefs(subpage_active.entries["nagios_send_nsca_executable"].title, subpage_active.entries["nagios_send_nsca_executable"].description, "ntopng.prefs.", "nagios_send_nsca_executable", prefs.nagios_send_nsca_executable, nil, showNagiosElements, false)
+      prefsInputFieldPrefs(subpage_active.entries["nagios_send_nsca_config"].title, subpage_active.entries["nagios_send_nsca_config"].description, "ntopng.prefs.", "nagios_send_nsca_config", prefs.nagios_send_nsca_conf, nil, showNagiosElements, false)
+      prefsInputFieldPrefs(subpage_active.entries["nagios_host_name"].title, subpage_active.entries["nagios_host_name"].description, "ntopng.prefs.", "nagios_host_name", prefs.nagios_host_name, nil, showNagiosElements, false)
+      prefsInputFieldPrefs(subpage_active.entries["nagios_service_name"].title, subpage_active.entries["nagios_service_name"].description, "ntopng.prefs.", "nagios_service_name", prefs.nagios_service_name, nil, showNagiosElements)
     end
-  end
 
+    -- Webhook
+    print('<tr><th colspan=2 class="info">'..i18n('prefs.webhook_notification')..'</th></tr>')
+
+    local elementToSwitchWebhook = {"row_webhook_notification_severity_preference", "webhook_url", "webhook_sharedsecret", "webhook_test", "webhook_username", "webhook_password"}
+
+    prefsToggleButton(subpage_active, {
+      field = "toggle_webhook_notification",
+      pref = getAlertNotificationModuleEnableKey("webhook", true),
+      default = "0",
+      disabled = showElements==false,
+      to_switch = elementToSwitchWebhook,
+    })
+
+    local showWebhookNotificationPrefs = false
+    if ntop.getPref(getAlertNotificationModuleEnableKey("webhook")) == "1" then
+       showWebhookNotificationPrefs = true
+    else
+       showWebhookNotificationPrefs = false
+    end
+
+    multipleTableButtonPrefs(subpage_active.entries["webhook_notification_severity_preference"].title, subpage_active.entries["webhook_notification_severity_preference"].description,
+                 alert_sev_labels, alert_sev_values, "error", "primary", "webhook_notification_severity_preference",
+           getAlertNotificationModuleSeverityKey("webhook"), nil, nil, nil, nil, showElements and showWebhookNotificationPrefs)
+
+    prefsInputFieldPrefs(subpage_active.entries["webhook_url"].title, subpage_active.entries["webhook_url"].description,
+             "ntopng.prefs.alerts.", "webhook_url",
+             "", nil, showElements and showWebhookNotificationPrefs, true, true, {attributes={spellcheck="false"}, style={width="43em"}, required=true, pattern=getURLPattern()})
+
+    prefsInputFieldPrefs(subpage_active.entries["webhook_sharedsecret"].title, subpage_active.entries["webhook_sharedsecret"].description,
+             "ntopng.prefs.alerts.", "webhook_sharedsecret",
+             "", nil, showElements and showWebhookNotificationPrefs, false, nil, {attributes={spellcheck="false"}, required=false})
+
+  prefsInputFieldPrefs(subpage_active.entries["webhook_username"].title, subpage_active.entries["webhook_username"].description,
+	     "ntopng.prefs.alerts.", "webhook_username", 
+             "", false, showElements and showWebhookNotificationPrefs, nil, nil,  {attributes={spellcheck="false"}, pattern="[^\\s]+", required=false})
+
+  prefsInputFieldPrefs(subpage_active.entries["webhook_password"].title, subpage_active.entries["webhook_password"].description,
+	     "ntopng.prefs.alerts.", "webhook_password", 
+             "", "password", showElements and showWebhookNotificationPrefs, nil, nil,  {attributes={spellcheck="false"}, pattern="[^\\s]+", required=false})
+
+    print('<tr id="webhook_test" style="' .. ternary(showWebhookNotificationPrefs, "", "display:none;").. '"><td><button class="btn btn-default disable-on-dirty" type="button" onclick="sendTestWebhook();" style="width:230px; float:left;">'..i18n("prefs.send_test_webhook")..'</button></td></tr>')
+
+  end
   
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
   print('</table>')
-  print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
+  print [[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
   </form> ]]
 
   print[[<script>
@@ -629,6 +760,16 @@ function printExternalAlertsReport()
       var params = {};
 
       params.send_test_slack = "";
+      params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
+
+      var form = paramsToForm('<form method="post"></form>', params);
+      form.appendTo('body').submit();
+    }
+
+    function sendTestWebhook() {
+      var params = {};
+
+      params.send_test_webhook = "";
       params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
 
       var form = paramsToForm('<form method="post"></form>', params);
@@ -668,159 +809,25 @@ function printProtocolPrefs()
 
   print('<tr><th colspan=2 class="info">HTTP</th></tr>')
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
     field = "toggle_top_sites",
     pref = "host_top_sites_creation",
     default = "0",
   })
 
+  --[[
   print('<tr><th colspan=2 class="info">TCP</th></tr>')
 
   prefsInputFieldPrefs(subpage_active.entries["ewma_alpha_percent"].title, subpage_active.entries["ewma_alpha_percent"].description,
 		       "ntopng.prefs.", "ewma_alpha_percent", prefs.ewma_alpha_percent, "number",
 		       true,
 		       nil, nil, {min=1, max=99,})
+  --]]
 
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
 
   print('</table>')
-  print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
-  </form> ]]
-end
-
--- ================================================================================
-
-function printBridgingPrefs()
-  if not isAdministrator() then
-    return
-  end
-
-  local show
-  local label
-
-  if isCaptivePortalSupported(nil, prefs, true --[[ skip interface check ]]) then
-     show = true
-     label = ""
-  else
-     show = false
-     label = "<p>"..i18n("prefs.captive_portal_disabled_message").."</p>"
-  end
-
-  print('<form method="post">')
-
-  print('<table class="table">')
-
-  if show_advanced_prefs then
-    print('<tr><th colspan=2 class="info">'..i18n("traffic_policy")..'</th></tr>')
-
-    prefsToggleButton({
-      field = "toggle_shaping_directions",
-      pref = "split_shaping_directions",
-      default = "0",
-    })
-
-    local labels = {
-      i18n("prefs.per_protocol"),
-      i18n("prefs.per_category"),
-      i18n("prefs.both"),
-    }
-
-    local values = {
-      "per_protocol",
-      "per_category",
-      "both",
-    }
-
-    multipleTableButtonPrefs(subpage_active.entries["policy_target_type"].title,
-				    subpage_active.entries["policy_target_type"].description,
-				    labels, values,
-				    "per_category",
-				    "primary",
-				    "bridging_policy_target_type",
-				    "ntopng.prefs.bridging_policy_target_type")
-  end
-
-  print('<tr><th colspan=2 class="info">'..i18n("prefs.dns")..'</th></tr>')
-
-if hasBridgeInterfaces(true) then
-  prefsInputFieldPrefs(subpage_active.entries["safe_search_dns"].title, subpage_active.entries["safe_search_dns"].description,
-        "ntopng.prefs.", "safe_search_dns", prefs.safe_search_dns, nil, true, false, nil, {required=true, pattern=getIPv4Pattern()})
-  prefsInputFieldPrefs(subpage_active.entries["global_dns"].title, subpage_active.entries["global_dns"].description,
-        "ntopng.prefs.", "global_dns", prefs.global_dns, nil, true, false, nil, {pattern=getIPv4Pattern()})
-  prefsInputFieldPrefs(subpage_active.entries["secondary_dns"].title, subpage_active.entries["secondary_dns"].description,
-        "ntopng.prefs.", "secondary_dns", prefs.secondary_dns, nil, true, false, nil, {pattern=getIPv4Pattern()})
-end
-
-  local dns_rows = {}
-  for _, dns in pairs(DNS_PRESETS) do
-    local secondary = ternary(not isEmptyString(dns.secondary_dns), dns.secondary_dns, "-")
-    dns_rows[#dns_rows + 1] = [[<tr><td><a href="]] .. dns.url .. [[">]] .. dns.label .. [[</a></td><td>]] .. dns.primary_dns .. [[</td><td>]] .. secondary .. [[</td></tr>]]
-  end
-
-  prefsInformativeField(subpage_active.entries["featured_dns"].title, subpage_active.entries["featured_dns"].description..[[<br><br>
-        <table class='table table-bordered table-condensed small'>
-          <tr><th>]]..i18n("prefs.dns_service")..[[</th><th>]]..i18n("prefs.primary_dns")..[[</th><th>]]..i18n("prefs.secondary_dns")..[[</th></tr>]] ..
-          table.concat(dns_rows, "\n") .. [[</table>
-        ]], true)
-
-  print('<tr><th colspan=2 class="info">'..i18n("prefs.user_authentication")..'</th></tr>')
-
-  local captivePortalElementsToSwitch = {"redirection_url"}
-  prefsToggleButton({
-    field = "toggle_captive_portal",
-    pref = "enable_captive_portal",
-    default = "0",
-    disabled = not(show),
-    to_switch = captivePortalElementsToSwitch,
-  })
-
-  if not isEmptyString(label) then
-    prefsInformativeField("", label, true)
-  end
-
-  local redirection_url = ntop.getPref("ntopng.prefs.redirection_url")
-  local to_show = (ntop.getPref("ntopng.prefs.enable_captive_portal") == "1")
-
-  prefsInputFieldPrefs(subpage_active.entries["captive_portal_url"].title, subpage_active.entries["captive_portal_url"].description,
-        "ntopng.prefs.", "redirection_url", redirection_url, nil, to_show, false, nil, {pattern=getURLPattern()})
-  
-  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
-
-  print('</table>')
-  print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
-  </form> ]]
-end
-
--- ================================================================================
-
-function printNbox()
-  print('<form method="post">')
-  print('<table class="table">')
-
-  print('<tr><th colspan=2 class="info">'..i18n("prefs.nbox_integration")..'</th></tr>')
-
-  local elementToSwitch = {"nbox_user","nbox_password"}
-
-  prefsToggleButton({
-    field = "toggle_nbox_integration",
-    default = "0",
-    pref = "nbox_integration",
-    to_switch = elementToSwitch,
-  })
-
-  if ntop.getPref("ntopng.prefs.nbox_integration") == "1" then
-    showElements = true
-  else
-    showElements = false
-  end
-
-  prefsInputFieldPrefs(subpage_active.entries["nbox_user"].title, subpage_active.entries["nbox_user"].description, "ntopng.prefs.", "nbox_user", "nbox", nil, showElements, false)
-  prefsInputFieldPrefs(subpage_active.entries["nbox_password"].title, subpage_active.entries["nbox_password"].description, "ntopng.prefs.", "nbox_password", "nbox", "password", showElements, false)
-
-  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
-
-  print('</table>')
-  print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
+  print [[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
   </form> ]]
 end
 
@@ -834,7 +841,7 @@ function printNetworkDiscovery()
 
    local elementToSwitch = {"network_discovery_interval"}
 
-   prefsToggleButton({
+   prefsToggleButton(subpage_active, {
     field = "toggle_network_discovery",
     default = "0",
     pref = "is_periodic_network_discovery_enabled",
@@ -859,7 +866,61 @@ function printNetworkDiscovery()
    print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
 
    print('</table>')
-  print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
+  print [[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
+    </form>]]
+end
+
+-- ================================================================================
+
+function printRecording()
+  local n2disk_info = recording_utils.getN2diskInfo()
+
+  print('<form method="post">')
+  print('<table class="table">')
+
+  print('<tr><th colspan=2 class="info">'..i18n("prefs.license")..'</th></tr>')
+
+  prefsInputFieldPrefs(subpage_active.entries["n2disk_license"].title, subpage_active.entries["n2disk_license"].description.."<br>"
+      ..ternary(n2disk_info.version ~= nil, i18n("prefs.n2disk_license_version", {version=n2disk_info.version}).."<br>", "")
+      ..ternary(n2disk_info.systemid ~= nil, i18n("prefs.n2disk_license_systemid", {systemid=n2disk_info.systemid}), ""),
+    "ntopng.prefs.", "n2disk_license",
+    ternary(n2disk_info.license ~= nil, n2disk_info.license, ""),
+    false, nil, nil, nil, {style={width="25em;"}, min = 50, max = 64 })
+
+  print('<tr><th colspan=2 class="info">'..i18n("traffic_recording.settings")..'</th></tr>')
+
+  prefsInputFieldPrefs(subpage_active.entries["max_extracted_pcap_bytes"].title, 
+     subpage_active.entries["max_extracted_pcap_bytes"].description,
+    "ntopng.prefs.", "max_extracted_pcap_bytes", prefs.max_extracted_pcap_bytes, 
+    "number", true, nil, nil, {min=10*1024*1024, format_spec = FMT_TO_DATA_BYTES, tformat="mg"})
+
+  -- ######################
+
+  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
+  print('</table>')
+  print [[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
+    </form>]]
+end
+
+-- ================================================================================
+
+function printRemoteAssitance()
+  if not remote_assistance.isAvailable() then
+    return
+  end
+
+  print('<form method="post">')
+  print('<table class="table">')
+
+  print('<tr><th colspan=2 class="info">'..i18n("remote_assistance.remote_assistance")..'</th></tr>')
+  prefsInputFieldPrefs(subpage_active.entries["n2n_supernode"].title, 
+                       subpage_active.entries["n2n_supernode"].description,
+		       "ntopng.prefs.remote_assistance.", "supernode", remote_assistance.getSupernode(), nil,
+		       true, nil, nil, {attributes = {pattern = "[0-9.\\-A-Za-z]+(:[0-9]+)?", required = "required"}})
+
+  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
+  print('</table>')
+  print [[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
     </form>]]
 end
 
@@ -871,7 +932,7 @@ function printMisc()
 
   print('<tr><th colspan=2 class="info">'..i18n("prefs.web_user_interface")..'</th></tr>')
   if prefs.is_autologout_enabled == true then
-    prefsToggleButton({
+    prefsToggleButton(subpage_active, {
       field = "toggle_autologout",
       default = "1",
       pref = "is_autologon_enabled",
@@ -892,6 +953,15 @@ function printMisc()
 		       "google_apis_browser_key",
 		       "", false, nil, nil, nil, {style={width="25em;"}, attributes={spellcheck="false"} --[[ Note: Google API keys can vary in format ]] })
 
+  -- ######################
+
+  print('<tr><th colspan=2 class="info">'..i18n("prefs.databases")..'</th></tr>')
+
+  --default value
+  minute_top_talkers_retention = 365
+  prefsInputFieldPrefs(subpage_active.entries["minute_top_talkers_retention"].title, subpage_active.entries["minute_top_talkers_retention"].description,
+      "ntopng.prefs.", "minute_top_talkers_retention", minute_top_talkers_retention, "number", nil, nil, nil, {min=1, max=365*10})
+  
   -- ######################
 
   print('<tr><th colspan=2 class="info">'..i18n("prefs.report")..'</th></tr>')
@@ -932,28 +1002,43 @@ function printMisc()
 
   -- #####################
 
-  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" onclick="return save_button_users();" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
+  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
   print('</table>')
-  print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
+  print [[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
     </form>]]
 
 end
 
 -- ================================================================================
 
-function printAuthentication()
+local function printAuthDuration()
+  print('<tr><th colspan=2 class="info">'..i18n("prefs.authentication_duration")..'</th></tr>')
+
+  prefsInputFieldPrefs(subpage_active.entries["authentication_duration"].title, subpage_active.entries["authentication_duration"].description,
+		       "ntopng.prefs.","auth_session_duration",
+		       prefs.auth_session_duration, "number", true, nil, nil,
+		       {min = 60 --[[ 1 minute --]], max = 86400 * 7 --[[ 7 days --]],
+			tformat="mhd"})
+
+  prefsToggleButton(subpage_active, {
+  		       field = "toggle_auth_session_midnight_expiration",
+  		       default = "0",
+  		       pref = "auth_session_midnight_expiration",
+  })
+
+end
+
+-- ================================================================================
+
+local function printLdapAuth()
   if not ntop.isPro() then return end
 
-  print('<form method="post">')
-  print('<table class="table">')
+  print('<tr><th colspan=2 class="info">'..i18n("prefs.ldap_authentication")..'</th></tr>')
 
-  print('<tr><th colspan=2 class="info">'..i18n("prefs.authentication")..'</th></tr>')
-  local labels = {i18n("prefs.local"), i18n("prefs.ldap"), i18n("prefs.ldap_local")}
-  local values = {"local","ldap","ldap_local"}
-  local elementToSwitch = {"row_multiple_ldap_account_type", "row_toggle_ldap_anonymous_bind","server","bind_dn", "bind_pwd", "ldap_server_address", "search_path", "user_group", "admin_group"}
-  local showElementArray = {false, true, true}
+  local elementToSwitch = {"row_multiple_ldap_account_type", "row_toggle_ldap_anonymous_bind","server","bind_dn", "bind_pwd", "ldap_server_address", "search_path", "user_group", "admin_group", "row_toggle_ldap_referrals"}
+
   local javascriptAfterSwitch = "";
-  javascriptAfterSwitch = javascriptAfterSwitch.."  if($(\"#id-toggle-multiple_ldap_authentication\").val() != \"local\"  ) {\n"
+  javascriptAfterSwitch = javascriptAfterSwitch.."  if($(\"#toggle_ldap_auth_input\").val() == \"1\") {\n"
   javascriptAfterSwitch = javascriptAfterSwitch.."    if($(\"#toggle_ldap_anonymous_bind_input\").val() == \"0\") {\n"
   javascriptAfterSwitch = javascriptAfterSwitch.."      $(\"#bind_dn\").css(\"display\",\"table-row\");\n"
   javascriptAfterSwitch = javascriptAfterSwitch.."      $(\"#bind_pwd\").css(\"display\",\"table-row\");\n"
@@ -962,15 +1047,16 @@ function printAuthentication()
   javascriptAfterSwitch = javascriptAfterSwitch.."      $(\"#bind_pwd\").css(\"display\",\"none\");\n"
   javascriptAfterSwitch = javascriptAfterSwitch.."    }\n"
   javascriptAfterSwitch = javascriptAfterSwitch.."  }\n"
-  local retVal = multipleTableButtonPrefs(subpage_active.entries["multiple_ldap_authentication"].title,
-           subpage_active.entries["multiple_ldap_authentication"].description,
-           labels, values, "local", "primary", "multiple_ldap_authentication", "ntopng.prefs.auth_type", nil,
-           elementToSwitch, showElementArray, javascriptAfterSwitch)
 
-  local showElements = true;
-  if ntop.getPref("ntopng.prefs.auth_type") == "local" then
-  showElements = false
-  end
+  prefsToggleButton(subpage_active, {
+	      field = auth_toggles.ldap,
+	      pref = "ldap.auth_enabled",
+	      default = "0",
+	      to_switch = elementToSwitch,
+        js_after_switch = javascriptAfterSwitch,
+	})
+
+  local showElements = (ntop.getPref("ntopng.prefs.ldap.auth_enabled") == "1")
 
   local labels_account = {i18n("prefs.posix"), i18n("prefs.samaccount")}
   local values_account = {"posix","samaccount"}
@@ -981,7 +1067,7 @@ function printAuthentication()
         "ntopng.prefs.ldap", "ldap_server_address", "ldap://localhost:389", nil, showElements, true, true, {attributes={pattern="ldap(s)?://[0-9.\\-A-Za-z]+(:[0-9]+)?", spellcheck="false", required="required", maxlength=255}})
 
   local elementToSwitchBind = {"bind_dn","bind_pwd"}
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
       field = "toggle_ldap_anonymous_bind",
       default = "1",
       pref = "ldap.anonymous_bind",
@@ -1005,9 +1091,122 @@ function printAuthentication()
   prefsInputFieldPrefs(subpage_active.entries["user_group"].title, subpage_active.entries["user_group"].description, "ntopng.prefs.ldap", "user_group", "", "text", showElements, nil, nil, {attributes={spellcheck="false", maxlength=255}})
   prefsInputFieldPrefs(subpage_active.entries["admin_group"].title, subpage_active.entries["admin_group"].description, "ntopng.prefs.ldap", "admin_group", "", "text", showElements, nil, nil, {attributes={spellcheck="false", maxlength=255}})
 
-  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" onclick="return save_button_users();" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
+  prefsToggleButton(subpage_active, {
+    field = "toggle_ldap_referrals",
+    default = "1",
+    pref = "ldap.follow_referrals",
+    reverse_switch = true,
+    hidden = not showElements,
+  })
+end
+
+-- #####################
+
+local function printRadiusAuth()
+  if subpage_active.entries["toggle_radius_auth"].hidden then
+    return
+  end
+
+  print('<tr><th colspan=2 class="info">'..i18n("prefs.radius_auth")..'</th></tr>')
+
+  local elementToSwitch = {"radius_server_address", "radius_secret", "radius_admin_group"}
+
+  prefsToggleButton(subpage_active, {
+	      field = auth_toggles.radius,
+	      pref = "radius.auth_enabled",
+	      default = "0",
+	      to_switch = elementToSwitch,
+	})
+
+  local showElements = (ntop.getPref("ntopng.prefs.radius.auth_enabled") == "1")
+
+  prefsInputFieldPrefs(subpage_active.entries["radius_server"].title, subpage_active.entries["radius_server"].description,
+    "ntopng.prefs.radius", "radius_server_address", "127.0.0.1:1812", nil, showElements, true, false,
+    {attributes={spellcheck="false", maxlength=255, required="required", pattern="[0-9.\\-A-Za-z]+:[0-9]+"}})
+
+  -- https://github.com/FreeRADIUS/freeradius-client/blob/7b7473ab78ca5f99e083e5e6c16345b7c2569db1/include/freeradius-client.h#L395
+  prefsInputFieldPrefs(subpage_active.entries["radius_secret"].title, subpage_active.entries["radius_secret"].description,
+    "ntopng.prefs.radius", "radius_secret", "", "password", showElements, true, false,
+    {attributes={spellcheck="false", maxlength=48, required="required"}})
+
+  prefsInputFieldPrefs(subpage_active.entries["radius_admin_group"].title, subpage_active.entries["radius_admin_group"].description,
+    "ntopng.prefs.radius", "radius_admin_group", "", nil, showElements, true, false,
+    {attributes={spellcheck="false", maxlength=255, pattern="[^\\s]+"}})
+end
+
+-- #####################
+
+local function printHttpAuth()
+  print('<tr><th colspan=2 class="info">'..i18n("prefs.http_auth")..'</th></tr>')
+
+  local elementToSwitch = {"http_auth_url"}
+
+  prefsToggleButton(subpage_active, {
+	      field = auth_toggles.http,
+	      pref = "http_authenticator.auth_enabled",
+	      default = "0",
+	      to_switch = elementToSwitch,
+	})
+
+  local showElements = (ntop.getPref("ntopng.prefs.http_authenticator.auth_enabled") == "1")
+
+  prefsInputFieldPrefs(subpage_active.entries["http_auth_server"].title, subpage_active.entries["http_auth_server"].description,
+    "ntopng.prefs.http_authenticator", "http_auth_url", "", nil, showElements, true, true --[[ allowUrls ]],
+    {attributes={spellcheck="false", maxlength=255, required="required", pattern=getURLPattern()}})
+end
+
+-- #####################
+
+local function printLocalAuth()
+  print('<tr><th colspan=2 class="info">'..i18n("prefs.local_auth")..'</th></tr>')
+
+  prefsToggleButton(subpage_active, {
+	      field = auth_toggles["local"],
+	      pref = "local.auth_enabled",
+	      default = "1",
+	})
+end
+
+-- #####################
+
+function printAuthentication()
+  print('<form method="post">')
+  print('<table class="table">')
+
+  local entries = subpage_active.entries
+
+  printAuthDuration()
+
+  -- Note: order must correspond to evaluation order in Ntop.cpp
+  print('<tr><th class="info" colspan="2">'..i18n("prefs.client_x509_auth")..'</th></tr>')
+  prefsToggleButton(subpage_active,{
+	field = "toggle_client_x509_auth",
+	default = "0",
+	pref = "is_client_x509_auth_enabled",
+  })
+  if not entries.toggle_ldap_auth.hidden then
+    printLdapAuth()
+  end
+  if not entries.toggle_radius_auth.hidden then
+    printRadiusAuth()
+  end
+  if not entries.toggle_http_auth.hidden then
+    printHttpAuth()
+  end
+  if not entries.toggle_local_auth.hidden then
+    printLocalAuth()
+  end
+
+  if not ntop.isnEdge() then
+    prefsInformativeField(i18n("notes"), i18n("prefs.auth_methods_order"))
+  else
+    prefsInformativeField(i18n("notes"), i18n("nedge.authentication_gui_and_captive_portal",
+      {product = product, url = ntop.getHttpPrefix() .. "/lua/pro/nedge/system_setup/captive_portal.lua"}))
+  end
+
+  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
   print('</table>')
-  print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />]]
+  print [[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />]]
   print('</form>')
 end
 
@@ -1017,9 +1216,16 @@ function printInMemory()
   print('<form id="localRemoteTimeoutForm" method="post">')
 
   print('<table class="table">')
+  print('<tr><th colspan=2 class="info">'..i18n("prefs.stats_reset")..'</th></tr>')
+  prefsToggleButton(subpage_active, {
+    field = "toggle_midnight_stats_reset",
+    default = "0",
+    pref = "midnight_stats_reset_enabled",
+  })
+
   print('<tr><th colspan=2 class="info">'..i18n("prefs.local_hosts_cache_settings")..'</th></tr>')
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
     field = "toggle_local_host_cache_enabled",
     default = "1",
     pref = "is_local_host_cache_enabled",
@@ -1034,7 +1240,7 @@ function printInMemory()
   prefsInputFieldPrefs(subpage_active.entries["local_host_cache_duration"].title, subpage_active.entries["local_host_cache_duration"].description,
     "ntopng.prefs.","local_host_cache_duration", prefs.local_host_cache_duration, "number", showLocalHostCacheInterval, nil, nil, {min=60, tformat="mhd"})
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
     field = "toggle_active_local_host_cache_enabled",
     default = "0",
     pref = "is_active_local_host_cache_enabled",
@@ -1075,7 +1281,7 @@ function printInMemory()
 
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
   print('</table>')
-  print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
+  print [[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
   </form>
 
   <script>
@@ -1131,9 +1337,16 @@ function printStatsTimeseries()
   javascriptAfterSwitch = javascriptAfterSwitch.."      $(\"#influx_username\").css(\"display\",\"none\");\n"
   javascriptAfterSwitch = javascriptAfterSwitch.."      $(\"#influx_password\").css(\"display\",\"none\");\n"
   javascriptAfterSwitch = javascriptAfterSwitch.."    }\n"
+  javascriptAfterSwitch = javascriptAfterSwitch.."    $(\"#old_rrd_files_retention\").css(\"display\",\"none\");\n"
+  javascriptAfterSwitch = javascriptAfterSwitch.."  } else {\n"
+  javascriptAfterSwitch = javascriptAfterSwitch.."    $(\"#old_rrd_files_retention\").css(\"display\",\"table-row\");\n"
   javascriptAfterSwitch = javascriptAfterSwitch.."  }\n"
 
-  multipleTableButtonPrefs(subpage_active.entries["multiple_timeseries_database"].title,
+  local active_driver = "rrd"
+  local influx_active = false
+
+  if not ntop.isWindows() then
+    multipleTableButtonPrefs(subpage_active.entries["multiple_timeseries_database"].title,
 				    subpage_active.entries["multiple_timeseries_database"].description,
 				    {"RRD", "InfluxDB"}, {"rrd", "influxdb"},
 				    "rrd",
@@ -1142,8 +1355,9 @@ function printStatsTimeseries()
 				    "ntopng.prefs.timeseries_driver", nil,
 				    elementToSwitch, showElementArray, javascriptAfterSwitch, true--[[show]])
 
-  local active_driver = ntop.getPref("ntopng.prefs.timeseries_driver")
-  local influx_active = (active_driver == "influxdb")
+    active_driver = ntop.getPref("ntopng.prefs.timeseries_driver")
+    influx_active = (active_driver == "influxdb")
+  end
 
   prefsInputFieldPrefs(subpage_active.entries["influxdb_url"].title,
 		       subpage_active.entries["influxdb_url"].description,
@@ -1159,7 +1373,7 @@ function printStatsTimeseries()
   prefsInputFieldPrefs(subpage_active.entries["influxdb_dbname"].title, subpage_active.entries["influxdb_dbname"].description,
 		       "ntopng.prefs.", "influx_dbname", product:gsub(' ' , '_'), nil, influx_active, nil, nil, {pattern="[^\\s]+"})
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
 	field = "toggle_influx_auth",
 	default = "0",
 	pref = "influx_auth_enabled",
@@ -1177,7 +1391,7 @@ function printStatsTimeseries()
   prefsInputFieldPrefs(subpage_active.entries["influxdb_password"].title, subpage_active.entries["influxdb_password"].description,
 		       "ntopng.prefs.",
 		       "influx_password", "",
-           false, auth_enabled, nil, nil,  {attributes={spellcheck="false"}, pattern="[^\\s]+"})
+           "password", auth_enabled, nil, nil,  {attributes={spellcheck="false"}, pattern="[^\\s]+"})
 
   local ts_slots_labels = {"10s", "30s", "1m"}
   local ts_slots_values = {"10", "30", "60"}
@@ -1193,11 +1407,12 @@ function printStatsTimeseries()
 				    nil, nil, nil, influx_active)
 
   prefsInputFieldPrefs(subpage_active.entries["influxdb_storage"].title, subpage_active.entries["influxdb_storage"].description,
-      "ntopng.prefs.", "influx_retention", 365, "number", influx_active, nil, nil, {min=0, max=365*10, --[[ TODO check min/max ]]})
+      "ntopng.prefs.", "influx_retention", 365, "number", influx_active, nil, nil, {min=0, max=365*10})
 
-  mysql_retention = 7
-  prefsInputFieldPrefs(subpage_active.entries["mysql_retention"].title, subpage_active.entries["mysql_retention"].description .. "-F mysql;&lt;host|socket&gt;;&lt;dbname&gt;;&lt;table name&gt;;&lt;user&gt;;&lt;pw&gt;.",
-    "ntopng.prefs.", "mysql_retention", mysql_retention, "number", not subpage_active.entries["mysql_retention"].hidden, nil, nil, {min=1, max=365*5, --[[ TODO check min/max ]]})
+  prefsInputFieldPrefs(subpage_active.entries["rrd_files_retention"].title, subpage_active.entries["rrd_files_retention"].description,
+		       "ntopng.prefs.", "old_rrd_files_retention", 365, "number",
+		       not influx_active,
+		       nil, nil, {min=1, max=365*10})
 
   print('<tr><th colspan=2 class="info">'..i18n('prefs.interfaces_timeseries')..'</th></tr>')
 
@@ -1216,7 +1431,7 @@ function printStatsTimeseries()
   local showElementArray = nil -- { true, false, false }
   local javascriptAfterSwitch = "";
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
 	field = "toggle_interface_traffic_rrd_creation",
 	default = "1",
 	pref = "interface_rrd_creation",
@@ -1237,7 +1452,7 @@ function printStatsTimeseries()
 
   print('<tr><th colspan=2 class="info">'..i18n('prefs.local_hosts_timeseries')..'</th></tr>')
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
     field = "toggle_local_hosts_traffic_rrd_creation",
     default = "1",
     pref = "host_rrd_creation",
@@ -1257,11 +1472,11 @@ function printStatsTimeseries()
 
   print('<tr><th colspan=2 class="info">'..i18n('prefs.l2_devices_timeseries')..'</th></tr>')
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
     field = "toggle_l2_devices_traffic_rrd_creation",
     default = "0",
     pref = "l2_device_rrd_creation",
-    to_switch = {"row_l2_devices_ndpi_timeseries_creation", "rrd_files_retention"},
+    to_switch = {"row_l2_devices_ndpi_timeseries_creation"},
   })
 
   local l7_rrd_labels = {i18n("prefs.none"),
@@ -1280,69 +1495,56 @@ function printStatsTimeseries()
 				    "ntopng.prefs.l2_device_ndpi_timeseries_creation", nil,
 				    elementToSwitch, showElementArray, javascriptAfterSwitch, showElement)
 
-  prefsInputFieldPrefs(subpage_active.entries["rrd_files_retention"].title, subpage_active.entries["rrd_files_retention"].description,
-		       "ntopng.prefs.", "rrd_files_retention", 30, "number",
-		       showElement,
-		       nil, nil, {min=1, max=365, --[[ TODO check min/max ]]})
 
   print('<tr><th colspan=2 class="info">'..i18n('prefs.other_timeseries')..'</th></tr>')
 
   local info = ntop.getInfo()
 
   if ntop.isPro() then
-    prefsToggleButton({
+    prefsToggleButton(subpage_active, {
       field = "toggle_flow_rrds",
       default = "0",
       pref = "flow_device_port_rrd_creation",
       disabled = not info["version.enterprise_edition"],
     })
 
-    prefsToggleButton({
+    prefsToggleButton(subpage_active, {
       field = "toggle_pools_rrds",
       default = "0",
       pref = "host_pools_rrd_creation",
     })
   end
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
     field = "toggle_tcp_flags_rrds",
     default = "0",
     pref = "tcp_flags_rrd_creation",
   })
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
     field = "toggle_tcp_retr_ooo_lost_rrds",
     default = "0",
     pref = "tcp_retr_ooo_lost_rrd_creation",
   })
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
     field = "toggle_vlan_rrds",
     default = "0",
     pref = "vlan_rrd_creation",
   })
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
     field = "toggle_asn_rrds",
     default = "0",
     pref = "asn_rrd_creation",
   })
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
     field = "toggle_country_rrds",
     default = "0",
     pref = "country_rrd_creation",
   })
 
-  print('</table>')
-
-  print('<table class="table">')
-  print('<tr><th colspan=2 class="info">'..i18n("prefs.databases")..'</th></tr>')
-  
-  --default value
-  minute_top_talkers_retention = 365
-  prefsInputFieldPrefs(subpage_active.entries["minute_top_talkers_retention"].title, subpage_active.entries["minute_top_talkers_retention"].description,
-      "ntopng.prefs.", "minute_top_talkers_retention", minute_top_talkers_retention, "number", nil, nil, nil, {min=1, max=365*10, --[[ TODO check min/max ]]})
   print('</table>')
 
   print('<table class="table">')
@@ -1362,7 +1564,7 @@ end
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
   print('</table>')
 
-  print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
+  print [[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
   </form> ]]
 end
 
@@ -1378,19 +1580,19 @@ function printLogging()
      subpage_active.entries["toggle_logging_level"].description, 
      "toggle_logging_level", "ntopng.prefs.logging_level")
      
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
     field = "toggle_log_to_file",
     default = "0",
     pref = "log_to_file",
   })
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
     field = "toggle_access_log",
     default = "0",
     pref = "enable_access_log",
   })
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
     field = "toggle_host_pools_log",
     default = "0",
     pref = "enable_host_pools_log",
@@ -1398,7 +1600,7 @@ function printLogging()
 
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
 
-  print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
+  print [[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
   </form>
   </table>]]
 end
@@ -1410,7 +1612,7 @@ function printSnmp()
   print('<table class="table">')
   print('<tr><th colspan=2 class="info">SNMP</th></tr>')
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
     field = "toggle_snmp_rrds",
     default = "0",
     pref = "snmp_devices_rrd_creation",
@@ -1428,9 +1630,23 @@ function printSnmp()
 		       "default_snmp_community",
 		       "public", false, nil, nil, nil,  {attributes={spellcheck="false", maxlength=64}})
 
+  prefsToggleButton(subpage_active, {
+    field = "toggle_snmp_alerts_port_status_change",
+    default = "1",
+    pref = "alerts.snmp_port_status_change",
+    disabled = not info["version.enterprise_edition"],
+  })
+
+  prefsToggleButton(subpage_active, {
+    field = "toggle_snmp_alerts_port_errors",
+    default = "1",
+    pref = "alerts.snmp_port_errors",
+    disabled = not info["version.enterprise_edition"],
+  })
+
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
 
-  print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
+  print [[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
   </form>
   </table>]]
 end
@@ -1442,7 +1658,7 @@ function printFlowDBDump()
 
   local tiny_to_switch = {"max_num_packets_per_tiny_flow", "max_num_bytes_per_tiny_flow"}
 
-  prefsToggleButton({
+  prefsToggleButton(subpage_active, {
     field = "toggle_flow_db_dump_export",
     default = "1",
     pref = "tiny_flows_export_enabled",
@@ -1456,9 +1672,42 @@ function printFlowDBDump()
         "ntopng.prefs.", "max_num_bytes_per_tiny_flow", prefs.max_num_bytes_per_tiny_flow, "number",
 	true, false, nil, {min=1, max=2^32-1})
 
+  print('<tr><th colspan=2 class="info">'..i18n("prefs.aggregated_flows")..'</th></tr>')
+
+  local dump_to_switch = {"max_num_aggregated_flows_per_export"}
+  prefsToggleButton(subpage_active, {
+    field = "toggle_aggregated_flows_export_limit",
+    default = "0",
+    pref = "aggregated_flows_export_limit_enabled",
+    to_switch = dump_to_switch,
+  })
+
+  local showElement = ntop.getPref("ntopng.prefs.aggregated_flows_export_limit_enabled") == "1"
+
+  prefsInputFieldPrefs(subpage_active.entries["max_num_aggregated_flows_per_export"].title,
+		       subpage_active.entries["max_num_aggregated_flows_per_export"].description,
+		       "ntopng.prefs.", "max_num_aggregated_flows_per_export",
+		       prefs.max_num_aggregated_flows_per_export, "number", showElement, false, nil,
+		       {min = 1000, max = 2^32-1})
+
+  print('<tr><th colspan=2 class="info">'..i18n("prefs.databases")..'</th></tr>')
+
+  if hasNindexSupport() then
+    -- nIndex specific settings
+    local cur_retention, max_retention, default_retention = nindex_utils.getRetention()
+
+    prefsInputFieldPrefs(subpage_active.entries["nindex_retention"].title, subpage_active.entries["nindex_retention"].description,
+        "ntopng.prefs.", "nindex_retention_days", default_retention, "number", nil, nil, nil, {min=1, max=max_retention})
+  else
+    -- MySQL specific settings
+    local mysql_retention = 7
+    prefsInputFieldPrefs(subpage_active.entries["mysql_retention"].title, subpage_active.entries["mysql_retention"].description .. "-F mysql;&lt;host|socket&gt;;&lt;dbname&gt;;&lt;table name&gt;;&lt;user&gt;;&lt;pw&gt;.",
+    "ntopng.prefs.", "mysql_retention", mysql_retention, "number", not subpage_active.entries["mysql_retention"].hidden, nil, nil, {min=1, max=365*5, --[[ TODO check min/max ]]})
+  end
+
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
 
-  print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
+  print [[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
   </form>
   </table>]]
 end
@@ -1495,7 +1744,7 @@ print[[
 
             <div id="prefs_toggle" class="btn-group">
               <form method="post">
-<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
+<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
 <input type=hidden name="show_advanced_prefs" value="]]if show_advanced_prefs then print("false") else print("true") end print[["/>
 
 
@@ -1553,20 +1802,16 @@ if(tab == "protocols") then
    printProtocolPrefs()
 end
 
-if(tab == "nbox") then
-  if(ntop.isPro()) then
-     printNbox()
-  end
-end
-
 if(tab == "discovery") then
    printNetworkDiscovery()
 end
 
-if(tab == "bridging") then
-  if info["version.enterprise_edition"] then
-     printBridgingPrefs()
-  end
+if(tab == "recording") then
+   printRecording()
+end
+
+if(tab == "remote_assistance") then
+   printRemoteAssitance()
 end
 
 if(tab == "misc") then
@@ -1624,17 +1869,13 @@ if tonumber(_POST["ts_high_resolution"]) ~= nil then
     end
   end
 
-  ntop.setPref("ntopng.prefs.ts_write_slots", tostring(new_slots))
-  ntop.setPref("ntopng.prefs.ts_write_steps", tostring(new_steps))
+  ntop.setPref("ntopng.prefs.ts_write_slots", tostring(math.ceil(new_slots)))
+  ntop.setPref("ntopng.prefs.ts_write_steps", tostring(math.ceil(new_steps)))
 end
 
 if(_SERVER["REQUEST_METHOD"] == "POST") then
    -- Something has changed
   ntop.reloadPreferences()
-end
-
-if(_POST["toggle_malware_probing"] ~= nil) then
-  lists_utils.reloadLists(true --[[ force the reload of the list ]])
 end
 
 end --[[ haveAdminPrivileges ]]

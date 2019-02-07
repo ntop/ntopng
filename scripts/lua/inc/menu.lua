@@ -6,6 +6,10 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 if((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.scriptdir .. "/lua/modules/?.lua;" .. package.path end
 require "lua_utils"
+local recording_utils = require "recording_utils"
+local remote_assistance = require "remote_assistance"
+
+local is_admin = isAdministrator()
 
 print[[
 <script>
@@ -15,6 +19,8 @@ print[[
       "change_number_of_rows": "]] print(i18n("change_number_of_rows")) print[[",
       "no_data_available": "]] print(i18n("no_data_available")) print[[",
       "showing_x_to_y_rows": "]] print(i18n("showing_x_to_y_rows", {x="{0}", y="{1}", tot="{2}"})) print[[",
+      "actions": "]] print(i18n("actions")) print[[",
+      "query_was_aborted": "]] print(i18n("graphs.query_was_aborted")) print[[",
    };
 
    var http_prefix = "]] print(ntop.getHttpPrefix()) print[[";
@@ -81,9 +87,9 @@ print [[/lua/runtime.lua"><i class="fa fa-hourglass-start"></i> ]] print(i18n("a
 
 if interface.isPcapDumpInterface() == false then
    if(active_page == "dashboard") then
-  print [[ <li class="dropdown active"> ]]
-else
-  print [[ <li class="dropdown"> ]]
+      print [[ <li class="dropdown active"> ]]
+   else
+      print [[ <li class="dropdown"> ]]
    end
 
    print [[
@@ -111,7 +117,7 @@ if(ntop.isPro()) then
   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/report.lua"><i class="fa fa-area-chart"></i> ') print(i18n("report.traffic_report")) print('</a></li>')
 end
 
-if ntop.isPro() and prefs.is_dump_flows_to_mysql_enabled then
+if ntop.isPro() and prefs.is_dump_flows_to_mysql_enabled and not ifs.isView then
   print('<li class="divider"></li>')
   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/db_explorer.lua?ifid='..ifId..'"><i class="fa fa-history"></i> ') print(i18n("db_explorer.historical_data_explorer")) print('</a></li>')
 end
@@ -185,11 +191,7 @@ end
 
 _ifstats = interface.getStats()
 
-if(_ifstats.iface_sprobe) then
-   url = ntop.getHttpPrefix().."/lua/sflows_stats.lua"
-else
-   url = ntop.getHttpPrefix().."/lua/flows_stats.lua"
-end
+url = ntop.getHttpPrefix().."/lua/flows_stats.lua"
 
 if(active_page == "flows") then
    print('<li class="active"><a href="'..url..'">') print(i18n("flows")) print('</a></li>')
@@ -230,12 +232,13 @@ end
   end
   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/os_stats.lua">') print(i18n("operating_systems")) print('</a></li>')
 
-  if(ntop.hasVLANs()) then
+  if(interface.hasVLANs()) then
      print('<li><a href="'..ntop.getHttpPrefix()..'/lua/vlan_stats.lua">') print(i18n("vlan_stats.vlans")) print('</a></li>')
   end
 
-  if(_ifstats.iface_sprobe) then
-   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/processes_stats.lua">') print(i18n("sprobe_page.processes")) print('</a></li>')
+  if(interface.hasEBPF()) then
+     -- TODO: decide whether a page with the list of processes should be done or not
+     -- print('<li><a href="'..ntop.getHttpPrefix()..'/lua/processes_stats.lua">') print(i18n("sprobe_page.processes")) print('</a></li>')
 end
 
 print('<li class="divider"></li>')
@@ -246,8 +249,8 @@ print('<li><a href="'..ntop.getHttpPrefix()..'/lua/http_servers_stats.lua">') pr
 print('<li><a href="'..ntop.getHttpPrefix()..'/lua/top_hosts.lua"><i class="fa fa-trophy"></i> ') print(i18n("processes_stats.top_hosts")) print('</a></li>')
 print('<li class="divider"></li>')
 
-if(_ifstats.iface_sprobe) then
-   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/sprobe.lua"><i class="fa fa-flag"></i> ') print(i18n("sprobe_page.system_interactions")) print('</a></li>\n')
+if(interface.hasEBPF()) then
+--   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/sprobe.lua"><i class="fa fa-flag"></i> ') print(i18n("sprobe_page.system_interactions")) print('</a></li>\n')
 end
 
 
@@ -272,8 +275,6 @@ print("</ul> </li>")
 -- Devices
 info = ntop.getInfo()
 
-local is_bridge_interface = isBridgeInterface(_ifstats)
-
 -- Interfaces
 if(num_ifaces > 0) then
 if active_page == "if_stats" then
@@ -290,6 +291,7 @@ print [[
 
 local views = {}
 local drops = {}
+local recording = {}
 local packetinterfaces = {}
 local ifnames = {}
 local ifdescr = {}
@@ -303,6 +305,7 @@ for v,k in pairs(iface_names) do
    ifdescr[_ifstats.id] = _ifstats.description
    --io.write("["..k.."/"..v.."][".._ifstats.id.."] "..ifnames[_ifstats.id].."=".._ifstats.id.."\n")
    if(_ifstats.isView == true) then views[k] = true end
+   if(recording_utils.isEnabled(_ifstats.id)) then recording[k] = true end
    if(interface.isPacketInterface()) then packetinterfaces[k] = true end
    if(_ifstats.stats_since_reset.drops * 100 > _ifstats.stats_since_reset.packets) then
       drops[k] = true
@@ -351,12 +354,17 @@ for round = 1, 2 do
 	 end
 
 	 print(descr)
+
 	 if(views[v] == true) then
 	    print(' <i class="fa fa-eye" aria-hidden="true"></i> ')
 	 end
 
 	 if(drops[v] == true) then
 	    print('&nbsp;<span><i class="fa fa-tint" aria-hidden="true"></i></span>')
+	 end
+
+	 if(recording[v] == true) then
+	    print(' <i class="fa fa-hdd-o" aria-hidden="true"></i> ')
 	 end
 
 	 print("</a>")
@@ -373,7 +381,7 @@ print [[
 end
 
 
-if(ntop.isEnterprise()) then
+if ntop.isEnterprise() then
    if active_page == "devices_stats" then
      print [[ <li class="dropdown active"> ]]
    else
@@ -413,24 +421,20 @@ print [[
       </a>
     <ul class="dropdown-menu">]]
 
-user_group = ntop.getUserGroup()
-
-if(user_group == "administrator") then
-  print[[<li><a href="]] print(ntop.getHttpPrefix())
-  print[[/lua/admin/users.lua"><i class="fa fa-user"></i> ]] print(i18n("manage_users.manage_users")) print[[</a></li>]]
-else
-  print [[<li><a href="#password_dialog"  data-toggle="modal"><i class="fa fa-user"></i> ]] print(i18n("login.change_password")) print[[</a></li>]]
+if _SESSION["localuser"] then
+   if(is_admin) then
+     print[[<li><a href="]] print(ntop.getHttpPrefix())
+     print[[/lua/admin/users.lua"><i class="fa fa-user"></i> ]] print(i18n("manage_users.manage_users")) print[[</a></li>]]
+   else
+     print [[<li><a href="#password_dialog"  data-toggle="modal"><i class="fa fa-user"></i> ]] print(i18n("login.change_password")) print[[</a></li>]]
+   end
 end
 
-if(user_group == "administrator") then
+if(is_admin) then
    print("<li><a href=\""..ntop.getHttpPrefix().."/lua/admin/prefs.lua\"><i class=\"fa fa-flask\"></i> ") print(i18n("prefs.preferences")) print("</a></li>\n")
 
-   if is_bridge_interface and ntop.isEnterprise() then
-      print[[<form id="go_show_bridge_wizard" method="post" action="]] print(ntop.getHttpPrefix()) print[[/lua/if_stats.lua">]]
-      print[[<input name="show_wizard" type="hidden" value="" />]]
-      print[[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />]]
-      print[[</form>]]
-      print("<li><a href=\"javascript:void(0)\" onclick=\"$('#go_show_bridge_wizard').submit();\"><i class=\"fa fa-magic\"></i> "..i18n("bridge_wizard.bridge_wizard").."</a></li>\n")
+   if remote_assistance.isAvailable() then
+      print("<li><a href=\""..ntop.getHttpPrefix().."/lua/admin/remote_assistance.lua\"><i class=\"fa fa-commenting\"></i> ") print(i18n("remote_assistance.remote_assistance")) print("</a></li>\n")
    end
 
    if(ntop.isPro()) then
@@ -438,25 +442,27 @@ if(user_group == "administrator") then
       if(false) then
 	 print("<li><a href=\""..ntop.getHttpPrefix().."/lua/pro/admin/list_reports.lua\"><i class=\"fa fa-archive\"></i> Reports Archive</a></li>\n")
       end
-
-      print("<li><a href=\""..ntop.getHttpPrefix().."/lua/admin/edit_ndpi_applications.lua\"><i class=\"fa fa-tags\"></i> ") print(i18n("protocols")) print("</a></li>\n")
    end
 
-   if ntop.getPref("ntopng.prefs.device_protocols_alerts") == "1" then
+   print("<li><a href=\""..ntop.getHttpPrefix().."/lua/admin/edit_categories.lua\"><i class=\"fa fa-tags\"></i> ") print(i18n("users.categories")) print("</a></li>\n")
+
+   local device_protocols_alerts = _POST["toggle_device_protocols_alerts"] or ntop.getPref("ntopng.prefs.device_protocols_alerts")
+   if (device_protocols_alerts == "1") then
       print("<li><a href=\""..ntop.getHttpPrefix().."/lua/admin/edit_device_protocols.lua\"><i class=\"fa fa-tablet\"></i> ") print(i18n("device_protocols.device_protocols")) print("</a></li>\n")
    end
 end
 
-
-print [[
+if _SESSION["localuser"] or is_admin then
+   print [[
       <li class="divider"></li>]]
+end
 
 print [[
       <li><a href="]]
 print(ntop.getHttpPrefix())
 print [[/lua/manage_data.lua"><i class="fa fa-share"></i> ]] print(i18n("manage_data.manage_data")) print[[</a></li>]]
 
-if(user_group == "administrator") then
+if(is_admin) then
   print [[
       <li><a href="]]
   print(ntop.getHttpPrefix())
@@ -488,7 +494,7 @@ print [[/lua/logout.lua"><i class="fa fa-sign-out"></i> ]] print(i18n("login.log
 end
 
 
-if(user_group ~= "administrator") then
+if(not is_admin) then
    dofile(dirs.installdir .. "/scripts/lua/inc/password_dialog.lua")
 end
 print("<li>")
@@ -509,7 +515,7 @@ print(
 )
 print("</li>")
 
-print("</ul>\n<h3 class=\"muted\"><A href=\"http://www.ntop.org\">")
+print("</ul>\n<h3 class=\"muted\"><A href=\""..ntop.getHttpPrefix().."/\">")
 
 addLogoSvg()
 
@@ -523,4 +529,9 @@ if(dirs.workingdir == "/var/tmp/ntopng") then
    print(i18n("about.datadir_warning"))
    print('</a></div>')
 end
+
+-- Hidden by default, will be shown by the footer if necessary
+print('<br><div id="move-rrd-to-influxdb" class="alert alert-warning" style="display:none" role="alert"><i class="fa fa-warning fa-lg" id="alerts-menu-triangle"></i> ')
+print(i18n("about.influxdb_migration_msg", {url="https://www.ntop.org/ntopng/ntopng-and-time-series-from-rrd-to-influxdb-new-charts-with-time-shift/"}))
+print('</div>')
 

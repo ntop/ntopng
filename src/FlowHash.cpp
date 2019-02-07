@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-18 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -36,11 +36,13 @@ Flow* FlowHash::find(IpAddress *src_ip, IpAddress *dst_ip,
 		     u_int16_t src_port, u_int16_t dst_port, 
 		     u_int16_t vlanId, u_int8_t protocol,
 		     bool *src2dst_direction) {
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u:%u / %u:%u", src_ip->key(), src_port, dst_ip->key(), dst_port);
 
-  u_int32_t hash = ((src_ip->key()+dst_ip->key()+src_port+dst_port+vlanId+protocol) % num_hashes);
+  /* Removed vlanId due to eBPF */
+  u_int32_t hash = ((src_ip->key()+dst_ip->key()+src_port+dst_port/* +vlanId */+protocol) % num_hashes);
   Flow *head = (Flow*)table[hash];
   u_int16_t num_loops = 0;
-  
+
   while(head) {
     if((!head->idle() && !head->is_ready_to_be_purged())
        && head->equal(src_ip, dst_ip, src_port, dst_port, vlanId, protocol, src2dst_direction)) {

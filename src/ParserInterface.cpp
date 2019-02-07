@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-18 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -498,7 +498,7 @@ int ParserInterface::getKeyId(char *sym) {
 
 /* **************************************************** */
 
-u_int8_t ParserInterface::parseEvent(char *payload, int payload_size,
+u_int8_t ParserInterface::parseEvent(const char * const payload, int payload_size,
 				     u_int8_t source_id, void *data) {
   json_object *o;
   enum json_tokener_error jerr = json_tokener_success;
@@ -508,7 +508,7 @@ u_int8_t ParserInterface::parseEvent(char *payload, int payload_size,
 
   // payload[payload_size] = '\0';
 
-  //ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", payload);
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", payload);
   o = json_tokener_parse_verbose(payload, &jerr);
 
   if(o && (zrs = (ZMQ_RemoteStats*)calloc(1, sizeof(ZMQ_RemoteStats)))) {
@@ -549,8 +549,8 @@ u_int8_t ParserInterface::parseEvent(char *payload, int payload_size,
     }
 
     if(json_object_object_get_ex(o, "drops", &w)) {
-      if(json_object_object_get_ex(w, "export_queue_too_long", &z))
-	zrs->export_queue_too_long = (u_int32_t)json_object_get_int64(z);
+      if(json_object_object_get_ex(w, "export_queue_full", &z))
+	zrs->export_queue_full = (u_int32_t)json_object_get_int64(z);
 
       if(json_object_object_get_ex(w, "too_many_flows", &z))
 	zrs->too_many_flows = (u_int32_t)json_object_get_int64(z);
@@ -560,6 +560,9 @@ u_int8_t ParserInterface::parseEvent(char *payload, int payload_size,
 
       if(json_object_object_get_ex(w, "sflow_pkt_sample_drops", &z))
 	zrs->sflow_pkt_sample_drops = (u_int32_t)json_object_get_int64(z);
+
+      if(json_object_object_get_ex(w, "flow_collection_drops", &z))
+	zrs->flow_collection_drops = (u_int32_t)json_object_get_int64(z);
     }
 
     if(json_object_object_get_ex(o, "zmq", &w)) {
@@ -862,6 +865,7 @@ void ParserInterface::parseSingleFlow(json_object *o,
 	iface->enable_sprobe(); /* We're collecting system flows */
 	flow.src_process.pid = atoi(value);
 	break;
+#if 0
       case SRC_PROC_NAME:
 	iface->enable_sprobe(); /* We're collecting system flows */
 	snprintf(flow.src_process.name, sizeof(flow.src_process.name), "%s", value);
@@ -890,10 +894,12 @@ void ParserInterface::parseSingleFlow(json_object *o,
       case SRC_PROC_PCTG_IOWAIT:
 	flow.src_process.percentage_iowait_time = ((float)atol(value))/((float)100);
 	break;
+#endif
       case DST_PROC_PID:
 	iface->enable_sprobe(); /* We're collecting system flows */
 	flow.dst_process.pid = atoi(value);
 	break;
+#if 0
       case DST_PROC_NAME:
 	iface->enable_sprobe(); /* We're collecting system flows */
 	snprintf(flow.dst_process.name, sizeof(flow.dst_process.name), "%s", value);
@@ -922,6 +928,7 @@ void ParserInterface::parseSingleFlow(json_object *o,
       case DST_PROC_PCTG_IOWAIT:
 	flow.dst_process.percentage_iowait_time = ((float)atol(value))/((float)100);
 	break;
+#endif
       case DNS_QUERY:
 	flow.dns_query = strdup(value);
 	break;
@@ -968,6 +975,9 @@ void ParserInterface::parseSingleFlow(json_object *o,
     json_object_iter_next(&it);
   } // while json_object_iter_equal
 
+  if(flow.core.vlan_id && ntop->getPrefs()->do_ignore_vlans())
+    flow.core.vlan_id = 0;
+
   /* Handle zero IPv4/IPv6 discrepacies */
   if(flow_ip_version == 0) {
     if(flow.core.src_ip.getVersion() != flow.core.dst_ip.getVersion()) {
@@ -1007,7 +1017,7 @@ void ParserInterface::parseSingleFlow(json_object *o,
 
 /* **************************************************** */
 
-u_int8_t ParserInterface::parseFlow(char *payload, int payload_size, u_int8_t source_id, void *data) {
+u_int8_t ParserInterface::parseFlow(const char * const payload, int payload_size, u_int8_t source_id, void *data) {
   json_object *f;
   enum json_tokener_error jerr = json_tokener_success;
   NetworkInterface *iface = (NetworkInterface*)data;
@@ -1055,7 +1065,7 @@ u_int8_t ParserInterface::parseFlow(char *payload, int payload_size, u_int8_t so
 
 /* **************************************************** */
 
-u_int8_t ParserInterface::parseCounter(char *payload, int payload_size, u_int8_t source_id, void *data) {
+u_int8_t ParserInterface::parseCounter(const char * const payload, int payload_size, u_int8_t source_id, void *data) {
   json_object *o;
   enum json_tokener_error jerr = json_tokener_success;
   NetworkInterface * iface = (NetworkInterface*)data;
@@ -1101,6 +1111,213 @@ u_int8_t ParserInterface::parseCounter(char *payload, int payload_size, u_int8_t
 
     /* Process Flow */
     iface->processInterfaceStats(&stats);
+
+    json_object_put(o);
+  } else {
+    // if o != NULL
+    if(!once) 
+{      ntop->getTrace()->traceEvent(TRACE_WARNING,
+				   "Invalid message received: your nProbe sender is outdated, data encrypted or invalid JSON?");
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "JSON Parse error [%s] payload size: %u payload: %s",
+				   json_tokener_error_desc(jerr),
+				   payload_size,
+				   payload);
+    }
+    once = true;
+    return -1;
+  }
+
+  return 0;
+}
+
+/* **************************************************** */
+
+u_int8_t ParserInterface::parseTemplate(const char * const payload, int payload_size, u_int8_t source_id, void *data) {
+  /* The format that is currently defined for templates is a JSON as follows:
+
+     [{"PEN":0,"field":1,"len":4,"format":"formatted_uint","name":"IN_BYTES","descr":"Incoming flow bytes (src->dst)"},{"PEN":0,"field":2,"len":4,"format":"formatted_uint","name":"IN_PKTS","descr":"Incoming flow packets (src->dst)"},]
+  */
+  ZMQ_Template zmq_template;
+  json_object *obj, *w, *z;
+  enum json_tokener_error jerr = json_tokener_success;
+
+  memset(&zmq_template, 0, sizeof(zmq_template));
+  obj = json_tokener_parse_verbose(payload, &jerr);
+
+  if(obj) {
+    if(json_object_get_type(obj) == json_type_array) {
+      int i, num_elements = json_object_array_length(obj);
+
+      for(i = 0; i < num_elements; i++) {
+	w = json_object_array_get_idx(obj, i);
+
+	if(json_object_object_get_ex(w, "PEN", &z))
+	  zmq_template.pen = (u_int32_t)json_object_get_int(z);
+
+	if(json_object_object_get_ex(w, "field", &z))
+	  zmq_template.field = (u_int32_t)json_object_get_int(z);
+
+	if(json_object_object_get_ex(w, "format", &z))
+	  zmq_template.format = json_object_get_string(z);
+
+	if(json_object_object_get_ex(w, "name", &z))
+	  zmq_template.name = json_object_get_string(z);
+
+	if(json_object_object_get_ex(w, "descr", &z))
+	  zmq_template.descr = json_object_get_string(z);
+
+	// ntop->getTrace()->traceEvent(TRACE_NORMAL, "Template [PEN: %u][field: %u][format: %s][name: %s][descr: %s]",
+	// 			     zmq_template.pen, zmq_template.field, zmq_template.format, zmq_template.name, zmq_template.descr)
+	  ;
+      }
+    }
+    json_object_put(obj);
+  } else {
+    // if o != NULL
+    if(!once) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING,
+				   "Invalid message received: your nProbe sender is outdated, data encrypted or invalid JSON?");
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "JSON Parse error [%s] payload size: %u payload: %s",
+				   json_tokener_error_desc(jerr),
+				   payload_size,
+				   payload);
+    }
+    once = true;
+    return -1;
+  }
+
+  return 0;
+}
+
+/* **************************************************** */
+
+void ParserInterface::setFieldMap(const ZMQ_FieldMap * const field_map) const {
+  char hname[CONST_MAX_LEN_REDIS_KEY], key[32];
+  snprintf(hname, sizeof(hname), CONST_FIELD_MAP_CACHE_KEY, get_id(), field_map->pen);
+  snprintf(key, sizeof(key), "%u", field_map->field);
+
+  ntop->getRedis()->hashSet(hname, key, field_map->map);
+}
+
+/* **************************************************** */
+
+void ParserInterface::setFieldValueMap(const ZMQ_FieldValueMap * const field_value_map) const {
+  char hname[CONST_MAX_LEN_REDIS_KEY], key[32];
+  snprintf(hname, sizeof(hname), CONST_FIELD_VALUE_MAP_CACHE_KEY, get_id(), field_value_map->pen, field_value_map->field);
+  snprintf(key, sizeof(key), "%u", field_value_map->value);
+
+  ntop->getRedis()->hashSet(hname, key, field_value_map->map);
+}
+
+/* **************************************************** */
+
+u_int8_t ParserInterface::parseOptionFieldMap(json_object * const jo) const {
+  int arraylen = json_object_array_length(jo);
+  json_object *w, *z;
+  ZMQ_FieldMap field_map;
+  memset(&field_map, 0, sizeof(field_map));
+
+  for(int i = 0; i < arraylen; i++) {
+    w = json_object_array_get_idx(jo, i);
+
+    if(json_object_object_get_ex(w, "PEN", &z))
+      field_map.pen = (u_int32_t)json_object_get_int(z);
+
+    if(json_object_object_get_ex(w, "field", &z)) {
+      field_map.field = (u_int32_t)json_object_get_int(z);
+
+      if(json_object_object_get_ex(w, "map", &z)) {
+	field_map.map = json_object_to_json_string(z);
+
+	setFieldMap(&field_map);
+
+#ifdef CUSTOM_APP_DEBUG
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Option FieldMap [PEN: %u][field: %u][map: %s]",
+				     field_map.pen, field_map.field, field_map.map);
+#endif
+      }
+    }
+  }
+
+  return 0;
+}
+
+/* **************************************************** */
+
+u_int8_t ParserInterface::parseOptionFieldValueMap(json_object * const jo) const {
+  int arraylen = json_object_array_length(jo);
+  json_object *w, *z;
+  ZMQ_FieldValueMap field_value_map;
+  memset(&field_value_map, 0, sizeof(field_value_map));
+
+  for(int i = 0; i < arraylen; i++) {
+    w = json_object_array_get_idx(jo, i);
+
+    if(json_object_object_get_ex(w, "PEN", &z))
+      field_value_map.pen = (u_int32_t)json_object_get_int(z);
+
+    if(json_object_object_get_ex(w, "field", &z)) {
+      field_value_map.field = (u_int32_t)json_object_get_int(z);
+
+      if(json_object_object_get_ex(w, "value", &z)) {
+	field_value_map.value = (u_int32_t)json_object_get_int(z);
+
+	if(json_object_object_get_ex(w, "map", &z)) {
+	  field_value_map.map = json_object_to_json_string(z);
+
+	  setFieldValueMap(&field_value_map);
+
+#ifdef CUSTOM_APP_DEBUG
+	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Option FieldValueMap [PEN: %u][field: %u][value: %u][map: %s]",
+				       field_value_map.pen, field_value_map.field, field_value_map.value, field_value_map.map);
+#endif
+	}
+      }
+    }
+  }
+
+  return 0;
+}
+
+/* **************************************************** */
+
+u_int8_t ParserInterface::parseOption(const char * const payload, int payload_size, u_int8_t source_id, void *data) {
+  /* The format that is currently defined for options is a JSON as follows:
+
+    char opt[] = "{\"field_map\" : ["
+    "{\"PEN\":8741, \"field\": 22, \"map\":{\"name\":\"FLOW_TO_APPLICATION_ID\"}},"
+    "{\"PEN\":8741, \"field\": 23, \"map\":{\"name\":\"FLOW_TO_USER_ID\"}}"
+    "],"
+    "\"field_value_map\" : ["
+    "{\"PEN\":8741, \"field\": 22, \"value\":1, \"map\":{\"name\":\"Skype\"}},"
+    "{\"PEN\":8741, \"field\": 22, \"value\":3, \"map\":{\"name\":\"Winni\"}}"
+    "]"
+    "}";
+    parseOption(opt, strlen(opt), source_id, this);
+  */
+
+  json_object *o;
+  enum json_tokener_error jerr = json_tokener_success;
+
+  o = json_tokener_parse_verbose(payload, &jerr);
+
+  if(o != NULL) {
+    struct json_object_iterator it = json_object_iter_begin(o);
+    struct json_object_iterator itEnd = json_object_iter_end(o);
+
+    while(!json_object_iter_equal(&it, &itEnd)) {
+      const char *key   = json_object_iter_peek_name(&it);
+      json_object *v    = json_object_iter_peek_value(&it);
+      const char *value = json_object_get_string(v);
+
+      if((key != NULL) && (value != NULL)) {
+	if(!strcmp(key, "field_map"))            parseOptionFieldMap(v);
+	else if(!strcmp(key, "field_value_map")) parseOptionFieldValueMap(v);
+      }
+
+      /* Move to the next element */
+      json_object_iter_next(&it);
+    } // while json_object_iter_equal
 
     json_object_put(o);
   } else {
@@ -1178,11 +1395,15 @@ void ParserInterface::lua(lua_State* vm) {
     if(zrs->remote_probe_public_address[0] != '\0')
       lua_push_str_table_entry(vm, "probe.public_ip", zrs->remote_probe_public_address);
 
-    lua_push_int_table_entry(vm, "zmq.num_flow_exports", zrs->num_flow_exports - zmq_remote_initial_exported_flows);
-    lua_push_int_table_entry(vm, "zmq.num_exporters", zrs->num_exporters);
+    lua_push_uint64_table_entry(vm, "zmq.num_flow_exports", zrs->num_flow_exports - zmq_remote_initial_exported_flows);
+    lua_push_uint64_table_entry(vm, "zmq.num_exporters", zrs->num_exporters);
 
-    lua_push_int_table_entry(vm, "timeout.lifetime", zrs->remote_lifetime_timeout);
-    lua_push_int_table_entry(vm, "timeout.idle", zrs->remote_idle_timeout);
+    if(zrs->export_queue_full > 0)
+      lua_push_uint64_table_entry(vm, "zmq.drops.export_queue_full", zrs->export_queue_full);
+    lua_push_uint64_table_entry(vm, "zmq.drops.flow_collection_drops", zrs->flow_collection_drops);
+
+    lua_push_uint64_table_entry(vm, "timeout.lifetime", zrs->remote_lifetime_timeout);
+    lua_push_uint64_table_entry(vm, "timeout.idle", zrs->remote_idle_timeout);
   }
 }
 

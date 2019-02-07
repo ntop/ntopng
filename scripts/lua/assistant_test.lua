@@ -1,3 +1,7 @@
+--
+-- (C) 2018 - ntop.org
+--
+
 dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/?.lua;" .. package.path
 if((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.scriptdir .. "/lua/modules/?.lua;" .. package.path end
@@ -624,7 +628,7 @@ function handler_tcp_dump()
      ntop.setPref("ntopng.prefs.dump_file_path", path)
 
     if(interface.isCaptureRunning()) then
-      os.execute("sleep 1")
+      ntop.msleep(1000)
     end
     
     interface.stopRunningCapture()

@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-18 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -136,13 +136,17 @@ void ThreadedActivity::run() {
 
 /* Run a one-shot script / accurate (e.g. second) periodic script */
 void ThreadedActivity::runScript() {
-  struct stat statbuf;
+#ifdef WIN32
+  struct _stat64 buf;
+#else
+  struct stat buf;
+#endif
   char script_path[MAX_PATH];
   
   snprintf(script_path, sizeof(script_path), "%s/system/%s",
 	   ntop->get_callbacks_dir(), path);
 
-  if(stat(script_path, &statbuf) == 0) {
+  if(stat(script_path, &buf) == 0) {
     runScript(script_path, NULL);
   } else
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to find script %s", path);
@@ -168,7 +172,7 @@ void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface) {
     static bool oom_warning_sent = false;
 
     if(!oom_warning_sent) {
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "[ThreadedActivity] Unable to start a Lua interpreter.");
       oom_warning_sent = true;
     }
 
@@ -239,7 +243,7 @@ void ThreadedActivity::periodicActivityBody() {
     u_int now = (u_int)time(NULL);
 
     if(now >= next_run) {
-      scheduleJob(pool);
+      schedulePeriodicActivity(pool);
 
       next_run = Utils::roundTime(now, periodicity,
 				  align_to_localtime ? ntop->get_time_offset() : 0);
@@ -253,17 +257,21 @@ void ThreadedActivity::periodicActivityBody() {
 
 /* ******************************************* */
 
-void ThreadedActivity::scheduleJob(ThreadPool *pool) {
+void ThreadedActivity::schedulePeriodicActivity(ThreadPool *pool) {
   /* Schedule per system / interface */
   char script_path[MAX_PATH];
-  struct stat statbuf;
+#ifdef WIN32
+  struct _stat64 buf;
+#else
+  struct stat buf;
+#endif
 
   if(!systemTaskRunning) {
     /* Schedule system script */
     snprintf(script_path, sizeof(script_path), "%s/system/%s",
 	     ntop->get_callbacks_dir(), path);
     
-    if(stat(script_path, &statbuf) == 0) {
+    if(stat(script_path, &buf) == 0) {
       pool->queueJob(this, script_path, NULL);
 #ifdef THREAD_DEBUG
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Queued system job %s", script_path);
@@ -275,11 +283,16 @@ void ThreadedActivity::scheduleJob(ThreadPool *pool) {
   snprintf(script_path, sizeof(script_path), "%s/interface/%s",
 	   ntop->get_callbacks_dir(), path);
 
-  if(stat(script_path, &statbuf) == 0) {
-    for(int i=0; i<ntop->get_num_interfaces(); i++) {
+  if(stat(script_path, &buf) == 0) {
+    for(int i = 0; i < ntop->get_num_interfaces(); i++) {
       NetworkInterface *iface = ntop->getInterface(i);
 
-      if(iface && !isInterfaceTaskRunning(iface)) {
+      if(iface
+	 /* Don't schedule periodic activities for Interfaces associated to pcap files.
+	    There's no need to run them as they will create files
+	    and calculate stats assuming live traffic. */
+	 && iface->getIfType() != interface_type_PCAP_DUMP
+	 && !isInterfaceTaskRunning(iface)) {
         pool->queueJob(this, script_path, iface);
         setInterfaceTaskRunning(iface, true);
 #ifdef THREAD_DEBUG

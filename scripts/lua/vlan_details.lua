@@ -12,6 +12,7 @@ end
 
 require "lua_utils"
 require "graph_utils"
+local page_utils = require("page_utils")
 local ts_utils = require"ts_utils"
 
 local info = ntop.getInfo(false)
@@ -22,7 +23,9 @@ interface.select(ifname)
 ifId = getInterfaceId(ifname)
 
 sendHTTPContentTypeHeader('text/html')
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
+
+page_utils.print_header()
+
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 if vlan_id == nil or tonumber(vlan_id) == nil or tonumber(vlan_id) == 0 then

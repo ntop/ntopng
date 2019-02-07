@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-18 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -52,24 +52,25 @@ class Utils {
   static size_t file_read(const char *path, char **content);
   static bool file_exists(const char * const path);
   static bool dir_exists(const char * const path);
-  static bool mkdir_tree(char *path);
+  static bool mkdir_tree(char * const path);
   static int mkdir(const char *pathname, mode_t mode);
+  static int remove_recursively(const char * const path);
   static const char* trend2str(ValueTrend t);
   static int dropPrivileges();
-  static std::string base64_encode(unsigned char const* bytes_to_encode, unsigned int in_len);
+  static char* base64_encode(unsigned char const* bytes_to_encode, ssize_t in_len);
   static std::string base64_decode(std::string const& encoded_string);
-  static bool dumpHostToDB(IpAddress *host, LocationPolicy policy);
+  static void sha1_hash(const uint8_t message[], size_t len, uint32_t hash[STATE_LEN]);
   static double pearsonValueCorrelation(activity_bitmap *x, activity_bitmap *y);
   static double JaccardSimilarity(activity_bitmap *x, activity_bitmap *y);
   static int ifname2id(const char *name);
   static char* sanitizeHostName(char *str);
   static char* urlDecode(const char *src, char *dst, u_int dst_len);
-  static bool isUserAdministrator(lua_State* vm);
   static bool purifyHTTPparam(char * const param, bool strict, bool allowURL, bool allowDots);
   static char* stripHTML(const char * const str);
-  static bool postHTTPJsonData(char *username, char *password, char *url, char *json, HTTPTranferStats *stats);
+  static bool postHTTPJsonData(char *username, char *password, char *url, char *json, int timeout, HTTPTranferStats *stats);
+  static bool postHTTPJsonData(char *username, char *password, char *url, char *json, int timeout, HTTPTranferStats *stats, char *return_data, int return_data_size, int *response_code);
   static bool sendMail(char *from, char *to, char *message, char *smtp_server);
-  static bool postHTTPTextFile(char *username, char *password, char *url, char *path, int timeout, HTTPTranferStats *stats);
+  static bool postHTTPTextFile(lua_State* vm, char *username, char *password, char *url, char *path, int timeout, HTTPTranferStats *stats);
   static bool httpGetPost(lua_State* vm, char *url, char *username,
 		      char *password, int timeout, bool return_content,
 		      bool use_cookie_authentication, HTTPTranferStats *stats, const char *form_data);
@@ -77,11 +78,11 @@ class Utils {
 		      const char * const username, const char * const password,
 		      int timeout,
 		      char * const resp, const u_int resp_len);
-  static char* urlEncode(char *url);
+  static bool progressCanContinue(ProgressState *progressState);
+  static char* urlEncode(const char *url);
   static ticks getticks();
   static char* getURL(char *url, char *buf, u_int buf_len);
   static bool discardOldFilesExceeding(const char *path, const unsigned long max_size);
-  static bool discardOldFiles(char *path, int older_than_seconds);
   static u_int64_t macaddr_int(const u_int8_t *mac);
   static void readMac(char *ifname, dump_mac_t mac_addr);
   static u_int32_t readIPv4(char *ifname);
@@ -107,9 +108,16 @@ class Utils {
   static u_int32_t roundTime(u_int32_t now, u_int32_t rounder, int32_t offset_from_utc);
   static bool isCriticalNetworkProtocol(u_int16_t protocol_id);
   static u_int32_t stringHash(const char *s);
+  static const char* policySource2Str(L7PolicySource_t policy_source);
+  static const char* captureDirection2Str(pcap_direction_t dir);
+  static bool readInterfaceStats(const char* ifname, ProtoStats *in_stats, ProtoStats *out_stats);
+  static bool shouldResolveHost(const char *host_ip);
+  static bool mg_write_retry(struct mg_connection *conn, u_char *b, int len);
+  static bool parseAuthenticatorJson(HTTPAuthenticator *auth, char *content);
 
   /* Patricia Tree */
-  static patricia_node_t* ptree_match(patricia_tree_t *tree, int family, void *addr, int bits);
+  static patricia_node_t* add_to_ptree(patricia_tree_t *tree, int family, void *addr, int bits);
+  static patricia_node_t* ptree_match(patricia_tree_t *tree, int family, const void * const addr, int bits);
   static patricia_node_t* ptree_add_rule(patricia_tree_t *ptree, char *line);
   static int ptree_remove_rule(patricia_tree_t *ptree, char *line);
 
@@ -129,7 +137,9 @@ class Utils {
   static u_int32_t parsetime(char *str);
   static u_int64_t mac2int(u_int8_t *mac);
   static u_int8_t* int2mac(u_int64_t mac, u_int8_t *buf);
-  
+  static void listInterfaces(lua_State* vm); 
+  static bool validInterface(char *name);
+ 
   /* System Host Montoring and Diagnose Functions */
   static void luaCpuLoad(lua_State* vm);
   static void luaMeminfo(lua_State* vm);

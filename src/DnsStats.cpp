@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-18 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -33,21 +33,21 @@ DnsStats::DnsStats() {
 void DnsStats::luaStats(lua_State *vm, struct dns_stats *stats, const char *label) {
   lua_newtable(vm);
 
-  lua_push_int_table_entry(vm, "num_queries", stats->num_queries);
-  lua_push_int_table_entry(vm, "num_replies_ok", stats->num_replies_ok);
-  lua_push_int_table_entry(vm, "num_replies_error", stats->num_replies_error);
+  lua_push_uint64_table_entry(vm, "num_queries", stats->num_queries);
+  lua_push_uint64_table_entry(vm, "num_replies_ok", stats->num_replies_ok);
+  lua_push_uint64_table_entry(vm, "num_replies_error", stats->num_replies_error);
 
   lua_newtable(vm);
-  lua_push_int_table_entry(vm, "num_a", stats->breakdown.num_a);
-  lua_push_int_table_entry(vm, "num_ns", stats->breakdown.num_ns);
-  lua_push_int_table_entry(vm, "num_cname", stats->breakdown.num_cname);
-  lua_push_int_table_entry(vm, "num_soa", stats->breakdown.num_soa);
-  lua_push_int_table_entry(vm, "num_ptr", stats->breakdown.num_ptr);
-  lua_push_int_table_entry(vm, "num_mx", stats->breakdown.num_mx);
-  lua_push_int_table_entry(vm, "num_txt", stats->breakdown.num_txt);
-  lua_push_int_table_entry(vm, "num_aaaa", stats->breakdown.num_aaaa);
-  lua_push_int_table_entry(vm, "num_any", stats->breakdown.num_any);
-  lua_push_int_table_entry(vm, "num_other", stats->breakdown.num_other);
+  lua_push_uint64_table_entry(vm, "num_a", stats->breakdown.num_a);
+  lua_push_uint64_table_entry(vm, "num_ns", stats->breakdown.num_ns);
+  lua_push_uint64_table_entry(vm, "num_cname", stats->breakdown.num_cname);
+  lua_push_uint64_table_entry(vm, "num_soa", stats->breakdown.num_soa);
+  lua_push_uint64_table_entry(vm, "num_ptr", stats->breakdown.num_ptr);
+  lua_push_uint64_table_entry(vm, "num_mx", stats->breakdown.num_mx);
+  lua_push_uint64_table_entry(vm, "num_txt", stats->breakdown.num_txt);
+  lua_push_uint64_table_entry(vm, "num_aaaa", stats->breakdown.num_aaaa);
+  lua_push_uint64_table_entry(vm, "num_any", stats->breakdown.num_any);
+  lua_push_uint64_table_entry(vm, "num_other", stats->breakdown.num_other);
   lua_pushstring(vm, "queries");
   lua_insert(vm, -2);
   lua_settable(vm, -3);

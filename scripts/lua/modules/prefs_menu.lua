@@ -1,40 +1,103 @@
 require "lua_utils"
 
+local recording_utils = require "recording_utils"
+local remote_assistance = require "remote_assistance"
+
 local prefs = ntop.getPrefs()
 
 local have_nedge = ntop.isnEdge()
 local info = ntop.getInfo(false)
+local hasRadius = ntop.hasRadiusSupport()
+local hasNindex = hasNindexSupport()
+local hasLdap = ntop.hasLdapSupport()
+local max_nindex_retention = 0
+
+if ntop.isPro() then
+  package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
+  local nindex_utils = require("nindex_utils")
+
+  _, max_nindex_retention = nindex_utils.getRetention()
+end
 
 -- This table is used both to control access to the preferences and to filter preferences results
 local menu_subpages = {
-  {id="auth",          label=i18n("prefs.user_authentication"),  advanced=false, pro_only=true, nedge_hidden=true, hidden=false, entries={
-    multiple_ldap_authentication = {
-      title       = i18n("prefs.multiple_ldap_authentication_title"),
-      description = i18n("prefs.multiple_ldap_authentication_description"),
+  {id="auth",          label=i18n("prefs.user_authentication"),  advanced=false, pro_only=false, nedge_hidden=false, hidden=(not(prefs.is_users_login_enabled) and not have_nedge), entries={
+    authentication_duration = {
+      title       = i18n("prefs.authentication_duration_title"),
+      description = i18n("prefs.authentication_duration_descr"),
+    }, toggle_auth_session_midnight_expiration = {
+      title       = i18n("prefs.authentication_midnight_expiration_title"),
+      description = i18n("prefs.authentication_midnight_expiration_descr"),
+    }, toggle_ldap_auth = {
+      title       = i18n("prefs.toggle_ldap_auth"),
+      description = i18n("prefs.toggle_ldap_auth_descr"),
+      hidden      = (not hasLdap),
+    }, toggle_radius_auth = {
+      title       = i18n("prefs.toggle_radius_auth"),
+      description = i18n("prefs.toggle_radius_auth_descr", {product=info.product}),
+      hidden      = (not hasRadius),
+    }, toggle_http_auth = {
+      title       = i18n("prefs.toggle_http_auth"),
+      description = i18n("prefs.toggle_http_auth_descr"),
+      hidden      = have_nedge,
+    }, toggle_local_auth = {
+      title       = i18n("prefs.toggle_local_auth"),
+      description = i18n("prefs.toggle_local_auth_descr", {product=info.product}),
     }, multiple_ldap_account_type = {
       title       = i18n("prefs.multiple_ldap_account_type_title"),
       description = i18n("prefs.multiple_ldap_account_type_description"),
+      hidden      = (not hasLdap),
     }, ldap_server_address = {
       title       = i18n("prefs.ldap_server_address_title"),
       description = i18n("prefs.ldap_server_address_description"),
+      hidden      = (not hasLdap),
     }, bind_dn = {
       title       = i18n("prefs.bind_dn_title"),
       description = i18n("prefs.bind_dn_description"),
+      hidden      = (not hasLdap),
     }, bind_pwd = {
       title       = i18n("prefs.bind_pwd_title"),
       description = i18n("prefs.bind_pwd_description"),
+      hidden      = (not hasLdap),
     }, search_path = {
       title       = i18n("prefs.search_path_title"),
       description = i18n("prefs.search_path_description"),
+      hidden      = (not hasLdap),
     }, user_group = {
       title       = i18n("prefs.user_group_title"),
       description = i18n("prefs.user_group_description"),
+      hidden      = (not hasLdap),
     }, admin_group = {
       title       = i18n("prefs.admin_group_title"),
       description = i18n("prefs.admin_group_description"),
+      hidden      = (not hasLdap),
     }, toggle_ldap_anonymous_bind = {
       title       = i18n("prefs.toggle_ldap_anonymous_bind_title"),
       description = i18n("prefs.toggle_ldap_anonymous_bind_description"),
+      hidden      = (not hasLdap),
+    }, toggle_ldap_referrals = {
+      title       = i18n("prefs.toggle_ldap_referrals_title"),
+      description = i18n("prefs.toggle_ldap_referrals_description"),
+      hidden      = (not hasLdap),
+    }, radius_server = {
+      title       = i18n("prefs.radius_server_title"),
+      description = i18n("prefs.radius_server_description", {example="127.0.0.1:1812"}),
+      hidden      = (not hasRadius),
+    }, radius_secret = {
+      title       = i18n("prefs.radius_secret_title"),
+      description = i18n("prefs.radius_secret_descroption"),
+      hidden      = (not hasRadius),
+    }, radius_admin_group = {
+      title       = i18n("prefs.radius_admin_group_title"),
+      description = i18n("prefs.radius_admin_group_description"),
+      hidden      = (not hasRadius),
+    }, http_auth_server = {
+      title       = i18n("prefs.http_auth_server_title"),
+      description = i18n("prefs.http_auth_server_description"),
+      hidden      = have_nedge,
+    }, toggle_client_x509_auth = {
+      title       = i18n("prefs.client_x509_auth_title"),
+      description = i18n("prefs.client_x509_auth_descr"),
     },
   }}, {id="ifaces",    label=i18n("prefs.network_interfaces"),   advanced=true,  pro_only=false,  hidden=false, nedge_hidden=true, entries={
     dynamic_interfaces_creation = {
@@ -51,7 +114,10 @@ local menu_subpages = {
       description = i18n("prefs.toggle_dst_with_post_nat_dst_description"),
     },
   }}, {id="in_memory",     label=i18n("prefs.cache_settings"),             advanced=true,  pro_only=false,  hidden=false, entries={
-    local_host_max_idle = {
+    toggle_midnight_stats_reset = {
+      title       = i18n("prefs.toggle_midnight_stats_reset_title"),
+      description = i18n("prefs.toggle_midnight_stats_reset_description"),
+    }, local_host_max_idle = {
       title       = i18n("prefs.local_host_max_idle_title"),
       description = i18n("prefs.local_host_max_idle_description"),
     }, non_local_host_max_idle = {
@@ -134,17 +200,10 @@ local menu_subpages = {
     }, timeseries_resolution_resolution = {
       title       = i18n("prefs.timeseries_resolution_resolution_title"),
       description = i18n("prefs.timeseries_resolution_resolution_description"),
-    }, minute_top_talkers_retention = {
-      title       = i18n("prefs.minute_top_talkers_retention_title"),
-      description = i18n("prefs.minute_top_talkers_retention_description"),
     }, rrd_files_retention = {
       title       = i18n("prefs.rrd_files_retention_title"),
       description = i18n("prefs.rrd_files_retention_description"),
-    }, mysql_retention = {
-      title       = i18n("prefs.mysql_retention_title"),
-      description = i18n("prefs.mysql_retention_description"),
-      hidden      = (prefs.is_dump_flows_to_mysql_enabled == false),
-    }
+    },
   }}, {id="alerts",        label=i18n("show_alerts.alerts"),               advanced=false, pro_only=false,  hidden=(prefs.has_cmdl_disable_alerts == true), entries={
     disable_alerts_generation = {
       title       = i18n("prefs.disable_alerts_generation_title"),
@@ -179,6 +238,21 @@ local menu_subpages = {
     }, toggle_device_protocols_alerts = {
       title       = i18n("prefs.toggle_device_protocols_title"),
       description = i18n(ternary(have_nedge, "prefs.toggle_device_protocols_description_nedge", "prefs.toggle_device_protocols_description"), {url=getDeviceProtocolPoliciesUrl()}),
+    }, toggle_longlived_flows_alerts = {
+      title       = i18n("prefs.toggle_longlived_flows_alerts_title"),
+      description = i18n("prefs.toggle_longlived_flows_alerts_description"),
+    }, longlived_flow_duration = {
+      title       = i18n("prefs.longlived_flow_duration_title"),
+      description = i18n("prefs.longlived_flow_duration_description"),
+    }, toggle_elephant_flows_alerts = {
+      title       = i18n("prefs.toggle_elephant_flows_alerts_title"),
+      description = i18n("prefs.toggle_elephant_flows_alerts_description"),
+    }, elephant_flow_local_to_remote_bytes = {
+      title       = i18n("prefs.elephant_flow_local_to_remote_bytes_title"),
+      description = i18n("prefs.elephant_flow_local_to_remote_bytes_description"),
+    }, elephant_flow_remote_to_local_bytes = {
+      title       = i18n("prefs.elephant_flow_remote_to_local_bytes_title"),
+      description = i18n("prefs.elephant_flow_remote_to_local_bytes_description"),
     }, max_num_alerts_per_entity = {
       title       = i18n("prefs.max_num_alerts_per_entity_title"),
       description = i18n("prefs.max_num_alerts_per_entity_description"),
@@ -237,6 +311,25 @@ local menu_subpages = {
     }, slack_webhook = {
       title       = i18n("prefs.slack_webhook_title"),
       description = i18n("prefs.slack_webhook_description"),
+    },
+    toggle_webhook_notification = {
+      title       = i18n("prefs.toggle_webhook_notification_title"),
+      description = i18n("prefs.toggle_webhook_notification_description"),
+    }, webhook_notification_severity_preference = {
+      title       = i18n("prefs.webhook_notification_severity_preference_title"),
+      description = i18n("prefs.webhook_notification_severity_preference_description"),
+    }, webhook_url = {
+      title       = i18n("prefs.webhook_url_title"),
+      description = i18n("prefs.webhook_url_description"),
+    }, webhook_sharedsecret = {
+      title       = i18n("prefs.webhook_sharedsecret_title"),
+      description = i18n("prefs.webhook_sharedsecret_description"),
+    }, webhook_username = {
+      title       = i18n("login.username"),
+      description = i18n("prefs.webhook_username_description"),
+    }, webhook_password = {
+      title       = i18n("login.password"),
+      description = i18n("prefs.webhook_password_description"),
     }, syslog_alert_format = {
       title       = i18n("prefs.syslog_alert_format_title"),
       description = i18n("prefs.syslog_alert_format_description"),
@@ -276,7 +369,21 @@ local menu_subpages = {
     }, max_num_bytes_per_tiny_flow = {
       title       = i18n("prefs.max_num_bytes_per_tiny_flow_title"),
       description = i18n("prefs.max_num_bytes_per_tiny_flow_description"),
-    },
+    }, toggle_aggregated_flows_export_limit = {
+      title       = i18n("prefs.toggle_aggregated_flows_export_limit_title"),
+      description = i18n("prefs.toggle_aggregated_flows_export_limit_description"),
+    }, max_num_aggregated_flows_per_export = {
+      title       = i18n("prefs.max_num_aggregated_flows_per_export_title"),
+      description = i18n("prefs.max_num_aggregated_flows_per_export_description"),
+    }, mysql_retention = {
+      title       = i18n("prefs.mysql_retention_title"),
+      description = i18n("prefs.mysql_retention_description"),
+      hidden      = hasNindex,
+    }, nindex_retention = {
+      title       = i18n("prefs.nindex_retention_title"),
+      description = i18n("prefs.nindex_retention_description") .. ternary(not ntop.isEnterprise(), "<br><b>" .. i18n("prefs.flows_dump_limited_days", {days=max_nindex_retention}), "") .. "</b>",
+      hidden      = not hasNindex,
+    }
   }}, {id="snmp",          label=i18n("prefs.snmp"),                 advanced=true,  pro_only=true,   hidden=false, nedge_hidden=true, entries={
     toggle_snmp_rrds = {
       title       = i18n("prefs.toggle_snmp_rrds_title"),
@@ -287,17 +394,12 @@ local menu_subpages = {
     }, default_snmp_proto_version = {
        title       = i18n("prefs.default_snmp_proto_version_title"),
        description = i18n("prefs.default_snmp_proto_version_description"),
-    },
-  }}, {id="nbox",          label=i18n("prefs.nbox_integration"),     advanced=true,  pro_only=true,  nedge_hidden=true, hidden=false, entries={
-    toggle_nbox_integration = {
-      title       = i18n("prefs.toggle_nbox_integration_title"),
-      description = i18n("prefs.toggle_nbox_integration_description"),
-    }, nbox_user = {
-      title       = i18n("prefs.nbox_user_title"),
-      description = i18n("prefs.nbox_user_description"),
-    }, nbox_password = {
-      title       = i18n("prefs.nbox_password_title"),
-      description = i18n("prefs.nbox_password_description"),
+    }, toggle_snmp_alerts_port_status_change = {
+       title       = i18n("prefs.toggle_snmp_alerts_port_status_change_title"),
+       description = i18n("prefs.toggle_snmp_alerts_port_status_change_description"),
+    }, toggle_snmp_alerts_port_errors = {
+       title       = i18n("prefs.toggle_snmp_alerts_port_errors_title"),
+       description = i18n("prefs.toggle_snmp_alerts_port_errors_description"),
     },
   }}, {id="discovery",     label=i18n("prefs.network_discovery"),     advanced=false,  pro_only=false,   hidden=false, entries={
     toggle_network_discovery = {
@@ -306,6 +408,20 @@ local menu_subpages = {
     }, network_discovery_interval = {
       title       = i18n("prefs.network_discovery_interval_title"),
       description = i18n("prefs.network_discovery_interval_description"),
+    },
+  }}, {id="recording",     label=i18n("prefs.recording"),             advanced=false, pro_only=false,  hidden=(not recording_utils.isAvailable()), entries={
+    n2disk_license = {
+      title       = i18n("prefs.n2disk_license_title"),
+      description = i18n("prefs.n2disk_license_description", { purchase_url='http://shop.ntop.org/', universities_url='http://www.ntop.org/support/faq/do-you-charge-universities-no-profit-and-research/'}),
+    },
+    max_extracted_pcap_bytes = {
+      title       = i18n("traffic_recording.max_extracted_pcap_bytes_title"),
+      description = i18n("traffic_recording.max_extracted_pcap_bytes_description"),
+    },
+  }}, {id="remote_assistance", label=i18n("remote_assistance.remote_assistance"), advanced=true,  pro_only=false, hidden=(not remote_assistance.isAvailable()), entries={
+    n2n_supernode = {
+      title       = i18n("prefs.n2n_supernode_title"),
+      description = i18n("prefs.n2n_supernode_description", {url="https://www.ntop.org/products/n2n"}),
     },
   }}, {id="misc",          label=i18n("prefs.misc"),                 advanced=false, pro_only=false,  hidden=false, entries={
     toggle_autologout = {
@@ -329,32 +445,9 @@ local menu_subpages = {
     }, topk_heuristic_precision = {
       title       = i18n("prefs.topk_heuristic_precision_title"),
       description = i18n("prefs.topk_heuristic_precision_description"),
-    },
-  }}, {id="bridging",      label=i18n("prefs.traffic_bridging"),     advanced=false,  pro_only=true,   enterprise_only=true, hidden=(not hasBridgeInterfaces()), nedge_hidden=true, entries={
-    safe_search_dns = {
-      title       = i18n("prefs.safe_search_dns_title"),
-      description = i18n("prefs.safe_search_dns_description", {url="https://en.wikipedia.org/wiki/SafeSearch"}),
-    }, global_dns = {
-      title       = i18n("prefs.global_dns_title"),
-      description = i18n("prefs.global_dns_description"),
-    }, secondary_dns = {
-      title       = i18n("prefs.secondary_dns_title"),
-      description = i18n("prefs.secondary_dns_description"),
-    }, featured_dns = {
-      title       = i18n("prefs.featured_dns_title"),
-      description = i18n("prefs.featured_dns_description"),
-    }, toggle_shaping_directions = {
-      title       = i18n("prefs.toggle_shaping_directions_title"),
-      description = i18n("prefs.toggle_shaping_directions_description"),
-    }, toggle_captive_portal = {
-      title       = i18n("prefs.toggle_captive_portal_title"),
-      description = i18n("prefs.toggle_captive_portal_description"),
-    }, captive_portal_url = {
-      title       = i18n("prefs.captive_portal_url_title"),
-      description = i18n("prefs.captive_portal_url_description"),
-    }, policy_target_type = {
-      title       = i18n("prefs.policy_target_type"),
-      description = i18n("prefs.policy_target_type_description"),
+    }, minute_top_talkers_retention = {
+      title       = i18n("prefs.minute_top_talkers_retention_title"),
+      description = i18n("prefs.minute_top_talkers_retention_description"),
     }
   }},
 }

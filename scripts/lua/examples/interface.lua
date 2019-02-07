@@ -4,12 +4,11 @@
 
 -- Ntop lua class example
 
-
-
 -- Set package.path information to be able to require lua module
 dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
+local page_utils = require("page_utils")
 
 function printTable(table,key)
 
@@ -32,7 +31,9 @@ end
 require "lua_utils"
 
 sendHTTPContentTypeHeader('text/html')
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
+
+page_utils.print_header()
+
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 
@@ -200,7 +201,7 @@ if(showjson ~= nil) then
     else
       host_info = hosts_json[key]["mac"]
     end
-    print('<li><a href="/lua/host_get_json.lua?host=' .. host_info..'&vlan='..hosts_json[key]["vlan"]..'" target="_blank"> All information</a>')
+    print('<li><a href="/lua/rest/get/host/data.lua?host=' .. host_info..'&vlan='..hosts_json[key]["vlan"]..'" target="_blank"> All information</a>')
     print('<li><a href="/lua/get_host_activitymap.lua?host=' .. key..'" target="_blank"> Only Activity Map </a>')
     print('</ul>')
   end

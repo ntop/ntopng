@@ -4,6 +4,8 @@
 
 local ts_common = require("ts_common")
 
+-- ##############################################
+
 local function interpolateSerie_test1(test)
   local serie = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
   local target_points = 19
@@ -33,6 +35,8 @@ local function interpolateSerie_test1(test)
 
   return test:success()
 end
+
+-- ##############################################
 
 function run(tester)
   local rv = tester.run_test("interpolateSerie:test1", interpolateSerie_test1)

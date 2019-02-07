@@ -6,11 +6,13 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
+local page_utils = require("page_utils")
+active_page = "hosts"
 
 sendHTTPContentTypeHeader('text/html')
 
+page_utils.print_header(i18n("processes_stats.top_hosts"))
 
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 local active_page = "hosts"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
@@ -82,7 +84,7 @@ print [[/lua/get_host_traffic.lua?host="+name, function(data) {
 	      }	     
 	    }
 	    callback(null, values = values.slice((start - stop) / step));
-	  }, symname);
+	  }, (name + "|" + symname));
       }
 
 var width = 800;

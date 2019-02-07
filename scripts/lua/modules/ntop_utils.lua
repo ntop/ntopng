@@ -156,12 +156,14 @@ end
 -- ##############################################
 
 function asc_insensitive(a,b)
+  if type(a) ~= "string" then return asc(a,b) end
   return (string.lower(a) < string.lower(b))
 end
 
 -- ##############################################
 
 function rev_insensitive(a,b)
+  if type(a) ~= "string" then return rev(a,b) end
   return (string.lower(a) > string.lower(b))
 end
 
@@ -171,7 +173,7 @@ function tolongint(what)
    if(what == nil) then
       return(0)
    else
-      return(string.format("%u", what))
+      return(string.format("%u", math.floor(what)))
    end
 end
 
@@ -232,11 +234,5 @@ end
 -- ##############################################
 
 function isAdministrator()
-   local user_group = ntop.getUserGroup()
-
-   if(user_group == "administrator") or (user_group == "") then
-      return(true)
-   else
-      return(false)
-   end
+   return ntop.isAdministrator()
 end

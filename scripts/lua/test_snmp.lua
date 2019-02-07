@@ -9,10 +9,12 @@ package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.p
 -- io.write ("Session:".._SESSION["session"].."\n")
 require "lua_utils"
 require "snmp_utils"
+local page_utils = require("page_utils")
 
 sendHTTPContentTypeHeader('text/html')
 
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
+page_utils.print_header()
+
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 if true then

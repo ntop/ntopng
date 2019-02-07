@@ -68,7 +68,8 @@ extern    "C" {
 #else
 #if defined(_MSC_VER)
 #include <BaseTsd.h>
-	typedef SSIZE_T ssize_t;
+    // typedef SSIZE_T ssize_t;
+#define ssize_t unsigned int
 #endif
 #endif
 	typedef long off_t;

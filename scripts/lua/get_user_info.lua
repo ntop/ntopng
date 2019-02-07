@@ -2,39 +2,48 @@
 -- (C) 2014-15-15 - ntop.org
 --
 
-dirs = ntop.getDirs()
+local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 require "flow_utils"
 
+local page_utils = require("page_utils")
+
 sendHTTPContentTypeHeader('text/html')
 
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
+page_utils.print_header()
 
-page = _GET["page"]
+local page = _GET["page"]
+
 if(page == nil) then page = "UserApps" end
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-user_key = _GET["username"]
-host_key = _GET["host"]
-application = _GET["application"]
+local user_key = _GET["username"]
+local host_key = _GET["host"]
+local application = _GET["application"]
+local name
 
 if(user_key == nil) then
    print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> "..i18n("user_info.missing_user_name_message").."</div>")
 else
-  if(host_key ~= nil) then
-    name = getResolvedAddress(hostkey2hostinfo(host_key))
-    if (name == nil) then
-      name = host_key
-    end
+  if host_key then
+     name = getResolvedAddress(hostkey2hostinfo(host_key))
+     if (name == nil) then
+	name = host_key
+     end
   end
   print [[
             <nav class="navbar navbar-default" role="navigation">
               <div class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
-	    <li><a href="#"><i class="fa fa-user fa-lg"></i> ]] print(user_key) if(host_key ~= nil) then print(' - <i class="fa fa-building fa-lg"></i> '..name) end print [[  </a></li>
-   ]]
+	    <li><a href="#"><i class="fa fa-linux fa-lg"></i> ]] print(user_key)
+
+  if host_key then
+     print(string.format(" [%s: %s]", i18n("host_details.host"), name))
+  end
+
+  print [[  </a></li>]]
 
 
 if(page == "UserApps") then active=' class="active"' else active = "" end
@@ -48,6 +57,7 @@ print('<li'..active..'><a href="?username='.. user_key) if(host_key ~= nil) then
 
 
 print('</ul>\n\t</div>\n\t\t</nav>\n')
+
 
 
 if(page == "UserApps") then
@@ -83,8 +93,8 @@ print [[
   <div class="tabbable tabs-left">
     
     <ul class="nav nav-tabs">
-      <li class="active"><a href="#l7" data-toggle="tab">]] print(i18n("l7_protocols")) print[[</a></li>
-      <li><a href="#l4" data-toggle="tab">]] print(i18n("l4_protocols")) print[[</a></li>
+      <li class="active"><a href="#l7" data-toggle="tab">]] print(i18n("applications")) print[[</a></li>
+      <li><a href="#l4" data-toggle="tab">]] print(i18n("protocols")) print[[</a></li>
     </ul>
     
       <!-- Tab content-->
@@ -212,7 +222,7 @@ print [[
 			     }
 				 },
 			     {
-			     title: "]] print(i18n("sflows_stats.l4_proto")) print[[",
+			     title: "]] print(i18n("protocol")) print[[",
 				 field: "column_proto_l4",
 				 sortable: true,
 	 	             css: { 

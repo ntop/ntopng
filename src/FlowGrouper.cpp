@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2017-18 - ntop.org
+ * (C) 2017-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -93,13 +93,13 @@ int FlowGrouper::incStats(Flow *flow) {
 void FlowGrouper::lua(lua_State* vm) {
   lua_newtable(vm);
 
-  lua_push_int_table_entry(vm, "proto", app_protocol);
+  lua_push_uint64_table_entry(vm, "proto", app_protocol);
 
-  lua_push_int_table_entry(vm, "bytes", stats.bytes);
-  lua_push_int_table_entry(vm, "seen.first", stats.first_seen);
-  lua_push_int_table_entry(vm, "seen.last", stats.last_seen);
-  lua_push_int_table_entry(vm, "num_flows", stats.num_flows);
-  lua_push_int_table_entry(vm, "num_blocked_flows", stats.num_blocked_flows);
+  lua_push_uint64_table_entry(vm, "bytes", stats.bytes);
+  lua_push_uint64_table_entry(vm, "seen.first", stats.first_seen);
+  lua_push_uint64_table_entry(vm, "seen.last", stats.last_seen);
+  lua_push_uint64_table_entry(vm, "num_flows", stats.num_flows);
+  lua_push_uint64_table_entry(vm, "num_blocked_flows", stats.num_blocked_flows);
   lua_push_float_table_entry(vm, "throughput_bps", max_val(stats.bytes_thpt, 0));
 
   lua_rawseti(vm, -2, table_index++);

@@ -11,10 +11,12 @@ package.path = dirs.installdir .. "/pro/scripts/callbacks/?.lua;" .. package.pat
 require "lua_utils"
 local template = require "template_utils"
 local os_utils = require "os_utils"
+local page_utils = require("page_utils")
 
 sendHTTPContentTypeHeader('text/html')
 
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
+page_utils.print_header()
+
 active_page = "admin"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 

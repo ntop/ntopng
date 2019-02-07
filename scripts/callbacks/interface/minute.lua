@@ -5,12 +5,6 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
-if (ntop.isPro()) then
-   package.path = dirs.installdir .. "/pro/scripts/callbacks/interface/?.lua;" .. package.path
-   pcall(require, 'minute')
-   package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
-end
-
 require "lua_utils"
 
 local ts_utils = require("ts_utils_core")
@@ -32,7 +26,7 @@ rrd_dump.run_min_dump(_ifname, ifstats, iface_ts, config, when, verbose)
 
 if ts_utils.hasHighResolutionTs() then
    local rrd_5min_dump = require "rrd_5min_dump_utils"
-   local time_threshold = when - (when % 60) --[[ align ]] + (2 * 60) --[[ margin ]]
+   local time_threshold = when - (when % 60) --[[ align ]] + 50 --[[ margin ]]
    local config = rrd_5min_dump.getConfig()
 
    rrd_5min_dump.run_5min_dump(_ifname, ifstats, config, when, time_threshold, false--[[ skip ts]], true--[[ skip alerts]], verbose)

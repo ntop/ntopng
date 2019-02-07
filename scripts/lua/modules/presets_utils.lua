@@ -7,8 +7,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 local discover = require "discover_utils"
 
-interface.select(ifname)
-
 local presets_utils = {}
 
 presets_utils.DROP = "0"
@@ -24,7 +22,8 @@ local function createPreset(device_type_name)
    end
 end
 
--- Add client and server policies to a device type
+-- Add policies to a device type cloning policies from an initial device type.
+-- source_preset is a table
 local function addPreset(device_type_name, source_preset)
    createPreset(device_type_name)
    presets_utils.policies[device_type_name].client = 
@@ -33,7 +32,8 @@ local function addPreset(device_type_name, source_preset)
       table.merge(presets_utils.policies[device_type_name].server, source_preset.server)
 end
 
--- Add policies to a device type cloning policies from another device type
+-- Add policies to a device type cloning policies from another device type.
+-- source_device_type_name is the string identifying the source device type
 local function addPresetFrom(device_type_name, source_device_type_name)
    addPreset(device_type_name,
       presets_utils.policies[source_device_type_name])
@@ -60,6 +60,7 @@ local function setAllProtocols(device_type_name, client_or_server, action)
    end
 end
 
+function presets_utils.init()
 -----------------------------------------------------------------------------
 -----------------------------------------------------------------------------
 -- DEVICE PROTOCOL PRESETS
@@ -68,36 +69,80 @@ end
 -- - 'DHCP' and 'DNS' are always allowed in the datapath
 
 local basic_policy = {
-   client = { 
-      -- [ 18] = presets_utils.ALLOW, -- DHCP
-      -- [  5] = presets_utils.ALLOW  -- DNS
-   }, 
+   client = {
+      [  8] = presets_utils.ALLOW,  -- MDNS
+      [  9] = presets_utils.ALLOW,  -- NTP
+      [ 10] = presets_utils.ALLOW,  -- NetBIOS
+      [ 81] = presets_utils.ALLOW,  -- ICMP
+      [ 82] = presets_utils.ALLOW,  -- IGMP
+      [102] = presets_utils.ALLOW,  -- ICMPV6
+      [103] = presets_utils.ALLOW,  -- DHCPV6
+      [153] = presets_utils.ALLOW,  -- UPnP
+      [154] = presets_utils.ALLOW,  -- LLMNR
+   },
    server = {
+      [ 81] = presets_utils.ALLOW,  -- ICMP
+      [102] = presets_utils.ALLOW,  -- ICMPV6
    }
 }
 
-addPreset('multimedia', basic_policy)
-addProtocolByName('multimedia', 'client', 'HTTP', presets_utils.ALLOW)
-addProtocolByName('multimedia', 'client', 'NetFlix', presets_utils.ALLOW)
-addProtocolByName('multimedia', 'client', 'YouTube', presets_utils.ALLOW)
+-- IoT like devices
+addPreset('iot', basic_policy)
+addProtocolByName('iot', 'client', 'HTTP',      presets_utils.ALLOW)
+addProtocolByName('iot', 'server', 'HTTP',      presets_utils.ALLOW)
+addProtocolByName('iot', 'client', 'SSL',       presets_utils.ALLOW)
+addProtocolByName('iot', 'server', 'SSL',       presets_utils.ALLOW)
 
-addPresetFrom('nas', 'multimedia')
+addPresetFrom('video', 'iot')
+addProtocolByName('video', 'server', 'RTP',     presets_utils.ALLOW)
+addProtocolByName('video', 'server', 'RTSP',    presets_utils.ALLOW)
+
+-- Multimedia like devices
+addPreset('multimedia', basic_policy)
+addProtocolByName('multimedia', 'client', 'HTTP',        presets_utils.ALLOW)
+addProtocolByName('multimedia', 'client', 'SSL',         presets_utils.ALLOW)
+addProtocolByName('multimedia', 'client', 'RTP',         presets_utils.ALLOW)
+addProtocolByName('multimedia', 'client', 'RTSP',        presets_utils.ALLOW)
+addProtocolByName('multimedia', 'client', 'NetFlix',     presets_utils.ALLOW)
+addProtocolByName('multimedia', 'client', 'YouTube',     presets_utils.ALLOW)
+addProtocolByName('multimedia', 'client', 'AmazonVideo', presets_utils.ALLOW)
+addProtocolByName('multimedia', 'client', 'AppleiTunes', presets_utils.ALLOW)
+addProtocolByName('multimedia', 'client', 'Deezer',      presets_utils.ALLOW)
+addProtocolByName('multimedia', 'client', 'LastFM',      presets_utils.ALLOW)
+addProtocolByName('multimedia', 'client', 'SoundCloud',  presets_utils.ALLOW)
+addProtocolByName('multimedia', 'client', 'Spotify',     presets_utils.ALLOW)
+addProtocolByName('multimedia', 'client', 'Skype',       presets_utils.ALLOW)
+addProtocolByName('multimedia', 'client', 'SkypeCall',   presets_utils.ALLOW)
+
+addPresetFrom('tv', 'multimedia')
+
+-- NAS devices
+addPreset('nas', basic_policy)
 addProtocolByName('nas', 'server', 'HTTP',        presets_utils.ALLOW)
 addProtocolByName('nas', 'server', 'FTP_CONTROL', presets_utils.ALLOW)
 addProtocolByName('nas', 'server', 'FTP_DATA',    presets_utils.ALLOW)
+addProtocolByName('nas', 'server', 'AFP',         presets_utils.ALLOW)
+addProtocolByName('nas', 'server', 'NFS',         presets_utils.ALLOW)
+addProtocolByName('nas', 'server', 'RSYNC',       presets_utils.ALLOW)
+addProtocolByName('nas', 'server', 'TFTP',        presets_utils.ALLOW)
 
-addPreset('laptop', basic_policy)
-setAllProtocols('laptop', 'client', presets_utils.ALLOW)
-addProtocolByName('laptop', 'client', 'Corba', presets_utils.DROP)
+-- Printer devices
+addPreset('printer', basic_policy)
+addProtocolByName('printer', 'server', 'HTTP',    presets_utils.ALLOW)
+addProtocolByName('printer', 'server', 'SSL',     presets_utils.ALLOW)
+addProtocolByName('printer', 'server', 'SNMP',    presets_utils.ALLOW)
 
 -----------------------------------------------------------------------------
 -----------------------------------------------------------------------------
+end
 
 local drop_icon = "warning"
 local allow_icon = "check"
 local drop_text = i18n("device_protocols.alert")
 local allow_text = i18n("device_protocols.ok")
-if ntop.isnEdge() then
+local is_nedge = ntop.isnEdge()
+
+if is_nedge then
    drop_icon = "ban"
    allow_icon = "asterisk"
    drop_text = i18n("users.shapers.drop")
@@ -265,7 +310,11 @@ local function reloadDevicePoliciesByDir(device_type, client_or_server)
    local device_policies = getDevicePoliciesByDir(device_type, client_or_server)
    for k,v in pairs(device_policies) do 
       if v.actionId == presets_utils.ALLOW then
-         allowed_protocols[tonumber(v.protoId)] = tonumber(presets_utils.ALLOW)
+	 v.protoId = tonumber(v.protoId)
+
+	 if(v.protoId ~= -1) then
+	    allowed_protocols[v.protoId] = tonumber(presets_utils.ALLOW)
+	 end
       end
    end   
 
@@ -276,10 +325,15 @@ end
 function presets_utils.reloadDevicePolicies(device_type)
    reloadDevicePoliciesByDir(device_type, "client")
    reloadDevicePoliciesByDir(device_type, "server")
+
+   if is_nedge then
+     -- reload the new policy on active flows
+     interface.updateFlowsShapers()
+   end
 end
 
--- Init protocol policies for all devices
-function presets_utils.initPolicies()
+-- Reload device policies for all devices in the datapath
+function presets_utils.reloadAllDevicePolicies()
    for device_type, info in discover.sortedDeviceTypeLabels() do
       presets_utils.reloadDevicePolicies(device_type)
    end

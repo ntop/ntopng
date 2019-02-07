@@ -1,0 +1,372 @@
+#!/bin/bash
+#
+# Manage ntop services (mainly a proxy for systemd and init.d)
+#
+
+SYSTEMD=false
+QUIET=false
+IFNAME=""
+LICENSE=""
+SERVICE_NAME=
+SERVICE_PARAM=
+SERVICE=
+START_FILE=
+
+# The followings are only set if the given program supports them
+LOG_FILE=
+CONFIG_INSTALL_TARGET=
+
+# #######################################################
+
+get_systemd_service_name() {
+    SERVICE=${SERVICE_NAME}
+
+    if [ ! -z $SERVICE_PARAM ]; then
+	SERVICE="${SERVICE_NAME}@${SERVICE_PARAM}"
+    fi
+}
+
+get_initd_service_start_file() {
+    START_FILE="${SERVICE_NAME}".start
+
+    if [ ! -z $SERVICE_PARAM ]; then
+	START_FILE="${SERVICE_NAME}-${SERVICE_PARAM}".start
+    fi
+}
+
+check_interface() {
+    local CHECK_IFNAME="$1"
+
+    if [[ "${CHECK_IFNAME}" =~ ^[a-zA-Z0-9:_-]{1,24}$ ]]; then
+	:
+    else
+	[ $QUIET = false ] && echo "Invalid interface $IFNAME"
+	print_usage
+    fi
+
+    IFNAME=${CHECK_IFNAME}
+    SERVICE_PARAM="$IFNAME"
+    LOG_FILE="/var/log/n2disk/n2disk-$IFNAME.log"
+}
+
+check_license() {
+    if [[ "$LICENSE" =~ ^[a-zA-Z0-9]{32,64}$ ]]; then
+	:
+    else
+	[ $QUIET = false ] && echo "Invalid license $LICENSE"
+	exit 1
+    fi
+}
+
+# #######################################################
+
+start_service() {
+    if [ $SYSTEMD = true ]; then
+	get_systemd_service_name
+	/bin/systemctl start $SERVICE
+    else
+	/etc/init.d/${SERVICE_NAME} force-start ${SERVICE_PARAM}
+    fi
+}
+
+stop_service() {
+    if [ $SYSTEMD = true ]; then
+	get_systemd_service_name
+	/bin/systemctl stop $SERVICE
+    else
+	/etc/init.d/${SERVICE_NAME} stop ${SERVICE_PARAM}
+    fi
+}
+
+restart_service() {
+    if [ $SYSTEMD = true ]; then
+	get_systemd_service_name
+	/bin/systemctl restart $SERVICE
+    else
+	/etc/init.d/${SERVICE_NAME} stop ${SERVICE_PARAM}
+	/etc/init.d/${SERVICE_NAME} force-start ${SERVICE_PARAM}
+    fi
+}
+
+enable_service() {
+    if [ $SYSTEMD = true ]; then
+	get_systemd_service_name
+	/bin/systemctl -q enable $SERVICE
+    else
+	get_initd_service_start_file
+	touch /etc/${SERVICE_NAME}/${START_FILE}
+    fi
+}
+
+disable_service() {
+    if [ $SYSTEMD = true ]; then
+	get_systemd_service_name
+	/bin/systemctl -q disable $SERVICE
+    else
+	get_initd_service_start_file
+	rm /etc/${SERVICE_NAME}/${START_FILE}
+    fi
+}
+
+get_service_status() {
+    if [ $SYSTEMD = true ]; then
+	get_systemd_service_name
+	/bin/systemctl status $SERVICE
+    else
+	/etc/init.d/${SERVICE_NAME} status ${SERVICE_PARAM}
+    fi
+}
+
+is_active_service() {
+    if [ $SYSTEMD = true ]; then
+	get_systemd_service_name
+	/bin/systemctl show $SERVICE -p ActiveState | cut -f2 -d=
+    else
+	if [ $(/etc/init.d/${SERVICE_NAME} status ${SERVICE_PARAM} 2>/dev/null | grep "${SERVICE_NAME} running" | wc -l) -gt 0 ]; then
+	    echo "active"
+	else
+	    echo "inactive"
+	fi
+    fi
+}
+
+is_service_enabled() {
+    if [ $SYSTEMD = true ]; then
+	get_systemd_service_name
+	/bin/systemctl is-enabled $SERVICE
+    else
+	get_initd_service_start_file
+	if [ -f "/etc/${SERVICE_NAME}/${START_FILE}" ]; then
+	    echo "enabled"
+	else
+	    echo "disabled"
+	fi
+    fi
+}
+
+has_service() {
+    if [ $SYSTEMD = true ]; then
+	local SERVICE_FNAME=${SERVICE_NAME}
+
+	if [ ! -z $SERVICE_PARAM ]; then
+	    SERVICE_FNAME="${SERVICE_NAME}@"
+	fi
+
+	systemctl list-unit-files | grep -q "${SERVICE_FNAME}".service
+
+	if [ $? -eq 0 ]; then
+	    echo "yes"
+	else
+	    echo "no"
+	fi
+    else
+	if [ -f /etc/init.d/${SERVICE_NAME} ]; then
+	    echo "yes"
+	else
+	    echo "no"
+	fi
+    fi
+}
+
+print_service_log() {
+    if [ $SYSTEMD = true ]; then
+	get_systemd_service_name
+	/bin/journalctl -u ${SERVICE}
+    else
+	if  [ -f $LOG_FILE ]; then
+	    /bin/cat $LOG_FILE
+	fi
+    fi
+}
+
+# #######################################################
+# n2disk
+# #######################################################
+
+list_n2disk_services() {
+    # find all the n2disk configuration files, except those that are managed by ntopng
+    # which have a name starting with n2disk-ntopng
+
+    for N2DISK_CONF_FILE in `find /etc/n2disk/ -name "n2disk-*.conf"  ! -name "n2disk-ntopng-*"`; do
+	local N2DISK_SERVICE_NAME=`basename $N2DISK_CONF_FILE`;
+
+	# strip the trailing .conf and the leading ntopng-
+	N2DISK_SERVICE_NAME="${N2DISK_SERVICE_NAME//\.conf/}"
+	N2DISK_SERVICE_NAME="${N2DISK_SERVICE_NAME//n2disk\-/}"
+	# add ntopng@ to build the actual service name
+	N2DISK_SERVICE_NAME="n2disk@${N2DISK_SERVICE_NAME}"
+
+	# print the service name along with it's status (active or inactive)
+	# it seems impossible but the systemd is not able to just print the service
+	# with the status using systemctl is-active 'n2disk@*'. It will just print
+	# a series of meaningless active active active inactive without a way to
+	# associate the status back to the service
+	echo "${N2DISK_SERVICE_NAME}" `systemctl is-active "${N2DISK_SERVICE_NAME}"` "${N2DISK_CONF_FILE}"
+    done
+}
+
+get_n2disk_stats() {
+    if [ $SYSTEMD = true ]; then
+	PID=$(/bin/systemctl show -p MainPID ${SERVICE_NAME}@${IFNAME} | cut -d'=' -f2)
+    fi
+    if [ -n "$PID" ] && [ "$PID" -ne "0" ]; then
+	/bin/cat /proc/net/pf_ring/stats/${PID}-* 2>/dev/null
+    fi
+}
+
+set_n2disk_license() {
+    echo "$LICENSE" > /etc/n2disk.license
+}
+
+install_service_conf() {
+    NTOPNG_MANAGE_CONF="/usr/bin/ntopng-utils-manage-config"
+
+    if [ ! -z $CONFIG_INSTALL_TARGET ]; then
+	if [ -f "$NTOPNG_MANAGE_CONF" ]; then
+	    $NTOPNG_MANAGE_CONF -a ${CONFIG_INSTALL_TARGET} -i ${SERVICE_PARAM}
+	fi
+    fi
+}
+
+# #######################################################
+
+ALLOWED_OPTIONS_N2DISK="is-active|log|stats|list"
+ALLOWED_OPTIONS_N2DISK_NTOPNG="start|stop|restart|enable|disable|status|is-active|is-enabled|has-service|log|stats|set-license"
+ALLOWED_OPTIONS_N2N="start|stop|restart|enable|disable|status|is-active|is-enabled|has-service|log"
+
+print_usage() {
+    echo "Usage:"
+    echo " n2n {${ALLOWED_OPTIONS_N2N}} [params]"
+    echo " n2disk-ntopng {${ALLOWED_OPTIONS_N2DISK_NTOPNG}} [params]"
+    echo " n2disk {${ALLOWED_OPTIONS_N2DISK}} [params]"
+    exit 1
+}
+
+if hash systemctl 2>/dev/null; then
+    SYSTEMD=true
+fi
+
+check_allowed_options() {
+    local ALLOWED_OPTIONS=`echo $2 | sed 's/|/ /g'`
+    local OPTION=$1
+
+    for i in ${ALLOWED_OPTIONS}; do
+	if [ "${OPTION}" = "${i}" ]; then return; fi
+    done
+
+    print_usage
+}
+
+# Program check
+case "$1" in
+    n2disk)
+	check_allowed_options "$2" "${ALLOWED_OPTIONS_N2DISK}"
+	SERVICE_NAME="n2disk"
+
+	if [ -z "$3" ] && [ "$2" != "list" ]; then
+	    print_usage
+	fi
+
+	if [ ! -z "$3" ]; then
+	    check_interface "$3"
+	fi
+	;;
+
+    n2disk-ntopng)
+	check_allowed_options "$2" "${ALLOWED_OPTIONS_N2DISK_NTOPNG}"
+
+	CONFIG_INSTALL_TARGET="install-n2disk-conf"
+	SERVICE_NAME="n2disk-ntopng"
+
+	if [ -z "$3" ]; then
+	    print_usage
+	fi
+
+	if [ "$2" = "set-license" ]; then
+	    LICENSE="$3"
+	    check_license
+	else
+	    check_interface "$3"
+	fi
+	;;
+
+    n2n)
+	check_allowed_options "$2" "${ALLOWED_OPTIONS_N2N}"
+
+	SERVICE_NAME="edge-ntopng"
+	CONFIG_INSTALL_TARGET="install-n2n-conf"
+
+	if [ ! -z "$3" ]; then
+	    SERVICE_PARAM="$3"
+	fi
+	;;
+
+    *)
+	print_usage
+esac
+
+# Action
+case "$2" in
+    start)
+	install_service_conf
+	start_service;
+	;;
+
+    stop)
+	stop_service;
+	;;
+
+    restart)
+	install_service_conf
+	restart_service;
+	;;
+
+    enable)
+	install_service_conf
+	enable_service;
+	;;
+
+    disable)
+	disable_service;
+	;;
+
+    status)
+	get_service_status;
+	;;
+
+    is-active)
+	is_active_service;
+	;;
+
+    log)
+	print_service_log;
+	;;
+
+    is-enabled)
+	is_service_enabled;
+	;;
+
+    has-service)
+	has_service;
+	;;
+
+    list)
+	list_n2disk_services;
+	;;
+
+    # n2disk-ntopng
+    stats)
+	get_n2disk_stats
+	;;
+
+    set-license)
+	set_n2disk_license
+	;;
+
+    *)
+	print_usage
+esac
+
+# #######################################################
+
+exit 0

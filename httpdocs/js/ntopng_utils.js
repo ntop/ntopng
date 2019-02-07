@@ -536,3 +536,34 @@ function tstampToDateString(html_tag, format, tdiff) {
   html_tag.html(localized).removeClass("hidden");
   return localized;
 }
+
+function cleanCustomHostUrl(host) {
+  /* Remove starting http(s). */
+  return host
+    .replace(/^http:\/\//gi, '')
+    .replace(/^https:\/\//gi, '')
+    /* Remove starting www. */
+    .replace(/^www\./gi, '')
+    /* Remove non-allowed characters */
+    .replace(/[^0-9a-zA-Z\.\/_-]/gi, '');
+}
+
+/* https://stackoverflow.com/questions/2090551/parse-query-string-in-javascript */
+function parseQuery(queryString) {
+  var query = {};
+  var pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&');
+  for (var i = 0; i < pairs.length; i++) {
+    var pair = pairs[i].split('=');
+    query[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || '');
+  }
+  return query;
+}
+
+function getHistoryParameters(params) {
+  var cur_params = parseQuery(window.location.search);
+  var new_params = $.extend(cur_params, params);
+  var new_query = "?" + $.param(new_params, true);
+  var baseUrl = [location.protocol, '//', location.host, location.pathname].join('');
+
+  return baseUrl + new_query;
+}

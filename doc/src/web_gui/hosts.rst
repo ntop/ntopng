@@ -1,5 +1,3 @@
-.. _Hosts:
-
 Hosts
 #####
 
@@ -79,7 +77,11 @@ Each row of the table shows, for each pool, the following information:
   hosts in the pool has been observed
 - Breakdown, showing a bar that gives visual insights in the use of both pool traffic directions
 - Throughput, with the overall actual throughput of the pool
-- Traffic, with the total traffic exchanged by the poo
+- Traffic, with the total traffic exchanged by the pool
+
+Host pools can be configured from the `network interface page`_.
+
+.. _`network interface page`: interfaces.html#host-pools
 
 Networks
 --------

@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-18 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -44,8 +44,10 @@ class VirtualHost : public GenericHashEntry {
 
   virtual inline bool idle() { return(false); };
   inline char* get_name()    { return(name);  };
-  inline void incStats(u_int32_t num_req, u_int32_t bytes_sent, u_int32_t bytes_rcvd) {
-    sent_stats.incStats(bytes_sent), rcvd_stats.incStats(bytes_rcvd), num_requests.incStats(num_req);
+  inline void incStats(time_t t, u_int32_t num_req, u_int32_t bytes_sent, u_int32_t bytes_rcvd) {
+    sent_stats.incStats(t, 1, bytes_sent),
+      rcvd_stats.incStats(t, 1, bytes_rcvd),
+      num_requests.incStats(t, 1, num_req);
   }  
   inline u_int64_t  get_sent_bytes()   { return(sent_stats.getNumBytes());   };
   inline u_int64_t  get_rcvd_bytes()   { return(rcvd_stats.getNumBytes());   };

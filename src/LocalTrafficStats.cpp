@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-18 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -110,19 +110,19 @@ void LocalTrafficStats::lua(lua_State* vm) {
   lua_newtable(vm);
   
   lua_newtable(vm);
-  lua_push_int_table_entry(vm, "local2local", packets.local2local);
-  lua_push_int_table_entry(vm, "local2remote", packets.local2remote);
-  lua_push_int_table_entry(vm, "remote2local", packets.remote2local);
-  lua_push_int_table_entry(vm, "remote2remote", packets.remote2remote);  
+  lua_push_uint64_table_entry(vm, "local2local", packets.local2local);
+  lua_push_uint64_table_entry(vm, "local2remote", packets.local2remote);
+  lua_push_uint64_table_entry(vm, "remote2local", packets.remote2local);
+  lua_push_uint64_table_entry(vm, "remote2remote", packets.remote2remote);  
   lua_pushstring(vm, "packets");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
 
   lua_newtable(vm);
-  lua_push_int_table_entry(vm, "local2local", bytes.local2local);
-  lua_push_int_table_entry(vm, "local2remote", bytes.local2remote);
-  lua_push_int_table_entry(vm, "remote2local", bytes.remote2local);
-  lua_push_int_table_entry(vm, "remote2remote", bytes.remote2remote);  
+  lua_push_uint64_table_entry(vm, "local2local", bytes.local2local);
+  lua_push_uint64_table_entry(vm, "local2remote", bytes.local2remote);
+  lua_push_uint64_table_entry(vm, "remote2local", bytes.remote2local);
+  lua_push_uint64_table_entry(vm, "remote2remote", bytes.remote2remote);  
   lua_pushstring(vm, "bytes");
   lua_insert(vm, -2);
   lua_settable(vm, -3);

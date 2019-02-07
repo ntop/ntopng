@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-18 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -48,7 +48,21 @@ void IpAddress::set(char *sym_addr) {
 
 /* ******************************************* */
 
-bool IpAddress::isEmpty() {
+void IpAddress::set(union usa *ip) {
+  if(ip->sin.sin_family != AF_INET6) {
+    addr.ipVersion = 4, addr.localHost = 0, addr.ipType.ipv4 = ip->sin.sin_addr.s_addr;
+  }
+#if defined(USE_IPV6)
+  else {
+    memcpy(&addr.ipType.ipv6, &ip->sin6.sin6_addr.s6_addr, sizeof(struct ndpi_in6_addr));
+    addr.ipVersion = 6, addr.localHost = 0;
+  }
+#endif
+}
+
+/* ******************************************* */
+
+bool IpAddress::isEmpty() const {
   if((addr.ipVersion == 0)
      || ((addr.ipVersion == 4) && (addr.ipType.ipv4 == 0))) {
     return true;
@@ -115,7 +129,7 @@ void IpAddress::checkIP() {
 
 /* ******************************************* */
 
-int IpAddress::compare(IpAddress *ip) {
+int IpAddress::compare(const IpAddress * const ip) const {
   if(ip == NULL) return(-1);
 
   if(addr.ipVersion < ip->addr.ipVersion) return(-1); else if(addr.ipVersion > ip->addr.ipVersion) return(1);
