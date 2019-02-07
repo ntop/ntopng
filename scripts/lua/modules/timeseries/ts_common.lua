@@ -9,7 +9,7 @@ local ts_common = {}
 ts_common.metrics = {}
 ts_common.metrics.counter = "counter"
 ts_common.metrics.gauge = "gauge"
-ts_common.metrics.integral = "integral"
+ts_common.metrics.derivative = "derivative"
 
 -- ##############################################
 
