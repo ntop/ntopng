@@ -1847,6 +1847,8 @@ local lang = {
     ["unable_to_find_host"] = "Unable to find %{host_ip} (data expired ?)",
   },
   ["nedge"] = {
+    external_port_or_range = "External port or port range",
+    internal_port_number = "Internal port number",
     ["a_member_address_is"] = "A member address is a rule to assign devices to a user. The following order applies:",
     ["a_zero_quota_is_unlimited"] = "A zero quota means unlimited traffic.",
     ["active_user"] = "Active User",
