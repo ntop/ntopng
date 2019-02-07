@@ -830,6 +830,27 @@ end
 
 -- #################################################################
 
+local function validatePortRange(p)
+   local v = string.split(p, "%-") or {p, p}
+
+   if #v ~= 2 then
+      return false
+   end
+
+   if not validateNumber(v[1]) or not validateNumber(v[2]) then
+      return false
+   end
+
+   local p0 = tonumber(v[1]) or 0
+   local p1 = tonumber(v[2]) or 0
+
+   return(((p0 >= 1) and (p0 <= 65535)) and
+      ((p1 >= 1) and (p1 <= 65535) and
+      (p1 >= p0)))
+end
+
+-- #################################################################
+
 local function validateInterfaceConfMode(m)
    return validateChoice({"dhcp", "static", "vlan_trunk"}, m)
 end
@@ -1365,6 +1386,12 @@ local known_parameters = {
    ["no_timeout"]              = validateBool,
    ["supernode"]               = validateSingleWord,
    ["ts_aggregation"]          = validateChoiceInline({"raw", "1h", "1d"}),
+   ["fw_rule_id"]              = validateSingleWord,
+   ["external_port"]           = validatePortRange,
+   ["internal_port"]           = validatePortRange,
+   ["internal_ip"]             = validateIPV4,
+   ["fw_proto"]                = validateChoiceInline({"tcp", "udp", "both"}),
+   ["wan_interface"]           = validateNetworkInterface,
 
    -- json POST DATA
    ["payload"]                 = { jsonCleanup, validateJSON },
