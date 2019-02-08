@@ -57,7 +57,6 @@ class Flow : public GenericHashEntry {
   Host *cli_host, *srv_host;
   u_int16_t cli_port, srv_port;
   u_int16_t vlanId;
-  FlowState state;
   u_int32_t vrfId;
   u_int8_t protocol, src2dst_tcp_flags, dst2src_tcp_flags;
   struct ndpi_flow_struct *ndpiFlow;
@@ -444,7 +443,6 @@ class Flow : public GenericHashEntry {
   inline u_int32_t getSrv2CliMaxInterArrivalTime()  { return(srv2cliStats.pktTime.max_ms); }
   inline u_int32_t getSrv2CliAvgInterArrivalTime()  { return((srv2cli_packets < 2) ? 0 : srv2cliStats.pktTime.total_delta_ms / (srv2cli_packets-1)); }
   bool isIdleFlow();
-  inline FlowState getFlowState()         { return(state);                          }
   inline bool      isEstablished()        { return (!isTcpRST() && !isTcpFIN()
 						    && (src2dst_tcp_flags & TH_SYN) && (src2dst_tcp_flags & TH_ACK)
 						    && (dst2src_tcp_flags & TH_SYN) && (dst2src_tcp_flags & TH_ACK)); }

@@ -35,7 +35,7 @@ Flow::Flow(NetworkInterface *_iface,
   cli2srv_packets = 0, cli2srv_bytes = 0, cli2srv_goodput_bytes = 0,
     srv2cli_packets = 0, srv2cli_bytes = 0, srv2cli_goodput_bytes = 0,
     cli2srv_last_packets = 0, cli2srv_last_bytes = 0, srv2cli_last_packets = 0, srv2cli_last_bytes = 0,
-    cli_host = srv_host = NULL, good_low_flow_detected = false, state = flow_state_other,
+    cli_host = srv_host = NULL, good_low_flow_detected = false,
     srv2cli_last_goodput_bytes = cli2srv_last_goodput_bytes = 0, good_ssl_hs = true,
     flow_alerted = flow_dropped_counts_increased = false, vrfId = 0;
 
@@ -2364,13 +2364,7 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when,
   if(flags == TH_SYN) {
     if(cli_host) cli_host->updateSynFlags(when->tv_sec, flags, this, true);
     if(srv_host) srv_host->updateSynFlags(when->tv_sec, flags, this, false);
-    state = flow_state_syn;
-  } else if(flags & TH_RST)
-    state = flow_state_rst;
-  else if(flags & TH_FIN)
-    state = flow_state_fin;
-  else
-    state = flow_state_established;
+  }
 
   if((flags & TH_SYN) && (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_SYN) != TH_SYN))
     iface->getTcpFlowStats()->incSyn();

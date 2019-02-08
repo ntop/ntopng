@@ -5113,22 +5113,15 @@ static bool num_flows_state_walker(GenericHashEntry *node, void *user_data, bool
   Flow *flow = (Flow*)node;
   u_int32_t *num_flows = (u_int32_t*)user_data;
 
-  switch(flow->getFlowState()) {
-  case flow_state_syn:
-    num_flows[1]++;
-    break;
-  case flow_state_established:
-    num_flows[2]++;
-    break;
-  case flow_state_rst:
-    num_flows[0]++;
-    break;
-  case flow_state_fin:
-    num_flows[3]++;
-    break;
-  default:
-    /* UDP... */
-    break;
+  if(flow->get_protocol() == IPPROTO_TCP) {
+    if(flow->isEstablished())
+      num_flows[2]++;
+    else if(flow->isTcpSYNOnly())
+      num_flows[1]++;
+    else if(flow->isTcpRST())
+      num_flows[0]++;
+    else if(flow->isTcpFIN())
+      num_flows[3]++;
   }
 
   *matched = true;
