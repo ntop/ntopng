@@ -14,7 +14,7 @@ local json = require("dkjson")
 local CUSTOM_CATEGORY_MINING = 99
 local CUSTOM_CATEGORY_MALWARE = 100
 
-local DEFAULT_UPDATE_INTERVAL = 3600
+local DEFAULT_UPDATE_INTERVAL = 86400
 
 -- supported formats: ip, domain, hosts
 local BUILTIN_LISTS = {
