@@ -49,6 +49,25 @@ typedef enum {
 } LocationPolicy;
 
 typedef enum {
+  flow_state_other = 0,
+  flow_state_syn,
+  flow_state_established,
+  flow_state_rst,
+  flow_state_fin,
+} FlowState;
+
+typedef enum {
+  tcp_flow_state_filter_all = 0,
+  tcp_flow_state_filter_syn_only,
+  tcp_flow_state_filter_rst,
+  tcp_flow_state_filter_fin,
+  tcp_flow_state_filter_syn_rst_only,
+  tcp_flow_state_filter_fin_rst,
+  tcp_flow_state_filter_established_only,
+  tcp_flow_state_filter_not_established_only,
+} TcpFlowStateFilter;
+
+typedef enum {
   traffic_type_all,
   traffic_type_one_way,
   traffic_type_bidirectional,

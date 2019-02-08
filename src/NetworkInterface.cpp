@@ -3483,6 +3483,7 @@ struct flowHostRetriever {
   int ndpi_proto;             /* Not used in flow_search_walker */
   TrafficType traffic_type;   /* Not used in flow_search_walker */
   sortField sorter;
+  TcpFlowStateFilter tcp_flow_state_filter;
   LocationPolicy location;    /* Not used in flow_search_walker */
   u_int8_t ipVersionFilter;   /* Not used in flow_search_walker */
   bool filteredHosts;         /* Not used in flow_search_walker */
@@ -3518,6 +3519,7 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
   u_int8_t *mac_filter;
   LocationPolicy client_policy;
   LocationPolicy server_policy;
+  TcpFlowStateFilter tcp_flow_state_filter;
   bool unicast, unidirectional, alerted_flows;
   u_int32_t asn_filter;
   u_int32_t uid_filter;
@@ -3548,6 +3550,18 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
     if(retriever->pag
        && retriever->pag->l7categoryFilter(&ndpi_cat)
        && f->get_protocol_category() != ndpi_cat)
+      return(false);
+
+    if(retriever->pag
+       && retriever->pag->tcpFlowStateFilter(&tcp_flow_state_filter)
+       && ((f->get_protocol() != IPPROTO_TCP)
+	   || (tcp_flow_state_filter == tcp_flow_state_filter_syn_only && !f->isTcpSYNOnly())
+	   || (tcp_flow_state_filter == tcp_flow_state_filter_rst && !f->isTcpRST())
+	   || (tcp_flow_state_filter == tcp_flow_state_filter_fin && !f->isTcpFIN())
+	   || (tcp_flow_state_filter == tcp_flow_state_filter_syn_rst_only && !f->isTcpSYNRSTOnly())
+	   || (tcp_flow_state_filter == tcp_flow_state_filter_fin_rst && !f->isTcpFINRST())
+	   || (tcp_flow_state_filter == tcp_flow_state_filter_established_only && !f->isEstablished())
+	   || (tcp_flow_state_filter == tcp_flow_state_filter_not_established_only && f->isEstablished())))
       return(false);
 
     if(retriever->pag

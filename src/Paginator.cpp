@@ -43,6 +43,7 @@ Paginator::Paginator() {
   ip_version = 0;
   client_mode = location_all;
   server_mode = location_all;
+  tcp_flow_state_filter = tcp_flow_state_filter_all;
   unicast_traffic = -1;
   unidirectional_traffic = -1;
   alerted_flows = -1;
@@ -122,6 +123,24 @@ void Paginator::readOptions(lua_State *L, int index) {
 	    server_mode = location_remote_only;
 	  else
 	    server_mode = location_all;
+	} else if(!strcmp(key, "tcpFlowStateFilter")) {
+	  const char* value = lua_tostring(L, -1);
+	  if (!strcmp(value, "syn_only"))
+	    tcp_flow_state_filter = tcp_flow_state_filter_syn_only;
+	  else if (!strcmp(value, "rst"))
+	    tcp_flow_state_filter = tcp_flow_state_filter_rst;
+	  else if (!strcmp(value, "fin"))
+	    tcp_flow_state_filter = tcp_flow_state_filter_fin;
+	  else if (!strcmp(value, "syn_rst_only"))
+	    tcp_flow_state_filter = tcp_flow_state_filter_syn_rst_only;
+	  else if (!strcmp(value, "fin_rst"))
+	    tcp_flow_state_filter = tcp_flow_state_filter_fin_rst;
+	  else if (!strcmp(value, "established_only"))
+	    tcp_flow_state_filter = tcp_flow_state_filter_established_only;
+	  else if (!strcmp(value, "not_established_only"))
+	    tcp_flow_state_filter = tcp_flow_state_filter_not_established_only;
+	  else
+	    tcp_flow_state_filter = tcp_flow_state_filter_all;
 	} else if(!strcmp(key, "detailsLevel")) {
 	  const char* value = lua_tostring(L, -1);
 	  details_level_set = Utils::str2DetailsLevel(value, &details_level);

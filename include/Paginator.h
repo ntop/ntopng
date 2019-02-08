@@ -46,6 +46,7 @@ class Paginator {
   bool details_level_set;
   LocationPolicy client_mode;
   LocationPolicy server_mode;
+  TcpFlowStateFilter tcp_flow_state_filter;
 
  public:
   Paginator();
@@ -120,6 +121,10 @@ class Paginator {
 
   inline bool serverMode(LocationPolicy *f) const {
     if(server_mode) { (*f) = server_mode; return true; } return false;
+  }
+
+  inline bool tcpFlowStateFilter(TcpFlowStateFilter *f) const {
+    if(tcp_flow_state_filter) { (*f) = tcp_flow_state_filter; return true; } return false;
   }
 
   inline bool asnFilter(u_int32_t *f) const {

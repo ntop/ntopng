@@ -321,6 +321,12 @@ local function validateFlowStatus(mode)
    return validateChoice(modes, mode)
 end
 
+local function validateTCPFlowState(mode)
+   local modes = {"syn_only", "rst", "fin", "syn_rst_only", "fin_rst", "established_only", "not_established_only"}
+
+   return validateChoice(modes, mode)   
+end
+
 local function validatePolicyPreset(mode)
    local modes = {"children", "business", "no_obfuscation", "walled_garden"}
 
@@ -1307,6 +1313,7 @@ local known_parameters = {
    ["drop_flow_policy"]        = validateBool,                  -- true if target flow should be dropped
    ["traffic_type"]            = validateBroadcastUnicast,      -- flows_stats.lua
    ["flow_status"]             = validateFlowStatus,            -- flows_stats.lua
+   ["tcp_flow_state"]          = validateTCPFlowState,          -- flows_stats.lua
    ["include_unlimited"]       = validateBool,                  -- pool_details_ndpi.lua
    ["policy_preset"]           = validateEmptyOr(validatePolicyPreset), -- a traffic bridge policy set
    ["members_filter"]          = validateMembersFilter,         -- host_pools.lua
