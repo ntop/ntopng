@@ -2,7 +2,7 @@
 -- (C) 2013-18 - ntop.org
 --
 
-dirs = ntop.getDirs()
+local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 local shaper_utils
@@ -573,11 +573,14 @@ else
       print("</td></tr>\n")
    else
       if((flow.client_process ~= nil) or (flow.server_process ~= nil)) then
+	 local epbf_utils = require "ebpf_utils"
 	 print('<tr><th colspan=3><div id="sprobe"></div>')
-	 width  = 1024
-	 height = 200
-	 url = ntop.getHttpPrefix().."/lua/get_flow_process_tree.lua?flow_key="..flow_key
-	 dofile(dirs.installdir .. "/scripts/lua/inc/sprobe.lua")
+
+	 local width  = 1024
+	 local height = 200
+	 local url = ntop.getHttpPrefix().."/lua/get_flow_process_tree.lua?flow_key="..flow_key
+	 epbf_utils.draw_flow_processes_graph(width, height, url)
+
 	 print('</th></tr>\n')
       end
 
