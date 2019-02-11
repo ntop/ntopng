@@ -500,9 +500,7 @@ class NetworkInterface : public Checkpointable {
   virtual Host* getHost(char *host_ip, u_int16_t vlan_id);
   virtual Host* getHost(IpAddress * const host_ip, u_int16_t vlan_id) const;
   bool getHostInfo(lua_State* vm, AddressTree *allowed_hosts, char *host_ip, u_int16_t vlan_id);
-  void findUserFlows(lua_State *vm, char *username);
   void findPidFlows(lua_State *vm, u_int32_t pid);
-  void findFatherPidFlows(lua_State *vm, u_int32_t pid);
   void findProcNameFlows(lua_State *vm, char *proc_name);
   void addAllAvailableInterfaces();
   inline bool idle() { return(is_idle); }

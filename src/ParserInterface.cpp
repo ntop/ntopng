@@ -353,28 +353,6 @@ ParserInterface::ParserInterface(const char *endpoint, const char *custom_interf
   addMapping("ORACLE_RSP_STRING", 57675);
   addMapping("ORACLE_QUERY_DURATION", 57676);
   addMapping("POP_USER", 57682);
-  addMapping("SRC_PROC_PID", 57640);
-  addMapping("SRC_PROC_NAME", 57641);
-  addMapping("SRC_PROC_UID", 57897);
-  addMapping("SRC_PROC_USER_NAME", 57844);
-  addMapping("SRC_FATHER_PROC_PID", 57845);
-  addMapping("SRC_FATHER_PROC_NAME", 57846);
-  addMapping("SRC_PROC_ACTUAL_MEMORY", 57855);
-  addMapping("SRC_PROC_PEAK_MEMORY", 57856);
-  addMapping("SRC_PROC_AVERAGE_CPU_LOAD", 57857);
-  addMapping("SRC_PROC_NUM_PAGE_FAULTS", 57858);
-  addMapping("SRC_PROC_PCTG_IOWAIT", 57865);
-  addMapping("DST_PROC_PID", 57847);
-  addMapping("DST_PROC_NAME", 57848);
-  addMapping("DST_PROC_UID", 57898);
-  addMapping("DST_PROC_USER_NAME", 57849);
-  addMapping("DST_FATHER_PROC_PID", 57850);
-  addMapping("DST_FATHER_PROC_NAME", 57851);
-  addMapping("DST_PROC_ACTUAL_MEMORY", 57859);
-  addMapping("DST_PROC_PEAK_MEMORY", 57860);
-  addMapping("DST_PROC_AVERAGE_CPU_LOAD", 57861);
-  addMapping("DST_PROC_NUM_PAGE_FAULTS", 57862);
-  addMapping("DST_PROC_PCTG_IOWAIT", 57866);
   addMapping("RADIUS_REQ_MSG_TYPE", 57712);
   addMapping("RADIUS_RSP_MSG_TYPE", 57713);
   addMapping("RADIUS_USER_NAME", 57714);
@@ -864,70 +842,6 @@ void ParserInterface::parseSingleFlow(json_object *o,
 	if(ntop->getPrefs()->do_override_dst_with_post_nat_dst())
 	  flow.core.dst_port = htons(atoi(value));
 	break;
-      case SRC_PROC_PID:
-	flow.src_process.pid = atoi(value);
-	break;
-#if 0
-      case SRC_PROC_NAME:
-	snprintf(flow.src_process.name, sizeof(flow.src_process.name), "%s", value);
-	break;
-      case SRC_PROC_USER_NAME:
-	snprintf(flow.src_process.user_name, sizeof(flow.src_process.user_name), "%s", value);
-	break;
-      case SRC_FATHER_PROC_PID:
-	flow.src_process.father_pid = atoi(value);
-	break;
-      case SRC_FATHER_PROC_NAME:
-	snprintf(flow.src_process.father_name, sizeof(flow.src_process.father_name), "%s", value);
-	break;
-      case SRC_PROC_ACTUAL_MEMORY:
-	flow.src_process.actual_memory = atoi(value);
-	break;
-      case SRC_PROC_PEAK_MEMORY:
-	flow.src_process.peak_memory = atoi(value);
-	break;
-      case SRC_PROC_AVERAGE_CPU_LOAD:
-	flow.src_process.average_cpu_load = ((float)atol(value))/((float)100);
-	break;
-      case SRC_PROC_NUM_PAGE_FAULTS:
-	flow.src_process.num_vm_page_faults = atoi(value);
-	break;
-      case SRC_PROC_PCTG_IOWAIT:
-	flow.src_process.percentage_iowait_time = ((float)atol(value))/((float)100);
-	break;
-#endif
-      case DST_PROC_PID:
-	flow.dst_process.pid = atoi(value);
-	break;
-#if 0
-      case DST_PROC_NAME:
-	snprintf(flow.dst_process.name, sizeof(flow.dst_process.name), "%s", value);
-	break;
-      case DST_PROC_USER_NAME:
-	snprintf(flow.dst_process.user_name, sizeof(flow.dst_process.user_name), "%s", value);
-	break;
-      case DST_FATHER_PROC_PID:
-	flow.dst_process.father_pid = atoi(value);
-	break;
-      case DST_FATHER_PROC_NAME:
-	snprintf(flow.dst_process.father_name, sizeof(flow.dst_process.father_name), "%s", value);
-	break;
-      case DST_PROC_ACTUAL_MEMORY:
-	flow.dst_process.actual_memory = atoi(value);
-	break;
-      case DST_PROC_PEAK_MEMORY:
-	flow.dst_process.peak_memory = atoi(value);
-	break;
-      case DST_PROC_AVERAGE_CPU_LOAD:
-	flow.dst_process.average_cpu_load = ((float)atol(value))/((float)100);
-	break;
-      case DST_PROC_NUM_PAGE_FAULTS:
-	flow.dst_process.num_vm_page_faults = atoi(value);
-	break;
-      case DST_PROC_PCTG_IOWAIT:
-	flow.dst_process.percentage_iowait_time = ((float)atol(value))/((float)100);
-	break;
-#endif
       case DNS_QUERY:
 	flow.dns_query = strdup(value);
 	break;
@@ -1137,7 +1051,7 @@ u_int8_t ParserInterface::parseTemplate(const char * const payload, int payload_
      [{"PEN":0,"field":1,"len":4,"format":"formatted_uint","name":"IN_BYTES","descr":"Incoming flow bytes (src->dst)"},{"PEN":0,"field":2,"len":4,"format":"formatted_uint","name":"IN_PKTS","descr":"Incoming flow packets (src->dst)"},]
   */
 
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", payload);
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", payload);
 
   ZMQ_Template zmq_template;
   json_object *obj, *w, *z;

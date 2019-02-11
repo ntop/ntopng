@@ -2608,32 +2608,6 @@ void Flow::updateTcpSeqNum(const struct bpf_timeval *when,
 
 /* *************************************** */
 
-void Flow::handle_process(ProcessInfo *pinfo, bool client_process) {
-  ProcessInfo *proc;
-
-  if(pinfo->pid == 0) return;
-
-  if(client_process) {
-    if(client_proc)
-      memcpy(client_proc, pinfo, sizeof(ProcessInfo));
-    else {
-      if((proc = (ProcessInfo*)malloc(sizeof(ProcessInfo))) == NULL) return;
-      memcpy(proc, pinfo, sizeof(ProcessInfo));
-      client_proc = proc, cli_host->setSystemHost(); /* Outgoing */
-    }
-  } else {
-    if(server_proc)
-      memcpy(server_proc, pinfo, sizeof(ProcessInfo));
-    else {
-      if((proc = (ProcessInfo*)malloc(sizeof(ProcessInfo))) == NULL) return;
-      memcpy(proc, pinfo, sizeof(ProcessInfo));
-      server_proc = proc, srv_host->setSystemHost();  /* Incoming */
-    }
-  }
-}
-
-/* *************************************** */
-
 u_int32_t Flow::getPid(bool client) {
   ProcessInfo *proc = client ? client_proc : server_proc;
 
@@ -2677,20 +2651,6 @@ u_int32_t Flow::get_pid(bool client) const {
   return NO_PID;
 #endif
 }
-
-/* *************************************** */
-
-char* Flow::get_username(bool client) {
-#ifdef WIN32
-  return(NULL);
-#else
-  ProcessInfo *proc = client ? client_proc : server_proc;
-  struct passwd *pwd;
-
-  if(proc == NULL) return(NULL); else pwd = getpwuid(proc->uid);
-  return((pwd == NULL) ? NULL : pwd->pw_name);
-#endif
-};
 
 /* *************************************** */
 

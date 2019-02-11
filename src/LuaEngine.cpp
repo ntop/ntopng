@@ -3253,26 +3253,6 @@ static int ntop_dump_local_hosts_2_redis(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_get_interface_find_user_flows(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  char *key;
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(!ntop->isUserAdministrator(vm)) return(CONST_LUA_ERROR);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  key = (char*)lua_tostring(vm, 1);
-
-  if(!ntop_interface) return(CONST_LUA_ERROR);
-
-  ntop_interface->findUserFlows(vm, key);
-  /* TODO check if we need lua_pushnil(vm); in case of no match */
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
 static int ntop_get_interface_find_pid_flows(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   u_int32_t pid;
@@ -3287,26 +3267,6 @@ static int ntop_get_interface_find_pid_flows(lua_State* vm) {
   if(!ntop_interface) return(CONST_LUA_ERROR);
 
   ntop_interface->findPidFlows(vm, pid);
-  /* TODO check if we need lua_pushnil(vm); in case of no match */
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-static int ntop_get_interface_find_father_pid_flows(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  u_int32_t father_pid;
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(!ntop->isUserAdministrator(vm)) return(CONST_LUA_ERROR);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  father_pid = (u_int32_t)lua_tonumber(vm, 1);
-
-  if(!ntop_interface) return(CONST_LUA_ERROR);
-
-  ntop_interface->findFatherPidFlows(vm, father_pid);
   /* TODO check if we need lua_pushnil(vm); in case of no match */
   return(CONST_LUA_OK);
 }
@@ -8148,9 +8108,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "dropFlowTraffic",          ntop_drop_flow_traffic },
   { "dumpLocalHosts2redis",     ntop_dump_local_hosts_2_redis },
   { "dropMultipleFlowsTraffic",   ntop_drop_multiple_flows_traffic },
-  { "findUserFlows",            ntop_get_interface_find_user_flows },
   { "findPidFlows",             ntop_get_interface_find_pid_flows },
-  { "findFatherPidFlows",       ntop_get_interface_find_father_pid_flows },
   { "findNameFlows",            ntop_get_interface_find_proc_name_flows },
   { "listHTTPhosts",            ntop_list_http_hosts },
   { "findHost",                 ntop_get_interface_find_host },

@@ -1250,14 +1250,6 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
 				  zflow->core.pkt_sampling_rate*(zflow->core.in_pkts+zflow->core.out_pkts),
 				  zflow->core.pkt_sampling_rate*(zflow->core.in_bytes+zflow->core.out_bytes));
 
-  if(zflow->src_process.pid || zflow->dst_process.pid) {
-    if(zflow->src_process.pid) flow->handle_process(&zflow->src_process, src2dst_direction ? true : false);
-    if(zflow->dst_process.pid) flow->handle_process(&zflow->dst_process, src2dst_direction ? false : true);
-
-    if(zflow->core.l7_proto.app_protocol == NDPI_PROTOCOL_UNKNOWN)
-      flow->guessProtocol();
-  }
-
   if(zflow->dns_query) flow->setDNSQuery(zflow->dns_query);
   if(zflow->http_url)  flow->setHTTPURL(zflow->http_url);
   if(zflow->http_site) flow->setServerName(zflow->http_site);
@@ -5639,45 +5631,6 @@ bool NetworkInterface::isNumber(const char *str) {
 
 /* **************************************************** */
 
-struct user_flows {
-  lua_State* vm;
-  char *username;
-};
-
-static bool userfinder_walker(GenericHashEntry *node, void *user_data, bool *matched) {
-  Flow *f = (Flow*)node;
-  struct user_flows *info = (struct user_flows*)user_data;
-  char *user = f->get_username(true);
-
-  if(user == NULL)
-    user = f->get_username(false);
-
-  if(user && (strcmp(user, info->username) == 0)) {
-    f->lua(info->vm, NULL, details_normal /* Minimum details */, false);
-    lua_pushinteger(info->vm, f->key()); // Key
-    lua_insert(info->vm, -2);
-    lua_settable(info->vm, -3);
-    *matched = true;
-  }
-
-  return(false); /* false = keep on walking */
-}
-
-/* **************************************************** */
-
-void NetworkInterface::findUserFlows(lua_State *vm, char *username) {
-  struct user_flows u;
-  u_int32_t begin_slot = 0;
-  bool walk_all = true;
-
-  u.vm = vm, u.username = username;
-
-  lua_newtable(vm);
-  walker(&begin_slot, walk_all, walker_flows, userfinder_walker, &u);
-}
-
-/* **************************************************** */
-
 struct proc_name_flows {
   lua_State* vm;
   char *proc_name;
@@ -5754,36 +5707,6 @@ void NetworkInterface::findPidFlows(lua_State *vm, u_int32_t pid) {
 
   lua_newtable(vm);
   walker(&begin_slot, walk_all,  walker_flows, pidfinder_walker, &u);
-}
-
-/* **************************************** */
-
-static bool father_pidfinder_walker(GenericHashEntry *node, void *father_pid_data, bool *matched) {
-  Flow *f = (Flow*)node;
-  struct pid_flows *info = (struct pid_flows*)father_pid_data;
-
-  if((f->getFatherPid(true) == info->pid) || (f->getFatherPid(false) == info->pid)) {
-    f->lua(info->vm, NULL, details_normal /* Minimum details */, false);
-    lua_pushinteger(info->vm, f->key()); // Key
-    lua_insert(info->vm, -2);
-    lua_settable(info->vm, -3);
-    *matched = true;
-  }
-
-  return(false); /* false = keep on walking */
-}
-
-/* **************************************** */
-
-void NetworkInterface::findFatherPidFlows(lua_State *vm, u_int32_t father_pid) {
-  struct pid_flows u;
-  u_int32_t begin_slot = 0;
-  bool walk_all = true;
-
-  u.vm = vm, u.pid = father_pid;
-
-  lua_newtable(vm);
-  walker(&begin_slot, walk_all,  walker_flows, father_pidfinder_walker, &u);
 }
 
 /* **************************************** */
