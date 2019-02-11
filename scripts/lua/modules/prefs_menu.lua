@@ -234,7 +234,7 @@ local menu_subpages = {
       description = i18n("prefs.toggle_mining_alerts_description"),
     }, toggle_malware_probing = {
       title       = i18n("prefs.toggle_malware_probing_title"),
-      description = i18n("prefs.toggle_malware_probing_description", {url="https://rules.emergingthreats.net/fwrules/emerging-Block-IPs.txt"}),
+      description = i18n("prefs.toggle_malware_probing_description", {url=ntop.getHttpPrefix() .. "/lua/admin/edit_category_lists.lua"}),
     }, toggle_device_protocols_alerts = {
       title       = i18n("prefs.toggle_device_protocols_title"),
       description = i18n(ternary(have_nedge, "prefs.toggle_device_protocols_description_nedge", "prefs.toggle_device_protocols_description"), {url=getDeviceProtocolPoliciesUrl()}),

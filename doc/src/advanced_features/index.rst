@@ -15,6 +15,7 @@ section.
     dynamic_interfaces_disaggregation
     traffic_profiles
     device_protocols
+    category_lists
     bridging_and_policing
     flows_dump
     live_pcap_download
