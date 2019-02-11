@@ -60,14 +60,21 @@ local function loadListsFromRedis()
   local lists_metadata = ntop.getPref("ntopng.prefs.category_lists.metadata")
   local lists_status = ntop.getPref("ntopng.prefs.category_lists.status")
 
-  if isEmptyString(lists_metadata) or isEmptyString(lists_status) then
+  if isEmptyString(lists_status) then
     return {}
   end
 
-  local lists = json.decode(lists_metadata)
   local status = json.decode(lists_status)
+  local lists
 
-  if isEmptyString(lists) or isEmptyString(status) then
+  if isEmptyString(lists_metadata) then
+    -- no custom settings, use builtins
+    lists = table.clone(BUILTIN_LISTS)
+  else
+    lists = json.decode(lists_metadata)
+  end
+
+  if((lists == nil) or (status == nil)) then
     return {}
   end
 
