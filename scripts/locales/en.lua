@@ -707,7 +707,7 @@ local lang = {
     ["slow_application_header"] = "Slow Application Header",
     ["slow_data_exchange"] = "Slow Data Exchange (Slowloris?)",
     ["slow_tcp_connection"] = "Slow TCP Connection",
-    ["son_of_father_process"] = "son of <a href ='%{url}'>%{proc_father_pid}/%{proc_father_name}</a>",
+    ["son_of_father_process"] = "son of <a href ='%{url}'>%{proc_father_name} [pid: %{proc_father_pid}]</a>",
     ["ssh_signature"] = "SSH Signature",
     ["ssl_certificate"] = "SSL Certificate",
     ["ssl_certificate_mismatch"] = "SSL Certificate Mismatch",
