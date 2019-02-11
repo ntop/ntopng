@@ -28,8 +28,8 @@
 #ifndef _NTOP_FLOW_H_
 #define _NTOP_FLOW_H_
 
-#define UNKNOWN_FLOW_ELEMENT -1
-#define UNKNOWN_PEN          -1
+#define UNKNOWN_FLOW_ELEMENT (u_int32_t)-1
+#define UNKNOWN_PEN          (u_int32_t)-1
 #define NTOP_PEN     35632
 #define NTOP_BASE_ID 57472
 
