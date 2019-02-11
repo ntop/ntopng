@@ -232,12 +232,7 @@ else
    print("<table class=\"table table-bordered table-striped\">\n")
    if ifstats.vlan and flow["vlan"] > 0 then
       print("<tr><th width=30%>")
-      if(ifstats.sprobe) then
-	 print(i18n("details.source_id"))
-      else
-	 print(i18n("details.vlan_id"))
-      end
-
+      print(i18n("details.vlan_id"))
       print("</th><td colspan=2>" .. flow["vlan"].. "</td></tr>\n")
    end
 

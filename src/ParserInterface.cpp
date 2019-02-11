@@ -865,12 +865,10 @@ void ParserInterface::parseSingleFlow(json_object *o,
 	  flow.core.dst_port = htons(atoi(value));
 	break;
       case SRC_PROC_PID:
-	iface->enable_sprobe(); /* We're collecting system flows */
 	flow.src_process.pid = atoi(value);
 	break;
 #if 0
       case SRC_PROC_NAME:
-	iface->enable_sprobe(); /* We're collecting system flows */
 	snprintf(flow.src_process.name, sizeof(flow.src_process.name), "%s", value);
 	break;
       case SRC_PROC_USER_NAME:
@@ -899,12 +897,10 @@ void ParserInterface::parseSingleFlow(json_object *o,
 	break;
 #endif
       case DST_PROC_PID:
-	iface->enable_sprobe(); /* We're collecting system flows */
 	flow.dst_process.pid = atoi(value);
 	break;
 #if 0
       case DST_PROC_NAME:
-	iface->enable_sprobe(); /* We're collecting system flows */
 	snprintf(flow.dst_process.name, sizeof(flow.dst_process.name), "%s", value);
 	break;
       case DST_PROC_USER_NAME:
@@ -1141,7 +1137,7 @@ u_int8_t ParserInterface::parseTemplate(const char * const payload, int payload_
      [{"PEN":0,"field":1,"len":4,"format":"formatted_uint","name":"IN_BYTES","descr":"Incoming flow bytes (src->dst)"},{"PEN":0,"field":2,"len":4,"format":"formatted_uint","name":"IN_PKTS","descr":"Incoming flow packets (src->dst)"},]
   */
 
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", payload);
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", payload);
 
   ZMQ_Template zmq_template;
   json_object *obj, *w, *z;

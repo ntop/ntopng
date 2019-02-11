@@ -372,15 +372,7 @@ if (_GET["page"] ~= "historical") then
 			  ]]
 
    if(show_vlan) then
-      if(ifstats.sprobe) then
-	 print('{ title: "'..i18n("hosts_stats.source_id")..'",\n')
-      else
-	 if(ifstats.vlan) then
-	    print('{ title: "'..i18n("vlan")..'",\n')
-	 end
-      end
-
-
+      print('{ title: "'..i18n("vlan")..'",\n')
       print [[
 				 field: "column_vlan",
 				 sortable: true,

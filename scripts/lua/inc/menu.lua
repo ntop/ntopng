@@ -238,7 +238,6 @@ end
 
   if(interface.hasEBPF()) then
      -- TODO: decide whether a page with the list of processes should be done or not
-     -- print('<li><a href="'..ntop.getHttpPrefix()..'/lua/processes_stats.lua">') print(i18n("sprobe_page.processes")) print('</a></li>')
 end
 
 print('<li class="divider"></li>')
@@ -248,11 +247,6 @@ print('<li><a href="'..ntop.getHttpPrefix()..'/lua/local_hosts_stats.lua"><i cla
 print('<li><a href="'..ntop.getHttpPrefix()..'/lua/http_servers_stats.lua">') print(i18n("http_servers_stats.http_servers")) print('</a></li>')
 print('<li><a href="'..ntop.getHttpPrefix()..'/lua/top_hosts.lua"><i class="fa fa-trophy"></i> ') print(i18n("processes_stats.top_hosts")) print('</a></li>')
 print('<li class="divider"></li>')
-
-if(interface.hasEBPF()) then
---   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/sprobe.lua"><i class="fa fa-flag"></i> ') print(i18n("sprobe_page.system_interactions")) print('</a></li>\n')
-end
-
 
 if(not(isLoopback(ifname))) then
    print [[

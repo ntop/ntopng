@@ -193,7 +193,7 @@ NetworkInterface::NetworkInterface(const char *name,
       has_vlan_packets = has_ebpf_events = has_mac_addresses = false;
     arp_requests = arp_replies = 0;
 
-    running = false, sprobe_interface = false,
+    running = false,
       inline_interface = false, db = NULL;
 
     checkIdle();
@@ -269,7 +269,7 @@ NetworkInterface::NetworkInterface(const char *name,
 void NetworkInterface::init() {
   ifname = NULL, flows_hash = NULL, hosts_hash = NULL,
     bridge_lan_interface_id = bridge_wan_interface_id = 0, ndpi_struct = NULL,
-    sprobe_interface = inline_interface = false,
+    inline_interface = false,
     has_vlan_packets = false, has_ebpf_events = false,
     last_pkt_rcvd = last_pkt_rcvd_remote = 0,
     next_idle_flow_purge = next_idle_host_purge = 0,
@@ -279,7 +279,7 @@ void NetworkInterface::init() {
     pcap_datalink_type = 0, mtuWarningShown = false,
     purge_idle_flows_hosts = true, id = (u_int8_t)-1,
     last_remote_pps = 0, last_remote_bps = 0,
-    sprobe_interface = false, has_vlan_packets = false,
+    has_vlan_packets = false,
     cpu_affinity = -1 /* no affinity */,
     inline_interface = false, running = false, interfaceStats = NULL,
     has_too_many_hosts = has_too_many_flows = too_many_drops = false,
@@ -2576,7 +2576,7 @@ void NetworkInterface::cleanup() {
   next_idle_flow_purge = next_idle_host_purge = 0;
   cpu_affinity = -1,
     has_vlan_packets = false, has_ebpf_events = false, has_mac_addresses = false;
-  running = false, sprobe_interface = false, inline_interface = false;
+  running = false, inline_interface = false;
 
   getStats()->cleanup();
   flows_hash->cleanup();
@@ -5212,7 +5212,6 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_bool_table_entry(vm, "isView", isView()); /* View interface */
   lua_push_bool_table_entry(vm, "isDynamic", isDynamicInterface()); /* An runtime-instantiated interface */
   lua_push_uint64_table_entry(vm,  "seen.last", getTimeLastPktRcvd());
-  lua_push_bool_table_entry(vm, "sprobe", get_sprobe_interface());
   lua_push_bool_table_entry(vm, "inline", get_inline_interface());
   lua_push_bool_table_entry(vm, "vlan",     hasSeenVlanTaggedPackets());
   lua_push_bool_table_entry(vm, "has_macs", hasSeenMacAddresses());

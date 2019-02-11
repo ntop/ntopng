@@ -78,13 +78,8 @@ print [[
 
 			       ifstats = interface.getStats()
 
-if(ifstats.sprobe) then
-   print('title: "'..i18n("details.source_id")..'",\n')
-else
-   print('title: "'..i18n("vlan")..'",\n')
-end
-
-print [[
+			       print('title: "'..i18n("vlan")..'",\n')
+			       print [[
 				 field: "column_vlan",
 				 sortable: true,
 	 	             css: {
