@@ -24,15 +24,11 @@
 
 #include "ntop_includes.h"
 
-struct FlowFieldMap {
-  char *key;
-  int value;
-  UT_hash_handle hh; /* makes this structure hashable */
-};
-
 class ParserInterface : public NetworkInterface {
  private:
-  struct FlowFieldMap *map;
+  typedef std::pair<u_int32_t, u_int32_t> pen_value_t;
+  typedef std::map<string, pen_value_t > labels_map_t;
+  labels_map_t labels_map;
   bool once;
   u_int64_t zmq_initial_bytes, zmq_initial_pkts,
     zmq_remote_initial_exported_flows;
@@ -40,10 +36,11 @@ class ParserInterface : public NetworkInterface {
 #ifdef NTOPNG_PRO
   CustomAppMaps *custom_app_maps;
 #endif
-  int getKeyId(char *sym);
-  void addMapping(const char *sym, int num);
+  bool getKeyId(char *sym, u_int32_t * const pen, u_int32_t * const field) const;
+  void addMapping(const char *sym, u_int32_t num, u_int32_t pen = 0);
+  bool parsePENZeroField(ZMQ_Flow * const flow, u_int32_t field, const char * const value) const;
+  bool parsePENNtopField(ZMQ_Flow * const flow, u_int32_t field, const char * const value) const;
   void parseSingleFlow(json_object *o, u_int8_t source_id, NetworkInterface *iface);
-
   void setFieldMap(const ZMQ_FieldMap * const field_map) const;
   void setFieldValueMap(const ZMQ_FieldValueMap * const field_value_map) const;
 
