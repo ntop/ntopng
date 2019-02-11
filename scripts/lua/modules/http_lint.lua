@@ -1398,6 +1398,9 @@ local known_parameters = {
    ["internal_ip"]             = validateIPV4,
    ["fw_proto"]                = validateChoiceInline({"tcp", "udp", "both"}),
    ["wan_interface"]           = validateNetworkInterface,
+   ["list_name"]               = validateUnquoted,
+   ["list_enabled"]            = validateOnOff,
+   ["list_update"]             = validateNumber,
 
    -- json POST DATA
    ["payload"]                 = { jsonCleanup, validateJSON },

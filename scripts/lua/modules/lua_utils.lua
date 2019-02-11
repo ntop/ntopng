@@ -2751,6 +2751,17 @@ end
 
 -- ####################################################
 
+function getTzOffsetSeconds()
+   local now = os.time()
+   local local_t = os.date("*t", now)
+   local utc_t = os.date("!*t", now)
+   local delta = (local_t.hour - utc_t.hour)*60 + (local_t.min - utc_t.min)
+
+   return(delta*60)
+end
+
+-- ####################################################
+
 function makeTimeStamp(d, tzoffset)
    -- tzoffset is the timezone difference between UTC and Local Time in the browser
    local pattern = "(%d+)%/(%d+)%/(%d+) (%d+):(%d+):(%d+)"
@@ -2764,11 +2775,7 @@ function makeTimeStamp(d, tzoffset)
       timestamp = timestamp - (tzoffset or 0)
 
       -- from UTC to machine local time
-      local now = os.time()
-      local local_t = os.date("*t", now)
-      local utc_t = os.date("!*t", now)
-      local delta = (local_t.hour - utc_t.hour)*60 + (local_t.min - utc_t.min)
-      delta = delta * 60 -- to seconds
+      local delta = getTzOffsetSeconds()
 
       timestamp = timestamp + (delta or 0)
       -- tprint("delta: "..delta.." tzoffset is: "..tzoffset)

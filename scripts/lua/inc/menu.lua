@@ -439,6 +439,7 @@ if(is_admin) then
    end
 
    print("<li><a href=\""..ntop.getHttpPrefix().."/lua/admin/edit_categories.lua\"><i class=\"fa fa-tags\"></i> ") print(i18n("users.categories")) print("</a></li>\n")
+   print("<li><a href=\""..ntop.getHttpPrefix().."/lua/admin/edit_category_lists.lua\"><i class=\"fa fa-sticky-note\"></i> ") print(i18n("category_lists.category_lists")) print("</a></li>\n")
 
    local device_protocols_alerts = _POST["toggle_device_protocols_alerts"] or ntop.getPref("ntopng.prefs.device_protocols_alerts")
    if (device_protocols_alerts == "1") then
