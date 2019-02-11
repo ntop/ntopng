@@ -83,14 +83,13 @@ local function loadListsFromRedis()
   end
 
   local status = json.decode(lists_status)
-  local lists
+  local lists = {}
 
-  if isEmptyString(lists_metadata) then
-    -- no custom settings, use builtins
-    lists = table.clone(BUILTIN_LISTS)
-  else
+  if not isEmptyString(lists_metadata) then
     lists = json.decode(lists_metadata)
   end
+
+  lists = table.merge(BUILTIN_LISTS, lists)
 
   if((lists == nil) or (status == nil)) then
     return {}
