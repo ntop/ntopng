@@ -45,7 +45,7 @@ class Redis {
   u_int numCached;
 
   char* getRedisVersion();
-  void reconnectRedis();
+  void reconnectRedis(bool giveup_on_failure);
   int msg_push(const char * const cmd, const char * const queue_name, const char * const msg, u_int queue_trim_size,
 	       bool trace_errors = true, bool head_trim = true);
   int pushHost(const char* ns_cache, const char* ns_list, char *hostname,
@@ -60,7 +60,8 @@ class Redis {
  public:
   Redis(const char *redis_host = (char*)"127.0.0.1",
 	const char *redis_password = NULL,
-	u_int16_t redis_port = 6379, u_int8_t _redis_db_id = 0);
+	u_int16_t redis_port = 6379, u_int8_t _redis_db_id = 0,
+	bool giveup_on_failure = false);
   ~Redis();
 
   inline char* getVersion()        { return(redis_version);     }

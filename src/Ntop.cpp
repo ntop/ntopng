@@ -269,21 +269,27 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
   }
 
   /* Initialize redis and populate some default values */
-  Utils::initRedis(&redis, prefs->get_redis_host(), prefs->get_redis_password(), prefs->get_redis_port(), prefs->get_redis_db_id());
+  Utils::initRedis(&redis, prefs->get_redis_host(), prefs->get_redis_password(),
+		   prefs->get_redis_port(), prefs->get_redis_db_id(), quick_registration);
   if(redis) redis->setDefaults();
 
-  /* Initialize another redis instance for the trace of events */
-  ntop->getTrace()->initRedis(prefs->get_redis_host(), prefs->get_redis_password(), prefs->get_redis_port(), prefs->get_redis_db_id());
-
-  if(ntop->getRedis() == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to initialize redis. Quitting...");
-    exit(-1);
+  if(!quick_registration) {
+    /* Initialize another redis instance for the trace of events */
+    ntop->getTrace()->initRedis(prefs->get_redis_host(), prefs->get_redis_password(),
+				prefs->get_redis_port(), prefs->get_redis_db_id());
+    
+    if(ntop->getRedis() == NULL) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to initialize redis. Quitting...");
+      exit(-1);
+    }
   }
-
+  
 #ifdef NTOPNG_PRO
   pro->init_license();
 #endif
 
+  if(quick_registration) return;
+  
   /* License check could have increased the number of interfaces available */
   resetNetworkInterfaces();
 

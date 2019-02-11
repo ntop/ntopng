@@ -389,7 +389,6 @@ void usage() {
 #endif
 	 "[--verbose|-v] <level>              | Verbose tracing [0 (min).. 6 (debug)]\n"
 	 "[--version|-V]                      | Print version and license information, then quit\n"
-	 "--version-no-license                | Only print version information and quit\n"
 	 "--print-ndpi-protocols              | Print the nDPI protocols list\n"
 	 "--ignore-vlans                      | Ignore VLAN tags from traffic\n"
 	 "--simulate-vlans                    | Simulate VLAN traffic (debug only)\n"
@@ -747,7 +746,6 @@ static const struct option long_options[] = {
 #ifdef HAVE_TEST_MODE
   { "test-script",                       required_argument, NULL, 218 },
 #endif
-  { "version-no-license",                no_argument,       NULL, 219 },
 #ifdef NTOPNG_PRO
   { "check-maintenance",                 no_argument,       NULL, 252 },
   { "check-license",                     no_argument,       NULL, 253 },
@@ -1385,11 +1383,6 @@ int Prefs::setOption(int optkey, char *optarg) {
     test_script_path = strdup(optarg);
     break;
 #endif
-
-  case 219:
-    printVersionInformation();
-    exit(0);
-    break;
 
   default:
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unknown option -%c: Ignored.", (char)optkey);

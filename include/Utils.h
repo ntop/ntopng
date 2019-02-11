@@ -104,7 +104,8 @@ class Utils {
   static u_int32_t macHash(u_int8_t *mac);
   static bool isSpecialMac(u_int8_t *mac);
   static int numberOfSetBits(u_int32_t i);
-  static void initRedis(Redis **r, const char *redis_host, const char *redis_password, u_int16_t redis_port, u_int8_t _redis_db_id);
+  static void initRedis(Redis **r, const char *redis_host, const char *redis_password,
+			u_int16_t redis_port, u_int8_t _redis_db_id, bool giveup_on_failure);
   static bool str2DetailsLevel(const char *details, DetailsLevel *out);
   static u_int32_t roundTime(u_int32_t now, u_int32_t rounder, int32_t offset_from_utc);
   static bool isCriticalNetworkProtocol(u_int16_t protocol_id);
