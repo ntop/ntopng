@@ -388,7 +388,8 @@ void usage() {
 	 "                                    | in the license.\n"
 #endif
 	 "[--verbose|-v] <level>              | Verbose tracing [0 (min).. 6 (debug)]\n"
-	 "[--version|-V]                      | Print version and quit\n"
+	 "[--version|-V]                      | Print version and license information, then quit\n"
+	 "--version-no-license                | Only print version information and quit\n"
 	 "--print-ndpi-protocols              | Print the nDPI protocols list\n"
 	 "--ignore-vlans                      | Ignore VLAN tags from traffic\n"
 	 "--simulate-vlans                    | Simulate VLAN traffic (debug only)\n"
@@ -743,9 +744,10 @@ static const struct option long_options[] = {
   { "simulate-vlans",                    no_argument,       NULL, 214 },
   { "zmq-encrypt-pwd",                   required_argument, NULL, 215 },
   { "ignore-vlans",                      no_argument,       NULL, 217 },
-  #ifdef HAVE_TEST_MODE
+#ifdef HAVE_TEST_MODE
   { "test-script",                       required_argument, NULL, 218 },
 #endif
+  { "version-no-license",                no_argument,       NULL, 219 },
 #ifdef NTOPNG_PRO
   { "check-maintenance",                 no_argument,       NULL, 252 },
   { "check-license",                     no_argument,       NULL, 253 },
@@ -830,6 +832,38 @@ void Prefs::setCommandLineString(int optkey, const char * optarg){
     }
   }
 
+}
+
+/* ******************************************* */
+
+/* NOTE: avoid Redis connection in this function */
+static void printVersionInformation() {
+    printf("v.%s\t[%s%s build]\n", PACKAGE_VERSION,
+#ifndef HAVE_NEDGE
+#ifdef NTOPNG_PRO
+	   "Enterprise/Professional"
+#else
+	   "Community"
+#endif
+#else
+	   "Edge"
+#endif
+	   ,
+#ifdef NTOPNG_EMBEDDED_EDITION
+	   "/Embedded"
+#else
+	   ""
+#endif
+	   );
+    printf("GIT rev:\t%s\n", NTOPNG_GIT_RELEASE);
+
+#ifdef NTOPNG_PRO
+    printf("Pro rev:\t%s\n", NTOPNG_PRO_GIT_RELEASE);
+    printf("Built on:\t%s\n", PACKAGE_OS);
+
+    printf("System Id:\t%s\n", ntop->getPro()->get_system_id());
+    printf("Platform:\t%s\n", PACKAGE_MACHINE);
+#endif
 }
 
 /* ******************************************* */
@@ -1261,34 +1295,12 @@ int Prefs::setOption(int optkey, char *optarg) {
     break;
 
   case 'V':
-    printf("v.%s\t[%s%s build]\n", PACKAGE_VERSION,
-#ifndef HAVE_NEDGE
-#ifdef NTOPNG_PRO
-	   "Enterprise/Professional"
-#else
-	   "Community"
-#endif
-#else
-	   "Edge"
-#endif
-	   ,
-#ifdef NTOPNG_EMBEDDED_EDITION
-	   "/Embedded"
-#else
-	   ""
-#endif
-	   );
-    printf("GIT rev:\t%s\n", NTOPNG_GIT_RELEASE);
-#ifdef NTOPNG_PRO
-    printf("Pro rev:\t%s\n", NTOPNG_PRO_GIT_RELEASE);
-    printf("Built on:\t%s\n", PACKAGE_OS);
+    printVersionInformation();
 
-    printf("System Id:\t%s\n", ntop->getPro()->get_system_id());
-
+#ifdef NTOPNG_PRO
     ntop->getTrace()->set_trace_level((u_int8_t)0);
     ntop->registerPrefs(this, true);
     ntop->getPro()->init_license();
-    printf("Platform:\t%s\n", PACKAGE_MACHINE);
     printf("Edition:\t%s\n",      ntop->getPro()->get_edition());
     printf("License Type:\t%s\n", ntop->getPro()->get_license_type());
 
@@ -1373,6 +1385,11 @@ int Prefs::setOption(int optkey, char *optarg) {
     test_script_path = strdup(optarg);
     break;
 #endif
+
+  case 219:
+    printVersionInformation();
+    exit(0);
+    break;
 
   default:
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unknown option -%c: Ignored.", (char)optkey);
