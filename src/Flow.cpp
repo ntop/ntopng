@@ -3631,7 +3631,7 @@ void Flow::postFlowSetPurge(time_t t) {
 
 /* ***************************************************** */
 
-void Flow::fillZmqFlowCategory(ndpi_protocol *p) {
+void Flow::fillZmqFlowCategory() {
   struct ndpi_detection_module_struct *ndpi_struct = iface->get_ndpi_struct();
   char *srv_name = getFlowServerInfo();
 
@@ -3639,15 +3639,15 @@ void Flow::fillZmqFlowCategory(ndpi_protocol *p) {
     return;
 
   if(cli_host->get_ip()->isIPv4()) {
-    if(ndpi_fill_ip_protocol_category(ndpi_struct, get_cli_ipv4(), get_srv_ipv4(), p))
+    if(ndpi_fill_ip_protocol_category(ndpi_struct, get_cli_ipv4(), get_srv_ipv4(), &ndpiDetectedProtocol))
       return;
   }
 
   if(srv_name && srv_name[0]) {
     unsigned long id;
 
-    if(ndpi_match_custom_category(ndpi_struct, srv_name, &id)) {
-      p->category = (ndpi_protocol_category_t)id;
+    if(ndpi_match_custom_category(ndpi_struct, srv_name, &id) == 0) {
+      ndpiDetectedProtocol.category = (ndpi_protocol_category_t)id;
       return;
     }
   }

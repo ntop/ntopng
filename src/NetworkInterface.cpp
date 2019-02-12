@@ -1244,7 +1244,6 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
 		     zflow->core.last_switched);
   p.app_protocol = zflow->core.l7_proto.app_protocol, p.master_protocol = zflow->core.l7_proto.master_protocol;
   p.category = NDPI_PROTOCOL_CATEGORY_UNSPECIFIED;
-  flow->fillZmqFlowCategory(&p);
   flow->setDetectedProtocol(p, true);
   flow->setJSONInfo(json_object_to_json_string(zflow->additional_fields));
 
@@ -1268,6 +1267,9 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
     }
   }
 #endif
+
+  // NOTE: fill the category only after the server name is set
+  flow->fillZmqFlowCategory();
 
   /* Do not put incStats before guessing the flow protocol */
   incStats(true /* ingressPacket */,
