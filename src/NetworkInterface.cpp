@@ -1243,6 +1243,8 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
 		     zflow->core.pkt_sampling_rate*zflow->core.out_bytes, 0,
 		     zflow->core.last_switched);
   p.app_protocol = zflow->core.l7_proto.app_protocol, p.master_protocol = zflow->core.l7_proto.master_protocol;
+  p.category = NDPI_PROTOCOL_CATEGORY_UNSPECIFIED;
+  flow->fillZmqFlowCategory(&p);
   flow->setDetectedProtocol(p, true);
   flow->setJSONInfo(json_object_to_json_string(zflow->additional_fields));
 
@@ -1563,7 +1565,8 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	  ndpi_protocol icmp_proto = flow->get_detected_protocol();
 
 	  if(icmp_proto.category == NDPI_PROTOCOL_CATEGORY_UNSPECIFIED) {
-	    ndpi_fill_ip_protocol_category(ndpi_struct, (struct ndpi_iphdr *)ip, &icmp_proto);
+	    ndpi_fill_ip_protocol_category(ndpi_struct,
+	      ((struct ndpi_iphdr*)ip)->saddr, ((struct ndpi_iphdr*)ip)->daddr, &icmp_proto);
 	    flow->setDetectedProtocol(icmp_proto, false);
 	  }
 	}
