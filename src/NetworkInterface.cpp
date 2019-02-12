@@ -193,7 +193,7 @@ NetworkInterface::NetworkInterface(const char *name,
       has_vlan_packets = has_ebpf_events = has_mac_addresses = false;
     arp_requests = arp_replies = 0;
 
-    running = false, sprobe_interface = false,
+    running = false,
       inline_interface = false, db = NULL;
 
     checkIdle();
@@ -269,7 +269,7 @@ NetworkInterface::NetworkInterface(const char *name,
 void NetworkInterface::init() {
   ifname = NULL, flows_hash = NULL, hosts_hash = NULL,
     bridge_lan_interface_id = bridge_wan_interface_id = 0, ndpi_struct = NULL,
-    sprobe_interface = inline_interface = false,
+    inline_interface = false,
     has_vlan_packets = false, has_ebpf_events = false,
     last_pkt_rcvd = last_pkt_rcvd_remote = 0,
     next_idle_flow_purge = next_idle_host_purge = 0,
@@ -279,7 +279,7 @@ void NetworkInterface::init() {
     pcap_datalink_type = 0, mtuWarningShown = false,
     purge_idle_flows_hosts = true, id = (u_int8_t)-1,
     last_remote_pps = 0, last_remote_bps = 0,
-    sprobe_interface = false, has_vlan_packets = false,
+    has_vlan_packets = false,
     cpu_affinity = -1 /* no affinity */,
     inline_interface = false, running = false, interfaceStats = NULL,
     has_too_many_hosts = has_too_many_flows = too_many_drops = false,
@@ -293,7 +293,7 @@ void NetworkInterface::init() {
 
   numSubInterfaces = 0;
   memset(subInterfaces, 0, sizeof(subInterfaces));
-  reload_custom_categories = false;
+  reload_custom_categories = reload_hosts_blacklist = false;
 
   ip_addresses = "", networkStats = NULL,
     pcap_datalink_type = 0, cpu_affinity = -1;
@@ -1249,14 +1249,6 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
   flow->updateInterfaceLocalStats(src2dst_direction,
 				  zflow->core.pkt_sampling_rate*(zflow->core.in_pkts+zflow->core.out_pkts),
 				  zflow->core.pkt_sampling_rate*(zflow->core.in_bytes+zflow->core.out_bytes));
-
-  if(zflow->src_process.pid || zflow->dst_process.pid) {
-    if(zflow->src_process.pid) flow->handle_process(&zflow->src_process, src2dst_direction ? true : false);
-    if(zflow->dst_process.pid) flow->handle_process(&zflow->dst_process, src2dst_direction ? false : true);
-
-    if(zflow->core.l7_proto.app_protocol == NDPI_PROTOCOL_UNKNOWN)
-      flow->guessProtocol();
-  }
 
   if(zflow->dns_query) flow->setDNSQuery(zflow->dns_query);
   if(zflow->http_url)  flow->setHTTPURL(zflow->http_url);
@@ -2542,6 +2534,7 @@ void NetworkInterface::reloadCustomCategories() {
     ntop->getTrace()->traceEvent(TRACE_DEBUG, "Going to reload categories [iface: %s]", get_name());
     ndpi_enable_loaded_categories(ndpi_struct);
     reload_custom_categories = false;
+    reload_hosts_blacklist = true;
   }
 }
 
@@ -2576,7 +2569,7 @@ void NetworkInterface::cleanup() {
   next_idle_flow_purge = next_idle_host_purge = 0;
   cpu_affinity = -1,
     has_vlan_packets = false, has_ebpf_events = false, has_mac_addresses = false;
-  running = false, sprobe_interface = false, inline_interface = false;
+  running = false, inline_interface = false;
 
   getStats()->cleanup();
   flows_hash->cleanup();
@@ -3483,6 +3476,7 @@ struct flowHostRetriever {
   int ndpi_proto;             /* Not used in flow_search_walker */
   TrafficType traffic_type;   /* Not used in flow_search_walker */
   sortField sorter;
+  TcpFlowStateFilter tcp_flow_state_filter;
   LocationPolicy location;    /* Not used in flow_search_walker */
   u_int8_t ipVersionFilter;   /* Not used in flow_search_walker */
   bool filteredHosts;         /* Not used in flow_search_walker */
@@ -3518,6 +3512,7 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
   u_int8_t *mac_filter;
   LocationPolicy client_policy;
   LocationPolicy server_policy;
+  TcpFlowStateFilter tcp_flow_state_filter;
   bool unicast, unidirectional, alerted_flows;
   u_int32_t asn_filter;
   u_int32_t uid_filter;
@@ -3548,6 +3543,18 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
     if(retriever->pag
        && retriever->pag->l7categoryFilter(&ndpi_cat)
        && f->get_protocol_category() != ndpi_cat)
+      return(false);
+
+    if(retriever->pag
+       && retriever->pag->tcpFlowStateFilter(&tcp_flow_state_filter)
+       && ((f->get_protocol() != IPPROTO_TCP)
+	   || (tcp_flow_state_filter == tcp_flow_state_filter_syn_only && !f->isTcpSYNOnly())
+	   || (tcp_flow_state_filter == tcp_flow_state_filter_rst && !f->isTcpRST())
+	   || (tcp_flow_state_filter == tcp_flow_state_filter_fin && !f->isTcpFIN())
+	   || (tcp_flow_state_filter == tcp_flow_state_filter_syn_rst_only && !f->isTcpSYNRSTOnly())
+	   || (tcp_flow_state_filter == tcp_flow_state_filter_fin_rst && !f->isTcpFINRST())
+	   || (tcp_flow_state_filter == tcp_flow_state_filter_established_only && !f->isEstablished())
+	   || (tcp_flow_state_filter == tcp_flow_state_filter_not_established_only && f->isEstablished())))
       return(false);
 
     if(retriever->pag
@@ -5099,22 +5106,15 @@ static bool num_flows_state_walker(GenericHashEntry *node, void *user_data, bool
   Flow *flow = (Flow*)node;
   u_int32_t *num_flows = (u_int32_t*)user_data;
 
-  switch(flow->getFlowState()) {
-  case flow_state_syn:
-    num_flows[1]++;
-    break;
-  case flow_state_established:
-    num_flows[2]++;
-    break;
-  case flow_state_rst:
-    num_flows[0]++;
-    break;
-  case flow_state_fin:
-    num_flows[3]++;
-    break;
-  default:
-    /* UDP... */
-    break;
+  if(flow->get_protocol() == IPPROTO_TCP) {
+    if(flow->isEstablished())
+      num_flows[2]++;
+    else if(flow->isTcpSYNOnly())
+      num_flows[1]++;
+    else if(flow->isTcpRST())
+      num_flows[0]++;
+    else if(flow->isTcpFIN())
+      num_flows[3]++;
   }
 
   *matched = true;
@@ -5205,7 +5205,6 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_bool_table_entry(vm, "isView", isView()); /* View interface */
   lua_push_bool_table_entry(vm, "isDynamic", isDynamicInterface()); /* An runtime-instantiated interface */
   lua_push_uint64_table_entry(vm,  "seen.last", getTimeLastPktRcvd());
-  lua_push_bool_table_entry(vm, "sprobe", get_sprobe_interface());
   lua_push_bool_table_entry(vm, "inline", get_inline_interface());
   lua_push_bool_table_entry(vm, "vlan",     hasSeenVlanTaggedPackets());
   lua_push_bool_table_entry(vm, "has_macs", hasSeenMacAddresses());
@@ -5633,45 +5632,6 @@ bool NetworkInterface::isNumber(const char *str) {
 
 /* **************************************************** */
 
-struct user_flows {
-  lua_State* vm;
-  char *username;
-};
-
-static bool userfinder_walker(GenericHashEntry *node, void *user_data, bool *matched) {
-  Flow *f = (Flow*)node;
-  struct user_flows *info = (struct user_flows*)user_data;
-  char *user = f->get_username(true);
-
-  if(user == NULL)
-    user = f->get_username(false);
-
-  if(user && (strcmp(user, info->username) == 0)) {
-    f->lua(info->vm, NULL, details_normal /* Minimum details */, false);
-    lua_pushinteger(info->vm, f->key()); // Key
-    lua_insert(info->vm, -2);
-    lua_settable(info->vm, -3);
-    *matched = true;
-  }
-
-  return(false); /* false = keep on walking */
-}
-
-/* **************************************************** */
-
-void NetworkInterface::findUserFlows(lua_State *vm, char *username) {
-  struct user_flows u;
-  u_int32_t begin_slot = 0;
-  bool walk_all = true;
-
-  u.vm = vm, u.username = username;
-
-  lua_newtable(vm);
-  walker(&begin_slot, walk_all, walker_flows, userfinder_walker, &u);
-}
-
-/* **************************************************** */
-
 struct proc_name_flows {
   lua_State* vm;
   char *proc_name;
@@ -5748,36 +5708,6 @@ void NetworkInterface::findPidFlows(lua_State *vm, u_int32_t pid) {
 
   lua_newtable(vm);
   walker(&begin_slot, walk_all,  walker_flows, pidfinder_walker, &u);
-}
-
-/* **************************************** */
-
-static bool father_pidfinder_walker(GenericHashEntry *node, void *father_pid_data, bool *matched) {
-  Flow *f = (Flow*)node;
-  struct pid_flows *info = (struct pid_flows*)father_pid_data;
-
-  if((f->getFatherPid(true) == info->pid) || (f->getFatherPid(false) == info->pid)) {
-    f->lua(info->vm, NULL, details_normal /* Minimum details */, false);
-    lua_pushinteger(info->vm, f->key()); // Key
-    lua_insert(info->vm, -2);
-    lua_settable(info->vm, -3);
-    *matched = true;
-  }
-
-  return(false); /* false = keep on walking */
-}
-
-/* **************************************** */
-
-void NetworkInterface::findFatherPidFlows(lua_State *vm, u_int32_t father_pid) {
-  struct pid_flows u;
-  u_int32_t begin_slot = 0;
-  bool walk_all = true;
-
-  u.vm = vm, u.pid = father_pid;
-
-  lua_newtable(vm);
-  walker(&begin_slot, walk_all,  walker_flows, father_pidfinder_walker, &u);
 }
 
 /* **************************************** */

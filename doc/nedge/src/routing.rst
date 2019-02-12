@@ -19,6 +19,17 @@ to go through it.
 
   WAN interface network configuration
 
+NAT (Network Address Translation) is active by default on the WAN network interfaces.
+This means that the local IP address of the LAN clients are replaced with the WAN
+own interface address. When required, it is possible to disable NAT from the
+interface settings.
+
+.. figure:: img/wan_interface_nat.png
+  :align: center
+  :alt: WAN interface NAT
+
+  WAN interface NAT
+
 nEdge implements dynamic multipath routing according to some user defined routing
 policies. Routing policies work with gateways, so let's talk about gateway first.
 
@@ -149,3 +160,38 @@ possible to set static IP to MAC address mappings.
   :alt: DHCP leases
 
   DHCP static leases configuration
+
+Port Forwarding
+---------------
+
+While operating in router mode, nEdge will mask the clients IP addresses with
+the IP address of the WAN interface which is being used to route the traffic (unless NAT is
+disabled). This means that a host connected on the WAN side of the network will not be
+able to reach the local clients connected to the LAN. In order to allow such communication,
+it is necessary to setup a Port Forwarding rule telling nEdge that all the incoming communications
+on a given TCP/UDP port should be mapped to an internal LAN ip and port. This can be configured
+from the "Port Forwarding" page under the cog menu icon.
+
+.. figure:: img/port_forwarding_rules.png
+  :align: center
+  :alt: Port Forwarding Rules
+
+  Port Forwarding Rules
+
+The above example shows two port forwarding rules currently active on interface
+eth1. An external host connecting to the eth1 public IP address on port 56123 would
+be able to reach the local client 192.168.1.5 ssh port 22.
+
+By clicking the plus button it's possible to define new rules.
+
+.. figure:: img/add_port_forwarding_rule.png
+  :align: center
+  :alt: Add Port Forwarding Rule
+  :scale: 80%
+
+  Add Port Forwarding Rule
+
+The external port can be either a single port number or a port range, for example
+`1000-1010`. When a port range is used, all the external ports in that range will
+be mapped to a single internal port. The *protocol* specifies if the rule should map
+TCP ports, UDP ports, or both.

@@ -35,7 +35,7 @@ Flow::Flow(NetworkInterface *_iface,
   cli2srv_packets = 0, cli2srv_bytes = 0, cli2srv_goodput_bytes = 0,
     srv2cli_packets = 0, srv2cli_bytes = 0, srv2cli_goodput_bytes = 0,
     cli2srv_last_packets = 0, cli2srv_last_bytes = 0, srv2cli_last_packets = 0, srv2cli_last_bytes = 0,
-    cli_host = srv_host = NULL, good_low_flow_detected = false, state = flow_state_other,
+    cli_host = srv_host = NULL, good_low_flow_detected = false,
     srv2cli_last_goodput_bytes = cli2srv_last_goodput_bytes = 0, good_ssl_hs = true,
     flow_alerted = flow_dropped_counts_increased = false, vrfId = 0;
 
@@ -1621,7 +1621,6 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
        || (ndpiDetectedProtocol.app_protocol != NDPI_PROTOCOL_UNKNOWN)
        || iface->is_ndpi_enabled()
        || iface->isSampledTraffic()
-       || iface->is_sprobe_interface()
        || (iface->getIfType() == interface_type_ZMQ)
        || (iface->getIfType() == interface_type_ZC_FLOW)) {
       lua_push_str_table_entry(vm, "proto.ndpi", get_detected_protocol_name(buf, sizeof(buf)));
@@ -2364,13 +2363,7 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when,
   if(flags == TH_SYN) {
     if(cli_host) cli_host->updateSynFlags(when->tv_sec, flags, this, true);
     if(srv_host) srv_host->updateSynFlags(when->tv_sec, flags, this, false);
-    state = flow_state_syn;
-  } else if(flags & TH_RST)
-    state = flow_state_rst;
-  else if(flags & TH_FIN)
-    state = flow_state_fin;
-  else
-    state = flow_state_established;
+  }
 
   if((flags & TH_SYN) && (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_SYN) != TH_SYN))
     iface->getTcpFlowStats()->incSyn();
@@ -2615,32 +2608,6 @@ void Flow::updateTcpSeqNum(const struct bpf_timeval *when,
 
 /* *************************************** */
 
-void Flow::handle_process(ProcessInfo *pinfo, bool client_process) {
-  ProcessInfo *proc;
-
-  if(pinfo->pid == 0) return;
-
-  if(client_process) {
-    if(client_proc)
-      memcpy(client_proc, pinfo, sizeof(ProcessInfo));
-    else {
-      if((proc = (ProcessInfo*)malloc(sizeof(ProcessInfo))) == NULL) return;
-      memcpy(proc, pinfo, sizeof(ProcessInfo));
-      client_proc = proc, cli_host->setSystemHost(); /* Outgoing */
-    }
-  } else {
-    if(server_proc)
-      memcpy(server_proc, pinfo, sizeof(ProcessInfo));
-    else {
-      if((proc = (ProcessInfo*)malloc(sizeof(ProcessInfo))) == NULL) return;
-      memcpy(proc, pinfo, sizeof(ProcessInfo));
-      server_proc = proc, srv_host->setSystemHost();  /* Incoming */
-    }
-  }
-}
-
-/* *************************************** */
-
 u_int32_t Flow::getPid(bool client) {
   ProcessInfo *proc = client ? client_proc : server_proc;
 
@@ -2684,20 +2651,6 @@ u_int32_t Flow::get_pid(bool client) const {
   return NO_PID;
 #endif
 }
-
-/* *************************************** */
-
-char* Flow::get_username(bool client) {
-#ifdef WIN32
-  return(NULL);
-#else
-  ProcessInfo *proc = client ? client_proc : server_proc;
-  struct passwd *pwd;
-
-  if(proc == NULL) return(NULL); else pwd = getpwuid(proc->uid);
-  return((pwd == NULL) ? NULL : pwd->pw_name);
-#endif
-};
 
 /* *************************************** */
 

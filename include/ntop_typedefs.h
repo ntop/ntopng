@@ -49,6 +49,17 @@ typedef enum {
 } LocationPolicy;
 
 typedef enum {
+  tcp_flow_state_filter_all = 0,
+  tcp_flow_state_filter_syn_only,
+  tcp_flow_state_filter_rst,
+  tcp_flow_state_filter_fin,
+  tcp_flow_state_filter_syn_rst_only,
+  tcp_flow_state_filter_fin_rst,
+  tcp_flow_state_filter_established_only,
+  tcp_flow_state_filter_not_established_only,
+} TcpFlowStateFilter;
+
+typedef enum {
   traffic_type_all,
   traffic_type_one_way,
   traffic_type_bidirectional,
@@ -172,11 +183,6 @@ typedef struct {
   char *process_name, *father_process_name;
   u_int32_t uid /* User Id */, gid; /* Group Id */
   u_int32_t father_uid /* User Id */, father_gid; /* Group Id */
-#if 0
-  u_int32_t actual_memory, peak_memory;
-  float average_cpu_load, percentage_iowait_time;
-  u_int32_t num_vm_page_faults;
-#endif
 } ProcessInfo;
 
 typedef struct zmq_flow_core {
@@ -217,7 +223,6 @@ typedef struct zmq_flow {
   char *http_url, *http_site, *dns_query, *ssl_server_name, *bittorrent_hash;
   custom_app_t custom_app;
   /* Process Extensions */
-  ProcessInfo src_process, dst_process;
 } ZMQ_Flow;
 
 /* IMPORTANT: whenever the ZMQ_FlowSerial is changed, nProbe must be updated too */

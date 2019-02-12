@@ -40,14 +40,6 @@ typedef struct {
 } FlowPacketStats;
 
 typedef enum {
-  flow_state_other = 0,
-  flow_state_syn,
-  flow_state_established,
-  flow_state_rst,
-  flow_state_fin,
-} FlowState;
-
-typedef enum {
   SSL_STAGE_UNKNOWN = 0,
   SSL_STAGE_HELLO,
   SSL_STAGE_CCS
@@ -65,7 +57,6 @@ class Flow : public GenericHashEntry {
   Host *cli_host, *srv_host;
   u_int16_t cli_port, srv_port;
   u_int16_t vlanId;
-  FlowState state;
   u_int32_t vrfId;
   u_int8_t protocol, src2dst_tcp_flags, dst2src_tcp_flags;
   struct ndpi_flow_struct *ndpiFlow;
@@ -279,7 +270,6 @@ class Flow : public GenericHashEntry {
   u_int32_t getFatherPid(bool client);
   u_int32_t get_uid(bool client) const;
   u_int32_t get_pid(bool client) const;
-  char* get_username(bool client);
   char* get_proc_name(bool client);
   u_int32_t getNextTcpSeq(u_int8_t tcpFlags, u_int32_t tcpSeqNum, u_int32_t payloadLen) ;
   double toMs(const struct timeval *t);
@@ -387,7 +377,6 @@ class Flow : public GenericHashEntry {
   u_int64_t get_current_goodput_bytes_srv2cli();
   u_int64_t get_current_packets_cli2srv();
   u_int64_t get_current_packets_srv2cli();
-  void handle_process(ProcessInfo *pinfo, bool client_process);
   inline bool idle() { return(is_ready_to_be_purged()); }
   inline bool is_l7_protocol_guessed() { return(l7_protocol_guessed); };
   char* print(char *buf, u_int buf_len);
@@ -452,11 +441,17 @@ class Flow : public GenericHashEntry {
   inline u_int32_t getSrv2CliMaxInterArrivalTime()  { return(srv2cliStats.pktTime.max_ms); }
   inline u_int32_t getSrv2CliAvgInterArrivalTime()  { return((srv2cli_packets < 2) ? 0 : srv2cliStats.pktTime.total_delta_ms / (srv2cli_packets-1)); }
   bool isIdleFlow();
-  inline FlowState getFlowState()                   { return(state);                          }
-  inline bool      isEstablished()                  { return state == flow_state_established; }
-  inline bool      isFlowAlerted()                  { return(flow_alerted);                   }
-  inline void      setFlowAlerted()                 { flow_alerted = true;                    }
-  inline void      setVRFid(u_int32_t v)            { vrfId = v;                              }
+  inline bool      isEstablished()        { return (!isTcpRST() && !isTcpFIN()
+						    && (src2dst_tcp_flags & TH_SYN) && (src2dst_tcp_flags & TH_ACK)
+						    && (dst2src_tcp_flags & TH_SYN) && (dst2src_tcp_flags & TH_ACK)); }
+  inline bool      isTcpSYNOnly()         { return !(src2dst_tcp_flags ^ TH_SYN) && !dst2src_tcp_flags; }
+  inline bool      isTcpRST()             { return (src2dst_tcp_flags & TH_RST) || (dst2src_tcp_flags & TH_RST); }
+  inline bool      isTcpFIN()             { return (src2dst_tcp_flags & TH_FIN) || (dst2src_tcp_flags & TH_FIN); }
+  inline bool      isTcpSYNRSTOnly()      { return !(src2dst_tcp_flags ^ TH_SYN) && (dst2src_tcp_flags & TH_RST); }
+  inline bool      isTcpFINRST()          { return ((src2dst_tcp_flags & TH_FIN) && (dst2src_tcp_flags & TH_RST)) || ((src2dst_tcp_flags & TH_RST) && (dst2src_tcp_flags & TH_FIN)); }
+  inline bool      isFlowAlerted()        { return(flow_alerted);                   }
+  inline void      setFlowAlerted()       { flow_alerted = true;                    }
+  inline void      setVRFid(u_int32_t v)  { vrfId = v;                              }
 
   inline bool      setFlowDevice(u_int32_t device_ip, u_int16_t inidx, u_int16_t outidx) {
     if((flow_device.device_ip > 0 && flow_device.device_ip != device_ip)

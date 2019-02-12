@@ -6,7 +6,6 @@
 var flow_rows_option = {};
 flow_rows_option["type"] = "flow";
 flow_rows_option["vlan"] = false;
-flow_rows_option["sprobe"] = false;
 
 function flow_table_setID (row) {
   var index = 0;
@@ -16,41 +15,20 @@ function flow_table_setID (row) {
   // Set the row index to the flow key
   row.attr('id', flow_key);
 
-  if (!flow_rows_option["sprobe"]) {
-    
-    // flows_stats_top
-    if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', flow_key+"_key");
-    if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', flow_key+"_info");
-    if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', flow_key+"_application");
-    if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', flow_key+"_l4");
-    if (((type == 'flow') || (type == 'host')) 
-        && (flow_rows_option["vlan"])) row.find("td").eq(index++).attr('id', flow_key+"_vlan");
-    if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', flow_key+"_client");
-    if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', flow_key+"_server");
-    if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', flow_key+"_duration");
-    // flows_stats_bottom
-    if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', flow_key+"_breakdown");
-    if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', flow_key+"_throughput");
-    if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', flow_key+"_bytes");
-  
-  } else {
-
-    // flows_stats_top
-    if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', flow_key+"_key");
-    if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', flow_key+"_info");
-    if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', flow_key+"_application");
-    if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', flow_key+"_l4");
-    if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', flow_key+"_cliproc");
-    if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', flow_key+"_client");
-    if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', flow_key+"_srvproc");
-    if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', flow_key+"_server");
-    if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', flow_key+"_duration");
-    
-    // flows_stats_bottom
-    if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', flow_key+"_breakdown");
-    if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', flow_key+"_bytes");
-
-  }
+  // flows_stats_top
+  if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', flow_key+"_key");
+  if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', flow_key+"_info");
+  if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', flow_key+"_application");
+  if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', flow_key+"_l4");
+  if (((type == 'flow') || (type == 'host')) 
+      && (flow_rows_option["vlan"])) row.find("td").eq(index++).attr('id', flow_key+"_vlan");
+  if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', flow_key+"_client");
+  if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', flow_key+"_server");
+  if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', flow_key+"_duration");
+  // flows_stats_bottom
+  if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', flow_key+"_breakdown");
+  if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', flow_key+"_throughput");
+  if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', flow_key+"_bytes");
   
   //console.log(row);
   return row;

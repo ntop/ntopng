@@ -44,6 +44,7 @@ local flowhosts_type  = _GET["flowhosts_type"]
 local ipversion       = _GET["version"]
 local traffic_type = _GET["traffic_type"]
 local flow_status = _GET["flow_status"]
+local tcp_state   = _GET["tcp_flow_state"]
 
 -- System host parameters
 local hosts  = _GET["hosts"]
@@ -182,6 +183,10 @@ end
 
 if not isEmptyString(asn) then
    pageinfo["asnFilter"] = tonumber(asn)
+end
+
+if not isEmptyString(tcp_state) then
+   pageinfo["tcpFlowStateFilter"] = tcp_state
 end
 
 local flows_stats = interface.getFlowsInfo(host, pageinfo)

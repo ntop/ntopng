@@ -1576,6 +1576,13 @@ static size_t curl_writefunc_to_lua(char *buffer, size_t size,
 
 /* **************************************** */
 
+static size_t curl_writefunc_to_file(void *ptr, size_t size, size_t nmemb, void *stream) {
+  size_t written = fwrite(ptr, size, nmemb, (FILE *)stream);
+  return written;
+}
+
+/* **************************************** */
+
 /* Same as the above function but only for header */
 static size_t curl_hdf(char *buffer, size_t size, size_t nitems, void *userp) {
   DownloadState *state = (DownloadState*)userp;
@@ -1629,8 +1636,10 @@ bool Utils::httpGetPost(lua_State* vm, char *url, char *username,
 			char *password, int timeout,
 			bool return_content,
 			bool use_cookie_authentication,
-			HTTPTranferStats *stats, const char *form_data) {
+			HTTPTranferStats *stats, const char *form_data,
+      char *write_fname) {
   CURL *curl;
+  FILE *out_f = NULL;
   bool ret = true;
 
   curl = curl_easy_init();
@@ -1675,7 +1684,20 @@ bool Utils::httpGetPost(lua_State* vm, char *url, char *username,
       curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)strlen(form_data));
     }
 
-    if(return_content) {
+    if(write_fname) {
+      ntop->fixPath(write_fname);
+      out_f = fopen(write_fname, "w");
+
+      if(out_f == NULL) {
+        char buf[64];
+        ntop->getTrace()->traceEvent(TRACE_ERROR, "Could not open %s for write", write_fname, strerror_r(errno, buf, sizeof(buf)));
+        curl_easy_cleanup(curl);
+        return(false);
+      }
+
+      curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_writefunc_to_file);
+      curl_easy_setopt(curl, CURLOPT_WRITEDATA, out_f);
+    } else if(return_content) {
       state = (DownloadState*)malloc(sizeof(DownloadState));
       if(state != NULL) {
 	memset(state, 0, sizeof(DownloadState));
@@ -1693,6 +1715,7 @@ bool Utils::httpGetPost(lua_State* vm, char *url, char *username,
 	return(false);
       }
     }
+
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
     curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 5);
     curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
@@ -1750,6 +1773,9 @@ bool Utils::httpGetPost(lua_State* vm, char *url, char *username,
     /* always cleanup */
     curl_easy_cleanup(curl);
   }
+
+  if(out_f)
+    fclose(out_f);
 
   return(ret);
 }
@@ -2773,10 +2799,11 @@ int Utils::numberOfSetBits(u_int32_t i) {
 
 /* ******************************************* */
 
-void Utils::initRedis(Redis **r, const char *redis_host, const char *redis_password, u_int16_t redis_port, u_int8_t _redis_db_id) {
+void Utils::initRedis(Redis **r, const char *redis_host, const char *redis_password,
+		      u_int16_t redis_port, u_int8_t _redis_db_id, bool giveup_on_failure) {
   if(r) {
     if(*r) delete(*r);
-    (*r) = new Redis(redis_host, redis_password, redis_port, _redis_db_id);
+    (*r) = new Redis(redis_host, redis_password, redis_port, _redis_db_id, giveup_on_failure);
   }
 }
 

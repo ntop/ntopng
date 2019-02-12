@@ -1736,6 +1736,23 @@ static int ntop_reloadCustomCategories(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_check_reload_hosts_blacklist(lua_State* vm) {
+  NetworkInterface *iface;
+  int i;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  for(i = 0; i<ntop->get_num_interfaces(); i++) {
+    if(((iface = ntop->getInterfaceAtId(vm, i)) != NULL) && iface->isPacketInterface())
+      iface->checkHostsBlacklistReload();
+  }
+
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_match_custom_category(lua_State* vm) {
   char *host_to_match;
   NetworkInterface *iface;
@@ -3253,26 +3270,6 @@ static int ntop_dump_local_hosts_2_redis(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_get_interface_find_user_flows(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  char *key;
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(!ntop->isUserAdministrator(vm)) return(CONST_LUA_ERROR);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  key = (char*)lua_tostring(vm, 1);
-
-  if(!ntop_interface) return(CONST_LUA_ERROR);
-
-  ntop_interface->findUserFlows(vm, key);
-  /* TODO check if we need lua_pushnil(vm); in case of no match */
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
 static int ntop_get_interface_find_pid_flows(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   u_int32_t pid;
@@ -3287,26 +3284,6 @@ static int ntop_get_interface_find_pid_flows(lua_State* vm) {
   if(!ntop_interface) return(CONST_LUA_ERROR);
 
   ntop_interface->findPidFlows(vm, pid);
-  /* TODO check if we need lua_pushnil(vm); in case of no match */
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-static int ntop_get_interface_find_father_pid_flows(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  u_int32_t father_pid;
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(!ntop->isUserAdministrator(vm)) return(CONST_LUA_ERROR);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  father_pid = (u_int32_t)lua_tonumber(vm, 1);
-
-  if(!ntop_interface) return(CONST_LUA_ERROR);
-
-  ntop_interface->findFatherPidFlows(vm, father_pid);
   /* TODO check if we need lua_pushnil(vm); in case of no match */
   return(CONST_LUA_OK);
 }
@@ -4736,7 +4713,7 @@ static int ntop_http_get(lua_State* vm) {
   }
 
   Utils::httpGetPost(vm, url, username, pwd, timeout, return_content,
-		    use_cookie_authentication, &stats, NULL);
+		    use_cookie_authentication, &stats, NULL, NULL);
 
   return(CONST_LUA_OK);
 }
@@ -5039,8 +5016,34 @@ static int ntop_http_post(lua_State* vm) {
     use_cookie_authentication = lua_toboolean(vm, 7) ? true : false;
 
   Utils::httpGetPost(vm, url, username, password, timeout, return_content,
-    use_cookie_authentication, &stats, form_data);
+    use_cookie_authentication, &stats, form_data, NULL);
 
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_http_fetch(lua_State* vm) {
+  char *url, *f, fname[PATH_MAX];
+  HTTPTranferStats stats;
+  int timeout = 30;
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  if((url = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  if((f = (char*)lua_tostring(vm, 2)) == NULL) return(CONST_LUA_PARAM_ERROR);
+
+  if(lua_type(vm, 3) == LUA_TNUMBER) /* Optional */
+    timeout = lua_tonumber(vm, 3);
+
+  snprintf(fname, sizeof(fname), "%s", f);
+  ntop->fixPath(fname);
+
+  bool rv = Utils::httpGetPost(NULL, url, (char*)"", (char*)"", timeout,
+    false, false, &stats, NULL, fname);
+
+  lua_pushboolean(vm, rv);
   return(CONST_LUA_OK);
 }
 
@@ -8122,9 +8125,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "dropFlowTraffic",          ntop_drop_flow_traffic },
   { "dumpLocalHosts2redis",     ntop_dump_local_hosts_2_redis },
   { "dropMultipleFlowsTraffic",   ntop_drop_multiple_flows_traffic },
-  { "findUserFlows",            ntop_get_interface_find_user_flows },
   { "findPidFlows",             ntop_get_interface_find_pid_flows },
-  { "findFatherPidFlows",       ntop_get_interface_find_father_pid_flows },
   { "findNameFlows",            ntop_get_interface_find_proc_name_flows },
   { "listHTTPhosts",            ntop_list_http_hosts },
   { "findHost",                 ntop_get_interface_find_host },
@@ -8402,6 +8403,7 @@ static const luaL_Reg ntop_reg[] = {
   /* HTTP */
   { "httpGet",              ntop_http_get            },
   { "httpPost",             ntop_http_post           },
+  { "httpFetch",            ntop_http_fetch          },
   { "postHTTPJsonData",     ntop_post_http_json_data },
   { "postHTTPTextFile",     ntop_post_http_text_file },
 
@@ -8438,6 +8440,7 @@ static const luaL_Reg ntop_reg[] = {
   { "loadCustomCategoryIp",   ntop_loadCustomCategoryIp },
   { "loadCustomCategoryHost", ntop_loadCustomCategoryHost },
   { "reloadCustomCategories", ntop_reloadCustomCategories },
+  { "checkReloadHostBlacklist", ntop_check_reload_hosts_blacklist },
   { "matchCustomCategory",    ntop_match_custom_category },
 
   /* Privileges */

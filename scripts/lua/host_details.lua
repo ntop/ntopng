@@ -322,14 +322,6 @@ if host.systemhost then
 	 print("<li><a href=\""..url.."&page=processes\">"..i18n("user_info.processes").."</a></li>")
       end
    end
-
-   if(page == "sprobe") then
-      print("<li class=\"active\"><a href=\"#\"><i class=\"fa fa-flag fa-lg\"></i></a></li>\n")
-   else
-      if(ifstats.sprobe) then
-	 print("<li><a href=\""..url.."&page=sprobe\"><i class=\"fa fa-flag fa-lg\"></i></a></li>")
-      end
-   end
 end
 
 if(not(isLoopback(ifname))) then
@@ -472,13 +464,7 @@ if((page == "overview") or (page == nil)) then
 
    if(ifstats.vlan and (host["vlan"] ~= nil)) then
       print("<tr><th>")
-
-      if(ifstats.sprobe) then
-         print(i18n("details.source_id"))
-      else
-	 print(i18n("details.vlan_id"))
-      end
-
+      print(i18n("details.vlan_id"))
       print("</th><td colspan=2><A HREF="..ntop.getHttpPrefix().."/lua/hosts_stats.lua?vlan="..host["vlan"]..">"..host["vlan"].."</A></td></tr>\n")
    end
 
@@ -1359,10 +1345,8 @@ end
 print (hostinfo2url(host_info)..'";')
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/flows_stats_id.inc")
-if(ifstats.sprobe) then show_sprobe = true else show_sprobe = false end
 if(ifstats.vlan)   then show_vlan = true else show_vlan = false end
 -- Set the host table option
-if(show_sprobe) then print ('flow_rows_option["sprobe"] = true;\n') end
 if(show_vlan) then print ('flow_rows_option["vlan"] = true;\n') end
 
 
@@ -1416,121 +1400,8 @@ end
 
 dt_buttons = "["..dt_buttons.."]"
 
-if(show_sprobe) then
-print [[
-  //console.log(url_update);
-   flow_rows_option["sprobe"] = true;
-   flow_rows_option["type"] = 'host';
-   $("#table-flows").datatable({
-      url: url_update,
-      buttons: ]] print(dt_buttons) print[[,
-      rowCallback: function ( row ) { return flow_table_setID(row); },
-      tableCallback: function()  { $("#dt-bottom-details > .pull-left > p").first().append('. ]]
-   print(i18n('flows_page.idle_flows_not_listed'))
-   print[['); },
-         showPagination: true,
-]]
--- Set the preference table
-preference = tablePreferences("rows_number",_GET["perPage"])
-if(preference ~= "") then print ('perPage: '..preference.. ",\n") end
-
-print ('sort: [ ["' .. getDefaultTableSort("flows") ..'","' .. getDefaultTableSortOrder("flows").. '"] ],\n')
-
-
-print('title: "'..active_flows_msg..'",')
-
-print [[
-	       title: "]] print(i18n("sflows_stats.active_flows")) print[[",
-	        columns: [
-			     {
-         field: "key",
-         hidden: true
-         	},
-         {
-			     title: "]] print(i18n("info")) print[[",
-				 field: "column_key",
-	 	             css: { 
-			        textAlign: 'center'
-			     }
-				 },
-			     {
-			     title: "]] print(i18n("application")) print[[",
-				 field: "column_ndpi",
-				 sortable: true,
-	 	             css: { 
-			        textAlign: 'center'
-			     }
-				 },
-			     {
-			     title: "]] print(i18n("protocol")) print[[",
-				 field: "column_proto_l4",
-				 sortable: true,
-	 	             css: { 
-			        textAlign: 'center'
-			     }
-				 },
-  			     {
-			     title: "]] print(i18n("sflows_stats.client_process")) print[[",
-				 field: "column_client_process",
-				 sortable: true,
-	 	             css: { 
-			        textAlign: 'center'
-			     }
-				 },
-			     {
-			     title: "]] print(i18n("sflows_stats.client_peer")) print[[",
-				 field: "column_client",
-				 sortable: true,
-				 },
-			     {
-                             title: "]] print(i18n("sflows_stats.server_process")) print[[",
-				 field: "column_server_process",
-				 sortable: true,
-	 	             css: { 
-			        textAlign: 'center'
-			     }
-				 },
-			     {
-			     title: "]] print(i18n("sflows_stats.server_peer")) print[[",
-				 field: "column_server",
-				 sortable: true,
-				 },
-			     {
-			     title: "]] print(i18n("duration")) print[[",
-				 field: "column_duration",
-				 sortable: true,
-	 	             css: { 
-			        textAlign: 'center'
-			       }
-			       },
-
-]]
-
-  prefs = ntop.getPrefs()
-
-print [[
-			     {
-			     title: "]] print(i18n("breakdown")) print[[",
-				 field: "column_breakdown",
-				 sortable: false,
-	 	             css: { 
-			        textAlign: 'center'
-			     }
-				 },
-			     {
-			     title: "]] print(i18n("sflows_stats.total_bytes")) print[[",
-				 field: "column_bytes",
-				 sortable: true,
-	 	             css: { 
-			        textAlign: 'right'
-			     }
-				 }
-			     ]
-	       });
-       </script>
-]]
+if false then
 else
-
 print [[
   flow_rows_option["type"] = 'host';
 	 $("#table-flows").datatable({
@@ -1584,17 +1455,8 @@ print [[
 				 },]]
 
 if(show_vlan) then
-
-if(ifstats.sprobe) then
-   print('{ title: "'..i18n("flows_page.source_id")..'",\n')
-else
-   if(ifstats.vlan) then
-     print('{ title: "'..i18n("vlan")..'",\n')
-   end
-end
-
-
-print [[
+   print('{ title: "'..i18n("vlan")..'",\n')
+   print [[
          field: "column_vlan",
          sortable: true,
                  css: {
@@ -2029,257 +1891,7 @@ drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
 
 elseif(page == "traffic_report") then
    dofile(dirs.installdir .. "/pro/scripts/lua/enterprise/traffic_report.lua")
-elseif(page == "sprobe") then
-
-
-print [[
-  <br>
-  <!-- Left Tab -->
-  <div class="tabbable tabs-left">
-
-    <ul class="nav nav-tabs">
-      <li class="active"><a href="#Users" data-toggle="tab">]] print(i18n("sprobe_page.users")) print[[</a></li>
-      <li><a href="#Processes" data-toggle="tab">]] print(i18n("sprobe_page.processes")) print[[</a></li>
-      <li ><a href="#Tree" data-toggle="tab">]] print(i18n("sprobe_page.tree")) print[[</a></li>
-    </ul>
-
-    <!-- Tab content-->
-    <div class="tab-content">
-]]
-
-print [[
-      <div class="tab-pane active" id="Users">
-      Show :
-          <div class="btn-group btn-toggle btn-sm" data-toggle="buttons" id="show_users">
-            <label class="btn btn-default btn-sm active">
-              <input type="radio" name="show_users" value="All">]] print(i18n("all")) print[[</label>
-            <label class="btn btn-default btn-sm">
-              <input type="radio" name="show_users" value="Client" checked="">]] print(i18n("client")) print[[</label>
-            <label class="btn btn-default btn-sm">
-              <input type="radio" name="show_users" value="Server" checked="">]] print(i18n("server")) print[[</label>
-          </div>
-        Aggregated by :
-          <div class="btn-group">
-            <button id="aggregation_users_displayed" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown">
-            Traffic <span class="caret"></span></button>
-            <ul class="dropdown-menu" id="aggregation_users">
-            <li><a>]] print(i18n("traffic")) print[[</a></li>
-            <li><a>]] print(i18n("sprobe_page.active_memory")) print[[</a></li>
-            <!-- <li><a>print(i18n("sprobe_page.latency"))</a></li> -->
-            </ul>
-          </div><!-- /btn-group -->
-         <br/>
-         <br/>
-        <table class="table table-bordered table-striped">
-          <tr>
-            <th class="text-center span3">]] print(i18n("sprobe_page.top_users")) print[[</th>
-            <td class="span3"><div class="pie-chart" id="topUsers"></div></td>
-
-          </tr>
-        </table>
-      </div> <!-- Tab Users-->
-]]
-
-print [[
-      <div class="tab-pane" id="Processes">
-      Show :
-          <div class="btn-group btn-toggle btn-sm" data-toggle="buttons" id="show_processes">
-            <label class="btn btn-default btn-sm active">
-              <input type="radio" name="show_processes" value="All">]] print(i18n("all")) print[[</label>
-            <label class="btn btn-default btn-sm">
-              <input type="radio" name="show_processes" value="Client" checked="">]] print(i18n("client")) print[[</label>
-            <label class="btn btn-default btn-sm">
-              <input type="radio" name="show_processes" value="Server" checked="">]] print(i18n("server")) print[[</label>
-          </div>
-        Aggregated by :
-          <div class="btn-group">
-            <button id="aggregation_processes_displayed" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown">Traffic <span class="caret"></span></button>
-            <ul class="dropdown-menu" id="aggregation_processes">
-            <li><a>]] print(i18n("traffic")) print[[</a></li>
-            <li><a>]] print(i18n("sprobe_page.active_memory")) print[[</a></li>
-            <!-- <li><a>print(i18n("sprobe_page.latency"))</a></li> -->
-            </ul>
-          </div><!-- /btn-group -->
-         <br/>
-         <br/>
-        <table class="table table-bordered table-striped">
-          <tr>
-            <th class="text-center span3">]] print(i18n("sprobe_page.top_processes")) print[[</th>
-             <td class="span3"><div class="pie-chart" id="topProcess"></div></td>
-
-          </tr>
-        </table>
-      </div> <!-- Tab Processes-->
-]]
-
-print [[
-      <div class="tab-pane" id="Tree">
-
-        Show :
-          <div class="btn-group btn-toggle btn-sm" data-toggle="buttons" id="show_tree">
-            <label class="btn btn-default btn-sm active">
-              <input type="radio" name="show_tree" value="All">]] print(i18n("all")) print[[</label>
-            <label class="btn btn-default btn-sm">
-              <input type="radio" name="show_tree" value="Client" checked="">]] print(i18n("client")) print[[</label>
-            <label class="btn btn-default btn-sm">
-              <input type="radio" name="show_tree" value="Server" checked="">]] print(i18n("server")) print[[</label>
-          </div>
-        Aggregated by :
-          <div class="btn-group">
-            <button id="aggregation_tree_displayed" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown">Traffic <span class="caret"></span></button>
-            <ul class="dropdown-menu" id="aggregation_tree">
-            <li><a>]] print(i18n("traffic")) print[[</a></li>
-            <li><a>]] print(i18n("sprobe_page.active_memory")) print[[</a></li>
-            <!-- <li><a>print(i18n("sprobe_page.latency"))</a></li> -->
-            </ul>
-          </div><!-- /btn-group -->
-         <br/>
-         <br/>
-        <table class="table table-bordered table-striped">
-          <tr>
-            <th class="text-center span3">]] print(i18n("sprobe_page.processes_traffic_tree")) print[[
-            </th>
-             <td class="span3">
-              <div id="sequence_sunburst" >
-                <div id="sequence_processTree" class="sequence"></div>
-                <div id="chart_processTree" class="chart"></div>
-                <div align="center" class="info">]] print(i18n("sprobe_page.show_more_info")) print[[</div>
-              </div>
-            </td>
-          </tr>
-
-        </table>
-      </div> <!-- Tab Tree-->
-]]
-
-print [[
-    </div> <!-- End Tab content-->
-  </div> <!-- End Left Tab -->
-
-
-]]
-
- print [[
-
-        <link href="/css/sequence_sunburst.css" rel="stylesheet">
-        <script src="/js/sequence_sunburst.js"></script>
-
-        <script type='text/javascript'>
-        // Default value
-        var sprobe_debug = false;
-        var processes;
-        var processes_type = "bytes";
-        var processes_filter = "All";
-        var users;
-        var users_type = "bytes";
-        var users_filter = "All";
-        var tree;
-        var tree_type = "bytes";
-        var tree_filter = "All";
-
-
-]]
-
--- Users graph javascript
-print [[
-      users = do_pie("#topUsers", ']]
-print (ntop.getHttpPrefix())
-print [[/lua/host_sflow_distro.lua', { distr: users_type, sflowdistro_mode: "user", sflow_filter: users_filter , ifid: "]] print(ifId.."") print ('", '..hostinfo2json(host_info).." }, \"\", refresh); \n")
-
-print [[
-
-  $('#aggregation_users li > a').click(function(e){
-    $('#aggregation_users_displayed').html(this.innerHTML+' <span class="caret"></span>');
-
-    if(this.innerHTML == "Active memory") {
-      users_type= "memory"
-    } else if(this.innerHTML == "Latency") {
-      users_type = "latency";
-    } else  {
-      users_type = "bytes";
-    }
-    if(sprobe_debug) { alert("]]
-print (ntop.getHttpPrefix())
-print [[/lua/host_sflow_distro.lua?host=..&distr="+users_type+"&sflowdistro_mode=user&sflow_filter="+users_filter); }
-    users.setUrlParams({ type: users_type, mode: "user", sflow_filter: users_filter, ifid: "]] print(ifId.."") print ('",'.. hostinfo2json(host_info) .. "}") print [[ );
-    }); ]]
-
-print [[
-$("#show_users input:radio").change(function() {
-    users_filter = this.value
-    if(sprobe_debug) { alert("users_type: "+users_type+"\n users_filter: "+users_filter); }
-    if(sprobe_debug) { alert("url: ]]
-print (ntop.getHttpPrefix())
-print [[/lua/host_sflow_distro.lua?host=..&distr="+users_type+"&sflowdistro_mode=user&sflow_filter="+users_filter); }
-    users.setUrlParams({ type: users_type, mode: "user", sflow_filter: users_filter, ifid: "]] print(ifId.."") print ('",'.. hostinfo2json(host_info) .. "}") print [[ );
-});]]
-
-
--- Processes graph javascript
-
-print [[
-processes = do_pie("#topProcess", ']]
-print (ntop.getHttpPrefix())
-print [[/lua/host_sflow_distro.lua', { distr: processes_type, sflowdistro_mode: "process", sflow_filter: processes_filter , ifid: "]] print(ifId.."")print ('", '..hostinfo2json(host_info).." }, \"\", refresh); \n")
-
-print [[
-
-  $('#aggregation_processes li > a').click(function(e){
-    $('#aggregation_processes_displayed').html(this.innerHTML+' <span class="caret"></span>');
-
-    if(this.innerHTML == "Active memory") {
-      processes_type= "memory"
-    } else if(this.innerHTML == "Latency") {
-      processes_type = "latency";
-    } else  {
-      processes_type = "bytes";
-    }
-    if(sprobe_debug) { alert(this.innerHTML+"-"+processes_type); }
-    processes.setUrlParams({ type: processes_type, sflowdistro_mode: "process", sflow_filter: processes_filter , ifid: "]] print(ifId.."") print ('",'.. hostinfo2json(host_info) .. "}") print [[ );
-    }); ]]
-
-print [[
-$("#show_processes input:radio").change(function() {
-    processes_filter = this.value
-    if(sprobe_debug) { alert("processes_type: "+processes_type+"\n processes_filter: "+processes_filter); }
-    processes.setUrlParams({ type: processes_type, sflowdistro_mode: "process", sflow_filter: processes_filter, ifid: "]] print(ifId.."") print ('",'.. hostinfo2json(host_info) .. "}") print [[ );
-});]]
-
-
--- Processes Tree graph javascript
-print [[
-  tree = do_sequence_sunburst("chart_processTree","sequence_processTree",refresh,']]
-print (ntop.getHttpPrefix())
-print [[/lua/sflow_tree.lua',{distr: "bytes" , sflow_filter: tree_filter ]] print (','.. hostinfo2json(host_info)) print [[ },"","Bytes"); ]]
-
-print [[
-
-  $('#aggregation_tree li > a').click(function(e){
-    $('#aggregation_tree_displayed').html(this.innerHTML+' <span class="caret"></span>');
-
-    if(this.innerHTML == "Active memory") {
-      tree_type= "memory"
-    } else if(this.innerHTML == "Latency") {
-      tree_type = "latency";
-    } else  {
-      tree_type = "bytes";
-    }
-    if(sprobe_debug) { alert(this.innerHTML+"-"+tree_type); }
-    tree[0].setUrlParams({type: tree_type , sflow_filter: tree_filter ]] print (','.. hostinfo2json(host_info).." }") print [[ );
-    }); ]]
-
-print [[
-
-  $("#show_tree input:radio").change(function() {
-    tree_filter = this.value
-    if(sprobe_debug) { alert("tree_type: "+tree_type+"\ntree_filter: "+tree_filter); }
-    tree[0].setUrlParams({type: tree_type , sflow_filter: tree_filter]] print (','.. hostinfo2json(host_info).." }") print [[ );
-});]]
-
-print [[ </script>]]
-
--- End Sprobe Page
-end
+   end
 end
 
 if(page ~= "historical") and (host ~= nil) then

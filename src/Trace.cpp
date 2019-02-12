@@ -107,7 +107,7 @@ void Trace::set_trace_level(u_int8_t id) {
 void Trace::initRedis(const char *redis_host, const char *redis_password,
 		      u_int16_t redis_port, u_int8_t _redis_db_id) {
   Utils::initRedis(&traceRedis, redis_host, redis_password,
-		   redis_port, _redis_db_id);
+		   redis_port, _redis_db_id, false);
 }
 
 /* ******************************* */

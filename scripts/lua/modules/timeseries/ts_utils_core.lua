@@ -634,7 +634,7 @@ end
 -- ##############################################
 
 -- TODO make standard and document
-function ts_utils.queryMean(schema_name, tstart, tend, tags)
+function ts_utils.queryMean(schema_name, tstart, tend, tags, options)
   if not isUserAccessAllowed(tags) then
     return nil
   end
@@ -646,7 +646,9 @@ function ts_utils.queryMean(schema_name, tstart, tend, tags)
     return nil
   end
 
-  local rv = ts_utils.queryTotal(schema_name, tstart, tend, tags)
+  local query_options = ts_utils.getQueryOptions(options)
+
+  local rv = ts_utils.queryTotal(schema_name, tstart, tend, tags, query_options)
   local intervals = math.floor((tend - tstart) / schema.options.step)
 
   for i, total in pairs(rv or {}) do
