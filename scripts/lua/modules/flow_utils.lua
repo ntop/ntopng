@@ -1232,9 +1232,17 @@ function getFlowKey(name)
    local s = flow_fields_description[name]
 
    if(s == nil) then
-      v = rtemplate[tonumber(name)]
-      if(v == nil) then return(name) end
-      
+      -- Try to decode the name as <PEN>.<FIELD>
+      -- then try to look up the name or directly the field
+      -- in the rtemplate (pen is ignored).
+      -- TODO: currently rtemplate is flat and PENs are ignored, we should add PEN there
+
+      local pen, field = name:match("^(%d+)%.(%d+)$")
+      local v = (rtemplate[tonumber(name)] or rtemplate[tonumber(field)])
+      if(v == nil) then
+	 return(name)
+      end
+
       s = flow_fields_description[v]
    end
    
