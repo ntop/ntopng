@@ -1250,11 +1250,11 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
 				  zflow->core.pkt_sampling_rate*(zflow->core.in_pkts+zflow->core.out_pkts),
 				  zflow->core.pkt_sampling_rate*(zflow->core.in_bytes+zflow->core.out_bytes));
 
-  if(zflow->dns_query) flow->setDNSQuery(zflow->dns_query);
-  if(zflow->http_url)  flow->setHTTPURL(zflow->http_url);
-  if(zflow->http_site) flow->setServerName(zflow->http_site);
-  if(zflow->ssl_server_name) flow->setServerName(zflow->ssl_server_name);
-  if(zflow->bittorrent_hash) flow->setBTHash(zflow->bittorrent_hash);
+  if(zflow->dns_query && zflow->dns_query[0] != '\0') flow->setDNSQuery(zflow->dns_query);
+  if(zflow->http_url && zflow->http_url[0] != '\0')   flow->setHTTPURL(zflow->http_url);
+  if(zflow->http_site && zflow->http_site[0] != '\0') flow->setServerName(zflow->http_site);
+  if(zflow->ssl_server_name && zflow->ssl_server_name[0] != '\0') flow->setServerName(zflow->ssl_server_name);
+  if(zflow->bittorrent_hash && zflow->bittorrent_hash[0] != '\0') flow->setBTHash(zflow->bittorrent_hash);
   if(zflow->core.vrfId)      flow->setVRFid(zflow->core.vrfId);
 #ifdef NTOPNG_PRO
   if(zflow->custom_app.pen) {
