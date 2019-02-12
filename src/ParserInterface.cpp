@@ -35,11 +35,14 @@ ParserInterface::ParserInterface(const char *endpoint, const char *custom_interf
   custom_app_maps = NULL;
 #endif
 
-  /* Populate defaults for @NTOPNG@ nprobe templates */
+  /* Populate defaults for @NTOPNG@ nProbe templates. No need to populate
+     all the fields as nProbe will sent them periodically. */
   addMapping("IN_SRC_MAC", 56);
   addMapping("OUT_DST_MAC", 57);
   addMapping("SRC_VLAN", 58);
   addMapping("DST_VLAN", 59);
+  addMapping("INPUT_SNMP", 10);
+  addMapping("OUTPUT_SNMP", 14);
   addMapping("IPV4_SRC_ADDR", 8);
   addMapping("IPV4_DST_ADDR", 12);
   addMapping("L4_SRC_PORT", 7);
