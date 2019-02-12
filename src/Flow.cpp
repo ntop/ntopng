@@ -3594,3 +3594,22 @@ void Flow::setProcessInfo(eBPFevent *event, bool client_process) {
   }
 }
 #endif
+
+/* ***************************************************** */
+
+/* Called when a flow is set_to_purge */
+void Flow::postFlowSetPurge(time_t t) {
+  /* not called from the datapath for flows, so it is only
+     safe to touch low goodput uses */
+  if(good_low_flow_detected) {
+    if(cli_host) cli_host->decLowGoodputFlows(t, true);
+    if(srv_host) srv_host->decLowGoodputFlows(t, false);
+  }
+
+  FlowStatus status = getFlowStatus();
+
+  if(status != status_normal) {
+    if(cli_host) cli_host->incNumAnomalousFlows(true);
+    if(srv_host) srv_host->incNumAnomalousFlows(false);
+  }
+}

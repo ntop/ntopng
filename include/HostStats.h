@@ -45,6 +45,7 @@ class HostStats: public Checkpointable, public GenericTrafficElement {
   /* Written by NetworkInterface::processPacket thread */
   PacketStats sent_stats, recv_stats;
   u_int32_t total_num_flows_as_client, total_num_flows_as_server;
+  u_int32_t anomalous_flows_as_client, anomalous_flows_as_server;
   struct {
     u_int32_t pktRetr, pktOOO, pktLost, pktKeepAlive;
   } tcpPacketStats; /* Sent packets */
@@ -66,6 +67,7 @@ class HostStats: public Checkpointable, public GenericTrafficElement {
 
   virtual void getJSONObject(json_object *my_object, DetailsLevel details_level);
   inline void incFlagStats(bool as_client, u_int8_t flags)  { if (as_client) sent_stats.incFlagStats(flags); else recv_stats.incFlagStats(flags); };
+  inline void incNumAnomalousFlows(bool as_client)          { if(as_client) anomalous_flows_as_client++; else anomalous_flows_as_server++; };
   inline nDPIStats* getnDPIStats()                          { return(ndpiStats); };
 
   inline void incRetransmittedPkts(u_int32_t num)   { tcpPacketStats.pktRetr += num;      };

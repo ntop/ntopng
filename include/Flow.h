@@ -226,14 +226,8 @@ class Flow : public GenericHashEntry {
   ~Flow();
 
   virtual void set_to_purge(time_t t) {
-    /* not called from the datapath for flows, so it is only
-       safe to touch low goodput uses */
-    if(good_low_flow_detected) {
-      if(cli_host) cli_host->decLowGoodputFlows(t, true);
-      if(srv_host) srv_host->decLowGoodputFlows(t, false);
-    }
-    
     GenericHashEntry::set_to_purge(t);
+    postFlowSetPurge(t);
   };
 
   FlowStatus getFlowStatus();
@@ -490,6 +484,7 @@ class Flow : public GenericHashEntry {
   inline bool isIngress2EgressDirection() { return(ingress2egress_direction); }
 #endif
   void housekeep();
+  void postFlowSetPurge(time_t t);
 #ifdef HAVE_EBPF
   void setProcessInfo(eBPFevent *event, bool client_process);
 #endif

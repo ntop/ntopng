@@ -124,6 +124,7 @@ class Host : public GenericHashEntry {
   void updateStats(struct timeval *tv);
   void incLowGoodputFlows(time_t t, bool asClient);
   void decLowGoodputFlows(time_t t, bool asClient);
+  inline void incNumAnomalousFlows(bool asClient)   { return(stats->incNumAnomalousFlows(asClient)); };
   inline u_int16_t get_host_pool()         { return(host_pool_id);   };
   inline u_int16_t get_vlan_id()           { return(vlan_id);        };
   char* get_name(char *buf, u_int buf_len, bool force_resolution_if_not_found);
