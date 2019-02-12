@@ -545,7 +545,7 @@ function cleanCustomHostUrl(host) {
     /* Remove starting www. */
     .replace(/^www\./gi, '')
     /* Remove non-allowed characters */
-    .replace(/[^0-9a-zA-Z\.\/_-]/gi, '');
+    .replace(/[^0-9a-zA-Z\.:\/_-]/gi, '');
 }
 
 /* https://stackoverflow.com/questions/2090551/parse-query-string-in-javascript */
