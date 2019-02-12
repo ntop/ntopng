@@ -1657,7 +1657,7 @@ static int ntop_loadCustomCategoryIp(lua_State* vm) {
     NetworkInterface *iface;
 
     /* Note: we only load custom categories on packet interfaces right now */
-    if(((iface = ntop->getInterfaceAtId(vm, i)) != NULL) && iface->isPacketInterface()) {
+    if((iface = ntop->getInterfaceAtId(vm, i)) != NULL) {
       char *toadd = strdup(net);
       new_custom_categories.push_front(toadd);
       ndpi_load_ip_category(iface->get_ndpi_struct(), toadd, catid);
@@ -1684,8 +1684,7 @@ static int ntop_loadCustomCategoryHost(lua_State* vm) {
   for(int i=0; i<ntop->get_num_interfaces(); i++) {
     NetworkInterface *iface;
 
-    /* Note: we only load custom categories on packet interfaces right now */
-    if(((iface = ntop->getInterfaceAtId(vm, i)) != NULL) && iface->isPacketInterface())  {
+    if((iface = ntop->getInterfaceAtId(vm, i)) != NULL)  {
       char *toadd = strdup(host);
       new_custom_categories.push_front(toadd);
       ndpi_load_hostname_category(iface->get_ndpi_struct(), toadd, catid);
@@ -1705,8 +1704,7 @@ static int ntop_reloadCustomCategories(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   for(i = 0; i<ntop->get_num_interfaces(); i++) {
-    /* Note: we only load custom categories on packet interfaces right now */
-    if(((iface = ntop->getInterfaceAtId(vm, i)) != NULL) && iface->isPacketInterface()) {
+    if((iface = ntop->getInterfaceAtId(vm, i)) != NULL) {
       iface->requestReloadCustomCategories();
 
       _usleep(5e4);
@@ -1743,7 +1741,7 @@ static int ntop_check_reload_hosts_blacklist(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   for(i = 0; i<ntop->get_num_interfaces(); i++) {
-    if(((iface = ntop->getInterfaceAtId(vm, i)) != NULL) && iface->isPacketInterface())
+    if((iface = ntop->getInterfaceAtId(vm, i)) != NULL)
       iface->checkHostsBlacklistReload();
   }
 
