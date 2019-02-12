@@ -366,8 +366,7 @@ bool ParserInterface::parsePENZeroField(ZMQ_Flow * const flow, u_int32_t field, 
     break;
   case EXPORTER_IPV4_ADDRESS:
     /* Format: a.b.c.d, possibly overrides NPROBE_IPV4_ADDRESS */
-    if((flow->core.deviceIP = ntohl(inet_addr(value))))
-    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u [%s]", flow->core.deviceIP, value);
+    flow->core.deviceIP = ntohl(inet_addr(value));
     break;
   case INPUT_SNMP:
     flow->core.inIndex = atoi(value);
