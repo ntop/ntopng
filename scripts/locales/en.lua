@@ -123,6 +123,7 @@ local lang = {
   ["reason"] = "Reason",
   ["received"] = "Received",
   ["refresh"] = "Refresh",
+  ["remote_hosts"] = "Remote Hosts",
   ["remote_networks"] = "Remote Networks",
   ["remove"] = "Remove",
   ["reset"] = "Reset",
