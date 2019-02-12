@@ -439,10 +439,10 @@ class Flow : public GenericHashEntry {
   inline bool      isEstablished()        { return (!isTcpRST() && !isTcpFIN()
 						    && (src2dst_tcp_flags & TH_SYN) && (src2dst_tcp_flags & TH_ACK)
 						    && (dst2src_tcp_flags & TH_SYN) && (dst2src_tcp_flags & TH_ACK)); }
-  inline bool      isTcpSYNOnly()         { return !(src2dst_tcp_flags ^ TH_SYN) && !dst2src_tcp_flags; }
+  inline bool      isTcpSYNOnly()         { return src2dst_tcp_flags == TH_SYN && !dst2src_tcp_flags; }
   inline bool      isTcpRST()             { return (src2dst_tcp_flags & TH_RST) || (dst2src_tcp_flags & TH_RST); }
   inline bool      isTcpFIN()             { return (src2dst_tcp_flags & TH_FIN) || (dst2src_tcp_flags & TH_FIN); }
-  inline bool      isTcpSYNRSTOnly()      { return !(src2dst_tcp_flags ^ TH_SYN) && (dst2src_tcp_flags & TH_RST); }
+  inline bool      isTcpSYNRSTOnly()      { return src2dst_tcp_flags == TH_SYN && (dst2src_tcp_flags & TH_RST); }
   inline bool      isTcpFINRST()          { return ((src2dst_tcp_flags & TH_FIN) && (dst2src_tcp_flags & TH_RST)) || ((src2dst_tcp_flags & TH_RST) && (dst2src_tcp_flags & TH_FIN)); }
   inline bool      isFlowAlerted()        { return(flow_alerted);                   }
   inline void      setFlowAlerted()       { flow_alerted = true;                    }
