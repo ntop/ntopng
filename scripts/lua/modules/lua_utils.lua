@@ -1510,7 +1510,8 @@ function flowinfo2hostname(flow_info, host_type)
 
    if(host_type == "srv") then
       if(flow_info["host_server_name"] ~= nil and flow_info["host_server_name"] ~= "") then
-	 return(flow_info["host_server_name"])
+	 -- remove possible ports from the name
+	 return(flow_info["host_server_name"]:gsub(":%d+$", ""))
       end
       if(flow_info["protos.ssl.certificate"] ~= nil and flow_info["protos.ssl.certificate"] ~= "") then
 	 return(flow_info["protos.ssl.certificate"])
