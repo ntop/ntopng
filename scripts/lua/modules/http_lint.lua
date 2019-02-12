@@ -321,6 +321,12 @@ local function validateFlowStatus(mode)
    return validateChoice(modes, mode)
 end
 
+local function validateTCPFlowState(mode)
+   local modes = {"syn_only", "rst", "fin", "syn_rst_only", "fin_rst", "established_only", "not_established_only"}
+
+   return validateChoice(modes, mode)   
+end
+
 local function validatePolicyPreset(mode)
    local modes = {"children", "business", "no_obfuscation", "walled_garden"}
 
@@ -830,6 +836,27 @@ end
 
 -- #################################################################
 
+local function validatePortRange(p)
+   local v = string.split(p, "%-") or {p, p}
+
+   if #v ~= 2 then
+      return false
+   end
+
+   if not validateNumber(v[1]) or not validateNumber(v[2]) then
+      return false
+   end
+
+   local p0 = tonumber(v[1]) or 0
+   local p1 = tonumber(v[2]) or 0
+
+   return(((p0 >= 1) and (p0 <= 65535)) and
+      ((p1 >= 1) and (p1 <= 65535) and
+      (p1 >= p0)))
+end
+
+-- #################################################################
+
 local function validateInterfaceConfMode(m)
    return validateChoice({"dhcp", "static", "vlan_trunk"}, m)
 end
@@ -1241,7 +1268,6 @@ local known_parameters = {
    ["addvlan"]                 = validateBool,                  -- True if VLAN must be added to the result
    ["http_mode"]               = validateHttpMode,              -- HTTP mode for host_http_breakdown.lua
    ["refresh"]                 = validateNumber,                -- top flow refresh in seconds, index.lua
-   ["sprobe"]                  = validateEmpty,                 -- sankey.lua
    ["always_show_hist"]        = validateBool,                  -- host_details.lua
    ["host_stats"]              = validateBool,                  -- host_get_json
    ["captive_portal_users"]    = validateBool,                  -- to show or hide captive portal users
@@ -1286,6 +1312,7 @@ local known_parameters = {
    ["drop_flow_policy"]        = validateBool,                  -- true if target flow should be dropped
    ["traffic_type"]            = validateBroadcastUnicast,      -- flows_stats.lua
    ["flow_status"]             = validateFlowStatus,            -- flows_stats.lua
+   ["tcp_flow_state"]          = validateTCPFlowState,          -- flows_stats.lua
    ["include_unlimited"]       = validateBool,                  -- pool_details_ndpi.lua
    ["policy_preset"]           = validateEmptyOr(validatePolicyPreset), -- a traffic bridge policy set
    ["members_filter"]          = validateMembersFilter,         -- host_pools.lua
@@ -1365,6 +1392,15 @@ local known_parameters = {
    ["no_timeout"]              = validateBool,
    ["supernode"]               = validateSingleWord,
    ["ts_aggregation"]          = validateChoiceInline({"raw", "1h", "1d"}),
+   ["fw_rule_id"]              = validateSingleWord,
+   ["external_port"]           = validatePortRange,
+   ["internal_port"]           = validatePortRange,
+   ["internal_ip"]             = validateIPV4,
+   ["fw_proto"]                = validateChoiceInline({"tcp", "udp", "both"}),
+   ["wan_interface"]           = validateNetworkInterface,
+   ["list_name"]               = validateUnquoted,
+   ["list_enabled"]            = validateOnOff,
+   ["list_update"]             = validateNumber,
 
    -- json POST DATA
    ["payload"]                 = { jsonCleanup, validateJSON },

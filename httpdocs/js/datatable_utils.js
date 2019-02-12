@@ -168,3 +168,11 @@ function datatableIsLastPage(table) {
    var lastpage = $("#dt-bottom-details .pagination li:nth-last-child(3)", $(table));
    return !((lastpage.length == 1) && (lastpage.hasClass("active") == false));
 }
+
+function datatableGetColumn(table, id_key, id_value) {
+   var res = table.data("datatable").resultset.data.filter(function(item) {
+      return item[id_key] === id_value;
+   });
+
+   if(res) return res[0];
+}

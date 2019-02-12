@@ -139,7 +139,10 @@ recording_utils.checkAvailable()
 -- ##################################################################
 
 initCustomnDPIProtoCategories()
-lists_utils.reloadLists() -- housekeeping will do the actual reload...
+
+-- housekeeping will do the actual reload...
+lists_utils.downloadLists()
+lists_utils.reloadLists()
 
 -- TODO: migrate custom re-arm settings
 

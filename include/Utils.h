@@ -73,7 +73,8 @@ class Utils {
   static bool postHTTPTextFile(lua_State* vm, char *username, char *password, char *url, char *path, int timeout, HTTPTranferStats *stats);
   static bool httpGetPost(lua_State* vm, char *url, char *username,
 		      char *password, int timeout, bool return_content,
-		      bool use_cookie_authentication, HTTPTranferStats *stats, const char *form_data);
+		      bool use_cookie_authentication, HTTPTranferStats *stats, const char *form_data,
+          char *write_fname);
   static long httpGet(const char * const url,
 		      const char * const username, const char * const password,
 		      int timeout,
@@ -103,7 +104,8 @@ class Utils {
   static u_int32_t macHash(u_int8_t *mac);
   static bool isSpecialMac(u_int8_t *mac);
   static int numberOfSetBits(u_int32_t i);
-  static void initRedis(Redis **r, const char *redis_host, const char *redis_password, u_int16_t redis_port, u_int8_t _redis_db_id);
+  static void initRedis(Redis **r, const char *redis_host, const char *redis_password,
+			u_int16_t redis_port, u_int8_t _redis_db_id, bool giveup_on_failure);
   static bool str2DetailsLevel(const char *details, DetailsLevel *out);
   static u_int32_t roundTime(u_int32_t now, u_int32_t rounder, int32_t offset_from_utc);
   static bool isCriticalNetworkProtocol(u_int16_t protocol_id);

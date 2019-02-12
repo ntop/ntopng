@@ -238,7 +238,6 @@ end
 
   if(interface.hasEBPF()) then
      -- TODO: decide whether a page with the list of processes should be done or not
-     -- print('<li><a href="'..ntop.getHttpPrefix()..'/lua/processes_stats.lua">') print(i18n("sprobe_page.processes")) print('</a></li>')
 end
 
 print('<li class="divider"></li>')
@@ -248,11 +247,6 @@ print('<li><a href="'..ntop.getHttpPrefix()..'/lua/local_hosts_stats.lua"><i cla
 print('<li><a href="'..ntop.getHttpPrefix()..'/lua/http_servers_stats.lua">') print(i18n("http_servers_stats.http_servers")) print('</a></li>')
 print('<li><a href="'..ntop.getHttpPrefix()..'/lua/top_hosts.lua"><i class="fa fa-trophy"></i> ') print(i18n("processes_stats.top_hosts")) print('</a></li>')
 print('<li class="divider"></li>')
-
-if(interface.hasEBPF()) then
---   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/sprobe.lua"><i class="fa fa-flag"></i> ') print(i18n("sprobe_page.system_interactions")) print('</a></li>\n')
-end
-
 
 if(not(isLoopback(ifname))) then
    print [[
@@ -445,6 +439,7 @@ if(is_admin) then
    end
 
    print("<li><a href=\""..ntop.getHttpPrefix().."/lua/admin/edit_categories.lua\"><i class=\"fa fa-tags\"></i> ") print(i18n("users.categories")) print("</a></li>\n")
+   print("<li><a href=\""..ntop.getHttpPrefix().."/lua/admin/edit_category_lists.lua\"><i class=\"fa fa-sticky-note\"></i> ") print(i18n("category_lists.category_lists")) print("</a></li>\n")
 
    local device_protocols_alerts = _POST["toggle_device_protocols_alerts"] or ntop.getPref("ntopng.prefs.device_protocols_alerts")
    if (device_protocols_alerts == "1") then
@@ -460,7 +455,7 @@ end
 print [[
       <li><a href="]]
 print(ntop.getHttpPrefix())
-print [[/lua/manage_data.lua"><i class="fa fa-share"></i> ]] print(i18n("manage_data.manage_data")) print[[</a></li>]]
+print [[/lua/manage_data.lua"><i class="fa fa-hdd-o"></i> ]] print(i18n("manage_data.manage_data")) print[[</a></li>]]
 
 if(is_admin) then
   print [[

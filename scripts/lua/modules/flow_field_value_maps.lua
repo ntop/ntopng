@@ -6,6 +6,7 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/flow_field_value_maps/?.lua;" .. package.path
 
 local os_utils = require "os_utils"
+local json = require "dkjson"
 
 local flow_field_value_maps = {}
 
@@ -40,7 +41,22 @@ end
 
 -- ################################################################################
 
-function flow_field_value_maps.map_field_value(field, value)
+function flow_field_value_maps.options_topic_field_value_map(ifid, pen, field, value)
+   -- check the hash cache set when nProbe tells us the mappings over the options topic
+   local k = string.format("ntopng.cache.ifid_%u.field_value_map.pen_%u.field_%u", ifid, pen, field)
+   local res = ntop.getHashCache(k, value)
+
+   local jres = json.decode(res)
+   if jres and jres["name"] then
+      return jres["name"]
+   end
+
+   return value
+end
+
+-- ################################################################################
+
+function flow_field_value_maps.map_field_value(ifid, field, value)
    local field_pen, field_type = flow_field_value_maps.key_to_pen_type_and_value(field)
 
    if field_pen ~= nil and field_type ~= nil then
@@ -53,8 +69,11 @@ function flow_field_value_maps.map_field_value(field, value)
 
       -- do the actual mapping
       if pen_map[field_pen] then
-	 field, value = pen_map[field_pen].map_field_value(field_type, value)
+	 field, value = pen_map[field_pen].map_field_value(ifid, field_type, value)
       end
+
+      -- override with static mappings with those received from nProbe on the options topic
+      value = flow_field_value_maps.options_topic_field_value_map(ifid, field_pen, field_type, value)
    end
 
    return field, value

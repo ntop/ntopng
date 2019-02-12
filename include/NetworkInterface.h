@@ -107,7 +107,7 @@ class NetworkInterface : public Checkpointable {
   string ip_addresses;
   int id;
   bool bridge_interface, is_dynamic_interface, is_traffic_mirrored, is_loopback;
-  bool reload_custom_categories;
+  bool reload_custom_categories, reload_hosts_blacklist;
 #ifdef NTOPNG_PRO
   L7Policer *policer;
 #ifndef HAVE_NEDGE
@@ -165,7 +165,7 @@ class NetworkInterface : public Checkpointable {
 
   /* Hosts */
   HostHash *hosts_hash; /**< Hash used to store hosts information. */
-  bool purge_idle_flows_hosts, sprobe_interface, inline_interface;
+  bool purge_idle_flows_hosts, inline_interface;
   DB *db;
   StatsManager  *statsManager;
   AlertsManager *alertsManager;
@@ -311,7 +311,6 @@ class NetworkInterface : public Checkpointable {
   inline char* get_name() const                { return(ifname);                                       };
   inline char* get_description() const         { return(ifDescription);                                };
   inline int  get_id() const                   { return(id);                                           };
-  inline bool get_sprobe_interface()           { return sprobe_interface;  }
   inline bool get_inline_interface()           { return inline_interface;  }
   inline bool hasSeenVlanTaggedPackets()       { return(has_vlan_packets); }
   inline void setSeenVlanTaggedPackets()       { has_vlan_packets = true;  }
@@ -320,9 +319,7 @@ class NetworkInterface : public Checkpointable {
   inline bool hasSeenMacAddresses()            { return(has_mac_addresses); }
   inline void setSeenMacAddresses()            { has_mac_addresses = true;  }
   inline struct ndpi_detection_module_struct* get_ndpi_struct() { return(ndpi_struct);         };
-  inline bool is_sprobe_interface()            { return(sprobe_interface);                     };
   inline bool is_purge_idle_interface()        { return(purge_idle_flows_hosts);               };
-  inline void enable_sprobe()                  { sprobe_interface = true; };
   int dumpFlow(time_t when, Flow *f);
 #ifdef NTOPNG_PRO
   void dumpAggregatedFlow(time_t when, AggregatedFlow *f, bool is_top_aggregated_flow, bool is_top_cli, bool is_top_srv);
@@ -506,9 +503,7 @@ class NetworkInterface : public Checkpointable {
   virtual Host* getHost(char *host_ip, u_int16_t vlan_id);
   virtual Host* getHost(IpAddress * const host_ip, u_int16_t vlan_id) const;
   bool getHostInfo(lua_State* vm, AddressTree *allowed_hosts, char *host_ip, u_int16_t vlan_id);
-  void findUserFlows(lua_State *vm, char *username);
   void findPidFlows(lua_State *vm, u_int32_t pid);
-  void findFatherPidFlows(lua_State *vm, u_int32_t pid);
   void findProcNameFlows(lua_State *vm, char *proc_name);
   void addAllAvailableInterfaces();
   inline bool idle() { return(is_idle); }
@@ -603,6 +598,7 @@ class NetworkInterface : public Checkpointable {
   void reloadHideFromTop(bool refreshHosts=true);
   inline void requestReloadCustomCategories()       { reload_custom_categories = true; }
   inline bool customCategoriesReloadRequested()     { return reload_custom_categories; }
+  inline void checkHostsBlacklistReload()           { if(reload_hosts_blacklist) { reloadHostsBlacklist(); reload_hosts_blacklist = false; } }
   void reloadHostsBlacklist();
   bool isHiddenFromTop(Host *host);
   inline virtual bool areTrafficDirectionsSupported() { return(false); };
