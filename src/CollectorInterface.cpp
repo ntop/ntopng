@@ -223,7 +223,7 @@ void CollectorInterface::collect_flows() {
 	    int err;
 	    uLongf uLen;
 
-	    uLen = uncompressed_len = max(3*size, MAX_ZMQ_FLOW_BUF);
+	    uLen = uncompressed_len = max(5 * size, MAX_ZMQ_FLOW_BUF);
 	    uncompressed = (char*)malloc(uncompressed_len+1);
 	    if((err = uncompress((Bytef*)uncompressed, &uLen, (Bytef*)&payload[1], size-1)) != Z_OK) {
 	      ntop->getTrace()->traceEvent(TRACE_ERROR, "Uncompress error [%d][len: %u]", err, size);
