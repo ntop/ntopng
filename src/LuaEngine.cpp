@@ -1736,6 +1736,23 @@ static int ntop_reloadCustomCategories(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_check_reload_hosts_blacklist(lua_State* vm) {
+  NetworkInterface *iface;
+  int i;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  for(i = 0; i<ntop->get_num_interfaces(); i++) {
+    if(((iface = ntop->getInterfaceAtId(vm, i)) != NULL) && iface->isPacketInterface())
+      iface->checkHostsBlacklistReload();
+  }
+
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_match_custom_category(lua_State* vm) {
   char *host_to_match;
   NetworkInterface *iface;
@@ -8423,6 +8440,7 @@ static const luaL_Reg ntop_reg[] = {
   { "loadCustomCategoryIp",   ntop_loadCustomCategoryIp },
   { "loadCustomCategoryHost", ntop_loadCustomCategoryHost },
   { "reloadCustomCategories", ntop_reloadCustomCategories },
+  { "checkReloadHostBlacklist", ntop_check_reload_hosts_blacklist },
   { "matchCustomCategory",    ntop_match_custom_category },
 
   /* Privileges */

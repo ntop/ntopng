@@ -293,7 +293,7 @@ void NetworkInterface::init() {
 
   numSubInterfaces = 0;
   memset(subInterfaces, 0, sizeof(subInterfaces));
-  reload_custom_categories = false;
+  reload_custom_categories = reload_hosts_blacklist = false;
 
   ip_addresses = "", networkStats = NULL,
     pcap_datalink_type = 0, cpu_affinity = -1;
@@ -2534,6 +2534,7 @@ void NetworkInterface::reloadCustomCategories() {
     ntop->getTrace()->traceEvent(TRACE_DEBUG, "Going to reload categories [iface: %s]", get_name());
     ndpi_enable_loaded_categories(ndpi_struct);
     reload_custom_categories = false;
+    reload_hosts_blacklist = true;
   }
 }
 

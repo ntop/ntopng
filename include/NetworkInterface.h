@@ -104,7 +104,7 @@ class NetworkInterface : public Checkpointable {
   string ip_addresses;
   int id;
   bool bridge_interface, is_dynamic_interface, is_traffic_mirrored, is_loopback;
-  bool reload_custom_categories;
+  bool reload_custom_categories, reload_hosts_blacklist;
 #ifdef NTOPNG_PRO
   L7Policer *policer;
 #ifndef HAVE_NEDGE
@@ -595,6 +595,7 @@ class NetworkInterface : public Checkpointable {
   void reloadHideFromTop(bool refreshHosts=true);
   inline void requestReloadCustomCategories()       { reload_custom_categories = true; }
   inline bool customCategoriesReloadRequested()     { return reload_custom_categories; }
+  inline void checkHostsBlacklistReload()           { if(reload_hosts_blacklist) { reloadHostsBlacklist(); reload_hosts_blacklist = false; } }
   void reloadHostsBlacklist();
   bool isHiddenFromTop(Host *host);
   inline virtual bool areTrafficDirectionsSupported() { return(false); };

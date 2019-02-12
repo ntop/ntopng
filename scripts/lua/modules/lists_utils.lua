@@ -162,6 +162,9 @@ function lists_utils.editList(list_name, metadata_override)
   lists[list_name] = list
 
   saveListsMetadataToRedis(lists)
+
+  -- Trigger a reload, for example for disabled lists
+  lists_utils.downloadLists()
 end
 
 -- ##############################################
@@ -401,6 +404,9 @@ function lists_utils.checkReloadLists()
     reloadListsNow()
     ntop.delCache("ntopng.cache.reload_lists_utils")
   end
+
+  -- Possibly reload hosts blacklist status
+  ntop.checkReloadHostBlacklist()
 end
 
 -- ##############################################
