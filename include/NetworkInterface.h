@@ -44,6 +44,9 @@ class DB;
 class Paginator;
 class NetworkInterfaceTsPoint;
 
+class ArpStatsMatrixElement
+class ArpStatsHashMatrix
+
 #ifdef NTOPNG_PRO
 class AggregatedFlow;
 class AggregatedFlowHash;
