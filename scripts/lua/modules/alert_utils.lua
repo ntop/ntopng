@@ -1077,6 +1077,7 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
       end
    end
 
+   -- keep defaults in sync with ntop_defines.h
    local anomalies_config = {
       {
          title = i18n("entity_thresholds.flow_attacker_title"),
@@ -1092,12 +1093,12 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
          title = i18n("entity_thresholds.syn_attacker_title"),
          descr = i18n("entity_thresholds.syn_attacker_description"),
          key = syn_attacker_key,
-         global_default = 10, step = 5
+         global_default = 25, step = 5
 	    }, {
          title = i18n("entity_thresholds.syn_victim_title"),
          descr = i18n("entity_thresholds.syn_victim_description"),
          key = syn_victim_key,
-         global_default = 10, step = 5
+         global_default = 25, step = 5
 	       }
    }
 
