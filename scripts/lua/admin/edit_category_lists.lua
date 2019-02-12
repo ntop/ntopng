@@ -37,7 +37,11 @@ if _POST["action"] == "edit" then
     update_interval = list_update,
   })
 elseif _POST["action"] == "update" then
-  lists_utils.updateList(_POST["list_name"])
+  local list_name = _POST["list_name"]
+  lists_utils.updateList(list_name)
+
+  print('<div class="alert alert-success alert-dismissable"><a href="" class="close" data-dismiss="alert" aria-label="close">&times;</a>'..
+    i18n('category_lists.list_will_be_updated', {name=list_name}) .. '</div>')
 end
 
 print[[

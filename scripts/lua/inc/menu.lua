@@ -455,7 +455,7 @@ end
 print [[
       <li><a href="]]
 print(ntop.getHttpPrefix())
-print [[/lua/manage_data.lua"><i class="fa fa-share"></i> ]] print(i18n("manage_data.manage_data")) print[[</a></li>]]
+print [[/lua/manage_data.lua"><i class="fa fa-hdd-o"></i> ]] print(i18n("manage_data.manage_data")) print[[</a></li>]]
 
 if(is_admin) then
   print [[

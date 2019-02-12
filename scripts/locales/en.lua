@@ -353,6 +353,7 @@ local lang = {
     ["edit_list"] = "Edit Category List",
     ["enabled"] = "Enabled",
     ["last_update"] = "Last Update",
+    ["list_will_be_updated"] = "The list '%{name}' will be updated in a while.",
     ["ready_for_update"] = "Ready for Update",
     ["update_frequency"] = "Update Frequency",
     ["update_now"] = "Update Now",
