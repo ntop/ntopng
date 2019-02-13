@@ -254,7 +254,7 @@ for _key, _value in pairsByKeys(vals, funct) do
       if(value.dhcpHost) then column_ip = column_ip .. "&nbsp;<i class='fa fa-flash fa-lg' title='DHCP Host'></i>" end
    end
 
-   if host["is_blacklisted"] == true then
+   if((host ~= nil) and (host["is_blacklisted"] == true)) then
       column_ip = column_ip .. "&nbsp;<span class='label label-danger'>"..i18n("hosts_stats.label_blacklisted_host").."</span>"
    end
 
