@@ -28,7 +28,7 @@ ArpStatsMatrixElement::ArpStatsMatrixElement(NetworkInterface *_iface, const u_i
 
     memcpy(src_mac, _src_mac, 6);
     memcpy(dst_mac, _dst_mac, 6);
-    stats.sent_replies = stats.sent_requests = stats.rcvd_replies = stats.rcvd_requests = 0
+    stats.sent_replies = stats.sent_requests = stats.rcvd_replies = stats.rcvd_requests = 0;
 
 #ifdef ARP_STATS_MATRIX_ELEMENT_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "ADDED ArpMatrixElement: SourceMac %d - DestinationMac %d",
@@ -73,7 +73,7 @@ bool ArpStatsMatrixElement::idle() { /*fun uguale a quella di Mac e Country, ved
 
 /* *************************************** */
 
-bool ArpStatsMatrixElement::equal(const u_int8_t _src_mac[6], _dst_mac[6]) {
+bool ArpStatsMatrixElement::equal(const u_int8_t _src_mac[6], const u_int8_t _dst_mac[6]) {
     if(! _src_mac || !_dst_mac)
         return(false);
     if(  memcmp(src_mac, _src_mac, 6) == 0 && memcmp(dst_mac, _dst_mac, 6) == 0  )
@@ -85,7 +85,7 @@ bool ArpStatsMatrixElement::equal(const u_int8_t _src_mac[6], _dst_mac[6]) {
 
 /* *************************************** */
 
- u_int32_t key(){ 
+ u_int32_t ArpStatsMatrixElement::key(){ 
 
    return ( Utils::macHash((u_int8_t*) src_mac) + Utils::macHash((u_int8_t*) dst_mac) );
   }

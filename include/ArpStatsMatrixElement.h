@@ -36,9 +36,9 @@ public:
     ArpStatsMatrixElement(NetworkInterface *_iface, const u_int8_t _src_mac[6],
     const u_int8_t _dst_mac[6] ); ~ArpStatsMatrixElement();
 
-    inline ArpStats getStats()      {return stats}
-    inline Mac* getSourceMac()      {return src_mac}
-    inline Mac* getDestinationMac() {return dst_mac}
+    inline ArpStats getStats()      {return stats;}
+    inline u_int8_t* getSourceMac()      {return src_mac;}
+    inline u_int8_t* getDestinationMac() {return dst_mac;}
 
     void setStats( u_int32_t sent_req, u_int32_t sent_res, u_int32_t rcv_req,u_int32_t rcv_res){
         stats.sent_replies = sent_res;
@@ -47,12 +47,14 @@ public:
         stats.rcvd_requests = rcv_req;
     }
 
-    inline u_int32_t AddOneSentReplies()        { stats.sent_replies  ++ }
-    inline u_int32_t AddOneSentRequests()       { stats.sent_requests ++ }
-    inline u_int32_t AddOneReceivedReplies()    { stats.rcvd_replies  ++ }
-    inline u_int32_t AddOneReceivedRequests()   { stats.rcvd_requests ++ }
+    inline u_int32_t AddOneSentReplies()        { return ++stats.sent_replies; }
+    inline u_int32_t AddOneSentRequests()       { return ++stats.sent_requests; }
+    inline u_int32_t AddOneReceivedReplies()    { return ++stats.rcvd_replies; }
+    inline u_int32_t AddOneReceivedRequests()   { return ++stats.rcvd_requests; }
 
-    bool ArpStatsMatrixElement::equal(const u_int8_t _src_mac[6], _dst_mac[6]);
+    bool equal(const u_int8_t _src_mac[6], const u_int8_t _dst_mac[6]);
+    bool idle();
+    u_int32_t key();
 
 };
 

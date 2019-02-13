@@ -164,6 +164,9 @@ NetworkInterface::NetworkInterface(const char *name,
 
     macs_hash = new MacHash(this, num_hashes, ntop->getPrefs()->get_max_num_hosts());
 
+    arp_hash_matrix = new ArpStatsHashMatrix(this, num_hashes,
+            ntop->getPrefs()->get_max_num_hosts());
+
     // init global detection structure
     ndpi_struct = ndpi_init_detection_module();
     if(ndpi_struct == NULL) {
@@ -202,7 +205,7 @@ NetworkInterface::NetworkInterface(const char *name,
   } else /* id < 0 */ {
     flows_hash = NULL, hosts_hash = NULL;
     macs_hash = NULL, ases_hash = NULL, vlans_hash = NULL;
-    countries_hash =  NULL;
+    countries_hash =  NULL, arp_hash_matrix = NULL;
     ndpi_struct = NULL, db = NULL, ifSpeed = 0;
   }
 
@@ -290,6 +293,7 @@ void NetworkInterface::init() {
     mdns = NULL, discovery = NULL, ifDescription = NULL,
     flowHashingMode = flowhashing_none;
     macs_hash = NULL, ases_hash = NULL, countries_hash = NULL, vlans_hash = NULL;
+    arp_hash_matrix = NULL;
 
   numSubInterfaces = 0;
   memset(subInterfaces, 0, sizeof(subInterfaces));
@@ -552,6 +556,7 @@ void NetworkInterface::deleteDataStructures() {
   if(countries_hash)        { delete(countries_hash);  countries_hash = NULL;  }
   if(vlans_hash)            { delete(vlans_hash); vlans_hash = NULL; }
   if(macs_hash)             { delete(macs_hash);  macs_hash = NULL;  }
+  if(arp_hash_matrix)       { delete(arp_hash_matrix); arp_hash_matrix = NULL; }
 
 #ifdef NTOPNG_PRO
   if(aggregated_flows_hash) {
@@ -772,6 +777,12 @@ u_int32_t NetworkInterface::getFlowsHashSize() {
 
 u_int32_t NetworkInterface::getMacsHashSize() {
   return(macs_hash->getNumEntries());
+}
+
+/* **************************************************** */
+
+u_int32_t NetworkInterface::getArpHashMatrixSize() {
+  return(arp_hash_matrix->getNumEntries());
 }
 
 /* **************************************************** */
@@ -2448,17 +2459,32 @@ decode_packet_eth:
 	   && !arp_spa_h->isBroadcastDomainHost())
 	  arp_spa_h->setBroadcastDomainHost();
 
+/*-------------------------------------------WIP------------------------------------------*/
+  char buff[128];
 	if(arp_opcode == 0x1 /* ARP request */) {
 	  arp_requests++;
 	  srcMac->incSentArpRequests();
 	  dstMac->incRcvdArpRequests();
+
+    
+    std::cout << "ARP_request seen: " << Utils::formatMac(srcMac->get_mac(), buff, strlen(buff) );
+    
+    
+
 	} else if(arp_opcode == 0x2 /* ARP reply */) {
 	  arp_replies++;
 	  srcMac->incSentArpReplies();
 	  dstMac->incRcvdArpReplies();
 
+
+     std::cout << "ARP_reply seen: " << Utils::formatMac(srcMac->get_mac(), buff, strlen(buff) );
+
+
 	  checkMacIPAssociation(true, arpp->arp_sha, arpp->arp_spa);
 	  checkMacIPAssociation(true, arpp->arp_tha, arpp->arp_tpa);
+
+
+/*-------------------------------------------WIP------------------------------------------*/
 	}
       }
     }
@@ -2578,6 +2604,7 @@ void NetworkInterface::cleanup() {
   countries_hash->cleanup();
   vlans_hash->cleanup();
   macs_hash->cleanup();
+  arp_hash_matrix->cleanup();
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Cleanup interface %s", get_name());
 }
@@ -4109,6 +4136,7 @@ void NetworkInterface::disablePurge(bool on_flows) {
       countries_hash->disablePurge();
       vlans_hash->disablePurge();
       macs_hash->disablePurge();
+      arp_hash_matrix->disablePurge();
     }
   } else {
     for(u_int8_t s = 0; s<numSubInterfaces; s++) {
@@ -4120,6 +4148,7 @@ void NetworkInterface::disablePurge(bool on_flows) {
 	subInterfaces[s]->get_countries_hash()->disablePurge();
 	subInterfaces[s]->get_vlans_hash()->disablePurge();
 	subInterfaces[s]->get_macs_hash()->disablePurge();
+  subInterfaces[s]->get_arp_matrix_hash()->disablePurge();
       }
     }
   }
@@ -4137,6 +4166,7 @@ void NetworkInterface::enablePurge(bool on_flows) {
       countries_hash->enablePurge();
       vlans_hash->enablePurge();
       macs_hash->enablePurge();
+      arp_hash_matrix->enablePurge();
     }
   } else {
     for(u_int8_t s = 0; s<numSubInterfaces; s++) {
@@ -4148,6 +4178,7 @@ void NetworkInterface::enablePurge(bool on_flows) {
 	subInterfaces[s]->get_countries_hash()->enablePurge();
 	subInterfaces[s]->get_vlans_hash()->enablePurge();
 	subInterfaces[s]->get_macs_hash()->enablePurge();
+  subInterfaces[s]->get_arp_matrix_hash()->enablePurge();
       }
     }
   }
@@ -5035,6 +5066,11 @@ u_int NetworkInterface::getNumMacs() {
 };
 
 /* **************************************************** */
+u_int NetworkInterface::getNumArpStatsMatrixElement() {
+  return(arp_hash_matrix ? arp_hash_matrix->getNumEntries() : 0);
+};
+
+/* **************************************************** */
 
 u_int NetworkInterface::purgeIdleHostsMacsASesVlans() {
   time_t last_packet_time = getTimeLastPktRcvd();
@@ -5055,7 +5091,8 @@ u_int NetworkInterface::purgeIdleHostsMacsASesVlans() {
       + macs_hash->purgeIdle()
       + ases_hash->purgeIdle()
       + countries_hash->purgeIdle()
-      + vlans_hash->purgeIdle();
+      + vlans_hash->purgeIdle()
+      + arp_hash_matrix->purgeIdle();
 
     next_idle_host_purge = last_packet_time + HOST_PURGE_FREQUENCY;
     return(n);
@@ -5349,6 +5386,37 @@ Mac* NetworkInterface::getMac(u_int8_t _mac[6], bool createIfNotPresent) {
 
   return(ret);
 }
+/* **************************************************** */
+
+ArpStatsMatrixElement* NetworkInterface::getArpHashMatrixElement(u_int8_t _src_mac[6], 
+        u_int8_t _dst_mac[6], bool createIfNotPresent){
+
+  ArpStatsMatrixElement *ret = NULL;
+
+  if ( _src_mac == NULL || _dst_mac == NULL) return NULL;
+
+  ret = arp_hash_matrix->get(_src_mac, _dst_mac);
+
+  if ( ret == NULL && createIfNotPresent ){
+    try{ 
+      if( (ret = new ArpStatsMatrixElement(this, _src_mac, _dst_mac)) != NULL)
+        arp_hash_matrix->add(ret);
+    } catch(std::bad_alloc& ba) {
+      static bool oom_warning_sent = false;
+
+      if(!oom_warning_sent) {
+	      ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
+	      oom_warning_sent = true;
+      }
+
+      return(NULL);
+    }
+    
+  }
+
+  return ret;
+}
+
 
 /* **************************************************** */
 

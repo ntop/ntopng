@@ -28,13 +28,13 @@
 #include "ntop_includes.h"
 
 
-class MacHashMatrix : public GenericHash {
+class ArpStatsHashMatrix : public GenericHash {
     private:
     Mutex m;
 
 
     public:
-    MacHashMatrix(NetworkInterface *iface, u_int _num_hashes, u_int _max_hash_size);
+    ArpStatsHashMatrix(NetworkInterface *iface, u_int _num_hashes, u_int _max_hash_size);
 
     ArpStatsMatrixElement* get(const u_int8_t _src_mac[6], const u_int8_t _dst_mac[6]); 
 

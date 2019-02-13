@@ -2422,7 +2422,7 @@ u_int32_t Utils::macHash(u_int8_t *mac) {
   if(mac == NULL)
     return(0);
   else {
-    u_int32_t hash = 0
+    u_int32_t hash = 0;
 
     for(int i=0; i<6; i++)
       hash += mac[i] << (i+1);
