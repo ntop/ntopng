@@ -53,7 +53,7 @@ local options = {
 }
 
 -- Check end time bound and realign if necessary
-if tend > latest_tstamp then
+if (tend > latest_tstamp) and ((tend - latest_tstamp) <= ts_utils.MAX_EXPORT_TIME) then
   local delta = tend - latest_tstamp
   local alignment = (tend - tstart) / options.max_num_points
 

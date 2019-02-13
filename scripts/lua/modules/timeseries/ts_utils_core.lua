@@ -11,6 +11,11 @@ ts_utils.schema = require "ts_schema"
 ts_utils.getLastError = ts_common.getLastError
 ts_utils.getLastErrorMessage = ts_common.getLastErrorMessage
 
+-- This is used in realtime charts to avoid querying recent data not written to
+-- the database yet.
+-- See also CONST_INFLUXDB_FLUSH_TIME
+ts_utils.MAX_EXPORT_TIME = 60
+
 require "lua_trace"
 require "ntop_utils"
 
