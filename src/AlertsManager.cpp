@@ -805,7 +805,7 @@ int AlertsManager::engageReleaseHostAlert(const char *host_ip, u_int16_t host_vl
 					  AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
 					  const char *alert_origin, const char *alert_target,
 					  bool engage, bool ignore_disabled) {
-  char counters_key[64], ipbuf_id[64], rsp[16], wherebuf[64];
+  char counters_key[64], ipbuf_id[64], rsp[16], wherebuf[256];
   int rc;
   Host *h;
   NetworkInterface *iface = getNetworkInterface();
