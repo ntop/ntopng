@@ -5038,10 +5038,9 @@ static int ntop_http_fetch(lua_State* vm) {
   snprintf(fname, sizeof(fname), "%s", f);
   ntop->fixPath(fname);
 
-  bool rv = Utils::httpGetPost(NULL, url, (char*)"", (char*)"", timeout,
+  Utils::httpGetPost(vm, url, (char*)"", (char*)"", timeout,
     false, false, &stats, NULL, fname);
 
-  lua_pushboolean(vm, rv);
   return(CONST_LUA_OK);
 }
 

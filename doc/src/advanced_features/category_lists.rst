@@ -23,9 +23,9 @@ By clicking on the *Update Now* button it's possible to force the list update.
 The *Num Hosts* column indicates the number of hosts loaded from the specified list.
 The *Status* column indicates the list current status:
 
-- *Enabled*: the list in currently in use by ntopng
-- *Disabled*: the list is ignored by ntopng
-- *Ready for Update*: the list will be updated during the next scheduled update
+- *Enabled*: the list is enabled and will be used by ntopng
+- *Disabled*: the list is disabled and will be ignore by ntopng
+- *Error*: there was an error while downloading the list. Check out the ntopng log for details.
 
 By clicking on the *Edit* button it's possible to edit the list update frequency and
 to disable the list.

@@ -74,9 +74,13 @@ local BUILTIN_LISTS = {
 -- NOTE: metadata and status are handled as separate keys.
 -- Metadata can only be updated by the gui, whereas status can only be
 -- updated by housekeeping. This avoid concurrency issues.
+local METADATA_KEY = "ntopng.prefs.category_lists.metadata"
+local STATUS_KEY = "ntopng.prefs.category_lists.status"
+
+
 local function loadListsFromRedis()
-  local lists_metadata = ntop.getPref("ntopng.prefs.category_lists.metadata")
-  local lists_status = ntop.getPref("ntopng.prefs.category_lists.status")
+  local lists_metadata = ntop.getPref(METADATA_KEY)
+  local lists_status = ntop.getPref(STATUS_KEY)
 
   if isEmptyString(lists_status) then
     return {}
@@ -113,7 +117,7 @@ local function saveListsStatusToRedis(lists)
     status[list_name] = list.status
   end
 
-  ntop.setPref("ntopng.prefs.category_lists.status", json.encode(status))
+  ntop.setPref(STATUS_KEY, json.encode(status))
 end
 
 -- ##############################################
@@ -128,7 +132,7 @@ local function saveListsMetadataToRedis(lists)
     metadata[list_name] = meta
   end
 
-  ntop.setPref("ntopng.prefs.category_lists.metadata", json.encode(metadata))
+  ntop.setPref(METADATA_KEY, json.encode(metadata))
 end
 
 -- ##############################################
@@ -137,7 +141,7 @@ function lists_utils.getCategoryLists()
   -- TODO add support for user defined urls
   local lists = {}
   local redis_lists = loadListsFromRedis()
-  local default_status = {last_update=0, num_hosts=0, last_error=false}
+  local default_status = {last_update=0, num_hosts=0, last_error=false, num_errors=0}
 
   for key, default_values in pairs(BUILTIN_LISTS) do
     local list = table.merge(default_values, redis_lists[key] or {status = {}})
@@ -193,9 +197,7 @@ end
 
 -- ##############################################
 
--- Returns true if the given list should be updated
-function lists_utils.shouldUpdate(list_name, list, now)
-  local list_file = getListCacheFile(list_name, false)
+local function getNextListUpdate(list)
   local next_update = list.status.last_update + list.update_interval
 
   -- align if possible
@@ -206,9 +208,20 @@ function lists_utils.shouldUpdate(list_name, list, now)
     next_update = next_update - getTzOffsetSeconds()
   end
 
+  return next_update
+end
+
+-- Returns true if the given list should be updated
+function lists_utils.shouldUpdate(list_name, list, now)
+  local list_file = getListCacheFile(list_name, false)
+  local next_update = getNextListUpdate(list)
+  local max_errors = 3
+
+  -- note: num_errors is used to avoid retying downloading the same list again when
+  -- the file does not exist
   return(list.enabled and
     ((now >= next_update) or
-      (not ntop.exists(list_file)) or
+      (not ntop.exists(list_file) and (list.status.num_errors < max_errors)) or
       (ntop.getCache("ntopng.cache.category_lists.update." .. list_name) == "1")))
 end
 
@@ -230,19 +243,23 @@ local function checkListsUpdate(timeout)
       local temp_fname = getListCacheFile(list_name, true)
 
       traceError(TRACE_INFO, TRACE_CONSOLE, string.format("Updating list '%s'...", list_name))
+      local res = ntop.httpFetch(list.url, temp_fname, timeout)
 
-      if ntop.httpFetch(list.url, temp_fname, timeout) then
+      if(res and (res["RESPONSE_CODE"] == 200)) then
         -- download was successful, replace the original file
         os.rename(temp_fname, list_file)
         list.status.last_error = false
+        list.status.num_errors = 0
       else
         -- failure
-        traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("An error occurred while downloading list '%s'", list_name))
+        local respcode = -1
+        if res and res["RESPONSE_CODE"] then respcode = tonumber(res["RESPONSE_CODE"]) or 0 end
+        traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("An error occurred while downloading list '%s': http_code=%d", list_name, respcode))
         list.status.last_error = true
+        list.status.num_errors = list.status.num_errors + 1
       end
 
       now = os.time()
-
       -- set last_update even on failure to avoid blocking on the same list again
       list.status.last_update = now
       ntop.delCache("ntopng.cache.category_lists.update." .. list_name)
@@ -307,7 +324,11 @@ local function loadFromListFile(list_name, list, user_custom_categories)
   local f = io.open(list_fname, "r")
 
   if f == nil then
-    traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Could not find '%s'...", list_fname))
+    if list.status.num_hosts > 0 then
+      -- avoid generating warnings during first startup
+      traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Could not find '%s'...", list_fname))
+    end
+
     return 0
   end
   
@@ -393,7 +414,7 @@ function lists_utils.checkReloadLists()
   local reload_now = (ntop.getCache("ntopng.cache.reload_lists_utils") == "1")
 
   if ntop.getCache("ntopng.cache.download_lists_utils") == "1" then
-    if checkListsUpdate(5 --[[ timeout ]]) then
+    if checkListsUpdate(8 --[[ timeout ]]) then
       ntop.delCache("ntopng.cache.download_lists_utils")
       -- lists where possibly updated, reload
       reload_now = true
