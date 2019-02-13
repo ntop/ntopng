@@ -254,6 +254,10 @@ for _key, _value in pairsByKeys(vals, funct) do
       if(value.dhcpHost) then column_ip = column_ip .. "&nbsp;<i class='fa fa-flash fa-lg' title='DHCP Host'></i>" end
    end
 
+   if host["is_blacklisted"] == true then
+      column_ip = column_ip .. "&nbsp;<span class='label label-danger'>"..i18n("hosts_stats.label_blacklisted_host").."</span>"
+   end
+
    record["column_ip"] = column_ip
 
    if(url ~= nil) then
@@ -363,10 +367,6 @@ for _key, _value in pairsByKeys(vals, funct) do
 
       if value["broadcast_domain_host"] then
 	 column_location = column_location.." <span class='label label-info'><i class='fa fa-sitemap' title='"..i18n("hosts_stats.label_broadcast_domain_host").."'></i></span>"
-      end
-
-      if value["is_blacklisted"] == true then
-	 column_location = column_location .. " <span class='label label-danger'>"..i18n("hosts_stats.label_blacklisted_host").."</span>"
       end
 
       record["column_location"] = column_location

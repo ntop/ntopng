@@ -524,7 +524,7 @@ if((page == "overview") or (page == nil)) then
       end
 
       if(host["privatehost"] == true) then print(' <span class="label label-warning">'..i18n("details.label_private_ip")..'</span>') end
-      if(host["systemhost"] == true) then print(' <span class="label label-info">'..i18n("details.label_system_ip")..' '..'<i class=\"fa fa-flag\"></i></span>') end
+      if(host["systemhost"] == true) then print(' <span class="label label-info"><i class=\"fa fa-flag\" title=\"'..i18n("details.label_system_ip")..'\"></i></span>') end
       if(host["is_blacklisted"] == true) then print(' <span class="label label-danger">'..i18n("details.label_blacklisted_host")..'</span>') end
 
       print("</td><td></td>\n")
