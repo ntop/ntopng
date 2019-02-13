@@ -181,13 +181,15 @@ function relativeStrengthIndex(data, config) {
         memoizedDiff.loss = avgLoss;
     }
 
+    // FIX: avgGain == 0 and avgLoss == 0 -> RSI = 50
+/*
     if (avgGain === 0) {
         return 0;
     } else if (avgLoss === 0) {
         return 100;
     }
-
-    var RS = avgGain / avgLoss;
+*/
+    var RS = (avgGain+1) / (avgLoss+1);
 
     return 100 - 100 / (1 + RS);
 };
