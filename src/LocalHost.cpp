@@ -248,6 +248,8 @@ void LocalHost::lua(lua_State* vm, AddressTree *ptree,
   lua_push_uint64_table_entry(vm, "unknown", get_ndpi_stats()->getProtoBytes(NDPI_PROTOCOL_UNKNOWN));
   lua_push_uint64_table_entry(vm, "incomingflows", getNumIncomingFlows());
   lua_push_uint64_table_entry(vm, "outgoingflows", getNumOutgoingFlows());
+  lua_push_uint64_table_entry(vm, "total_outgoing_anomalous_flows", getTotalNumAnomalousOutgoingFlows());
+  lua_push_uint64_table_entry(vm, "total_incoming_anomalous_flows", getTotalNumAnomalousIncomingFlows());
 
   lua_pushstring(vm, "criteria");
   lua_insert(vm, -2);

@@ -415,6 +415,12 @@ void Host::loadAlertsCounter() {
 bool Host::hasAnomalies() {
   time_t now = time(0);
 
+  if(syn_flood_victim_alert->isAboveThreshold(now)
+     || syn_flood_attacker_alert->isAboveThreshold(now)) {
+    char buf[32];
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Anomaly for: %s", get_ip()->print(buf, sizeof(buf)));
+  }
+
   return syn_flood_victim_alert->isAboveThreshold(now)
     || syn_flood_attacker_alert->isAboveThreshold(now)
     || flow_flood_victim_alert->isAboveThreshold(now)
@@ -1252,7 +1258,7 @@ bool Host::statsResetRequested() {
 
 /* *************************************** */
 
-void Host::updateStats(struct timeval *tv) {
+void Host::updateStats(struct timeval *tv) {  
   if(stats_shadow) {
     delete stats_shadow;
     stats_shadow = NULL;

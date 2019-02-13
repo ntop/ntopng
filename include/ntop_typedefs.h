@@ -344,6 +344,8 @@ typedef enum {
   column_unknowers,
   column_incomingflows,
   column_outgoingflows,
+  column_total_outgoing_anomalous_flows,
+  column_total_incoming_anomalous_flows,
   column_pool_id,
   /* Macs */
   column_num_hosts,

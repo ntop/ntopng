@@ -51,18 +51,18 @@ class GenericTrafficElement {
 #endif
   };
   inline void incNumDroppedFlows()         { total_num_dropped_flows++;      };
-  inline u_int32_t getNumDroppedFlows()    { return total_num_dropped_flows; };
   virtual void updateStats(struct timeval *tv);
   void lua(lua_State* vm, bool host_details);
 
-  inline u_int64_t getNumBytes()      { return(sent.getNumBytes()+rcvd.getNumBytes()); };
-  inline u_int64_t getNumBytesSent()  { return(sent.getNumBytes());                    };
-  inline u_int64_t getNumBytesRcvd()  { return(rcvd.getNumBytes());                    };
+  inline u_int32_t getNumDroppedFlows() const { return total_num_dropped_flows;                };
+  inline u_int64_t getNumBytes()        const { return(sent.getNumBytes()+rcvd.getNumBytes()); };
+  inline u_int64_t getNumBytesSent()    const { return(sent.getNumBytes());                    };
+  inline u_int64_t getNumBytesRcvd()    const { return(rcvd.getNumBytes());                    };
 
-  inline ValueTrend getThptTrend()    { return(bytes_thpt_trend);          };
-  inline float getThptTrendDiff()     { return(bytes_thpt_diff);           };
-  inline float getBytesThpt()         { return(bytes_thpt);                };
-  inline float getPacketsThpt()       { return(pkts_thpt);                 };
+  inline ValueTrend getThptTrend()   const  { return(bytes_thpt_trend);          };
+  inline float getThptTrendDiff()    const  { return(bytes_thpt_diff);           };
+  inline float getBytesThpt()        const  { return(bytes_thpt);                };
+  inline float getPacketsThpt()      const  { return(pkts_thpt);                 };
   void resetStats();
 };
 

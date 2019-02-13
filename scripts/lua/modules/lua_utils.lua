@@ -2798,6 +2798,8 @@ looking_glass_criteria = {
    { "unknowers", i18n("unknowers"), "unknown", bytesToSize },
    { "incomingflows", i18n("incomingflows"), "incomingflows", format_utils.formatValue },
    { "outgoingflows", i18n("outgoingflows"), "outgoingflows", format_utils.formatValue },
+   { "total_outgoing_anomalous_flows", i18n("total_outgoing_anomalous_flows"), "total_outgoing_anomalous_flows", format_utils.formatValue },
+   { "total_incoming_anomalous_flows", i18n("total_incoming_anomalous_flows"), "total_incoming_anomalous_flows", format_utils.formatValue },
 }
 
 function criteria2label(criteria)

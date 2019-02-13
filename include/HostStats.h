@@ -76,9 +76,10 @@ class HostStats: public Checkpointable, public GenericTrafficElement {
   inline void incKeepAlivePkts(u_int32_t num)       { tcpPacketStats.pktKeepAlive += num; };
   inline void incSentStats(u_int pkt_len)           { sent_stats.incStats(pkt_len);       };
   inline void incRecvStats(u_int pkt_len)           { recv_stats.incStats(pkt_len);       };
-
-  inline u_int64_t getRecvBytes()                   { return(rcvd.getNumBytes());         };
-  inline u_int64_t getSentBytes()                   { return(sent.getNumBytes());         };
+  inline u_int32_t getTotalNumFlowsAsClient() const { return(total_num_flows_as_client);  };
+  inline u_int32_t getTotalNumFlowsAsServer() const { return(total_num_flows_as_server);  };
+  inline u_int32_t getTotalAnomalousNumFlowsAsClient() const { return(anomalous_flows_as_client);  };
+  inline u_int32_t getTotalAnomalousNumFlowsAsServer() const { return(anomalous_flows_as_server);  };
   virtual void deserialize(json_object *obj)        {}
   virtual void incNumFlows(bool as_client, Host *peer) { if(as_client) total_num_flows_as_client++; else total_num_flows_as_server++; } ;
   virtual void decNumFlows(bool as_client, Host *peer) {}

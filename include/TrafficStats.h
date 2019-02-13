@@ -35,11 +35,11 @@ class TrafficStats {
     numPkts.inc(t, num_pkts), numBytes.inc(t, num_bytes);
     numPkts.computeAnomalyIndex(t), numBytes.computeAnomalyIndex(t);
   };  
-  inline void resetStats()                  { numPkts.reset(), numBytes.reset(); };
-  inline u_int64_t getNumPkts()             { return(numPkts.get());             };
-  inline u_int64_t getNumBytes()            { return(numBytes.get());            };
-  inline u_int64_t getPktsAnomaly()         { return(numPkts.getAnomalyIndex()); };
-  inline u_int64_t getBytesAnomaly()        { return(numBytes.getAnomalyIndex());};
+  inline void resetStats()                   { numPkts.reset(), numBytes.reset(); };
+  inline u_int64_t getNumPkts()      const   { return(numPkts.get());             };
+  inline u_int64_t getNumBytes()     const   { return(numBytes.get());            };
+  inline u_int64_t getPktsAnomaly()  const   { return(numPkts.getAnomalyIndex()); };
+  inline u_int64_t getBytesAnomaly() const   { return(numBytes.getAnomalyIndex());};
   void printStats();
 
   char* serialize();

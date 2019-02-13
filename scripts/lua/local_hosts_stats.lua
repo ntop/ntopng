@@ -2,7 +2,7 @@
 -- (C) 2013-18 - ntop.org
 --
 
-dirs = ntop.getDirs()
+local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
@@ -13,8 +13,8 @@ sendHTTPContentTypeHeader('text/html')
 
 page_utils.print_header(i18n("local_hosts_stats.looking_glass"))
 
-criteria    = _GET["criteria"]
-ipversion   = _GET["version"]
+local criteria    = _GET["criteria"]
+local ipversion   = _GET["version"]
 
 active_page = "hosts"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
@@ -32,9 +32,9 @@ if not isEmptyString(ipversion) then
   page_params["version"] = ipversion
 end
 
-prefs = ntop.getPrefs()
+local prefs = ntop.getPrefs()
 
-ifstats = interface.getStats()
+local ifstats = interface.getStats()
 
 print [[
       <hr>
@@ -137,7 +137,7 @@ var host_table_interval = window.setInterval(host_table_update, 10000);
 			url: url_update ,
 	 ]]
 
-label = criteria2label(criteria)
+local label = criteria2label(criteria)
 
 print('title: ' .. '\"' .. i18n("local_hosts_stats.looking_glass") .. ': '..label..'",\n')
 
@@ -145,7 +145,7 @@ print ('rowCallback: function ( row ) { return host_table_setID(row, "'..criteri
 
 
 -- Set the preference table
-preference = tablePreferences("rows_number",_GET["perPage"])
+local preference = tablePreferences("rows_number",_GET["perPage"])
 if (preference ~= "") then print ('perPage: '..preference.. ",\n") end
 
 -- Automatic default sorted. NB: the column must exist.

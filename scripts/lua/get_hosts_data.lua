@@ -146,7 +146,6 @@ if(all ~= nil) then
    currentPage = 0
 end
 
-
 local now = os.time()
 local vals = {}
 
@@ -194,10 +193,10 @@ if(hosts_stats ~= nil) then
 	 -- io.write("==> "..criteria.."\n")
 	 if(sortColumn == "column_"..criteria) then
 	    local c = hosts_stats[key]["criteria"]
-
+	    tprint(c)
 	    if(c ~= nil) then
 	       vals[c[criteria_key]+postfix] = key
-	       --io.write(key.."="..hosts_stats[key]["criteria"][criteria_key].."\n")
+	       -- io.write(key.."="..hosts_stats[key]["criteria"][criteria_key].."\n")
 	    end
 	 end
       end
