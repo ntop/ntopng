@@ -2082,6 +2082,26 @@ local function formatInactivity(ifid, engine, entity_type, entity_value, entity_
       " is inactive."
 end
 
+local function formatActiveFlowsAnomaly(ifid, engine, entity_type, entity_value, entity_info, alert_key, alert_info)
+   if entity_info.anomalies ~= nil then
+      if(alert_key == "num_active_flows_as_client") and (entity_info.anomalies.num_active_flows_as_client) then
+	 local anomaly_info = entity_info.anomalies.num_active_flows_as_client
+
+	 return string.format("%s has an anomalous number of active client flows [current_flows=%u, last_flows=%u, delta=%d] [anomaly_index=%u]",
+	    firstToUpper(formatAlertEntity(ifid, entity_type, entity_value, entity_info)),
+	    anomaly_info.value, anomaly_info.last_value, anomaly_info.value - anomaly_info.last_value, anomaly_info.anomaly_index)
+      elseif(alert_key == "num_active_flows_as_server") and (entity_info.anomalies.num_active_flows_as_server) then
+	 local anomaly_info = entity_info.anomalies.num_active_flows_as_server
+
+	 return string.format("%s has an anomalous number of active server flows [current_flows=%u, last_flows=%u, delta=%d] [anomaly_index=%u]",
+	    firstToUpper(formatAlertEntity(ifid, entity_type, entity_value, entity_info)),
+	    anomaly_info.value, anomaly_info.last_value, anomaly_info.value - anomaly_info.last_value, anomaly_info.anomaly_index)
+      end
+   end
+
+   return ""
+end
+
 -- returns the pair (message, severity)
 local function formatAlertMessage(ifid, engine, entity_type, entity_value, atype, akey, entity_info, alert_info)
    -- Defaults
@@ -2102,6 +2122,8 @@ local function formatAlertMessage(ifid, engine, entity_type, entity_value, atype
       msg = formatTooManyPacketDrops(ifid, engine, entity_type, entity_value, entity_info, akey, alert_info)
    elseif atype == "inactivity" then
       msg = formatInactivity(ifid, engine, entity_type, entity_value, entity_info, akey, alert_info)
+   elseif atype == "active_flows_anomaly" then
+      msg = formatActiveFlowsAnomaly(ifid, engine, entity_type, entity_value, entity_info, akey, alert_info)
    end
 
    return msg, severity
@@ -2204,6 +2226,8 @@ local function check_entity_alerts(ifid, entity_type, entity_value, working_stat
 	 return "slow_stats_update"
       elseif starts(anomal_name, "too_many_") then
 	 return "misconfigured_app"
+      elseif starts(anomal_name, "num_active_flows_as_") then -- e.g. num_active_flows_as_client
+	 return "active_flows_anomaly"
       end
 
       return nil
@@ -2214,12 +2238,18 @@ local function check_entity_alerts(ifid, entity_type, entity_value, working_stat
       for anomal_name, anomaly in pairs(entity_info.anomalies or {}) do
 	 local anomal_type = getAnomalyType(anomal_name)
 
+	 if((anomal_type == "active_flows_anomaly") and (ntop.getPref("ntopng.prefs.beta_anomaly_index_alerts") ~= "1")) then
+	    goto skip
+	 end
+
 	 if not isEmptyString(anomal_type) then
 	    addAlertInfo(current_alerts, anomal_type, anomal_name, anomaly)
 	 else
 	    -- default anomaly - empty alert key
 	    addAlertInfo(current_alerts, anomal_name, "", anomaly)
 	 end
+
+	 ::skip::
       end
    end
 

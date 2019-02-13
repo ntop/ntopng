@@ -50,6 +50,7 @@ alert_consts.alert_type_keys = {
    { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.snmp_port_errors"),            27, "port_errors"                },
    { "<i class='fa fa-exclamation'></i> Test failed",                                              28, "test_failed"                },
    { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.inactivity"),                  29, "inactivity"                 },
+   { "<i class='fa fa-life-ring'></i> " .. i18n("alerts_dashboard.active_flows_anomaly"),          30, "active_flows_anomaly"       },
 }
 
 -- Keep in sync with ntop_typedefs.h:AlertEntity
