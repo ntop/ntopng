@@ -1351,6 +1351,7 @@ local page_params = {
    vlan = _GET["vlan"],
    traffic_type = _GET["traffic_type"],
    version = _GET["version"],
+   host = hostinfo2hostkey(host_info),
 }
 
 print(getPageUrl(ntop.getHttpPrefix().."/lua/get_flows_data.lua", page_params))
