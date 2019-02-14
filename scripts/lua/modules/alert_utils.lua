@@ -623,6 +623,14 @@ end
 
 function formatRawFlow(record, flow_json)
    require "flow_utils"
+   local time_bounds = nil
+   local add_links = false
+
+   if hasNindexSupport() then
+      -- only add links if nindex is present
+      time_bounds = {getAlertTimeBounds(record)}
+      add_links = true
+   end
 
    -- pretend record is a flow to reuse getFlowLabel
    local flow = {
@@ -631,7 +639,7 @@ function formatRawFlow(record, flow_json)
       ["srv.ip"] = record["srv_addr"], ["srv.port"] = tonumber(record["srv_port"]),
       ["srv.blacklisted"] = tostring(record["srv_blacklisted"]) == "1",
       ["vlan"] = record["vlan_id"]}
-   flow = "["..i18n("flow")..": "..(getFlowLabel(flow, false, true) or "").."] "
+   flow = "["..i18n("flow")..": "..(getFlowLabel(flow, false, add_links, time_bounds) or "").."] "
 
    local l4_proto_label, l4_proto = l4_proto_to_string(record["proto"] or 0) or ""
 
@@ -1704,7 +1712,7 @@ function getCurrentStatus() {
 	 },
 
 	 {
-	    title: "]]print(i18n("chart"))print[[",
+	    title: "]]print(i18n("drilldown"))print[[",
 	    field: "column_chart",
             sortable: false,
 	    hidden: ]] print(ternary(ntop.isPro(), "false", "true")) print[[,

@@ -110,7 +110,7 @@ for _key,_value in ipairs(alerts) do
    if ntop.isPro() then
       column_chart    = getAlertGraphLink(getInterfaceId(ifname), _value)
       if not isEmptyString(column_chart) then
-	 column_chart = "<a href='".. column_chart .."'><i class='fa fa-area-chart fa-lg'></i></a>"
+	 column_chart = "<a href='".. column_chart .."'><i class='fa fa-search-plus drilldown-icon'></i></a>"
       end
    end
 
