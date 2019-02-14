@@ -67,7 +67,7 @@ class Flow : public GenericHashEntry {
     quota_exceeded;
   u_int16_t diff_num_http_requests;
 #ifdef NTOPNG_PRO
-  bool counted_in_aggregated_flow;
+  bool counted_in_aggregated_flow, status_counted_in_aggregated_flow;
   bool ingress2egress_direction;
   u_int8_t routing_table_id;
 #ifndef HAVE_NEDGE
@@ -297,8 +297,10 @@ class Flow : public GenericHashEntry {
   };
   void setJSONInfo(const char *json);
 #ifdef NTOPNG_PRO
-  inline bool is_counted_in_aggregated_flow()          { return(counted_in_aggregated_flow); };
-  inline void set_counted_in_aggregated_flow(bool val) { counted_in_aggregated_flow  = val;  };
+  inline bool is_status_counted_in_aggregated_flow()    const { return(status_counted_in_aggregated_flow); };
+  inline bool is_counted_in_aggregated_flow()           const { return(counted_in_aggregated_flow);        };
+  inline void set_counted_in_aggregated_flow(bool val)        { counted_in_aggregated_flow  = val;         };
+  inline void set_status_counted_in_aggregated_flow(bool val) { status_counted_in_aggregated_flow = val;   };
 #endif
   bool isFlowPeer(char *numIP, u_int16_t vlanId);
   void incStats(bool cli2srv_direction, u_int pkt_len,

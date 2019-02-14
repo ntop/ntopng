@@ -90,7 +90,7 @@ Flow::Flow(NetworkInterface *_iface,
     if(srv_host) routing_table_id = max_val(routing_table_id, hp->getRoutingPolicy(srv_host->get_host_pool()));
   }
 
-  counted_in_aggregated_flow = false;
+  counted_in_aggregated_flow = status_counted_in_aggregated_flow = false;
 #endif
 
   passVerdict = true, quota_exceeded = false;
@@ -3419,7 +3419,6 @@ FlowStatus Flow::getFlowStatus() {
 	  return status_normal;
       } else {
 	/* 3WH is over */
-
 	switch(l7proto) {
 	case NDPI_PROTOCOL_SSL:
 #ifndef HAVE_NEDGE
