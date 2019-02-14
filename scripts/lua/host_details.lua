@@ -1336,21 +1336,27 @@ print [[
       <div id="table-flows"></div>
 	 <script>
    var url_update = "]]
-print (ntop.getHttpPrefix())
-print [[/lua/get_flows_data.lua?ifid=]]
-print(ifId.."&")
-if (application ~= nil) then
-   print("application="..application.."&")
-elseif (category ~= nil) then
-   print("category="..category.."&")
-end
-print (hostinfo2url(host_info)..'";')
+
+local base_url = ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url(host_info).."&page=flows";
+local page_params = {
+   application = _GET["application"],
+   category = _GET["category"],
+   flow_status = _GET["flow_status"],
+   tcp_flow_state = _GET["tcp_flow_state"],
+   flowhosts_type = _GET["flowhosts_type"],
+   vlan = _GET["vlan"],
+   traffic_type = _GET["traffic_type"],
+   version = _GET["version"],
+}
+
+print(getPageUrl(ntop.getHttpPrefix().."/lua/get_flows_data.lua", page_params))
+
+print('";')
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/flows_stats_id.inc")
 if(ifstats.vlan)   then show_vlan = true else show_vlan = false end
 -- Set the host table option
 if(show_vlan) then print ('flow_rows_option["vlan"] = true;\n') end
-
 
 local active_flows_msg = i18n("flows_page.active_flows",{filter=""})
 if not interface.isPacketInterface() then
@@ -1359,48 +1365,7 @@ elseif interface.isPcapDumpInterface() then
    active_flows_msg = i18n("flows")
 end
 
-local dt_buttons = ''
-
-if not category then
-   local application_filter = ''
-   if(application ~= nil) then
-      application_filter = '<span class="glyphicon glyphicon-filter"></span>'
-   end
-   dt_buttons = dt_buttons.."'<div class=\"btn-group\"><button class=\"btn btn-link dropdown-toggle\" data-toggle=\"dropdown\">"..i18n("flows_page.applications").. " " .. application_filter .. "<span class=\"caret\"></span></button> <ul class=\"dropdown-menu\" role=\"menu\" >"
-   dt_buttons = dt_buttons..'<li><a href="'..url..'&page=flows">'..i18n("flows_page.all_proto")..'</a></li>'
-
-   for key, value in pairsByKeys(host["ndpi"] or {}, asc) do
-      local class_active = ''
-      if(key == application) then
-	 class_active = ' class="active"'
-      end
-      dt_buttons = dt_buttons..'<li '..class_active..'><a href="'..url..'&page=flows&application='..key..'">'..key..'</a></li>'
-   end
-
-   dt_buttons = dt_buttons .. "</ul></div>',"
-end
-
-if not application then
-   local category_filter = ''
-   if(category ~= nil) then
-      category_filter = '<span class="glyphicon glyphicon-filter"></span>'
-   end
-   dt_buttons = dt_buttons.."'<div class=\"btn-group\"><button class=\"btn btn-link dropdown-toggle\" data-toggle=\"dropdown\">"..i18n("users.categories").. " " .. category_filter .. "<span class=\"caret\"></span></button> <ul class=\"dropdown-menu pull-right\" role=\"menu\" >"
-   dt_buttons = dt_buttons..'<li><a href="'..url..'&page=flows">'..i18n("flows_page.all_categories")..'</a></li>'
-
-   for key, value in pairsByKeys(host["ndpi_categories"] or {}, asc) do
-      local class_active = ''
-      if(key == category) then
-	 class_active = ' class="active"'
-      end
-      dt_buttons = dt_buttons..'<li '..class_active..'><a href="'..url..'&page=flows&category='..key..'">'..key..'</a></li>'
-   end
-
-   dt_buttons = dt_buttons .. "</ul></div>',"
-
-end
-
-dt_buttons = "["..dt_buttons.."]"
+local active_flows_msg = getFlowsTableTitle()
 
 if false then
 else
@@ -1408,7 +1373,7 @@ print [[
   flow_rows_option["type"] = 'host';
 	 $("#table-flows").datatable({
          url: url_update,
-         buttons: ]] print(dt_buttons) print[[,
+         buttons: [ ]] printActiveFlowsDropdown(base_url, page_params, interface.getStats(), interface.getnDPIStats()) print[[ ],
          rowCallback: function ( row ) { return flow_table_setID(row); },
          tableCallback: function()  { $("#dt-bottom-details > .pull-left > p").first().append('. ]]
 print(i18n('flows_page.idle_flows_not_listed'))
