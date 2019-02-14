@@ -43,6 +43,7 @@ local lang = {
   ["download"] = "Download",
   ["download_x"] = "%{what} download",
   ["downloaders"] = "Download Volume",
+  ["drilldown"] = "Drilldown",
   ["duration"] = "Duration",
   ["egress"] = "Egress",
   ["empty"] = "Empty",

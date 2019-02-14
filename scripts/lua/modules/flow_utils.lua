@@ -1135,7 +1135,55 @@ end
 
 -- #######################
 
-function getFlowLabel(flow, show_macs, add_hyperlinks)
+function getAlertTimeBounds(alert)
+    local epoch_begin
+    local epoch_end
+    local half_interval = 1800
+    local alert_tstamp = alert.alert_tstamp
+
+    if alert.first_switched and alert.last_switched then
+      epoch_begin = alert.first_switched - half_interval
+      epoch_end = alert.last_switched + half_interval
+   else
+      epoch_begin = alert_tstamp - half_interval
+      epoch_end = alert_tstamp + half_interval
+   end
+
+   return math.floor(epoch_begin), math.floor(epoch_end)
+end
+
+-- #######################
+
+local function formatFlowHost(flow, cli_or_srv, historical_bounds)
+  local host_name = "<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?"..hostinfo2url(flow,cli_or_srv)
+  if historical_bounds then
+    host_name = host_name .. string.format("&page=historical&epoch_begin=%u&epoch_end=%u&detail_view=top_l7_contacts", historical_bounds[1], historical_bounds[2])
+  end
+  host_name = host_name.."\">"..shortenString(flowinfo2hostname(flow,cli_or_srv))
+  if(flow[cli_or_srv .. ".systemhost"] == true) then
+     host_name = host_name.." <i class='fa fa-flag' aria-hidden='true'></i>"
+  end
+  if(flow[cli_or_srv ..  ".blacklisted"] == true) then
+     host_name = host_name.." <i class='fa fa-ban' aria-hidden='true' title='Blacklisted'></i>"
+  end
+  host_name = host_name.."</A>"
+
+  return host_name
+end
+
+local function formatFlowPort(flow, cli_or_srv, port, historical_bounds)
+    if not historical_bounds then
+	return "<A HREF=\""..ntop.getHttpPrefix().."/lua/port_details.lua?port=" ..port.. "\">"..port.."</A>"
+    end
+
+    -- TODO port filter
+    local port_url = "<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?"..hostinfo2url(flow,cli_or_srv)
+    port_url = port_url .. string.format("&page=historical&epoch_begin=%u&epoch_end=%u&detail_view=flows&port=%u", historical_bounds[1], historical_bounds[2], port)
+    port_url = port_url .. "\">" .. port .. "</A>"
+    return port_url
+end
+
+function getFlowLabel(flow, show_macs, add_hyperlinks, historical_bounds)
    if flow == nil then return "" end
 
    local cli_name = shortenString(flowinfo2hostname(flow, "cli"))
@@ -1157,32 +1205,15 @@ function getFlowLabel(flow, show_macs, add_hyperlinks)
    end
 
    if add_hyperlinks then
-      cli_name = "<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?"..hostinfo2url(flow,"cli") .. "\">"
-      cli_name = cli_name..shortenString(flowinfo2hostname(flow,"cli"))
-      if(flow["cli.systemhost"] == true) then
-	 cli_name = cli_name.." <i class='fa fa-flag' aria-hidden='true'></i>"
-      end
-      if(flow["cli.blacklisted"] == true) then
-	 cli_name = cli_name.." <i class='fa fa-ban' aria-hidden='true' title='Blacklisted'></i>"
-      end
-      cli_name = cli_name.."</A>"
-
-      srv_name = "<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?"..hostinfo2url(flow,"srv") .. "\">"
-      srv_name = srv_name..shortenString(flowinfo2hostname(flow,"srv"))
-      if(flow["srv.systemhost"] == true) then
-	 srv_name = srv_name.." <i class='fa fa-flag' aria-hidden='true'></i>"
-      end
-      if(flow["srv.blacklisted"] == true) then
-	 srv_name = srv_name.." <i class='fa fa-ban' aria-hidden='true' title='Blacklisted'></i>"
-      end
-      srv_name = srv_name.."</A>"
+      cli_name = formatFlowHost(flow, "cli", historical_bounds)
+      srv_name = formatFlowHost(flow, "srv", historical_bounds)
 
       if cli_port then
-	 cli_port = "<A HREF=\""..ntop.getHttpPrefix().."/lua/port_details.lua?port=" ..cli_port.. "\">"..cli_port.."</A>"
+	 cli_port = formatFlowPort(flow, "cli", cli_port, historical_bounds)
       end
 
       if srv_port then
-	 srv_port = "<A HREF=\""..ntop.getHttpPrefix().."/lua/port_details.lua?port=" ..srv_port.. "\">"..srv_port.."</A>"
+	 srv_port = formatFlowPort(flow, "srv", srv_port, historical_bounds)
       end
 
       if cli_mac then
