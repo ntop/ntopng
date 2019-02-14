@@ -1341,7 +1341,9 @@ print [[
 	 <script>
    var url_update = "]]
 
-local base_url = ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url(host_info).."&page=flows";
+-- NOTE: host parameter already contained in page_params below
+local base_url = ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&page=flows";
+
 local page_params = {
    application = _GET["application"],
    category = _GET["category"],
