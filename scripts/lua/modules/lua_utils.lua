@@ -2497,7 +2497,7 @@ end
 
 -- Update Utils::flowstatus2str / FlowStatus enum
 function getFlowStatus(status, flowstatus_info)
-   local warn_sign = "<i class='fa fa-exclamation-triangle' aria-hidden=true' style='color: orange;'></i> &nbsp;"
+   local warn_sign = "<i class=\"fa fa-warning\" aria-hidden=true style=\"color: orange;\"></i> "
    -- NOTE: flowstatus_info can be nil on older alerts
    if(status == 0) then return(i18n("flow_details.normal"))
    elseif(status == 1)  then return(warn_sign..i18n("flow_details.slow_tcp_connection"))
