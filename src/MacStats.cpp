@@ -35,10 +35,10 @@ MacStats::MacStats(NetworkInterface *_iface) {
 
 void MacStats::lua(lua_State* vm, bool show_details) {
   if(show_details) {
-    lua_push_uint64_table_entry(vm, "arp_requests.sent", arp_stats.sent_requests);
-    lua_push_uint64_table_entry(vm, "arp_requests.rcvd", arp_stats.rcvd_requests);
-    lua_push_uint64_table_entry(vm, "arp_replies.sent", arp_stats.sent_replies);
-    lua_push_uint64_table_entry(vm, "arp_replies.rcvd", arp_stats.rcvd_replies);
+    lua_push_uint64_table_entry(vm, "arp_requests.sent", arp_stats.sent.requests);
+    lua_push_uint64_table_entry(vm, "arp_requests.rcvd", arp_stats.rcvd.requests);
+    lua_push_uint64_table_entry(vm, "arp_replies.sent", arp_stats.sent.replies);
+    lua_push_uint64_table_entry(vm, "arp_replies.rcvd", arp_stats.rcvd.replies);
 
     if(ndpiStats) ndpiStats->lua(iface, vm, true);
   }

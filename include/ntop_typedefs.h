@@ -364,8 +364,11 @@ typedef struct {
 } sFlowInterfaceStats;
 
 typedef struct {
-  u_int32_t sent_requests, sent_replies;
-  u_int32_t rcvd_requests, rcvd_replies;
+  u_int32_t requests, replies;
+} ReqReplyStats;
+
+typedef struct {
+  ReqReplyStats sent, rcvd;
 } ArpStats;
 
 typedef struct {

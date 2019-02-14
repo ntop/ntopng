@@ -34,18 +34,18 @@ class MacStats: public GenericTrafficElement {
   void deserialize(json_object *obj);
   void getJSONObject(json_object *my_object);
 
-  inline u_int64_t  getNumSentArp()   { return (u_int64_t)arp_stats.sent_requests + arp_stats.sent_replies; }
-  inline u_int64_t  getNumRcvdArp()   { return (u_int64_t)arp_stats.rcvd_requests + arp_stats.rcvd_replies; }
-  inline void incSentArpRequests()   { arp_stats.sent_requests++;         }
-  inline void incSentArpReplies()    { arp_stats.sent_replies++;          }
-  inline void incRcvdArpRequests()   { arp_stats.rcvd_requests++;         }
-  inline void incRcvdArpReplies()    { arp_stats.rcvd_replies++;          }
+  inline u_int64_t  getNumSentArp()   { return (u_int64_t)arp_stats.sent.requests + arp_stats.sent.replies; }
+  inline u_int64_t  getNumRcvdArp()   { return (u_int64_t)arp_stats.rcvd.requests + arp_stats.rcvd.replies; }
+  inline void incSentArpRequests()   { arp_stats.sent.requests++;         }
+  inline void incSentArpReplies()    { arp_stats.sent.replies++;          }
+  inline void incRcvdArpRequests()   { arp_stats.rcvd.requests++;         }
+  inline void incRcvdArpReplies()    { arp_stats.rcvd.replies++;          }
 
   inline void incSentStats(time_t t, u_int64_t num_pkts, u_int64_t num_bytes)  { sent.incStats(t, num_pkts, num_bytes); }
   inline void incRcvdStats(time_t t, u_int64_t num_pkts, u_int64_t num_bytes)  { rcvd.incStats(t, num_pkts, num_bytes); }
   inline void incnDPIStats(time_t when, u_int16_t protocol,
-	    u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
-	    u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes) {
+			   u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
+			   u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes) {
     if(ndpiStats || (ndpiStats = new nDPIStats())) {
       //ndpiStats->incStats(when, protocol.master_proto, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes);
       //ndpiStats->incStats(when, protocol.app_proto, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes);
