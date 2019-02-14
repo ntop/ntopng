@@ -328,7 +328,7 @@ print [[/lua/show_alerts.lua\">"
 print (ntop.getHttpPrefix())
 print [[/lua/hosts_stats.lua?mode=local\">";
 
-		  msg += "<span class=\"label label-success\">";
+		  msg += "<span title=\"]] print(i18n("alerts_thresholds_config.active_local_hosts")) print[[\" class=\"label label-success\">";
 		  msg += addCommas(rsp.num_local_hosts)+" <i class=\"fa fa-laptop\" aria-hidden=\"true\"></i></span></a>";
 
 		  checkMigrationMessage(rsp);
@@ -337,15 +337,16 @@ print [[/lua/hosts_stats.lua?mode=local\">";
 	    msg += "&nbsp;<a href=\"]]
 print (ntop.getHttpPrefix())
 print [[/lua/hosts_stats.lua?mode=remote\">";
+		var remove_hosts_label = "]] print(i18n("remote_hosts")) print[[";
 
 		if(rsp.hosts_pctg < alarm_threshold_low) {
-		  msg += "<span class=\"label label-default\">";
+		  msg += "<span title=\"" + remove_hosts_label +"\" class=\"label label-default\">";
 		} else if(rsp.hosts_pctg < alarm_threshold_high) {
 		  alert = 1;
-		  msg += "<span class=\"label label-warning\">";
+		  msg += "<span title=\"" + remove_hosts_label +"\" class=\"label label-warning\">";
 		} else {
 		  alert = 1;
-		  msg += "<span class=\"label label-danger\">";
+		  msg += "<span title=\"" + remove_hosts_label +"\" class=\"label label-danger\">";
 		}
 
 		msg += addCommas(rsp.num_hosts-rsp.num_local_hosts)+" <i class=\"fa fa-laptop\" aria-hidden=\"true\"></i></span></a> ";
@@ -354,7 +355,7 @@ print [[/lua/hosts_stats.lua?mode=remote\">";
 	      msg += "<a href=\"]]
 print (ntop.getHttpPrefix())
 print [[/lua/macs_stats.lua?devices_mode=source_macs_only\">";
-		  msg += "<span class=\"label label-default\">";
+		  msg += "<span title=\"]] print(i18n("mac_stats.layer_2_source_devices", {device_type=""})) print[[\" class=\"label label-default\">";
 		msg += addCommas(rsp.num_devices)+" Devices</span></a> ";
 	    }
 

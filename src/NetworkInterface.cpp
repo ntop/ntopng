@@ -1254,6 +1254,7 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
 		     zflow->core.pkt_sampling_rate*zflow->core.out_bytes, 0,
 		     zflow->core.last_switched);
   p.app_protocol = zflow->core.l7_proto.app_protocol, p.master_protocol = zflow->core.l7_proto.master_protocol;
+  p.category = NDPI_PROTOCOL_CATEGORY_UNSPECIFIED;
   flow->setDetectedProtocol(p, true);
   flow->setJSONInfo(json_object_to_json_string(zflow->additional_fields));
 
@@ -1261,11 +1262,11 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
 				  zflow->core.pkt_sampling_rate*(zflow->core.in_pkts+zflow->core.out_pkts),
 				  zflow->core.pkt_sampling_rate*(zflow->core.in_bytes+zflow->core.out_bytes));
 
-  if(zflow->dns_query) flow->setDNSQuery(zflow->dns_query);
-  if(zflow->http_url)  flow->setHTTPURL(zflow->http_url);
-  if(zflow->http_site) flow->setServerName(zflow->http_site);
-  if(zflow->ssl_server_name) flow->setServerName(zflow->ssl_server_name);
-  if(zflow->bittorrent_hash) flow->setBTHash(zflow->bittorrent_hash);
+  if(zflow->dns_query && zflow->dns_query[0] != '\0') flow->setDNSQuery(zflow->dns_query);
+  if(zflow->http_url && zflow->http_url[0] != '\0')   flow->setHTTPURL(zflow->http_url);
+  if(zflow->http_site && zflow->http_site[0] != '\0') flow->setServerName(zflow->http_site);
+  if(zflow->ssl_server_name && zflow->ssl_server_name[0] != '\0') flow->setServerName(zflow->ssl_server_name);
+  if(zflow->bittorrent_hash && zflow->bittorrent_hash[0] != '\0') flow->setBTHash(zflow->bittorrent_hash);
   if(zflow->core.vrfId)      flow->setVRFid(zflow->core.vrfId);
 #ifdef NTOPNG_PRO
   if(zflow->custom_app.pen) {
@@ -1277,6 +1278,9 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
     }
   }
 #endif
+
+  // NOTE: fill the category only after the server name is set
+  flow->fillZmqFlowCategory();
 
   /* Do not put incStats before guessing the flow protocol */
   incStats(true /* ingressPacket */,
@@ -1574,7 +1578,8 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	  ndpi_protocol icmp_proto = flow->get_detected_protocol();
 
 	  if(icmp_proto.category == NDPI_PROTOCOL_CATEGORY_UNSPECIFIED) {
-	    ndpi_fill_ip_protocol_category(ndpi_struct, (struct ndpi_iphdr *)ip, &icmp_proto);
+	    ndpi_fill_ip_protocol_category(ndpi_struct,
+	      ((struct ndpi_iphdr*)ip)->saddr, ((struct ndpi_iphdr*)ip)->daddr, &icmp_proto);
 	    flow->setDetectedProtocol(icmp_proto, false);
 	  }
 	}
@@ -3864,6 +3869,8 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data, bool *matc
   case column_unknowers:      r->elems[r->actNumEntries++].numericValue = h->get_ndpi_stats()->getProtoBytes(NDPI_PROTOCOL_UNKNOWN); break;
   case column_incomingflows:  r->elems[r->actNumEntries++].numericValue = h->getNumIncomingFlows(); break;
   case column_outgoingflows:  r->elems[r->actNumEntries++].numericValue = h->getNumOutgoingFlows(); break;
+  case column_total_outgoing_anomalous_flows:  r->elems[r->actNumEntries++].numericValue = h->getTotalNumAnomalousOutgoingFlows(); break;
+  case column_total_incoming_anomalous_flows:  r->elems[r->actNumEntries++].numericValue = h->getTotalNumAnomalousIncomingFlows(); break;
 
   default:
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: column %d not handled", r->sorter);
@@ -4480,6 +4487,8 @@ int NetworkInterface::sortHosts(u_int32_t *begin_slot,
   else if(!strcmp(sortColumn, "column_unknowers")) retriever->sorter = column_unknowers, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_incomingflows")) retriever->sorter = column_incomingflows, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_outgoingflows")) retriever->sorter = column_outgoingflows, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_total_outgoing_anomalous_flows")) retriever->sorter = column_total_outgoing_anomalous_flows, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_total_incoming_anomalous_flows")) retriever->sorter = column_total_incoming_anomalous_flows, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_pool_id")) retriever->sorter = column_pool_id, sorter = numericSorter;
   else {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unknown sort column %s", sortColumn);

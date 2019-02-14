@@ -418,7 +418,9 @@ bool Host::hasAnomalies() {
   return syn_flood_victim_alert->isAboveThreshold(now)
     || syn_flood_attacker_alert->isAboveThreshold(now)
     || flow_flood_victim_alert->isAboveThreshold(now)
-    || flow_flood_attacker_alert->isAboveThreshold(now);
+    || flow_flood_attacker_alert->isAboveThreshold(now)
+    || num_active_flows_as_client.is_anomalous(now)
+    || num_active_flows_as_server.is_anomalous(now);
 }
 
 /* *************************************** */
@@ -439,6 +441,10 @@ void Host::luaAnomalies(lua_State* vm) {
       flow_flood_victim_alert->lua(vm, "flows_flood_victim");
     if(flow_flood_attacker_alert->isAboveThreshold(now))
       flow_flood_attacker_alert->lua(vm, "flows_flood_attacker");
+    if(num_active_flows_as_client.is_anomalous(now))
+      num_active_flows_as_client.lua(vm, "num_active_flows_as_client");
+    if(num_active_flows_as_server.is_anomalous(now))
+      num_active_flows_as_server.lua(vm, "num_active_flows_as_server");
 
     lua_pushstring(vm, "anomalies");
     lua_insert(vm, -2);
@@ -1252,7 +1258,7 @@ bool Host::statsResetRequested() {
 
 /* *************************************** */
 
-void Host::updateStats(struct timeval *tv) {
+void Host::updateStats(struct timeval *tv) {  
   if(stats_shadow) {
     delete stats_shadow;
     stats_shadow = NULL;

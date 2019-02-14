@@ -805,7 +805,7 @@ int AlertsManager::engageReleaseHostAlert(const char *host_ip, u_int16_t host_vl
 					  AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
 					  const char *alert_origin, const char *alert_target,
 					  bool engage, bool ignore_disabled) {
-  char counters_key[64], ipbuf_id[64], rsp[16];
+  char counters_key[64], ipbuf_id[64], rsp[16], wherebuf[256];
   int rc;
   Host *h;
   NetworkInterface *iface = getNetworkInterface();
@@ -829,23 +829,12 @@ int AlertsManager::engageReleaseHostAlert(const char *host_ip, u_int16_t host_vl
     /* error */
     return rc;
 
-  /* Read current value from redis */
+  /* Update the counter from the DB */
   snprintf(counters_key, sizeof(counters_key), CONST_HOSTS_ALERT_COUNTERS, iface->get_id());
-
-  if(ntop->getRedis()->hashGet(counters_key, ipbuf_id, rsp, sizeof(rsp)) == 0)
-    num_alerts = atoi(rsp);
-  else
-    num_alerts = 0;
-
-  if(engage)
-    num_alerts++;
-  else
-    num_alerts--;
-
-  if(num_alerts < 0)
-    ntop->getTrace()->traceEvent(TRACE_ERROR,
-				 "Internal error, negative engaged alerts counter detected [host: %s].",
-				 ipbuf_id);
+  sqlite3_snprintf(sizeof(wherebuf), wherebuf,
+		   " (alert_entity=%i AND alert_entity_val='%q') ",
+		   alert_entity_host, ipbuf_id);
+  num_alerts = getNumAlerts(true /* engaged */, wherebuf);
 
   /* Dump new value to redis */
   if (num_alerts > 0) {

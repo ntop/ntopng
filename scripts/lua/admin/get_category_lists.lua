@@ -27,10 +27,6 @@ local function getListStatusLabel(list)
     return '<span class="label label-danger">'.. i18n("error") ..'</span>'
   end
 
-  if lists_utils.shouldUpdate(list.name, list, now) then
-    return '<span class="label label-info">'.. i18n("category_lists.ready_for_update") ..'</span>'
-  end
-
   return '<span class="label label-success">'.. i18n("category_lists.enabled") ..'</span>'
 end
 

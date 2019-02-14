@@ -226,14 +226,8 @@ class Flow : public GenericHashEntry {
   ~Flow();
 
   virtual void set_to_purge(time_t t) {
-    /* not called from the datapath for flows, so it is only
-       safe to touch low goodput uses */
-    if(good_low_flow_detected) {
-      if(cli_host) cli_host->decLowGoodputFlows(t, true);
-      if(srv_host) srv_host->decLowGoodputFlows(t, false);
-    }
-    
     GenericHashEntry::set_to_purge(t);
+    postFlowSetPurge(t);
   };
 
   FlowStatus getFlowStatus();
@@ -402,6 +396,7 @@ class Flow : public GenericHashEntry {
   void dissectMDNS(u_int8_t *payload, u_int16_t payload_len);
   void dissectBittorrent(char *payload, u_int16_t payload_len);
   void updateInterfaceLocalStats(bool src2dst_direction, u_int num_pkts, u_int pkt_len);
+  void fillZmqFlowCategory();
   inline void setICMP(bool src2dst_direction, u_int8_t icmp_type, u_int8_t icmp_code, u_int8_t *icmpdata) {
     if(isICMP()) {
       protos.icmp.icmp_type = icmp_type, protos.icmp.icmp_code = icmp_code;
@@ -444,10 +439,10 @@ class Flow : public GenericHashEntry {
   inline bool      isEstablished()        { return (!isTcpRST() && !isTcpFIN()
 						    && (src2dst_tcp_flags & TH_SYN) && (src2dst_tcp_flags & TH_ACK)
 						    && (dst2src_tcp_flags & TH_SYN) && (dst2src_tcp_flags & TH_ACK)); }
-  inline bool      isTcpSYNOnly()         { return !(src2dst_tcp_flags ^ TH_SYN) && !dst2src_tcp_flags; }
+  inline bool      isTcpSYNOnly()         { return src2dst_tcp_flags == TH_SYN && !dst2src_tcp_flags; }
   inline bool      isTcpRST()             { return (src2dst_tcp_flags & TH_RST) || (dst2src_tcp_flags & TH_RST); }
   inline bool      isTcpFIN()             { return (src2dst_tcp_flags & TH_FIN) || (dst2src_tcp_flags & TH_FIN); }
-  inline bool      isTcpSYNRSTOnly()      { return !(src2dst_tcp_flags ^ TH_SYN) && (dst2src_tcp_flags & TH_RST); }
+  inline bool      isTcpSYNRSTOnly()      { return src2dst_tcp_flags == TH_SYN && (dst2src_tcp_flags & TH_RST); }
   inline bool      isTcpFINRST()          { return ((src2dst_tcp_flags & TH_FIN) && (dst2src_tcp_flags & TH_RST)) || ((src2dst_tcp_flags & TH_RST) && (dst2src_tcp_flags & TH_FIN)); }
   inline bool      isFlowAlerted()        { return(flow_alerted);                   }
   inline void      setFlowAlerted()       { flow_alerted = true;                    }
@@ -490,6 +485,7 @@ class Flow : public GenericHashEntry {
   inline bool isIngress2EgressDirection() { return(ingress2egress_direction); }
 #endif
   void housekeep();
+  void postFlowSetPurge(time_t t);
 #ifdef HAVE_EBPF
   void setProcessInfo(eBPFevent *event, bool client_process);
 #endif

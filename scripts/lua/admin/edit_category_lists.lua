@@ -152,13 +152,14 @@ print[[
         field: "column_last_update",
         sortable: true,
         css: {
+          textAlign: 'center',
         }
       }, {
         title: "]] print(i18n("graphs.metrics_prefixes.num_hosts")) print[[",
         field: "column_num_hosts",
         sortable: true,
         css: {
-            textAlign: 'right',
+            textAlign: 'center',
         }
       }, {
         title: "]] print(i18n("actions")) print[[",

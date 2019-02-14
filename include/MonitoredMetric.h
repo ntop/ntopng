@@ -89,6 +89,18 @@ public:
 
     return buf;
   }
+
+  void const lua(lua_State *vm, const char *table_key) {
+    lua_newtable(vm);
+
+    lua_push_uint64_table_entry(vm, "anomaly_index", anomaly_index);
+    lua_push_uint64_table_entry(vm, "value", value);
+    lua_push_uint64_table_entry(vm, "last_value", last_value);
+
+    lua_pushstring(vm, table_key);
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
+  }
 };
 
 #endif /* _MONITORED_METRIC_H_ */

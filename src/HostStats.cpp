@@ -38,6 +38,7 @@ HostStats::HostStats(Host *_host) {
   last_update_time.tv_sec = 0, last_update_time.tv_usec = 0;
 
   total_num_flows_as_client = total_num_flows_as_server = 0;
+  anomalous_flows_as_client = anomalous_flows_as_server = 0;
   checkpoint_set = false;
   checkpoint_sent_bytes = checkpoint_rcvd_bytes = 0;
   memset(&tcpPacketStats, 0, sizeof(tcpPacketStats));
@@ -58,10 +59,13 @@ HostStats::~HostStats() {
 
 /* *************************************** */
 
+/* NOTE: check out LocalHostStats for deserialization */
 void HostStats::getJSONObject(json_object *my_object, DetailsLevel details_level) {
   if(details_level >= details_high) {
-    json_object_object_add(my_object, "flows.as_client", json_object_new_int(total_num_flows_as_client));
-    json_object_object_add(my_object, "flows.as_server", json_object_new_int(total_num_flows_as_server));
+    json_object_object_add(my_object, "flows.as_client", json_object_new_int(getTotalNumFlowsAsClient()));
+    json_object_object_add(my_object, "flows.as_server", json_object_new_int(getTotalNumFlowsAsServer()));
+    json_object_object_add(my_object, "anomalous_flows.as_client", json_object_new_int(getTotalAnomalousNumFlowsAsClient()));
+    json_object_object_add(my_object, "anomalous_flows.as_server", json_object_new_int(getTotalAnomalousNumFlowsAsServer()));
 
     if(total_num_dropped_flows)
       json_object_object_add(my_object, "flows.dropped", json_object_new_int(total_num_dropped_flows));
@@ -131,8 +135,10 @@ void HostStats::lua(lua_State* vm, bool mask_host, bool host_details, bool verbo
 
   if(host_details) {
     lua_push_uint64_table_entry(vm, "total_activity_time", total_activity_time);
-    lua_push_uint64_table_entry(vm, "flows.as_client", total_num_flows_as_client);
-    lua_push_uint64_table_entry(vm, "flows.as_server", total_num_flows_as_server);
+    lua_push_uint64_table_entry(vm, "flows.as_client", getTotalNumFlowsAsClient());
+    lua_push_uint64_table_entry(vm, "flows.as_server", getTotalNumFlowsAsServer());
+    lua_push_uint64_table_entry(vm, "anomalous_flows.as_client", getTotalAnomalousNumFlowsAsClient());
+    lua_push_uint64_table_entry(vm, "anomalous_flows.as_server", getTotalAnomalousNumFlowsAsServer());
 
     lua_push_uint64_table_entry(vm, "udp.packets.sent",  udp_sent.getNumPkts());
     lua_push_uint64_table_entry(vm, "udp.bytes.sent", udp_sent.getNumBytes());
@@ -163,8 +169,8 @@ bool HostStats::serializeCheckpoint(json_object *my_object, DetailsLevel details
     json_object_object_add(my_object, "total_activity_time", json_object_new_int(total_activity_time));
     json_object_object_add(my_object, "seen.last", json_object_new_int64(host->get_last_seen()));
     json_object_object_add(my_object, "ndpiStats", ndpiStats->getJSONObjectForCheckpoint(iface));
-    json_object_object_add(my_object, "flows.as_client", json_object_new_int(total_num_flows_as_client));
-    json_object_object_add(my_object, "flows.as_server", json_object_new_int(total_num_flows_as_server));
+    json_object_object_add(my_object, "flows.as_client", json_object_new_int(getTotalNumFlowsAsClient()));
+    json_object_object_add(my_object, "flows.as_server", json_object_new_int(getTotalNumFlowsAsServer()));
 
     /* Protocol stats */
     json_object_object_add(my_object, "tcp_sent", tcp_sent.getJSONObject());

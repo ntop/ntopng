@@ -12,7 +12,7 @@ Architecture: @EXTN@
 Recommends: ntopng-data
 Suggests: ntopng-data
 Pre-Depends:
-Conflicts:
+Conflicts: nedge
 Provides:
 Replaces: ntop
 Description: Web-based traffic monitoring.

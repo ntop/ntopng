@@ -344,6 +344,8 @@ typedef enum {
   column_unknowers,
   column_incomingflows,
   column_outgoingflows,
+  column_total_outgoing_anomalous_flows,
+  column_total_incoming_anomalous_flows,
   column_pool_id,
   /* Macs */
   column_num_hosts,
@@ -362,8 +364,11 @@ typedef struct {
 } sFlowInterfaceStats;
 
 typedef struct {
-  u_int32_t sent_requests, sent_replies;
-  u_int32_t rcvd_requests, rcvd_replies;
+  u_int32_t requests, replies;
+} ReqReplyStats;
+
+typedef struct {
+  ReqReplyStats sent, rcvd;
 } ArpStats;
 
 

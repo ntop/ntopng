@@ -1510,7 +1510,8 @@ function flowinfo2hostname(flow_info, host_type)
 
    if(host_type == "srv") then
       if(flow_info["host_server_name"] ~= nil and flow_info["host_server_name"] ~= "") then
-	 return(flow_info["host_server_name"])
+	 -- remove possible ports from the name
+	 return(flow_info["host_server_name"]:gsub(":%d+$", ""))
       end
       if(flow_info["protos.ssl.certificate"] ~= nil and flow_info["protos.ssl.certificate"] ~= "") then
 	 return(flow_info["protos.ssl.certificate"])
@@ -2797,6 +2798,8 @@ looking_glass_criteria = {
    { "unknowers", i18n("unknowers"), "unknown", bytesToSize },
    { "incomingflows", i18n("incomingflows"), "incomingflows", format_utils.formatValue },
    { "outgoingflows", i18n("outgoingflows"), "outgoingflows", format_utils.formatValue },
+   { "total_outgoing_anomalous_flows", i18n("total_outgoing_anomalous_flows"), "total_outgoing_anomalous_flows", format_utils.formatValue },
+   { "total_incoming_anomalous_flows", i18n("total_incoming_anomalous_flows"), "total_incoming_anomalous_flows", format_utils.formatValue },
 }
 
 function criteria2label(criteria)

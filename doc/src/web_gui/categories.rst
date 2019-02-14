@@ -68,6 +68,7 @@ The custom category hosts can be specified via some host-based rules.
 The host-based rules will be used to perform substring matching on some of the flow information:
 
   - Client/Server IP
+  - DNS query
   - Host SNI
   - HTTP Host
 

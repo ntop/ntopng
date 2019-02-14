@@ -530,11 +530,19 @@ void Flow::guessProtocol() {
       if(cli_host && srv_host) {
 	/* We can guess the protocol */
 	IpAddress *cli_ip = cli_host->get_ip(), *srv_ip = srv_host->get_ip();
-	ndpiDetectedProtocol = ndpi_guess_undetected_protocol(iface->get_ndpi_struct(), NULL, protocol,
+	ndpi_protocol guessed_proto = ndpi_guess_undetected_protocol(iface->get_ndpi_struct(), NULL, protocol,
 							      ntohl(cli_ip ? cli_ip->get_ipv4() : 0),
 							      ntohs(cli_port),
 							      ntohl(srv_ip ? srv_ip->get_ipv4() : 0),
 							      ntohs(srv_port));
+	ndpiDetectedProtocol.master_protocol = guessed_proto.master_protocol;
+	ndpiDetectedProtocol.app_protocol = guessed_proto.app_protocol;
+
+	/* NOTE: only overwrite the category if it was not set.
+	 * This prevents overwriting already determined category (e.g. by IP or Host)
+	 */
+	if(ndpiDetectedProtocol.category == NDPI_PROTOCOL_CATEGORY_UNSPECIFIED)
+	  ndpiDetectedProtocol.category = guessed_proto.category;
       }
       
       l7_protocol_guessed = true;
@@ -545,6 +553,8 @@ void Flow::guessProtocol() {
 /* *************************************** */
 
 void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
+  ndpiDetectedProtocol.category = proto_id.category;
+
   if(proto_id.app_protocol != NDPI_PROTOCOL_UNKNOWN) {
     ndpiDetectedProtocol = proto_id;
 
@@ -3594,3 +3604,51 @@ void Flow::setProcessInfo(eBPFevent *event, bool client_process) {
   }
 }
 #endif
+
+/* ***************************************************** */
+
+/* Called when a flow is set_to_purge */
+void Flow::postFlowSetPurge(time_t t) {
+  /* not called from the datapath for flows, so it is only
+     safe to touch low goodput uses */
+  if(good_low_flow_detected) {
+    if(cli_host) cli_host->decLowGoodputFlows(t, true);
+    if(srv_host) srv_host->decLowGoodputFlows(t, false);
+  }
+
+  FlowStatus status = getFlowStatus();
+
+  if(status != status_normal) {
+#if 0
+  char buf[256];
+  printf("%s status=%d\n", print(buf, sizeof(buf)), status);
+#endif
+
+    if(cli_host) cli_host->incNumAnomalousFlows(true);
+    if(srv_host) srv_host->incNumAnomalousFlows(false);
+  }
+}
+
+/* ***************************************************** */
+
+void Flow::fillZmqFlowCategory() {
+  struct ndpi_detection_module_struct *ndpi_struct = iface->get_ndpi_struct();
+  char *srv_name = getFlowServerInfo();
+
+  if(!cli_host || !srv_host)
+    return;
+
+  if(cli_host->get_ip()->isIPv4()) {
+    if(ndpi_fill_ip_protocol_category(ndpi_struct, get_cli_ipv4(), get_srv_ipv4(), &ndpiDetectedProtocol))
+      return;
+  }
+
+  if(srv_name && srv_name[0]) {
+    unsigned long id;
+
+    if(ndpi_match_custom_category(ndpi_struct, srv_name, &id) == 0) {
+      ndpiDetectedProtocol.category = (ndpi_protocol_category_t)id;
+      return;
+    }
+  }
+}

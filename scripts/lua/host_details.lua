@@ -524,7 +524,7 @@ if((page == "overview") or (page == nil)) then
       end
 
       if(host["privatehost"] == true) then print(' <span class="label label-warning">'..i18n("details.label_private_ip")..'</span>') end
-      if(host["systemhost"] == true) then print(' <span class="label label-info">'..i18n("details.label_system_ip")..' '..'<i class=\"fa fa-flag\"></i></span>') end
+      if(host["systemhost"] == true) then print(' <span class="label label-info"><i class=\"fa fa-flag\" title=\"'..i18n("details.label_system_ip")..'\"></i></span>') end
       if(host["is_blacklisted"] == true) then print(' <span class="label label-danger">'..i18n("details.label_blacklisted_host")..'</span>') end
 
       print("</td><td></td>\n")
@@ -586,6 +586,7 @@ end
    if interface.isPacketInterface() then
       print("/ <span id=low_goodput_as_client>" .. formatValue(host["low_goodput_flows.as_client"]) .. "</span> <span id=low_goodput_trend_as_client></span>\n")
    end
+   print("/ <span id=anomalous_flows_as_client>" .. formatValue(host["anomalous_flows.as_client"]) .. "</span> <span id=trend_anomalous_flows_as_client></span>")
    print("</td>")
 
    print("<td><span id=active_flows_as_server>" .. formatValue(host["active_flows.as_server"]) .. "</span>  <span id=trend_as_active_server></span> \n")
@@ -593,6 +594,7 @@ end
    if interface.isPacketInterface() then
       print("/ <span id=low_goodput_as_server>" .. formatValue(host["low_goodput_flows.as_server"]) .. "</span> <span id=low_goodput_trend_as_server></span>\n")
    end
+   print("/ <span id=anomalous_flows_as_server>" .. formatValue(host["anomalous_flows.as_server"]) .. "</span> <span id=trend_anomalous_flows_as_server></span>")
    print("</td></tr>")
 
    if ntop.isnEdge() then
@@ -1914,6 +1916,8 @@ if(page ~= "historical") and (host ~= nil) then
    print("var last_flows_as_client = " .. host["flows.as_client"] .. ";\n")
    print("var last_low_goodput_flows_as_client = " .. host["low_goodput_flows.as_client"] .. ";\n")
    print("var last_low_goodput_flows_as_server = " .. host["low_goodput_flows.as_server"] .. ";\n")
+   print("var last_anomalous_flows_as_server = " .. host["anomalous_flows.as_server"] .. ";\n")
+   print("var last_anomalous_flows_as_client = " .. host["anomalous_flows.as_client"] .. ";\n")
    print("var last_tcp_retransmissions = " .. host["tcp.packets.retransmissions"] .. ";\n")
    print("var last_tcp_ooo = " .. host["tcp.packets.out_of_order"] .. ";\n")
    print("var last_tcp_lost = " .. host["tcp.packets.lost"] .. ";\n")
@@ -1976,9 +1980,11 @@ if(page ~= "historical") and (host ~= nil) then
    			$('#active_flows_as_client').html(addCommas(host["active_flows.as_client"]));
    			$('#flows_as_client').html(addCommas(host["flows.as_client"]));
    			$('#low_goodput_as_client').html(addCommas(host["low_goodput_flows.as_client"]));
+            $('#anomalous_flows_as_client').html(addCommas(host["anomalous_flows.as_client"]));
    			$('#active_flows_as_server').html(addCommas(host["active_flows.as_server"]));
    			$('#flows_as_server').html(addCommas(host["flows.as_server"]));
    			$('#low_goodput_as_server').html(addCommas(host["low_goodput_flows.as_server"]));
+            $('#anomalous_flows_as_server').html(addCommas(host["anomalous_flows.as_server"]));
    		  ]]
 
    if ntop.isnEdge() then
@@ -2099,6 +2105,8 @@ print [[
 			$('#trend_as_active_server').html(drawTrend(host["active_flows.as_server"], last_active_flows_as_server, ""));
 			$('#trend_as_server').html(drawTrend(host["flows.as_server"], last_flows_as_server, ""));
 			$('#low_goodput_trend_as_server').html(drawTrend(host["low_goodput_flows.as_server"], last_low_goodput_flows_as_server, " style=\"color: #B94A48;\""));
+			$('#trend_anomalous_flows_as_server').html(drawTrend(host["anomalous_flows.as_server"], last_anomalous_flows_as_server, " style=\"color: #B94A48;\""));
+			$('#trend_anomalous_flows_as_client').html(drawTrend(host["anomalous_flows.as_client"], last_anomalous_flows_as_client, " style=\"color: #B94A48;\""));
 			
 			$('#alerts_trend').html(drawTrend(host["num_alerts"], last_num_alerts, " style=\"color: #B94A48;\""));
 			$('#sent_trend').html(drawTrend(host["packets.sent"], last_pkts_sent, ""));
@@ -2116,6 +2124,8 @@ print [[
    			last_flows_as_client = host["flows.as_client"];
    			last_low_goodput_flows_as_server = host["low_goodput_flows.as_server"];
    			last_low_goodput_flows_as_client = host["low_goodput_flows.as_client"];
+   			last_anomalous_flows_as_server = host["anomalous_flows.as_server"];
+   			last_anomalous_flows_as_client = host["anomalous_flows.as_client"];
    			last_flows_as_server = host["flows.as_server"];
    			last_tcp_retransmissions = host["tcp.packets.retransmissions"];
    			last_tcp_ooo = host["tcp.packets.out_of_order"];

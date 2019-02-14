@@ -217,8 +217,7 @@ PRO_OBJECTS='$(patsubst pro/%.cpp, pro/%.o, $(wildcard pro/*.cpp))'
 
 if test "${with_nedge+set}" != set; then
  if test $SYSTEM = "FreeBSD" || test $SYSTEM = "Darwin" || test $MACHINE = "armv7l" ; then
-   cd ../PF_RING/userland; ./configure; cd -
-   cd ../PF_RING/userland/nbpf; make; cd -
+   cd ../PF_RING/userland/nbpf; ./configure; make; cd -
 
    dnl> nbpf for FreeBSD is linked statically
    if test $SYSTEM != "FreeBSD"; then

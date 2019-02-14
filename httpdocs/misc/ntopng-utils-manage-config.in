@@ -214,6 +214,9 @@ function copy_to_staging_dir() {
 	cp -RPp "${PATHNAME}/." "${STAGED}"
     fi
 
+    # minimum permissions to move files (e.g. otherwise sanitize fails)
+    chmod u+rw "${STAGED}"
+
     # echo "${STAGING_DIR}"
     # find ${STAGING_DIR}
 }
