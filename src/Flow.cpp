@@ -30,6 +30,7 @@ Flow::Flow(NetworkInterface *_iface,
 	   u_int16_t _vlanId, u_int8_t _protocol,
 	   Mac *_cli_mac, IpAddress *_cli_ip, u_int16_t _cli_port,
 	   Mac *_srv_mac, IpAddress *_srv_ip, u_int16_t _srv_port,
+	   const ICMPinfo * const _icmp_info,
 	   time_t _first_seen, time_t _last_seen) : GenericHashEntry(_iface) {
   vlanId = _vlanId, protocol = _protocol, cli_port = _cli_port, srv_port = _srv_port;
   cli2srv_packets = 0, cli2srv_bytes = 0, cli2srv_goodput_bytes = 0,
@@ -46,6 +47,8 @@ Flow::Flow(NetworkInterface *_iface,
   last_conntrack_update = 0;
   marker = MARKER_NO_ACTION;
 #endif
+
+  icmp_info = _icmp_info ? new (std::nothrow) ICMPinfo(*_icmp_info) : NULL;
 
   memset(&cli2srvStats, 0, sizeof(cli2srvStats)), memset(&srv2cliStats, 0, sizeof(srv2cliStats));
 
@@ -206,6 +209,7 @@ Flow::~Flow() {
   if(community_id_flow_hash) free(community_id_flow_hash);
 
   freeDPIMemory();
+  if(icmp_info)        delete(icmp_info);
 }
 
 /* *************************************** */
@@ -1406,11 +1410,14 @@ void Flow::update_pools_stats(const struct timeval *tv,
 
 bool Flow::equal(IpAddress *_cli_ip, IpAddress *_srv_ip, u_int16_t _cli_port,
 		 u_int16_t _srv_port, u_int16_t _vlanId, u_int8_t _protocol,
+		 const ICMPinfo * const _icmp_info,
 		 bool *src2srv_direction) {
   if((_vlanId != vlanId) && (vlanId != 0))
     return(false);
 
   if(_protocol != protocol) return(false);
+
+  if(icmp_info && !icmp_info->equal(_icmp_info)) return(false);
 
   if(cli_host && cli_host->equal(_cli_ip)
      && srv_host && srv_host->equal(_srv_ip)
@@ -1675,6 +1682,9 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
       lua_push_uint64_table_entry(vm, "type", protos.icmp.icmp_type);
       lua_push_uint64_table_entry(vm, "code", protos.icmp.icmp_code);
 
+      if(icmp_info)
+	icmp_info->lua(vm, ptree, iface, get_vlan_id());
+
       lua_pushstring(vm, "icmp");
       lua_insert(vm, -2);
       lua_settable(vm, -3);
@@ -1848,10 +1858,11 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 /* *************************************** */
 
 u_int32_t Flow::key() {
-  u_int32_t k = cli_port+srv_port /* +vlanId */ +protocol;
+  u_int32_t k = cli_port + srv_port /* +vlanId */ + protocol;
 
-  if(cli_host) k += cli_host->key();
-  if(srv_host) k += srv_host->key();
+  if(cli_host)  k += cli_host->key();
+  if(srv_host)  k += srv_host->key();
+  if(icmp_info) k += icmp_info->key();
 
   return(k);
 }

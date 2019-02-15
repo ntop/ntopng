@@ -2686,7 +2686,8 @@ function getICMPTypeCode(icmp)
 
   for _, _e in ipairs(_icmp_types) do
     if((_e[1] == t) and (_e[2] == c)) then
-    	return(_e[3])
+       local res = _e[3]
+       return res
     end
   end
 

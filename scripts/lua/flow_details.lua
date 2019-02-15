@@ -547,8 +547,18 @@ else
    end
 
    local icmp = flow["icmp"]
+
    if(icmp ~= nil) then
-      print("<tr><th width=30%>"..i18n("flow_details.icmp_info").."</th><td colspan=2>".. getICMPTypeCode(icmp) .. "</td></tr>\n")
+      print("<tr><th width=30%>"..i18n("flow_details.icmp_info").."</th><td colspan=2>".. getICMPTypeCode(icmp))
+
+      if icmp["unreach"] and icmp["unreach"]["flow"] then
+	 print(" ["..i18n("flow")..": ")
+	 print(" <A HREF='"..ntop.getHttpPrefix().."/lua/flow_details.lua?flow_key="..icmp["unreach"]["flow"]["ntopng.key"].."'><span class='label label-info'>Info</span></A>")
+	 print(" "..getFlowLabel(icmp["unreach"]["flow"], true, true))
+	 print("]")
+      end
+
+      print("</td></tr>")
    end
 
    if interface.isPacketInterface() then

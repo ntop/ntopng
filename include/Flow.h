@@ -55,6 +55,7 @@ typedef enum {
 class Flow : public GenericHashEntry {
  private:
   Host *cli_host, *srv_host;
+  ICMPinfo *icmp_info;
   u_int16_t cli_port, srv_port;
   u_int16_t vlanId;
   u_int32_t vrfId;
@@ -222,6 +223,7 @@ class Flow : public GenericHashEntry {
        u_int16_t _vlanId, u_int8_t _protocol,
        Mac *_cli_mac, IpAddress *_cli_ip, u_int16_t _cli_port,
        Mac *_srv_mac, IpAddress *_srv_ip, u_int16_t _srv_port,
+       const ICMPinfo * const icmp_info,
        time_t _first_seen, time_t _last_seen);
   ~Flow();
 
@@ -386,6 +388,7 @@ class Flow : public GenericHashEntry {
   bool equal(IpAddress *_cli_ip, IpAddress *_srv_ip,
 	     u_int16_t _cli_port, u_int16_t _srv_port,
 	     u_int16_t _vlanId, u_int8_t _protocol,
+	     const ICMPinfo * const icmp_info,
 	     bool *src2srv_direction);
   bool clientLessThanServer() const;
   void sumStats(nDPIStats *stats);
