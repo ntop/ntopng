@@ -18,9 +18,9 @@ page_utils.print_header()
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 if true then
-   local rrd_dump = require "rrd_5min_dump_utils"
+   local ts_dump = require "ts_5min_dump_utils"
    local when = os.time()
-   local config = rrd_dump.getConfig()
+   local config = ts_dump.getConfig()
    local time_threshold = when - (when % 60) + 60 - 10 -- safe margin
    package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
    require "snmp_utils"

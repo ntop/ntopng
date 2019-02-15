@@ -9,11 +9,11 @@ local top_talkers_utils = require "top_talkers_utils"
 local ts_utils = require("ts_utils_core")
 require("ts_minute")
 
-local rrd_dump = {}
+local ts_dump = {}
 
 -- ########################################################
 
-function rrd_dump.iface_update_ndpi_rrds(when, _ifname, ifstats, verbose)
+function ts_dump.iface_update_ndpi_rrds(when, _ifname, ifstats, verbose)
   for k in pairs(ifstats["ndpi"]) do
     local v = ifstats["ndpi"][k]["bytes.sent"]+ifstats["ndpi"][k]["bytes.rcvd"]
     if(verbose) then print("["..__FILE__()..":"..__LINE__().."] ".._ifname..": "..k.."="..v.."\n") end
@@ -24,7 +24,7 @@ end
 
 -- ########################################################
 
-function rrd_dump.iface_update_categories_rrds(when, _ifname, ifstats, verbose)
+function ts_dump.iface_update_categories_rrds(when, _ifname, ifstats, verbose)
   for k, v in pairs(ifstats["ndpi_categories"]) do
     v = v["bytes"]
     if(verbose) then print("["..__FILE__()..":"..__LINE__().."] ".._ifname..": "..k.."="..v.."\n") end
@@ -35,7 +35,7 @@ end
 
 -- ########################################################
 
-function rrd_dump.iface_update_stats_rrds(when, _ifname, ifstats, verbose)
+function ts_dump.iface_update_stats_rrds(when, _ifname, ifstats, verbose)
   -- IN/OUT counters
   if(ifstats["localstats"]["bytes"]["local2remote"] > 0) then
     ts_utils.append("iface:local2remote", {ifid=ifstats.id, bytes=ifstats["localstats"]["bytes"]["local2remote"]}, when, verbose)
@@ -48,7 +48,7 @@ end
 
 -- ########################################################
 
-function rrd_dump.subnet_update_rrds(when, ifstats, verbose)
+function ts_dump.subnet_update_rrds(when, ifstats, verbose)
   local subnet_stats = interface.getNetworksStats()
 
   for subnet,sstats in pairs(subnet_stats) do
@@ -64,7 +64,7 @@ end
 
 -- ########################################################
 
-function rrd_dump.iface_update_general_stats(when, ifstats, verbose)
+function ts_dump.iface_update_general_stats(when, ifstats, verbose)
   -- General stats
   ts_utils.append("iface:hosts", {ifid=ifstats.id, num_hosts=ifstats.stats.hosts}, when, verbose)
   ts_utils.append("iface:local_hosts", {ifid=ifstats.id, num_hosts=ifstats.stats.local_hosts}, when, verbose)
@@ -73,13 +73,13 @@ function rrd_dump.iface_update_general_stats(when, ifstats, verbose)
   ts_utils.append("iface:http_hosts", {ifid=ifstats.id, num_hosts=ifstats.stats.http_hosts}, when, verbose)
 end
 
-function rrd_dump.iface_update_tcp_stats(when, ifstats, verbose)
+function ts_dump.iface_update_tcp_stats(when, ifstats, verbose)
   ts_utils.append("iface:tcp_retransmissions", {ifid=ifstats.id, packets=ifstats.tcpPacketStats.retransmissions}, when, verbose)
   ts_utils.append("iface:tcp_out_of_order", {ifid=ifstats.id, packets=ifstats.tcpPacketStats.out_of_order}, when, verbose)
   ts_utils.append("iface:tcp_lost", {ifid=ifstats.id, packets=ifstats.tcpPacketStats.lost}, when, verbose)
 end
 
-function rrd_dump.iface_update_tcp_flags(when, ifstats, verbose)
+function ts_dump.iface_update_tcp_flags(when, ifstats, verbose)
   ts_utils.append("iface:tcp_syn", {ifid=ifstats.id, packets=ifstats.pktSizeDistribution.syn}, when, verbose)
   ts_utils.append("iface:tcp_synack", {ifid=ifstats.id, packets=ifstats.pktSizeDistribution.synack}, when, verbose)
   ts_utils.append("iface:tcp_finack", {ifid=ifstats.id, packets=ifstats.pktSizeDistribution.finack}, when, verbose)
@@ -88,7 +88,7 @@ end
 
 -- ########################################################
 
-function rrd_dump.profiles_update_stats(when, ifstats, verbose)
+function ts_dump.profiles_update_stats(when, ifstats, verbose)
   for pname, ptraffic in pairs(ifstats.profiles) do
     ts_utils.append("profile:traffic", {ifid=ifstats.id, profile=pname, bytes=ptraffic}, when, verbose)
   end
@@ -108,7 +108,7 @@ local function dumpTopTalkers(_ifname, ifstats, verbose)
   ntop.insertMinuteSampling(ifstats.id, talkers)
 end
 
-function rrd_dump.run_min_dump(_ifname, ifstats, iface_ts, config, when, verbose)
+function ts_dump.run_min_dump(_ifname, ifstats, iface_ts, config, when, verbose)
   dumpTopTalkers(_ifname, ifstats, verbose)
   scanAlerts("min", ifstats)
 
@@ -119,7 +119,7 @@ function rrd_dump.run_min_dump(_ifname, ifstats, iface_ts, config, when, verbose
     return
   end
 
-  rrd_dump.subnet_update_rrds(when, ifstats, verbose)
+  ts_dump.subnet_update_rrds(when, ifstats, verbose)
 
   for _, iface_point in ipairs(iface_ts or {}) do
     local instant = iface_point.instant
@@ -127,31 +127,31 @@ function rrd_dump.run_min_dump(_ifname, ifstats, iface_ts, config, when, verbose
     -- compatibility fix with ifstats
     iface_point.id = ifstats.id
 
-    rrd_dump.iface_update_stats_rrds(instant, _ifname, iface_point, verbose)
-    rrd_dump.iface_update_general_stats(instant, iface_point, verbose)
+    ts_dump.iface_update_stats_rrds(instant, _ifname, iface_point, verbose)
+    ts_dump.iface_update_general_stats(instant, iface_point, verbose)
 
     if config.interface_ndpi_timeseries_creation == "per_protocol" or config.interface_ndpi_timeseries_creation == "both" then
-      rrd_dump.iface_update_ndpi_rrds(instant, _ifname, iface_point, verbose)
+      ts_dump.iface_update_ndpi_rrds(instant, _ifname, iface_point, verbose)
     end
 
     if config.interface_ndpi_timeseries_creation == "per_category" or config.interface_ndpi_timeseries_creation == "both" then
-      rrd_dump.iface_update_categories_rrds(instant, _ifname, iface_point, verbose)
+      ts_dump.iface_update_categories_rrds(instant, _ifname, iface_point, verbose)
     end
 
     -- TCP stats
     if config.tcp_retr_ooo_lost_rrd_creation == "1" then
-      rrd_dump.iface_update_tcp_stats(instant, iface_point, verbose)
+      ts_dump.iface_update_tcp_stats(instant, iface_point, verbose)
     end
 
     -- TCP Flags
     if config.tcp_flags_rrd_creation == "1" then
-      rrd_dump.iface_update_tcp_flags(instant, iface_point, verbose)
+      ts_dump.iface_update_tcp_flags(instant, iface_point, verbose)
     end
   end
 
   -- Save Profile stats every minute
   if ntop.isPro() and ifstats.profiles then  -- profiles are only available in the Pro version
-    rrd_dump.profiles_update_stats(when, ifstats, verbose)
+    ts_dump.profiles_update_stats(when, ifstats, verbose)
   end
 
   if ntop.isnEdge() and ifstats.type == "netfilter" and ifstats.netfilter then
@@ -163,7 +163,7 @@ end
 
 -- ########################################################
 
-function rrd_dump.getConfig()
+function ts_dump.getConfig()
   local config = {}
 
   config.interface_ndpi_timeseries_creation = ntop.getPref("ntopng.prefs.interface_ndpi_timeseries_creation")
@@ -178,4 +178,4 @@ end
 
 -- ########################################################
 
-return rrd_dump
+return ts_dump
