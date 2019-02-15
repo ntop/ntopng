@@ -699,7 +699,8 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
 
       if(!data.no_trend && has_full_data && (total_serie.length >= 3)) {
         // Smoothed serie
-        var num_smoothed_points = Math.max(Math.floor(total_serie.length / 5), 3);
+        /* num_smoothed_points determines the window size to use while computing rolling functions */
+        var num_smoothed_points = Math.min(Math.max(Math.floor(total_serie.length / 5), 3), 12);
 
         var smooth_functions = {
           trend: [graph_i18n.trend, "#62ADF6", smooth, num_smoothed_points],
@@ -723,7 +724,11 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
             smoothed = options[2](delta_serie, options[3]);
           } else
             smoothed = options[2](total_serie, options[3]);
-          
+
+          // remove the first point as it's used as the base window in the rolling functions
+          if(smoothed[0])
+            smoothed[0] = null;
+
           var max_val = d3.max(smoothed);
           if(max_val > 0) {
             var aligned;
