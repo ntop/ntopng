@@ -253,9 +253,20 @@ local function checkListsUpdate(timeout)
       else
         -- failure
         local respcode = -1
-        if res and res["RESPONSE_CODE"] then respcode = tonumber(res["RESPONSE_CODE"]) or 0 end
+        local last_error = true
+
+        if res and res["RESPONSE_CODE"] ~= nil then
+          respcode = res["RESPONSE_CODE"]
+
+          if res["IS_PARTIAL"] then
+            last_error = i18n("category_lists.connection_time_out", {err_code=respcode})
+          else
+            last_error = i18n("category_lists.server_returned_error", {err_code=respcode})
+          end
+        end
+
         traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("An error occurred while downloading list '%s': http_code=%d", list_name, respcode))
-        list.status.last_error = true
+        list.status.last_error = last_error
         list.status.num_errors = list.status.num_errors + 1
       end
 
@@ -414,7 +425,7 @@ function lists_utils.checkReloadLists()
   local reload_now = (ntop.getCache("ntopng.cache.reload_lists_utils") == "1")
 
   if ntop.getCache("ntopng.cache.download_lists_utils") == "1" then
-    if checkListsUpdate(8 --[[ timeout ]]) then
+    if checkListsUpdate(20 --[[ timeout ]]) then
       ntop.delCache("ntopng.cache.download_lists_utils")
       -- lists where possibly updated, reload
       reload_now = true
