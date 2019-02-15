@@ -125,8 +125,8 @@ class Mac : public GenericHashEntry {
   bool deserialize(char *key, char *json_str);
   json_object* getJSONObject();
   void updateHostPool(bool isInlineCall);
-  inline void setOperatingSystem(OperatingSystem _os) { os = _os;   }
-  inline OperatingSystem getOperatingSystem()         { return(os); }
+  inline void setOperatingSystem(OperatingSystem _os) { os = ((device_type != device_networking) ? _os : os_unknown); }
+  inline OperatingSystem getOperatingSystem()         { return((device_type != device_networking) ? os : os_unknown); }
   void inlineSetModel(const char * const m);
   void inlineSetFingerprint(const char * const f);
   void inlineSetSSID(const char * const s);
