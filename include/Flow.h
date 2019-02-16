@@ -208,7 +208,7 @@ class Flow : public GenericHashEntry {
         ((cli_host->getDeviceAllowedProtocolStatus(ndpiDetectedProtocol, true) == device_proto_allowed) &&
          (srv_host->getDeviceAllowedProtocolStatus(ndpiDetectedProtocol, false) == device_proto_allowed)));
   }
-  char* printTCPflags(u_int8_t flags, char *buf, u_int buf_len);
+  char* printTCPflags(u_int8_t flags, char * const buf, u_int buf_len) const;
   inline bool isProto(u_int16_t p ) { return((ndpi_get_lower_proto(ndpiDetectedProtocol) == p) ? true : false); }
 #ifdef NTOPNG_PRO
   void update_pools_stats(const struct timeval *tv,
@@ -441,14 +441,15 @@ class Flow : public GenericHashEntry {
   inline u_int32_t getSrv2CliMaxInterArrivalTime()  { return(srv2cliStats.pktTime.max_ms); }
   inline u_int32_t getSrv2CliAvgInterArrivalTime()  { return((srv2cli_packets < 2) ? 0 : srv2cliStats.pktTime.total_delta_ms / (srv2cli_packets-1)); }
   bool isIdleFlow();
-  inline bool      isEstablished()        { return (!isTcpRST() && !isTcpFIN()
-						    && (src2dst_tcp_flags & TH_SYN) && (src2dst_tcp_flags & TH_ACK)
-						    && (dst2src_tcp_flags & TH_SYN) && (dst2src_tcp_flags & TH_ACK)); }
-  inline bool      isTcpSYNOnly()         { return src2dst_tcp_flags == TH_SYN && !dst2src_tcp_flags; }
-  inline bool      isTcpRST()             { return (src2dst_tcp_flags & TH_RST) || (dst2src_tcp_flags & TH_RST); }
-  inline bool      isTcpFIN()             { return (src2dst_tcp_flags & TH_FIN) || (dst2src_tcp_flags & TH_FIN); }
-  inline bool      isTcpSYNRSTOnly()      { return src2dst_tcp_flags == TH_SYN && (dst2src_tcp_flags & TH_RST); }
-  inline bool      isTcpFINRST()          { return ((src2dst_tcp_flags & TH_FIN) && (dst2src_tcp_flags & TH_RST)) || ((src2dst_tcp_flags & TH_RST) && (dst2src_tcp_flags & TH_FIN)); }
+  inline bool isTCPEstablished() const { return (!isTCPClosed() && !isTCPReset()
+						 && ((src2dst_tcp_flags & (TH_SYN | TH_ACK)) == (TH_SYN | TH_ACK))
+						 && ((dst2src_tcp_flags & (TH_SYN | TH_ACK)) == (TH_SYN | TH_ACK))); }
+  inline bool isTCPConnecting()  const { return (src2dst_tcp_flags == TH_SYN
+						 && (!dst2src_tcp_flags || (dst2src_tcp_flags == (TH_SYN | TH_ACK)))); }
+  inline bool isTCPClosed()      const { return (((src2dst_tcp_flags & (TH_SYN | TH_ACK | TH_FIN)) == (TH_SYN | TH_ACK | TH_FIN))
+						 && ((dst2src_tcp_flags & (TH_SYN | TH_ACK | TH_FIN)) == (TH_SYN | TH_ACK | TH_FIN))); }
+  inline bool isTCPReset()       const { return (!isTCPClosed()
+						 && ((src2dst_tcp_flags & TH_RST) || (dst2src_tcp_flags & TH_RST))); }
   inline bool      isFlowAlerted()        { return(flow_alerted);                   }
   inline void      setFlowAlerted()       { flow_alerted = true;                    }
   inline void      setVRFid(u_int32_t v)  { vrfId = v;                              }

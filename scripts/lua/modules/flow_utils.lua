@@ -2052,7 +2052,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, ndpistats)
 	  <li><a href="]] print(getPageUrl(base_url, tcp_state_params)) print[[">]] print(i18n("flows_page.all_flows")) print[[</a></li>\]]
 
        local entries = {}
-       for _, entry in pairs({"syn_only", "rst", "fin", "syn_rst_only", "fin_rst", "established_only", "not_established_only" }) do
+       for _, entry in pairs({"established", "connecting", "closed", "reset"}) do
 	  entries[#entries + 1] = {entry, tcp_flow_state_utils.state2i18n(entry)}
        end
 

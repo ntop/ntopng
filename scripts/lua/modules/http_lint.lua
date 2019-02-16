@@ -322,7 +322,7 @@ local function validateFlowStatus(mode)
 end
 
 local function validateTCPFlowState(mode)
-   local modes = {"syn_only", "rst", "fin", "syn_rst_only", "fin_rst", "established_only", "not_established_only"}
+   local modes = { "established", "connecting", "closed", "reset" }
 
    return validateChoice(modes, mode)   
 end

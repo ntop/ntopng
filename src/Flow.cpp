@@ -719,13 +719,17 @@ u_int64_t Flow::get_current_packets_srv2cli() {
 
 /* ****************************************************** */
 
-char* Flow::printTCPflags(u_int8_t flags, char *buf, u_int buf_len) {
-  snprintf(buf, buf_len, "%s%s%s%s%s",
+char* Flow::printTCPflags(u_int8_t flags, char * const buf, u_int buf_len) const {
+  snprintf(buf, buf_len, "%s%s%s%s%s%s%s%s%s",
 	   (flags & TH_SYN) ? " SYN" : "",
 	   (flags & TH_ACK) ? " ACK" : "",
 	   (flags & TH_FIN) ? " FIN" : "",
 	   (flags & TH_RST) ? " RST" : "",
-	   (flags & TH_PUSH) ? " PUSH" : "");
+	   (flags & TH_PUSH) ? " PUSH" : "",
+	   isTCPEstablished() ? " est" : "",
+	   isTCPConnecting() ? " conn" : "",
+	   isTCPClosed() ? " closed" : "",
+	   isTCPReset() ? " reset" : "");
   if(buf[0] == ' ')
     return(&buf[1]);
   else
@@ -734,7 +738,7 @@ char* Flow::printTCPflags(u_int8_t flags, char *buf, u_int buf_len) {
 /* *************************************** */
 
 char* Flow::print(char *buf, u_int buf_len) {
-  char buf1[32], buf2[32], buf3[32], pbuf[32], tcp_buf[64];
+  char buf1[32], buf2[32], buf3[32], buf4[32], pbuf[32], tcp_buf[64];
   buf[0] = '\0';
 
   if((cli_host == NULL) || (srv_host == NULL)) return(buf);
@@ -792,7 +796,7 @@ char* Flow::print(char *buf, u_int buf_len) {
   }
 
   snprintf(buf, buf_len,
-	   "%s %s:%u &gt; %s:%u [first: %u][last: %u][proto: %u.%u/%s][cat: %u/%s][device: %u in: %u out:%u][%u/%u pkts][%llu/%llu bytes][%s]"
+	   "%s %s:%u &gt; %s:%u [first: %u][last: %u][proto: %u.%u/%s][cat: %u/%s][device: %u in: %u out:%u][%u/%u pkts][%llu/%llu bytes][src2dst: %s][dst2stc: %s]"
 	   "%s%s%s"
 #if defined(NTOPNG_PRO) && defined(SHAPER_DEBUG)
 	   "%s"
@@ -809,7 +813,8 @@ char* Flow::print(char *buf, u_int buf_len) {
 	   flow_device.device_ip, flow_device.in_index, flow_device.out_index,
 	   cli2srv_packets, srv2cli_packets,
 	   (long long unsigned) cli2srv_bytes, (long long unsigned) srv2cli_bytes,
-	   printTCPflags(getTcpFlags(), buf3, sizeof(buf3)),
+	   printTCPflags(src2dst_tcp_flags, buf3, sizeof(buf3)),
+	   printTCPflags(dst2src_tcp_flags, buf4, sizeof(buf4)),
 	   (isSSL() && protos.ssl.certificate) ? "[" : "",
 	   (isSSL() && protos.ssl.certificate) ? protos.ssl.certificate : "",
 	   (isSSL() && protos.ssl.certificate) ? "]" : ""
@@ -1726,7 +1731,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
       lua_push_uint64_table_entry(vm, "cli2srv.tcp_flags", src2dst_tcp_flags);
       lua_push_uint64_table_entry(vm, "srv2cli.tcp_flags", dst2src_tcp_flags);
 
-      lua_push_bool_table_entry(vm, "tcp_established", isEstablished());
+      lua_push_bool_table_entry(vm, "tcp_established", isTCPEstablished());
     }
 
     if(!mask_flow) {

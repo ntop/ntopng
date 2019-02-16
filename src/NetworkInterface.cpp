@@ -3562,13 +3562,10 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
     if(retriever->pag
        && retriever->pag->tcpFlowStateFilter(&tcp_flow_state_filter)
        && ((f->get_protocol() != IPPROTO_TCP)
-	   || (tcp_flow_state_filter == tcp_flow_state_filter_syn_only && !f->isTcpSYNOnly())
-	   || (tcp_flow_state_filter == tcp_flow_state_filter_rst && !f->isTcpRST())
-	   || (tcp_flow_state_filter == tcp_flow_state_filter_fin && !f->isTcpFIN())
-	   || (tcp_flow_state_filter == tcp_flow_state_filter_syn_rst_only && !f->isTcpSYNRSTOnly())
-	   || (tcp_flow_state_filter == tcp_flow_state_filter_fin_rst && !f->isTcpFINRST())
-	   || (tcp_flow_state_filter == tcp_flow_state_filter_established_only && !f->isEstablished())
-	   || (tcp_flow_state_filter == tcp_flow_state_filter_not_established_only && f->isEstablished())))
+	   || (tcp_flow_state_filter == tcp_flow_state_established && !f->isTCPEstablished())
+	   || (tcp_flow_state_filter == tcp_flow_state_connecting && !f->isTCPConnecting())
+	   || (tcp_flow_state_filter == tcp_flow_state_closed && !f->isTCPClosed())
+	   || (tcp_flow_state_filter == tcp_flow_state_reset && !f->isTCPReset())))
       return(false);
 
     if(retriever->pag
@@ -5125,13 +5122,13 @@ static bool num_flows_state_walker(GenericHashEntry *node, void *user_data, bool
   u_int32_t *num_flows = (u_int32_t*)user_data;
 
   if(flow->get_protocol() == IPPROTO_TCP) {
-    if(flow->isEstablished())
+    if(flow->isTCPEstablished())
       num_flows[2]++;
-    else if(flow->isTcpSYNOnly())
+    else if(flow->isTCPConnecting())
       num_flows[1]++;
-    else if(flow->isTcpRST())
+    else if(flow->isTCPReset())
       num_flows[0]++;
-    else if(flow->isTcpFIN())
+    else if(flow->isTCPClosed())
       num_flows[3]++;
   }
 
