@@ -1732,6 +1732,9 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
       lua_push_uint64_table_entry(vm, "srv2cli.tcp_flags", dst2src_tcp_flags);
 
       lua_push_bool_table_entry(vm, "tcp_established", isTCPEstablished());
+      lua_push_bool_table_entry(vm, "tcp_connecting", isTCPConnecting());
+      lua_push_bool_table_entry(vm, "tcp_closed", isTCPClosed());
+      lua_push_bool_table_entry(vm, "tcp_reset", isTCPReset());
     }
 
     if(!mask_flow) {
@@ -3462,7 +3465,7 @@ FlowStatus Flow::getFlowStatus() {
 	if(isIdle  && !lowGoodput) return status_slow_tcp_connection;
 
 	if(!isIdle && lowGoodput) {
-	  if((src2dst_tcp_flags & TH_SYN) && (dst2src_tcp_flags & TH_RST))
+	  if(isTCPReset())
 	    return status_tcp_connection_refused;
 	  else
 	    return status_low_goodput;

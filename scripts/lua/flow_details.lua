@@ -499,7 +499,7 @@ else
      print("</td></tr>\n")
     end
 
-   flags = flow["cli2srv.tcp_flags"] or flow["srv2cli.tcp_flags"]
+   local flags = flow["cli2srv.tcp_flags"] or flow["srv2cli.tcp_flags"]
 
    if((flags ~= nil) and (flags > 0)) then
       print("<tr><th width=30% rowspan=2>"..i18n("tcp_flags").."</th><td nowrap>"..i18n("client").." <i class=\"fa fa-arrow-right\"></i> "..i18n("server")..": ")
@@ -510,36 +510,25 @@ else
 
       print("<tr><td colspan=2>")
 
-      flow_completed = false
-      flow_reset = false
-      flows_syn_seen = false
-      resetter = ""
+      local flow_msg = ""
+      if flow["tcp_reset"] then
+	 local resetter = ""
 
-      if(hasbit(flags,0x01)) then flow_completed = true end
-      if(hasbit(flags,0x02)) then flows_syn_seen = true end
-      if(hasbit(flags,0x04)) then
-         flow_completed = true
-	 flow_reset = true
+	 if(hasbit(flow["cli2srv.tcp_flags"],0x04)) then
+	    resetter = "client"
+	 else
+	    resetter = "server"
+	 end
 
-	 if(hasbit(flow["cli2srv.tcp_flags"],0x04)) then resetter = "client" else resetter = "server" end
-      end
-
-      local flow_msg=""
-      if flow_reset == true then
-         flow_msg = " <small>"
-         if resetter ~= nil and resetter ~= "" then
-            flow_msg = flow_msg..i18n("flow_details.flow_reset_by_resetter_msg",{resetter=resetter})
-         else
-            flow_msg = flow_msg..i18n("flow_details.flow_reset_msg")
-         end
-         flow_msg = flow_msg..".</small>"
-      elseif flow_completed == true then
-         flow_msg = flow_msg.." <small>"..i18n("flow_details.flow_completed_msg")..".</small>"
+	 flow_msg = flow_msg..i18n("flow_details.flow_reset_by_resetter_msg",{resetter = resetter})
+      elseif flow["tcp_closed"] then
+	 flow_msg = flow_msg..i18n("flow_details.flow_completed_msg")
+      elseif flow["tcp_connecting"] then
+	 flow_msg = flow_msg..i18n("flow_details.flow_connecting_msg")
+      elseif flow["tcp_established"] then
+	 flow_msg = flow_msg..i18n("flow_details.flow_active_msg")
       else
-         flow_msg = flow_msg.." <small>"..i18n("flow_details.flow_active_msg")..".</small>"
-         if flows_syn_seen == false then
-            flow_msg = flow_msg.." <small>"..i18n("flow_details.flow_peer_roles_inaccurate_msg").."</small>"
-         end
+	 flow_msg = flow_msg.." "..i18n("flow_details.flow_peer_roles_inaccurate_msg")
       end
 
       print(flow_msg)
