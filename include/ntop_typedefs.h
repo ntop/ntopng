@@ -50,13 +50,10 @@ typedef enum {
 
 typedef enum {
   tcp_flow_state_filter_all = 0,
-  tcp_flow_state_filter_syn_only,
-  tcp_flow_state_filter_rst,
-  tcp_flow_state_filter_fin,
-  tcp_flow_state_filter_syn_rst_only,
-  tcp_flow_state_filter_fin_rst,
-  tcp_flow_state_filter_established_only,
-  tcp_flow_state_filter_not_established_only,
+  tcp_flow_state_established,
+  tcp_flow_state_connecting,
+  tcp_flow_state_closed,
+  tcp_flow_state_reset,
 } TcpFlowStateFilter;
 
 typedef enum {

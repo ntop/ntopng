@@ -828,6 +828,7 @@ bool NetworkInterface::walker(u_int32_t *begin_slot,
 Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
 				u_int16_t vlan_id,  u_int32_t deviceIP,
 				u_int16_t inIndex,  u_int16_t outIndex,
+				const ICMPinfo * const icmp_info,
   				IpAddress *src_ip,  IpAddress *dst_ip,
   				u_int16_t src_port, u_int16_t dst_port,
 				u_int8_t l4_proto,
@@ -848,7 +849,7 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
 
   PROFILING_SECTION_ENTER("NetworkInterface::getFlow: flows_hash->find", 5);
   ret = flows_hash->find(src_ip, dst_ip, src_port, dst_port,
-			 vlan_id, l4_proto, src2dst_direction);
+			 vlan_id, l4_proto, icmp_info, src2dst_direction);
   PROFILING_SECTION_EXIT(5);
 
   if(ret == NULL) {
@@ -862,6 +863,7 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
       ret = new Flow(this, vlan_id, l4_proto,
 		     srcMac, src_ip, src_port,
 		     dstMac, dst_ip, dst_port,
+		     icmp_info,
 		     first_seen, last_seen);
       PROFILING_SECTION_EXIT(6);
     } catch(std::bad_alloc& ba) {
@@ -1109,6 +1111,7 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
 		 zflow->core.vlan_id,
 		 zflow->core.deviceIP,
 		 zflow->core.inIndex, zflow->core.outIndex,
+		 NULL /* ICMPinfo */, 
 		 &srcIP, &dstIP,
 		 zflow->core.src_port, zflow->core.dst_port,
 		 zflow->core.l4_proto, &src2dst_direction,
@@ -1317,6 +1320,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
   Flow *flow;
   Mac *srcMac = NULL, *dstMac = NULL;
   IpAddress src_ip, dst_ip;
+  ICMPinfo icmp_info;
   u_int16_t src_port = 0, dst_port = 0, payload_len = 0;
   struct ndpi_tcphdr *tcph = NULL;
   struct ndpi_udphdr *udph = NULL;
@@ -1479,6 +1483,8 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	       rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
       return(pass_verdict);
     }
+  } else if (l4_proto == IPPROTO_ICMP) {
+    icmp_info.dissectICMP(l4_packet_len, l4);
   } else {
     /* non TCP/UDP protocols */
   }
@@ -1509,7 +1515,9 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 
   PROFILING_SECTION_ENTER("NetworkInterface::processPacket: getFlow", 1);
   /* Updating Flow */
-  flow = getFlow(srcMac, dstMac, vlan_id, 0, 0, 0, &src_ip, &dst_ip, src_port, dst_port,
+  flow = getFlow(srcMac, dstMac, vlan_id, 0, 0, 0,
+		 l4_proto == IPPROTO_ICMP ? &icmp_info : NULL,
+		 &src_ip, &dst_ip, src_port, dst_port,
 		 l4_proto, &src2dst_direction, last_pkt_rcvd, last_pkt_rcvd, rawsize, &new_flow, true);
   PROFILING_SECTION_EXIT(1);
 
@@ -2531,6 +2539,7 @@ void NetworkInterface::pollQueuedeBPFEvents() {
 		     0 /* vlan_id */,
 		     0 /* deviceIP */,
 		     0 /* inIndex */, 1 /* outIndex */,
+		     NULL /* ICMPinfo */,
 		     &src, &dst,
 		     sport, dport,
 		     proto,
@@ -3579,13 +3588,10 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
     if(retriever->pag
        && retriever->pag->tcpFlowStateFilter(&tcp_flow_state_filter)
        && ((f->get_protocol() != IPPROTO_TCP)
-	   || (tcp_flow_state_filter == tcp_flow_state_filter_syn_only && !f->isTcpSYNOnly())
-	   || (tcp_flow_state_filter == tcp_flow_state_filter_rst && !f->isTcpRST())
-	   || (tcp_flow_state_filter == tcp_flow_state_filter_fin && !f->isTcpFIN())
-	   || (tcp_flow_state_filter == tcp_flow_state_filter_syn_rst_only && !f->isTcpSYNRSTOnly())
-	   || (tcp_flow_state_filter == tcp_flow_state_filter_fin_rst && !f->isTcpFINRST())
-	   || (tcp_flow_state_filter == tcp_flow_state_filter_established_only && !f->isEstablished())
-	   || (tcp_flow_state_filter == tcp_flow_state_filter_not_established_only && f->isEstablished())))
+	   || (tcp_flow_state_filter == tcp_flow_state_established && !f->isTCPEstablished())
+	   || (tcp_flow_state_filter == tcp_flow_state_connecting && !f->isTCPConnecting())
+	   || (tcp_flow_state_filter == tcp_flow_state_closed && !f->isTCPClosed())
+	   || (tcp_flow_state_filter == tcp_flow_state_reset && !f->isTCPReset())))
       return(false);
 
     if(retriever->pag
@@ -3777,7 +3783,7 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data, bool *matc
      ((r->ndpi_proto != -1) && (h->get_ndpi_stats()->getProtoBytes(r->ndpi_proto) == 0))  ||
      ((r->asnFilter != (u_int32_t)-1)     && (r->asnFilter       != h->get_asn()))        ||
      ((r->networkFilter != -2) && (r->networkFilter != h->get_local_network_id()))        ||
-     (r->mac           && (h->getMac()) && (!h->getMac()->equal(r->mac)))    ||
+     (r->mac           && ((!h->getMac()) || (!h->getMac()->equal(r->mac))))              ||
      ((r->poolFilter != (u_int16_t)-1)    && (r->poolFilter    != h->get_host_pool()))    ||
      (r->country  && strlen(r->country)  && strcmp(h->get_country(buf, sizeof(buf)), r->country)) ||
      (r->osFilter && strlen(r->osFilter) && strcmp(h->get_os(buf, sizeof(buf)), r->osFilter))     ||
@@ -5152,13 +5158,13 @@ static bool num_flows_state_walker(GenericHashEntry *node, void *user_data, bool
   u_int32_t *num_flows = (u_int32_t*)user_data;
 
   if(flow->get_protocol() == IPPROTO_TCP) {
-    if(flow->isEstablished())
+    if(flow->isTCPEstablished())
       num_flows[2]++;
-    else if(flow->isTcpSYNOnly())
+    else if(flow->isTCPConnecting())
       num_flows[1]++;
-    else if(flow->isTcpRST())
+    else if(flow->isTCPReset())
       num_flows[0]++;
-    else if(flow->isTcpFIN())
+    else if(flow->isTCPClosed())
       num_flows[3]++;
   }
 
@@ -5541,6 +5547,20 @@ Flow* NetworkInterface::findFlowByKey(u_int32_t key,
   f = (Flow*)(flows_hash->findByKey(key));
 
   if(f && (!f->match(allowed_hosts))) f = NULL;
+
+  return(f);
+}
+
+/* **************************************************** */
+
+Flow* NetworkInterface::findFlowByTuple(u_int16_t vlan_id,
+					IpAddress *src_ip,  IpAddress *dst_ip,
+					u_int16_t src_port, u_int16_t dst_port,
+					u_int8_t l4_proto) const {
+  bool src2dst;
+  Flow *f = NULL;
+
+  f = (Flow*)flows_hash->find(src_ip, dst_ip, src_port, dst_port, vlan_id, l4_proto, NULL, &src2dst);
 
   return(f);
 }

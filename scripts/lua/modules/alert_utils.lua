@@ -580,28 +580,34 @@ end
 -- If entity_info is nil, then no links will be provided.
 --
 local function formatAlertEntity(ifid, entity_type, entity_value, entity_info)
+   require "flow_utils"
    local value
+   local epoch_begin, epoch_end = getAlertTimeBounds({alert_tstamp = os.time()})
 
    if entity_type == "host" then
       local host_info = hostkey2hostinfo(entity_value)
       value = resolveAddress(host_info)
 
       if host_info ~= nil then
-	 value = "<a href='"..ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifid
-	    .."&host="..hostinfo2hostkey(host_info).."'>"..value.."</a>"
+	 value = "<a href='"..ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifid..
+	    "&host="..hostinfo2hostkey(host_info).."&page=historical&epoch_begin="..
+	    epoch_begin .."&epoch_end=".. epoch_end .."'>"..value.."</a>"
       end
    elseif entity_type == "interface" then
       value = getInterfaceName(ifid)
 
       if entity_info ~= nil then
-	 value = "<a href='"..ntop.getHttpPrefix().."/lua/if_stats.lua?ifid="..ifid.."'>"..value.."</a>"
+	 value = "<a href='"..ntop.getHttpPrefix().."/lua/if_stats.lua?ifid="..ifid..
+	  "&page=historical&epoch_begin="..epoch_begin .."&epoch_end=".. epoch_end ..
+	  "'>"..value.."</a>"
       end
    elseif entity_type == "network" then
       value = hostkey2hostinfo(entity_value)["host"]
 
       if entity_info ~= nil then
-	 value = "<a href='"..ntop.getHttpPrefix().."/lua/network_details.lua?network="..(entity_info.network_id).."&page=historical'>"
-	    ..value.."</a>"
+	 value = "<a href='"..ntop.getHttpPrefix().."/lua/network_details.lua?network="..
+	 (entity_info.network_id).."&page=historical&epoch_begin=".. epoch_begin
+	 .."&epoch_end=".. epoch_end .."'>" ..value.."</a>"
       end
    else
       -- fallback

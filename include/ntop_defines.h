@@ -320,6 +320,12 @@
 #ifndef ICMP_INFO_REPLY
 #define ICMP_INFO_REPLY 16
 #endif
+#ifndef ICMP_PORT_UNREACH
+#define ICMP_PORT_UNREACH 3
+#endif
+#ifndef ICMP_DEST_UNREACH
+#define ICMP_DEST_UNREACH 3
+#endif
 
 // ICMP6
 #ifndef ICMP6_WRUREQUEST

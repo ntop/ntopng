@@ -19,21 +19,35 @@
  *
  */
 
-#ifndef _FLOW_HASH_H_
-#define _FLOW_HASH_H_
+#ifndef _ICMP_INFO_H_
+#define _ICMP_INFO_H_
 
 #include "ntop_includes.h"
- 
-class FlowHash : public GenericHash {
+
+typedef struct {
+  IpAddress src_ip, dst_ip;
+  u_int16_t src_port, dst_port;
+  u_int16_t protocol;
+} unreachable_t;
+
+class ICMPinfo {
+ private:
+  u_int8_t icmp_type;
+  u_int8_t icmp_code;
+  unreachable_t *unreach;
+
+  void reset();
+
  public:
-  FlowHash(NetworkInterface *iface, u_int _num_hashes, u_int _max_hash_size);
-  
-  Flow* find(IpAddress *src_ip, IpAddress *dst_ip,
-	     u_int16_t src_port, u_int16_t dst_port, 
-	     u_int16_t vlanId, u_int8_t protocol,
-	     const ICMPinfo * const icmp_info,
-	     bool *src2dst_direction);
- 
+  ICMPinfo();
+  ICMPinfo(const ICMPinfo& _icmp_info);
+  virtual ~ICMPinfo();
+  unreachable_t *getUnreach() const { return unreach; };
+  void dissectICMP(u_int16_t const payload_len, const u_int8_t * const payload_data);
+  void print() const;
+  u_int32_t key() const;
+  bool equal(const ICMPinfo * const icmp_info) const;
+  void lua(lua_State* vm, AddressTree * ptree, NetworkInterface *iface, u_int16_t vlan_id) const;
 };
 
-#endif /* _FLOW_HASH_H_ */
+#endif /* _ICMP_INFO_H_ */
