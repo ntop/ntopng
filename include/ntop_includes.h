@@ -225,6 +225,7 @@ using namespace std;
 #endif
 #include "NetworkDiscovery.h"
 #include "ICMPstats.h"
+#include "ICMPinfo.h"
 #include "Grouper.h"
 #include "FlowGrouper.h"
 #include "PacketStats.h"

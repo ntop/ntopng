@@ -8,6 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "template"
 require "voip_utils"
 require "graph_utils"
+local tcp_flow_state_utils = require("tcp_flow_state_utils")
 
 if ntop.isPro() then
    package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
@@ -1970,6 +1971,221 @@ function printBlockFlowJs()
     });
   }
   ]]
+end
+
+-- #######################
+
+local function printDropdownEntries(entries, base_url, param_arr, param_filter, curr_filter)
+   for _, htype in ipairs(entries) do
+      param_arr[param_filter] = htype[1]
+      print[[<li]]
+
+      if htype[1] == curr_filter then print(' class="active"') end
+
+      print[[><a href="]] print(getPageUrl(base_url, param_arr)) print[[">]] print(htype[2]) print[[</a></li>]]
+   end
+end
+
+local function getParamFilter(page_params, param_name)
+    if page_params[param_name] then
+	return '<span class="glyphicon glyphicon-filter"></span>'
+    end
+
+    return ''
+end
+
+function printActiveFlowsDropdown(base_url, page_params, ifstats, ndpistats)
+    -- Local / Remote hosts selector
+    local flowhosts_type_params = table.clone(page_params)
+    flowhosts_type_params["flowhosts_type"] = nil
+
+    print[['\
+       <div class="btn-group">\
+	  <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("flows_page.hosts")) print(getParamFilter(page_params, "flowhosts_type")) print[[<span class="caret"></span></button>\
+	  <ul class="dropdown-menu" role="menu" id="flow_dropdown">\
+	     <li><a href="]] print(getPageUrl(base_url, flowhosts_type_params)) print[[">]] print(i18n("flows_page.all_hosts")) print[[</a></li>\]]
+       printDropdownEntries({
+	  {"local_only", i18n("flows_page.local_only")},
+	  {"remote_only", i18n("flows_page.remote_only")},
+	  {"local_origin_remote_target", i18n("flows_page.local_cli_remote_srv")},
+	  {"remote_origin_local_target", i18n("flows_page.local_srv_remote_cli")}
+       }, base_url, flowhosts_type_params, "flowhosts_type", page_params.flowhosts_type)
+    print[[\
+	  </ul>\
+       </div>\
+    ']]
+
+    -- Status selector
+    local flow_status_params = table.clone(page_params)
+    flow_status_params["flow_status"] = nil
+
+    print[[, '\
+       <div class="btn-group">\
+	  <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("status")) print(getParamFilter(page_params, "flow_status")) print[[<span class="caret"></span></button>\
+	  <ul class="dropdown-menu" role="menu">\
+	  <li><a href="]] print(getPageUrl(base_url, flow_status_params)) print[[">]] print(i18n("flows_page.all_flows")) print[[</a></li>\]]
+
+       local entries = {
+	  {"normal", i18n("flows_page.normal")},
+	  {"alerted", i18n("flows_page.alerted")},
+       }
+
+       if isBridgeInterface(ifstats) then
+	  entries[#entries + 1] = {"filtered", i18n("flows_page.blocked")}
+       end
+     
+       printDropdownEntries(entries, base_url, flow_status_params, "flow_status", page_params.flow_status)
+    print[[\
+	  </ul>\
+       </div>\
+    ']]
+
+    if interface.isPacketInterface() then
+       -- TCP flow state filter
+       local tcp_state_params = table.clone(page_params)
+       tcp_state_params["tcp_flow_state"] = nil
+
+       print[[, '\
+       <div class="btn-group">\
+	  <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("flows_page.tcp_state")) print(getParamFilter(page_params, "tcp_flow_state")) print[[<span class="caret"></span></button>\
+	  <ul class="dropdown-menu" role="menu">\
+	  <li><a href="]] print(getPageUrl(base_url, tcp_state_params)) print[[">]] print(i18n("flows_page.all_flows")) print[[</a></li>\]]
+
+       local entries = {}
+       for _, entry in pairs({"established", "connecting", "closed", "reset"}) do
+	  entries[#entries + 1] = {entry, tcp_flow_state_utils.state2i18n(entry)}
+       end
+
+       printDropdownEntries(entries, base_url, tcp_state_params, "tcp_flow_state", page_params.tcp_flow_state)
+       print[[\
+	  </ul>\
+       </div>\
+    ']]
+    end
+
+    -- Unidirectional flows selector
+    local traffic_type_params = table.clone(page_params)
+    traffic_type_params["traffic_type"] = nil
+
+    print[[, '\
+       <div class="btn-group">\
+	  <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("flows_page.direction")) print(getParamFilter(page_params, "traffic_type")) print[[<span class="caret"></span></button>\
+	  <ul class="dropdown-menu" role="menu">\
+	     <li><a href="]] print(getPageUrl(base_url, traffic_type_params)) print[[">]] print(i18n("flows_page.all_flows")) print[[</a></li>\]]
+    printDropdownEntries({
+	  {"unicast", i18n("flows_page.non_multicast")},
+	  {"broadcast_multicast", i18n("flows_page.multicast")},
+	  {"one_way_unicast", i18n("flows_page.one_way_non_multicast")},
+	  {"one_way_broadcast_multicast", i18n("flows_page.one_way_multicast")},
+       }, base_url, traffic_type_params, "traffic_type", page_params.traffic_type)
+    print[[\
+	  </ul>\
+       </div>\
+    ']]
+
+    if not page_params.category then
+       -- L7 Application
+       print(', \'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..i18n("report.applications")..' ' .. getParamFilter(page_params, "application") .. '<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" id="flow_dropdown">')
+       print('<li><a href="')
+       local application_filter_params = table.clone(page_params)
+       application_filter_params["application"] = nil
+       print(getPageUrl(base_url, application_filter_params))
+       print('">'..i18n("flows_page.all_proto")..'</a></li>')
+
+       for key, value in pairsByKeys(ndpistats["ndpi"], asc) do
+	  local class_active = ''
+	  if(key == page_params.application) then
+	     class_active = ' class="active"'
+	  end
+	  print('<li '..class_active..'><a href="')
+	  application_filter_params["application"] = key
+	  print(getPageUrl(base_url, application_filter_params))
+	  print('">'..key..'</a></li>')
+       end
+
+       print("</ul> </div>'")
+    end
+
+    if not page_params.application then
+       -- L7 Application Category
+       print(', \'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..i18n("users.categories")..' ' .. getParamFilter(page_params, "category") .. '<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" id="flow_dropdown">')
+       print('<li><a href="')
+       local category_filter_params = table.clone(page_params)
+       category_filter_params["category"] = nil
+       print(getPageUrl(base_url, category_filter_params))
+       print('">'..i18n("flows_page.all_categories")..'</a></li>')
+       local ndpicatstats = ifstats["ndpi_categories"]
+
+       for key, value in pairsByKeys(ndpicatstats, asc) do
+	  local class_active = ''
+	  if(key == page_params.category) then
+	     class_active = ' class="active"'
+	  end
+	  print('<li '..class_active..'><a href="')
+	  category_filter_params["category"] = key
+	  print(getPageUrl(base_url, category_filter_params))
+	  print('">'..key..'</a></li>')
+       end
+
+       print("</ul> </div>'")
+    end
+
+    -- Ip version selector
+    local ipversion_params = table.clone(page_params)
+    ipversion_params["version"] = nil
+
+    print[[, '<div class="btn-group pull-right">]]
+    printIpVersionDropdown(base_url, ipversion_params)
+    print [[</div>']]
+
+    -- VLAN selector
+    local vlan_params = table.clone(page_params)
+    if ifstats.vlan then
+       print[[, '<div class="btn-group pull-right">]]
+       printVLANFilterDropdown(base_url, vlan_params)
+       print[[</div>']]
+    end
+
+    if ntop.isPro() and interface.isPacketInterface() == false then
+       printFlowDevicesFilterDropdown(base_url, vlan_params)
+    end
+end
+
+-- #######################
+
+function getFlowsTableTitle()
+    local filter_msg = (_GET["application"] or _GET["category"] or _GET["vhost"] or firstToUpper(_GET["flow_status"] or ""))
+    local active_msg
+
+    if not interface.isPacketInterface() then
+       active_msg = i18n("flows_page.recently_active_flows", {filter=filter_msg})
+    elseif interface.isPcapDumpInterface() then
+       active_msg = i18n("flows_page.flows", {filter=filter_msg})
+    else
+       active_msg = i18n("flows_page.active_flows", {filter=filter_msg})
+    end
+
+    if(_GET["network_name"] ~= nil) then
+       active_msg = active_msg .. i18n("network", {network=_GET["network_name"]})
+    end
+
+    if(_GET["inIfIdx"] ~= nil) then
+       active_msg = active_msg .. " ["..i18n("flows_page.inIfIdx").." ".._GET["inIfIdx"].."]"
+    end
+
+    if(_GET["outIfIdx"] ~= nil) then
+       active_msg = active_msg .. " ["..i18n("flows_page.outIfIdx").." ".._GET["outIfIdx"].."]"
+    end
+
+    if(_GET["deviceIP"] ~= nil) then
+       active_msg = active_msg .. " ["..i18n("flows_page.device_ip").." ".._GET["deviceIP"].."]"
+    end
+
+    if(_GET["tcp_flow_state"] ~= nil) then
+       active_msg = active_msg .. " ["..tcp_flow_state_utils.state2i18n(_GET["tcp_flow_state"]).."]"
+    end
+
+    return active_msg
 end
 
 -- #######################

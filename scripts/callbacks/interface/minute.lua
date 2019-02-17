@@ -8,13 +8,13 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 
 local ts_utils = require("ts_utils_core")
-local rrd_dump = require "rrd_min_dump_utils"
+local ts_dump = require "ts_min_dump_utils"
 
 -- ########################################################
 
 local verbose = ntop.verboseTrace()
 local when = os.time()
-local config = rrd_dump.getConfig()
+local config = ts_dump.getConfig()
 
 local iface_ts = interface.getInterfaceTimeseries()
 local ifstats = interface.getStats()
@@ -22,14 +22,14 @@ local _ifname = ifstats.name
 
 -- ########################################################
 
-rrd_dump.run_min_dump(_ifname, ifstats, iface_ts, config, when, verbose)
+ts_dump.run_min_dump(_ifname, ifstats, iface_ts, config, when, verbose)
 
 if ts_utils.hasHighResolutionTs() then
-   local rrd_5min_dump = require "rrd_5min_dump_utils"
+   local ts_5min_dump = require "ts_5min_dump_utils"
    local time_threshold = when - (when % 60) --[[ align ]] + 50 --[[ margin ]]
-   local config = rrd_5min_dump.getConfig()
+   local config = ts_5min_dump.getConfig()
 
-   rrd_5min_dump.run_5min_dump(_ifname, ifstats, config, when, time_threshold, false--[[ skip ts]], true--[[ skip alerts]], verbose)
+   ts_5min_dump.run_5min_dump(_ifname, ifstats, config, when, time_threshold, false--[[ skip ts]], true--[[ skip alerts]], verbose)
 end
 
 -- ########################################################

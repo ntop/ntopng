@@ -24,7 +24,15 @@ local function getListStatusLabel(list)
   end
 
   if list.status.last_error then
-    return '<span class="label label-danger">'.. i18n("error") ..'</span>'
+    local info = ""
+    local info_msg = ""
+
+    if type(list.status.last_error) == "string" then
+      info = ' <i class="fa fa-info-circle"></i>'
+      info_msg = list.status.last_error
+    end
+
+    return '<span title="'.. info_msg ..'" class="label label-danger">'.. i18n("error") .. info ..'</span>'
   end
 
   return '<span class="label label-success">'.. i18n("category_lists.enabled") ..'</span>'

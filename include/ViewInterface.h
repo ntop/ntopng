@@ -61,7 +61,10 @@ class ViewInterface : public NetworkInterface {
   virtual Host* getHost(char *host_ip, u_int16_t vlan_id);
   virtual Host* getHost(IpAddress * const host_ip, u_int16_t vlan_id) const;
   virtual Flow* findFlowByKey(u_int32_t key, AddressTree *allowed_hosts);
-
+  virtual Flow* findFlowByTuple(u_int16_t vlan_id,
+  				IpAddress *src_ip,  IpAddress *dst_ip,
+  				u_int16_t src_port, u_int16_t dst_port,
+				u_int8_t l4_proto) const;
   virtual bool walker(u_int32_t *begin_slot, bool walk_all,
 		      WalkerType wtype,		      
 		      bool (*walker)(GenericHashEntry *h,

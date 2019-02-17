@@ -30,6 +30,7 @@ Flow::Flow(NetworkInterface *_iface,
 	   u_int16_t _vlanId, u_int8_t _protocol,
 	   Mac *_cli_mac, IpAddress *_cli_ip, u_int16_t _cli_port,
 	   Mac *_srv_mac, IpAddress *_srv_ip, u_int16_t _srv_port,
+	   const ICMPinfo * const _icmp_info,
 	   time_t _first_seen, time_t _last_seen) : GenericHashEntry(_iface) {
   vlanId = _vlanId, protocol = _protocol, cli_port = _cli_port, srv_port = _srv_port;
   cli2srv_packets = 0, cli2srv_bytes = 0, cli2srv_goodput_bytes = 0,
@@ -46,6 +47,8 @@ Flow::Flow(NetworkInterface *_iface,
   last_conntrack_update = 0;
   marker = MARKER_NO_ACTION;
 #endif
+
+  icmp_info = _icmp_info ? new (std::nothrow) ICMPinfo(*_icmp_info) : NULL;
 
   memset(&cli2srvStats, 0, sizeof(cli2srvStats)), memset(&srv2cliStats, 0, sizeof(srv2cliStats));
 
@@ -90,7 +93,7 @@ Flow::Flow(NetworkInterface *_iface,
     if(srv_host) routing_table_id = max_val(routing_table_id, hp->getRoutingPolicy(srv_host->get_host_pool()));
   }
 
-  counted_in_aggregated_flow = false;
+  counted_in_aggregated_flow = status_counted_in_aggregated_flow = false;
 #endif
 
   passVerdict = true, quota_exceeded = false;
@@ -206,6 +209,7 @@ Flow::~Flow() {
   if(community_id_flow_hash) free(community_id_flow_hash);
 
   freeDPIMemory();
+  if(icmp_info)        delete(icmp_info);
 }
 
 /* *************************************** */
@@ -715,13 +719,17 @@ u_int64_t Flow::get_current_packets_srv2cli() {
 
 /* ****************************************************** */
 
-char* Flow::printTCPflags(u_int8_t flags, char *buf, u_int buf_len) {
-  snprintf(buf, buf_len, "%s%s%s%s%s",
+char* Flow::printTCPflags(u_int8_t flags, char * const buf, u_int buf_len) const {
+  snprintf(buf, buf_len, "%s%s%s%s%s%s%s%s%s",
 	   (flags & TH_SYN) ? " SYN" : "",
 	   (flags & TH_ACK) ? " ACK" : "",
 	   (flags & TH_FIN) ? " FIN" : "",
 	   (flags & TH_RST) ? " RST" : "",
-	   (flags & TH_PUSH) ? " PUSH" : "");
+	   (flags & TH_PUSH) ? " PUSH" : "",
+	   isTCPEstablished() ? " est" : "",
+	   isTCPConnecting() ? " conn" : "",
+	   isTCPClosed() ? " closed" : "",
+	   isTCPReset() ? " reset" : "");
   if(buf[0] == ' ')
     return(&buf[1]);
   else
@@ -730,7 +738,7 @@ char* Flow::printTCPflags(u_int8_t flags, char *buf, u_int buf_len) {
 /* *************************************** */
 
 char* Flow::print(char *buf, u_int buf_len) {
-  char buf1[32], buf2[32], buf3[32], pbuf[32], tcp_buf[64];
+  char buf1[32], buf2[32], buf3[32], buf4[32], pbuf[32], tcp_buf[64];
   buf[0] = '\0';
 
   if((cli_host == NULL) || (srv_host == NULL)) return(buf);
@@ -788,7 +796,7 @@ char* Flow::print(char *buf, u_int buf_len) {
   }
 
   snprintf(buf, buf_len,
-	   "%s %s:%u &gt; %s:%u [first: %u][last: %u][proto: %u.%u/%s][cat: %u/%s][device: %u in: %u out:%u][%u/%u pkts][%llu/%llu bytes][%s]"
+	   "%s %s:%u &gt; %s:%u [first: %u][last: %u][proto: %u.%u/%s][cat: %u/%s][device: %u in: %u out:%u][%u/%u pkts][%llu/%llu bytes][src2dst: %s][dst2stc: %s]"
 	   "%s%s%s"
 #if defined(NTOPNG_PRO) && defined(SHAPER_DEBUG)
 	   "%s"
@@ -805,7 +813,8 @@ char* Flow::print(char *buf, u_int buf_len) {
 	   flow_device.device_ip, flow_device.in_index, flow_device.out_index,
 	   cli2srv_packets, srv2cli_packets,
 	   (long long unsigned) cli2srv_bytes, (long long unsigned) srv2cli_bytes,
-	   printTCPflags(getTcpFlags(), buf3, sizeof(buf3)),
+	   printTCPflags(src2dst_tcp_flags, buf3, sizeof(buf3)),
+	   printTCPflags(dst2src_tcp_flags, buf4, sizeof(buf4)),
 	   (isSSL() && protos.ssl.certificate) ? "[" : "",
 	   (isSSL() && protos.ssl.certificate) ? protos.ssl.certificate : "",
 	   (isSSL() && protos.ssl.certificate) ? "]" : ""
@@ -1406,11 +1415,14 @@ void Flow::update_pools_stats(const struct timeval *tv,
 
 bool Flow::equal(IpAddress *_cli_ip, IpAddress *_srv_ip, u_int16_t _cli_port,
 		 u_int16_t _srv_port, u_int16_t _vlanId, u_int8_t _protocol,
+		 const ICMPinfo * const _icmp_info,
 		 bool *src2srv_direction) {
   if((_vlanId != vlanId) && (vlanId != 0))
     return(false);
 
   if(_protocol != protocol) return(false);
+
+  if(icmp_info && !icmp_info->equal(_icmp_info)) return(false);
 
   if(cli_host && cli_host->equal(_cli_ip)
      && srv_host && srv_host->equal(_srv_ip)
@@ -1675,6 +1687,9 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
       lua_push_uint64_table_entry(vm, "type", protos.icmp.icmp_type);
       lua_push_uint64_table_entry(vm, "code", protos.icmp.icmp_code);
 
+      if(icmp_info)
+	icmp_info->lua(vm, ptree, iface, get_vlan_id());
+
       lua_pushstring(vm, "icmp");
       lua_insert(vm, -2);
       lua_settable(vm, -3);
@@ -1716,7 +1731,10 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
       lua_push_uint64_table_entry(vm, "cli2srv.tcp_flags", src2dst_tcp_flags);
       lua_push_uint64_table_entry(vm, "srv2cli.tcp_flags", dst2src_tcp_flags);
 
-      lua_push_bool_table_entry(vm, "tcp_established", isEstablished());
+      lua_push_bool_table_entry(vm, "tcp_established", isTCPEstablished());
+      lua_push_bool_table_entry(vm, "tcp_connecting", isTCPConnecting());
+      lua_push_bool_table_entry(vm, "tcp_closed", isTCPClosed());
+      lua_push_bool_table_entry(vm, "tcp_reset", isTCPReset());
     }
 
     if(!mask_flow) {
@@ -1848,10 +1866,11 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 /* *************************************** */
 
 u_int32_t Flow::key() {
-  u_int32_t k = cli_port+srv_port /* +vlanId */ +protocol;
+  u_int32_t k = cli_port + srv_port /* +vlanId */ + protocol;
 
-  if(cli_host) k += cli_host->key();
-  if(srv_host) k += srv_host->key();
+  if(cli_host)  k += cli_host->key();
+  if(srv_host)  k += srv_host->key();
+  if(icmp_info) k += icmp_info->key();
 
   return(k);
 }
@@ -3419,7 +3438,6 @@ FlowStatus Flow::getFlowStatus() {
 	  return status_normal;
       } else {
 	/* 3WH is over */
-
 	switch(l7proto) {
 	case NDPI_PROTOCOL_SSL:
 #ifndef HAVE_NEDGE
@@ -3447,7 +3465,7 @@ FlowStatus Flow::getFlowStatus() {
 	if(isIdle  && !lowGoodput) return status_slow_tcp_connection;
 
 	if(!isIdle && lowGoodput) {
-	  if((src2dst_tcp_flags & TH_SYN) && (dst2src_tcp_flags & TH_RST))
+	  if(isTCPReset())
 	    return status_tcp_connection_refused;
 	  else
 	    return status_low_goodput;
