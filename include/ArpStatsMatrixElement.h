@@ -36,23 +36,42 @@ public:
     ArpStatsMatrixElement(NetworkInterface *_iface, const u_int8_t _src_mac[6],
     const u_int8_t _dst_mac[6] ); ~ArpStatsMatrixElement();
 
-    inline ArpStats getStats()      {return stats;}
+    inline ArpStats getStats()           {return stats;}
     inline u_int8_t* getSourceMac()      {return src_mac;}
     inline u_int8_t* getDestinationMac() {return dst_mac;}
 
     void setStats( u_int32_t sent_req, u_int32_t sent_res, u_int32_t rcv_req,u_int32_t rcv_res){
-        stats.sent_replies = sent_res;
-        stats.sent_requests = sent_req;
-        stats.rcvd_replies = rcv_res;
-        stats.rcvd_requests = rcv_req;
+        stats.sent.replies = sent_res;
+        stats.sent.requests = sent_req;
+        stats.rcvd.replies = rcv_res;
+        stats.rcvd.requests = rcv_req;
     }
 
-    inline u_int32_t AddOneSentReplies()        { return ++stats.sent_replies; }
-    inline u_int32_t AddOneSentRequests()       { return ++stats.sent_requests; }
-    inline u_int32_t AddOneReceivedReplies()    { return ++stats.rcvd_replies; }
-    inline u_int32_t AddOneReceivedRequests()   { return ++stats.rcvd_requests; }
+    void transposeElement(){
+        u_int8_t *a1, *a2, *tmp = src_mac, dst_mac;
+        tmp = a1; a1 = a2; a2 = tmp;
 
-    bool equal(const u_int8_t _src_mac[6], const u_int8_t _dst_mac[6]);
+        ReqReplyStats t = stats.sent;
+        stats.sent = stats.rcvd;
+        stats.rcvd = t;
+
+/*
+        u_int32_t t = stats.sent_replies;
+        stats.sent_replies = stats.rcvd_replies;
+        stats.rcvd_replies = t;
+
+        t = stats.sent_requests;
+        stats.sent_requests = stats.rcvd_requests;
+        stats.rcvd_requests = t;
+*/
+    }
+
+    inline u_int32_t AddOneSentReplies()        { return ++stats.sent.replies; }
+    inline u_int32_t AddOneSentRequests()       { return ++stats.sent.requests; }
+    inline u_int32_t AddOneReceivedReplies()    { return ++stats.rcvd.replies; }
+    inline u_int32_t AddOneReceivedRequests()   { return ++stats.rcvd.requests; }
+
+    bool equalAndTranspose(const u_int8_t _src_mac[6], const u_int8_t _dst_mac[6]);
     bool idle();
     u_int32_t key();
 

@@ -73,13 +73,18 @@ bool ArpStatsMatrixElement::idle() { /*fun uguale a quella di Mac e Country, ved
 
 /* *************************************** */
 
-bool ArpStatsMatrixElement::equal(const u_int8_t _src_mac[6], const u_int8_t _dst_mac[6]) {
+bool ArpStatsMatrixElement::equalAndTranspose(const u_int8_t _src_mac[6], const u_int8_t _dst_mac[6]) {
     if(! _src_mac || !_dst_mac)
-        return(false);
-    if(  memcmp(src_mac, _src_mac, 6) == 0 && memcmp(dst_mac, _dst_mac, 6) == 0  )
-        return(true);
+        return false;
+    if(  memcmp(src_mac, _src_mac, 6) == 0 && memcmp(dst_mac, _dst_mac, 6) == 0 )
+        return true;
+
+    else if  (  memcmp(src_mac, _dst_mac, 6) == 0 && memcmp(dst_mac, _src_mac, 6) == 0 )
+      this.transposeElement();
+      return true;
+      
     else
-        return(false);
+        return false ;
 }
 
 
@@ -92,9 +97,20 @@ bool ArpStatsMatrixElement::equal(const u_int8_t _src_mac[6], const u_int8_t _ds
 
 /* *************************************** */
 
-//TODO: meteodi virtuali
-//  virtual void set_to_purge(time_t t)  { will_be_purged = true;  };
-//  virtual void housekeep()             { return;                 };
-//  virtual char* get_string_key(char *buf, u_int buf_len) { buf[0] = '\0'; return(buf); };
+void lua(lua_State* vm) {
+  lua_newtable(vm);
+
+  char buf1[32], buf2[32];
+
+  lua_push_str_table_entry(vm, "src_mac", Utils::formatMac(src_mac, buf1, sizeof(buf1)) );
+  lua_push_str_table_entry(vm, "dst_mac", Utils::formatMac(dst_mac, buf2, sizeof(buf2)) );
+  lua_push_uint64_table_entry(vm, "stats.sent.requests", stats.sent.requests);
+  lua_push_uint64_table_entry(vm, "stats.rcvd.requests", stats.rcvd.requests);
+  lua_push_uint64_table_entry(vm, "stats.sent.replies", stats.sent.replies);
+  lua_push_uint64_table_entry(vm, "stats.rcvd.replies", stats.rcvd.replies);
+
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+}
 
 

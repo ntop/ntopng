@@ -2465,26 +2465,25 @@ decode_packet_eth:
 	  arp_spa_h->setBroadcastDomainHost();
 
 /*-------------------------------------------WIP------------------------------------------*/
-  char buff[128];
+  ArpStatsMatrixElement* e;
 	if(arp_opcode == 0x1 /* ARP request */) {
 	  arp_requests++;
 	  srcMac->incSentArpRequests();
 	  dstMac->incRcvdArpRequests();
 
+    e = getArpHashMatrixElement(srcMac->mac, dstMac->mac, true);
+    e.AddOneSentRequests();
+    cout << getArpHashMatrixSize();
     
-    std::cout << "ARP_request seen: " << Utils::formatMac(srcMac->get_mac(), buff, strlen(buff) );
-    
-    
-
 	} else if(arp_opcode == 0x2 /* ARP reply */) {
 	  arp_replies++;
 	  srcMac->incSentArpReplies();
 	  dstMac->incRcvdArpReplies();
 
-
-     std::cout << "ARP_reply seen: " << Utils::formatMac(srcMac->get_mac(), buff, strlen(buff) );
-
-
+    e = getArpHashMatrixElement(srcMac->mac, dstMac->mac, true);
+    e.AddOneSentReplies();
+    cout << getArpHashMatrixSize();
+  
 	  checkMacIPAssociation(true, arpp->arp_sha, arpp->arp_spa);
 	  checkMacIPAssociation(true, arpp->arp_tha, arpp->arp_tpa);
 
@@ -6850,7 +6849,7 @@ void NetworkInterface::deliverLiveCapture(const struct pcap_pkthdr * const h,
       if(http_client_disconnected)
 	deregisterLiveCapture(c); /* (*) */
     }
-  }
+  } &
 }
 
 /* *************************************** */
