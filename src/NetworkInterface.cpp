@@ -818,6 +818,10 @@ bool NetworkInterface::walker(u_int32_t *begin_slot,
   case walker_vlans:
     ret = vlans_hash->walk(begin_slot, walk_all, walker, user_data);
     break;
+
+  case walker_arp_matrix_stats:
+    ret = arp_hash_matrix->walk(begin_slot, walk_all, walker, user_data);
+    break;  
   }
 
   return(ret);
@@ -2479,18 +2483,16 @@ decode_packet_eth:
 	  srcMac->incSentArpRequests();
 	  dstMac->incRcvdArpRequests();
 
-    e = getArpHashMatrixElement(srcMac->mac, dstMac->mac, true);
-    e.AddOneSentRequests();
-    cout << getArpHashMatrixSize();
+    e = getArpHashMatrixElement(srcMac->get_mac(), dstMac->get_mac(), true);
+    e->AddOneSentRequests();
     
 	} else if(arp_opcode == 0x2 /* ARP reply */) {
 	  arp_replies++;
 	  srcMac->incSentArpReplies();
 	  dstMac->incRcvdArpReplies();
 
-    e = getArpHashMatrixElement(srcMac->mac, dstMac->mac, true);
-    e.AddOneSentReplies();
-    cout << getArpHashMatrixSize();
+    e = getArpHashMatrixElement(srcMac->get_mac(), dstMac->get_mac(), true);
+    e->AddOneSentReplies();
   
 	  checkMacIPAssociation(true, arpp->arp_sha, arpp->arp_spa);
 	  checkMacIPAssociation(true, arpp->arp_tha, arpp->arp_tpa);
@@ -3199,6 +3201,14 @@ struct mac_find_info {
 
 /* **************************************************** */
 
+struct arp_stats_element_find_info {
+  u_int8_t src_mac[6];
+  u_int8_t dst_mac[6];
+  ArpStatsMatrixElement *elem;
+};
+
+/* **************************************************** */
+
 static bool find_host_by_name(GenericHashEntry *h, void *user_data, bool *matched) {
   struct host_find_info *info = (struct host_find_info*)user_data;
   Host *host                  = (Host*)h;
@@ -3245,6 +3255,27 @@ static bool find_mac_by_name(GenericHashEntry *h, void *user_data, bool *matched
 
   if((info->m == NULL) && (!memcmp(info->mac, m->get_mac(), 6))) {
     info->m = m;
+    *matched = true;
+
+    return(true); /* found */
+  }
+
+  return(false); /* false = keep on walking */
+}
+
+/* **************************************************** */
+
+//--WIP guarda sul perché a user_data serve la struct 'arp_stats_element_find_info'
+
+static bool find_arp_stats_element_by_macs_name(GenericHashEntry *h, void *user_data, bool *matched) {
+
+  struct arp_stats_element_find_info *info = (struct arp_stats_element_find_info*)user_data;
+
+  ArpStatsMatrixElement *e = (ArpStatsMatrixElement*)h;
+
+  //uso la equal() del matrixElement così controllo anche i mac all'inverso
+  if( (info->elem == NULL) && !info->elem->equal(e->getSourceMac(), e->getDestinationMac()) ){
+    info->elem = e;
     *matched = true;
 
     return(true); /* found */
@@ -5400,7 +5431,7 @@ Mac* NetworkInterface::getMac(u_int8_t _mac[6], bool createIfNotPresent) {
 
   return(ret);
 }
-/* **************************************************** */
+/* *************************WIP*************************** */
 
 ArpStatsMatrixElement* NetworkInterface::getArpHashMatrixElement(u_int8_t _src_mac[6], 
         u_int8_t _dst_mac[6], bool createIfNotPresent){
@@ -5410,7 +5441,8 @@ ArpStatsMatrixElement* NetworkInterface::getArpHashMatrixElement(u_int8_t _src_m
   if ( _src_mac == NULL || _dst_mac == NULL) return NULL;
 
   ret = arp_hash_matrix->get(_src_mac, _dst_mac);
-
+  //src_mac e dst_mac potrebbero essere invertiti, c'è da controllare
+  
   if ( ret == NULL && createIfNotPresent ){
     try{ 
       if( (ret = new ArpStatsMatrixElement(this, _src_mac, _dst_mac)) != NULL)
@@ -5422,17 +5454,42 @@ ArpStatsMatrixElement* NetworkInterface::getArpHashMatrixElement(u_int8_t _src_m
 	      ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
 	      oom_warning_sent = true;
       }
-
       return(NULL);
     }
-    
   }
-
+  
   return ret;
 }
 
 
-/* **************************************************** */
+/* **************************WIP************************** */
+
+//ricorda che se scr e dst mac sono invertiti, devi invertitre ReqReplyStats di ArpStats!!!
+
+bool NetworkInterface::getArpStatsMatrixElementInfo(lua_State* vm, char *src_mac, char *dst_mac) {
+  struct arp_stats_element_find_info info;
+  bool ret;
+  u_int32_t begin_slot = 0;
+  bool walk_all = true;
+
+  memset(&info, 0, sizeof(info));
+
+  disablePurge(false);
+
+  walker(&begin_slot, walk_all,  walker_arp_matrix_stats, find_arp_stats_element_by_macs_name, (void*)&info);
+
+  if(info.elem) {
+    info.elem->lua(vm);
+    ret = true;
+  } else
+    ret = false;
+
+  enablePurge(false);
+
+  return ret;
+}
+
+/* **************************WIP************************** */
 
 Vlan* NetworkInterface::getVlan(u_int16_t vlanId,
 				bool createIfNotPresent) {
@@ -6869,7 +6926,7 @@ void NetworkInterface::deliverLiveCapture(const struct pcap_pkthdr * const h,
       if(http_client_disconnected)
 	deregisterLiveCapture(c); /* (*) */
     }
-  } &
+  } 
 }
 
 /* *************************************** */

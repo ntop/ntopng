@@ -47,15 +47,16 @@ public:
         stats.rcvd.requests = rcv_req;
     }
 
-    void transposeElement(){
-        u_int8_t *a1, *a2, *tmp = src_mac, dst_mac;
+/*    void transposeElement(){
+        u_int8_t *a1, *a2 = src_mac, dst_mac;
+        u_int8_t *tmp;
         tmp = a1; a1 = a2; a2 = tmp;
 
         ReqReplyStats t = stats.sent;
         stats.sent = stats.rcvd;
         stats.rcvd = t;
 
-/*
+
         u_int32_t t = stats.sent_replies;
         stats.sent_replies = stats.rcvd_replies;
         stats.rcvd_replies = t;
@@ -63,17 +64,18 @@ public:
         t = stats.sent_requests;
         stats.sent_requests = stats.rcvd_requests;
         stats.rcvd_requests = t;
-*/
-    }
 
+    }
+*/
     inline u_int32_t AddOneSentReplies()        { return ++stats.sent.replies; }
     inline u_int32_t AddOneSentRequests()       { return ++stats.sent.requests; }
     inline u_int32_t AddOneReceivedReplies()    { return ++stats.rcvd.replies; }
     inline u_int32_t AddOneReceivedRequests()   { return ++stats.rcvd.requests; }
 
-    bool equalAndTranspose(const u_int8_t _src_mac[6], const u_int8_t _dst_mac[6]);
+    bool equal(const u_int8_t _src_mac[6], const u_int8_t _dst_mac[6]);
     bool idle();
     u_int32_t key();
+    void lua(lua_State* vm);
 
 };
 

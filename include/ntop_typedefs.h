@@ -368,8 +368,6 @@ typedef struct {
   ReqReplyStats sent, rcvd;
 } ArpStats;
 
-
-
 typedef struct {
   const char *class_name;
   const luaL_Reg *class_methods;
@@ -394,6 +392,7 @@ typedef enum {
   walker_ases,
   walker_countries,
   walker_vlans,
+  walker_arp_matrix_stats,
 } WalkerType;
 
 typedef enum {

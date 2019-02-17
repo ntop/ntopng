@@ -28,7 +28,7 @@ ArpStatsMatrixElement::ArpStatsMatrixElement(NetworkInterface *_iface, const u_i
 
     memcpy(src_mac, _src_mac, 6);
     memcpy(dst_mac, _dst_mac, 6);
-    stats.sent_replies = stats.sent_requests = stats.rcvd_replies = stats.rcvd_requests = 0;
+    stats.sent.replies = stats.sent.requests = stats.rcvd.replies = stats.rcvd.requests = 0;
 
 #ifdef ARP_STATS_MATRIX_ELEMENT_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "ADDED ArpMatrixElement: SourceMac %d - DestinationMac %d",
@@ -73,18 +73,19 @@ bool ArpStatsMatrixElement::idle() { /*fun uguale a quella di Mac e Country, ved
 
 /* *************************************** */
 
-bool ArpStatsMatrixElement::equalAndTranspose(const u_int8_t _src_mac[6], const u_int8_t _dst_mac[6]) {
+bool ArpStatsMatrixElement::equal(const u_int8_t _src_mac[6], const u_int8_t _dst_mac[6]) {
     if(! _src_mac || !_dst_mac)
         return false;
+
     if(  memcmp(src_mac, _src_mac, 6) == 0 && memcmp(dst_mac, _dst_mac, 6) == 0 )
         return true;
 
-    else if  (  memcmp(src_mac, _dst_mac, 6) == 0 && memcmp(dst_mac, _src_mac, 6) == 0 )
-      this.transposeElement();
+    else if  (  memcmp(src_mac, _dst_mac, 6) == 0 && memcmp(dst_mac, _src_mac, 6) == 0 ){
       return true;
-      
+    }
+    
     else
-        return false ;
+      return false;
 }
 
 
@@ -97,20 +98,19 @@ bool ArpStatsMatrixElement::equalAndTranspose(const u_int8_t _src_mac[6], const 
 
 /* *************************************** */
 
-void lua(lua_State* vm) {
+void ArpStatsMatrixElement::lua(lua_State* vm) {
   lua_newtable(vm);
 
   char buf1[32], buf2[32];
 
-  lua_push_str_table_entry(vm, "src_mac", Utils::formatMac(src_mac, buf1, sizeof(buf1)) );
-  lua_push_str_table_entry(vm, "dst_mac", Utils::formatMac(dst_mac, buf2, sizeof(buf2)) );
-  lua_push_uint64_table_entry(vm, "stats.sent.requests", stats.sent.requests);
-  lua_push_uint64_table_entry(vm, "stats.rcvd.requests", stats.rcvd.requests);
-  lua_push_uint64_table_entry(vm, "stats.sent.replies", stats.sent.replies);
-  lua_push_uint64_table_entry(vm, "stats.rcvd.replies", stats.rcvd.replies);
+  lua_push_str_table_entry(vm, "me_src_mac", Utils::formatMac(src_mac, buf1, sizeof(buf1)) );
+  lua_push_str_table_entry(vm, "me_dst_mac", Utils::formatMac(dst_mac, buf2, sizeof(buf2)) );
+  lua_push_uint64_table_entry(vm, "me_stats.sent.requests", stats.sent.requests);
+  lua_push_uint64_table_entry(vm, "me_stats.rcvd.requests", stats.rcvd.requests);
+  lua_push_uint64_table_entry(vm, "me_stats.sent.replies", stats.sent.replies);
+  lua_push_uint64_table_entry(vm, "me_stats.rcvd.replies", stats.rcvd.replies);
 
-  lua_insert(vm, -2);
-  lua_settable(vm, -3);
+
 }
 
 

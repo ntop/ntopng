@@ -37,8 +37,6 @@ class ArpStatsHashMatrix : public GenericHash {
     ArpStatsHashMatrix(NetworkInterface *iface, u_int _num_hashes, u_int _max_hash_size);
 
     ArpStatsMatrixElement* get(const u_int8_t _src_mac[6], const u_int8_t _dst_mac[6]); 
-
-    //Bisogna fare overload della add: guardoin tabellasec'è già l'entry: sec'è auemto i contatori, altrimenti creo 
 };
 
 #endif /* _MAC_HASH_MATRIX_H_ */
