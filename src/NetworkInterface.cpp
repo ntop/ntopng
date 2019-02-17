@@ -2476,7 +2476,7 @@ decode_packet_eth:
 	   && !arp_spa_h->isBroadcastDomainHost())
 	  arp_spa_h->setBroadcastDomainHost();
 
-/*-------------------------------------------WIP------------------------------------------*/
+
   ArpStatsMatrixElement* e;
 	if(arp_opcode == 0x1 /* ARP request */) {
 	  arp_requests++;
@@ -2497,8 +2497,6 @@ decode_packet_eth:
 	  checkMacIPAssociation(true, arpp->arp_sha, arpp->arp_spa);
 	  checkMacIPAssociation(true, arpp->arp_tha, arpp->arp_tpa);
 
-
-/*-------------------------------------------WIP------------------------------------------*/
 	}
       }
     }
@@ -3265,7 +3263,6 @@ static bool find_mac_by_name(GenericHashEntry *h, void *user_data, bool *matched
 
 /* **************************************************** */
 
-//--WIP guarda sul perché a user_data serve la struct 'arp_stats_element_find_info'
 
 static bool find_arp_stats_element_by_macs_name(GenericHashEntry *h, void *user_data, bool *matched) {
 
@@ -3273,7 +3270,6 @@ static bool find_arp_stats_element_by_macs_name(GenericHashEntry *h, void *user_
 
   ArpStatsMatrixElement *e = (ArpStatsMatrixElement*)h;
 
-  //uso la equal() del matrixElement così controllo anche i mac all'inverso
   if( (info->elem == NULL) && !info->elem->equal(e->getSourceMac(), e->getDestinationMac()) ){
     info->elem = e;
     *matched = true;
@@ -5431,7 +5427,7 @@ Mac* NetworkInterface::getMac(u_int8_t _mac[6], bool createIfNotPresent) {
 
   return(ret);
 }
-/* *************************WIP*************************** */
+/* **************************************************** */
 
 ArpStatsMatrixElement* NetworkInterface::getArpHashMatrixElement(u_int8_t _src_mac[6], 
         u_int8_t _dst_mac[6], bool createIfNotPresent){
@@ -5441,7 +5437,6 @@ ArpStatsMatrixElement* NetworkInterface::getArpHashMatrixElement(u_int8_t _src_m
   if ( _src_mac == NULL || _dst_mac == NULL) return NULL;
 
   ret = arp_hash_matrix->get(_src_mac, _dst_mac);
-  //src_mac e dst_mac potrebbero essere invertiti, c'è da controllare
   
   if ( ret == NULL && createIfNotPresent ){
     try{ 
@@ -5462,10 +5457,9 @@ ArpStatsMatrixElement* NetworkInterface::getArpHashMatrixElement(u_int8_t _src_m
 }
 
 
-/* **************************WIP************************** */
+/* **************************************************** */
 
-//ricorda che se scr e dst mac sono invertiti, devi invertitre ReqReplyStats di ArpStats!!!
-
+//remember that if src and dst mac are reversed, you must reverse ReqReplyStats from ArpStats
 bool NetworkInterface::getArpStatsMatrixElementInfo(lua_State* vm, char *src_mac, char *dst_mac) {
   struct arp_stats_element_find_info info;
   bool ret;
@@ -5489,7 +5483,7 @@ bool NetworkInterface::getArpStatsMatrixElementInfo(lua_State* vm, char *src_mac
   return ret;
 }
 
-/* **************************WIP************************** */
+/* **************************************************** */
 
 Vlan* NetworkInterface::getVlan(u_int16_t vlanId,
 				bool createIfNotPresent) {

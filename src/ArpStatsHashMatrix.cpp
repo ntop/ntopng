@@ -32,7 +32,7 @@ ArpStatsHashMatrix::ArpStatsHashMatrix(NetworkInterface *_iface, u_int _num_hash
 }
 
 /* ************************************ */
-//restituisce l'elemento ma NON inverte i contatori snd/rcv nel caso in cui src_mac e dst_mac sono invertiti
+//DO NOT reverse the snd / rcv counters in case src_mac and dst_mac are reversed
 
 ArpStatsMatrixElement* ArpStatsHashMatrix::get(const u_int8_t _src_mac[6], const u_int8_t _dst_mac[6]) {
   if(_src_mac == NULL ||  _dst_mac == NULL)
@@ -68,17 +68,13 @@ ArpStatsMatrixElement* ArpStatsHashMatrix::get(const u_int8_t _src_mac[6], const
 }
 
 /*
+//TODO:
 
 #ifdef ARP_STATS_MATRIX_ELEMENT_DEBUG
 
 static bool printMatrixElement(GenericHashEntry *_elem, void *user_data) {
-
-  //TODO: controlla Country, Mac e GenericHashEntry
 }
-
-
-
-void ArpStatsHashMatrix::printHash() { //TODO
+void ArpStatsHashMatrix::printHash() {
   disablePurge();
 
   walk(printMatrixElement, NULL);

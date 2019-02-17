@@ -48,7 +48,7 @@ ArpStatsMatrixElement::~ArpStatsMatrixElement(){
 
 /* *************************************** */
 
-bool ArpStatsMatrixElement::idle() { /*fun uguale a quella di Mac e Country, vedi meglio*/
+bool ArpStatsMatrixElement::idle() { 
     bool rc;
 
     if((num_uses > 0) || (!iface->is_purge_idle_interface()))
@@ -83,7 +83,7 @@ bool ArpStatsMatrixElement::equal(const u_int8_t _src_mac[6], const u_int8_t _ds
     else if  (  memcmp(src_mac, _dst_mac, 6) == 0 && memcmp(dst_mac, _src_mac, 6) == 0 ){
       return true;
     }
-    
+
     else
       return false;
 }

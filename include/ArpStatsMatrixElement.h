@@ -65,8 +65,7 @@ public:
         stats.sent_requests = stats.rcvd_requests;
         stats.rcvd_requests = t;
 
-    }
-*/
+    }   */
     inline u_int32_t AddOneSentReplies()        { return ++stats.sent.replies; }
     inline u_int32_t AddOneSentRequests()       { return ++stats.sent.requests; }
     inline u_int32_t AddOneReceivedReplies()    { return ++stats.rcvd.replies; }
