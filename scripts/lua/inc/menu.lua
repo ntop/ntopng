@@ -389,11 +389,18 @@ if ntop.isEnterprise() then
    ]]
 
    if(info["version.enterprise_edition"] == true) then
-      if ifs["type"] == "zmq" then
-         print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/flowdevices_stats.lua">') print(i18n("flows_page.flow_exporters")) print('</a></li>')
-         print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/flowdevices_stats.lua?sflow_filter=All">') print(i18n("flows_page.sflow_devices")) print('</a></li>')
-      end
       print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/snmpdevices_stats.lua">') print(i18n("prefs.snmp")) print('</a></li>')
+      if ifs["type"] == "zmq" then
+	 if table.len(interface.getSFlowDevices() or {}) > 0 then
+	    print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/flowdevices_stats.lua?sflow_filter=All">') print(i18n("flows_page.sflow_devices")) print('</a></li>')
+	 end
+
+	 print('<li class="divider"></li>')
+	 print('<li class="dropdown-header">') print(i18n("flows")) print('</li>')
+
+         print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/flowdevices_stats.lua">') print(i18n("flows_page.flow_exporters")) print('</a></li>')
+      end
+
    end
 
    print("</ul> </li>")
