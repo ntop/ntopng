@@ -425,7 +425,7 @@ function lists_utils.checkReloadLists()
   local reload_now = (ntop.getCache("ntopng.cache.reload_lists_utils") == "1")
 
   if ntop.getCache("ntopng.cache.download_lists_utils") == "1" then
-    if checkListsUpdate(20 --[[ timeout ]]) then
+    if checkListsUpdate(60 --[[ timeout ]]) then
       ntop.delCache("ntopng.cache.download_lists_utils")
       -- lists where possibly updated, reload
       reload_now = true
