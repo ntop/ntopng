@@ -144,6 +144,11 @@ bool LocalHost::deserialize(char *json_str, char *key) {
 				 json_tokener_error_desc(jerr),
 				 key,
 				 json_str);
+    // DEBUG
+    printf("JSON Parse error [%s] key: %s: %s",
+				 json_tokener_error_desc(jerr),
+				 key,
+				 json_str);
     return(false);
   }
 
