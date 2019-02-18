@@ -164,7 +164,7 @@ bool LocalHost::deserialize(char *json_str, char *key) {
     if((mac = iface->getMac(mac_buf, true /* create if not exists*/)) != NULL)
       mac->incUses();
     else
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: NULL mac. Are you running out of memory?");
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: NULL mac. Are you running out of memory or MAC hash is full?");
   }
 
   if(json_object_object_get_ex(o, "seen.first", &obj)) first_seen = json_object_get_int64(obj);
