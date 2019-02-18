@@ -3,6 +3,7 @@
 --
 
 require "os"
+local ts_utils = require("ts_utils")
 
 print [[
       <div id="footer"> <hr>
@@ -171,7 +172,7 @@ if ntop.getPref("ntopng.prefs.host_rrd_creation") ~= "1" then
 end
 
 -- Only show the message if the host protocol/category timeseries are enabled
-local message_enabled = ((host_ts_mode ~= "none") and (host_ts_mode ~= ""))
+local message_enabled = ((host_ts_mode ~= "none") and (host_ts_mode ~= "")) and (ts_utils.getDriverName() ~= "influxdb")
 
 print('var is_historical = false;')
 print [[
