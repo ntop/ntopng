@@ -513,17 +513,19 @@ function delete_data_utils.harvestDateBasedDirTree(dir, retention, now)
 	 local tot_days = 0
 
 	 for day in pairs(ntop.readdir(month_path) or {}) do
-	    local tstamp = os.time({day=tonumber(day), month=tonumber(month), year=tonumber(year), hour=0, min=0, sec=0})
-	    local days_diff = (now - tstamp) / 86400
+	    if(tonumber(day) ~= nil) then
+	       local tstamp = os.time({day=tonumber(day), month=tonumber(month), year=tonumber(year), hour=0, min=0, sec=0})
+	       local days_diff = (now - tstamp) / 86400
 
-	    if(days_diff > retention) then
-	       local day_path = os_utils.fixPath(month_path .. "/" .. day)
-	       --tprint(os.date('PURGE %Y-%m-%d %H:%M:%S', tstamp))
-	       ntop.rmdir(day_path)
-	       num_deleted_days = num_deleted_days + 1
+	       if(days_diff > retention) then
+		  local day_path = os_utils.fixPath(month_path .. "/" .. day)
+		  --tprint(os.date('PURGE %Y-%m-%d %H:%M:%S', tstamp))
+		  ntop.rmdir(day_path)
+		  num_deleted_days = num_deleted_days + 1
+	       end
+
+	       tot_days = tot_days + 1
 	    end
-
-	    tot_days = tot_days + 1
 	 end
 
 	 if num_deleted_days == tot_days then
