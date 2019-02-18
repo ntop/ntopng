@@ -74,6 +74,9 @@ function is_network_mask(what, optional_mask) {
 }
 
 function fbits(bits) {
+    if(typeof(bits) === "undefined")
+      return "-";
+
     var sizes = ['bps', 'Kbit/s', 'Mbit/s', 'Gbit/s', 'Tbit/s'];
     if(bits < 0.005) return '0';
     var bits_log1000 = Math.log(bits) / Math.log(1000)
@@ -97,10 +100,15 @@ function fbits(bits) {
 }
 
 function fbits_from_bytes(bytes) {
+  if(typeof(bytes) === "undefined")
+    return "-";
   return(fbits(bytes * 8));
 }
 
 function fpackets(pps) {
+    if(typeof(pps) === "undefined")
+      return "-";
+
     var sizes = ['pps', 'Kpps', 'Mpps', 'Gpps', 'Tpps'];
     if(pps < 0.005) return '0';
     var res = scaleValue(pps, sizes, 1000);
@@ -110,6 +118,9 @@ function fpackets(pps) {
 }
 
 function fflows(fps) {
+    if(typeof(fps) === "undefined")
+      return "-";
+
     var sizes = ['fps', 'Kfps', 'Mfps', 'Gfps', 'Tfps'];
     if(fps < 0.005) return '0';
     var res = scaleValue(fps, sizes, 1000);
@@ -119,6 +130,9 @@ function fflows(fps) {
 }
 
 function fint(value) {
+    if(typeof(value) === "undefined")
+      return "-";
+
     var x = Math.round(value);
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
@@ -167,6 +181,9 @@ function abbreviateString(str, len) {
 
 // Convert bytes to human readable format
 function bytesToSize(bytes) {
+    if(typeof(bytes) === "undefined")
+      return "-";
+
     var precision = 2;
     var kilobyte = 1024;
     var megabyte = kilobyte * 1024;
@@ -281,6 +298,9 @@ function formatFlows(n) {
 }
 
 function fmillis(value) {
+  if(typeof(value) === "undefined")
+    return "-";
+
   var x = Math.round(value);
   var res = scaleValue(x, ["ms", "s"], 1000);
 

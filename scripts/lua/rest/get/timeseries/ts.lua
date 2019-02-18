@@ -115,7 +115,7 @@ res.schema = ts_schema
 res.query = tags
 res.max_points = options.max_num_points
 
-if not isEmptyString(compare_backward) and compare_backward ~= "1Y" then
+if not isEmptyString(compare_backward) and compare_backward ~= "1Y" and (res.step ~= nil) then
   local backward_sec = getZoomDuration(compare_backward)
   local tstart_cmp = tstart - backward_sec
   local tend_cmp = tend - backward_sec
@@ -124,7 +124,7 @@ if not isEmptyString(compare_backward) and compare_backward ~= "1Y" then
   local res_cmp = performQuery(tstart_cmp, tend_cmp, true, {target_aggregation=res.source_aggregation})
   local total_cmp_serie = nil
 
-  if res_cmp and res_cmp.additional_series and res_cmp.additional_series.total and res_cmp.step >= res.step then
+  if res_cmp and res_cmp.additional_series and res_cmp.additional_series.total and (res_cmp.step) and res_cmp.step >= res.step then
     total_cmp_serie = res_cmp.additional_series.total
 
     if res_cmp.step > res.step then
