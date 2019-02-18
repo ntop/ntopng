@@ -147,7 +147,7 @@ void ICMPinfo::lua(lua_State* vm, AddressTree * ptree, NetworkInterface *iface, 
     if ((!ptree || (unreach->src_ip.match(ptree) && unreach->dst_ip.match(ptree)))
 	&& ((unreach_flow = iface->findFlowByTuple(vlan_id, &unreach->dst_ip, &unreach->src_ip, unreach->dst_port, unreach->src_port,
 						   unreach->protocol)))) {
-      unreach_flow->lua(vm, ptree, details_normal, false);
+      unreach_flow->lua(vm, ptree, details_high, false);
 
       lua_pushstring(vm, "flow");
       lua_insert(vm, -2);
