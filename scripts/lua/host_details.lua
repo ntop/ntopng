@@ -399,8 +399,9 @@ print [[
    ]]
 
 local macinfo = interface.getMacInfo(host["mac"])
+local has_snmp_location = host['localhost'] and (host["mac"] ~= "")
+   and (info["version.enterprise_edition"]) and host_has_snmp_location(host["mac"])
 
---tprint(host)
 if((page == "overview") or (page == nil)) then
    print("<table class=\"table table-bordered table-striped\">\n")
    if(host["ip"] ~= nil) then
@@ -424,9 +425,13 @@ if((page == "overview") or (page == nil)) then
 	 print('</td></tr>')
       end
 
-      if(host['localhost'] and (host["mac"] ~= "") and (info["version.enterprise_edition"])) then
-	 print_host_snmp_localization_table_entry(host["mac"])
+      local snmp_url = ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url(host_info).."&page=snmp";
+
+      if has_snmp_location then
+         local url = ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url(host_info).."&page=snmp";
+         print_host_snmp_location(host["mac"], url)
       end
+
       print("</tr>")
       
       print("<tr><th>"..i18n("ip_address").."</th><td colspan=1>" .. host["ip"])
@@ -1510,10 +1515,12 @@ elseif(page == "snmp" and ntop.isEnterprise()) then
    local snmp_devices = get_snmp_devices()
 
    if snmp_devices[host_ip] == nil then -- host has not been configured
-      local msg = i18n("snmp_page.not_configured_as_snmp_device_message",{host_ip=host_ip})
-      msg = msg.." "..i18n("snmp_page.guide_snmp_page_message",{url=ntop.getHttpPrefix().."/lua/pro/enterprise/snmpdevices_stats.lua"})
+      if not has_snmp_location then
+         local msg = i18n("snmp_page.not_configured_as_snmp_device_message",{host_ip=host_ip})
+         msg = msg.." "..i18n("snmp_page.guide_snmp_page_message",{url=ntop.getHttpPrefix().."/lua/pro/enterprise/snmpdevices_stats.lua"})
 
-      print("<div class='alert alert-info'><i class='fa fa-info-circle fa-lg' aria-hidden='true'></i> "..msg.."</div>")
+         print("<div class='alert alert-info'><i class='fa fa-info-circle fa-lg' aria-hidden='true'></i> "..msg.."</div>")
+      end
    else
       local snmp_device = require "snmp_device"
       local snmp_device_ip = snmp_devices[host_ip]["ip"]
@@ -1528,6 +1535,12 @@ elseif(page == "snmp" and ntop.isEnterprise()) then
       end
 
       print_snmp_device_system_table(snmp_device.get_device())
+   end
+
+   if has_snmp_location then
+      print[[<table class="table table-bordered table-striped">]]
+      print_host_snmp_localization_table_entry(host["mac"])
+      print[[</table>]]
    end
 elseif(page == "processes") then
    local ebpf_utils = require "ebpf_utils"
