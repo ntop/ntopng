@@ -5361,8 +5361,12 @@ Mac* NetworkInterface::getMac(u_int8_t _mac[6], bool createIfNotPresent) {
 
   if((ret == NULL) && createIfNotPresent) {
     try {
-      if((ret = new Mac(this, _mac)) != NULL)
-	macs_hash->add(ret);
+      if((ret = new Mac(this, _mac)) != NULL) {
+	if(!macs_hash->add(ret)) {
+	  delete ret;
+	  return(NULL);
+	}
+      }
     } catch(std::bad_alloc& ba) {
       static bool oom_warning_sent = false;
 
@@ -5395,8 +5399,12 @@ Vlan* NetworkInterface::getVlan(u_int16_t vlanId,
 
   if((ret == NULL) && createIfNotPresent) {
     try {
-      if((ret = new Vlan(this, vlanId)) != NULL)
-	vlans_hash->add(ret);
+      if((ret = new Vlan(this, vlanId)) != NULL) {
+	if(!vlans_hash->add(ret)) {
+	  delete ret;
+	  return(NULL);
+	}
+      }
     } catch(std::bad_alloc& ba) {
       static bool oom_warning_sent = false;
 
@@ -5431,8 +5439,12 @@ AutonomousSystem* NetworkInterface::getAS(IpAddress *ipa,
 
   if((ret == NULL) && createIfNotPresent) {
     try {
-      if((ret = new AutonomousSystem(this, ipa)) != NULL)
-	ases_hash->add(ret);
+      if((ret = new AutonomousSystem(this, ipa)) != NULL) {
+	if(!ases_hash->add(ret)) {
+	  delete ret;
+	  return(NULL);
+	}
+      }
     } catch(std::bad_alloc& ba) {
       static bool oom_warning_sent = false;
 
@@ -5467,8 +5479,12 @@ Country* NetworkInterface::getCountry(const char *country_name,
 
   if((ret == NULL) && createIfNotPresent) {
     try {
-      if((ret = new Country(this, country_name)) != NULL)
-	countries_hash->add(ret);
+      if((ret = new Country(this, country_name)) != NULL) {
+	if(!countries_hash->add(ret)) {
+	  delete ret;
+	  return(NULL);
+	}
+      }
     } catch(std::bad_alloc& ba) {
       static bool oom_warning_sent = false;
 
