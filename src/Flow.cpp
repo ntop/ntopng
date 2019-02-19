@@ -2009,6 +2009,14 @@ json_object* Flow::flow2statusinfojson() {
       (proto_status == device_proto_forbidden_app) ? ndpiDetectedProtocol.app_protocol : ndpiDetectedProtocol.master_protocol));
   }
 
+  FlowStatus fs = getFlowStatus();
+  if(fs == status_elephant_local_to_remote)
+    json_object_object_add(obj, "elephant.l2r_threshold",
+			   json_object_new_int64(ntop->getPrefs()->get_elephant_flow_local_to_remote_bytes()));    
+  else if(fs == status_elephant_remote_to_local)
+    json_object_object_add(obj, "elephant.r2l_threshold",
+			   json_object_new_int64(ntop->getPrefs()->get_elephant_flow_remote_to_local_bytes()));
+
   if(isICMP()) {
     json_object_object_add(obj, "icmp.icmp_type", json_object_new_int(protos.icmp.icmp_type)),
       json_object_object_add(obj, "icmp.icmp_code", json_object_new_int(protos.icmp.icmp_code));

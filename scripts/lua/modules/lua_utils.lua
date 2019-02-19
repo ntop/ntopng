@@ -2500,6 +2500,33 @@ end
 
 -- ###############################################
 
+function formatElephantFlowAlert(flowstatus_info, local2remote)
+   local threshold = ""
+   local res = ""
+
+   if local2remote then
+      res = i18n("flow_details.elephant_flow_l2r")
+
+      if flowstatus_info["elephant.l2r_threshold"] then
+	 threshold = flowstatus_info["elephant.l2r_threshold"]
+      end
+   else
+      res = i18n("flow_details.elephant_flow_r2l")
+
+      if flowstatus_info["elephant.r2l_threshold"] then
+	 threshold = flowstatus_info["elephant.r2l_threshold"]
+      end
+   end
+
+   if threshold ~= "" then
+      res = string.format("%s [%s]", res, i18n("flow_details.elephant_exceeded", {vol = bytesToSize(threshold)}))
+   end
+
+   return res
+end
+
+-- ###############################################
+
 -- Update Utils::flowstatus2str / FlowStatus enum
 function getFlowStatus(status, flowstatus_info)
    local warn_sign = "<i class=\"fa fa-warning\" aria-hidden=true style=\"color: orange;\"></i> "
@@ -2521,8 +2548,8 @@ function getFlowStatus(status, flowstatus_info)
    elseif(status == 14) then return(warn_sign..i18n("flow_details.flow_blocked_by_bridge"))
    elseif(status == 15) then return(warn_sign..i18n("flow_details.web_mining_detected"))
    elseif(status == 16) then return(formatSuspiciousDeviceProtocolAlert(flowstatus_info))
-   elseif(status == 17) then return(warn_sign..i18n("flow_details.elephant_flow_l2r"))
-   elseif(status == 18) then return(warn_sign..i18n("flow_details.elephant_flow_r2l"))
+   elseif(status == 17) then return(warn_sign..formatElephantFlowAlert(flowstatus_info, true --[[ local 2 remote --]]))
+   elseif(status == 18) then return(warn_sign..formatElephantFlowAlert(flowstatus_info, false --[[ remote 2 local --]]))
    elseif(status == 19) then return(warn_sign..i18n("flow_details.longlived_flow"))
    elseif(status == 20) then return(warn_sign..i18n("flow_details.not_purged"))
    else return(warn_sign..i18n("flow_details.unknown_status",{status=status}))

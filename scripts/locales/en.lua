@@ -659,6 +659,7 @@ local lang = {
     ["dump_flow_traffic"] = "Dump Flow Traffic",
     ["elephant_flow_l2r"] = "Elephant Flow (Local to Remote)",
     ["elephant_flow_r2l"] = "Elephant Flow (Remote to Local)",
+    ["elephant_exceeded"] = "Exceeding %{vol}",
     ["first_last_flow_sequence"] = "First / Last Flow Sequence",
     ["flow_active_msg"] = "Flow is active.",
     ["flow_blocked_by_bridge"] = "Flow blocked due to configured policies",
