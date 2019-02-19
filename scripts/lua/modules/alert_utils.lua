@@ -629,12 +629,11 @@ end
 
 function formatRawFlow(record, flow_json)
    require "flow_utils"
-   local time_bounds = nil
+   local time_bounds = {getAlertTimeBounds(record)}
    local add_links = false
 
    if hasNindexSupport() then
       -- only add links if nindex is present
-      time_bounds = {getAlertTimeBounds(record)}
       add_links = true
    end
 
@@ -1716,7 +1715,10 @@ function getCurrentStatus() {
           whiteSpace: 'nowrap',
 	    }
 	 },
+]]
 
+if hasNindexSupport() then
+print[[
 	 {
 	    title: "]]print(i18n("drilldown"))print[[",
 	    field: "column_chart",
@@ -1726,7 +1728,10 @@ function getCurrentStatus() {
 	       textAlign: 'center'
 	    }
 	 },
+]]
+end
 
+print[[
 	 {
 	    title: "]]print(i18n("show_alerts.alert_description"))print[[",
 	    field: "column_msg",

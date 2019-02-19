@@ -1504,9 +1504,14 @@ function host2name(name, vlan)
    return name
 end
 
-function flowinfo2hostname(flow_info, host_type)
+function flowinfo2hostname(flow_info, host_type, alerts_view)
    local name
    local orig_name
+
+   if alerts_view and not hasNindexSupport() then
+      -- do not return resolved name as it will hide the IP address
+      return(flow_info[host_type..".ip"])
+   end
 
    if(host_type == "srv") then
       if(flow_info["host_server_name"] ~= nil and flow_info["host_server_name"] ~= "") then
