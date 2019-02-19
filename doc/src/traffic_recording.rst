@@ -22,10 +22,6 @@ enable this feature, both *ntopng* and *n2disk* need to be installed from packag
 according to your Linux distribution (we assume that you already configured the 
 `ntop repository <http://packages.ntop.org>`_ and have *ntopng* installed).
 
-.. warning::
-
-  This feature does not support Zero Copy (ZC) interfaces.
-
 *apt*
 
 .. code:: bash
@@ -61,6 +57,10 @@ folder for pcap files is the ntopng data directory, under the "pcap" folder of a
 specific network inteface id (e.g. `/var/lib/ntopng/0/pcap`), however it is possible to
 replace the `/var/lib/ntopng` root folder with a different one adding *--pcap-dir <path>* 
 to the *ntopng* configuration file.
+
+.. note::
+
+  For Continuous Traffic Recording with ZC or FPGA adapters please read the `ZC/FPGA Support`_ section.
 
 In order to actually start recording traffic, you need to select an interface from 
 the *Interfaces* menu, click on the disk icon, and configure the recording instance:
@@ -235,4 +235,83 @@ For example, to process the extracted traffic directly with `wireshark`, it is p
 .. code:: bash
 	  
    curl -s --cookie "user=admin; password=admin" "http://192.168.1.1:3000/lua/rest/get/pcap/live_extraction.lua?ifid=1&epoch_begin=1542183525&epoch_end=1542184200" | wireshark -k -i -
+
+.. _ZCSupportSection:
+
+ZC/FPGA Support
+~~~~~~~~~~~~~~~
+
+If you need to process traffic at high rate at 10/40Gbit and above, you are probably looking for
+capture technologies like `PF_RING ZC <http://www.ntop.org/guides/pf_ring/zc.html>`_ for Intel
+or `FPGA <http://www.ntop.org/guides/pf_ring/modules/index.html>`_ adapters.
+
+As both PF_RING ZC and FPGA adapters are based on kernel bypass, the drawback is that they do not 
+allow you to capture the same stream from multiple applications at the same time. This means that
+you cannot run ntopng for traffic analysis and n2disk for raw traffic recording at the same time
+on the same interface.
+
+In order to overcome this, n2disk is able to export flow metadata to ntopng over ZMQ, similar to
+what nProbe does as explained in the `Using ntopng with nProbe <http://www.ntop.org/guides/ntopng/using_with_nprobe.html>`_ section. 
+As depicted below, in this configuration n2disk can be configured to capture raw packets, dump PCAP 
+data to disk, and export flow metadata in JSON format through ZMQ to ntopng at the same time. 
+
+.. figure:: ./img/n2disk_zmq_export.png
+  :align: center
+  :scale: 20 %
+  :alt: Support for n2disk ZMQ export
+
+  Support for n2disk ZMQ export
+
+Following is a sample configuration of n2disk and ntopng to achieve what has been depicted above. 
+This example assumes that both n2disk and ntopng are running on the same host.
+
+*ntopng Configuration File*
+
+In order to process flow metadata through ZMQ in ntopng, you need to add a collector interface to
+the configuration file (*/etc/ntopng/ntopng.conf*):
+
+.. code:: bash
+
+   -i=tcp://*:5556c
+
+*n2disk Configuration File*
+
+The ntopng endpoint should be added to the n2disk configuration file (e.g. */etc/n2disk/n2disk-nt01.conf)* 
+using the :code:`--zmq` option.
+The :code:`--zmq-probe-mode` option (if ntopng is running as a collector like in this example: notice 
+the small :code:`c` in the ntopng endpoint) and the :code:`--zmq-export-flows` option (to export flow 
+metadata in addition to traffic statistics) are also required.
+
+It is a good practice to run n2disk using the *ntopng* user (see :code:`-u`) in order to make sure that
+ntopng is able to access the PCAP data recorded by n2disk and run traffic extractions.
+
+Please see the `n2disk User's Guide <http://www.ntop.org/guides/n2disk/index.html>`_ for further information
+about the other options. Please note that in the example below n2disk is aggregating traffic in hardware
+from 2 ports of a Napatech adapter, please see the `Napatech configuration <http://www.ntop.org/guides/n2disk/napatech.html>`_
+for configuring the adapter.
+
+.. code:: bash
+
+   --interface=nt:0,1
+   --dump-directory=/storage/n2disk/pcap
+   --timeline-dir=/storage/n2disk/timeline
+   --disk-limit=80%
+   --max-file-len=1000
+   --buffer-len=4000
+   --max-file-duration=60
+   --index
+   --snaplen=1536
+   --writer-cpu-affinity=0
+   --reader-cpu-affinity=1
+   --compressor-cpu-affinity=2,3
+   --index-on-compressor-threads
+   -u=ntopng
+   --zmq=tcp://127.0.0.1:5556
+   --zmq-probe-mode
+   --zmq-export-flows
+
+At this point you should start both the ntopng service (e.g. *systemctl start ntopng*) and the n2disk
+service (e.g. *systemctl start n2disk@nt01*), and configure the n2disk instance as external PCAP source
+for the collector interface as explained in the `External Traffic Recording Providers`_ section in order
+to be able to check the n2disk service status and run traffic extractions.
 
