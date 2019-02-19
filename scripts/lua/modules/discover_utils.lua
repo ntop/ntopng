@@ -536,6 +536,10 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
       interface.setMacOperatingSystem(mac, 2) -- 2 = windows
       if(discover.debug) then io.write(debug.traceback()) end
       return 'workstation', discover.asset_icons['workstation']..' (Windows)', nil
+   elseif(mdns["_googlecast._tcp.local"] ~= nil) then
+      -- Google Home
+      if(discover.debug) then io.write(debug.traceback()) end
+      return 'multimedia', discover.asset_icons['multimedia'], nil
    elseif(mdns["_workstation._tcp.local"] ~= nil) then
       interface.setMacOperatingSystem(mac, 1) -- 1 = Linux
       if(discover.debug) then io.write(debug.traceback()) end
