@@ -665,18 +665,15 @@ function formatRawFlow(record, flow_json)
       ["vlan"] = record["vlan_id"]}
    flow = "["..i18n("flow")..": "..(getFlowLabel(flow, false, add_links, time_bounds) or "").."] "
 
-   local l4_proto_label, l4_proto = l4_proto_to_string(record["proto"] or 0) or ""
+   local l4_proto_label = l4_proto_to_string(record["proto"] or 0) or ""
 
    if not isEmptyString(l4_proto_label) then
       flow = flow.."[" .. i18n("protocol") .. ": " .. l4_proto_label .. "] "
    end
 
-   if (l4_proto == "tcp") or (l4_proto =="udp") then
-      local l7proto_name = interface.getnDPIProtoName(tonumber(record["l7_proto"]) or 0)
-
-      if not isEmptyString(l7proto_name) then
-	 flow = flow.."["..i18n("application")..": <A HREF='"..ntop.getHttpPrefix().."/lua/hosts_stats.lua?protocol="..record["l7_proto"].."'> " ..l7proto_name.."</A>] "
-      end
+   local l7proto_name = interface.getnDPIProtoName(tonumber(record["l7_proto"]) or 0)
+   if not isEmptyString(l7proto_name) then
+      flow = flow.."["..i18n("application")..": " ..l7proto_name.."] "
    end
 
    local decoded = json.decode(flow_json)
