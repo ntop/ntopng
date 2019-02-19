@@ -1016,7 +1016,7 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
   Flow *flow;
   ndpi_protocol p;
   time_t now = time(NULL);
-  Mac *srcMac, *dstMac;
+  Mac *srcMac = NULL, *dstMac = NULL;
   IpAddress srcIP, dstIP;
 
   memset(&p, 0, sizeof(p));
@@ -1090,8 +1090,10 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
     return;
   }
 
-  srcMac = getMac((u_int8_t*)zflow->core.src_mac, true);
-  dstMac = getMac((u_int8_t*)zflow->core.dst_mac, true);
+  if(!ntop->getPrefs()->do_ignore_macs()) {
+    srcMac = getMac((u_int8_t*)zflow->core.src_mac, true);
+    dstMac = getMac((u_int8_t*)zflow->core.dst_mac, true);
+  }
 
   srcIP.set(&zflow->core.src_ip), dstIP.set(&zflow->core.dst_ip);
 
@@ -1962,6 +1964,9 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
   bool pass_verdict = true;
   u_int32_t rawsize = h->len * scalingFactor;
 
+  /* Note summy ethernet is always 0 unless sender_mac is set (Netfilter only) */
+  memset(&dummy_ethernet, 0, sizeof(dummy_ethernet));
+
   pollQueuedeBPFEvents();
   reloadCustomCategories();
 
@@ -2010,7 +2015,6 @@ datalink_check:
       return(pass_verdict); /* Any other non IP protocol */
     }
 
-    memset(&dummy_ethernet, 0, sizeof(dummy_ethernet));
     ethernet = (struct ndpi_ethhdr *)&dummy_ethernet;
     if(sender_mac) memcpy(&dummy_ethernet.h_source, sender_mac, 6);
     ip_offset = 4 + eth_offset;
@@ -2019,7 +2023,6 @@ datalink_check:
     ip_offset = sizeof(struct ndpi_ethhdr) + eth_offset;
     eth_type = ntohs(ethernet->h_proto);
   } else if(pcap_datalink_type == 113 /* Linux Cooked Capture */) {
-    memset(&dummy_ethernet, 0, sizeof(dummy_ethernet));
     ethernet = (struct ndpi_ethhdr *)&dummy_ethernet;
     if(sender_mac) memcpy(&dummy_ethernet.h_source, sender_mac, 6);
     eth_type = (packet[eth_offset+14] << 8) + packet[eth_offset+15];
@@ -2038,14 +2041,12 @@ datalink_check:
       return(pass_verdict); /* Unknown IP protocol version */
     }
 
-    memset(&dummy_ethernet, 0, sizeof(dummy_ethernet));
     if(sender_mac) memcpy(&dummy_ethernet.h_source, sender_mac, 6);
     ethernet = (struct ndpi_ethhdr *)&dummy_ethernet;
     ip_offset = eth_offset;
 #endif /* DLT_RAW */
   } else if(pcap_datalink_type == DLT_IPV4) {
     eth_type = ETHERTYPE_IP;
-    memset(&dummy_ethernet, 0, sizeof(dummy_ethernet));
     if(sender_mac) memcpy(&dummy_ethernet.h_source, sender_mac, 6);
     ethernet = (struct ndpi_ethhdr *)&dummy_ethernet;
     ip_offset = 0;
@@ -2275,6 +2276,9 @@ decode_packet_eth:
 	vlan_id = (ip6 ? ip6->ip6_src.u6_addr.u6_addr8[15] +
 		   ip6->ip6_dst.u6_addr.u6_addr8[15] : iph->saddr + iph->daddr) % 0xFF;
 
+      if(ntop->getPrefs()->do_ignore_macs())
+	ethernet = &dummy_ethernet;
+
       try {
         PROFILING_SECTION_ENTER("NetworkInterface::dissectPacket: processPacket", 0);
 	pass_verdict = processPacket(bridge_iface_idx,
@@ -2411,6 +2415,9 @@ decode_packet_eth:
 	if((vlan_id == 0) && ntop->getPrefs()->do_simulate_vlans())
 	  vlan_id = (ip6 ? ip6->ip6_src.u6_addr.u6_addr8[15] + ip6->ip6_dst.u6_addr.u6_addr8[15] : iph->saddr + iph->daddr) % 0xFF;
 
+	if(ntop->getPrefs()->do_ignore_macs())
+	  ethernet = &dummy_ethernet;
+
 	try {
           PROFILING_SECTION_ENTER("NetworkInterface::dissectPacket: processPacket", 0);
 	  pass_verdict = processPacket(bridge_iface_idx,
@@ -2433,6 +2440,9 @@ decode_packet_eth:
     break;
 
   default: /* No IPv4 nor IPv6 */
+    if(ntop->getPrefs()->do_ignore_macs())
+      ethernet = &dummy_ethernet;
+
     Mac *srcMac = getMac(ethernet->h_source, true);
     Mac *dstMac = getMac(ethernet->h_dest, true);
 
@@ -2442,7 +2452,7 @@ decode_packet_eth:
     if(dstMac) dstMac->incRcvdStats(h->ts.tv_sec, 1, rawsize);
 #endif
 
-    if(srcMac && dstMac) {
+    if(srcMac && dstMac && (!srcMac->isNull() || !dstMac->isNull())) {
       setSeenMacAddresses();
       srcMac->setSourceMac();
 

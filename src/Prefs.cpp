@@ -26,7 +26,7 @@
 Prefs::Prefs(Ntop *_ntop) {
   num_deferred_interfaces_to_register = 0, cli = NULL;
   ntop = _ntop, sticky_hosts = location_none,
-    ignore_vlans = false, simulate_vlans = false;
+    ignore_vlans = false, simulate_vlans = false, ignore_macs = false;
   local_networks = strdup(CONST_DEFAULT_HOME_NET "," CONST_DEFAULT_LOCAL_NETS);
   local_networks_set = false, shutdown_when_done = false, flush_flows_on_shutdown = true;
   enable_users_login = true, disable_localhost_login = false;
@@ -390,6 +390,9 @@ void usage() {
 	 "[--verbose|-v] <level>              | Verbose tracing [0 (min).. 6 (debug)]\n"
 	 "[--version|-V]                      | Print version and license information, then quit\n"
 	 "--print-ndpi-protocols              | Print the nDPI protocols list\n"
+#ifndef HAVE_NEDGE
+	 "--ignore-macs                       | Ignore MAC addresses from traffic\n"
+#endif
 	 "--ignore-vlans                      | Ignore VLAN tags from traffic\n"
 	 "--simulate-vlans                    | Simulate VLAN traffic (debug only)\n"
 	 "[--help|-h]                         | Help\n",
@@ -742,6 +745,9 @@ static const struct option long_options[] = {
   { "shutdown-when-done",                no_argument,       NULL, 213 },
   { "simulate-vlans",                    no_argument,       NULL, 214 },
   { "zmq-encrypt-pwd",                   required_argument, NULL, 215 },
+#ifndef HAVE_NEDGE
+  { "ignore-macs",                       no_argument,       NULL, 216 },
+#endif
   { "ignore-vlans",                      no_argument,       NULL, 217 },
 #ifdef HAVE_TEST_MODE
   { "test-script",                       required_argument, NULL, 218 },
@@ -1350,6 +1356,12 @@ int Prefs::setOption(int optkey, char *optarg) {
   case 215:
     zmq_encryption_pwd = strdup(optarg);
     break;
+
+#ifndef HAVE_NEDGE
+  case 216:
+    ignore_macs = true;
+    break;
+#endif
 
   case 217:
     ignore_vlans = true;
