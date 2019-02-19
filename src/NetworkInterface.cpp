@@ -5234,6 +5234,7 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_uint64_table_entry(vm, "http_hosts",  getNumHTTPHosts());
   lua_push_uint64_table_entry(vm, "drops",       getNumPacketDrops());
   lua_push_uint64_table_entry(vm, "devices",     getNumL2Devices());
+  lua_push_uint64_table_entry(vm, "current_macs",  getNumMacs());
   lua_push_uint64_table_entry(vm, "num_live_captures", num_live_captures);
 
   if(db) db->lua(vm, false /* Overall */);

@@ -56,6 +56,7 @@ function dumpInterfaceStats(interface_name)
       -- Round up
       local hosts_pctg = math.floor(1+((ifstats.stats.hosts*100)/prefs.max_num_hosts))
       local flows_pctg = math.floor(1+((ifstats.stats.flows*100)/prefs.max_num_flows))
+      local macs_pctg = math.floor(1+((ifstats.stats.current_macs*100)/prefs.max_num_hosts))
 
       res["ifname"]  = interface_name
       res["speed"]  = getInterfaceSpeed(ifstats.id)
@@ -94,6 +95,7 @@ function dumpInterfaceStats(interface_name)
       res["system_host_stats"] = ntop.systemHostStat()
       res["hosts_pctg"] = hosts_pctg
       res["flows_pctg"] = flows_pctg
+      res["macs_pctg"] = macs_pctg
       res["remote_pps"] = ifstats.remote_pps
       res["remote_bps"] = ifstats.remote_bps
       res["is_view"]    = ifstats.isView

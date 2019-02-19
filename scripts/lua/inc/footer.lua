@@ -353,10 +353,20 @@ print [[/lua/hosts_stats.lua?mode=remote\">";
 		msg += addCommas(rsp.num_hosts-rsp.num_local_hosts)+" <i class=\"fa fa-laptop\" aria-hidden=\"true\"></i></span></a> ";
 
 	    if(typeof rsp.num_devices !== "undefined") {
+	      var macs_label = "]] print(i18n("mac_stats.layer_2_source_devices", {device_type=""})) print[[";
 	      msg += "<a href=\"]]
 print (ntop.getHttpPrefix())
 print [[/lua/macs_stats.lua?devices_mode=source_macs_only\">";
-		  msg += "<span title=\"]] print(i18n("mac_stats.layer_2_source_devices", {device_type=""})) print[[\" class=\"label label-default\">";
+		if(rsp.macs_pctg < alarm_threshold_low) {
+		  msg += "<span title=\"" + macs_label +"\" class=\"label label-default\">";
+		} else if(rsp.macs_pctg < alarm_threshold_high) {
+		  alert = 1;
+		  msg += "<span title=\"" + macs_label +"\" class=\"label label-warning\">";
+		} else {
+		  alert = 1;
+		  msg += "<span title=\"" + macs_label +"\" class=\"label label-danger\">";
+		}
+
 		msg += addCommas(rsp.num_devices)+" Devices</span></a> ";
 	    }
 
