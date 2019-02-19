@@ -1504,6 +1504,7 @@ local lang = {
     ["last_sent_peer"] = "Last Sent Peer",
     ["packets_received"] = "Packets Received",
     ["packets_sent"] = "Packets Sent",
+    ["icmp_port_unreachable_extra"] = "%{unreach_protocol} port %{unreach_port} unreachable on %{unreach_host}"
   },
   ["icmp_v4_msgs"] = {
     ["type_0_0_echo_reply"] = "Echo Reply",

@@ -627,6 +627,25 @@ end
 
 -- #################################
 
+local function getFlowStatusInfo(record, status_info)
+   local res = ""
+
+   local l7proto_name = interface.getnDPIProtoName(tonumber(record["l7_proto"]) or 0)
+   if l7proto_name == "ICMP" then -- is ICMPv4
+      local type_code = {type = status_info["icmp.icmp_type"], code = status_info["icmp.icmp_code"]}
+
+      res = string.format("[%s]", getICMPTypeCode(type_code))
+
+      if status_info["icmp.unreach.src_ip"] then
+	 res =string.format("%s [%s]", res, i18n("icmp_page.icmp_port_unreachable_extra", {unreach_host=status_info["icmp.unreach.dst_ip"], unreach_port=status_info["icmp.unreach.dst_port"], unreach_protocol = l4_proto_to_string(status_info["icmp.unreach.protocol"])}))
+      end
+   end
+
+   return string.format(" %s", res)
+end
+
+-- #################################
+
 function formatRawFlow(record, flow_json)
    require "flow_utils"
    local time_bounds = {getAlertTimeBounds(record)}
@@ -661,16 +680,20 @@ function formatRawFlow(record, flow_json)
    end
 
    local decoded = json.decode(flow_json)
+   local status_info = alert2statusinfo(decoded)
 
    if decoded ~= nil then
       -- render the json
       local msg = ""
+
       if not isEmptyString(record["flow_status"]) then
-         msg = msg..getFlowStatus(tonumber(record["flow_status"]), alert2statusinfo(decoded, record)).." "
+         msg = msg..getFlowStatus(tonumber(record["flow_status"]), status_info).." "
       end
+
       if not isEmptyString(flow) then
          msg = msg..flow.." "
       end
+
       if not isEmptyString(decoded["info"]) then
          local lb = ""
          if (record["flow_status"] == "13") -- blacklisted flow
@@ -681,6 +704,10 @@ function formatRawFlow(record, flow_json)
       end
 
       flow = msg
+   end
+
+   if status_info then
+      flow = flow..getFlowStatusInfo(record, status_info)
    end
 
    return flow

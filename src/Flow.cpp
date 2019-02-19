@@ -1991,6 +1991,7 @@ char* Flow::serialize(bool es_json) {
 
 /* Returns a stripped-down JSON specifically used for providing more alert information */
 json_object* Flow::flow2statusinfojson() {
+  char buf[128];
   json_object *obj = json_object_new_object();
   if(!obj) return NULL;
   DeviceProtoStatus proto_status = device_proto_allowed;
@@ -2006,6 +2007,22 @@ json_object* Flow::flow2statusinfojson() {
     json_object_object_add(obj, "devproto_forbidden_peer", json_object_new_string("srv"));
     json_object_object_add(obj, "devproto_forbidden_id", json_object_new_int(
       (proto_status == device_proto_forbidden_app) ? ndpiDetectedProtocol.app_protocol : ndpiDetectedProtocol.master_protocol));
+  }
+
+  if(isICMP()) {
+    json_object_object_add(obj, "icmp.icmp_type", json_object_new_int(protos.icmp.icmp_type)),
+      json_object_object_add(obj, "icmp.icmp_code", json_object_new_int(protos.icmp.icmp_code));
+
+    if(icmp_info) {
+      unreachable_t *unreach = icmp_info->getUnreach();
+
+      if(unreach)
+	json_object_object_add(obj, "icmp.unreach.src_ip", json_object_new_string(unreach->src_ip.print(buf, sizeof(buf)))),
+	  json_object_object_add(obj, "icmp.unreach.dst_ip", json_object_new_string(unreach->dst_ip.print(buf, sizeof(buf)))),
+	  json_object_object_add(obj, "icmp.unreach.src_port", json_object_new_int(unreach->src_port)),
+	  json_object_object_add(obj, "icmp.unreach.dst_port", json_object_new_int(unreach->dst_port)),
+	  json_object_object_add(obj, "icmp.unreach.protocol", json_object_new_int(unreach->protocol));
+    }
   }
 
   return obj;
