@@ -2019,8 +2019,8 @@ json_object* Flow::flow2statusinfojson() {
       if(unreach)
 	json_object_object_add(obj, "icmp.unreach.src_ip", json_object_new_string(unreach->src_ip.print(buf, sizeof(buf)))),
 	  json_object_object_add(obj, "icmp.unreach.dst_ip", json_object_new_string(unreach->dst_ip.print(buf, sizeof(buf)))),
-	  json_object_object_add(obj, "icmp.unreach.src_port", json_object_new_int(unreach->src_port)),
-	  json_object_object_add(obj, "icmp.unreach.dst_port", json_object_new_int(unreach->dst_port)),
+	  json_object_object_add(obj, "icmp.unreach.src_port", json_object_new_int(ntohs(unreach->src_port))),
+	  json_object_object_add(obj, "icmp.unreach.dst_port", json_object_new_int(ntohs(unreach->dst_port))),
 	  json_object_object_add(obj, "icmp.unreach.protocol", json_object_new_int(unreach->protocol));
     }
   }
