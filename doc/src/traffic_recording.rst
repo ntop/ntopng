@@ -239,7 +239,7 @@ For example, to process the extracted traffic directly with `wireshark`, it is p
 .. _ZCSupportSection:
 
 ZC/FPGA Support
-~~~~~~~~~~~~~~~
+---------------
 
 If you need to process traffic at high rate at 10/40Gbit and above, you are probably looking for
 capture technologies like `PF_RING ZC <http://www.ntop.org/guides/pf_ring/zc.html>`_ for Intel
