@@ -200,6 +200,8 @@ void LocalHostStats::makeTsPoint(HostTimeseriesPoint *pt) {
   pt->rcvd = rcvd.getNumBytes();
   pt->num_flows_as_client = host->getNumOutgoingFlows();
   pt->num_flows_as_server = host->getNumIncomingFlows();
+  pt->total_num_anomalous_flows_as_client = host->getTotalNumAnomalousOutgoingFlows();
+  pt->total_num_anomalous_flows_as_server = host->getTotalNumAnomalousIncomingFlows();
   pt->num_contacts_as_cli = contacts_as_cli.size();
   pt->num_contacts_as_srv = contacts_as_srv.size();
 
