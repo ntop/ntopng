@@ -3521,7 +3521,9 @@ FlowStatus Flow::getFlowStatus() {
       return status_longlived;
   }
 
-  if(cli_host && srv_host) {
+  if(cli_host && srv_host
+     /* Assumes elephant flows are normal when the category is data transfer */
+     && get_protocol_category() != NDPI_PROTOCOL_CATEGORY_DATA_TRANSFER) {
     u_int64_t local_to_remote_bytes = 0, remote_to_local_bytes = 0;
 
     if(cli_host->isLocalHost() && ! srv_host->isLocalHost()) {

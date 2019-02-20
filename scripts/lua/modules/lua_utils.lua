@@ -2518,6 +2518,8 @@ function formatElephantFlowAlert(flowstatus_info, local2remote)
       end
    end
 
+   res = string.format("%s<sup><i class='fa fa-info-circle' aria-hidden='true' title='"..i18n("flow_details.elephant_flow_descr").."'></i></sup>", res)
+
    if threshold ~= "" then
       res = string.format("%s [%s]", res, i18n("flow_details.elephant_exceeded", {vol = bytesToSize(threshold)}))
    end
