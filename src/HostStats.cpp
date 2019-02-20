@@ -82,6 +82,7 @@ void HostStats::getJSONObject(json_object *my_object, DetailsLevel details_level
 void HostStats::lua(lua_State* vm, bool mask_host, bool host_details, bool verbose) {
   lua_push_uint64_table_entry(vm, "bytes.sent", sent.getNumBytes());
   lua_push_uint64_table_entry(vm, "bytes.rcvd", rcvd.getNumBytes());
+  lua_push_uint64_table_entry(vm, "bytes.ndpi.unknown", getnDPIStats() ? getnDPIStats()->getProtoBytes(NDPI_PROTOCOL_UNKNOWN) : 0);
 
   if(verbose) {
     if(ndpiStats)        ndpiStats->lua(iface, vm, true);

@@ -1242,6 +1242,11 @@ local lang = {
     ["tcp_state_reset"] = "Reset",
     ["tcp_state_unknown"] = "Unknown",
     ["total_bytes"] = "Total Bytes",
+    ["total_bytes_sent"] = "Total Bytes Sent",
+    ["total_bytes_rcvd"] = "Total Bytes Received",
+    ["total_bytes_unknown"] = "Total Unknown Applications Bytes",
+    ["flows_as_client"] = "Flows as Client",
+    ["flows_as_server"] = "Flows as Server",
     ["vlan"] = "VLAN",
   },
   ["geo_map"] = {

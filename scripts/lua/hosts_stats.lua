@@ -9,6 +9,7 @@ require "lua_utils"
 local host_pools_utils = require "host_pools_utils"
 local ts_utils = require("ts_utils")
 local page_utils = require("page_utils")
+local custom_column_utils = require("custom_column_utils")
 active_page = "hosts"
 local have_nedge = ntop.isnEdge()
 
@@ -245,6 +246,8 @@ if (_GET["page"] ~= "historical") then
    print[['); },
 ]]
 
+   custom_column_utils.updateCustomColumn()
+
    -- Set the preference table
    preference = tablePreferences("rows_number",_GET["perPage"])
    if (preference ~= "") then print ('perPage: '..preference.. ",\n") end
@@ -265,6 +268,12 @@ if (_GET["page"] ~= "historical") then
 
    -- Ip version selector
    print[['<div class="btn-group pull-right">]]
+   custom_column_utils.printCustomColumnDropdown(base_url, page_params)
+   print[[</div>']]
+   
+
+   -- Ip version selector
+   print[[, '<div class="btn-group pull-right">]]
    printIpVersionDropdown(base_url, page_params)
    print[[</div>']]
 
@@ -342,7 +351,7 @@ if (_GET["page"] ~= "historical") then
    end
 
    print('</ul></div>\'')
-   
+
    print(' ],')
 
    print [[
@@ -418,11 +427,15 @@ if (_GET["page"] ~= "historical") then
 			     }
 
 				 },  {
-			     title: "]] print(i18n("show_alerts.alerts")) print[[",
-				 field: "column_alerts",
+			     title: "]]
+   local custom_name, custom_key, custom_align = custom_column_utils.getCustomColumnName()
+   -- tprint({custom_name = custom_name, custom_key = custom_key, custom_align = custom_align})
+   print(custom_name)
+   print[[",
+				 field: "column_]] print(custom_key) print[[",
 				 sortable: true,
 	 	             css: {
-			        textAlign: 'center'
+			        textAlign: ']] print(custom_align) print[['
 			     }
 
 				 },

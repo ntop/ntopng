@@ -789,8 +789,10 @@ local function validateIfFilter(i)
    end
 end
 
-local function validateLookingGlassCriteria(c)
-   if validateChoice(looking_glass_criteria, c, 1) then
+local function validateCustomColumn(c)
+   local custom_column_utils = require("custom_column_utils")
+
+   if validateChoice(custom_column_utils.available_custom_columns, c, 1) then
       return true
    else
       return false
@@ -1052,7 +1054,8 @@ local known_parameters = {
    ["intfs"]                   = validateInterfacesList,        -- a list of network interfaces ids
    ["search"]                  = validateBool,                  -- When set, a search should be performed
    ["search_flows"]            = validateBool,                  -- When set, a flow search should be performed
-   ["criteria"]                = validateLookingGlassCriteria,  -- A looking glass criteria
+   ["custom_column"]           = validateCustomColumn,
+   ["criteria"]           = validateCustomColumn,
    ["row_id"]                  = validateNumber,                -- A number used to identify a record in a database
    ["rrd_file"]                = validateUnquoted,              -- A path or special identifier to read an RRD file
    ["port"]                    = validatePort,                  -- An application port

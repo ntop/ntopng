@@ -245,21 +245,6 @@ void LocalHost::lua(lua_State* vm, AddressTree *ptree,
   else
     lua_push_str_table_entry(vm, "local_network_name", local_net);
 
-  /* Criteria */
-  lua_newtable(vm);
-
-  lua_push_uint64_table_entry(vm, "upload", stats->getNumBytesSent());
-  lua_push_uint64_table_entry(vm, "download", stats->getNumBytesRcvd());
-  lua_push_uint64_table_entry(vm, "unknown", get_ndpi_stats()->getProtoBytes(NDPI_PROTOCOL_UNKNOWN));
-  lua_push_uint64_table_entry(vm, "incomingflows", getNumIncomingFlows());
-  lua_push_uint64_table_entry(vm, "outgoingflows", getNumOutgoingFlows());
-  lua_push_uint64_table_entry(vm, "total_outgoing_anomalous_flows", getTotalNumAnomalousOutgoingFlows());
-  lua_push_uint64_table_entry(vm, "total_incoming_anomalous_flows", getTotalNumAnomalousIncomingFlows());
-
-  lua_pushstring(vm, "criteria");
-  lua_insert(vm, -2);
-  lua_settable(vm, -3);
-
   if(asListElement) {
     host_id = get_hostkey(buf_id, sizeof(buf_id));
 

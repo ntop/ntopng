@@ -3853,13 +3853,13 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data, bool *matc
     break;
 
     /* Criteria */
-  case column_uploaders:      r->elems[r->actNumEntries++].numericValue = h->getNumBytesSent(); break;
-  case column_downloaders:    r->elems[r->actNumEntries++].numericValue = h->getNumBytesRcvd(); break;
-  case column_unknowers:      r->elems[r->actNumEntries++].numericValue = h->get_ndpi_stats()->getProtoBytes(NDPI_PROTOCOL_UNKNOWN); break;
-  case column_incomingflows:  r->elems[r->actNumEntries++].numericValue = h->getNumIncomingFlows(); break;
-  case column_outgoingflows:  r->elems[r->actNumEntries++].numericValue = h->getNumOutgoingFlows(); break;
-  case column_total_outgoing_anomalous_flows:  r->elems[r->actNumEntries++].numericValue = h->getTotalNumAnomalousOutgoingFlows(); break;
-  case column_total_incoming_anomalous_flows:  r->elems[r->actNumEntries++].numericValue = h->getTotalNumAnomalousIncomingFlows(); break;
+  case column_traffic_sent:    r->elems[r->actNumEntries++].numericValue = h->getNumBytesSent(); break;
+  case column_traffic_rcvd:    r->elems[r->actNumEntries++].numericValue = h->getNumBytesRcvd(); break;
+  case column_traffic_unknown: r->elems[r->actNumEntries++].numericValue = h->get_ndpi_stats()->getProtoBytes(NDPI_PROTOCOL_UNKNOWN); break;
+  case column_num_flows_as_client:  r->elems[r->actNumEntries++].numericValue = h->getNumOutgoingFlows(); break;
+  case column_num_flows_as_server:  r->elems[r->actNumEntries++].numericValue = h->getNumIncomingFlows(); break;
+  case column_total_num_anomalous_flows_as_client:  r->elems[r->actNumEntries++].numericValue = h->getTotalNumAnomalousOutgoingFlows(); break;
+  case column_total_num_anomalous_flows_as_server:  r->elems[r->actNumEntries++].numericValue = h->getTotalNumAnomalousIncomingFlows(); break;
 
   default:
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: column %d not handled", r->sorter);
@@ -4467,13 +4467,13 @@ int NetworkInterface::sortHosts(u_int32_t *begin_slot,
   else if(!strcmp(sortColumn, "column_local_network")) retriever->sorter = column_local_network, sorter = ipNetworkSorter;
   else if(!strcmp(sortColumn, "column_mac")) retriever->sorter = column_mac, sorter = numericSorter;
   /* criteria (datatype sortField in ntop_typedefs.h / see also host_search_walker:NetworkInterface.cpp) */
-  else if(!strcmp(sortColumn, "column_uploaders")) retriever->sorter = column_uploaders, sorter = numericSorter;
-  else if(!strcmp(sortColumn, "column_downloaders")) retriever->sorter = column_downloaders, sorter = numericSorter;
-  else if(!strcmp(sortColumn, "column_unknowers")) retriever->sorter = column_unknowers, sorter = numericSorter;
-  else if(!strcmp(sortColumn, "column_incomingflows")) retriever->sorter = column_incomingflows, sorter = numericSorter;
-  else if(!strcmp(sortColumn, "column_outgoingflows")) retriever->sorter = column_outgoingflows, sorter = numericSorter;
-  else if(!strcmp(sortColumn, "column_total_outgoing_anomalous_flows")) retriever->sorter = column_total_outgoing_anomalous_flows, sorter = numericSorter;
-  else if(!strcmp(sortColumn, "column_total_incoming_anomalous_flows")) retriever->sorter = column_total_incoming_anomalous_flows, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_traffic_sent"))    retriever->sorter = column_traffic_sent, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_traffic_rcvd"))    retriever->sorter = column_traffic_rcvd, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_traffic_unknown")) retriever->sorter = column_traffic_unknown, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_num_flows_as_client")) retriever->sorter = column_num_flows_as_client, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_num_flows_as_server")) retriever->sorter = column_num_flows_as_server, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_total_num_anomalous_flows_as_client")) retriever->sorter = column_total_num_anomalous_flows_as_client, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_total_num_anomalous_flows_as_server")) retriever->sorter = column_total_num_anomalous_flows_as_server, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_pool_id")) retriever->sorter = column_pool_id, sorter = numericSorter;
   else {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unknown sort column %s", sortColumn);

@@ -336,13 +336,13 @@ typedef enum {
   /* column_thpt, */
   column_traffic,
   /* sort criteria */
-  column_uploaders,
-  column_downloaders,
-  column_unknowers,
-  column_incomingflows,
-  column_outgoingflows,
-  column_total_outgoing_anomalous_flows,
-  column_total_incoming_anomalous_flows,
+  column_traffic_sent,
+  column_traffic_rcvd,
+  column_traffic_unknown,
+  column_num_flows_as_client,
+  column_num_flows_as_server,
+  column_total_num_anomalous_flows_as_client,
+  column_total_num_anomalous_flows_as_server,
   column_pool_id,
   /* Macs */
   column_num_hosts,

@@ -6,6 +6,7 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local discover = require "discover_utils"
+local custom_column_utils = require "custom_column_utils"
 local json = require "dkjson"
 local have_nedge = ntop.isnEdge()
 
@@ -19,8 +20,8 @@ local sortColumn  = _GET["sortColumn"]
 local sortOrder   = _GET["sortOrder"]
 local protocol    = _GET["protocol"]
 local long_names  = _GET["long_names"]
-local criteria    = _GET["criteria"]
-local traffic_type= _GET["traffic_type"]
+local custom_column = _GET["custom_column"]
+local traffic_type = _GET["traffic_type"]
 
 -- Host comparison parameters
 local mode        = _GET["mode"]
@@ -62,13 +63,7 @@ else
    end
 end
 
-local criteria_key, criteria_format
 local sortPrefs = "hosts"
-if(criteria ~= nil) then
-   criteria_key, criteria_format = label2criteriakey(criteria)
-   sortPrefs = "localhosts_"..criteria
-   mode = "local"
-end
 
 if((sortColumn == nil) or (sortColumn == "column_"))then
    sortColumn = getDefaultTableSort(sortPrefs)
@@ -88,7 +83,6 @@ else
    end
 end
 
-
 if(currentPage == nil) then
    currentPage = 1
 else
@@ -102,7 +96,9 @@ else
    tablePreferences("rows_number",perPage)
 end
 
+local custom_column_key, custom_column_format
 local one_way_traffic
+
 if(traffic_type == "one_way") then one_way_traffic = true end
 if(tracked ~= nil) then tracked = tonumber(tracked) else tracked = 0 end
 
@@ -139,6 +135,7 @@ local hosts_stats = hosts_retrv_function(false, sortColumn, perPage, to_skip, sO
 
 if(hosts_stats == nil) then total = 0 else total = hosts_stats["numHosts"] end
 hosts_stats = hosts_stats["hosts"]
+
 -- for k,v in pairs(hosts_stats) do io.write(k.." ["..sortColumn.."]\n") end
 
 if(all ~= nil) then
@@ -188,17 +185,10 @@ if(hosts_stats ~= nil) then
 	 vals[hosts_stats[key]["queries.rcvd"]+postfix] = key
       elseif(sortColumn == "column_ip") then
 	 vals[hosts_stats[key]["ipkey"]+postfix] = key
-	 -- looking_glass_criteria
-      elseif(criteria ~= nil) then
-	 -- io.write("==> "..criteria.."\n")
-	 if(sortColumn == "column_"..criteria) then
-	    local c = hosts_stats[key]["criteria"]
-
-	    if(c ~= nil) then
-	       vals[c[criteria_key]+postfix] = key
-	       -- io.write(key.."="..hosts_stats[key]["criteria"][criteria_key].."\n")
-	    end
-	 end
+      elseif custom_column_utils.isCustomColumn(sortColumn) then
+	 custom_column_key, custom_column_format = custom_column_utils.label2criteriakey(sortColumn)
+	 local val = custom_column_utils.hostStatsToColumnValue(hosts_stats[key], custom_column_key, false)
+	 vals[val + postfix] = key
       end
    end
 end
@@ -309,10 +299,8 @@ for _key, _value in pairsByKeys(vals, funct) do
    record["column_since"] = secondsToTime(now-value["seen.first"] + 1)
    record["column_last"] = secondsToTime(now-value["seen.last"] + 1)
 
-   if((criteria_key ~= nil) and (value["criteria"] ~= nil)) then
-      record["column_"..criteria] = criteria_format(value["criteria"][criteria_key])
-   end
-
+   local _, custom_column_key = custom_column_utils.getCustomColumnName()
+   record["column_"..custom_column_key] = custom_column_utils.hostStatsToColumnValue(value, custom_column_key, true)
    if((value["throughput_trend_"..throughput_type] ~= nil) and
       (value["throughput_trend_"..throughput_type] > 0)) then
 

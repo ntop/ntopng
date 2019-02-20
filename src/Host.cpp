@@ -553,6 +553,9 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   lua_push_uint64_table_entry(vm, "active_flows.as_client.anomaly_index", num_active_flows_as_client.getAnomalyIndex());
   lua_push_uint64_table_entry(vm, "active_flows.as_server.anomaly_index", num_active_flows_as_server.getAnomalyIndex());
 
+  lua_push_uint64_table_entry(vm, "anomalous_flows.as_server", getTotalNumAnomalousIncomingFlows());
+  lua_push_uint64_table_entry(vm, "anomalous_flows.as_client", getTotalNumAnomalousOutgoingFlows());
+
 #ifdef NTOPNG_PRO
   lua_push_bool_table_entry(vm, "has_blocking_quota", has_blocking_quota);
   lua_push_bool_table_entry(vm, "has_blocking_shaper", has_blocking_shaper);

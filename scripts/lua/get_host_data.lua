@@ -78,13 +78,6 @@ if host then
    res["column_last"] = secondsToTime(now-host["seen.last"]+1)
    res["column_traffic"] = bytesToSize(host["bytes.sent"]+host["bytes.rcvd"])
 
-   local label, fnctn = label2criteriakey(criteria)
-
-   local c = host.criteria
-   if(c ~= nil) then
-      res["column_"..criteria..""] = fnctn(c[label])
-   end
-   
    if((host["throughput_trend_"..throughput_type] ~= nil)
    and (host["throughput_trend_"..throughput_type] > 0)) then
       local res_thpt
