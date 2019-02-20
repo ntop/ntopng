@@ -6,6 +6,8 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local json = require "dkjson"
+local custom_column_utils = require "custom_column_utils"   
+local custom_column = _GET["custom_column"]
 
 sendHTTPHeader('application/json')
 
@@ -77,6 +79,12 @@ if host then
    res["column_since"] = secondsToTime(now-host["seen.first"]+1)
    res["column_last"] = secondsToTime(now-host["seen.last"]+1)
    res["column_traffic"] = bytesToSize(host["bytes.sent"]+host["bytes.rcvd"])
+
+   if not isEmptyString(custom_column) and custom_column_utils.isCustomColumn(custom_column) then
+      local custom_column_key, custom_column_format = custom_column_utils.label2criteriakey(custom_column)
+      local val = custom_column_utils.hostStatsToColumnValue(host, custom_column_key, true)
+      res["column_custom"] = val
+   end
 
    if((host["throughput_trend_"..throughput_type] ~= nil)
    and (host["throughput_trend_"..throughput_type] > 0)) then

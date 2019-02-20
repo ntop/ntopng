@@ -123,6 +123,10 @@ if (_GET["page"] ~= "historical") then
       traffic_type_title = ""
    end
 
+   custom_column_utils.updateCustomColumn()
+   local custom_name, custom_key, custom_align = custom_column_utils.getCustomColumnName()
+   page_params["custom_column"] = custom_key
+
    print [[
       <hr>
       <div id="table-hosts"></div>
@@ -137,6 +141,7 @@ if (_GET["page"] ~= "historical") then
 
    print [[
 	 host_rows_option["ip"] = true;
+         host_rows_option["custom_column"] = "]] print(custom_key) print[[";
 	 $("#table-hosts").datatable({
 			title: "Hosts List",
 			url: url_update ,
@@ -245,8 +250,6 @@ if (_GET["page"] ~= "historical") then
    print(i18n('hosts_stats.idle_hosts_not_listed'))
    print[['); },
 ]]
-
-   custom_column_utils.updateCustomColumn()
 
    -- Set the preference table
    preference = tablePreferences("rows_number",_GET["perPage"])
@@ -428,7 +431,6 @@ if (_GET["page"] ~= "historical") then
 
 				 },  {
 			     title: "]]
-   local custom_name, custom_key, custom_align = custom_column_utils.getCustomColumnName()
    -- tprint({custom_name = custom_name, custom_key = custom_key, custom_align = custom_align})
    print(custom_name)
    print[[",
