@@ -37,6 +37,7 @@ class HostStats: public Checkpointable, public GenericTrafficElement {
   TrafficStats other_ip_sent, other_ip_rcvd;
   u_int32_t total_activity_time /* sec */;
   u_int32_t last_epoch_update; /* useful to avoid multiple updates */
+  u_int32_t total_alerts;
   
 #ifdef NTOPNG_PRO
   HostPoolStats *quota_enforcement_stats, *quota_enforcement_stats_shadow;
@@ -76,6 +77,8 @@ class HostStats: public Checkpointable, public GenericTrafficElement {
   inline void incKeepAlivePkts(u_int32_t num)       { tcpPacketStats.pktKeepAlive += num; };
   inline void incSentStats(u_int pkt_len)           { sent_stats.incStats(pkt_len);       };
   inline void incRecvStats(u_int pkt_len)           { recv_stats.incStats(pkt_len);       };
+  inline void incTotalAlerts()                      { total_alerts++;                     };
+  inline u_int32_t getTotalAlerts()                 { return(total_alerts);               };
   inline u_int32_t getTotalNumFlowsAsClient() const { return(total_num_flows_as_client);  };
   inline u_int32_t getTotalNumFlowsAsServer() const { return(total_num_flows_as_server);  };
   inline u_int32_t getTotalAnomalousNumFlowsAsClient() const { return(anomalous_flows_as_client);  };

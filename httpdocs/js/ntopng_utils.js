@@ -129,6 +129,14 @@ function fflows(fps) {
     return Math.round(res[0] * 100) / 100 + ' ' + res[1];
 }
 
+function falerts(aps) {
+  if(typeof(aps) === "undefined")
+    return "-";
+
+  // Round to two decimal digits
+  return Math.round(aps * 100) / 100 + ' alerts/s';
+}
+
 function fint(value) {
     if(typeof(value) === "undefined")
       return "-";

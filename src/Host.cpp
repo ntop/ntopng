@@ -555,6 +555,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
 
   lua_push_uint64_table_entry(vm, "anomalous_flows.as_server", getTotalNumAnomalousIncomingFlows());
   lua_push_uint64_table_entry(vm, "anomalous_flows.as_client", getTotalNumAnomalousOutgoingFlows());
+  lua_push_uint64_table_entry(vm, "total_alerts", stats->getTotalAlerts());
 
 #ifdef NTOPNG_PRO
   lua_push_bool_table_entry(vm, "has_blocking_quota", has_blocking_quota);

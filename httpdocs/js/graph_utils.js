@@ -78,8 +78,11 @@ function getValueFormatter(schema, metric_type, series) {
       return [fpackets, formatPackets];
     else if(label.contains("flows")) {
       return [(metric_type === "counter") ? fflows : formatValue, formatFlows, (metric_type === "counter") ? fflows : formatFlows];
-    } else if(label.contains("millis"))
+    } else if(label.contains("millis")) {
       return [fmillis, fmillis];
+    } else if(label.contains("alerts")) {
+      return [falerts, falerts];
+    }
   }
 
   // fallback

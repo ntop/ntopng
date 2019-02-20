@@ -343,6 +343,7 @@ typedef enum {
   column_num_flows_as_server,
   column_total_num_anomalous_flows_as_client,
   column_total_num_anomalous_flows_as_server,
+  column_total_alerts,
   column_pool_id,
   /* Macs */
   column_num_hosts,

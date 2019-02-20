@@ -1870,6 +1870,7 @@ drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
       {schema="host:flows",                  label=i18n("graphs.active_flows")},
       {schema="host:anomalous_flows",        label=i18n("graphs.total_anomalous_flows")},
       {schema="host:contacts",               label=i18n("graphs.active_host_contacts")},
+      {schema="host:total_alerts",           label=i18n("details.alerts")},
 
       {schema="host:1d_delta_traffic_volume",  label="1 Day Traffic Delta"}, -- TODO localize
       {schema="host:1d_delta_flows",           label="1 Day Active Flows Delta"}, -- TODO localize

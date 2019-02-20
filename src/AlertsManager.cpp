@@ -773,6 +773,8 @@ int AlertsManager::storeFlowAlert(Flow *f) {
     m.unlock(__FILE__, __LINE__);
 
     f->setFlowAlerted();
+    if(cli) cli->incTotalAlerts();
+    if(srv) srv->incTotalAlerts();
 
     ntop->getTrace()->traceEvent(TRACE_INFO, "[%s] %s", msg, alert_json);
     json_object_put(alert_json_obj);
@@ -845,26 +847,12 @@ int AlertsManager::engageReleaseHostAlert(const char *host_ip, u_int16_t host_vl
 
   /* Update host */
   h = iface->getHost((char*)host_ip, host_vlan);
-  if (h)
+  if(h) {
     h->setNumAlerts(num_alerts);
+    if(engage) h->incTotalAlerts();
+  }
 
   return rc;
-};
-
-/* ******************************************* */
-
-int AlertsManager::storeHostAlert(Host *h,
-				  AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
-				  Host *alert_origin, Host *alert_target) {
-  char ipbuf_id[256], ipbuf_origin[256], ipbuf_target[256];
-
-  if(!isValidHost(h, ipbuf_id, sizeof(ipbuf_id)))
-    return -1;
-
-  return(storeAlert(alert_entity_host, ipbuf_id, alert_type, alert_severity, alert_json,
-		    isValidHost(alert_origin, ipbuf_origin, sizeof(ipbuf_origin)) ? ipbuf_origin : NULL,
-		    isValidHost(alert_target, ipbuf_target, sizeof(ipbuf_target)) ? ipbuf_target : NULL,
-		    true, time(NULL)));
 };
 
 /* ******************************************* */
