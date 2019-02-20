@@ -21,6 +21,7 @@ custom_column_utils.available_custom_columns = {
    { "num_flows_as_server", i18n("flows_page.flows_as_server"), "active_flows.as_server", format_utils.formatValue, "center" },
    { "total_num_anomalous_flows_as_client", i18n("total_outgoing_anomalous_flows"), "anomalous_flows.as_client", format_utils.formatValue, "center" },
    { "total_num_anomalous_flows_as_server", i18n("total_incoming_anomalous_flows"), "anomalous_flows.as_server", format_utils.formatValue, "center" },
+   { "alerts", i18n("show_alerts.engaged_alerts"), "num_alerts", format_utils.formatValue, "center" },
 }
 local available_custom_columns = custom_column_utils.available_custom_columns
 
@@ -37,7 +38,7 @@ function custom_column_utils.hostStatsToColumnValue(host_stats, column, formatte
 	    if val ~= nil and val > 0 then
 	       return c[4](val)
 	    else
-	       return ""
+	       return "0"
 	    end
 	 else
 	    return host_stats[c[3]]
