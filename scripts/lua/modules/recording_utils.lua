@@ -120,7 +120,7 @@ function recording_utils.checkAvailable()
 
   if(not ntop.isWindows())
     and (not ntop.isnEdge())
-    and os_utils.hasService("n2disk-ntopng", getInterfaceName(getFirstInterfaceId())) then
+    and os_utils.hasService("n2disk-ntopng", "dummy") then
     is_available = true
   end
 
