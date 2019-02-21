@@ -15,6 +15,7 @@ local CUSTOM_CATEGORY_MINING = 99
 local CUSTOM_CATEGORY_MALWARE = 100
 
 local DEFAULT_UPDATE_INTERVAL = 86400
+local MAX_LIST_ERRORS = 3
 
 -- supported formats: ip, domain, hosts
 local BUILTIN_LISTS = {
@@ -198,14 +199,24 @@ end
 -- ##############################################
 
 local function getNextListUpdate(list)
-  local next_update = list.status.last_update + list.update_interval
+  local interval
+
+  if(list.status.last_error and (list.status.num_errors < MAX_LIST_ERRORS)) then
+    -- When the download fails, retry next hour
+    interval = 3600
+  else
+    interval = list.update_interval
+  end
+
+  local next_update
 
   -- align if possible
-  if list.update_interval == 3600 then
-    next_update = next_update - next_update % 3600
-  elseif list.update_interval == 86400 then
-    next_update = next_update - next_update % 86400
-    next_update = next_update - getTzOffsetSeconds()
+  if interval == 3600 then
+    next_update = ntop.roundTime(list.status.last_update, 3600, false)
+  elseif interval == 86400 then
+    next_update = ntop.roundTime(list.status.last_update, 86400, true --[[ UTC align ]])
+  else
+    next_update = list.status.last_update + interval
   end
 
   return next_update
@@ -215,13 +226,12 @@ end
 function lists_utils.shouldUpdate(list_name, list, now)
   local list_file = getListCacheFile(list_name, false)
   local next_update = getNextListUpdate(list)
-  local max_errors = 3
 
   -- note: num_errors is used to avoid retying downloading the same list again when
   -- the file does not exist
   return(list.enabled and
     ((now >= next_update) or
-      (not ntop.exists(list_file) and (list.status.num_errors < max_errors)) or
+      (not ntop.exists(list_file) and (list.status.num_errors < MAX_LIST_ERRORS)) or
       (ntop.getCache("ntopng.cache.category_lists.update." .. list_name) == "1")))
 end
 
@@ -243,6 +253,7 @@ local function checkListsUpdate(timeout)
       local temp_fname = getListCacheFile(list_name, true)
 
       traceError(TRACE_INFO, TRACE_CONSOLE, string.format("Updating list '%s'...", list_name))
+      local started_at = os.time()
       local res = ntop.httpFetch(list.url, temp_fname, timeout)
 
       if(res and (res["RESPONSE_CODE"] == 200)) then
@@ -252,22 +263,24 @@ local function checkListsUpdate(timeout)
         list.status.num_errors = 0
       else
         -- failure
-        local respcode = -1
-        local last_error = true
+        local respcode = 0
+        local last_error = i18n("delete_data.msg_err_unknown")
 
         if res and res["RESPONSE_CODE"] ~= nil then
-          respcode = res["RESPONSE_CODE"]
+          respcode = ternary(res["RESPONSE_CODE"], res["RESPONSE_CODE"], "-")
 
           if res["IS_PARTIAL"] then
-            last_error = i18n("category_lists.connection_time_out", {err_code=respcode})
+            last_error = i18n("category_lists.connection_time_out", {err_code=respcode, duration=(os.time() - started_at)})
           else
             last_error = i18n("category_lists.server_returned_error", {err_code=respcode})
           end
         end
 
-        traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("An error occurred while downloading list '%s': http_code=%d", list_name, respcode))
         list.status.last_error = last_error
         list.status.num_errors = list.status.num_errors + 1
+
+        local msg = i18n("category_lists.error_occurred", {name=list_name, err=last_error})
+        interface.storeAlert(alertEntity("category_lists"), list_name, alertType("list_download_failed"), alertSeverity("warning"), msg)
       end
 
       now = os.time()

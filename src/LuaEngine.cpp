@@ -2065,6 +2065,26 @@ static int ntop_tzset(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_round_time(lua_State* vm) {
+  time_t now;
+  u_int32_t rounder;
+  bool align_to_localtime;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  now = lua_tonumber(vm, 1);
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  rounder = lua_tonumber(vm, 2);
+  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TBOOLEAN) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  align_to_localtime = lua_toboolean(vm, 3);
+
+  lua_pushinteger(vm, Utils::roundTime(now, rounder, align_to_localtime ? ntop->get_time_offset() : 0));
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 // ***API***
 static int ntop_inet_ntoa(lua_State* vm) {
   u_int32_t ip;
@@ -8348,6 +8368,7 @@ static const luaL_Reg ntop_reg[] = {
   /* Time */
   { "gettimemsec",      ntop_gettimemsec },
   { "tzset",            ntop_tzset },
+  { "roundTime",        ntop_round_time },
 
   /* Trace */
   { "verboseTrace",     ntop_verbose_trace },

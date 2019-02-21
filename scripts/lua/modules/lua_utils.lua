@@ -2792,9 +2792,9 @@ function getTzOffsetSeconds()
    local now = os.time()
    local local_t = os.date("*t", now)
    local utc_t = os.date("!*t", now)
-   local delta = (local_t.hour - utc_t.hour)*60 + (local_t.min - utc_t.min)
+   local delta = os.time(local_t) - os.time(utc_t)
 
-   return(delta*60)
+   return(delta)
 end
 
 -- ####################################################

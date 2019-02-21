@@ -200,7 +200,7 @@ end
 
 function format_utils.formatEpoch(epoch)
   if epoch == 0 then
-    return("-")
+    return("")
   else
     return(os.date("%d/%m/%Y %X", epoch))
   end
