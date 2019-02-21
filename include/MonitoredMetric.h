@@ -75,10 +75,11 @@ public:
     value = v;
   }
 
-  inline float inc(time_t when, METRICTYPE v) {
+  inline float inc(METRICTYPE v) {
     value += v;
     return(anomaly_index /* Last computed */);
   }
+
   const char * const print(char * const buf, ssize_t buf_size) {
     if(buf && buf_size) {
       snprintf(buf, buf_size, "%s[value: %lu][last_value: %lu][RSI: %lu][gains: %lu][losses: %lu]\n",

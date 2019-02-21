@@ -420,7 +420,8 @@ bool Host::hasAnomalies() {
     || flow_flood_victim_alert->isAboveThreshold(now)
     || flow_flood_attacker_alert->isAboveThreshold(now)
     || num_active_flows_as_client.is_anomalous(now)
-    || num_active_flows_as_server.is_anomalous(now);
+    || num_active_flows_as_server.is_anomalous(now)
+    || stats->hasAnomalies(now);
 }
 
 /* *************************************** */
@@ -445,6 +446,8 @@ void Host::luaAnomalies(lua_State* vm) {
       num_active_flows_as_client.lua(vm, "num_active_flows_as_client");
     if(num_active_flows_as_server.is_anomalous(now))
       num_active_flows_as_server.lua(vm, "num_active_flows_as_server");
+
+    // stats->luaAnomalies(vm, now); TODO: add back
 
     lua_pushstring(vm, "anomalies");
     lua_insert(vm, -2);
@@ -893,10 +896,10 @@ void Host::incNumFlows(time_t t, bool as_client, Host *peer) {
 
   if(as_client) {
     counter = flow_flood_attacker_alert;
-    num_active_flows_as_client.inc(t, 1);
+    num_active_flows_as_client.inc(1);
   } else {
     counter = flow_flood_victim_alert;
-    num_active_flows_as_server.inc(t, 1);
+    num_active_flows_as_server.inc(1);
   }
 
   if(triggerAlerts())
@@ -910,12 +913,12 @@ void Host::incNumFlows(time_t t, bool as_client, Host *peer) {
 void Host::decNumFlows(time_t t, bool as_client, Host *peer) {
   if(as_client) {
     if(num_active_flows_as_client.get())
-      num_active_flows_as_client.dec(t, 1);
+      num_active_flows_as_client.dec(1);
     else
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: invalid counter value");
   } else {
     if(num_active_flows_as_server.get())
-      num_active_flows_as_server.dec(t, 1);
+      num_active_flows_as_server.dec(1);
     else
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: invalid counter value");
   }
@@ -1054,10 +1057,10 @@ void Host::incLowGoodputFlows(time_t t, bool asClient) {
   bool alert = false;
 
   if(asClient) {
-    low_goodput_client_flows.inc(t, 1);
+    low_goodput_client_flows.inc(1);
     if(low_goodput_client_flows.get() > HOST_LOW_GOODPUT_THRESHOLD) alert = true;
   } else {
-    low_goodput_server_flows.inc(t, 1);
+    low_goodput_server_flows.inc(1);
     if(low_goodput_server_flows.get() > HOST_LOW_GOODPUT_THRESHOLD) alert = true;
   }
 
@@ -1072,13 +1075,13 @@ void Host::decLowGoodputFlows(time_t t, bool asClient) {
   bool alert = false;
 
   if(asClient) {
-    low_goodput_client_flows.dec(t, 1);
+    low_goodput_client_flows.dec(1);
     
     if(low_goodput_client_flows.is_anomalous(t)
        || (low_goodput_client_flows.get() < HOST_LOW_GOODPUT_THRESHOLD))
       alert = true;
   } else {
-    low_goodput_server_flows.dec(t, 1);
+    low_goodput_server_flows.dec(1);
     
     if(low_goodput_server_flows.is_anomalous(t)
        || (low_goodput_server_flows.get() < HOST_LOW_GOODPUT_THRESHOLD))
@@ -1276,6 +1279,8 @@ void Host::updateStats(struct timeval *tv) {
     low_goodput_client_flows.computeAnomalyIndex(tv->tv_sec),
     low_goodput_server_flows.computeAnomalyIndex(tv->tv_sec);
 
+  stats->updateStats(tv);
+
 #ifdef MONITOREDGAUGE_DEBUG
   char buf[64], buf2[128];
 
@@ -1285,8 +1290,6 @@ void Host::updateStats(struct timeval *tv) {
   if(num_active_flows_as_server.is_anomalous(tv->tv_sec))
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[num_active_flows_as_server] %s %s", ip.print(buf, sizeof(buf)), num_active_flows_as_server.print(buf2, sizeof(buf2)));
 #endif
-
-  stats->updateStats(tv);
 }
 
 /* *************************************** */
