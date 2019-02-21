@@ -373,6 +373,7 @@ void Ntop::createExportInterface() {
 #ifdef HAVE_EBPF
 static void* ebpfLoopFctn(void* ptr) {
   Ntop *ntop = (Ntop*)ptr;
+  Utils::setThreadName("ebpfLoop");
 
   ntop->getPro()->ebpfLoop();
   return(NULL);

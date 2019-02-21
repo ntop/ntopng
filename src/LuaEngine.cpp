@@ -4109,6 +4109,7 @@ static int ntop_nindex_enabled(lua_State* vm) {
 
 static void* pcapDumpLoop(void* ptr) {
   struct ntopngLuaContext *c = (struct ntopngLuaContext*)ptr;
+  Utils::setThreadName("pcapDumpLoop");
 
   while(c->pkt_capture.captureInProgress) {
     u_char *pkt;

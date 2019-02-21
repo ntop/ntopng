@@ -200,6 +200,23 @@ int Utils::setThreadAffinity(pthread_t thread, int core_id) {
 
 /* ****************************************************** */
 
+void Utils::setThreadName(const char *name) {
+#if defined(__APPLE__) || defined(__linux__)
+  // Mac OS X: must be set from within the thread (can't specify thread ID)
+  char buf[16]; // NOTE: on linux there is a 16 char limit
+  int rc;
+  snprintf(buf, sizeof(buf), name);
+#if defined(__APPLE__)
+  if((rc = pthread_setname_np(buf)))
+#else
+  if((rc = pthread_setname_np(pthread_self(), buf)))
+#endif
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to set pthread name %s: %d", buf, rc);
+#endif
+}
+
+/* ****************************************************** */
+
 char *Utils::trim(char *s) {
   char *end;
 

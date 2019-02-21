@@ -2574,6 +2574,10 @@ void NetworkInterface::startPacketPolling() {
 				   get_name(), cpu_affinity);
   }
 
+#ifdef __linux__
+  pthread_setname_np(pollLoop, get_name());
+#endif  
+
   ntop->getTrace()->traceEvent(TRACE_NORMAL,
 			       "Started packet polling on interface %s [id: %u]...",
 			       get_name(), get_id());
