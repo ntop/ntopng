@@ -343,7 +343,7 @@ function printSeries(options, tags, start_time, base_url, params)
    -- TODO remove after proper migration of flows to the new schema
    if params.host then
       tags = table.clone(tags)
-      tags.host = params.fixme_host
+      tags.host = params.host
    end
 
    for _, serie in ipairs(series) do
@@ -588,10 +588,8 @@ print[[
       end
    end
 
-   
-
    local data = ts_utils.query(schema, tags, start_time, end_time)
-   
+
    if(data) then
       print [[
 
@@ -645,6 +643,7 @@ local page_params = {
    ts_schema = schema,
    zoom = zoomLevel or '',
    epoch = selectedEpoch or '',
+   host = options.fixme_host,
 }
 
 if(options.timeseries) then
