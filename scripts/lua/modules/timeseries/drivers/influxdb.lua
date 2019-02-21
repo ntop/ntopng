@@ -910,7 +910,11 @@ end
 local function getInfluxdbVersion(url, username, password)
   local res = ntop.httpGet(url .. "/ping", username, password, INFLUX_QUERY_TIMEMOUT_SEC, true)
   if not res or ((res.RESPONSE_CODE ~= 200) and (res.RESPONSE_CODE ~= 204)) then
-    local err = i18n("prefs.could_not_contact_influxdb", {msg=getResponseError(res)})
+    local err_info = getResponseError(res)
+    if err_info == 0 then
+      err_info = i18n("prefs.is_influxdb_running")
+    end
+    local err = i18n("prefs.could_not_contact_influxdb", {msg=err_info})
 
     traceError(TRACE_ERROR, TRACE_CONSOLE, err)
     return nil, err
@@ -972,9 +976,11 @@ function driver.init(dbname, url, days_retention, username, password, verbose)
   -- Check version
   if verbose then traceError(TRACE_NORMAL, TRACE_CONSOLE, "Contacting influxdb at " .. url .. " ...") end
 
-  local version = getInfluxdbVersion(url, username, password)
+  local version, err = getInfluxdbVersion(url, username, password)
 
-  if not version or not isCompatibleVersion(version) then
+  if((not version) and (err ~= nil)) then
+    return false, err
+  elseif((not version) or (not isCompatibleVersion(version))) then
     local err = i18n("prefs.incompatible_influxdb_version",
       {required=MIN_INFLUXDB_SUPPORTED_VERSION, found=version})
 

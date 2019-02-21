@@ -2339,6 +2339,7 @@ local lang = {
     ["ingress_vrf_id"] = "Ingress VRF Id",
     ["interfaces_timeseries"] = "Interfaces Timeseries",
     ["internal_log"] = "Internal Log",
+    ["is_influxdb_running"] = "Is InfluxDB running?",
     ["l2_devices_timeseries"] = "Devices Timeseries",
     ["ldap_authentication"] = "LDAP Authentication",
     ["ldap_server_address_description"] = "IP address and port of LDAP server (e.g. ldaps://localhost:636). Default: \"ldap://localhost:389\".",
