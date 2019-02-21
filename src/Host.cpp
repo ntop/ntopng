@@ -523,6 +523,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
 
   lua_push_str_table_entry(vm, "ip", (ipaddr = printMask(ip_buf, sizeof(ip_buf))));
   lua_push_uint64_table_entry(vm, "ipkey", ip.key());
+  lua_push_str_table_entry(vm, "idkey", get_idkey(buf_id, sizeof(buf_id)));
   lua_push_bool_table_entry(vm, "localhost", isLocalHost());
   lua_push_uint64_table_entry(vm, "vlan", vlan_id);
 
@@ -1337,4 +1338,19 @@ void Host::deleteHostData() {
   m.unlock(__FILE__, __LINE__);
   host_label_set = false;
   first_seen = last_seen;
+}
+
+/* *************************************** */
+
+/* TODO merge with get_hostkey after migrating alerts and other stuff */
+char* Host::get_idkey(char *buf, size_t bufsize) {
+  char *k;
+  Mac *cur_mac = getMac(); /* Cache macs as they can be swapped/updated */
+
+  if(isBroadcastDomainHost() && cur_mac)
+    k = cur_mac->print(buf, bufsize);
+  else
+    k = get_hostkey(buf, bufsize, true /* force VLAN */);
+
+  return(k);
 }

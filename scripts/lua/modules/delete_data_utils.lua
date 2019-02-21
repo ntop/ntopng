@@ -59,6 +59,7 @@ end
 
 -- ################################################################
 
+-- TODO delete HOST_V4_BY_MAC_SERIALIZED_KEY and HOST_V6_BY_MAC_SERIALIZED_KEY as well
 local function delete_host_redis_keys(interface_id, host_info)
    local status = "OK"
    local hostkey = hostinfo2hostkey(host_info, nil, true)

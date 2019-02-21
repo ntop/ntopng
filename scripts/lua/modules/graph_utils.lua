@@ -340,6 +340,12 @@ function printSeries(options, tags, start_time, base_url, params)
    local needs_separator = false
    local separator_label = nil
 
+   -- TODO remove after proper migration of flows to the new schema
+   if params.host then
+      tags = table.clone(tags)
+      tags.host = params.fixme_host
+   end
+
    for _, serie in ipairs(series) do
       if (have_nedge and serie.nedge_exclude) or (not have_nedge and serie.nedge_only) then
          goto continue

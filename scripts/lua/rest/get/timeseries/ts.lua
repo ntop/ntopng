@@ -41,6 +41,11 @@ tstart = tonumber(tstart) or (os.time() - 3600)
 tend = tonumber(tend) or os.time()
 tags = tsQueryToTags(tags)
 
+if _GET["host"] then
+   -- TODO remove after proper migration of flows to the new schema
+   tags.host = _GET["host"]
+end
+
 local driver = ts_utils.getQueryDriver()
 local latest_tstamp = driver:getLatestTimestamp(tags.ifid or -1)
 

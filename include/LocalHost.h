@@ -38,6 +38,12 @@ class LocalHost : public Host {
   void initialize();
   void freeLocalHostData();
   virtual void deleteHostData();
+
+  char * getMacBasedSerializationKey(char *redis_key, size_t size);
+  char * getIpBasedSerializationKey(char *redis_key, size_t size);
+  bool deserialize();
+  bool deserializeFromRedisKey(char *key);
+
  public:
   LocalHost(NetworkInterface *_iface, Mac *_mac, u_int16_t _vlanId, IpAddress *_ip);
   LocalHost(NetworkInterface *_iface, char *ipAddress, u_int16_t _vlanId);
@@ -49,7 +55,6 @@ class LocalHost : public Host {
   virtual bool isSystemHost() const            { return(systemHost);        };
 
   virtual void  serialize2redis();
-  bool deserialize(char *json_str, char *key);
 
   virtual NetworkStats* getNetworkStats(int16_t networkId){ return(iface->getNetworkStats(networkId));   };
   virtual u_int32_t getActiveHTTPHosts()             { return(getHTTPstats() ? getHTTPstats()->get_num_virtual_hosts() : 0); };
@@ -59,6 +64,7 @@ class LocalHost : public Host {
   virtual bool dropAllTraffic()  { return(drop_all_host_traffic); };
   virtual void inlineSetOS(const char * const _os);
   virtual void updateHostTrafficPolicy(char *key);
+  virtual char * getSerializationKey(char *redis_key, size_t size);
 
   virtual void incICMP(u_int8_t icmp_type, u_int8_t icmp_code, bool sent, Host *peer) { stats->incICMP(icmp_type, icmp_code, sent, peer); };
   virtual void incNumDNSQueriesSent(u_int16_t query_type) { stats->incNumDNSQueriesSent(query_type); };

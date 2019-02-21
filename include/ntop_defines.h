@@ -207,6 +207,8 @@
 #define HOST_LABEL_NAMES        "ntopng.host_labels"
 #define HOST_SERIALIZED_KEY     "ntopng.serialized_hosts.ifid_%u__%s@%d"
 #define MAC_SERIALIZED_KEY      "ntopng.serialized_macs.ifid_%u__%s"
+#define HOST_V4_BY_MAC_SERIALIZED_KEY "ntopng.serialized_hostsmac.v4.ifid_%u__%s"
+#define HOST_V6_BY_MAC_SERIALIZED_KEY "ntopng.serialized_hostsmac.v6.ifid_%u__%s"
 #define HOST_POOL_SERIALIZED_KEY "ntopng.serialized_host_pools.ifid_%u"
 #define NTOPNG_PREFS_PREFIX     "ntopng.prefs"
 #define NTOPNG_CACHE_PREFIX     "ntopng.cache"

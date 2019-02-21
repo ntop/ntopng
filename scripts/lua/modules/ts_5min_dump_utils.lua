@@ -273,7 +273,7 @@ function ts_dump.run_5min_dump(_ifname, ifstats, config, when, time_threshold, s
           local instant = host_point.instant
 
           if instant >= min_instant then
-            ts_dump.host_update_rrd(instant, hostname, host_point, ifstats, verbose, config)
+            ts_dump.host_update_rrd(instant, host_ts.idkey, host_point, ifstats, verbose, config)
           end
         end
       end
