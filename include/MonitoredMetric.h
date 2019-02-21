@@ -72,7 +72,7 @@ public:
   
   inline void setInitialValue(METRICTYPE v) {
     reset();
-    value = v;
+    last_value = value = v;
   }
 
   inline float inc(METRICTYPE v) {
