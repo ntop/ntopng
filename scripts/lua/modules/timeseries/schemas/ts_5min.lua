@@ -1,5 +1,5 @@
 --
--- (C) 2018-19 - ntop.org
+-- (C) 2018 - ntop.org
 --
 
 local ts_utils = require "ts_utils_core"
@@ -215,11 +215,3 @@ schema:addTag("ifid")
 
 schema = ts_utils.newSchema("local_receivers", {step=300})
 schema:addTag("ifid")
-
--- ##############################################
-
-if(ntop.exists("scripts/lua/modules/timeseries/schemas/ts_5min_custom.lua")) then
-   package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/schemas/?.lua;" .. package.path
-   local lib = require "ts_5min_custom"
-   lib.addCustomSeries()
-end

@@ -43,11 +43,3 @@ schema:addTag("ifid")
 schema:addTag("host")
 schema:addMetric("as_client")
 schema:addMetric("as_server")
-
--- ##############################################
-
-if(ntop.exists("scripts/lua/modules/timeseries/schemas/ts_hour_custom.lua")) then
-   package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/schemas/?.lua;" .. package.path
-   local lib = require "ts_hour_custom"
-   lib.addCustomSeries()
-end
