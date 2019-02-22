@@ -1852,7 +1852,9 @@ local selected_epoch = _GET["epoch"] or ""
 
 local ts_key
 
-if host then
+if _GET["host_idkey"] then
+   ts_key = _GET["host_idkey"]
+elseif host then
    ts_key = host["idkey"]
 else
    ts_key = host_key
@@ -1873,7 +1875,7 @@ drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
    top_categories = "top:host:ndpi_categories",
    l4_protocols = "host:l4protos",
    show_historical = true,
-   fixme_host = ts_key, -- TODO remove after proper migration of flows to the new schema
+   host_idkey = ts_key,
    timeseries = {
       {schema="host:traffic",                label=i18n("traffic")},
       {schema="host:flows",                  label=i18n("graphs.active_flows")},

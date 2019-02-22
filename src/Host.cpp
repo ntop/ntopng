@@ -1350,7 +1350,7 @@ char* Host::get_idkey(char *buf, size_t bufsize) {
   if(isBroadcastDomainHost() && cur_mac)
     k = cur_mac->print(buf, bufsize);
   else
-    k = get_hostkey(buf, bufsize, true /* force VLAN */);
+    k = get_hostkey(buf, bufsize);
 
   return(k);
 }

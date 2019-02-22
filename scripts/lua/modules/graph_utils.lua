@@ -340,10 +340,10 @@ function printSeries(options, tags, start_time, base_url, params)
    local needs_separator = false
    local separator_label = nil
 
-   -- TODO remove after proper migration of flows to the new schema
-   if params.host then
+   if params.host_idkey then
+      -- this can contain a MAC address for local broadcast domain hosts
       tags = table.clone(tags)
-      tags.host = params.host
+      tags.host = params.host_idkey
    end
 
    for _, serie in ipairs(series) do
@@ -588,6 +588,12 @@ print[[
       end
    end
 
+   if options.host_idkey then
+      -- this can contain a MAC address for local broadcast domain hosts
+      tags = table.clone(tags)
+      tags.host = options.host_idkey
+   end
+
    local data = ts_utils.query(schema, tags, start_time, end_time)
 
    if(data) then
@@ -643,7 +649,7 @@ local page_params = {
    ts_schema = schema,
    zoom = zoomLevel or '',
    epoch = selectedEpoch or '',
-   host = options.fixme_host,
+   host_idkey = options.host_idkey,
 }
 
 if(options.timeseries) then

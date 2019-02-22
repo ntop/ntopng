@@ -939,6 +939,7 @@ local known_parameters = {
    ["host"]                    = validateHost,                  -- an IPv4 (optional @vlan), IPv6 (optional @vlan), or MAC address
    ["versus_host"]             = validateHost,                  -- an host for comparison
    ["mac"]                     = validateMac,                   -- a MAC address
+   ["host_idkey"]              = validateHost,                  -- a MAC or IP
    ["peer1"]                   = validateHost,                  -- a Peer in a connection
    ["peer2"]                   = validateHost,                  -- another Peer in a connection
    ["origin"]                  = validateHost,                  -- the source of the alert

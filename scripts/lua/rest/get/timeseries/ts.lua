@@ -41,9 +41,9 @@ tstart = tonumber(tstart) or (os.time() - 3600)
 tend = tonumber(tend) or os.time()
 tags = tsQueryToTags(tags)
 
-if _GET["host"] then
-   -- TODO remove after proper migration of flows to the new schema
-   tags.host = _GET["host"]
+if _GET["host_idkey"] then
+  -- this can contain a MAC address for local broadcast domain hosts
+  tags.host = _GET["host_idkey"]
 end
 
 local driver = ts_utils.getQueryDriver()
