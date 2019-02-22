@@ -85,6 +85,7 @@ class Host : public GenericHashEntry {
   char* printMask(char *str, u_int str_len) { return ip.printMask(str, str_len, isLocalHost()); };
   void freeHostData();
   virtual void deleteHostData();
+  char* get_mac_based_tskey(Mac *mac, char *buf, size_t bufsize);
  public:
   Host(NetworkInterface *_iface, char *ipAddress, u_int16_t _vlanId);
   Host(NetworkInterface *_iface, Mac *_mac, u_int16_t _vlanId, IpAddress *_ip);

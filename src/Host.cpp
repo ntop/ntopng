@@ -1342,6 +1342,17 @@ void Host::deleteHostData() {
 
 /* *************************************** */
 
+char* Host::get_mac_based_tskey(Mac *mac, char *buf, size_t bufsize) {
+  char *k = mac->print(buf, bufsize);
+
+  /* NOTE: it is important to differentiate between v4 and v6 for macs */
+  strncat(buf, get_ip()->isIPv4() ? "_v4" : "_v6", bufsize);
+
+  return(k);
+}
+
+/* *************************************** */
+
 /* TODO merge with get_hostkey after migrating alerts and other stuff */
 char* Host::get_tskey(char *buf, size_t bufsize) {
   char *k;
@@ -1349,10 +1360,7 @@ char* Host::get_tskey(char *buf, size_t bufsize) {
 
   if(cur_mac && isBroadcastDomainHost() &&
       ntop->getPrefs()->serialize_local_broadcast_hosts_as_macs()) {
-    k = cur_mac->print(buf, bufsize);
-
-    /* NOTE: it is important to differentiate between v4 and v6 for macs */
-    strncat(buf, get_ip()->isIPv4() ? "v4" : "v6", bufsize);
+    k = get_mac_based_tskey(cur_mac, buf, bufsize);
   } else
     k = get_hostkey(buf, bufsize);
 

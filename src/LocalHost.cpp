@@ -319,12 +319,12 @@ void LocalHost::deleteHostData() {
 
 /* *************************************** */
 
-char * LocalHost::getMacBasedSerializationKey(char *redis_key, size_t size) {
+char * LocalHost::getMacBasedSerializationKey(Mac *mac, char *redis_key, size_t size) {
   char buf[CONST_MAX_LEN_REDIS_KEY];
-  Mac *mac = getMac();
+  
 
   snprintf(redis_key, size, HOST_BY_MAC_SERIALIZED_KEY,
-      iface->get_id(), mac ? mac->print(buf, sizeof(buf)) : get_tskey(buf, sizeof(buf)));
+      iface->get_id(), get_mac_based_tskey(mac, buf, sizeof(buf)));
 
   return redis_key;
 }
@@ -342,9 +342,11 @@ char * LocalHost::getIpBasedSerializationKey(char *redis_key, size_t size) {
 /* *************************************** */
 
 char* LocalHost::getSerializationKey(char *redis_key, size_t size) {
-  if(isBroadcastDomainHost() && getMac() &&
+  Mac *mac = getMac();
+
+  if(isBroadcastDomainHost() && mac &&
       ntop->getPrefs()->serialize_local_broadcast_hosts_as_macs())
-    return getMacBasedSerializationKey(redis_key, size);
+    return getMacBasedSerializationKey(mac, redis_key, size);
 
   return(getIpBasedSerializationKey(redis_key, size));
 }
@@ -353,10 +355,11 @@ char* LocalHost::getSerializationKey(char *redis_key, size_t size) {
 
 bool LocalHost::deserialize() {
   char redis_key[CONST_MAX_LEN_REDIS_KEY], *k = NULL;
+  Mac *mac = getMac();
 
   /* First try to deserialize with the mac based key */
-  if(getMac() && ntop->getPrefs()->serialize_local_broadcast_hosts_as_macs()) {
-    k = getMacBasedSerializationKey(redis_key, sizeof(redis_key));
+  if(mac && ntop->getPrefs()->serialize_local_broadcast_hosts_as_macs()) {
+    k = getMacBasedSerializationKey(mac, redis_key, sizeof(redis_key));
 
     if(deserializeFromRedisKey(k)) {
       setBroadcastDomainHost();

@@ -39,7 +39,7 @@ class LocalHost : public Host {
   void freeLocalHostData();
   virtual void deleteHostData();
 
-  char * getMacBasedSerializationKey(char *redis_key, size_t size);
+  char * getMacBasedSerializationKey(Mac *mac, char *redis_key, size_t size);
   char * getIpBasedSerializationKey(char *redis_key, size_t size);
   bool deserialize();
   bool deserializeFromRedisKey(char *key);
