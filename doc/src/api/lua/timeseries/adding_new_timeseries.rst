@@ -1,23 +1,45 @@
-Adding New Timeseries
-#####################
+Custom Timeseries
+#################
 
-To add a new timeseries it is necessary to define its schema.
+Adding Custom Timeseries
+========================
+
+To add a custom timeseries it is necessary to define its schema.
 Schemas are defined in lua files under
-:code:`scripts/lua/modules/timeseries/schemas/`. As in general
-timeseries points are added at regular intervals of time, lua files
-are named as :code:`ts_5min.lua`, :code:`ts_min.lua` etc to keep
-schemas ordered. The programmer will add a schema for a timeseries which
-receives a new point every 5 minutes in file
-:code:`ts_5min.lua`. Similarly, a timeseries which receives a point
-every minute will have its schema defined in file :code:`ts_min.lua`.
+:code:`scripts/lua/modules/timeseries/schemas/`.
 
 Once the schema is defined, it is necessary to :code:`append` points to
 the timeseries. The function used to append points to the timeseries
 is the :code:`ts_utils.append` documented later in this section of the
 documentation.
 
+ntopng handles custom timeseries with updates every:
+
+  - 1 minute
+  - 5 minutes
+
+This means that custom timeseries with a point every minute and a
+point every minutes can be generated, respectively.
+
+ntopng looks for custom timeseries the following files:
+
+  - :code:`ts_5min.user.lua` for timeseries with 1-minute updates
+  - :code:`ts_min.user.lua` for timeseries with 5-minute updates
+
+If file :code:`ts_5min.user.lua` does not exist, ntopng will skip the
+creation of custom timeseries with 5-minute updates. Similarly, if
+file :code:`ts_min.user.lua` does not exist, ntopng will skip the
+creation of custom timeseries with 1-minute updates.
+
+Sample files :code:`ts_5min.user.lua.sample` and :code:`ts_min.user.lua.sample` are
+created automatically upon ntopng installation with some example
+contents. Those files are ignored by ntopng. However, it is safe to
+copy them to :code:`ts_5min.user.lua` and
+:code:`ts_min.user.lua` and modify the copies when it is necessary to
+add custom timeseries.
+
 Example
-=======
+-------
 
 Let's see how to add a timeseries that counts the number of anomalous
 flows of a given host. An host can have anomalous flows both as client
@@ -71,3 +93,13 @@ append. Also the names of tags and metrics are the same. The table
 from there.
 
 From that point on, the timeseries will be consistently updated by ntopng.
+
+Locating Stored Custom Timeseries
+=================================
+
+TODO
+
+Charting Custom Timeseries
+==========================
+
+TODO
