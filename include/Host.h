@@ -197,7 +197,7 @@ class Host : public GenericHashEntry {
   inline char* get_string_key(char *buf, u_int buf_len) { return(ip.print(buf, buf_len)); };
   char* get_hostkey(char *buf, u_int buf_len, bool force_vlan=false);
   virtual char* getSerializationKey(char *redis_key, size_t size) { if(size) redis_key[0] = '\0'; return(redis_key); };
-  char* get_idkey(char *buf, size_t bufsize);
+  char* get_tskey(char *buf, size_t bufsize);
   bool idle();
   virtual void incICMP(u_int8_t icmp_type, u_int8_t icmp_code, bool sent, Host *peer) {};
   virtual void lua(lua_State* vm, AddressTree * ptree, bool host_details,

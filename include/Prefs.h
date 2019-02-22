@@ -52,7 +52,8 @@ class Prefs {
     enable_users_login, disable_localhost_login, online_license_check,
     service_license_check, enable_sql_log, enable_access_log, log_to_file,
     flow_aggregation_enabled,
-    enable_mac_ndpi_stats;
+    enable_mac_ndpi_stats,
+    enable_serialize_local_broadcast_hosts_as_macs;
 
   u_int32_t auth_session_duration;
   bool auth_session_midnight_expiration;
@@ -339,6 +340,7 @@ class Prefs {
   inline bool isCaptivePortalEnabled()                   { return(enable_captive_portal && !enable_vlan_trunk_bridge); }
   inline bool isInformativeCaptivePortalEnabled()        { return(enable_informative_captive_portal && !enable_vlan_trunk_bridge); }
   inline bool isMacBasedCaptivePortal()                  { return(mac_based_captive_portal);  }
+  inline bool serialize_local_broadcast_hosts_as_macs()  { return(enable_serialize_local_broadcast_hosts_as_macs); }
   const char * const getCaptivePortalUrl();
 
   inline u_int8_t  getDefaultl7Policy()                  { return(default_l7policy);  }

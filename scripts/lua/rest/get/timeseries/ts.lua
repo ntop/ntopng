@@ -41,9 +41,9 @@ tstart = tonumber(tstart) or (os.time() - 3600)
 tend = tonumber(tend) or os.time()
 tags = tsQueryToTags(tags)
 
-if _GET["host_idkey"] then
+if _GET["tskey"] then
   -- this can contain a MAC address for local broadcast domain hosts
-  tags.host = _GET["host_idkey"]
+  tags.host = _GET["tskey"]
 end
 
 local driver = ts_utils.getQueryDriver()

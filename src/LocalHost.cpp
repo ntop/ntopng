@@ -290,8 +290,7 @@ void LocalHost::tsLua(lua_State* vm) {
 
   stats->tsLua(vm);
 
-  // TODO remove after proper alerts migration to new key
-  lua_push_str_table_entry(vm, "idkey", get_idkey(buf_id, sizeof(buf_id)));
+  lua_push_str_table_entry(vm, "tskey", get_tskey(buf_id, sizeof(buf_id)));
 
   host_id = get_hostkey(buf_id, sizeof(buf_id));
   lua_pushstring(vm, host_id);
@@ -324,9 +323,8 @@ char * LocalHost::getMacBasedSerializationKey(char *redis_key, size_t size) {
   char buf[CONST_MAX_LEN_REDIS_KEY];
   Mac *mac = getMac();
 
-  snprintf(redis_key, size,
-      get_ip()->isIPv6() ? HOST_V6_BY_MAC_SERIALIZED_KEY : HOST_V4_BY_MAC_SERIALIZED_KEY,
-      iface->get_id(), mac ? mac->print(buf, sizeof(buf)) : get_idkey(buf, sizeof(buf)));
+  snprintf(redis_key, size, HOST_BY_MAC_SERIALIZED_KEY,
+      iface->get_id(), mac ? mac->print(buf, sizeof(buf)) : get_tskey(buf, sizeof(buf)));
 
   return redis_key;
 }
@@ -344,7 +342,8 @@ char * LocalHost::getIpBasedSerializationKey(char *redis_key, size_t size) {
 /* *************************************** */
 
 char* LocalHost::getSerializationKey(char *redis_key, size_t size) {
-  if(isBroadcastDomainHost() && getMac())
+  if(isBroadcastDomainHost() && getMac() &&
+      ntop->getPrefs()->serialize_local_broadcast_hosts_as_macs())
     return getMacBasedSerializationKey(redis_key, size);
 
   return(getIpBasedSerializationKey(redis_key, size));
@@ -356,7 +355,7 @@ bool LocalHost::deserialize() {
   char redis_key[CONST_MAX_LEN_REDIS_KEY], *k = NULL;
 
   /* First try to deserialize with the mac based key */
-  if(getMac()) {
+  if(getMac() && ntop->getPrefs()->serialize_local_broadcast_hosts_as_macs()) {
     k = getMacBasedSerializationKey(redis_key, sizeof(redis_key));
 
     if(deserializeFromRedisKey(k)) {

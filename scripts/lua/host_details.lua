@@ -1850,14 +1850,14 @@ end
 local schema = _GET["ts_schema"] or "host:traffic"
 local selected_epoch = _GET["epoch"] or ""
 
-local ts_key
+local tskey
 
-if _GET["host_idkey"] then
-   ts_key = _GET["host_idkey"]
+if _GET["tskey"] then
+   tskey = _GET["tskey"]
 elseif host then
-   ts_key = host["idkey"]
+   tskey = host["tskey"]
 else
-   ts_key = host_key
+   tskey = host_key
 end
 
 local tags = {
@@ -1875,7 +1875,7 @@ drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
    top_categories = "top:host:ndpi_categories",
    l4_protocols = "host:l4protos",
    show_historical = true,
-   host_idkey = ts_key,
+   tskey = tskey,
    timeseries = {
       {schema="host:traffic",                label=i18n("traffic")},
       {schema="host:flows",                  label=i18n("graphs.active_flows")},

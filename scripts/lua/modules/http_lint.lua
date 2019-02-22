@@ -939,7 +939,7 @@ local known_parameters = {
    ["host"]                    = validateHost,                  -- an IPv4 (optional @vlan), IPv6 (optional @vlan), or MAC address
    ["versus_host"]             = validateHost,                  -- an host for comparison
    ["mac"]                     = validateMac,                   -- a MAC address
-   ["host_idkey"]              = validateHost,                  -- a MAC or IP
+   ["tskey"]                   = validateSingleWord,            -- host identifier for timeseries
    ["peer1"]                   = validateHost,                  -- a Peer in a connection
    ["peer2"]                   = validateHost,                  -- another Peer in a connection
    ["origin"]                  = validateHost,                  -- the source of the alert
@@ -1222,6 +1222,7 @@ local known_parameters = {
    ["bridging_policy_target_type"]                 = validateChoiceInline({"per_protocol", "per_category", "both"}),
    ["timeseries_driver"]                           = validateChoiceInline({"rrd", "influxdb"}),
    ["ts_high_resolution"]                          = validateNumber,
+   ["serialize_local_broadcast_hosts_as_macs"]     = validateBool,
 
    -- Other
    ["flush_alerts_data"]                           = validateEmpty,
