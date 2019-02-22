@@ -92,7 +92,6 @@ function ts_utils.loadSchemas()
   require("ts_minute")
   require("ts_5min")
   require("ts_hour")
-  require("ts_custom")
 end
 
 function ts_utils.getLoadedSchemas()
