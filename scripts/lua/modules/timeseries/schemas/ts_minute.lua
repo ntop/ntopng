@@ -141,3 +141,11 @@ schema:addMetric("packets")
 schema = ts_utils.newSchema("iface:nfq_pct", {step=60, rrd_fname="num_nfq_pct", metrics_type=ts_utils.metrics.gauge})
 schema:addTag("ifid")
 schema:addMetric("num_nfq_pct")
+
+-- ##############################################
+
+if(ntop.exists("scripts/lua/modules/timeseries/schemas/ts_minute_custom.lua")) then
+   package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/schemas/?.lua;" .. package.path
+   local lib = require "ts_minute_custom"
+   lib.addCustomSeries()
+end
