@@ -9,6 +9,12 @@ local top_talkers_utils = require "top_talkers_utils"
 local ts_utils = require("ts_utils_core")
 require("ts_minute")
 
+local ts_custom
+if ntop.exists(dirs.installdir .. "/scripts/lua/modules/timeseries/custom/ts_minute_custom.lua") then
+   package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/custom/?.lua;" .. package.path
+   ts_custom = require "ts_minute_custom"
+end
+
 local ts_dump = {}
 
 -- ########################################################
@@ -146,6 +152,11 @@ function ts_dump.run_min_dump(_ifname, ifstats, iface_ts, config, when, verbose)
     -- TCP Flags
     if config.tcp_flags_rrd_creation == "1" then
       ts_dump.iface_update_tcp_flags(instant, iface_point, verbose)
+    end
+
+    -- create custom rrds
+    if ts_custom and ts_custom.iface_update_stats then
+       ts_custom.iface_update_stats(instant, _ifname, iface_point, verbose)
     end
   end
 

@@ -6,6 +6,12 @@ local callback_utils = require "callback_utils"
 local ts_utils = require "ts_utils_core"
 require "ts_5min"
 
+local ts_custom
+if ntop.exists(dirs.installdir .. "/scripts/lua/modules/timeseries/custom/ts_5min_custom.lua") then
+   package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/custom/?.lua;" .. package.path
+   ts_custom = require "ts_5min_custom"
+end
+
 local dirs = ntop.getDirs()
 local ts_dump = {}
 
@@ -196,6 +202,11 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
       -- L2 host
       --io.write("Discarding "..k.."@"..hostname.."\n")
     end
+  end
+
+  -- create custom rrds
+  if ts_custom and ts_custom.host_update_stats then
+     ts_custom.host_update_stats(when, hostname, host, ifstats, verbose)
   end
 end
 
