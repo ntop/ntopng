@@ -93,12 +93,12 @@ above. Schemas are defined in lua files under
 :code:`scripts/lua/modules/timeseries/schemas/`. As in general
 timeseries points are added at regular intervals of time, lua files
 are named as :code:`ts_5min.lua`, :code:`ts_min.lua` etc to keep
-schemas orderd. The programmer will add a schema for a timeseries which
+schemas ordered. The programmer will add a schema for a timeseries which
 receives a new point every 5 minutes in file
 :code:`ts_5min.ua`. Similarly, a timeseries which receives a point
 every minute will have its schema defined in file :code:`ts_min.lua`.
 
-Once the schema is defined, it is necessary to :code:`append` poinst to
+Once the schema is defined, it is necessary to :code:`append` points to
 the timeseries. The function used to append points to the timeseries
 is the :code:`ts_utils.append` documented later in this section of the
 documentation.
