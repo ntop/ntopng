@@ -4,17 +4,12 @@ Custom Timeseries
 Adding Custom Timeseries
 ========================
 
-To add a custom timeseries it is necessary to define its schema.
-Schemas are defined in lua files under
-:code:`scripts/lua/modules/timeseries/schemas/`.
+ntopng supports the creation of custom timeseries for:
 
-Once the schema is defined, it is necessary to :code:`append` points to
-the timeseries. The function used to append points to the timeseries
-is the :code:`ts_utils.append` documented later in this section of the
-documentation.
+  - Local hosts
+  - Interfaces
 
-ntopng supports the creation of custom timeseries for local hosts
-only. Neither remote hosts nor flows can be used when creating custom
+Neither remote hosts nor flows can be used when creating custom
 timeseries.
 
 Custom timeseries can be created out of the following host metrics:
@@ -32,7 +27,7 @@ An always-updated list of host metrics can be determined by inspecting
 this file:
 https://github.com/ntop/ntopng/blob/dev/src/HostTimeseriesPoint.cpp
 
-Metrics are available in an handy lua table such as the one
+Host metrics are available in an handy lua table such as the one
 exemplified below
 
 .. code-block:: lua
@@ -63,6 +58,9 @@ exemplified below
 The table also contain a field :code:`instant` that represents the
 time at which metrics have been sampled.
 
+The table above can be accessed and its contents can be read/modified
+to prepare timeseries points.
+
 ntopng handles custom timeseries with updates every:
 
   - 1 minute
@@ -71,21 +69,40 @@ ntopng handles custom timeseries with updates every:
 This means that custom timeseries with a point every minute and a
 point every minutes can be generated, respectively.
 
-ntopng looks for custom timeseries the following files:
+In the remaining part of this section it is shown how to
+programmatically add custom timeseries.
+
+Schema
+------
+
+To add a custom timeseries it is necessary to define its schema.
+Schemas are defined in lua files under
+:code:`scripts/lua/modules/timeseries/schemas/`.
+
+ntopng looks for custom timeseries schemas in the following lua files under
+:code:`scripts/lua/modules/timeseries/schemas/`:
 
   - :code:`ts_5min_custom.lua` for timeseries with 1-minute updates
-  - :code:`ts_min_custom.lua` for timeseries with 5-minute updates
+  - :code:`ts_minute_custom.lua` for timeseries with 5-minute updates
 
 If file :code:`ts_5min_custom.lua` does not exist, ntopng will skip the
 creation of custom timeseries with 5-minute updates. Similarly, if
-file :code:`ts_min_custom.lua` does not exist, ntopng will skip the
+file :code:`ts_minute_custom.lua` does not exist, ntopng will skip the
 creation of custom timeseries with 1-minute updates.
 
-Sample files :code:`ts_5min_custom.lua.sample` and :code:`ts_min_custom.lua.sample` are
+Appending Timeseries Points
+---------------------------
+
+Once the schema is defined, it is necessary to :code:`append` points to
+the timeseries. The function used to append points to the timeseries
+is the :code:`ts_utils.append` documented later in this section of the
+documentation.
+
+Sample files :code:`ts_5min_custom.lua.sample` and :code:`ts_minute_custom.lua.sample` are
 created automatically upon ntopng installation with some example
 contents. Those files are ignored by ntopng. However, it is safe to
 copy them to :code:`ts_5min_custom.lua` and
-:code:`ts_min_custom.lua` and modify the copies when it is necessary to
+:code:`ts_minute_custom.lua` and modify the copies when it is necessary to
 add custom timeseries.
 
 Example
