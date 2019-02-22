@@ -8,7 +8,7 @@ local lib = {}
 
 function lib.addCustomSeries()
    --	 
-   -- This is an example of a minute (60 sec) counter
+   -- This is an example of a minute (60 sec) gauge
    --
    -- IMPORTANT: add in this file only counters NOT releated to hosts that instead will go in other files
    --
