@@ -13,6 +13,56 @@ the timeseries. The function used to append points to the timeseries
 is the :code:`ts_utils.append` documented later in this section of the
 documentation.
 
+ntopng supports the creation of custom timeseries for local hosts
+only. Neither remote hosts nor flows can be used when creating custom
+timeseries.
+
+Custom timeseries can be created out of the following host metrics:
+
+  - Layer-7 applications bytes sent and received
+  - Layer-4 TCP, UDP, ICMP bytes sent and received
+  - Total bytes sent and received
+  - Active flows as client and as server
+  - Anomalous flows as client and as server
+  - Total alerts
+  - Number of hosts contacted as client
+  - Number of hosts contacts as server
+
+An always-updated list of host metrics can be determined by inspecting
+this file:
+https://github.com/ntop/ntopng/blob/dev/src/HostTimeseriesPoint.cpp
+
+Metrics are available in an handy lua table such as the one
+exemplified below
+
+.. code-block:: lua
+
+   ndpi_categories table
+   ndpi_categories.Cloud number 2880
+   anomalous_flows.as_server number 0
+   active_flows.as_client number 0
+   bytes.rcvd number 2880
+   icmp.bytes.rcvd number 0
+   tcp.bytes.rcvd number 0
+   total_alerts number 0
+   udp.bytes.rcvd number 2880
+   icmp.bytes.sent number 0
+   other_ip.bytes.rcvd number 0
+   other_ip.bytes.sent number 0
+   anomalous_flows.as_client number 0
+   contacts.as_server number 1
+   bytes.sent number 0
+   instant number 1550836500
+   tcp.bytes.sent number 0
+   udp.bytes.sent number 0
+   contacts.as_client number 0
+   ndpi table
+   ndpi.Dropbox string 0|2880
+   active_flows.as_server number 1
+
+The table also contain a field :code:`instant` that represents the
+time at which metrics have been sampled.
+
 ntopng handles custom timeseries with updates every:
 
   - 1 minute
@@ -23,19 +73,19 @@ point every minutes can be generated, respectively.
 
 ntopng looks for custom timeseries the following files:
 
-  - :code:`ts_5min.user.lua` for timeseries with 1-minute updates
-  - :code:`ts_min.user.lua` for timeseries with 5-minute updates
+  - :code:`ts_5min_custom.lua` for timeseries with 1-minute updates
+  - :code:`ts_min_custom.lua` for timeseries with 5-minute updates
 
-If file :code:`ts_5min.user.lua` does not exist, ntopng will skip the
+If file :code:`ts_5min_custom.lua` does not exist, ntopng will skip the
 creation of custom timeseries with 5-minute updates. Similarly, if
-file :code:`ts_min.user.lua` does not exist, ntopng will skip the
+file :code:`ts_min_custom.lua` does not exist, ntopng will skip the
 creation of custom timeseries with 1-minute updates.
 
-Sample files :code:`ts_5min.user.lua.sample` and :code:`ts_min.user.lua.sample` are
+Sample files :code:`ts_5min_custom.lua.sample` and :code:`ts_min_custom.lua.sample` are
 created automatically upon ntopng installation with some example
 contents. Those files are ignored by ntopng. However, it is safe to
-copy them to :code:`ts_5min.user.lua` and
-:code:`ts_min.user.lua` and modify the copies when it is necessary to
+copy them to :code:`ts_5min_custom.lua` and
+:code:`ts_min_custom.lua` and modify the copies when it is necessary to
 add custom timeseries.
 
 Example
@@ -103,3 +153,4 @@ Charting Custom Timeseries
 ==========================
 
 TODO
+
