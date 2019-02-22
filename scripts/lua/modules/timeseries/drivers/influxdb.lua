@@ -1224,7 +1224,7 @@ function driver:setup(ts_utils)
     ::continue::
   end
 
-  if #queries >= 0 then
+  if #queries > 0 then
     if not self:_multiQuery(queries) then
       traceError(TRACE_ERROR, TRACE_CONSOLE, "InfluxDB setup() failed")
       return false
