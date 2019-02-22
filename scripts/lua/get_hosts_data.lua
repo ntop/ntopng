@@ -240,7 +240,7 @@ for _key, _value in pairsByKeys(vals, funct) do
    icon = icon:gsub('"',"'")
    column_ip = column_ip .. icon
 
-   if((host ~= nil) and (host.ip ~= "0.0.0.0") and (not string.contains(host.ip, ":"))) then
+   if((host ~= nil) and (host.ip ~= "0.0.0.0")) then
       if(value.dhcpHost) then column_ip = column_ip .. "&nbsp;<i class='fa fa-flash fa-lg' title='DHCP Host'></i>" end
    end
 

@@ -1632,7 +1632,6 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 
     switch(ndpi_get_lower_proto(flow->get_detected_protocol())) {
     case NDPI_PROTOCOL_DHCP:
-      /* TODO case NDPI_PROTOCOL_DHCPV6: */
     {
       Mac *mac = (*srcHost)->getMac(), *payload_cli_mac;
 
@@ -1698,6 +1697,18 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
     }
     break;
 
+    case NDPI_PROTOCOL_DHCPV6:
+      {
+	Mac *src_mac = (*srcHost)->getMac();
+	Mac *dst_mac = (*dstHost)->getMac();
+
+	if(src_mac && dst_mac
+	   && (payload_len > 20)
+	   && dst_mac->isMulticast())
+	  src_mac->setDhcpHost();	
+      }
+      break;
+      
     case NDPI_PROTOCOL_NETBIOS:
       if(*srcHost) {
 	if(! (*srcHost)->is_label_set()) {
