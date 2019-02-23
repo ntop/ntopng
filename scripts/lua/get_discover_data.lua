@@ -128,7 +128,7 @@ for el_idx, el in pairs(discovered["devices"]) do
 
   local actual_manuf = manufacturer
 
-  if el["modelName"] then
+  if(el["modelName"] and (el["modelName"] ~= "")) then
     manufacturer = manufacturer .. " ["..el["modelName"].."]"
   end
   el.manufacturer = manufacturer
@@ -223,7 +223,7 @@ for idx, _ in pairsByValues(sorted, sOrder) do
     ..ternary(el["icon"], "&nbsp;" ..(el["icon"] or "").. "&nbsp;", "")
     ..ternary(el["ghost"], " <font color=red>" ..(discover.ghost_icon or "").. "</font>", "")
 
-  rec.column_mac = [[<a href="]] ..ntop.getHttpPrefix().. [[/lua/mac_details.lua?host=]] ..el["mac"].. [[">]] ..el["mac"].. [[</a>]]
+  rec.column_mac = [[<a href="]] ..ntop.getHttpPrefix().. [[/lua/mac_details.lua?host=]] ..el["mac"].. [[">]] ..get_symbolic_mac(el["mac"], true).. [[</a>]]
   rec.column_name = el.name
   rec.column_info = el.info
   rec.column_device = el["device_label"]

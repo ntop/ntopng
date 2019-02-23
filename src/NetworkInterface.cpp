@@ -1827,6 +1827,9 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 
     case NDPI_PROTOCOL_MDNS:
       flow->dissectMDNS(payload, payload_len);
+      
+      if(discovery && iph)
+	discovery->queueMDNSRespomse(iph->saddr, payload, payload_len);      
       break;
 
     default:

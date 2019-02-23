@@ -101,6 +101,32 @@ u_int16_t NetworkDiscovery::in_cksum(u_int8_t *buf, u_int16_t buf_len, u_int32_t
 
 /* ******************************* */
 
+ void NetworkDiscovery::queueMDNSRespomse(u_int32_t src_ip_nw_byte_order,
+					  u_char* mdnsreply, u_int mdnsreply_len) {
+   if(mdns_vm) {
+     m.lock(__FILE__, __LINE__);
+
+     /*
+       Trick to avoid locking all the time whenver there
+       is a MDNS response to decode, but we need to recheck
+      */
+     if(mdns_vm) {
+       char outbuf[1024], ipbuf[32];
+       
+       dissectMDNS(mdnsreply, mdnsreply_len, outbuf, sizeof(outbuf));
+       
+       if(outbuf[0] != '\0') {
+	 char *ip = Utils::intoaV4(ntohl(src_ip_nw_byte_order), ipbuf, sizeof(ipbuf));
+	   
+	 lua_push_str_table_entry(mdns_vm, ip, outbuf);
+       }
+     }
+     
+     m.unlock(__FILE__, __LINE__);
+   }
+ }
+
+ /* ******************************* */
 /*
    Code portions courtesy of Andrea Zerbinati <zeran23@gmail.com>
    and Luca Peretti <lucaperetti.lp@gmail.com>
@@ -134,6 +160,8 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
 
   lua_newtable(vm);
 
+  setMDNSvm(vm);
+  
   iface->getIPv4Address(&netp, &maskp);
 
   /* Purge existing packets */
@@ -190,8 +218,11 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
     dns_query_len += sizeof(struct ndpi_dns_packet_header);
   }
 
-  if(ntop->getGlobals()->isShutdown()) return;
-
+  if(ntop->getGlobals()->isShutdown()) {
+    setMDNSvm(NULL);
+    return;
+  }
+  
   netp = ntohl(netp), maskp = ntohl(maskp);
   first_ip = netp & maskp, last_ip = netp + (~maskp);
   first_ip++, last_ip--;
@@ -270,16 +301,8 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
 	socklen_t from_len = sizeof(from);
 	int len = recvfrom(mdns_sock, (char*)mdnsreply, sizeof(mdnsreply), 0, (struct sockaddr *)&from, &from_len);
 
-	if(len > 0) {
-	  char outbuf[1024];
-
-	  dissectMDNS(mdnsreply, len, outbuf, sizeof(outbuf));
-
-	  if(outbuf[0] != '\0')
-	    lua_push_str_table_entry(vm,
-				     Utils::intoaV4(ntohl(from.sin_addr.s_addr), ipbuf, sizeof(ipbuf)),
-				     outbuf);
-	}
+	if(len > 0)
+	  queueMDNSRespomse(from.sin_addr.s_addr, mdnsreply, len);
       }
 
       _usleep(1000); /* Avoid flooding */
@@ -329,22 +352,19 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
       if(select(max_sock + 1, &rset, NULL, NULL, &tv) > 0) {
 	struct sockaddr_in from;
 	socklen_t from_len = sizeof(from);
-	int len = recvfrom(mdns_sock, (char*)mdnsreply, sizeof(mdnsreply), 0, (struct sockaddr *)&from, &from_len);
-
-	if(len > 0) {
-	  char outbuf[1024];
-
-	  dissectMDNS(mdnsreply, len, outbuf, sizeof(outbuf));
-	  lua_push_str_table_entry(vm,
-				   Utils::intoaV4(ntohl(from.sin_addr.s_addr), ipbuf, sizeof(ipbuf)),
-				   outbuf);
-	}
+	int len = recvfrom(mdns_sock, (char*)mdnsreply, sizeof(mdnsreply),
+			   0, (struct sockaddr *)&from, &from_len);
+	
+	if(len > 0)
+	  queueMDNSRespomse(from.sin_addr.s_addr, mdnsreply, len);
       } else
 	break;
     }
 
     closesocket(mdns_sock);
   }
+
+  setMDNSvm(NULL);
 }
 
 /* ******************************* */
