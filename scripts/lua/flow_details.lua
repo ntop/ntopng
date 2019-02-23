@@ -32,6 +32,7 @@ local page_utils = require("page_utils")
 
 sendHTTPContentTypeHeader('text/html')
 
+
 page_utils.print_header(i18n("flow_details.flow_details"))
 
 warn_shown = 0
@@ -188,6 +189,8 @@ printMessageBanners(alert_banners)
 if not table.empty(alert_banners) then
    print("<br>")
 end
+
+print('<div style=\"display:none;\" id=\"flow_purged\" class=\"alert alert-danger\"><i class="fa fa-warning fa-lg"></i>&nbsp;'..i18n("flow_details.not_purged")..'</div>')
 
 throughput_type = getThroughputType()
 
@@ -760,6 +763,10 @@ print (ntop.getHttpPrefix())
 print [[/lua/flow_stats.lua',
 		    data: { ifid: "]] print(tostring(ifid)) print [[", flow_key: "]] print(flow_key) print [[" },
 		    success: function(content) {
+                        if(content == "{}") {
+                          var e = document.getElementById('flow_purged');
+                          e.style.display = "block";
+                        } else {
 			var rsp = jQuery.parseJSON(content);
 			$('#first_seen').html(rsp["seen.first"]);
 			$('#last_seen').html(rsp["seen.last"]);
@@ -821,7 +828,7 @@ print [[/lua/flow_stats.lua',
 			   $('#top_throughput').html(rsp["top_throughput_display"]);
 			} else {
 			   $('#throughput_trend').html("<i class=\"fa fa-minus\"></i>");
-			}]]
+			} }]]
 
       if(isThereSIP == 1) then
 	updatePrintSip()

@@ -75,6 +75,7 @@ end
 -- print(">>>") print(host_info["host"]) print("<<<")
 if(debug_hosts) then traceError(TRACE_DEBUG,TRACE_CONSOLE, i18n("host_details.trace_debug_host_info",{hostinfo=host_info["host"],vlan=host_vlan}).."\n") end
 
+
 local host = interface.getHostInfo(host_info["host"], host_vlan)
 
 local restoreFailed = false
@@ -183,6 +184,7 @@ else
       host["label"] = getHostAltName(host["ip"])
    end
 
+      print('<div style=\"display:none;\" id=\"host_purged\" class=\"alert alert-danger\"><i class="fa fa-warning fa-lg"></i>&nbsp;'..i18n("details.host_purged")..'</div>')
 print [[
 <div class="bs-docs-example">
             <nav class="navbar navbar-default" role="navigation">
@@ -1957,6 +1959,10 @@ if(page ~= "historical") and (host ~= nil) then
    		    data: { ifid: "]] print(ifId.."")  print('", '..hostinfo2json(host_info)) print [[ },
    		    /* error: function(content) { alert("]] print(i18n("mac_details.json_error_inactive", {product=info["product"]})) print[["); }, */
    		    success: function(content) {
+         if(content == "\"{}\"") {
+             var e = document.getElementById('host_purged');
+             e.style.display = "block";
+         } else {
    			var host = jQuery.parseJSON(content);
                         var http = host.http;
    			$('#first_seen').html(epoch2Seen(host["seen.first"]));
@@ -1983,7 +1989,7 @@ if(page ~= "historical") and (host ~= nil) then
    			$('#flows_as_server').html(addCommas(host["flows.as_server"]));
    			$('#low_goodput_as_server').html(addCommas(host["low_goodput_flows.as_server"]));
             $('#anomalous_flows_as_server').html(addCommas(host["anomalous_flows.as_server"]));
-   		  ]]
+   		  }]]
 
    if ntop.isnEdge() then
 print [[
