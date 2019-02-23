@@ -3019,7 +3019,7 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
 	  }
 
 	  i += 2;
-	  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "===>>> [%d] %s", i, &payload[i-12]);
+	  /*  ntop->getTrace()->traceEvent(TRACE_NORMAL, "===>>> [%d] %s", i, &payload[i-12]); */
 	  break;
 	}
       } else

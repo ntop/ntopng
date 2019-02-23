@@ -32,40 +32,41 @@ NetworkDiscovery::NetworkDiscovery(NetworkInterface *_iface) {
     ifname = iface->get_name();
 
 #if ! defined(__arm__)
-  if((pd = pcap_open_live(ifname, 128 /* snaplen */, 0 /* no promisc */, 5, errbuf)) == NULL) {
+  if((pd = pcap_open_live(ifname, 128 /* snaplen */, 0 /* no promisc */, 5, errbuf)) == NULL)
 #else
-  /* pcap_next can really block a lot if we do not activate immediate mode! See https://github.com/mfontanini/libtins/issues/180 */
-  if(((pd = pcap_create(ifname, errbuf)) == NULL) ||
-		(pcap_set_timeout(pd, 5) != 0) ||
-		(pcap_set_snaplen(pd, 128) != 0) ||
-		(pcap_set_immediate_mode(pd, 1) != 0) || /* enable immediate mode */
-		(pcap_activate(pd) != 0)) {
+    /* pcap_next can really block a lot if we do not activate immediate mode! See https://github.com/mfontanini/libtins/issues/180 */
+    if(((pd = pcap_create(ifname, errbuf)) == NULL) ||
+       (pcap_set_timeout(pd, 5) != 0) ||
+       (pcap_set_snaplen(pd, 128) != 0) ||
+       (pcap_set_immediate_mode(pd, 1) != 0) || /* enable immediate mode */
+       (pcap_activate(pd) != 0))
 #endif
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create pcap socket on %s [%d/%s]", ifname, errno, strerror(errno));
+      {
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create pcap socket on %s [%d/%s]", ifname, errno, strerror(errno));
 	udp_sock = -1;
 	throw("Unable to start network discovery");
-  } else {
-    const char* bpfFilter = "arp && arp[6:2] = 2";  // arp[x:y] - from byte 6 for 2 bytes (arp.opcode == 2 -> reply)
-    struct bpf_program fcode;
+      } else {
+      const char* bpfFilter = "arp && arp[6:2] = 2";  // arp[x:y] - from byte 6 for 2 bytes (arp.opcode == 2 -> reply)
+      struct bpf_program fcode;
 
-    /* Set ARP filter */
-    if(pcap_compile(pd, &fcode, bpfFilter, 1, 0xFFFFFF00) == 0)
-      pcap_setfilter(pd, &fcode);
-  }
+      /* Set ARP filter */
+      if(pcap_compile(pd, &fcode, bpfFilter, 1, 0xFFFFFF00) == 0)
+	pcap_setfilter(pd, &fcode);
+    }
 
   if ((udp_sock = socket(AF_INET, SOCK_DGRAM, 0)) != -1) {
-	  int rc;
+    int rc;
 
-	  errno = 0;
-	  rc = Utils::bindSockToDevice(udp_sock, AF_INET, ifname);
+    errno = 0;
+    rc = Utils::bindSockToDevice(udp_sock, AF_INET, ifname);
 
-	  if ((rc < 0) && (errno != 0)) {
-		  ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to bind socket to %s [%d/%s]",
-			  ifname, errno, strerror(errno));
-	  }
+    if ((rc < 0) && (errno != 0)) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to bind socket to %s [%d/%s]",
+				   ifname, errno, strerror(errno));
+    }
   }
   else
-	  throw("Unable to start network discovery");
+    throw("Unable to start network discovery");
 }
 
 /* ******************************* */
@@ -101,35 +102,38 @@ u_int16_t NetworkDiscovery::in_cksum(u_int8_t *buf, u_int16_t buf_len, u_int32_t
 
 /* ******************************* */
 
- void NetworkDiscovery::queueMDNSRespomse(u_int32_t src_ip_nw_byte_order,
-					  u_char* mdnsreply, u_int mdnsreply_len) {
-   if(mdns_vm) {
-     m.lock(__FILE__, __LINE__);
+void NetworkDiscovery::queueMDNSRespomse(u_int32_t src_ip_nw_byte_order,
+					 u_char* mdnsreply, u_int mdnsreply_len) {       
+  if(mdns_vm) {
+    m.lock(__FILE__, __LINE__);
 
-     /*
-       Trick to avoid locking all the time whenver there
-       is a MDNS response to decode, but we need to recheck
-      */
-     if(mdns_vm) {
-       char outbuf[1024], ipbuf[32];
-       
-       dissectMDNS(mdnsreply, mdnsreply_len, outbuf, sizeof(outbuf));
-       
-       if(outbuf[0] != '\0') {
-	 char *ip = Utils::intoaV4(ntohl(src_ip_nw_byte_order), ipbuf, sizeof(ipbuf));
-	   
-	 lua_push_str_table_entry(mdns_vm, ip, outbuf);
-       }
-     }
+    /*
+      Trick to avoid locking all the time whenver there
+      is a MDNS response to decode, but we need to recheck
+    */
+    if(mdns_vm) {
+      char outbuf[1024], ipbuf[32];
+      char *ip = Utils::intoaV4(ntohl(src_ip_nw_byte_order), ipbuf, sizeof(ipbuf));
+
+      dissectMDNS(mdnsreply, mdnsreply_len, outbuf, sizeof(outbuf));
+
+#ifdef MDNS_DEBUG_DISSECT
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[MDNS] %s [%s]", ip, outbuf);
+#endif
+      dissectMDNS(mdnsreply, mdnsreply_len, outbuf, sizeof(outbuf));
+	
+      if(outbuf[0] != '\0')
+	lua_push_str_table_entry(mdns_vm, ip, outbuf);
+    }
      
-     m.unlock(__FILE__, __LINE__);
-   }
- }
+    m.unlock(__FILE__, __LINE__);
+  }
+}
 
- /* ******************************* */
+/* ******************************* */
 /*
-   Code portions courtesy of Andrea Zerbinati <zeran23@gmail.com>
-   and Luca Peretti <lucaperetti.lp@gmail.com>
+  Code portions courtesy of Andrea Zerbinati <zeran23@gmail.com>
+  and Luca Peretti <lucaperetti.lp@gmail.com>
 */
 void NetworkDiscovery::arpScan(lua_State* vm) {
   bpf_u_int32 netp, maskp;
@@ -449,94 +453,67 @@ u_int16_t NetworkDiscovery::buildMDNSDiscoveryDatagram(const char *query,
 
 /* ******************************* */
 
-void NetworkDiscovery::dissectMDNS(u_char *buf, u_int buf_len,
-				   char *out, u_int out_len) {
+void NetworkDiscovery::dissectMDNS(u_char *buf, u_int buf_len, char *out, u_int out_len) {
   ndpi_dns_packet_header *dns_h = (struct ndpi_dns_packet_header*)buf;
-  u_int num_queries, num_answers, i, offset, idx;
-  u_char *queries, rspbuf[64];
+  u_int num_queries, num_answers, i, offset = 13, idx;
+  u_char rspbuf[64];
 
   out[0] = '\0';
   if(buf_len < sizeof(struct ndpi_dns_packet_header)) return;
 
   num_queries = ntohs(dns_h->num_queries), num_answers = ntohs(dns_h->num_answers);
 
-  if(num_answers == 0) return;
-
-  /* Skip queries */
-  queries  = (u_char*)&buf[sizeof(struct ndpi_dns_packet_header)];
-  buf_len -= sizeof(struct ndpi_dns_packet_header);
-
-  for(i=0, offset=0; (i<num_queries) && (offset < (u_int)buf_len); ) {
-    if(queries[offset] != 0) {
-      offset++;
-      continue;
-    } else {
-      offset += 4;
-      i++; /* Found one query */
-    }
-  }
-
-  offset += 1; /* Move to the first response byte */
+  if((num_answers == 0)
+     || (num_queries > 0) /* MDNS responses should have no queries */
+     )
+    return;
 
   /* Decode replies */
   for(i=0; (i<num_answers) && (offset < (u_int)buf_len); ) {
-    u_int16_t data_len;
+    u_int l;
 
-    if(num_queries > 0)
-      offset += 2 /* query */ + 2 /* type */ + 2 /* class */ + 4 /* TTL */;
+    memset(rspbuf, 0, sizeof(rspbuf));
 
-    data_len = ntohs(*((u_int16_t*)&queries[offset]));
+    for(idx = 0; offset<buf_len; idx++, offset++) {
+      if(buf[offset] == 0)
+	break;
+      else if(buf[offset] < 32) {
+	rspbuf[idx] = '.';
+      } else {
+	if(buf[offset] == 0xc0) {
+	  u_int8_t new_offset = buf[offset+1];
 
-    if(data_len < buf_len) {
-      u_int l;
+	  offset++;
 
-      offset += 3;
+	  while((idx < sizeof(rspbuf)) && (buf[new_offset] != 0)){
+	    if(buf[new_offset] < 32)
+	      rspbuf[idx] = '.';
+	    else if(buf[new_offset] == 0xc0) {
+	      new_offset = buf[new_offset+1];
+	      continue;
+	    } else
+	      rspbuf[idx] = buf[new_offset];
 
-      memset(rspbuf, 0, sizeof(rspbuf));
-
-      for(idx = 0; idx<data_len; idx++, offset++) {
-	if(queries[offset] < 32) {
-	  rspbuf[idx] = '.';
-	} else {
-	  if(queries[offset] == 0xc0) {
-	    u_int8_t new_offset = queries[offset+1];
-
-	    offset++;
-	    // ntop->getTrace()->traceEvent(TRACE_ERROR, "new_offset=%u", new_offset);
-
-	    while((idx < sizeof(rspbuf)) && (buf[new_offset] != 0)){
-	      if(buf[new_offset] < 32)
-		rspbuf[idx] = '.';
-	      else if(buf[new_offset] == 0xc0) {
-		new_offset = buf[new_offset+1];
-		continue;
-	      } else
-		rspbuf[idx] = buf[new_offset];
-
-	      new_offset++, idx++;
-	    }
-	  } else
-	    rspbuf[idx] = queries[offset];
-	}
+	    new_offset++, idx++;
+	  }
+	} else
+	  rspbuf[idx] = buf[offset];
       }
+    }
 
-      rspbuf[idx] = '\0';
-      // ntop->getTrace()->traceEvent(TRACE_INFO, "%s", rspbuf);
+    rspbuf[idx] = '\0';
 
-      l = strlen(out);
-      snprintf(&out[l], out_len-l, "%s%s",
-	       (l > 0) ? ";" : "", rspbuf);
-      i++;
-    } else
-      break;
+    l = strlen(out);
+    snprintf(&out[l], out_len-l, "%s%s", (l > 0) ? ";" : "", rspbuf);
+    i++;
   }
 }
 
 /* ******************************* */
 
 /*
-   Example:
-   dig +short @192.168.2.20 -p 5353 -t any _services._dns-sd._udp.local
+  Example:
+  dig +short @192.168.2.20 -p 5353 -t any _services._dns-sd._udp.local
 */
 void NetworkDiscovery::discover(lua_State* vm, u_int timeout) {
   struct sockaddr_in sin;
@@ -584,15 +561,15 @@ void NetworkDiscovery::discover(lua_State* vm, u_int timeout) {
   {
     dump_mac_t sender_mac;
     const char *query_list[] = {
-      "_sftp-ssh._tcp.local",
-      "_homekit._tcp.local.",
-      "_smb._tcp.local",
-      "_afpovertcp._tcp.local",
-      "_ssh._tcp.local",
-      "_nfs._tcp.local",
-      "_airplay._tcp.local",
-      "_googlecast._tcp.local",
-      NULL
+				"_sftp-ssh._tcp.local",
+				"_homekit._tcp.local.",
+				"_smb._tcp.local",
+				"_afpovertcp._tcp.local",
+				"_ssh._tcp.local",
+				"_nfs._tcp.local",
+				"_airplay._tcp.local",
+				"_googlecast._tcp.local",
+				NULL
     };
     int i;
     u_int32_t sender_ip = Utils::readIPv4(ifname);

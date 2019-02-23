@@ -117,9 +117,9 @@ NetworkInterface::NetworkInterface(const char *name,
 #if !defined(__APPLE__) && !defined(WIN32)
        || (Utils::readIPv4((char*)name) == 0)
 #endif
-     )
-    ; /* Don't setup MDNS on ZC or RSS interfaces */
-  else {
+       )
+      ; /* Don't setup MDNS on ZC or RSS interfaces */
+    else {
     ipv4_network = ipv4_network_mask = 0;
     if(pcap_lookupnet(ifname, &ipv4_network, &ipv4_network_mask, pcap_error_buffer) == -1) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to read IPv4 address of %s: %s",
@@ -1288,8 +1288,6 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
   /* purge is actually performed at most one time every FLOW_PURGE_FREQUENCY */
   // purgeIdle(zflow->core.last_switched);
 }
-
-/* **************************************************** */
 
 bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 				     bool ingressPacket,

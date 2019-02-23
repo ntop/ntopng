@@ -766,9 +766,9 @@ void Host::incStats(u_int32_t when, u_int8_t l4_proto, u_int ndpi_proto,
 
   if(sent_packets || rcvd_packets) {
     stats->incStats(when, l4_proto, ndpi_proto, custom_app,
-        sent_packets, sent_bytes, sent_goodput_bytes, rcvd_packets,
-        rcvd_bytes, rcvd_goodput_bytes);
-
+		    sent_packets, sent_bytes, sent_goodput_bytes, rcvd_packets,
+		    rcvd_bytes, rcvd_goodput_bytes);
+    
     updateSeen();
   }
 }
