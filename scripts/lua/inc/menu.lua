@@ -217,7 +217,7 @@ print [[/lua/hosts_stats.lua">]] print(i18n("flows_page.hosts")) print[[</a></li
       ]]
 
 if ifs["has_macs"] == true then
-   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/macs_stats.lua?devices_mode=source_macs_only">') print(i18n("layer_2")) print('</a></li>')
+   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/macs_stats.lua?devices_mode=source_macs_only">') print(i18n("users.devices")) print('</a></li>')
 end
 
 print('<li><a href="'..ntop.getHttpPrefix()..'/lua/network_stats.lua">') print(i18n("networks")) print('</a></li>')
