@@ -194,7 +194,16 @@ print [[
 if((debug_hosts) and (host["ip"] ~= nil)) then traceError(TRACE_DEBUG,TRACE_CONSOLE, i18n("host_details.trace_debug_host_ip",{hostip=host["ip"],vlan=host["vlan"]}).."\n") end
 url=ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url(host_info)
 
-print("<li><a href=\"#\">"..i18n("host_details.host")..": "..host_info["host"].."</A> </li>")
+print("<li><a href=\"#\">"..i18n("host_details.host")..": "..host_info["host"])
+if host["broadcast_domain_host"] then
+  print(" <i class='fa fa-sitemap' title='"..i18n("hosts_stats.label_broadcast_domain_host").."'></i>")
+end
+
+if(host.dhcpHost) then
+   print(" <i class='fa fa-flash fa-lg' aria-hidden='true' title='DHCP Host'></i>")
+end
+
+print("</A> </li>")
 
 if not only_historical then
 if((page == "overview") or (page == nil)) then
