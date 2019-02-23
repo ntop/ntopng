@@ -112,8 +112,8 @@ point every 5 minutes can be generated for interfaces and local hosts, respectiv
 ntopng looks for custom timeseries in the following lua files under
 :code:`scripts/lua/modules/timeseries/custom/`:
 
-  - :code:`ts_5min_custom.lua` for interface timeseries with 1-minute updates
   - :code:`ts_minute_custom.lua` for local hosts timeseries with 5-minute updates
+  - :code:`ts_5min_custom.lua` for interface timeseries with 1-minute updates
 
 If file :code:`ts_5min_custom.lua` does not exist, ntopng will skip the
 creation of custom timeseries with 5-minute updates. Similarly, if
