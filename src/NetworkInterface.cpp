@@ -1826,6 +1826,13 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       break;
 
     case NDPI_PROTOCOL_MDNS:
+#ifdef MDNS_TEST
+      extern void _dissectMDNS(u_char *buf, u_int buf_len, char *out, u_int out_len);
+      char outbuf[1024];
+
+      _dissectMDNS(payload, payload_len, outbuf, sizeof(outbuf));
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", outbuf);      
+#endif
       flow->dissectMDNS(payload, payload_len);
 
       if(discovery && iph)

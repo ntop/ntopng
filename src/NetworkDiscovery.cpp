@@ -103,7 +103,7 @@ u_int16_t NetworkDiscovery::in_cksum(u_int8_t *buf, u_int16_t buf_len, u_int32_t
 /* ******************************* */
 
 void NetworkDiscovery::queueMDNSRespomse(u_int32_t src_ip_nw_byte_order,
-					 u_char* mdnsreply, u_int mdnsreply_len) {       
+					 u_char* mdnsreply, u_int mdnsreply_len) {
   if(mdns_vm) {
     m.lock(__FILE__, __LINE__);
 
@@ -121,11 +121,11 @@ void NetworkDiscovery::queueMDNSRespomse(u_int32_t src_ip_nw_byte_order,
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "[MDNS] %s [%s]", ip, outbuf);
 #endif
       dissectMDNS(mdnsreply, mdnsreply_len, outbuf, sizeof(outbuf));
-	
+
       if(outbuf[0] != '\0')
 	lua_push_str_table_entry(mdns_vm, ip, outbuf);
     }
-     
+
     m.unlock(__FILE__, __LINE__);
   }
 }
@@ -165,7 +165,7 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
   lua_newtable(vm);
 
   setMDNSvm(vm);
-  
+
   iface->getIPv4Address(&netp, &maskp);
 
   /* Purge existing packets */
@@ -173,17 +173,17 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
   while(!ntop->getGlobals()->isShutdown()) {
     fd_set rset;
     struct timeval tv;
-    
+
     FD_ZERO(&rset);
     FD_SET(fd, &rset);
-    
+
     tv.tv_sec = 0, tv.tv_usec = 0;
     if(select(fd + 1, &rset, NULL, NULL, &tv) > 0)
       pcap_next(pd, &h);
     else
       break;
   }
-  
+
   if(ntop->getGlobals()->isShutdown()) return;
 
   if((mdns_sock = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
@@ -226,7 +226,7 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
     setMDNSvm(NULL);
     return;
   }
-  
+
   netp = ntohl(netp), maskp = ntohl(maskp);
   first_ip = netp & maskp, last_ip = netp + (~maskp);
   first_ip++, last_ip--;
@@ -324,10 +324,10 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
     if(fd != -1) {
       fd_set rset;
       struct timeval tv;
-      
+
       FD_ZERO(&rset);
       FD_SET(fd, &rset);
-      
+
       tv.tv_sec = 0, tv.tv_usec = 0;
       if(select(fd + 1, &rset, NULL, NULL, &tv) <= 0)
 	break;
@@ -358,7 +358,7 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
 	socklen_t from_len = sizeof(from);
 	int len = recvfrom(mdns_sock, (char*)mdnsreply, sizeof(mdnsreply),
 			   0, (struct sockaddr *)&from, &from_len);
-	
+
 	if(len > 0)
 	  queueMDNSRespomse(from.sin_addr.s_addr, mdnsreply, len);
       } else
@@ -453,27 +453,68 @@ u_int16_t NetworkDiscovery::buildMDNSDiscoveryDatagram(const char *query,
 
 /* ******************************* */
 
-void NetworkDiscovery::dissectMDNS(u_char *buf, u_int buf_len, char *out, u_int out_len) {
+#define MDNS_DEBUG 1
+
+void _dissectMDNS(u_char *buf, u_int buf_len, char *out, u_int out_len) {
   ndpi_dns_packet_header *dns_h = (struct ndpi_dns_packet_header*)buf;
   u_int num_queries, num_answers, i, offset = 13, idx;
   u_char rspbuf[512];
   u_int8_t record_type;
+  bool dissected_ptr;
 
   out[0] = '\0';
   if(buf_len < sizeof(struct ndpi_dns_packet_header)) return;
 
   num_queries = ntohs(dns_h->num_queries), num_answers = ntohs(dns_h->num_answers);
 
-  if((num_answers == 0)
-     || (num_queries > 0) /* MDNS responses should have no queries */
-     )
+  if(num_answers == 0)
     return;
+
+  if(num_queries > 0) {
+    /* Skip queries */
+
+    for(i=0; (i<num_queries) && (offset < (u_int)buf_len); i++) {
+      for(idx = 0, dissected_ptr = false; (offset<buf_len) && (idx<sizeof(rspbuf)-1); idx++, offset++) {
+	if(buf[offset] == 0) {
+	  if(dissected_ptr) offset--;
+	  break;
+	} else if(buf[offset] < 32) {
+	  rspbuf[idx] = '.', dissected_ptr = false;
+	} else {
+	  if(buf[offset] == 0xc0) {
+	    u_int8_t new_offset = buf[offset+1];
+
+	    offset++, dissected_ptr = true;
+
+	    while((idx < (sizeof(rspbuf)-1)) && (buf[new_offset] != 0)){
+	      if(buf[new_offset] < 32)
+		rspbuf[idx] = '.';
+	      else if(buf[new_offset] == 0xc0) {
+		new_offset = buf[new_offset+1];
+		continue;
+	      } else
+		rspbuf[idx] = buf[new_offset];
+
+	      new_offset++, idx++;
+	    }
+	  } else
+	    rspbuf[idx] = buf[offset], dissected_ptr = false;
+	}
+      }
+
+      rspbuf[idx] = '\0';
+#ifdef MDNS_DEBUG
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "MDNS Query %s", rspbuf);
+#endif
+
+      offset += 4;
+    }
+  }
 
   /* Decode replies */
   for(i=0; (i<num_answers) && (offset < (u_int)buf_len); ) {
     u_int l = 0;
     u_int16_t data_len;
-    bool dissected_ptr;
 
     memset(rspbuf, 0, sizeof(rspbuf));
 
@@ -575,17 +616,17 @@ void NetworkDiscovery::dissectMDNS(u_char *buf, u_int buf_len, char *out, u_int 
 
 	memset(rspbuf, 0, sizeof(rspbuf));
 	idx = 0;
-	
+
 	while((offset < buf_len) && (data_len > total_txt_len)) {
 	  u_int8_t txt_len = buf[offset];
 
 #ifdef MDNS_DEBUG
 	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "txt_len %u", txt_len);
 #endif
-	  
+
 	  if((offset+txt_len) > buf_len)
 	    break;
-	  
+
 	  offset += 1;
 
 	  if(total_txt_len > 0) {
@@ -594,7 +635,7 @@ void NetworkDiscovery::dissectMDNS(u_char *buf, u_int buf_len, char *out, u_int 
 	  }
 
 	  if((len+txt_len) >= sizeof(rspbuf)) break;
-	  
+
 	  memcpy(&rspbuf[len], &buf[offset], txt_len);
 	  len += txt_len;
 
@@ -618,6 +659,12 @@ void NetworkDiscovery::dissectMDNS(u_char *buf, u_int buf_len, char *out, u_int 
       offset = orig_offset + data_len;
     }
   }
+}
+
+/* ******************************* */
+
+void NetworkDiscovery::dissectMDNS(u_char *buf, u_int buf_len, char *out, u_int out_len) {
+  _dissectMDNS(buf, buf_len, out, out_len);
 }
 
 /* ******************************* */
@@ -707,7 +754,7 @@ void NetworkDiscovery::discover(lua_State* vm, u_int timeout) {
     socklen_t s = sizeof(from);
     char ipbuf[32];
     int len = recvfrom(udp_sock, (char*)msg, sizeof(msg), 0, (sockaddr*)&from, &s);
-    
+
     ntop->getTrace()->traceEvent(TRACE_INFO, "Received SSDP packet from %s:%u",
 				 Utils::intoaV4(ntohl(from.sin_addr.s_addr), ipbuf, sizeof(ipbuf)),
 				 ntohs(from.sin_port));
