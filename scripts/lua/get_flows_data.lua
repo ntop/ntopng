@@ -316,6 +316,13 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
    local info = interface.getHostInfo(value["cli.ip"], value["cli.vlan"])
 
    if(info ~= nil) then
+      if(info.broadcast_domain_host) then
+	  column_client = column_client.." <i class='fa fa-sitemap' title='"..i18n("hosts_stats.label_broadcast_domain_host").."'></i>"
+      end
+      
+      if(info.dhcpHost) then
+	 column_client = column_client.." <i class=\'fa fa-flash fa-lg\' aria-hidden=\'true\' title=\'DHCP Host\'></i>"
+      end
       column_client = column_client..getFlag(info["country"])
    end
 
@@ -332,7 +339,16 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
 
    local column_server = dst_key
    info = interface.getHostInfo(value["srv.ip"], value["srv.vlan"])
+
    if(info ~= nil) then
+      if(info.broadcast_domain_host) then
+	 column_server = column_server.." <i class='fa fa-sitemap' title='"..i18n("hosts_stats.label_broadcast_domain_host").."'></i>"
+      end
+      
+      if(info.dhcpHost) then
+	 column_server = column_server.." <i class=\'fa fa-flash fa-lg\' aria-hidden=\'true\' title=\'DHCP Host\'></i>"
+      end
+
       column_server = column_server..getFlag(info["country"])
    end
 

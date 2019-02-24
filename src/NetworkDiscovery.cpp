@@ -457,8 +457,6 @@ u_int16_t NetworkDiscovery::buildMDNSDiscoveryDatagram(const char *query,
 
 /* ******************************* */
 
-#define MDNS_DEBUG 1
-
 void _dissectMDNS(u_char *buf, u_int buf_len, char *out, u_int out_len) {
   ndpi_dns_packet_header *dns_h = (struct ndpi_dns_packet_header*)buf;
   u_int num_queries, num_answers, i, offset = 13, idx;
@@ -507,7 +505,7 @@ void _dissectMDNS(u_char *buf, u_int buf_len, char *out, u_int out_len) {
       }
 
       rspbuf[idx] = '\0';
-#ifdef MDNS_DEBUG
+#ifdef MDNS_DEBUG_DISSECT
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "MDNS Query %s", rspbuf);
 #endif
 
@@ -552,7 +550,7 @@ void _dissectMDNS(u_char *buf, u_int buf_len, char *out, u_int out_len) {
 
     rspbuf[idx] = '\0';
 
-#ifdef MDNS_DEBUG
+#ifdef MDNS_DEBUG_DISSECT
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%u] %s", (u_int8_t)buf[offset+2], rspbuf);
 #endif
 
@@ -576,7 +574,7 @@ void _dissectMDNS(u_char *buf, u_int buf_len, char *out, u_int out_len) {
     if(data_len > 0) {
       u_int16_t orig_offset = offset;
 
-#ifdef MDNS_DEBUG
+#ifdef MDNS_DEBUG_DISSECT
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "data_len=%u", data_len);
 #endif
 
@@ -624,7 +622,7 @@ void _dissectMDNS(u_char *buf, u_int buf_len, char *out, u_int out_len) {
 	while((offset < buf_len) && (data_len > total_txt_len)) {
 	  u_int8_t txt_len = buf[offset];
 
-#ifdef MDNS_DEBUG
+#ifdef MDNS_DEBUG_DISSECT
 	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "txt_len %u", txt_len);
 #endif
 
@@ -645,7 +643,7 @@ void _dissectMDNS(u_char *buf, u_int buf_len, char *out, u_int out_len) {
 
 	  offset += txt_len, total_txt_len += txt_len + 1;
 
-#ifdef MDNS_DEBUG
+#ifdef MDNS_DEBUG_DISSECT
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", rspbuf);
 #endif
 	}
@@ -654,7 +652,7 @@ void _dissectMDNS(u_char *buf, u_int buf_len, char *out, u_int out_len) {
       } /* while */
 
 
-#ifdef MDNS_DEBUG
+#ifdef MDNS_DEBUG_DISSECT
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", rspbuf);
 #endif
 
