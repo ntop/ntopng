@@ -25,12 +25,16 @@
 
 NetworkDiscovery::NetworkDiscovery(NetworkInterface *_iface) {
   char errbuf[PCAP_ERRBUF_SIZE];
+  char *ifname;
+  
   iface = _iface;
-
-  char *ifname  = iface->altDiscoverableName();
+  ifname  = iface->altDiscoverableName();
+  
   if(ifname == NULL)
     ifname = iface->get_name();
 
+  mdns_vm = NULL;
+  
 #if ! defined(__arm__)
   if((pd = pcap_open_live(ifname, 128 /* snaplen */, 0 /* no promisc */, 5, errbuf)) == NULL)
 #else
