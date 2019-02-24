@@ -1102,7 +1102,7 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
 		 zflow->core.vlan_id,
 		 zflow->core.deviceIP,
 		 zflow->core.inIndex, zflow->core.outIndex,
-		 NULL /* ICMPinfo */, 
+		 NULL /* ICMPinfo */,
 		 &srcIP, &dstIP,
 		 zflow->core.src_port, zflow->core.dst_port,
 		 zflow->core.l4_proto, &src2dst_direction,
@@ -1288,6 +1288,8 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
   /* purge is actually performed at most one time every FLOW_PURGE_FREQUENCY */
   // purgeIdle(zflow->core.last_switched);
 }
+
+/* **************************************************** */
 
 bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 				     bool ingressPacket,
@@ -1703,10 +1705,10 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	if(src_mac && dst_mac
 	   && (payload_len > 20)
 	   && dst_mac->isMulticast())
-	  src_mac->setDhcpHost();	
+	  src_mac->setDhcpHost();
       }
       break;
-      
+
     case NDPI_PROTOCOL_NETBIOS:
       if(*srcHost) {
 	if(! (*srcHost)->is_label_set()) {
@@ -1825,9 +1827,9 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 
     case NDPI_PROTOCOL_MDNS:
       flow->dissectMDNS(payload, payload_len);
-      
+
       if(discovery && iph)
-	discovery->queueMDNSRespomse(iph->saddr, payload, payload_len);      
+	discovery->queueMDNSRespomse(iph->saddr, payload, payload_len);
       break;
 
     default:
@@ -2588,7 +2590,7 @@ void NetworkInterface::startPacketPolling() {
 
 #ifdef __linux__
   pthread_setname_np(pollLoop, get_name());
-#endif  
+#endif
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL,
 			       "Started packet polling on interface %s [id: %u]...",

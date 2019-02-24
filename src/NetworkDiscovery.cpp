@@ -456,7 +456,8 @@ u_int16_t NetworkDiscovery::buildMDNSDiscoveryDatagram(const char *query,
 void NetworkDiscovery::dissectMDNS(u_char *buf, u_int buf_len, char *out, u_int out_len) {
   ndpi_dns_packet_header *dns_h = (struct ndpi_dns_packet_header*)buf;
   u_int num_queries, num_answers, i, offset = 13, idx;
-  u_char rspbuf[64];
+  u_char rspbuf[512];
+  u_int8_t record_type;
 
   out[0] = '\0';
   if(buf_len < sizeof(struct ndpi_dns_packet_header)) return;
@@ -470,22 +471,25 @@ void NetworkDiscovery::dissectMDNS(u_char *buf, u_int buf_len, char *out, u_int 
 
   /* Decode replies */
   for(i=0; (i<num_answers) && (offset < (u_int)buf_len); ) {
-    u_int l;
+    u_int l = 0;
+    u_int16_t data_len;
+    bool dissected_ptr;
 
     memset(rspbuf, 0, sizeof(rspbuf));
 
-    for(idx = 0; offset<buf_len; idx++, offset++) {
-      if(buf[offset] == 0)
+    for(idx = 0, dissected_ptr = false; (offset<buf_len) && (idx<sizeof(rspbuf)-1); idx++, offset++) {
+      if(buf[offset] == 0) {
+	if(dissected_ptr) offset--;
 	break;
-      else if(buf[offset] < 32) {
-	rspbuf[idx] = '.';
+      } else if(buf[offset] < 32) {
+	rspbuf[idx] = '.', dissected_ptr = false;
       } else {
 	if(buf[offset] == 0xc0) {
 	  u_int8_t new_offset = buf[offset+1];
 
-	  offset++;
+	  offset++, dissected_ptr = true;
 
-	  while((idx < sizeof(rspbuf)) && (buf[new_offset] != 0)){
+	  while((idx < (sizeof(rspbuf)-1)) && (buf[new_offset] != 0)){
 	    if(buf[new_offset] < 32)
 	      rspbuf[idx] = '.';
 	    else if(buf[new_offset] == 0xc0) {
@@ -497,15 +501,122 @@ void NetworkDiscovery::dissectMDNS(u_char *buf, u_int buf_len, char *out, u_int 
 	    new_offset++, idx++;
 	  }
 	} else
-	  rspbuf[idx] = buf[offset];
+	  rspbuf[idx] = buf[offset], dissected_ptr = false;
       }
     }
 
     rspbuf[idx] = '\0';
 
-    l = strlen(out);
-    snprintf(&out[l], out_len-l, "%s%s", (l > 0) ? ";" : "", rspbuf);
+#ifdef MDNS_DEBUG
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%u] %s", (u_int8_t)buf[offset+2], rspbuf);
+#endif
+
+    switch((record_type=buf[offset+2]) /* record_type */) {
+    case 16: /* TXT */
+    case 12: /* PTR */
+      break;
+
+    default:
+      return; /* Enough */
+    }
+
+    l += snprintf(&out[l], out_len-l, "%s%s", (l > 0) ? ";" : "", rspbuf);
     i++;
+
+    /* We now need to handle the rest of the packet */
+    offset += 9;
+    data_len = ntohs(*((u_int16_t*)&buf[offset]));
+    offset += 2;
+
+    if(data_len > 0) {
+      u_int16_t orig_offset = offset;
+
+#ifdef MDNS_DEBUG
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "data_len=%u", data_len);
+#endif
+
+      memset(rspbuf, 0, sizeof(rspbuf));
+
+      if(record_type == 12 /* PTR */) {
+	offset += 1;
+
+	for(idx = 0, dissected_ptr = false; offset<buf_len; idx++, offset++) {
+	  if(buf[offset] == 0) {
+	    if(dissected_ptr) offset--;
+	    break;
+	  } else if(buf[offset] < 32) {
+	    rspbuf[idx] = '.', dissected_ptr = false;
+	  } else {
+	    if(buf[offset] == 0xc0) {
+	      u_int8_t new_offset = buf[offset+1];
+
+	      offset++, dissected_ptr = true;
+
+	      while((idx < sizeof(rspbuf)) && (buf[new_offset] != 0)){
+		if(buf[new_offset] < 32)
+		  rspbuf[idx] = '.';
+		else if(buf[new_offset] == 0xc0) {
+		  new_offset = buf[new_offset+1];
+		  continue;
+		} else
+		  rspbuf[idx] = buf[new_offset];
+
+		new_offset++, idx++;
+	      }
+	    } else
+	      rspbuf[idx] = buf[offset], dissected_ptr = false;
+	  }
+	}
+
+	rspbuf[idx] = '\0';
+      } else {
+	/* TXT */
+	u_int16_t len = 0, total_txt_len = 0;
+
+	memset(rspbuf, 0, sizeof(rspbuf));
+	idx = 0;
+	
+	while((offset < buf_len) && (data_len > total_txt_len)) {
+	  u_int8_t txt_len = buf[offset];
+
+#ifdef MDNS_DEBUG
+	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "txt_len %u", txt_len);
+#endif
+	  
+	  if((offset+txt_len) > buf_len)
+	    break;
+	  
+	  offset += 1;
+
+	  if(total_txt_len > 0) {
+	    rspbuf[len] = ';';
+	    len++;
+	  }
+
+	  if((len+txt_len) >= sizeof(rspbuf)) break;
+	  
+	  memcpy(&rspbuf[len], &buf[offset], txt_len);
+	  len += txt_len;
+
+	  offset += txt_len, total_txt_len += txt_len + 1;
+
+#ifdef MDNS_DEBUG
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", rspbuf);
+#endif
+	}
+
+	rspbuf[len] = '\0';
+      } /* while */
+
+
+#ifdef MDNS_DEBUG
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", rspbuf);
+#endif
+
+      l += snprintf(&out[l], out_len-l, "%s%s", (l > 0) ? ";" : "", rspbuf);
+
+      offset = orig_offset + data_len;
+    }
   }
 }
 
