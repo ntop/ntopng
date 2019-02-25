@@ -1353,7 +1353,6 @@ char* Host::get_mac_based_tskey(Mac *mac, char *buf, size_t bufsize) {
 
 /* *************************************** */
 
-/* TODO merge with get_hostkey after migrating alerts and other stuff */
 char* Host::get_tskey(char *buf, size_t bufsize) {
   char *k;
   Mac *cur_mac = getMac(); /* Cache macs as they can be swapped/updated */
