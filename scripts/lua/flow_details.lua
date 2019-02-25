@@ -764,8 +764,17 @@ print [[/lua/flow_stats.lua',
 		    data: { ifid: "]] print(tostring(ifid)) print [[", flow_key: "]] print(flow_key) print [[" },
 		    success: function(content) {
                         if(content == "{}") {
+   ]]
+
+-- If the flow is already idle, another error message is already shown
+if(flow ~= nil) then
+   print[[
                           var e = document.getElementById('flow_purged');
                           e.style.display = "block";
+   ]]
+end
+
+print[[
                         } else {
 			var rsp = jQuery.parseJSON(content);
 			$('#first_seen').html(rsp["seen.first"]);
@@ -828,7 +837,7 @@ print [[/lua/flow_stats.lua',
 			   $('#top_throughput').html(rsp["top_throughput_display"]);
 			} else {
 			   $('#throughput_trend').html("<i class=\"fa fa-minus\"></i>");
-			} }]]
+			} ]]
 
       if(isThereSIP == 1) then
 	updatePrintSip()
@@ -860,7 +869,7 @@ print [[			cli2srv_packets = rsp["cli2srv.packets"];
 			values.shift();
 			values.push(rsp.throughput_raw);
 			thptChart.text(values.join(",")).change();
-		     }
+		     } }
 		   });
 		 }
 
