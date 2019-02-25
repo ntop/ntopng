@@ -39,7 +39,7 @@ class LocalHost : public Host {
   void freeLocalHostData();
   virtual void deleteHostData();
 
-  char * getMacBasedSerializationKey(Mac *mac, char *redis_key, size_t size);
+  char * getMacBasedSerializationKey(char *redis_key, size_t size, char *ip_key, char *mac_key);
   char * getIpBasedSerializationKey(char *redis_key, size_t size);
   bool deserialize();
   bool deserializeFromRedisKey(char *key);
@@ -64,7 +64,6 @@ class LocalHost : public Host {
   virtual bool dropAllTraffic()  { return(drop_all_host_traffic); };
   virtual void inlineSetOS(const char * const _os);
   virtual void updateHostTrafficPolicy(char *key);
-  virtual char * getSerializationKey(char *redis_key, size_t size);
 
   virtual void incICMP(u_int8_t icmp_type, u_int8_t icmp_code, bool sent, Host *peer) { stats->incICMP(icmp_type, icmp_code, sent, peer); };
   virtual void incNumDNSQueriesSent(u_int16_t query_type) { stats->incNumDNSQueriesSent(query_type); };
