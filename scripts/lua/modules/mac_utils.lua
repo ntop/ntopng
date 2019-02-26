@@ -34,10 +34,6 @@ function mac2record(mac)
       record["column_mac"] = record["column_mac"]..' <i class="fa fa-hand-o-up fa-lg" aria-hidden="true" title="DHCP Fingerprinted"></i>'
       -- io.write(mac.fingerprint.."\n")
    end
-
-   if(mac.dhcpHost) then
-      record["column_mac"] = record["column_mac"]..'  <i class="fa fa-flash fa-lg" aria-hidden="true" title="DHCP Host"></i>'
-   end
    
    record["column_mac"] = record["column_mac"]..getOperatingSystemIcon(mac.operatingSystem)   
    local manufacturer = get_manufacturer_mac(mac["mac"])

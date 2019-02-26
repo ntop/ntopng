@@ -27,7 +27,7 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6])
   : GenericHashEntry(_iface) {
   memcpy(mac, _mac, 6);
   special_mac = Utils::isSpecialMac(mac);
-  source_mac = false, fingerprint = NULL, dhcpHost = false;
+  source_mac = false, fingerprint = NULL;
   bridge_seen_iface_id = 0, lockDeviceTypeChanges = false;
   memset(&names, 0, sizeof(names));
   device_type = device_unknown, os = os_unknown;
@@ -218,7 +218,6 @@ void Mac::lua(lua_State* vm, bool show_details, bool asListElement) {
 
   stats->lua(vm, show_details);
 
-  lua_push_bool_table_entry(vm, "dhcpHost", dhcpHost);
   lua_push_str_table_entry(vm, "fingerprint", fingerprint ? fingerprint : (char*)"");
   lua_push_uint64_table_entry(vm, "operatingSystem", os);
   lua_push_uint64_table_entry(vm, "seen.first", first_seen);
@@ -297,7 +296,6 @@ bool Mac::deserialize(char *key, char *json_str) {
   if(json_object_object_get_ex(o, "ssid", &obj))        inlineSetSSID((char*)json_object_get_string(obj));
   if(json_object_object_get_ex(o, "fingerprint", &obj)) inlineSetFingerprint((char*)json_object_get_string(obj));
   if(json_object_object_get_ex(o, "operatingSystem", &obj)) setOperatingSystem((OperatingSystem)json_object_get_int(obj));
-  if(json_object_object_get_ex(o, "dhcpHost", &obj))    dhcpHost = json_object_get_boolean(obj);
 
   stats->deserialize(o);
 
@@ -328,7 +326,6 @@ json_object* Mac::getJSONObject() {
   json_object_object_add(my_object, "devtype", json_object_new_int(device_type));
   if(model) json_object_object_add(my_object, "model", json_object_new_string(model));
   if(ssid) json_object_object_add(my_object, "ssid", json_object_new_string(ssid));
-  json_object_object_add(my_object, "dhcpHost", json_object_new_boolean(dhcpHost));
   json_object_object_add(my_object, "operatingSystem", json_object_new_int(os));
   if(fingerprint) json_object_object_add(my_object, "fingerprint", json_object_new_string(fingerprint));
 
@@ -582,7 +579,7 @@ void Mac::deleteMacData() {
   freeMacData();
   m.unlock(__FILE__, __LINE__);
   os = os_unknown;
-  source_mac = dhcpHost = false;
+  source_mac = false;
   device_type = device_unknown;
 #ifdef NTOPNG_PRO
   captive_portal_notified = false;

@@ -496,6 +496,17 @@ local function validateIpAddress(p)
    end
 end
 
+local function validateIpRange(p)
+   local range = string.split(p, "%-")
+
+   if not range or #range ~= 2 then
+      return false
+   end
+
+   return validateIpAddress(range[1]) and
+      validateIpAddress(range[2])
+end
+
 local function validateHTTPHost(p)
    -- TODO maybe stricter check?
    if validateSingleWord(p) then
@@ -1406,6 +1417,7 @@ local known_parameters = {
    ["list_name"]               = validateUnquoted,
    ["list_enabled"]            = validateOnOff,
    ["list_update"]             = validateNumber,
+   ["dhcp_ranges"]             = validateListOfTypeInline(validateIpRange),
 
    -- json POST DATA
    ["payload"]                 = { jsonCleanup, validateJSON },

@@ -217,7 +217,7 @@ end
 
 function discover.interfaceNetworkDiscoveryEnabled(ifid)
    -- must be discoverable and must have not been disabled by the interface preferences
-   return interface.isDiscoverableInterface() 
+   return interface.isDiscoverableInterface()
           and not (ntop.getPref(discover.getInterfaceNetworkDiscoveryEnabledKey(ifid)) == "false")
 end
 
@@ -235,7 +235,7 @@ end
 
 -- ################################################################################
 
-function discover.clearNetworkDiscovery(ifid)   
+function discover.clearNetworkDiscovery(ifid)
    ntop.delCache(getRequestNetworkDiscoveryKey(ifid))
 end
 
@@ -252,9 +252,9 @@ function isPrinterMDNS(mdns)
 
    if(discover.debug) then
       tprint(mdns)
-      io.write(debug.traceback())      
+      io.write(debug.traceback())
    end
-   
+
    if((mdns["_printer._tcp.local"] ~= nil)
       or (mdns["_scanner._tcp.local"] ~= nil)
       or (mdns["_pdl-datastream._tcp.local"] ~= nil)
@@ -269,7 +269,7 @@ end
 
 function isNASMDNS(mdns)
    if(mdns == nil) then return false end
-   
+
    if((mdns["_edcp._udp.local"] ~= nil) or (mdns["_afpovertcp._tcp.local"] ~= nil) or (mdns["_smb._tcp.local"] ~= nil)) then
       if(mdns["_companion-link._tcp.local"] == nil) then
 	 return true
@@ -277,6 +277,25 @@ function isNASMDNS(mdns)
    end
 
    return false
+end
+
+-- ################################################################################
+
+function isGHomeMDNS(mdns)
+    if(mdns == nil) then return false end
+
+    if(discover.debug) then
+      tprint(mdns)
+      io.write(debug.traceback())
+    end
+
+    if((mdns["_googlecast._tcp.local"] ~= nil)
+      or (mdns["_googlezone._tcp.local"] ~= nil)
+    ) then
+      return true
+    end
+
+    return false
 end
 
 -- ################################################################################
@@ -391,15 +410,15 @@ local function probeSSH(ip)
 	 local _osvers = string.split(osvers, "-")
 	 if(_osvers ~= nil) then
 	    local n
-	    
+
 	    if(use_last) then
 	       n = #_osvers
 	    else
 	       n = 1
 	    end
-	    
+
 	    osvers = _osvers[n]
-	    
+
 	    -- tprint(_osvers)
 	    return(trimSpace(osvers))
 	 end
@@ -411,7 +430,7 @@ end
 
 local function appendSSHOS(mac, ip)
    local r = probeSSH(ip)
-   
+
    if((r ~= nil) and (r ~= "")) then
       if(string.contains(r, "Debian")
 	    or string.contains(r, "Raspbian")
@@ -536,7 +555,7 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
       interface.setMacOperatingSystem(mac, 2) -- 2 = windows
       if(discover.debug) then io.write(debug.traceback()) end
       return 'workstation', discover.asset_icons['workstation']..' (Windows)', nil
-   elseif(mdns["_googlecast._tcp.local"] ~= nil) then
+   elseif(isGHomeMDNS(mdns)) then
       -- Google Home
       if(discover.debug) then io.write(debug.traceback()) end
       return 'multimedia', discover.asset_icons['multimedia'], nil
@@ -622,7 +641,7 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
       if(discover.debug) then io.write(debug.traceback()) end
       return 'networking', discover.asset_icons['networking'], nil
    elseif(string.contains(manufacturer, "routerboard")
-	     or string.contains(manufacturer, "netgear") -- 
+	     or string.contains(manufacturer, "netgear") --
 	     or string.contains(manufacturer, "tp-link")
    ) then
       if(discover.debug) then io.write(debug.traceback()) end
@@ -656,7 +675,8 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
 	     or string.contains(manufacturer, "samsung electro")
 	     or string.contains(manufacturer, "htc corporation")
 	     or string.contains(manufacturer, "huawei")
-	     or string.contains(manufacturer, "xiaomi communications")
+	     or (string.contains(manufacturer, "xiaomi communications") or string.contains(mac,"44:D1:96"))
+       or string.contains(manufacturer, "oneplus")
 	     or string.contains(manufacturer, "mobile communications") -- LG Electronics (Mobile Communications)
    ) then
       if(discover.debug) then io.write(debug.traceback()) end
@@ -694,7 +714,7 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
       if(discover.debug) then io.write(debug.traceback()) end
       return 'workstation', discover.asset_icons['workstation'].." (VM)", nil
    elseif(string.contains(manufacturer, "xerox")
-	     or string.contains(manufacturer, "ricoh")	  
+	     or string.contains(manufacturer, "ricoh")
    ) then
       local l = ""
 
@@ -811,7 +831,7 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
    else
       snmpName = ' ('..snmpName..')'
    end
-   
+
    if(string.contains(manufacturer, "ubiquiti")) then
       if(discover.debug) then io.write(debug.traceback()) end
       return 'networking', discover.asset_icons['networking']..snmpName, nil
@@ -928,7 +948,7 @@ local function analyzeSSDP(ssdp)
 			local value = v.serviceId:value()
 			if(value ~= nil) then
 			   if(discover.debug) then io.write(value.."\n") end
-			   
+
 			   table.insert(services, value)
 			end
 		     end
@@ -1093,7 +1113,7 @@ function discover.discover2table(interface_name, recache)
    end
 
    setDiscoveryProgress("[10 %]")
-   
+
    local arp_mdns = arp_d["arp_mdns"] or {}
    local ghost_macs = arp_d["ghost_macs"]
    local ghost_found = arp_d["ghost_found"]
@@ -1141,14 +1161,14 @@ function discover.discover2table(interface_name, recache)
    end
 
    setDiscoveryProgress("[30 %]")
-   
+
    if(discover.debug) then io.write("Analyzing SSDP...\n") end
    ssdp = analyzeSSDP(ssdp)
 
    local show_services = false
 
    setDiscoveryProgress("[40 %]")
-   
+
    if(discover.debug) then io.write("Collecting MDNS responses\n") end
    local mdns = interface.mdnsReadQueuedResponses()
 
@@ -1164,7 +1184,7 @@ function discover.discover2table(interface_name, recache)
    end
 
    setDiscoveryProgress("[50 %]")
-   
+
    if(discover.debug) then io.write("Collecting SNMP responses\n") end
    local snmp = {}
 
@@ -1178,7 +1198,7 @@ function discover.discover2table(interface_name, recache)
       interface.snmpGetBatch(ip, snmp_community, "1.3.6.1.2.1.1.1.0", 0)
    end
    setDiscoveryProgress("[60 %]")
-   
+
    if(discover.debug) then io.write("Collecting MDNS OSX responses\n") end
    osx_devices = interface.mdnsReadQueuedResponses()
    if(discover.debug) then io.write("Collected MDNS OSX responses\n") end
@@ -1211,7 +1231,7 @@ function discover.discover2table(interface_name, recache)
    end
 
    setDiscoveryProgress("[80 %]")
-   
+
    -- Time to pack the results in a table...
    local status = discoverStatus("OK")
    local res = {}
@@ -1297,7 +1317,7 @@ function discover.discover2table(interface_name, recache)
    end
 
    setDiscoveryProgress("")
-   
+
    local response = {status = status, devices = res, ghost_found = ghost_found, discovery_timestamp = os.time()}
 
    ntop.setCache(discover.getCachedDiscoveryKey(interface_name), json.encode(response))

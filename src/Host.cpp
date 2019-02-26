@@ -161,6 +161,7 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   as = NULL, country = NULL;
   blacklisted_host = false, reloadHostBlacklist();
   is_in_broadcast_domain = false;
+  is_dhcp_host = false;
 
   num_alerts_detected = 0;
   trigger_host_alerts = false;
@@ -191,6 +192,7 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   }
 
   reloadHideFromTop();
+  reloadDhcpHost();
 }
 
 /* *************************************** */
@@ -551,7 +553,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
 
   stats->lua(vm, mask_host, host_details, verbose);
 
-  if(cur_mac && cur_mac->isDhcpHost()) lua_push_bool_table_entry(vm, "dhcpHost", true);
+  lua_push_bool_table_entry(vm, "dhcpHost", isDhcpHost());
   lua_push_uint64_table_entry(vm, "active_flows.as_client", num_active_flows_as_client.get());
   lua_push_uint64_table_entry(vm, "active_flows.as_server", num_active_flows_as_server.get());
   lua_push_uint64_table_entry(vm, "active_flows.as_client.anomaly_index", num_active_flows_as_client.getAnomalyIndex());
@@ -1353,12 +1355,11 @@ char* Host::get_mac_based_tskey(Mac *mac, char *buf, size_t bufsize) {
 
 /* *************************************** */
 
-/* TODO merge with get_hostkey after migrating alerts and other stuff */
 char* Host::get_tskey(char *buf, size_t bufsize) {
   char *k;
   Mac *cur_mac = getMac(); /* Cache macs as they can be swapped/updated */
 
-  if(cur_mac && isBroadcastDomainHost() &&
+  if(cur_mac && isBroadcastDomainHost() && isDhcpHost() &&
       ntop->getPrefs()->serialize_local_broadcast_hosts_as_macs()) {
     k = get_mac_based_tskey(cur_mac, buf, bufsize);
   } else
