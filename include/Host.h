@@ -49,10 +49,9 @@ class Host : public GenericHashEntry {
   AlertCounter *syn_flood_attacker_alert, *syn_flood_victim_alert;
   AlertCounter *flow_flood_attacker_alert, *flow_flood_victim_alert;
   bool trigger_host_alerts;
-
+  std::vector<u_int32_t> dropbox_namespaces;
   MonitoredGauge<u_int32_t> num_active_flows_as_client, num_active_flows_as_server,
-    low_goodput_client_flows, low_goodput_server_flows;
-  
+    low_goodput_client_flows, low_goodput_server_flows;  
   u_int32_t asn;
   AutonomousSystem *as;
   Country *country;
@@ -86,6 +85,8 @@ class Host : public GenericHashEntry {
   void freeHostData();
   virtual void deleteHostData();
   char* get_mac_based_tskey(Mac *mac, char *buf, size_t bufsize);
+
+  
  public:
   Host(NetworkInterface *_iface, char *ipAddress, u_int16_t _vlanId);
   Host(NetworkInterface *_iface, Mac *_mac, u_int16_t _vlanId, IpAddress *_ip);
@@ -269,15 +270,18 @@ class Host : public GenericHashEntry {
   bool hasAnomalies();
   void luaAnomalies(lua_State* vm);
   void loadAlertsCounter();
-  bool triggerAlerts()                                   { return(trigger_host_alerts); };
+  bool triggerAlerts()                                   { return(trigger_host_alerts);       };
   void refreshHostAlertPrefs();
   u_int32_t getNumAlerts(bool from_alertsmanager = false);
-  void setNumAlerts(u_int32_t num)                       { num_alerts_detected = num; };
+  void setNumAlerts(u_int32_t num)                       { num_alerts_detected = num;         };
+  inline u_int getNumDropboxPeers()                      { return(dropbox_namespaces.size()); };
   virtual void inlineSetOS(const char * const _os) {};
   void inlineSetSSDPLocation(const char * const url);
   void inlineSetMDNSInfo(char * const s);
   void inlineSetMDNSName(const char * const n);
   void inlineSetMDNSTXTName(const char * const n);
   void setResolvedName(const char * const resolved_name);
+  void dissectDropbox(const char *payload, u_int16_t payload_len);
+  void dumpDropbox(lua_State *vm);
 };
 #endif /* _HOST_H_ */

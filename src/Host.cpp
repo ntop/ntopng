@@ -768,7 +768,7 @@ void Host::incStats(u_int32_t when, u_int8_t l4_proto, u_int ndpi_proto,
     stats->incStats(when, l4_proto, ndpi_proto, custom_app,
 		    sent_packets, sent_bytes, sent_goodput_bytes, rcvd_packets,
 		    rcvd_bytes, rcvd_goodput_bytes);
-    
+
     updateSeen();
   }
 }
@@ -1049,7 +1049,7 @@ bool Host::incFlowAlertHits(time_t when) {
     return flow_alert_counter->incHits(when);
   }
 
-  return false; 
+  return false;
 }
 
 /* *************************************** */
@@ -1077,13 +1077,13 @@ void Host::decLowGoodputFlows(time_t t, bool asClient) {
 
   if(asClient) {
     low_goodput_client_flows.dec(1);
-    
+
     if(low_goodput_client_flows.is_anomalous(t)
        || (low_goodput_client_flows.get() < HOST_LOW_GOODPUT_THRESHOLD))
       alert = true;
   } else {
     low_goodput_server_flows.dec(1);
-    
+
     if(low_goodput_server_flows.is_anomalous(t)
        || (low_goodput_server_flows.get() < HOST_LOW_GOODPUT_THRESHOLD))
       alert = true;
@@ -1194,7 +1194,7 @@ void Host::setResolvedName(const char * const resolved_name) {
     m.lock(__FILE__, __LINE__);
     if(!names.resolved && (names.resolved = strdup(resolved_name)))
       ;
-    m.unlock(__FILE__, __LINE__); 
+    m.unlock(__FILE__, __LINE__);
   }
 }
 
@@ -1266,7 +1266,7 @@ bool Host::statsResetRequested() {
 
 /* *************************************** */
 
-void Host::updateStats(struct timeval *tv) {  
+void Host::updateStats(struct timeval *tv) {
   if(stats_shadow) {
     delete stats_shadow;
     stats_shadow = NULL;
@@ -1365,4 +1365,73 @@ char* Host::get_tskey(char *buf, size_t bufsize) {
     k = get_hostkey(buf, bufsize);
 
   return(k);
+}
+
+/* **************************************************** */
+
+void Host::dissectDropbox(const char *payload, u_int16_t payload_len) {
+  json_object *o;
+  enum json_tokener_error jerr;
+  char str[payload_len+1];
+
+  strncpy(str, payload, payload_len);
+  str[payload_len] = '\0';
+
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", str);
+ 
+  if((o = json_tokener_parse_verbose(str, &jerr)) != NULL) {
+    json_object *obj;
+    
+    if(json_object_object_get_ex(o, "namespaces", &obj)) {
+      struct array_list *l = json_object_get_array(obj);
+
+      dropbox_namespaces.clear();
+
+      for(int i=0; i<array_list_length(l); i++) {
+	struct json_object *element = json_object_array_get_idx(obj, i);
+	u_int32_t ns = json_object_get_int(element);
+
+	// ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u", ns);
+	dropbox_namespaces.push_back(ns);
+      }
+
+      json_object_put(o);
+    }
+  }
+}
+
+/* **************************************************** */
+
+void Host::dumpDropbox(lua_State *vm) {
+  char ip_buf[64], *ipaddr = printMask(ip_buf, sizeof(ip_buf));
+  
+  lua_newtable(vm);
+  
+  lua_push_str_table_entry(vm, "ip", ipaddr);
+  lua_push_uint64_table_entry(vm, "ipkey", ip.key());
+  lua_push_uint64_table_entry(vm, "vlan", vlan_id);
+
+  lua_newtable(vm);
+  for(u_int i=0; i<dropbox_namespaces.size(); i++) {
+    u_int32_t v = dropbox_namespaces[i];
+
+    lua_newtable(vm);
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u", v);
+
+    lua_pushinteger(vm, v);
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
+  }
+
+  
+  lua_pushstring(vm, "namespaces");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "host %s", ipaddr);
+
+  
+  lua_pushstring(vm, printMask(ip_buf, sizeof(ip_buf)));
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
 }

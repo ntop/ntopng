@@ -3288,6 +3288,22 @@ static int ntop_dump_local_hosts_2_redis(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_dump_dropbox_hosts(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(!ntop_interface)
+    return(CONST_LUA_ERROR);
+
+  lua_pushnil(vm);
+  ntop_interface->dumpDropboxHosts(vm);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_get_interface_find_pid_flows(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   u_int32_t pid;
@@ -8137,13 +8153,14 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "checkpointInterface",      ntop_checkpoint_interface },
   { "getFlowsInfo",             ntop_get_interface_flows_info },
   { "getGroupedFlows",          ntop_get_interface_get_grouped_flows },
-  { "getFlowsStats",            ntop_get_interface_flows_stats },
-  { "getFlowKey",               ntop_get_interface_flow_key   },
-  { "findFlowByKey",            ntop_get_interface_find_flow_by_key },
-  { "dropFlowTraffic",          ntop_drop_flow_traffic },
-  { "dumpLocalHosts2redis",     ntop_dump_local_hosts_2_redis },
-  { "dropMultipleFlowsTraffic",   ntop_drop_multiple_flows_traffic },
-  { "findPidFlows",             ntop_get_interface_find_pid_flows },
+  { "getFlowsStats",            ntop_get_interface_flows_stats       },
+  { "getFlowKey",               ntop_get_interface_flow_key          },
+  { "findFlowByKey",            ntop_get_interface_find_flow_by_key  },
+  { "dropFlowTraffic",          ntop_drop_flow_traffic               },
+  { "dumpLocalHosts2redis",     ntop_dump_local_hosts_2_redis        },
+  { "dumpDropboxHosts",         ntop_dump_dropbox_hosts              },
+  { "dropMultipleFlowsTraffic", ntop_drop_multiple_flows_traffic     },
+  { "findPidFlows",             ntop_get_interface_find_pid_flows    },
   { "findNameFlows",            ntop_get_interface_find_proc_name_flows },
   { "listHTTPhosts",            ntop_list_http_hosts },
   { "findHost",                 ntop_get_interface_find_host },

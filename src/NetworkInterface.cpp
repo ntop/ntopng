@@ -729,13 +729,11 @@ int NetworkInterface::dumpLocalHosts2redis(bool disable_purge) {
 	      local_hosts_2_redis_walker, NULL) ? 0 : -1;
   if(disable_purge) enablePurge(false /* on hosts */);
 
-
 #ifdef NTOPNG_PRO
   if(getHostPools()) getHostPools()->dumpToRedis();
 #endif
 
-
-  return rc;
+  return(rc);
 }
 
 /* **************************************************** */
@@ -1385,10 +1383,9 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       return(pass_verdict);
     }
 
-    if((iph->ihl * 4) > ipsize || ipsize < ntohs(iph->tot_len)
-       || (iph->frag_off & htons(0x1FFF /* IP_OFFSET */)) != 0) {
-      is_fragment = true;
-    }
+    if(((iph->ihl * 4) > ipsize) || (ipsize < ntohs(iph->tot_len))
+       || (iph->frag_off & htons(0x1FFF /* IP_OFFSET */)) != 0)
+      is_fragment = true;    
 
     l4_packet_len = ntohs(iph->tot_len) - (iph->ihl * 4);
     l4_proto = iph->protocol;
@@ -1839,6 +1836,15 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	discovery->queueMDNSRespomse(iph->saddr, payload, payload_len);
       break;
 
+    case NDPI_PROTOCOL_DROPBOX:
+      if((src_port == dst_port) && (dst_port == htons(17500))) {
+	Host *h = flow->get_cli_host();
+
+	if(h->isLocalHost())
+	  h->dissectDropbox((const char *)payload, payload_len);
+      }
+      break;
+      
     default:
       if(flow->isSSLProto())
         flow->dissectSSL(payload, payload_len, when, src2dst_direction);
@@ -4299,7 +4305,6 @@ int NetworkInterface::getFlows(lua_State* vm,
       lua_settable(vm, -3);
 
       if(++num >= (int)p->maxHits()) break;
-
     }
   } else {
     for(int i=(retriever.actNumEntries-1-p->toSkip()), num=0; i>=0; i--) {
@@ -6977,6 +6982,37 @@ void NetworkInterface::reloadHostsBlacklist() {
 
   /* Update the hosts */
   walker(&begin_slot, walk_all,  walker_hosts, host_reload_blacklist, NULL);
+}
+
+/* **************************************************** */
+
+static bool local_hosts_2_dropbox_walker(GenericHashEntry *h, void *user_data, bool *matched) {
+  Host *host = (Host*)h;
+
+  if(host && (host->getNumDropboxPeers() > 0)) {
+    lua_State *vm = (lua_State*)user_data;
+    
+    host->dumpDropbox(vm);
+    *matched = true;
+  }
+
+  return(false); /* false = keep on walking */
+}
+
+/* *************************************** */
+
+int NetworkInterface::dumpDropboxHosts(lua_State *vm) {
+  int rc;
+  u_int32_t begin_slot = 0;
+
+  lua_newtable(vm);
+    
+  disablePurge(false /* on hosts */);
+  rc = walker(&begin_slot, true /* walk_all */, walker_hosts,
+	      local_hosts_2_dropbox_walker, vm) ? 0 : -1;
+  enablePurge(false /* on hosts */);
+
+  return(rc);
 }
 
 /* *************************************** */

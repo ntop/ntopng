@@ -32,7 +32,6 @@ local page_utils = require("page_utils")
 
 sendHTTPContentTypeHeader('text/html')
 
-
 page_utils.print_header(i18n("flow_details.flow_details"))
 
 warn_shown = 0

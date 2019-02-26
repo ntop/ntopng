@@ -242,6 +242,7 @@ class NetworkInterface : public Checkpointable {
   void checkMacIPAssociation(bool triggerEvent, u_char *_mac, u_int32_t ipv4);
   void pollQueuedeBPFEvents();
   void reloadCustomCategories();
+  
  public:
   /**
   * @brief A Constructor
@@ -525,6 +526,7 @@ class NetworkInterface : public Checkpointable {
   bool registerLiveCapture(struct ntopngLuaContext * const luactx, int *id);
   bool deregisterLiveCapture(struct ntopngLuaContext * const luactx);
   void dumpLiveCaptures(lua_State* vm);
+  int  dumpDropboxHosts(lua_State *vm);
   bool stopLiveCapture(int capture_id);
 #ifdef NTOPNG_PRO
 #ifdef HAVE_NEDGE
