@@ -93,22 +93,13 @@ void LocalHost::serialize2redis() {
   char redis_key[CONST_MAX_LEN_REDIS_KEY], host_key[64];
   Mac *mac = getMac();
 
-  if(isBroadcastDomainHost() && mac &&
+  if(isBroadcastDomainHost() && isDhcpHost() && mac &&
       ntop->getPrefs()->serialize_local_broadcast_hosts_as_macs()) {
-    char mac_mapping[CONST_MAX_LEN_REDIS_KEY];
-    char ip_buf[128], mac_buf[128], *ip_str;
+    char mac_buf[128];
 
-    ip_str = ip.print(ip_buf, sizeof(ip_buf));
     get_mac_based_tskey(mac, mac_buf, sizeof(mac_buf));
 
-    getMacBasedSerializationKey(redis_key, sizeof(redis_key), ip_str, mac_buf);
-
-    if(isDhcpHost()) {
-      /* Save the mac->ip mapping */
-      snprintf(mac_mapping, sizeof(mac_mapping), MAC_LAST_SEEN_IP, mac_buf);
-      ntop->getRedis()->set(mac_mapping, ip_str);
-      ntop->getTrace()->traceEvent(TRACE_INFO, "Saving mac-ip mapping: %s -> %s", mac_buf, ip_str);
-    }
+    getMacBasedSerializationKey(redis_key, sizeof(redis_key), mac_buf);
   } else
     getIpBasedSerializationKey(redis_key, sizeof(redis_key));
 
@@ -338,10 +329,10 @@ void LocalHost::deleteHostData() {
 
 /* *************************************** */
 
-char * LocalHost::getMacBasedSerializationKey(char *redis_key, size_t size, char *ip_key, char *mac_key) {
+char * LocalHost::getMacBasedSerializationKey(char *redis_key, size_t size, char *mac_key) {
   /* Serialize both IP and MAC for static hosts */
   snprintf(redis_key, size, HOST_BY_MAC_SERIALIZED_KEY,
-      iface->get_id(), ip_key, mac_key);
+      iface->get_id(), mac_key);
 
   return redis_key;
 }
@@ -365,33 +356,17 @@ bool LocalHost::deserialize() {
   /* First try to deserialize with the mac based key */
   if(mac && isDhcpHost() &&
       ntop->getPrefs()->serialize_local_broadcast_hosts_as_macs()) {
-    char mac_mapping[128];
-    char ip_buf[128], mac_buf[128];
+    char mac_buf[128];
 
     get_mac_based_tskey(mac, mac_buf, sizeof(mac_buf));
 
-    k = getMacBasedSerializationKey(redis_key, sizeof(redis_key), ip.print(ip_buf, sizeof(ip_buf)), mac_buf);
+    k = getMacBasedSerializationKey(redis_key, sizeof(redis_key), mac_buf);
 
     if(deserializeFromRedisKey(k)) {
-      /* static/same dynamic ip host */
       setBroadcastDomainHost();
       return true;
     } else
       ntop->getRedis()->del(k);
-
-    /* Try to search for the last mapping */
-    snprintf(mac_mapping, sizeof(mac_mapping), MAC_LAST_SEEN_IP, mac_buf);
-    if(ntop->getRedis()->get(mac_mapping, ip_buf, sizeof(ip_buf)) == 0) {
-      /* Try to deserialize old IP. Assumption: it is the previous IP got via a DHCP request */
-      k = getMacBasedSerializationKey(redis_key, sizeof(redis_key), ip_buf, mac_buf);
-
-      ntop->getTrace()->traceEvent(TRACE_INFO, "Restoring mac-ip mapping: %s <- %s, key = %s", mac_buf, ip_buf, k);
-
-      if(deserializeFromRedisKey(k))
-        return true;
-      else
-        ntop->getRedis()->del(k);
-    }
   }
 
   /* Deserialize by IP */

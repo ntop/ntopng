@@ -1359,7 +1359,7 @@ char* Host::get_tskey(char *buf, size_t bufsize) {
   char *k;
   Mac *cur_mac = getMac(); /* Cache macs as they can be swapped/updated */
 
-  if(cur_mac && isBroadcastDomainHost() &&
+  if(cur_mac && isBroadcastDomainHost() && isDhcpHost() &&
       ntop->getPrefs()->serialize_local_broadcast_hosts_as_macs()) {
     k = get_mac_based_tskey(cur_mac, buf, bufsize);
   } else
