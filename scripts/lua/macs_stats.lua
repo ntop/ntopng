@@ -28,7 +28,6 @@ local page_params = {}
 
 local devices_mode = ""
 local devices_mode_filter = ""
-local dhcp_macs_only = false
 
 if(not isEmptyString(_GET["devices_mode"])) then
    devices_mode = _GET["devices_mode"]
@@ -77,13 +76,6 @@ if devices_mode == "source_macs_only" then
    else
       title = i18n("mac_stats.layer_2_source_devices", {device_type=""})
    end
-elseif devices_mode == "dhcp_macs_only" then
-   dhcp_macs_only = true
-   if device_type then
-      title = i18n("mac_stats.layer_2_dev_devices", {device_type=discover.devtype2string(device_type).." DHCP"})
-   else
-      title = i18n("mac_stats.layer_2_source_devices", {device_type=" DHCP"})
-   end
 else
    if device_type then
       title = i18n("mac_stats.dev_layer_2_devices", {device_type=discover.devtype2string(device_type)})
@@ -128,13 +120,6 @@ print('buttons: [')
    print(getPageUrl(base_url, macs_params))
    print('">'..i18n("mac_stats.source_macs")..'</a></li>')
 
-   -- DHCP MACs only
-   print('<li')
-   if devices_mode == "dhcp_macs_only" then print(' class="active"') end
-   print('><a href="')
-   macs_params.devices_mode = "dhcp_macs_only"
-   print(getPageUrl(base_url, macs_params))
-   print('">'..i18n("mac_stats.dhcp_only")..'</a></li>')
    print("</div>'")
 
    -- Filter Manufacturers

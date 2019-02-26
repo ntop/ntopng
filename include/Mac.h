@@ -45,7 +45,7 @@ class Mac : public GenericHashEntry {
   char * ssid;
   
   OperatingSystem os;
-  bool source_mac, dhcpHost;
+  bool source_mac;
   DeviceType device_type;
 #ifdef NTOPNG_PRO
   time_t captive_portal_notified;
@@ -75,8 +75,6 @@ class Mac : public GenericHashEntry {
   }
   inline void decUses()            { GenericHashEntry::decUses(); }
   inline bool isSpecialMac()       { return(special_mac);         }
-  inline bool isDhcpHost()         { return(dhcpHost);            }
-  inline void setDhcpHost()        { dhcpHost = true;             }
   inline bool isSourceMac()        { return(source_mac);          }
   inline void setSourceMac() {
     if(!source_mac && !special_mac) {

@@ -553,7 +553,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
 
   stats->lua(vm, mask_host, host_details, verbose);
 
-  if(cur_mac && cur_mac->isDhcpHost()) lua_push_bool_table_entry(vm, "dhcpHost", true);
+  lua_push_bool_table_entry(vm, "dhcpHost", isDhcpHost());
   lua_push_uint64_table_entry(vm, "active_flows.as_client", num_active_flows_as_client.get());
   lua_push_uint64_table_entry(vm, "active_flows.as_server", num_active_flows_as_server.get());
   lua_push_uint64_table_entry(vm, "active_flows.as_client.anomaly_index", num_active_flows_as_client.getAnomalyIndex());

@@ -8,10 +8,9 @@
 --! @param pool_filter filter by host pool ID.
 --! @param devtype_filter filter by device type.
 --! @param location_filter filter by device location, "lan" or "wan".
---! @param dhcpMacsOnly if true, only devices which made DHCP requests will be returned.
 --! @return a table (numMacs, nextSlot, macs) on success, nil otherwise.
 --! @note it's better to use the more efficient helper `callback_utils.getDevicesIterator` for generic devices iteration.
-function interface.getMacsInfo(string sortColumn="column_mac", int maxHits=32768, int toSkip=0, bool a2zSortOrder=true, sourceMacsOnly=false, string manufacturer=nil, int pool_filter=nil, int devtype_filter=nil, string location_filter=nil, bool dhcpMacsOnly=false)
+function interface.getMacsInfo(string sortColumn="column_mac", int maxHits=32768, int toSkip=0, bool a2zSortOrder=true, sourceMacsOnly=false, string manufacturer=nil, int pool_filter=nil, int devtype_filter=nil, string location_filter=nil)
 
 --! @brief Retrieve information about a specific L2 device.
 --! @param mac the mac to query information for.
@@ -23,9 +22,8 @@ function interface.getMacInfo(string mac)
 --! @param sourceMacsOnly if true, only sender devices will be returned.
 --! @param devtype_filter filter by device type.
 --! @param location_filter filter by device location, "lan" or "wan".
---! @param dhcpMacsOnly if true, only consider devices which made DHCP requests.
 --! @return table (manufacturer -> num_active_devices) on success, nil otherwise.
-function interface.getMacManufacturers(int maxHits=32768, bool sourceMacsOnly=false, int devtype_filter=nil, string location_filter=nil, bool dhcpMacsOnly=false)
+function interface.getMacManufacturers(int maxHits=32768, bool sourceMacsOnly=false, int devtype_filter=nil, string location_filter=nil)
 
 --! @brief Set L2 device operating system.
 --! @param mac device MAC address
@@ -43,9 +41,8 @@ function interface.setMacDeviceType(string mac, int device_type, bool overwrite)
 --! @param sourceMacsOnly if true, only sender devices will be return
 --! @param manufacturer filter by device manufacturer.ed.
 --! @param location_filter filter by device location, "lan" or "wan".
---! @param dhcpMacsOnly if true, only devices which made DHCP requests will be returned.
 --! @return table (device_type -> num_active_devices) on success, nil otherwise.
-function interface.getMacDeviceTypes(int max_hits=32768, bool sourceMacsOnly=false, string manufacturer=nil, string location_filter=nil, bool dhcpMacsOnly=false)
+function interface.getMacDeviceTypes(int max_hits=32768, bool sourceMacsOnly=false, string manufacturer=nil, string location_filter=nil)
 
 --! @brief Get the pool of the specified L2 device. This also works for inactive devices.
 --! @oaram mac L2 device MAC address.
