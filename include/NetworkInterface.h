@@ -176,6 +176,7 @@ class NetworkInterface : public Checkpointable {
   NetworkStats *networkStats;
   InterfaceStatsHash *interfaceStats;
   char checkpoint_compression_buffer[CONST_MAX_NUM_CHECKPOINTS][MAX_CHECKPOINT_COMPRESSION_BUFFER_SIZE];
+  u_int32_t *dhcp_ranges, *dhcp_ranges_shadow;
 
   PROFILING_DECLARE(24);
 
@@ -684,6 +685,9 @@ class NetworkInterface : public Checkpointable {
   virtual void updateDirectionStats()        { ; }
   void makeTsPoint(NetworkInterfaceTsPoint *pt);
   void tsLua(lua_State* vm);
+  void reloadDhcpRanges();
+  bool isInDhcpRange(IpAddress *ip);
+
 #ifdef HAVE_EBPF
   inline bool iseBPFEventAvailable() { return((ebpfEvents && (ebpfEvents[next_remove_idx] != NULL)) ? true : false); }
   bool enqueueeBPFEvent(eBPFevent *event);

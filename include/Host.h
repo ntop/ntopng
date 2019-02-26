@@ -72,6 +72,7 @@ class Host : public GenericHashEntry {
 #endif
   bool hidden_from_top;
   bool is_in_broadcast_domain;
+  bool is_dhcp_host;
 
   void initialize(Mac *_mac, u_int16_t _vlan_id, bool init_all);
   bool statsResetRequested();
@@ -95,6 +96,7 @@ class Host : public GenericHashEntry {
   virtual bool isLocalHost()  const = 0;
   virtual bool isSystemHost() const = 0;
   inline  bool isBroadcastDomainHost() const { return(is_in_broadcast_domain); };
+  inline  bool isDhcpHost()            const { return(is_dhcp_host); };
   inline void setBroadcastDomainHost()       { is_in_broadcast_domain = true;  };
   inline void setSystemHost()                { /* TODO: remove */              };
 
@@ -257,6 +259,7 @@ class Host : public GenericHashEntry {
   void get_geocoordinates(float *latitude, float *longitude);
   inline u_int16_t getVlanId() { return (vlan ? vlan->get_vlan_id() : 0); }
   inline void reloadHideFromTop() { hidden_from_top = iface->isHiddenFromTop(this); }
+  inline void reloadDhcpHost()    { is_dhcp_host = iface->isInDhcpRange(get_ip()); }
   inline bool isHiddenFromTop() { return hidden_from_top; }
   inline bool isOneWayTraffic() { return !(stats->getNumBytesRcvd() > 0 && stats->getNumBytesSent() > 0); };
   virtual void tsLua(lua_State* vm) { lua_pushnil(vm); };

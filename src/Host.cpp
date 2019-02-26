@@ -161,6 +161,7 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   as = NULL, country = NULL;
   blacklisted_host = false, reloadHostBlacklist();
   is_in_broadcast_domain = false;
+  is_dhcp_host = false;
 
   num_alerts_detected = 0;
   trigger_host_alerts = false;
@@ -191,6 +192,7 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   }
 
   reloadHideFromTop();
+  reloadDhcpHost();
 }
 
 /* *************************************** */

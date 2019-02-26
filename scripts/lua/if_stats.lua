@@ -311,6 +311,12 @@ if isAdministrator() and (not ifstats.isView) then
          print("\n<li><a href=\""..url.."&page=pools\"><i class=\"fa fa-users\"></i> "..label.."</a></li>")
       end
    end
+
+   if(page == "dhcp") then
+      print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-bolt fa-lg\"></i></a></li>\n")
+   else
+      print("\n<li><a href=\""..url.."&page=dhcp\"><i class=\"fa fa-bolt fa-lg\"></i></a></li>")
+   end
 end
 
 if(hasSnmpDevices(ifstats.id) and is_packet_interface and false --[[disabled: no functionality provided right now]]) then
@@ -1583,6 +1589,8 @@ elseif(page == "pools") then
     end
 
     dofile(dirs.installdir .. "/scripts/lua/admin/host_pools.lua")
+elseif(page == "dhcp") then
+    dofile(dirs.installdir .. "/scripts/lua/admin/dhcp.lua")
 elseif page == "traffic_report" then
    dofile(dirs.installdir .. "/pro/scripts/lua/enterprise/traffic_report.lua")
 end

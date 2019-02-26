@@ -572,6 +572,12 @@ local lang = {
     ["wifi"] = "Wireless Network",
     ["workstation"] = "Computer",
   },
+  ["dhcp"] = {
+    ["delete_range"] = "Delete DHCP Range",
+    ["delete_range_confirm"] = "Do you really want to delete the configured DHCP range %{range} ?",
+    ["dhcp_configuration_note"] = "This page lists the configured DHCP ranges for this interface. These should match the actual DHCP server configuration in use",
+    ["no_dhcp_ranges"] = "No DHCP ranges configured.",
+  },
   ["discover"] = {
     ["device"] = "Device",
     ["discovered_devices"] = "Discovered %{manuf} %{sys} %{dev} Devices",

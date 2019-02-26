@@ -223,6 +223,7 @@ NetworkInterface::NetworkInterface(const char *name,
 
   loadScalingFactorPrefs();
   loadPacketsDropsAlertPrefs();
+  reloadDhcpRanges();
 
   statsManager = NULL, alertsManager = NULL;
 
@@ -321,6 +322,8 @@ void NetworkInterface::init() {
 #endif
 
 #endif
+
+  dhcp_ranges = dhcp_ranges_shadow = NULL;
 
     ts_ring = NULL;
 
@@ -642,6 +645,8 @@ NetworkInterface::~NetworkInterface() {
   if(tsExporter)            delete tsExporter;
   if(ts_ring)               delete ts_ring;
   if(mdns)                  delete mdns; /* Leave it at the end so the mdns resolved has time to initialize */
+  if(dhcp_ranges)           free(dhcp_ranges);
+  if(dhcp_ranges_shadow)    free(dhcp_ranges_shadow);
 
   if(ifname)                free(ifname);
 }
@@ -6981,6 +6986,105 @@ void NetworkInterface::reloadHostsBlacklist() {
 
 /* *************************************** */
 
+static bool host_reload_dhcp_host(GenericHashEntry *host, void *user_data, bool *matched) {
+  Host *h = (Host*)host;
+
+  h->reloadDhcpHost();
+  *matched = true;
+
+  return(false); /* false = keep on walking */
+}
+
+/* *************************************** */
+
+void NetworkInterface::reloadDhcpRanges() {
+  char redis_key[CONST_MAX_LEN_REDIS_KEY], rsp[1024];
+  u_int32_t *new_ranges = NULL;
+  u_int num_ranges = 0;
+  u_int len;
+
+  snprintf(redis_key, sizeof(redis_key), IFACE_DHCP_RANGE_KEY, get_id());
+
+  if(!ntop->getRedis()->get(redis_key, rsp, sizeof(rsp)) &&
+      (len = strlen(rsp))) {
+    u_int i;
+    num_ranges = 1;
+
+    for(i=0; i<len; i++) {
+      if(rsp[i] == ',')
+	num_ranges++;
+    }
+
+    // +1 for final terminator, 2* to store first,last ip pairs
+    new_ranges = (u_int32_t *) malloc(sizeof(u_int32_t) * 2 * (num_ranges+1));
+
+    if(new_ranges) {
+      char *cur_pos = rsp;
+
+      /* E.g. 192.168.1.2-192.168.1.150,10.0.0.50-10.0.0.60 */
+      for(i=0; i<num_ranges; i++) {
+	char *end = strchr(cur_pos, ',');
+	char *delim = strchr(cur_pos, '-');
+
+	if(!end)
+	  end = cur_pos + strlen(cur_pos);
+
+	if(delim) {
+	  struct in_addr inp;
+	  *delim = 0;
+	  *end = 0;
+
+	  inet_aton(cur_pos, &inp);
+	  new_ranges[2*i] = ntohl(inp.s_addr); // first ip
+	  inet_aton(delim+1, &inp);
+	  new_ranges[2*i+1] = ntohl(inp.s_addr); // last ip
+	}
+
+	cur_pos = end + 1;
+      }
+
+      // final terminator
+      new_ranges[2*i] = 0;
+    }
+  }
+
+  if(dhcp_ranges_shadow)
+    free(dhcp_ranges_shadow);
+
+  dhcp_ranges_shadow = dhcp_ranges;
+  dhcp_ranges = new_ranges;
+
+  /* Reload existing hosts */
+  u_int32_t begin_slot = 0;
+  bool walk_all = true;
+  walker(&begin_slot, walk_all,  walker_hosts, host_reload_dhcp_host, NULL);
+}
+
+/* *************************************** */
+
+bool NetworkInterface::isInDhcpRange(IpAddress *ip) {
+  // Important: cache it as it may change
+  u_int32_t *ranges = dhcp_ranges;
+  u_int32_t numeric_ip;
+
+  // TODO
+  if(!ip->isIPv4() || !ranges)
+    return(false);
+
+  numeric_ip = ntohl(ip->get_ipv4());
+
+  while(*ranges) {
+    if((numeric_ip >= ranges[0]) && (numeric_ip <= ranges[1]))
+      return true;
+
+    ranges += 2;
+  }
+
+  return false;
+}
+
+/* *************************************** */
+
 #ifdef HAVE_EBPF
 
 bool NetworkInterface::enqueueeBPFEvent(eBPFevent *event) {
@@ -7038,4 +7142,4 @@ void NetworkInterface::delivereBPFEvent(eBPFevent *event) {
   }
 }
 
-#endif
+#endif // HAVE_EBPF

@@ -205,6 +205,7 @@
 #define CONST_ALERT_PROBING_TIME            120  /* 2 mins */
 #define CONST_TCP_CHECK_ISSUES_RATIO         10  /* 10% */
 #define HOST_LABEL_NAMES        "ntopng.host_labels"
+#define IFACE_DHCP_RANGE_KEY    "ntopng.prefs.ifid_%u.dhcp_ranges"
 #define HOST_SERIALIZED_KEY     "ntopng.serialized_hosts.ifid_%u__%s@%d"
 #define MAC_SERIALIZED_KEY      "ntopng.serialized_macs.ifid_%u__%s"
 #define HOST_BY_MAC_SERIALIZED_KEY "ntopng.serialized_hostsbymac.ifid_%u__%s__%s"

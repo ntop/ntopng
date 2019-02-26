@@ -3815,6 +3815,19 @@ static int ntop_reload_hide_from_top(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_reload_dhcp_ranges(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  if(!ntop_interface) return(CONST_LUA_ERROR);
+  ntop_interface->reloadDhcpRanges();
+
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 #ifdef HAVE_NEDGE
 
 static int ntop_set_lan_ip_address(lua_State* vm) {
@@ -8163,6 +8176,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "loadScalingFactorPrefs",           ntop_load_scaling_factor_prefs },
   { "loadPacketsDropsAlertPrefs",       ntop_load_packet_drops_prefs },
   { "reloadHideFromTop",                ntop_reload_hide_from_top },
+  { "reloadDhcpRanges",                 ntop_reload_dhcp_ranges },
 
   /* Mac */
   { "getMacsInfo",                      ntop_get_interface_macs_info },
