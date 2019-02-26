@@ -192,7 +192,7 @@ print [[
 <ul class="nav navbar-nav">
 ]]
 if((debug_hosts) and (host["ip"] ~= nil)) then traceError(TRACE_DEBUG,TRACE_CONSOLE, i18n("host_details.trace_debug_host_ip",{hostip=host["ip"],vlan=host["vlan"]}).."\n") end
-url=ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url(host_info)
+url = ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url(host_info)
 
 print("<li><a href=\"#\">"..i18n("host_details.host")..": "..host_info["host"])
 if host["broadcast_domain_host"] then
@@ -342,6 +342,19 @@ if(not(isLoopback(ifname))) then
       print("<li><a href=\""..url.."&page=talkers\">"..i18n("talkers").."</a></li>")
    end
 
+   if(host.has_dropbox_shares == true) then
+      local dropbox = require("dropbox_utils")
+      local namespaces = dropbox.getHostNamespaces(host.ip)
+
+      if(table.len(namespaces) > 0) then
+	 if(page == "dropbox") then
+	    print("<li class=\"active\"><a href=\"#\"><i class='fa fa-dropbox fa-lg'></i></a></li>\n")
+	 else
+	    print("<li><a href=\""..url.."&page=dropbox\"><i class='fa fa-dropbox fa-lg'></i></a></li>")
+	 end
+      end
+   end
+   
    if(page == "geomap") then
       print("<li class=\"active\"><a href=\"#\"><i class='fa fa-globe fa-lg'></i></a></li>\n")
    else
@@ -1557,6 +1570,23 @@ elseif(page == "processes") then
    local ebpf_utils = require "ebpf_utils"
    ebpf_utils.draw_processes_graph(host_info)
 
+elseif(page == "dropbox") then
+   local dropbox = require("dropbox_utils")
+   local namespaces = dropbox.getHostNamespaces(host.ip)
+
+   print(i18n("dropbox_sharing_with"))
+   print("<ul>")
+   for k,v in pairs(namespaces) do
+      local host = interface.getHostInfo(k, host_vlan)
+
+      print("<li><a href=\""..ntop.getHttpPrefix().."/lua/host_details.lua?host="..k)
+      if(host_vlan ~= 0) then print("&vlan="..host_vlan) end
+      print("&page=dropbox\">")      
+      print(getResolvedAddress(hostkey2hostinfo(k)))
+      print("</A></li>")
+   end
+
+   print("</ul>")
 elseif(page == "talkers") then
 print("<center>")
 print('<div class="row">')

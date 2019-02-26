@@ -614,6 +614,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   lua_push_uint64_table_entry(vm, "seen.first", first_seen);
   lua_push_uint64_table_entry(vm, "seen.last", last_seen);
   lua_push_uint64_table_entry(vm, "duration", get_duration());
+  lua_push_bool_table_entry(vm, "has_dropbox_shares", dropbox_namespaces.size() > 0 ? true : false);
 
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[pkts_thpt: %.2f] [pkts_thpt_trend: %d]", pkts_thpt,pkts_thpt_trend);
 
@@ -1379,10 +1380,10 @@ void Host::dissectDropbox(const char *payload, u_int16_t payload_len) {
   str[payload_len] = '\0';
 
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", str);
- 
+
   if((o = json_tokener_parse_verbose(str, &jerr)) != NULL) {
     json_object *obj;
-    
+
     if(json_object_object_get_ex(o, "namespaces", &obj)) {
       struct array_list *l = json_object_get_array(obj);
 
@@ -1405,9 +1406,9 @@ void Host::dissectDropbox(const char *payload, u_int16_t payload_len) {
 
 void Host::dumpDropbox(lua_State *vm) {
   char ip_buf[64], *ipaddr = printMask(ip_buf, sizeof(ip_buf));
-  
+
   lua_newtable(vm);
-  
+
   lua_push_str_table_entry(vm, "ip", ipaddr);
   lua_push_uint64_table_entry(vm, "ipkey", ip.key());
   lua_push_uint64_table_entry(vm, "vlan", vlan_id);
@@ -1417,21 +1418,17 @@ void Host::dumpDropbox(lua_State *vm) {
     u_int32_t v = dropbox_namespaces[i];
 
     lua_newtable(vm);
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u", v);
+    /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u", v); */
 
     lua_pushinteger(vm, v);
     lua_insert(vm, -2);
     lua_settable(vm, -3);
   }
 
-  
   lua_pushstring(vm, "namespaces");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
 
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "host %s", ipaddr);
-
-  
   lua_pushstring(vm, printMask(ip_buf, sizeof(ip_buf)));
   lua_insert(vm, -2);
   lua_settable(vm, -3);

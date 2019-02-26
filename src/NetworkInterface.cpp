@@ -1842,12 +1842,8 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       break;
 
     case NDPI_PROTOCOL_DROPBOX:
-      if((src_port == dst_port) && (dst_port == htons(17500))) {
-	Host *h = flow->get_cli_host();
-
-	if(h->isLocalHost())
-	  h->dissectDropbox((const char *)payload, payload_len);
-      }
+      if((src_port == dst_port) && (dst_port == htons(17500)))
+	flow->get_cli_host()->dissectDropbox((const char *)payload, payload_len);      
       break;
       
     default:
@@ -5265,7 +5261,7 @@ void NetworkInterface::lua(lua_State *vm) {
   if(customIftype) lua_push_str_table_entry(vm, "customIftype", (char*)customIftype);
   lua_push_bool_table_entry(vm, "isView", isView()); /* View interface */
   lua_push_bool_table_entry(vm, "isDynamic", isDynamicInterface()); /* An runtime-instantiated interface */
-  lua_push_uint64_table_entry(vm,  "seen.last", getTimeLastPktRcvd());
+  lua_push_uint64_table_entry(vm, "seen.last", getTimeLastPktRcvd());
   lua_push_bool_table_entry(vm, "inline", get_inline_interface());
   lua_push_bool_table_entry(vm, "vlan",     hasSeenVlanTaggedPackets());
   lua_push_bool_table_entry(vm, "has_macs", hasSeenMacAddresses());
