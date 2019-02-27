@@ -645,8 +645,8 @@ NetworkInterface::~NetworkInterface() {
   if(tsExporter)            delete tsExporter;
   if(ts_ring)               delete ts_ring;
   if(mdns)                  delete mdns; /* Leave it at the end so the mdns resolved has time to initialize */
-  if(dhcp_ranges)           free(dhcp_ranges);
-  if(dhcp_ranges_shadow)    free(dhcp_ranges_shadow);
+  if(dhcp_ranges)           delete[] dhcp_ranges;
+  if(dhcp_ranges_shadow)    delete[] dhcp_ranges_shadow;
 
   if(ifname)                free(ifname);
 }
@@ -3538,6 +3538,7 @@ struct flowHostRetriever {
   bool filteredHosts;         /* Not used in flow_search_walker */
   bool blacklistedHosts;     /* Not used in flow_search_walker */
   bool anomalousOnly;        /* Not used in flow_search_walker */
+  bool dhcpOnly;             /* Not used in flow_search_walker */
   bool hideTopHidden;        /* Not used in flow_search_walker */
   u_int16_t vlan_id;
   char *osFilter;
@@ -3805,6 +3806,7 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data, bool *matc
      (r->osFilter && strlen(r->osFilter) && strcmp(h->get_os(buf, sizeof(buf)), r->osFilter))     ||
      (r->blacklistedHosts && !h->isBlacklisted())     ||
      (r->anomalousOnly && !h->hasAnomalies())         ||
+     (r->dhcpOnly && !h->isDhcpHost())                ||
      (r->hideTopHidden && h->isHiddenFromTop())       ||
      (r->traffic_type == traffic_type_one_way && !h->isOneWayTraffic())       ||
      (r->traffic_type == traffic_type_bidirectional && h->isOneWayTraffic())  ||
@@ -4439,7 +4441,7 @@ int NetworkInterface::sortHosts(u_int32_t *begin_slot,
 				u_int32_t asnFilter, int16_t networkFilter,
 				u_int16_t pool_filter, bool filtered_hosts,
 				bool blacklisted_hosts, bool hide_top_hidden,
-				bool anomalousOnly,
+				bool anomalousOnly, bool dhcpOnly,
 				u_int8_t ipver_filter, int proto_filter,
 				TrafficType traffic_type_filter,
 				char *sortColumn) {
@@ -4472,6 +4474,7 @@ int NetworkInterface::sortHosts(u_int32_t *begin_slot,
     retriever->filteredHosts = filtered_hosts,
     retriever->blacklistedHosts = blacklisted_hosts,
     retriever->anomalousOnly = anomalousOnly,
+    retriever->dhcpOnly = dhcpOnly,
     retriever->hideTopHidden = hide_top_hidden,
     retriever->ndpi_proto = proto_filter,
     retriever->traffic_type = traffic_type_filter,
@@ -4708,7 +4711,7 @@ int NetworkInterface::getActiveHostsList(lua_State* vm,
 					 bool blacklisted_hosts, bool hide_top_hidden,
 					 u_int8_t ipver_filter, int proto_filter,
 					 TrafficType traffic_type_filter, bool tsLua,
-					 bool anomalousOnly,
+					 bool anomalousOnly, bool dhcpOnly,
 					 char *sortColumn, u_int32_t maxHits,
 					 u_int32_t toSkip, bool a2zSortOrder) {
   struct flowHostRetriever retriever;
@@ -4725,7 +4728,8 @@ int NetworkInterface::getActiveHostsList(lua_State* vm,
 	       &retriever, bridge_iface_idx,
 	       allowed_hosts, host_details, location,
 	       countryFilter, mac_filter, vlan_id, osFilter,
-	       asnFilter, networkFilter, pool_filter, filtered_hosts, blacklisted_hosts, hide_top_hidden, anomalousOnly,
+	       asnFilter, networkFilter, pool_filter, filtered_hosts, blacklisted_hosts, hide_top_hidden,
+	       anomalousOnly, dhcpOnly,
 	       ipver_filter, proto_filter,
 	       traffic_type_filter,
 	       sortColumn) < 0) {
@@ -4875,7 +4879,7 @@ int NetworkInterface::getActiveHostsGroup(lua_State* vm,
 	       allowed_hosts, host_details, location,
 	       countryFilter, NULL /* Mac */, vlan_id,
 	       osFilter, asnFilter, networkFilter, pool_filter,
-	       filtered_hosts, false /* no blacklisted hosts filter */, false, false,
+	       filtered_hosts, false /* no blacklisted hosts filter */, false, false, false,
 	       ipver_filter, -1 /* no protocol filter */,
 	       traffic_type_all /* no traffic type filter */,
 	       groupColumn) < 0 ) {
@@ -5548,11 +5552,14 @@ Flow* NetworkInterface::findFlowByKey(u_int32_t key,
 Flow* NetworkInterface::findFlowByTuple(u_int16_t vlan_id,
 					IpAddress *src_ip,  IpAddress *dst_ip,
 					u_int16_t src_port, u_int16_t dst_port,
-					u_int8_t l4_proto) const {
+					u_int8_t l4_proto,
+					AddressTree *allowed_hosts) const {
   bool src2dst;
   Flow *f = NULL;
 
   f = (Flow*)flows_hash->find(src_ip, dst_ip, src_port, dst_port, vlan_id, l4_proto, NULL, &src2dst);
+
+  if(f && (!f->match(allowed_hosts))) f = NULL;
 
   return(f);
 }
@@ -7028,14 +7035,15 @@ static bool host_reload_dhcp_host(GenericHashEntry *host, void *user_data, bool 
 /* *************************************** */
 
 void NetworkInterface::reloadDhcpRanges() {
-  char redis_key[CONST_MAX_LEN_REDIS_KEY], rsp[1024];
-  u_int32_t *new_ranges = NULL;
+  char redis_key[CONST_MAX_LEN_REDIS_KEY], *rsp = NULL;
+  dhcp_range *new_ranges = NULL;
   u_int num_ranges = 0;
   u_int len;
 
   snprintf(redis_key, sizeof(redis_key), IFACE_DHCP_RANGE_KEY, get_id());
 
-  if(!ntop->getRedis()->get(redis_key, rsp, sizeof(rsp)) &&
+  if((rsp = (char*)malloc(CONST_MAX_LEN_REDIS_VALUE)) &&
+      (!ntop->getRedis()->get(redis_key, rsp, CONST_MAX_LEN_REDIS_VALUE)) &&
       (len = strlen(rsp))) {
     u_int i;
     num_ranges = 1;
@@ -7045,8 +7053,8 @@ void NetworkInterface::reloadDhcpRanges() {
 	num_ranges++;
     }
 
-    // +1 for final terminator, 2* to store first,last ip pairs
-    new_ranges = (u_int32_t *) malloc(sizeof(u_int32_t) * 2 * (num_ranges+1));
+    // +1 for final zero IP, which is used to indicate array termination
+    new_ranges = new dhcp_range[num_ranges+1];
 
     if(new_ranges) {
       char *cur_pos = rsp;
@@ -7060,29 +7068,26 @@ void NetworkInterface::reloadDhcpRanges() {
 	  end = cur_pos + strlen(cur_pos);
 
 	if(delim) {
-	  struct in_addr inp;
 	  *delim = 0;
 	  *end = 0;
 
-	  inet_aton(cur_pos, &inp);
-	  new_ranges[2*i] = ntohl(inp.s_addr); // first ip
-	  inet_aton(delim+1, &inp);
-	  new_ranges[2*i+1] = ntohl(inp.s_addr); // last ip
+	  new_ranges[i].first_ip.set(cur_pos);
+	  new_ranges[i].last_ip.set(delim+1);
 	}
 
 	cur_pos = end + 1;
       }
-
-      // final terminator
-      new_ranges[2*i] = 0;
     }
   }
 
   if(dhcp_ranges_shadow)
-    free(dhcp_ranges_shadow);
+    delete[] (dhcp_ranges_shadow);
 
   dhcp_ranges_shadow = dhcp_ranges;
   dhcp_ranges = new_ranges;
+
+  if(rsp)
+    free(rsp);
 
   /* Reload existing hosts */
   u_int32_t begin_slot = 0;
@@ -7094,20 +7099,17 @@ void NetworkInterface::reloadDhcpRanges() {
 
 bool NetworkInterface::isInDhcpRange(IpAddress *ip) {
   // Important: cache it as it may change
-  u_int32_t *ranges = dhcp_ranges;
-  u_int32_t numeric_ip;
+  dhcp_range *ranges = dhcp_ranges;
 
-  // TODO
-  if(!ip->isIPv4() || !ranges)
+  if(!ranges)
     return(false);
 
-  numeric_ip = ntohl(ip->get_ipv4());
-
-  while(*ranges) {
-    if((numeric_ip >= ranges[0]) && (numeric_ip <= ranges[1]))
+  while(!ranges->last_ip.isEmpty()) {
+    if((ranges->first_ip.compare(ip) <= 0) &&
+	(ranges->last_ip.compare(ip) >= 0))
       return true;
 
-    ranges += 2;
+    ranges++;
   }
 
   return false;

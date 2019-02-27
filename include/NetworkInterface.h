@@ -176,7 +176,7 @@ class NetworkInterface : public Checkpointable {
   NetworkStats *networkStats;
   InterfaceStatsHash *interfaceStats;
   char checkpoint_compression_buffer[CONST_MAX_NUM_CHECKPOINTS][MAX_CHECKPOINT_COMPRESSION_BUFFER_SIZE];
-  u_int32_t *dhcp_ranges, *dhcp_ranges_shadow;
+  dhcp_range* dhcp_ranges, *dhcp_ranges_shadow;
 
   PROFILING_DECLARE(24);
 
@@ -204,7 +204,8 @@ class NetworkInterface : public Checkpointable {
 		u_int16_t vlan_id, char *osFilter,
 		u_int32_t asnFilter, int16_t networkFilter,
 		u_int16_t pool_filter, bool filtered_hosts,
-		bool blacklisted_hosts, bool hide_top_hidden, bool anomalousOnly,
+		bool blacklisted_hosts, bool hide_top_hidden,
+    bool anomalousOnly, bool dhcpOnly,
 		u_int8_t ipver_filter, int proto_filter,
 		TrafficType traffic_type_filter,
 		char *sortColumn);
@@ -381,7 +382,8 @@ class NetworkInterface : public Checkpointable {
   virtual Flow* findFlowByTuple(u_int16_t vlan_id,
   				IpAddress *src_ip,  IpAddress *dst_ip,
   				u_int16_t src_port, u_int16_t dst_port,
-				u_int8_t l4_proto) const;
+				u_int8_t l4_proto,
+				AddressTree *allowed_hosts) const;
   bool findHostsByName(lua_State* vm, AddressTree *allowed_hosts, char *key);
   bool findHostsByMac(lua_State* vm, u_int8_t *mac);
   bool dissectPacket(u_int32_t bridge_iface_idx,
@@ -422,7 +424,8 @@ class NetworkInterface : public Checkpointable {
 			 u_int32_t asnFilter, int16_t networkFilter,
 			 u_int16_t pool_filter, bool filtered_hosts, bool blacklisted_hosts, bool hide_top_hidden,
        u_int8_t ipver_filter, int proto_filter,
-       TrafficType traffic_type_filter, bool tsLua, bool anomalousOnly,
+       TrafficType traffic_type_filter, bool tsLua,
+       bool anomalousOnly, bool dhcpOnly,
 			 char *sortColumn, u_int32_t maxHits,
 			 u_int32_t toSkip, bool a2zSortOrder);
   int getActiveHostsGroup(lua_State* vm,

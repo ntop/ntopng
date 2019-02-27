@@ -125,7 +125,6 @@ if (_GET["page"] ~= "historical") then
 
    custom_column_utils.updateCustomColumn()
    local custom_name, custom_key, custom_align = custom_column_utils.getCustomColumnName()
-   page_params["custom_column"] = custom_key
 
    print [[
       <hr>
@@ -226,6 +225,8 @@ if (_GET["page"] ~= "historical") then
 	 mode_label = i18n("hosts_stats.filtered")
       elseif mode == "blacklisted" then
 	 mode_label = i18n("hosts_stats.blacklisted")
+      elseif mode == "dhcp" then
+	 mode_label = i18n("nedge.network_conf_dhcp")
       end
 
       -- Note: we must use the empty string as fallback. Multiple spaces will be collapsed into one automatically.
@@ -316,6 +317,13 @@ if (_GET["page"] ~= "historical") then
    print ('">'..i18n("hosts_stats.remote_hosts_only")..'</a></li>')
 
    if(ifstats.name:contains(".pcap") == false) then
+      hosts_filter_params.mode = "dhcp"
+      print('<li')
+      if mode == hosts_filter_params.mode then print(' class="active"') end
+      print('><a href="')
+      print (getPageUrl(base_url, hosts_filter_params))
+      print ('">'..i18n("mac_stats.dhcp_only")..'</a></li>')
+
       hosts_filter_params.mode = "broadcast_domain"
       print('<li')
       if mode == hosts_filter_params.mode then print(' class="active"') end

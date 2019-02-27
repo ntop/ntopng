@@ -622,4 +622,9 @@ struct pcap_disk_pkthdr {
   u_int32_t len;               /* length this packet (off wire) */
 };
 
+typedef struct dhcp_range {
+  IpAddress first_ip;
+  IpAddress last_ip;
+} dhcp_range;
+
 #endif /* _NTOP_TYPEDEFS_H_ */

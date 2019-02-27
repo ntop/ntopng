@@ -224,13 +224,14 @@ for key, value in ipairs(flows_stats) do
    -- safety checks against injections
    info = noHtml(info) 
    info = info:gsub('"', '')
+   local alt_info = info
 
    if italic then
       info = string.format("<i>%s</i>", info)
    end
-   
+
    info = shortenString(info)
-   flows_stats[key]["info"] = info
+   flows_stats[key]["info"] = "<span title='"..alt_info.."'>"..info.."</span>"
 
    if(flows_stats[key]["profile"] ~= nil) then
       flows_stats[key]["info"] = "<span class='label label-primary'>"..flows_stats[key]["profile"].."</span> "..info
