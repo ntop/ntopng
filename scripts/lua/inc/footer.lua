@@ -172,7 +172,9 @@ if ntop.getPref("ntopng.prefs.host_rrd_creation") ~= "1" then
 end
 
 -- Only show the message if the host protocol/category timeseries are enabled
-local message_enabled = ((host_ts_mode ~= "none") and (host_ts_mode ~= "")) and (ts_utils.getDriverName() ~= "influxdb")
+local message_enabled = ((host_ts_mode ~= "none") and (host_ts_mode ~= "")) and
+  (ts_utils.getDriverName() ~= "influxdb") and
+  (ntop.getPref("ntopng.prefs.disable_ts_migration_message") ~= "1")
 
 print('var is_historical = false;')
 print [[
@@ -183,6 +185,19 @@ function checkMigrationMessage(data) {
   if(enabled && (data.num_local_hosts > max_local_hosts))
     $("#move-rrd-to-influxdb").show();
 }
+
+$("#move-rrd-to-influxdb").on("close.bs.alert", function() {
+  $.ajax({
+      type: 'POST',
+        url: ']]
+print (ntop.getHttpPrefix())
+print [[/lua/update_ts_prefs.lua',
+        data: {
+	  csrf: ']] print(ntop.getRandomCSRFValue()) print[[',
+	  action: 'disable',
+	}
+    });
+});
 
 var updatingChart_upload = $(".network-load-chart-upload").peity("line", { width: ]] print(traffic_peity_width) print[[, max: null });
 var updatingChart_download = $(".network-load-chart-download").peity("line", { width: ]] print(traffic_peity_width) print[[, max: null, fill: "lightgreen"});
