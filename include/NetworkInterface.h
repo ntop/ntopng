@@ -176,7 +176,7 @@ class NetworkInterface : public Checkpointable {
   NetworkStats *networkStats;
   InterfaceStatsHash *interfaceStats;
   char checkpoint_compression_buffer[CONST_MAX_NUM_CHECKPOINTS][MAX_CHECKPOINT_COMPRESSION_BUFFER_SIZE];
-  u_int32_t *dhcp_ranges, *dhcp_ranges_shadow;
+  dhcp_range* dhcp_ranges, *dhcp_ranges_shadow;
 
   PROFILING_DECLARE(24);
 
