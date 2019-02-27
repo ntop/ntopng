@@ -790,6 +790,7 @@ static int ntop_get_batched_interface_hosts(lua_State* vm, LocationPolicy locati
   u_int32_t begin_slot = 0;
   bool walk_all = false;
   bool anomalousOnly = false;
+  bool dhcpOnly = false;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -809,7 +810,7 @@ static int ntop_get_batched_interface_hosts(lua_State* vm, LocationPolicy locati
 					   network_filter, pool_filter, filtered_hosts, blacklisted_hosts, hide_top_hidden,
 					   ipver_filter, proto_filter,
 					   traffic_type_filter, tsLua /* host->tsLua | host->lua */,
-					   anomalousOnly, sortColumn, maxHits,
+					   anomalousOnly, dhcpOnly, sortColumn, maxHits,
 					   toSkip, a2zSortOrder) < 0)
     return(CONST_LUA_ERROR);
 
@@ -835,6 +836,7 @@ static int ntop_get_interface_hosts(lua_State* vm, LocationPolicy location) {
   bool walk_all = true;
   bool hide_top_hidden = false;
   bool anomalousOnly = false;
+  bool dhcpOnly = false;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -856,6 +858,8 @@ static int ntop_get_interface_hosts(lua_State* vm, LocationPolicy location) {
   if(lua_type(vm,16) == LUA_TBOOLEAN) filtered_hosts       = lua_toboolean(vm, 16);
   if(lua_type(vm,17) == LUA_TBOOLEAN) blacklisted_hosts    = lua_toboolean(vm, 17);
   if(lua_type(vm,18) == LUA_TBOOLEAN) hide_top_hidden      = lua_toboolean(vm, 18);
+  if(lua_type(vm,19) == LUA_TBOOLEAN) anomalousOnly        = lua_toboolean(vm, 19);
+  if(lua_type(vm,20) == LUA_TBOOLEAN) dhcpOnly             = lua_toboolean(vm, 20);
 
   if((!ntop_interface)
      || ntop_interface->getActiveHostsList(vm,
@@ -867,7 +871,7 @@ static int ntop_get_interface_hosts(lua_State* vm, LocationPolicy location) {
 					   vlan_filter, os_filter, asn_filter,
 					   network_filter, pool_filter, filtered_hosts, blacklisted_hosts, hide_top_hidden,
 					   ipver_filter, proto_filter,
-					   traffic_type_filter, false /* host->lua */, anomalousOnly,
+					   traffic_type_filter, false /* host->lua */, anomalousOnly, dhcpOnly,
 					   sortColumn, maxHits,
 					   toSkip, a2zSortOrder) < 0)
     return(CONST_LUA_ERROR);

@@ -112,6 +112,8 @@ if(sortOrder == "desc") then sOrder = false else sOrder = true end
 
 local filtered_hosts = false
 local blacklisted = false
+local anomalous = false
+local dhcp_hosts = false
 
 local hosts_retrv_function = interface.getHostsInfo
 if mode == "local" then
@@ -124,6 +126,8 @@ elseif mode == "filtered" then
    filtered_hosts = true
 elseif mode == "blacklisted" then
    blacklisted_hosts = true
+elseif mode == "dhcp" then
+   dhcp_hosts = true
 end
 
 local hosts_stats = hosts_retrv_function(false, sortColumn, perPage, to_skip, sOrder,
@@ -131,7 +135,7 @@ local hosts_stats = hosts_retrv_function(false, sortColumn, perPage, to_skip, sO
 					 tonumber(network), mac,
 					 tonumber(pool), tonumber(ipversion),
 					 tonumber(protocol), one_way_traffic,
-					 filtered_hosts, blacklisted_hosts, top_hidden) -- false = little details
+					 filtered_hosts, blacklisted_hosts, top_hidden, anomalous, dhcp_hosts) -- false = little details
 
 if(hosts_stats == nil) then total = 0 else total = hosts_stats["numHosts"] end
 hosts_stats = hosts_stats["hosts"]
