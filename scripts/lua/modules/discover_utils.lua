@@ -675,8 +675,8 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
 	     or string.contains(manufacturer, "samsung electro")
 	     or string.contains(manufacturer, "htc corporation")
 	     or string.contains(manufacturer, "huawei")
-	     or (string.contains(manufacturer, "xiaomi communications") or string.contains(mac,"44:D1:96"))
-       or string.contains(manufacturer, "oneplus")
+	     or (string.contains(manufacturer, "xiaomi communications") or string.starts(mac,"44:D1:96"))
+             or string.contains(manufacturer, "oneplus")
 	     or string.contains(manufacturer, "mobile communications") -- LG Electronics (Mobile Communications)
    ) then
       if(discover.debug) then io.write(debug.traceback()) end

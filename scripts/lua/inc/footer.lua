@@ -313,7 +313,8 @@ print[[
 print (ntop.getHttpPrefix())
 print [[/lua/show_alerts.lua\">"
 
-                   msg += "<span class=\"label " + label + "\">"+addCommas(rsp.engaged_alerts)+" <i class=\"fa fa-warning\"></i></span></A>"
+                   msg += "<span class=\"label " + label + "\">"+addCommas(rsp.engaged_alerts)+" <i class=\"fa fa-warning\"></i></span></A>";
+                   //Push.create('Hello World!');
                 }
 
 		if((rsp.engaged_alerts > 0 || rsp.alerts_stored == true) && $("#alerts-id").is(":visible") == false) {
