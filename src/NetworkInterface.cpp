@@ -5548,11 +5548,14 @@ Flow* NetworkInterface::findFlowByKey(u_int32_t key,
 Flow* NetworkInterface::findFlowByTuple(u_int16_t vlan_id,
 					IpAddress *src_ip,  IpAddress *dst_ip,
 					u_int16_t src_port, u_int16_t dst_port,
-					u_int8_t l4_proto) const {
+					u_int8_t l4_proto,
+					AddressTree *allowed_hosts) const {
   bool src2dst;
   Flow *f = NULL;
 
   f = (Flow*)flows_hash->find(src_ip, dst_ip, src_port, dst_port, vlan_id, l4_proto, NULL, &src2dst);
+
+  if(f && (!f->match(allowed_hosts))) f = NULL;
 
   return(f);
 }

@@ -381,7 +381,8 @@ class NetworkInterface : public Checkpointable {
   virtual Flow* findFlowByTuple(u_int16_t vlan_id,
   				IpAddress *src_ip,  IpAddress *dst_ip,
   				u_int16_t src_port, u_int16_t dst_port,
-				u_int8_t l4_proto) const;
+				u_int8_t l4_proto,
+				AddressTree *allowed_hosts) const;
   bool findHostsByName(lua_State* vm, AddressTree *allowed_hosts, char *key);
   bool findHostsByMac(lua_State* vm, u_int8_t *mac);
   bool dissectPacket(u_int32_t bridge_iface_idx,

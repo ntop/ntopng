@@ -2611,41 +2611,41 @@ end
 -- ##########################################
 
 local _icmp_types = {
-   { 0, 0, i18n("icmp_v4_types.type_0_0_echo_reply") },
-   { 3, 0, i18n("icmp_v4_types.type_3_0_network_unreachable") },
-   { 3, 1, i18n("icmp_v4_types.type_3_1_host_unreachable") },
-   { 3, 2, i18n("icmp_v4_types.type_3_2_protocol_unreachable") },
-   { 3, 3, i18n("icmp_v4_types.type_3_3_port_unreachable") },
-   { 3, 4, i18n("icmp_v4_types.type_3_4_fragmentation_needed_but_no_fragment_bit_set") },
-   { 3, 5, i18n("icmp_v4_types.type_3_5_source_routing_failed") },
-   { 3, 6, i18n("icmp_v4_types.type_3_6_destination_network_unknown") },
-   { 3, 7, i18n("icmp_v4_types.type_3_7_destination_host_unknown") },
-   { 3, 8, i18n("icmp_v4_types.type_3_8_source_host_isolated") },
-   { 3, 9, i18n("icmp_v4_types.type_3_9_destination_network_administratively_prohibited") },
-   { 3, 10, i18n("icmp_v4_types.type_3_10_destination_host_administratively_prohibited") },
-   { 3, 11, i18n("icmp_v4_types.type_3_11_network_unreachable_for_tos") },
-   { 3, 12, i18n("icmp_v4_types.type_3_12_host_unreachable_for_tos") },
-   { 3, 13, i18n("icmp_v4_types.type_3_13_communication_administratively_prohibited_by_filtering") },
-   { 3, 14, i18n("icmp_v4_types.type_3_14_host_precedence_violation") },
-   { 3, 15, i18n("icmp_v4_types.type_3_15_precedence_cutoff_in_effect") },
-   { 4, 0, i18n("icmp_v4_types.type_4_0_source_quench") },
-   { 5, 0, i18n("icmp_v4_types.type_5_0_redirect_for_network") },
-   { 5, 1, i18n("icmp_v4_types.type_5_1_redirect_for_host") },
-   { 5, 2, i18n("icmp_v4_types.type_5_2_redirect_for_tos_and_network") },
-   { 5, 3, i18n("icmp_v4_types.type_5_3_redirect_for_tos_and_host") },
-   { 8, 0, i18n("icmp_v4_types.type_8_0_echo_request_x") },
-   { 9, 0, i18n("icmp_v4_types.type_9_0_router_advertisement") },
-   { 10, 0, i18n("icmp_v4_types.type_10_0_route_solicitation") },
-   { 11, 0, i18n("icmp_v4_types.type_11_0_ttl_equals_0_during_transit") },
-   { 11, 1, i18n("icmp_v4_types.type_11_1_ttl_equals_0_during_reassembly") },
-   { 12, 0, i18n("icmp_v4_types.type_12_0_ip_header_bad") },
-   { 12, 1, i18n("icmp_v4_types.type_12_1_required_options_missing") },
-   { 13, 0, i18n("icmp_v4_types.type_13_0_timestamp_request") },
-   { 14, 0, i18n("icmp_v4_types.type_14_0_timestamp_reply") },
-   { 15, 0, i18n("icmp_v4_types.type_15_0_information_request") },
-   { 16, 0, i18n("icmp_v4_types.type_16_0_information_reply") },
-   { 17, 0, i18n("icmp_v4_types.type_17_0_address_mask_request") },
-   { 18, 0, i18n("icmp_v4_types.type_18_0_address_mask_reply") }
+   { 0, 0, "icmp_v4_types.type_0_0_echo_reply" },
+   { 3, 0, "icmp_v4_types.type_3_0_network_unreachable" },
+   { 3, 1, "icmp_v4_types.type_3_1_host_unreachable" },
+   { 3, 2, "icmp_v4_types.type_3_2_protocol_unreachable" },
+   { 3, 3, "icmp_v4_types.type_3_3_port_unreachable" },
+   { 3, 4, "icmp_v4_types.type_3_4_fragmentation_needed_but_no_fragment_bit_set" },
+   { 3, 5, "icmp_v4_types.type_3_5_source_routing_failed" },
+   { 3, 6, "icmp_v4_types.type_3_6_destination_network_unknown" },
+   { 3, 7, "icmp_v4_types.type_3_7_destination_host_unknown" },
+   { 3, 8, "icmp_v4_types.type_3_8_source_host_isolated" },
+   { 3, 9, "icmp_v4_types.type_3_9_destination_network_administratively_prohibited" },
+   { 3, 10, "icmp_v4_types.type_3_10_destination_host_administratively_prohibited" },
+   { 3, 11, "icmp_v4_types.type_3_11_network_unreachable_for_tos" },
+   { 3, 12, "icmp_v4_types.type_3_12_host_unreachable_for_tos" },
+   { 3, 13, "icmp_v4_types.type_3_13_communication_administratively_prohibited_by_filtering" },
+   { 3, 14, "icmp_v4_types.type_3_14_host_precedence_violation" },
+   { 3, 15, "icmp_v4_types.type_3_15_precedence_cutoff_in_effect" },
+   { 4, 0, "icmp_v4_types.type_4_0_source_quench" },
+   { 5, 0, "icmp_v4_types.type_5_0_redirect_for_network" },
+   { 5, 1, "icmp_v4_types.type_5_1_redirect_for_host" },
+   { 5, 2, "icmp_v4_types.type_5_2_redirect_for_tos_and_network" },
+   { 5, 3, "icmp_v4_types.type_5_3_redirect_for_tos_and_host" },
+   { 8, 0, "icmp_v4_types.type_8_0_echo_request_x" },
+   { 9, 0, "icmp_v4_types.type_9_0_router_advertisement" },
+   { 10, 0, "icmp_v4_types.type_10_0_route_solicitation" },
+   { 11, 0, "icmp_v4_types.type_11_0_ttl_equals_0_during_transit" },
+   { 11, 1, "icmp_v4_types.type_11_1_ttl_equals_0_during_reassembly" },
+   { 12, 0, "icmp_v4_types.type_12_0_ip_header_bad" },
+   { 12, 1, "icmp_v4_types.type_12_1_required_options_missing" },
+   { 13, 0, "icmp_v4_types.type_13_0_timestamp_request" },
+   { 14, 0, "icmp_v4_types.type_14_0_timestamp_reply" },
+   { 15, 0, "icmp_v4_types.type_15_0_information_request" },
+   { 16, 0, "icmp_v4_types.type_16_0_information_reply" },
+   { 17, 0, "icmp_v4_types.type_17_0_address_mask_request" },
+   { 18, 0, "icmp_v4_types.type_18_0_address_mask_reply" }
 }
 
 -- Code is currently ignored on IVMPv6
@@ -2717,11 +2717,18 @@ end
 function getICMPTypeCode(icmp)
   local t = icmp.type
   local c = icmp.code
+  local extra = {src_port = '', dst_port = '', protocol = ''}
+
+  if icmp["unreach"] then
+     extra["src_port"] = icmp["unreach"]["src_port"]..''
+     extra["dst_port"] = icmp["unreach"]["dst_port"]..''
+     extra["protocol"] = getL4ProtoName(icmp["unreach"]["protocol"])
+  end
 
   for _, _e in ipairs(_icmp_types) do
     if((_e[1] == t) and (_e[2] == c)) then
        local res = _e[3]
-       return res
+       return i18n(res, extra)
     end
   end
 

@@ -542,11 +542,16 @@ else
    if(icmp ~= nil) then
       print("<tr><th width=30%>"..i18n("flow_details.icmp_info").."</th><td colspan=2>".. getICMPTypeCode(icmp))
 
-      if icmp["unreach"] and icmp["unreach"]["flow"] then
-	 print(" ["..i18n("flow")..": ")
-	 print(" <A HREF='"..ntop.getHttpPrefix().."/lua/flow_details.lua?flow_key="..icmp["unreach"]["flow"]["ntopng.key"].."'><span class='label label-info'>Info</span></A>")
-	 print(" "..getFlowLabel(icmp["unreach"]["flow"], true, true))
-	 print("]")
+      if icmp["unreach"] then
+	 local unreachable_flow = interface.findFlowByTuple(flow["cli.ip"], flow["srv.ip"], flow["vlan"], icmp["unreach"]["dst_port"], icmp["unreach"]["src_port"], icmp["unreach"]["protocol"])
+
+	 if unreachable_flow then
+	    print(" ["..i18n("flow")..": ")
+	    print(" <A HREF='"..ntop.getHttpPrefix().."/lua/flow_details.lua?flow_key="..unreachable_flow["ntopng.key"].."'><span class='label label-info'>Info</span></A>")
+	    print(" "..getFlowLabel(unreachable_flow, true, true))
+	    print("]")
+	 else
+	 end
       end
 
       print("</td></tr>")

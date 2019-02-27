@@ -3213,6 +3213,52 @@ static int ntop_get_interface_find_flow_by_key(lua_State* vm) {
 /* ****************************************** */
 
 // ***API***
+static int ntop_get_interface_find_flow_by_tuple(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  IpAddress src_ip_addr, dst_ip_addr;
+  u_int16_t vlan_id, src_port, dst_port;
+  u_int8_t l4_proto;
+  char *src_ip, *dst_ip;
+  Flow *f;
+  AddressTree *ptree = get_allowed_nets(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(!ntop_interface) return(false);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  src_ip = (char*)lua_tostring(vm, 1);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  dst_ip = (char*)lua_tostring(vm, 2);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  vlan_id = (u_int16_t)lua_tonumber(vm, 3);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  src_port = (u_int16_t)lua_tonumber(vm, 4);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 5, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  dst_port = (u_int16_t)lua_tonumber(vm, 5);
+  
+  if(ntop_lua_check(vm, __FUNCTION__, 6, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  l4_proto = (u_int8_t)lua_tonumber(vm, 6);
+
+  src_ip_addr.set(src_ip), dst_ip_addr.set(dst_ip);
+
+  f = ntop_interface->findFlowByTuple(vlan_id, &src_ip_addr, &dst_ip_addr, htons(src_port), htons(dst_port), l4_proto, ptree);
+
+  if(f == NULL)
+    return(CONST_LUA_ERROR);
+  else {
+    f->lua(vm, ptree, details_high, false);
+    return(CONST_LUA_OK);
+  }
+}
+
+/* ****************************************** */
+
+// ***API***
 static int ntop_drop_flow_traffic(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   u_int32_t key;
@@ -8158,14 +8204,15 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "checkpointInterface",      ntop_checkpoint_interface },
   { "getFlowsInfo",             ntop_get_interface_flows_info },
   { "getGroupedFlows",          ntop_get_interface_get_grouped_flows },
-  { "getFlowsStats",            ntop_get_interface_flows_stats       },
-  { "getFlowKey",               ntop_get_interface_flow_key          },
-  { "findFlowByKey",            ntop_get_interface_find_flow_by_key  },
-  { "dropFlowTraffic",          ntop_drop_flow_traffic               },
-  { "dumpLocalHosts2redis",     ntop_dump_local_hosts_2_redis        },
-  { "dumpDropboxHosts",         ntop_dump_dropbox_hosts              },
-  { "dropMultipleFlowsTraffic", ntop_drop_multiple_flows_traffic     },
-  { "findPidFlows",             ntop_get_interface_find_pid_flows    },
+  { "getFlowsStats",            ntop_get_interface_flows_stats          },
+  { "getFlowKey",               ntop_get_interface_flow_key             },
+  { "findFlowByKey",            ntop_get_interface_find_flow_by_key     },
+  { "findFlowByTuple",          ntop_get_interface_find_flow_by_tuple   },
+  { "dropFlowTraffic",          ntop_drop_flow_traffic                  },
+  { "dumpLocalHosts2redis",     ntop_dump_local_hosts_2_redis           },
+  { "dropMultipleFlowsTraffic", ntop_drop_multiple_flows_traffic        },
+  { "findPidFlows",             ntop_get_interface_find_pid_flows       },
+  { "dumpDropboxHosts",         ntop_dump_dropbox_hosts                 },
   { "findNameFlows",            ntop_get_interface_find_proc_name_flows },
   { "listHTTPhosts",            ntop_list_http_hosts },
   { "findHost",                 ntop_get_interface_find_host },

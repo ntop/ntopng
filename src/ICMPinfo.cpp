@@ -139,23 +139,12 @@ bool ICMPinfo::equal(const ICMPinfo * const _icmp_info) const {
 /* *************************************** */
 
 void ICMPinfo::lua(lua_State* vm, AddressTree * ptree, NetworkInterface *iface, u_int16_t vlan_id) const {
-  Flow *unreach_flow;
-
   if(vm && unreach) {
     lua_newtable(vm);
 
-    if ((!ptree || (unreach->src_ip.match(ptree) && unreach->dst_ip.match(ptree)))
-	&& ((unreach_flow = iface->findFlowByTuple(vlan_id, &unreach->dst_ip, &unreach->src_ip, unreach->dst_port, unreach->src_port,
-						   unreach->protocol)))) {
-      unreach_flow->lua(vm, ptree, details_high, false);
-
-      lua_pushstring(vm, "flow");
-      lua_insert(vm, -2);
-      lua_settable(vm, -3);
-    }
-
     lua_push_uint64_table_entry(vm, "src_port", ntohs(unreach->src_port));
     lua_push_uint64_table_entry(vm, "dst_port", ntohs(unreach->dst_port));
+    lua_push_uint64_table_entry(vm, "protocol", unreach->protocol);
 
     lua_pushstring(vm, "unreach");
     lua_insert(vm, -2);
