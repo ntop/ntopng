@@ -658,11 +658,13 @@ int NetworkInterface::dumpFlow(time_t when, Flow *f) {
 
 #ifndef HAVE_NEDGE
   char *json;
+  bool es_flow = ntop->getPrefs()->do_dump_flows_on_es() ||
+    ntop->getPrefs()->do_dump_flows_on_ls();
 
   if(!db)
     return(-1);
 
-  json = f->serialize(false);
+  json = f->serialize(es_flow);
 
   if(json) {
     rc = db->dumpFlow(when, f, json);
