@@ -551,6 +551,7 @@ local lang = {
   },
   ["device_protocols"] = {
     ["alert"] = "Trigger Alert",
+    ["alerts_disabled_msg"] = "Configured device applications are only used to generate device applications alerts when a device is doing traffic of certain applications it is not supposed to use. Make sure to enable these alerts from the <A HREF=\"%{url}\"><i class=\"fa fa-flask\"></i> Preferences</A>.",
     ["device_protocol_policy"] = "Device Application Policy",
     ["device_protocols"] = "Device Applications",
     ["devtype_as_proto_client"] = "%{devtype} as <i>%{proto}</i> client",
