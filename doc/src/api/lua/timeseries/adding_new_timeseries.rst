@@ -22,7 +22,7 @@ Supported metrics for the creation of interface timeseries are:
   - Total alerts
   - etc.
 
-An always-update list of metrics can be determined by inspecting
+An always-updated list of metrics can be determined by inspecting
 method :code:`NetworkInterface::lua`:
 https://github.com/ntop/ntopng/blob/dev/src/NetworkInterface.cpp
 
@@ -92,11 +92,42 @@ exemplified below:
    ndpi.Dropbox string 0|2880
    active_flows.as_server number 1
 
+Specifically, Layer-7 application protocols are pushed in a table
+:code:`ndpi`, whose keys are the application names such as
+:code:`Dropbox`. For every application there are two values separated
+by a pipe, namely, bytes sent and bytes received. For example, in the
+excerpt above, :code:`Dropbox` application had received 0 bytes and
+had sent 2880 bytes at the time the excerpt was generated.
+   
 The table also contain a field :code:`instant` that represents the
 time at which metrics have been sampled.
 
 The table above can be accessed and its contents can be read/modified
 to prepare timeseries points.
+
+Metric Types
+============
+
+ntopng provides metrics of two types, namely gauges and
+counters. Timeseries can be created out of gauges and counters,
+transparently. The only thing that is necessary is to tell the
+timeseries engine the actual type, then the rest will be handled automatically.
+
+Gauges
+------
+
+Gauges are metrics such as the number of active flows
+(e.g., :code:`active_flows.as_client`, :code:`active_flows.as_server`) or active
+hosts at a certain point in time.
+
+
+Counters
+--------
+
+Counters are for continuous incrementing metrics such as the total
+number of bytes (e.g., :code:`bytes.sent`,
+:code:`bytes.rcvd`).
+
 
 Adding Custom Timeseries
 ========================
@@ -127,8 +158,8 @@ copy them to :code:`ts_5min_custom.lua` and
 :code:`ts_minute_custom.lua` and modify the copies when it is necessary to
 add custom timeseries.
 
-Structure Custom Timeseries Files
----------------------------------
+Structure of Custom Timeseries Files
+------------------------------------
 
 Every custom file must contain a method :code:`setup` which defines one or
 more schemas. Every custom timeseries *needs* a schema to function. A
@@ -198,6 +229,14 @@ name. Note that both the :code:`ifid` and :code:`packets` are just
 plain strings here, their actual values will be set in the
 :code:`ts_custom.iface_update_stats` when updating the timeseries with
 new points.
+
+The number of issues detected when analyzing sequence numbers is a
+*counter*, that is, is an always-increasing function of
+time. By default, schemas consider metrics as counters so there is no
+need to specify this type upon schema addition. For *gauges*, one has
+to indicate an extra :code:`metrics_type` in the table containing the
+:code:`step`. So for example, to create a 1-minute timeseries for the number of
+active flows of a given host, one can use the following syntax :code:`ts_utils.newSchema("host:flows", {step=60, metrics_type=ts_utils.metrics.gauge})`.
 
 To update the timeseries with new points, callback
 :code:`ts_custom.iface_update_stats` is extended with a
