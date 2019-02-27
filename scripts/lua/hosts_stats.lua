@@ -125,7 +125,6 @@ if (_GET["page"] ~= "historical") then
 
    custom_column_utils.updateCustomColumn()
    local custom_name, custom_key, custom_align = custom_column_utils.getCustomColumnName()
-   page_params["custom_column"] = custom_key
 
    print [[
       <hr>

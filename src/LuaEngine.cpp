@@ -1648,7 +1648,6 @@ static int ntop_loadCustomCategoryIp(lua_State* vm) {
   for(int i=0; i<ntop->get_num_interfaces(); i++) {
     NetworkInterface *iface;
 
-    /* Note: we only load custom categories on packet interfaces right now */
     if((iface = ntop->getInterfaceAtId(vm, i)) != NULL) {
       char *toadd = strdup(net);
       new_custom_categories.push_front(toadd);

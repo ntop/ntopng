@@ -107,7 +107,9 @@ end
 -- ###########################################
 
 function custom_column_utils.updateCustomColumn()
-   if not isEmptyString(_GET["custom_column"]) then
+   local _, current_column = custom_column_utils.getCustomColumnName()
+
+   if not isEmptyString(_GET["custom_column"]) and (_GET["custom_column"] ~= current_column) then
       if setCustomColumnName(_GET["custom_column"]) then
 	 local custom_column_key, custom_column_format = custom_column_utils.label2criteriakey(_GET["custom_column"])
 
