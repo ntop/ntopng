@@ -52,7 +52,6 @@ local latest_tstamp = driver:getLatestTimestamp(tags.ifid or -1)
 local options = {
   max_num_points = tonumber(_GET["limit"]),
   initial_point = toboolean(_GET["initial_point"]),
-  no_timeout = true,
   with_series = true,
   target_aggregation = ts_aggregation,
 }
