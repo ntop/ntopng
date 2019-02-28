@@ -1383,7 +1383,7 @@ elseif(page == "config") then
       </tr>]]
    end
 
-   if has_traffic_recording_page or (true) then
+   if has_traffic_recording_page then
       local cur_provider = recording_utils.getCurrentTrafficRecordingProvider(ifstats.id)
       local providers = recording_utils.getAvailableTrafficRecordingProviders()
 
