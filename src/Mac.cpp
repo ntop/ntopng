@@ -99,7 +99,7 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6])
 
   readDHCPCache();
 
-  updateHostPool(true /* Inline */);
+  updateHostPool(true /* inline with packet processing */, true /* first inc */);
 }
 
 /* *************************************** */
@@ -353,7 +353,7 @@ MacLocation Mac::locate() {
 
 /* *************************************** */
 
-void Mac::updateHostPool(bool isInlineCall) {
+void Mac::updateHostPool(bool isInlineCall, bool firstUpdate) {
   if(!iface)
     return;
 
@@ -370,7 +370,7 @@ void Mac::updateHostPool(bool isInlineCall) {
 			       iface->getHostPools()->getNumPoolL2Devices(get_host_pool()));
 #endif
 
-  iface->decPoolNumL2Devices(get_host_pool(), isInlineCall);
+  if(!firstUpdate) iface->decPoolNumL2Devices(get_host_pool(), isInlineCall);
   host_pool_id = iface->getHostPool(this);
   iface->incPoolNumL2Devices(get_host_pool(), isInlineCall);
 

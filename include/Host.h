@@ -240,7 +240,7 @@ class Host : public GenericHashEntry {
   inline Country* getCountryStats()                        { return country; };
 
   bool match(AddressTree *tree) { return(get_ip() ? get_ip()->match(tree) : false); };
-  void updateHostPool(bool isInlineCall, bool firstUpdate=false);
+  void updateHostPool(bool isInlineCall, bool firstUpdate = false);
   virtual bool dropAllTraffic()  { return(false); };
   bool incFlowAlertHits(time_t when);
   virtual bool setRemoteToRemoteAlerts() { return(false); };

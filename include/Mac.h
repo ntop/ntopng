@@ -122,7 +122,7 @@ class Mac : public GenericHashEntry {
   char* serialize();
   bool deserialize(char *key, char *json_str);
   json_object* getJSONObject();
-  void updateHostPool(bool isInlineCall);
+  void updateHostPool(bool isInlineCall, bool firstUpdate = false);
   inline void setOperatingSystem(OperatingSystem _os) { os = ((device_type != device_networking) ? _os : os_unknown); }
   inline OperatingSystem getOperatingSystem()         { return((device_type != device_networking) ? os : os_unknown); }
   void inlineSetModel(const char * const m);
