@@ -634,10 +634,10 @@ local function getFlowStatusInfo(record, status_info)
    if l7proto_name == "ICMP" then -- is ICMPv4
       local type_code = {type = status_info["icmp.icmp_type"], code = status_info["icmp.icmp_code"]}
 
-      res = string.format("[%s]", getICMPTypeCode(type_code))
-
       if status_info["icmp.unreach.src_ip"] then
-	 res =string.format("%s [%s]", res, i18n("icmp_page.icmp_port_unreachable_extra", {unreach_host=status_info["icmp.unreach.dst_ip"], unreach_port=status_info["icmp.unreach.dst_port"], unreach_protocol = l4_proto_to_string(status_info["icmp.unreach.protocol"])}))
+	 res =string.format("[%s]", i18n("icmp_page.icmp_port_unreachable_extra", {unreach_host=status_info["icmp.unreach.dst_ip"], unreach_port=status_info["icmp.unreach.dst_port"], unreach_protocol = l4_proto_to_string(status_info["icmp.unreach.protocol"])}))
+      else
+	 res = string.format("[%s]", getICMPTypeCode(type_code))
       end
    end
 
@@ -668,12 +668,12 @@ function formatRawFlow(record, flow_json)
    local l4_proto_label = l4_proto_to_string(record["proto"] or 0) or ""
 
    if not isEmptyString(l4_proto_label) then
-      flow = flow.."[" .. i18n("protocol") .. ": " .. l4_proto_label .. "] "
+      flow = flow.."[" .. l4_proto_label .. "] "
    end
 
    local l7proto_name = interface.getnDPIProtoName(tonumber(record["l7_proto"]) or 0)
-   if not isEmptyString(l7proto_name) then
-      flow = flow.."["..i18n("application")..": " ..l7proto_name.."] "
+   if not isEmptyString(l7proto_name) and l4_proto_label ~= l7proto_name then
+      flow = flow.."["..l7proto_name.."] "
    end
 
    local decoded = json.decode(flow_json)
