@@ -99,6 +99,11 @@ if ifstats.stats and ifstats.stats_since_reset then
 end
 
 local ext_interfaces = {}
+
+-- refresh traffic recording availability as one may have installed n2disk
+-- with a running instance of ntopng
+recording_utils.checkAvailable()
+
 if recording_utils.isAvailable() and recording_utils.isSupportedZMQInterface(ifid) then
    ext_interfaces = recording_utils.getExtInterfaces(ifid)
 end
@@ -241,7 +246,7 @@ local has_traffic_recording_page =  (recording_utils.isAvailable()
 		  or (recording_utils.getCurrentTrafficRecordingProvider(ifid) ~= "ntopng")))
 
 local dismiss_recording_providers_reminder = recording_utils.isExternalProvidersReminderDismissed(ifstats.id)
-   
+
 if has_traffic_recording_page then
    if(page == "traffic_recording") then
       print("<li class=\"active\"><a href=\""..url.."&page=traffic_recording\"><i class=\"fa fa-hdd-o fa-lg\"></i>")

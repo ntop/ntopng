@@ -113,7 +113,7 @@ if stats ~= nil then
   end
 end
 
-if custom_provider then
+if custom_provider and running then
    local warn = ''
 
    if not extraction_checks_ok then
