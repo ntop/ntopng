@@ -531,6 +531,13 @@ function host_pools_utils.updateRRDs(ifid, dump_ndpi, verbose)
       end
     end
   end
+
+  -- Also write info on the number of members per pool, both in terms of hosts and l2 devices
+  local pools = interface.getHostPoolsInfo() or {}
+  for pool, info in pairs(pools.num_members_per_pool or {}) do
+     ts_utils.append("host_pool:hosts", {ifid = ifid, pool = pool, num_hosts = info["num_hosts"]}, when)
+     ts_utils.append("host_pool:devices", {ifid = ifid, pool = pool, num_devices = info["num_l2_devices"]}, when)
+  end
 end
 
 function host_pools_utils.printQuotas(pool_id, host, page_params)

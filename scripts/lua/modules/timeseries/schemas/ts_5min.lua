@@ -40,6 +40,20 @@ schema:addMetric("bytes_rcvd")
 
 -- ##############################################
 
+schema = ts_utils.newSchema("host_pool:hosts", {step = 300, metrics_type = ts_utils.metrics.gauge})
+schema:addTag("ifid")
+schema:addTag("pool")
+schema:addMetric("num_hosts")
+
+-- ##############################################
+
+schema = ts_utils.newSchema("host_pool:devices", {step = 300, metrics_type = ts_utils.metrics.gauge})
+schema:addTag("ifid")
+schema:addTag("pool")
+schema:addMetric("num_devices")
+
+-- ##############################################
+
 schema = ts_utils.newSchema("host_pool:blocked_flows", {step=300, rrd_fname="blocked_flows"})
 schema:addTag("ifid")
 schema:addTag("pool")
