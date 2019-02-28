@@ -673,7 +673,7 @@ function formatRawFlow(record, flow_json)
 
    local l7proto_name = interface.getnDPIProtoName(tonumber(record["l7_proto"]) or 0)
    if not isEmptyString(l7proto_name) and l4_proto_label ~= l7proto_name then
-      flow = flow.."["..l7proto_name.."] "
+      flow = flow.."["..i18n("application")..": " ..l7proto_name.."] "
    end
 
    local decoded = json.decode(flow_json)
