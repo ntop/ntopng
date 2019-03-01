@@ -3416,7 +3416,8 @@ FlowStatus Flow::getFlowStatus() {
 
   /* NOTE: evaluation order is important here! */
 
-  if(iface->isPacketInterface() && !is_ready_to_be_purged() && isIdle(5 * ntop->getPrefs()->get_flow_max_idle())) {
+  if(iface->isPacketInterface() && iface->is_purge_idle_interface() &&
+      !is_ready_to_be_purged() && isIdle(5 * ntop->getPrefs()->get_flow_max_idle())) {
     /* Should've already been marked as idle and purged */
     return status_not_purged;
   }
