@@ -1412,11 +1412,12 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
     l4_packet_len = ntohs(ip6->ip6_hdr.ip6_un1_plen);
     l4_proto = ip6->ip6_hdr.ip6_un1_nxt;
 
-    if(l4_proto == 0x3C /* IPv6 destination option */) {
+    if((l4_proto == 0x3C /* IPv6 destination option */) ||
+	(l4_proto == 0x0 /* Hop-by-hop option */)) {
       u_int8_t *options = (u_int8_t*)ip6 + ipv6_shift;
 
       l4_proto = options[0];
-      ipv6_shift = 8 * (options[1] + 1);
+      ipv6_shift += 8 * (options[1] + 1);
 
       if(ipsize < ipv6_shift) {
 	incStats(ingressPacket,
