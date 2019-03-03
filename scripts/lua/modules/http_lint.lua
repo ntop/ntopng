@@ -876,6 +876,22 @@ end
 
 -- #################################################################
 
+local function validateAssociations(associations)
+   if not associations or not type(associations) == "table" then
+      return false
+   end
+
+   for k, v in pairs(associations) do
+      if not isValidPoolMember(k) then
+	 return false
+      end
+   end
+
+   return true
+end
+
+-- #################################################################
+
 local function validateSNMPversion(m)
    return validateChoice({"0", "1"}, m)
 end
@@ -1419,6 +1435,9 @@ local known_parameters = {
    ["list_update"]             = validateNumber,
    ["dhcp_ranges"]             = validateListOfTypeInline(validateIpRange),
 
+   -- Host Pools / users associations
+   ["associations"]            = { jsonCleanup, validateAssociations },
+
    -- json POST DATA
    ["payload"]                 = { jsonCleanup, validateJSON },
    ["JSON"]                    = { jsonCleanup, validateJSON },
@@ -1532,7 +1551,7 @@ function http_lint.validationError(t, param, value, message)
    -- TODO graceful exit
    local s_id
    if t == _GET then s_id = "_GET" else s_id = "_POST" end
-   error("[LINT] " .. s_id .. "[\"" .. param .. "\"] = \"" .. value .. "\" parameter error: " .. message)
+   error("[LINT] " .. s_id .. "[\"" .. param .. "\"] = \"" .. (value or 'nil') .. "\" parameter error: " .. message)
 end
 
 -- #################################################################
