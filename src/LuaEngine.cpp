@@ -8066,6 +8066,19 @@ static int ntop_trace_event(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_get_arp_matrix_info(lua_State*vm){
+
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+    if((!ntop_interface)
+     || (!ntop_interface->getArpStatsMatrixInfo(vm)))
+    return(CONST_LUA_ERROR);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static const luaL_Reg ntop_interface_reg[] = {
   { "setActiveInterfaceId",     ntop_set_active_interface_id },
   { "getIfNames",               ntop_get_interface_names },
@@ -8159,6 +8172,9 @@ static const luaL_Reg ntop_interface_reg[] = {
 
   /* Countries */
   { "getCountriesInfo",                 ntop_get_interface_countries_info },
+
+  /*ARP stats matrix*/
+  { "getArpStatsMatrixInfo",            ntop_get_arp_matrix_info },
 
   /* VLANs */
   { "getVLANsList",                     ntop_get_interface_vlans_list },

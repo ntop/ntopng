@@ -21,10 +21,8 @@
  */
 
 
-
 #include "ntop_includes.h"
 
-/* ************************************ */
 
 ArpStatsHashMatrix::ArpStatsHashMatrix(NetworkInterface *_iface, u_int _num_hashes, u_int _max_hash_size) :
   GenericHash(_iface, _num_hashes, _max_hash_size, "ArpStatsHashMatrix") {
@@ -32,13 +30,11 @@ ArpStatsHashMatrix::ArpStatsHashMatrix(NetworkInterface *_iface, u_int _num_hash
 }
 
 /* ************************************ */
-//DO NOT reverse the snd / rcv counters in case src_mac and dst_mac are reversed
-
+//this get function DO NOT reverse the snd / rcv counters in case src_mac and dst_mac are reversed
 ArpStatsMatrixElement* ArpStatsHashMatrix::get(const u_int8_t _src_mac[6], const u_int8_t _dst_mac[6]) {
   if(_src_mac == NULL ||  _dst_mac == NULL)
     return(NULL);
   else {
-
     u_int32_t hash = Utils::macHash((u_int8_t*)_src_mac) + Utils::macHash((u_int8_t*) _dst_mac);
     hash %= num_hashes;
 
@@ -46,7 +42,6 @@ ArpStatsMatrixElement* ArpStatsHashMatrix::get(const u_int8_t _src_mac[6], const
       return(NULL);
 
     } else {
-    
       ArpStatsMatrixElement *head;
 
       locks[hash]->lock(__FILE__, __LINE__);
@@ -67,21 +62,23 @@ ArpStatsMatrixElement* ArpStatsHashMatrix::get(const u_int8_t _src_mac[6], const
   }
 }
 
-/*
-//TODO:
+/* ************************************ */
 
-#ifdef ARP_STATS_MATRIX_ELEMENT_DEBUG
+static bool print_all_arp_stats(GenericHashEntry *e, void *user_data, bool *matched) {
+  ArpStatsMatrixElement *elem = (ArpStatsMatrixElement*)e;
+  lua_State* vm = (lua_State*) user_data;
+  //TODO:errors handling
+  elem->lua(vm);
 
-static bool printMatrixElement(GenericHashEntry *_elem, void *user_data) {
+  return(false); /* false = keep on walking */
 }
-void ArpStatsHashMatrix::printHash() {
-  disablePurge();
 
-  walk(printMatrixElement, NULL);
-  
+/* ************************************ */
+
+void ArpStatsHashMatrix::printHash(lua_State* vm) {
+  u_int32_t begin_slot = 0;
+
+  disablePurge();
+  walk(&begin_slot, true, print_all_arp_stats, vm);
   enablePurge();
 }
-
-#endif 
-
-*/

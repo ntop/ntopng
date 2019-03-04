@@ -19,6 +19,7 @@
  *
  */
 
+
 #ifndef _ARP_STATS_MATRIX_ELEMENT_H_
 #define _ARP_STATS_MATRIX_ELEMENT_H_
 
@@ -26,13 +27,11 @@
 
 class ArpStatsMatrixElement : public GenericHashEntry {
 private:
-
     ArpStats stats;
     u_int8_t src_mac[6];
     u_int8_t dst_mac[6];
 
 public:
-
     ArpStatsMatrixElement(NetworkInterface *_iface, const u_int8_t _src_mac[6],
     const u_int8_t _dst_mac[6] ); ~ArpStatsMatrixElement();
 
@@ -47,35 +46,18 @@ public:
         stats.rcvd.requests = rcv_req;
     }
 
-/*    void transposeElement(){
-        u_int8_t *a1, *a2 = src_mac, dst_mac;
-        u_int8_t *tmp;
-        tmp = a1; a1 = a2; a2 = tmp;
-
-        ReqReplyStats t = stats.sent;
-        stats.sent = stats.rcvd;
-        stats.rcvd = t;
-
-
-        u_int32_t t = stats.sent_replies;
-        stats.sent_replies = stats.rcvd_replies;
-        stats.rcvd_replies = t;
-
-        t = stats.sent_requests;
-        stats.sent_requests = stats.rcvd_requests;
-        stats.rcvd_requests = t;
-
-    }   */
-    inline u_int32_t AddOneSentReplies()        { return ++stats.sent.replies; }
-    inline u_int32_t AddOneSentRequests()       { return ++stats.sent.requests; }
-    inline u_int32_t AddOneReceivedReplies()    { return ++stats.rcvd.replies; }
-    inline u_int32_t AddOneReceivedRequests()   { return ++stats.rcvd.requests; }
+    inline u_int32_t incSentArpReplies()        { return ++stats.sent.replies; }
+    inline u_int32_t incSentArpRequests()       { return ++stats.sent.requests; }
+    inline u_int32_t incReceivedArpReplies()    { return ++stats.rcvd.replies; }
+    inline u_int32_t incReceivedArpRequests()   { return ++stats.rcvd.requests; }
 
     bool equal(const u_int8_t _src_mac[6], const u_int8_t _dst_mac[6]);
     bool idle();
     u_int32_t key();
     void lua(lua_State* vm);
-
+    /*for testing
+    void printElement();
+    */
 };
 
 #endif /* _ARP_STATS_MATRIX_ELEMENT_H_ */

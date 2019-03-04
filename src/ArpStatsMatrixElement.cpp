@@ -21,8 +21,6 @@
 
 #include "ntop_includes.h"
 
-/* *************************************** */
-
 ArpStatsMatrixElement::ArpStatsMatrixElement(NetworkInterface *_iface, const u_int8_t _src_mac[6],
          const u_int8_t _dst_mac[6] ): GenericHashEntry(_iface) {
 
@@ -77,17 +75,15 @@ bool ArpStatsMatrixElement::equal(const u_int8_t _src_mac[6], const u_int8_t _ds
     if(! _src_mac || !_dst_mac)
         return false;
 
-    if(  memcmp(src_mac, _src_mac, 6) == 0 && memcmp(dst_mac, _dst_mac, 6) == 0 )
+    if( memcmp(src_mac, _src_mac, 6) == 0 && memcmp(dst_mac, _dst_mac, 6) == 0 )
         return true;
 
-    else if  (  memcmp(src_mac, _dst_mac, 6) == 0 && memcmp(dst_mac, _src_mac, 6) == 0 ){
+    else if( memcmp(src_mac, _dst_mac, 6) == 0 && memcmp(dst_mac, _src_mac, 6) == 0 ){
       return true;
     }
-
     else
       return false;
 }
-
 
 /* *************************************** */
 
@@ -101,16 +97,35 @@ bool ArpStatsMatrixElement::equal(const u_int8_t _src_mac[6], const u_int8_t _ds
 void ArpStatsMatrixElement::lua(lua_State* vm) {
   lua_newtable(vm);
 
-  char buf1[32], buf2[32];
+  char buf1[32] = {0};
+  char buf2[32] = {0};
+  char index[65] = {0}; 
+  Utils::formatMac(src_mac, buf1, sizeof(buf1));
+  Utils::formatMac(dst_mac, buf2, sizeof(buf2));
 
-  lua_push_str_table_entry(vm, "me_src_mac", Utils::formatMac(src_mac, buf1, sizeof(buf1)) );
-  lua_push_str_table_entry(vm, "me_dst_mac", Utils::formatMac(dst_mac, buf2, sizeof(buf2)) );
+  lua_push_str_table_entry(vm, "me_src_mac", buf1 );
+  lua_push_str_table_entry(vm, "me_dst_mac", buf2 );
   lua_push_uint64_table_entry(vm, "me_stats.sent.requests", stats.sent.requests);
   lua_push_uint64_table_entry(vm, "me_stats.rcvd.requests", stats.rcvd.requests);
   lua_push_uint64_table_entry(vm, "me_stats.sent.replies", stats.sent.replies);
   lua_push_uint64_table_entry(vm, "me_stats.rcvd.replies", stats.rcvd.replies);
 
+  strcpy(index,buf1);
+  strcat(index,"-");
+  strcat(index,buf2); 
 
+  lua_pushstring(vm, index);
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
 }
 
+/*for testing
+void ArpStatsMatrixElement::printElement(){
+
+  char buf1[32], buf2[32];
+ 
+  cout << "FROM: " <<  Utils::formatMac(getSourceMac(), buf1, sizeof(buf1)) << " --> TO: " << Utils::formatMac(getDestinationMac(), buf2, sizeof(buf2)) << "\n";
+  cout << "snt.rsp:"<< stats.sent.replies <<" - rcv.rsp:"<< stats.rcvd.replies <<" - snt.req:"<< stats.sent.requests <<" - rcv.req:"<< stats.rcvd.requests<<"\n\n";
+}
+*/
 

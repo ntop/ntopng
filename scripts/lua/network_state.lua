@@ -5,6 +5,7 @@
 dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/?.lua;" .. package.path
 if((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.scriptdir .. "/lua/modules/?.lua;" .. package.path end
+ignore_post_payload_parse = 1
 require "lua_utils"
 
 local network_state = {}
@@ -336,7 +337,7 @@ function network_state.alerts_details()
       ID            = rowid,
       Tipo          = alert_type,
       Scattato      = t_stamp,
-      Pericolosità  = severity,
+      Pericolosita  = severity,
       IP_Server     = srv_addr,
       Porta_Server  = srv_port,
       IP_Client     = cli_addr,

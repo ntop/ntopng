@@ -2476,23 +2476,22 @@ decode_packet_eth:
 	   && !arp_spa_h->isBroadcastDomainHost())
 	  arp_spa_h->setBroadcastDomainHost();
 
-
   ArpStatsMatrixElement* e;
 	if(arp_opcode == 0x1 /* ARP request */) {
 	  arp_requests++;
 	  srcMac->incSentArpRequests();
 	  dstMac->incRcvdArpRequests();
 
-    e = getArpHashMatrixElement(srcMac->get_mac(), dstMac->get_mac(), true);
-    e->AddOneSentRequests();
+    //e = getArpHashMatrixElement(srcMac->get_mac(), dstMac->get_mac(), true);
+    //e->incSentArpRequests();
     
 	} else if(arp_opcode == 0x2 /* ARP reply */) {
 	  arp_replies++;
 	  srcMac->incSentArpReplies();
 	  dstMac->incRcvdArpReplies();
 
-    e = getArpHashMatrixElement(srcMac->get_mac(), dstMac->get_mac(), true);
-    e->AddOneSentReplies();
+    //e = getArpHashMatrixElement(srcMac->get_mac(), dstMac->get_mac(), true);
+    //e->incSentArpReplies();
   
 	  checkMacIPAssociation(true, arpp->arp_sha, arpp->arp_spa);
 	  checkMacIPAssociation(true, arpp->arp_tha, arpp->arp_tpa);
@@ -3263,14 +3262,14 @@ static bool find_mac_by_name(GenericHashEntry *h, void *user_data, bool *matched
 
 /* **************************************************** */
 
-
+//TODO: testing
 static bool find_arp_stats_element_by_macs_name(GenericHashEntry *h, void *user_data, bool *matched) {
 
   struct arp_stats_element_find_info *info = (struct arp_stats_element_find_info*)user_data;
 
   ArpStatsMatrixElement *e = (ArpStatsMatrixElement*)h;
 
-  if( (info->elem == NULL) && !info->elem->equal(e->getSourceMac(), e->getDestinationMac()) ){
+  if( (info->elem == NULL) && e->equal(info->src_mac, info->dst_mac) ){
     info->elem = e;
     *matched = true;
 
@@ -5441,7 +5440,12 @@ ArpStatsMatrixElement* NetworkInterface::getArpHashMatrixElement(u_int8_t _src_m
   if ( ret == NULL && createIfNotPresent ){
     try{ 
       if( (ret = new ArpStatsMatrixElement(this, _src_mac, _dst_mac)) != NULL)
-        arp_hash_matrix->add(ret);
+
+        if( !arp_hash_matrix->add(ret) ){
+          delete ret;
+          ret = NULL;
+        }
+        
     } catch(std::bad_alloc& ba) {
       static bool oom_warning_sent = false;
 
@@ -5460,6 +5464,7 @@ ArpStatsMatrixElement* NetworkInterface::getArpHashMatrixElement(u_int8_t _src_m
 /* **************************************************** */
 
 //remember that if src and dst mac are reversed, you must reverse ReqReplyStats from ArpStats
+//TODO: testing
 bool NetworkInterface::getArpStatsMatrixElementInfo(lua_State* vm, char *src_mac, char *dst_mac) {
   struct arp_stats_element_find_info info;
   bool ret;
@@ -5468,7 +5473,8 @@ bool NetworkInterface::getArpStatsMatrixElementInfo(lua_State* vm, char *src_mac
 
   memset(&info, 0, sizeof(info));
 
-  disablePurge(false);
+  Utils::parseMac(info.src_mac, src_mac);
+  Utils::parseMac(info.dst_mac, dst_mac);
 
   walker(&begin_slot, walk_all,  walker_arp_matrix_stats, find_arp_stats_element_by_macs_name, (void*)&info);
 
@@ -5478,9 +5484,18 @@ bool NetworkInterface::getArpStatsMatrixElementInfo(lua_State* vm, char *src_mac
   } else
     ret = false;
 
-  enablePurge(false);
-
   return ret;
+}
+
+/********************************************************/
+
+bool NetworkInterface::getArpStatsMatrixInfo(lua_State* vm){
+  
+  lua_newtable(vm);
+  //TODO: errors handling
+  arp_hash_matrix->printHash(vm);
+
+  return true;
 }
 
 /* **************************************************** */

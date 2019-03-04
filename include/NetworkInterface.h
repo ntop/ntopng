@@ -622,6 +622,7 @@ class NetworkInterface : public Checkpointable {
   bool getASInfo(lua_State* vm, u_int32_t asn);
   bool getVLANInfo(lua_State* vm, u_int16_t vlan_id);
   bool getArpStatsMatrixElementInfo(lua_State* vm, char *src_mac, char *dst_mac);
+  bool getArpStatsMatrixInfo(lua_State* vm);
   inline void incNumHosts(bool local) { if(local) numLocalHosts++; numHosts++; };
   inline void decNumHosts(bool local) { if(local) numLocalHosts--; numHosts--; };
   inline void incNumL2Devices()       { numL2Devices++; }
