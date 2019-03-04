@@ -3479,14 +3479,9 @@ FlowStatus Flow::getFlowStatus() {
 	      return status_ssl_certificate_mismatch;
 	  }
 	  break;
+ 	}
 
 #ifndef HAVE_NEDGE
-	case NDPI_PROTOCOL_HTTP:
-	  if(/* !header_HTTP_completed &&*/isIdle)
-	    return status_slow_application_header;
-	  break;
-	}
-
 	if(isIdle  && lowGoodput)  return status_slow_data_exchange;
 	if(isIdle  && !lowGoodput) return status_slow_tcp_connection;
 
@@ -3495,8 +3490,6 @@ FlowStatus Flow::getFlowStatus() {
 	    return status_tcp_connection_refused;
 	  else
 	    return status_low_goodput;
-	}
-#else
 	}
 #endif
       }
