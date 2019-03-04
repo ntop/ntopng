@@ -4,14 +4,14 @@ Basic Concepts and Export
 Here is a brief introduction to some fundamental concepts of the API.
 
 Driver
-------
+======
 
 A timeseries *driver* implements a well defined interface to provide support for a
 specific database. Currently ntopng provides the RRD and InfluxDB drivers to communicate
 with the respective datatabases.
 
 Schema
-------
+======
 
 A schema can be seen as a table of a database. It specifies the data format and types.
 A schema is identified by it's name and contains the following informations:
@@ -35,7 +35,7 @@ unnecessary schemas. Nevertheless, by including the `ts_utils` module, all the a
 schemas are loaded automatically.
 
 Exporting Data
---------------
+==============
 
 Thanks to the formalization of the data into schemas, ntopng itself can now
 be used as a timeseries exporter. The script `scripts/lua/get_ts.lua` is the

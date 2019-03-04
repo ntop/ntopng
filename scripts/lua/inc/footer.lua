@@ -3,6 +3,7 @@
 --
 
 require "os"
+local ts_utils = require("ts_utils")
 
 print [[
       <div id="footer"> <hr>
@@ -171,7 +172,9 @@ if ntop.getPref("ntopng.prefs.host_rrd_creation") ~= "1" then
 end
 
 -- Only show the message if the host protocol/category timeseries are enabled
-local message_enabled = ((host_ts_mode ~= "none") and (host_ts_mode ~= ""))
+local message_enabled = ((host_ts_mode ~= "none") and (host_ts_mode ~= "")) and
+  (ts_utils.getDriverName() ~= "influxdb") and
+  (ntop.getPref("ntopng.prefs.disable_ts_migration_message") ~= "1")
 
 print('var is_historical = false;')
 print [[
@@ -182,6 +185,19 @@ function checkMigrationMessage(data) {
   if(enabled && (data.num_local_hosts > max_local_hosts))
     $("#move-rrd-to-influxdb").show();
 }
+
+$("#move-rrd-to-influxdb").on("close.bs.alert", function() {
+  $.ajax({
+      type: 'POST',
+        url: ']]
+print (ntop.getHttpPrefix())
+print [[/lua/update_ts_prefs.lua',
+        data: {
+	  csrf: ']] print(ntop.getRandomCSRFValue()) print[[',
+	  action: 'disable',
+	}
+    });
+});
 
 var updatingChart_upload = $(".network-load-chart-upload").peity("line", { width: ]] print(traffic_peity_width) print[[, max: null });
 var updatingChart_download = $(".network-load-chart-download").peity("line", { width: ]] print(traffic_peity_width) print[[, max: null, fill: "lightgreen"});
@@ -312,7 +328,8 @@ print[[
 print (ntop.getHttpPrefix())
 print [[/lua/show_alerts.lua\">"
 
-                   msg += "<span class=\"label " + label + "\">"+addCommas(rsp.engaged_alerts)+" <i class=\"fa fa-warning\"></i></span></A>"
+                   msg += "<span class=\"label " + label + "\">"+addCommas(rsp.engaged_alerts)+" <i class=\"fa fa-warning\"></i></span></A>";
+                   //Push.create('Hello World!');
                 }
 
 		if((rsp.engaged_alerts > 0 || rsp.alerts_stored == true) && $("#alerts-id").is(":visible") == false) {
@@ -352,10 +369,20 @@ print [[/lua/hosts_stats.lua?mode=remote\">";
 		msg += addCommas(rsp.num_hosts-rsp.num_local_hosts)+" <i class=\"fa fa-laptop\" aria-hidden=\"true\"></i></span></a> ";
 
 	    if(typeof rsp.num_devices !== "undefined") {
+	      var macs_label = "]] print(i18n("mac_stats.layer_2_source_devices", {device_type=""})) print[[";
 	      msg += "<a href=\"]]
 print (ntop.getHttpPrefix())
 print [[/lua/macs_stats.lua?devices_mode=source_macs_only\">";
-		  msg += "<span title=\"]] print(i18n("mac_stats.layer_2_source_devices", {device_type=""})) print[[\" class=\"label label-default\">";
+		if(rsp.macs_pctg < alarm_threshold_low) {
+		  msg += "<span title=\"" + macs_label +"\" class=\"label label-default\">";
+		} else if(rsp.macs_pctg < alarm_threshold_high) {
+		  alert = 1;
+		  msg += "<span title=\"" + macs_label +"\" class=\"label label-warning\">";
+		} else {
+		  alert = 1;
+		  msg += "<span title=\"" + macs_label +"\" class=\"label label-danger\">";
+		}
+
 		msg += addCommas(rsp.num_devices)+" Devices</span></a> ";
 	    }
 

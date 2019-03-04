@@ -78,8 +78,11 @@ function getValueFormatter(schema, metric_type, series) {
       return [fpackets, formatPackets];
     else if(label.contains("flows")) {
       return [(metric_type === "counter") ? fflows : formatValue, formatFlows, (metric_type === "counter") ? fflows : formatFlows];
-    } else if(label.contains("millis"))
+    } else if(label.contains("millis")) {
       return [fmillis, fmillis];
+    } else if(label.contains("alerts")) {
+      return [falerts, falerts];
+    }
   }
 
   // fallback
@@ -727,7 +730,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
 
           // remove the first point as it's used as the base window in the rolling functions
           if(smoothed[0])
-            smoothed[0] = null;
+            delete smoothed[0];
 
           var max_val = d3.max(smoothed);
           if(max_val > 0) {

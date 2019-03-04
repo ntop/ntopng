@@ -26,6 +26,7 @@
 /* **************************************************** */
 
 static void* queryLoop(void* ptr) {
+  Utils::setThreadName("MySQLQueryLoop");
   return(((MySQLDB*)ptr)->queryLoop());
 }
 

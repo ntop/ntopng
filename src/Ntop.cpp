@@ -45,7 +45,22 @@ extern struct keyval string_to_replace[]; /* Lua.cpp */
 
 /* ******************************************* */
 
+#ifdef HAVE_EBPF
+static void ebpfHandler(void* t_bpfctx, void* t_data, int t_datasize) {
+  eBPFevent *event = (eBPFevent*)t_data;
+
+  if(ntop->isStarted())
+    ntop->deliverEventToInterfaces(event);
+}
+#endif
+
+/* ******************************************* */
+
 Ntop::Ntop(char *appName) {
+#ifdef HAVE_EBPF
+  ebpfRetCode rc;
+#endif
+  
   ntop = this;
   globals = new NtopGlobals();
   extract = new TimelineExtract();
@@ -62,7 +77,7 @@ Ntop::Ntop(char *appName) {
   iface = NULL;
   start_time = 0, epoch_buf[0] = '\0'; /* It will be initialized by start() */
   last_stats_reset = 0;
-
+  is_started = false;
   httpd = NULL, geo = NULL, mac_manufacturers = NULL;
 
 #ifdef WIN32
@@ -148,6 +163,15 @@ Ntop::Ntop(char *appName) {
 
 #ifndef WIN32
   setservent(1);
+#endif
+
+#ifdef HAVE_EBPF
+  ebpf = init_ebpf_flow(this, ebpfHandler, &rc, 0xFFFF);
+  
+  if(!ebpf)
+    ntop->getTrace()->traceEvent(TRACE_ERROR,
+				 "Unable to initialize libebpfflow: %s",
+				 ebpf_print_error(rc));
 #endif
 }
 
@@ -371,10 +395,24 @@ void Ntop::createExportInterface() {
 /* ******************************************* */
 
 #ifdef HAVE_EBPF
+ 
+ void Ntop::pollEBPF() {
+   while((!ntop->getGlobals()->isShutdown())
+	 && (!ntop->getGlobals()->isShutdownRequested()))
+     ebpf_poll_event(ebpf, 100);
+
+   if(getuid() == 0)
+     term_ebpf_flow(ebpf);
+ }
+
+ /* ******************************************* */
+ 
 static void* ebpfLoopFctn(void* ptr) {
   Ntop *ntop = (Ntop*)ptr;
+  
+  Utils::setThreadName("ebpfLoop");
 
-  ntop->getPro()->ebpfLoop();
+  ntop->pollEBPF();
   return(NULL);
 }
 #endif
@@ -387,6 +425,9 @@ void Ntop::start() {
   char daybuf[64], buf[32];
   time_t when = time(NULL);
   int i = 0;
+#ifdef HAVE_EBPF
+  pthread_t ebpfLoop;
+#endif
 
   getTrace()->traceEvent(TRACE_NORMAL,
 			 "Welcome to %s %s v.%s - (C) 1998-19 ntop.org",
@@ -421,13 +462,15 @@ void Ntop::start() {
   if(!pro->forced_community_edition())
     pro->printLicenseInfo();
 #endif
+
   prefs->loadInstanceNameDefaults();
+
   loadLocalInterfaceAddress();
+  
   address->startResolveAddressLoop();
 
-  for(int i=0; i<num_defined_interfaces; i++) {
-    iface[i]->allocateNetworkStats();
-  }
+  for(int i=0; i<num_defined_interfaces; i++)
+    iface[i]->allocateNetworkStats();  
 
   /* Note: must start periodic activities loop only *after* interfaces have been
    * completely initialized.
@@ -450,12 +493,10 @@ void Ntop::start() {
   for(int i=0; i<num_defined_interfaces; i++)
     iface[i]->checkPointCounters(true); /* Reset drop counters */
 
+  is_started = true;
+  
 #ifdef HAVE_EBPF
-  {
-    pthread_t ebpfLoop;
-
-    pthread_create(&ebpfLoop, NULL, ebpfLoopFctn, (void*)this);
-  }
+  pthread_create(&ebpfLoop, NULL, ebpfLoopFctn, (void*)this);
 #endif
 
   /* Align to the next 5-th second of the clock to make sure

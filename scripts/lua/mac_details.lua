@@ -22,7 +22,7 @@ local ts_utils = require("ts_utils")
 active_page = "hosts"
 local have_nedge = ntop.isnEdge()
 
-local info = ntop.getInfo(false)
+local info = ntop.getInfo()
 local os_utils = require "os_utils"
 local discover = require "discover_utils"
 local host_pools_utils = require "host_pools_utils"
@@ -117,6 +117,7 @@ print [[
 print("<li><a href=\"#\">"..i18n("mac_details.mac")..": "..mac.."</A> </li>")
 
 local url = ntop.getHttpPrefix().."/lua/mac_details.lua?"..hostinfo2url(host_info)
+local has_snmp_location = info["version.enterprise_edition"] and host_has_snmp_location(mac)
 
 if not only_historical then
 if((page == "overview") or (page == nil)) then
@@ -133,7 +134,16 @@ if((mac_info ~= nil) and (not have_nedge) and
       print("<li><a href=\""..url.."&page=packets\">" .. i18n("packets") .. "</a></li>")
    end
 end
-end -- only_historical
+
+if has_snmp_location then
+   if(page == "snmp") then
+	 print("<li class=\"active\"><a href=\"#\">"..i18n("host_details.snmp").."</a></li>\n")
+      else
+	 print("<li><a href=\""..url.."&page=snmp\">"..i18n("host_details.snmp").."</a></li>")
+   end
+end
+
+end -- not only_historical
 
 if(ts_utils.exists("mac:traffic", {ifid=ifId, mac=devicekey})) then
    if(page == "historical") then
@@ -153,7 +163,6 @@ end -- only_historical
 
 print("<li><a href='javascript:history.go(-1)'><i class='fa fa-reply'></i></a></li></ul></div></nav></div>")
 
-
 if((page == "overview") or (page == nil)) then
 
    print("<table class=\"table table-bordered table-striped\">\n")
@@ -167,10 +176,6 @@ if((page == "overview") or (page == nil)) then
 
    if mac_info["num_hosts"] > 0 then
       print(" [ <A HREF=\"".. ntop.getHttpPrefix().."/lua/hosts_stats.lua?mac="..mac.."\">"..i18n("details.show_hosts").."</A> ]")
-   end
-
-   if(mac_info.dhcpHost) then
-      print('  <i class="fa fa-flash fa-lg" aria-hidden="true" title="DHCP Host"></i>')
    end
    
    print("</td>")
@@ -195,10 +200,9 @@ if((page == "overview") or (page == nil)) then
 
    print("</td></tr>")
 
-   if ntop.isPro() then
-      print_host_snmp_localization_table_entry(mac)
+   if has_snmp_location then
+      print_host_snmp_location(mac, url .. [[&page=snmp]])
    end
-
 
    print("<tr><th>"..i18n("name").."</th><td><span id=name>"..label.."</span>")
 
@@ -379,6 +383,10 @@ elseif(page == "packets") then
    };
    </script>]]
 
+elseif(page == "snmp") then
+   print[[<table class="table table-bordered table-striped">]]
+   print_host_snmp_localization_table_entry(mac)
+   print[[</table>]]
 elseif(page == "historical") then
    local schema = _GET["ts_schema"] or "mac:traffic"
    local selected_epoch = _GET["epoch"] or ""

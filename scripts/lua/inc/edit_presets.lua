@@ -114,9 +114,17 @@ local function printDeviceProtocolsPage()
    else
       print(i18n("device_protocols.filter_device_protocols", {filter=filter_msg}))
    end
-   print[[</h2>
+   print[[</h2>]]
 
-   <table style="width:100%; margin-bottom: 20px;"><tbody>
+   if not is_nedge then
+      local device_protocols_alerts = ntop.getPref("ntopng.prefs.device_protocols_alerts")
+
+      if not ntop.getPrefs().are_alerts_enabled or device_protocols_alerts ~= "1" then
+	 print('<div class="alert alert-info alert-dismissable"><a href="" class="close" data-dismiss="alert" aria-label="close">&times;</a>'..i18n('device_protocols.alerts_disabled_msg', {url = ntop.getHttpPrefix().."/lua/admin/prefs.lua?tab=alerts"})..'</div>')
+      end
+   end
+
+   print[[<table style="width:100%; margin-bottom: 20px;"><tbody>
      <tr>
        <td style="white-space:nowrap; padding-right:1em;">]]
 
@@ -211,7 +219,7 @@ local function printDeviceProtocolsPage()
    print[[
      <span>
        <ul>]]
-   print(i18n("notes"))
+   print("<b>"..i18n("notes").."</b>")
    if is_nedge then
       print [[
        <li>]] print(i18n("nedge.device_protocol_policy_has_higher_priority")) print[[</li>

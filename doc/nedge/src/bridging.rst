@@ -107,3 +107,13 @@ care should be taken.
 
 .. _management: management.html
 .. _`the ntopng documentation`: https://www.ntop.org/guides/ntopng/basic_concepts/hosts.html#local-hosts
+
+Supported Ethernet Protocols
+----------------------------
+
+While running in bridge mode, nEdge supports the following ethernet protocols:
+
+- ARP
+- IPv4
+
+Other ethernet protocols (like PPPoE) are *blocked* as nEdge does not handle them.

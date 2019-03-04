@@ -205,8 +205,10 @@
 #define CONST_ALERT_PROBING_TIME            120  /* 2 mins */
 #define CONST_TCP_CHECK_ISSUES_RATIO         10  /* 10% */
 #define HOST_LABEL_NAMES        "ntopng.host_labels"
+#define IFACE_DHCP_RANGE_KEY    "ntopng.prefs.ifid_%u.dhcp_ranges"
 #define HOST_SERIALIZED_KEY     "ntopng.serialized_hosts.ifid_%u__%s@%d"
 #define MAC_SERIALIZED_KEY      "ntopng.serialized_macs.ifid_%u__%s"
+#define HOST_BY_MAC_SERIALIZED_KEY "ntopng.serialized_hostsbymac.ifid_%u__%s"
 #define HOST_POOL_SERIALIZED_KEY "ntopng.serialized_host_pools.ifid_%u"
 #define NTOPNG_PREFS_PREFIX     "ntopng.prefs"
 #define NTOPNG_CACHE_PREFIX     "ntopng.cache"
@@ -591,6 +593,7 @@
 #define CONST_RUNTIME_PREFS_IFACE_FLOW_COLLECTION      NTOPNG_PREFS_PREFIX".dynamic_flow_collection_mode" /* {"none", "vlan", "probe_ip","ingress_iface_idx"} */
 #define CONST_RUNTIME_PREFS_IGNORED_INTERFACES         NTOPNG_PREFS_PREFIX".ignored_interfaces"
 #define CONST_RUNTIME_PREFS_ENABLE_MAC_NDPI_STATS      NTOPNG_PREFS_PREFIX".l2_device_ndpi_timeseries_creation"
+#define CONST_SERIALIZE_LOCAL_BROADCAST_HOSTS_AS_MACS  NTOPNG_PREFS_PREFIX".serialize_local_broadcast_hosts_as_macs"
 #define CONST_RUNTIME_TS_NUM_SLOTS                     NTOPNG_PREFS_PREFIX".ts_write_slots"
 #define CONST_RUNTIME_TS_NUM_STEPS                     NTOPNG_PREFS_PREFIX".ts_write_steps"
 #define DISAGGREGATION_PROBE_IP                        "probe_ip"

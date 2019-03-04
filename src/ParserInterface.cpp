@@ -36,31 +36,61 @@ ParserInterface::ParserInterface(const char *endpoint, const char *custom_interf
 #endif
 
   /* Populate defaults for @NTOPNG@ nProbe templates. No need to populate
-     all the fields as nProbe will sent them periodically. */
-  addMapping("IN_SRC_MAC", 56);
-  addMapping("OUT_DST_MAC", 57);
-  addMapping("SRC_VLAN", 58);
-  addMapping("DST_VLAN", 59);
-  addMapping("INPUT_SNMP", 10);
-  addMapping("OUTPUT_SNMP", 14);
-  addMapping("IPV4_SRC_ADDR", 8);
-  addMapping("IPV4_DST_ADDR", 12);
-  addMapping("L4_SRC_PORT", 7);
-  addMapping("L4_DST_PORT", 11);
-  addMapping("IPV6_SRC_ADDR", 27);
-  addMapping("IPV6_DST_ADDR", 28);
-  addMapping("IP_PROTOCOL_VERSION", 60);
-  addMapping("PROTOCOL", 4);
-  addMapping("L7_PROTO", 57590, NTOP_PEN);
-  addMapping("IN_BYTES", 1);
-  addMapping("IN_PKTS", 2);
-  addMapping("OUT_BYTES", 23);
-  addMapping("OUT_PKTS", 24);
-  addMapping("FIRST_SWITCHED", 22);
-  addMapping("LAST_SWITCHED", 21);
-  addMapping("EXPORTER_IPV4_ADDRESS", 130);
-  addMapping("EXPORTER_IPV6_ADDRESS", 131);
-  addMapping("NPROBE_IPV4_ADDRESS", 57943, NTOP_PEN);
+     all the fields as nProbe will sent them periodically.
+
+  This minimum set is required for backward compatibility. */
+  addMapping("IN_SRC_MAC", IN_SRC_MAC);
+  addMapping("OUT_SRC_MAC", OUT_SRC_MAC);
+  addMapping("IN_DST_MAC", IN_DST_MAC);
+  addMapping("OUT_DST_MAC", OUT_DST_MAC);
+  addMapping("SRC_VLAN", SRC_VLAN);
+  addMapping("DST_VLAN", DST_VLAN);
+  addMapping("DOT1Q_SRC_VLAN", DOT1Q_SRC_VLAN);
+  addMapping("DOT1Q_DST_VLAN", DOT1Q_DST_VLAN);
+  addMapping("INPUT_SNMP", INPUT_SNMP);
+  addMapping("OUTPUT_SNMP", OUTPUT_SNMP);
+  addMapping("IPV4_SRC_ADDR", IPV4_SRC_ADDR);
+  addMapping("IPV4_DST_ADDR", IPV4_DST_ADDR);
+  addMapping("L4_SRC_PORT", L4_SRC_PORT);
+  addMapping("L4_DST_PORT", L4_DST_PORT);
+  addMapping("IPV6_SRC_ADDR", IPV6_SRC_ADDR);
+  addMapping("IPV6_DST_ADDR", IPV6_DST_ADDR);
+  addMapping("IP_PROTOCOL_VERSION", IP_PROTOCOL_VERSION);
+  addMapping("PROTOCOL", PROTOCOL);
+  addMapping("L7_PROTO", L7_PROTO, NTOP_PEN);
+  addMapping("IN_BYTES", IN_BYTES);
+  addMapping("IN_PKTS", IN_PKTS);
+  addMapping("OUT_BYTES", OUT_BYTES);
+  addMapping("OUT_PKTS", OUT_PKTS);
+  addMapping("FIRST_SWITCHED", FIRST_SWITCHED);
+  addMapping("LAST_SWITCHED", LAST_SWITCHED);
+  addMapping("EXPORTER_IPV4_ADDRESS", EXPORTER_IPV4_ADDRESS);
+  addMapping("EXPORTER_IPV6_ADDRESS", EXPORTER_IPV6_ADDRESS);
+  addMapping("NPROBE_IPV4_ADDRESS", NPROBE_IPV4_ADDRESS, NTOP_PEN);
+  addMapping("TCP_FLAGS", TCP_FLAGS);
+  addMapping("INITIATOR_PKTS", INITIATOR_PKTS);
+  addMapping("INITIATOR_OCTETS", INITIATOR_OCTETS);
+  addMapping("RESPONDER_PKTS", RESPONDER_PKTS);
+  addMapping("RESPONDER_OCTETS", RESPONDER_OCTETS);
+  addMapping("SAMPLING_INTERVAL", SAMPLING_INTERVAL);
+  addMapping("DIRECTION", DIRECTION);
+  addMapping("POST_NAT_SRC_IPV4_ADDR", POST_NAT_SRC_IPV4_ADDR);
+  addMapping("POST_NAT_DST_IPV4_ADDR", POST_NAT_DST_IPV4_ADDR);
+  addMapping("POST_NAPT_SRC_TRANSPORT_PORT", POST_NAPT_SRC_TRANSPORT_PORT);
+  addMapping("POST_NAPT_DST_TRANSPORT_PORT", POST_NAPT_DST_TRANSPORT_PORT);
+  addMapping("INGRESS_VRFID", INGRESS_VRFID);
+  addMapping("IPV4_SRC_MASK", IPV4_SRC_MASK);
+  addMapping("IPV4_DST_MASK", IPV4_DST_MASK);
+  addMapping("IPV4_NEXT_HOP", IPV4_NEXT_HOP);
+  addMapping("OOORDER_IN_PKTS", OOORDER_IN_PKTS, NTOP_PEN);
+  addMapping("OOORDER_OUT_PKTS", OOORDER_OUT_PKTS, NTOP_PEN);
+  addMapping("RETRANSMITTED_IN_PKTS", RETRANSMITTED_IN_PKTS, NTOP_PEN);
+  addMapping("RETRANSMITTED_OUT_PKTS", RETRANSMITTED_OUT_PKTS, NTOP_PEN);
+  addMapping("DNS_QUERY", DNS_QUERY, NTOP_PEN);
+  addMapping("HTTP_URL", HTTP_URL, NTOP_PEN);
+  addMapping("HTTP_SITE", HTTP_SITE, NTOP_PEN);
+  addMapping("SSL_SERVER_NAME", SSL_SERVER_NAME, NTOP_PEN);
+  addMapping("BITTORRENT_HASH", BITTORRENT_HASH, NTOP_PEN);
 }
 
 /* **************************************************** */
@@ -307,24 +337,6 @@ bool ParserInterface::parsePENZeroField(ZMQ_Flow * const flow, u_int32_t field, 
       */
       flow->core.vlan_id = atoi(value);
     break;
-  case L7_PROTO:
-    if(!strchr(value, '.')) {
-      /* Old behaviour, only the app protocol */
-      flow->core.l7_proto.app_protocol = atoi(value);
-    } else {
-      char *proto_dot;
-
-      flow->core.l7_proto.master_protocol = (u_int16_t)strtoll(value, &proto_dot, 10);
-      flow->core.l7_proto.app_protocol    = (u_int16_t)strtoll(proto_dot + 1, NULL, 10);
-    }
-
-#if 0
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[value: %s][master: %u][app: %u]",
-				 value,
-				 flow->core.l7_proto.master_protocol,
-				 flow->core.l7_proto.app_protocol);
-#endif
-    break;
   case PROTOCOL:
     flow->core.l4_proto = atoi(value);
     break;
@@ -369,7 +381,8 @@ bool ParserInterface::parsePENZeroField(ZMQ_Flow * const flow, u_int32_t field, 
     break;
   case EXPORTER_IPV4_ADDRESS:
     /* Format: a.b.c.d, possibly overrides NPROBE_IPV4_ADDRESS */
-    flow->core.deviceIP = ntohl(inet_addr(value));
+    if(ntohl(inet_addr(value)) && (flow->core.deviceIP = ntohl(inet_addr(value))))
+      return false;
     break;
   case INPUT_SNMP:
     flow->core.inIndex = atoi(value);
@@ -518,7 +531,9 @@ void ParserInterface::parseSingleFlow(json_object *o,
       switch(pen) {
       case 0: /* No PEN */
 	res = parsePENZeroField(&flow, key_id, value);
-	break;
+	if(res)
+	  break;
+	/* Dont'break when res == false for backward compatibility: attempt to parse Zero-PEN as Ntop-PEN */
       case NTOP_PEN:
 	res = parsePENNtopField(&flow, key_id, value);
 	break;
@@ -619,7 +634,7 @@ u_int8_t ParserInterface::parseFlow(const char * const payload, int payload_size
   NetworkInterface *iface = (NetworkInterface*)data;
 
   // payload[payload_size] = '\0';
-  //ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", payload);
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", payload);
 
   f = json_tokener_parse_verbose(payload, &jerr);
 

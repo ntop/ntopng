@@ -103,12 +103,6 @@ class AlertsManager : protected StoreManager {
 				  false /* release */, ignore_disabled);
   };
   
-  int storeHostAlert(Host *h, AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
-		     Host *alert_origin, Host *alert_target);
-  inline int storeHostAlert(Host *h, AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
-    return storeHostAlert(h, alert_type, alert_severity, alert_json, NULL, NULL);
-  }
-  
   int getNumHostAlerts(Host *h, bool engaged);
 
   /*

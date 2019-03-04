@@ -49,10 +49,9 @@ class Host : public GenericHashEntry {
   AlertCounter *syn_flood_attacker_alert, *syn_flood_victim_alert;
   AlertCounter *flow_flood_attacker_alert, *flow_flood_victim_alert;
   bool trigger_host_alerts;
-
+  std::vector<u_int32_t> dropbox_namespaces;
   MonitoredGauge<u_int32_t> num_active_flows_as_client, num_active_flows_as_server,
-    low_goodput_client_flows, low_goodput_server_flows;
-  
+    low_goodput_client_flows, low_goodput_server_flows;  
   u_int32_t asn;
   AutonomousSystem *as;
   Country *country;
@@ -72,6 +71,7 @@ class Host : public GenericHashEntry {
 #endif
   bool hidden_from_top;
   bool is_in_broadcast_domain;
+  bool is_dhcp_host;
 
   void initialize(Mac *_mac, u_int16_t _vlan_id, bool init_all);
   bool statsResetRequested();
@@ -85,6 +85,9 @@ class Host : public GenericHashEntry {
   char* printMask(char *str, u_int str_len) { return ip.printMask(str, str_len, isLocalHost()); };
   void freeHostData();
   virtual void deleteHostData();
+  char* get_mac_based_tskey(Mac *mac, char *buf, size_t bufsize);
+
+  
  public:
   Host(NetworkInterface *_iface, char *ipAddress, u_int16_t _vlanId);
   Host(NetworkInterface *_iface, Mac *_mac, u_int16_t _vlanId, IpAddress *_ip);
@@ -94,6 +97,7 @@ class Host : public GenericHashEntry {
   virtual bool isLocalHost()  const = 0;
   virtual bool isSystemHost() const = 0;
   inline  bool isBroadcastDomainHost() const { return(is_in_broadcast_domain); };
+  inline  bool isDhcpHost()            const { return(is_dhcp_host); };
   inline void setBroadcastDomainHost()       { is_in_broadcast_domain = true;  };
   inline void setSystemHost()                { /* TODO: remove */              };
 
@@ -196,6 +200,7 @@ class Host : public GenericHashEntry {
   char* get_visual_name(char *buf, u_int buf_len);
   inline char* get_string_key(char *buf, u_int buf_len) { return(ip.print(buf, buf_len)); };
   char* get_hostkey(char *buf, u_int buf_len, bool force_vlan=false);
+  char* get_tskey(char *buf, size_t bufsize);
   bool idle();
   virtual void incICMP(u_int8_t icmp_type, u_int8_t icmp_code, bool sent, Host *peer) {};
   virtual void lua(lua_State* vm, AddressTree * ptree, bool host_details,
@@ -235,12 +240,14 @@ class Host : public GenericHashEntry {
   inline Country* getCountryStats()                        { return country; };
 
   bool match(AddressTree *tree) { return(get_ip() ? get_ip()->match(tree) : false); };
-  void updateHostPool(bool isInlineCall, bool firstUpdate=false);
+  void updateHostPool(bool isInlineCall, bool firstUpdate = false);
   virtual bool dropAllTraffic()  { return(false); };
   bool incFlowAlertHits(time_t when);
   virtual bool setRemoteToRemoteAlerts() { return(false); };
   inline void checkPointHostTalker(lua_State *vm, bool saveCheckpoint) { stats->checkPointHostTalker(vm, saveCheckpoint); }
   virtual void incrVisitedWebSite(char *hostname) {};
+  inline void incTotalAlerts()            { stats->incTotalAlerts(); }
+  inline u_int32_t getTotalAlerts()       { return(stats->getTotalAlerts()); }
   virtual u_int32_t getActiveHTTPHosts()  { return(0); };
   inline u_int32_t getNumOutgoingFlows()  { return(num_active_flows_as_client.get()); }
   inline u_int32_t getNumIncomingFlows()  { return(num_active_flows_as_server.get()); }
@@ -253,6 +260,7 @@ class Host : public GenericHashEntry {
   void get_geocoordinates(float *latitude, float *longitude);
   inline u_int16_t getVlanId() { return (vlan ? vlan->get_vlan_id() : 0); }
   inline void reloadHideFromTop() { hidden_from_top = iface->isHiddenFromTop(this); }
+  inline void reloadDhcpHost()    { is_dhcp_host = iface->isInDhcpRange(get_ip()); }
   inline bool isHiddenFromTop() { return hidden_from_top; }
   inline bool isOneWayTraffic() { return !(stats->getNumBytesRcvd() > 0 && stats->getNumBytesSent() > 0); };
   virtual void tsLua(lua_State* vm) { lua_pushnil(vm); };
@@ -264,15 +272,18 @@ class Host : public GenericHashEntry {
   bool hasAnomalies();
   void luaAnomalies(lua_State* vm);
   void loadAlertsCounter();
-  bool triggerAlerts()                                   { return(trigger_host_alerts); };
+  bool triggerAlerts()                                   { return(trigger_host_alerts);       };
   void refreshHostAlertPrefs();
   u_int32_t getNumAlerts(bool from_alertsmanager = false);
-  void setNumAlerts(u_int32_t num)                       { num_alerts_detected = num; };
+  void setNumAlerts(u_int32_t num)                       { num_alerts_detected = num;         };
+  inline u_int getNumDropboxPeers()                      { return(dropbox_namespaces.size()); };
   virtual void inlineSetOS(const char * const _os) {};
   void inlineSetSSDPLocation(const char * const url);
   void inlineSetMDNSInfo(char * const s);
   void inlineSetMDNSName(const char * const n);
   void inlineSetMDNSTXTName(const char * const n);
   void setResolvedName(const char * const resolved_name);
+  void dissectDropbox(const char *payload, u_int16_t payload_len);
+  void dumpDropbox(lua_State *vm);
 };
 #endif /* _HOST_H_ */

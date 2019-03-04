@@ -88,7 +88,6 @@ end
 --! @return true if the reminder has to be shown, false otherwise
 function recording_utils.isExternalProvidersReminderDismissed(ifid)
    local k = string.format(external_providers_reminder_dismissed_key, ifid)
-   ntop.delCache(k)
    local cur_pref = ntop.getPref(k)
 
    if cur_pref == "true" then
@@ -120,7 +119,7 @@ function recording_utils.checkAvailable()
 
   if(not ntop.isWindows())
     and (not ntop.isnEdge())
-    and os_utils.hasService("n2disk-ntopng", getInterfaceName(getFirstInterfaceId())) then
+    and os_utils.hasService("n2disk-ntopng", "dummy") then
     is_available = true
   end
 

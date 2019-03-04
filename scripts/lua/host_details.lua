@@ -75,6 +75,7 @@ end
 -- print(">>>") print(host_info["host"]) print("<<<")
 if(debug_hosts) then traceError(TRACE_DEBUG,TRACE_CONSOLE, i18n("host_details.trace_debug_host_info",{hostinfo=host_info["host"],vlan=host_vlan}).."\n") end
 
+
 local host = interface.getHostInfo(host_info["host"], host_vlan)
 
 local restoreFailed = false
@@ -183,6 +184,7 @@ else
       host["label"] = getHostAltName(host["ip"])
    end
 
+      print('<div style=\"display:none;\" id=\"host_purged\" class=\"alert alert-danger\"><i class="fa fa-warning fa-lg"></i>&nbsp;'..i18n("details.host_purged")..'</div>')
 print [[
 <div class="bs-docs-example">
             <nav class="navbar navbar-default" role="navigation">
@@ -190,9 +192,18 @@ print [[
 <ul class="nav navbar-nav">
 ]]
 if((debug_hosts) and (host["ip"] ~= nil)) then traceError(TRACE_DEBUG,TRACE_CONSOLE, i18n("host_details.trace_debug_host_ip",{hostip=host["ip"],vlan=host["vlan"]}).."\n") end
-url=ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url(host_info)
+url = ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url(host_info)
 
-print("<li><a href=\"#\">"..i18n("host_details.host")..": "..host_info["host"].."</A> </li>")
+print("<li><a href=\"#\">"..i18n("host_details.host")..": "..host_info["host"])
+if host["broadcast_domain_host"] then
+  print(" <i class='fa fa-sitemap' title='"..i18n("hosts_stats.label_broadcast_domain_host").."'></i>")
+end
+
+if(host.dhcpHost) then
+   print(" <i class='fa fa-flash fa-lg' aria-hidden='true' title='DHCP Host'></i>")
+end
+
+print("</A> </li>")
 
 if not only_historical then
 if((page == "overview") or (page == nil)) then
@@ -331,6 +342,19 @@ if(not(isLoopback(ifname))) then
       print("<li><a href=\""..url.."&page=talkers\">"..i18n("talkers").."</a></li>")
    end
 
+   if(host.has_dropbox_shares == true) then
+      local dropbox = require("dropbox_utils")
+      local namespaces = dropbox.getHostNamespaces(host.ip)
+
+      if(table.len(namespaces) > 0) then
+	 if(page == "dropbox") then
+	    print("<li class=\"active\"><a href=\"#\"><i class='fa fa-dropbox fa-lg'></i></a></li>\n")
+	 else
+	    print("<li><a href=\""..url.."&page=dropbox\"><i class='fa fa-dropbox fa-lg'></i></a></li>")
+	 end
+      end
+   end
+   
    if(page == "geomap") then
       print("<li class=\"active\"><a href=\"#\"><i class='fa fa-globe fa-lg'></i></a></li>\n")
    else
@@ -399,8 +423,9 @@ print [[
    ]]
 
 local macinfo = interface.getMacInfo(host["mac"])
+local has_snmp_location = host['localhost'] and (host["mac"] ~= "")
+   and (info["version.enterprise_edition"]) and host_has_snmp_location(host["mac"])
 
---tprint(host)
 if((page == "overview") or (page == nil)) then
    print("<table class=\"table table-bordered table-striped\">\n")
    if(host["ip"] ~= nil) then
@@ -424,9 +449,13 @@ if((page == "overview") or (page == nil)) then
 	 print('</td></tr>')
       end
 
-      if(host['localhost'] and (host["mac"] ~= "") and (info["version.enterprise_edition"])) then
-	 print_host_snmp_localization_table_entry(host["mac"])
+      local snmp_url = ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url(host_info).."&page=snmp";
+
+      if has_snmp_location then
+         local url = ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url(host_info).."&page=snmp";
+         print_host_snmp_location(host["mac"], url)
       end
+
       print("</tr>")
       
       print("<tr><th>"..i18n("ip_address").."</th><td colspan=1>" .. host["ip"])
@@ -1510,10 +1539,12 @@ elseif(page == "snmp" and ntop.isEnterprise()) then
    local snmp_devices = get_snmp_devices()
 
    if snmp_devices[host_ip] == nil then -- host has not been configured
-      local msg = i18n("snmp_page.not_configured_as_snmp_device_message",{host_ip=host_ip})
-      msg = msg.." "..i18n("snmp_page.guide_snmp_page_message",{url=ntop.getHttpPrefix().."/lua/pro/enterprise/snmpdevices_stats.lua"})
+      if not has_snmp_location then
+         local msg = i18n("snmp_page.not_configured_as_snmp_device_message",{host_ip=host_ip})
+         msg = msg.." "..i18n("snmp_page.guide_snmp_page_message",{url=ntop.getHttpPrefix().."/lua/pro/enterprise/snmpdevices_stats.lua"})
 
-      print("<div class='alert alert-info'><i class='fa fa-info-circle fa-lg' aria-hidden='true'></i> "..msg.."</div>")
+         print("<div class='alert alert-info'><i class='fa fa-info-circle fa-lg' aria-hidden='true'></i> "..msg.."</div>")
+      end
    else
       local snmp_device = require "snmp_device"
       local snmp_device_ip = snmp_devices[host_ip]["ip"]
@@ -1529,10 +1560,33 @@ elseif(page == "snmp" and ntop.isEnterprise()) then
 
       print_snmp_device_system_table(snmp_device.get_device())
    end
+
+   if has_snmp_location then
+      print[[<table class="table table-bordered table-striped">]]
+      print_host_snmp_localization_table_entry(host["mac"])
+      print[[</table>]]
+   end
 elseif(page == "processes") then
    local ebpf_utils = require "ebpf_utils"
    ebpf_utils.draw_processes_graph(host_info)
 
+elseif(page == "dropbox") then
+   local dropbox = require("dropbox_utils")
+   local namespaces = dropbox.getHostNamespaces(host.ip)
+
+   print(i18n("dropbox_sharing_with"))
+   print("<ul>")
+   for k,v in pairs(namespaces) do
+      local host = interface.getHostInfo(k, host_vlan)
+
+      print("<li><a href=\""..ntop.getHttpPrefix().."/lua/host_details.lua?host="..k)
+      if(host_vlan ~= 0) then print("&vlan="..host_vlan) end
+      print("&page=dropbox\">")      
+      print(getResolvedAddress(hostkey2hostinfo(k)))
+      print("</A></li>")
+   end
+
+   print("</ul>")
 elseif(page == "talkers") then
 print("<center>")
 print('<div class="row">')
@@ -1837,6 +1891,16 @@ end
 local schema = _GET["ts_schema"] or "host:traffic"
 local selected_epoch = _GET["epoch"] or ""
 
+local tskey
+
+if _GET["tskey"] then
+   tskey = _GET["tskey"]
+elseif host then
+   tskey = host["tskey"]
+else
+   tskey = host_key
+end
+
 local tags = {
    ifid = ifId,
    host = host_key,
@@ -1852,10 +1916,13 @@ drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
    top_categories = "top:host:ndpi_categories",
    l4_protocols = "host:l4protos",
    show_historical = true,
+   tskey = tskey,
    timeseries = {
       {schema="host:traffic",                label=i18n("traffic")},
       {schema="host:flows",                  label=i18n("graphs.active_flows")},
+      {schema="host:anomalous_flows",        label=i18n("graphs.total_anomalous_flows")},
       {schema="host:contacts",               label=i18n("graphs.active_host_contacts")},
+      {schema="host:total_alerts",           label=i18n("details.alerts")},
 
       {schema="host:1d_delta_traffic_volume",  label="1 Day Traffic Delta"}, -- TODO localize
       {schema="host:1d_delta_flows",           label="1 Day Active Flows Delta"}, -- TODO localize
@@ -1931,6 +1998,10 @@ if(page ~= "historical") and (host ~= nil) then
    		    data: { ifid: "]] print(ifId.."")  print('", '..hostinfo2json(host_info)) print [[ },
    		    /* error: function(content) { alert("]] print(i18n("mac_details.json_error_inactive", {product=info["product"]})) print[["); }, */
    		    success: function(content) {
+         if(content == "\"{}\"") {
+             var e = document.getElementById('host_purged');
+             e.style.display = "block";
+         } else {
    			var host = jQuery.parseJSON(content);
                         var http = host.http;
    			$('#first_seen').html(epoch2Seen(host["seen.first"]));
@@ -1957,7 +2028,7 @@ if(page ~= "historical") and (host ~= nil) then
    			$('#flows_as_server').html(addCommas(host["flows.as_server"]));
    			$('#low_goodput_as_server').html(addCommas(host["low_goodput_flows.as_server"]));
             $('#anomalous_flows_as_server').html(addCommas(host["anomalous_flows.as_server"]));
-   		  ]]
+   		  }]]
 
    if ntop.isnEdge() then
 print [[

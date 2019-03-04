@@ -32,7 +32,7 @@ class TrafficStats {
   TrafficStats();
   
   inline void incStats(time_t t, u_int64_t num_pkts, u_int64_t num_bytes) {
-    numPkts.inc(t, num_pkts), numBytes.inc(t, num_bytes);
+    numPkts.inc(num_pkts), numBytes.inc(num_bytes);
     numPkts.computeAnomalyIndex(t), numBytes.computeAnomalyIndex(t);
   };  
   inline void resetStats()                   { numPkts.reset(), numBytes.reset(); };

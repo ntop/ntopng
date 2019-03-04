@@ -117,9 +117,9 @@ NetworkInterface::NetworkInterface(const char *name,
 #if !defined(__APPLE__) && !defined(WIN32)
        || (Utils::readIPv4((char*)name) == 0)
 #endif
-     )
-    ; /* Don't setup MDNS on ZC or RSS interfaces */
-  else {
+       )
+      ; /* Don't setup MDNS on ZC or RSS interfaces */
+    else {
     ipv4_network = ipv4_network_mask = 0;
     if(pcap_lookupnet(ifname, &ipv4_network, &ipv4_network_mask, pcap_error_buffer) == -1) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to read IPv4 address of %s: %s",
@@ -226,6 +226,7 @@ NetworkInterface::NetworkInterface(const char *name,
 
   loadScalingFactorPrefs();
   loadPacketsDropsAlertPrefs();
+  reloadDhcpRanges();
 
   statsManager = NULL, alertsManager = NULL;
 
@@ -325,6 +326,8 @@ void NetworkInterface::init() {
 #endif
 
 #endif
+
+  dhcp_ranges = dhcp_ranges_shadow = NULL;
 
     ts_ring = NULL;
 
@@ -647,6 +650,8 @@ NetworkInterface::~NetworkInterface() {
   if(tsExporter)            delete tsExporter;
   if(ts_ring)               delete ts_ring;
   if(mdns)                  delete mdns; /* Leave it at the end so the mdns resolved has time to initialize */
+  if(dhcp_ranges)           delete[] dhcp_ranges;
+  if(dhcp_ranges_shadow)    delete[] dhcp_ranges_shadow;
 
   if(ifname)                free(ifname);
 }
@@ -658,11 +663,13 @@ int NetworkInterface::dumpFlow(time_t when, Flow *f) {
 
 #ifndef HAVE_NEDGE
   char *json;
+  bool es_flow = ntop->getPrefs()->do_dump_flows_on_es() ||
+    ntop->getPrefs()->do_dump_flows_on_ls();
 
   if(!db)
     return(-1);
 
-  json = f->serialize(false);
+  json = f->serialize(es_flow);
 
   if(json) {
     rc = db->dumpFlow(when, f, json);
@@ -734,13 +741,11 @@ int NetworkInterface::dumpLocalHosts2redis(bool disable_purge) {
 	      local_hosts_2_redis_walker, NULL) ? 0 : -1;
   if(disable_purge) enablePurge(false /* on hosts */);
 
-
 #ifdef NTOPNG_PRO
   if(getHostPools()) getHostPools()->dumpToRedis();
 #endif
 
-
-  return rc;
+  return(rc);
 }
 
 /* **************************************************** */
@@ -1031,7 +1036,7 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
   Flow *flow;
   ndpi_protocol p;
   time_t now = time(NULL);
-  Mac *srcMac, *dstMac;
+  Mac *srcMac = NULL, *dstMac = NULL;
   IpAddress srcIP, dstIP;
 
   memset(&p, 0, sizeof(p));
@@ -1105,8 +1110,10 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
     return;
   }
 
-  srcMac = getMac((u_int8_t*)zflow->core.src_mac, true);
-  dstMac = getMac((u_int8_t*)zflow->core.dst_mac, true);
+  if(!ntop->getPrefs()->do_ignore_macs()) {
+    srcMac = getMac((u_int8_t*)zflow->core.src_mac, true);
+    dstMac = getMac((u_int8_t*)zflow->core.dst_mac, true);
+  }
 
   srcIP.set(&zflow->core.src_ip), dstIP.set(&zflow->core.dst_ip);
 
@@ -1115,7 +1122,7 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
 		 zflow->core.vlan_id,
 		 zflow->core.deviceIP,
 		 zflow->core.inIndex, zflow->core.outIndex,
-		 NULL /* ICMPinfo */, 
+		 NULL /* ICMPinfo */,
 		 &srcIP, &dstIP,
 		 zflow->core.src_port, zflow->core.dst_port,
 		 zflow->core.l4_proto, &src2dst_direction,
@@ -1398,10 +1405,9 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       return(pass_verdict);
     }
 
-    if((iph->ihl * 4) > ipsize || ipsize < ntohs(iph->tot_len)
-       || (iph->frag_off & htons(0x1FFF /* IP_OFFSET */)) != 0) {
-      is_fragment = true;
-    }
+    if(((iph->ihl * 4) > ipsize) || (ipsize < ntohs(iph->tot_len))
+       || (iph->frag_off & htons(0x1FFF /* IP_OFFSET */)) != 0)
+      is_fragment = true;    
 
     l4_packet_len = ntohs(iph->tot_len) - (iph->ihl * 4);
     l4_proto = iph->protocol;
@@ -1421,11 +1427,12 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
     l4_packet_len = ntohs(ip6->ip6_hdr.ip6_un1_plen);
     l4_proto = ip6->ip6_hdr.ip6_un1_nxt;
 
-    if(l4_proto == 0x3C /* IPv6 destination option */) {
+    if((l4_proto == 0x3C /* IPv6 destination option */) ||
+	(l4_proto == 0x0 /* Hop-by-hop option */)) {
       u_int8_t *options = (u_int8_t*)ip6 + ipv6_shift;
 
       l4_proto = options[0];
-      ipv6_shift = 8 * (options[1] + 1);
+      ipv6_shift += 8 * (options[1] + 1);
 
       if(ipsize < ipv6_shift) {
 	incStats(ingressPacket,
@@ -1645,7 +1652,6 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 
     switch(ndpi_get_lower_proto(flow->get_detected_protocol())) {
     case NDPI_PROTOCOL_DHCP:
-      /* TODO case NDPI_PROTOCOL_DHCPV6: */
     {
       Mac *mac = (*srcHost)->getMac(), *payload_cli_mac;
 
@@ -1653,7 +1659,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	struct dhcp_packet *dhcpp = (struct dhcp_packet*)payload;
 
 	if(dhcpp->msgType == 0x01) /* Request */
-	  mac->setDhcpHost();
+	  ;//mac->setDhcpHost();
 	else if(dhcpp->msgType == 0x02) /* Reply */
 	  checkMacIPAssociation(false, dhcpp->chaddr, dhcpp->yiaddr);
 
@@ -1710,6 +1716,18 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       }
     }
     break;
+
+    case NDPI_PROTOCOL_DHCPV6:
+      {
+	Mac *src_mac = (*srcHost)->getMac();
+	Mac *dst_mac = (*dstHost)->getMac();
+
+	if(src_mac && dst_mac
+	   && (payload_len > 20)
+	   && dst_mac->isMulticast())
+	  ;//src_mac->setDhcpHost();
+      }
+      break;
 
     case NDPI_PROTOCOL_NETBIOS:
       if(*srcHost) {
@@ -1828,9 +1846,24 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       break;
 
     case NDPI_PROTOCOL_MDNS:
+#ifdef MDNS_TEST
+      extern void _dissectMDNS(u_char *buf, u_int buf_len, char *out, u_int out_len);
+      char outbuf[1024];
+
+      _dissectMDNS(payload, payload_len, outbuf, sizeof(outbuf));
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", outbuf);      
+#endif
       flow->dissectMDNS(payload, payload_len);
+
+      if(discovery && iph)
+	discovery->queueMDNSRespomse(iph->saddr, payload, payload_len);
       break;
 
+    case NDPI_PROTOCOL_DROPBOX:
+      if((src_port == dst_port) && (dst_port == htons(17500)))
+	flow->get_cli_host()->dissectDropbox((const char *)payload, payload_len);      
+      break;
+      
     default:
       if(flow->isSSLProto())
         flow->dissectSSL(payload, payload_len, when, src2dst_direction);
@@ -1977,6 +2010,9 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
   bool pass_verdict = true;
   u_int32_t rawsize = h->len * scalingFactor;
 
+  /* Note summy ethernet is always 0 unless sender_mac is set (Netfilter only) */
+  memset(&dummy_ethernet, 0, sizeof(dummy_ethernet));
+
   pollQueuedeBPFEvents();
   reloadCustomCategories();
 
@@ -2025,7 +2061,6 @@ datalink_check:
       return(pass_verdict); /* Any other non IP protocol */
     }
 
-    memset(&dummy_ethernet, 0, sizeof(dummy_ethernet));
     ethernet = (struct ndpi_ethhdr *)&dummy_ethernet;
     if(sender_mac) memcpy(&dummy_ethernet.h_source, sender_mac, 6);
     ip_offset = 4 + eth_offset;
@@ -2034,7 +2069,6 @@ datalink_check:
     ip_offset = sizeof(struct ndpi_ethhdr) + eth_offset;
     eth_type = ntohs(ethernet->h_proto);
   } else if(pcap_datalink_type == 113 /* Linux Cooked Capture */) {
-    memset(&dummy_ethernet, 0, sizeof(dummy_ethernet));
     ethernet = (struct ndpi_ethhdr *)&dummy_ethernet;
     if(sender_mac) memcpy(&dummy_ethernet.h_source, sender_mac, 6);
     eth_type = (packet[eth_offset+14] << 8) + packet[eth_offset+15];
@@ -2053,14 +2087,12 @@ datalink_check:
       return(pass_verdict); /* Unknown IP protocol version */
     }
 
-    memset(&dummy_ethernet, 0, sizeof(dummy_ethernet));
     if(sender_mac) memcpy(&dummy_ethernet.h_source, sender_mac, 6);
     ethernet = (struct ndpi_ethhdr *)&dummy_ethernet;
     ip_offset = eth_offset;
 #endif /* DLT_RAW */
   } else if(pcap_datalink_type == DLT_IPV4) {
     eth_type = ETHERTYPE_IP;
-    memset(&dummy_ethernet, 0, sizeof(dummy_ethernet));
     if(sender_mac) memcpy(&dummy_ethernet.h_source, sender_mac, 6);
     ethernet = (struct ndpi_ethhdr *)&dummy_ethernet;
     ip_offset = 0;
@@ -2290,6 +2322,9 @@ decode_packet_eth:
 	vlan_id = (ip6 ? ip6->ip6_src.u6_addr.u6_addr8[15] +
 		   ip6->ip6_dst.u6_addr.u6_addr8[15] : iph->saddr + iph->daddr) % 0xFF;
 
+      if(ntop->getPrefs()->do_ignore_macs())
+	ethernet = &dummy_ethernet;
+
       try {
         PROFILING_SECTION_ENTER("NetworkInterface::dissectPacket: processPacket", 0);
 	pass_verdict = processPacket(bridge_iface_idx,
@@ -2426,6 +2461,9 @@ decode_packet_eth:
 	if((vlan_id == 0) && ntop->getPrefs()->do_simulate_vlans())
 	  vlan_id = (ip6 ? ip6->ip6_src.u6_addr.u6_addr8[15] + ip6->ip6_dst.u6_addr.u6_addr8[15] : iph->saddr + iph->daddr) % 0xFF;
 
+	if(ntop->getPrefs()->do_ignore_macs())
+	  ethernet = &dummy_ethernet;
+
 	try {
           PROFILING_SECTION_ENTER("NetworkInterface::dissectPacket: processPacket", 0);
 	  pass_verdict = processPacket(bridge_iface_idx,
@@ -2448,6 +2486,9 @@ decode_packet_eth:
     break;
 
   default: /* No IPv4 nor IPv6 */
+    if(ntop->getPrefs()->do_ignore_macs())
+      ethernet = &dummy_ethernet;
+
     Mac *srcMac = getMac(ethernet->h_source, true);
     Mac *dstMac = getMac(ethernet->h_dest, true);
 
@@ -2457,7 +2498,7 @@ decode_packet_eth:
     if(dstMac) dstMac->incRcvdStats(h->ts.tv_sec, 1, rawsize);
 #endif
 
-    if(srcMac && dstMac) {
+    if(srcMac && dstMac && (!srcMac->isNull() || !dstMac->isNull())) {
       setSeenMacAddresses();
       srcMac->setSourceMac();
 
@@ -2588,6 +2629,10 @@ void NetworkInterface::startPacketPolling() {
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Setting affinity of interface %s to core %d",
 				   get_name(), cpu_affinity);
   }
+
+#ifdef __linux__
+  pthread_setname_np(pollLoop, get_name());
+#endif
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL,
 			       "Started packet polling on interface %s [id: %u]...",
@@ -3538,7 +3583,7 @@ struct flowHostRetriever {
   Host *host;
   u_int8_t *mac, bridge_iface_idx;
   char *manufacturer;
-  bool sourceMacsOnly, dhcpMacsOnly;
+  bool sourceMacsOnly, dhcpHostsOnly;
   char *country;
   int ndpi_proto;             /* Not used in flow_search_walker */
   TrafficType traffic_type;   /* Not used in flow_search_walker */
@@ -3549,6 +3594,7 @@ struct flowHostRetriever {
   bool filteredHosts;         /* Not used in flow_search_walker */
   bool blacklistedHosts;     /* Not used in flow_search_walker */
   bool anomalousOnly;        /* Not used in flow_search_walker */
+  bool dhcpOnly;             /* Not used in flow_search_walker */
   bool hideTopHidden;        /* Not used in flow_search_walker */
   u_int16_t vlan_id;
   char *osFilter;
@@ -3816,9 +3862,11 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data, bool *matc
      (r->osFilter && strlen(r->osFilter) && strcmp(h->get_os(buf, sizeof(buf)), r->osFilter))     ||
      (r->blacklistedHosts && !h->isBlacklisted())     ||
      (r->anomalousOnly && !h->hasAnomalies())         ||
+     (r->dhcpOnly && !h->isDhcpHost())                ||
      (r->hideTopHidden && h->isHiddenFromTop())       ||
      (r->traffic_type == traffic_type_one_way && !h->isOneWayTraffic())       ||
      (r->traffic_type == traffic_type_bidirectional && h->isOneWayTraffic())  ||
+     (r->dhcpHostsOnly && (!h->isDhcpHost())) ||
 #ifdef NTOPNG_PRO
      (r->filteredHosts && !h->hasBlockedTraffic()) ||
 #endif
@@ -3896,13 +3944,14 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data, bool *matc
     break;
 
     /* Criteria */
-  case column_uploaders:      r->elems[r->actNumEntries++].numericValue = h->getNumBytesSent(); break;
-  case column_downloaders:    r->elems[r->actNumEntries++].numericValue = h->getNumBytesRcvd(); break;
-  case column_unknowers:      r->elems[r->actNumEntries++].numericValue = h->get_ndpi_stats()->getProtoBytes(NDPI_PROTOCOL_UNKNOWN); break;
-  case column_incomingflows:  r->elems[r->actNumEntries++].numericValue = h->getNumIncomingFlows(); break;
-  case column_outgoingflows:  r->elems[r->actNumEntries++].numericValue = h->getNumOutgoingFlows(); break;
-  case column_total_outgoing_anomalous_flows:  r->elems[r->actNumEntries++].numericValue = h->getTotalNumAnomalousOutgoingFlows(); break;
-  case column_total_incoming_anomalous_flows:  r->elems[r->actNumEntries++].numericValue = h->getTotalNumAnomalousIncomingFlows(); break;
+  case column_traffic_sent:    r->elems[r->actNumEntries++].numericValue = h->getNumBytesSent(); break;
+  case column_traffic_rcvd:    r->elems[r->actNumEntries++].numericValue = h->getNumBytesRcvd(); break;
+  case column_traffic_unknown: r->elems[r->actNumEntries++].numericValue = h->get_ndpi_stats()->getProtoBytes(NDPI_PROTOCOL_UNKNOWN); break;
+  case column_num_flows_as_client:  r->elems[r->actNumEntries++].numericValue = h->getNumOutgoingFlows(); break;
+  case column_num_flows_as_server:  r->elems[r->actNumEntries++].numericValue = h->getNumIncomingFlows(); break;
+  case column_total_num_anomalous_flows_as_client:  r->elems[r->actNumEntries++].numericValue = h->getTotalNumAnomalousOutgoingFlows(); break;
+  case column_total_num_anomalous_flows_as_server:  r->elems[r->actNumEntries++].numericValue = h->getTotalNumAnomalousIncomingFlows(); break;
+  case column_total_alerts:    r->elems[r->actNumEntries++].numericValue = h->getTotalAlerts(); break;
 
   default:
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: column %d not handled", r->sorter);
@@ -3929,7 +3978,6 @@ static bool mac_search_walker(GenericHashEntry *he, void *user_data, bool *match
      || (r->sourceMacsOnly && !m->isSourceMac())
      || ((r->devtypeFilter != (u_int8_t)-1) && (m->getDeviceType() != r->devtypeFilter))
      || ((r->locationFilter != (u_int8_t)-1) && (m->locate() != r->locationFilter))
-     || (r->dhcpMacsOnly && (!m->isDhcpHost()))
      || ((r->poolFilter != (u_int16_t)-1) && (
         (((pool_found = m->getInterface()->getHostPools()->findMacPool(m, &pool_value)) == false /* unassigned */) && r->poolFilter != 0)
         || ((pool_found == true) && (pool_value != r->poolFilter))))
@@ -4320,7 +4368,6 @@ int NetworkInterface::getFlows(lua_State* vm,
       lua_settable(vm, -3);
 
       if(++num >= (int)p->maxHits()) break;
-
     }
   } else {
     for(int i=(retriever.actNumEntries-1-p->toSkip()), num=0; i>=0; i--) {
@@ -4454,7 +4501,7 @@ int NetworkInterface::sortHosts(u_int32_t *begin_slot,
 				u_int32_t asnFilter, int16_t networkFilter,
 				u_int16_t pool_filter, bool filtered_hosts,
 				bool blacklisted_hosts, bool hide_top_hidden,
-				bool anomalousOnly,
+				bool anomalousOnly, bool dhcpOnly,
 				u_int8_t ipver_filter, int proto_filter,
 				TrafficType traffic_type_filter,
 				char *sortColumn) {
@@ -4487,6 +4534,7 @@ int NetworkInterface::sortHosts(u_int32_t *begin_slot,
     retriever->filteredHosts = filtered_hosts,
     retriever->blacklistedHosts = blacklisted_hosts,
     retriever->anomalousOnly = anomalousOnly,
+    retriever->dhcpOnly = dhcpOnly,
     retriever->hideTopHidden = hide_top_hidden,
     retriever->ndpi_proto = proto_filter,
     retriever->traffic_type = traffic_type_filter,
@@ -4514,13 +4562,14 @@ int NetworkInterface::sortHosts(u_int32_t *begin_slot,
   else if(!strcmp(sortColumn, "column_local_network")) retriever->sorter = column_local_network, sorter = ipNetworkSorter;
   else if(!strcmp(sortColumn, "column_mac")) retriever->sorter = column_mac, sorter = numericSorter;
   /* criteria (datatype sortField in ntop_typedefs.h / see also host_search_walker:NetworkInterface.cpp) */
-  else if(!strcmp(sortColumn, "column_uploaders")) retriever->sorter = column_uploaders, sorter = numericSorter;
-  else if(!strcmp(sortColumn, "column_downloaders")) retriever->sorter = column_downloaders, sorter = numericSorter;
-  else if(!strcmp(sortColumn, "column_unknowers")) retriever->sorter = column_unknowers, sorter = numericSorter;
-  else if(!strcmp(sortColumn, "column_incomingflows")) retriever->sorter = column_incomingflows, sorter = numericSorter;
-  else if(!strcmp(sortColumn, "column_outgoingflows")) retriever->sorter = column_outgoingflows, sorter = numericSorter;
-  else if(!strcmp(sortColumn, "column_total_outgoing_anomalous_flows")) retriever->sorter = column_total_outgoing_anomalous_flows, sorter = numericSorter;
-  else if(!strcmp(sortColumn, "column_total_incoming_anomalous_flows")) retriever->sorter = column_total_incoming_anomalous_flows, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_traffic_sent"))    retriever->sorter = column_traffic_sent, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_traffic_rcvd"))    retriever->sorter = column_traffic_rcvd, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_traffic_unknown")) retriever->sorter = column_traffic_unknown, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_num_flows_as_client")) retriever->sorter = column_num_flows_as_client, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_num_flows_as_server")) retriever->sorter = column_num_flows_as_server, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_total_num_anomalous_flows_as_client")) retriever->sorter = column_total_num_anomalous_flows_as_client, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_total_num_anomalous_flows_as_server")) retriever->sorter = column_total_num_anomalous_flows_as_server, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_total_alerts")) retriever->sorter = column_total_alerts, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_pool_id")) retriever->sorter = column_pool_id, sorter = numericSorter;
   else {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unknown sort column %s", sortColumn);
@@ -4541,7 +4590,7 @@ int NetworkInterface::sortMacs(u_int32_t *begin_slot,
 			       bool walk_all,
 			       struct flowHostRetriever *retriever,
 			       u_int8_t bridge_iface_idx,
-			       bool sourceMacsOnly, bool dhcpMacsOnly,
+			       bool sourceMacsOnly,
 			       const char *manufacturer,
 			       char *sortColumn, u_int16_t pool_filter,
 			       u_int8_t devtype_filter, u_int8_t location_filter) {
@@ -4556,7 +4605,6 @@ int NetworkInterface::sortMacs(u_int32_t *begin_slot,
     maxHits = CONST_MAX_NUM_HITS;
 
   retriever->sourceMacsOnly = sourceMacsOnly,
-    retriever->dhcpMacsOnly = dhcpMacsOnly,
     retriever->actNumEntries = 0,
     retriever->poolFilter = pool_filter,
     retriever->manufacturer = (char *)manufacturer,
@@ -4723,7 +4771,7 @@ int NetworkInterface::getActiveHostsList(lua_State* vm,
 					 bool blacklisted_hosts, bool hide_top_hidden,
 					 u_int8_t ipver_filter, int proto_filter,
 					 TrafficType traffic_type_filter, bool tsLua,
-					 bool anomalousOnly,
+					 bool anomalousOnly, bool dhcpOnly,
 					 char *sortColumn, u_int32_t maxHits,
 					 u_int32_t toSkip, bool a2zSortOrder) {
   struct flowHostRetriever retriever;
@@ -4740,7 +4788,8 @@ int NetworkInterface::getActiveHostsList(lua_State* vm,
 	       &retriever, bridge_iface_idx,
 	       allowed_hosts, host_details, location,
 	       countryFilter, mac_filter, vlan_id, osFilter,
-	       asnFilter, networkFilter, pool_filter, filtered_hosts, blacklisted_hosts, hide_top_hidden, anomalousOnly,
+	       asnFilter, networkFilter, pool_filter, filtered_hosts, blacklisted_hosts, hide_top_hidden,
+	       anomalousOnly, dhcpOnly,
 	       ipver_filter, proto_filter,
 	       traffic_type_filter,
 	       sortColumn) < 0) {
@@ -4890,7 +4939,7 @@ int NetworkInterface::getActiveHostsGroup(lua_State* vm,
 	       allowed_hosts, host_details, location,
 	       countryFilter, NULL /* Mac */, vlan_id,
 	       osFilter, asnFilter, networkFilter, pool_filter,
-	       filtered_hosts, false /* no blacklisted hosts filter */, false, false,
+	       filtered_hosts, false /* no blacklisted hosts filter */, false, false, false,
 	       ipver_filter, -1 /* no protocol filter */,
 	       traffic_type_all /* no traffic type filter */,
 	       groupColumn) < 0 ) {
@@ -5282,7 +5331,7 @@ void NetworkInterface::lua(lua_State *vm) {
   if(customIftype) lua_push_str_table_entry(vm, "customIftype", (char*)customIftype);
   lua_push_bool_table_entry(vm, "isView", isView()); /* View interface */
   lua_push_bool_table_entry(vm, "isDynamic", isDynamicInterface()); /* An runtime-instantiated interface */
-  lua_push_uint64_table_entry(vm,  "seen.last", getTimeLastPktRcvd());
+  lua_push_uint64_table_entry(vm, "seen.last", getTimeLastPktRcvd());
   lua_push_bool_table_entry(vm, "inline", get_inline_interface());
   lua_push_bool_table_entry(vm, "vlan",     hasSeenVlanTaggedPackets());
   lua_push_bool_table_entry(vm, "has_macs", hasSeenMacAddresses());
@@ -5297,6 +5346,7 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_uint64_table_entry(vm, "http_hosts",  getNumHTTPHosts());
   lua_push_uint64_table_entry(vm, "drops",       getNumPacketDrops());
   lua_push_uint64_table_entry(vm, "devices",     getNumL2Devices());
+  lua_push_uint64_table_entry(vm, "current_macs",  getNumMacs());
   lua_push_uint64_table_entry(vm, "num_live_captures", num_live_captures);
 
   if(db) db->lua(vm, false /* Overall */);
@@ -5411,8 +5461,12 @@ Mac* NetworkInterface::getMac(u_int8_t _mac[6], bool createIfNotPresent) {
 
   if((ret == NULL) && createIfNotPresent) {
     try {
-      if((ret = new Mac(this, _mac)) != NULL)
-	macs_hash->add(ret);
+      if((ret = new Mac(this, _mac)) != NULL) {
+	if(!macs_hash->add(ret)) {
+	  delete ret;
+	  return(NULL);
+	}
+      }
     } catch(std::bad_alloc& ba) {
       static bool oom_warning_sent = false;
 
@@ -5500,8 +5554,12 @@ Vlan* NetworkInterface::getVlan(u_int16_t vlanId,
 
   if((ret == NULL) && createIfNotPresent) {
     try {
-      if((ret = new Vlan(this, vlanId)) != NULL)
-	vlans_hash->add(ret);
+      if((ret = new Vlan(this, vlanId)) != NULL) {
+	if(!vlans_hash->add(ret)) {
+	  delete ret;
+	  return(NULL);
+	}
+      }
     } catch(std::bad_alloc& ba) {
       static bool oom_warning_sent = false;
 
@@ -5536,8 +5594,12 @@ AutonomousSystem* NetworkInterface::getAS(IpAddress *ipa,
 
   if((ret == NULL) && createIfNotPresent) {
     try {
-      if((ret = new AutonomousSystem(this, ipa)) != NULL)
-	ases_hash->add(ret);
+      if((ret = new AutonomousSystem(this, ipa)) != NULL) {
+	if(!ases_hash->add(ret)) {
+	  delete ret;
+	  return(NULL);
+	}
+      }
     } catch(std::bad_alloc& ba) {
       static bool oom_warning_sent = false;
 
@@ -5572,8 +5634,12 @@ Country* NetworkInterface::getCountry(const char *country_name,
 
   if((ret == NULL) && createIfNotPresent) {
     try {
-      if((ret = new Country(this, country_name)) != NULL)
-	countries_hash->add(ret);
+      if((ret = new Country(this, country_name)) != NULL) {
+	if(!countries_hash->add(ret)) {
+	  delete ret;
+	  return(NULL);
+	}
+      }
     } catch(std::bad_alloc& ba) {
       static bool oom_warning_sent = false;
 
@@ -5607,11 +5673,14 @@ Flow* NetworkInterface::findFlowByKey(u_int32_t key,
 Flow* NetworkInterface::findFlowByTuple(u_int16_t vlan_id,
 					IpAddress *src_ip,  IpAddress *dst_ip,
 					u_int16_t src_port, u_int16_t dst_port,
-					u_int8_t l4_proto) const {
+					u_int8_t l4_proto,
+					AddressTree *allowed_hosts) const {
   bool src2dst;
   Flow *f = NULL;
 
   f = (Flow*)flows_hash->find(src_ip, dst_ip, src_port, dst_port, vlan_id, l4_proto, NULL, &src2dst);
+
+  if(f && (!f->match(allowed_hosts))) f = NULL;
 
   return(f);
 }
@@ -6116,7 +6185,7 @@ int NetworkInterface::getActiveMacList(lua_State* vm,
 				       bool walk_all,
 				       u_int8_t bridge_iface_idx,
 				       bool sourceMacsOnly,
-				       bool dhcpMacsOnly, const char *manufacturer,
+				       const char *manufacturer,
 				       char *sortColumn, u_int32_t maxHits,
 				       u_int32_t toSkip, bool a2zSortOrder,
 				       u_int16_t pool_filter, u_int8_t devtype_filter,
@@ -6128,7 +6197,7 @@ int NetworkInterface::getActiveMacList(lua_State* vm,
 
   if(sortMacs(begin_slot, walk_all,
 	      &retriever, bridge_iface_idx, sourceMacsOnly,
-	      dhcpMacsOnly, manufacturer, sortColumn,
+	      manufacturer, sortColumn,
 	      pool_filter, devtype_filter, location_filter) < 0) {
     enablePurge(false);
     return -1;
@@ -6331,7 +6400,7 @@ int NetworkInterface::getActiveVLANList(lua_State* vm,
 
 int NetworkInterface::getActiveMacManufacturers(lua_State* vm,
 						u_int8_t bridge_iface_idx,
-						bool sourceMacsOnly, bool dhcpMacsOnly,
+						bool sourceMacsOnly,
 						u_int32_t maxHits,
 						u_int8_t devtype_filter, u_int8_t location_filter) {
   struct flowHostRetriever retriever;
@@ -6342,7 +6411,7 @@ int NetworkInterface::getActiveMacManufacturers(lua_State* vm,
 
   if(sortMacs(&begin_slot, walk_all,
 	      &retriever, bridge_iface_idx, sourceMacsOnly,
-	      dhcpMacsOnly, NULL, (char*)"column_manufacturer",
+	      NULL, (char*)"column_manufacturer",
 	      (u_int16_t)-1, devtype_filter, location_filter) < 0) {
     enablePurge(false);
     return -1;
@@ -6387,7 +6456,6 @@ int NetworkInterface::getActiveMacManufacturers(lua_State* vm,
 int NetworkInterface::getActiveDeviceTypes(lua_State* vm,
 					   u_int8_t bridge_iface_idx,
 					   bool sourceMacsOnly,
-					   bool dhcpMacsOnly,
 					   u_int32_t maxHits,
 					   const char *manufacturer, u_int8_t location_filter) {
   struct flowHostRetriever retriever;
@@ -6398,7 +6466,7 @@ int NetworkInterface::getActiveDeviceTypes(lua_State* vm,
 
   if(sortMacs(&begin_slot, walk_all,
 	      &retriever, bridge_iface_idx, sourceMacsOnly,
-	      dhcpMacsOnly, manufacturer, (char*)"column_device_type",
+	      manufacturer, (char*)"column_device_type",
 	      (u_int16_t)-1, (u_int8_t)-1, location_filter) < 0) {
     enablePurge(false);
     return -1;
@@ -7043,6 +7111,131 @@ void NetworkInterface::reloadHostsBlacklist() {
   walker(&begin_slot, walk_all,  walker_hosts, host_reload_blacklist, NULL);
 }
 
+/* **************************************************** */
+
+static bool local_hosts_2_dropbox_walker(GenericHashEntry *h, void *user_data, bool *matched) {
+  Host *host = (Host*)h;
+
+  if(host && (host->getNumDropboxPeers() > 0)) {
+    lua_State *vm = (lua_State*)user_data;
+    
+    host->dumpDropbox(vm);
+    *matched = true;
+  }
+
+  return(false); /* false = keep on walking */
+}
+
+/* *************************************** */
+
+int NetworkInterface::dumpDropboxHosts(lua_State *vm) {
+  int rc;
+  u_int32_t begin_slot = 0;
+
+  lua_newtable(vm);
+    
+  disablePurge(false /* on hosts */);
+  rc = walker(&begin_slot, true /* walk_all */, walker_hosts,
+	      local_hosts_2_dropbox_walker, vm) ? 0 : -1;
+  enablePurge(false /* on hosts */);
+
+  return(rc);
+}
+
+/* *************************************** */
+
+static bool host_reload_dhcp_host(GenericHashEntry *host, void *user_data, bool *matched) {
+  Host *h = (Host*)host;
+
+  h->reloadDhcpHost();
+  *matched = true;
+
+  return(false); /* false = keep on walking */
+}
+
+/* *************************************** */
+
+void NetworkInterface::reloadDhcpRanges() {
+  char redis_key[CONST_MAX_LEN_REDIS_KEY], *rsp = NULL;
+  dhcp_range *new_ranges = NULL;
+  u_int num_ranges = 0;
+  u_int len;
+
+  snprintf(redis_key, sizeof(redis_key), IFACE_DHCP_RANGE_KEY, get_id());
+
+  if((rsp = (char*)malloc(CONST_MAX_LEN_REDIS_VALUE)) &&
+      (!ntop->getRedis()->get(redis_key, rsp, CONST_MAX_LEN_REDIS_VALUE)) &&
+      (len = strlen(rsp))) {
+    u_int i;
+    num_ranges = 1;
+
+    for(i=0; i<len; i++) {
+      if(rsp[i] == ',')
+	num_ranges++;
+    }
+
+    // +1 for final zero IP, which is used to indicate array termination
+    new_ranges = new dhcp_range[num_ranges+1];
+
+    if(new_ranges) {
+      char *cur_pos = rsp;
+
+      /* E.g. 192.168.1.2-192.168.1.150,10.0.0.50-10.0.0.60 */
+      for(i=0; i<num_ranges; i++) {
+	char *end = strchr(cur_pos, ',');
+	char *delim = strchr(cur_pos, '-');
+
+	if(!end)
+	  end = cur_pos + strlen(cur_pos);
+
+	if(delim) {
+	  *delim = 0;
+	  *end = 0;
+
+	  new_ranges[i].first_ip.set(cur_pos);
+	  new_ranges[i].last_ip.set(delim+1);
+	}
+
+	cur_pos = end + 1;
+      }
+    }
+  }
+
+  if(dhcp_ranges_shadow)
+    delete[] (dhcp_ranges_shadow);
+
+  dhcp_ranges_shadow = dhcp_ranges;
+  dhcp_ranges = new_ranges;
+
+  if(rsp)
+    free(rsp);
+
+  /* Reload existing hosts */
+  u_int32_t begin_slot = 0;
+  bool walk_all = true;
+  walker(&begin_slot, walk_all,  walker_hosts, host_reload_dhcp_host, NULL);
+}
+
+/* *************************************** */
+
+bool NetworkInterface::isInDhcpRange(IpAddress *ip) {
+  // Important: cache it as it may change
+  dhcp_range *ranges = dhcp_ranges;
+
+  if(!ranges)
+    return(false);
+
+  while(!ranges->last_ip.isEmpty()) {
+    if((ranges->first_ip.compare(ip) <= 0) &&
+	(ranges->last_ip.compare(ip) >= 0))
+      return true;
+
+    ranges++;
+  }
+
+  return false;
+}
+
 /* *************************************** */
 
 #ifdef HAVE_EBPF
@@ -7055,7 +7248,7 @@ bool NetworkInterface::enqueueeBPFEvent(eBPFevent *event) {
   if(ebpfEvents[next_insert_idx] != (eBPFevent*)NULL)
     return(false);
 
-  ebpf_preprocess_event(event);
+  ebpf_preprocess_event(event, true /* speak with docker */);
 
   ebpfEvents[next_insert_idx] = event;
   next_insert_idx = (next_insert_idx + 1) % EBPF_QUEUE_LEN;
@@ -7102,4 +7295,4 @@ void NetworkInterface::delivereBPFEvent(eBPFevent *event) {
   }
 }
 
-#endif
+#endif // HAVE_EBPF

@@ -790,6 +790,7 @@ static int ntop_get_batched_interface_hosts(lua_State* vm, LocationPolicy locati
   u_int32_t begin_slot = 0;
   bool walk_all = false;
   bool anomalousOnly = false;
+  bool dhcpOnly = false;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -809,7 +810,7 @@ static int ntop_get_batched_interface_hosts(lua_State* vm, LocationPolicy locati
 					   network_filter, pool_filter, filtered_hosts, blacklisted_hosts, hide_top_hidden,
 					   ipver_filter, proto_filter,
 					   traffic_type_filter, tsLua /* host->tsLua | host->lua */,
-					   anomalousOnly, sortColumn, maxHits,
+					   anomalousOnly, dhcpOnly, sortColumn, maxHits,
 					   toSkip, a2zSortOrder) < 0)
     return(CONST_LUA_ERROR);
 
@@ -835,6 +836,7 @@ static int ntop_get_interface_hosts(lua_State* vm, LocationPolicy location) {
   bool walk_all = true;
   bool hide_top_hidden = false;
   bool anomalousOnly = false;
+  bool dhcpOnly = false;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -856,6 +858,8 @@ static int ntop_get_interface_hosts(lua_State* vm, LocationPolicy location) {
   if(lua_type(vm,16) == LUA_TBOOLEAN) filtered_hosts       = lua_toboolean(vm, 16);
   if(lua_type(vm,17) == LUA_TBOOLEAN) blacklisted_hosts    = lua_toboolean(vm, 17);
   if(lua_type(vm,18) == LUA_TBOOLEAN) hide_top_hidden      = lua_toboolean(vm, 18);
+  if(lua_type(vm,19) == LUA_TBOOLEAN) anomalousOnly        = lua_toboolean(vm, 19);
+  if(lua_type(vm,20) == LUA_TBOOLEAN) dhcpOnly             = lua_toboolean(vm, 20);
 
   if((!ntop_interface)
      || ntop_interface->getActiveHostsList(vm,
@@ -867,7 +871,7 @@ static int ntop_get_interface_hosts(lua_State* vm, LocationPolicy location) {
 					   vlan_filter, os_filter, asn_filter,
 					   network_filter, pool_filter, filtered_hosts, blacklisted_hosts, hide_top_hidden,
 					   ipver_filter, proto_filter,
-					   traffic_type_filter, false /* host->lua */, anomalousOnly,
+					   traffic_type_filter, false /* host->lua */, anomalousOnly, dhcpOnly,
 					   sortColumn, maxHits,
 					   toSkip, a2zSortOrder) < 0)
     return(CONST_LUA_ERROR);
@@ -955,7 +959,7 @@ static int ntop_get_interface_macs_info(lua_State* vm) {
   u_int32_t toSkip = 0, maxHits = CONST_MAX_NUM_HITS;
   u_int16_t pool_filter = (u_int16_t)-1;
   u_int8_t devtype_filter = (u_int8_t)-1;
-  bool a2zSortOrder = true, sourceMacsOnly = false, dhcpMacsOnly = false;
+  bool a2zSortOrder = true, sourceMacsOnly = false;
   u_int8_t location_filter = (u_int8_t)-1;
   u_int32_t begin_slot = 0;
   bool walk_all = true;
@@ -969,13 +973,12 @@ static int ntop_get_interface_macs_info(lua_State* vm) {
   if(lua_type(vm, 7) == LUA_TNUMBER)  pool_filter = (u_int16_t)lua_tonumber(vm, 7);
   if(lua_type(vm, 8) == LUA_TNUMBER) devtype_filter = (u_int8_t)lua_tonumber(vm, 8);
   if(lua_type(vm, 9) == LUA_TSTRING) location_filter = str_2_location(lua_tostring(vm, 9));
-  if(lua_type(vm, 10) == LUA_TBOOLEAN) dhcpMacsOnly = lua_toboolean(vm, 10);
 
   if(!ntop_interface ||
      ntop_interface->getActiveMacList(vm,
 				      &begin_slot, walk_all,
 				      0, /* bridge InterfaceId - TODO pass Id 0,1 for bridge devices*/
-				      sourceMacsOnly, dhcpMacsOnly, manufacturer,
+				      sourceMacsOnly, manufacturer,
 				      sortColumn, maxHits,
 				      toSkip, a2zSortOrder, pool_filter, devtype_filter, location_filter) < 0)
     return(CONST_LUA_ERROR);
@@ -992,7 +995,7 @@ static int ntop_get_batched_interface_macs_info(lua_State* vm) {
   u_int32_t toSkip = 0, maxHits = CONST_MAX_NUM_HITS;
   u_int16_t pool_filter = (u_int16_t)-1;
   u_int8_t devtype_filter = (u_int8_t)-1;
-  bool a2zSortOrder = true, sourceMacsOnly = false, dhcpMacsOnly = false;
+  bool a2zSortOrder = true, sourceMacsOnly = false;
   u_int8_t location_filter = (u_int8_t)-1;
   u_int32_t begin_slot = 0;
   bool walk_all = false;
@@ -1003,7 +1006,7 @@ static int ntop_get_batched_interface_macs_info(lua_State* vm) {
      ntop_interface->getActiveMacList(vm,
 				      &begin_slot, walk_all,
 				      0, /* bridge InterfaceId - TODO pass Id 0,1 for bridge devices*/
-				      sourceMacsOnly, dhcpMacsOnly, manufacturer,
+				      sourceMacsOnly, manufacturer,
 				      sortColumn, maxHits,
 				      toSkip, a2zSortOrder, pool_filter, devtype_filter, location_filter) < 0)
     return(CONST_LUA_ERROR);
@@ -1091,7 +1094,6 @@ static int ntop_get_mac_device_types(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   u_int16_t maxHits = CONST_MAX_NUM_HITS;
   bool sourceMacsOnly = false;
-  bool dhcpMacsOnly = false;
   char *manufacturer = NULL;
   u_int8_t location_filter = (u_int8_t)-1;
 
@@ -1106,12 +1108,9 @@ static int ntop_get_mac_device_types(lua_State* vm) {
 
   if(lua_type(vm, 4) == LUA_TSTRING) location_filter = str_2_location(lua_tostring(vm, 4));
 
-  if(lua_type(vm, 5) == LUA_TBOOLEAN)
-    dhcpMacsOnly = lua_toboolean(vm, 5) ? true : false;
-
   if((!ntop_interface)
      || (ntop_interface->getActiveDeviceTypes(vm, sourceMacsOnly,
-					      dhcpMacsOnly, 0 /* bridge_iface_idx - TODO */,
+					      0 /* bridge_iface_idx - TODO */,
 					      maxHits, manufacturer, location_filter) < 0))
     return(CONST_LUA_ERROR);
 
@@ -1265,7 +1264,7 @@ static int ntop_get_interface_macs_manufacturers(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   u_int32_t maxHits = CONST_MAX_NUM_HITS;
   u_int8_t devtype_filter = (u_int8_t)-1;
-  bool sourceMacsOnly = false, dhcpMacsOnly = false;
+  bool sourceMacsOnly = false;
   u_int8_t location_filter = (u_int8_t)-1;
 
   if(lua_type(vm, 1) == LUA_TNUMBER)
@@ -1279,13 +1278,10 @@ static int ntop_get_interface_macs_manufacturers(lua_State* vm) {
 
   if(lua_type(vm, 4) == LUA_TSTRING) location_filter = str_2_location(lua_tostring(vm, 4));
 
-  if(lua_type(vm, 5) == LUA_TBOOLEAN)
-    dhcpMacsOnly = lua_toboolean(vm, 5) ? true : false;
-
   if(!ntop_interface ||
      ntop_interface->getActiveMacManufacturers(vm,
 					       0, /* bridge_iface_idx - TODO */
-					       sourceMacsOnly, dhcpMacsOnly, maxHits,
+					       sourceMacsOnly, maxHits,
 					       devtype_filter, location_filter) < 0)
     return(CONST_LUA_ERROR);
 
@@ -1656,7 +1652,6 @@ static int ntop_loadCustomCategoryIp(lua_State* vm) {
   for(int i=0; i<ntop->get_num_interfaces(); i++) {
     NetworkInterface *iface;
 
-    /* Note: we only load custom categories on packet interfaces right now */
     if((iface = ntop->getInterfaceAtId(vm, i)) != NULL) {
       char *toadd = strdup(net);
       new_custom_categories.push_front(toadd);
@@ -2060,6 +2055,26 @@ static int ntop_tzset(lua_State* vm) {
   tzset();
 #endif
   lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_round_time(lua_State* vm) {
+  time_t now;
+  u_int32_t rounder;
+  bool align_to_localtime;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  now = lua_tonumber(vm, 1);
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  rounder = lua_tonumber(vm, 2);
+  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TBOOLEAN) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  align_to_localtime = lua_toboolean(vm, 3);
+
+  lua_pushinteger(vm, Utils::roundTime(now, rounder, align_to_localtime ? ntop->get_time_offset() : 0));
   return(CONST_LUA_OK);
 }
 
@@ -3201,6 +3216,52 @@ static int ntop_get_interface_find_flow_by_key(lua_State* vm) {
 /* ****************************************** */
 
 // ***API***
+static int ntop_get_interface_find_flow_by_tuple(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  IpAddress src_ip_addr, dst_ip_addr;
+  u_int16_t vlan_id, src_port, dst_port;
+  u_int8_t l4_proto;
+  char *src_ip, *dst_ip;
+  Flow *f;
+  AddressTree *ptree = get_allowed_nets(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(!ntop_interface) return(false);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  src_ip = (char*)lua_tostring(vm, 1);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  dst_ip = (char*)lua_tostring(vm, 2);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  vlan_id = (u_int16_t)lua_tonumber(vm, 3);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  src_port = (u_int16_t)lua_tonumber(vm, 4);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 5, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  dst_port = (u_int16_t)lua_tonumber(vm, 5);
+  
+  if(ntop_lua_check(vm, __FUNCTION__, 6, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  l4_proto = (u_int8_t)lua_tonumber(vm, 6);
+
+  src_ip_addr.set(src_ip), dst_ip_addr.set(dst_ip);
+
+  f = ntop_interface->findFlowByTuple(vlan_id, &src_ip_addr, &dst_ip_addr, htons(src_port), htons(dst_port), l4_proto, ptree);
+
+  if(f == NULL)
+    return(CONST_LUA_ERROR);
+  else {
+    f->lua(vm, ptree, details_high, false);
+    return(CONST_LUA_OK);
+  }
+}
+
+/* ****************************************** */
+
+// ***API***
 static int ntop_drop_flow_traffic(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   u_int32_t key;
@@ -3262,6 +3323,22 @@ static int ntop_dump_local_hosts_2_redis(lua_State* vm) {
 
   lua_pushnil(vm);
   ntop_interface->dumpLocalHosts2redis(true /* must disable purge as we are called from lua */);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_dump_dropbox_hosts(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(!ntop_interface)
+    return(CONST_LUA_ERROR);
+
+  lua_pushnil(vm);
+  ntop_interface->dumpDropboxHosts(vm);
 
   return(CONST_LUA_OK);
 }
@@ -3795,6 +3872,19 @@ static int ntop_reload_hide_from_top(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_reload_dhcp_ranges(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  if(!ntop_interface) return(CONST_LUA_ERROR);
+  ntop_interface->reloadDhcpRanges();
+
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 #ifdef HAVE_NEDGE
 
 static int ntop_set_lan_ip_address(lua_State* vm) {
@@ -4089,6 +4179,7 @@ static int ntop_nindex_enabled(lua_State* vm) {
 
 static void* pcapDumpLoop(void* ptr) {
   struct ntopngLuaContext *c = (struct ntopngLuaContext*)ptr;
+  Utils::setThreadName("pcapDumpLoop");
 
   while(c->pkt_capture.captureInProgress) {
     u_char *pkt;
@@ -8116,13 +8207,15 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "checkpointInterface",      ntop_checkpoint_interface },
   { "getFlowsInfo",             ntop_get_interface_flows_info },
   { "getGroupedFlows",          ntop_get_interface_get_grouped_flows },
-  { "getFlowsStats",            ntop_get_interface_flows_stats },
-  { "getFlowKey",               ntop_get_interface_flow_key   },
-  { "findFlowByKey",            ntop_get_interface_find_flow_by_key },
-  { "dropFlowTraffic",          ntop_drop_flow_traffic },
-  { "dumpLocalHosts2redis",     ntop_dump_local_hosts_2_redis },
-  { "dropMultipleFlowsTraffic",   ntop_drop_multiple_flows_traffic },
-  { "findPidFlows",             ntop_get_interface_find_pid_flows },
+  { "getFlowsStats",            ntop_get_interface_flows_stats          },
+  { "getFlowKey",               ntop_get_interface_flow_key             },
+  { "findFlowByKey",            ntop_get_interface_find_flow_by_key     },
+  { "findFlowByTuple",          ntop_get_interface_find_flow_by_tuple   },
+  { "dropFlowTraffic",          ntop_drop_flow_traffic                  },
+  { "dumpLocalHosts2redis",     ntop_dump_local_hosts_2_redis           },
+  { "dropMultipleFlowsTraffic", ntop_drop_multiple_flows_traffic        },
+  { "findPidFlows",             ntop_get_interface_find_pid_flows       },
+  { "dumpDropboxHosts",         ntop_dump_dropbox_hosts                 },
   { "findNameFlows",            ntop_get_interface_find_proc_name_flows },
   { "listHTTPhosts",            ntop_list_http_hosts },
   { "findHost",                 ntop_get_interface_find_host },
@@ -8142,6 +8235,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "loadScalingFactorPrefs",           ntop_load_scaling_factor_prefs },
   { "loadPacketsDropsAlertPrefs",       ntop_load_packet_drops_prefs },
   { "reloadHideFromTop",                ntop_reload_hide_from_top },
+  { "reloadDhcpRanges",                 ntop_reload_dhcp_ranges },
 
   /* Mac */
   { "getMacsInfo",                      ntop_get_interface_macs_info },
@@ -8348,6 +8442,7 @@ static const luaL_Reg ntop_reg[] = {
   /* Time */
   { "gettimemsec",      ntop_gettimemsec },
   { "tzset",            ntop_tzset },
+  { "roundTime",        ntop_round_time },
 
   /* Trace */
   { "verboseTrace",     ntop_verbose_trace },

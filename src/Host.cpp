@@ -161,6 +161,7 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   as = NULL, country = NULL;
   blacklisted_host = false, reloadHostBlacklist();
   is_in_broadcast_domain = false;
+  is_dhcp_host = false;
 
   num_alerts_detected = 0;
   trigger_host_alerts = false;
@@ -191,6 +192,7 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   }
 
   reloadHideFromTop();
+  reloadDhcpHost();
 }
 
 /* *************************************** */
@@ -420,7 +422,8 @@ bool Host::hasAnomalies() {
     || flow_flood_victim_alert->isAboveThreshold(now)
     || flow_flood_attacker_alert->isAboveThreshold(now)
     || num_active_flows_as_client.is_anomalous(now)
-    || num_active_flows_as_server.is_anomalous(now);
+    || num_active_flows_as_server.is_anomalous(now)
+    || stats->hasAnomalies(now);
 }
 
 /* *************************************** */
@@ -445,6 +448,8 @@ void Host::luaAnomalies(lua_State* vm) {
       num_active_flows_as_client.lua(vm, "num_active_flows_as_client");
     if(num_active_flows_as_server.is_anomalous(now))
       num_active_flows_as_server.lua(vm, "num_active_flows_as_server");
+
+    // stats->luaAnomalies(vm, now); TODO: add back
 
     lua_pushstring(vm, "anomalies");
     lua_insert(vm, -2);
@@ -520,6 +525,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
 
   lua_push_str_table_entry(vm, "ip", (ipaddr = printMask(ip_buf, sizeof(ip_buf))));
   lua_push_uint64_table_entry(vm, "ipkey", ip.key());
+  lua_push_str_table_entry(vm, "tskey", get_tskey(buf_id, sizeof(buf_id)));
   lua_push_bool_table_entry(vm, "localhost", isLocalHost());
   lua_push_uint64_table_entry(vm, "vlan", vlan_id);
 
@@ -547,11 +553,15 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
 
   stats->lua(vm, mask_host, host_details, verbose);
 
-  if(cur_mac && cur_mac->isDhcpHost()) lua_push_bool_table_entry(vm, "dhcpHost", true);
+  lua_push_bool_table_entry(vm, "dhcpHost", isDhcpHost());
   lua_push_uint64_table_entry(vm, "active_flows.as_client", num_active_flows_as_client.get());
   lua_push_uint64_table_entry(vm, "active_flows.as_server", num_active_flows_as_server.get());
   lua_push_uint64_table_entry(vm, "active_flows.as_client.anomaly_index", num_active_flows_as_client.getAnomalyIndex());
   lua_push_uint64_table_entry(vm, "active_flows.as_server.anomaly_index", num_active_flows_as_server.getAnomalyIndex());
+
+  lua_push_uint64_table_entry(vm, "anomalous_flows.as_server", getTotalNumAnomalousIncomingFlows());
+  lua_push_uint64_table_entry(vm, "anomalous_flows.as_client", getTotalNumAnomalousOutgoingFlows());
+  lua_push_uint64_table_entry(vm, "total_alerts", stats->getTotalAlerts());
 
 #ifdef NTOPNG_PRO
   lua_push_bool_table_entry(vm, "has_blocking_quota", has_blocking_quota);
@@ -604,6 +614,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   lua_push_uint64_table_entry(vm, "seen.first", first_seen);
   lua_push_uint64_table_entry(vm, "seen.last", last_seen);
   lua_push_uint64_table_entry(vm, "duration", get_duration());
+  lua_push_bool_table_entry(vm, "has_dropbox_shares", dropbox_namespaces.size() > 0 ? true : false);
 
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[pkts_thpt: %.2f] [pkts_thpt_trend: %d]", pkts_thpt,pkts_thpt_trend);
 
@@ -758,8 +769,8 @@ void Host::incStats(u_int32_t when, u_int8_t l4_proto, u_int ndpi_proto,
 
   if(sent_packets || rcvd_packets) {
     stats->incStats(when, l4_proto, ndpi_proto, custom_app,
-        sent_packets, sent_bytes, sent_goodput_bytes, rcvd_packets,
-        rcvd_bytes, rcvd_goodput_bytes);
+		    sent_packets, sent_bytes, sent_goodput_bytes, rcvd_packets,
+		    rcvd_bytes, rcvd_goodput_bytes);
 
     updateSeen();
   }
@@ -889,10 +900,10 @@ void Host::incNumFlows(time_t t, bool as_client, Host *peer) {
 
   if(as_client) {
     counter = flow_flood_attacker_alert;
-    num_active_flows_as_client.inc(t, 1);
+    num_active_flows_as_client.inc(1);
   } else {
     counter = flow_flood_victim_alert;
-    num_active_flows_as_server.inc(t, 1);
+    num_active_flows_as_server.inc(1);
   }
 
   if(triggerAlerts())
@@ -906,12 +917,12 @@ void Host::incNumFlows(time_t t, bool as_client, Host *peer) {
 void Host::decNumFlows(time_t t, bool as_client, Host *peer) {
   if(as_client) {
     if(num_active_flows_as_client.get())
-      num_active_flows_as_client.dec(t, 1);
+      num_active_flows_as_client.dec(1);
     else
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: invalid counter value");
   } else {
     if(num_active_flows_as_server.get())
-      num_active_flows_as_server.dec(t, 1);
+      num_active_flows_as_server.dec(1);
     else
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: invalid counter value");
   }
@@ -1041,7 +1052,7 @@ bool Host::incFlowAlertHits(time_t when) {
     return flow_alert_counter->incHits(when);
   }
 
-  return false; 
+  return false;
 }
 
 /* *************************************** */
@@ -1050,10 +1061,10 @@ void Host::incLowGoodputFlows(time_t t, bool asClient) {
   bool alert = false;
 
   if(asClient) {
-    low_goodput_client_flows.inc(t, 1);
+    low_goodput_client_flows.inc(1);
     if(low_goodput_client_flows.get() > HOST_LOW_GOODPUT_THRESHOLD) alert = true;
   } else {
-    low_goodput_server_flows.inc(t, 1);
+    low_goodput_server_flows.inc(1);
     if(low_goodput_server_flows.get() > HOST_LOW_GOODPUT_THRESHOLD) alert = true;
   }
 
@@ -1068,14 +1079,14 @@ void Host::decLowGoodputFlows(time_t t, bool asClient) {
   bool alert = false;
 
   if(asClient) {
-    low_goodput_client_flows.dec(t, 1);
-    
+    low_goodput_client_flows.dec(1);
+
     if(low_goodput_client_flows.is_anomalous(t)
        || (low_goodput_client_flows.get() < HOST_LOW_GOODPUT_THRESHOLD))
       alert = true;
   } else {
-    low_goodput_server_flows.dec(t, 1);
-    
+    low_goodput_server_flows.dec(1);
+
     if(low_goodput_server_flows.is_anomalous(t)
        || (low_goodput_server_flows.get() < HOST_LOW_GOODPUT_THRESHOLD))
       alert = true;
@@ -1186,7 +1197,7 @@ void Host::setResolvedName(const char * const resolved_name) {
     m.lock(__FILE__, __LINE__);
     if(!names.resolved && (names.resolved = strdup(resolved_name)))
       ;
-    m.unlock(__FILE__, __LINE__); 
+    m.unlock(__FILE__, __LINE__);
   }
 }
 
@@ -1258,7 +1269,7 @@ bool Host::statsResetRequested() {
 
 /* *************************************** */
 
-void Host::updateStats(struct timeval *tv) {  
+void Host::updateStats(struct timeval *tv) {
   if(stats_shadow) {
     delete stats_shadow;
     stats_shadow = NULL;
@@ -1272,6 +1283,8 @@ void Host::updateStats(struct timeval *tv) {
     low_goodput_client_flows.computeAnomalyIndex(tv->tv_sec),
     low_goodput_server_flows.computeAnomalyIndex(tv->tv_sec);
 
+  stats->updateStats(tv);
+
 #ifdef MONITOREDGAUGE_DEBUG
   char buf[64], buf2[128];
 
@@ -1281,8 +1294,6 @@ void Host::updateStats(struct timeval *tv) {
   if(num_active_flows_as_server.is_anomalous(tv->tv_sec))
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[num_active_flows_as_server] %s %s", ip.print(buf, sizeof(buf)), num_active_flows_as_server.print(buf2, sizeof(buf2)));
 #endif
-
-  stats->updateStats(tv);
 }
 
 /* *************************************** */
@@ -1330,4 +1341,95 @@ void Host::deleteHostData() {
   m.unlock(__FILE__, __LINE__);
   host_label_set = false;
   first_seen = last_seen;
+}
+
+/* *************************************** */
+
+char* Host::get_mac_based_tskey(Mac *mac, char *buf, size_t bufsize) {
+  char *k = mac->print(buf, bufsize);
+
+  /* NOTE: it is important to differentiate between v4 and v6 for macs */
+  strncat(buf, get_ip()->isIPv4() ? "_v4" : "_v6", bufsize);
+
+  return(k);
+}
+
+/* *************************************** */
+
+char* Host::get_tskey(char *buf, size_t bufsize) {
+  char *k;
+  Mac *cur_mac = getMac(); /* Cache macs as they can be swapped/updated */
+
+  if(cur_mac && isBroadcastDomainHost() && isDhcpHost() &&
+      ntop->getPrefs()->serialize_local_broadcast_hosts_as_macs()) {
+    k = get_mac_based_tskey(cur_mac, buf, bufsize);
+  } else
+    k = get_hostkey(buf, bufsize);
+
+  return(k);
+}
+
+/* **************************************************** */
+
+void Host::dissectDropbox(const char *payload, u_int16_t payload_len) {
+  json_object *o;
+  enum json_tokener_error jerr;
+  char str[payload_len+1];
+
+  strncpy(str, payload, payload_len);
+  str[payload_len] = '\0';
+
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", str);
+
+  if((o = json_tokener_parse_verbose(str, &jerr)) != NULL) {
+    json_object *obj;
+
+    if(json_object_object_get_ex(o, "namespaces", &obj)) {
+      struct array_list *l = json_object_get_array(obj);
+
+      dropbox_namespaces.clear();
+
+      for(u_int i=0; i<array_list_length(l); i++) {
+	struct json_object *element = json_object_array_get_idx(obj, i);
+	u_int32_t ns = json_object_get_int(element);
+
+	// ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u", ns);
+	dropbox_namespaces.push_back(ns);
+      }
+
+      json_object_put(o);
+    }
+  }
+}
+
+/* **************************************************** */
+
+void Host::dumpDropbox(lua_State *vm) {
+  char ip_buf[64], *ipaddr = printMask(ip_buf, sizeof(ip_buf));
+
+  lua_newtable(vm);
+
+  lua_push_str_table_entry(vm, "ip", ipaddr);
+  lua_push_uint64_table_entry(vm, "ipkey", ip.key());
+  lua_push_uint64_table_entry(vm, "vlan", vlan_id);
+
+  lua_newtable(vm);
+  for(u_int i=0; i<dropbox_namespaces.size(); i++) {
+    u_int32_t v = dropbox_namespaces[i];
+
+    lua_newtable(vm);
+    /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u", v); */
+
+    lua_pushinteger(vm, v);
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
+  }
+
+  lua_pushstring(vm, "namespaces");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+
+  lua_pushstring(vm, printMask(ip_buf, sizeof(ip_buf)));
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
 }

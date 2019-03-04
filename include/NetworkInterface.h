@@ -182,6 +182,7 @@ class NetworkInterface : public Checkpointable {
   NetworkStats *networkStats;
   InterfaceStatsHash *interfaceStats;
   char checkpoint_compression_buffer[CONST_MAX_NUM_CHECKPOINTS][MAX_CHECKPOINT_COMPRESSION_BUFFER_SIZE];
+  dhcp_range* dhcp_ranges, *dhcp_ranges_shadow;
 
   PROFILING_DECLARE(24);
 
@@ -209,7 +210,8 @@ class NetworkInterface : public Checkpointable {
 		u_int16_t vlan_id, char *osFilter,
 		u_int32_t asnFilter, int16_t networkFilter,
 		u_int16_t pool_filter, bool filtered_hosts,
-		bool blacklisted_hosts, bool hide_top_hidden, bool anomalousOnly,
+		bool blacklisted_hosts, bool hide_top_hidden,
+    bool anomalousOnly, bool dhcpOnly,
 		u_int8_t ipver_filter, int proto_filter,
 		TrafficType traffic_type_filter,
 		char *sortColumn);
@@ -223,7 +225,7 @@ class NetworkInterface : public Checkpointable {
 	       bool walk_all,
 	       struct flowHostRetriever *retriever,
 	       u_int8_t bridge_iface_idx,
-	       bool sourceMacsOnly,	bool dhcpMacsOnly,
+	       bool sourceMacsOnly,
 	       const char *manufacturer,
 	       char *sortColumn, u_int16_t pool_filter, u_int8_t devtype_filter,
 	       u_int8_t location_filter);
@@ -248,6 +250,7 @@ class NetworkInterface : public Checkpointable {
   void checkMacIPAssociation(bool triggerEvent, u_char *_mac, u_int32_t ipv4);
   void pollQueuedeBPFEvents();
   void reloadCustomCategories();
+  
  public:
   /**
   * @brief A Constructor
@@ -386,7 +389,8 @@ class NetworkInterface : public Checkpointable {
   virtual Flow* findFlowByTuple(u_int16_t vlan_id,
   				IpAddress *src_ip,  IpAddress *dst_ip,
   				u_int16_t src_port, u_int16_t dst_port,
-				u_int8_t l4_proto) const;
+				u_int8_t l4_proto,
+				AddressTree *allowed_hosts) const;
   bool findHostsByName(lua_State* vm, AddressTree *allowed_hosts, char *key);
   bool findHostsByMac(lua_State* vm, u_int8_t *mac);
   bool dissectPacket(u_int32_t bridge_iface_idx,
@@ -427,7 +431,8 @@ class NetworkInterface : public Checkpointable {
 			 u_int32_t asnFilter, int16_t networkFilter,
 			 u_int16_t pool_filter, bool filtered_hosts, bool blacklisted_hosts, bool hide_top_hidden,
        u_int8_t ipver_filter, int proto_filter,
-       TrafficType traffic_type_filter, bool tsLua, bool anomalousOnly,
+       TrafficType traffic_type_filter, bool tsLua,
+       bool anomalousOnly, bool dhcpOnly,
 			 char *sortColumn, u_int32_t maxHits,
 			 u_int32_t toSkip, bool a2zSortOrder);
   int getActiveHostsGroup(lua_State* vm,
@@ -450,7 +455,7 @@ class NetworkInterface : public Checkpointable {
 		       u_int32_t *begin_slot,
 		       bool walk_all,
 		       u_int8_t bridge_iface_idx,
-		       bool sourceMacsOnly, bool dhcpMacsOnly,
+		       bool sourceMacsOnly,
 		       const char *manufacturer,
 		       char *sortColumn, u_int32_t maxHits,
 		       u_int32_t toSkip, bool a2zSortOrder,
@@ -458,12 +463,12 @@ class NetworkInterface : public Checkpointable {
 		       u_int8_t location_filter);
   int getActiveMacManufacturers(lua_State* vm,
 				u_int8_t bridge_iface_idx,
-				bool sourceMacsOnly, bool dhcpMacsOnly,
+				bool sourceMacsOnly,
 				u_int32_t maxHits, u_int8_t devtype_filter,
 			        u_int8_t location_filter);
   int getActiveDeviceTypes(lua_State* vm,
 			   u_int8_t bridge_iface_idx,
-			   bool sourceMacsOnly, bool dhcpMacsOnly,
+			   bool sourceMacsOnly,
 			   u_int32_t maxHits, const char *manufacturer,
 			   u_int8_t location_filter);
   int getMacsIpAddresses(lua_State *vm, int idx);
@@ -534,6 +539,7 @@ class NetworkInterface : public Checkpointable {
   bool registerLiveCapture(struct ntopngLuaContext * const luactx, int *id);
   bool deregisterLiveCapture(struct ntopngLuaContext * const luactx);
   void dumpLiveCaptures(lua_State* vm);
+  int  dumpDropboxHosts(lua_State *vm);
   bool stopLiveCapture(int capture_id);
 #ifdef NTOPNG_PRO
 #ifdef HAVE_NEDGE
@@ -695,6 +701,9 @@ class NetworkInterface : public Checkpointable {
   virtual void updateDirectionStats()        { ; }
   void makeTsPoint(NetworkInterfaceTsPoint *pt);
   void tsLua(lua_State* vm);
+  void reloadDhcpRanges();
+  bool isInDhcpRange(IpAddress *ip);
+
 #ifdef HAVE_EBPF
   inline bool iseBPFEventAvailable() { return((ebpfEvents && (ebpfEvents[next_remove_idx] != NULL)) ? true : false); }
   bool enqueueeBPFEvent(eBPFevent *event);

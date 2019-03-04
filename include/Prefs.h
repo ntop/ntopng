@@ -52,7 +52,8 @@ class Prefs {
     enable_users_login, disable_localhost_login, online_license_check,
     service_license_check, enable_sql_log, enable_access_log, log_to_file,
     flow_aggregation_enabled,
-    enable_mac_ndpi_stats;
+    enable_mac_ndpi_stats,
+    enable_serialize_local_broadcast_hosts_as_macs;
 
   u_int32_t auth_session_duration;
   bool auth_session_midnight_expiration;
@@ -104,7 +105,7 @@ class Prefs {
   bool read_flows_from_mysql;
   InterfaceInfo *ifNames;
   char *local_networks;
-  bool local_networks_set, shutdown_when_done, simulate_vlans, ignore_vlans, flush_flows_on_shutdown;
+  bool local_networks_set, shutdown_when_done, simulate_vlans, ignore_vlans, ignore_macs, flush_flows_on_shutdown;
   char *data_dir, *install_dir, *docs_dir, *scripts_dir,
 	  *callbacks_dir, *prefs_dir, *pcap_dir, *export_endpoint;
   char *categorization_key;
@@ -224,6 +225,7 @@ class Prefs {
   inline bool  do_auto_logout()                         { return(enable_auto_logout);               };
   inline bool  do_auto_logout_at_runtime()              { return(enable_auto_logout_at_runtime);    };
   inline bool  do_ignore_vlans()                        { return(ignore_vlans);                     };
+  inline bool  do_ignore_macs()                         { return(ignore_macs);                      };
   inline bool  do_simulate_vlans()                      { return(simulate_vlans);                   };
   inline char* get_cpu_affinity()                       { return(cpu_affinity);            };
   inline u_int get_http_port()                          { return(http_port);               };
@@ -338,6 +340,7 @@ class Prefs {
   inline bool isCaptivePortalEnabled()                   { return(enable_captive_portal && !enable_vlan_trunk_bridge); }
   inline bool isInformativeCaptivePortalEnabled()        { return(enable_informative_captive_portal && !enable_vlan_trunk_bridge); }
   inline bool isMacBasedCaptivePortal()                  { return(mac_based_captive_portal);  }
+  inline bool serialize_local_broadcast_hosts_as_macs()  { return(enable_serialize_local_broadcast_hosts_as_macs); }
   const char * const getCaptivePortalUrl();
 
   inline u_int8_t  getDefaultl7Policy()                  { return(default_l7policy);  }

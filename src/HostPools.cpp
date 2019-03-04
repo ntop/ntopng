@@ -693,6 +693,8 @@ void HostPools::reloadPools() {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Ignoring pool [pool id: %2d]. "
 				   "Maximum number of host pools for this license is %u, inclusive of the Not Assigned pool.",
 				   _pool_id, MAX_NUM_HOST_POOLS);
+
+      free(pools[i]);
       continue;
     }
 

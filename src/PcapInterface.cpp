@@ -216,7 +216,7 @@ static void* packetPollLoop(void* ptr) {
       if(fname == NULL) {
 	ntop->getTrace()->traceEvent(TRACE_NORMAL, "No more pcap files to read");
 	fclose(pcap_list);
-	return(NULL);
+	break;
       } else
 	iface->set_datalink(pcap_datalink(pcap_handle));
     }

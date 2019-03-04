@@ -48,7 +48,6 @@ LocalHost::~LocalHost() {
 /* *************************************** */
 
 void LocalHost::initialize() {
-  char key[64], redis_key[128], *k;
   char buf[64];
 
   stats = allocateStats();
@@ -64,30 +63,8 @@ void LocalHost::initialize() {
   systemHost = ip.isLocalInterfaceAddress();
 
   PROFILING_SUB_SECTION_ENTER(iface, "LocalHost::initialize: local_host_cache", 16);
-  if(ntop->getPrefs()->is_idle_local_host_cache_enabled()) {
-    char *json = NULL;
-    u_int json_len = 0;
-
-    k = ip.print(key, sizeof(key));
-    snprintf(redis_key, sizeof(redis_key), HOST_SERIALIZED_KEY, iface->get_id(), k, vlan_id);
-
-    if((json_len = ntop->getRedis()->len(redis_key)) > 0
-       && ++json_len <= HOST_MAX_SERIALIZED_LEN) {
-      if((json = (char*)malloc(json_len * sizeof(char))) == NULL)
-	ntop->getTrace()->traceEvent(TRACE_ERROR,
-				     "Unable to allocate memory to deserialize %s", redis_key);
-      else if(!ntop->getRedis()->get(redis_key, json, json_len)){
-	/* Found saved copy of the host so let's start from the previous state */
-	// ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s => %s", redis_key, json);
-	ntop->getTrace()->traceEvent(TRACE_INFO, "Deserializing %s", redis_key);
-
-	if(!deserialize(json, redis_key))
-	  ntop->getRedis()->del(redis_key);
-      }
-
-      if(json) free(json);
-    }
-  }
+  if(ntop->getPrefs()->is_idle_local_host_cache_enabled())
+    deserialize();
   PROFILING_SUB_SECTION_EXIT(iface, 16);
 
   char host[96];
@@ -113,21 +90,30 @@ void LocalHost::initialize() {
 /* *************************************** */
 
 void LocalHost::serialize2redis() {
-  char host_key[128], key[128];
-  char *k = ip.print(host_key, sizeof(host_key));
-  snprintf(key, sizeof(key), HOST_SERIALIZED_KEY, iface->get_id(), k, vlan_id);
+  char redis_key[CONST_MAX_LEN_REDIS_KEY], host_key[64];
+  Mac *mac = getMac();
+
+  if(isBroadcastDomainHost() && isDhcpHost() && mac &&
+      ntop->getPrefs()->serialize_local_broadcast_hosts_as_macs()) {
+    char mac_buf[128];
+
+    get_mac_based_tskey(mac, mac_buf, sizeof(mac_buf));
+
+    getMacBasedSerializationKey(redis_key, sizeof(redis_key), mac_buf);
+  } else
+    getIpBasedSerializationKey(redis_key, sizeof(redis_key));
 
   if(data_delete_requested) {
-    ntop->getTrace()->traceEvent(TRACE_INFO, "Delete serialization %s", k);
-    ntop->getRedis()->del(key);
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Delete serialization %s", redis_key);
+    ntop->getRedis()->del(redis_key);
   } else if((ntop->getPrefs()->is_idle_local_host_cache_enabled()
       || ntop->getPrefs()->is_active_local_host_cache_enabled())
      && (!ip.isEmpty())) {
     checkStatsReset();
     char *json = serialize();
 
-    ntop->getRedis()->set(key, json, ntop->getPrefs()->get_local_host_cache_duration());
-    ntop->getTrace()->traceEvent(TRACE_INFO, "Dumping serialization %s", k);
+    ntop->getRedis()->set(redis_key, json, ntop->getPrefs()->get_local_host_cache_duration());
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Dumping serialization of %s to %s", ip.print(host_key, sizeof(host_key)), redis_key);
     //ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s => %s", k, json);
     free(json);
   }
@@ -135,15 +121,43 @@ void LocalHost::serialize2redis() {
 
 /* *************************************** */
 
-bool LocalHost::deserialize(char *json_str, char *key) {
+bool LocalHost::deserializeFromRedisKey(char *key) {
   json_object *o, *obj;
   enum json_tokener_error jerr = json_tokener_success;
+  u_int json_len;
+  char host_key[64], *json = NULL;
 
-  if((o = json_tokener_parse_verbose(json_str, &jerr)) == NULL) {
+  if(!key ||
+      ((json_len = ntop->getRedis()->len(key)) <= 0) ||
+      (++json_len > HOST_MAX_SERIALIZED_LEN))
+    return false;
+
+  if((json = (char*)malloc(json_len * sizeof(char))) == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to allocate memory to deserialize %s", key);
+    return false;
+  }
+
+  if(ntop->getRedis()->get(key, json, json_len) != 0) {
+    free(json);
+    return false;
+  }
+
+  /* Found saved copy of the host so let's start from the previous state */
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s => %s", redis_key, json);
+  ntop->getTrace()->traceEvent(TRACE_INFO, "Deserializing %s from %s", ip.print(host_key, sizeof(host_key)), key);
+
+  if((o = json_tokener_parse_verbose(json, &jerr)) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "JSON Parse error [%s] key: %s: %s",
 				 json_tokener_error_desc(jerr),
 				 key,
-				 json_str);
+				 json);
+    // DEBUG
+    printf("JSON Parse error [%s] key: %s: %s",
+				 json_tokener_error_desc(jerr),
+				 key,
+				 json);
+
+    free(json);
     return(false);
   }
 
@@ -159,7 +173,7 @@ bool LocalHost::deserialize(char *json_str, char *key) {
     if((mac = iface->getMac(mac_buf, true /* create if not exists*/)) != NULL)
       mac->incUses();
     else
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: NULL mac. Are you running out of memory?");
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: NULL mac. Are you running out of memory or MAC hash is full?");
   }
 
   if(json_object_object_get_ex(o, "seen.first", &obj)) first_seen = json_object_get_int64(obj);
@@ -180,6 +194,7 @@ bool LocalHost::deserialize(char *json_str, char *key) {
   json_object_put(o);
   checkStatsReset();
 
+  free(json);
   return(true);
 }
 
@@ -240,21 +255,6 @@ void LocalHost::lua(lua_State* vm, AddressTree *ptree,
   else
     lua_push_str_table_entry(vm, "local_network_name", local_net);
 
-  /* Criteria */
-  lua_newtable(vm);
-
-  lua_push_uint64_table_entry(vm, "upload", stats->getNumBytesSent());
-  lua_push_uint64_table_entry(vm, "download", stats->getNumBytesRcvd());
-  lua_push_uint64_table_entry(vm, "unknown", get_ndpi_stats()->getProtoBytes(NDPI_PROTOCOL_UNKNOWN));
-  lua_push_uint64_table_entry(vm, "incomingflows", getNumIncomingFlows());
-  lua_push_uint64_table_entry(vm, "outgoingflows", getNumOutgoingFlows());
-  lua_push_uint64_table_entry(vm, "total_outgoing_anomalous_flows", getTotalNumAnomalousOutgoingFlows());
-  lua_push_uint64_table_entry(vm, "total_incoming_anomalous_flows", getTotalNumAnomalousIncomingFlows());
-
-  lua_pushstring(vm, "criteria");
-  lua_insert(vm, -2);
-  lua_settable(vm, -3);
-
   if(asListElement) {
     host_id = get_hostkey(buf_id, sizeof(buf_id));
 
@@ -300,6 +300,8 @@ void LocalHost::tsLua(lua_State* vm) {
 
   stats->tsLua(vm);
 
+  lua_push_str_table_entry(vm, "tskey", get_tskey(buf_id, sizeof(buf_id)));
+
   host_id = get_hostkey(buf_id, sizeof(buf_id));
   lua_pushstring(vm, host_id);
   lua_insert(vm, -2);
@@ -323,4 +325,56 @@ void LocalHost::deleteHostData() {
   m.unlock(__FILE__, __LINE__);
 
   updateHostTrafficPolicy(NULL);
+}
+
+/* *************************************** */
+
+char * LocalHost::getMacBasedSerializationKey(char *redis_key, size_t size, char *mac_key) {
+  /* Serialize both IP and MAC for static hosts */
+  snprintf(redis_key, size, HOST_BY_MAC_SERIALIZED_KEY,
+      iface->get_id(), mac_key);
+
+  return redis_key;
+}
+
+/* *************************************** */
+
+char * LocalHost::getIpBasedSerializationKey(char *redis_key, size_t size) {
+  char buf[CONST_MAX_LEN_REDIS_KEY];
+
+  snprintf(redis_key, size, HOST_SERIALIZED_KEY, iface->get_id(), ip.print(buf, sizeof(buf)), vlan_id);
+
+  return redis_key;
+}
+
+/* *************************************** */
+
+bool LocalHost::deserialize() {
+  char redis_key[CONST_MAX_LEN_REDIS_KEY], *k = NULL;
+  Mac *mac = getMac();
+
+  /* First try to deserialize with the mac based key */
+  if(mac && isDhcpHost() &&
+      ntop->getPrefs()->serialize_local_broadcast_hosts_as_macs()) {
+    char mac_buf[128];
+
+    get_mac_based_tskey(mac, mac_buf, sizeof(mac_buf));
+
+    k = getMacBasedSerializationKey(redis_key, sizeof(redis_key), mac_buf);
+
+    if(deserializeFromRedisKey(k)) {
+      setBroadcastDomainHost();
+      return true;
+    } else
+      ntop->getRedis()->del(k);
+  }
+
+  /* Deserialize by IP */
+  k = getIpBasedSerializationKey(redis_key, sizeof(redis_key));
+  if(deserializeFromRedisKey(k))
+    return true;
+  else
+    ntop->getRedis()->del(k);
+
+  return false;
 }

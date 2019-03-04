@@ -92,7 +92,6 @@ function ts_utils.loadSchemas()
   require("ts_minute")
   require("ts_5min")
   require("ts_hour")
-  require("ts_custom")
 end
 
 function ts_utils.getLoadedSchemas()
@@ -232,6 +231,7 @@ function ts_utils.getQueryOptions(overrides)
     calculate_stats = true, -- calculate stats if possible
     initial_point = false,   -- add an extra initial point, not accounted in statistics but useful for drawing graphs
     with_series = false,    -- in topk query, if true, also get top items series data
+    no_timeout = true,      -- do not abort queries automatically by default
   }, overrides or {})
 end
 

@@ -8,7 +8,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 require "flow_utils"
 
-
 sendHTTPContentTypeHeader('text/html')
 local debug = debug_flow_data
 

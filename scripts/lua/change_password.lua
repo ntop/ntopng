@@ -108,8 +108,8 @@ print[[
         <span class="input-group-addon"><i class="fa fa-language" aria-hidden="true"></i></span>
         <select name="user_language" id="user_language" class="form-control">]]
 
-for _, lang in pairs(locales_utils.getAvailableLocales()) do
-   print('<option value="'..lang["code"]..'">'..i18n("locales." .. lang["code"])..'</option>')
+for _, lang in ipairs(locales_utils.getAvailableLocales()) do
+   print('<option value="'..lang["code"]..'" ' .. ternary(lang["code"] == "en", "selected", "") .. '>'..i18n("locales." .. lang["code"])..'</option>')
 end
 
 print[[

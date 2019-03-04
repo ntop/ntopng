@@ -44,9 +44,9 @@ template <typename METRICTYPE> class MonitoredGauge : public MonitoredMetric<MET
     }
   }
   
-  inline float dec(time_t when, METRICTYPE v) {
+  inline float dec(METRICTYPE v) {
     /* Don't worry about int/u_int, look at the arithmetics and you will see that is always works */
-    return(this->inc(when, -v));
+    return(this->inc(-v));
   }
 };
 

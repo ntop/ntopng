@@ -75,6 +75,12 @@ end
 
 -- ##############################################
 
+local function getDatabaseRetention()
+  return tonumber(ntop.getPref("ntopng.prefs.influx_retention")) or 365 -- TODO make in common with prefs.lua
+end
+
+-- ##############################################
+
 -- Determines the most appropriate retention policy
 local function getSchemaRetentionPolicy(schema, tstart, tend, options)
   options = options or {}
@@ -87,7 +93,7 @@ local function getSchemaRetentionPolicy(schema, tstart, tend, options)
   -- RP selection logic
   local oldest_1d_data = os.time() - RP_1D_DURATION_SECS
   local oldest_1h_data = os.time() - RP_1H_DURATION_SECS
-  local oldest_raw_data = tonumber(ntop.getPref("ntopng.prefs.influx_retention")) or 365 -- TODO make in common with prefs.lua
+  local oldest_raw_data = getDatabaseRetention()
   local max_raw_interval = 12 * 3600 -- after 12 hours begin to use the aggregated data
 
   if options.target_aggregation then
@@ -910,7 +916,11 @@ end
 local function getInfluxdbVersion(url, username, password)
   local res = ntop.httpGet(url .. "/ping", username, password, INFLUX_QUERY_TIMEMOUT_SEC, true)
   if not res or ((res.RESPONSE_CODE ~= 200) and (res.RESPONSE_CODE ~= 204)) then
-    local err = i18n("prefs.could_not_contact_influxdb", {msg=getResponseError(res)})
+    local err_info = getResponseError(res)
+    if err_info == 0 then
+      err_info = i18n("prefs.is_influxdb_running")
+    end
+    local err = i18n("prefs.could_not_contact_influxdb", {msg=err_info})
 
     traceError(TRACE_ERROR, TRACE_CONSOLE, err)
     return nil, err
@@ -972,9 +982,11 @@ function driver.init(dbname, url, days_retention, username, password, verbose)
   -- Check version
   if verbose then traceError(TRACE_NORMAL, TRACE_CONSOLE, "Contacting influxdb at " .. url .. " ...") end
 
-  local version = getInfluxdbVersion(url, username, password)
+  local version, err = getInfluxdbVersion(url, username, password)
 
-  if not version or not isCompatibleVersion(version) then
+  if((not version) and (err ~= nil)) then
+    return false, err
+  elseif((not version) or (not isCompatibleVersion(version))) then
     local err = i18n("prefs.incompatible_influxdb_version",
       {required=MIN_INFLUXDB_SUPPORTED_VERSION, found=version})
 
@@ -1019,17 +1031,22 @@ function driver.init(dbname, url, days_retention, username, password, verbose)
     end
   end
 
-  -- Set retention
-  if verbose then traceError(TRACE_NORMAL, TRACE_CONSOLE, "Setting retention for " .. dbname .. " ...") end
-  local query = "ALTER RETENTION POLICY autogen ON \"".. dbname .."\" DURATION ".. days_retention .."d"
+  if not db_found or days_retention ~= nil then
+    -- New database or config changed
+    days_retention = days_retention or getDatabaseRetention()
 
-  local res = ntop.httpPost(url .. "/query", "q=" .. query, username, password, timeout, true)
-  if not res or (res.RESPONSE_CODE ~= 200) then
-    local warning = i18n("prefs.influxdb_retention_error", {db=dbname, msg=getResponseError(res)})
+    -- Set retention
+    if verbose then traceError(TRACE_NORMAL, TRACE_CONSOLE, "Setting retention for " .. dbname .. " ...") end
+    local query = "ALTER RETENTION POLICY autogen ON \"".. dbname .."\" DURATION ".. days_retention .."d"
 
-    traceError(TRACE_WARNING, TRACE_CONSOLE, warning)
-    -- This is just a warning, we can proceed
-    --return false, err
+    local res = ntop.httpPost(url .. "/query", "q=" .. query, username, password, timeout, true)
+    if not res or (res.RESPONSE_CODE ~= 200) then
+      local warning = i18n("prefs.influxdb_retention_error", {db=dbname, msg=getResponseError(res)})
+
+      traceError(TRACE_WARNING, TRACE_CONSOLE, warning)
+      -- This is just a warning, we can proceed
+      --return false, err
+    end
   end
 
   return true, i18n("prefs.successfully_connected_influxdb", {db=dbname, version=version})
@@ -1184,6 +1201,9 @@ function driver:setup(ts_utils)
   local queries = {}
   local max_batch_size = 25 -- note: each query is about 400 characters
 
+  -- Ensure that the database exists
+  driver.init(self.db, self.url, nil, self.username, self.password)
+
   queries[#queries + 1] = string.format('CREATE RETENTION POLICY "1h" ON %s DURATION %s REPLICATION 1', self.db, RP_1H_DURATION)
   queries[#queries + 1] = string.format('CREATE RETENTION POLICY "1d" ON %s DURATION %s REPLICATION 1', self.db, RP_1D_DURATION)
 
@@ -1218,7 +1238,7 @@ function driver:setup(ts_utils)
     ::continue::
   end
 
-  if #queries >= 0 then
+  if #queries > 0 then
     if not self:_multiQuery(queries) then
       traceError(TRACE_ERROR, TRACE_CONSOLE, "InfluxDB setup() failed")
       return false

@@ -65,7 +65,8 @@ end
 
 local available_locales = {}
 
-for localename, locale in pairs(supported_locales) do
+-- use pairsByKeys to impose an order
+for localename, locale in pairsByKeys(supported_locales) do
    if lookupLocale(localename) then
       available_locales[#available_locales + 1] = locale
    end

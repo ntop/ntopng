@@ -40,6 +40,20 @@ schema:addMetric("bytes_rcvd")
 
 -- ##############################################
 
+schema = ts_utils.newSchema("host_pool:hosts", {step = 300, metrics_type = ts_utils.metrics.gauge})
+schema:addTag("ifid")
+schema:addTag("pool")
+schema:addMetric("num_hosts")
+
+-- ##############################################
+
+schema = ts_utils.newSchema("host_pool:devices", {step = 300, metrics_type = ts_utils.metrics.gauge})
+schema:addTag("ifid")
+schema:addTag("pool")
+schema:addMetric("num_devices")
+
+-- ##############################################
+
 schema = ts_utils.newSchema("host_pool:blocked_flows", {step=300, rrd_fname="blocked_flows"})
 schema:addTag("ifid")
 schema:addTag("pool")
@@ -157,6 +171,21 @@ schema = ts_utils.newSchema("host:flows", {step=300, rrd_fname="num_flows", metr
 schema:addTag("ifid")
 schema:addTag("host")
 schema:addMetric("num_flows")
+
+-- ##############################################
+
+schema = ts_utils.newSchema("host:anomalous_flows", {step = 300, rrd_fname = "anomalous_flows"})
+schema:addTag("ifid")
+schema:addTag("host")
+schema:addMetric("flows_as_client")
+schema:addMetric("flows_as_server")
+
+-- ##############################################
+
+schema = ts_utils.newSchema("host:total_alerts", {step = 300, rrd_fname = "total_alerts"})
+schema:addTag("ifid")
+schema:addTag("host")
+schema:addMetric("alerts")
 
 -- ##############################################
 

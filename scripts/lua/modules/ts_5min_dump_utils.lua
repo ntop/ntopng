@@ -6,6 +6,12 @@ local callback_utils = require "callback_utils"
 local ts_utils = require "ts_utils_core"
 require "ts_5min"
 
+local ts_custom
+if ntop.exists(dirs.installdir .. "/scripts/lua/modules/timeseries/custom/ts_5min_custom.lua") then
+   package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/custom/?.lua;" .. package.path
+   ts_custom = require "ts_5min_custom"
+end
+
 local dirs = ntop.getDirs()
 local ts_dump = {}
 
@@ -169,7 +175,18 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
 
   -- Number of flows
   ts_utils.append("host:flows", {ifid=ifstats.id, host=hostname,
-            num_flows=host["active_flows.as_client"] + host["active_flows.as_server"]}, when, verbose)
+				 num_flows=host["active_flows.as_client"] + host["active_flows.as_server"]}, when, verbose)
+
+  -- Number of anomalous flows
+  ts_utils.append("host:anomalous_flows", {ifid = ifstats.id, host = hostname,
+					   flows_as_client = host["anomalous_flows.as_client"],
+					   flows_as_server = host["anomalous_flows.as_server"]},
+		  when, verbose)
+
+  -- Total number of alerts
+  ts_utils.append("host:total_alerts", {ifid = ifstats.id, host = hostname,
+					   alerts = host["total_alerts"]},
+		  when, verbose)
 
   -- Contacts
   ts_utils.append("host:contacts", {ifid=ifstats.id, host=hostname,
@@ -185,6 +202,11 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
       -- L2 host
       --io.write("Discarding "..k.."@"..hostname.."\n")
     end
+  end
+
+  -- create custom rrds
+  if ts_custom and ts_custom.host_update_stats then
+     ts_custom.host_update_stats(when, hostname, host, ifstats, verbose)
   end
 end
 
@@ -262,7 +284,7 @@ function ts_dump.run_5min_dump(_ifname, ifstats, config, when, time_threshold, s
           local instant = host_point.instant
 
           if instant >= min_instant then
-            ts_dump.host_update_rrd(instant, hostname, host_point, ifstats, verbose, config)
+            ts_dump.host_update_rrd(instant, host_ts.tskey, host_point, ifstats, verbose, config)
           end
         end
       end
