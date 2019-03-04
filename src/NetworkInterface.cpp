@@ -2523,16 +2523,16 @@ decode_packet_eth:
 	  srcMac->incSentArpRequests();
 	  dstMac->incRcvdArpRequests();
 
-    //e = getArpHashMatrixElement(srcMac->get_mac(), dstMac->get_mac(), true);
-    //e->incSentArpRequests();
+    e = getArpHashMatrixElement(srcMac->get_mac(), dstMac->get_mac(), true);
+    e->incSentArpRequests();
     
 	} else if(arp_opcode == 0x2 /* ARP reply */) {
 	  arp_replies++;
 	  srcMac->incSentArpReplies();
 	  dstMac->incRcvdArpReplies();
 
-    //e = getArpHashMatrixElement(srcMac->get_mac(), dstMac->get_mac(), true);
-    //e->incSentArpReplies();
+    e = getArpHashMatrixElement(srcMac->get_mac(), dstMac->get_mac(), true);
+    e->incSentArpReplies();
   
 	  checkMacIPAssociation(true, arpp->arp_sha, arpp->arp_spa);
 	  checkMacIPAssociation(true, arpp->arp_tha, arpp->arp_tpa);
