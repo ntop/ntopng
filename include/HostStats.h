@@ -37,6 +37,7 @@ class HostStats: public Checkpointable, public GenericTrafficElement {
   TrafficStats other_ip_sent, other_ip_rcvd;
   u_int32_t total_activity_time /* sec */;
   u_int32_t last_epoch_update; /* useful to avoid multiple updates */
+  u_int32_t total_alerts;
   
 #ifdef NTOPNG_PRO
   HostPoolStats *quota_enforcement_stats, *quota_enforcement_stats_shadow;
@@ -70,19 +71,24 @@ class HostStats: public Checkpointable, public GenericTrafficElement {
   inline void incNumAnomalousFlows(bool as_client)          { if(as_client) anomalous_flows_as_client++; else anomalous_flows_as_server++; };
   inline nDPIStats* getnDPIStats()                          { return(ndpiStats); };
 
+  virtual void computeAnomalyIndex(time_t when) {};
   inline void incRetransmittedPkts(u_int32_t num)   { tcpPacketStats.pktRetr += num;      };
   inline void incOOOPkts(u_int32_t num)             { tcpPacketStats.pktOOO += num;       };
   inline void incLostPkts(u_int32_t num)            { tcpPacketStats.pktLost += num;      };
   inline void incKeepAlivePkts(u_int32_t num)       { tcpPacketStats.pktKeepAlive += num; };
   inline void incSentStats(u_int pkt_len)           { sent_stats.incStats(pkt_len);       };
   inline void incRecvStats(u_int pkt_len)           { recv_stats.incStats(pkt_len);       };
+  inline void incTotalAlerts()                      { total_alerts++;                     };
+  inline u_int32_t getTotalAlerts()                 { return(total_alerts);               };
   inline u_int32_t getTotalNumFlowsAsClient() const { return(total_num_flows_as_client);  };
   inline u_int32_t getTotalNumFlowsAsServer() const { return(total_num_flows_as_server);  };
   inline u_int32_t getTotalAnomalousNumFlowsAsClient() const { return(anomalous_flows_as_client);  };
   inline u_int32_t getTotalAnomalousNumFlowsAsServer() const { return(anomalous_flows_as_server);  };
   virtual void deserialize(json_object *obj)        {}
   virtual void incNumFlows(bool as_client, Host *peer) { if(as_client) total_num_flows_as_client++; else total_num_flows_as_server++; } ;
-  virtual void decNumFlows(bool as_client, Host *peer) {}
+  virtual void decNumFlows(bool as_client, Host *peer) {};
+  virtual bool hasAnomalies(time_t when) { return false; };
+  virtual void luaAnomalies(lua_State* vm, time_t when) {};
   virtual void lua(lua_State* vm, bool mask_host, bool host_details, bool verbose);
 
 #ifdef NTOPNG_PRO

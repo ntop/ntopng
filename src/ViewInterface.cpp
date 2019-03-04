@@ -339,11 +339,12 @@ Flow* ViewInterface::findFlowByKey(u_int32_t key, AddressTree *allowed_hosts) {
 Flow* ViewInterface::findFlowByTuple(u_int16_t vlan_id,
 				     IpAddress *src_ip,  IpAddress *dst_ip,
 				     u_int16_t src_port, u_int16_t dst_port,
-				     u_int8_t l4_proto) const {
+				     u_int8_t l4_proto,
+				     AddressTree *allowed_hosts) const {
   Flow *f = NULL;
 
   for(u_int8_t s = 0; s < numSubInterfaces; s++) {
-    if((f = (Flow*)subInterfaces[s]->findFlowByTuple(vlan_id, src_ip, dst_ip, src_port, dst_port, l4_proto)))
+    if((f = (Flow*)subInterfaces[s]->findFlowByTuple(vlan_id, src_ip, dst_ip, src_port, dst_port, l4_proto, allowed_hosts)))
       break;
   }
 

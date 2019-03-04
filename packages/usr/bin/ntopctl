@@ -187,22 +187,24 @@ list_n2disk_services() {
     # find all the n2disk configuration files, except those that are managed by ntopng
     # which have a name starting with n2disk-ntopng
 
-    for N2DISK_CONF_FILE in `find /etc/n2disk/ -name "n2disk-*.conf"  ! -name "n2disk-ntopng-*"`; do
-	local N2DISK_SERVICE_NAME=`basename $N2DISK_CONF_FILE`;
+    if [ -d "/etc/n2disk/" ]; then
+	for N2DISK_CONF_FILE in `find /etc/n2disk/ -name "n2disk-*.conf"  ! -name "n2disk-ntopng-*"`; do
+	    local N2DISK_SERVICE_NAME=`basename $N2DISK_CONF_FILE`;
 
-	# strip the trailing .conf and the leading ntopng-
-	N2DISK_SERVICE_NAME="${N2DISK_SERVICE_NAME//\.conf/}"
-	N2DISK_SERVICE_NAME="${N2DISK_SERVICE_NAME//n2disk\-/}"
-	# add ntopng@ to build the actual service name
-	N2DISK_SERVICE_NAME="n2disk@${N2DISK_SERVICE_NAME}"
+	    # strip the trailing .conf and the leading ntopng-
+	    N2DISK_SERVICE_NAME="${N2DISK_SERVICE_NAME//\.conf/}"
+	    N2DISK_SERVICE_NAME="${N2DISK_SERVICE_NAME//n2disk\-/}"
+	    # add ntopng@ to build the actual service name
+	    N2DISK_SERVICE_NAME="n2disk@${N2DISK_SERVICE_NAME}"
 
-	# print the service name along with it's status (active or inactive)
-	# it seems impossible but the systemd is not able to just print the service
-	# with the status using systemctl is-active 'n2disk@*'. It will just print
-	# a series of meaningless active active active inactive without a way to
-	# associate the status back to the service
-	echo "${N2DISK_SERVICE_NAME}" `systemctl is-active "${N2DISK_SERVICE_NAME}"` "${N2DISK_CONF_FILE}"
-    done
+	    # print the service name along with it's status (active or inactive)
+	    # it seems impossible but the systemd is not able to just print the service
+	    # with the status using systemctl is-active 'n2disk@*'. It will just print
+	    # a series of meaningless active active active inactive without a way to
+	    # associate the status back to the service
+	    echo "${N2DISK_SERVICE_NAME}" `systemctl is-active "${N2DISK_SERVICE_NAME}"` "${N2DISK_CONF_FILE}"
+	done
+    fi
 }
 
 get_n2disk_stats() {

@@ -121,7 +121,6 @@ end
 
 if discovered["status"]["code"] == "ERROR" then
    print('<div class=\"alert alert-danger\"><i class="fa fa-warning fa-lg"></i>&nbsp;'..discovered["status"]["message"]..'</div>')
-
 elseif discovered["status"]["code"] == "OK" then -- everything is ok
    print[[<div id="discover-table"></div>]]
 

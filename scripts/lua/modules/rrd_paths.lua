@@ -70,8 +70,9 @@ end
 
 -- ########################################################
 
-function getPathFromMac(addr)
+function getPathFromMac(addr, prefix)
    if not isMacAddress(addr) then return end
+   prefix = prefix or "macs/"
 
    local mac = {}
    local vlan = addr:match("@%d+$") or ''
@@ -84,7 +85,7 @@ function getPathFromMac(addr)
    local nic = {mac[4], mac[5], mac[6]}
 
    -- each manufacturer has its own directory
-   local res = os_utils.fixPath("macs/"..table.concat(manufacturer, "_"))
+   local res = os_utils.fixPath(prefix..table.concat(manufacturer, "_"))
    -- the nic identifier goes as-is because it is non structured
    res = os_utils.fixPath(res.."/"..table.concat(nic, "/"))
    -- finally the vlan
@@ -141,8 +142,13 @@ end
 
 function getPathFromKey(key)
    if key == nil then key = "" end
+   local tskey_parts = string.split(key, "%_") or {}
 
-   if isIPv6(key) then
+   if #tskey_parts == 2 and isMacAddress(tskey_parts[1]) then
+      local mac = tskey_parts[1]
+      local ipver = tskey_parts[2]
+      return getPathFromMac(mac, "hosts/") .. "/" .. ipver
+   elseif isIPv6(key) then
       return getPathFromIPv6(key)
    elseif isMacAddress(key) then
       return getPathFromMac(key)

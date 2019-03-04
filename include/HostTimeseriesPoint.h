@@ -29,6 +29,8 @@ class HostTimeseriesPoint: public TimeseriesPoint {
   nDPIStats *ndpi;
   u_int64_t sent, rcvd;
   u_int32_t num_flows_as_client, num_flows_as_server;
+  u_int64_t total_alerts;
+  u_int64_t total_num_anomalous_flows_as_client, total_num_anomalous_flows_as_server;
   TrafficCounter l4_stats[4]; // tcp, udp, icmp, other
   u_int32_t num_contacts_as_cli, num_contacts_as_srv;
 

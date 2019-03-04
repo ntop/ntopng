@@ -31,13 +31,13 @@ struct queries_breakdown {
 };
 
 struct dns_stats {
-  u_int32_t num_queries, num_replies_ok, num_replies_error;
+  MonitoredCounter<u_int32_t> num_queries, num_replies_ok, num_replies_error;
   struct queries_breakdown breakdown;
 };
 
 class DnsStats {
  private:
-  struct dns_stats sent, rcvd;
+  struct dns_stats sent_stats, rcvd_stats;
 
   void incQueryBreakdown(struct queries_breakdown *bd, u_int16_t query_type);
   void deserializeStats(json_object *o, struct dns_stats *stats);
@@ -48,15 +48,18 @@ class DnsStats {
  public:
   DnsStats();
 
-  inline void incNumDNSQueriesSent(u_int16_t query_type) { incNumDNSQueries(query_type, &sent); };
-  inline void incNumDNSQueriesRcvd(u_int16_t query_type) { incNumDNSQueries(query_type, &rcvd); };
-  inline void incNumDNSResponsesSent(u_int8_t ret_code)  { if(ret_code == 0) sent.num_replies_ok++; else sent.num_replies_error++; };
-  inline void incNumDNSResponsesRcvd(u_int8_t ret_code)  { if(ret_code == 0) rcvd.num_replies_ok++; else rcvd.num_replies_error++; };
+  inline void incNumDNSQueriesSent(u_int16_t query_type) { incNumDNSQueries(query_type, &sent_stats); };
+  inline void incNumDNSQueriesRcvd(u_int16_t query_type) { incNumDNSQueries(query_type, &rcvd_stats); };
+  void updateStats(const struct timeval * const tv);
+  void incNumDNSResponsesSent(u_int8_t ret_code);
+  void incNumDNSResponsesRcvd(u_int8_t ret_code);
 
   char* serialize();
   void deserialize(json_object *o);
   json_object* getJSONObject();
   void lua(lua_State *vm);
+  bool hasAnomalies(time_t when);
+  void luaAnomalies(lua_State* vm, time_t when);
 };
 
 #endif /* _STATS_H_ */

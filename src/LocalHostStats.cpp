@@ -78,6 +78,7 @@ void LocalHostStats::incrVisitedWebSite(char *hostname) {
 void LocalHostStats::updateStats(struct timeval *tv) {
   HostStats::updateStats(tv);
 
+  if(dns)  dns->updateStats(tv);
   if(http) http->updateStats(tv);
 
   if(top_sites && ntop->getPrefs()->are_top_talkers_enabled() && (tv->tv_sec >= nextSitesUpdate)) {
@@ -189,6 +190,7 @@ void LocalHostStats::deserialize(json_object *o) {
   if(json_object_object_get_ex(o, "flows.as_server", &obj))  total_num_flows_as_server = json_object_get_int(obj);
   if(json_object_object_get_ex(o, "anomalous_flows.as_client", &obj))  anomalous_flows_as_client = json_object_get_int(obj);
   if(json_object_object_get_ex(o, "anomalous_flows.as_server", &obj))  anomalous_flows_as_server = json_object_get_int(obj);
+  if(json_object_object_get_ex(o, "total_alerts", &obj))  total_alerts = json_object_get_int(obj);
   if(json_object_object_get_ex(o, "flows.dropped", &obj)) total_num_dropped_flows = json_object_get_int(obj);
 }
 
@@ -200,6 +202,9 @@ void LocalHostStats::makeTsPoint(HostTimeseriesPoint *pt) {
   pt->rcvd = rcvd.getNumBytes();
   pt->num_flows_as_client = host->getNumOutgoingFlows();
   pt->num_flows_as_server = host->getNumIncomingFlows();
+  pt->total_num_anomalous_flows_as_client = host->getTotalNumAnomalousOutgoingFlows();
+  pt->total_num_anomalous_flows_as_server = host->getTotalNumAnomalousIncomingFlows();
+  pt->total_alerts = host->getTotalAlerts();
   pt->num_contacts_as_cli = contacts_as_cli.size();
   pt->num_contacts_as_srv = contacts_as_srv.size();
 
@@ -282,4 +287,19 @@ void LocalHostStats::tsLua(lua_State* vm) {
     TimeseriesRing::luaSinglePoint(vm, iface, &pt);
   } else
     ts_ring->lua(vm);
+}
+/* *************************************** */
+
+bool LocalHostStats::hasAnomalies(time_t when) {
+  bool ret = false;
+
+  if(dns) ret |= dns->hasAnomalies(when);
+
+  return ret;
+}
+
+/* *************************************** */
+
+void LocalHostStats::luaAnomalies(lua_State* vm, time_t when) {
+  if(dns) dns->luaAnomalies(vm, when);
 }

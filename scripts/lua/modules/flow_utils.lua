@@ -1187,8 +1187,10 @@ end
 function getFlowLabel(flow, show_macs, add_hyperlinks, historical_bounds)
    if flow == nil then return "" end
 
-   local cli_name = shortenString(flowinfo2hostname(flow, "cli"))
-   local srv_name = shortenString(flowinfo2hostname(flow, "srv"))
+   local cli_name = flowinfo2hostname(flow, "cli", true)
+   local srv_name = flowinfo2hostname(flow, "srv", true)
+   if((not isIPv4(cli_name)) and (not isIPv6(cli_name))) then cli_name = shortenString(cli_name) end
+   if((not isIPv4(srv_name)) and (not isIPv6(srv_name))) then srv_name = shortenString(srv_name) end
 
    local cli_port
    local srv_port

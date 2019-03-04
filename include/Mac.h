@@ -45,7 +45,7 @@ class Mac : public GenericHashEntry {
   char * ssid;
   
   OperatingSystem os;
-  bool source_mac, dhcpHost;
+  bool source_mac;
   DeviceType device_type;
 #ifdef NTOPNG_PRO
   time_t captive_portal_notified;
@@ -75,8 +75,6 @@ class Mac : public GenericHashEntry {
   }
   inline void decUses()            { GenericHashEntry::decUses(); }
   inline bool isSpecialMac()       { return(special_mac);         }
-  inline bool isDhcpHost()         { return(dhcpHost);            }
-  inline void setDhcpHost()        { dhcpHost = true;             }
   inline bool isSourceMac()        { return(source_mac);          }
   inline void setSourceMac() {
     if(!source_mac && !special_mac) {
@@ -124,7 +122,7 @@ class Mac : public GenericHashEntry {
   char* serialize();
   bool deserialize(char *key, char *json_str);
   json_object* getJSONObject();
-  void updateHostPool(bool isInlineCall);
+  void updateHostPool(bool isInlineCall, bool firstUpdate = false);
   inline void setOperatingSystem(OperatingSystem _os) { os = ((device_type != device_networking) ? _os : os_unknown); }
   inline OperatingSystem getOperatingSystem()         { return((device_type != device_networking) ? os : os_unknown); }
   void inlineSetModel(const char * const m);
@@ -164,6 +162,20 @@ class Mac : public GenericHashEntry {
   inline u_int64_t getNumBytes()              { return(stats->getNumBytes());      }
   inline float getThptTrendDiff()             { return(stats->getThptTrendDiff()); }
   inline float getBytesThpt()                 { return(stats->getBytesThpt());     }
+  inline bool  isMulticast() {
+    /*
+      http://h22208.www2.hpe.com/eginfolib/networking/docs/switches/5130ei/5200-3944_ip-multi_cg/content/483573739.htm 
+      https://ipcisco.com/lesson/multicast-mac-addresses/
+    */
+    if(
+       ((mac[0] == 0x33) && (mac[1] == 0x33))
+       ||
+       ((mac[0] == 0x01) && (mac[1] == 0x00) && (mac[1] == 0x5E))
+       )
+      return(true);
+    else
+      return(false);
+  }
 };
 
 #endif /* _MAC_H_ */

@@ -99,6 +99,11 @@ if ifstats.stats and ifstats.stats_since_reset then
 end
 
 local ext_interfaces = {}
+
+-- refresh traffic recording availability as one may have installed n2disk
+-- with a running instance of ntopng
+recording_utils.checkAvailable()
+
 if recording_utils.isAvailable() and recording_utils.isSupportedZMQInterface(ifid) then
    ext_interfaces = recording_utils.getExtInterfaces(ifid)
 end
@@ -241,7 +246,7 @@ local has_traffic_recording_page =  (recording_utils.isAvailable()
 		  or (recording_utils.getCurrentTrafficRecordingProvider(ifid) ~= "ntopng")))
 
 local dismiss_recording_providers_reminder = recording_utils.isExternalProvidersReminderDismissed(ifstats.id)
-   
+
 if has_traffic_recording_page then
    if(page == "traffic_recording") then
       print("<li class=\"active\"><a href=\""..url.."&page=traffic_recording\"><i class=\"fa fa-hdd-o fa-lg\"></i>")
@@ -310,6 +315,12 @@ if isAdministrator() and (not ifstats.isView) then
       else
          print("\n<li><a href=\""..url.."&page=pools\"><i class=\"fa fa-users\"></i> "..label.."</a></li>")
       end
+   end
+
+   if(page == "dhcp") then
+      print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-bolt fa-lg\"></i></a></li>\n")
+   else
+      print("\n<li><a href=\""..url.."&page=dhcp\"><i class=\"fa fa-bolt fa-lg\"></i></a></li>")
    end
 end
 
@@ -1377,7 +1388,7 @@ elseif(page == "config") then
       </tr>]]
    end
 
-   if has_traffic_recording_page or (true) then
+   if has_traffic_recording_page then
       local cur_provider = recording_utils.getCurrentTrafficRecordingProvider(ifstats.id)
       local providers = recording_utils.getAvailableTrafficRecordingProviders()
 
@@ -1583,6 +1594,8 @@ elseif(page == "pools") then
     end
 
     dofile(dirs.installdir .. "/scripts/lua/admin/host_pools.lua")
+elseif(page == "dhcp") then
+    dofile(dirs.installdir .. "/scripts/lua/admin/dhcp.lua")
 elseif page == "traffic_report" then
    dofile(dirs.installdir .. "/pro/scripts/lua/enterprise/traffic_report.lua")
 end

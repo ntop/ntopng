@@ -1504,9 +1504,14 @@ function host2name(name, vlan)
    return name
 end
 
-function flowinfo2hostname(flow_info, host_type)
+function flowinfo2hostname(flow_info, host_type, alerts_view)
    local name
    local orig_name
+
+   if alerts_view and not hasNindexSupport() then
+      -- do not return resolved name as it will hide the IP address
+      return(flow_info[host_type..".ip"])
+   end
 
    if(host_type == "srv") then
       if(flow_info["host_server_name"] ~= nil and flow_info["host_server_name"] ~= "") then
@@ -2466,7 +2471,7 @@ end
 
 -- Uses an alert json to create a flowstatus_info.
 -- NOTE: Keep consistent with flow2statusinfo
-function alert2statusinfo(flow_json, alert_json)
+function alert2statusinfo(flow_json)
    local res = table.clone(flow_json.status_info)
 
    return res
@@ -2495,6 +2500,35 @@ end
 
 -- ###############################################
 
+function formatElephantFlowAlert(flowstatus_info, local2remote)
+   local threshold = ""
+   local res = ""
+
+   if local2remote then
+      res = i18n("flow_details.elephant_flow_l2r")
+
+      if flowstatus_info["elephant.l2r_threshold"] then
+	 threshold = flowstatus_info["elephant.l2r_threshold"]
+      end
+   else
+      res = i18n("flow_details.elephant_flow_r2l")
+
+      if flowstatus_info["elephant.r2l_threshold"] then
+	 threshold = flowstatus_info["elephant.r2l_threshold"]
+      end
+   end
+
+   res = string.format("%s<sup><i class='fa fa-info-circle' aria-hidden='true' title='"..i18n("flow_details.elephant_flow_descr").."'></i></sup>", res)
+
+   if threshold ~= "" then
+      res = string.format("%s [%s]", res, i18n("flow_details.elephant_exceeded", {vol = bytesToSize(threshold)}))
+   end
+
+   return res
+end
+
+-- ###############################################
+
 -- Update Utils::flowstatus2str / FlowStatus enum
 function getFlowStatus(status, flowstatus_info)
    local warn_sign = "<i class=\"fa fa-warning\" aria-hidden=true style=\"color: orange;\"></i> "
@@ -2516,8 +2550,8 @@ function getFlowStatus(status, flowstatus_info)
    elseif(status == 14) then return(warn_sign..i18n("flow_details.flow_blocked_by_bridge"))
    elseif(status == 15) then return(warn_sign..i18n("flow_details.web_mining_detected"))
    elseif(status == 16) then return(formatSuspiciousDeviceProtocolAlert(flowstatus_info))
-   elseif(status == 17) then return(warn_sign..i18n("flow_details.elephant_flow_l2r"))
-   elseif(status == 18) then return(warn_sign..i18n("flow_details.elephant_flow_r2l"))
+   elseif(status == 17) then return(warn_sign..formatElephantFlowAlert(flowstatus_info, true --[[ local 2 remote --]]))
+   elseif(status == 18) then return(warn_sign..formatElephantFlowAlert(flowstatus_info, false --[[ remote 2 local --]]))
    elseif(status == 19) then return(warn_sign..i18n("flow_details.longlived_flow"))
    elseif(status == 20) then return(warn_sign..i18n("flow_details.not_purged"))
    else return(warn_sign..i18n("flow_details.unknown_status",{status=status}))
@@ -2576,91 +2610,91 @@ end
 
 -- ##########################################
 
-_icmp_types = {
-	 { 0, 0, i18n("icmp_v4_types.type_0_0_echo_reply") },
-	 { 3, 0, i18n("icmp_v4_types.type_3_0_network_unreachable") },
-	 { 3, 1, i18n("icmp_v4_types.type_3_1_host_unreachable") },
-	 { 3, 2, i18n("icmp_v4_types.type_3_2_protocol_unreachable") },
-	 { 3, 3, i18n("icmp_v4_types.type_3_3_port_unreachable") },
-	 { 3, 4, i18n("icmp_v4_types.type_3_4_fragmentation_needed_but_no_fragment_bit_set") },
-	 { 3, 5, i18n("icmp_v4_types.type_3_5_source_routing_failed") },
-	 { 3, 6, i18n("icmp_v4_types.type_3_6_destination_network_unknown") },
-	 { 3, 7, i18n("icmp_v4_types.type_3_7_destination_host_unknown") },
-	 { 3, 8, i18n("icmp_v4_types.type_3_8_source_host_isolated") },
-	 { 3, 9, i18n("icmp_v4_types.type_3_9_destination_network_administratively_prohibited") },
-	 { 3, 10, i18n("icmp_v4_types.type_3_10_destination_host_administratively_prohibited") },
-	 { 3, 11, i18n("icmp_v4_types.type_3_11_network_unreachable_for_tos") },
-	 { 3, 12, i18n("icmp_v4_types.type_3_12_host_unreachable_for_tos") },
-	 { 3, 13, i18n("icmp_v4_types.type_3_13_communication_administratively_prohibited_by_filtering") },
-	 { 3, 14, i18n("icmp_v4_types.type_3_14_host_precedence_violation") },
-	 { 3, 15, i18n("icmp_v4_types.type_3_15_precedence_cutoff_in_effect") },
-	 { 4, 0, i18n("icmp_v4_types.type_4_0_source_quench") },
-	 { 5, 0, i18n("icmp_v4_types.type_5_0_redirect_for_network") },
-	 { 5, 1, i18n("icmp_v4_types.type_5_1_redirect_for_host") },
-	 { 5, 2, i18n("icmp_v4_types.type_5_2_redirect_for_tos_and_network") },
-	 { 5, 3, i18n("icmp_v4_types.type_5_3_redirect_for_tos_and_host") },
-	 { 8, 0, i18n("icmp_v4_types.type_8_0_echo_request_x") },
-	 { 9, 0, i18n("icmp_v4_types.type_9_0_router_advertisement") },
-	 { 10, 0, i18n("icmp_v4_types.type_10_0_route_solicitation") },
-	 { 11, 0, i18n("icmp_v4_types.type_11_0_ttl_equals_0_during_transit") },
-	 { 11, 1, i18n("icmp_v4_types.type_11_1_ttl_equals_0_during_reassembly") },
-	 { 12, 0, i18n("icmp_v4_types.type_12_0_ip_header_bad") },
-	 { 12, 1, i18n("icmp_v4_types.type_12_1_required_options_missing") },
-	 { 13, 0, i18n("icmp_v4_types.type_13_0_timestamp_request") },
-	 { 14, 0, i18n("icmp_v4_types.type_14_0_timestamp_reply") },
-	 { 15, 0, i18n("icmp_v4_types.type_15_0_information_request") },
-	 { 16, 0, i18n("icmp_v4_types.type_16_0_information_reply") },
-	 { 17, 0, i18n("icmp_v4_types.type_17_0_address_mask_request") },
-	 { 18, 0, i18n("icmp_v4_types.type_18_0_address_mask_reply") }
+local _icmp_types = {
+   { 0, 0, "icmp_v4_types.type_0_0_echo_reply" },
+   { 3, 0, "icmp_v4_types.type_3_0_network_unreachable" },
+   { 3, 1, "icmp_v4_types.type_3_1_host_unreachable" },
+   { 3, 2, "icmp_v4_types.type_3_2_protocol_unreachable" },
+   { 3, 3, "icmp_v4_types.type_3_3_port_unreachable" },
+   { 3, 4, "icmp_v4_types.type_3_4_fragmentation_needed_but_no_fragment_bit_set" },
+   { 3, 5, "icmp_v4_types.type_3_5_source_routing_failed" },
+   { 3, 6, "icmp_v4_types.type_3_6_destination_network_unknown" },
+   { 3, 7, "icmp_v4_types.type_3_7_destination_host_unknown" },
+   { 3, 8, "icmp_v4_types.type_3_8_source_host_isolated" },
+   { 3, 9, "icmp_v4_types.type_3_9_destination_network_administratively_prohibited" },
+   { 3, 10, "icmp_v4_types.type_3_10_destination_host_administratively_prohibited" },
+   { 3, 11, "icmp_v4_types.type_3_11_network_unreachable_for_tos" },
+   { 3, 12, "icmp_v4_types.type_3_12_host_unreachable_for_tos" },
+   { 3, 13, "icmp_v4_types.type_3_13_communication_administratively_prohibited_by_filtering" },
+   { 3, 14, "icmp_v4_types.type_3_14_host_precedence_violation" },
+   { 3, 15, "icmp_v4_types.type_3_15_precedence_cutoff_in_effect" },
+   { 4, 0, "icmp_v4_types.type_4_0_source_quench" },
+   { 5, 0, "icmp_v4_types.type_5_0_redirect_for_network" },
+   { 5, 1, "icmp_v4_types.type_5_1_redirect_for_host" },
+   { 5, 2, "icmp_v4_types.type_5_2_redirect_for_tos_and_network" },
+   { 5, 3, "icmp_v4_types.type_5_3_redirect_for_tos_and_host" },
+   { 8, 0, "icmp_v4_types.type_8_0_echo_request_x" },
+   { 9, 0, "icmp_v4_types.type_9_0_router_advertisement" },
+   { 10, 0, "icmp_v4_types.type_10_0_route_solicitation" },
+   { 11, 0, "icmp_v4_types.type_11_0_ttl_equals_0_during_transit" },
+   { 11, 1, "icmp_v4_types.type_11_1_ttl_equals_0_during_reassembly" },
+   { 12, 0, "icmp_v4_types.type_12_0_ip_header_bad" },
+   { 12, 1, "icmp_v4_types.type_12_1_required_options_missing" },
+   { 13, 0, "icmp_v4_types.type_13_0_timestamp_request" },
+   { 14, 0, "icmp_v4_types.type_14_0_timestamp_reply" },
+   { 15, 0, "icmp_v4_types.type_15_0_information_request" },
+   { 16, 0, "icmp_v4_types.type_16_0_information_reply" },
+   { 17, 0, "icmp_v4_types.type_17_0_address_mask_request" },
+   { 18, 0, "icmp_v4_types.type_18_0_address_mask_reply" }
 }
 
 -- Code is currently ignored on IVMPv6
-_icmpv6_types = {
-        { 0, i18n("icmp_v6_types.type_0_reserved") },
-	{ 1, i18n("icmp_v6_types.type_1_destination_unreachable") },
-	{ 2, i18n("icmp_v6_types.type_2_packet_too_big") },
-	{ 3, i18n("icmp_v6_types.type_3_time_exceeded") },
-	{ 4, i18n("icmp_v6_types.type_4_parameter_problem") },
-	{ 100, i18n("icmp_v6_types.type_100_private_experimentation") },
-	{ 101, i18n("icmp_v6_types.type_101_private_experimentation") },
-	--{ 102-126, i18n("icmp_v6_types.type_102-126_unassigned") },
-	{ 127, i18n("icmp_v6_types.type_127_reserved_for_expansion_of_icmpv6_error_messages") },
-	{ 128, i18n("icmp_v6_types.type_128_echo_request") },
-	{ 129, i18n("icmp_v6_types.type_129_echo_reply") },
-	{ 130, i18n("icmp_v6_types.type_130_multicast_listener_query") },
-	{ 131, i18n("icmp_v6_types.type_131_multicast_listener_report") },
-	{ 132, i18n("icmp_v6_types.type_132_multicast_listener_done") },
-	{ 133, i18n("icmp_v6_types.type_133_router_solicitation") },
-	{ 134, i18n("icmp_v6_types.type_134_router_advertisement") },
-	{ 135, i18n("icmp_v6_types.type_135_neighbor_solicitation") },
-	{ 136, i18n("icmp_v6_types.type_136_neighbor_advertisement") },
-	{ 137, i18n("icmp_v6_types.type_137_redirect_message") },
-	{ 138, i18n("icmp_v6_types.type_138_router_renumbering") },
-	{ 139, i18n("icmp_v6_types.type_139_icmp_node_information_query") },
-	{ 140, i18n("icmp_v6_types.type_140_icmp_node_information_response") },
-	{ 141, i18n("icmp_v6_types.type_141_inverse_neighbor_discovery_solicitation_message") },
-	{ 142, i18n("icmp_v6_types.type_142_inverse_neighbor_discovery_advertisement_message") },
-	{ 143, i18n("icmp_v6_types.type_143_version_2_multicast_listener_report") },
-	{ 144, i18n("icmp_v6_types.type_144_home_agent_address_discovery_request_message") },
-	{ 145, i18n("icmp_v6_types.type_145_home_agent_address_discovery_reply_message") },
-	{ 146, i18n("icmp_v6_types.type_146_mobile_prefix_solicitation") },
-	{ 147, i18n("icmp_v6_types.type_147_mobile_prefix_advertisement") },
-	{ 148, i18n("icmp_v6_types.type_148_certification_path_solicitation_message") },
-	{ 149, i18n("icmp_v6_types.type_149_certification_path_advertisement_message") },
-	{ 150, i18n("icmp_v6_types.type_150_icmp_messages_utilized_by_experimental_mobility_protocols") },
-	{ 151, i18n("icmp_v6_types.type_151_multicast_router_advertisement") },
-	{ 152, i18n("icmp_v6_types.type_152_multicast_router_solicitation") },
-	{ 153, i18n("icmp_v6_types.type_153_multicast_router_termination") },
-	{ 154, i18n("icmp_v6_types.type_154_fmipv6_messages") },
-	{ 155, i18n("icmp_v6_types.type_155_rpl_control_message") },
-	{ 156, i18n("icmp_v6_types.type_156_ilnpv6_locator_update_message") },
-	{ 157, i18n("icmp_v6_types.type_157_duplicate_address_request") },
-	{ 158, i18n("icmp_v6_types.type_158_duplicate_address_confirmation") },
-	{ 159, i18n("icmp_v6_types.type_159_mpl_control_message") },
-	--{ 160-199, i18n("icmp_v6_types.type_160-199_unassigned") },
-	{ 200, i18n("icmp_v6_types.type_200_private_experimentation") },
-	{ 201, i18n("icmp_v6_types.type_201_private_experimentation") },
-	{ 255, i18n("icmp_v6_types.type_255_reserved_for_expansion_of_icmpv6_informational_messages") }
+local _icmpv6_types = {
+   { 0, i18n("icmp_v6_types.type_0_reserved") },
+   { 1, i18n("icmp_v6_types.type_1_destination_unreachable") },
+   { 2, i18n("icmp_v6_types.type_2_packet_too_big") },
+   { 3, i18n("icmp_v6_types.type_3_time_exceeded") },
+   { 4, i18n("icmp_v6_types.type_4_parameter_problem") },
+   { 100, i18n("icmp_v6_types.type_100_private_experimentation") },
+   { 101, i18n("icmp_v6_types.type_101_private_experimentation") },
+   --{ 102-126, i18n("icmp_v6_types.type_102-126_unassigned") },
+   { 127, i18n("icmp_v6_types.type_127_reserved_for_expansion_of_icmpv6_error_messages") },
+   { 128, i18n("icmp_v6_types.type_128_echo_request") },
+   { 129, i18n("icmp_v6_types.type_129_echo_reply") },
+   { 130, i18n("icmp_v6_types.type_130_multicast_listener_query") },
+   { 131, i18n("icmp_v6_types.type_131_multicast_listener_report") },
+   { 132, i18n("icmp_v6_types.type_132_multicast_listener_done") },
+   { 133, i18n("icmp_v6_types.type_133_router_solicitation") },
+   { 134, i18n("icmp_v6_types.type_134_router_advertisement") },
+   { 135, i18n("icmp_v6_types.type_135_neighbor_solicitation") },
+   { 136, i18n("icmp_v6_types.type_136_neighbor_advertisement") },
+   { 137, i18n("icmp_v6_types.type_137_redirect_message") },
+   { 138, i18n("icmp_v6_types.type_138_router_renumbering") },
+   { 139, i18n("icmp_v6_types.type_139_icmp_node_information_query") },
+   { 140, i18n("icmp_v6_types.type_140_icmp_node_information_response") },
+   { 141, i18n("icmp_v6_types.type_141_inverse_neighbor_discovery_solicitation_message") },
+   { 142, i18n("icmp_v6_types.type_142_inverse_neighbor_discovery_advertisement_message") },
+   { 143, i18n("icmp_v6_types.type_143_version_2_multicast_listener_report") },
+   { 144, i18n("icmp_v6_types.type_144_home_agent_address_discovery_request_message") },
+   { 145, i18n("icmp_v6_types.type_145_home_agent_address_discovery_reply_message") },
+   { 146, i18n("icmp_v6_types.type_146_mobile_prefix_solicitation") },
+   { 147, i18n("icmp_v6_types.type_147_mobile_prefix_advertisement") },
+   { 148, i18n("icmp_v6_types.type_148_certification_path_solicitation_message") },
+   { 149, i18n("icmp_v6_types.type_149_certification_path_advertisement_message") },
+   { 150, i18n("icmp_v6_types.type_150_icmp_messages_utilized_by_experimental_mobility_protocols") },
+   { 151, i18n("icmp_v6_types.type_151_multicast_router_advertisement") },
+   { 152, i18n("icmp_v6_types.type_152_multicast_router_solicitation") },
+   { 153, i18n("icmp_v6_types.type_153_multicast_router_termination") },
+   { 154, i18n("icmp_v6_types.type_154_fmipv6_messages") },
+   { 155, i18n("icmp_v6_types.type_155_rpl_control_message") },
+   { 156, i18n("icmp_v6_types.type_156_ilnpv6_locator_update_message") },
+   { 157, i18n("icmp_v6_types.type_157_duplicate_address_request") },
+   { 158, i18n("icmp_v6_types.type_158_duplicate_address_confirmation") },
+   { 159, i18n("icmp_v6_types.type_159_mpl_control_message") },
+   --{ 160-199, i18n("icmp_v6_types.type_160-199_unassigned") },
+   { 200, i18n("icmp_v6_types.type_200_private_experimentation") },
+   { 201, i18n("icmp_v6_types.type_201_private_experimentation") },
+   { 255, i18n("icmp_v6_types.type_255_reserved_for_expansion_of_icmpv6_informational_messages") }
 }
 
 -- #############################################
@@ -2683,11 +2717,18 @@ end
 function getICMPTypeCode(icmp)
   local t = icmp.type
   local c = icmp.code
+  local extra = {src_port = '', dst_port = '', protocol = ''}
+
+  if icmp["unreach"] then
+     extra["src_port"] = icmp["unreach"]["src_port"]..''
+     extra["dst_port"] = icmp["unreach"]["dst_port"]..''
+     extra["protocol"] = getL4ProtoName(icmp["unreach"]["protocol"])
+  end
 
   for _, _e in ipairs(_icmp_types) do
     if((_e[1] == t) and (_e[2] == c)) then
        local res = _e[3]
-       return res
+       return i18n(res, extra)
     end
   end
 
@@ -2758,9 +2799,9 @@ function getTzOffsetSeconds()
    local now = os.time()
    local local_t = os.date("*t", now)
    local utc_t = os.date("!*t", now)
-   local delta = (local_t.hour - utc_t.hour)*60 + (local_t.min - utc_t.min)
+   local delta = os.time(local_t) - os.time(utc_t)
 
-   return(delta*60)
+   return(delta)
 end
 
 -- ####################################################
@@ -2789,52 +2830,6 @@ function makeTimeStamp(d, tzoffset)
 end
 
 -- ###########################################
-
--- IMPORTANT: keep it in sync with sortField (ntop_typedefs.h)
---            AND host_search_walker:NetworkInterface.cpp
---            AND NetworkInterface::getFlows()
-looking_glass_criteria = {
-   -- KEY  LABEL   Host::lua()-label  formatting
-   { "uploaders", i18n("uploaders"), "upload", bytesToSize },
-   { "downloaders", i18n("downloaders"), "download", bytesToSize },
-   { "unknowers", i18n("unknowers"), "unknown", bytesToSize },
-   { "incomingflows", i18n("incomingflows"), "incomingflows", format_utils.formatValue },
-   { "outgoingflows", i18n("outgoingflows"), "outgoingflows", format_utils.formatValue },
-   { "total_outgoing_anomalous_flows", i18n("total_outgoing_anomalous_flows"), "total_outgoing_anomalous_flows", format_utils.formatValue },
-   { "total_incoming_anomalous_flows", i18n("total_incoming_anomalous_flows"), "total_incoming_anomalous_flows", format_utils.formatValue },
-}
-
-function criteria2label(criteria)
-  local id
-
-  for id, _ in ipairs(looking_glass_criteria) do
-    local key   = looking_glass_criteria[id][1]
-    local label = looking_glass_criteria[id][2]
-    local fnctn = looking_glass_criteria[id][4]
-
-    if(key == criteria) then
-      return label, fnctn
-    end
-  end
-
-  return criteria, format_utils.formatValue
-end
-
-function label2criteriakey(what)
-  local id
-
-  for id, _ in ipairs(looking_glass_criteria) do
-    local c        = looking_glass_criteria[id][1]
-    local key      = looking_glass_criteria[id][3]
-    local fnctn    = looking_glass_criteria[id][4]
-
-    if(what == c) then
-       return key, fnctn
-    end
-  end
-
-  return what, format_utils.formatValue
-end
 
 -- Merges table a and table b into a new table. If some elements are presents in
 -- both a and b, b elements will have precedence.

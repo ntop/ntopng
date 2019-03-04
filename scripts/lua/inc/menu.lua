@@ -217,7 +217,7 @@ print [[/lua/hosts_stats.lua">]] print(i18n("flows_page.hosts")) print[[</a></li
       ]]
 
 if ifs["has_macs"] == true then
-   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/macs_stats.lua?devices_mode=source_macs_only">') print(i18n("layer_2")) print('</a></li>')
+   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/macs_stats.lua?devices_mode=source_macs_only">') print(i18n("users.devices")) print('</a></li>')
 end
 
 print('<li><a href="'..ntop.getHttpPrefix()..'/lua/network_stats.lua">') print(i18n("networks")) print('</a></li>')
@@ -243,7 +243,6 @@ end
 print('<li class="divider"></li>')
 print('<li class="dropdown-header">') print(i18n("local_traffic")) print('</li>')
 
-print('<li><a href="'..ntop.getHttpPrefix()..'/lua/local_hosts_stats.lua"><i class="fa fa-binoculars" aria-hidden="true"></i> ') print(i18n("local_hosts_stats.looking_glass")) print('</a></li>')
 print('<li><a href="'..ntop.getHttpPrefix()..'/lua/http_servers_stats.lua">') print(i18n("http_servers_stats.http_servers")) print('</a></li>')
 print('<li><a href="'..ntop.getHttpPrefix()..'/lua/top_hosts.lua"><i class="fa fa-trophy"></i> ') print(i18n("processes_stats.top_hosts")) print('</a></li>')
 print('<li class="divider"></li>')
@@ -389,11 +388,18 @@ if ntop.isEnterprise() then
    ]]
 
    if(info["version.enterprise_edition"] == true) then
-      if ifs["type"] == "zmq" then
-         print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/flowdevices_stats.lua">') print(i18n("flows_page.flow_exporters")) print('</a></li>')
-         print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/flowdevices_stats.lua?sflow_filter=All">') print(i18n("flows_page.sflow_devices")) print('</a></li>')
-      end
       print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/snmpdevices_stats.lua">') print(i18n("prefs.snmp")) print('</a></li>')
+      if ifs["type"] == "zmq" then
+	 if table.len(interface.getSFlowDevices() or {}) > 0 then
+	    print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/flowdevices_stats.lua?sflow_filter=All">') print(i18n("flows_page.sflow_devices")) print('</a></li>')
+	 end
+
+	 print('<li class="divider"></li>')
+	 print('<li class="dropdown-header">') print(i18n("flows")) print('</li>')
+
+         print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/flowdevices_stats.lua">') print(i18n("flows_page.flow_exporters")) print('</a></li>')
+      end
+
    end
 
    print("</ul> </li>")
@@ -441,10 +447,8 @@ if(is_admin) then
    print("<li><a href=\""..ntop.getHttpPrefix().."/lua/admin/edit_categories.lua\"><i class=\"fa fa-tags\"></i> ") print(i18n("users.categories")) print("</a></li>\n")
    print("<li><a href=\""..ntop.getHttpPrefix().."/lua/admin/edit_category_lists.lua\"><i class=\"fa fa-sticky-note\"></i> ") print(i18n("category_lists.category_lists")) print("</a></li>\n")
 
-   local device_protocols_alerts = _POST["toggle_device_protocols_alerts"] or ntop.getPref("ntopng.prefs.device_protocols_alerts")
-   if (device_protocols_alerts == "1") then
-      print("<li><a href=\""..ntop.getHttpPrefix().."/lua/admin/edit_device_protocols.lua\"><i class=\"fa fa-tablet\"></i> ") print(i18n("device_protocols.device_protocols")) print("</a></li>\n")
-   end
+
+   print("<li><a href=\""..ntop.getHttpPrefix().."/lua/admin/edit_device_protocols.lua\"><i class=\"fa fa-tablet\"></i> ") print(i18n("device_protocols.device_protocols")) print("</a></li>\n")
 end
 
 if _SESSION["localuser"] or is_admin then
@@ -527,6 +531,7 @@ end
 
 -- Hidden by default, will be shown by the footer if necessary
 print('<br><div id="move-rrd-to-influxdb" class="alert alert-warning" style="display:none" role="alert"><i class="fa fa-warning fa-lg" id="alerts-menu-triangle"></i> ')
+print[[<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>]]
 print(i18n("about.influxdb_migration_msg", {url="https://www.ntop.org/ntopng/ntopng-and-time-series-from-rrd-to-influxdb-new-charts-with-time-shift/"}))
 print('</div>')
 

@@ -148,6 +148,8 @@ void AddressResolution::resolveHostName(char *_numeric_ip, char *symbolic, u_int
 /* **************************************************** */
 
 static void* resolveLoop(void* ptr) {
+  Utils::setThreadName("resolveLoop");
+
   AddressResolution *a = (AddressResolution*)ptr;
   Redis *r = ntop->getRedis();
   u_int no_resolution_loops = 0;

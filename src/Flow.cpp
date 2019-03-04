@@ -1991,6 +1991,7 @@ char* Flow::serialize(bool es_json) {
 
 /* Returns a stripped-down JSON specifically used for providing more alert information */
 json_object* Flow::flow2statusinfojson() {
+  char buf[128];
   json_object *obj = json_object_new_object();
   if(!obj) return NULL;
   DeviceProtoStatus proto_status = device_proto_allowed;
@@ -2006,6 +2007,30 @@ json_object* Flow::flow2statusinfojson() {
     json_object_object_add(obj, "devproto_forbidden_peer", json_object_new_string("srv"));
     json_object_object_add(obj, "devproto_forbidden_id", json_object_new_int(
       (proto_status == device_proto_forbidden_app) ? ndpiDetectedProtocol.app_protocol : ndpiDetectedProtocol.master_protocol));
+  }
+
+  FlowStatus fs = getFlowStatus();
+  if(fs == status_elephant_local_to_remote)
+    json_object_object_add(obj, "elephant.l2r_threshold",
+			   json_object_new_int64(ntop->getPrefs()->get_elephant_flow_local_to_remote_bytes()));    
+  else if(fs == status_elephant_remote_to_local)
+    json_object_object_add(obj, "elephant.r2l_threshold",
+			   json_object_new_int64(ntop->getPrefs()->get_elephant_flow_remote_to_local_bytes()));
+
+  if(isICMP()) {
+    json_object_object_add(obj, "icmp.icmp_type", json_object_new_int(protos.icmp.icmp_type)),
+      json_object_object_add(obj, "icmp.icmp_code", json_object_new_int(protos.icmp.icmp_code));
+
+    if(icmp_info) {
+      unreachable_t *unreach = icmp_info->getUnreach();
+
+      if(unreach)
+	json_object_object_add(obj, "icmp.unreach.src_ip", json_object_new_string(unreach->src_ip.print(buf, sizeof(buf)))),
+	  json_object_object_add(obj, "icmp.unreach.dst_ip", json_object_new_string(unreach->dst_ip.print(buf, sizeof(buf)))),
+	  json_object_object_add(obj, "icmp.unreach.src_port", json_object_new_int(ntohs(unreach->src_port))),
+	  json_object_object_add(obj, "icmp.unreach.dst_port", json_object_new_int(ntohs(unreach->dst_port))),
+	  json_object_object_add(obj, "icmp.unreach.protocol", json_object_new_int(unreach->protocol));
+    }
   }
 
   return obj;
@@ -2994,7 +3019,7 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
 	  }
 
 	  i += 2;
-	  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "===>>> [%d] %s", i, &payload[i-12]);
+	  /*  ntop->getTrace()->traceEvent(TRACE_NORMAL, "===>>> [%d] %s", i, &payload[i-12]); */
 	  break;
 	}
       } else
@@ -3391,7 +3416,8 @@ FlowStatus Flow::getFlowStatus() {
 
   /* NOTE: evaluation order is important here! */
 
-  if(iface->isPacketInterface() && !is_ready_to_be_purged() && isIdle(5 * ntop->getPrefs()->get_flow_max_idle())) {
+  if(iface->isPacketInterface() && iface->is_purge_idle_interface() &&
+      !is_ready_to_be_purged() && isIdle(5 * ntop->getPrefs()->get_flow_max_idle())) {
     /* Should've already been marked as idle and purged */
     return status_not_purged;
   }
@@ -3496,7 +3522,9 @@ FlowStatus Flow::getFlowStatus() {
       return status_longlived;
   }
 
-  if(cli_host && srv_host) {
+  if(cli_host && srv_host
+     /* Assumes elephant flows are normal when the category is data transfer */
+     && get_protocol_category() != NDPI_PROTOCOL_CATEGORY_DATA_TRANSFER) {
     u_int64_t local_to_remote_bytes = 0, remote_to_local_bytes = 0;
 
     if(cli_host->isLocalHost() && ! srv_host->isLocalHost()) {

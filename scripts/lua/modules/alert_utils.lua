@@ -627,14 +627,32 @@ end
 
 -- #################################
 
+local function getFlowStatusInfo(record, status_info)
+   local res = ""
+
+   local l7proto_name = interface.getnDPIProtoName(tonumber(record["l7_proto"]) or 0)
+   if l7proto_name == "ICMP" then -- is ICMPv4
+      local type_code = {type = status_info["icmp.icmp_type"], code = status_info["icmp.icmp_code"]}
+
+      if status_info["icmp.unreach.src_ip"] then
+	 res =string.format("[%s]", i18n("icmp_page.icmp_port_unreachable_extra", {unreach_host=status_info["icmp.unreach.dst_ip"], unreach_port=status_info["icmp.unreach.dst_port"], unreach_protocol = l4_proto_to_string(status_info["icmp.unreach.protocol"])}))
+      else
+	 res = string.format("[%s]", getICMPTypeCode(type_code))
+      end
+   end
+
+   return string.format(" %s", res)
+end
+
+-- #################################
+
 function formatRawFlow(record, flow_json)
    require "flow_utils"
-   local time_bounds = nil
+   local time_bounds = {getAlertTimeBounds(record)}
    local add_links = false
 
    if hasNindexSupport() then
       -- only add links if nindex is present
-      time_bounds = {getAlertTimeBounds(record)}
       add_links = true
    end
 
@@ -647,31 +665,32 @@ function formatRawFlow(record, flow_json)
       ["vlan"] = record["vlan_id"]}
    flow = "["..i18n("flow")..": "..(getFlowLabel(flow, false, add_links, time_bounds) or "").."] "
 
-   local l4_proto_label, l4_proto = l4_proto_to_string(record["proto"] or 0) or ""
+   local l4_proto_label = l4_proto_to_string(record["proto"] or 0) or ""
 
    if not isEmptyString(l4_proto_label) then
-      flow = flow.."[" .. i18n("protocol") .. ": " .. l4_proto_label .. "] "
+      flow = flow.."[" .. l4_proto_label .. "] "
    end
 
-   if (l4_proto == "tcp") or (l4_proto =="udp") then
-      local l7proto_name = interface.getnDPIProtoName(tonumber(record["l7_proto"]) or 0)
-
-      if not isEmptyString(l7proto_name) then
-	 flow = flow.."["..i18n("application")..": <A HREF='"..ntop.getHttpPrefix().."/lua/hosts_stats.lua?protocol="..record["l7_proto"].."'> " ..l7proto_name.."</A>] "
-      end
+   local l7proto_name = interface.getnDPIProtoName(tonumber(record["l7_proto"]) or 0)
+   if not isEmptyString(l7proto_name) and l4_proto_label ~= l7proto_name then
+      flow = flow.."["..i18n("application")..": " ..l7proto_name.."] "
    end
 
    local decoded = json.decode(flow_json)
+   local status_info = alert2statusinfo(decoded)
 
    if decoded ~= nil then
       -- render the json
       local msg = ""
+
       if not isEmptyString(record["flow_status"]) then
-         msg = msg..getFlowStatus(tonumber(record["flow_status"]), alert2statusinfo(decoded, record)).." "
+         msg = msg..getFlowStatus(tonumber(record["flow_status"]), status_info).." "
       end
+
       if not isEmptyString(flow) then
          msg = msg..flow.." "
       end
+
       if not isEmptyString(decoded["info"]) then
          local lb = ""
          if (record["flow_status"] == "13") -- blacklisted flow
@@ -682,6 +701,10 @@ function formatRawFlow(record, flow_json)
       end
 
       flow = msg
+   end
+
+   if status_info then
+      flow = flow..getFlowStatusInfo(record, status_info)
    end
 
    return flow
@@ -1716,7 +1739,10 @@ function getCurrentStatus() {
           whiteSpace: 'nowrap',
 	    }
 	 },
+]]
 
+if hasNindexSupport() then
+print[[
 	 {
 	    title: "]]print(i18n("drilldown"))print[[",
 	    field: "column_chart",
@@ -1726,7 +1752,10 @@ function getCurrentStatus() {
 	       textAlign: 'center'
 	    }
 	 },
+]]
+end
 
+print[[
 	 {
 	    title: "]]print(i18n("show_alerts.alert_description"))print[[",
 	    field: "column_msg",

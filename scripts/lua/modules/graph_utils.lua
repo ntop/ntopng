@@ -340,6 +340,12 @@ function printSeries(options, tags, start_time, base_url, params)
    local needs_separator = false
    local separator_label = nil
 
+   if params.tskey then
+      -- this can contain a MAC address for local broadcast domain hosts
+      tags = table.clone(tags)
+      tags.host = params.tskey
+   end
+
    for _, serie in ipairs(series) do
       if (have_nedge and serie.nedge_exclude) or (not have_nedge and serie.nedge_only) then
          goto continue
@@ -582,10 +588,14 @@ print[[
       end
    end
 
-   
+   if options.tskey then
+      -- this can contain a MAC address for local broadcast domain hosts
+      tags = table.clone(tags)
+      tags.host = options.tskey
+   end
 
    local data = ts_utils.query(schema, tags, start_time, end_time)
-   
+
    if(data) then
       print [[
 
@@ -639,6 +649,7 @@ local page_params = {
    ts_schema = schema,
    zoom = zoomLevel or '',
    epoch = selectedEpoch or '',
+   tskey = options.tskey,
 }
 
 if(options.timeseries) then

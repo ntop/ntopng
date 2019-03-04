@@ -200,6 +200,23 @@ int Utils::setThreadAffinity(pthread_t thread, int core_id) {
 
 /* ****************************************************** */
 
+void Utils::setThreadName(const char *name) {
+#if defined(__APPLE__) || defined(__linux__)
+  // Mac OS X: must be set from within the thread (can't specify thread ID)
+  char buf[16]; // NOTE: on linux there is a 16 char limit
+  int rc;
+  snprintf(buf, sizeof(buf), "%s", name);
+#if defined(__APPLE__)
+  if((rc = pthread_setname_np(buf)))
+#else
+  if((rc = pthread_setname_np(pthread_self(), buf)))
+#endif
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to set pthread name %s: %d", buf, rc);
+#endif
+}
+
+/* ****************************************************** */
+
 char *Utils::trim(char *s) {
   char *end;
 
@@ -502,7 +519,7 @@ const char* Utils::flowStatus2str(FlowStatus s, AlertType *aType, AlertLevel *aL
     *aLevel = alert_level_warning;
     return("Protocol not allowed for this device type");
   case status_elephant_local_to_remote:
-    return("Elephant flow (local to remote");
+    return("Elephant flow (local to remote)");
     break;
   case status_elephant_remote_to_local:
     return("Elephant flow (remote to local)");

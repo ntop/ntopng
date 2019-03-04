@@ -8,7 +8,7 @@ ROOT_DIR=../../..
 # ntopng Lua modules dir
 MODULES_DIR=$(ROOT_DIR)/scripts/lua/modules/
 # Lua API doc directory
-LUA_API_DIR=../api/lua
+LUA_API_DIR=../api/
 
 # Automatic rules for Lua C API
 DOC_SOURCES = $(shell find ../api/lua_c/ -type f -name *.lua)

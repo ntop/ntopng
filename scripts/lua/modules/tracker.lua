@@ -30,7 +30,12 @@ function tracker.log(f_name, f_args)
   }
 
   local entity = alertEntity("user")
-  local entity_value = ternary(_SESSION["user"] ~= nil, _SESSION["user"], 'system')
+
+  local entity_value = 'system'
+  if _SESSION and _SESSION["user"] then
+     entity_value = _SESSION["user"]
+  end
+
   local alert_type = alertType("alert_user_activity")
   local alert_severity = alertSeverity("info")
   local alert_json = json.encode(jobj)

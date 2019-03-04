@@ -224,7 +224,7 @@ local function validateOnOff(mode)
 end
 
 local function validateMode(mode)
-   local modes = {"all", "local", "remote", "broadcast_domain", "filtered", "blacklisted", "restore"}
+   local modes = {"all", "local", "remote", "broadcast_domain", "filtered", "blacklisted", "dhcp", "restore"}
 
    return validateChoice(modes, mode)
 end
@@ -494,6 +494,17 @@ local function validateIpAddress(p)
    else
       return false
    end
+end
+
+local function validateIpRange(p)
+   local range = string.split(p, "%-")
+
+   if not range or #range ~= 2 then
+      return false
+   end
+
+   return validateIpAddress(range[1]) and
+      validateIpAddress(range[2])
 end
 
 local function validateHTTPHost(p)
@@ -789,8 +800,10 @@ local function validateIfFilter(i)
    end
 end
 
-local function validateLookingGlassCriteria(c)
-   if validateChoice(looking_glass_criteria, c, 1) then
+local function validateCustomColumn(c)
+   local custom_column_utils = require("custom_column_utils")
+
+   if validateChoice(custom_column_utils.available_custom_columns, c, 1) then
       return true
    else
       return false
@@ -859,6 +872,22 @@ end
 
 local function validateInterfaceConfMode(m)
    return validateChoice({"dhcp", "static", "vlan_trunk"}, m)
+end
+
+-- #################################################################
+
+local function validateAssociations(associations)
+   if not associations or not type(associations) == "table" then
+      return false
+   end
+
+   for k, v in pairs(associations) do
+      if not isValidPoolMember(k) then
+	 return false
+      end
+   end
+
+   return true
 end
 
 -- #################################################################
@@ -937,6 +966,7 @@ local known_parameters = {
    ["host"]                    = validateHost,                  -- an IPv4 (optional @vlan), IPv6 (optional @vlan), or MAC address
    ["versus_host"]             = validateHost,                  -- an host for comparison
    ["mac"]                     = validateMac,                   -- a MAC address
+   ["tskey"]                   = validateSingleWord,            -- host identifier for timeseries
    ["peer1"]                   = validateHost,                  -- a Peer in a connection
    ["peer2"]                   = validateHost,                  -- another Peer in a connection
    ["origin"]                  = validateHost,                  -- the source of the alert
@@ -1052,7 +1082,8 @@ local known_parameters = {
    ["intfs"]                   = validateInterfacesList,        -- a list of network interfaces ids
    ["search"]                  = validateBool,                  -- When set, a search should be performed
    ["search_flows"]            = validateBool,                  -- When set, a flow search should be performed
-   ["criteria"]                = validateLookingGlassCriteria,  -- A looking glass criteria
+   ["custom_column"]           = validateCustomColumn,
+   ["criteria"]           = validateCustomColumn,
    ["row_id"]                  = validateNumber,                -- A number used to identify a record in a database
    ["rrd_file"]                = validateUnquoted,              -- A path or special identifier to read an RRD file
    ["port"]                    = validatePort,                  -- An application port
@@ -1218,6 +1249,7 @@ local known_parameters = {
    ["bridging_policy_target_type"]                 = validateChoiceInline({"per_protocol", "per_category", "both"}),
    ["timeseries_driver"]                           = validateChoiceInline({"rrd", "influxdb"}),
    ["ts_high_resolution"]                          = validateNumber,
+   ["serialize_local_broadcast_hosts_as_macs"]     = validateBool,
 
    -- Other
    ["flush_alerts_data"]                           = validateEmpty,
@@ -1401,6 +1433,10 @@ local known_parameters = {
    ["list_name"]               = validateUnquoted,
    ["list_enabled"]            = validateOnOff,
    ["list_update"]             = validateNumber,
+   ["dhcp_ranges"]             = validateListOfTypeInline(validateIpRange),
+
+   -- Host Pools / users associations
+   ["associations"]            = { jsonCleanup, validateAssociations },
 
    -- json POST DATA
    ["payload"]                 = { jsonCleanup, validateJSON },
@@ -1515,7 +1551,7 @@ function http_lint.validationError(t, param, value, message)
    -- TODO graceful exit
    local s_id
    if t == _GET then s_id = "_GET" else s_id = "_POST" end
-   error("[LINT] " .. s_id .. "[\"" .. param .. "\"] = \"" .. value .. "\" parameter error: " .. message)
+   error("[LINT] " .. s_id .. "[\"" .. param .. "\"] = \"" .. (value or 'nil') .. "\" parameter error: " .. message)
 end
 
 -- #################################################################

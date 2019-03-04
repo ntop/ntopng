@@ -50,6 +50,9 @@ class Ntop {
   NtopGlobals *globals; /**< Pointer of Ntop globals info and variables. */
   u_int num_cpus; /**< Number of physical CPU cores. */
   Redis *redis; /**< Pointer to the Redis server. */
+#ifdef HAVE_EBPF
+  void *ebpf;
+#endif
 #ifndef HAVE_NEDGE
   ElasticSearch *elastic_search; /**< Pointer of Elastic Search. */
   Logstash *logstash; /**< Pointer of Logstash. */
@@ -68,6 +71,7 @@ class Ntop {
   int udp_socket;
   NtopPro *pro;
   DeviceProtocolBitmask deviceProtocolPresets[device_max_type];
+  bool is_started;
   
 #ifdef NTOPNG_PRO
 #ifndef WIN32
@@ -426,6 +430,7 @@ class Ntop {
   void shutdownAll();
   void runHousekeepingTasks();
   void runShutdownTasks();
+  inline bool isStarted() { return(is_started); }
   bool isLocalInterfaceAddress(int family, void *addr)       { return(local_interface_addresses.findAddress(family, addr) == -1 ? false : true);    };
   inline char* getLocalNetworkName(int16_t local_network_id) {
     return(address->get_local_network((u_int8_t)local_network_id));
@@ -460,6 +465,7 @@ class Ntop {
 			 char *label, int32_t lifetime_secs, char *ifname);
 #ifdef HAVE_EBPF
   void deliverEventToInterfaces(eBPFevent *event);
+  void pollEBPF();
 #endif
 #endif /* NTOPNG_PRO */
   

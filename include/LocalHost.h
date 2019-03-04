@@ -38,6 +38,12 @@ class LocalHost : public Host {
   void initialize();
   void freeLocalHostData();
   virtual void deleteHostData();
+
+  char * getMacBasedSerializationKey(char *redis_key, size_t size, char *mac_key);
+  char * getIpBasedSerializationKey(char *redis_key, size_t size);
+  bool deserialize();
+  bool deserializeFromRedisKey(char *key);
+
  public:
   LocalHost(NetworkInterface *_iface, Mac *_mac, u_int16_t _vlanId, IpAddress *_ip);
   LocalHost(NetworkInterface *_iface, char *ipAddress, u_int16_t _vlanId);
@@ -49,7 +55,6 @@ class LocalHost : public Host {
   virtual bool isSystemHost() const            { return(systemHost);        };
 
   virtual void  serialize2redis();
-  bool deserialize(char *json_str, char *key);
 
   virtual NetworkStats* getNetworkStats(int16_t networkId){ return(iface->getNetworkStats(networkId));   };
   virtual u_int32_t getActiveHTTPHosts()             { return(getHTTPstats() ? getHTTPstats()->get_num_virtual_hosts() : 0); };

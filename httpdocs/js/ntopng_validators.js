@@ -63,3 +63,12 @@ function hostOrMacValidator(input) {
 
   return is_mac_address(host) || is_good_ipv4(host) || is_good_ipv6(host);
 }
+
+function ipAddressValidator(input) {
+  var host = input.val();
+
+  /* Handled separately */
+  if (host === "") return true;
+
+  return is_good_ipv4(host) || is_good_ipv6(host);
+}

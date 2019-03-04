@@ -56,6 +56,7 @@ function page_utils.print_header(title)
     <link href="]] print(http_prefix) print[[/css/custom_theme.css?]] print(startup_epoch) print[[" rel="stylesheet">
     <script type="text/javascript" src="]] print(http_prefix) print[[/js/jquery_bootstrap.min.js?]] print(startup_epoch) print[["></script>
     <script type="text/javascript" src="]] print(http_prefix) print[[/js/deps.min.js?]] print(startup_epoch) print[["></script>
+    <script type="text/javascript" src="]] print(http_prefix) print[[/js/push.min.js?]] print(startup_epoch) print[["></script>
     <script type="text/javascript" src="]] print(http_prefix) print[[/js/ntop.min.js?]] print(startup_epoch) print[["></script>
   </head>
 <body>

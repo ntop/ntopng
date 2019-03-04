@@ -268,7 +268,7 @@ function sanitize_staging_dir() {
     # or PNG images when nEdge
     find "${STAGING_DIR}" -type f -name '*.*' -print0 |
     while IFS= read -r -d '' FL; do
-	if ! `file "${FL}" | grep -qc "ASCII text";`; then
+	if ! `file "${FL}" | grep -qc "\(ASCII text\|JSON data\)";`; then
 	    if [ "${NEDGE}" == "1" ]; then
 		if `file "${FL}" | grep -qc "PNG image data";`; then
 		    continue

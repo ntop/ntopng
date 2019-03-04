@@ -189,6 +189,8 @@ if not table.empty(alert_banners) then
    print("<br>")
 end
 
+print('<div style=\"display:none;\" id=\"flow_purged\" class=\"alert alert-danger\"><i class="fa fa-warning fa-lg"></i>&nbsp;'..i18n("flow_details.not_purged")..'</div>')
+
 throughput_type = getThroughputType()
 
 flow_key = _GET["flow_key"]
@@ -540,11 +542,16 @@ else
    if(icmp ~= nil) then
       print("<tr><th width=30%>"..i18n("flow_details.icmp_info").."</th><td colspan=2>".. getICMPTypeCode(icmp))
 
-      if icmp["unreach"] and icmp["unreach"]["flow"] then
-	 print(" ["..i18n("flow")..": ")
-	 print(" <A HREF='"..ntop.getHttpPrefix().."/lua/flow_details.lua?flow_key="..icmp["unreach"]["flow"]["ntopng.key"].."'><span class='label label-info'>Info</span></A>")
-	 print(" "..getFlowLabel(icmp["unreach"]["flow"], true, true))
-	 print("]")
+      if icmp["unreach"] then
+	 local unreachable_flow = interface.findFlowByTuple(flow["cli.ip"], flow["srv.ip"], flow["vlan"], icmp["unreach"]["dst_port"], icmp["unreach"]["src_port"], icmp["unreach"]["protocol"])
+
+	 if unreachable_flow then
+	    print(" ["..i18n("flow")..": ")
+	    print(" <A HREF='"..ntop.getHttpPrefix().."/lua/flow_details.lua?flow_key="..unreachable_flow["ntopng.key"].."'><span class='label label-info'>Info</span></A>")
+	    print(" "..getFlowLabel(unreachable_flow, true, true))
+	    print("]")
+	 else
+	 end
       end
 
       print("</td></tr>")
@@ -760,6 +767,19 @@ print (ntop.getHttpPrefix())
 print [[/lua/flow_stats.lua',
 		    data: { ifid: "]] print(tostring(ifid)) print [[", flow_key: "]] print(flow_key) print [[" },
 		    success: function(content) {
+                        if(content == "{}") {
+   ]]
+
+-- If the flow is already idle, another error message is already shown
+if(flow ~= nil) then
+   print[[
+                          var e = document.getElementById('flow_purged');
+                          e.style.display = "block";
+   ]]
+end
+
+print[[
+                        } else {
 			var rsp = jQuery.parseJSON(content);
 			$('#first_seen').html(rsp["seen.first"]);
 			$('#last_seen').html(rsp["seen.last"]);
@@ -821,7 +841,7 @@ print [[/lua/flow_stats.lua',
 			   $('#top_throughput').html(rsp["top_throughput_display"]);
 			} else {
 			   $('#throughput_trend').html("<i class=\"fa fa-minus\"></i>");
-			}]]
+			} ]]
 
       if(isThereSIP == 1) then
 	updatePrintSip()
@@ -853,7 +873,7 @@ print [[			cli2srv_packets = rsp["cli2srv.packets"];
 			values.shift();
 			values.push(rsp.throughput_raw);
 			thptChart.text(values.join(",")).change();
-		     }
+		     } }
 		   });
 		 }
 

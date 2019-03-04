@@ -9,6 +9,7 @@ require "lua_utils"
 local host_pools_utils = require "host_pools_utils"
 local ts_utils = require("ts_utils")
 local page_utils = require("page_utils")
+local custom_column_utils = require("custom_column_utils")
 active_page = "hosts"
 local have_nedge = ntop.isnEdge()
 
@@ -122,6 +123,9 @@ if (_GET["page"] ~= "historical") then
       traffic_type_title = ""
    end
 
+   custom_column_utils.updateCustomColumn()
+   local custom_name, custom_key, custom_align = custom_column_utils.getCustomColumnName()
+
    print [[
       <hr>
       <div id="table-hosts"></div>
@@ -136,6 +140,7 @@ if (_GET["page"] ~= "historical") then
 
    print [[
 	 host_rows_option["ip"] = true;
+         host_rows_option["custom_column"] = "]] print(custom_key) print[[";
 	 $("#table-hosts").datatable({
 			title: "Hosts List",
 			url: url_update ,
@@ -220,6 +225,8 @@ if (_GET["page"] ~= "historical") then
 	 mode_label = i18n("hosts_stats.filtered")
       elseif mode == "blacklisted" then
 	 mode_label = i18n("hosts_stats.blacklisted")
+      elseif mode == "dhcp" then
+	 mode_label = i18n("nedge.network_conf_dhcp")
       end
 
       -- Note: we must use the empty string as fallback. Multiple spaces will be collapsed into one automatically.
@@ -265,6 +272,12 @@ if (_GET["page"] ~= "historical") then
 
    -- Ip version selector
    print[['<div class="btn-group pull-right">]]
+   custom_column_utils.printCustomColumnDropdown(base_url, page_params)
+   print[[</div>']]
+   
+
+   -- Ip version selector
+   print[[, '<div class="btn-group pull-right">]]
    printIpVersionDropdown(base_url, page_params)
    print[[</div>']]
 
@@ -303,13 +316,22 @@ if (_GET["page"] ~= "historical") then
    print (getPageUrl(base_url, hosts_filter_params))
    print ('">'..i18n("hosts_stats.remote_hosts_only")..'</a></li>')
 
-   hosts_filter_params.mode = "broadcast_domain"
-   print('<li')
-   if mode == hosts_filter_params.mode then print(' class="active"') end
-   print('><a href="')
-   print (getPageUrl(base_url, hosts_filter_params))
-   print ('">'..i18n("hosts_stats.broadcast_domain_hosts_only")..'</a></li>')
+   if(ifstats.name:contains(".pcap") == false) then
+      hosts_filter_params.mode = "dhcp"
+      print('<li')
+      if mode == hosts_filter_params.mode then print(' class="active"') end
+      print('><a href="')
+      print (getPageUrl(base_url, hosts_filter_params))
+      print ('">'..i18n("mac_stats.dhcp_only")..'</a></li>')
 
+      hosts_filter_params.mode = "broadcast_domain"
+      print('<li')
+      if mode == hosts_filter_params.mode then print(' class="active"') end
+      print('><a href="')
+      print (getPageUrl(base_url, hosts_filter_params))
+      print ('">'..i18n("hosts_stats.broadcast_domain_hosts_only")..'</a></li>')
+   end
+   
    hosts_filter_params.mode = "blacklisted"
    print('<li')
    if mode == hosts_filter_params.mode then print(' class="active"') end
@@ -342,7 +364,7 @@ if (_GET["page"] ~= "historical") then
    end
 
    print('</ul></div>\'')
-   
+
    print(' ],')
 
    print [[
@@ -418,11 +440,14 @@ if (_GET["page"] ~= "historical") then
 			     }
 
 				 },  {
-			     title: "]] print(i18n("show_alerts.alerts")) print[[",
-				 field: "column_alerts",
+			     title: "]]
+   -- tprint({custom_name = custom_name, custom_key = custom_key, custom_align = custom_align})
+   print(custom_name)
+   print[[",
+				 field: "column_]] print(custom_key) print[[",
 				 sortable: true,
 	 	             css: {
-			        textAlign: 'center'
+			        textAlign: ']] print(custom_align) print[['
 			     }
 
 				 },

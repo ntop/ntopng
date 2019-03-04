@@ -245,6 +245,7 @@ bool TimelineExtract::extractLive(struct mg_connection *conn, NetworkInterface *
 
 static void *extractionThread(void *ptr) {
   TimelineExtract *extr = (TimelineExtract *) ptr;
+  Utils::setThreadName("TimelineExtract");
 
   extr->extractToDisk(
     extr->getID(),

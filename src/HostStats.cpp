@@ -39,6 +39,7 @@ HostStats::HostStats(Host *_host) {
 
   total_num_flows_as_client = total_num_flows_as_server = 0;
   anomalous_flows_as_client = anomalous_flows_as_server = 0;
+  total_alerts = 0;
   checkpoint_set = false;
   checkpoint_sent_bytes = checkpoint_rcvd_bytes = 0;
   memset(&tcpPacketStats, 0, sizeof(tcpPacketStats));
@@ -66,6 +67,7 @@ void HostStats::getJSONObject(json_object *my_object, DetailsLevel details_level
     json_object_object_add(my_object, "flows.as_server", json_object_new_int(getTotalNumFlowsAsServer()));
     json_object_object_add(my_object, "anomalous_flows.as_client", json_object_new_int(getTotalAnomalousNumFlowsAsClient()));
     json_object_object_add(my_object, "anomalous_flows.as_server", json_object_new_int(getTotalAnomalousNumFlowsAsServer()));
+    json_object_object_add(my_object, "total_alerts", json_object_new_int(total_alerts));
 
     if(total_num_dropped_flows)
       json_object_object_add(my_object, "flows.dropped", json_object_new_int(total_num_dropped_flows));
@@ -82,6 +84,7 @@ void HostStats::getJSONObject(json_object *my_object, DetailsLevel details_level
 void HostStats::lua(lua_State* vm, bool mask_host, bool host_details, bool verbose) {
   lua_push_uint64_table_entry(vm, "bytes.sent", sent.getNumBytes());
   lua_push_uint64_table_entry(vm, "bytes.rcvd", rcvd.getNumBytes());
+  lua_push_uint64_table_entry(vm, "bytes.ndpi.unknown", getnDPIStats() ? getnDPIStats()->getProtoBytes(NDPI_PROTOCOL_UNKNOWN) : 0);
 
   if(verbose) {
     if(ndpiStats)        ndpiStats->lua(iface, vm, true);
@@ -139,7 +142,7 @@ void HostStats::lua(lua_State* vm, bool mask_host, bool host_details, bool verbo
     lua_push_uint64_table_entry(vm, "flows.as_server", getTotalNumFlowsAsServer());
     lua_push_uint64_table_entry(vm, "anomalous_flows.as_client", getTotalAnomalousNumFlowsAsClient());
     lua_push_uint64_table_entry(vm, "anomalous_flows.as_server", getTotalAnomalousNumFlowsAsServer());
-
+    lua_push_uint64_table_entry(vm, "total_alerts", total_alerts);
     lua_push_uint64_table_entry(vm, "udp.packets.sent",  udp_sent.getNumPkts());
     lua_push_uint64_table_entry(vm, "udp.bytes.sent", udp_sent.getNumBytes());
     lua_push_uint64_table_entry(vm, "udp.packets.rcvd",  udp_rcvd.getNumPkts());
