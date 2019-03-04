@@ -7043,11 +7043,14 @@ void NetworkInterface::reloadDhcpRanges() {
   u_int num_ranges = 0;
   u_int len;
 
+  if(!ntop->getRedis())
+    return;
+
   snprintf(redis_key, sizeof(redis_key), IFACE_DHCP_RANGE_KEY, get_id());
 
-  if((rsp = (char*)malloc(CONST_MAX_LEN_REDIS_VALUE)) &&
-      (!ntop->getRedis()->get(redis_key, rsp, CONST_MAX_LEN_REDIS_VALUE)) &&
-      (len = strlen(rsp))) {
+  if((rsp = (char*)malloc(CONST_MAX_LEN_REDIS_VALUE))
+     && !ntop->getRedis()->get(redis_key, rsp, CONST_MAX_LEN_REDIS_VALUE)
+     && (len = strlen(rsp))) {
     u_int i;
     num_ranges = 1;
 
