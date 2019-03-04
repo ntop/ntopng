@@ -3483,7 +3483,6 @@ FlowStatus Flow::getFlowStatus() {
 
 #ifndef HAVE_NEDGE
 	if(isIdle  && lowGoodput)  return status_slow_data_exchange;
-	if(isIdle  && !lowGoodput) return status_slow_tcp_connection;
 
 	if(!isIdle && lowGoodput) {
 	  if(isTCPReset())
