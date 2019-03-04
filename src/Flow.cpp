@@ -3304,14 +3304,12 @@ void Flow::recheckQuota(const struct tm *now) {
 /* *************************************** */
 
 bool Flow::isLowGoodput() {
-#ifdef HAVE_NEDGE
-  return(false);
-#else
-  if(protocol == IPPROTO_UDP)
+  if(iface->getIfType() == interface_type_ZMQ
+     || iface->getIfType() == interface_type_NETFILTER
+     || protocol == IPPROTO_UDP)
     return(false);
   else
     return((((get_goodput_bytes()*100)/(get_bytes()+1 /* avoid zero divisions */)) < FLOW_GOODPUT_THRESHOLD) ? true : false);
-#endif // HAVE_NEDGE
 }
 
 /* *************************************** */
