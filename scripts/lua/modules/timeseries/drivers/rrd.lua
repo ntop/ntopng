@@ -88,9 +88,11 @@ local function schema_get_path(schema, tags)
     host_or_network = (HOST_PREFIX_MAP[parts[1]] or (parts[1] .. ":")) .. tags[schema._tags[2]]
 
     if parts[1] == "snmp_if" then
-      suffix = tags.if_index .. "/"
+       suffix = tags.if_index .. "/"
     elseif (parts[1] == "flowdev_port") or (parts[1] == "sflowdev_port") then
-      suffix = tags.port .. "/"
+       suffix = tags.port .. "/"
+    elseif parts[2] == "ndpi_categories" then
+       suffix = "ndpi_categories/"
     end
   end
 
