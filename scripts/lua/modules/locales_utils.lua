@@ -33,22 +33,12 @@ local supported_locales = {
    jp = {code = "jp"}
 }
 
-local function lookupLocale(localename, is_pro)
+local function lookupLocale(localename)
    local base_path = dirs.installdir..'/scripts/locales/'
    local locale_path = base_path .. localename .. ".lua"
 
    if ntop.exists(locale_path) and supported_locales[localename] then
       return locale_path
-   end
-
-   -- Look for pro-only locales
-   if ntop.isPro() then
-      base_path = dirs.installdir..'/scripts/lua/pro/../locales/'
-      locale_path = base_path .. localename .. ".lua"
-
-      if ntop.exists(locale_path) and supported_locales[localename] then
-	 return locale_path
-      end
    end
 
    return nil
