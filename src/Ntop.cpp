@@ -1362,6 +1362,25 @@ bool Ntop::checkUserPassword(const char * const user, const char * const passwor
 
           strncpy(group, auth.admin ? CONST_USER_GROUP_ADMIN : CONST_USER_GROUP_UNPRIVILEGED, NTOP_GROUP_MAXLEN);
           group[NTOP_GROUP_MAXLEN - 1] = '\0';
+          if(auth.allowedNets != NULL) {
+            if(!Ntop::changeAllowedNets((char*)user, auth.allowedNets)) {
+              ntop->getTrace()->traceEvent(TRACE_ERROR, "HTTP: unable to set allowed nets for user %s", user);
+              goto http_auth_out;
+            }
+          }
+          if(auth.allowedIfname != NULL) {
+            if(!Ntop::changeAllowedIfname((char*)user, auth.allowedIfname)) {
+              ntop->getTrace()->traceEvent(TRACE_ERROR, "HTTP: unable to set allowed ifname for user %s", user);
+              goto http_auth_out;
+            }
+          }
+          if(auth.language != NULL) {
+            if(!Ntop::changeUserLanguage((char*)user, auth.language)) {
+              ntop->getTrace()->traceEvent(TRACE_ERROR, "HTTP: unable to set language for user %s", user);
+              goto http_auth_out;
+            }
+          }
+
           http_ret = true;
         } else
           ntop->getTrace()->traceEvent(TRACE_WARNING, "HTTP: authentication rejected [code=%d]", rc);
@@ -1369,6 +1388,7 @@ bool Ntop::checkUserPassword(const char * const user, const char * const passwor
         ntop->getTrace()->traceEvent(TRACE_WARNING, "HTTP: could not contact the HTTP authenticator");
 
     http_auth_out:
+      Utils::freeAuthenticator(&auth);
       if(httpUrl) free(httpUrl);
       if(postData) free(postData);
       if(returnData) free(returnData);
