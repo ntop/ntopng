@@ -111,7 +111,7 @@ void ArpStatsMatrixElement::lua(lua_State* vm) {
   lua_push_uint64_table_entry(vm, "me_stats.rcvd.replies", stats.rcvd.replies);
 
   strcpy(index,buf1);
-  strcat(index,"-");
+  strcat(index,".");
   strcat(index,buf2); 
 
   lua_pushstring(vm, index);
