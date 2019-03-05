@@ -36,6 +36,7 @@ class ICMPstats {
  private:
   ICMPstats_t *stats;
   Mutex m;
+  MonitoredCounter<u_int32_t> num_destination_unreachable;
 
   void addToTable(const char *label, lua_State *vm, ICMPstats_t *curr);
   inline int  get_typecode(u_int8_t icmp_type, u_int8_t icmp_code) { return((icmp_type << 8) + icmp_code); }
@@ -46,7 +47,10 @@ class ICMPstats {
   ~ICMPstats();
 
   void incStats(u_int8_t icmp_type, u_int8_t icmp_code, bool sent, Host *peer);
-  void lua(bool isV4, lua_State *vm);  
+  void updateStats(const struct timeval *tv);
+  void lua(bool isV4, lua_State *vm);
+  bool hasAnomalies(time_t when);
+  void luaAnomalies(lua_State* vm, time_t when);
   void sum(ICMPstats *e);
 };
 

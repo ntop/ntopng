@@ -79,6 +79,7 @@ void LocalHostStats::updateStats(struct timeval *tv) {
   HostStats::updateStats(tv);
 
   if(dns)  dns->updateStats(tv);
+  if(icmp) icmp->updateStats(tv);
   if(http) http->updateStats(tv);
 
   if(top_sites && ntop->getPrefs()->are_top_talkers_enabled() && (tv->tv_sec >= nextSitesUpdate)) {
@@ -293,7 +294,8 @@ void LocalHostStats::tsLua(lua_State* vm) {
 bool LocalHostStats::hasAnomalies(time_t when) {
   bool ret = false;
 
-  if(dns) ret |= dns->hasAnomalies(when);
+  if(dns)  ret |= dns->hasAnomalies(when);
+  if(icmp) ret |= icmp->hasAnomalies(when);
 
   return ret;
 }
@@ -301,5 +303,6 @@ bool LocalHostStats::hasAnomalies(time_t when) {
 /* *************************************** */
 
 void LocalHostStats::luaAnomalies(lua_State* vm, time_t when) {
-  if(dns) dns->luaAnomalies(vm, when);
+  if(dns)  dns->luaAnomalies(vm, when);
+  if(icmp) icmp->luaAnomalies(vm, when);
 }
