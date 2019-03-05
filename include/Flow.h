@@ -490,7 +490,7 @@ class Flow : public GenericHashEntry {
   inline void setIngress2EgressDirection(bool _ingress2egress) { ingress2egress_direction = _ingress2egress; }
   inline bool isIngress2EgressDirection() { return(ingress2egress_direction); }
 #endif
-  void housekeep();
+  void housekeep(time_t t);
   void postFlowSetPurge(time_t t);
 #ifdef HAVE_EBPF
   void setProcessInfo(eBPFevent *event, bool client_process);

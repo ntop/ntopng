@@ -5132,6 +5132,28 @@ void NetworkInterface::setnDPIProtocolCategory(u_int16_t protoId, ndpi_protocol_
   ndpi_set_proto_category(ndpi_struct, protoId, protoCategory);
 }
 
+/* *************************************** */
+
+static bool guess_all_ndpi_protocols_walker(GenericHashEntry *node, void *user_data, bool *matched) {
+  Flow *flow = (Flow*)node;
+  NetworkInterface *iface = (NetworkInterface*)user_data;
+
+  if(!flow->isDetectionCompleted() && iface->get_ndpi_struct() && flow->get_ndpi_flow())
+    flow->setDetectedProtocol(ndpi_detection_giveup(iface->get_ndpi_struct(), flow->get_ndpi_flow(), 1), true);
+
+  return(false /* keep walking */);
+}
+
+/* *************************************** */
+
+void NetworkInterface::guessAllnDPIProtocols() {
+  u_int32_t begin_slot = 0;
+  bool walk_all = true;
+
+  walker(&begin_slot, walk_all, walker_flows,
+	 guess_all_ndpi_protocols_walker, this);
+}
+
 /* **************************************************** */
 
 void NetworkInterface::getnDPIProtocols(lua_State *vm, ndpi_protocol_category_t filter, bool skip_critical) {

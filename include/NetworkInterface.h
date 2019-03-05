@@ -412,6 +412,7 @@ class NetworkInterface : public Checkpointable {
   virtual void lua(lua_State* vm);
   void getnDPIProtocols(lua_State *vm, ndpi_protocol_category_t filter, bool skip_critical);
   void setnDPIProtocolCategory(u_int16_t protoId, ndpi_protocol_category_t protoCategory);
+  void guessAllnDPIProtocols();
 
   int getActiveHostsList(lua_State* vm,
 			 u_int32_t *begin_slot,

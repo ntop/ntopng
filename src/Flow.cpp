@@ -530,29 +530,27 @@ void Flow::guessProtocol() {
   else
     detection_completed = true; /* We give up */
 
-  if(iface->getIfType() == interface_type_ZMQ) { /* ZMQ interface */
-    /* This code should no longer be necessary as the nDPI API changed */
-    if((protocol == IPPROTO_TCP) || (protocol == IPPROTO_UDP)) {
-      if(cli_host && srv_host) {
-	/* We can guess the protocol */
-	IpAddress *cli_ip = cli_host->get_ip(), *srv_ip = srv_host->get_ip();
-	ndpi_protocol guessed_proto = ndpi_guess_undetected_protocol(iface->get_ndpi_struct(), NULL, protocol,
-							      ntohl(cli_ip ? cli_ip->get_ipv4() : 0),
-							      ntohs(cli_port),
-							      ntohl(srv_ip ? srv_ip->get_ipv4() : 0),
-							      ntohs(srv_port));
-	ndpiDetectedProtocol.master_protocol = guessed_proto.master_protocol;
-	ndpiDetectedProtocol.app_protocol = guessed_proto.app_protocol;
+  /* This code should no longer be necessary as the nDPI API changed */
+  if((protocol == IPPROTO_TCP) || (protocol == IPPROTO_UDP)) {
+    if(cli_host && srv_host) {
+      /* We can guess the protocol */
+      IpAddress *cli_ip = cli_host->get_ip(), *srv_ip = srv_host->get_ip();
+      ndpi_protocol guessed_proto = ndpi_guess_undetected_protocol(iface->get_ndpi_struct(), NULL, protocol,
+								   ntohl(cli_ip ? cli_ip->get_ipv4() : 0),
+								   ntohs(cli_port),
+								   ntohl(srv_ip ? srv_ip->get_ipv4() : 0),
+								   ntohs(srv_port));
+      ndpiDetectedProtocol.master_protocol = guessed_proto.master_protocol;
+      ndpiDetectedProtocol.app_protocol = guessed_proto.app_protocol;
 
-	/* NOTE: only overwrite the category if it was not set.
-	 * This prevents overwriting already determined category (e.g. by IP or Host)
-	 */
-	if(ndpiDetectedProtocol.category == NDPI_PROTOCOL_CATEGORY_UNSPECIFIED)
-	  ndpiDetectedProtocol.category = guessed_proto.category;
-      }
-      
-      l7_protocol_guessed = true;
+      /* NOTE: only overwrite the category if it was not set.
+       * This prevents overwriting already determined category (e.g. by IP or Host)
+       */
+      if(ndpiDetectedProtocol.category == NDPI_PROTOCOL_CATEGORY_UNSPECIFIED)
+	ndpiDetectedProtocol.category = guessed_proto.category;
     }
+
+    l7_protocol_guessed = true;
   }
 }
 
@@ -885,8 +883,6 @@ bool Flow::dumpFlow(bool dump_alert) {
       /* flows idle, i.e., ready to be purged, are always dumped */
     }
 
-    guessProtocol();
-      
 #ifdef NTOPNG_PRO
     if(ntop->getPro()->has_valid_license() && ntop->getPrefs()->is_enterprise_edition())
       getInterface()->aggregatePartialFlow(this);
@@ -963,12 +959,6 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
   int16_t stats_protocol; /* The protocol (among ndpi master_ and app_) that is chosen to increase stats */
   Vlan *vl;
   NetworkStats *cli_network_stats;
-
-  if((!isDetectionCompleted()) && ((tv->tv_sec - get_last_seen()) > 5 /* sec */)) {
-    /* If we have not found out the protocol until now we can give up at this point */
-    ndpi_protocol proto_id = { NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_CATEGORY_UNSPECIFIED };
-    setDetectedProtocol(proto_id, true);
-  }
 
   if(isReadyToPurge()) {
     /* Marked as ready to be purged, will be purged by NetworkInterface::purgeIdleFlows */
@@ -2281,7 +2271,7 @@ bool Flow::isNetfilterIdleFlow() {
 
 /* *************************************** */
 
-void Flow::housekeep() {
+void Flow::housekeep(time_t t) {
 #ifdef HAVE_NEDGE
   if(iface->getIfType() == interface_type_NETFILTER) {
     if(isNetfilterIdleFlow()) {
@@ -2289,6 +2279,11 @@ void Flow::housekeep() {
     }
   }
 #endif
+
+  if(!isDetectionCompleted() && t - get_last_seen() > 5 /* sec */
+     && iface->get_ndpi_struct()
+     && get_ndpi_flow())
+    setDetectedProtocol(ndpi_detection_giveup(iface->get_ndpi_struct(), get_ndpi_flow(), 1), true);
 }
 
 /* *************************************** */

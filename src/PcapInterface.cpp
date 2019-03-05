@@ -289,6 +289,8 @@ static void* packetPollLoop(void* ptr) {
 	iface->purgeIdle(time(NULL));
       }
     } /* while */
+    if(iface->read_from_pcap_dump())
+      iface->guessAllnDPIProtocols();
   } while(pcap_list != NULL);
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Terminated packet polling for %s",

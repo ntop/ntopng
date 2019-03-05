@@ -217,6 +217,7 @@ bool GenericHash::walk(u_int32_t *begin_slot,
 
 u_int GenericHash::purgeIdle() {
   u_int i, num_purged = 0, buckets_checked = 0;
+  time_t now = time(NULL);
 
   if(ntop->getGlobals()->isShutdown()
      || purgeLock.is_locked())
@@ -256,7 +257,7 @@ u_int GenericHash::purgeIdle() {
 	  head = next;
 	} else {
 	  /* Do the chores */
-	  head->housekeep();
+	  head->housekeep(now);
 
 	  /* Purge at the next run */
 	  if(head->idle())
