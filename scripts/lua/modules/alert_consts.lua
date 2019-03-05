@@ -52,6 +52,7 @@ alert_consts.alert_type_keys = {
    { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.inactivity"),                  29, "inactivity"                 },
    { "<i class='fa fa-life-ring'></i> " .. i18n("alerts_dashboard.active_flows_anomaly"),          30, "active_flows_anomaly"       },
    { "<i class='fa fa-sticky-note'></i> " .. i18n("alerts_dashboard.list_download_failed"),        31, "list_download_failed"       },
+   { "<i class='fa fa-life-ring'></i> " .. i18n("alerts_dashboard.dns_anomaly"),                   32, "dns_anomaly"                },
 }
 
 -- Keep in sync with ntop_typedefs.h:AlertEntity

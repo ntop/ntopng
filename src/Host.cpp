@@ -449,7 +449,7 @@ void Host::luaAnomalies(lua_State* vm) {
     if(num_active_flows_as_server.is_anomalous(now))
       num_active_flows_as_server.lua(vm, "num_active_flows_as_server");
 
-    // stats->luaAnomalies(vm, now); TODO: add back
+    stats->luaAnomalies(vm, now);
 
     lua_pushstring(vm, "anomalies");
     lua_insert(vm, -2);

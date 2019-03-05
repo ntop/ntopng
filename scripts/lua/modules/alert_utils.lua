@@ -2145,6 +2145,28 @@ local function formatActiveFlowsAnomaly(ifid, engine, entity_type, entity_value,
    return ""
 end
 
+local function formatDNSAnomaly(ifid, engine, entity_type, entity_value, entity_info, alert_key, alert_info)
+   -- tprint({ifid =ifid, engine = engine, entity_type = entity_type, entity_value = entity_value, entity_info = entity_info, alert_key = alert_key, alert_info = alert_info})
+
+   if entity_info.anomalies ~= nil then
+      for _, v in pairs({"dns.rcvd.num_replies_ok", "dns.rcvd.num_queries", "dns.rcvd.num_replies_error",
+			 "dns.sent.num_replies_ok", "dns.sent.num_queries", "dns.sent.num_replies_error"}) do
+	 if alert_key == v and entity_info.anomalies[v] then
+	    local anomaly_info = entity_info.anomalies[v]
+
+	    local res =  string.format("%s has a DNS anomaly [%s][current=%u, last=%u, delta=%d] [anomaly_index=%u]",
+				       firstToUpper(formatAlertEntity(ifid, entity_type, entity_value, entity_info)),
+				       v,
+				       anomaly_info.value, anomaly_info.last_value, anomaly_info.value - anomaly_info.last_value,
+				       anomaly_info.anomaly_index)
+	    return res
+	 end
+      end
+   end
+
+   return ""
+end
+
 -- returns the pair (message, severity)
 local function formatAlertMessage(ifid, engine, entity_type, entity_value, atype, akey, entity_info, alert_info)
    -- Defaults
@@ -2167,6 +2189,8 @@ local function formatAlertMessage(ifid, engine, entity_type, entity_value, atype
       msg = formatInactivity(ifid, engine, entity_type, entity_value, entity_info, akey, alert_info)
    elseif atype == "active_flows_anomaly" then
       msg = formatActiveFlowsAnomaly(ifid, engine, entity_type, entity_value, entity_info, akey, alert_info)
+   elseif atype == "dns_anomaly" then
+      msg = formatDNSAnomaly(ifid, engine, entity_type, entity_value, entity_info, akey, alert_info)
    end
 
    return msg, severity
@@ -2271,6 +2295,8 @@ local function check_entity_alerts(ifid, entity_type, entity_value, working_stat
 	 return "misconfigured_app"
       elseif starts(anomal_name, "num_active_flows_as_") then -- e.g. num_active_flows_as_client
 	 return "active_flows_anomaly"
+      elseif starts(anomal_name, "dns.") then -- e.g. dns.sent.num_queries
+	 return "dns_anomaly"
       end
 
       return nil
@@ -2281,7 +2307,8 @@ local function check_entity_alerts(ifid, entity_type, entity_value, working_stat
       for anomal_name, anomaly in pairs(entity_info.anomalies or {}) do
 	 local anomal_type = getAnomalyType(anomal_name)
 
-	 if((anomal_type == "active_flows_anomaly") and (ntop.getPref("ntopng.prefs.beta_anomaly_index_alerts") ~= "1")) then
+	 if((anomal_type == "active_flows_anomaly" or anomal_type == "dns_anomaly")
+	    and (ntop.getPref("ntopng.prefs.beta_anomaly_index_alerts") ~= "1")) then
 	    goto skip
 	 end
 

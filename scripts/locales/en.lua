@@ -234,6 +234,7 @@ local lang = {
   },
   ["alerts_dashboard"] = {
     ["active_flows_anomaly"] = "Active Flows Anomaly",
+    ["dns_anomaly"] = "DNS Anomaly",
     ["alert_counts"] = "Counts",
     ["alert_duration"] = "Duration",
     ["alert_severity"] = "Severity",
