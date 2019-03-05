@@ -50,7 +50,7 @@ local driver = ts_utils.getQueryDriver()
 local latest_tstamp = driver:getLatestTimestamp(tags.ifid or -1)
 
 local options = {
-  max_num_points = tonumber(_GET["limit"]),
+  max_num_points = tonumber(_GET["limit"]) or 60,
   initial_point = toboolean(_GET["initial_point"]),
   with_series = true,
   target_aggregation = ts_aggregation,

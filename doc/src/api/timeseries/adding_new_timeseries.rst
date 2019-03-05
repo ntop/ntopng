@@ -1,136 +1,80 @@
-Custom Timeseries
-#################
+Adding New Metrics
+##################
 
-ntopng supports the creation of custom timeseries for:
+General Overview
+================
 
-  - Local hosts
-  - Interfaces
+Traffic elements (such as local hosts and interfaces) are iterated periodically
+and by some Lua scripts and their statistics are dumped in the form of timeseries.
+Traffic elements are handled in some standard ways:
 
-Neither remote hosts nor flows can be used when creating custom
-timeseries.
+   1. Most traffic elements are implemented in C, and their statistics are passed
+      to lua via the :code:`::lua` method. For example, :code:`AutonomousSystem::lua` dumps
+      the autonomous system statistics to lua. *Important* if the element has a `::tsLua`
+      method check out the case 2 below.
 
-Custom timeseries can be created out of metrics.
+   2. Some other traffic elements are implemented in C, but their statistics are hold
+      on a :code:`TimeseriesPoint` rather then the element itself. For example, the
+      local hosts data is stored into the :code:`HostTimeseriesPoint` class. In order
+      to add new timeseries for a local host, the :code:`HostTimeseriesPoint` is the
+      class to modify (and related :code:`::lua` method).
 
-Interface Metrics
-=================
+   3. Some traffic elements are implemented in Lua. Their state is stored in Redis
+      usually in json form. This includes, for example, the SNMP devices.
 
-Supported metrics for the creation of interface timeseries are:
+In order to add a custom timeseries it's necessary to identify the correct case
+above. It's also important to note that not all the traffic elements can be exported.
+Remote Hosts and Flows timeseries, for example, cannot be exported anyway due to the
+design of ntopng.
 
-  - Layer-7 applications bytes sent and received
-  - Layer-4 TCP, UDP, ICMP bytes sent and received
-  - Total bytes sent and received
-  - Total alerts
-  - etc.
+Case 1: Adding metrics via the `::lua` method
+---------------------------------------------
 
-An always-updated list of metrics can be determined by inspecting
-method :code:`NetworkInterface::lua`:
-https://github.com/ntop/ntopng/blob/dev/src/NetworkInterface.cpp
+The new metric should be exposed into the :code:`::lua` method. Then, you can
+simply add the metric to the `custom timeseries scripts`_. For example,
+the autonomous systems `num_hosts` field, exposed into the :code:`AutonomousSystem::lua`
+method, can be written as a timeseries in this way.
 
-Interface metrics are available as a lua table. An excerpt of such
-table is shown below:
+Please note that if the metric is already exposed into the :code:`::lua` method,
+you can keep compatibility with the standard ntopng and update it normally (no ntopng fork needed).
 
-.. code-block:: lua
+Case 2: Adding metrics inside a `TimeseriesPoint`
+-------------------------------------------------
 
-   speed number 1000
-   id number 1
-   stats table
-   stats.http_hosts number 0
-   stats.drops number 0
-   stats.devices number 2
-   stats.current_macs number 6
-   stats.hosts number 23
-   stats.num_live_captures number 0
-   stats.bytes number 50559082
-   stats.flows number 30
-   stats.local_hosts number 3
-   stats.packets number 64984
+In order to add a new metric to a LocalHost or NetworkInterface, the corresponding
+:code:`TimeseriesPoint` should be modified instead:
 
+   - For LocalHost, modify the :code:`HostTimeseriesPoint`
+   - For NetworkInterface, modify the :code:`NetworkInterfaceTsPoint`
 
-Host Metrics
-============
+Things to keep in mind:
 
-Supported metrics for the creation of host timeseries are:
+   - The new metric should be added to the header file (e.g. `HostTimeseriesPoint.h`).
+   - The metric should be written to the :code:`TimeseriesPoint`, (e.g. in :code:`LocalHostStats::makeTsPoint`)
+   - The metric should be exposed to lua in the :code:`TimeseriesPoint:lua` method (e.g. in :code:`HostTimeseriesPoint::lua`)
 
-  - Layer-7 applications bytes sent and received
-  - Layer-4 TCP, UDP, ICMP bytes sent and received
-  - Total bytes sent and received
-  - Active flows as client and as server
-  - Anomalous flows as client and as server
-  - Total alerts
-  - Number of hosts contacted as client
-  - Number of hosts contacts as server
+After this, the metric should now be available in Lua. Use the `custom timeseries scripts`_
+to export it as a timeseries. Since this requires modifications of the C source code,
+compatibility with the standard ntopng cannot be preserved.
 
-An always-updated list of host metrics can be determined by inspecting
-this file:
-https://github.com/ntop/ntopng/blob/dev/src/HostTimeseriesPoint.cpp
+Case 3: Adding metrics for lua only objects
+-------------------------------------------
 
-Host metrics are available in an handy lua table such as the one
-exemplified below:
+This really depends on the specific element to be added. Compatibility may or may not be assured.
 
-.. code-block:: lua
+.. _`custom timeseries scripts`: #custom-timeseries-scripts
 
-   ndpi_categories table
-   ndpi_categories.Cloud number 2880
-   anomalous_flows.as_server number 0
-   active_flows.as_client number 0
-   bytes.rcvd number 2880
-   icmp.bytes.rcvd number 0
-   tcp.bytes.rcvd number 0
-   total_alerts number 0
-   udp.bytes.rcvd number 2880
-   icmp.bytes.sent number 0
-   other_ip.bytes.rcvd number 0
-   other_ip.bytes.sent number 0
-   anomalous_flows.as_client number 0
-   contacts.as_server number 1
-   bytes.sent number 0
-   instant number 1550836500
-   tcp.bytes.sent number 0
-   udp.bytes.sent number 0
-   contacts.as_client number 0
-   ndpi table
-   ndpi.Dropbox string 0|2880
-   active_flows.as_server number 1
+Custom Timeseries Scripts
+=========================
 
-Specifically, Layer-7 application protocols are pushed in a table
-:code:`ndpi`, whose keys are the application names such as
-:code:`Dropbox`. For every application there are two values separated
-by a pipe, namely, bytes sent and bytes received. For example, in the
-excerpt above, :code:`Dropbox` application had received 0 bytes and
-had sent 2880 bytes at the time the excerpt was generated.
-   
-The table also contain a field :code:`instant` that represents the
-time at which metrics have been sampled.
+Once the new metrics are available in lua via one of the methods discussed above,
+it's necessary to export such metrics as timeseries. In order to do so, two actions are
+required:
 
-The table above can be accessed and its contents can be read/modified
-to prepare timeseries points.
+   - The metric format should be declared in a timeseries schema
+   - The metric should be written to the timeseries driver
 
-Metric Types
-============
-
-ntopng provides metrics of two types, namely gauges and
-counters. Timeseries can be created out of gauges and counters,
-transparently. The only thing that is necessary is to tell the
-timeseries engine the actual type, then the rest will be handled automatically.
-
-Gauges
-------
-
-Gauges are metrics such as the number of active flows
-(e.g., :code:`active_flows.as_client`, :code:`active_flows.as_server`) or active
-hosts at a certain point in time.
-
-
-Counters
---------
-
-Counters are for continuous incrementing metrics such as the total
-number of bytes (e.g., :code:`bytes.sent`,
-:code:`bytes.rcvd`).
-
-
-Adding Custom Timeseries
-========================
+Both actions can be implemented inside the custom timeseries scripts.
 
 ntopng handles custom timeseries with updates every:
 
@@ -158,8 +102,8 @@ copy them to :code:`ts_5min_custom.lua` and
 :code:`ts_minute_custom.lua` and modify the copies when it is necessary to
 add custom timeseries.
 
-Structure of Custom Timeseries Files
-------------------------------------
+Structure of Custom Timeseries Scripts
+--------------------------------------
 
 Every custom file must contain a method :code:`setup` which defines one or
 more schemas. Every custom timeseries *needs* a schema to function. A
@@ -278,14 +222,35 @@ Another example that creates 5-minute timeseries of local hosts total
 bytes can be seen at
 https://github.com/ntop/ntopng/blob/dev/scripts/lua/modules/timeseries/custom/ts_5min_custom.lua.sample
 
+Charting New Metrics
+====================
 
-Locating Stored Custom Timeseries
-=================================
+After exporting the new metrics to the timeseries driver (e.g. InfluxDB), the generated
+timeseries can be charted inside the traffic element page. The particular script to
+modify depends on the specific traffic element, here are some examples:
 
-TODO
+ - For local hosts, modify `host_details.lua`
+ - For network interfaces, modify `if_stats.lua`
 
-Charting Custom Timeseries
-==========================
+The script should contain a call to :code:`drawGraphs` with a :code:`timeseries` field.
+The new timeseries should be added to it. Here is for example a modified host_stats.lua
+with a new `host:low_goodput_flows` metric:
 
-TODO
+.. code:: lua
 
+   drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
+      top_protocols = "top:host:ndpi",
+   ...
+      timeseries = {
+         {schema="host:traffic",                label=i18n("traffic")},
+         {schema="host:flows",                  label=i18n("graphs.active_flows")},
+         {schema="host:anomalous_flows",        label=i18n("graphs.total_anomalous_flows")},
+
+         -- The new metric is added here in order to be shown into the charts
+         {schema="host:low_goodput_flows",      label="Low Goodput Flows"},
+   ...
+      }
+   })
+
+The metric will appear with the "Low Goodput Flows" into the timeseries dropdown
+after the timeseries points are available.
