@@ -103,12 +103,12 @@ void ArpStatsMatrixElement::lua(lua_State* vm) {
   Utils::formatMac(src_mac, buf1, sizeof(buf1));
   Utils::formatMac(dst_mac, buf2, sizeof(buf2));
 
-  lua_push_str_table_entry(vm, "me_src_mac", buf1 );
-  lua_push_str_table_entry(vm, "me_dst_mac", buf2 );
-  lua_push_uint64_table_entry(vm, "me_stats.sent.requests", stats.sent.requests);
-  lua_push_uint64_table_entry(vm, "me_stats.rcvd.requests", stats.rcvd.requests);
-  lua_push_uint64_table_entry(vm, "me_stats.sent.replies", stats.sent.replies);
-  lua_push_uint64_table_entry(vm, "me_stats.rcvd.replies", stats.rcvd.replies);
+  //lua_push_str_table_entry(vm, "me_src_mac", buf1 );
+  //lua_push_str_table_entry(vm, "me_dst_mac", buf2 );
+  lua_push_uint64_table_entry(vm, "sent.requests", stats.sent.requests);
+  lua_push_uint64_table_entry(vm, "rcvd.requests", stats.rcvd.requests);
+  lua_push_uint64_table_entry(vm, "sent.replies", stats.sent.replies);
+  lua_push_uint64_table_entry(vm, "rcvd.replies", stats.rcvd.replies);
 
   strcpy(index,buf1);
   strcat(index,".");
