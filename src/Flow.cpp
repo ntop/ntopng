@@ -43,6 +43,7 @@ Flow::Flow(NetworkInterface *_iface,
   l7_protocol_guessed = detection_completed = false,
     memset(&ndpiDetectedProtocol, 0, sizeof(ndpiDetectedProtocol)),
   doNotExpireBefore = iface->getTimeLastPktRcvd() + DONT_NOT_EXPIRE_BEFORE_SEC;
+
 #ifdef HAVE_NEDGE
   last_conntrack_update = 0;
   marker = MARKER_NO_ACTION;
@@ -187,9 +188,7 @@ Flow::~Flow() {
     free(client_proc);
   }
   
-  if(server_proc) {
-    free(server_proc);
-  }
+  if(server_proc) free(server_proc);  
 
   if(isHTTP()) {
     if(protos.http.last_method) free(protos.http.last_method);
@@ -526,7 +525,10 @@ void Flow::processDetectedProtocol() {
 /* *************************************** */
 
 void Flow::guessProtocol() {
-  detection_completed = true; /* We give up */
+  if(detection_completed)
+    return; /* Nothing to do */
+  else
+    detection_completed = true; /* We give up */
 
   if(iface->getIfType() == interface_type_ZMQ) { /* ZMQ interface */
     /* This code should no longer be necessary as the nDPI API changed */
@@ -580,11 +582,9 @@ void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
 	    || (get_packets() >= NDPI_MIN_NUM_PACKETS)
 	    || (!iface->is_ndpi_enabled())
 	    || iface->isSampledTraffic()
-	    ) {
+	    )
     guessProtocol();
-    detection_completed = true;
-  }
-
+  
   if(detection_completed) {
 #ifdef HAVE_NEDGE
     updateFlowShapers(true);
@@ -833,7 +833,6 @@ return(buf);
 
 bool Flow::dumpFlow(bool dump_alert) {
   bool rc = false;
-  time_t now;
 
   if(dump_alert) {
     /* NOTE: this can be very time consuming */
@@ -857,8 +856,6 @@ bool Flow::dumpFlow(bool dump_alert) {
 #endif
 #endif
 
-    now = time(NULL);
-
     if(!ntop->getPrefs()->is_tiny_flows_export_enabled() && isTiny()) {
 #ifdef TINY_FLOWS_DEBUG
       ntop->getTrace()->traceEvent(TRACE_NORMAL,
@@ -877,6 +874,8 @@ bool Flow::dumpFlow(bool dump_alert) {
     }
 
     if(!idle()) {
+        time_t now = time(NULL);
+      
       if(iface->getIfType() == interface_type_PCAP_DUMP
          || (now - get_first_seen()) < CONST_DB_DUMP_FREQUENCY
 	 || (now - last_db_dump.last_dump) < CONST_DB_DUMP_FREQUENCY) {
@@ -886,6 +885,8 @@ bool Flow::dumpFlow(bool dump_alert) {
       /* flows idle, i.e., ready to be purged, are always dumped */
     }
 
+    guessProtocol();
+      
 #ifdef NTOPNG_PRO
     if(ntop->getPro()->has_valid_license() && ntop->getPrefs()->is_enterprise_edition())
       getInterface()->aggregatePartialFlow(this);
@@ -1802,12 +1803,12 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     if(server_proc) processLua(vm, server_proc, false);
 
     // overall throughput stats
-    lua_push_float_table_entry(vm, "top_throughput_bps",   top_bytes_thpt);
-    lua_push_float_table_entry(vm, "throughput_bps",       bytes_thpt);
-    lua_push_uint64_table_entry(vm,   "throughput_trend_bps", bytes_thpt_trend);
-    lua_push_float_table_entry(vm, "top_throughput_pps",   top_pkts_thpt);
-    lua_push_float_table_entry(vm, "throughput_pps",       pkts_thpt);
-    lua_push_uint64_table_entry(vm,   "throughput_trend_pps", pkts_thpt_trend);
+    lua_push_float_table_entry(vm,  "top_throughput_bps",   top_bytes_thpt);
+    lua_push_float_table_entry(vm,  "throughput_bps",       bytes_thpt);
+    lua_push_uint64_table_entry(vm, "throughput_trend_bps", bytes_thpt_trend);
+    lua_push_float_table_entry(vm,  "top_throughput_pps",   top_pkts_thpt);
+    lua_push_float_table_entry(vm,  "throughput_pps",       pkts_thpt);
+    lua_push_uint64_table_entry(vm, "throughput_trend_pps", pkts_thpt_trend);
 
     // throughput stats cli2srv and srv2cli breakdown
     lua_push_float_table_entry(vm, "throughput_cli2srv_bps", bytes_thpt_cli2srv);
@@ -2057,12 +2058,12 @@ json_object* Flow::flow2json() {
     t = last_seen;
     tm_info = gmtime(&t);
 
-	/*
-		strftime in the VS2013 library and earlier are not C99-conformant,
-		as they do not accept that format-specifier: MSDN VS2013 strftime page
-
-		https://msdn.microsoft.com/en-us/library/fe06s4ak.aspx
-	*/
+    /*
+      strftime in the VS2013 library and earlier are not C99-conformant,
+      as they do not accept that format-specifier: MSDN VS2013 strftime page
+      
+      https://msdn.microsoft.com/en-us/library/fe06s4ak.aspx
+    */
     strftime(buf, sizeof(buf), "%Y-%m-%dT%H:%M:%S.0Z", tm_info);
 
     if(ntop->getPrefs()->do_dump_flows_on_ls()){

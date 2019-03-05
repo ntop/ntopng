@@ -655,7 +655,7 @@ NetworkInterface::~NetworkInterface() {
 
 int NetworkInterface::dumpFlow(time_t when, Flow *f) {
   int rc = -1;
-
+  
 #ifndef HAVE_NEDGE
   char *json;
   bool es_flow = ntop->getPrefs()->do_dump_flows_on_es() ||
@@ -5381,6 +5381,7 @@ void NetworkInterface::runShutdownTasks() {
   if (ntop->getPrefs()->flushFlowsOnShutdown()) {
     /* Setting all flows as "ready to purge" (see isReadyToPurge) and dump them to the DB */
     periodicStatsUpdate();
+
 #ifdef NTOPNG_PRO
     flushFlowDump();
 #endif
