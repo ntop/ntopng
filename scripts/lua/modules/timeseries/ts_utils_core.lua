@@ -257,6 +257,12 @@ function ts_utils.query(schema_name, tags, tstart, tend, options)
     return nil
   end
 
+  -- TODO: temporary fix for "process:memory"
+  if schema_name == "process:memory" then
+    tags = table.clone(tags)
+    tags.ifid = nil
+  end
+
   if not schema:verifyTags(tags) then
     return nil
   end

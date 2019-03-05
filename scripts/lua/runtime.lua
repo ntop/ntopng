@@ -54,6 +54,9 @@ print("<tr><th nowrap>"..i18n("about.platform").."</th><td>"..info["platform"]..
 if(info.pid ~= nil) then
    print("<tr><th nowrap>PID (Process ID)</th><td>"..info.pid.."</td></tr>\n")
 end
+if system_host_stats["mem_ntopng_resident"] ~= nil then
+   print("<tr><th nowrap>"..i18n("about.ram_memory").."</th><td><span id='ram-process-used'></span></td></tr>\n")
+end
 
 local storage_info = storage_utils.storageInfo()
 

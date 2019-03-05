@@ -275,6 +275,16 @@ driver._influx2Series = influx2Series
 
  --##############################################
 
+local function where_tags(tags)
+  if not table.empty(tags) then
+    return ' WHERE ' .. table.tconcat(tags, "=", " AND ", nil, "'") .. " AND"
+  else
+    return " WHERE"
+  end
+end
+ 
+ --##############################################
+
 local function getTotalSerieQuery(schema, query_schema, raw_step, tstart, tend, tags, time_step, data_type, label)
   label = label or "total_serie"
 
@@ -289,8 +299,7 @@ local function getTotalSerieQuery(schema, query_schema, raw_step, tstart, tend, 
       GROUP BY time(600s))
   ]]
   local is_single_serie = schema:allTagsDefined(tags)
-  local simplified_query = 'SELECT (' .. table.concat(schema._metrics, " + ") ..') AS "'.. label ..'" FROM '.. query_schema ..' WHERE ' ..
-    table.tconcat(tags, "=", " AND ", nil, "'") .. ' AND time >= ' .. tstart .. '000000000 AND time <= ' .. tend .. '000000000'
+  local simplified_query = 'SELECT (' .. table.concat(schema._metrics, " + ") ..') AS "'.. label ..'" FROM '.. query_schema .. where_tags(tags) .. ' time >= ' .. tstart .. '000000000 AND time <= ' .. tend .. '000000000'
 
   local query
 
@@ -371,8 +380,8 @@ end
 -- ##############################################
 
 local function makeSeriesQuery(query_schema, metrics, tags, tstart, tend, time_step)
-  return 'SELECT '.. table.concat(metrics, ",") ..' FROM ' .. query_schema .. ' WHERE ' ..
-      table.tconcat(tags, "=", " AND ", nil, "'") .. " AND time >= " .. tstart .. "000000000 AND time <= " .. tend .. "000000000" ..
+  return 'SELECT '.. table.concat(metrics, ",") ..' FROM ' .. query_schema .. where_tags(tags) ..
+      " time >= " .. tstart .. "000000000 AND time <= " .. tend .. "000000000" ..
       " GROUP BY TIME(".. time_step .."s)"
 end
 
@@ -620,9 +629,8 @@ function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
     GROUP BY category
     LIMIT 2
   ]]
-  local query = 'SELECT * FROM "' .. schema.name .. '" WHERE ' ..
-      table.tconcat(tags_filter, "=", " AND ", nil, "'") ..
-      ternary(table.empty(tags_filter), "", " AND ") .. " time >= " .. start_time .. "000000000" ..
+  local query = 'SELECT * FROM "' .. schema.name .. '"' .. where_tags(tags_filter) ..
+      " time >= " .. start_time .. "000000000" ..
       ternary(not table.empty(wildcard_tags), " GROUP BY " .. table.concat(wildcard_tags, ","), "") ..
       " LIMIT " .. min_values
 
@@ -630,11 +638,11 @@ function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
   local data = influx_query(url .. "/query?db=".. self.db, query, self.username, self.password)
 
   if table.empty(data) then
-    return data
+    return nil
   end
 
   if table.empty(data.series) then
-    return {}
+    return nil
   end
 
   if table.empty(wildcard_tags) then
@@ -642,7 +650,7 @@ function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
     if #data.series[1].values >= min_values then
       return tags_filter
     else
-      return {}
+      return nil
     end
   end
 
@@ -682,7 +690,7 @@ end
 -- ##############################################
 
 function getWhereClause(tags, tstart, tend, unaligned_offset)
-  return 'WHERE '.. table.tconcat(tags, "=", " AND ", nil, "'") .. ' AND time >= '.. tstart ..'000000000 AND time <= '.. (tend + unaligned_offset) .. "000000000"
+  return where_tags(tags) .. ' time >= '.. tstart ..'000000000 AND time <= '.. (tend + unaligned_offset) .. "000000000"
 end
 
 function driver:topk(schema, tags, tstart, tend, options, top_tags)
@@ -838,8 +846,8 @@ function driver:queryTotal(schema, tstart, tend, tags, options)
     --  (SELECT DIFFERENCE("bytes_sent") AS "bytes_sent", DIFFERENCE("bytes_rcvd") AS "bytes_rcvd"
     --    FROM "host:traffic" WHERE ifid='1' AND host='192.168.1.1' AND time >= 1536321770000000000 AND time <= 1536322070000000000)
     query = 'SELECT ' .. table.concat(sum_metrics, ", ") .. ' FROM ' ..
-    '(SELECT ' .. table.concat(metrics, ", ") .. ' FROM '.. query_schema ..' WHERE ' ..
-      table.tconcat(tags, "=", " AND ", nil, "'") .. ' AND time >= ' .. tstart .. '000000000 AND time <= ' .. tend .. '000000000)'
+    '(SELECT ' .. table.concat(metrics, ", ") .. ' FROM '.. query_schema .. where_tags(tags) ..
+    ' time >= ' .. tstart .. '000000000 AND time <= ' .. tend .. '000000000)'
   else
     -- gauge/derivative
     local metrics = {}
@@ -854,8 +862,8 @@ function driver:queryTotal(schema, tstart, tend, tags, options)
       metrics[i] = metrics[i] .. ") as " .. metric
     end
 
-    query = 'SELECT ' .. table.concat(metrics, ", ") .. ' FROM ' .. query_schema ..' WHERE ' ..
-      table.tconcat(tags, "=", " AND ", nil, "'") .. ' AND time >= ' .. tstart .. '000000000 AND time <= ' .. tend .. '000000000'
+    query = 'SELECT ' .. table.concat(metrics, ", ") .. ' FROM ' .. query_schema .. where_tags(tags) ..
+      ' time >= ' .. tstart .. '000000000 AND time <= ' .. tend .. '000000000'
   end
 
   local url = self.url
@@ -888,8 +896,8 @@ function driver:queryMean(schema, tags, tstart, tend, options)
     metrics[i] = "MEAN(" .. metric .. ") as " .. metric
   end
 
-  local query = 'SELECT ' .. table.concat(metrics, ", ") .. ' FROM '.. query_schema ..' WHERE ' ..
-      table.tconcat(tags, "=", " AND ", nil, "'") .. ' AND time >= ' .. tstart .. '000000000 AND time <= ' .. tend .. '000000000'
+  local query = 'SELECT ' .. table.concat(metrics, ", ") .. ' FROM '.. query_schema .. where_tags(tags) ..
+    ' time >= ' .. tstart .. '000000000 AND time <= ' .. tend .. '000000000'
 
   local url = self.url
   local data = influx_query(url .. "/query?db=".. self.db .."&epoch=s", query, self.username, self.password)
@@ -1151,11 +1159,11 @@ local function getCqQuery(dbname, tags, schema, source, dest, step, dest_step, r
             SELECT
               %s
               FROM "%s"."%s"
-          ) GROUP BY time(%s),%s
+          ) GROUP BY time(%s)%s%s
       END]], cq_name, dbname, resemple_s,
       sums, dest, schema.name,
       diffs, source, schema.name,
-      dest, tags)
+      dest, ternary(isEmptyString(tags), "", ","), tags)
   else
     local means = {}
 
@@ -1187,13 +1195,14 @@ local function getCqQuery(dbname, tags, schema, source, dest, step, dest_step, r
             SELECT
               %s
               FROM "%s"."%s"
-              GROUP BY time(%us),%s
+              GROUP BY time(%us)%s%s
               FILL(0)
-          ) GROUP BY time(%s),%s
+          ) GROUP BY time(%s)%s%s
       END]], cq_name, dbname, resemple_s,
       means, dest, schema.name,
       means, source, schema.name,
-      step, tags, dest, tags)
+      step, ternary(isEmptyString(tags), "", ","), tags,
+      dest, ternary(isEmptyString(tags), "", ","), tags)
   end
 end
 

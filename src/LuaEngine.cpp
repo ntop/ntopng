@@ -2434,6 +2434,19 @@ static int ntop_send_udp_data(lua_State* vm) {
 
 /* ****************************************** */
 
+static bool is_table_empty(lua_State *L, int index) {
+    lua_pushnil(L);
+
+    if(lua_next(L, index)) {
+      lua_pop(L, 1);
+      return(false);
+    }
+
+    return(true);
+}
+
+/* ****************************************** */
+
 static inline int concat_table_fields(lua_State *L, int index, char *buf, int size) {
   bool first = true;
 
@@ -2477,7 +2490,7 @@ static int ntop_append_influx_db(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TTABLE) != CONST_LUA_OK) return(CONST_LUA_ERROR);
 
   // "iface:traffic,ifid=0 bytes=0 1539358699000000000\n"
-  buflen -= snprintf(data, buflen, "%s,", schema);
+  buflen -= snprintf(data, buflen, is_table_empty(vm, 3) ? "%s" : "%s,", schema);
   buflen = concat_table_fields(vm, 3, data + sizeof(data) - buflen, buflen);
   buflen -= snprintf(data + sizeof(data) - buflen, buflen, " ");
   buflen = concat_table_fields(vm, 4, data + sizeof(data) - buflen, buflen);

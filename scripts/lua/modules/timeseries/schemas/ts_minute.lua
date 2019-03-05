@@ -141,3 +141,9 @@ schema:addMetric("packets")
 schema = ts_utils.newSchema("iface:nfq_pct", {step=60, rrd_fname="num_nfq_pct", metrics_type=ts_utils.metrics.gauge})
 schema:addTag("ifid")
 schema:addMetric("num_nfq_pct")
+
+-- ##############################################
+
+schema = ts_utils.newSchema("process:memory", {step=60, metrics_type=ts_utils.metrics.gauge})
+schema:addMetric("resident_bytes")
+schema:addMetric("virtual_bytes")

@@ -372,7 +372,7 @@ function printSeries(options, tags, start_time, base_url, params)
             exists = true
 
             for _, serie in pairs(serie.check) do
-               exists = exists and not table.empty(ts_utils.listSeries(serie, tags, start_time))
+               exists = exists and (ts_utils.listSeries(serie, tags, start_time) ~= nil)
 
                if not exists then
                   break
@@ -380,7 +380,7 @@ function printSeries(options, tags, start_time, base_url, params)
             end
          elseif not exists then
             -- only show if there has been an update within the specified time frame
-            exists = not table.empty(ts_utils.listSeries(k, tags, start_time))
+            exists = (ts_utils.listSeries(k, tags, start_time) ~= nil)
          end
    
          if exists then

@@ -47,7 +47,7 @@ end
 --! @param tags_filter a list of filter tags.
 --! @param wildcard_tags the remaining tags of the schema which are considered wildcard.
 --! @param start_time time filter. Only timeseries updated after start_time will be returned.
---! @return a (possibly empty) list of tags values for the matching timeseries on success, nil on error.
+--! @return a (possibly empty) list of tags values for the matching timeseries on success, nil for non-existing series.
 function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
 end
 

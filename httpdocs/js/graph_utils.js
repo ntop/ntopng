@@ -70,14 +70,15 @@ function getValueFormatter(schema, metric_type, series) {
     var label = series[0].label;
 
     if(label.contains("bytes")) {
-      if(schema.contains("volume"))
+      if(schema.contains("volume") || schema.contains("memory"))
         return [bytesToSize, bytesToSize];
       else
         return [fbits_from_bytes, bytesToSize];
     } else if(label.contains("packets"))
       return [fpackets, formatPackets];
     else if(label.contains("flows")) {
-      return [(metric_type === "counter") ? fflows : formatValue, formatFlows, (metric_type === "counter") ? fflows : formatFlows];
+      var as_counter = ((metric_type === "counter") && (schema !== "custom:memory_vs_flows_hosts"));
+      return [as_counter ? fflows : formatValue, formatFlows, as_counter ? fflows : formatFlows];
     } else if(label.contains("millis")) {
       return [fmillis, fmillis];
     } else if(label.contains("alerts")) {

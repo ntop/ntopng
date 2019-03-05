@@ -2969,6 +2969,7 @@ void Utils::luaCpuLoad(lua_State* vm) {
 void Utils::luaMeminfo(lua_State* vm) {
 #if !defined(__FreeBSD__) && !defined(__NetBSD__) & !defined(__OpenBSD__) && !defined(__APPLE__) && !defined(WIN32)
   long unsigned int memtotal = 0, memfree = 0, buffers = 0, cached = 0, sreclaimable = 0, shmem = 0;
+  long unsigned int mem_resident = 0, mem_virtual = 0;
   char *line = NULL;
   size_t len;
   int read;
@@ -2991,13 +2992,31 @@ void Utils::luaMeminfo(lua_State* vm) {
 	  lua_push_uint64_table_entry(vm, "mem_shmem", shmem);
       }
 
-      if(line)
-	free(line);
+      if(line) {
+        free(line);
+        line = NULL;
+      }
 
       fclose(fp);
 
       /* Equivalent to top utility mem used */
       lua_push_uint64_table_entry(vm, "mem_used", memtotal - memfree - (buffers + cached + sreclaimable - shmem));
+    }
+
+    if((fp = fopen("/proc/self/status", "r"))) {
+      while((read = getline(&line, &len, fp)) != -1) {
+          if(!strncmp(line, "VmRSS", strlen("VmRSS")) && sscanf(line, "%*s %lu kB", &mem_resident))
+            lua_push_uint64_table_entry(vm, "mem_ntopng_resident", mem_resident);
+          else if(!strncmp(line, "VmSize", strlen("VmSize")) && sscanf(line, "%*s %lu kB", &mem_virtual))
+            lua_push_uint64_table_entry(vm, "mem_ntopng_virtual", mem_virtual);
+      }
+
+      if(line) {
+        free(line);
+        line = NULL;
+      }
+
+      fclose(fp);
     }
   }
 #endif

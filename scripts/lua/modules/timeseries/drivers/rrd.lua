@@ -80,10 +80,11 @@ local function schema_get_path(schema, tags)
   local rrd
 
   -- ifid is mandatory here
-  local ifid = tags.ifid
+  local ifid = tags.ifid or -1
   local host_or_network = nil
 
-  if string.find(schema.name, "iface:") == nil then
+  if (string.find(schema.name, "iface:") == nil) and
+     (string.find(schema.name, "process:") == nil) then
     local parts = string.split(schema.name, ":")
     host_or_network = (HOST_PREFIX_MAP[parts[1]] or (parts[1] .. ":")) .. tags[schema._tags[2]]
 
@@ -451,7 +452,7 @@ local function _listSeries(schema, tags_filter, wildcard_tags, start_time)
     if last_update ~= nil and last_update >= start_time then
       return {tags_filter}
     else
-      return {}
+      return nil
     end
   end
 
