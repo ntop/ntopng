@@ -1,7 +1,11 @@
+--
+-- (C) 2018 - ntop.org
+--
 
 dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 if((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.scriptdir .. "/lua/modules/?.lua;" .. package.path end
+ignore_post_payload_parse = 1
 require "lua_utils"
 local json = require("dkjson")
 

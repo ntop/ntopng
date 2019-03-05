@@ -5,6 +5,7 @@
 dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/?.lua;" .. package.path
 if((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.scriptdir .. "/lua/modules/?.lua;" .. package.path end
+ignore_post_payload_parse = 1
 require "lua_utils"
 
 local google = require "google_assistant_utils"
@@ -94,6 +95,8 @@ end
 
 local function send_text_telegram(text) 
   local chat_id, bot_token = ntop.getCache("ntopng.prefs.telegram_chat_id"), ntop.getCache("ntopng.prefs.telegram_bot_token")
+
+  io.write(chat_id.." "..bot_token )
 
     if( string.len(text) >= 4096 ) then 
       text = string.sub( text, 1, 4096 )
