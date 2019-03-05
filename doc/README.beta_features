@@ -19,4 +19,4 @@ redis-cli set "ntopng.prefs.beta_rollup" "1"
 redis-cli set "ntopng.prefs.influxdb.debug_aggregation" "1"
 
 ## [Beta] Enable alerts based on anomaly indexes
-redis-cli set "ntopng.prefs.beta_anomaly_index_alerts"
+redis-cli set "ntopng.prefs.beta_anomaly_index_alerts" "1"
