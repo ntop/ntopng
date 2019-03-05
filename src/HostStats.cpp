@@ -272,26 +272,26 @@ void HostStats::incStats(time_t when, u_int8_t l4_proto, u_int ndpi_proto,
     total_activity_time += ntop->getPrefs()->get_housekeeping_frequency(), last_epoch_update = when;
 
   /* Packet stats sent_stats and rcvd_stats are incremented in Flow::incStats */
-
+  
   switch(l4_proto) {
   case 0:
     /* Unknown protocol */
     break;
   case IPPROTO_UDP:
     udp_rcvd.incStats(when, rcvd_packets, rcvd_bytes),
-udp_sent.incStats(when, sent_packets, sent_bytes);
+      udp_sent.incStats(when, sent_packets, sent_bytes);
     break;
   case IPPROTO_TCP:
     tcp_rcvd.incStats(when, rcvd_packets, rcvd_bytes),
-tcp_sent.incStats(when, sent_packets, sent_bytes);
+      tcp_sent.incStats(when, sent_packets, sent_bytes);
     break;
   case IPPROTO_ICMP:
     icmp_rcvd.incStats(when, rcvd_packets, rcvd_bytes),
-icmp_sent.incStats(when, sent_packets, sent_bytes);
+      icmp_sent.incStats(when, sent_packets, sent_bytes);
     break;
   default:
     other_ip_rcvd.incStats(when, rcvd_packets, rcvd_bytes),
-other_ip_sent.incStats(when, sent_packets, sent_bytes);
+      other_ip_sent.incStats(when, sent_packets, sent_bytes);
     break;
   }
 }

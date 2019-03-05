@@ -2540,13 +2540,13 @@ void NetworkInterface::pollQueuedeBPFEvents() {
 
       if(event->ip_version == 4) {
 	src.set(event->event.v4.saddr), dst.set(event->event.v4.daddr),
-	  sport = event->event.v4.net.sport, dport = event->event.v4.net.dport,
-	  proto = event->event.v4.net.proto;
+	  sport = event->sport, dport = event->dport,
+	  proto = event->proto;
       } else {
 	src.set((struct ndpi_in6_addr*)&event->event.v6.saddr),
 	  dst.set((struct ndpi_in6_addr*)&event->event.v6.daddr),
-	  sport = event->event.v6.net.sport, dport = event->event.v6.net.dport,
-	  proto = event->event.v6.net.proto;
+	  sport = event->sport, dport = event->dport,
+	  proto = event->proto;
       }
 
       sport = htons(sport), dport = htons(dport);
