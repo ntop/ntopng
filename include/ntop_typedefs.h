@@ -385,6 +385,7 @@ typedef enum {
   walker_ases,
   walker_countries,
   walker_vlans,
+  walker_arp_matrix_stats,
 } WalkerType;
 
 typedef enum {

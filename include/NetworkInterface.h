@@ -43,6 +43,8 @@ class CountriesHash;
 class DB;
 class Paginator;
 class NetworkInterfaceTsPoint;
+class ArpStatsMatrixElement;
+class ArpStatsHashMatrix;
 
 #ifdef NTOPNG_PRO
 class AggregatedFlow;
@@ -157,6 +159,10 @@ class NetworkInterface : public Checkpointable {
   /* Countries */
   CountriesHash *countries_hash;
 
+  /* ARP Matrix Hash */
+  ArpStatsHashMatrix *arp_hash_matrix;/**<Hash used to store ARP pkts counters related to pkt_src and pkt_dst */
+
+
   /* Vlans */
   VlanHash *vlans_hash; /**< Hash used to store Vlans information. */
 
@@ -263,6 +269,7 @@ class NetworkInterface : public Checkpointable {
   virtual u_int32_t getMacsHashSize();
   virtual u_int32_t getHostsHashSize();
   virtual u_int32_t getFlowsHashSize();
+  virtual u_int32_t getArpHashMatrixSize();
 
   virtual bool walker(u_int32_t *begin_slot,
 		      bool walk_all,
@@ -497,6 +504,7 @@ class NetworkInterface : public Checkpointable {
   virtual u_int     getNumLocalHosts();
   virtual u_int     getNumMacs();
   virtual u_int     getNumHTTPHosts();
+  virtual u_int     getNumArpStatsMatrixElement();
 
   inline u_int64_t  getNumPacketsSinceReset()     { return getNumPackets() - getCheckPointNumPackets(); }
   inline u_int64_t  getNumBytesSinceReset()       { return getNumBytes() - getCheckPointNumBytes(); }
@@ -504,6 +512,7 @@ class NetworkInterface : public Checkpointable {
 
   void runHousekeepingTasks();
   void runShutdownTasks();
+  virtual ArpStatsMatrixElement*  getArpHashMatrixElement(u_int8_t _src_mac[6],u_int8_t _dst_mac[6], bool createIfNotPresent);
   Vlan* getVlan(u_int16_t vlanId, bool createIfNotPresent);
   AutonomousSystem *getAS(IpAddress *ipa, bool createIfNotPresent);
   Country* getCountry(const char *country_name, bool createIfNotPresent);
@@ -557,6 +566,7 @@ class NetworkInterface : public Checkpointable {
   inline HostHash* get_hosts_hash()                { return(hosts_hash);              }
   inline MacHash*  get_macs_hash()                 { return(macs_hash);               }
   inline VlanHash*  get_vlans_hash()               { return(vlans_hash);              }
+  inline ArpStatsHashMatrix* get_arp_matrix_hash() { return(arp_hash_matrix);         }
   inline AutonomousSystemHash* get_ases_hash()     { return(ases_hash);               }
   inline CountriesHash* get_countries_hash()       { return(countries_hash);          }
   inline bool is_bridge_interface()                { return(bridge_interface);        }
@@ -618,6 +628,7 @@ class NetworkInterface : public Checkpointable {
   bool setMacOperatingSystem(lua_State* vm, char *mac, OperatingSystem os);
   bool getASInfo(lua_State* vm, u_int32_t asn);
   bool getVLANInfo(lua_State* vm, u_int16_t vlan_id);
+  bool getArpStatsMatrixInfo(lua_State* vm);
   inline void incNumHosts(bool local) { if(local) numLocalHosts++; numHosts++; };
   inline void decNumHosts(bool local) { if(local) numLocalHosts--; numHosts--; };
   inline void incNumL2Devices()       { numL2Devices++; }
