@@ -417,3 +417,54 @@ Response:
          "msg":"The device <a href='/lua/mac_details.lua?host=08:00:27:59:89:BF'>PcsCompu_59:89:BF</a> has connected to the network."
       }
    ]
+
+Get Interface Timeseries
+------------------------
+
+*curl*
+
+.. code:: bash
+	  
+   curl -s --cookie "user=admin; password=admin" "http://192.168.1.1:3000/lua/rest/get/timeseries/ts.lua?ts_schema=iface:traffic&ts_query=ifid:1&limit=5&extended=1"
+
+Response:
+
+.. code:: json
+
+   {
+      "statistics":{
+         "min_val":7039.9555539021,
+         "95th_percentile":12547.936666667,
+         "min_val_idx":3,
+         "average":13917.490277778,
+         "max_val":13149.49160108,
+         "max_val_idx":1,
+         "total":50102965
+      },
+      "max_points":5,
+      "step":720,
+      "query":{
+         "ifid":"1"
+      },
+      "schema":"iface:traffic",
+      "series":[
+         {
+            "label":"bytes",
+            "tags":{
+               "ifid":"1"
+            },
+            "data":{
+               "1551800935":7039.9555539021,
+               "1551800215":12547.936666667,
+               "1551799495":13149.49160108,
+               "1551798775":9617.0195100309
+            }
+         }
+      ],
+      "count":4,
+      "start":1551798775
+   }
+
+Check out the `timeseries page`_ for more details.
+
+.. _`timeseries page`: ../timeseries/intro.html#exporting-data

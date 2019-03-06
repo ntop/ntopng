@@ -111,7 +111,7 @@ void ICMPstats::updateStats(const struct timeval * const tv) {
 
   num_destination_unreachable.computeAnomalyIndex(when);
 
-#if 1
+#if 0
   char buf[64];
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "num_destination_unreachable: %s",
 			       num_destination_unreachable.print(buf, sizeof(buf)));

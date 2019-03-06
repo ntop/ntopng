@@ -362,14 +362,6 @@ typedef struct {
 } sFlowInterfaceStats;
 
 typedef struct {
-  u_int32_t requests, replies;
-} ReqReplyStats;
-
-typedef struct {
-  ReqReplyStats sent, rcvd;
-} ArpStats;
-
-typedef struct {
   const char *class_name;
   const luaL_Reg *class_methods;
 } ntop_class_reg;
