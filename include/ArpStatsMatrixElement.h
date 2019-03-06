@@ -23,6 +23,14 @@
 #ifndef _ARP_STATS_MATRIX_ELEMENT_H_
 #define _ARP_STATS_MATRIX_ELEMENT_H_
 
+typedef struct {
+  u_int32_t requests, replies;
+} ReqReplyStats;
+
+typedef struct {
+  ReqReplyStats sent, rcvd;
+} ArpStats;
+
 #include "ntop_includes.h"
 
 class ArpStatsMatrixElement : public GenericHashEntry {
