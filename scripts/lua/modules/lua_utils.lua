@@ -2529,6 +2529,26 @@ end
 
 -- ###############################################
 
+function formatLongLivedFlowAlert(flowstatus_info)
+   local threshold = ""
+
+   local res = i18n("flow_details.longlived_flow")
+
+   if flowstatus_info["longlived.threshold"] then
+      threshold = flowstatus_info["longlived.threshold"]
+   end
+
+   res = string.format("%s<sup><i class='fa fa-info-circle' aria-hidden='true' title='"..i18n("flow_details.longlived_flow_descr").."'></i></sup>", res)
+
+   if threshold ~= "" then
+      res = string.format("%s [%s]", res, i18n("flow_details.longlived_exceeded", {amount = secondsToTime(threshold)}))
+   end
+
+   return res
+end
+
+-- ###############################################
+
 -- Update Utils::flowstatus2str / FlowStatus enum
 function getFlowStatus(status, flowstatus_info)
    local warn_sign = "<i class=\"fa fa-warning\" aria-hidden=true style=\"color: orange;\"></i> "
@@ -2552,7 +2572,7 @@ function getFlowStatus(status, flowstatus_info)
    elseif(status == 16) then return(formatSuspiciousDeviceProtocolAlert(flowstatus_info))
    elseif(status == 17) then return(warn_sign..formatElephantFlowAlert(flowstatus_info, true --[[ local 2 remote --]]))
    elseif(status == 18) then return(warn_sign..formatElephantFlowAlert(flowstatus_info, false --[[ remote 2 local --]]))
-   elseif(status == 19) then return(warn_sign..i18n("flow_details.longlived_flow"))
+   elseif(status == 19) then return(warn_sign..formatLongLivedFlowAlert(flowstatus_info))
    elseif(status == 20) then return(warn_sign..i18n("flow_details.not_purged"))
    else return(warn_sign..i18n("flow_details.unknown_status",{status=status}))
    end
