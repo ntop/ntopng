@@ -620,6 +620,7 @@ end
       print("/ <span id=low_goodput_as_client>" .. formatValue(host["low_goodput_flows.as_client"]) .. "</span> <span id=low_goodput_trend_as_client></span>\n")
    end
    print("/ <span id=anomalous_flows_as_client>" .. formatValue(host["anomalous_flows.as_client"]) .. "</span> <span id=trend_anomalous_flows_as_client></span>")
+   print(" / <span id=unreachable_flows_as_client>" .. formatValue(host["unreachable_flows.as_client"]) .. "</span> <span id=trend_unreachable_flows_as_client></span>")
    print("</td>")
 
    print("<td><span id=active_flows_as_server>" .. formatValue(host["active_flows.as_server"]) .. "</span>  <span id=trend_as_active_server></span> \n")
@@ -628,6 +629,7 @@ end
       print("/ <span id=low_goodput_as_server>" .. formatValue(host["low_goodput_flows.as_server"]) .. "</span> <span id=low_goodput_trend_as_server></span>\n")
    end
    print("/ <span id=anomalous_flows_as_server>" .. formatValue(host["anomalous_flows.as_server"]) .. "</span> <span id=trend_anomalous_flows_as_server></span>")
+   print(" / <span id=unreachable_flows_as_server>" .. formatValue(host["unreachable_flows.as_server"]) .. "</span> <span id=trend_unreachable_flows_as_server></span>")
    print("</td></tr>")
 
    if ntop.isnEdge() then
@@ -1921,6 +1923,7 @@ drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
       {schema="host:traffic",                label=i18n("traffic")},
       {schema="host:flows",                  label=i18n("graphs.active_flows")},
       {schema="host:anomalous_flows",        label=i18n("graphs.total_anomalous_flows")},
+      {schema="host:unreachable_flows",      label=i18n("graphs.total_unreachable_flows")},
       {schema="host:contacts",               label=i18n("graphs.active_host_contacts")},
       {schema="host:total_alerts",           label=i18n("details.alerts")},
 
@@ -1957,6 +1960,8 @@ if(page ~= "historical") and (host ~= nil) then
    print("var last_low_goodput_flows_as_server = " .. host["low_goodput_flows.as_server"] .. ";\n")
    print("var last_anomalous_flows_as_server = " .. host["anomalous_flows.as_server"] .. ";\n")
    print("var last_anomalous_flows_as_client = " .. host["anomalous_flows.as_client"] .. ";\n")
+   print("var last_unreachable_flows_as_server = " .. host["unreachable_flows.as_server"] .. ";\n")
+   print("var last_unreachable_flows_as_client = " .. host["unreachable_flows.as_client"] .. ";\n")
    print("var last_tcp_retransmissions = " .. host["tcp.packets.retransmissions"] .. ";\n")
    print("var last_tcp_ooo = " .. host["tcp.packets.out_of_order"] .. ";\n")
    print("var last_tcp_lost = " .. host["tcp.packets.lost"] .. ";\n")
@@ -2023,11 +2028,13 @@ if(page ~= "historical") and (host ~= nil) then
    			$('#active_flows_as_client').html(addCommas(host["active_flows.as_client"]));
    			$('#flows_as_client').html(addCommas(host["flows.as_client"]));
    			$('#low_goodput_as_client').html(addCommas(host["low_goodput_flows.as_client"]));
-            $('#anomalous_flows_as_client').html(addCommas(host["anomalous_flows.as_client"]));
+                        $('#anomalous_flows_as_client').html(addCommas(host["anomalous_flows.as_client"]));
+                        $('#unreachable_flows_as_client').html(addCommas(host["unreachable_flows.as_client"]));
    			$('#active_flows_as_server').html(addCommas(host["active_flows.as_server"]));
    			$('#flows_as_server').html(addCommas(host["flows.as_server"]));
    			$('#low_goodput_as_server').html(addCommas(host["low_goodput_flows.as_server"]));
-            $('#anomalous_flows_as_server').html(addCommas(host["anomalous_flows.as_server"]));
+                        $('#anomalous_flows_as_server').html(addCommas(host["anomalous_flows.as_server"]));
+                        $('#unreachable_flows_as_server').html(addCommas(host["unreachable_flows.as_server"]));
    		  }]]
 
    if ntop.isnEdge() then
@@ -2150,6 +2157,8 @@ print [[
 			$('#low_goodput_trend_as_server').html(drawTrend(host["low_goodput_flows.as_server"], last_low_goodput_flows_as_server, " style=\"color: #B94A48;\""));
 			$('#trend_anomalous_flows_as_server').html(drawTrend(host["anomalous_flows.as_server"], last_anomalous_flows_as_server, " style=\"color: #B94A48;\""));
 			$('#trend_anomalous_flows_as_client').html(drawTrend(host["anomalous_flows.as_client"], last_anomalous_flows_as_client, " style=\"color: #B94A48;\""));
+			$('#trend_unreachable_flows_as_server').html(drawTrend(host["unreachable_flows.as_server"], last_unreachable_flows_as_server, " style=\"color: #B94A48;\""));
+			$('#trend_unreachable_flows_as_client').html(drawTrend(host["unreachable_flows.as_client"], last_unreachable_flows_as_client, " style=\"color: #B94A48;\""));
 			
 			$('#alerts_trend').html(drawTrend(host["num_alerts"], last_num_alerts, " style=\"color: #B94A48;\""));
 			$('#sent_trend').html(drawTrend(host["packets.sent"], last_pkts_sent, ""));
@@ -2169,6 +2178,8 @@ print [[
    			last_low_goodput_flows_as_client = host["low_goodput_flows.as_client"];
    			last_anomalous_flows_as_server = host["anomalous_flows.as_server"];
    			last_anomalous_flows_as_client = host["anomalous_flows.as_client"];
+   			last_unreachable_flows_as_server = host["unreachable_flows.as_server"];
+   			last_unreachable_flows_as_client = host["unreachable_flows.as_client"];
    			last_flows_as_server = host["flows.as_server"];
    			last_tcp_retransmissions = host["tcp.packets.retransmissions"];
    			last_tcp_ooo = host["tcp.packets.out_of_order"];

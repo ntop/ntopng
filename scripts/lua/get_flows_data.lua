@@ -190,8 +190,13 @@ if not isEmptyString(tcp_state) then
 end
 
 local flows_stats = interface.getFlowsInfo(host, pageinfo)
-local total = flows_stats["numFlows"]
-local flows_stats = flows_stats["flows"]
+local total
+local flows_stats
+
+if(flows_stats ~= nil) then 
+   total = flows_stats["numFlows"]
+   flows_stats = flows_stats["flows"]
+end
 
 -- Prepare host
 local host_list = {}
