@@ -3414,7 +3414,6 @@ FlowSSLEncryptionStatus Flow::getSSLEncryptionStatus() {
 /* ***************************************************** */
 
 FlowStatus Flow::getFlowStatus() {
-  return status_longlived; /* TODO: remove */
 #ifndef HAVE_NEDGE
   u_int32_t threshold;
 #endif
