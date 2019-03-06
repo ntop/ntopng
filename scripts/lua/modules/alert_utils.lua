@@ -656,6 +656,22 @@ function formatRawFlow(record, flow_json)
       add_links = true
    end
 
+   local decoded = json.decode(flow_json)
+   local status_info = alert2statusinfo(decoded)
+
+   -- active flow lookup
+   if status_info and status_info["ntopng.key"] then
+      -- attempt a lookup on the active flows
+      local active_flow = interface.findFlowByKey(status_info["ntopng.key"])
+
+      if active_flow and active_flow["seen.first"] < tonumber(record["alert_tstamp"]) then
+	 return string.format("%s [%s: <A HREF='%s/lua/flow_details.lua?flow_key=%u'><span class='label label-info'>Info</span></A> %s]",
+			      getFlowStatus(tonumber(record["flow_status"]), status_info),
+			      i18n("flow"), ntop.getHttpPrefix(), active_flow["ntopng.key"],
+			      getFlowLabel(active_flow, true, true))
+      end
+   end
+
    -- pretend record is a flow to reuse getFlowLabel
    local flow = {
       ["cli.ip"] = record["cli_addr"], ["cli.port"] = tonumber(record["cli_port"]),
@@ -675,9 +691,6 @@ function formatRawFlow(record, flow_json)
    if not isEmptyString(l7proto_name) and l4_proto_label ~= l7proto_name then
       flow = flow.."["..i18n("application")..": " ..l7proto_name.."] "
    end
-
-   local decoded = json.decode(flow_json)
-   local status_info = alert2statusinfo(decoded)
 
    if decoded ~= nil then
       -- render the json

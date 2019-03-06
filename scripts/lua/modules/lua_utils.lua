@@ -2550,32 +2550,35 @@ end
 -- ###############################################
 
 -- Update Utils::flowstatus2str / FlowStatus enum
-function getFlowStatus(status, flowstatus_info)
+function getFlowStatus(status, flowstatus_info, alert)
    local warn_sign = "<i class=\"fa fa-warning\" aria-hidden=true style=\"color: orange;\"></i> "
+   local res = warn_sign..i18n("flow_details.unknown_status",{status=status})
+
    -- NOTE: flowstatus_info can be nil on older alerts
-   if(status == 0) then return(i18n("flow_details.normal"))
-   elseif(status == 1)  then return(warn_sign..i18n("flow_details.slow_tcp_connection"))
-   elseif(status == 2)  then return(warn_sign..i18n("flow_details.slow_application_header"))
-   elseif(status == 3)  then return(warn_sign..i18n("flow_details.slow_data_exchange"))
-   elseif(status == 4)  then return(warn_sign..i18n("flow_details.low_goodput"))
-   elseif(status == 5)  then return(warn_sign..i18n("flow_details.suspicious_tcp_syn_probing"))
-   elseif(status == 6)  then return(warn_sign..i18n("flow_details.tcp_connection_issues"))
-   elseif(status == 7)  then return(warn_sign..i18n("flow_details.suspicious_tcp_probing"))
-   elseif(status == 8)  then return(warn_sign..i18n("flow_details.flow_emitted"))
-   elseif(status == 9)  then return(warn_sign..i18n("flow_details.tcp_connection_refused"))
-   elseif(status == 10) then return(warn_sign..i18n("flow_details.ssl_certificate_mismatch"))
-   elseif(status == 11) then return(warn_sign..i18n("flow_details.dns_invalid_query"))
-   elseif(status == 12) then return(warn_sign..i18n("flow_details.remote_to_remote"))
-   elseif(status == 13) then return(warn_sign..i18n("flow_details.blacklisted_flow"))
-   elseif(status == 14) then return(warn_sign..i18n("flow_details.flow_blocked_by_bridge"))
-   elseif(status == 15) then return(warn_sign..i18n("flow_details.web_mining_detected"))
-   elseif(status == 16) then return(formatSuspiciousDeviceProtocolAlert(flowstatus_info))
-   elseif(status == 17) then return(warn_sign..formatElephantFlowAlert(flowstatus_info, true --[[ local 2 remote --]]))
-   elseif(status == 18) then return(warn_sign..formatElephantFlowAlert(flowstatus_info, false --[[ remote 2 local --]]))
-   elseif(status == 19) then return(warn_sign..formatLongLivedFlowAlert(flowstatus_info))
-   elseif(status == 20) then return(warn_sign..i18n("flow_details.not_purged"))
-   else return(warn_sign..i18n("flow_details.unknown_status",{status=status}))
+   if(status == 0) then res = i18n("flow_details.normal")
+   elseif(status == 1)  then res = warn_sign..i18n("flow_details.slow_tcp_connection")
+   elseif(status == 2)  then res = warn_sign..i18n("flow_details.slow_application_header")
+   elseif(status == 3)  then res = warn_sign..i18n("flow_details.slow_data_exchange")
+   elseif(status == 4)  then res = warn_sign..i18n("flow_details.low_goodput")
+   elseif(status == 5)  then res = warn_sign..i18n("flow_details.suspicious_tcp_syn_probing")
+   elseif(status == 6)  then res = warn_sign..i18n("flow_details.tcp_connection_issues")
+   elseif(status == 7)  then res = warn_sign..i18n("flow_details.suspicious_tcp_probing")
+   elseif(status == 8)  then res = warn_sign..i18n("flow_details.flow_emitted")
+   elseif(status == 9)  then res = warn_sign..i18n("flow_details.tcp_connection_refused")
+   elseif(status == 10) then res = warn_sign..i18n("flow_details.ssl_certificate_mismatch")
+   elseif(status == 11) then res = warn_sign..i18n("flow_details.dns_invalid_query")
+   elseif(status == 12) then res = warn_sign..i18n("flow_details.remote_to_remote")
+   elseif(status == 13) then res = warn_sign..i18n("flow_details.blacklisted_flow")
+   elseif(status == 14) then res = warn_sign..i18n("flow_details.flow_blocked_by_bridge")
+   elseif(status == 15) then res = warn_sign..i18n("flow_details.web_mining_detected")
+   elseif(status == 16) then res = formatSuspiciousDeviceProtocolAlert(flowstatus_info)
+   elseif(status == 17) then res = warn_sign..formatElephantFlowAlert(flowstatus_info, true --[[ local 2 remote --]])
+   elseif(status == 18) then res = warn_sign..formatElephantFlowAlert(flowstatus_info, false --[[ remote 2 local --]])
+   elseif(status == 19) then res = warn_sign..formatLongLivedFlowAlert(flowstatus_info)
+   elseif(status == 20) then res = warn_sign..i18n("flow_details.not_purged")
    end
+
+   return res
 end
 
 -- prints purged information for hosts / flows
