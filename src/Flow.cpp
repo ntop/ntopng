@@ -82,7 +82,7 @@ Flow::Flow(NetworkInterface *_iface,
   if(cli_host) { cli_host->incUses(); cli_host->incNumFlows(last_seen, true, srv_host);  }
   if(srv_host) { srv_host->incUses(); srv_host->incNumFlows(last_seen, false, cli_host); }
 
-  if(icmp_info) {
+  if(icmp_info && icmp_info->getUnreach()) {
     /*
       This is an ICMP flow which contains unreachable information. As is the cli_host
       that complains, it means that the srv_host has made a connection that triggered
