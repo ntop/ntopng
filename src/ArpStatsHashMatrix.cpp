@@ -1,4 +1,3 @@
-
 /*
  *
  * (C) 2013-19 - ntop.org
@@ -48,7 +47,7 @@ ArpStatsMatrixElement* ArpStatsHashMatrix::get(const u_int8_t _src_mac[6], const
       head = (ArpStatsMatrixElement*)table[hash];
 
       while(head != NULL) {
-        if((!head->idle()) && head->equal(_src_mac, _dst_mac) )
+        if((!head->idle()) && head->equal(_src_mac, _dst_mac))
         
           break;
         else
@@ -67,18 +66,18 @@ ArpStatsMatrixElement* ArpStatsHashMatrix::get(const u_int8_t _src_mac[6], const
 static bool print_all_arp_stats(GenericHashEntry *e, void *user_data, bool *matched) {
   ArpStatsMatrixElement *elem = (ArpStatsMatrixElement*)e;
   lua_State* vm = (lua_State*) user_data;
-  //TODO:errors handling
-  elem->lua(vm);
+
+  //TODO: errors handling
+  if(elem)
+    elem->lua(vm);
 
   return(false); /* false = keep on walking */
 }
 
 /* ************************************ */
 
-void ArpStatsHashMatrix::printHash(lua_State* vm) {
+void ArpStatsHashMatrix::lua(lua_State* vm) {
   u_int32_t begin_slot = 0;
 
-  disablePurge();
   walk(&begin_slot, true, print_all_arp_stats, vm);
-  enablePurge();
 }
