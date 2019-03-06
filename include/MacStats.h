@@ -25,7 +25,11 @@
 class MacStats: public GenericTrafficElement {
  protected:
   NetworkInterface *iface;
-  ArpStats arp_stats;
+  struct {
+    struct {
+      MonitoredCounter<u_int32_t> requests, replies;
+    } sent, rcvd;
+  } arp_stats;
 
  public:
   MacStats(NetworkInterface *_iface);
@@ -34,12 +38,12 @@ class MacStats: public GenericTrafficElement {
   void deserialize(json_object *obj);
   void getJSONObject(json_object *my_object);
 
-  inline u_int64_t  getNumSentArp()   { return (u_int64_t)arp_stats.sent.requests + arp_stats.sent.replies; }
-  inline u_int64_t  getNumRcvdArp()   { return (u_int64_t)arp_stats.rcvd.requests + arp_stats.rcvd.replies; }
-  inline void incSentArpRequests()   { arp_stats.sent.requests++;         }
-  inline void incSentArpReplies()    { arp_stats.sent.replies++;          }
-  inline void incRcvdArpRequests()   { arp_stats.rcvd.requests++;         }
-  inline void incRcvdArpReplies()    { arp_stats.rcvd.replies++;          }
+  inline u_int64_t  getNumSentArp()   { return (u_int64_t)arp_stats.sent.requests.get() + arp_stats.sent.replies.get(); }
+  inline u_int64_t  getNumRcvdArp()   { return (u_int64_t)arp_stats.rcvd.requests.get() + arp_stats.rcvd.replies.get(); }
+  inline void incSentArpRequests()    { arp_stats.sent.requests.inc(1);         }
+  inline void incSentArpReplies()     { arp_stats.sent.replies.inc(1);          }
+  inline void incRcvdArpRequests()    { arp_stats.rcvd.requests.inc(1);         }
+  inline void incRcvdArpReplies()     { arp_stats.rcvd.replies.inc(1);          }
 
   inline void incSentStats(time_t t, u_int64_t num_pkts, u_int64_t num_bytes)  { sent.incStats(t, num_pkts, num_bytes); }
   inline void incRcvdStats(time_t t, u_int64_t num_pkts, u_int64_t num_bytes)  { rcvd.incStats(t, num_pkts, num_bytes); }

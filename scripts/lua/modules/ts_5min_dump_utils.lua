@@ -183,6 +183,12 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
 					   flows_as_server = host["anomalous_flows.as_server"]},
 		  when, verbose)
 
+  -- Number of unreachable flows
+  ts_utils.append("host:unreachable_flows", {ifid = ifstats.id, host = hostname,
+					   flows_as_client = host["unreachable_flows.as_client"],
+					   flows_as_server = host["unreachable_flows.as_server"]},
+		  when, verbose)
+
   -- Total number of alerts
   ts_utils.append("host:total_alerts", {ifid = ifstats.id, host = hostname,
 					   alerts = host["total_alerts"]},

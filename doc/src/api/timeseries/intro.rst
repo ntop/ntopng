@@ -1,14 +1,7 @@
-Basic Concepts and Export
-#########################
+Basic Concepts
+##############
 
 Here is a brief introduction to some fundamental concepts of the API.
-
-Driver
-======
-
-A timeseries *driver* implements a well defined interface to provide support for a
-specific database. Currently ntopng provides the RRD and InfluxDB drivers to communicate
-with the respective datatabases.
 
 Schema
 ======
@@ -34,53 +27,57 @@ Schemas are split into 3 files, one for each periodic script, to avoid wasting t
 unnecessary schemas. Nevertheless, by including the `ts_utils` module, all the available
 schemas are loaded automatically.
 
-Exporting Data
-==============
+Schema Name
+===========
 
-Thanks to the formalization of the data into schemas, ntopng itself can now
-be used as a timeseries exporter. The script `scripts/lua/get_ts.lua` is the
-endpoint which provides such data.
+A schema name is made up of two parts:
+  - A schema prefix, for example "host"
+  - A schema suffic, for example "ndpi"
 
-Let's see how to read a particuar host nDPI traffic by using the provided API.
+The two parts are separated by a single `:`, so for example "host:ndpi" is a valid
+schema name and indicates the nDPI application traffic of an host. Only a single
+colon is allowed and no spaces are allowed.
+For new schemas, it is important to choose a consistent schema name.
 
-The "host:ndpi" schema is defined in `ts_5min.lua` as follows:
+Here are some common schema prefixes used:
 
-.. code-block:: c
+  - :code:`iface`: schemas for network interfaces (e.g. `iface:traffic`)
+  - :code:`host`: schemas for local hosts
+  - :code:`mac`: schemas for L2 devices
+  - :code:`asn`: schemas for autonomous systems
+  - :code:`subnet`: schemas for local networks
+  - :code:`country`: schemas for countries
+  - :code:`vlan`: schemas for VLANs
 
-  schema = ts_utils.newSchema("host:ndpi", {step=300})
-  schema:addTag("ifid")
-  schema:addTag("host")
-  schema:addTag("protocol")
-  schema:addMetric("bytes_sent")
-  schema:addMetric("bytes_rcvd")
+Here are some common schema suffixes used:
 
-In order to extract last hour host `192.168.1.10` information about the
-Facebook protocol, the following API can be used.
+  - :code:`traffic`: schemas for bytes timeseries (e.g. `host:traffic`)
+  - :code:`ndpi`: schemas for nDPI application timeseries
+  - :code:`ndpi_categories`: schemas for nDPI category timeseries
 
-To extract data from a Lua script located within the ntopng directory structure:
+Usually the schema prefix appears also as a tag in the timeseries and it's used
+to identify the element (e.g. the schema `asn:ndpi` as a tag `asn` which holds the
+AS number).
 
-.. code-block:: lua
+Metric Types
+============
 
-  local res = ts_utils.query("host:ndpi", {
-    ifid = "1",
-    host = "192.168.1.10",
-    protocol = "Facebook"
-  }, os.time()-3600, os.time())
+ntopng provides metrics of two types, namely gauges and
+counters. Timeseries can be created out of gauges and counters,
+transparently. The only thing that is necessary is to tell the
+timeseries engine the actual type, then the rest will be handled automatically.
 
-  --tprint(res)
+- Counters are for continuous incrementing metrics such as the total
+  number of bytes (e.g., :code:`bytes.sent`,
+  :code:`bytes.rcvd`). This is the most common metric type for networks.
 
-To extract data from an external program:
+- Gauges are metrics such as the number of active flows
+  (e.g., :code:`active_flows.as_client`, :code:`active_flows.as_server`) or active
+  hosts at a certain point in time.
 
-.. code-block:: bash
+Driver
+======
 
-  # Extract host traffic in the specified time frame
-  curl --cookie "user=admin; password=admin" "http://127.0.0.1:3000/lua/get_ts.lua?ts_schema=host:traffic&ts_query=ifid:1,host:192.168.1.10&epoch_begin=1532180495&epoch_end=1532176895"
-
-  # Extract last hour top host protocols
-  curl --cookie "user=admin; password=admin" "http://127.0.0.1:3000/lua/get_ts.lua?ts_schema=top:host:ndpi&ts_query=ifid:1,host:192.168.43.18"
-
-  # Extract last hour AS 62041 RTT
-  curl --cookie "user=admin; password=admin" "http://127.0.0.1:3000/lua/get_ts.lua?ts_query=ifid:1,asn:62041&ts_schema=asn:rtt"
-
-JSON data will be returned. Check out the `ts_utils` module documentation below to
-learn more about the query response format.
+A timeseries *driver* implements a well defined interface to provide support for a
+specific database. Currently ntopng provides the RRD and InfluxDB drivers to communicate
+with the respective datatabases.

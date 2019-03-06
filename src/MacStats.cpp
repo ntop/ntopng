@@ -25,7 +25,8 @@
 
 MacStats::MacStats(NetworkInterface *_iface) {
   iface = _iface;
-  memset(&arp_stats, 0, sizeof(arp_stats));
+  arp_stats.sent.requests.reset(), arp_stats.sent.replies.reset(),
+    arp_stats.rcvd.requests.reset(), arp_stats.rcvd.replies.reset();
 
   /* NOTE: ndpiStats: allocated dynamically and deleted by ~GenericTrafficElement */
   ndpiStats = NULL;
@@ -35,10 +36,10 @@ MacStats::MacStats(NetworkInterface *_iface) {
 
 void MacStats::lua(lua_State* vm, bool show_details) {
   if(show_details) {
-    lua_push_uint64_table_entry(vm, "arp_requests.sent", arp_stats.sent.requests);
-    lua_push_uint64_table_entry(vm, "arp_requests.rcvd", arp_stats.rcvd.requests);
-    lua_push_uint64_table_entry(vm, "arp_replies.sent", arp_stats.sent.replies);
-    lua_push_uint64_table_entry(vm, "arp_replies.rcvd", arp_stats.rcvd.replies);
+    lua_push_uint64_table_entry(vm, "arp_requests.sent", arp_stats.sent.requests.get());
+    lua_push_uint64_table_entry(vm, "arp_requests.rcvd", arp_stats.rcvd.requests.get());
+    lua_push_uint64_table_entry(vm, "arp_replies.sent", arp_stats.sent.replies.get());
+    lua_push_uint64_table_entry(vm, "arp_replies.rcvd", arp_stats.rcvd.replies.get());
 
     if(ndpiStats) ndpiStats->lua(iface, vm, true);
   }

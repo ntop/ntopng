@@ -43,6 +43,8 @@ void HostTimeseriesPoint::lua(lua_State* vm, NetworkInterface *iface) {
   lua_push_uint64_table_entry(vm, "active_flows.as_server", num_flows_as_server);
   lua_push_uint64_table_entry(vm, "anomalous_flows.as_client", total_num_anomalous_flows_as_client);
   lua_push_uint64_table_entry(vm, "anomalous_flows.as_server", total_num_anomalous_flows_as_server);
+  lua_push_uint64_table_entry(vm, "unreachable_flows.as_client", total_num_unreachable_flows_as_client);
+  lua_push_uint64_table_entry(vm, "unreachable_flows.as_server", total_num_unreachable_flows_as_server);
   lua_push_uint64_table_entry(vm, "total_alerts", total_alerts);
   lua_push_uint64_table_entry(vm, "contacts.as_client", num_contacts_as_cli);
   lua_push_uint64_table_entry(vm, "contacts.as_server", num_contacts_as_srv);
