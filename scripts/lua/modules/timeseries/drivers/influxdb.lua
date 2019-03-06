@@ -447,7 +447,7 @@ function driver:query(schema, tstart, tend, tags, options)
         -- override total and average
         -- NOTE: using -1 to avoid overflowing into the next hour
         local stats_query = "(SELECT ".. table.concat(schema._metrics, " + ") .. ' AS value FROM ' .. query_schema ..
-          ' ' ..getWhereClause(tags, tstart, tend, ternary((data_type == ts_common.metrics.derivative), -1, unaligned_offset)) .. ")"
+          ' ' ..getWhereClause(tags, tstart, tend, -1) .. ")"
         if data_type == ts_common.metrics.counter then
           stats_query = "(SELECT NON_NEGATIVE_DIFFERENCE(value) as value FROM " .. stats_query .. ")"
         end
@@ -731,7 +731,7 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
   -- Aggregate into 1 metric and filter
   local base_query = '(SELECT '.. top_tag ..', (' .. table.concat(schema._metrics, " + ") ..') AS "value", '..
       all_metrics .. ' FROM '.. query_schema ..
-      ' '.. getWhereClause(tags, tstart, tend, ternary((data_type == ts_common.metrics.derivative), -1, unaligned_offset)) ..')'
+      ' '.. getWhereClause(tags, tstart, tend, -1) ..')'
 
    -- Calculate difference between counter values
   if data_type == "counter" then
