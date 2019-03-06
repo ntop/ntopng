@@ -50,7 +50,7 @@ PcapInterface::PcapInterface(const char *name) : NetworkInterface(name) {
     if(strcmp(name, "-") == 0 || !strncmp(name, "stdin", 5)) {
       /* stdin */
       pcap_handle = pcap_fopen_offline(stdin, pcap_error_buffer);
-      pcap_datalink_type = DLT_EN10MB;
+      pcap_datalink_type = pcap_datalink(pcap_handle);
       read_pkts_from_pcap_dump = false;
     } else if((pcap_handle = pcap_open_offline(ifname, pcap_error_buffer)) == NULL) {
       if((pcap_list = fopen(name, "r")) == NULL) {

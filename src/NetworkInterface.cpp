@@ -2074,7 +2074,8 @@ datalink_check:
     eth_type = (packet[eth_offset+14] << 8) + packet[eth_offset+15];
     ip_offset = 16 + eth_offset;
 #ifdef DLT_RAW
-  } else if(pcap_datalink_type == DLT_RAW /* Linux TUN/TAP device in TUN mode; Raw IP capture */) {
+  } else if(pcap_datalink_type == DLT_RAW /* Linux TUN/TAP device in TUN mode; Raw IP capture */
+	    || pcap_datalink_type == 14  /* raw IP DLT_RAW on OpenBSD captures */) {
     switch((packet[eth_offset] & 0xf0) >> 4) {
     case 4:
       eth_type = ETHERTYPE_IP;
