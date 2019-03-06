@@ -35,7 +35,7 @@ template <typename METRICTYPE> class MonitoredGauge : public MonitoredMetric<MET
 #ifdef MONITOREDGAUGE_DEBUG
       if(this->anomaly_index)
 	printf("%s[MonitoredGauge][value: %lu][delta: %ld][RSI: %lu][gains: %lu][losses: %lu]\n",
-	       ((this->anomaly_index < 25) || (this->anomaly_index > 75)) ? "<<<***>>> Anomaly " : "",
+	       this->is_anomalous(when) ? "<<<***>>> Anomaly " : "",
 	       (unsigned long)this->value, (long)delta,
 	       (unsigned long)this->anomaly_index, (unsigned long)this->gains, (unsigned long)this->losses);
 #endif
