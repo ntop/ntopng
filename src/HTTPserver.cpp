@@ -1098,8 +1098,13 @@ void HTTPserver::parseACL(char * const acl, u_int acl_len) {
   struct in_addr ipaddr;
   const char * const comma = ",";
 
-  if(!acl || !acl_len | !(acl_key = (char*)malloc(acl_len)))
+  if(!acl || !acl_len)
     return;
+
+  if(!(acl_key = (char*)malloc(acl_len))) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to allocate acl_key memory");
+    return;
+  }
 
   acl[0] = '\0';
   ntop->getRedis()->get((char*)HTTP_ACL_MANAGEMENT_PORT, acl_key, acl_len, true);

@@ -657,14 +657,10 @@ void HostPools::reloadPools() {
   if(!iface || (iface->get_id() == -1))
     return;
 
-  if((new_tree = new VlanAddressTree) == NULL
+  new_tree = new VlanAddressTree;
 #ifdef NTOPNG_PRO
-     || (new_stats = new HostPoolStats*[MAX_NUM_HOST_POOLS]) == NULL
+  new_stats = new HostPoolStats*[MAX_NUM_HOST_POOLS];
 #endif
-     ) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Not enough memory");
-    return;
-  }
 
 #ifdef NTOPNG_PRO
   for(u_int32_t i = 0; i < MAX_NUM_HOST_POOLS; i++)

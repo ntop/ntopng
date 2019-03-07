@@ -1376,9 +1376,12 @@ bool Utils::postHTTPTextFile(lua_State* vm, char *username, char *password, char
   struct stat buf;
 #endif
   size_t file_len;
-  FILE *fd = fopen(path, "r");
+  FILE *fd;
+
+  if(stat(path, &buf) != 0)
+    return(false);
   
-  if((fd == NULL) || (stat(path, &buf) != 0))
+  if((fd = fopen(path, "r")) == NULL)
     return(false);
   else
     file_len = (size_t)buf.st_size;
@@ -2106,7 +2109,7 @@ u_int64_t Utils::macaddr_int(const u_int8_t *mac) {
     u_int64_t mac_int = 0;
 
     for(u_int8_t i=0; i<6; i++){
-      mac_int |= (mac[i] & 0xFF) << (5-i)*8;
+      mac_int |= ((u_int64_t)(mac[i] & 0xFF)) << (5-i)*8;
     }
 
     return mac_int;
