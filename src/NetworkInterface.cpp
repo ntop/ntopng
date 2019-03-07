@@ -2521,12 +2521,12 @@ decode_packet_eth:
 	  srcMac->incSentArpRequests();
 	  dstMac->incRcvdArpRequests();
 
-	  if(e) e->incSentArpRequests();
+	  if(e) e->incArpRequests();
 	} else if(arp_opcode == 0x2 /* ARP reply */) {
 	  arp_replies++;
 	  srcMac->incSentArpReplies();
 	  dstMac->incRcvdArpReplies();
-	  if(e) e->incSentArpReplies();
+	  if(e) e->incArpReplies();
 
 	  checkMacIPAssociation(true, arpp->arp_sha, arpp->arp_spa);
 	  checkMacIPAssociation(true, arpp->arp_tha, arpp->arp_tpa);
@@ -5481,11 +5481,20 @@ Mac* NetworkInterface::getMac(u_int8_t _mac[6], bool createIfNotPresent) {
 
 /* **************************************************** */
 
+void NetworkInterface::cleanupArpHashMatrixRow(const u_int8_t _src_mac[6]) {
+  if(!arp_hash_matrix || !_src_mac)
+    return;
+
+  arp_hash_matrix->cleanupMatrixRow(_src_mac);
+}
+
+/* **************************************************** */
+
 ArpStatsMatrixElement* NetworkInterface::getArpHashMatrixElement(u_int8_t _src_mac[6], 
         u_int8_t _dst_mac[6], bool createIfNotPresent){
   ArpStatsMatrixElement *ret = NULL;
 
-  if(_src_mac == NULL || _dst_mac == NULL)
+  if(_src_mac == NULL || _dst_mac == NULL || arp_hash_matrix == NULL)
     return NULL;
 
   ret = arp_hash_matrix->get(_src_mac, _dst_mac);

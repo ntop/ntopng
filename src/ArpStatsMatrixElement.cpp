@@ -26,6 +26,7 @@ ArpStatsMatrixElement::ArpStatsMatrixElement(NetworkInterface *_iface, const u_i
   memcpy(src_mac, _src_mac, 6);
   memcpy(dst_mac, _dst_mac, 6);
   memset(&stats, 0, sizeof(stats));
+  idle_mark = false;
 
 #ifdef ARP_STATS_MATRIX_ELEMENT_DEBUG
   char buf1[32], buf2[32];
@@ -49,19 +50,6 @@ ArpStatsMatrixElement::~ArpStatsMatrixElement(){
 
 /* *************************************** */
 
-bool ArpStatsMatrixElement::idle() {
-  bool rc;
-
-  if((num_uses > 0) || (!iface->is_purge_idle_interface()))
-    return(false);
-
-  rc = isIdle(MAX_LOCAL_HOST_IDLE);
-
-  return(rc);
-}
-
-/* *************************************** */
-
 bool ArpStatsMatrixElement::equal(const u_int8_t _src_mac[6], const u_int8_t _dst_mac[6]) const {
   if(!_src_mac || !_dst_mac)
     return false;
@@ -69,38 +57,44 @@ bool ArpStatsMatrixElement::equal(const u_int8_t _src_mac[6], const u_int8_t _ds
   if(memcmp(src_mac, _src_mac, 6) == 0 && memcmp(dst_mac, _dst_mac, 6) == 0)
     return true;
 
-  else if(memcmp(src_mac, _dst_mac, 6) == 0 && memcmp(dst_mac, _src_mac, 6) == 0) {
-    return true;
-  }
-  else
+  return false;
+}
+
+/* *************************************** */
+
+bool ArpStatsMatrixElement::src_equal(const u_int8_t _src_mac[6]) const {
+  if(!_src_mac)
     return false;
+
+  return memcmp(src_mac, _src_mac, 6) == 0;
 }
 
 /* *************************************** */
 
 u_int32_t ArpStatsMatrixElement::key() {
-  return Utils::macHash(src_mac) + Utils::macHash(dst_mac);
+  return Utils::macHash(src_mac);
 }
 
 /* *************************************** */
 
 void ArpStatsMatrixElement::lua(lua_State* vm) {
-  char buf1[32], buf2[32];
-  char table_key[sizeof(buf1) + sizeof(buf1) + 2] = {0};
+  char buf[32];
 
-  lua_newtable(vm);
+  lua_newtable(vm); /* Outer table key, source mac */
+  lua_newtable(vm); /* Innter table key, destination mac */
 
-  Utils::formatMac(src_mac, buf1, sizeof(buf1));
-  Utils::formatMac(dst_mac, buf2, sizeof(buf2));
+  lua_push_uint64_table_entry(vm, "requests", stats.requests);
+  lua_push_uint64_table_entry(vm, "replies", stats.replies);
 
-  lua_push_uint64_table_entry(vm, "sent.requests", stats.sent.requests);
-  lua_push_uint64_table_entry(vm, "rcvd.requests", stats.rcvd.requests);
-  lua_push_uint64_table_entry(vm, "sent.replies", stats.sent.replies);
-  lua_push_uint64_table_entry(vm, "rcvd.replies", stats.rcvd.replies);
+  /* Destination Mac as the key of the inner table */
+  Utils::formatMac(dst_mac, buf, sizeof(buf));
+  lua_pushstring(vm, buf);
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
 
-  snprintf(table_key, sizeof(table_key), "%s.%s", buf1, buf2);
-
-  lua_pushstring(vm, table_key);
+  /* Source Mac as the key of the outer table */
+  Utils::formatMac(src_mac, buf, sizeof(buf));
+  lua_pushstring(vm, buf);
   lua_insert(vm, -2);
   lua_settable(vm, -3);
 }

@@ -2089,7 +2089,7 @@ bool Utils::discardOldFilesExceeding(const char *path, const unsigned long max_s
 
 /* **************************************** */
 
-char* Utils::formatMac(u_int8_t *mac, char *buf, u_int buf_len) {
+char* Utils::formatMac(const u_int8_t * const mac, char *buf, u_int buf_len) {
   if((mac == NULL) || (ntop->getPrefs()->getHostMask() != no_host_mask))
     snprintf(buf, buf_len, "00:00:00:00:00:00");
   else

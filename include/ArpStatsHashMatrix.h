@@ -31,6 +31,7 @@ class ArpStatsHashMatrix : public GenericHash {
 
   ArpStatsMatrixElement* get(const u_int8_t _src_mac[6], const u_int8_t _dst_mac[6]);
   void lua(lua_State* vm);
+  void cleanupMatrixRow(const u_int8_t _src_mac[6]);
 };
 
 #endif /* _MAC_HASH_MATRIX_H_ */
