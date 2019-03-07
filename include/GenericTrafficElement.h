@@ -54,6 +54,7 @@ class GenericTrafficElement {
   virtual void updateStats(struct timeval *tv);
   void lua(lua_State* vm, bool host_details);
 
+  inline nDPIStats* getnDPIStats()                          { return(ndpiStats); };
   inline u_int32_t getNumDroppedFlows() const { return total_num_dropped_flows;                };
   inline u_int64_t getNumBytes()        const { return(sent.getNumBytes()+rcvd.getNumBytes()); };
   inline u_int64_t getNumBytesSent()    const { return(sent.getNumBytes());                    };

@@ -70,7 +70,6 @@ class HostStats: public Checkpointable, public GenericTrafficElement {
   inline void incFlagStats(bool as_client, u_int8_t flags)  { if (as_client) sent_stats.incFlagStats(flags); else recv_stats.incFlagStats(flags); };
   inline void incNumAnomalousFlows(bool as_client)          { if(as_client) anomalous_flows_as_client++; else anomalous_flows_as_server++; };
   inline void incNumUnreachableFlows(bool as_server)        { if(as_server) unreachable_flows_as_server++; else unreachable_flows_as_client++; }
-  inline nDPIStats* getnDPIStats()                          { return(ndpiStats); };
 
   virtual void computeAnomalyIndex(time_t when) {};
   inline void incRetransmittedPkts(u_int32_t num)   { tcpPacketStats.pktRetr += num;      };
