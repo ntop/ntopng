@@ -1,4 +1,3 @@
-
 /*
  *
  * (C) 2013-19 - ntop.org
@@ -32,10 +31,10 @@ ArpStatsHashMatrix::ArpStatsHashMatrix(NetworkInterface *_iface, u_int _num_hash
 /* ************************************ */
 //this get function DO NOT reverse the snd / rcv counters in case src_mac and dst_mac are reversed
 ArpStatsMatrixElement* ArpStatsHashMatrix::get(const u_int8_t _src_mac[6], const u_int8_t _dst_mac[6]) {
-  if(_src_mac == NULL ||  _dst_mac == NULL)
+  if(_src_mac == NULL || _dst_mac == NULL)
     return(NULL);
   else {
-    u_int32_t hash = Utils::macHash((u_int8_t*)_src_mac) + Utils::macHash((u_int8_t*) _dst_mac);
+    u_int32_t hash = Utils::macHash((u_int8_t*)_src_mac);
     hash %= num_hashes;
 
     if(table[hash] == NULL) {
@@ -48,7 +47,7 @@ ArpStatsMatrixElement* ArpStatsHashMatrix::get(const u_int8_t _src_mac[6], const
       head = (ArpStatsMatrixElement*)table[hash];
 
       while(head != NULL) {
-        if((!head->idle()) && head->equal(_src_mac, _dst_mac) )
+        if((!head->idle()) && head->equal(_src_mac, _dst_mac))
         
           break;
         else
@@ -67,18 +66,44 @@ ArpStatsMatrixElement* ArpStatsHashMatrix::get(const u_int8_t _src_mac[6], const
 static bool print_all_arp_stats(GenericHashEntry *e, void *user_data, bool *matched) {
   ArpStatsMatrixElement *elem = (ArpStatsMatrixElement*)e;
   lua_State* vm = (lua_State*) user_data;
-  //TODO:errors handling
-  elem->lua(vm);
+
+  //TODO: errors handling
+  if(elem)
+    elem->lua(vm);
 
   return(false); /* false = keep on walking */
 }
 
 /* ************************************ */
 
-void ArpStatsHashMatrix::printHash(lua_State* vm) {
+void ArpStatsHashMatrix::lua(lua_State* vm) {
   u_int32_t begin_slot = 0;
 
-  disablePurge();
   walk(&begin_slot, true, print_all_arp_stats, vm);
-  enablePurge();
+}
+
+/* ************************************ */
+
+void ArpStatsHashMatrix::cleanupMatrixRow(const u_int8_t _src_mac[6]) {
+  if(!_src_mac)
+    return;
+
+  u_int32_t hash = Utils::macHash((u_int8_t*)_src_mac);
+  hash %= num_hashes;
+
+  if(table[hash]) {
+    ArpStatsMatrixElement *head;
+
+    locks[hash]->lock(__FILE__, __LINE__);
+    head = (ArpStatsMatrixElement*)table[hash];
+
+    while(head != NULL) {
+      if(!head->idle() && head->src_equal(_src_mac))
+	head->set_idle();
+
+      head = (ArpStatsMatrixElement*)head->next();
+    }
+    
+    locks[hash]->unlock(__FILE__, __LINE__);
+  }
 }

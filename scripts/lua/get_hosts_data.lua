@@ -234,7 +234,7 @@ for _key, _value in pairsByKeys(vals, funct) do
 
    local host = interface.getHostInfo(hosts_stats[key].ip, hosts_stats[key].vlan)
    if((host ~= nil) and (host.has_dropbox_shares == true)) then
-      column_ip = column_ip .."<i class='fa fa-dropbox'></i>"
+      column_ip = column_ip .." <i class='fa fa-dropbox'></i> "
    end
    
    if((host ~= nil) and (host.country ~= nil) and (host.country ~= "")) then
@@ -280,7 +280,7 @@ for _key, _value in pairsByKeys(vals, funct) do
 
    if(value["ip"] ~= nil) then
       local label = getHostAltName(value["ip"], value["mac"])
-      if(label ~= value["ip"]) then
+      if label ~= value["ip"] and column_name ~= label then
 	 column_name = column_name .. " ["..label.."]"
       end
    end

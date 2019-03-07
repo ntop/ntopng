@@ -656,6 +656,22 @@ function formatRawFlow(record, flow_json)
       add_links = true
    end
 
+   local decoded = json.decode(flow_json)
+   local status_info = alert2statusinfo(decoded)
+
+   -- active flow lookup
+   if status_info and status_info["ntopng.key"] then
+      -- attempt a lookup on the active flows
+      local active_flow = interface.findFlowByKey(status_info["ntopng.key"])
+
+      if active_flow and active_flow["seen.first"] < tonumber(record["alert_tstamp"]) then
+	 return string.format("%s [%s: <A HREF='%s/lua/flow_details.lua?flow_key=%u'><span class='label label-info'>Info</span></A> %s]",
+			      getFlowStatus(tonumber(record["flow_status"]), status_info),
+			      i18n("flow"), ntop.getHttpPrefix(), active_flow["ntopng.key"],
+			      getFlowLabel(active_flow, true, true))
+      end
+   end
+
    -- pretend record is a flow to reuse getFlowLabel
    local flow = {
       ["cli.ip"] = record["cli_addr"], ["cli.port"] = tonumber(record["cli_port"]),
@@ -675,9 +691,6 @@ function formatRawFlow(record, flow_json)
    if not isEmptyString(l7proto_name) and l4_proto_label ~= l7proto_name then
       flow = flow.."["..i18n("application")..": " ..l7proto_name.."] "
    end
-
-   local decoded = json.decode(flow_json)
-   local status_info = alert2statusinfo(decoded)
 
    if decoded ~= nil then
       -- render the json
@@ -2130,15 +2143,15 @@ local function formatActiveFlowsAnomaly(ifid, engine, entity_type, entity_value,
       if(alert_key == "num_active_flows_as_client") and (entity_info.anomalies.num_active_flows_as_client) then
 	 local anomaly_info = entity_info.anomalies.num_active_flows_as_client
 
-	 return string.format("%s has an anomalous number of active client flows [current_flows=%u, last_flows=%u, delta=%d] [anomaly_index=%u]",
+	 return string.format("%s has an anomalous number of active client flows [current_flows=%u][anomaly_index=%u]",
 	    firstToUpper(formatAlertEntity(ifid, entity_type, entity_value, entity_info)),
-	    anomaly_info.value, anomaly_info.last_value, anomaly_info.value - anomaly_info.last_value, anomaly_info.anomaly_index)
+	    anomaly_info.value, anomaly_info.anomaly_index)
       elseif(alert_key == "num_active_flows_as_server") and (entity_info.anomalies.num_active_flows_as_server) then
 	 local anomaly_info = entity_info.anomalies.num_active_flows_as_server
 
-	 return string.format("%s has an anomalous number of active server flows [current_flows=%u, last_flows=%u, delta=%d] [anomaly_index=%u]",
+	 return string.format("%s has an anomalous number of active server flows [current_flows=%u][anomaly_index=%u]",
 	    firstToUpper(formatAlertEntity(ifid, entity_type, entity_value, entity_info)),
-	    anomaly_info.value, anomaly_info.last_value, anomaly_info.value - anomaly_info.last_value, anomaly_info.anomaly_index)
+	    anomaly_info.value, anomaly_info.anomaly_index)
       end
    end
 
@@ -2154,10 +2167,10 @@ local function formatDNSAnomaly(ifid, engine, entity_type, entity_value, entity_
 	 if alert_key == v and entity_info.anomalies[v] then
 	    local anomaly_info = entity_info.anomalies[v]
 
-	    local res =  string.format("%s has a DNS anomaly [%s][current=%u, last=%u, delta=%d] [anomaly_index=%u]",
+	    local res =  string.format("%s has a DNS anomaly [%s][current=%u][anomaly_index=%u]",
 				       firstToUpper(formatAlertEntity(ifid, entity_type, entity_value, entity_info)),
 				       v,
-				       anomaly_info.value, anomaly_info.last_value, anomaly_info.value - anomaly_info.last_value,
+				       anomaly_info.value,
 				       anomaly_info.anomaly_index)
 	    return res
 	 end
@@ -2175,10 +2188,10 @@ local function formatICMPAnomaly(ifid, engine, entity_type, entity_value, entity
 	 if alert_key == v and entity_info.anomalies[v] then
 	    local anomaly_info = entity_info.anomalies[v]
 
-	    local res =  string.format("%s has an ICMP anomaly [%s][current=%u, last=%u, delta=%d] [anomaly_index=%u]",
+	    local res =  string.format("%s has an ICMP anomaly [%s][current=%u][anomaly_index=%u]",
 				       firstToUpper(formatAlertEntity(ifid, entity_type, entity_value, entity_info)),
 				       v,
-				       anomaly_info.value, anomaly_info.last_value, anomaly_info.value - anomaly_info.last_value,
+				       anomaly_info.value,
 				       anomaly_info.anomaly_index)
 	    return res
 	 end

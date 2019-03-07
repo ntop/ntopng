@@ -23,49 +23,33 @@
 #ifndef _ARP_STATS_MATRIX_ELEMENT_H_
 #define _ARP_STATS_MATRIX_ELEMENT_H_
 
-typedef struct {
-  u_int32_t requests, replies;
-} ReqReplyStats;
-
-typedef struct {
-  ReqReplyStats sent, rcvd;
-} ArpStats;
-
 #include "ntop_includes.h"
 
 class ArpStatsMatrixElement : public GenericHashEntry {
-private:
-    ArpStats stats;
-    u_int8_t src_mac[6];
-    u_int8_t dst_mac[6];
+ private:
+  bool idle_mark;
 
-public:
-    ArpStatsMatrixElement(NetworkInterface *_iface, const u_int8_t _src_mac[6],
-    const u_int8_t _dst_mac[6] ); ~ArpStatsMatrixElement();
+  struct {
+    u_int32_t requests, replies;
+  } stats;
 
-    inline ArpStats getStats()           {return stats;}
-    inline u_int8_t* getSourceMac()      {return src_mac;}
-    inline u_int8_t* getDestinationMac() {return dst_mac;}
+  u_int8_t src_mac[6];
+  u_int8_t dst_mac[6];
 
-    void setStats( u_int32_t sent_req, u_int32_t sent_res, u_int32_t rcv_req,u_int32_t rcv_res){
-        stats.sent.replies = sent_res;
-        stats.sent.requests = sent_req;
-        stats.rcvd.replies = rcv_res;
-        stats.rcvd.requests = rcv_req;
-    }
+ public:
+  ArpStatsMatrixElement(NetworkInterface *_iface, const u_int8_t _src_mac[6],
+			const u_int8_t _dst_mac[6] );
+  ~ArpStatsMatrixElement();
 
-    inline u_int32_t incSentArpReplies()        { return ++stats.sent.replies; }
-    inline u_int32_t incSentArpRequests()       { return ++stats.sent.requests; }
-    inline u_int32_t incReceivedArpReplies()    { return ++stats.rcvd.replies; }
-    inline u_int32_t incReceivedArpRequests()   { return ++stats.rcvd.requests; }
+  inline u_int32_t incArpReplies()   { return stats.replies++;  }
+  inline u_int32_t incArpRequests()  { return stats.requests++; }
 
-    bool equal(const u_int8_t _src_mac[6], const u_int8_t _dst_mac[6]);
-    bool idle();
-    u_int32_t key();
-    void lua(lua_State* vm);
-    /*for testing
-    void printElement();
-    */
+  bool equal(const u_int8_t _src_mac[6], const u_int8_t _dst_mac[6]) const;
+  bool src_equal(const u_int8_t _src_mac[6]) const;
+  virtual bool idle()    { return idle_mark; };
+  inline void set_idle() { idle_mark = true; };
+  u_int32_t key();
+  void lua(lua_State* vm);
 };
 
 #endif /* _ARP_STATS_MATRIX_ELEMENT_H_ */

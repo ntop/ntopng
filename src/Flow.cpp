@@ -1999,6 +1999,7 @@ json_object* Flow::flow2statusinfojson() {
 
   json_object_object_add(obj, "cli.devtype", json_object_new_int((cli_host && cli_host->getMac()) ? cli_host->getMac()->getDeviceType() : device_unknown));
   json_object_object_add(obj, "srv.devtype", json_object_new_int((srv_host && srv_host->getMac()) ? srv_host->getMac()->getDeviceType() : device_unknown));
+  json_object_object_add(obj, "ntopng.key", json_object_new_int64(key()));
 
   if(cli_host && ((proto_status = cli_host->getDeviceAllowedProtocolStatus(ndpiDetectedProtocol, true /* client */)) != device_proto_allowed)) {
     json_object_object_add(obj, "devproto_forbidden_peer", json_object_new_string("cli"));

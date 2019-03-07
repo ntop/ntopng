@@ -25,16 +25,13 @@
 
 #include "ntop_includes.h"
 
-
 class ArpStatsHashMatrix : public GenericHash {
-    private:
-    Mutex m;
+ public:
+  ArpStatsHashMatrix(NetworkInterface *iface, u_int _num_hashes, u_int _max_hash_size);
 
-    public:
-    ArpStatsHashMatrix(NetworkInterface *iface, u_int _num_hashes, u_int _max_hash_size);
-
-    ArpStatsMatrixElement* get(const u_int8_t _src_mac[6], const u_int8_t _dst_mac[6]); 
-    void printHash(lua_State* vm);
+  ArpStatsMatrixElement* get(const u_int8_t _src_mac[6], const u_int8_t _dst_mac[6]);
+  void lua(lua_State* vm);
+  void cleanupMatrixRow(const u_int8_t _src_mac[6]);
 };
 
 #endif /* _MAC_HASH_MATRIX_H_ */

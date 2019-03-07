@@ -165,7 +165,7 @@ NetworkInterface::NetworkInterface(const char *name,
     macs_hash = new MacHash(this, num_hashes, ntop->getPrefs()->get_max_num_hosts());
 
     arp_hash_matrix = new ArpStatsHashMatrix(this, num_hashes,
-            ntop->getPrefs()->get_max_num_hosts());
+					     (ntop->getPrefs()->get_max_num_hosts() ^ 2) / 2);
 
     // init global detection structure
     ndpi_struct = ndpi_init_detection_module();
@@ -823,10 +823,6 @@ bool NetworkInterface::walker(u_int32_t *begin_slot,
   case walker_vlans:
     ret = vlans_hash->walk(begin_slot, walk_all, walker, user_data);
     break;
-
-  case walker_arp_matrix_stats:
-    ret = arp_hash_matrix->walk(begin_slot, walk_all, walker, user_data);
-    break;  
   }
 
   return(ret);
@@ -2074,7 +2070,8 @@ datalink_check:
     eth_type = (packet[eth_offset+14] << 8) + packet[eth_offset+15];
     ip_offset = 16 + eth_offset;
 #ifdef DLT_RAW
-  } else if(pcap_datalink_type == DLT_RAW /* Linux TUN/TAP device in TUN mode; Raw IP capture */) {
+  } else if(pcap_datalink_type == DLT_RAW /* Linux TUN/TAP device in TUN mode; Raw IP capture */
+	    || pcap_datalink_type == 14  /* raw IP DLT_RAW on OpenBSD captures */) {
     switch((packet[eth_offset] & 0xf0) >> 4) {
     case 4:
       eth_type = ETHERTYPE_IP;
@@ -2517,19 +2514,19 @@ decode_packet_eth:
 	   && !arp_spa_h->isBroadcastDomainHost())
 	  arp_spa_h->setBroadcastDomainHost();
 
-  ArpStatsMatrixElement* e;
+	ArpStatsMatrixElement* e = getArpHashMatrixElement(srcMac->get_mac(), dstMac->get_mac(), true);
+
 	if(arp_opcode == 0x1 /* ARP request */) {
 	  arp_requests++;
 	  srcMac->incSentArpRequests();
 	  dstMac->incRcvdArpRequests();
-    e = getArpHashMatrixElement(srcMac->get_mac(), dstMac->get_mac(), true);
-    e->incSentArpRequests();
+
+	  if(e) e->incArpRequests();
 	} else if(arp_opcode == 0x2 /* ARP reply */) {
 	  arp_replies++;
 	  srcMac->incSentArpReplies();
 	  dstMac->incRcvdArpReplies();
-    e = getArpHashMatrixElement(srcMac->get_mac(), dstMac->get_mac(), true);
-    e->incSentArpReplies();
+	  if(e) e->incArpReplies();
 
 	  checkMacIPAssociation(true, arpp->arp_sha, arpp->arp_spa);
 	  checkMacIPAssociation(true, arpp->arp_tha, arpp->arp_tpa);
@@ -5484,24 +5481,31 @@ Mac* NetworkInterface::getMac(u_int8_t _mac[6], bool createIfNotPresent) {
 
 /* **************************************************** */
 
+void NetworkInterface::cleanupArpHashMatrixRow(const u_int8_t _src_mac[6]) {
+  if(!arp_hash_matrix || !_src_mac)
+    return;
+
+  arp_hash_matrix->cleanupMatrixRow(_src_mac);
+}
+
+/* **************************************************** */
+
 ArpStatsMatrixElement* NetworkInterface::getArpHashMatrixElement(u_int8_t _src_mac[6], 
         u_int8_t _dst_mac[6], bool createIfNotPresent){
-
   ArpStatsMatrixElement *ret = NULL;
 
-  if ( _src_mac == NULL || _dst_mac == NULL) return NULL;
+  if(_src_mac == NULL || _dst_mac == NULL || arp_hash_matrix == NULL)
+    return NULL;
 
   ret = arp_hash_matrix->get(_src_mac, _dst_mac);
   
-  if ( ret == NULL && createIfNotPresent ){
+  if(ret == NULL && createIfNotPresent) {
     try{ 
-      if( (ret = new ArpStatsMatrixElement(this, _src_mac, _dst_mac)) != NULL)
-
-        if( !arp_hash_matrix->add(ret) ){
+      if((ret = new ArpStatsMatrixElement(this, _src_mac, _dst_mac)) != NULL)
+        if(!arp_hash_matrix->add(ret)){
           delete ret;
           ret = NULL;
         }
-        
     } catch(std::bad_alloc& ba) {
       static bool oom_warning_sent = false;
 
@@ -5518,13 +5522,12 @@ ArpStatsMatrixElement* NetworkInterface::getArpHashMatrixElement(u_int8_t _src_m
 
 /* **************************************************** */
 
-bool NetworkInterface::getArpStatsMatrixInfo(lua_State* vm){
-  
-  if ( arp_hash_matrix && (getNumArpStatsMatrixElement() > 0) ){
+bool NetworkInterface::getArpStatsMatrixInfo(lua_State* vm){  
+  if(arp_hash_matrix && (getNumArpStatsMatrixElement() > 0)) {
     lua_newtable(vm);
-    arp_hash_matrix->printHash(vm);
+    arp_hash_matrix->lua(vm);
     return true;
-  }else
+  } else
     return false;
 }
 

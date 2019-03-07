@@ -22,15 +22,17 @@
 #include "ntop_includes.h"
 
 ArpStatsMatrixElement::ArpStatsMatrixElement(NetworkInterface *_iface, const u_int8_t _src_mac[6],
-         const u_int8_t _dst_mac[6] ): GenericHashEntry(_iface) {
-
-    memcpy(src_mac, _src_mac, 6);
-    memcpy(dst_mac, _dst_mac, 6);
-    stats.sent.replies = stats.sent.requests = stats.rcvd.replies = stats.rcvd.requests = 0;
+	 const u_int8_t _dst_mac[6] ): GenericHashEntry(_iface) {
+  memcpy(src_mac, _src_mac, 6);
+  memcpy(dst_mac, _dst_mac, 6);
+  memset(&stats, 0, sizeof(stats));
+  idle_mark = false;
 
 #ifdef ARP_STATS_MATRIX_ELEMENT_DEBUG
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "ADDED ArpMatrixElement: SourceMac %d - DestinationMac %d",
-                  src_mac, dst_mac);
+  char buf1[32], buf2[32];
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "ADDED ArpMatrixElement: SourceMac %s - DestinationMac %s",
+			       Utils::formatMac(src_mac, buf1, sizeof(buf1)),
+			       Utils::formatMac(dst_mac, buf2, sizeof(buf2)));
 #endif
 }
 
@@ -38,94 +40,61 @@ ArpStatsMatrixElement::ArpStatsMatrixElement(NetworkInterface *_iface, const u_i
 
 ArpStatsMatrixElement::~ArpStatsMatrixElement(){
 #ifdef ARP_STATS_MATRIX_ELEMENT_DEBUG
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "DELETED ArpMatrixElement: SourceMac %d - DestinationMac %d",
-                  src_mac, dst_mac);
+  char buf1[32], buf2[32];
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "DELETED ArpMatrixElement: SourceMac %s - DestinationMac %s",
+			       Utils::formatMac(src_mac, buf1, sizeof(buf1)),
+			       Utils::formatMac(dst_mac, buf2, sizeof(buf2)));
 #endif
 
 }
 
 /* *************************************** */
 
-bool ArpStatsMatrixElement::idle() { 
-    bool rc;
+bool ArpStatsMatrixElement::equal(const u_int8_t _src_mac[6], const u_int8_t _dst_mac[6]) const {
+  if(!_src_mac || !_dst_mac)
+    return false;
 
-    if((num_uses > 0) || (!iface->is_purge_idle_interface()))
-    return(false);
+  if(memcmp(src_mac, _src_mac, 6) == 0 && memcmp(dst_mac, _dst_mac, 6) == 0)
+    return true;
 
-    rc = isIdle(MAX_LOCAL_HOST_IDLE);
-
-#ifdef DEBUG
-  if(true) {    /*perché if true!?*/
-    char buf[32];
-
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Is idle %s [uses %u][%s][last: %u][diff: %d]",
-				 Utils::formatMac(mac, buf, sizeof(buf)),
-				 num_uses,
-				 rc ? "Idle" : "Not Idle",
-				 last_seen, iface->getTimeLastPktRcvd() - (last_seen+MAX_LOCAL_HOST_IDLE));
-  }
-#endif
-
-  return(rc);
+  return false;
 }
 
 /* *************************************** */
 
-bool ArpStatsMatrixElement::equal(const u_int8_t _src_mac[6], const u_int8_t _dst_mac[6]) {
-    if(! _src_mac || !_dst_mac)
-        return false;
+bool ArpStatsMatrixElement::src_equal(const u_int8_t _src_mac[6]) const {
+  if(!_src_mac)
+    return false;
 
-    if( memcmp(src_mac, _src_mac, 6) == 0 && memcmp(dst_mac, _dst_mac, 6) == 0 )
-        return true;
-
-    else if( memcmp(src_mac, _dst_mac, 6) == 0 && memcmp(dst_mac, _src_mac, 6) == 0 ){
-      return true;
-    }
-    else
-      return false;
+  return memcmp(src_mac, _src_mac, 6) == 0;
 }
 
 /* *************************************** */
 
- u_int32_t ArpStatsMatrixElement::key(){ 
-
-   return ( Utils::macHash((u_int8_t*) src_mac) + Utils::macHash((u_int8_t*) dst_mac) );
-  }
+u_int32_t ArpStatsMatrixElement::key() {
+  return Utils::macHash(src_mac);
+}
 
 /* *************************************** */
 
 void ArpStatsMatrixElement::lua(lua_State* vm) {
-  lua_newtable(vm);
+  char buf[32];
 
-  char buf1[32] = {0};
-  char buf2[32] = {0};
-  char index[65] = {0}; 
-  Utils::formatMac(src_mac, buf1, sizeof(buf1));
-  Utils::formatMac(dst_mac, buf2, sizeof(buf2));
+  lua_newtable(vm); /* Outer table key, source mac */
+  lua_newtable(vm); /* Innter table key, destination mac */
 
-  //lua_push_str_table_entry(vm, "me_src_mac", buf1 );
-  //lua_push_str_table_entry(vm, "me_dst_mac", buf2 );
-  lua_push_uint64_table_entry(vm, "sent.requests", stats.sent.requests);
-  lua_push_uint64_table_entry(vm, "rcvd.requests", stats.rcvd.requests);
-  lua_push_uint64_table_entry(vm, "sent.replies", stats.sent.replies);
-  lua_push_uint64_table_entry(vm, "rcvd.replies", stats.rcvd.replies);
+  lua_push_uint64_table_entry(vm, "requests", stats.requests);
+  lua_push_uint64_table_entry(vm, "replies", stats.replies);
 
-  strcpy(index,buf1);
-  strcat(index,".");
-  strcat(index,buf2); 
+  /* Destination Mac as the key of the inner table */
+  Utils::formatMac(dst_mac, buf, sizeof(buf));
+  lua_pushstring(vm, buf);
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
 
-  lua_pushstring(vm, index);
+  /* Source Mac as the key of the outer table */
+  Utils::formatMac(src_mac, buf, sizeof(buf));
+  lua_pushstring(vm, buf);
   lua_insert(vm, -2);
   lua_settable(vm, -3);
 }
-
-/*for testing
-void ArpStatsMatrixElement::printElement(){
-
-  char buf1[32], buf2[32];
- 
-  cout << "FROM: " <<  Utils::formatMac(getSourceMac(), buf1, sizeof(buf1)) << " --> TO: " << Utils::formatMac(getDestinationMac(), buf2, sizeof(buf2)) << "\n";
-  cout << "snt.rsp:"<< stats.sent.replies <<" - rcv.rsp:"<< stats.rcvd.replies <<" - snt.req:"<< stats.sent.requests <<" - rcv.req:"<< stats.rcvd.requests<<"\n\n";
-}
-*/
-

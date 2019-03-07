@@ -325,7 +325,7 @@ char* IpAddress::intoa(char* buf, u_short bufLen, u_int8_t bitmask) {
 
     if(bitmask > 0) {
       /* bitmask 0 here causes integer overflow */
-      u_int32_t netmask = ~((1 << (32 - bitmask)) - 1);
+      u_int32_t netmask = ~((((u_int32_t)1) << (32 - bitmask)) - 1);
       a &= netmask;
     } else {
       /* bitmask is 0 */
