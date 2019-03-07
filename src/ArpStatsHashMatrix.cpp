@@ -63,13 +63,28 @@ ArpStatsMatrixElement* ArpStatsHashMatrix::get(const u_int8_t _src_mac[6], const
 
 /* ************************************ */
 
+typedef struct {
+  lua_State* vm;
+  u_int64_t entry_id;
+} print_all_arp_stats_data_t;
+
+/* ************************************ */
+
 static bool print_all_arp_stats(GenericHashEntry *e, void *user_data, bool *matched) {
   ArpStatsMatrixElement *elem = (ArpStatsMatrixElement*)e;
-  lua_State* vm = (lua_State*) user_data;
+  print_all_arp_stats_data_t * print_all_arp_stats_data = (print_all_arp_stats_data_t*) user_data;
+  lua_State* vm = print_all_arp_stats_data->vm;
 
   //TODO: errors handling
-  if(elem)
+  if(elem && vm) {
+    lua_newtable(vm);
+
     elem->lua(vm);
+
+    lua_pushinteger(vm, ++print_all_arp_stats_data->entry_id);
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
+  }
 
   return(false); /* false = keep on walking */
 }
@@ -78,8 +93,12 @@ static bool print_all_arp_stats(GenericHashEntry *e, void *user_data, bool *matc
 
 void ArpStatsHashMatrix::lua(lua_State* vm) {
   u_int32_t begin_slot = 0;
+  print_all_arp_stats_data_t print_all_arp_stats_data;
 
-  walk(&begin_slot, true, print_all_arp_stats, vm);
+  print_all_arp_stats_data.vm = vm;
+  print_all_arp_stats_data.entry_id = 0;
+
+  walk(&begin_slot, true, print_all_arp_stats, &print_all_arp_stats_data);
 }
 
 /* ************************************ */

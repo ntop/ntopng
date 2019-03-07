@@ -50,6 +50,7 @@ class ArpStatsMatrixElement : public GenericHashEntry {
   inline void set_idle() { idle_mark = true; };
   u_int32_t key();
   void lua(lua_State* vm);
+  void print() const;
 };
 
 #endif /* _ARP_STATS_MATRIX_ELEMENT_H_ */

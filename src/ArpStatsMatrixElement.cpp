@@ -77,6 +77,15 @@ u_int32_t ArpStatsMatrixElement::key() {
 
 /* *************************************** */
 
+void ArpStatsMatrixElement::print() const {
+  char buf1[32], buf2[32];
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[SourceMac: %s][DestinationMac: %s]",
+			       Utils::formatMac(src_mac, buf1, sizeof(buf1)),
+			       Utils::formatMac(dst_mac, buf2, sizeof(buf2)));
+}
+
+/* *************************************** */
+
 void ArpStatsMatrixElement::lua(lua_State* vm) {
   char buf[32];
 
