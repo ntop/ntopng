@@ -61,6 +61,47 @@ HostStats::~HostStats() {
 
 /* *************************************** */
 
+HostStats::HostStats(const HostStats &hs) : GenericTrafficElement(hs) {
+  host = hs.host;
+  iface = hs.iface;
+
+  tcp_sent = TrafficStats(hs.tcp_sent),
+    tcp_rcvd = TrafficStats(hs.tcp_rcvd);
+  udp_sent = TrafficStats(hs.udp_sent),
+    udp_rcvd = TrafficStats(hs.udp_rcvd);
+  icmp_sent = TrafficStats(hs.icmp_sent),
+    icmp_rcvd = TrafficStats(hs.icmp_rcvd);
+  other_ip_sent = TrafficStats(hs.other_ip_sent),
+    other_ip_rcvd = TrafficStats(hs.other_ip_rcvd);
+
+  total_activity_time = hs.total_activity_time,
+    last_epoch_update = hs.last_epoch_update,
+    total_alerts = hs.total_alerts;
+
+  sent_stats = PacketStats(hs.sent_stats),
+    recv_stats = PacketStats(hs.recv_stats);
+
+  total_num_flows_as_client = hs.total_num_flows_as_client,
+    total_num_flows_as_server = hs.total_num_flows_as_server,
+    anomalous_flows_as_client = hs.anomalous_flows_as_client,
+    anomalous_flows_as_server = hs.anomalous_flows_as_server,
+    unreachable_flows_as_client = hs.unreachable_flows_as_client;
+
+  memcpy(&tcpPacketStats, &hs.tcpPacketStats, sizeof(tcpPacketStats));
+
+  checkpoint_sent_bytes = hs.checkpoint_sent_bytes,
+    checkpoint_rcvd_bytes = hs.checkpoint_rcvd_bytes;
+
+  checkpoint_set = hs.checkpoint_set;
+
+#ifdef NTOPNG_PRO
+  quota_enforcement_stats = hs.quota_enforcement_stats ? new (std::nothrow) HostPoolStats(*hs.quota_enforcement_stats) : NULL;
+  quota_enforcement_stats_shadow = hs.quota_enforcement_stats_shadow ? new (std::nothrow) HostPoolStats(*quota_enforcement_stats_shadow) : NULL;
+#endif
+}
+
+/* *************************************** */
+
 /* NOTE: check out LocalHostStats for deserialization */
 void HostStats::getJSONObject(json_object *my_object, DetailsLevel details_level) {
   if(details_level >= details_high) {

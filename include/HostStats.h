@@ -58,6 +58,7 @@ class HostStats: public Checkpointable, public GenericTrafficElement {
 
  public:
   HostStats(Host *_host);
+  HostStats(const HostStats &hs);
   virtual ~HostStats();
 
   void checkPointHostTalker(lua_State *vm, bool saveCheckpoint);

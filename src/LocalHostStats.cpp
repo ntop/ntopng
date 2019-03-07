@@ -98,6 +98,7 @@ void LocalHostStats::updateStats(struct timeval *tv) {
   
   if(ts_ring && ts_ring->isTimeToInsert()) {
     HostTimeseriesPoint *pt = new HostTimeseriesPoint();
+    //    HostStats *point = new (std::nothrow) HostStats(*this);
     
     makeTsPoint(pt);
     /* Ownership of the point is passed to the ring */

@@ -30,6 +30,10 @@ class TrafficStats {
 
  public:
   TrafficStats();
+  TrafficStats(const TrafficStats &ts) {
+    numPkts = MonitoredCounter<u_int64_t>(ts.numPkts),
+      numBytes = MonitoredCounter<u_int64_t>(ts.numBytes);
+  };
   
   inline void incStats(time_t t, u_int64_t num_pkts, u_int64_t num_bytes) {
     numPkts.inc(num_pkts), numBytes.inc(num_bytes);
