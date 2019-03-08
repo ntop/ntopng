@@ -49,7 +49,7 @@ class TimeseriesStats: public GenericTrafficElement {
   inline u_int32_t getTotalUnreachableNumFlowsAsClient() const { return(unreachable_flows_as_client);  };
   inline u_int32_t getTotalUnreachableNumFlowsAsServer() const { return(unreachable_flows_as_server);  };
   inline u_int32_t getTotalAlerts() const { return(total_alerts); };
-  virtual void lua(lua_State* vm, NetworkInterface *iface, bool host_details, bool verbose, bool tsLua = false);
+  void luaStats(lua_State* vm, NetworkInterface *iface, bool host_details, bool verbose, bool tsLua = false);
   virtual u_int16_t getNumActiveContactsAsClient() { return 0; }
   virtual u_int16_t getNumActiveContactsAsServer() { return 0; }
 };

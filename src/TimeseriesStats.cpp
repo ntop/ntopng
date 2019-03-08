@@ -38,7 +38,7 @@ TimeseriesStats::~TimeseriesStats() {
 
 /* *************************************** */
 
-void TimeseriesStats::lua(lua_State* vm, NetworkInterface *iface, bool host_details, bool verbose, bool tsLua) {
+void TimeseriesStats::luaStats(lua_State* vm, NetworkInterface *iface, bool host_details, bool verbose, bool tsLua) {
   lua_push_uint64_table_entry(vm, "bytes.sent", sent.getNumBytes());
   lua_push_uint64_table_entry(vm, "bytes.rcvd", rcvd.getNumBytes());
   lua_push_uint64_table_entry(vm, "active_flows.as_client", host->getNumOutgoingFlows());

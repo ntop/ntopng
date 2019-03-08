@@ -132,7 +132,7 @@ void HostStats::lua(lua_State* vm, bool mask_host, bool host_details, bool verbo
   }
 
   ((GenericTrafficElement*)this)->lua(vm, host_details);
-  ((TimeseriesStats*)this)->lua(vm, iface, host_details, verbose, tsLua);
+  ((TimeseriesStats*)this)->luaStats(vm, iface, host_details, verbose, tsLua);
 }
 
 /* *************************************** */

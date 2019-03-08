@@ -35,5 +35,5 @@ HostTimeseriesPoint::~HostTimeseriesPoint() {
 
 void HostTimeseriesPoint::lua(lua_State* vm, NetworkInterface *iface) {
   if(host_stats)
-    host_stats->lua(vm, iface, true /* host details */, true /* verbose */, true /* tsLua */);
+    host_stats->luaStats(vm, iface, true /* host details */, true /* verbose */, true /* tsLua */);
 }
