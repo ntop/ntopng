@@ -2514,19 +2514,31 @@ decode_packet_eth:
 	   && !arp_spa_h->isBroadcastDomainHost())
 	  arp_spa_h->setBroadcastDomainHost();
 
-	ArpStatsMatrixElement* e = getArpHashMatrixElement(srcMac->get_mac(), dstMac->get_mac(), true);
+	bool src2dst_element = false;
+	ArpStatsMatrixElement* e = getArpHashMatrixElement(srcMac->get_mac(), dstMac->get_mac(), &src2dst_element);
+
+#if 0
+	char buf1[32], buf2[32];
+	Utils::formatMac(srcMac->get_mac(), buf1, sizeof(buf1));
+	Utils::formatMac(dstMac->get_mac(), buf2, sizeof(buf2));
+
+	if(!strcmp(buf1, "B4:75:0E:92:89:17") || !strcmp(buf2, "B4:75:0E:92:89:17")) {
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s][%s][0x%x][src2dst: %u]",
+				     buf1, buf2, arp_opcode, src2dst_element ? 1 : 0);
+	}
+#endif
 
 	if(arp_opcode == 0x1 /* ARP request */) {
 	  arp_requests++;
 	  srcMac->incSentArpRequests();
 	  dstMac->incRcvdArpRequests();
 
-	  if(e) e->incArpRequests();
+	  if(e) e->incArpRequests(src2dst_element);
 	} else if(arp_opcode == 0x2 /* ARP reply */) {
 	  arp_replies++;
 	  srcMac->incSentArpReplies();
 	  dstMac->incRcvdArpReplies();
-	  if(e) e->incArpReplies();
+	  if(e) e->incArpReplies(src2dst_element);
 
 	  checkMacIPAssociation(true, arpp->arp_sha, arpp->arp_spa);
 	  checkMacIPAssociation(true, arpp->arp_tha, arpp->arp_tpa);
@@ -5130,7 +5142,7 @@ u_int NetworkInterface::getNumMacs() {
 
 /* **************************************************** */
 
-u_int NetworkInterface::getNumArpStatsMatrixElement() {
+u_int NetworkInterface::getNumArpStatsMatrixElements() {
   return(arp_hash_matrix ? arp_hash_matrix->getNumEntries() : 0);
 };
 
@@ -5481,27 +5493,19 @@ Mac* NetworkInterface::getMac(u_int8_t _mac[6], bool createIfNotPresent) {
 
 /* **************************************************** */
 
-void NetworkInterface::cleanupArpHashMatrixRow(const u_int8_t _src_mac[6]) {
-  if(!arp_hash_matrix || !_src_mac)
-    return;
-
-  arp_hash_matrix->cleanupMatrixRow(_src_mac);
-}
-
-/* **************************************************** */
-
 ArpStatsMatrixElement* NetworkInterface::getArpHashMatrixElement(u_int8_t _src_mac[6], 
-        u_int8_t _dst_mac[6], bool createIfNotPresent){
+								 u_int8_t _dst_mac[6],
+								 bool * const src2dst){
   ArpStatsMatrixElement *ret = NULL;
 
   if(_src_mac == NULL || _dst_mac == NULL || arp_hash_matrix == NULL)
     return NULL;
 
-  ret = arp_hash_matrix->get(_src_mac, _dst_mac);
+  ret = arp_hash_matrix->get(_src_mac, _dst_mac, src2dst);
   
-  if(ret == NULL && createIfNotPresent) {
+  if(ret == NULL) {
     try{ 
-      if((ret = new ArpStatsMatrixElement(this, _src_mac, _dst_mac)) != NULL)
+      if((ret = new ArpStatsMatrixElement(this, _src_mac, _dst_mac, src2dst)) != NULL)
         if(!arp_hash_matrix->add(ret)){
           delete ret;
           ret = NULL;
@@ -5523,7 +5527,7 @@ ArpStatsMatrixElement* NetworkInterface::getArpHashMatrixElement(u_int8_t _src_m
 /* **************************************************** */
 
 bool NetworkInterface::getArpStatsMatrixInfo(lua_State* vm){  
-  if(arp_hash_matrix && (getNumArpStatsMatrixElement() > 0)) {
+  if(arp_hash_matrix && (getNumArpStatsMatrixElements() > 0)) {
     lua_newtable(vm);
     arp_hash_matrix->lua(vm);
     return true;

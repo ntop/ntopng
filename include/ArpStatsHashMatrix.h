@@ -29,9 +29,8 @@ class ArpStatsHashMatrix : public GenericHash {
  public:
   ArpStatsHashMatrix(NetworkInterface *iface, u_int _num_hashes, u_int _max_hash_size);
 
-  ArpStatsMatrixElement* get(const u_int8_t _src_mac[6], const u_int8_t _dst_mac[6]);
+  ArpStatsMatrixElement* get(const u_int8_t _src_mac[6], const u_int8_t _dst_mac[6], bool * const src2dst);
   void lua(lua_State* vm);
-  void cleanupMatrixRow(const u_int8_t _src_mac[6]);
 };
 
 #endif /* _MAC_HASH_MATRIX_H_ */

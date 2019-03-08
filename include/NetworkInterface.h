@@ -504,7 +504,7 @@ class NetworkInterface : public Checkpointable {
   virtual u_int     getNumLocalHosts();
   virtual u_int     getNumMacs();
   virtual u_int     getNumHTTPHosts();
-  virtual u_int     getNumArpStatsMatrixElement();
+  virtual u_int     getNumArpStatsMatrixElements();
 
   inline u_int64_t  getNumPacketsSinceReset()     { return getNumPackets() - getCheckPointNumPackets(); }
   inline u_int64_t  getNumBytesSinceReset()       { return getNumBytes() - getCheckPointNumBytes(); }
@@ -512,8 +512,7 @@ class NetworkInterface : public Checkpointable {
 
   void runHousekeepingTasks();
   void runShutdownTasks();
-  ArpStatsMatrixElement* getArpHashMatrixElement(u_int8_t _src_mac[6], u_int8_t _dst_mac[6], bool createIfNotPresent);
-  void cleanupArpHashMatrixRow(const u_int8_t _src_mac[6]);
+  ArpStatsMatrixElement* getArpHashMatrixElement(u_int8_t _src_mac[6], u_int8_t _dst_mac[6], bool * const src2dst);
   Vlan* getVlan(u_int16_t vlanId, bool createIfNotPresent);
   AutonomousSystem *getAS(IpAddress *ipa, bool createIfNotPresent);
   Country* getCountry(const char *country_name, bool createIfNotPresent);
