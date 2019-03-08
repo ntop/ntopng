@@ -24,21 +24,15 @@
 
 class Host;
 
-class HostStats: public Checkpointable, public GenericTrafficElement {
+class HostStats: public Checkpointable, public TimeseriesStats {
  protected:
-  Host *host;
   NetworkInterface *iface;
 
   /* Written by NetworkInterface::periodicStatsUpdate thread */
   // NOTE: GenericTrafficElement inherited data is updated periodically too
-  TrafficStats tcp_sent, tcp_rcvd;
-  TrafficStats udp_sent, udp_rcvd;
-  TrafficStats icmp_sent, icmp_rcvd;
-  TrafficStats other_ip_sent, other_ip_rcvd;
   u_int32_t total_activity_time /* sec */;
   u_int32_t last_epoch_update; /* useful to avoid multiple updates */
-  u_int32_t total_alerts;
-  
+
 #ifdef NTOPNG_PRO
   HostPoolStats *quota_enforcement_stats, *quota_enforcement_stats_shadow;
 #endif
@@ -46,8 +40,7 @@ class HostStats: public Checkpointable, public GenericTrafficElement {
   /* Written by NetworkInterface::processPacket thread */
   PacketStats sent_stats, recv_stats;
   u_int32_t total_num_flows_as_client, total_num_flows_as_server;
-  u_int32_t anomalous_flows_as_client, anomalous_flows_as_server;
-  u_int32_t unreachable_flows_as_client, unreachable_flows_as_server;  
+
   struct {
     u_int32_t pktRetr, pktOOO, pktLost, pktKeepAlive;
   } tcpPacketStats; /* Sent packets */
@@ -58,7 +51,6 @@ class HostStats: public Checkpointable, public GenericTrafficElement {
 
  public:
   HostStats(Host *_host);
-  HostStats(const HostStats &hs);
   virtual ~HostStats();
 
   void checkPointHostTalker(lua_State *vm, bool saveCheckpoint);
@@ -69,8 +61,6 @@ class HostStats: public Checkpointable, public GenericTrafficElement {
 		u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes);
   virtual void getJSONObject(json_object *my_object, DetailsLevel details_level);
   inline void incFlagStats(bool as_client, u_int8_t flags)  { if (as_client) sent_stats.incFlagStats(flags); else recv_stats.incFlagStats(flags); };
-  inline void incNumAnomalousFlows(bool as_client)          { if(as_client) anomalous_flows_as_client++; else anomalous_flows_as_server++; };
-  inline void incNumUnreachableFlows(bool as_server)        { if(as_server) unreachable_flows_as_server++; else unreachable_flows_as_client++; }
 
   virtual void computeAnomalyIndex(time_t when) {};
   inline void incRetransmittedPkts(u_int32_t num)   { tcpPacketStats.pktRetr += num;      };
@@ -79,20 +69,14 @@ class HostStats: public Checkpointable, public GenericTrafficElement {
   inline void incKeepAlivePkts(u_int32_t num)       { tcpPacketStats.pktKeepAlive += num; };
   inline void incSentStats(u_int pkt_len)           { sent_stats.incStats(pkt_len);       };
   inline void incRecvStats(u_int pkt_len)           { recv_stats.incStats(pkt_len);       };
-  inline void incTotalAlerts()                      { total_alerts++;                     };
-  inline u_int32_t getTotalAlerts()                 { return(total_alerts);               };
   inline u_int32_t getTotalNumFlowsAsClient() const { return(total_num_flows_as_client);  };
   inline u_int32_t getTotalNumFlowsAsServer() const { return(total_num_flows_as_server);  };
-  inline u_int32_t getTotalAnomalousNumFlowsAsClient() const { return(anomalous_flows_as_client);  };
-  inline u_int32_t getTotalAnomalousNumFlowsAsServer() const { return(anomalous_flows_as_server);  };
-  inline u_int32_t getTotalUnreachableNumFlowsAsClient() const { return(unreachable_flows_as_client);  };
-  inline u_int32_t getTotalUnreachableNumFlowsAsServer() const { return(unreachable_flows_as_server);  };
   virtual void deserialize(json_object *obj)        {}
   virtual void incNumFlows(bool as_client, Host *peer) { if(as_client) total_num_flows_as_client++; else total_num_flows_as_server++; } ;
   virtual void decNumFlows(bool as_client, Host *peer) {};
   virtual bool hasAnomalies(time_t when) { return false; };
   virtual void luaAnomalies(lua_State* vm, time_t when) {};
-  virtual void lua(lua_State* vm, bool mask_host, bool host_details, bool verbose);
+  virtual void lua(lua_State* vm, bool mask_host, bool host_details, bool verbose, bool tsLua = false);
 
 #ifdef NTOPNG_PRO
   inline void incQuotaEnforcementStats(time_t when, u_int16_t ndpi_proto,

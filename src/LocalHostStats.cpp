@@ -97,10 +97,8 @@ void LocalHostStats::updateStats(struct timeval *tv) {
     ts_ring = new TimeseriesRing(iface);
   
   if(ts_ring && ts_ring->isTimeToInsert()) {
-    HostTimeseriesPoint *pt = new HostTimeseriesPoint();
-    //    HostStats *point = new (std::nothrow) HostStats(*this);
-    
-    makeTsPoint(pt);
+    HostTimeseriesPoint *pt = new HostTimeseriesPoint(this);
+
     /* Ownership of the point is passed to the ring */
     ts_ring->insert(pt, last_update_time.tv_sec);
   }
@@ -200,33 +198,6 @@ void LocalHostStats::deserialize(json_object *o) {
 
 /* *************************************** */
 
-void LocalHostStats::makeTsPoint(HostTimeseriesPoint *pt) {
-  pt->ndpi = ndpiStats ? (new nDPIStats(*ndpiStats)) : NULL;
-  pt->sent = sent.getNumBytes();
-  pt->rcvd = rcvd.getNumBytes();
-  pt->num_flows_as_client = host->getNumOutgoingFlows();
-  pt->num_flows_as_server = host->getNumIncomingFlows();
-  pt->total_num_anomalous_flows_as_client = host->getTotalNumAnomalousOutgoingFlows();
-  pt->total_num_anomalous_flows_as_server = host->getTotalNumAnomalousIncomingFlows();
-  pt->total_num_unreachable_flows_as_client = host->getTotalNumUnreachableOutgoingFlows();
-  pt->total_num_unreachable_flows_as_server = host->getTotalNumUnreachableIncomingFlows();
-  pt->total_alerts = host->getTotalAlerts();
-  pt->num_contacts_as_cli = contacts_as_cli.size();
-  pt->num_contacts_as_srv = contacts_as_srv.size();
-
-  /* L4 */
-  pt->l4_stats[0].sent = tcp_sent.getNumBytes();
-  pt->l4_stats[0].rcvd = tcp_rcvd.getNumBytes();
-  pt->l4_stats[1].sent = udp_sent.getNumBytes();
-  pt->l4_stats[1].rcvd = udp_rcvd.getNumBytes();
-  pt->l4_stats[2].sent = icmp_sent.getNumBytes();
-  pt->l4_stats[2].rcvd = icmp_rcvd.getNumBytes();
-  pt->l4_stats[3].sent = other_ip_sent.getNumBytes();
-  pt->l4_stats[3].rcvd = other_ip_sent.getNumBytes();
-}
-
-/* *************************************** */
-
 void LocalHostStats::incICMP(u_int8_t icmp_type, u_int8_t icmp_code, bool sent, Host *peer) {
   if(!icmp) icmp = new ICMPstats();
   if(icmp)  icmp->incStats(icmp_type, icmp_code, sent, peer);
@@ -287,9 +258,8 @@ void LocalHostStats::decNumFlows(bool as_client, Host *peer) {
 void LocalHostStats::tsLua(lua_State* vm) {
   if(!ts_ring || !TimeseriesRing::isRingEnabled(ntop->getPrefs())) {
     /* Use real time data */
-    HostTimeseriesPoint pt;
+    HostTimeseriesPoint pt(this);
     
-    makeTsPoint(&pt);
     TimeseriesRing::luaSinglePoint(vm, iface, &pt);
   } else
     ts_ring->lua(vm);

@@ -23,8 +23,7 @@
 
 /* *************************************** */
 
-HostStats::HostStats(Host *_host) {
-  host = _host;
+HostStats::HostStats(Host *_host) : TimeseriesStats(_host) {
   iface = host->getInterface();
 
   /* NOTE: deleted by ~GenericTrafficElement */
@@ -36,11 +35,8 @@ HostStats::HostStats(Host *_host) {
   total_activity_time = 0;
   last_packets = 0, last_pkts_thpt = pkts_thpt = 0, pkts_thpt_trend = trend_unknown;
   last_update_time.tv_sec = 0, last_update_time.tv_usec = 0;
-
   total_num_flows_as_client = total_num_flows_as_server = 0;
-  anomalous_flows_as_client = anomalous_flows_as_server = 0;
-  unreachable_flows_as_client = unreachable_flows_as_server = 0;
-  total_alerts = 0;
+
   checkpoint_set = false;
   checkpoint_sent_bytes = checkpoint_rcvd_bytes = 0;
   memset(&tcpPacketStats, 0, sizeof(tcpPacketStats));
@@ -56,47 +52,6 @@ HostStats::~HostStats() {
 #ifdef NTOPNG_PRO
   if(quota_enforcement_stats)        delete quota_enforcement_stats;
   if(quota_enforcement_stats_shadow) delete quota_enforcement_stats_shadow;
-#endif
-}
-
-/* *************************************** */
-
-HostStats::HostStats(const HostStats &hs) : GenericTrafficElement(hs) {
-  host = hs.host;
-  iface = hs.iface;
-
-  tcp_sent = TrafficStats(hs.tcp_sent),
-    tcp_rcvd = TrafficStats(hs.tcp_rcvd);
-  udp_sent = TrafficStats(hs.udp_sent),
-    udp_rcvd = TrafficStats(hs.udp_rcvd);
-  icmp_sent = TrafficStats(hs.icmp_sent),
-    icmp_rcvd = TrafficStats(hs.icmp_rcvd);
-  other_ip_sent = TrafficStats(hs.other_ip_sent),
-    other_ip_rcvd = TrafficStats(hs.other_ip_rcvd);
-
-  total_activity_time = hs.total_activity_time,
-    last_epoch_update = hs.last_epoch_update,
-    total_alerts = hs.total_alerts;
-
-  sent_stats = PacketStats(hs.sent_stats),
-    recv_stats = PacketStats(hs.recv_stats);
-
-  total_num_flows_as_client = hs.total_num_flows_as_client,
-    total_num_flows_as_server = hs.total_num_flows_as_server,
-    anomalous_flows_as_client = hs.anomalous_flows_as_client,
-    anomalous_flows_as_server = hs.anomalous_flows_as_server,
-    unreachable_flows_as_client = hs.unreachable_flows_as_client;
-
-  memcpy(&tcpPacketStats, &hs.tcpPacketStats, sizeof(tcpPacketStats));
-
-  checkpoint_sent_bytes = hs.checkpoint_sent_bytes,
-    checkpoint_rcvd_bytes = hs.checkpoint_rcvd_bytes;
-
-  checkpoint_set = hs.checkpoint_set;
-
-#ifdef NTOPNG_PRO
-  quota_enforcement_stats = hs.quota_enforcement_stats ? new (std::nothrow) HostPoolStats(*hs.quota_enforcement_stats) : NULL;
-  quota_enforcement_stats_shadow = hs.quota_enforcement_stats_shadow ? new (std::nothrow) HostPoolStats(*quota_enforcement_stats_shadow) : NULL;
 #endif
 }
 
@@ -125,14 +80,10 @@ void HostStats::getJSONObject(json_object *my_object, DetailsLevel details_level
 
 /* *************************************** */
 
-void HostStats::lua(lua_State* vm, bool mask_host, bool host_details, bool verbose) {
-  lua_push_uint64_table_entry(vm, "bytes.sent", sent.getNumBytes());
-  lua_push_uint64_table_entry(vm, "bytes.rcvd", rcvd.getNumBytes());
+void HostStats::lua(lua_State* vm, bool mask_host, bool host_details, bool verbose, bool tsLua) {
   lua_push_uint64_table_entry(vm, "bytes.ndpi.unknown", getnDPIStats() ? getnDPIStats()->getProtoBytes(NDPI_PROTOCOL_UNKNOWN) : 0);
 
   if(verbose) {
-    if(ndpiStats)        ndpiStats->lua(iface, vm, true);
-
 #ifdef NTOPNG_PRO
     if(custom_app_stats) custom_app_stats->lua(vm);
 #endif
@@ -143,12 +94,6 @@ void HostStats::lua(lua_State* vm, bool mask_host, bool host_details, bool verbo
 
   /* TCP stats */
   if(host_details) {
-    lua_push_uint64_table_entry(vm, "tcp.packets.sent",  tcp_sent.getNumPkts());
-    lua_push_uint64_table_entry(vm, "tcp.packets.rcvd",  tcp_rcvd.getNumPkts());
-
-    lua_push_uint64_table_entry(vm, "tcp.bytes.sent", tcp_sent.getNumBytes());
-    lua_push_uint64_table_entry(vm, "tcp.bytes.rcvd", tcp_rcvd.getNumBytes());
-
     lua_push_bool_table_entry(vm, "tcp.packets.seq_problems",
 			      (tcpPacketStats.pktRetr
 			       || tcpPacketStats.pktOOO
@@ -184,28 +129,10 @@ void HostStats::lua(lua_State* vm, bool mask_host, bool host_details, bool verbo
     lua_push_uint64_table_entry(vm, "total_activity_time", total_activity_time);
     lua_push_uint64_table_entry(vm, "flows.as_client", getTotalNumFlowsAsClient());
     lua_push_uint64_table_entry(vm, "flows.as_server", getTotalNumFlowsAsServer());
-    lua_push_uint64_table_entry(vm, "anomalous_flows.as_client", getTotalAnomalousNumFlowsAsClient());
-    lua_push_uint64_table_entry(vm, "anomalous_flows.as_server", getTotalAnomalousNumFlowsAsServer());
-    lua_push_uint64_table_entry(vm, "unreachable_flows.as_client", unreachable_flows_as_client);
-    lua_push_uint64_table_entry(vm, "unreachable_flows.as_server", unreachable_flows_as_server);
-    lua_push_uint64_table_entry(vm, "total_alerts", total_alerts);
-    lua_push_uint64_table_entry(vm, "udp.packets.sent",  udp_sent.getNumPkts());
-    lua_push_uint64_table_entry(vm, "udp.bytes.sent", udp_sent.getNumBytes());
-    lua_push_uint64_table_entry(vm, "udp.packets.rcvd",  udp_rcvd.getNumPkts());
-    lua_push_uint64_table_entry(vm, "udp.bytes.rcvd", udp_rcvd.getNumBytes());
-
-    lua_push_uint64_table_entry(vm, "icmp.packets.sent",  icmp_sent.getNumPkts());
-    lua_push_uint64_table_entry(vm, "icmp.bytes.sent", icmp_sent.getNumBytes());
-    lua_push_uint64_table_entry(vm, "icmp.packets.rcvd",  icmp_rcvd.getNumPkts());
-    lua_push_uint64_table_entry(vm, "icmp.bytes.rcvd", icmp_rcvd.getNumBytes());
-
-    lua_push_uint64_table_entry(vm, "other_ip.packets.sent",  other_ip_sent.getNumPkts());
-    lua_push_uint64_table_entry(vm, "other_ip.bytes.sent", other_ip_sent.getNumBytes());
-    lua_push_uint64_table_entry(vm, "other_ip.packets.rcvd",  other_ip_rcvd.getNumPkts());
-    lua_push_uint64_table_entry(vm, "other_ip.bytes.rcvd", other_ip_rcvd.getNumBytes());
   }
 
   ((GenericTrafficElement*)this)->lua(vm, host_details);
+  ((TimeseriesStats*)this)->lua(vm, iface, host_details, verbose, tsLua);
 }
 
 /* *************************************** */

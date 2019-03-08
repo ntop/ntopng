@@ -542,6 +542,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
 
   lua_push_bool_table_entry(vm, "systemhost", isSystemHost());
   lua_push_bool_table_entry(vm, "broadcast_domain_host", isBroadcastDomainHost());
+  lua_push_bool_table_entry(vm, "dhcpHost", isDhcpHost());
   lua_push_bool_table_entry(vm, "is_blacklisted", isBlacklisted());
   lua_push_bool_table_entry(vm, "is_broadcast", ip.isBroadcastAddress());
   lua_push_bool_table_entry(vm, "is_multicast", ip.isMulticastAddress());
@@ -552,12 +553,6 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   lua_push_str_table_entry(vm, "os", get_os(buf, sizeof(buf)));
 
   stats->lua(vm, mask_host, host_details, verbose);
-
-  lua_push_bool_table_entry(vm, "dhcpHost", isDhcpHost());
-  lua_push_uint64_table_entry(vm, "active_flows.as_client", num_active_flows_as_client.get());
-  lua_push_uint64_table_entry(vm, "active_flows.as_server", num_active_flows_as_server.get());
-  lua_push_uint64_table_entry(vm, "active_flows.as_client.anomaly_index", num_active_flows_as_client.getAnomalyIndex());
-  lua_push_uint64_table_entry(vm, "active_flows.as_server.anomaly_index", num_active_flows_as_server.getAnomalyIndex());
 
   lua_push_uint64_table_entry(vm, "anomalous_flows.as_server", getTotalNumAnomalousIncomingFlows());
   lua_push_uint64_table_entry(vm, "anomalous_flows.as_client", getTotalNumAnomalousOutgoingFlows());
