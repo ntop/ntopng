@@ -2519,9 +2519,13 @@ decode_packet_eth:
 
 #if 0
 	char buf1[32], buf2[32];
+	Utils::formatMac(srcMac->get_mac(), buf1, sizeof(buf1));
+	Utils::formatMac(dstMac->get_mac(), buf2, sizeof(buf2));
+
+	if(!strcmp(buf1, "B4:75:0E:92:89:17") || !strcmp(buf2, "B4:75:0E:92:89:17")) {
 	ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s][%s][0x%x][src2dst: %u]",
-				     Utils::formatMac(srcMac->get_mac(), buf1, sizeof(buf1)),
-				     Utils::formatMac(dstMac->get_mac(), buf2, sizeof(buf2)), arp_opcode, src2dst_element ? 1 : 0);
+				     buf1, buf2, arp_opcode, src2dst_element ? 1 : 0);
+	}
 #endif
 
 	if(arp_opcode == 0x1 /* ARP request */) {
@@ -5138,7 +5142,7 @@ u_int NetworkInterface::getNumMacs() {
 
 /* **************************************************** */
 
-u_int NetworkInterface::getNumArpStatsMatrixElement() {
+u_int NetworkInterface::getNumArpStatsMatrixElements() {
   return(arp_hash_matrix ? arp_hash_matrix->getNumEntries() : 0);
 };
 
@@ -5523,7 +5527,7 @@ ArpStatsMatrixElement* NetworkInterface::getArpHashMatrixElement(u_int8_t _src_m
 /* **************************************************** */
 
 bool NetworkInterface::getArpStatsMatrixInfo(lua_State* vm){  
-  if(arp_hash_matrix && (getNumArpStatsMatrixElement() > 0)) {
+  if(arp_hash_matrix && (getNumArpStatsMatrixElements() > 0)) {
     lua_newtable(vm);
     arp_hash_matrix->lua(vm);
     return true;

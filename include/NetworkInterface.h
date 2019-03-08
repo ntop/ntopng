@@ -504,7 +504,7 @@ class NetworkInterface : public Checkpointable {
   virtual u_int     getNumLocalHosts();
   virtual u_int     getNumMacs();
   virtual u_int     getNumHTTPHosts();
-  virtual u_int     getNumArpStatsMatrixElement();
+  virtual u_int     getNumArpStatsMatrixElements();
 
   inline u_int64_t  getNumPacketsSinceReset()     { return getNumPackets() - getCheckPointNumPackets(); }
   inline u_int64_t  getNumBytesSinceReset()       { return getNumBytes() - getCheckPointNumBytes(); }

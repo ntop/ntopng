@@ -29,9 +29,10 @@ ArpStatsMatrixElement::ArpStatsMatrixElement(NetworkInterface *_iface, const u_i
 
 #ifdef ARP_STATS_MATRIX_ELEMENT_DEBUG
   char buf1[32], buf2[32];
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "ADDED ArpMatrixElement: SourceMac %s - DestinationMac %s",
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "ADDED ArpMatrixElement: SourceMac %s - DestinationMac %s [num_elements: %u]",
 			       Utils::formatMac(src_mac, buf1, sizeof(buf1)),
-			       Utils::formatMac(dst_mac, buf2, sizeof(buf2)));
+			       Utils::formatMac(dst_mac, buf2, sizeof(buf2)),
+			       iface->getNumArpStatsMatrixElements());
 #endif
 }
 
@@ -40,9 +41,10 @@ ArpStatsMatrixElement::ArpStatsMatrixElement(NetworkInterface *_iface, const u_i
 ArpStatsMatrixElement::~ArpStatsMatrixElement(){
 #ifdef ARP_STATS_MATRIX_ELEMENT_DEBUG
   char buf1[32], buf2[32];
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "DELETED ArpMatrixElement: SourceMac %s - DestinationMac %s",
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "DELETED ArpMatrixElement: SourceMac %s - DestinationMac %s [num_elements: %u]",
 			       Utils::formatMac(src_mac, buf1, sizeof(buf1)),
-			       Utils::formatMac(dst_mac, buf2, sizeof(buf2)));
+			       Utils::formatMac(dst_mac, buf2, sizeof(buf2)),
+			       iface->getNumArpStatsMatrixElements());
 #endif
 
 }
