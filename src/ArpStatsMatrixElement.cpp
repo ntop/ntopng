@@ -21,12 +21,11 @@
 
 #include "ntop_includes.h"
 
-ArpStatsMatrixElement::ArpStatsMatrixElement(NetworkInterface *_iface, const u_int8_t _src_mac[6],
-	 const u_int8_t _dst_mac[6] ): GenericHashEntry(_iface) {
+ArpStatsMatrixElement::ArpStatsMatrixElement(NetworkInterface *_iface, const u_int8_t _src_mac[6], const u_int8_t _dst_mac[6], bool * const src2dst): GenericHashEntry(_iface) {
   memcpy(src_mac, _src_mac, 6);
   memcpy(dst_mac, _dst_mac, 6);
   memset(&stats, 0, sizeof(stats));
-  idle_mark = false;
+  *src2dst = true;
 
 #ifdef ARP_STATS_MATRIX_ELEMENT_DEBUG
   char buf1[32], buf2[32];
@@ -47,32 +46,40 @@ ArpStatsMatrixElement::~ArpStatsMatrixElement(){
 #endif
 
 }
+/* *************************************** */
+
+bool ArpStatsMatrixElement::idle() {
+  bool rc;
+
+  if((num_uses > 0) || (!iface->is_purge_idle_interface()))
+    return(false);
+
+  rc = isIdle(MAX_LOCAL_HOST_IDLE);
+
+  return(rc);
+}
 
 /* *************************************** */
 
-bool ArpStatsMatrixElement::equal(const u_int8_t _src_mac[6], const u_int8_t _dst_mac[6]) const {
+bool ArpStatsMatrixElement::equal(const u_int8_t _src_mac[6], const u_int8_t _dst_mac[6], bool * const src2dst) const {
   if(!_src_mac || !_dst_mac)
     return false;
 
-  if(memcmp(src_mac, _src_mac, 6) == 0 && memcmp(dst_mac, _dst_mac, 6) == 0)
+  if(memcmp(src_mac, _src_mac, 6) == 0 && memcmp(dst_mac, _dst_mac, 6) == 0) {
+    *src2dst = true;
     return true;
+  } else if(memcmp(src_mac, _dst_mac, 6) == 0 && memcmp(dst_mac, _src_mac, 6) == 0) {
+    *src2dst = false;
+    return true;
+  }
 
   return false;
 }
 
 /* *************************************** */
 
-bool ArpStatsMatrixElement::src_equal(const u_int8_t _src_mac[6]) const {
-  if(!_src_mac)
-    return false;
-
-  return memcmp(src_mac, _src_mac, 6) == 0;
-}
-
-/* *************************************** */
-
 u_int32_t ArpStatsMatrixElement::key() {
-  return Utils::macHash(src_mac);
+  return Utils::macHash(src_mac) + Utils::macHash(dst_mac);
 }
 
 /* *************************************** */
@@ -92,8 +99,10 @@ void ArpStatsMatrixElement::lua(lua_State* vm) {
   lua_newtable(vm); /* Outer table key, source mac */
   lua_newtable(vm); /* Innter table key, destination mac */
 
-  lua_push_uint64_table_entry(vm, "requests", stats.requests);
-  lua_push_uint64_table_entry(vm, "replies", stats.replies);
+  lua_push_uint64_table_entry(vm, "src2dst.requests", stats.src2dst.requests);
+  lua_push_uint64_table_entry(vm, "src2dst.replies", stats.src2dst.replies);
+  lua_push_uint64_table_entry(vm, "dst2src.requests", stats.dst2src.requests);
+  lua_push_uint64_table_entry(vm, "dst2src.replies", stats.dst2src.replies);
 
   /* Destination Mac as the key of the inner table */
   Utils::formatMac(dst_mac, buf, sizeof(buf));

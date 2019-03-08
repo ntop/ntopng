@@ -27,27 +27,30 @@
 
 class ArpStatsMatrixElement : public GenericHashEntry {
  private:
-  bool idle_mark;
-
   struct {
-    u_int32_t requests, replies;
+    struct {
+      u_int32_t requests, replies;
+    } src2dst, dst2src;
   } stats;
 
   u_int8_t src_mac[6];
   u_int8_t dst_mac[6];
 
  public:
-  ArpStatsMatrixElement(NetworkInterface *_iface, const u_int8_t _src_mac[6],
-			const u_int8_t _dst_mac[6] );
+  ArpStatsMatrixElement(NetworkInterface *_iface, const u_int8_t _src_mac[6], const u_int8_t _dst_mac[6], bool * const src2dst);
   ~ArpStatsMatrixElement();
 
-  inline u_int32_t incArpReplies()   { return stats.replies++;  }
-  inline u_int32_t incArpRequests()  { return stats.requests++; }
+  inline void incArpReplies(bool src2dst) {
+    src2dst ? stats.src2dst.replies++ : stats.dst2src.replies++;
+    updateSeen();
+  }
+  inline void incArpRequests(bool src2dst) {
+    src2dst ? stats.src2dst.requests++ : stats.dst2src.requests++;
+    updateSeen();
+  }
 
-  bool equal(const u_int8_t _src_mac[6], const u_int8_t _dst_mac[6]) const;
-  bool src_equal(const u_int8_t _src_mac[6]) const;
-  virtual bool idle()    { return idle_mark; };
-  inline void set_idle() { idle_mark = true; };
+  bool equal(const u_int8_t _src_mac[6], const u_int8_t _dst_mac[6], bool * const src2dst) const;
+  virtual bool idle();
   u_int32_t key();
   void lua(lua_State* vm);
   void print() const;

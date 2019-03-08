@@ -30,11 +30,11 @@ ArpStatsHashMatrix::ArpStatsHashMatrix(NetworkInterface *_iface, u_int _num_hash
 
 /* ************************************ */
 //this get function DO NOT reverse the snd / rcv counters in case src_mac and dst_mac are reversed
-ArpStatsMatrixElement* ArpStatsHashMatrix::get(const u_int8_t _src_mac[6], const u_int8_t _dst_mac[6]) {
+ArpStatsMatrixElement* ArpStatsHashMatrix::get(const u_int8_t _src_mac[6], const u_int8_t _dst_mac[6], bool * const src2dst) {
   if(_src_mac == NULL || _dst_mac == NULL)
     return(NULL);
   else {
-    u_int32_t hash = Utils::macHash((u_int8_t*)_src_mac);
+    u_int32_t hash = Utils::macHash((u_int8_t*)_src_mac) + Utils::macHash((u_int8_t*)_dst_mac);
     hash %= num_hashes;
 
     if(table[hash] == NULL) {
@@ -47,7 +47,7 @@ ArpStatsMatrixElement* ArpStatsHashMatrix::get(const u_int8_t _src_mac[6], const
       head = (ArpStatsMatrixElement*)table[hash];
 
       while(head != NULL) {
-        if((!head->idle()) && head->equal(_src_mac, _dst_mac))
+        if((!head->idle()) && head->equal(_src_mac, _dst_mac, src2dst))
         
           break;
         else
@@ -99,30 +99,4 @@ void ArpStatsHashMatrix::lua(lua_State* vm) {
   print_all_arp_stats_data.entry_id = 0;
 
   walk(&begin_slot, true, print_all_arp_stats, &print_all_arp_stats_data);
-}
-
-/* ************************************ */
-
-void ArpStatsHashMatrix::cleanupMatrixRow(const u_int8_t _src_mac[6]) {
-  if(!_src_mac)
-    return;
-
-  u_int32_t hash = Utils::macHash((u_int8_t*)_src_mac);
-  hash %= num_hashes;
-
-  if(table[hash]) {
-    ArpStatsMatrixElement *head;
-
-    locks[hash]->lock(__FILE__, __LINE__);
-    head = (ArpStatsMatrixElement*)table[hash];
-
-    while(head != NULL) {
-      if(!head->idle() && head->src_equal(_src_mac))
-	head->set_idle();
-
-      head = (ArpStatsMatrixElement*)head->next();
-    }
-    
-    locks[hash]->unlock(__FILE__, __LINE__);
-  }
 }

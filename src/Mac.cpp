@@ -105,8 +105,6 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6])
 /* *************************************** */
 
 Mac::~Mac() {
-  iface->cleanupArpHashMatrixRow(get_mac());
-
   if(source_mac)
     iface->decNumL2Devices();
 
