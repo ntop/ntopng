@@ -50,7 +50,7 @@ class PcapInterface : public NetworkInterface {
   void shutdown();
   bool set_packet_filter(char *filter);
   inline bool read_from_pcap_dump() { return(read_pkts_from_pcap_dump); };
-  inline void sendTermination()     { pcap_breakloop(pcap_handle); }
+  inline void sendTermination()     { if(pcap_handle) pcap_breakloop(pcap_handle); }
   virtual void updateDirectionStats();
 };
 

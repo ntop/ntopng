@@ -203,14 +203,25 @@ static void* packetPollLoop(void* ptr) {
 	/* Remove trailer white spaces */
 	while((l > 0) && (path[l] == ' ')) path[l--] = '\0';	
 
-	if((pcap_handle = pcap_open_offline(path, pcap_error_buffer)) == NULL) {
-	  ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to open file '%s': %s", 
-				       path, pcap_error_buffer);
-	} else {
-	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Reading packets from pcap file %s", path);
-	  iface->set_pcap_handle(pcap_handle);
-	  break;
+	while(l > 0) {
+	  if(!isascii(path[l])) {
+	    /* This looks like a bad file */
+	    fname = NULL;	    
+	    break;
+	  }
 	}
+
+	if(fname != NULL) {
+	  if((pcap_handle = pcap_open_offline(path, pcap_error_buffer)) == NULL) {
+	    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to open file '%s': %s", 
+					 path, pcap_error_buffer);
+	  } else {
+	    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Reading packets from pcap file %s", path);
+	    iface->set_pcap_handle(pcap_handle);
+	    break;
+	  }
+	} else
+	  break;
       }
 
       if(fname == NULL) {
