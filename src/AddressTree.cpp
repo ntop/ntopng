@@ -83,6 +83,65 @@ patricia_node_t *AddressTree::addAddress(const IpAddress * const ipa) {
 
 /* ******************************************* */
 
+typedef struct {
+  int cur_bitlen;
+  vector<prefix_t*>larger_bitlens;
+} compact_tree_t;
+
+/* ******************************************* */
+
+static void compact_tree_funct(prefix_t *prefix, void *data, void *user_data) {
+  compact_tree_t *compact = (compact_tree_t*)user_data;
+
+  if(!prefix) return;
+
+  if(prefix->bitlen > compact->cur_bitlen)
+    compact->larger_bitlens.push_back(prefix);
+}
+
+/* **************************************************** */
+
+patricia_node_t *AddressTree::addAddress(const IpAddress * const ipa, int network_bits, bool compact_after_add) {
+  if(!ipa)
+    return NULL;
+
+  bool is_v4 = ipa->isIPv4();
+  patricia_node_t *res;
+  patricia_tree_t *cur_ptree = is_v4 ? ptree_v4 : ptree_v6;
+  int cur_family = is_v4 ? AF_INET : AF_INET6;
+  int cur_bits = network_bits;
+
+  if(network_bits < 0) network_bits = 0;
+  else if(is_v4 && network_bits > 32) network_bits = 32;
+  else if(!is_v4 && network_bits > 128) network_bits = 128;
+
+  void *cur_addr = is_v4 ? (void*)&ipa->getIP()->ipType.ipv4 : (void*)&ipa->getIP()->ipType.ipv6;
+
+  res = Utils::ptree_match(cur_ptree, cur_family, cur_addr, cur_bits);
+
+  if(!res)
+    res = Utils::add_to_ptree(cur_ptree, cur_family, cur_addr, cur_bits);
+
+  if(compact_after_add && res) {
+    compact_tree_t compact;
+    compact.cur_bitlen = network_bits;
+
+    /* navigate this subtree */
+    patricia_walk_inorder(res, compact_tree_funct, &compact);
+
+    for (std::vector<prefix_t*>::const_iterator it = compact.larger_bitlens.begin(); it != compact.larger_bitlens.end(); ++it) {
+      patricia_node_t *compacted = patricia_search_exact(cur_ptree, *it);
+      assert(compacted);
+      patricia_remove(cur_ptree, compacted);
+    }
+  }
+
+
+  return res;
+}
+
+/* ******************************************* */
+
 bool AddressTree::addAddress(char *_what, const int16_t user_data) {
   u_int32_t _mac[6];
   int16_t id = (user_data == -1) ? numAddresses : user_data;

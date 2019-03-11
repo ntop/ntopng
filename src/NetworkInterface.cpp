@@ -296,9 +296,6 @@ void NetworkInterface::init() {
     macs_hash = NULL, ases_hash = NULL, countries_hash = NULL, vlans_hash = NULL, 
       arp_hash_matrix = NULL;
 
-#ifdef USE_BROADCAST_DOMAINS
-    broadcastDomains = New_Patricia(32);
-#endif
     numSubInterfaces = 0;
     memset(subInterfaces, 0, sizeof(subInterfaces));
   reload_custom_categories = reload_hosts_blacklist = false;
@@ -555,8 +552,6 @@ bool NetworkInterface::checkIdle() {
 
 /* **************************************************** */
 
-static void free_ptree_data(void *data) { if(data) free(data); }
-
 void NetworkInterface::deleteDataStructures() {
   if(flows_hash)            { delete(flows_hash); flows_hash = NULL; }
   if(hosts_hash)            { delete(hosts_hash); hosts_hash = NULL; }
@@ -565,10 +560,6 @@ void NetworkInterface::deleteDataStructures() {
   if(vlans_hash)            { delete(vlans_hash); vlans_hash = NULL; }
   if(macs_hash)             { delete(macs_hash);  macs_hash = NULL;  }
   if(arp_hash_matrix)       { delete(arp_hash_matrix); arp_hash_matrix = NULL; }
-
-#ifdef USE_BROADCAST_DOMAINS
-  Destroy_Patricia(broadcastDomains, free_ptree_data);
-#endif
   
 #ifdef NTOPNG_PRO
   if(aggregated_flows_hash) {
@@ -2584,25 +2575,11 @@ decode_packet_eth:
 					 Utils::intoaV4(net, buf3, sizeof(buf3)),
 					 diff, cidr);
 
-	    if((it = localBroadcastDomains.find(net)) != localBroadcastDomains.end()) {
-	      if(it->second > cidr) localBroadcastDomains[net] = cidr;
-	    } else {
-	      /* Try to search a larger net */
-	      mask <<= 1, cidr -= 1;
-	      	      
-	      if((it = localBroadcastDomains.find(net&mask)) != localBroadcastDomains.end()) {
-		if(it->second > cidr) localBroadcastDomains[net&mask] = cidr;
-		localBroadcastDomains.erase(net);
-	      } else {
-		localBroadcastDomains[net] = cidr+1;
+	    IpAddress cur_bcast_domain;
+	    cur_bcast_domain.set(htonl(net));
+	    broadcast_domains.addAddress(&cur_bcast_domain, cidr, true);
 
-	      }
-	    }
-
-	    /* Print all */
-	    for(it=localBroadcastDomains.begin(); it != localBroadcastDomains.end(); it++)
-	      ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s/%u",
-					   Utils::intoaV4(it->first, buf1, sizeof(buf1)), it->second);	    
+	    broadcast_domains.dump();
 	  }
 	}
 #endif

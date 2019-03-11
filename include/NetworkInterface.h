@@ -88,9 +88,8 @@ class NetworkInterface : public Checkpointable {
   MDNS *mdns;
 
   /* Broadcast domain */
-  std::map<u_int32_t /* net */, u_int8_t /* mask */> localBroadcastDomains;
 #ifdef USE_BROADCAST_DOMAINS
-  patricia_tree_t *broadcastDomains;
+  AddressTree broadcast_domains;
 #endif
   
 #ifdef HAVE_EBPF
