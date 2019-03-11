@@ -178,6 +178,7 @@ NetworkInterface::NetworkInterface(const char *name,
       ndpi_load_protocols_file(ndpi_struct, ntop->getCustomnDPIProtos());
 
     ndpi_set_detection_preferences(ndpi_struct, ndpi_pref_http_dont_dissect_response, 1);
+    ndpi_set_detection_preferences(ndpi_struct, ndpi_pref_dns_dont_dissect_response,  1);
     ndpi_set_detection_preferences(ndpi_struct, ndpi_pref_enable_category_substring_match, 1);
 
     memset(d_port, 0, sizeof(d_port));
@@ -1796,11 +1797,10 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	  DNS-over-TCP has a 2-bytes field with DNS payload length
 	  at the beginning. See RFC1035 section 4.2.2. TCP usage.
 	*/
-	u_int8_t dns_offset = l4_proto == IPPROTO_TCP && payload_len > 1 ? 2 : 0;
-
+	u_int8_t dns_offset = ((l4_proto == IPPROTO_TCP) && (payload_len > 1)) ? 2 : 0;
 	struct ndpi_dns_packet_header *header = (struct ndpi_dns_packet_header*)(payload + dns_offset);
 	u_int16_t dns_flags = ntohs(header->flags);
-	bool is_query   = ((dns_flags & 0x8000) == 0x8000) ? false : true;
+	bool is_query   = ((dns_flags & 0x8000) == 0x8000) ? true : false;
 
 	if(flow->get_cli_host() && flow->get_srv_host()) {
 	  Host *client = src2dst_direction ? flow->get_cli_host() : flow->get_srv_host();
