@@ -1800,8 +1800,8 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	u_int8_t dns_offset = ((l4_proto == IPPROTO_TCP) && (payload_len > 1)) ? 2 : 0;
 	struct ndpi_dns_packet_header *header = (struct ndpi_dns_packet_header*)(payload + dns_offset);
 	u_int16_t dns_flags = ntohs(header->flags);
-	bool is_query   = ((dns_flags & 0x8000) == 0x8000) ? true : false;
-
+	bool is_query   = (dns_flags & 0x8000) ? 0 : 1;
+	
 	if(flow->get_cli_host() && flow->get_srv_host()) {
 	  Host *client = src2dst_direction ? flow->get_cli_host() : flow->get_srv_host();
 	  Host *server = src2dst_direction ? flow->get_srv_host() : flow->get_cli_host();
