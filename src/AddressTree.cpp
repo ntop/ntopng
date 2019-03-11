@@ -25,7 +25,7 @@
 
 /* **************************************** */
 
-AddressTree::AddressTree() { init(); }
+AddressTree::AddressTree(bool handleIPv6) { init(handleIPv6); }
 
 /* **************************************** */
 
@@ -33,8 +33,12 @@ AddressTree::AddressTree(const AddressTree &at) {
   MacKey_t *current, *tmp;
 
   ptree_v4 = patricia_clone(at.ptree_v4);
-  ptree_v6 = patricia_clone(at.ptree_v6);
 
+  if(at.ptree_v6)
+    ptree_v6 = patricia_clone(at.ptree_v6);
+  else
+    ptree_v6 = NULL;
+  
   macs = NULL;
   HASH_ITER(hh, at.macs, current, tmp) {
     MacKey_t *s;
@@ -55,9 +59,14 @@ static void free_ptree_data(void *data) {
 
 /* **************************************** */
 
-void AddressTree::init() {
+void AddressTree::init(bool handleIPv6) {
   numAddresses = 0;
-  ptree_v4 = New_Patricia(32), ptree_v6 = New_Patricia(128), macs = NULL;
+  ptree_v4 = New_Patricia(32), macs = NULL;
+
+  if(handleIPv6)
+    ptree_v6 = New_Patricia(128);
+  else
+    ptree_v6 = NULL;
 }
 
 /* **************************************** */
@@ -73,12 +82,17 @@ patricia_node_t *AddressTree::addAddress(const IpAddress * const ipa) {
     return NULL;
 
   bool is_v4 = ipa->isIPv4();
-  patricia_tree_t *cur_ptree = is_v4 ? ptree_v4 : ptree_v6;
-  int cur_family = is_v4 ? AF_INET : AF_INET6;
-  int cur_bits = is_v4 ? 32 : 128;
-  void *cur_addr = is_v4 ? (void*)&ipa->getIP()->ipType.ipv4 : (void*)&ipa->getIP()->ipType.ipv6;
 
-  return Utils::add_to_ptree(cur_ptree, cur_family, cur_addr, cur_bits);
+  if((!is_v4) && (!ptree_v6))
+    return(NULL);
+  else {
+    patricia_tree_t *cur_ptree = is_v4 ? ptree_v4 : ptree_v6;
+    int cur_family = is_v4 ? AF_INET : AF_INET6;
+    int cur_bits = is_v4 ? 32 : 128;
+    void *cur_addr = is_v4 ? (void*)&ipa->getIP()->ipType.ipv4 : (void*)&ipa->getIP()->ipType.ipv6;
+    
+    return Utils::add_to_ptree(cur_ptree, cur_family, cur_addr, cur_bits);
+  }
 }
 
 /* ******************************************* */
@@ -101,44 +115,49 @@ static void compact_tree_funct(prefix_t *prefix, void *data, void *user_data) {
 
 /* **************************************************** */
 
-patricia_node_t *AddressTree::addAddress(const IpAddress * const ipa, int network_bits, bool compact_after_add) {
+patricia_node_t *AddressTree::addAddress(const IpAddress * const ipa,
+					 int network_bits, bool compact_after_add) {
   if(!ipa)
     return NULL;
 
   bool is_v4 = ipa->isIPv4();
-  patricia_node_t *res;
-  patricia_tree_t *cur_ptree = is_v4 ? ptree_v4 : ptree_v6;
-  int cur_family = is_v4 ? AF_INET : AF_INET6;
-  int cur_bits = network_bits;
+  if((!is_v4) && (!ptree_v6))
+    return(NULL);
+  else {
+    patricia_node_t *res;
+    patricia_tree_t *cur_ptree = is_v4 ? ptree_v4 : ptree_v6;
+    int cur_family = is_v4 ? AF_INET : AF_INET6;
+    int cur_bits = network_bits;
 
-  if(network_bits < 0) network_bits = 0;
-  else if(is_v4 && network_bits > 32) network_bits = 32;
-  else if(!is_v4 && network_bits > 128) network_bits = 128;
+    if(network_bits < 0) network_bits = 0;
+    else if(is_v4 && network_bits > 32) network_bits = 32;
+    else if(!is_v4 && network_bits > 128) network_bits = 128;
 
-  void *cur_addr = is_v4 ? (void*)&ipa->getIP()->ipType.ipv4 : (void*)&ipa->getIP()->ipType.ipv6;
+    void *cur_addr = is_v4 ? (void*)&ipa->getIP()->ipType.ipv4 : (void*)&ipa->getIP()->ipType.ipv6;
 
-  res = Utils::ptree_match(cur_ptree, cur_family, cur_addr, cur_bits);
+    res = Utils::ptree_match(cur_ptree, cur_family, cur_addr, cur_bits);
 
-  if(!res) {
-    res = Utils::add_to_ptree(cur_ptree, cur_family, cur_addr, cur_bits);
+    if(!res) {
+      res = Utils::add_to_ptree(cur_ptree, cur_family, cur_addr, cur_bits);
 
-    if(compact_after_add && res) {
-      compact_tree_t compact;
-      compact.cur_bitlen = network_bits;
+      if(compact_after_add && res) {
+	compact_tree_t compact;
+	compact.cur_bitlen = network_bits;
 
-      /* navigate this subtree */
-      patricia_walk_inorder(res, compact_tree_funct, &compact);
+	/* navigate this subtree */
+	patricia_walk_inorder(res, compact_tree_funct, &compact);
 
-      for (std::vector<prefix_t*>::const_iterator it = compact.larger_bitlens.begin(); it != compact.larger_bitlens.end(); ++it) {
-	patricia_node_t *compacted = patricia_search_exact(cur_ptree, *it);
-	assert(compacted);
-	patricia_remove(cur_ptree, compacted);
+	for(std::vector<prefix_t*>::const_iterator it = compact.larger_bitlens.begin();
+	    it != compact.larger_bitlens.end(); ++it) {
+	  patricia_node_t *compacted = patricia_search_exact(cur_ptree, *it);
+	  assert(compacted);
+	  patricia_remove(cur_ptree, compacted);
+	}
       }
     }
+
+    return res;
   }
-
-
-  return res;
 }
 
 /* ******************************************* */
@@ -170,6 +189,8 @@ bool AddressTree::addAddress(char *_what, const int16_t user_data) {
 
     if(node)
       node->user_data = id;
+    else
+      return(false);
   }
 
   numAddresses++;
@@ -206,9 +227,9 @@ bool AddressTree::match(char *addr) {
     *net_prefix = '\0', address.set(addr), *net_prefix = tmp;
 
     if(address.isIPv4())
-      return Utils::ptree_match(ptree_v4, AF_INET, &address.getIP()->ipType.ipv4, bits);
+      return(Utils::ptree_match(ptree_v4, AF_INET, &address.getIP()->ipType.ipv4, bits));
     else
-      return Utils::ptree_match(ptree_v6, AF_INET6, (void*)&address.getIP()->ipType.ipv6, bits);
+      return(Utils::ptree_match(ptree_v6, AF_INET6, (void*)&address.getIP()->ipType.ipv6, bits));
   } else {
     address.set(addr);
     return address.match(this);
@@ -228,7 +249,9 @@ int16_t AddressTree::findAddress(int family, void *addr, u_int8_t *network_mask_
     p = ptree_v6, bits = 128;
   else
     return(-1);
-    
+
+  if(p == NULL) return(-1);
+  
   node = Utils::ptree_match(p, family, addr, bits);
   
   if(node == NULL)
@@ -272,14 +295,17 @@ static void address_tree_dump_funct(prefix_t *prefix, void *data, void *user_dat
   if(user_data)
     lua_push_str_table_entry((lua_State*)user_data, ret, (char*)"");
   else
-    ntop->getTrace()->traceEvent(TRACE_INFO, "[AddressTree] %s", ret);
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[AddressTree] %s", ret);
 }
 
 /* **************************************************** */
 
 void AddressTree::getAddresses(lua_State* vm) {
-  if(ptree_v4->head)  patricia_walk_inorder(ptree_v4->head, address_tree_dump_funct, vm);
-  if(ptree_v6->head)  patricia_walk_inorder(ptree_v6->head, address_tree_dump_funct, vm);
+  if(ptree_v4->head)
+    patricia_walk_inorder(ptree_v4->head, address_tree_dump_funct, vm);
+
+  if(ptree_v6 && ptree_v6->head)
+    patricia_walk_inorder(ptree_v6->head, address_tree_dump_funct, vm);
 
   if(macs) {
     MacKey_t *current, *tmp;
@@ -300,26 +326,32 @@ void AddressTree::getAddresses(lua_State* vm) {
 /* **************************************************** */
 
 void AddressTree::walk(void_fn3_t func, void * const user_data) const {
-  if(ptree_v4->head)  patricia_walk_inorder(ptree_v4->head, func, user_data);
-  if(ptree_v6->head)  patricia_walk_inorder(ptree_v6->head, func, user_data);
+  if(ptree_v4->head)
+    patricia_walk_inorder(ptree_v4->head, func, user_data);
+  
+  if(ptree_v6 && ptree_v6->head)
+    patricia_walk_inorder(ptree_v6->head, func, user_data);
 }
 
 /* **************************************************** */
 
 void AddressTree::dump() {
-  if(ptree_v4->head)  patricia_walk_inorder(ptree_v4->head, address_tree_dump_funct, NULL);
-  if(ptree_v6->head)  patricia_walk_inorder(ptree_v6->head, address_tree_dump_funct, NULL);
+  if(ptree_v4->head)
+    patricia_walk_inorder(ptree_v4->head, address_tree_dump_funct, NULL);
+  
+  if(ptree_v6 && ptree_v6->head)
+    patricia_walk_inorder(ptree_v6->head, address_tree_dump_funct, NULL);
 
-    if(macs) {
+  if(macs) {
     MacKey_t *current, *tmp;
-
+    
     HASH_ITER(hh, macs, current, tmp) {
       char key[32];
-
+      
       snprintf(key, sizeof(key), "%02X:%02X:%02X:%02X:%02X:%02X",
 	       current->mac[0], current->mac[1], current->mac[2],
 	       current->mac[3], current->mac[4], current->mac[5]);
-
+      
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "[AddressTree] %s", key);
     }
   }
@@ -328,8 +360,8 @@ void AddressTree::dump() {
 /* **************************************************** */
 
 void AddressTree::cleanup() {
-  if(ptree_v4)  Destroy_Patricia(ptree_v4, free_ptree_data);
-  if(ptree_v6)  Destroy_Patricia(ptree_v6, free_ptree_data);
+  if(ptree_v4) Destroy_Patricia(ptree_v4, free_ptree_data);
+  if(ptree_v6) Destroy_Patricia(ptree_v6, free_ptree_data);
 
   if(macs) {
     MacKey_t *current, *tmp;

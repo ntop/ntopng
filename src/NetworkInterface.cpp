@@ -298,9 +298,11 @@ void NetworkInterface::init() {
 
     numSubInterfaces = 0;
     memset(subInterfaces, 0, sizeof(subInterfaces));
-  reload_custom_categories = reload_hosts_blacklist = false;
-  
-  ip_addresses = "", networkStats = NULL,
+    reload_custom_categories = reload_hosts_blacklist = false;
+
+    broadcast_domains = new AddressTree(false);
+    
+    ip_addresses = "", networkStats = NULL,
     pcap_datalink_type = 0, cpu_affinity = -1;
   hide_from_top = hide_from_top_shadow = NULL;
 
@@ -560,6 +562,7 @@ void NetworkInterface::deleteDataStructures() {
   if(vlans_hash)            { delete(vlans_hash); vlans_hash = NULL; }
   if(macs_hash)             { delete(macs_hash);  macs_hash = NULL;  }
   if(arp_hash_matrix)       { delete(arp_hash_matrix); arp_hash_matrix = NULL; }
+  if(broadcast_domains)     { delete(broadcast_domains); broadcast_domains = NULL; }
   
 #ifdef NTOPNG_PRO
   if(aggregated_flows_hash) {
@@ -2516,9 +2519,10 @@ decode_packet_eth:
 	   && !arp_spa_h->isBroadcastDomainHost())
 	  arp_spa_h->setBroadcastDomainHost();
 
-#ifdef USE_BROADCAST_DOMAINS
-	{
+	if(broadcast_domains) {
+#ifdef DEBUG
 	  char buf1[32], buf2[32], buf3[32];
+#endif
 	  u_int32_t src = ntohl(arpp->arp_spa);
 	  u_int32_t dst = ntohl(arpp->arp_tpa);
 	  u_int32_t net = src & dst;
@@ -2535,8 +2539,8 @@ decode_packet_eth:
 
 	  if(diff <= 1024) {
 	    u_int32_t mask;
-	    std::map<u_int32_t, u_int8_t>::iterator it;
-	      
+	    IpAddress cur_bcast_domain;
+	    
 	    /* Ignore networks > /21 */
 
 	    /* 131.114.2.22 <-> 131.114.3.2  */
@@ -2568,21 +2572,21 @@ decode_packet_eth:
 	    } else {
 	      net &= 0xFFFFF800, diff = 1024, cidr = 21;
 	    }
-	    
+
+#ifdef DEBUG
 	    ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s <-> %s [%s - %u/%u]",
 					 Utils::intoaV4(src, buf1, sizeof(buf1)),
 					 Utils::intoaV4(dst, buf2, sizeof(buf2)),
 					 Utils::intoaV4(net, buf3, sizeof(buf3)),
 					 diff, cidr);
-
-	    IpAddress cur_bcast_domain;
+#endif
+	    
 	    cur_bcast_domain.set(htonl(net));
-	    broadcast_domains.addAddress(&cur_bcast_domain, cidr, true);
+	    broadcast_domains->addAddress(&cur_bcast_domain, cidr, true);
 
-	    broadcast_domains.dump();
+	    // broadcast_domains->dump();
 	  }
 	}
-#endif
 	
 	e  = getArpHashMatrixElement(srcMac->get_mac(), dstMac->get_mac(), &src2dst_element);
 

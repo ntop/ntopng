@@ -88,9 +88,7 @@ class NetworkInterface : public Checkpointable {
   MDNS *mdns;
 
   /* Broadcast domain */
-#ifdef USE_BROADCAST_DOMAINS
-  AddressTree broadcast_domains;
-#endif
+  AddressTree *broadcast_domains;
   
 #ifdef HAVE_EBPF
   /* eBPF */

@@ -41,11 +41,11 @@ class AddressTree {
   patricia_tree_t* getPatricia(char* what);
   
  public:
-  AddressTree();
+  AddressTree(bool handleIPv6 = true);
   AddressTree(const AddressTree &at);
   ~AddressTree();
 
-  void init();
+  void init(bool handleIPv6);
   void cleanup();
 
   inline u_int16_t getNumAddresses() { return(numAddresses); }
