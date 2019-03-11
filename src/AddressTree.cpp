@@ -119,20 +119,21 @@ patricia_node_t *AddressTree::addAddress(const IpAddress * const ipa, int networ
 
   res = Utils::ptree_match(cur_ptree, cur_family, cur_addr, cur_bits);
 
-  if(!res)
+  if(!res) {
     res = Utils::add_to_ptree(cur_ptree, cur_family, cur_addr, cur_bits);
 
-  if(compact_after_add && res) {
-    compact_tree_t compact;
-    compact.cur_bitlen = network_bits;
+    if(compact_after_add && res) {
+      compact_tree_t compact;
+      compact.cur_bitlen = network_bits;
 
-    /* navigate this subtree */
-    patricia_walk_inorder(res, compact_tree_funct, &compact);
+      /* navigate this subtree */
+      patricia_walk_inorder(res, compact_tree_funct, &compact);
 
-    for (std::vector<prefix_t*>::const_iterator it = compact.larger_bitlens.begin(); it != compact.larger_bitlens.end(); ++it) {
-      patricia_node_t *compacted = patricia_search_exact(cur_ptree, *it);
-      assert(compacted);
-      patricia_remove(cur_ptree, compacted);
+      for (std::vector<prefix_t*>::const_iterator it = compact.larger_bitlens.begin(); it != compact.larger_bitlens.end(); ++it) {
+	patricia_node_t *compacted = patricia_search_exact(cur_ptree, *it);
+	assert(compacted);
+	patricia_remove(cur_ptree, compacted);
+      }
     }
   }
 
