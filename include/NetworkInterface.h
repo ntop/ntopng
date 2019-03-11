@@ -54,7 +54,7 @@ class FlowInterfacesStats;
 class TrafficShaper;
 class NIndexFlowDB;
 #endif
-
+  
 typedef struct {
   u_int32_t criteria;        /* IP address, interface... */
   NetworkInterface *iface;
@@ -87,6 +87,12 @@ class NetworkInterface : public Checkpointable {
   NetworkDiscovery *discovery;
   MDNS *mdns;
 
+  /* Broadcast domain */
+  std::map<u_int32_t /* net */, u_int8_t /* mask */> localBroadcastDomains;
+#ifdef USE_BROADCAST_DOMAINS
+  patricia_tree_t *broadcastDomains;
+#endif
+  
 #ifdef HAVE_EBPF
   /* eBPF */
   u_int16_t next_insert_idx, next_remove_idx;

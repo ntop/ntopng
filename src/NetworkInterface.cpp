@@ -170,7 +170,7 @@ NetworkInterface::NetworkInterface(const char *name,
     // init global detection structure
     ndpi_struct = ndpi_init_detection_module();
     if(ndpi_struct == NULL) {
-
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to initialize nDPI");
       exit(-1);
     }
 
@@ -294,12 +294,15 @@ void NetworkInterface::init() {
     mdns = NULL, discovery = NULL, ifDescription = NULL,
     flowHashingMode = flowhashing_none;
     macs_hash = NULL, ases_hash = NULL, countries_hash = NULL, vlans_hash = NULL, 
-    arp_hash_matrix = NULL;
+      arp_hash_matrix = NULL;
 
-  numSubInterfaces = 0;
-  memset(subInterfaces, 0, sizeof(subInterfaces));
+#ifdef USE_BROADCAST_DOMAINS
+    broadcastDomains = New_Patricia(32);
+#endif
+    numSubInterfaces = 0;
+    memset(subInterfaces, 0, sizeof(subInterfaces));
   reload_custom_categories = reload_hosts_blacklist = false;
-
+  
   ip_addresses = "", networkStats = NULL,
     pcap_datalink_type = 0, cpu_affinity = -1;
   hide_from_top = hide_from_top_shadow = NULL;
@@ -552,6 +555,8 @@ bool NetworkInterface::checkIdle() {
 
 /* **************************************************** */
 
+static void free_ptree_data(void *data) { if(data) free(data); }
+
 void NetworkInterface::deleteDataStructures() {
   if(flows_hash)            { delete(flows_hash); flows_hash = NULL; }
   if(hosts_hash)            { delete(hosts_hash); hosts_hash = NULL; }
@@ -561,6 +566,10 @@ void NetworkInterface::deleteDataStructures() {
   if(macs_hash)             { delete(macs_hash);  macs_hash = NULL;  }
   if(arp_hash_matrix)       { delete(arp_hash_matrix); arp_hash_matrix = NULL; }
 
+#ifdef USE_BROADCAST_DOMAINS
+  Destroy_Patricia(broadcastDomains, free_ptree_data);
+#endif
+  
 #ifdef NTOPNG_PRO
   if(aggregated_flows_hash) {
     aggregated_flows_hash->cleanup();
@@ -2505,7 +2514,9 @@ decode_packet_eth:
 	u_int32_t arp_spa;
 	IpAddress arp_spa_ipa;
 	Host *arp_spa_h;
-
+	bool src2dst_element = false;
+	ArpStatsMatrixElement* e;
+	
 	arp_spa = arpp->arp_spa; /* Sender protocol address */
 	arp_spa_ipa.set(arp_spa);
 
@@ -2514,8 +2525,89 @@ decode_packet_eth:
 	   && !arp_spa_h->isBroadcastDomainHost())
 	  arp_spa_h->setBroadcastDomainHost();
 
-	bool src2dst_element = false;
-	ArpStatsMatrixElement* e = getArpHashMatrixElement(srcMac->get_mac(), dstMac->get_mac(), &src2dst_element);
+#ifdef USE_BROADCAST_DOMAINS
+	{
+	  char buf1[32], buf2[32], buf3[32];
+	  u_int32_t src = ntohl(arpp->arp_spa);
+	  u_int32_t dst = ntohl(arpp->arp_tpa);
+	  u_int32_t net = src & dst;
+	  u_int32_t diff;
+	  u_int8_t cidr;
+	
+	  if(src > dst) {
+	    u_int32_t r = src;
+	    src = dst;
+	    dst = r;	   
+	  }
+
+	  diff = dst-src;
+
+	  if(diff <= 1024) {
+	    u_int32_t mask;
+	    std::map<u_int32_t, u_int8_t>::iterator it;
+	      
+	    /* Ignore networks > /21 */
+
+	    /* 131.114.2.22 <-> 131.114.3.2  */
+	    
+	    if(diff <= 256) {
+	      mask = 0xFFFFFF00, cidr = 24;
+	      net &= mask, diff = 256;
+
+	      if((src & mask) != (dst & mask)) {
+		mask <<= 1, cidr -= 1;
+		net = src & mask, diff = diff << 1;
+	      }
+	    } else if(diff <= 512) {
+	      mask = 0xFFFFFE00, cidr = 23;
+	      net &= mask, diff = 512;
+
+	      if((src & mask) != (dst & mask)) {
+		mask <<= 1, cidr -= 1;
+		net = src & mask, diff = diff << 1;
+	      }
+	    } else if(diff <= 768) {
+	      mask = 0xFFFFFC00, cidr = 22;
+	      net &= mask, diff = 768;
+
+	      if((src & mask) != (dst & mask)) {
+		mask <<= 1, cidr -= 1;
+		net = src & mask, diff = diff << 1;
+	      }
+	    } else {
+	      net &= 0xFFFFF800, diff = 1024, cidr = 21;
+	    }
+	    
+	    ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s <-> %s [%s - %u/%u]",
+					 Utils::intoaV4(src, buf1, sizeof(buf1)),
+					 Utils::intoaV4(dst, buf2, sizeof(buf2)),
+					 Utils::intoaV4(net, buf3, sizeof(buf3)),
+					 diff, cidr);
+
+	    if((it = localBroadcastDomains.find(net)) != localBroadcastDomains.end()) {
+	      if(it->second > cidr) localBroadcastDomains[net] = cidr;
+	    } else {
+	      /* Try to search a larger net */
+	      mask <<= 1, cidr -= 1;
+	      	      
+	      if((it = localBroadcastDomains.find(net&mask)) != localBroadcastDomains.end()) {
+		if(it->second > cidr) localBroadcastDomains[net&mask] = cidr;
+		localBroadcastDomains.erase(net);
+	      } else {
+		localBroadcastDomains[net] = cidr+1;
+
+	      }
+	    }
+
+	    /* Print all */
+	    for(it=localBroadcastDomains.begin(); it != localBroadcastDomains.end(); it++)
+	      ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s/%u",
+					   Utils::intoaV4(it->first, buf1, sizeof(buf1)), it->second);	    
+	  }
+	}
+#endif
+	
+	e  = getArpHashMatrixElement(srcMac->get_mac(), dstMac->get_mac(), &src2dst_element);
 
 #if 0
 	char buf1[32], buf2[32];
