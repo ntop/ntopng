@@ -143,6 +143,7 @@ function host_pools_utils.createPool(ifid, pool_id, pool_name, children_safe,
 end
 
 function host_pools_utils.deletePool(ifid, pool_id)
+  local ts_utils = require "ts_utils"
   local rrd_base = host_pools_utils.getRRDBase(ifid, pool_id)
   local ids_key = get_pool_ids_key(ifid)
   local details_key = get_pool_details_key(ifid, pool_id)
@@ -153,7 +154,7 @@ function host_pools_utils.deletePool(ifid, pool_id)
   ntop.delCache(details_key)
   ntop.delCache(members_key)
   ntop.delHashCache(serialized_key, pool_id)
-  ntop.rmdir(rrd_base)
+  ts_utils.delete("host_pool", {ifid = ifid, pool = pool_id})
 end
 
 function getMembershipInfo(member_and_vlan)
