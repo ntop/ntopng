@@ -37,14 +37,9 @@ http_bridge_conf_utils.HTTP_BRIDGE_CONFIGURATION_URL = ""
 function http_bridge_conf_utils.configureBridge()
    if not isEmptyString(http_bridge_conf_utils.HTTP_BRIDGE_CONFIGURATION_URL) then
       -- CLEANUP
-      local users_list = ntop.getUsers()
-      for key, value in pairs(users_list) do
-	 if value["group"] == "captive_portal" then
-	    ntop.deleteUser(key)
-	 end
-      end
       shaper_utils.clearShapers()
-      host_pools_utils.clearPools()
+      -- empty pool members but don't delete pools
+      host_pools_utils.emptyPools()
 
       -- BASIC INITIALIZATION
       host_pools_utils.initPools()
