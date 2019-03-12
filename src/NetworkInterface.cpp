@@ -283,7 +283,7 @@ void NetworkInterface::init() {
     next_idle_flow_purge = next_idle_host_purge = 0,
     running = false, customIftype = NULL, is_dynamic_interface = false,
     is_loopback = is_traffic_mirrored = false;
-    numVirtualInterfaces = 0, flowHashing = NULL,
+  numVirtualInterfaces = 0, flowHashing = NULL,
     pcap_datalink_type = 0, mtuWarningShown = false,
     purge_idle_flows_hosts = true, id = (u_int8_t)-1,
     last_remote_pps = 0, last_remote_bps = 0,
@@ -297,16 +297,16 @@ void NetworkInterface::init() {
     pollLoopCreated = false, bridge_interface = false,
     mdns = NULL, discovery = NULL, ifDescription = NULL,
     flowHashingMode = flowhashing_none;
-    macs_hash = NULL, ases_hash = NULL, countries_hash = NULL, vlans_hash = NULL, 
+  macs_hash = NULL, ases_hash = NULL, countries_hash = NULL, vlans_hash = NULL, 
     arp_hash_matrix = NULL;
 
-    numSubInterfaces = 0;
-    memset(subInterfaces, 0, sizeof(subInterfaces));
-    reload_custom_categories = reload_hosts_blacklist = false;
-
-    broadcast_domains = new AddressTree(false);
+  numSubInterfaces = 0;
+  memset(subInterfaces, 0, sizeof(subInterfaces));
+  reload_custom_categories = reload_hosts_blacklist = false;
     
-    ip_addresses = "", networkStats = NULL,
+  broadcast_domains = new AddressTree(false);
+    
+  ip_addresses = "", networkStats = NULL,
     pcap_datalink_type = 0, cpu_affinity = -1;
   hide_from_top = hide_from_top_shadow = NULL;
 
@@ -335,23 +335,23 @@ void NetworkInterface::init() {
 
   dhcp_ranges = dhcp_ranges_shadow = NULL;
 
-    ts_ring = NULL;
+  ts_ring = NULL;
 
-    if(ntop->getPrefs()) {
-      if(TimeseriesRing::isRingEnabled(ntop->getPrefs()))
-	ts_ring = new TimeseriesRing(this);
-    }
+  if(ntop->getPrefs()) {
+    if(TimeseriesRing::isRingEnabled(ntop->getPrefs()))
+      ts_ring = new TimeseriesRing(this);
+  }
 
 #ifdef HAVE_EBPF
-    if(bridge_interface
-       || is_dynamic_interface
-       || is_traffic_mirrored
-       || isView())
-      ;
-    else {
-      ebpfEvents = (eBPFevent**)calloc(sizeof(eBPFevent*), EBPF_QUEUE_LEN);
-      next_insert_idx = next_remove_idx = 0;
-    }
+  if(bridge_interface
+     || is_dynamic_interface
+     || is_traffic_mirrored
+     || isView())
+    ;
+  else {
+    ebpfEvents = (eBPFevent**)calloc(sizeof(eBPFevent*), EBPF_QUEUE_LEN);
+    next_insert_idx = next_remove_idx = 0;
+  }
 #endif
 
   PROFILING_INIT();
@@ -375,8 +375,8 @@ void NetworkInterface::aggregatePartialFlow(Flow *flow) {
     if(aggregatedFlow == NULL) {
       if(!aggregated_flows_hash->hasEmptyRoom()) {
 	/* There is no more room in the hash table */
-      } else if(!ntop->getPrefs()->is_aggregated_flows_export_limit_enabled()
-		|| aggregated_flows_hash->getNumEntries() < ntop->getPrefs()->get_max_num_aggregated_flows_per_export()) {
+      } else if((!ntop->getPrefs()->is_aggregated_flows_export_limit_enabled())
+		|| (aggregated_flows_hash->getNumEntries() < ntop->getPrefs()->get_max_num_aggregated_flows_per_export())) {
 #ifdef AGGREGATED_FLOW_DEBUG
 	char buf[256];
 	ntop->getTrace()->traceEvent(TRACE_NORMAL, "AggregatedFlow not found [%s]. Creating it.",
@@ -1573,23 +1573,30 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	    src2dst_direction = false;
 	}
 
-	if((icmp_type == ND_NEIGHBOR_ADVERT || icmp_type == ND_NEIGHBOR_SOLICIT)
+#if 0
+	if(((icmp_type == ND_NEIGHBOR_ADVERT) || (icmp_type == ND_NEIGHBOR_SOLICIT))
 	   && l4_packet_len >= 24) {
-	  /* Neighbor Solicitation and Neighbor Advertisement
-	     have the Target Address at offset 8.
-
-	     https://tools.ietf.org/html/rfc2461#section-4.1
-	   */
+	  /*
+	    Neighbor Solicitation and Neighbor Advertisement
+	    have the Target Address at offset 8.
+	    
+	    https://tools.ietf.org/html/rfc2461#section-4.1
+	  */
 	  Host * target_address_h;
 	  IpAddress target_address;
+	  
 	  target_address.set((ndpi_in6_addr*)&l4[8]);
 
+	  char buf[64];
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "->> %s", target_address.print(buf, sizeof(buf)));
+	  
 	  if(target_address.isNonEmptyUnicastAddress()
 	     && (target_address_h = getHost(&target_address, vlan_id))
-	     && !target_address_h->isBroadcastDomainHost())
+	     && (!target_address_h->isBroadcastDomainHost()))
 	    target_address_h->setBroadcastDomainHost();
 	}
-
+#endif
+	
         flow->setICMP(src2dst_direction, icmp_type, icmp_code, l4);
 	if(l4_proto == IPPROTO_ICMP)
 	  icmp_v4.incStats(icmp_type, icmp_code, is_sent_packet, NULL);
@@ -2508,12 +2515,15 @@ decode_packet_eth:
       if((eth_type == ETHERTYPE_ARP) && (h->caplen >= (sizeof(arp_header)+sizeof(struct ndpi_ethhdr)))) {
 	struct arp_header *arpp = (struct arp_header*)&packet[ip_offset];
 	u_int16_t arp_opcode = ntohs(arpp->ar_op);
+#if 0
 	u_int32_t arp_spa;
 	IpAddress arp_spa_ipa;
 	Host *arp_spa_h;
+#endif
 	bool src2dst_element = false;
 	ArpStatsMatrixElement* e;
-	
+
+#if 0
 	arp_spa = arpp->arp_spa; /* Sender protocol address */
 	arp_spa_ipa.set(arp_spa);
 
@@ -2521,7 +2531,8 @@ decode_packet_eth:
 	   && (arp_spa_h = getHost(&arp_spa_ipa, vlan_id))
 	   && !arp_spa_h->isBroadcastDomainHost())
 	  arp_spa_h->setBroadcastDomainHost();
-
+#endif
+	
 	if(broadcast_domains) {
 #ifdef DEBUG
 	  char buf1[32], buf2[32], buf3[32];
@@ -6243,11 +6254,10 @@ void NetworkInterface::reloadHideFromTop(bool refreshHosts) {
 
 bool NetworkInterface::isHiddenFromTop(Host *host) {
   VlanAddressTree *vlan_addrtree = hide_from_top;
+  
   if(!vlan_addrtree) return false;
 
-  AddressTree *tree = vlan_addrtree->getAddressTree(host->getVlanId());
-
-  return host->get_ip()->findAddress(tree);
+  return(host->get_ip()->findAddress(vlan_addrtree->getAddressTree(host->getVlanId())));
 }
 
 /* **************************************** */
@@ -7309,6 +7319,18 @@ bool NetworkInterface::isInDhcpRange(IpAddress *ip) {
   }
 
   return false;
+}
+
+/* *************************************** */
+
+bool NetworkInterface::isLocalBroadcastDomainHost(Host *h) {
+  if(broadcast_domains == NULL)
+    return(false);
+  else {
+    IpAddress *i = h->get_ip();
+    
+    return(i->match(broadcast_domains) || i->match(ntop->getLoadInterfaceAddresses()));
+  }
 }
 
 /* *************************************** */

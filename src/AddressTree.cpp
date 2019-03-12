@@ -224,6 +224,7 @@ bool AddressTree::match(char *addr) {
   if(net_prefix) {
     int bits = atoi(net_prefix + 1);
     char tmp = *net_prefix;
+    
     *net_prefix = '\0', address.set(addr), *net_prefix = tmp;
 
     if(address.isIPv4())
@@ -232,7 +233,7 @@ bool AddressTree::match(char *addr) {
       return(Utils::ptree_match(ptree_v6, AF_INET6, (void*)&address.getIP()->ipType.ipv6, bits));
   } else {
     address.set(addr);
-    return address.match(this);
+    return(address.match(this));
   }
 }
 

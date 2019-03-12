@@ -682,23 +682,25 @@ void Ntop::loadLocalInterfaceAddress() {
 
   for(int ifIdx = 0; ifIdx < (int)pIPAddrTable->dwNumEntries; ifIdx++) {
     char name[256];
-
+    
     getIfName(pIPAddrTable->table[ifIdx].dwIndex, name, sizeof(name));
-
+    
     for(int id = 0; id < num_defined_interfaces; id++) {
       if((name[0] != '\0') && (strstr(iface[id]->get_name(), name) != NULL)) {
-		u_int32_t bits = Utils::numberOfSetBits((u_int32_t)pIPAddrTable->table[ifIdx].dwMask);
-
-	    IPAddr.S_un.S_addr = (u_long)(pIPAddrTable->table[ifIdx].dwAddr & pIPAddrTable->table[ifIdx].dwMask);
- 	    snprintf(buf, bufsize, "%s/%u", inet_ntoa(IPAddr), bits);
-	    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv4 local network for %", buf, iface[id]->get_name());
-	    address->setLocalNetwork(buf);
-
-	    IPAddr.S_un.S_addr = (u_long)pIPAddrTable->table[ifIdx].dwAddr;
-	    snprintf(buf, bufsize, "%s/32", inet_ntoa(IPAddr));
-		local_interface_addresses.addAddress(buf);
-	    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv4 interface address for %s", buf, iface[id]->get_name());
-	    iface[id]->addInterfaceAddress(buf);
+	u_int32_t bits = Utils::numberOfSetBits((u_int32_t)pIPAddrTable->table[ifIdx].dwMask);
+	
+	IPAddr.S_un.S_addr = (u_long)(pIPAddrTable->table[ifIdx].dwAddr & pIPAddrTable->table[ifIdx].dwMask);
+	snprintf(buf, bufsize, "%s/%u", inet_ntoa(IPAddr), bits);
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv4 local network for %",
+				     buf, iface[id]->get_name());
+	address->setLocalNetwork(buf);
+	
+	IPAddr.S_un.S_addr = (u_long)pIPAddrTable->table[ifIdx].dwAddr;
+	snprintf(buf, bufsize, "%s/32", inet_ntoa(IPAddr));
+	local_interface_addresses.addAddress(buf);
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv4 interface address for %s",
+				     buf, iface[id]->get_name());
+	iface[id]->addInterfaceAddress(buf);
       }
     }
   }

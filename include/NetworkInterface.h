@@ -676,6 +676,7 @@ class NetworkInterface : public Checkpointable {
   void topMacsAdd(Mac *mac, u_int16_t protocol, u_int32_t bytes);
   inline bool isDynamicInterface()                { return(is_dynamic_interface);            };
   inline void setDynamicInterface()               { is_dynamic_interface = true;             };
+  bool isLocalBroadcastDomainHost(Host *h);
   inline void luaTopMacsProtos(lua_State *vm) { frequentMacs->luaTopMacsProtocols(vm); }
   inline MDNS* getMDNS() { return(mdns); }
   inline NetworkDiscovery* getNetworkDiscovery() { return(discovery); }
