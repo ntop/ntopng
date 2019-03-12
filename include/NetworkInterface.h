@@ -569,7 +569,6 @@ class NetworkInterface : public Checkpointable {
   inline HostHash* get_hosts_hash()                { return(hosts_hash);              }
   inline MacHash*  get_macs_hash()                 { return(macs_hash);               }
   inline VlanHash*  get_vlans_hash()               { return(vlans_hash);              }
-  inline ArpStatsHashMatrix* get_arp_matrix_hash() { return(arp_hash_matrix);         }
   inline AutonomousSystemHash* get_ases_hash()     { return(ases_hash);               }
   inline CountriesHash* get_countries_hash()       { return(countries_hash);          }
   inline bool is_bridge_interface()                { return(bridge_interface);        }

@@ -637,6 +637,9 @@
 #define CONST_EPP_MAX_CMD_NUM          34
 #define CONST_DEFAULT_MAX_PACKET_SIZE  1522
 
+/* ARP matrix generation preferences */
+#define CONST_DEFAULT_ARP_MATRIX_GENERATION         NTOPNG_PREFS_PREFIX".arp_matrix_generation"
+
 /* SRC/DST override for ZMQ interfaces */
 #define CONST_DEFAULT_OVERRIDE_SRC_WITH_POST_NAT    NTOPNG_PREFS_PREFIX".override_src_with_post_nat_src"
 #define CONST_DEFAULT_OVERRIDE_DST_WITH_POST_NAT    NTOPNG_PREFS_PREFIX".override_dst_with_post_nat_dst"

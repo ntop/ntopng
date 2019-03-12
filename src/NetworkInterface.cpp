@@ -164,8 +164,11 @@ NetworkInterface::NetworkInterface(const char *name,
 
     macs_hash = new MacHash(this, num_hashes, ntop->getPrefs()->get_max_num_hosts());
 
-    arp_hash_matrix = new ArpStatsHashMatrix(this, num_hashes,
-					     (ntop->getPrefs()->get_max_num_hosts() ^ 2) / 2);
+    if(ntop->getPrefs()->is_arp_matrix_generation_enabled())
+      arp_hash_matrix = new (std::nothrow) ArpStatsHashMatrix(this, num_hashes,
+							      (ntop->getPrefs()->get_max_num_hosts() ^ 2) / 2);
+    else
+      arp_hash_matrix = NULL;
 
     // init global detection structure
     ndpi_struct = ndpi_init_detection_module();
@@ -295,7 +298,7 @@ void NetworkInterface::init() {
     mdns = NULL, discovery = NULL, ifDescription = NULL,
     flowHashingMode = flowhashing_none;
     macs_hash = NULL, ases_hash = NULL, countries_hash = NULL, vlans_hash = NULL, 
-      arp_hash_matrix = NULL;
+    arp_hash_matrix = NULL;
 
     numSubInterfaces = 0;
     memset(subInterfaces, 0, sizeof(subInterfaces));
@@ -791,7 +794,7 @@ u_int32_t NetworkInterface::getMacsHashSize() {
 /* **************************************************** */
 
 u_int32_t NetworkInterface::getArpHashMatrixSize() {
-  return(arp_hash_matrix->getNumEntries());
+  return(arp_hash_matrix ? arp_hash_matrix->getNumEntries() : 0);
 }
 
 /* **************************************************** */
@@ -2739,7 +2742,7 @@ void NetworkInterface::cleanup() {
   countries_hash->cleanup();
   vlans_hash->cleanup();
   macs_hash->cleanup();
-  arp_hash_matrix->cleanup();
+  if(arp_hash_matrix) arp_hash_matrix->cleanup();
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Cleanup interface %s", get_name());
 }
@@ -4281,7 +4284,6 @@ void NetworkInterface::disablePurge(bool on_flows) {
       countries_hash->disablePurge();
       vlans_hash->disablePurge();
       macs_hash->disablePurge();
-      arp_hash_matrix->disablePurge();
     }
   } else {
     for(u_int8_t s = 0; s<numSubInterfaces; s++) {
@@ -4293,7 +4295,6 @@ void NetworkInterface::disablePurge(bool on_flows) {
 	subInterfaces[s]->get_countries_hash()->disablePurge();
 	subInterfaces[s]->get_vlans_hash()->disablePurge();
 	subInterfaces[s]->get_macs_hash()->disablePurge();
-  subInterfaces[s]->get_arp_matrix_hash()->disablePurge();
       }
     }
   }
@@ -4311,7 +4312,6 @@ void NetworkInterface::enablePurge(bool on_flows) {
       countries_hash->enablePurge();
       vlans_hash->enablePurge();
       macs_hash->enablePurge();
-      arp_hash_matrix->enablePurge();
     }
   } else {
     for(u_int8_t s = 0; s<numSubInterfaces; s++) {
@@ -4323,7 +4323,6 @@ void NetworkInterface::enablePurge(bool on_flows) {
 	subInterfaces[s]->get_countries_hash()->enablePurge();
 	subInterfaces[s]->get_vlans_hash()->enablePurge();
 	subInterfaces[s]->get_macs_hash()->enablePurge();
-  subInterfaces[s]->get_arp_matrix_hash()->enablePurge();
       }
     }
   }
@@ -5240,8 +5239,10 @@ u_int NetworkInterface::purgeIdleHostsMacsASesVlans() {
       + macs_hash->purgeIdle()
       + ases_hash->purgeIdle()
       + countries_hash->purgeIdle()
-      + vlans_hash->purgeIdle()
-      + arp_hash_matrix->purgeIdle();
+      + vlans_hash->purgeIdle();
+
+    if(arp_hash_matrix)
+      n += arp_hash_matrix->purgeIdle();
 
     next_idle_host_purge = last_packet_time + HOST_PURGE_FREQUENCY;
     return(n);
@@ -5600,7 +5601,7 @@ ArpStatsMatrixElement* NetworkInterface::getArpHashMatrixElement(u_int8_t _src_m
 /* **************************************************** */
 
 bool NetworkInterface::getArpStatsMatrixInfo(lua_State* vm){  
-  if(arp_hash_matrix && (getNumArpStatsMatrixElements() > 0)) {
+  if(getNumArpStatsMatrixElements() > 0) {
     lua_newtable(vm);
     arp_hash_matrix->lua(vm);
     return true;
@@ -6917,7 +6918,7 @@ void NetworkInterface::finishInitialization(u_int8_t num_defined_interfaces) {
 
 #ifdef HAVE_MYSQL
 	if(db == NULL)
-	  db = new MySQLDB(this);
+	  db = new (std::nothrow) MySQLDB(this);
 #endif
 
 	if(!db) throw "Not enough memory";

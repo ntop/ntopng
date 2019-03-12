@@ -1008,6 +1008,13 @@ function printMisc()
 				    "serialize_local_broadcast_hosts_as_macs",
 				    "ntopng.prefs.serialize_local_broadcast_hosts_as_macs", nil,
 				    elementToSwitch, showElementArray, javascriptAfterSwitch, showElement)
+
+    prefsToggleButton(subpage_active, {
+			 field = "toggle_arp_matrix_generation",
+			 default = "0",
+			 pref = "arp_matrix_generation",
+			 to_switch = nil,
+    })
   end
 
   -- #####################
