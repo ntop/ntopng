@@ -7327,7 +7327,7 @@ bool NetworkInterface::isLocalBroadcastDomainHost(Host *h) {
   IpAddress *i = h->get_ip();
     
   return(bcast_domains.inlineIsLocalBroadcastDomainHost(h)
-	 || i->match(ntop->getLoadInterfaceAddresses()));
+	 || (ntop->getLoadInterfaceAddresses() && i->match(ntop->getLoadInterfaceAddresses())));
 }
 
 /* *************************************** */
