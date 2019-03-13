@@ -59,6 +59,7 @@ class AddressTree {
   int16_t findAddress(int family, void *addr, u_int8_t *network_mask_bits = NULL);
   int16_t findMac(u_int8_t addr[]);
   bool match(char *addr);
+  bool match(const IpAddress * const ipa, int network_bits) const;
   void dump();
   void walk(void_fn3_t func, void * const user_data) const;
 };

@@ -146,7 +146,7 @@ class Host : public GenericHashEntry {
   inline void set_ipv6(struct ndpi_in6_addr *_ipv6) { ip.set(_ipv6);                 };
   inline u_int32_t key()                            { return(ip.key());              };
   char* getJSON();
-  inline IpAddress* get_ip()                   { return(&ip);              }
+  inline IpAddress* get_ip()                 { return(&ip);              }
   void set_mac(Mac  *m);
   void set_mac(char *m);
   void set_mac(u_int8_t *m);
@@ -240,7 +240,7 @@ class Host : public GenericHashEntry {
   virtual NetworkStats* getNetworkStats(int16_t networkId) { return(NULL);   };
   inline Country* getCountryStats()                        { return country; };
 
-  bool match(AddressTree *tree) { return(get_ip() ? get_ip()->match(tree) : false); };
+  bool match(AddressTree * const tree) const { return ip.match(tree); };
   void updateHostPool(bool isInlineCall, bool firstUpdate = false);
   virtual bool dropAllTraffic()  { return(false); };
   bool incFlowAlertHits(time_t when);

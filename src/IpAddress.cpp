@@ -298,7 +298,7 @@ json_object* IpAddress::getJSONObject() {
  * @param ptree     The hosts allowed to be accessed.
  * @return true if the host matches the tree, false otherwise.
  */
-bool IpAddress::match(AddressTree *tree) {
+bool IpAddress::match(AddressTree * const tree) const {
   if(tree == NULL)
     return(false);
   else {

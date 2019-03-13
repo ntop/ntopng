@@ -239,6 +239,22 @@ bool AddressTree::match(char *addr) {
 
 /* ******************************************* */
 
+bool AddressTree::match(const IpAddress * const ipa, int network_bits) const {
+  if(!ipa)
+    return false;
+
+  bool is_v4 = ipa->isIPv4();
+  if(!is_v4 && !ptree_v6)
+    return false;
+
+  if(is_v4)
+    return Utils::ptree_match(ptree_v4, AF_INET, &ipa->getIP()->ipType.ipv4, network_bits);
+  else
+    return Utils::ptree_match(ptree_v6, AF_INET6, &ipa->getIP()->ipType.ipv6, network_bits);
+}
+
+/* ******************************************* */
+
 int16_t AddressTree::findAddress(int family, void *addr, u_int8_t *network_mask_bits) {
   patricia_tree_t *p;
   int bits;

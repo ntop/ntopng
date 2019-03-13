@@ -181,6 +181,7 @@ using namespace std;
 #include "AddressTree.h"
 #include "VlanAddressTree.h"
 #include "AddressList.h"
+#include "BroadcastDomains.h"
 #include "IpAddress.h"
 #include "ntop_typedefs.h"
 #include "Trace.h"

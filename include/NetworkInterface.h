@@ -88,7 +88,7 @@ class NetworkInterface : public Checkpointable {
   MDNS *mdns;
 
   /* Broadcast domain */
-  AddressTree *broadcast_domains;
+  BroadcastDomains bcast_domains;
   
 #ifdef HAVE_EBPF
   /* eBPF */
@@ -423,6 +423,7 @@ class NetworkInterface : public Checkpointable {
   void getnDPIProtocols(lua_State *vm, ndpi_protocol_category_t filter, bool skip_critical);
   void setnDPIProtocolCategory(u_int16_t protoId, ndpi_protocol_category_t protoCategory);
   void guessAllnDPIProtocols();
+  void guessAllBroadcastDomainHosts();
 
   int getActiveHostsList(lua_State* vm,
 			 u_int32_t *begin_slot,
