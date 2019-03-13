@@ -36,8 +36,6 @@ class LocalHostStats: public HostStats {
   char *old_sites;
   TimeseriesRing *ts_ring;
 
-  void makeTsPoint(HostTimeseriesPoint *pt);
-
  public:
   LocalHostStats(Host *_host);
   virtual ~LocalHostStats();
@@ -45,7 +43,7 @@ class LocalHostStats: public HostStats {
   virtual void updateStats(struct timeval *tv);
   virtual void getJSONObject(json_object *my_object, DetailsLevel details_level);
   virtual void deserialize(json_object *obj);
-  virtual void lua(lua_State* vm, bool mask_host, bool host_details, bool verbose);
+  virtual void lua(lua_State* vm, bool mask_host, bool host_details, bool verbose, bool tsLua = false);
   virtual void incNumFlows(bool as_client, Host *peer);
   virtual void decNumFlows(bool as_client, Host *peer);
 
@@ -59,6 +57,8 @@ class LocalHostStats: public HostStats {
   virtual bool hasAnomalies(time_t when);
   virtual void luaAnomalies(lua_State* vm, time_t when);
   virtual HTTPstats* getHTTPstats() { return(http); };
+  virtual u_int16_t getNumActiveContactsAsClient() { return contacts_as_cli.size(); }
+  virtual u_int16_t getNumActiveContactsAsServer() { return contacts_as_srv.size(); }
 };
 
 #endif

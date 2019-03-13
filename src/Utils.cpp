@@ -2673,6 +2673,8 @@ static int remove_from_ptree(patricia_tree_t *tree, int family, void *addr, int 
 patricia_node_t* Utils::ptree_match(patricia_tree_t *tree, int family, const void * const addr, int bits) {
   prefix_t prefix;
 
+  if(addr == NULL) return(NULL);
+  
   if(family == AF_INET)
     fill_prefix_v4(&prefix, (struct in_addr*)addr, bits, tree->maxbits);
   else if(family == AF_INET6)

@@ -1250,6 +1250,7 @@ local known_parameters = {
    ["timeseries_driver"]                           = validateChoiceInline({"rrd", "influxdb"}),
    ["ts_high_resolution"]                          = validateNumber,
    ["serialize_local_broadcast_hosts_as_macs"]     = validateBool,
+   ["toggle_arp_matrix_generation"]                = validateBool,
 
    -- Other
    ["flush_alerts_data"]                           = validateEmpty,

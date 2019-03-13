@@ -49,6 +49,7 @@ Prefs::Prefs(Ntop *_ntop) {
     enable_dropped_flows_alerts = true, enable_device_protocols_alerts = false,
     enable_syslog_alerts = false, enable_captive_portal = false, mac_based_captive_portal = false,
     enabled_malware_alerts = true, enable_elephant_flows_alerts = false, enable_longlived_flows_alerts = true,
+    enable_arp_matrix_generation = false,
     enable_informative_captive_portal = false,
     external_notifications_enabled = false, dump_flow_alerts_when_iface_alerted = false,
     override_dst_with_post_nat_dst = false, override_src_with_post_nat_src = false,
@@ -589,6 +590,8 @@ void Prefs::reloadPrefsFromRedis() {
     enabled_malware_alerts = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_MALWARE_ALERTS, CONST_DEFAULT_MALWARE_ALERTS_ENABLED),
     external_notifications_enabled         = getDefaultBoolPrefsValue(ALERTS_MANAGER_EXTERNAL_NOTIFICATIONS_ENABLED, false),
     dump_flow_alerts_when_iface_alerted = getDefaultBoolPrefsValue(ALERTS_DUMP_DURING_IFACE_ALERTED, false),
+
+    enable_arp_matrix_generation = getDefaultBoolPrefsValue(CONST_DEFAULT_ARP_MATRIX_GENERATION, false),
 
     override_dst_with_post_nat_dst = getDefaultBoolPrefsValue(CONST_DEFAULT_OVERRIDE_DST_WITH_POST_NAT, false),
     override_src_with_post_nat_src = getDefaultBoolPrefsValue(CONST_DEFAULT_OVERRIDE_SRC_WITH_POST_NAT, false),
@@ -1686,6 +1689,7 @@ void Prefs::lua(lua_State* vm) {
 
   lua_push_bool_table_entry(vm, "are_alerts_enabled", !disable_alerts);
   lua_push_bool_table_entry(vm, "are_longlived_flows_alerts_enabled", enable_longlived_flows_alerts);
+  lua_push_bool_table_entry(vm, "is_arp_matrix_generation_enabled", is_arp_matrix_generation_enabled());
   lua_push_bool_table_entry(vm, "is_users_login_enabled", enable_users_login);
 
   lua_push_uint64_table_entry(vm, "max_num_packets_per_tiny_flow", max_num_packets_per_tiny_flow);

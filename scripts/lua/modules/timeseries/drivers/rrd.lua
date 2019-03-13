@@ -706,6 +706,9 @@ function driver:delete(schema_prefix, tags)
     }, snmp_if = {
       tags = {ifid=1, device=1},
       path = function(tags) return getRRDName(tags.ifid, "snmp:" .. tags.device) end,
+    }, host_pool = {
+      tags = {ifid = 1, pool = 1},
+      path = function(tags) return getRRDName(tags.ifid, "pool:" .. tags.pool) end,
     }, subnet = {
       tags = {ifid=1, subnet=1},
       path = function(tags) return getRRDName(tags.ifid, "net:" .. tags.subnet) end,
@@ -739,7 +742,6 @@ function driver:delete(schema_prefix, tags)
   end
 
   local path_to_del = os_utils.fixPath(delete_info.path(tags))
-
   if ntop.exists(path_to_del) and not ntop.rmdir(path_to_del) then
      return false
   end

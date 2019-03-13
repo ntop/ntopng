@@ -164,13 +164,16 @@ NetworkInterface::NetworkInterface(const char *name,
 
     macs_hash = new MacHash(this, num_hashes, ntop->getPrefs()->get_max_num_hosts());
 
-    arp_hash_matrix = new ArpStatsHashMatrix(this, num_hashes,
-					     (ntop->getPrefs()->get_max_num_hosts() ^ 2) / 2);
+    if(ntop->getPrefs()->is_arp_matrix_generation_enabled())
+      arp_hash_matrix = new (std::nothrow) ArpStatsHashMatrix(this, num_hashes,
+							      (ntop->getPrefs()->get_max_num_hosts() ^ 2) / 2);
+    else
+      arp_hash_matrix = NULL;
 
     // init global detection structure
     ndpi_struct = ndpi_init_detection_module();
     if(ndpi_struct == NULL) {
-
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to initialize nDPI");
       exit(-1);
     }
 
@@ -178,6 +181,7 @@ NetworkInterface::NetworkInterface(const char *name,
       ndpi_load_protocols_file(ndpi_struct, ntop->getCustomnDPIProtos());
 
     ndpi_set_detection_preferences(ndpi_struct, ndpi_pref_http_dont_dissect_response, 1);
+    ndpi_set_detection_preferences(ndpi_struct, ndpi_pref_dns_dont_dissect_response,  1);
     ndpi_set_detection_preferences(ndpi_struct, ndpi_pref_enable_category_substring_match, 1);
 
     memset(d_port, 0, sizeof(d_port));
@@ -279,7 +283,7 @@ void NetworkInterface::init() {
     next_idle_flow_purge = next_idle_host_purge = 0,
     running = false, customIftype = NULL, is_dynamic_interface = false,
     is_loopback = is_traffic_mirrored = false;
-    numVirtualInterfaces = 0, flowHashing = NULL,
+  numVirtualInterfaces = 0, flowHashing = NULL,
     pcap_datalink_type = 0, mtuWarningShown = false,
     purge_idle_flows_hosts = true, id = (u_int8_t)-1,
     last_remote_pps = 0, last_remote_bps = 0,
@@ -293,13 +297,15 @@ void NetworkInterface::init() {
     pollLoopCreated = false, bridge_interface = false,
     mdns = NULL, discovery = NULL, ifDescription = NULL,
     flowHashingMode = flowhashing_none;
-    macs_hash = NULL, ases_hash = NULL, countries_hash = NULL, vlans_hash = NULL, 
+  macs_hash = NULL, ases_hash = NULL, countries_hash = NULL, vlans_hash = NULL, 
     arp_hash_matrix = NULL;
 
   numSubInterfaces = 0;
   memset(subInterfaces, 0, sizeof(subInterfaces));
   reload_custom_categories = reload_hosts_blacklist = false;
-
+    
+  broadcast_domains = new AddressTree(false);
+    
   ip_addresses = "", networkStats = NULL,
     pcap_datalink_type = 0, cpu_affinity = -1;
   hide_from_top = hide_from_top_shadow = NULL;
@@ -329,23 +335,23 @@ void NetworkInterface::init() {
 
   dhcp_ranges = dhcp_ranges_shadow = NULL;
 
-    ts_ring = NULL;
+  ts_ring = NULL;
 
-    if(ntop->getPrefs()) {
-      if(TimeseriesRing::isRingEnabled(ntop->getPrefs()))
-	ts_ring = new TimeseriesRing(this);
-    }
+  if(ntop->getPrefs()) {
+    if(TimeseriesRing::isRingEnabled(ntop->getPrefs()))
+      ts_ring = new TimeseriesRing(this);
+  }
 
 #ifdef HAVE_EBPF
-    if(bridge_interface
-       || is_dynamic_interface
-       || is_traffic_mirrored
-       || isView())
-      ;
-    else {
-      ebpfEvents = (eBPFevent**)calloc(sizeof(eBPFevent*), EBPF_QUEUE_LEN);
-      next_insert_idx = next_remove_idx = 0;
-    }
+  if(bridge_interface
+     || is_dynamic_interface
+     || is_traffic_mirrored
+     || isView())
+    ;
+  else {
+    ebpfEvents = (eBPFevent**)calloc(sizeof(eBPFevent*), EBPF_QUEUE_LEN);
+    next_insert_idx = next_remove_idx = 0;
+  }
 #endif
 
   PROFILING_INIT();
@@ -369,8 +375,8 @@ void NetworkInterface::aggregatePartialFlow(Flow *flow) {
     if(aggregatedFlow == NULL) {
       if(!aggregated_flows_hash->hasEmptyRoom()) {
 	/* There is no more room in the hash table */
-      } else if(!ntop->getPrefs()->is_aggregated_flows_export_limit_enabled()
-		|| aggregated_flows_hash->getNumEntries() < ntop->getPrefs()->get_max_num_aggregated_flows_per_export()) {
+      } else if((!ntop->getPrefs()->is_aggregated_flows_export_limit_enabled())
+		|| (aggregated_flows_hash->getNumEntries() < ntop->getPrefs()->get_max_num_aggregated_flows_per_export())) {
 #ifdef AGGREGATED_FLOW_DEBUG
 	char buf[256];
 	ntop->getTrace()->traceEvent(TRACE_NORMAL, "AggregatedFlow not found [%s]. Creating it.",
@@ -560,7 +566,8 @@ void NetworkInterface::deleteDataStructures() {
   if(vlans_hash)            { delete(vlans_hash); vlans_hash = NULL; }
   if(macs_hash)             { delete(macs_hash);  macs_hash = NULL;  }
   if(arp_hash_matrix)       { delete(arp_hash_matrix); arp_hash_matrix = NULL; }
-
+  if(broadcast_domains)     { delete(broadcast_domains); broadcast_domains = NULL; }
+  
 #ifdef NTOPNG_PRO
   if(aggregated_flows_hash) {
     aggregated_flows_hash->cleanup();
@@ -787,7 +794,7 @@ u_int32_t NetworkInterface::getMacsHashSize() {
 /* **************************************************** */
 
 u_int32_t NetworkInterface::getArpHashMatrixSize() {
-  return(arp_hash_matrix->getNumEntries());
+  return(arp_hash_matrix ? arp_hash_matrix->getNumEntries() : 0);
 }
 
 /* **************************************************** */
@@ -1566,23 +1573,30 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	    src2dst_direction = false;
 	}
 
-	if((icmp_type == ND_NEIGHBOR_ADVERT || icmp_type == ND_NEIGHBOR_SOLICIT)
+#if 0
+	if(((icmp_type == ND_NEIGHBOR_ADVERT) || (icmp_type == ND_NEIGHBOR_SOLICIT))
 	   && l4_packet_len >= 24) {
-	  /* Neighbor Solicitation and Neighbor Advertisement
-	     have the Target Address at offset 8.
-
-	     https://tools.ietf.org/html/rfc2461#section-4.1
-	   */
+	  /*
+	    Neighbor Solicitation and Neighbor Advertisement
+	    have the Target Address at offset 8.
+	    
+	    https://tools.ietf.org/html/rfc2461#section-4.1
+	  */
 	  Host * target_address_h;
 	  IpAddress target_address;
+	  
 	  target_address.set((ndpi_in6_addr*)&l4[8]);
 
+	  char buf[64];
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "->> %s", target_address.print(buf, sizeof(buf)));
+	  
 	  if(target_address.isNonEmptyUnicastAddress()
 	     && (target_address_h = getHost(&target_address, vlan_id))
-	     && !target_address_h->isBroadcastDomainHost())
+	     && (!target_address_h->isBroadcastDomainHost()))
 	    target_address_h->setBroadcastDomainHost();
 	}
-
+#endif
+	
         flow->setICMP(src2dst_direction, icmp_type, icmp_code, l4);
 	if(l4_proto == IPPROTO_ICMP)
 	  icmp_v4.incStats(icmp_type, icmp_code, is_sent_packet, NULL);
@@ -1793,12 +1807,11 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	  DNS-over-TCP has a 2-bytes field with DNS payload length
 	  at the beginning. See RFC1035 section 4.2.2. TCP usage.
 	*/
-	u_int8_t dns_offset = l4_proto == IPPROTO_TCP && payload_len > 1 ? 2 : 0;
-
+	u_int8_t dns_offset = ((l4_proto == IPPROTO_TCP) && (payload_len > 1)) ? 2 : 0;
 	struct ndpi_dns_packet_header *header = (struct ndpi_dns_packet_header*)(payload + dns_offset);
 	u_int16_t dns_flags = ntohs(header->flags);
-	bool is_query   = ((dns_flags & 0x8000) == 0x8000) ? false : true;
-
+	bool is_query   = (dns_flags & 0x8000) ? 0 : 1;
+	
 	if(flow->get_cli_host() && flow->get_srv_host()) {
 	  Host *client = src2dst_direction ? flow->get_cli_host() : flow->get_srv_host();
 	  Host *server = src2dst_direction ? flow->get_srv_host() : flow->get_cli_host();
@@ -2502,10 +2515,15 @@ decode_packet_eth:
       if((eth_type == ETHERTYPE_ARP) && (h->caplen >= (sizeof(arp_header)+sizeof(struct ndpi_ethhdr)))) {
 	struct arp_header *arpp = (struct arp_header*)&packet[ip_offset];
 	u_int16_t arp_opcode = ntohs(arpp->ar_op);
+#if 0
 	u_int32_t arp_spa;
 	IpAddress arp_spa_ipa;
 	Host *arp_spa_h;
+#endif
+	bool src2dst_element = false;
+	ArpStatsMatrixElement* e;
 
+#if 0
 	arp_spa = arpp->arp_spa; /* Sender protocol address */
 	arp_spa_ipa.set(arp_spa);
 
@@ -2513,9 +2531,78 @@ decode_packet_eth:
 	   && (arp_spa_h = getHost(&arp_spa_ipa, vlan_id))
 	   && !arp_spa_h->isBroadcastDomainHost())
 	  arp_spa_h->setBroadcastDomainHost();
+#endif
+	
+	if(broadcast_domains) {
+#ifdef DEBUG
+	  char buf1[32], buf2[32], buf3[32];
+#endif
+	  u_int32_t src = ntohl(arpp->arp_spa);
+	  u_int32_t dst = ntohl(arpp->arp_tpa);
+	  u_int32_t net = src & dst;
+	  u_int32_t diff;
+	  u_int8_t cidr;
+	
+	  if(src > dst) {
+	    u_int32_t r = src;
+	    src = dst;
+	    dst = r;	   
+	  }
 
-	bool src2dst_element = false;
-	ArpStatsMatrixElement* e = getArpHashMatrixElement(srcMac->get_mac(), dstMac->get_mac(), &src2dst_element);
+	  diff = dst-src;
+
+	  if(diff <= 1024) {
+	    u_int32_t mask;
+	    IpAddress cur_bcast_domain;
+	    
+	    /* Ignore networks > /21 */
+
+	    /* 131.114.2.22 <-> 131.114.3.2  */
+	    
+	    if(diff <= 256) {
+	      mask = 0xFFFFFF00, cidr = 24;
+	      net &= mask, diff = 256;
+
+	      if((src & mask) != (dst & mask)) {
+		mask <<= 1, cidr -= 1;
+		net = src & mask, diff = diff << 1;
+	      }
+	    } else if(diff <= 512) {
+	      mask = 0xFFFFFE00, cidr = 23;
+	      net &= mask, diff = 512;
+
+	      if((src & mask) != (dst & mask)) {
+		mask <<= 1, cidr -= 1;
+		net = src & mask, diff = diff << 1;
+	      }
+	    } else if(diff <= 768) {
+	      mask = 0xFFFFFC00, cidr = 22;
+	      net &= mask, diff = 768;
+
+	      if((src & mask) != (dst & mask)) {
+		mask <<= 1, cidr -= 1;
+		net = src & mask, diff = diff << 1;
+	      }
+	    } else {
+	      net &= 0xFFFFF800, diff = 1024, cidr = 21;
+	    }
+
+#ifdef DEBUG
+	    ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s <-> %s [%s - %u/%u]",
+					 Utils::intoaV4(src, buf1, sizeof(buf1)),
+					 Utils::intoaV4(dst, buf2, sizeof(buf2)),
+					 Utils::intoaV4(net, buf3, sizeof(buf3)),
+					 diff, cidr);
+#endif
+	    
+	    cur_bcast_domain.set(htonl(net));
+	    broadcast_domains->addAddress(&cur_bcast_domain, cidr, true);
+
+	    // broadcast_domains->dump();
+	  }
+	}
+	
+	e  = getArpHashMatrixElement(srcMac->get_mac(), dstMac->get_mac(), &src2dst_element);
 
 #if 0
 	char buf1[32], buf2[32];
@@ -2666,7 +2753,7 @@ void NetworkInterface::cleanup() {
   countries_hash->cleanup();
   vlans_hash->cleanup();
   macs_hash->cleanup();
-  arp_hash_matrix->cleanup();
+  if(arp_hash_matrix) arp_hash_matrix->cleanup();
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Cleanup interface %s", get_name());
 }
@@ -4208,7 +4295,6 @@ void NetworkInterface::disablePurge(bool on_flows) {
       countries_hash->disablePurge();
       vlans_hash->disablePurge();
       macs_hash->disablePurge();
-      arp_hash_matrix->disablePurge();
     }
   } else {
     for(u_int8_t s = 0; s<numSubInterfaces; s++) {
@@ -4220,7 +4306,6 @@ void NetworkInterface::disablePurge(bool on_flows) {
 	subInterfaces[s]->get_countries_hash()->disablePurge();
 	subInterfaces[s]->get_vlans_hash()->disablePurge();
 	subInterfaces[s]->get_macs_hash()->disablePurge();
-  subInterfaces[s]->get_arp_matrix_hash()->disablePurge();
       }
     }
   }
@@ -4238,7 +4323,6 @@ void NetworkInterface::enablePurge(bool on_flows) {
       countries_hash->enablePurge();
       vlans_hash->enablePurge();
       macs_hash->enablePurge();
-      arp_hash_matrix->enablePurge();
     }
   } else {
     for(u_int8_t s = 0; s<numSubInterfaces; s++) {
@@ -4250,7 +4334,6 @@ void NetworkInterface::enablePurge(bool on_flows) {
 	subInterfaces[s]->get_countries_hash()->enablePurge();
 	subInterfaces[s]->get_vlans_hash()->enablePurge();
 	subInterfaces[s]->get_macs_hash()->enablePurge();
-  subInterfaces[s]->get_arp_matrix_hash()->enablePurge();
       }
     }
   }
@@ -5167,8 +5250,10 @@ u_int NetworkInterface::purgeIdleHostsMacsASesVlans() {
       + macs_hash->purgeIdle()
       + ases_hash->purgeIdle()
       + countries_hash->purgeIdle()
-      + vlans_hash->purgeIdle()
-      + arp_hash_matrix->purgeIdle();
+      + vlans_hash->purgeIdle();
+
+    if(arp_hash_matrix)
+      n += arp_hash_matrix->purgeIdle();
 
     next_idle_host_purge = last_packet_time + HOST_PURGE_FREQUENCY;
     return(n);
@@ -5527,7 +5612,7 @@ ArpStatsMatrixElement* NetworkInterface::getArpHashMatrixElement(u_int8_t _src_m
 /* **************************************************** */
 
 bool NetworkInterface::getArpStatsMatrixInfo(lua_State* vm){  
-  if(arp_hash_matrix && (getNumArpStatsMatrixElements() > 0)) {
+  if(getNumArpStatsMatrixElements() > 0) {
     lua_newtable(vm);
     arp_hash_matrix->lua(vm);
     return true;
@@ -6169,11 +6254,10 @@ void NetworkInterface::reloadHideFromTop(bool refreshHosts) {
 
 bool NetworkInterface::isHiddenFromTop(Host *host) {
   VlanAddressTree *vlan_addrtree = hide_from_top;
+  
   if(!vlan_addrtree) return false;
 
-  AddressTree *tree = vlan_addrtree->getAddressTree(host->getVlanId());
-
-  return host->get_ip()->findAddress(tree);
+  return(host->get_ip()->findAddress(vlan_addrtree->getAddressTree(host->getVlanId())));
 }
 
 /* **************************************** */
@@ -6844,7 +6928,7 @@ void NetworkInterface::finishInitialization(u_int8_t num_defined_interfaces) {
 
 #ifdef HAVE_MYSQL
 	if(db == NULL)
-	  db = new MySQLDB(this);
+	  db = new (std::nothrow) MySQLDB(this);
 #endif
 
 	if(!db) throw "Not enough memory";
@@ -7235,6 +7319,18 @@ bool NetworkInterface::isInDhcpRange(IpAddress *ip) {
   }
 
   return false;
+}
+
+/* *************************************** */
+
+bool NetworkInterface::isLocalBroadcastDomainHost(Host *h) {
+  if(broadcast_domains == NULL)
+    return(false);
+  else {
+    IpAddress *i = h->get_ip();
+    
+    return(i->match(broadcast_domains) || i->match(ntop->getLoadInterfaceAddresses()));
+  }
 }
 
 /* *************************************** */

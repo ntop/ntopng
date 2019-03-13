@@ -472,13 +472,14 @@ else
       printAddHostoToCustomizedCategories(flow["protos.ssl.certificate"])
       print("</td>")
 
+      print("<td>")
       if(flow["protos.ssl.server_certificate"] ~= nil) then
-	 print("<td>"..i18n("flow_details.server_certificate")..": <A HREF=\"http://"..flow["protos.ssl.server_certificate"].."\">"..flow["protos.ssl.server_certificate"].."</A>")
+	 print(i18n("flow_details.server_certificate")..": <A HREF=\"http://"..flow["protos.ssl.server_certificate"].."\">"..flow["protos.ssl.server_certificate"].."</A>")
 	 if(flow["flow.status"] == 10) then
 	    print("\n<br><i class=\"fa fa-warning fa-lg\" style=\"color: #f0ad4e;\"></i> <b><font color=\"#f0ad4e\">"..i18n("flow_details.certificates_not_match").."</font></b>")
 	 end
-	 print("</td>")
       end
+      print("</td>")
       print("</tr>\n")
    end
 

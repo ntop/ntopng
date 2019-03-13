@@ -36,7 +36,9 @@ Host::Host(NetworkInterface *_iface, Mac *_mac,
 
 #ifdef BROADCAST_DEBUG
   char buf[32];
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Setting %s [broadcast: %u]", ip.print(buf, sizeof(buf)), ip.isBroadcastAddress() ? 1 : 0);
+  
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Setting %s [broadcast: %u]",
+			       ip.print(buf, sizeof(buf)), ip.isBroadcastAddress() ? 1 : 0);
 #endif
 
   initialize(_mac, _vlanId, true);
@@ -78,9 +80,11 @@ Host::~Host() {
   if(stats)              delete stats;
   if(stats_shadow)       delete stats_shadow;
 
-  /* Pool counters are updated both in and outside the datapath.
-     So decPoolNumHosts must stay in the destructor to preserve counters
-     consistency (no thread outside the datapath will change the last pool id) */
+  /*
+    Pool counters are updated both in and outside the datapath.
+    So decPoolNumHosts must stay in the destructor to preserve counters
+    consistency (no thread outside the datapath will change the last pool id) 
+  */
   iface->decPoolNumHosts(get_host_pool(), true /* Host is deleted inline */);
 }
 
@@ -160,15 +164,14 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   asn = 0, asname = NULL;
   as = NULL, country = NULL;
   blacklisted_host = false, reloadHostBlacklist();
-  is_in_broadcast_domain = false;
   is_dhcp_host = false;
 
   num_alerts_detected = 0;
   trigger_host_alerts = false;
 
   PROFILING_SUB_SECTION_ENTER(iface, "Host::initialize: new AlertCounter", 17);
-  syn_flood_attacker_alert = new AlertCounter(ntop->getPrefs()->get_attacker_max_num_syn_per_sec(), CONST_MAX_THRESHOLD_CROSS_DURATION);
-  syn_flood_victim_alert = new AlertCounter(ntop->getPrefs()->get_victim_max_num_syn_per_sec(), CONST_MAX_THRESHOLD_CROSS_DURATION);
+  syn_flood_attacker_alert  = new AlertCounter(ntop->getPrefs()->get_attacker_max_num_syn_per_sec(), CONST_MAX_THRESHOLD_CROSS_DURATION);
+  syn_flood_victim_alert    = new AlertCounter(ntop->getPrefs()->get_victim_max_num_syn_per_sec(), CONST_MAX_THRESHOLD_CROSS_DURATION);
   flow_flood_attacker_alert = new AlertCounter(ntop->getPrefs()->get_attacker_max_num_flows_per_sec(), CONST_MAX_THRESHOLD_CROSS_DURATION);
   flow_flood_victim_alert = new AlertCounter(ntop->getPrefs()->get_victim_max_num_flows_per_sec(), CONST_MAX_THRESHOLD_CROSS_DURATION);
   PROFILING_SUB_SECTION_EXIT(iface, 17);
@@ -193,6 +196,8 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
 
   reloadHideFromTop();
   reloadDhcpHost();
+
+  is_in_broadcast_domain = iface->isLocalBroadcastDomainHost(this);
 }
 
 /* *************************************** */
@@ -542,6 +547,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
 
   lua_push_bool_table_entry(vm, "systemhost", isSystemHost());
   lua_push_bool_table_entry(vm, "broadcast_domain_host", isBroadcastDomainHost());
+  lua_push_bool_table_entry(vm, "dhcpHost", isDhcpHost());
   lua_push_bool_table_entry(vm, "is_blacklisted", isBlacklisted());
   lua_push_bool_table_entry(vm, "is_broadcast", ip.isBroadcastAddress());
   lua_push_bool_table_entry(vm, "is_multicast", ip.isMulticastAddress());
@@ -552,12 +558,6 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   lua_push_str_table_entry(vm, "os", get_os(buf, sizeof(buf)));
 
   stats->lua(vm, mask_host, host_details, verbose);
-
-  lua_push_bool_table_entry(vm, "dhcpHost", isDhcpHost());
-  lua_push_uint64_table_entry(vm, "active_flows.as_client", num_active_flows_as_client.get());
-  lua_push_uint64_table_entry(vm, "active_flows.as_server", num_active_flows_as_server.get());
-  lua_push_uint64_table_entry(vm, "active_flows.as_client.anomaly_index", num_active_flows_as_client.getAnomalyIndex());
-  lua_push_uint64_table_entry(vm, "active_flows.as_server.anomaly_index", num_active_flows_as_server.getAnomalyIndex());
 
   lua_push_uint64_table_entry(vm, "anomalous_flows.as_server", getTotalNumAnomalousIncomingFlows());
   lua_push_uint64_table_entry(vm, "anomalous_flows.as_client", getTotalNumAnomalousOutgoingFlows());
@@ -1350,7 +1350,7 @@ void Host::deleteHostData() {
 char* Host::get_mac_based_tskey(Mac *mac, char *buf, size_t bufsize) {
   char *k = mac->print(buf, bufsize);
 
-  /* NOTE: it is important to differentiate between v4 and v6 for macs */
+ /* NOTE: it is important to differentiate between v4 and v6 for macs */
   strncat(buf, get_ip()->isIPv4() ? "_v4" : "_v6", bufsize);
 
   return(k);

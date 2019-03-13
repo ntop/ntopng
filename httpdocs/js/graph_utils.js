@@ -293,7 +293,13 @@ function has_initial_zoom() {
 
 var current_zoom_level = (history.state) ? (history.state.zoom_level) : 0;
 
-function fixJumpButtons(epoch_end) {
+function canCompareBackwards(epoch_begin, epoch_end) {
+  var jump_duration = $("#btn-jump-time-ahead").data("duration");
+  var current_duration = epoch_end - epoch_begin;
+  return(jump_duration == current_duration);
+}
+
+function fixJumpButtons(epoch_begin, epoch_end) {
   var duration = $("#btn-jump-time-ahead").data("duration");
   if((epoch_end + duration)*1000 > $.now())
     $("#btn-jump-time-ahead").addClass("disabled");
@@ -409,6 +415,10 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
   }
 
   $chart.on('dblclick', function(event) {
+    if($(event.target).hasClass("nv-legend-text"))
+      // legend was double-clicked, keep the original behavior
+      return;
+
     //if(current_zoom_level) {
       // Zoom out from history
       //console.log("zoom OUT");
@@ -463,7 +473,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
       chart.is_zoomed = false;
     }
 
-    fixJumpButtons(params.epoch_end);
+    fixJumpButtons(params.epoch_begin, params.epoch_end);
 
     if(current_zoom_level > 0)
       $zoom_reset.show();
@@ -600,8 +610,13 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
     chart.noData(i18n.no_data_available);
     hideQuerySlow();
 
+    var req_params = $.extend({}, params);
+    // skip past period comparison if a custom interval is selected
+    if(!canCompareBackwards(req_params.epoch_begin, req_params.epoch_end))
+      delete req_params.ts_compare;
+
     // Load data via ajax
-    pending_chart_request = $.get(url, params, function(data) {
+    pending_chart_request = $.get(url, req_params, function(data) {
       if(data && data.error)
         chart.noData(data.error);
 

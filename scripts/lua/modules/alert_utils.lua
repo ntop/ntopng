@@ -646,21 +646,25 @@ end
 
 -- #################################
 
-function formatRawFlow(record, flow_json)
+function formatRawFlow(record, flow_json, skip_add_links)
+   -- Emanuele said: this function can also be called from alertNotificationToObject
+   -- with a dummy flow without timestamp. In that case we must skip_add_links
+   -- or we will get an exception
    require "flow_utils"
-   local time_bounds = {getAlertTimeBounds(record)}
+   local time_bounds
    local add_links = false
 
-   if hasNindexSupport() then
+   if hasNindexSupport() and not skip_add_links then
       -- only add links if nindex is present
       add_links = true
+      time_bounds = {getAlertTimeBounds(record)}
    end
 
    local decoded = json.decode(flow_json)
    local status_info = alert2statusinfo(decoded)
 
    -- active flow lookup
-   if status_info and status_info["ntopng.key"] then
+   if status_info and status_info["ntopng.key"] and record["alert_tstamp"] then
       -- attempt a lookup on the active flows
       local active_flow = interface.findFlowByKey(status_info["ntopng.key"])
 
@@ -3263,7 +3267,7 @@ function alertNotificationToObject(alert_json)
    end
 
    if(notification.flow ~= nil) then
-      notification.message = formatRawFlow(notification.flow, notification.message)
+      notification.message = formatRawFlow(notification.flow, notification.message, true --[[ skip add links ]])
    end
 
    return notification

@@ -41,18 +41,19 @@ class AddressTree {
   patricia_tree_t* getPatricia(char* what);
   
  public:
-  AddressTree();
+  AddressTree(bool handleIPv6 = true);
   AddressTree(const AddressTree &at);
   ~AddressTree();
 
-  void init();
+  void init(bool handleIPv6);
   void cleanup();
 
   inline u_int16_t getNumAddresses() { return(numAddresses); }
 
   inline patricia_tree_t* getTree(bool isV4) { return(isV4 ? ptree_v4 : ptree_v6); }
   bool addAddress(char *_net, const int16_t user_data = -1);
-  patricia_node_t *addAddress(const IpAddress * const ipa);
+  patricia_node_t* addAddress(const IpAddress * const ipa);
+  patricia_node_t* addAddress(const IpAddress * const ipa, int network_bits, bool compact_after_add);
   bool addAddresses(char *net, const int16_t user_data = -1);
   void getAddresses(lua_State* vm);
   int16_t findAddress(int family, void *addr, u_int8_t *network_mask_bits = NULL);

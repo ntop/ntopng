@@ -427,6 +427,9 @@ local menu_subpages = {
     toggle_autologout = {
       title       = i18n("prefs.toggle_autologout_title"),
       description = i18n("prefs.toggle_autologout_description"),
+    }, toggle_arp_matrix_generation = {
+      title       = i18n("prefs.toggle_arp_matrix_generation_title"),
+      description = i18n("prefs.toggle_arp_matrix_generation_description", { product = info.product}),
     }, google_apis_browser_key = {
       title       = i18n("prefs.google_apis_browser_key_title"),
       description = i18n("prefs.google_apis_browser_key_description", {url="https://maps-apis.googleblog.com/2016/06/building-for-scale-updates-to-google.html"}),

@@ -143,17 +143,19 @@ function host_pools_utils.createPool(ifid, pool_id, pool_name, children_safe,
 end
 
 function host_pools_utils.deletePool(ifid, pool_id)
+  local ts_utils = require "ts_utils"
   local rrd_base = host_pools_utils.getRRDBase(ifid, pool_id)
   local ids_key = get_pool_ids_key(ifid)
   local details_key = get_pool_details_key(ifid, pool_id)
   local members_key = get_pool_members_key(ifid, pool_id)
   local serialized_key = get_pools_serialized_key(ifid)
 
+  host_pools_utils.emptyPool(ifid, pool_id)
   ntop.delMembersCache(ids_key, pool_id)
   ntop.delCache(details_key)
   ntop.delCache(members_key)
   ntop.delHashCache(serialized_key, pool_id)
-  ntop.rmdir(rrd_base)
+  ts_utils.delete("host_pool", {ifid = ifid, pool = pool_id})
 end
 
 function getMembershipInfo(member_and_vlan)
@@ -289,20 +291,6 @@ function host_pools_utils.deletePoolMember(ifid, pool_id, member_and_vlan)
   ntop.delMembersCache(members_key, member_and_vlan)
 end
 
-function host_pools_utils.emptyPool(ifid, pool_id)
-  local members_key = get_pool_members_key(ifid, pool_id)
-
-  if ntop.isPro() then
-    -- Remove volatile members
-    for _,v in pairs(interface.getHostPoolsVolatileMembers()[tonumber(pool_id)] or {}) do
-      interface.removeVolatileMemberFromPool(v.member, tonumber(pool_id))
-    end
-  end
-
-  -- Remove non-volatile members
-  ntop.delCache(members_key)
-end
-
 function host_pools_utils.getPoolsList(ifid, without_info)
   local ids_key = get_pool_ids_key(ifid)
   local ids = ntop.getMembersCache(ids_key)
@@ -432,7 +420,21 @@ function host_pools_utils.getEnforceShapersPerPoolMember(ifid, pool_id)
   return toboolean(host_pools_utils.getPoolDetail(ifid, pool_id, "enforce_shapers_per_pool_member"))
 end
 
-function host_pools_utils.clearPools()
+function host_pools_utils.emptyPool(ifid, pool_id)
+  local members_key = get_pool_members_key(ifid, pool_id)
+
+  if ntop.isPro() then
+    -- Remove volatile members
+    for _,v in pairs(interface.getHostPoolsVolatileMembers()[tonumber(pool_id)] or {}) do
+      interface.removeVolatileMemberFromPool(v.member, tonumber(pool_id))
+    end
+  end
+
+  -- Remove non-volatile members
+  ntop.delCache(members_key)
+end
+
+function host_pools_utils.emptyPools()
   for _, ifname in pairs(interface.getIfNames()) do
     local ifid = getInterfaceId(ifname)
     local ifstats = interface.getStats()
@@ -440,12 +442,9 @@ function host_pools_utils.clearPools()
     if not ifstats.isView then
        local pools_list = host_pools_utils.getPoolsList(ifid)
        for _, pool in pairs(pools_list) do
-          if pool["id"] ~= host_pools_utils.DEFAULT_POOL_ID then
-            host_pools_utils.deletePool(ifid, pool["id"])
-          end
+	  host_pools_utils.emptyPool(ifid, pool["id"])
        end
     end
-
   end
 end
 

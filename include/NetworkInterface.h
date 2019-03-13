@@ -54,7 +54,7 @@ class FlowInterfacesStats;
 class TrafficShaper;
 class NIndexFlowDB;
 #endif
-
+  
 typedef struct {
   u_int32_t criteria;        /* IP address, interface... */
   NetworkInterface *iface;
@@ -87,6 +87,9 @@ class NetworkInterface : public Checkpointable {
   NetworkDiscovery *discovery;
   MDNS *mdns;
 
+  /* Broadcast domain */
+  AddressTree *broadcast_domains;
+  
 #ifdef HAVE_EBPF
   /* eBPF */
   u_int16_t next_insert_idx, next_remove_idx;
@@ -566,7 +569,6 @@ class NetworkInterface : public Checkpointable {
   inline HostHash* get_hosts_hash()                { return(hosts_hash);              }
   inline MacHash*  get_macs_hash()                 { return(macs_hash);               }
   inline VlanHash*  get_vlans_hash()               { return(vlans_hash);              }
-  inline ArpStatsHashMatrix* get_arp_matrix_hash() { return(arp_hash_matrix);         }
   inline AutonomousSystemHash* get_ases_hash()     { return(ases_hash);               }
   inline CountriesHash* get_countries_hash()       { return(countries_hash);          }
   inline bool is_bridge_interface()                { return(bridge_interface);        }
@@ -674,6 +676,7 @@ class NetworkInterface : public Checkpointable {
   void topMacsAdd(Mac *mac, u_int16_t protocol, u_int32_t bytes);
   inline bool isDynamicInterface()                { return(is_dynamic_interface);            };
   inline void setDynamicInterface()               { is_dynamic_interface = true;             };
+  bool isLocalBroadcastDomainHost(Host *h);
   inline void luaTopMacsProtos(lua_State *vm) { frequentMacs->luaTopMacsProtocols(vm); }
   inline MDNS* getMDNS() { return(mdns); }
   inline NetworkDiscovery* getNetworkDiscovery() { return(discovery); }
