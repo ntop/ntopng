@@ -2,7 +2,7 @@
 -- (C) 2013-18 - ntop.org
 --
 
-dirs = ntop.getDirs()
+local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 if((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.scriptdir .. "/lua/modules/?.lua;" .. package.path end
 active_page = "if_stats"
@@ -457,27 +457,20 @@ if((page == "overview") or (page == nil)) then
    end
 
    local is_physical_iface = (interface.isPacketInterface()) and (interface.isPcapDumpInterface() == false)
-   local is_bridge_iface = (ifstats["bridge.device_a"] ~= nil) and (ifstats["bridge.device_b"] ~= nil)
 
-   if not is_bridge_iface then
-      local label = getHumanReadableInterfaceName(ifstats.name)
-      local s
-      if ((not isEmptyString(label)) and (label ~= ifstats.name)) then
-         s = label.." (" .. ifstats.name .. ")"
-      else
-         s = ifstats.name
-      end
-
-      if((isAdministrator()) and (interface.isPcapDumpInterface() == false)) then
-	 s = s .. " <a href=\""..url.."&page=config\"><i class=\"fa fa-cog fa-sm\" title=\"Configure Interface Name\"></i></a>"
-      end
-      
-      print('<tr><th width="250">'..i18n("name")..'</th><td colspan="2">' .. s ..' </td>\n')
+   local label = getHumanReadableInterfaceName(ifstats.name)
+   local s
+   if ((not isEmptyString(label)) and (label ~= ifstats.name)) then
+      s = label.." (" .. ifstats.name .. ")"
    else
-      print("<tr><th>"..i18n("bridge").."</th><td colspan=2>"..ifstats["bridge.device_a"].." <i class=\"fa fa-arrows-h\"></i> "..ifstats["bridge.device_b"])
-
-      print("</td>")
+      s = ifstats.name
    end
+
+   if((isAdministrator()) and (interface.isPcapDumpInterface() == false)) then
+      s = s .. " <a href=\""..url.."&page=config\"><i class=\"fa fa-cog fa-sm\" title=\"Configure Interface Name\"></i></a>"
+   end
+   
+   print('<tr><th width="250">'..i18n("name")..'</th><td colspan="2">' .. s ..' </td>\n')
 
    print("<th>"..i18n("if_stats_overview.family").."</th><td colspan=2>")
    print(ifstats.type)
@@ -491,45 +484,47 @@ if((page == "overview") or (page == nil)) then
    end
    print("</tr>")
 
-   if not is_bridge_iface then
-      if(ifstats.ip_addresses ~= "") then
-         tokens = split(ifstats.ip_addresses, ",")
-      end
+   if(ifstats.ip_addresses ~= "") then
+      local tokens = split(ifstats.ip_addresses, ",")
 
       if(tokens ~= nil) then
-         print("<tr><th width=250>"..i18n("ip_address").."</th><td colspan=5>")
-         local addresses = {}
+	 print("<tr><th width=250>"..i18n("ip_address").."</th><td colspan=5>")
+	 local addresses = {}
 
-         for _,s in pairs(tokens) do
-            t = string.split(s, "/")
-            host = interface.getHostInfo(t[1])
+	 for _,s in pairs(tokens) do
+	    t = string.split(s, "/")
+	    host = interface.getHostInfo(t[1])
 
-            if(host ~= nil) then
-               addresses[#addresses+1] = "<a href=\""..ntop.getHttpPrefix().."/lua/host_details.lua?host="..t[1].."\">".. t[1].."</a>"
-            else
-               addresses[#addresses+1] = t[1]
-            end
-         end
+	    if(host ~= nil) then
+	       addresses[#addresses+1] = "<a href=\""..ntop.getHttpPrefix().."/lua/host_details.lua?host="..t[1].."\">".. t[1].."</a>"
+	    else
+	       addresses[#addresses+1] = t[1]
+	    end
+	 end
 
-         print(table.concat(addresses, ", "))
+	 print(table.concat(addresses, ", "))
 
-         print("</td></tr>")
+	 print("</td></tr>")
       end
+   end
+
+   if ifstats.bcast_domains and table.len(ifstats.bcast_domains) > 0 then
+      local bcast_domains = table.tconcat(ifstats.bcast_domains, "", ", ")
+
+      print("<tr><th width=250>"..i18n("broadcast_domain").."</th><td colspan=5>")
+      print(bcast_domains)
+      print("</td></tr>")
    end
 
    if is_physical_iface then
       print("<tr>")
       print("<th>"..i18n("mtu").."</th><td colspan=2  nowrap>"..ifstats.mtu.." "..i18n("bytes").."</td>\n")
-      if (not is_bridge_iface) then
-         local speed_key = 'ntopng.prefs.'..ifname..'.speed'
-         local speed = ntop.getCache(speed_key)
-         if (tonumber(speed) == nil) then
-            speed = ifstats.speed
-         end
-         print("<th width=250>"..i18n("speed").."</th><td colspan=2>" .. maxRateToString(speed*1000) .. "</td>")
-      else
-         print("<td colspan=3></td></tr>")
+      local speed_key = 'ntopng.prefs.'..ifname..'.speed'
+      local speed = ntop.getCache(speed_key)
+      if (tonumber(speed) == nil) then
+	 speed = ifstats.speed
       end
+      print("<th width=250>"..i18n("speed").."</th><td colspan=2>" .. maxRateToString(speed*1000) .. "</td>")
       print("</tr>")
    end
 

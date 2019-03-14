@@ -73,6 +73,7 @@ local lang = {
   ["interface_ifname"] = "Interfaccia %{ifname}",
   ["interfaces"] = "Interfacce",
   ["ip_address"] = "Indirizzo IP",
+  ["broadcast_domain"] = "Dominio di Broadcast",
   ["ipv4"] = "IPv4",
   ["ipv6"] = "IPv6",
   ["key"] = "Chiave",

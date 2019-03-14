@@ -40,6 +40,7 @@ class BroadcastDomains {
   void inlineAddAddress(const IpAddress * const ipa, int network_bits);
   void inlineReloadBroadcastDomains(bool force_immediate_reload = false);
   bool isLocalBroadcastDomainHost(const Host * const h, bool isInlineCall) const;
+  void lua(lua_State* vm) const;
 };
 
 #endif /* _BROADCAST_DOMAINS_H_ */

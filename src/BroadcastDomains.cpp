@@ -89,3 +89,18 @@ bool BroadcastDomains::isLocalBroadcastDomainHost(const Host * const h, bool isI
 
   return false;
 }
+
+/* *************************************** */
+
+void BroadcastDomains::lua(lua_State *vm) const {
+  AddressTree *cur_tree = broadcast_domains;
+
+  lua_newtable(vm);
+
+  if(cur_tree)
+    cur_tree->getAddresses(vm);
+
+  lua_pushstring(vm, "bcast_domains");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+}

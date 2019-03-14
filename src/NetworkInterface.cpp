@@ -5486,6 +5486,7 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_uint64_table_entry(vm, "mtu", ifMTU);
   lua_push_uint64_table_entry(vm, "alertLevel", alertLevel);
   lua_push_str_table_entry(vm, "ip_addresses", (char*)getLocalIPAddresses());
+  bcast_domains.lua(vm);
 
   /* Anomalies */
   lua_newtable(vm);
