@@ -89,6 +89,8 @@ class NetworkInterface : public Checkpointable {
 
   /* Broadcast domain */
   BroadcastDomains bcast_domains;
+  bool reload_hosts_bcast_domain;
+  time_t hosts_bcast_domain_last_update;
   
 #ifdef HAVE_EBPF
   /* eBPF */
@@ -620,6 +622,8 @@ class NetworkInterface : public Checkpointable {
   void reloadHideFromTop(bool refreshHosts=true);
   inline void requestReloadCustomCategories()       { reload_custom_categories = true; }
   inline bool customCategoriesReloadRequested()     { return reload_custom_categories; }
+  void checkReloadHostsBroadcastDomain();
+  inline bool reloadHostsBroadcastDomain()          { return reload_hosts_bcast_domain; }
   inline void checkHostsBlacklistReload()           { if(reload_hosts_blacklist) { reloadHostsBlacklist(); reload_hosts_blacklist = false; } }
   void reloadHostsBlacklist();
   bool isHiddenFromTop(Host *host);
@@ -677,7 +681,7 @@ class NetworkInterface : public Checkpointable {
   void topMacsAdd(Mac *mac, u_int16_t protocol, u_int32_t bytes);
   inline bool isDynamicInterface()                { return(is_dynamic_interface);            };
   inline void setDynamicInterface()               { is_dynamic_interface = true;             };
-  bool isLocalBroadcastDomainHost(Host *h);
+  bool isLocalBroadcastDomainHost(Host * const h, bool isInlineCall);
   inline void luaTopMacsProtos(lua_State *vm) { frequentMacs->luaTopMacsProtocols(vm); }
   inline MDNS* getMDNS() { return(mdns); }
   inline NetworkDiscovery* getNetworkDiscovery() { return(discovery); }

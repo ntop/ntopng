@@ -79,12 +79,13 @@ void BroadcastDomains::inlineReloadBroadcastDomains(bool force_immediate_reload)
   }
 }
 
-
 /* *************************************** */
 
-bool BroadcastDomains::inlineIsLocalBroadcastDomainHost(const Host * const h) const {
-  if(inline_broadcast_domains && h)
-    return h->match(inline_broadcast_domains);
+bool BroadcastDomains::isLocalBroadcastDomainHost(const Host * const h, bool isInlineCall) const {
+  AddressTree *cur_tree = isInlineCall ? inline_broadcast_domains : broadcast_domains;
+
+  if(cur_tree && h)
+    return h->match(cur_tree);
 
   return false;
 }

@@ -272,6 +272,7 @@ class Host : public GenericHashEntry {
   inline void requestStatsReset()                        { stats_reset_requested = true; };
   inline void requestDataReset()                         { data_delete_requested = true; requestStatsReset(); };
   void checkDataReset();
+  void checkBroadcastDomain();
   bool hasAnomalies();
   void luaAnomalies(lua_State* vm);
   void loadAlertsCounter();

@@ -36,9 +36,10 @@ class BroadcastDomains {
   BroadcastDomains();
   ~BroadcastDomains();
 
+  inline time_t getLastUpdate() const { return last_update; };
   void inlineAddAddress(const IpAddress * const ipa, int network_bits);
   void inlineReloadBroadcastDomains(bool force_immediate_reload = false);
-  bool inlineIsLocalBroadcastDomainHost(const Host * const h) const;
+  bool isLocalBroadcastDomainHost(const Host * const h, bool isInlineCall) const;
 };
 
 #endif /* _BROADCAST_DOMAINS_H_ */

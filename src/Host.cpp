@@ -197,7 +197,7 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   reloadHideFromTop();
   reloadDhcpHost();
 
-  is_in_broadcast_domain = iface->isLocalBroadcastDomainHost(this);
+  is_in_broadcast_domain = iface->isLocalBroadcastDomainHost(this, true /* Inline call */);
 }
 
 /* *************************************** */
@@ -1279,6 +1279,7 @@ void Host::updateStats(struct timeval *tv) {
 
   checkDataReset();
   checkStatsReset();
+  checkBroadcastDomain();
 
   num_active_flows_as_client.computeAnomalyIndex(tv->tv_sec),
     num_active_flows_as_server.computeAnomalyIndex(tv->tv_sec),
@@ -1314,6 +1315,13 @@ void Host::checkStatsReset() {
     last_stats_reset = ntop->getLastStatsReset();
     stats_reset_requested = false;
   }
+}
+
+/* *************************************** */
+
+void Host::checkBroadcastDomain() {
+  if(iface->reloadHostsBroadcastDomain())
+    is_in_broadcast_domain = iface->isLocalBroadcastDomainHost(this, false /* Non-inline call */);
 }
 
 /* *************************************** */

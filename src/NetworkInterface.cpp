@@ -303,6 +303,8 @@ void NetworkInterface::init() {
   numSubInterfaces = 0;
   memset(subInterfaces, 0, sizeof(subInterfaces));
   reload_custom_categories = reload_hosts_blacklist = false;
+  reload_hosts_bcast_domain = false;
+  hosts_bcast_domain_last_update = 0;
     
   ip_addresses = "", networkStats = NULL,
     pcap_datalink_type = 0, cpu_affinity = -1;
@@ -3019,6 +3021,8 @@ void NetworkInterface::periodicStatsUpdate() {
   gettimeofday(&tdebug, NULL);
 #endif
 
+  checkReloadHostsBroadcastDomain();
+
   begin_slot = 0;
   hosts_hash->walk(&begin_slot, walk_all, update_hosts_stats, (void*)&tv);
 
@@ -3554,6 +3558,18 @@ bool NetworkInterface::getHostInfo(lua_State* vm,
   enablePurge(false);
 
   return ret;
+}
+
+/* **************************************************** */
+
+void NetworkInterface::checkReloadHostsBroadcastDomain() {
+  time_t bcast_domains_last_update = bcast_domains.getLastUpdate();
+
+  if(hosts_bcast_domain_last_update < bcast_domains_last_update)
+    reload_hosts_bcast_domain = true,
+      hosts_bcast_domain_last_update = bcast_domains_last_update;
+  else if(reload_hosts_bcast_domain)
+    reload_hosts_bcast_domain = false;
 }
 
 /* **************************************************** */
@@ -7323,10 +7339,10 @@ bool NetworkInterface::isInDhcpRange(IpAddress *ip) {
 
 /* *************************************** */
 
-bool NetworkInterface::isLocalBroadcastDomainHost(Host *h) {
+bool NetworkInterface::isLocalBroadcastDomainHost(Host * const h, bool isInlineCall) {
   IpAddress *i = h->get_ip();
     
-  return(bcast_domains.inlineIsLocalBroadcastDomainHost(h)
+  return(bcast_domains.isLocalBroadcastDomainHost(h, isInlineCall)
 	 || (ntop->getLoadInterfaceAddresses() && i->match(ntop->getLoadInterfaceAddresses())));
 }
 
