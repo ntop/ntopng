@@ -2,6 +2,7 @@
 -- (C) 2018 - ntop.org
 --
 
+
 local ts_utils = {}
 
 local ts_common = require "ts_common"
@@ -21,6 +22,7 @@ require "ntop_utils"
 
 package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/drivers/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/schemas/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/custom/?.lua;" .. package.path
 
 -- ##############################################
 
@@ -92,6 +94,9 @@ function ts_utils.loadSchemas()
   require("ts_minute")
   require("ts_5min")
   require("ts_hour")
+  require("ts_5min_custom")
+  require("ts_minute_custom")
+
 end
 
 function ts_utils.getLoadedSchemas()
