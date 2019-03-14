@@ -99,8 +99,8 @@ print("<tr><th nowrap>"..i18n("about.last_log").."</th><td><code>\n")
 for i=1,32 do
     msg = ntop.listIndexCache("ntopng.trace", i)
     if(msg ~= nil) then
-        print(msg.."<br>\n")	
-    end			
+       print(noHtml(msg).."<br>\n")
+    end
 end
 
 print("</code></td></tr>\n")
