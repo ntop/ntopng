@@ -1552,7 +1552,12 @@ function http_lint.validationError(t, param, value, message)
    -- TODO graceful exit
    local s_id
    if t == _GET then s_id = "_GET" else s_id = "_POST" end
-   error("[LINT] " .. s_id .. "[\"" .. param .. "\"] = \"" .. (value or 'nil') .. "\" parameter error: " .. message)
+
+   -- Must use urlencode to print these values or an attacker could perform XSS.
+   -- Indeed, the web page returned by mongoose will show the error below and
+   -- one could place something like '><script>alert(1)</script> in the value
+   -- to close the html and execute a script
+   error("[LINT] " .. s_id .. "[\"" .. urlencode(param) .. "\"] = \"" .. urlencode(value or 'nil') .. "\" parameter error: " .. message.."")
 end
 
 -- #################################################################
