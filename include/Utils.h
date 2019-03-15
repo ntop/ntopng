@@ -127,7 +127,7 @@ class Utils {
   /* Patricia Tree */
   static patricia_node_t* add_to_ptree(patricia_tree_t *tree, int family, void *addr, int bits);
   static patricia_node_t* ptree_match(patricia_tree_t *tree, int family, const void * const addr, int bits);
-  static patricia_node_t* ptree_add_rule(patricia_tree_t *ptree, char *line);
+  static patricia_node_t* ptree_add_rule(patricia_tree_t *ptree, char * const line);
   static int ptree_remove_rule(patricia_tree_t *ptree, char *line);
 
   static inline void update_ewma(u_int32_t sample, u_int32_t *ewma, u_int8_t alpha_percent) {

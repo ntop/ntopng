@@ -509,10 +509,32 @@ if((page == "overview") or (page == nil)) then
    end
 
    if ifstats.bcast_domains and table.len(ifstats.bcast_domains) > 0 then
-      local bcast_domains = table.tconcat(ifstats.bcast_domains, "", ", ")
-
       print("<tr><th width=250>"..i18n("broadcast_domain").."</th><td colspan=5>")
+
+      local has_ghost_networks = false
+      local ghost_icon = '<font color=red><i class="fa fa-snapchat-ghost" aria-hidden="true"></i></font>'
+      local num = 1
+      local bcast_domains = ""
+      for bcast_domain, in_interface_range in pairs(ifstats.bcast_domains) do
+	 if num > 1 then
+	    bcast_domains = bcast_domains..","
+	 end
+
+	 bcast_domains = bcast_domains..bcast_domain
+
+	 if in_interface_range == 0 and interface.isPacketInterface() and not interface.isPcapDumpInterface() and ntop.getPref(string.format("ntopng.prefs.ifid_%d.is_traffic_mirrored", ifId)) ~= "1" then
+	    has_ghost_networks = true
+	    bcast_domains = bcast_domains..' '..ghost_icon
+	 end
+
+	 num = num + 1
+      end
+
       print(bcast_domains)
+
+      if has_ghost_networks then
+	 print("<small><br><b>"..i18n("if_stats_overview.note")..":</b> "..i18n("if_stats_overview.ghost_bcast_domain_descr", {ghost_icon = ghost_icon}).."</small>")
+      end
       print("</td></tr>")
    end
 

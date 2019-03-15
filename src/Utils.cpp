@@ -2687,7 +2687,7 @@ patricia_node_t* Utils::ptree_match(patricia_tree_t *tree, int family, const voi
 
 /* ******************************************* */
 
-patricia_node_t* Utils::ptree_add_rule(patricia_tree_t *ptree, char *line) {
+patricia_node_t* Utils::ptree_add_rule(patricia_tree_t *ptree, char * const line) {
   char *ip, *bits, *slash = NULL;
   struct in_addr addr4;
   struct in6_addr addr6;

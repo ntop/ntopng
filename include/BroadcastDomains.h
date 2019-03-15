@@ -28,12 +28,13 @@ class Host;
 
 class BroadcastDomains {
  private:
+  NetworkInterface *iface;
   AddressTree *inline_broadcast_domains; /* Accessed inline */
   AddressTree *broadcast_domains, *broadcast_domains_shadow; /* Accessed concurrently non-inline */
   time_t next_update, last_update;
 
  public:
-  BroadcastDomains();
+  BroadcastDomains(NetworkInterface *_iface);
   ~BroadcastDomains();
 
   inline time_t getLastUpdate() const { return last_update; };

@@ -2340,16 +2340,6 @@ static int ntop_zmq_receive(lua_State* vm) {
 /* ****************************************** */
 
 // ***API***
-static int ntop_get_local_networks(lua_State* vm) {
-  lua_newtable(vm);
-  ntop->getLocalNetworks(vm);
-
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-// ***API***
 static int ntop_reload_preferences(lua_State* vm) {
   lua_newtable(vm);
   ntop->getPrefs()->reloadPrefsFromRedis();
@@ -8432,7 +8422,6 @@ static const luaL_Reg ntop_reg[] = {
   { "zmq_disconnect",   ntop_zmq_disconnect },
   { "zmq_receive",      ntop_zmq_receive },
 #endif
-  { "getLocalNetworks",    ntop_get_local_networks },
   { "reloadPreferences",   ntop_reload_preferences },
   { "setAlertsTemporaryDisabled",   ntop_temporary_disable_alerts },
 

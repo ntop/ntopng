@@ -123,7 +123,7 @@ typedef struct _patricia_tree_t {
 
 typedef void (*void_fn_t)(void *data);
 typedef void (*void_fn2_t)(prefix_t *prefix, void *data);
-typedef void (*void_fn3_t)(prefix_t *prefix, void *data, void *user_data);
+typedef void (*void_fn3_t)(patricia_node_t *node, void *data, void *user_data);
 
 
 patricia_node_t *patricia_search_exact (patricia_tree_t *patricia, prefix_t *prefix);

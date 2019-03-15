@@ -88,7 +88,7 @@ class NetworkInterface : public Checkpointable {
   MDNS *mdns;
 
   /* Broadcast domain */
-  BroadcastDomains bcast_domains;
+  BroadcastDomains *bcast_domains;
   bool reload_hosts_bcast_domain;
   time_t hosts_bcast_domain_last_update;
   
@@ -109,6 +109,7 @@ class NetworkInterface : public Checkpointable {
   void deliverLiveCapture(const struct pcap_pkthdr * const h, const u_char * const packet, Flow * const f);
   
   string ip_addresses;
+  AddressTree interface_networks;
   int id;
   bool bridge_interface, is_dynamic_interface, is_traffic_mirrored, is_loopback;
   bool reload_custom_categories, reload_hosts_blacklist;
@@ -576,7 +577,9 @@ class NetworkInterface : public Checkpointable {
   inline CountriesHash* get_countries_hash()       { return(countries_hash);          }
   inline bool is_bridge_interface()                { return(bridge_interface);        }
   inline const char* getLocalIPAddresses()         { return(ip_addresses.c_str());    }
-  void addInterfaceAddress(char *addr);
+  void addInterfaceAddress(char * const addr);
+  void addInterfaceNetwork(char * const net);
+  bool isInterfaceNetwork(const IpAddress * const ipa, int network_bits) const;
   inline int exec_sql_query(lua_State *vm, char *sql, bool limit_rows, bool wait_for_db_created = true) {
 #ifdef HAVE_MYSQL
     if(dynamic_cast<MySQLDB*>(db) != NULL)

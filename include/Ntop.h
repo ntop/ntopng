@@ -453,7 +453,6 @@ class Ntop {
 
   inline NtopPro* getPro()              { return((NtopPro*)pro); };
 
-  inline void getLocalNetworks(lua_State* vm) { address->getLocalNetworks(vm);          };
   inline u_int8_t getNumLocalNetworks()       { return(address->getNumLocalNetworks()); };
   void loadTrackers();
   bool isATrackerHost(char *host);
