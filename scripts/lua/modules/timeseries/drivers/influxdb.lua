@@ -160,13 +160,11 @@ local function influx_query(base_url, query, username, password, options)
   local tstart = os.time()
   local res = ntop.httpGet(full_url, username, password, ternary(options.no_timeout, 99999999999, INFLUX_QUERY_TIMEMOUT_SEC), true)
   local tend = os.time()
-  local debug_influxdb_queries = (ntop.getPref("ntopng.prefs.debug_influxdb_queries") == "1")
+  local debug_influxdb_queries = (ntop.getPref("ntopng.prefs.influxdb.print_queries") == "1")
 
   if debug_influxdb_queries then
     local tdiff = tend - tstart
-    if tdiff > 0 then
-      traceError(TRACE_NORMAL, TRACE_CONSOLE, "Query took ".. (tend - tstart) .." sec to complete: ".. query)
-    end
+    traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("influx_query[%ds]: %s", tdiff, query))
   end
 
   if not res then
