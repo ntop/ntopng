@@ -708,7 +708,7 @@ local lang = {
     ["sip_call_id"] = "SIP Call-ID",
     ["sip_protocol_information"] = "Informazione Protocollo SIP",
     ["slow_application_header"] = "Intestazione Applicazione Lenta",
-    ["slow_data_exchange"] = "Scambio Dati Lento (Slowloris?)",
+    ["slow_data_exchange"] = "Scambio Dati Lento",
     ["slow_tcp_connection"] = "Connessione TCP Lenta",
     ["son_of_father_process"] = "figlio di <a href ='%{url}'>%{proc_father_pid}/%{proc_father_name}</a>",
     ["ssh_signature"] = "Firma SSH",
