@@ -55,6 +55,12 @@ local BUILTIN_LISTS = {
     format = "ip",
     enabled = true,
     update_interval = DEFAULT_UPDATE_INTERVAL,
+  }, ["MalwareDomainList Hosts"] = {
+    url = "https://www.malwaredomainlist.com/hostslist/hosts.txt",
+    category = CUSTOM_CATEGORY_MALWARE,
+    format = "hosts",
+    enabled = false,
+    update_interval = DEFAULT_UPDATE_INTERVAL,
   }, ["Anti-WebMiner"] = {
     url = "https://raw.githubusercontent.com/greatis/Anti-WebMiner/master/hosts",
     category = CUSTOM_CATEGORY_MINING,
@@ -365,10 +371,14 @@ local function loadFromListFile(list_name, list, user_custom_categories)
       local host = trimmed
 
       if list.format == "hosts" then
-        local words = string.split(trimmed, "%s")
+        local words = string.split(trimmed, "%s+")
 
-        if #words == 2 then
+        if words and (#words == 2) then
           host = words[2]
+
+          if((host == "localhost") or (host == "127.0.0.1")) then
+            host = nil
+          end
         else
           -- invalid host
           host = nil
