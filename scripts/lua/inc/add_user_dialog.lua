@@ -121,7 +121,7 @@ if not ntop.isnEdge() then
         <span class="input-group-addon"><i class="fa fa-language" aria-hidden="true"></i></span>
         <select name="user_language" class="form-control">]]
 
-  for _, lang in pairs(locales_utils.getAvailableLocales()) do
+  for _, lang in ipairs(locales_utils.getAvailableLocales()) do
      print('<option value="'..lang["code"]..'">'..i18n("locales." .. lang["code"])..'</option>')
   end
 
