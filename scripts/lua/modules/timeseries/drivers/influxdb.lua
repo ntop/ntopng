@@ -995,8 +995,8 @@ function driver.init(dbname, url, days_retention, username, password, verbose)
   if((not version) and (err ~= nil)) then
     return false, err
   elseif((not version) or (not isCompatibleVersion(version))) then
-    local err = i18n("prefs.incompatible_influxdb_version",
-      {required=MIN_INFLUXDB_SUPPORTED_VERSION, found=version})
+    local err = i18n("prefs.incompatible_influxdb_version_found",
+      {required=MIN_INFLUXDB_SUPPORTED_VERSION, found=version, url="https://portal.influxdata.com/downloads"})
 
     traceError(TRACE_ERROR, TRACE_CONSOLE, err)
     return false, err
