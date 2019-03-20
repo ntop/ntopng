@@ -229,7 +229,8 @@ class Host : public GenericHashEntry {
   void incNumFlows(time_t t, bool as_client, Host *peer);
   void decNumFlows(time_t t, bool as_client, Host *peer);
   inline void incNumUnreachableFlows(bool as_server) { if(stats) stats->incNumUnreachableFlows(as_server); } 
- 
+  inline void incNumPortUnreachableFlows(bool as_server) { if(stats) stats->incNumPortUnreachableFlows(as_server); } 
+
   inline void incFlagStats(bool as_client, u_int8_t flags)  { stats->incFlagStats(as_client, flags); };
   virtual void incNumDNSQueriesSent(u_int16_t query_type) { };
   virtual void incNumDNSQueriesRcvd(u_int16_t query_type) { };
@@ -257,6 +258,9 @@ class Host : public GenericHashEntry {
   inline u_int32_t getTotalNumAnomalousIncomingFlows() const { return stats->getTotalAnomalousNumFlowsAsServer(); };
   inline u_int32_t getTotalNumUnreachableOutgoingFlows() const { return stats->getTotalUnreachableNumFlowsAsClient(); };
   inline u_int32_t getTotalNumUnreachableIncomingFlows() const { return stats->getTotalUnreachableNumFlowsAsServer(); };
+  inline u_int32_t getTotalNumPortUnreachableOutgoingFlows() const { return stats->getTotalPortUnreachableNumFlowsAsClient(); };
+  inline u_int32_t getTotalNumPortUnreachableIncomingFlows() const { return stats->getTotalPortUnreachableNumFlowsAsServer(); };
+
   void splitHostVlan(const char *at_sign_str, char *buf, int bufsize, u_int16_t *vlan_id);
   char* get_country(char *buf, u_int buf_len);
   char* get_city(char *buf, u_int buf_len);

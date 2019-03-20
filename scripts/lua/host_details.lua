@@ -1928,6 +1928,7 @@ drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
       {schema="host:flows",                  label=i18n("graphs.active_flows")},
       {schema="host:anomalous_flows",        label=i18n("graphs.total_anomalous_flows")},
       {schema="host:unreachable_flows",      label=i18n("graphs.total_unreachable_flows")},
+      {schema="host:port_unreachable_flows", label="Port Unreachable Flows"},
       {schema="host:contacts",               label=i18n("graphs.active_host_contacts")},
       {schema="host:total_alerts",           label=i18n("details.alerts")},
 

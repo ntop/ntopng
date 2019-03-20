@@ -43,6 +43,8 @@ class ICMPinfo {
   ICMPinfo(const ICMPinfo& _icmp_info);
   virtual ~ICMPinfo();
   unreachable_t *getUnreach() const { return unreach; };
+  u_int8_t getType() const { return icmp_type; };
+  u_int8_t getCode() const { return icmp_code; };
   void dissectICMP(u_int16_t const payload_len, const u_int8_t * const payload_data);
   void print() const;
   u_int32_t key() const;

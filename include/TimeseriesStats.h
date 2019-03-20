@@ -30,6 +30,7 @@ class TimeseriesStats: public GenericTrafficElement {
   Host *host;
   u_int32_t total_alerts;
   u_int32_t unreachable_flows_as_client, unreachable_flows_as_server;
+  u_int32_t port_unreachable_flows_as_client, port_unreachable_flows_as_server;
   u_int32_t anomalous_flows_as_client, anomalous_flows_as_server;
   TrafficStats tcp_sent, tcp_rcvd;
   TrafficStats udp_sent, udp_rcvd;
@@ -42,11 +43,16 @@ class TimeseriesStats: public GenericTrafficElement {
 
   inline void incNumAnomalousFlows(bool as_client)   { if(as_client) anomalous_flows_as_client++; else anomalous_flows_as_server++; };
   inline void incNumUnreachableFlows(bool as_server) { if(as_server) unreachable_flows_as_server++; else unreachable_flows_as_client++; }
+  inline void incNumPortUnreachableFlows(bool as_server) { if(as_server) port_unreachable_flows_as_server++; else port_unreachable_flows_as_client++; }
+
+
   inline void incTotalAlerts() { total_alerts++; };
 
   inline u_int32_t getTotalAnomalousNumFlowsAsClient() const { return(anomalous_flows_as_client);  };
   inline u_int32_t getTotalAnomalousNumFlowsAsServer() const { return(anomalous_flows_as_server);  };
   inline u_int32_t getTotalUnreachableNumFlowsAsClient() const { return(unreachable_flows_as_client);  };
+  inline u_int32_t getTotalPortUnreachableNumFlowsAsClient() const { return(port_unreachable_flows_as_client);  };
+  inline u_int32_t getTotalPortUnreachableNumFlowsAsServer() const { return(port_unreachable_flows_as_server);  };
   inline u_int32_t getTotalUnreachableNumFlowsAsServer() const { return(unreachable_flows_as_server);  };
   inline u_int32_t getTotalAlerts() const { return(total_alerts); };
   void luaStats(lua_State* vm, NetworkInterface *iface, bool host_details, bool verbose, bool tsLua = false);
