@@ -36,7 +36,7 @@ if(haveAdminPrivileges()) then
 	 else
 	    local available_locale = false
 
-	    for _, l in pairs(locales_utils.getAvailableLocales()) do
+	    for _, l in ipairs(locales_utils.getAvailableLocales()) do
 	       if l["code"] == value["language"] then
 		  available_locale = true
 		  break

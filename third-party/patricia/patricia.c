@@ -555,7 +555,7 @@ patricia_walk_inorder(patricia_node_t *node, void_fn3_t func, void *data)
   }
 
   if(node->prefix) {
-    func(node->prefix, node->data, data);
+    func(node, node->data, data);
     n++;
   }
 

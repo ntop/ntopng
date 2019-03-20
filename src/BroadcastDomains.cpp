@@ -23,7 +23,8 @@
 
 /* *************************************** */
 
-BroadcastDomains::BroadcastDomains() {
+BroadcastDomains::BroadcastDomains(NetworkInterface *_iface) {
+  iface = _iface;
   inline_broadcast_domains = new (std::nothrow) AddressTree(false);
   broadcast_domains = broadcast_domains_shadow = NULL;
   next_update = last_update = 0;
@@ -40,11 +41,16 @@ BroadcastDomains::~BroadcastDomains() {
 /* *************************************** */
 
 void BroadcastDomains::inlineAddAddress(const IpAddress * const ipa, int network_bits) {
+  patricia_node_t *addr_node;
   if(!inline_broadcast_domains
      || inline_broadcast_domains->match(ipa, network_bits))
     return;
 
-  inline_broadcast_domains->addAddress(ipa, network_bits, true /* Compact after add */);
+  addr_node = inline_broadcast_domains->addAddress(ipa, network_bits, true /* Compact after add */);
+
+  if(addr_node)
+    /* user data has information whether this broadcast domain is contained in network interface addresses */
+    addr_node->user_data = iface->isInterfaceNetwork(ipa, network_bits) ? 1 : 0;
 
   if(!next_update)
     next_update = time(NULL) + 1;

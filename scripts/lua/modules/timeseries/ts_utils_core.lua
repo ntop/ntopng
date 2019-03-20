@@ -21,6 +21,7 @@ require "ntop_utils"
 
 package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/drivers/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/schemas/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/custom/?.lua;" .. package.path
 
 -- ##############################################
 
@@ -92,6 +93,14 @@ function ts_utils.loadSchemas()
   require("ts_minute")
   require("ts_5min")
   require("ts_hour")
+
+  if(ntop.exists(dirs.installdir .. "/scripts/lua/modules/timeseries/custom/ts_minute_custom.lua")) then
+     require("ts_minute_custom")
+  end
+  
+  if(ntop.exists(dirs.installdir .. "/scripts/lua/modules/timeseries/custom/ts_5min_custom.lua")) then
+     require("ts_5min_custom")
+  end  
 end
 
 function ts_utils.getLoadedSchemas()

@@ -1712,6 +1712,7 @@ bool Utils::httpGetPost(lua_State* vm, char *url, char *username,
         char buf[64];
         ntop->getTrace()->traceEvent(TRACE_ERROR, "Could not open %s for write", write_fname, strerror_r(errno, buf, sizeof(buf)));
         curl_easy_cleanup(curl);
+        if(vm) lua_pushnil(vm);
         return(false);
       }
 
@@ -2687,7 +2688,7 @@ patricia_node_t* Utils::ptree_match(patricia_tree_t *tree, int family, const voi
 
 /* ******************************************* */
 
-patricia_node_t* Utils::ptree_add_rule(patricia_tree_t *ptree, char *line) {
+patricia_node_t* Utils::ptree_add_rule(patricia_tree_t *ptree, char * const line) {
   char *ip, *bits, *slash = NULL;
   struct in_addr addr4;
   struct in6_addr addr6;

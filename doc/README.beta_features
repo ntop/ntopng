@@ -20,3 +20,6 @@ redis-cli set "ntopng.prefs.influxdb.debug_aggregation" "1"
 
 ## [Beta] Enable alerts based on anomaly indexes
 redis-cli set "ntopng.prefs.beta_anomaly_index_alerts" "1"
+
+## [Debug] Log InfluxDB queries to console
+redis-cli set "ntopng.prefs.influxdb.print_queries" "1"

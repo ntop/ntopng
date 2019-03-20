@@ -27,17 +27,17 @@ end
 i18n.setLocale(language)
 
 local supported_locales = {
-   en = {code = "en"},
-   it = {code = "it"},
-   de = {code = "de"},
-   jp = {code = "jp"}
+   {code = "en"},
+   {code = "it"},
+   {code = "de"},
+   {code = "jp"}
 }
 
 local function lookupLocale(localename)
    local base_path = dirs.installdir..'/scripts/locales/'
    local locale_path = base_path .. localename .. ".lua"
 
-   if ntop.exists(locale_path) and supported_locales[localename] then
+   if ntop.exists(locale_path) then
       return locale_path
    end
 
@@ -56,7 +56,9 @@ end
 local available_locales = {}
 
 -- use pairsByKeys to impose an order
-for localename, locale in pairsByKeys(supported_locales) do
+for _, locale in ipairs(supported_locales) do
+   local localename = locale["code"]
+
    if lookupLocale(localename) then
       available_locales[#available_locales + 1] = locale
    end

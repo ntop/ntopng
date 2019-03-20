@@ -234,8 +234,8 @@ NetworkInterface::NetworkInterface(const char *name,
 
   statsManager = NULL, alertsManager = NULL;
 
-  if((host_pools = new HostPools(this)) == NULL)
-    throw "Not enough memory";
+  host_pools = new HostPools(this);
+  bcast_domains = new BroadcastDomains(this);
 
 #ifdef __linux__
   /*
@@ -324,6 +324,7 @@ void NetworkInterface::init() {
 #endif
   statsManager = NULL, alertsManager = NULL, ifSpeed = 0;
   host_pools = NULL;
+  bcast_domains = NULL;
   checkIdle();
   ifMTU = CONST_DEFAULT_MAX_PACKET_SIZE, mtuWarningShown = false;
 #ifdef NTOPNG_PRO
@@ -615,6 +616,7 @@ NetworkInterface::~NetworkInterface() {
     delete db;
   }
   if(host_pools)     delete host_pools;     /* note: this requires ndpi_struct */
+  if(bcast_domains)  delete bcast_domains;
   if(ifDescription)  free(ifDescription);
   if(discovery)      delete discovery;
   if(statsManager)   delete statsManager;
@@ -2023,7 +2025,7 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
 
   pollQueuedeBPFEvents();
   reloadCustomCategories();
-  bcast_domains.inlineReloadBroadcastDomains();
+  bcast_domains->inlineReloadBroadcastDomains();
 
 #if 0
   static u_int n = 0;
@@ -2595,7 +2597,7 @@ decode_packet_eth:
 #endif
 
 	  cur_bcast_domain.set(htonl(net));
-	  bcast_domains.inlineAddAddress(&cur_bcast_domain, cidr);
+	  bcast_domains->inlineAddAddress(&cur_bcast_domain, cidr);
 	}
 	
 	e  = getArpHashMatrixElement(srcMac->get_mac(), dstMac->get_mac(), &src2dst_element);
@@ -3563,7 +3565,7 @@ bool NetworkInterface::getHostInfo(lua_State* vm,
 /* **************************************************** */
 
 void NetworkInterface::checkReloadHostsBroadcastDomain() {
-  time_t bcast_domains_last_update = bcast_domains.getLastUpdate();
+  time_t bcast_domains_last_update = bcast_domains->getLastUpdate();
 
   if(hosts_bcast_domain_last_update < bcast_domains_last_update)
     reload_hosts_bcast_domain = true,
@@ -5158,7 +5160,7 @@ u_int NetworkInterface::purgeIdleFlows() {
 
   pollQueuedeBPFEvents();
   reloadCustomCategories();
-  bcast_domains.inlineReloadBroadcastDomains();
+  bcast_domains->inlineReloadBroadcastDomains();
 
   if(!purge_idle_flows_hosts) return(0);
 
@@ -5301,7 +5303,7 @@ void NetworkInterface::guessAllnDPIProtocols() {
 /* *************************************** */
 
 void NetworkInterface::guessAllBroadcastDomainHosts() {
-  bcast_domains.inlineReloadBroadcastDomains(true);
+  bcast_domains->inlineReloadBroadcastDomains(true);
 }
 
 /* **************************************************** */
@@ -5486,7 +5488,7 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_uint64_table_entry(vm, "mtu", ifMTU);
   lua_push_uint64_table_entry(vm, "alertLevel", alertLevel);
   lua_push_str_table_entry(vm, "ip_addresses", (char*)getLocalIPAddresses());
-  bcast_domains.lua(vm);
+  bcast_domains->lua(vm);
 
   /* Anomalies */
   lua_newtable(vm);
@@ -6109,7 +6111,7 @@ void NetworkInterface::refreshShapers() {
 
 /* **************************************** */
 
-void NetworkInterface::addInterfaceAddress(char *addr) {
+void NetworkInterface::addInterfaceAddress(char * const addr) {
   if(ip_addresses.size() == 0)
     ip_addresses = addr;
   else {
@@ -6117,6 +6119,18 @@ void NetworkInterface::addInterfaceAddress(char *addr) {
 
     ip_addresses = ip_addresses + "," + s;
   }
+}
+
+/* **************************************** */
+
+void NetworkInterface::addInterfaceNetwork(char * const net) {
+  interface_networks.addAddress(net);
+}
+
+/* **************************************** */
+
+bool NetworkInterface::isInterfaceNetwork(const IpAddress * const ipa, int network_bits) const {
+  return interface_networks.match(ipa, network_bits);
 }
 
 /* **************************************** */
@@ -7343,7 +7357,7 @@ bool NetworkInterface::isInDhcpRange(IpAddress *ip) {
 bool NetworkInterface::isLocalBroadcastDomainHost(Host * const h, bool isInlineCall) {
   IpAddress *i = h->get_ip();
     
-  return(bcast_domains.isLocalBroadcastDomainHost(h, isInlineCall)
+  return(bcast_domains->isLocalBroadcastDomainHost(h, isInlineCall)
 	 || (ntop->getLoadInterfaceAddresses() && i->match(ntop->getLoadInterfaceAddresses())));
 }
 

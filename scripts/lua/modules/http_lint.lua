@@ -456,7 +456,7 @@ end
 
 local function validateUserLanguage(code)
    local codes = {}
-   for _, c in pairs(locales_utils.getAvailableLocales()) do
+   for _, c in ipairs(locales_utils.getAvailableLocales()) do
       codes[#codes + 1] = c["code"]
    end
 
