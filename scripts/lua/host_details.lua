@@ -543,9 +543,13 @@ if((page == "overview") or (page == nil)) then
 
       if(host["localhost"] == true) then
 	 print('<span class="label label-success">'..i18n("details.label_local_host")..'</span>')
-      elseif(host["is_multicast"] == true) then print(' <span class="label label-default">Multicast</span> ')
-      elseif(host["is_broadcast"] == true) then print(' <span class="label label-default">Broadcast</span> ')
       else print('<span class="label label-default">'..i18n("details.label_remote")..'</span>')
+      end
+
+      if(host["is_multicast"] == true) then print(' <span class="label label-default">Multicast</span> ')
+      end
+
+      if(host["is_broadcast"] == true) then print(' <span class="label label-default">Broadcast</span> ')
       end
 
       if host["broadcast_domain_host"] then
