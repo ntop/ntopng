@@ -940,14 +940,18 @@
 
     ts.addParser({
         id: "bytesUnit",
-        is: function (s) {
-            return /^\d*(\.\d+)?\s[A-Za-z]+$/.test(s);
-        }, format: function (s) {
-            s = s.split(" ");
-            if (s[1] == "KB")
-                return $.tablesorter.formatFloat(s[0])*1000;
-            else if (s[1] == "MB")
-                return $.tablesorter.formatFloat(s[0])*1000000;
+	is: function (s) {
+	    return /^\d*(\.\d+)?\s[A-Za-z]+$/.test(s);
+	}, format: function (s) {
+	    // Remove the trailing unit of measure, e.g., MB or Pkts
+	    s = s.split(" ");
+	    // Remove the comma thousands separator
+	    s[0] = s[0].replace(",",'');
+
+	    if (s[1] == "KB")
+		return $.tablesorter.formatFloat(s[0])*1000;
+	    else if (s[1] == "MB")
+		return $.tablesorter.formatFloat(s[0])*1000000;
             else if (s[1] == "GB")
                 return $.tablesorter.formatFloat(s[0])*1000000000;
 	    else if (s[1] == "TB")
