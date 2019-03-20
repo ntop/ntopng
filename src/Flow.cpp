@@ -88,6 +88,21 @@ Flow::Flow(NetworkInterface *_iface,
       that complains, it means that the srv_host has made a connection that triggered
       the issue and thus it must be accounted in reverse
      */
+    u_int8_t type=icmp_info->getType();
+    u_int8_t code=icmp_info->getCode();
+
+    if(protocol==IPPROTO_ICMP){
+      if(type==3 && code==3){
+        if(cli_host) cli_host->incNumPortUnreachableFlows(true);
+        if(srv_host) srv_host->incNumPortUnreachableFlows(false);
+      }
+    }
+    else{ //ICMPv6
+      if(type==1 && code==4)
+        if(cli_host) cli_host->incNumPortUnreachableFlows(true);
+        if(srv_host) srv_host->incNumPortUnreachableFlows(false);
+    }
+
     if(cli_host) cli_host->incNumUnreachableFlows(true  /* as server */);
     if(srv_host) srv_host->incNumUnreachableFlows(false /* as client */);
   }
