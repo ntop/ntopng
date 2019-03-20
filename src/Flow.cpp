@@ -98,9 +98,10 @@ Flow::Flow(NetworkInterface *_iface,
       }
     }
     else{ //ICMPv6
-      if(type==1 && code==4)
+      if(type==1 && code==4){
         if(cli_host) cli_host->incNumPortUnreachableFlows(true);
         if(srv_host) srv_host->incNumPortUnreachableFlows(false);
+      }
     }
 
     if(cli_host) cli_host->incNumUnreachableFlows(true  /* as server */);
