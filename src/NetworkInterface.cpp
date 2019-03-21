@@ -1345,6 +1345,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
   u_int8_t *ip;
   bool is_fragment = false, new_flow;
   bool pass_verdict = true;
+  *hostFlow = NULL;
 
   /* VLAN disaggregation */
   if((!isDynamicInterface()) && (flowHashingMode == flowhashing_vlan) && (vlan_id > 0)) {
@@ -1909,10 +1910,6 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
     flow->updateCommunityIdFlowHash();
 #endif
 
-  /* Live packet dump to mongoose */
-  if(num_live_captures > 0)
-    deliverLiveCapture(h, packet, flow);
-
   PROFILING_SECTION_ENTER("NetworkInterface::processPacket: incStats", 4);
   incStats(ingressPacket, when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
 	   flow->get_detected_protocol().app_protocol,
@@ -2019,6 +2016,7 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
   int pcap_datalink_type = get_datalink();
   bool pass_verdict = true;
   u_int32_t rawsize = h->len * scalingFactor;
+  *flow = NULL;
 
   /* Note summy ethernet is always 0 unless sender_mac is set (Netfilter only) */
   memset(&dummy_ethernet, 0, sizeof(dummy_ethernet));
@@ -2026,12 +2024,6 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
   pollQueuedeBPFEvents();
   reloadCustomCategories();
   bcast_domains->inlineReloadBroadcastDomains();
-
-#if 0
-  static u_int n = 0;
-
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u %s", ++n, ingressPacket ? "RX" : "TX");
-#endif
 
   /* Netfilter interfaces don't report MAC addresses on packets */
   if(getIfType() == interface_type_NETFILTER)
@@ -2069,7 +2061,7 @@ datalink_check:
       break;
     default:
       incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
-      return(pass_verdict); /* Any other non IP protocol */
+      goto dissect_packet_end; /* Any other non IP protocol */
     }
 
     ethernet = (struct ndpi_ethhdr *)&dummy_ethernet;
@@ -2096,7 +2088,7 @@ datalink_check:
       break;
     default:
       incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
-      return(pass_verdict); /* Unknown IP protocol version */
+      goto dissect_packet_end; /* Unknown IP protocol version */
     }
 
     if(sender_mac) memcpy(&dummy_ethernet.h_source, sender_mac, 6);
@@ -2110,7 +2102,7 @@ datalink_check:
     ip_offset = 0;
   } else {
     incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
-    return(pass_verdict);
+    goto dissect_packet_end;
   }
 
   while(true) {
@@ -2154,7 +2146,7 @@ decode_packet_eth:
     default:
       incStats(ingressPacket, h->ts.tv_sec, ETHERTYPE_IP,
 	       NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
-      return(pass_verdict);
+      goto dissect_packet_end;
     }
     goto decode_packet_eth;
     break;
@@ -2170,7 +2162,7 @@ decode_packet_eth:
 	/* This is not IPv4 */
 	incStats(ingressPacket, h->ts.tv_sec, ETHERTYPE_IP,
 		 NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
-	return(pass_verdict);
+	goto dissect_packet_end;
       } else
 	frag_off = ntohs(iph->frag_off);
 
@@ -2243,7 +2235,7 @@ decode_packet_eth:
 	      /* FIX - Add IPv6 support */
 	      incStats(ingressPacket, h->ts.tv_sec, ETHERTYPE_IPV6,
 		       NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
-	      return(pass_verdict);
+	      goto dissect_packet_end;
 	    }
 	  }
 	} else if((sport == TZSP_PORT) || (dport == TZSP_PORT)) {
@@ -2279,7 +2271,7 @@ decode_packet_eth:
 	      if(offset >= h->caplen) {
 		incStats(ingressPacket, h->ts.tv_sec, ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN,
 			 rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
-		return(pass_verdict);
+		goto dissect_packet_end;
 	      } else {
 		eth_offset = offset;
 		goto datalink_check;
@@ -2308,7 +2300,7 @@ decode_packet_eth:
 	  if(ip_offset >= h->len) {
 	    incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
 		     rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
-	    return(pass_verdict);
+	    goto dissect_packet_end;
 	  }
 	  eth_type = ntohs(*(u_int16_t*)&packet[ip_offset-2]);
 
@@ -2323,7 +2315,7 @@ decode_packet_eth:
 	  default:
 	    incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
 		     rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
-	    return(pass_verdict);
+	    goto dissect_packet_end;
 	  }
 	}
       }
@@ -2366,7 +2358,7 @@ decode_packet_eth:
 	/* This is not IPv6 */
 	incStats(ingressPacket, h->ts.tv_sec, ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN,
 		 rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
-	return(pass_verdict);
+	goto dissect_packet_end;
       } else {
 	u_int ipv6_shift = sizeof(const struct ndpi_ipv6hdr);
 	u_int8_t l4_proto = ip6->ip6_hdr.ip6_un1_nxt;
@@ -2421,7 +2413,7 @@ decode_packet_eth:
 	  if((ip_offset + ipv6_shift) >= h->len) {
 	    incStats(ingressPacket, h->ts.tv_sec, ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN,
 		     rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
-	    return(pass_verdict);
+	    goto dissect_packet_end;
 	  }
 
 	  struct ndpi_udphdr *udp = (struct ndpi_udphdr *)&packet[ip_offset + ipv6_shift];
@@ -2448,7 +2440,7 @@ decode_packet_eth:
 	    if(ip_offset >= h->len) {
 	      incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
 		       rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
-	      return(pass_verdict);
+	      goto dissect_packet_end;
 	    }
 	    eth_type = ntohs(*(u_int16_t*)&packet[ip_offset-2]);
 
@@ -2463,7 +2455,7 @@ decode_packet_eth:
 	    default:
 	      incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
 		       rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
-	      return(pass_verdict);
+	      goto dissect_packet_end;
 	    }
 	  }
 	}
@@ -2635,6 +2627,12 @@ decode_packet_eth:
 	     rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
     break;
   }
+
+ dissect_packet_end:
+
+  /* Live packet dump to mongoose */
+  if(num_live_captures > 0)
+    deliverLiveCapture(h, packet, *flow);
 
   return(pass_verdict);
 }
@@ -7026,9 +7024,9 @@ bool NetworkInterface::matchLiveCapture(struct ntopngLuaContext * const luactx,
 					const struct pcap_pkthdr * const h,
 					const u_char * const packet,
 					Flow * const f) {
-  if((luactx->live_capture.matching_host == NULL)
-     || (luactx->live_capture.matching_host == f->get_cli_host())
-     || (luactx->live_capture.matching_host == f->get_srv_host())) {
+  if(!luactx->live_capture.matching_host /* No host filter set */
+     || (f && (luactx->live_capture.matching_host == f->get_cli_host()
+	       || luactx->live_capture.matching_host == f->get_srv_host()))) {
     if(luactx->live_capture.bpfFilterSet) {
       if(!bpf_filter(luactx->live_capture.fcode.bf_insns,
 		     (const u_char*)packet, h->caplen, h->caplen)) {
