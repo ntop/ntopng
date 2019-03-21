@@ -1689,7 +1689,6 @@ local lang = {
     ["exported_flows"] = "Exported Flows",
     ["family"] = "Family",
     ["flows_export_statistics"] = "Flows Export Statistics",
-    ["ghost_bcast_domain_descr"] = "The %{ghost_icon} highlights ghost broadcast domains (i.e. they do not belong to any of the interface IP addresses networks).",
     ["has_traffic_directions"] = "with RX/TX Directions",
     ["id"] = "Id",
     ["iface_switch_active_msg"] = "The selected interface <b>%{interface}</b> [ifid: %{ifid}] is now active",
@@ -1735,6 +1734,11 @@ local lang = {
     ["traffic_statistics"] = "Traffic Statistics",
     ["zmq_message_drops"] = "ZMQ Message Drops",
     ["zmq_rx_statistics"] = "ZMQ RX Statistics",
+  },
+  ["if_stats_networks"] = {
+     ["note_iface_addresses"] = "IP addresses are read from the interface configuration.",
+     ["note_iface_bcast_domains"] = "Broadcast domains are inferred by inspecting ARP traffic.",
+     ["note_ghost_bcast_domains"] = "The %{ghost_icon} highlights ghost broadcast domains (i.e. not belonging to any of the interface IP addresses networks).",
   },
   ["index_page"] = {
     ["applications"] = "Applications",

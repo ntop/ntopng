@@ -180,6 +180,12 @@ else
    print("<li><a href=\""..url.."&page=overview\"><i class=\"fa fa-home fa-lg\"></i></a></li>")
 end
 
+if(page == "networks") then
+   print("<li class=\"active\"><a href=\"#\">" .. i18n("networks") .. "</a></li>\n")
+else
+   print("<li><a href=\""..url.."&page=networks\">" .. i18n("networks") .. "</a></li>")
+end
+
 -- Disable Packets and Protocols tab in case of the number of packets is equal to 0
 if((ifstats ~= nil) and (ifstats.stats.packets > 0)) then
    if(page == "packets") then
@@ -484,60 +490,6 @@ if((page == "overview") or (page == nil)) then
    end
    print("</tr>")
 
-   if(ifstats.ip_addresses ~= "") then
-      local tokens = split(ifstats.ip_addresses, ",")
-
-      if(tokens ~= nil) then
-	 print("<tr><th width=250>"..i18n("ip_address").."</th><td colspan=5>")
-	 local addresses = {}
-
-	 for _,s in pairs(tokens) do
-	    t = string.split(s, "/")
-	    host = interface.getHostInfo(t[1])
-
-	    if(host ~= nil) then
-	       addresses[#addresses+1] = "<a href=\""..ntop.getHttpPrefix().."/lua/host_details.lua?host="..t[1].."\">".. t[1].."</a>"
-	    else
-	       addresses[#addresses+1] = t[1]
-	    end
-	 end
-
-	 print(table.concat(addresses, ", "))
-
-	 print("</td></tr>")
-      end
-   end
-
-   if ifstats.bcast_domains and table.len(ifstats.bcast_domains) > 0 then
-      print("<tr><th width=250>"..i18n("broadcast_domain").."</th><td colspan=5>")
-
-      local has_ghost_networks = false
-      local ghost_icon = '<font color=red><i class="fa fa-snapchat-ghost" aria-hidden="true"></i></font>'
-      local num = 1
-      local bcast_domains = ""
-      for bcast_domain, in_interface_range in pairs(ifstats.bcast_domains) do
-	 if num > 1 then
-	    bcast_domains = bcast_domains..","
-	 end
-
-	 bcast_domains = bcast_domains..bcast_domain
-
-	 if in_interface_range == 0 and interface.isPacketInterface() and not interface.isPcapDumpInterface() and ntop.getPref(string.format("ntopng.prefs.ifid_%d.is_traffic_mirrored", ifId)) ~= "1" then
-	    has_ghost_networks = true
-	    bcast_domains = bcast_domains..' '..ghost_icon
-	 end
-
-	 num = num + 1
-      end
-
-      print(bcast_domains)
-
-      if has_ghost_networks then
-	 print("<small><br><b>"..i18n("if_stats_overview.note")..":</b> "..i18n("if_stats_overview.ghost_bcast_domain_descr", {ghost_icon = ghost_icon}).."</small>")
-      end
-      print("</td></tr>")
-   end
-
    if is_physical_iface then
       print("<tr>")
       print("<th>"..i18n("mtu").."</th><td colspan=2  nowrap>"..ifstats.mtu.." "..i18n("bytes").."</td>\n")
@@ -773,6 +725,74 @@ if(ifstats.zmqRecvStats ~= nil) then
    ]]
 
    print("</table>\n")
+
+elseif((page == "networks")) then
+   print("<table class=\"table table-striped table-bordered\">")
+
+   if(ifstats.ip_addresses ~= "") then
+      local tokens = split(ifstats.ip_addresses, ",")
+
+      if(tokens ~= nil) then
+	 print("<tr><th width=250>"..i18n("ip_address").."</th><td colspan=5>")
+	 local addresses = {}
+
+	 for _,s in pairs(tokens) do
+	    t = string.split(s, "/")
+	    host = interface.getHostInfo(t[1])
+
+	    if(host ~= nil) then
+	       addresses[#addresses+1] = "<a href=\""..ntop.getHttpPrefix().."/lua/host_details.lua?host="..t[1].."\">".. t[1].."</a>".."/"..t[2]
+	    else
+	       addresses[#addresses+1] = s
+	    end
+	 end
+
+	 print(table.concat(addresses, ", "))
+
+	 print("</td></tr>")
+      end
+   end
+
+   local has_ghost_networks = false
+   local ghost_icon = '<font color=red><i class="fa fa-snapchat-ghost" aria-hidden="true"></i></font>'
+   if ifstats.bcast_domains and table.len(ifstats.bcast_domains) > 0 then
+      print("<tr><th width=250>"..i18n("broadcast_domain").."</th><td colspan=5>")
+
+      local num = 1
+      local bcast_domains = ""
+      for bcast_domain, in_interface_range in pairs(ifstats.bcast_domains) do
+	 if num > 1 then
+	    bcast_domains = bcast_domains..","
+	 end
+
+	 bcast_domains = bcast_domains..bcast_domain
+
+	 if in_interface_range == 0 and interface.isPacketInterface() and not interface.isPcapDumpInterface() and ntop.getPref(string.format("ntopng.prefs.ifid_%d.is_traffic_mirrored", ifId)) ~= "1" then
+	    has_ghost_networks = true
+	    bcast_domains = bcast_domains..' '..ghost_icon
+	 end
+
+	 num = num + 1
+      end
+
+      print(bcast_domains)
+
+      if has_ghost_networks then
+	 print("<small><br><b>"..i18n("if_stats_overview.note")..":</b> "..i18n("if_stats_overview.ghost_bcast_domain_descr", {ghost_icon = ghost_icon}).."</small>")
+      end
+      print("</td></tr>")
+   end
+   print("</table>")
+
+   print("<p><b>"..i18n("if_stats_overview.note").."</b>:<ul>")
+   print("<li>"..i18n("if_stats_networks.note_iface_addresses").."</li>")
+   print("<li>"..i18n("if_stats_networks.note_iface_bcast_domains").."</li>")
+
+   if has_ghost_networks then
+      print("<li>"..i18n("if_stats_networks.note_ghost_bcast_domains", {ghost_icon = ghost_icon}).."</li>")
+   end
+
+   print("<ul>")
 
 elseif((page == "packets")) then
    local nedge_hidden = ternary(have_nedge, 'class="hidden"', '')
