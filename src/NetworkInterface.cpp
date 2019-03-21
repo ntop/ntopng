@@ -3674,10 +3674,11 @@ struct flowHostRetriever {
   LocationPolicy location;    /* Not used in flow_search_walker */
   u_int8_t ipVersionFilter;   /* Not used in flow_search_walker */
   bool filteredHosts;         /* Not used in flow_search_walker */
-  bool blacklistedHosts;     /* Not used in flow_search_walker */
-  bool anomalousOnly;        /* Not used in flow_search_walker */
-  bool dhcpOnly;             /* Not used in flow_search_walker */
-  bool hideTopHidden;        /* Not used in flow_search_walker */
+  bool blacklistedHosts;      /* Not used in flow_search_walker */
+  bool anomalousOnly;         /* Not used in flow_search_walker */
+  bool dhcpOnly;              /* Not used in flow_search_walker */
+  bool hideTopHidden;         /* Not used in flow_search_walker */
+  const AddressTree * cidr_filter; /* Not used in flow_search_walker */
   u_int16_t vlan_id;
   char *osFilter;
   u_int32_t asnFilter;
@@ -3945,6 +3946,7 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data, bool *matc
      (r->blacklistedHosts && !h->isBlacklisted())     ||
      (r->anomalousOnly && !h->hasAnomalies())         ||
      (r->dhcpOnly && !h->isDhcpHost())                ||
+     (r->cidr_filter && !h->match(r->cidr_filter))    ||
      (r->hideTopHidden && h->isHiddenFromTop())       ||
      (r->traffic_type == traffic_type_one_way && !h->isOneWayTraffic())       ||
      (r->traffic_type == traffic_type_bidirectional && h->isOneWayTraffic())  ||
@@ -4580,6 +4582,7 @@ int NetworkInterface::sortHosts(u_int32_t *begin_slot,
 				u_int16_t pool_filter, bool filtered_hosts,
 				bool blacklisted_hosts, bool hide_top_hidden,
 				bool anomalousOnly, bool dhcpOnly,
+				const AddressTree * const cidr_filter,
 				u_int8_t ipver_filter, int proto_filter,
 				TrafficType traffic_type_filter,
 				char *sortColumn) {
@@ -4613,6 +4616,7 @@ int NetworkInterface::sortHosts(u_int32_t *begin_slot,
     retriever->blacklistedHosts = blacklisted_hosts,
     retriever->anomalousOnly = anomalousOnly,
     retriever->dhcpOnly = dhcpOnly,
+    retriever->cidr_filter = cidr_filter,
     retriever->hideTopHidden = hide_top_hidden,
     retriever->ndpi_proto = proto_filter,
     retriever->traffic_type = traffic_type_filter,
@@ -4850,6 +4854,7 @@ int NetworkInterface::getActiveHostsList(lua_State* vm,
 					 u_int8_t ipver_filter, int proto_filter,
 					 TrafficType traffic_type_filter, bool tsLua,
 					 bool anomalousOnly, bool dhcpOnly,
+					 const AddressTree * const cidr_filter,
 					 char *sortColumn, u_int32_t maxHits,
 					 u_int32_t toSkip, bool a2zSortOrder) {
   struct flowHostRetriever retriever;
@@ -4868,6 +4873,7 @@ int NetworkInterface::getActiveHostsList(lua_State* vm,
 	       countryFilter, mac_filter, vlan_id, osFilter,
 	       asnFilter, networkFilter, pool_filter, filtered_hosts, blacklisted_hosts, hide_top_hidden,
 	       anomalousOnly, dhcpOnly,
+	       cidr_filter,
 	       ipver_filter, proto_filter,
 	       traffic_type_filter,
 	       sortColumn) < 0) {
@@ -5018,6 +5024,7 @@ int NetworkInterface::getActiveHostsGroup(lua_State* vm,
 	       countryFilter, NULL /* Mac */, vlan_id,
 	       osFilter, asnFilter, networkFilter, pool_filter,
 	       filtered_hosts, false /* no blacklisted hosts filter */, false, false, false,
+	       NULL, /* no cidr filter */
 	       ipver_filter, -1 /* no protocol filter */,
 	       traffic_type_all /* no traffic type filter */,
 	       groupColumn) < 0 ) {

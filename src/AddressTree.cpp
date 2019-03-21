@@ -164,7 +164,7 @@ patricia_node_t *AddressTree::addAddress(const IpAddress * const ipa,
 
 /* ******************************************* */
 
-bool AddressTree::addAddress(char * const _what, const int16_t user_data) {
+bool AddressTree::addAddress(const char * const _what, const int16_t user_data) {
   u_int32_t _mac[6];
   int16_t id = (user_data == -1) ? numAddresses : user_data;
   

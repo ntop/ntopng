@@ -765,6 +765,7 @@ elseif((page == "networks")) then
 	    bcast_domains = bcast_domains..","
 	 end
 
+	 bcast_domain = string.format("<a href='%s/lua/hosts_stats.lua?network_cidr=%s'>%s</a>", ntop.getHttpPrefix(), bcast_domain, bcast_domain)
 	 bcast_domains = bcast_domains..bcast_domain
 
 	 if in_interface_range == 0 and interface.isPacketInterface() and not interface.isPcapDumpInterface() and ntop.getPref(string.format("ntopng.prefs.ifid_%d.is_traffic_mirrored", ifId)) ~= "1" then

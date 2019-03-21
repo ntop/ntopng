@@ -21,6 +21,7 @@ local protocol     = _GET["protocol"]
 local asn          = _GET["asn"]
 local vlan         = _GET["vlan"]
 local network      = _GET["network"]
+local cidr         = _GET["network_cidr"]
 local country      = _GET["country"]
 local mac          = _GET["mac"]
 local os_          = _GET["os"]
@@ -89,6 +90,7 @@ if (_GET["page"] ~= "historical") then
    page_params["country"] = country
    page_params["mac"] = mac
    page_params["pool"] = pool
+   page_params["network_cidr"] = cidr
 
    if(protocol ~= nil) then
       -- Example HTTP.Facebook
@@ -236,6 +238,7 @@ if (_GET["page"] ~= "historical") then
 		     local_remote = mode_label,
 		     protocol = protocol_name or "",
 		     network = not isEmptyString(network_name) and i18n("hosts_stats.in_network", {network=network_name}) or "",
+		     network_cidr = not isEmptyString(cidr) and i18n("hosts_stats.in_network", {network=cidr}) or "",
 		     ip_version = ipver_title or "",
 		     ["os"] = os_ or "",
 		     country_asn_or_mac = country or asninfo or mac or pool_ or "",

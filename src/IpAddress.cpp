@@ -298,11 +298,11 @@ json_object* IpAddress::getJSONObject() {
  * @param ptree     The hosts allowed to be accessed.
  * @return true if the host matches the tree, false otherwise.
  */
-bool IpAddress::match(AddressTree * const tree) const {
+bool IpAddress::match(const AddressTree * const tree) const {
   if(tree == NULL)
     return(true);
   else {
-    patricia_tree_t *ptree = tree->getTree((addr.ipVersion == 4) ? true : false);
+    const patricia_tree_t *ptree = tree->getTree((addr.ipVersion == 4) ? true : false);
     patricia_node_t *node;
 
     if(ptree == NULL) return(true);

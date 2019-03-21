@@ -973,6 +973,7 @@ local known_parameters = {
    ["target"]                  = validateHost,                  -- the target of the alert
    ["member"]                  = validateMember,                -- an IPv4 (optional @vlan, optional /suffix), IPv6 (optional @vlan, optional /suffix), or MAC address
    ["network"]                 = validateNumber,                -- A network ID
+   ["network_cidr"]            = validateNetwork,               -- A network expressed with the /
    ["ip"]                      = validateEmptyOr(validateIpAddress), -- An IPv4 or IPv6 address
    ["vhost"]                   = validateHTTPHost,              -- HTTP server name or IP address
    ["version"]                 = validateIpVersion,             -- To specify an IPv4 or IPv6

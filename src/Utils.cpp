@@ -2671,7 +2671,7 @@ static int remove_from_ptree(patricia_tree_t *tree, int family, void *addr, int 
 
 /* ******************************************* */
 
-patricia_node_t* Utils::ptree_match(patricia_tree_t *tree, int family, const void * const addr, int bits) {
+patricia_node_t* Utils::ptree_match(const patricia_tree_t *tree, int family, const void * const addr, int bits) {
   prefix_t prefix;
 
   if(addr == NULL) return(NULL);
@@ -2688,14 +2688,15 @@ patricia_node_t* Utils::ptree_match(patricia_tree_t *tree, int family, const voi
 
 /* ******************************************* */
 
-patricia_node_t* Utils::ptree_add_rule(patricia_tree_t *ptree, char * const line) {
-  char *ip, *bits, *slash = NULL;
+patricia_node_t* Utils::ptree_add_rule(patricia_tree_t *ptree, const char * const addr_line) {
+  char *ip, *bits, *slash = NULL, *line = NULL;
   struct in_addr addr4;
   struct in6_addr addr6;
   u_int8_t mac[6];
   u_int32_t _mac[6];
   patricia_node_t *node = NULL;
 
+  line = strdup(addr_line);
   ip = line;
   bits = strchr(line, '/');
   if(bits == NULL)
@@ -2743,10 +2744,9 @@ patricia_node_t* Utils::ptree_add_rule(patricia_tree_t *ptree, char * const line
     }
   }
 
-  if(slash) slash[0] = '/';
-
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Added IPv%d rule %s/%s [%p]", isV4 ? 4 : 6, ip, bits, node);
 
+  if(line) free(line);
   return(node);
 }
 
