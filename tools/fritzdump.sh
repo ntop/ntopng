@@ -4,7 +4,9 @@
 FRITZIP=http://fritz.box
 
 # This is the WAN interface
-IFACE="2-0"
+if [ -z $IFACE ]; then
+   IFACE="2-0"
+fi
 
 # Lan Interface
 #IFACE="1-lan"
