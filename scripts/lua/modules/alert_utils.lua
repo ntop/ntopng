@@ -602,7 +602,7 @@ local function formatAlertEntity(ifid, entity_type, entity_value, entity_info)
 	  "'>"..value.."</a>"
       end
    elseif entity_type == "network" then
-      value = hostkey2hostinfo(entity_value)["host"]
+      value = getLocalNetworkAlias(hostkey2hostinfo(entity_value)["host"])
 
       if entity_info ~= nil then
 	 value = "<a href='"..ntop.getHttpPrefix().."/lua/network_details.lua?network="..
