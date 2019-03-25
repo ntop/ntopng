@@ -1930,6 +1930,11 @@ drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
       {schema="host:unreachable_flows",      label=i18n("graphs.total_unreachable_flows")},
       {schema="host:contacts",               label=i18n("graphs.active_host_contacts")},
       {schema="host:total_alerts",           label=i18n("details.alerts")},
+      {schema="host:dns_pkts_rcvd",          label="DNS Packets Rcvd"},
+      {schema="host:dns_pkts_sent",          label="DNS Packets Sent"},
+      {schema="host:arp_requests_pkts",      label="ARP Requests Packets"},
+      {schema="host:udp_pkts",               label="UDP Packets"},
+      {schema="host:tcp_pkts_stats",         label="TCP Packets Stats"},
 
       {schema="host:1d_delta_traffic_volume",  label="1 Day Traffic Delta"}, -- TODO localize
       {schema="host:1d_delta_flows",           label="1 Day Active Flows Delta"}, -- TODO localize
