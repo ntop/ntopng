@@ -3319,98 +3319,6 @@ bool Flow::isLowGoodput() {
     return((((get_goodput_bytes()*100)/(get_bytes()+1 /* avoid zero divisions */)) < FLOW_GOODPUT_THRESHOLD) ? true : false);
 }
 
-/* *************************************** */
-
-void Flow::dissectSSL(u_int8_t *payload, u_int16_t payload_len, const struct bpf_timeval *when, bool cli2srv) {
-  uint16_t skiphello;
-  bool hs_now_end = false;
-
-  if(good_ssl_hs && twh_over && payload_len >= SSL_MIN_PACKET_SIZE) {
-    if((cli2srv && (getSSLEncryptionStatus() & SSL_ENCRYPTION_CLIENT)) ||
-       (!cli2srv && (getSSLEncryptionStatus() & SSL_ENCRYPTION_SERVER)) ) {
-      protos.ssl.is_data = true;
-
-      if(!protos.ssl.firstdata_seen) {
-	if(getSSLEncryptionStatus() == SSL_ENCRYPTION_BOTH) {
-	  memcpy(&protos.ssl.lastdata_time, when, sizeof(struct timeval));
-	  protos.ssl.delta_firstData = ((float)(Utils::timeval2usec(&protos.ssl.lastdata_time)
-						- Utils::timeval2usec(&protos.ssl.hs_end_time)))/1000;
-	  ntop->getTrace()->traceEvent(TRACE_DEBUG, "[%p][%u.%u] SSL first (full) data: %u",
-				       this, when->tv_sec, when->tv_usec, payload_len);
-	  protos.ssl.firstdata_seen = true;
-	}
-      } else {
-	protos.ssl.deltaTime_data = ((float)(Utils::timeval2usec((struct timeval*)when)
-					     - Utils::timeval2usec(&protos.ssl.lastdata_time)))/1000;
-	memcpy(&protos.ssl.lastdata_time, when, sizeof(struct timeval));
-      }
-    } else {
-      protos.ssl.is_data = false;
-
-      if(payload[0] == SSL_HANDSHAKE_PACKET) {
-	if(payload[5] == SSL_CLIENT_HELLO) {
-	  if(protos.ssl.cli_stage == SSL_STAGE_UNKNOWN) {
-	    memcpy(&protos.ssl.clienthello_time, when, sizeof(struct timeval));
-	    protos.ssl.cli_stage = SSL_STAGE_HELLO;
-	  }
-	} else if((payload[5] == SSL_SERVER_HELLO)
-		  && (protos.ssl.srv_stage == SSL_STAGE_UNKNOWN)
-		  && (protos.ssl.cli_stage == SSL_STAGE_HELLO)) {
-	  skiphello = 5 + 4 + ntohs(get_u_int16_t(payload, 7));
-
-	  if((payload_len > skiphello)
-	     && (payload[skiphello] == SSL_SERVER_CHANGE_CIPHER_SPEC)) {
-	      protos.ssl.srv_stage = SSL_STAGE_CCS;
-	      // here client encryption is still plain
-	    } else {
-	      protos.ssl.srv_stage = SSL_STAGE_HELLO;
-	    }
-	} else if((payload[5] == SSL_CLIENT_KEY_EXCHANGE)
-		  && (protos.ssl.cli_stage == SSL_STAGE_HELLO)) {
-	  protos.ssl.cli_stage = SSL_STAGE_CCS;
-
-	  if(getSSLEncryptionStatus() == SSL_ENCRYPTION_BOTH)
-	    hs_now_end = true;
-	} else if((payload[5] == SSL_NEW_SESSION_TICKET)
-		  && (protos.ssl.srv_stage == SSL_STAGE_HELLO)) {
-	  protos.ssl.srv_stage = SSL_STAGE_CCS;
-
-	  if(getSSLEncryptionStatus() == SSL_ENCRYPTION_BOTH)
-	    hs_now_end = true;
-	}
-      } else if((payload[0] == SSL_SERVER_CHANGE_CIPHER_SPEC)
-		&& (protos.ssl.srv_stage == SSL_STAGE_HELLO)) {
-	protos.ssl.srv_stage = SSL_STAGE_CCS;
-	if(getSSLEncryptionStatus() == SSL_ENCRYPTION_BOTH)
-	    hs_now_end = true;
-      }
-
-      if(hs_now_end) {
-	// both client and server CCS appeared here
-	memcpy(&protos.ssl.hs_end_time, when, sizeof(struct timeval));
-	protos.ssl.hs_delta_time = ((float)(Utils::timeval2usec(&protos.ssl.hs_end_time)
-					    - Utils::timeval2usec(&protos.ssl.clienthello_time)))/1000;
-      }
-
-      protos.ssl.hs_packets++;
-      good_ssl_hs &= protos.ssl.hs_packets <= SSL_MAX_HANDSHAKE_PCKS;
-    }
-  }
-}
-
-/* ***************************************************** */
-
-FlowSSLEncryptionStatus Flow::getSSLEncryptionStatus() {
-  if(isSSLProto()) {
-    return(FlowSSLEncryptionStatus)(
-				    ((protos.ssl.srv_stage == SSL_STAGE_CCS) << 0) |
-				    ((protos.ssl.cli_stage == SSL_STAGE_CCS) << 1)
-				    );
-  }
-
-  return SSL_ENCRYPTION_PLAIN;
-}
-
 /* ***************************************************** */
 
 FlowStatus Flow::getFlowStatus() {
@@ -3471,11 +3379,6 @@ FlowStatus Flow::getFlowStatus() {
 	/* 3WH is over */
 	switch(l7proto) {
 	case NDPI_PROTOCOL_SSL:
-#ifndef HAVE_NEDGE
-	  if(!protos.ssl.firstdata_seen && isIdle)
-	    return status_slow_application_header;
-#endif
-
 	  if(protos.ssl.certificate && protos.ssl.server_certificate) {
 	    if(protos.ssl.server_certificate[0] == '*') {
 	      if(!strstr(protos.ssl.certificate, &protos.ssl.server_certificate[1]))

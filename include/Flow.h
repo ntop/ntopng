@@ -39,19 +39,6 @@ typedef struct {
   InterarrivalStats pktTime;
 } FlowPacketStats;
 
-typedef enum {
-  SSL_STAGE_UNKNOWN = 0,
-  SSL_STAGE_HELLO,
-  SSL_STAGE_CCS
-} FlowSSLStage;
-
-typedef enum {
-  SSL_ENCRYPTION_PLAIN = 0x0,
-  SSL_ENCRYPTION_SERVER = 0x1,
-  SSL_ENCRYPTION_CLIENT = 0x2,
-  SSL_ENCRYPTION_BOTH = 0x3,
-} FlowSSLEncryptionStatus;
-
 class Flow : public GenericHashEntry {
  private:
   Host *cli_host, *srv_host;
@@ -107,13 +94,6 @@ class Flow : public GenericHashEntry {
 
     struct {
       char *certificate, *server_certificate;
-      FlowSSLStage cli_stage, srv_stage;
-      u_int8_t hs_packets;
-      bool is_data;
-      /* firstdata refers to the time where encryption is active on both ends */
-      bool firstdata_seen;
-      struct timeval clienthello_time, hs_end_time, lastdata_time;
-      float hs_delta_time, delta_firstData, deltaTime_data;
     } ssl;
 
     struct {
@@ -395,7 +375,6 @@ class Flow : public GenericHashEntry {
   void guessProtocol();
   bool dumpFlow(bool dump_alert);
   bool match(AddressTree *ptree);
-  void dissectSSL(u_int8_t *payload, u_int16_t payload_len, const struct bpf_timeval *when, bool cli2srv);
   void dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_len);
   void dissectSSDP(bool src2dst_direction, char *payload, u_int16_t payload_len);
   void dissectMDNS(u_int8_t *payload, u_int16_t payload_len);
@@ -420,10 +399,6 @@ class Flow : public GenericHashEntry {
   inline char* getHTTPContentType() { return(isHTTP() ? protos.http.last_content_type : (char*)"");   }
   inline char* getSSLCertificate()  { return(isSSL() ? protos.ssl.certificate : (char*)""); }
   bool isSSLProto();
-  inline bool isSSLData()              { return(isSSLProto() && good_ssl_hs && protos.ssl.is_data);  }
-  inline bool isSSLHandshake()         { return(isSSLProto() && good_ssl_hs && !protos.ssl.is_data); }
-  inline bool hasSSLHandshakeEnded()   { return(getSSLEncryptionStatus() == SSL_ENCRYPTION_BOTH);    }
-  FlowSSLEncryptionStatus getSSLEncryptionStatus();
 
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   inline void updateProfile()     { trafficProfile = iface->getFlowProfile(this); }

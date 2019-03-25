@@ -1874,10 +1874,6 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       if((src_port == dst_port) && (dst_port == htons(17500)))
 	flow->get_cli_host()->dissectDropbox((const char *)payload, payload_len);      
       break;
-      
-    default:
-      if(flow->isSSLProto())
-        flow->dissectSSL(payload, payload_len, when, src2dst_direction);
     }
 
     flow->processDetectedProtocol();
