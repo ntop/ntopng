@@ -90,7 +90,7 @@ Host::~Host() {
 
 /* *************************************** */
 
-void Host::updateSynFlags(time_t when, u_int8_t flags, Flow *f, bool syn_sent) {
+void Host::updateSynAlertsCounter(time_t when, u_int8_t flags, Flow *f, bool syn_sent) {
   AlertCounter *counter = syn_sent ? syn_flood_attacker_alert : syn_flood_victim_alert;
 
   if(triggerAlerts())

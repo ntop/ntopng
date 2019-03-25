@@ -1196,6 +1196,8 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
   if(zflow->core.tcp.serverNwLatency.tv_sec || zflow->core.tcp.serverNwLatency.tv_usec)
     flow->setFlowNwLatency(&zflow->core.tcp.serverNwLatency, !src2dst_direction);
 
+  flow->setRtt();
+
   if(src2dst_direction)
     flow->setFlowApplLatency(zflow->core.tcp.applLatencyMsec);
 
@@ -1242,11 +1244,16 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
   }
 
   if(zflow->core.l4_proto == IPPROTO_TCP) {
-    struct timeval when;
+    if(zflow->core.tcp.client_tcp_flags || zflow->core.tcp.server_tcp_flags) {
+      /* There's a breadown between client and server TCP flags */
+      if(zflow->core.tcp.client_tcp_flags)
+	flow->setTcpFlags(zflow->core.tcp.client_tcp_flags, src2dst_direction);
+      if(zflow->core.tcp.server_tcp_flags)
+	flow->setTcpFlags(zflow->core.tcp.server_tcp_flags, !src2dst_direction);
+    } else if(zflow->core.tcp.tcp_flags)
+      /* TCP flags are cumulated client + server */
+      flow->setTcpFlags(zflow->core.tcp.tcp_flags, src2dst_direction);
 
-    when.tv_sec = (long)now, when.tv_usec = 0;
-    flow->updateTcpFlags((const struct bpf_timeval*)&when,
-			 zflow->core.tcp_flags, src2dst_direction);
     flow->incTcpBadStats(true,
 			 zflow->core.tcp.ooo_in_pkts, zflow->core.tcp.retr_in_pkts,
 			 zflow->core.tcp.lost_in_pkts);
