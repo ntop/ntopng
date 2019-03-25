@@ -4151,6 +4151,7 @@ static int ntop_nindex_topk(lua_State* vm) {
   _topkOperator = (char*)lua_tostring(vm, id++);
 
   if(!strcasecmp(_topkOperator, "sum")) topkOperator = topk_select_operator_sum;
+  else if(!strcasecmp(_topkOperator, "count")) topkOperator = topk_select_operator_count;
   else if(!strcasecmp(_topkOperator, "min")) topkOperator = topk_select_operator_min;
   else topkOperator = topk_select_operator_max;
 
