@@ -94,6 +94,10 @@ class Flow : public GenericHashEntry {
 
     struct {
       char *certificate, *server_certificate;
+      /* Certificate dissection */
+      char *certificate_buf_leftover;
+      u_int certificate_leftover;
+      bool dissect_certificate;
     } ssl;
 
     struct {
@@ -376,6 +380,7 @@ class Flow : public GenericHashEntry {
   bool dumpFlow(bool dump_alert);
   bool match(AddressTree *ptree);
   void dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_len);
+  void dissectSSL(char *payload, u_int16_t payload_len);
   void dissectSSDP(bool src2dst_direction, char *payload, u_int16_t payload_len);
   void dissectMDNS(u_int8_t *payload, u_int16_t payload_len);
   void dissectBittorrent(char *payload, u_int16_t payload_len);
