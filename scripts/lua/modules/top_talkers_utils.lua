@@ -229,7 +229,7 @@ function top_talkers_utils.enrichRecordInformation(class_key, rec, show_vlan)
       if rec.address == "-1" then
 	 network_name = i18n("remote_networks")
       else
-	 network_name = ntop.getNetworkNameById(tonumber(rec.address))
+	 network_name = getFullLocalNetworkName(ntop.getNetworkNameById(tonumber(rec.address)))
       end
       if not isEmptyString(network_name) then
 	 label = network_name
