@@ -2550,8 +2550,8 @@ end
 -- ###############################################
 
 -- Update Utils::flowstatus2str / FlowStatus enum
-function getFlowStatus(status, flowstatus_info, alert)
-   local warn_sign = "<i class=\"fa fa-warning\" aria-hidden=true style=\"color: orange;\"></i> "
+function getFlowStatus(status, flowstatus_info, alert, no_icon)
+   local warn_sign = ternary(no_icon, "", "<i class=\"fa fa-warning\" aria-hidden=true style=\"color: orange;\"></i> ")
    local res = warn_sign..i18n("flow_details.unknown_status",{status=status})
 
    -- NOTE: flowstatus_info can be nil on older alerts

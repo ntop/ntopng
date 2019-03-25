@@ -1304,6 +1304,7 @@ local lang = {
     ["custom"] = "Custom",
     ["download_chart_data"] = "Download the current chart data",
     ["export_flows_as_txt"] = "Export flows as TXT file",
+    ["flows_status_overview"] = "%{protocol} Flows Status Overview",
     ["flows_vs_local_hosts"] = "Active Flows vs Local Hosts",
     ["flows_vs_traffic"] = "Active Flows vs Traffic",
     ["get_permanent_link"] = "Get permanent link",
@@ -1673,6 +1674,11 @@ local lang = {
     ["scaling_factor_popup_msg"] = "This should match your capture interface sampling rate",
     ["trigger_interface_alerts"] = "Trigger Interface Alerts",
   },
+  ["if_stats_networks"] = {
+    ["note_ghost_bcast_domains"] = "The %{ghost_icon} highlights ghost broadcast domains (i.e. not belonging to any of the interface IP addresses networks).",
+    ["note_iface_addresses"] = "IP addresses are read from the interface configuration.",
+    ["note_iface_bcast_domains"] = "Broadcast domains are inferred by inspecting ARP traffic.",
+  },
   ["if_stats_overview"] = {
     ["active"] = "Active",
     ["all_counters"] = "All Counters",
@@ -1734,11 +1740,6 @@ local lang = {
     ["traffic_statistics"] = "Traffic Statistics",
     ["zmq_message_drops"] = "ZMQ Message Drops",
     ["zmq_rx_statistics"] = "ZMQ RX Statistics",
-  },
-  ["if_stats_networks"] = {
-     ["note_iface_addresses"] = "IP addresses are read from the interface configuration.",
-     ["note_iface_bcast_domains"] = "Broadcast domains are inferred by inspecting ARP traffic.",
-     ["note_ghost_bcast_domains"] = "The %{ghost_icon} highlights ghost broadcast domains (i.e. not belonging to any of the interface IP addresses networks).",
   },
   ["index_page"] = {
     ["applications"] = "Applications",

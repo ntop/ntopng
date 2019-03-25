@@ -321,6 +321,15 @@ local function validateFlowStatus(mode)
    return validateChoice(modes, mode)
 end
 
+local function validateFlowStatusNumber(status)
+   if not validateNumber(status) then
+      return false
+   end
+
+   local num = tonumber(status)
+   return((num >= 0) and (num < 2^8))
+end
+
 local function validateTCPFlowState(mode)
    local modes = { "established", "connecting", "closed", "reset" }
 
@@ -1346,6 +1355,7 @@ local known_parameters = {
    ["drop_flow_policy"]        = validateBool,                  -- true if target flow should be dropped
    ["traffic_type"]            = validateBroadcastUnicast,      -- flows_stats.lua
    ["flow_status"]             = validateFlowStatus,            -- flows_stats.lua
+   ["flow_status_num"]         = validateFlowStatusNumber,      -- charts
    ["tcp_flow_state"]          = validateTCPFlowState,          -- flows_stats.lua
    ["include_unlimited"]       = validateBool,                  -- pool_details_ndpi.lua
    ["policy_preset"]           = validateEmptyOr(validatePolicyPreset), -- a traffic bridge policy set
