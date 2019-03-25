@@ -1573,14 +1573,14 @@ end
 
 -- ##############################################
 
-function getLocalNetworkAliassKey()
+function getLocalNetworkAliasKey()
    return "ntopng.network_aliases"
 end
 
 -- ##############################################
 
 function getLocalNetworkAlias(network)
-   local alias = ntop.getHashCache(getLocalNetworkAliassKey(), network)
+   local alias = ntop.getHashCache(getLocalNetworkAliasKey(), network)
 
    if not isEmptyString(alias) then
       return alias
@@ -1605,9 +1605,9 @@ end
 
 function setLocalNetworkAlias(network, alias)
    if((network ~= alias) or isEmptyString(alias)) then
-      ntop.setHashCache(getLocalNetworkAliassKey(), network, alias)
+      ntop.setHashCache(getLocalNetworkAliasKey(), network, alias)
    else
-      ntop.delHashCache(getLocalNetworkAliassKey(), network)
+      ntop.delHashCache(getLocalNetworkAliasKey(), network)
    end
 end
 
