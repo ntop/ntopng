@@ -457,7 +457,8 @@ class Flow : public GenericHashEntry {
   inline void setFlowNwLatency(const struct timeval * const tv, bool client) {
     if(client) memcpy(&clientNwLatency, tv, sizeof(*tv));
     else memcpy(&serverNwLatency, tv, sizeof(*tv));
-  };
+  }
+  inline void setFlowApplLatency(float latency_msecs) { applLatencyMsec = latency_msecs; }
   inline bool      setFlowDevice(u_int32_t device_ip, u_int16_t inidx, u_int16_t outidx) {
     if((flow_device.device_ip > 0 && flow_device.device_ip != device_ip)
        || (flow_device.in_index > 0 && flow_device.in_index != inidx)

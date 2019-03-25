@@ -474,7 +474,6 @@ bool ParserInterface::parsePENNtopField(ZMQ_Flow * const flow, u_int32_t field, 
       float client_nw_latency = atof(value);
       flow->core.tcp.clientNwLatency.tv_sec = client_nw_latency / 1e3;
       flow->core.tcp.clientNwLatency.tv_usec = 1e3 * (client_nw_latency - flow->core.tcp.clientNwLatency.tv_sec * 1e3);
-
       break;
     }
   case SERVER_NW_LATENCY_MS:
@@ -482,7 +481,6 @@ bool ParserInterface::parsePENNtopField(ZMQ_Flow * const flow, u_int32_t field, 
       float server_nw_latency = atof(value);
       flow->core.tcp.serverNwLatency.tv_sec = server_nw_latency / 1e3;
       flow->core.tcp.serverNwLatency.tv_usec = 1e3 * (server_nw_latency - flow->core.tcp.serverNwLatency.tv_sec * 1e3);
-
       break;
     }
   case APPL_LATENCY_MS:
