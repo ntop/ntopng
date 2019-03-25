@@ -257,6 +257,7 @@ class Flow : public GenericHashEntry {
   inline char* getBitTorrentHash() { return(bt_hash);          };
   inline void  setBTHash(char *h)  { if(!h) return; if(bt_hash) { free(bt_hash); bt_hash = NULL; }; bt_hash = strdup(h); }
   inline void  setServerName(char *v)  { if(host_server_name) free(host_server_name);  host_server_name = strdup(v); }
+  void setTcpFlags(u_int8_t flags, bool src2dst_direction);
   void updateTcpFlags(const struct bpf_timeval *when,
 		      u_int8_t flags, bool src2dst_direction);
   void incTcpBadStats(bool src2dst_direction,
@@ -430,8 +431,17 @@ class Flow : public GenericHashEntry {
   inline void      setVRFid(u_int32_t v)  { vrfId = v;                              }
 
   inline void setFlowNwLatency(const struct timeval * const tv, bool client) {
-    if(client) memcpy(&clientNwLatency, tv, sizeof(*tv));
-    else memcpy(&serverNwLatency, tv, sizeof(*tv));
+    if(client) {
+      memcpy(&clientNwLatency, tv, sizeof(*tv));
+      if(cli_host) cli_host->updateRoundTripTime(Utils::timeval2ms(&clientNwLatency));
+    } else {
+      memcpy(&serverNwLatency, tv, sizeof(*tv));
+      if(srv_host) srv_host->updateRoundTripTime(Utils::timeval2ms(&serverNwLatency));
+    }
+  }
+  inline void setRtt() {
+    rttSec = ((float)(serverNwLatency.tv_sec + clientNwLatency.tv_sec))
+      +((float)(serverNwLatency.tv_usec + clientNwLatency.tv_usec)) / (float)1000000;
   }
   inline void setFlowApplLatency(float latency_msecs) { applLatencyMsec = latency_msecs; }
   inline bool      setFlowDevice(u_int32_t device_ip, u_int16_t inidx, u_int16_t outidx) {

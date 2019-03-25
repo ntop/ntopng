@@ -221,7 +221,7 @@ class Host : public GenericHashEntry {
   virtual void  serialize2redis() {};
   bool addIfMatching(lua_State* vm, AddressTree * ptree, char *key);
   bool addIfMatching(lua_State* vm, u_int8_t *mac);
-  void updateSynFlags(time_t when, u_int8_t flags, Flow *f, bool syn_sent);
+  void updateSynAlertsCounter(time_t when, u_int8_t flags, Flow *f, bool syn_sent);
   inline void updateRoundTripTime(u_int32_t rtt_msecs) {
     if(as) as->updateRoundTripTime(rtt_msecs);
   }

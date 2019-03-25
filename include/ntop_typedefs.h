@@ -189,10 +189,11 @@ typedef struct zmq_flow_core {
   u_int16_t src_port, dst_port, inIndex, outIndex;
   ndpi_proto l7_proto;
   u_int16_t vlan_id, pkt_sampling_rate;
-  u_int8_t l4_proto, tcp_flags;
+  u_int8_t l4_proto;
   u_int32_t in_pkts, in_bytes, out_pkts, out_bytes, vrfId;
   u_int8_t absolute_packet_octet_counters;
   struct {
+    u_int8_t tcp_flags, client_tcp_flags, server_tcp_flags;
     u_int32_t ooo_in_pkts, ooo_out_pkts;
     u_int32_t retr_in_pkts, retr_out_pkts;
     u_int32_t lost_in_pkts, lost_out_pkts;

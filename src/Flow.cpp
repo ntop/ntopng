@@ -2412,18 +2412,59 @@ void Flow::addFlowStats(bool cli2srv_direction,
       pkts_thpt = (cli2srv_packets + srv2cli_packets) / (float)(last_seen - first_seen);
   }
 }
+/* *************************************** */
+
+void Flow::setTcpFlags(u_int8_t flags, bool src2dst_direction) {
+  if(iface->isPacketInterface())
+    return; /* Use updateTcpFlags for packet interfaces */
+
+  iface->incFlagsStats(flags);
+
+  if(cli_host) cli_host->incFlagStats(src2dst_direction, flags);
+  if(srv_host) srv_host->incFlagStats(!src2dst_direction, flags);
+
+  if((flags & TH_SYN) && (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_SYN) != TH_SYN))
+    iface->getTcpFlowStats()->incSyn();
+
+  if((flags & TH_RST) && (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_RST) != TH_RST))
+    iface->getTcpFlowStats()->incReset();
+
+  if((flags & TH_FIN) && (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_FIN) != TH_FIN))
+    iface->getTcpFlowStats()->incFin();
+
+  /* The update below must be after the above check */
+  if(src2dst_direction)
+    src2dst_tcp_flags |= flags;
+  else
+    dst2src_tcp_flags |= flags;
+
+  if(!twh_over) {
+    if((src2dst_tcp_flags & (TH_SYN|TH_ACK)) == (TH_SYN|TH_ACK)
+       && ((dst2src_tcp_flags & (TH_SYN|TH_ACK)) == (TH_SYN|TH_ACK)))
+      twh_ok = twh_over = true,
+	iface->getTcpFlowStats()->incEstablished();
+  }
+
+  /* Can't set these guys for non-packet interfaces */
+  memset(&synTime, 0, sizeof(synTime)),
+    memset(&synAckTime, 0, sizeof(synAckTime)),
+    memset(&ackTime, 0, sizeof(ackTime));
+}
 
 /* *************************************** */
 
 void Flow::updateTcpFlags(const struct bpf_timeval *when,
 			  u_int8_t flags, bool src2dst_direction) {
+  if(!iface->isPacketInterface())
+    return; /* Use setTcpFlags for non-packet interfaces */
+
   iface->incFlagsStats(flags);
   if(cli_host) cli_host->incFlagStats(src2dst_direction, flags);
   if(srv_host) srv_host->incFlagStats(!src2dst_direction, flags);
 
   if(flags == TH_SYN) {
-    if(cli_host) cli_host->updateSynFlags(when->tv_sec, flags, this, true);
-    if(srv_host) srv_host->updateSynFlags(when->tv_sec, flags, this, false);
+    if(cli_host) cli_host->updateSynAlertsCounter(when->tv_sec, flags, this, true);
+    if(srv_host) srv_host->updateSynAlertsCounter(when->tv_sec, flags, this, false);
   }
 
   if((flags & TH_SYN) && (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_SYN) != TH_SYN))
@@ -2467,8 +2508,7 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when,
 	else if(cli_host)
 	  cli_host->updateRoundTripTime(Utils::timeval2ms(&clientNwLatency));
 
-	rttSec = ((float)(serverNwLatency.tv_sec+clientNwLatency.tv_sec))
-	  +((float)(serverNwLatency.tv_usec+clientNwLatency.tv_usec))/(float)1000000;
+	setRtt();
 
 	twh_ok = true;
       }

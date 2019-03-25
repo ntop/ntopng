@@ -2042,28 +2042,26 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, ndpistats)
        </div>\
     ']]
 
-    if interface.isPacketInterface() then
-       -- TCP flow state filter
-       local tcp_state_params = table.clone(page_params)
-       tcp_state_params["tcp_flow_state"] = nil
+    -- TCP flow state filter
+    local tcp_state_params = table.clone(page_params)
+    tcp_state_params["tcp_flow_state"] = nil
 
-       print[[, '\
+    print[[, '\
        <div class="btn-group">\
 	  <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("flows_page.tcp_state")) print(getParamFilter(page_params, "tcp_flow_state")) print[[<span class="caret"></span></button>\
 	  <ul class="dropdown-menu" role="menu">\
 	  <li><a href="]] print(getPageUrl(base_url, tcp_state_params)) print[[">]] print(i18n("flows_page.all_flows")) print[[</a></li>\]]
 
-       local entries = {}
-       for _, entry in pairs({"established", "connecting", "closed", "reset"}) do
-	  entries[#entries + 1] = {entry, tcp_flow_state_utils.state2i18n(entry)}
-       end
+    local entries = {}
+    for _, entry in pairs({"established", "connecting", "closed", "reset"}) do
+       entries[#entries + 1] = {entry, tcp_flow_state_utils.state2i18n(entry)}
+    end
 
-       printDropdownEntries(entries, base_url, tcp_state_params, "tcp_flow_state", page_params.tcp_flow_state)
-       print[[\
+    printDropdownEntries(entries, base_url, tcp_state_params, "tcp_flow_state", page_params.tcp_flow_state)
+    print[[\
 	  </ul>\
        </div>\
     ']]
-    end
 
     -- Unidirectional flows selector
     local traffic_type_params = table.clone(page_params)
