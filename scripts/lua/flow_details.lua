@@ -391,12 +391,12 @@ else
       local rtt = flow["tcp.nw_latency.client"] + flow["tcp.nw_latency.server"]
 
       if(rtt > 0) then
-	 local cli2srv = round(((flow["tcp.nw_latency.client"] * 100) / rtt), 2)
-	 local srv2cli = round(((flow["tcp.nw_latency.server"] * 100) / rtt), 2)	 
+	 local cli2srv = round(flow["tcp.nw_latency.client"], 3)
+	 local srv2cli = round(flow["tcp.nw_latency.server"], 3)
 	 
 	 print("<tr><th width=30%>"..i18n("flow_details.rtt_breakdown").."</th><td colspan=2>")
-	 print('<div class="progress"><div class="progress-bar progress-bar-warning" style="width: ' .. round(flow["tcp.nw_latency.client"],2) .. '%;">'.. cli2srv ..' ms (client)</div>')
-	 print('<div class="progress-bar progress-bar-info" style="width: ' .. srv2cli .. '%;">' .. round(flow["tcp.nw_latency.server"],2) .. ' ms (server)</div></div>')
+	 print('<div class="progress"><div class="progress-bar progress-bar-warning" style="width: ' .. (cli2srv * 100 / rtt) .. '%;">'.. cli2srv ..' ms (client)</div>')
+	 print('<div class="progress-bar progress-bar-info" style="width: ' .. (srv2cli * 100 / rtt) .. '%;">' .. srv2cli .. ' ms (server)</div></div>')
 	 print("</td></tr>\n")
 
 	 -- Inspired by https://gist.github.com/geraldcombs/d38ed62650b1730fb4e90e2462f16125

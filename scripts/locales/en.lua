@@ -1477,7 +1477,7 @@ local lang = {
     ["filtered_hosts_only"] = "Hosts With Blocked Traffic",
     ["host_pool"] = "Host Pool %{pool_name}",
     ["hosts"] = "Hosts",
-    ["hosts_page_title"] = "%{all} %{traffic_type} %{local_remote} %{protocol} %{network_cidr} %{ip_version} %{os} Hosts %{country_asn_or_mac} %{vlan}",
+    ["hosts_page_title"] = "%{all} %{traffic_type} %{local_remote} %{protocol} %{network_cidr} %{network} %{ip_version} %{os} Hosts %{country_asn_or_mac} %{vlan}",
     ["idle_hosts_not_listed"] = "Idle hosts not listed.",
     ["in_network"] = "%{network}",
     ["ipver_title"] = "IPv%{version_num}",
@@ -2183,6 +2183,7 @@ local lang = {
   },
   ["network_details"] = {
     ["network"] = "Network",
+    ["network_alias"] = "Network Alias",
     ["network_parameter_missing_message"] = "Network parameter is missing (internal error?)",
     ["no_available_stats_for_network"] = "No available stats for network %{network}",
   },

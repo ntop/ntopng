@@ -1571,6 +1571,48 @@ function flowinfo2process(process, host_info_to_url)
    return fmt
 end
 
+-- ##############################################
+
+function getLocalNetworkAliasKey()
+   return "ntopng.network_aliases"
+end
+
+-- ##############################################
+
+function getLocalNetworkAlias(network)
+   local alias = ntop.getHashCache(getLocalNetworkAliasKey(), network)
+
+   if not isEmptyString(alias) then
+      return alias
+   end
+
+   return network
+end
+
+-- ##############################################
+
+function getFullLocalNetworkName(network)
+   local alias = getLocalNetworkAlias(network)
+
+   if alias ~= network then
+      return string.format("%s [%s]", alias, network)
+   end
+
+   return network
+end
+
+-- ##############################################
+
+function setLocalNetworkAlias(network, alias)
+   if((network ~= alias) or isEmptyString(alias)) then
+      ntop.setHashCache(getLocalNetworkAliasKey(), network, alias)
+   else
+      ntop.delHashCache(getLocalNetworkAliasKey(), network)
+   end
+end
+
+-- ##############################################
+
 -- URL Util --
 
 --

@@ -131,7 +131,7 @@ local function print_single_group(value)
    end
 
    if (group_col == "local_network_id" or group_col == "local_network" or network_n ~= nil) then
-      print(value["name"]..'</A> ')
+      print(getFullLocalNetworkName(value["name"])..'</A> ')
       print('", "column_chart": "')
       if tonumber(value["id"]) ~= -1 and interface.isPcapDumpInterface() == false then
 	 print('<A HREF=\''..ntop.getHttpPrefix()..'/lua/network_details.lua?network='..value["id"]..'&page=historical\'><i class=\'fa fa-area-chart fa-lg\'></i></A>')

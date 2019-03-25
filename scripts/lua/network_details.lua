@@ -26,6 +26,8 @@ local ifId = ifstats.id
 local have_nedge = ntop.isnEdge()
 
 local network_name = ntop.getNetworkNameById(tonumber(network))
+local custom_name = getLocalNetworkAlias(network_name)
+
 local network_vlan   = tonumber(_GET["vlan"])
 if network_vlan == nil then network_vlan = 0 end
 
@@ -142,6 +144,8 @@ elseif (page == "config") then
       end
 
       ntop.setHashCache(get_alerts_suppressed_hash_name(getInterfaceId(ifname)), network_name, tostring(trigger_alerts))
+      setLocalNetworkAlias(network_name, _POST["custom_name"])
+      custom_name = getLocalNetworkAlias(network_name)
     end
 
       trigger_alerts = ntop.getHashCache(get_alerts_suppressed_hash_name(getInterfaceId(ifname)), network_name)
@@ -161,6 +165,13 @@ elseif (page == "config") then
                   <i class="fa fa-exclamation-triangle fa-lg"></i>
                   ]] print(i18n("network_alert_config.trigger_alerts_for_network",{network=network_name})) print[[
                </input>
+         </td>
+      </tr>]]
+
+   print [[<tr>
+         <th>]] print(i18n("network_details.network_alias")) print[[</th>
+         <td>
+               <input type="text" name="custom_name" class="form-control" placeholder="Custom Name" style="width: 280px;" value="]] print(custom_name) print[[">
          </td>
       </tr>]]
 
