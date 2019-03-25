@@ -1190,6 +1190,12 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
     }
   }
 
+  if(zflow->core.tcp.clientNwLatency.tv_sec || zflow->core.tcp.clientNwLatency.tv_usec)
+    flow->setFlowNwLatency(&zflow->core.tcp.clientNwLatency, true /* Client */);
+
+  if(zflow->core.tcp.serverNwLatency.tv_sec || zflow->core.tcp.serverNwLatency.tv_usec)
+    flow->setFlowNwLatency(&zflow->core.tcp.serverNwLatency, false /* Server */);
+
   /* Update flow device stats */
   if(!flow->setFlowDevice(zflow->core.deviceIP,
 			  src2dst_direction ? zflow->core.inIndex  : zflow->core.outIndex,

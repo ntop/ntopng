@@ -196,6 +196,8 @@ typedef struct zmq_flow_core {
     u_int32_t ooo_in_pkts, ooo_out_pkts;
     u_int32_t retr_in_pkts, retr_out_pkts;
     u_int32_t lost_in_pkts, lost_out_pkts;
+    struct timeval clientNwLatency, serverNwLatency;
+    float applLatencyMsec;
   } tcp;
   u_int32_t first_switched, last_switched;
   u_int8_t src_mac[6], dst_mac[6], direction, source_id;

@@ -104,7 +104,7 @@ if (_GET["page"] ~= "historical") then
 
    if(network ~= nil) then
       page_params["network"] = network
-      network_name = ntop.getNetworkNameById(tonumber(network))
+      network_name = getLocalNetworkAlias(ntop.getNetworkNameById(tonumber(network)))
    else
       network_name = ""
    end
