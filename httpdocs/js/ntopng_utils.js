@@ -540,6 +540,15 @@ function makeFindHostBeforeSubmitCallback(http_prefix) {
   return function(form, data) {
     if (data.type == "mac") {
       form.attr("action", http_prefix + "/lua/mac_details.lua");
+    } else if (data.type == "network") {
+      form.attr("action", http_prefix + "/lua/hosts_stats.lua");
+      /* Must add also the network to properly set the destination link */
+      $('<input>').attr({
+        type: 'hidden',
+        id: 'network',
+        name: 'network',
+        value: data.network,
+      }).appendTo(form);
     } else if (data.type == "snmp") {
       form.attr("action", http_prefix + "/lua/pro/enterprise/snmp_interface_details.lua");
       /* Must add also the snmp port index to properly set the destination link */

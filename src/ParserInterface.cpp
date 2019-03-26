@@ -341,7 +341,7 @@ bool ParserInterface::parsePENZeroField(ZMQ_Flow * const flow, u_int32_t field, 
     flow->core.l4_proto = atoi(value);
     break;
   case TCP_FLAGS:
-    flow->core.tcp_flags = atoi(value);
+    flow->core.tcp.tcp_flags = atoi(value);
     break;
   case INITIATOR_PKTS:
     flow->core.absolute_packet_octet_counters = true;
@@ -474,7 +474,6 @@ bool ParserInterface::parsePENNtopField(ZMQ_Flow * const flow, u_int32_t field, 
       float client_nw_latency = atof(value);
       flow->core.tcp.clientNwLatency.tv_sec = client_nw_latency / 1e3;
       flow->core.tcp.clientNwLatency.tv_usec = 1e3 * (client_nw_latency - flow->core.tcp.clientNwLatency.tv_sec * 1e3);
-
       break;
     }
   case SERVER_NW_LATENCY_MS:
@@ -482,9 +481,12 @@ bool ParserInterface::parsePENNtopField(ZMQ_Flow * const flow, u_int32_t field, 
       float server_nw_latency = atof(value);
       flow->core.tcp.serverNwLatency.tv_sec = server_nw_latency / 1e3;
       flow->core.tcp.serverNwLatency.tv_usec = 1e3 * (server_nw_latency - flow->core.tcp.serverNwLatency.tv_sec * 1e3);
-
       break;
     }
+  case CLIENT_TCP_FLAGS:
+    flow->core.tcp.client_tcp_flags = atoi(value);
+  case SERVER_TCP_FLAGS:
+    flow->core.tcp.server_tcp_flags = atoi(value);
   case APPL_LATENCY_MS:
     flow->core.tcp.applLatencyMsec = atof(value);
     break;

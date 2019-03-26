@@ -297,7 +297,7 @@ void NetworkInterface::init() {
     pollLoopCreated = false, bridge_interface = false,
     mdns = NULL, discovery = NULL, ifDescription = NULL,
     flowHashingMode = flowhashing_none;
-  macs_hash = NULL, ases_hash = NULL, countries_hash = NULL, vlans_hash = NULL, 
+  macs_hash = NULL, ases_hash = NULL, countries_hash = NULL, vlans_hash = NULL,
     arp_hash_matrix = NULL;
 
   numSubInterfaces = 0;
@@ -305,7 +305,7 @@ void NetworkInterface::init() {
   reload_custom_categories = reload_hosts_blacklist = false;
   reload_hosts_bcast_domain = false;
   hosts_bcast_domain_last_update = 0;
-    
+
   ip_addresses = "", networkStats = NULL,
     pcap_datalink_type = 0, cpu_affinity = -1;
   hide_from_top = hide_from_top_shadow = NULL;
@@ -567,7 +567,7 @@ void NetworkInterface::deleteDataStructures() {
   if(vlans_hash)            { delete(vlans_hash); vlans_hash = NULL; }
   if(macs_hash)             { delete(macs_hash);  macs_hash = NULL;  }
   if(arp_hash_matrix)       { delete(arp_hash_matrix); arp_hash_matrix = NULL; }
-  
+
 #ifdef NTOPNG_PRO
   if(aggregated_flows_hash) {
     aggregated_flows_hash->cleanup();
@@ -668,7 +668,7 @@ NetworkInterface::~NetworkInterface() {
 
 int NetworkInterface::dumpFlow(time_t when, Flow *f) {
   int rc = -1;
-  
+
 #ifndef HAVE_NEDGE
   char *json;
   bool es_flow = ntop->getPrefs()->do_dump_flows_on_es() ||
@@ -1191,10 +1191,15 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
   }
 
   if(zflow->core.tcp.clientNwLatency.tv_sec || zflow->core.tcp.clientNwLatency.tv_usec)
-    flow->setFlowNwLatency(&zflow->core.tcp.clientNwLatency, true /* Client */);
+    flow->setFlowNwLatency(&zflow->core.tcp.clientNwLatency, src2dst_direction);
 
   if(zflow->core.tcp.serverNwLatency.tv_sec || zflow->core.tcp.serverNwLatency.tv_usec)
-    flow->setFlowNwLatency(&zflow->core.tcp.serverNwLatency, false /* Server */);
+    flow->setFlowNwLatency(&zflow->core.tcp.serverNwLatency, !src2dst_direction);
+
+  flow->setRtt();
+
+  if(src2dst_direction)
+    flow->setFlowApplLatency(zflow->core.tcp.applLatencyMsec);
 
   /* Update flow device stats */
   if(!flow->setFlowDevice(zflow->core.deviceIP,
@@ -1239,11 +1244,16 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
   }
 
   if(zflow->core.l4_proto == IPPROTO_TCP) {
-    struct timeval when;
+    if(zflow->core.tcp.client_tcp_flags || zflow->core.tcp.server_tcp_flags) {
+      /* There's a breadown between client and server TCP flags */
+      if(zflow->core.tcp.client_tcp_flags)
+	flow->setTcpFlags(zflow->core.tcp.client_tcp_flags, src2dst_direction);
+      if(zflow->core.tcp.server_tcp_flags)
+	flow->setTcpFlags(zflow->core.tcp.server_tcp_flags, !src2dst_direction);
+    } else if(zflow->core.tcp.tcp_flags)
+      /* TCP flags are cumulated client + server */
+      flow->setTcpFlags(zflow->core.tcp.tcp_flags, src2dst_direction);
 
-    when.tv_sec = (long)now, when.tv_usec = 0;
-    flow->updateTcpFlags((const struct bpf_timeval*)&when,
-			 zflow->core.tcp_flags, src2dst_direction);
     flow->incTcpBadStats(true,
 			 zflow->core.tcp.ooo_in_pkts, zflow->core.tcp.retr_in_pkts,
 			 zflow->core.tcp.lost_in_pkts);
@@ -1418,7 +1428,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 
     if(((iph->ihl * 4) > ipsize) || (ipsize < ntohs(iph->tot_len))
        || (iph->frag_off & htons(0x1FFF /* IP_OFFSET */)) != 0)
-      is_fragment = true;    
+      is_fragment = true;
 
     l4_packet_len = ntohs(iph->tot_len) - (iph->ihl * 4);
     l4_proto = iph->protocol;
@@ -1587,24 +1597,24 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	  /*
 	    Neighbor Solicitation and Neighbor Advertisement
 	    have the Target Address at offset 8.
-	    
+
 	    https://tools.ietf.org/html/rfc2461#section-4.1
 	  */
 	  Host * target_address_h;
 	  IpAddress target_address;
-	  
+
 	  target_address.set((ndpi_in6_addr*)&l4[8]);
 
 	  char buf[64];
 	  ntop->getTrace()->traceEvent(TRACE_WARNING, "->> %s", target_address.print(buf, sizeof(buf)));
-	  
+
 	  if(target_address.isNonEmptyUnicastAddress()
 	     && (target_address_h = getHost(&target_address, vlan_id))
 	     && (!target_address_h->isBroadcastDomainHost()))
 	    target_address_h->setBroadcastDomainHost();
 	}
 #endif
-	
+
         flow->setICMP(src2dst_direction, icmp_type, icmp_code, l4);
 	if(l4_proto == IPPROTO_ICMP)
 	  icmp_v4.incStats(icmp_type, icmp_code, is_sent_packet, NULL);
@@ -1670,70 +1680,70 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 
     switch(ndpi_get_lower_proto(flow->get_detected_protocol())) {
     case NDPI_PROTOCOL_DHCP:
-    {
-      Mac *mac = (*srcHost)->getMac(), *payload_cli_mac;
+      {
+	Mac *mac = (*srcHost)->getMac(), *payload_cli_mac;
 
-      if(mac && (payload_len > 240)) {
-	struct dhcp_packet *dhcpp = (struct dhcp_packet*)payload;
+	if(mac && (payload_len > 240)) {
+	  struct dhcp_packet *dhcpp = (struct dhcp_packet*)payload;
 
-	if(dhcpp->msgType == 0x01) /* Request */
-	  ;//mac->setDhcpHost();
-	else if(dhcpp->msgType == 0x02) /* Reply */
-	  checkMacIPAssociation(false, dhcpp->chaddr, dhcpp->yiaddr);
+	  if(dhcpp->msgType == 0x01) /* Request */
+	    ;//mac->setDhcpHost();
+	  else if(dhcpp->msgType == 0x02) /* Reply */
+	    checkMacIPAssociation(false, dhcpp->chaddr, dhcpp->yiaddr);
 
-	for(int i = 240; i<payload_len; ) {
-	  u_int8_t id  = payload[i], len = payload[i+1];
+	  for(int i = 240; i<payload_len; ) {
+	    u_int8_t id  = payload[i], len = payload[i+1];
 
-	  if(len == 0)
-	    break;
-
-#ifdef DHCP_DEBUG
-	  ntop->getTrace()->traceEvent(TRACE_WARNING, "[DHCP] [id=%u][len=%u]", id, len);
-#endif
-
-	  if(id == 12 /* Host Name */) {
-	    char name[64], buf[24], *client_mac, key[64];
-	    int j;
-
-	    j = ndpi_min(len, sizeof(name)-1);
-	    strncpy((char*)name, (char*)&payload[i+2], j);
-	    name[j] = '\0';
-
-	    client_mac = Utils::formatMac(&payload[28], buf, sizeof(buf));
-	    ntop->getTrace()->traceEvent(TRACE_INFO, "[DHCP] %s = '%s'", client_mac, name);
-
-	    snprintf(key, sizeof(key), DHCP_CACHE, get_id());
-	    ntop->getRedis()->hashSet(key, client_mac, name);
-
-	    if((payload_cli_mac = getMac(&payload[28], false)))
-	       payload_cli_mac->inlineSetDHCPName(name);
+	    if(len == 0)
+	      break;
 
 #ifdef DHCP_DEBUG
-	  ntop->getTrace()->traceEvent(TRACE_WARNING, "[DHCP] %s = '%s'", client_mac, name);
+	    ntop->getTrace()->traceEvent(TRACE_WARNING, "[DHCP] [id=%u][len=%u]", id, len);
 #endif
-	  } else if(id == 55 /* Parameters List (Fingerprint) */) {
-	    char fingerprint[64], buf[32];
-	    u_int idx, offset = 0;
 
-	    len = ndpi_min(len, sizeof(buf)/2);
+	    if(id == 12 /* Host Name */) {
+	      char name[64], buf[24], *client_mac, key[64];
+	      int j;
 
-	    for(idx=0; idx<len; idx++) {
-	      snprintf((char*)&fingerprint[offset], sizeof(fingerprint)-offset-1, "%02X",  payload[i+2+idx] & 0xFF);
-	      offset += 2;
-	    }
+	      j = ndpi_min(len, sizeof(name)-1);
+	      strncpy((char*)name, (char*)&payload[i+2], j);
+	      name[j] = '\0';
+
+	      client_mac = Utils::formatMac(&payload[28], buf, sizeof(buf));
+	      ntop->getTrace()->traceEvent(TRACE_INFO, "[DHCP] %s = '%s'", client_mac, name);
+
+	      snprintf(key, sizeof(key), DHCP_CACHE, get_id());
+	      ntop->getRedis()->hashSet(key, client_mac, name);
+
+	      if((payload_cli_mac = getMac(&payload[28], false)))
+		payload_cli_mac->inlineSetDHCPName(name);
 
 #ifdef DHCP_DEBUG
-	    ntop->getTrace()->traceEvent(TRACE_WARNING, "%s = %s", mac->print(buf, sizeof(buf)),fingerprint);
+	      ntop->getTrace()->traceEvent(TRACE_WARNING, "[DHCP] %s = '%s'", client_mac, name);
 #endif
-	    mac->inlineSetFingerprint((char*)flow->get_ndpi_flow()->protos.dhcp.fingerprint);
-	  } else if(id == 0xFF)
-	    break; /* End of options */
+	    } else if(id == 55 /* Parameters List (Fingerprint) */) {
+	      char fingerprint[64], buf[32];
+	      u_int idx, offset = 0;
 
-	  i += len + 2;
+	      len = ndpi_min(len, sizeof(buf)/2);
+
+	      for(idx=0; idx<len; idx++) {
+		snprintf((char*)&fingerprint[offset], sizeof(fingerprint)-offset-1, "%02X",  payload[i+2+idx] & 0xFF);
+		offset += 2;
+	      }
+
+#ifdef DHCP_DEBUG
+	      ntop->getTrace()->traceEvent(TRACE_WARNING, "%s = %s", mac->print(buf, sizeof(buf)),fingerprint);
+#endif
+	      mac->inlineSetFingerprint((char*)flow->get_ndpi_flow()->protos.dhcp.fingerprint);
+	    } else if(id == 0xFF)
+	      break; /* End of options */
+
+	    i += len + 2;
+	  }
 	}
       }
-    }
-    break;
+      break;
 
     case NDPI_PROTOCOL_DHCPV6:
       {
@@ -1755,7 +1765,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	  if(((payload[2] & 0x80) /* NetBIOS Response */ || ((payload[2] & 0x78) == 0x28 /* NetBIOS Registration */))
 	     && (ndpi_netbios_name_interpret((char*)&payload[12], name, sizeof(name)) > 0)
 	     && (!strstr(name, "__MSBROWSE__"))
-	    ) {
+	     ) {
 
 	    if(name[0] == '*') {
 	      int limit = min(payload_len-57, (int)sizeof(name)-1);
@@ -1819,7 +1829,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	struct ndpi_dns_packet_header *header = (struct ndpi_dns_packet_header*)(payload + dns_offset);
 	u_int16_t dns_flags = ntohs(header->flags);
 	bool is_query   = (dns_flags & 0x8000) ? 0 : 1;
-	
+
 	if(flow->get_cli_host() && flow->get_srv_host()) {
 	  Host *client = src2dst_direction ? flow->get_cli_host() : flow->get_srv_host();
 	  Host *server = src2dst_direction ? flow->get_srv_host() : flow->get_cli_host();
@@ -1868,7 +1878,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       char outbuf[1024];
 
       _dissectMDNS(payload, payload_len, outbuf, sizeof(outbuf));
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", outbuf);      
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", outbuf);
 #endif
       flow->dissectMDNS(payload, payload_len);
 
@@ -1878,12 +1888,13 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 
     case NDPI_PROTOCOL_DROPBOX:
       if((src_port == dst_port) && (dst_port == htons(17500)))
-	flow->get_cli_host()->dissectDropbox((const char *)payload, payload_len);      
+	flow->get_cli_host()->dissectDropbox((const char *)payload, payload_len);
       break;
-      
-    default:
-      if(flow->isSSLProto())
-        flow->dissectSSL(payload, payload_len, when, src2dst_direction);
+
+    case NDPI_PROTOCOL_SSL:
+      if(payload_len > 0)
+	flow->dissectSSL((char *)payload, payload_len);
+      break;
     }
 
     flow->processDetectedProtocol();
@@ -2597,7 +2608,7 @@ decode_packet_eth:
 	  cur_bcast_domain.set(htonl(net));
 	  bcast_domains->inlineAddAddress(&cur_bcast_domain, cidr);
 	}
-	
+
 	e  = getArpHashMatrixElement(srcMac->get_mac(), dstMac->get_mac(), &src2dst_element);
 
 #if 0
@@ -5608,7 +5619,7 @@ Mac* NetworkInterface::getMac(u_int8_t _mac[6], bool createIfNotPresent) {
 
 /* **************************************************** */
 
-ArpStatsMatrixElement* NetworkInterface::getArpHashMatrixElement(u_int8_t _src_mac[6], 
+ArpStatsMatrixElement* NetworkInterface::getArpHashMatrixElement(u_int8_t _src_mac[6],
 								 u_int8_t _dst_mac[6],
 								 bool * const src2dst){
   ArpStatsMatrixElement *ret = NULL;
@@ -5617,9 +5628,9 @@ ArpStatsMatrixElement* NetworkInterface::getArpHashMatrixElement(u_int8_t _src_m
     return NULL;
 
   ret = arp_hash_matrix->get(_src_mac, _dst_mac, src2dst);
-  
+
   if(ret == NULL) {
-    try{ 
+    try{
       if((ret = new ArpStatsMatrixElement(this, _src_mac, _dst_mac, src2dst)) != NULL)
         if(!arp_hash_matrix->add(ret)){
           delete ret;
@@ -5635,13 +5646,13 @@ ArpStatsMatrixElement* NetworkInterface::getArpHashMatrixElement(u_int8_t _src_m
       return(NULL);
     }
   }
-  
+
   return ret;
 }
 
 /* **************************************************** */
 
-bool NetworkInterface::getArpStatsMatrixInfo(lua_State* vm){  
+bool NetworkInterface::getArpStatsMatrixInfo(lua_State* vm){
   if(getNumArpStatsMatrixElements() > 0) {
     lua_newtable(vm);
     arp_hash_matrix->lua(vm);
@@ -6296,7 +6307,7 @@ void NetworkInterface::reloadHideFromTop(bool refreshHosts) {
 
 bool NetworkInterface::isHiddenFromTop(Host *host) {
   VlanAddressTree *vlan_addrtree = hide_from_top;
-  
+
   if(!vlan_addrtree) return false;
 
   return(host->get_ip()->findAddress(vlan_addrtree->getAddressTree(host->getVlanId())));
@@ -7242,7 +7253,7 @@ static bool local_hosts_2_dropbox_walker(GenericHashEntry *h, void *user_data, b
 
   if(host && (host->getNumDropboxPeers() > 0)) {
     lua_State *vm = (lua_State*)user_data;
-    
+
     host->dumpDropbox(vm);
     *matched = true;
   }
@@ -7257,7 +7268,7 @@ int NetworkInterface::dumpDropboxHosts(lua_State *vm) {
   u_int32_t begin_slot = 0;
 
   lua_newtable(vm);
-    
+
   disablePurge(false /* on hosts */);
   rc = walker(&begin_slot, true /* walk_all */, walker_hosts,
 	      local_hosts_2_dropbox_walker, vm) ? 0 : -1;
@@ -7367,7 +7378,7 @@ bool NetworkInterface::isInDhcpRange(IpAddress *ip) {
 
 bool NetworkInterface::isLocalBroadcastDomainHost(Host * const h, bool isInlineCall) {
   IpAddress *i = h->get_ip();
-    
+
   return(bcast_domains->isLocalBroadcastDomainHost(h, isInlineCall)
 	 || (ntop->getLoadInterfaceAddresses() && i->match(ntop->getLoadInterfaceAddresses())));
 }

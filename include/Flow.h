@@ -39,19 +39,6 @@ typedef struct {
   InterarrivalStats pktTime;
 } FlowPacketStats;
 
-typedef enum {
-  SSL_STAGE_UNKNOWN = 0,
-  SSL_STAGE_HELLO,
-  SSL_STAGE_CCS
-} FlowSSLStage;
-
-typedef enum {
-  SSL_ENCRYPTION_PLAIN = 0x0,
-  SSL_ENCRYPTION_SERVER = 0x1,
-  SSL_ENCRYPTION_CLIENT = 0x2,
-  SSL_ENCRYPTION_BOTH = 0x3,
-} FlowSSLEncryptionStatus;
-
 class Flow : public GenericHashEntry {
  private:
   Host *cli_host, *srv_host;
@@ -107,13 +94,10 @@ class Flow : public GenericHashEntry {
 
     struct {
       char *certificate, *server_certificate;
-      FlowSSLStage cli_stage, srv_stage;
-      u_int8_t hs_packets;
-      bool is_data;
-      /* firstdata refers to the time where encryption is active on both ends */
-      bool firstdata_seen;
-      struct timeval clienthello_time, hs_end_time, lastdata_time;
-      float hs_delta_time, delta_firstData, deltaTime_data;
+      /* Certificate dissection */
+      char *certificate_buf_leftover;
+      u_int certificate_leftover;
+      bool dissect_certificate;
     } ssl;
 
     struct {
@@ -277,6 +261,7 @@ class Flow : public GenericHashEntry {
   inline char* getBitTorrentHash() { return(bt_hash);          };
   inline void  setBTHash(char *h)  { if(!h) return; if(bt_hash) { free(bt_hash); bt_hash = NULL; }; bt_hash = strdup(h); }
   inline void  setServerName(char *v)  { if(host_server_name) free(host_server_name);  host_server_name = strdup(v); }
+  void setTcpFlags(u_int8_t flags, bool src2dst_direction);
   void updateTcpFlags(const struct bpf_timeval *when,
 		      u_int8_t flags, bool src2dst_direction);
   void incTcpBadStats(bool src2dst_direction,
@@ -395,8 +380,8 @@ class Flow : public GenericHashEntry {
   void guessProtocol();
   bool dumpFlow(bool dump_alert);
   bool match(AddressTree *ptree);
-  void dissectSSL(u_int8_t *payload, u_int16_t payload_len, const struct bpf_timeval *when, bool cli2srv);
   void dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_len);
+  void dissectSSL(char *payload, u_int16_t payload_len);
   void dissectSSDP(bool src2dst_direction, char *payload, u_int16_t payload_len);
   void dissectMDNS(u_int8_t *payload, u_int16_t payload_len);
   void dissectBittorrent(char *payload, u_int16_t payload_len);
@@ -420,10 +405,6 @@ class Flow : public GenericHashEntry {
   inline char* getHTTPContentType() { return(isHTTP() ? protos.http.last_content_type : (char*)"");   }
   inline char* getSSLCertificate()  { return(isSSL() ? protos.ssl.certificate : (char*)""); }
   bool isSSLProto();
-  inline bool isSSLData()              { return(isSSLProto() && good_ssl_hs && protos.ssl.is_data);  }
-  inline bool isSSLHandshake()         { return(isSSLProto() && good_ssl_hs && !protos.ssl.is_data); }
-  inline bool hasSSLHandshakeEnded()   { return(getSSLEncryptionStatus() == SSL_ENCRYPTION_BOTH);    }
-  FlowSSLEncryptionStatus getSSLEncryptionStatus();
 
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   inline void updateProfile()     { trafficProfile = iface->getFlowProfile(this); }
@@ -455,9 +436,19 @@ class Flow : public GenericHashEntry {
   inline void      setVRFid(u_int32_t v)  { vrfId = v;                              }
 
   inline void setFlowNwLatency(const struct timeval * const tv, bool client) {
-    if(client) memcpy(&clientNwLatency, tv, sizeof(*tv));
-    else memcpy(&serverNwLatency, tv, sizeof(*tv));
-  };
+    if(client) {
+      memcpy(&clientNwLatency, tv, sizeof(*tv));
+      if(cli_host) cli_host->updateRoundTripTime(Utils::timeval2ms(&clientNwLatency));
+    } else {
+      memcpy(&serverNwLatency, tv, sizeof(*tv));
+      if(srv_host) srv_host->updateRoundTripTime(Utils::timeval2ms(&serverNwLatency));
+    }
+  }
+  inline void setRtt() {
+    rttSec = ((float)(serverNwLatency.tv_sec + clientNwLatency.tv_sec))
+      +((float)(serverNwLatency.tv_usec + clientNwLatency.tv_usec)) / (float)1000000;
+  }
+  inline void setFlowApplLatency(float latency_msecs) { applLatencyMsec = latency_msecs; }
   inline bool      setFlowDevice(u_int32_t device_ip, u_int16_t inidx, u_int16_t outidx) {
     if((flow_device.device_ip > 0 && flow_device.device_ip != device_ip)
        || (flow_device.in_index > 0 && flow_device.in_index != inidx)
