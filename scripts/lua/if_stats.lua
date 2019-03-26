@@ -758,29 +758,26 @@ elseif((page == "networks")) then
    if ifstats.bcast_domains and table.len(ifstats.bcast_domains) > 0 then
       print("<tr><th width=250>"..i18n("broadcast_domain").."</th><td colspan=5>")
 
-      local num = 1
-      local bcast_domains = ""
+      local bcast_domains = {}
       for bcast_domain, in_interface_range in pairsByKeys(ifstats.bcast_domains) do
-	 if num > 1 then
-	    bcast_domains = bcast_domains..","
-	 end
-
 	 bcast_domain = string.format("<a href='%s/lua/hosts_stats.lua?network_cidr=%s'>%s</a>", ntop.getHttpPrefix(), bcast_domain, bcast_domain)
-	 bcast_domains = bcast_domains..bcast_domain
 
-	 if in_interface_range == 0 and interface.isPacketInterface() and not interface.isPcapDumpInterface() and ntop.getPref(string.format("ntopng.prefs.ifid_%d.is_traffic_mirrored", ifId)) ~= "1" then
+	 if true then -- in_interface_range == 0 and interface.isPacketInterface() and not interface.isPcapDumpInterface() and ntop.getPref(string.format("ntopng.prefs.ifid_%d.is_traffic_mirrored", ifId)) ~= "1" then
 	    has_ghost_networks = true
-	    bcast_domains = bcast_domains..' '..ghost_icon
+	    bcast_domain = bcast_domain..' '..ghost_icon
 	 end
 
-	 num = num + 1
+	 bcast_domains[#bcast_domains + 1] = bcast_domain
       end
 
-      print(bcast_domains)
-
-      if has_ghost_networks then
-	 print("<small><br><b>"..i18n("if_stats_overview.note")..":</b> "..i18n("if_stats_overview.ghost_bcast_domain_descr", {ghost_icon = ghost_icon}).."</small>")
+      if #bcast_domains > 0 then
+	 print("<ul>")
+	 for _, bcast_domain in ipairs(bcast_domains) do
+	    print("<li>"..bcast_domain.."</li>")
+	 end
+	 print("</ul>")
       end
+
       print("</td></tr>")
    end
    print("</table>")
