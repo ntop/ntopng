@@ -2562,7 +2562,7 @@ decode_packet_eth:
 	  u_int32_t cur_mask;
 	  u_int8_t cur_cidr;
 
-	  for(cur_mask = 0xFFFFFF00, cur_cidr = 24; cur_mask > 0xFF000000; cur_mask <<= 1, cur_cidr -= 1) {
+	  for(cur_mask = 0xFFFFFFF0, cur_cidr = 28; cur_mask >= 0xFF000000; cur_mask <<= 1, cur_cidr -= 1) {
 	    if((diff & cur_mask) == 0) { /* diff < cur_mask */
 	      net &= cur_mask;
 
