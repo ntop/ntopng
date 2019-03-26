@@ -155,16 +155,21 @@ void ICMPinfo::lua(lua_State* vm, AddressTree * ptree, NetworkInterface *iface, 
 /* *************************************** */
 
 bool ICMPinfo::isNetUnreachable(u_int8_t proto) const{
-  if(proto == IPPROTO_ICMP && icmp_type == ICMP_DEST_UNREACH && icmp_code == ICMP_NET_UNREACH)
+  
+  if(proto == IPPROTO_ICMP && icmp_type == ICMP_DEST_UNREACH && icmp_code == ICMP_NET_UNREACH){
     return true;
+  }
+  
   return false;
 }
 
 /* *************************************** */
 
 bool ICMPinfo::isHostUnreachable(u_int8_t proto) const{
-  if(proto == IPPROTO_ICMP && icmp_type == ICMP_DEST_UNREACH && icmp_code == ICMP_HOST_UNREACH)
+  
+  if(proto == IPPROTO_ICMP && icmp_type == ICMP_DEST_UNREACH && icmp_code == ICMP_HOST_UNREACH){
     return true;
+  }
   return false;
 }
 

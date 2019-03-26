@@ -229,8 +229,8 @@ class Host : public GenericHashEntry {
   void incNumFlows(time_t t, bool as_client, Host *peer);
   void decNumFlows(time_t t, bool as_client, Host *peer);
   inline void incNumUnreachableFlows(bool as_server) { if(stats) stats->incNumUnreachableFlows(as_server); }
-  inline void incNumNetUnreachableFlows(bool as_server) { if(stats) stats->incNumNetUnreachableFlows(as_server); }
-  inline void incNumHostUnreachableFlows(bool as_server) { if(stats) stats->incNumHostUnreachableFlows(as_server); } 
+  inline void incNumNetUnreachableFlows(bool as_server) { if(stats) stats->incNumNetUnreachableFlows(as_server); };
+  inline void incNumHostUnreachableFlows(bool as_server) { if(stats) stats->incNumHostUnreachableFlows(as_server); }; 
  
   inline void incFlagStats(bool as_client, u_int8_t flags)  { stats->incFlagStats(as_client, flags); };
   virtual void incNumDNSQueriesSent(u_int16_t query_type) { };
