@@ -2154,8 +2154,13 @@ end
 -- #######################
 
 function getFlowsTableTitle()
-    local filter_msg = (_GET["application"] or _GET["category"] or _GET["vhost"] or firstToUpper(_GET["flow_status"] or ""))
+    local filter = (_GET["application"] or _GET["category"] or _GET["vhost"] or _GET["flow_status"] or "")
     local active_msg
+
+    local filter_msg = i18n("flows_page."..filter)
+    if not filter_msg then
+      filter_msg = firstToUpper(filter)
+    end
 
     if not interface.isPacketInterface() then
        active_msg = i18n("flows_page.recently_active_flows", {filter=filter_msg})
