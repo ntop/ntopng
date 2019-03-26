@@ -3645,7 +3645,7 @@ void Flow::fillZmqFlowCategory() {
 
 void Flow::dissectSSL(char *payload, u_int16_t payload_len) {
   if(protos.ssl.dissect_certificate) {
-    u_int16_t _payload_len = payload_len+protos.ssl.certificate_leftover;
+    u_int16_t _payload_len = payload_len + protos.ssl.certificate_leftover;
     u_char *_payload       = (u_char*)malloc(_payload_len);
     bool find_initial_pattern = true;
     
@@ -3665,11 +3665,20 @@ void Flow::dissectSSL(char *payload, u_int16_t payload_len) {
     }
 
     if(_payload_len > 4) {
-      for(u_int i = (find_initial_pattern ? 9 : 0); i < _payload_len-4; i++) {
+      for(u_int i = (find_initial_pattern ? 9 : 0); i < _payload_len - 4; i++) {
+
+	/* Look for the Subject Alternative Name Extension with OID 55 1D 11 */
 	if((find_initial_pattern && (_payload[i] == 0x55) && (_payload[i+1] == 0x1d) && (_payload[i+2] == 0x11))
 	   || (!find_initial_pattern)) {
+
 	  if(find_initial_pattern)
-	    i += 11;
+	    i += 3 /* 55 1D 11 */;
+
+	  i++; /* skip the first type, usually 0x04, and jump to it's length */
+	  i += _payload[i] & 0x80 ? _payload[i] & 0x7F : 0;
+	  i += 2; /* skip the second type, usually 0x03, and jump to it's length */
+	  i += _payload[i] & 0x80 ? _payload[i] & 0x7F : 0;
+	  i++;
 
 	  while(i < _payload_len) {
 	    if(_payload[i] == 0x82) {
@@ -3681,22 +3690,22 @@ void Flow::dissectSSL(char *payload, u_int16_t payload_len) {
 		if((len < 3)
 		   || ((!isalpha(_payload[i])) && (_payload[i] != '*'))
 		   || (_payload[i+len] != 0x82)
-		  ) {
+		   ) {
 		  protos.ssl.dissect_certificate = false;
 		  break;
 		} else {
-		  char buf[len+1];
+		  char buf[len + 1];
 		
 		  strncpy(buf, (const char*)&_payload[i], len);
 		  buf[len] = '\0';
 #if 0
-		  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [Len %u]", buf, len);
+		  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [Len %u][sizeof(buf): %u]", buf, len, sizeof(buf));
 #endif
 		}
 	      } else {
 		i -= 2;
-		/* ntop->getTrace()->traceEvent(TRACE_NORMAL, "Leftover %u bytes [%u len]", _payload_len-i, len); */
-		protos.ssl.certificate_leftover = _payload_len-i;
+		// ntop->getTrace()->traceEvent(TRACE_NORMAL, "Leftover %u bytes [%u len]", _payload_len-i, len);
+		protos.ssl.certificate_leftover = _payload_len - i;
 
 		if((protos.ssl.certificate_buf_leftover = (char*)malloc(protos.ssl.certificate_leftover)) != NULL)
 		  memcpy(protos.ssl.certificate_buf_leftover, &_payload[i], protos.ssl.certificate_leftover);
