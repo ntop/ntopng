@@ -521,22 +521,11 @@ end
 
 -- ##############################################
 
---! @brief List all available timeseries for the specified schema, tags and time.
---! @param schema_name the schema identifier.
---! @param tags_filter a list of filter tags. Tags which are not specified are considered wildcard.
---! @param start_time time filter. Only timeseries updated after start_time will be returned.
---! @return a (possibly empty) list of tags values for the matching timeseries on success, nil on error.
-function ts_utils.listSeries(schema_name, tags_filter, start_time)
+local function list_series(schema_name, tags_filter, start_time, batched)
   local schema = ts_utils.getSchema(schema_name)
 
   if not schema then
     traceError(TRACE_ERROR, TRACE_CONSOLE, "Schema not found: " .. schema_name)
-    return nil
-  end
-
-  local driver = ts_utils.getQueryDriver()
-
-  if not driver then
     return nil
   end
 
@@ -556,9 +545,78 @@ function ts_utils.listSeries(schema_name, tags_filter, start_time)
     end
   end
 
+  if not batched then
+    local driver = ts_utils.getQueryDriver()
+
+    if not driver then
+      return nil
+    end
+
+    ts_common.clearLastError()
+
+    return driver:listSeries(schema, filter_tags, wildcard_tags, start_time)
+  else
+    return schema, filter_tags, wildcard_tags
+  end
+end
+
+-- ##############################################
+
+--! @brief List all available timeseries for the specified schema, tags and time.
+--! @param schema_name the schema identifier.
+--! @param tags_filter a list of filter tags. Tags which are not specified are considered wildcard.
+--! @param start_time time filter. Only timeseries updated after start_time will be returned.
+--! @return a (possibly empty) list of tags values for the matching timeseries on success, nil on error.
+function ts_utils.listSeries(schema_name, tags_filter, start_time)
+  return list_series(schema_name, tags_filter, start_time, false --[[ not batched ]])
+end
+
+-- ##############################################
+
+local pending_listseries_batch = {}
+
+--! @brief Add a listSeries request to the current batch.
+--! @param schema_name the schema identifier.
+--! @param tags_filter a list of filter tags. Tags which are not specified are considered wildcard.
+--! @param start_time time filter. Only timeseries updated after start_time will be returned.
+--! @return nil on error, otherwise a number is returned, indicating the item id into the batch
+--! @note Call ts_utils.getBatchedListSeriesResult() to get the batch responses
+function ts_utils.batchListSeries(schema_name, tags_filter, start_time)
+  local schema, filter_tags, wildcard_tags = list_series(schema_name, tags_filter, start_time, true --[[ batched ]])
+
+  if not schema then
+    return nil
+  end
+
+  pending_listseries_batch[#pending_listseries_batch + 1] = {
+    schema = schema,
+    start_time = start_time,
+    tags = tags_filter,
+    filter_tags = filter_tags,
+    wildcard_tags = wildcard_tags
+  }
+
+  -- return id in batch
+  return #pending_listseries_batch
+end
+
+-- ##############################################
+
+--! @brief Completes the current batched requests and returns the results.
+--! @return nil on error, otherwise a table item_id -> result is returned. See ts_utils.listSeries() for details.
+function ts_utils.getBatchedListSeriesResult()
+  local driver = ts_utils.getQueryDriver()
+
+  if not driver then
+    return nil
+  end
+
   ts_common.clearLastError()
 
-  return driver:listSeries(schema, filter_tags, wildcard_tags, start_time)
+  local result = driver:listSeriesBatched(pending_listseries_batch)
+  pending_listseries_batch = {}
+
+  return result
 end
 
 -- ##############################################

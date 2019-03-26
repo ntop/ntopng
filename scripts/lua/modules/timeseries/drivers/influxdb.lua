@@ -154,7 +154,7 @@ end
 
 -- ##############################################
 
-local function influx_query(base_url, query, username, password, options)
+local function influx_query_multi(base_url, query, username, password, options)
   options = options or {}
   local full_url = base_url .."&q=" .. urlencode(query)
   local tstart = os.time()
@@ -164,7 +164,8 @@ local function influx_query(base_url, query, username, password, options)
 
   if debug_influxdb_queries then
     local tdiff = tend - tstart
-    traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("influx_query[%ds]: %s", tdiff, query))
+    local _, num_queries = string.gsub(query, ";", "")
+    traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("influx_query[#%u][%ds]: %s", num_queries+1, tdiff, query))
   end
 
   if not res then
@@ -189,16 +190,29 @@ local function influx_query(base_url, query, username, password, options)
     return nil
   end
 
-  if jres.results[1]["error"] then
-    traceError(TRACE_ERROR, TRACE_CONSOLE, jres.results[1]["error"])
+  for _, result in ipairs(jres.results) do
+    if result["error"] then
+      traceError(TRACE_ERROR, TRACE_CONSOLE, result["error"])
+      return nil
+    end
   end
 
-  if not jres.results[1].series then
-    -- no results found
-    return {}
+  return jres
+end
+
+local function influx_query(base_url, query, username, password, options)
+  local jres = influx_query_multi(base_url, query, username, password, options)
+
+  if jres and jres.results then
+    if not jres.results[1].series then
+      -- no results found
+      return {}
+    end
+
+    return jres.results[1]
   end
 
-  return jres.results[1]
+  return nil
 end
 
 -- ##############################################
@@ -614,9 +628,10 @@ end
 
 -- ##############################################
 
-function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
-  -- At least 2 values are needed otherwise derivative will return empty
-  local min_values = 2
+-- At least 2 values are needed otherwise derivative will return empty
+local min_values_list_series = 2
+
+local function makeListSeriesQuery(schema, tags_filter, wildcard_tags, start_time)
   -- NOTE: do not use getQuerySchema here, otherwise we'll miss series
 
   -- NOTE: time based query not currently supported on show tags/series, using select
@@ -627,14 +642,13 @@ function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
     GROUP BY category
     LIMIT 2
   ]]
-  local query = 'SELECT * FROM "' .. schema.name .. '"' .. where_tags(tags_filter) ..
+  return 'SELECT * FROM "' .. schema.name .. '"' .. where_tags(tags_filter) ..
       " time >= " .. start_time .. "000000000" ..
       ternary(not table.empty(wildcard_tags), " GROUP BY " .. table.concat(wildcard_tags, ","), "") ..
-      " LIMIT " .. min_values
+      " LIMIT " .. min_values_list_series
+end
 
-  local url = self.url
-  local data = influx_query(url .. "/query?db=".. self.db, query, self.username, self.password)
-
+local function processListSeriesResult(data, schema, tags_filter, wildcard_tags)
   if table.empty(data) then
     return nil
   end
@@ -645,7 +659,7 @@ function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
 
   if table.empty(wildcard_tags) then
     -- Simple "exists" check
-    if #data.series[1].values >= min_values then
+    if #data.series[1].values >= min_values_list_series then
       return tags_filter
     else
       return nil
@@ -655,7 +669,7 @@ function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
   local res = {}
 
   for _, serie in pairs(data.series) do
-    if #serie.values < min_values then
+    if #serie.values < min_values_list_series then
       goto continue
     end
 
@@ -683,6 +697,46 @@ function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
   end
 
   return res
+end
+
+function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
+  local query = makeListSeriesQuery(schema, tags_filter, wildcard_tags, start_time)
+  local url = self.url
+  local data = influx_query(url .. "/query?db=".. self.db, query, self.username, self.password)
+
+  return processListSeriesResult(data, schema, tags_filter, wildcard_tags)
+end
+
+-- ##############################################
+
+function driver:listSeriesBatched(batch)
+  local max_batch_size = 30
+  local url = self.url
+  local rv = {}
+
+  for i=1,#batch,max_batch_size do
+    local queries = {}
+
+    -- Prepare the batch
+    for j=i,math.min(i+max_batch_size-1, #batch) do
+      local cur_query = batch[j]
+      queries[#queries +1] = makeListSeriesQuery(cur_query.schema, cur_query.filter_tags, cur_query.wildcard_tags, cur_query.start_time)
+    end
+
+    local query_str = table.concat(queries, ";")
+    local data = influx_query_multi(url .. "/query?db=".. self.db, query_str, self.username, self.password)
+
+    -- Collect the results
+    if data and data.results then
+      for j, result in pairs(data.results) do
+        local cur_query = batch[j]
+        local result = processListSeriesResult(result, cur_query.schema, cur_query.filter_tags, cur_query.wildcard_tags)
+        rv[j] = result
+      end
+    end
+  end
+
+  return rv
 end
 
 -- ##############################################
@@ -1089,7 +1143,7 @@ end
 
 -- ##############################################
 
-function driver:_multiQuery(queries)
+function driver:_multiQueryPost(queries)
   local query_str = table.concat(queries, ";")
   local res = ntop.httpPost(self.url .. "/query", "q=" .. urlencode(query_str), self.username, self.password, INFLUX_QUERY_TIMEMOUT_SEC, true)
 
@@ -1235,7 +1289,7 @@ function driver:setup(ts_utils)
     queries[#queries + 1] = cq_1d:gsub("\n", ""):gsub("%s%s+", " ")
 
     if #queries >= max_batch_size then
-      if not self:_multiQuery(queries) then
+      if not self:_multiQueryPost(queries) then
         traceError(TRACE_ERROR, TRACE_CONSOLE, "InfluxDB setup failed")
         return false
       end
@@ -1246,7 +1300,7 @@ function driver:setup(ts_utils)
   end
 
   if #queries > 0 then
-    if not self:_multiQuery(queries) then
+    if not self:_multiQueryPost(queries) then
       traceError(TRACE_ERROR, TRACE_CONSOLE, "InfluxDB setup() failed")
       return false
     end
