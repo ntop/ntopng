@@ -190,49 +190,6 @@ schema:addMetric("flows_as_server")
 
 -- ##############################################
 
-schema = ts_utils.newSchema("host:tcp_pkts_stats", {step = 300})
-schema:addTag("ifid")
-schema:addTag("host")
-schema:addMetric("retransmission_packets")
-schema:addMetric("out_of_order_packets")
-schema:addMetric("lost_packets")
-
--- ##############################################
-
-schema = ts_utils.newSchema("host:dns_pkts_sent", {step = 300})
-schema:addTag("ifid")
-schema:addTag("host")
-schema:addMetric("queries_packets")
-schema:addMetric("replies_ok_packets")
-schema:addMetric("replies_error_packets")
-
--- ##############################################
-
-schema = ts_utils.newSchema("host:dns_pkts_rcvd", {step = 300})
-schema:addTag("ifid")
-schema:addTag("host")
-schema:addMetric("queries_packets")
-schema:addMetric("replies_ok_packets")
-schema:addMetric("replies_error_packets")
-
--- ##############################################
-
-schema = ts_utils.newSchema("host:arp_requests_pkts", {step = 300})
-schema:addTag("ifid")
-schema:addTag("host")
-schema:addMetric("requests_packets_sent")
-schema:addMetric("requests_packets_rcvd")
-
--- ##############################################
-
-schema = ts_utils.newSchema("host:udp_pkts", {step = 300})
-schema:addTag("ifid")
-schema:addTag("host")
-schema:addMetric("packets_sent")
-schema:addMetric("packets_rcvd")
-
--- ##############################################
-
 schema = ts_utils.newSchema("host:total_alerts", {step = 300, rrd_fname = "total_alerts"})
 schema:addTag("ifid")
 schema:addTag("host")
