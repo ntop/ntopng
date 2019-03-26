@@ -762,7 +762,7 @@ elseif((page == "networks")) then
       for bcast_domain, in_interface_range in pairsByKeys(ifstats.bcast_domains) do
 	 bcast_domain = string.format("<a href='%s/lua/hosts_stats.lua?network_cidr=%s'>%s</a>", ntop.getHttpPrefix(), bcast_domain, bcast_domain)
 
-	 if true then -- in_interface_range == 0 and interface.isPacketInterface() and not interface.isPcapDumpInterface() and ntop.getPref(string.format("ntopng.prefs.ifid_%d.is_traffic_mirrored", ifId)) ~= "1" then
+	 if in_interface_range == 0 and interface.isPacketInterface() and not interface.isPcapDumpInterface() and ntop.getPref(string.format("ntopng.prefs.ifid_%d.is_traffic_mirrored", ifId)) ~= "1" then
 	    has_ghost_networks = true
 	    bcast_domain = bcast_domain..' '..ghost_icon
 	 end
