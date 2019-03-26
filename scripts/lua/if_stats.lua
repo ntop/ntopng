@@ -733,7 +733,7 @@ elseif((page == "networks")) then
       local tokens = split(ifstats.ip_addresses, ",")
 
       if(tokens ~= nil) then
-	 print("<tr><th width=250>"..i18n("ip_address").."</th><td colspan=5>")
+	 print("<tr><th width=250>"..i18n("ip_address").."</th><td colspan=5><ul><li>")
 	 local addresses = {}
 
 	 for _,s in pairs(tokens) do
@@ -747,9 +747,9 @@ elseif((page == "networks")) then
 	    end
 	 end
 
-	 print(table.concat(addresses, ", "))
+	 print(table.concat(addresses, "\n<li>"))
 
-	 print("</td></tr>")
+	 print("</ul></td></tr>")
       end
    end
 
@@ -789,8 +789,7 @@ elseif((page == "networks")) then
    if has_ghost_networks then
       print("<li>"..i18n("if_stats_networks.note_ghost_bcast_domains", {ghost_icon = ghost_icon}).."</li>")
    end
-
-   print("<ul>")
+   print("</ul>")
 
 elseif((page == "packets")) then
    local nedge_hidden = ternary(have_nedge, 'class="hidden"', '')
