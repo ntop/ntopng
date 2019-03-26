@@ -187,48 +187,7 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
   ts_utils.append("host:unreachable_flows", {ifid = ifstats.id, host = hostname,
 					   flows_as_client = host["unreachable_flows.as_client"],
 					   flows_as_server = host["unreachable_flows.as_server"]},
-      when, verbose)
-  
-  interface.select(tostring(ifstats.id))
-   
-  local host_ = interface.getHostInfo(hostname)
-   
-  if(host_ ~= nil) then
-   
-    ts_utils.append("host:tcp_pkts_stats", {ifid = ifstats.id, host = hostname,
-              retransmission_packets = host_["tcp.packets.retransmissions"],
-              out_of_order_packets = host_["tcp.packets.out_of_order"],
-              lost_packets = host_["tcp.packets.lost"]},
-        when, verbose)
-   
-    ts_utils.append("host:dns_pkts_sent", {ifid = ifstats.id, host = hostname,
-              queries_packets = host_["dns"]["sent"]["num_queries"],
-              replies_ok_packets = host_["dns"]["sent"]["num_replies_ok"],
-              replies_error_packets = host_["dns"]["sent"]["num_replies_error"]},
-        when, verbose)
-   
-    ts_utils.append("host:dns_pkts_rcvd",{ifid = ifstats.id, host = hostname,
-              queries_packets = host_["dns"]["rcvd"]["num_queries"],
-              replies_ok_packets = host_["dns"]["rcvd"]["num_replies_ok"],
-              replies_error_packets = host_["dns"]["rcvd"]["num_replies_error"]},
-        when, verbose)
-         
-    ts_utils.append("host:udp_pkts", {ifid = ifstats.id, host = hostname,
-              packets_sent = host_["udp.packets.sent"],
-              packets_rcvd = host_["udp.packets.rcvd"]},
-        when, verbose)
-      
-    local stats = interface.getMacInfo(host_["mac"])
-      
-    if(stats ~= nil) then
-
-      ts_utils.append("host:arp_requests_pkts", {ifid = ifstats.id, host = hostname,
-                requests_packets_sent = stats["arp_requests.sent"],
-                requests_packets_rcvd = stats["arp_requests.rcvd"]},
-          when, verbose)
-    end
-  
-  end
+		  when, verbose)
 
   -- Total number of alerts
   ts_utils.append("host:total_alerts", {ifid = ifstats.id, host = hostname,

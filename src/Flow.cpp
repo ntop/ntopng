@@ -3663,55 +3663,57 @@ void Flow::dissectSSL(char *payload, u_int16_t payload_len) {
       
       memcpy(&_payload[i], payload, payload_len);
     }
-    
-    for(u_int i = (find_initial_pattern ? 9 : 0); i < _payload_len-4; i++) {
-      if((find_initial_pattern && (_payload[i] == 0x55) && (_payload[i+1] == 0x1d) && (_payload[i+2] == 0x11))
-	 || (!find_initial_pattern)) {
-	if(find_initial_pattern)
-	  i += 11;
 
-	while(i < _payload_len) {
-	  if(_payload[i] == 0x82) {
-	    u_int8_t len = _payload[i+1];
+    if(_payload_len > 4) {
+      for(u_int i = (find_initial_pattern ? 9 : 0); i < _payload_len-4; i++) {
+	if((find_initial_pattern && (_payload[i] == 0x55) && (_payload[i+1] == 0x1d) && (_payload[i+2] == 0x11))
+	   || (!find_initial_pattern)) {
+	  if(find_initial_pattern)
+	    i += 11;
 
-	    i += 2;
+	  while(i < _payload_len) {
+	    if(_payload[i] == 0x82) {
+	      u_int8_t len = _payload[i+1];
 
-	    if((i+len) < _payload_len) {
-	      if((len < 3)
-		 || ((!isalpha(_payload[i])) && (_payload[i] != '*'))
-		 || (_payload[i+len] != 0x82)
-		 ) {
-		protos.ssl.dissect_certificate = false;
-		break;
-	      } else {
-		char buf[len+1];
+	      i += 2;
+
+	      if((i+len) < _payload_len) {
+		if((len < 3)
+		   || ((!isalpha(_payload[i])) && (_payload[i] != '*'))
+		   || (_payload[i+len] != 0x82)
+		  ) {
+		  protos.ssl.dissect_certificate = false;
+		  break;
+		} else {
+		  char buf[len+1];
 		
-		strncpy(buf, (const char*)&_payload[i], len);
-		buf[len] = '\0';
+		  strncpy(buf, (const char*)&_payload[i], len);
+		  buf[len] = '\0';
 #if 0
-		ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [Len %u]", buf, len);
+		  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [Len %u]", buf, len);
 #endif
-	      }
-	    } else {
-	      i -= 2;
-	      /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "Leftover %u bytes [%u len]", _payload_len-i, len); */
-	      protos.ssl.certificate_leftover = _payload_len-i;
+		}
+	      } else {
+		i -= 2;
+		/* ntop->getTrace()->traceEvent(TRACE_NORMAL, "Leftover %u bytes [%u len]", _payload_len-i, len); */
+		protos.ssl.certificate_leftover = _payload_len-i;
 
-	      if((protos.ssl.certificate_buf_leftover = (char*)malloc(protos.ssl.certificate_leftover)) != NULL)
-		memcpy(protos.ssl.certificate_buf_leftover, &_payload[i], protos.ssl.certificate_leftover);
-	      else
-		protos.ssl.certificate_leftover = 0;
-	    }
+		if((protos.ssl.certificate_buf_leftover = (char*)malloc(protos.ssl.certificate_leftover)) != NULL)
+		  memcpy(protos.ssl.certificate_buf_leftover, &_payload[i], protos.ssl.certificate_leftover);
+		else
+		  protos.ssl.certificate_leftover = 0;
+	      }
 	  
-	    i += len;
-	  } else {
-	    protos.ssl.dissect_certificate = false;
-	    break;
+	      i += len;
+	    } else {
+	      protos.ssl.dissect_certificate = false;
+	      break;
+	    }
 	  }
 	}
-      }
-    } /* for */
-
+      } /* for */
+    }
+    
     free(_payload);
   }
 }
