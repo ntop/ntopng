@@ -760,7 +760,7 @@ elseif((page == "networks")) then
 
       local num = 1
       local bcast_domains = ""
-      for bcast_domain, in_interface_range in pairs(ifstats.bcast_domains) do
+      for bcast_domain, in_interface_range in pairsByKeys(ifstats.bcast_domains) do
 	 if num > 1 then
 	    bcast_domains = bcast_domains..","
 	 end
