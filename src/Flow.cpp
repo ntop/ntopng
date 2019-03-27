@@ -81,16 +81,31 @@ Flow::Flow(NetworkInterface *_iface,
   PROFILING_SUB_SECTION_EXIT(iface, 7);
   if(cli_host) { cli_host->incUses(); cli_host->incNumFlows(last_seen, true, srv_host);  }
   if(srv_host) { srv_host->incUses(); srv_host->incNumFlows(last_seen, false, cli_host); }
+  
+  if(icmp_info){
+    if(icmp_info->isPortUnreachable()){ //port unreachable icmpv6/icmpv4
 
-  if(icmp_info && icmp_info->getUnreach()) {
     /*
       This is an ICMP flow which contains unreachable information. As is the cli_host
       that complains, it means that the srv_host has made a connection that triggered
       the issue and thus it must be accounted in reverse
      */
-    if(cli_host) cli_host->incNumUnreachableFlows(true  /* as server */);
-    if(srv_host) srv_host->incNumUnreachableFlows(false /* as client */);
+    
+      if(cli_host) cli_host->incNumUnreachableFlows(true  /* as server */);
+      if(srv_host) srv_host->incNumUnreachableFlows(false /* as client */);
+    }
+    else if(icmp_info->isNetUnreachable(protocol)){
+      
+      if(cli_host) cli_host->incNumNetUnreachableFlows(true  /* as server */);
+      if(srv_host) srv_host->incNumNetUnreachableFlows(false /* as client */);
+    }
+    else if(icmp_info->isHostUnreachable(protocol)){
+
+      if(cli_host) cli_host->incNumHostUnreachableFlows(true  /* as server */);
+      if(srv_host) srv_host->incNumHostUnreachableFlows(false /* as client */);
+    }
   }
+
   
   memset(&custom_app, 0, sizeof(custom_app));
 
