@@ -3665,7 +3665,7 @@ void Flow::dissectSSL(char *payload, u_int16_t payload_len) {
     }
 
     if(_payload_len > 4) {
-      for(u_int i = (find_initial_pattern ? 9 : 0); i < _payload_len - 4; i++) {
+      for(int i = (find_initial_pattern ? 9 : 0); i < _payload_len - 4; i++) {
 
 	/* Look for the Subject Alternative Name Extension with OID 55 1D 11 */
 	if((find_initial_pattern && (_payload[i] == 0x55) && (_payload[i+1] == 0x1d) && (_payload[i+2] == 0x11))
