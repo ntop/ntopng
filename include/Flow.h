@@ -98,6 +98,7 @@ class Flow : public GenericHashEntry {
       char *certificate_buf_leftover;
       u_int certificate_leftover;
       bool dissect_certificate;
+      bool subject_alt_name_match;
     } ssl;
 
     struct {

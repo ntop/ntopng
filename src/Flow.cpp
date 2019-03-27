@@ -161,7 +161,8 @@ Flow::Flow(NetworkInterface *_iface,
     break;
   }
 
-  protos.ssl.dissect_certificate = true; // FIX
+  protos.ssl.dissect_certificate = true,
+    protos.ssl.subject_alt_name_match = false;
 }
 
 /* *************************************** */
@@ -3421,7 +3422,9 @@ FlowStatus Flow::getFlowStatus() {
 	/* 3WH is over */
 	switch(l7proto) {
 	case NDPI_PROTOCOL_SSL:
-	  if(protos.ssl.certificate && protos.ssl.server_certificate) {
+	  if(protos.ssl.certificate
+	     && protos.ssl.server_certificate
+	     && !protos.ssl.subject_alt_name_match) {
 	    if(protos.ssl.server_certificate[0] == '*') {
 	      if(!strstr(protos.ssl.certificate, &protos.ssl.server_certificate[1]))
 		return status_ssl_certificate_mismatch;
@@ -3697,9 +3700,16 @@ void Flow::dissectSSL(char *payload, u_int16_t payload_len) {
 		
 		  strncpy(buf, (const char*)&_payload[i], len);
 		  buf[len] = '\0';
+
 #if 0
 		  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [Len %u][sizeof(buf): %u][ssl cert: %s]", buf, len, sizeof(buf), getSSLCertificate());
 #endif
+
+		  if(protos.ssl.certificate && !strncmp(protos.ssl.certificate, buf, sizeof(buf))) {
+		    protos.ssl.subject_alt_name_match = true;
+		    protos.ssl.dissect_certificate = false;
+		    break;
+		  }
 		}
 	      } else {
 		i -= 2;
