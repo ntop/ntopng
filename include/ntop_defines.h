@@ -342,6 +342,12 @@
 #ifndef ICMP6_WRUREPLY
 #define ICMP6_WRUREPLY 140
 #endif
+#ifndef ICMP6_DEST_UNREACH
+#define ICMP6_DEST_UNREACH 1
+#endif
+#ifndef ICMP6_PORT_UNREACH
+#define ICMP6_PORT_UNREACH 4
+#endif
 
 #ifndef TH_FIN
 #define	TH_FIN	0x01

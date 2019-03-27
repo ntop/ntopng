@@ -83,7 +83,7 @@ Flow::Flow(NetworkInterface *_iface,
   if(srv_host) { srv_host->incUses(); srv_host->incNumFlows(last_seen, false, cli_host); }
   
   if(icmp_info){
-    if(icmp_info->getUnreach()){ //port unreachable
+    if(icmp_info->isPortUnreachable()){ //port unreachable icmpv6/icmpv4
 
     /*
       This is an ICMP flow which contains unreachable information. As is the cli_host
