@@ -19,6 +19,18 @@ local type_to_rrdtype = {
 
 -- ##############################################
 
+local debug_enabled = nil
+local function isDebugEnabled()
+  if debug_enabled == nil then
+    -- cache it
+    debug_enabled = (ntop.getPref("ntopng.prefs.rrd_debug_enabled") == "1")
+  end
+
+  return(debug_enabled)
+end
+
+-- ##############################################
+
 function driver:new(options)
   local obj = {
     base_path = options.base_path,
@@ -210,6 +222,11 @@ local function create_rrd(schema, path)
     params[#params + 1] = "RRA:HWPREDICT:" .. hwpredict.row_count .. ":0.1:0.0035:" .. hwpredict.period
   end
 
+  if isDebugEnabled() then
+    traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("ntop.rrd_create(%s) schema=%s",
+      table.concat(params, ", "), schema.name))
+  end
+
   -- NOTE: this is either a bug with unpack or with Lua.cpp make_argv
   params[#params + 1] = ""
 
@@ -225,6 +242,11 @@ local function update_rrd(schema, rrdfile, timestamp, data)
 
   for _, metric in ipairs(schema._metrics) do
     params[#params + 1] = tolongint(data[metric])
+  end
+
+  if isDebugEnabled() then
+    traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("ntop.rrd_update(%s, %s) schema=%s",
+      rrdfile, table.concat(params, ", "), schema.name))
   end
 
   ntop.rrd_update(rrdfile, table.unpack(params))
@@ -322,6 +344,11 @@ local function touchRRD(rrdname)
   if((last ~= nil) and ((now-last) > 3600)) then
     local tdiff = now - 1800 -- This avoids to set the update continuously
 
+    if isDebugEnabled() then
+      traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("touchRRD(%s, %u), last_update was %u",
+        rrdname, tdiff, last))
+    end
+
     if(ds_count == 1) then
       ntop.rrd_update(rrdname, tdiff.."", "0")
     elseif(ds_count == 2) then
@@ -340,6 +367,11 @@ function driver:query(schema, tstart, tend, tags, options)
 
   if not ntop.exists(rrdfile) then
      return nil
+  end
+
+  if isDebugEnabled() then
+    traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("RRD_FETCH schema=%s %s -> (%s): last_update=%u",
+      schema.name, table.tconcat(tags, "=", ","), rrdfile, ntop.rrd_lastupdate(rrdfile)))
   end
 
   touchRRD(rrdfile)
@@ -556,6 +588,12 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
 
   for _, serie_tags in pairs(series) do
     local rrdfile = schema_get_full_path(schema, serie_tags)
+
+    if isDebugEnabled() then
+      traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("RRD_FETCH[topk] schema=%s %s[%s] -> (%s): last_update=%u",
+        schema.name, table.tconcat(tags, "=", ","), table.concat(top_tags, ","), rrdfile, ntop.rrd_lastupdate(rrdfile)))
+    end
+
     touchRRD(rrdfile)
 
     local fstart, fstep, fdata, fend, fcount = ntop.rrd_fetch_columns(rrdfile, RRD_CONSOLIDATION_FUNCTION, query_start, tend)
@@ -759,6 +797,11 @@ function driver:delete(schema_prefix, tags)
      return false
   end
 
+  if isDebugEnabled() then
+    traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("DELETE schema=%s, %s => %s",
+      schema_prefix, table.tconcat(tags, "=", ","), path_to_del))
+  end
+
   return true
 end
 
@@ -772,8 +815,13 @@ function driver:deleteOldData(ifid)
 
   for _, path in pairs(paths) do
     local ifpath = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/".. path .."/")
+    local deadline = retention_days * 86400
 
-    ntop.deleteOldRRDs(ifpath, retention_days * 86400)
+    if isDebugEnabled() then
+      traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("ntop.deleteOldRRDs(%s, %u)", ifpath, deadline))
+    end
+
+    ntop.deleteOldRRDs(ifpath, deadline)
   end
 
   return true
