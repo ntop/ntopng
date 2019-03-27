@@ -19,10 +19,6 @@ require("ntop_utils")
 
 local INFLUX_QUERY_TIMEMOUT_SEC = 5
 local MIN_INFLUXDB_SUPPORTED_VERSION = "1.5.1"
-local RP_1H_DURATION = "30d" -- NOTE keep in sync with RP_1H_DURATION_SECS below
-local RP_1H_DURATION_SECS = 2592000
-local RP_1D_DURATION = "365d"  -- NOTE keep in sync with RP_1D_DURATION_SECS below
-local RP_1D_DURATION_SECS = 31536000
 local FIRST_AGGREGATION_TIME_KEY = "ntopng.prefs.influxdb.first_aggregation_time"
 
 -- ##############################################
@@ -75,8 +71,22 @@ end
 
 -- ##############################################
 
-local function getDatabaseRetention()
+local function getDatabaseRetentionDays()
   return tonumber(ntop.getPref("ntopng.prefs.influx_retention")) or 365 -- TODO make in common with prefs.lua
+end
+
+local function get1dDatabaseRetentionDays()
+  return getDatabaseRetentionDays()
+end
+
+local function get1hDatabaseRetentionDays()
+  return getDatabaseRetentionDays()
+end
+
+-- ##############################################
+
+local function isRollupEnabled()
+  return(ntop.getPref("ntopng.prefs.disable_influxdb_rollup") ~= "1")
 end
 
 -- ##############################################
@@ -86,15 +96,19 @@ local function getSchemaRetentionPolicy(schema, tstart, tend, options)
   options = options or {}
   local first_aggr_time = tonumber(ntop.getPref(FIRST_AGGREGATION_TIME_KEY))
 
-  if not first_aggr_time then
+  if((not first_aggr_time) or (not isRollupEnabled())) then
     return "raw"
   end
 
+  local rp_1d_duration_sec = get1dDatabaseRetentionDays() * 86400
+  local rp_1h_duration_sec = get1hDatabaseRetentionDays() * 86400
+
   -- RP selection logic
-  local oldest_1d_data = os.time() - RP_1D_DURATION_SECS
-  local oldest_1h_data = os.time() - RP_1H_DURATION_SECS
-  local oldest_raw_data = getDatabaseRetention()
+  local oldest_1d_data = os.time() - rp_1d_duration_sec
+  local oldest_1h_data = os.time() - rp_1h_duration_sec
+  local oldest_raw_data = getDatabaseRetentionDays() * 86400
   local max_raw_interval = 12 * 3600 -- after 12 hours begin to use the aggregated data
+  local max_1h_interval = 15 * 86400 -- after 15 days use the 1d aggregated data
 
   if options.target_aggregation then
     if((options.target_aggregation == "1h") and (tstart < oldest_1h_data)) or
@@ -121,7 +135,9 @@ local function getSchemaRetentionPolicy(schema, tstart, tend, options)
 
   local interval = tend - tstart
 
-  if interval >= max_raw_interval then
+  if interval >= max_1h_interval then
+    return "1d"
+  elseif interval >= max_raw_interval then
     return "1h"
   end
 
@@ -154,7 +170,7 @@ end
 
 -- ##############################################
 
-local function influx_query(base_url, query, username, password, options)
+local function influx_query_multi(base_url, query, username, password, options)
   options = options or {}
   local full_url = base_url .."&q=" .. urlencode(query)
   local tstart = os.time()
@@ -164,7 +180,8 @@ local function influx_query(base_url, query, username, password, options)
 
   if debug_influxdb_queries then
     local tdiff = tend - tstart
-    traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("influx_query[%ds]: %s", tdiff, query))
+    local _, num_queries = string.gsub(query, ";", "")
+    traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("influx_query[#%u][%ds]: %s", num_queries+1, tdiff, query))
   end
 
   if not res then
@@ -189,16 +206,58 @@ local function influx_query(base_url, query, username, password, options)
     return nil
   end
 
-  if jres.results[1]["error"] then
-    traceError(TRACE_ERROR, TRACE_CONSOLE, jres.results[1]["error"])
+  for _, result in ipairs(jres.results) do
+    if result["error"] then
+      traceError(TRACE_ERROR, TRACE_CONSOLE, result["error"])
+      return nil
+    end
   end
 
-  if not jres.results[1].series then
-    -- no results found
-    return {}
+  return jres
+end
+
+local function influx_query(base_url, query, username, password, options)
+  local jres = influx_query_multi(base_url, query, username, password, options)
+
+  if jres and jres.results then
+    if not jres.results[1].series then
+      -- no results found
+      return {}
+    end
+
+    return jres.results[1]
   end
 
-  return jres.results[1]
+  return nil
+end
+
+-- ##############################################
+
+local function multiQueryPost(queries, url, username, password)
+  local query_str = table.concat(queries, ";")
+  local res = ntop.httpPost(url .. "/query", "q=" .. urlencode(query_str), username, password, INFLUX_QUERY_TIMEMOUT_SEC, true)
+
+  if not res then
+    local err = "Invalid response for query: " .. query_str
+    traceError(TRACE_ERROR, TRACE_CONSOLE, err)
+    return false, err
+  end
+
+  if res.RESPONSE_CODE ~= 200 then
+    local err = "Bad response code[" .. res.RESPONSE_CODE .. "]: " .. getResponseError(res)
+    traceError(TRACE_ERROR, TRACE_CONSOLE, err)
+    --tprint(query_str)
+    return false, err
+  end
+
+  local err = getResponseError(res)
+  if err ~= 200 then
+    local err = "Unexpected query error: " .. err
+    traceError(TRACE_ERROR, TRACE_CONSOLE, err)
+    return false, err
+  end
+
+  return true
 end
 
 -- ##############################################
@@ -614,9 +673,10 @@ end
 
 -- ##############################################
 
-function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
-  -- At least 2 values are needed otherwise derivative will return empty
-  local min_values = 2
+-- At least 2 values are needed otherwise derivative will return empty
+local min_values_list_series = 2
+
+local function makeListSeriesQuery(schema, tags_filter, wildcard_tags, start_time)
   -- NOTE: do not use getQuerySchema here, otherwise we'll miss series
 
   -- NOTE: time based query not currently supported on show tags/series, using select
@@ -627,14 +687,13 @@ function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
     GROUP BY category
     LIMIT 2
   ]]
-  local query = 'SELECT * FROM "' .. schema.name .. '"' .. where_tags(tags_filter) ..
+  return 'SELECT * FROM "' .. schema.name .. '"' .. where_tags(tags_filter) ..
       " time >= " .. start_time .. "000000000" ..
       ternary(not table.empty(wildcard_tags), " GROUP BY " .. table.concat(wildcard_tags, ","), "") ..
-      " LIMIT " .. min_values
+      " LIMIT " .. min_values_list_series
+end
 
-  local url = self.url
-  local data = influx_query(url .. "/query?db=".. self.db, query, self.username, self.password)
-
+local function processListSeriesResult(data, schema, tags_filter, wildcard_tags)
   if table.empty(data) then
     return nil
   end
@@ -645,7 +704,7 @@ function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
 
   if table.empty(wildcard_tags) then
     -- Simple "exists" check
-    if #data.series[1].values >= min_values then
+    if #data.series[1].values >= min_values_list_series then
       return tags_filter
     else
       return nil
@@ -655,7 +714,7 @@ function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
   local res = {}
 
   for _, serie in pairs(data.series) do
-    if #serie.values < min_values then
+    if #serie.values < min_values_list_series then
       goto continue
     end
 
@@ -683,6 +742,46 @@ function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
   end
 
   return res
+end
+
+function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
+  local query = makeListSeriesQuery(schema, tags_filter, wildcard_tags, start_time)
+  local url = self.url
+  local data = influx_query(url .. "/query?db=".. self.db, query, self.username, self.password)
+
+  return processListSeriesResult(data, schema, tags_filter, wildcard_tags)
+end
+
+-- ##############################################
+
+function driver:listSeriesBatched(batch)
+  local max_batch_size = 30
+  local url = self.url
+  local rv = {}
+
+  for i=1,#batch,max_batch_size do
+    local queries = {}
+
+    -- Prepare the batch
+    for j=i,math.min(i+max_batch_size-1, #batch) do
+      local cur_query = batch[j]
+      queries[#queries +1] = makeListSeriesQuery(cur_query.schema, cur_query.filter_tags, cur_query.wildcard_tags, cur_query.start_time)
+    end
+
+    local query_str = table.concat(queries, ";")
+    local data = influx_query_multi(url .. "/query?db=".. self.db, query_str, self.username, self.password)
+
+    -- Collect the results
+    if data and data.results then
+      for j, result in pairs(data.results) do
+        local cur_query = batch[j]
+        local result = processListSeriesResult(result, cur_query.schema, cur_query.filter_tags, cur_query.wildcard_tags)
+        rv[j] = result
+      end
+    end
+  end
+
+  return rv
 end
 
 -- ##############################################
@@ -955,6 +1054,34 @@ end
 
 -- ##############################################
 
+local function updateCQRetentionPolicies(dbname, url, username, password)
+  local query = string.format("SHOW RETENTION POLICIES ON %s", dbname)
+  local res = influx_query(url .. "/query?db=".. dbname, query, username, password)
+  local rp_1h_statement = "CREATE"
+  local rp_1d_statement = "CREATE"
+
+  if res and res.series and res.series[1] then
+    for _, rp in pairs(res.series[1].values) do
+      local rp_name = rp[1]
+
+      if rp_name == "1h" then
+        rp_1h_statement = "ALTER"
+      elseif rp_name == "1d" then
+        rp_1d_statement = "ALTER"
+      end
+    end
+  end
+
+  local queries = {
+    string.format('%s RETENTION POLICY "1h" ON %s DURATION %ud REPLICATION 1', rp_1h_statement, dbname, get1hDatabaseRetentionDays()),
+    string.format('%s RETENTION POLICY "1d" ON %s DURATION %ud REPLICATION 1', rp_1d_statement, dbname, get1dDatabaseRetentionDays())
+  }
+
+  return multiQueryPost(queries, url, username, password)
+end
+
+-- ##############################################
+
 local function toVersion(version_str)
   local parts = string.split(version_str, "%.")
 
@@ -1039,7 +1166,7 @@ function driver.init(dbname, url, days_retention, username, password, verbose)
 
   if not db_found or days_retention ~= nil then
     -- New database or config changed
-    days_retention = days_retention or getDatabaseRetention()
+    days_retention = days_retention or getDatabaseRetentionDays()
 
     -- Set retention
     if verbose then traceError(TRACE_NORMAL, TRACE_CONSOLE, "Setting retention for " .. dbname .. " ...") end
@@ -1053,6 +1180,8 @@ function driver.init(dbname, url, days_retention, username, password, verbose)
       -- This is just a warning, we can proceed
       --return false, err
     end
+
+    -- NOTE: updateCQRetentionPolicies will be called automatically as driver:setup is triggered after this
   end
 
   return true, i18n("prefs.successfully_connected_influxdb", {db=dbname, version=version})
@@ -1084,32 +1213,6 @@ end
 function driver:deleteOldData(ifid)
   -- NOTE: retention is perfomed automatically based on the database retention policy,
   -- no need for manual intervention
-  return true
-end
-
--- ##############################################
-
-function driver:_multiQuery(queries)
-  local query_str = table.concat(queries, ";")
-  local res = ntop.httpPost(self.url .. "/query", "q=" .. urlencode(query_str), self.username, self.password, INFLUX_QUERY_TIMEMOUT_SEC, true)
-
-  if not res then
-    traceError(TRACE_ERROR, TRACE_CONSOLE, "Invalid response for query: " .. query_str)
-    return false
-  end
-
-  if res.RESPONSE_CODE ~= 200 then
-    traceError(TRACE_ERROR, TRACE_CONSOLE, "Bad response code[" .. res.RESPONSE_CODE .. "]: " .. getResponseError(res))
-    --tprint(query_str)
-    return false
-  end
-
-  local err = getResponseError(res)
-  if err ~= 200 then
-    traceError(TRACE_ERROR, TRACE_CONSOLE, "Unexpected query error: " .. err)
-    return false
-  end
-
   return true
 end
 
@@ -1211,9 +1314,17 @@ function driver:setup(ts_utils)
   -- Ensure that the database exists
   driver.init(self.db, self.url, nil, self.username, self.password)
 
-  queries[#queries + 1] = string.format('CREATE RETENTION POLICY "1h" ON %s DURATION %s REPLICATION 1', self.db, RP_1H_DURATION)
-  queries[#queries + 1] = string.format('CREATE RETENTION POLICY "1d" ON %s DURATION %s REPLICATION 1', self.db, RP_1D_DURATION)
+  if not updateCQRetentionPolicies(self.db, self.url, self.username, self.password) then
+    traceError(TRACE_ERROR, TRACE_CONSOLE, "InfluxDB setup failed")
+    return false
+  end
 
+  if not isRollupEnabled() then
+    -- Nothing more to do
+    return true
+  end
+
+  -- Continuos Queries stuff
   ts_utils.loadSchemas()
   local schemas = ts_utils.getLoadedSchemas()
 
@@ -1227,15 +1338,11 @@ function driver:setup(ts_utils)
     local cq_1h = getCqQuery(self.db, tags, schema, "autogen", "1h", schema.options.step, 3600, "2h")
     local cq_1d = getCqQuery(self.db, tags, schema, "1h", "1d", 3600, 86400)
 
-    -- TODO temporary fix to alter existing queries, remove after beta end
-    queries[#queries + 1] = string.format('DROP CONTINUOUS QUERY "%s__1d" ON %s', schema.name, self.db)
-    queries[#queries + 1] = string.format('DROP CONTINUOUS QUERY "%s__1h" ON %s', schema.name, self.db)
-
     queries[#queries + 1] = cq_1h:gsub("\n", ""):gsub("%s%s+", " ")
     queries[#queries + 1] = cq_1d:gsub("\n", ""):gsub("%s%s+", " ")
 
     if #queries >= max_batch_size then
-      if not self:_multiQuery(queries) then
+      if not multiQueryPost(queries, self.url, self.username, self.password) then
         traceError(TRACE_ERROR, TRACE_CONSOLE, "InfluxDB setup failed")
         return false
       end
@@ -1246,7 +1353,7 @@ function driver:setup(ts_utils)
   end
 
   if #queries > 0 then
-    if not self:_multiQuery(queries) then
+    if not multiQueryPost(queries, self.url, self.username, self.password) then
       traceError(TRACE_ERROR, TRACE_CONSOLE, "InfluxDB setup() failed")
       return false
     end

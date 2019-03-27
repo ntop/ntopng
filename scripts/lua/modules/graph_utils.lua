@@ -260,7 +260,7 @@ end
 
 local graph_menu_entries = {}
 
-function populateGraphMenuEntry(label, base_url, params, tab_id)
+function populateGraphMenuEntry(label, base_url, params, tab_id, needs_separator, separator_label, pending)
    local url = getPageUrl(base_url, params)
 
    local entry_params = table.clone(params)
@@ -274,18 +274,29 @@ function populateGraphMenuEntry(label, base_url, params, tab_id)
       params = entry_params, -- for graphMenuGetActive
       url = url,
       tab_id = tab_id,
+      needs_separator = needs_separator,
+      separator_label = separator_label,
+      pending = pending, -- true for batched operations
    }
 
    graph_menu_entries[#graph_menu_entries + 1] = entry
    return entry
 end
 
+function makeMenuDivider()
+   return '<li role="separator" class="divider"></li>'
+end
+
+function makeMenuHeader(label)
+   return '<li class="dropdown-header">'.. label ..'</li>'
+end
+
 function graphMenuDivider()
-   graph_menu_entries[#graph_menu_entries + 1] = {html='<li class="divider"></li>'}
+   graph_menu_entries[#graph_menu_entries + 1] = {html=makeMenuDivider()}
 end
 
 function graphMenuHeader(label)
-   graph_menu_entries[#graph_menu_entries + 1] = {html='<li class="dropdown-header">'.. label ..'</li>'}
+   graph_menu_entries[#graph_menu_entries + 1] = {html=makeMenuHeader(label)}
 end
 
 function graphMenuGetActive(schema, params)
@@ -309,23 +320,43 @@ function graphMenuGetActive(schema, params)
    return nil
 end
 
-function printGraphMenuEntries()
-   for _, entry in ipairs(graph_menu_entries) do
+local function printEntry(idx, entry)
+   local parts = {}
+
+   parts[#parts + 1] = [[<li><a href="]] .. entry.url .. [[" ]]
+
+   if not isEmptyString(entry.tab_id) then
+      parts[#parts + 1] = [[id="]] .. entry.tab_id .. [[" ]]
+   end
+
+   parts[#parts + 1] = [[> ]] .. entry.label .. [[</a></li>]]
+
+   print(table.concat(parts, ""))
+end
+
+-- Prints the menu from the populated graph_menu_entries.
+-- The entry_print_callback is called to print the actual entries.
+function printGraphMenuEntries(entry_print_callback)
+   for idx, entry in ipairs(graph_menu_entries) do
+      if(entry.pending and (entry.pending > 0)) then
+         -- not verified, act like it does not exist
+         goto continue
+      end
+
+      if(entry.needs_separator) then
+         print(makeMenuDivider())
+      end
+      if(entry.separator_label) then
+         print(makeMenuHeader(entry.separator_label))
+      end
+
       if entry.html then
          print(entry.html)
       else
-         local parts = {}
-
-         parts[#parts + 1] = [[<li><a href="]] .. entry.url .. [[" ]]
-
-         if not isEmptyString(entry.tab_id) then
-            parts[#parts + 1] = [[id="]] .. entry.tab_id .. [[" ]]
-         end
-
-         parts[#parts + 1] = [[> ]] .. entry.label .. [[</a></li>]]
-
-         print(table.concat(parts, ""))
+         entry_print_callback(idx, entry)
       end
+
+      ::continue::
    end
 end
 
@@ -339,6 +370,7 @@ function printSeries(options, tags, start_time, base_url, params)
    local series = options.timeseries
    local needs_separator = false
    local separator_label = nil
+   local batch_id_to_entry = {}
 
    if params.tskey then
       -- this can contain a MAC address for local broadcast domain hosts
@@ -354,10 +386,15 @@ function printSeries(options, tags, start_time, base_url, params)
       if serie.separator then
          needs_separator = true
          separator_label = serie.label
-     else
+      else
          local k = serie.schema
          local v = serie.label
          local exists = false
+
+         -- Contains the list of batch_ids to be associated to this menu entry.
+         -- The entry can only be shown when all the batch_ids have been confirmed
+         -- in getBatchedListSeriesResult
+         local batch_ids = {}
 
          if starts(k, "custom:") then
             if not ntop.isPro() then
@@ -371,31 +408,41 @@ function printSeries(options, tags, start_time, base_url, params)
          if serie.check ~= nil then
             exists = true
 
+            -- In the case of custom series, the serie can only be shown if all
+            -- the component series exists
             for _, serie in pairs(serie.check) do
-               exists = exists and (ts_utils.listSeries(serie, tags, start_time) ~= nil)
+               local batch_id = ts_utils.batchListSeries(serie, tags, start_time)
 
-               if not exists then
+               if batch_id == nil then
+                  exists = false
                   break
                end
+
+               batch_ids[#batch_ids +1] = batch_id
             end
          elseif not exists then
             -- only show if there has been an update within the specified time frame
-            exists = (ts_utils.listSeries(k, tags, start_time) ~= nil)
+            local batch_id = ts_utils.batchListSeries(k, tags, start_time)
+
+            if batch_id ~= nil then
+               -- assume it exists for now, will verify in getBatchedListSeriesResult
+               exists = true
+               batch_ids[#batch_ids +1] = batch_id
+            end
          end
-   
+
          if exists then
-            if needs_separator then
-               -- Only add the separator if there are actually some entries in the group
-               graphMenuDivider()
+            local entry = populateGraphMenuEntry(v, base_url, table.merge(params, {ts_schema=k}), nil,
+               needs_separator, separator_label, #batch_ids --[[ pending ]])
 
-               if separator_label then
-                  graphMenuHeader(separator_label)
+            if entry then
+               for _, batch_id in pairs(batch_ids) do
+                  batch_id_to_entry[batch_id] = entry
                end
-
-               needs_separator = false
             end
 
-            populateGraphMenuEntry(v, base_url, table.merge(params, {ts_schema=k}))
+            needs_separator = false
+            separator_label = nil
          end
       end
 
@@ -487,6 +534,18 @@ function printSeries(options, tags, start_time, base_url, params)
          for category in pairsByKeys(by_category, asc) do
             populateGraphMenuEntry(category, base_url, table.merge(params, {ts_schema=schema, category=category}))
          end
+      end
+   end
+
+   -- Perform the batched operations
+   local result = ts_utils.getBatchedListSeriesResult()
+
+   for batch_id, res in pairs(result) do
+      local entry = batch_id_to_entry[batch_id]
+
+      if entry and not table.empty(res) and entry.pending then
+         -- entry exists, decrement the number of pending requests
+         entry.pending = entry.pending - 1
       end
    end
 end
@@ -660,8 +719,7 @@ if(options.timeseries) then
 ]]
 
    printSeries(options, tags, start_time, baseurl, page_params)
-
-   printGraphMenuEntries()
+   printGraphMenuEntries(printEntry)
 
    print [[
   </ul>
@@ -1194,7 +1252,7 @@ function printCategoryDropdownButton(by_id, cat_id_or_name, base_url, page_param
             '><a href="' .. getPageUrl(base_url, page_params) .. '">' .. (entry.icon or "") ..
             entry.text .. '</a></li>')
       else
-         print('<li role="separator" class="divider"></li>')
+         print(makeMenuDivider())
       end
    end
 

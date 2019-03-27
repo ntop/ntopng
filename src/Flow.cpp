@@ -81,16 +81,31 @@ Flow::Flow(NetworkInterface *_iface,
   PROFILING_SUB_SECTION_EXIT(iface, 7);
   if(cli_host) { cli_host->incUses(); cli_host->incNumFlows(last_seen, true, srv_host);  }
   if(srv_host) { srv_host->incUses(); srv_host->incNumFlows(last_seen, false, cli_host); }
+  
+  if(icmp_info){
+    if(icmp_info->isPortUnreachable()){ //port unreachable icmpv6/icmpv4
 
-  if(icmp_info && icmp_info->getUnreach()) {
     /*
       This is an ICMP flow which contains unreachable information. As is the cli_host
       that complains, it means that the srv_host has made a connection that triggered
       the issue and thus it must be accounted in reverse
      */
-    if(cli_host) cli_host->incNumUnreachableFlows(true  /* as server */);
-    if(srv_host) srv_host->incNumUnreachableFlows(false /* as client */);
+    
+      if(cli_host) cli_host->incNumUnreachableFlows(true  /* as server */);
+      if(srv_host) srv_host->incNumUnreachableFlows(false /* as client */);
+    }
+    else if(icmp_info->isNetUnreachable(protocol)){
+      
+      if(cli_host) cli_host->incNumNetUnreachableFlows(true  /* as server */);
+      if(srv_host) srv_host->incNumNetUnreachableFlows(false /* as client */);
+    }
+    else if(icmp_info->isHostUnreachable(protocol)){
+
+      if(cli_host) cli_host->incNumHostUnreachableFlows(true  /* as server */);
+      if(srv_host) srv_host->incNumHostUnreachableFlows(false /* as client */);
+    }
   }
+
   
   memset(&custom_app, 0, sizeof(custom_app));
 
@@ -161,7 +176,8 @@ Flow::Flow(NetworkInterface *_iface,
     break;
   }
 
-  protos.ssl.dissect_certificate = true; // FIX
+  protos.ssl.dissect_certificate = true,
+    protos.ssl.subject_alt_name_match = false;
 }
 
 /* *************************************** */
@@ -3421,7 +3437,9 @@ FlowStatus Flow::getFlowStatus() {
 	/* 3WH is over */
 	switch(l7proto) {
 	case NDPI_PROTOCOL_SSL:
-	  if(protos.ssl.certificate && protos.ssl.server_certificate) {
+	  if(protos.ssl.certificate
+	     && protos.ssl.server_certificate
+	     && !protos.ssl.subject_alt_name_match) {
 	    if(protos.ssl.server_certificate[0] == '*') {
 	      if(!strstr(protos.ssl.certificate, &protos.ssl.server_certificate[1]))
 		return status_ssl_certificate_mismatch;
@@ -3645,66 +3663,84 @@ void Flow::fillZmqFlowCategory() {
 
 void Flow::dissectSSL(char *payload, u_int16_t payload_len) {
   if(protos.ssl.dissect_certificate) {
-    u_int16_t _payload_len = payload_len+protos.ssl.certificate_leftover;
+    u_int16_t _payload_len = payload_len + protos.ssl.certificate_leftover;
     u_char *_payload       = (u_char*)malloc(_payload_len);
     bool find_initial_pattern = true;
-    
+
     if(!_payload)
       return;
     else {
       int i = 0;
-	
+
       if(protos.ssl.certificate_leftover > 0) {
 	memcpy(_payload, protos.ssl.certificate_buf_leftover, (i = protos.ssl.certificate_leftover));
 	free(protos.ssl.certificate_buf_leftover);
 	protos.ssl.certificate_buf_leftover = NULL, protos.ssl.certificate_leftover = 0;
 	find_initial_pattern = false;
       }
-      
+
       memcpy(&_payload[i], payload, payload_len);
     }
 
     if(_payload_len > 4) {
-      for(u_int i = (find_initial_pattern ? 9 : 0); i < _payload_len-4; i++) {
+      for(int i = (find_initial_pattern ? 9 : 0); i < _payload_len - 4 && protos.ssl.dissect_certificate; i++) {
+
+	/* Look for the Subject Alternative Name Extension with OID 55 1D 11 */
 	if((find_initial_pattern && (_payload[i] == 0x55) && (_payload[i+1] == 0x1d) && (_payload[i+2] == 0x11))
 	   || (!find_initial_pattern)) {
-	  if(find_initial_pattern)
-	    i += 11;
+
+	  if(find_initial_pattern) {
+	    i += 3 /* skip the initial patten 55 1D 11 */;
+	    i++; /* skip the first type, 0x04 == BIT STRING, and jump to it's length */
+	    i += _payload[i] & 0x80 ? _payload[i] & 0x7F : 0; /* skip BIT STRING length */
+	    i += 2; /* skip the second type, 0x30 == SEQUENCE, and jump to it's length */
+	    i += _payload[i] & 0x80 ? _payload[i] & 0x7F : 0; /* skip SEQUENCE length */
+	    i++;
+	  }
 
 	  while(i < _payload_len) {
 	    if(_payload[i] == 0x82) {
-	      u_int8_t len = _payload[i+1];
+	      u_int8_t len;
 
-	      i += 2;
+	      if(i < _payload_len - 1 && (len = _payload[i + 1]) && i + len + 2 < _payload_len) {
+		i += 2;
 
-	      if((i+len) < _payload_len) {
-		if((len < 3)
-		   || ((!isalpha(_payload[i])) && (_payload[i] != '*'))
-		   || (_payload[i+len] != 0x82)
-		  ) {
+		if(!isalpha(_payload[i]) && _payload[i] != '*') {
 		  protos.ssl.dissect_certificate = false;
 		  break;
 		} else {
-		  char buf[len+1];
-		
+		  char buf[len + 1];
+
 		  strncpy(buf, (const char*)&_payload[i], len);
 		  buf[len] = '\0';
+
 #if 0
-		  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [Len %u]", buf, len);
+		  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [Len %u][sizeof(buf): %u][ssl cert: %s]", buf, len, sizeof(buf), getSSLCertificate());
 #endif
+
+		  if(protos.ssl.certificate
+		     && ((buf[0] != '*' && !strncmp(protos.ssl.certificate, buf, sizeof(buf)))
+			 || (buf[0] == '*' && strstr(protos.ssl.certificate, &buf[1])))) {
+		    protos.ssl.subject_alt_name_match = true;
+		    protos.ssl.dissect_certificate = false;
+		    break;
+		  }
 		}
+
+		i += len;
 	      } else {
-		i -= 2;
-		/* ntop->getTrace()->traceEvent(TRACE_NORMAL, "Leftover %u bytes [%u len]", _payload_len-i, len); */
-		protos.ssl.certificate_leftover = _payload_len-i;
+#if 0
+		ntop->getTrace()->traceEvent(TRACE_NORMAL, "Leftover %u bytes [%u len]", _payload_len - i, len);
+#endif
+		protos.ssl.certificate_leftover = _payload_len - i;
 
 		if((protos.ssl.certificate_buf_leftover = (char*)malloc(protos.ssl.certificate_leftover)) != NULL)
 		  memcpy(protos.ssl.certificate_buf_leftover, &_payload[i], protos.ssl.certificate_leftover);
 		else
 		  protos.ssl.certificate_leftover = 0;
+
+		break;
 	      }
-	  
-	      i += len;
 	    } else {
 	      protos.ssl.dissect_certificate = false;
 	      break;
@@ -3713,7 +3749,7 @@ void Flow::dissectSSL(char *payload, u_int16_t payload_len) {
 	}
       } /* for */
     }
-    
+
     free(_payload);
   }
 }

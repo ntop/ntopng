@@ -2544,14 +2544,11 @@ decode_packet_eth:
 	  arp_spa_h->setBroadcastDomainHost();
 #endif
 
-#ifdef DEBUG
-	char buf1[32], buf2[32], buf3[32];
-#endif
 	u_int32_t src = ntohl(arpp->arp_spa);
 	u_int32_t dst = ntohl(arpp->arp_tpa);
 	u_int32_t net = src & dst;
 	u_int32_t diff;
-	u_int8_t cidr;
+	IpAddress cur_bcast_domain;
 
 	if(src > dst) {
 	  u_int32_t r = src;
@@ -2559,57 +2556,39 @@ decode_packet_eth:
 	  dst = r;
 	}
 
-	diff = dst-src;
+	diff = dst - src;
 
-	if(diff <= 1024) {
-	  u_int32_t mask;
-	  IpAddress cur_bcast_domain;
+	if(diff && (src & 0xFFFF0000) != 0xA9FE0000 && (dst & 0xFFFF0000) != 0xA9FE0000) {
+	  u_int32_t cur_mask;
+	  u_int8_t cur_cidr;
 
-	  /* Ignore networks > /21 */
+	  for(cur_mask = 0xFFFFFFF0, cur_cidr = 28; cur_mask >= 0xFF000000; cur_mask <<= 1, cur_cidr -= 1) {
+	    if((diff & cur_mask) == 0) { /* diff < cur_mask */
+	      net &= cur_mask;
 
-	  /* 131.114.2.22 <-> 131.114.3.2  */
+	      if((src & cur_mask) != (dst & cur_mask)) {
+		cur_mask <<= 1, cur_cidr -= 1;
+		net = src & cur_mask;
+	      } 
 
-	  if(diff <= 256) {
-	    mask = 0xFFFFFF00, cidr = 24;
-	    net &= mask, diff = 256;
+	      cur_bcast_domain.set(htonl(net));
+	      bcast_domains->inlineAddAddress(&cur_bcast_domain, cur_cidr);
 
-	    if((src & mask) != (dst & mask)) {
-	      mask <<= 1, cidr -= 1;
-	      net = src & mask, diff = diff << 1;
+	      break;
 	    }
-	  } else if(diff <= 512) {
-	    mask = 0xFFFFFE00, cidr = 23;
-	    net &= mask, diff = 512;
-
-	    if((src & mask) != (dst & mask)) {
-	      mask <<= 1, cidr -= 1;
-	      net = src & mask, diff = diff << 1;
-	    }
-	  } else if(diff <= 768) {
-	    mask = 0xFFFFFC00, cidr = 22;
-	    net &= mask, diff = 768;
-
-	    if((src & mask) != (dst & mask)) {
-	      mask <<= 1, cidr -= 1;
-	      net = src & mask, diff = diff << 1;
-	    }
-	  } else {
-	    net &= 0xFFFFF800, diff = 1024, cidr = 21;
 	  }
 
 #ifdef DEBUG
-	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s <-> %s [%s - %u/%u]",
+	  char buf1[32], buf2[32], buf3[32];
+	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s <-> %s [%s - %u]",
 				       Utils::intoaV4(src, buf1, sizeof(buf1)),
 				       Utils::intoaV4(dst, buf2, sizeof(buf2)),
 				       Utils::intoaV4(net, buf3, sizeof(buf3)),
-				       diff, cidr);
+				       cur_cidr);
 #endif
-
-	  cur_bcast_domain.set(htonl(net));
-	  bcast_domains->inlineAddAddress(&cur_bcast_domain, cidr);
 	}
 
-	e  = getArpHashMatrixElement(srcMac->get_mac(), dstMac->get_mac(), &src2dst_element);
+	e = getArpHashMatrixElement(srcMac->get_mac(), dstMac->get_mac(), &src2dst_element);
 
 #if 0
 	char buf1[32], buf2[32];

@@ -322,6 +322,12 @@
 #ifndef ICMP_INFO_REPLY
 #define ICMP_INFO_REPLY 16
 #endif
+#ifndef ICMP_NET_UNREACH
+#define ICMP_NET_UNREACH 0
+#endif
+#ifndef ICMP_HOST_UNREACH
+#define ICMP_HOST_UNREACH 1
+#endif
 #ifndef ICMP_PORT_UNREACH
 #define ICMP_PORT_UNREACH 3
 #endif
@@ -335,6 +341,12 @@
 #endif
 #ifndef ICMP6_WRUREPLY
 #define ICMP6_WRUREPLY 140
+#endif
+#ifndef ICMP6_DEST_UNREACH
+#define ICMP6_DEST_UNREACH 1
+#endif
+#ifndef ICMP6_PORT_UNREACH
+#define ICMP6_PORT_UNREACH 4
 #endif
 
 #ifndef TH_FIN

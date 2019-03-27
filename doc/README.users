@@ -4,9 +4,9 @@ Default ntopng user is "admin" with password "admin".
 It is possible to provide ntopng a list of users credentials in a text file 
 with the format:
 
-user.utente.password=5f4dcc3b5aa765d61d8327deb882cf99
-user.utente.full_name=Nuovo Utente
-user.utente.group=administrator
+user.username.password=5f4dcc3b5aa765d61d8327deb882cf99
+user.username.full_name=New user
+user.username.group=administrator
 
 The md5 sum of the password has to be provided.
 In the same way it is possible to overwrite the default "admin" password.
@@ -20,16 +20,16 @@ It is also possible to add a user via Redis using the command:
 
   redis-cli SET ntopng.user.<username>.password <password md5>
 
-Example of adding a user "utente" with password "password":
+Example of adding a user "username" with password "password":
 
   $ echo -n "password" | md5 
   5f4dcc3b5aa765d61d8327deb882cf99
 
-  $ redis-cli SET ntopng.user.utente.password 5f4dcc3b5aa765d61d8327deb882cf99 
+  $ redis-cli SET ntopng.user.username.password 5f4dcc3b5aa765d61d8327deb882cf99 
 
 It is possible to list all users via Redis using:
 
-  $ redis-cli KEYS user*
+  $ redis-cli KEYS ntopng.user*
   1) "ntopng.user.admin.password"
-  2) "ntopng.user.utente.password"
+  2) "ntopng.user.username.password"
 

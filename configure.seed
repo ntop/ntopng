@@ -191,10 +191,14 @@ if test -z "$NDPI_INC" || test -z "$NDPI_LIB" ; then :
 fi
 dnl finish: nDPI handling
 
-if test -z `pkg-config --exists libssl`; then
+pkg-config --exists libssl
+if test "$?" -ne 1; then
  AC_DEFINE_UNQUOTED(NO_SSL_DL, 1, [has openssl])
  SSL_INC="`pkg-config --cflags libssl` -I/usr/include/openssl"
  SSL_LIB="`pkg-config --libs libssl` -lssl -lcrypto"
+else
+ echo "Please install openssl-dev(el) package prerequisite"
+ exit -1
 fi
 
 AC_MSG_CHECKING(for ntopng professional edition)

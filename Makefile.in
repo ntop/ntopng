@@ -181,6 +181,7 @@ hooks/.enabled:
 clean:
 	-rm -f src/*.o src/*~ include/*~ *~ #config.h
 	-rm -f $(TARGET)
+	if [ -d pro ]; then cd pro && make clean; fi
 
 cert:
 	openssl req -new -x509 -sha256 -extensions v3_ca -nodes -days 365 -out cert.pem
