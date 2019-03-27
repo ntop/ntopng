@@ -12,8 +12,8 @@ corresponding redis preference. The correct sequence to follow is:
 List of beta/debug features and how to enable them
 --------------------------------------------------
 
-## [Beta] Enable InfluxDB data rollup via Continuous Queries
-redis-cli set "ntopng.prefs.beta_rollup" "1"
+## Disable InfluxDB data rollup via Continuous Queries
+redis-cli set "ntopng.prefs.disable_influxdb_rollup" "1"
 
 ## [Debug] Add a dropdown into the charts to select the InfluxDB data rollup to use
 redis-cli set "ntopng.prefs.influxdb.debug_aggregation" "1"

@@ -750,8 +750,7 @@ end
 function ts_utils.setup()
   local setup_ok = ntop.getPref(SETUP_OK_KEY)
 
-  if (ntop.getCache(SETUP_OK_KEY) ~= "1") and
-      (ntop.getPref("ntopng.prefs.beta_rollup") == "1" --[[ TODO remove after test ]]) then
+  if(ntop.getCache(SETUP_OK_KEY) ~= "1") then
     if ts_utils.getQueryDriver():setup(ts_utils) then
       -- success, update version
       ntop.setCache(SETUP_OK_KEY, "1")
