@@ -535,6 +535,15 @@ if (typeof(String.prototype.contains) === "undefined") {
   }
 }
 
+function _add_find_host_link(form, name, data) {
+  $('<input>').attr({
+    type: 'hidden',
+    id: name,
+    name: name,
+    value: data,
+  }).appendTo(form);
+}
+
 /* Used while searching hosts a and macs with typeahead */
 function makeFindHostBeforeSubmitCallback(http_prefix) {
   return function(form, data) {
@@ -542,22 +551,13 @@ function makeFindHostBeforeSubmitCallback(http_prefix) {
       form.attr("action", http_prefix + "/lua/mac_details.lua");
     } else if (data.type == "network") {
       form.attr("action", http_prefix + "/lua/hosts_stats.lua");
-      /* Must add also the network to properly set the destination link */
-      $('<input>').attr({
-        type: 'hidden',
-        id: 'network',
-        name: 'network',
-        value: data.network,
-      }).appendTo(form);
+      _add_find_host_link(form, "network", data.network);
     } else if (data.type == "snmp") {
       form.attr("action", http_prefix + "/lua/pro/enterprise/snmp_interface_details.lua");
-      /* Must add also the snmp port index to properly set the destination link */
-      $('<input>').attr({
-	  type: 'hidden',
-	  id: 'snmp_port_idx',
-	  name: 'snmp_port_idx',
-	  value: data.snmp_port_idx,
-      }).appendTo(form);
+      _add_find_host_link(form, "snmp_port_idx", data.snmp_port_idx);
+    } else if (data.type == "asn") {
+      form.attr("action", http_prefix + "/lua/hosts_stats.lua");
+      _add_find_host_link(form, "asn", data.asn);
     } else {
       form.attr("action", http_prefix + "/lua/host_details.lua");
     }
