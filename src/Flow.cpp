@@ -3671,14 +3671,14 @@ void Flow::dissectSSL(char *payload, u_int16_t payload_len) {
 	if((find_initial_pattern && (_payload[i] == 0x55) && (_payload[i+1] == 0x1d) && (_payload[i+2] == 0x11))
 	   || (!find_initial_pattern)) {
 
-	  if(find_initial_pattern)
-	    i += 3 /* 55 1D 11 */;
-
-	  i++; /* skip the first type, usually 0x04, and jump to it's length */
-	  i += _payload[i] & 0x80 ? _payload[i] & 0x7F : 0;
-	  i += 2; /* skip the second type, usually 0x03, and jump to it's length */
-	  i += _payload[i] & 0x80 ? _payload[i] & 0x7F : 0;
-	  i++;
+	  if(find_initial_pattern) {
+	    i += 3 /* skip the initial patten 55 1D 11 */;
+	    i++; /* skip the first type, 0x04 == BIT STRING, and jump to it's length */
+	    i += _payload[i] & 0x80 ? _payload[i] & 0x7F : 0; /* skip BIT STRING length */
+	    i += 2; /* skip the second type, 0x30 == SEQUENCE, and jump to it's length */
+	    i += _payload[i] & 0x80 ? _payload[i] & 0x7F : 0; /* skip SEQUENCE length */
+	    i++;
+	  }
 
 	  while(i < _payload_len) {
 	    if(_payload[i] == 0x82) {
@@ -3689,7 +3689,6 @@ void Flow::dissectSSL(char *payload, u_int16_t payload_len) {
 	      if((i+len) < _payload_len) {
 		if((len < 3)
 		   || ((!isalpha(_payload[i])) && (_payload[i] != '*'))
-		   || (_payload[i+len] != 0x82)
 		   ) {
 		  protos.ssl.dissect_certificate = false;
 		  break;
@@ -3699,12 +3698,14 @@ void Flow::dissectSSL(char *payload, u_int16_t payload_len) {
 		  strncpy(buf, (const char*)&_payload[i], len);
 		  buf[len] = '\0';
 #if 0
-		  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [Len %u][sizeof(buf): %u]", buf, len, sizeof(buf));
+		  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [Len %u][sizeof(buf): %u][ssl cert: %s]", buf, len, sizeof(buf), getSSLCertificate());
 #endif
 		}
 	      } else {
 		i -= 2;
-		// ntop->getTrace()->traceEvent(TRACE_NORMAL, "Leftover %u bytes [%u len]", _payload_len-i, len);
+#if 0
+		ntop->getTrace()->traceEvent(TRACE_NORMAL, "Leftover %u bytes [%u len]", _payload_len-i, len);
+#endif
 		protos.ssl.certificate_leftover = _payload_len - i;
 
 		if((protos.ssl.certificate_buf_leftover = (char*)malloc(protos.ssl.certificate_leftover)) != NULL)
