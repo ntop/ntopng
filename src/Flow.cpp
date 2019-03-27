@@ -3651,24 +3651,24 @@ void Flow::dissectSSL(char *payload, u_int16_t payload_len) {
     u_int16_t _payload_len = payload_len + protos.ssl.certificate_leftover;
     u_char *_payload       = (u_char*)malloc(_payload_len);
     bool find_initial_pattern = true;
-    
+
     if(!_payload)
       return;
     else {
       int i = 0;
-	
+
       if(protos.ssl.certificate_leftover > 0) {
 	memcpy(_payload, protos.ssl.certificate_buf_leftover, (i = protos.ssl.certificate_leftover));
 	free(protos.ssl.certificate_buf_leftover);
 	protos.ssl.certificate_buf_leftover = NULL, protos.ssl.certificate_leftover = 0;
 	find_initial_pattern = false;
       }
-      
+
       memcpy(&_payload[i], payload, payload_len);
     }
 
     if(_payload_len > 4) {
-      for(int i = (find_initial_pattern ? 9 : 0); i < _payload_len - 4; i++) {
+      for(int i = (find_initial_pattern ? 9 : 0); i < _payload_len - 4 && protos.ssl.dissect_certificate; i++) {
 
 	/* Look for the Subject Alternative Name Extension with OID 55 1D 11 */
 	if((find_initial_pattern && (_payload[i] == 0x55) && (_payload[i+1] == 0x1d) && (_payload[i+2] == 0x11))
@@ -3685,19 +3685,17 @@ void Flow::dissectSSL(char *payload, u_int16_t payload_len) {
 
 	  while(i < _payload_len) {
 	    if(_payload[i] == 0x82) {
-	      u_int8_t len = _payload[i+1];
+	      u_int8_t len;
 
-	      i += 2;
+	      if(i < _payload_len - 1 && (len = _payload[i + 1]) && i + len + 2 < _payload_len) {
+		i += 2;
 
-	      if((i+len) < _payload_len) {
-		if((len < 3)
-		   || ((!isalpha(_payload[i])) && (_payload[i] != '*'))
-		   ) {
+		if(!isalpha(_payload[i]) && _payload[i] != '*') {
 		  protos.ssl.dissect_certificate = false;
 		  break;
 		} else {
 		  char buf[len + 1];
-		
+
 		  strncpy(buf, (const char*)&_payload[i], len);
 		  buf[len] = '\0';
 
@@ -3705,16 +3703,19 @@ void Flow::dissectSSL(char *payload, u_int16_t payload_len) {
 		  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [Len %u][sizeof(buf): %u][ssl cert: %s]", buf, len, sizeof(buf), getSSLCertificate());
 #endif
 
-		  if(protos.ssl.certificate && !strncmp(protos.ssl.certificate, buf, sizeof(buf))) {
+		  if(protos.ssl.certificate
+		     && ((buf[0] != '*' && !strncmp(protos.ssl.certificate, buf, sizeof(buf)))
+			 || (buf[0] == '*' && strstr(protos.ssl.certificate, &buf[1])))) {
 		    protos.ssl.subject_alt_name_match = true;
 		    protos.ssl.dissect_certificate = false;
 		    break;
 		  }
 		}
+
+		i += len;
 	      } else {
-		i -= 2;
 #if 0
-		ntop->getTrace()->traceEvent(TRACE_NORMAL, "Leftover %u bytes [%u len]", _payload_len-i, len);
+		ntop->getTrace()->traceEvent(TRACE_NORMAL, "Leftover %u bytes [%u len]", _payload_len - i, len);
 #endif
 		protos.ssl.certificate_leftover = _payload_len - i;
 
@@ -3722,9 +3723,9 @@ void Flow::dissectSSL(char *payload, u_int16_t payload_len) {
 		  memcpy(protos.ssl.certificate_buf_leftover, &_payload[i], protos.ssl.certificate_leftover);
 		else
 		  protos.ssl.certificate_leftover = 0;
+
+		break;
 	      }
-	  
-	      i += len;
 	    } else {
 	      protos.ssl.dissect_certificate = false;
 	      break;
@@ -3733,7 +3734,7 @@ void Flow::dissectSSL(char *payload, u_int16_t payload_len) {
 	}
       } /* for */
     }
-    
+
     free(_payload);
   }
 }
