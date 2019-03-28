@@ -87,6 +87,14 @@ void BroadcastDomains::inlineReloadBroadcastDomains(bool force_immediate_reload)
 
 /* *************************************** */
 
+bool BroadcastDomains::isLocalBroadcastDomain(const IpAddress * const ipa, int network_bits, bool isInlineCall) const {
+  AddressTree *cur_tree = isInlineCall ? inline_broadcast_domains : broadcast_domains;
+
+  return cur_tree && cur_tree->match(ipa, network_bits);
+}
+
+/* *************************************** */
+
 bool BroadcastDomains::isLocalBroadcastDomainHost(const Host * const h, bool isInlineCall) const {
   AddressTree *cur_tree = isInlineCall ? inline_broadcast_domains : broadcast_domains;
 
