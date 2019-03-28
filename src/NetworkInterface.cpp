@@ -2562,7 +2562,7 @@ decode_packet_eth:
 	  u_int32_t cur_mask;
 	  u_int8_t cur_cidr;
 
-	  for(cur_mask = 0xFFFFFFF0, cur_cidr = 28; cur_mask >= 0xFF000000; cur_mask <<= 1, cur_cidr -= 1) {
+	  for(cur_mask = 0xFFFFFFF0, cur_cidr = 28; cur_mask >= 0xFF000000; cur_mask <<= 1, cur_cidr--) {
 	    if((diff & cur_mask) == 0) { /* diff < cur_mask */
 	      net &= cur_mask;
 
@@ -2572,20 +2572,24 @@ decode_packet_eth:
 	      } 
 
 	      cur_bcast_domain.set(htonl(net));
-	      bcast_domains->inlineAddAddress(&cur_bcast_domain, cur_cidr);
+
+	      if(!bcast_domains->isLocalBroadcastDomain(&cur_bcast_domain, cur_cidr, true /* Inline call */)) {
+		bcast_domains->inlineAddAddress(&cur_bcast_domain, cur_cidr);
+
+#ifdef BROADCAST_DOMAINS_DEBUG
+		char buf1[32], buf2[32], buf3[32];
+		ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s <-> %s [%s - %u]",
+					     Utils::intoaV4(src, buf1, sizeof(buf1)),
+					     Utils::intoaV4(dst, buf2, sizeof(buf2)),
+					     Utils::intoaV4(net, buf3, sizeof(buf3)),
+					     cur_cidr);
+#endif
+	      }
 
 	      break;
 	    }
 	  }
 
-#ifdef DEBUG
-	  char buf1[32], buf2[32], buf3[32];
-	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s <-> %s [%s - %u]",
-				       Utils::intoaV4(src, buf1, sizeof(buf1)),
-				       Utils::intoaV4(dst, buf2, sizeof(buf2)),
-				       Utils::intoaV4(net, buf3, sizeof(buf3)),
-				       cur_cidr);
-#endif
 	}
 
 	e = getArpHashMatrixElement(srcMac->get_mac(), dstMac->get_mac(), &src2dst_element);

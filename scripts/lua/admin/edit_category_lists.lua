@@ -120,7 +120,7 @@ print[[
   </div>
 ]]
 
-print[[<h2>]] print(i18n("category_lists.category_lists")) print[[</h2>]]
+print[[<hr><h2>]] print(i18n("category_lists.category_lists")) print[[</h2>]]
 
 print[[
 <div id="table-edit-lists-form"></div>

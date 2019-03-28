@@ -32,6 +32,7 @@ local traffic_type = _GET["traffic_type"]
 
 local base_url = ntop.getHttpPrefix() .. "/lua/hosts_stats.lua"
 local page_params = {}
+local charts_icon = ""
 
 local mode = _GET["mode"]
 if isEmptyString(mode) then
@@ -104,7 +105,24 @@ if (_GET["page"] ~= "historical") then
 
    if(network ~= nil) then
       page_params["network"] = network
-      network_name = getLocalNetworkAlias(ntop.getNetworkNameById(tonumber(network)))
+      local network_key = ntop.getNetworkNameById(tonumber(network))
+      network_name = getLocalNetworkAlias(network_key)
+
+      if not isEmptyString(network_name) then
+         local charts_available = ts_utils.exists("subnet:traffic", {ifid=ifstats.id, subnet=network_key})
+
+         charts_icon = " <small><a href='".. ntop.getHttpPrefix() .."/lua/network_details.lua?network="..
+            network .. "&page=config'><i class='fa fa-sm fa-cog'></i></a>"
+
+         if charts_available then
+            charts_icon = charts_icon.."&nbsp; <a href='".. ntop.getHttpPrefix() .."/lua/network_details.lua?network="..
+               network .. "&page=historical'><i class='fa fa-sm fa-area-chart'></i></a>"
+         end
+
+         charts_icon = charts_icon.."</small>"
+      else
+         network_name = i18n("hosts_stats.remote")
+      end
    else
       network_name = ""
    end
@@ -209,7 +227,6 @@ if (_GET["page"] ~= "historical") then
 
    if(protocol_name == nil) then protocol_name = protocol end
 
-   local charts_icon = ""
    if not isEmptyString(protocol_name) then
       charts_icon = " <a href='".. ntop.getHttpPrefix() .."/lua/if_stats.lua?ifid="..
          ifstats.id .. "&page=historical&ts_schema=iface:ndpi&protocol=" .. protocol_name..

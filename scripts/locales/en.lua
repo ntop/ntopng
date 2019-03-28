@@ -675,6 +675,7 @@ local lang = {
     ["dtmf_tones_sent"] = "DTMF tones sent during the call",
     ["dump_flow_traffic"] = "Dump Flow Traffic",
     ["elephant_exceeded"] = "Exceeding %{vol}",
+    ["elephant_flow"] = "Elephant Flow",
     ["elephant_flow_descr"] = "Elephant flows are those that transfer more than a certain configured amount of data. Administrators can configure elephant flows from the preferences.",
     ["elephant_flow_l2r"] = "Elephant Flow (Local to Remote)",
     ["elephant_flow_r2l"] = "Elephant Flow (Remote to Local)",

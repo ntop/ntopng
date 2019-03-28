@@ -70,6 +70,7 @@ class LocalHost : public Host {
   virtual void incNumDNSQueriesRcvd(u_int16_t query_type) { stats->incNumDNSQueriesRcvd(query_type); };
   virtual void incNumDNSResponsesSent(u_int32_t ret_code) { stats->incNumDNSResponsesSent(ret_code); };
   virtual void incNumDNSResponsesRcvd(u_int32_t ret_code) { stats->incNumDNSResponsesRcvd(ret_code); };
+  virtual void luaDNS(lua_State *vm) const                { stats->luaDNS(vm,false); };
   virtual void incrVisitedWebSite(char *hostname)         { stats->incrVisitedWebSite(hostname); };
   virtual HTTPstats* getHTTPstats()                       { return(stats->getHTTPstats());  };
 

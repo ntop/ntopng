@@ -32,27 +32,29 @@ DnsStats::DnsStats() {
 
 /* *************************************** */
 
-void DnsStats::luaStats(lua_State *vm, struct dns_stats *stats, const char *label) {
+void DnsStats::luaStats(lua_State *vm, struct dns_stats *stats, const char *label, bool verbose) {
   lua_newtable(vm);
 
   lua_push_uint64_table_entry(vm, "num_queries", stats->num_queries.get());
   lua_push_uint64_table_entry(vm, "num_replies_ok", stats->num_replies_ok.get());
   lua_push_uint64_table_entry(vm, "num_replies_error", stats->num_replies_error.get());
 
-  lua_newtable(vm);
-  lua_push_uint64_table_entry(vm, "num_a", stats->breakdown.num_a);
-  lua_push_uint64_table_entry(vm, "num_ns", stats->breakdown.num_ns);
-  lua_push_uint64_table_entry(vm, "num_cname", stats->breakdown.num_cname);
-  lua_push_uint64_table_entry(vm, "num_soa", stats->breakdown.num_soa);
-  lua_push_uint64_table_entry(vm, "num_ptr", stats->breakdown.num_ptr);
-  lua_push_uint64_table_entry(vm, "num_mx", stats->breakdown.num_mx);
-  lua_push_uint64_table_entry(vm, "num_txt", stats->breakdown.num_txt);
-  lua_push_uint64_table_entry(vm, "num_aaaa", stats->breakdown.num_aaaa);
-  lua_push_uint64_table_entry(vm, "num_any", stats->breakdown.num_any);
-  lua_push_uint64_table_entry(vm, "num_other", stats->breakdown.num_other);
-  lua_pushstring(vm, "queries");
-  lua_insert(vm, -2);
-  lua_settable(vm, -3);
+  if(verbose){
+    lua_newtable(vm);
+    lua_push_uint64_table_entry(vm, "num_a", stats->breakdown.num_a);
+    lua_push_uint64_table_entry(vm, "num_ns", stats->breakdown.num_ns);
+    lua_push_uint64_table_entry(vm, "num_cname", stats->breakdown.num_cname);
+    lua_push_uint64_table_entry(vm, "num_soa", stats->breakdown.num_soa);
+    lua_push_uint64_table_entry(vm, "num_ptr", stats->breakdown.num_ptr);
+    lua_push_uint64_table_entry(vm, "num_mx", stats->breakdown.num_mx);
+    lua_push_uint64_table_entry(vm, "num_txt", stats->breakdown.num_txt);
+    lua_push_uint64_table_entry(vm, "num_aaaa", stats->breakdown.num_aaaa);
+    lua_push_uint64_table_entry(vm, "num_any", stats->breakdown.num_any);
+    lua_push_uint64_table_entry(vm, "num_other", stats->breakdown.num_other);
+    lua_pushstring(vm, "queries");
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
+  }
 
   lua_pushstring(vm, label);
   lua_insert(vm, -2);
@@ -61,11 +63,11 @@ void DnsStats::luaStats(lua_State *vm, struct dns_stats *stats, const char *labe
 
 /* *************************************** */
 
-void DnsStats::lua(lua_State *vm) {
+void DnsStats::lua(lua_State *vm, bool verbose ) {
   lua_newtable(vm);
 
-  luaStats(vm, &sent_stats, "sent");
-  luaStats(vm, &rcvd_stats, "rcvd");
+  luaStats(vm, &sent_stats, "sent", verbose);
+  luaStats(vm, &rcvd_stats, "rcvd", verbose);
 
   lua_pushstring(vm, "dns");
   lua_insert(vm, -2);
