@@ -42,7 +42,7 @@ class DnsStats {
   void incQueryBreakdown(struct queries_breakdown *bd, u_int16_t query_type);
   void deserializeStats(json_object *o, struct dns_stats *stats);
   json_object* getStatsJSONObject(struct dns_stats *stats);
-  void luaStats(lua_State *vm, struct dns_stats *stats, const char *label);
+  void luaStats(lua_State *vm, struct dns_stats *stats, const char *label, bool verbose);
   void incNumDNSQueries(u_int16_t query_type, struct dns_stats *s);
 
  public:
@@ -57,7 +57,7 @@ class DnsStats {
   char* serialize();
   void deserialize(json_object *o);
   json_object* getJSONObject();
-  void lua(lua_State *vm);
+  void lua(lua_State *vm, bool verbose);
   bool hasAnomalies(time_t when);
   void luaAnomalies(lua_State* vm, time_t when);
 };

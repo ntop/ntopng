@@ -131,7 +131,7 @@ void LocalHostStats::lua(lua_State* vm, bool mask_host, bool host_details, bool 
   }
 
   if(verbose) {
-    if(dns)            dns->lua(vm);
+    if(dns)            luaDNS(vm,true);
     if(http)           http->lua(vm);
   }
 }
