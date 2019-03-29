@@ -561,8 +561,6 @@ void Flow::processDetectedProtocol() {
 void Flow::guessProtocol() {
   if(detection_completed)
     return; /* Nothing to do */
-  else
-    detection_completed = true; /* We give up */
 
   /* This code should no longer be necessary as the nDPI API changed */
   if((protocol == IPPROTO_TCP) || (protocol == IPPROTO_UDP)) {
@@ -586,6 +584,8 @@ void Flow::guessProtocol() {
 
     l7_protocol_guessed = true;
   }
+
+  detection_completed = true; /* We give up */
 }
 
 /* *************************************** */
