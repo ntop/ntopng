@@ -142,12 +142,7 @@ Ntop::Ntop(char *appName) {
 #ifndef WIN32
   nagios_manager = NULL;
 #endif
-  flow_checker = new FlowChecker();
 
-  if((pro == NULL)
-     || (flow_checker == NULL)) {
-    throw "Not enough memory";
-  }
 #else
   pro = NULL;
 #endif
@@ -235,7 +230,6 @@ Ntop::~Ntop() {
 #ifndef WIN32
   if(nagios_manager) delete nagios_manager;
 #endif
-  if(flow_checker) delete flow_checker;
 #endif
 
 #ifdef HAVE_NINDEX

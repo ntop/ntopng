@@ -77,7 +77,6 @@ class Ntop {
 #ifndef WIN32
   NagiosManager *nagios_manager;
 #endif
-  FlowChecker *flow_checker;
 #endif
 
   void loadLocalInterfaceAddress();
@@ -117,7 +116,6 @@ class Ntop {
   inline void rotateLogs(bool mode)                { getTrace()->rotate_logs(mode);     };
 #ifdef NTOPNG_PRO
   void registerNagios(void);
-  inline FlowChecker *getFlowChecker() { return(flow_checker); };
 #endif
 
   /**
