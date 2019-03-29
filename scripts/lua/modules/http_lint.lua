@@ -174,6 +174,10 @@ local function validateUsername(p)
    return validateSingleWord(p)
 end
 
+local function licenseCleanup(p)
+   return p -- don't touch passwords (checks against valid fs paths already performed)
+end
+
 local function passwordCleanup(p)
    return p -- don't touch passwords (checks against valid fs paths already performed)
 end
@@ -187,6 +191,11 @@ local function whereCleanup(p)
    -- SQL where
    -- A-Za-z0-9!=<>()
    return(p:gsub('%W><!()','_'))
+end
+
+local function validateLicense(p)
+   -- A password (e.g. used in ntopng authentication)
+   return string.match(p,"[%l%u%d/+]+=*") == p or validateEmpty(p)
 end
 
 local function validatePassword(p)
@@ -1017,7 +1026,7 @@ local known_parameters = {
    ["row_id"]                  = validateNumber,                -- A number used to identify a record in a database
    ["rrd_file"]                = validateUnquoted,              -- A path or special identifier to read an RRD file
    ["port"]                    = validatePort,                  -- An application port
-   ["ntopng_license"]          = validateSingleWord,            -- ntopng licence string
+   ["ntopng_license"]          = {licenseCleanup, validateLicense},          -- ntopng licence string
    ["syn_attacker_threshold"]        = validateEmptyOr(validateNumber),
    ["global_syn_attacker_threshold"] = validateEmptyOr(validateNumber),
    ["syn_victim_threshold"]          = validateEmptyOr(validateNumber),
