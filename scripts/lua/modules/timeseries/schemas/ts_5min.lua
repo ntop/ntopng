@@ -224,6 +224,14 @@ schema:addMetric("replies_error_packets")
 
 --##############################################
 
+schema = ts_utils.newSchema("host:udp_pkts", {step = 300})
+schema:addTag("ifid")
+schema:addTag("host")
+schema:addMetric("packets_sent")
+schema:addMetric("packets_rcvd")
+
+--##############################################
+
 schema = ts_utils.newSchema("host:total_alerts", {step = 300, rrd_fname = "total_alerts"})
 schema:addTag("ifid")
 schema:addTag("host")
