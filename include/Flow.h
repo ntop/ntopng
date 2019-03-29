@@ -67,6 +67,7 @@ class Flow : public GenericHashEntry {
   CounterTrend throughputTrend, goodputTrend, thptRatioTrend;
 #endif
   ndpi_protocol ndpiDetectedProtocol;
+  static const ndpi_protocol ndpiUnknownProtocol;
   custom_app_t custom_app;
   void *cli_id, *srv_id;
   char *json_info, *host_server_name, *bt_hash;
@@ -330,25 +331,28 @@ class Flow : public GenericHashEntry {
   inline time_t get_partial_last_seen()           { return(get_last_seen()); };
   inline u_int32_t get_duration()                 { return((u_int32_t)(get_last_seen()-get_first_seen())); };
   inline char* get_protocol_name()                { return(Utils::l4proto2name(protocol));   };
-  inline ndpi_protocol get_detected_protocol()    { return(ndpiDetectedProtocol);          };
+  inline ndpi_protocol get_detected_protocol()    { return(isDetectionCompleted() ? ndpiDetectedProtocol : ndpiUnknownProtocol);          };
 
   inline Host* get_cli_host()                     { return(cli_host);                        };
   inline Host* get_srv_host()                     { return(srv_host);                        };
   inline char* get_json_info()			  { return(json_info);                       };
   inline ndpi_protocol_breed_t get_protocol_breed() {
-    return(ndpi_get_proto_breed(iface->get_ndpi_struct(), ndpiDetectedProtocol.app_protocol));
+    return(ndpi_get_proto_breed(iface->get_ndpi_struct(), isDetectionCompleted() ? ndpiDetectedProtocol.app_protocol : NDPI_PROTOCOL_UNKNOWN));
   };
   inline const char * const get_protocol_breed_name() {
     return(ndpi_get_proto_breed_name(iface->get_ndpi_struct(), get_protocol_breed()));
   };
   inline ndpi_protocol_category_t get_protocol_category() {
-    return(ndpi_get_proto_category(iface->get_ndpi_struct(), ndpiDetectedProtocol));
+    return(ndpi_get_proto_category(iface->get_ndpi_struct(),
+				   isDetectionCompleted() ? ndpiDetectedProtocol : ndpiUnknownProtocol));
 };
   inline const char * const get_protocol_category_name() {
     return(ndpi_category_get_name(iface->get_ndpi_struct(), get_protocol_category()));
   };
   char* get_detected_protocol_name(char *buf, u_int buf_len) {
-    return(ndpi_protocol2name(iface->get_ndpi_struct(), ndpiDetectedProtocol, buf, buf_len));
+    return(ndpi_protocol2name(iface->get_ndpi_struct(),
+			      isDetectionCompleted() ? ndpiDetectedProtocol : ndpiUnknownProtocol,
+			      buf, buf_len));
   }
 
   u_int32_t get_packetsLost();

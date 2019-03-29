@@ -21,6 +21,12 @@
 
 #include "ntop_includes.h"
 
+/* static so default is zero-initialization, let's just define it */
+
+const ndpi_protocol Flow::ndpiUnknownProtocol = { NDPI_PROTOCOL_UNKNOWN,
+						  NDPI_PROTOCOL_UNKNOWN,
+						  NDPI_PROTOCOL_CATEGORY_UNSPECIFIED };
+
 //#define DEBUG_DISCOVERY
 //#define DEBUG_UA
 
@@ -40,8 +46,8 @@ Flow::Flow(NetworkInterface *_iface,
     srv2cli_last_goodput_bytes = cli2srv_last_goodput_bytes = 0, good_ssl_hs = true,
     flow_alerted = flow_dropped_counts_increased = false, vrfId = 0;
 
-  l7_protocol_guessed = detection_completed = false,
-    memset(&ndpiDetectedProtocol, 0, sizeof(ndpiDetectedProtocol)),
+  l7_protocol_guessed = detection_completed = false;
+  ndpiDetectedProtocol = ndpiUnknownProtocol;
   doNotExpireBefore = iface->getTimeLastPktRcvd() + DONT_NOT_EXPIRE_BEFORE_SEC;
 
 #ifdef HAVE_NEDGE
@@ -1379,7 +1385,11 @@ void Flow::update_pools_stats(const struct timeval *tv,
   hp = iface->getHostPools();
   if(hp) {
     /* Client host */
-    if(cli_host && cli_host->getMac() && cli_host->getMac()->locate() == located_on_lan_interface) {
+    if(cli_host
+#ifdef HAVE_NEDGE
+      && cli_host->getMac() && (cli_host->getMac()->locate() == located_on_lan_interface)
+#endif
+    ) {
       cli_host_pool_id = cli_host->get_host_pool();
 
       /* Overall host pool stats */
@@ -1402,7 +1412,11 @@ void Flow::update_pools_stats(const struct timeval *tv,
     }
 
     /* Server host */
-    if(srv_host && srv_host->getMac() && srv_host->getMac()->locate() == located_on_lan_interface) {
+    if(srv_host
+#ifdef HAVE_NEDGE
+      && srv_host->getMac() && (srv_host->getMac()->locate() == located_on_lan_interface)
+#endif
+    ) {
       srv_host_pool_id = srv_host->get_host_pool();
 
       /* Update server pool stats only if the pool is not equal to the client pool */
