@@ -21,6 +21,12 @@
 
 #include "ntop_includes.h"
 
+/* static so default is zero-initialization, let's just define it */
+
+const ndpi_protocol Flow::ndpiUnknownProtocol = { NDPI_PROTOCOL_UNKNOWN,
+						  NDPI_PROTOCOL_UNKNOWN,
+						  NDPI_PROTOCOL_CATEGORY_UNSPECIFIED };
+
 //#define DEBUG_DISCOVERY
 //#define DEBUG_UA
 
@@ -40,8 +46,8 @@ Flow::Flow(NetworkInterface *_iface,
     srv2cli_last_goodput_bytes = cli2srv_last_goodput_bytes = 0, good_ssl_hs = true,
     flow_alerted = flow_dropped_counts_increased = false, vrfId = 0;
 
-  l7_protocol_guessed = detection_completed = false,
-    memset(&ndpiDetectedProtocol, 0, sizeof(ndpiDetectedProtocol)),
+  l7_protocol_guessed = detection_completed = false;
+  ndpiDetectedProtocol = ndpiUnknownProtocol;
   doNotExpireBefore = iface->getTimeLastPktRcvd() + DONT_NOT_EXPIRE_BEFORE_SEC;
 
 #ifdef HAVE_NEDGE
