@@ -161,12 +161,15 @@ Ntop::Ntop(char *appName) {
 #endif
 
 #ifdef HAVE_EBPF
-  ebpf = init_ebpf_flow(this, ebpfHandler, &rc, 0xFFFF);
-  
-  if(!ebpf)
-    ntop->getTrace()->traceEvent(TRACE_ERROR,
-				 "Unable to initialize libebpfflow: %s",
-				 ebpf_print_error(rc));
+  if(getuid() == 0) {
+    ebpf = init_ebpf_flow(this, ebpfHandler, &rc, 0xFFFF);
+    
+    if(!ebpf)
+      ntop->getTrace()->traceEvent(TRACE_ERROR,
+				   "Unable to initialize libebpfflow: %s",
+				   ebpf_print_error(rc));
+  } else
+    ebpf = NULL;
 #endif
 }
 
