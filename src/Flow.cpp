@@ -1379,7 +1379,11 @@ void Flow::update_pools_stats(const struct timeval *tv,
   hp = iface->getHostPools();
   if(hp) {
     /* Client host */
-    if(cli_host && cli_host->getMac() && cli_host->getMac()->locate() == located_on_lan_interface) {
+    if(cli_host
+#ifdef HAVE_NEDGE
+      && cli_host->getMac() && (cli_host->getMac()->locate() == located_on_lan_interface)
+#endif
+    ) {
       cli_host_pool_id = cli_host->get_host_pool();
 
       /* Overall host pool stats */
@@ -1402,7 +1406,11 @@ void Flow::update_pools_stats(const struct timeval *tv,
     }
 
     /* Server host */
-    if(srv_host && srv_host->getMac() && srv_host->getMac()->locate() == located_on_lan_interface) {
+    if(srv_host
+#ifdef HAVE_NEDGE
+      && srv_host->getMac() && (srv_host->getMac()->locate() == located_on_lan_interface)
+#endif
+    ) {
       srv_host_pool_id = srv_host->get_host_pool();
 
       /* Update server pool stats only if the pool is not equal to the client pool */
