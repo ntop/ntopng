@@ -269,7 +269,9 @@ DUMMY=`cd ./pro; make build`
 PRO_INCS="${PRO_INCS} -I${PWD}/pro -I${PWD}/pro/utils -I${PWD}/pro/third-party/libb64-1.2.1/include"
 
 if test -r "../license/systemId.c"; then :
+ LICENSELIBS="-L`pwd`/../license -llicense"
  AC_DEFINE_UNQUOTED(NTOPNG_PRO_HAVE_LICENSE, 1, [ntopng has license])
+ PRO_LIBS="${PRO_LIBS} ${LICENSELIBS}" 
 fi
 else
 AC_MSG_RESULT(not found)
