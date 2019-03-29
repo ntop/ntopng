@@ -1282,8 +1282,21 @@ int Prefs::setOption(int optkey, char *optarg) {
     else
       printf("Maintenance:\t%s\n", ntop->getPro()->get_maintenance_expiration(buf, sizeof(buf)));
 
+    if(ntop->getPro()->get_encoded_license()[0] != '\0') {
+      char *enc_license = ntop->getPro()->get_encoded_license();
+      int i, len = strlen(enc_license);
+      for (i = 0; i < len; i += 69) {
+        char buff[70];
+        int clen = min((size_t) 69, strlen(&enc_license[i]));
+        memcpy(buff, &enc_license[i], clen);
+        buff[clen] = '\0';
+        if (i == 0) printf("License:\t%s\n", buff);
+        else        printf("        \t%s\n", buff);
+      }
+    }
+
     if(ntop->getPro()->get_license()[0] != '\0')
-      printf("License:\t%s\n",      ntop->getPro()->get_license());
+      printf("License Hash:\t%s\n",      ntop->getPro()->get_license());
 #endif
     exit(0);
     break;
