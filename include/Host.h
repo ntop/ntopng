@@ -152,7 +152,7 @@ class Host : public GenericHashEntry {
   void set_mac(u_int8_t *m);
   inline bool isBlacklisted()                  { return(blacklisted_host);  };
   void reloadHostBlacklist();
-  inline u_int8_t*  get_mac()                  { return(mac ? mac->get_mac() : NULL);      }
+  inline const u_int8_t* const get_mac() const { return(mac ? mac->get_mac() : NULL);}
   inline Mac* getMac() const                   { return(mac);              }
   char * getResolvedName(char * const buf, ssize_t buf_len);
   char * getMDNSName(char * const buf, ssize_t buf_len);

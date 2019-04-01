@@ -65,7 +65,7 @@ int16_t VlanAddressTree::findAddress(u_int16_t vlan_id, int family, void *addr, 
 
 /* **************************************** */
 
-int16_t VlanAddressTree::findMac(u_int16_t vlan_id, u_int8_t addr[]) {
+int16_t VlanAddressTree::findMac(u_int16_t vlan_id, const u_int8_t addr[]) {
   if(! tree[vlan_id]) return -1;
   return tree[vlan_id]->findMac(addr);
 }

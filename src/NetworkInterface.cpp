@@ -2526,23 +2526,8 @@ decode_packet_eth:
       if((eth_type == ETHERTYPE_ARP) && (h->caplen >= (sizeof(arp_header)+sizeof(struct ndpi_ethhdr)))) {
 	struct arp_header *arpp = (struct arp_header*)&packet[ip_offset];
 	u_int16_t arp_opcode = ntohs(arpp->ar_op);
-#if 0
-	u_int32_t arp_spa;
-	IpAddress arp_spa_ipa;
-	Host *arp_spa_h;
-#endif
 	bool src2dst_element = false;
 	ArpStatsMatrixElement* e;
-
-#if 0
-	arp_spa = arpp->arp_spa; /* Sender protocol address */
-	arp_spa_ipa.set(arp_spa);
-
-	if(arp_spa_ipa.isNonEmptyUnicastAddress()
-	   && (arp_spa_h = getHost(&arp_spa_ipa, vlan_id))
-	   && !arp_spa_h->isBroadcastDomainHost())
-	  arp_spa_h->setBroadcastDomainHost();
-#endif
 
 	u_int32_t src = ntohl(arpp->arp_spa);
 	u_int32_t dst = ntohl(arpp->arp_tpa);
@@ -2571,30 +2556,25 @@ decode_packet_eth:
 		net = src & cur_mask;
 	      }
 
-	      if(cur_mask >= 0xFFFF0000) { /* At most a /16 */
-		cur_bcast_domain.set(htonl(net));
+	      cur_bcast_domain.set(htonl(net));
 
-		if(!bcast_domains->isLocalBroadcastDomain(&cur_bcast_domain, cur_cidr, true /* Inline call */)) {
-		  bcast_domains->inlineAddAddress(&cur_bcast_domain, cur_cidr);
+	      if(!checkBroadcastDomainTooLarge(net, vlan_id, srcMac, dstMac, src, dst)
+		 && !bcast_domains->isLocalBroadcastDomain(&cur_bcast_domain, cur_cidr, true /* Inline call */)) {
+		bcast_domains->inlineAddAddress(&cur_bcast_domain, cur_cidr);
 
 #ifdef BROADCAST_DOMAINS_DEBUG
-		  char buf1[32], buf2[32], buf3[32];
-		  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s <-> %s [%s - %u]",
-					       Utils::intoaV4(src, buf1, sizeof(buf1)),
-					       Utils::intoaV4(dst, buf2, sizeof(buf2)),
-					       Utils::intoaV4(net, buf3, sizeof(buf3)),
-					       cur_cidr);
+		char buf1[32], buf2[32], buf3[32];
+		ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s <-> %s [%s - %u]",
+					     Utils::intoaV4(src, buf1, sizeof(buf1)),
+					     Utils::intoaV4(dst, buf2, sizeof(buf2)),
+					     Utils::intoaV4(net, buf3, sizeof(buf3)),
+					     cur_cidr);
 #endif
-		}
-	      } else {
-		/* Suspicious broadcast domain (too large)
-		 TODO: generate an alert */
 	      }
 
 	      break;
 	    }
 	  }
-
 	}
 
 	e = getArpHashMatrixElement(srcMac->get_mac(), dstMac->get_mac(), &src2dst_element);
@@ -5596,8 +5576,8 @@ Mac* NetworkInterface::getMac(u_int8_t _mac[6], bool createIfNotPresent) {
 
 /* **************************************************** */
 
-ArpStatsMatrixElement* NetworkInterface::getArpHashMatrixElement(u_int8_t _src_mac[6],
-								 u_int8_t _dst_mac[6],
+ArpStatsMatrixElement* NetworkInterface::getArpHashMatrixElement(const u_int8_t _src_mac[6],
+								 const u_int8_t _dst_mac[6],
 								 bool * const src2dst){
   ArpStatsMatrixElement *ret = NULL;
 
@@ -6907,6 +6887,36 @@ void NetworkInterface::checkMacIPAssociation(bool triggerEvent, u_char *_mac, u_
 	ip_mac[ipv4] = mac;
     }
   }
+}
+
+/* *************************************** */
+
+bool NetworkInterface::checkBroadcastDomainTooLarge(u_int32_t bcast_mask, u_int16_t vlan_id, const Mac * const src_mac, const Mac * const dst_mac, u_int32_t spa, u_int32_t tpa) const {
+  if(bcast_mask < 0xFFFF0000) {
+    if(!ntop->getPrefs()->are_alerts_disabled()) {
+      json_object *jobject;
+      char buf[32];
+
+      if((jobject = json_object_new_object()) != NULL) {
+	json_object_object_add(jobject, "ifname", json_object_new_string(get_name()));
+	json_object_object_add(jobject, "ifid", json_object_new_int(id));
+	json_object_object_add(jobject, "vlan_id", json_object_new_int(vlan_id));
+	json_object_object_add(jobject, "src_mac", json_object_new_string(Utils::formatMac(src_mac->get_mac(), buf, sizeof(buf))));
+        json_object_object_add(jobject, "dst_mac", json_object_new_string(Utils::formatMac(dst_mac->get_mac(), buf, sizeof(buf))));
+	json_object_object_add(jobject, "spa", json_object_new_string(Utils::intoaV4(spa, buf, sizeof(buf))));
+	json_object_object_add(jobject, "tpa", json_object_new_string(Utils::intoaV4(tpa, buf, sizeof(buf))));
+
+	ntop->getRedis()->rpush(CONST_ALERT_BCAST_DOMAIN_TOO_LARGE_QUEUE, (char *)json_object_to_json_string(jobject), 0 /* No trim */);
+
+	/* Free Memory */
+	json_object_put(jobject);
+      }
+    }
+
+    return true; /* At most a /16 broadcast domain is acceptable */
+  }
+
+  return false;
 }
 
 /* *************************************** */
