@@ -1934,6 +1934,7 @@ drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
       {schema="host:host_unreachable_flows", label="Host Unreachable Flows"},
       {schema="host:dns_sent",               label="DNS Packets Sent"},
       {schema="host:dns_rcvd",               label="DNS Packets Rcvd"},
+      {schema="host:udp_pkts",               label="UDP Packets"},           
 
       {schema="host:1d_delta_traffic_volume",  label="1 Day Traffic Delta"}, -- TODO localize
       {schema="host:1d_delta_flows",           label="1 Day Active Flows Delta"}, -- TODO localize
