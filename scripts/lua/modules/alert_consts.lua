@@ -54,6 +54,7 @@ alert_consts.alert_type_keys = {
    { "<i class='fa fa-sticky-note'></i> " .. i18n("alerts_dashboard.list_download_failed"),        31, "list_download_failed"       },
    { "<i class='fa fa-life-ring'></i> " .. i18n("alerts_dashboard.dns_anomaly"),                   32, "dns_anomaly"                },
    { "<i class='fa fa-life-ring'></i> " .. i18n("alerts_dashboard.icmp_anomaly"),                  33, "icmp_anomaly"               },
+   { "<i class='fa fa-sitemap'></i> " .. i18n("alerts_dashboard.broadcast_domain_too_large"),      34, "broadcast_domain_too_large" },
 }
 
 -- Keep in sync with ntop_typedefs.h:AlertEntity

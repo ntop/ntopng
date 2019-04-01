@@ -284,7 +284,7 @@ int16_t AddressTree::findAddress(int family, void *addr, u_int8_t *network_mask_
 
 /* ******************************************* */
 
-int16_t AddressTree::findMac(u_int8_t addr[]) {
+int16_t AddressTree::findMac(const u_int8_t addr[]) {
   MacKey_t *s = NULL;
 
   HASH_FIND(hh, macs, addr, 6, s);

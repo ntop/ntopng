@@ -74,7 +74,7 @@ class FrequentTrafficItems {
   void addPoolProtocol(u_int16_t pool_id, u_int16_t proto_id, u_int32_t value);
   void luaTopPoolsProtocols(lua_State *vm);
 
-  void addMacProtocol(u_int8_t mac[6], u_int16_t proto_id, u_int32_t value);
+  void addMacProtocol(const u_int8_t mac[6], u_int16_t proto_id, u_int32_t value);
   void luaTopMacsProtocols(lua_State *vm);
 };
 

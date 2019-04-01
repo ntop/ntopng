@@ -2439,7 +2439,7 @@ void Utils::xor_encdec(u_char *data, int data_len, u_char *key) {
 
 /* ****************************************************** */
 
-u_int32_t Utils::macHash(u_int8_t *mac) {
+u_int32_t Utils::macHash(const u_int8_t * const mac) {
   if(mac == NULL)
     return(0);
   else {

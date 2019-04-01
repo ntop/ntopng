@@ -22,6 +22,7 @@ if ntop.isnEdge() then
    check_nfq_flushed_queue_alerts()
 end
 check_host_remote_to_remote_alerts()
+check_broadcast_domain_too_large_alerts()
 check_process_alerts()
 callback_utils.uploadTSdata()
 lists_utils.checkReloadLists()

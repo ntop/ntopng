@@ -43,7 +43,7 @@ binary-arch: build install
 	dh_installdebconf
 	dh_installman
 # Do not strip binary so we can leave debug symbols
-	dh_strip
+#	dh_strip
 	dh_compress
 #	dh_fixperms
 	dh_installdeb
@@ -60,7 +60,7 @@ binary-arch: build install
 	fi
 	rm -rf ./debian/@APP@/etc/ntopng/nedge.conf
 	rm -rf ./debian/@APP@/usr/share/ntopng/httpdocs/geoip/*.dat
-	strip ./debian/@APP@/usr/bin/@APP@
+#	strip ./debian/@APP@/usr/bin/@APP@
 	-find ./debian/@APP@ -name .svn -exec /bin/rm -rf {} ';'
 	-find ./debian/@APP@ -name '*~' -exec /bin/rm -rf {} ';'
 	-find ./debian/@APP@ -name '*#' -exec /bin/rm -rf {} ';'

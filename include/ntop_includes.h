@@ -299,7 +299,6 @@ using namespace std;
 #ifndef WIN32
 #include "NagiosManager.h"
 #endif
-#include "FlowChecker.h"
 #include "FrequentStringItems.h"
 #include "FrequentNumericItems.h"
 #include "FrequentTrafficItems.h"

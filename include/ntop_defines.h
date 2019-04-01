@@ -498,10 +498,11 @@
 #define CONST_INFLUXDB_FILE_QUEUE          "ntopng.influx_file_queue"
 #define CONST_INFLUXDB_FLUSH_TIME          10 /* sec */
 #define CONST_INFLUXDB_MAX_DUMP_SIZE       4194304 /* 4 MB */
-#define CONST_ALERT_MSG_QUEUE              "ntopng.alert_queue"
-#define CONST_ALERT_MAC_IP_QUEUE           "ntopng.alert_mac_ip_queue"
-#define CONST_ALERT_NFQ_FLUSHED            "ntopng.alert_nfq_flushed_queue"
-#define CONST_ALERT_HOST_REMOTE_TO_REMOTE  "ntopng.alert_host_remote_to_remote"
+#define CONST_ALERT_MSG_QUEUE                    "ntopng.alert_queue"
+#define CONST_ALERT_MAC_IP_QUEUE                 "ntopng.alert_mac_ip_queue"
+#define CONST_ALERT_NFQ_FLUSHED                  "ntopng.alert_nfq_flushed_queue"
+#define CONST_ALERT_HOST_REMOTE_TO_REMOTE        "ntopng.alert_host_remote_to_remote"
+#define CONST_ALERT_BCAST_DOMAIN_TOO_LARGE_QUEUE "ntopng.alert_bcast_domain_too_large"
 #define CONST_REMOTE_TO_REMOTE_MAX_QUEUE   32
 #define CONST_SQL_QUEUE                    "ntopng.sql_queue"
 #define CONST_SQL_BATCH_SIZE               32
