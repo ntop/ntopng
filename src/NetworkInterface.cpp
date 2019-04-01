@@ -2569,7 +2569,7 @@ decode_packet_eth:
 	      if((src & cur_mask) != (dst & cur_mask)) {
 		cur_mask <<= 1, cur_cidr -= 1;
 		net = src & cur_mask;
-	      } 
+	      }
 
 	      if(cur_mask >= 0xFFFF0000) { /* At most a /16 */
 		cur_bcast_domain.set(htonl(net));
@@ -2598,17 +2598,6 @@ decode_packet_eth:
 	}
 
 	e = getArpHashMatrixElement(srcMac->get_mac(), dstMac->get_mac(), &src2dst_element);
-
-#if 0
-	char buf1[32], buf2[32];
-	Utils::formatMac(srcMac->get_mac(), buf1, sizeof(buf1));
-	Utils::formatMac(dstMac->get_mac(), buf2, sizeof(buf2));
-
-	if(!strcmp(buf1, "B4:75:0E:92:89:17") || !strcmp(buf2, "B4:75:0E:92:89:17")) {
-	ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s][%s][0x%x][src2dst: %u]",
-				     buf1, buf2, arp_opcode, src2dst_element ? 1 : 0);
-	}
-#endif
 
 	if(arp_opcode == 0x1 /* ARP request */) {
 	  arp_requests++;
