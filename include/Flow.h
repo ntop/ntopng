@@ -184,18 +184,14 @@ class Flow : public GenericHashEntry {
   void updatePacketStats(InterarrivalStats *stats, const struct timeval *when);
   void dumpPacketStats(lua_State* vm, bool cli2srv_direction);
   bool isReadyToPurge();
-  inline bool isBlacklistedFlow() {
-    return(cli_host && srv_host && (cli_host->isBlacklisted()
-				    || srv_host->isBlacklisted()
-				    || (get_protocol_category() == CUSTOM_CATEGORY_MALWARE)));
-  };
+  bool isBlacklistedFlow() const;
   inline bool isDeviceAllowedProtocol() {
       return(!cli_host || !srv_host ||
         ((cli_host->getDeviceAllowedProtocolStatus(ndpiDetectedProtocol, true) == device_proto_allowed) &&
          (srv_host->getDeviceAllowedProtocolStatus(ndpiDetectedProtocol, false) == device_proto_allowed)));
   }
   char* printTCPflags(u_int8_t flags, char * const buf, u_int buf_len) const;
-  inline bool isProto(u_int16_t p ) { return((ndpi_get_lower_proto(ndpiDetectedProtocol) == p) ? true : false); }
+  inline bool isProto(u_int16_t p ) const { return((ndpi_get_lower_proto(ndpiDetectedProtocol) == p) ? true : false); }
 #ifdef NTOPNG_PRO
   void update_pools_stats(const struct timeval *tv,
 			  u_int64_t diff_sent_packets, u_int64_t diff_sent_bytes,
@@ -222,12 +218,12 @@ class Flow : public GenericHashEntry {
   struct site_categories* getFlowCategory(bool force_categorization);
   void freeDPIMemory();
   bool isTiny();
-  inline bool isSSL()                  { return(isProto(NDPI_PROTOCOL_SSL));  }
-  inline bool isSSH()                  { return(isProto(NDPI_PROTOCOL_SSH));  }
-  inline bool isDNS()                  { return(isProto(NDPI_PROTOCOL_DNS));  }
-  inline bool isDHCP()                 { return(isProto(NDPI_PROTOCOL_DHCP)); }
-  inline bool isHTTP()                 { return(isProto(NDPI_PROTOCOL_HTTP)); }
-  inline bool isICMP()                 { return(isProto(NDPI_PROTOCOL_IP_ICMP) || isProto(NDPI_PROTOCOL_IP_ICMPV6)); }
+  inline bool isSSL()  const { return(isProto(NDPI_PROTOCOL_SSL));  }
+  inline bool isSSH()  const { return(isProto(NDPI_PROTOCOL_SSH));  }
+  inline bool isDNS()  const { return(isProto(NDPI_PROTOCOL_DNS));  }
+  inline bool isDHCP() const { return(isProto(NDPI_PROTOCOL_DHCP)); }
+  inline bool isHTTP() const { return(isProto(NDPI_PROTOCOL_HTTP)); }
+  inline bool isICMP() const { return(isProto(NDPI_PROTOCOL_IP_ICMP) || isProto(NDPI_PROTOCOL_IP_ICMPV6)); }
   inline bool isMaskedFlow() {
     return(!get_cli_host() || Utils::maskHost(get_cli_host()->isLocalHost())
 	   || !get_srv_host() || Utils::maskHost(get_srv_host()->isLocalHost()));
@@ -298,7 +294,7 @@ class Flow : public GenericHashEntry {
   void addFlowStats(bool cli2srv_direction, u_int in_pkts, u_int in_bytes, u_int in_goodput_bytes,
 		    u_int out_pkts, u_int out_bytes, u_int out_goodput_bytes, time_t last_seen);
   inline bool isThreeWayHandshakeOK()             { return(twh_ok);                          };
-  inline bool isDetectionCompleted()              { return(detection_completed);             };
+  inline bool isDetectionCompleted() const        { return(detection_completed);             };
   inline struct ndpi_flow_struct* get_ndpi_flow() { return(ndpiFlow);                        };
   inline void* get_cli_id()                       { return(cli_id);                          };
   inline void* get_srv_id()                       { return(srv_id);                          };
@@ -330,26 +326,26 @@ class Flow : public GenericHashEntry {
   inline time_t get_partial_first_seen()          { return(last_db_dump.last_dump == 0 ? get_first_seen() : last_db_dump.last_dump); };
   inline time_t get_partial_last_seen()           { return(get_last_seen()); };
   inline u_int32_t get_duration()                 { return((u_int32_t)(get_last_seen()-get_first_seen())); };
-  inline char* get_protocol_name()                { return(Utils::l4proto2name(protocol));   };
-  inline ndpi_protocol get_detected_protocol()    { return(isDetectionCompleted() ? ndpiDetectedProtocol : ndpiUnknownProtocol);          };
+  inline char* get_protocol_name()  const         { return(Utils::l4proto2name(protocol));   };
+  inline ndpi_protocol get_detected_protocol() const { return(isDetectionCompleted() ? ndpiDetectedProtocol : ndpiUnknownProtocol);          };
 
   inline Host* get_cli_host()                     { return(cli_host);                        };
   inline Host* get_srv_host()                     { return(srv_host);                        };
   inline char* get_json_info()			  { return(json_info);                       };
-  inline ndpi_protocol_breed_t get_protocol_breed() {
+  inline ndpi_protocol_breed_t get_protocol_breed() const {
     return(ndpi_get_proto_breed(iface->get_ndpi_struct(), isDetectionCompleted() ? ndpiDetectedProtocol.app_protocol : NDPI_PROTOCOL_UNKNOWN));
   };
-  inline const char * const get_protocol_breed_name() {
+  inline const char * const get_protocol_breed_name() const {
     return(ndpi_get_proto_breed_name(iface->get_ndpi_struct(), get_protocol_breed()));
   };
-  inline ndpi_protocol_category_t get_protocol_category() {
+  inline ndpi_protocol_category_t get_protocol_category() const {
     return(ndpi_get_proto_category(iface->get_ndpi_struct(),
 				   isDetectionCompleted() ? ndpiDetectedProtocol : ndpiUnknownProtocol));
 };
-  inline const char * const get_protocol_category_name() {
+  inline const char * const get_protocol_category_name() const {
     return(ndpi_category_get_name(iface->get_ndpi_struct(), get_protocol_category()));
   };
-  char* get_detected_protocol_name(char *buf, u_int buf_len) {
+  char* get_detected_protocol_name(char *buf, u_int buf_len) const {
     return(ndpi_protocol2name(iface->get_ndpi_struct(),
 			      isDetectionCompleted() ? ndpiDetectedProtocol : ndpiUnknownProtocol,
 			      buf, buf_len));
@@ -367,7 +363,7 @@ class Flow : public GenericHashEntry {
   u_int64_t get_current_packets_srv2cli();
   inline bool idle() { return(is_ready_to_be_purged()); }
   inline bool is_l7_protocol_guessed() { return(l7_protocol_guessed); };
-  char* print(char *buf, u_int buf_len);
+  char* print(char *buf, u_int buf_len) const;
   void update_hosts_stats(struct timeval *tv, bool dump_alert);
   u_int32_t key();
   static u_int32_t key(Host *cli, u_int16_t cli_port,

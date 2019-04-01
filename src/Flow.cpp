@@ -764,7 +764,7 @@ char* Flow::printTCPflags(u_int8_t flags, char * const buf, u_int buf_len) const
 }
 /* *************************************** */
 
-char* Flow::print(char *buf, u_int buf_len) {
+char* Flow::print(char *buf, u_int buf_len) const {
   char buf1[32], buf2[32], buf3[32], buf4[32], pbuf[32], tcp_buf[64];
   buf[0] = '\0';
 
@@ -849,9 +849,6 @@ char* Flow::print(char *buf, u_int buf_len) {
 	   , shapers
 #endif
 	   );
-
-  if(getFlowStatus() == status_dns_invalid_query && protos.dns.last_query)
-    snprintf(&buf[strlen(buf)], buf_len - strlen(buf), "[query: %s]", protos.dns.last_query);
 
 return(buf);
 }
@@ -2358,6 +2355,26 @@ void Flow::dumpPacketStats(lua_State* vm, bool cli2srv_direction) {
   lua_insert(vm, -2);
   lua_settable(vm, -3);
 }
+
+/* *************************************** */
+
+bool Flow::isBlacklistedFlow() const {
+  bool res = (cli_host && srv_host
+	      && (cli_host->isBlacklisted()
+		  || srv_host->isBlacklisted()
+		  || (get_protocol_category() == CUSTOM_CATEGORY_MALWARE)));
+
+#ifdef BLACKLISTED_FLOWS_DEBUG
+  if(res) {
+    char buf[512];
+    print(buf, sizeof(buf));
+    snprintf(&buf[strlen(buf)], sizeof(buf) - strlen(buf), "[cli_blacklisted: %u][srv_blacklisted: %u][category: %s]", cli_host->isBlacklisted(), srv_host->isBlacklisted(), get_protocol_category_name());
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", buf);
+  }
+#endif
+
+  return res;
+};
 
 /* *************************************** */
 
