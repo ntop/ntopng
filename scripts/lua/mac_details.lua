@@ -402,6 +402,7 @@ elseif(page == "historical") then
       top_categories = "top:mac:ndpi_categories",
       timeseries = {
          {schema="mac:traffic",                 label=i18n("traffic")},
+         {schema="mac:arp_requests",            label="ARP Requests"},
       }
    })
 
