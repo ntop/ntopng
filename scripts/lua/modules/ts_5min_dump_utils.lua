@@ -201,20 +201,26 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
             flows_as_client = host["host_unreachable_flows.as_client"]},
       when, verbose)
   
-  --Number of dns packets sent
+  -- Number of dns packets sent
   ts_utils.append("host:dns_sent", {ifid = ifstats.id, host = hostname,
             queries_packets = host["dns"]["sent"]["num_queries"],
             replies_ok_packets = host["dns"]["sent"]["num_replies_ok"],
             replies_error_packets =host["dns"]["sent"]["num_replies_error"]},
       when, verbose)
   
-  --Number of dns packets rcvd
+  -- Number of dns packets rcvd
   ts_utils.append("host:dns_rcvd", {ifid = ifstats.id, host = hostname,
             queries_packets = host["dns"]["rcvd"]["num_queries"],
             replies_ok_packets = host["dns"]["rcvd"]["num_replies_ok"],
             replies_error_packets = host["dns"]["rcvd"]["num_replies_error"]},
       when, verbose)
-      
+  
+  -- Number of udp packets
+  ts_utils.append("host:udp_pkts", {ifid = ifstats.id, host = hostname,
+            packets_sent = host["udp.packets.sent"],
+            packets_rcvd = host["udp.packets.rcvd"]},
+      when, verbose)
+
   -- Total number of alerts
   ts_utils.append("host:total_alerts", {ifid = ifstats.id, host = hostname,
 					   alerts = host["total_alerts"]},
