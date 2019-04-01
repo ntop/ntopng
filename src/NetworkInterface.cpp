@@ -2558,7 +2558,7 @@ decode_packet_eth:
 
 	      cur_bcast_domain.set(htonl(net));
 
-	      if(!checkBroadcastDomainTooLarge(net, vlan_id, srcMac, dstMac, src, dst)
+	      if(!checkBroadcastDomainTooLarge(cur_mask, vlan_id, srcMac, dstMac, src, dst)
 		 && !bcast_domains->isLocalBroadcastDomain(&cur_bcast_domain, cur_cidr, true /* Inline call */)) {
 		bcast_domains->inlineAddAddress(&cur_bcast_domain, cur_cidr);
 
