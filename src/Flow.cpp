@@ -2301,8 +2301,10 @@ void Flow::housekeep(time_t t) {
 
   if(!isDetectionCompleted() && t - get_last_seen() > 5 /* sec */
      && iface->get_ndpi_struct()
-     && get_ndpi_flow())
-    setDetectedProtocol(ndpi_detection_giveup(iface->get_ndpi_struct(), get_ndpi_flow(), 1), true);
+     && get_ndpi_flow()) {
+    ndpi_protocol givenup_protocol = ndpi_detection_giveup(iface->get_ndpi_struct(), get_ndpi_flow(), 1);
+    setDetectedProtocol(givenup_protocol, true);
+  }
 }
 
 /* *************************************** */
