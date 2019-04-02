@@ -129,7 +129,7 @@ void HostStats::lua(lua_State* vm, bool mask_host, DetailsLevel details_level, b
     lua_push_uint64_table_entry(vm, "total_activity_time", total_activity_time);
     lua_push_uint64_table_entry(vm, "flows.as_client", getTotalNumFlowsAsClient());
     lua_push_uint64_table_entry(vm, "flows.as_server", getTotalNumFlowsAsServer());
-  } else {
+  } else if(details_level >= details_high) {
     /* Limit tcp information to anomalies when host_details aren't required */
     if(tcpPacketStats.pktRetr)
       lua_push_uint64_table_entry(vm, "tcp.packets.retransmissions", tcpPacketStats.pktRetr);
