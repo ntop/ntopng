@@ -43,7 +43,7 @@ class LocalHostStats: public HostStats {
   virtual void updateStats(struct timeval *tv);
   virtual void getJSONObject(json_object *my_object, DetailsLevel details_level);
   virtual void deserialize(json_object *obj);
-  virtual void lua(lua_State* vm, bool mask_host, bool host_details, bool verbose, bool tsLua = false);
+  virtual void lua(lua_State* vm, bool mask_host, DetailsLevel details_level, bool tsLua = false);
   virtual void incNumFlows(bool as_client, Host *peer);
   virtual void decNumFlows(bool as_client, Host *peer);
 
