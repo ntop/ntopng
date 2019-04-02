@@ -26,7 +26,7 @@
 
 #if defined(HAVE_PF_RING) && (!defined(NTOPNG_EMBEDDED_EDITION))
 
-class ZCCollectorInterface : public ParserInterface {
+class ZCCollectorInterface : public ZMQParserInterface {
  private:
   u_int32_t cluster_id, queue_id;
   u_int32_t num_drops;

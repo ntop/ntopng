@@ -25,7 +25,7 @@
 
 /* **************************************************** */
 
-CollectorInterface::CollectorInterface(const char *_endpoint) : ParserInterface(_endpoint) {
+ZMQCollectorInterface::ZMQCollectorInterface(const char *_endpoint) : ZMQParserInterface(_endpoint) {
   char *tmp, *e, *t;
   const char *topics[] = { "flow", "event", "counter", "template", "option", NULL };
 
@@ -125,7 +125,7 @@ CollectorInterface::CollectorInterface(const char *_endpoint) : ParserInterface(
 
 /* **************************************************** */
 
-CollectorInterface::~CollectorInterface() {
+ZMQCollectorInterface::~ZMQCollectorInterface() {
   for(int i=0; i<num_subscribers; i++) {
     if(subscriber[i].endpoint) free(subscriber[i].endpoint);
     zmq_close(subscriber[i].socket);
@@ -136,7 +136,7 @@ CollectorInterface::~CollectorInterface() {
 
 /* **************************************************** */
 
-void CollectorInterface::collect_flows() {
+void ZMQCollectorInterface::collect_flows() {
   struct zmq_msg_hdr h; /* NOTE: in network-byte-order format */
   char payload[8192];
   u_int payload_len = sizeof(payload)-1;
@@ -292,7 +292,7 @@ void CollectorInterface::collect_flows() {
 /* **************************************************** */
 
 static void* packetPollLoop(void* ptr) {
-  CollectorInterface *iface = (CollectorInterface*)ptr;
+  ZMQCollectorInterface *iface = (ZMQCollectorInterface*)ptr;
 
   /* Wait until the initialization completes */
   while(!iface->isRunning()) sleep(1);
@@ -303,7 +303,7 @@ static void* packetPollLoop(void* ptr) {
 
 /* **************************************************** */
 
-void CollectorInterface::startPacketPolling() {
+void ZMQCollectorInterface::startPacketPolling() {
   pthread_create(&pollLoop, NULL, packetPollLoop, (void*)this);
   pollLoopCreated = true;
   NetworkInterface::startPacketPolling();
@@ -311,7 +311,7 @@ void CollectorInterface::startPacketPolling() {
 
 /* **************************************************** */
 
-void CollectorInterface::shutdown() {
+void ZMQCollectorInterface::shutdown() {
   void *res;
 
   if(running) {
@@ -322,7 +322,7 @@ void CollectorInterface::shutdown() {
 
 /* **************************************************** */
 
-bool CollectorInterface::set_packet_filter(char *filter) {
+bool ZMQCollectorInterface::set_packet_filter(char *filter) {
   ntop->getTrace()->traceEvent(TRACE_ERROR,
 			       "No filter can be set on a collector interface. Ignored %s", filter);
   return(false);
@@ -330,8 +330,8 @@ bool CollectorInterface::set_packet_filter(char *filter) {
 
 /* **************************************************** */
 
-void CollectorInterface::lua(lua_State* vm) {
-  ParserInterface::lua(vm);
+void ZMQCollectorInterface::lua(lua_State* vm) {
+  ZMQParserInterface::lua(vm);
 
   lua_newtable(vm);
   lua_push_uint64_table_entry(vm, "flows", recvStats.num_flows);
@@ -345,7 +345,7 @@ void CollectorInterface::lua(lua_State* vm) {
 
 /* **************************************************** */
 
-void CollectorInterface::purgeIdle(time_t when) {
+void ZMQCollectorInterface::purgeIdle(time_t when) {
   NetworkInterface::purgeIdle(when);
 
   if(flowHashing) {

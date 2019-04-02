@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef _COLLECTOR_INTERFACE_H_
-#define _COLLECTOR_INTERFACE_H_
+#ifndef _ZMQ_COLLECTOR_INTERFACE_H_
+#define _ZMQ_COLLECTOR_INTERFACE_H_
 
 #include "ntop_includes.h"
 
@@ -33,7 +33,7 @@ typedef struct {
   void *socket;
 } zmq_subscriber;
 
-class CollectorInterface : public ParserInterface {
+class ZMQCollectorInterface : public ZMQParserInterface {
  private:
   void *context;
   struct {
@@ -46,8 +46,8 @@ class CollectorInterface : public ParserInterface {
   zmq_subscriber subscriber[MAX_ZMQ_SUBSCRIBERS];
 
  public:
-  CollectorInterface(const char *_endpoint);
-  ~CollectorInterface();
+  ZMQCollectorInterface(const char *_endpoint);
+  ~ZMQCollectorInterface();
 
   inline const char* get_type()         { return(CONST_INTERFACE_TYPE_ZMQ);      };
   inline InterfaceType getIfType()      { return(interface_type_ZMQ); }
@@ -67,5 +67,5 @@ class CollectorInterface : public ParserInterface {
 
 #endif /* HAVE_NEDGE */
 
-#endif /* _COLLECTOR_INTERFACE_H_ */
+#endif /* _ZMQ_COLLECTOR_INTERFACE_H_ */
 

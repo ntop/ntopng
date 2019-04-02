@@ -26,7 +26,7 @@
 
 #ifndef HAVE_NEDGE
 
-class DummyInterface : public ParserInterface {
+class DummyInterface : public ZMQParserInterface {
  private:
   inline u_int32_t getNumDroppedPackets()   { return(0); };
 

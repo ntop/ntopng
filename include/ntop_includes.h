@@ -308,7 +308,10 @@ using namespace std;
 #endif
 #ifndef HAVE_NEDGE
 #include "ParserInterface.h"
-#include "CollectorInterface.h"
+#include "ZMQParserInterface.h"
+#include "ZMQCollectorInterface.h"
+#include "SyslogParserInterface.h"
+#include "SyslogCollectorInterface.h"
 #include "ZCCollectorInterface.h"
 #include "DummyInterface.h"
 #include "ExportInterface.h"
