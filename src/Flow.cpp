@@ -46,7 +46,7 @@ Flow::Flow(NetworkInterface *_iface,
     srv2cli_last_goodput_bytes = cli2srv_last_goodput_bytes = 0, good_ssl_hs = true,
     flow_alerted = flow_dropped_counts_increased = false, vrfId = 0;
 
-  l7_protocol_guessed = detection_completed = false;
+  detection_completed = false;
   ndpiDetectedProtocol = ndpiUnknownProtocol;
   doNotExpireBefore = iface->getTimeLastPktRcvd() + DONT_NOT_EXPIRE_BEFORE_SEC;
 
@@ -553,65 +553,49 @@ void Flow::processDetectedProtocol() {
 
 /* *************************************** */
 
-void Flow::guessProtocol() {
-  if(detection_completed)
-    return; /* Nothing to do */
+void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
+  ndpi_flow_struct* ndpif;
 
-  /* This code should no longer be necessary as the nDPI API changed */
-  if((protocol == IPPROTO_TCP) || (protocol == IPPROTO_UDP)) {
-    if(cli_host && srv_host) {
-      /* We can guess the protocol */
-      IpAddress *cli_ip = cli_host->get_ip(), *srv_ip = srv_host->get_ip();
-      ndpi_protocol guessed_proto = ndpi_guess_undetected_protocol(iface->get_ndpi_struct(), NULL, protocol,
-								   ntohl(cli_ip ? cli_ip->get_ipv4() : 0),
-								   ntohs(cli_port),
-								   ntohl(srv_ip ? srv_ip->get_ipv4() : 0),
-								   ntohs(srv_port));
-      ndpiDetectedProtocol.master_protocol = guessed_proto.master_protocol;
-      ndpiDetectedProtocol.app_protocol = guessed_proto.app_protocol;
-
-      /* NOTE: only overwrite the category if it was not set.
-       * This prevents overwriting already determined category (e.g. by IP or Host)
-       */
-      if(ndpiDetectedProtocol.category == NDPI_PROTOCOL_CATEGORY_UNSPECIFIED)
-	ndpiDetectedProtocol.category = guessed_proto.category;
-    }
-
-    l7_protocol_guessed = true;
+  /* Let the client SSL certificate win over the server SSL certificate
+     this addresses detection for youtube, e.g., when the client
+     requests s.youtube.com but the server responds with google.com */
+  if(!forceDetection
+     && proto_id.master_protocol == NDPI_PROTOCOL_SSL
+     && get_packets() < NDPI_MIN_NUM_PACKETS
+     && (ndpif = get_ndpi_flow())
+     && ndpif->protos.stun_ssl.ssl.client_certificate[0] == '\0'
+     && ndpif->protos.stun_ssl.ssl.server_certificate[0] == '\0') {
+    ndpif->detected_protocol_stack[0] = NDPI_PROTOCOL_UNKNOWN;
+    return;
   }
 
-  detection_completed = true; /* We give up */
-}
+  if(proto_id.app_protocol != NDPI_PROTOCOL_UNKNOWN
+     || forceDetection
+     || get_packets() >= NDPI_MIN_NUM_PACKETS
+     || !iface->is_ndpi_enabled()
+     || iface->isSampledTraffic()) {
+    ndpiDetectedProtocol.master_protocol = proto_id.master_protocol;
+    ndpiDetectedProtocol.app_protocol = proto_id.app_protocol;
 
-/* *************************************** */
-
-void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
-  ndpiDetectedProtocol.category = proto_id.category;
-
-  if(proto_id.app_protocol != NDPI_PROTOCOL_UNKNOWN) {
-    ndpiDetectedProtocol = proto_id;
-
-    /* Let the client SSL certificate win over the server SSL certificate
-       this addresses detection for youtube, e.g., when the client
-       requests s.youtube.com but the server responds with google.com */
-    if((proto_id.master_protocol == NDPI_PROTOCOL_SSL)
-       && (get_packets() < NDPI_MIN_NUM_PACKETS)
-       && (ndpiFlow)
-       && (ndpiFlow->protos.stun_ssl.ssl.client_certificate[0] == '\0')
-       && (ndpiFlow->protos.stun_ssl.ssl.server_certificate[0] == '\0')) {
-      get_ndpi_flow()->detected_protocol_stack[0] = NDPI_PROTOCOL_UNKNOWN;
-      return;
-    }
+    /* NOTE: only overwrite the category if it was not set.
+     * This prevents overwriting already determined category (e.g. by IP or Host)
+     */
+    if(ndpiDetectedProtocol.category == NDPI_PROTOCOL_CATEGORY_UNSPECIFIED)
+      ndpiDetectedProtocol.category = proto_id.category;
 
     processDetectedProtocol();
     detection_completed = true;
-  } else if(forceDetection
-	    || (get_packets() >= NDPI_MIN_NUM_PACKETS)
-	    || (!iface->is_ndpi_enabled())
-	    || iface->isSampledTraffic()
-	    )
-    guessProtocol();
-  
+
+#ifdef BLACKLISTED_FLOWS_DEBUG
+    if(ndpiDetectedProtocol.category == CUSTOM_CATEGORY_MALWARE) {
+      char buf[512];
+      print(buf, sizeof(buf));
+      snprintf(&buf[strlen(buf)], sizeof(buf) - strlen(buf), "Malware category detected. [cli_blacklisted: %u][srv_blacklisted: %u][category: %s]", cli_host->isBlacklisted(), srv_host->isBlacklisted(), get_protocol_category_name());
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", buf);
+    }
+#endif
+  }
+
   if(detection_completed) {
 #ifdef HAVE_NEDGE
     updateFlowShapers(true);
