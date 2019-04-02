@@ -23,42 +23,39 @@
 #include "ntop_includes.h"
 
 
-ArpStatsHashMatrix::ArpStatsHashMatrix(NetworkInterface *_iface, u_int _num_hashes, u_int _max_hash_size) :
+ArpStatsHashMatrix::ArpStatsHashMatrix(NetworkInterface *_iface,
+				       u_int _num_hashes, u_int _max_hash_size) :
   GenericHash(_iface, _num_hashes, _max_hash_size, "ArpStatsHashMatrix") {
   ;
 }
 
 /* ************************************ */
-//this get function DO NOT reverse the snd / rcv counters in case src_mac and dst_mac are reversed
-ArpStatsMatrixElement* ArpStatsHashMatrix::get(const u_int8_t _src_mac[6], const u_int8_t _dst_mac[6], bool * const src2dst) {
-  if(_src_mac == NULL || _dst_mac == NULL)
-    return(NULL);
-  else {
-    u_int32_t hash = Utils::macHash((u_int8_t*)_src_mac) + Utils::macHash((u_int8_t*)_dst_mac);
-    hash %= num_hashes;
 
-    if(table[hash] == NULL) {
-      return(NULL);
-
-    } else {
-      ArpStatsMatrixElement *head;
-
-      locks[hash]->lock(__FILE__, __LINE__);
-      head = (ArpStatsMatrixElement*)table[hash];
-
-      while(head != NULL) {
-        if((!head->idle()) && head->equal(_src_mac, _dst_mac, src2dst))
-        
-          break;
-        else
-          head = (ArpStatsMatrixElement*)head->next();
-      }
+ArpStatsMatrixElement* ArpStatsHashMatrix::get(const u_int8_t _src_mac[6],
+					       const u_int32_t _src_ip, const u_int32_t _dst_ip,
+					       bool * const src2dst) {
+  u_int32_t hash = (_src_ip + _dst_ip) % num_hashes;
+  
+  if(table[hash] == NULL) {
+    return(NULL);    
+  } else {
+    ArpStatsMatrixElement *head;
     
-      locks[hash]->unlock(__FILE__, __LINE__);
+    locks[hash]->lock(__FILE__, __LINE__);
+    head = (ArpStatsMatrixElement*)table[hash];
     
-      return(head);
+    while(head != NULL) {
+      if((!head->idle()) && head->equal(_src_mac, _src_ip, _dst_ip, src2dst))
+	
+	break;
+      else
+	head = (ArpStatsMatrixElement*)head->next();
     }
-  }
+    
+    locks[hash]->unlock(__FILE__, __LINE__);
+    
+    return(head);
+  }  
 }
 
 /* ************************************ */
@@ -75,7 +72,6 @@ static bool print_all_arp_stats(GenericHashEntry *e, void *user_data, bool *matc
   print_all_arp_stats_data_t * print_all_arp_stats_data = (print_all_arp_stats_data_t*) user_data;
   lua_State* vm = print_all_arp_stats_data->vm;
 
-  //TODO: errors handling
   if(elem && vm) {
     lua_newtable(vm);
 

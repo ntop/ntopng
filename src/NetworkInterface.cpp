@@ -2577,7 +2577,9 @@ decode_packet_eth:
 	  }
 	}
 
-	e = getArpHashMatrixElement(srcMac->get_mac(), dstMac->get_mac(), &src2dst_element);
+	e = getArpHashMatrixElement(srcMac->get_mac(), dstMac->get_mac(),
+				    src, dst,
+				    &src2dst_element);
 
 	if(arp_opcode == 0x1 /* ARP request */) {
 	  arp_requests++;
@@ -5576,19 +5578,20 @@ Mac* NetworkInterface::getMac(u_int8_t _mac[6], bool createIfNotPresent) {
 
 /* **************************************************** */
 
-ArpStatsMatrixElement* NetworkInterface::getArpHashMatrixElement(const u_int8_t _src_mac[6],
-								 const u_int8_t _dst_mac[6],
-								 bool * const src2dst){
+ArpStatsMatrixElement* NetworkInterface::getArpHashMatrixElement(const u_int8_t _src_mac[6], const u_int8_t _dst_mac[6],
+								 const u_int32_t _src_ip, const u_int32_t _dst_ip,
+								 bool * const src2dst) {
   ArpStatsMatrixElement *ret = NULL;
 
-  if(_src_mac == NULL || _dst_mac == NULL || arp_hash_matrix == NULL)
+  if(arp_hash_matrix == NULL)
     return NULL;
 
-  ret = arp_hash_matrix->get(_src_mac, _dst_mac, src2dst);
+  ret = arp_hash_matrix->get(_src_mac, _src_ip, _dst_ip, src2dst);
 
   if(ret == NULL) {
     try{
-      if((ret = new ArpStatsMatrixElement(this, _src_mac, _dst_mac, src2dst)) != NULL)
+      if((ret = new ArpStatsMatrixElement(this, _src_mac, _dst_mac, _src_ip, _dst_ip)) != NULL)
+	
         if(!arp_hash_matrix->add(ret)){
           delete ret;
           ret = NULL;
@@ -5597,8 +5600,8 @@ ArpStatsMatrixElement* NetworkInterface::getArpHashMatrixElement(const u_int8_t 
       static bool oom_warning_sent = false;
 
       if(!oom_warning_sent) {
-	      ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
-	      oom_warning_sent = true;
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
+	oom_warning_sent = true;
       }
       return(NULL);
     }
