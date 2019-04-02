@@ -240,7 +240,7 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
 
   -- Contacts
   ts_utils.append("host:contacts", {ifid=ifstats.id, host=hostname,
-            as_client=host["contacts.as_client"], as_server=host["contacts.as_server"]}, when, verbose)
+            num_as_client=host["contacts.as_client"], num_as_server=host["contacts.as_server"]}, when, verbose)
 
   -- L4 Protocols
   for id, _ in pairs(l4_keys) do

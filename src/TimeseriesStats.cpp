@@ -59,8 +59,8 @@ void TimeseriesStats::luaStats(lua_State* vm, NetworkInterface *iface, bool host
     lua_push_uint64_table_entry(vm, "net_unreachable_flows.as_server", net_unreachable_flows_as_server);
     lua_push_uint64_table_entry(vm, "host_unreachable_flows.as_client", host_unreachable_flows_as_client);
     lua_push_uint64_table_entry(vm, "host_unreachable_flows.as_server", host_unreachable_flows_as_server);
-    lua_push_uint64_table_entry(vm, "contacts.as_client", getNumActiveContactsAsClient());
-    lua_push_uint64_table_entry(vm, "contacts.as_server", getNumActiveContactsAsServer());
+    lua_push_uint64_table_entry(vm, "contacts.as_client", host->getNumActiveContactsAsClient());
+    lua_push_uint64_table_entry(vm, "contacts.as_server", host->getNumActiveContactsAsServer());
     lua_push_uint64_table_entry(vm, "total_alerts", total_alerts);
 
     lua_push_uint64_table_entry(vm, "tcp.packets.sent",  tcp_sent.getNumPkts());

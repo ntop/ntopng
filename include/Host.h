@@ -239,6 +239,8 @@ class Host : public GenericHashEntry {
   virtual void incNumDNSResponsesRcvd(u_int32_t ret_code) { };
   virtual void luaDNS(lua_State *vm) const { };
   virtual void luaTCP(lua_State *vm) const { };
+  virtual u_int16_t getNumActiveContactsAsClient() const  { return stats->getNumActiveContactsAsClient(); };
+  virtual u_int16_t getNumActiveContactsAsServer() const  { return stats->getNumActiveContactsAsServer(); };
   virtual void postHashAdd();
 
   virtual NetworkStats* getNetworkStats(int16_t networkId) { return(NULL);   };
