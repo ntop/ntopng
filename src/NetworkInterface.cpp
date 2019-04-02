@@ -2576,6 +2576,16 @@ decode_packet_eth:
 	    }
 	  }
 	}
+<<<<<<< Updated upstream
+=======
+	
+	e  = getArpHashMatrixElement(srcMac->get_mac(), dstMac->get_mac(), arpp->arp_spa, arpp->arp_tpa, &src2dst_element);
+
+#if 0
+	char buf1[32], buf2[32];
+	Utils::formatMac(srcMac->get_mac(), buf1, sizeof(buf1));
+	Utils::formatMac(dstMac->get_mac(), buf2, sizeof(buf2));
+>>>>>>> Stashed changes
 
 	e = getArpHashMatrixElement(srcMac->get_mac(), dstMac->get_mac(), &src2dst_element);
 
@@ -2583,7 +2593,6 @@ decode_packet_eth:
 	  arp_requests++;
 	  srcMac->incSentArpRequests();
 	  dstMac->incRcvdArpRequests();
-
 	  if(e) e->incArpRequests(src2dst_element);
 	} else if(arp_opcode == 0x2 /* ARP reply */) {
 	  arp_replies++;
@@ -5576,19 +5585,33 @@ Mac* NetworkInterface::getMac(u_int8_t _mac[6], bool createIfNotPresent) {
 
 /* **************************************************** */
 
+<<<<<<< Updated upstream
 ArpStatsMatrixElement* NetworkInterface::getArpHashMatrixElement(const u_int8_t _src_mac[6],
 								 const u_int8_t _dst_mac[6],
+=======
+ArpStatsMatrixElement* NetworkInterface::getArpHashMatrixElement(u_int8_t _src_mac[6], 
+								 u_int8_t _dst_mac[6],
+                 u_int32_t _src_ip, u_int32_t _dst_ip,
+>>>>>>> Stashed changes
 								 bool * const src2dst){
   ArpStatsMatrixElement *ret = NULL;
 
   if(_src_mac == NULL || _dst_mac == NULL || arp_hash_matrix == NULL)
     return NULL;
 
+<<<<<<< Updated upstream
   ret = arp_hash_matrix->get(_src_mac, _dst_mac, src2dst);
 
   if(ret == NULL) {
     try{
       if((ret = new ArpStatsMatrixElement(this, _src_mac, _dst_mac, src2dst)) != NULL)
+=======
+  ret = arp_hash_matrix->get(_src_ip, _dst_ip, src2dst); 
+  
+  if(ret == NULL) {
+    try{ 
+      if((ret = new ArpStatsMatrixElement(this, _src_mac, _dst_mac, _src_ip, _dst_ip, src2dst)) != NULL)
+>>>>>>> Stashed changes
         if(!arp_hash_matrix->add(ret)){
           delete ret;
           ret = NULL;

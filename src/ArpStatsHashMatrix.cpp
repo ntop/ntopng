@@ -29,12 +29,12 @@ ArpStatsHashMatrix::ArpStatsHashMatrix(NetworkInterface *_iface, u_int _num_hash
 }
 
 /* ************************************ */
-//this get function DO NOT reverse the snd / rcv counters in case src_mac and dst_mac are reversed
-ArpStatsMatrixElement* ArpStatsHashMatrix::get(const u_int8_t _src_mac[6], const u_int8_t _dst_mac[6], bool * const src2dst) {
-  if(_src_mac == NULL || _dst_mac == NULL)
+
+ArpStatsMatrixElement* ArpStatsHashMatrix::get( u_int32_t _src_ip, u_int32_t _dst_ip, bool * const src2dst) {
+  if(_src_ip == 0 || _dst_ip == 0)
     return(NULL);
   else {
-    u_int32_t hash = Utils::macHash((u_int8_t*)_src_mac) + Utils::macHash((u_int8_t*)_dst_mac);
+    u_int32_t hash = _src_ip +_dst_ip;
     hash %= num_hashes;
 
     if(table[hash] == NULL) {
@@ -47,7 +47,7 @@ ArpStatsMatrixElement* ArpStatsHashMatrix::get(const u_int8_t _src_mac[6], const
       head = (ArpStatsMatrixElement*)table[hash];
 
       while(head != NULL) {
-        if((!head->idle()) && head->equal(_src_mac, _dst_mac, src2dst))
+        if((!head->idle()) && head->equal(_src_ip, _dst_ip, src2dst))
         
           break;
         else
@@ -75,7 +75,6 @@ static bool print_all_arp_stats(GenericHashEntry *e, void *user_data, bool *matc
   print_all_arp_stats_data_t * print_all_arp_stats_data = (print_all_arp_stats_data_t*) user_data;
   lua_State* vm = print_all_arp_stats_data->vm;
 
-  //TODO: errors handling
   if(elem && vm) {
     lua_newtable(vm);
 
