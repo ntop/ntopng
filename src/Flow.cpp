@@ -590,7 +590,9 @@ void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
     if(ndpiDetectedProtocol.category == CUSTOM_CATEGORY_MALWARE) {
       char buf[512];
       print(buf, sizeof(buf));
-      snprintf(&buf[strlen(buf)], sizeof(buf) - strlen(buf), "Malware category detected. [cli_blacklisted: %u][srv_blacklisted: %u][category: %s]", cli_host->isBlacklisted(), srv_host->isBlacklisted(), get_protocol_category_name());
+      snprintf(&buf[strlen(buf)], sizeof(buf) - strlen(buf),
+	       "Malware category detected. [cli_blacklisted: %u][srv_blacklisted: %u][category: %s]",
+	       cli_host->isBlacklisted(), srv_host->isBlacklisted(), get_protocol_category_name());
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", buf);
     }
 #endif
@@ -2303,6 +2305,7 @@ void Flow::housekeep(time_t t) {
      && iface->get_ndpi_struct()
      && get_ndpi_flow()) {
     ndpi_protocol givenup_protocol = ndpi_detection_giveup(iface->get_ndpi_struct(), get_ndpi_flow(), 1);
+    
     setDetectedProtocol(givenup_protocol, true);
   }
 }
