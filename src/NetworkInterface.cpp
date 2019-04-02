@@ -1652,24 +1652,20 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
   flow->updateInterfaceLocalStats(src2dst_direction, 1, rawsize);
 
   if(!flow->isDetectionCompleted()) {
-    if(isSampledTraffic())
-      flow->guessProtocol();
-    else {
-      if(!is_fragment) {
-	struct ndpi_flow_struct *ndpi_flow = flow->get_ndpi_flow();
-	struct ndpi_id_struct *cli = (struct ndpi_id_struct*)flow->get_cli_id();
-	struct ndpi_id_struct *srv = (struct ndpi_id_struct*)flow->get_srv_id();
+    if(!is_fragment) {
+      struct ndpi_flow_struct *ndpi_flow = flow->get_ndpi_flow();
+      struct ndpi_id_struct *cli = (struct ndpi_id_struct*)flow->get_cli_id();
+      struct ndpi_id_struct *srv = (struct ndpi_id_struct*)flow->get_srv_id();
 
-	if(flow->get_packets() >= NDPI_MIN_NUM_PACKETS) {
-	  flow->setDetectedProtocol(ndpi_detection_giveup(ndpi_struct, ndpi_flow, 1), false);
-	} else
-	  flow->setDetectedProtocol(ndpi_detection_process_packet(ndpi_struct, ndpi_flow,
-								  ip, ipsize, (u_int32_t)packet_time,
-								  cli, srv), false);
-      } else {
-	// FIX - only handle unfragmented packets
-	// ntop->getTrace()->traceEvent(TRACE_WARNING, "IP fragments are not handled yet!");
-      }
+      if(flow->get_packets() >= NDPI_MIN_NUM_PACKETS) {
+	flow->setDetectedProtocol(ndpi_detection_giveup(ndpi_struct, ndpi_flow, 1), false);
+      } else
+	flow->setDetectedProtocol(ndpi_detection_process_packet(ndpi_struct, ndpi_flow,
+								ip, ipsize, (u_int32_t)packet_time,
+								cli, srv), false);
+    } else {
+      // FIX - only handle unfragmented packets
+      // ntop->getTrace()->traceEvent(TRACE_WARNING, "IP fragments are not handled yet!");
     }
   }
 

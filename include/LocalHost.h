@@ -73,6 +73,7 @@ class LocalHost : public Host {
   virtual void luaDNS(lua_State *vm) const                { stats->luaDNS(vm,false); };
   virtual void incrVisitedWebSite(char *hostname)         { stats->incrVisitedWebSite(hostname); };
   virtual HTTPstats* getHTTPstats()                       { return(stats->getHTTPstats());  };
+  virtual void luaTCP(lua_State *vm) const                { stats->lua(vm,false,details_normal); };
 
   virtual void lua(lua_State* vm, AddressTree * ptree, bool host_details,
 		   bool verbose, bool returnHost, bool asListElement);

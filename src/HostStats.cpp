@@ -84,10 +84,12 @@ void HostStats::getJSONObject(json_object *my_object, DetailsLevel details_level
 
 /* *************************************** */
 
-void HostStats::lua(lua_State* vm, bool mask_host, bool host_details, bool verbose, bool tsLua) {
-  lua_push_uint64_table_entry(vm, "bytes.ndpi.unknown", getnDPIStats() ? getnDPIStats()->getProtoBytes(NDPI_PROTOCOL_UNKNOWN) : 0);
+void HostStats::lua(lua_State* vm, bool mask_host, DetailsLevel details_level, bool tsLua) {
+  
+  if(details_level >= details_high)
+    lua_push_uint64_table_entry(vm, "bytes.ndpi.unknown", getnDPIStats() ? getnDPIStats()->getProtoBytes(NDPI_PROTOCOL_UNKNOWN) : 0);
 
-  if(verbose) {
+  if(details_level >= details_max) {
 #ifdef NTOPNG_PRO
     if(custom_app_stats) custom_app_stats->lua(vm);
 #endif
@@ -97,15 +99,21 @@ void HostStats::lua(lua_State* vm, bool mask_host, bool host_details, bool verbo
   }
 
   /* TCP stats */
-  if(host_details) {
+  if(details_level >= details_higher) {
     lua_push_bool_table_entry(vm, "tcp.packets.seq_problems",
 			      (tcpPacketStats.pktRetr
 			       || tcpPacketStats.pktOOO
 			       || tcpPacketStats.pktLost
 			       || tcpPacketStats.pktKeepAlive) ? true : false);
+  }
+
+  if(details_level != details_high){
     lua_push_uint64_table_entry(vm, "tcp.packets.retransmissions", tcpPacketStats.pktRetr);
     lua_push_uint64_table_entry(vm, "tcp.packets.out_of_order", tcpPacketStats.pktOOO);
     lua_push_uint64_table_entry(vm, "tcp.packets.lost", tcpPacketStats.pktLost);
+  }
+
+  if(details_level >= details_higher) {
     lua_push_uint64_table_entry(vm, "tcp.packets.keep_alive", tcpPacketStats.pktKeepAlive);
 
     /* Bytes anomalies */
@@ -117,7 +125,11 @@ void HostStats::lua(lua_State* vm, bool mask_host, bool host_details, bool verbo
     lua_push_uint64_table_entry(vm, "icmp.bytes.rcvd.anomaly_index", icmp_sent.getBytesAnomaly());
     lua_push_uint64_table_entry(vm, "other_ip.bytes.sent.anomaly_index", other_ip_sent.getBytesAnomaly());
     lua_push_uint64_table_entry(vm, "other_ip.bytes.rcvd.anomaly_index", other_ip_sent.getBytesAnomaly());    
-  } else {
+  
+    lua_push_uint64_table_entry(vm, "total_activity_time", total_activity_time);
+    lua_push_uint64_table_entry(vm, "flows.as_client", getTotalNumFlowsAsClient());
+    lua_push_uint64_table_entry(vm, "flows.as_server", getTotalNumFlowsAsServer());
+  } else if(details_level >= details_high) {
     /* Limit tcp information to anomalies when host_details aren't required */
     if(tcpPacketStats.pktRetr)
       lua_push_uint64_table_entry(vm, "tcp.packets.retransmissions", tcpPacketStats.pktRetr);
@@ -129,14 +141,10 @@ void HostStats::lua(lua_State* vm, bool mask_host, bool host_details, bool verbo
       lua_push_uint64_table_entry(vm, "tcp.packets.keep_alive", tcpPacketStats.pktKeepAlive);
   }
 
-  if(host_details) {
-    lua_push_uint64_table_entry(vm, "total_activity_time", total_activity_time);
-    lua_push_uint64_table_entry(vm, "flows.as_client", getTotalNumFlowsAsClient());
-    lua_push_uint64_table_entry(vm, "flows.as_server", getTotalNumFlowsAsServer());
+  if(details_level >= details_high){
+    ((GenericTrafficElement*)this)->lua(vm, details_level >= details_higher);
+    ((TimeseriesStats*)this)->luaStats(vm, iface, details_level >= details_higher, details_level >= details_max, tsLua);
   }
-
-  ((GenericTrafficElement*)this)->lua(vm, host_details);
-  ((TimeseriesStats*)this)->luaStats(vm, iface, host_details, verbose, tsLua);
 }
 
 /* *************************************** */
