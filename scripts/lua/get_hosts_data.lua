@@ -32,6 +32,7 @@ local ipversion   = _GET["version"]
 local asn          = _GET["asn"]
 local vlan         = _GET["vlan"]
 local network      = _GET["network"]
+local cidr         = _GET["network_cidr"]
 local pool         = _GET["pool"]
 local country      = _GET["country"]
 local os_          = _GET["os"]
@@ -135,7 +136,7 @@ local hosts_stats = hosts_retrv_function(false, sortColumn, perPage, to_skip, sO
 					 tonumber(network), mac,
 					 tonumber(pool), tonumber(ipversion),
 					 tonumber(protocol), one_way_traffic,
-					 filtered_hosts, blacklisted_hosts, top_hidden, anomalous, dhcp_hosts) -- false = little details
+					 filtered_hosts, blacklisted_hosts, top_hidden, anomalous, dhcp_hosts, cidr)
 
 if(hosts_stats == nil) then total = 0 else total = hosts_stats["numHosts"] end
 hosts_stats = hosts_stats["hosts"]

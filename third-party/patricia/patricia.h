@@ -123,12 +123,12 @@ typedef struct _patricia_tree_t {
 
 typedef void (*void_fn_t)(void *data);
 typedef void (*void_fn2_t)(prefix_t *prefix, void *data);
-typedef void (*void_fn3_t)(prefix_t *prefix, void *data, void *user_data);
+typedef void (*void_fn3_t)(patricia_node_t *node, void *data, void *user_data);
 
 
-patricia_node_t *patricia_search_exact (patricia_tree_t *patricia, prefix_t *prefix);
-patricia_node_t *patricia_search_best (patricia_tree_t *patricia, prefix_t *prefix);
-patricia_node_t * patricia_search_best2 (patricia_tree_t *patricia, prefix_t *prefix,
+patricia_node_t *patricia_search_exact (const patricia_tree_t * const patricia, prefix_t *prefix);
+patricia_node_t *patricia_search_best (const patricia_tree_t * const patricia, prefix_t *prefix);
+patricia_node_t * patricia_search_best2 (const patricia_tree_t * const patricia, prefix_t *prefix,
 					 int inclusive);
 patricia_node_t *patricia_lookup (patricia_tree_t *patricia, prefix_t *prefix);
 void patricia_remove (patricia_tree_t *patricia, patricia_node_t *node);

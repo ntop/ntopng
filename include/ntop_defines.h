@@ -322,6 +322,12 @@
 #ifndef ICMP_INFO_REPLY
 #define ICMP_INFO_REPLY 16
 #endif
+#ifndef ICMP_NET_UNREACH
+#define ICMP_NET_UNREACH 0
+#endif
+#ifndef ICMP_HOST_UNREACH
+#define ICMP_HOST_UNREACH 1
+#endif
 #ifndef ICMP_PORT_UNREACH
 #define ICMP_PORT_UNREACH 3
 #endif
@@ -335,6 +341,12 @@
 #endif
 #ifndef ICMP6_WRUREPLY
 #define ICMP6_WRUREPLY 140
+#endif
+#ifndef ICMP6_DEST_UNREACH
+#define ICMP6_DEST_UNREACH 1
+#endif
+#ifndef ICMP6_PORT_UNREACH
+#define ICMP6_PORT_UNREACH 4
 #endif
 
 #ifndef TH_FIN
@@ -486,10 +498,11 @@
 #define CONST_INFLUXDB_FILE_QUEUE          "ntopng.influx_file_queue"
 #define CONST_INFLUXDB_FLUSH_TIME          10 /* sec */
 #define CONST_INFLUXDB_MAX_DUMP_SIZE       4194304 /* 4 MB */
-#define CONST_ALERT_MSG_QUEUE              "ntopng.alert_queue"
-#define CONST_ALERT_MAC_IP_QUEUE           "ntopng.alert_mac_ip_queue"
-#define CONST_ALERT_NFQ_FLUSHED            "ntopng.alert_nfq_flushed_queue"
-#define CONST_ALERT_HOST_REMOTE_TO_REMOTE  "ntopng.alert_host_remote_to_remote"
+#define CONST_ALERT_MSG_QUEUE                    "ntopng.alert_queue"
+#define CONST_ALERT_MAC_IP_QUEUE                 "ntopng.alert_mac_ip_queue"
+#define CONST_ALERT_NFQ_FLUSHED                  "ntopng.alert_nfq_flushed_queue"
+#define CONST_ALERT_HOST_REMOTE_TO_REMOTE        "ntopng.alert_host_remote_to_remote"
+#define CONST_ALERT_BCAST_DOMAIN_TOO_LARGE_QUEUE "ntopng.alert_bcast_domain_too_large"
 #define CONST_REMOTE_TO_REMOTE_MAX_QUEUE   32
 #define CONST_SQL_QUEUE                    "ntopng.sql_queue"
 #define CONST_SQL_BATCH_SIZE               32

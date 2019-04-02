@@ -303,8 +303,10 @@ static void* packetPollLoop(void* ptr) {
 
   } while(pcap_list != NULL);
 
-  if(iface->read_from_pcap_dump())
+  if(iface->read_from_pcap_dump()) {
     iface->guessAllnDPIProtocols();
+    iface->guessAllBroadcastDomainHosts();
+  }
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Terminated packet polling for %s",
 			       iface->get_name());

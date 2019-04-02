@@ -107,7 +107,7 @@ class Utils {
   static const char* flowStatus2str(FlowStatus s, AlertType *aType, AlertLevel *aLevel);
   static char* formatMac(const u_int8_t * const mac, char *buf, u_int buf_len);
   static void  parseMac(u_int8_t *mac, const char *symMac);
-  static u_int32_t macHash(u_int8_t *mac);
+  static u_int32_t macHash(const u_int8_t * const mac);
   static bool isSpecialMac(u_int8_t *mac);
   static int numberOfSetBits(u_int32_t i);
   static void initRedis(Redis **r, const char *redis_host, const char *redis_password,
@@ -126,8 +126,8 @@ class Utils {
 
   /* Patricia Tree */
   static patricia_node_t* add_to_ptree(patricia_tree_t *tree, int family, void *addr, int bits);
-  static patricia_node_t* ptree_match(patricia_tree_t *tree, int family, const void * const addr, int bits);
-  static patricia_node_t* ptree_add_rule(patricia_tree_t *ptree, char *line);
+  static patricia_node_t* ptree_match(const patricia_tree_t *tree, int family, const void * const addr, int bits);
+  static patricia_node_t* ptree_add_rule(patricia_tree_t *ptree, const char * const line);
   static int ptree_remove_rule(patricia_tree_t *ptree, char *line);
 
   static inline void update_ewma(u_int32_t sample, u_int32_t *ewma, u_int8_t alpha_percent) {

@@ -104,10 +104,12 @@ typedef struct {
 
 /* ******************************************* */
 
-static void compact_tree_funct(prefix_t *prefix, void *data, void *user_data) {
+static void compact_tree_funct(patricia_node_t *node, void *data, void *user_data) {
+  prefix_t *prefix;
   compact_tree_t *compact = (compact_tree_t*)user_data;
 
-  if(!prefix) return;
+  if(!node || !(prefix = node->prefix))
+    return;
 
   if(prefix->bitlen > compact->cur_bitlen)
     compact->larger_bitlens.push_back(prefix);
@@ -162,7 +164,7 @@ patricia_node_t *AddressTree::addAddress(const IpAddress * const ipa,
 
 /* ******************************************* */
 
-bool AddressTree::addAddress(char *_what, const int16_t user_data) {
+bool AddressTree::addAddress(const char * const _what, const int16_t user_data) {
   u_int32_t _mac[6];
   int16_t id = (user_data == -1) ? numAddresses : user_data;
   
@@ -239,6 +241,22 @@ bool AddressTree::match(char *addr) {
 
 /* ******************************************* */
 
+bool AddressTree::match(const IpAddress * const ipa, int network_bits) const {
+  if(!ipa)
+    return false;
+
+  bool is_v4 = ipa->isIPv4();
+  if(!is_v4 && !ptree_v6)
+    return false;
+
+  if(is_v4)
+    return Utils::ptree_match(ptree_v4, AF_INET, &ipa->getIP()->ipType.ipv4, network_bits);
+  else
+    return Utils::ptree_match(ptree_v6, AF_INET6, &ipa->getIP()->ipType.ipv6, network_bits);
+}
+
+/* ******************************************* */
+
 int16_t AddressTree::findAddress(int family, void *addr, u_int8_t *network_mask_bits) {
   patricia_tree_t *p;
   int bits;
@@ -266,7 +284,7 @@ int16_t AddressTree::findAddress(int family, void *addr, u_int8_t *network_mask_
 
 /* ******************************************* */
 
-int16_t AddressTree::findMac(u_int8_t addr[]) {
+int16_t AddressTree::findMac(const u_int8_t addr[]) {
   MacKey_t *s = NULL;
 
   HASH_FIND(hh, macs, addr, 6, s);
@@ -276,10 +294,12 @@ int16_t AddressTree::findMac(u_int8_t addr[]) {
 
 /* **************************************************** */
 
-static void address_tree_dump_funct(prefix_t *prefix, void *data, void *user_data) {
+static void address_tree_dump_funct(patricia_node_t * node, void *data, void *user_data) {
   char address[64], ret[64], *a;
+  prefix_t *prefix;
 
-  if(!prefix) return;
+  if(!node || !(prefix = node->prefix))
+    return;
 
   switch(prefix->family) {
   case AF_INET:
@@ -294,14 +314,14 @@ static void address_tree_dump_funct(prefix_t *prefix, void *data, void *user_dat
   }
 
   if(user_data)
-    lua_push_str_table_entry((lua_State*)user_data, ret, (char*)"");
+    lua_push_uint64_table_entry((lua_State*)user_data, ret, node->user_data);
   else
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[AddressTree] %s", ret);
 }
 
 /* **************************************************** */
 
-void AddressTree::getAddresses(lua_State* vm) {
+void AddressTree::getAddresses(lua_State* vm) const {
   if(ptree_v4->head)
     patricia_walk_inorder(ptree_v4->head, address_tree_dump_funct, vm);
 

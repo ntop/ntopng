@@ -146,13 +146,16 @@ end
 -- ##############################################
 
 function ts_common.normalizeVal(v, max_val, options)
-  if v ~= v or v > max_val then
+  -- it's undesirable to normalize and set a 0 when
+  -- the number is greater than max value
+  -- this was causing missing points in the charts
+  -- with ZMQ interface which can actually exceed the nominal value
+
+  if v ~= v then
     -- NaN value
     v = options.fill_value
   elseif v < options.min_value then
     v = options.min_value
-  elseif v > options.max_value then
-    v = options.max_value
   end
 
   return v

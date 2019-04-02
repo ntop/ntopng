@@ -21,6 +21,7 @@ local protocol     = _GET["protocol"]
 local asn          = _GET["asn"]
 local vlan         = _GET["vlan"]
 local network      = _GET["network"]
+local cidr         = _GET["network_cidr"]
 local country      = _GET["country"]
 local mac          = _GET["mac"]
 local os_          = _GET["os"]
@@ -31,6 +32,7 @@ local traffic_type = _GET["traffic_type"]
 
 local base_url = ntop.getHttpPrefix() .. "/lua/hosts_stats.lua"
 local page_params = {}
+local charts_icon = ""
 
 local mode = _GET["mode"]
 if isEmptyString(mode) then
@@ -89,6 +91,7 @@ if (_GET["page"] ~= "historical") then
    page_params["country"] = country
    page_params["mac"] = mac
    page_params["pool"] = pool
+   page_params["network_cidr"] = cidr
 
    if(protocol ~= nil) then
       -- Example HTTP.Facebook
@@ -102,7 +105,24 @@ if (_GET["page"] ~= "historical") then
 
    if(network ~= nil) then
       page_params["network"] = network
-      network_name = ntop.getNetworkNameById(tonumber(network))
+      local network_key = ntop.getNetworkNameById(tonumber(network))
+      network_name = getLocalNetworkAlias(network_key)
+
+      if not isEmptyString(network_name) then
+         local charts_available = ts_utils.exists("subnet:traffic", {ifid=ifstats.id, subnet=network_key})
+
+         charts_icon = " <small><a href='".. ntop.getHttpPrefix() .."/lua/network_details.lua?network="..
+            network .. "&page=config'><i class='fa fa-sm fa-cog'></i></a>"
+
+         if charts_available then
+            charts_icon = charts_icon.."&nbsp; <a href='".. ntop.getHttpPrefix() .."/lua/network_details.lua?network="..
+               network .. "&page=historical'><i class='fa fa-sm fa-area-chart'></i></a>"
+         end
+
+         charts_icon = charts_icon.."</small>"
+      else
+         network_name = i18n("hosts_stats.remote")
+      end
    else
       network_name = ""
    end
@@ -207,7 +227,6 @@ if (_GET["page"] ~= "historical") then
 
    if(protocol_name == nil) then protocol_name = protocol end
 
-   local charts_icon = ""
    if not isEmptyString(protocol_name) then
       charts_icon = " <a href='".. ntop.getHttpPrefix() .."/lua/if_stats.lua?ifid="..
          ifstats.id .. "&page=historical&ts_schema=iface:ndpi&protocol=" .. protocol_name..
@@ -236,6 +255,7 @@ if (_GET["page"] ~= "historical") then
 		     local_remote = mode_label,
 		     protocol = protocol_name or "",
 		     network = not isEmptyString(network_name) and i18n("hosts_stats.in_network", {network=network_name}) or "",
+		     network_cidr = not isEmptyString(cidr) and i18n("hosts_stats.in_network", {network=cidr}) or "",
 		     ip_version = ipver_title or "",
 		     ["os"] = os_ or "",
 		     country_asn_or_mac = country or asninfo or mac or pool_ or "",

@@ -90,7 +90,7 @@ Host::~Host() {
 
 /* *************************************** */
 
-void Host::updateSynFlags(time_t when, u_int8_t flags, Flow *f, bool syn_sent) {
+void Host::updateSynAlertsCounter(time_t when, u_int8_t flags, Flow *f, bool syn_sent) {
   AlertCounter *counter = syn_sent ? syn_flood_attacker_alert : syn_flood_victim_alert;
 
   if(triggerAlerts())
@@ -197,7 +197,7 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   reloadHideFromTop();
   reloadDhcpHost();
 
-  is_in_broadcast_domain = iface->isLocalBroadcastDomainHost(this);
+  is_in_broadcast_domain = iface->isLocalBroadcastDomainHost(this, true /* Inline call */);
 }
 
 /* *************************************** */
@@ -563,6 +563,10 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   lua_push_uint64_table_entry(vm, "anomalous_flows.as_client", getTotalNumAnomalousOutgoingFlows());
   lua_push_uint64_table_entry(vm, "unreachable_flows.as_server", getTotalNumUnreachableIncomingFlows());
   lua_push_uint64_table_entry(vm, "unreachable_flows.as_client", getTotalNumUnreachableOutgoingFlows());
+  lua_push_uint64_table_entry(vm, "net_unreachable_flows.as_server", getTotalNumNetUnreachableIncomingFlows());
+  lua_push_uint64_table_entry(vm, "net_unreachable_flows.as_client", getTotalNumNetUnreachableOutgoingFlows());
+  lua_push_uint64_table_entry(vm, "host_unreachable_flows.as_server", getTotalNumHostUnreachableIncomingFlows());
+  lua_push_uint64_table_entry(vm, "host_unreachable_flows.as_client", getTotalNumHostUnreachableOutgoingFlows());
   lua_push_uint64_table_entry(vm, "total_alerts", stats->getTotalAlerts());
 
 #ifdef NTOPNG_PRO
@@ -1279,6 +1283,7 @@ void Host::updateStats(struct timeval *tv) {
 
   checkDataReset();
   checkStatsReset();
+  checkBroadcastDomain();
 
   num_active_flows_as_client.computeAnomalyIndex(tv->tv_sec),
     num_active_flows_as_server.computeAnomalyIndex(tv->tv_sec),
@@ -1314,6 +1319,13 @@ void Host::checkStatsReset() {
     last_stats_reset = ntop->getLastStatsReset();
     stats_reset_requested = false;
   }
+}
+
+/* *************************************** */
+
+void Host::checkBroadcastDomain() {
+  if(iface->reloadHostsBroadcastDomain())
+    is_in_broadcast_domain = iface->isLocalBroadcastDomainHost(this, false /* Non-inline call */);
 }
 
 /* *************************************** */

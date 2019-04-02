@@ -50,15 +50,16 @@ class AddressTree {
 
   inline u_int16_t getNumAddresses() { return(numAddresses); }
 
-  inline patricia_tree_t* getTree(bool isV4) { return(isV4 ? ptree_v4 : ptree_v6); }
-  bool addAddress(char *_net, const int16_t user_data = -1);
+  inline const patricia_tree_t * getTree(bool isV4) const { return(isV4 ? ptree_v4 : ptree_v6); }
+  bool addAddress(const char * const _net, const int16_t user_data = -1);
   patricia_node_t* addAddress(const IpAddress * const ipa);
   patricia_node_t* addAddress(const IpAddress * const ipa, int network_bits, bool compact_after_add);
   bool addAddresses(char *net, const int16_t user_data = -1);
-  void getAddresses(lua_State* vm);
+  void getAddresses(lua_State* vm) const;
   int16_t findAddress(int family, void *addr, u_int8_t *network_mask_bits = NULL);
-  int16_t findMac(u_int8_t addr[]);
+  int16_t findMac(const u_int8_t addr[]);
   bool match(char *addr);
+  bool match(const IpAddress * const ipa, int network_bits) const;
   void dump();
   void walk(void_fn3_t func, void * const user_data) const;
 };

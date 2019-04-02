@@ -41,6 +41,49 @@ for mac, name in pairs(mac_to_name) do
    end
 end
 
+-- Look by network
+local network_stats = interface.getNetworksStats()
+
+for network, stats in pairs(network_stats) do
+   local name = getFullLocalNetworkName(network)
+
+   if string.contains(string.lower(name), string.lower(query)) then
+      local network_id = stats.network_id
+
+      results[#results + 1] = {
+	 name = name,
+	 type="network", network = network_id,
+      }
+
+      if #results >= max_num_to_find then
+	 break
+      end
+   end
+end
+
+-- Look by AS
+local as_info = interface.getASesInfo() or {}
+for _, as in pairs(as_info.ASes or {}) do
+   local asn = "AS" .. as.asn
+   local as_name = as.asname
+
+   if string.contains(string.lower(as_name), string.lower(query)) then
+      results[#results + 1] = {
+	 name = string.format("%s [%s]", as_name, asn),
+	 type="asn", asn = as.asn,
+      }
+   elseif string.contains(string.lower(asn), string.lower(query)) then
+      results[#results + 1] = {
+	 name = asn,
+	 type="asn", asn = as.asn,
+      }
+   end
+
+   if #results >= max_num_to_find then
+      break
+   end
+end
+
 -- Check also in the mac addresses of snmp devices
 -- The query can be partial so we can't use functions to
 -- test if it'a an IPv4, an IPv6, or a mac as they would yield

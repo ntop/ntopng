@@ -555,7 +555,7 @@ patricia_walk_inorder(patricia_node_t *node, void_fn3_t func, void *data)
   }
 
   if(node->prefix) {
-    func(node->prefix, node->data, data);
+    func(node, node->data, data);
     n++;
   }
 
@@ -568,7 +568,7 @@ patricia_walk_inorder(patricia_node_t *node, void_fn3_t func, void *data)
 
 
 patricia_node_t *
-patricia_search_exact (patricia_tree_t *patricia, prefix_t *prefix)
+patricia_search_exact (const patricia_tree_t * const patricia, prefix_t *prefix)
 {
   patricia_node_t *node;
   u_char *addr;
@@ -641,7 +641,7 @@ patricia_search_exact (patricia_tree_t *patricia, prefix_t *prefix)
 
 /* if inclusive != 0, "best" may be the given prefix itself */
 patricia_node_t *
-patricia_search_best2 (patricia_tree_t *patricia, prefix_t *prefix, int inclusive)
+patricia_search_best2 (const patricia_tree_t * const patricia, prefix_t *prefix, int inclusive)
 {
   patricia_node_t *node;
   patricia_node_t *stack[PATRICIA_MAXBITS + 1];
@@ -734,7 +734,7 @@ patricia_search_best2 (patricia_tree_t *patricia, prefix_t *prefix, int inclusiv
 
 
 patricia_node_t *
-patricia_search_best (patricia_tree_t *patricia, prefix_t *prefix)
+patricia_search_best (const patricia_tree_t * const patricia, prefix_t *prefix)
 {
   return (patricia_search_best2 (patricia, prefix, 1));
 }

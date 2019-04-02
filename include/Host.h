@@ -146,13 +146,13 @@ class Host : public GenericHashEntry {
   inline void set_ipv6(struct ndpi_in6_addr *_ipv6) { ip.set(_ipv6);                 };
   inline u_int32_t key()                            { return(ip.key());              };
   char* getJSON();
-  inline IpAddress* get_ip()                   { return(&ip);              }
+  inline IpAddress* get_ip()                 { return(&ip);              }
   void set_mac(Mac  *m);
   void set_mac(char *m);
   void set_mac(u_int8_t *m);
   inline bool isBlacklisted()                  { return(blacklisted_host);  };
   void reloadHostBlacklist();
-  inline u_int8_t*  get_mac()                  { return(mac ? mac->get_mac() : NULL);      }
+  inline const u_int8_t* const get_mac() const { return(mac ? mac->get_mac() : NULL);}
   inline Mac* getMac() const                   { return(mac);              }
   char * getResolvedName(char * const buf, ssize_t buf_len);
   char * getMDNSName(char * const buf, ssize_t buf_len);
@@ -221,26 +221,29 @@ class Host : public GenericHashEntry {
   virtual void  serialize2redis() {};
   bool addIfMatching(lua_State* vm, AddressTree * ptree, char *key);
   bool addIfMatching(lua_State* vm, u_int8_t *mac);
-  void updateSynFlags(time_t when, u_int8_t flags, Flow *f, bool syn_sent);
+  void updateSynAlertsCounter(time_t when, u_int8_t flags, Flow *f, bool syn_sent);
   inline void updateRoundTripTime(u_int32_t rtt_msecs) {
     if(as) as->updateRoundTripTime(rtt_msecs);
   }
 
   void incNumFlows(time_t t, bool as_client, Host *peer);
   void decNumFlows(time_t t, bool as_client, Host *peer);
-  inline void incNumUnreachableFlows(bool as_server) { if(stats) stats->incNumUnreachableFlows(as_server); } 
+  inline void incNumUnreachableFlows(bool as_server) { if(stats) stats->incNumUnreachableFlows(as_server); }
+  inline void incNumNetUnreachableFlows(bool as_server) { if(stats) stats->incNumNetUnreachableFlows(as_server); };
+  inline void incNumHostUnreachableFlows(bool as_server) { if(stats) stats->incNumHostUnreachableFlows(as_server); }; 
  
   inline void incFlagStats(bool as_client, u_int8_t flags)  { stats->incFlagStats(as_client, flags); };
   virtual void incNumDNSQueriesSent(u_int16_t query_type) { };
   virtual void incNumDNSQueriesRcvd(u_int16_t query_type) { };
   virtual void incNumDNSResponsesSent(u_int32_t ret_code) { };
   virtual void incNumDNSResponsesRcvd(u_int32_t ret_code) { };
+  virtual void luaDNS(lua_State *vm) const { };
   virtual void postHashAdd();
 
   virtual NetworkStats* getNetworkStats(int16_t networkId) { return(NULL);   };
   inline Country* getCountryStats()                        { return country; };
 
-  bool match(AddressTree *tree) { return(get_ip() ? get_ip()->match(tree) : false); };
+  bool match(const AddressTree * const tree) const { return ip.match(tree); };
   void updateHostPool(bool isInlineCall, bool firstUpdate = false);
   virtual bool dropAllTraffic()  { return(false); };
   bool incFlowAlertHits(time_t when);
@@ -257,6 +260,10 @@ class Host : public GenericHashEntry {
   inline u_int32_t getTotalNumAnomalousIncomingFlows() const { return stats->getTotalAnomalousNumFlowsAsServer(); };
   inline u_int32_t getTotalNumUnreachableOutgoingFlows() const { return stats->getTotalUnreachableNumFlowsAsClient(); };
   inline u_int32_t getTotalNumUnreachableIncomingFlows() const { return stats->getTotalUnreachableNumFlowsAsServer(); };
+  inline u_int32_t getTotalNumNetUnreachableOutgoingFlows() const { return stats->getTotalNetUnreachableNumFlowsAsClient(); };
+  inline u_int32_t getTotalNumNetUnreachableIncomingFlows() const { return stats->getTotalNetUnreachableNumFlowsAsServer(); };
+  inline u_int32_t getTotalNumHostUnreachableOutgoingFlows() const { return stats->getTotalHostUnreachableNumFlowsAsClient(); };
+  inline u_int32_t getTotalNumHostUnreachableIncomingFlows() const { return stats->getTotalHostUnreachableNumFlowsAsServer(); };
   void splitHostVlan(const char *at_sign_str, char *buf, int bufsize, u_int16_t *vlan_id);
   char* get_country(char *buf, u_int buf_len);
   char* get_city(char *buf, u_int buf_len);
@@ -272,6 +279,7 @@ class Host : public GenericHashEntry {
   inline void requestStatsReset()                        { stats_reset_requested = true; };
   inline void requestDataReset()                         { data_delete_requested = true; requestStatsReset(); };
   void checkDataReset();
+  void checkBroadcastDomain();
   bool hasAnomalies();
   void luaAnomalies(lua_State* vm);
   void loadAlertsCounter();

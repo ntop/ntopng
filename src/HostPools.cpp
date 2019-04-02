@@ -803,7 +803,7 @@ void HostPools::reloadPools() {
 
 /* *************************************** */
 
-bool HostPools::findMacPool(u_int8_t *mac, u_int16_t *found_pool) {
+bool HostPools::findMacPool(const u_int8_t * const mac, u_int16_t *found_pool) {
   VlanAddressTree *cur_tree; /* must use this as tree can be swapped */
   int16_t ret;
 

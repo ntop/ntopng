@@ -182,6 +182,10 @@ local function validateUsername(p)
    return validateSingleWord(p)
 end
 
+local function licenseCleanup(p)
+   return p -- don't touch passwords (checks against valid fs paths already performed)
+end
+
 local function passwordCleanup(p)
    return p -- don't touch passwords (checks against valid fs paths already performed)
 end
@@ -195,6 +199,11 @@ local function whereCleanup(p)
    -- SQL where
    -- A-Za-z0-9!=<>()
    return(p:gsub('%W><!()','_'))
+end
+
+local function validateLicense(p)
+   -- A password (e.g. used in ntopng authentication)
+   return string.match(p,"[%l%u%d/+]+=*") == p or validateEmpty(p)
 end
 
 local function validatePassword(p)
@@ -319,6 +328,15 @@ local function validateFlowStatus(mode)
    local modes = {"normal", "alerted", "filtered"}
 
    return validateChoice(modes, mode)
+end
+
+local function validateFlowStatusNumber(status)
+   if not validateNumber(status) then
+      return false
+   end
+
+   local num = tonumber(status)
+   return((num >= 0) and (num < 2^8))
 end
 
 local function validateTCPFlowState(mode)
@@ -456,7 +474,7 @@ end
 
 local function validateUserLanguage(code)
    local codes = {}
-   for _, c in pairs(locales_utils.getAvailableLocales()) do
+   for _, c in ipairs(locales_utils.getAvailableLocales()) do
       codes[#codes + 1] = c["code"]
    end
 
@@ -973,6 +991,7 @@ local known_parameters = {
    ["target"]                  = validateHost,                  -- the target of the alert
    ["member"]                  = validateMember,                -- an IPv4 (optional @vlan, optional /suffix), IPv6 (optional @vlan, optional /suffix), or MAC address
    ["network"]                 = validateNumber,                -- A network ID
+   ["network_cidr"]            = validateNetwork,               -- A network expressed with the /
    ["ip"]                      = validateEmptyOr(validateIpAddress), -- An IPv4 or IPv6 address
    ["vhost"]                   = validateHTTPHost,              -- HTTP server name or IP address
    ["version"]                 = validateIpVersion,             -- To specify an IPv4 or IPv6
@@ -1087,7 +1106,7 @@ local known_parameters = {
    ["row_id"]                  = validateNumber,                -- A number used to identify a record in a database
    ["rrd_file"]                = validateUnquoted,              -- A path or special identifier to read an RRD file
    ["port"]                    = validatePort,                  -- An application port
-   ["ntopng_license"]          = validateSingleWord,            -- ntopng licence string
+   ["ntopng_license"]          = {licenseCleanup, validateLicense},          -- ntopng licence string
    ["syn_attacker_threshold"]        = validateEmptyOr(validateNumber),
    ["global_syn_attacker_threshold"] = validateEmptyOr(validateNumber),
    ["syn_victim_threshold"]          = validateEmptyOr(validateNumber),
@@ -1345,6 +1364,7 @@ local known_parameters = {
    ["drop_flow_policy"]        = validateBool,                  -- true if target flow should be dropped
    ["traffic_type"]            = validateBroadcastUnicast,      -- flows_stats.lua
    ["flow_status"]             = validateFlowStatus,            -- flows_stats.lua
+   ["flow_status_num"]         = validateFlowStatusNumber,      -- charts
    ["tcp_flow_state"]          = validateTCPFlowState,          -- flows_stats.lua
    ["include_unlimited"]       = validateBool,                  -- pool_details_ndpi.lua
    ["policy_preset"]           = validateEmptyOr(validatePolicyPreset), -- a traffic bridge policy set
@@ -1552,7 +1572,12 @@ function http_lint.validationError(t, param, value, message)
    -- TODO graceful exit
    local s_id
    if t == _GET then s_id = "_GET" else s_id = "_POST" end
-   error("[LINT] " .. s_id .. "[\"" .. param .. "\"] = \"" .. (value or 'nil') .. "\" parameter error: " .. message)
+
+   -- Must use urlencode to print these values or an attacker could perform XSS.
+   -- Indeed, the web page returned by mongoose will show the error below and
+   -- one could place something like '><script>alert(1)</script> in the value
+   -- to close the html and execute a script
+   error("[LINT] " .. s_id .. "[\"" .. urlencode(param) .. "\"] = \"" .. urlencode(value or 'nil') .. "\" parameter error: " .. message.."")
 end
 
 -- #################################################################

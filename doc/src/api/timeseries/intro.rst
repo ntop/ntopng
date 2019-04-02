@@ -32,7 +32,7 @@ Schema Name
 
 A schema name is made up of two parts:
   - A schema prefix, for example "host"
-  - A schema suffic, for example "ndpi"
+  - A schema suffix, for example "ndpi"
 
 The two parts are separated by a single `:`, so for example "host:ndpi" is a valid
 schema name and indicates the nDPI application traffic of an host. Only a single

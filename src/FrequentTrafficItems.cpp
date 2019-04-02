@@ -114,7 +114,7 @@ void FrequentTrafficItems::luaTopPoolsProtocols(lua_State *vm) {
 
 /* ******************************************************** */
 
-void FrequentTrafficItems::addMacProtocol(u_int8_t mac[6], u_int16_t proto_id, u_int32_t value) {
+void FrequentTrafficItems::addMacProtocol(const u_int8_t mac[6], u_int16_t proto_id, u_int32_t value) {
   FrequentTrafficKey_t key;
 
   memset(&key, 0, sizeof(key));

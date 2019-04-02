@@ -21,6 +21,12 @@
 
 #include "ntop_includes.h"
 
+/* static so default is zero-initialization, let's just define it */
+
+const ndpi_protocol Flow::ndpiUnknownProtocol = { NDPI_PROTOCOL_UNKNOWN,
+						  NDPI_PROTOCOL_UNKNOWN,
+						  NDPI_PROTOCOL_CATEGORY_UNSPECIFIED };
+
 //#define DEBUG_DISCOVERY
 //#define DEBUG_UA
 
@@ -40,8 +46,8 @@ Flow::Flow(NetworkInterface *_iface,
     srv2cli_last_goodput_bytes = cli2srv_last_goodput_bytes = 0, good_ssl_hs = true,
     flow_alerted = flow_dropped_counts_increased = false, vrfId = 0;
 
-  l7_protocol_guessed = detection_completed = false,
-    memset(&ndpiDetectedProtocol, 0, sizeof(ndpiDetectedProtocol)),
+  l7_protocol_guessed = detection_completed = false;
+  ndpiDetectedProtocol = ndpiUnknownProtocol;
   doNotExpireBefore = iface->getTimeLastPktRcvd() + DONT_NOT_EXPIRE_BEFORE_SEC;
 
 #ifdef HAVE_NEDGE
@@ -81,16 +87,31 @@ Flow::Flow(NetworkInterface *_iface,
   PROFILING_SUB_SECTION_EXIT(iface, 7);
   if(cli_host) { cli_host->incUses(); cli_host->incNumFlows(last_seen, true, srv_host);  }
   if(srv_host) { srv_host->incUses(); srv_host->incNumFlows(last_seen, false, cli_host); }
+  
+  if(icmp_info){
+    if(icmp_info->isPortUnreachable()){ //port unreachable icmpv6/icmpv4
 
-  if(icmp_info && icmp_info->getUnreach()) {
     /*
       This is an ICMP flow which contains unreachable information. As is the cli_host
       that complains, it means that the srv_host has made a connection that triggered
       the issue and thus it must be accounted in reverse
      */
-    if(cli_host) cli_host->incNumUnreachableFlows(true  /* as server */);
-    if(srv_host) srv_host->incNumUnreachableFlows(false /* as client */);
+    
+      if(cli_host) cli_host->incNumUnreachableFlows(true  /* as server */);
+      if(srv_host) srv_host->incNumUnreachableFlows(false /* as client */);
+    }
+    else if(icmp_info->isNetUnreachable(protocol)){
+      
+      if(cli_host) cli_host->incNumNetUnreachableFlows(true  /* as server */);
+      if(srv_host) srv_host->incNumNetUnreachableFlows(false /* as client */);
+    }
+    else if(icmp_info->isHostUnreachable(protocol)){
+
+      if(cli_host) cli_host->incNumHostUnreachableFlows(true  /* as server */);
+      if(srv_host) srv_host->incNumHostUnreachableFlows(false /* as client */);
+    }
   }
+
   
   memset(&custom_app, 0, sizeof(custom_app));
 
@@ -160,6 +181,9 @@ Flow::Flow(NetworkInterface *_iface,
     setDetectedProtocol(ndpiDetectedProtocol, true);
     break;
   }
+
+  protos.ssl.dissect_certificate = true,
+    protos.ssl.subject_alt_name_match = false;
 }
 
 /* *************************************** */
@@ -521,11 +545,6 @@ void Flow::processDetectedProtocol() {
     break;
   } /* switch */
 
-#ifdef NTOPNG_PRO
-  if((ndpiDetectedProtocol.app_protocol == NDPI_PROTOCOL_UNKNOWN) && (!l7_protocol_guessed))
-    ntop->getFlowChecker()->flowCheck(this);
-#endif
-
   if(protocol_processed
      /* For DNS we delay the memory free so that we can let nDPI analyze all the packets of the flow */
      && (l7proto != NDPI_PROTOCOL_DNS))
@@ -537,8 +556,6 @@ void Flow::processDetectedProtocol() {
 void Flow::guessProtocol() {
   if(detection_completed)
     return; /* Nothing to do */
-  else
-    detection_completed = true; /* We give up */
 
   /* This code should no longer be necessary as the nDPI API changed */
   if((protocol == IPPROTO_TCP) || (protocol == IPPROTO_UDP)) {
@@ -562,6 +579,8 @@ void Flow::guessProtocol() {
 
     l7_protocol_guessed = true;
   }
+
+  detection_completed = true; /* We give up */
 }
 
 /* *************************************** */
@@ -745,7 +764,7 @@ char* Flow::printTCPflags(u_int8_t flags, char * const buf, u_int buf_len) const
 }
 /* *************************************** */
 
-char* Flow::print(char *buf, u_int buf_len) {
+char* Flow::print(char *buf, u_int buf_len) const {
   char buf1[32], buf2[32], buf3[32], buf4[32], pbuf[32], tcp_buf[64];
   buf[0] = '\0';
 
@@ -830,9 +849,6 @@ char* Flow::print(char *buf, u_int buf_len) {
 	   , shapers
 #endif
 	   );
-
-  if(getFlowStatus() == status_dns_invalid_query && protos.dns.last_query)
-    snprintf(&buf[strlen(buf)], buf_len - strlen(buf), "[query: %s]", protos.dns.last_query);
 
 return(buf);
 }
@@ -1361,7 +1377,11 @@ void Flow::update_pools_stats(const struct timeval *tv,
   hp = iface->getHostPools();
   if(hp) {
     /* Client host */
-    if(cli_host) {
+    if(cli_host
+#ifdef HAVE_NEDGE
+      && cli_host->getMac() && (cli_host->getMac()->locate() == located_on_lan_interface)
+#endif
+    ) {
       cli_host_pool_id = cli_host->get_host_pool();
 
       /* Overall host pool stats */
@@ -1384,7 +1404,11 @@ void Flow::update_pools_stats(const struct timeval *tv,
     }
 
     /* Server host */
-    if(srv_host) {
+    if(srv_host
+#ifdef HAVE_NEDGE
+      && srv_host->getMac() && (srv_host->getMac()->locate() == located_on_lan_interface)
+#endif
+    ) {
       srv_host_pool_id = srv_host->get_host_pool();
 
       /* Update server pool stats only if the pool is not equal to the client pool */
@@ -2334,6 +2358,26 @@ void Flow::dumpPacketStats(lua_State* vm, bool cli2srv_direction) {
 
 /* *************************************** */
 
+bool Flow::isBlacklistedFlow() const {
+  bool res = (cli_host && srv_host
+	      && (cli_host->isBlacklisted()
+		  || srv_host->isBlacklisted()
+		  || (get_protocol_category() == CUSTOM_CATEGORY_MALWARE)));
+
+#ifdef BLACKLISTED_FLOWS_DEBUG
+  if(res) {
+    char buf[512];
+    print(buf, sizeof(buf));
+    snprintf(&buf[strlen(buf)], sizeof(buf) - strlen(buf), "[cli_blacklisted: %u][srv_blacklisted: %u][category: %s]", cli_host->isBlacklisted(), srv_host->isBlacklisted(), get_protocol_category_name());
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", buf);
+  }
+#endif
+
+  return res;
+};
+
+/* *************************************** */
+
 bool Flow::isSSLProto() {
   u_int16_t lower = ndpi_get_lower_proto(ndpiDetectedProtocol);
 
@@ -2412,18 +2456,59 @@ void Flow::addFlowStats(bool cli2srv_direction,
       pkts_thpt = (cli2srv_packets + srv2cli_packets) / (float)(last_seen - first_seen);
   }
 }
+/* *************************************** */
+
+void Flow::setTcpFlags(u_int8_t flags, bool src2dst_direction) {
+  if(iface->isPacketInterface())
+    return; /* Use updateTcpFlags for packet interfaces */
+
+  iface->incFlagsStats(flags);
+
+  if(cli_host) cli_host->incFlagStats(src2dst_direction, flags);
+  if(srv_host) srv_host->incFlagStats(!src2dst_direction, flags);
+
+  if((flags & TH_SYN) && (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_SYN) != TH_SYN))
+    iface->getTcpFlowStats()->incSyn();
+
+  if((flags & TH_RST) && (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_RST) != TH_RST))
+    iface->getTcpFlowStats()->incReset();
+
+  if((flags & TH_FIN) && (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_FIN) != TH_FIN))
+    iface->getTcpFlowStats()->incFin();
+
+  /* The update below must be after the above check */
+  if(src2dst_direction)
+    src2dst_tcp_flags |= flags;
+  else
+    dst2src_tcp_flags |= flags;
+
+  if(!twh_over) {
+    if((src2dst_tcp_flags & (TH_SYN|TH_ACK)) == (TH_SYN|TH_ACK)
+       && ((dst2src_tcp_flags & (TH_SYN|TH_ACK)) == (TH_SYN|TH_ACK)))
+      twh_ok = twh_over = true,
+	iface->getTcpFlowStats()->incEstablished();
+  }
+
+  /* Can't set these guys for non-packet interfaces */
+  memset(&synTime, 0, sizeof(synTime)),
+    memset(&synAckTime, 0, sizeof(synAckTime)),
+    memset(&ackTime, 0, sizeof(ackTime));
+}
 
 /* *************************************** */
 
 void Flow::updateTcpFlags(const struct bpf_timeval *when,
 			  u_int8_t flags, bool src2dst_direction) {
+  if(!iface->isPacketInterface())
+    return; /* Use setTcpFlags for non-packet interfaces */
+
   iface->incFlagsStats(flags);
   if(cli_host) cli_host->incFlagStats(src2dst_direction, flags);
   if(srv_host) srv_host->incFlagStats(!src2dst_direction, flags);
 
   if(flags == TH_SYN) {
-    if(cli_host) cli_host->updateSynFlags(when->tv_sec, flags, this, true);
-    if(srv_host) srv_host->updateSynFlags(when->tv_sec, flags, this, false);
+    if(cli_host) cli_host->updateSynAlertsCounter(when->tv_sec, flags, this, true);
+    if(srv_host) srv_host->updateSynAlertsCounter(when->tv_sec, flags, this, false);
   }
 
   if((flags & TH_SYN) && (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_SYN) != TH_SYN))
@@ -2467,8 +2552,7 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when,
 	else if(cli_host)
 	  cli_host->updateRoundTripTime(Utils::timeval2ms(&clientNwLatency));
 
-	rttSec = ((float)(serverNwLatency.tv_sec+clientNwLatency.tv_sec))
-	  +((float)(serverNwLatency.tv_usec+clientNwLatency.tv_usec))/(float)1000000;
+	setRtt();
 
 	twh_ok = true;
       }
@@ -3319,98 +3403,6 @@ bool Flow::isLowGoodput() {
     return((((get_goodput_bytes()*100)/(get_bytes()+1 /* avoid zero divisions */)) < FLOW_GOODPUT_THRESHOLD) ? true : false);
 }
 
-/* *************************************** */
-
-void Flow::dissectSSL(u_int8_t *payload, u_int16_t payload_len, const struct bpf_timeval *when, bool cli2srv) {
-  uint16_t skiphello;
-  bool hs_now_end = false;
-
-  if(good_ssl_hs && twh_over && payload_len >= SSL_MIN_PACKET_SIZE) {
-    if((cli2srv && (getSSLEncryptionStatus() & SSL_ENCRYPTION_CLIENT)) ||
-       (!cli2srv && (getSSLEncryptionStatus() & SSL_ENCRYPTION_SERVER)) ) {
-      protos.ssl.is_data = true;
-
-      if(!protos.ssl.firstdata_seen) {
-	if(getSSLEncryptionStatus() == SSL_ENCRYPTION_BOTH) {
-	  memcpy(&protos.ssl.lastdata_time, when, sizeof(struct timeval));
-	  protos.ssl.delta_firstData = ((float)(Utils::timeval2usec(&protos.ssl.lastdata_time)
-						- Utils::timeval2usec(&protos.ssl.hs_end_time)))/1000;
-	  ntop->getTrace()->traceEvent(TRACE_DEBUG, "[%p][%u.%u] SSL first (full) data: %u",
-				       this, when->tv_sec, when->tv_usec, payload_len);
-	  protos.ssl.firstdata_seen = true;
-	}
-      } else {
-	protos.ssl.deltaTime_data = ((float)(Utils::timeval2usec((struct timeval*)when)
-					     - Utils::timeval2usec(&protos.ssl.lastdata_time)))/1000;
-	memcpy(&protos.ssl.lastdata_time, when, sizeof(struct timeval));
-      }
-    } else {
-      protos.ssl.is_data = false;
-
-      if(payload[0] == SSL_HANDSHAKE_PACKET) {
-	if(payload[5] == SSL_CLIENT_HELLO) {
-	  if(protos.ssl.cli_stage == SSL_STAGE_UNKNOWN) {
-	    memcpy(&protos.ssl.clienthello_time, when, sizeof(struct timeval));
-	    protos.ssl.cli_stage = SSL_STAGE_HELLO;
-	  }
-	} else if((payload[5] == SSL_SERVER_HELLO)
-		  && (protos.ssl.srv_stage == SSL_STAGE_UNKNOWN)
-		  && (protos.ssl.cli_stage == SSL_STAGE_HELLO)) {
-	  skiphello = 5 + 4 + ntohs(get_u_int16_t(payload, 7));
-
-	  if((payload_len > skiphello)
-	     && (payload[skiphello] == SSL_SERVER_CHANGE_CIPHER_SPEC)) {
-	      protos.ssl.srv_stage = SSL_STAGE_CCS;
-	      // here client encryption is still plain
-	    } else {
-	      protos.ssl.srv_stage = SSL_STAGE_HELLO;
-	    }
-	} else if((payload[5] == SSL_CLIENT_KEY_EXCHANGE)
-		  && (protos.ssl.cli_stage == SSL_STAGE_HELLO)) {
-	  protos.ssl.cli_stage = SSL_STAGE_CCS;
-
-	  if(getSSLEncryptionStatus() == SSL_ENCRYPTION_BOTH)
-	    hs_now_end = true;
-	} else if((payload[5] == SSL_NEW_SESSION_TICKET)
-		  && (protos.ssl.srv_stage == SSL_STAGE_HELLO)) {
-	  protos.ssl.srv_stage = SSL_STAGE_CCS;
-
-	  if(getSSLEncryptionStatus() == SSL_ENCRYPTION_BOTH)
-	    hs_now_end = true;
-	}
-      } else if((payload[0] == SSL_SERVER_CHANGE_CIPHER_SPEC)
-		&& (protos.ssl.srv_stage == SSL_STAGE_HELLO)) {
-	protos.ssl.srv_stage = SSL_STAGE_CCS;
-	if(getSSLEncryptionStatus() == SSL_ENCRYPTION_BOTH)
-	    hs_now_end = true;
-      }
-
-      if(hs_now_end) {
-	// both client and server CCS appeared here
-	memcpy(&protos.ssl.hs_end_time, when, sizeof(struct timeval));
-	protos.ssl.hs_delta_time = ((float)(Utils::timeval2usec(&protos.ssl.hs_end_time)
-					    - Utils::timeval2usec(&protos.ssl.clienthello_time)))/1000;
-      }
-
-      protos.ssl.hs_packets++;
-      good_ssl_hs &= protos.ssl.hs_packets <= SSL_MAX_HANDSHAKE_PCKS;
-    }
-  }
-}
-
-/* ***************************************************** */
-
-FlowSSLEncryptionStatus Flow::getSSLEncryptionStatus() {
-  if(isSSLProto()) {
-    return(FlowSSLEncryptionStatus)(
-				    ((protos.ssl.srv_stage == SSL_STAGE_CCS) << 0) |
-				    ((protos.ssl.cli_stage == SSL_STAGE_CCS) << 1)
-				    );
-  }
-
-  return SSL_ENCRYPTION_PLAIN;
-}
-
 /* ***************************************************** */
 
 FlowStatus Flow::getFlowStatus() {
@@ -3471,12 +3463,9 @@ FlowStatus Flow::getFlowStatus() {
 	/* 3WH is over */
 	switch(l7proto) {
 	case NDPI_PROTOCOL_SSL:
-#ifndef HAVE_NEDGE
-	  if(!protos.ssl.firstdata_seen && isIdle)
-	    return status_slow_application_header;
-#endif
-
-	  if(protos.ssl.certificate && protos.ssl.server_certificate) {
+	  if(protos.ssl.certificate
+	     && protos.ssl.server_certificate
+	     && !protos.ssl.subject_alt_name_match) {
 	    if(protos.ssl.server_certificate[0] == '*') {
 	      if(!strstr(protos.ssl.certificate, &protos.ssl.server_certificate[1]))
 		return status_ssl_certificate_mismatch;
@@ -3693,5 +3682,100 @@ void Flow::fillZmqFlowCategory() {
       ndpiDetectedProtocol.category = (ndpi_protocol_category_t)id;
       return;
     }
+  }
+}
+
+/* ***************************************************** */
+
+void Flow::dissectSSL(char *payload, u_int16_t payload_len) {
+  if(protos.ssl.dissect_certificate) {
+    u_int16_t _payload_len = payload_len + protos.ssl.certificate_leftover;
+    u_char *_payload       = (u_char*)malloc(_payload_len);
+    bool find_initial_pattern = true;
+
+    if(!_payload)
+      return;
+    else {
+      int i = 0;
+
+      if(protos.ssl.certificate_leftover > 0) {
+	memcpy(_payload, protos.ssl.certificate_buf_leftover, (i = protos.ssl.certificate_leftover));
+	free(protos.ssl.certificate_buf_leftover);
+	protos.ssl.certificate_buf_leftover = NULL, protos.ssl.certificate_leftover = 0;
+	find_initial_pattern = false;
+      }
+
+      memcpy(&_payload[i], payload, payload_len);
+    }
+
+    if(_payload_len > 4) {
+      for(int i = (find_initial_pattern ? 9 : 0); i < _payload_len - 4 && protos.ssl.dissect_certificate; i++) {
+
+	/* Look for the Subject Alternative Name Extension with OID 55 1D 11 */
+	if((find_initial_pattern && (_payload[i] == 0x55) && (_payload[i+1] == 0x1d) && (_payload[i+2] == 0x11))
+	   || (!find_initial_pattern)) {
+
+	  if(find_initial_pattern) {
+	    i += 3 /* skip the initial patten 55 1D 11 */;
+	    i++; /* skip the first type, 0x04 == BIT STRING, and jump to it's length */
+	    i += _payload[i] & 0x80 ? _payload[i] & 0x7F : 0; /* skip BIT STRING length */
+	    i += 2; /* skip the second type, 0x30 == SEQUENCE, and jump to it's length */
+	    i += _payload[i] & 0x80 ? _payload[i] & 0x7F : 0; /* skip SEQUENCE length */
+	    i++;
+	  }
+
+	  while(i < _payload_len) {
+	    if(_payload[i] == 0x82) {
+	      u_int8_t len;
+
+	      if(i < _payload_len - 1 && (len = _payload[i + 1]) && i + len + 2 < _payload_len) {
+		i += 2;
+
+		if(!isalpha(_payload[i]) && _payload[i] != '*') {
+		  protos.ssl.dissect_certificate = false;
+		  break;
+		} else {
+		  char buf[len + 1];
+
+		  strncpy(buf, (const char*)&_payload[i], len);
+		  buf[len] = '\0';
+
+#if 0
+		  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [Len %u][sizeof(buf): %u][ssl cert: %s]", buf, len, sizeof(buf), getSSLCertificate());
+#endif
+
+		  if(protos.ssl.certificate
+		     && ((buf[0] != '*' && !strncmp(protos.ssl.certificate, buf, sizeof(buf)))
+			 || (buf[0] == '*' && strstr(protos.ssl.certificate, &buf[1])))) {
+		    protos.ssl.subject_alt_name_match = true;
+		    protos.ssl.dissect_certificate = false;
+		    break;
+		  }
+		}
+
+		i += len;
+	      } else {
+#if 0
+		ntop->getTrace()->traceEvent(TRACE_NORMAL, "Leftover %u bytes [%u len]", _payload_len - i, len);
+#endif
+		protos.ssl.certificate_leftover = _payload_len - i;
+
+		if((protos.ssl.certificate_buf_leftover = (char*)malloc(protos.ssl.certificate_leftover)) != NULL)
+		  memcpy(protos.ssl.certificate_buf_leftover, &_payload[i], protos.ssl.certificate_leftover);
+		else
+		  protos.ssl.certificate_leftover = 0;
+
+		break;
+	      }
+	    } else {
+	      protos.ssl.dissect_certificate = false;
+	      break;
+	    }
+	  }
+	}
+      } /* for */
+    }
+
+    free(_payload);
   }
 }

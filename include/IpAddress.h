@@ -81,7 +81,7 @@ class IpAddress {
   char* serialize();
   bool get_sockaddr(struct sockaddr ** const sa, ssize_t * const sa_len) const;
   json_object* getJSONObject();
-  bool match(AddressTree *tree);
+  bool match(const AddressTree * const tree) const;
   void* findAddress(AddressTree *ptree);
   void dump();
 };

@@ -88,7 +88,9 @@ class NetworkInterface : public Checkpointable {
   MDNS *mdns;
 
   /* Broadcast domain */
-  AddressTree *broadcast_domains;
+  BroadcastDomains *bcast_domains;
+  bool reload_hosts_bcast_domain;
+  time_t hosts_bcast_domain_last_update;
   
 #ifdef HAVE_EBPF
   /* eBPF */
@@ -107,6 +109,7 @@ class NetworkInterface : public Checkpointable {
   void deliverLiveCapture(const struct pcap_pkthdr * const h, const u_char * const packet, Flow * const f);
   
   string ip_addresses;
+  AddressTree interface_networks;
   int id;
   bool bridge_interface, is_dynamic_interface, is_traffic_mirrored, is_loopback;
   bool reload_custom_categories, reload_hosts_blacklist;
@@ -214,7 +217,8 @@ class NetworkInterface : public Checkpointable {
 		u_int32_t asnFilter, int16_t networkFilter,
 		u_int16_t pool_filter, bool filtered_hosts,
 		bool blacklisted_hosts, bool hide_top_hidden,
-    bool anomalousOnly, bool dhcpOnly,
+		bool anomalousOnly, bool dhcpOnly,
+		const AddressTree * const cidr_filter,
 		u_int8_t ipver_filter, int proto_filter,
 		TrafficType traffic_type_filter,
 		char *sortColumn);
@@ -251,6 +255,7 @@ class NetworkInterface : public Checkpointable {
 
   void topItemsCommit(const struct timeval *when);
   void checkMacIPAssociation(bool triggerEvent, u_char *_mac, u_int32_t ipv4);
+  bool checkBroadcastDomainTooLarge(u_int32_t bcast_mask, u_int16_t vlan_id, const Mac * const src_mac, const Mac * const dst_mac, u_int32_t spa, u_int32_t tpa) const;
   void pollQueuedeBPFEvents();
   void reloadCustomCategories();
   
@@ -423,6 +428,7 @@ class NetworkInterface : public Checkpointable {
   void getnDPIProtocols(lua_State *vm, ndpi_protocol_category_t filter, bool skip_critical);
   void setnDPIProtocolCategory(u_int16_t protoId, ndpi_protocol_category_t protoCategory);
   void guessAllnDPIProtocols();
+  void guessAllBroadcastDomainHosts();
 
   int getActiveHostsList(lua_State* vm,
 			 u_int32_t *begin_slot,
@@ -433,10 +439,12 @@ class NetworkInterface : public Checkpointable {
 			 char *countryFilter, char *mac_filter,
 			 u_int16_t vlan_id, char *osFilter,
 			 u_int32_t asnFilter, int16_t networkFilter,
-			 u_int16_t pool_filter, bool filtered_hosts, bool blacklisted_hosts, bool hide_top_hidden,
-       u_int8_t ipver_filter, int proto_filter,
-       TrafficType traffic_type_filter, bool tsLua,
-       bool anomalousOnly, bool dhcpOnly,
+			 u_int16_t pool_filter, bool filtered_hosts,
+			 bool blacklisted_hosts, bool hide_top_hidden,
+			 u_int8_t ipver_filter, int proto_filter,
+			 TrafficType traffic_type_filter, bool tsLua,
+			 bool anomalousOnly, bool dhcpOnly,
+			 const AddressTree * const cidr_filter,
 			 char *sortColumn, u_int32_t maxHits,
 			 u_int32_t toSkip, bool a2zSortOrder);
   int getActiveHostsGroup(lua_State* vm,
@@ -515,7 +523,7 @@ class NetworkInterface : public Checkpointable {
 
   void runHousekeepingTasks();
   void runShutdownTasks();
-  ArpStatsMatrixElement* getArpHashMatrixElement(u_int8_t _src_mac[6], u_int8_t _dst_mac[6], bool * const src2dst);
+  ArpStatsMatrixElement* getArpHashMatrixElement(const u_int8_t _src_mac[6], const u_int8_t _dst_mac[6], bool * const src2dst);
   Vlan* getVlan(u_int16_t vlanId, bool createIfNotPresent);
   AutonomousSystem *getAS(IpAddress *ipa, bool createIfNotPresent);
   Country* getCountry(const char *country_name, bool createIfNotPresent);
@@ -573,7 +581,9 @@ class NetworkInterface : public Checkpointable {
   inline CountriesHash* get_countries_hash()       { return(countries_hash);          }
   inline bool is_bridge_interface()                { return(bridge_interface);        }
   inline const char* getLocalIPAddresses()         { return(ip_addresses.c_str());    }
-  void addInterfaceAddress(char *addr);
+  void addInterfaceAddress(char * const addr);
+  void addInterfaceNetwork(char * const net);
+  bool isInterfaceNetwork(const IpAddress * const ipa, int network_bits) const;
   inline int exec_sql_query(lua_State *vm, char *sql, bool limit_rows, bool wait_for_db_created = true) {
 #ifdef HAVE_MYSQL
     if(dynamic_cast<MySQLDB*>(db) != NULL)
@@ -619,6 +629,8 @@ class NetworkInterface : public Checkpointable {
   void reloadHideFromTop(bool refreshHosts=true);
   inline void requestReloadCustomCategories()       { reload_custom_categories = true; }
   inline bool customCategoriesReloadRequested()     { return reload_custom_categories; }
+  void checkReloadHostsBroadcastDomain();
+  inline bool reloadHostsBroadcastDomain()          { return reload_hosts_bcast_domain; }
   inline void checkHostsBlacklistReload()           { if(reload_hosts_blacklist) { reloadHostsBlacklist(); reload_hosts_blacklist = false; } }
   void reloadHostsBlacklist();
   bool isHiddenFromTop(Host *host);
@@ -676,7 +688,7 @@ class NetworkInterface : public Checkpointable {
   void topMacsAdd(Mac *mac, u_int16_t protocol, u_int32_t bytes);
   inline bool isDynamicInterface()                { return(is_dynamic_interface);            };
   inline void setDynamicInterface()               { is_dynamic_interface = true;             };
-  bool isLocalBroadcastDomainHost(Host *h);
+  bool isLocalBroadcastDomainHost(Host * const h, bool isInlineCall);
   inline void luaTopMacsProtos(lua_State *vm) { frequentMacs->luaTopMacsProtocols(vm); }
   inline MDNS* getMDNS() { return(mdns); }
   inline NetworkDiscovery* getNetworkDiscovery() { return(discovery); }

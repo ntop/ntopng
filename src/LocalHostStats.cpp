@@ -131,7 +131,7 @@ void LocalHostStats::lua(lua_State* vm, bool mask_host, bool host_details, bool 
   }
 
   if(verbose) {
-    if(dns)            dns->lua(vm);
+    if(dns)            luaDNS(vm,true);
     if(http)           http->lua(vm);
   }
 }
@@ -192,6 +192,10 @@ void LocalHostStats::deserialize(json_object *o) {
   if(json_object_object_get_ex(o, "anomalous_flows.as_server", &obj))  anomalous_flows_as_server = json_object_get_int(obj);
   if(json_object_object_get_ex(o, "unreachable_flows.as_client", &obj))  unreachable_flows_as_client = json_object_get_int(obj);
   if(json_object_object_get_ex(o, "unreachable_flows.as_server", &obj))  unreachable_flows_as_server = json_object_get_int(obj);
+  if(json_object_object_get_ex(o, "net_unreachable_flows.as_client", &obj))  net_unreachable_flows_as_client = json_object_get_int(obj);
+  if(json_object_object_get_ex(o, "net_unreachable_flows.as_server", &obj))  net_unreachable_flows_as_server = json_object_get_int(obj);
+  if(json_object_object_get_ex(o, "host_unreachable_flows.as_client", &obj))  host_unreachable_flows_as_client = json_object_get_int(obj);
+  if(json_object_object_get_ex(o, "host_unreachable_flows.as_server", &obj))  host_unreachable_flows_as_server = json_object_get_int(obj);
   if(json_object_object_get_ex(o, "total_alerts", &obj))  total_alerts = json_object_get_int(obj);
   if(json_object_object_get_ex(o, "flows.dropped", &obj)) total_num_dropped_flows = json_object_get_int(obj);
 }

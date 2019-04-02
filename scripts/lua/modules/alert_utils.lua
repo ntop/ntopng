@@ -602,7 +602,7 @@ local function formatAlertEntity(ifid, entity_type, entity_value, entity_info)
 	  "'>"..value.."</a>"
       end
    elseif entity_type == "network" then
-      value = hostkey2hostinfo(entity_value)["host"]
+      value = getLocalNetworkAlias(hostkey2hostinfo(entity_value)["host"])
 
       if entity_info ~= nil then
 	 value = "<a href='"..ntop.getHttpPrefix().."/lua/network_details.lua?network="..
@@ -2670,6 +2670,10 @@ local function getMacUrl(mac)
    return ntop.getHttpPrefix() .. "/lua/mac_details.lua?host=" .. mac
 end
 
+local function getHostUrl(host, vlan_id)
+   return ntop.getHttpPrefix() .. "/lua/host_details.lua?" .. hostinfo2url({host = host, vlan = vlan_id})
+end
+
 local function getSavedDeviceNameKey(mac)
    return "ntopng.cache.devnames." .. mac
 end
@@ -2708,6 +2712,39 @@ function check_mac_ip_association_alerts()
    end   
 end
 
+-- Global function
+function check_broadcast_domain_too_large_alerts()
+   while(true) do
+      local message = ntop.lpopCache("ntopng.alert_bcast_domain_too_large")
+      local elems
+
+      if((message == nil) or (message == "")) then
+	 break
+      end
+
+      elems = json.decode(message)
+
+      if elems ~= nil then
+	 local entity = alertEntity("interface")
+	 local entity_value = "iface_"..elems.ifid
+
+	 --io.write(elems.ip.." ==> "..message.."[".. elems.ifname .."]\n")
+	 interface.select(elems.ifname)
+	 interface.storeAlert(entity, entity_value,
+			      alertType("broadcast_domain_too_large"),
+			      alertSeverity("warning"),
+			      i18n("alert_messages.broadcast_domain_too_large",
+				   {src_mac = elems.src_mac,
+				    src_mac_url = getMacUrl(elems.src_mac),
+				    dst_mac = elems.dst_mac,
+				    dst_mac_url = getMacUrl(elems.dst_mac),
+				    spa = elems.spa,
+				    spa_url = getHostUrl(elems.spa, elems.vlan_id),
+				    tpa = elems.tpa,
+				    tpa_url = getHostUrl(elems.tpa, elems.vlan_id)}))
+      end
+   end
+end
 
 -- Global function
 function check_nfq_flushed_queue_alerts()

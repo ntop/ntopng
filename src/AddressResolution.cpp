@@ -182,9 +182,3 @@ void AddressResolution::startResolveAddressLoop() {
       pthread_create(&resolveThreadLoop[i], NULL, resolveLoop, (void*)this);
   }
 }
-
-/* **************************************************** */
-
-void AddressResolution::getLocalNetworks(lua_State* vm) {
-  localNetworks.getAddresses(vm);
-}

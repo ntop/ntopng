@@ -21,6 +21,14 @@ schema:addMetric("bytes_rcvd")
 
 -- ##############################################
 
+schema = ts_utils.newSchema("mac:arp_requests", {step=300})
+schema:addTag("ifid")
+schema:addTag("mac")
+schema:addMetric("request_packets_sent")
+schema:addMetric("request_packets_rcvd")
+
+-- ##############################################
+
 -- NOTE: always disabled?
 schema = ts_utils.newSchema("mac:ndpi_categories", {step=300})
 schema:addTag("ifid")
@@ -189,6 +197,48 @@ schema:addMetric("flows_as_client")
 schema:addMetric("flows_as_server")
 
 -- ##############################################
+
+schema = ts_utils.newSchema("host:net_unreachable_flows", {step = 300})
+schema:addTag("ifid")
+schema:addTag("host")
+schema:addMetric("flows_as_server")
+schema:addMetric("flows_as_client")
+
+--##############################################
+
+schema = ts_utils.newSchema("host:host_unreachable_flows", {step = 300})
+schema:addTag("ifid")
+schema:addTag("host")
+schema:addMetric("flows_as_server")
+schema:addMetric("flows_as_client")
+
+--##############################################
+
+schema = ts_utils.newSchema("host:dns_sent", {step = 300})
+schema:addTag("ifid")
+schema:addTag("host")
+schema:addMetric("queries_packets")
+schema:addMetric("replies_ok_packets")
+schema:addMetric("replies_error_packets")
+
+--##############################################
+
+schema = ts_utils.newSchema("host:dns_rcvd", {step = 300})
+schema:addTag("ifid")
+schema:addTag("host")
+schema:addMetric("queries_packets")
+schema:addMetric("replies_ok_packets")
+schema:addMetric("replies_error_packets")
+
+--##############################################
+
+schema = ts_utils.newSchema("host:udp_pkts", {step = 300})
+schema:addTag("ifid")
+schema:addTag("host")
+schema:addMetric("packets_sent")
+schema:addMetric("packets_rcvd")
+
+--##############################################
 
 schema = ts_utils.newSchema("host:total_alerts", {step = 300, rrd_fname = "total_alerts"})
 schema:addTag("ifid")

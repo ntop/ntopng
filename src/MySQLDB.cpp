@@ -407,7 +407,7 @@ bool MySQLDB::createDBSchema(bool set_db_created) {
              "WHERE TABLE_SCHEMA='%s' "
              "AND TABLE_NAME='%sv%hu' "
              "AND COLUMN_NAME='idx' "
-             "AND COLUMN_TYPE NOT LIKE '%%BIGINT' ",
+             "AND COLUMN_TYPE NOT LIKE 'BIGINT%%' ",
              ntop->getPrefs()->get_mysql_dbname(),
              ntop->getPrefs()->get_mysql_tablename(),
              ipvers[i]);

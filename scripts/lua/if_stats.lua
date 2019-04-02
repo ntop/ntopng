@@ -2,7 +2,7 @@
 -- (C) 2013-18 - ntop.org
 --
 
-dirs = ntop.getDirs()
+local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 if((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.scriptdir .. "/lua/modules/?.lua;" .. package.path end
 active_page = "if_stats"
@@ -178,6 +178,12 @@ if((page == "overview") or (page == nil)) then
    print("<li class=\"active\"><a href=\"#\"><i class=\"fa fa-home fa-lg\"></i></a></li>\n")
 else
    print("<li><a href=\""..url.."&page=overview\"><i class=\"fa fa-home fa-lg\"></i></a></li>")
+end
+
+if(page == "networks") then
+   print("<li class=\"active\"><a href=\"#\">" .. i18n("networks") .. "</a></li>\n")
+else
+   print("<li><a href=\""..url.."&page=networks\">" .. i18n("networks") .. "</a></li>")
 end
 
 -- Disable Packets and Protocols tab in case of the number of packets is equal to 0
@@ -457,27 +463,20 @@ if((page == "overview") or (page == nil)) then
    end
 
    local is_physical_iface = (interface.isPacketInterface()) and (interface.isPcapDumpInterface() == false)
-   local is_bridge_iface = (ifstats["bridge.device_a"] ~= nil) and (ifstats["bridge.device_b"] ~= nil)
 
-   if not is_bridge_iface then
-      local label = getHumanReadableInterfaceName(ifstats.name)
-      local s
-      if ((not isEmptyString(label)) and (label ~= ifstats.name)) then
-         s = label.." (" .. ifstats.name .. ")"
-      else
-         s = ifstats.name
-      end
-
-      if((isAdministrator()) and (interface.isPcapDumpInterface() == false)) then
-	 s = s .. " <a href=\""..url.."&page=config\"><i class=\"fa fa-cog fa-sm\" title=\"Configure Interface Name\"></i></a>"
-      end
-      
-      print('<tr><th width="250">'..i18n("name")..'</th><td colspan="2">' .. s ..' </td>\n')
+   local label = getHumanReadableInterfaceName(ifstats.name)
+   local s
+   if ((not isEmptyString(label)) and (label ~= ifstats.name)) then
+      s = label.." (" .. ifstats.name .. ")"
    else
-      print("<tr><th>"..i18n("bridge").."</th><td colspan=2>"..ifstats["bridge.device_a"].." <i class=\"fa fa-arrows-h\"></i> "..ifstats["bridge.device_b"])
-
-      print("</td>")
+      s = ifstats.name
    end
+
+   if((isAdministrator()) and (interface.isPcapDumpInterface() == false)) then
+      s = s .. " <a href=\""..url.."&page=config\"><i class=\"fa fa-cog fa-sm\" title=\"Configure Interface Name\"></i></a>"
+   end
+   
+   print('<tr><th width="250">'..i18n("name")..'</th><td colspan="2">' .. s ..' </td>\n')
 
    print("<th>"..i18n("if_stats_overview.family").."</th><td colspan=2>")
    print(ifstats.type)
@@ -491,45 +490,15 @@ if((page == "overview") or (page == nil)) then
    end
    print("</tr>")
 
-   if not is_bridge_iface then
-      if(ifstats.ip_addresses ~= "") then
-         tokens = split(ifstats.ip_addresses, ",")
-      end
-
-      if(tokens ~= nil) then
-         print("<tr><th width=250>"..i18n("ip_address").."</th><td colspan=5>")
-         local addresses = {}
-
-         for _,s in pairs(tokens) do
-            t = string.split(s, "/")
-            host = interface.getHostInfo(t[1])
-
-            if(host ~= nil) then
-               addresses[#addresses+1] = "<a href=\""..ntop.getHttpPrefix().."/lua/host_details.lua?host="..t[1].."\">".. t[1].."</a>"
-            else
-               addresses[#addresses+1] = t[1]
-            end
-         end
-
-         print(table.concat(addresses, ", "))
-
-         print("</td></tr>")
-      end
-   end
-
    if is_physical_iface then
       print("<tr>")
       print("<th>"..i18n("mtu").."</th><td colspan=2  nowrap>"..ifstats.mtu.." "..i18n("bytes").."</td>\n")
-      if (not is_bridge_iface) then
-         local speed_key = 'ntopng.prefs.'..ifname..'.speed'
-         local speed = ntop.getCache(speed_key)
-         if (tonumber(speed) == nil) then
-            speed = ifstats.speed
-         end
-         print("<th width=250>"..i18n("speed").."</th><td colspan=2>" .. maxRateToString(speed*1000) .. "</td>")
-      else
-         print("<td colspan=3></td></tr>")
+      local speed_key = 'ntopng.prefs.'..ifname..'.speed'
+      local speed = ntop.getCache(speed_key)
+      if (tonumber(speed) == nil) then
+	 speed = ifstats.speed
       end
+      print("<th width=250>"..i18n("speed").."</th><td colspan=2>" .. maxRateToString(speed*1000) .. "</td>")
       print("</tr>")
    end
 
@@ -756,6 +725,71 @@ if(ifstats.zmqRecvStats ~= nil) then
    ]]
 
    print("</table>\n")
+
+elseif((page == "networks")) then
+   print("<table class=\"table table-striped table-bordered\">")
+
+   if(ifstats.ip_addresses ~= "") then
+      local tokens = split(ifstats.ip_addresses, ",")
+
+      if(tokens ~= nil) then
+	 print("<tr><th width=250>"..i18n("ip_address").."</th><td colspan=5><ul><li>")
+	 local addresses = {}
+
+	 for _,s in pairs(tokens) do
+	    t = string.split(s, "/")
+	    host = interface.getHostInfo(t[1])
+
+	    if(host ~= nil) then
+	       addresses[#addresses+1] = "<a href=\""..ntop.getHttpPrefix().."/lua/host_details.lua?host="..t[1].."\">".. t[1].."</a>".."/"..t[2]
+	    else
+	       addresses[#addresses+1] = s
+	    end
+	 end
+
+	 print(table.concat(addresses, "\n<li>"))
+
+	 print("</ul></td></tr>")
+      end
+   end
+
+   local has_ghost_networks = false
+   local ghost_icon = '<font color=red><i class="fa fa-snapchat-ghost" aria-hidden="true"></i></font>'
+   if ifstats.bcast_domains and table.len(ifstats.bcast_domains) > 0 then
+      print("<tr><th width=250>"..i18n("broadcast_domain").."</th><td colspan=5>")
+
+      local bcast_domains = {}
+      for bcast_domain, in_interface_range in pairsByKeys(ifstats.bcast_domains) do
+	 bcast_domain = string.format("<a href='%s/lua/hosts_stats.lua?network_cidr=%s'>%s</a>", ntop.getHttpPrefix(), bcast_domain, bcast_domain)
+
+	 if in_interface_range == 0 and interface.isPacketInterface() and not interface.isPcapDumpInterface() and ntop.getPref(string.format("ntopng.prefs.ifid_%d.is_traffic_mirrored", ifId)) ~= "1" then
+	    has_ghost_networks = true
+	    bcast_domain = bcast_domain..' '..ghost_icon
+	 end
+
+	 bcast_domains[#bcast_domains + 1] = bcast_domain
+      end
+
+      if #bcast_domains > 0 then
+	 print("<ul>")
+	 for _, bcast_domain in ipairs(bcast_domains) do
+	    print("<li>"..bcast_domain.."</li>")
+	 end
+	 print("</ul>")
+      end
+
+      print("</td></tr>")
+   end
+   print("</table>")
+
+   print("<p><b>"..i18n("if_stats_overview.note").."</b>:<ul>")
+   print("<li>"..i18n("if_stats_networks.note_iface_addresses").."</li>")
+   print("<li>"..i18n("if_stats_networks.note_iface_bcast_domains").."</li>")
+
+   if has_ghost_networks then
+      print("<li>"..i18n("if_stats_networks.note_ghost_bcast_domains", {ghost_icon = ghost_icon}).."</li>")
+   end
+   print("</ul>")
 
 elseif((page == "packets")) then
    local nedge_hidden = ternary(have_nedge, 'class="hidden"', '')

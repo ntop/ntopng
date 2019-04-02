@@ -1571,6 +1571,48 @@ function flowinfo2process(process, host_info_to_url)
    return fmt
 end
 
+-- ##############################################
+
+function getLocalNetworkAliasKey()
+   return "ntopng.network_aliases"
+end
+
+-- ##############################################
+
+function getLocalNetworkAlias(network)
+   local alias = ntop.getHashCache(getLocalNetworkAliasKey(), network)
+
+   if not isEmptyString(alias) then
+      return alias
+   end
+
+   return network
+end
+
+-- ##############################################
+
+function getFullLocalNetworkName(network)
+   local alias = getLocalNetworkAlias(network)
+
+   if alias ~= network then
+      return string.format("%s [%s]", alias, network)
+   end
+
+   return network
+end
+
+-- ##############################################
+
+function setLocalNetworkAlias(network, alias)
+   if((network ~= alias) or isEmptyString(alias)) then
+      ntop.setHashCache(getLocalNetworkAliasKey(), network, alias)
+   else
+      ntop.delHashCache(getLocalNetworkAliasKey(), network)
+   end
+end
+
+-- ##############################################
+
 -- URL Util --
 
 --
@@ -2481,6 +2523,11 @@ end
 
 function formatSuspiciousDeviceProtocolAlert(flowstatus_info)
    local msg, devtype
+
+   if not flowstatus_info then
+      return i18n("alerts_dashboard.suspicious_device_protocol")
+   end
+
    local discover = require("discover_utils")
    local forbidden_proto = flowstatus_info["devproto_forbidden_id"] or 0
 
@@ -2503,6 +2550,10 @@ end
 function formatElephantFlowAlert(flowstatus_info, local2remote)
    local threshold = ""
    local res = ""
+
+   if not flowstatus_info then
+      return i18n("flow_details.elephant_flow")
+   end
 
    if local2remote then
       res = i18n("flow_details.elephant_flow_l2r")
@@ -2532,13 +2583,15 @@ end
 function formatLongLivedFlowAlert(flowstatus_info)
    local threshold = ""
 
-   local res = i18n("flow_details.longlived_flow")
+   if not flowstatus_info then
+      return i18n("flow_details.longlived_flow")
+   end
 
    if flowstatus_info["longlived.threshold"] then
       threshold = flowstatus_info["longlived.threshold"]
    end
 
-   res = string.format("%s<sup><i class='fa fa-info-circle' aria-hidden='true' title='"..i18n("flow_details.longlived_flow_descr").."'></i></sup>", res)
+   local res = string.format("%s<sup><i class='fa fa-info-circle' aria-hidden='true' title='"..i18n("flow_details.longlived_flow_descr").."'></i></sup>", res)
 
    if threshold ~= "" then
       res = string.format("%s [%s]", res, i18n("flow_details.longlived_exceeded", {amount = secondsToTime(threshold)}))
@@ -2550,11 +2603,11 @@ end
 -- ###############################################
 
 -- Update Utils::flowstatus2str / FlowStatus enum
-function getFlowStatus(status, flowstatus_info, alert)
-   local warn_sign = "<i class=\"fa fa-warning\" aria-hidden=true style=\"color: orange;\"></i> "
+function getFlowStatus(status, flowstatus_info, alert, no_icon)
+   local warn_sign = ternary(no_icon, "", "<i class=\"fa fa-warning\" aria-hidden=true style=\"color: orange;\"></i> ")
    local res = warn_sign..i18n("flow_details.unknown_status",{status=status})
 
-   -- NOTE: flowstatus_info can be nil on older alerts
+   -- NOTE: flowstatus_info can be nil
    if(status == 0) then res = i18n("flow_details.normal")
    elseif(status == 1)  then res = warn_sign..i18n("flow_details.slow_tcp_connection")
    elseif(status == 2)  then res = warn_sign..i18n("flow_details.slow_application_header")

@@ -43,7 +43,6 @@ class AddressResolution {
   bool setLocalNetworks(char *rule);
   int16_t findAddress(int family, void *addr, u_int8_t *network_mask_bits = NULL);
   void setLocalNetwork(char *net)             { localNetworks.addAddresses(net);           };
-  void getLocalNetworks(lua_State* vm);
   inline void dump()                          { localNetworks.dump(); }
 };
 

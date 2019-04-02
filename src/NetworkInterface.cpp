@@ -234,8 +234,8 @@ NetworkInterface::NetworkInterface(const char *name,
 
   statsManager = NULL, alertsManager = NULL;
 
-  if((host_pools = new HostPools(this)) == NULL)
-    throw "Not enough memory";
+  host_pools = new HostPools(this);
+  bcast_domains = new BroadcastDomains(this);
 
 #ifdef __linux__
   /*
@@ -297,15 +297,15 @@ void NetworkInterface::init() {
     pollLoopCreated = false, bridge_interface = false,
     mdns = NULL, discovery = NULL, ifDescription = NULL,
     flowHashingMode = flowhashing_none;
-  macs_hash = NULL, ases_hash = NULL, countries_hash = NULL, vlans_hash = NULL, 
+  macs_hash = NULL, ases_hash = NULL, countries_hash = NULL, vlans_hash = NULL,
     arp_hash_matrix = NULL;
 
   numSubInterfaces = 0;
   memset(subInterfaces, 0, sizeof(subInterfaces));
   reload_custom_categories = reload_hosts_blacklist = false;
-    
-  broadcast_domains = new AddressTree(false);
-    
+  reload_hosts_bcast_domain = false;
+  hosts_bcast_domain_last_update = 0;
+
   ip_addresses = "", networkStats = NULL,
     pcap_datalink_type = 0, cpu_affinity = -1;
   hide_from_top = hide_from_top_shadow = NULL;
@@ -324,6 +324,7 @@ void NetworkInterface::init() {
 #endif
   statsManager = NULL, alertsManager = NULL, ifSpeed = 0;
   host_pools = NULL;
+  bcast_domains = NULL;
   checkIdle();
   ifMTU = CONST_DEFAULT_MAX_PACKET_SIZE, mtuWarningShown = false;
 #ifdef NTOPNG_PRO
@@ -566,8 +567,7 @@ void NetworkInterface::deleteDataStructures() {
   if(vlans_hash)            { delete(vlans_hash); vlans_hash = NULL; }
   if(macs_hash)             { delete(macs_hash);  macs_hash = NULL;  }
   if(arp_hash_matrix)       { delete(arp_hash_matrix); arp_hash_matrix = NULL; }
-  if(broadcast_domains)     { delete(broadcast_domains); broadcast_domains = NULL; }
-  
+
 #ifdef NTOPNG_PRO
   if(aggregated_flows_hash) {
     aggregated_flows_hash->cleanup();
@@ -616,6 +616,7 @@ NetworkInterface::~NetworkInterface() {
     delete db;
   }
   if(host_pools)     delete host_pools;     /* note: this requires ndpi_struct */
+  if(bcast_domains)  delete bcast_domains;
   if(ifDescription)  free(ifDescription);
   if(discovery)      delete discovery;
   if(statsManager)   delete statsManager;
@@ -667,7 +668,7 @@ NetworkInterface::~NetworkInterface() {
 
 int NetworkInterface::dumpFlow(time_t when, Flow *f) {
   int rc = -1;
-  
+
 #ifndef HAVE_NEDGE
   char *json;
   bool es_flow = ntop->getPrefs()->do_dump_flows_on_es() ||
@@ -1189,6 +1190,17 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
     }
   }
 
+  if(zflow->core.tcp.clientNwLatency.tv_sec || zflow->core.tcp.clientNwLatency.tv_usec)
+    flow->setFlowNwLatency(&zflow->core.tcp.clientNwLatency, src2dst_direction);
+
+  if(zflow->core.tcp.serverNwLatency.tv_sec || zflow->core.tcp.serverNwLatency.tv_usec)
+    flow->setFlowNwLatency(&zflow->core.tcp.serverNwLatency, !src2dst_direction);
+
+  flow->setRtt();
+
+  if(src2dst_direction)
+    flow->setFlowApplLatency(zflow->core.tcp.applLatencyMsec);
+
   /* Update flow device stats */
   if(!flow->setFlowDevice(zflow->core.deviceIP,
 			  src2dst_direction ? zflow->core.inIndex  : zflow->core.outIndex,
@@ -1232,11 +1244,16 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
   }
 
   if(zflow->core.l4_proto == IPPROTO_TCP) {
-    struct timeval when;
+    if(zflow->core.tcp.client_tcp_flags || zflow->core.tcp.server_tcp_flags) {
+      /* There's a breadown between client and server TCP flags */
+      if(zflow->core.tcp.client_tcp_flags)
+	flow->setTcpFlags(zflow->core.tcp.client_tcp_flags, src2dst_direction);
+      if(zflow->core.tcp.server_tcp_flags)
+	flow->setTcpFlags(zflow->core.tcp.server_tcp_flags, !src2dst_direction);
+    } else if(zflow->core.tcp.tcp_flags)
+      /* TCP flags are cumulated client + server */
+      flow->setTcpFlags(zflow->core.tcp.tcp_flags, src2dst_direction);
 
-    when.tv_sec = (long)now, when.tv_usec = 0;
-    flow->updateTcpFlags((const struct bpf_timeval*)&when,
-			 zflow->core.tcp_flags, src2dst_direction);
     flow->incTcpBadStats(true,
 			 zflow->core.tcp.ooo_in_pkts, zflow->core.tcp.retr_in_pkts,
 			 zflow->core.tcp.lost_in_pkts);
@@ -1344,6 +1361,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
   u_int8_t *ip;
   bool is_fragment = false, new_flow;
   bool pass_verdict = true;
+  *hostFlow = NULL;
 
   /* VLAN disaggregation */
   if((!isDynamicInterface()) && (flowHashingMode == flowhashing_vlan) && (vlan_id > 0)) {
@@ -1410,7 +1428,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 
     if(((iph->ihl * 4) > ipsize) || (ipsize < ntohs(iph->tot_len))
        || (iph->frag_off & htons(0x1FFF /* IP_OFFSET */)) != 0)
-      is_fragment = true;    
+      is_fragment = true;
 
     l4_packet_len = ntohs(iph->tot_len) - (iph->ihl * 4);
     l4_proto = iph->protocol;
@@ -1579,24 +1597,24 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	  /*
 	    Neighbor Solicitation and Neighbor Advertisement
 	    have the Target Address at offset 8.
-	    
+
 	    https://tools.ietf.org/html/rfc2461#section-4.1
 	  */
 	  Host * target_address_h;
 	  IpAddress target_address;
-	  
+
 	  target_address.set((ndpi_in6_addr*)&l4[8]);
 
 	  char buf[64];
 	  ntop->getTrace()->traceEvent(TRACE_WARNING, "->> %s", target_address.print(buf, sizeof(buf)));
-	  
+
 	  if(target_address.isNonEmptyUnicastAddress()
 	     && (target_address_h = getHost(&target_address, vlan_id))
 	     && (!target_address_h->isBroadcastDomainHost()))
 	    target_address_h->setBroadcastDomainHost();
 	}
 #endif
-	
+
         flow->setICMP(src2dst_direction, icmp_type, icmp_code, l4);
 	if(l4_proto == IPPROTO_ICMP)
 	  icmp_v4.incStats(icmp_type, icmp_code, is_sent_packet, NULL);
@@ -1662,70 +1680,70 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 
     switch(ndpi_get_lower_proto(flow->get_detected_protocol())) {
     case NDPI_PROTOCOL_DHCP:
-    {
-      Mac *mac = (*srcHost)->getMac(), *payload_cli_mac;
+      {
+	Mac *mac = (*srcHost)->getMac(), *payload_cli_mac;
 
-      if(mac && (payload_len > 240)) {
-	struct dhcp_packet *dhcpp = (struct dhcp_packet*)payload;
+	if(mac && (payload_len > 240)) {
+	  struct dhcp_packet *dhcpp = (struct dhcp_packet*)payload;
 
-	if(dhcpp->msgType == 0x01) /* Request */
-	  ;//mac->setDhcpHost();
-	else if(dhcpp->msgType == 0x02) /* Reply */
-	  checkMacIPAssociation(false, dhcpp->chaddr, dhcpp->yiaddr);
+	  if(dhcpp->msgType == 0x01) /* Request */
+	    ;//mac->setDhcpHost();
+	  else if(dhcpp->msgType == 0x02) /* Reply */
+	    checkMacIPAssociation(false, dhcpp->chaddr, dhcpp->yiaddr);
 
-	for(int i = 240; i<payload_len; ) {
-	  u_int8_t id  = payload[i], len = payload[i+1];
+	  for(int i = 240; i<payload_len; ) {
+	    u_int8_t id  = payload[i], len = payload[i+1];
 
-	  if(len == 0)
-	    break;
-
-#ifdef DHCP_DEBUG
-	  ntop->getTrace()->traceEvent(TRACE_WARNING, "[DHCP] [id=%u][len=%u]", id, len);
-#endif
-
-	  if(id == 12 /* Host Name */) {
-	    char name[64], buf[24], *client_mac, key[64];
-	    int j;
-
-	    j = ndpi_min(len, sizeof(name)-1);
-	    strncpy((char*)name, (char*)&payload[i+2], j);
-	    name[j] = '\0';
-
-	    client_mac = Utils::formatMac(&payload[28], buf, sizeof(buf));
-	    ntop->getTrace()->traceEvent(TRACE_INFO, "[DHCP] %s = '%s'", client_mac, name);
-
-	    snprintf(key, sizeof(key), DHCP_CACHE, get_id());
-	    ntop->getRedis()->hashSet(key, client_mac, name);
-
-	    if((payload_cli_mac = getMac(&payload[28], false)))
-	       payload_cli_mac->inlineSetDHCPName(name);
+	    if(len == 0)
+	      break;
 
 #ifdef DHCP_DEBUG
-	  ntop->getTrace()->traceEvent(TRACE_WARNING, "[DHCP] %s = '%s'", client_mac, name);
+	    ntop->getTrace()->traceEvent(TRACE_WARNING, "[DHCP] [id=%u][len=%u]", id, len);
 #endif
-	  } else if(id == 55 /* Parameters List (Fingerprint) */) {
-	    char fingerprint[64], buf[32];
-	    u_int idx, offset = 0;
 
-	    len = ndpi_min(len, sizeof(buf)/2);
+	    if(id == 12 /* Host Name */) {
+	      char name[64], buf[24], *client_mac, key[64];
+	      int j;
 
-	    for(idx=0; idx<len; idx++) {
-	      snprintf((char*)&fingerprint[offset], sizeof(fingerprint)-offset-1, "%02X",  payload[i+2+idx] & 0xFF);
-	      offset += 2;
-	    }
+	      j = ndpi_min(len, sizeof(name)-1);
+	      strncpy((char*)name, (char*)&payload[i+2], j);
+	      name[j] = '\0';
+
+	      client_mac = Utils::formatMac(&payload[28], buf, sizeof(buf));
+	      ntop->getTrace()->traceEvent(TRACE_INFO, "[DHCP] %s = '%s'", client_mac, name);
+
+	      snprintf(key, sizeof(key), DHCP_CACHE, get_id());
+	      ntop->getRedis()->hashSet(key, client_mac, name);
+
+	      if((payload_cli_mac = getMac(&payload[28], false)))
+		payload_cli_mac->inlineSetDHCPName(name);
 
 #ifdef DHCP_DEBUG
-	    ntop->getTrace()->traceEvent(TRACE_WARNING, "%s = %s", mac->print(buf, sizeof(buf)),fingerprint);
+	      ntop->getTrace()->traceEvent(TRACE_WARNING, "[DHCP] %s = '%s'", client_mac, name);
 #endif
-	    mac->inlineSetFingerprint((char*)flow->get_ndpi_flow()->protos.dhcp.fingerprint);
-	  } else if(id == 0xFF)
-	    break; /* End of options */
+	    } else if(id == 55 /* Parameters List (Fingerprint) */) {
+	      char fingerprint[64], buf[32];
+	      u_int idx, offset = 0;
 
-	  i += len + 2;
+	      len = ndpi_min(len, sizeof(buf)/2);
+
+	      for(idx=0; idx<len; idx++) {
+		snprintf((char*)&fingerprint[offset], sizeof(fingerprint)-offset-1, "%02X",  payload[i+2+idx] & 0xFF);
+		offset += 2;
+	      }
+
+#ifdef DHCP_DEBUG
+	      ntop->getTrace()->traceEvent(TRACE_WARNING, "%s = %s", mac->print(buf, sizeof(buf)),fingerprint);
+#endif
+	      mac->inlineSetFingerprint((char*)flow->get_ndpi_flow()->protos.dhcp.fingerprint);
+	    } else if(id == 0xFF)
+	      break; /* End of options */
+
+	    i += len + 2;
+	  }
 	}
       }
-    }
-    break;
+      break;
 
     case NDPI_PROTOCOL_DHCPV6:
       {
@@ -1747,7 +1765,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	  if(((payload[2] & 0x80) /* NetBIOS Response */ || ((payload[2] & 0x78) == 0x28 /* NetBIOS Registration */))
 	     && (ndpi_netbios_name_interpret((char*)&payload[12], name, sizeof(name)) > 0)
 	     && (!strstr(name, "__MSBROWSE__"))
-	    ) {
+	     ) {
 
 	    if(name[0] == '*') {
 	      int limit = min(payload_len-57, (int)sizeof(name)-1);
@@ -1811,7 +1829,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	struct ndpi_dns_packet_header *header = (struct ndpi_dns_packet_header*)(payload + dns_offset);
 	u_int16_t dns_flags = ntohs(header->flags);
 	bool is_query   = (dns_flags & 0x8000) ? 0 : 1;
-	
+
 	if(flow->get_cli_host() && flow->get_srv_host()) {
 	  Host *client = src2dst_direction ? flow->get_cli_host() : flow->get_srv_host();
 	  Host *server = src2dst_direction ? flow->get_srv_host() : flow->get_cli_host();
@@ -1860,7 +1878,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       char outbuf[1024];
 
       _dissectMDNS(payload, payload_len, outbuf, sizeof(outbuf));
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", outbuf);      
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", outbuf);
 #endif
       flow->dissectMDNS(payload, payload_len);
 
@@ -1870,12 +1888,13 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 
     case NDPI_PROTOCOL_DROPBOX:
       if((src_port == dst_port) && (dst_port == htons(17500)))
-	flow->get_cli_host()->dissectDropbox((const char *)payload, payload_len);      
+	flow->get_cli_host()->dissectDropbox((const char *)payload, payload_len);
       break;
-      
-    default:
-      if(flow->isSSLProto())
-        flow->dissectSSL(payload, payload_len, when, src2dst_direction);
+
+    case NDPI_PROTOCOL_SSL:
+      if(payload_len > 0)
+	flow->dissectSSL((char *)payload, payload_len);
+      break;
     }
 
     flow->processDetectedProtocol();
@@ -1907,10 +1926,6 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
   if(new_flow)
     flow->updateCommunityIdFlowHash();
 #endif
-
-  /* Live packet dump to mongoose */
-  if(num_live_captures > 0)
-    deliverLiveCapture(h, packet, flow);
 
   PROFILING_SECTION_ENTER("NetworkInterface::processPacket: incStats", 4);
   incStats(ingressPacket, when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
@@ -2018,18 +2033,14 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
   int pcap_datalink_type = get_datalink();
   bool pass_verdict = true;
   u_int32_t rawsize = h->len * scalingFactor;
+  *flow = NULL;
 
   /* Note summy ethernet is always 0 unless sender_mac is set (Netfilter only) */
   memset(&dummy_ethernet, 0, sizeof(dummy_ethernet));
 
   pollQueuedeBPFEvents();
   reloadCustomCategories();
-
-#if 0
-  static u_int n = 0;
-
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u %s", ++n, ingressPacket ? "RX" : "TX");
-#endif
+  bcast_domains->inlineReloadBroadcastDomains();
 
   /* Netfilter interfaces don't report MAC addresses on packets */
   if(getIfType() == interface_type_NETFILTER)
@@ -2067,7 +2078,7 @@ datalink_check:
       break;
     default:
       incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
-      return(pass_verdict); /* Any other non IP protocol */
+      goto dissect_packet_end; /* Any other non IP protocol */
     }
 
     ethernet = (struct ndpi_ethhdr *)&dummy_ethernet;
@@ -2094,7 +2105,7 @@ datalink_check:
       break;
     default:
       incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
-      return(pass_verdict); /* Unknown IP protocol version */
+      goto dissect_packet_end; /* Unknown IP protocol version */
     }
 
     if(sender_mac) memcpy(&dummy_ethernet.h_source, sender_mac, 6);
@@ -2108,7 +2119,7 @@ datalink_check:
     ip_offset = 0;
   } else {
     incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
-    return(pass_verdict);
+    goto dissect_packet_end;
   }
 
   while(true) {
@@ -2152,7 +2163,7 @@ decode_packet_eth:
     default:
       incStats(ingressPacket, h->ts.tv_sec, ETHERTYPE_IP,
 	       NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
-      return(pass_verdict);
+      goto dissect_packet_end;
     }
     goto decode_packet_eth;
     break;
@@ -2168,7 +2179,7 @@ decode_packet_eth:
 	/* This is not IPv4 */
 	incStats(ingressPacket, h->ts.tv_sec, ETHERTYPE_IP,
 		 NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
-	return(pass_verdict);
+	goto dissect_packet_end;
       } else
 	frag_off = ntohs(iph->frag_off);
 
@@ -2241,7 +2252,7 @@ decode_packet_eth:
 	      /* FIX - Add IPv6 support */
 	      incStats(ingressPacket, h->ts.tv_sec, ETHERTYPE_IPV6,
 		       NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
-	      return(pass_verdict);
+	      goto dissect_packet_end;
 	    }
 	  }
 	} else if((sport == TZSP_PORT) || (dport == TZSP_PORT)) {
@@ -2277,7 +2288,7 @@ decode_packet_eth:
 	      if(offset >= h->caplen) {
 		incStats(ingressPacket, h->ts.tv_sec, ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN,
 			 rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
-		return(pass_verdict);
+		goto dissect_packet_end;
 	      } else {
 		eth_offset = offset;
 		goto datalink_check;
@@ -2306,7 +2317,7 @@ decode_packet_eth:
 	  if(ip_offset >= h->len) {
 	    incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
 		     rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
-	    return(pass_verdict);
+	    goto dissect_packet_end;
 	  }
 	  eth_type = ntohs(*(u_int16_t*)&packet[ip_offset-2]);
 
@@ -2321,7 +2332,7 @@ decode_packet_eth:
 	  default:
 	    incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
 		     rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
-	    return(pass_verdict);
+	    goto dissect_packet_end;
 	  }
 	}
       }
@@ -2364,7 +2375,7 @@ decode_packet_eth:
 	/* This is not IPv6 */
 	incStats(ingressPacket, h->ts.tv_sec, ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN,
 		 rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
-	return(pass_verdict);
+	goto dissect_packet_end;
       } else {
 	u_int ipv6_shift = sizeof(const struct ndpi_ipv6hdr);
 	u_int8_t l4_proto = ip6->ip6_hdr.ip6_un1_nxt;
@@ -2419,7 +2430,7 @@ decode_packet_eth:
 	  if((ip_offset + ipv6_shift) >= h->len) {
 	    incStats(ingressPacket, h->ts.tv_sec, ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN,
 		     rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
-	    return(pass_verdict);
+	    goto dissect_packet_end;
 	  }
 
 	  struct ndpi_udphdr *udp = (struct ndpi_udphdr *)&packet[ip_offset + ipv6_shift];
@@ -2446,7 +2457,7 @@ decode_packet_eth:
 	    if(ip_offset >= h->len) {
 	      incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
 		       rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
-	      return(pass_verdict);
+	      goto dissect_packet_end;
 	    }
 	    eth_type = ntohs(*(u_int16_t*)&packet[ip_offset-2]);
 
@@ -2461,7 +2472,7 @@ decode_packet_eth:
 	    default:
 	      incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
 		       rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
-	      return(pass_verdict);
+	      goto dissect_packet_end;
 	    }
 	  }
 	}
@@ -2515,105 +2526,58 @@ decode_packet_eth:
       if((eth_type == ETHERTYPE_ARP) && (h->caplen >= (sizeof(arp_header)+sizeof(struct ndpi_ethhdr)))) {
 	struct arp_header *arpp = (struct arp_header*)&packet[ip_offset];
 	u_int16_t arp_opcode = ntohs(arpp->ar_op);
-#if 0
-	u_int32_t arp_spa;
-	IpAddress arp_spa_ipa;
-	Host *arp_spa_h;
-#endif
 	bool src2dst_element = false;
 	ArpStatsMatrixElement* e;
 
-#if 0
-	arp_spa = arpp->arp_spa; /* Sender protocol address */
-	arp_spa_ipa.set(arp_spa);
+	u_int32_t src = ntohl(arpp->arp_spa);
+	u_int32_t dst = ntohl(arpp->arp_tpa);
+	u_int32_t net = src & dst;
+	u_int32_t diff;
+	IpAddress cur_bcast_domain;
 
-	if(arp_spa_ipa.isNonEmptyUnicastAddress()
-	   && (arp_spa_h = getHost(&arp_spa_ipa, vlan_id))
-	   && !arp_spa_h->isBroadcastDomainHost())
-	  arp_spa_h->setBroadcastDomainHost();
+	if(src > dst) {
+	  u_int32_t r = src;
+	  src = dst;
+	  dst = r;
+	}
+
+	diff = dst - src;
+
+	if(diff && (src & 0xFFFF0000) != 0xA9FE0000 && (dst & 0xFFFF0000) != 0xA9FE0000) {
+	  u_int32_t cur_mask;
+	  u_int8_t cur_cidr;
+
+	  for(cur_mask = 0xFFFFFFF0, cur_cidr = 28; cur_mask > 0x00000000; cur_mask <<= 1, cur_cidr--) {
+	    if((diff & cur_mask) == 0) { /* diff < cur_mask */
+	      net &= cur_mask;
+
+	      if((src & cur_mask) != (dst & cur_mask)) {
+		cur_mask <<= 1, cur_cidr -= 1;
+		net = src & cur_mask;
+	      }
+
+	      cur_bcast_domain.set(htonl(net));
+
+	      if(!checkBroadcastDomainTooLarge(cur_mask, vlan_id, srcMac, dstMac, src, dst)
+		 && !bcast_domains->isLocalBroadcastDomain(&cur_bcast_domain, cur_cidr, true /* Inline call */)) {
+		bcast_domains->inlineAddAddress(&cur_bcast_domain, cur_cidr);
+
+#ifdef BROADCAST_DOMAINS_DEBUG
+		char buf1[32], buf2[32], buf3[32];
+		ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s <-> %s [%s - %u]",
+					     Utils::intoaV4(src, buf1, sizeof(buf1)),
+					     Utils::intoaV4(dst, buf2, sizeof(buf2)),
+					     Utils::intoaV4(net, buf3, sizeof(buf3)),
+					     cur_cidr);
 #endif
-	
-	if(broadcast_domains) {
-#ifdef DEBUG
-	  char buf1[32], buf2[32], buf3[32];
-#endif
-	  u_int32_t src = ntohl(arpp->arp_spa);
-	  u_int32_t dst = ntohl(arpp->arp_tpa);
-	  u_int32_t net = src & dst;
-	  u_int32_t diff;
-	  u_int8_t cidr;
-	
-	  if(src > dst) {
-	    u_int32_t r = src;
-	    src = dst;
-	    dst = r;	   
-	  }
-
-	  diff = dst-src;
-
-	  if(diff <= 1024) {
-	    u_int32_t mask;
-	    IpAddress cur_bcast_domain;
-	    
-	    /* Ignore networks > /21 */
-
-	    /* 131.114.2.22 <-> 131.114.3.2  */
-	    
-	    if(diff <= 256) {
-	      mask = 0xFFFFFF00, cidr = 24;
-	      net &= mask, diff = 256;
-
-	      if((src & mask) != (dst & mask)) {
-		mask <<= 1, cidr -= 1;
-		net = src & mask, diff = diff << 1;
 	      }
-	    } else if(diff <= 512) {
-	      mask = 0xFFFFFE00, cidr = 23;
-	      net &= mask, diff = 512;
 
-	      if((src & mask) != (dst & mask)) {
-		mask <<= 1, cidr -= 1;
-		net = src & mask, diff = diff << 1;
-	      }
-	    } else if(diff <= 768) {
-	      mask = 0xFFFFFC00, cidr = 22;
-	      net &= mask, diff = 768;
-
-	      if((src & mask) != (dst & mask)) {
-		mask <<= 1, cidr -= 1;
-		net = src & mask, diff = diff << 1;
-	      }
-	    } else {
-	      net &= 0xFFFFF800, diff = 1024, cidr = 21;
+	      break;
 	    }
-
-#ifdef DEBUG
-	    ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s <-> %s [%s - %u/%u]",
-					 Utils::intoaV4(src, buf1, sizeof(buf1)),
-					 Utils::intoaV4(dst, buf2, sizeof(buf2)),
-					 Utils::intoaV4(net, buf3, sizeof(buf3)),
-					 diff, cidr);
-#endif
-	    
-	    cur_bcast_domain.set(htonl(net));
-	    broadcast_domains->addAddress(&cur_bcast_domain, cidr, true);
-
-	    // broadcast_domains->dump();
 	  }
 	}
-	
-	e  = getArpHashMatrixElement(srcMac->get_mac(), dstMac->get_mac(), &src2dst_element);
 
-#if 0
-	char buf1[32], buf2[32];
-	Utils::formatMac(srcMac->get_mac(), buf1, sizeof(buf1));
-	Utils::formatMac(dstMac->get_mac(), buf2, sizeof(buf2));
-
-	if(!strcmp(buf1, "B4:75:0E:92:89:17") || !strcmp(buf2, "B4:75:0E:92:89:17")) {
-	ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s][%s][0x%x][src2dst: %u]",
-				     buf1, buf2, arp_opcode, src2dst_element ? 1 : 0);
-	}
-#endif
+	e = getArpHashMatrixElement(srcMac->get_mac(), dstMac->get_mac(), &src2dst_element);
 
 	if(arp_opcode == 0x1 /* ARP request */) {
 	  arp_requests++;
@@ -2637,6 +2601,12 @@ decode_packet_eth:
 	     rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
     break;
   }
+
+ dissect_packet_end:
+
+  /* Live packet dump to mongoose */
+  if(num_live_captures > 0)
+    deliverLiveCapture(h, packet, *flow);
 
   return(pass_verdict);
 }
@@ -3024,6 +2994,8 @@ void NetworkInterface::periodicStatsUpdate() {
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "flows aggregation took %d seconds", time(NULL) - tdebug.tv_sec);
   gettimeofday(&tdebug, NULL);
 #endif
+
+  checkReloadHostsBroadcastDomain();
 
   begin_slot = 0;
   hosts_hash->walk(&begin_slot, walk_all, update_hosts_stats, (void*)&tv);
@@ -3564,6 +3536,18 @@ bool NetworkInterface::getHostInfo(lua_State* vm,
 
 /* **************************************************** */
 
+void NetworkInterface::checkReloadHostsBroadcastDomain() {
+  time_t bcast_domains_last_update = bcast_domains->getLastUpdate();
+
+  if(hosts_bcast_domain_last_update < bcast_domains_last_update)
+    reload_hosts_bcast_domain = true,
+      hosts_bcast_domain_last_update = bcast_domains_last_update;
+  else if(reload_hosts_bcast_domain)
+    reload_hosts_bcast_domain = false;
+}
+
+/* **************************************************** */
+
 bool NetworkInterface::checkPointHostCounters(lua_State* vm, u_int8_t checkpoint_id,
 					      char *host_ip, u_int16_t vlan_id,
 					      DetailsLevel details_level) {
@@ -3664,10 +3648,11 @@ struct flowHostRetriever {
   LocationPolicy location;    /* Not used in flow_search_walker */
   u_int8_t ipVersionFilter;   /* Not used in flow_search_walker */
   bool filteredHosts;         /* Not used in flow_search_walker */
-  bool blacklistedHosts;     /* Not used in flow_search_walker */
-  bool anomalousOnly;        /* Not used in flow_search_walker */
-  bool dhcpOnly;             /* Not used in flow_search_walker */
-  bool hideTopHidden;        /* Not used in flow_search_walker */
+  bool blacklistedHosts;      /* Not used in flow_search_walker */
+  bool anomalousOnly;         /* Not used in flow_search_walker */
+  bool dhcpOnly;              /* Not used in flow_search_walker */
+  bool hideTopHidden;         /* Not used in flow_search_walker */
+  const AddressTree * cidr_filter; /* Not used in flow_search_walker */
   u_int16_t vlan_id;
   char *osFilter;
   u_int32_t asnFilter;
@@ -3935,6 +3920,7 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data, bool *matc
      (r->blacklistedHosts && !h->isBlacklisted())     ||
      (r->anomalousOnly && !h->hasAnomalies())         ||
      (r->dhcpOnly && !h->isDhcpHost())                ||
+     (r->cidr_filter && !h->match(r->cidr_filter))    ||
      (r->hideTopHidden && h->isHiddenFromTop())       ||
      (r->traffic_type == traffic_type_one_way && !h->isOneWayTraffic())       ||
      (r->traffic_type == traffic_type_bidirectional && h->isOneWayTraffic())  ||
@@ -4570,6 +4556,7 @@ int NetworkInterface::sortHosts(u_int32_t *begin_slot,
 				u_int16_t pool_filter, bool filtered_hosts,
 				bool blacklisted_hosts, bool hide_top_hidden,
 				bool anomalousOnly, bool dhcpOnly,
+				const AddressTree * const cidr_filter,
 				u_int8_t ipver_filter, int proto_filter,
 				TrafficType traffic_type_filter,
 				char *sortColumn) {
@@ -4603,6 +4590,7 @@ int NetworkInterface::sortHosts(u_int32_t *begin_slot,
     retriever->blacklistedHosts = blacklisted_hosts,
     retriever->anomalousOnly = anomalousOnly,
     retriever->dhcpOnly = dhcpOnly,
+    retriever->cidr_filter = cidr_filter,
     retriever->hideTopHidden = hide_top_hidden,
     retriever->ndpi_proto = proto_filter,
     retriever->traffic_type = traffic_type_filter,
@@ -4840,6 +4828,7 @@ int NetworkInterface::getActiveHostsList(lua_State* vm,
 					 u_int8_t ipver_filter, int proto_filter,
 					 TrafficType traffic_type_filter, bool tsLua,
 					 bool anomalousOnly, bool dhcpOnly,
+					 const AddressTree * const cidr_filter,
 					 char *sortColumn, u_int32_t maxHits,
 					 u_int32_t toSkip, bool a2zSortOrder) {
   struct flowHostRetriever retriever;
@@ -4858,6 +4847,7 @@ int NetworkInterface::getActiveHostsList(lua_State* vm,
 	       countryFilter, mac_filter, vlan_id, osFilter,
 	       asnFilter, networkFilter, pool_filter, filtered_hosts, blacklisted_hosts, hide_top_hidden,
 	       anomalousOnly, dhcpOnly,
+	       cidr_filter,
 	       ipver_filter, proto_filter,
 	       traffic_type_filter,
 	       sortColumn) < 0) {
@@ -5008,6 +4998,7 @@ int NetworkInterface::getActiveHostsGroup(lua_State* vm,
 	       countryFilter, NULL /* Mac */, vlan_id,
 	       osFilter, asnFilter, networkFilter, pool_filter,
 	       filtered_hosts, false /* no blacklisted hosts filter */, false, false, false,
+	       NULL, /* no cidr filter */
 	       ipver_filter, -1 /* no protocol filter */,
 	       traffic_type_all /* no traffic type filter */,
 	       groupColumn) < 0 ) {
@@ -5148,6 +5139,7 @@ u_int NetworkInterface::purgeIdleFlows() {
 
   pollQueuedeBPFEvents();
   reloadCustomCategories();
+  bcast_domains->inlineReloadBroadcastDomains();
 
   if(!purge_idle_flows_hosts) return(0);
 
@@ -5286,6 +5278,11 @@ void NetworkInterface::guessAllnDPIProtocols() {
 
   walker(&begin_slot, walk_all, walker_flows,
 	 guess_all_ndpi_protocols_walker, this);
+}
+/* *************************************** */
+
+void NetworkInterface::guessAllBroadcastDomainHosts() {
+  bcast_domains->inlineReloadBroadcastDomains(true);
 }
 
 /* **************************************************** */
@@ -5470,6 +5467,7 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_uint64_table_entry(vm, "mtu", ifMTU);
   lua_push_uint64_table_entry(vm, "alertLevel", alertLevel);
   lua_push_str_table_entry(vm, "ip_addresses", (char*)getLocalIPAddresses());
+  bcast_domains->lua(vm);
 
   /* Anomalies */
   lua_newtable(vm);
@@ -5578,8 +5576,8 @@ Mac* NetworkInterface::getMac(u_int8_t _mac[6], bool createIfNotPresent) {
 
 /* **************************************************** */
 
-ArpStatsMatrixElement* NetworkInterface::getArpHashMatrixElement(u_int8_t _src_mac[6], 
-								 u_int8_t _dst_mac[6],
+ArpStatsMatrixElement* NetworkInterface::getArpHashMatrixElement(const u_int8_t _src_mac[6],
+								 const u_int8_t _dst_mac[6],
 								 bool * const src2dst){
   ArpStatsMatrixElement *ret = NULL;
 
@@ -5587,9 +5585,9 @@ ArpStatsMatrixElement* NetworkInterface::getArpHashMatrixElement(u_int8_t _src_m
     return NULL;
 
   ret = arp_hash_matrix->get(_src_mac, _dst_mac, src2dst);
-  
+
   if(ret == NULL) {
-    try{ 
+    try{
       if((ret = new ArpStatsMatrixElement(this, _src_mac, _dst_mac, src2dst)) != NULL)
         if(!arp_hash_matrix->add(ret)){
           delete ret;
@@ -5605,13 +5603,13 @@ ArpStatsMatrixElement* NetworkInterface::getArpHashMatrixElement(u_int8_t _src_m
       return(NULL);
     }
   }
-  
+
   return ret;
 }
 
 /* **************************************************** */
 
-bool NetworkInterface::getArpStatsMatrixInfo(lua_State* vm){  
+bool NetworkInterface::getArpStatsMatrixInfo(lua_State* vm){
   if(getNumArpStatsMatrixElements() > 0) {
     lua_newtable(vm);
     arp_hash_matrix->lua(vm);
@@ -6092,7 +6090,7 @@ void NetworkInterface::refreshShapers() {
 
 /* **************************************** */
 
-void NetworkInterface::addInterfaceAddress(char *addr) {
+void NetworkInterface::addInterfaceAddress(char * const addr) {
   if(ip_addresses.size() == 0)
     ip_addresses = addr;
   else {
@@ -6100,6 +6098,18 @@ void NetworkInterface::addInterfaceAddress(char *addr) {
 
     ip_addresses = ip_addresses + "," + s;
   }
+}
+
+/* **************************************** */
+
+void NetworkInterface::addInterfaceNetwork(char * const net) {
+  interface_networks.addAddress(net);
+}
+
+/* **************************************** */
+
+bool NetworkInterface::isInterfaceNetwork(const IpAddress * const ipa, int network_bits) const {
+  return interface_networks.match(ipa, network_bits);
 }
 
 /* **************************************** */
@@ -6254,7 +6264,7 @@ void NetworkInterface::reloadHideFromTop(bool refreshHosts) {
 
 bool NetworkInterface::isHiddenFromTop(Host *host) {
   VlanAddressTree *vlan_addrtree = hide_from_top;
-  
+
   if(!vlan_addrtree) return false;
 
   return(host->get_ip()->findAddress(vlan_addrtree->getAddressTree(host->getVlanId())));
@@ -6881,6 +6891,36 @@ void NetworkInterface::checkMacIPAssociation(bool triggerEvent, u_char *_mac, u_
 
 /* *************************************** */
 
+bool NetworkInterface::checkBroadcastDomainTooLarge(u_int32_t bcast_mask, u_int16_t vlan_id, const Mac * const src_mac, const Mac * const dst_mac, u_int32_t spa, u_int32_t tpa) const {
+  if(bcast_mask < 0xFFFF0000) {
+    if(!ntop->getPrefs()->are_alerts_disabled()) {
+      json_object *jobject;
+      char buf[32];
+
+      if((jobject = json_object_new_object()) != NULL) {
+	json_object_object_add(jobject, "ifname", json_object_new_string(get_name()));
+	json_object_object_add(jobject, "ifid", json_object_new_int(id));
+	json_object_object_add(jobject, "vlan_id", json_object_new_int(vlan_id));
+	json_object_object_add(jobject, "src_mac", json_object_new_string(Utils::formatMac(src_mac->get_mac(), buf, sizeof(buf))));
+        json_object_object_add(jobject, "dst_mac", json_object_new_string(Utils::formatMac(dst_mac->get_mac(), buf, sizeof(buf))));
+	json_object_object_add(jobject, "spa", json_object_new_string(Utils::intoaV4(spa, buf, sizeof(buf))));
+	json_object_object_add(jobject, "tpa", json_object_new_string(Utils::intoaV4(tpa, buf, sizeof(buf))));
+
+	ntop->getRedis()->rpush(CONST_ALERT_BCAST_DOMAIN_TOO_LARGE_QUEUE, (char *)json_object_to_json_string(jobject), 0 /* No trim */);
+
+	/* Free Memory */
+	json_object_put(jobject);
+      }
+    }
+
+    return true; /* At most a /16 broadcast domain is acceptable */
+  }
+
+  return false;
+}
+
+/* *************************************** */
+
 /*
   Put here all the code that is executed when the NIC initialization
   is succesful
@@ -6995,9 +7035,9 @@ bool NetworkInterface::matchLiveCapture(struct ntopngLuaContext * const luactx,
 					const struct pcap_pkthdr * const h,
 					const u_char * const packet,
 					Flow * const f) {
-  if((luactx->live_capture.matching_host == NULL)
-     || (luactx->live_capture.matching_host == f->get_cli_host())
-     || (luactx->live_capture.matching_host == f->get_srv_host())) {
+  if(!luactx->live_capture.matching_host /* No host filter set */
+     || (f && (luactx->live_capture.matching_host == f->get_cli_host()
+	       || luactx->live_capture.matching_host == f->get_srv_host()))) {
     if(luactx->live_capture.bpfFilterSet) {
       if(!bpf_filter(luactx->live_capture.fcode.bf_insns,
 		     (const u_char*)packet, h->caplen, h->caplen)) {
@@ -7200,7 +7240,7 @@ static bool local_hosts_2_dropbox_walker(GenericHashEntry *h, void *user_data, b
 
   if(host && (host->getNumDropboxPeers() > 0)) {
     lua_State *vm = (lua_State*)user_data;
-    
+
     host->dumpDropbox(vm);
     *matched = true;
   }
@@ -7215,7 +7255,7 @@ int NetworkInterface::dumpDropboxHosts(lua_State *vm) {
   u_int32_t begin_slot = 0;
 
   lua_newtable(vm);
-    
+
   disablePurge(false /* on hosts */);
   rc = walker(&begin_slot, true /* walk_all */, walker_hosts,
 	      local_hosts_2_dropbox_walker, vm) ? 0 : -1;
@@ -7323,14 +7363,11 @@ bool NetworkInterface::isInDhcpRange(IpAddress *ip) {
 
 /* *************************************** */
 
-bool NetworkInterface::isLocalBroadcastDomainHost(Host *h) {
-  if(broadcast_domains == NULL)
-    return(false);
-  else {
-    IpAddress *i = h->get_ip();
-    
-    return(i->match(broadcast_domains) || i->match(ntop->getLoadInterfaceAddresses()));
-  }
+bool NetworkInterface::isLocalBroadcastDomainHost(Host * const h, bool isInlineCall) {
+  IpAddress *i = h->get_ip();
+
+  return(bcast_domains->isLocalBroadcastDomainHost(h, isInlineCall)
+	 || (ntop->getLoadInterfaceAddresses() && i->match(ntop->getLoadInterfaceAddresses())));
 }
 
 /* *************************************** */
