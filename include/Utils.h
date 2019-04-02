@@ -42,6 +42,7 @@ class Utils {
   static char* formatTraffic(float numBits, bool bits, char *buf, u_int buf_len);
   static char* formatPackets(float numPkts, char *buf, u_int buf_len);
   static char* l4proto2name(u_int8_t proto);
+  static u_int8_t l4name2proto(char *name);
   static bool  isIPAddress(char *name);
   static int   setThreadAffinity(pthread_t thread, int core_id);
   static void  setThreadName(const char *name);
@@ -123,6 +124,7 @@ class Utils {
   static bool mg_write_retry(struct mg_connection *conn, u_char *b, int len);
   static bool parseAuthenticatorJson(HTTPAuthenticator *auth, char *content);
   static void freeAuthenticator(HTTPAuthenticator *auth);
+  static DetailsLevel bool2DetailsLevel(bool max, bool higher,bool normal = false);
 
   /* Patricia Tree */
   static patricia_node_t* add_to_ptree(patricia_tree_t *tree, int family, void *addr, int bits);

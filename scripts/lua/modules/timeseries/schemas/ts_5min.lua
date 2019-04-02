@@ -223,6 +223,15 @@ schema:addMetric("replies_error_packets")
 
 --##############################################
 
+schema = ts_utils.newSchema("host:tcp_stats", {step = 300})
+schema:addTag("ifid")
+schema:addTag("host")
+schema:addMetric("retransmission_packets")
+schema:addMetric("out_of_order_packets")
+schema:addMetric("lost_packets")
+
+--##############################################
+
 schema = ts_utils.newSchema("host:dns_rcvd", {step = 300})
 schema:addTag("ifid")
 schema:addTag("host")

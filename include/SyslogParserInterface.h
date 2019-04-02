@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-19 - ntop.org
+ * (C) 2019 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -19,22 +19,24 @@
  *
  */
 
+#ifndef _SYSLOG_PARSER_INTERFACE_H_
+#define _SYSLOG_PARSER_INTERFACE_H_
+
 #include "ntop_includes.h"
 
-#ifndef HAVE_NEDGE
+class SyslogParserInterface : public ParserInterface {
+ private:
 
-/* **************************************************** */
+ public:
+  SyslogParserInterface(const char *endpoint, const char *custom_interface_type = NULL);
+  ~SyslogParserInterface();
 
-ParserInterface::ParserInterface(const char *endpoint, const char *custom_interface_type) : NetworkInterface(endpoint, custom_interface_type) {
+  u_int8_t parseLog(char *log_line, void *data);
 
-}
+  u_int32_t getNumDroppedPackets() { return 0; };
+  virtual void lua(lua_State* vm);
+};
 
-/* **************************************************** */
+#endif /* _SYSLOG_PARSER_INTERFACE_H_ */
 
-ParserInterface::~ParserInterface() {
 
-}
-
-/* **************************************************** */
-
-#endif

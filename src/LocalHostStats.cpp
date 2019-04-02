@@ -115,8 +115,8 @@ void LocalHostStats::getJSONObject(json_object *my_object, DetailsLevel details_
 
 /* *************************************** */
 
-void LocalHostStats::lua(lua_State* vm, bool mask_host, bool host_details, bool verbose, bool tsLua) {
-  HostStats::lua(vm, mask_host, host_details, verbose, tsLua);
+void LocalHostStats::lua(lua_State* vm, bool mask_host, DetailsLevel details_level, bool tsLua) {
+  HostStats::lua(vm, mask_host, details_level, tsLua);
 
   if((!mask_host) && top_sites && ntop->getPrefs()->are_top_talkers_enabled()) {
     char *cur_sites = top_sites->json();
@@ -125,14 +125,10 @@ void LocalHostStats::lua(lua_State* vm, bool mask_host, bool host_details, bool 
     if(cur_sites) free(cur_sites);
   }
 
-  if(host_details) {
-    if(icmp)
-      icmp->lua(host->get_ip()->isIPv4(), vm);
-  }
-
-  if(verbose) {
-    if(dns)            luaDNS(vm,true);
-    if(http)           http->lua(vm);
+  if(details_level >= details_high) {
+    if(icmp) icmp->lua(host->get_ip()->isIPv4(), vm);
+    if(dns)  luaDNS(vm, true);
+    if(http) http->lua(vm);
   }
 }
 

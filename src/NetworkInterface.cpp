@@ -1035,7 +1035,7 @@ NetworkInterface* NetworkInterface::getSubInterface(u_int32_t criteria, bool par
 
 /* **************************************************** */
 
-void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
+void NetworkInterface::processFlow(Parsed_Flow *zflow) {
   bool src2dst_direction, new_flow;
   Flow *flow;
   ndpi_protocol p;
@@ -1652,24 +1652,20 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
   flow->updateInterfaceLocalStats(src2dst_direction, 1, rawsize);
 
   if(!flow->isDetectionCompleted()) {
-    if(isSampledTraffic())
-      flow->guessProtocol();
-    else {
-      if(!is_fragment) {
-	struct ndpi_flow_struct *ndpi_flow = flow->get_ndpi_flow();
-	struct ndpi_id_struct *cli = (struct ndpi_id_struct*)flow->get_cli_id();
-	struct ndpi_id_struct *srv = (struct ndpi_id_struct*)flow->get_srv_id();
+    if(!is_fragment) {
+      struct ndpi_flow_struct *ndpi_flow = flow->get_ndpi_flow();
+      struct ndpi_id_struct *cli = (struct ndpi_id_struct*)flow->get_cli_id();
+      struct ndpi_id_struct *srv = (struct ndpi_id_struct*)flow->get_srv_id();
 
-	if(flow->get_packets() >= NDPI_MIN_NUM_PACKETS) {
-	  flow->setDetectedProtocol(ndpi_detection_giveup(ndpi_struct, ndpi_flow, 1), false);
-	} else
-	  flow->setDetectedProtocol(ndpi_detection_process_packet(ndpi_struct, ndpi_flow,
-								  ip, ipsize, (u_int32_t)packet_time,
-								  cli, srv), false);
-      } else {
-	// FIX - only handle unfragmented packets
-	// ntop->getTrace()->traceEvent(TRACE_WARNING, "IP fragments are not handled yet!");
-      }
+      if(flow->get_packets() >= NDPI_MIN_NUM_PACKETS) {
+	flow->setDetectedProtocol(ndpi_detection_giveup(ndpi_struct, ndpi_flow, 1), false);
+      } else
+	flow->setDetectedProtocol(ndpi_detection_process_packet(ndpi_struct, ndpi_flow,
+								ip, ipsize, (u_int32_t)packet_time,
+								cli, srv), false);
+    } else {
+      // FIX - only handle unfragmented packets
+      // ntop->getTrace()->traceEvent(TRACE_WARNING, "IP fragments are not handled yet!");
     }
   }
 
@@ -2577,7 +2573,9 @@ decode_packet_eth:
 	  }
 	}
 
-	e = getArpHashMatrixElement(srcMac->get_mac(), dstMac->get_mac(), &src2dst_element);
+	e = getArpHashMatrixElement(srcMac->get_mac(), dstMac->get_mac(),
+				    src, dst,
+				    &src2dst_element);
 
 	if(arp_opcode == 0x1 /* ARP request */) {
 	  arp_requests++;
@@ -5576,19 +5574,20 @@ Mac* NetworkInterface::getMac(u_int8_t _mac[6], bool createIfNotPresent) {
 
 /* **************************************************** */
 
-ArpStatsMatrixElement* NetworkInterface::getArpHashMatrixElement(const u_int8_t _src_mac[6],
-								 const u_int8_t _dst_mac[6],
-								 bool * const src2dst){
+ArpStatsMatrixElement* NetworkInterface::getArpHashMatrixElement(const u_int8_t _src_mac[6], const u_int8_t _dst_mac[6],
+								 const u_int32_t _src_ip, const u_int32_t _dst_ip,
+								 bool * const src2dst) {
   ArpStatsMatrixElement *ret = NULL;
 
-  if(_src_mac == NULL || _dst_mac == NULL || arp_hash_matrix == NULL)
+  if(arp_hash_matrix == NULL)
     return NULL;
 
-  ret = arp_hash_matrix->get(_src_mac, _dst_mac, src2dst);
+  ret = arp_hash_matrix->get(_src_mac, _src_ip, _dst_ip, src2dst);
 
   if(ret == NULL) {
     try{
-      if((ret = new ArpStatsMatrixElement(this, _src_mac, _dst_mac, src2dst)) != NULL)
+      if((ret = new ArpStatsMatrixElement(this, _src_mac, _dst_mac, _src_ip, _dst_ip)) != NULL)
+	
         if(!arp_hash_matrix->add(ret)){
           delete ret;
           ret = NULL;
@@ -5597,8 +5596,8 @@ ArpStatsMatrixElement* NetworkInterface::getArpHashMatrixElement(const u_int8_t 
       static bool oom_warning_sent = false;
 
       if(!oom_warning_sent) {
-	      ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
-	      oom_warning_sent = true;
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
+	oom_warning_sent = true;
       }
       return(NULL);
     }

@@ -84,5 +84,6 @@ void TimeseriesStats::luaStats(lua_State* vm, NetworkInterface *iface, bool host
     lua_push_uint64_table_entry(vm, "other_ip.bytes.rcvd", other_ip_rcvd.getNumBytes());
 
     host->luaDNS(vm);
+    host->luaTCP(vm);
   }
 }

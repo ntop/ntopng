@@ -557,7 +557,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   lua_push_str_table_entry(vm, "asname", asname ? asname : (char*)"");
   lua_push_str_table_entry(vm, "os", get_os(buf, sizeof(buf)));
 
-  stats->lua(vm, mask_host, host_details, verbose);
+  stats->lua(vm, mask_host, Utils::bool2DetailsLevel(verbose,host_details));
 
   lua_push_uint64_table_entry(vm, "anomalous_flows.as_server", getTotalNumAnomalousIncomingFlows());
   lua_push_uint64_table_entry(vm, "anomalous_flows.as_client", getTotalNumAnomalousOutgoingFlows());
