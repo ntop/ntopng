@@ -21,7 +21,7 @@
 
 #include "ntop_includes.h"
 
-#define TRACE_ARP_LIFECYCLE   1
+// #define TRACE_ARP_LIFECYCLE   1
 
 ArpStatsMatrixElement::ArpStatsMatrixElement(NetworkInterface *_iface,
 					     const u_int8_t _src_mac[6], const u_int8_t _dst_mac[6],
