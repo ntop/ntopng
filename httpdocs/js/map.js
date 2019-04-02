@@ -7,6 +7,8 @@ var arpReqGraph = (function (mac) {
         width = 500 - margin.left - margin.right,
         height = 140 - margin.top - margin.bottom;
 
+        //TODO: make dinamic width/height
+
         var svg = d3.select("#my_dataviz")
         .append("svg")
         .attr("width", width + margin.left + margin.right)

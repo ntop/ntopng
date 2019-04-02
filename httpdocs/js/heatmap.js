@@ -31,10 +31,10 @@ var map = (function () {
             width = (myGroups.length * sq_w);
             height = (myVars.length * sq_h) ;
 
-            if (height > 900) height = 900  - margin.top - margin.bottom;
-            if (height < 250) height = 250  - margin.top - margin.bottom;
+            if (height > 900 ) height = 900  - margin.top - margin.bottom;
+            if (height < 350 ) height = 350  - margin.top - margin.bottom;
             if ( width > 1100) width = 1100 - margin.left - margin.right;
-            if ( width < 666)  width = 666  - margin.left - margin.right;//tmp for not clip the legend, see TODO in text section
+            if ( width < 666 )  width = 666  - margin.left - margin.right;//tmp for not clip the legend, see TODO in text section
             
 
             // color scale
