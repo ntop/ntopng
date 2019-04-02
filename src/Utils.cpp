@@ -3657,3 +3657,16 @@ void Utils::freeAuthenticator(HTTPAuthenticator *auth) {
 }
 
 /* ****************************************************** */
+
+DetailsLevel Utils::bool2DetailsLevel(bool max, bool higher, bool normal){
+  if(max){
+    return details_max;
+  } else if(higher){
+    return details_higher;
+  } else if(normal){
+    return details_normal;
+  }
+  else{
+    return details_high;
+  }
+}
