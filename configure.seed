@@ -197,8 +197,15 @@ if test "$?" -ne 1; then
  SSL_INC="`pkg-config --cflags libssl` -I/usr/include/openssl"
  SSL_LIB="`pkg-config --libs libssl` -lssl -lcrypto"
 else
- echo "Please install openssl-dev(el) package prerequisite"
- exit -1
+ dnl Workaround for MacOS Brew
+ if test -d "/usr/local/opt/openssl/lib"; then
+   AC_DEFINE_UNQUOTED(NO_SSL_DL, 1, [has openssl])
+   SSL_INC="-I/usr/local/opt/openssl/include"
+   SSL_LIB="-L/usr/local/opt/openssl/lib -lssl"
+ else
+   echo "Please install openssl-dev(el) package prerequisite"
+   exit -1
+ fi
 fi
 
 AC_MSG_CHECKING(for ntopng professional edition)
