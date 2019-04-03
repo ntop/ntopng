@@ -222,7 +222,7 @@ int SyslogCollectorInterface::receiveFromClient(syslog_client *client) {
       buffer[len] = '\0';
       line = strtok_r(buffer, "\n", &pos);
       while (line) {
-        recvStats.num_flows += parseLog(line , this);
+        recvStats.num_flows += parseLog(line);
         line = strtok_r(NULL, "\n", &pos);
       }
     }

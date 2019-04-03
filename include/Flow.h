@@ -350,6 +350,7 @@ class Flow : public GenericHashEntry {
 			      isDetectionCompleted() ? ndpiDetectedProtocol : ndpiUnknownProtocol,
 			      buf, buf_len));
   }
+  static inline ndpi_protocol get_ndpi_unknown_protocol() { return ndpiUnknownProtocol; };
 
   u_int32_t get_packetsLost();
   u_int32_t get_packetsRetr();
