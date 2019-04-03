@@ -290,6 +290,25 @@ float Utils::msTimevalDiff(const struct timeval *end, const struct timeval *begi
 
 /* ****************************************************** */
 
+/* Converts a ISO 8601 timestamp (exported by Suricata) to epoch.
+ * Example: 2019-04-02T19:29:42.346861+0200 */
+time_t Utils::str2epoch(const char *str) {
+  struct tm tm;
+  time_t t;
+
+  if (strptime(str, "%FT%T%Z", &tm) == NULL)
+    return 0;
+
+  t = mktime(&tm);
+
+  if (t == -1)
+    return 0;
+
+  return t;
+}
+
+/* ****************************************************** */
+
 bool Utils::file_exists(const char *path) {
   std::ifstream infile(path);
 

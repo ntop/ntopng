@@ -60,7 +60,7 @@ u_int8_t SyslogParserInterface::parseLog(char *log_line, void *data) {
     /* Suricata Log */
 
 #ifdef SYSLOG_DEBUG
-    //ntop->getTrace()->traceEvent(TRACE_NORMAL, "[SYSLOG] Suricata EVE JSON: %s", content);
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[Suricata] JSON: %s", content);
 #endif
 
     /* Reset data */
@@ -71,16 +71,19 @@ u_int8_t SyslogParserInterface::parseLog(char *log_line, void *data) {
     flow.core.pkt_sampling_rate = 1; /* 1:1 (no sampling) */
     flow.core.source_id = 0, flow.core.vlan_id = 0;
 
-
     o = json_tokener_parse_verbose(content, &jerr);
 
     if (o) {
       json_object *w, *f;
-
+      const char *event_type = "";
 #ifdef SYSLOG_DEBUG
-      if (json_object_object_get_ex(o, "timestamp", &w)) 
-        ntop->getTrace()->traceEvent(TRACE_NORMAL, "Suricata event timestamp: %s", json_object_get_string(w));
+      const char *timestamp = "";
+      char src_ip_buf[64], dst_ip_buf[64];
+
+      if (json_object_object_get_ex(o, "timestamp", &w))  timestamp = json_object_get_string(w);
 #endif
+
+      if (json_object_object_get_ex(o, "event_type", &w)) event_type = json_object_get_string(w);
 
       //if (json_object_object_get_ex(o, "flow_id", &w)) flow_id = json_object_get_string(w);
       if (json_object_object_get_ex(o, "vlan", &w))      flow.core.vlan_id = json_object_get_int(w);
@@ -90,19 +93,31 @@ u_int8_t SyslogParserInterface::parseLog(char *log_line, void *data) {
       if (json_object_object_get_ex(o, "dest_port", &w)) flow.core.dst_port = htons(json_object_get_int(w));
       if (json_object_object_get_ex(o, "proto", &w))     flow.core.l4_proto = Utils::l4name2proto((char *) json_object_get_string(w));
 
-      if (json_object_object_get_ex(o, "flow", &f)) {
-
-#ifdef SYSLOG_DEBUG
+      if (strcmp(event_type, "flow") == 0 && 
+          json_object_object_get_ex(o, "flow", &f)) {
         if (json_object_object_get_ex(f, "start", &w)) 
-          ntop->getTrace()->traceEvent(TRACE_NORMAL, "Suricata flow start: %s", json_object_get_string(w));
-#endif
-
+          flow.core.first_switched = Utils::str2epoch(json_object_get_string(w));
+        if (json_object_object_get_ex(f, "end", &w))
+          flow.core.last_switched = Utils::str2epoch(json_object_get_string(w));
         if (json_object_object_get_ex(f, "pkts_toserver",  &w)) flow.core.in_pkts   = json_object_get_int(w);
         if (json_object_object_get_ex(f, "pkts_toclient",  &w)) flow.core.out_pkts  = json_object_get_int(w);
         if (json_object_object_get_ex(f, "bytes_toserver", &w)) flow.core.in_bytes  = json_object_get_int(w);
         if (json_object_object_get_ex(f, "bytes_client",   &w)) flow.core.out_bytes = json_object_get_int(w);
 
+#ifdef SYSLOG_DEBUG
+        ntop->getTrace()->traceEvent(TRACE_NORMAL, "[Suricata] Flow %s:%u <-> %s:%u [start=%u][end=%u]",
+          flow.core.src_ip.print(src_ip_buf, sizeof(src_ip_buf), 32), ntohs(flow.core.src_port), 
+          flow.core.dst_ip.print(dst_ip_buf, sizeof(dst_ip_buf), 32), ntohs(flow.core.dst_port),
+          flow.core.first_switched, flow.core.last_switched);
+#endif
+
         iface->processFlow(&flow);
+
+        num_flows++;
+#ifdef SYSLOG_DEBUG
+      } else {
+        ntop->getTrace()->traceEvent(TRACE_NORMAL, "[Suricata] Event '%s' [%s]", event_type, timestamp);
+#endif
       }
 
       json_object_put(o);
@@ -111,9 +126,9 @@ u_int8_t SyslogParserInterface::parseLog(char *log_line, void *data) {
     if (flow.additional_fields)
       json_object_put(flow.additional_fields);
 
+#ifdef SYSLOG_DEBUG
   } else {
     /* System Log */
-#ifdef SYSLOG_DEBUG
     ntop->getTrace()->traceEvent(TRACE_INFO, "[SYSLOG] System Event (%s): %s", log_line, content);
 #endif
   }
