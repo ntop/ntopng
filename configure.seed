@@ -502,10 +502,10 @@ then
   RADCLI_LIB="-lradcli"
   AC_DEFINE_UNQUOTED(HAVE_RADIUS, 1, [RADIUS support is present])
 
-  AC_CHECK_LIB([radcli], [rc_apply_config], rc_apply_config=true)
-  if test x$rc_apply_config = xtrue
+  AC_CHECK_LIB([radcli], [rc_test_config], rc_test_config=true)
+  if test x$rc_test_config = xtrue
   then
-    AC_DEFINE_UNQUOTED(HAVE_RC_APPLY_CONFIG, 1, [rc_apply_config exists in radcli])
+    AC_DEFINE_UNQUOTED(HAVE_RC_TEST_CONFIG, 1, [rc_test_config exists in radcli])
   fi
 fi
 
