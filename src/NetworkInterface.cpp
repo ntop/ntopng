@@ -2572,15 +2572,10 @@ decode_packet_eth:
 	    }
 	  }
 	}
-<<<<<<< HEAD
-	
-	e  = getArpHashMatrixElement(srcMac->get_mac(), dstMac->get_mac(), arpp->arp_spa, arpp->arp_tpa, &src2dst_element);
-=======
 
 	e = getArpHashMatrixElement(srcMac->get_mac(), dstMac->get_mac(),
 				    src, dst,
 				    &src2dst_element);
->>>>>>> 96954bdabb5fa29cbc8d600b339c07591da12cd2
 
 	if(arp_opcode == 0x1 /* ARP request */) {
 	  arp_requests++;
@@ -5578,36 +5573,20 @@ Mac* NetworkInterface::getMac(u_int8_t _mac[6], bool createIfNotPresent) {
 
 /* **************************************************** */
 
-<<<<<<< HEAD
-
-ArpStatsMatrixElement* NetworkInterface::getArpHashMatrixElement(const u_int8_t _src_mac[6], 
-								 const u_int8_t _dst_mac[6],
-                 u_int32_t _src_ip, u_int32_t _dst_ip,
-								 bool * const src2dst){
-=======
 ArpStatsMatrixElement* NetworkInterface::getArpHashMatrixElement(const u_int8_t _src_mac[6], const u_int8_t _dst_mac[6],
 								 const u_int32_t _src_ip, const u_int32_t _dst_ip,
 								 bool * const src2dst) {
->>>>>>> 96954bdabb5fa29cbc8d600b339c07591da12cd2
   ArpStatsMatrixElement *ret = NULL;
 
   if(arp_hash_matrix == NULL)
     return NULL;
 
-<<<<<<< HEAD
-  ret = arp_hash_matrix->get(_src_ip, _dst_ip, src2dst); 
-  
-  if(ret == NULL) {
-    try{ 
-      if((ret = new ArpStatsMatrixElement(this, _src_mac, _dst_mac, _src_ip, _dst_ip, src2dst)) != NULL)
-=======
   ret = arp_hash_matrix->get(_src_mac, _src_ip, _dst_ip, src2dst);
 
   if(ret == NULL) {
     try{
       if((ret = new ArpStatsMatrixElement(this, _src_mac, _dst_mac, _src_ip, _dst_ip)) != NULL)
 	
->>>>>>> 96954bdabb5fa29cbc8d600b339c07591da12cd2
         if(!arp_hash_matrix->add(ret)){
           delete ret;
           ret = NULL;

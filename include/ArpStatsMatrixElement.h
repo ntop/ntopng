@@ -33,16 +33,6 @@ class ArpStatsMatrixElement : public GenericHashEntry {
     } src2dst, dst2src;
   } stats;
 
-<<<<<<< HEAD
-  u_int32_t src_ip;
-  u_int32_t dst_ip;
-
-  u_int8_t src_mac[6];
-  u_int8_t dst_mac[6];
-
- public:
-  ArpStatsMatrixElement(NetworkInterface *_iface, const u_int8_t _src_mac[6], const u_int8_t _dst_mac[6], u_int32_t _src_ip, u_int32_t _dst_ip, bool * const src2dst);
-=======
   u_int8_t src_mac[6], dst_mac[6];
   u_int32_t src_ip, dst_ip;
 
@@ -50,7 +40,6 @@ class ArpStatsMatrixElement : public GenericHashEntry {
   ArpStatsMatrixElement(NetworkInterface *_iface,
 			const u_int8_t _src_mac[6], const u_int8_t _dst_mac[6], 
 			const u_int32_t _src_ip, const u_int32_t _dst_ip);
->>>>>>> 96954bdabb5fa29cbc8d600b339c07591da12cd2
   ~ArpStatsMatrixElement();
 
   inline void incArpReplies(bool src2dst) {
@@ -58,25 +47,14 @@ class ArpStatsMatrixElement : public GenericHashEntry {
     updateSeen();
   }
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 96954bdabb5fa29cbc8d600b339c07591da12cd2
   inline void incArpRequests(bool src2dst) {
     src2dst ? stats.src2dst.requests++ : stats.dst2src.requests++;
     updateSeen();
   }
 
-<<<<<<< HEAD
-
-  bool equal(u_int32_t _src_ip, u_int32_t _dst_ip, bool * const src2dst);
-
-
-=======
   bool equal(const u_int8_t _src_mac[6],
 	     const u_int32_t _src_ip, const u_int32_t _dst_ip,
-	     bool * const src2dst) const;
->>>>>>> 96954bdabb5fa29cbc8d600b339c07591da12cd2
+	     bool * const src2dst);
   virtual bool idle();
   u_int32_t key();
   void lua(lua_State* vm);

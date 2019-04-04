@@ -31,31 +31,6 @@ ArpStatsHashMatrix::ArpStatsHashMatrix(NetworkInterface *_iface,
 
 /* ************************************ */
 
-<<<<<<< HEAD
-ArpStatsMatrixElement* ArpStatsHashMatrix::get( u_int32_t _src_ip, u_int32_t _dst_ip, bool * const src2dst) {
-  if(_src_ip == 0 || _dst_ip == 0)
-    return(NULL);
-  else {
-    u_int32_t hash = _src_ip +_dst_ip;
-    hash %= num_hashes;
-
-    if(table[hash] == NULL) {
-      return(NULL);
-
-    } else {
-      ArpStatsMatrixElement *head;
-
-      locks[hash]->lock(__FILE__, __LINE__);
-      head = (ArpStatsMatrixElement*)table[hash];
-
-      while(head != NULL) {
-        if((!head->idle()) && head->equal(_src_ip, _dst_ip, src2dst))
-        
-          break;
-        else
-          head = (ArpStatsMatrixElement*)head->next();
-      }
-=======
 ArpStatsMatrixElement* ArpStatsHashMatrix::get(const u_int8_t _src_mac[6],
 					       const u_int32_t _src_ip, const u_int32_t _dst_ip,
 					       bool * const src2dst) {
@@ -65,7 +40,6 @@ ArpStatsMatrixElement* ArpStatsHashMatrix::get(const u_int8_t _src_mac[6],
     return(NULL);    
   } else {
     ArpStatsMatrixElement *head;
->>>>>>> 96954bdabb5fa29cbc8d600b339c07591da12cd2
     
     locks[hash]->lock(__FILE__, __LINE__);
     head = (ArpStatsMatrixElement*)table[hash];

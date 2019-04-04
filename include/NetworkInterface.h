@@ -523,14 +523,9 @@ class NetworkInterface : public Checkpointable {
 
   void runHousekeepingTasks();
   void runShutdownTasks();
-<<<<<<< HEAD
-
-  ArpStatsMatrixElement* getArpHashMatrixElement(const u_int8_t _src_mac[6], const u_int8_t _dst_mac[6], u_int32_t _src_ip, u_int32_t _dst_ip, bool * const src2dst);
-=======
   ArpStatsMatrixElement* getArpHashMatrixElement(const u_int8_t _src_mac[6], const u_int8_t _dst_mac[6],
 						 const u_int32_t _src_ip, const u_int32_t _dst_ip,
 						 bool * const src2dst);
->>>>>>> 96954bdabb5fa29cbc8d600b339c07591da12cd2
   Vlan* getVlan(u_int16_t vlanId, bool createIfNotPresent);
   AutonomousSystem *getAS(IpAddress *ipa, bool createIfNotPresent);
   Country* getCountry(const char *country_name, bool createIfNotPresent);
