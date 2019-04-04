@@ -25,7 +25,7 @@
 
 /* **************************************************** */
 
-DummyInterface::DummyInterface() : ParserInterface("dummy") {
+DummyInterface::DummyInterface() : ZMQParserInterface("dummy") {
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Initialized dummy interface");
 }
 

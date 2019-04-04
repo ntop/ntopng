@@ -20,7 +20,9 @@ function getSerieLabel(schema, serie) {
     if(serie.tags.protocol)
       return serie.tags.protocol;
     else if(serie.tags.category)
-      return serie.tags.category
+      return serie.tags.category;
+    else if(serie.tags.l4proto)
+      return serie.tags.l4proto;
     else if(serie.tags.device && serie.tags.if_index) { // SNMP interface
       if(serie.tags.if_index != serie.ext_label)
         return serie.ext_label + " (" + serie.tags.if_index + ")";

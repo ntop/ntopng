@@ -206,7 +206,7 @@ typedef struct zmq_flow_core {
   /* Extensions used only during serialization */
   u_int16_t extn_len;
   //char extn[];
-} ZMQ_FlowCore;
+} Parsed_FlowCore;
 
 /* Handle vendor-proprietary applications.
    Must stay with 32-bit integers as, at least sonicwall, uses
@@ -218,14 +218,14 @@ typedef struct {
 } custom_app_t;
 
 typedef struct zmq_flow {
-  ZMQ_FlowCore core;
+  Parsed_FlowCore core;
   json_object *additional_fields;
   char *http_url, *http_site, *dns_query, *ssl_server_name, *bittorrent_hash;
   custom_app_t custom_app;
   /* Process Extensions */
-} ZMQ_Flow;
+} Parsed_Flow;
 
-/* IMPORTANT: whenever the ZMQ_FlowSerial is changed, nProbe must be updated too */
+/* IMPORTANT: whenever the Parsed_FlowSerial is changed, nProbe must be updated too */
 
 
 typedef struct zmq_remote_stats {
@@ -302,6 +302,7 @@ typedef enum {
   status_elephant_remote_to_local, /* 18 */
   status_longlived, /* 19 */
   status_not_purged, /* 20 */
+  status_ids_alert /* 21 */,
 } FlowStatus;
 
 typedef enum {
@@ -569,7 +570,8 @@ typedef enum {
   interface_type_NETFILTER,
   interface_type_DIVERT,
   interface_type_DUMMY,
-  interface_type_ZC_FLOW  
+  interface_type_ZC_FLOW,
+  interface_type_SYSLOG 
 } InterfaceType;
 
 /* Update Flow::dissectHTTP when extending the type below */

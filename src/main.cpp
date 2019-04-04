@@ -187,7 +187,9 @@ int main(int argc, char *argv[])
 	else
 	  endpoint = ifName;
 
-	iface = new CollectorInterface(endpoint);
+	iface = new ZMQCollectorInterface(endpoint);
+      } else if(strstr(ifName, "syslog://")) {
+	iface = new SyslogCollectorInterface(ifName);
 #if defined(HAVE_PF_RING) && (!defined(NTOPNG_EMBEDDED_EDITION)) && (!defined(__i686__)) && (!defined(__ARM_ARCH))
       } else if(strstr(ifName, "zcflow:")) {
 	iface = new ZCCollectorInterface(ifName);

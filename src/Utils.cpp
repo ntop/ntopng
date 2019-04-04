@@ -155,6 +155,27 @@ char* Utils::l4proto2name(u_int8_t proto) {
 
 /* ****************************************************** */
 
+u_int8_t Utils::l4name2proto(char *name) {
+       if (strcmp(name, "IP") == 0) return 0;
+  else if (strcmp(name, "ICMP") == 0) return 1;
+  else if (strcmp(name, "IGMP") == 0) return 2;
+  else if (strcmp(name, "TCP") == 0) return 6;
+  else if (strcmp(name, "UDP") == 0) return 17;
+  else if (strcmp(name, "IPv6") == 0) return 41;
+  else if (strcmp(name, "RSVP") == 0) return 46;
+  else if (strcmp(name, "GRE") == 0) return 47;
+  else if (strcmp(name, "ESP") == 0) return 50;
+  else if (strcmp(name, "AH") == 0) return 51;
+  else if (strcmp(name, "IPv6-ICMP") == 0) return 58;
+  else if (strcmp(name, "OSPF") == 0) return 89;
+  else if (strcmp(name, "PIM") == 0) return 103;
+  else if (strcmp(name, "VRRP") == 0) return 112;
+  else if (strcmp(name, "HIP") == 0) return 139;
+  else return 0;
+}
+
+/* ****************************************************** */
+
 #ifdef NOTUSED
 bool Utils::isIPAddress(char *ip) {
   struct in_addr addr4;
@@ -265,6 +286,25 @@ float Utils::msTimevalDiff(const struct timeval *end, const struct timeval *begi
 
     return((f < 0) ? 0 : f);
   }
+}
+
+/* ****************************************************** */
+
+/* Converts a ISO 8601 timestamp (exported by Suricata) to epoch.
+ * Example: 2019-04-02T19:29:42.346861+0200 */
+time_t Utils::str2epoch(const char *str) {
+  struct tm tm;
+  time_t t;
+
+  if (strptime(str, "%FT%T%Z", &tm) == NULL)
+    return 0;
+
+  t = mktime(&tm);
+
+  if (t == -1)
+    return 0;
+
+  return t;
 }
 
 /* ****************************************************** */
@@ -3657,3 +3697,16 @@ void Utils::freeAuthenticator(HTTPAuthenticator *auth) {
 }
 
 /* ****************************************************** */
+
+DetailsLevel Utils::bool2DetailsLevel(bool max, bool higher, bool normal){
+  if(max){
+    return details_max;
+  } else if(higher){
+    return details_higher;
+  } else if(normal){
+    return details_normal;
+  }
+  else{
+    return details_high;
+  }
+}

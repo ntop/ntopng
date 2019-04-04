@@ -27,7 +27,7 @@
 
 /* **************************************************** */
 
-ZCCollectorInterface::ZCCollectorInterface(const char *name) : ParserInterface(name) {
+ZCCollectorInterface::ZCCollectorInterface(const char *name) : ZMQParserInterface(name) {
   char ifname[32];
   char *at;
 

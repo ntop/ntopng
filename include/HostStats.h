@@ -76,7 +76,7 @@ class HostStats: public Checkpointable, public TimeseriesStats {
   virtual void decNumFlows(bool as_client, Host *peer) {};
   virtual bool hasAnomalies(time_t when) { return false; };
   virtual void luaAnomalies(lua_State* vm, time_t when) {};
-  virtual void lua(lua_State* vm, bool mask_host, bool host_details, bool verbose, bool tsLua = false);
+  virtual void lua(lua_State* vm, bool mask_host, DetailsLevel details_level, bool tsLua = false);
 
 #ifdef NTOPNG_PRO
   inline void incQuotaEnforcementStats(time_t when, u_int16_t ndpi_proto,

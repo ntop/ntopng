@@ -1232,10 +1232,10 @@ bool Ntop::checkUserPassword(const char * const user, const char * const passwor
         goto radius_auth_out;
       }
 
-#ifdef HAVE_RC_APPLY_CONFIG
+#ifdef HAVE_RC_TEST_CONFIG
       /* Necessary since radcli release 1.2.10 */
-      if(rc_apply_config(rh) != 0) {
-        ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: rc_apply_config failed");
+      if(rc_test_config(rh, "ntopng") != 0) {
+        ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: rc_test_config failed");
         goto radius_auth_out;
       }
 #endif
