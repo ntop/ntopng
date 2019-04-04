@@ -73,16 +73,32 @@ void SyslogParserInterface::parseSuricataFlow(json_object *f, Parsed_Flow *flow)
 
 /* **************************************************** */
 
-void SyslogParserInterface::parseSuricataAlert(json_object *a, Parsed_Flow *flow, bool flow_alert) {
-  char *json_alert;
+void SyslogParserInterface::parseSuricataAlert(json_object *a, Parsed_Flow *flow, ICMPinfo *icmp_info, bool flow_alert) {
 
-  json_alert = strdup(json_object_to_json_string(a));
+  if (flow_alert) {
+    Flow *f;
+    bool src2dst_direction, new_flow;
+
+    f = getFlow(NULL, NULL, flow->core.vlan_id, 0, 0, 0,
+      icmp_info,
+      &flow->core.src_ip, &flow->core.dst_ip,
+      flow->core.src_port, flow->core.dst_port,
+      flow->core.l4_proto, &src2dst_direction,
+      flow->core.first_switched, flow->core.last_switched, 
+      0, &new_flow, false);
+
+    if (f) {
+      f->setSuricataAlert(json_object_get(a));
+    }
+
+  } else {
+    /* TODO Check for other alert types (e.g. host) */
+  }
 
 #ifdef SYSLOG_DEBUG 
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[Suricata] %s Alert (JSON): %s", flow_alert ? "Flow" : "Host", json_alert);
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[Suricata] %sAlert (JSON): %s", flow_alert ? "Flow " : "", 
+    json_object_to_json_string(a));
 #endif
-
-  free(json_alert);
 }
 
 /* **************************************************** */
@@ -103,6 +119,7 @@ u_int8_t SyslogParserInterface::parseLog(char *log_line) {
   if (strstr(log_line, "suricata") != NULL) {
     json_object *o;
     Parsed_Flow flow;
+    ICMPinfo icmp_info;
 
     /* Suricata Log */
 
@@ -139,7 +156,16 @@ u_int8_t SyslogParserInterface::parseLog(char *log_line) {
       if (json_object_object_get_ex(o, "dest_port", &w)) flow.core.dst_port = htons(json_object_get_int(w));
       if (json_object_object_get_ex(o, "proto", &w))     flow.core.l4_proto = Utils::l4name2proto((char *) json_object_get_string(w));
 
+      if (flow.core.l4_proto == 1 /* ICMP */) {
+        if (json_object_object_get_ex(o, "icmp_type", &w))
+          icmp_info.setType(json_object_get_int(w));
+        if (json_object_object_get_ex(o, "icmp_code", &w))
+          icmp_info.setCode(json_object_get_int(w));
+      }
+
       if (strcmp(event_type, "flow") == 0 && json_object_object_get_ex(o, "flow", &f)) {
+
+        /* Suricata Flow */
 
         parseSuricataFlow(f, &flow);
         processFlow(&flow);
@@ -148,15 +174,20 @@ u_int8_t SyslogParserInterface::parseLog(char *log_line) {
       } else if (strcmp(event_type, "alert") == 0 && json_object_object_get_ex(o, "alert", &a)) {
         bool flow_alert = false;
 
+        /* Suricata Alert */
+
         if (json_object_object_get_ex(o, "flow", &f)) {
           parseSuricataFlow(f, &flow);
           flow_alert = true;
         }
 
-        parseSuricataAlert(a, &flow, flow_alert);
+        parseSuricataAlert(a, &flow, &icmp_info, flow_alert);
 
 #ifdef SYSLOG_DEBUG
       } else {
+
+        /* System Event */
+
         ntop->getTrace()->traceEvent(TRACE_NORMAL, "[Suricata] Event '%s' [%s]", event_type, timestamp);
 #endif
       }

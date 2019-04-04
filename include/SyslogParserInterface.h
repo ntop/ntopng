@@ -28,7 +28,7 @@ class SyslogParserInterface : public ParserInterface {
  private:
 
   void parseSuricataFlow(json_object *f, Parsed_Flow *flow);
-  void parseSuricataAlert(json_object *a, Parsed_Flow *flow, bool flow_alert);
+  void parseSuricataAlert(json_object *a, Parsed_Flow *flow, ICMPinfo *icmp_info, bool flow_alert);
 
  public:
   SyslogParserInterface(const char *endpoint, const char *custom_interface_type = NULL);

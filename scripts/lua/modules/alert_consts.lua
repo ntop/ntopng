@@ -55,6 +55,7 @@ alert_consts.alert_type_keys = {
    { "<i class='fa fa-life-ring'></i> " .. i18n("alerts_dashboard.dns_anomaly"),                   32, "dns_anomaly"                },
    { "<i class='fa fa-life-ring'></i> " .. i18n("alerts_dashboard.icmp_anomaly"),                  33, "icmp_anomaly"               },
    { "<i class='fa fa-sitemap'></i> " .. i18n("alerts_dashboard.broadcast_domain_too_large"),      34, "broadcast_domain_too_large" },
+   { "<i class='fa fa-eye'></i> " .. i18n("alerts_dashboard.ids_alert"),      35, "ids_alert" },
 }
 
 -- Keep in sync with ntop_typedefs.h:AlertEntity

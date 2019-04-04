@@ -79,6 +79,8 @@ Flow::Flow(NetworkInterface *_iface,
     last_db_dump.cli2srv_goodput_bytes = 0, last_db_dump.srv2cli_goodput_bytes = 0,
     last_db_dump.last_dump = 0;
 
+  suricata_alert = NULL;
+
   memset(&protos, 0, sizeof(protos));
   memset(&flow_device, 0, sizeof(flow_device));
 
@@ -243,6 +245,7 @@ Flow::~Flow() {
 
   freeDPIMemory();
   if(icmp_info)        delete(icmp_info);
+  if(suricata_alert) json_object_put(suricata_alert); 
 }
 
 /* *************************************** */
@@ -2026,7 +2029,11 @@ json_object* Flow::flow2statusinfojson() {
   }
 
   FlowStatus fs = getFlowStatus();
-  if(fs == status_elephant_local_to_remote)
+  if(fs == status_ids_alert) {
+    json_object *json_alert = getSuricataAlert();
+    if (json_alert)
+      json_object_object_add(obj, "ids_alert", json_object_get(json_alert));
+  } else if(fs == status_elephant_local_to_remote)
     json_object_object_add(obj, "elephant.l2r_threshold",
 			   json_object_new_int64(ntop->getPrefs()->get_elephant_flow_local_to_remote_bytes()));    
   else if(fs == status_elephant_remote_to_local)
@@ -3421,6 +3428,9 @@ FlowStatus Flow::getFlowStatus() {
   //if(get_protocol_category() == CUSTOM_CATEGORY_MINING)
   if(ndpiDetectedProtocol.category == CUSTOM_CATEGORY_MINING)
     return status_web_mining_detected;
+
+  if(getSuricataAlert())
+    return status_ids_alert;
 
 #ifndef HAVE_NEDGE
   /* All flows */
