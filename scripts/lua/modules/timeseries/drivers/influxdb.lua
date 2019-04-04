@@ -59,7 +59,7 @@ local function getResponseError(res)
       elseif jres.results then
         for _, single_res in pairs(jres.results) do
           if single_res.error then
-            return single_res.error
+            return single_res.error, single_res.statement_id
           end
         end
       end
@@ -250,9 +250,12 @@ local function multiQueryPost(queries, url, username, password)
     return false, err
   end
 
-  local err = getResponseError(res)
+  local err, statement_id = getResponseError(res)
   if err ~= 200 then
     local err = "Unexpected query error: " .. err
+    if statement_id ~= nil then
+      err = err .. string.format(", in query #%d: %s", statement_id, queries[statement_id+1] or "nil")
+    end
     traceError(TRACE_ERROR, TRACE_CONSOLE, err)
     return false, err
   end
