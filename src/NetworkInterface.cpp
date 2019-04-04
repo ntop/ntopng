@@ -2578,13 +2578,6 @@ decode_packet_eth:
 	}
 	
 	e  = getArpHashMatrixElement(srcMac->get_mac(), dstMac->get_mac(), arpp->arp_spa, arpp->arp_tpa, &src2dst_element);
-  
-/*
-	char buf1[32], buf2[32];
-	Utils::formatMac(srcMac->get_mac(), buf1, sizeof(buf1));
-	Utils::formatMac(dstMac->get_mac(), buf2, sizeof(buf2));
-*/
-
 
 	if(arp_opcode == 0x1 /* ARP request */) {
 	  arp_requests++;

@@ -64,7 +64,6 @@ local function bindIpMac(matrix)
 end
 
 --QUI HO TUTTI MAC (ANCHE CHI NON HA INVIATO REQ), SU ENTRAMBI GLI ASSI 
---group = X axis, variable = Y axis
 local function createHeatmapALLMACS(matrix)
     local t,tmp = {}, {}           --tmp:  [ index:"srcMAc-dstMac", value  ]
     local src_mac, dst_mac
@@ -173,11 +172,11 @@ local function createHeatmap(matrix, type)
 
     local t_res = {}
     for i,v in pairs(t) do
-        table.insert( t_res, { group = v.s, variable = v.d, value = v.v })
+        table.insert( t_res, { x_label = v.s, y_label = v.d, value = v.v })
     end
 
     function cmp(a,b)
-        return a.variable > b.variable
+        return a.y_label > b.y_label
     end
 
     table.sort(t_res, cmp)
@@ -242,23 +241,7 @@ end
 --print( json.encode( createHeatmap(matrix), {indent = true} ) )
 --print( json.encode( createChord(matrix), {indent = true} ) )
 
-function t_res.arpReqMap(mac_target)
-    local map = createHeatmap(matrix)
-    local res = {}
-
-    for i,v in pairs(map) do
-        if (v.variable == mac_target) then 
-            table.insert(res, v)
-        end
-    end
-
-    return res
-
-end
-
-
 --print( json.encode(matrix, {inednt=true}) )
 
 
-print( json.encode( createHeatmap(matrix, "all"), {indent = true} ) )
---print( json.encode( t_res.arpReqMap("52:54:00:C4:9A:15"), {indent = true} ) ) 
+print( json.encode( createHeatmap(matrix, "requests"), {indent = true} ) )

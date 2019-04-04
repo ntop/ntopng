@@ -103,14 +103,12 @@ if((ifstats ~= nil) and (ifstats.stats.packets > 0)) then
 
    print('</ul>\n\t</div>\n\t</nav>\n')
 
-   --map here
-
-
    print[[
 
 <script src="http://d3js.org/d3.v4.js"></script>
 
-<div style="background-color:whitesmoke", id="my_dataviz"></div>
+<div style="background-color:whitesmoke", id="container"></div>
+<div style="background-color:whitesmoke", id="container2"></div>
 
 <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
 <script src="]] print(ntop.getHttpPrefix()) print[[/js/heatmap.js"></script>
@@ -119,7 +117,7 @@ if((ifstats ~= nil) and (ifstats.stats.packets > 0)) then
   div.tooltip {	
     position: absolute;			
     text-align: center;			
-    width: 80px;					
+    width: 60px;					
     height: 40px;					
     padding: 2px;				
     font: 12px sans-serif bold;		
@@ -133,6 +131,8 @@ if((ifstats ~= nil) and (ifstats.stats.packets > 0)) then
 <script>
     map.build();
 </script>
+
+<script>history.scrollRestoration = "manual"</script>
 
    ]]
 

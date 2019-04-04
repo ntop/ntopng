@@ -1,13 +1,11 @@
 var arpReqGraph = (function (mac) {
 
+    // dimensions and margins of the graph
+    var margin = {top: 5, right: 10, bottom: 110, left: 100},
+    width = 300 - margin.left - margin.right,
+    height = 140 - margin.top - margin.bottom;
+
     var build = function(mac) {
-
-        // dimensions and margins of the graph
-        var margin = {top: 5, right: 0, bottom: 110, left: 110},
-        width = 500 - margin.left - margin.right,
-        height = 140 - margin.top - margin.bottom;
-
-        //TODO: make dinamic width/height
 
         var svg = d3.select("#my_dataviz")
         .append("svg")
@@ -17,9 +15,7 @@ var arpReqGraph = (function (mac) {
         .attr("transform",
                 "translate(" + margin.left + "," + margin.top + ")");
 
-
-        //console.log("/lua/get_mac_arp_data.lua?host="+mac);
-
+        
         d3.json("/lua/get_mac_arp_data.lua?host="+mac, function (data) {
 
         //( group = X axis, variable = Y axis )
@@ -29,9 +25,17 @@ var arpReqGraph = (function (mac) {
 
         // color scale
         var myColor = d3.scaleSequential()
-            .interpolator(d3.interpolateReds) //TODO: choose a chromatic scale [ https://github.com/d3/d3-scale-chromatic ]
-            .domain([1,100])
+            .interpolator(d3.interpolateInferno) //TODO: choose a chromatic scale [ https://github.com/d3/d3-scale-chromatic ]
+            .domain([1,200])
 
+        //width relative to receivers
+        width = (myGroups.length * 20);
+        
+
+        if ( width > 800) width = 800 - margin.left - margin.right;
+        if ( width < 150 )  width = 150  - margin.left - margin.right;
+
+        console.log("myGroup dim:"+myGroups.length+" , width: "+width)
 
         // X scales and axis:
         var x = d3.scaleBand()
@@ -87,6 +91,17 @@ var arpReqGraph = (function (mac) {
             .style("stroke", "none")
         }
 
+        //label click
+        function labelClick(d){
+          var url = window.location.href;
+          var segements = url.split("/");
+          segements[segements.length - 1] = "mac_details.lua?host="+d;
+          window.location.href = segements.join("/");
+            
+        }
+        d3.selectAll('.tick text')
+                .on('click',labelClick);
+
         // squares
         svg.selectAll()
             .data(data, function(d) {return d.group+':'+d.variable;})
@@ -112,14 +127,22 @@ var arpReqGraph = (function (mac) {
             .on("mouseover", mouseover)
             .on("mousemove", mousemove)
             .on("mouseleave", mouseleave);
-        });
+
+                    //apply svg resize
+        d3.select("#my_dataviz")
+        .select("svg")
+            .attr("width", width + margin.left + margin.right);
+            console.log("before exit build: "+width)
+        });//END BUILD
 
         //X axis description
         svg.append('text')
                 .attr('x', width / 2  )
                 .attr('y', height + margin.bottom - margin.top/2)
                 .attr('text-anchor', 'middle')
-                .text('Receivers')
+                .text('Receivers');
+
+
 
     }
     
