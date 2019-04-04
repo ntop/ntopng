@@ -705,7 +705,7 @@ local lang = {
     ["host_successfully_added_to_category"] = "Host \"%{host}\" successfully added to the <a href=\"%{url}\">%{category}</a> category. Only new flows will be affected by the rule.",
     ["http_method"] = "HTTP Method",
     ["icmp_info"] = "ICMP Info",
-    ["ids_alert"] = "Alert received from the IDS for this flow",
+    ["ids_alert"] = "Detected %{signature} (severity %{severity})",
     ["imsi"] = "IMSI (International mobile Subscriber Identity)",
     ["io_wait_time_percentage"] = "I/O Wait Time Percentage",
     ["jitter"] = "Jitter",
