@@ -1662,6 +1662,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
        || iface->is_ndpi_enabled()
        || iface->isSampledTraffic()
        || (iface->getIfType() == interface_type_ZMQ)
+       || (iface->getIfType() == interface_type_SYSLOG)
        || (iface->getIfType() == interface_type_ZC_FLOW)) {
       lua_push_str_table_entry(vm, "proto.ndpi", get_detected_protocol_name(buf, sizeof(buf)));
     } else
