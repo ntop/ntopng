@@ -259,8 +259,8 @@ schema:addMetric("alerts")
 schema = ts_utils.newSchema("host:contacts", {step=300, metrics_type=ts_utils.metrics.gauge})
 schema:addTag("ifid")
 schema:addTag("host")
-schema:addMetric("as_client")
-schema:addMetric("as_server")
+schema:addMetric("num_as_client")
+schema:addMetric("num_as_server")
 
 -- ##############################################
 
