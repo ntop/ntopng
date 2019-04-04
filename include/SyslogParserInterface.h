@@ -27,11 +27,15 @@
 class SyslogParserInterface : public ParserInterface {
  private:
 
+  void parseSuricataFlow(json_object *f, Parsed_Flow *flow);
+  void parseSuricataNetflow(json_object *f, Parsed_Flow *flow);
+  void parseSuricataAlert(json_object *a, Parsed_Flow *flow, ICMPinfo *icmp_info, bool flow_alert);
+
  public:
   SyslogParserInterface(const char *endpoint, const char *custom_interface_type = NULL);
   ~SyslogParserInterface();
 
-  u_int8_t parseLog(char *log_line, void *data);
+  u_int8_t parseLog(char *log_line);
 
   u_int32_t getNumDroppedPackets() { return 0; };
   virtual void lua(lua_State* vm);

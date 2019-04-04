@@ -89,6 +89,7 @@ typedef enum {
   alert_user_activity = 25,
   alert_influxdb_export_failure = 26,
   alert_port_errors = 27,
+  alert_ids = 35,
 } AlertType; /*
 	       NOTE:
 	       keep it in sync with alert_type_keys
@@ -302,6 +303,7 @@ typedef enum {
   status_elephant_remote_to_local, /* 18 */
   status_longlived, /* 19 */
   status_not_purged, /* 20 */
+  status_ids_alert /* 21 */,
 } FlowStatus;
 
 typedef enum {

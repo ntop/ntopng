@@ -1932,8 +1932,8 @@ drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
       {schema="host:total_alerts",           label=i18n("details.alerts")},
       {schema="host:net_unreachable_flows",  label="Net Unreachable Flows"},
       {schema="host:host_unreachable_flows", label="Host Unreachable Flows"},
-      {schema="host:dns_sent",               label="DNS Packets Sent"},
-      {schema="host:dns_rcvd",               label="DNS Packets Rcvd"},
+      {schema="host:dns_qry_sent_rsp_rcvd",  label=i18n("graphs.dns_qry_sent_rsp_rcvd")},
+      {schema="host:dns_qry_rcvd_rsp_sent",  label=i18n("graphs.dns_qry_rcvd_rsp_sent")},
       {schema="host:udp_pkts",               label="UDP Packets"},   
       {schema="host:tcp_stats",              label="TCP Stats"},        
 

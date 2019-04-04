@@ -530,8 +530,7 @@ void ZMQParserInterface::parseSingleFlow(json_object *o,
 
   /* Reset data */
   memset(&flow, 0, sizeof(flow));
-  flow.core.l7_proto.master_protocol = flow.core.l7_proto.app_protocol = NDPI_PROTOCOL_UNKNOWN;
-  flow.core.l7_proto.category = NDPI_PROTOCOL_CATEGORY_UNSPECIFIED;
+  flow.core.l7_proto = Flow::get_ndpi_unknown_protocol();
   flow.additional_fields = json_object_new_object();
   flow.core.pkt_sampling_rate = 1; /* 1:1 (no sampling) */
   flow.core.source_id = source_id, flow.core.vlan_id = 0;

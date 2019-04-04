@@ -222,7 +222,7 @@ int SyslogCollectorInterface::receiveFromClient(syslog_client *client) {
       buffer[len] = '\0';
       line = strtok_r(buffer, "\n", &pos);
       while (line) {
-        recvStats.num_flows += parseLog(line , this);
+        recvStats.num_flows += parseLog(line);
         line = strtok_r(NULL, "\n", &pos);
       }
     }
@@ -239,6 +239,7 @@ int SyslogCollectorInterface::receiveFromClient(syslog_client *client) {
 void SyslogCollectorInterface::collect_flows() {
   u_int32_t max_num_polls_before_purge = MAX_ZMQ_POLLS_BEFORE_PURGE;
   fd_set read_fds, write_fds, except_fds;
+  struct timeval timeout;
   time_t now, next_purge_idle = time(NULL) + FLOW_PURGE_FREQUENCY;;
   int high_sock = listen_sock;
   int i, rc;
@@ -253,14 +254,17 @@ void SyslogCollectorInterface::collect_flows() {
     }
 
     initFDSets(&read_fds, &write_fds, &except_fds);
-    
+
     high_sock = listen_sock;
     for (i = 0; i < MAX_ZMQ_SUBSCRIBERS; i++) {
       if (connections[i].socket > high_sock)
         high_sock = connections[i].socket;
     }
-    
-    rc = select(high_sock + 1, &read_fds, &write_fds, &except_fds, NULL);
+
+    timeout.tv_sec = MAX_ZMQ_POLL_WAIT_MS/1000;
+    timeout.tv_usec = (MAX_ZMQ_POLL_WAIT_MS%1000)*1000;
+
+    rc = select(high_sock + 1, &read_fds, &write_fds, &except_fds, &timeout);
  
     now = time(NULL);
     max_num_polls_before_purge--;
@@ -270,10 +274,7 @@ void SyslogCollectorInterface::collect_flows() {
       max_num_polls_before_purge = MAX_ZMQ_POLLS_BEFORE_PURGE;
     }
 
-    if (rc <= 0) {
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "select returned %d", rc);
-    } else {
- 
+    if (rc > 0) {
       if (FD_ISSET(listen_sock, &read_fds)) {
         handleNewConnection();
       }

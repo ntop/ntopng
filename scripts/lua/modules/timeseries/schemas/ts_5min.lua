@@ -214,7 +214,16 @@ schema:addMetric("flows_as_client")
 
 --##############################################
 
-schema = ts_utils.newSchema("host:dns_sent", {step = 300})
+schema = ts_utils.newSchema("host:dns_qry_sent_rsp_rcvd", {step = 300})
+schema:addTag("ifid")
+schema:addTag("host")
+schema:addMetric("queries_packets")
+schema:addMetric("replies_ok_packets")
+schema:addMetric("replies_error_packets")
+
+--##############################################
+
+schema = ts_utils.newSchema("host:dns_qry_rcvd_rsp_sent", {step = 300})
 schema:addTag("ifid")
 schema:addTag("host")
 schema:addMetric("queries_packets")
@@ -229,15 +238,6 @@ schema:addTag("host")
 schema:addMetric("retransmission_packets")
 schema:addMetric("out_of_order_packets")
 schema:addMetric("lost_packets")
-
---##############################################
-
-schema = ts_utils.newSchema("host:dns_rcvd", {step = 300})
-schema:addTag("ifid")
-schema:addTag("host")
-schema:addMetric("queries_packets")
-schema:addMetric("replies_ok_packets")
-schema:addMetric("replies_error_packets")
 
 --##############################################
 
@@ -259,8 +259,8 @@ schema:addMetric("alerts")
 schema = ts_utils.newSchema("host:contacts", {step=300, metrics_type=ts_utils.metrics.gauge})
 schema:addTag("ifid")
 schema:addTag("host")
-schema:addMetric("as_client")
-schema:addMetric("as_server")
+schema:addMetric("num_as_client")
+schema:addMetric("num_as_server")
 
 -- ##############################################
 

@@ -205,19 +205,19 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
             flows_as_server = host["host_unreachable_flows.as_server"],
             flows_as_client = host["host_unreachable_flows.as_client"]},
       when, verbose)
-  
+
   -- Number of dns packets sent
-  ts_utils.append("host:dns_sent", {ifid = ifstats.id, host = hostname,
+  ts_utils.append("host:dns_qry_sent_rsp_rcvd", {ifid = ifstats.id, host = hostname,
             queries_packets = host["dns"]["sent"]["num_queries"],
-            replies_ok_packets = host["dns"]["sent"]["num_replies_ok"],
-            replies_error_packets =host["dns"]["sent"]["num_replies_error"]},
+            replies_ok_packets = host["dns"]["rcvd"]["num_replies_ok"],
+            replies_error_packets =host["dns"]["rcvd"]["num_replies_error"]},
       when, verbose)
   
   -- Number of dns packets rcvd
-  ts_utils.append("host:dns_rcvd", {ifid = ifstats.id, host = hostname,
+  ts_utils.append("host:dns_qry_rcvd_rsp_sent", {ifid = ifstats.id, host = hostname,
             queries_packets = host["dns"]["rcvd"]["num_queries"],
-            replies_ok_packets = host["dns"]["rcvd"]["num_replies_ok"],
-            replies_error_packets = host["dns"]["rcvd"]["num_replies_error"]},
+            replies_ok_packets = host["dns"]["sent"]["num_replies_ok"],
+            replies_error_packets = host["dns"]["sent"]["num_replies_error"]},
       when, verbose)
   
   -- Number of udp packets
@@ -240,7 +240,7 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
 
   -- Contacts
   ts_utils.append("host:contacts", {ifid=ifstats.id, host=hostname,
-            as_client=host["contacts.as_client"], as_server=host["contacts.as_server"]}, when, verbose)
+            num_as_client=host["contacts.as_client"], num_as_server=host["contacts.as_server"]}, when, verbose)
 
   -- L4 Protocols
   for id, _ in pairs(l4_keys) do

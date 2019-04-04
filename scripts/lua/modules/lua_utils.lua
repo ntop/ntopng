@@ -2629,6 +2629,7 @@ function getFlowStatus(status, flowstatus_info, alert, no_icon)
    elseif(status == 18) then res = warn_sign..formatElephantFlowAlert(flowstatus_info, false --[[ remote 2 local --]])
    elseif(status == 19) then res = warn_sign..formatLongLivedFlowAlert(flowstatus_info)
    elseif(status == 20) then res = warn_sign..i18n("flow_details.not_purged")
+   elseif(status == 21) then res = warn_sign..i18n("flow_details.ids_alert", { signature=(flowstatus_info.ids_alert and flowstatus_info.ids_alert.signature), severity=(flowstatus_info.ids_alert and flowstatus_info.ids_alert.severity)} )
    end
 
    return res
