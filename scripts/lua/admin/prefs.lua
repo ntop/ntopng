@@ -409,6 +409,13 @@ function printAlerts()
   })
 
   prefsToggleButton(subpage_active, {
+    field = "toggle_ids_alerts",
+    pref = "ids_alerts",
+    default = "1",
+    hidden = not showElements,
+  })
+
+  prefsToggleButton(subpage_active, {
     field = "toggle_device_protocols_alerts",
     pref = "device_protocols_alerts",
     default = "0",

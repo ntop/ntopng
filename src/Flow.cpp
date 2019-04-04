@@ -346,7 +346,11 @@ void Flow::dumpFlowAlert() {
 
     case status_longlived:
       do_dump = ntop->getPrefs()->are_longlived_flows_alerts_enabled();
-       break;
+      break;
+
+    case status_ids_alert:
+      do_dump = ntop->getPrefs()->are_ids_alerts_enabled();
+      break;
     }
 
 #ifdef HAVE_NEDGE
