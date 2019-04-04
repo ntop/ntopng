@@ -350,6 +350,7 @@ class Flow : public GenericHashEntry {
 			      isDetectionCompleted() ? ndpiDetectedProtocol : ndpiUnknownProtocol,
 			      buf, buf_len));
   }
+  static inline ndpi_protocol get_ndpi_unknown_protocol() { return ndpiUnknownProtocol; };
 
   u_int32_t get_packetsLost();
   u_int32_t get_packetsRetr();
@@ -362,7 +363,6 @@ class Flow : public GenericHashEntry {
   u_int64_t get_current_packets_cli2srv();
   u_int64_t get_current_packets_srv2cli();
   inline bool idle() { return(is_ready_to_be_purged()); }
-  inline bool is_l7_protocol_guessed() { return(l7_protocol_guessed); };
   char* print(char *buf, u_int buf_len) const;
   void update_hosts_stats(struct timeval *tv, bool dump_alert);
   u_int32_t key();
@@ -378,7 +378,6 @@ class Flow : public GenericHashEntry {
 	     bool *src2srv_direction);
   bool clientLessThanServer() const;
   void sumStats(nDPIStats *stats);
-  void guessProtocol();
   bool dumpFlow(bool dump_alert);
   bool match(AddressTree *ptree);
   void dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_len);

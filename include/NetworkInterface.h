@@ -420,7 +420,7 @@ class NetworkInterface : public Checkpointable {
 		     const u_char *packet,
 		     u_int16_t *ndpiProtocol,
 		     Host **srcHost, Host **dstHost, Flow **flow);
-  void processFlow(ZMQ_Flow *zflow);
+  void processFlow(Parsed_Flow *zflow);
   void processInterfaceStats(sFlowInterfaceStats *stats);
   void getnDPIStats(nDPIStats *stats, AddressTree *allowed_hosts, const char *host_ip, u_int16_t vlan_id);
   void periodicStatsUpdate();
@@ -523,8 +523,9 @@ class NetworkInterface : public Checkpointable {
 
   void runHousekeepingTasks();
   void runShutdownTasks();
-
-  ArpStatsMatrixElement* getArpHashMatrixElement(const u_int8_t _src_mac[6], const u_int8_t _dst_mac[6], u_int32_t _src_ip, u_int32_t _dst_ip, bool * const src2dst);
+  ArpStatsMatrixElement* getArpHashMatrixElement(const u_int8_t _src_mac[6], const u_int8_t _dst_mac[6],
+						 const u_int32_t _src_ip, const u_int32_t _dst_ip,
+						 bool * const src2dst);
   Vlan* getVlan(u_int16_t vlanId, bool createIfNotPresent);
   AutonomousSystem *getAS(IpAddress *ipa, bool createIfNotPresent);
   Country* getCountry(const char *country_name, bool createIfNotPresent);

@@ -74,7 +74,7 @@ class Prefs {
   bool enable_mining_alerts;
   bool enable_dropped_flows_alerts, enable_device_protocols_alerts;
   bool enable_syslog_alerts, external_notifications_enabled;
-  bool enabled_malware_alerts;
+  bool enabled_malware_alerts, enabled_ids_alerts;
   bool enable_captive_portal, enable_informative_captive_portal, mac_based_captive_portal;
   bool dump_flow_alerts_when_iface_alerted;
   bool override_dst_with_post_nat_dst, override_src_with_post_nat_src;
@@ -329,6 +329,7 @@ class Prefs {
   inline bool are_alerts_syslog_enabled()                { return(enable_syslog_alerts);                };
   inline bool are_ext_alerts_notifications_enabled()     { return(external_notifications_enabled);      };
   inline bool are_malware_alerts_enabled()               { return(enabled_malware_alerts);              };
+  inline bool are_ids_alerts_enabled()                   { return(enabled_ids_alerts);              };
   inline bool do_dump_flow_alerts_when_iface_alerted()   { return(dump_flow_alerts_when_iface_alerted); };
   inline bool are_elephant_flows_alerts_enabled()        { return(enable_elephant_flows_alerts);        };
   inline bool are_longlived_flows_alerts_enabled()       { return(enable_longlived_flows_alerts);       };

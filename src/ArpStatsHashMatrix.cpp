@@ -23,42 +23,39 @@
 #include "ntop_includes.h"
 
 
-ArpStatsHashMatrix::ArpStatsHashMatrix(NetworkInterface *_iface, u_int _num_hashes, u_int _max_hash_size) :
+ArpStatsHashMatrix::ArpStatsHashMatrix(NetworkInterface *_iface,
+				       u_int _num_hashes, u_int _max_hash_size) :
   GenericHash(_iface, _num_hashes, _max_hash_size, "ArpStatsHashMatrix") {
   ;
 }
 
 /* ************************************ */
 
-ArpStatsMatrixElement* ArpStatsHashMatrix::get( u_int32_t _src_ip, u_int32_t _dst_ip, bool * const src2dst) {
-  if(_src_ip == 0 || _dst_ip == 0)
-    return(NULL);
-  else {
-    u_int32_t hash = _src_ip +_dst_ip;
-    hash %= num_hashes;
-
-    if(table[hash] == NULL) {
-      return(NULL);
-
-    } else {
-      ArpStatsMatrixElement *head;
-
-      locks[hash]->lock(__FILE__, __LINE__);
-      head = (ArpStatsMatrixElement*)table[hash];
-
-      while(head != NULL) {
-        if((!head->idle()) && head->equal(_src_ip, _dst_ip, src2dst))
-        
-          break;
-        else
-          head = (ArpStatsMatrixElement*)head->next();
-      }
+ArpStatsMatrixElement* ArpStatsHashMatrix::get(const u_int8_t _src_mac[6],
+					       const u_int32_t _src_ip, const u_int32_t _dst_ip,
+					       bool * const src2dst) {
+  u_int32_t hash = (_src_ip + _dst_ip) % num_hashes;
+  
+  if(table[hash] == NULL) {
+    return(NULL);    
+  } else {
+    ArpStatsMatrixElement *head;
     
-      locks[hash]->unlock(__FILE__, __LINE__);
+    locks[hash]->lock(__FILE__, __LINE__);
+    head = (ArpStatsMatrixElement*)table[hash];
     
-      return(head);
+    while(head != NULL) {
+      if((!head->idle()) && head->equal(_src_mac, _src_ip, _dst_ip, src2dst))
+	
+	break;
+      else
+	head = (ArpStatsMatrixElement*)head->next();
     }
-  }
+    
+    locks[hash]->unlock(__FILE__, __LINE__);
+    
+    return(head);
+  }  
 }
 
 /* ************************************ */

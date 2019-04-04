@@ -48,7 +48,8 @@ Prefs::Prefs(Ntop *_ntop) {
     enable_remote_to_remote_alerts = true,
     enable_dropped_flows_alerts = true, enable_device_protocols_alerts = false,
     enable_syslog_alerts = false, enable_captive_portal = false, mac_based_captive_portal = false,
-    enabled_malware_alerts = true, enable_elephant_flows_alerts = false, enable_longlived_flows_alerts = true,
+    enabled_malware_alerts = true, enabled_ids_alerts = true,
+    enable_elephant_flows_alerts = false, enable_longlived_flows_alerts = true,
     enable_arp_matrix_generation = false,
     enable_informative_captive_portal = false,
     external_notifications_enabled = false, dump_flow_alerts_when_iface_alerted = false,
@@ -588,6 +589,7 @@ void Prefs::reloadPrefsFromRedis() {
 							      CONST_DEFAULT_ALERT_LONGLIVED_FLOWS_ENABLED),
     enable_syslog_alerts  = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_ALERT_SYSLOG, CONST_DEFAULT_ALERT_SYSLOG_ENABLED),
     enabled_malware_alerts = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_MALWARE_ALERTS, CONST_DEFAULT_MALWARE_ALERTS_ENABLED),
+    enabled_ids_alerts = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_IDS_ALERTS, CONST_DEFAULT_IDS_ALERTS_ENABLED),
     external_notifications_enabled         = getDefaultBoolPrefsValue(ALERTS_MANAGER_EXTERNAL_NOTIFICATIONS_ENABLED, false),
     dump_flow_alerts_when_iface_alerted = getDefaultBoolPrefsValue(ALERTS_DUMP_DURING_IFACE_ALERTED, false),
 

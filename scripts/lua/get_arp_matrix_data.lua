@@ -243,5 +243,6 @@ end
 
 --print( json.encode(matrix, {inednt=true}) )
 
+print(matrix)
 
-print( json.encode( createHeatmap(matrix, "requests"), {indent = true} ) )
+--print( json.encode( createHeatmap(matrix, "requests"), {indent = true} ) )
