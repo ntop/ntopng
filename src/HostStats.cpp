@@ -66,8 +66,6 @@ void HostStats::getJSONObject(json_object *my_object, DetailsLevel details_level
     json_object_object_add(my_object, "anomalous_flows.as_server", json_object_new_int(getTotalAnomalousNumFlowsAsServer()));
     json_object_object_add(my_object, "unreachable_flows.as_client", json_object_new_int(unreachable_flows_as_client));
     json_object_object_add(my_object, "unreachable_flows.as_server", json_object_new_int(unreachable_flows_as_server));
-    json_object_object_add(my_object, "net_unreachable_flows.as_client", json_object_new_int(net_unreachable_flows_as_client));
-    json_object_object_add(my_object, "net_unreachable_flows.as_server", json_object_new_int(net_unreachable_flows_as_server));
     json_object_object_add(my_object, "host_unreachable_flows.as_client", json_object_new_int(host_unreachable_flows_as_client));
     json_object_object_add(my_object, "host_unreachable_flows.as_server", json_object_new_int(host_unreachable_flows_as_server));
     json_object_object_add(my_object, "total_alerts", json_object_new_int(total_alerts));

@@ -193,13 +193,7 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
 					   flows_as_client = host["unreachable_flows.as_client"],
 					   flows_as_server = host["unreachable_flows.as_server"]},
       when, verbose)
-  
-  -- Number of net unreachable flows
-  ts_utils.append("host:net_unreachable_flows", {ifid = ifstats.id, host = hostname,
-            flows_as_server = host["net_unreachable_flows.as_server"],
-            flows_as_client = host["net_unreachable_flows.as_client"]},
-      when, verbose)
-  
+    
   -- Number of host unreachable flows
   ts_utils.append("host:host_unreachable_flows", {ifid = ifstats.id, host = hostname,
             flows_as_server = host["host_unreachable_flows.as_server"],
