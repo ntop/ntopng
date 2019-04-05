@@ -68,13 +68,12 @@ var map = (function () {
 
         d3.selectAll(".x_label, .y_label")
         .style("fill", "black" )
-        .style("font-size", 10)
+        .style("font-size", 11)
     }
 
     var labelClick = function(d){
         var url = window.location.href;
         var segements = url.split("/");
-      //  segements[segements.length - 1] = "redirect.lua?host="+d;
         segements[segements.length - 1] = "host_details.lua?host="+d;
         window.location.href = segements.join("/"); 
     }
@@ -105,7 +104,7 @@ var map = (function () {
     var mouseleaveXAxisSquare = function(d){
         d3.selectAll(".x_label, .y_label")
         .style("fill", "black" )
-        .style("font-size", 10)
+        .style("font-size", 11)
     };
     //---------END-MOUSE-EVENT------------
 
@@ -330,16 +329,11 @@ var map = (function () {
     //the calling order of the functions is important: most variable are global
     var buildMap = function(data) {
 
-        //console.log("height: "+window.innerHeight+" width:"+window.innerWidth)
-        w_h = window.innerHeight - 200;
+        w_h = window.innerHeight - 330;
         w_w = window.innerWidth;
 
         max_X_elem = Math.floor(w_w / sq_w);
         max_Y_elem = Math.floor(w_h / sq_h);
-
-        //console.log(max_X_elem + " " + max_Y_elem)
-
-        //TODO: choose the number of element visualized based on window dim
 
         createSvg();
 
@@ -348,8 +342,6 @@ var map = (function () {
         X_elements.sort();//Y_elements already sorted
 
         d3.map(data, function(d){return d.y_label;}).keys()
-
-        
 
         //compute #tot pkt for each mac
         sendersTotPkts = {};
@@ -368,27 +360,12 @@ var map = (function () {
 
         Y_elements.forEach( e => { Yelem_to_display.push( {label:e, pkts:sendersTotPkts[e]} ) } );
         Yelem_to_display.sort( (a,b)=> { return b.pkts - a.pkts } );
-        //Yelem_to_display.forEach( e => console.log(e ));
 
         Yelem_to_display = Yelem_to_display.slice(0, max_Y_elem);
-        // Yelem_to_display.forEach( e => console.log(e ));
-        var new_Y_elements = new Array();
         var new_data = data.filter( e => { 
-            // var tmp = {label:e.y_label, pkts:sendersTotPkts[e.y_label]}
-            // console.log("tmp: ")
-            // console.log(tmp)
-            // return Yelem_to_display.includes(tmp);
-
-            if (Yelem_to_display.some( d => {return d.label == e.y_label} ) ){
-                
-                return true;
-            }else{
-
-            }
-
+            return Yelem_to_display.some( d => {return d.label == e.y_label} ) 
         });
 
-        console.log(new_data);
         data = new_data;
 
         X_elements = d3.map(data, function(d){return d.x_label;}).keys()
@@ -441,7 +418,7 @@ var map = (function () {
         width = (X_elements.length * 17);
         //size are tmp
         height = 100  - margin.top - margin.bottom;
-        if ( width > 700) width = 700 - margin.left - margin.right;
+        if ( width > 800) width = 800 - margin.left - margin.right;
         if ( width + margin.left + margin.right < 150 )  width = 150  - margin.left - margin.right;
 
         //apply svg resize
@@ -498,7 +475,7 @@ var map = (function () {
             build(address);
         else
             build();
-    }, 100000);
+    }, 5000);
   
     return {
         build:build
