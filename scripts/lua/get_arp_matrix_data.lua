@@ -14,26 +14,15 @@ local t_res = {}
 
 
 sendHTTPContentTypeHeader('application/json')
---sendHTTPContentTypeHeader('text/html')
 
---g: the type og graph ( 1 -sigma graph, 2 -heb graph )
---t: the type of data visualized (1-broadcast,2-replies,3-requests)
---local g,t = _GET["g"], _GET["t"]
---print(g..t)
---MISSING VALIDATION!
-
-
---========UTILS=======(but not currently used)==============================
---[[
---chack if inside "t" there is a mac named "name", if true return the index, nil otherwise 
-local function containName(t,name)
-    for i,v in pairs(t) do
-        if v.labels == name then return i end
-    end
-    return nil
+--split the string "s" with the "sep" separator
+local function split(s,sep)
+    local sep, fields = sep, {}
+    local pattern = string.format("([^%s]+)", sep)
+    s:gsub(pattern, function(c) fields[#fields+1] = c end)
+    return fields
 end
 
-  ]]
 
 --return: t =  contain [ip:mac] (source) values
 --        m = the Set of the Macs.
@@ -119,7 +108,7 @@ end
 --      src_mac-dst_mac perché se il sorgente della request ha cambiato IP tale comunicazione 
 --      sarà in un diverso elemento della matrice, e andrà a sostituire (o in conflitto) 
 --      l'eventuale elemento precedente con i stessi mac src e dst.
-local function createHeatmap(matrix, type)
+local function createHeatmapOLD(matrix, type)
     local t = {}          
     local src_mac, dst_mac
     local b,m = bindIpMac(matrix) --b contain [ip:mac] (source) values, and m is the Set of all the Macs.
@@ -184,14 +173,6 @@ local function createHeatmap(matrix, type)
     return t_res
 end
 
-
---TODO: prima di mettere dentro a "t"gli elementi, sarebbe meglio fare una tabella con chiave 
---      src_mac-dst_mac perché se il sorgente della request ha cambiato IP tale comunicazione 
---      sarà in un diverso elemento della matrice, e andrà a sostituire (o in conflitto) 
---      l'eeventiale elemento precedente con i stessi mac src e dst.
---FATTO, TESTALO
-
-
 local function createChord(matrix)
     local t = {}          
     local src_mac, dst_mac
@@ -238,11 +219,57 @@ local function createChord(matrix)
     return t_res
 end
 
---print( json.encode( createHeatmap(matrix), {indent = true} ) )
+
+
+local function createHeatmap(matrix, type)
+    local t = {}   
+    local tmp = {}       
+    --local src_mac, dst_mac
+    --local b,m = bindIpMac(matrix) --b contain [ip:mac] (source) values, and m is the Set of all the Macs.
+    local v = 0
+    local t_res = {}
+    local treshold = 1
+
+    for _, m_elem in pairs(matrix) do
+        for i,stats in pairs(m_elem)do
+            tmp = split(i,"-")
+            src_ip = tmp[1]
+            dst_ip = tmp[2]
+
+            if      type == "requests" then v = stats["src2dst.requests"]
+            elseif  type == "replies"  then v = stats["src2dst.replies"]
+            elseif  type == "all"      then v = stats["src2dst.requests"] + stats["src2dst.replies"]
+            end
+
+            if v > treshold  then
+                table.insert( t_res, { x_label = dst_ip, y_label = src_ip, value = v })
+            end
+            v = 0
+           
+            if      type == "requests" then v = stats["dst2src.requests"]
+            elseif  type == "replies"  then v = stats["dst2src.replies"]
+            elseif  type == "all"      then v = stats["dst2src.requests"] + stats["dst2src.replies"]
+            end                    
+
+            if v > treshold then
+                table.insert( t_res, { x_label = src_ip, y_label = dst_ip, value = v })
+            end      
+        
+            function cmp(a,b)
+                return a.y_label > b.y_label
+            end
+        
+            table.sort(t_res, cmp)
+        
+        end
+    end
+
+    return t_res
+end
+
+
 --print( json.encode( createChord(matrix), {indent = true} ) )
 
 --print( json.encode(matrix, {inednt=true}) )
 
-print(matrix)
-
---print( json.encode( createHeatmap(matrix, "requests"), {indent = true} ) )
+print( json.encode( createHeatmap(matrix, "all"), {indent = true} ) )

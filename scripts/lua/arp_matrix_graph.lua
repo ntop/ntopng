@@ -107,8 +107,8 @@ if((ifstats ~= nil) and (ifstats.stats.packets > 0)) then
 
 <script src="http://d3js.org/d3.v4.js"></script>
 
-<div style="background-color:whitesmoke", id="container"></div>
-<div style="background-color:whitesmoke", id="container2"></div>
+<div style="background-color:white", id="container"></div>
+<div style="background-color:white", id="container2"></div>
 
 <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
 <script src="]] print(ntop.getHttpPrefix()) print[[/js/heatmap.js"></script>

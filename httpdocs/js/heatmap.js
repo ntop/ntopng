@@ -13,8 +13,8 @@ var map = (function () {
     var x,y;
 
     //square dim
-    var sq_h = 20;
-    var sq_w = 20;
+    var sq_h = 11;
+    var sq_w = 11;
 
     var tooltip;
 
@@ -66,7 +66,8 @@ var map = (function () {
     var labelClick = function(d){
         var url = window.location.href;
         var segements = url.split("/");
-        segements[segements.length - 1] = "mac_details.lua?host="+d;
+      //  segements[segements.length - 1] = "redirect.lua?host="+d;
+        segements[segements.length - 1] = "host_details.lua?host="+d;
         window.location.href = segements.join("/"); 
     }
 
@@ -104,9 +105,9 @@ var map = (function () {
         width = (X_elements.length * sq_w);
         height = (Y_elements.length * sq_h);
 
-        if (height > 800 ) height = 800  - margin.top - margin.bottom;
+     //   if (height > 800 ) height = 800  - margin.top - margin.bottom;
         if (height + margin.top + margin.bottom < 250 ) height = 250  - margin.top - margin.bottom;
-        if ( width > 1100) width = 1100 - margin.left - margin.right;
+     //   if ( width > 1100) width = 1100 - margin.left - margin.right;
         if ( width + margin.left + margin.right < 666 )  width = 666  - margin.left - margin.right;//tmp for not clip the legend
 
         //apply svg resize
@@ -355,7 +356,7 @@ var map = (function () {
 
     setInterval(function() {
         build();
-    }, 2000);
+    }, 10000);
   
     return {
         build:build

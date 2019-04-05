@@ -1,11 +1,11 @@
-var arpReqGraph = (function (mac) {
+var map = (function (addr) {
 
     // dimensions and margins of the graph
     var margin = {top: 5, right: 10, bottom: 110, left: 100},
     width = 300 - margin.left - margin.right,
     height = 140 - margin.top - margin.bottom;
 
-    var build = function(mac) {
+    var build = function(addr) {
 
         var svg = d3.select("#my_dataviz")
         .append("svg")
@@ -16,12 +16,12 @@ var arpReqGraph = (function (mac) {
                 "translate(" + margin.left + "," + margin.top + ")");
 
         
-        d3.json("/lua/get_mac_arp_data.lua?host="+mac, function (data) {
+        d3.json("/lua/get_mac_arp_data.lua?host="+addr, function (data) {
 
-        //( group = X axis, variable = Y axis )
-        // Labels of row and columns -> unique identifier of the column called 'group' and 'variable'
-        var myGroups = d3.map(data, function(d){return d.group;}).keys()
-        var myVars = d3.map(data, function(d){return d.variable;}).keys()
+        var Xelements = d3.map(data, function(d){return d.x_label;}).keys()
+        var Yelements = d3.map(data, function(d){return d.y_label;}).keys()
+
+        console.log(data);
 
         // color scale
         var myColor = d3.scaleSequential()
@@ -29,18 +29,18 @@ var arpReqGraph = (function (mac) {
             .domain([1,200])
 
         //width relative to receivers
-        width = (myGroups.length * 20);
+        width = (Xelements.length * 20);
         
 
         if ( width > 800) width = 800 - margin.left - margin.right;
         if ( width < 150 )  width = 150  - margin.left - margin.right;
 
-        console.log("myGroup dim:"+myGroups.length+" , width: "+width)
+        console.log("myGroup dim:"+Xelements.length+" , width: "+width)
 
         // X scales and axis:
         var x = d3.scaleBand()
             .range([ 0, width ])
-            .domain(myGroups)
+            .domain(Xelements)
             .padding(0.05);
         svg.append("g")
             .style("font-size", 10)
@@ -57,7 +57,7 @@ var arpReqGraph = (function (mac) {
         // Y scales and axis:
         var y = d3.scaleBand()
             .range([ height, 0 ])
-            .domain(myVars)
+            .domain(Yelements)
             .padding(0.05);
         svg.append("g")
             .style("font-size", 10)
@@ -95,7 +95,7 @@ var arpReqGraph = (function (mac) {
         function labelClick(d){
           var url = window.location.href;
           var segements = url.split("/");
-          segements[segements.length - 1] = "mac_details.lua?host="+d;
+          segements[segements.length - 1] = "host_details.lua?host="+d;
           window.location.href = segements.join("/");
             
         }
@@ -104,11 +104,11 @@ var arpReqGraph = (function (mac) {
 
         // squares
         svg.selectAll()
-            .data(data, function(d) {return d.group+':'+d.variable;})
+            .data(data, function(d) {return d.x_label+':'+d.y_label;})
             .enter()
             .append("rect")
-            .attr("x", function(d) { return x(d.group) })
-            .attr("y", function(d) { return y(d.variable) })
+            .attr("x", function(d) { return x(d.x_label) })
+            .attr("y", function(d) { return y(d.y_label) })
             .attr("rx", 4)
             .attr("ry", 4)
             .attr("width", x.bandwidth() )
@@ -160,7 +160,7 @@ var arpReqGraph = (function (mac) {
 
   var myGradesCalculate = (function () {
     
-    // Keep this variable private inside this closure scope
+    // Keep this y_label private inside this closure scope
     var myGrades = [93, 95, 88, 0, 55, 91];
     
     var average = function() {

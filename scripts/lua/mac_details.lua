@@ -297,19 +297,12 @@ print([[<tr>
 </tr>]])
 end
 
-   -- Stats reset
-   print(
-     template.gen("modal_confirm_dialog.html", {
-       dialog={
-         id      = "reset_mac_stats_dialog",
-         action  = "$('#reset_mac_stats_form').submit();",
-         title   = i18n("mac_details.reset_mac_stats"),
-         message = i18n("host_details.reset_host_stats_confirm", {host=mac}) .. "<br><br>" .. i18n("mac_details.reset_mac_stats_note"),
-         confirm = i18n("reset"),
-       }
-     })
-   )
    --==========================WIP=======================================
+
+
+   --local a = mac_info.ip
+   tprint(mac_info)
+
    print[[<tr><th width=30% >]] print("ARP Request Map")
    print[[</th><td colspan=2><form id='arp_req_map' method="POST">
 
@@ -336,16 +329,28 @@ end
 
       <script>
 
-      arpReqGraph.build("]] print(mac) print[[");
+      map.build("]] print(mac) print[[");
 
       </script>
-    
+      
    
    </form>
    </td></tr>]]
 
    --=====================================================================
 
+   -- Stats reset
+   print(
+     template.gen("modal_confirm_dialog.html", {
+       dialog={
+         id      = "reset_mac_stats_dialog",
+         action  = "$('#reset_mac_stats_form').submit();",
+         title   = i18n("mac_details.reset_mac_stats"),
+         message = i18n("host_details.reset_host_stats_confirm", {host=mac}) .. "<br><br>" .. i18n("mac_details.reset_mac_stats_note"),
+         confirm = i18n("reset"),
+       }
+     })
+   )
    print[[<tr><th width=30% >]] print(i18n("mac_details.reset_mac_stats"))
    print[[</th><td colspan=2><form id='reset_mac_stats_form' method="POST">
       <input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />

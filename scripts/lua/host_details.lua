@@ -654,7 +654,7 @@ end
    end
 
    -- Stats reset
-   print(
+   print(   
      template.gen("modal_confirm_dialog.html", {
        dialog={
          id      = "reset_host_stats_dialog",
@@ -672,6 +672,46 @@ end
    </form>
    <button class="btn btn-default" onclick="$('#reset_host_stats_dialog').modal('show')">]] print(i18n("host_details.reset_host_stats")) print[[</button>
    </td></tr>]]
+
+
+   --==========================WIP=======================================
+   print[[<tr><th width=30% >]] print("ARP Request Map")
+   print[[</th><td colspan=2><form id='arp_req_map' method="POST">
+
+      <script src="http://d3js.org/d3.v4.js"></script>
+      <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+      <script src="]] print(ntop.getHttpPrefix()) print[[/js/map.js"></script>
+      <div style="background-color:rgb(184, 202, 202)", id="my_dataviz"></div>
+
+
+      <style>
+      div.tooltip {	
+         position: absolute;			
+         text-align: center;			
+         width: 80px;					
+         height: 40px;					
+         padding: 2px;				
+         font: 12px sans-serif bold;		
+         background: rgb(171, 203, 245);	
+         border: 0px;		
+         border-radius: 8px;			
+         pointer-events: none;			
+      }
+      </style>
+
+      <script>
+
+      map.build("]] print(host_ip) print[[");
+
+      </script>
+      
+   
+   </form>
+   </td></tr>]]
+
+   --=====================================================================
+
+
 
    local num_extra_names = 0
    local extra_names = host["names"]

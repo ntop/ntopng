@@ -60,11 +60,7 @@ bool ArpStatsMatrixElement::idle() {
 
 bool ArpStatsMatrixElement::equal(const u_int8_t _src_mac[6],
 				  const u_int32_t _src_ip, const u_int32_t _dst_ip,
-<<<<<<< HEAD
-				  bool * const src2dst)  {
-=======
 				  bool * const src2dst) {
->>>>>>> 1586e4f1bec94fa3f964e8c63dd83c18e474dd1a
 
   if((src_ip == _src_ip) && (dst_ip == _dst_ip)) {
     if(memcmp(src_mac, _src_mac, 6) != 0) {

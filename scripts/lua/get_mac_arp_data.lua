@@ -9,121 +9,64 @@ require "lua_utils"
 local json = require("dkjson")
 local matrix = interface.getArpStatsMatrixInfo()
 
-
 sendHTTPContentTypeHeader('application/json')
 
 local host_info = url2hostinfo(_GET)
-local mac = host_info["host"]
+local ip = host_info["host"]
+--print(ip)
+
+local info = interface.getHostInfo(ip)
+tprint(info)
+--TODO: prendi i nomi?
+
+--tskey string fe80::5e2e:4b27:7f84:97a7
+--names.dhcp string fra-AspireV15
+--ip string fe80::5e2e:4b27:7f84:97a7
+--name string DESKTOP-4DGATJJ
+--mac string 98:E7:F4:2F:5C:23
+--names.resolved string pc-pellegrini.iit.cnr.it
+--ipkey number 2452644127
 
 
-local function bindIpMac(matrix)
-    local t,m = {},{}
-    local src_mac, dst_mac
-
-    for _, m_elem in ipairs(matrix) do
-        for src_ip, s_elem in pairs(m_elem)do
-            for dst_ip, stats in pairs(s_elem) do
-
-                src_mac = stats["srcMac"] 
-                dst_mac = stats["dstMac"]
-     
-                if not t[src_ip] or (t[src_ip] ~= src_mac ) then 
-                    t[src_ip] = src_mac
-                end
-
-                m[src_mac] = true
-                if dst_mac ~= "FF:FF:FF:FF:FF:FF" then 
-                    m[dst_mac] = true
-                end
-            end
-        end
-    end
-
-    return t, m
-end
-
-
-local function createHeatmap(matrix, type)
-    local t = {}          
-    local src_mac, dst_mac
-    local b,m = bindIpMac(matrix) --b contain [ip:mac] (source) values, and m is the Set of all the Macs.
+local function createMap4Target(matrix, type, ip_target)
+    local tmp = {}       
     local v = 0
+    local t_res = {}
+    local treshold = 1
 
-    for _, m_elem in ipairs(matrix) do
-        for src_ip, s_elem in pairs(m_elem)do
-            for dst_ip, stats in pairs(s_elem) do
+    for _, m_elem in pairs(matrix) do
+        for i,stats in pairs(m_elem)do
 
-                src_mac = stats["srcMac"] 
-                dst_mac = stats["dstMac"]
+            tmp = split(i,"-")
+            src_ip = tmp[1]
+            dst_ip = tmp[2]
 
-                if (dst_mac == "FF:FF:FF:FF:FF:FF"  and b[dst_ip] ) then 
-                    dst_mac = b[dst_ip]
-                end
-
-                if (dst_mac ~= "FF:FF:FF:FF:FF:FF") and (src_mac ~= dst_mac ) then
-
-                    if      type == "requests" then v = stats["src2dst.requests"]
-                    elseif  type == "replies" then v = stats["src2dst.replies"]
-                    elseif  type == "all"     then v = stats["src2dst.requests"] + stats["src2dst.replies"]
-                    end
-
-                    if v > 0 then
-                        if t[src_mac..dst_mac] then                            
-
-                            t[src_mac..dst_mac].v = t[src_mac..dst_mac].v + v
-                        else
-                            t[src_mac..dst_mac] = { s = src_mac, d = dst_mac, v = v }
-                        end
-                    end
-                    v = 0
-                   
-                    if      type == "requests" then v = stats["dst2src.requests"]
-                    elseif  type == "replies" then v = stats["dst2src.replies"]
-                    elseif  type == "all"     then v = stats["dst2src.requests"] + stats["dst2src.replies"]
-                    end                    
-
-                    if v > 0 then
-                        if t[dst_mac..src_mac] then 
-                            t[dst_mac..src_mac].v = t[dst_mac..src_mac].v + v
-                        else
-                            t[dst_mac..src_mac] = { s = dst_mac, d = src_mac, v = v }
-                        end
-                    end      
-                end--end broadcast if
+            if      type == "requests" then v = stats["src2dst.requests"]
+            elseif  type == "replies"  then v = stats["src2dst.replies"]
+            elseif  type == "all"      then v = stats["src2dst.requests"] + stats["src2dst.replies"]
             end
+
+            if (v > treshold) and (src_ip == ip_target)  then
+                table.insert( t_res, { x_label = dst_ip, y_label = src_ip, value = v })
+            end
+            v = 0
+           
+            if      type == "requests" then v = stats["dst2src.requests"]
+            elseif  type == "replies"  then v = stats["dst2src.replies"]
+            elseif  type == "all"      then v = stats["dst2src.requests"] + stats["dst2src.replies"]
+            end                    
+
+            if (v > treshold) and (dst_ip == ip_target)   then
+                table.insert( t_res, { x_label = src_ip, y_label = dst_ip, value = v })
+            end          
+
         end
     end
 
-    local t_res = {}
-    for i,v in pairs(t) do
-        table.insert( t_res, { group = v.s, variable = v.d, value = v.v })
-    end
-
-    function cmp(a,b)
-        return a.variable > b.variable
-    end
-
-    table.sort(t_res, cmp)
-
+    --tprint(t_res)
     return t_res
 end
 
-function macArpMap(mac_target, type)
-    local map = createHeatmap(matrix, type)
-    local res = {}
-
-    for i,v in pairs(map) do
-        if (v.variable == mac_target) then 
-            table.insert(res, v)
-        end
-    end
-
-    return res
-end
-
-
 --print( json.encode(matrix, {inednt=true}) )
-
---print( json.encode( createHeatmap(matrix, "requests"), {indent = true} ) )
-print( json.encode( macArpMap(mac, "requests"), {indent = true} ) ) 
+print( json.encode( createMap4Target(matrix, "all", ip), {indent = true} ) ) 
 
