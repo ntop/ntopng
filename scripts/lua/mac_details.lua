@@ -297,48 +297,6 @@ print([[<tr>
 </tr>]])
 end
 
-   --==========================WIP=======================================
-
-
-   --local a = mac_info.ip
-   tprint(mac_info)
-
-   print[[<tr><th width=30% >]] print("ARP Request Map")
-   print[[</th><td colspan=2><form id='arp_req_map' method="POST">
-
-      <script src="http://d3js.org/d3.v4.js"></script>
-      <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
-      <script src="]] print(ntop.getHttpPrefix()) print[[/js/map.js"></script>
-      <div style="background-color:rgb(184, 202, 202)", id="my_dataviz"></div>
-
-
-      <style>
-      div.tooltip {	
-         position: absolute;			
-         text-align: center;			
-         width: 80px;					
-         height: 40px;					
-         padding: 2px;				
-         font: 12px sans-serif bold;		
-         background: rgb(171, 203, 245);	
-         border: 0px;		
-         border-radius: 8px;			
-         pointer-events: none;			
-      }
-      </style>
-
-      <script>
-
-      map.build("]] print(mac) print[[");
-
-      </script>
-      
-   
-   </form>
-   </td></tr>]]
-
-   --=====================================================================
-
    -- Stats reset
    print(
      template.gen("modal_confirm_dialog.html", {

@@ -675,13 +675,14 @@ end
 
 
    --==========================WIP=======================================
-   print[[<tr><th width=30% >]] print("ARP Request Map")
+   print[[<tr><th width=30% >]] print("ARP Requests Receivers")
    print[[</th><td colspan=2><form id='arp_req_map' method="POST">
 
       <script src="http://d3js.org/d3.v4.js"></script>
       <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
-      <script src="]] print(ntop.getHttpPrefix()) print[[/js/map.js"></script>
-      <div style="background-color:rgb(184, 202, 202)", id="my_dataviz"></div>
+      <script src="]] print(ntop.getHttpPrefix()) print[[/js/heatmap.js"></script>
+      <div style="background-color:white", id="container"></div>
+      <div style="background-color:white", id="container2"></div>
 
 
       <style>

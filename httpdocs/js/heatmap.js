@@ -1,5 +1,8 @@
 var map = (function () {
 
+    var isDetail = false;7
+    var address;
+
     // base dimensions and margins of the graph
     var margin = {top: 80, right: 20, bottom: 120, left: 150},
     width = 1100 - margin.left - margin.right,
@@ -125,7 +128,7 @@ var map = (function () {
             .domain(X_elements)
             .padding(0.05);
         svg.append("g")
-            .style("font-size", 10)
+            .style("font-size", 11)
             .attr("transform", "translate(0," + height + ")")
             .call(d3.axisBottom(x).tickSize(0))
             //.select(".domain").remove()
@@ -144,7 +147,7 @@ var map = (function () {
         .domain(Y_elements)
         .padding(0.05);
     svg.append("g")
-        .style("font-size", 10)
+        .style("font-size", 11)
         .call(d3.axisLeft(y).tickSize(0))
         .selectAll("text")
         .attr("class", "y_label")
@@ -231,6 +234,15 @@ var map = (function () {
         svgFlag = !svgFlag;
     };
 
+    var printNoHost = function(){
+        svg.append("text")
+                .attr("x",  - margin.left)
+                .attr("y", 12)
+                .attr("text-anchor", "left")
+                .style("font-size", "14px")
+                .text("No Requests");
+    };
+
     //TODO: maybe is better print the text/img in the html file and not here in the svg
     var printText = function(){
         // Add title to graph
@@ -307,8 +319,12 @@ var map = (function () {
         return svgFlag ? "#container" : "#container2";
     };
 
+    //########################################################################################  
+
     //the calling order of the functions is important: most variable are global
     var buildMap = function(data) {
+
+        //TODO: choose the number of element visualized based on window dim
 
         createSvg();
 
@@ -350,15 +366,92 @@ var map = (function () {
         d3.select( getCurrentContainerID() ).selectAll("*").remove();
     };
 
-    var build = function() {        
-        d3.json("/lua/get_arp_matrix_data.lua", buildMap);
+    //########################################################################################
+
+    var buildMiniMap = function(data){
+
+        createSvg();
+
+        X_elements = d3.map(data, function(d){return d.x_label;}).keys()
+        Y_elements = d3.map(data, function(d){return d.y_label;}).keys()
+        X_elements.sort();//Y_elements has only 1 elem
+
+        if (X_elements.length == 0){
+            height = 20;
+            d3.select( getCurrentContainerID() )
+            .select("svg")
+                .attr("height", height);
+            printNoHost();
+            changeContainerID();
+            d3.select( getCurrentContainerID() ).selectAll("*").remove();
+            return;
+        }
+
+        //setSvgDim();
+        width = (X_elements.length * 17);
+        //size are tmp
+        height = 100  - margin.top - margin.bottom;
+        if ( width > 700) width = 700 - margin.left - margin.right;
+        if ( width + margin.left + margin.right < 150 )  width = 150  - margin.left - margin.right;
+
+        //apply svg resize
+        d3.select( getCurrentContainerID() )
+        .select("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom);
+
+        console.log("w: "+width+" h: "+height);
+
+        //compute #tot pkt for each mac
+        sendersTotPkts = {};
+        maxTotPkt = 0;
+        d3.map(data).values().forEach(e => {
+            if (e.value > maxTotPkt)
+                maxTotPkt = e.value;
+        });
+
+        //choose a chromatic scale [ https://github.com/d3/d3-scale-chromatic ]
+        myColor = d3.scaleSequential().interpolator(d3.interpolateInferno).domain([1,maxTotPkt]);
+
+        setXaxis();
+        setYaxis();
+
+        d3.selectAll('.tick text').on('click',labelClick);
+
+        //setXaxisSquare(data);
+        createTooltip();
+        createSquares(data);
+
+        // printText();
+
+        //only now (new svg drawn) i can remove (and replace) the old svg
+        changeContainerID();
+        d3.select( getCurrentContainerID() ).selectAll("*").remove();
+        
+        
+    };
+
+    //########################################################################################
+
+    var build = function(addr) {
+        if (addr){
+            isDetail = true;
+            address = addr;
+            margin = {top: 5, right: 10, bottom: 70, left: 100};
+            d3.json("/lua/get_arp_matrix_data.lua?host="+addr,  buildMiniMap);
+        }else
+            d3.json("/lua/get_arp_matrix_data.lua",buildMap);
     };
 
     setInterval(function() {
-        build();
+        if (isDetail)
+            build(address);
+        else
+            build();
     }, 10000);
   
     return {
         build:build
     }
+
 })();
