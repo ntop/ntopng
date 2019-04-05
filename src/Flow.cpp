@@ -102,11 +102,6 @@ Flow::Flow(NetworkInterface *_iface,
       if(cli_host) cli_host->incNumUnreachableFlows(true  /* as server */);
       if(srv_host) srv_host->incNumUnreachableFlows(false /* as client */);
     }
-    else if(icmp_info->isNetUnreachable(protocol)){
-      
-      if(cli_host) cli_host->incNumNetUnreachableFlows(true  /* as server */);
-      if(srv_host) srv_host->incNumNetUnreachableFlows(false /* as client */);
-    }
     else if(icmp_info->isHostUnreachable(protocol)){
 
       if(cli_host) cli_host->incNumHostUnreachableFlows(true  /* as server */);
@@ -566,20 +561,20 @@ void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
   /* Let the client SSL certificate win over the server SSL certificate
      this addresses detection for youtube, e.g., when the client
      requests s.youtube.com but the server responds with google.com */
-  if(!forceDetection
-     && proto_id.master_protocol == NDPI_PROTOCOL_SSL
-     && get_packets() < NDPI_MIN_NUM_PACKETS
+  if((!forceDetection)
+     && (proto_id.master_protocol == NDPI_PROTOCOL_SSL)
+     && (get_packets() < NDPI_MIN_NUM_PACKETS)
      && (ndpif = get_ndpi_flow())
-     && ndpif->protos.stun_ssl.ssl.client_certificate[0] == '\0'
-     && ndpif->protos.stun_ssl.ssl.server_certificate[0] == '\0') {
+     && ((ndpif->protos.stun_ssl.ssl.client_certificate[0] == '\0')
+	 || (ndpif->protos.stun_ssl.ssl.server_certificate[0] == '\0'))) {
     ndpif->detected_protocol_stack[0] = NDPI_PROTOCOL_UNKNOWN;
     return;
   }
-
-  if(proto_id.app_protocol != NDPI_PROTOCOL_UNKNOWN
+  
+  if((proto_id.app_protocol != NDPI_PROTOCOL_UNKNOWN)
      || forceDetection
-     || get_packets() >= NDPI_MIN_NUM_PACKETS
-     || !iface->is_ndpi_enabled()
+     || (get_packets() >= NDPI_MIN_NUM_PACKETS)
+     || (!iface->is_ndpi_enabled())
      || iface->isSampledTraffic()) {
     ndpiDetectedProtocol.master_protocol = proto_id.master_protocol;
     ndpiDetectedProtocol.app_protocol = proto_id.app_protocol;
