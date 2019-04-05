@@ -2602,6 +2602,40 @@ end
 
 -- ###############################################
 
+function formatBlacklistedFlow(status, flowstatus_info, alert)
+   local threshold = ""
+
+   local who = {}
+   if not flowstatus_info then
+      return i18n("flow_details.blacklisted_flow")
+   end
+
+   if flowstatus_info["blacklisted.cli"] then
+      who[#who + 1] = i18n("client")
+   end
+
+   if flowstatus_info["blacklisted.srv"] then
+      who[#who + 1] = i18n("server")
+   end
+
+   -- if either the client or the server is blacklisted
+   -- then also the category is blacklisted so there's no need
+   -- to check it
+   if #who == 0 and flowstatus_info["blacklisted.cat"] then
+      who[#who + 1] = i18n("category")
+   end
+
+   if #who == 0 then
+      return i18n("flow_details.blacklisted_flow")
+   end
+
+   local res = i18n("flow_details.blacklisted_flow_detailed", {who = table.concat(who, ", ")})
+
+   return res
+end
+
+-- ###############################################
+
 -- Update Utils::flowstatus2str / FlowStatus enum
 function getFlowStatus(status, flowstatus_info, alert, no_icon)
    local warn_sign = ternary(no_icon, "", "<i class=\"fa fa-warning\" aria-hidden=true style=\"color: orange;\"></i> ")
@@ -2621,7 +2655,7 @@ function getFlowStatus(status, flowstatus_info, alert, no_icon)
    elseif(status == 10) then res = warn_sign..i18n("flow_details.ssl_certificate_mismatch")
    elseif(status == 11) then res = warn_sign..i18n("flow_details.dns_invalid_query")
    elseif(status == 12) then res = warn_sign..i18n("flow_details.remote_to_remote")
-   elseif(status == 13) then res = warn_sign..i18n("flow_details.blacklisted_flow")
+   elseif(status == 13) then res = warn_sign..formatBlacklistedFlow(status, flowstatus_info, alert)
    elseif(status == 14) then res = warn_sign..i18n("flow_details.flow_blocked_by_bridge")
    elseif(status == 15) then res = warn_sign..i18n("flow_details.web_mining_detected")
    elseif(status == 16) then res = formatSuspiciousDeviceProtocolAlert(flowstatus_info)

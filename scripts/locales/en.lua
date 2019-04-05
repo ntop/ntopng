@@ -654,6 +654,7 @@ local lang = {
     ["average_cpu_load"] = "Average CPU Load",
     ["bittorrent_hash"] = "BitTorrent hash",
     ["blacklisted_flow"] = "Client, server or domain is blacklisted",
+    ["blacklisted_flow_detailed"] = "Blacklisted %{who}",
     ["c_ip_addresses"] = "C IP Addresses",
     ["call_canceled"] = "Call Canceled",
     ["call_completed"] = "Call Completed",

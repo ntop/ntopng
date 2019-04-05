@@ -620,6 +620,7 @@ local lang = {
     ["average_cpu_load"] = "Carico medio CPU",
     ["bittorrent_hash"] = "Hash BitTorrent",
     ["blacklisted_flow"] = "Client o server blacklistato (o entrambi)",
+    ["blacklisted_flow_detailed"] = "%{who} in blacklist",
     ["c_ip_addresses"] = "C IP Addresses",
     ["call_canceled"] = "Chiamata Cancellata",
     ["call_completed"] = "Chiamata Completata",

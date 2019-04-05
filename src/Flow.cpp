@@ -2034,6 +2034,13 @@ json_object* Flow::flow2statusinfojson() {
     json_object *json_alert = getSuricataAlert();
     if (json_alert)
       json_object_object_add(obj, "ids_alert", json_object_get(json_alert));
+  } else if(fs == status_blacklisted) {
+    if(cli_host && cli_host->isBlacklisted())
+      json_object_object_add(obj, "blacklisted.cli", json_object_new_boolean(true));
+    if(srv_host && srv_host->isBlacklisted())
+      json_object_object_add(obj, "blacklisted.srv", json_object_new_boolean(true));
+    if(get_protocol_category() == CUSTOM_CATEGORY_MALWARE)
+      json_object_object_add(obj, "blacklisted.cat", json_object_new_boolean(true));
   } else if(fs == status_elephant_local_to_remote)
     json_object_object_add(obj, "elephant.l2r_threshold",
 			   json_object_new_int64(ntop->getPrefs()->get_elephant_flow_local_to_remote_bytes()));    
