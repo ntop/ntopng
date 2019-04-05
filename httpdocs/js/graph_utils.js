@@ -15,7 +15,10 @@ function getSerieLabel(schema, serie) {
   var new_label = data_2_label[data_label];
 
   if((schema == "top:local_senders") || (schema == "top:local_receivers")) {
-    return serie.tags.host
+    if(serie.ext_label)
+      return serie.ext_label;
+    else
+      return serie.tags.host
   } else if(schema.startsWith("top:")) { // topk graphs
     if(serie.tags.protocol)
       return serie.tags.protocol;

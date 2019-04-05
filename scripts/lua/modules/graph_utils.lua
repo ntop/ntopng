@@ -260,7 +260,7 @@ end
 
 local graph_menu_entries = {}
 
-function populateGraphMenuEntry(label, base_url, params, tab_id, needs_separator, separator_label, pending)
+function populateGraphMenuEntry(label, base_url, params, tab_id, needs_separator, separator_label, pending, disabled)
    local url = getPageUrl(base_url, params)
 
    local entry_params = table.clone(params)
@@ -277,6 +277,7 @@ function populateGraphMenuEntry(label, base_url, params, tab_id, needs_separator
       needs_separator = needs_separator,
       separator_label = separator_label,
       pending = pending, -- true for batched operations
+      disabled = disabled,
    }
 
    graph_menu_entries[#graph_menu_entries + 1] = entry
