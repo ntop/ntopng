@@ -28,6 +28,7 @@ local lang = {
   ["change_number_of_rows"] = "Cambia il numero di righe per pagina",
   ["chart"] = "Grafico",
   ["client"] = "Client",
+  ["domain"] = "Dominio",
   ["clone"] = "Clona",
   ["close"] = "Chiudi",
   ["countries"] = "Paesi",

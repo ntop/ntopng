@@ -2620,9 +2620,10 @@ function formatBlacklistedFlow(status, flowstatus_info, alert)
 
    -- if either the client or the server is blacklisted
    -- then also the category is blacklisted so there's no need
-   -- to check it
+   -- to check it.
+   -- Domain is basically the union of DNS names, SSL CNs and HTTP hosts.
    if #who == 0 and flowstatus_info["blacklisted.cat"] then
-      who[#who + 1] = i18n("category")
+      who[#who + 1] = i18n("domain")
    end
 
    if #who == 0 then

@@ -28,6 +28,7 @@ local lang = {
   ["change_number_of_rows"] = "Change the number of rows per page",
   ["chart"] = "Chart",
   ["client"] = "Client",
+  ["domain"] = "Domain",
   ["clone"] = "Clone",
   ["close"] = "Close",
   ["countries"] = "Countries",
