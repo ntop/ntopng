@@ -193,6 +193,9 @@ print [[
 ]]
 if((debug_hosts) and (host["ip"] ~= nil)) then traceError(TRACE_DEBUG,TRACE_CONSOLE, i18n("host_details.trace_debug_host_ip",{hostip=host["ip"],vlan=host["vlan"]}).."\n") end
 url = ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url(host_info)
+if _GET["tskey"] ~= nil then
+   url = url .. "&tskey=" .. _GET["tskey"]
+end
 
 print("<li><a href=\"#\">"..i18n("host_details.host")..": "..host_info["host"])
 if host["broadcast_domain_host"] then
@@ -202,6 +205,15 @@ end
 if(host.dhcpHost) then
    print(" <i class='fa fa-flash fa-lg' aria-hidden='true' title='DHCP Host'></i>")
 end
+
+--[[
+local tskey = _GET["tskey"] or host["tskey"]
+
+if tskey ~= hostkey_compact then
+   -- Print the tskey
+   print(string.format(" [LBD: %s]", visualTsKey(tskey)))
+end
+]]
 
 print("</A> </li>")
 
@@ -1389,6 +1401,7 @@ local page_params = {
    traffic_type = _GET["traffic_type"],
    version = _GET["version"],
    host = hostinfo2hostkey(host_info),
+   tskey = _GET["tskey"],
 }
 
 print(getPageUrl(ntop.getHttpPrefix().."/lua/get_flows_data.lua", page_params))

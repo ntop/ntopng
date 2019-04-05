@@ -15,6 +15,7 @@ local vlan_totals = {}
 local asname_cache    = {}
 local hostname_cache  = {}
 local localhost_cache = {}
+local ipaddr_cache = {}
 
 -- ########################################################
 
@@ -95,7 +96,14 @@ local function finalizeRes(res)
 
 	       direction_val[what_val_k] = {address = what_val_k..'', value = delta, label = label}
 	       if what_key_k == "hosts" then
+		  local ip_addr = getCache(ipaddr_cache, what_val_k)
 		  direction_val[what_val_k]["local"] = tostring(getCache(localhost_cache, what_val_k) or "false")
+
+		  if ip_addr ~= what_val_k then
+		     -- storing the IP address is necessary for MAC based keys to create the
+		     -- correct URL
+		     direction_val[what_val_k]["ipaddr"] = ip_addr
+		  end
 	       end
 	    end
 	 end
@@ -138,6 +146,7 @@ function top_talkers_utils.makeTopJson(_ifname, save_checkpoint)
 
    local in_time = callback_utils.foreachHost(_ifname, os.time() + 60 --[[1 minute --]], function (hostname, hoststats)
       local checkpoint = interface.checkpointHostTalker(ifid, hostname, save_checkpoint)
+      local tskey = hoststats["tskey"]
 
       if(checkpoint == nil) then 
         goto continue
@@ -153,8 +162,9 @@ function top_talkers_utils.makeTopJson(_ifname, save_checkpoint)
 
      local vlan = hoststats["vlan"]
 
-     updateCache(hostname_cache, hostname, hoststats["name"])
-     updateCache(localhost_cache, hostname, hoststats["localhost"])
+     updateCache(hostname_cache, tskey, hoststats["name"])
+     updateCache(localhost_cache, tskey, hoststats["localhost"])
+     updateCache(ipaddr_cache, tskey, hostname)
      updateCache(asname_cache, hoststats["asn"], hoststats["asname"])
 
      if current and previous then
@@ -171,7 +181,7 @@ function top_talkers_utils.makeTopJson(_ifname, save_checkpoint)
 	   local country = interface.getHostCountry(hostname)
 
 	   for what_key, what_value in pairs({
-	       ["hosts"] = hostname, ["asn"] = hoststats["asn"],[os_key] = hoststats["os"],
+	       ["hosts"] = tskey, ["asn"] = hoststats["asn"], [os_key] = hoststats["os"],
 	       ["countries"] = ternary(not isEmptyString(country), country, nil),
 	       ["networks"] = hoststats["local_network_id"],
 	    }) do
@@ -201,23 +211,37 @@ end
 function top_talkers_utils.enrichRecordInformation(class_key, rec, show_vlan)
   local url = ""
   local label = rec.label or rec.address
+  local url_target = rec.address
 
   if (rec.address ~= "Other") and (rec.address ~= "Hidden Hosts") then
     if class_key == "hosts" then
+      local address = rec.address
+
+      if ends(address, "_v4") or ends(address, "_v6") then
+	 rec.visual_addr = visualTsKey(address)
+	 address = string.sub(address, 1, string.len(address)-3)
+
+	 if(rec.ipaddr ~= nil) then
+	    url_target = rec.ipaddr
+	 end
+      end
+
+      url_target = url_target .. "&tskey=" .. rec.address
+
       url = ntop.getHttpPrefix()..'/lua/host_details.lua?always_show_hist=true&host='
       -- Use the host alias as label, if set
-      local alt_name = getHostAltName(rec.address)
-      if not isEmptyString(alt_name) and (alt_name ~= rec.address) then
+      local alt_name = getHostAltName(address)
+      if not isEmptyString(alt_name) and (alt_name ~= address) then
         label = alt_name
       else
-        local hinfo = hostkey2hostinfo(rec.address)
+        local hinfo = hostkey2hostinfo(address)
         if not show_vlan then hinfo.vlan = 0 end
         alt_name = host2name(hinfo.host, hinfo.vlan)
 
-        if not isEmptyString(alt_name) and (alt_name ~= rec.address) then
+        if not isEmptyString(alt_name) and (alt_name ~= address) then
            label = alt_name
         else
-           label = rec.address
+           label = address
         end
       end
     elseif class_key == "asn" then
@@ -239,7 +263,7 @@ function top_talkers_utils.enrichRecordInformation(class_key, rec, show_vlan)
     end
 
     if not isEmptyString(url) then
-      url = url .. rec.address
+      url = url .. url_target
     end
   end
 

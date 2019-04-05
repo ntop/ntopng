@@ -3544,6 +3544,26 @@ end
 
 -- ###########################################
 
+function visualTsKey(tskey)
+   if ends(tskey, "_v4") or ends(tskey, "_v6") then
+      local ver = string.sub(tskey, string.len(tskey)-1, string.len(tskey))
+      local address = string.sub(tskey, 1, string.len(tskey)-3)
+      local visual_addr
+
+      if ver == "v4" then
+         visual_addr = address
+      else
+         visual_addr = address .. " (" .. ver ..")"
+      end
+
+      return visual_addr
+   end
+
+   return tskey
+end
+
+-- ###########################################
+
 -- Returns the size of a folder (size is in bytes)
 function getFolderSize(path)
    local size = 0
