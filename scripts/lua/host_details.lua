@@ -1948,7 +1948,8 @@ drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
       {schema="host:dns_qry_sent_rsp_rcvd",  label=i18n("graphs.dns_qry_sent_rsp_rcvd")},
       {schema="host:dns_qry_rcvd_rsp_sent",  label=i18n("graphs.dns_qry_rcvd_rsp_sent")},
       {schema="host:udp_pkts",               label="UDP Packets"},   
-      {schema="host:tcp_stats",              label="TCP Stats"},        
+      {schema="host:tcp_stats",              label="TCP Stats"},
+      {schema="host:tcp_packets",            label=i18n("graphs.tcp_packets")},        
 
       {schema="host:1d_delta_traffic_volume",  label="1 Day Traffic Delta"}, -- TODO localize
       {schema="host:1d_delta_flows",           label="1 Day Active Flows Delta"}, -- TODO localize

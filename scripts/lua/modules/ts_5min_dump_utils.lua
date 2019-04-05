@@ -232,6 +232,12 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
             out_of_order_packets = host["tcp.packets.out_of_order"],
             lost_packets = host["tcp.packets.lost"]},
       when, verbose)
+  
+  -- Number of TCP packets
+  ts_utils.append("host:tcp_packets", {ifid = ifstats.id, host = hostname,
+            packets_sent = host["tcp.packets.sent"],
+            packets_rcvd = host["tcp.packets.rcvd"]},
+      when, verbose)
 
   -- Total number of alerts
   ts_utils.append("host:total_alerts", {ifid = ifstats.id, host = hostname,
