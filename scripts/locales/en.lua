@@ -758,6 +758,8 @@ local lang = {
     ["ssh_signature"] = "SSH Signature",
     ["ssl_certificate"] = "SSL Certificate",
     ["ssl_certificate_mismatch"] = "SSL Certificate Mismatch",
+    ["ssl_client_certificate"] = "Client Certificate",
+    ["ssl_server_certificate"] = "Server Certificate",
     ["suspicious_client_device_protocol"] = "Client application \"%{proto}\" is not allowed by the configured <a href=\"%{url}\">%{devtype} application policy</a>",
     ["suspicious_server_device_protocol"] = "Server application \"%{proto}\" is not allowed by the configured <a href=\"%{url}\">%{devtype} application policy</a>",
     ["suspicious_tcp_probing"] = "Suspicious TCP Probing",

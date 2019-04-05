@@ -2603,8 +2603,6 @@ end
 -- ###############################################
 
 function formatBlacklistedFlow(status, flowstatus_info, alert)
-   local threshold = ""
-
    local who = {}
    if not flowstatus_info then
       return i18n("flow_details.blacklisted_flow")
@@ -2637,6 +2635,25 @@ end
 
 -- ###############################################
 
+function formatSSLCertificateMismatch(status, flowstatus_info, alert)
+   if not flowstatus_info then
+      return i18n("flow_details.ssl_certificate_mismatch")
+   end
+
+   local crts = {}
+   if not isEmptyString(flowstatus_info["ssl_crt.cli"]) then
+      crts[#crts + 1] = string.format("[%s: %s]", i18n("flow_details.ssl_client_certificate"), flowstatus_info["ssl_crt.cli"])
+   end
+
+   if not isEmptyString(flowstatus_info["ssl_crt.srv"]) then
+      crts[#crts + 1] = string.format("[%s: %s]", i18n("flow_details.ssl_server_certificate"), flowstatus_info["ssl_crt.srv"])
+   end
+
+   return string.format("%s %s", i18n("flow_details.ssl_certificate_mismatch"), table.concat(crts, " "))
+end
+
+-- ###############################################
+
 -- Update Utils::flowstatus2str / FlowStatus enum
 function getFlowStatus(status, flowstatus_info, alert, no_icon)
    local warn_sign = ternary(no_icon, "", "<i class=\"fa fa-warning\" aria-hidden=true style=\"color: orange;\"></i> ")
@@ -2653,7 +2670,7 @@ function getFlowStatus(status, flowstatus_info, alert, no_icon)
    elseif(status == 7)  then res = warn_sign..i18n("flow_details.suspicious_tcp_probing")
    elseif(status == 8)  then res = warn_sign..i18n("flow_details.flow_emitted")
    elseif(status == 9)  then res = warn_sign..i18n("flow_details.tcp_connection_refused")
-   elseif(status == 10) then res = warn_sign..i18n("flow_details.ssl_certificate_mismatch")
+   elseif(status == 10) then res = warn_sign..formatSSLCertificateMismatch(status, flowstatus_info, alert)
    elseif(status == 11) then res = warn_sign..i18n("flow_details.dns_invalid_query")
    elseif(status == 12) then res = warn_sign..i18n("flow_details.remote_to_remote")
    elseif(status == 13) then res = warn_sign..formatBlacklistedFlow(status, flowstatus_info, alert)

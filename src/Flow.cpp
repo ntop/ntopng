@@ -2041,6 +2041,11 @@ json_object* Flow::flow2statusinfojson() {
       json_object_object_add(obj, "blacklisted.srv", json_object_new_boolean(true));
     if(get_protocol_category() == CUSTOM_CATEGORY_MALWARE)
       json_object_object_add(obj, "blacklisted.cat", json_object_new_boolean(true));
+  } else if(fs == status_ssl_certificate_mismatch) {
+    if(protos.ssl.certificate && protos.ssl.certificate[0] != '\0')
+      json_object_object_add(obj, "ssl_crt.cli", json_object_new_string(protos.ssl.certificate));
+    if(protos.ssl.server_certificate && protos.ssl.server_certificate[0] != '\0')
+      json_object_object_add(obj, "ssl_crt.srv", json_object_new_string(protos.ssl.server_certificate));
   } else if(fs == status_elephant_local_to_remote)
     json_object_object_add(obj, "elephant.l2r_threshold",
 			   json_object_new_int64(ntop->getPrefs()->get_elephant_flow_local_to_remote_bytes()));    
