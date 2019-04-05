@@ -8,6 +8,11 @@ var map = (function () {
     width = 1100 - margin.left - margin.right,
     height = 800 - margin.top - margin.bottom;
 
+    //window height and width
+    var w_h, w_w;
+
+    var max_X_elem, max_Y_elem;
+
     //flag used to alternate the svg containers (for updates)
     var svgFlag = true;
     var svg;
@@ -16,8 +21,8 @@ var map = (function () {
     var x,y;
 
     //square dim
-    var sq_h = 11;
-    var sq_w = 11;
+    var sq_h = 12;
+    var sq_w = 12;
 
     var tooltip;
 
@@ -104,6 +109,7 @@ var map = (function () {
     };
     //---------END-MOUSE-EVENT------------
 
+    //TODO: dim based on window size
     var setSvgDim = function(){
         width = (X_elements.length * sq_w);
         height = (Y_elements.length * sq_h);
@@ -119,7 +125,7 @@ var map = (function () {
             .attr("width", width + margin.left + margin.right)
             .attr("height", height + margin.top + margin.bottom);
 
-        console.log("w: "+width+" h: "+height);
+        //console.log("w: "+width+" h: "+height);
     };
  
     var setXaxis = function(){
@@ -200,7 +206,7 @@ var map = (function () {
         .style("fill", 
             function(d) {
             if (d.value == 0)
-                return "whitesmoke";
+                return "white";
             else 
                 return myColor(d.value);
             }  
@@ -324,6 +330,15 @@ var map = (function () {
     //the calling order of the functions is important: most variable are global
     var buildMap = function(data) {
 
+        //console.log("height: "+window.innerHeight+" width:"+window.innerWidth)
+        w_h = window.innerHeight - 200;
+        w_w = window.innerWidth;
+
+        max_X_elem = Math.floor(w_w / sq_w);
+        max_Y_elem = Math.floor(w_h / sq_h);
+
+        //console.log(max_X_elem + " " + max_Y_elem)
+
         //TODO: choose the number of element visualized based on window dim
 
         createSvg();
@@ -332,7 +347,9 @@ var map = (function () {
         Y_elements = d3.map(data, function(d){return d.y_label;}).keys()
         X_elements.sort();//Y_elements already sorted
 
-        setSvgDim();
+        d3.map(data, function(d){return d.y_label;}).keys()
+
+        
 
         //compute #tot pkt for each mac
         sendersTotPkts = {};
@@ -346,6 +363,39 @@ var map = (function () {
             if (sendersTotPkts[e.y_label] > maxTotPkt)
                 maxTotPkt = sendersTotPkts[e.y_label];
         });
+        
+        var Yelem_to_display = new Array();
+
+        Y_elements.forEach( e => { Yelem_to_display.push( {label:e, pkts:sendersTotPkts[e]} ) } );
+        Yelem_to_display.sort( (a,b)=> { return b.pkts - a.pkts } );
+        //Yelem_to_display.forEach( e => console.log(e ));
+
+        Yelem_to_display = Yelem_to_display.slice(0, max_Y_elem);
+        // Yelem_to_display.forEach( e => console.log(e ));
+        var new_Y_elements = new Array();
+        var new_data = data.filter( e => { 
+            // var tmp = {label:e.y_label, pkts:sendersTotPkts[e.y_label]}
+            // console.log("tmp: ")
+            // console.log(tmp)
+            // return Yelem_to_display.includes(tmp);
+
+            if (Yelem_to_display.some( d => {return d.label == e.y_label} ) ){
+                
+                return true;
+            }else{
+
+            }
+
+        });
+
+        console.log(new_data);
+        data = new_data;
+
+        X_elements = d3.map(data, function(d){return d.x_label;}).keys()
+        Y_elements = d3.map(data, function(d){return d.y_label;}).keys()
+
+        setSvgDim();
+
 
         //choose a chromatic scale [ https://github.com/d3/d3-scale-chromatic ]
         myColor = d3.scaleSequential().interpolator(d3.interpolateInferno).domain([1,maxTotPkt]);
@@ -400,7 +450,7 @@ var map = (function () {
             .attr("width", width + margin.left + margin.right)
             .attr("height", height + margin.top + margin.bottom);
 
-        console.log("w: "+width+" h: "+height);
+        //console.log("w: "+width+" h: "+height);
 
         //compute #tot pkt for each mac
         sendersTotPkts = {};
@@ -448,7 +498,7 @@ var map = (function () {
             build(address);
         else
             build();
-    }, 10000);
+    }, 100000);
   
     return {
         build:build

@@ -136,8 +136,6 @@ if((ifstats ~= nil) and (ifstats.stats.packets > 0)) then
 
    ]]
 
-
-
   end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
