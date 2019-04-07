@@ -126,8 +126,8 @@ void LocalHostStats::lua(lua_State* vm, bool mask_host, DetailsLevel details_lev
   }
 
   if(details_level >= details_high) {
-    if(icmp) icmp->lua(host->get_ip()->isIPv4(), vm);
-    if(dns)  luaDNS(vm, true);
+    luaICMP(vm,host->get_ip()->isIPv4(),true);
+    luaDNS(vm, true);
     if(http) http->lua(vm);
   }
 }

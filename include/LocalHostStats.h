@@ -53,6 +53,7 @@ class LocalHostStats: public HostStats {
   virtual void incNumDNSResponsesSent(u_int32_t ret_code) { if(dns) dns->incNumDNSResponsesSent(ret_code); };
   virtual void incNumDNSResponsesRcvd(u_int32_t ret_code) { if(dns) dns->incNumDNSResponsesRcvd(ret_code); };
   virtual void luaDNS(lua_State *vm, bool verbose) const  { if(dns) dns->lua(vm,verbose); }
+  virtual void luaICMP(lua_State *vm, bool isV4, bool verbose) const    { if (icmp) icmp->lua(isV4, vm, verbose); }
   virtual void incrVisitedWebSite(char *hostname);
   virtual void tsLua(lua_State* vm);
   virtual bool hasAnomalies(time_t when);
