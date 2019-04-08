@@ -1593,7 +1593,7 @@ end
 function getRTPTableRows(info)
    local string_table = ""
    -- check if there is a RTP field
-   local rtp_found = isThereProtocol("RTP_IN_MAX_DELTA", info)
+   local rtp_found = isThereProtocol("RTP", info)
 
    if(rtp_found == 1) then
       -- SSRC
@@ -1610,7 +1610,7 @@ function getRTPTableRows(info)
       
       -- ROUND-TRIP-TIME
       if(info["RTP_RTT"] ~= nil) then	 
-	 rtp_rtt_var = getFlowValue(info, "RTP_RTT")
+	 local rtp_rtt_var = getFlowValue(info, "RTP_RTT")
 	 if((rtp_rtt_var == nil) or (rtp_rtt_var == "")) then
 	    rtp_rtt_hide = "style=\"display: none;\""
 	 else
@@ -1625,8 +1625,8 @@ function getRTPTableRows(info)
 
       -- RTP-IN-TRASIT
       if(info["RTP_IN_TRANSIT"] ~= nil) then	 
-	 rtp_in_transit = getFlowValue(info, "RTP_IN_TRANSIT")/100
-	 rtp_out_transit = getFlowValue(info, "RTP_OUT_TRANSIT")/100
+	 local rtp_in_transit = getFlowValue(info, "RTP_IN_TRANSIT")/100
+	 local rtp_out_transit = getFlowValue(info, "RTP_OUT_TRANSIT")/100
 	 if(((rtp_in_transit == nil) or (rtp_in_transit == "")) and ((rtp_out_transit == nil) or (rtp_out_transit == ""))) then
 	    rtp_transit_hide = "style=\"display: none;\""
 	 else
@@ -1638,7 +1638,7 @@ function getRTPTableRows(info)
       
       -- TONES
       if(info["RTP_DTMF_TONES"] ~= nil) then	 
-	 rtp_dtmf_var = getFlowValue(info, "RTP_DTMF_TONES")
+	 local rtp_dtmf_var = getFlowValue(info, "RTP_DTMF_TONES")
 	 if((rtp_dtmf_var == nil) or (rtp_dtmf_var == "")) then
 	    rtp_dtmf_hide = "style=\"display: none;\""
 	 else
@@ -1649,8 +1649,8 @@ function getRTPTableRows(info)
 	 
       -- FIRST REQUEST
       if(info["RTP_FIRST_SEQ"] ~= nil) then         
-	 first_flow_sequence_var = getFlowValue(info, "RTP_FIRST_SEQ")
-	 last_flow_sequence_var = getFlowValue(info, "RTP_FIRST_SEQ")
+	 local first_flow_sequence_var = getFlowValue(info, "RTP_FIRST_SEQ")
+	 local last_flow_sequence_var = getFlowValue(info, "RTP_FIRST_SEQ")
 	 if(((first_flow_sequence_var == nil) or (first_flow_sequence_var == "")) and ((last_flow_sequence_var == nil) or (last_flow_sequence_var == ""))) then
 	    first_last_flow_sequence_hide = "style=\"display: none;\""
 	 else
@@ -1661,11 +1661,11 @@ function getRTPTableRows(info)
       
       -- CALL-ID
       if(info["RTP_SIP_CALL_ID"] ~= nil) then	 
-	 sip_call_id_var = getFlowValue(info, "RTP_SIP_CALL_ID")
+	 local sip_call_id_var = getFlowValue(info, "RTP_SIP_CALL_ID")
 	 if((sip_call_id_var == nil) or (sip_call_id_var == "")) then
 	    sip_call_id_hide = "style=\"display: none;\""
-      else
-	 sip_call_id_hide = "style=\"display: table-row;\""
+	 else
+	    sip_call_id_hide = "style=\"display: table-row;\""
 	 end
 	 string_table = string_table .. "<tr id=\"sip_call_id_tr\" "..sip_call_id_hide.."><th> "..i18n("flow_details.sip_call_id").." <i class='fa fa-phone fa-sm' aria-hidden='true' title='SIP Call-ID'></i>&nbsp;</th><td colspan=2><div id=rtp_sip_call_id>" .. sip_call_id_var .. "</div></td></tr>\n"
       end
@@ -1674,8 +1674,8 @@ function getRTPTableRows(info)
       string_table = string_table.."<tr><th>"..i18n("flow_details.call_quality_indicators").."</th><th>"..i18n("flow_details.forward").."</th><th>"..i18n("flow_details.reverse").."</th></tr>"
       -- JITTER
       if(info["RTP_IN_JITTER"] ~= nil) then	 
-	 rtp_in_jitter = getFlowValue(info, "RTP_IN_JITTER")/100
-	 rtp_out_jitter = getFlowValue(info, "RTP_OUT_JITTER")/100
+	 local rtp_in_jitter = getFlowValue(info, "RTP_IN_JITTER")/100
+	 local rtp_out_jitter = getFlowValue(info, "RTP_OUT_JITTER")/100
 	 if(((rtp_in_jitter == nil) or (rtp_in_jitter == "")) and ((rtp_out_jitter == nil) or (rtp_out_jitter == ""))) then
 	    rtp_out_jitter_hide = "style=\"display: none;\""
 	 else
@@ -1696,8 +1696,8 @@ function getRTPTableRows(info)
       
       -- PACKET LOSS
       if(info["RTP_IN_PKT_LOST"] ~= nil) then	 
-	 rtp_in_pkt_lost = getFlowValue(info, "RTP_IN_PKT_LOST")
-	 rtp_out_pkt_lost = getFlowValue(info, "RTP_OUT_PKT_LOST")
+	 local rtp_in_pkt_lost = getFlowValue(info, "RTP_IN_PKT_LOST")
+	 local rtp_out_pkt_lost = getFlowValue(info, "RTP_OUT_PKT_LOST")
 	 if(((rtp_in_pkt_lost == nil) or (rtp_in_pkt_lost == "")) and ((rtp_out_pkt_lost == nil) or (rtp_out_pkt_lost == ""))) then
 	    rtp_packet_loss_hide = "style=\"display: none;\""
 	 else
@@ -1718,8 +1718,8 @@ function getRTPTableRows(info)
       
       -- PACKET DROPS
       if(info["RTP_IN_PKT_DROP"] ~= nil) then	 
-	 rtp_in_pkt_drop = getFlowValue(info, "RTP_IN_PKT_DROP")
-	 rtp_out_pkt_drop = getFlowValue(info, "RTP_OUT_PKT_DROP")
+	 local rtp_in_pkt_drop = getFlowValue(info, "RTP_IN_PKT_DROP")
+	 local rtp_out_pkt_drop = getFlowValue(info, "RTP_OUT_PKT_DROP")
 	 if(((rtp_in_pkt_drop == nil) or (rtp_in_pkt_drop == "")) and ((rtp_out_pkt_drop == nil) or (rtp_out_pkt_drop == ""))) then
 	    rtp_pkt_drop_hide = "style=\"display: none;\""
 	 else
@@ -1739,8 +1739,8 @@ function getRTPTableRows(info)
       
       -- MAXIMUM DELTA BETWEEN CONSECUTIVE PACKETS
       if(info["RTP_IN_MAX_DELTA"] ~= nil) then	 
-	 rtp_in_max_delta = getFlowValue(info, "RTP_IN_MAX_DELTA")
-	 rtp_out_max_delta = getFlowValue(info, "RTP_OUT_MAX_DELTA")
+	 local rtp_in_max_delta = getFlowValue(info, "RTP_IN_MAX_DELTA")
+	 local rtp_out_max_delta = getFlowValue(info, "RTP_OUT_MAX_DELTA")
 	 if(((rtp_in_max_delta == nil) or (rtp_in_max_delta == "")) and ((rtp_out_max_delta == nil) or (rtp_out_max_delta == ""))) then
 	    rtp_max_delta_hide = "style=\"display: none;\""
 	 else
@@ -1759,8 +1759,8 @@ function getRTPTableRows(info)
       
       -- PAYLOAD TYPE
       if(info["RTP_IN_PAYLOAD_TYPE"] ~= nil) then	 
-	 rtp_payload_in_var  = formatRtpPayloadType(getFlowValue(info, "RTP_IN_PAYLOAD_TYPE"))
-	 rtp_payload_out_var = formatRtpPayloadType(getFlowValue(info, "RTP_OUT_PAYLOAD_TYPE"))
+	 local rtp_payload_in_var  = formatRtpPayloadType(getFlowValue(info, "RTP_IN_PAYLOAD_TYPE"))
+	 local rtp_payload_out_var = formatRtpPayloadType(getFlowValue(info, "RTP_OUT_PAYLOAD_TYPE"))
 	 if(((rtp_payload_in_var == nil) or (rtp_payload_in_var == "")) and ((rtp_payload_out_var == nil) or (rtp_payload_out_var == ""))) then
 	    rtp_payload_hide = "style=\"display: none;\""
 	 else
@@ -1768,11 +1768,12 @@ function getRTPTableRows(info)
 	 end
 	 string_table = string_table .. "<tr id=\"payload_id_tr\" "..rtp_payload_hide.."><th style=\"text-align:right\">"..i18n("flow_details.payload_type").."</th><td><div id=payload_type_in>"..rtp_payload_in_var.."</div></td><td><div id=payload_type_out>"..rtp_payload_out_var.."</div></td></tr>\n"
       end
-	    
+
       -- MOS
       if(info["RTP_IN_MOS"] ~= nil) then		 
-	 rtp_in_mos = getFlowValue(info, "RTP_IN_MOS")/100
-	 rtp_out_mos = getFlowValue(info, "RTP_OUT_MOS")/100
+	 local rtp_in_mos = getFlowValue(info, "RTP_IN_MOS")/100
+	 local rtp_out_mos = getFlowValue(info, "RTP_OUT_MOS")/100
+
 	 if(rtp_in_mos == nil or rtp_in_mos == "") and (rtp_out_mos == nil or rtp_out_mos == "") then
 	    quality_mos_hide = "style=\"display: none;\""
 	 else
@@ -1793,8 +1794,8 @@ function getRTPTableRows(info)
       
       -- R_FACTOR
       if(info["RTP_IN_R_FACTOR"] ~= nil) then
-	 rtp_in_r_factor = getFlowValue(info, "RTP_IN_R_FACTOR")/100
-	 rtp_out_r_factor = getFlowValue(info, "RTP_OUT_R_FACTOR")/100
+	 local rtp_in_r_factor = getFlowValue(info, "RTP_IN_R_FACTOR")/100
+	 local rtp_out_r_factor = getFlowValue(info, "RTP_OUT_R_FACTOR")/100
 	 
 	 if(rtp_in_r_factor == nil or rtp_in_r_factor == "" or rtp_in_r_factor == "0") and (rtp_out_r_factor == nil or rtp_out_r_factor == "" or rtp_out_r_factor == "0") then
 	    quality_r_factor_hide = "style=\"display: none;\""
