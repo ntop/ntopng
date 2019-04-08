@@ -206,6 +206,22 @@ schema:addMetric("flows_as_client")
 
 --##############################################
 
+schema = ts_utils.newSchema("host:echo_packets", {step = 300})
+schema:addTag("ifid")
+schema:addTag("host")
+schema:addMetric("packets_sent")
+schema:addMetric("packets_rcvd")
+
+--##############################################
+
+schema = ts_utils.newSchema("host:echo_reply_packets", {step = 300})
+schema:addTag("ifid")
+schema:addTag("host")
+schema:addMetric("packets_sent")
+schema:addMetric("packets_rcvd")
+
+--##############################################
+
 schema = ts_utils.newSchema("host:dns_qry_sent_rsp_rcvd", {step = 300})
 schema:addTag("ifid")
 schema:addTag("host")

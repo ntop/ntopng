@@ -82,5 +82,6 @@ void TimeseriesStats::luaStats(lua_State* vm, NetworkInterface *iface, bool host
 
     host->luaDNS(vm);
     host->luaTCP(vm);
+    host->luaICMP(vm, host->get_ip()->isIPv4(),false);
   }
 }

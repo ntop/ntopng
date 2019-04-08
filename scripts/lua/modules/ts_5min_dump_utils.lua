@@ -206,7 +206,24 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
             replies_ok_packets = host["dns"]["rcvd"]["num_replies_ok"],
             replies_error_packets =host["dns"]["rcvd"]["num_replies_error"]},
       when, verbose)
-  
+
+  if (host["ICMPv4"] ~= nil) then
+    if (host["ICMPv4"]["0,0"] ~= nil) then
+      --Number of ICMP ECHO reply packets
+      ts_utils.append("host:echo_reply_packets", {ifid = ifstats.id, host = hostname,
+              packets_sent =  host["ICMPv4"]["0,0"]["sent"],
+              packets_rcvd =  host["ICMPv4"]["0,0"]["rcvd"]},
+          when, verbose)
+    end
+    if (host["ICMPv4"]["8,0"] ~= nil) then
+      --Number of ICMP ECHO request packets
+      ts_utils.append("host:echo_packets", {ifid = ifstats.id, host = hostname,
+              packets_sent =  host["ICMPv4"]["8,0"]["sent"],
+              packets_rcvd =  host["ICMPv4"]["8,0"]["rcvd"]},
+          when, verbose)
+    end
+  end
+
   -- Number of dns packets rcvd
   ts_utils.append("host:dns_qry_rcvd_rsp_sent", {ifid = ifstats.id, host = hostname,
             queries_packets = host["dns"]["rcvd"]["num_queries"],

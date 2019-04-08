@@ -104,6 +104,7 @@ class HostStats: public Checkpointable, public TimeseriesStats {
   virtual void incNumDNSResponsesSent(u_int32_t ret_code) {}
   virtual void incNumDNSResponsesRcvd(u_int32_t ret_code) {}
   virtual void luaDNS(lua_State *vm, bool verbose) const  {}
+  virtual void luaICMP(lua_State *vm, bool isV4, bool verbose) const  {}
   virtual void incrVisitedWebSite(char *hostname) {}
   virtual void tsLua(lua_State* vm) {}
   virtual HTTPstats* getHTTPstats() { return(NULL); }
