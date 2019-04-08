@@ -1,7 +1,10 @@
 var map = (function () {
 
-    var isDetail = false;7
+    var isDetail = false;
     var address;
+    var interval = 5000;
+    var intervalID;
+    var stopInterval = false;
 
     // base dimensions and margins of the graph
     var margin = {top: 80, right: 20, bottom: 120, left: 150},
@@ -34,10 +37,11 @@ var map = (function () {
     var myColor;
 
     var sendersTotPkts = {};
+    var receiversTotPkts = {};
     var maxTotPkt = 0;
 
     //----------MOUSE EVENT---------------
-    var mouseover = function(d) {
+    var mouseoverSquare = function(d) {
         tooltip.style("opacity", 0.9)
         d3.select(this)
         .style("stroke", "black")
@@ -60,8 +64,7 @@ var map = (function () {
         .style("fill", "red" )
         .style("font-size", 11)
     }
-
-    var mouseleave = function(d) {
+    var mouseleaveSquare = function(d) {
         tooltip.style("opacity", 0)
         d3.select(this)
         .style("stroke", "none")
@@ -70,15 +73,13 @@ var map = (function () {
         .style("fill", "black" )
         .style("font-size", 11)
     }
-
     var labelClick = function(d){
         var url = window.location.href;
         var segements = url.split("/");
         segements[segements.length - 1] = "host_details.lua?host="+d;
         window.location.href = segements.join("/"); 
     }
-
-    var mouseoverXAxisSquare = function(d){
+    var mouseoverYAxisSquare = function(d){
         d3.selectAll(".y_label")
         .filter(function(e){
             return e == d.y_label;
@@ -99,16 +100,94 @@ var map = (function () {
         })
         .style("fill", "red" )
         .style("font-size", 11)
-    };
 
-    var mouseleaveXAxisSquare = function(d){
+        d3.selectAll(" .squares")
+        .filter(function(e){
+            return d.y_label == e.y_label;
+        })
+        .style("stroke", "black")
+
+    };
+    var mouseleaveYAxisSquare = function(d){
         d3.selectAll(".x_label, .y_label")
         .style("fill", "black" )
         .style("font-size", 11)
+
+        d3.selectAll(" .squares")
+        .style("stroke", "none")
+    };
+    var mouseoverYLabel = function(d){
+        d3.select(this)
+        .style("fill", "red" )
+        .style("font-size", 11);
+
+        var match = new Array();
+
+        d3.selectAll(".squares").filter(function(e){
+            if (e.y_label == d)
+                match.push(e.x_label);
+        })
+
+        d3.selectAll(".x_label")
+        .filter(function(e){
+            return match.includes(e);
+        })
+        .style("fill", "red" )
+        .style("font-size", 11);
+
+        d3.selectAll(" .squares")
+        .filter(function(e){
+            return d == e.y_label;
+        })
+        .style("stroke", "black");
+    };
+    var mouseleaveYlabel = function(d){
+        d3.selectAll(".x_label, .y_label")
+        .style("fill", "black" )
+        .style("font-size", 11)
+
+        d3.selectAll(" .squares")
+        .style("stroke", "none")
+
+    };
+    var mouseoverXLabel = function(d){
+        d3.select(this)
+        .style("fill", "red" )
+        .style("font-size", 11);
+
+        var match = new Array();
+
+        d3.selectAll(".squares").filter(function(e){
+            if (e.y_label == d)
+                match.push(e.y_label);
+        })
+
+        d3.selectAll(".y_label")
+        .filter(function(e){
+            return match.includes(e);
+        })
+        .style("fill", "red" )
+        .style("font-size", 11);
+
+        d3.selectAll(" .squares")
+        .filter(function(e){
+            return d == e.x_label;
+        })
+        .style("stroke", "black");
+    };
+    var mouseleaveXlabel = function(d){
+        d3.selectAll(".x_label, .y_label")
+        .style("fill", "black" )
+        .style("font-size", 11)
+
+        d3.selectAll(" .squares")
+        .style("stroke", "none")
     };
     //---------END-MOUSE-EVENT------------
 
-    //TODO: dim based on window size
+    //TODO: put all css stylesheet in heatmap.css
+
+    //TODO: dim based on window size (width part)
     var setSvgDim = function(){
         width = (X_elements.length * sq_w);
         height = (Y_elements.length * sq_h);
@@ -128,43 +207,44 @@ var map = (function () {
     };
  
     var setXaxis = function(){
+        console.log("win_w = "+ window.innerWidth + " w = " + width )
+        var w = Object.keys(X_elements).length * sq_w;
+        //if (w > width) width = w;
+
         x = d3.scaleBand()
-            .range([ 0, width ])
+            .range([ 0, w ]) 
             .domain(X_elements)
             .padding(0.05);
         svg.append("g")
             .style("font-size", 11)
             .attr("transform", "translate(0," + height + ")")
-            .call(d3.axisBottom(x).tickSize(0))
-            //.select(".domain").remove()
+            .call(d3.axisBottom(x).tickSize(5))
             .selectAll("text")	
                 .attr("class", "x_label")
                 .style("text-anchor", "end")
                 .attr("dx", "-.8em")
                 .attr("dy", ".15em")
                 .attr("transform", "rotate(-65)")
-
+                .on("mouseover", mouseoverXLabel )
+                .on("mouseleave", mouseleaveXlabel );
     };
 
     var setYaxis = function(){
         y = d3.scaleBand()
-        .range([ height, 0 ])
-        .domain(Y_elements)
-        .padding(0.05);
-    svg.append("g")
-        .style("font-size", 11)
-        .call(d3.axisLeft(y).tickSize(0))
-        .selectAll("text")
-        .attr("class", "y_label")
-        .attr("dx", "-2.5em");
-        //.style("fill", function(e) {
-        //    return myColor( sendersTotPkts[e] );
-        //});
-
-        //.select(".domain").remove()
+            .range([ height, 0 ])
+            .domain(Y_elements)
+            .padding(0.05);
+        svg.append("g")
+            .style("font-size", 11)
+            .call(d3.axisLeft(y).tickSize(3))
+            .selectAll("text")
+            .attr("class", "y_label")
+            .attr("dx", "-2.5em")
+            .on("mouseover", mouseoverYLabel )
+            .on("mouseleave", mouseleaveYlabel );
     };
 
-    var setXaxisSquare = function(data){
+    var setYaxisSquare = function(data){
         svg.selectAll()
         .data(data, function(d) {return d.y_label;})
         .enter()
@@ -183,11 +263,8 @@ var map = (function () {
                 return myColor( sendersTotPkts[d.y_label] );
             }  
         )
-        .style("stroke-width", 0)
-        .style("stroke", "black")
-    //    .on("mousemove", mousemoveAxisSquare)
-        .on("mouseover", mouseoverXAxisSquare)
-        .on("mouseleave", mouseleaveXAxisSquare);
+        .on("mouseover", mouseoverYAxisSquare)
+        .on("mouseleave", mouseleaveYAxisSquare);
     };
 
     var createSquares = function(data){
@@ -210,12 +287,11 @@ var map = (function () {
                 return myColor(d.value);
             }  
         )
-        .style("stroke-width", 4)
+        .style("stroke-width", 3)
         .style("stroke", "none")
         .style("opacity", 1)
-        .on("mouseover", mouseover)
-      //  .on("mousemove", mousemove)
-        .on("mouseleave", mouseleave);
+        .on("mouseover", mouseoverSquare)
+        .on("mouseleave", mouseleaveSquare);
     };
 
     var createTooltip = function(){
@@ -248,7 +324,6 @@ var map = (function () {
                 .text("No Requests");
     };
 
-    //TODO: maybe is better print the text/img in the html file and not here in the svg
     var printText = function(){
         // Add title to graph
         svg.append("text")
@@ -324,27 +399,43 @@ var map = (function () {
         return svgFlag ? "#container" : "#container2";
     };
 
+    var startInterval = function(_interval) {
+        intervalID = setInterval(function() {
+            //console.log(_interval);
+            build(interval);
+        }, _interval);
+    }
+
+    var stopUpdate = function (){
+        //console.log("stop= "+stopInterval)
+        stopInterval = true;
+    };
+    var startUpdate = function (){
+        stopInterval = false;
+        //console.log("stop= "+stopInterval)
+    };
+
     //########################################################################################  
 
-    //the calling order of the functions is important: most variable are global
+    //the calling order of the functions is important (most variable are global)
     var buildMap = function(data) {
 
         w_h = window.innerHeight - 330;
-        w_w = window.innerWidth;
+        w_w = window.innerWidth - margin.left - margin.right - 30;
 
         max_X_elem = Math.floor(w_w / sq_w);
         max_Y_elem = Math.floor(w_h / sq_h);
 
+        console.log("maxY: " + max_X_elem)
+
         createSvg();
 
         X_elements = d3.map(data, function(d){return d.x_label;}).keys()
-        Y_elements = d3.map(data, function(d){return d.y_label;}).keys()
-        X_elements.sort();//Y_elements already sorted
-
-        d3.map(data, function(d){return d.y_label;}).keys()
+        Y_elements = d3.map(data, function(d){return d.y_label;}).keys()        
 
         //compute #tot pkt for each mac
         sendersTotPkts = {};
+        receiversTotPkts = {};
         maxTotPkt = 0;
         d3.map(data).values().forEach(e => {
             if ( sendersTotPkts.hasOwnProperty(e.y_label) )
@@ -352,27 +443,56 @@ var map = (function () {
             else
                 sendersTotPkts[e.y_label] = e.value;
 
+            if (receiversTotPkts.hasOwnProperty(e.x_label) )
+                receiversTotPkts[e.x_label] += e.value;
+            else
+                receiversTotPkts[e.x_label] = e.value;
+
             if (sendersTotPkts[e.y_label] > maxTotPkt)
                 maxTotPkt = sendersTotPkts[e.y_label];
         });
+
+        
+
+        console.log("pre reduce: " +Object.keys(X_elements).length)
         
         var Yelem_to_display = new Array();
+        var Xelem_to_display = new Array();
 
-        Y_elements.forEach( e => { Yelem_to_display.push( {label:e, pkts:sendersTotPkts[e]} ) } );
-        Yelem_to_display.sort( (a,b)=> { return b.pkts - a.pkts } );
-
+        //reduce Y elem
+        Y_elements.forEach( e => {
+            Yelem_to_display.push( {label:e, pkts:sendersTotPkts[e]} ) 
+        });
+        
         Yelem_to_display = Yelem_to_display.slice(0, max_Y_elem);
         var new_data = data.filter( e => { 
             return Yelem_to_display.some( d => {return d.label == e.y_label} ) 
         });
+        data = new_data;
+        new_data = null;
 
+        
+        //reduce X_elem
+        X_elements.forEach( e => {
+            Xelem_to_display.push( {label:e, pkts:sendersTotPkts[e]} ) 
+        });
+        Xelem_to_display = Xelem_to_display.slice(0, max_X_elem);
+        new_data = data.filter( e => { 
+            return Xelem_to_display.some( d => {return d.label == e.x_label} ) 
+        });
         data = new_data;
 
         X_elements = d3.map(data, function(d){return d.x_label;}).keys()
         Y_elements = d3.map(data, function(d){return d.y_label;}).keys()
+        
+        X_elements.sort(function(a,b){ return receiversTotPkts[b] - receiversTotPkts[a] });
+        Y_elements.sort(function(a,b){ return sendersTotPkts[a] - sendersTotPkts[b] });
+        
+        //console.log(receiversTotPkts);
 
+        console.log("post reduce: " + Object.keys(X_elements).length);
+        
         setSvgDim();
-
 
         //choose a chromatic scale [ https://github.com/d3/d3-scale-chromatic ]
         myColor = d3.scaleSequential().interpolator(d3.interpolateInferno).domain([1,maxTotPkt]);
@@ -382,7 +502,7 @@ var map = (function () {
 
         d3.selectAll('.tick text').on('click',labelClick);
 
-        setXaxisSquare(data);
+        setYaxisSquare(data);
         createTooltip();
         createSquares(data);
 
@@ -395,6 +515,7 @@ var map = (function () {
 
     //########################################################################################
 
+    //TODO: width limit
     var buildMiniMap = function(data){
 
         createSvg();
@@ -445,7 +566,7 @@ var map = (function () {
 
         d3.selectAll('.tick text').on('click',labelClick);
 
-        //setXaxisSquare(data);
+        //setYaxisSquare(data);
         createTooltip();
         createSquares(data);
 
@@ -460,25 +581,32 @@ var map = (function () {
 
     //########################################################################################
 
-    var build = function(addr) {
-        if (addr){
+    var build = function(param) {
+        if (param && typeof(param) == "string"  ){
             isDetail = true;
-            address = addr;
+            address = param;
             margin = {top: 5, right: 10, bottom: 70, left: 100};
-            d3.json("/lua/get_arp_matrix_data.lua?host="+addr,  buildMiniMap);
+            d3.json("/lua/get_arp_matrix_data.lua?host="+param, buildMiniMap);
+
+        }else if (param && typeof(param) == "number" ){
+            clearInterval(intervalID);
+
+            if ( !stopInterval ){
+                interval = param;
+                startInterval(interval);
+                d3.json("/lua/get_arp_matrix_data.lua", buildMap);
+            }
+            
         }else
             d3.json("/lua/get_arp_matrix_data.lua",buildMap);
     };
 
-    setInterval(function() {
-        if (isDetail)
-            build(address);
-        else
-            build();
-    }, 5000);
+
   
     return {
-        build:build
+        build:build,
+        stopUpdate:stopUpdate,
+        startUpdate:startUpdate
     }
 
 })();

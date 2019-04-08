@@ -65,6 +65,14 @@ local function createHeatmap(matrix, type)
     local t_res = {}
     local treshold = 1 --tmp
 
+    function cmp(a,b)
+        return a.y_label > b.y_label
+    end
+
+    function cmpValue(a,b)
+        return a.value > b.value
+    end
+
     for _, m_elem in pairs(matrix) do
         for i,stats in pairs(m_elem)do
             tmp = split(i,"-")
@@ -90,11 +98,8 @@ local function createHeatmap(matrix, type)
                 table.insert( t_res, { x_label = src_ip, y_label = dst_ip, value = v })
             end      
         
-            function cmp(a,b)
-                return a.y_label > b.y_label
-            end
-        
-            table.sort(t_res, cmp)
+            --table.sort(t_res, cmp) --for lexicographical order
+            --table.sort(t_res, cmpValue)
         
         end
     end
