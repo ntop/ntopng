@@ -1,7 +1,6 @@
 var map = (function () {
 
     var isDetail = false;
-    var address;
     var interval = 5000;
     var intervalID;
     var stopInterval = false;
@@ -117,6 +116,11 @@ var map = (function () {
         .style("stroke", "none")
     };
     var mouseoverYLabel = function(d){
+        tooltip.style("opacity", 0.9)
+        tooltip.html("sent: " + sendersTotPkts[d])
+        .style("left", (d3.event.pageX ) + "px")
+        .style("top", (d3.event.pageY - 35) + "px")
+
         d3.select(this)
         .style("fill", "red" )
         .style("font-size", 11);
@@ -142,6 +146,7 @@ var map = (function () {
         .style("stroke", "black");
     };
     var mouseleaveYlabel = function(d){
+        tooltip.style("opacity", 0)
         d3.selectAll(".x_label, .y_label")
         .style("fill", "black" )
         .style("font-size", 11)
@@ -151,6 +156,10 @@ var map = (function () {
 
     };
     var mouseoverXLabel = function(d){
+        tooltip.style("opacity", 0.9)
+        tooltip.html("rcvd: " + receiversTotPkts[d])
+        .style("left", (d3.event.pageX ) + "px")
+        .style("top", (d3.event.pageY - 35) + "px")
         d3.select(this)
         .style("fill", "red" )
         .style("font-size", 11);
@@ -176,6 +185,7 @@ var map = (function () {
         .style("stroke", "black");
     };
     var mouseleaveXlabel = function(d){
+        tooltip.style("opacity", 0)
         d3.selectAll(".x_label, .y_label")
         .style("fill", "black" )
         .style("font-size", 11)
@@ -186,8 +196,6 @@ var map = (function () {
     //---------END-MOUSE-EVENT------------
 
     //TODO: put all css stylesheet in heatmap.css
-
-    //TODO: dim based on window size (width part)
     var setSvgDim = function(){
         width = (X_elements.length * sq_w);
         height = (Y_elements.length * sq_h);
@@ -195,7 +203,7 @@ var map = (function () {
      //   if (height > 800 ) height = 800  - margin.top - margin.bottom;
         if (height + margin.top + margin.bottom < 250 ) height = 250  - margin.top - margin.bottom;
      //   if ( width > 1100) width = 1100 - margin.left - margin.right;
-        if ( width + margin.left + margin.right < 666 )  width = 666  - margin.left - margin.right;//tmp for not clip the legend
+        if ( width + margin.left + margin.right < 680 )  width = 680  - margin.left - margin.right;//tmp for not clip the legend
 
         //apply svg resize
         d3.select( getCurrentContainerID() )
@@ -209,7 +217,6 @@ var map = (function () {
     var setXaxis = function(){
         console.log("win_w = "+ window.innerWidth + " w = " + width )
         var w = Object.keys(X_elements).length * sq_w;
-        //if (w > width) width = w;
 
         x = d3.scaleBand()
             .range([ 0, w ]) 
@@ -381,7 +388,7 @@ var map = (function () {
 
         //X axis description
         svg.append('text')
-            .attr('x', width - 50  )
+            .attr('x', margin.left - 120  )
             .attr('y', height + 110  )
             .attr('text-anchor', 'middle')
             .text('Receivers')
@@ -420,13 +427,11 @@ var map = (function () {
     //the calling order of the functions is important (most variable are global)
     var buildMap = function(data) {
 
-        w_h = window.innerHeight - 330;
+        w_h = window.innerHeight - margin.top - margin.bottom - 80; 
         w_w = window.innerWidth - margin.left - margin.right - 30;
 
         max_X_elem = Math.floor(w_w / sq_w);
         max_Y_elem = Math.floor(w_h / sq_h);
-
-        console.log("maxY: " + max_X_elem)
 
         createSvg();
 
@@ -452,46 +457,45 @@ var map = (function () {
                 maxTotPkt = sendersTotPkts[e.y_label];
         });
 
+        //console.log("pre reduce: " +Object.keys(X_elements).length)
+        // X_elements.sort(function(a,b){ return receiversTotPkts[a] - receiversTotPkts[b] });
+        // Y_elements.sort(function(a,b){ return sendersTotPkts[a] - sendersTotPkts[b] });
+
+       
+        Y_elements.sort(function(a,b){ return sendersTotPkts[b] - sendersTotPkts[a] });
         
 
-        console.log("pre reduce: " +Object.keys(X_elements).length)
         
-        var Yelem_to_display = new Array();
-        var Xelem_to_display = new Array();
+            //NOTE: forEach() iterate in ascending order
+            //NOTE: slice(start, end) NOT include the "start" and "end" argument
+        if (Object.keys(Y_elements).length > max_Y_elem || Object.keys(X_elements).length > max_X_elem ){
 
-        //reduce Y elem
-        Y_elements.forEach( e => {
-            Yelem_to_display.push( {label:e, pkts:sendersTotPkts[e]} ) 
-        });
-        
-        Yelem_to_display = Yelem_to_display.slice(0, max_Y_elem);
-        var new_data = data.filter( e => { 
-            return Yelem_to_display.some( d => {return d.label == e.y_label} ) 
-        });
-        data = new_data;
-        new_data = null;
+            Y_elements = Y_elements.slice(0, max_Y_elem+1 );
+            X_elements = X_elements.slice(0, max_X_elem+1 );
 
-        
-        //reduce X_elem
-        X_elements.forEach( e => {
-            Xelem_to_display.push( {label:e, pkts:sendersTotPkts[e]} ) 
-        });
-        Xelem_to_display = Xelem_to_display.slice(0, max_X_elem);
-        new_data = data.filter( e => { 
-            return Xelem_to_display.some( d => {return d.label == e.x_label} ) 
-        });
-        data = new_data;
+            //console.log(data);
 
-        X_elements = d3.map(data, function(d){return d.x_label;}).keys()
-        Y_elements = d3.map(data, function(d){return d.y_label;}).keys()
-        
+            data = data.filter( function(d){
+                return ( Y_elements.includes( d.y_label) && X_elements.includes(d.x_label) )
+            });
+
+            //if it's OK to put some top receivers with no elem in the current graph (the senderis not in Y_elem) comment the 7 rows below
+            X_elements = X_elements.filter( e => {
+                var f = false;
+                data.forEach(d => {
+                    if (d.x_label == e){ f = true; return;}
+                })
+                return f;
+            });
+
+        }
+
+        // Y_elements.forEach( function(e){ console.log( e + " - " + sendersTotPkts[e] ) } );
+        // console.log("########################################")
+        // X_elements.forEach( function(e){ console.log( e + " - " + receiversTotPkts[e] ) } );
         X_elements.sort(function(a,b){ return receiversTotPkts[b] - receiversTotPkts[a] });
-        Y_elements.sort(function(a,b){ return sendersTotPkts[a] - sendersTotPkts[b] });
-        
-        //console.log(receiversTotPkts);
+        Y_elements.reverse();
 
-        console.log("post reduce: " + Object.keys(X_elements).length);
-        
         setSvgDim();
 
         //choose a chromatic scale [ https://github.com/d3/d3-scale-chromatic ]
