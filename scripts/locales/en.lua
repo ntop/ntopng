@@ -1316,6 +1316,7 @@ local lang = {
     ["dns_qry_sent_rsp_rcvd"] = "DNS Sent Queries / Rcvd Repls",
     ["echo_reply_packets"] = "Echo Reply Packets",
     ["echo_request_packets"] = "Echo Request Packets",
+    ["tcp_packets"] = "TCP Packets",
     ["download_chart_data"] = "Download the current chart data",
     ["export_flows_as_txt"] = "Export flows as TXT file",
     ["flows_status_overview"] = "%{protocol} Flows Status Overview",
