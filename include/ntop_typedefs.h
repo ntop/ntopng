@@ -185,7 +185,7 @@ typedef struct {
 
 typedef struct zmq_flow_core {
   u_int8_t version; /* 0 so far */
-  IpAddress src_ip, dst_ip;
+
   u_int32_t deviceIP;
   u_int16_t src_port, dst_port, inIndex, outIndex;
   ndpi_proto l7_proto;
@@ -219,6 +219,7 @@ typedef struct {
 } custom_app_t;
 
 typedef struct zmq_flow {
+  IpAddress src_ip, dst_ip;  
   Parsed_FlowCore core;
   json_object *additional_fields;
   char *http_url, *http_site, *dns_query, *ssl_server_name, *bittorrent_hash;

@@ -1119,7 +1119,7 @@ void NetworkInterface::processFlow(Parsed_Flow *zflow) {
     dstMac = getMac((u_int8_t*)zflow->core.dst_mac, true);
   }
 
-  srcIP.set(&zflow->core.src_ip), dstIP.set(&zflow->core.dst_ip);
+  srcIP.set(&zflow->src_ip), dstIP.set(&zflow->dst_ip);
 
   /* Updating Flow */
   flow = getFlow(srcMac, dstMac,
