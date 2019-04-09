@@ -21,11 +21,11 @@ schema:addMetric("bytes_rcvd")
 
 -- ##############################################
 
-schema = ts_utils.newSchema("mac:arp_requests", {step=300})
+schema = ts_utils.newSchema("mac:arp_rqst_sent_rcvd_rpls", {step=300})
 schema:addTag("ifid")
 schema:addTag("mac")
 schema:addMetric("request_packets_sent")
-schema:addMetric("request_packets_rcvd")
+schema:addMetric("reply_packets_rcvd")
 
 -- ##############################################
 
