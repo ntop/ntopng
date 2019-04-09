@@ -26,7 +26,8 @@
 
 class ParserInterface : public NetworkInterface {
  private:
-    
+ protected:
+  static void resetParsedFlow(Parsed_Flow *parser_flow);
  public:
   ParserInterface(const char *endpoint, const char *custom_interface_type = NULL);
   ~ParserInterface();

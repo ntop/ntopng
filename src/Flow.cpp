@@ -3405,10 +3405,12 @@ void Flow::recheckQuota(const struct tm *now) {
 bool Flow::isLowGoodput() {
   if(iface->getIfType() == interface_type_ZMQ
      || iface->getIfType() == interface_type_NETFILTER
+     || iface->getIfType() == interface_type_SYSLOG
      || protocol == IPPROTO_UDP)
     return(false);
   else
-    return((((get_goodput_bytes()*100)/(get_bytes()+1 /* avoid zero divisions */)) < FLOW_GOODPUT_THRESHOLD) ? true : false);
+    return((get_duration() >= FLOW_GOODPUT_MIN_DURATION
+	    && ((get_goodput_bytes()*100)/(get_bytes()+1 /* avoid zero divisions */)) < FLOW_GOODPUT_THRESHOLD) ? true : false);
 }
 
 /* ***************************************************** */

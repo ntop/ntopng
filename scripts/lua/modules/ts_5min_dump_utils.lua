@@ -29,9 +29,9 @@ function ts_dump.l2_device_update_stats_rrds(when, devicename, device, ifstats, 
   ts_utils.append("mac:traffic", {ifid=ifstats.id, mac=devicename,
               bytes_sent=device["bytes.sent"], bytes_rcvd=device["bytes.rcvd"]}, when, verbose)
   
-  ts_utils.append("mac:arp_requests", {ifid=ifstats.id, mac=devicename,
+  ts_utils.append("mac:arp_rqst_sent_rcvd_rpls", {ifid=ifstats.id, mac=devicename,
               request_packets_sent = device["arp_requests.sent"],
-              request_packets_rcvd = device["arp_requests.rcvd"]},
+              reply_packets_rcvd = device["arp_replies.rcvd"]},
         when,verbose)
 end
 

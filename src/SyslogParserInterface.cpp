@@ -95,7 +95,7 @@ void SyslogParserInterface::parseSuricataAlert(json_object *a, Parsed_Flow *flow
 
     f = getFlow(NULL, NULL, flow->core.vlan_id, 0, 0, 0,
       icmp_info,
-      &flow->core.src_ip, &flow->core.dst_ip,
+      &flow->src_ip, &flow->dst_ip,
       flow->core.src_port, flow->core.dst_port,
       flow->core.l4_proto, &src2dst_direction,
       flow->core.first_switched, flow->core.last_switched, 
@@ -137,11 +137,7 @@ u_int8_t SyslogParserInterface::parseLog(char *log_line) {
 #endif
 
     /* Reset data */
-    memset(&flow, 0, sizeof(flow));
-    flow.core.l7_proto = Flow::get_ndpi_unknown_protocol();
-    flow.additional_fields = json_object_new_object();
-    flow.core.pkt_sampling_rate = 1; /* 1:1 (no sampling) */
-    flow.core.source_id = 0, flow.core.vlan_id = 0;
+    resetParsedFlow(&flow);
 
     o = json_tokener_parse_verbose(content, &jerr);
 
@@ -161,8 +157,8 @@ u_int8_t SyslogParserInterface::parseLog(char *log_line) {
       //if (json_object_object_get_ex(o, "community_id", &w)) community_id = json_object_get_string(w);
       //if (json_object_object_get_ex(o, "app_proto", &w)) app_proto = json_object_get_string(w);
       if (json_object_object_get_ex(o, "vlan", &w))      flow.core.vlan_id = json_object_get_int(w);
-      if (json_object_object_get_ex(o, "src_ip", &w))    flow.core.src_ip.set((char *) json_object_get_string(w));
-      if (json_object_object_get_ex(o, "dest_ip", &w))   flow.core.dst_ip.set((char *) json_object_get_string(w));
+      if (json_object_object_get_ex(o, "src_ip", &w))    flow.src_ip.set((char *) json_object_get_string(w));
+      if (json_object_object_get_ex(o, "dest_ip", &w))   flow.dst_ip.set((char *) json_object_get_string(w));
       if (json_object_object_get_ex(o, "src_port", &w))  flow.core.src_port = htons(json_object_get_int(w));
       if (json_object_object_get_ex(o, "dest_port", &w)) flow.core.dst_port = htons(json_object_get_int(w));
       if (json_object_object_get_ex(o, "proto", &w))     flow.core.l4_proto = Utils::l4name2proto((char *) json_object_get_string(w));
@@ -195,8 +191,8 @@ u_int8_t SyslogParserInterface::parseLog(char *log_line) {
 
 #ifdef SYSLOG_DEBUG
         ntop->getTrace()->traceEvent(TRACE_NORMAL, "[Suricata] Netflow %s:%u <-> %s:%u [start=%u][end=%u][%u pkts][%u bytes]",
-          flow.core.src_ip.print(src_ip_buf, sizeof(src_ip_buf)), ntohs(flow.core.src_port), 
-          flow.core.dst_ip.print(dst_ip_buf, sizeof(dst_ip_buf)), ntohs(flow.core.dst_port),
+          flow.src_ip.print(src_ip_buf, sizeof(src_ip_buf)), ntohs(flow.core.src_port), 
+          flow.dst_ip.print(dst_ip_buf, sizeof(dst_ip_buf)), ntohs(flow.core.dst_port),
           flow.core.first_switched, flow.core.last_switched,
           flow.core.in_pkts, flow.core.in_bytes);
 #endif
@@ -213,8 +209,8 @@ u_int8_t SyslogParserInterface::parseLog(char *log_line) {
 
 #ifdef SYSLOG_DEBUG
         ntop->getTrace()->traceEvent(TRACE_NORMAL, "[Suricata] Flow %s:%u <-> %s:%u [start=%u][end=%u][%u/%u pkts][%u/%u bytes]",
-          flow.core.src_ip.print(src_ip_buf, sizeof(src_ip_buf)), ntohs(flow.core.src_port), 
-          flow.core.dst_ip.print(dst_ip_buf, sizeof(dst_ip_buf)), ntohs(flow.core.dst_port),
+          flow.src_ip.print(src_ip_buf, sizeof(src_ip_buf)), ntohs(flow.core.src_port), 
+          flow.dst_ip.print(dst_ip_buf, sizeof(dst_ip_buf)), ntohs(flow.core.dst_port),
           flow.core.first_switched, flow.core.last_switched,
           flow.core.in_pkts, flow.core.out_pkts, flow.core.in_bytes, flow.core.out_bytes);
 #endif
