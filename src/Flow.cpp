@@ -79,6 +79,8 @@ Flow::Flow(NetworkInterface *_iface,
     last_db_dump.cli2srv_goodput_bytes = 0, last_db_dump.srv2cli_goodput_bytes = 0,
     last_db_dump.last_dump = 0;
 
+  suricata_alert = NULL;
+
   memset(&protos, 0, sizeof(protos));
   memset(&flow_device, 0, sizeof(flow_device));
 
@@ -99,11 +101,6 @@ Flow::Flow(NetworkInterface *_iface,
     
       if(cli_host) cli_host->incNumUnreachableFlows(true  /* as server */);
       if(srv_host) srv_host->incNumUnreachableFlows(false /* as client */);
-    }
-    else if(icmp_info->isNetUnreachable(protocol)){
-      
-      if(cli_host) cli_host->incNumNetUnreachableFlows(true  /* as server */);
-      if(srv_host) srv_host->incNumNetUnreachableFlows(false /* as client */);
     }
     else if(icmp_info->isHostUnreachable(protocol)){
 
@@ -243,6 +240,7 @@ Flow::~Flow() {
 
   freeDPIMemory();
   if(icmp_info)        delete(icmp_info);
+  if(suricata_alert) json_object_put(suricata_alert); 
 }
 
 /* *************************************** */
@@ -563,20 +561,20 @@ void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
   /* Let the client SSL certificate win over the server SSL certificate
      this addresses detection for youtube, e.g., when the client
      requests s.youtube.com but the server responds with google.com */
-  if(!forceDetection
-     && proto_id.master_protocol == NDPI_PROTOCOL_SSL
-     && get_packets() < NDPI_MIN_NUM_PACKETS
+  if((!forceDetection)
+     && (proto_id.master_protocol == NDPI_PROTOCOL_SSL)
+     && (get_packets() < NDPI_MIN_NUM_PACKETS)
      && (ndpif = get_ndpi_flow())
-     && ndpif->protos.stun_ssl.ssl.client_certificate[0] == '\0'
-     && ndpif->protos.stun_ssl.ssl.server_certificate[0] == '\0') {
+     && ((ndpif->protos.stun_ssl.ssl.client_certificate[0] == '\0')
+	 || (ndpif->protos.stun_ssl.ssl.server_certificate[0] == '\0'))) {
     ndpif->detected_protocol_stack[0] = NDPI_PROTOCOL_UNKNOWN;
     return;
   }
-
-  if(proto_id.app_protocol != NDPI_PROTOCOL_UNKNOWN
+  
+  if((proto_id.app_protocol != NDPI_PROTOCOL_UNKNOWN)
      || forceDetection
-     || get_packets() >= NDPI_MIN_NUM_PACKETS
-     || !iface->is_ndpi_enabled()
+     || (get_packets() >= NDPI_MIN_NUM_PACKETS)
+     || (!iface->is_ndpi_enabled())
      || iface->isSampledTraffic()) {
     ndpiDetectedProtocol.master_protocol = proto_id.master_protocol;
     ndpiDetectedProtocol.app_protocol = proto_id.app_protocol;
@@ -1659,6 +1657,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
        || iface->is_ndpi_enabled()
        || iface->isSampledTraffic()
        || (iface->getIfType() == interface_type_ZMQ)
+       || (iface->getIfType() == interface_type_SYSLOG)
        || (iface->getIfType() == interface_type_ZC_FLOW)) {
       lua_push_str_table_entry(vm, "proto.ndpi", get_detected_protocol_name(buf, sizeof(buf)));
     } else
@@ -2026,7 +2025,23 @@ json_object* Flow::flow2statusinfojson() {
   }
 
   FlowStatus fs = getFlowStatus();
-  if(fs == status_elephant_local_to_remote)
+  if(fs == status_ids_alert) {
+    json_object *json_alert = getSuricataAlert();
+    if (json_alert)
+      json_object_object_add(obj, "ids_alert", json_object_get(json_alert));
+  } else if(fs == status_blacklisted) {
+    if(cli_host && cli_host->isBlacklisted())
+      json_object_object_add(obj, "blacklisted.cli", json_object_new_boolean(true));
+    if(srv_host && srv_host->isBlacklisted())
+      json_object_object_add(obj, "blacklisted.srv", json_object_new_boolean(true));
+    if(get_protocol_category() == CUSTOM_CATEGORY_MALWARE)
+      json_object_object_add(obj, "blacklisted.cat", json_object_new_boolean(true));
+  } else if(fs == status_ssl_certificate_mismatch) {
+    if(protos.ssl.certificate && protos.ssl.certificate[0] != '\0')
+      json_object_object_add(obj, "ssl_crt.cli", json_object_new_string(protos.ssl.certificate));
+    if(protos.ssl.server_certificate && protos.ssl.server_certificate[0] != '\0')
+      json_object_object_add(obj, "ssl_crt.srv", json_object_new_string(protos.ssl.server_certificate));
+  } else if(fs == status_elephant_local_to_remote)
     json_object_object_add(obj, "elephant.l2r_threshold",
 			   json_object_new_int64(ntop->getPrefs()->get_elephant_flow_local_to_remote_bytes()));    
   else if(fs == status_elephant_remote_to_local)
@@ -3390,10 +3405,12 @@ void Flow::recheckQuota(const struct tm *now) {
 bool Flow::isLowGoodput() {
   if(iface->getIfType() == interface_type_ZMQ
      || iface->getIfType() == interface_type_NETFILTER
+     || iface->getIfType() == interface_type_SYSLOG
      || protocol == IPPROTO_UDP)
     return(false);
   else
-    return((((get_goodput_bytes()*100)/(get_bytes()+1 /* avoid zero divisions */)) < FLOW_GOODPUT_THRESHOLD) ? true : false);
+    return((get_duration() >= FLOW_GOODPUT_MIN_DURATION
+	    && ((get_goodput_bytes()*100)/(get_bytes()+1 /* avoid zero divisions */)) < FLOW_GOODPUT_THRESHOLD) ? true : false);
 }
 
 /* ***************************************************** */
@@ -3421,6 +3438,9 @@ FlowStatus Flow::getFlowStatus() {
   //if(get_protocol_category() == CUSTOM_CATEGORY_MINING)
   if(ndpiDetectedProtocol.category == CUSTOM_CATEGORY_MINING)
     return status_web_mining_detected;
+
+  if(getSuricataAlert())
+    return status_ids_alert;
 
 #ifndef HAVE_NEDGE
   /* All flows */

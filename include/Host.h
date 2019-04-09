@@ -229,7 +229,6 @@ class Host : public GenericHashEntry {
   void incNumFlows(time_t t, bool as_client, Host *peer);
   void decNumFlows(time_t t, bool as_client, Host *peer);
   inline void incNumUnreachableFlows(bool as_server) { if(stats) stats->incNumUnreachableFlows(as_server); }
-  inline void incNumNetUnreachableFlows(bool as_server) { if(stats) stats->incNumNetUnreachableFlows(as_server); };
   inline void incNumHostUnreachableFlows(bool as_server) { if(stats) stats->incNumHostUnreachableFlows(as_server); }; 
  
   inline void incFlagStats(bool as_client, u_int8_t flags)  { stats->incFlagStats(as_client, flags); };
@@ -238,6 +237,7 @@ class Host : public GenericHashEntry {
   virtual void incNumDNSResponsesSent(u_int32_t ret_code) { };
   virtual void incNumDNSResponsesRcvd(u_int32_t ret_code) { };
   virtual void luaDNS(lua_State *vm) const { };
+  virtual void luaICMP(lua_State *vm, bool isV4, bool verbose) const    { };
   virtual void luaTCP(lua_State *vm) const { };
   virtual u_int16_t getNumActiveContactsAsClient() const  { return 0; };
   virtual u_int16_t getNumActiveContactsAsServer() const  { return 0; };
@@ -263,8 +263,6 @@ class Host : public GenericHashEntry {
   inline u_int32_t getTotalNumAnomalousIncomingFlows() const { return stats->getTotalAnomalousNumFlowsAsServer(); };
   inline u_int32_t getTotalNumUnreachableOutgoingFlows() const { return stats->getTotalUnreachableNumFlowsAsClient(); };
   inline u_int32_t getTotalNumUnreachableIncomingFlows() const { return stats->getTotalUnreachableNumFlowsAsServer(); };
-  inline u_int32_t getTotalNumNetUnreachableOutgoingFlows() const { return stats->getTotalNetUnreachableNumFlowsAsClient(); };
-  inline u_int32_t getTotalNumNetUnreachableIncomingFlows() const { return stats->getTotalNetUnreachableNumFlowsAsServer(); };
   inline u_int32_t getTotalNumHostUnreachableOutgoingFlows() const { return stats->getTotalHostUnreachableNumFlowsAsClient(); };
   inline u_int32_t getTotalNumHostUnreachableIncomingFlows() const { return stats->getTotalHostUnreachableNumFlowsAsServer(); };
   void splitHostVlan(const char *at_sign_str, char *buf, int bufsize, u_int16_t *vlan_id);

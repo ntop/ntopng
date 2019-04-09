@@ -635,7 +635,7 @@ local function getFlowStatusInfo(record, status_info)
       local type_code = {type = status_info["icmp.icmp_type"], code = status_info["icmp.icmp_code"]}
 
       if status_info["icmp.unreach.src_ip"] then
-	 res =string.format("[%s]", i18n("icmp_page.icmp_port_unreachable_extra", {unreach_host=status_info["icmp.unreach.dst_ip"], unreach_port=status_info["icmp.unreach.dst_port"], unreach_protocol = l4_proto_to_string(status_info["icmp.unreach.protocol"])}))
+	 res = string.format("[%s]", i18n("icmp_page.icmp_port_unreachable_extra", {unreach_host=status_info["icmp.unreach.dst_ip"], unreach_port=status_info["icmp.unreach.dst_port"], unreach_protocol = l4_proto_to_string(status_info["icmp.unreach.protocol"])}))
       else
 	 res = string.format("[%s]", getICMPTypeCode(type_code))
       end

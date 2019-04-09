@@ -5139,7 +5139,7 @@ static int ntop_http_fetch(lua_State* vm) {
   snprintf(fname, sizeof(fname), "%s", f);
   ntop->fixPath(fname);
 
-  Utils::httpGetPost(vm, url, (char*)"", (char*)"", timeout,
+  Utils::httpGetPost(vm, url, NULL, NULL, timeout,
     false, false, &stats, NULL, fname);
 
   return(CONST_LUA_OK);

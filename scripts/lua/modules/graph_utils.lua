@@ -260,7 +260,7 @@ end
 
 local graph_menu_entries = {}
 
-function populateGraphMenuEntry(label, base_url, params, tab_id, needs_separator, separator_label, pending)
+function populateGraphMenuEntry(label, base_url, params, tab_id, needs_separator, separator_label, pending, disabled)
    local url = getPageUrl(base_url, params)
 
    local entry_params = table.clone(params)
@@ -277,6 +277,7 @@ function populateGraphMenuEntry(label, base_url, params, tab_id, needs_separator
       needs_separator = needs_separator,
       separator_label = separator_label,
       pending = pending, -- true for batched operations
+      disabled = disabled,
    }
 
    graph_menu_entries[#graph_menu_entries + 1] = entry
@@ -337,6 +338,8 @@ end
 -- Prints the menu from the populated graph_menu_entries.
 -- The entry_print_callback is called to print the actual entries.
 function printGraphMenuEntries(entry_print_callback)
+   local active_entries = {}
+
    for idx, entry in ipairs(graph_menu_entries) do
       if(entry.pending and (entry.pending > 0)) then
          -- not verified, act like it does not exist
@@ -354,14 +357,14 @@ function printGraphMenuEntries(entry_print_callback)
          print(entry.html)
       else
          entry_print_callback(idx, entry)
+         active_entries[#active_entries + 1] = entry
       end
 
       ::continue::
    end
-end
 
-function getGraphMenuEntries()
-   return graph_menu_entries
+   -- NOTE: only return the graph_menu_entries which are non-pending
+   return active_entries
 end
 
 -- ########################################################

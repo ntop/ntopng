@@ -567,6 +567,10 @@ const char* Utils::flowStatus2str(FlowStatus s, AlertType *aType, AlertLevel *aL
   case status_longlived:
     return("Long-lived flow");
     break;
+  case status_ids_alert:
+    *aType = alert_ids;
+    *aLevel = alert_level_warning;
+    return("IDS alert");
   default:
     return("Unknown status");
     break;

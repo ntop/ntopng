@@ -32,8 +32,11 @@ class AlertsManager : protected StoreManager {
   bool store_opened, store_initialized;
   u_int32_t num_alerts_engaged;
   bool alerts_stored;
+  static const map<AlertType, u_int> mitigator_grace_periods;
+  map<AlertType, time_t> mitigator;
   int openStore();
-  
+
+  bool mitigate(AlertType alert_type) const;
   /* methods used for alerts that have a timespan */
   bool isAlertEngaged(AlertEngine alert_engine, AlertEntity alert_entity, const char *alert_entity_value, const char *engaged_alert_id,
 		  AlertType *alert_type, AlertLevel *alert_severity, char **alert_json, char **alert_source, char **alert_target, time_t *alert_tstamp);

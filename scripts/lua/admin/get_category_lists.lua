@@ -11,6 +11,7 @@ local json = require("dkjson")
 local lists_utils = require("lists_utils")
 local format_utils = require("format_utils")
 
+local category_filter = _GET["category"]
 local lists = lists_utils.getCategoryLists()
 local now = os.time()
 
@@ -89,9 +90,15 @@ local totalRows = 0
 local sort_to_key = {}
 
 for list_name, list in pairs(lists) do
+  local catname = interface.getnDPICategoryName(list.category)
+
+  if((not isEmptyString(category_filter)) and (category_filter ~= catname)) then
+    goto continue
+  end
+
   totalRows = totalRows + 1
 
-  list.category_name = interface.getnDPICategoryName(list.category)
+  list.category_name = catname
   list.name = list_name
   list.status_label = getListStatusLabel(list)
 
@@ -107,6 +114,8 @@ for list_name, list in pairs(lists) do
     -- default
     sort_to_key[list_name] = list_name
   end
+
+  ::continue::
 end
 
 -- ################################################

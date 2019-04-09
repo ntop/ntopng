@@ -1,5 +1,7 @@
 // 2014-18 - ntop.org
 
+var NTOPNG_MIN_VISUAL_VALUE = 0.005;
+
 function is_good_ipv4(ipv4) {
     if (/^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$/.test(ipv4)) {
 	return(true);
@@ -78,7 +80,8 @@ function fbits(bits) {
       return "-";
 
     var sizes = ['bps', 'Kbit/s', 'Mbit/s', 'Gbit/s', 'Tbit/s'];
-    if(bits < 0.005) return '0';
+    if(bits == 0) return '0';
+    if((bits > 0) && (bits < NTOPNG_MIN_VISUAL_VALUE)) return ('< ' + NTOPNG_MIN_VISUAL_VALUE + ' bps');
     var bits_log1000 = Math.log(bits) / Math.log(1000)
     var i = parseInt(Math.floor(bits_log1000));
     if (i < 0 || isNaN(i)) {
@@ -110,7 +113,8 @@ function fpackets(pps) {
       return "-";
 
     var sizes = ['pps', 'Kpps', 'Mpps', 'Gpps', 'Tpps'];
-    if(pps < 0.005) return '0';
+    if(pps == 0) return '0';
+    if((pps > 0) && (pps < NTOPNG_MIN_VISUAL_VALUE)) return ('< ' + NTOPNG_MIN_VISUAL_VALUE + ' pps');
     var res = scaleValue(pps, sizes, 1000);
 
     // Round to two decimal digits
@@ -122,7 +126,8 @@ function fflows(fps) {
       return "-";
 
     var sizes = ['fps', 'Kfps', 'Mfps', 'Gfps', 'Tfps'];
-    if(fps < 0.005) return '0';
+    if(fps == 0) return '0';
+    if((fps > 0) && (fps < NTOPNG_MIN_VISUAL_VALUE)) return ('< ' + NTOPNG_MIN_VISUAL_VALUE + ' fps');
     var res = scaleValue(fps, sizes, 1000);
 
     // Round to two decimal digits
@@ -292,6 +297,8 @@ function scaleValue(val, sizes, scale) {
 
 function formatValue(val) {
   var sizes = ['', 'K', 'M', 'G', 'T'];
+  if(val == 0) return '0';
+  if((val > 0) && (val < NTOPNG_MIN_VISUAL_VALUE)) return ('< ' + NTOPNG_MIN_VISUAL_VALUE);
   var res = scaleValue(val, sizes, 1000);
 
   return Math.round(res[0]) + res[1];
@@ -309,6 +316,8 @@ function fmillis(value) {
   if(typeof(value) === "undefined")
     return "-";
 
+  if(value == 0) return '0 ms';
+  if((value > 0) && (value < NTOPNG_MIN_VISUAL_VALUE)) return ('< ' + NTOPNG_MIN_VISUAL_VALUE + ' ms');
   var x = Math.round(value);
   var res = scaleValue(x, ["ms", "s"], 1000);
 
@@ -318,6 +327,7 @@ function fmillis(value) {
 function bytesToVolume(bytes) {
   var sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
   if(bytes == 0) return '0 Bytes';
+  if((bytes > 0) && (bytes < NTOPNG_MIN_VISUAL_VALUE)) return('< ' + NTOPNG_MIN_VISUAL_VALUE + " Bytes");
   var res = scaleValue(bytes, sizes, 1024);
 
   return res[0].toFixed(2) + " " + res[1];
@@ -334,6 +344,7 @@ function bitsToSize(bits, factor) {
   factor = factor || 1000;
   var sizes = ['bit/s', 'kbit/s', 'Mbit/s', 'Gbit/s', 'Tbit/s'];
   if (bits == 0) return '0 bps';
+  if ((bits > 0) && (bits < NTOPNG_MIN_VISUAL_VALUE)) return('< ' + NTOPNG_MIN_VISUAL_VALUE + " bps");
   var res = scaleValue(bits, sizes, factor);
 
   return res[0].toFixed(2) + " " + res[1];

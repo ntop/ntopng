@@ -1119,7 +1119,7 @@ void NetworkInterface::processFlow(Parsed_Flow *zflow) {
     dstMac = getMac((u_int8_t*)zflow->core.dst_mac, true);
   }
 
-  srcIP.set(&zflow->core.src_ip), dstIP.set(&zflow->core.dst_ip);
+  srcIP.set(&zflow->src_ip), dstIP.set(&zflow->dst_ip);
 
   /* Updating Flow */
   flow = getFlow(srcMac, dstMac,
@@ -7380,7 +7380,7 @@ bool NetworkInterface::enqueueeBPFEvent(eBPFevent *event) {
   if(ebpfEvents[next_insert_idx] != (eBPFevent*)NULL)
     return(false);
 
-  ebpf_preprocess_event(event, true /* speak with docker */);
+  ebpf_preprocess_event(event, true /* speak with docker */, NULL);
 
   ebpfEvents[next_insert_idx] = event;
   next_insert_idx = (next_insert_idx + 1) % EBPF_QUEUE_LEN;

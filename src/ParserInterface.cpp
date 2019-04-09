@@ -37,4 +37,19 @@ ParserInterface::~ParserInterface() {
 
 /* **************************************************** */
 
+void ParserInterface::resetParsedFlow(Parsed_Flow *parsed_flow) {
+  parsed_flow->src_ip.reset(), parsed_flow->dst_ip.reset();
+  memset(&parsed_flow->core, 0, sizeof(parsed_flow->core));
+  parsed_flow->additional_fields = NULL;
+  parsed_flow->http_url = parsed_flow->http_site = NULL;
+  parsed_flow->dns_query = parsed_flow->ssl_server_name = NULL;
+  parsed_flow->bittorrent_hash = NULL;
+  memset(&parsed_flow->custom_app, 0, sizeof(parsed_flow->custom_app));
+
+  parsed_flow->core.l7_proto = Flow::get_ndpi_unknown_protocol();
+  parsed_flow->additional_fields = json_object_new_object();
+  parsed_flow->core.pkt_sampling_rate = 1; /* 1:1 (no sampling) */
+  parsed_flow->core.source_id = parsed_flow->core.vlan_id = 0;
+}
+
 #endif

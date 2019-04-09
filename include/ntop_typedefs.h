@@ -89,6 +89,8 @@ typedef enum {
   alert_user_activity = 25,
   alert_influxdb_export_failure = 26,
   alert_port_errors = 27,
+  alert_broadcast_domain_too_large = 34,
+  alert_ids = 35,
 } AlertType; /*
 	       NOTE:
 	       keep it in sync with alert_type_keys
@@ -184,7 +186,7 @@ typedef struct {
 
 typedef struct zmq_flow_core {
   u_int8_t version; /* 0 so far */
-  IpAddress src_ip, dst_ip;
+
   u_int32_t deviceIP;
   u_int16_t src_port, dst_port, inIndex, outIndex;
   ndpi_proto l7_proto;
@@ -218,6 +220,7 @@ typedef struct {
 } custom_app_t;
 
 typedef struct zmq_flow {
+  IpAddress src_ip, dst_ip;  
   Parsed_FlowCore core;
   json_object *additional_fields;
   char *http_url, *http_site, *dns_query, *ssl_server_name, *bittorrent_hash;

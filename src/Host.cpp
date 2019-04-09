@@ -563,8 +563,6 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   lua_push_uint64_table_entry(vm, "anomalous_flows.as_client", getTotalNumAnomalousOutgoingFlows());
   lua_push_uint64_table_entry(vm, "unreachable_flows.as_server", getTotalNumUnreachableIncomingFlows());
   lua_push_uint64_table_entry(vm, "unreachable_flows.as_client", getTotalNumUnreachableOutgoingFlows());
-  lua_push_uint64_table_entry(vm, "net_unreachable_flows.as_server", getTotalNumNetUnreachableIncomingFlows());
-  lua_push_uint64_table_entry(vm, "net_unreachable_flows.as_client", getTotalNumNetUnreachableOutgoingFlows());
   lua_push_uint64_table_entry(vm, "host_unreachable_flows.as_server", getTotalNumHostUnreachableIncomingFlows());
   lua_push_uint64_table_entry(vm, "host_unreachable_flows.as_client", getTotalNumHostUnreachableOutgoingFlows());
   lua_push_uint64_table_entry(vm, "total_alerts", stats->getTotalAlerts());

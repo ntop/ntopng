@@ -27,7 +27,6 @@ TimeseriesStats::TimeseriesStats(Host * _host) : GenericTrafficElement() {
   host = _host;
   anomalous_flows_as_client = anomalous_flows_as_server = 0;
   unreachable_flows_as_client = unreachable_flows_as_server = 0;
-  net_unreachable_flows_as_client = net_unreachable_flows_as_server = 0;
   host_unreachable_flows_as_client = host_unreachable_flows_as_server = 0;
   total_alerts = 0;
 }
@@ -55,8 +54,6 @@ void TimeseriesStats::luaStats(lua_State* vm, NetworkInterface *iface, bool host
     lua_push_uint64_table_entry(vm, "anomalous_flows.as_server", getTotalAnomalousNumFlowsAsServer());
     lua_push_uint64_table_entry(vm, "unreachable_flows.as_client", unreachable_flows_as_client);
     lua_push_uint64_table_entry(vm, "unreachable_flows.as_server", unreachable_flows_as_server);
-    lua_push_uint64_table_entry(vm, "net_unreachable_flows.as_client", net_unreachable_flows_as_client);
-    lua_push_uint64_table_entry(vm, "net_unreachable_flows.as_server", net_unreachable_flows_as_server);
     lua_push_uint64_table_entry(vm, "host_unreachable_flows.as_client", host_unreachable_flows_as_client);
     lua_push_uint64_table_entry(vm, "host_unreachable_flows.as_server", host_unreachable_flows_as_server);
     lua_push_uint64_table_entry(vm, "contacts.as_client", host->getNumActiveContactsAsClient());
@@ -85,5 +82,6 @@ void TimeseriesStats::luaStats(lua_State* vm, NetworkInterface *iface, bool host
 
     host->luaDNS(vm);
     host->luaTCP(vm);
+    host->luaICMP(vm, host->get_ip()->isIPv4(),false);
   }
 }

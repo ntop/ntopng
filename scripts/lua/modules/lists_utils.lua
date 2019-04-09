@@ -13,11 +13,22 @@ local json = require("dkjson")
 
 local CUSTOM_CATEGORY_MINING = 99
 local CUSTOM_CATEGORY_MALWARE = 100
+local CUSTOM_CATEGORY_ADVERTISEMENT = 101
 
 local DEFAULT_UPDATE_INTERVAL = 86400
 local MAX_LIST_ERRORS = 3
 
+local is_nedge = ntop.isnEdge()
+
 -- supported formats: ip, domain, hosts
+--
+-- Examples:
+--    [ip] 1.2.3.4
+--    [ip] 1.2.3.0/24
+--    [domain] amalwaredomain.com
+--    [hosts] 127.0.0.1   amalwaredomain.com
+--    [hosts] 127.0.0.1   1.2.3.4
+--
 local BUILTIN_LISTS = {
   ["Emerging Threats"] = {
     url = "https://rules.emergingthreats.net/fwrules/emerging-Block-IPs.txt",
@@ -73,7 +84,25 @@ local BUILTIN_LISTS = {
     format = "hosts",
     enabled = true,
     update_interval = DEFAULT_UPDATE_INTERVAL,
-  }
+  }, ["Disconnect.me Simple Ad List"] = {
+    url = "https://s3.amazonaws.com/lists.disconnect.me/simple_ad.txt",
+    category = CUSTOM_CATEGORY_ADVERTISEMENT,
+    format = "domain",
+    enabled = is_nedge,
+    update_interval = DEFAULT_UPDATE_INTERVAL,
+  }, ["hpHosts Ad and Tracking"] = {
+    url = "https://hosts-file.net/ad_servers.txt",
+    category = CUSTOM_CATEGORY_ADVERTISEMENT,
+    format = "hosts",
+    enabled = is_nedge,
+    update_interval = DEFAULT_UPDATE_INTERVAL,
+  }, ["AdAway default blocklist"] = {
+    url = "https://adaway.org/hosts.txt",
+    category = CUSTOM_CATEGORY_ADVERTISEMENT,
+    format = "hosts",
+    enabled = is_nedge,
+    update_interval = DEFAULT_UPDATE_INTERVAL,
+  },
 }
 
 -- ##############################################
@@ -376,7 +405,7 @@ local function loadFromListFile(list_name, list, user_custom_categories)
         if words and (#words == 2) then
           host = words[2]
 
-          if((host == "localhost") or (host == "127.0.0.1")) then
+          if((host == "localhost") or (host == "127.0.0.1") or (host == "::1")) then
             host = nil
           end
         else
