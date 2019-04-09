@@ -89,6 +89,7 @@ typedef enum {
   alert_user_activity = 25,
   alert_influxdb_export_failure = 26,
   alert_port_errors = 27,
+  alert_broadcast_domain_too_large = 34,
   alert_ids = 35,
 } AlertType; /*
 	       NOTE:
