@@ -12,6 +12,11 @@ suricata.yaml configuration file:
       enabled: yes
       filetype: syslog
 
+In order to export flows you also need to enable 'netflow' in the same section
+uncommenting the line:
+
+        - netflow
+
 2. rsyslog needs to be configured to export logs through TCP to ntopng, 
 specifying the IP and port where ntopng will listen for connections. This
 can be configured by creating a new under /etc/rsyslog.d. Example:

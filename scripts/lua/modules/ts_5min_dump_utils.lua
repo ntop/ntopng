@@ -29,9 +29,9 @@ function ts_dump.l2_device_update_stats_rrds(when, devicename, device, ifstats, 
   ts_utils.append("mac:traffic", {ifid=ifstats.id, mac=devicename,
               bytes_sent=device["bytes.sent"], bytes_rcvd=device["bytes.rcvd"]}, when, verbose)
   
-  ts_utils.append("mac:arp_requests", {ifid=ifstats.id, mac=devicename,
+  ts_utils.append("mac:arp_rqst_sent_rcvd_rpls", {ifid=ifstats.id, mac=devicename,
               request_packets_sent = device["arp_requests.sent"],
-              request_packets_rcvd = device["arp_requests.rcvd"]},
+              reply_packets_rcvd = device["arp_replies.rcvd"]},
         when,verbose)
 end
 
@@ -193,13 +193,7 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
 					   flows_as_client = host["unreachable_flows.as_client"],
 					   flows_as_server = host["unreachable_flows.as_server"]},
       when, verbose)
-  
-  -- Number of net unreachable flows
-  ts_utils.append("host:net_unreachable_flows", {ifid = ifstats.id, host = hostname,
-            flows_as_server = host["net_unreachable_flows.as_server"],
-            flows_as_client = host["net_unreachable_flows.as_client"]},
-      when, verbose)
-  
+    
   -- Number of host unreachable flows
   ts_utils.append("host:host_unreachable_flows", {ifid = ifstats.id, host = hostname,
             flows_as_server = host["host_unreachable_flows.as_server"],
@@ -212,7 +206,24 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
             replies_ok_packets = host["dns"]["rcvd"]["num_replies_ok"],
             replies_error_packets =host["dns"]["rcvd"]["num_replies_error"]},
       when, verbose)
-  
+
+  if (host["ICMPv4"] ~= nil) then
+    if (host["ICMPv4"]["0,0"] ~= nil) then
+      --Number of ICMP ECHO reply packets
+      ts_utils.append("host:echo_reply_packets", {ifid = ifstats.id, host = hostname,
+              packets_sent =  host["ICMPv4"]["0,0"]["sent"],
+              packets_rcvd =  host["ICMPv4"]["0,0"]["rcvd"]},
+          when, verbose)
+    end
+    if (host["ICMPv4"]["8,0"] ~= nil) then
+      --Number of ICMP ECHO request packets
+      ts_utils.append("host:echo_packets", {ifid = ifstats.id, host = hostname,
+              packets_sent =  host["ICMPv4"]["8,0"]["sent"],
+              packets_rcvd =  host["ICMPv4"]["8,0"]["rcvd"]},
+          when, verbose)
+    end
+  end
+
   -- Number of dns packets rcvd
   ts_utils.append("host:dns_qry_rcvd_rsp_sent", {ifid = ifstats.id, host = hostname,
             queries_packets = host["dns"]["rcvd"]["num_queries"],
@@ -231,6 +242,12 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
             retransmission_packets = host["tcp.packets.retransmissions"],
             out_of_order_packets = host["tcp.packets.out_of_order"],
             lost_packets = host["tcp.packets.lost"]},
+      when, verbose)
+  
+  -- Number of TCP packets
+  ts_utils.append("host:tcp_packets", {ifid = ifstats.id, host = hostname,
+            packets_sent = host["tcp.packets.sent"],
+            packets_rcvd = host["tcp.packets.rcvd"]},
       when, verbose)
 
   -- Total number of alerts

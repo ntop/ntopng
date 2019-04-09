@@ -342,6 +342,12 @@ local function getLocalTopTalkers(schema_id, tags, tstart, tend, options)
             value = host_value,
             tags = host_tags,
             partials = host_partials,
+            meta = {
+              url = host.url,
+              label = host.label,
+              ipaddr = host.ipaddr, -- optional
+              visual_addr = host.visual_addr, -- optional
+            }
           }
         end
       end

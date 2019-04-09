@@ -6,6 +6,7 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
+require "graph_utils"
 local template = require "template_utils"
 local categories_utils = require "categories_utils"
 local lists_utils = require "lists_utils"
@@ -19,6 +20,13 @@ end
 page_utils.print_header()
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
+
+local base_url = ntop.getHttpPrefix() .. "/lua/admin/edit_category_lists.lua"
+local page_params = {
+  category = _GET["category"],
+}
+
+local lists = lists_utils.getCategoryLists()
 
 if _POST["action"] == "edit" then
   local enabled = not isEmptyString(_POST["list_enabled"])
@@ -91,7 +99,7 @@ print[[
               <div class="row form-group">
                 <div class="col col-md-6">
                   <label class="form-label">]] print(i18n("category")) print[[</label>
-                  <select name="category" class="form-control" readonly>]]
+                  <select name="category" class="form-control" readonly disabled="disabled">]]
 
                   for cat_name, cat_id in pairsByKeys(interface.getnDPICategories()) do
                     print(string.format([[<option value="cat_%s">%s</option>]], cat_id, cat_name))
@@ -126,11 +134,27 @@ print[[
 <div id="table-edit-lists-form"></div>
 
 <script>
+  var url_update = "]] print(getPageUrl(ntop.getHttpPrefix()..[[/lua/admin/get_category_lists.lua]], page_params)) print[[";
+
   $("#table-edit-lists-form").datatable({
-    url: "]] print (ntop.getHttpPrefix()) print [[/lua/admin/get_category_lists.lua",
+    url: url_update,
     class: "table table-striped table-bordered",
     title:"",
-    buttons: [],
+    buttons: []]
+
+local categories = {}
+
+for _, list in pairs(lists) do
+  local catid = tostring(list.category)
+  categories[catid] = categories[catid] or 0
+  categories[catid] = categories[catid] + 1
+end
+
+  printCategoryDropdownButton(false, page_params.category, base_url, page_params, function (catid, catname)
+    return(categories[catid] or 0)
+  end)
+
+print[[],
     columns: [
       {
         title: "]] print(i18n("name")) print[[",

@@ -21,11 +21,11 @@ schema:addMetric("bytes_rcvd")
 
 -- ##############################################
 
-schema = ts_utils.newSchema("mac:arp_requests", {step=300})
+schema = ts_utils.newSchema("mac:arp_rqst_sent_rcvd_rpls", {step=300})
 schema:addTag("ifid")
 schema:addTag("mac")
 schema:addMetric("request_packets_sent")
-schema:addMetric("request_packets_rcvd")
+schema:addMetric("reply_packets_rcvd")
 
 -- ##############################################
 
@@ -198,7 +198,7 @@ schema:addMetric("flows_as_server")
 
 -- ##############################################
 
-schema = ts_utils.newSchema("host:net_unreachable_flows", {step = 300})
+schema = ts_utils.newSchema("host:host_unreachable_flows", {step = 300})
 schema:addTag("ifid")
 schema:addTag("host")
 schema:addMetric("flows_as_server")
@@ -206,11 +206,19 @@ schema:addMetric("flows_as_client")
 
 --##############################################
 
-schema = ts_utils.newSchema("host:host_unreachable_flows", {step = 300})
+schema = ts_utils.newSchema("host:echo_packets", {step = 300})
 schema:addTag("ifid")
 schema:addTag("host")
-schema:addMetric("flows_as_server")
-schema:addMetric("flows_as_client")
+schema:addMetric("packets_sent")
+schema:addMetric("packets_rcvd")
+
+--##############################################
+
+schema = ts_utils.newSchema("host:echo_reply_packets", {step = 300})
+schema:addTag("ifid")
+schema:addTag("host")
+schema:addMetric("packets_sent")
+schema:addMetric("packets_rcvd")
 
 --##############################################
 
@@ -238,6 +246,14 @@ schema:addTag("host")
 schema:addMetric("retransmission_packets")
 schema:addMetric("out_of_order_packets")
 schema:addMetric("lost_packets")
+
+--##############################################
+
+schema = ts_utils.newSchema("host:tcp_packets", {step = 300})
+schema:addTag("ifid")
+schema:addTag("host")
+schema:addMetric("packets_sent")
+schema:addMetric("packets_rcvd")
 
 --##############################################
 

@@ -2602,6 +2602,58 @@ end
 
 -- ###############################################
 
+function formatBlacklistedFlow(status, flowstatus_info, alert)
+   local who = {}
+   if not flowstatus_info then
+      return i18n("flow_details.blacklisted_flow")
+   end
+
+   if flowstatus_info["blacklisted.cli"] then
+      who[#who + 1] = i18n("client")
+   end
+
+   if flowstatus_info["blacklisted.srv"] then
+      who[#who + 1] = i18n("server")
+   end
+
+   -- if either the client or the server is blacklisted
+   -- then also the category is blacklisted so there's no need
+   -- to check it.
+   -- Domain is basically the union of DNS names, SSL CNs and HTTP hosts.
+   if #who == 0 and flowstatus_info["blacklisted.cat"] then
+      who[#who + 1] = i18n("domain")
+   end
+
+   if #who == 0 then
+      return i18n("flow_details.blacklisted_flow")
+   end
+
+   local res = i18n("flow_details.blacklisted_flow_detailed", {who = table.concat(who, ", ")})
+
+   return res
+end
+
+-- ###############################################
+
+function formatSSLCertificateMismatch(status, flowstatus_info, alert)
+   if not flowstatus_info then
+      return i18n("flow_details.ssl_certificate_mismatch")
+   end
+
+   local crts = {}
+   if not isEmptyString(flowstatus_info["ssl_crt.cli"]) then
+      crts[#crts + 1] = string.format("[%s: %s]", i18n("flow_details.ssl_client_certificate"), flowstatus_info["ssl_crt.cli"])
+   end
+
+   if not isEmptyString(flowstatus_info["ssl_crt.srv"]) then
+      crts[#crts + 1] = string.format("[%s: %s]", i18n("flow_details.ssl_server_certificate"), flowstatus_info["ssl_crt.srv"])
+   end
+
+   return string.format("%s %s", i18n("flow_details.ssl_certificate_mismatch"), table.concat(crts, " "))
+end
+
+-- ###############################################
+
 -- Update Utils::flowstatus2str / FlowStatus enum
 function getFlowStatus(status, flowstatus_info, alert, no_icon)
    local warn_sign = ternary(no_icon, "", "<i class=\"fa fa-warning\" aria-hidden=true style=\"color: orange;\"></i> ")
@@ -2618,10 +2670,10 @@ function getFlowStatus(status, flowstatus_info, alert, no_icon)
    elseif(status == 7)  then res = warn_sign..i18n("flow_details.suspicious_tcp_probing")
    elseif(status == 8)  then res = warn_sign..i18n("flow_details.flow_emitted")
    elseif(status == 9)  then res = warn_sign..i18n("flow_details.tcp_connection_refused")
-   elseif(status == 10) then res = warn_sign..i18n("flow_details.ssl_certificate_mismatch")
+   elseif(status == 10) then res = warn_sign..formatSSLCertificateMismatch(status, flowstatus_info, alert)
    elseif(status == 11) then res = warn_sign..i18n("flow_details.dns_invalid_query")
    elseif(status == 12) then res = warn_sign..i18n("flow_details.remote_to_remote")
-   elseif(status == 13) then res = warn_sign..i18n("flow_details.blacklisted_flow")
+   elseif(status == 13) then res = warn_sign..formatBlacklistedFlow(status, flowstatus_info, alert)
    elseif(status == 14) then res = warn_sign..i18n("flow_details.flow_blocked_by_bridge")
    elseif(status == 15) then res = warn_sign..i18n("flow_details.web_mining_detected")
    elseif(status == 16) then res = formatSuspiciousDeviceProtocolAlert(flowstatus_info)
@@ -2629,7 +2681,7 @@ function getFlowStatus(status, flowstatus_info, alert, no_icon)
    elseif(status == 18) then res = warn_sign..formatElephantFlowAlert(flowstatus_info, false --[[ remote 2 local --]])
    elseif(status == 19) then res = warn_sign..formatLongLivedFlowAlert(flowstatus_info)
    elseif(status == 20) then res = warn_sign..i18n("flow_details.not_purged")
-   elseif(status == 21) then res = warn_sign..i18n("flow_details.ids_alert")
+   elseif(status == 21) then res = warn_sign..i18n("flow_details.ids_alert", { signature=(flowstatus_info.ids_alert and flowstatus_info.ids_alert.signature), severity=(flowstatus_info.ids_alert and flowstatus_info.ids_alert.severity)} )
    end
 
    return res
@@ -3506,6 +3558,26 @@ function printMessageBanners(banners)
       print[[
   </div>]]
    end
+end
+
+-- ###########################################
+
+function visualTsKey(tskey)
+   if ends(tskey, "_v4") or ends(tskey, "_v6") then
+      local ver = string.sub(tskey, string.len(tskey)-1, string.len(tskey))
+      local address = string.sub(tskey, 1, string.len(tskey)-3)
+      local visual_addr
+
+      if ver == "v4" then
+         visual_addr = address
+      else
+         visual_addr = address .. " (" .. ver ..")"
+      end
+
+      return visual_addr
+   end
+
+   return tskey
 end
 
 -- ###########################################

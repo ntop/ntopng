@@ -71,6 +71,7 @@ class LocalHost : public Host {
   virtual void incNumDNSResponsesSent(u_int32_t ret_code) { stats->incNumDNSResponsesSent(ret_code); };
   virtual void incNumDNSResponsesRcvd(u_int32_t ret_code) { stats->incNumDNSResponsesRcvd(ret_code); };
   virtual void luaDNS(lua_State *vm) const                { stats->luaDNS(vm,false); };
+  virtual void luaICMP(lua_State *vm, bool isV4, bool verbose) const  { stats->luaICMP(vm,isV4,verbose); };
   virtual void incrVisitedWebSite(char *hostname)         { stats->incrVisitedWebSite(hostname); };
   virtual HTTPstats* getHTTPstats()                       { return(stats->getHTTPstats());  };
   virtual void luaTCP(lua_State *vm) const                { stats->lua(vm,false,details_normal); };

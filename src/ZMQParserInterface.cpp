@@ -291,8 +291,8 @@ bool ZMQParserInterface::parsePENZeroField(Parsed_Flow * const flow, u_int32_t f
       export a valid ipv4 and an empty ipv6. Without the check, the empty
       v6 address may overwrite the non empty v4.
     */
-    if(flow->core.src_ip.isEmpty()) {
-      flow->core.src_ip.set((char*)value);
+    if(flow->src_ip.isEmpty()) {
+      flow->src_ip.set((char*)value);
     } else {
       ip_aux.set((char*)value);
       if(!ip_aux.isEmpty()  && !ntop->getPrefs()->do_override_src_with_post_nat_src())
@@ -308,8 +308,8 @@ bool ZMQParserInterface::parsePENZeroField(Parsed_Flow * const flow, u_int32_t f
 
   case IPV4_DST_ADDR:
   case IPV6_DST_ADDR:
-    if(flow->core.dst_ip.isEmpty()) {
-      flow->core.dst_ip.set((char*)value);
+    if(flow->dst_ip.isEmpty()) {
+      flow->dst_ip.set((char*)value);
     } else {
       ip_aux.set((char*)value);
       if(!ip_aux.isEmpty()  && !ntop->getPrefs()->do_override_dst_with_post_nat_dst())
@@ -395,7 +395,7 @@ bool ZMQParserInterface::parsePENZeroField(Parsed_Flow * const flow, u_int32_t f
       IpAddress ip;
 
       ip.set((char*)value);
-      memcpy(&flow->core.src_ip, ip.getIP(), sizeof(flow->core.src_ip));
+      memcpy(&flow->src_ip, ip.getIP(), sizeof(flow->src_ip));
     }
     break;
   case POST_NAT_DST_IPV4_ADDR:
@@ -403,7 +403,7 @@ bool ZMQParserInterface::parsePENZeroField(Parsed_Flow * const flow, u_int32_t f
       IpAddress ip;
 
       ip.set((char*)value);
-      memcpy(&flow->core.dst_ip, ip.getIP(), sizeof(flow->core.dst_ip));
+      memcpy(&flow->dst_ip, ip.getIP(), sizeof(flow->dst_ip));
     }
     break;
   case POST_NAPT_SRC_TRANSPORT_PORT:
@@ -529,11 +529,8 @@ void ZMQParserInterface::parseSingleFlow(json_object *o,
   bool invalid_flow = false;
 
   /* Reset data */
-  memset(&flow, 0, sizeof(flow));
-  flow.core.l7_proto = Flow::get_ndpi_unknown_protocol();
-  flow.additional_fields = json_object_new_object();
-  flow.core.pkt_sampling_rate = 1; /* 1:1 (no sampling) */
-  flow.core.source_id = source_id, flow.core.vlan_id = 0;
+  resetParsedFlow(&flow);
+  flow.core.source_id = source_id;
 
   while(!json_object_iter_equal(&it, &itEnd)) {
     const char *key   = json_object_iter_peek_name(&it);
@@ -611,24 +608,24 @@ void ZMQParserInterface::parseSingleFlow(json_object *o,
 
   /* Handle zero IPv4/IPv6 discrepacies */
   if(flow.core.version == 0) {
-    if(flow.core.src_ip.getVersion() != flow.core.dst_ip.getVersion()) {
-      if(flow.core.dst_ip.isIPv4() && flow.core.src_ip.isIPv6() && flow.core.src_ip.isEmpty())
-	flow.core.src_ip.setVersion(4);
-      else if(flow.core.src_ip.isIPv4() && flow.core.dst_ip.isIPv6() && flow.core.dst_ip.isEmpty())
-	flow.core.dst_ip.setVersion(4);
-      else if(flow.core.dst_ip.isIPv6() && flow.core.src_ip.isIPv4() && flow.core.src_ip.isEmpty())
-	flow.core.src_ip.setVersion(6);
-      else if(flow.core.src_ip.isIPv6() && flow.core.dst_ip.isIPv4() && flow.core.dst_ip.isEmpty())
-	flow.core.dst_ip.setVersion(6);
+    if(flow.src_ip.getVersion() != flow.dst_ip.getVersion()) {
+      if(flow.dst_ip.isIPv4() && flow.src_ip.isIPv6() && flow.src_ip.isEmpty())
+	flow.src_ip.setVersion(4);
+      else if(flow.src_ip.isIPv4() && flow.dst_ip.isIPv6() && flow.dst_ip.isEmpty())
+	flow.dst_ip.setVersion(4);
+      else if(flow.dst_ip.isIPv6() && flow.src_ip.isIPv4() && flow.src_ip.isEmpty())
+	flow.src_ip.setVersion(6);
+      else if(flow.src_ip.isIPv6() && flow.dst_ip.isIPv4() && flow.dst_ip.isEmpty())
+	flow.dst_ip.setVersion(6);
       else {
 	invalid_flow = true;
 	ntop->getTrace()->traceEvent(TRACE_WARNING,
 				     "IP version mismatch: client:%d server:%d - flow will be ignored",
-				     flow.core.src_ip.getVersion(), flow.core.dst_ip.getVersion());
+				     flow.src_ip.getVersion(), flow.dst_ip.getVersion());
       }
     }
   } else
-    flow.core.src_ip.setVersion(flow.core.version), flow.core.dst_ip.setVersion(flow.core.version);
+    flow.src_ip.setVersion(flow.core.version), flow.dst_ip.setVersion(flow.core.version);
 
   if(!invalid_flow) {
     /* Process Flow */

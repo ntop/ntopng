@@ -21,6 +21,15 @@
 
 #include "ntop_includes.h"
 
+static map<AlertType, u_int> init_mitigator_grace_periods() {
+  map<AlertType, u_int> m;
+  m[alert_broadcast_domain_too_large] = 60; /* No more than 1 alert per minute */
+
+  return m;
+}
+
+const map<AlertType, u_int> AlertsManager::mitigator_grace_periods = init_mitigator_grace_periods();
+
 AlertsManager::AlertsManager(int interface_id, const char *filename) : StoreManager(interface_id) {
   char filePath[MAX_PATH], fileFullPath[MAX_PATH], fileName[MAX_PATH];
 
@@ -217,6 +226,17 @@ int AlertsManager::openStore() {
   m.unlock(__FILE__, __LINE__);
 
   return rc;
+}
+
+/* **************************************************** */
+
+bool AlertsManager::mitigate(AlertType alert_type) const {
+  map<AlertType, u_int>::const_iterator gpit = mitigator_grace_periods.find(alert_type);
+
+  if(gpit != mitigator_grace_periods.end()) {
+  }
+
+  return false;
 }
 
 /* **************************************************** */
@@ -594,6 +614,8 @@ int AlertsManager::storeAlert(AlertEntity alert_entity, const char *alert_entity
 
     if(!store_initialized || !store_opened)
       return(-1);
+    else if(mitigate(alert_type))
+      return(0);
     else if(check_maximum)
       markForMakeRoom(false);
 

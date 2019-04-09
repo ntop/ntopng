@@ -323,9 +323,6 @@
 #ifndef ICMP_INFO_REPLY
 #define ICMP_INFO_REPLY 16
 #endif
-#ifndef ICMP_NET_UNREACH
-#define ICMP_NET_UNREACH 0
-#endif
 #ifndef ICMP_HOST_UNREACH
 #define ICMP_HOST_UNREACH 1
 #endif
@@ -872,6 +869,7 @@
 
 #define HOST_LOW_GOODPUT_THRESHOLD  25 /* No more than X low goodput flows per host */
 #define FLOW_GOODPUT_THRESHOLD      40 /* 40% */
+#define FLOW_GOODPUT_MIN_DURATION   60 /* 60 seconds */
 
 #define NTOP_USERNAME_MAXLEN        33 /* NOTE: do not change, is this bound to mg_md5 ? */
 #define NTOP_GROUP_MAXLEN           33

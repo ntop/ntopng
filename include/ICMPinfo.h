@@ -44,12 +44,13 @@ class ICMPinfo {
   virtual ~ICMPinfo();
   unreachable_t *getUnreach() const { return unreach; };
   void dissectICMP(u_int16_t const payload_len, const u_int8_t * const payload_data);
+  inline void setType(u_int8_t type) { icmp_type = type; };
+  inline void setCode(u_int8_t code) { icmp_code = code; };
   void print() const;
   u_int32_t key() const;
   bool equal(const ICMPinfo * const icmp_info) const;
   void lua(lua_State* vm, AddressTree * ptree, NetworkInterface *iface, u_int16_t vlan_id) const;
   bool isPortUnreachable() const;
-  bool isNetUnreachable(u_int8_t proto) const;
   bool isHostUnreachable(u_int8_t proto) const;
 };
 
