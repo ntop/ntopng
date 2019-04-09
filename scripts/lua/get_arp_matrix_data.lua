@@ -28,36 +28,6 @@ local function split(s,sep)
     return fields
 end
 
-
---return: t =  contain [ip:mac] (source) values
---        m = the Set of the Macs.
-local function bindIpMac(matrix)
-    local t,m = {},{}
-    local src_mac, dst_mac
-
-    for _, m_elem in ipairs(matrix) do
-        for src_ip, s_elem in pairs(m_elem)do
-            for dst_ip, stats in pairs(s_elem) do
-
-                src_mac = stats["srcMac"] 
-                dst_mac = stats["dstMac"]
-     
-                if not t[src_ip] or (t[src_ip] ~= src_mac ) then 
-                    t[src_ip] = src_mac
-                end
-
-                m[src_mac] = true
-                if dst_mac ~= "FF:FF:FF:FF:FF:FF" then 
-                    m[dst_mac] = true
-                end
-            end
-        end
-    end
-
-    return t, m
-end
-
-
 local function createHeatmap(matrix, type)
     local t = {}   
     local tmp = {}       
@@ -100,7 +70,6 @@ local function createHeatmap(matrix, type)
         
             --table.sort(t_res, cmp) --for lexicographical order
             --table.sort(t_res, cmpValue)
-        
         end
     end
 
@@ -154,8 +123,6 @@ else
     print( json.encode( createHeatmap(matrix, "all"), {indent = true} ) )
 end
 
---print( json.encode( createChord(matrix), {indent = true} ) )
 
---print( json.encode(matrix, {inednt=true}) )
 
 
