@@ -492,6 +492,14 @@ var map = (function () {
                 return f;
             });
         }
+
+        //disable scroll
+        $('html, body').css({
+            'overflow': 'hidden',
+            'height': '100%'
+          })
+
+
         Y_elements.reverse();
         setSvgDim();
 
@@ -512,10 +520,17 @@ var map = (function () {
         //only now (new svg drawn) i can remove (and replace) the old svg
         changeContainerID();
         d3.select( getCurrentContainerID() ).selectAll("*").remove();
+        
+        //enable scroll
+        $('html, body').css({
+            'overflow': 'auto',
+            'height': 'auto'
+          })
     };
 
     //########################################################################################
 
+    //TODO: make minimap Update itself
     var buildMiniMap = function(data){
 
         createSvg();

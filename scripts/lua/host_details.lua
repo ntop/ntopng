@@ -696,22 +696,6 @@ end
       <div style="background-color:white", id="container"></div>
       <div style="background-color:white", id="container2"></div>
 
-
-      <style>
-      div.tooltip {	
-         position: absolute;			
-         text-align: center;			
-         width: 80px;					
-         height: 40px;					
-         padding: 2px;				
-         font: 12px sans-serif bold;		
-         background: rgb(171, 203, 245);	
-         border: 0px;		
-         border-radius: 8px;			
-         pointer-events: none;			
-      }
-      </style>
-
       <script>
 
       map.build("]] print(host_ip) print[[");

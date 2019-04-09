@@ -111,8 +111,6 @@ print [[
    <div style="background-color:white", id="container"></div>
    <div style="background-color:white", id="container2"></div>
 
-   <script>history.scrollRestoration = "manual"</script>
-
    <div class="control-group" style="text-align: center;">
    &nbsp;]] print(i18n("index_page.refresh_frequency")) print[[: <div class="btn-group btn-small">
      <button class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown">
@@ -175,6 +173,9 @@ print [[
             $("#topflow_graph_state_play").removeClass("active");
             $("#topflow_graph_state_stop").addClass("active");
          });
+         $("#topflow_graph_refresh").click(function() {
+          map.build(]]print(0) print[[);
+        });
 
          map.build(]]print(refresh) print[[);
       </script>
