@@ -56,7 +56,7 @@ print(
     dialog={
       id      = "edit_category_rules",
       action  = "editCategory()",
-      title   = i18n("custom_categories.edit_category_hosts"),
+      title   = i18n("custom_categories.edit_custom_rules"),
       custom_alert_class = "",
       custom_dialog_class = "dialog-body-full-height",
       message = [[<p style='margin-bottom:5px;'>]] .. i18n("custom_categories.the_following_is_a_list_of_hosts", {category='<i id="selected_category_name"></i>'}) .. [[:</p>
@@ -67,7 +67,8 @@ print(
   <li>]].. i18n("custom_categories.host_domain_or_cidr") .. [[</li>
   <li>]].. i18n("custom_categories.domain_names_substrings", {s1="ntop.org", s2="mail.ntop.org", s3="ntop.org.example.com"}) ..[[</li>
   </ul>]],
-      confirm = i18n("users.edit"),
+      confirm = i18n("save"),
+      cancel = i18n("cancel"),
     }
   })
 )

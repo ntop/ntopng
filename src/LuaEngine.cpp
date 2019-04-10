@@ -687,7 +687,7 @@ static int ntop_get_ndpi_category_name(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   category = (ndpi_protocol_category_t)((int)lua_tonumber(vm, 1));
 
-  if(ntop_interface && category)
+  if(ntop_interface)
     lua_pushstring(vm, ntop_interface->get_ndpi_category_name(category));
   else
     lua_pushnil(vm);

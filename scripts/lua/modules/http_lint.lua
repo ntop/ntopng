@@ -1021,6 +1021,7 @@ local known_parameters = {
    ["ndpi"]                    = validateApplicationsList,      -- a list applications
    ["ndpi_new_cat_id"]         = validateNumber,                -- An ndpi category id after change
    ["ndpi_old_cat_id"]         = validateNumber,                -- An ndpi category id before change
+   ["new_application"]         = validateSingleWord,            -- A new nDPI application protocol name
 
 -- Remote probe
    ["ifIdx"]                   = validateNumber,                -- A generic switch/router port id

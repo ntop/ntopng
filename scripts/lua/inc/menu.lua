@@ -444,7 +444,7 @@ if(is_admin) then
       end
    end
 
-   print("<li><a href=\""..ntop.getHttpPrefix().."/lua/admin/edit_categories.lua\"><i class=\"fa fa-tags\"></i> ") print(i18n("users.categories")) print("</a></li>\n")
+   print("<li><a href=\""..ntop.getHttpPrefix().."/lua/admin/edit_categories.lua\"><i class=\"fa fa-tags\"></i> ") print(i18n("custom_categories.apps_and_categories")) print("</a></li>\n")
    print("<li><a href=\""..ntop.getHttpPrefix().."/lua/admin/edit_category_lists.lua\"><i class=\"fa fa-sticky-note\"></i> ") print(i18n("category_lists.category_lists")) print("</a></li>\n")
 
 
