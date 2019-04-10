@@ -22,7 +22,7 @@ specifying the IP and port where ntopng will listen for connections. This
 can be configured by creating a new under /etc/rsyslog.d. Example:
 
   cat /etc/rsyslog.d/99-remote.conf 
-  *.*  action(type="omfwd" target="192.168.2.222" port="9999" protocol="tcp" action.resumeRetryCount="100" queue.type="linkedList" queue.size="10000”)
+  *.*  action(type="omfwd" target="127.0.0.1" port="9999" protocol="tcp" action.resumeRetryCount="100" queue.type="linkedList" queue.size="10000")
 
 Please restart the rsyslog service in order to apply the configuration:
 
@@ -31,7 +31,7 @@ Please restart the rsyslog service in order to apply the configuration:
 3. ntopng needs to be configured using '-i syslog://<ip>:<port>' as interface name
 to listen for connections on the specified <ip> and <port>. Example:
 
-  ntopng -i syslog://192.168.2.222:9999
+  ntopng -i syslog://127.0.0.1:9999
 
 Note: multiple simultaneous clients (rsyslog) are supported.
 

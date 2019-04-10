@@ -192,7 +192,9 @@ class Flow : public GenericHashEntry {
          (srv_host->getDeviceAllowedProtocolStatus(ndpiDetectedProtocol, false) == device_proto_allowed)));
   }
   char* printTCPflags(u_int8_t flags, char * const buf, u_int buf_len) const;
-  inline bool isProto(u_int16_t p ) const { return((ndpi_get_lower_proto(ndpiDetectedProtocol) == p) ? true : false); }
+  inline bool isProto(u_int16_t p) const { return(((ndpiDetectedProtocol.master_protocol == p)
+						   || (ndpiDetectedProtocol.app_protocol == p))
+						  ? true : false); }
 #ifdef NTOPNG_PRO
   void update_pools_stats(const struct timeval *tv,
 			  u_int64_t diff_sent_packets, u_int64_t diff_sent_bytes,
