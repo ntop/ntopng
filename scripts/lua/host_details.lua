@@ -1938,7 +1938,8 @@ drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
    tskey = tskey,
    timeseries = {
       {schema="host:traffic",                label=i18n("traffic")},
-      {schema="host:flows",                  label=i18n("graphs.active_flows")},
+      {schema="host:active_flows",           label=i18n("graphs.active_flows")},
+      {schema="host:total_flows",            label=i18n("db_explorer.total_flows")},
       {schema="host:anomalous_flows",        label=i18n("graphs.total_anomalous_flows")},
       {schema="host:unreachable_flows",      label=i18n("graphs.total_unreachable_flows")},
       {schema="host:contacts",               label=i18n("graphs.active_host_contacts")},
