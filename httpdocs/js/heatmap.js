@@ -435,6 +435,14 @@ var map = (function () {
         X_elements = d3.map(data, function(d){return d.x_label;}).keys()
         Y_elements = d3.map(data, function(d){return d.y_label;}).keys()        
 
+        if ( Object.keys(Y_elements).length == 0 || w_w < sq_w){
+            var div = document.getElementById("container");
+            div.innerHTML = "Nothing to show";
+            div.style.textAlign = "center";
+            $(".control-group").remove();
+            return;
+        }
+
         sendersTotPkts = {};
         receiversTotPkts = {};
         maxTotPkt = 0;
@@ -497,7 +505,7 @@ var map = (function () {
         $('html, body').css({
             'overflow': 'hidden',
             'height': '100%'
-          })
+        })
 
 
         Y_elements.reverse();
@@ -525,7 +533,7 @@ var map = (function () {
         $('html, body').css({
             'overflow': 'auto',
             'height': 'auto'
-          })
+        })
     };
 
     //########################################################################################
@@ -542,6 +550,17 @@ var map = (function () {
 
         X_elements = d3.map(data, function(d){return d.x_label;}).keys()
         Y_elements = d3.map(data, function(d){return d.y_label;}).keys()
+
+        if ( Object.keys(X_elements).length == 0 || w_w < sq_w){
+            height = 20;
+            d3.select( getCurrentContainerID() )
+            .select("svg")
+                .attr("height", height);
+            printNoHost();
+            changeContainerID();
+            d3.select( getCurrentContainerID() ).selectAll("*").remove();
+            return;
+        }
 
         //compute #tot pkt for each mac
         sendersTotPkts = {};
@@ -571,17 +590,6 @@ var map = (function () {
 
             excludedReceiversNum = receiversNum - max_X_elem;
             X_elements = X_elements.slice(0, max_X_elem+1 );
-        }
-
-        if ( Object.keys(X_elements).length == 0 || w_w < sq_w){
-            height = 20;
-            d3.select( getCurrentContainerID() )
-            .select("svg")
-                .attr("height", height);
-            printNoHost();
-            changeContainerID();
-            d3.select( getCurrentContainerID() ).selectAll("*").remove();
-            return;
         }
 
         width = ( Object.keys(X_elements).length * sq_w) + margin.left + margin.right;
