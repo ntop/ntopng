@@ -3834,9 +3834,12 @@ static int ntop_get_ndpi_categories(lua_State* vm) {
 
   for (int i=0; i < NDPI_PROTOCOL_NUM_CATEGORIES; i++) {
     char buf[8];
+    const char *cat_name = ntop_interface->get_ndpi_category_name((ndpi_protocol_category_t)i);
 
-    snprintf(buf, sizeof(buf), "%d", i);
-    lua_push_str_table_entry(vm, ntop_interface->get_ndpi_category_name((ndpi_protocol_category_t)i), buf);
+    if(cat_name && *cat_name) {
+      snprintf(buf, sizeof(buf), "%d", i);
+      lua_push_str_table_entry(vm, cat_name, buf);
+    }
   }
 
   return(CONST_LUA_OK);
