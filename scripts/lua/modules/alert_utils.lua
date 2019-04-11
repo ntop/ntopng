@@ -2807,6 +2807,41 @@ function check_host_remote_to_remote_alerts()
 end
 
 -- Global function
+function check_outside_dhcp_range_alerts()
+   while(true) do
+      local message = ntop.lpopCache("ntopng.alert_outside_dhcp_range_queue")
+      local elems
+
+      if((message == nil) or (message == "")) then
+	 break
+      end
+
+      elems = json.decode(message)
+
+      if elems ~= nil then
+	 local host_info = {host = elems.client_ip, vlan = elems.vlan_id or 0}
+	 local router_info = {host = elems.router_ip, vlan = elems.vlan_id or 0}
+	 local entity_value = hostinfo2hostkey(host_info, nil, true --[[ show vlan --]])
+
+	 local msg = i18n("alert_messages.ip_outsite_dhcp_range", {
+	    client_url = ntop.getHttpPrefix() .. "/lua/mac_details.lua?host=" .. elems.client_mac,
+	    client_mac = get_symbolic_mac(elems.client_mac, true),
+	    client_ip = hostinfo2hostkey(host_info),
+	    client_ip_url = ntop.getHttpPrefix() .. "/lua/host_details.lua?host=" .. hostinfo2hostkey(host_info),
+	    dhcp_url = ntop.getHttpPrefix() .. "/lua/if_stats.lua?page=dhcp",
+	    sender_url = ntop.getHttpPrefix() .. "/lua/mac_details.lua?host=" .. elems.sender_mac,
+	    sender_mac = get_symbolic_mac(elems.sender_mac, true),
+	    router_url = ntop.getHttpPrefix() .. "/lua/host_details.lua?host=" .. hostinfo2hostkey(router_info),
+	    router_ip = getResolvedAddress(router_info),
+	 })
+
+         interface.select(getInterfaceName(elems.ifid))
+	 interface.storeAlert(alertEntity("host"), entity_value, alertType("ip_outsite_dhcp_range"), alertSeverity("warning"), msg)
+      end
+   end
+end
+
+-- Global function
 function check_process_alerts()
    while(true) do
       local message = ntop.lpopCache(alert_process_queue)

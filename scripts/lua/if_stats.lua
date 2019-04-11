@@ -337,7 +337,9 @@ if isAdministrator() and (not ifstats.isView) then
          print("\n<li><a href=\""..url.."&page=pools\"><i class=\"fa fa-users\"></i> "..label.."</a></li>")
       end
    end
+end
 
+if isAdministrator() then
    if(page == "dhcp") then
       print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-bolt fa-lg\"></i></a></li>\n")
    else

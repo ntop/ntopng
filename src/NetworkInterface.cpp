@@ -1679,15 +1679,17 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
     case NDPI_PROTOCOL_DHCP:
       {
 	Mac *mac = (*srcHost)->getMac(), *payload_cli_mac;
-	setDHCPTrafficSeen();
 
 	if(mac && (payload_len > 240)) {
 	  struct dhcp_packet *dhcpp = (struct dhcp_packet*)payload;
 
 	  if(dhcpp->msgType == 0x01) /* Request */
 	    ;//mac->setDhcpHost();
-	  else if(dhcpp->msgType == 0x02) /* Reply */
+	  else if(dhcpp->msgType == 0x02) { /* Reply */
 	    checkMacIPAssociation(false, dhcpp->chaddr, dhcpp->yiaddr);
+	    checkDhcpIPRange(mac, dhcpp, vlan_id);
+	    setDHCPAddressesSeen();
+	  }
 
 	  for(int i = 240; i<payload_len; ) {
 	    u_int8_t id  = payload[i], len = payload[i+1];
@@ -1747,7 +1749,6 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       {
 	Mac *src_mac = (*srcHost)->getMac();
 	Mac *dst_mac = (*dstHost)->getMac();
-	setDHCPTrafficSeen();
 
 	if(src_mac && dst_mac
 	   && (payload_len > 20)
@@ -2715,7 +2716,7 @@ void NetworkInterface::cleanup() {
   next_idle_flow_purge = next_idle_host_purge = 0;
   cpu_affinity = -1,
     has_vlan_packets = false, has_ebpf_events = false, has_mac_addresses = false;
-  has_seen_dhcp = false;
+  has_seen_dhcp_addresses = false;
   running = false, inline_interface = false;
 
   getStats()->cleanup();
@@ -5427,7 +5428,7 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_bool_table_entry(vm, "inline", get_inline_interface());
   lua_push_bool_table_entry(vm, "vlan",     hasSeenVlanTaggedPackets());
   lua_push_bool_table_entry(vm, "has_macs", hasSeenMacAddresses());
-  lua_push_bool_table_entry(vm, "has_seen_dhcp", hasSeenDHCPTraffic());
+  lua_push_bool_table_entry(vm, "has_seen_dhcp_addresses", hasSeenDHCPAddresses());
   lua_push_bool_table_entry(vm, "has_traffic_directions", (areTrafficDirectionsSupported() && (!is_traffic_mirrored)));
 
   lua_newtable(vm);
@@ -6910,6 +6911,51 @@ void NetworkInterface::checkMacIPAssociation(bool triggerEvent, u_char *_mac, u_
 	}
       } else
 	ip_mac[ipv4] = mac;
+    }
+  }
+}
+
+/* *************************************** */
+
+void NetworkInterface::checkDhcpIPRange(Mac *sender_mac, struct dhcp_packet *dhcp_reply, u_int16_t vlan_id) {
+  if(!hasConfiguredDhcpRanges())
+    return;
+
+  u_char *_mac = dhcp_reply->chaddr;
+  u_int64_t mac = Utils::mac2int(_mac);
+  u_int32_t ipv4 = dhcp_reply->yiaddr;
+
+  if((ipv4 != 0) && (mac != 0) && (mac != 0xFFFFFFFFFFFF)) {
+    IpAddress ip;
+    ip.set(ipv4);
+
+    if(!isInDhcpRange(&ip)) {
+      char macstr[32], sendermac[32], ipbuf[32], ipbuf2[32], *ipa, *router_ip;
+      json_object *jobject;
+
+      Utils::formatMac(_mac, macstr, sizeof(macstr));
+      sender_mac->print(sendermac, sizeof(sendermac));
+      ipa = Utils::intoaV4(ntohl(ipv4), ipbuf, sizeof(ipbuf));
+      router_ip = Utils::intoaV4(ntohl(dhcp_reply->siaddr), ipbuf2, sizeof(ipbuf2));
+
+      ntop->getTrace()->traceEvent(TRACE_INFO, "IP not in DHCP range: %s (mac=%s, sender=%s, router=%s)",
+				       ipa, macstr, sendermac, router_ip);
+
+      if((jobject = json_object_new_object()) != NULL) {
+	json_object_object_add(jobject, "ifname", json_object_new_string(get_name()));
+	json_object_object_add(jobject, "ifid", json_object_new_int(id));
+	json_object_object_add(jobject, "client_mac", json_object_new_string(macstr));
+	json_object_object_add(jobject, "sender_mac", json_object_new_string(sendermac));
+	json_object_object_add(jobject, "client_ip", json_object_new_string(ipa));
+	json_object_object_add(jobject, "router_ip", json_object_new_string(router_ip));
+	json_object_object_add(jobject, "vlan_id", json_object_new_int(vlan_id));
+
+	ntop->getRedis()->rpush(CONST_ALERT_OUTSIDE_DHCP_RANGE, (char *)json_object_to_json_string(jobject), 0 /* No trim */);
+
+	/* Free Memory */
+	json_object_put(jobject);
+      } else
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "json_object_new_object: Not enough memory");
     }
   }
 }

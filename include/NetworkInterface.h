@@ -180,7 +180,7 @@ class NetworkInterface : public Checkpointable {
   AlertsManager *alertsManager;
   HostPools *host_pools;
   VlanAddressTree *hide_from_top, *hide_from_top_shadow;
-  bool has_vlan_packets, has_ebpf_events, has_mac_addresses, has_seen_dhcp;
+  bool has_vlan_packets, has_ebpf_events, has_mac_addresses, has_seen_dhcp_addresses;
   struct ndpi_detection_module_struct *ndpi_struct;
   time_t last_pkt_rcvd, last_pkt_rcvd_remote, /* Meaningful only for ZMQ interfaces */
     next_idle_flow_purge, next_idle_host_purge;
@@ -255,6 +255,7 @@ class NetworkInterface : public Checkpointable {
 
   void topItemsCommit(const struct timeval *when);
   void checkMacIPAssociation(bool triggerEvent, u_char *_mac, u_int32_t ipv4);
+  void checkDhcpIPRange(Mac *sender_mac, struct dhcp_packet *dhcp_reply, u_int16_t vlan_id);
   bool checkBroadcastDomainTooLarge(u_int32_t bcast_mask, u_int16_t vlan_id, const Mac * const src_mac, const Mac * const dst_mac, u_int32_t spa, u_int32_t tpa) const;
   void pollQueuedeBPFEvents();
   void reloadCustomCategories();
@@ -334,8 +335,8 @@ class NetworkInterface : public Checkpointable {
   inline void setSeenEBPFEvents()              { has_ebpf_events = true;   }
   inline bool hasSeenMacAddresses()            { return(has_mac_addresses); }
   inline void setSeenMacAddresses()            { has_mac_addresses = true;  }
-  inline bool hasSeenDHCPTraffic()             { return(has_seen_dhcp); }
-  inline void setDHCPTrafficSeen()             { has_seen_dhcp = true;  }
+  inline bool hasSeenDHCPAddresses()           { return(has_seen_dhcp_addresses); }
+  inline void setDHCPAddressesSeen()           { has_seen_dhcp_addresses = true;  }
   inline struct ndpi_detection_module_struct* get_ndpi_struct() { return(ndpi_struct);         };
   inline bool is_purge_idle_interface()        { return(purge_idle_flows_hosts);               };
   int dumpFlow(time_t when, Flow *f);
@@ -724,6 +725,7 @@ class NetworkInterface : public Checkpointable {
   void makeTsPoint(NetworkInterfaceTsPoint *pt);
   void tsLua(lua_State* vm);
   void reloadDhcpRanges();
+  inline bool hasConfiguredDhcpRanges()      { return(!dhcp_ranges->last_ip.isEmpty()); };
   bool isInDhcpRange(IpAddress *ip);
 
 #ifdef HAVE_EBPF

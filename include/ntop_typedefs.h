@@ -91,6 +91,7 @@ typedef enum {
   alert_port_errors = 27,
   alert_broadcast_domain_too_large = 34,
   alert_ids = 35,
+  misconfigured_dhcp_range = 36,
 } AlertType; /*
 	       NOTE:
 	       keep it in sync with alert_type_keys
