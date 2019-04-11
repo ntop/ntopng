@@ -53,6 +53,21 @@ function inline_input_form(name, placeholder, tooltip, value, can_edit, input_op
    end
 end
 
+function inline_select_form(name, keys, values, curval)
+   print[[<select class="form-control" style="width:12em; display:inline;" name="]] print(name) print[[">]]
+   for idx, k in ipairs(keys) do
+      local v = values[idx]
+      print[[<option value="]] print(v) print[[" ]]
+
+      if curval == v then
+         print("selected")
+      end
+
+      print[[>]] print(k) print[[</option>]]
+   end
+   print[[</select>]]
+end
+
 if(_POST["switch_interface"] ~= nil) then
 -- First switch interfaces so the new cookie will have effect
 ifname = interface.setActiveInterfaceId(tonumber(ifid))
@@ -1286,6 +1301,30 @@ elseif(page == "config") then
 	</tr>]]
      end
    end
+
+   local serialize_by_mac
+   local serialize_by_mac_key = string.format("ntopng.prefs.ifid_%u.serialize_local_broadcast_hosts_as_macs", ifId)
+
+   if _SERVER["REQUEST_METHOD"] == "POST" then
+      serialize_by_mac = _POST["lbd_hosts_as_macs"]
+
+      if ntop.getPref(serialize_by_mac_key) ~= serialize_by_mac then
+         ntop.setPref(serialize_by_mac_key, serialize_by_mac)
+         interface.updateLbdIdentifier()
+      end
+   else
+      serialize_by_mac = ntop.getPref(serialize_by_mac_key)
+   end
+
+   -- LBD identifier
+     print[[
+	<tr>
+	   <th width="30%">]] print(i18n("prefs.toggle_host_tskey_title")) print[[ <i class="fa fa-info-circle" title="]] print(i18n("prefs.toggle_host_tskey_description")) print[["></i></th>
+	   <td>]]
+      inline_select_form("lbd_hosts_as_macs", {i18n("ip_address"), i18n("mac_address")}, {"0", "1"}, serialize_by_mac)
+	print[[
+	   </td>
+	</tr>]]
 
    local rv = ntop.getMembersCache(getHideFromTopSet(ifstats.id)) or {}
    local members = {}

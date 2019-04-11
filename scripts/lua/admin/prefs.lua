@@ -1006,16 +1006,6 @@ function printMisc()
 			      subpage_active.entries["toggle_host_mask"].description,
 			      h_labels, h_values, "0", "primary", "toggle_host_mask", "ntopng.prefs.host_mask")
 
-
-    multipleTableButtonPrefs(subpage_active.entries["toggle_host_tskey"].title,
-				    subpage_active.entries["toggle_host_tskey"].description,
-				    {i18n("ip_address"), i18n("mac_address")}, {"0", "1"},
-				    "0",
-				    "primary",
-				    "serialize_local_broadcast_hosts_as_macs",
-				    "ntopng.prefs.serialize_local_broadcast_hosts_as_macs", nil,
-				    elementToSwitch, showElementArray, javascriptAfterSwitch, showElement)
-
     prefsToggleButton(subpage_active, {
 			 field = "toggle_arp_matrix_generation",
 			 default = "0",

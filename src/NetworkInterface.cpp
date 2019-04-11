@@ -270,6 +270,7 @@ NetworkInterface::NetworkInterface(const char *name,
 
   reloadHideFromTop(false);
   updateTrafficMirrored();
+  updateLbdIdentifier();
 }
 
 /* **************************************************** */
@@ -282,7 +283,7 @@ void NetworkInterface::init() {
     last_pkt_rcvd = last_pkt_rcvd_remote = 0,
     next_idle_flow_purge = next_idle_host_purge = 0,
     running = false, customIftype = NULL, is_dynamic_interface = false,
-    is_loopback = is_traffic_mirrored = false;
+    is_loopback = is_traffic_mirrored = false, lbd_serialize_by_mac = false;
   numVirtualInterfaces = 0, flowHashing = NULL,
     pcap_datalink_type = 0, mtuWarningShown = false,
     purge_idle_flows_hosts = true, id = (u_int8_t)-1,
@@ -1678,6 +1679,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
     case NDPI_PROTOCOL_DHCP:
       {
 	Mac *mac = (*srcHost)->getMac(), *payload_cli_mac;
+	setDHCPTrafficSeen();
 
 	if(mac && (payload_len > 240)) {
 	  struct dhcp_packet *dhcpp = (struct dhcp_packet*)payload;
@@ -1745,6 +1747,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       {
 	Mac *src_mac = (*srcHost)->getMac();
 	Mac *dst_mac = (*dstHost)->getMac();
+	setDHCPTrafficSeen();
 
 	if(src_mac && dst_mac
 	   && (payload_len > 20)
@@ -2712,6 +2715,7 @@ void NetworkInterface::cleanup() {
   next_idle_flow_purge = next_idle_host_purge = 0;
   cpu_affinity = -1,
     has_vlan_packets = false, has_ebpf_events = false, has_mac_addresses = false;
+  has_seen_dhcp = false;
   running = false, inline_interface = false;
 
   getStats()->cleanup();
@@ -5423,6 +5427,7 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_bool_table_entry(vm, "inline", get_inline_interface());
   lua_push_bool_table_entry(vm, "vlan",     hasSeenVlanTaggedPackets());
   lua_push_bool_table_entry(vm, "has_macs", hasSeenMacAddresses());
+  lua_push_bool_table_entry(vm, "has_seen_dhcp", hasSeenDHCPTraffic());
   lua_push_bool_table_entry(vm, "has_traffic_directions", (areTrafficDirectionsSupported() && (!is_traffic_mirrored)));
 
   lua_newtable(vm);
@@ -6257,6 +6262,27 @@ void NetworkInterface::reloadHideFromTop(bool refreshHosts) {
     bool walk_all = true;
     walker(&begin_slot, walk_all,  walker_hosts, host_reload_hide_from_top, NULL);
   }
+}
+
+/* **************************************** */
+
+void NetworkInterface::updateLbdIdentifier() {
+  char key[CONST_MAX_LEN_REDIS_KEY], rsp[2] = { 0 };
+  bool as_macs = CONST_DEFAULT_LBD_SERIALIZE_AS_MAC;
+
+  if(!ntop->getRedis()) return;
+
+  snprintf(key, sizeof(key), CONST_LBD_SERIALIZATION_PREFS, get_id());
+  if((ntop->getRedis()->get(key, rsp, sizeof(rsp)) == 0) && (rsp[0] != '\0')) {
+    if(rsp[0] == '1')
+      as_macs = true;
+    else if(rsp[0] == '0')
+      as_macs = false;
+  }
+
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Updating lbd_serialize_by_mac [ifid: %i][rsp: %s][actual_value: %d]", get_id(), rsp, as_macs ? 1 : 0);
+
+  lbd_serialize_by_mac = as_macs;
 }
 
 /* **************************************** */

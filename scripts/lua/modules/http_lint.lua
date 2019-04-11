@@ -1270,7 +1270,7 @@ local known_parameters = {
    ["bridging_policy_target_type"]                 = validateChoiceInline({"per_protocol", "per_category", "both"}),
    ["timeseries_driver"]                           = validateChoiceInline({"rrd", "influxdb"}),
    ["ts_high_resolution"]                          = validateNumber,
-   ["serialize_local_broadcast_hosts_as_macs"]     = validateBool,
+   ["lbd_hosts_as_macs"]                           = validateBool,
    ["toggle_arp_matrix_generation"]                = validateBool,
 
    -- Other

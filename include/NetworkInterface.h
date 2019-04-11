@@ -89,7 +89,7 @@ class NetworkInterface : public Checkpointable {
 
   /* Broadcast domain */
   BroadcastDomains *bcast_domains;
-  bool reload_hosts_bcast_domain;
+  bool reload_hosts_bcast_domain, lbd_serialize_by_mac;
   time_t hosts_bcast_domain_last_update;
   
 #ifdef HAVE_EBPF
@@ -180,7 +180,7 @@ class NetworkInterface : public Checkpointable {
   AlertsManager *alertsManager;
   HostPools *host_pools;
   VlanAddressTree *hide_from_top, *hide_from_top_shadow;
-  bool has_vlan_packets, has_ebpf_events, has_mac_addresses;
+  bool has_vlan_packets, has_ebpf_events, has_mac_addresses, has_seen_dhcp;
   struct ndpi_detection_module_struct *ndpi_struct;
   time_t last_pkt_rcvd, last_pkt_rcvd_remote, /* Meaningful only for ZMQ interfaces */
     next_idle_flow_purge, next_idle_host_purge;
@@ -334,6 +334,8 @@ class NetworkInterface : public Checkpointable {
   inline void setSeenEBPFEvents()              { has_ebpf_events = true;   }
   inline bool hasSeenMacAddresses()            { return(has_mac_addresses); }
   inline void setSeenMacAddresses()            { has_mac_addresses = true;  }
+  inline bool hasSeenDHCPTraffic()             { return(has_seen_dhcp); }
+  inline void setDHCPTrafficSeen()             { has_seen_dhcp = true;  }
   inline struct ndpi_detection_module_struct* get_ndpi_struct() { return(ndpi_struct);         };
   inline bool is_purge_idle_interface()        { return(purge_idle_flows_hosts);               };
   int dumpFlow(time_t when, Flow *f);
@@ -629,6 +631,8 @@ class NetworkInterface : public Checkpointable {
   int updateHostTrafficPolicy(AddressTree* allowed_networks, char *host_ip, u_int16_t host_vlan);
 
   void reloadHideFromTop(bool refreshHosts=true);
+  void updateLbdIdentifier();
+  inline bool serializeLbdHostsAsMacs()             { return(lbd_serialize_by_mac); }
   inline void requestReloadCustomCategories()       { reload_custom_categories = true; }
   inline bool customCategoriesReloadRequested()     { return reload_custom_categories; }
   void checkReloadHostsBroadcastDomain();

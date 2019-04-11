@@ -507,12 +507,14 @@
 #define CONST_SQL_BATCH_SIZE               32
 #define CONST_MAX_SQL_QUERY_LEN            8192
 #define CONST_DEFAULT_MIRRORED_TRAFFIC     false
+#define CONST_DEFAULT_LBD_SERIALIZE_AS_MAC false
 #define CONST_ALERT_DISABLED_PREFS         NTOPNG_PREFS_PREFIX".disable_alerts_generation"
 #define CONST_PREFS_ENABLE_ACCESS_LOG      NTOPNG_PREFS_PREFIX".enable_access_log"
 #define CONST_PREFS_ENABLE_SQL_LOG         NTOPNG_PREFS_PREFIX".enable_sql_log"
 #define CONST_TOP_TALKERS_ENABLED          NTOPNG_PREFS_PREFIX".host_top_sites_creation"
 #define CONST_SUPPRESSED_ALERT_PREFS       NTOPNG_PREFS_PREFIX".alerts.ifid_%d"
 #define CONST_MIRRORED_TRAFFIC_PREFS       NTOPNG_PREFS_PREFIX".ifid_%d.is_traffic_mirrored"
+#define CONST_LBD_SERIALIZATION_PREFS      NTOPNG_PREFS_PREFIX".ifid_%d.serialize_local_broadcast_hosts_as_macs"
 #define CONST_USE_NINDEX                   NTOPNG_PREFS_PREFIX".use_nindex"
 #ifdef NTOPNG_PRO
 #define CONST_NAGIOS_NSCA_HOST_PREFS       NTOPNG_PREFS_PREFIX".nagios_nsca_host"
@@ -606,7 +608,6 @@
 #define CONST_RUNTIME_PREFS_IFACE_FLOW_COLLECTION      NTOPNG_PREFS_PREFIX".dynamic_flow_collection_mode" /* {"none", "vlan", "probe_ip","ingress_iface_idx"} */
 #define CONST_RUNTIME_PREFS_IGNORED_INTERFACES         NTOPNG_PREFS_PREFIX".ignored_interfaces"
 #define CONST_RUNTIME_PREFS_ENABLE_MAC_NDPI_STATS      NTOPNG_PREFS_PREFIX".l2_device_ndpi_timeseries_creation"
-#define CONST_SERIALIZE_LOCAL_BROADCAST_HOSTS_AS_MACS  NTOPNG_PREFS_PREFIX".serialize_local_broadcast_hosts_as_macs"
 #define CONST_RUNTIME_TS_NUM_SLOTS                     NTOPNG_PREFS_PREFIX".ts_write_slots"
 #define CONST_RUNTIME_TS_NUM_STEPS                     NTOPNG_PREFS_PREFIX".ts_write_steps"
 #define DISAGGREGATION_PROBE_IP                        "probe_ip"

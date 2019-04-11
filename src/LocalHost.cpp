@@ -94,7 +94,7 @@ void LocalHost::serialize2redis() {
   Mac *mac = getMac();
 
   if(isBroadcastDomainHost() && isDhcpHost() && mac &&
-      ntop->getPrefs()->serialize_local_broadcast_hosts_as_macs()) {
+      iface->serializeLbdHostsAsMacs()) {
     char mac_buf[128];
 
     get_mac_based_tskey(mac, mac_buf, sizeof(mac_buf));
@@ -355,7 +355,7 @@ bool LocalHost::deserialize() {
 
   /* First try to deserialize with the mac based key */
   if(mac && isDhcpHost() &&
-      ntop->getPrefs()->serialize_local_broadcast_hosts_as_macs()) {
+      iface->serializeLbdHostsAsMacs()) {
     char mac_buf[128];
 
     get_mac_based_tskey(mac, mac_buf, sizeof(mac_buf));
