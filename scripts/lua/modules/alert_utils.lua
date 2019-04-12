@@ -447,6 +447,8 @@ function performAlertsQuery(statement, what, opts, force_query)
          order_by = "alert_severity"
       elseif opts.sortColumn == "column_type" then
          order_by = "alert_type"
+      elseif opts.sortColumn == "column_count" and what == "historical" then
+         order_by = "alert_counter"
       elseif((opts.sortColumn == "column_duration") and (what == "historical")) then
          order_by = "(alert_tstamp_end - alert_tstamp)"
       else
@@ -1740,6 +1742,16 @@ function getCurrentStatus() {
 	 },
 
 	 {
+	    title: "]]print(i18n("show_alerts.alert_count"))print[[",
+	    field: "column_count",
+            hidden: ]] print(ternary(t["status"] ~= "historical", "true", "false")) print[[,
+            sortable: true,
+	    css: {
+	       textAlign: 'center'
+	    }
+	 },
+
+	 {
 	    title: "]]print(i18n("show_alerts.alert_severity"))print[[",
 	    field: "column_severity",
             sortable: true,
@@ -1757,23 +1769,17 @@ function getCurrentStatus() {
           whiteSpace: 'nowrap',
 	    }
 	 },
-]]
 
-if hasNindexSupport() then
-print[[
 	 {
 	    title: "]]print(i18n("drilldown"))print[[",
 	    field: "column_chart",
             sortable: false,
-	    hidden: ]] print(ternary(ntop.isPro(), "false", "true")) print[[,
+	    hidden: ]] print(ternary(not hasNindexSupport() or ntop.isPro(), "false", "true")) print[[,
 	    css: {
 	       textAlign: 'center'
 	    }
 	 },
-]]
-end
 
-print[[
 	 {
 	    title: "]]print(i18n("show_alerts.alert_description"))print[[",
 	    field: "column_msg",
@@ -1800,13 +1806,13 @@ print[[
 	 }
       ], tableCallback: function() {
             datatableForEachRow("#]] print(t["div-id"]) print[[", function(row_id) {
-               var alert_key = $("td:nth(5)", this).html().split("|");
+               var alert_key = $("td:nth(7)", this).html().split("|");
                var alert_id = alert_key[0];
                var historical_url = alert_key[1];
 
                if (typeof(historical_url) === "string")
-                  datatableAddLinkButtonCallback.bind(this)(7, historical_url, "]] print(i18n("show_alerts.explorer")) print[[");
-               datatableAddDeleteButtonCallback.bind(this)(7, "delete_alert_id ='" + alert_id + "'; $('#delete_alert_dialog').modal('show');", "]] print(i18n('delete')) print[[");
+                  datatableAddLinkButtonCallback.bind(this)(9, historical_url, "]] print(i18n("show_alerts.explorer")) print[[");
+               datatableAddDeleteButtonCallback.bind(this)(9, "delete_alert_id ='" + alert_id + "'; $('#delete_alert_dialog').modal('show');", "]] print(i18n('delete')) print[[");
 
                $("form", this).submit(function() {
                   // add "status" parameter to the form

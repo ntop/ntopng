@@ -2830,6 +2830,7 @@ local lang = {
     ["alert_datetime"] = "Date/Time",
     ["alert_description"] = "Description",
     ["alert_duration"] = "Duration",
+    ["alert_count"] = "Count",
     ["alert_severity"] = "Severity",
     ["alert_type"] = "Alert Type",
     ["alerts"] = "Alerts",

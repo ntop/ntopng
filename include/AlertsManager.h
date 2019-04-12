@@ -65,6 +65,9 @@ class AlertsManager : protected StoreManager {
 			     const char *alert_origin, const char *alert_target,
 			     bool engage, bool ignore_disabled=false);
 
+  /* Compute a unique hash used to group alerts together */
+  static u_int32_t alertHash(const char * const alert_json);
+
   /* methods used to retrieve alerts and counters with possible sql clause to filter */
   int queryAlertsRaw(lua_State *vm, const char *selection, const char *clauses, const char *table_name, bool ignore_disabled);
   int getNumAlerts(bool engaged, const char *sql_where_clause, bool ignore_disabled=false);
