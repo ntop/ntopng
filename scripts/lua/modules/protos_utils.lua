@@ -212,7 +212,7 @@ function protos_utils.generateProtosTxt(rules)
 
   if not ntop.exists(backup_file) then
     traceError(TRACE_INFO, TRACE_CONSOLE, string.format("Backing up '%s' to '%s'", path, backup_file))
-    os.rename(fpath, backup_file)
+    os.rename(path, backup_file)
   end
 
   local f = io.open(path, "w")

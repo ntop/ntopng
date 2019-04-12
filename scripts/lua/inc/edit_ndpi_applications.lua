@@ -92,7 +92,7 @@ if (_POST["action"] == "add") or (_POST["action"] == "edit") then
       end
     else
       app_warnings[#app_warnings + 1] = {
-        type = "error",
+        type = "danger",
         text = i18n("custom_categories.protos_unexpected_error", {product=info.product})
       }
     end
