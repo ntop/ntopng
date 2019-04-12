@@ -187,7 +187,7 @@ local lang = {
     ["cpu_load"] = "CPU load",
     ["datadir_warning"] = "Data directory migration notice",
     ["dhcp_range_missing_warning"] = "The <a href='%{url}'>%{name}</a> preference is ineffective. Please configure the <a href='%{dhcp_url}'>DHCP range</a> appropriately.",
-    ["host_identifier_warning"] = "This interface is monitoring DHCP hosts. Please consider changing the <a href='%{url}'>%{name}</a> preference.",
+    ["host_identifier_warning"] = "This interface is monitoring DHCP hosts. Please consider changing the <a href='%{url}'>%{name}</a> preference to \"Mac Address\".",
     ["influxdb_migration_msg"] = "You have a lot of local hosts. Please consider <a href='%{url}'>moving from RRD to InfluxDB</a> for timeseries storage to improve performance.",
     ["last_log"] = "Last Log Trace",
     ["licence"] = "License",

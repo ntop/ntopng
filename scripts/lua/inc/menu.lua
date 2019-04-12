@@ -189,6 +189,7 @@ end
 
 -- ##############################################
 
+-- NOTE: do not use this, as it is modified below for each ntopng interface
 _ifstats = interface.getStats()
 
 url = ntop.getHttpPrefix().."/lua/flows_stats.lua"
@@ -529,11 +530,11 @@ if(dirs.workingdir == "/var/tmp/ntopng") then
    print('</a></div>')
 end
 
-local lbd_serialize_by_mac = (_POST["lbd_hosts_as_macs"] == "1") or (ntop.getPref(string.format("ntopng.prefs.ifid_%u.serialize_local_broadcast_hosts_as_macs", _ifstats.id)) == "1")
+local lbd_serialize_by_mac = (_POST["lbd_hosts_as_macs"] == "1") or (ntop.getPref(string.format("ntopng.prefs.ifid_%u.serialize_local_broadcast_hosts_as_macs", ifs.id)) == "1")
 
-if(_ifstats.has_seen_dhcp_addresses and is_admin) then
+if(ifs.has_seen_dhcp_addresses and is_admin) then
    if(not lbd_serialize_by_mac) then
-      if(ntop.getPref(string.format("ntopng.prefs.ifid_%u.disable_host_identifier_message", _ifstats.id)) ~= "1") then
+      if(ntop.getPref(string.format("ntopng.prefs.ifid_%u.disable_host_identifier_message", ifs.id)) ~= "1") then
          print('<br><div id="host-id-message-warning" class="alert alert-warning" role="alert"><i class="fa fa-warning fa-lg" id="alerts-menu-triangle"></i> ')
          print[[<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>]]
          print(i18n("about.host_identifier_warning", {name=i18n("prefs.toggle_host_tskey_title"), url = ntop.getHttpPrefix().."/lua/if_stats.lua?page=config"}))
@@ -541,7 +542,7 @@ if(_ifstats.has_seen_dhcp_addresses and is_admin) then
       end
    elseif isEmptyString(_POST["dhcp_ranges"]) then
       local dhcp_utils = require("dhcp_utils")
-      local ranges = dhcp_utils.listRanges(_ifstats.id)
+      local ranges = dhcp_utils.listRanges(ifs.id)
 
       if(table.empty(ranges)) then
          print('<br><div class="alert alert-warning" role="alert"><i class="fa fa-warning fa-lg" id="alerts-menu-triangle"></i> ')
