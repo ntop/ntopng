@@ -68,8 +68,8 @@ function protos_utils.parseProtosTxt()
   end
 
   if f == nil then
-    traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("[protos.txt] Could not open '%s'", path))
-    return nil
+    traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("[protos.txt] Could not open '%s' (invalid permissions?)", path))
+    return {}
   end
 
   for full_line in f:lines() do
@@ -210,7 +210,7 @@ function protos_utils.generateProtosTxt(rules)
   local path = getProtosFile()
   local backup_file = path .. ".bak"
 
-  if not ntop.exists(backup_file) then
+  if(ntop.exists(path) and (not ntop.exists(backup_file))) then
     traceError(TRACE_INFO, TRACE_CONSOLE, string.format("Backing up '%s' to '%s'", path, backup_file))
     os.rename(path, backup_file)
   end
