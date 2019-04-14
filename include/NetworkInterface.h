@@ -725,7 +725,7 @@ class NetworkInterface : public Checkpointable {
   void makeTsPoint(NetworkInterfaceTsPoint *pt);
   void tsLua(lua_State* vm);
   void reloadDhcpRanges();
-  inline bool hasConfiguredDhcpRanges()      { return(!dhcp_ranges->last_ip.isEmpty()); };
+  inline bool hasConfiguredDhcpRanges()      { return(dhcp_ranges && !dhcp_ranges->last_ip.isEmpty()); };
   bool isInDhcpRange(IpAddress *ip);
 
 #ifdef HAVE_EBPF
