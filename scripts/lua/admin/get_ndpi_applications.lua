@@ -5,6 +5,7 @@
 dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
+local protos_utils = require("protos_utils")
 
 local json = require("dkjson")
 sendHTTPContentTypeHeader('text/html')
@@ -18,6 +19,23 @@ local proto_filter = _GET["l7proto"]
 local category_filter = _GET["category"]
 
 local sortPrefs = "ndpi_application_category"
+local custom_protos = protos_utils.parseProtosTxt()
+local proto_to_num_rules = {}
+local applications = interface.getnDPIProtocols()
+
+for proto, rules in pairs(custom_protos) do
+   proto_to_num_rules[proto] = #rules
+end
+
+local function makeApplicationHostsList(appname)
+   local hosts_list = {}
+
+   for _, rule in ipairs(custom_protos[appname] or {}) do
+      hosts_list[#hosts_list + 1] = rule.value
+   end
+
+   return table.concat(hosts_list, ",")
+end
 
 if((sortColumn == nil) or (sortColumn == "column_"))then
    sortColumn = getDefaultTableSort(sortPrefs)
@@ -60,8 +78,6 @@ local to_skip = (currentPage-1) * perPage
 
 if(sortOrder == "desc") then sOrder = rev_insensitive else sOrder = asc_insensitive end
 
-local applications = interface.getnDPIProtocols()
-
 local sorter = {}
 local num_apps = 0
 for app_name, app_id in pairs(applications) do
@@ -80,6 +96,8 @@ for app_name, app_id in pairs(applications) do
       sorter[app_name] = app_name
    elseif sortColumn == "column_ndpi_application_category" then
       sorter[app_name] = cat["name"]
+   elseif sortColumn == "column_num_hosts" then
+      sorter[app_name] = proto_to_num_rules[app_name] or 0
    end
 
    ::continue::
@@ -120,6 +138,8 @@ for app, _ in pairsByValues(sorter, sOrder) do
    record["column_ndpi_application_id"] = tostring(app["app_id"])
    record["column_ndpi_application_category_id"] = tostring(app["cat"]["id"])
    record["column_ndpi_application"] = app["app_name"]
+   record["column_num_hosts"] = proto_to_num_rules[app["app_name"]] or 0
+   record["column_application_hosts"] = makeApplicationHostsList(app["app_name"])
 
    cat_select_dropdown = '<select class="form-control" style="width:320px;" name="proto_' .. app["app_id"] .. '">'
    local current_id = tostring(app["cat"]["id"])

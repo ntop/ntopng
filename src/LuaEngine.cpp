@@ -687,7 +687,7 @@ static int ntop_get_ndpi_category_name(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   category = (ndpi_protocol_category_t)((int)lua_tonumber(vm, 1));
 
-  if(ntop_interface && category)
+  if(ntop_interface)
     lua_pushstring(vm, ntop_interface->get_ndpi_category_name(category));
   else
     lua_pushnil(vm);
@@ -3467,6 +3467,20 @@ static int ntop_update_traffic_mirrored(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_update_lbd_identifier(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_interface)
+    ntop_interface->updateLbdIdentifier();
+
+  lua_pushnil(vm);
+  return CONST_LUA_OK;
+}
+
+/* ****************************************** */
+
 static int ntop_update_host_traffic_policy(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *host_ip;
@@ -3834,9 +3848,12 @@ static int ntop_get_ndpi_categories(lua_State* vm) {
 
   for (int i=0; i < NDPI_PROTOCOL_NUM_CATEGORIES; i++) {
     char buf[8];
+    const char *cat_name = ntop_interface->get_ndpi_category_name((ndpi_protocol_category_t)i);
 
-    snprintf(buf, sizeof(buf), "%d", i);
-    lua_push_str_table_entry(vm, ntop_interface->get_ndpi_category_name((ndpi_protocol_category_t)i), buf);
+    if(cat_name && *cat_name) {
+      snprintf(buf, sizeof(buf), "%d", i);
+      lua_push_str_table_entry(vm, cat_name, buf);
+    }
   }
 
   return(CONST_LUA_OK);
@@ -8244,6 +8261,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "findHost",                 ntop_get_interface_find_host },
   { "findHostByMac",            ntop_get_interface_find_host_by_mac },
   { "updateTrafficMirrored",    ntop_update_traffic_mirrored },
+  { "updateLbdIdentifier",      ntop_update_lbd_identifier },
   { "updateHostTrafficPolicy",  ntop_update_host_traffic_policy },
   { "refreshHostsAlertsConfiguration",   ntop_refresh_hosts_alerts_configuration },
   { "getEndpoint",                      ntop_get_interface_endpoint },

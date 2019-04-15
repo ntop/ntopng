@@ -454,9 +454,6 @@ local menu_subpages = {
     }, minute_top_talkers_retention = {
       title       = i18n("prefs.minute_top_talkers_retention_title"),
       description = i18n("prefs.minute_top_talkers_retention_description"),
-    }, toggle_host_tskey = {
-      title       = i18n("prefs.toggle_host_tskey_title"),
-      description = i18n("prefs.toggle_host_tskey_description"),
     }
   }},
 }
