@@ -338,7 +338,7 @@ var map = (function () {
                 .attr("y", -50)
                 .attr("text-anchor", "left")
                 .style("font-size", "22px")
-                .text("ARP Map");
+                .text("Top Talkers ARP-Map");
 
         // Add subtitle to graph
         svg.append("text")
@@ -501,6 +501,7 @@ var map = (function () {
             });
         }
 
+        //NOTE: temporary solution
         //disable scroll
         $('html, body').css({
             'overflow': 'hidden',
@@ -529,6 +530,7 @@ var map = (function () {
         changeContainerID();
         d3.select( getCurrentContainerID() ).selectAll("*").remove();
         
+        //NOTE: temporary solution
         //enable scroll
         $('html, body').css({
             'overflow': 'auto',
@@ -562,7 +564,6 @@ var map = (function () {
             return;
         }
 
-        //compute #tot pkt for each mac
         sendersTotPkts = {};
         receiversTotPkts = {};
         maxTotPkt = 0;

@@ -8,48 +8,21 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 
 local page_utils = require("page_utils")
-
-interface.select(ifname)
-
-if(ntop.isnEdge()) then
-  package.path = dirs.installdir .. "/pro/scripts/lua/nedge/modules/?.lua;" .. package.path
-  local nf_config = require("nf_config"):readable()
-
-  if nf_config.isFirstStart() then
-    print(ntop.httpRedirect(ntop.getHttpPrefix().."lua/pro/nedge/system_setup/interfaces.lua"))
-    return
-  end
-end
-
-if(ntop.isPro()) then
-   if interface.isPcapDumpInterface() == false then
-      print(ntop.httpRedirect(ntop.getHttpPrefix().."/lua/pro/dashboard.lua"))
-      return
-   else
-      -- it doesn't make sense to show the dashboard for pcap files...
-      print(ntop.httpRedirect(ntop.getHttpPrefix().."/lua/if_stats.lua?ifid="..getInterfaceId(ifname)))
-      return
-   end
-end
-
 sendHTTPContentTypeHeader('text/html')
 
+interface.select(ifname)
 page_utils.print_header()
 
--- NOTE: in the home page, footer.lua checks the ntopng version
--- so in case we change it, footer.lua must also be updated
-active_page = "home"
+--active_page = "home"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
+local ifstats = interface.getStats()
+local is_loopback = isLoopback(ifname)
+local iface_id = interface.name2id(ifname)
 
-ifstats = interface.getStats()
-is_loopback = isLoopback(ifname)
-iface_id = interface.name2id(ifname)
-
--- Load from or set in redis the refresh frequency for the top flow sankey
-
-refresh = _GET["refresh"]
-refresh_key = 'ntopng.prefs.'.._SESSION["user"]..'.'..ifname..'.top_flow_refresh'
+-- Load from or set in redis the refresh frequency for the top talkers heatmap
+local refresh = _GET["refresh"]
+local refresh_key = 'ntopng.prefs.'.._SESSION["user"]..'.'..ifname..'.heatmap_refresh'
 
 if (refresh ~= nil) then
   ntop.setCache(refresh_key,refresh)
@@ -58,17 +31,6 @@ else
 end
 -- Default frequency (ms)
 if (refresh == '') then refresh = 5000 end
-
---
-
-page = _GET["page"]
-if(page == nil) then
-   if(not(is_loopback)) then
-      page = "TopFlowTalkers"
-   else
-      page = "TopHosts"
-   end
-end
 
 
 if((ifstats ~= nil) and (ifstats.stats.packets > 0)) then
@@ -98,12 +60,7 @@ if((ifstats ~= nil) and (ifstats.stats.packets > 0)) then
       if((page == "TopFlowSenders")) then active=' class="active"' else active = "" end
       print('<li'..active..'><a href="'..ntop.getHttpPrefix()..'/?page=TopFlowSenders">'..i18n("index_page.senders")..'</a></li>\n')
    end
-
    print('</ul>\n\t</div>\n\t</nav>\n')
-
---WIP
---######################################################################################
---TODO: for now is used the refresh rate of the snkey diagram. change it
 
 print [[
    <script src="]] print(ntop.getHttpPrefix()) print[[/js/d3.v4.js"></script>
@@ -156,7 +113,6 @@ print [[
     print [[
     </div>
     ]]
-   --######################################################################################
 
    print[[
       <script src="]] print(ntop.getHttpPrefix()) print[[/js/heatmap.js"></script>
@@ -181,8 +137,5 @@ print [[
       </script>
    ]]
   end
-
---######################################################################################
---END-WIP
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
