@@ -19,7 +19,6 @@
  *
  */
 
-
 #include "ntop_includes.h"
 
 // #define TRACE_ARP_LIFECYCLE   1
@@ -70,24 +69,19 @@ bool ArpStatsMatrixElement::equal(const u_int8_t _src_mac[6],
     }
     
     *src2dst = true;
-
-    //WIPupdate destination IP if necessary
-    if (src_ip != _src_ip) src_ip = _src_ip;
-    if (dst_ip != _dst_ip) dst_ip = _dst_ip;
-    //TODO: log the updates!?!?
-
     return true;
   } else {
     u_int8_t empty_mac[6] = { 0 };
       
     if((src_ip == _dst_ip) && (dst_ip == _src_ip)) {
-      if(memcmp(dst_mac, _src_mac, 6) == 0); /* Same mac: nothing to do */
+      if(memcmp(dst_mac, _src_mac, 6) == 0)
+	; /* Same mac: nothing to do */
       else if (memcmp(dst_mac, empty_mac, 6) == 0)
-	      memcpy((void*)dst_mac, _src_mac, 6); /* Mac was never set */
+	memcpy((void*)dst_mac, _src_mac, 6); /* Mac was never set */
       else {
-        /* This is a new Mac */
-        memcpy((void*)dst_mac, _src_mac, 6); /* Overwrite Mac (e.g. DHCP reassignment) */
-        memset((void*)&stats, 0, sizeof(stats)); /* Reset all stats */
+	/* This is a new Mac */
+	memcpy((void*)dst_mac, _src_mac, 6); /* Overwrite Mac (e.g. DHCP reassignment) */
+	memset((void*)&stats, 0, sizeof(stats)); /* Reset all stats */
       }
       
       *src2dst = false;
@@ -97,6 +91,7 @@ bool ArpStatsMatrixElement::equal(const u_int8_t _src_mac[6],
 
   return false;
 }
+
 
 
 /* *************************************** */
