@@ -33,15 +33,15 @@ SyslogCollectorInterface::SyslogCollectorInterface(const char *_endpoint) : Sysl
 
   endpoint = strdup(_endpoint);
 
-  if (endpoint == NULL) 
+  if(endpoint == NULL) 
     throw("memory allocation error");
 
   tmp = strdup(_endpoint);
 
-  if (tmp == NULL)
+  if(tmp == NULL)
     throw("memory allocation error");
 
-  if (strncmp(tmp, (char*) "syslog://", 9) == 0) {
+  if(strncmp(tmp, (char*) "syslog://", 9) == 0) {
     server_address = &tmp[9];
   } else {
     server_address = tmp;
@@ -49,7 +49,7 @@ SyslogCollectorInterface::SyslogCollectorInterface(const char *_endpoint) : Sysl
 
   port_ptr = strchr(server_address, ':');
 
-  if (port_ptr != NULL) {
+  if(port_ptr != NULL) {
     port_ptr[0] = '\0';
     port_ptr++;
     server_port = atoi(port_ptr);
@@ -62,11 +62,11 @@ SyslogCollectorInterface::SyslogCollectorInterface(const char *_endpoint) : Sysl
 
   listen_sock = socket(AF_INET, SOCK_STREAM, 0);
 
-  if (listen_sock < 0)
+  if(listen_sock < 0)
     throw("socket error");
 
   /* Allow to re-bind in case previous instance died */ 
-  if (setsockopt(listen_sock, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) != 0)
+  if(setsockopt(listen_sock, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) != 0)
     throw("setsockopt error");
   
   memset(&listen_addr, 0, sizeof(listen_addr));
@@ -75,16 +75,16 @@ SyslogCollectorInterface::SyslogCollectorInterface(const char *_endpoint) : Sysl
   listen_addr.sin_addr.s_addr = inet_addr(server_address);
   listen_addr.sin_port = htons(server_port);
  
-  if (bind(listen_sock, (struct sockaddr *) &listen_addr, sizeof(struct sockaddr)) != 0)
+  if(bind(listen_sock, (struct sockaddr *) &listen_addr, sizeof(struct sockaddr)) != 0)
     throw("bind error");
  
-  if (listen(listen_sock, MAX_ZMQ_SUBSCRIBERS) != 0)
+  if(listen(listen_sock, MAX_SYSLOG_SUBSCRIBERS) != 0)
     throw("listen error");
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Accepting connections on %s:%d",
     server_address, server_port);
 
-  for (i = 0; i < MAX_ZMQ_SUBSCRIBERS; ++i)
+  for(i = 0; i < MAX_SYSLOG_SUBSCRIBERS; ++i)
     connections[i].socket = 0;
 
   free(tmp);
@@ -97,8 +97,8 @@ SyslogCollectorInterface::~SyslogCollectorInterface() {
   
   close(listen_sock);
   
-  for (i = 0; i < MAX_ZMQ_SUBSCRIBERS; ++i)
-    if (connections[i].socket != 0)
+  for(i = 0; i < MAX_SYSLOG_SUBSCRIBERS; ++i)
+    if(connections[i].socket != 0)
       close(connections[i].socket);
 
   free(endpoint);
@@ -116,8 +116,8 @@ int SyslogCollectorInterface::initFDSets(fd_set *read_fds, fd_set *write_fds, fd
   FD_SET(listen_sock, read_fds);
   FD_SET(listen_sock, except_fds);
 
-  for (i = 0; i < MAX_ZMQ_SUBSCRIBERS; ++i) {
-    if (connections[i].socket != 0) {
+  for(i = 0; i < MAX_SYSLOG_SUBSCRIBERS; ++i) {
+    if(connections[i].socket != 0) {
       FD_SET(connections[i].socket, read_fds);
       FD_SET(connections[i].socket, except_fds);
     }
@@ -139,7 +139,7 @@ int SyslogCollectorInterface::handleNewConnection() {
 
   new_client_sock = accept(listen_sock, (struct sockaddr *) &client_addr, &client_len);
 
-  if (new_client_sock < 0) {
+  if(new_client_sock < 0) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "accept() failure");
     return -1;
   }
@@ -148,8 +148,8 @@ int SyslogCollectorInterface::handleNewConnection() {
   
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Incoming connection from %s:%d", client_ipv4_str, client_addr.sin_port);
   
-  for (i = 0; i < MAX_ZMQ_SUBSCRIBERS; ++i) {
-    if (connections[i].socket == 0) {
+  for(i = 0; i < MAX_SYSLOG_SUBSCRIBERS; ++i) {
+    if(connections[i].socket == 0) {
       connections[i].socket = new_client_sock;
       connections[i].address = client_addr;
       return 0;
@@ -204,8 +204,8 @@ int SyslogCollectorInterface::receiveFromClient(syslog_client *client) {
 
     len = recv(client->socket, (char *) buffer, buffer_size, MSG_DONTWAIT);
 
-    if (len < 0) {
-      if (errno == EAGAIN || errno == EWOULDBLOCK) {
+    if(len < 0) {
+      if(errno == EAGAIN || errno == EWOULDBLOCK) {
         ntop->getTrace()->traceEvent(TRACE_INFO, "Client is not ready");
         break;
       } else {
@@ -213,11 +213,11 @@ int SyslogCollectorInterface::receiveFromClient(syslog_client *client) {
         return -1;
       }
 
-    } else if (len == 0) {
+    } else if(len == 0) {
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Client shutdown");
       return -1;
 
-    } else if (len > 0) {
+    } else if(len > 0) {
       received_total += len;
       buffer[len] = '\0';
       line = strtok_r(buffer, "\n", &pos);
@@ -237,7 +237,7 @@ int SyslogCollectorInterface::receiveFromClient(syslog_client *client) {
 /* **************************************************** */
 
 void SyslogCollectorInterface::collect_flows() {
-  u_int32_t max_num_polls_before_purge = MAX_ZMQ_POLLS_BEFORE_PURGE;
+  u_int32_t max_num_polls_before_purge = MAX_SYSLOG_POLLS_BEFORE_PURGE;
   fd_set read_fds, write_fds, except_fds;
   struct timeval timeout;
   time_t now, next_purge_idle = time(NULL) + FLOW_PURGE_FREQUENCY;;
@@ -256,13 +256,13 @@ void SyslogCollectorInterface::collect_flows() {
     initFDSets(&read_fds, &write_fds, &except_fds);
 
     high_sock = listen_sock;
-    for (i = 0; i < MAX_ZMQ_SUBSCRIBERS; i++) {
-      if (connections[i].socket > high_sock)
+    for(i = 0; i < MAX_SYSLOG_SUBSCRIBERS; i++) {
+      if(connections[i].socket > high_sock)
         high_sock = connections[i].socket;
     }
 
-    timeout.tv_sec = MAX_ZMQ_POLL_WAIT_MS/1000;
-    timeout.tv_usec = (MAX_ZMQ_POLL_WAIT_MS%1000)*1000;
+    timeout.tv_sec = MAX_SYSLOG_POLL_WAIT_MS/1000;
+    timeout.tv_usec = (MAX_SYSLOG_POLL_WAIT_MS%1000)*1000;
 
     rc = select(high_sock + 1, &read_fds, &write_fds, &except_fds, &timeout);
  
@@ -271,27 +271,25 @@ void SyslogCollectorInterface::collect_flows() {
     if(rc == 0 || now >= next_purge_idle || max_num_polls_before_purge == 0) {
       purgeIdle(now);
       next_purge_idle = now + FLOW_PURGE_FREQUENCY;
-      max_num_polls_before_purge = MAX_ZMQ_POLLS_BEFORE_PURGE;
+      max_num_polls_before_purge = MAX_SYSLOG_POLLS_BEFORE_PURGE;
     }
 
-    if (rc > 0) {
-      if (FD_ISSET(listen_sock, &read_fds)) {
-        handleNewConnection();
-      }
+    if(rc > 0) {
+      if(FD_ISSET(listen_sock, &read_fds))
+        handleNewConnection();      
         
-      if (FD_ISSET(listen_sock, &except_fds)) {
-        ntop->getTrace()->traceEvent(TRACE_ERROR, "Exception on listen socket fd");
-      }
+      if(FD_ISSET(listen_sock, &except_fds))
+        ntop->getTrace()->traceEvent(TRACE_ERROR, "Exception on listen socket fd");      
         
-      for (i = 0; i < MAX_ZMQ_SUBSCRIBERS; ++i) {
-        if (connections[i].socket != 0 && FD_ISSET(connections[i].socket, &read_fds)) {
-          if (receiveFromClient(&connections[i]) != 0) {
+      for(i = 0; i < MAX_SYSLOG_SUBSCRIBERS; ++i) {
+        if(connections[i].socket != 0 && FD_ISSET(connections[i].socket, &read_fds)) {
+          if(receiveFromClient(&connections[i]) != 0) {
             closeConnection(&connections[i]);
             continue;
           }
         }
   
-        if (connections[i].socket != 0 && FD_ISSET(connections[i].socket, &except_fds)) {
+        if(connections[i].socket != 0 && FD_ISSET(connections[i].socket, &except_fds)) {
           ntop->getTrace()->traceEvent(TRACE_ERROR, "Exception on client fd");
           closeConnection(&connections[i]);
           continue;
@@ -305,7 +303,7 @@ void SyslogCollectorInterface::collect_flows() {
 
 /* **************************************************** */
 
-static void* packetPollLoop(void* ptr) {
+static void* messagePollLoop(void* ptr) {
   SyslogCollectorInterface *iface = (SyslogCollectorInterface*)ptr;
 
   /* Wait until the initialization completes */
@@ -318,7 +316,7 @@ static void* packetPollLoop(void* ptr) {
 /* **************************************************** */
 
 void SyslogCollectorInterface::startPacketPolling() {
-  pthread_create(&pollLoop, NULL, packetPollLoop, (void*)this);
+  pthread_create(&pollLoop, NULL, messagePollLoop, (void*)this);
   pollLoopCreated = true;
   NetworkInterface::startPacketPolling();
 }
@@ -352,18 +350,6 @@ void SyslogCollectorInterface::lua(lua_State* vm) {
   lua_pushstring(vm, "syslogRecvStats");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
-}
-
-/* **************************************************** */
-
-void SyslogCollectorInterface::purgeIdle(time_t when) {
-  NetworkInterface::purgeIdle(when);
-
-  if(flowHashing) {
-    FlowHashing *current, *tmp;
-    HASH_ITER(hh, flowHashing, current, tmp)
-      static_cast<NetworkInterface*>(current->iface)->purgeIdle(when);
-  }
 }
 
 #endif

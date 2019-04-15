@@ -1036,7 +1036,7 @@ NetworkInterface* NetworkInterface::getSubInterface(u_int32_t criteria, bool par
 
 /* **************************************************** */
 
-void NetworkInterface::processFlow(Parsed_Flow *zflow) {
+void NetworkInterface::processFlow(Parsed_Flow *zflow, bool zmq_flow) {
   bool src2dst_direction, new_flow;
   Flow *flow;
   ndpi_protocol p;
@@ -1046,38 +1046,42 @@ void NetworkInterface::processFlow(Parsed_Flow *zflow) {
 
   memset(&p, 0, sizeof(p));
 
-  if(last_pkt_rcvd_remote > 0) {
-    int drift = now - last_pkt_rcvd_remote;
+  if(zmq_flow) {
+    /* In ZMQ flows we need to fix the clock drift */
+    
+    if(last_pkt_rcvd_remote > 0) {
+      int drift = now - last_pkt_rcvd_remote;
 
-    if(drift >= 0)
-      zflow->core.last_switched += drift, zflow->core.first_switched += drift;
-    else {
-      u_int32_t d = (u_int32_t)-drift;
+      if(drift >= 0)
+	zflow->core.last_switched += drift, zflow->core.first_switched += drift;
+      else {
+	u_int32_t d = (u_int32_t)-drift;
 
-      if(d < zflow->core.last_switched)  zflow->core.last_switched  += drift;
-      if(d < zflow->core.first_switched) zflow->core.first_switched += drift;
+	if(d < zflow->core.last_switched)  zflow->core.last_switched  += drift;
+	if(d < zflow->core.first_switched) zflow->core.first_switched += drift;
+      }
+
+#ifdef DEBUG
+      ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				   "[first=%u][last=%u][duration: %u][drift: %d][now: %u][remote: %u]",
+				   zflow->core.first_switched,  zflow->core.last_switched,
+				   zflow->core.last_switched-zflow->core.first_switched, drift,
+				   now, last_pkt_rcvd_remote);
+#endif
+    } else {
+      /* Old nProbe */
+
+      if((time_t)zflow->core.last_switched > (time_t)last_pkt_rcvd_remote)
+	last_pkt_rcvd_remote = zflow->core.last_switched;
+
+#ifdef DEBUG
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[first=%u][last=%u][duration: %u]",
+				   zflow->core.first_switched,  zflow->core.last_switched,
+				   zflow->core.last_switched- zflow->core.first_switched);
+#endif
     }
-
-#ifdef DEBUG
-    ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				 "[first=%u][last=%u][duration: %u][drift: %d][now: %u][remote: %u]",
-				 zflow->core.first_switched,  zflow->core.last_switched,
-				 zflow->core.last_switched-zflow->core.first_switched, drift,
-				 now, last_pkt_rcvd_remote);
-#endif
-  } else {
-    /* Old nProbe */
-
-    if((time_t)zflow->core.last_switched > (time_t)last_pkt_rcvd_remote)
-      last_pkt_rcvd_remote = zflow->core.last_switched;
-
-#ifdef DEBUG
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[first=%u][last=%u][duration: %u]",
-				 zflow->core.first_switched,  zflow->core.last_switched,
-				 zflow->core.last_switched- zflow->core.first_switched);
-#endif
   }
-
+  
   if((!isDynamicInterface()) && (flowHashingMode != flowhashing_none)) {
     NetworkInterface *vIface = NULL, *vIfaceEgress = NULL;
 
@@ -1109,8 +1113,8 @@ void NetworkInterface::processFlow(Parsed_Flow *zflow) {
       break;
     }
 
-    if(vIface)       vIface->processFlow(zflow);
-    if(vIfaceEgress) vIfaceEgress->processFlow(zflow);
+    if(vIface)       vIface->processFlow(zflow, zmq_flow);
+    if(vIfaceEgress) vIfaceEgress->processFlow(zflow, zmq_flow);
 
     return;
   }
