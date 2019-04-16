@@ -1224,7 +1224,7 @@ end
 
 -- #################################################
 
-function printCategoryDropdownButton(by_id, cat_id_or_name, base_url, page_params, count_callback)
+function printCategoryDropdownButton(by_id, cat_id_or_name, base_url, page_params, count_callback, skip_unknown)
    local function count_all(cat_id, cat_name)
       local cat_protos = interface.getnDPIProtocols(tonumber(cat_id))
       return table.len(cat_protos)
@@ -1243,6 +1243,11 @@ function printCategoryDropdownButton(by_id, cat_id_or_name, base_url, page_param
    entries[#entries + 1] = ""
    for cat_name, cat_id in pairsByKeys(interface.getnDPICategories()) do
       local cat_count = count_callback(cat_id, cat_name)
+
+      if(skip_unknown and (cat_id == "0") and (cat_count > 0)) then
+         -- Do not count the Unknown protocol in the Unspecified category
+         cat_count = cat_count - 1
+      end
 
       if cat_count > 0 then
          entries[#entries + 1] = {text=cat_name.." ("..cat_count..")", id=cat_name, cat_id=cat_id}

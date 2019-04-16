@@ -294,7 +294,8 @@ print[[
   end
 
   if isEmptyString(proto_filter) then
-    printCategoryDropdownButton(true, catid, base_url, page_params)
+    printCategoryDropdownButton(true, catid, base_url, page_params, nil,
+      true --[[ skip unknown, see get_ndpi_applications.lua ]])
   end
   print[[],
 ]]
