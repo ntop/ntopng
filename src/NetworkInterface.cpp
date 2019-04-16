@@ -270,6 +270,7 @@ NetworkInterface::NetworkInterface(const char *name,
 
   reloadHideFromTop(false);
   updateTrafficMirrored();
+  updateLbdIdentifier();
 }
 
 /* **************************************************** */
@@ -282,7 +283,7 @@ void NetworkInterface::init() {
     last_pkt_rcvd = last_pkt_rcvd_remote = 0,
     next_idle_flow_purge = next_idle_host_purge = 0,
     running = false, customIftype = NULL, is_dynamic_interface = false,
-    is_loopback = is_traffic_mirrored = false;
+    is_loopback = is_traffic_mirrored = false, lbd_serialize_by_mac = false;
   numVirtualInterfaces = 0, flowHashing = NULL,
     pcap_datalink_type = 0, mtuWarningShown = false,
     purge_idle_flows_hosts = true, id = (u_int8_t)-1,
@@ -1035,7 +1036,7 @@ NetworkInterface* NetworkInterface::getSubInterface(u_int32_t criteria, bool par
 
 /* **************************************************** */
 
-void NetworkInterface::processFlow(Parsed_Flow *zflow) {
+void NetworkInterface::processFlow(Parsed_Flow *zflow, bool zmq_flow) {
   bool src2dst_direction, new_flow;
   Flow *flow;
   ndpi_protocol p;
@@ -1045,38 +1046,42 @@ void NetworkInterface::processFlow(Parsed_Flow *zflow) {
 
   memset(&p, 0, sizeof(p));
 
-  if(last_pkt_rcvd_remote > 0) {
-    int drift = now - last_pkt_rcvd_remote;
+  if(zmq_flow) {
+    /* In ZMQ flows we need to fix the clock drift */
+    
+    if(last_pkt_rcvd_remote > 0) {
+      int drift = now - last_pkt_rcvd_remote;
 
-    if(drift >= 0)
-      zflow->core.last_switched += drift, zflow->core.first_switched += drift;
-    else {
-      u_int32_t d = (u_int32_t)-drift;
+      if(drift >= 0)
+	zflow->core.last_switched += drift, zflow->core.first_switched += drift;
+      else {
+	u_int32_t d = (u_int32_t)-drift;
 
-      if(d < zflow->core.last_switched)  zflow->core.last_switched  += drift;
-      if(d < zflow->core.first_switched) zflow->core.first_switched += drift;
+	if(d < zflow->core.last_switched)  zflow->core.last_switched  += drift;
+	if(d < zflow->core.first_switched) zflow->core.first_switched += drift;
+      }
+
+#ifdef DEBUG
+      ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				   "[first=%u][last=%u][duration: %u][drift: %d][now: %u][remote: %u]",
+				   zflow->core.first_switched,  zflow->core.last_switched,
+				   zflow->core.last_switched-zflow->core.first_switched, drift,
+				   now, last_pkt_rcvd_remote);
+#endif
+    } else {
+      /* Old nProbe */
+
+      if((time_t)zflow->core.last_switched > (time_t)last_pkt_rcvd_remote)
+	last_pkt_rcvd_remote = zflow->core.last_switched;
+
+#ifdef DEBUG
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[first=%u][last=%u][duration: %u]",
+				   zflow->core.first_switched,  zflow->core.last_switched,
+				   zflow->core.last_switched- zflow->core.first_switched);
+#endif
     }
-
-#ifdef DEBUG
-    ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				 "[first=%u][last=%u][duration: %u][drift: %d][now: %u][remote: %u]",
-				 zflow->core.first_switched,  zflow->core.last_switched,
-				 zflow->core.last_switched-zflow->core.first_switched, drift,
-				 now, last_pkt_rcvd_remote);
-#endif
-  } else {
-    /* Old nProbe */
-
-    if((time_t)zflow->core.last_switched > (time_t)last_pkt_rcvd_remote)
-      last_pkt_rcvd_remote = zflow->core.last_switched;
-
-#ifdef DEBUG
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[first=%u][last=%u][duration: %u]",
-				 zflow->core.first_switched,  zflow->core.last_switched,
-				 zflow->core.last_switched- zflow->core.first_switched);
-#endif
   }
-
+  
   if((!isDynamicInterface()) && (flowHashingMode != flowhashing_none)) {
     NetworkInterface *vIface = NULL, *vIfaceEgress = NULL;
 
@@ -1108,8 +1113,8 @@ void NetworkInterface::processFlow(Parsed_Flow *zflow) {
       break;
     }
 
-    if(vIface)       vIface->processFlow(zflow);
-    if(vIfaceEgress) vIfaceEgress->processFlow(zflow);
+    if(vIface)       vIface->processFlow(zflow, zmq_flow);
+    if(vIfaceEgress) vIfaceEgress->processFlow(zflow, zmq_flow);
 
     return;
   }
@@ -1673,21 +1678,31 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
      && (!isSampledTraffic())
      && flow->get_cli_host() && flow->get_srv_host()) {
     struct ndpi_flow_struct *ndpi_flow;
-
+    u_int32_t real_payload_len = min_val(h->caplen, payload_len);
+    
+    /*
+      As the functions below play with payload contents we need to 
+      make sure we handle the payload up to the max allowed size
+      thus we use the real_payload_len variable
+    */
+    
     switch(ndpi_get_lower_proto(flow->get_detected_protocol())) {
     case NDPI_PROTOCOL_DHCP:
       {
 	Mac *mac = (*srcHost)->getMac(), *payload_cli_mac;
 
-	if(mac && (payload_len > 240)) {
+	if(mac && (real_payload_len > 240)) {
 	  struct dhcp_packet *dhcpp = (struct dhcp_packet*)payload;
 
 	  if(dhcpp->msgType == 0x01) /* Request */
 	    ;//mac->setDhcpHost();
-	  else if(dhcpp->msgType == 0x02) /* Reply */
+	  else if(dhcpp->msgType == 0x02) { /* Reply */
 	    checkMacIPAssociation(false, dhcpp->chaddr, dhcpp->yiaddr);
+	    checkDhcpIPRange(mac, dhcpp, vlan_id);
+	    setDHCPAddressesSeen();
+	  }
 
-	  for(int i = 240; i<payload_len; ) {
+	  for(u_int32_t i = 240; i<real_payload_len; ) {
 	    u_int8_t id  = payload[i], len = payload[i+1];
 
 	    if(len == 0)
@@ -1747,7 +1762,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	Mac *dst_mac = (*dstHost)->getMac();
 
 	if(src_mac && dst_mac
-	   && (payload_len > 20)
+	   && (real_payload_len > 20)
 	   && dst_mac->isMulticast())
 	  ;//src_mac->setDhcpHost();
       }
@@ -1764,7 +1779,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	     ) {
 
 	    if(name[0] == '*') {
-	      int limit = min(payload_len-57, (int)sizeof(name)-1);
+	      int limit = min_val(real_payload_len-57, (int)sizeof(name)-1);
 	      int i = 0;
 
 	      while((i<limit) && (payload[57+i] != 0x20) && isprint(payload[57+i])) {
@@ -1795,17 +1810,17 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       if((flow->getBitTorrentHash() == NULL)
 	 && (l4_proto == IPPROTO_UDP)
 	 && (flow->get_packets() < 8))
-	flow->dissectBittorrent((char*)payload, payload_len);
+	flow->dissectBittorrent((char*)payload, real_payload_len);
       break;
 
     case NDPI_PROTOCOL_HTTP:
-      if(payload_len > 0)
-	flow->dissectHTTP(src2dst_direction, (char*)payload, payload_len);
+      if(real_payload_len > 0)
+	flow->dissectHTTP(src2dst_direction, (char*)payload, real_payload_len);
       break;
 
     case NDPI_PROTOCOL_SSDP:
-      if(payload_len > 0)
-	flow->dissectSSDP(src2dst_direction, (char*)payload, payload_len);
+      if(real_payload_len > 0)
+	flow->dissectSSDP(src2dst_direction, (char*)payload, real_payload_len);
       break;
 
     case NDPI_PROTOCOL_DNS:
@@ -1816,12 +1831,12 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	e.g., during three-way-handshake, or when acknowledging.
 	Make sure only non-zero-payload segments are processed.
       */
-      if((payload_len > 0) && payload) {
+      if((real_payload_len > 0) && payload) {
 	/*
 	  DNS-over-TCP has a 2-bytes field with DNS payload length
 	  at the beginning. See RFC1035 section 4.2.2. TCP usage.
 	*/
-	u_int8_t dns_offset = ((l4_proto == IPPROTO_TCP) && (payload_len > 1)) ? 2 : 0;
+	u_int8_t dns_offset = ((l4_proto == IPPROTO_TCP) && (real_payload_len > 1)) ? 2 : 0;
 	struct ndpi_dns_packet_header *header = (struct ndpi_dns_packet_header*)(payload + dns_offset);
 	u_int16_t dns_flags = ntohs(header->flags);
 	bool is_query   = (dns_flags & 0x8000) ? 0 : 1;
@@ -1873,23 +1888,23 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       extern void _dissectMDNS(u_char *buf, u_int buf_len, char *out, u_int out_len);
       char outbuf[1024];
 
-      _dissectMDNS(payload, payload_len, outbuf, sizeof(outbuf));
+      _dissectMDNS(payload, real_payload_len, outbuf, sizeof(outbuf));
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", outbuf);
 #endif
-      flow->dissectMDNS(payload, payload_len);
+      flow->dissectMDNS(payload, real_payload_len);
 
       if(discovery && iph)
-	discovery->queueMDNSRespomse(iph->saddr, payload, payload_len);
+	discovery->queueMDNSRespomse(iph->saddr, payload, real_payload_len);
       break;
 
     case NDPI_PROTOCOL_DROPBOX:
       if((src_port == dst_port) && (dst_port == htons(17500)))
-	flow->get_cli_host()->dissectDropbox((const char *)payload, payload_len);
+	flow->get_cli_host()->dissectDropbox((const char *)payload, real_payload_len);
       break;
 
     case NDPI_PROTOCOL_SSL:
-      if(payload_len > 0)
-	flow->dissectSSL((char *)payload, payload_len);
+      if(real_payload_len > 0)
+	flow->dissectSSL((char *)payload, real_payload_len);
       break;
     }
 
@@ -2712,6 +2727,7 @@ void NetworkInterface::cleanup() {
   next_idle_flow_purge = next_idle_host_purge = 0;
   cpu_affinity = -1,
     has_vlan_packets = false, has_ebpf_events = false, has_mac_addresses = false;
+  has_seen_dhcp_addresses = false;
   running = false, inline_interface = false;
 
   getStats()->cleanup();
@@ -5423,6 +5439,7 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_bool_table_entry(vm, "inline", get_inline_interface());
   lua_push_bool_table_entry(vm, "vlan",     hasSeenVlanTaggedPackets());
   lua_push_bool_table_entry(vm, "has_macs", hasSeenMacAddresses());
+  lua_push_bool_table_entry(vm, "has_seen_dhcp_addresses", hasSeenDHCPAddresses());
   lua_push_bool_table_entry(vm, "has_traffic_directions", (areTrafficDirectionsSupported() && (!is_traffic_mirrored)));
 
   lua_newtable(vm);
@@ -6261,6 +6278,27 @@ void NetworkInterface::reloadHideFromTop(bool refreshHosts) {
 
 /* **************************************** */
 
+void NetworkInterface::updateLbdIdentifier() {
+  char key[CONST_MAX_LEN_REDIS_KEY], rsp[2] = { 0 };
+  bool as_macs = CONST_DEFAULT_LBD_SERIALIZE_AS_MAC;
+
+  if(!ntop->getRedis()) return;
+
+  snprintf(key, sizeof(key), CONST_LBD_SERIALIZATION_PREFS, get_id());
+  if((ntop->getRedis()->get(key, rsp, sizeof(rsp)) == 0) && (rsp[0] != '\0')) {
+    if(rsp[0] == '1')
+      as_macs = true;
+    else if(rsp[0] == '0')
+      as_macs = false;
+  }
+
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Updating lbd_serialize_by_mac [ifid: %i][rsp: %s][actual_value: %d]", get_id(), rsp, as_macs ? 1 : 0);
+
+  lbd_serialize_by_mac = as_macs;
+}
+
+/* **************************************** */
+
 bool NetworkInterface::isHiddenFromTop(Host *host) {
   VlanAddressTree *vlan_addrtree = hide_from_top;
 
@@ -6890,6 +6928,51 @@ void NetworkInterface::checkMacIPAssociation(bool triggerEvent, u_char *_mac, u_
 
 /* *************************************** */
 
+void NetworkInterface::checkDhcpIPRange(Mac *sender_mac, struct dhcp_packet *dhcp_reply, u_int16_t vlan_id) {
+  if(!hasConfiguredDhcpRanges())
+    return;
+
+  u_char *_mac = dhcp_reply->chaddr;
+  u_int64_t mac = Utils::mac2int(_mac);
+  u_int32_t ipv4 = dhcp_reply->yiaddr;
+
+  if((ipv4 != 0) && (mac != 0) && (mac != 0xFFFFFFFFFFFF)) {
+    IpAddress ip;
+    ip.set(ipv4);
+
+    if(!isInDhcpRange(&ip)) {
+      char macstr[32], sendermac[32], ipbuf[32], ipbuf2[32], *ipa, *router_ip;
+      json_object *jobject;
+
+      Utils::formatMac(_mac, macstr, sizeof(macstr));
+      sender_mac->print(sendermac, sizeof(sendermac));
+      ipa = Utils::intoaV4(ntohl(ipv4), ipbuf, sizeof(ipbuf));
+      router_ip = Utils::intoaV4(ntohl(dhcp_reply->siaddr), ipbuf2, sizeof(ipbuf2));
+
+      ntop->getTrace()->traceEvent(TRACE_INFO, "IP not in DHCP range: %s (mac=%s, sender=%s, router=%s)",
+				       ipa, macstr, sendermac, router_ip);
+
+      if((jobject = json_object_new_object()) != NULL) {
+	json_object_object_add(jobject, "ifname", json_object_new_string(get_name()));
+	json_object_object_add(jobject, "ifid", json_object_new_int(id));
+	json_object_object_add(jobject, "client_mac", json_object_new_string(macstr));
+	json_object_object_add(jobject, "sender_mac", json_object_new_string(sendermac));
+	json_object_object_add(jobject, "client_ip", json_object_new_string(ipa));
+	json_object_object_add(jobject, "router_ip", json_object_new_string(router_ip));
+	json_object_object_add(jobject, "vlan_id", json_object_new_int(vlan_id));
+
+	ntop->getRedis()->rpush(CONST_ALERT_OUTSIDE_DHCP_RANGE, (char *)json_object_to_json_string(jobject), 0 /* No trim */);
+
+	/* Free Memory */
+	json_object_put(jobject);
+      } else
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "json_object_new_object: Not enough memory");
+    }
+  }
+}
+
+/* *************************************** */
+
 bool NetworkInterface::checkBroadcastDomainTooLarge(u_int32_t bcast_mask, u_int16_t vlan_id, const Mac * const src_mac, const Mac * const dst_mac, u_int32_t spa, u_int32_t tpa) const {
   if(bcast_mask < 0xFFFF0000) {
     if(!ntop->getPrefs()->are_alerts_disabled()) {
@@ -7381,7 +7464,7 @@ bool NetworkInterface::enqueueeBPFEvent(eBPFevent *event) {
   if(ebpfEvents[next_insert_idx] != (eBPFevent*)NULL)
     return(false);
 
-  ebpf_preprocess_event(event, true /* speak with docker */, NULL);
+  ebpf_preprocess_event(event);
 
   ebpfEvents[next_insert_idx] = event;
   next_insert_idx = (next_insert_idx + 1) % EBPF_QUEUE_LEN;

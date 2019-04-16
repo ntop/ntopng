@@ -414,8 +414,11 @@
 #define CONST_DEFAULT_TS_NUM_SLOTS     0 /* disabled */
 #define CONST_DEFAULT_TS_NUM_STEPS     0 /* disabled */
 #define MAX_ZMQ_SUBSCRIBERS           32
+#define MAX_SYSLOG_SUBSCRIBERS         8
 #define MAX_ZMQ_POLL_WAIT_MS        1000 /* 1 sec */
 #define MAX_ZMQ_POLLS_BEFORE_PURGE  1000
+#define MAX_SYSLOG_POLL_WAIT_MS        MAX_ZMQ_POLL_WAIT_MS
+#define MAX_SYSLOG_POLLS_BEFORE_PURGE  MAX_ZMQ_POLLS_BEFORE_PURGE
 #define CONST_MAX_NUM_FIND_HITS       10
 #define CONST_MAX_NUM_HITS         32768 /* Decrease it for small installations */
 
@@ -499,6 +502,7 @@
 #define CONST_INFLUXDB_MAX_DUMP_SIZE       4194304 /* 4 MB */
 #define CONST_ALERT_MSG_QUEUE                    "ntopng.alert_queue"
 #define CONST_ALERT_MAC_IP_QUEUE                 "ntopng.alert_mac_ip_queue"
+#define CONST_ALERT_OUTSIDE_DHCP_RANGE           "ntopng.alert_outside_dhcp_range_queue"
 #define CONST_ALERT_NFQ_FLUSHED                  "ntopng.alert_nfq_flushed_queue"
 #define CONST_ALERT_HOST_REMOTE_TO_REMOTE        "ntopng.alert_host_remote_to_remote"
 #define CONST_ALERT_BCAST_DOMAIN_TOO_LARGE_QUEUE "ntopng.alert_bcast_domain_too_large"
@@ -507,12 +511,14 @@
 #define CONST_SQL_BATCH_SIZE               32
 #define CONST_MAX_SQL_QUERY_LEN            8192
 #define CONST_DEFAULT_MIRRORED_TRAFFIC     false
+#define CONST_DEFAULT_LBD_SERIALIZE_AS_MAC false
 #define CONST_ALERT_DISABLED_PREFS         NTOPNG_PREFS_PREFIX".disable_alerts_generation"
 #define CONST_PREFS_ENABLE_ACCESS_LOG      NTOPNG_PREFS_PREFIX".enable_access_log"
 #define CONST_PREFS_ENABLE_SQL_LOG         NTOPNG_PREFS_PREFIX".enable_sql_log"
 #define CONST_TOP_TALKERS_ENABLED          NTOPNG_PREFS_PREFIX".host_top_sites_creation"
 #define CONST_SUPPRESSED_ALERT_PREFS       NTOPNG_PREFS_PREFIX".alerts.ifid_%d"
 #define CONST_MIRRORED_TRAFFIC_PREFS       NTOPNG_PREFS_PREFIX".ifid_%d.is_traffic_mirrored"
+#define CONST_LBD_SERIALIZATION_PREFS      NTOPNG_PREFS_PREFIX".ifid_%d.serialize_local_broadcast_hosts_as_macs"
 #define CONST_USE_NINDEX                   NTOPNG_PREFS_PREFIX".use_nindex"
 #ifdef NTOPNG_PRO
 #define CONST_NAGIOS_NSCA_HOST_PREFS       NTOPNG_PREFS_PREFIX".nagios_nsca_host"
@@ -606,7 +612,6 @@
 #define CONST_RUNTIME_PREFS_IFACE_FLOW_COLLECTION      NTOPNG_PREFS_PREFIX".dynamic_flow_collection_mode" /* {"none", "vlan", "probe_ip","ingress_iface_idx"} */
 #define CONST_RUNTIME_PREFS_IGNORED_INTERFACES         NTOPNG_PREFS_PREFIX".ignored_interfaces"
 #define CONST_RUNTIME_PREFS_ENABLE_MAC_NDPI_STATS      NTOPNG_PREFS_PREFIX".l2_device_ndpi_timeseries_creation"
-#define CONST_SERIALIZE_LOCAL_BROADCAST_HOSTS_AS_MACS  NTOPNG_PREFS_PREFIX".serialize_local_broadcast_hosts_as_macs"
 #define CONST_RUNTIME_TS_NUM_SLOTS                     NTOPNG_PREFS_PREFIX".ts_write_slots"
 #define CONST_RUNTIME_TS_NUM_STEPS                     NTOPNG_PREFS_PREFIX".ts_write_steps"
 #define DISAGGREGATION_PROBE_IP                        "probe_ip"
@@ -830,7 +835,7 @@
 #define ALERTS_MANAGER_TABLE_NAME            "closed_alerts"
 #define ALERTS_MANAGER_FLOWS_TABLE_NAME      "flows_alerts"
 #define ALERTS_MANAGER_ENGAGED_TABLE_NAME    "engaged_alerts"
-#define ALERTS_MANAGER_STORE_NAME            "alerts_v7.db"
+#define ALERTS_MANAGER_STORE_NAME            "alerts_v8.db"
 #define ALERTS_MANAGER_QUEUE_NAME            "ntopng.alerts.ifid_%i.queue"
 #define ALERTS_MANAGER_MAKE_ROOM_ALERTS      "ntopng.cache.alerts.ifid_%i.make_room_closed_alerts"
 #define ALERTS_MANAGER_MAKE_ROOM_FLOW_ALERTS "ntopng.cache.alerts.ifid_%i.make_room_flow_alerts"

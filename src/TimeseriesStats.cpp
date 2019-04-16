@@ -44,6 +44,8 @@ void TimeseriesStats::luaStats(lua_State* vm, NetworkInterface *iface, bool host
   lua_push_uint64_table_entry(vm, "bytes.rcvd", rcvd.getNumBytes());
   lua_push_uint64_table_entry(vm, "active_flows.as_client", host->getNumOutgoingFlows());
   lua_push_uint64_table_entry(vm, "active_flows.as_server", host->getNumIncomingFlows());
+  lua_push_uint64_table_entry(vm, "total_flows.as_client", host->getTotalNumFlowsAsClient());
+  lua_push_uint64_table_entry(vm, "total_flows.as_server", host->getTotalNumFlowsAsServer());
 
   if(verbose) {
     if(ndpiStats) ndpiStats->lua(iface, vm, true, tsLua);

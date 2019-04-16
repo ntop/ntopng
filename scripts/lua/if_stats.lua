@@ -53,6 +53,21 @@ function inline_input_form(name, placeholder, tooltip, value, can_edit, input_op
    end
 end
 
+function inline_select_form(name, keys, values, curval)
+   print[[<select class="form-control" style="width:12em; display:inline;" name="]] print(name) print[[">]]
+   for idx, k in ipairs(keys) do
+      local v = values[idx]
+      print[[<option value="]] print(v) print[[" ]]
+
+      if curval == v then
+         print("selected")
+      end
+
+      print[[>]] print(k) print[[</option>]]
+   end
+   print[[</select>]]
+end
+
 if(_POST["switch_interface"] ~= nil) then
 -- First switch interfaces so the new cookie will have effect
 ifname = interface.setActiveInterfaceId(tonumber(ifid))
@@ -86,6 +101,7 @@ end
 interface.select(ifname)
 
 local is_packet_interface = interface.isPacketInterface()
+local is_pcap_dump = interface.isPcapDumpInterface()
 
 local ifstats = interface.getStats()
 
@@ -270,11 +286,11 @@ end
 if(isAdministrator() and areAlertsEnabled() and not ifstats.isView) then
    if(page == "alerts") then
       print("\n<li class=\"active\"><a href=\"#\">")
-   elseif interface.isPcapDumpInterface() == false then
+   elseif not is_pcap_dump then
       print("\n<li><a href=\""..url.."&page=alerts\">")
    end
 
-   if interface.isPcapDumpInterface() == false then
+   if not is_pcap_dump then
       print("<i class=\"fa fa-warning fa-lg\"></i></a>")
       print("</li>")
    end
@@ -295,7 +311,7 @@ end
 if(isAdministrator()) then
    if(page == "config") then
       print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-cog fa-lg\"></i></a></li>\n")
-   elseif interface.isPcapDumpInterface() == false then
+   elseif not is_pcap_dump then
       print("\n<li><a href=\""..url.."&page=config\"><i class=\"fa fa-cog fa-lg\"></i></a></li>")
    end
 end
@@ -322,7 +338,9 @@ if isAdministrator() and (not ifstats.isView) then
          print("\n<li><a href=\""..url.."&page=pools\"><i class=\"fa fa-users\"></i> "..label.."</a></li>")
       end
    end
+end
 
+if isAdministrator() and (not is_pcap_dump) then
    if(page == "dhcp") then
       print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-bolt fa-lg\"></i></a></li>\n")
    else
@@ -354,7 +372,7 @@ if((page == "overview") or (page == nil)) then
    if(ifstats.description ~= ifstats.name) then print(" ("..ifstats.description..")") end
    print("</td></tr>\n")
 
-   if interface.isPcapDumpInterface() == false and ifstats["type"] ~= "netfilter" then
+   if not is_pcap_dump and ifstats["type"] ~= "netfilter" then
       print("<tr><th width=250>"..i18n("if_stats_overview.state").."</th><td colspan=6>")
       state = toggleTableButton("", "", i18n("if_stats_overview.active"), "1","primary", i18n("if_stats_overview.paused"), "0","primary", "toggle_local", "ntopng.prefs."..if_name.."_not_idle")
 
@@ -462,7 +480,7 @@ if((page == "overview") or (page == nil)) then
       print("</tr>")
    end
 
-   local is_physical_iface = (interface.isPacketInterface()) and (interface.isPcapDumpInterface() == false)
+   local is_physical_iface = (interface.isPacketInterface()) and (not is_pcap_dump)
 
    local label = getHumanReadableInterfaceName(ifstats.name)
    local s
@@ -472,7 +490,7 @@ if((page == "overview") or (page == nil)) then
       s = ifstats.name
    end
 
-   if((isAdministrator()) and (interface.isPcapDumpInterface() == false)) then
+   if((isAdministrator()) and (not is_pcap_dump)) then
       s = s .. " <a href=\""..url.."&page=config\"><i class=\"fa fa-cog fa-sm\" title=\"Configure Interface Name\"></i></a>"
    end
    
@@ -762,7 +780,7 @@ elseif((page == "networks")) then
       for bcast_domain, in_interface_range in pairsByKeys(ifstats.bcast_domains) do
 	 bcast_domain = string.format("<a href='%s/lua/hosts_stats.lua?network_cidr=%s'>%s</a>", ntop.getHttpPrefix(), bcast_domain, bcast_domain)
 
-	 if in_interface_range == 0 and interface.isPacketInterface() and not interface.isPcapDumpInterface() and ntop.getPref(string.format("ntopng.prefs.ifid_%d.is_traffic_mirrored", ifId)) ~= "1" then
+	 if in_interface_range == 0 and interface.isPacketInterface() and not is_pcap_dump and ntop.getPref(string.format("ntopng.prefs.ifid_%d.is_traffic_mirrored", ifId)) ~= "1" then
 	    has_ghost_networks = true
 	    bcast_domain = bcast_domain..' '..ghost_icon
 	 end
@@ -1223,7 +1241,7 @@ elseif(page == "config") then
    <input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
    <table class="table table-bordered table-striped">]]
 
-   if ((not interface.isPcapDumpInterface()) and
+   if ((not is_pcap_dump) and
        (ifstats.name ~= nil) and
        (ifstats.name ~= "dummy")) then
       -- Custom name
@@ -1286,6 +1304,30 @@ elseif(page == "config") then
 	</tr>]]
      end
    end
+
+   local serialize_by_mac
+   local serialize_by_mac_key = string.format("ntopng.prefs.ifid_%u.serialize_local_broadcast_hosts_as_macs", ifId)
+
+   if _SERVER["REQUEST_METHOD"] == "POST" then
+      serialize_by_mac = _POST["lbd_hosts_as_macs"]
+
+      if ntop.getPref(serialize_by_mac_key) ~= serialize_by_mac then
+         ntop.setPref(serialize_by_mac_key, serialize_by_mac)
+         interface.updateLbdIdentifier()
+      end
+   else
+      serialize_by_mac = ntop.getPref(serialize_by_mac_key)
+   end
+
+   -- LBD identifier
+     print[[
+	<tr>
+	   <th width="30%">]] print(i18n("prefs.toggle_host_tskey_title")) print[[ <i class="fa fa-info-circle" title="]] print(i18n("prefs.toggle_host_tskey_description")) print[["></i></th>
+	   <td>]]
+      inline_select_form("lbd_hosts_as_macs", {i18n("ip_address"), i18n("mac_address")}, {"0", "1"}, serialize_by_mac)
+	print[[
+	   </td>
+	</tr>]]
 
    local rv = ntop.getMembersCache(getHideFromTopSet(ifstats.id)) or {}
    local members = {}

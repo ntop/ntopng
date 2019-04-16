@@ -179,8 +179,14 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
             bytes_sent=host["bytes.sent"], bytes_rcvd=host["bytes.rcvd"]}, when, verbose)
 
   -- Number of flows
-  ts_utils.append("host:flows", {ifid=ifstats.id, host=hostname,
-				 num_flows=host["active_flows.as_client"] + host["active_flows.as_server"]}, when, verbose)
+  ts_utils.append("host:active_flows", {ifid=ifstats.id, host=hostname,
+				 flows_as_client = host["active_flows.as_client"],
+				 flows_as_server = host["active_flows.as_server"]},
+         when, verbose)
+  ts_utils.append("host:total_flows", {ifid=ifstats.id, host=hostname,
+				 flows_as_client = host["total_flows.as_client"],
+				 flows_as_server = host["total_flows.as_server"]},
+         when, verbose)
 
   -- Number of anomalous flows
   ts_utils.append("host:anomalous_flows", {ifid = ifstats.id, host = hostname,

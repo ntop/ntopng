@@ -186,15 +186,16 @@ function checkMigrationMessage(data) {
     $("#move-rrd-to-influxdb").show();
 }
 
-$("#move-rrd-to-influxdb").on("close.bs.alert", function() {
+$("#move-rrd-to-influxdb, #host-id-message-warning").on("close.bs.alert", function() {
   $.ajax({
       type: 'POST',
         url: ']]
 print (ntop.getHttpPrefix())
-print [[/lua/update_ts_prefs.lua',
+print [[/lua/update_prefs.lua',
         data: {
 	  csrf: ']] print(ntop.getRandomCSRFValue()) print[[',
-	  action: 'disable',
+	  action: this.id,
+	  ifid: ]] print(string.format("%u", _ifstats.id)) print[[,
 	}
     });
 });

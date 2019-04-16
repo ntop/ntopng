@@ -11,6 +11,9 @@ local template = require "template_utils"
 
 local proto_filter = _GET["l7proto"]
 local category_filter = _GET["category"]
+local protos_utils = require("protos_utils")
+local info = ntop.getInfo()
+local has_protos_file = protos_utils.hasProtosFile()
 
 local ifId = getInterfaceId(ifname)
 
@@ -31,7 +34,79 @@ if not isEmptyString(category_filter) then
   catid = split(category_filter, "cat_")[2]
 end
 
-if not table.empty(_POST) then
+local app_warnings = {}
+
+if (_POST["action"] == "add") or (_POST["action"] == "edit") then
+  local action = _POST["action"]
+  local hosts_list = _POST["custom_hosts"]
+  local application = _POST["new_application"] or _POST["l7proto"]
+  local hosts = string.split(hosts_list, ",") or {ternary(hosts_list ~= "", hosts_list, nil)}
+  local rules = {}
+
+  -- Preliminary check
+  local applications = interface.getnDPIProtocols()
+  local lower_app = string.lower(application)
+  local existing_app = nil
+
+  -- case insensitive search for applications
+  for k in pairs(applications) do
+    if string.lower(k) == lower_app then
+      existing_app = k
+      break
+    end
+  end
+
+  if((action == "edit") and (existing_app == nil)) then
+    app_warnings[#app_warnings + 1] = {
+      type = "danger",
+      text = i18n("custom_categories.application_not_exists", {
+        app = application,
+      })
+    }
+  elseif((action == "add") and (existing_app ~= nil)) then
+    app_warnings[#app_warnings + 1] = {
+      type = "danger",
+      text = i18n("custom_categories.application_exists", {
+        app = existing_app,
+      })
+    }
+  else
+    for _, host in ipairs(hosts) do
+      -- TODO implement match logic on existing hosts to avoid duplicates
+      local rule = protos_utils.getProtosTxtRule(host)
+
+      if rule == nil then
+        app_warnings[#app_warnings + 1] = {
+          type = "warning",
+          text = i18n("custom_categories.invalid_rule", {
+            rule = host,
+          })
+        }
+      end
+
+      rules[#rules + 1] = rule
+    end
+
+    if protos_utils.overwriteAppRules(application, rules) then
+      if action == "add" then
+        app_warnings[#app_warnings + 1] = {
+          type = "success",
+          text = i18n("custom_categories.new_app_added", {product=info.product, app = application})
+        }
+      else
+        app_warnings[#app_warnings + 1] = {
+          type = "success",
+          text = i18n("custom_categories.protos_reboot_necessary", {product=info.product})
+        }
+      end
+    else
+      app_warnings[#app_warnings + 1] = {
+        type = "danger",
+        text = i18n("custom_categories.protos_unexpected_error", {product=info.product})
+      }
+    end
+  end
+elseif not table.empty(_POST) then
   local custom_categories = getCustomnDPIProtoCategories(ifname)
 
   for k, new_cat in pairs(_POST) do
@@ -55,6 +130,74 @@ if not table.empty(_POST) then
     end
   end
 end
+
+printMessageBanners(app_warnings)
+
+local function makeApplicationEditor(area_id, required)
+  return [[
+  <textarea id="]] .. area_id .. [[" spellcheck="false" style='width:100%; height:14em;' ]] .. ternary(required, "required", "") .. [[></textarea><br><br>
+  ]].. i18n("notes") ..[[
+  <ul>
+  <li>]].. i18n("custom_categories.each_host_separate_line") .. [[</li>
+  <li>]].. i18n("custom_categories.host_domain_or_port") .. [[</li>
+  <li>]].. i18n("custom_categories.example_port_range", {example1="udp:443", example2="tcp:1230-1235"}) .. [[</li>
+  <li>]].. i18n("custom_categories.domain_names_substrings", {s1="ntop.org", s2="mail.ntop.org", s3="ntop.org.example.com"}) ..[[</li>
+  </ul>]]
+end
+
+print(
+  template.gen("modal_confirm_dialog.html", {
+    dialog={
+      id      = "edit_application_rules",
+      action  = "editApplication()",
+      title   = i18n("custom_categories.edit_custom_rules"),
+      custom_alert_class = "",
+      custom_dialog_class = "dialog-body-full-height",
+      message = [[<p style='margin-bottom:5px;'>]] ..
+        i18n("custom_categories.the_following_is_a_list_of_hosts_app", {application='<i id="selected_application_name"></i>'})..
+        [[:</p>]] .. makeApplicationEditor("application-hosts-list"),
+      confirm = i18n("save"),
+      cancel = i18n("cancel"),
+    }
+  })
+)
+
+-- NOTE: having some rules is required for the application
+print[[
+  <div id="add-application-dialog" class="modal fade in" role="dialog">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+          <h3 class="modal-title">]] print(i18n("custom_categories.add_custom_app")) print[[</h3>
+        </div>
+        <div class="modal-body">
+          <div class="container-fluid">
+            <form id="add-application-form" method="post" data-toggle="validator" onsubmit="$('#new-custom_hosts').val(getSanitizedHosts($('#new-application-hosts-list')))">
+              <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[" />
+              <input type="hidden" name="action" value="add">
+              <input id="new-custom_hosts" type="hidden" name="custom_hosts">
+
+              <div class="row form-group has-feedback">
+                <label class="form-label">]] print(i18n("custom_categories.application_name")) print[[</label>
+                <input id="new-application" type="text" name="new_application" class="form-control" required>
+              </div>
+
+              <div class="row form-group has-feedback">
+                <label class="form-label">]] print(i18n("custom_categories.custom_hosts")) print[[</label>
+                ]] print(makeApplicationEditor("new-application-hosts-list", true)) print[[
+              </div>
+
+              <div class="form-group">
+                <button id="new-application-submit" type="submit" class="btn btn-primary btn-block">]] print(i18n("custom_categories.add_application")) print[[</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+]]
 
 print [[<br>
 <table><tbody><tr>
@@ -90,7 +233,8 @@ print(
       parameters  = {
         ifid = tostring(ifId),
         category = category_filter,
-        tab = "protocols"
+        tab = "protocols",
+        custom_hosts = "",
       },
       json_key    = "key",
       query_field = "l7proto",
@@ -110,14 +254,28 @@ print[[
     <div id="table-edit-ndpi-applications"></div>
     <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button>
   </form>
-  <br/><br/>
+  ]]
 
+print(i18n("notes"))
+print[[<ul>]]
+if has_protos_file then
+  print[[<li>]] print(i18n("custom_categories.delete_note")) print[[</li>]]
+else
+  print[[<li>]] print(i18n("custom_categories.option_needed", {
+    option="-p", url="https://www.ntop.org/guides/ntopng/web_gui/categories.html#protocol-category"
+  })) print[[</li>]]
+end
+print[[</ul>]]
+
+print[[
+  <br/><br/>
   <script type="text/javascript">
     aysHandleForm("#protos_cat_form", {
       handle_datatable: true,
     });
 
   var change_cat_csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
+  var selected_application = 0;
 
   var select_data = {
 ]]
@@ -138,9 +296,15 @@ print[[
   $("#table-edit-ndpi-applications").datatable({
     url: url_update ,
     class: "table table-striped table-bordered table-condensed",
-    buttons: []] 
-  if isEmptyString(proto_filter) then 
-    printCategoryDropdownButton(true, catid, base_url, page_params)
+    buttons: [ ]]
+
+  if has_protos_file then
+    print[['<a id="addApplication" onclick="showAddApplicationDialog()" role="button" class="add-on btn pull-right" data-toggle="modal"><i class="fa fa-plus" aria-hidden="true"></i></a>',]]
+  end
+
+  if isEmptyString(proto_filter) then
+    printCategoryDropdownButton(true, catid, base_url, page_params, nil,
+      true --[[ skip unknown, see get_ndpi_applications.lua ]])
   end
   print[[],
 ]]
@@ -183,10 +347,77 @@ print [[
                 css: {
                   textAlign: 'left'
               }
+            }, {
+              title: "]] print(i18n("custom_categories.custom_hosts")) print[[",
+              field: "column_num_hosts",
+              hidden: ]] print(ternary(has_protos_file, "false", "true")) print[[,
+              sortable: true,
+              css: {
+                width: '20%',
+                textAlign: 'right'
+              }
+            }, {
+              title: "]] print(i18n("actions")) print[[",
+              field: "column_actions",
+              hidden: ]] print(ternary(has_protos_file, "false", "true")) print[[,
+              sortable: false,
+                css: {
+                  textAlign: 'center',
+                  width: '15%',
+              }
+            }, {
+              field: "column_application_hosts",
+              hidden: 1,
             }
-          ]
+          ], rowCallback: function(row, data) {
+            var actions_td_idx = 6;
+            var app_name = data.column_ndpi_application;
+
+            datatableAddActionButtonCallback.bind(row)(actions_td_idx,
+            "loadApplications('"+ app_name +"'); $('#selected_application_name').html('"+ app_name +"'); selected_application = '"+ app_name +"'; $('#edit_application_rules').modal('show')", "]] print(i18n("custom_categories.edit_hosts")) print[[");
+
+            return row;
+          }
   });
 
+  function getSanitizedHosts(hosts_list) {
+    var unique_hosts = [];
+
+    /* Remove duplicate hosts */
+    $.each(hosts_list.val().split("\n"), function(i, host) {
+      host = cleanCustomHostUrl(host);
+
+      if(($.inArray(host, unique_hosts) === -1) && host)
+        unique_hosts.push(host);
+    });
+
+    return(unique_hosts.join(','));
+  }
+
+  function editApplication() {
+    var params = {};
+    params.l7proto = selected_application;
+    params.action = "edit";
+    params.custom_hosts = getSanitizedHosts($("#application-hosts-list"));
+    params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
+
+    paramsToForm('<form method="post"></form>', params).appendTo('body').submit();
+  }
+
+  function loadApplications(app) {
+    var data = $("#table-edit-ndpi-applications").data('datatable').resultset;
+    var hosts_list = data.data.filter(function(item) {
+      return item.column_ndpi_application == app;
+    })[0].column_application_hosts;
+
+    $("#application-hosts-list").val(hosts_list.split(",").join("\n"));
+  }
+
+  function showAddApplicationDialog() {
+    $("#add-application-dialog").modal("show");
+    $("#new-application").val("");
+    $("#new-application-submit").addClass("disabled");
+  }
 
        </script>
 

@@ -447,6 +447,8 @@ function performAlertsQuery(statement, what, opts, force_query)
          order_by = "alert_severity"
       elseif opts.sortColumn == "column_type" then
          order_by = "alert_type"
+      elseif opts.sortColumn == "column_count" and what == "historical" then
+         order_by = "alert_counter"
       elseif((opts.sortColumn == "column_duration") and (what == "historical")) then
          order_by = "(alert_tstamp_end - alert_tstamp)"
       else
@@ -1740,6 +1742,16 @@ function getCurrentStatus() {
 	 },
 
 	 {
+	    title: "]]print(i18n("show_alerts.alert_count"))print[[",
+	    field: "column_count",
+            hidden: ]] print(ternary(t["status"] ~= "historical", "true", "false")) print[[,
+            sortable: true,
+	    css: {
+	       textAlign: 'center'
+	    }
+	 },
+
+	 {
 	    title: "]]print(i18n("show_alerts.alert_severity"))print[[",
 	    field: "column_severity",
             sortable: true,
@@ -1757,23 +1769,17 @@ function getCurrentStatus() {
           whiteSpace: 'nowrap',
 	    }
 	 },
-]]
 
-if hasNindexSupport() then
-print[[
 	 {
 	    title: "]]print(i18n("drilldown"))print[[",
 	    field: "column_chart",
             sortable: false,
-	    hidden: ]] print(ternary(ntop.isPro(), "false", "true")) print[[,
+	    hidden: ]] print(ternary(not hasNindexSupport() or ntop.isPro(), "false", "true")) print[[,
 	    css: {
 	       textAlign: 'center'
 	    }
 	 },
-]]
-end
 
-print[[
 	 {
 	    title: "]]print(i18n("show_alerts.alert_description"))print[[",
 	    field: "column_msg",
@@ -1800,13 +1806,13 @@ print[[
 	 }
       ], tableCallback: function() {
             datatableForEachRow("#]] print(t["div-id"]) print[[", function(row_id) {
-               var alert_key = $("td:nth(5)", this).html().split("|");
+               var alert_key = $("td:nth(7)", this).html().split("|");
                var alert_id = alert_key[0];
                var historical_url = alert_key[1];
 
                if (typeof(historical_url) === "string")
-                  datatableAddLinkButtonCallback.bind(this)(7, historical_url, "]] print(i18n("show_alerts.explorer")) print[[");
-               datatableAddDeleteButtonCallback.bind(this)(7, "delete_alert_id ='" + alert_id + "'; $('#delete_alert_dialog').modal('show');", "]] print(i18n('delete')) print[[");
+                  datatableAddLinkButtonCallback.bind(this)(9, historical_url, "]] print(i18n("show_alerts.explorer")) print[[");
+               datatableAddDeleteButtonCallback.bind(this)(9, "delete_alert_id ='" + alert_id + "'; $('#delete_alert_dialog').modal('show');", "]] print(i18n('delete')) print[[");
 
                $("form", this).submit(function() {
                   // add "status" parameter to the form
@@ -2804,6 +2810,41 @@ function check_host_remote_to_remote_alerts()
 	 interface.storeAlert(alertEntity("host"), entity_value, alertType("remote_to_remote"), alertSeverity("warning"), msg)
       end
    end   
+end
+
+-- Global function
+function check_outside_dhcp_range_alerts()
+   while(true) do
+      local message = ntop.lpopCache("ntopng.alert_outside_dhcp_range_queue")
+      local elems
+
+      if((message == nil) or (message == "")) then
+	 break
+      end
+
+      elems = json.decode(message)
+
+      if elems ~= nil then
+	 local host_info = {host = elems.client_ip, vlan = elems.vlan_id or 0}
+	 local router_info = {host = elems.router_ip, vlan = elems.vlan_id or 0}
+	 local entity_value = hostinfo2hostkey(host_info, nil, true --[[ show vlan --]])
+
+	 local msg = i18n("alert_messages.ip_outsite_dhcp_range", {
+	    client_url = ntop.getHttpPrefix() .. "/lua/mac_details.lua?host=" .. elems.client_mac,
+	    client_mac = get_symbolic_mac(elems.client_mac, true),
+	    client_ip = hostinfo2hostkey(host_info),
+	    client_ip_url = ntop.getHttpPrefix() .. "/lua/host_details.lua?host=" .. hostinfo2hostkey(host_info),
+	    dhcp_url = ntop.getHttpPrefix() .. "/lua/if_stats.lua?page=dhcp",
+	    sender_url = ntop.getHttpPrefix() .. "/lua/mac_details.lua?host=" .. elems.sender_mac,
+	    sender_mac = get_symbolic_mac(elems.sender_mac, true),
+	    router_url = ntop.getHttpPrefix() .. "/lua/host_details.lua?host=" .. hostinfo2hostkey(router_info),
+	    router_ip = getResolvedAddress(router_info),
+	 })
+
+         interface.select(getInterfaceName(elems.ifid))
+	 interface.storeAlert(alertEntity("host"), entity_value, alertType("ip_outsite_dhcp_range"), alertSeverity("warning"), msg)
+      end
+   end
 end
 
 -- Global function

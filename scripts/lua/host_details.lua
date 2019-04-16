@@ -232,6 +232,7 @@ else
    end
 end
 
+  if((host["packets.sent"] + host["packets.rcvd"]) > 0) then
 if(page == "packets") then
    print("<li class=\"active\"><a href=\"#\">" .. i18n("packets") .. "</a></li>\n")
 elseif not have_nedge then
@@ -242,6 +243,7 @@ elseif not have_nedge then
 	or (host["tcp.packets.rcvd"] > 0))) then
       print("<li><a href=\""..url.."&page=packets\">" .. i18n("packets") .. "</a></li>")
    end
+end
 end
 
 if(page == "ports") then
@@ -732,12 +734,16 @@ end
       <table class="table table-bordered table-striped">
 	 ]]
 
-      if(host["bytes.sent"] > 0) then
+      tot = 0 for key, value in pairs(host["pktStats.sent"]) do tot = tot + value end
+      if(tot > 0) then
 	 print('<tr><th class="text-left">'..i18n("packets_page.sent_distribution")..'</th><td colspan=5><div class="pie-chart" id="sizeSentDistro"></div></td></tr>')
       end
-      if(host["bytes.rcvd"] > 0) then
+
+      tot = 0 for key, value in pairs(host["pktStats.recv"]) do tot = tot + value end
+      if(tot > 0) then
 	 print('<tr><th class="text-left">'..i18n("packets_page.received_distribution")..'</th><td colspan=5><div class="pie-chart" id="sizeRecvDistro"></div></td></tr>')
       end
+
       if (host["tcp.packets.rcvd"] + host["tcp.packets.sent"] > 0) then
 	 print('<tr><th class="text-left">'..i18n("packets_page.tcp_flags_distribution")..'</th><td colspan=5><div class="pie-chart" id="flagsDistro"></div></td></tr>')
       end
@@ -1938,7 +1944,8 @@ drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
    tskey = tskey,
    timeseries = {
       {schema="host:traffic",                label=i18n("traffic")},
-      {schema="host:flows",                  label=i18n("graphs.active_flows")},
+      {schema="host:active_flows",           label=i18n("graphs.active_flows")},
+      {schema="host:total_flows",            label=i18n("db_explorer.total_flows")},
       {schema="host:anomalous_flows",        label=i18n("graphs.total_anomalous_flows")},
       {schema="host:unreachable_flows",      label=i18n("graphs.total_unreachable_flows")},
       {schema="host:contacts",               label=i18n("graphs.active_host_contacts")},

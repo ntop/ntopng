@@ -38,7 +38,7 @@ class SyslogCollectorInterface : public SyslogParserInterface {
   char *endpoint;
   struct sockaddr_in listen_addr;
   int listen_sock;
-  syslog_client connections[MAX_ZMQ_SUBSCRIBERS];
+  syslog_client connections[MAX_SYSLOG_SUBSCRIBERS];
 
   struct {
     u_int32_t num_flows;
@@ -60,8 +60,6 @@ class SyslogCollectorInterface : public SyslogParserInterface {
   inline char* getEndpoint(u_int8_t id) { return(endpoint); };
   inline bool isPacketInterface()       { return(false);      };
   void collect_flows();
-
-  virtual void purgeIdle(time_t when);
 
   void startPacketPolling();
   void shutdown();

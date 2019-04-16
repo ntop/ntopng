@@ -1021,6 +1021,7 @@ local known_parameters = {
    ["ndpi"]                    = validateApplicationsList,      -- a list applications
    ["ndpi_new_cat_id"]         = validateNumber,                -- An ndpi category id after change
    ["ndpi_old_cat_id"]         = validateNumber,                -- An ndpi category id before change
+   ["new_application"]         = validateSingleWord,            -- A new nDPI application protocol name
 
 -- Remote probe
    ["ifIdx"]                   = validateNumber,                -- A generic switch/router port id
@@ -1269,7 +1270,7 @@ local known_parameters = {
    ["bridging_policy_target_type"]                 = validateChoiceInline({"per_protocol", "per_category", "both"}),
    ["timeseries_driver"]                           = validateChoiceInline({"rrd", "influxdb"}),
    ["ts_high_resolution"]                          = validateNumber,
-   ["serialize_local_broadcast_hosts_as_macs"]     = validateBool,
+   ["lbd_hosts_as_macs"]                           = validateBool,
    ["toggle_arp_matrix_generation"]                = validateBool,
 
    -- Other

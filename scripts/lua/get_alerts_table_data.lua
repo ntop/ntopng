@@ -26,7 +26,7 @@ interface.select(ifname)
 if(tonumber(_GET["currentPage"]) == nil) then _GET["currentPage"] = 1 end
 if(tonumber(_GET["perPage"]) == nil) then _GET["perPage"] = getDefaultTableSize() end
 
-if(isEmptyString(_GET["sortColumn"]) or (_GET["sortColumn"] == "column_")) then
+if(isEmptyString(_GET["sortColumn"]) or (_GET["sortColumn"] == "column_") or (status ~= "historical" and _GET["sortColumn"] == "column_sort")) then
    _GET["sortColumn"] = getDefaultTableSort("alerts")
 elseif((_GET["sortColumn"] ~= "column_") and (_GET["sortColumn"] ~= "")) then
    tablePreferences("sort_alerts", _GET["sortColumn"])
@@ -103,6 +103,7 @@ for _key,_value in ipairs(alerts) do
 
    local column_severity = alertSeverityLabel(tonumber(_value["alert_severity"]))
    local column_type     = alertTypeLabel(tonumber(_value["alert_type"]))
+   local column_count    = format_utils.formatValue(tonumber(_value["alert_counter"]))
 
    local column_msg      = formatAlertRecord(alert_entity, _value) or ""
    local column_chart = nil
@@ -141,6 +142,7 @@ for _key,_value in ipairs(alerts) do
    record["column_date"] = column_date
    record["column_duration"] = column_duration
    record["column_severity"] = column_severity
+   record["column_count"] = column_count
    record["column_type"] = column_type
    record["column_msg"] = column_msg
    record["column_entity"] = alert_entity

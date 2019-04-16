@@ -391,20 +391,12 @@ bool ZMQParserInterface::parsePENZeroField(Parsed_Flow * const flow, u_int32_t f
     flow->core.outIndex = atoi(value);
     break;
   case POST_NAT_SRC_IPV4_ADDR:
-    if(ntop->getPrefs()->do_override_src_with_post_nat_src()) {
-      IpAddress ip;
-
-      ip.set((char*)value);
-      memcpy(&flow->src_ip, ip.getIP(), sizeof(flow->src_ip));
-    }
+    if(ntop->getPrefs()->do_override_src_with_post_nat_src())
+      flow->src_ip.set((char*)value);
     break;
   case POST_NAT_DST_IPV4_ADDR:
-    if(ntop->getPrefs()->do_override_dst_with_post_nat_dst()) {
-      IpAddress ip;
-
-      ip.set((char*)value);
-      memcpy(&flow->dst_ip, ip.getIP(), sizeof(flow->dst_ip));
-    }
+    if(ntop->getPrefs()->do_override_dst_with_post_nat_dst())
+      flow->dst_ip.set((char*)value);
     break;
   case POST_NAPT_SRC_TRANSPORT_PORT:
     if(ntop->getPrefs()->do_override_src_with_post_nat_src())
@@ -629,7 +621,7 @@ void ZMQParserInterface::parseSingleFlow(json_object *o,
 
   if(!invalid_flow) {
     /* Process Flow */
-    iface->processFlow(&flow);
+    iface->processFlow(&flow, true);
   }
 
   /* Dispose memory */

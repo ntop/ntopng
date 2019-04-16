@@ -52,6 +52,8 @@ AlertsManager::AlertsManager(int interface_id, const char *filename) : StoreMana
   */
   sprintf(&filePath[base_offset], "%s", "alerts_v6.db");
   unlink(filePath);
+  sprintf(&filePath[base_offset], "%s", "alerts_v7.db");
+  unlink(filePath);
   filePath[base_offset] = 0;
 
   /* open the newest */
@@ -106,18 +108,21 @@ int AlertsManager::openStore() {
 	   "alert_entity_val TEXT NOT NULL,    "
 	   "alert_origin     TEXT DEFAULT NULL,"
 	   "alert_target     TEXT DEFAULT NULL,"
-	   "alert_json       TEXT DEFAULT NULL "
-	   "); "  // no need to create a primary key, sqlite has the rowid
+	   "alert_counter    INTEGER NOT NULL DEFAULT 1, "
+	   "alert_json       TEXT DEFAULT NULL,"
+	   "alert_hash       INTEGER DEFAULT NULL "
+	   "); " // no need to create a primary key, sqlite has the rowid
 	   "CREATE INDEX IF NOT EXISTS t1i_tstamp   ON %s(alert_tstamp); "
 	   "CREATE INDEX IF NOT EXISTS t1i_tstamp_e ON %s(alert_tstamp_end); "
 	   "CREATE INDEX IF NOT EXISTS t1i_type     ON %s(alert_type); "
 	   "CREATE INDEX IF NOT EXISTS t1i_severity ON %s(alert_severity); "
 	   "CREATE INDEX IF NOT EXISTS t1i_origin   ON %s(alert_origin); "
 	   "CREATE INDEX IF NOT EXISTS t1i_target   ON %s(alert_target); "
+	   "CREATE INDEX IF NOT EXISTS t1i_hash     ON %s(alert_type, alert_severity, alert_entity, alert_entity_val, alert_hash); "
 	   "CREATE INDEX IF NOT EXISTS t1i_entity   ON %s(alert_entity, alert_entity_val); ",
 	   ALERTS_MANAGER_TABLE_NAME, ALERTS_MANAGER_TABLE_NAME, ALERTS_MANAGER_TABLE_NAME,
 	   ALERTS_MANAGER_TABLE_NAME, ALERTS_MANAGER_TABLE_NAME, ALERTS_MANAGER_TABLE_NAME,
-	   ALERTS_MANAGER_TABLE_NAME, ALERTS_MANAGER_TABLE_NAME);
+	   ALERTS_MANAGER_TABLE_NAME, ALERTS_MANAGER_TABLE_NAME, ALERTS_MANAGER_TABLE_NAME);
   m.lock(__FILE__, __LINE__);
   rc = exec_query(create_query, NULL, NULL);
   m.unlock(__FILE__, __LINE__);
@@ -611,6 +616,8 @@ int AlertsManager::storeAlert(AlertEntity alert_entity, const char *alert_entity
     char query[STORE_MANAGER_MAX_QUERY];
     sqlite3_stmt *stmt = NULL;
     int rc = 0;
+    u_int32_t alert_hash = alertHash(alert_json);
+    u_int64_t cur_rowid = (u_int64_t)-1, cur_counter;
 
     if(!store_initialized || !store_opened)
       return(-1);
@@ -620,37 +627,97 @@ int AlertsManager::storeAlert(AlertEntity alert_entity, const char *alert_entity
       markForMakeRoom(false);
 
     notifyAlert(alert_entity, alert_entity_value, NULL,
-	  alert_type, alert_severity, alert_json,
-	  NULL, NULL, false, when, NULL);
+		alert_type, alert_severity, alert_json,
+		NULL, NULL, false, when, NULL);
 
-    /* This alert is being engaged */
-    snprintf(query, sizeof(query),
-	     "INSERT INTO %s "
-	     "(alert_tstamp, alert_type, alert_severity, alert_entity, alert_entity_val, alert_json, "
-	     "alert_origin, alert_target) "
-	     "VALUES (?, ?, ?, ?, ?, ?, ?, ?); ",
-	     ALERTS_MANAGER_TABLE_NAME);
 
     m.lock(__FILE__, __LINE__);
 
+    /* Check if this alert already exists ...*/
+    snprintf(query, sizeof(query),
+	     "SELECT rowid, alert_counter, alert_tstamp_end  " // , alert_counter, alert_tstamp_end "
+	     "FROM %s "
+	     "WHERE alert_type = ? AND alert_severity = ? "
+	     "AND alert_entity = ? AND alert_entity_val = ? "
+	     "AND alert_hash = ? AND alert_hash IS NOT NULL "
+	     "LIMIT 1; ",
+	     ALERTS_MANAGER_TABLE_NAME);
+
     if(sqlite3_prepare(db, query, -1, &stmt, 0)
-       || sqlite3_bind_int64(stmt, 1, static_cast<long int>(when))
-       || sqlite3_bind_int(stmt,   2, static_cast<int>(alert_type))
-       || sqlite3_bind_int(stmt,   3, static_cast<int>(alert_severity))
-       || sqlite3_bind_int(stmt,   4, static_cast<int>(alert_entity))
-       || sqlite3_bind_text(stmt,  5, alert_entity_value, -1, SQLITE_STATIC)
-       || sqlite3_bind_text(stmt,  6, alert_json, -1, SQLITE_STATIC)
-       || sqlite3_bind_text(stmt,  7, alert_origin, -1, SQLITE_STATIC)
-       || sqlite3_bind_text(stmt,  8, alert_target, -1, SQLITE_STATIC)) {
+       || sqlite3_bind_int(stmt,   1, static_cast<int>(alert_type))
+       || sqlite3_bind_int(stmt,   2, static_cast<int>(alert_severity))
+       || sqlite3_bind_int(stmt,   3, static_cast<int>(alert_entity))
+       || sqlite3_bind_text(stmt,  4, alert_entity_value, -1, SQLITE_STATIC)
+       || sqlite3_bind_int64(stmt, 5, static_cast<long int>(alert_hash))) {
+      ntop->getTrace()->traceEvent(TRACE_INFO, "SQL Error: step");
       rc = 1;
       goto out;
     }
 
+    /* Try and read the rowid (if the record exists) */
     while((rc = sqlite3_step(stmt)) != SQLITE_DONE) {
-      if(rc == SQLITE_ERROR) {
+      if(rc == SQLITE_ROW) {
+	cur_rowid = sqlite3_column_int(stmt, 0),
+	  cur_counter = sqlite3_column_int(stmt, 1);
+	// ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [rowid: %u][cur_counter: %u][cur_tstamp_end: %u]\n", sqlite3_column_text(stmt, 0), cur_rowid, cur_counter, cur_tstamp_end);
+      } else if(rc == SQLITE_ERROR) {
 	ntop->getTrace()->traceEvent(TRACE_INFO, "SQL Error: step");
 	rc = 1;
 	goto out;
+      }
+    }
+
+    if(cur_rowid != (u_int64_t)-1) { /* Already existing record found */
+      snprintf(query, sizeof(query),
+	       "UPDATE %s "
+	       "SET alert_counter = ?, alert_tstamp_end = ? "
+	       "WHERE rowid = ? ",
+	       ALERTS_MANAGER_TABLE_NAME);
+
+      if(sqlite3_prepare(db, query, -1, &stmt, 0)
+	 || sqlite3_bind_int64(stmt, 1, static_cast<long int>(cur_counter + 1))
+	 || sqlite3_bind_int64(stmt, 2, static_cast<long int>(when))
+	 || sqlite3_bind_int64(stmt, 3, static_cast<long int>(cur_rowid))) {
+	rc = 1;
+	goto out;
+      }
+
+      while((rc = sqlite3_step(stmt)) != SQLITE_DONE) {
+	if(rc == SQLITE_ERROR) {
+	  ntop->getTrace()->traceEvent(TRACE_INFO, "SQL Error: step");
+	  rc = 1;
+	  goto out;
+	}
+      }
+
+    } else { /* no exisint record found */
+      snprintf(query, sizeof(query),
+	       "INSERT INTO %s "
+	       "(alert_tstamp, alert_type, alert_severity, alert_entity, alert_entity_val, alert_json, alert_hash, "
+	       "alert_origin, alert_target) "
+	       "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?); ",
+	       ALERTS_MANAGER_TABLE_NAME);
+
+      if(sqlite3_prepare(db, query, -1, &stmt, 0)
+	 || sqlite3_bind_int64(stmt, 1, static_cast<long int>(when))
+	 || sqlite3_bind_int(stmt,   2, static_cast<int>(alert_type))
+	 || sqlite3_bind_int(stmt,   3, static_cast<int>(alert_severity))
+	 || sqlite3_bind_int(stmt,   4, static_cast<int>(alert_entity))
+	 || sqlite3_bind_text(stmt,  5, alert_entity_value, -1, SQLITE_STATIC)
+	 || sqlite3_bind_text(stmt,  6, alert_json, -1, SQLITE_STATIC)
+	 || sqlite3_bind_int64(stmt, 7, static_cast<long int>(alert_hash))
+	 || sqlite3_bind_text(stmt,  8, alert_origin, -1, SQLITE_STATIC)
+	 || sqlite3_bind_text(stmt,  9, alert_target, -1, SQLITE_STATIC)) {
+	rc = 1;
+	goto out;
+      }
+
+      while((rc = sqlite3_step(stmt)) != SQLITE_DONE) {
+	if(rc == SQLITE_ERROR) {
+	  ntop->getTrace()->traceEvent(TRACE_INFO, "SQL Error: step");
+	  rc = 1;
+	  goto out;
+	}
       }
     }
 
@@ -876,6 +943,23 @@ int AlertsManager::engageReleaseHostAlert(const char *host_ip, u_int16_t host_vl
 
   return rc;
 };
+/* ******************************************* */
+
+u_int32_t AlertsManager::alertHash(const char * const alert_json) {
+  char md5_buf[33];
+  u_int32_t md5_part;
+  u_int32_t res = 0;
+
+  mg_md5(md5_buf, alert_json, NULL);
+
+  for(int i = 24; i >= 0; i -= 8) {
+    sscanf(&md5_buf[i], "%x", &md5_part);
+    res ^= md5_part;
+    md5_buf[i] = '\0';
+  }
+
+  return res;
+}
 
 /* ******************************************* */
 

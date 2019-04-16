@@ -56,7 +56,6 @@ Prefs::Prefs(Ntop *_ntop) {
     override_dst_with_post_nat_dst = false, override_src_with_post_nat_src = false,
     hostMask = no_host_mask;
   enable_mac_ndpi_stats = false;
-  enable_serialize_local_broadcast_hosts_as_macs = false;
   auto_assigned_pool_id = NO_HOST_POOL_ID;
   default_l7policy = PASS_ALL_SHAPER_ID;
   num_ts_slots = CONST_DEFAULT_TS_NUM_SLOTS, ts_num_steps = CONST_DEFAULT_TS_NUM_STEPS;
@@ -597,8 +596,6 @@ void Prefs::reloadPrefsFromRedis() {
 
     override_dst_with_post_nat_dst = getDefaultBoolPrefsValue(CONST_DEFAULT_OVERRIDE_DST_WITH_POST_NAT, false),
     override_src_with_post_nat_src = getDefaultBoolPrefsValue(CONST_DEFAULT_OVERRIDE_SRC_WITH_POST_NAT, false),
-
-    enable_serialize_local_broadcast_hosts_as_macs = getDefaultBoolPrefsValue(CONST_SERIALIZE_LOCAL_BROADCAST_HOSTS_AS_MACS, false),
 
     max_num_packets_per_tiny_flow = getDefaultPrefsValue(CONST_MAX_NUM_PACKETS_PER_TINY_FLOW,
 							 CONST_DEFAULT_MAX_NUM_PACKETS_PER_TINY_FLOW),

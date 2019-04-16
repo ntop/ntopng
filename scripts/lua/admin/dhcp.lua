@@ -204,5 +204,6 @@ print[[
 ]] print(i18n("notes")) print[[
   <ul>
     <li>]] print(i18n("dhcp.dhcp_configuration_note")) print[[.</li>
+    <li>]] print(i18n("dhcp.dhcp_alert_note")) print[[.</li>
   </ul>
 ]]

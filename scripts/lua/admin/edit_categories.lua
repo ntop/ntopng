@@ -21,21 +21,21 @@ if not haveAdminPrivileges() then
   return
 end
 
-local tab = _GET["tab"] or "hosts"
+local tab = _GET["tab"] or "protocols"
 
-page_utils.print_header(i18n("users.categories"))
+page_utils.print_header(i18n("custom_categories.apps_and_categories"))
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 print("<hr>")
-print("<h2>") print(i18n("users.categories")) print("</h2>")
+print("<h2>") print(i18n("custom_categories.apps_and_categories")) print("</h2>")
 print("<br>")
 
 print [[
 <ul id="n2n-nav" class="nav nav-tabs" role="tablist">]]
 
-print('<li class="'.. ternary(tab ~= "protocols", "active", "") ..'"><a href="?tab=hosts">'.. i18n("categories") .. "</a>")
 print('<li class="'.. ternary(tab == "protocols", "active", "") ..'"><a href="?tab=protocols">'.. i18n("applications") .. "</a>")
+print('<li class="'.. ternary(tab ~= "protocols", "active", "") ..'"><a href="?tab=categories">'.. i18n("categories") .. "</a>")
 
 print[[</ul>]]
 
