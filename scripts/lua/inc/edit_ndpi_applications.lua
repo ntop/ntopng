@@ -45,20 +45,29 @@ if (_POST["action"] == "add") or (_POST["action"] == "edit") then
 
   -- Preliminary check
   local applications = interface.getnDPIProtocols()
-  local app_exists = (applications[application] ~= nil)
+  local lower_app = string.lower(application)
+  local existing_app = nil
 
-  if((action == "edit") and (not app_exists)) then
+  -- case insensitive search for applications
+  for k in pairs(applications) do
+    if string.lower(k) == lower_app then
+      existing_app = k
+      break
+    end
+  end
+
+  if((action == "edit") and (existing_app == nil)) then
     app_warnings[#app_warnings + 1] = {
       type = "danger",
       text = i18n("custom_categories.application_not_exists", {
         app = application,
       })
     }
-  elseif((action == "add") and app_exists) then
+  elseif((action == "add") and (existing_app ~= nil)) then
     app_warnings[#app_warnings + 1] = {
       type = "danger",
       text = i18n("custom_categories.application_exists", {
-        app = application,
+        app = existing_app,
       })
     }
   else
