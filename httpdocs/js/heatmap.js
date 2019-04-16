@@ -1,10 +1,11 @@
 var map = (function () {
 
-    var isDetail = false;
     var interval = 5000;
     var intervalID;
     var stopInterval = false;
 
+    var host_ip;
+    var original_pkt_num = 0;
 
     var margin = {top: 80, right: 20, bottom: 120, left: 150},
     width = 1100 - margin.left - margin.right,
@@ -202,7 +203,7 @@ var map = (function () {
 
     //TODO: put all css stylesheet in heatmap.css
     var setSvgDim = function(){
-        width = ( Object.keys(X_elements).length * sq_w);
+        width = ( Object.keys(X_elements).length * sq_w) + margin.left+margin.right;
         height = ( Object.keys(Y_elements).length * sq_h);
 
         //min size for not clip the text 
@@ -223,7 +224,7 @@ var map = (function () {
         x = d3.scaleBand()
             .range([ 0, w ]) 
             .domain(X_elements)
-            .padding(0.05);
+            .padding(0.07);
         svg.append("g")
             .style("font-size", 11)
             .attr("transform", "translate(0," + height + ")")
@@ -408,7 +409,7 @@ var map = (function () {
 
     var startInterval = function(_interval) {
         intervalID = setInterval(function() {
-            build(interval);
+            build(interval, host_ip);
         }, _interval);
     }
 
@@ -420,10 +421,25 @@ var map = (function () {
         stopInterval = false;
     };
 
+    var printVoidGraph = function(){
+        var div = document.getElementById("container");
+        div.innerHTML = "Nothing to show";
+        div.style.textAlign = "center";
+        $(".control-group").remove();
+    };
+
     //########################################################################################  
 
     //the calling order of the functions is important (most variable are global)
     var buildMap = function(data) {
+
+
+        //NOTE: temporary solution
+        //disable scroll
+        $('html, body').css({
+            'overflow': 'hidden',
+            'height': '100%'
+        })
 
         w_h = window.innerHeight - margin.top - margin.bottom - 80; 
         w_w = window.innerWidth - margin.left - margin.right - 30;
@@ -436,10 +452,7 @@ var map = (function () {
         Y_elements = d3.map(data, function(d){return d.y_label;}).keys()        
 
         if ( Object.keys(Y_elements).length == 0 || w_w < sq_w){
-            var div = document.getElementById("container");
-            div.innerHTML = "Nothing to show";
-            div.style.textAlign = "center";
-            $(".control-group").remove();
+            printVoidGraph();
             return;
         }
 
@@ -461,6 +474,12 @@ var map = (function () {
                 maxTotPkt = sendersTotPkts[e.y_label];
         });
 
+        //if host is selected put it first
+        if (host_ip){ 
+            original_pkt_num = sendersTotPkts[host_ip];
+            sendersTotPkts[host_ip] = Number.MAX_SAFE_INTEGER;
+        }
+
         Y_elements.sort(function(a,b){ return sendersTotPkts[b] - sendersTotPkts[a] });
         X_elements.sort(function(a,b){ return receiversTotPkts[b] - receiversTotPkts[a] });
 
@@ -469,6 +488,7 @@ var map = (function () {
         excludedSendersNum = 0;
         excludedReceiversNum = 0;
 
+        //NOTE: slice(start, end) NOT include the "start" and "end" indexes
         var sliced = false;
         if (sendersNum > max_Y_elem ){
 
@@ -484,9 +504,7 @@ var map = (function () {
         }
 
         //NOTE: forEach() iterate in ascending order
-        //NOTE: slice(start, end) NOT include the "start" and "end" argument
         if (sliced){
-
             data = data.filter( function(d){
                 return ( Y_elements.includes( d.y_label) && X_elements.includes(d.x_label) )
             });
@@ -501,19 +519,25 @@ var map = (function () {
             });
         }
 
-        //NOTE: temporary solution
-        //disable scroll
-        $('html, body').css({
-            'overflow': 'hidden',
-            'height': '100%'
-        })
-
+        // list of chromatic scale [ https://github.com/d3/d3-scale-chromatic ]
+        myColor = d3.scaleSequential().interpolator(d3.interpolateInferno).domain([1,maxTotPkt]);
 
         Y_elements.reverse();
         setSvgDim();
 
-        // list of chromatic scale [ https://github.com/d3/d3-scale-chromatic ]
-        myColor = d3.scaleSequential().interpolator(d3.interpolateInferno).domain([1,maxTotPkt]);
+        //if host is selected highlights it
+        if (host_ip){ 
+            sendersTotPkts[host_ip] = original_pkt_num;
+    
+            svg.append("line")
+                .attr("x1", -margin.left+40)
+                .attr("y1", 6)
+                .attr("x2", width - margin.left )
+                .attr("y2", 6)
+                .attr("stroke-width", 11)
+                .attr("stroke", "yellow")
+                .style("opacity",0.4);
+        }
 
         setXaxis();
         setYaxis();
@@ -540,14 +564,15 @@ var map = (function () {
 
     //########################################################################################
 
-    //TODO: make minimap Update itself
+    //NOTE: NOT CURRENTLY USED
     var buildMiniMap = function(data){
 
         createSvg();
         var svg_x = document.getElementById("container").getBoundingClientRect().left;
         w_w = window.innerWidth - margin.left - margin.right - svg_x;
 
-        max_X_elem = Math.floor(w_w / sq_w);
+        //max_X_elem = Math.floor(w_w / sq_w);
+        max_X_elem = 5;
         if (max_X_elem < 0 ) max_X_elem = 0;
 
         X_elements = d3.map(data, function(d){return d.x_label;}).keys()
@@ -593,7 +618,9 @@ var map = (function () {
             X_elements = X_elements.slice(0, max_X_elem+1 );
         }
 
-        width = ( Object.keys(X_elements).length * sq_w) + margin.left + margin.right;
+        sq_w = 20;
+
+        width = ( Object.keys(X_elements).length * sq_w + margin.left + margin.right);
         height = 100  - margin.top - margin.bottom;
         if ( width > 800) width = 800 - margin.left - margin.right;
 
@@ -606,12 +633,19 @@ var map = (function () {
         myColor = d3.scaleSequential().interpolator(d3.interpolateInferno).domain([1,maxTotPkt]);
 
         setXaxis();
-        setYaxis();
+        //setYaxis();
+        y = d3.scaleBand()
+            .range([ height, 0 ])
+            .domain(Y_elements)
+            .padding(0.05);
+ 
 
         d3.selectAll('.tick text').on('click',labelClick);
 
         createTooltip();
         createSquares(data);
+
+        //TODO: set hint text
 
         changeContainerID();
         d3.select( getCurrentContainerID() ).selectAll("*").remove();
@@ -619,24 +653,25 @@ var map = (function () {
 
     //########################################################################################
 
-    var build = function(param) {
-        if (param && typeof(param) == "string"  ){
-            isDetail = true;
-            address = param;
-            margin = {top: 5, right: 10, bottom: 80, left: 100};
-            d3.json("/lua/get_arp_matrix_data.lua?host="+param, buildMiniMap);
+    var build = function(refresh,host) {
 
-        }else if (param && typeof(param) == "number" ){
-            clearInterval(intervalID);
+        console.log("refresh: "+refresh+" host: "+ host);
+        host ? host_ip = host : host_ip = null;
+        clearInterval(intervalID);
+        if ( !stopInterval ){
 
-            if ( !stopInterval ){
-                interval = param;
+            if(refresh){
+                interval = refresh;
+                //host ? host_ip = host : host_ip = null;
+
                 startInterval(interval);
                 d3.json("/lua/get_arp_matrix_data.lua", buildMap);
+
+            }else{ /* case: refresh frequency -> never */
+                d3.json("/lua/get_arp_matrix_data.lua", buildMap);
             }
-            
-        }else
-            d3.json("/lua/get_arp_matrix_data.lua",buildMap);
+
+        }
     };
 
     return {

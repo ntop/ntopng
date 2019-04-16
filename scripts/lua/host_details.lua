@@ -687,27 +687,41 @@ end
 
 
    --==========================WIP=======================================
-   print[[<tr><th width=30% >]] print("ARP Requests Receivers")
-   print[[</th><td colspan=2><form id='arp_req_map' method="POST">
+   --TODO: check preferences if the arp matrix is enabled
+   local arp_matrix_utils = require "arp_matrix_utils"
 
-      <script src="http://d3js.org/d3.v4.js"></script>
-      <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
-      <script src="]] print(ntop.getHttpPrefix()) print[[/js/heatmap.js"></script>
-      <div style="background-color:white", id="container"></div>
-      <div style="background-color:white", id="container2"></div>
+   if (arp_matrix_utils.arpCheck(host_ip)) then
+
+      print[[<tr><th width=30% >]] print("ARP Requests")
+      print[[<a href="arp_matrix_graph.lua?host=]]print(host_ip)print[["> [See in Map]</a>]]
+      print[[</th><td colspan=2 id="arp_req_td">
 
       <script>
 
-      map.build("]] print(host_ip) print[[");
+      var printText = function(){
+         $.getJSON("]]print (ntop.getHttpPrefix())print[[/lua/get_arp_matrix_data.lua?host=]]print(host_ip)print[[", function(data){
+
+
+            if (data.talkers_num == 1)
+               $("#arp_req_td").text( "Sent "+ data.req_num+ " Requests to " + data.talkers_num +" Host" );
+            else
+               $("#arp_req_td").text( "Sent "+ data.req_num+ " Requests to " + data.talkers_num +" different Hosts" );
+
+            $("#arp_req_td").prop("href", "arp_matrix_graph.lua?host=]]print(host_ip)print[[");
+         } );
+      };
+
+      printText();
+
+      setInterval(function() {
+         printText();
+      }, 3000);
 
       </script>
-      
-   
-   </form>
-   </td></tr>]]
 
-   --=====================================================================
-
+      </td></tr>]]
+   end
+         --=====================================================================
 
 
    local num_extra_names = 0

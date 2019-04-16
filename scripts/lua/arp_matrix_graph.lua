@@ -13,6 +13,12 @@ sendHTTPContentTypeHeader('text/html')
 interface.select(ifname)
 page_utils.print_header()
 
+local host_info = url2hostinfo(_GET)
+local host_ip = nil
+if host_info then
+    host_ip = host_info["host"]
+end
+
 --active_page = "home"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
@@ -120,7 +126,12 @@ print [[
       <script>
          $("#topflow_graph_state_play").click(function() {
             map.startUpdate();
-            map.build(]]print(refresh) print[[);
+            map.build(]]
+              print(refresh)
+              if host_ip then 
+                print[[, "]]print(host_ip.."\"")
+              end
+            print[[);
             $("#topflow_graph_state_stop").removeClass("active");
             $("#topflow_graph_state_play").addClass("active");
          });
@@ -130,10 +141,22 @@ print [[
             $("#topflow_graph_state_stop").addClass("active");
          });
          $("#topflow_graph_refresh").click(function() {
-          map.build(]]print(0) print[[);
+          map.build(]]
+            print("0")
+            if host_ip then 
+              print[[, "]]print(host_ip.."\"")
+            end
+
+          print[[);
         });
 
-         map.build(]]print(refresh) print[[);
+        map.build(]]
+          print(refresh)
+          if host_ip then 
+            print[[, "]]print(host_ip.."\"")
+          end
+
+        print[[);
       </script>
    ]]
   end
