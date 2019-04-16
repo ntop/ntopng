@@ -339,8 +339,9 @@ end
 -- The entry_print_callback is called to print the actual entries.
 function printGraphMenuEntries(entry_print_callback)
    local active_entries = {}
+   local active_idx = 1 -- index in active_entries
 
-   for idx, entry in ipairs(graph_menu_entries) do
+   for _, entry in ipairs(graph_menu_entries) do
       if(entry.pending and (entry.pending > 0)) then
          -- not verified, act like it does not exist
          goto continue
@@ -356,8 +357,9 @@ function printGraphMenuEntries(entry_print_callback)
       if entry.html then
          print(entry.html)
       else
-         entry_print_callback(idx, entry)
+         entry_print_callback(active_idx, entry)
          active_entries[#active_entries + 1] = entry
+         active_idx = active_idx + 1
       end
 
       ::continue::
