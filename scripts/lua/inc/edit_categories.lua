@@ -82,6 +82,7 @@ if not isEmptyString(category_filter) then
 
   print[[<td>
     <form>
+      <input type="hidden" name="tab" value="categories" />
       <button type="button" class="btn btn-default btn-sm" onclick="$(this).closest('form').submit();">
         <i class="fa fa-close fa-lg" aria-hidden="true" data-original-title="" title=""></i> ]] print(cat_name) print[[
       </button>
@@ -99,7 +100,9 @@ print(
     typeahead={
       base_id     = "t_app",
       action      = ntop.getHttpPrefix() .. "/lua/admin/edit_categories.lua",
-      parameters  = after_search_params,
+      parameters  = {
+        tab = "categories",
+      },
       json_key    = "key",
       query_field = "l7proto",
       query_url   = ntop.getHttpPrefix() .. "/lua/find_category.lua",
