@@ -53,6 +53,7 @@ print [[
 interface.select(ifname)
 local ifs = interface.getStats()
 local is_pcap_dump = interface.isPcapDumpInterface()
+local is_packet_interface = interface.isPacketInterface()
 ifId = ifs.id
 
 -- ##############################################
@@ -533,7 +534,7 @@ end
 
 local lbd_serialize_by_mac = (_POST["lbd_hosts_as_macs"] == "1") or (ntop.getPref(string.format("ntopng.prefs.ifid_%u.serialize_local_broadcast_hosts_as_macs", ifs.id)) == "1")
 
-if(ifs.has_seen_dhcp_addresses and is_admin and (not is_pcap_dump)) then
+if(ifs.has_seen_dhcp_addresses and is_admin and (not is_pcap_dump) and is_packet_interface) then
    if(not lbd_serialize_by_mac) then
       if(ntop.getPref(string.format("ntopng.prefs.ifid_%u.disable_host_identifier_message", ifs.id)) ~= "1") then
          print('<br><div id="host-id-message-warning" class="alert alert-warning" role="alert"><i class="fa fa-warning fa-lg" id="alerts-menu-triangle"></i> ')

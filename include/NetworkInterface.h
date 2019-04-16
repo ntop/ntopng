@@ -423,7 +423,7 @@ class NetworkInterface : public Checkpointable {
 		     const u_char *packet,
 		     u_int16_t *ndpiProtocol,
 		     Host **srcHost, Host **dstHost, Flow **flow);
-  void processFlow(Parsed_Flow *zflow);
+  void processFlow(Parsed_Flow *zflow, bool zmq_flow);
   void processInterfaceStats(sFlowInterfaceStats *stats);
   void getnDPIStats(nDPIStats *stats, AddressTree *allowed_hosts, const char *host_ip, u_int16_t vlan_id);
   void periodicStatsUpdate();

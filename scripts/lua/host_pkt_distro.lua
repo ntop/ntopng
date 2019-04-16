@@ -24,11 +24,8 @@ else
    if((type == nil) or (type == "size")) then
 
       if((mode == nil) or (mode == "sent")) then
-
 	 what = host["pktStats.sent"]
-
       else
-
 	 what = host["pktStats.recv"]
       end
    end

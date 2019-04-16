@@ -1036,7 +1036,7 @@ NetworkInterface* NetworkInterface::getSubInterface(u_int32_t criteria, bool par
 
 /* **************************************************** */
 
-void NetworkInterface::processFlow(Parsed_Flow *zflow) {
+void NetworkInterface::processFlow(Parsed_Flow *zflow, bool zmq_flow) {
   bool src2dst_direction, new_flow;
   Flow *flow;
   ndpi_protocol p;
@@ -1046,38 +1046,42 @@ void NetworkInterface::processFlow(Parsed_Flow *zflow) {
 
   memset(&p, 0, sizeof(p));
 
-  if(last_pkt_rcvd_remote > 0) {
-    int drift = now - last_pkt_rcvd_remote;
+  if(zmq_flow) {
+    /* In ZMQ flows we need to fix the clock drift */
+    
+    if(last_pkt_rcvd_remote > 0) {
+      int drift = now - last_pkt_rcvd_remote;
 
-    if(drift >= 0)
-      zflow->core.last_switched += drift, zflow->core.first_switched += drift;
-    else {
-      u_int32_t d = (u_int32_t)-drift;
+      if(drift >= 0)
+	zflow->core.last_switched += drift, zflow->core.first_switched += drift;
+      else {
+	u_int32_t d = (u_int32_t)-drift;
 
-      if(d < zflow->core.last_switched)  zflow->core.last_switched  += drift;
-      if(d < zflow->core.first_switched) zflow->core.first_switched += drift;
+	if(d < zflow->core.last_switched)  zflow->core.last_switched  += drift;
+	if(d < zflow->core.first_switched) zflow->core.first_switched += drift;
+      }
+
+#ifdef DEBUG
+      ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				   "[first=%u][last=%u][duration: %u][drift: %d][now: %u][remote: %u]",
+				   zflow->core.first_switched,  zflow->core.last_switched,
+				   zflow->core.last_switched-zflow->core.first_switched, drift,
+				   now, last_pkt_rcvd_remote);
+#endif
+    } else {
+      /* Old nProbe */
+
+      if((time_t)zflow->core.last_switched > (time_t)last_pkt_rcvd_remote)
+	last_pkt_rcvd_remote = zflow->core.last_switched;
+
+#ifdef DEBUG
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[first=%u][last=%u][duration: %u]",
+				   zflow->core.first_switched,  zflow->core.last_switched,
+				   zflow->core.last_switched- zflow->core.first_switched);
+#endif
     }
-
-#ifdef DEBUG
-    ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				 "[first=%u][last=%u][duration: %u][drift: %d][now: %u][remote: %u]",
-				 zflow->core.first_switched,  zflow->core.last_switched,
-				 zflow->core.last_switched-zflow->core.first_switched, drift,
-				 now, last_pkt_rcvd_remote);
-#endif
-  } else {
-    /* Old nProbe */
-
-    if((time_t)zflow->core.last_switched > (time_t)last_pkt_rcvd_remote)
-      last_pkt_rcvd_remote = zflow->core.last_switched;
-
-#ifdef DEBUG
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[first=%u][last=%u][duration: %u]",
-				 zflow->core.first_switched,  zflow->core.last_switched,
-				 zflow->core.last_switched- zflow->core.first_switched);
-#endif
   }
-
+  
   if((!isDynamicInterface()) && (flowHashingMode != flowhashing_none)) {
     NetworkInterface *vIface = NULL, *vIfaceEgress = NULL;
 
@@ -1109,8 +1113,8 @@ void NetworkInterface::processFlow(Parsed_Flow *zflow) {
       break;
     }
 
-    if(vIface)       vIface->processFlow(zflow);
-    if(vIfaceEgress) vIfaceEgress->processFlow(zflow);
+    if(vIface)       vIface->processFlow(zflow, zmq_flow);
+    if(vIfaceEgress) vIfaceEgress->processFlow(zflow, zmq_flow);
 
     return;
   }
@@ -1674,13 +1678,20 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
      && (!isSampledTraffic())
      && flow->get_cli_host() && flow->get_srv_host()) {
     struct ndpi_flow_struct *ndpi_flow;
-
+    u_int32_t real_payload_len = min_val(h->caplen, payload_len);
+    
+    /*
+      As the functions below play with payload contents we need to 
+      make sure we handle the payload up to the max allowed size
+      thus we use the real_payload_len variable
+    */
+    
     switch(ndpi_get_lower_proto(flow->get_detected_protocol())) {
     case NDPI_PROTOCOL_DHCP:
       {
 	Mac *mac = (*srcHost)->getMac(), *payload_cli_mac;
 
-	if(mac && (payload_len > 240)) {
+	if(mac && (real_payload_len > 240)) {
 	  struct dhcp_packet *dhcpp = (struct dhcp_packet*)payload;
 
 	  if(dhcpp->msgType == 0x01) /* Request */
@@ -1691,7 +1702,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	    setDHCPAddressesSeen();
 	  }
 
-	  for(int i = 240; i<payload_len; ) {
+	  for(u_int32_t i = 240; i<real_payload_len; ) {
 	    u_int8_t id  = payload[i], len = payload[i+1];
 
 	    if(len == 0)
@@ -1751,7 +1762,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	Mac *dst_mac = (*dstHost)->getMac();
 
 	if(src_mac && dst_mac
-	   && (payload_len > 20)
+	   && (real_payload_len > 20)
 	   && dst_mac->isMulticast())
 	  ;//src_mac->setDhcpHost();
       }
@@ -1768,7 +1779,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	     ) {
 
 	    if(name[0] == '*') {
-	      int limit = min(payload_len-57, (int)sizeof(name)-1);
+	      int limit = min_val(real_payload_len-57, (int)sizeof(name)-1);
 	      int i = 0;
 
 	      while((i<limit) && (payload[57+i] != 0x20) && isprint(payload[57+i])) {
@@ -1799,17 +1810,17 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       if((flow->getBitTorrentHash() == NULL)
 	 && (l4_proto == IPPROTO_UDP)
 	 && (flow->get_packets() < 8))
-	flow->dissectBittorrent((char*)payload, payload_len);
+	flow->dissectBittorrent((char*)payload, real_payload_len);
       break;
 
     case NDPI_PROTOCOL_HTTP:
-      if(payload_len > 0)
-	flow->dissectHTTP(src2dst_direction, (char*)payload, payload_len);
+      if(real_payload_len > 0)
+	flow->dissectHTTP(src2dst_direction, (char*)payload, real_payload_len);
       break;
 
     case NDPI_PROTOCOL_SSDP:
-      if(payload_len > 0)
-	flow->dissectSSDP(src2dst_direction, (char*)payload, payload_len);
+      if(real_payload_len > 0)
+	flow->dissectSSDP(src2dst_direction, (char*)payload, real_payload_len);
       break;
 
     case NDPI_PROTOCOL_DNS:
@@ -1820,12 +1831,12 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	e.g., during three-way-handshake, or when acknowledging.
 	Make sure only non-zero-payload segments are processed.
       */
-      if((payload_len > 0) && payload) {
+      if((real_payload_len > 0) && payload) {
 	/*
 	  DNS-over-TCP has a 2-bytes field with DNS payload length
 	  at the beginning. See RFC1035 section 4.2.2. TCP usage.
 	*/
-	u_int8_t dns_offset = ((l4_proto == IPPROTO_TCP) && (payload_len > 1)) ? 2 : 0;
+	u_int8_t dns_offset = ((l4_proto == IPPROTO_TCP) && (real_payload_len > 1)) ? 2 : 0;
 	struct ndpi_dns_packet_header *header = (struct ndpi_dns_packet_header*)(payload + dns_offset);
 	u_int16_t dns_flags = ntohs(header->flags);
 	bool is_query   = (dns_flags & 0x8000) ? 0 : 1;
@@ -1877,23 +1888,23 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       extern void _dissectMDNS(u_char *buf, u_int buf_len, char *out, u_int out_len);
       char outbuf[1024];
 
-      _dissectMDNS(payload, payload_len, outbuf, sizeof(outbuf));
+      _dissectMDNS(payload, real_payload_len, outbuf, sizeof(outbuf));
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", outbuf);
 #endif
-      flow->dissectMDNS(payload, payload_len);
+      flow->dissectMDNS(payload, real_payload_len);
 
       if(discovery && iph)
-	discovery->queueMDNSRespomse(iph->saddr, payload, payload_len);
+	discovery->queueMDNSRespomse(iph->saddr, payload, real_payload_len);
       break;
 
     case NDPI_PROTOCOL_DROPBOX:
       if((src_port == dst_port) && (dst_port == htons(17500)))
-	flow->get_cli_host()->dissectDropbox((const char *)payload, payload_len);
+	flow->get_cli_host()->dissectDropbox((const char *)payload, real_payload_len);
       break;
 
     case NDPI_PROTOCOL_SSL:
-      if(payload_len > 0)
-	flow->dissectSSL((char *)payload, payload_len);
+      if(real_payload_len > 0)
+	flow->dissectSSL((char *)payload, real_payload_len);
       break;
     }
 
