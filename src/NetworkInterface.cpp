@@ -2596,7 +2596,6 @@ decode_packet_eth:
 	  arp_requests++;
 	  srcMac->incSentArpRequests();
 	  dstMac->incRcvdArpRequests();
-
 	  if(e) e->incArpRequests(src2dst_element);
 	} else if(arp_opcode == 0x2 /* ARP reply */) {
 	  arp_replies++;
