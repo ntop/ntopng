@@ -195,7 +195,7 @@ print [[
         sortable: true,
         css: {
             width: '20%',
-            textAlign: 'right'
+            textAlign: 'center'
         }
       },{
         title: "]] print(i18n("custom_categories.custom_hosts")) print[[",
@@ -203,7 +203,7 @@ print [[
         sortable: true,
           css: {
             width: '20%',
-            textAlign: 'right'
+            textAlign: 'center'
         }
       },{
         title: "]] print(i18n("actions")) print[[",

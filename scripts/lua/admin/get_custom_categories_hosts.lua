@@ -108,7 +108,7 @@ for sorted_item, _ in pairsByValues(sorter, sOrder) do
    record["column_category_id"] = tostring(items[sorted_item]["id"])
    record["column_category_name"] = tostring(items[sorted_item]["name"])
    record["column_num_hosts"] = tostring(items[sorted_item].num_hosts)
-   record["column_num_protos"] = tostring(items[sorted_item].num_protocols)
+   record["column_num_protos"] = string.format('<a href="%s/lua/admin/edit_categories?tab=protocols&category=cat_%u">%s</a>', ntop.getHttpPrefix(), items[sorted_item]["id"], tostring(items[sorted_item].num_protocols))
    record["column_category_hosts"] = table.concat(items[sorted_item].hosts_list, ",")
 
    res_formatted[#res_formatted + 1] = record
