@@ -18,6 +18,9 @@ local page = _GET["page"]
 local treshold = 0
 
 local function createHeatmap(matrix, type)
+
+    if not matrix then return nil end
+
     local t = {}   
     local tmp = {}       
     local v = 0

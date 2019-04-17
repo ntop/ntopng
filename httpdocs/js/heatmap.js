@@ -423,7 +423,7 @@ var map = (function () {
 
     var printVoidGraph = function(){
         var div = document.getElementById("container");
-        div.innerHTML = "Nothing to show";
+        div.innerHTML = "Nothing to show. Make sure the ArpMatrix is activated, check the Preference -> Misc ";
         div.style.textAlign = "center";
         $(".control-group").remove();
     };
@@ -583,7 +583,7 @@ var map = (function () {
             d3.select( getCurrentContainerID() )
             .select("svg")
                 .attr("height", height);
-            printNoHost();
+            //printNoHost();
             changeContainerID();
             d3.select( getCurrentContainerID() ).selectAll("*").remove();
             return;
