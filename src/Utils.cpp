@@ -156,21 +156,21 @@ char* Utils::l4proto2name(u_int8_t proto) {
 /* ****************************************************** */
 
 u_int8_t Utils::l4name2proto(char *name) {
-       if (strcmp(name, "IP") == 0) return 0;
-  else if (strcmp(name, "ICMP") == 0) return 1;
-  else if (strcmp(name, "IGMP") == 0) return 2;
-  else if (strcmp(name, "TCP") == 0) return 6;
-  else if (strcmp(name, "UDP") == 0) return 17;
-  else if (strcmp(name, "IPv6") == 0) return 41;
-  else if (strcmp(name, "RSVP") == 0) return 46;
-  else if (strcmp(name, "GRE") == 0) return 47;
-  else if (strcmp(name, "ESP") == 0) return 50;
-  else if (strcmp(name, "AH") == 0) return 51;
-  else if (strcmp(name, "IPv6-ICMP") == 0) return 58;
-  else if (strcmp(name, "OSPF") == 0) return 89;
-  else if (strcmp(name, "PIM") == 0) return 103;
-  else if (strcmp(name, "VRRP") == 0) return 112;
-  else if (strcmp(name, "HIP") == 0) return 139;
+       if(strcmp(name, "IP") == 0) return 0;
+  else if(strcmp(name, "ICMP") == 0) return 1;
+  else if(strcmp(name, "IGMP") == 0) return 2;
+  else if(strcmp(name, "TCP") == 0) return 6;
+  else if(strcmp(name, "UDP") == 0) return 17;
+  else if(strcmp(name, "IPv6") == 0) return 41;
+  else if(strcmp(name, "RSVP") == 0) return 46;
+  else if(strcmp(name, "GRE") == 0) return 47;
+  else if(strcmp(name, "ESP") == 0) return 50;
+  else if(strcmp(name, "AH") == 0) return 51;
+  else if(strcmp(name, "IPv6-ICMP") == 0) return 58;
+  else if(strcmp(name, "OSPF") == 0) return 89;
+  else if(strcmp(name, "PIM") == 0) return 103;
+  else if(strcmp(name, "VRRP") == 0) return 112;
+  else if(strcmp(name, "HIP") == 0) return 139;
   else return 0;
 }
 
@@ -295,13 +295,16 @@ float Utils::msTimevalDiff(const struct timeval *end, const struct timeval *begi
 time_t Utils::str2epoch(const char *str) {
   struct tm tm;
   time_t t;
+  const char *format = "%FT%T%Z";
 
-  if (strptime(str, "%FT%T%Z", &tm) == NULL)
+  memset(&tm, 0, sizeof(tm));
+  
+  if(strptime(str, format, &tm) == NULL)
     return 0;
 
-  t = mktime(&tm);
-
-  if (t == -1)
+  t = mktime(&tm) - tm.tm_gmtoff + (3600 * tm.tm_isdst);
+     
+  if(t == -1)
     return 0;
 
   return t;
@@ -791,7 +794,7 @@ void Utils::sha1_hash(const uint8_t message[], size_t len, uint32_t hash[STATE_L
     
   block[rem] = 0x80;
   rem++;
-  if (BLOCK_LEN - rem < LENGTH_SIZE) {
+  if(BLOCK_LEN - rem < LENGTH_SIZE) {
     sha1_compress(hash, block);
     memset(block, 0, sizeof(block));
   }
@@ -1301,7 +1304,7 @@ bool Utils::postHTTPJsonData(char *username, char *password, char *url,
     curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)strlen(json));
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_post_writefunc);
 
-    if (timeout) {
+    if(timeout) {
       curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout);
       curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, timeout);
 #ifdef CURLOPT_CONNECTTIMEOUT_MS
@@ -1373,7 +1376,7 @@ bool Utils::postHTTPJsonData(char *username, char *password, char *url,
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &fetcher);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_get_writefunc);
 
-    if (timeout) {
+    if(timeout) {
       curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout);
       curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, timeout);
 #ifdef CURLOPT_CONNECTTIMEOUT_MS
@@ -2951,7 +2954,7 @@ bool Utils::isInterfaceUp(char *ifname) {
 
   sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
 
-  if (sock == -1)
+  if(sock == -1)
     return(false);
 
   /* Handle PF_RING interfaces zc:ens2f1@3 */
@@ -2962,7 +2965,7 @@ bool Utils::isInterfaceUp(char *ifname) {
   memset(&ifr, 0, sizeof(ifr));
   strncpy(ifr.ifr_name, ifname, IFNAMSIZ-1);
 
-  if (ioctl(sock, SIOCGIFFLAGS, &ifr) < 0) {
+  if(ioctl(sock, SIOCGIFFLAGS, &ifr) < 0) {
     close(sock);
     return(false);
   }
@@ -3468,7 +3471,7 @@ void Utils::listInterfaces(lua_State* vm) {
   pfring_if_t *pfdevs, *pfdev;
 #endif
 
-  if (pcap_findalldevs(&pdevs, ebuf) != 0) 
+  if(pcap_findalldevs(&pdevs, ebuf) != 0) 
     return;
 
 #ifdef HAVE_PF_RING
@@ -3480,12 +3483,12 @@ void Utils::listInterfaces(lua_State* vm) {
     /* merge with info from pcap */
     pdev = pdevs;
     while (pdev != NULL) {
-      if (pfdev->system_name && strcmp(pfdev->system_name, pdev->name) == 0)
+      if(pfdev->system_name && strcmp(pfdev->system_name, pdev->name) == 0)
         break;
       pdev = pdev->next;
     }
 
-    if (pdev == NULL /* not a standard interface (e.g. fpga) */
+    if(pdev == NULL /* not a standard interface (e.g. fpga) */
         || (Utils::isInterfaceUp(pfdev->system_name) && Utils::validInterface(pdev->description))) {
       lua_newtable(vm);
       lua_push_str_table_entry(vm, "description", (pdev && pdev->description) ? pdev->description : (char *) "");
@@ -3502,19 +3505,19 @@ void Utils::listInterfaces(lua_State* vm) {
 
   pdev = pdevs;
   while (pdev != NULL) {
-    if (Utils::validInterface(pdev->description) && 
+    if(Utils::validInterface(pdev->description) && 
         Utils::isInterfaceUp(pdev->name)) {
 
 #ifdef HAVE_PF_RING
       /* check if already listed */
       pfdev = pfdevs;
       while (pfdev != NULL) {
-        if (strcmp(pfdev->system_name, pdev->name) == 0)
+        if(strcmp(pfdev->system_name, pdev->name) == 0)
           break;
         pfdev = pfdev->next;
       }
 
-      if (pfdev == NULL) {
+      if(pfdev == NULL) {
 #endif
         lua_newtable(vm);
         lua_push_str_table_entry(vm, "description", pdev->description ? pdev->description : (char *) "");
@@ -3654,10 +3657,10 @@ bool Utils::mg_write_retry(struct mg_connection *conn, u_char *b, int len) {
 
   while (!ntop->getGlobals()->isShutdown() && --max_retry) {
     ret = mg_write_async(conn, &b[sent], len-sent);
-    if (ret < 0)
+    if(ret < 0)
       return false;
     sent += ret;
-    if (sent == len) return true;
+    if(sent == len) return true;
     _usleep(100);
   }
 
@@ -3671,7 +3674,7 @@ bool Utils::parseAuthenticatorJson(HTTPAuthenticator *auth, char *content) {
   enum json_tokener_error jerr = json_tokener_success;
 
   o = json_tokener_parse_verbose(content, &jerr);
-  if (o) {
+  if(o) {
     json_object *w;
 
     if(json_object_object_get_ex(o, "admin", &w))
@@ -3691,6 +3694,8 @@ bool Utils::parseAuthenticatorJson(HTTPAuthenticator *auth, char *content) {
   }
   return false;
 }
+
+/* ****************************************************** */
 
 void Utils::freeAuthenticator(HTTPAuthenticator *auth) {
   if(auth == NULL)

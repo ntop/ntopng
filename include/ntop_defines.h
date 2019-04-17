@@ -414,8 +414,11 @@
 #define CONST_DEFAULT_TS_NUM_SLOTS     0 /* disabled */
 #define CONST_DEFAULT_TS_NUM_STEPS     0 /* disabled */
 #define MAX_ZMQ_SUBSCRIBERS           32
+#define MAX_SYSLOG_SUBSCRIBERS         8
 #define MAX_ZMQ_POLL_WAIT_MS        1000 /* 1 sec */
 #define MAX_ZMQ_POLLS_BEFORE_PURGE  1000
+#define MAX_SYSLOG_POLL_WAIT_MS        MAX_ZMQ_POLL_WAIT_MS
+#define MAX_SYSLOG_POLLS_BEFORE_PURGE  MAX_ZMQ_POLLS_BEFORE_PURGE
 #define CONST_MAX_NUM_FIND_HITS       10
 #define CONST_MAX_NUM_HITS         32768 /* Decrease it for small installations */
 

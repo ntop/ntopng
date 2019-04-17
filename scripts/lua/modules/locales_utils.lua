@@ -30,7 +30,8 @@ local supported_locales = {
    {code = "en"},
    {code = "it"},
    {code = "de"},
-   {code = "jp"}
+   {code = "jp"},
+   {code = "pt"}
 }
 
 local function lookupLocale(localename)

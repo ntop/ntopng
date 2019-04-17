@@ -90,8 +90,8 @@ Flow::Flow(NetworkInterface *_iface,
   if(cli_host) { cli_host->incUses(); cli_host->incNumFlows(last_seen, true, srv_host);  }
   if(srv_host) { srv_host->incUses(); srv_host->incNumFlows(last_seen, false, cli_host); }
   
-  if(icmp_info){
-    if(icmp_info->isPortUnreachable()){ //port unreachable icmpv6/icmpv4
+  if(icmp_info) {
+    if(icmp_info->isPortUnreachable()) { //port unreachable icmpv6/icmpv4
 
     /*
       This is an ICMP flow which contains unreachable information. As is the cli_host
@@ -101,9 +101,7 @@ Flow::Flow(NetworkInterface *_iface,
     
       if(cli_host) cli_host->incNumUnreachableFlows(true  /* as server */);
       if(srv_host) srv_host->incNumUnreachableFlows(false /* as client */);
-    }
-    else if(icmp_info->isHostUnreachable(protocol)){
-
+    } else if(icmp_info->isHostUnreachable(protocol)) {
       if(cli_host) cli_host->incNumHostUnreachableFlows(true  /* as server */);
       if(srv_host) srv_host->incNumHostUnreachableFlows(false /* as client */);
     }
@@ -576,6 +574,13 @@ void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
      || (get_packets() >= NDPI_MIN_NUM_PACKETS)
      || (!iface->is_ndpi_enabled())
      || iface->isSampledTraffic()) {
+    u_int8_t is_proto_user_defined;
+    
+    if(forceDetection && (proto_id.app_protocol == NDPI_PROTOCOL_UNKNOWN))
+      proto_id.app_protocol = (int16_t)ndpi_guess_protocol_id(iface->get_ndpi_struct(),
+							      NULL, protocol, get_cli_port(),
+							      get_srv_port(), &is_proto_user_defined);
+    
     ndpiDetectedProtocol.master_protocol = proto_id.master_protocol;
     ndpiDetectedProtocol.app_protocol = proto_id.app_protocol;
 
@@ -2096,14 +2101,14 @@ json_object* Flow::flow2json() {
     */
     strftime(buf, sizeof(buf), "%Y-%m-%dT%H:%M:%S.0Z", tm_info);
 
-    if(ntop->getPrefs()->do_dump_flows_on_ls()){
+    if(ntop->getPrefs()->do_dump_flows_on_ls()) {
       /*  Add current timestamp differently for Logstash, in case of delay
        *  Note: Logstash generates it's own @timestamp field on input
        */
       json_object_object_add(my_object,"ntop_timestamp",json_object_new_string(buf));
     }
 
-    if(ntop->getPrefs()->do_dump_flows_on_es()){
+    if(ntop->getPrefs()->do_dump_flows_on_es()) {
       json_object_object_add(my_object, "@timestamp", json_object_new_string(buf));
       json_object_object_add(my_object, "type", json_object_new_string(ntop->getPrefs()->get_es_type()));
     }
@@ -2320,7 +2325,7 @@ void Flow::housekeep(time_t t) {
   }
 #endif
 
-  if(!isDetectionCompleted() && t - get_last_seen() > 5 /* sec */
+  if((!isDetectionCompleted()) && ((t - get_last_seen()) > 5 /* sec */)
      && iface->get_ndpi_struct()
      && get_ndpi_flow()) {
     ndpi_protocol givenup_protocol = ndpi_detection_giveup(iface->get_ndpi_struct(), get_ndpi_flow(), 1);

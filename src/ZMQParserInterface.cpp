@@ -621,7 +621,7 @@ void ZMQParserInterface::parseSingleFlow(json_object *o,
 
   if(!invalid_flow) {
     /* Process Flow */
-    iface->processFlow(&flow);
+    iface->processFlow(&flow, true);
   }
 
   /* Dispose memory */
