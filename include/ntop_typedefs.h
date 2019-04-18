@@ -155,7 +155,7 @@ struct zmq_msg_hdr_v0 {
 
 struct zmq_msg_hdr {
   char url[16];
-  u_int8_t version, _pad;
+  u_int8_t version, source_id;
   u_int16_t size;
   u_int32_t msg_id;
 };
