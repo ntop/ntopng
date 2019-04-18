@@ -262,7 +262,7 @@ if has_protos_file then
   print[[<li>]] print(i18n("custom_categories.delete_note")) print[[</li>]]
 else
   print[[<li>]] print(i18n("custom_categories.option_needed", {
-    option="-p", url="https://www.ntop.org/guides/ntopng/web_gui/categories.html#protocol-category"
+    option="-p", url="https://www.ntop.org/guides/ntopng/web_gui/categories.html#custom-applications"
   })) print[[</li>]]
 end
 print[[</ul>]]
