@@ -213,9 +213,16 @@ void ZMQCollectorInterface::collect_flows() {
 	  source_id_last_msg_id[source_id] = msg_id;
 	}       
 
+	/*
+          The zmq_recv() function shall return number of bytes in the message if successful.
+          Note that the value can exceed the value of the len parameter in case the message was truncated.
+          If not successful the function shall return -1 and set errno to one of the values defined below.
+	*/
 	size = zmq_recv(items[subscriber_id].socket, payload, payload_len, 0);
 
-	if(size > 0) {
+	if(size > 0 && (u_int32_t)size > payload_len)
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "ZMQ message truncated? [size: %u][payload_len: %u]", size, payload_len);
+	else if(size > 0) {
 	  char *uncompressed = NULL;
 	  u_int uncompressed_len;
 	  
