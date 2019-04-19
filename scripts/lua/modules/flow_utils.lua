@@ -1194,8 +1194,8 @@ function getFlowLabel(flow, show_macs, add_hyperlinks, historical_bounds)
 
    local cli_port
    local srv_port
-   if flow["cli.port"] > 0 then cli_port = flow["cli.port"] end
-   if flow["srv.port"] > 0 then srv_port = flow["srv.port"] end
+   if flow["cli.port"] and flow["cli.port"] > 0 then cli_port = flow["cli.port"] end
+   if flow["srv.port"] and flow["srv.port"] > 0 then srv_port = flow["srv.port"] end
 
    local srv_mac
    if(not isEmptyString(flow["srv.mac"]) and flow["srv.mac"] ~= "00:00:00:00:00:00") then
