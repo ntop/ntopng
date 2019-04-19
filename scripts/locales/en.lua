@@ -94,6 +94,7 @@ local lang = {
   ["month"] = "Month",
   ["mtu"] = "MTU",
   ["name"] = "Name",
+  ["alias"] = "Alias",
   ["netmask"] = "Netmask",
   ["networks"] = "Networks",
   ["next"] = "Next",
