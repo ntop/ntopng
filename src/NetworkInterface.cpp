@@ -4038,8 +4038,6 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data, bool *matc
 static bool mac_search_walker(GenericHashEntry *he, void *user_data, bool *matched) {
   struct flowHostRetriever *r = (struct flowHostRetriever*)user_data;
   Mac *m = (Mac*)he;
-  u_int16_t pool_value;
-  bool pool_found;
 
   if(r->actNumEntries >= r->maxNumEntries)
     return(true); /* Limit reached */
@@ -4049,9 +4047,7 @@ static bool mac_search_walker(GenericHashEntry *he, void *user_data, bool *match
      || (r->sourceMacsOnly && !m->isSourceMac())
      || ((r->devtypeFilter != (u_int8_t)-1) && (m->getDeviceType() != r->devtypeFilter))
      || ((r->locationFilter != (u_int8_t)-1) && (m->locate() != r->locationFilter))
-     || ((r->poolFilter != (u_int16_t)-1) && (
-        (((pool_found = m->getInterface()->getHostPools()->findMacPool(m, &pool_value)) == false /* unassigned */) && r->poolFilter != 0)
-        || ((pool_found == true) && (pool_value != r->poolFilter))))
+     || ((r->poolFilter != (u_int16_t)-1) && (m->getInterface()->getHostPool(m) != r->poolFilter))
      || (r->manufacturer && strcmp(r->manufacturer, m->get_manufacturer() ? m->get_manufacturer() : "") != 0))
     return(false); /* false = keep on walking */
 

@@ -52,15 +52,16 @@ local no_pools = (#pools < 2)
 
 print [[
       <br>
-      <div id="table-mac"></div>]]
+      <div id="table-mac"></div><br><br>]] print(i18n("notes")) print[[<ul>]]
 
 if no_pools then
-   print("<br><br>"..i18n("notes")..[[<ul>
-      <li>]]..i18n("unknown_devices.no_pools")..[[</li>
-   </ul>]])
+   print([[<li>]]..i18n("unknown_devices.no_pools")..[[</li>]])
 end
 
+print([[<li>]]..i18n("unknown_devices.devices_only_note")..[[</li>]])
+
 print[[
+   </ul>
 	 <script>
 
    function assignDevicePool(mac_address) {
