@@ -8129,6 +8129,16 @@ static int ntop_network_name_by_id(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_is_gui_access_restricted(lua_State* vm) {
+  ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
+
+  lua_pushboolean(vm, ntop->get_HTTPserver()->is_gui_access_restricted());
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 // ***API***
 static int ntop_set_logging_level(lua_State* vm) {
   char *lvlStr;
@@ -8531,6 +8541,7 @@ static const luaL_Reg ntop_reg[] = {
   { "isLoginDisabled",      ntop_is_login_disabled },
   { "isLoginBlacklisted",   ntop_is_login_blacklisted },
   { "getNetworkNameById",   ntop_network_name_by_id },
+  { "isGuiAccessRestricted", ntop_is_gui_access_restricted },
 
   /* Security */
   { "getRandomCSRFValue",   ntop_generate_csrf_value },
