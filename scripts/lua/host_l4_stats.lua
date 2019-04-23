@@ -26,7 +26,7 @@ else
       key = l4_keys[id][2]
       traffic = 0		
       if(host[key..".bytes.sent"] ~= nil) then traffic = traffic + host[key..".bytes.sent"] end
-      if(host[key..".bytes.recv"] ~= nil) then traffic = traffic + host[key..".bytes.recv"] end
+      if(host[key..".bytes.rcvd"] ~= nil) then traffic = traffic + host[key..".bytes.rcvd"] end
 
       _ifstats[traffic] = label
       tot = tot + traffic
