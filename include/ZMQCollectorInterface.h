@@ -38,7 +38,7 @@ class ZMQCollectorInterface : public ZMQParserInterface {
   void *context;
   struct {
     u_int32_t num_flows, num_events, num_counters,
-      num_templates, num_options,
+      num_templates, num_options, num_network_events,
       zmq_msg_drops;
   } recvStats;
   std::map<u_int8_t, u_int32_t>source_id_last_msg_id;
@@ -50,12 +50,12 @@ class ZMQCollectorInterface : public ZMQParserInterface {
   ZMQCollectorInterface(const char *_endpoint);
   ~ZMQCollectorInterface();
 
-  inline const char* get_type()         { return(CONST_INTERFACE_TYPE_ZMQ);      };
-  inline InterfaceType getIfType()      { return(interface_type_ZMQ); }
-  inline bool is_ndpi_enabled()         { return(false);      };
-  inline char* getEndpoint(u_int8_t id) { return((id < num_subscribers) ?
-						 subscriber[id].endpoint : (char*)""); };
-  inline bool isPacketInterface()       { return(false);      };
+  inline const char* get_type()           { return(CONST_INTERFACE_TYPE_ZMQ);      };
+  virtual InterfaceType getIfType() const { return(interface_type_ZMQ); }
+  virtual bool is_ndpi_enabled() const    { return(false);      };
+  inline char* getEndpoint(u_int8_t id)   { return((id < num_subscribers) ?
+						   subscriber[id].endpoint : (char*)""); };
+  virtual bool isPacketInterface() const  { return(false);      };
   void collect_flows();
 
   virtual void purgeIdle(time_t when);

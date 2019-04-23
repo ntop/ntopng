@@ -205,11 +205,11 @@ typedef struct zmq_flow_core {
   } tcp;
   u_int32_t first_switched, last_switched;
   u_int8_t src_mac[6], dst_mac[6], direction, source_id;
-
-  /* Extensions used only during serialization */
-  u_int16_t extn_len;
-  //char extn[];
 } Parsed_FlowCore;
+
+typedef struct zmq_flow_ebpf {
+  ProcessInfo process_info;
+} Parsed_eBPF;
 
 /* Handle vendor-proprietary applications.
    Must stay with 32-bit integers as, at least sonicwall, uses
@@ -223,6 +223,7 @@ typedef struct {
 typedef struct zmq_flow {
   IpAddress src_ip, dst_ip;  
   Parsed_FlowCore core;
+  Parsed_eBPF ebpf;
   json_object *additional_fields;
   char *http_url, *http_site, *dns_query, *ssl_server_name, *bittorrent_hash;
   custom_app_t custom_app;

@@ -33,10 +33,10 @@ class DummyInterface : public ZMQParserInterface {
  public:
   DummyInterface();
 
-  const char* get_type()                { return(CONST_INTERFACE_TYPE_DUMMY);      };
-  inline InterfaceType getIfType()      { return(interface_type_DUMMY);            };
-  inline bool is_ndpi_enabled()         { return(false);  };
-  inline bool isPacketInterface()       { return(false);  };
+  const char* get_type()                  { return(CONST_INTERFACE_TYPE_DUMMY);      };
+  virtual InterfaceType getIfType() const { return(interface_type_DUMMY);            };
+  virtual bool is_ndpi_enabled() const    { return(false);  };
+  virtual bool isPacketInterface() const  { return(false);  };
 
   void forgeFlow(u_int iteration);
   void startPacketPolling();

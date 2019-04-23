@@ -508,6 +508,33 @@ bool ZMQParserInterface::parsePENNtopField(Parsed_Flow * const flow, u_int32_t f
 
   return true;
 }
+/* **************************************************** */
+
+bool ZMQParserInterface::parseNProbeMiniField(Parsed_Flow * const flow, const char * const key, const char * const value, json_object * const jvalue) const {
+  bool ret = false;
+  json_object *obj;
+
+  if(!strncmp(key, "timestamp", 9)) {
+    u_int32_t seconds, nanoseconds /* nanoseconds not currently used */;
+
+    if(sscanf(value, "%u.%u", &seconds, &nanoseconds) == 2) {
+      flow->core.first_switched = flow->core.last_switched = seconds;
+      ret = true;
+    }
+  } else if(!strncmp(key, "PROCESS", 7)) {
+    if(json_object_object_get_ex(jvalue, "PROCESS_ID", &obj))   flow->ebpf.process_info.pid = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "USER_ID", &obj))      flow->ebpf.process_info.uid = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "GROUP_ID", &obj))     flow->ebpf.process_info.gid = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "PROCESS_PATH", &obj)) flow->ebpf.process_info.process_name = strdup(json_object_get_string(obj));
+    ret = true;
+
+    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Process [pid: %u][uid: %u][gid: %u][path: %s]",
+    // 				 flow->ebpf.process_info.pid, flow->ebpf.process_info.uid, flow->ebpf.process_info.gid,
+    // 				 flow->ebpf.process_info.process_name);
+  }
+    
+  return ret;
+}
 
 /* **************************************************** */
 
@@ -573,6 +600,10 @@ void ZMQParserInterface::parseSingleFlow(json_object *o,
 	    }
 	  }
 	  break;
+	case UNKNOWN_FLOW_ELEMENT:
+	  /* Attempt to parse it as an nProbe mini field */
+	  if(parseNProbeMiniField(&flow, key, value, v))
+	    break;
 	default:
 #ifdef NTOPNG_PRO
 	  if(custom_app_maps || (custom_app_maps = new(std::nothrow) CustomAppMaps()))
@@ -630,6 +661,7 @@ void ZMQParserInterface::parseSingleFlow(json_object *o,
   if(flow.http_site) free(flow.http_site);
   if(flow.ssl_server_name) free(flow.ssl_server_name);
   if(flow.bittorrent_hash) free(flow.bittorrent_hash);
+  if(flow.ebpf.process_info.process_name) free(flow.ebpf.process_info.process_name);
 
   // json_object_put(o);
   json_object_put(flow.additional_fields);

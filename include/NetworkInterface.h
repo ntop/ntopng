@@ -298,7 +298,7 @@ class NetworkInterface : public Checkpointable {
   /* calling virtual in constructors/destructors should be avoided
      See C++ FAQ Lite covers this in section 23.7
   */
-  inline virtual bool isPacketInterface()      { return(getIfType() != interface_type_FLOW); }
+  virtual bool isPacketInterface() const    { return(getIfType() != interface_type_FLOW); }
 #if defined(linux) && !defined(HAVE_LIBCAP) && !defined(HAVE_NEDGE)
   /* Note: if we miss the capabilities, we block the overriding of this method. */
   inline bool
@@ -308,10 +308,10 @@ class NetworkInterface : public Checkpointable {
                       isDiscoverableInterface(){ return(false);                              }
   inline virtual char* altDiscoverableName()   { return(NULL);                               }
   inline virtual const char* get_type()        { return(customIftype ? customIftype : CONST_INTERFACE_TYPE_UNKNOWN); }
-  virtual InterfaceType getIfType()            { return(interface_type_UNKNOWN); }
+  virtual InterfaceType getIfType() const      { return(interface_type_UNKNOWN); }
   inline FlowHash *get_flows_hash()            { return flows_hash;     }
   inline TcpFlowStats* getTcpFlowStats()       { return(&tcpFlowStats); }
-  inline virtual bool is_ndpi_enabled()        { return(true);          }
+  virtual bool is_ndpi_enabled() const         { return(true);          }
   inline u_int  getNumnDPIProtocols()          { return(ndpi_get_num_supported_protocols(ndpi_struct)); };
   inline time_t getTimeLastPktRcvd()           { return(last_pkt_rcvd ? last_pkt_rcvd : last_pkt_rcvd_remote); };
   inline void  setTimeLastPktRcvd(time_t t)    { if(t > last_pkt_rcvd) last_pkt_rcvd = t; };
