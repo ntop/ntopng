@@ -866,7 +866,7 @@ $.ajax({
 		     var items = 0;
 		     var other_traffic = 0;
 		     $.each(n, function(j, m) {
-		       if(items < 3) {
+		       if((items < 3) && (m.address != "Other")) {
 			 infoHTML += "<li><a href='host_details.lua?host="+m.address+"'>"+abbreviateString(m.label ? m.label : m.address,24);
 		       infoHTML += "</a>";
 		       if (m.vlan != "0") infoHTML += " ("+m.vlanm+")";
