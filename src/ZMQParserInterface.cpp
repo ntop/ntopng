@@ -512,7 +512,7 @@ bool ZMQParserInterface::parsePENNtopField(Parsed_Flow * const flow, u_int32_t f
 
 bool ZMQParserInterface::parseNProbeMiniField(Parsed_Flow * const flow, const char * const key, const char * const value, json_object * const jvalue) const {
   bool ret = false;
-  json_object *obj;
+  json_object *obj, *obj2;
 
   if(!strncmp(key, "timestamp", 9)) {
     u_int32_t seconds, nanoseconds /* nanoseconds not currently used */;
@@ -531,6 +531,21 @@ bool ZMQParserInterface::parseNProbeMiniField(Parsed_Flow * const flow, const ch
     // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Process [pid: %u][uid: %u][gid: %u][path: %s]",
     // 				 flow->ebpf.process_info.pid, flow->ebpf.process_info.uid, flow->ebpf.process_info.gid,
     // 				 flow->ebpf.process_info.process_name);
+  } else if(!strncmp(key, "CONTAINER", 9)) {
+    if(json_object_object_get_ex(jvalue, "ID", &obj)) flow->ebpf.container_info.id = strdup(json_object_get_string(obj));
+
+    if(json_object_object_get_ex(jvalue, "KUBE", &obj)) {
+      if(json_object_object_get_ex(obj, "NAME", &obj2)) flow->ebpf.container_info.k8s.name = strdup(json_object_get_string(obj2));
+      if(json_object_object_get_ex(obj, "POD", &obj2))  flow->ebpf.container_info.k8s.pod = strdup(json_object_get_string(obj2));
+      if(json_object_object_get_ex(obj, "NS", &obj2))   flow->ebpf.container_info.k8s.ns = strdup(json_object_get_string(obj2));
+    }
+    ret = true;
+
+    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Container [id: %s] K8S [name: %s][pod: %s][ns: %s]",
+    // 				 flow->ebpf.container_info.id ? flow->ebpf.container_info.id : "",
+    // 				 flow->ebpf.container_info.k8s.name ? flow->ebpf.container_info.k8s.name : "",
+    // 				 flow->ebpf.container_info.k8s.pod ? flow->ebpf.container_info.k8s.pod : "",
+    // 				 flow->ebpf.container_info.k8s.ns ? flow->ebpf.container_info.k8s.ns : "");
   }
     
   return ret;
@@ -662,6 +677,10 @@ void ZMQParserInterface::parseSingleFlow(json_object *o,
   if(flow.ssl_server_name) free(flow.ssl_server_name);
   if(flow.bittorrent_hash) free(flow.bittorrent_hash);
   if(flow.ebpf.process_info.process_name) free(flow.ebpf.process_info.process_name);
+  if(flow.ebpf.container_info.id)         free(flow.ebpf.container_info.id);
+  if(flow.ebpf.container_info.k8s.name)   free(flow.ebpf.container_info.k8s.name);
+  if(flow.ebpf.container_info.k8s.pod)    free(flow.ebpf.container_info.k8s.pod);
+  if(flow.ebpf.container_info.k8s.ns)     free(flow.ebpf.container_info.k8s.ns);
 
   // json_object_put(o);
   json_object_put(flow.additional_fields);

@@ -185,6 +185,15 @@ typedef struct {
   u_int32_t father_uid /* User Id */, father_gid; /* Group Id */
 } ProcessInfo;
 
+typedef struct {
+  char *id;
+  struct {
+    char *name;
+    char *pod;
+    char *ns;
+  } k8s;
+} ContainerInfo;
+
 typedef struct zmq_flow_core {
   u_int8_t version; /* 0 so far */
 
@@ -209,6 +218,7 @@ typedef struct zmq_flow_core {
 
 typedef struct zmq_flow_ebpf {
   ProcessInfo process_info;
+  ContainerInfo container_info;
 } Parsed_eBPF;
 
 /* Handle vendor-proprietary applications.
