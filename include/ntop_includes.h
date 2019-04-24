@@ -194,6 +194,7 @@ using namespace std;
 #include "CustomAppStats.h"
 #endif
 #include "GenericTrafficElement.h"
+#include "ContainerStats.h"
 
 #ifdef NTOPNG_PRO
 #include "Profile.h"
@@ -206,7 +207,6 @@ using namespace std;
 #include "CounterTrend.h"
 #include "LRUMacIP.h"
 #include "FlowInterfacesStats.h"
-#include "ContainerStats.h"
 #include "HostPoolStats.h"
 #ifdef HAVE_LDAP
 #include "LdapAuthenticator.h"
