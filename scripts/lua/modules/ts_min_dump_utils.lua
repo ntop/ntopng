@@ -102,6 +102,50 @@ end
 
 -- ########################################################
 
+function ts_dump.containers_update_stats(when, ifstats, verbose)
+  local containers_stats = interface.getContainersStats()
+
+  for container_id, container in pairs(containers_stats) do
+    ts_utils.append("container:num_flows", {ifid=ifstats.id, container=container_id,
+      as_client=container["num_flows.as_client"], as_server=container["num_flows.as_server"]
+    }, when, verbose)
+
+    ts_utils.append("container:rtt", {ifid=ifstats.id, container=container_id,
+      as_client=container["rtt_as_client"], as_server=container["rtt_as_server"]
+    }, when, verbose)
+
+    ts_utils.append("container:rtt_variance", {ifid=ifstats.id, container=container_id,
+      as_client=container["rtt_variance_as_client"], as_server=container["rtt_variance_as_server"]
+    }, when, verbose)
+  end
+end
+
+-- ########################################################
+
+function ts_dump.pods_update_stats(when, ifstats, verbose)
+  local pods_stats = interface.getPodsStats()
+
+  for pod_id, pod in pairs(pods_stats) do
+    ts_utils.append("pod:num_containers", {ifid=ifstats.id, pod=pod_id,
+      num_containers=pod["num_containers"],
+    }, when, verbose)
+
+    ts_utils.append("pod:num_flows", {ifid=ifstats.id, pod=pod_id,
+      as_client=pod["num_flows.as_client"], as_server=pod["num_flows.as_server"]
+    }, when, verbose)
+
+    ts_utils.append("pod:rtt", {ifid=ifstats.id, pod=pod_id,
+      as_client=pod["rtt_as_client"], as_server=pod["rtt_as_server"]
+    }, when, verbose)
+
+    ts_utils.append("pod:rtt_variance", {ifid=ifstats.id, pod=pod_id,
+      as_client=pod["rtt_variance_as_client"], as_server=pod["rtt_variance_as_server"]
+    }, when, verbose)
+  end
+end
+
+-- ########################################################
+
 local function dumpTopTalkers(_ifname, ifstats, verbose)
   -- Dump topTalkers every minute
   local talkers = top_talkers_utils.makeTopJson(_ifname)
@@ -163,6 +207,14 @@ function ts_dump.run_min_dump(_ifname, ifstats, iface_ts, config, when, verbose)
   -- Save Profile stats every minute
   if ntop.isPro() and ifstats.profiles then  -- profiles are only available in the Pro version
     ts_dump.profiles_update_stats(when, ifstats, verbose)
+  end
+
+  -- Containers stats
+  if ifstats.has_seen_pods then
+    ts_dump.containers_update_stats(when, ifstats, verbose)
+  end
+  if ifstats.has_seen_containers then
+    ts_dump.pods_update_stats(when, ifstats, verbose)
   end
 
   if ntop.isnEdge() and ifstats.type == "netfilter" and ifstats.netfilter then
