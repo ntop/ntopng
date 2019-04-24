@@ -7617,6 +7617,38 @@ static int ntop_interface_release_alert(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_interface_get_pods_stats(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(!ntop_interface)
+    return(CONST_LUA_ERROR);
+
+  ntop_interface->getPodsStats(vm);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_interface_get_containers_stats(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  char *pod_filter = NULL;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(!ntop_interface)
+    return(CONST_LUA_ERROR);
+
+  if(lua_type(vm, 1) == LUA_TSTRING)
+    pod_filter = (char*)lua_tostring(vm, 1);
+
+  ntop_interface->getContainersStats(vm, pod_filter);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 // ***API***
 static int ntop_interface_store_alert(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
@@ -8392,6 +8424,10 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "storeAlert",             ntop_interface_store_alert              },
   { "engageAlert",            ntop_interface_engage_alert             },
   { "releaseAlert",           ntop_interface_release_alert            },
+
+  /* Containers */
+  { "getPodsStats",           ntop_interface_get_pods_stats           },
+  { "getContainersStats",     ntop_interface_get_containers_stats     },
 
   { NULL,                             NULL }
 };

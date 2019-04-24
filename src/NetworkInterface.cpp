@@ -280,6 +280,8 @@ void NetworkInterface::init() {
     bridge_lan_interface_id = bridge_wan_interface_id = 0, ndpi_struct = NULL,
     inline_interface = false,
     has_vlan_packets = false, has_ebpf_events = false,
+    has_seen_dhcp_addresses = false,
+    has_seen_containers = false, has_seen_pods = false;
     last_pkt_rcvd = last_pkt_rcvd_remote = 0,
     next_idle_flow_purge = next_idle_host_purge = 0,
     running = false, customIftype = NULL, is_dynamic_interface = false,
@@ -2733,6 +2735,7 @@ void NetworkInterface::cleanup() {
     has_vlan_packets = false, has_ebpf_events = false, has_mac_addresses = false;
   has_seen_dhcp_addresses = false;
   running = false, inline_interface = false;
+  has_seen_containers = false, has_seen_pods = false;
 
   getStats()->cleanup();
   flows_hash->cleanup();
@@ -5441,6 +5444,8 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_bool_table_entry(vm, "has_macs", hasSeenMacAddresses());
   lua_push_bool_table_entry(vm, "has_seen_dhcp_addresses", hasSeenDHCPAddresses());
   lua_push_bool_table_entry(vm, "has_traffic_directions", (areTrafficDirectionsSupported() && (!is_traffic_mirrored)));
+  lua_push_bool_table_entry(vm, "has_seen_pods", hasSeenPods());
+  lua_push_bool_table_entry(vm, "has_seen_containers", hasSeenContainers());
 
   lua_newtable(vm);
   lua_push_uint64_table_entry(vm, "packets",     getNumPackets());
@@ -7450,6 +7455,146 @@ bool NetworkInterface::isLocalBroadcastDomainHost(Host * const h, bool isInlineC
 
   return(bcast_domains->isLocalBroadcastDomainHost(h, isInlineCall)
 	 || (ntop->getLoadInterfaceAddresses() && i->match(ntop->getLoadInterfaceAddresses())));
+}
+
+/* *************************************** */
+
+typedef std::map<const char *, ContainerStats, cmp_str> PodsMap;
+
+static bool flow_get_pods_stats(GenericHashEntry *entry, void *user_data, bool *matched) {
+  PodsMap &pods_stats = (*(PodsMap*) user_data);
+  Flow *flow = (Flow*)entry;
+  ContainerInfo *cli_cont, *srv_cont;
+  const char *cli_pod = NULL, *srv_pod = NULL;
+
+  if((cli_cont = flow->getClientContainerInfo()))
+    cli_pod = cli_cont->k8s.pod;
+  if((srv_cont = flow->getServerContainerInfo()))
+    srv_pod = srv_cont->k8s.pod;
+
+  if(cli_pod) {
+    ContainerStats stats = pods_stats[cli_pod]; /* get existing or create new */
+    TcpInfo *client_tcp = flow->getClientTcpInfo();
+
+    stats.incNumFlowsAsClient();
+    stats.accountLatency(client_tcp ? client_tcp->rtt : 0, client_tcp ? client_tcp->rtt_var : 0, true /* as_client */);
+    if(cli_cont->id)
+      stats.addContainer(cli_cont->id);
+
+    /* Update */
+    pods_stats[cli_pod] = stats;
+  }
+
+  if(srv_pod) {
+    ContainerStats stats = pods_stats[srv_pod]; /* get existing or create new */
+    TcpInfo *server_tcp = flow->getServerTcpInfo();
+
+    stats.incNumFlowsAsServer();
+    stats.accountLatency(server_tcp ? server_tcp->rtt : 0, server_tcp ? server_tcp->rtt_var : 0, false /* as server */);
+    if(srv_cont->id)
+      stats.addContainer(srv_cont->id);
+
+    /* Update */
+    pods_stats[srv_pod] = stats;
+  }
+
+  return(false /* keep walking */);
+}
+
+/* *************************************** */
+
+void NetworkInterface::getPodsStats(lua_State* vm) {
+  PodsMap pods_stats;
+  u_int32_t begin_slot = 0;
+  bool walk_all = true;
+  PodsMap::iterator it;
+
+  walker(&begin_slot, walk_all, walker_flows, flow_get_pods_stats, (void*)&pods_stats);
+
+  lua_newtable(vm);
+
+  for(it = pods_stats.begin(); it != pods_stats.end(); ++it) {
+    it->second.lua(vm);
+
+    lua_pushstring(vm, it->first);
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
+  }
+}
+
+/* *************************************** */
+
+typedef std::map<const char *, ContainerStats, cmp_str> ContainersMap;
+
+struct containerRetrieverData {
+  ContainersMap containers_stats;
+  const char *pod_filter;
+};
+
+static bool flow_get_container_stats(GenericHashEntry *entry, void *user_data, bool *matched) {
+  ContainersMap &containers_stats = ((containerRetrieverData*)user_data)->containers_stats;
+  const char *pod_filter = ((containerRetrieverData*)user_data)->pod_filter;
+  Flow *flow = (Flow*)entry;
+  ContainerInfo *cli_cont, *srv_cont;
+  const char *cli_cont_id = NULL, *srv_cont_id = NULL;
+  const char *cli_pod = NULL, *srv_pod = NULL;
+
+  if((cli_cont = flow->getClientContainerInfo())) {
+    cli_cont_id = cli_cont->id;
+    cli_pod = cli_cont->k8s.pod;
+  }
+  if((srv_cont = flow->getServerContainerInfo())) {
+    srv_cont_id = srv_cont->id;
+    srv_pod = srv_cont->k8s.pod;
+  }
+
+  if(cli_cont_id &&
+	 ((!pod_filter) || (cli_pod && !strcmp(pod_filter, cli_pod)))) {
+    ContainerStats stats = containers_stats[cli_cont_id]; /* get existing or create new */
+    TcpInfo *client_tcp = flow->getClientTcpInfo();
+
+    stats.incNumFlowsAsClient();
+    stats.accountLatency(client_tcp ? client_tcp->rtt : 0, client_tcp ? client_tcp->rtt_var : 0, true /* as_client */);
+
+    /* Update */
+    containers_stats[cli_cont_id] = stats;
+  }
+
+  if(srv_cont_id &&
+	 ((!pod_filter) || (srv_pod && !strcmp(pod_filter, srv_pod)))) {
+    ContainerStats stats = containers_stats[srv_cont_id]; /* get existing or create new */
+    TcpInfo *server_tcp = flow->getServerTcpInfo();
+
+    stats.incNumFlowsAsServer();
+    stats.accountLatency(server_tcp ? server_tcp->rtt : 0, server_tcp ? server_tcp->rtt_var : 0, false /* as server */);
+
+    /* Update */
+    containers_stats[srv_cont_id] = stats;
+  }
+
+  return(false /* keep walking */);
+}
+
+/* *************************************** */
+
+void NetworkInterface::getContainersStats(lua_State* vm, const char *pod_filter) {
+  containerRetrieverData user_data;
+  u_int32_t begin_slot = 0;
+  bool walk_all = true;
+  ContainersMap::iterator it;
+
+  user_data.pod_filter = pod_filter;
+  walker(&begin_slot, walk_all, walker_flows, flow_get_container_stats, (void*)&user_data);
+
+  lua_newtable(vm);
+
+  for(it = user_data.containers_stats.begin(); it != user_data.containers_stats.end(); ++it) {
+    it->second.lua(vm);
+
+    lua_pushstring(vm, it->first);
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
+  }
 }
 
 /* *************************************** */

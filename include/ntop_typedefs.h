@@ -652,4 +652,11 @@ typedef struct dhcp_range {
   IpAddress last_ip;
 } dhcp_range;
 
+/* Function below is required when crating maps with char* */
+struct cmp_str {
+  bool operator()(char const *a, char const *b) {
+    return ::strcmp(a, b) < 0;
+  }
+};
+
 #endif /* _NTOP_TYPEDEFS_H_ */

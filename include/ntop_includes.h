@@ -206,6 +206,7 @@ using namespace std;
 #include "CounterTrend.h"
 #include "LRUMacIP.h"
 #include "FlowInterfacesStats.h"
+#include "ContainerStats.h"
 #include "HostPoolStats.h"
 #ifdef HAVE_LDAP
 #include "LdapAuthenticator.h"

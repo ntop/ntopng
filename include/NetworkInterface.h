@@ -181,6 +181,7 @@ class NetworkInterface : public Checkpointable {
   HostPools *host_pools;
   VlanAddressTree *hide_from_top, *hide_from_top_shadow;
   bool has_vlan_packets, has_ebpf_events, has_mac_addresses, has_seen_dhcp_addresses;
+  bool has_seen_pods, has_seen_containers;
   struct ndpi_detection_module_struct *ndpi_struct;
   time_t last_pkt_rcvd, last_pkt_rcvd_remote, /* Meaningful only for ZMQ interfaces */
     next_idle_flow_purge, next_idle_host_purge;
@@ -337,6 +338,10 @@ class NetworkInterface : public Checkpointable {
   inline void setSeenMacAddresses()            { has_mac_addresses = true;  }
   inline bool hasSeenDHCPAddresses()           { return(has_seen_dhcp_addresses); }
   inline void setDHCPAddressesSeen()           { has_seen_dhcp_addresses = true;  }
+  inline bool hasSeenPods()                    { return(has_seen_pods); }
+  inline void setSeenPods()                    { has_seen_pods = true; }
+  inline bool hasSeenContainers()              { return(has_seen_containers); }
+  inline void setSeenContainers()              { has_seen_containers = true; }
   inline struct ndpi_detection_module_struct* get_ndpi_struct() { return(ndpi_struct);         };
   inline bool is_purge_idle_interface()        { return(purge_idle_flows_hosts);               };
   int dumpFlow(time_t when, Flow *f);
@@ -727,6 +732,8 @@ class NetworkInterface : public Checkpointable {
   void reloadDhcpRanges();
   inline bool hasConfiguredDhcpRanges()      { return(dhcp_ranges && !dhcp_ranges->last_ip.isEmpty()); };
   bool isInDhcpRange(IpAddress *ip);
+  void getPodsStats(lua_State* vm);
+  void getContainersStats(lua_State* vm, const char *pod_filter);
 
 #ifdef HAVE_EBPF
   inline bool iseBPFEventAvailable() { return((ebpfEvents && (ebpfEvents[next_remove_idx] != NULL)) ? true : false); }

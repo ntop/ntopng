@@ -501,6 +501,12 @@ class Flow : public GenericHashEntry {
   void setProcessInfo(eBPFevent *event, bool client_process);
 #endif
   void setParsedeBPFInfo(const Parsed_eBPF * const ebpf, bool client_process);
+  inline ContainerInfo* getClientContainerInfo()  { return(client_cont); }
+  inline ContainerInfo* getServerContainerInfo()  { return(server_cont); }
+  inline ProcessInfo*   getClientProcessInfo()    { return(client_proc); }
+  inline ProcessInfo*   getServerProcessInfo()    { return(server_proc); }
+  inline TcpInfo*       getClientTcpInfo()        { return(client_tcp); }
+  inline TcpInfo*       getServerTcpInfo()        { return(server_tcp); }
 };
 
 #endif /* _FLOW_H_ */
