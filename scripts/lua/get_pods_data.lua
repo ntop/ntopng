@@ -88,8 +88,8 @@ for key in pairsByValues(sort_to_key, sOrder) do
     local pod = pods[key]
 
     res[#res + 1] = {
-      column_pod = '<a href="'.. ntop.getHttpPrefix() ..'/lua/containers_stats.lua?pod='..key..'">' .. key .. '</a>',
-      column_num_containers = pod["num_containers"],
+      column_pod = key,
+      column_num_containers = '<a href="'.. ntop.getHttpPrefix() ..'/lua/containers_stats.lua?pod='..key..'">' .. pod["num_containers"] .. '</a>',
       column_num_flows_as_client = pod["num_flows.as_client"],
       column_num_flows_as_server = pod["num_flows.as_server"],
       column_avg_rtt_as_client = formatLatency(pod["rtt_as_client"]),
