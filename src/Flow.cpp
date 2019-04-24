@@ -1560,20 +1560,22 @@ void Flow::processLua(lua_State* vm, const ProcessInfo * const proc, const Conta
     lua_newtable(vm);
 
     lua_push_uint64_table_entry(vm, "pid", proc->pid);
-    lua_push_uint64_table_entry(vm, "father_pid", proc->father_pid);
     lua_push_str_table_entry(vm, "name", proc->process_name);
-    lua_push_str_table_entry(vm, "father_name", proc->father_process_name);
     lua_push_uint64_table_entry(vm, "uid", proc->uid);
     lua_push_uint64_table_entry(vm, "gid", proc->gid);
-    lua_push_uint64_table_entry(vm, "father_uid", proc->father_uid);
-    lua_push_uint64_table_entry(vm, "father_gid", proc->father_gid);
-
     /* TODO: improve code efficiency */
     pwd = getpwuid(proc->uid);
     lua_push_str_table_entry(vm, "user_name", pwd ? pwd->pw_name : "");
 
-    pwd = getpwuid(proc->father_uid);
-    lua_push_str_table_entry(vm, "father_user_name", pwd ? pwd->pw_name : "");
+    if(proc->father_pid > 0) {
+      lua_push_uint64_table_entry(vm, "father_pid", proc->father_pid);
+      lua_push_uint64_table_entry(vm, "father_uid", proc->father_uid);
+      lua_push_uint64_table_entry(vm, "father_gid", proc->father_gid);
+      lua_push_str_table_entry(vm, "father_name", proc->father_process_name);
+
+      pwd = getpwuid(proc->father_uid);
+      lua_push_str_table_entry(vm, "father_user_name", pwd ? pwd->pw_name : "");
+    }
 
     lua_pushstring(vm, client ? "client_process" : "server_process");
     lua_insert(vm, -2);
