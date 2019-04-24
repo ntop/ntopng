@@ -209,11 +209,11 @@ function ts_dump.run_min_dump(_ifname, ifstats, iface_ts, config, when, verbose)
     ts_dump.profiles_update_stats(when, ifstats, verbose)
   end
 
-  -- Containers stats
-  if ifstats.has_seen_pods then
+  -- Containers/Pods stats
+  if ifstats.has_seen_containers then
     ts_dump.containers_update_stats(when, ifstats, verbose)
   end
-  if ifstats.has_seen_containers then
+  if ifstats.has_seen_pods then
     ts_dump.pods_update_stats(when, ifstats, verbose)
   end
 
