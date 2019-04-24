@@ -2637,12 +2637,12 @@ void NetworkInterface::pollQueuedeBPFEvents() {
       u_int16_t proto, sport, dport;
 
       if(event->ip_version == 4) {
-	src.set(event->event.v4.saddr), dst.set(event->event.v4.daddr),
+	src.set(event->addr.v4.saddr), dst.set(event->addr.v4.daddr),
 	  sport = event->sport, dport = event->dport,
 	  proto = event->proto;
       } else {
-	src.set((struct ndpi_in6_addr*)&event->event.v6.saddr),
-	  dst.set((struct ndpi_in6_addr*)&event->event.v6.daddr),
+	src.set((struct ndpi_in6_addr*)&event->addr.v6.saddr),
+	  dst.set((struct ndpi_in6_addr*)&event->addr.v6.daddr),
 	  sport = event->sport, dport = event->dport,
 	  proto = event->proto;
       }
