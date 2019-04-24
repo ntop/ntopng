@@ -531,6 +531,17 @@ bool ZMQParserInterface::parseNProbeMiniField(Parsed_Flow * const flow, const ch
     // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Process [pid: %u][uid: %u][gid: %u][path: %s]",
     // 				 flow->ebpf.process_info.pid, flow->ebpf.process_info.uid, flow->ebpf.process_info.gid,
     // 				 flow->ebpf.process_info.process_name);
+  } else if(!strncmp(key, "FATHER_PROCESS", 14)) {
+    if(json_object_object_get_ex(jvalue, "PROCESS_ID", &obj))   flow->ebpf.process_info.father_pid = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "USER_ID", &obj))      flow->ebpf.process_info.father_uid = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "GROUP_ID", &obj))     flow->ebpf.process_info.father_gid = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "PROCESS_PATH", &obj)) flow->ebpf.process_info.father_process_name = (char*)json_object_get_string(obj);
+    ret = true;
+
+    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Father Process [pid: %u][uid: %u][gid: %u][path: %s]",
+    //  				 flow->ebpf.process_info.father_pid, flow->ebpf.process_info.father_uid,
+    // 				 flow->ebpf.process_info.father_gid,
+    // 				 flow->ebpf.process_info.father_process_name);
   } else if(!strncmp(key, "CONTAINER", 9)) {
     if(json_object_object_get_ex(jvalue, "ID", &obj)) flow->ebpf.container_info.id = (char*)json_object_get_string(obj);
 
