@@ -526,6 +526,7 @@ bool ZMQParserInterface::parseNProbeMiniField(Parsed_Flow * const flow, const ch
     if(json_object_object_get_ex(jvalue, "USER_ID", &obj))      flow->ebpf.process_info.uid = (u_int32_t)json_object_get_int64(obj);
     if(json_object_object_get_ex(jvalue, "GROUP_ID", &obj))     flow->ebpf.process_info.gid = (u_int32_t)json_object_get_int64(obj);
     if(json_object_object_get_ex(jvalue, "PROCESS_PATH", &obj)) flow->ebpf.process_info.process_name = (char*)json_object_get_string(obj);
+    if(!flow->ebpf.process_info_set) flow->ebpf.process_info_set = true;
     ret = true;
 
     // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Process [pid: %u][uid: %u][gid: %u][path: %s]",
@@ -536,6 +537,7 @@ bool ZMQParserInterface::parseNProbeMiniField(Parsed_Flow * const flow, const ch
     if(json_object_object_get_ex(jvalue, "USER_ID", &obj))      flow->ebpf.process_info.father_uid = (u_int32_t)json_object_get_int64(obj);
     if(json_object_object_get_ex(jvalue, "GROUP_ID", &obj))     flow->ebpf.process_info.father_gid = (u_int32_t)json_object_get_int64(obj);
     if(json_object_object_get_ex(jvalue, "PROCESS_PATH", &obj)) flow->ebpf.process_info.father_process_name = (char*)json_object_get_string(obj);
+    if(!flow->ebpf.process_info_set) flow->ebpf.process_info_set = true;
     ret = true;
 
     // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Father Process [pid: %u][uid: %u][gid: %u][path: %s]",
@@ -547,9 +549,11 @@ bool ZMQParserInterface::parseNProbeMiniField(Parsed_Flow * const flow, const ch
 
     if(json_object_object_get_ex(jvalue, "KUBE", &obj)) {
       if(json_object_object_get_ex(obj, "NAME", &obj2)) flow->ebpf.container_info.k8s.name = (char*)json_object_get_string(obj2);
-      if(json_object_object_get_ex(obj, "POD", &obj2))  flow->ebpf.container_info.k8s.pod = (char*)json_object_get_string(obj2);
-      if(json_object_object_get_ex(obj, "NS", &obj2))   flow->ebpf.container_info.k8s.ns = (char*)json_object_get_string(obj2);
+      if(json_object_object_get_ex(obj, "POD", &obj2))  flow->ebpf.container_info.k8s.pod  = (char*)json_object_get_string(obj2);
+      if(json_object_object_get_ex(obj, "NS", &obj2))   flow->ebpf.container_info.k8s.ns   = (char*)json_object_get_string(obj2);
     }
+
+    if(!flow->ebpf.container_info_set) flow->ebpf.container_info_set = true;
     ret = true;
 
     // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Container [id: %s] K8S [name: %s][pod: %s][ns: %s]",

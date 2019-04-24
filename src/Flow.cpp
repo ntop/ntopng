@@ -1552,42 +1552,47 @@ void Flow::processJson(bool is_src,
 
 /* *************************************** */
 
-void Flow::processLua(lua_State* vm, ProcessInfo *proc, bool client) {
+void Flow::processLua(lua_State* vm, const ProcessInfo * const proc, const ContainerInfo * const cont, bool client) {
 #ifndef WIN32
-  Host *src = get_cli_host(), *dst = get_srv_host();
   struct passwd *pwd;
   
-  if((src == NULL) || (dst == NULL) || (proc->pid == 0)) return;
+  if(proc && proc->pid > 0) {
+    lua_newtable(vm);
 
-  lua_newtable(vm);
+    lua_push_uint64_table_entry(vm, "pid", proc->pid);
+    lua_push_uint64_table_entry(vm, "father_pid", proc->father_pid);
+    lua_push_str_table_entry(vm, "name", proc->process_name);
+    lua_push_str_table_entry(vm, "father_name", proc->father_process_name);
+    lua_push_uint64_table_entry(vm, "uid", proc->uid);
+    lua_push_uint64_table_entry(vm, "gid", proc->gid);
+    lua_push_uint64_table_entry(vm, "father_uid", proc->father_uid);
+    lua_push_uint64_table_entry(vm, "father_gid", proc->father_gid);
 
-  lua_push_uint64_table_entry(vm, "pid", proc->pid);
-  lua_push_uint64_table_entry(vm, "father_pid", proc->father_pid);
-  lua_push_str_table_entry(vm, "name", proc->process_name);
-  lua_push_str_table_entry(vm, "father_name", proc->father_process_name);
-  lua_push_uint64_table_entry(vm, "uid", proc->uid);
-  lua_push_uint64_table_entry(vm, "gid", proc->gid);
-  lua_push_uint64_table_entry(vm, "father_uid", proc->father_uid);
-  lua_push_uint64_table_entry(vm, "father_gid", proc->father_gid);
+    /* TODO: improve code efficiency */
+    pwd = getpwuid(proc->uid);
+    lua_push_str_table_entry(vm, "user_name", pwd ? pwd->pw_name : "");
 
-  /* TODO: improve code efficiency */
-  pwd = getpwuid(proc->uid);
-  lua_push_str_table_entry(vm, "user_name", pwd ? pwd->pw_name : "");
+    pwd = getpwuid(proc->father_uid);
+    lua_push_str_table_entry(vm, "father_user_name", pwd ? pwd->pw_name : "");
 
-  pwd = getpwuid(proc->father_uid);
-  lua_push_str_table_entry(vm, "father_user_name", pwd ? pwd->pw_name : "");
-
-#if 0
-  lua_push_uint64_table_entry(vm, "actual_memory", proc->actual_memory);
-  lua_push_uint64_table_entry(vm, "peak_memory", proc->peak_memory);
-  lua_push_float_table_entry(vm, "average_cpu_load", proc->average_cpu_load);
-  lua_push_float_table_entry(vm, "percentage_iowait_time", proc->percentage_iowait_time);
-  lua_push_uint64_table_entry(vm, "num_vm_page_faults", proc->num_vm_page_faults);
+    lua_pushstring(vm, client ? "client_process" : "server_process");
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
 #endif
-  lua_pushstring(vm, client ? "client_process" : "server_process");
-  lua_insert(vm, -2);
-  lua_settable(vm, -3);
-#endif
+  }
+
+  if(cont) {
+    lua_newtable(vm);
+
+    if(cont->id)       lua_push_str_table_entry(vm, "id", cont->id);
+    if(cont->k8s.name) lua_push_str_table_entry(vm, "k8s.name", cont->k8s.name);
+    if(cont->k8s.pod)  lua_push_str_table_entry(vm, "k8s.pod", cont->k8s.pod);
+    if(cont->k8s.ns)   lua_push_str_table_entry(vm, "k8s.ns", cont->k8s.ns);
+
+    lua_pushstring(vm, client ? "client_container" : "server_container");
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
+  }
 }
 
 /* *************************************** */
@@ -1839,8 +1844,8 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 
     lua_push_str_table_entry(vm, "moreinfo.json", get_json_info());
 
-    if(client_proc) processLua(vm, client_proc, true);
-    if(server_proc) processLua(vm, server_proc, false);
+    if(client_proc) processLua(vm, client_proc, client_cont, true);
+    if(server_proc) processLua(vm, server_proc, server_cont, false);
 
     // overall throughput stats
     lua_push_float_table_entry(vm,  "top_throughput_bps",   top_bytes_thpt);
@@ -3679,7 +3684,9 @@ void Flow::setProcessInfo(eBPFevent *event, bool client_process) {
 
 /* ***************************************************** */
 
-void Flow::setProcessInfo(const ProcessInfo * const pi, const ContainerInfo * const ci, bool client_process) {
+void Flow::setProcessInfo(const Parsed_eBPF * const ebpf, bool client_process) {
+  const ProcessInfo *pi = ebpf && ebpf->process_info_set ? &ebpf->process_info : NULL;
+  const ContainerInfo *ci = ebpf && ebpf->container_info_set ? &ebpf->container_info : NULL;
   ProcessInfo   **process_info   = client_process ? &client_proc : &server_proc;
   ContainerInfo **container_info = client_process ? &client_cont : &server_cont;
 

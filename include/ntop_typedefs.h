@@ -219,6 +219,7 @@ typedef struct zmq_flow_core {
 typedef struct zmq_flow_ebpf {
   ProcessInfo process_info;
   ContainerInfo container_info;
+  bool process_info_set, container_info_set;
 } Parsed_eBPF;
 
 /* Handle vendor-proprietary applications.
