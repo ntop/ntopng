@@ -330,17 +330,17 @@ class NetworkInterface : public Checkpointable {
   inline char* get_description() const         { return(ifDescription);                                };
   inline int  get_id() const                   { return(id);                                           };
   inline bool get_inline_interface()           { return inline_interface;  }
-  inline bool hasSeenVlanTaggedPackets()       { return(has_vlan_packets); }
+  inline bool hasSeenVlanTaggedPackets() const { return(has_vlan_packets); }
   inline void setSeenVlanTaggedPackets()       { has_vlan_packets = true;  }
-  inline bool hasSeenEBPFEvents()              { return(has_ebpf_events);  }
+  inline bool hasSeenEBPFEvents() const        { return(has_ebpf_events);  }
   inline void setSeenEBPFEvents()              { has_ebpf_events = true;   }
-  inline bool hasSeenMacAddresses()            { return(has_mac_addresses); }
+  inline bool hasSeenMacAddresses() const      { return(has_mac_addresses); }
   inline void setSeenMacAddresses()            { has_mac_addresses = true;  }
-  inline bool hasSeenDHCPAddresses()           { return(has_seen_dhcp_addresses); }
+  inline bool hasSeenDHCPAddresses() const     { return(has_seen_dhcp_addresses); }
   inline void setDHCPAddressesSeen()           { has_seen_dhcp_addresses = true;  }
-  inline bool hasSeenPods()                    { return(has_seen_pods); }
+  inline bool hasSeenPods() const              { return(has_seen_pods); }
   inline void setSeenPods()                    { has_seen_pods = true; }
-  inline bool hasSeenContainers()              { return(has_seen_containers); }
+  inline bool hasSeenContainers() const        { return(has_seen_containers); }
   inline void setSeenContainers()              { has_seen_containers = true; }
   inline struct ndpi_detection_module_struct* get_ndpi_struct() { return(ndpi_struct);         };
   inline bool is_purge_idle_interface()        { return(purge_idle_flows_hosts);               };

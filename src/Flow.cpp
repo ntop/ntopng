@@ -3714,9 +3714,17 @@ void Flow::setParsedeBPFInfo(const Parsed_eBPF * const ebpf, bool client_process
   if(ci && (*container_info || (*container_info = (ContainerInfo*)calloc(1, sizeof(ContainerInfo))))) {
     ContainerInfo *cur = *container_info;
 
-    if(ci->id)       cur->id = strdup(ci->id);
+    if(ci->id) {
+      cur->id = strdup(ci->id);
+      if(!iface->hasSeenContainers())
+	iface->setSeenContainers();
+    }
+    if(ci->k8s.pod) {
+      cur->k8s.pod  = strdup(ci->k8s.pod);
+      if(!iface->hasSeenPods())
+	iface->setSeenPods();
+    }
     if(ci->k8s.name) cur->k8s.name = strdup(ci->k8s.name);
-    if(ci->k8s.pod)  cur->k8s.pod  = strdup(ci->k8s.pod);
     if(ci->k8s.ns)   cur->k8s.ns   = strdup(ci->k8s.ns);
   }
 
