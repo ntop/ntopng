@@ -116,6 +116,8 @@ class Flow : public GenericHashEntry {
 
   /* Process Information */
   ProcessInfo *client_proc, *server_proc;
+  /* Container Information */
+  ContainerInfo *client_cont, *server_cont;
 
   /* Stats */
   u_int32_t cli2srv_packets, srv2cli_packets;

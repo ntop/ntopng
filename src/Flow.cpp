@@ -59,7 +59,9 @@ Flow::Flow(NetworkInterface *_iface,
 
   memset(&cli2srvStats, 0, sizeof(cli2srvStats)), memset(&srv2cliStats, 0, sizeof(srv2cliStats));
 
-  ndpiFlow = NULL, cli_id = srv_id = NULL, client_proc = server_proc = NULL;
+  ndpiFlow = NULL, cli_id = srv_id = NULL;
+  client_proc = server_proc = NULL;
+  client_cont = server_cont = NULL;
   json_info = strdup("{}"), cli2srv_direction = true, twh_over = twh_ok = false,
     dissect_next_http_packet = false,
     check_tor = false, host_server_name = NULL, diff_num_http_requests = 0,
@@ -212,12 +214,30 @@ Flow::~Flow() {
   if(host_server_name) free(host_server_name);
 
   if(client_proc) {
-    if(client_proc->process_name) free(client_proc->process_name);
+    if(client_proc->process_name)        free(client_proc->process_name);
     if(client_proc->father_process_name) free(client_proc->father_process_name);
     free(client_proc);
   }
   
-  if(server_proc) free(server_proc);  
+  if(server_proc) {
+    if(server_proc->process_name)        free(server_proc->process_name);
+    if(server_proc->father_process_name) free(server_proc->father_process_name);
+    free(server_proc);
+  }
+
+  if(client_cont) {
+    if(client_cont->id) free(client_cont->id);
+    if(client_cont->k8s.name) free(client_cont->k8s.name);
+    if(client_cont->k8s.pod)  free(client_cont->k8s.pod);
+    if(client_cont->k8s.ns)   free(client_cont->k8s.ns);
+  }
+
+  if(server_cont) {
+    if(server_cont->id) free(server_cont->id);
+    if(server_cont->k8s.name) free(server_cont->k8s.name);
+    if(server_cont->k8s.pod)  free(server_cont->k8s.pod);
+    if(server_cont->k8s.ns)   free(server_cont->k8s.ns);
+  }
 
   if(isHTTP()) {
     if(protos.http.last_method) free(protos.http.last_method);
