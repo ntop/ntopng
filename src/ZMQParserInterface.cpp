@@ -525,19 +525,19 @@ bool ZMQParserInterface::parseNProbeMiniField(Parsed_Flow * const flow, const ch
     if(json_object_object_get_ex(jvalue, "PROCESS_ID", &obj))   flow->ebpf.process_info.pid = (u_int32_t)json_object_get_int64(obj);
     if(json_object_object_get_ex(jvalue, "USER_ID", &obj))      flow->ebpf.process_info.uid = (u_int32_t)json_object_get_int64(obj);
     if(json_object_object_get_ex(jvalue, "GROUP_ID", &obj))     flow->ebpf.process_info.gid = (u_int32_t)json_object_get_int64(obj);
-    if(json_object_object_get_ex(jvalue, "PROCESS_PATH", &obj)) flow->ebpf.process_info.process_name = strdup(json_object_get_string(obj));
+    if(json_object_object_get_ex(jvalue, "PROCESS_PATH", &obj)) flow->ebpf.process_info.process_name = (char*)json_object_get_string(obj);
     ret = true;
 
     // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Process [pid: %u][uid: %u][gid: %u][path: %s]",
     // 				 flow->ebpf.process_info.pid, flow->ebpf.process_info.uid, flow->ebpf.process_info.gid,
     // 				 flow->ebpf.process_info.process_name);
   } else if(!strncmp(key, "CONTAINER", 9)) {
-    if(json_object_object_get_ex(jvalue, "ID", &obj)) flow->ebpf.container_info.id = strdup(json_object_get_string(obj));
+    if(json_object_object_get_ex(jvalue, "ID", &obj)) flow->ebpf.container_info.id = (char*)json_object_get_string(obj);
 
     if(json_object_object_get_ex(jvalue, "KUBE", &obj)) {
-      if(json_object_object_get_ex(obj, "NAME", &obj2)) flow->ebpf.container_info.k8s.name = strdup(json_object_get_string(obj2));
-      if(json_object_object_get_ex(obj, "POD", &obj2))  flow->ebpf.container_info.k8s.pod = strdup(json_object_get_string(obj2));
-      if(json_object_object_get_ex(obj, "NS", &obj2))   flow->ebpf.container_info.k8s.ns = strdup(json_object_get_string(obj2));
+      if(json_object_object_get_ex(obj, "NAME", &obj2)) flow->ebpf.container_info.k8s.name = (char*)json_object_get_string(obj2);
+      if(json_object_object_get_ex(obj, "POD", &obj2))  flow->ebpf.container_info.k8s.pod = (char*)json_object_get_string(obj2);
+      if(json_object_object_get_ex(obj, "NS", &obj2))   flow->ebpf.container_info.k8s.ns = (char*)json_object_get_string(obj2);
     }
     ret = true;
 
@@ -676,11 +676,6 @@ void ZMQParserInterface::parseSingleFlow(json_object *o,
   if(flow.http_site) free(flow.http_site);
   if(flow.ssl_server_name) free(flow.ssl_server_name);
   if(flow.bittorrent_hash) free(flow.bittorrent_hash);
-  if(flow.ebpf.process_info.process_name) free(flow.ebpf.process_info.process_name);
-  if(flow.ebpf.container_info.id)         free(flow.ebpf.container_info.id);
-  if(flow.ebpf.container_info.k8s.name)   free(flow.ebpf.container_info.k8s.name);
-  if(flow.ebpf.container_info.k8s.pod)    free(flow.ebpf.container_info.k8s.pod);
-  if(flow.ebpf.container_info.k8s.ns)     free(flow.ebpf.container_info.k8s.ns);
 
   // json_object_put(o);
   json_object_put(flow.additional_fields);

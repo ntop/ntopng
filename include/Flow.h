@@ -498,6 +498,7 @@ class Flow : public GenericHashEntry {
 #ifdef HAVE_EBPF
   void setProcessInfo(eBPFevent *event, bool client_process);
 #endif
+  void setProcessInfo(const ProcessInfo * const pi, const ContainerInfo * const ci, bool client_process);
 };
 
 #endif /* _FLOW_H_ */

@@ -226,17 +226,19 @@ Flow::~Flow() {
   }
 
   if(client_cont) {
-    if(client_cont->id) free(client_cont->id);
+    if(client_cont->id)       free(client_cont->id);
     if(client_cont->k8s.name) free(client_cont->k8s.name);
     if(client_cont->k8s.pod)  free(client_cont->k8s.pod);
     if(client_cont->k8s.ns)   free(client_cont->k8s.ns);
+    free(client_cont);
   }
 
   if(server_cont) {
-    if(server_cont->id) free(server_cont->id);
+    if(server_cont->id)       free(server_cont->id);
     if(server_cont->k8s.name) free(server_cont->k8s.name);
     if(server_cont->k8s.pod)  free(server_cont->k8s.pod);
     if(server_cont->k8s.ns)   free(server_cont->k8s.ns);
+    free(server_cont);
   }
 
   if(isHTTP()) {
@@ -3674,6 +3676,31 @@ void Flow::setProcessInfo(eBPFevent *event, bool client_process) {
   }
 }
 #endif
+
+/* ***************************************************** */
+
+void Flow::setProcessInfo(const ProcessInfo * const pi, const ContainerInfo * const ci, bool client_process) {
+  ProcessInfo   **process_info   = client_process ? &client_proc : &server_proc;
+  ContainerInfo **container_info = client_process ? &client_cont : &server_cont;
+
+  if(pi && (*process_info || (*process_info = (ProcessInfo*)calloc(1, sizeof(ProcessInfo))))) {
+    ProcessInfo *cur = *process_info;
+
+    cur->pid = pi->pid, cur->uid = pi->uid, cur->gid = pi->gid,
+      cur->father_pid = pi->father_pid, cur->father_uid = pi->father_uid, cur->father_gid = pi->father_gid;
+    if(pi->process_name)        cur->process_name = strdup(pi->process_name);
+    if(pi->father_process_name) cur->father_process_name = strdup(pi->father_process_name);
+  }
+
+  if(ci && (*container_info || (*container_info = (ContainerInfo*)calloc(1, sizeof(ContainerInfo))))) {
+    ContainerInfo *cur = *container_info;
+
+    if(ci->id)       cur->id = strdup(ci->id);
+    if(ci->k8s.name) cur->k8s.name = strdup(ci->k8s.name);
+    if(ci->k8s.pod)  cur->k8s.pod  = strdup(ci->k8s.pod);
+    if(ci->k8s.ns)   cur->k8s.ns   = strdup(ci->k8s.ns);
+  }
+}
 
 /* ***************************************************** */
 
