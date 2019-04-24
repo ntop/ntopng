@@ -194,6 +194,14 @@ typedef struct {
   } k8s;
 } ContainerInfo;
 
+typedef struct {
+  int conn_state;
+  u_int32_t rcvd_bytes;
+  u_int32_t retx_pkts, lost_pkts;
+  u_int32_t in_segs, out_segs, unacked_segs;
+  double rtt, rtt_var;
+} TcpInfo;
+
 typedef struct zmq_flow_core {
   u_int8_t version; /* 0 so far */
 
@@ -219,7 +227,8 @@ typedef struct zmq_flow_core {
 typedef struct zmq_flow_ebpf {
   ProcessInfo process_info;
   ContainerInfo container_info;
-  bool process_info_set, container_info_set;
+  TcpInfo tcp_info;
+  bool process_info_set, container_info_set, tcp_info_set;
 } Parsed_eBPF;
 
 /* Handle vendor-proprietary applications.

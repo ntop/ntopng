@@ -118,6 +118,8 @@ class Flow : public GenericHashEntry {
   ProcessInfo *client_proc, *server_proc;
   /* Container Information */
   ContainerInfo *client_cont, *server_cont;
+  /* Tcp Information */
+  TcpInfo *client_tcp, *server_tcp;
 
   /* Stats */
   u_int32_t cli2srv_packets, srv2cli_packets;
@@ -498,7 +500,7 @@ class Flow : public GenericHashEntry {
 #ifdef HAVE_EBPF
   void setProcessInfo(eBPFevent *event, bool client_process);
 #endif
-  void setProcessInfo(const Parsed_eBPF * const ebpf, bool client_process);
+  void setParsedeBPFInfo(const Parsed_eBPF * const ebpf, bool client_process);
 };
 
 #endif /* _FLOW_H_ */

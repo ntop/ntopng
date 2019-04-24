@@ -62,6 +62,7 @@ Flow::Flow(NetworkInterface *_iface,
   ndpiFlow = NULL, cli_id = srv_id = NULL;
   client_proc = server_proc = NULL;
   client_cont = server_cont = NULL;
+  client_tcp = server_tcp = NULL;
   json_info = strdup("{}"), cli2srv_direction = true, twh_over = twh_ok = false,
     dissect_next_http_packet = false,
     check_tor = false, host_server_name = NULL, diff_num_http_requests = 0,
@@ -240,6 +241,9 @@ Flow::~Flow() {
     if(server_cont->k8s.ns)   free(server_cont->k8s.ns);
     free(server_cont);
   }
+
+  if(client_tcp) free(client_tcp);
+  if(server_tcp) free(server_tcp);
 
   if(isHTTP()) {
     if(protos.http.last_method) free(protos.http.last_method);
@@ -3686,11 +3690,17 @@ void Flow::setProcessInfo(eBPFevent *event, bool client_process) {
 
 /* ***************************************************** */
 
-void Flow::setProcessInfo(const Parsed_eBPF * const ebpf, bool client_process) {
-  const ProcessInfo *pi = ebpf && ebpf->process_info_set ? &ebpf->process_info : NULL;
-  const ContainerInfo *ci = ebpf && ebpf->container_info_set ? &ebpf->container_info : NULL;
+void Flow::setParsedeBPFInfo(const Parsed_eBPF * const ebpf, bool client_process) {
+  if(!ebpf)
+    return;
+
+  const ProcessInfo *pi = ebpf->process_info_set ? &ebpf->process_info : NULL;
+  const ContainerInfo *ci = ebpf->container_info_set ? &ebpf->container_info : NULL;
+  const TcpInfo *ti = ebpf->tcp_info_set ? &ebpf->tcp_info : NULL;
+
   ProcessInfo   **process_info   = client_process ? &client_proc : &server_proc;
   ContainerInfo **container_info = client_process ? &client_cont : &server_cont;
+  TcpInfo **tcp_info = client_process ? &client_tcp : &server_tcp;
 
   if(pi && (*process_info || (*process_info = (ProcessInfo*)calloc(1, sizeof(ProcessInfo))))) {
     ProcessInfo *cur = *process_info;
@@ -3708,6 +3718,11 @@ void Flow::setProcessInfo(const Parsed_eBPF * const ebpf, bool client_process) {
     if(ci->k8s.name) cur->k8s.name = strdup(ci->k8s.name);
     if(ci->k8s.pod)  cur->k8s.pod  = strdup(ci->k8s.pod);
     if(ci->k8s.ns)   cur->k8s.ns   = strdup(ci->k8s.ns);
+  }
+
+  if(ti && (*tcp_info || (*tcp_info = (TcpInfo*)calloc(1, sizeof(TcpInfo))))) {
+    TcpInfo *cur = *tcp_info;
+    memcpy(cur, ti, sizeof(*ti));
   }
 }
 

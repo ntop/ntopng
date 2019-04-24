@@ -561,6 +561,36 @@ bool ZMQParserInterface::parseNProbeMiniField(Parsed_Flow * const flow, const ch
     // 				 flow->ebpf.container_info.k8s.name ? flow->ebpf.container_info.k8s.name : "",
     // 				 flow->ebpf.container_info.k8s.pod ? flow->ebpf.container_info.k8s.pod : "",
     // 				 flow->ebpf.container_info.k8s.ns ? flow->ebpf.container_info.k8s.ns : "");
+  } else if(!strncmp(key, "TCP", 3) && strlen(key) == 3) {
+    if(json_object_object_get_ex(jvalue, "CONN_STATE", &obj))     flow->ebpf.tcp_info.conn_state = Utils::tcpStateStr2State(json_object_get_string(obj));
+
+    if(json_object_object_get_ex(jvalue, "SEGS_IN", &obj))        flow->ebpf.tcp_info.in_segs = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "SEGS_OUT", &obj))       flow->ebpf.tcp_info.out_segs = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "UNACK_SEGMENTS", &obj)) flow->ebpf.tcp_info.unacked_segs = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "RETRAN_PKTS", &obj))    flow->ebpf.tcp_info.retx_pkts = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "LOST_PKTS", &obj))      flow->ebpf.tcp_info.lost_pkts = (u_int32_t)json_object_get_int64(obj);
+
+    if(json_object_object_get_ex(jvalue, "RTT", &obj))            flow->ebpf.tcp_info.rtt = json_object_get_double(obj);
+    if(json_object_object_get_ex(jvalue, "RTT_VARIANCE", &obj))   flow->ebpf.tcp_info.rtt_var = json_object_get_double(obj);
+
+    if(json_object_object_get_ex(jvalue, "BYTES_RCVD", &obj))
+      flow->core.out_bytes = flow->ebpf.tcp_info.rcvd_bytes = (u_int32_t)json_object_get_int64(obj);
+
+    if(!flow->ebpf.tcp_info_set) flow->ebpf.tcp_info_set = true;
+    ret = true;
+
+    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "TCP INFO [conn state: %s][rcvd_bytes: %u][retx_pkts: %u][lost_pkts: %u]"
+    // 				 "[in_segs: %u][out_segs: %u][unacked_segs: %u]"
+    // 				 "[rtt: %f][rtt_var: %f]",
+    // 				 Utils::tcpState2StateStr(flow->ebpf.tcp_info.conn_state),
+    // 				 flow->ebpf.tcp_info.rcvd_bytes,
+    // 				 flow->ebpf.tcp_info.retx_pkts,
+    // 				 flow->ebpf.tcp_info.lost_pkts,
+    // 				 flow->ebpf.tcp_info.in_segs,
+    // 				 flow->ebpf.tcp_info.out_segs,
+    // 				 flow->ebpf.tcp_info.unacked_segs,
+    // 				 flow->ebpf.tcp_info.rtt,
+    // 				 flow->ebpf.tcp_info.rtt_var);
   }
     
   return ret;

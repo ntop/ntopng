@@ -1207,8 +1207,8 @@ void NetworkInterface::processFlow(Parsed_Flow *zflow, bool zmq_flow) {
     flow->setFlowApplLatency(zflow->core.tcp.applLatencyMsec);
 
   /* Update process and container info */
-  flow->setProcessInfo(&zflow->ebpf,
-		       src2dst_direction /* FIX: direction also depends on the type of event. */);
+  flow->setParsedeBPFInfo(&zflow->ebpf,
+			  src2dst_direction /* FIX: direction also depends on the type of event. */);
 
 
   /* Update flow device stats */
