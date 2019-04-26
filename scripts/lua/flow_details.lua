@@ -184,7 +184,7 @@ local function displayContainer(cont, label)
 
    if not isEmptyString(cont["id"]) then
       -- short 12-chars UUID as in docker
-      print("<tr><th width=30%>"..i18n("flow_details.container_id").."</th><td colspan=2>"..cont["id"]:sub(1, 12).."</td></tr>\n")
+      print("<tr><th width=30%>"..i18n("flow_details.container").."</th><td colspan=2>"..shortenContainer(cont["id"]).."</td></tr>\n")
    end
 
    local k8s_name = cont["k8s.name"]

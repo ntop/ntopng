@@ -3710,6 +3710,7 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
   u_int32_t pid_filter;
   u_int32_t deviceIP;
   u_int16_t inIndex, outIndex;
+  char *container_filter;
 #ifdef HAVE_NEDGE
   bool filtered_flows;
 #endif
@@ -3757,6 +3758,16 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
 	   || (retriever->pag->inIndexFilter(&inIndex) && f->getFlowDeviceInIndex() != inIndex)
 	   || (retriever->pag->outIndexFilter(&outIndex) && f->getFlowDeviceOutIndex() != outIndex))
 	  return(false);
+    }
+
+    if(retriever->pag
+       && retriever->pag->containerFilter(&container_filter)) {
+      const char *cli_container = f->getClientContainerInfo() ? f->getClientContainerInfo()->id : NULL;
+      const char *srv_container = f->getServerContainerInfo() ? f->getServerContainerInfo()->id : NULL;
+
+      if(!((cli_container && !strcmp(container_filter, cli_container))
+	  || (srv_container && !strcmp(container_filter, srv_container))))
+        return(false);
     }
 
     if(retriever->pag

@@ -65,10 +65,6 @@ local function formatLatency(x)
    return string.format("%.1f ms", x)
 end
 
-local function shortenContainer(c)
-  return string.sub(c, 1, 12)
-end
-
 local totalRows = 0
 local containers = interface.getContainersStats(pod_filter)
 local sort_to_key = {}

@@ -5,14 +5,6 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
-local if_stats = interface.getStats()
-
-if if_stats.has_seen_pods or if_stats.has_seen_containers then
-   -- Use a different flows page
-   dofile(dirs.installdir .. "/scripts/lua/inc/ebpf_flows_stats.lua")
-   return
-end
-
 require "lua_utils"
 require "graph_utils"
 require "flow_utils"
@@ -27,10 +19,6 @@ page_utils.print_header(i18n("flows"))
 
 active_page = "flows"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
-
--- nDPI application and category
-local application = _GET["application"]
-local category = _GET["category"]
 
 local hosts = _GET["hosts"]
 local host = _GET["host"]
@@ -48,6 +36,7 @@ local traffic_type = _GET["traffic_type"]
 local flow_status = _GET["flow_status"]
 local tcp_state   = _GET["tcp_flow_state"]
 local port = _GET["port"]
+local container = _GET["container"]
 
 local network_id = _GET["network"]
 
@@ -57,7 +46,6 @@ local server_asn = _GET["server_asn"]
 local prefs = ntop.getPrefs()
 interface.select(ifname)
 local ifstats = interface.getStats()
-local ndpistats = interface.getnDPIStats()
 
 local base_url = ntop.getHttpPrefix() .. "/lua/flows_stats.lua"
 local page_params = {}
@@ -69,12 +57,6 @@ print [[
       <div id="table-flows"></div>
 	 <script>
    var url_update = "]]
-
-if(category ~= nil) then
-   page_params["category"] = category
-elseif(application ~= nil) then
-   page_params["application"] = application
-end
 
 if(host ~= nil) then
   page_params["host"] = host
@@ -140,19 +122,25 @@ if(flowhosts_type ~= nil) then
   page_params["flowhosts_type"] = flowhosts_type
 end
 
+if(container ~= nil) then
+  page_params["container"] = container
+end
+
 print(getPageUrl(ntop.getHttpPrefix().."/lua/get_flows_data.lua", page_params))
 
 print ('";')
 
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/flows_stats_id.inc")
+--ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/flows_stats_id.inc")
 -- Set the flow table option
 
 if(ifstats.vlan) then print ('flow_rows_option["vlan"] = true;\n') end
 
    print [[
 	 var table = $("#table-flows").datatable({
-			url: url_update ,
-         rowCallback: function(row) { return flow_table_setID(row); },
+			url: url_update ,]]
+--[[
+         rowCallback: function(row) { return flow_table_setID(row); },]]
+   print[[
          tableCallback: function()  { $("#dt-bottom-details > .pull-left > p").first().append('. ]]
    print(i18n('flows_page.idle_flows_not_listed'))
    print[['); },
@@ -175,7 +163,7 @@ print ('sort: [ ["' .. getDefaultTableSort("flows") ..'","' .. getDefaultTableSo
 
 print ('buttons: [')
 
-printActiveFlowsDropdown(base_url, page_params, ifstats, ndpistats)
+printActiveFlowsDropdown(base_url, page_params, ifstats, {}, true --[[ ebpf_flows ]])
 
 print(" ],\n")
 
@@ -191,13 +179,6 @@ print[[
       }, {
          title: "",
          field: "column_key",
-         css: {
-            textAlign: 'center'
-         }
-      }, {
-         title: "]] print(i18n("application")) print[[",
-         field: "column_ndpi",
-         sortable: true,
          css: {
             textAlign: 'center'
          }
@@ -234,34 +215,6 @@ print[[
          title: "]] print(i18n("server")) print[[",
          field: "column_server",
          sortable: true,
-      }, {
-         title: "]] print(i18n("duration")) print[[",
-         field: "column_duration",
-         sortable: true,
-         css: {
-           textAlign: 'center'
-         }
-      }, {
-         title: "]] print(i18n("breakdown")) print[[",
-         field: "column_breakdown",
-         sortable: false,
-            css: {
-               textAlign: 'center'
-            }
-      }, {
-         title: "]] print(i18n("flows_page.actual_throughput")) print[[",
-         field: "column_thpt",
-         sortable: true,
-         css: {
-            textAlign: 'right'
-         }
-      }, {
-         title: "]] print(i18n("flows_page.total_bytes")) print[[",
-         field: "column_bytes",
-         sortable: true,
-            css: {
-               textAlign: 'right'
-            }
       }, {
          title: "]] print(i18n("info")) print[[",
          field: "column_info",

@@ -3627,6 +3627,12 @@ end
 
 -- ###########################################
 
+function shortenContainer(container)
+   return container:sub(1, 12)
+end
+
+-- ###########################################
+
 --
 -- IMPORTANT
 -- Leave it at the end so it can use the functions
