@@ -1011,8 +1011,10 @@ NetworkInterface* NetworkInterface::getSubInterface(u_int32_t criteria, bool par
 	  break;
 	}
 
-	if(parser_interface)
-	  h->iface = new ParserInterface(buf, vIface_type);
+	if(dynamic_cast<ZMQParserInterface*>(this))
+	  h->iface = new ZMQParserInterface(buf, vIface_type);
+	else if(dynamic_cast<SyslogParserInterface*>(this))
+	  h->iface = new SyslogParserInterface(buf, vIface_type);
 	else
 	  h->iface = new NetworkInterface(buf, vIface_type);
 

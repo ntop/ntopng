@@ -142,7 +142,6 @@ u_int8_t ZMQParserInterface::parseEvent(const char * const payload, int payload_
 				     u_int8_t source_id, void *data) {
   json_object *o;
   enum json_tokener_error jerr = json_tokener_success;
-  NetworkInterface * iface = (NetworkInterface*)data;
   ZMQ_RemoteStats *zrs = NULL;
   memset((void*)&zrs, 0, sizeof(zrs));
 
@@ -231,9 +230,11 @@ u_int8_t ZMQParserInterface::parseEvent(const char * const payload, int payload_
     /* ntop->getTrace()->traceEvent(TRACE_WARNING, "%u/%u", avg_bps, avg_pps); */
 
     /* Process Flow */
-    static_cast<ZMQParserInterface*>(iface)->setRemoteStats(zrs);
+    setRemoteStats(zrs);
+
     if(flowHashing) {
       FlowHashing *current, *tmp;
+      ZMQParserInterface *current_iface;
 
       HASH_ITER(hh, flowHashing, current, tmp) {
 	ZMQ_RemoteStats *zrscopy = (ZMQ_RemoteStats*)malloc(sizeof(ZMQ_RemoteStats));
@@ -241,7 +242,8 @@ u_int8_t ZMQParserInterface::parseEvent(const char * const payload, int payload_
 	if(zrscopy)
 	  memcpy(zrscopy, zrs, sizeof(ZMQ_RemoteStats));
 
-	static_cast<ZMQParserInterface*>(current->iface)->setRemoteStats(zrscopy);
+	if((current_iface = dynamic_cast<ZMQParserInterface*>(current->iface)))
+	  current_iface->setRemoteStats(zrscopy);
       }
     }
 
