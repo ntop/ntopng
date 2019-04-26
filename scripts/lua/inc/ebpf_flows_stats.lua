@@ -245,33 +245,33 @@ if ifstats.has_seen_pods then
   print[[
          title: "]] print(i18n("containers_stats.client_pod")) print[[",
          field: "column_client_pod",
-         sortable: true,
+         sortable: false,
       }, {
          title: "]] print(i18n("containers_stats.server_pod")) print[[",
          field: "column_server_pod",
-         sortable: true,
+         sortable: false,
       }, {
 ]]
 elseif ifstats.has_seen_containers then
   print[[
          title: "]] print(i18n("containers_stats.client_container")) print[[",
          field: "column_client_container",
-         sortable: true,
+         sortable: false,
       }, {
          title: "]] print(i18n("containers_stats.server_container")) print[[",
          field: "column_server_container",
-         sortable: true,
+         sortable: false,
       }, {
 ]]
 elseif ifstats.has_seen_ebpf_events then
   print[[
          title: "]] print(i18n("sflows_stats.client_process")) print[[",
          field: "column_client_process",
-         sortable: true,
+         sortable: false,
       }, {
          title: "]] print(i18n("sflows_stats.server_process")) print[[",
          field: "column_server_process",
-         sortable: true,
+         sortable: false,
       }, {
 ]]
 end
@@ -279,14 +279,14 @@ end
 print[[
          title: "]] print(i18n("containers_stats.client_rtt")) print[[",
          field: "column_client_rtt",
-         sortable: true,
+         sortable: false,
             css: {
                textAlign: 'right'
             }
       }, {
          title: "]] print(i18n("containers_stats.server_rtt")) print[[",
          field: "column_server_rtt",
-         sortable: true,
+         sortable: false,
             css: {
                textAlign: 'right'
             }

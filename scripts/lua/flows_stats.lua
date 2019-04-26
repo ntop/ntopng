@@ -241,11 +241,11 @@ if ifstats.has_seen_ebpf_events then
   print[[
          title: "]] print(i18n("sflows_stats.client_process")) print[[",
          field: "column_client_process",
-         sortable: true,
+         sortable: false,
       }, {
          title: "]] print(i18n("sflows_stats.server_process")) print[[",
          field: "column_server_process",
-         sortable: true,
+         sortable: false,
       }, {
 ]]
 end
