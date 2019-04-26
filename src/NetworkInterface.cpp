@@ -3710,7 +3710,7 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
   u_int32_t pid_filter;
   u_int32_t deviceIP;
   u_int16_t inIndex, outIndex;
-  char *container_filter;
+  char *container_filter, *pod_filter;
 #ifdef HAVE_NEDGE
   bool filtered_flows;
 #endif
@@ -3767,6 +3767,16 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
 
       if(!((cli_container && !strcmp(container_filter, cli_container))
 	  || (srv_container && !strcmp(container_filter, srv_container))))
+        return(false);
+    }
+
+    if(retriever->pag
+       && retriever->pag->podFilter(&pod_filter)) {
+      const char *cli_pod = f->getClientContainerInfo() ? f->getClientContainerInfo()->k8s.pod : NULL;
+      const char *srv_pod = f->getServerContainerInfo() ? f->getServerContainerInfo()->k8s.pod : NULL;
+
+      if(!((cli_pod && !strcmp(pod_filter, cli_pod))
+	  || (srv_pod && !strcmp(pod_filter, srv_pod))))
         return(false);
     }
 
@@ -5457,6 +5467,7 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_bool_table_entry(vm, "has_traffic_directions", (areTrafficDirectionsSupported() && (!is_traffic_mirrored)));
   lua_push_bool_table_entry(vm, "has_seen_pods", hasSeenPods());
   lua_push_bool_table_entry(vm, "has_seen_containers", hasSeenContainers());
+  lua_push_bool_table_entry(vm, "has_seen_ebpf_events", hasSeenEBPFEvents());
 
   lua_newtable(vm);
   lua_push_uint64_table_entry(vm, "packets",     getNumPackets());
@@ -7535,15 +7546,20 @@ void NetworkInterface::getPodsStats(lua_State* vm) {
 
 /* *************************************** */
 
-typedef std::map<const char *, ContainerStats, cmp_str> ContainersMap;
+typedef struct {
+  ContainerInfo *info;
+  ContainerStats stats;
+} ContainerData;
+
+typedef std::map<const char *, ContainerData, cmp_str> ContainersMap;
 
 struct containerRetrieverData {
-  ContainersMap containers_stats;
+  ContainersMap containers;
   const char *pod_filter;
 };
 
 static bool flow_get_container_stats(GenericHashEntry *entry, void *user_data, bool *matched) {
-  ContainersMap &containers_stats = ((containerRetrieverData*)user_data)->containers_stats;
+  ContainersMap &containers_data = ((containerRetrieverData*)user_data)->containers;
   const char *pod_filter = ((containerRetrieverData*)user_data)->pod_filter;
   Flow *flow = (Flow*)entry;
   ContainerInfo *cli_cont, *srv_cont;
@@ -7561,26 +7577,28 @@ static bool flow_get_container_stats(GenericHashEntry *entry, void *user_data, b
 
   if(cli_cont_id &&
 	 ((!pod_filter) || (cli_pod && !strcmp(pod_filter, cli_pod)))) {
-    ContainerStats stats = containers_stats[cli_cont_id]; /* get existing or create new */
+    ContainerData data = containers_data[cli_cont_id]; /* get existing or create new */
     TcpInfo *client_tcp = flow->getClientTcpInfo();
 
-    stats.incNumFlowsAsClient();
-    stats.accountLatency(client_tcp ? client_tcp->rtt : 0, client_tcp ? client_tcp->rtt_var : 0, true /* as_client */);
+    data.stats.incNumFlowsAsClient();
+    data.stats.accountLatency(client_tcp ? client_tcp->rtt : 0, client_tcp ? client_tcp->rtt_var : 0, true /* as_client */);
+    data.info = cli_cont;
 
     /* Update */
-    containers_stats[cli_cont_id] = stats;
+    containers_data[cli_cont_id] = data;
   }
 
   if(srv_cont_id &&
 	 ((!pod_filter) || (srv_pod && !strcmp(pod_filter, srv_pod)))) {
-    ContainerStats stats = containers_stats[srv_cont_id]; /* get existing or create new */
+    ContainerData data = containers_data[srv_cont_id]; /* get existing or create new */
     TcpInfo *server_tcp = flow->getServerTcpInfo();
 
-    stats.incNumFlowsAsServer();
-    stats.accountLatency(server_tcp ? server_tcp->rtt : 0, server_tcp ? server_tcp->rtt_var : 0, false /* as server */);
+    data.stats.incNumFlowsAsServer();
+    data.stats.accountLatency(server_tcp ? server_tcp->rtt : 0, server_tcp ? server_tcp->rtt_var : 0, false /* as server */);
+    data.info = srv_cont;
 
     /* Update */
-    containers_stats[srv_cont_id] = stats;
+    containers_data[srv_cont_id] = data;
   }
 
   return(false /* keep walking */);
@@ -7599,8 +7617,15 @@ void NetworkInterface::getContainersStats(lua_State* vm, const char *pod_filter)
 
   lua_newtable(vm);
 
-  for(it = user_data.containers_stats.begin(); it != user_data.containers_stats.end(); ++it) {
-    it->second.lua(vm);
+  for(it = user_data.containers.begin(); it != user_data.containers.end(); ++it) {
+    it->second.stats.lua(vm);
+
+    if(it->second.info) {
+      Utils::containerInfoLua(vm, it->second.info);
+      lua_pushstring(vm, "info");
+      lua_insert(vm, -2);
+      lua_settable(vm, -3);
+    }
 
     lua_pushstring(vm, it->first);
     lua_insert(vm, -2);

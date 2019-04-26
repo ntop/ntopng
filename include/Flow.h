@@ -180,7 +180,7 @@ class Flow : public GenericHashEntry {
 
   //  tcpFlags = tp->th_flags, tcpSeqNum = ntohl(tp->th_seq), tcpAckNum = ntohl(tp->th_ack), tcpWin = ntohs(tp->th_win);
   char* intoaV4(unsigned int addr, char* buf, u_short bufLen);
-  static void processLua(lua_State* vm, const ProcessInfo * const proc, const ContainerInfo * const cont, bool client);
+  static void processLua(lua_State* vm, const ProcessInfo * const proc, const ContainerInfo * const cont, const TcpInfo * const tcp, bool client);
   void processJson(bool is_src, json_object *my_object, ProcessInfo *proc);
   void allocDPIMemory();
   bool checkTor(char *hostname);

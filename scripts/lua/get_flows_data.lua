@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 require "flow_utils"
+local format_utils = require("format_utils")
 local json = require "dkjson"
 
 local have_nedge = ntop.isnEdge()
@@ -33,6 +34,7 @@ local vlan        = _GET["vlan"]
 local uid         = _GET["uid"]
 local pid         = _GET["pid"]
 local container   = _GET["container"]
+local pod         = _GET["pod"]
 
 local deviceIP    = _GET["deviceIP"]
 local inIfIdx     = _GET["inIfIdx"]
@@ -174,6 +176,10 @@ if not isEmptyString(container) then
    pageinfo["container"] = container
 end
 
+if not isEmptyString(pod) then
+   pageinfo["pod"] = pod
+end
+
 if not isEmptyString(deviceIP) then
    pageinfo["deviceIpFilter"] = deviceIP
 
@@ -253,7 +259,6 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
    local cli_name = flowinfo2hostname(value, "cli")
 
    local src_port, dst_port = '', ''
-   local src_process, dst_process = '', ''
 
    if(cli_name == nil) then cli_name = "???" end
    if(srv_name == nil) then srv_name = "???" end
@@ -281,7 +286,15 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
 	 src_port=""
       end
 
-      src_process = flowinfo2process(value["client_process"], hostinfo2url(value,"cli"))
+      record["column_client_process"] = flowinfo2process(value["client_process"], hostinfo2url(value,"cli"))
+
+      if value["client_container"] ~= nil then
+         record["column_client_container"] = '<a href="' .. ntop.getHttpPrefix() .. '/lua/flows_stats.lua?container=' .. value["client_container"].id .. '">' .. format_utils.formatContainer(value["client_container"]) .. '</a>'
+
+         if value["client_container"]["k8s.pod"] then
+            record["column_client_pod"] = '<a href="' .. ntop.getHttpPrefix() .. '/lua/containers_stats.lua?pod=' .. value["client_container"]["k8s.pod"] .. '">' .. shortenString(value["client_container"]["k8s.pod"]) .. '</a>'
+         end
+      end
    else
       src_key = shortenString(stripVlan(cli_name))
       src_port=":"..value["cli.port"]
@@ -298,10 +311,25 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
 	 dst_port=""
       end
 
-      dst_process = flowinfo2process(value["server_process"], hostinfo2url(value,"srv"))
+      record["column_server_process"] = flowinfo2process(value["server_process"], hostinfo2url(value,"srv"))
+
+      if value["server_container"] ~= nil then
+         record["column_server_container"] = '<a href="' .. ntop.getHttpPrefix() .. '/lua/flows_stats.lua?container=' .. value["server_container"].id .. '">' .. format_utils.formatContainer(value["server_container"]) .. '</a>'
+
+         if value["server_container"]["k8s.pod"] then
+            record["column_server_pod"] = '<a href="' .. ntop.getHttpPrefix() .. '/lua/containers_stats.lua?pod=' .. value["server_container"]["k8s.pod"] .. '">' .. shortenString(value["server_container"]["k8s.pod"]) .. '</a>'
+         end
+      end
    else
       dst_key = shortenString(stripVlan(srv_name))
       dst_port=":"..value["srv.port"]
+   end
+
+   if(value["client_tcp_info"] ~= nil) then
+      record["column_client_rtt"] = format_utils.formatMillis(value["client_tcp_info"]["rtt"])
+   end
+   if(value["server_tcp_info"] ~= nil) then
+      record["column_server_rtt"] = format_utils.formatMillis(value["server_tcp_info"]["rtt"])
    end
 
    local column_key = "<A HREF='"
@@ -332,11 +360,10 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
       column_client = column_client..getFlag(info["country"])
    end
 
-   column_client = string.format("%s%s%s %s",
+   column_client = string.format("%s%s%s",
 				 column_client,
 				 ternary(src_port ~= '', ':', ''),
-				 src_port,
-				 src_process)
+				 src_port)
    if(value["verdict.pass"] == false) then
      column_client = "<strike>"..column_client.."</strike>"
    end
@@ -358,11 +385,10 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
       column_server = column_server..getFlag(info["country"])
    end
 
-   column_server = string.format("%s%s%s %s",
+   column_server = string.format("%s%s%s",
 				 column_server,
 				 ternary(dst_port ~= '', ':', ''),
-				 dst_port,
-				 dst_process)
+				 dst_port)
    if(value["verdict.pass"] == false) then
      column_server = "<strike>"..column_server.."</strike>"
    end

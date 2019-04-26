@@ -30,6 +30,13 @@ print [[
       url: url_update,
       columns: [
         {
+          title: "",
+          field: "column_info",
+          sortable: true,
+          css: {
+            textAlign: 'center'
+          }
+        }, {
           title: "]] print(i18n("containers_stats.pod")) print[[",
           field: "column_pod",
           sortable: true,

@@ -29,6 +29,7 @@ Paginator::Paginator() {
   country_filter = NULL;
   host_filter = NULL;
   container_filter = NULL;
+  pod_filter = NULL;
 
   /* bool */
   a2z_sort_order = true;
@@ -76,6 +77,7 @@ Paginator::~Paginator() {
   if(country_filter) free(country_filter);
   if(host_filter)    free(host_filter);
   if(container_filter) free(container_filter);
+  if(pod_filter)     free(pod_filter);
   if(mac_filter)     free(mac_filter);
 }
 
@@ -112,6 +114,9 @@ void Paginator::readOptions(lua_State *L, int index) {
 	} else if(!strcmp(key, "container")) {
 	  if(container_filter) free(container_filter);
 	  container_filter = strdup(lua_tostring(L, -1));
+	} else if(!strcmp(key, "pod")) {
+	  if(pod_filter) free(pod_filter);
+	  pod_filter = strdup(lua_tostring(L, -1));
 	} else if(!strcmp(key, "clientMode")) {
 	  const char* value = lua_tostring(L, -1);
 	  if (!strcmp(value, "local"))

@@ -9,6 +9,7 @@ require "template"
 require "voip_utils"
 require "graph_utils"
 local tcp_flow_state_utils = require("tcp_flow_state_utils")
+local format_utils = require("format_utils")
 
 if ntop.isPro() then
    package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
@@ -2085,34 +2086,64 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, ndpistats, is_
 	   </div>\
 	']]
     else -- is_ebpf_flows
-	-- Container filter
-	local containers = interface.getContainersStats()
-	local container_params = table.clone(page_params)
-	container_params["container"] = nil
+	if not page_params.container then
+	    -- POD filter
+	    local pods = interface.getPodsStats()
+	    local pods_params = table.clone(page_params)
+	    pods_params["pod"] = nil
 
-	if not table.empty(containers) then
-	    print[[, '\
-	   <div class="btn-group">\
-	      <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("containers_stats.container")) print(getParamFilter(page_params, "container")) print[[<span class="caret"></span></button>\
-	      <ul class="dropdown-menu" role="menu">\
-	      ]]
-	    local entries = {}
+	    if not table.empty(pods) then
+		print[[, '\
+	       <div class="btn-group">\
+		  <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("containers_stats.pod")) print(getParamFilter(page_params, "pod")) print[[<span class="caret"></span></button>\
+		  <ul class="dropdown-menu" role="menu">\
+		  ]]
+		local entries = {}
 
-	    for container_id in pairsByKeys(containers) do
-		entries[#entries + 1] = {container_id, shortenContainer(container_id)}
+		for pod_id, pod in pairsByKeys(pods) do
+		    entries[#entries + 1] = {pod_id, shortenString(pod_id)}
+		end
+
+		print[[<li><a href="]] print(getPageUrl(base_url, pods_params)) print[[">]] print(i18n("containers_stats.all_pods")) print[[</a></li>\]]
+		printDropdownEntries(entries, base_url, pods_params, "pod", page_params.pod)
+
+		print[[\
+		  </ul>\
+	       </div>\
+	    ']]
 	    end
+	end
 
-	    print[[<li><a href="]] print(getPageUrl(base_url, container_params)) print[[">]] print(i18n("containers_stats.all_containers")) print[[</a></li>\]]
-	    printDropdownEntries(entries, base_url, container_params, "container", page_params.container)
+	if not page_params.pod then
+	    -- Container filter
+	    local containers = interface.getContainersStats()
+	    local container_params = table.clone(page_params)
+	    container_params["container"] = nil
 
-	    print[[\
-	      </ul>\
-	   </div>\
-	']]
+	    if not table.empty(containers) then
+		print[[, '\
+	       <div class="btn-group">\
+		  <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("containers_stats.container")) print(getParamFilter(page_params, "container")) print[[<span class="caret"></span></button>\
+		  <ul class="dropdown-menu" role="menu">\
+		  ]]
+		local entries = {}
+
+		for container_id, container in pairsByKeys(containers) do
+		    entries[#entries + 1] = {container_id, format_utils.formatContainer(container.info)}
+		end
+
+		print[[<li><a href="]] print(getPageUrl(base_url, container_params)) print[[">]] print(i18n("containers_stats.all_containers")) print[[</a></li>\]]
+		printDropdownEntries(entries, base_url, container_params, "container", page_params.container)
+
+		print[[\
+		  </ul>\
+	       </div>\
+	    ']]
+	    end
 	end
     end
 
-    if not page_params.category and not is_ebpf_flows then
+    if not page_params.category then
        -- L7 Application
        print(', \'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..i18n("report.applications")..' ' .. getParamFilter(page_params, "application") .. '<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" id="flow_dropdown">')
        print('<li><a href="')
@@ -2135,7 +2166,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, ndpistats, is_
        print("</ul> </div>'")
     end
 
-    if not page_params.application and not is_ebpf_flows then
+    if not page_params.application then
        -- L7 Application Category
        print(', \'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..i18n("users.categories")..' ' .. getParamFilter(page_params, "category") .. '<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" id="flow_dropdown">')
        print('<li><a href="')
@@ -2219,7 +2250,11 @@ function getFlowsTableTitle()
     end
 
     if(_GET["container"] ~= nil) then
-       active_msg = active_msg .. " ["..i18n("containers_stats.container").." "..shortenContainer(_GET["container"]).."]"
+       active_msg = active_msg .. " ["..i18n("containers_stats.container").." ".. format_utils.formatContainerFromId(_GET["container"]).."]"
+    end
+
+    if(_GET["pod"] ~= nil) then
+       active_msg = active_msg .. " ["..i18n("containers_stats.pod").." ".. shortenString(_GET["pod"]) .."]"
     end
 
     if(_GET["tcp_flow_state"] ~= nil) then

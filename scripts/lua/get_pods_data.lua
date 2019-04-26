@@ -6,7 +6,7 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
-
+local format_utils = require("format_utils")
 local json = require("dkjson")
 
 sendHTTPContentTypeHeader('application/json')
@@ -58,11 +58,6 @@ local to_skip = (currentPage-1) * perPage
 
 -- ################################################
 
-local function formatLatency(x)
-   if(x < 0.1) then return 0 end
-   return string.format("%.1f ms", x)
-end
-
 local totalRows = 0
 local pods = interface.getPodsStats()
 local sort_to_key = {}
@@ -87,15 +82,21 @@ for key in pairsByValues(sort_to_key, sOrder) do
   if (i >= to_skip) then
     local pod = pods[key]
 
+   local column_info = "<a href='"
+      ..ntop.getHttpPrefix().."/lua/flows_stats.lua?pod="..key.."'>"
+      .."<span class='label label-info'>"..i18n("flows").."</span>"
+      .."</a>"
+
     res[#res + 1] = {
+      column_info = column_info,
       column_pod = key,
       column_num_containers = '<a href="'.. ntop.getHttpPrefix() ..'/lua/containers_stats.lua?pod='..key..'">' .. pod["num_containers"] .. '</a>',
       column_num_flows_as_client = pod["num_flows.as_client"],
       column_num_flows_as_server = pod["num_flows.as_server"],
-      column_avg_rtt_as_client = formatLatency(pod["rtt_as_client"]),
-      column_avg_rtt_as_server = formatLatency(pod["rtt_as_server"]),
-      column_avg_rtt_variance_as_client = formatLatency(pod["rtt_variance_as_client"]),
-      column_avg_rtt_variance_as_server = formatLatency(pod["rtt_variance_as_server"]),
+      column_avg_rtt_as_client = format_utils.formatMillis(pod["rtt_as_client"]),
+      column_avg_rtt_as_server = format_utils.formatMillis(pod["rtt_as_server"]),
+      column_avg_rtt_variance_as_client = format_utils.formatMillis(pod["rtt_variance_as_client"]),
+      column_avg_rtt_variance_as_server = format_utils.formatMillis(pod["rtt_variance_as_server"]),
     }
   end
 end

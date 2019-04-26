@@ -3773,3 +3773,14 @@ DetailsLevel Utils::bool2DetailsLevel(bool max, bool higher, bool normal){
     return details_high;
   }
 }
+
+/* ****************************************************** */
+
+void Utils::containerInfoLua(lua_State *vm, const ContainerInfo * const cont) {
+  lua_newtable(vm);
+
+  if(cont->id)       lua_push_str_table_entry(vm, "id", cont->id);
+  if(cont->k8s.name) lua_push_str_table_entry(vm, "k8s.name", cont->k8s.name);
+  if(cont->k8s.pod)  lua_push_str_table_entry(vm, "k8s.pod", cont->k8s.pod);
+  if(cont->k8s.ns)   lua_push_str_table_entry(vm, "k8s.ns", cont->k8s.ns);
+}

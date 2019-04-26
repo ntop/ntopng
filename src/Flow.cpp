@@ -1556,7 +1556,8 @@ void Flow::processJson(bool is_src,
 
 /* *************************************** */
 
-void Flow::processLua(lua_State* vm, const ProcessInfo * const proc, const ContainerInfo * const cont, bool client) {
+void Flow::processLua(lua_State* vm, const ProcessInfo * const proc,
+	 const ContainerInfo * const cont, const TcpInfo * const tcp, bool client) {
 #ifndef WIN32
   struct passwd *pwd;
   
@@ -1588,14 +1589,20 @@ void Flow::processLua(lua_State* vm, const ProcessInfo * const proc, const Conta
   }
 
   if(cont) {
-    lua_newtable(vm);
-
-    if(cont->id)       lua_push_str_table_entry(vm, "id", cont->id);
-    if(cont->k8s.name) lua_push_str_table_entry(vm, "k8s.name", cont->k8s.name);
-    if(cont->k8s.pod)  lua_push_str_table_entry(vm, "k8s.pod", cont->k8s.pod);
-    if(cont->k8s.ns)   lua_push_str_table_entry(vm, "k8s.ns", cont->k8s.ns);
+    Utils::containerInfoLua(vm, cont);
 
     lua_pushstring(vm, client ? "client_container" : "server_container");
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
+  }
+
+  if(tcp) {
+    lua_newtable(vm);
+
+    lua_push_float_table_entry(vm, "rtt", tcp->rtt);
+    lua_push_float_table_entry(vm, "rtt_var", tcp->rtt_var);
+
+    lua_pushstring(vm, client ? "client_tcp_info" : "server_tcp_info");
     lua_insert(vm, -2);
     lua_settable(vm, -3);
   }
@@ -1850,8 +1857,8 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 
     lua_push_str_table_entry(vm, "moreinfo.json", get_json_info());
 
-    if(client_proc) processLua(vm, client_proc, client_cont, true);
-    if(server_proc) processLua(vm, server_proc, server_cont, false);
+    if(client_proc) processLua(vm, client_proc, client_cont, client_tcp, true);
+    if(server_proc) processLua(vm, server_proc, server_cont, server_tcp, false);
 
     // overall throughput stats
     lua_push_float_table_entry(vm,  "top_throughput_bps",   top_bytes_thpt);
@@ -3697,6 +3704,7 @@ void Flow::setParsedeBPFInfo(const Parsed_eBPF * const ebpf, bool client_process
   const ProcessInfo *pi = ebpf->process_info_set ? &ebpf->process_info : NULL;
   const ContainerInfo *ci = ebpf->container_info_set ? &ebpf->container_info : NULL;
   const TcpInfo *ti = ebpf->tcp_info_set ? &ebpf->tcp_info : NULL;
+  iface->setSeenEBPFEvents();
 
   ProcessInfo   **process_info   = client_process ? &client_proc : &server_proc;
   ContainerInfo **container_info = client_process ? &client_cont : &server_cont;

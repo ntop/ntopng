@@ -20,7 +20,7 @@ local page_params = {
 
 -- #######################################################
 
-local title = ternary(isEmptyString(page_params.pod), i18n("containers_stats.containers_list"), i18n("containers_stats.containers_of_pod", {pod=page_params.pod}))
+local title = ternary(isEmptyString(page_params.pod), i18n("containers_stats.containers_list"), i18n("containers_stats.containers_of_pod", {pod=shortenString(page_params.pod)}))
 
 print [[
   <hr>
@@ -34,6 +34,13 @@ print [[
       url: url_update,
       columns: [
         {
+          title: "",
+          field: "column_info",
+          sortable: true,
+          css: {
+            textAlign: 'center'
+          }
+        }, {
           title: "]] print(i18n("containers_stats.container")) print[[",
           field: "column_container",
           sortable: true,

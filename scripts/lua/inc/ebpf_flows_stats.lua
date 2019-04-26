@@ -20,6 +20,10 @@ page_utils.print_header(i18n("flows"))
 active_page = "flows"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
+-- nDPI application and category
+local application = _GET["application"]
+local category = _GET["category"]
+
 local hosts = _GET["hosts"]
 local host = _GET["host"]
 local vhost = _GET["vhost"]
@@ -37,6 +41,7 @@ local flow_status = _GET["flow_status"]
 local tcp_state   = _GET["tcp_flow_state"]
 local port = _GET["port"]
 local container = _GET["container"]
+local pod = _GET["pod"]
 
 local network_id = _GET["network"]
 
@@ -46,6 +51,7 @@ local server_asn = _GET["server_asn"]
 local prefs = ntop.getPrefs()
 interface.select(ifname)
 local ifstats = interface.getStats()
+local ndpistats = interface.getnDPIStats()
 
 local base_url = ntop.getHttpPrefix() .. "/lua/flows_stats.lua"
 local page_params = {}
@@ -57,6 +63,12 @@ print [[
       <div id="table-flows"></div>
 	 <script>
    var url_update = "]]
+
+if(category ~= nil) then
+   page_params["category"] = category
+elseif(application ~= nil) then
+   page_params["application"] = application
+end
 
 if(host ~= nil) then
   page_params["host"] = host
@@ -122,6 +134,10 @@ if(flowhosts_type ~= nil) then
   page_params["flowhosts_type"] = flowhosts_type
 end
 
+if(pod ~= nil) then
+  page_params["pod"] = pod
+end
+
 if(container ~= nil) then
   page_params["container"] = container
 end
@@ -163,7 +179,7 @@ print ('sort: [ ["' .. getDefaultTableSort("flows") ..'","' .. getDefaultTableSo
 
 print ('buttons: [')
 
-printActiveFlowsDropdown(base_url, page_params, ifstats, {}, true --[[ ebpf_flows ]])
+printActiveFlowsDropdown(base_url, page_params, ifstats, ndpistats, true --[[ ebpf_flows ]])
 
 print(" ],\n")
 
@@ -179,6 +195,13 @@ print[[
       }, {
          title: "",
          field: "column_key",
+         css: {
+            textAlign: 'center'
+         }
+      }, {
+         title: "]] print(i18n("application")) print[[",
+         field: "column_ndpi",
+         sortable: true,
          css: {
             textAlign: 'center'
          }
@@ -215,6 +238,58 @@ print[[
          title: "]] print(i18n("server")) print[[",
          field: "column_server",
          sortable: true,
+      }, {
+]]
+
+if ifstats.has_seen_pods then
+  print[[
+         title: "]] print(i18n("containers_stats.client_pod")) print[[",
+         field: "column_client_pod",
+         sortable: true,
+      }, {
+         title: "]] print(i18n("containers_stats.server_pod")) print[[",
+         field: "column_server_pod",
+         sortable: true,
+      }, {
+]]
+elseif ifstats.has_seen_containers then
+  print[[
+         title: "]] print(i18n("containers_stats.client_container")) print[[",
+         field: "column_client_container",
+         sortable: true,
+      }, {
+         title: "]] print(i18n("containers_stats.server_container")) print[[",
+         field: "column_server_container",
+         sortable: true,
+      }, {
+]]
+elseif ifstats.has_seen_ebpf_events then
+  print[[
+         title: "]] print(i18n("sflows_stats.client_process")) print[[",
+         field: "column_client_process",
+         sortable: true,
+      }, {
+         title: "]] print(i18n("sflows_stats.server_process")) print[[",
+         field: "column_server_process",
+         sortable: true,
+      }, {
+]]
+end
+
+print[[
+         title: "]] print(i18n("containers_stats.client_rtt")) print[[",
+         field: "column_client_rtt",
+         sortable: true,
+            css: {
+               textAlign: 'right'
+            }
+      }, {
+         title: "]] print(i18n("containers_stats.server_rtt")) print[[",
+         field: "column_server_rtt",
+         sortable: true,
+            css: {
+               textAlign: 'right'
+            }
       }, {
          title: "]] print(i18n("info")) print[[",
          field: "column_info",

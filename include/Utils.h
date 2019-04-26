@@ -153,6 +153,7 @@ class Utils {
   static u_int8_t* int2mac(u_int64_t mac, u_int8_t *buf);
   static void listInterfaces(lua_State* vm); 
   static bool validInterface(char *name);
+  static void containerInfoLua(lua_State *vm, const ContainerInfo * const cont);
  
   /* System Host Montoring and Diagnose Functions */
   static void luaCpuLoad(lua_State* vm);

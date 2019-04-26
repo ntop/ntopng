@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 local shaper_utils
 require "lua_utils"
+local format_utils = require "format_utils"
 local have_nedge = ntop.isnEdge()
 local NfConfig = nil
 
@@ -184,7 +185,7 @@ local function displayContainer(cont, label)
 
    if not isEmptyString(cont["id"]) then
       -- short 12-chars UUID as in docker
-      print("<tr><th width=30%>"..i18n("flow_details.container").."</th><td colspan=2>"..shortenContainer(cont["id"]).."</td></tr>\n")
+      print("<tr><th width=30%>"..i18n("containers_stats.container").."</th><td colspan=2><a href='"..ntop.getHttpPrefix().."/lua/flows_stats.lua?container=".. cont["id"] .."'>"..format_utils.formatContainer(cont).."</a></td></tr>\n")
    end
 
    local k8s_name = cont["k8s.name"]
@@ -193,7 +194,7 @@ local function displayContainer(cont, label)
 
    local k8s_rows = {}
    if not isEmptyString(k8s_name) then k8s_rows[#k8s_rows + 1] = {i18n("flow_details.k8s_name"), k8s_name} end
-   if not isEmptyString(k8s_pod)  then k8s_rows[#k8s_rows + 1] = {i18n("flow_details.k8s_pod"), k8s_pod} end
+   if not isEmptyString(k8s_pod)  then k8s_rows[#k8s_rows + 1] = {i18n("flow_details.k8s_pod"), '<a href="' .. ntop.getHttpPrefix() .. '/lua/containers_stats.lua?pod='.. k8s_pod ..'">' .. k8s_pod .. '</a>'} end
    if not isEmptyString(k8s_ns)   then k8s_rows[#k8s_rows + 1] = {i18n("flow_details.k8s_ns"), k8s_ns} end
 
    for i, row in ipairs(k8s_rows) do

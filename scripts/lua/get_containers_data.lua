@@ -6,7 +6,7 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
-
+local format_utils = require("format_utils")
 local json = require("dkjson")
 
 sendHTTPContentTypeHeader('application/json')
@@ -60,11 +60,6 @@ local to_skip = (currentPage-1) * perPage
 
 -- ################################################
 
-local function formatLatency(x)
-   if(x < 0.1) then return 0 end
-   return string.format("%.1f ms", x)
-end
-
 local totalRows = 0
 local containers = interface.getContainersStats(pod_filter)
 local sort_to_key = {}
@@ -88,14 +83,20 @@ for key in pairsByValues(sort_to_key, sOrder) do
   if (i >= to_skip) then
     local container = containers[key]
 
+   local column_info = "<a href='"
+      ..ntop.getHttpPrefix().."/lua/flows_stats.lua?container="..key.."'>"
+      .."<span class='label label-info'>"..i18n("flows").."</span>"
+      .."</a>"
+ 
     res[#res + 1] = {
-      column_container = '<a href="'.. ntop.getHttpPrefix() ..'/lua/flows_stats.lua?container='..key..'">' .. shortenContainer(key) .. '</a>',
+      column_info = column_info,
+      column_container = format_utils.formatContainer(container.info),
       column_num_flows_as_client = container["num_flows.as_client"],
       column_num_flows_as_server = container["num_flows.as_server"],
-      column_avg_rtt_as_client = formatLatency(container["rtt_as_client"]),
-      column_avg_rtt_as_server = formatLatency(container["rtt_as_server"]),
-      column_avg_rtt_variance_as_client = formatLatency(container["rtt_variance_as_client"]),
-      column_avg_rtt_variance_as_server = formatLatency(container["rtt_variance_as_server"]),
+      column_avg_rtt_as_client = format_utils.formatMillis(container["rtt_as_client"]),
+      column_avg_rtt_as_server = format_utils.formatMillis(container["rtt_as_server"]),
+      column_avg_rtt_variance_as_client = format_utils.formatMillis(container["rtt_variance_as_client"]),
+      column_avg_rtt_variance_as_server = format_utils.formatMillis(container["rtt_variance_as_server"]),
     }
   end
 end
