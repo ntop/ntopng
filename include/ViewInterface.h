@@ -28,11 +28,11 @@ class ViewInterface : public NetworkInterface {
  public:
   ViewInterface(const char *_endpoint);
 
-  inline InterfaceType getIfType()      { return(interface_type_VIEW);           };
-  inline const char* get_type()         { return(CONST_INTERFACE_TYPE_VIEW);     };
-  inline bool is_ndpi_enabled()         { return(false);                         };
-  inline bool isView()                  { return(true);                          };
-  inline bool isPacketInterface()       { return(false);                         };
+  virtual InterfaceType getIfType() const { return(interface_type_VIEW);           };
+  inline const char* get_type()           { return(CONST_INTERFACE_TYPE_VIEW);     };
+  virtual bool is_ndpi_enabled() const    { return(false);                         };
+  inline bool isView()                    { return(true);                          };
+  virtual bool isPacketInterface() const  { return(false);                         };
   inline void startPacketPolling()      { ; };
   inline void shutdown()                { ; };
   bool set_packet_filter(char *filter)  { return(false); };

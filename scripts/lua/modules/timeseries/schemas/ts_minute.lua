@@ -144,6 +144,59 @@ schema:addMetric("num_nfq_pct")
 
 -- ##############################################
 
+-------------------------------------------------------
+-- CONTAINERS SCHEMAS
+-------------------------------------------------------
+
+schema = ts_utils.newSchema("container:num_flows", {step=60, metrics_type=ts_utils.metrics.gauge})
+schema:addTag("ifid")
+schema:addTag("container")
+schema:addMetric("as_client")
+schema:addMetric("as_server")
+
+schema = ts_utils.newSchema("container:rtt", {step=60, metrics_type=ts_utils.metrics.gauge})
+schema:addTag("ifid")
+schema:addTag("container")
+schema:addMetric("as_client")
+schema:addMetric("as_server")
+
+schema = ts_utils.newSchema("container:rtt_variance", {step=60, metrics_type=ts_utils.metrics.gauge})
+schema:addTag("ifid")
+schema:addTag("container")
+schema:addMetric("as_client")
+schema:addMetric("as_server")
+
+-------------------------------------------------------
+-- PODS SCHEMAS
+-------------------------------------------------------
+
+schema = ts_utils.newSchema("pod:num_containers", {step=60, metrics_type=ts_utils.metrics.gauge})
+schema:addTag("ifid")
+schema:addTag("pod")
+schema:addMetric("num_containers")
+
+schema = ts_utils.newSchema("pod:num_flows", {step=60, metrics_type=ts_utils.metrics.gauge})
+schema:addTag("ifid")
+schema:addTag("pod")
+schema:addMetric("as_client")
+schema:addMetric("as_server")
+
+schema = ts_utils.newSchema("pod:rtt", {step=60, metrics_type=ts_utils.metrics.gauge})
+schema:addTag("ifid")
+schema:addTag("pod")
+schema:addMetric("as_client")
+schema:addMetric("as_server")
+
+schema = ts_utils.newSchema("pod:rtt_variance", {step=60, metrics_type=ts_utils.metrics.gauge})
+schema:addTag("ifid")
+schema:addTag("pod")
+schema:addMetric("as_client")
+schema:addMetric("as_server")
+
+-------------------------------------------------------
+-- PROCESS SCHEMAS
+-------------------------------------------------------
+
 schema = ts_utils.newSchema("process:memory", {step=60, metrics_type=ts_utils.metrics.gauge})
 schema:addMetric("resident_bytes")
 schema:addMetric("virtual_bytes")

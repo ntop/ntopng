@@ -35,7 +35,6 @@ ArpStatsMatrixElement::ArpStatsMatrixElement(NetworkInterface *_iface,
 #endif
 }
 
-/* *************************************** */
 
 ArpStatsMatrixElement::~ArpStatsMatrixElement() {
 #ifdef TRACE_ARP_LIFECYCLE
@@ -93,11 +92,14 @@ bool ArpStatsMatrixElement::equal(const u_int8_t _src_mac[6],
   return false;
 }
 
+
+
 /* *************************************** */
 
 u_int32_t ArpStatsMatrixElement::key() {
   return(src_ip + dst_ip);
 }
+
 
 /* *************************************** */
 

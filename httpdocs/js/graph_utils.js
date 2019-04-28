@@ -27,10 +27,10 @@ function getSerieLabel(schema, serie) {
     else if(serie.tags.l4proto)
       return serie.tags.l4proto;
     else if(serie.tags.device && serie.tags.if_index) { // SNMP interface
-      if(serie.tags.if_index != serie.ext_label)
-        return serie.ext_label + " (" + serie.tags.if_index + ")";
-      else
-        return serie.ext_label;
+      if(serie.ext_label != "")
+          return serie.ext_label;
+	else
+          return "(" + serie.tags.if_index + ")";
     } else if(serie.tags.device && serie.tags.port) // Flow device
       return serie.tags.port;
     else if(serie.tags.profile)

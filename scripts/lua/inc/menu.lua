@@ -243,6 +243,13 @@ end
      -- TODO: decide whether a page with the list of processes should be done or not
 end
 
+if _ifstats.has_seen_pods then
+   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pods_stats.lua">') print(i18n("containers_stats.pods")) print('</a></li>')
+end
+if _ifstats.has_seen_containers then
+   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/containers_stats.lua">') print(i18n("containers_stats.containers")) print('</a></li>')
+end
+
 print('<li class="divider"></li>')
 print('<li class="dropdown-header">') print(i18n("local_traffic")) print('</li>')
 

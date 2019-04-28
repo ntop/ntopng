@@ -142,7 +142,6 @@ u_int8_t ZMQParserInterface::parseEvent(const char * const payload, int payload_
 				     u_int8_t source_id, void *data) {
   json_object *o;
   enum json_tokener_error jerr = json_tokener_success;
-  NetworkInterface * iface = (NetworkInterface*)data;
   ZMQ_RemoteStats *zrs = NULL;
   memset((void*)&zrs, 0, sizeof(zrs));
 
@@ -231,9 +230,11 @@ u_int8_t ZMQParserInterface::parseEvent(const char * const payload, int payload_
     /* ntop->getTrace()->traceEvent(TRACE_WARNING, "%u/%u", avg_bps, avg_pps); */
 
     /* Process Flow */
-    static_cast<ZMQParserInterface*>(iface)->setRemoteStats(zrs);
+    setRemoteStats(zrs);
+
     if(flowHashing) {
       FlowHashing *current, *tmp;
+      ZMQParserInterface *current_iface;
 
       HASH_ITER(hh, flowHashing, current, tmp) {
 	ZMQ_RemoteStats *zrscopy = (ZMQ_RemoteStats*)malloc(sizeof(ZMQ_RemoteStats));
@@ -241,7 +242,8 @@ u_int8_t ZMQParserInterface::parseEvent(const char * const payload, int payload_
 	if(zrscopy)
 	  memcpy(zrscopy, zrs, sizeof(ZMQ_RemoteStats));
 
-	static_cast<ZMQParserInterface*>(current->iface)->setRemoteStats(zrscopy);
+	if((current_iface = dynamic_cast<ZMQParserInterface*>(current->iface)))
+	  current_iface->setRemoteStats(zrscopy);
       }
     }
 
@@ -508,6 +510,93 @@ bool ZMQParserInterface::parsePENNtopField(Parsed_Flow * const flow, u_int32_t f
 
   return true;
 }
+/* **************************************************** */
+
+bool ZMQParserInterface::parseNProbeMiniField(Parsed_Flow * const flow, const char * const key, const char * const value, json_object * const jvalue) const {
+  bool ret = false;
+  json_object *obj, *obj2;
+
+  if(!strncmp(key, "timestamp", 9)) {
+    u_int32_t seconds, nanoseconds /* nanoseconds not currently used */;
+
+    if(sscanf(value, "%u.%u", &seconds, &nanoseconds) == 2) {
+      flow->core.first_switched = flow->core.last_switched = seconds;
+      ret = true;
+    }
+  } else if(!strncmp(key, "PROCESS", 7)) {
+    if(json_object_object_get_ex(jvalue, "PROCESS_ID", &obj))   flow->ebpf.process_info.pid = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "USER_ID", &obj))      flow->ebpf.process_info.uid = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "GROUP_ID", &obj))     flow->ebpf.process_info.gid = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "PROCESS_PATH", &obj)) flow->ebpf.process_info.process_name = (char*)json_object_get_string(obj);
+    if(!flow->ebpf.process_info_set) flow->ebpf.process_info_set = true;
+    ret = true;
+
+    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Process [pid: %u][uid: %u][gid: %u][path: %s]",
+    // 				 flow->ebpf.process_info.pid, flow->ebpf.process_info.uid, flow->ebpf.process_info.gid,
+    // 				 flow->ebpf.process_info.process_name);
+  } else if(!strncmp(key, "FATHER_PROCESS", 14)) {
+    if(json_object_object_get_ex(jvalue, "PROCESS_ID", &obj))   flow->ebpf.process_info.father_pid = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "USER_ID", &obj))      flow->ebpf.process_info.father_uid = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "GROUP_ID", &obj))     flow->ebpf.process_info.father_gid = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "PROCESS_PATH", &obj)) flow->ebpf.process_info.father_process_name = (char*)json_object_get_string(obj);
+    if(!flow->ebpf.process_info_set) flow->ebpf.process_info_set = true;
+    ret = true;
+
+    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Father Process [pid: %u][uid: %u][gid: %u][path: %s]",
+    //  				 flow->ebpf.process_info.father_pid, flow->ebpf.process_info.father_uid,
+    // 				 flow->ebpf.process_info.father_gid,
+    // 				 flow->ebpf.process_info.father_process_name);
+  } else if(!strncmp(key, "CONTAINER", 9)) {
+    if(json_object_object_get_ex(jvalue, "ID", &obj)) flow->ebpf.container_info.id = (char*)json_object_get_string(obj);
+
+    if(json_object_object_get_ex(jvalue, "KUBE", &obj)) {
+      if(json_object_object_get_ex(obj, "NAME", &obj2)) flow->ebpf.container_info.k8s.name = (char*)json_object_get_string(obj2);
+      if(json_object_object_get_ex(obj, "POD", &obj2))  flow->ebpf.container_info.k8s.pod  = (char*)json_object_get_string(obj2);
+      if(json_object_object_get_ex(obj, "NS", &obj2))   flow->ebpf.container_info.k8s.ns   = (char*)json_object_get_string(obj2);
+    }
+
+    if(!flow->ebpf.container_info_set) flow->ebpf.container_info_set = true;
+    ret = true;
+
+    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Container [id: %s] K8S [name: %s][pod: %s][ns: %s]",
+    // 				 flow->ebpf.container_info.id ? flow->ebpf.container_info.id : "",
+    // 				 flow->ebpf.container_info.k8s.name ? flow->ebpf.container_info.k8s.name : "",
+    // 				 flow->ebpf.container_info.k8s.pod ? flow->ebpf.container_info.k8s.pod : "",
+    // 				 flow->ebpf.container_info.k8s.ns ? flow->ebpf.container_info.k8s.ns : "");
+  } else if(!strncmp(key, "TCP", 3) && strlen(key) == 3) {
+    if(json_object_object_get_ex(jvalue, "CONN_STATE", &obj))     flow->ebpf.tcp_info.conn_state = Utils::tcpStateStr2State(json_object_get_string(obj));
+
+    if(json_object_object_get_ex(jvalue, "SEGS_IN", &obj))        flow->ebpf.tcp_info.in_segs = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "SEGS_OUT", &obj))       flow->ebpf.tcp_info.out_segs = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "UNACK_SEGMENTS", &obj)) flow->ebpf.tcp_info.unacked_segs = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "RETRAN_PKTS", &obj))    flow->ebpf.tcp_info.retx_pkts = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "LOST_PKTS", &obj))      flow->ebpf.tcp_info.lost_pkts = (u_int32_t)json_object_get_int64(obj);
+
+    if(json_object_object_get_ex(jvalue, "RTT", &obj))            flow->ebpf.tcp_info.rtt = json_object_get_double(obj);
+    if(json_object_object_get_ex(jvalue, "RTT_VARIANCE", &obj))   flow->ebpf.tcp_info.rtt_var = json_object_get_double(obj);
+
+    if(json_object_object_get_ex(jvalue, "BYTES_RCVD", &obj))
+      flow->core.out_bytes = flow->ebpf.tcp_info.rcvd_bytes = (u_int32_t)json_object_get_int64(obj);
+
+    if(!flow->ebpf.tcp_info_set) flow->ebpf.tcp_info_set = true;
+    ret = true;
+
+    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "TCP INFO [conn state: %s][rcvd_bytes: %u][retx_pkts: %u][lost_pkts: %u]"
+    // 				 "[in_segs: %u][out_segs: %u][unacked_segs: %u]"
+    // 				 "[rtt: %f][rtt_var: %f]",
+    // 				 Utils::tcpState2StateStr(flow->ebpf.tcp_info.conn_state),
+    // 				 flow->ebpf.tcp_info.rcvd_bytes,
+    // 				 flow->ebpf.tcp_info.retx_pkts,
+    // 				 flow->ebpf.tcp_info.lost_pkts,
+    // 				 flow->ebpf.tcp_info.in_segs,
+    // 				 flow->ebpf.tcp_info.out_segs,
+    // 				 flow->ebpf.tcp_info.unacked_segs,
+    // 				 flow->ebpf.tcp_info.rtt,
+    // 				 flow->ebpf.tcp_info.rtt_var);
+  }
+    
+  return ret;
+}
 
 /* **************************************************** */
 
@@ -573,6 +662,10 @@ void ZMQParserInterface::parseSingleFlow(json_object *o,
 	    }
 	  }
 	  break;
+	case UNKNOWN_FLOW_ELEMENT:
+	  /* Attempt to parse it as an nProbe mini field */
+	  if(parseNProbeMiniField(&flow, key, value, v))
+	    break;
 	default:
 #ifdef NTOPNG_PRO
 	  if(custom_app_maps || (custom_app_maps = new(std::nothrow) CustomAppMaps()))

@@ -29,6 +29,7 @@ function page_utils.print_header(title)
     <link type="text/css" rel="stylesheet" href="]] print(http_prefix) print[[/css/rickshaw.css">
     <link type="text/css" rel="stylesheet" href="]] print(http_prefix) print[[/css/jquery-ui.css">
     <link href="]] print(http_prefix) print[[/css/dc.css" rel="stylesheet">
+    <link href="]] print(http_prefix) print[[/css/heatmap.css" rel="stylesheet">
 <style>
 .flag {
 	width: 16px;

@@ -116,6 +116,10 @@ class Flow : public GenericHashEntry {
 
   /* Process Information */
   ProcessInfo *client_proc, *server_proc;
+  /* Container Information */
+  ContainerInfo *client_cont, *server_cont;
+  /* Tcp Information */
+  TcpInfo *client_tcp, *server_tcp;
 
   /* Stats */
   u_int32_t cli2srv_packets, srv2cli_packets;
@@ -176,7 +180,7 @@ class Flow : public GenericHashEntry {
 
   //  tcpFlags = tp->th_flags, tcpSeqNum = ntohl(tp->th_seq), tcpAckNum = ntohl(tp->th_ack), tcpWin = ntohs(tp->th_win);
   char* intoaV4(unsigned int addr, char* buf, u_short bufLen);
-  void processLua(lua_State* vm, ProcessInfo *proc, bool client);
+  static void processLua(lua_State* vm, const ProcessInfo * const proc, const ContainerInfo * const cont, const TcpInfo * const tcp, bool client);
   void processJson(bool is_src, json_object *my_object, ProcessInfo *proc);
   void allocDPIMemory();
   bool checkTor(char *hostname);
@@ -496,6 +500,13 @@ class Flow : public GenericHashEntry {
 #ifdef HAVE_EBPF
   void setProcessInfo(eBPFevent *event, bool client_process);
 #endif
+  void setParsedeBPFInfo(const Parsed_eBPF * const ebpf, bool client_process);
+  inline ContainerInfo* getClientContainerInfo()  { return(client_cont); }
+  inline ContainerInfo* getServerContainerInfo()  { return(server_cont); }
+  inline ProcessInfo*   getClientProcessInfo()    { return(client_proc); }
+  inline ProcessInfo*   getServerProcessInfo()    { return(server_proc); }
+  inline TcpInfo*       getClientTcpInfo()        { return(client_tcp); }
+  inline TcpInfo*       getServerTcpInfo()        { return(server_tcp); }
 };
 
 #endif /* _FLOW_H_ */

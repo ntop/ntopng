@@ -28,7 +28,7 @@ local function proc_branch(host, proc)
    local proc_link = ntop.getHttpPrefix().."/lua/process_details.lua?pid="..proc.pid.."&pid_name="..proc.name.."&host=".. host .."&page=flows"
    local proc_leaf = {name = format_proc(proc.name, proc.pid), link = proc_link, type = "proc", children = {}}
 
-   if proc.pid ~= 1 then
+   if (proc.pid ~= 1) and (proc.father_pid ~= nil) then
       local father_leaf = {name = format_proc(proc.father_name, proc.father_pid), type = "proc", children = {}}
 
       father_leaf["children"] = {proc_leaf}

@@ -5,6 +5,14 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
+local if_stats = interface.getStats()
+
+if if_stats.has_seen_pods or if_stats.has_seen_containers then
+   -- Use a different flows page
+   dofile(dirs.installdir .. "/scripts/lua/inc/ebpf_flows_stats.lua")
+   return
+end
+
 require "lua_utils"
 require "graph_utils"
 require "flow_utils"
@@ -227,6 +235,22 @@ print[[
          field: "column_server",
          sortable: true,
       }, {
+]]
+
+if ifstats.has_seen_ebpf_events then
+  print[[
+         title: "]] print(i18n("sflows_stats.client_process")) print[[",
+         field: "column_client_process",
+         sortable: false,
+      }, {
+         title: "]] print(i18n("sflows_stats.server_process")) print[[",
+         field: "column_server_process",
+         sortable: false,
+      }, {
+]]
+end
+
+print[[
          title: "]] print(i18n("duration")) print[[",
          field: "column_duration",
          sortable: true,

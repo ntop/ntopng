@@ -1458,6 +1458,10 @@ local known_parameters = {
    ["list_update"]             = validateNumber,
    ["dhcp_ranges"]             = validateListOfTypeInline(validateIpRange),
 
+   -- Containers
+   ["pod"]                     = validateSingleWord,
+   ["container"]               = validateSingleWord,
+
    -- Host Pools / users associations
    ["associations"]            = { jsonCleanup, validateAssociations },
 

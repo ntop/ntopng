@@ -77,13 +77,26 @@ print("<br>")
 local assistace_checked = ""
 local admin_checked = ""
 local assist_enabled = remote_assistance.isEnabled()
+local admin_enabled = false
 
 if assist_enabled then
   assistace_checked = "checked"
 
   if ntop.getPref("ntopng.prefs.remote_assistance.admin_access") == "1" then
     admin_checked = "checked"
+    admin_enabled = true
   end
+end
+
+if ntop.isGuiAccessRestricted() and admin_enabled then
+  printMessageBanners({{
+    type = "warning",
+    text = i18n("remote_assistance.gui_access_restricted_info", {
+      url_acl = ntop.getHttpPrefix() .. "/lua/admin/prefs.lua?tab=misc",
+      cli_options = "-w -W",
+    }),
+  }})
+  print("<br>")
 end
 
 print [[

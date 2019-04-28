@@ -9,6 +9,7 @@ require "template"
 require "voip_utils"
 require "graph_utils"
 local tcp_flow_state_utils = require("tcp_flow_state_utils")
+local format_utils = require("format_utils")
 
 if ntop.isPro() then
    package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
@@ -1194,8 +1195,8 @@ function getFlowLabel(flow, show_macs, add_hyperlinks, historical_bounds)
 
    local cli_port
    local srv_port
-   if flow["cli.port"] > 0 then cli_port = flow["cli.port"] end
-   if flow["srv.port"] > 0 then srv_port = flow["srv.port"] end
+   if flow["cli.port"] and flow["cli.port"] > 0 then cli_port = flow["cli.port"] end
+   if flow["srv.port"] and flow["srv.port"] > 0 then srv_port = flow["srv.port"] end
 
    local srv_mac
    if(not isEmptyString(flow["srv.mac"]) and flow["srv.mac"] ~= "00:00:00:00:00:00") then
@@ -1997,7 +1998,7 @@ local function getParamFilter(page_params, param_name)
     return ''
 end
 
-function printActiveFlowsDropdown(base_url, page_params, ifstats, ndpistats)
+function printActiveFlowsDropdown(base_url, page_params, ifstats, ndpistats, is_ebpf_flows)
     -- Local / Remote hosts selector
     local flowhosts_type_params = table.clone(page_params)
     flowhosts_type_params["flowhosts_type"] = nil
@@ -2043,46 +2044,104 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, ndpistats)
        </div>\
     ']]
 
-    -- TCP flow state filter
-    local tcp_state_params = table.clone(page_params)
-    tcp_state_params["tcp_flow_state"] = nil
+    if not is_ebpf_flows then
+	-- TCP flow state filter
+	local tcp_state_params = table.clone(page_params)
+	tcp_state_params["tcp_flow_state"] = nil
 
-    print[[, '\
-       <div class="btn-group">\
-	  <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("flows_page.tcp_state")) print(getParamFilter(page_params, "tcp_flow_state")) print[[<span class="caret"></span></button>\
-	  <ul class="dropdown-menu" role="menu">\
-	  <li><a href="]] print(getPageUrl(base_url, tcp_state_params)) print[[">]] print(i18n("flows_page.all_flows")) print[[</a></li>\]]
+	print[[, '\
+	   <div class="btn-group">\
+	      <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("flows_page.tcp_state")) print(getParamFilter(page_params, "tcp_flow_state")) print[[<span class="caret"></span></button>\
+	      <ul class="dropdown-menu" role="menu">\
+	      <li><a href="]] print(getPageUrl(base_url, tcp_state_params)) print[[">]] print(i18n("flows_page.all_flows")) print[[</a></li>\]]
 
-    local entries = {}
-    for _, entry in pairs({"established", "connecting", "closed", "reset"}) do
-       entries[#entries + 1] = {entry, tcp_flow_state_utils.state2i18n(entry)}
+	local entries = {}
+	for _, entry in pairs({"established", "connecting", "closed", "reset"}) do
+	   entries[#entries + 1] = {entry, tcp_flow_state_utils.state2i18n(entry)}
+	end
+
+	printDropdownEntries(entries, base_url, tcp_state_params, "tcp_flow_state", page_params.tcp_flow_state)
+	print[[\
+	      </ul>\
+	   </div>\
+	']]
+
+	-- Unidirectional flows selector
+	local traffic_type_params = table.clone(page_params)
+	traffic_type_params["traffic_type"] = nil
+
+	print[[, '\
+	   <div class="btn-group">\
+	      <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("flows_page.direction")) print(getParamFilter(page_params, "traffic_type")) print[[<span class="caret"></span></button>\
+	      <ul class="dropdown-menu" role="menu">\
+		 <li><a href="]] print(getPageUrl(base_url, traffic_type_params)) print[[">]] print(i18n("flows_page.all_flows")) print[[</a></li>\]]
+	printDropdownEntries({
+	      {"unicast", i18n("flows_page.non_multicast")},
+	      {"broadcast_multicast", i18n("flows_page.multicast")},
+	      {"one_way_unicast", i18n("flows_page.one_way_non_multicast")},
+	      {"one_way_broadcast_multicast", i18n("flows_page.one_way_multicast")},
+	   }, base_url, traffic_type_params, "traffic_type", page_params.traffic_type)
+	print[[\
+	      </ul>\
+	   </div>\
+	']]
+    else -- is_ebpf_flows
+	if not page_params.container then
+	    -- POD filter
+	    local pods = interface.getPodsStats()
+	    local pods_params = table.clone(page_params)
+	    pods_params["pod"] = nil
+
+	    if not table.empty(pods) then
+		print[[, '\
+	       <div class="btn-group">\
+		  <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("containers_stats.pod")) print(getParamFilter(page_params, "pod")) print[[<span class="caret"></span></button>\
+		  <ul class="dropdown-menu" role="menu">\
+		  ]]
+		local entries = {}
+
+		for pod_id, pod in pairsByKeys(pods) do
+		    entries[#entries + 1] = {pod_id, shortenString(pod_id)}
+		end
+
+		print[[<li><a href="]] print(getPageUrl(base_url, pods_params)) print[[">]] print(i18n("containers_stats.all_pods")) print[[</a></li>\]]
+		printDropdownEntries(entries, base_url, pods_params, "pod", page_params.pod)
+
+		print[[\
+		  </ul>\
+	       </div>\
+	    ']]
+	    end
+	end
+
+	if not page_params.pod then
+	    -- Container filter
+	    local containers = interface.getContainersStats()
+	    local container_params = table.clone(page_params)
+	    container_params["container"] = nil
+
+	    if not table.empty(containers) then
+		print[[, '\
+	       <div class="btn-group">\
+		  <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("containers_stats.container")) print(getParamFilter(page_params, "container")) print[[<span class="caret"></span></button>\
+		  <ul class="dropdown-menu" role="menu">\
+		  ]]
+		local entries = {}
+
+		for container_id, container in pairsByKeys(containers) do
+		    entries[#entries + 1] = {container_id, format_utils.formatContainer(container.info)}
+		end
+
+		print[[<li><a href="]] print(getPageUrl(base_url, container_params)) print[[">]] print(i18n("containers_stats.all_containers")) print[[</a></li>\]]
+		printDropdownEntries(entries, base_url, container_params, "container", page_params.container)
+
+		print[[\
+		  </ul>\
+	       </div>\
+	    ']]
+	    end
+	end
     end
-
-    printDropdownEntries(entries, base_url, tcp_state_params, "tcp_flow_state", page_params.tcp_flow_state)
-    print[[\
-	  </ul>\
-       </div>\
-    ']]
-
-    -- Unidirectional flows selector
-    local traffic_type_params = table.clone(page_params)
-    traffic_type_params["traffic_type"] = nil
-
-    print[[, '\
-       <div class="btn-group">\
-	  <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("flows_page.direction")) print(getParamFilter(page_params, "traffic_type")) print[[<span class="caret"></span></button>\
-	  <ul class="dropdown-menu" role="menu">\
-	     <li><a href="]] print(getPageUrl(base_url, traffic_type_params)) print[[">]] print(i18n("flows_page.all_flows")) print[[</a></li>\]]
-    printDropdownEntries({
-	  {"unicast", i18n("flows_page.non_multicast")},
-	  {"broadcast_multicast", i18n("flows_page.multicast")},
-	  {"one_way_unicast", i18n("flows_page.one_way_non_multicast")},
-	  {"one_way_broadcast_multicast", i18n("flows_page.one_way_multicast")},
-       }, base_url, traffic_type_params, "traffic_type", page_params.traffic_type)
-    print[[\
-	  </ul>\
-       </div>\
-    ']]
 
     if not page_params.category then
        -- L7 Application
@@ -2188,6 +2247,14 @@ function getFlowsTableTitle()
 
     if(_GET["deviceIP"] ~= nil) then
        active_msg = active_msg .. " ["..i18n("flows_page.device_ip").." ".._GET["deviceIP"].."]"
+    end
+
+    if(_GET["container"] ~= nil) then
+       active_msg = active_msg .. " ["..i18n("containers_stats.container").." ".. format_utils.formatContainerFromId(_GET["container"]).."]"
+    end
+
+    if(_GET["pod"] ~= nil) then
+       active_msg = active_msg .. " ["..i18n("containers_stats.pod").." ".. shortenString(_GET["pod"]) .."]"
     end
 
     if(_GET["tcp_flow_state"] ~= nil) then

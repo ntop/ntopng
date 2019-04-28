@@ -155,7 +155,7 @@ struct zmq_msg_hdr_v0 {
 
 struct zmq_msg_hdr {
   char url[16];
-  u_int8_t version, _pad;
+  u_int8_t version, source_id;
   u_int16_t size;
   u_int32_t msg_id;
 };
@@ -185,6 +185,23 @@ typedef struct {
   u_int32_t father_uid /* User Id */, father_gid; /* Group Id */
 } ProcessInfo;
 
+typedef struct {
+  char *id;
+  struct {
+    char *name;
+    char *pod;
+    char *ns;
+  } k8s;
+} ContainerInfo;
+
+typedef struct {
+  int conn_state;
+  u_int32_t rcvd_bytes;
+  u_int32_t retx_pkts, lost_pkts;
+  u_int32_t in_segs, out_segs, unacked_segs;
+  double rtt, rtt_var;
+} TcpInfo;
+
 typedef struct zmq_flow_core {
   u_int8_t version; /* 0 so far */
 
@@ -205,11 +222,14 @@ typedef struct zmq_flow_core {
   } tcp;
   u_int32_t first_switched, last_switched;
   u_int8_t src_mac[6], dst_mac[6], direction, source_id;
-
-  /* Extensions used only during serialization */
-  u_int16_t extn_len;
-  //char extn[];
 } Parsed_FlowCore;
+
+typedef struct zmq_flow_ebpf {
+  ProcessInfo process_info;
+  ContainerInfo container_info;
+  TcpInfo tcp_info;
+  bool process_info_set, container_info_set, tcp_info_set;
+} Parsed_eBPF;
 
 /* Handle vendor-proprietary applications.
    Must stay with 32-bit integers as, at least sonicwall, uses
@@ -223,6 +243,7 @@ typedef struct {
 typedef struct zmq_flow {
   IpAddress src_ip, dst_ip;  
   Parsed_FlowCore core;
+  Parsed_eBPF ebpf;
   json_object *additional_fields;
   char *http_url, *http_site, *dns_query, *ssl_server_name, *bittorrent_hash;
   custom_app_t custom_app;
@@ -630,5 +651,12 @@ typedef struct dhcp_range {
   IpAddress first_ip;
   IpAddress last_ip;
 } dhcp_range;
+
+/* Function below is required when crating maps with char* */
+struct cmp_str {
+  bool operator()(char const *a, char const *b) {
+    return ::strcmp(a, b) < 0;
+  }
+};
 
 #endif /* _NTOP_TYPEDEFS_H_ */

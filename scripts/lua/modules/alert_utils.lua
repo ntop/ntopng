@@ -447,7 +447,7 @@ function performAlertsQuery(statement, what, opts, force_query)
          order_by = "alert_severity"
       elseif opts.sortColumn == "column_type" then
          order_by = "alert_type"
-      elseif opts.sortColumn == "column_count" and what == "historical" then
+      elseif opts.sortColumn == "column_count" and what ~= "engaged" then
          order_by = "alert_counter"
       elseif((opts.sortColumn == "column_duration") and (what == "historical")) then
          order_by = "(alert_tstamp_end - alert_tstamp)"
@@ -694,6 +694,15 @@ function formatRawFlow(record, flow_json, skip_add_links)
    end
 
    local l7proto_name = interface.getnDPIProtoName(tonumber(record["l7_proto"]) or 0)
+
+   if record["l7_master_proto"] and record["l7_master_proto"] ~= "0" then
+      local l7proto_master_name = interface.getnDPIProtoName(tonumber(record["l7_master_proto"]))
+
+      if l7proto_master_name ~= l7proto_name then
+	 l7proto_name = string.format("%s.%s", l7proto_master_name, l7proto_name)
+      end
+   end
+
    if not isEmptyString(l7proto_name) and l4_proto_label ~= l7proto_name then
       flow = flow.."["..i18n("application")..": " ..l7proto_name.."] "
    end
@@ -1728,13 +1737,6 @@ function getCurrentStatus() {
 	    title: "]]print(i18n("show_alerts.alert_duration"))print[[",
 	    field: "column_duration",
             sortable: true,
-       ]]
-
-	 if t["status"] == "historical-flows" then
-	    print("hidden: true,")
-	 end
-
-	 print[[
 	    css: {
 	       textAlign: 'center',
           whiteSpace: 'nowrap',
@@ -1744,7 +1746,7 @@ function getCurrentStatus() {
 	 {
 	    title: "]]print(i18n("show_alerts.alert_count"))print[[",
 	    field: "column_count",
-            hidden: ]] print(ternary(t["status"] ~= "historical", "true", "false")) print[[,
+            hidden: ]] print(ternary(t["status"] == "engaged", "true", "false")) print[[,
             sortable: true,
 	    css: {
 	       textAlign: 'center'
