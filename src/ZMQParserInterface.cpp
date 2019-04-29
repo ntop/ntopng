@@ -835,7 +835,7 @@ u_int8_t ZMQParserInterface::parseCounter(const char * const payload, int payloa
       if((key != NULL) && (value != NULL)) {
 	if(!strcmp(key, "deviceIP")) stats.deviceIP = ntohl(inet_addr(value));
 	else if(!strcmp(key, "ifIndex")) stats.ifIndex = atol(value);
-	else if(!strcmp(key, "ifName")) stats.ifName = (char*)value;
+	else if(!strcmp(key, "ifName")) stats.ifName = (char*)json_object_get_string(v);
 	else if(!strcmp(key, "ifType")) stats.ifType = atol(value);
 	else if(!strcmp(key, "ifSpeed")) stats.ifSpeed = atol(value);
 	else if(!strcmp(key, "ifDirection")) stats.ifFullDuplex = (!strcmp(value, "Full")) ? true : false;
