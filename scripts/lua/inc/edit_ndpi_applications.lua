@@ -45,20 +45,29 @@ if (_POST["action"] == "add") or (_POST["action"] == "edit") then
 
   -- Preliminary check
   local applications = interface.getnDPIProtocols()
-  local app_exists = (applications[application] ~= nil)
+  local lower_app = string.lower(application)
+  local existing_app = nil
 
-  if((action == "edit") and (not app_exists)) then
+  -- case insensitive search for applications
+  for k in pairs(applications) do
+    if string.lower(k) == lower_app then
+      existing_app = k
+      break
+    end
+  end
+
+  if((action == "edit") and (existing_app == nil)) then
     app_warnings[#app_warnings + 1] = {
       type = "danger",
       text = i18n("custom_categories.application_not_exists", {
         app = application,
       })
     }
-  elseif((action == "add") and app_exists) then
+  elseif((action == "add") and (existing_app ~= nil)) then
     app_warnings[#app_warnings + 1] = {
       type = "danger",
       text = i18n("custom_categories.application_exists", {
-        app = application,
+        app = existing_app,
       })
     }
   else
@@ -253,7 +262,7 @@ if has_protos_file then
   print[[<li>]] print(i18n("custom_categories.delete_note")) print[[</li>]]
 else
   print[[<li>]] print(i18n("custom_categories.option_needed", {
-    option="-p", url="https://www.ntop.org/guides/ntopng/web_gui/categories.html#protocol-category"
+    option="-p", url="https://www.ntop.org/guides/ntopng/web_gui/categories.html#custom-applications"
   })) print[[</li>]]
 end
 print[[</ul>]]
@@ -294,7 +303,8 @@ print[[
   end
 
   if isEmptyString(proto_filter) then
-    printCategoryDropdownButton(true, catid, base_url, page_params)
+    printCategoryDropdownButton(true, catid, base_url, page_params, nil,
+      true --[[ skip unknown, see get_ndpi_applications.lua ]])
   end
   print[[],
 ]]

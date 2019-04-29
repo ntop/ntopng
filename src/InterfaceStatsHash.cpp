@@ -34,34 +34,45 @@ InterfaceStatsHash::InterfaceStatsHash(u_int _max_hash_size) {
 /* ************************************ */
 
 InterfaceStatsHash::~InterfaceStatsHash() {
-  for(u_int i=0; i<max_hash_size; i++)
-    if(buckets[i] != NULL) free(buckets[i]);
+  for(u_int i=0; i<max_hash_size; i++) {
+    if(buckets[i] != NULL) {
+      if(buckets[i]->ifName) free(buckets[i]->ifName);
+
+      if(buckets[i]->container_info_set) {
+	if(buckets[i]->container_info.id)       free(buckets[i]->container_info.id);
+	if(buckets[i]->container_info.k8s.name) free(buckets[i]->container_info.k8s.name);
+	if(buckets[i]->container_info.k8s.pod)  free(buckets[i]->container_info.k8s.pod);
+	if(buckets[i]->container_info.k8s.ns)   free(buckets[i]->container_info.k8s.ns);
+      }
+
+      free(buckets[i]);
+    }
+  }
 
   free(buckets);
 }
 /* ************************************ */
 
-bool InterfaceStatsHash::set(u_int32_t deviceIP, u_int32_t ifIndex, sFlowInterfaceStats *stats) {
-  u_int32_t hash = (deviceIP+ifIndex) % max_hash_size, num_runs = 0;
+bool InterfaceStatsHash::set(const sFlowInterfaceStats * const stats) {
+  u_int32_t ifIndex = stats->ifIndex, deviceIP = stats->deviceIP;
+  const char * ifName = stats->ifName;
+  u_int32_t hash = (deviceIP + ifIndex + Utils::hashString(ifName)) % max_hash_size, num_runs = 0;
   bool ret = true;
 
   m.lock(__FILE__, __LINE__);
   
-  if(buckets[hash] == NULL) {
-    buckets[hash] = (sFlowInterfaceStats*)malloc(sizeof(sFlowInterfaceStats));
-    if(buckets[hash])
-      memcpy(buckets[hash], stats, sizeof(sFlowInterfaceStats));
-    else
-      ret = false;
-    m.unlock(__FILE__, __LINE__);
-    return(ret);
-  } else {
+  if(!buckets[hash])
+    goto new_bucket;
+  else {
     sFlowInterfaceStats *head;
 
     head = (sFlowInterfaceStats*)buckets[hash];
     
     while(head != NULL) {      
-      if((head->deviceIP == deviceIP) && (head->ifIndex == ifIndex))
+      if(head->deviceIP == deviceIP
+	 && head->ifIndex == ifIndex
+	 && ((!head->ifName && !ifName)
+	     || (head->ifName && ifName && !strcmp(head->ifName, ifName))))
 	break;
       else {
 	/* Inplace hash */
@@ -78,56 +89,36 @@ bool InterfaceStatsHash::set(u_int32_t deviceIP, u_int32_t ifIndex, sFlowInterfa
     }
 
     if(head) {
-      /* Overwrite value */
-      memcpy(head, stats, sizeof(sFlowInterfaceStats));      
+      /* Update values */
+      head->ifType = stats->ifType, head->ifSpeed = stats->ifSpeed,
+	head->ifFullDuplex = stats->ifFullDuplex, head->ifAdminStatus = stats->ifAdminStatus,
+	head->ifOperStatus = stats->ifOperStatus, head->ifPromiscuousMode = stats->ifPromiscuousMode,
+	head->ifInOctets = stats->ifInOctets, head->ifInPackets = stats->ifInPackets,
+	head->ifInErrors = stats->ifInErrors, head->ifOutOctets = stats->ifOutOctets,
+	head->ifOutPackets = stats->ifOutPackets, head->ifOutErrors = stats->ifOutErrors;
     } else {
+    new_bucket:
       buckets[hash] = (sFlowInterfaceStats*)malloc(sizeof(sFlowInterfaceStats));
-      if(buckets[hash])
+      if(buckets[hash]) {
 	memcpy(buckets[hash], stats, sizeof(sFlowInterfaceStats));
-      else
-	ret = false;
-    }
 
-    m.unlock(__FILE__, __LINE__);
+	if(buckets[hash]->ifName) buckets[hash]->ifName = strdup(buckets[hash]->ifName);
 
-    return(ret);
-  }
-}
-
-/* ************************************ */
-
-bool InterfaceStatsHash::get(u_int32_t deviceIP, u_int32_t ifIndex, sFlowInterfaceStats *stats) {
-  u_int32_t hash = (deviceIP+ifIndex) % max_hash_size, num_runs = 0;
-
-  if(buckets[hash] == NULL) {
-    return(false);
-  } else {
-    sFlowInterfaceStats *head;
-
-    m.lock(__FILE__, __LINE__);
-    head = (sFlowInterfaceStats*)buckets[hash];
-    
-    while(head != NULL) {      
-      if((head->deviceIP == deviceIP) && (head->ifIndex == ifIndex)) {
-	memcpy(stats, head, sizeof(sFlowInterfaceStats));
-	break;
-      } else {
-	/* Inplace hash */
-	hash = (hash + 1) % max_hash_size, num_runs++;
-
-	if(num_runs >= max_hash_size) {
-	  m.unlock(__FILE__, __LINE__);
-	  return(false);
+	if(buckets[hash]->container_info_set) {
+	  if(buckets[hash]->container_info.id)       buckets[hash]->container_info.id = strdup(buckets[hash]->container_info.id);
+	  if(buckets[hash]->container_info.k8s.name) buckets[hash]->container_info.k8s.name = strdup(buckets[hash]->container_info.k8s.name);
+	  if(buckets[hash]->container_info.k8s.pod)  buckets[hash]->container_info.k8s.pod = strdup(buckets[hash]->container_info.k8s.pod);
+	  if(buckets[hash]->container_info.k8s.ns)   buckets[hash]->container_info.k8s.ns = strdup(buckets[hash]->container_info.k8s.ns);
 	}
 
-	head = buckets[hash];
-      }
+      } else
+	ret = false;
     }
-
-    m.unlock(__FILE__, __LINE__);
-
-    return(false);
   }
+
+  m.unlock(__FILE__, __LINE__);
+  
+  return(ret);
 }
 
 /* ************************************ */
@@ -189,6 +180,8 @@ void InterfaceStatsHash::luaDeviceInfo(lua_State *vm, u_int32_t deviceIP) {
       lua_newtable(vm);      
       
       lua_push_uint64_table_entry(vm, "ifType", head->ifType);
+      if(head->ifName)
+	lua_push_str_table_entry(vm, "ifName", head->ifName);
       lua_push_uint64_table_entry(vm, "ifSpeed", head->ifSpeed);
       lua_push_bool_table_entry(vm, "ifFullDuplex", head->ifFullDuplex);
       lua_push_bool_table_entry(vm, "ifAdminStatus", head->ifAdminStatus);

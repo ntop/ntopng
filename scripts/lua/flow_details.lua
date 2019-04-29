@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 local shaper_utils
 require "lua_utils"
+local format_utils = require "format_utils"
 local have_nedge = ntop.isnEdge()
 local NfConfig = nil
 
@@ -179,6 +180,49 @@ local function printAddCustomHostRule(full_url)
 </script>]]
 end
 
+local function displayContainer(cont, label)
+   print(label)
+
+   if not isEmptyString(cont["id"]) then
+      -- short 12-chars UUID as in docker
+      print("<tr><th width=30%>"..i18n("containers_stats.container").."</th><td colspan=2><a href='"..ntop.getHttpPrefix().."/lua/flows_stats.lua?container=".. cont["id"] .."'>"..format_utils.formatContainer(cont).."</a></td></tr>\n")
+   end
+
+   local k8s_name = cont["k8s.name"]
+   local k8s_pod = cont["k8s.pod"]
+   local k8s_ns = cont["k8s.ns"]
+
+   local k8s_rows = {}
+   if not isEmptyString(k8s_name) then k8s_rows[#k8s_rows + 1] = {i18n("flow_details.k8s_name"), k8s_name} end
+   if not isEmptyString(k8s_pod)  then k8s_rows[#k8s_rows + 1] = {i18n("flow_details.k8s_pod"), '<a href="' .. ntop.getHttpPrefix() .. '/lua/containers_stats.lua?pod='.. k8s_pod ..'">' .. k8s_pod .. '</a>'} end
+   if not isEmptyString(k8s_ns)   then k8s_rows[#k8s_rows + 1] = {i18n("flow_details.k8s_ns"), k8s_ns} end
+
+   for i, row in ipairs(k8s_rows) do
+      local header = ''
+
+      if i == 1 then
+	 header = "<th width=30% rowspan="..(#k8s_rows)..">"..i18n("flow_details.k8s").."</th>"
+      end
+
+      print("<tr>"..header.."<th>"..row[1].."</th><td>"..row[2].."</td></tr>\n")
+   end
+
+   local docker_name = cont["docker.name"]
+
+   local docker_rows = {}
+   if not isEmptyString(docker_name) then docker_rows[#docker_rows + 1] = {i18n("flow_details.docker_name"), docker_name} end
+
+   for i, row in ipairs(docker_rows) do
+      local header = ''
+
+      if i == 1 then
+	 header = "<th width=30% rowspan="..(#docker_rows)..">"..i18n("flow_details.docker").."</th>"
+      end
+
+      print("<tr>"..header.."<th>"..row[1].."</th><td>"..row[2].."</td></tr>\n")
+   end
+end
+
 local function displayProc(proc, label)
    if(proc.pid == 0) then return end
 
@@ -186,53 +230,8 @@ local function displayProc(proc, label)
    
    print("<tr><th width=30%>"..i18n("flow_details.user_name").."</th><td colspan=2><A HREF=\""..ntop.getHttpPrefix().."/lua/username_details.lua?uid=" .. proc.uid .. "&username=".. proc.user_name .."&".. hostinfo2url(flow,"cli").."\">".. proc.user_name .."</A></td></tr>\n")
    print("<tr><th width=30%>"..i18n("flow_details.process_pid_name").."</th><td colspan=2><A HREF=\""..ntop.getHttpPrefix().."/lua/process_details.lua?pid=".. proc.pid .."&pid_name=".. proc.name .. "&" .. hostinfo2url(flow,"srv").. "\">".. proc.name .. " [pid: "..proc.pid.."]</A>")
-   print(" "..i18n("flow_details.son_of_father_process",{url=ntop.getHttpPrefix().."/lua/get_process_info.lua?pid="..proc.father_pid, proc_father_pid = proc.father_pid, proc_father_name = proc.father_name}).."</td></tr>\n")
-
-   if(false) then
-   if(proc.actual_memory > 0) then
-      print("<tr><th width=30%>"..i18n("flow_details.average_cpu_load").."</th><td colspan=2><span id=average_cpu_load_"..proc.pid..">")
-
-      cpu_load = round(proc.average_cpu_load, 2)..""
-      if(proc.average_cpu_load < 33) then
-	     if(proc.average_cpu_load == 0) then proc.average_cpu_load = "< 1" end
-		print("<font color=green>"..cpu_load.." %</font>")
-	 elseif(proc.average_cpu_load < 66) then
-		print("<font color=orange><b>"..cpu_load.." %</b></font>")
-	 else
-		print("<font color=red><b>"..cpu_load.." %</b></font>")
-	 end
-      print(" </span></td></tr>\n")
-
-      print("<tr><th width=30%>"..i18n("flow_details.io_wait_time_percentage").."</th><td colspan=2><span id=percentage_iowait_time_"..proc.pid..">")
-
-      cpu_load = round(proc.percentage_iowait_time, 2)..""
-      if(proc.percentage_iowait_time < 33) then
-	     if(proc.percentage_iowait_time == 0) then proc.percentage_iowait_time = "< 1" end
-		print("<font color=green>"..cpu_load.." %</font>")
-	 elseif(proc.percentage_iowait_time < 66) then
-		print("<font color=orange><b>"..cpu_load.." %</b></font>")
-	 else
-		print("<font color=red><b>"..cpu_load.." %</b></font>")
-	 end
-      print(" </span></td></tr>\n")
-
-
-      print("<tr><th width=30%>"..i18n("flow_details.memory_actual_peak").."</th><td colspan=2><span id=memory_"..proc.pid..">".. bytesToSize(proc.actual_memory) .. " / ".. bytesToSize(proc.peak_memory) .. " [" .. round((proc.actual_memory*100)/proc.peak_memory, 1) .."%]</span></td></tr>\n")
-      print("<tr><th width=30%>"..i18n("flow_details.vm_page_faults").."</th><td colspan=2><span id=page_faults_"..proc.pid..">")
-      if(proc.num_vm_page_faults > 0) then
-	 print("<font color=red><b>"..proc.num_vm_page_faults.."</b></font>")
-      else
-	 print("<font color=green>"..proc.num_vm_page_faults.."</font>")
-      end
-      print("</span></td></tr>\n")
-end -- fix
-   end
-
-   if(proc.actual_memory == 0) then
-      if(warn_shown == 0) then
-	 warn_shown = 1
-	 print('<tr><th colspan=2><i class="fa fa-warning fa-lg" style="color: #B94A48;"></i> '..i18n("flow_details.process_information_report_warning",{url="http://www.ntop.org/products/nprobe/"})..'</th></tr>\n')
-	 end
+   if proc.father_pid then
+      print(" "..i18n("flow_details.son_of_father_process",{url=ntop.getHttpPrefix().."/lua/get_process_info.lua?pid="..proc.father_pid, proc_father_pid = proc.father_pid, proc_father_name = proc.father_name}).."</td></tr>\n")
    end
 end
 
@@ -412,36 +411,38 @@ else
    print("<tr><th width=33%>"..i18n("details.first_last_seen").."</th><td nowrap width=33%><div id=first_seen>" .. formatEpoch(flow["seen.first"]) ..  " [" .. secondsToTime(os.time()-flow["seen.first"]) .. " "..i18n("details.ago").."]" .. "</div></td>\n")
    print("<td nowrap><div id=last_seen>" .. formatEpoch(flow["seen.last"]) .. " [" .. secondsToTime(os.time()-flow["seen.last"]) .. " "..i18n("details.ago").."]" .. "</div></td></tr>\n")
 
-   print("<tr><th width=30% rowspan=3>"..i18n("details.total_traffic").."</th><td>"..i18n("total")..": <span id=volume>" .. bytesToSize(flow["bytes"]) .. "</span> <span id=volume_trend></span></td>")
-   if((ifstats.type ~= "zmq") and ((flow["proto.l4"] == "TCP") or (flow["proto.l4"] == "UDP")) and (flow["goodput_bytes"] > 0)) then
-      print("<td><A HREF=\"https://en.wikipedia.org/wiki/Goodput\">"..i18n("details.goodput").."</A>: <span id=goodput_volume>" .. bytesToSize(flow["goodput_bytes"]) .. "</span> (<span id=goodput_percentage>")
-      pctg = round(((flow["goodput_bytes"]*100)/flow["bytes"]), 2)
-      if(pctg < 50) then
-	 pctg = "<font color=red>"..pctg.."</font>"
-      elseif(pctg < 60) then
-	 pctg = "<font color=orange>"..pctg.."</font>"
+   if flow["bytes"] > 0 then
+      print("<tr><th width=30% rowspan=3>"..i18n("details.total_traffic").."</th><td>"..i18n("total")..": <span id=volume>" .. bytesToSize(flow["bytes"]) .. "</span> <span id=volume_trend></span></td>")
+      if((ifstats.type ~= "zmq") and ((flow["proto.l4"] == "TCP") or (flow["proto.l4"] == "UDP")) and (flow["goodput_bytes"] > 0)) then
+	 print("<td><A HREF=\"https://en.wikipedia.org/wiki/Goodput\">"..i18n("details.goodput").."</A>: <span id=goodput_volume>" .. bytesToSize(flow["goodput_bytes"]) .. "</span> (<span id=goodput_percentage>")
+	 pctg = round(((flow["goodput_bytes"]*100)/flow["bytes"]), 2)
+	 if(pctg < 50) then
+	    pctg = "<font color=red>"..pctg.."</font>"
+	 elseif(pctg < 60) then
+	    pctg = "<font color=orange>"..pctg.."</font>"
+	 end
+	 print(pctg.."")
+
+	 print("</span> %) <span id=goodput_volume_trend></span> </td></tr>\n")
+      else
+	 print("<td>&nbsp;</td></tr>\n")
       end
-      print(pctg.."")
 
-      print("</span> %) <span id=goodput_volume_trend></span> </td></tr>\n")
-   else
-      print("<td>&nbsp;</td></tr>\n")
+      print("<tr><td nowrap>" .. i18n("client") .. " <i class=\"fa fa-arrow-right\"></i> " .. i18n("server") .. ": <span id=cli2srv>" .. formatPackets(flow["cli2srv.packets"]) .. " / ".. bytesToSize(flow["cli2srv.bytes"]) .. "</span> <span id=sent_trend></span></td><td nowrap>" .. i18n("client") .. " <i class=\"fa fa-arrow-left\"></i> " .. i18n("server") .. ": <span id=srv2cli>" .. formatPackets(flow["srv2cli.packets"]) .. " / ".. bytesToSize(flow["srv2cli.bytes"]) .. "</span> <span id=rcvd_trend></span></td></tr>\n")
+
+      print("<tr><td colspan=2>")
+      cli2srv = round((flow["cli2srv.bytes"] * 100) / flow["bytes"], 0)
+
+      cli_name = shortHostName(getResolvedAddress(hostkey2hostinfo(flow["cli.ip"])))
+      srv_name = shortHostName(getResolvedAddress(hostkey2hostinfo(flow["srv.ip"])))
+
+      if(flow["cli.port"] > 0) then
+	 cli_name = cli_name .. ":" .. flow["cli.port"]
+	 srv_name = srv_name .. ":" .. flow["srv.port"]
+      end
+      print('<div class="progress"><div class="progress-bar progress-bar-warning" style="width: ' .. cli2srv.. '%;">'.. cli_name..'</div><div class="progress-bar progress-bar-info" style="width: ' .. (100-cli2srv) .. '%;">' .. srv_name .. '</div></div>')
+      print("</td></tr>\n")
    end
-
-   print("<tr><td nowrap>" .. i18n("client") .. " <i class=\"fa fa-arrow-right\"></i> " .. i18n("server") .. ": <span id=cli2srv>" .. formatPackets(flow["cli2srv.packets"]) .. " / ".. bytesToSize(flow["cli2srv.bytes"]) .. "</span> <span id=sent_trend></span></td><td nowrap>" .. i18n("client") .. " <i class=\"fa fa-arrow-left\"></i> " .. i18n("server") .. ": <span id=srv2cli>" .. formatPackets(flow["srv2cli.packets"]) .. " / ".. bytesToSize(flow["srv2cli.bytes"]) .. "</span> <span id=rcvd_trend></span></td></tr>\n")
-
-   print("<tr><td colspan=2>")
-   cli2srv = round((flow["cli2srv.bytes"] * 100) / flow["bytes"], 0)
-
-   cli_name = shortHostName(getResolvedAddress(hostkey2hostinfo(flow["cli.ip"])))
-   srv_name = shortHostName(getResolvedAddress(hostkey2hostinfo(flow["srv.ip"])))
-
-   if(flow["cli.port"] > 0) then
-      cli_name = cli_name .. ":" .. flow["cli.port"]
-      srv_name = srv_name .. ":" .. flow["srv.port"]
-   end
-   print('<div class="progress"><div class="progress-bar progress-bar-warning" style="width: ' .. cli2srv.. '%;">'.. cli_name..'</div><div class="progress-bar progress-bar-info" style="width: ' .. (100-cli2srv) .. '%;">' .. srv_name .. '</div></div>')
-   print("</td></tr>\n")
 
    if(flow["tcp.nw_latency.client"] ~= nil) then
       local rtt = flow["tcp.nw_latency.client"] + flow["tcp.nw_latency.server"]
@@ -651,10 +652,18 @@ else
 	 displayProc(flow.client_process,
 	     "<tr><th colspan=3 class=\"info\">"..i18n("flow_details.client_process_information").."</th></tr>\n")
       end
+      if(flow.client_container ~= nil) then
+	 displayContainer(flow.client_container,
+			  "<tr><th colspan=3 class=\"info\">"..i18n("flow_details.client_container_information").."</th></tr>\n")
+      end
       if(flow.server_process ~= nil) then	 
 	 displayProc(flow.server_process,
                      "<tr><th colspan=3 class=\"info\">"..i18n("flow_details.server_process_information").."</th></tr>\n")
       end
+      if(flow.server_container ~= nil) then	 
+	 displayContainer(flow.server_container,
+			  "<tr><th colspan=3 class=\"info\">"..i18n("flow_details.server_container_information").."</th></tr>\n")
+      end      
    end
 
    if(flow["protos.dns.last_query"] ~= nil) then

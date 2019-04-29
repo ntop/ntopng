@@ -41,11 +41,11 @@ class ZCCollectorInterface : public ZMQParserInterface {
   ZCCollectorInterface(const char *name);
   ~ZCCollectorInterface();
 
-  inline InterfaceType getIfType()      { return(interface_type_ZC_FLOW);       };
-  inline const char* get_type()         { return(CONST_INTERFACE_TYPE_ZC_FLOW); };
-  inline bool is_ndpi_enabled()         { return(false);      };
-  inline void incrDrops(u_int32_t num)  { num_drops += num;   };
-  inline bool isPacketInterface()       { return(false);      };
+  virtual InterfaceType getIfType() const { return(interface_type_ZC_FLOW);       };
+  inline const char* get_type()           { return(CONST_INTERFACE_TYPE_ZC_FLOW); };
+  virtual bool is_ndpi_enabled() const    { return(false);      };
+  inline void incrDrops(u_int32_t num)    { num_drops += num;   };
+  virtual bool isPacketInterface() const  { return(false);      };
   void collect_flows();
 
   void startPacketPolling();

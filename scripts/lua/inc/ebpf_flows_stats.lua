@@ -5,14 +5,6 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
-local if_stats = interface.getStats()
-
-if if_stats.has_seen_pods or if_stats.has_seen_containers then
-   -- Use a different flows page
-   dofile(dirs.installdir .. "/scripts/lua/inc/ebpf_flows_stats.lua")
-   return
-end
-
 require "lua_utils"
 require "graph_utils"
 require "flow_utils"
@@ -48,6 +40,8 @@ local traffic_type = _GET["traffic_type"]
 local flow_status = _GET["flow_status"]
 local tcp_state   = _GET["tcp_flow_state"]
 local port = _GET["port"]
+local container = _GET["container"]
+local pod = _GET["pod"]
 
 local network_id = _GET["network"]
 
@@ -140,20 +134,29 @@ if(flowhosts_type ~= nil) then
   page_params["flowhosts_type"] = flowhosts_type
 end
 
+if(pod ~= nil) then
+  page_params["pod"] = pod
+end
+
+if(container ~= nil) then
+  page_params["container"] = container
+end
+
 print(getPageUrl(ntop.getHttpPrefix().."/lua/get_flows_data.lua", page_params))
 
 print ('";')
 
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/flows_stats_id.inc")
+--ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/flows_stats_id.inc")
 -- Set the flow table option
 
 if(ifstats.vlan) then print ('flow_rows_option["vlan"] = true;\n') end
---if(ifstats.has_seen_ebpf_events) then print ('flow_rows_option["process"] = true;\n') end
 
    print [[
 	 var table = $("#table-flows").datatable({
-			url: url_update ,
-         rowCallback: function(row) { return flow_table_setID(row); },
+			url: url_update ,]]
+--[[
+         rowCallback: function(row) { return flow_table_setID(row); },]]
+   print[[
          tableCallback: function()  { $("#dt-bottom-details > .pull-left > p").first().append('. ]]
    print(i18n('flows_page.idle_flows_not_listed'))
    print[['); },
@@ -176,7 +179,7 @@ print ('sort: [ ["' .. getDefaultTableSort("flows") ..'","' .. getDefaultTableSo
 
 print ('buttons: [')
 
-printActiveFlowsDropdown(base_url, page_params, ifstats, ndpistats)
+printActiveFlowsDropdown(base_url, page_params, ifstats, ndpistats, true --[[ ebpf_flows ]])
 
 print(" ],\n")
 
@@ -238,8 +241,30 @@ print[[
       }, {
 ]]
 
---if ifstats.has_seen_ebpf_events then
-if false then
+if ifstats.has_seen_pods then
+  print[[
+         title: "]] print(i18n("containers_stats.client_pod")) print[[",
+         field: "column_client_pod",
+         sortable: false,
+      }, {
+         title: "]] print(i18n("containers_stats.server_pod")) print[[",
+         field: "column_server_pod",
+         sortable: false,
+      }, {
+]]
+elseif ifstats.has_seen_containers then
+  print[[
+         title: "]] print(i18n("containers_stats.client_container")) print[[",
+         field: "column_client_container",
+         sortable: false,
+      }, {
+         title: "]] print(i18n("containers_stats.server_container")) print[[",
+         field: "column_server_container",
+         sortable: false,
+      }, {
+]]
+--elseif ifstats.has_seen_ebpf_events then
+elseif false then
   print[[
          title: "]] print(i18n("sflows_stats.client_process")) print[[",
          field: "column_client_process",
@@ -253,30 +278,16 @@ if false then
 end
 
 print[[
-         title: "]] print(i18n("duration")) print[[",
-         field: "column_duration",
-         sortable: true,
-         css: {
-           textAlign: 'center'
-         }
-      }, {
-         title: "]] print(i18n("breakdown")) print[[",
-         field: "column_breakdown",
+         title: "]] print(i18n("containers_stats.client_rtt")) print[[",
+         field: "column_client_rtt",
          sortable: false,
             css: {
-               textAlign: 'center'
+               textAlign: 'right'
             }
       }, {
-         title: "]] print(i18n("flows_page.actual_throughput")) print[[",
-         field: "column_thpt",
-         sortable: true,
-         css: {
-            textAlign: 'right'
-         }
-      }, {
-         title: "]] print(i18n("flows_page.total_bytes")) print[[",
-         field: "column_bytes",
-         sortable: true,
+         title: "]] print(i18n("containers_stats.server_rtt")) print[[",
+         field: "column_server_rtt",
+         sortable: false,
             css: {
                textAlign: 'right'
             }

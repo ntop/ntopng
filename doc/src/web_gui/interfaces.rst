@@ -159,40 +159,50 @@ automatically.
 Amount of time between two consecutive refreshes of dashboard and footer charts. Useful for example
 when using ntopng in combination with nProbe to collect remote NetFlow of sFlow.
 
-**Ingress Packets Sampling Rate**
+**Ingress Packets Sampling Rate**:
 Packets arriving on the interface could have been sampled upstream,
 for example by a packet broker or another device. This setting allows
 to specify the sampling rate to enable ntopng to perform proper
 upscaling.
 
-**Hide from Top Networks**
+**Local Broadcast Domain Hosts Identifier**:
+Determines if `Local Broadcast Domain`_ hosts whose IP address is inside a
+configured `DHCP range`_ are serialized by their MAC address or IP address.
+This setting also applies to the timeseries of the host. In a DHCP network,
+the IP address of a host usually changes so the host it's better identified
+by its MAC address in this case.
+
+**Hide from Top Networks**:
 This setting allows to specify a comma-separated list of networks
 containing hosts that have to be hidden from the top statistics. 
 Hosts belonging to the specified networks will not be shown in the top
 statistics.
 
-**Trigger Interface Alerts**
+**Trigger Interface Alerts**:
 This setting toggles the alert generation of the selected
 interface. No alert will be generated when this setting is unticked,
 including alerts associated with hosts, blacklisted flows, and
 networks.
 
-**Create Interface Timeseries**
+**Create Interface Timeseries**:
 This setting toggles the generation of timeseries for the selected
 interface. No timeseries will be generated when this setting in
 unticked, including timeseries associated with local hosts and networks.
 
-**Mirrored Traffic**
+**Mirrored Traffic**:
 Tick this setting when the interface is receiving traffic from a
 mirror/SPAN port. Typically, such interfaces does not have any IP
 address associated. ntopng uses this information to skip certain kind
 of activities that cannot be performed on mirrored interfaces,
 including network device discovery and eBPF events processing.
 
-**Periodic Interface Network Discovery**
+**Periodic Interface Network Discovery**:
 This setting toggles ntopng periodic network discovery. Network
 discovery frequency can be controlled from the preferences and it
 defaults to 15 minutes.
+
+.. _`Local Broadcast Domain`: ../basic_concepts/local_broadcast_domain.html
+.. _`DHCP range`: #id1
 
 Host Pools
 ----------
@@ -232,3 +242,26 @@ inline and is a feature only available in the professional version. ntopng inlin
 “Advanced ntopng Features” of this document.
 
 .. _`relevant section`: hosts.html#host-pools
+
+DHCP Range
+----------
+
+When a DHCP server is active in the network monitored by a network interface,
+it's advisable to configure in ntopng the ranges of IP addresses which such server
+can assign.
+
+.. figure:: ../img/web_gui_interfaces_dhcp.png
+  :align: center
+  :alt: Interface DHCP Range Configuration
+
+When a DHCP range is configured, ntopng will monitor the DHCP traffic on the interface
+and report anomalous behaviours. For example, it detects if IP addresses are assigned outside
+the configured range and generate an alert. This can happen, for example, if a new
+misconfigured network device is attached to the network.
+
+.. figure:: ../img/web_gui_interfaces_dhcp_alert.png
+  :align: center
+  :alt: Interface DHCP Range Configuration
+
+Since DHCP responses are usually directed to a specific host, this setting is
+most effective when the interface monitors mirrored traffic.

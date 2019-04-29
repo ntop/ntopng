@@ -280,6 +280,8 @@ void NetworkInterface::init() {
     bridge_lan_interface_id = bridge_wan_interface_id = 0, ndpi_struct = NULL,
     inline_interface = false,
     has_vlan_packets = false, has_ebpf_events = false,
+    has_seen_dhcp_addresses = false,
+    has_seen_containers = false, has_seen_pods = false;
     last_pkt_rcvd = last_pkt_rcvd_remote = 0,
     next_idle_flow_purge = next_idle_host_purge = 0,
     running = false, customIftype = NULL, is_dynamic_interface = false,
@@ -1009,8 +1011,10 @@ NetworkInterface* NetworkInterface::getSubInterface(u_int32_t criteria, bool par
 	  break;
 	}
 
-	if(parser_interface)
-	  h->iface = new ParserInterface(buf, vIface_type);
+	if(dynamic_cast<ZMQParserInterface*>(this))
+	  h->iface = new ZMQParserInterface(buf, vIface_type);
+	else if(dynamic_cast<SyslogParserInterface*>(this))
+	  h->iface = new SyslogParserInterface(buf, vIface_type);
 	else
 	  h->iface = new NetworkInterface(buf, vIface_type);
 
@@ -1205,6 +1209,11 @@ void NetworkInterface::processFlow(Parsed_Flow *zflow, bool zmq_flow) {
 
   if(src2dst_direction)
     flow->setFlowApplLatency(zflow->core.tcp.applLatencyMsec);
+
+  /* Update process and container info */
+  flow->setParsedeBPFInfo(&zflow->ebpf,
+			  src2dst_direction /* FIX: direction also depends on the type of event. */);
+
 
   /* Update flow device stats */
   if(!flow->setFlowDevice(zflow->core.deviceIP,
@@ -2637,12 +2646,12 @@ void NetworkInterface::pollQueuedeBPFEvents() {
       u_int16_t proto, sport, dport;
 
       if(event->ip_version == 4) {
-	src.set(event->event.v4.saddr), dst.set(event->event.v4.daddr),
+	src.set(event->addr.v4.saddr), dst.set(event->addr.v4.daddr),
 	  sport = event->sport, dport = event->dport,
 	  proto = event->proto;
       } else {
-	src.set((struct ndpi_in6_addr*)&event->event.v6.saddr),
-	  dst.set((struct ndpi_in6_addr*)&event->event.v6.daddr),
+	src.set((struct ndpi_in6_addr*)&event->addr.v6.saddr),
+	  dst.set((struct ndpi_in6_addr*)&event->addr.v6.daddr),
 	  sport = event->sport, dport = event->dport,
 	  proto = event->proto;
       }
@@ -2728,6 +2737,7 @@ void NetworkInterface::cleanup() {
     has_vlan_packets = false, has_ebpf_events = false, has_mac_addresses = false;
   has_seen_dhcp_addresses = false;
   running = false, inline_interface = false;
+  has_seen_containers = false, has_seen_pods = false;
 
   getStats()->cleanup();
   flows_hash->cleanup();
@@ -3702,6 +3712,7 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
   u_int32_t pid_filter;
   u_int32_t deviceIP;
   u_int16_t inIndex, outIndex;
+  char *container_filter, *pod_filter;
 #ifdef HAVE_NEDGE
   bool filtered_flows;
 #endif
@@ -3749,6 +3760,26 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
 	   || (retriever->pag->inIndexFilter(&inIndex) && f->getFlowDeviceInIndex() != inIndex)
 	   || (retriever->pag->outIndexFilter(&outIndex) && f->getFlowDeviceOutIndex() != outIndex))
 	  return(false);
+    }
+
+    if(retriever->pag
+       && retriever->pag->containerFilter(&container_filter)) {
+      const char *cli_container = f->getClientContainerInfo() ? f->getClientContainerInfo()->id : NULL;
+      const char *srv_container = f->getServerContainerInfo() ? f->getServerContainerInfo()->id : NULL;
+
+      if(!((cli_container && !strcmp(container_filter, cli_container))
+	  || (srv_container && !strcmp(container_filter, srv_container))))
+        return(false);
+    }
+
+    if(retriever->pag
+       && retriever->pag->podFilter(&pod_filter)) {
+      const char *cli_pod = f->getClientContainerInfo() ? f->getClientContainerInfo()->k8s.pod : NULL;
+      const char *srv_pod = f->getServerContainerInfo() ? f->getServerContainerInfo()->k8s.pod : NULL;
+
+      if(!((cli_pod && !strcmp(pod_filter, cli_pod))
+	  || (srv_pod && !strcmp(pod_filter, srv_pod))))
+        return(false);
     }
 
     if(retriever->pag
@@ -4038,8 +4069,6 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data, bool *matc
 static bool mac_search_walker(GenericHashEntry *he, void *user_data, bool *matched) {
   struct flowHostRetriever *r = (struct flowHostRetriever*)user_data;
   Mac *m = (Mac*)he;
-  u_int16_t pool_value;
-  bool pool_found;
 
   if(r->actNumEntries >= r->maxNumEntries)
     return(true); /* Limit reached */
@@ -4049,9 +4078,7 @@ static bool mac_search_walker(GenericHashEntry *he, void *user_data, bool *match
      || (r->sourceMacsOnly && !m->isSourceMac())
      || ((r->devtypeFilter != (u_int8_t)-1) && (m->getDeviceType() != r->devtypeFilter))
      || ((r->locationFilter != (u_int8_t)-1) && (m->locate() != r->locationFilter))
-     || ((r->poolFilter != (u_int16_t)-1) && (
-        (((pool_found = m->getInterface()->getHostPools()->findMacPool(m, &pool_value)) == false /* unassigned */) && r->poolFilter != 0)
-        || ((pool_found == true) && (pool_value != r->poolFilter))))
+     || ((r->poolFilter != (u_int16_t)-1) && (m->getInterface()->getHostPool(m) != r->poolFilter))
      || (r->manufacturer && strcmp(r->manufacturer, m->get_manufacturer() ? m->get_manufacturer() : "") != 0))
     return(false); /* false = keep on walking */
 
@@ -5440,6 +5467,9 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_bool_table_entry(vm, "has_macs", hasSeenMacAddresses());
   lua_push_bool_table_entry(vm, "has_seen_dhcp_addresses", hasSeenDHCPAddresses());
   lua_push_bool_table_entry(vm, "has_traffic_directions", (areTrafficDirectionsSupported() && (!is_traffic_mirrored)));
+  lua_push_bool_table_entry(vm, "has_seen_pods", hasSeenPods());
+  lua_push_bool_table_entry(vm, "has_seen_containers", hasSeenContainers());
+  lua_push_bool_table_entry(vm, "has_seen_ebpf_events", hasSeenEBPFEvents());
 
   lua_newtable(vm);
   lua_push_uint64_table_entry(vm, "packets",     getNumPackets());
@@ -6203,7 +6233,7 @@ void NetworkInterface::processInterfaceStats(sFlowInterfaceStats *stats) {
 				 Utils::intoaV4(stats->deviceIP, a, sizeof(a)),
 				 stats->ifIndex);
 
-    interfaceStats->set(stats->deviceIP, stats->ifIndex, stats);
+    interfaceStats->set(stats);
   }
 }
 
@@ -7449,6 +7479,160 @@ bool NetworkInterface::isLocalBroadcastDomainHost(Host * const h, bool isInlineC
 
   return(bcast_domains->isLocalBroadcastDomainHost(h, isInlineCall)
 	 || (ntop->getLoadInterfaceAddresses() && i->match(ntop->getLoadInterfaceAddresses())));
+}
+
+/* *************************************** */
+
+typedef std::map<const char *, ContainerStats, cmp_str> PodsMap;
+
+static bool flow_get_pods_stats(GenericHashEntry *entry, void *user_data, bool *matched) {
+  PodsMap &pods_stats = (*(PodsMap*) user_data);
+  Flow *flow = (Flow*)entry;
+  ContainerInfo *cli_cont, *srv_cont;
+  const char *cli_pod = NULL, *srv_pod = NULL;
+
+  if((cli_cont = flow->getClientContainerInfo()))
+    cli_pod = cli_cont->k8s.pod;
+  if((srv_cont = flow->getServerContainerInfo()))
+    srv_pod = srv_cont->k8s.pod;
+
+  if(cli_pod) {
+    ContainerStats stats = pods_stats[cli_pod]; /* get existing or create new */
+    TcpInfo *client_tcp = flow->getClientTcpInfo();
+
+    stats.incNumFlowsAsClient();
+    stats.accountLatency(client_tcp ? client_tcp->rtt : 0, client_tcp ? client_tcp->rtt_var : 0, true /* as_client */);
+    if(cli_cont->id)
+      stats.addContainer(cli_cont->id);
+
+    /* Update */
+    pods_stats[cli_pod] = stats;
+  }
+
+  if(srv_pod) {
+    ContainerStats stats = pods_stats[srv_pod]; /* get existing or create new */
+    TcpInfo *server_tcp = flow->getServerTcpInfo();
+
+    stats.incNumFlowsAsServer();
+    stats.accountLatency(server_tcp ? server_tcp->rtt : 0, server_tcp ? server_tcp->rtt_var : 0, false /* as server */);
+    if(srv_cont->id)
+      stats.addContainer(srv_cont->id);
+
+    /* Update */
+    pods_stats[srv_pod] = stats;
+  }
+
+  return(false /* keep walking */);
+}
+
+/* *************************************** */
+
+void NetworkInterface::getPodsStats(lua_State* vm) {
+  PodsMap pods_stats;
+  u_int32_t begin_slot = 0;
+  bool walk_all = true;
+  PodsMap::iterator it;
+
+  walker(&begin_slot, walk_all, walker_flows, flow_get_pods_stats, (void*)&pods_stats);
+
+  lua_newtable(vm);
+
+  for(it = pods_stats.begin(); it != pods_stats.end(); ++it) {
+    it->second.lua(vm);
+
+    lua_pushstring(vm, it->first);
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
+  }
+}
+
+/* *************************************** */
+
+typedef struct {
+  ContainerInfo *info;
+  ContainerStats stats;
+} ContainerData;
+
+typedef std::map<const char *, ContainerData, cmp_str> ContainersMap;
+
+struct containerRetrieverData {
+  ContainersMap containers;
+  const char *pod_filter;
+};
+
+static bool flow_get_container_stats(GenericHashEntry *entry, void *user_data, bool *matched) {
+  ContainersMap &containers_data = ((containerRetrieverData*)user_data)->containers;
+  const char *pod_filter = ((containerRetrieverData*)user_data)->pod_filter;
+  Flow *flow = (Flow*)entry;
+  ContainerInfo *cli_cont, *srv_cont;
+  const char *cli_cont_id = NULL, *srv_cont_id = NULL;
+  const char *cli_pod = NULL, *srv_pod = NULL;
+
+  if((cli_cont = flow->getClientContainerInfo())) {
+    cli_cont_id = cli_cont->id;
+    cli_pod = cli_cont->k8s.pod;
+  }
+  if((srv_cont = flow->getServerContainerInfo())) {
+    srv_cont_id = srv_cont->id;
+    srv_pod = srv_cont->k8s.pod;
+  }
+
+  if(cli_cont_id &&
+	 ((!pod_filter) || (cli_pod && !strcmp(pod_filter, cli_pod)))) {
+    ContainerData data = containers_data[cli_cont_id]; /* get existing or create new */
+    TcpInfo *client_tcp = flow->getClientTcpInfo();
+
+    data.stats.incNumFlowsAsClient();
+    data.stats.accountLatency(client_tcp ? client_tcp->rtt : 0, client_tcp ? client_tcp->rtt_var : 0, true /* as_client */);
+    data.info = cli_cont;
+
+    /* Update */
+    containers_data[cli_cont_id] = data;
+  }
+
+  if(srv_cont_id &&
+	 ((!pod_filter) || (srv_pod && !strcmp(pod_filter, srv_pod)))) {
+    ContainerData data = containers_data[srv_cont_id]; /* get existing or create new */
+    TcpInfo *server_tcp = flow->getServerTcpInfo();
+
+    data.stats.incNumFlowsAsServer();
+    data.stats.accountLatency(server_tcp ? server_tcp->rtt : 0, server_tcp ? server_tcp->rtt_var : 0, false /* as server */);
+    data.info = srv_cont;
+
+    /* Update */
+    containers_data[srv_cont_id] = data;
+  }
+
+  return(false /* keep walking */);
+}
+
+/* *************************************** */
+
+void NetworkInterface::getContainersStats(lua_State* vm, const char *pod_filter) {
+  containerRetrieverData user_data;
+  u_int32_t begin_slot = 0;
+  bool walk_all = true;
+  ContainersMap::iterator it;
+
+  user_data.pod_filter = pod_filter;
+  walker(&begin_slot, walk_all, walker_flows, flow_get_container_stats, (void*)&user_data);
+
+  lua_newtable(vm);
+
+  for(it = user_data.containers.begin(); it != user_data.containers.end(); ++it) {
+    it->second.stats.lua(vm);
+
+    if(it->second.info) {
+      Utils::containerInfoLua(vm, it->second.info);
+      lua_pushstring(vm, "info");
+      lua_insert(vm, -2);
+      lua_settable(vm, -3);
+    }
+
+    lua_pushstring(vm, it->first);
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
+  }
 }
 
 /* *************************************** */

@@ -7617,6 +7617,38 @@ static int ntop_interface_release_alert(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_interface_get_pods_stats(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(!ntop_interface)
+    return(CONST_LUA_ERROR);
+
+  ntop_interface->getPodsStats(vm);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_interface_get_containers_stats(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  char *pod_filter = NULL;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(!ntop_interface)
+    return(CONST_LUA_ERROR);
+
+  if(lua_type(vm, 1) == LUA_TSTRING)
+    pod_filter = (char*)lua_tostring(vm, 1);
+
+  ntop_interface->getContainersStats(vm, pod_filter);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 // ***API***
 static int ntop_interface_store_alert(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
@@ -8129,6 +8161,16 @@ static int ntop_network_name_by_id(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_is_gui_access_restricted(lua_State* vm) {
+  ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
+
+  lua_pushboolean(vm, ntop->get_HTTPserver()->is_gui_access_restricted());
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 // ***API***
 static int ntop_set_logging_level(lua_State* vm) {
   char *lvlStr;
@@ -8383,6 +8425,10 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "engageAlert",            ntop_interface_engage_alert             },
   { "releaseAlert",           ntop_interface_release_alert            },
 
+  /* Containers */
+  { "getPodsStats",           ntop_interface_get_pods_stats           },
+  { "getContainersStats",     ntop_interface_get_containers_stats     },
+
   { NULL,                             NULL }
 };
 
@@ -8531,6 +8577,7 @@ static const luaL_Reg ntop_reg[] = {
   { "isLoginDisabled",      ntop_is_login_disabled },
   { "isLoginBlacklisted",   ntop_is_login_blacklisted },
   { "getNetworkNameById",   ntop_network_name_by_id },
+  { "isGuiAccessRestricted", ntop_is_gui_access_restricted },
 
   /* Security */
   { "getRandomCSRFValue",   ntop_generate_csrf_value },

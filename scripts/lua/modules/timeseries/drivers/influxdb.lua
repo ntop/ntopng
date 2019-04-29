@@ -147,7 +147,7 @@ end
 -- ##############################################
 
 -- returns schema_name, step
-local function retentionPolicyToSchema(schema, rp)
+local function retentionPolicyToSchema(schema, rp, db)
   if((rp == "raw") or (rp == "autogen")) then
     rp = nil
   end
@@ -155,7 +155,7 @@ local function retentionPolicyToSchema(schema, rp)
   if not isEmptyString(rp) then
     -- counters become derivatives
     local metric_type = ternary(schema.options.metrics_type == ts_common.metrics.counter, ts_common.metrics.derivative, schema.options.metrics_type)
-    return string.format('"%s"."%s"', rp, schema.name), ternary(rp == "1d", 86400, 3600), metric_type
+    return string.format('"%s"."%s"."%s"', db, rp, schema.name), ternary(rp == "1d", 86400, 3600), metric_type
   end
 
   -- raw
@@ -164,8 +164,8 @@ end
 
 -- ##############################################
 
-local function getQuerySchema(schema, tstart, tend, options)
-  return retentionPolicyToSchema(schema, getSchemaRetentionPolicy(schema, tstart, tend, options))
+local function getQuerySchema(schema, tstart, tend, db, options)
+  return retentionPolicyToSchema(schema, getSchemaRetentionPolicy(schema, tstart, tend, options), db)
 end
 
 -- ##############################################
@@ -448,7 +448,7 @@ end
 function driver:query(schema, tstart, tend, tags, options)
   local metrics = {}
   local retention_policy = getSchemaRetentionPolicy(schema, tstart, tend, options)
-  local query_schema, raw_step, data_type = retentionPolicyToSchema(schema, retention_policy)
+  local query_schema, raw_step, data_type = retentionPolicyToSchema(schema, retention_policy, self.db)
   local time_step = ts_common.calculateSampledTimeStep(raw_step, tstart, tend, options)
 
   -- NOTE: this offset is necessary to fix graph edge points when data insertion is not aligned with tstep
@@ -801,7 +801,7 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
 
   local top_tag = top_tags[1]
   local retention_policy = getSchemaRetentionPolicy(schema, tstart, tend, options)
-  local query_schema, raw_step, data_type = retentionPolicyToSchema(schema, retention_policy)
+  local query_schema, raw_step, data_type = retentionPolicyToSchema(schema, retention_policy, self.db)
 
   -- NOTE: this offset is necessary to fix graph edge points when data insertion is not aligned with tstep
   local unaligned_offset = raw_step - 1
@@ -930,7 +930,7 @@ end
 -- ##############################################
 
 function driver:queryTotal(schema, tstart, tend, tags, options)
-  local query_schema, raw_step, data_type = getQuerySchema(schema, tstart, tend, options)
+  local query_schema, raw_step, data_type = getQuerySchema(schema, tstart, tend, self.db, options)
   local query
 
   if data_type == ts_common.metrics.counter then
@@ -990,7 +990,7 @@ end
 
 function driver:queryMean(schema, tags, tstart, tend, options)
   local metrics = {}
-  local query_schema = getQuerySchema(schema, tstart, tend, options)
+  local query_schema = getQuerySchema(schema, tstart, tend, self.db, options)
 
   for i, metric in ipairs(schema._metrics) do
     metrics[i] = "MEAN(" .. metric .. ") as " .. metric
@@ -1224,7 +1224,7 @@ end
 local function getCqQuery(dbname, tags, schema, source, dest, step, dest_step, resemple)
   local cq_name = string.format("%s__%s", schema.name, dest)
   local resemple_s = ""
-  local _, _, data_type = retentionPolicyToSchema(schema, source)
+  local _, _, data_type = retentionPolicyToSchema(schema, source, dbname)
 
   if resemple then
     resemple_s = "RESAMPLE FOR " .. resemple

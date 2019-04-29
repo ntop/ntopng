@@ -181,6 +181,7 @@ class NetworkInterface : public Checkpointable {
   HostPools *host_pools;
   VlanAddressTree *hide_from_top, *hide_from_top_shadow;
   bool has_vlan_packets, has_ebpf_events, has_mac_addresses, has_seen_dhcp_addresses;
+  bool has_seen_pods, has_seen_containers;
   struct ndpi_detection_module_struct *ndpi_struct;
   time_t last_pkt_rcvd, last_pkt_rcvd_remote, /* Meaningful only for ZMQ interfaces */
     next_idle_flow_purge, next_idle_host_purge;
@@ -298,7 +299,7 @@ class NetworkInterface : public Checkpointable {
   /* calling virtual in constructors/destructors should be avoided
      See C++ FAQ Lite covers this in section 23.7
   */
-  inline virtual bool isPacketInterface()      { return(getIfType() != interface_type_FLOW); }
+  virtual bool isPacketInterface() const    { return(getIfType() != interface_type_FLOW); }
 #if defined(linux) && !defined(HAVE_LIBCAP) && !defined(HAVE_NEDGE)
   /* Note: if we miss the capabilities, we block the overriding of this method. */
   inline bool
@@ -308,10 +309,10 @@ class NetworkInterface : public Checkpointable {
                       isDiscoverableInterface(){ return(false);                              }
   inline virtual char* altDiscoverableName()   { return(NULL);                               }
   inline virtual const char* get_type()        { return(customIftype ? customIftype : CONST_INTERFACE_TYPE_UNKNOWN); }
-  virtual InterfaceType getIfType()            { return(interface_type_UNKNOWN); }
+  virtual InterfaceType getIfType() const      { return(interface_type_UNKNOWN); }
   inline FlowHash *get_flows_hash()            { return flows_hash;     }
   inline TcpFlowStats* getTcpFlowStats()       { return(&tcpFlowStats); }
-  inline virtual bool is_ndpi_enabled()        { return(true);          }
+  virtual bool is_ndpi_enabled() const         { return(true);          }
   inline u_int  getNumnDPIProtocols()          { return(ndpi_get_num_supported_protocols(ndpi_struct)); };
   inline time_t getTimeLastPktRcvd()           { return(last_pkt_rcvd ? last_pkt_rcvd : last_pkt_rcvd_remote); };
   inline void  setTimeLastPktRcvd(time_t t)    { if(t > last_pkt_rcvd) last_pkt_rcvd = t; };
@@ -329,14 +330,18 @@ class NetworkInterface : public Checkpointable {
   inline char* get_description() const         { return(ifDescription);                                };
   inline int  get_id() const                   { return(id);                                           };
   inline bool get_inline_interface()           { return inline_interface;  }
-  inline bool hasSeenVlanTaggedPackets()       { return(has_vlan_packets); }
+  inline bool hasSeenVlanTaggedPackets() const { return(has_vlan_packets); }
   inline void setSeenVlanTaggedPackets()       { has_vlan_packets = true;  }
-  inline bool hasSeenEBPFEvents()              { return(has_ebpf_events);  }
+  inline bool hasSeenEBPFEvents() const        { return(has_ebpf_events);  }
   inline void setSeenEBPFEvents()              { has_ebpf_events = true;   }
-  inline bool hasSeenMacAddresses()            { return(has_mac_addresses); }
+  inline bool hasSeenMacAddresses() const      { return(has_mac_addresses); }
   inline void setSeenMacAddresses()            { has_mac_addresses = true;  }
-  inline bool hasSeenDHCPAddresses()           { return(has_seen_dhcp_addresses); }
+  inline bool hasSeenDHCPAddresses() const     { return(has_seen_dhcp_addresses); }
   inline void setDHCPAddressesSeen()           { has_seen_dhcp_addresses = true;  }
+  inline bool hasSeenPods() const              { return(has_seen_pods); }
+  inline void setSeenPods()                    { has_seen_pods = true; }
+  inline bool hasSeenContainers() const        { return(has_seen_containers); }
+  inline void setSeenContainers()              { has_seen_containers = true; }
   inline struct ndpi_detection_module_struct* get_ndpi_struct() { return(ndpi_struct);         };
   inline bool is_purge_idle_interface()        { return(purge_idle_flows_hosts);               };
   int dumpFlow(time_t when, Flow *f);
@@ -727,6 +732,8 @@ class NetworkInterface : public Checkpointable {
   void reloadDhcpRanges();
   inline bool hasConfiguredDhcpRanges()      { return(dhcp_ranges && !dhcp_ranges->last_ip.isEmpty()); };
   bool isInDhcpRange(IpAddress *ip);
+  void getPodsStats(lua_State* vm);
+  void getContainersStats(lua_State* vm, const char *pod_filter);
 
 #ifdef HAVE_EBPF
   inline bool iseBPFEventAvailable() { return((ebpfEvents && (ebpfEvents[next_remove_idx] != NULL)) ? true : false); }
