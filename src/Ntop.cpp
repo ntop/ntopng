@@ -2290,7 +2290,7 @@ bool Ntop::addToNotifiedInformativeCaptivePortal(u_int32_t client_ip) {
 
 #ifdef HAVE_EBPF
 void Ntop::deliverEventToInterfaces(eBPFevent *event) {
-  bool loopback_only = ((event->ip_version == 4) && (event->event.v4.saddr ==  0x0100007f /* 127.0.0.1 */)) ? true : false;
+  bool loopback_only = ((event->ip_version == 4) && (event->addr.v4.saddr ==  0x0100007f /* 127.0.0.1 */)) ? true : false;
  
   for(int i = 0; i < num_defined_interfaces; i++) {
     bool pass;

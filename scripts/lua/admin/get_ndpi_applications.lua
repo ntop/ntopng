@@ -89,6 +89,18 @@ for app_name, app_id in pairs(applications) do
 
    local cat = interface.getnDPIProtoCategory(tonumber(app_id))
 
+   if not isEmptyString(proto_filter) then
+     if tostring(app_id) ~= proto_filter then
+       goto continue
+     end
+   end
+
+   if not isEmptyString(category_filter) then
+      if tostring(cat.id) ~= category_filter then
+       goto continue
+      end
+   end
+
    applications[app_name] = {app_name = app_name, app_id = app_id, cat = cat}
    num_apps = num_apps + 1
 
@@ -114,18 +126,6 @@ end
 local cur_num = 0
 for app, _ in pairsByValues(sorter, sOrder) do
    app = applications[app]
-
-   if not isEmptyString(proto_filter) then
-     if tostring(app["app_id"]) ~= proto_filter then
-       goto continue
-     end
-   end
-
-   if not isEmptyString(category_filter) then
-      if tostring(app.cat.id) ~= category_filter then
-       goto continue
-      end
-   end
 
    cur_num = cur_num + 1
    if cur_num <= to_skip then

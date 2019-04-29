@@ -111,8 +111,15 @@ function ts_dump.sflow_device_update_rrds(when, ifstats, verbose)
     end
 
     for port_idx,port_value in pairs(ports) do
-      ts_utils.append("sflowdev_port:traffic", {ifid=ifstats.id, device=flow_device_ip, port=port_idx,
+      if ifstats.has_seen_ebpf_events then
+        -- This is actualy an event exporter
+        local dev_ifname = port_value["ifName"] or port_idx
+        ts_utils.append("evexporter_iface:traffic", {ifid=ifstats.id, exporter=flow_device_ip, ifname=dev_ifname,
                 bytes_sent=port_value.ifOutOctets, bytes_rcvd=port_value.ifInOctets}, when, verbose)
+      else
+        ts_utils.append("sflowdev_port:traffic", {ifid=ifstats.id, device=flow_device_ip, port=port_idx,
+                bytes_sent=port_value.ifOutOctets, bytes_rcvd=port_value.ifInOctets}, when, verbose)
+      end
     end
   end
 end

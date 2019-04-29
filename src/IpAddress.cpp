@@ -31,7 +31,7 @@ IpAddress::IpAddress() {
 
 /* ******************************************* */
 
-void IpAddress::set(char *sym_addr) {
+void IpAddress::set(const char * const sym_addr) {
   if(strchr(sym_addr, '.')) {
     addr.ipVersion = 4, addr.localHost = 0, addr.ipType.ipv4 = inet_addr(sym_addr);
   } else {

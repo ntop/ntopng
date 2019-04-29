@@ -30,6 +30,38 @@ extern "C" {
 #include <ifaddrs.h>
 #endif
 
+static map<string, int> initTcpStatesStr2State() {
+  map<string, int>states_map;
+
+  states_map["ESTABLISHED"] = TCP_ESTABLISHED;
+  states_map["SYN-SENT"] = TCP_SYN_SENT;
+  states_map["SYN-RECV"] = TCP_SYN_RECV;
+  states_map["FIN-WAIT-1"] = TCP_FIN_WAIT1;
+  states_map["FIN-WAIT-2"] = TCP_FIN_WAIT2;
+  states_map["TIME-WAIT"] = TCP_TIME_WAIT;
+  states_map["CLOSE"] = TCP_CLOSE;
+  states_map["CLOSE-WAIT"] = TCP_CLOSE_WAIT;
+  states_map["LAST-ACK"] = TCP_LAST_ACK;
+  states_map["LISTEN"] = TCP_LISTEN;
+  states_map["CLOSING"] = TCP_CLOSING;
+
+  return states_map;
+}
+
+static map<int, string> initTcpStates2StatesStr(const map<string, int> &tcp_states_str_to_state) {
+  map<int, string>states_map;
+  map<string, int>::const_iterator it;
+
+  for(it = tcp_states_str_to_state.begin(); it != tcp_states_str_to_state.end(); it++) {
+    states_map[it->second] = it->first;
+  }
+
+  return states_map;
+}
+
+static const map<string, int> tcp_state_str_2_state = initTcpStatesStr2State();
+static const map<int, string> tcp_state_2_state_str = initTcpStates2StatesStr(tcp_state_str_2_state);
+
 // A simple struct for strings.
 typedef struct {
   char *s;
@@ -255,13 +287,16 @@ char *Utils::trim(char *s) {
 
 /* ****************************************************** */
 
-u_int32_t Utils::hashString(char *key) {
+u_int32_t Utils::hashString(const char * const key) {
+  if(!key)
+    return 0;
+
   u_int32_t hash = 0, len = (u_int32_t)strlen(key);
 
-  for(u_int32_t i=0; i<len; i++)
-    hash += ((u_int32_t)key[i])*i;
+  for(u_int32_t i = 0; i < len; i++)
+    hash += ((u_int32_t)key[i]) * i;
 
-  return(hash);
+  return hash;
 }
 
 /* ****************************************************** */
@@ -2879,6 +2914,28 @@ void Utils::initRedis(Redis **r, const char *redis_host, const char *redis_passw
 
 /* ******************************************* */
 
+int Utils::tcpStateStr2State(const char * const state_str) {
+  map<string, int>::const_iterator it;
+
+  if((it = tcp_state_str_2_state.find(state_str)) != tcp_state_str_2_state.end())
+    return it->second;
+
+  return -1;
+}
+
+/* ******************************************* */
+
+const char * Utils::tcpState2StateStr(int state) {
+  map<int, string>::const_iterator it;
+
+  if((it = tcp_state_2_state_str.find(state)) != tcp_state_2_state_str.end())
+    return it->second.c_str();
+
+  return "UNKNOWN";
+}
+
+/* ******************************************* */
+
 /*
   IMPORTANT: line buffer is large enough to contain the replaced string
 */
@@ -3718,4 +3775,16 @@ DetailsLevel Utils::bool2DetailsLevel(bool max, bool higher, bool normal){
   else{
     return details_high;
   }
+}
+
+/* ****************************************************** */
+
+void Utils::containerInfoLua(lua_State *vm, const ContainerInfo * const cont) {
+  lua_newtable(vm);
+
+  if(cont->id)       lua_push_str_table_entry(vm, "id", cont->id);
+  if(cont->k8s.name) lua_push_str_table_entry(vm, "k8s.name", cont->k8s.name);
+  if(cont->k8s.pod)  lua_push_str_table_entry(vm, "k8s.pod", cont->k8s.pod);
+  if(cont->k8s.ns)   lua_push_str_table_entry(vm, "k8s.ns", cont->k8s.ns);
+  if(cont->docker.name) lua_push_str_table_entry(vm, "docker.name", cont->docker.name);
 }

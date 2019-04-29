@@ -40,6 +40,8 @@ class ZMQParserInterface : public ParserInterface {
   void addMapping(const char *sym, u_int32_t num, u_int32_t pen = 0);
   bool parsePENZeroField(Parsed_Flow * const flow, u_int32_t field, const char * const value) const;
   bool parsePENNtopField(Parsed_Flow * const flow, u_int32_t field, const char * const value) const;
+  static bool parseContainerInfo(json_object *jo, ContainerInfo * const container_info);
+  bool parseNProbeMiniField(Parsed_Flow * const flow, const char * const key, const char * const value, json_object * const jvalue) const;
   void parseSingleFlow(json_object *o, u_int8_t source_id, NetworkInterface *iface);
   void setFieldMap(const ZMQ_FieldMap * const field_map) const;
   void setFieldValueMap(const ZMQ_FieldValueMap * const field_value_map) const;

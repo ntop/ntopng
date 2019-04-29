@@ -1,5 +1,8 @@
-Categories
-##########
+Applications and Categories
+###########################
+
+Category
+--------
 
 Traditionally nDPI was used by ntopng to detect flows L7 protocol. With the advent of more and more protocols, 
 speaking about single protocols is often too difficult. Users usually are not interested in the specific protocol
@@ -28,20 +31,21 @@ Some use cases solved by the Categories include:
 
 The picture above shows the *Collaborative* category being reported on the flow details of a Github/DNS flow. 
 
-Protocol Category
------------------
+Custom Applications
+-------------------
 
-The flow Category is usually determined based on the flow protocol. It is possible to review and modify the category 
-associated to each protocol through the *Protocols* tab in the *Categories* page:
+In the Applications tab it's possible to configure the category associated associated
+with a particular application.
 
 .. figure:: ../img/web_gui_categories_protocols.png
   :align: center
   :alt: The Protocol Category editor
 
-  The Protocol Category editor
+  Applications Configuration Page
 
-Please note that in addition to the built-in protocols, it is possible to define custom protocols providing
-a nDPI protocol file to ntopng through the *--ndpi-protocols|-p <file>* option, with the following format:
+ntopng determines the application of a flow via some rules into nDPI. However,
+some additional rules can be specied by the user via the *--ndpi-protocols|-p <file>*
+option. The file has the following format:
 
 .. code:: text
 
@@ -51,13 +55,40 @@ a nDPI protocol file to ntopng through the *--ndpi-protocols|-p <file>* option, 
 
 An example for this configuration file is available `here <https://github.com/ntop/nDPI/blob/dev/example/protos.txt>`_.
 
-After providing the protocols file to ntopng, the *Protocols* page will show the new protocols, and it will we possible 
-to associate them to categories.
+Ntopng also supports editing such file from the gui. In order to do so, it's
+still necessary to use the above option to point to a protos file located into
+a directory where ntopng has the permission to read and write. In practice, in
+order to enable tihs feature, ntopng should be started with the
+*--ndpi-protocols=/var/lib/ntopng/protos.txt* option. If you already have a protos
+file, move it to */var/lib/ntopng/protos.txt* and run
+
+.. code:: bash
+
+    sudo chown ntopng:ntopng /var/lib/ntopng/protos.txt
+
+to prepare it to be used by ntopng.
+
+After this feature is enabled, by clicking on the "Edit Rules" button it will be
+possible edit an application rules rirectly from the gui and add new protocols.
+It's important to note that rules and new protocols will only be created and applied
+after a restart of ntopng.
+
+.. figure:: ../img/web_gui_application_edit.png
+  :align: center
+  :alt: The Protocol Category editor
+  :height: 400px
+
+  Editing Application Rules
+
+For example, the `tcp:8080` rule in the example above tells ntopng to treat all
+the tcp traffic on port 8080 as HTTP. In order to delete a user defined protocol
+it's necessary to clear all of its rules and save the changes.
+The protocol will be deleted after a restart of ntopng.
 
 .. _CustomCategoryHosts:
   
-Custom Category Hosts
----------------------
+Custom Categories
+-----------------
 
 As shown above, ntopng already assigns a default category to the known L7 protocols.
 Nevertheless, it's also possible for the user to specify a list of additional hosts
@@ -73,14 +104,14 @@ The host-based rules will be used to perform substring matching on some of the f
   - HTTP Host
 
 If a match is found, the flow category will be set to the corresponding matching category.
-These rules can be configured from the *Categories* page.
+These rules can be configured from the *Categories* tab.
 
 .. figure:: ../img/web_gui_category_editor.png
   :align: center
   :alt: The Category editor
 
-By clicking "Edit Hosts" it's possible to define some hosts which will be considered
-as part of the category.
+By clicking "Edit Rules" it's possible to define some rules to match hosts and associate
+them to the category.
 
 .. figure:: ../img/web_gui_edit_category_hosts.png
   :align: center
@@ -101,18 +132,19 @@ services (e.g. *emergingthreats* for the *Malware* category). Since lists are al
 whitelisting selected hosts. This is possible adding an host to the list, prepending "!" to the IP/hostname
 (e.g. !1.2.3.4).
 
-Flow Shortcut
--------------
+Adding a Rule from a Flow
+-------------------------
 
-From the flow details view there is a convenient way to add the flow SNI/HTTP host
-to a customized category.
+From the flow details page, it's possible to click on the plus sign beside the flow SNI,
+DNS or HTTP host to easily create a rule to associate such host to a particular application
+or category.
 
 .. figure:: ../img/web_gui_add_host_to_category.png
   :align: center
-  :alt: Edit Category Hosts
+  :alt: Add Host Rule
 
 .. figure:: ../img/web_gui_add_host_to_category_dialog.png
   :align: center
-  :alt: Edit Category Hosts
+  :alt: Add Host Rule
 
-  Add a Flow Host to a Category
+  Add Host Rule

@@ -139,7 +139,7 @@ ZMQCollectorInterface::~ZMQCollectorInterface() {
 void ZMQCollectorInterface::collect_flows() {
   struct zmq_msg_hdr h; /* NOTE: in network-byte-order format */
   char payload[8192];
-  u_int payload_len = sizeof(payload)-1;
+  const u_int payload_len = sizeof(payload) - 1;
   zmq_pollitem_t items[MAX_ZMQ_SUBSCRIBERS];
   u_int32_t zmq_max_num_polls_before_purge = MAX_ZMQ_POLLS_BEFORE_PURGE;
   u_int32_t now, next_purge_idle = (u_int32_t)time(NULL) + FLOW_PURGE_FREQUENCY;
@@ -172,47 +172,57 @@ void ZMQCollectorInterface::collect_flows() {
       }
     } while(rc == 0);
 
-    for(int source_id=0; source_id<num_subscribers; source_id++) {
-      u_int32_t msg_id;
+    for(int subscriber_id = 0; subscriber_id < num_subscribers; subscriber_id++) {
+      u_int32_t msg_id, last_msg_id;
+      u_int8_t source_id = 0;
 	
-      if(items[source_id].revents & ZMQ_POLLIN) {
-	size = zmq_recv(items[source_id].socket, &h, sizeof(h), 0);
+      if(items[subscriber_id].revents & ZMQ_POLLIN) {
+	size = zmq_recv(items[subscriber_id].socket, &h, sizeof(h), 0);
 
 	if(size == sizeof(struct zmq_msg_hdr_v0)) {
 	  /* Legacy version */
-	  msg_id = 0;
+	  msg_id = 0, source_id = 0;
 	} else if((size != sizeof(h)) || ((h.version != ZMQ_MSG_VERSION) && (h.version != ZMQ_COMPATIBILITY_MSG_VERSION))) {
 	  ntop->getTrace()->traceEvent(TRACE_WARNING,
 				       "Unsupported publisher version: your nProbe sender is outdated? [%u][%u]",
 				       sizeof(struct zmq_msg_hdr), sizeof(h));
 	  continue;
 	} else if(h.version == ZMQ_COMPATIBILITY_MSG_VERSION)
-	  msg_id = h.msg_id; // host byte order
+	  source_id = 0, msg_id = h.msg_id; // host byte order
 	else
-	  msg_id = ntohl(h.msg_id);
+	  source_id = h.source_id, msg_id = ntohl(h.msg_id);
 
-	if((!is_collector) && (msg_id > 0)) {
-	  /* 
-	     TODO
-	     Develop logic for computing drops in collector mode
-	  */
-	  if(msg_id < recvStats.last_zmq_msg_id) {
-	    /* Start over */
-	  } else if(recvStats.last_zmq_msg_id > 0) {
-	    u_int32_t diff = msg_id - recvStats.last_zmq_msg_id;
+	if(source_id_last_msg_id.find(source_id) == source_id_last_msg_id.end())
+	  source_id_last_msg_id[source_id] = 0;
 
-	    if(diff != 1) {
-	      recvStats.zmq_msg_drops += diff;
+	last_msg_id = source_id_last_msg_id[source_id];
+
+	// ntop->getTrace()->traceEvent(TRACE_WARNING, "[subscriber_id: %u][message source: %u][msg_id: %u][last_msg_id: %u][lost: %i]", subscriber_id, source_id, msg_id, last_msg_id, msg_id - last_msg_id - 1);
+
+	if(msg_id > 0) {
+	  if(msg_id < last_msg_id) ; /* Start over */
+	  else if(last_msg_id > 0) {
+	    int32_t diff = msg_id - last_msg_id;
+
+	    if(diff > 1) {
+	      recvStats.zmq_msg_drops += diff - 1;
 	      ntop->getTrace()->traceEvent(TRACE_INFO, "msg_id=%u, drops=%u", msg_id, recvStats.zmq_msg_drops);
 	    }
 	  }
 
-	  recvStats.last_zmq_msg_id = msg_id;
+	  source_id_last_msg_id[source_id] = msg_id;
 	}       
-	
-	size = zmq_recv(items[source_id].socket, payload, payload_len, 0);
 
-	if(size > 0) {
+	/*
+          The zmq_recv() function shall return number of bytes in the message if successful.
+          Note that the value can exceed the value of the len parameter in case the message was truncated.
+          If not successful the function shall return -1 and set errno to one of the values defined below.
+	*/
+	size = zmq_recv(items[subscriber_id].socket, payload, payload_len, 0);
+
+	if(size > 0 && (u_int32_t)size > payload_len)
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "ZMQ message truncated? [size: %u][payload_len: %u]", size, payload_len);
+	else if(size > 0) {
 	  char *uncompressed = NULL;
 	  u_int uncompressed_len;
 	  
@@ -251,26 +261,26 @@ void ZMQCollectorInterface::collect_flows() {
           switch(h.url[0]) {
           case 'e': /* event */
             recvStats.num_events++;
-            parseEvent(uncompressed, uncompressed_len, source_id, this);
+            parseEvent(uncompressed, uncompressed_len, subscriber_id, this);
             break;
 
           case 'f': /* flow */
-            recvStats.num_flows += parseFlow(uncompressed, uncompressed_len, source_id, this);
+            recvStats.num_flows += parseFlow(uncompressed, uncompressed_len, subscriber_id, this);
             break;
 
           case 'c': /* counter */
             recvStats.num_counters++;
-            parseCounter(uncompressed, uncompressed_len, source_id, this);
+            parseCounter(uncompressed, uncompressed_len, subscriber_id, this);
             break;
 
           case 't': /* template */
             recvStats.num_templates++;
-            parseTemplate(uncompressed, uncompressed_len, source_id, this);
+            parseTemplate(uncompressed, uncompressed_len, subscriber_id, this);
             break;
 
           case 'o': /* option */
             recvStats.num_options++;
-            parseOption(uncompressed, uncompressed_len, source_id, this);
+            parseOption(uncompressed, uncompressed_len, subscriber_id, this);
             break;
 
           }

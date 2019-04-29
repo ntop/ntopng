@@ -1215,6 +1215,7 @@ HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
   bool good_ssl_cert = false;
   wispr_captive_data = NULL;
   captive_redirect_addr = NULL;
+  gui_access_restricted = false;
 
   struct timeval tv;
   static char *http_options[] = {
@@ -1239,6 +1240,11 @@ HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
   srand(tv.tv_sec + tv.tv_usec);
 
   parseACL(acl_management, sizeof(acl_management));
+
+  if(strcmp(acl_management, "+0.0.0.0/0")
+      || http_binding_addr1[0] || http_binding_addr2[0]
+      || https_binding_addr1[0] || https_binding_addr2[0])
+    gui_access_restricted = true;
   
   docs_dir = strdup(_docs_dir), scripts_dir = strdup(_scripts_dir);
   ssl_enabled = false;

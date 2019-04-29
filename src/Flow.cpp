@@ -59,7 +59,10 @@ Flow::Flow(NetworkInterface *_iface,
 
   memset(&cli2srvStats, 0, sizeof(cli2srvStats)), memset(&srv2cliStats, 0, sizeof(srv2cliStats));
 
-  ndpiFlow = NULL, cli_id = srv_id = NULL, client_proc = server_proc = NULL;
+  ndpiFlow = NULL, cli_id = srv_id = NULL;
+  client_proc = server_proc = NULL;
+  client_cont = server_cont = NULL;
+  client_tcp = server_tcp = NULL;
   json_info = strdup("{}"), cli2srv_direction = true, twh_over = twh_ok = false,
     dissect_next_http_packet = false,
     check_tor = false, host_server_name = NULL, diff_num_http_requests = 0,
@@ -212,12 +215,37 @@ Flow::~Flow() {
   if(host_server_name) free(host_server_name);
 
   if(client_proc) {
-    if(client_proc->process_name) free(client_proc->process_name);
+    if(client_proc->process_name)        free(client_proc->process_name);
     if(client_proc->father_process_name) free(client_proc->father_process_name);
     free(client_proc);
   }
   
-  if(server_proc) free(server_proc);  
+  if(server_proc) {
+    if(server_proc->process_name)        free(server_proc->process_name);
+    if(server_proc->father_process_name) free(server_proc->father_process_name);
+    free(server_proc);
+  }
+
+  if(client_cont) {
+    if(client_cont->id)       free(client_cont->id);
+    if(client_cont->k8s.name) free(client_cont->k8s.name);
+    if(client_cont->k8s.pod)  free(client_cont->k8s.pod);
+    if(client_cont->k8s.ns)   free(client_cont->k8s.ns);
+    if(client_cont->docker.name) free(client_cont->docker.name);
+    free(client_cont);
+  }
+
+  if(server_cont) {
+    if(server_cont->id)       free(server_cont->id);
+    if(server_cont->k8s.name) free(server_cont->k8s.name);
+    if(server_cont->k8s.pod)  free(server_cont->k8s.pod);
+    if(server_cont->k8s.ns)   free(server_cont->k8s.ns);
+    if(server_cont->docker.name) free(server_cont->docker.name);
+    free(server_cont);
+  }
+
+  if(client_tcp) free(client_tcp);
+  if(server_tcp) free(server_tcp);
 
   if(isHTTP()) {
     if(protos.http.last_method) free(protos.http.last_method);
@@ -1530,42 +1558,56 @@ void Flow::processJson(bool is_src,
 
 /* *************************************** */
 
-void Flow::processLua(lua_State* vm, ProcessInfo *proc, bool client) {
+void Flow::processLua(lua_State* vm, const ProcessInfo * const proc,
+	 const ContainerInfo * const cont, const TcpInfo * const tcp, bool client) {
 #ifndef WIN32
-  Host *src = get_cli_host(), *dst = get_srv_host();
   struct passwd *pwd;
   
-  if((src == NULL) || (dst == NULL) || (proc->pid == 0)) return;
+  if(proc && proc->pid > 0) {
+    lua_newtable(vm);
 
-  lua_newtable(vm);
+    lua_push_uint64_table_entry(vm, "pid", proc->pid);
+    lua_push_str_table_entry(vm, "name", proc->process_name);
+    lua_push_uint64_table_entry(vm, "uid", proc->uid);
+    lua_push_uint64_table_entry(vm, "gid", proc->gid);
+    /* TODO: improve code efficiency */
+    pwd = getpwuid(proc->uid);
+    lua_push_str_table_entry(vm, "user_name", pwd ? pwd->pw_name : "");
 
-  lua_push_uint64_table_entry(vm, "pid", proc->pid);
-  lua_push_uint64_table_entry(vm, "father_pid", proc->father_pid);
-  lua_push_str_table_entry(vm, "name", proc->process_name);
-  lua_push_str_table_entry(vm, "father_name", proc->father_process_name);
-  lua_push_uint64_table_entry(vm, "uid", proc->uid);
-  lua_push_uint64_table_entry(vm, "gid", proc->gid);
-  lua_push_uint64_table_entry(vm, "father_uid", proc->father_uid);
-  lua_push_uint64_table_entry(vm, "father_gid", proc->father_gid);
+    if(proc->father_pid > 0) {
+      lua_push_uint64_table_entry(vm, "father_pid", proc->father_pid);
+      lua_push_uint64_table_entry(vm, "father_uid", proc->father_uid);
+      lua_push_uint64_table_entry(vm, "father_gid", proc->father_gid);
+      lua_push_str_table_entry(vm, "father_name", proc->father_process_name);
 
-  /* TODO: improve code efficiency */
-  pwd = getpwuid(proc->uid);
-  lua_push_str_table_entry(vm, "user_name", pwd ? pwd->pw_name : "");
+      pwd = getpwuid(proc->father_uid);
+      lua_push_str_table_entry(vm, "father_user_name", pwd ? pwd->pw_name : "");
+    }
 
-  pwd = getpwuid(proc->father_uid);
-  lua_push_str_table_entry(vm, "father_user_name", pwd ? pwd->pw_name : "");
-
-#if 0
-  lua_push_uint64_table_entry(vm, "actual_memory", proc->actual_memory);
-  lua_push_uint64_table_entry(vm, "peak_memory", proc->peak_memory);
-  lua_push_float_table_entry(vm, "average_cpu_load", proc->average_cpu_load);
-  lua_push_float_table_entry(vm, "percentage_iowait_time", proc->percentage_iowait_time);
-  lua_push_uint64_table_entry(vm, "num_vm_page_faults", proc->num_vm_page_faults);
+    lua_pushstring(vm, client ? "client_process" : "server_process");
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
 #endif
-  lua_pushstring(vm, client ? "client_process" : "server_process");
-  lua_insert(vm, -2);
-  lua_settable(vm, -3);
-#endif
+  }
+
+  if(cont) {
+    Utils::containerInfoLua(vm, cont);
+
+    lua_pushstring(vm, client ? "client_container" : "server_container");
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
+  }
+
+  if(tcp) {
+    lua_newtable(vm);
+
+    lua_push_float_table_entry(vm, "rtt", tcp->rtt);
+    lua_push_float_table_entry(vm, "rtt_var", tcp->rtt_var);
+
+    lua_pushstring(vm, client ? "client_tcp_info" : "server_tcp_info");
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
+  }
 }
 
 /* *************************************** */
@@ -1817,8 +1859,8 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 
     lua_push_str_table_entry(vm, "moreinfo.json", get_json_info());
 
-    if(client_proc) processLua(vm, client_proc, true);
-    if(server_proc) processLua(vm, server_proc, false);
+    if(client_proc) processLua(vm, client_proc, client_cont, client_tcp, true);
+    if(server_proc) processLua(vm, server_proc, server_cont, server_tcp, false);
 
     // overall throughput stats
     lua_push_float_table_entry(vm,  "top_throughput_bps",   top_bytes_thpt);
@@ -3654,6 +3696,54 @@ void Flow::setProcessInfo(eBPFevent *event, bool client_process) {
   }
 }
 #endif
+
+/* ***************************************************** */
+
+void Flow::setParsedeBPFInfo(const Parsed_eBPF * const ebpf, bool client_process) {
+  if(!ebpf)
+    return;
+
+  const ProcessInfo *pi = ebpf->process_info_set ? &ebpf->process_info : NULL;
+  const ContainerInfo *ci = ebpf->container_info_set ? &ebpf->container_info : NULL;
+  const TcpInfo *ti = ebpf->tcp_info_set ? &ebpf->tcp_info : NULL;
+  iface->setSeenEBPFEvents();
+
+  ProcessInfo   **process_info   = client_process ? &client_proc : &server_proc;
+  ContainerInfo **container_info = client_process ? &client_cont : &server_cont;
+  TcpInfo **tcp_info = client_process ? &client_tcp : &server_tcp;
+
+  if(pi && (*process_info || (*process_info = (ProcessInfo*)calloc(1, sizeof(ProcessInfo))))) {
+    ProcessInfo *cur = *process_info;
+
+    cur->pid = pi->pid, cur->uid = pi->uid, cur->gid = pi->gid,
+      cur->father_pid = pi->father_pid, cur->father_uid = pi->father_uid, cur->father_gid = pi->father_gid;
+    if(pi->process_name)        cur->process_name = strdup(pi->process_name);
+    if(pi->father_process_name) cur->father_process_name = strdup(pi->father_process_name);
+  }
+
+  if(ci && (*container_info || (*container_info = (ContainerInfo*)calloc(1, sizeof(ContainerInfo))))) {
+    ContainerInfo *cur = *container_info;
+
+    if(ci->id) {
+      cur->id = strdup(ci->id);
+      if(!iface->hasSeenContainers())
+	iface->setSeenContainers();
+    }
+    if(ci->k8s.pod) {
+      cur->k8s.pod  = strdup(ci->k8s.pod);
+      if(!iface->hasSeenPods())
+	iface->setSeenPods();
+    }
+    if(ci->k8s.name) cur->k8s.name = strdup(ci->k8s.name);
+    if(ci->k8s.ns)   cur->k8s.ns   = strdup(ci->k8s.ns);
+    if(ci->docker.name) cur->docker.name = strdup(ci->docker.name);
+  }
+
+  if(ti && (*tcp_info || (*tcp_info = (TcpInfo*)calloc(1, sizeof(TcpInfo))))) {
+    TcpInfo *cur = *tcp_info;
+    memcpy(cur, ti, sizeof(*ti));
+  }
+}
 
 /* ***************************************************** */
 

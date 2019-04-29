@@ -222,4 +222,30 @@ function format_utils.formatPastEpochShort(epoch)
    return format_utils.formatEpochShort(epoch, os.time(), epoch)
 end
 
+function format_utils.formatMillis(x)
+   if(x == 0) then return 0 end
+   if(x < 0.1) then return "< 0.1 ms" end
+   return string.format("%.1f ms", x)
+end
+
+function format_utils.formatContainer(cont)
+   if cont["k8s.name"] then
+      return cont["k8s.name"]
+   elseif cont["docker.name"] then
+      return cont["docker.name"]
+   end
+
+   return cont["id"]
+end
+
+function format_utils.formatContainerFromId(cont_id)
+   -- NOTE: this is expensive, use format_utils.formatContainer when possible
+   local containers = interface.getContainersStats()
+   if((containers[cont_id] ~= nil) and (containers[cont_id].info ~= nil)) then
+      return format_utils.formatContainer(containers[cont_id].info)
+   else
+      return shortenString(cont_id, 12)
+   end
+end
+
 return format_utils

@@ -34,8 +34,7 @@ class InterfaceStatsHash {
   InterfaceStatsHash(u_int _max_hash_size);
   ~InterfaceStatsHash();
 
-  bool set(u_int32_t deviceIP, u_int32_t ifIndex, sFlowInterfaceStats *stats);
-  bool get(u_int32_t deviceIP, u_int32_t ifIndex, sFlowInterfaceStats *stats);
+  bool set(const sFlowInterfaceStats * const stats);
 
   void luaDeviceList(lua_State *vm);
   void luaDeviceInfo(lua_State *vm, u_int32_t deviceIP);

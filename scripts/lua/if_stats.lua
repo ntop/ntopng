@@ -326,7 +326,7 @@ if isAdministrator() and (not ifstats.isView) then
    end
 
    if(num_pool_hosts > 0) then
-      label = "<span class='badge badge-top-right'>".. num_pool_hosts .."</span>"
+      label = "<span class='badge badge-top-right' title='".. i18n("host_pools.active_pool_members") .."'>".. num_pool_hosts .."</span>"
    else
       label = ""
    end

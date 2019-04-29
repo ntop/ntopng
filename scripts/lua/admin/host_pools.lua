@@ -255,6 +255,7 @@ local perPagePools = "10"
 
 local members_filtering = _GET["members_filter"]
 local manage_url = "?ifid="..ifId.."&page=pools&pool="..selected_pool.id.."#manage"
+local ifstats = interface.getStats()
 
 --------------------------------------------------------------------------------
 
@@ -263,7 +264,13 @@ print [[
   <ul id="hostPoolsNav" class="nav nav-tabs" role="tablist">
     <li><a data-toggle="tab" role="tab" href="#manage">]] print(i18n("host_pools.manage_pools")) print[[</a></li>
     <li><a data-toggle="tab" role="tab" href="#create">]] print(i18n("host_pools.create_pools")) print[[</a></li>
-    <li><a data-toggle="tab" role="tab" href="#unassigned">]] print(i18n("unknown_devices.unassigned_devices")) print[[</a></li>
+]]
+
+if ifstats.has_macs then
+  print[[<li><a data-toggle="tab" role="tab" href="#unassigned">]] print(i18n("unknown_devices.unassigned_devices")) print[[</a></li>]]
+end
+
+print[[
   </ul>
   <div class="tab-content">
     <div id="manage" class="tab-pane">
@@ -271,12 +278,10 @@ print [[
 ]]
 
 print('<td style="white-space:nowrap; padding-right:1em;">') print(i18n("host_pools.pool")) print(': <select id="pool_selector" class="form-control pool-selector" style="display:inline;" onchange="document.location.href=\'?ifid=') print(ifId.."") print('&page=pools&pool=\' + $(this).val() + \'#manage\';">')
-print(poolDropdown(ifId, selected_pool.id))
+print(poolDropdown(ifId, selected_pool.id, {[host_pools_utils.DEFAULT_POOL_ID]=true}))
 print('</select>')
 
 local no_pools = (#available_pools <= 1)
-
-local ifstats = interface.getStats()
 
 if selected_pool.id ~= host_pools_utils.DEFAULT_POOL_ID then
     if ntop.getCache("ntopng.prefs.host_pools_rrd_creation") == "1" and ts_utils.exists("host_pool:traffic", {ifid=ifId, pool=selected_pool.id}) then

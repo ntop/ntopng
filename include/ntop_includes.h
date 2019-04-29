@@ -194,6 +194,7 @@ using namespace std;
 #include "CustomAppStats.h"
 #endif
 #include "GenericTrafficElement.h"
+#include "ContainerStats.h"
 
 #ifdef NTOPNG_PRO
 #include "Profile.h"

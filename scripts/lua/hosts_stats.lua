@@ -162,7 +162,7 @@ if (_GET["page"] ~= "historical") then
 	 host_rows_option["ip"] = true;
          host_rows_option["custom_column"] = "]] print(custom_key) print[[";
 	 $("#table-hosts").datatable({
-			title: "Hosts List",
+			title: "]] print(i18n("hosts_stats.hosts_list")) print[[",
 			url: url_update ,
 	 ]]
 
