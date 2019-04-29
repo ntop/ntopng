@@ -525,16 +525,20 @@ bool ZMQParserInterface::parseNProbeMiniField(Parsed_Flow * const flow, const ch
       ret = true;
     }
   } else if(!strncmp(key, "IPV4_LOCAL_ADDR", 15)
-	    || !strncmp(key, "IPV6_LOCAL_ADDR", 15))
+	    || !strncmp(key, "IPV6_LOCAL_ADDR", 15)) {
     flow->src_ip.set(value); /* FIX: do not always assume Local == Client */
-  else if(!strncmp(key, "IPV4_REMOTE_ADDR", 16)
-	  || !strncmp(key, "IPV6_REMOTE_ADDR", 16))
+    ret = true;
+  } else if(!strncmp(key, "IPV4_REMOTE_ADDR", 16)
+	    || !strncmp(key, "IPV6_REMOTE_ADDR", 16)) {
     flow->dst_ip.set(value); /* FIX: do not always assume Remote == Server */
-  else if(!strncmp(key, "L4_LOCAL_PORT", 13))
+    ret = true;
+  } else if(!strncmp(key, "L4_LOCAL_PORT", 13)) {
     flow->core.src_port = htons(atoi(value));
-  else if(!strncmp(key, "L4_REMOTE_PORT", 14))
+    ret = true;
+  } else if(!strncmp(key, "L4_REMOTE_PORT", 14)) {
     flow->core.dst_port = htons(atoi(value));
-  else if(strlen(key) >= 14 && !strncmp(&key[strlen(key) - 14], "FATHER_PROCESS", 14)) {
+    ret = true;
+  } else if(strlen(key) >= 14 && !strncmp(&key[strlen(key) - 14], "FATHER_PROCESS", 14)) {
     if(json_object_object_get_ex(jvalue, "PID", &obj))   flow->ebpf.process_info.father_pid = (u_int32_t)json_object_get_int64(obj);
     if(json_object_object_get_ex(jvalue, "UID", &obj))      flow->ebpf.process_info.father_uid = (u_int32_t)json_object_get_int64(obj);
     if(json_object_object_get_ex(jvalue, "GID", &obj))     flow->ebpf.process_info.father_gid = (u_int32_t)json_object_get_int64(obj);
