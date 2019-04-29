@@ -2494,7 +2494,7 @@ void Flow::addFlowStats(bool cli2srv_direction,
 			time_t last_seen) {
 
   /* Don't update seen if no traffic has been observed */
-  if((in_pkts == 0) && (out_pkts == 0)) return;
+  if((in_bytes == 0) && (out_bytes == 0)) return;
 
   updateSeen(last_seen);
 
