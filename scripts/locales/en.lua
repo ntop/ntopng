@@ -669,7 +669,7 @@ local lang = {
     ["syn_victim_title"] = "SYN Flood Victim",
   },
   ["event_exporters"] = {
-    ["event_device_x"] = "Event Device %{device}",
+    ["event_device_x"] = "Event Exporter %{device}",
     ["event_exporter_ip"] = "Event Exporter IP",
     ["event_exporters"] = "Event Exporters",
   },
