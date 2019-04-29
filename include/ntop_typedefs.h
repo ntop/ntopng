@@ -183,6 +183,7 @@ typedef struct {
   char *process_name, *father_process_name;
   u_int32_t uid /* User Id */, gid; /* Group Id */
   u_int32_t father_uid /* User Id */, father_gid; /* Group Id */
+  u_int32_t actual_memory, peak_memory;
 } ProcessInfo;
 
 typedef struct {

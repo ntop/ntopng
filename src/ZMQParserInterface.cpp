@@ -542,6 +542,8 @@ bool ZMQParserInterface::parseNProbeMiniField(Parsed_Flow * const flow, const ch
     if(json_object_object_get_ex(jvalue, "PID", &obj))   flow->ebpf.process_info.father_pid = (u_int32_t)json_object_get_int64(obj);
     if(json_object_object_get_ex(jvalue, "UID", &obj))      flow->ebpf.process_info.father_uid = (u_int32_t)json_object_get_int64(obj);
     if(json_object_object_get_ex(jvalue, "GID", &obj))     flow->ebpf.process_info.father_gid = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "VM_SIZE", &obj))     flow->ebpf.process_info.actual_memory = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "VM_PEAK", &obj))     flow->ebpf.process_info.peak_memory = (u_int32_t)json_object_get_int64(obj);
     if(json_object_object_get_ex(jvalue, "PROCESS_PATH", &obj)) flow->ebpf.process_info.father_process_name = (char*)json_object_get_string(obj);
     if(!flow->ebpf.process_info_set) flow->ebpf.process_info_set = true;
     ret = true;
@@ -554,12 +556,15 @@ bool ZMQParserInterface::parseNProbeMiniField(Parsed_Flow * const flow, const ch
     if(json_object_object_get_ex(jvalue, "PID", &obj))   flow->ebpf.process_info.pid = (u_int32_t)json_object_get_int64(obj);
     if(json_object_object_get_ex(jvalue, "UID", &obj))      flow->ebpf.process_info.uid = (u_int32_t)json_object_get_int64(obj);
     if(json_object_object_get_ex(jvalue, "GID", &obj))     flow->ebpf.process_info.gid = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "VM_SIZE", &obj))     flow->ebpf.process_info.actual_memory = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "VM_PEAK", &obj))     flow->ebpf.process_info.peak_memory = (u_int32_t)json_object_get_int64(obj);
     if(json_object_object_get_ex(jvalue, "PROCESS_PATH", &obj)) flow->ebpf.process_info.process_name = (char*)json_object_get_string(obj);
     if(!flow->ebpf.process_info_set) flow->ebpf.process_info_set = true;
     ret = true;
 
-    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Process [pid: %u][uid: %u][gid: %u][path: %s]",
+    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Process [pid: %u][uid: %u][gid: %u][size/peak vm: %u/%u][path: %s]",
     //				 flow->ebpf.process_info.pid, flow->ebpf.process_info.uid, flow->ebpf.process_info.gid,
+    //				 flow->ebpf.process_info.actual_memory, flow->ebpf.process_info.peak_memory,
     //				 flow->ebpf.process_info.process_name);
   } else if(strlen(key) >= 9 && !strncmp(&key[strlen(key) - 9], "CONTAINER", 9)) {
     if((ret = parseContainerInfo(jvalue, &flow->ebpf.container_info)))

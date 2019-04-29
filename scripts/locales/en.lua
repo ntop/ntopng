@@ -1395,6 +1395,7 @@ local lang = {
     ["num_nfq_drops"] = "Dropped Packets",
     ["num_nfq_pct"] = "Queue Fill %%",
     ["packet_drops"] = "Packet Drops",
+    ["peak_memory"] = "Peak Memory",
     ["percentile"] = "95th <a href=\"%{url}\">Percentile</a>",
     ["permanent_link"] = "Permanent Link",
     ["pkt_drops"] = "Pkt Drops",
