@@ -433,7 +433,6 @@ var map = (function () {
     //the calling order of the functions is important (most variable are global)
     var buildMap = function(data) {
 
-
         //NOTE: temporary solution
         //disable scroll
         $('html, body').css({

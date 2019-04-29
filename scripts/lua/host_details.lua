@@ -703,7 +703,6 @@ end
          var printText = function(){
             $.getJSON("]]print (ntop.getHttpPrefix())print[[/lua/get_arp_matrix_data.lua?host=]]print(host_ip)print[[", function(data){
 
-
                if (data.talkers_num == 1)
                   $("#arp_req_td").text( "Sent "+ data.req_num+ " Requests to " + data.talkers_num +" Host" );
                else

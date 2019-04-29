@@ -71,7 +71,6 @@ if((ifstats ~= nil) and (ifstats.stats.packets > 0)) then
   print [[
     <script src="]] print(ntop.getHttpPrefix()) print[[/js/d3.v4.min.js"></script>
 
-
    <div style="background-color:white", id="container"></div>
    <div style="background-color:white", id="container2"></div>
 
