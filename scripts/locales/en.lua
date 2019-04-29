@@ -1279,7 +1279,7 @@ local lang = {
     ["untunneled_protocol"] = "Untunneled IP protocol byte",
     ["upstream_session_id"] = "Upstream session identifier (e.g. L2TP) or 0 if unknown",
     ["upstream_tunnel_id"] = "Upstream tunnel identifier (e.g. GTP TEID, VXLAN VNI) or 0 if unknown",
-    ["user_name"] = "Palo Alto User-Id",
+    ["user_name"] = "User Name",
   },
   ["flows_page"] = {
     ["active_flows"] = "Active %{filter} Flows",
