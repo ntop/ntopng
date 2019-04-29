@@ -835,19 +835,19 @@ u_int8_t ZMQParserInterface::parseCounter(const char * const payload, int payloa
 
       if((key != NULL) && (value != NULL)) {
 	if(!strcmp(key, "deviceIP")) stats.deviceIP = ntohl(inet_addr(value));
-	else if(!strcmp(key, "ifIndex")) stats.ifIndex = atol(value);
+	else if(!strcmp(key, "ifIndex")) stats.ifIndex = (u_int32_t)json_object_get_int64(v);
 	else if(!strcmp(key, "ifName")) stats.ifName = (char*)json_object_get_string(v);
-	else if(!strcmp(key, "ifType")) stats.ifType = atol(value);
-	else if(!strcmp(key, "ifSpeed")) stats.ifSpeed = atol(value);
+	else if(!strcmp(key, "ifType")) stats.ifType = (u_int32_t)json_object_get_int64(v);
+	else if(!strcmp(key, "ifSpeed")) stats.ifSpeed = (u_int32_t)json_object_get_int64(v);
 	else if(!strcmp(key, "ifDirection")) stats.ifFullDuplex = (!strcmp(value, "Full")) ? true : false;
 	else if(!strcmp(key, "ifAdminStatus")) stats.ifAdminStatus = (!strcmp(value, "Up")) ? true : false;
 	else if(!strcmp(key, "ifOperStatus")) stats.ifOperStatus = (!strcmp(value, "Up")) ? true : false;
-	else if(!strcmp(key, "ifInOctets")) stats.ifInOctets = atoll(value);
-	else if(!strcmp(key, "ifInPackets")) stats.ifInPackets = atoll(value);
-	else if(!strcmp(key, "ifInErrors")) stats.ifInErrors = atoll(value);
-	else if(!strcmp(key, "ifOutOctets")) stats.ifOutOctets = atoll(value);
-	else if(!strcmp(key, "ifOutPackets")) stats.ifOutPackets = atoll(value);
-	else if(!strcmp(key, "ifOutErrors")) stats.ifOutErrors = atoll(value);
+	else if(!strcmp(key, "ifInOctets")) stats.ifInOctets = json_object_get_int64(v);
+	else if(!strcmp(key, "ifInPackets")) stats.ifInPackets = json_object_get_int64(v);
+	else if(!strcmp(key, "ifInErrors")) stats.ifInErrors = json_object_get_int64(v);
+	else if(!strcmp(key, "ifOutOctets")) stats.ifOutOctets = json_object_get_int64(v);
+	else if(!strcmp(key, "ifOutPackets")) stats.ifOutPackets = json_object_get_int64(v);
+	else if(!strcmp(key, "ifOutErrors")) stats.ifOutErrors = json_object_get_int64(v);
 	else if(!strcmp(key, "ifPromiscuousMode")) stats.ifPromiscuousMode = (!strcmp(value, "1")) ? true : false;
 	else if(strlen(key) >= 9 && !strncmp(&key[strlen(key) - 9], "CONTAINER", 9)) {
 	  if(parseContainerInfo(v, &stats.container_info))
