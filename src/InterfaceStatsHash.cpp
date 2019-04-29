@@ -41,7 +41,8 @@ InterfaceStatsHash::~InterfaceStatsHash() {
 }
 /* ************************************ */
 
-bool InterfaceStatsHash::set(u_int32_t deviceIP, u_int32_t ifIndex, sFlowInterfaceStats *stats) {
+bool InterfaceStatsHash::set(const sFlowInterfaceStats * const stats) {
+  u_int32_t ifIndex = stats->ifIndex, deviceIP = stats->deviceIP;
   u_int32_t hash = (deviceIP+ifIndex) % max_hash_size, num_runs = 0;
   bool ret = true;
 
@@ -91,42 +92,6 @@ bool InterfaceStatsHash::set(u_int32_t deviceIP, u_int32_t ifIndex, sFlowInterfa
     m.unlock(__FILE__, __LINE__);
 
     return(ret);
-  }
-}
-
-/* ************************************ */
-
-bool InterfaceStatsHash::get(u_int32_t deviceIP, u_int32_t ifIndex, sFlowInterfaceStats *stats) {
-  u_int32_t hash = (deviceIP+ifIndex) % max_hash_size, num_runs = 0;
-
-  if(buckets[hash] == NULL) {
-    return(false);
-  } else {
-    sFlowInterfaceStats *head;
-
-    m.lock(__FILE__, __LINE__);
-    head = (sFlowInterfaceStats*)buckets[hash];
-    
-    while(head != NULL) {      
-      if((head->deviceIP == deviceIP) && (head->ifIndex == ifIndex)) {
-	memcpy(stats, head, sizeof(sFlowInterfaceStats));
-	break;
-      } else {
-	/* Inplace hash */
-	hash = (hash + 1) % max_hash_size, num_runs++;
-
-	if(num_runs >= max_hash_size) {
-	  m.unlock(__FILE__, __LINE__);
-	  return(false);
-	}
-
-	head = buckets[hash];
-      }
-    }
-
-    m.unlock(__FILE__, __LINE__);
-
-    return(false);
   }
 }
 
