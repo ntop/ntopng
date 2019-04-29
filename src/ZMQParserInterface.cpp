@@ -515,7 +515,7 @@ bool ZMQParserInterface::parsePENNtopField(Parsed_Flow * const flow, u_int32_t f
 
 bool ZMQParserInterface::parseNProbeMiniField(Parsed_Flow * const flow, const char * const key, const char * const value, json_object * const jvalue) const {
   bool ret = false;
-  json_object *obj, *obj2;
+  json_object *obj;
 
   if(!strncmp(key, "timestamp", 9)) {
     u_int32_t seconds, nanoseconds /* nanoseconds not currently used */;
@@ -562,22 +562,8 @@ bool ZMQParserInterface::parseNProbeMiniField(Parsed_Flow * const flow, const ch
     //				 flow->ebpf.process_info.pid, flow->ebpf.process_info.uid, flow->ebpf.process_info.gid,
     //				 flow->ebpf.process_info.process_name);
   } else if(strlen(key) >= 9 && !strncmp(&key[strlen(key) - 9], "CONTAINER", 9)) {
-    if(json_object_object_get_ex(jvalue, "ID", &obj)) flow->ebpf.container_info.id = (char*)json_object_get_string(obj);
-
-    if(json_object_object_get_ex(jvalue, "KUBE", &obj)) {
-      if(json_object_object_get_ex(obj, "NAME", &obj2)) flow->ebpf.container_info.k8s.name = (char*)json_object_get_string(obj2);
-      if(json_object_object_get_ex(obj, "POD", &obj2))  flow->ebpf.container_info.k8s.pod  = (char*)json_object_get_string(obj2);
-      if(json_object_object_get_ex(obj, "NS", &obj2))   flow->ebpf.container_info.k8s.ns   = (char*)json_object_get_string(obj2);
-    }
-
-    if(!flow->ebpf.container_info_set) flow->ebpf.container_info_set = true;
-    ret = true;
-
-    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Container [id: %s] K8S [name: %s][pod: %s][ns: %s]",
-    //				 flow->ebpf.container_info.id ? flow->ebpf.container_info.id : "",
-    //				 flow->ebpf.container_info.k8s.name ? flow->ebpf.container_info.k8s.name : "",
-    //				 flow->ebpf.container_info.k8s.pod ? flow->ebpf.container_info.k8s.pod : "",
-    //				 flow->ebpf.container_info.k8s.ns ? flow->ebpf.container_info.k8s.ns : "");
+    if((ret = parseContainerInfo(jvalue, &flow->ebpf.container_info)))
+      flow->ebpf.container_info_set = true;
   } else if(!strncmp(key, "TCP", 3) && strlen(key) == 3) {
     if(json_object_object_get_ex(jvalue, "CONN_STATE", &obj))     flow->ebpf.tcp_info.conn_state = Utils::tcpStateStr2State(json_object_get_string(obj));
 
@@ -793,6 +779,28 @@ u_int8_t ZMQParserInterface::parseFlow(const char * const payload, int payload_s
 
 /* **************************************************** */
 
+bool ZMQParserInterface::parseContainerInfo(json_object *jo, ContainerInfo * const container_info) {
+  json_object *obj, *obj2;
+
+  if(json_object_object_get_ex(jo, "ID", &obj)) container_info->id = (char*)json_object_get_string(obj);
+
+  if(json_object_object_get_ex(jo, "KUBE", &obj)) {
+    if(json_object_object_get_ex(obj, "NAME", &obj2)) container_info->k8s.name = (char*)json_object_get_string(obj2);
+    if(json_object_object_get_ex(obj, "POD", &obj2))  container_info->k8s.pod  = (char*)json_object_get_string(obj2);
+    if(json_object_object_get_ex(obj, "NS", &obj2))   container_info->k8s.ns   = (char*)json_object_get_string(obj2);
+  }
+
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Container [id: %s] K8S [name: %s][pod: %s][ns: %s]",
+  //			       container_info->id ? container_info->id : "",
+  //			       container_info->k8s.name ? container_info->k8s.name : "",
+  //			       container_info->k8s.pod ? container_info->k8s.pod : "",
+  //			       container_info->k8s.ns ? container_info->k8s.ns : "");
+
+  return true;
+}
+
+/* **************************************************** */
+
 u_int8_t ZMQParserInterface::parseCounter(const char * const payload, int payload_size, u_int8_t source_id, void *data) {
   json_object *o;
   enum json_tokener_error jerr = json_tokener_success;
@@ -800,6 +808,7 @@ u_int8_t ZMQParserInterface::parseCounter(const char * const payload, int payloa
   sFlowInterfaceStats stats;
 
   // payload[payload_size] = '\0';
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", payload);
 
   memset(&stats, 0, sizeof(stats));
   o = json_tokener_parse_verbose(payload, &jerr);
@@ -819,6 +828,7 @@ u_int8_t ZMQParserInterface::parseCounter(const char * const payload, int payloa
       if((key != NULL) && (value != NULL)) {
 	if(!strcmp(key, "deviceIP")) stats.deviceIP = ntohl(inet_addr(value));
 	else if(!strcmp(key, "ifIndex")) stats.ifIndex = atol(value);
+	else if(!strcmp(key, "ifName")) stats.ifName = (char*)value;
 	else if(!strcmp(key, "ifType")) stats.ifType = atol(value);
 	else if(!strcmp(key, "ifSpeed")) stats.ifSpeed = atol(value);
 	else if(!strcmp(key, "ifDirection")) stats.ifFullDuplex = (!strcmp(value, "Full")) ? true : false;
@@ -831,6 +841,10 @@ u_int8_t ZMQParserInterface::parseCounter(const char * const payload, int payloa
 	else if(!strcmp(key, "ifOutPackets")) stats.ifOutPackets = atoll(value);
 	else if(!strcmp(key, "ifOutErrors")) stats.ifOutErrors = atoll(value);
 	else if(!strcmp(key, "ifPromiscuousMode")) stats.ifPromiscuousMode = (!strcmp(value, "1")) ? true : false;
+	else if(strlen(key) >= 9 && !strncmp(&key[strlen(key) - 9], "CONTAINER", 9)) {
+	  if(parseContainerInfo(v, &stats.container_info))
+	    stats.container_info_set = true;
+	}
       } /* if */
 
       /* Move to the next element */

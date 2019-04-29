@@ -385,9 +385,12 @@ typedef enum {
 
 typedef struct {
   u_int32_t deviceIP, ifIndex, ifType, ifSpeed;
+  char *ifName;
   bool ifFullDuplex, ifAdminStatus, ifOperStatus, ifPromiscuousMode;
   u_int64_t ifInOctets, ifInPackets, ifInErrors,
     ifOutOctets, ifOutPackets, ifOutErrors;
+  ContainerInfo container_info;
+  bool container_info_set;
 } sFlowInterfaceStats;
 
 typedef struct {
