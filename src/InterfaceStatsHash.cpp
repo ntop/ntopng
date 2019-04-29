@@ -182,8 +182,13 @@ void InterfaceStatsHash::luaDeviceInfo(lua_State *vm, u_int32_t deviceIP) {
       lua_push_uint64_table_entry(vm, "ifType", head->ifType);
       if(head->ifName)
 	lua_push_str_table_entry(vm, "ifName", head->ifName);
-      if(head->container_info_set)
+      if(head->container_info_set) {
 	Utils::containerInfoLua(vm, &head->container_info);
+
+	lua_pushstring(vm, "container");
+	lua_insert(vm, -2);
+	lua_settable(vm, -3);
+      }
       lua_push_uint64_table_entry(vm, "ifSpeed", head->ifSpeed);
       lua_push_bool_table_entry(vm, "ifFullDuplex", head->ifFullDuplex);
       lua_push_bool_table_entry(vm, "ifAdminStatus", head->ifAdminStatus);
