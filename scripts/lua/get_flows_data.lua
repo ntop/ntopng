@@ -259,6 +259,7 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
    local cli_name = flowinfo2hostname(value, "cli")
 
    local src_port, dst_port = '', ''
+   local src_process, dst_process = '', ''
 
    if(cli_name == nil) then cli_name = "???" end
    if(srv_name == nil) then srv_name = "???" end
@@ -286,9 +287,10 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
 	 src_port=""
       end
 
-      record["column_client_process"] = flowinfo2process(value["client_process"], hostinfo2url(value,"cli"))
+      --record["column_client_process"] = flowinfo2process(value["client_process"], hostinfo2url(value,"cli"))
+      src_process = flowinfo2process(value["client_process"], hostinfo2url(value,"cli"))
 
-      if value["client_container"] ~= nil then
+      if value["client_container"] and value["client_container"].id then
          record["column_client_container"] = '<a href="' .. ntop.getHttpPrefix() .. '/lua/flows_stats.lua?container=' .. value["client_container"].id .. '">' .. format_utils.formatContainer(value["client_container"]) .. '</a>'
 
          if value["client_container"]["k8s.pod"] then
@@ -311,9 +313,10 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
 	 dst_port=""
       end
 
-      record["column_server_process"] = flowinfo2process(value["server_process"], hostinfo2url(value,"srv"))
+      --record["column_server_process"] = flowinfo2process(value["server_process"], hostinfo2url(value,"srv"))
+      dst_process = flowinfo2process(value["server_process"], hostinfo2url(value,"srv"))
 
-      if value["server_container"] ~= nil then
+      if value["server_container"] and value["server_container"].id then
          record["column_server_container"] = '<a href="' .. ntop.getHttpPrefix() .. '/lua/flows_stats.lua?container=' .. value["server_container"].id .. '">' .. format_utils.formatContainer(value["server_container"]) .. '</a>'
 
          if value["server_container"]["k8s.pod"] then
@@ -360,10 +363,11 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
       column_client = column_client..getFlag(info["country"])
    end
 
-   column_client = string.format("%s%s%s",
+   column_client = string.format("%s%s%s %s",
 				 column_client,
 				 ternary(src_port ~= '', ':', ''),
-				 src_port)
+				 src_port,
+             src_process)
    if(value["verdict.pass"] == false) then
      column_client = "<strike>"..column_client.."</strike>"
    end
@@ -385,10 +389,11 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
       column_server = column_server..getFlag(info["country"])
    end
 
-   column_server = string.format("%s%s%s",
+   column_server = string.format("%s%s%s %s",
 				 column_server,
 				 ternary(dst_port ~= '', ':', ''),
-				 dst_port)
+				 dst_port,
+             dst_process)
    if(value["verdict.pass"] == false) then
      column_server = "<strike>"..column_server.."</strike>"
    end

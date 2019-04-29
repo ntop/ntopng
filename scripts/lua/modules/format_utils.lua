@@ -231,6 +231,8 @@ end
 function format_utils.formatContainer(cont)
    if cont["k8s.name"] then
       return cont["k8s.name"]
+   elseif cont["docker.name"] then
+      return cont["docker.name"]
    end
 
    return cont["id"]

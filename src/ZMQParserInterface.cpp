@@ -510,11 +510,12 @@ bool ZMQParserInterface::parsePENNtopField(Parsed_Flow * const flow, u_int32_t f
 
   return true;
 }
+
 /* **************************************************** */
 
 bool ZMQParserInterface::parseNProbeMiniField(Parsed_Flow * const flow, const char * const key, const char * const value, json_object * const jvalue) const {
   bool ret = false;
-  json_object *obj, *obj2;
+  json_object *obj;
 
   if(!strncmp(key, "timestamp", 9)) {
     u_int32_t seconds, nanoseconds /* nanoseconds not currently used */;
@@ -523,46 +524,51 @@ bool ZMQParserInterface::parseNProbeMiniField(Parsed_Flow * const flow, const ch
       flow->core.first_switched = flow->core.last_switched = seconds;
       ret = true;
     }
-  } else if(!strncmp(key, "PROCESS", 7)) {
-    if(json_object_object_get_ex(jvalue, "PROCESS_ID", &obj))   flow->ebpf.process_info.pid = (u_int32_t)json_object_get_int64(obj);
-    if(json_object_object_get_ex(jvalue, "USER_ID", &obj))      flow->ebpf.process_info.uid = (u_int32_t)json_object_get_int64(obj);
-    if(json_object_object_get_ex(jvalue, "GROUP_ID", &obj))     flow->ebpf.process_info.gid = (u_int32_t)json_object_get_int64(obj);
-    if(json_object_object_get_ex(jvalue, "PROCESS_PATH", &obj)) flow->ebpf.process_info.process_name = (char*)json_object_get_string(obj);
-    if(!flow->ebpf.process_info_set) flow->ebpf.process_info_set = true;
+  } else if(!strncmp(key, "IPV4_LOCAL_ADDR", 15)
+	    || !strncmp(key, "IPV6_LOCAL_ADDR", 15)) {
+    flow->src_ip.set(value); /* FIX: do not always assume Local == Client */
     ret = true;
-
-    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Process [pid: %u][uid: %u][gid: %u][path: %s]",
-    // 				 flow->ebpf.process_info.pid, flow->ebpf.process_info.uid, flow->ebpf.process_info.gid,
-    // 				 flow->ebpf.process_info.process_name);
-  } else if(!strncmp(key, "FATHER_PROCESS", 14)) {
-    if(json_object_object_get_ex(jvalue, "PROCESS_ID", &obj))   flow->ebpf.process_info.father_pid = (u_int32_t)json_object_get_int64(obj);
-    if(json_object_object_get_ex(jvalue, "USER_ID", &obj))      flow->ebpf.process_info.father_uid = (u_int32_t)json_object_get_int64(obj);
-    if(json_object_object_get_ex(jvalue, "GROUP_ID", &obj))     flow->ebpf.process_info.father_gid = (u_int32_t)json_object_get_int64(obj);
+  } else if(!strncmp(key, "IPV4_REMOTE_ADDR", 16)
+	    || !strncmp(key, "IPV6_REMOTE_ADDR", 16)) {
+    flow->dst_ip.set(value); /* FIX: do not always assume Remote == Server */
+    ret = true;
+  } else if(!strncmp(key, "L4_LOCAL_PORT", 13)) {
+    flow->core.src_port = htons(atoi(value));
+    ret = true;
+  } else if(!strncmp(key, "L4_REMOTE_PORT", 14)) {
+    flow->core.dst_port = htons(atoi(value));
+    ret = true;
+  } else if(strlen(key) >= 14 && !strncmp(&key[strlen(key) - 14], "FATHER_PROCESS", 14)) {
+    if(json_object_object_get_ex(jvalue, "PID", &obj))   flow->ebpf.process_info.father_pid = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "UID", &obj))      flow->ebpf.process_info.father_uid = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "GID", &obj))     flow->ebpf.process_info.father_gid = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "VM_SIZE", &obj))     flow->ebpf.process_info.actual_memory = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "VM_PEAK", &obj))     flow->ebpf.process_info.peak_memory = (u_int32_t)json_object_get_int64(obj);
     if(json_object_object_get_ex(jvalue, "PROCESS_PATH", &obj)) flow->ebpf.process_info.father_process_name = (char*)json_object_get_string(obj);
     if(!flow->ebpf.process_info_set) flow->ebpf.process_info_set = true;
     ret = true;
 
     // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Father Process [pid: %u][uid: %u][gid: %u][path: %s]",
-    //  				 flow->ebpf.process_info.father_pid, flow->ebpf.process_info.father_uid,
-    // 				 flow->ebpf.process_info.father_gid,
-    // 				 flow->ebpf.process_info.father_process_name);
-  } else if(!strncmp(key, "CONTAINER", 9)) {
-    if(json_object_object_get_ex(jvalue, "ID", &obj)) flow->ebpf.container_info.id = (char*)json_object_get_string(obj);
-
-    if(json_object_object_get_ex(jvalue, "KUBE", &obj)) {
-      if(json_object_object_get_ex(obj, "NAME", &obj2)) flow->ebpf.container_info.k8s.name = (char*)json_object_get_string(obj2);
-      if(json_object_object_get_ex(obj, "POD", &obj2))  flow->ebpf.container_info.k8s.pod  = (char*)json_object_get_string(obj2);
-      if(json_object_object_get_ex(obj, "NS", &obj2))   flow->ebpf.container_info.k8s.ns   = (char*)json_object_get_string(obj2);
-    }
-
-    if(!flow->ebpf.container_info_set) flow->ebpf.container_info_set = true;
+    //					 flow->ebpf.process_info.father_pid, flow->ebpf.process_info.father_uid,
+    //				 flow->ebpf.process_info.father_gid,
+    //				 flow->ebpf.process_info.father_process_name);
+  } else if(strlen(key) >= 7 && !strncmp(&key[strlen(key) - 7], "PROCESS", 7)) {
+    if(json_object_object_get_ex(jvalue, "PID", &obj))   flow->ebpf.process_info.pid = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "UID", &obj))      flow->ebpf.process_info.uid = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "GID", &obj))     flow->ebpf.process_info.gid = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "VM_SIZE", &obj))     flow->ebpf.process_info.actual_memory = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "VM_PEAK", &obj))     flow->ebpf.process_info.peak_memory = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "PROCESS_PATH", &obj)) flow->ebpf.process_info.process_name = (char*)json_object_get_string(obj);
+    if(!flow->ebpf.process_info_set) flow->ebpf.process_info_set = true;
     ret = true;
 
-    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Container [id: %s] K8S [name: %s][pod: %s][ns: %s]",
-    // 				 flow->ebpf.container_info.id ? flow->ebpf.container_info.id : "",
-    // 				 flow->ebpf.container_info.k8s.name ? flow->ebpf.container_info.k8s.name : "",
-    // 				 flow->ebpf.container_info.k8s.pod ? flow->ebpf.container_info.k8s.pod : "",
-    // 				 flow->ebpf.container_info.k8s.ns ? flow->ebpf.container_info.k8s.ns : "");
+    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Process [pid: %u][uid: %u][gid: %u][size/peak vm: %u/%u][path: %s]",
+    //				 flow->ebpf.process_info.pid, flow->ebpf.process_info.uid, flow->ebpf.process_info.gid,
+    //				 flow->ebpf.process_info.actual_memory, flow->ebpf.process_info.peak_memory,
+    //				 flow->ebpf.process_info.process_name);
+  } else if(strlen(key) >= 9 && !strncmp(&key[strlen(key) - 9], "CONTAINER", 9)) {
+    if((ret = parseContainerInfo(jvalue, &flow->ebpf.container_info)))
+      flow->ebpf.container_info_set = true;
   } else if(!strncmp(key, "TCP", 3) && strlen(key) == 3) {
     if(json_object_object_get_ex(jvalue, "CONN_STATE", &obj))     flow->ebpf.tcp_info.conn_state = Utils::tcpStateStr2State(json_object_get_string(obj));
 
@@ -582,19 +588,19 @@ bool ZMQParserInterface::parseNProbeMiniField(Parsed_Flow * const flow, const ch
     ret = true;
 
     // ntop->getTrace()->traceEvent(TRACE_NORMAL, "TCP INFO [conn state: %s][rcvd_bytes: %u][retx_pkts: %u][lost_pkts: %u]"
-    // 				 "[in_segs: %u][out_segs: %u][unacked_segs: %u]"
-    // 				 "[rtt: %f][rtt_var: %f]",
-    // 				 Utils::tcpState2StateStr(flow->ebpf.tcp_info.conn_state),
-    // 				 flow->ebpf.tcp_info.rcvd_bytes,
-    // 				 flow->ebpf.tcp_info.retx_pkts,
-    // 				 flow->ebpf.tcp_info.lost_pkts,
-    // 				 flow->ebpf.tcp_info.in_segs,
-    // 				 flow->ebpf.tcp_info.out_segs,
-    // 				 flow->ebpf.tcp_info.unacked_segs,
-    // 				 flow->ebpf.tcp_info.rtt,
-    // 				 flow->ebpf.tcp_info.rtt_var);
+    //				 "[in_segs: %u][out_segs: %u][unacked_segs: %u]"
+    //				 "[rtt: %f][rtt_var: %f]",
+    //				 Utils::tcpState2StateStr(flow->ebpf.tcp_info.conn_state),
+    //				 flow->ebpf.tcp_info.rcvd_bytes,
+    //				 flow->ebpf.tcp_info.retx_pkts,
+    //				 flow->ebpf.tcp_info.lost_pkts,
+    //				 flow->ebpf.tcp_info.in_segs,
+    //				 flow->ebpf.tcp_info.out_segs,
+    //				 flow->ebpf.tcp_info.unacked_segs,
+    //				 flow->ebpf.tcp_info.rtt,
+    //				 flow->ebpf.tcp_info.rtt_var);
   }
-    
+
   return ret;
 }
 
@@ -734,7 +740,7 @@ u_int8_t ZMQParserInterface::parseFlow(const char * const payload, int payload_s
   json_object *f;
   enum json_tokener_error jerr = json_tokener_success;
   NetworkInterface *iface = (NetworkInterface*)data;
-
+  
   // payload[payload_size] = '\0';
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", payload);
 
@@ -778,6 +784,30 @@ u_int8_t ZMQParserInterface::parseFlow(const char * const payload, int payload_s
 
 /* **************************************************** */
 
+bool ZMQParserInterface::parseContainerInfo(json_object *jo, ContainerInfo * const container_info) {
+  json_object *obj, *obj2;
+
+  if(json_object_object_get_ex(jo, "ID", &obj)) container_info->id = (char*)json_object_get_string(obj);
+
+  if(json_object_object_get_ex(jo, "KUBE", &obj)) {
+    if(json_object_object_get_ex(obj, "NAME", &obj2)) container_info->k8s.name = (char*)json_object_get_string(obj2);
+    if(json_object_object_get_ex(obj, "POD", &obj2))  container_info->k8s.pod  = (char*)json_object_get_string(obj2);
+    if(json_object_object_get_ex(obj, "NS", &obj2))   container_info->k8s.ns   = (char*)json_object_get_string(obj2);
+  } else if(json_object_object_get_ex(jo, "DOCKER", &obj)) {
+    if(json_object_object_get_ex(obj, "NAME", &obj2)) container_info->docker.name = (char*)json_object_get_string(obj2);
+  }
+
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Container [id: %s] K8S [name: %s][pod: %s][ns: %s]",
+  //			       container_info->id ? container_info->id : "",
+  //			       container_info->k8s.name ? container_info->k8s.name : "",
+  //			       container_info->k8s.pod ? container_info->k8s.pod : "",
+  //			       container_info->k8s.ns ? container_info->k8s.ns : "");
+
+  return true;
+}
+
+/* **************************************************** */
+
 u_int8_t ZMQParserInterface::parseCounter(const char * const payload, int payload_size, u_int8_t source_id, void *data) {
   json_object *o;
   enum json_tokener_error jerr = json_tokener_success;
@@ -785,6 +815,7 @@ u_int8_t ZMQParserInterface::parseCounter(const char * const payload, int payloa
   sFlowInterfaceStats stats;
 
   // payload[payload_size] = '\0';
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", payload);
 
   memset(&stats, 0, sizeof(stats));
   o = json_tokener_parse_verbose(payload, &jerr);
@@ -804,6 +835,7 @@ u_int8_t ZMQParserInterface::parseCounter(const char * const payload, int payloa
       if((key != NULL) && (value != NULL)) {
 	if(!strcmp(key, "deviceIP")) stats.deviceIP = ntohl(inet_addr(value));
 	else if(!strcmp(key, "ifIndex")) stats.ifIndex = atol(value);
+	else if(!strcmp(key, "ifName")) stats.ifName = (char*)value;
 	else if(!strcmp(key, "ifType")) stats.ifType = atol(value);
 	else if(!strcmp(key, "ifSpeed")) stats.ifSpeed = atol(value);
 	else if(!strcmp(key, "ifDirection")) stats.ifFullDuplex = (!strcmp(value, "Full")) ? true : false;
@@ -816,6 +848,10 @@ u_int8_t ZMQParserInterface::parseCounter(const char * const payload, int payloa
 	else if(!strcmp(key, "ifOutPackets")) stats.ifOutPackets = atoll(value);
 	else if(!strcmp(key, "ifOutErrors")) stats.ifOutErrors = atoll(value);
 	else if(!strcmp(key, "ifPromiscuousMode")) stats.ifPromiscuousMode = (!strcmp(value, "1")) ? true : false;
+	else if(strlen(key) >= 9 && !strncmp(&key[strlen(key) - 9], "CONTAINER", 9)) {
+	  if(parseContainerInfo(v, &stats.container_info))
+	    stats.container_info_set = true;
+	}
       } /* if */
 
       /* Move to the next element */

@@ -47,7 +47,7 @@ class Utils {
   static int   setThreadAffinity(pthread_t thread, int core_id);
   static void  setThreadName(const char *name);
   static char* trim(char *s);
-  static u_int32_t hashString(char *s);
+  static u_int32_t hashString(const char * const s);
   static float timeval2ms(struct timeval *tv);
   static float msTimevalDiff(const struct timeval *end, const struct timeval *begin);
   static size_t file_write(const char *path, const char *content, size_t content_len);

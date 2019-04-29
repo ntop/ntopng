@@ -287,13 +287,16 @@ char *Utils::trim(char *s) {
 
 /* ****************************************************** */
 
-u_int32_t Utils::hashString(char *key) {
+u_int32_t Utils::hashString(const char * const key) {
+  if(!key)
+    return 0;
+
   u_int32_t hash = 0, len = (u_int32_t)strlen(key);
 
-  for(u_int32_t i=0; i<len; i++)
-    hash += ((u_int32_t)key[i])*i;
+  for(u_int32_t i = 0; i < len; i++)
+    hash += ((u_int32_t)key[i]) * i;
 
-  return(hash);
+  return hash;
 }
 
 /* ****************************************************** */
@@ -3783,4 +3786,5 @@ void Utils::containerInfoLua(lua_State *vm, const ContainerInfo * const cont) {
   if(cont->k8s.name) lua_push_str_table_entry(vm, "k8s.name", cont->k8s.name);
   if(cont->k8s.pod)  lua_push_str_table_entry(vm, "k8s.pod", cont->k8s.pod);
   if(cont->k8s.ns)   lua_push_str_table_entry(vm, "k8s.ns", cont->k8s.ns);
+  if(cont->docker.name) lua_push_str_table_entry(vm, "docker.name", cont->docker.name);
 }

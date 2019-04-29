@@ -6233,7 +6233,7 @@ void NetworkInterface::processInterfaceStats(sFlowInterfaceStats *stats) {
 				 Utils::intoaV4(stats->deviceIP, a, sizeof(a)),
 				 stats->ifIndex);
 
-    interfaceStats->set(stats->deviceIP, stats->ifIndex, stats);
+    interfaceStats->set(stats);
   }
 }
 

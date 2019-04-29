@@ -183,6 +183,7 @@ typedef struct {
   char *process_name, *father_process_name;
   u_int32_t uid /* User Id */, gid; /* Group Id */
   u_int32_t father_uid /* User Id */, father_gid; /* Group Id */
+  u_int32_t actual_memory, peak_memory;
 } ProcessInfo;
 
 typedef struct {
@@ -192,6 +193,9 @@ typedef struct {
     char *pod;
     char *ns;
   } k8s;
+  struct {
+    char *name;
+  } docker;
 } ContainerInfo;
 
 typedef struct {
@@ -385,9 +389,12 @@ typedef enum {
 
 typedef struct {
   u_int32_t deviceIP, ifIndex, ifType, ifSpeed;
+  char *ifName;
   bool ifFullDuplex, ifAdminStatus, ifOperStatus, ifPromiscuousMode;
   u_int64_t ifInOctets, ifInPackets, ifInErrors,
     ifOutOctets, ifOutPackets, ifOutErrors;
+  ContainerInfo container_info;
+  bool container_info_set;
 } sFlowInterfaceStats;
 
 typedef struct {

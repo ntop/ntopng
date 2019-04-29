@@ -668,6 +668,11 @@ local lang = {
     ["syn_victim_description"] = "Max number of received TCP SYN packets/sec over which a host is considered under SYN flood attack",
     ["syn_victim_title"] = "SYN Flood Victim",
   },
+  ["event_exporters"] = {
+    ["event_device_x"] = "Event Exporter %{device}",
+    ["event_exporter_ip"] = "Event Exporter IP",
+    ["event_exporters"] = "Event Exporters",
+  },
   ["export_data"] = {
     ["export_json_data"] = "Export JSON Data",
     ["note_active_hosts"] = "Only active hosts are returned.",
@@ -720,6 +725,8 @@ local lang = {
     ["desirable_label"] = "Desirable",
     ["dns_invalid_query"] = "Invalid DNS query",
     ["dns_query"] = "DNS Query",
+    ["docker"] = "Docker",
+    ["docker_name"] = "Name",
     ["drop_flow_traffic_btn"] = "Drop Flow Traffic",
     ["dropped_packets"] = "Dropped Packets",
     ["dtmf_tones_sent"] = "DTMF tones sent during the call",
@@ -1388,6 +1395,7 @@ local lang = {
     ["num_nfq_drops"] = "Dropped Packets",
     ["num_nfq_pct"] = "Queue Fill %%",
     ["packet_drops"] = "Packet Drops",
+    ["peak_memory"] = "Peak Memory",
     ["percentile"] = "95th <a href=\"%{url}\">Percentile</a>",
     ["permanent_link"] = "Permanent Link",
     ["pkt_drops"] = "Pkt Drops",

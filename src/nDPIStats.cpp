@@ -94,7 +94,7 @@ void nDPIStats::sum(nDPIStats *stats) {
 void nDPIStats::print(NetworkInterface *iface) {
   for(int i=0; i<MAX_NDPI_PROTOS; i++) {
     if(counters[i] != NULL) {
-      if(counters[i]->packets.sent || counters[i]->packets.rcvd)
+      if(counters[i]->bytes.sent || counters[i]->bytes.rcvd)
 	printf("[%s] [pkts: %llu/%llu][bytes: %llu/%llu][duration: %u sec]\n",
 	       iface->get_ndpi_proto_name(i),
 	       (long long unsigned) counters[i]->packets.sent, (long long unsigned) counters[i]->packets.rcvd,
@@ -114,7 +114,7 @@ void nDPIStats::lua(NetworkInterface *iface, lua_State* vm, bool with_categories
       char *name = iface->get_ndpi_proto_name(i);
 
       if(name != NULL) {
-	if(counters[i]->packets.sent || counters[i]->packets.rcvd) {
+	if(counters[i]->bytes.sent || counters[i]->bytes.rcvd) {
           if(!tsLua) {
 	    lua_newtable(vm);
 

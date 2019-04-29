@@ -206,17 +206,37 @@ local function displayContainer(cont, label)
 
       print("<tr>"..header.."<th>"..row[1].."</th><td>"..row[2].."</td></tr>\n")
    end
+
+   local docker_name = cont["docker.name"]
+
+   local docker_rows = {}
+   if not isEmptyString(docker_name) then docker_rows[#docker_rows + 1] = {i18n("flow_details.docker_name"), docker_name} end
+
+   for i, row in ipairs(docker_rows) do
+      local header = ''
+
+      if i == 1 then
+	 header = "<th width=30% rowspan="..(#docker_rows)..">"..i18n("flow_details.docker").."</th>"
+      end
+
+      print("<tr>"..header.."<th>"..row[1].."</th><td>"..row[2].."</td></tr>\n")
+   end
 end
 
 local function displayProc(proc, label)
    if(proc.pid == 0) then return end
 
    print(label)
-   
+
    print("<tr><th width=30%>"..i18n("flow_details.user_name").."</th><td colspan=2><A HREF=\""..ntop.getHttpPrefix().."/lua/username_details.lua?uid=" .. proc.uid .. "&username=".. proc.user_name .."&".. hostinfo2url(flow,"cli").."\">".. proc.user_name .."</A></td></tr>\n")
    print("<tr><th width=30%>"..i18n("flow_details.process_pid_name").."</th><td colspan=2><A HREF=\""..ntop.getHttpPrefix().."/lua/process_details.lua?pid=".. proc.pid .."&pid_name=".. proc.name .. "&" .. hostinfo2url(flow,"srv").. "\">".. proc.name .. " [pid: "..proc.pid.."]</A>")
    if proc.father_pid then
       print(" "..i18n("flow_details.son_of_father_process",{url=ntop.getHttpPrefix().."/lua/get_process_info.lua?pid="..proc.father_pid, proc_father_pid = proc.father_pid, proc_father_name = proc.father_name}).."</td></tr>\n")
+   end
+
+   if((proc.actual_memory ~= nil) and (proc.actual_memory > 0)) then
+      print("<tr><th width=30%>"..i18n("graphs.actual_memory").."</th><td colspan=2>".. bytesToSize(proc.actual_memory * 1024) .. "</td></tr>\n")
+      print("<tr><th width=30%>"..i18n("graphs.peak_memory").."</th><td colspan=2>".. bytesToSize(proc.peak_memory * 1024) .. "</td></tr>\n")
    end
 end
 

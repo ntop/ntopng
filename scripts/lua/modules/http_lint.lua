@@ -1037,6 +1037,7 @@ local known_parameters = {
    ["sflowdistro_mode"]        = validateSflowDistroMode,       -- A mode for host_sflow_distro
    ["distr"]                   = validateSflowDistroType,       -- A type for host_sflow_distro
    ["sflow_filter"]            = validateSflowFilter,           -- sflow host filter
+   ["exporter_ifname"]         = validateSingleWord,            -- an interface name on the exporter system
 
 -- TIME SPECIFICATION
    ["epoch"]                   = validateNumber,                -- A timestamp value
