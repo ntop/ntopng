@@ -67,7 +67,7 @@ class IpAddress {
   inline void set(IpAddress *ip)                      { memcpy(&addr, &ip->addr, sizeof(struct ipAddress)); ip_key = ip->ip_key; };
   inline void set(struct ipAddress *ip)               { memcpy(&addr, ip, sizeof(struct ipAddress)); compute_key(); };
   void set(union usa *ip);
-  void set(char *ip);
+  void set(const char * const ip);
   inline bool isPrivateAddress()         const        { return(addr.privateIP); };
   inline bool isMulticastAddress()       const        { return(addr.multicastIP); };
   inline bool isBroadcastAddress()       const        { return(addr.broadcastIP); };

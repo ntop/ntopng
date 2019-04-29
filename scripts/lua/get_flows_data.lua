@@ -288,7 +288,7 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
 
       record["column_client_process"] = flowinfo2process(value["client_process"], hostinfo2url(value,"cli"))
 
-      if value["client_container"] ~= nil then
+      if value["client_container"] and value["client_container"].id then
          record["column_client_container"] = '<a href="' .. ntop.getHttpPrefix() .. '/lua/flows_stats.lua?container=' .. value["client_container"].id .. '">' .. format_utils.formatContainer(value["client_container"]) .. '</a>'
 
          if value["client_container"]["k8s.pod"] then
@@ -313,7 +313,7 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
 
       record["column_server_process"] = flowinfo2process(value["server_process"], hostinfo2url(value,"srv"))
 
-      if value["server_container"] ~= nil then
+      if value["server_container"] and value["server_container"].id then
          record["column_server_container"] = '<a href="' .. ntop.getHttpPrefix() .. '/lua/flows_stats.lua?container=' .. value["server_container"].id .. '">' .. format_utils.formatContainer(value["server_container"]) .. '</a>'
 
          if value["server_container"]["k8s.pod"] then
