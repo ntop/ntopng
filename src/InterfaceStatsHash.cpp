@@ -39,10 +39,11 @@ InterfaceStatsHash::~InterfaceStatsHash() {
       if(buckets[i]->ifName) free(buckets[i]->ifName);
 
       if(buckets[i]->container_info_set) {
-	if(buckets[i]->container_info.id)       free(buckets[i]->container_info.id);
-	if(buckets[i]->container_info.k8s.name) free(buckets[i]->container_info.k8s.name);
-	if(buckets[i]->container_info.k8s.pod)  free(buckets[i]->container_info.k8s.pod);
-	if(buckets[i]->container_info.k8s.ns)   free(buckets[i]->container_info.k8s.ns);
+	if(buckets[i]->container_info.id)          free(buckets[i]->container_info.id);
+	if(buckets[i]->container_info.k8s.name)    free(buckets[i]->container_info.k8s.name);
+	if(buckets[i]->container_info.k8s.pod)     free(buckets[i]->container_info.k8s.pod);
+	if(buckets[i]->container_info.k8s.ns)      free(buckets[i]->container_info.k8s.ns);
+	if(buckets[i]->container_info.docker.name) free(buckets[i]->container_info.docker.name);
       }
 
       free(buckets[i]);
@@ -109,6 +110,7 @@ bool InterfaceStatsHash::set(const sFlowInterfaceStats * const stats) {
 	  if(buckets[hash]->container_info.k8s.name) buckets[hash]->container_info.k8s.name = strdup(buckets[hash]->container_info.k8s.name);
 	  if(buckets[hash]->container_info.k8s.pod)  buckets[hash]->container_info.k8s.pod = strdup(buckets[hash]->container_info.k8s.pod);
 	  if(buckets[hash]->container_info.k8s.ns)   buckets[hash]->container_info.k8s.ns = strdup(buckets[hash]->container_info.k8s.ns);
+	  if(buckets[hash]->container_info.docker.name)   buckets[hash]->container_info.docker.name = strdup(buckets[hash]->container_info.docker.name);
 	}
 
       } else

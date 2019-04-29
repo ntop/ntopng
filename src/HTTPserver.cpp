@@ -375,8 +375,8 @@ static bool ssl_client_x509_auth(const struct mg_connection * const conn, const 
 // If 1 is returned, the username parameter will contain the authenticated user,
 // which can also be "" or NTOP_NOLOGIN_USER .
 static int getAuthorizedUser(struct mg_connection *conn,
-                         const struct mg_request_info *request_info,
-			 char *username, char *group, bool *localuser) {
+			     const struct mg_request_info *request_info,
+			     char *username, char *group, bool *localuser) {
   char session_id[NTOP_SESSION_ID_LENGTH];
   char key[64], val[128];
   char password[MAX_PASSWORD_LEN];
