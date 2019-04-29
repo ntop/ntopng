@@ -206,6 +206,21 @@ local function displayContainer(cont, label)
 
       print("<tr>"..header.."<th>"..row[1].."</th><td>"..row[2].."</td></tr>\n")
    end
+
+   local docker_name = cont["docker.name"]
+
+   local docker_rows = {}
+   if not isEmptyString(docker_name) then docker_rows[#docker_rows + 1] = {i18n("flow_details.docker_name"), docker_name} end
+
+   for i, row in ipairs(docker_rows) do
+      local header = ''
+
+      if i == 1 then
+	 header = "<th width=30% rowspan="..(#docker_rows)..">"..i18n("flow_details.docker").."</th>"
+      end
+
+      print("<tr>"..header.."<th>"..row[1].."</th><td>"..row[2].."</td></tr>\n")
+   end
 end
 
 local function displayProc(proc, label)

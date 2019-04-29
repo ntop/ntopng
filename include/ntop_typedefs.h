@@ -192,6 +192,9 @@ typedef struct {
     char *pod;
     char *ns;
   } k8s;
+  struct {
+    char *name;
+  } docker;
 } ContainerInfo;
 
 typedef struct {

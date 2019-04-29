@@ -788,6 +788,8 @@ bool ZMQParserInterface::parseContainerInfo(json_object *jo, ContainerInfo * con
     if(json_object_object_get_ex(obj, "NAME", &obj2)) container_info->k8s.name = (char*)json_object_get_string(obj2);
     if(json_object_object_get_ex(obj, "POD", &obj2))  container_info->k8s.pod  = (char*)json_object_get_string(obj2);
     if(json_object_object_get_ex(obj, "NS", &obj2))   container_info->k8s.ns   = (char*)json_object_get_string(obj2);
+  } else if(json_object_object_get_ex(jo, "DOCKER", &obj)) {
+    if(json_object_object_get_ex(obj, "NAME", &obj2)) container_info->docker.name = (char*)json_object_get_string(obj2);
   }
 
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Container [id: %s] K8S [name: %s][pod: %s][ns: %s]",

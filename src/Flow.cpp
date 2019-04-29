@@ -231,6 +231,7 @@ Flow::~Flow() {
     if(client_cont->k8s.name) free(client_cont->k8s.name);
     if(client_cont->k8s.pod)  free(client_cont->k8s.pod);
     if(client_cont->k8s.ns)   free(client_cont->k8s.ns);
+    if(client_cont->docker.name) free(client_cont->docker.name);
     free(client_cont);
   }
 
@@ -239,6 +240,7 @@ Flow::~Flow() {
     if(server_cont->k8s.name) free(server_cont->k8s.name);
     if(server_cont->k8s.pod)  free(server_cont->k8s.pod);
     if(server_cont->k8s.ns)   free(server_cont->k8s.ns);
+    if(server_cont->docker.name) free(server_cont->docker.name);
     free(server_cont);
   }
 
@@ -3734,6 +3736,7 @@ void Flow::setParsedeBPFInfo(const Parsed_eBPF * const ebpf, bool client_process
     }
     if(ci->k8s.name) cur->k8s.name = strdup(ci->k8s.name);
     if(ci->k8s.ns)   cur->k8s.ns   = strdup(ci->k8s.ns);
+    if(ci->docker.name) cur->docker.name = strdup(ci->docker.name);
   }
 
   if(ti && (*tcp_info || (*tcp_info = (TcpInfo*)calloc(1, sizeof(TcpInfo))))) {
