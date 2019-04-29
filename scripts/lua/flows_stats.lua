@@ -148,6 +148,7 @@ ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/flows_stats_id.inc")
 -- Set the flow table option
 
 if(ifstats.vlan) then print ('flow_rows_option["vlan"] = true;\n') end
+if(ifstats.has_seen_ebpf_events) then print ('flow_rows_option["process"] = true;\n') end
 
    print [[
 	 var table = $("#table-flows").datatable({
