@@ -1545,7 +1545,7 @@ function flowinfo2process(process, host_info_to_url)
 	 clean_name = t[#t]
 
 	 -- proc_name = string.format("<i class='fa fa-terminal'></i> %s", clean_name)
-	 proc_name = string.format("<A HREF='%s/lua/process_details.lua?%s&pid_name=%s&pid=%u'>%s</A>",
+	 proc_name = string.format("<A HREF='%s/lua/process_details.lua?%s&pid_name=%s&pid=%u'><i class='fa fa-terminal'></i>%s</A>",
 				   ntop.getHttpPrefix(),
 				   host_info_to_url,
 				   full_clean_name,
@@ -1565,8 +1565,7 @@ function flowinfo2process(process, host_info_to_url)
 					clean_user_name)
       end
 
-      --fmt = table.concat({proc_user_name, proc_name}, ' ')
-      fmt = proc_name
+      fmt = string.format("[%s]", table.concat({proc_user_name, proc_name}, ' '))
    end
 
    return fmt

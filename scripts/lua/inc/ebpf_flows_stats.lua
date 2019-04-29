@@ -263,7 +263,8 @@ elseif ifstats.has_seen_containers then
          sortable: false,
       }, {
 ]]
-elseif ifstats.has_seen_ebpf_events then
+--elseif ifstats.has_seen_ebpf_events then
+elseif false then
   print[[
          title: "]] print(i18n("sflows_stats.client_process")) print[[",
          field: "column_client_process",
