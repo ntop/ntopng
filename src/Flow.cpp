@@ -1058,7 +1058,7 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
     if(cli_network_id >= 0 && (cli_network_id == srv_network_id))
       cli_and_srv_in_same_subnet = true;
 
-    if(diff_sent_packets || diff_rcvd_packets) {
+    if(diff_sent_bytes || diff_rcvd_bytes) {
       /* Update L2 Device stats */
 
       if(srv_host->get_mac()) {
@@ -1388,7 +1388,7 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
 void Flow::update_pools_stats(const struct timeval *tv,
 				u_int64_t diff_sent_packets, u_int64_t diff_sent_bytes,
 				u_int64_t diff_rcvd_packets, u_int64_t diff_rcvd_bytes) {
-  if(!diff_sent_packets && !diff_rcvd_packets)
+  if(!diff_sent_bytes && !diff_rcvd_bytes)
     return; /* Nothing to update */
 
   HostPools *hp;
