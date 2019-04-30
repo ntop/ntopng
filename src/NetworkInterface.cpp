@@ -1075,6 +1075,10 @@ void NetworkInterface::processFlow(Parsed_Flow *zflow, bool zmq_flow) {
     } else {
       /* Old nProbe */
 
+    /* NOTE: do not set last_pkt_rcvd_remote here as doing so will trigger the
+     * drift calculation above on next flows, leading to incorrect timestamps.
+     */
+#if 0
       if((time_t)zflow->core.last_switched > (time_t)last_pkt_rcvd_remote)
 	last_pkt_rcvd_remote = zflow->core.last_switched;
 
@@ -1082,6 +1086,7 @@ void NetworkInterface::processFlow(Parsed_Flow *zflow, bool zmq_flow) {
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "[first=%u][last=%u][duration: %u]",
 				   zflow->core.first_switched,  zflow->core.last_switched,
 				   zflow->core.last_switched- zflow->core.first_switched);
+#endif
 #endif
     }
   }
