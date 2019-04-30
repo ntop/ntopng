@@ -13,6 +13,7 @@ local lang = {
   ["applications"] = "Applications",
   ["apply"] = "Apply",
   ["arp"] = "ARP",
+  ["arp_top_talkers"] = "ARP Matrix Talkers",
   ["as"] = "AS",
   ["as_number"] = "AS number",
   ["asn"] = "ASN",
