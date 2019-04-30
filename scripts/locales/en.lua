@@ -1754,6 +1754,7 @@ local lang = {
     ["scaling_factor"] = "Ingress Packets Sampling Rate",
     ["scaling_factor_popup_msg"] = "This should match your capture interface sampling rate",
     ["trigger_interface_alerts"] = "Trigger Interface Alerts",
+    ["companion_interface"] = "Companion Interface",
   },
   ["if_stats_networks"] = {
     ["note_ghost_bcast_domains"] = "The %{ghost_icon} highlights ghost broadcast domains (i.e. not belonging to any of the interface IP addresses networks).",

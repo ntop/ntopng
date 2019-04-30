@@ -1197,6 +1197,7 @@ local known_parameters = {
    ["toggle_midnight_stats_reset"]                 = validateBool,
 
    -- Input fields
+   ["companion_interface"]                         = validateEmptyOr(validateInterface),
    ["minute_top_talkers_retention"]                = validateNumber,
    ["nindex_retention_days"]                       = validateNumber,
    ["mysql_retention"]                             = validateNumber,
