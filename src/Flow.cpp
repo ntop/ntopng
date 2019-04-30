@@ -3715,14 +3715,16 @@ void Flow::setParsedeBPFInfo(const Parsed_eBPF * const ebpf, bool client_process
   if(!ebpf)
     return;
 
-  const ProcessInfo *pi = ebpf->process_info_set ? &ebpf->process_info : NULL;
-  const ContainerInfo *ci = ebpf->container_info_set ? &ebpf->container_info : NULL;
-  const TcpInfo *ti = ebpf->tcp_info_set ? &ebpf->tcp_info : NULL;
-  iface->setSeenEBPFEvents();
+  if(!iface->hasSeenEBPFEvents())
+    iface->setSeenEBPFEvents();
 
-  ProcessInfo   **process_info   = client_process ? &client_proc : &server_proc;
+  const ProcessInfo *pi   = ebpf->process_info_set ? &ebpf->process_info : NULL;
+  const ContainerInfo *ci = ebpf->container_info_set ? &ebpf->container_info : NULL;
+  const TcpInfo *ti       = ebpf->tcp_info_set ? &ebpf->tcp_info : NULL;
+
+  ProcessInfo **process_info     = client_process ? &client_proc : &server_proc;
   ContainerInfo **container_info = client_process ? &client_cont : &server_cont;
-  TcpInfo **tcp_info = client_process ? &client_tcp : &server_tcp;
+  TcpInfo **tcp_info             = client_process ? &client_tcp : &server_tcp;
 
   if(pi && (*process_info || (*process_info = (ProcessInfo*)calloc(1, sizeof(ProcessInfo))))) {
     ProcessInfo *cur = *process_info;
@@ -3736,6 +3738,7 @@ void Flow::setParsedeBPFInfo(const Parsed_eBPF * const ebpf, bool client_process
 
   if(ci && (*container_info || (*container_info = (ContainerInfo*)calloc(1, sizeof(ContainerInfo))))) {
     ContainerInfo *cur = *container_info;
+    memcpy(cur, ci, sizeof(*ci));
 
     if(ci->id) {
       cur->id = strdup(ci->id);
