@@ -186,16 +186,25 @@ typedef struct {
   u_int32_t actual_memory, peak_memory;
 } ProcessInfo;
 
+typedef enum {
+  container_info_data_type_unknown,
+  container_info_data_type_k8s,
+  container_info_data_type_docker
+} ContainerInfoDataType;
+
 typedef struct {
   char *id;
-  struct {
-    char *name;
-    char *pod;
-    char *ns;
-  } k8s;
-  struct {
-    char *name;
-  } docker;
+  union {
+    struct {
+      char *name;
+      char *pod;
+      char *ns;
+    } k8s;
+    struct {
+      char *name;
+    } docker;
+  } data;
+  ContainerInfoDataType data_type;
 } ContainerInfo;
 
 typedef struct {

@@ -176,3 +176,61 @@ function datatableGetColumn(table, id_key, id_value) {
 
    if(res) return res[0];
 }
+
+function datatableGetColumnIndex(table, column_key) {
+   var index = table.data("datatable").options.columns.findIndex(function(item) {
+      return item.field === column_key;
+   });
+
+   return(index);
+}
+
+function datatableRefreshRows(table, column_id) {
+  var $dt = table.data("datatable");
+  var rows = $dt.resultset.data;
+  var ids = [];
+  var id_to_row = {};
+
+  for(var row in rows) {
+      var data = rows[row];
+
+      if(data[column_id]) {
+         var data_id = data[column_id];
+         id_to_row[data_id] = row;
+         ids.push(data_id);
+    }
+  }
+
+  if(ids) {
+   var url = $dt.options.url;
+   var params = {
+      "custom_hosts": ids.join(",")
+   };
+
+   $.ajax({
+      type: 'GET',
+      url: url,
+      data: params,
+      cache: false,
+      success: function(result) {
+         for(var row in result.data) {
+            var data = result.data[row];
+            var data_id = data[column_id];
+
+            if(data_id && id_to_row[data_id]) {
+               var row_idx = id_to_row[data_id];
+               var row_html = $dt.rows[row_idx];
+               var row_tds = $("td", row_html);
+
+               for(var key in data) {
+                  var col_idx = datatableGetColumnIndex(table, key);
+                  var cell = row_tds[col_idx];
+
+                  $(cell).html((data[key] != 0) ? data[key] : "");
+               }
+            }
+         }
+      }
+   });
+  }
+}

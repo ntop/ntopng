@@ -227,20 +227,26 @@ Flow::~Flow() {
   }
 
   if(client_cont) {
-    if(client_cont->id)       free(client_cont->id);
-    if(client_cont->k8s.name) free(client_cont->k8s.name);
-    if(client_cont->k8s.pod)  free(client_cont->k8s.pod);
-    if(client_cont->k8s.ns)   free(client_cont->k8s.ns);
-    if(client_cont->docker.name) free(client_cont->docker.name);
+    if(client_cont->id) free(client_cont->id);
+    if(client_cont->data_type == container_info_data_type_k8s) {
+      if(client_cont->data.k8s.name) free(client_cont->data.k8s.name);
+      if(client_cont->data.k8s.pod)  free(client_cont->data.k8s.pod);
+      if(client_cont->data.k8s.ns)   free(client_cont->data.k8s.ns);
+    } else if(client_cont->data_type == container_info_data_type_docker) {
+      if(client_cont->data.docker.name) free(client_cont->data.docker.name);
+    }
     free(client_cont);
   }
 
   if(server_cont) {
-    if(server_cont->id)       free(server_cont->id);
-    if(server_cont->k8s.name) free(server_cont->k8s.name);
-    if(server_cont->k8s.pod)  free(server_cont->k8s.pod);
-    if(server_cont->k8s.ns)   free(server_cont->k8s.ns);
-    if(server_cont->docker.name) free(server_cont->docker.name);
+    if(server_cont->id) free(server_cont->id);
+    if(server_cont->data_type == container_info_data_type_k8s) {
+      if(server_cont->data.k8s.name) free(server_cont->data.k8s.name);
+      if(server_cont->data.k8s.pod)  free(server_cont->data.k8s.pod);
+      if(server_cont->data.k8s.ns)   free(server_cont->data.k8s.ns);
+    } else if(server_cont->data_type == container_info_data_type_docker) {
+      if(server_cont->data.docker.name) free(server_cont->data.docker.name);
+    }
     free(server_cont);
   }
 
@@ -3736,14 +3742,18 @@ void Flow::setParsedeBPFInfo(const Parsed_eBPF * const ebpf, bool client_process
       if(!iface->hasSeenContainers())
 	iface->setSeenContainers();
     }
-    if(ci->k8s.pod) {
-      cur->k8s.pod  = strdup(ci->k8s.pod);
-      if(!iface->hasSeenPods())
-	iface->setSeenPods();
+
+    if(ci->data_type == container_info_data_type_k8s) {
+      if(ci->data.k8s.pod) {
+	cur->data.k8s.pod  = strdup(ci->data.k8s.pod);
+	if(!iface->hasSeenPods())
+	  iface->setSeenPods();
+      }
+      if(ci->data.k8s.name) cur->data.k8s.name = strdup(ci->data.k8s.name);
+      if(ci->data.k8s.ns)   cur->data.k8s.ns   = strdup(ci->data.k8s.ns);
+    } else if(ci->data_type == container_info_data_type_docker) {
+      if(ci->data.docker.name) cur->data.docker.name = strdup(ci->data.docker.name);
     }
-    if(ci->k8s.name) cur->k8s.name = strdup(ci->k8s.name);
-    if(ci->k8s.ns)   cur->k8s.ns   = strdup(ci->k8s.ns);
-    if(ci->docker.name) cur->docker.name = strdup(ci->docker.name);
   }
 
   if(ti && (*tcp_info || (*tcp_info = (TcpInfo*)calloc(1, sizeof(TcpInfo))))) {

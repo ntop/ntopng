@@ -791,18 +791,23 @@ bool ZMQParserInterface::parseContainerInfo(json_object *jo, ContainerInfo * con
   if(json_object_object_get_ex(jo, "ID", &obj)) container_info->id = (char*)json_object_get_string(obj);
 
   if(json_object_object_get_ex(jo, "KUBE", &obj)) {
-    if(json_object_object_get_ex(obj, "NAME", &obj2)) container_info->k8s.name = (char*)json_object_get_string(obj2);
-    if(json_object_object_get_ex(obj, "POD", &obj2))  container_info->k8s.pod  = (char*)json_object_get_string(obj2);
-    if(json_object_object_get_ex(obj, "NS", &obj2))   container_info->k8s.ns   = (char*)json_object_get_string(obj2);
+    if(json_object_object_get_ex(obj, "NAME", &obj2)) container_info->data.k8s.name = (char*)json_object_get_string(obj2);
+    if(json_object_object_get_ex(obj, "POD", &obj2))  container_info->data.k8s.pod  = (char*)json_object_get_string(obj2);
+    if(json_object_object_get_ex(obj, "NS", &obj2))   container_info->data.k8s.ns   = (char*)json_object_get_string(obj2);
+    container_info->data_type = container_info_data_type_k8s;
   } else if(json_object_object_get_ex(jo, "DOCKER", &obj)) {
-    if(json_object_object_get_ex(obj, "NAME", &obj2)) container_info->docker.name = (char*)json_object_get_string(obj2);
-  }
+    if(json_object_object_get_ex(obj, "NAME", &obj2)) container_info->data.docker.name = (char*)json_object_get_string(obj2);
+    container_info->data_type = container_info_data_type_k8s;
+  } else
+    container_info->data_type = container_info_data_type_unknown;
 
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Container [id: %s] K8S [name: %s][pod: %s][ns: %s]",
-  //			       container_info->id ? container_info->id : "",
-  //			       container_info->k8s.name ? container_info->k8s.name : "",
-  //			       container_info->k8s.pod ? container_info->k8s.pod : "",
-  //			       container_info->k8s.ns ? container_info->k8s.ns : "");
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Container [id: %s] [%s] [k8s.name: %s][k8s.pod: %s][k8s.ns: %s][docker.name: %s]",
+  // 			       container_info->id ? container_info->id : "",
+  // 			       container_info->data_type == container_info_data_type_k8s ? "K8S" : container_info->data_type == container_info_data_type_docker ? "DOCKER" : "UNKNOWN",
+  // 			       container_info->data_type == container_info_data_type_k8s && container_info->data.k8s.name ? container_info->data.k8s.name : "",
+  // 			       container_info->data_type == container_info_data_type_k8s && container_info->data.k8s.pod ? container_info->data.k8s.pod : "",
+  // 			       container_info->data_type == container_info_data_type_k8s && container_info->data.k8s.ns ? container_info->data.k8s.ns : "",
+  // 			       container_info->data_type == container_info_data_type_docker && container_info->data.docker.name ? container_info->data.docker.name : "");
 
   return true;
 }
