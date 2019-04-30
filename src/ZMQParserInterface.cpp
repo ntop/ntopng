@@ -801,11 +801,13 @@ bool ZMQParserInterface::parseContainerInfo(json_object *jo, ContainerInfo * con
   } else
     container_info->data_type = container_info_data_type_unknown;
 
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Container [id: %s] K8S [name: %s][pod: %s][ns: %s]",
-  //			       container_info->id ? container_info->id : "",
-  //			       container_info->k8s.name ? container_info->k8s.name : "",
-  //			       container_info->k8s.pod ? container_info->k8s.pod : "",
-  //			       container_info->k8s.ns ? container_info->k8s.ns : "");
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Container [id: %s] [%s] [k8s.name: %s][k8s.pod: %s][k8s.ns: %s][docker.name: %s]",
+  // 			       container_info->id ? container_info->id : "",
+  // 			       container_info->data_type == container_info_data_type_k8s ? "K8S" : container_info->data_type == container_info_data_type_docker ? "DOCKER" : "UNKNOWN",
+  // 			       container_info->data_type == container_info_data_type_k8s && container_info->data.k8s.name ? container_info->data.k8s.name : "",
+  // 			       container_info->data_type == container_info_data_type_k8s && container_info->data.k8s.pod ? container_info->data.k8s.pod : "",
+  // 			       container_info->data_type == container_info_data_type_k8s && container_info->data.k8s.ns ? container_info->data.k8s.ns : "",
+  // 			       container_info->data_type == container_info_data_type_docker && container_info->data.docker.name ? container_info->data.docker.name : "");
 
   return true;
 }
