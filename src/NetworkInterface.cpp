@@ -1075,6 +1075,9 @@ void NetworkInterface::processFlow(Parsed_Flow *zflow, bool zmq_flow) {
     } else {
       /* Old nProbe */
 
+    if(!last_pkt_rcvd)
+      last_pkt_rcvd = now;
+
     /* NOTE: do not set last_pkt_rcvd_remote here as doing so will trigger the
      * drift calculation above on next flows, leading to incorrect timestamps.
      */
