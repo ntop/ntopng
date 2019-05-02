@@ -1999,6 +1999,8 @@ drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
       {schema="host:1d_delta_traffic_volume",  label="1 Day Traffic Delta"}, -- TODO localize
       {schema="host:1d_delta_flows",           label="1 Day Active Flows Delta"}, -- TODO localize
       {schema="host:1d_delta_contacts",        label="1 Day Active Host Contacts Delta"}, -- TODO localize
+
+      {schema="host:arp_packets_counter",        label="TEST-arp_pkts"}, -- TODO localize
    }
 })
 
