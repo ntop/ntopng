@@ -17,6 +17,7 @@ local currentPage  = _GET["currentPage"]
 local perPage      = _GET["perPage"]
 local sortColumn   = _GET["sortColumn"]
 local sortOrder    = _GET["sortOrder"]
+local pods_filter_s = _GET["custom_hosts"]
 
 local sortPrefs = "pods_data"
 
@@ -58,12 +59,19 @@ local to_skip = (currentPage-1) * perPage
 
 -- ################################################
 
+local pods_filter = nil
 local totalRows = 0
 local pods = interface.getPodsStats()
 local sort_to_key = {}
 
+if not isEmptyString(pods_filter_s) then
+  pods_filter = swapKeysValues(split(pods_filter_s, ","))
+end
+
 for pod_name, pod in pairs(pods) do
-  sort_to_key[pod_name] = pod_name
+  if((pods_filter == nil) or (pods_filter[pod_name] ~= nil)) then
+    sort_to_key[pod_name] = pod_name
+  end
 
   totalRows = totalRows + 1
 end

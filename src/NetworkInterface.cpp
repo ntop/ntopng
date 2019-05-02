@@ -1075,6 +1075,13 @@ void NetworkInterface::processFlow(Parsed_Flow *zflow, bool zmq_flow) {
     } else {
       /* Old nProbe */
 
+    if(!last_pkt_rcvd)
+      last_pkt_rcvd = now;
+
+    /* NOTE: do not set last_pkt_rcvd_remote here as doing so will trigger the
+     * drift calculation above on next flows, leading to incorrect timestamps.
+     */
+#if 0
       if((time_t)zflow->core.last_switched > (time_t)last_pkt_rcvd_remote)
 	last_pkt_rcvd_remote = zflow->core.last_switched;
 
@@ -1082,6 +1089,7 @@ void NetworkInterface::processFlow(Parsed_Flow *zflow, bool zmq_flow) {
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "[first=%u][last=%u][duration: %u]",
 				   zflow->core.first_switched,  zflow->core.last_switched,
 				   zflow->core.last_switched- zflow->core.first_switched);
+#endif
 #endif
     }
   }
@@ -3774,8 +3782,11 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
 
     if(retriever->pag
        && retriever->pag->podFilter(&pod_filter)) {
-      const char *cli_pod = f->getClientContainerInfo() ? f->getClientContainerInfo()->k8s.pod : NULL;
-      const char *srv_pod = f->getServerContainerInfo() ? f->getServerContainerInfo()->k8s.pod : NULL;
+      const ContainerInfo *cli_cont = f->getClientContainerInfo();
+      const ContainerInfo *srv_cont = f->getServerContainerInfo();
+
+      const char *cli_pod = cli_cont && cli_cont->data_type == container_info_data_type_k8s ? cli_cont->data.k8s.pod : NULL;
+      const char *srv_pod = srv_cont && srv_cont->data_type == container_info_data_type_k8s ? srv_cont->data.k8s.pod : NULL;
 
       if(!((cli_pod && !strcmp(pod_filter, cli_pod))
 	  || (srv_pod && !strcmp(pod_filter, srv_pod))))
@@ -7491,10 +7502,10 @@ static bool flow_get_pods_stats(GenericHashEntry *entry, void *user_data, bool *
   ContainerInfo *cli_cont, *srv_cont;
   const char *cli_pod = NULL, *srv_pod = NULL;
 
-  if((cli_cont = flow->getClientContainerInfo()))
-    cli_pod = cli_cont->k8s.pod;
-  if((srv_cont = flow->getServerContainerInfo()))
-    srv_pod = srv_cont->k8s.pod;
+  if((cli_cont = flow->getClientContainerInfo()) && cli_cont->data_type == container_info_data_type_k8s)
+    cli_pod = cli_cont->data.k8s.pod;
+  if((srv_cont = flow->getServerContainerInfo()) && srv_cont->data_type == container_info_data_type_k8s)
+    srv_pod = srv_cont->data.k8s.pod;
 
   if(cli_pod) {
     ContainerStats stats = pods_stats[cli_pod]; /* get existing or create new */
@@ -7570,11 +7581,13 @@ static bool flow_get_container_stats(GenericHashEntry *entry, void *user_data, b
 
   if((cli_cont = flow->getClientContainerInfo())) {
     cli_cont_id = cli_cont->id;
-    cli_pod = cli_cont->k8s.pod;
+    if(cli_cont->data_type == container_info_data_type_k8s)
+      cli_pod = cli_cont->data.k8s.pod;
   }
   if((srv_cont = flow->getServerContainerInfo())) {
     srv_cont_id = srv_cont->id;
-    srv_pod = srv_cont->k8s.pod;
+    if(srv_cont->data_type == container_info_data_type_k8s)
+      srv_pod = srv_cont->data.k8s.pod;
   }
 
   if(cli_cont_id &&

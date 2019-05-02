@@ -33,6 +33,8 @@ function getSerieLabel(schema, serie) {
           return "(" + serie.tags.if_index + ")";
     } else if(serie.tags.device && serie.tags.port) // Flow device
       return serie.tags.port;
+    else if(serie.tags.exporter && serie.tags.ifname) // Event exporter
+      return serie.tags.ifname;
     else if(serie.tags.profile)
         return serie.tags.profile;
   } else if(data_label != "bytes") { // single series

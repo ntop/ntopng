@@ -693,7 +693,6 @@ end
       local arp_matrix_utils = require "arp_matrix_utils"
 
       if (arp_matrix_utils.arpCheck(host_ip)) then
-
          print[[<tr><th width=30% >]] print("ARP Requests")
          print[[<a href="arp_matrix_graph.lua?host=]]print(host_ip)print[["> [See in Map]</a>]]
          print[[</th><td colspan=2 id="arp_req_td">

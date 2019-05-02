@@ -183,18 +183,28 @@ typedef struct {
   char *process_name, *father_process_name;
   u_int32_t uid /* User Id */, gid; /* Group Id */
   u_int32_t father_uid /* User Id */, father_gid; /* Group Id */
+  u_int32_t actual_memory, peak_memory;
 } ProcessInfo;
+
+typedef enum {
+  container_info_data_type_unknown,
+  container_info_data_type_k8s,
+  container_info_data_type_docker
+} ContainerInfoDataType;
 
 typedef struct {
   char *id;
-  struct {
-    char *name;
-    char *pod;
-    char *ns;
-  } k8s;
-  struct {
-    char *name;
-  } docker;
+  union {
+    struct {
+      char *name;
+      char *pod;
+      char *ns;
+    } k8s;
+    struct {
+      char *name;
+    } docker;
+  } data;
+  ContainerInfoDataType data_type;
 } ContainerInfo;
 
 typedef struct {

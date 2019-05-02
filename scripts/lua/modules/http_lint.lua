@@ -1037,6 +1037,7 @@ local known_parameters = {
    ["sflowdistro_mode"]        = validateSflowDistroMode,       -- A mode for host_sflow_distro
    ["distr"]                   = validateSflowDistroType,       -- A type for host_sflow_distro
    ["sflow_filter"]            = validateSflowFilter,           -- sflow host filter
+   ["exporter_ifname"]         = validateSingleWord,            -- an interface name on the exporter system
 
 -- TIME SPECIFICATION
    ["epoch"]                   = validateNumber,                -- A timestamp value
@@ -1196,6 +1197,7 @@ local known_parameters = {
    ["toggle_midnight_stats_reset"]                 = validateBool,
 
    -- Input fields
+   ["companion_interface"]                         = validateEmptyOr(validateInterface),
    ["minute_top_talkers_retention"]                = validateNumber,
    ["nindex_retention_days"]                       = validateNumber,
    ["mysql_retention"]                             = validateNumber,

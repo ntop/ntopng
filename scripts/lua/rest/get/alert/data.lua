@@ -14,7 +14,15 @@ local json = require "dkjson"
 
 sendHTTPHeader('application/json')
 
+local ifid = _GET["ifid"]
 local status = _GET["status"]
+
+local if_name = nil
+if not isEmptyString(ifid) then
+  if_name = getInterfaceName(ifid)
+end
+
+interface.select(if_name)
 
 local engaged = false
 if status == "engaged" then
