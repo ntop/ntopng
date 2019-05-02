@@ -542,6 +542,8 @@ bool ZMQParserInterface::parseNProbeMiniField(Parsed_Flow * const flow, const ch
     if(json_object_object_get_ex(jvalue, "PID", &obj))   flow->ebpf.process_info.father_pid = (u_int32_t)json_object_get_int64(obj);
     if(json_object_object_get_ex(jvalue, "UID", &obj))      flow->ebpf.process_info.father_uid = (u_int32_t)json_object_get_int64(obj);
     if(json_object_object_get_ex(jvalue, "GID", &obj))     flow->ebpf.process_info.father_gid = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "VM_SIZE", &obj))     flow->ebpf.process_info.actual_memory = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "VM_PEAK", &obj))     flow->ebpf.process_info.peak_memory = (u_int32_t)json_object_get_int64(obj);
     if(json_object_object_get_ex(jvalue, "PROCESS_PATH", &obj)) flow->ebpf.process_info.father_process_name = (char*)json_object_get_string(obj);
     if(!flow->ebpf.process_info_set) flow->ebpf.process_info_set = true;
     ret = true;
@@ -554,12 +556,15 @@ bool ZMQParserInterface::parseNProbeMiniField(Parsed_Flow * const flow, const ch
     if(json_object_object_get_ex(jvalue, "PID", &obj))   flow->ebpf.process_info.pid = (u_int32_t)json_object_get_int64(obj);
     if(json_object_object_get_ex(jvalue, "UID", &obj))      flow->ebpf.process_info.uid = (u_int32_t)json_object_get_int64(obj);
     if(json_object_object_get_ex(jvalue, "GID", &obj))     flow->ebpf.process_info.gid = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "VM_SIZE", &obj))     flow->ebpf.process_info.actual_memory = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "VM_PEAK", &obj))     flow->ebpf.process_info.peak_memory = (u_int32_t)json_object_get_int64(obj);
     if(json_object_object_get_ex(jvalue, "PROCESS_PATH", &obj)) flow->ebpf.process_info.process_name = (char*)json_object_get_string(obj);
     if(!flow->ebpf.process_info_set) flow->ebpf.process_info_set = true;
     ret = true;
 
-    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Process [pid: %u][uid: %u][gid: %u][path: %s]",
+    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Process [pid: %u][uid: %u][gid: %u][size/peak vm: %u/%u][path: %s]",
     //				 flow->ebpf.process_info.pid, flow->ebpf.process_info.uid, flow->ebpf.process_info.gid,
+    //				 flow->ebpf.process_info.actual_memory, flow->ebpf.process_info.peak_memory,
     //				 flow->ebpf.process_info.process_name);
   } else if(strlen(key) >= 9 && !strncmp(&key[strlen(key) - 9], "CONTAINER", 9)) {
     if((ret = parseContainerInfo(jvalue, &flow->ebpf.container_info)))
@@ -580,6 +585,7 @@ bool ZMQParserInterface::parseNProbeMiniField(Parsed_Flow * const flow, const ch
       flow->core.out_bytes = flow->ebpf.tcp_info.rcvd_bytes = (u_int32_t)json_object_get_int64(obj);
 
     if(!flow->ebpf.tcp_info_set) flow->ebpf.tcp_info_set = true;
+    flow->core.absolute_packet_octet_counters = true;
     ret = true;
 
     // ntop->getTrace()->traceEvent(TRACE_NORMAL, "TCP INFO [conn state: %s][rcvd_bytes: %u][retx_pkts: %u][lost_pkts: %u]"
@@ -785,18 +791,23 @@ bool ZMQParserInterface::parseContainerInfo(json_object *jo, ContainerInfo * con
   if(json_object_object_get_ex(jo, "ID", &obj)) container_info->id = (char*)json_object_get_string(obj);
 
   if(json_object_object_get_ex(jo, "KUBE", &obj)) {
-    if(json_object_object_get_ex(obj, "NAME", &obj2)) container_info->k8s.name = (char*)json_object_get_string(obj2);
-    if(json_object_object_get_ex(obj, "POD", &obj2))  container_info->k8s.pod  = (char*)json_object_get_string(obj2);
-    if(json_object_object_get_ex(obj, "NS", &obj2))   container_info->k8s.ns   = (char*)json_object_get_string(obj2);
+    if(json_object_object_get_ex(obj, "NAME", &obj2)) container_info->data.k8s.name = (char*)json_object_get_string(obj2);
+    if(json_object_object_get_ex(obj, "POD", &obj2))  container_info->data.k8s.pod  = (char*)json_object_get_string(obj2);
+    if(json_object_object_get_ex(obj, "NS", &obj2))   container_info->data.k8s.ns   = (char*)json_object_get_string(obj2);
+    container_info->data_type = container_info_data_type_k8s;
   } else if(json_object_object_get_ex(jo, "DOCKER", &obj)) {
-    if(json_object_object_get_ex(obj, "NAME", &obj2)) container_info->docker.name = (char*)json_object_get_string(obj2);
-  }
+    if(json_object_object_get_ex(obj, "NAME", &obj2)) container_info->data.docker.name = (char*)json_object_get_string(obj2);
+    container_info->data_type = container_info_data_type_k8s;
+  } else
+    container_info->data_type = container_info_data_type_unknown;
 
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Container [id: %s] K8S [name: %s][pod: %s][ns: %s]",
-  //			       container_info->id ? container_info->id : "",
-  //			       container_info->k8s.name ? container_info->k8s.name : "",
-  //			       container_info->k8s.pod ? container_info->k8s.pod : "",
-  //			       container_info->k8s.ns ? container_info->k8s.ns : "");
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Container [id: %s] [%s] [k8s.name: %s][k8s.pod: %s][k8s.ns: %s][docker.name: %s]",
+  // 			       container_info->id ? container_info->id : "",
+  // 			       container_info->data_type == container_info_data_type_k8s ? "K8S" : container_info->data_type == container_info_data_type_docker ? "DOCKER" : "UNKNOWN",
+  // 			       container_info->data_type == container_info_data_type_k8s && container_info->data.k8s.name ? container_info->data.k8s.name : "",
+  // 			       container_info->data_type == container_info_data_type_k8s && container_info->data.k8s.pod ? container_info->data.k8s.pod : "",
+  // 			       container_info->data_type == container_info_data_type_k8s && container_info->data.k8s.ns ? container_info->data.k8s.ns : "",
+  // 			       container_info->data_type == container_info_data_type_docker && container_info->data.docker.name ? container_info->data.docker.name : "");
 
   return true;
 }
@@ -829,19 +840,19 @@ u_int8_t ZMQParserInterface::parseCounter(const char * const payload, int payloa
 
       if((key != NULL) && (value != NULL)) {
 	if(!strcmp(key, "deviceIP")) stats.deviceIP = ntohl(inet_addr(value));
-	else if(!strcmp(key, "ifIndex")) stats.ifIndex = atol(value);
-	else if(!strcmp(key, "ifName")) stats.ifName = (char*)value;
-	else if(!strcmp(key, "ifType")) stats.ifType = atol(value);
-	else if(!strcmp(key, "ifSpeed")) stats.ifSpeed = atol(value);
+	else if(!strcmp(key, "ifIndex")) stats.ifIndex = (u_int32_t)json_object_get_int64(v);
+	else if(!strcmp(key, "ifName")) stats.ifName = (char*)json_object_get_string(v);
+	else if(!strcmp(key, "ifType")) stats.ifType = (u_int32_t)json_object_get_int64(v);
+	else if(!strcmp(key, "ifSpeed")) stats.ifSpeed = (u_int32_t)json_object_get_int64(v);
 	else if(!strcmp(key, "ifDirection")) stats.ifFullDuplex = (!strcmp(value, "Full")) ? true : false;
 	else if(!strcmp(key, "ifAdminStatus")) stats.ifAdminStatus = (!strcmp(value, "Up")) ? true : false;
 	else if(!strcmp(key, "ifOperStatus")) stats.ifOperStatus = (!strcmp(value, "Up")) ? true : false;
-	else if(!strcmp(key, "ifInOctets")) stats.ifInOctets = atoll(value);
-	else if(!strcmp(key, "ifInPackets")) stats.ifInPackets = atoll(value);
-	else if(!strcmp(key, "ifInErrors")) stats.ifInErrors = atoll(value);
-	else if(!strcmp(key, "ifOutOctets")) stats.ifOutOctets = atoll(value);
-	else if(!strcmp(key, "ifOutPackets")) stats.ifOutPackets = atoll(value);
-	else if(!strcmp(key, "ifOutErrors")) stats.ifOutErrors = atoll(value);
+	else if(!strcmp(key, "ifInOctets")) stats.ifInOctets = json_object_get_int64(v);
+	else if(!strcmp(key, "ifInPackets")) stats.ifInPackets = json_object_get_int64(v);
+	else if(!strcmp(key, "ifInErrors")) stats.ifInErrors = json_object_get_int64(v);
+	else if(!strcmp(key, "ifOutOctets")) stats.ifOutOctets = json_object_get_int64(v);
+	else if(!strcmp(key, "ifOutPackets")) stats.ifOutPackets = json_object_get_int64(v);
+	else if(!strcmp(key, "ifOutErrors")) stats.ifOutErrors = json_object_get_int64(v);
 	else if(!strcmp(key, "ifPromiscuousMode")) stats.ifPromiscuousMode = (!strcmp(value, "1")) ? true : false;
 	else if(strlen(key) >= 9 && !strncmp(&key[strlen(key) - 9], "CONTAINER", 9)) {
 	  if(parseContainerInfo(v, &stats.container_info))

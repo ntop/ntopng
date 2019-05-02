@@ -302,7 +302,7 @@ end
 
 function graphMenuGetActive(schema, params)
    -- These tags are used to determine the active timeseries entry
-   local match_tags = {ts_schema=1, ts_query=1, protocol=1, category=1, snmp_port_idx=1, l4proto=1}
+   local match_tags = {ts_schema=1, ts_query=1, protocol=1, category=1, snmp_port_idx=1, exporter_ifname=1, l4proto=1}
 
    for _, entry in pairs(graph_menu_entries) do
       if entry.schema == schema and entry.params then

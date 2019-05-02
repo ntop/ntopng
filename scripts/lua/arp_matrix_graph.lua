@@ -42,32 +42,6 @@ if (refresh == '') then refresh = 5000 end
 if((ifstats ~= nil) and (ifstats.stats.packets > 0)) then
 -- Print tabbed header
 
-   print('<nav class="navbar navbar-default" role="navigation">\n\t<div class="navbar-collapse collapse">\n\t<ul class="nav navbar-nav">\n')
-
-   print('<li><a href="#">'..i18n("index_page.dashboard")..': </a></li>\n')
-
-   if(not(is_loopback)) then
-      if(page == "TopFlowTalkers") then active=' class="active"' else active = "" end
-      print('<li'..active..'><a href="'..ntop.getHttpPrefix()..'/?page=TopFlowTalkers">'..i18n("talkers")..'</a></li>\n')
-   end
-
-   if((page == "TopHosts")) then active=' class="active"' else active = "" end
-   print('<li'..active..'><a href="'..ntop.getHttpPrefix()..'/?page=TopHosts">'..i18n("index_page.hosts")..'</a></li>\n')
-
-   if((page == "TopPorts")) then active=' class="active"' else active = "" end
-   print('<li'..active..'><a href="'..ntop.getHttpPrefix()..'/?page=TopPorts">'..i18n("ports")..'</a></li>\n')
-
-   if((page == "TopApplications")) then active=' class="active"' else active = "" end
-   print('<li'..active..'><a href="'..ntop.getHttpPrefix()..'/?page=TopApplications">'..i18n("index_page.applications")..'</a></li>\n')
-
-   if(not(is_loopback)) then
-      if((page == "TopASNs")) then active=' class="active"' else active = "" end
-      print('<li'..active..'><a href="'..ntop.getHttpPrefix()..'/?page=TopASNs">'..i18n("index_page.asns")..'</a></li>\n')
-      if((page == "TopFlowSenders")) then active=' class="active"' else active = "" end
-      print('<li'..active..'><a href="'..ntop.getHttpPrefix()..'/?page=TopFlowSenders">'..i18n("index_page.senders")..'</a></li>\n')
-   end
-   print('</ul>\n\t</div>\n\t</nav>\n')
-
   print [[
     <script src="]] print(ntop.getHttpPrefix()) print[[/js/d3.v4.min.js"></script>
 

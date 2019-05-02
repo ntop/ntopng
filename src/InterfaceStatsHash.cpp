@@ -39,10 +39,14 @@ InterfaceStatsHash::~InterfaceStatsHash() {
       if(buckets[i]->ifName) free(buckets[i]->ifName);
 
       if(buckets[i]->container_info_set) {
-	if(buckets[i]->container_info.id)       free(buckets[i]->container_info.id);
-	if(buckets[i]->container_info.k8s.name) free(buckets[i]->container_info.k8s.name);
-	if(buckets[i]->container_info.k8s.pod)  free(buckets[i]->container_info.k8s.pod);
-	if(buckets[i]->container_info.k8s.ns)   free(buckets[i]->container_info.k8s.ns);
+	if(buckets[i]->container_info.id)          free(buckets[i]->container_info.id);
+	if(buckets[i]->container_info.data_type == container_info_data_type_k8s) {
+	  if(buckets[i]->container_info.data.k8s.name)    free(buckets[i]->container_info.data.k8s.name);
+	  if(buckets[i]->container_info.data.k8s.pod)     free(buckets[i]->container_info.data.k8s.pod);
+	  if(buckets[i]->container_info.data.k8s.ns)      free(buckets[i]->container_info.data.k8s.ns);
+	} else if(buckets[i]->container_info.data_type == container_info_data_type_docker) {
+	  if(buckets[i]->container_info.data.docker.name) free(buckets[i]->container_info.data.docker.name);
+	}
       }
 
       free(buckets[i]);
@@ -106,9 +110,13 @@ bool InterfaceStatsHash::set(const sFlowInterfaceStats * const stats) {
 
 	if(buckets[hash]->container_info_set) {
 	  if(buckets[hash]->container_info.id)       buckets[hash]->container_info.id = strdup(buckets[hash]->container_info.id);
-	  if(buckets[hash]->container_info.k8s.name) buckets[hash]->container_info.k8s.name = strdup(buckets[hash]->container_info.k8s.name);
-	  if(buckets[hash]->container_info.k8s.pod)  buckets[hash]->container_info.k8s.pod = strdup(buckets[hash]->container_info.k8s.pod);
-	  if(buckets[hash]->container_info.k8s.ns)   buckets[hash]->container_info.k8s.ns = strdup(buckets[hash]->container_info.k8s.ns);
+	  if(buckets[hash]->container_info.data_type == container_info_data_type_k8s) {
+	    if(buckets[hash]->container_info.data.k8s.name) buckets[hash]->container_info.data.k8s.name = strdup(buckets[hash]->container_info.data.k8s.name);
+	    if(buckets[hash]->container_info.data.k8s.pod)  buckets[hash]->container_info.data.k8s.pod = strdup(buckets[hash]->container_info.data.k8s.pod);
+	    if(buckets[hash]->container_info.data.k8s.ns)   buckets[hash]->container_info.data.k8s.ns = strdup(buckets[hash]->container_info.data.k8s.ns);
+	  } else if(buckets[hash]->container_info.data_type == container_info_data_type_docker) {
+	    if(buckets[hash]->container_info.data.docker.name)   buckets[hash]->container_info.data.docker.name = strdup(buckets[hash]->container_info.data.docker.name);
+	  }
 	}
 
       } else
@@ -182,6 +190,13 @@ void InterfaceStatsHash::luaDeviceInfo(lua_State *vm, u_int32_t deviceIP) {
       lua_push_uint64_table_entry(vm, "ifType", head->ifType);
       if(head->ifName)
 	lua_push_str_table_entry(vm, "ifName", head->ifName);
+      if(head->container_info_set) {
+	Utils::containerInfoLua(vm, &head->container_info);
+
+	lua_pushstring(vm, "container");
+	lua_insert(vm, -2);
+	lua_settable(vm, -3);
+      }
       lua_push_uint64_table_entry(vm, "ifSpeed", head->ifSpeed);
       lua_push_bool_table_entry(vm, "ifFullDuplex", head->ifFullDuplex);
       lua_push_bool_table_entry(vm, "ifAdminStatus", head->ifAdminStatus);

@@ -3783,8 +3783,11 @@ void Utils::containerInfoLua(lua_State *vm, const ContainerInfo * const cont) {
   lua_newtable(vm);
 
   if(cont->id)       lua_push_str_table_entry(vm, "id", cont->id);
-  if(cont->k8s.name) lua_push_str_table_entry(vm, "k8s.name", cont->k8s.name);
-  if(cont->k8s.pod)  lua_push_str_table_entry(vm, "k8s.pod", cont->k8s.pod);
-  if(cont->k8s.ns)   lua_push_str_table_entry(vm, "k8s.ns", cont->k8s.ns);
-  if(cont->docker.name) lua_push_str_table_entry(vm, "docker.name", cont->docker.name);
+  if(cont->data_type == container_info_data_type_k8s) {
+    if(cont->data.k8s.name) lua_push_str_table_entry(vm, "k8s.name", cont->data.k8s.name);
+    if(cont->data.k8s.pod)  lua_push_str_table_entry(vm, "k8s.pod", cont->data.k8s.pod);
+    if(cont->data.k8s.ns)   lua_push_str_table_entry(vm, "k8s.ns", cont->data.k8s.ns);
+  } else if(cont->data_type == container_info_data_type_docker) {
+    if(cont->data.docker.name) lua_push_str_table_entry(vm, "docker.name", cont->data.docker.name);
+  }
 }
