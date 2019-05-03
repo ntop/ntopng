@@ -147,6 +147,9 @@ class NetworkInterface : public Checkpointable {
   u_int8_t numSubInterfaces;
   NetworkInterface *subInterfaces[MAX_NUM_VIEW_INTERFACES];
 
+  /* Companion Interface */
+  NetworkInterface *companion_interface;
+
   u_int nextFlowAggregation;
   TcpFlowStats tcpFlowStats;
   TcpPacketStats tcpPacketStats;
@@ -636,6 +639,7 @@ class NetworkInterface : public Checkpointable {
   void refreshHostsAlertPrefs(bool full_refresh);
   int updateHostTrafficPolicy(AddressTree* allowed_networks, char *host_ip, u_int16_t host_vlan);
 
+  void reloadCompanion();
   void reloadHideFromTop(bool refreshHosts=true);
   void updateLbdIdentifier();
   inline bool serializeLbdHostsAsMacs()             { return(lbd_serialize_by_mac); }

@@ -46,7 +46,7 @@ function companion_interface_utils.setCompanion(ifid, companion_ifid)
       end
    end
 
-   -- TODO: reload companion
+   interface.reloadCompanion(ifid)
 end
 
 function companion_interface_utils.getAvailableCompanions()

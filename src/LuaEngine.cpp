@@ -7646,6 +7646,22 @@ static int ntop_interface_get_containers_stats(lua_State* vm) {
   ntop_interface->getContainersStats(vm, pod_filter);
   return(CONST_LUA_OK);
 }
+/* ****************************************** */
+
+static int ntop_interface_reload_companion(lua_State* vm) {
+  int ifid;
+  NetworkInterface *iface;
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return CONST_LUA_ERROR;
+  ifid = lua_tonumber(vm, 1);
+
+  if(ifid < 0 || !(iface = ntop->getInterfaceById(ifid)))
+    return CONST_LUA_ERROR;
+
+  iface->reloadCompanion();
+
+  return CONST_LUA_OK;
+}
 
 /* ****************************************** */
 
@@ -8425,9 +8441,10 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "engageAlert",            ntop_interface_engage_alert             },
   { "releaseAlert",           ntop_interface_release_alert            },
 
-  /* Containers */
+  /* eBPF, Containers and Companion Interfaces */
   { "getPodsStats",           ntop_interface_get_pods_stats           },
   { "getContainersStats",     ntop_interface_get_containers_stats     },
+  { "reloadCompanion",        ntop_interface_reload_companion         },
 
   { NULL,                             NULL }
 };
@@ -8649,6 +8666,7 @@ static const luaL_Reg ntop_reg[] = {
   { "getExtractionStatus",   ntop_get_extraction_status },
   { "runLiveExtraction",     ntop_run_live_extraction   },
 
+  /* nEdge */
 #ifdef HAVE_NEDGE
   { "setHTTPBindAddr",       ntop_set_http_bind_addr       },
   { "setHTTPSBindAddr",      ntop_set_https_bind_addr      },

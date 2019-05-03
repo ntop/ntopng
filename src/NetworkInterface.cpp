@@ -269,6 +269,7 @@ NetworkInterface::NetworkInterface(const char *name,
   is_loopback = (strncmp(ifname, "lo", 2) == 0) ? true : false;
 
   reloadHideFromTop(false);
+  reloadCompanion();
   updateTrafficMirrored();
   updateLbdIdentifier();
 }
@@ -305,6 +306,7 @@ void NetworkInterface::init() {
 
   numSubInterfaces = 0;
   memset(subInterfaces, 0, sizeof(subInterfaces));
+  companion_interface = NULL;
   reload_custom_categories = reload_hosts_blacklist = false;
   reload_hosts_bcast_domain = false;
   hosts_bcast_domain_last_update = 0;
@@ -1221,7 +1223,6 @@ void NetworkInterface::processFlow(Parsed_Flow *zflow, bool zmq_flow) {
   /* Update process and container info */
   flow->setParsedeBPFInfo(&zflow->ebpf,
 			  src2dst_direction /* FIX: direction also depends on the type of event. */);
-
 
   /* Update flow device stats */
   if(!flow->setFlowDevice(zflow->core.deviceIP,
@@ -6261,6 +6262,27 @@ ndpi_protocol_category_t NetworkInterface::get_ndpi_proto_category(u_int protoid
 
 /* **************************************** */
 
+void NetworkInterface::reloadCompanion() {
+  char key[CONST_MAX_LEN_REDIS_KEY], rsp[8] = { 0 };
+  int companion_ifid;
+
+  if(!ntop->getRedis()) return;
+
+  snprintf(key, sizeof(key), CONST_IFACE_COMPANION_INTERFACE, get_id());
+
+  if(ntop->getRedis()->get(key, rsp, sizeof(rsp)) == 0 && rsp[0] != '\0') {
+    companion_ifid = atoi(rsp);
+    companion_interface = ntop->getInterfaceById(companion_ifid);
+  } else {
+    companion_interface = NULL;
+  }
+
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Companion interface reloaded [interface: %s][companion: %s]",
+  // 			       get_name(), companion_interface ? companion_interface->get_name() : "NULL");
+}
+
+/* **************************************** */
+
 static bool host_reload_hide_from_top(GenericHashEntry *host, void *user_data, bool *matched) {
   Host *h = (Host*)host;
 
@@ -6275,7 +6297,6 @@ void NetworkInterface::reloadHideFromTop(bool refreshHosts) {
   VlanAddressTree *new_tree;
 
   if(!ntop->getRedis()) return;
-
 
   if ((new_tree = new VlanAddressTree) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Not enough memory");
