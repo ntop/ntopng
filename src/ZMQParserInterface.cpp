@@ -430,7 +430,7 @@ bool ZMQParserInterface::parsePENZeroField(Parsed_Flow * const flow, u_int32_t f
 
 /* **************************************************** */
 
-bool ZMQParserInterface::parsePENNtopField(Parsed_Flow * const flow, u_int32_t field, const char * const value) const {
+bool ZMQParserInterface::parsePENNtopField(Parsed_Flow * const flow, u_int32_t field, const char * const value, json_object * const jvalue) const {
   switch(field) {
   case L7_PROTO:
     if(!strchr(value, '.')) {
@@ -485,19 +485,19 @@ bool ZMQParserInterface::parsePENNtopField(Parsed_Flow * const flow, u_int32_t f
     flow->core.tcp.applLatencyMsec = atof(value);
     break;
   case DNS_QUERY:
-    flow->dns_query = strdup(value);
+    flow->dns_query = (char*)json_object_get_string(jvalue);
     break;
   case HTTP_URL:
-    flow->http_url = strdup(value);
+    flow->http_url = (char*)json_object_get_string(jvalue);
     break;
   case HTTP_SITE:
-    flow->http_site = strdup(value);
+    flow->http_site = (char*)json_object_get_string(jvalue);
     break;
   case SSL_SERVER_NAME:
-    flow->ssl_server_name = strdup(value);
+    flow->ssl_server_name = (char*)json_object_get_string(jvalue);
     break;
   case BITTORRENT_HASH:
-    flow->bittorrent_hash = strdup(value);
+    flow->bittorrent_hash = (char*)json_object_get_string(jvalue);
     break;
   case NPROBE_IPV4_ADDRESS:
     /* Do not override EXPORTER_IPV4_ADDRESS */
@@ -640,7 +640,7 @@ void ZMQParserInterface::parseSingleFlow(json_object *o,
 	  break;
 	/* Dont'break when res == false for backward compatibility: attempt to parse Zero-PEN as Ntop-PEN */
       case NTOP_PEN:
-	res = parsePENNtopField(&flow, key_id, value);
+	res = parsePENNtopField(&flow, key_id, value, v);
 	break;
       case UNKNOWN_PEN:
       default:
@@ -723,13 +723,6 @@ void ZMQParserInterface::parseSingleFlow(json_object *o,
     /* Process Flow */
     iface->processFlow(&flow, true);
   }
-
-  /* Dispose memory */
-  if(flow.dns_query) free(flow.dns_query);
-  if(flow.http_url)  free(flow.http_url);
-  if(flow.http_site) free(flow.http_site);
-  if(flow.ssl_server_name) free(flow.ssl_server_name);
-  if(flow.bittorrent_hash) free(flow.bittorrent_hash);
 
   // json_object_put(o);
   json_object_put(flow.additional_fields);
