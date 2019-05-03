@@ -263,6 +263,13 @@ typedef struct zmq_flow {
   /* Process Extensions */
 } Parsed_Flow;
 
+/* A lightweigth version of the parsed flow used to dispatch eBPF info to interfaces */
+typedef struct ebpf_flow {
+  IpAddress src_ip, dst_ip;
+  Parsed_FlowCore core;
+  Parsed_eBPF ebpf;
+} eBPF_Flow;
+
 /* IMPORTANT: whenever the Parsed_FlowSerial is changed, nProbe must be updated too */
 
 

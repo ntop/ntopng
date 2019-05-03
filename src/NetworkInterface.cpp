@@ -360,6 +360,17 @@ void NetworkInterface::init() {
   }
 #endif
 
+  if(bridge_interface
+     || is_dynamic_interface
+     || isView())
+    ;
+  else {
+    ebpfFlows = new (std::nothrow) eBPFFlow*[EBPF_QUEUE_LEN];
+    for(int i = 0; i < EBPF_QUEUE_LEN; i++) ebpfFlows[i] = NULL;
+  }
+  next_ebpf_insert_idx = next_ebpf_remove_idx = 0;
+  
+
   PROFILING_INIT();
 }
 
@@ -590,6 +601,15 @@ void NetworkInterface::deleteDataStructures() {
     free(ebpfEvents);
   }
 #endif
+
+  if(ebpfFlows) {
+    for(u_int16_t i = 0; i < EBPF_QUEUE_LEN; i++)
+      if(ebpfFlows[i])
+	delete ebpfFlows[i];
+
+    delete ebpfFlows;
+    ebpfFlows = NULL;
+  }
 }
 
 /* **************************************************** */
@@ -2644,6 +2664,41 @@ decode_packet_eth:
 /* **************************************************** */
 
 void NetworkInterface::pollQueuedeBPFEvents() {
+#if 0
+  if(ebpfFlows) {
+    eBPFFlow *dequeued = NULL;
+
+    if(dequeueeBPFFlow(&dequeued) && dequeued) {
+      Flow *flow = NULL;
+      bool src2dst_direction, new_flow;
+
+      flow = getFlow(NULL /* srcMac */, NULL /* dstMac */,
+		     0 /* vlan_id */,
+		     0 /* deviceIP */,
+		     0 /* inIndex */, 1 /* outIndex */,
+		     NULL /* ICMPinfo */,
+		     dequeued->get_cli_ip(), dequeued->get_srv_ip(),
+		     dequeued->get_cli_port(), dequeued->get_srv_port(),
+		     dequeued->get_protocol(),
+		     &src2dst_direction,
+		     0, 0, 0, &new_flow,
+		     false /* create_if_missing */);
+
+      if(flow && src2dst_direction) {
+	char buf[128];
+	flow->print(buf, sizeof(buf));
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Updating flow process info: [src2dst_direction: %u] %s", src2dst_direction ? 1 : 0, buf);
+
+	flow->setParsedeBPFInfo(dequeued->get_ebpf(), !src2dst_direction);
+      }
+
+      delete dequeued;
+    }
+
+    return;
+  }
+#endif
+
 #ifdef HAVE_EBPF
   if(ebpfEvents) {
     eBPFevent *event;
@@ -7667,6 +7722,35 @@ void NetworkInterface::getContainersStats(lua_State* vm, const char *pod_filter)
     lua_insert(vm, -2);
     lua_settable(vm, -3);
   }
+}
+
+/* *************************************** */
+
+bool NetworkInterface::enqueueeBPFFlow(Parsed_Flow * const pf) {
+  if(ebpfFlows[next_ebpf_insert_idx])
+    return false;
+
+  if((ebpfFlows[next_ebpf_insert_idx] = new (std::nothrow)eBPFFlow(pf))) {
+    next_ebpf_insert_idx = (next_ebpf_insert_idx + 1) % EBPF_QUEUE_LEN;
+    return true;
+  }
+
+  return false;
+}
+
+/* *************************************** */
+
+bool NetworkInterface::dequeueeBPFFlow(eBPFFlow **f) {
+  if(!ebpfFlows[next_ebpf_remove_idx]) {
+    *f = NULL;
+    return false;
+  }
+
+  *f = ebpfFlows[next_ebpf_remove_idx];
+  ebpfFlows[next_ebpf_remove_idx] = NULL;
+  next_ebpf_remove_idx = (next_ebpf_remove_idx + 1) % EBPF_QUEUE_LEN;
+
+  return true;
 }
 
 /* *************************************** */

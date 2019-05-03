@@ -722,6 +722,15 @@ void ZMQParserInterface::parseSingleFlow(json_object *o,
   if(!invalid_flow) {
     /* Process Flow */
     iface->processFlow(&flow, true);
+
+#if 0
+    if(flow.ebpf.process_info_set || flow.ebpf.container_info_set || flow.ebpf.tcp_info_set) {
+      NetworkInterface * companion = getCompanion();
+
+      if(companion)
+	companion->enqueueeBPFFlow(&flow);
+    }
+#endif
   }
 
   // json_object_put(o);
