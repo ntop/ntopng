@@ -788,18 +788,19 @@ u_int8_t ZMQParserInterface::parseFlow(const char * const payload, int payload_s
 bool ZMQParserInterface::parseContainerInfo(json_object *jo, ContainerInfo * const container_info) {
   json_object *obj, *obj2;
 
-  if(json_object_object_get_ex(jo, "ID", &obj)) container_info->id = (char*)json_object_get_string(obj);
-
   if(json_object_object_get_ex(jo, "KUBE", &obj)) {
-    if(json_object_object_get_ex(obj, "NAME", &obj2)) container_info->data.k8s.name = (char*)json_object_get_string(obj2);
     if(json_object_object_get_ex(obj, "POD", &obj2))  container_info->data.k8s.pod  = (char*)json_object_get_string(obj2);
     if(json_object_object_get_ex(obj, "NS", &obj2))   container_info->data.k8s.ns   = (char*)json_object_get_string(obj2);
     container_info->data_type = container_info_data_type_k8s;
   } else if(json_object_object_get_ex(jo, "DOCKER", &obj)) {
-    if(json_object_object_get_ex(obj, "NAME", &obj2)) container_info->data.docker.name = (char*)json_object_get_string(obj2);
     container_info->data_type = container_info_data_type_k8s;
   } else
     container_info->data_type = container_info_data_type_unknown;
+
+  if(obj) {
+    if(json_object_object_get_ex(obj, "ID", &obj2)) container_info->id = (char*)json_object_get_string(obj2);
+    if(json_object_object_get_ex(obj, "NAME", &obj2)) container_info->name = (char*)json_object_get_string(obj2);
+  }
 
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Container [id: %s] [%s] [k8s.name: %s][k8s.pod: %s][k8s.ns: %s][docker.name: %s]",
   // 			       container_info->id ? container_info->id : "",

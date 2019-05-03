@@ -194,14 +194,14 @@ typedef enum {
 
 typedef struct {
   char *id;
+  char *name;
   union {
     struct {
-      char *name;
       char *pod;
       char *ns;
     } k8s;
     struct {
-      char *name;
+      /* Reseved for future use */
     } docker;
   } data;
   ContainerInfoDataType data_type;
