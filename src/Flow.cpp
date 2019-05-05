@@ -3711,13 +3711,29 @@ void Flow::setProcessInfo(eBPFevent *event, bool client_process) {
 
 /* ***************************************************** */
 
-void Flow::setParsedeBPFInfo(const Parsed_eBPF * const ebpf, bool client_process) {
+void Flow::setParsedeBPFInfo(const Parsed_eBPF * const ebpf, bool src2dst_direction) {
   if(!ebpf)
     return;
 
   if(!iface->hasSeenEBPFEvents())
     iface->setSeenEBPFEvents();
 
+  bool client_process;
+
+  /* Try to guess if the process is the client or the server */
+  if(ebpf->event_type == ebpf_event_type_tcp_accept)
+    client_process = false;
+  else if(ebpf->event_type == ebpf_event_type_tcp_connect)
+    client_process = true;
+  else if(get_srv_port() > get_cli_port())
+    client_process = false;
+  else
+    client_process = true;
+
+  if(!src2dst_direction)
+    client_process = !client_process;
+
+  /* Not it's time to attach the info... */
   const ProcessInfo *pi   = ebpf->process_info_set ? &ebpf->process_info : NULL;
   const ContainerInfo *ci = ebpf->container_info_set ? &ebpf->container_info : NULL;
   const TcpInfo *ti       = ebpf->tcp_info_set ? &ebpf->tcp_info : NULL;

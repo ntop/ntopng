@@ -500,7 +500,7 @@ class Flow : public GenericHashEntry {
 #ifdef HAVE_EBPF
   void setProcessInfo(eBPFevent *event, bool client_process);
 #endif
-  void setParsedeBPFInfo(const Parsed_eBPF * const ebpf, bool client_process);
+  void setParsedeBPFInfo(const Parsed_eBPF * const ebpf, bool src2dst_direction);
   inline ContainerInfo* getClientContainerInfo()  { return(client_cont); }
   inline ContainerInfo* getServerContainerInfo()  { return(server_cont); }
   inline ProcessInfo*   getClientProcessInfo()    { return(client_proc); }
