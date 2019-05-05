@@ -3742,54 +3742,40 @@ void Flow::setParsedeBPFInfo(const Parsed_eBPF * const ebpf, bool src2dst_direct
   ContainerInfo **container_info = client_process ? &client_cont : &server_cont;
   TcpInfo **tcp_info             = client_process ? &client_tcp : &server_tcp;
 
-  if(pi && (*process_info || (*process_info = (ProcessInfo*)calloc(1, sizeof(ProcessInfo))))) {
+  if(pi && !*process_info && (*process_info = (ProcessInfo*)calloc(1, sizeof(ProcessInfo)))) {
     ProcessInfo *cur = *process_info;
 
     cur->pid = pi->pid, cur->uid = pi->uid, cur->gid = pi->gid,
       cur->actual_memory = pi->actual_memory, cur->peak_memory = pi->peak_memory,
       cur->father_pid = pi->father_pid, cur->father_uid = pi->father_uid, cur->father_gid = pi->father_gid;
-    if(pi->process_name) {
-      if(cur->process_name) free(cur->process_name);
-      cur->process_name = strdup(pi->process_name);
-    }
-    if(pi->father_process_name) {
-      if(cur->father_process_name) free(cur->father_process_name);
-      cur->father_process_name = strdup(pi->father_process_name);
-    }
+    if(pi->process_name)        cur->process_name = strdup(pi->process_name);
+    if(pi->father_process_name) cur->father_process_name = strdup(pi->father_process_name);
   }
 
-  if(ci && (*container_info || (*container_info = (ContainerInfo*)calloc(1, sizeof(ContainerInfo))))) {
+  if(ci && !*container_info && (*container_info = (ContainerInfo*)calloc(1, sizeof(ContainerInfo)))) {
     ContainerInfo *cur = *container_info;
     memcpy(cur, ci, sizeof(*ci));
 
     if(ci->id) {
-      if(cur->id) free(cur->id);
       cur->id = strdup(ci->id);
       if(!iface->hasSeenContainers())
 	iface->setSeenContainers();
     }
 
-    if(ci->name) {
-      if(cur->name) free(cur->name);
-      cur->name = strdup(ci->name);
-    }
+    if(ci->name) cur->name = strdup(ci->name);
 
     if(ci->data_type == container_info_data_type_k8s) {
       if(ci->data.k8s.pod) {
-	if(cur->data.k8s.pod) free(cur->data.k8s.pod);
 	cur->data.k8s.pod  = strdup(ci->data.k8s.pod);
 	if(!iface->hasSeenPods())
 	  iface->setSeenPods();
       }
-      if(ci->data.k8s.ns) {
-	if(cur->data.k8s.ns) free(cur->data.k8s.ns);
-	cur->data.k8s.ns   = strdup(ci->data.k8s.ns);
-      }
+      if(ci->data.k8s.ns)   cur->data.k8s.ns   = strdup(ci->data.k8s.ns);
     } else if(ci->data_type == container_info_data_type_docker)
       ;
   }
 
-  if(ti && (*tcp_info || (*tcp_info = (TcpInfo*)calloc(1, sizeof(TcpInfo))))) {
+  if(ti && !*tcp_info && (*tcp_info = (TcpInfo*)calloc(1, sizeof(TcpInfo)))) {
     TcpInfo *cur = *tcp_info;
     memcpy(cur, ti, sizeof(*ti));
   }
