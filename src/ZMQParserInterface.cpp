@@ -600,6 +600,11 @@ bool ZMQParserInterface::parseNProbeMiniField(Parsed_Flow * const flow, const ch
     //				 flow->ebpf.tcp_info.unacked_segs,
     //				 flow->ebpf.tcp_info.rtt,
     //				 flow->ebpf.tcp_info.rtt_var);
+  } else if((!strncmp(key, "TCP_EVENT_TYPE", 14) && strlen(key) == 14)
+	    || (!strncmp(key, "UDP_EVENT_TYPE", 14) && strlen(key) == 14)) {
+    flow->ebpf.event_type = Utils::eBPFEventStr2Event(value);
+
+    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Event Type [type: %s]", Utils::eBPFEvent2EventStr(flow->ebpf.event_type));
   }
 
   return ret;

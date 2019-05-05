@@ -178,6 +178,17 @@ typedef struct ether80211q {
   u_int16_t protoType;
 } Ether80211q;
 
+typedef enum {
+  ebpf_event_type_unknown = 0,
+  ebpf_event_type_tcp_accept,
+  ebpf_event_type_tcp_connect,
+  ebpf_event_type_tcp_connect_failed,
+  ebpf_event_type_tcp_close,
+  epbf_event_type_tcp_retransmit,
+  ebpf_event_type_udp_send,
+  ebpf_event_type_udp_recv,
+} eBPFEventType;
+
 typedef struct {
   u_int32_t pid, father_pid;
   char *process_name, *father_process_name;
@@ -241,6 +252,7 @@ typedef struct zmq_flow_ebpf {
   ProcessInfo process_info;
   ContainerInfo container_info;
   TcpInfo tcp_info;
+  eBPFEventType event_type;
   bool process_info_set, container_info_set, tcp_info_set;
 } Parsed_eBPF;
 
