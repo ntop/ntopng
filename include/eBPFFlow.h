@@ -40,6 +40,8 @@ class eBPFFlow {
   inline u_int16_t get_srv_port() const { return core.dst_port; };
   inline u_int8_t get_protocol()  const { return core.l4_proto; };
   inline Parsed_eBPF * const get_ebpf() { return &ebpf; };
+
+  void print();
 };
 
 #endif /* _EBPF_FLOW_H_ */

@@ -231,18 +231,18 @@ end
 
 
 
-  if(ntop.hasGeoIP()) then
-     print('<li><a href="'..ntop.getHttpPrefix()..'/lua/as_stats.lua">') print(i18n("prefs.toggle_asn_rrds_title")) print('</a></li>')
-     print('<li><a href="'..ntop.getHttpPrefix()..'/lua/country_stats.lua">') print(i18n("countries")) print('</a></li>')
-  end
-  print('<li><a href="'..ntop.getHttpPrefix()..'/lua/os_stats.lua">') print(i18n("operating_systems")) print('</a></li>')
+if(ntop.hasGeoIP()) then
+   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/as_stats.lua">') print(i18n("prefs.toggle_asn_rrds_title")) print('</a></li>')
+   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/country_stats.lua">') print(i18n("countries")) print('</a></li>')
+end
+print('<li><a href="'..ntop.getHttpPrefix()..'/lua/os_stats.lua">') print(i18n("operating_systems")) print('</a></li>')
 
-  if(interface.hasVLANs()) then
-     print('<li><a href="'..ntop.getHttpPrefix()..'/lua/vlan_stats.lua">') print(i18n("vlan_stats.vlans")) print('</a></li>')
-  end
+if(interface.hasVLANs()) then
+   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/vlan_stats.lua">') print(i18n("vlan_stats.vlans")) print('</a></li>')
+end
 
-  if(interface.hasEBPF()) then
-     -- TODO: decide whether a page with the list of processes should be done or not
+if(interface.hasEBPF()) then
+   -- TODO: decide whether a page with the list of processes should be done or not
 end
 
 if _ifstats.has_seen_pods then

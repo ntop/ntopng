@@ -2664,11 +2664,11 @@ decode_packet_eth:
 /* **************************************************** */
 
 void NetworkInterface::pollQueuedeBPFEvents() {
-#if 0
+#if ENABLE_EBPF_FLOWS_DISPATCH
   if(ebpfFlows) {
     eBPFFlow *dequeued = NULL;
 
-    if(dequeueeBPFFlow(&dequeued) && dequeued) {
+    if(dequeueeBPFFlow(&dequeued)) {
       Flow *flow = NULL;
       bool src2dst_direction, new_flow;
 
@@ -2682,14 +2682,16 @@ void NetworkInterface::pollQueuedeBPFEvents() {
 		     dequeued->get_protocol(),
 		     &src2dst_direction,
 		     0, 0, 0, &new_flow,
-		     false /* create_if_missing */);
+		     true /* create_if_missing */);
 
-      if(flow && src2dst_direction) {
+      if(flow) {
+#if 0
 	char buf[128];
 	flow->print(buf, sizeof(buf));
 	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Updating flow process info: [src2dst_direction: %u] %s", src2dst_direction ? 1 : 0, buf);
+#endif
 
-	flow->setParsedeBPFInfo(dequeued->get_ebpf(), !src2dst_direction);
+	flow->setParsedeBPFInfo(dequeued->get_ebpf(), src2dst_direction);
       }
 
       delete dequeued;
