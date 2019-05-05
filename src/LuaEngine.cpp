@@ -7655,10 +7655,8 @@ static int ntop_interface_reload_companion(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return CONST_LUA_ERROR;
   ifid = lua_tonumber(vm, 1);
 
-  if(ifid < 0 || !(iface = ntop->getInterfaceById(ifid)))
-    return CONST_LUA_ERROR;
-
-  iface->reloadCompanion();
+  if((iface = ntop->getInterfaceById(ifid)))
+    iface->reloadCompanion();
 
   return CONST_LUA_OK;
 }

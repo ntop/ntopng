@@ -732,7 +732,7 @@ void ZMQParserInterface::parseSingleFlow(json_object *o,
     if(flow.ebpf.process_info_set || flow.ebpf.container_info_set || flow.ebpf.tcp_info_set) {
       NetworkInterface * companion = getCompanion();
 
-      if(companion)
+      if(companion && !companion->isTrafficMirrored())
 	companion->enqueueeBPFFlow(&flow);
     }
 #endif
