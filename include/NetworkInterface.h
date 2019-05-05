@@ -742,7 +742,7 @@ class NetworkInterface : public Checkpointable {
   void getPodsStats(lua_State* vm);
   void getContainersStats(lua_State* vm, const char *pod_filter);
   inline NetworkInterface * getCompanion() const { return companion_interface; };
-  bool enqueueeBPFFlow(Parsed_Flow * const pf);
+  bool enqueueeBPFFlow(Parsed_Flow * const pf, bool skip_loopback_traffic);
   bool dequeueeBPFFlow(eBPFFlow ** pf);
 
 #ifdef HAVE_EBPF

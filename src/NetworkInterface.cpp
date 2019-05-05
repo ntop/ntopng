@@ -7728,7 +7728,11 @@ void NetworkInterface::getContainersStats(lua_State* vm, const char *pod_filter)
 
 /* *************************************** */
 
-bool NetworkInterface::enqueueeBPFFlow(Parsed_Flow * const pf) {
+bool NetworkInterface::enqueueeBPFFlow(Parsed_Flow * const pf, bool skip_loopback_traffic) {
+  if(skip_loopback_traffic
+     && (pf->src_ip.isLoopbackAddress() || pf->dst_ip.isLoopbackAddress()))
+    return false;
+
   if(ebpfFlows[next_ebpf_insert_idx])
     return false;
 
