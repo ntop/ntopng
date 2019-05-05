@@ -3775,7 +3775,8 @@ void Flow::setParsedeBPFInfo(const Parsed_eBPF * const ebpf, bool src2dst_direct
       ;
   }
 
-  if(ti && !*tcp_info && (*tcp_info = (TcpInfo*)calloc(1, sizeof(TcpInfo)))) {
+  /* Allow tcp info to be set multiple times so that updates can be kept into account */
+  if(ti && (*tcp_info || (*tcp_info = (TcpInfo*)calloc(1, sizeof(TcpInfo))))) {
     TcpInfo *cur = *tcp_info;
     memcpy(cur, ti, sizeof(*ti));
   }
