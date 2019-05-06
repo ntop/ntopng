@@ -538,6 +538,9 @@ bool ZMQParserInterface::parseNProbeMiniField(Parsed_Flow * const flow, const ch
   } else if(!strncmp(key, "L4_REMOTE_PORT", 14)) {
     flow->core.dst_port = htons(atoi(value));
     ret = true;
+  } else if(!strncmp(key, "IF_NAME", 7) && strlen(key) == 7) {
+    flow->ebpf.ifname = (char*)json_object_get_string(jvalue);
+    ret = true;
   } else if(strlen(key) >= 14 && !strncmp(&key[strlen(key) - 14], "FATHER_PROCESS", 14)) {
     if(json_object_object_get_ex(jvalue, "PID", &obj))   flow->ebpf.process_info.father_pid = (u_int32_t)json_object_get_int64(obj);
     if(json_object_object_get_ex(jvalue, "UID", &obj))      flow->ebpf.process_info.father_uid = (u_int32_t)json_object_get_int64(obj);

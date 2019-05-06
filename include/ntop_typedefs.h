@@ -253,6 +253,7 @@ typedef struct zmq_flow_ebpf {
   ContainerInfo container_info;
   TcpInfo tcp_info;
   eBPFEventType event_type;
+  char *ifname;
   bool process_info_set, container_info_set, tcp_info_set;
 } Parsed_eBPF;
 
