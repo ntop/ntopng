@@ -728,8 +728,8 @@ class NetworkInterface : public Checkpointable {
   NIndexFlowDB* getNindex();
 #endif
   inline TimeseriesExporter* getTSExporter() { if(!tsExporter) tsExporter = new TimeseriesExporter(this); return(tsExporter); }
-  inline uint32_t getMaxSpeed()              { return(ifSpeed);     }
-  inline bool isLoopback()                   { return(is_loopback); }
+  inline uint32_t getMaxSpeed() const        { return(ifSpeed);     }
+  inline bool isLoopback() const             { return(is_loopback); }
 
   virtual void sendTermination()             { ; }
   virtual bool read_from_pcap_dump()         { return(false); };
