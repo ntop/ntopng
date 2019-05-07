@@ -2387,6 +2387,10 @@ local function check_entity_alerts(ifid, entity_type, entity_value, working_stat
 	 addAlertInfo(past_alert_info, atype, akey, alert_info)
       end
    end
+   
+   if(engaged_cache == nil) then
+      return
+   end
 
    -- Engage logic
    for atype, akeys in pairs(current_alerts) do
@@ -2643,6 +2647,8 @@ function newAlertsWorkingStatus(ifstats, granularity)
 end
 
 function finalizeAlertsWorkingStatus(working_status)
+   if((working_status == nil) or (working_status.engaged_cache == nil)) then return end
+   
    -- Process the remaining alerts to release, e.g. related to expired hosts
    for entity_type, entity_values in pairs(working_status.engaged_cache) do
       for entity_value, alert_types in pairs(entity_values) do
