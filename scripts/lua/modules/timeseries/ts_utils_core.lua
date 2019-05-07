@@ -777,6 +777,7 @@ end
 function ts_utils.getPossiblyChangedSchemas()
   return {
     "host:contacts", -- split in "as_client" and "as_server"
+    "host:ndpi_categories", --split in "bytes_sent" and "bytes_rcvd"
   }
 end
 
