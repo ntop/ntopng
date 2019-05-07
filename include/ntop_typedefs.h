@@ -178,6 +178,17 @@ typedef struct ether80211q {
   u_int16_t protoType;
 } Ether80211q;
 
+typedef enum {
+  ebpf_event_type_unknown = 0,
+  ebpf_event_type_tcp_accept,
+  ebpf_event_type_tcp_connect,
+  ebpf_event_type_tcp_connect_failed,
+  ebpf_event_type_tcp_close,
+  epbf_event_type_tcp_retransmit,
+  ebpf_event_type_udp_send,
+  ebpf_event_type_udp_recv,
+} eBPFEventType;
+
 typedef struct {
   u_int32_t pid, father_pid;
   char *process_name, *father_process_name;
@@ -186,16 +197,25 @@ typedef struct {
   u_int32_t actual_memory, peak_memory;
 } ProcessInfo;
 
+typedef enum {
+  container_info_data_type_unknown,
+  container_info_data_type_k8s,
+  container_info_data_type_docker
+} ContainerInfoDataType;
+
 typedef struct {
   char *id;
-  struct {
-    char *name;
-    char *pod;
-    char *ns;
-  } k8s;
-  struct {
-    char *name;
-  } docker;
+  char *name;
+  union {
+    struct {
+      char *pod;
+      char *ns;
+    } k8s;
+    struct {
+      /* Reseved for future use */
+    } docker;
+  } data;
+  ContainerInfoDataType data_type;
 } ContainerInfo;
 
 typedef struct {
@@ -232,6 +252,8 @@ typedef struct zmq_flow_ebpf {
   ProcessInfo process_info;
   ContainerInfo container_info;
   TcpInfo tcp_info;
+  eBPFEventType event_type;
+  char *ifname;
   bool process_info_set, container_info_set, tcp_info_set;
 } Parsed_eBPF;
 
@@ -253,6 +275,13 @@ typedef struct zmq_flow {
   custom_app_t custom_app;
   /* Process Extensions */
 } Parsed_Flow;
+
+/* A lightweigth version of the parsed flow used to dispatch eBPF info to interfaces */
+typedef struct ebpf_flow {
+  IpAddress src_ip, dst_ip;
+  Parsed_FlowCore core;
+  Parsed_eBPF ebpf;
+} eBPF_Flow;
 
 /* IMPORTANT: whenever the Parsed_FlowSerial is changed, nProbe must be updated too */
 

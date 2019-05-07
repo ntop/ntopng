@@ -229,18 +229,20 @@ if not _ifstats.isView then
    print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pool_stats.lua">') print(i18n("host_pools.host_pools")) print('</a></li>')
 end
 
-  if(ntop.hasGeoIP()) then
-     print('<li><a href="'..ntop.getHttpPrefix()..'/lua/as_stats.lua">') print(i18n("prefs.toggle_asn_rrds_title")) print('</a></li>')
-     print('<li><a href="'..ntop.getHttpPrefix()..'/lua/country_stats.lua">') print(i18n("countries")) print('</a></li>')
-  end
-  print('<li><a href="'..ntop.getHttpPrefix()..'/lua/os_stats.lua">') print(i18n("operating_systems")) print('</a></li>')
 
-  if(interface.hasVLANs()) then
-     print('<li><a href="'..ntop.getHttpPrefix()..'/lua/vlan_stats.lua">') print(i18n("vlan_stats.vlans")) print('</a></li>')
-  end
 
-  if(interface.hasEBPF()) then
-     -- TODO: decide whether a page with the list of processes should be done or not
+if(ntop.hasGeoIP()) then
+   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/as_stats.lua">') print(i18n("prefs.toggle_asn_rrds_title")) print('</a></li>')
+   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/country_stats.lua">') print(i18n("countries")) print('</a></li>')
+end
+print('<li><a href="'..ntop.getHttpPrefix()..'/lua/os_stats.lua">') print(i18n("operating_systems")) print('</a></li>')
+
+if(interface.hasVLANs()) then
+   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/vlan_stats.lua">') print(i18n("vlan_stats.vlans")) print('</a></li>')
+end
+
+if(interface.hasEBPF()) then
+   -- TODO: decide whether a page with the list of processes should be done or not
 end
 
 if _ifstats.has_seen_pods then
@@ -255,6 +257,7 @@ print('<li class="dropdown-header">') print(i18n("local_traffic")) print('</li>'
 
 print('<li><a href="'..ntop.getHttpPrefix()..'/lua/http_servers_stats.lua">') print(i18n("http_servers_stats.http_servers")) print('</a></li>')
 print('<li><a href="'..ntop.getHttpPrefix()..'/lua/top_hosts.lua"><i class="fa fa-trophy"></i> ') print(i18n("processes_stats.top_hosts")) print('</a></li>')
+
 print('<li class="divider"></li>')
 
 if(not(isLoopback(ifname))) then
@@ -265,6 +268,10 @@ print [[/lua/hosts_geomap.lua"><i class="fa fa-map-marker"></i> ]] print(i18n("g
 
    print[[<li><a href="]] print(ntop.getHttpPrefix())
    print [[/lua/hosts_treemap.lua"><i class="fa fa-sitemap"></i> ]] print(i18n("tree_map.hosts_treemap")) print[[</a></li>]]
+end
+
+if(ntop.getPrefs().is_arp_matrix_generation_enabled) then
+   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/arp_matrix_graph.lua"><i class="fa fa-th-large"></i> ') print(i18n("arp_top_talkers")) print('</a></li>')
 end
 
 print [[

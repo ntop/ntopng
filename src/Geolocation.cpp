@@ -302,8 +302,14 @@ void Geolocation::getInfo(IpAddress *addr, char **continent_code, char **country
     }
 
     free(sa);
-  } else
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Invalid address lookup");
+  } else {
+    char buf[64];
+
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Invalid address lookup [addr addr: 0x%X][addr: %s][version: %u]",
+				 addr ? addr : 0,
+				 addr ? addr->print(buf, sizeof(buf)) : "",
+				 addr ? addr->getVersion() : 0);
+  }
 #endif
 
   return;

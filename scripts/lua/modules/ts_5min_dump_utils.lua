@@ -4,6 +4,7 @@ require "alert_utils"
 local host_pools_utils = require "host_pools_utils"
 local callback_utils = require "callback_utils"
 local ts_utils = require "ts_utils_core"
+local format_utils = require "format_utils"
 require "ts_5min"
 
 local ts_custom
@@ -113,7 +114,8 @@ function ts_dump.sflow_device_update_rrds(when, ifstats, verbose)
     for port_idx,port_value in pairs(ports) do
       if ifstats.has_seen_ebpf_events then
         -- This is actualy an event exporter
-        local dev_ifname = port_value["ifName"] or port_idx
+        local dev_ifname = format_utils.formatExporterInterface(port_idx, port_value)
+
         ts_utils.append("evexporter_iface:traffic", {ifid=ifstats.id, exporter=flow_device_ip, ifname=dev_ifname,
                 bytes_sent=port_value.ifOutOctets, bytes_rcvd=port_value.ifInOctets}, when, verbose)
       else

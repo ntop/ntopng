@@ -24,16 +24,19 @@ local title = ternary(isEmptyString(page_params.pod), i18n("containers_stats.con
 
 print [[
   <hr>
-  <div id="table-pods"></div>
+  <div id="table-containers"></div>
   <script>
   var url_update = "]] print(getPageUrl(ntop.getHttpPrefix() .. "/lua/get_containers_data.lua", page_params)) print[[";]]
 
 print [[
-    $("#table-pods").datatable({
+    $("#table-containers").datatable({
       title: "]] print(title) print[[",
       url: url_update,
       columns: [
         {
+          field: "column_key",
+          hidden: true,
+        }, {
           title: "",
           field: "column_info",
           sortable: true,
@@ -54,6 +57,8 @@ dofile(dirs.installdir .. "/scripts/lua/inc/container_columns.lua")
 print[[
       ]
     });
+
+    window.setInterval(function() { datatableRefreshRows($("#table-containers"), "column_key"); }, 10000);
   </script>
 ]]
 

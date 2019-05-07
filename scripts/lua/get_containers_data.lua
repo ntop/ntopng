@@ -19,6 +19,7 @@ local currentPage  = _GET["currentPage"]
 local perPage      = _GET["perPage"]
 local sortColumn   = _GET["sortColumn"]
 local sortOrder    = _GET["sortOrder"]
+local cont_filter_s = _GET["custom_hosts"]
 
 local sortPrefs = "containers_data"
 
@@ -60,12 +61,19 @@ local to_skip = (currentPage-1) * perPage
 
 -- ################################################
 
+local containers_filter = nil
 local totalRows = 0
 local containers = interface.getContainersStats(pod_filter)
 local sort_to_key = {}
 
+if not isEmptyString(cont_filter_s) then
+  containers_filter = swapKeysValues(split(cont_filter_s, ","))
+end
+
 for container_name, container in pairs(containers) do
-  sort_to_key[container_name] = container_name
+  if((containers_filter == nil) or (containers_filter[container_name] ~= nil)) then
+     sort_to_key[container_name] = container_name
+  end
 
   totalRows = totalRows + 1
 end
@@ -90,6 +98,7 @@ for key in pairsByValues(sort_to_key, sOrder) do
  
     res[#res + 1] = {
       column_info = column_info,
+      column_key = key,
       column_container = format_utils.formatContainer(container.info),
       column_num_flows_as_client = container["num_flows.as_client"],
       column_num_flows_as_server = container["num_flows.as_server"],

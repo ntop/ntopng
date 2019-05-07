@@ -391,7 +391,7 @@ Get Past Alerts Data
 
 .. code:: bash
 	  
-   curl -s --cookie "user=admin; password=admin" "http://192.168.1.1:3000/lua/rest/get/alert/data.lua?status=historical"
+   curl -s --cookie "user=admin; password=admin" "http://192.168.1.1:3000/lua/rest/get/alert/data.lua?ifid=3&status=historical"
 
 Response:
 

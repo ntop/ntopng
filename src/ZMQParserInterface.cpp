@@ -430,7 +430,7 @@ bool ZMQParserInterface::parsePENZeroField(Parsed_Flow * const flow, u_int32_t f
 
 /* **************************************************** */
 
-bool ZMQParserInterface::parsePENNtopField(Parsed_Flow * const flow, u_int32_t field, const char * const value) const {
+bool ZMQParserInterface::parsePENNtopField(Parsed_Flow * const flow, u_int32_t field, const char * const value, json_object * const jvalue) const {
   switch(field) {
   case L7_PROTO:
     if(!strchr(value, '.')) {
@@ -485,19 +485,19 @@ bool ZMQParserInterface::parsePENNtopField(Parsed_Flow * const flow, u_int32_t f
     flow->core.tcp.applLatencyMsec = atof(value);
     break;
   case DNS_QUERY:
-    flow->dns_query = strdup(value);
+    flow->dns_query = (char*)json_object_get_string(jvalue);
     break;
   case HTTP_URL:
-    flow->http_url = strdup(value);
+    flow->http_url = (char*)json_object_get_string(jvalue);
     break;
   case HTTP_SITE:
-    flow->http_site = strdup(value);
+    flow->http_site = (char*)json_object_get_string(jvalue);
     break;
   case SSL_SERVER_NAME:
-    flow->ssl_server_name = strdup(value);
+    flow->ssl_server_name = (char*)json_object_get_string(jvalue);
     break;
   case BITTORRENT_HASH:
-    flow->bittorrent_hash = strdup(value);
+    flow->bittorrent_hash = (char*)json_object_get_string(jvalue);
     break;
   case NPROBE_IPV4_ADDRESS:
     /* Do not override EXPORTER_IPV4_ADDRESS */
@@ -537,6 +537,9 @@ bool ZMQParserInterface::parseNProbeMiniField(Parsed_Flow * const flow, const ch
     ret = true;
   } else if(!strncmp(key, "L4_REMOTE_PORT", 14)) {
     flow->core.dst_port = htons(atoi(value));
+    ret = true;
+  } else if(!strncmp(key, "IF_NAME", 7) && strlen(key) == 7) {
+    flow->ebpf.ifname = (char*)json_object_get_string(jvalue);
     ret = true;
   } else if(strlen(key) >= 14 && !strncmp(&key[strlen(key) - 14], "FATHER_PROCESS", 14)) {
     if(json_object_object_get_ex(jvalue, "PID", &obj))   flow->ebpf.process_info.father_pid = (u_int32_t)json_object_get_int64(obj);
@@ -585,6 +588,7 @@ bool ZMQParserInterface::parseNProbeMiniField(Parsed_Flow * const flow, const ch
       flow->core.out_bytes = flow->ebpf.tcp_info.rcvd_bytes = (u_int32_t)json_object_get_int64(obj);
 
     if(!flow->ebpf.tcp_info_set) flow->ebpf.tcp_info_set = true;
+    flow->core.absolute_packet_octet_counters = true;
     ret = true;
 
     // ntop->getTrace()->traceEvent(TRACE_NORMAL, "TCP INFO [conn state: %s][rcvd_bytes: %u][retx_pkts: %u][lost_pkts: %u]"
@@ -599,6 +603,11 @@ bool ZMQParserInterface::parseNProbeMiniField(Parsed_Flow * const flow, const ch
     //				 flow->ebpf.tcp_info.unacked_segs,
     //				 flow->ebpf.tcp_info.rtt,
     //				 flow->ebpf.tcp_info.rtt_var);
+  } else if((!strncmp(key, "TCP_EVENT_TYPE", 14) && strlen(key) == 14)
+	    || (!strncmp(key, "UDP_EVENT_TYPE", 14) && strlen(key) == 14)) {
+    flow->ebpf.event_type = Utils::eBPFEventStr2Event(value);
+
+    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Event Type [type: %s]", Utils::eBPFEvent2EventStr(flow->ebpf.event_type));
   }
 
   return ret;
@@ -639,7 +648,7 @@ void ZMQParserInterface::parseSingleFlow(json_object *o,
 	  break;
 	/* Dont'break when res == false for backward compatibility: attempt to parse Zero-PEN as Ntop-PEN */
       case NTOP_PEN:
-	res = parsePENNtopField(&flow, key_id, value);
+	res = parsePENNtopField(&flow, key_id, value, v);
 	break;
       case UNKNOWN_PEN:
       default:
@@ -721,14 +730,27 @@ void ZMQParserInterface::parseSingleFlow(json_object *o,
   if(!invalid_flow) {
     /* Process Flow */
     iface->processFlow(&flow, true);
-  }
 
-  /* Dispose memory */
-  if(flow.dns_query) free(flow.dns_query);
-  if(flow.http_url)  free(flow.http_url);
-  if(flow.http_site) free(flow.http_site);
-  if(flow.ssl_server_name) free(flow.ssl_server_name);
-  if(flow.bittorrent_hash) free(flow.bittorrent_hash);
+#if ENABLE_EBPF_FLOWS_DISPATCH
+    if(flow.ebpf.process_info_set || flow.ebpf.container_info_set || flow.ebpf.tcp_info_set) {
+      NetworkInterface * companion = getCompanion();
+
+      if(companion && companion->isTrafficMirrored())
+	companion->enqueueeBPFFlow(&flow, true /* Skip loopback traffic */);
+
+      if(flow.ebpf.ifname) {
+	NetworkInterface * matching_interface = ntop->getNetworkInterface(NULL, flow.ebpf.ifname);
+
+	if(matching_interface
+	   && matching_interface->isPacketInterface()
+	   && !matching_interface->isTrafficMirrored()
+	   && matching_interface != companion)
+	  matching_interface->enqueueeBPFFlow(&flow, !matching_interface->isLoopback() /* Skip loopback traffic */);
+      }
+
+    }
+#endif
+  }
 
   // json_object_put(o);
   json_object_put(flow.additional_fields);
@@ -787,21 +809,27 @@ u_int8_t ZMQParserInterface::parseFlow(const char * const payload, int payload_s
 bool ZMQParserInterface::parseContainerInfo(json_object *jo, ContainerInfo * const container_info) {
   json_object *obj, *obj2;
 
-  if(json_object_object_get_ex(jo, "ID", &obj)) container_info->id = (char*)json_object_get_string(obj);
-
-  if(json_object_object_get_ex(jo, "KUBE", &obj)) {
-    if(json_object_object_get_ex(obj, "NAME", &obj2)) container_info->k8s.name = (char*)json_object_get_string(obj2);
-    if(json_object_object_get_ex(obj, "POD", &obj2))  container_info->k8s.pod  = (char*)json_object_get_string(obj2);
-    if(json_object_object_get_ex(obj, "NS", &obj2))   container_info->k8s.ns   = (char*)json_object_get_string(obj2);
+  if(json_object_object_get_ex(jo, "K8S", &obj)) {
+    if(json_object_object_get_ex(obj, "POD", &obj2))  container_info->data.k8s.pod  = (char*)json_object_get_string(obj2);
+    if(json_object_object_get_ex(obj, "NS", &obj2))   container_info->data.k8s.ns   = (char*)json_object_get_string(obj2);
+    container_info->data_type = container_info_data_type_k8s;
   } else if(json_object_object_get_ex(jo, "DOCKER", &obj)) {
-    if(json_object_object_get_ex(obj, "NAME", &obj2)) container_info->docker.name = (char*)json_object_get_string(obj2);
+    container_info->data_type = container_info_data_type_k8s;
+  } else
+    container_info->data_type = container_info_data_type_unknown;
+
+  if(obj) {
+    if(json_object_object_get_ex(obj, "ID", &obj2)) container_info->id = (char*)json_object_get_string(obj2);
+    if(json_object_object_get_ex(obj, "NAME", &obj2)) container_info->name = (char*)json_object_get_string(obj2);
   }
 
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Container [id: %s] K8S [name: %s][pod: %s][ns: %s]",
-  //			       container_info->id ? container_info->id : "",
-  //			       container_info->k8s.name ? container_info->k8s.name : "",
-  //			       container_info->k8s.pod ? container_info->k8s.pod : "",
-  //			       container_info->k8s.ns ? container_info->k8s.ns : "");
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Container [id: %s] [%s] [k8s.name: %s][k8s.pod: %s][k8s.ns: %s][docker.name: %s]",
+  // 			       container_info->id ? container_info->id : "",
+  // 			       container_info->data_type == container_info_data_type_k8s ? "K8S" : container_info->data_type == container_info_data_type_docker ? "DOCKER" : "UNKNOWN",
+  // 			       container_info->data_type == container_info_data_type_k8s && container_info->data.k8s.name ? container_info->data.k8s.name : "",
+  // 			       container_info->data_type == container_info_data_type_k8s && container_info->data.k8s.pod ? container_info->data.k8s.pod : "",
+  // 			       container_info->data_type == container_info_data_type_k8s && container_info->data.k8s.ns ? container_info->data.k8s.ns : "",
+  // 			       container_info->data_type == container_info_data_type_docker && container_info->data.docker.name ? container_info->data.docker.name : "");
 
   return true;
 }
@@ -834,19 +862,19 @@ u_int8_t ZMQParserInterface::parseCounter(const char * const payload, int payloa
 
       if((key != NULL) && (value != NULL)) {
 	if(!strcmp(key, "deviceIP")) stats.deviceIP = ntohl(inet_addr(value));
-	else if(!strcmp(key, "ifIndex")) stats.ifIndex = atol(value);
-	else if(!strcmp(key, "ifName")) stats.ifName = (char*)value;
-	else if(!strcmp(key, "ifType")) stats.ifType = atol(value);
-	else if(!strcmp(key, "ifSpeed")) stats.ifSpeed = atol(value);
+	else if(!strcmp(key, "ifIndex")) stats.ifIndex = (u_int32_t)json_object_get_int64(v);
+	else if(!strcmp(key, "ifName")) stats.ifName = (char*)json_object_get_string(v);
+	else if(!strcmp(key, "ifType")) stats.ifType = (u_int32_t)json_object_get_int64(v);
+	else if(!strcmp(key, "ifSpeed")) stats.ifSpeed = (u_int32_t)json_object_get_int64(v);
 	else if(!strcmp(key, "ifDirection")) stats.ifFullDuplex = (!strcmp(value, "Full")) ? true : false;
 	else if(!strcmp(key, "ifAdminStatus")) stats.ifAdminStatus = (!strcmp(value, "Up")) ? true : false;
 	else if(!strcmp(key, "ifOperStatus")) stats.ifOperStatus = (!strcmp(value, "Up")) ? true : false;
-	else if(!strcmp(key, "ifInOctets")) stats.ifInOctets = atoll(value);
-	else if(!strcmp(key, "ifInPackets")) stats.ifInPackets = atoll(value);
-	else if(!strcmp(key, "ifInErrors")) stats.ifInErrors = atoll(value);
-	else if(!strcmp(key, "ifOutOctets")) stats.ifOutOctets = atoll(value);
-	else if(!strcmp(key, "ifOutPackets")) stats.ifOutPackets = atoll(value);
-	else if(!strcmp(key, "ifOutErrors")) stats.ifOutErrors = atoll(value);
+	else if(!strcmp(key, "ifInOctets")) stats.ifInOctets = json_object_get_int64(v);
+	else if(!strcmp(key, "ifInPackets")) stats.ifInPackets = json_object_get_int64(v);
+	else if(!strcmp(key, "ifInErrors")) stats.ifInErrors = json_object_get_int64(v);
+	else if(!strcmp(key, "ifOutOctets")) stats.ifOutOctets = json_object_get_int64(v);
+	else if(!strcmp(key, "ifOutPackets")) stats.ifOutPackets = json_object_get_int64(v);
+	else if(!strcmp(key, "ifOutErrors")) stats.ifOutErrors = json_object_get_int64(v);
 	else if(!strcmp(key, "ifPromiscuousMode")) stats.ifPromiscuousMode = (!strcmp(value, "1")) ? true : false;
 	else if(strlen(key) >= 9 && !strncmp(&key[strlen(key) - 9], "CONTAINER", 9)) {
 	  if(parseContainerInfo(v, &stats.container_info))

@@ -985,7 +985,7 @@ local lang = {
     ["untunneled_protocol"] = "Untunneled IP Protokoll Byte",
     ["upstream_session_id"] = "Upstream session Kennzeichner (e.g. L2TP) oder 0 wenn unbekannt",
     ["upstream_tunnel_id"] = "Upstream Tunnelkennzeichner (e.g. GTP TEID, VXLAN VNI) oder 0 wenn unbekannt",
-    ["user_name"] = "Palo Alto User-Id",
+    ["user_name"] = "User Name",
   },
   ["flows_page"] = {
     ["active_flows"] = "aktive %{filter} Flows",

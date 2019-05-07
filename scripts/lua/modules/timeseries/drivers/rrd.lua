@@ -165,9 +165,7 @@ local function getRRAParameters(step, resolution, retention_time)
 end
 
 -- This is necessary to keep the current RRD format
-local function map_metrics_to_rrd_columns(schema)
-  local num = #schema._metrics
-
+local function map_metrics_to_rrd_columns(num)
   if num == 1 then
     return {"num"}
   elseif num == 2 then
@@ -176,7 +174,7 @@ local function map_metrics_to_rrd_columns(schema)
     return {"ingress", "egress", "inner"}
   end
 
-  traceError(TRACE_ERROR, TRACE_CONSOLE, "unsupported number of metrics (" .. num .. ") in schema " .. schema.name)
+  -- error
   return nil
 end
 
@@ -203,8 +201,9 @@ local function create_rrd(schema, path)
   local rrd_type = type_to_rrdtype[schema.options.metrics_type]
   local params = {path, schema.options.step}
 
-  local metrics_map = map_metrics_to_rrd_columns(schema)
+  local metrics_map = map_metrics_to_rrd_columns(#schema._metrics)
   if not metrics_map then
+    traceError(TRACE_ERROR, TRACE_CONSOLE, "unsupported number of metrics (" .. (#schema._metrics) .. ") in schema " .. schema.name)
     return false
   end
 
@@ -227,17 +226,60 @@ local function create_rrd(schema, path)
       table.concat(params, ", "), schema.name))
   end
 
-  -- NOTE: this is either a bug with unpack or with Lua.cpp make_argv
-  params[#params + 1] = ""
-
-  ntop.rrd_create(table.unpack(params))
+  local err = ntop.rrd_create(table.unpack(params))
+  if(err ~= nil) then
+    traceError(TRACE_ERROR, TRACE_CONSOLE, err)
+    return false
+  end
 
   return true
 end
 
 -- ##############################################
 
-local function update_rrd(schema, rrdfile, timestamp, data)
+local function add_missing_ds(schema, rrdfile, cur_ds)
+  local cur_metrics = map_metrics_to_rrd_columns(cur_ds)
+  local new_metrics = map_metrics_to_rrd_columns(#schema._metrics)
+
+  if((cur_metrics == nil) or (new_metrics == nil)) then
+    return false
+  end
+
+  if cur_ds >= #new_metrics then
+    return false
+  end
+
+  traceError(TRACE_NORMAL, TRACE_CONSOLE, "RRD format changed, trying to fix " .. rrdfile)
+
+  local params = {rrdfile, }
+  local heartbeat = schema.options.rrd_heartbeat or (schema.options.step * 2)
+  local rrd_type = type_to_rrdtype[schema.options.metrics_type]
+
+  for idx, metric in ipairs(schema._metrics) do
+    local old_name = cur_metrics[idx]
+    local new_name = new_metrics[idx]
+
+    if old_name == nil then
+      params[#params + 1] = "DS:" .. new_name .. ":" .. rrd_type .. ':' .. heartbeat .. ':U:U'
+    elseif old_name ~= new_name then
+      params[#params + 1] = "--data-source-rename"
+      params[#params + 1] = old_name ..":" .. new_name
+    end
+  end
+
+  local err = ntop.rrd_tune(table.unpack(params))
+  if(err ~= nil) then
+    traceError(TRACE_ERROR, TRACE_CONSOLE, err)
+    return false
+  end
+
+  traceError(TRACE_NORMAL, TRACE_CONSOLE, "RRD successfully fixed: " .. rrdfile)
+  return true
+end
+
+-- ##############################################
+
+local function update_rrd(schema, rrdfile, timestamp, data, dont_recover)
   local params = {tolongint(timestamp), }
 
   for _, metric in ipairs(schema._metrics) do
@@ -249,7 +291,25 @@ local function update_rrd(schema, rrdfile, timestamp, data)
       rrdfile, table.concat(params, ", "), schema.name))
   end
 
-  ntop.rrd_update(rrdfile, table.unpack(params))
+  local err = ntop.rrd_update(rrdfile, table.unpack(params))
+  if(err ~= nil) then
+    if(dont_recover ~= true) then
+      -- Try to recover
+      local last_update, num_ds = ntop.rrd_lastupdate(rrdfile)
+
+      if num_ds < #schema._metrics then
+        if add_missing_ds(schema, rrdfile, num_ds) then
+          -- retry
+          return update_rrd(schema, rrdfile, timestamp, data, true --[[ do not recovery again ]])
+        end
+      end
+    end
+
+    traceError(TRACE_ERROR, TRACE_CONSOLE, err)
+    return false
+  end
+
+  return true
 end
 
 -- ##############################################
@@ -260,12 +320,12 @@ function driver:append(schema, timestamp, tags, metrics)
 
   if not ntop.exists(rrdfile) then
     ntop.mkdir(base)
-    create_rrd(schema, rrdfile)
+    if not create_rrd(schema, rrdfile) then
+      return false
+    end
   end
 
-  update_rrd(schema, rrdfile, timestamp, metrics)
-
-  return true
+  return update_rrd(schema, rrdfile, timestamp, metrics)
 end
 
 -- ##############################################

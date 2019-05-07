@@ -39,10 +39,14 @@ InterfaceStatsHash::~InterfaceStatsHash() {
       if(buckets[i]->ifName) free(buckets[i]->ifName);
 
       if(buckets[i]->container_info_set) {
-	if(buckets[i]->container_info.id)       free(buckets[i]->container_info.id);
-	if(buckets[i]->container_info.k8s.name) free(buckets[i]->container_info.k8s.name);
-	if(buckets[i]->container_info.k8s.pod)  free(buckets[i]->container_info.k8s.pod);
-	if(buckets[i]->container_info.k8s.ns)   free(buckets[i]->container_info.k8s.ns);
+	if(buckets[i]->container_info.id)   free(buckets[i]->container_info.id);
+	if(buckets[i]->container_info.name) free(buckets[i]->container_info.name);
+
+	if(buckets[i]->container_info.data_type == container_info_data_type_k8s) {
+	  if(buckets[i]->container_info.data.k8s.pod)     free(buckets[i]->container_info.data.k8s.pod);
+	  if(buckets[i]->container_info.data.k8s.ns)      free(buckets[i]->container_info.data.k8s.ns);
+	} else if(buckets[i]->container_info.data_type == container_info_data_type_docker)
+	  ;
       }
 
       free(buckets[i]);
@@ -105,10 +109,14 @@ bool InterfaceStatsHash::set(const sFlowInterfaceStats * const stats) {
 	if(buckets[hash]->ifName) buckets[hash]->ifName = strdup(buckets[hash]->ifName);
 
 	if(buckets[hash]->container_info_set) {
-	  if(buckets[hash]->container_info.id)       buckets[hash]->container_info.id = strdup(buckets[hash]->container_info.id);
-	  if(buckets[hash]->container_info.k8s.name) buckets[hash]->container_info.k8s.name = strdup(buckets[hash]->container_info.k8s.name);
-	  if(buckets[hash]->container_info.k8s.pod)  buckets[hash]->container_info.k8s.pod = strdup(buckets[hash]->container_info.k8s.pod);
-	  if(buckets[hash]->container_info.k8s.ns)   buckets[hash]->container_info.k8s.ns = strdup(buckets[hash]->container_info.k8s.ns);
+	  if(buckets[hash]->container_info.id)   buckets[hash]->container_info.id = strdup(buckets[hash]->container_info.id);
+	  if(buckets[hash]->container_info.name) buckets[hash]->container_info.name = strdup(buckets[hash]->container_info.name);
+
+	  if(buckets[hash]->container_info.data_type == container_info_data_type_k8s) {
+	    if(buckets[hash]->container_info.data.k8s.pod)  buckets[hash]->container_info.data.k8s.pod = strdup(buckets[hash]->container_info.data.k8s.pod);
+	    if(buckets[hash]->container_info.data.k8s.ns)   buckets[hash]->container_info.data.k8s.ns = strdup(buckets[hash]->container_info.data.k8s.ns);
+	  } else if(buckets[hash]->container_info.data_type == container_info_data_type_docker)
+	    ;
 	}
 
       } else

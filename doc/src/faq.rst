@@ -33,6 +33,20 @@ After restarting ntopng, you can login with the default ntopng credentials (admi
 
 .. _`authentication method`: advanced_features/authentication.html
 
+Too many failed authentication attempts
+=======================================
+
+If a device tries to login with wrong credentials too many times, it's IP
+address is blacklisted for 5 minutes. In order to manually clean the blacklist,
+the following command can be used:
+
+.. code:: bash
+
+  for k in `redis-cli keys ntopng.cache.failed_logins.*`; do redis-cli del $k; done
+
+After executing the above command and restarting ntopng, the device will be able to
+login again.
+
 How can I monitor the sites visited by an host?
 ===============================================
 

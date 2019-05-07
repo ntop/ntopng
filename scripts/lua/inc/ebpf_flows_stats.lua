@@ -241,7 +241,7 @@ print[[
       }, {
 ]]
 
-if ifstats.has_seen_pods then
+if ifstats.has_seen_pods and interface.isPacketInterface() then
   print[[
          title: "]] print(i18n("containers_stats.client_pod")) print[[",
          field: "column_client_pod",
@@ -252,7 +252,7 @@ if ifstats.has_seen_pods then
          sortable: false,
       }, {
 ]]
-elseif ifstats.has_seen_containers then
+elseif ifstats.has_seen_containers and interface.isPacketInterface() then
   print[[
          title: "]] print(i18n("containers_stats.client_container")) print[[",
          field: "column_client_container",

@@ -771,4 +771,15 @@ end
 
 -- ##############################################
 
+--! @brief Get a list of existing schemas which have possibly changed format
+--! @return a table with a list of possibly changed schemas
+--! @note This function should be updated whenever an existng schema is changed
+function ts_utils.getPossiblyChangedSchemas()
+  return {
+    "host:contacts", -- split in "as_client" and "as_server"
+  }
+end
+
+-- ##############################################
+
 return ts_utils

@@ -238,6 +238,14 @@ function format_utils.formatContainer(cont)
    return cont["id"]
 end
 
+function format_utils.formatExporterInterface(port_idx, port_info)
+   if port_info["container"] then
+      return format_utils.formatContainer(port_info["container"])
+   end
+
+   return(port_info["ifName"] or port_idx)
+end
+
 function format_utils.formatContainerFromId(cont_id)
    -- NOTE: this is expensive, use format_utils.formatContainer when possible
    local containers = interface.getContainersStats()

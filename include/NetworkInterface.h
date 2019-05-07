@@ -97,6 +97,9 @@ class NetworkInterface : public Checkpointable {
   u_int16_t next_insert_idx, next_remove_idx;
   eBPFevent **ebpfEvents; 
 #endif
+
+  u_int16_t next_ebpf_insert_idx, next_ebpf_remove_idx;
+  eBPFFlow **ebpfFlows;
   
   /* Live Capture */
   Mutex active_captures_lock;
@@ -146,6 +149,9 @@ class NetworkInterface : public Checkpointable {
   /* Sub-interface views */
   u_int8_t numSubInterfaces;
   NetworkInterface *subInterfaces[MAX_NUM_VIEW_INTERFACES];
+
+  /* Companion Interface */
+  NetworkInterface *companion_interface;
 
   u_int nextFlowAggregation;
   TcpFlowStats tcpFlowStats;
@@ -636,6 +642,7 @@ class NetworkInterface : public Checkpointable {
   void refreshHostsAlertPrefs(bool full_refresh);
   int updateHostTrafficPolicy(AddressTree* allowed_networks, char *host_ip, u_int16_t host_vlan);
 
+  void reloadCompanion();
   void reloadHideFromTop(bool refreshHosts=true);
   void updateLbdIdentifier();
   inline bool serializeLbdHostsAsMacs()             { return(lbd_serialize_by_mac); }
@@ -721,8 +728,8 @@ class NetworkInterface : public Checkpointable {
   NIndexFlowDB* getNindex();
 #endif
   inline TimeseriesExporter* getTSExporter() { if(!tsExporter) tsExporter = new TimeseriesExporter(this); return(tsExporter); }
-  inline uint32_t getMaxSpeed()              { return(ifSpeed);     }
-  inline bool isLoopback()                   { return(is_loopback); }
+  inline uint32_t getMaxSpeed() const        { return(ifSpeed);     }
+  inline bool isLoopback() const             { return(is_loopback); }
 
   virtual void sendTermination()             { ; }
   virtual bool read_from_pcap_dump()         { return(false); };
@@ -734,6 +741,9 @@ class NetworkInterface : public Checkpointable {
   bool isInDhcpRange(IpAddress *ip);
   void getPodsStats(lua_State* vm);
   void getContainersStats(lua_State* vm, const char *pod_filter);
+  inline NetworkInterface * getCompanion() const { return companion_interface; };
+  bool enqueueeBPFFlow(Parsed_Flow * const pf, bool skip_loopback_traffic);
+  bool dequeueeBPFFlow(eBPFFlow ** pf);
 
 #ifdef HAVE_EBPF
   inline bool iseBPFEventAvailable() { return((ebpfEvents && (ebpfEvents[next_remove_idx] != NULL)) ? true : false); }

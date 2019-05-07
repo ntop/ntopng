@@ -227,20 +227,26 @@ Flow::~Flow() {
   }
 
   if(client_cont) {
-    if(client_cont->id)       free(client_cont->id);
-    if(client_cont->k8s.name) free(client_cont->k8s.name);
-    if(client_cont->k8s.pod)  free(client_cont->k8s.pod);
-    if(client_cont->k8s.ns)   free(client_cont->k8s.ns);
-    if(client_cont->docker.name) free(client_cont->docker.name);
+    if(client_cont->id) free(client_cont->id);
+    if(client_cont->name) free(client_cont->name);
+
+    if(client_cont->data_type == container_info_data_type_k8s) {
+      if(client_cont->data.k8s.pod)  free(client_cont->data.k8s.pod);
+      if(client_cont->data.k8s.ns)   free(client_cont->data.k8s.ns);
+    } else if(client_cont->data_type == container_info_data_type_docker)
+      ;
     free(client_cont);
   }
 
   if(server_cont) {
-    if(server_cont->id)       free(server_cont->id);
-    if(server_cont->k8s.name) free(server_cont->k8s.name);
-    if(server_cont->k8s.pod)  free(server_cont->k8s.pod);
-    if(server_cont->k8s.ns)   free(server_cont->k8s.ns);
-    if(server_cont->docker.name) free(server_cont->docker.name);
+    if(server_cont->id) free(server_cont->id);
+    if(server_cont->name) free(server_cont->name);
+
+    if(server_cont->data_type == container_info_data_type_k8s) {
+      if(server_cont->data.k8s.pod)  free(server_cont->data.k8s.pod);
+      if(server_cont->data.k8s.ns)   free(server_cont->data.k8s.ns);
+    } else if(server_cont->data_type == container_info_data_type_docker)
+      ;
     free(server_cont);
   }
 
@@ -1058,7 +1064,7 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
     if(cli_network_id >= 0 && (cli_network_id == srv_network_id))
       cli_and_srv_in_same_subnet = true;
 
-    if(diff_sent_packets || diff_rcvd_packets) {
+    if(diff_sent_bytes || diff_rcvd_bytes) {
       /* Update L2 Device stats */
 
       if(srv_host->get_mac()) {
@@ -1388,7 +1394,7 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
 void Flow::update_pools_stats(const struct timeval *tv,
 				u_int64_t diff_sent_packets, u_int64_t diff_sent_bytes,
 				u_int64_t diff_rcvd_packets, u_int64_t diff_rcvd_bytes) {
-  if(!diff_sent_packets && !diff_rcvd_packets)
+  if(!diff_sent_bytes && !diff_rcvd_bytes)
     return; /* Nothing to update */
 
   HostPools *hp;
@@ -3705,20 +3711,38 @@ void Flow::setProcessInfo(eBPFevent *event, bool client_process) {
 
 /* ***************************************************** */
 
-void Flow::setParsedeBPFInfo(const Parsed_eBPF * const ebpf, bool client_process) {
+void Flow::setParsedeBPFInfo(const Parsed_eBPF * const ebpf, bool src2dst_direction) {
   if(!ebpf)
     return;
 
-  const ProcessInfo *pi = ebpf->process_info_set ? &ebpf->process_info : NULL;
+  if(!iface->hasSeenEBPFEvents())
+    iface->setSeenEBPFEvents();
+
+  bool client_process;
+
+  /* Try to guess if the process is the client or the server */
+  if(ebpf->event_type == ebpf_event_type_tcp_accept)
+    client_process = false;
+  else if(ebpf->event_type == ebpf_event_type_tcp_connect)
+    client_process = true;
+  else if(get_srv_port() > get_cli_port())
+    client_process = false;
+  else
+    client_process = true;
+
+  if(!src2dst_direction)
+    client_process = !client_process;
+
+  /* Not it's time to attach the info... */
+  const ProcessInfo *pi   = ebpf->process_info_set ? &ebpf->process_info : NULL;
   const ContainerInfo *ci = ebpf->container_info_set ? &ebpf->container_info : NULL;
-  const TcpInfo *ti = ebpf->tcp_info_set ? &ebpf->tcp_info : NULL;
-  iface->setSeenEBPFEvents();
+  const TcpInfo *ti       = ebpf->tcp_info_set ? &ebpf->tcp_info : NULL;
 
-  ProcessInfo   **process_info   = client_process ? &client_proc : &server_proc;
+  ProcessInfo **process_info     = client_process ? &client_proc : &server_proc;
   ContainerInfo **container_info = client_process ? &client_cont : &server_cont;
-  TcpInfo **tcp_info = client_process ? &client_tcp : &server_tcp;
+  TcpInfo **tcp_info             = client_process ? &client_tcp : &server_tcp;
 
-  if(pi && (*process_info || (*process_info = (ProcessInfo*)calloc(1, sizeof(ProcessInfo))))) {
+  if(pi && !*process_info && (*process_info = (ProcessInfo*)calloc(1, sizeof(ProcessInfo)))) {
     ProcessInfo *cur = *process_info;
 
     cur->pid = pi->pid, cur->uid = pi->uid, cur->gid = pi->gid,
@@ -3728,24 +3752,30 @@ void Flow::setParsedeBPFInfo(const Parsed_eBPF * const ebpf, bool client_process
     if(pi->father_process_name) cur->father_process_name = strdup(pi->father_process_name);
   }
 
-  if(ci && (*container_info || (*container_info = (ContainerInfo*)calloc(1, sizeof(ContainerInfo))))) {
+  if(ci && !*container_info && (*container_info = (ContainerInfo*)calloc(1, sizeof(ContainerInfo)))) {
     ContainerInfo *cur = *container_info;
+    memcpy(cur, ci, sizeof(*ci));
 
     if(ci->id) {
       cur->id = strdup(ci->id);
       if(!iface->hasSeenContainers())
 	iface->setSeenContainers();
     }
-    if(ci->k8s.pod) {
-      cur->k8s.pod  = strdup(ci->k8s.pod);
-      if(!iface->hasSeenPods())
-	iface->setSeenPods();
-    }
-    if(ci->k8s.name) cur->k8s.name = strdup(ci->k8s.name);
-    if(ci->k8s.ns)   cur->k8s.ns   = strdup(ci->k8s.ns);
-    if(ci->docker.name) cur->docker.name = strdup(ci->docker.name);
+
+    if(ci->name) cur->name = strdup(ci->name);
+
+    if(ci->data_type == container_info_data_type_k8s) {
+      if(ci->data.k8s.pod) {
+	cur->data.k8s.pod  = strdup(ci->data.k8s.pod);
+	if(!iface->hasSeenPods())
+	  iface->setSeenPods();
+      }
+      if(ci->data.k8s.ns)   cur->data.k8s.ns   = strdup(ci->data.k8s.ns);
+    } else if(ci->data_type == container_info_data_type_docker)
+      ;
   }
 
+  /* Allow tcp info to be set multiple times so that updates can be kept into account */
   if(ti && (*tcp_info || (*tcp_info = (TcpInfo*)calloc(1, sizeof(TcpInfo))))) {
     TcpInfo *cur = *tcp_info;
     memcpy(cur, ti, sizeof(*ti));

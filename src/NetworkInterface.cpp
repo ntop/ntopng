@@ -269,6 +269,7 @@ NetworkInterface::NetworkInterface(const char *name,
   is_loopback = (strncmp(ifname, "lo", 2) == 0) ? true : false;
 
   reloadHideFromTop(false);
+  reloadCompanion();
   updateTrafficMirrored();
   updateLbdIdentifier();
 }
@@ -305,6 +306,7 @@ void NetworkInterface::init() {
 
   numSubInterfaces = 0;
   memset(subInterfaces, 0, sizeof(subInterfaces));
+  companion_interface = NULL;
   reload_custom_categories = reload_hosts_blacklist = false;
   reload_hosts_bcast_domain = false;
   hosts_bcast_domain_last_update = 0;
@@ -357,6 +359,17 @@ void NetworkInterface::init() {
     next_insert_idx = next_remove_idx = 0;
   }
 #endif
+
+  if(bridge_interface
+     || is_dynamic_interface
+     || isView())
+    ;
+  else {
+    ebpfFlows = new (std::nothrow) eBPFFlow*[EBPF_QUEUE_LEN];
+    for(int i = 0; i < EBPF_QUEUE_LEN; i++) ebpfFlows[i] = NULL;
+  }
+  next_ebpf_insert_idx = next_ebpf_remove_idx = 0;
+  
 
   PROFILING_INIT();
 }
@@ -588,6 +601,15 @@ void NetworkInterface::deleteDataStructures() {
     free(ebpfEvents);
   }
 #endif
+
+  if(ebpfFlows) {
+    for(u_int16_t i = 0; i < EBPF_QUEUE_LEN; i++)
+      if(ebpfFlows[i])
+	delete ebpfFlows[i];
+
+    delete ebpfFlows;
+    ebpfFlows = NULL;
+  }
 }
 
 /* **************************************************** */
@@ -1075,6 +1097,13 @@ void NetworkInterface::processFlow(Parsed_Flow *zflow, bool zmq_flow) {
     } else {
       /* Old nProbe */
 
+    if(!last_pkt_rcvd)
+      last_pkt_rcvd = now;
+
+    /* NOTE: do not set last_pkt_rcvd_remote here as doing so will trigger the
+     * drift calculation above on next flows, leading to incorrect timestamps.
+     */
+#if 0
       if((time_t)zflow->core.last_switched > (time_t)last_pkt_rcvd_remote)
 	last_pkt_rcvd_remote = zflow->core.last_switched;
 
@@ -1082,6 +1111,7 @@ void NetworkInterface::processFlow(Parsed_Flow *zflow, bool zmq_flow) {
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "[first=%u][last=%u][duration: %u]",
 				   zflow->core.first_switched,  zflow->core.last_switched,
 				   zflow->core.last_switched- zflow->core.first_switched);
+#endif
 #endif
     }
   }
@@ -1213,7 +1243,6 @@ void NetworkInterface::processFlow(Parsed_Flow *zflow, bool zmq_flow) {
   /* Update process and container info */
   flow->setParsedeBPFInfo(&zflow->ebpf,
 			  src2dst_direction /* FIX: direction also depends on the type of event. */);
-
 
   /* Update flow device stats */
   if(!flow->setFlowDevice(zflow->core.deviceIP,
@@ -2635,6 +2664,43 @@ decode_packet_eth:
 /* **************************************************** */
 
 void NetworkInterface::pollQueuedeBPFEvents() {
+#if ENABLE_EBPF_FLOWS_DISPATCH
+  if(ebpfFlows) {
+    eBPFFlow *dequeued = NULL;
+
+    if(dequeueeBPFFlow(&dequeued)) {
+      Flow *flow = NULL;
+      bool src2dst_direction, new_flow;
+
+      flow = getFlow(NULL /* srcMac */, NULL /* dstMac */,
+		     0 /* vlan_id */,
+		     0 /* deviceIP */,
+		     0 /* inIndex */, 1 /* outIndex */,
+		     NULL /* ICMPinfo */,
+		     dequeued->get_cli_ip(), dequeued->get_srv_ip(),
+		     dequeued->get_cli_port(), dequeued->get_srv_port(),
+		     dequeued->get_protocol(),
+		     &src2dst_direction,
+		     0, 0, 0, &new_flow,
+		     true /* create_if_missing */);
+
+      if(flow) {
+#if 0
+	char buf[128];
+	flow->print(buf, sizeof(buf));
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Updating flow process info: [src2dst_direction: %u] %s", src2dst_direction ? 1 : 0, buf);
+#endif
+
+	flow->setParsedeBPFInfo(dequeued->get_ebpf(), src2dst_direction);
+      }
+
+      delete dequeued;
+    }
+
+    return;
+  }
+#endif
+
 #ifdef HAVE_EBPF
   if(ebpfEvents) {
     eBPFevent *event;
@@ -3774,8 +3840,11 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
 
     if(retriever->pag
        && retriever->pag->podFilter(&pod_filter)) {
-      const char *cli_pod = f->getClientContainerInfo() ? f->getClientContainerInfo()->k8s.pod : NULL;
-      const char *srv_pod = f->getServerContainerInfo() ? f->getServerContainerInfo()->k8s.pod : NULL;
+      const ContainerInfo *cli_cont = f->getClientContainerInfo();
+      const ContainerInfo *srv_cont = f->getServerContainerInfo();
+
+      const char *cli_pod = cli_cont && cli_cont->data_type == container_info_data_type_k8s ? cli_cont->data.k8s.pod : NULL;
+      const char *srv_pod = srv_cont && srv_cont->data_type == container_info_data_type_k8s ? srv_cont->data.k8s.pod : NULL;
 
       if(!((cli_pod && !strcmp(pod_filter, cli_pod))
 	  || (srv_pod && !strcmp(pod_filter, srv_pod))))
@@ -6250,6 +6319,27 @@ ndpi_protocol_category_t NetworkInterface::get_ndpi_proto_category(u_int protoid
 
 /* **************************************** */
 
+void NetworkInterface::reloadCompanion() {
+  char key[CONST_MAX_LEN_REDIS_KEY], rsp[8] = { 0 };
+  int companion_ifid;
+
+  if(!ntop->getRedis()) return;
+
+  snprintf(key, sizeof(key), CONST_IFACE_COMPANION_INTERFACE, get_id());
+
+  if(ntop->getRedis()->get(key, rsp, sizeof(rsp)) == 0 && rsp[0] != '\0') {
+    companion_ifid = atoi(rsp);
+    companion_interface = ntop->getInterfaceById(companion_ifid);
+  } else {
+    companion_interface = NULL;
+  }
+
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Companion interface reloaded [interface: %s][companion: %s]",
+  // 			       get_name(), companion_interface ? companion_interface->get_name() : "NULL");
+}
+
+/* **************************************** */
+
 static bool host_reload_hide_from_top(GenericHashEntry *host, void *user_data, bool *matched) {
   Host *h = (Host*)host;
 
@@ -6264,7 +6354,6 @@ void NetworkInterface::reloadHideFromTop(bool refreshHosts) {
   VlanAddressTree *new_tree;
 
   if(!ntop->getRedis()) return;
-
 
   if ((new_tree = new VlanAddressTree) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Not enough memory");
@@ -7491,10 +7580,10 @@ static bool flow_get_pods_stats(GenericHashEntry *entry, void *user_data, bool *
   ContainerInfo *cli_cont, *srv_cont;
   const char *cli_pod = NULL, *srv_pod = NULL;
 
-  if((cli_cont = flow->getClientContainerInfo()))
-    cli_pod = cli_cont->k8s.pod;
-  if((srv_cont = flow->getServerContainerInfo()))
-    srv_pod = srv_cont->k8s.pod;
+  if((cli_cont = flow->getClientContainerInfo()) && cli_cont->data_type == container_info_data_type_k8s)
+    cli_pod = cli_cont->data.k8s.pod;
+  if((srv_cont = flow->getServerContainerInfo()) && srv_cont->data_type == container_info_data_type_k8s)
+    srv_pod = srv_cont->data.k8s.pod;
 
   if(cli_pod) {
     ContainerStats stats = pods_stats[cli_pod]; /* get existing or create new */
@@ -7570,11 +7659,13 @@ static bool flow_get_container_stats(GenericHashEntry *entry, void *user_data, b
 
   if((cli_cont = flow->getClientContainerInfo())) {
     cli_cont_id = cli_cont->id;
-    cli_pod = cli_cont->k8s.pod;
+    if(cli_cont->data_type == container_info_data_type_k8s)
+      cli_pod = cli_cont->data.k8s.pod;
   }
   if((srv_cont = flow->getServerContainerInfo())) {
     srv_cont_id = srv_cont->id;
-    srv_pod = srv_cont->k8s.pod;
+    if(srv_cont->data_type == container_info_data_type_k8s)
+      srv_pod = srv_cont->data.k8s.pod;
   }
 
   if(cli_cont_id &&
@@ -7633,6 +7724,39 @@ void NetworkInterface::getContainersStats(lua_State* vm, const char *pod_filter)
     lua_insert(vm, -2);
     lua_settable(vm, -3);
   }
+}
+
+/* *************************************** */
+
+bool NetworkInterface::enqueueeBPFFlow(Parsed_Flow * const pf, bool skip_loopback_traffic) {
+  if(skip_loopback_traffic
+     && (pf->src_ip.isLoopbackAddress() || pf->dst_ip.isLoopbackAddress()))
+    return false;
+
+  if(ebpfFlows[next_ebpf_insert_idx])
+    return false;
+
+  if((ebpfFlows[next_ebpf_insert_idx] = new (std::nothrow)eBPFFlow(pf))) {
+    next_ebpf_insert_idx = (next_ebpf_insert_idx + 1) % EBPF_QUEUE_LEN;
+    return true;
+  }
+
+  return false;
+}
+
+/* *************************************** */
+
+bool NetworkInterface::dequeueeBPFFlow(eBPFFlow **f) {
+  if(!ebpfFlows[next_ebpf_remove_idx]) {
+    *f = NULL;
+    return false;
+  }
+
+  *f = ebpfFlows[next_ebpf_remove_idx];
+  ebpfFlows[next_ebpf_remove_idx] = NULL;
+  next_ebpf_remove_idx = (next_ebpf_remove_idx + 1) % EBPF_QUEUE_LEN;
+
+  return true;
 }
 
 /* *************************************** */

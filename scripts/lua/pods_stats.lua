@@ -57,6 +57,8 @@ dofile(dirs.installdir .. "/scripts/lua/inc/container_columns.lua")
 print[[
       ]
     });
+
+    window.setInterval(function() { datatableRefreshRows($("#table-pods"), "column_pod"); }, 10000);
   </script>
 ]]
 

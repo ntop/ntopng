@@ -27,6 +27,7 @@ require "alert_utils"
 require "db_utils"
 local ts_utils = require "ts_utils"
 local recording_utils = require "recording_utils"
+local companion_interface_utils = require "companion_interface_utils"
 local storage_utils = require "storage_utils"
 
 local have_nedge = ntop.isnEdge()
@@ -247,6 +248,9 @@ if not have_nedge and (table.len(ifstats.profiles) > 0) then
   else
     print("<li><a href=\""..url.."&page=trafficprofiles\"><i class=\"fa fa-user-md fa-lg\"></i></a></li>")
   end
+end
+if _SERVER["REQUEST_METHOD"] == "POST" and _POST["companion_interface"] ~= nil then
+   companion_interface_utils.setCompanion(ifstats.id, _POST["companion_interface"])
 end
 
 if _SERVER["REQUEST_METHOD"] == "POST" and not isEmptyString(_POST["traffic_recording_provider"]) then
@@ -1463,6 +1467,35 @@ elseif(page == "config") then
       <input type="checkbox" name="interface_network_discovery" value="1" ]] print(interface_network_discovery_checked) print[[>
 	 </td>
       </tr>]]
+   end
+
+   if not interface.isPacketInterface() and not ifstats.isDynamic then
+      local cur_companion = companion_interface_utils.getCurrentCompanion(ifstats.id)
+      local companions = companion_interface_utils.getAvailableCompanions()
+
+      if table.len(companions) > 1 then
+	 print [[
+       <tr>
+	 <th>]] print(i18n("if_stats_config.companion_interface")) print[[</th>
+	 <td>
+	   <select name="companion_interface" class="form-control" style="width:36em; display:inline;">]]
+
+	 for _, companion in ipairs(companions) do
+	    local companion_id = companion["ifid"]
+	    local companion_name = companion["ifname"]
+	    local label = companion_name
+	    if companion_name ~= "None" then
+	       label = getHumanReadableInterfaceName(companion_name)
+	    end
+
+	    print[[<option value="]] print(companion_id) print[[" ]] if cur_companion == companion_id then print('selected="selected"') end print[[">]] print(label) print[[</option>]]
+	 end
+
+	 print[[
+	   </select>
+	 </td>
+       </tr>]]
+      end
    end
 
    if has_traffic_recording_page then
