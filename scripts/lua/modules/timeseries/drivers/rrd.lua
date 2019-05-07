@@ -230,7 +230,11 @@ local function create_rrd(schema, path)
   -- NOTE: this is either a bug with unpack or with Lua.cpp make_argv
   params[#params + 1] = ""
 
-  ntop.rrd_create(table.unpack(params))
+  local err = ntop.rrd_create(table.unpack(params))
+  if(err ~= nil) then
+    traceError(TRACE_ERROR, TRACE_CONSOLE, err)
+    return false
+  end
 
   return true
 end
@@ -249,7 +253,13 @@ local function update_rrd(schema, rrdfile, timestamp, data)
       rrdfile, table.concat(params, ", "), schema.name))
   end
 
-  ntop.rrd_update(rrdfile, table.unpack(params))
+  local err = ntop.rrd_update(rrdfile, table.unpack(params))
+  if(err ~= nil) then
+    traceError(TRACE_ERROR, TRACE_CONSOLE, err)
+    return false
+  end
+
+  return true
 end
 
 -- ##############################################
@@ -260,12 +270,12 @@ function driver:append(schema, timestamp, tags, metrics)
 
   if not ntop.exists(rrdfile) then
     ntop.mkdir(base)
-    create_rrd(schema, rrdfile)
+    if not create_rrd(schema, rrdfile) then
+      return false
+    end
   end
 
-  update_rrd(schema, rrdfile, timestamp, metrics)
-
-  return true
+  return update_rrd(schema, rrdfile, timestamp, metrics)
 end
 
 -- ##############################################

@@ -4381,10 +4381,12 @@ static int ntop_rrd_create(lua_State* vm) {
     char *err = rrd_get_error();
 
     if(err != NULL) {
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create %s [%s]", filename, err);
-      lua_pushnil(vm);
+      char error_buf[256];
+      snprintf(error_buf, sizeof(error_buf), "Unable to create %s [%s]", filename, err);
+
+      lua_pushstring(vm, error_buf);
       // rrd_lock.unlock(__FILE__, __LINE__);
-      return(CONST_LUA_ERROR);
+      return(CONST_LUA_OK);
     }
   }
 
@@ -4414,7 +4416,7 @@ static int ntop_rrd_update(lua_State* vm) {
     snprintf(error_buf, sizeof(error_buf), "File %s does not exist", filename);
     lua_pushstring(vm, error_buf);
 
-    return(CONST_LUA_ERROR);
+    return(CONST_LUA_OK);
   }
 
   if(lua_type(vm, 2) == LUA_TSTRING) {
@@ -4453,7 +4455,7 @@ static int ntop_rrd_update(lua_State* vm) {
 	// rrd_lock.unlock(__FILE__, __LINE__);
 
 	free(buf);
-	return(CONST_LUA_ERROR);
+	return(CONST_LUA_OK);
       }
     }
 
