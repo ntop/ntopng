@@ -4043,10 +4043,10 @@ static void reset_rrd_state(void) {
 
 /* ****************************************** */
 
-static const char **make_argv(lua_State * vm, u_int offset) {
+static const char **make_argv(lua_State * vm, int *argc_out, u_int offset, int extra_args) {
   const char **argv;
   int i;
-  int argc = lua_gettop(vm) - offset;
+  int argc = lua_gettop(vm) + 1 - offset + extra_args;
 
   if(!(argv = (const char**)calloc(argc, sizeof (char *))))
     /* raise an error and never return */
@@ -4054,21 +4054,28 @@ static const char **make_argv(lua_State * vm, u_int offset) {
 
   /* fprintf(stderr, "%s\n", argv[0]); */
   for(i=0; i<argc; i++) {
-    u_int idx = i + offset;
-    /* accepts string or number */
-    if(lua_isstring(vm, idx) || lua_isnumber(vm, idx)) {
-      if(!(argv[i] = (char*)lua_tostring (vm, idx))) {
-	/* raise an error and never return */
-	luaL_error(vm, "Error duplicating string area for arg #%d", i);
-      }
+    if(i < extra_args) {
+      argv[i] = ""; /* put an empty extra argument */
     } else {
-      /* raise an error and never return */
-      luaL_error(vm, "Invalid arg #%d: args must be strings or numbers", i);
+      int idx = (i-extra_args) + offset;
+
+      /* accepts string or number */
+      if(lua_isstring(vm, idx) || lua_isnumber(vm, idx)) {
+        if(!(argv[i] = (char*)lua_tostring (vm, idx))) {
+          /* raise an error and never return */
+          luaL_error(vm, "Error duplicating string area for arg #%d", i);
+        }
+        //printf("@%u: %s\n", i, argv[i]);
+      } else {
+        /* raise an error and never return */
+        luaL_error(vm, "Invalid arg #%d: args must be strings or numbers", i);
+      }
     }
 
     // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%d] %s", i, argv[i]);
   }
 
+  *argc_out = argc;
   return(argv);
 }
 
@@ -4370,8 +4377,7 @@ static int ntop_rrd_create(lua_State* vm) {
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s(%s)", __FUNCTION__, filename);
 
-  argc = lua_gettop(vm) - offset;
-  argv = make_argv(vm, offset);
+  argv = make_argv(vm, &argc, offset, 0);
 
   reset_rrd_state();
   status = rrd_create_r(filename, pdp_step, time(NULL)-86400 /* 1 day */, argc, argv);
@@ -4385,14 +4391,12 @@ static int ntop_rrd_create(lua_State* vm) {
       snprintf(error_buf, sizeof(error_buf), "Unable to create %s [%s]", filename, err);
 
       lua_pushstring(vm, error_buf);
-      // rrd_lock.unlock(__FILE__, __LINE__);
-      return(CONST_LUA_OK);
-    }
-  }
+    } else
+      lua_pushstring(vm, "Unknown RRD error");
+  } else
+    lua_pushnil(vm);
 
   // rrd_lock.unlock(__FILE__, __LINE__);
-
-  lua_pushnil(vm);
   return(CONST_LUA_OK);
 }
 
@@ -4448,24 +4452,23 @@ static int ntop_rrd_update(lua_State* vm) {
       char *err = rrd_get_error();
 
       if(err != NULL) {
-	char error_buf[256];
+        char error_buf[256];
 
-	snprintf(error_buf, sizeof(error_buf), "rrd_update_r() [%s][%s] failed [%s]", filename, buf, err);
-	lua_pushstring(vm, error_buf);
-	// rrd_lock.unlock(__FILE__, __LINE__);
+        snprintf(error_buf, sizeof(error_buf), "rrd_update_r() [%s][%s] failed [%s]", filename, buf, err);
+        lua_pushstring(vm, error_buf);
+      } else
+        lua_pushstring(vm, "Unknown RRD error");
+    } else
+      lua_pushnil(vm);
 
-	free(buf);
-	return(CONST_LUA_OK);
-      }
-    }
+    // rrd_lock.unlock(__FILE__, __LINE__);
 
     free(buf);
+    return(CONST_LUA_OK);
   }
-
-  lua_pushnil(vm);
   // rrd_lock.unlock(__FILE__, __LINE__);
 
-  return(CONST_LUA_OK);
+  return(CONST_LUA_ERROR);
 }
 
 /* ****************************************** */
@@ -4508,6 +4511,47 @@ static int ntop_rrd_lastupdate(lua_State* vm) {
     lua_pushinteger(vm, ds_count);
     return(2 /* 2 values returned */);
   }
+}
+
+/* ****************************************** */
+
+static int ntop_rrd_tune(lua_State* vm) {
+  const char *filename;
+  const char **argv;
+  int argc, status, offset = 1;
+  int extra_args = 1; /* Program name arg*/
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  argv = make_argv(vm, &argc, offset, extra_args);
+
+  if(argc < 2) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "ntop_rrd_tune: invalid number of arguments");
+    free(argv);
+    return(CONST_LUA_ERROR);
+  }
+  filename = argv[1];
+
+  reset_rrd_state();
+  status = rrd_tune(argc, (char**)argv);
+
+  if(status != 0) {
+    char *err = rrd_get_error();
+
+    if(err != NULL) {
+      char error_buf[256];
+      snprintf(error_buf, sizeof(error_buf), "Unable to run rrd_tune on %s [%s]", filename, err);
+
+      lua_pushstring(vm, error_buf);
+    } else
+      lua_pushstring(vm, "Unknown RRD error");
+  } else
+    lua_pushnil(vm);
+
+  free(argv);
+
+  // rrd_lock.unlock(__FILE__, __LINE__);
+  return(CONST_LUA_OK);
 }
 
 /* ****************************************** */
@@ -8566,6 +8610,7 @@ static const luaL_Reg ntop_reg[] = {
   { "rrd_fetch",         ntop_rrd_fetch  },
   { "rrd_fetch_columns", ntop_rrd_fetch_columns },
   { "rrd_lastupdate",    ntop_rrd_lastupdate  },
+  { "rrd_tune",          ntop_rrd_tune  },
 
   /* Prefs */
   { "getPrefs",         ntop_get_prefs },
