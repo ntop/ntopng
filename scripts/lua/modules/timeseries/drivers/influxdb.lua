@@ -1331,9 +1331,10 @@ function driver:setup(ts_utils)
   ts_utils.loadSchemas()
   local schemas = ts_utils.getLoadedSchemas()
 
-  -- TODO Temporary fix for schema change, remove in next stable
-  queries[#queries + 1] = 'DROP CONTINUOUS QUERY "host:contacts__1h" ON ' .. self.db
-  queries[#queries + 1] = 'DROP CONTINUOUS QUERY "host:contacts__1d" ON ' .. self.db
+  for _, schema in pairs(ts_utils.getPossiblyChangedSchemas()) do
+    queries[#queries + 1] = 'DROP CONTINUOUS QUERY "'.. schema ..'__1h" ON ' .. self.db
+    queries[#queries + 1] = 'DROP CONTINUOUS QUERY "'.. schema ..'__1d" ON ' .. self.db
+  end
 
   for _, schema in pairs(schemas) do
     local tags = table.concat(schema._tags, ",")
