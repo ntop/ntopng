@@ -1048,7 +1048,7 @@ function driver:getDiskUsage()
   local query = 'select SUM(last) FROM (select LAST(diskBytes) FROM "monitor"."shard" where "database" = \''.. self.db ..'\' group by id)'
   local data = influx_query(self.url .. "/query?db=_internal", query, self.username, self.password)
 
-  if data and data.series[1] and data.series[1].values[1] then
+  if data and data.series and data.series[1] and data.series[1].values[1] then
     return data.series[1].values[1][2]
   end
 
