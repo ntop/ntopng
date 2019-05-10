@@ -249,7 +249,7 @@ local function add_missing_ds(schema, rrdfile, cur_ds)
     return false
   end
 
-  traceError(TRACE_NORMAL, TRACE_CONSOLE, "RRD format changed, trying to fix " .. rrdfile)
+  traceError(TRACE_INFO, TRACE_CONSOLE, "RRD format changed, trying to fix " .. rrdfile)
 
   local params = {rrdfile, }
   local heartbeat = schema.options.rrd_heartbeat or (schema.options.step * 2)
@@ -273,7 +273,7 @@ local function add_missing_ds(schema, rrdfile, cur_ds)
     return false
   end
 
-  traceError(TRACE_NORMAL, TRACE_CONSOLE, "RRD successfully fixed: " .. rrdfile)
+  traceError(TRACE_INFO, TRACE_CONSOLE, "RRD successfully fixed: " .. rrdfile)
   return true
 end
 
