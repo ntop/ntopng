@@ -22,6 +22,7 @@
 #ifndef _NTOP_TYPEDEFS_H_
 #define _NTOP_TYPEDEFS_H_
 
+#ifndef __linux__
 #ifndef TCP_ESTABLISHED
 /* /usr/include/netinet/tcp.h */
 enum {
@@ -37,6 +38,7 @@ enum {
       TCP_LISTEN,
       TCP_CLOSING   /* now a valid state */
 };
+#endif
 #endif
 
 typedef enum {
