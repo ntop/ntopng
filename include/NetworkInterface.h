@@ -434,7 +434,7 @@ class NetworkInterface : public Checkpointable {
 		     const u_char *packet,
 		     u_int16_t *ndpiProtocol,
 		     Host **srcHost, Host **dstHost, Flow **flow);
-  void processFlow(Parsed_Flow *zflow, bool zmq_flow);
+  void processFlow(ParsedFlow *zflow, bool zmq_flow);
   void processInterfaceStats(sFlowInterfaceStats *stats);
   void getnDPIStats(nDPIStats *stats, AddressTree *allowed_hosts, const char *host_ip, u_int16_t vlan_id);
   void periodicStatsUpdate();
@@ -742,7 +742,7 @@ class NetworkInterface : public Checkpointable {
   void getPodsStats(lua_State* vm);
   void getContainersStats(lua_State* vm, const char *pod_filter);
   inline NetworkInterface * getCompanion() const { return companion_interface; };
-  bool enqueueeBPFFlow(Parsed_Flow * const pf, bool skip_loopback_traffic);
+  bool enqueueeBPFFlow(ParsedFlow * const pf, bool skip_loopback_traffic);
   bool dequeueeBPFFlow(eBPFFlow ** pf);
 
 #ifdef HAVE_EBPF

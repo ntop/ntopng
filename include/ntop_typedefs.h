@@ -245,28 +245,6 @@ typedef struct {
   double rtt, rtt_var;
 } TcpInfo;
 
-typedef struct zmq_flow_core {
-  u_int8_t version; /* 0 so far */
-
-  u_int32_t deviceIP;
-  u_int16_t src_port, dst_port, inIndex, outIndex;
-  ndpi_proto l7_proto;
-  u_int16_t vlan_id, pkt_sampling_rate;
-  u_int8_t l4_proto;
-  u_int32_t in_pkts, in_bytes, out_pkts, out_bytes, vrfId;
-  u_int8_t absolute_packet_octet_counters;
-  struct {
-    u_int8_t tcp_flags, client_tcp_flags, server_tcp_flags;
-    u_int32_t ooo_in_pkts, ooo_out_pkts;
-    u_int32_t retr_in_pkts, retr_out_pkts;
-    u_int32_t lost_in_pkts, lost_out_pkts;
-    struct timeval clientNwLatency, serverNwLatency;
-    float applLatencyMsec;
-  } tcp;
-  u_int32_t first_switched, last_switched;
-  u_int8_t src_mac[6], dst_mac[6], direction, source_id;
-} Parsed_FlowCore;
-
 typedef struct zmq_flow_ebpf {
   ProcessInfo process_info;
   ContainerInfo container_info;
@@ -284,23 +262,6 @@ typedef struct {
   u_int32_t app_id;
   u_int32_t remapped_app_id;
 } custom_app_t;
-
-typedef struct zmq_flow {
-  IpAddress src_ip, dst_ip;  
-  Parsed_FlowCore core;
-  Parsed_eBPF ebpf;
-  json_object *additional_fields;
-  char *http_url, *http_site, *dns_query, *ssl_server_name, *bittorrent_hash;
-  custom_app_t custom_app;
-  /* Process Extensions */
-} Parsed_Flow;
-
-/* A lightweigth version of the parsed flow used to dispatch eBPF info to interfaces */
-typedef struct ebpf_flow {
-  IpAddress src_ip, dst_ip;
-  Parsed_FlowCore core;
-  Parsed_eBPF ebpf;
-} eBPF_Flow;
 
 /* IMPORTANT: whenever the Parsed_FlowSerial is changed, nProbe must be updated too */
 

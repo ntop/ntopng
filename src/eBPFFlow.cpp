@@ -23,10 +23,7 @@
 
 /* *************************************** */
 
-eBPFFlow::eBPFFlow(Parsed_Flow * const pf) {
-  src_ip.set(&pf->src_ip), dst_ip.set(&pf->dst_ip);
-  memcpy(&core, &pf->core, sizeof(core)), memcpy(&ebpf, &pf->ebpf, sizeof(ebpf));;
-
+eBPFFlow::eBPFFlow(ParsedFlow * const pf) : ParsedFlowCore() {
   if(ebpf.process_info_set) {
     if(ebpf.process_info.process_name)        ebpf.process_info.process_name = strdup(ebpf.process_info.process_name);
     if(ebpf.process_info.father_process_name) ebpf.process_info.father_process_name = strdup(ebpf.process_info.father_process_name);
@@ -47,7 +44,7 @@ eBPFFlow::eBPFFlow(Parsed_Flow * const pf) {
 /* *************************************** */
 
 eBPFFlow::~eBPFFlow() {
-    if(ebpf.process_info_set) {
+  if(ebpf.process_info_set) {
     if(ebpf.process_info.process_name)        free(ebpf.process_info.process_name);
     if(ebpf.process_info.father_process_name) free(ebpf.process_info.father_process_name);
   }

@@ -24,22 +24,23 @@
 
 #include "ntop_includes.h"
 
-class eBPFFlow {
+class ParsedFlow;
+
+class eBPFFlow : ParsedFlowCore {
  private:
   IpAddress src_ip, dst_ip;
-  Parsed_FlowCore core;
   Parsed_eBPF ebpf;
 
  public:
   ~eBPFFlow();
-  eBPFFlow(Parsed_Flow * const pf);
+  eBPFFlow(ParsedFlow * const pf);
 
-  inline IpAddress * const get_cli_ip() { return &src_ip; };
-  inline IpAddress * const get_srv_ip() { return &dst_ip; };
-  inline u_int16_t get_cli_port() const { return core.src_port; };
-  inline u_int16_t get_srv_port() const { return core.dst_port; };
-  inline u_int8_t get_protocol()  const { return core.l4_proto; };
-  inline Parsed_eBPF * const get_ebpf() { return &ebpf; };
+  inline IpAddress * const get_cli_ip() { return &src_ip;  };
+  inline IpAddress * const get_srv_ip() { return &dst_ip;  };
+  inline u_int16_t get_cli_port() const { return src_port; };
+  inline u_int16_t get_srv_port() const { return dst_port; };
+  inline u_int8_t get_protocol()  const { return l4_proto; };
+  inline Parsed_eBPF * const get_ebpf() { return &ebpf;    };
 
   void print();
 };

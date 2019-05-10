@@ -1062,7 +1062,7 @@ NetworkInterface* NetworkInterface::getSubInterface(u_int32_t criteria, bool par
 
 /* **************************************************** */
 
-void NetworkInterface::processFlow(Parsed_Flow *zflow, bool zmq_flow) {
+void NetworkInterface::processFlow(ParsedFlow *zflow, bool zmq_flow) {
   bool src2dst_direction, new_flow;
   Flow *flow;
   ndpi_protocol p;
@@ -1079,19 +1079,19 @@ void NetworkInterface::processFlow(Parsed_Flow *zflow, bool zmq_flow) {
       int drift = now - last_pkt_rcvd_remote;
 
       if(drift >= 0)
-	zflow->core.last_switched += drift, zflow->core.first_switched += drift;
+	zflow->last_switched += drift, zflow->first_switched += drift;
       else {
 	u_int32_t d = (u_int32_t)-drift;
 
-	if(d < zflow->core.last_switched)  zflow->core.last_switched  += drift;
-	if(d < zflow->core.first_switched) zflow->core.first_switched += drift;
+	if(d < zflow->last_switched)  zflow->last_switched  += drift;
+	if(d < zflow->first_switched) zflow->first_switched += drift;
       }
 
 #ifdef DEBUG
       ntop->getTrace()->traceEvent(TRACE_NORMAL,
 				   "[first=%u][last=%u][duration: %u][drift: %d][now: %u][remote: %u]",
-				   zflow->core.first_switched,  zflow->core.last_switched,
-				   zflow->core.last_switched-zflow->core.first_switched, drift,
+				   zflow->first_switched,  zflow->last_switched,
+				   zflow->last_switched-zflow->first_switched, drift,
 				   now, last_pkt_rcvd_remote);
 #endif
     } else {
@@ -1104,13 +1104,13 @@ void NetworkInterface::processFlow(Parsed_Flow *zflow, bool zmq_flow) {
      * drift calculation above on next flows, leading to incorrect timestamps.
      */
 #if 0
-      if((time_t)zflow->core.last_switched > (time_t)last_pkt_rcvd_remote)
-	last_pkt_rcvd_remote = zflow->core.last_switched;
+      if((time_t)zflow->last_switched > (time_t)last_pkt_rcvd_remote)
+	last_pkt_rcvd_remote = zflow->last_switched;
 
 #ifdef DEBUG
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "[first=%u][last=%u][duration: %u]",
-				   zflow->core.first_switched,  zflow->core.last_switched,
-				   zflow->core.last_switched- zflow->core.first_switched);
+				   zflow->first_switched,  zflow->last_switched,
+				   zflow->last_switched- zflow->first_switched);
 #endif
 #endif
     }
@@ -1121,26 +1121,26 @@ void NetworkInterface::processFlow(Parsed_Flow *zflow, bool zmq_flow) {
 
     switch(flowHashingMode) {
     case flowhashing_probe_ip:
-      vIface = getSubInterface((u_int32_t)zflow->core.deviceIP, true);
+      vIface = getSubInterface((u_int32_t)zflow->deviceIP, true);
       break;
 
     case flowhashing_iface_idx:
-      if(flowHashingIgnoredInterfaces.find((u_int32_t)zflow->core.outIndex) == flowHashingIgnoredInterfaces.end())
-	 vIfaceEgress = getSubInterface((u_int32_t)zflow->core.outIndex, true);
+      if(flowHashingIgnoredInterfaces.find((u_int32_t)zflow->outIndex) == flowHashingIgnoredInterfaces.end())
+	 vIfaceEgress = getSubInterface((u_int32_t)zflow->outIndex, true);
       /* No break HERE, want to get two interfaces, one for the ingress
          and one for the egress. */
 
     case flowhashing_ingress_iface_idx:
-      if(flowHashingIgnoredInterfaces.find((u_int32_t)zflow->core.inIndex) == flowHashingIgnoredInterfaces.end())
-	vIface = getSubInterface((u_int32_t)zflow->core.inIndex, true);
+      if(flowHashingIgnoredInterfaces.find((u_int32_t)zflow->inIndex) == flowHashingIgnoredInterfaces.end())
+	vIface = getSubInterface((u_int32_t)zflow->inIndex, true);
       break;
 
     case flowhashing_vrfid:
-      vIface = getSubInterface((u_int32_t)zflow->core.vrfId, true);
+      vIface = getSubInterface((u_int32_t)zflow->vrfId, true);
       break;
 
     case flowhashing_vlan:
-      vIface = getSubInterface((u_int32_t)zflow->core.vlan_id, true);
+      vIface = getSubInterface((u_int32_t)zflow->vlan_id, true);
       break;
 
     default:
@@ -1154,29 +1154,29 @@ void NetworkInterface::processFlow(Parsed_Flow *zflow, bool zmq_flow) {
   }
 
   if(!ntop->getPrefs()->do_ignore_macs()) {
-    srcMac = getMac((u_int8_t*)zflow->core.src_mac, true);
-    dstMac = getMac((u_int8_t*)zflow->core.dst_mac, true);
+    srcMac = getMac((u_int8_t*)zflow->src_mac, true);
+    dstMac = getMac((u_int8_t*)zflow->dst_mac, true);
   }
 
   srcIP.set(&zflow->src_ip), dstIP.set(&zflow->dst_ip);
 
   /* Updating Flow */
   flow = getFlow(srcMac, dstMac,
-		 zflow->core.vlan_id,
-		 zflow->core.deviceIP,
-		 zflow->core.inIndex, zflow->core.outIndex,
+		 zflow->vlan_id,
+		 zflow->deviceIP,
+		 zflow->inIndex, zflow->outIndex,
 		 NULL /* ICMPinfo */,
 		 &srcIP, &dstIP,
-		 zflow->core.src_port, zflow->core.dst_port,
-		 zflow->core.l4_proto, &src2dst_direction,
-		 zflow->core.first_switched,
-		 zflow->core.last_switched,
+		 zflow->src_port, zflow->dst_port,
+		 zflow->l4_proto, &src2dst_direction,
+		 zflow->first_switched,
+		 zflow->last_switched,
 		 0, &new_flow, true);
 
   if(flow == NULL)
     return;
 
-  if(zflow->core.absolute_packet_octet_counters) {
+  if(zflow->absolute_packet_octet_counters) {
     /* Ajdust bytes and packets counters if the zflow update contains absolute values.
 
        As flows may arrive out of sequence, special care is needed to avoid counting absolute values multiple times.
@@ -1194,24 +1194,24 @@ void NetworkInterface::processFlow(Parsed_Flow *zflow, bool zmq_flow) {
       out_cur_bytes = src2dst_direction ? flow->get_bytes_srv2cli() : flow->get_bytes_cli2srv();
     bool out_of_sequence = false;
 
-    if(zflow->core.in_pkts) {
-      if(zflow->core.in_pkts >= in_cur_pkts) zflow->core.in_pkts -= in_cur_pkts;
-      else zflow->core.in_pkts = 0, out_of_sequence = true;
+    if(zflow->in_pkts) {
+      if(zflow->in_pkts >= in_cur_pkts) zflow->in_pkts -= in_cur_pkts;
+      else zflow->in_pkts = 0, out_of_sequence = true;
     }
 
-    if(zflow->core.in_bytes) {
-      if(zflow->core.in_bytes >= in_cur_bytes) zflow->core.in_bytes -= in_cur_bytes;
-      else zflow->core.in_bytes = 0, out_of_sequence = true;
+    if(zflow->in_bytes) {
+      if(zflow->in_bytes >= in_cur_bytes) zflow->in_bytes -= in_cur_bytes;
+      else zflow->in_bytes = 0, out_of_sequence = true;
     }
 
-    if(zflow->core.out_pkts) {
-      if(zflow->core.out_pkts >= out_cur_pkts) zflow->core.out_pkts -= out_cur_pkts;
-      else zflow->core.out_pkts = 0, out_of_sequence = true;
+    if(zflow->out_pkts) {
+      if(zflow->out_pkts >= out_cur_pkts) zflow->out_pkts -= out_cur_pkts;
+      else zflow->out_pkts = 0, out_of_sequence = true;
     }
 
-    if(zflow->core.out_bytes) {
-      if(zflow->core.out_bytes >= out_cur_bytes) zflow->core.out_bytes -= out_cur_bytes;
-      else zflow->core.out_bytes = 0, out_of_sequence = true;
+    if(zflow->out_bytes) {
+      if(zflow->out_bytes >= out_cur_bytes) zflow->out_bytes -= out_cur_bytes;
+      else zflow->out_bytes = 0, out_of_sequence = true;
     }
 
     if(out_of_sequence) {
@@ -1222,32 +1222,32 @@ void NetworkInterface::processFlow(Parsed_Flow *zflow, bool zmq_flow) {
 				   "[in_bytes: %u][in_cur_bytes: %u][out_bytes: %u][out_cur_bytes: %u]"
 				   "[in_pkts: %u][in_cur_pkts: %u][out_pkts: %u][out_cur_pkts: %u]\n"
 				   "%s",
-				   zflow->core.in_bytes, in_cur_bytes, zflow->core.out_bytes, out_cur_bytes,
-				   zflow->core.in_pkts, in_cur_pkts, zflow->core.out_pkts, out_cur_pkts,
+				   zflow->in_bytes, in_cur_bytes, zflow->out_bytes, out_cur_bytes,
+				   zflow->in_pkts, in_cur_pkts, zflow->out_pkts, out_cur_pkts,
 				   flow->print(flowbuf, sizeof(flowbuf)));
 #endif
     }
   }
 
-  if(zflow->core.tcp.clientNwLatency.tv_sec || zflow->core.tcp.clientNwLatency.tv_usec)
-    flow->setFlowNwLatency(&zflow->core.tcp.clientNwLatency, src2dst_direction);
+  if(zflow->tcp.clientNwLatency.tv_sec || zflow->tcp.clientNwLatency.tv_usec)
+    flow->setFlowNwLatency(&zflow->tcp.clientNwLatency, src2dst_direction);
 
-  if(zflow->core.tcp.serverNwLatency.tv_sec || zflow->core.tcp.serverNwLatency.tv_usec)
-    flow->setFlowNwLatency(&zflow->core.tcp.serverNwLatency, !src2dst_direction);
+  if(zflow->tcp.serverNwLatency.tv_sec || zflow->tcp.serverNwLatency.tv_usec)
+    flow->setFlowNwLatency(&zflow->tcp.serverNwLatency, !src2dst_direction);
 
   flow->setRtt();
 
   if(src2dst_direction)
-    flow->setFlowApplLatency(zflow->core.tcp.applLatencyMsec);
+    flow->setFlowApplLatency(zflow->tcp.applLatencyMsec);
 
   /* Update process and container info */
   flow->setParsedeBPFInfo(&zflow->ebpf,
 			  src2dst_direction /* FIX: direction also depends on the type of event. */);
 
   /* Update flow device stats */
-  if(!flow->setFlowDevice(zflow->core.deviceIP,
-			  src2dst_direction ? zflow->core.inIndex  : zflow->core.outIndex,
-			  src2dst_direction ? zflow->core.outIndex : zflow->core.inIndex)) {
+  if(!flow->setFlowDevice(zflow->deviceIP,
+			  src2dst_direction ? zflow->inIndex  : zflow->outIndex,
+			  src2dst_direction ? zflow->outIndex : zflow->inIndex)) {
     static bool flow_device_already_set = false;
     if(!flow_device_already_set) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "A flow has been seen from multiple exporters or from "
@@ -1271,87 +1271,87 @@ void NetworkInterface::processFlow(Parsed_Flow *zflow, bool zmq_flow) {
      source mac (srcMac) and destination mac (dstMac)
   */
   if(likely(srcMac != NULL)) {
-    srcMac->incSentStats(getTimeLastPktRcvd(), zflow->core.pkt_sampling_rate * zflow->core.in_pkts,
-			 zflow->core.pkt_sampling_rate * zflow->core.in_bytes);
-    srcMac->incRcvdStats(getTimeLastPktRcvd(), zflow->core.pkt_sampling_rate * zflow->core.out_pkts,
-			 zflow->core.pkt_sampling_rate * zflow->core.out_bytes);
+    srcMac->incSentStats(getTimeLastPktRcvd(), zflow->pkt_sampling_rate * zflow->in_pkts,
+			 zflow->pkt_sampling_rate * zflow->in_bytes);
+    srcMac->incRcvdStats(getTimeLastPktRcvd(), zflow->pkt_sampling_rate * zflow->out_pkts,
+			 zflow->pkt_sampling_rate * zflow->out_bytes);
 
     srcMac->setSourceMac();
   }
 
   if(likely(dstMac != NULL)) {
-    dstMac->incSentStats(getTimeLastPktRcvd(), zflow->core.pkt_sampling_rate * zflow->core.out_pkts,
-			 zflow->core.pkt_sampling_rate * zflow->core.out_bytes);
-    dstMac->incRcvdStats(getTimeLastPktRcvd(), zflow->core.pkt_sampling_rate * zflow->core.in_pkts,
-			 zflow->core.pkt_sampling_rate * zflow->core.in_bytes);
+    dstMac->incSentStats(getTimeLastPktRcvd(), zflow->pkt_sampling_rate * zflow->out_pkts,
+			 zflow->pkt_sampling_rate * zflow->out_bytes);
+    dstMac->incRcvdStats(getTimeLastPktRcvd(), zflow->pkt_sampling_rate * zflow->in_pkts,
+			 zflow->pkt_sampling_rate * zflow->in_bytes);
   }
 
-  if(zflow->core.l4_proto == IPPROTO_TCP) {
-    if(zflow->core.tcp.client_tcp_flags || zflow->core.tcp.server_tcp_flags) {
+  if(zflow->l4_proto == IPPROTO_TCP) {
+    if(zflow->tcp.client_tcp_flags || zflow->tcp.server_tcp_flags) {
       /* There's a breadown between client and server TCP flags */
-      if(zflow->core.tcp.client_tcp_flags)
-	flow->setTcpFlags(zflow->core.tcp.client_tcp_flags, src2dst_direction);
-      if(zflow->core.tcp.server_tcp_flags)
-	flow->setTcpFlags(zflow->core.tcp.server_tcp_flags, !src2dst_direction);
-    } else if(zflow->core.tcp.tcp_flags)
+      if(zflow->tcp.client_tcp_flags)
+	flow->setTcpFlags(zflow->tcp.client_tcp_flags, src2dst_direction);
+      if(zflow->tcp.server_tcp_flags)
+	flow->setTcpFlags(zflow->tcp.server_tcp_flags, !src2dst_direction);
+    } else if(zflow->tcp.tcp_flags)
       /* TCP flags are cumulated client + server */
-      flow->setTcpFlags(zflow->core.tcp.tcp_flags, src2dst_direction);
+      flow->setTcpFlags(zflow->tcp.tcp_flags, src2dst_direction);
 
     flow->incTcpBadStats(true,
-			 zflow->core.tcp.ooo_in_pkts, zflow->core.tcp.retr_in_pkts,
-			 zflow->core.tcp.lost_in_pkts);
+			 zflow->tcp.ooo_in_pkts, zflow->tcp.retr_in_pkts,
+			 zflow->tcp.lost_in_pkts);
     flow->incTcpBadStats(false,
-			 zflow->core.tcp.ooo_out_pkts, zflow->core.tcp.retr_out_pkts,
-			 zflow->core.tcp.lost_out_pkts);
+			 zflow->tcp.ooo_out_pkts, zflow->tcp.retr_out_pkts,
+			 zflow->tcp.lost_out_pkts);
   }
 
 #ifdef NTOPNG_PRO
-  if(zflow->core.deviceIP) {
+  if(zflow->deviceIP) {
     // if(ntop->getPrefs()->is_flow_device_port_rrd_creation_enabled() && ntop->getPro()->has_valid_license()) {
     if(!flow_interfaces_stats)
       flow_interfaces_stats = new FlowInterfacesStats();
 
     if(flow_interfaces_stats) {
-      flow_interfaces_stats->incStats(now, zflow->core.deviceIP, zflow->core.inIndex,
-				      zflow->core.out_bytes, zflow->core.in_bytes);
+      flow_interfaces_stats->incStats(now, zflow->deviceIP, zflow->inIndex,
+				      zflow->out_bytes, zflow->in_bytes);
       /* If the SNMP device is actually an host with an SNMP agent, then traffic can enter and leave it
 	 from the same interface (think to a management interface). For this reason it is important to check
 	 the outIndex and increase its counters only if it is different from inIndex to avoid double counting. */
-      if(zflow->core.outIndex != zflow->core.inIndex)
-	flow_interfaces_stats->incStats(now, zflow->core.deviceIP, zflow->core.outIndex,
-					zflow->core.in_bytes, zflow->core.out_bytes);
+      if(zflow->outIndex != zflow->inIndex)
+	flow_interfaces_stats->incStats(now, zflow->deviceIP, zflow->outIndex,
+					zflow->in_bytes, zflow->out_bytes);
     }
   }
 #endif
 
   flow->addFlowStats(src2dst_direction,
-		     zflow->core.pkt_sampling_rate*zflow->core.in_pkts,
-		     zflow->core.pkt_sampling_rate*zflow->core.in_bytes, 0,
-		     zflow->core.pkt_sampling_rate*zflow->core.out_pkts,
-		     zflow->core.pkt_sampling_rate*zflow->core.out_bytes, 0,
-		     zflow->core.last_switched);
-  p.app_protocol = zflow->core.l7_proto.app_protocol, p.master_protocol = zflow->core.l7_proto.master_protocol;
+		     zflow->pkt_sampling_rate*zflow->in_pkts,
+		     zflow->pkt_sampling_rate*zflow->in_bytes, 0,
+		     zflow->pkt_sampling_rate*zflow->out_pkts,
+		     zflow->pkt_sampling_rate*zflow->out_bytes, 0,
+		     zflow->last_switched);
+  p.app_protocol = zflow->l7_proto.app_protocol, p.master_protocol = zflow->l7_proto.master_protocol;
   p.category = NDPI_PROTOCOL_CATEGORY_UNSPECIFIED;
   flow->setDetectedProtocol(p, true);
   flow->setJSONInfo(json_object_to_json_string(zflow->additional_fields));
 
   flow->updateInterfaceLocalStats(src2dst_direction,
-				  zflow->core.pkt_sampling_rate*(zflow->core.in_pkts+zflow->core.out_pkts),
-				  zflow->core.pkt_sampling_rate*(zflow->core.in_bytes+zflow->core.out_bytes));
+				  zflow->pkt_sampling_rate*(zflow->in_pkts+zflow->out_pkts),
+				  zflow->pkt_sampling_rate*(zflow->in_bytes+zflow->out_bytes));
 
   if(zflow->dns_query && zflow->dns_query[0] != '\0') flow->setDNSQuery(zflow->dns_query);
   if(zflow->http_url && zflow->http_url[0] != '\0')   flow->setHTTPURL(zflow->http_url);
   if(zflow->http_site && zflow->http_site[0] != '\0') flow->setServerName(zflow->http_site);
   if(zflow->ssl_server_name && zflow->ssl_server_name[0] != '\0') flow->setServerName(zflow->ssl_server_name);
   if(zflow->bittorrent_hash && zflow->bittorrent_hash[0] != '\0') flow->setBTHash(zflow->bittorrent_hash);
-  if(zflow->core.vrfId)      flow->setVRFid(zflow->core.vrfId);
+  if(zflow->vrfId)      flow->setVRFid(zflow->vrfId);
 #ifdef NTOPNG_PRO
   if(zflow->custom_app.pen) {
     flow->setCustomApp(zflow->custom_app);
 
     if(custom_app_stats || (custom_app_stats = new(std::nothrow) CustomAppStats(this))) {
       custom_app_stats->incStats(zflow->custom_app.remapped_app_id,
-				 zflow->core.pkt_sampling_rate * (zflow->core.in_bytes + zflow->core.out_bytes));
+				 zflow->pkt_sampling_rate * (zflow->in_bytes + zflow->out_bytes));
     }
   }
 #endif
@@ -1363,13 +1363,13 @@ void NetworkInterface::processFlow(Parsed_Flow *zflow, bool zmq_flow) {
   incStats(true /* ingressPacket */,
 	   now, srcIP.isIPv4() ? ETHERTYPE_IP : ETHERTYPE_IPV6,
 	   flow->get_detected_protocol().app_protocol,
-	   zflow->core.pkt_sampling_rate*(zflow->core.in_bytes + zflow->core.out_bytes),
-	   zflow->core.pkt_sampling_rate*(zflow->core.in_pkts + zflow->core.out_pkts),
+	   zflow->pkt_sampling_rate*(zflow->in_bytes + zflow->out_bytes),
+	   zflow->pkt_sampling_rate*(zflow->in_pkts + zflow->out_pkts),
 	   24 /* 8 Preamble + 4 CRC + 12 IFG */ + 14 /* Ethernet header */);
 
 
   /* purge is actually performed at most one time every FLOW_PURGE_FREQUENCY */
-  // purgeIdle(zflow->core.last_switched);
+  // purgeIdle(zflow->last_switched);
 }
 
 /* **************************************************** */
@@ -7728,7 +7728,7 @@ void NetworkInterface::getContainersStats(lua_State* vm, const char *pod_filter)
 
 /* *************************************** */
 
-bool NetworkInterface::enqueueeBPFFlow(Parsed_Flow * const pf, bool skip_loopback_traffic) {
+bool NetworkInterface::enqueueeBPFFlow(ParsedFlow * const pf, bool skip_loopback_traffic) {
   if(skip_loopback_traffic
      && (pf->src_ip.isLoopbackAddress() || pf->dst_ip.isLoopbackAddress()))
     return false;
