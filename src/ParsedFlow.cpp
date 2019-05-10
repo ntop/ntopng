@@ -39,18 +39,3 @@ ParsedFlow::~ParsedFlow() {
   if(additional_fields)
     json_object_put(additional_fields);
 }
-
-/* *************************************** */
-
-void ParsedFlow::print() {
-  char buf1[32], buf2[32];
-
-  src_ip.print(buf1, sizeof(buf1));
-  dst_ip.print(buf2, sizeof(buf2));
-
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[src: %s][dst: %s][src_port: %u][dst_port: %u][event: %s]",
-  // 			       src_ip.print(buf1, sizeof(buf1)),
-  // 			       dst_ip.print(buf2, sizeof(buf2)),
-  // 			       ntohs(get_cli_port()), ntohs(get_srv_port()),
-  // 			       Utils::eBPFEvent2EventStr(ebpf.event_type));
- }

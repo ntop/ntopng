@@ -56,9 +56,8 @@ void ParsedFlowCore::print() {
   src_ip.print(buf1, sizeof(buf1));
   dst_ip.print(buf2, sizeof(buf2));
 
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[src: %s][dst: %s][src_port: %u][dst_port: %u][event: %s]",
-  // 			       src_ip.print(buf1, sizeof(buf1)),
-  // 			       dst_ip.print(buf2, sizeof(buf2)),
-  // 			       ntohs(get_cli_port()), ntohs(get_srv_port()),
-  // 			       Utils::eBPFEvent2EventStr(ebpf.event_type));
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[src: %s][dst: %s][src_port: %u][dst_port: %u]",
+  			       src_ip.print(buf1, sizeof(buf1)),
+  			       dst_ip.print(buf2, sizeof(buf2)),
+  			       ntohs(src_port), ntohs(dst_port));
  }

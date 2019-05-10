@@ -33,8 +33,6 @@ class ParsedFlow : public ParsedFlowCore {
 
   ~ParsedFlow();
   ParsedFlow();
-
-  void print();
 };
 
 #endif /* _PARSED_FLOW_H_ */
