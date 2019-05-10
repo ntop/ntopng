@@ -7572,10 +7572,10 @@ bool NetworkInterface::isLocalBroadcastDomainHost(Host * const h, bool isInlineC
 
 /* *************************************** */
 
-typedef std::map<const char *, ContainerStats, cmp_str> PodsMap;
+typedef std::map<std::string, ContainerStats> PodsMap;
 
 static bool flow_get_pods_stats(GenericHashEntry *entry, void *user_data, bool *matched) {
-  PodsMap &pods_stats = (*(PodsMap*) user_data);
+  PodsMap *pods_stats = (PodsMap*)user_data;
   Flow *flow = (Flow*)entry;
   ContainerInfo *cli_cont, *srv_cont;
   const char *cli_pod = NULL, *srv_pod = NULL;
@@ -7586,7 +7586,7 @@ static bool flow_get_pods_stats(GenericHashEntry *entry, void *user_data, bool *
     srv_pod = srv_cont->data.k8s.pod;
 
   if(cli_pod) {
-    ContainerStats stats = pods_stats[cli_pod]; /* get existing or create new */
+    ContainerStats stats = (*pods_stats)[cli_pod]; /* get existing or create new */
     TcpInfo *client_tcp = flow->getClientTcpInfo();
 
     stats.incNumFlowsAsClient();
@@ -7595,11 +7595,11 @@ static bool flow_get_pods_stats(GenericHashEntry *entry, void *user_data, bool *
       stats.addContainer(cli_cont->id);
 
     /* Update */
-    pods_stats[cli_pod] = stats;
+    (*pods_stats)[cli_pod] = stats;
   }
 
   if(srv_pod) {
-    ContainerStats stats = pods_stats[srv_pod]; /* get existing or create new */
+    ContainerStats stats = (*pods_stats)[srv_pod]; /* get existing or create new */
     TcpInfo *server_tcp = flow->getServerTcpInfo();
 
     stats.incNumFlowsAsServer();
@@ -7608,7 +7608,7 @@ static bool flow_get_pods_stats(GenericHashEntry *entry, void *user_data, bool *
       stats.addContainer(srv_cont->id);
 
     /* Update */
-    pods_stats[srv_pod] = stats;
+    (*pods_stats)[srv_pod] = stats;
   }
 
   return(false /* keep walking */);
@@ -7629,7 +7629,7 @@ void NetworkInterface::getPodsStats(lua_State* vm) {
   for(it = pods_stats.begin(); it != pods_stats.end(); ++it) {
     it->second.lua(vm);
 
-    lua_pushstring(vm, it->first);
+    lua_pushstring(vm, it->first.c_str());
     lua_insert(vm, -2);
     lua_settable(vm, -3);
   }
@@ -7642,7 +7642,7 @@ typedef struct {
   ContainerStats stats;
 } ContainerData;
 
-typedef std::map<const char *, ContainerData, cmp_str> ContainersMap;
+typedef std::map<std::string, ContainerData> ContainersMap;
 
 struct containerRetrieverData {
   ContainersMap containers;
@@ -7650,7 +7650,7 @@ struct containerRetrieverData {
 };
 
 static bool flow_get_container_stats(GenericHashEntry *entry, void *user_data, bool *matched) {
-  ContainersMap &containers_data = ((containerRetrieverData*)user_data)->containers;
+  ContainersMap *containers_data = &((containerRetrieverData*)user_data)->containers;
   const char *pod_filter = ((containerRetrieverData*)user_data)->pod_filter;
   Flow *flow = (Flow*)entry;
   ContainerInfo *cli_cont, *srv_cont;
@@ -7670,7 +7670,7 @@ static bool flow_get_container_stats(GenericHashEntry *entry, void *user_data, b
 
   if(cli_cont_id &&
 	 ((!pod_filter) || (cli_pod && !strcmp(pod_filter, cli_pod)))) {
-    ContainerData data = containers_data[cli_cont_id]; /* get existing or create new */
+    ContainerData data = (*containers_data)[cli_cont_id]; /* get existing or create new */
     TcpInfo *client_tcp = flow->getClientTcpInfo();
 
     data.stats.incNumFlowsAsClient();
@@ -7678,12 +7678,12 @@ static bool flow_get_container_stats(GenericHashEntry *entry, void *user_data, b
     data.info = cli_cont;
 
     /* Update */
-    containers_data[cli_cont_id] = data;
+    (*containers_data)[cli_cont_id] = data;
   }
 
   if(srv_cont_id &&
 	 ((!pod_filter) || (srv_pod && !strcmp(pod_filter, srv_pod)))) {
-    ContainerData data = containers_data[srv_cont_id]; /* get existing or create new */
+    ContainerData data = (*containers_data)[srv_cont_id]; /* get existing or create new */
     TcpInfo *server_tcp = flow->getServerTcpInfo();
 
     data.stats.incNumFlowsAsServer();
@@ -7691,7 +7691,7 @@ static bool flow_get_container_stats(GenericHashEntry *entry, void *user_data, b
     data.info = srv_cont;
 
     /* Update */
-    containers_data[srv_cont_id] = data;
+    (*containers_data)[srv_cont_id] = data;
   }
 
   return(false /* keep walking */);
@@ -7720,7 +7720,7 @@ void NetworkInterface::getContainersStats(lua_State* vm, const char *pod_filter)
       lua_settable(vm, -3);
     }
 
-    lua_pushstring(vm, it->first);
+    lua_pushstring(vm, it->first.c_str());
     lua_insert(vm, -2);
     lua_settable(vm, -3);
   }
