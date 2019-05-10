@@ -36,6 +36,8 @@ ParsedFlow::ParsedFlow() : ParsedFlowCore() {
 /* *************************************** */
 
 ParsedFlow::~ParsedFlow() {
+  if(additional_fields)
+    json_object_put(additional_fields);
 }
 
 /* *************************************** */

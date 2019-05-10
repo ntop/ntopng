@@ -224,9 +224,6 @@ u_int8_t SyslogParserInterface::parseLog(char *log_line) {
       json_object_put(o);
     }
 
-    if(flow.additional_fields)
-      json_object_put(flow.additional_fields);
-
 #ifdef SYSLOG_DEBUG
   } else {
     /* System Log */

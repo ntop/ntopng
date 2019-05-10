@@ -750,9 +750,6 @@ void ZMQParserInterface::parseSingleFlow(json_object *o,
     }
 #endif
   }
-
-  // json_object_put(o);
-  json_object_put(flow.additional_fields);
 }
 
 /* **************************************************** */
