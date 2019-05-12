@@ -265,6 +265,8 @@ Flow::~Flow() {
   } else if(isSSL()) {
     if(protos.ssl.certificate)         free(protos.ssl.certificate);
     if(protos.ssl.server_certificate)  free(protos.ssl.server_certificate);
+    if(protos.ssl.ja3.client_hash)     free(protos.ssl.ja3.client_hash);
+    if(protos.ssl.ja3.server_hash)     free(protos.ssl.ja3.server_hash);
   }
 
   if(bt_hash)                free(bt_hash);
@@ -536,6 +538,12 @@ void Flow::processDetectedProtocol() {
        && (ndpiFlow->protos.stun_ssl.ssl.server_certificate[0] != '\0')) {
       protos.ssl.server_certificate = strdup(ndpiFlow->protos.stun_ssl.ssl.server_certificate);
     }
+
+    if((protos.ssl.ja3.client_hash == NULL) && (ndpiFlow->protos.stun_ssl.ssl.ja3_client[0] != '\0'))
+      protos.ssl.ja3.client_hash = strdup(ndpiFlow->protos.stun_ssl.ssl.ja3_client);
+    
+    if((protos.ssl.ja3.server_hash == NULL) && (ndpiFlow->protos.stun_ssl.ssl.ja3_server[0] != '\0'))
+      protos.ssl.ja3.server_hash = strdup(ndpiFlow->protos.stun_ssl.ssl.ja3_server);    
 
     if(check_tor) {
       char rsp[256];
@@ -1865,6 +1873,12 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 
 	if(protos.ssl.server_certificate)
 	  lua_push_str_table_entry(vm, "protos.ssl.server_certificate", protos.ssl.server_certificate);
+
+	if(protos.ssl.ja3.client_hash)
+	  lua_push_str_table_entry(vm, "protos.ssl.ja3.client_hash", protos.ssl.ja3.client_hash);
+
+	if(protos.ssl.ja3.server_hash)
+	  lua_push_str_table_entry(vm, "protos.ssl.ja3.server_hash", protos.ssl.ja3.server_hash);
       }
     }
 
