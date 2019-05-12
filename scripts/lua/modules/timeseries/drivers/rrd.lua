@@ -297,7 +297,7 @@ local function update_rrd(schema, rrdfile, timestamp, data, dont_recover)
       -- Try to recover
       local last_update, num_ds = ntop.rrd_lastupdate(rrdfile)
 
-      if num_ds < #schema._metrics then
+      if((num_ds ~= nil) and (num_ds < #schema._metrics)) then
         if add_missing_ds(schema, rrdfile, num_ds) then
           -- retry
           return update_rrd(schema, rrdfile, timestamp, data, true --[[ do not recovery again ]])
