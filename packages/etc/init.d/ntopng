@@ -167,7 +167,7 @@ start_ntopng() {
 	fi
 	$NTOPNG_BINARY /etc/ntopng/ntopng.conf >> /var/log/ntopng/ntopng.log &
 
-	for i in {1..5}
+	for i in {1..15}
 	do
 	    get_ntopng_pid
 	    if [ "${PID}" -gt 0 ]; then
