@@ -1403,7 +1403,7 @@ static int ntop_is_shutdown(lua_State* vm) {
 static int ntop_list_interfaces(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
   lua_newtable(vm);
-  Utils::listInterfaces(vm); 
+  Utils::listInterfaces(vm);
   return(CONST_LUA_OK);
 }
 
@@ -3252,7 +3252,7 @@ static int ntop_get_interface_find_flow_by_tuple(lua_State* vm) {
 
   if(ntop_lua_check(vm, __FUNCTION__, 5, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   dst_port = (u_int16_t)lua_tonumber(vm, 5);
-  
+
   if(ntop_lua_check(vm, __FUNCTION__, 6, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   l4_proto = (u_int8_t)lua_tonumber(vm, 6);
 
@@ -3684,11 +3684,11 @@ static int ntop_interface_live_capture(lua_State* vm) {
   int capture_id, duration;
   char *bpf = NULL;
   NetworkInterface *iface = getCurrentInterface(vm);
- 
+
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(!ntop->isUserAdministrator(vm)) return(CONST_LUA_ERROR);
-  
+
   if(!iface) return(CONST_LUA_ERROR);
 
   c = getLuaVMContext(vm);
@@ -3706,8 +3706,8 @@ static int ntop_interface_live_capture(lua_State* vm) {
 
     if((!ntop_interface) || ((h = ntop_interface->findHostByIP(get_allowed_nets(vm), host_ip, vlan_id)) == NULL))
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to locate host %s", host_ip);
-    else 
-      c->live_capture.matching_host = h;    
+    else
+      c->live_capture.matching_host = h;
   }
 
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
@@ -3715,13 +3715,13 @@ static int ntop_interface_live_capture(lua_State* vm) {
 
   if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   bpf = (char*)lua_tostring(vm, 3);
-  
+
   c->live_capture.capture_until = time(NULL)+duration;
   c->live_capture.capture_max_pkts = CONST_MAX_NUM_PACKETS_PER_LIVE;
   c->live_capture.num_captured_packets = 0;
   c->live_capture.stopped = c->live_capture.pcaphdr_sent = false;
   c->live_capture.bpfFilterSet = false;
-  
+
   if(bpf && (bpf[0] != '\0')) {
     if(pcap_compile_nopcap(65535,   /* snaplen */
 			   iface->get_datalink(), /* linktype */
@@ -3759,7 +3759,7 @@ static int ntop_interface_stop_live_capture(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   int capture_id;
   bool rc;
-  
+
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(!ntop->isUserAdministrator(vm))
@@ -3772,7 +3772,7 @@ static int ntop_interface_stop_live_capture(lua_State* vm) {
   capture_id = (int)lua_tointeger(vm, 1);
 
   rc = ntop_interface->stopLiveCapture(capture_id);
-  
+
   ntop->getTrace()->traceEvent(TRACE_INFO,
 			       "Stopping live capture %d: %s",
 			       capture_id,
@@ -4092,7 +4092,7 @@ static int ntop_nindex_select(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   NIndexFlowDB *nindex;
   struct mg_connection *conn;
-  
+
   if(!ntop_interface)
     return(CONST_LUA_ERROR);
   else {
@@ -4125,7 +4125,7 @@ static int ntop_nindex_select(lua_State* vm) {
     export_results = lua_toboolean(vm, id++) ? true : false;
 
   conn = getLuaVMUserdata(vm, conn);
-  
+
   return(nindex->select(vm, use_aggregated_flows,
 			timestamp_begin, timestamp_end, select,
 			where, skip_initial_records, max_num_hits,
@@ -4393,8 +4393,10 @@ static int ntop_rrd_create(lua_State* vm) {
       lua_pushstring(vm, error_buf);
     } else
       lua_pushstring(vm, "Unknown RRD error");
-  } else
+  } else {
     lua_pushnil(vm);
+    chmod(filename, CONST_DEFAULT_FILE_MODE);
+  }
 
   // rrd_lock.unlock(__FILE__, __LINE__);
   return(CONST_LUA_OK);
@@ -4906,7 +4908,7 @@ static int ntop_http_get_startup_epoch(lua_State* vm) {
 static int ntop_http_purify_param(lua_State* vm) {
   char *str, *buf;
   bool strict = false, allowURL = false, allowDots = false;
-  
+
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) {
@@ -4926,10 +4928,10 @@ static int ntop_http_purify_param(lua_State* vm) {
     return(CONST_LUA_PARAM_ERROR);
   }
 
-  Utils::purifyHTTPparam(buf, strict, allowURL, allowDots);  
+  Utils::purifyHTTPparam(buf, strict, allowURL, allowDots);
   lua_pushstring(vm, buf);
   free(buf);
-  
+
   return(CONST_LUA_OK);
 }
 
@@ -5861,7 +5863,7 @@ static int ntop_reload_device_protocols(lua_State *vm) {
   DeviceType device_type = device_unknown;
   char *dir; /* client or server */
 
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);  
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK)
     return(CONST_LUA_PARAM_ERROR);
@@ -5889,7 +5891,7 @@ static int ntop_run_extraction(lua_State *vm) {
   u_int64_t max_bytes;
   char * timeline_path = NULL;
 
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);  
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(!ntop->isUserAdministrator(vm))
     return(CONST_LUA_ERROR);
@@ -5915,7 +5917,7 @@ static int ntop_run_extraction(lua_State *vm) {
   if((filter = (char *) lua_tostring(vm, 5)) == NULL)  return(CONST_LUA_PARAM_ERROR);
   max_bytes = lua_tonumber(vm, 6);
 
-  ntop->getTimelineExtract()->runExtractionJob(id, 
+  ntop->getTimelineExtract()->runExtractionJob(id,
 					       ntop->getInterfaceById(ifid), time_from, time_to, filter, max_bytes, timeline_path);
 
   return(CONST_LUA_OK);
@@ -5926,7 +5928,7 @@ static int ntop_run_extraction(lua_State *vm) {
 static int ntop_stop_extraction(lua_State *vm) {
   int id;
 
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);  
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(!ntop->isUserAdministrator(vm))
     return(CONST_LUA_ERROR);
@@ -5984,7 +5986,7 @@ static int ntop_run_live_extraction(lua_State *vm) {
   bool allow = false, success = false;
   char * timeline_path = NULL;
 
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);  
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(!ntop->isUserAdministrator(vm))
     return(CONST_LUA_ERROR);
@@ -6008,7 +6010,7 @@ static int ntop_run_live_extraction(lua_State *vm) {
   time_to = lua_tointeger(vm, 3);
   if ((filter = (char *) lua_tostring(vm, 4)) == NULL)  return(CONST_LUA_PARAM_ERROR);
   if(lua_tostring(vm, 5)) timeline_path = (char *)lua_tostring(vm, 5);
-     
+
 
   iface = ntop->getInterfaceById(ifid);
   if(!iface) return(CONST_LUA_ERROR);
@@ -7139,7 +7141,7 @@ static int ntop_list_reports(lua_State* vm) {
 #else
 	  struct stat buf;
 #endif
-      
+
       snprintf(filepath, sizeof(filepath), "%s/%s", fullpath, ent->d_name);
       ntop->fixPath(filepath);
 
@@ -8620,7 +8622,7 @@ static const luaL_Reg ntop_reg[] = {
   { "getHttpPrefix",        ntop_http_get_prefix        },
   { "getStartupEpoch",      ntop_http_get_startup_epoch },
   { "httpPurifyParam",      ntop_http_purify_param      },
-  
+
   /* Admin */
   { "getNologinUser",       ntop_get_nologin_username },
   { "getUsers",             ntop_get_users },
