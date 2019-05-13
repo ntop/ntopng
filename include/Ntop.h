@@ -46,6 +46,7 @@ class Ntop {
   char *custom_ndpi_protos; /**< Pointer of a custom protocol for nDPI. */
   NetworkInterface **iface; /**< Array of network interfaces. */
   u_int8_t num_defined_interfaces; /**< Number of defined interfaces. */
+  uint8_t num_dump_interfaces;
   HTTPserver *httpd; /**< Pointer of httpd server. */
   NtopGlobals *globals; /**< Pointer of Ntop globals info and variables. */
   u_int num_cpus; /**< Number of physical CPU cores. */

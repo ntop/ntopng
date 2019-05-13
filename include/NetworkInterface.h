@@ -127,7 +127,7 @@ class NetworkInterface : public Checkpointable {
   int pcap_datalink_type; /**< Datalink type of pcap. */
   pthread_t pollLoop;
   bool pollLoopCreated, has_too_many_hosts, has_too_many_flows, mtuWarningShown;
-  bool too_many_drops, slow_stats_update;
+  bool too_many_drops, slow_stats_update, flow_dump_disabled;
   u_int32_t ifSpeed, numL2Devices, numHosts, numLocalHosts, scalingFactor;
   u_int64_t checkpointPktCount, checkpointBytesCount, checkpointPktDropCount; /* Those will hold counters at checkpoints */
   u_int16_t ifMTU;
@@ -272,7 +272,7 @@ class NetworkInterface : public Checkpointable {
   NetworkInterface(const char *name, const char *custom_interface_type = NULL);
   virtual ~NetworkInterface();
 
-  void finishInitialization(u_int8_t num_defined_interfaces);
+  bool initFlowDump(u_int8_t num_dump_interfaces);
   virtual u_int32_t getASesHashSize();
   virtual u_int32_t getCountriesHashSize();
   virtual u_int32_t getVLANsHashSize();
@@ -396,6 +396,7 @@ class NetworkInterface : public Checkpointable {
   inline int isRunning()	   { return running;             };
   inline bool isTrafficMirrored()  { return is_traffic_mirrored; };
   void  updateTrafficMirrored();
+  void updateFlowDumpDisabled();
   bool restoreHost(char *host_ip, u_int16_t vlan_id);
   u_int printAvailableInterfaces(bool printHelp, int idx, char *ifname, u_int ifname_len);
   void findFlowHosts(u_int16_t vlan_id,
@@ -732,6 +733,7 @@ class NetworkInterface : public Checkpointable {
   void tsLua(lua_State* vm);
   void reloadDhcpRanges();
   inline bool hasConfiguredDhcpRanges()      { return(dhcp_ranges && !dhcp_ranges->last_ip.isEmpty()); };
+  inline bool isFlowDumpDisabled()           { return(flow_dump_disabled); }
   bool isInDhcpRange(IpAddress *ip);
   void getPodsStats(lua_State* vm);
   void getContainersStats(lua_State* vm, const char *pod_filter);

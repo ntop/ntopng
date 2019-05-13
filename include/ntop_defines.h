@@ -518,6 +518,7 @@
 #define CONST_TOP_TALKERS_ENABLED          NTOPNG_PREFS_PREFIX".host_top_sites_creation"
 #define CONST_SUPPRESSED_ALERT_PREFS       NTOPNG_PREFS_PREFIX".alerts.ifid_%d"
 #define CONST_MIRRORED_TRAFFIC_PREFS       NTOPNG_PREFS_PREFIX".ifid_%d.is_traffic_mirrored"
+#define CONST_DISABLED_FLOW_DUMP_PREFS     NTOPNG_PREFS_PREFIX".ifid_%d.is_flow_dump_disabled"
 #define CONST_LBD_SERIALIZATION_PREFS      NTOPNG_PREFS_PREFIX".ifid_%d.serialize_local_broadcast_hosts_as_macs"
 #define CONST_USE_NINDEX                   NTOPNG_PREFS_PREFIX".use_nindex"
 #ifdef NTOPNG_PRO

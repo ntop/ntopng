@@ -59,6 +59,7 @@ Ntop::Ntop(char *appName) {
   trackers_automa = NULL;
   num_cpus = -1;
   num_defined_interfaces = 0;
+  num_dump_interfaces = 0;
   iface = NULL;
   start_time = 0, epoch_buf[0] = '\0'; /* It will be initialized by start() */
   last_stats_reset = 0;
@@ -2016,7 +2017,8 @@ bool Ntop::registerInterface(NetworkInterface *_if) {
 /* ******************************************* */
 
 void Ntop::initInterface(NetworkInterface *_if) {
-  _if->finishInitialization(num_defined_interfaces);
+  if(_if->initFlowDump(num_dump_interfaces))
+    num_dump_interfaces++;
   _if->checkAggregationMode();
   _if->startDBLoop();
 }

@@ -1240,6 +1240,34 @@ elseif(page == "config") then
       return
    end
 
+   local messages = {}
+
+   -- Flow dump check
+   local interface_flow_dump = true
+   if(prefs.is_dump_flows_enabled and ifstats.isView == false) then
+      interface_flow_dump = (ntop.getPref("ntopng.prefs.ifid_"..ifId..".is_flow_dump_disabled") ~= "1")
+
+      if _SERVER["REQUEST_METHOD"] == "POST" then
+         local new_value = (_POST["interface_flow_dump"] == "1")
+
+         if new_value ~= interface_flow_dump then
+            -- Value changed
+            interface_flow_dump = new_value
+            ntop.setPref("ntopng.prefs.ifid_"..ifId..".is_flow_dump_disabled", ternary(interface_flow_dump, "0", "1"))
+
+            messages[#messages + 1] = {
+             type = "warning",
+             text = i18n("prefs.restart_needed", {product=info.product}),
+           }
+         end
+      end
+   end
+
+   if not table.empty(messages) then
+      printMessageBanners(messages)
+      print("<br>")
+   end
+
    print[[
    <form id="iface_config" lass="form-inline" method="post">
    <input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
@@ -1333,6 +1361,7 @@ elseif(page == "config") then
 	   </td>
 	</tr>]]
 
+   -- Hidden from top
    local rv = ntop.getMembersCache(getHideFromTopSet(ifstats.id)) or {}
    local members = {}
 
@@ -1406,6 +1435,18 @@ elseif(page == "config") then
             <input name="interface_rrd_creation" type="checkbox" value="1" ]] print(interface_rrd_creation_checked) print[[>
          </td>
       </tr>]]
+
+   -- Flow dump
+   if(prefs.is_dump_flows_enabled and ifstats.isView == false) then
+      local interface_flow_dump_checked = ternary(interface_flow_dump, "checked", "")
+
+      print [[<tr>
+         <th>]] print(i18n("if_stats_config.dump_flows_to_database")) print[[</th>
+         <td>
+            <input name="interface_flow_dump" type="checkbox" value="1" ]] print(interface_flow_dump_checked) print[[>
+         </td>
+      </tr>]]
+   end
 
    -- per-interface Network Discovery
    if not ntop.isnEdge() and interface.isPacketInterface() then

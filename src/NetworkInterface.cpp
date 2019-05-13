@@ -271,6 +271,7 @@ NetworkInterface::NetworkInterface(const char *name,
   reloadHideFromTop(false);
   reloadCompanion();
   updateTrafficMirrored();
+  updateFlowDumpDisabled();
   updateLbdIdentifier();
 }
 
@@ -295,7 +296,7 @@ void NetworkInterface::init() {
     cpu_affinity = -1 /* no affinity */,
     inline_interface = false, running = false, interfaceStats = NULL,
     has_too_many_hosts = has_too_many_flows = too_many_drops = false,
-    slow_stats_update = false,
+    slow_stats_update = false, flow_dump_disabled = false,
     numL2Devices = 0, numHosts = 0, numLocalHosts = 0,
     checkpointPktCount = checkpointBytesCount = checkpointPktDropCount = 0,
     pollLoopCreated = false, bridge_interface = false,
@@ -538,6 +539,25 @@ void NetworkInterface::updateTrafficMirrored() {
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Updating mirrored traffic [ifid: %i][rsp: %s][actual_value: %d]", get_id(), rsp, is_mirrored ? 1 : 0);
 
   is_traffic_mirrored = is_mirrored;
+}
+
+/* **************************************************** */
+
+void NetworkInterface::updateFlowDumpDisabled() {
+  char key[CONST_MAX_LEN_REDIS_KEY], rsp[2] = { 0 };
+  bool is_disabled = false;
+
+  if(!ntop->getRedis()) return;
+
+  snprintf(key, sizeof(key), CONST_DISABLED_FLOW_DUMP_PREFS, get_id());
+  if((ntop->getRedis()->get(key, rsp, sizeof(rsp)) == 0) && (rsp[0] != '\0')) {
+    if(rsp[0] == '1')
+      is_disabled = true;
+    else if(rsp[0] == '0')
+      is_disabled = false;
+  }
+
+  flow_dump_disabled = is_disabled;
 }
 
 /* **************************************************** */
@@ -6993,11 +7013,14 @@ bool NetworkInterface::checkBroadcastDomainTooLarge(u_int32_t bcast_mask, u_int1
   Put here all the code that is executed when the NIC initialization
   is succesful
  */
-void NetworkInterface::finishInitialization(u_int8_t num_defined_interfaces) {
+bool NetworkInterface::initFlowDump(u_int8_t num_dump_interfaces) {
+  if(isFlowDumpDisabled())
+    return(false);
+
   if(!isView()) {
 #if defined(NTOPNG_PRO) && defined(HAVE_NINDEX)
     if(ntop->getPrefs()->do_dump_flows_on_nindex()) {
-      if(num_defined_interfaces + 1 >= NINDEX_MAX_NUM_INTERFACES) {
+      if(num_dump_interfaces + 1 >= NINDEX_MAX_NUM_INTERFACES) {
 	ntop->getTrace()->traceEvent(TRACE_ERROR,
 				     "nIndex cannot be enabled for %s.", get_name());
 	ntop->getTrace()->traceEvent(TRACE_ERROR,
@@ -7049,6 +7072,8 @@ void NetworkInterface::finishInitialization(u_int8_t num_defined_interfaces) {
 #endif
     }
   }
+
+  return(db != NULL);
 }
 
 /* *************************************** */
