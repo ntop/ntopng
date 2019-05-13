@@ -534,6 +534,7 @@
 #define CONST_IFACE_SCALING_FACTOR_PREFS    NTOPNG_PREFS_PREFIX".iface_%d.scaling_factor"
 #define CONST_IFACE_PACKET_DROPS_ALERT_PREFS NTOPNG_PREFS_PREFIX".iface_%d.packet_drops_alert"
 #define CONST_IFACE_HIDE_FROM_TOP_PREFS     NTOPNG_PREFS_PREFIX".iface_%d.hide_from_top"
+#define CONST_IFACE_COMPANION_INTERFACE     NTOPNG_PREFS_PREFIX".companion_interface.ifid_%d.companion"
 #define CONST_HOST_ANOMALIES_THRESHOLD      NTOPNG_PREFS_PREFIX".%s:%d.alerts_config"
 #define CONST_HOSTS_ALERT_COUNTERS          "ntopng.cache.alerts.iface_%u.host_engaged_alert_counters"
 #define CONST_REMOTE_HOST_IDLE_PREFS        NTOPNG_PREFS_PREFIX".non_local_host_max_idle"

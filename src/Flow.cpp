@@ -228,25 +228,25 @@ Flow::~Flow() {
 
   if(client_cont) {
     if(client_cont->id) free(client_cont->id);
+    if(client_cont->name) free(client_cont->name);
+
     if(client_cont->data_type == container_info_data_type_k8s) {
-      if(client_cont->data.k8s.name) free(client_cont->data.k8s.name);
       if(client_cont->data.k8s.pod)  free(client_cont->data.k8s.pod);
       if(client_cont->data.k8s.ns)   free(client_cont->data.k8s.ns);
-    } else if(client_cont->data_type == container_info_data_type_docker) {
-      if(client_cont->data.docker.name) free(client_cont->data.docker.name);
-    }
+    } else if(client_cont->data_type == container_info_data_type_docker)
+      ;
     free(client_cont);
   }
 
   if(server_cont) {
     if(server_cont->id) free(server_cont->id);
+    if(server_cont->name) free(server_cont->name);
+
     if(server_cont->data_type == container_info_data_type_k8s) {
-      if(server_cont->data.k8s.name) free(server_cont->data.k8s.name);
       if(server_cont->data.k8s.pod)  free(server_cont->data.k8s.pod);
       if(server_cont->data.k8s.ns)   free(server_cont->data.k8s.ns);
-    } else if(server_cont->data_type == container_info_data_type_docker) {
-      if(server_cont->data.docker.name) free(server_cont->data.docker.name);
-    }
+    } else if(server_cont->data_type == container_info_data_type_docker)
+      ;
     free(server_cont);
   }
 
@@ -265,6 +265,8 @@ Flow::~Flow() {
   } else if(isSSL()) {
     if(protos.ssl.certificate)         free(protos.ssl.certificate);
     if(protos.ssl.server_certificate)  free(protos.ssl.server_certificate);
+    if(protos.ssl.ja3.client_hash)     free(protos.ssl.ja3.client_hash);
+    if(protos.ssl.ja3.server_hash)     free(protos.ssl.ja3.server_hash);
   }
 
   if(bt_hash)                free(bt_hash);
@@ -536,6 +538,12 @@ void Flow::processDetectedProtocol() {
        && (ndpiFlow->protos.stun_ssl.ssl.server_certificate[0] != '\0')) {
       protos.ssl.server_certificate = strdup(ndpiFlow->protos.stun_ssl.ssl.server_certificate);
     }
+
+    if((protos.ssl.ja3.client_hash == NULL) && (ndpiFlow->protos.stun_ssl.ssl.ja3_client[0] != '\0'))
+      protos.ssl.ja3.client_hash = strdup(ndpiFlow->protos.stun_ssl.ssl.ja3_client);
+    
+    if((protos.ssl.ja3.server_hash == NULL) && (ndpiFlow->protos.stun_ssl.ssl.ja3_server[0] != '\0'))
+      protos.ssl.ja3.server_hash = strdup(ndpiFlow->protos.stun_ssl.ssl.ja3_server);    
 
     if(check_tor) {
       char rsp[256];
@@ -1865,6 +1873,12 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 
 	if(protos.ssl.server_certificate)
 	  lua_push_str_table_entry(vm, "protos.ssl.server_certificate", protos.ssl.server_certificate);
+
+	if(protos.ssl.ja3.client_hash)
+	  lua_push_str_table_entry(vm, "protos.ssl.ja3.client_hash", protos.ssl.ja3.client_hash);
+
+	if(protos.ssl.ja3.server_hash)
+	  lua_push_str_table_entry(vm, "protos.ssl.ja3.server_hash", protos.ssl.ja3.server_hash);
       }
     }
 
@@ -3711,13 +3725,29 @@ void Flow::setProcessInfo(eBPFevent *event, bool client_process) {
 
 /* ***************************************************** */
 
-void Flow::setParsedeBPFInfo(const Parsed_eBPF * const ebpf, bool client_process) {
+void Flow::setParsedeBPFInfo(const Parsed_eBPF * const ebpf, bool src2dst_direction) {
   if(!ebpf)
     return;
 
   if(!iface->hasSeenEBPFEvents())
     iface->setSeenEBPFEvents();
 
+  bool client_process;
+
+  /* Try to guess if the process is the client or the server */
+  if(ebpf->event_type == ebpf_event_type_tcp_accept)
+    client_process = false;
+  else if(ebpf->event_type == ebpf_event_type_tcp_connect)
+    client_process = true;
+  else if(get_srv_port() > get_cli_port())
+    client_process = false;
+  else
+    client_process = true;
+
+  if(!src2dst_direction)
+    client_process = !client_process;
+
+  /* Not it's time to attach the info... */
   const ProcessInfo *pi   = ebpf->process_info_set ? &ebpf->process_info : NULL;
   const ContainerInfo *ci = ebpf->container_info_set ? &ebpf->container_info : NULL;
   const TcpInfo *ti       = ebpf->tcp_info_set ? &ebpf->tcp_info : NULL;
@@ -3726,7 +3756,7 @@ void Flow::setParsedeBPFInfo(const Parsed_eBPF * const ebpf, bool client_process
   ContainerInfo **container_info = client_process ? &client_cont : &server_cont;
   TcpInfo **tcp_info             = client_process ? &client_tcp : &server_tcp;
 
-  if(pi && (*process_info || (*process_info = (ProcessInfo*)calloc(1, sizeof(ProcessInfo))))) {
+  if(pi && !*process_info && (*process_info = (ProcessInfo*)calloc(1, sizeof(ProcessInfo)))) {
     ProcessInfo *cur = *process_info;
 
     cur->pid = pi->pid, cur->uid = pi->uid, cur->gid = pi->gid,
@@ -3736,7 +3766,7 @@ void Flow::setParsedeBPFInfo(const Parsed_eBPF * const ebpf, bool client_process
     if(pi->father_process_name) cur->father_process_name = strdup(pi->father_process_name);
   }
 
-  if(ci && (*container_info || (*container_info = (ContainerInfo*)calloc(1, sizeof(ContainerInfo))))) {
+  if(ci && !*container_info && (*container_info = (ContainerInfo*)calloc(1, sizeof(ContainerInfo)))) {
     ContainerInfo *cur = *container_info;
     memcpy(cur, ci, sizeof(*ci));
 
@@ -3746,19 +3776,20 @@ void Flow::setParsedeBPFInfo(const Parsed_eBPF * const ebpf, bool client_process
 	iface->setSeenContainers();
     }
 
+    if(ci->name) cur->name = strdup(ci->name);
+
     if(ci->data_type == container_info_data_type_k8s) {
       if(ci->data.k8s.pod) {
 	cur->data.k8s.pod  = strdup(ci->data.k8s.pod);
 	if(!iface->hasSeenPods())
 	  iface->setSeenPods();
       }
-      if(ci->data.k8s.name) cur->data.k8s.name = strdup(ci->data.k8s.name);
       if(ci->data.k8s.ns)   cur->data.k8s.ns   = strdup(ci->data.k8s.ns);
-    } else if(ci->data_type == container_info_data_type_docker) {
-      if(ci->data.docker.name) cur->data.docker.name = strdup(ci->data.docker.name);
-    }
+    } else if(ci->data_type == container_info_data_type_docker)
+      ;
   }
 
+  /* Allow tcp info to be set multiple times so that updates can be kept into account */
   if(ti && (*tcp_info || (*tcp_info = (TcpInfo*)calloc(1, sizeof(TcpInfo))))) {
     TcpInfo *cur = *tcp_info;
     memcpy(cur, ti, sizeof(*ti));

@@ -48,6 +48,23 @@ static map<string, int> initTcpStatesStr2State() {
   return states_map;
 }
 
+static map<string, eBPFEventType> initeBPFEventTypeStr2Type() {
+  map<string, eBPFEventType>events_map;
+
+  /* TCP EVENTS */
+  events_map["ACCEPT"] = ebpf_event_type_tcp_accept;
+  events_map["CONNECT"] = ebpf_event_type_tcp_connect;
+  events_map["CONNECT_FAILED"] = ebpf_event_type_tcp_connect_failed;
+  events_map["CLOSE"] = ebpf_event_type_tcp_close;
+  events_map["RETRANSMIT"] = epbf_event_type_tcp_retransmit;
+
+  /* UDP EVENTS */
+  events_map["SEND"] = ebpf_event_type_udp_send;
+  events_map["RECV"] = ebpf_event_type_udp_recv;
+
+  return events_map;
+};
+
 static map<int, string> initTcpStates2StatesStr(const map<string, int> &tcp_states_str_to_state) {
   map<int, string>states_map;
   map<string, int>::const_iterator it;
@@ -59,8 +76,21 @@ static map<int, string> initTcpStates2StatesStr(const map<string, int> &tcp_stat
   return states_map;
 }
 
+static map<eBPFEventType, string> initeBPFEventType2TypeStr(const map<string, eBPFEventType> &tcp_states_str_to_state) {
+  map<eBPFEventType, string>events_map;
+  map<string, eBPFEventType>::const_iterator it;
+
+  for(it = tcp_states_str_to_state.begin(); it != tcp_states_str_to_state.end(); it++) {
+    events_map[it->second] = it->first;
+  }
+
+  return events_map;
+};
+
 static const map<string, int> tcp_state_str_2_state = initTcpStatesStr2State();
 static const map<int, string> tcp_state_2_state_str = initTcpStates2StatesStr(tcp_state_str_2_state);
+static const map<string, eBPFEventType> ebpf_event_str_2_event = initeBPFEventTypeStr2Type();
+static const map<eBPFEventType, string> ebpf_event_2_event_str = initeBPFEventType2TypeStr(ebpf_event_str_2_event);
 
 // A simple struct for strings.
 typedef struct {
@@ -2920,7 +2950,7 @@ int Utils::tcpStateStr2State(const char * const state_str) {
   if((it = tcp_state_str_2_state.find(state_str)) != tcp_state_str_2_state.end())
     return it->second;
 
-  return -1;
+  return 0;
 }
 
 /* ******************************************* */
@@ -2931,6 +2961,29 @@ const char * Utils::tcpState2StateStr(int state) {
   if((it = tcp_state_2_state_str.find(state)) != tcp_state_2_state_str.end())
     return it->second.c_str();
 
+  return "UNKNOWN";
+}
+
+/* ******************************************* */
+
+eBPFEventType Utils::eBPFEventStr2Event(const char * const event_str) {
+  map<string, eBPFEventType>::const_iterator it;
+
+  if((it = ebpf_event_str_2_event.find(event_str)) != ebpf_event_str_2_event.end())
+    return it->second;
+
+  return ebpf_event_type_unknown;
+}
+
+/* ******************************************* */
+
+const char * Utils::eBPFEvent2EventStr(eBPFEventType event) {
+  map<eBPFEventType, string>::const_iterator it;
+
+  if((it = ebpf_event_2_event_str.find(event)) != ebpf_event_2_event_str.end())
+    return it->second.c_str();
+
+  
   return "UNKNOWN";
 }
 
@@ -3784,10 +3837,10 @@ void Utils::containerInfoLua(lua_State *vm, const ContainerInfo * const cont) {
 
   if(cont->id)       lua_push_str_table_entry(vm, "id", cont->id);
   if(cont->data_type == container_info_data_type_k8s) {
-    if(cont->data.k8s.name) lua_push_str_table_entry(vm, "k8s.name", cont->data.k8s.name);
+    if(cont->name) lua_push_str_table_entry(vm, "k8s.name", cont->name);
     if(cont->data.k8s.pod)  lua_push_str_table_entry(vm, "k8s.pod", cont->data.k8s.pod);
     if(cont->data.k8s.ns)   lua_push_str_table_entry(vm, "k8s.ns", cont->data.k8s.ns);
   } else if(cont->data_type == container_info_data_type_docker) {
-    if(cont->data.docker.name) lua_push_str_table_entry(vm, "docker.name", cont->data.docker.name);
+    if(cont->name) lua_push_str_table_entry(vm, "docker.name", cont->name);
   }
 }

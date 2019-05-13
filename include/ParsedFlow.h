@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2019 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -19,28 +19,20 @@
  *
  */
 
-#ifndef _SYSLOG_PARSER_INTERFACE_H_
-#define _SYSLOG_PARSER_INTERFACE_H_
+#ifndef _PARSED_FLOW_H_
+#define _PARSED_FLOW_H_
 
 #include "ntop_includes.h"
 
-class SyslogParserInterface : public ParserInterface {
- private:
-
-  void parseSuricataFlow(json_object *f, ParsedFlow *flow);
-  void parseSuricataNetflow(json_object *f, ParsedFlow *flow);
-  void parseSuricataAlert(json_object *a, ParsedFlow *flow, ICMPinfo *icmp_info, bool flow_alert);
-
+class ParsedFlow : public ParsedFlowCore {
  public:
-  SyslogParserInterface(const char *endpoint, const char *custom_interface_type = NULL);
-  ~SyslogParserInterface();
+  Parsed_eBPF ebpf;
+  json_object *additional_fields;
+  char *http_url, *http_site, *dns_query, *ssl_server_name, *bittorrent_hash;
+  custom_app_t custom_app;
 
-  u_int8_t parseLog(char *log_line);
-
-  u_int32_t getNumDroppedPackets() { return 0; };
-  virtual void lua(lua_State* vm);
+  ~ParsedFlow();
+  ParsedFlow();
 };
 
-#endif /* _SYSLOG_PARSER_INTERFACE_H_ */
-
-
+#endif /* _PARSED_FLOW_H_ */

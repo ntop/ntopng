@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2019 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -19,28 +19,30 @@
  *
  */
 
-#ifndef _SYSLOG_PARSER_INTERFACE_H_
-#define _SYSLOG_PARSER_INTERFACE_H_
+#ifndef _EBPF_FLOW_H_
+#define _EBPF_FLOW_H_
 
 #include "ntop_includes.h"
 
-class SyslogParserInterface : public ParserInterface {
- private:
+class ParsedFlow;
 
-  void parseSuricataFlow(json_object *f, ParsedFlow *flow);
-  void parseSuricataNetflow(json_object *f, ParsedFlow *flow);
-  void parseSuricataAlert(json_object *a, ParsedFlow *flow, ICMPinfo *icmp_info, bool flow_alert);
+class eBPFFlow : ParsedFlowCore {
+ private:
+  IpAddress src_ip, dst_ip;
+  Parsed_eBPF ebpf;
 
  public:
-  SyslogParserInterface(const char *endpoint, const char *custom_interface_type = NULL);
-  ~SyslogParserInterface();
+  ~eBPFFlow();
+  eBPFFlow(ParsedFlow * const pf);
 
-  u_int8_t parseLog(char *log_line);
+  inline IpAddress * const get_cli_ip() { return &src_ip;  };
+  inline IpAddress * const get_srv_ip() { return &dst_ip;  };
+  inline u_int16_t get_cli_port() const { return src_port; };
+  inline u_int16_t get_srv_port() const { return dst_port; };
+  inline u_int8_t get_protocol()  const { return l4_proto; };
+  inline Parsed_eBPF * const get_ebpf() { return &ebpf;    };
 
-  u_int32_t getNumDroppedPackets() { return 0; };
-  virtual void lua(lua_State* vm);
+  void print();
 };
 
-#endif /* _SYSLOG_PARSER_INTERFACE_H_ */
-
-
+#endif /* _EBPF_FLOW_H_ */

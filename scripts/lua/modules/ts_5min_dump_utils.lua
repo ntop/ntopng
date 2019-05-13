@@ -306,9 +306,13 @@ end
 
 function ts_dump.host_update_categories_rrds(when, hostname, host, ifstats, verbose)
   -- nDPI Protocol CATEGORIES
-  for k, bytes in pairs(host["ndpi_categories"] or {}) do
+  for k, value in pairs(host["ndpi_categories"] or {}) do
+    local sep = string.find(value, "|")
+    local bytes_sent = string.sub(value, 1, sep-1)
+    local bytes_rcvd = string.sub(value, sep+1)
+    
     ts_utils.append("host:ndpi_categories", {ifid=ifstats.id, host=hostname, category=k,
-              bytes=bytes}, when, verbose)
+              bytes_sent=bytes_sent, bytes_rcvd=bytes_rcvd}, when, verbose)
   end
 end
 

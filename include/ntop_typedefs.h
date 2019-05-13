@@ -22,6 +22,25 @@
 #ifndef _NTOP_TYPEDEFS_H_
 #define _NTOP_TYPEDEFS_H_
 
+#ifndef __linux__
+#ifndef TCP_ESTABLISHED
+/* /usr/include/netinet/tcp.h */
+enum {
+      TCP_ESTABLISHED = 1,
+      TCP_SYN_SENT,
+      TCP_SYN_RECV,
+      TCP_FIN_WAIT1,
+      TCP_FIN_WAIT2,
+      TCP_TIME_WAIT,
+      TCP_CLOSE,
+      TCP_CLOSE_WAIT,
+      TCP_LAST_ACK,
+      TCP_LISTEN,
+      TCP_CLOSING   /* now a valid state */
+};
+#endif
+#endif
+
 typedef enum {
   no_host_mask = 0,
   mask_local_hosts = 1,
@@ -178,6 +197,17 @@ typedef struct ether80211q {
   u_int16_t protoType;
 } Ether80211q;
 
+typedef enum {
+  ebpf_event_type_unknown = 0,
+  ebpf_event_type_tcp_accept,
+  ebpf_event_type_tcp_connect,
+  ebpf_event_type_tcp_connect_failed,
+  ebpf_event_type_tcp_close,
+  epbf_event_type_tcp_retransmit,
+  ebpf_event_type_udp_send,
+  ebpf_event_type_udp_recv,
+} eBPFEventType;
+
 typedef struct {
   u_int32_t pid, father_pid;
   char *process_name, *father_process_name;
@@ -194,14 +224,14 @@ typedef enum {
 
 typedef struct {
   char *id;
+  char *name;
   union {
     struct {
-      char *name;
       char *pod;
       char *ns;
     } k8s;
     struct {
-      char *name;
+      /* Reseved for future use */
     } docker;
   } data;
   ContainerInfoDataType data_type;
@@ -215,32 +245,12 @@ typedef struct {
   double rtt, rtt_var;
 } TcpInfo;
 
-typedef struct zmq_flow_core {
-  u_int8_t version; /* 0 so far */
-
-  u_int32_t deviceIP;
-  u_int16_t src_port, dst_port, inIndex, outIndex;
-  ndpi_proto l7_proto;
-  u_int16_t vlan_id, pkt_sampling_rate;
-  u_int8_t l4_proto;
-  u_int32_t in_pkts, in_bytes, out_pkts, out_bytes, vrfId;
-  u_int8_t absolute_packet_octet_counters;
-  struct {
-    u_int8_t tcp_flags, client_tcp_flags, server_tcp_flags;
-    u_int32_t ooo_in_pkts, ooo_out_pkts;
-    u_int32_t retr_in_pkts, retr_out_pkts;
-    u_int32_t lost_in_pkts, lost_out_pkts;
-    struct timeval clientNwLatency, serverNwLatency;
-    float applLatencyMsec;
-  } tcp;
-  u_int32_t first_switched, last_switched;
-  u_int8_t src_mac[6], dst_mac[6], direction, source_id;
-} Parsed_FlowCore;
-
 typedef struct zmq_flow_ebpf {
   ProcessInfo process_info;
   ContainerInfo container_info;
   TcpInfo tcp_info;
+  eBPFEventType event_type;
+  char *ifname;
   bool process_info_set, container_info_set, tcp_info_set;
 } Parsed_eBPF;
 
@@ -252,16 +262,6 @@ typedef struct {
   u_int32_t app_id;
   u_int32_t remapped_app_id;
 } custom_app_t;
-
-typedef struct zmq_flow {
-  IpAddress src_ip, dst_ip;  
-  Parsed_FlowCore core;
-  Parsed_eBPF ebpf;
-  json_object *additional_fields;
-  char *http_url, *http_site, *dns_query, *ssl_server_name, *bittorrent_hash;
-  custom_app_t custom_app;
-  /* Process Extensions */
-} Parsed_Flow;
 
 /* IMPORTANT: whenever the Parsed_FlowSerial is changed, nProbe must be updated too */
 
@@ -667,12 +667,5 @@ typedef struct dhcp_range {
   IpAddress first_ip;
   IpAddress last_ip;
 } dhcp_range;
-
-/* Function below is required when crating maps with char* */
-struct cmp_str {
-  bool operator()(char const *a, char const *b) {
-    return ::strcmp(a, b) < 0;
-  }
-};
 
 #endif /* _NTOP_TYPEDEFS_H_ */
