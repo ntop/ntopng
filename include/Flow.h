@@ -501,9 +501,6 @@ class Flow : public GenericHashEntry {
 #endif
   void housekeep(time_t t);
   void postFlowSetPurge(time_t t);
-#ifdef HAVE_EBPF
-  void setProcessInfo(eBPFevent *event, bool client_process);
-#endif
   void setParsedeBPFInfo(const ParsedeBPF * const ebpf, bool src2dst_direction);
   inline ContainerInfo* getClientContainerInfo()  { return(client_cont); }
   inline ContainerInfo* getServerContainerInfo()  { return(server_cont); }

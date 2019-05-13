@@ -348,18 +348,6 @@ void NetworkInterface::init() {
       ts_ring = new TimeseriesRing(this);
   }
 
-#ifdef HAVE_EBPF
-  if(bridge_interface
-     || is_dynamic_interface
-     || is_traffic_mirrored
-     || isView())
-    ;
-  else {
-    ebpfEvents = (eBPFevent**)calloc(sizeof(eBPFevent*), EBPF_QUEUE_LEN);
-    next_insert_idx = next_remove_idx = 0;
-  }
-#endif
-
   if(bridge_interface
      || is_dynamic_interface
      || isView())
@@ -589,16 +577,6 @@ void NetworkInterface::deleteDataStructures() {
     aggregated_flows_hash->cleanup();
     delete(aggregated_flows_hash);
     aggregated_flows_hash = NULL;
-  }
-#endif
-
-#ifdef HAVE_EBPF
-  if(ebpfEvents) {
-    for(u_int16_t i=0; i<EBPF_QUEUE_LEN; i++)
-      if(ebpfEvents[i])
-	free(ebpfEvents[i]);
-
-    free(ebpfEvents);
   }
 #endif
 
@@ -2012,59 +1990,6 @@ void NetworkInterface::purgeIdle(time_t when) {
   }
 }
 
-/* ***************************************************** */
-
-#ifdef HAVE_EBPF
-
-#ifdef EBPF_DEBUG
-
-static void IPV4Handler(Flow *f, eBPFevent *e) {
-  struct ipv4_kernel_data *event = &e->event.v4;
-  char buf1[32], buf2[32];
-
-  ntop->getTrace()->traceEvent(TRACE_NORMAL,
-			       "[%s][IPv4][%s][pid/tid: %u/%u (%s), uid/gid: %u/%u][father pid/tid: %u/%u (%s), uid/gid: %u/%u][addr: %s:%u <-> %s:%u][latency: %.2f msec]\n",
-			       e->ifname, (event->net.proto == IPPROTO_TCP) ? "TCP" : "UDP",
-			       e->proc.pid, e->proc.tid,
-			       e->proc.full_task_path ? e->proc.full_task_path : e->proc.task,
-			       e->proc.uid, e->proc.gid,
-			       e->father.pid, e->father.tid,
-			       e->father.full_task_path ? e->father.full_task_path : e->father.task,
-			       e->father.uid, e->father.gid,
-			       Utils::intoaV4(htonl(event->saddr), buf1, sizeof(buf1)), event->net.sport,
-			       Utils::intoaV4(htonl(event->daddr), buf2, sizeof(buf2)), event->net.dport,
-			       ((float)event->net.latency_usec)/(float)1000);
-}
-
-/* ***************************************************** */
-
-static void IPV6Handler(Flow *f, eBPFevent *e) {
-  struct ipv6_kernel_data *event = &e->event.v6;
-  char buf1[32], buf2[32];
-  struct ndpi_in6_addr saddr, daddr;
-
-  memcpy(&saddr, &event->saddr, sizeof(saddr));
-  memcpy(&daddr, &event->daddr, sizeof(daddr));
-
-  ntop->getTrace()->traceEvent(TRACE_NORMAL,
-			       "[%s][IPv6][%s][pid/tid: %u/%u (%s), uid/gid: %u/%u][father pid/tid: %u/%u (%s), uid/gid: %u/%u][addr: %s:%u <-> %s:%u][latency: %.2f msec]\n",
-			       e->ifname, (event->net.proto == IPPROTO_TCP) ? "TCP" : "UDP",
-			       e->proc.pid, e->proc.tid,
-			       e->proc.full_task_path ? e->proc.full_task_path : e->proc.task,
-			       e->proc.uid, e->proc.gid,
-			       e->father.pid, e->father.tid,
-			       e->father.full_task_path ? e->father.full_task_path : e->father.task,
-			       e->father.uid, e->father.gid,
-			       Utils::intoaV6(saddr, 128, buf1, sizeof(buf1)),
-			       event->net.sport,
-			       Utils::intoaV6(daddr, 128, buf2, sizeof(buf2)),
-			       event->net.dport, ((float)event->net.latency_usec)/(float)1000);
-}
-
-#endif
-
-#endif
-
 /* **************************************************** */
 
 bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
@@ -2664,7 +2589,6 @@ decode_packet_eth:
 /* **************************************************** */
 
 void NetworkInterface::pollQueuedeBPFEvents() {
-#if ENABLE_EBPF_FLOWS_DISPATCH
   if(ebpfFlows) {
     ParsedFlow *dequeued = NULL;
 
@@ -2699,60 +2623,6 @@ void NetworkInterface::pollQueuedeBPFEvents() {
 
     return;
   }
-#endif
-
-#ifdef HAVE_EBPF
-  if(ebpfEvents) {
-    eBPFevent *event;
-
-    if(dequeueeBPFEvent(&event)) {
-      Flow *flow = NULL;
-      IpAddress src, dst;
-      bool src2dst_direction, new_flow;
-      u_int16_t proto, sport, dport;
-
-      if(event->ip_version == 4) {
-	src.set(event->addr.v4.saddr), dst.set(event->addr.v4.daddr),
-	  sport = event->sport, dport = event->dport,
-	  proto = event->proto;
-      } else {
-	src.set((struct ndpi_in6_addr*)&event->addr.v6.saddr),
-	  dst.set((struct ndpi_in6_addr*)&event->addr.v6.daddr),
-	  sport = event->sport, dport = event->dport,
-	  proto = event->proto;
-      }
-
-      sport = htons(sport), dport = htons(dport);
-
-      flow = getFlow(NULL /* srcMac */, NULL /* dstMac */,
-		     0 /* vlan_id */,
-		     0 /* deviceIP */,
-		     0 /* inIndex */, 1 /* outIndex */,
-		     NULL /* ICMPinfo */,
-		     &src, &dst,
-		     sport, dport,
-		     proto,
-		     &src2dst_direction,
-		     0, 0, 0, &new_flow,
-		     true /* create_if_missing */);
-
-
-      if(flow) flow->setProcessInfo(event, src2dst_direction ? event->sent_packet : !event->sent_packet);
-
-#ifdef EBPF_DEBUG
-      // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new flow: %u][src2dst_direction: %u]", new_flow ? 1 : 0, src2dst_direction ? 1 : 0);
-
-      if(event->ip_version == 4)
-	IPV4Handler(flow, event);
-      else
-	IPV6Handler(flow, event);
-#endif
-
-      ebpf_free_event(event);
-      free(event);
-    }
-  }
-#endif
 }
 
 /* **************************************************** */
@@ -7758,64 +7628,3 @@ bool NetworkInterface::dequeueeBPFFlow(ParsedFlow **f) {
 
   return true;
 }
-
-/* *************************************** */
-
-#ifdef HAVE_EBPF
-
-bool NetworkInterface::enqueueeBPFEvent(eBPFevent *event) {
-#ifdef EBPF_DEBUG
-  // ntop->getTrace()->traceEvent(TRACE_ERROR, "[%s] %s(%d/%d)", ifname, __FUNCTION__, next_insert_idx, next_remove_idx);
-#endif
-
-  if(ebpfEvents[next_insert_idx] != (eBPFevent*)NULL)
-    return(false);
-
-  ebpf_preprocess_event(event);
-
-  ebpfEvents[next_insert_idx] = event;
-  next_insert_idx = (next_insert_idx + 1) % EBPF_QUEUE_LEN;
-  return(true);
-}
-
-/* *************************************** */
-
-bool NetworkInterface::dequeueeBPFEvent(eBPFevent **event) {
-  if(ebpfEvents[next_remove_idx] == (eBPFevent*)NULL) {
-    *event = NULL;
-    return(false);
-  }
-
-#ifdef EBPF_DEBUG
-  // ntop->getTrace()->traceEvent(TRACE_ERROR, "[%s] %s(%d/%d)", ifname, __FUNCTION__, next_insert_idx, next_remove_idx);
-#endif
-
-  *event = ebpfEvents[next_remove_idx];
-  ebpfEvents[next_remove_idx] = NULL;
-  next_remove_idx = (next_remove_idx + 1) % EBPF_QUEUE_LEN;
-  return(true);
-}
-
-/* *************************************** */
-
-void NetworkInterface::delivereBPFEvent(eBPFevent *event) {
-  eBPFevent *tmp;
-
-  if(ebpfEvents == NULL)
-    return; /* No events */
-  else if((event->ifname[0] != '\0') && strcmp(event->ifname, ifname))
-    return; /* Not for this interface */
-
-  if((tmp = (eBPFevent*)malloc(sizeof(eBPFevent))) != NULL) {
-    memcpy(tmp, event, sizeof(eBPFevent));
-
-    // ntop->getTrace()->traceEvent(TRACE_ERROR, "%s()", __FUNCTION__);
-
-    if(!enqueueeBPFEvent(tmp))
-      free(tmp); /* Not enough space */
-    else if(!hasSeenEBPFEvents())
-      setSeenEBPFEvents();
-  }
-}
-
-#endif // HAVE_EBPF

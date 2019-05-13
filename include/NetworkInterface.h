@@ -92,12 +92,6 @@ class NetworkInterface : public Checkpointable {
   bool reload_hosts_bcast_domain, lbd_serialize_by_mac;
   time_t hosts_bcast_domain_last_update;
   
-#ifdef HAVE_EBPF
-  /* eBPF */
-  u_int16_t next_insert_idx, next_remove_idx;
-  eBPFevent **ebpfEvents; 
-#endif
-
   u_int16_t next_ebpf_insert_idx, next_ebpf_remove_idx;
   ParsedFlow **ebpfFlows;
   
@@ -744,13 +738,6 @@ class NetworkInterface : public Checkpointable {
   inline NetworkInterface * getCompanion() const { return companion_interface; };
   bool enqueueeBPFFlow(ParsedFlow * const pf, bool skip_loopback_traffic);
   bool dequeueeBPFFlow(ParsedFlow ** pf);
-
-#ifdef HAVE_EBPF
-  inline bool iseBPFEventAvailable() { return((ebpfEvents && (ebpfEvents[next_remove_idx] != NULL)) ? true : false); }
-  bool enqueueeBPFEvent(eBPFevent *event);
-  bool dequeueeBPFEvent(eBPFevent **event);
-  void delivereBPFEvent(eBPFevent *event);
-#endif
 
 #ifdef PROFILING
   inline void profiling_section_enter(const char *label, int id) { PROFILING_SECTION_ENTER(label, id); };

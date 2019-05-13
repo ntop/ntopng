@@ -730,7 +730,6 @@ void ZMQParserInterface::parseSingleFlow(json_object *o,
     /* Process Flow */
     iface->processFlow(&flow, true);
 
-#if ENABLE_EBPF_FLOWS_DISPATCH
     if(flow.process_info_set || flow.container_info_set || flow.tcp_info_set) {
       NetworkInterface * companion = getCompanion();
 
@@ -748,7 +747,6 @@ void ZMQParserInterface::parseSingleFlow(json_object *o,
       }
 
     }
-#endif
   }
 }
 

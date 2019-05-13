@@ -159,18 +159,6 @@ Ntop::Ntop(char *appName) {
 #ifndef WIN32
   setservent(1);
 #endif
-
-#ifdef HAVE_EBPF
-  if(getuid() == 0) {
-    ebpf = init_ebpf_flow(this, ebpfHandler, &rc, 0xFFFF);
-    
-    if(!ebpf)
-      ntop->getTrace()->traceEvent(TRACE_ERROR,
-				   "Unable to initialize libebpfflow: %s",
-				   ebpf_print_error(rc));
-  } else
-    ebpf = NULL;
-#endif
 }
 
 /* ******************************************* */
@@ -388,31 +376,6 @@ void Ntop::createExportInterface() {
     export_interface = NULL;
 #endif
 }
-
-/* ******************************************* */
-
-#ifdef HAVE_EBPF
- 
- void Ntop::pollEBPF() {
-   while((!ntop->getGlobals()->isShutdown())
-	 && (!ntop->getGlobals()->isShutdownRequested()))
-     ebpf_poll_event(ebpf, 100);
-
-   if(getuid() == 0)
-     term_ebpf_flow(ebpf);
- }
-
- /* ******************************************* */
- 
-static void* ebpfLoopFctn(void* ptr) {
-  Ntop *ntop = (Ntop*)ptr;
-  
-  Utils::setThreadName("ebpfLoop");
-
-  ntop->pollEBPF();
-  return(NULL);
-}
-#endif
 
 /* ******************************************* */
 
@@ -2285,26 +2248,6 @@ bool Ntop::addToNotifiedInformativeCaptivePortal(u_int32_t client_ip) {
 
   return true;
 }
-
-/* ******************************************* */
-
-#ifdef HAVE_EBPF
-void Ntop::deliverEventToInterfaces(eBPFevent *event) {
-  bool loopback_only = ((event->ip_version == 4) && (event->addr.v4.saddr ==  0x0100007f /* 127.0.0.1 */)) ? true : false;
- 
-  for(int i = 0; i < num_defined_interfaces; i++) {
-    bool pass;
-    
-    if(loopback_only)
-      pass = iface[i]->isLoopback() ? true : false;
-    else
-      pass = iface[i]->isLoopback() ? false : true;
-	
-    if(pass)
-      iface[i]->delivereBPFEvent(event);
-  }
-}
-#endif
 
 #endif
 

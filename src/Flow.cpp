@@ -3690,41 +3690,6 @@ void Flow::setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
 
 /* ***************************************************** */
 
-#ifdef HAVE_EBPF
-
-void Flow::setProcessInfo(eBPFevent *event, bool client_process) {
-  ProcessInfo **process_info = client_process ? &client_proc : &server_proc;
-
-  if(!*process_info)
-    *process_info = (ProcessInfo*)calloc(1, sizeof(ProcessInfo));
-  // else
-  //   memset(*process_info, 0, sizeof(ProcessInfo));
-
-  if(*process_info) {
-    struct taskInfo *proc, *father;
-    ProcessInfo *c = *process_info /* , *s */;
-
-    proc = (event->ip_version == 4)   ? &event->proc   : &event->proc;
-    father = (event->ip_version == 4) ? &event->father : &event->father;
-
-    c->pid = proc->tid ? proc->tid : proc->pid,
-      c->father_pid = father->tid ? father->tid : father->pid,
-      c->uid = proc->uid, c->gid = proc->gid,
-      //c->actual_memory = proc->actual_memory, c->peak_memory = proc->peak_memory,
-      c->father_uid = father->uid, c->father_gid = father->gid;
-
-    if(c->process_name) free(c->process_name);
-    c->process_name = strdup(proc->full_task_path ? proc->full_task_path : proc->task);
-    if(c->father_process_name) free(c->father_process_name);
-    c->father_process_name = strdup(father->full_task_path ? father->full_task_path : father->task);
-
-    /* TODO: handle latency_usec */
-  }
-}
-#endif
-
-/* ***************************************************** */
-
 void Flow::setParsedeBPFInfo(const ParsedeBPF * const ebpf, bool src2dst_direction) {
   if(!ebpf)
     return;
