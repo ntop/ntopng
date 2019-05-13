@@ -325,6 +325,13 @@ schema:addTag("category")
 schema:addMetric("bytes")
 
 -- ##############################################
+-- --WIP
+-- schema = ts_utils.newSchema("host:local_talkers", {step=300, metrics_type=ts_utils.metrics.gauge} ) 
+-- schema:addTag("ifid")
+-- schema:addTag("host")
+-- schema:addMetric("talkers")
+
+-- -- ##############################################
 
 -- NOTE: these are "virtual" schema, they do not correspond to actual timeseries
 schema = ts_utils.newSchema("local_senders", {step=300})

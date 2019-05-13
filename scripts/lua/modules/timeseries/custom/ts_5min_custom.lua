@@ -76,43 +76,29 @@ whereas the sum of ifstats.tcpPacketStats table fields retransmissions, out_of_o
 
 
 local ts_custom = {}
-
 local ts_utils = require "ts_utils_core"
-local matrix = interface.getArpStatsMatrixInfo()
 
 --(utility) inline if
--- local function in_if(cond, t, f)
--- 	if cond then return t else return f end
--- end 
+local function in_if(cond, t, f)
+	if cond then return t else return f end
+end 
 
 local function setup()
-    local schema
-    
-    schema = ts_utils.newSchema("host:arp_packets_counter", {step=300} ) -- andrà bene 300 che è anche il tempo di mantenimento di una cella della matrice arp?
-
+	local schema
+	--vedi graph_utils.lua linea 803 per l'unità di misura
+    schema = ts_utils.newSchema("host:num_local_talkers", {step=300, rrd_fname="num_local_talkers", metrics_type=ts_utils.metrics.gauge} ) 
     schema:addTag("ifid")
     schema:addTag("host")
-    --schema:addTag("mac")  --come tag cista, ma che valore passo per tale tag dentro la append()?
+	schema:addMetric("talkers")     
 
-    schema:addMetric("replies_sent_packets")
-    schema:addMetric("requests_sent_packets")
-    schema:addMetric("replies_received_packets")
-    schema:addMetric("requests_received_packets")
-
-    --aggiungo lo schema per il numero di talkers qui!? o serve un altro script?
-    --schema:addTag("talkers")
-    --schema:addMetric("talkers")
+    io.write("schema added\n")
 end
 
+local function create_host_data( hostname)
+	local cont = 0
+	local matrix = interface.getArpStatsMatrixInfo() --serve? 
 
---TODO: È UN WIP, FINISCILO!!!!!
-local function create_host_data(matrix)
-	local t_res = {}
-
-	if not matrix then
-		--TODO: popola tabella coi valori a 0, oppure nil?
-		return false
-	end
+	if not matrix then return 0	end
 
 	for _, m_elem in pairs(matrix) do
 		for i, stats in pairs(m_elem)do
@@ -120,87 +106,32 @@ local function create_host_data(matrix)
 			src_ip = tmp[1]
 			dst_ip = tmp[2]
 
-			if not t_res[src_ip] then    --il controllo serve solo per il dst2src
-                t_res[src_ip] = {          -- nuovo elemento
-                        pkts_snt = stats["src2dst.requests"] + stats["src2dst.replies"],
-                        pkts_rcvd = stats["dst2src.requests"] + stats["dst2src.replies"],
-                        talkers_num = 1
-                    }
-            else                        -- aggiorno a basta
-                t_res[src_ip].pkts_snt = t_res[src_ip].pkts_snt + stats["src2dst.requests"] + stats["src2dst.replies"]
-                t_res[src_ip].pkts_rcvd = t_res[src_ip].pkts_rcvd + stats["dst2src.requests"] + stats["dst2src.replies"]
-                t_res[src_ip].talkers_num = t_res[src_ip].talkers_num +1
-            end
-
-    --ORA IL DST2SRC
-
-            if not t_res[dst_ip] then 
-                t_res[dst_ip] = {          -- nuovo elemento
-                        pkts_rcvd = stats["src2dst.requests"] + stats["src2dst.replies"],
-                        pkts_snt = stats["dst2src.requests"] + stats["dst2src.replies"],
-                        talkers_num = 1
-                    }
-            else                        -- aggiorno a basta
-                t_res[dst_ip].pkts_snt = t_res[dst_ip].pkts_snt + stats["dst2src.requests"] + stats["dst2src.replies"]
-                t_res[dst_ip].pkts_rcvd = t_res[dst_ip].pkts_rcvd +  stats["src2dst.requests"] + stats["src2dst.replies"]
-                t_res[dst_ip].talkers_num = t_res[dst_ip].talkers_num +1
-            end
-
-		end --end main cicle
+			if src_ip == hostname or dst_ip == hostname then  
+                cont = cont + 1
+			end
+		
+		end
 	end     
 
-	return t_res
+	return cont
 end
-
---[[
-STRUTTURA DELLA (WIP)-TABELLA RESTITUITA DA creare_host_data():
-
-	>IP
-		>tot replies sent
-		>tot replies received
-		>tot requests sent
-		>tot requests received
-
-]]
-
 
 
 --TRY: ma devo chiamare setup() per ogni host!? o lo fa lui visto che c'è il campo hostname?
 function ts_custom.host_update_stats(when, hostname, host, ifstats, verbose)
+    --    io.write("\nhost_update_stats invoked\n")
+	--local info = interface.getMacInfo( interface.getHostInfo(hostname, nil)["mac"] )
+	local n = create_host_data( hostname ) 
 
-	--METODO 1: 
+	if n > 0 then io.write(hostname .. " -->\t \t" .. n .. "\n") end 
 
-	local info = interface.getMacInfo( interface.getHostInfo(hostname, nil)["mac"] )
+	ts_utils.append("host:num_local_talkers",
+		{ifid = ifstats.id, host = hostname,
 
-	-- if not info then 
-	-- 	info["arp_replies.sent"]  = 0
-	-- 	info["arp_requests.sent"] = 0
-	-- 	info["arp_replies.rcvd"]  = 0
-	-- 	info["arp_requests.rcvd"] = 0
-	-- end
-	tprint(info["arp_replies.sent"])
-	tprint(info["arp_requests.sent"])
-	tprint(info["arp_replies.rcvd"])
-	tprint(info["arp_requests.rcvd"])
+		talkers = n..""},
 
-	--METODO 2:
-		--uso la arp matrix e la funzione sopra
-	if info then 	
-
-		ts_utils.append("host:arp_packets_counter",
-			{	ifid = ifstats.id,
-				host = hostname,
-
-				--TODO: popola
-				replies_sent_packets 		= info["arp_replies.sent"] ,
-				requests_sent_packets 		= info["arp_requests.sent"],
-				replies_received_packets 	= info["arp_replies.rcvd"],
-				requests_received_packets 	= info["arp_requests.rcvd"],
-
-				when, verbose
-			}
-		)
-	end
+		when, verbose
+	)
 end
 
 setup()
