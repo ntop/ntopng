@@ -352,10 +352,8 @@ void NetworkInterface::init() {
      || is_dynamic_interface
      || isView())
     ;
-  else {
-    ebpfFlows = new (std::nothrow) ParsedFlow*[EBPF_QUEUE_LEN];
-    for(int i = 0; i < EBPF_QUEUE_LEN; i++) ebpfFlows[i] = NULL;
-  }
+  else
+    ebpfFlows = new (std::nothrow) ParsedFlow*[EBPF_QUEUE_LEN]();
   next_ebpf_insert_idx = next_ebpf_remove_idx = 0;
   
 
@@ -585,7 +583,7 @@ void NetworkInterface::deleteDataStructures() {
       if(ebpfFlows[i])
 	delete ebpfFlows[i];
 
-    delete ebpfFlows;
+    delete []ebpfFlows;
     ebpfFlows = NULL;
   }
 }
@@ -7606,7 +7604,7 @@ bool NetworkInterface::enqueueeBPFFlow(ParsedFlow * const pf, bool skip_loopback
   if(ebpfFlows[next_ebpf_insert_idx])
     return false;
 
-  if((ebpfFlows[next_ebpf_insert_idx] = new (std::nothrow)ParsedFlow(*pf))) {
+  if((ebpfFlows[next_ebpf_insert_idx] = new (std::nothrow) ParsedFlow(*pf))) {
     next_ebpf_insert_idx = (next_ebpf_insert_idx + 1) % EBPF_QUEUE_LEN;
     return true;
   }

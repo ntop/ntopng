@@ -47,12 +47,12 @@ ParsedeBPF::ParsedeBPF(const ParsedeBPF &pe) {
 
   if(pe.ifname) ifname = strdup(pe.ifname);
 
-  if(process_info_set) {
+  if((process_info_set = pe.process_info_set)) {
     if(process_info.process_name)        process_info.process_name = strdup(process_info.process_name);
     if(process_info.father_process_name) process_info.father_process_name = strdup(process_info.father_process_name);
   }
 
-  if(container_info_set) {
+  if((container_info_set = pe.container_info_set)) {
     if(container_info.id)   container_info.id = strdup(container_info.id);
     if(container_info.name) container_info.name = strdup(container_info.name);
 
@@ -63,7 +63,7 @@ ParsedeBPF::ParsedeBPF(const ParsedeBPF &pe) {
       ;
   }
 
-  if(tcp_info_set)
+  if((tcp_info_set = pe.tcp_info_set))
     ;
 
   /* Free memory if allocation is from a 'copy' constructor */
