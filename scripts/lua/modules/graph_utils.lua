@@ -376,11 +376,23 @@ function printSeries(options, tags, start_time, base_url, params)
    local needs_separator = false
    local separator_label = nil
    local batch_id_to_entry = {}
+   local device_timeseries_mac = options.device_timeseries_mac
+   local mac_tags = nil
+   local mac_params = nil
+   local mac_baseurl = ntop.getHttpPrefix() .. "/lua/mac_details.lua?page=historical"
 
    if params.tskey then
       -- this can contain a MAC address for local broadcast domain hosts
       tags = table.clone(tags)
       tags.host = params.tskey
+   end
+
+   if(device_timeseries_mac ~= nil) then
+      mac_tags = table.clone(tags)
+      mac_tags.host = nil
+      mac_tags.mac = device_timeseries_mac
+      mac_params = table.clone(params)
+      mac_params.host = device_timeseries_mac
    end
 
    for _, serie in ipairs(series) do
@@ -395,6 +407,10 @@ function printSeries(options, tags, start_time, base_url, params)
          local k = serie.schema
          local v = serie.label
          local exists = false
+         local entry_tags = tags
+         local entry_params = params
+         local entry_baseurl = base_url
+         local override_link = nil
 
          -- Contains the list of batch_ids to be associated to this menu entry.
          -- The entry can only be shown when all the batch_ids have been confirmed
@@ -426,8 +442,15 @@ function printSeries(options, tags, start_time, base_url, params)
                batch_ids[#batch_ids +1] = batch_id
             end
          elseif not exists then
+            if(mac_tags ~= nil) and (starts(k, "mac:")) then
+               -- This is a mac timeseries shown under the host
+               entry_tags = mac_tags
+               entry_params = mac_params
+               entry_baseurl = mac_baseurl
+            end
+
             -- only show if there has been an update within the specified time frame
-            local batch_id = ts_utils.batchListSeries(k, tags, start_time)
+            local batch_id = ts_utils.batchListSeries(k, entry_tags, start_time)
 
             if batch_id ~= nil then
                -- assume it exists for now, will verify in getBatchedListSeriesResult
@@ -437,8 +460,8 @@ function printSeries(options, tags, start_time, base_url, params)
          end
 
          if exists then
-            local entry = populateGraphMenuEntry(v, base_url, table.merge(params, {ts_schema=k}), nil,
-               needs_separator, separator_label, #batch_ids --[[ pending ]])
+            local entry = populateGraphMenuEntry(v, entry_baseurl, table.merge(entry_params, {ts_schema=k}), nil,
+               needs_separator, separator_label, #batch_ids --[[ pending ]], nil)
 
             if entry then
                for _, batch_id in pairs(batch_ids) do
@@ -1267,6 +1290,14 @@ function printCategoryDropdownButton(by_id, cat_id_or_name, base_url, page_param
 
    print('</ul></div>\', ')
    page_params["category"] = cat_id_or_name
+end
+
+-- #################################################
+
+function getDeviceCommonTimeseries()
+   return {
+      {schema="mac:arp_rqst_sent_rcvd_rpls", label=i18n("graphs.arp_rqst_sent_rcvd_rpls")},
+   }
 end
 
 -- #################################################

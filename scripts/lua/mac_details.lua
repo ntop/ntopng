@@ -400,10 +400,9 @@ elseif(page == "historical") then
 
    drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
       top_categories = "top:mac:ndpi_categories",
-      timeseries = {
+      timeseries = table.merge({
          {schema="mac:traffic",                 label=i18n("traffic")},
-         {schema="mac:arp_rqst_sent_rcvd_rpls", label=i18n("graphs.arp_rqst_sent_rcvd_rpls")},
-      }
+      }, getDeviceCommonTimeseries())
    })
 
 elseif(page == "config") then
