@@ -731,14 +731,14 @@ void ZMQParserInterface::parseSingleFlow(json_object *o,
     iface->processFlow(&flow, true);
 
 #if ENABLE_EBPF_FLOWS_DISPATCH
-    if(flow.ebpf.process_info_set || flow.ebpf.container_info_set || flow.ebpf.tcp_info_set) {
+    if(flow.process_info_set || flow.container_info_set || flow.tcp_info_set) {
       NetworkInterface * companion = getCompanion();
 
       if(companion && companion->isTrafficMirrored())
 	companion->enqueueeBPFFlow(&flow, true /* Skip loopback traffic */);
 
-      if(flow.ebpf.ifname) {
-	NetworkInterface * matching_interface = ntop->getNetworkInterface(NULL, flow.ebpf.ifname);
+      if(flow.ifname) {
+	NetworkInterface * matching_interface = ntop->getNetworkInterface(NULL, flow.ifname);
 
 	if(matching_interface
 	   && matching_interface->isPacketInterface()

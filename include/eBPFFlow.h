@@ -24,9 +24,7 @@
 
 #include "ntop_includes.h"
 
-class ParsedFlow;
-
-class eBPFFlow : ParsedFlowCore {
+class eBPFFlow : public ParsedFlowCore, public ParsedeBPF {
  private:
   IpAddress src_ip, dst_ip;
   Parsed_eBPF ebpf;

@@ -25,13 +25,17 @@
 #include "ntop_includes.h"
 
 class ParsedFlow : public ParsedFlowCore, public ParsedeBPF {
+ private:
+  bool parsed_flow_free_memory;
+
  public:
   json_object *additional_fields;
   char *http_url, *http_site, *dns_query, *ssl_server_name, *bittorrent_hash;
   custom_app_t custom_app;
 
   ParsedFlow();
-  ~ParsedFlow();
+  ParsedFlow(const ParsedFlow &pf);
+  virtual ~ParsedFlow();
 };
 
 #endif /* _PARSED_FLOW_H_ */

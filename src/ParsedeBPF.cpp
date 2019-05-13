@@ -32,15 +32,69 @@ ParsedeBPF::ParsedeBPF() {
   memset(&process_info, 0, sizeof(process_info)),
     memset(&container_info, 0, sizeof(container_info)),
     memset(&tcp_info, 0, sizeof(tcp_info));
+
+  free_memory = false;
 }
 /* *************************************** */
 
 ParsedeBPF::ParsedeBPF(const ParsedeBPF &pe) {
+  ifname = NULL;
+  memcpy(&process_info, &pe.process_info, sizeof(process_info)),
+    memcpy(&container_info, &pe.container_info, sizeof(container_info)),
+    memcpy(&tcp_info, &pe.tcp_info, sizeof(tcp_info));
+
+  event_type = pe.event_type;
+
+  if(pe.ifname) ifname = strdup(pe.ifname);
+
+  if(process_info_set) {
+    if(process_info.process_name)        process_info.process_name = strdup(process_info.process_name);
+    if(process_info.father_process_name) process_info.father_process_name = strdup(process_info.father_process_name);
+  }
+
+  if(container_info_set) {
+    if(container_info.id)   container_info.id = strdup(container_info.id);
+    if(container_info.name) container_info.name = strdup(container_info.name);
+
+    if(container_info.data_type == container_info_data_type_k8s) {
+      if(container_info.data.k8s.pod) container_info.data.k8s.pod = strdup(container_info.data.k8s.pod);
+      if(container_info.data.k8s.ns)  container_info.data.k8s.ns = strdup(container_info.data.k8s.ns);
+    } else if(container_info.data_type == container_info_data_type_docker)
+      ;
+  }
+
+  if(tcp_info_set)
+    ;
+
+  /* Free memory if allocation is from a 'copy' constructor */
+  free_memory = true;
 }
 
 /* *************************************** */
 
 ParsedeBPF::~ParsedeBPF() {
+  if(free_memory) {
+    if(ifname) free(ifname);
+
+    if(process_info_set) {
+      if(process_info.process_name)        free(process_info.process_name);
+      if(process_info.father_process_name) free(process_info.father_process_name);
+    }
+
+    if(container_info_set) {
+      if(container_info.id)   free(container_info.id);
+      if(container_info.name) free(container_info.name);
+
+      if(container_info.data_type == container_info_data_type_k8s) {
+	if(container_info.data.k8s.pod) free(container_info.data.k8s.pod);
+	if(container_info.data.k8s.ns)  free(container_info.data.k8s.ns);
+      } else if(container_info.data_type == container_info_data_type_docker)
+	;
+    }
+
+    if(tcp_info_set)
+    ;
+  }
 }
 
 /* *************************************** */

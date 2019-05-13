@@ -192,9 +192,9 @@ using namespace std;
 #include "GenericTrafficElement.h"
 #include "ContainerStats.h"
 #include "ParsedFlowCore.h"
-#include "eBPFFlow.h"
 #include "ParsedeBPF.h"
 #include "ParsedFlow.h"
+#include "eBPFFlow.h"
 #ifdef HAVE_EBPF
 #include "ebpf_flow.h"
 #endif

@@ -25,6 +25,9 @@
 #include "ntop_includes.h"
 
 class ParsedeBPF {
+ private:
+  bool free_memory;
+
  public:
   ProcessInfo process_info;
   ContainerInfo container_info;
@@ -35,7 +38,7 @@ class ParsedeBPF {
 
   ParsedeBPF();
   ParsedeBPF(const ParsedeBPF &pe);
-  ~ParsedeBPF();
+  virtual ~ParsedeBPF();
 
   void print();
 };

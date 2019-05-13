@@ -48,7 +48,7 @@ class ParsedFlowCore {
 
   ParsedFlowCore();
   ParsedFlowCore(const ParsedFlowCore &pfc);
-  ~ParsedFlowCore();
+  virtual ~ParsedFlowCore();
 
 
   void print();

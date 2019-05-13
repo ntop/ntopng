@@ -31,10 +31,37 @@ ParsedFlow::ParsedFlow() : ParsedFlowCore(), ParsedeBPF() {
   bittorrent_hash = NULL;
   memset(&custom_app, 0, sizeof(custom_app));
   additional_fields = json_object_new_object();
+
+  parsed_flow_free_memory = false;
+}
+
+/* *************************************** */
+
+ParsedFlow::ParsedFlow(const ParsedFlow &pf) : ParsedFlowCore(pf), ParsedeBPF(pf) {
+  additional_fields = json_object_get(pf.additional_fields);
+
+  if(pf.http_url)  http_url = strdup(pf.http_url); else http_url = NULL;
+  if(pf.http_site) http_site = strdup(pf.http_site); else http_site = NULL;
+  if(pf.dns_query) dns_query = strdup(pf.dns_query); else dns_query = NULL;
+  if(pf.ssl_server_name) ssl_server_name = strdup(pf.ssl_server_name); else ssl_server_name = NULL;
+  if(pf.bittorrent_hash) bittorrent_hash = strdup(pf.bittorrent_hash); else bittorrent_hash = NULL;
+
+  memcpy(&custom_app, &pf.custom_app, sizeof(custom_app));
+
+  parsed_flow_free_memory = true;
 }
 
 /* *************************************** */
 
 ParsedFlow::~ParsedFlow() {
+  /* Always decrease the ref counter */
   json_object_put(additional_fields);
+
+  if(parsed_flow_free_memory) {
+    if(http_url)  free(http_url);
+    if(http_site) free(http_site);
+    if(dns_query) free(dns_query);
+    if(ssl_server_name) free(ssl_server_name);
+    if(bittorrent_hash) free(bittorrent_hash);
+  }
 }

@@ -23,21 +23,25 @@
 
 /* *************************************** */
 
-eBPFFlow::eBPFFlow(ParsedFlow * const pf) : ParsedFlowCore() {
-  if(ebpf.process_info_set) {
-    if(ebpf.process_info.process_name)        ebpf.process_info.process_name = strdup(ebpf.process_info.process_name);
-    if(ebpf.process_info.father_process_name) ebpf.process_info.father_process_name = strdup(ebpf.process_info.father_process_name);
+eBPFFlow::eBPFFlow(ParsedFlow * const pf) : ParsedFlowCore(), ParsedeBPF() {
+  if((process_info_set = pf->process_info_set)) {
+    if(pf->process_info.process_name)        pf->process_info.process_name = strdup(pf->process_info.process_name);
+    if(pf->process_info.father_process_name) pf->process_info.father_process_name = strdup(pf->process_info.father_process_name);
   }
 
-  if(ebpf.container_info_set) {
-    if(ebpf.container_info.id)   ebpf.container_info.id = strdup(ebpf.container_info.id);
-    if(ebpf.container_info.name) ebpf.container_info.name = strdup(ebpf.container_info.name);
+  if((container_info_set = pf->container_info_set)) {
+    if(pf->container_info.id)   pf->container_info.id = strdup(pf->container_info.id);
+    if(pf->container_info.name) pf->container_info.name = strdup(pf->container_info.name);
 
-    if(ebpf.container_info.data_type == container_info_data_type_k8s) {
-      if(ebpf.container_info.data.k8s.pod) ebpf.container_info.data.k8s.pod = strdup(ebpf.container_info.data.k8s.pod);
-      if(ebpf.container_info.data.k8s.ns)  ebpf.container_info.data.k8s.ns = strdup(ebpf.container_info.data.k8s.ns);
-    } else if(ebpf.container_info.data_type == container_info_data_type_docker)
+    if(pf->container_info.data_type == container_info_data_type_k8s) {
+      if(pf->container_info.data.k8s.pod) pf->container_info.data.k8s.pod = strdup(pf->container_info.data.k8s.pod);
+      if(pf->container_info.data.k8s.ns)  pf->container_info.data.k8s.ns = strdup(pf->container_info.data.k8s.ns);
+    } else if(pf->container_info.data_type == container_info_data_type_docker)
       ;
+  }
+
+  if((tcp_info_set = pf->tcp_info_set)) {
+    memcpy(&tcp_info, &pf->tcp_info, sizeof(tcp_info));
   }
 }
 
