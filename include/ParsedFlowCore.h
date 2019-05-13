@@ -46,8 +46,10 @@ class ParsedFlowCore {
     float applLatencyMsec;
   } tcp;
 
-  ~ParsedFlowCore();
   ParsedFlowCore();
+  ParsedFlowCore(const ParsedFlowCore &pfc);
+  virtual ~ParsedFlowCore();
+
 
   void print();
 };

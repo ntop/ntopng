@@ -539,75 +539,75 @@ bool ZMQParserInterface::parseNProbeMiniField(ParsedFlow * const flow, const cha
     flow->dst_port = htons(atoi(value));
     ret = true;
   } else if(!strncmp(key, "IF_NAME", 7) && strlen(key) == 7) {
-    flow->ebpf.ifname = (char*)json_object_get_string(jvalue);
+    flow->ifname = (char*)json_object_get_string(jvalue);
     ret = true;
   } else if(strlen(key) >= 14 && !strncmp(&key[strlen(key) - 14], "FATHER_PROCESS", 14)) {
-    if(json_object_object_get_ex(jvalue, "PID", &obj))   flow->ebpf.process_info.father_pid = (u_int32_t)json_object_get_int64(obj);
-    if(json_object_object_get_ex(jvalue, "UID", &obj))      flow->ebpf.process_info.father_uid = (u_int32_t)json_object_get_int64(obj);
-    if(json_object_object_get_ex(jvalue, "GID", &obj))     flow->ebpf.process_info.father_gid = (u_int32_t)json_object_get_int64(obj);
-    if(json_object_object_get_ex(jvalue, "VM_SIZE", &obj))     flow->ebpf.process_info.actual_memory = (u_int32_t)json_object_get_int64(obj);
-    if(json_object_object_get_ex(jvalue, "VM_PEAK", &obj))     flow->ebpf.process_info.peak_memory = (u_int32_t)json_object_get_int64(obj);
-    if(json_object_object_get_ex(jvalue, "PROCESS_PATH", &obj)) flow->ebpf.process_info.father_process_name = (char*)json_object_get_string(obj);
-    if(!flow->ebpf.process_info_set) flow->ebpf.process_info_set = true;
+    if(json_object_object_get_ex(jvalue, "PID", &obj))   flow->process_info.father_pid = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "UID", &obj))      flow->process_info.father_uid = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "GID", &obj))     flow->process_info.father_gid = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "VM_SIZE", &obj))     flow->process_info.actual_memory = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "VM_PEAK", &obj))     flow->process_info.peak_memory = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "PROCESS_PATH", &obj)) flow->process_info.father_process_name = (char*)json_object_get_string(obj);
+    if(!flow->process_info_set) flow->process_info_set = true;
     ret = true;
 
     // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Father Process [pid: %u][uid: %u][gid: %u][path: %s]",
-    //					 flow->ebpf.process_info.father_pid, flow->ebpf.process_info.father_uid,
-    //				 flow->ebpf.process_info.father_gid,
-    //				 flow->ebpf.process_info.father_process_name);
+    //					 flow->process_info.father_pid, flow->process_info.father_uid,
+    //				 flow->process_info.father_gid,
+    //				 flow->process_info.father_process_name);
   } else if(strlen(key) >= 7 && !strncmp(&key[strlen(key) - 7], "PROCESS", 7)) {
-    if(json_object_object_get_ex(jvalue, "PID", &obj))   flow->ebpf.process_info.pid = (u_int32_t)json_object_get_int64(obj);
-    if(json_object_object_get_ex(jvalue, "UID", &obj))      flow->ebpf.process_info.uid = (u_int32_t)json_object_get_int64(obj);
-    if(json_object_object_get_ex(jvalue, "GID", &obj))     flow->ebpf.process_info.gid = (u_int32_t)json_object_get_int64(obj);
-    if(json_object_object_get_ex(jvalue, "VM_SIZE", &obj))     flow->ebpf.process_info.actual_memory = (u_int32_t)json_object_get_int64(obj);
-    if(json_object_object_get_ex(jvalue, "VM_PEAK", &obj))     flow->ebpf.process_info.peak_memory = (u_int32_t)json_object_get_int64(obj);
-    if(json_object_object_get_ex(jvalue, "PROCESS_PATH", &obj)) flow->ebpf.process_info.process_name = (char*)json_object_get_string(obj);
-    if(!flow->ebpf.process_info_set) flow->ebpf.process_info_set = true;
+    if(json_object_object_get_ex(jvalue, "PID", &obj))   flow->process_info.pid = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "UID", &obj))      flow->process_info.uid = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "GID", &obj))     flow->process_info.gid = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "VM_SIZE", &obj))     flow->process_info.actual_memory = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "VM_PEAK", &obj))     flow->process_info.peak_memory = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "PROCESS_PATH", &obj)) flow->process_info.process_name = (char*)json_object_get_string(obj);
+    if(!flow->process_info_set) flow->process_info_set = true;
     ret = true;
 
     // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Process [pid: %u][uid: %u][gid: %u][size/peak vm: %u/%u][path: %s]",
-    //				 flow->ebpf.process_info.pid, flow->ebpf.process_info.uid, flow->ebpf.process_info.gid,
-    //				 flow->ebpf.process_info.actual_memory, flow->ebpf.process_info.peak_memory,
-    //				 flow->ebpf.process_info.process_name);
+    //				 flow->process_info.pid, flow->process_info.uid, flow->process_info.gid,
+    //				 flow->process_info.actual_memory, flow->process_info.peak_memory,
+    //				 flow->process_info.process_name);
   } else if(strlen(key) >= 9 && !strncmp(&key[strlen(key) - 9], "CONTAINER", 9)) {
-    if((ret = parseContainerInfo(jvalue, &flow->ebpf.container_info)))
-      flow->ebpf.container_info_set = true;
+    if((ret = parseContainerInfo(jvalue, &flow->container_info)))
+      flow->container_info_set = true;
   } else if(!strncmp(key, "TCP", 3) && strlen(key) == 3) {
-    if(json_object_object_get_ex(jvalue, "CONN_STATE", &obj))     flow->ebpf.tcp_info.conn_state = Utils::tcpStateStr2State(json_object_get_string(obj));
+    if(json_object_object_get_ex(jvalue, "CONN_STATE", &obj))     flow->tcp_info.conn_state = Utils::tcpStateStr2State(json_object_get_string(obj));
 
-    if(json_object_object_get_ex(jvalue, "SEGS_IN", &obj))        flow->ebpf.tcp_info.in_segs = (u_int32_t)json_object_get_int64(obj);
-    if(json_object_object_get_ex(jvalue, "SEGS_OUT", &obj))       flow->ebpf.tcp_info.out_segs = (u_int32_t)json_object_get_int64(obj);
-    if(json_object_object_get_ex(jvalue, "UNACK_SEGMENTS", &obj)) flow->ebpf.tcp_info.unacked_segs = (u_int32_t)json_object_get_int64(obj);
-    if(json_object_object_get_ex(jvalue, "RETRAN_PKTS", &obj))    flow->ebpf.tcp_info.retx_pkts = (u_int32_t)json_object_get_int64(obj);
-    if(json_object_object_get_ex(jvalue, "LOST_PKTS", &obj))      flow->ebpf.tcp_info.lost_pkts = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "SEGS_IN", &obj))        flow->tcp_info.in_segs = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "SEGS_OUT", &obj))       flow->tcp_info.out_segs = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "UNACK_SEGMENTS", &obj)) flow->tcp_info.unacked_segs = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "RETRAN_PKTS", &obj))    flow->tcp_info.retx_pkts = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "LOST_PKTS", &obj))      flow->tcp_info.lost_pkts = (u_int32_t)json_object_get_int64(obj);
 
-    if(json_object_object_get_ex(jvalue, "RTT", &obj))            flow->ebpf.tcp_info.rtt = json_object_get_double(obj);
-    if(json_object_object_get_ex(jvalue, "RTT_VARIANCE", &obj))   flow->ebpf.tcp_info.rtt_var = json_object_get_double(obj);
+    if(json_object_object_get_ex(jvalue, "RTT", &obj))            flow->tcp_info.rtt = json_object_get_double(obj);
+    if(json_object_object_get_ex(jvalue, "RTT_VARIANCE", &obj))   flow->tcp_info.rtt_var = json_object_get_double(obj);
 
     if(json_object_object_get_ex(jvalue, "BYTES_RCVD", &obj))
-      flow->out_bytes = flow->ebpf.tcp_info.rcvd_bytes = (u_int32_t)json_object_get_int64(obj);
+      flow->out_bytes = flow->tcp_info.rcvd_bytes = (u_int32_t)json_object_get_int64(obj);
 
-    if(!flow->ebpf.tcp_info_set) flow->ebpf.tcp_info_set = true;
+    if(!flow->tcp_info_set) flow->tcp_info_set = true;
     flow->absolute_packet_octet_counters = true;
     ret = true;
 
     // ntop->getTrace()->traceEvent(TRACE_NORMAL, "TCP INFO [conn state: %s][rcvd_bytes: %u][retx_pkts: %u][lost_pkts: %u]"
     //				 "[in_segs: %u][out_segs: %u][unacked_segs: %u]"
     //				 "[rtt: %f][rtt_var: %f]",
-    //				 Utils::tcpState2StateStr(flow->ebpf.tcp_info.conn_state),
-    //				 flow->ebpf.tcp_info.rcvd_bytes,
-    //				 flow->ebpf.tcp_info.retx_pkts,
-    //				 flow->ebpf.tcp_info.lost_pkts,
-    //				 flow->ebpf.tcp_info.in_segs,
-    //				 flow->ebpf.tcp_info.out_segs,
-    //				 flow->ebpf.tcp_info.unacked_segs,
-    //				 flow->ebpf.tcp_info.rtt,
-    //				 flow->ebpf.tcp_info.rtt_var);
+    //				 Utils::tcpState2StateStr(flow->tcp_info.conn_state),
+    //				 flow->tcp_info.rcvd_bytes,
+    //				 flow->tcp_info.retx_pkts,
+    //				 flow->tcp_info.lost_pkts,
+    //				 flow->tcp_info.in_segs,
+    //				 flow->tcp_info.out_segs,
+    //				 flow->tcp_info.unacked_segs,
+    //				 flow->tcp_info.rtt,
+    //				 flow->tcp_info.rtt_var);
   } else if((!strncmp(key, "TCP_EVENT_TYPE", 14) && strlen(key) == 14)
 	    || (!strncmp(key, "UDP_EVENT_TYPE", 14) && strlen(key) == 14)) {
-    flow->ebpf.event_type = Utils::eBPFEventStr2Event(value);
+    flow->event_type = Utils::eBPFEventStr2Event(value);
 
-    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Event Type [type: %s]", Utils::eBPFEvent2EventStr(flow->ebpf.event_type));
+    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Event Type [type: %s]", Utils::eBPFEvent2EventStr(flow->event_type));
   }
 
   return ret;
@@ -731,14 +731,14 @@ void ZMQParserInterface::parseSingleFlow(json_object *o,
     iface->processFlow(&flow, true);
 
 #if ENABLE_EBPF_FLOWS_DISPATCH
-    if(flow.ebpf.process_info_set || flow.ebpf.container_info_set || flow.ebpf.tcp_info_set) {
+    if(flow.process_info_set || flow.container_info_set || flow.tcp_info_set) {
       NetworkInterface * companion = getCompanion();
 
       if(companion && companion->isTrafficMirrored())
 	companion->enqueueeBPFFlow(&flow, true /* Skip loopback traffic */);
 
-      if(flow.ebpf.ifname) {
-	NetworkInterface * matching_interface = ntop->getNetworkInterface(NULL, flow.ebpf.ifname);
+      if(flow.ifname) {
+	NetworkInterface * matching_interface = ntop->getNetworkInterface(NULL, flow.ifname);
 
 	if(matching_interface
 	   && matching_interface->isPacketInterface()
