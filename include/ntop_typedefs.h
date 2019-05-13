@@ -245,15 +245,6 @@ typedef struct {
   double rtt, rtt_var;
 } TcpInfo;
 
-typedef struct zmq_flow_ebpf {
-  ProcessInfo process_info;
-  ContainerInfo container_info;
-  TcpInfo tcp_info;
-  eBPFEventType event_type;
-  char *ifname;
-  bool process_info_set, container_info_set, tcp_info_set;
-} Parsed_eBPF;
-
 /* Handle vendor-proprietary applications.
    Must stay with 32-bit integers as, at least sonicwall, uses
    32-bit application ids. */
