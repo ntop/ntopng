@@ -2582,9 +2582,10 @@ end
 
 function formatLongLivedFlowAlert(flowstatus_info)
    local threshold = ""
+   local res = i18n("flow_details.longlived_flow")
 
    if not flowstatus_info then
-      return i18n("flow_details.longlived_flow")
+      return res
    end
 
    if flowstatus_info["longlived.threshold"] then
