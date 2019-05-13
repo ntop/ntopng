@@ -50,4 +50,3 @@ callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, functio
       ts_utils.append("iface:dropped_flows", {ifid=ifstats.id, num_flows=ifstats.stats.flow_export_drops}, when)
    end
 end, true --[[ get direction stats ]])
-os.execute('perl -e "select(undef,undef,undef,0.1);"')
