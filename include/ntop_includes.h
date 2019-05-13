@@ -151,10 +151,6 @@ extern "C" {
 #endif
 };
 
-#ifdef HAVE_EBPF
-#include "ebpf_flow.h"
-#endif
-
 #include <fstream>
 #include <map>
 #include <set>
@@ -195,6 +191,12 @@ using namespace std;
 #endif
 #include "GenericTrafficElement.h"
 #include "ContainerStats.h"
+#include "ParsedFlowCore.h"
+#include "eBPFFlow.h"
+#include "ParsedFlow.h"
+#ifdef HAVE_EBPF
+#include "ebpf_flow.h"
+#endif
 
 #ifdef NTOPNG_PRO
 #include "Profile.h"

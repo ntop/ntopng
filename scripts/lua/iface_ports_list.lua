@@ -24,7 +24,7 @@ function fill_ports_array(field_key, flows_stats, host)
         if(ports_array[p] == nil) then ports_array[p] = 0 end
         ports_array[p] = ports_array[p] + flows_stats[key]["bytes"]
       end
-    end
+    endo
     return ports_array
 end
 
@@ -33,7 +33,12 @@ if (host == nil) then
 else
  flows_stats = interface.getFlowsInfo(host)
 end
-flows_stats = flows_stats["flows"]
+
+if(flows_stats == nil) then
+   flows_stats = {}
+else
+   flows_stats = flows_stats["flows"]
+end
 
 client_ports = fill_ports_array("cli", flows_stats, host)
 server_ports = fill_ports_array("srv", flows_stats, host)

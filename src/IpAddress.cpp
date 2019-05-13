@@ -33,13 +33,13 @@ IpAddress::IpAddress() {
 
 void IpAddress::set(const char * const sym_addr) {
   if(strchr(sym_addr, '.')) {
-    addr.ipVersion = 4, addr.localHost = 0, addr.ipType.ipv4 = inet_addr(sym_addr);
+    addr.ipVersion = 4, addr.ipType.ipv4 = inet_addr(sym_addr);
   } else {
     if(inet_pton(AF_INET6, sym_addr, &addr.ipType.ipv6) <= 0) {
       /* We failed */
-      addr.ipVersion = 4, addr.localHost = 0, addr.ipType.ipv4 = 0;
+      addr.ipVersion = 4, addr.ipType.ipv4 = 0;
     } else {
-      addr.ipVersion = 6, addr.localHost = 0;
+      addr.ipVersion = 6;
     }
   }
 
@@ -50,12 +50,12 @@ void IpAddress::set(const char * const sym_addr) {
 
 void IpAddress::set(union usa *ip) {
   if(ip->sin.sin_family != AF_INET6) {
-    addr.ipVersion = 4, addr.localHost = 0, addr.ipType.ipv4 = ip->sin.sin_addr.s_addr;
+    addr.ipVersion = 4, addr.ipType.ipv4 = ip->sin.sin_addr.s_addr;
   }
 #if defined(USE_IPV6)
   else {
     memcpy(&addr.ipType.ipv6, &ip->sin6.sin6_addr.s6_addr, sizeof(struct ndpi_in6_addr));
-    addr.ipVersion = 6, addr.localHost = 0;
+    addr.ipVersion = 6;
   }
 #endif
 }
@@ -85,6 +85,8 @@ void IpAddress::checkIP() {
   addr.privateIP = false; /* Default */
 
   if(addr.ipVersion == 4) {
+    addr.loopbackIP = addr.ipType.ipv4 == 0x0100007F /* 127.0.0.1 */ ? true : false;
+
     /*
       RFC 1918 - Private Address Space
 
@@ -117,6 +119,8 @@ void IpAddress::checkIP() {
       }
     }
   } else if (addr.ipVersion == 6) {
+    addr.loopbackIP = false; /* TODO: compute loopback for IPv6 */
+
     /*
      * https://tools.ietf.org/html/rfc2373#section-2.7
      *
@@ -284,7 +288,6 @@ json_object* IpAddress::getJSONObject() {
   my_object = json_object_new_object();
 
   json_object_object_add(my_object, "ipVersion", json_object_new_int(addr.ipVersion));
-  json_object_object_add(my_object, "localHost", json_object_new_boolean(addr.localHost));
   json_object_object_add(my_object, "ip", json_object_new_string(print(buf, sizeof(buf))));
 
   return(my_object);

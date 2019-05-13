@@ -26,7 +26,7 @@
 
 class ContainerStats {
  private:
-  std::set<const char *, cmp_str> containers;
+  std::set<std::string> containers;
   u_int32_t num_flows_as_client, num_flows_as_server;
   double tot_rtt_as_client, tot_rtt_variance_as_client;
   double tot_rtt_as_server, tot_rtt_variance_as_server;
@@ -34,7 +34,7 @@ class ContainerStats {
  public:
   ContainerStats();
 
-  inline void addContainer(const char *container_id )       { containers.insert(container_id); }
+  inline void addContainer(std::string container_id)        { containers.insert(container_id); }
   inline u_int32_t getNumContainers()                       { return(containers.size()); }
   inline void incNumFlowsAsClient()                         { num_flows_as_client++; }
   inline void incNumFlowsAsServer()                         { num_flows_as_server++; }

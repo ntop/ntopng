@@ -95,10 +95,15 @@ for key in pairsByValues(sort_to_key, sOrder) do
       .."<span class='label label-info'>"..i18n("flows").."</span>"
       .."</a>"
 
+   local num_containers = pod["num_containers"]
+   if num_containers > 0 then
+      num_containers = '<a href="'.. ntop.getHttpPrefix() ..'/lua/containers_stats.lua?pod='..key..'">' .. pod["num_containers"] .. '</a>'
+   end
+
     res[#res + 1] = {
       column_info = column_info,
       column_pod = key,
-      column_num_containers = '<a href="'.. ntop.getHttpPrefix() ..'/lua/containers_stats.lua?pod='..key..'">' .. pod["num_containers"] .. '</a>',
+      column_num_containers = num_containers,
       column_num_flows_as_client = pod["num_flows.as_client"],
       column_num_flows_as_server = pod["num_flows.as_server"],
       column_avg_rtt_as_client = format_utils.formatMillis(pod["rtt_as_client"]),

@@ -101,6 +101,10 @@ class Flow : public GenericHashEntry {
       u_int certificate_leftover;
       bool dissect_certificate;
       bool subject_alt_name_match;
+      struct {
+	/* https://engineering.salesforce.com/tls-fingerprinting-with-ja3-and-ja3s-247362855967 */
+	char *client_hash, *server_hash;
+      } ja3;
     } ssl;
 
     struct {
@@ -500,7 +504,7 @@ class Flow : public GenericHashEntry {
 #ifdef HAVE_EBPF
   void setProcessInfo(eBPFevent *event, bool client_process);
 #endif
-  void setParsedeBPFInfo(const Parsed_eBPF * const ebpf, bool client_process);
+  void setParsedeBPFInfo(const Parsed_eBPF * const ebpf, bool src2dst_direction);
   inline ContainerInfo* getClientContainerInfo()  { return(client_cont); }
   inline ContainerInfo* getServerContainerInfo()  { return(server_cont); }
   inline ProcessInfo*   getClientProcessInfo()    { return(client_proc); }

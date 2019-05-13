@@ -5,7 +5,8 @@
 local dirs = ntop.getDirs()
 require "lua_utils"
 
-local companion_interface_key = "ntopng.prefs.companion_interface.ifid_%d.companion"
+local companion_interface_prefix = "ntopng.prefs.companion_interface."
+local companion_interface_key = string.format("%s%s", companion_interface_prefix, "ifid_%d.companion")
 
 local companion_interface_utils = {}
 
@@ -46,7 +47,7 @@ function companion_interface_utils.setCompanion(ifid, companion_ifid)
       end
    end
 
-   -- TODO: reload companion
+   interface.reloadCompanion(ifid)
 end
 
 function companion_interface_utils.getAvailableCompanions()
@@ -55,7 +56,10 @@ function companion_interface_utils.getAvailableCompanions()
 
    local res = { {ifid = "", ifname = "None"} }
    for ifid, ifname in pairs(ifaces) do
-      if cur_ifid ~= tonumber(ifid) then
+      local is_mirrored_traffic_pref = string.format("ntopng.prefs.ifid_%d.is_traffic_mirrored", ifid)
+      local is_mirrored_traffic = ntop.getPref(is_mirrored_traffic_pref)
+
+      if cur_ifid ~= tonumber(ifid) and is_mirrored_traffic == "1" then
 	 res[#res + 1] = {ifid = ifid, ifname = ifname}
       end
    end

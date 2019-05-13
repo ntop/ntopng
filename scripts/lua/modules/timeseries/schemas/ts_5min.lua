@@ -322,7 +322,8 @@ schema = ts_utils.newSchema("host:ndpi_categories", {step=300})
 schema:addTag("ifid")
 schema:addTag("host")
 schema:addTag("category")
-schema:addMetric("bytes")
+schema:addMetric("bytes_sent")
+schema:addMetric("bytes_rcvd")
 
 -- ##############################################
 -- --WIP

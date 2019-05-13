@@ -32,6 +32,14 @@ local discover = require("discover_utils")
 local json = require ("dkjson")
 local page_utils = require("page_utils")
 
+local function ja3url(what)
+   if(what == nil) then
+      print("&nbsp;")
+   else
+      print('<A HREF="https://sslbl.abuse.ch/ja3-fingerprints/'..what..'/">'..what..'</A> <i class="fa fa-external-link"></i>')
+   end
+end
+
 sendHTTPContentTypeHeader('text/html')
 
 page_utils.print_header(i18n("flow_details.flow_details"))
@@ -476,7 +484,7 @@ else
    end
 
    if(flow["tcp.appl_latency"] ~= nil and flow["tcp.appl_latency"] > 0) then
-   print("<tr><th width=30%>"..i18n("flow_details.application_latency").."</th><td colspan=2>"..msToTime(flow["tcp.appl_latency"]).."</td></tr>\n")
+      print("<tr><th width=30%>"..i18n("flow_details.application_latency").."</th><td colspan=2>"..msToTime(flow["tcp.appl_latency"]).."</td></tr>\n")
    end
 
     if(not string.starts(ifname, "nf:")) then
@@ -543,6 +551,14 @@ else
       end
       print("</td>")
       print("</tr>\n")
+   end
+
+   if((flow["protos.ssl.ja3.client_hash"] ~= nil) or (flow["protos.ssl.ja3.server_hash"] ~= nil)) then
+      print('<tr><th width=30%><A HREF="https://github.com/salesforce/ja3">JA3</A></th><td>')
+      ja3url(flow["protos.ssl.ja3.client_hash"])
+      print("</td><td>")
+      ja3url(flow["protos.ssl.ja3.server_hash"])
+      print("</td></tr>")
    end
 
    if((flow["tcp.max_thpt.cli2srv"] ~= nil) and (flow["tcp.max_thpt.cli2srv"] > 0)) then

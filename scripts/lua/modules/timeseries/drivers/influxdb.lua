@@ -1048,7 +1048,7 @@ function driver:getDiskUsage()
   local query = 'select SUM(last) FROM (select LAST(diskBytes) FROM "monitor"."shard" where "database" = \''.. self.db ..'\' group by id)'
   local data = influx_query(self.url .. "/query?db=_internal", query, self.username, self.password)
 
-  if data and data.series[1] and data.series[1].values[1] then
+  if data and data.series and data.series[1] and data.series[1].values[1] then
     return data.series[1].values[1][2]
   end
 
@@ -1331,9 +1331,10 @@ function driver:setup(ts_utils)
   ts_utils.loadSchemas()
   local schemas = ts_utils.getLoadedSchemas()
 
-  -- TODO Temporary fix for schema change, remove in next stable
-  queries[#queries + 1] = 'DROP CONTINUOUS QUERY "host:contacts__1h" ON ' .. self.db
-  queries[#queries + 1] = 'DROP CONTINUOUS QUERY "host:contacts__1d" ON ' .. self.db
+  for _, schema in pairs(ts_utils.getPossiblyChangedSchemas()) do
+    queries[#queries + 1] = 'DROP CONTINUOUS QUERY "'.. schema ..'__1h" ON ' .. self.db
+    queries[#queries + 1] = 'DROP CONTINUOUS QUERY "'.. schema ..'__1d" ON ' .. self.db
+  end
 
   for _, schema in pairs(schemas) do
     local tags = table.concat(schema._tags, ",")
