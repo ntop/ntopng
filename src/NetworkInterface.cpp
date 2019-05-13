@@ -3734,8 +3734,8 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
 
     if(retriever->pag
        && retriever->pag->pidFilter(&pid_filter)
-       && f->get_pid(true  /* client pid */) != pid_filter
-       && f->get_pid(false /* server pid */) != pid_filter)
+       && f->getPid(true  /* client pid */) != pid_filter
+       && f->getPid(false /* server pid */) != pid_filter)
       return(false);
 
     if(retriever->pag
@@ -7445,7 +7445,7 @@ typedef std::map<std::string, ContainerStats> PodsMap;
 static bool flow_get_pods_stats(GenericHashEntry *entry, void *user_data, bool *matched) {
   PodsMap *pods_stats = (PodsMap*)user_data;
   Flow *flow = (Flow*)entry;
-  ContainerInfo *cli_cont, *srv_cont;
+  const ContainerInfo *cli_cont, *srv_cont;
   const char *cli_pod = NULL, *srv_pod = NULL;
 
   if((cli_cont = flow->getClientContainerInfo()) && cli_cont->data_type == container_info_data_type_k8s)
@@ -7455,7 +7455,7 @@ static bool flow_get_pods_stats(GenericHashEntry *entry, void *user_data, bool *
 
   if(cli_pod) {
     ContainerStats stats = (*pods_stats)[cli_pod]; /* get existing or create new */
-    TcpInfo *client_tcp = flow->getClientTcpInfo();
+    const TcpInfo *client_tcp = flow->getClientTcpInfo();
 
     stats.incNumFlowsAsClient();
     stats.accountLatency(client_tcp ? client_tcp->rtt : 0, client_tcp ? client_tcp->rtt_var : 0, true /* as_client */);
@@ -7468,7 +7468,7 @@ static bool flow_get_pods_stats(GenericHashEntry *entry, void *user_data, bool *
 
   if(srv_pod) {
     ContainerStats stats = (*pods_stats)[srv_pod]; /* get existing or create new */
-    TcpInfo *server_tcp = flow->getServerTcpInfo();
+    const TcpInfo *server_tcp = flow->getServerTcpInfo();
 
     stats.incNumFlowsAsServer();
     stats.accountLatency(server_tcp ? server_tcp->rtt : 0, server_tcp ? server_tcp->rtt_var : 0, false /* as server */);
@@ -7506,7 +7506,7 @@ void NetworkInterface::getPodsStats(lua_State* vm) {
 /* *************************************** */
 
 typedef struct {
-  ContainerInfo *info;
+  const ContainerInfo *info;
   ContainerStats stats;
 } ContainerData;
 
@@ -7521,7 +7521,7 @@ static bool flow_get_container_stats(GenericHashEntry *entry, void *user_data, b
   ContainersMap *containers_data = &((containerRetrieverData*)user_data)->containers;
   const char *pod_filter = ((containerRetrieverData*)user_data)->pod_filter;
   Flow *flow = (Flow*)entry;
-  ContainerInfo *cli_cont, *srv_cont;
+  const ContainerInfo *cli_cont, *srv_cont;
   const char *cli_cont_id = NULL, *srv_cont_id = NULL;
   const char *cli_pod = NULL, *srv_pod = NULL;
 
@@ -7539,7 +7539,7 @@ static bool flow_get_container_stats(GenericHashEntry *entry, void *user_data, b
   if(cli_cont_id &&
 	 ((!pod_filter) || (cli_pod && !strcmp(pod_filter, cli_pod)))) {
     ContainerData data = (*containers_data)[cli_cont_id]; /* get existing or create new */
-    TcpInfo *client_tcp = flow->getClientTcpInfo();
+    const TcpInfo *client_tcp = flow->getClientTcpInfo();
 
     data.stats.incNumFlowsAsClient();
     data.stats.accountLatency(client_tcp ? client_tcp->rtt : 0, client_tcp ? client_tcp->rtt_var : 0, true /* as_client */);
@@ -7552,7 +7552,7 @@ static bool flow_get_container_stats(GenericHashEntry *entry, void *user_data, b
   if(srv_cont_id &&
 	 ((!pod_filter) || (srv_pod && !strcmp(pod_filter, srv_pod)))) {
     ContainerData data = (*containers_data)[srv_cont_id]; /* get existing or create new */
-    TcpInfo *server_tcp = flow->getServerTcpInfo();
+    const TcpInfo *server_tcp = flow->getServerTcpInfo();
 
     data.stats.incNumFlowsAsServer();
     data.stats.accountLatency(server_tcp ? server_tcp->rtt : 0, server_tcp ? server_tcp->rtt_var : 0, false /* as server */);

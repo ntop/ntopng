@@ -99,6 +99,16 @@ ParsedeBPF::~ParsedeBPF() {
 
 /* *************************************** */
 
+void ParsedeBPF::update(const ParsedeBPF * const pe) {
+  /* Update tcp stats */
+  if(pe && pe->tcp_info_set) {
+    if(!tcp_info_set) tcp_info_set = true;
+    memcpy(&tcp_info, &pe->tcp_info, sizeof(tcp_info));
+  }
+}
+
+/* *************************************** */
+
 void ParsedeBPF::print() {
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "[event_type: %s]", Utils::eBPFEvent2EventStr(event_type));
  }

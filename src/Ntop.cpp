@@ -45,22 +45,7 @@ extern struct keyval string_to_replace[]; /* Lua.cpp */
 
 /* ******************************************* */
 
-#ifdef HAVE_EBPF
-static void ebpfHandler(void* t_bpfctx, void* t_data, int t_datasize) {
-  eBPFevent *event = (eBPFevent*)t_data;
-
-  if(ntop->isStarted())
-    ntop->deliverEventToInterfaces(event);
-}
-#endif
-
-/* ******************************************* */
-
 Ntop::Ntop(char *appName) {
-#ifdef HAVE_EBPF
-  ebpfRetCode rc;
-#endif
-  
   ntop = this;
   globals = new NtopGlobals();
   extract = new TimelineExtract();
@@ -385,9 +370,6 @@ void Ntop::start() {
   char daybuf[64], buf[32];
   time_t when = time(NULL);
   int i = 0;
-#ifdef HAVE_EBPF
-  pthread_t ebpfLoop;
-#endif
 
   getTrace()->traceEvent(TRACE_NORMAL,
 			 "Welcome to %s %s v.%s - (C) 1998-19 ntop.org",
@@ -454,10 +436,6 @@ void Ntop::start() {
     iface[i]->checkPointCounters(true); /* Reset drop counters */
 
   is_started = true;
-  
-#ifdef HAVE_EBPF
-  pthread_create(&ebpfLoop, NULL, ebpfLoopFctn, (void*)this);
-#endif
 
   /* Align to the next 5-th second of the clock to make sure
      housekeeping starts alinged (and remains aligned when

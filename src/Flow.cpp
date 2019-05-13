@@ -60,9 +60,7 @@ Flow::Flow(NetworkInterface *_iface,
   memset(&cli2srvStats, 0, sizeof(cli2srvStats)), memset(&srv2cliStats, 0, sizeof(srv2cliStats));
 
   ndpiFlow = NULL, cli_id = srv_id = NULL;
-  client_proc = server_proc = NULL;
-  client_cont = server_cont = NULL;
-  client_tcp = server_tcp = NULL;
+  cli_ebpf = srv_ebpf = NULL;
   json_info = strdup("{}"), cli2srv_direction = true, twh_over = twh_ok = false,
     dissect_next_http_packet = false,
     check_tor = false, host_server_name = NULL, diff_num_http_requests = 0,
@@ -214,44 +212,8 @@ Flow::~Flow() {
   if(json_info)        free(json_info);
   if(host_server_name) free(host_server_name);
 
-  if(client_proc) {
-    if(client_proc->process_name)        free(client_proc->process_name);
-    if(client_proc->father_process_name) free(client_proc->father_process_name);
-    free(client_proc);
-  }
-  
-  if(server_proc) {
-    if(server_proc->process_name)        free(server_proc->process_name);
-    if(server_proc->father_process_name) free(server_proc->father_process_name);
-    free(server_proc);
-  }
-
-  if(client_cont) {
-    if(client_cont->id) free(client_cont->id);
-    if(client_cont->name) free(client_cont->name);
-
-    if(client_cont->data_type == container_info_data_type_k8s) {
-      if(client_cont->data.k8s.pod)  free(client_cont->data.k8s.pod);
-      if(client_cont->data.k8s.ns)   free(client_cont->data.k8s.ns);
-    } else if(client_cont->data_type == container_info_data_type_docker)
-      ;
-    free(client_cont);
-  }
-
-  if(server_cont) {
-    if(server_cont->id) free(server_cont->id);
-    if(server_cont->name) free(server_cont->name);
-
-    if(server_cont->data_type == container_info_data_type_k8s) {
-      if(server_cont->data.k8s.pod)  free(server_cont->data.k8s.pod);
-      if(server_cont->data.k8s.ns)   free(server_cont->data.k8s.ns);
-    } else if(server_cont->data_type == container_info_data_type_docker)
-      ;
-    free(server_cont);
-  }
-
-  if(client_tcp) free(client_tcp);
-  if(server_tcp) free(server_tcp);
+  if(cli_ebpf) delete cli_ebpf;
+  if(srv_ebpf) delete srv_ebpf;
 
   if(isHTTP()) {
     if(protos.http.last_method) free(protos.http.last_method);
@@ -1513,71 +1475,16 @@ bool Flow::clientLessThanServer() const {
 
 /* *************************************** */
 
-void Flow::processJson(bool is_src,
-		       json_object *my_object,
-		       ProcessInfo *proc) {
-#if 0
-  u_int num_id;
-  const char *str_id;
-  char jsonbuf[64];
-
-  num_id = is_src ? SRC_PROC_PID : DST_PROC_PID;
-  str_id = is_src ? "SRC_PROC_PID" : "DST_PROC_PID";
-  json_object_object_add(my_object, Utils::jsonLabel(num_id, str_id, jsonbuf, sizeof(jsonbuf)),
-			 json_object_new_int64(proc->pid));
-
-  num_id = is_src ? SRC_FATHER_PROC_PID : DST_FATHER_PROC_PID;
-  str_id = is_src ? "SRC_FATHER_PROC_PID" : "DST_FATHER_PROC_PID";
-  json_object_object_add(my_object, Utils::jsonLabel(num_id, str_id, jsonbuf, sizeof(jsonbuf)),
-			 json_object_new_int64(proc->father_pid));
-
-  num_id = is_src ? SRC_PROC_NAME : DST_PROC_NAME;
-  str_id = is_src ? "SRC_PROC_NAME" : "DST_PROC_NAME";
-  json_object_object_add(my_object, Utils::jsonLabel(num_id, str_id, jsonbuf, sizeof(jsonbuf)),
-			 json_object_new_string(proc->name));
-
-  num_id = is_src ? SRC_FATHER_PROC_NAME : DST_FATHER_PROC_NAME;
-  str_id = is_src ? "SRC_FATHER_PROC_NAME" : "DST_FATHER_PROC_NAME";
-  json_object_object_add(my_object, Utils::jsonLabel(num_id, str_id, jsonbuf, sizeof(jsonbuf)),
-			 json_object_new_string(proc->father_name));
-
-  num_id = is_src ? SRC_PROC_USER_NAME : DST_PROC_USER_NAME;
-  str_id = is_src ? "SRC_PROC_USER_NAME" : "DST_PROC_USER_NAME";
-  json_object_object_add(my_object, Utils::jsonLabel(num_id, str_id, jsonbuf, sizeof(jsonbuf)),
-			 json_object_new_string(proc->user_name));
-
-  num_id = is_src ? SRC_PROC_ACTUAL_MEMORY : DST_PROC_ACTUAL_MEMORY;
-  str_id = is_src ? "SRC_PROC_ACTUAL_MEMORY" : "DST_PROC_ACTUAL_MEMORY";
-  json_object_object_add(my_object, Utils::jsonLabel(num_id, str_id, jsonbuf, sizeof(jsonbuf)),
-			 json_object_new_int(proc->actual_memory));
-
-  num_id = is_src ? SRC_PROC_PEAK_MEMORY : DST_PROC_PEAK_MEMORY;
-  str_id = is_src ? "SRC_PROC_PEAK_MEMORY" : "DST_PROC_PEAK_MEMORY";
-  json_object_object_add(my_object,
-			 Utils::jsonLabel(num_id, str_id, jsonbuf, sizeof(jsonbuf)),
-			 json_object_new_int(proc->peak_memory));
-
-  num_id = is_src ? SRC_PROC_AVERAGE_CPU_LOAD : DST_PROC_AVERAGE_CPU_LOAD;
-  str_id = is_src ? "SRC_PROC_AVERAGE_CPU_LOAD" : "DST_PROC_AVERAGE_CPU_LOAD";
-  json_object_object_add(my_object, Utils::jsonLabel(num_id, str_id, jsonbuf, sizeof(jsonbuf)),
-			 json_object_new_double(proc->average_cpu_load));
-
-  num_id = is_src ? SRC_PROC_NUM_PAGE_FAULTS : DST_PROC_NUM_PAGE_FAULTS;
-  str_id = is_src ? "SRC_PROC_NUM_PAGE_FAULTS" : "DST_PROC_NUM_PAGE_FAULTS";
-  json_object_object_add(my_object,
-			 Utils::jsonLabel(num_id, str_id, jsonbuf, sizeof(jsonbuf)),
-			 json_object_new_int(proc->num_vm_page_faults));
-#endif
-}
-
-/* *************************************** */
-
-void Flow::processLua(lua_State* vm, const ProcessInfo * const proc,
-	 const ContainerInfo * const cont, const TcpInfo * const tcp, bool client) {
+void Flow::processLua(lua_State* vm, const ParsedeBPF * const pe, bool client) {
 #ifndef WIN32
-  struct passwd *pwd;
+  struct passwd * pwd;
+  const ProcessInfo * proc;
+  const ContainerInfo * cont;
+  const TcpInfo * tcp;
+
+  if(!pe) return;
   
-  if(proc && proc->pid > 0) {
+  if(pe->process_info_set && (proc = &pe->process_info) && proc->pid > 0) {
     lua_newtable(vm);
 
     lua_push_uint64_table_entry(vm, "pid", proc->pid);
@@ -1609,7 +1516,7 @@ void Flow::processLua(lua_State* vm, const ProcessInfo * const proc,
 #endif
   }
 
-  if(cont) {
+  if(pe->container_info_set && (cont = &pe->container_info)) {
     Utils::containerInfoLua(vm, cont);
 
     lua_pushstring(vm, client ? "client_container" : "server_container");
@@ -1617,7 +1524,7 @@ void Flow::processLua(lua_State* vm, const ProcessInfo * const proc,
     lua_settable(vm, -3);
   }
 
-  if(tcp) {
+  if(pe->tcp_info_set && (tcp = &pe->tcp_info)) {
     lua_newtable(vm);
 
     lua_push_float_table_entry(vm, "rtt", tcp->rtt);
@@ -1884,8 +1791,8 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 
     lua_push_str_table_entry(vm, "moreinfo.json", get_json_info());
 
-    if(client_proc) processLua(vm, client_proc, client_cont, client_tcp, true);
-    if(server_proc) processLua(vm, server_proc, server_cont, server_tcp, false);
+    if(cli_ebpf) processLua(vm, cli_ebpf, true);
+    if(srv_ebpf) processLua(vm, srv_ebpf, false);
 
     // overall throughput stats
     lua_push_float_table_entry(vm,  "top_throughput_bps",   top_bytes_thpt);
@@ -2270,9 +2177,6 @@ json_object* Flow::flow2json() {
     json_object_object_add(my_object, Utils::jsonLabel(SERVER_NW_LATENCY_MS, "SERVER_NW_LATENCY_MS", jsonbuf, sizeof(jsonbuf)),
 			   json_object_new_double(toMs(&serverNwLatency)));
   }
-
-  if(client_proc != NULL) processJson(true, my_object, client_proc);
-  if(server_proc != NULL) processJson(false, my_object, server_proc);
 
   c = cli_host->get_country(buf, sizeof(buf));
   if(c) {
@@ -2834,29 +2738,38 @@ void Flow::updateTcpSeqNum(const struct bpf_timeval *when,
 /* *************************************** */
 
 u_int32_t Flow::getPid(bool client) {
-  ProcessInfo *proc = client ? client_proc : server_proc;
+  if(client && cli_ebpf && cli_ebpf->process_info_set)
+    return cli_ebpf->process_info.pid;
 
-  return((proc == NULL) ? 0 : proc->pid);
+  if(!client && srv_ebpf && srv_ebpf->process_info_set)
+    return srv_ebpf->process_info.pid;
+
+  return NO_PID;
 };
 
 /* *************************************** */
 
 u_int32_t Flow::getFatherPid(bool client) {
-  ProcessInfo *proc = client ? client_proc : server_proc;
+  if(client && cli_ebpf && cli_ebpf->process_info_set)
+    return cli_ebpf->process_info.father_pid;
 
-  return((proc == NULL) ? 0 : proc->father_pid);
+  if(!client && srv_ebpf && srv_ebpf->process_info_set)
+    return srv_ebpf->process_info.father_pid;
+
+  return NO_PID;
 };
 
 /* *************************************** */
 
 u_int32_t Flow::get_uid(bool client) const {
 #ifdef WIN32
-  return false;
+  return NO_UID;
 #else
-  ProcessInfo *proc = client ? client_proc : server_proc;
+  if(client && cli_ebpf && cli_ebpf->process_info_set)
+    return cli_ebpf->process_info.uid;
 
-  if(proc)
-    return proc->uid;
+  if(!client && srv_ebpf && srv_ebpf->process_info_set)
+    return srv_ebpf->process_info.uid;
 
   return NO_UID;
 #endif
@@ -2864,25 +2777,14 @@ u_int32_t Flow::get_uid(bool client) const {
 
 /* *************************************** */
 
-u_int32_t Flow::get_pid(bool client) const {
-#ifdef WIN32
-  return false;
-#else
-  ProcessInfo *proc = client ? client_proc : server_proc;
-
-  if(proc)
-    return proc->pid;
-
-  return NO_PID;
-#endif
-}
-
-/* *************************************** */
-
 char* Flow::get_proc_name(bool client) {
-  ProcessInfo *proc = client ? client_proc : server_proc;
+  if(client && cli_ebpf && cli_ebpf->process_info_set)
+    return cli_ebpf->process_info.process_name;
 
-  return((proc == NULL) ? NULL : proc->process_name);
+  if(!client && srv_ebpf && srv_ebpf->process_info_set)
+    return srv_ebpf->process_info.process_name;
+
+  return NULL;
 };
 
 /* *************************************** */
@@ -3698,6 +3600,7 @@ void Flow::setParsedeBPFInfo(const ParsedeBPF * const ebpf, bool src2dst_directi
     iface->setSeenEBPFEvents();
 
   bool client_process;
+  ParsedeBPF *cur = NULL;
 
   /* Try to guess if the process is the client or the server */
   if(ebpf->event_type == ebpf_event_type_tcp_accept)
@@ -3712,52 +3615,26 @@ void Flow::setParsedeBPFInfo(const ParsedeBPF * const ebpf, bool src2dst_directi
   if(!src2dst_direction)
     client_process = !client_process;
 
-  /* Not it's time to attach the info... */
-  const ProcessInfo *pi   = ebpf->process_info_set ? &ebpf->process_info : NULL;
-  const ContainerInfo *ci = ebpf->container_info_set ? &ebpf->container_info : NULL;
-  const TcpInfo *ti       = ebpf->tcp_info_set ? &ebpf->tcp_info : NULL;
-
-  ProcessInfo **process_info     = client_process ? &client_proc : &server_proc;
-  ContainerInfo **container_info = client_process ? &client_cont : &server_cont;
-  TcpInfo **tcp_info             = client_process ? &client_tcp : &server_tcp;
-
-  if(pi && !*process_info && (*process_info = (ProcessInfo*)calloc(1, sizeof(ProcessInfo)))) {
-    ProcessInfo *cur = *process_info;
-
-    cur->pid = pi->pid, cur->uid = pi->uid, cur->gid = pi->gid,
-      cur->actual_memory = pi->actual_memory, cur->peak_memory = pi->peak_memory,
-      cur->father_pid = pi->father_pid, cur->father_uid = pi->father_uid, cur->father_gid = pi->father_gid;
-    if(pi->process_name)        cur->process_name = strdup(pi->process_name);
-    if(pi->father_process_name) cur->father_process_name = strdup(pi->father_process_name);
+  if(client_process) {
+    if(!cli_ebpf)
+      cur = cli_ebpf = new (std::nothrow) ParsedeBPF(*ebpf);
+    else
+      cli_ebpf->update(ebpf);
+  } else { /* server_process */
+    if(!srv_ebpf)
+      cur = srv_ebpf = new (std::nothrow) ParsedeBPF(*ebpf);
+    else
+      srv_ebpf->update(ebpf);
   }
 
-  if(ci && !*container_info && (*container_info = (ContainerInfo*)calloc(1, sizeof(ContainerInfo)))) {
-    ContainerInfo *cur = *container_info;
-    memcpy(cur, ci, sizeof(*ci));
+  if(cur && cur->container_info_set) {
+    if(!iface->hasSeenContainers())
+      iface->setSeenContainers();
 
-    if(ci->id) {
-      cur->id = strdup(ci->id);
-      if(!iface->hasSeenContainers())
-	iface->setSeenContainers();
-    }
-
-    if(ci->name) cur->name = strdup(ci->name);
-
-    if(ci->data_type == container_info_data_type_k8s) {
-      if(ci->data.k8s.pod) {
-	cur->data.k8s.pod  = strdup(ci->data.k8s.pod);
-	if(!iface->hasSeenPods())
-	  iface->setSeenPods();
-      }
-      if(ci->data.k8s.ns)   cur->data.k8s.ns   = strdup(ci->data.k8s.ns);
-    } else if(ci->data_type == container_info_data_type_docker)
-      ;
-  }
-
-  /* Allow tcp info to be set multiple times so that updates can be kept into account */
-  if(ti && (*tcp_info || (*tcp_info = (TcpInfo*)calloc(1, sizeof(TcpInfo))))) {
-    TcpInfo *cur = *tcp_info;
-    memcpy(cur, ti, sizeof(*ti));
+    if(cur->container_info.data_type == container_info_data_type_k8s
+       && !iface->hasSeenPods()
+       && cur->container_info.data.k8s.pod)
+      iface->setSeenPods();
   }
 }
 
