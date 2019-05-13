@@ -57,15 +57,16 @@ void Fingerprint::lua(const char *key, lua_State* vm) {
 void Fingerprint::prune() {
   if(fp.size() > MAX_NUM_FINGERPRINT) {
     std::map<std::string, FingerprintStats>::iterator it = fp.begin();
-
+    std::vector<std::string> dropper;
+    
     while(it != fp.end()) {
-      if(it->second.num_uses < 3) {
-	std::map<std::string, FingerprintStats>::iterator it1 = std::next(it, 1);
-	
-	fp.erase(it);
-	it = it1; 
-      } else
-	++it;
-    }
+      if(it->second.num_uses < 3)
+	dropper.push_back(it->first);
+      
+      ++it;
+    } /* while */
+
+    for(std::vector<std::string>::iterator it1 = dropper.begin() ; it1 != dropper.end(); ++it1)
+      fp.erase(it->first);    
   }
 }
