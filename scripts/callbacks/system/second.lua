@@ -14,7 +14,9 @@ require("ts_second")
 -- Toggle debug
 local enable_second_debug = false
 local ifnames = interface.getIfNames()
-local when = os.time()
+
+-- NOTE: must use gettimeofday otherwise the seconds may not correspond
+local when = math.floor(ntop.gettimemsec())
 
 local function interface_rrd_creation_enabled(ifid)
    return (ntop.getPref("ntopng.prefs.ifid_"..ifid..".interface_rrd_creation") ~= "false")
