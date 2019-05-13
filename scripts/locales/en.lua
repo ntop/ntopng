@@ -1740,6 +1740,7 @@ local lang = {
     ["type_4_parameter_problem"] = "Parameter Problem",
   },
   ["if_stats_config"] = {
+    ["companion_interface"] = "Companion Interface",
     ["custom_name"] = "Custom Name",
     ["custom_name_popup_msg"] = "Specify an alias for the interface",
     ["hide_from_top_networks"] = "Hide from Top Networks",
@@ -1754,7 +1755,6 @@ local lang = {
     ["scaling_factor"] = "Ingress Packets Sampling Rate",
     ["scaling_factor_popup_msg"] = "This should match your capture interface sampling rate",
     ["trigger_interface_alerts"] = "Trigger Interface Alerts",
-    ["companion_interface"] = "Companion Interface",
   },
   ["if_stats_networks"] = {
     ["note_ghost_bcast_domains"] = "The %{ghost_icon} highlights ghost broadcast domains (i.e. not belonging to any of the interface IP addresses networks).",
@@ -3233,7 +3233,7 @@ local lang = {
     ["live_extraction_with_filter"] = "User '%{user}' downloaded traffic from interface %{ifname} from %{from} to %{to} matching filter '%{filter}'.",
     ["login_not_authorized"] = "Login denied for user '%{user}'.",
     ["login_successful"] = "User '%{user}' logged in.",
-    ["password_changed"] = "Password for user '%{pwd_user}' changed by '%{user}'.",
+    ["password_changed"] = "Password for user '%{pwd_user}' changed by '%{user}' with ip '%{ip}'.",
     ["recording_disabled"] = "User '%{user}' disabled Traffic Recording on interface %{ifname}.",
     ["recording_enabled"] = "User '%{user}' enabled Traffic Recording on interface %{ifname}.",
     ["remote_assistance_disabled"] = "User '%{user}' disabled Remote Assistance.",

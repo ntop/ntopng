@@ -9108,6 +9108,8 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
   char *post_data = NULL;
   char rsp[32];
   char csrf[64] = { '\0' };
+  char addr_buf[64];
+  IpAddress client_addr;
 
   *attack_attempt = false;
 
@@ -9194,6 +9196,10 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
     lua_push_str_table_entry(L,
 			     request_info->http_headers[i].name,
 			     (char*)request_info->http_headers[i].value);
+
+  client_addr.set(mg_get_client_address(conn));
+  lua_push_str_table_entry(L, "REMOTE_ADDR", (char*) client_addr.print(addr_buf, sizeof(addr_buf)));
+
   lua_setglobal(L, (char*)"_SERVER");
 
 #ifdef NOT_USED

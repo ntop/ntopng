@@ -21,12 +21,14 @@ function tracker.log(f_name, f_args)
   end
 
   local ifid = stats.id
+  local remote_addr = _SERVER["REMOTE_ADDR"]
 
   local jobj = { 
     scope = 'function',
     name = f_name,
     params = f_args,
-    ifid = ifid
+    ifid = ifid,
+    remote_addr = remote_addr
   }
 
   local entity = alertEntity("user")
