@@ -35,6 +35,7 @@
   }
 
   $('#{{typeahead.base_id}}_search_field').typeahead({
+    items: {*typeahead.max_items or 8*}, /* Max num of items, use "'all'" for unlimited */
     source: function (query, process) {
       /* Avoid this kind of queries which generates file path warnings into the ntopng log */
       if (query.startsWith(".")) return;
