@@ -29,6 +29,9 @@ class Host : public GenericHashEntry {
   IpAddress ip;
   Mac *mac;
   char *asname;
+  struct {
+    Fingerprint ssl;
+  } fingerprints;
   bool stats_reset_requested, data_delete_requested;
   u_int16_t vlan_id, host_pool_id;
   HostStats *stats, *stats_shadow;
@@ -299,5 +302,6 @@ class Host : public GenericHashEntry {
   void setResolvedName(const char * const resolved_name);
   void dissectDropbox(const char *payload, u_int16_t payload_len);
   void dumpDropbox(lua_State *vm);
+  inline Fingerprint* getSSLFingerprint() { return(&fingerprints.ssl); }
 };
 #endif /* _HOST_H_ */

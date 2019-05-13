@@ -290,6 +290,14 @@ else
    end
 end
 
+if(host["ssl_fingerprint"] ~= nil) then
+   if(page == "ssl") then
+      print("<li class=\"active\"><a href=\"#\">"..i18n("ssl").."</a></li>\n")
+   else
+      print("<li><a href=\""..url.."&page=ssl\">"..i18n("ssl").."</a></li>")
+   end
+end
+
 http = host["http"]
 
 if(page == "http") then
@@ -1312,7 +1320,24 @@ print [[
 </small>
 ]]
       end
-   elseif(page == "http") then
+elseif(page == "ssl") then
+   local fp = host["ssl_fingerprint"]
+
+   print("<table class=\"table table-bordered table-striped\">\n")
+   print("<tr><th width=70%><A HREF=https://github.com/salesforce/ja3>"..i18n("fingerprint")..'</A></th><th>'..i18n("num_uses").."</th>")
+
+   num = 0
+   max_num = 15
+   for key,value in pairsByValues(fp, rev) do
+      if(num == max_num) then
+	 break
+      else
+	 num = num + 1
+	 print('<tr><td><A HREF="https://sslbl.abuse.ch/ja3-fingerprints/'..key..'">'..key..'</A> <i class="fa fa-external-link"></i></td><td align=right>'..value..'</td></tr>\n')
+      end
+   end
+   print("</table>")
+elseif(page == "http") then
       if(http ~= nil) then
 	 print("<table class=\"table table-bordered table-striped\">\n")
 

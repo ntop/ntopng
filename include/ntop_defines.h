@@ -1025,6 +1025,8 @@ extern struct ntopngLuaContext* getUserdata(struct lua_State *vm);
 #define MAX_NDPI_IDLE_TIME_BEFORE_GUESS   5 /* sec */
 #define MAX_NUM_PCAP_CAPTURES             4
 
+#define MAX_NUM_FINGERPRINT               25
+
 #define ALERT_ACTION_ENGAGE           "engage"
 #define ALERT_ACTION_RELEASE          "release"
 #define ALERT_ACTION_STORE            "store"
