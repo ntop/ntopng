@@ -24,15 +24,14 @@
 
 #include "ntop_includes.h"
 
-class ParsedFlow : public ParsedFlowCore {
+class ParsedFlow : public ParsedFlowCore, public ParsedeBPF {
  public:
-  Parsed_eBPF ebpf;
   json_object *additional_fields;
   char *http_url, *http_site, *dns_query, *ssl_server_name, *bittorrent_hash;
   custom_app_t custom_app;
 
-  ~ParsedFlow();
   ParsedFlow();
+  ~ParsedFlow();
 };
 
 #endif /* _PARSED_FLOW_H_ */

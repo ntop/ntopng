@@ -3725,7 +3725,7 @@ void Flow::setProcessInfo(eBPFevent *event, bool client_process) {
 
 /* ***************************************************** */
 
-void Flow::setParsedeBPFInfo(const Parsed_eBPF * const ebpf, bool src2dst_direction) {
+void Flow::setParsedeBPFInfo(const ParsedeBPF * const ebpf, bool src2dst_direction) {
   if(!ebpf)
     return;
 

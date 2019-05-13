@@ -19,22 +19,25 @@
  *
  */
 
+#ifndef _PARSED_EBPF_H_
+#define _PARSED_EBPF_H_
+
 #include "ntop_includes.h"
 
-/* *************************************** */
+class ParsedeBPF {
+ public:
+  ProcessInfo process_info;
+  ContainerInfo container_info;
+  TcpInfo tcp_info;
+  eBPFEventType event_type;
+  char *ifname;
+  bool process_info_set, container_info_set, tcp_info_set;
 
-ParsedFlow::ParsedFlow() : ParsedFlowCore(), ParsedeBPF() {
-  additional_fields = NULL;
-  http_url = http_site = NULL;
-  dns_query = ssl_server_name = NULL;
-  
-  bittorrent_hash = NULL;
-  memset(&custom_app, 0, sizeof(custom_app));
-  additional_fields = json_object_new_object();
-}
+  ParsedeBPF();
+  ParsedeBPF(const ParsedeBPF &pe);
+  ~ParsedeBPF();
 
-/* *************************************** */
+  void print();
+};
 
-ParsedFlow::~ParsedFlow() {
-  json_object_put(additional_fields);
-}
+#endif /* _PARSED_EBPF_H_ */

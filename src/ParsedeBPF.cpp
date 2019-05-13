@@ -23,18 +23,28 @@
 
 /* *************************************** */
 
-ParsedFlow::ParsedFlow() : ParsedFlowCore(), ParsedeBPF() {
-  additional_fields = NULL;
-  http_url = http_site = NULL;
-  dns_query = ssl_server_name = NULL;
-  
-  bittorrent_hash = NULL;
-  memset(&custom_app, 0, sizeof(custom_app));
-  additional_fields = json_object_new_object();
+ParsedeBPF::ParsedeBPF() {
+  ifname = NULL;
+
+  event_type = ebpf_event_type_unknown;
+
+  process_info_set = container_info_set = tcp_info_set = false;
+  memset(&process_info, 0, sizeof(process_info)),
+    memset(&container_info, 0, sizeof(container_info)),
+    memset(&tcp_info, 0, sizeof(tcp_info));
+}
+/* *************************************** */
+
+ParsedeBPF::ParsedeBPF(const ParsedeBPF &pe) {
 }
 
 /* *************************************** */
 
-ParsedFlow::~ParsedFlow() {
-  json_object_put(additional_fields);
+ParsedeBPF::~ParsedeBPF() {
 }
+
+/* *************************************** */
+
+void ParsedeBPF::print() {
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[event_type: %s]", Utils::eBPFEvent2EventStr(event_type));
+ }
