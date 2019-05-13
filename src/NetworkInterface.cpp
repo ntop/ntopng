@@ -365,7 +365,7 @@ void NetworkInterface::init() {
      || isView())
     ;
   else {
-    ebpfFlows = new (std::nothrow) eBPFFlow*[EBPF_QUEUE_LEN];
+    ebpfFlows = new (std::nothrow) ParsedFlow*[EBPF_QUEUE_LEN];
     for(int i = 0; i < EBPF_QUEUE_LEN; i++) ebpfFlows[i] = NULL;
   }
   next_ebpf_insert_idx = next_ebpf_remove_idx = 0;
@@ -1241,7 +1241,7 @@ void NetworkInterface::processFlow(ParsedFlow *zflow, bool zmq_flow) {
     flow->setFlowApplLatency(zflow->tcp.applLatencyMsec);
 
   /* Update process and container info */
-  flow->setParsedeBPFInfo(&zflow->ebpf,
+  flow->setParsedeBPFInfo(zflow,
 			  src2dst_direction /* FIX: direction also depends on the type of event. */);
 
   /* Update flow device stats */
@@ -2666,7 +2666,7 @@ decode_packet_eth:
 void NetworkInterface::pollQueuedeBPFEvents() {
 #if ENABLE_EBPF_FLOWS_DISPATCH
   if(ebpfFlows) {
-    eBPFFlow *dequeued = NULL;
+    ParsedFlow *dequeued = NULL;
 
     if(dequeueeBPFFlow(&dequeued)) {
       Flow *flow = NULL;
@@ -2677,9 +2677,9 @@ void NetworkInterface::pollQueuedeBPFEvents() {
 		     0 /* deviceIP */,
 		     0 /* inIndex */, 1 /* outIndex */,
 		     NULL /* ICMPinfo */,
-		     dequeued->get_cli_ip(), dequeued->get_srv_ip(),
-		     dequeued->get_cli_port(), dequeued->get_srv_port(),
-		     dequeued->get_protocol(),
+		     &dequeued->src_ip, &dequeued->dst_ip,
+		     dequeued->src_port, dequeued->dst_port,
+		     dequeued->l4_proto,
 		     &src2dst_direction,
 		     0, 0, 0, &new_flow,
 		     true /* create_if_missing */);
@@ -2691,7 +2691,7 @@ void NetworkInterface::pollQueuedeBPFEvents() {
 	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Updating flow process info: [src2dst_direction: %u] %s", src2dst_direction ? 1 : 0, buf);
 #endif
 
-	flow->setParsedeBPFInfo(dequeued->get_ebpf(), src2dst_direction);
+	flow->setParsedeBPFInfo(dequeued, src2dst_direction);
       }
 
       delete dequeued;
@@ -7736,7 +7736,7 @@ bool NetworkInterface::enqueueeBPFFlow(ParsedFlow * const pf, bool skip_loopback
   if(ebpfFlows[next_ebpf_insert_idx])
     return false;
 
-  if((ebpfFlows[next_ebpf_insert_idx] = new (std::nothrow)eBPFFlow(pf))) {
+  if((ebpfFlows[next_ebpf_insert_idx] = new (std::nothrow)ParsedFlow(*pf))) {
     next_ebpf_insert_idx = (next_ebpf_insert_idx + 1) % EBPF_QUEUE_LEN;
     return true;
   }
@@ -7746,7 +7746,7 @@ bool NetworkInterface::enqueueeBPFFlow(ParsedFlow * const pf, bool skip_loopback
 
 /* *************************************** */
 
-bool NetworkInterface::dequeueeBPFFlow(eBPFFlow **f) {
+bool NetworkInterface::dequeueeBPFFlow(ParsedFlow **f) {
   if(!ebpfFlows[next_ebpf_remove_idx]) {
     *f = NULL;
     return false;

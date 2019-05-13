@@ -99,7 +99,7 @@ class NetworkInterface : public Checkpointable {
 #endif
 
   u_int16_t next_ebpf_insert_idx, next_ebpf_remove_idx;
-  eBPFFlow **ebpfFlows;
+  ParsedFlow **ebpfFlows;
   
   /* Live Capture */
   Mutex active_captures_lock;
@@ -743,7 +743,7 @@ class NetworkInterface : public Checkpointable {
   void getContainersStats(lua_State* vm, const char *pod_filter);
   inline NetworkInterface * getCompanion() const { return companion_interface; };
   bool enqueueeBPFFlow(ParsedFlow * const pf, bool skip_loopback_traffic);
-  bool dequeueeBPFFlow(eBPFFlow ** pf);
+  bool dequeueeBPFFlow(ParsedFlow ** pf);
 
 #ifdef HAVE_EBPF
   inline bool iseBPFEventAvailable() { return((ebpfEvents && (ebpfEvents[next_remove_idx] != NULL)) ? true : false); }

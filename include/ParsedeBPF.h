@@ -19,30 +19,28 @@
  *
  */
 
-#ifndef _EBPF_FLOW_H_
-#define _EBPF_FLOW_H_
+#ifndef _PARSED_EBPF_H_
+#define _PARSED_EBPF_H_
 
 #include "ntop_includes.h"
 
-class ParsedFlow;
-
-class eBPFFlow : ParsedFlowCore {
+class ParsedeBPF {
  private:
-  IpAddress src_ip, dst_ip;
-  Parsed_eBPF ebpf;
+  bool free_memory;
 
  public:
-  ~eBPFFlow();
-  eBPFFlow(ParsedFlow * const pf);
+  ProcessInfo process_info;
+  ContainerInfo container_info;
+  TcpInfo tcp_info;
+  eBPFEventType event_type;
+  char *ifname;
+  bool process_info_set, container_info_set, tcp_info_set;
 
-  inline IpAddress * const get_cli_ip() { return &src_ip;  };
-  inline IpAddress * const get_srv_ip() { return &dst_ip;  };
-  inline u_int16_t get_cli_port() const { return src_port; };
-  inline u_int16_t get_srv_port() const { return dst_port; };
-  inline u_int8_t get_protocol()  const { return l4_proto; };
-  inline Parsed_eBPF * const get_ebpf() { return &ebpf;    };
+  ParsedeBPF();
+  ParsedeBPF(const ParsedeBPF &pe);
+  virtual ~ParsedeBPF();
 
   void print();
 };
 
-#endif /* _EBPF_FLOW_H_ */
+#endif /* _PARSED_EBPF_H_ */
