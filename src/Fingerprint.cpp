@@ -59,9 +59,12 @@ void Fingerprint::prune() {
     std::map<std::string, FingerprintStats>::iterator it = fp.begin();
 
     while(it != fp.end()) {
-      if(it->second.num_uses < 3)
-	it = fp.erase(it);
-      else
+      if(it->second.num_uses < 3) {
+	std::map<std::string, FingerprintStats>::iterator it1 = std::next(it, 1);
+	
+	fp.erase(it);
+	it = it1; 
+      } else
 	++it;
     }
   }
