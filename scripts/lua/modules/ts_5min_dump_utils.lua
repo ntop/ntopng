@@ -356,6 +356,7 @@ function ts_dump.run_5min_dump(_ifname, ifstats, config, when, time_threshold, s
   end
 
   local dump_tstart = os.time()
+  local lbd_hosts_dumped = {}
 
   -- Save hosts stats (if enabled from the preferences)
   if (is_rrd_creation_enabled and (config.host_rrd_creation ~= "0")) or are_alerts_enabled then
@@ -366,11 +367,26 @@ function ts_dump.run_5min_dump(_ifname, ifstats, config, when, time_threshold, s
       end
 
       if is_rrd_creation_enabled then
+        local is_lbo_host = (hostname ~= host_ts.tskey)
+        local host_key = host_ts.tskey
+
+        if is_lbo_host then
+          if lbd_hosts_dumped[host_key] then
+            -- The host was already dumped by its key, use its IP address
+            -- as the fallback serialization id
+            host_key = hostname
+          else
+            -- Serialize by using the tskey but remember this key to avoid
+            -- multiple hosts to be serialized with same key
+            lbd_hosts_dumped[host_key] = true
+          end
+        end
+
         for _, host_point in ipairs(host_ts or {}) do
           local instant = host_point.instant
 
           if instant >= min_instant then
-            ts_dump.host_update_rrd(instant, host_ts.tskey, host_point, ifstats, verbose, config)
+            ts_dump.host_update_rrd(instant, host_key, host_point, ifstats, verbose, config)
           end
         end
       end
