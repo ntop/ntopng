@@ -502,8 +502,7 @@ void Flow::processDetectedProtocol() {
 
     if((protos.ssl.ja3.client_hash == NULL) && (ndpiFlow->protos.stun_ssl.ssl.ja3_client[0] != '\0')) {
       protos.ssl.ja3.client_hash = strdup(ndpiFlow->protos.stun_ssl.ssl.ja3_client);
-      cli_host->getSSLFingerprint()->update(protos.ssl.ja3.client_hash,
-					    cli_ebpf ? cli_ebpf->process_info.process_name : NULL);
+      updateJA3();
     }
     
     if((protos.ssl.ja3.server_hash == NULL) && (ndpiFlow->protos.stun_ssl.ssl.ja3_server[0] != '\0'))
@@ -3638,6 +3637,16 @@ void Flow::setParsedeBPFInfo(const ParsedeBPF * const ebpf, bool src2dst_directi
        && cur->container_info.data.k8s.pod)
       iface->setSeenPods();
   }
+
+  updateJA3();
+}
+
+/* ***************************************************** */
+
+void Flow::updateJA3() {
+  if(protos.ssl.ja3.client_hash)
+    cli_host->getSSLFingerprint()->update(protos.ssl.ja3.client_hash,
+					  cli_ebpf ? cli_ebpf->process_info.process_name : NULL);
 }
 
 /* ***************************************************** */

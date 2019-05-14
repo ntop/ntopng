@@ -1328,8 +1328,8 @@ elseif(page == "ssl") then
    local fp = host["ssl_fingerprint"]
 
    print("<table class=\"table table-bordered table-striped\">\n")
-   print('<tr><th width=70%><A HREF="https://github.com/salesforce/ja3">'..i18n("ja3_fingerprint")..'</A></th>')
-   print('<th>'..i18n("app_name")..'</th>')
+   print('<tr><th width=50% align=left><A HREF="https://github.com/salesforce/ja3">'..i18n("ja3_fingerprint")..'</A></th>')
+   print('<th align=left>'..i18n("app_name")..'</th>')
    print('<th>'..i18n("num_uses")..'</th>')
    print('</th>')
 
@@ -1341,7 +1341,7 @@ elseif(page == "ssl") then
       else
 	 num = num + 1
 	 print('<tr><td><A HREF="https://sslbl.abuse.ch/ja3-fingerprints/'..key..'">'..key..'</A> <i class="fa fa-external-link"></i></td>')
-	 print('<td align=right>'..value.app_name..'</td>')
+	 print('<td align=left nowrap>'..value.app_name..'</td>')
 	 print('<td align=right>'..formatValue(value.num_uses)..'</td>')
 	 print('</tr>\n')
       end
