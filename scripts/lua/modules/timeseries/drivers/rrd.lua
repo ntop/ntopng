@@ -115,7 +115,7 @@ local function schema_get_path(schema, tags)
   return path, rrd
 end
 
-local function schema_get_full_path(schema, tags)
+function driver.schema_get_full_path(schema, tags)
   local base, rrd = schema_get_path(schema, tags)
   local full_path = os_utils.fixPath(base .. "/" .. rrd .. ".rrd")
 
@@ -144,7 +144,7 @@ function find_schema(rrdFile, rrdfname, tags, ts_utils)
       end
     end
 
-    local full_path = schema_get_full_path(schema, tags)
+    local full_path = driver.schema_get_full_path(schema, tags)
 
     if full_path == rrdFile then
       return schema_name
@@ -538,7 +538,7 @@ local function _listSeries(schema, tags_filter, wildcard_tags, start_time)
   local wildcard_tag = wildcard_tags[1]
 
   if not wildcard_tag then
-    local full_path = schema_get_full_path(schema, tags_filter)
+    local full_path = driver.schema_get_full_path(schema, tags_filter)
     local last_update = ntop.rrd_lastupdate(full_path)
 
     if last_update ~= nil and last_update >= start_time then
@@ -647,7 +647,7 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
   end
 
   for _, serie_tags in pairs(series) do
-    local rrdfile = schema_get_full_path(schema, serie_tags)
+    local rrdfile = driver.schema_get_full_path(schema, serie_tags)
 
     if isDebugEnabled() then
       traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("RRD_FETCH[topk] schema=%s %s[%s] -> (%s): last_update=%u",
@@ -754,7 +754,7 @@ end
 -- ##############################################
 
 function driver:queryTotal(schema, tstart, tend, tags, options)
-  local rrdfile = schema_get_full_path(schema, tags)
+  local rrdfile = driver.schema_get_full_path(schema, tags)
 
   if not ntop.exists(rrdfile) then
      return nil
