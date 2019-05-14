@@ -29,8 +29,6 @@
 
 /* ******************************* */
 
-class ZMQParserInterface;
-
 /** @class LuaEngine
  *  @brief Main class of lua.
  *

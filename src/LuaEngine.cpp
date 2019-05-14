@@ -7703,8 +7703,7 @@ static int ntop_interface_reload_companions(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return CONST_LUA_ERROR;
   ifid = lua_tonumber(vm, 1);
 
-  if((iface = ntop->getInterfaceById(ifid))
-     && (iface = dynamic_cast<ZMQParserInterface*>(iface)))
+  if((iface = ntop->getInterfaceById(ifid)))
     iface->reloadCompanions();
 
   return CONST_LUA_OK;
