@@ -29,12 +29,15 @@
 
 /* ******************************* */
 
+class ZMQParserInterface;
+
 /** @class LuaEngine
  *  @brief Main class of lua.
  *
  *  @ingroup LuaEngine
  *
  */
+
 class LuaEngine {
  private:
   lua_State *L; /**< The LuaEngine state.*/
