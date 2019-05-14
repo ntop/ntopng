@@ -1385,7 +1385,7 @@ function printStatsTimeseries()
      ntop.delCache("ntopng.prefs.influx_dbname")
   end
   prefsInputFieldPrefs(subpage_active.entries["influxdb_dbname"].title, subpage_active.entries["influxdb_dbname"].description,
-		       "ntopng.prefs.", "influx_dbname", product:gsub(' ' , '_'), nil, influx_active, nil, nil, {pattern="[^\\s]+"})
+		       "ntopng.prefs.", "influx_dbname", product:gsub(' ' , '_'), nil, influx_active, nil, nil, {pattern="[A-z,0-9,_]+"})
 
   prefsToggleButton(subpage_active, {
 	field = "toggle_influx_auth",
