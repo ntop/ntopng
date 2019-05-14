@@ -25,7 +25,7 @@
 #include "ntop_includes.h"
 
 typedef struct {
-  std::string app_name; /* (eBPF-like only) */
+  std::string app_name; /* NetLink/eBPF-like only */
   u_int32_t num_uses;
 } FingerprintStats;
 

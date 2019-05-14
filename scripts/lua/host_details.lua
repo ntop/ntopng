@@ -64,6 +64,10 @@ local hostkey = hostinfo2hostkey(host_info, nil, true --[[ force show vlan --]])
 local hostkey_compact = hostinfo2hostkey(host_info) -- do not force vlan
 local labelKey = host_info["host"].."@"..host_info["vlan"]
 
+function revFP(a,b)
+   return (a.num_uses > b.num_uses)
+end
+
 if((host_name == nil) or (host_ip == nil)) then
    sendHTTPContentTypeHeader('text/html')
    page_utils.print_header()
@@ -1324,16 +1328,22 @@ elseif(page == "ssl") then
    local fp = host["ssl_fingerprint"]
 
    print("<table class=\"table table-bordered table-striped\">\n")
-   print("<tr><th width=70%><A HREF=https://github.com/salesforce/ja3>"..i18n("fingerprint")..'</A></th><th>'..i18n("num_uses").."</th>")
+   print('<tr><th width=70%><A HREF="https://github.com/salesforce/ja3">'..i18n("ja3_fingerprint")..'</A></th>')
+   print('<th>'..i18n("app_name")..'</th>')
+   print('<th>'..i18n("num_uses")..'</th>')
+   print('</th>')
 
    num = 0
    max_num = 15
-   for key,value in pairsByValues(fp, rev) do
+   for key,value in pairsByValues(fp, revFP) do
       if(num == max_num) then
 	 break
       else
 	 num = num + 1
-	 print('<tr><td><A HREF="https://sslbl.abuse.ch/ja3-fingerprints/'..key..'">'..key..'</A> <i class="fa fa-external-link"></i></td><td align=right>'..value..'</td></tr>\n')
+	 print('<tr><td><A HREF="https://sslbl.abuse.ch/ja3-fingerprints/'..key..'">'..key..'</A> <i class="fa fa-external-link"></i></td>')
+	 print('<td align=right>'..value.app_name..'</td>')
+	 print('<td align=right>'..formatValue(value.num_uses)..'</td>')
+	 print('</tr>\n')
       end
    end
    print("</table>")

@@ -503,7 +503,7 @@ void Flow::processDetectedProtocol() {
     if((protos.ssl.ja3.client_hash == NULL) && (ndpiFlow->protos.stun_ssl.ssl.ja3_client[0] != '\0')) {
       protos.ssl.ja3.client_hash = strdup(ndpiFlow->protos.stun_ssl.ssl.ja3_client);
       cli_host->getSSLFingerprint()->update(protos.ssl.ja3.client_hash,
-					    (char*)"" /* TODO: add eBPF application if available */);
+					    cli_ebpf ? cli_ebpf->process_info.process_name : NULL);
     }
     
     if((protos.ssl.ja3.server_hash == NULL) && (ndpiFlow->protos.stun_ssl.ssl.ja3_server[0] != '\0'))

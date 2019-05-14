@@ -31,7 +31,7 @@ void Fingerprint::update(char *_fprint, char *app_name) {
     FingerprintStats s;
 
     prune();
-    s.app_name = std::string(app_name), s.num_uses = 1;
+    s.app_name = std::string(app_name ? app_name : ""), s.num_uses = 1;
     fp[fprint] = s;
   } else {
     it->second.num_uses++, it->second.app_name = std::string(app_name);
@@ -43,10 +43,17 @@ void Fingerprint::update(char *_fprint, char *app_name) {
 void Fingerprint::lua(const char *key, lua_State* vm) {
   lua_newtable(vm);
   
-  for(std::map<std::string, FingerprintStats>::iterator it = fp.begin(); it != fp.end(); ++it)
-    lua_push_int32_table_entry(vm, it->first.c_str(),
-			       it->second.num_uses); // TODO: export app_name when filled
+  for(std::map<std::string, FingerprintStats>::iterator it = fp.begin(); it != fp.end(); ++it) {
+    lua_newtable(vm);
+    
+    lua_push_str_table_entry(vm, "app_name", it->second.app_name.c_str());
+    lua_push_int32_table_entry(vm, "num_uses", it->second.num_uses);    
 
+    lua_pushstring(vm, it->first.c_str());
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);    
+  }
+  
   lua_pushstring(vm, key);
   lua_insert(vm, -2);
   lua_settable(vm, -3);  
