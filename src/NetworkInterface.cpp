@@ -1042,9 +1042,14 @@ NetworkInterface* NetworkInterface::getSubInterface(u_int32_t criteria, bool par
 	  HASH_ADD_INT(flowHashing, criteria, h);
 	  numVirtualInterfaces++;
 	  ntop->getRedis()->set(CONST_STR_RELOAD_LISTS, (const char * const)"1");
-	}
-      } else
+	} else {
+          ntop->getTrace()->traceEvent(TRACE_WARNING, "Failure allocating interface: not enough memory?");
+          free(h);
+          return(NULL);
+        }
+      } else {
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
+      }
     }
   }
 
