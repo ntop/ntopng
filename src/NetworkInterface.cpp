@@ -3666,6 +3666,7 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
   u_int32_t pid_filter;
   u_int32_t deviceIP;
   u_int16_t inIndex, outIndex;
+  u_int8_t icmp_type, icmp_code;
   char *container_filter, *pod_filter;
 #ifdef HAVE_NEDGE
   bool filtered_flows;
@@ -3757,6 +3758,16 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
        && f->getPid(true  /* client pid */) != pid_filter
        && f->getPid(false /* server pid */) != pid_filter)
       return(false);
+
+    if(retriever->pag
+       && retriever->pag->icmpValue(&icmp_type, &icmp_code)) {
+      u_int8_t cur_type, cur_code;
+      u_int16_t cur_echo_id;
+      f->getICMP(&cur_code, &cur_type, &cur_echo_id);
+
+      if((!f->isICMP()) || (cur_type != icmp_type) || (cur_code != icmp_code))
+        return(false);
+     }
 
     if(retriever->pag
        && retriever->pag->portFilter(&port)

@@ -58,6 +58,8 @@ Paginator::Paginator() {
 
   uid_filter = NO_UID;
   pid_filter = NO_PID;
+  icmp_type = u_int8_t(-1);
+  icmp_code = u_int8_t(-1);
 
   details_level = details_normal;
   details_level_set = false;
@@ -186,6 +188,10 @@ void Paginator::readOptions(lua_State *L, int index) {
 	  uid_filter = lua_tointeger(L, -1);
 	else if(!strcmp(key, "pidFilter"))
 	  pid_filter = lua_tointeger(L, -1);
+	else if(!strcmp(key, "icmp_type"))
+	  icmp_type = lua_tointeger(L, -1);
+	else if(!strcmp(key, "icmp_code"))
+	  icmp_code = lua_tointeger(L, -1);
 
 	//else
 	  //ntop->getTrace()->traceEvent(TRACE_ERROR, "Invalid int type (%d) for option %s", lua_tointeger(L, -1), key);

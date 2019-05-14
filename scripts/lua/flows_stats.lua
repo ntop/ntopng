@@ -38,6 +38,8 @@ local vhost = _GET["vhost"]
 local flowhosts_type = _GET["flowhosts_type"]
 local ipversion = _GET["version"]
 local vlan = _GET["vlan"]
+local icmp_type = _GET["icmp_type"]
+local icmp_code = _GET["icmp_cod"]
 
 -- remote exporters address and interfaces
 local deviceIP = _GET["deviceIP"]
@@ -138,6 +140,11 @@ end
 
 if(flowhosts_type ~= nil) then
   page_params["flowhosts_type"] = flowhosts_type
+end
+
+if((icmp_type ~= nil) and (icmp_code ~= nil)) then
+  page_params["icmp_type"] = icmp_type
+  page_params["icmp_cod"] = icmp_code
 end
 
 print(getPageUrl(ntop.getHttpPrefix().."/lua/get_flows_data.lua", page_params))
