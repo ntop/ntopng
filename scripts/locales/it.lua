@@ -79,6 +79,7 @@ local lang = {
   ["ipv4"] = "IPv4",
   ["ipv6"] = "IPv6",
   ["ja3_fingerprint"] = "Fingerprint JA3",
+  ["ja3_fingerprint_note"] = "Il nome dell'applicazione e' popolata solo se ntopng riceve un feed eBPF via ZMQ",
   ["key"] = "Chiave",
   ["l4_protocol"] = "Protocollo L4",
   ["l4_protocols"] = "Protocolli L4",

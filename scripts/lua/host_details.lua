@@ -296,9 +296,11 @@ end
 
 if(host["ssl_fingerprint"] ~= nil) then
    if(page == "ssl") then
-      print("<li class=\"active\"><a href=\"#\">"..i18n("ssl").."</a></li>\n")
+   print("<li class=\"active\"><a href=\"#\">"..i18n("ssl").."</a></li>\n")
    else
-      print("<li><a href=\""..url.."&page=ssl\">"..i18n("ssl").."</a></li>")
+      if(table.len(host["ssl_fingerprint"]) > 0) then
+        print("<li><a href=\""..url.."&page=ssl\">"..i18n("ssl").."</a></li>")
+      end 
    end
 end
 
@@ -1347,6 +1349,8 @@ elseif(page == "ssl") then
       end
    end
    print("</table>")
+   print("<b>"..i18n("notes").."</b><ul><li>"..i18n("ja3_fingerprint_note").."</li></ul>")
+
 elseif(page == "http") then
       if(http ~= nil) then
 	 print("<table class=\"table table-bordered table-striped\">\n")

@@ -87,6 +87,7 @@ local lang = {
   ["ipv4"] = "IPv4",
   ["ipv6"] = "IPv6",
   ["ja3_fingerprint"] = "Fingerprint",
+  ["ja3_fingerprint_note"] = "Application name is set only if ntopng is configured to receive a eBPF feed via ZMQ",
   ["key"] = "Key",
   ["language"] = "Language",
   ["layer_2"] = "Mac Addresses",
