@@ -95,8 +95,8 @@ local function schema_get_path(schema, tags)
   local ifid = tags.ifid or -1
   local host_or_network = nil
 
-  if (string.find(schema.name, "iface:") == nil) and
-     (string.find(schema.name, "process:") == nil) then
+  if (string.find(schema.name, "iface:") ~= 1) and
+     (string.find(schema.name, "process:") ~= 1) then
     local parts = string.split(schema.name, ":")
     host_or_network = (HOST_PREFIX_MAP[parts[1]] or (parts[1] .. ":")) .. tags[schema._tags[2]]
 
@@ -249,7 +249,7 @@ local function add_missing_ds(schema, rrdfile, cur_ds)
     return false
   end
 
-  traceError(TRACE_INFO, TRACE_CONSOLE, "RRD format changed, trying to fix " .. rrdfile)
+  traceError(TRACE_INFO, TRACE_CONSOLE, "RRD format changed [schema=".. schema.name .."], trying to fix " .. rrdfile)
 
   local params = {rrdfile, }
   local heartbeat = schema.options.rrd_heartbeat or (schema.options.step * 2)
@@ -296,12 +296,32 @@ local function update_rrd(schema, rrdfile, timestamp, data, dont_recover)
     if(dont_recover ~= true) then
       -- Try to recover
       local last_update, num_ds = ntop.rrd_lastupdate(rrdfile)
+      local retry = false
 
       if((num_ds ~= nil) and (num_ds < #schema._metrics)) then
         if add_missing_ds(schema, rrdfile, num_ds) then
-          -- retry
-          return update_rrd(schema, rrdfile, timestamp, data, true --[[ do not recovery again ]])
+          retry = true
         end
+      elseif((num_ds == 2) and (schema.name == "iface:traffic")) then
+        -- The RRD is corrupted due to collision between "iface:traffic" and "evexporter_iface:traffic"
+        traceError(TRACE_WARNING, TRACE_CONSOLE, "'evexporter_iface:traffic' schema collision detected on " .. rrdfile .. ", moving RRD to .old")
+        local rv, errmsg = os.rename(rrdfile, rrdfile..".old")
+
+        if(rv == nil) then
+          traceError(TRACE_ERROR, TRACE_CONSOLE, errmsg)
+          return false
+        end
+
+        if(not create_rrd(schema, rrdfile)) then
+          return false
+        end
+
+        retry = true
+      end
+
+      if retry then
+        -- Problem possibly fixed, retry
+        return update_rrd(schema, rrdfile, timestamp, data, true --[[ do not recovery again ]])
       end
     end
 
