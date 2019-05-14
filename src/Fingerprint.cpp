@@ -34,7 +34,7 @@ void Fingerprint::update(char *_fprint, char *app_name) {
     s.app_name = std::string(app_name ? app_name : ""), s.num_uses = 1;
     fp[fprint] = s;
   } else {
-    it->second.num_uses++, it->second.app_name = std::string(app_name);
+    it->second.num_uses++, it->second.app_name = std::string(app_name ? app_name : "");
   }
 }
 
