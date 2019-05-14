@@ -1510,7 +1510,7 @@ elseif(page == "config") then
       </tr>]]
    end
 
-   if not interface.isPacketInterface() and not ifstats.isDynamic then
+   if interface.isPacketInterface() and not ifstats.isDynamic then
       local cur_companion = companion_interface_utils.getCurrentCompanion(ifstats.id)
       local companions = companion_interface_utils.getAvailableCompanions()
 

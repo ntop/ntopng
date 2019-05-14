@@ -7696,15 +7696,16 @@ static int ntop_interface_get_containers_stats(lua_State* vm) {
 }
 /* ****************************************** */
 
-static int ntop_interface_reload_companion(lua_State* vm) {
+static int ntop_interface_reload_companions(lua_State* vm) {
   int ifid;
   NetworkInterface *iface;
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return CONST_LUA_ERROR;
   ifid = lua_tonumber(vm, 1);
 
-  if((iface = ntop->getInterfaceById(ifid)))
-    iface->reloadCompanion();
+  if((iface = ntop->getInterfaceById(ifid))
+     && (iface = dynamic_cast<ZMQParserInterface*>(iface)))
+    iface->reloadCompanions();
 
   return CONST_LUA_OK;
 }
@@ -8490,7 +8491,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   /* eBPF, Containers and Companion Interfaces */
   { "getPodsStats",           ntop_interface_get_pods_stats           },
   { "getContainersStats",     ntop_interface_get_containers_stats     },
-  { "reloadCompanion",        ntop_interface_reload_companion         },
+  { "reloadCompanions",       ntop_interface_reload_companions        },
 
   { NULL,                             NULL }
 };

@@ -269,7 +269,6 @@ NetworkInterface::NetworkInterface(const char *name,
   is_loopback = (strncmp(ifname, "lo", 2) == 0) ? true : false;
 
   reloadHideFromTop(false);
-  reloadCompanion();
   updateTrafficMirrored();
   updateFlowDumpDisabled();
   updateLbdIdentifier();
@@ -307,7 +306,6 @@ void NetworkInterface::init() {
 
   numSubInterfaces = 0;
   memset(subInterfaces, 0, sizeof(subInterfaces));
-  companion_interface = NULL;
   reload_custom_categories = reload_hosts_blacklist = false;
   reload_hosts_bcast_domain = false;
   hosts_bcast_domain_last_update = 0;
@@ -6217,25 +6215,6 @@ ndpi_protocol_category_t NetworkInterface::get_ndpi_proto_category(u_int protoid
 }
 
 /* **************************************** */
-
-void NetworkInterface::reloadCompanion() {
-  char key[CONST_MAX_LEN_REDIS_KEY], rsp[8] = { 0 };
-  int companion_ifid;
-
-  if(!ntop->getRedis()) return;
-
-  snprintf(key, sizeof(key), CONST_IFACE_COMPANION_INTERFACE, get_id());
-
-  if(ntop->getRedis()->get(key, rsp, sizeof(rsp)) == 0 && rsp[0] != '\0') {
-    companion_ifid = atoi(rsp);
-    companion_interface = ntop->getInterfaceById(companion_ifid);
-  } else {
-    companion_interface = NULL;
-  }
-
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Companion interface reloaded [interface: %s][companion: %s]",
-  // 			       get_name(), companion_interface ? companion_interface->get_name() : "NULL");
-}
 
 /* **************************************** */
 

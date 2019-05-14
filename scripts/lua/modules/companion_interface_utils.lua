@@ -7,6 +7,7 @@ require "lua_utils"
 
 local companion_interface_prefix = "ntopng.prefs.companion_interface."
 local companion_interface_key = string.format("%s%s", companion_interface_prefix, "ifid_%d.companion")
+local companion_of_key = string.format("%s%s", companion_interface_prefix, "ifid_%d.companion_of")
 
 local companion_interface_utils = {}
 
@@ -27,11 +28,6 @@ function companion_interface_utils.getCurrentCompanion(ifid)
       end
    end
 
-   -- if here the companion interface id set is no longer valid
-   -- i.e., ntopng has been started with the previously set companion
-   -- interface
-   ntop.delCache(k)
-
    return ""
 end
 
@@ -42,12 +38,14 @@ function companion_interface_utils.setCompanion(ifid, companion_ifid)
    if cur_companion ~= companion_ifid then
       if companion_ifid == "" then
 	 ntop.delCache(k)
+	 ntop.delMembersCache(string.format(companion_of_key, cur_companion), tostring(ifid))
+	 interface.reloadCompanions(tonumber(cur_companion))
       else
 	 ntop.setCache(k, companion_ifid)
+	 ntop.setMembersCache(string.format(companion_of_key, companion_ifid), tostring(ifid))
+	 interface.reloadCompanions(tonumber(companion_ifid))
       end
    end
-
-   interface.reloadCompanion(ifid)
 end
 
 function companion_interface_utils.getAvailableCompanions()
@@ -55,16 +53,24 @@ function companion_interface_utils.getAvailableCompanions()
    local ifaces = interface.getIfNames()
 
    local res = { {ifid = "", ifname = "None"} }
-   for ifid, ifname in pairs(ifaces) do
-      local is_mirrored_traffic_pref = string.format("ntopng.prefs.ifid_%d.is_traffic_mirrored", ifid)
-      local is_mirrored_traffic = ntop.getPref(is_mirrored_traffic_pref)
+   for ifid, ifname in pairsByKeys(ifaces) do
+      interface.select(ifid)
 
-      if cur_ifid ~= tonumber(ifid) and is_mirrored_traffic == "1" then
+      if not interface.isPacketInterface() and cur_ifid ~= tonumber(ifid) then
 	 res[#res + 1] = {ifid = ifid, ifname = ifname}
       end
    end
 
+   interface.select(tostring(cur_ifid))
    return res
+end
+
+function companion_interface_utils.initCompanions()
+   local ifaces = interface.getIfNames()
+
+   for ifid, ifname in pairs(ifaces) do
+      interface.reloadCompanions(tonumber(ifid))
+   end
 end
 
 return companion_interface_utils

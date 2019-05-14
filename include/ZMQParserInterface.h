@@ -26,6 +26,9 @@
 
 class ZMQParserInterface : public ParserInterface {
  private:
+  Mutex companions_lock;
+  u_int8_t num_companion_interfaces;
+  NetworkInterface **companion_interfaces;
   typedef std::pair<u_int32_t, u_int32_t> pen_value_t;
   typedef std::map<string, pen_value_t > labels_map_t;
   labels_map_t labels_map;
@@ -36,6 +39,8 @@ class ZMQParserInterface : public ParserInterface {
 #ifdef NTOPNG_PRO
   CustomAppMaps *custom_app_maps;
 #endif
+  virtual void reloadCompanions();
+  void deliverFlowToCompanions(ParsedFlow * const flow);
   bool getKeyId(char *sym, u_int32_t * const pen, u_int32_t * const field) const;
   void addMapping(const char *sym, u_int32_t num, u_int32_t pen = 0);
   bool parsePENZeroField(ParsedFlow * const flow, u_int32_t field, const char * const value) const;

@@ -535,7 +535,7 @@
 #define CONST_IFACE_SCALING_FACTOR_PREFS    NTOPNG_PREFS_PREFIX".iface_%d.scaling_factor"
 #define CONST_IFACE_PACKET_DROPS_ALERT_PREFS NTOPNG_PREFS_PREFIX".iface_%d.packet_drops_alert"
 #define CONST_IFACE_HIDE_FROM_TOP_PREFS     NTOPNG_PREFS_PREFIX".iface_%d.hide_from_top"
-#define CONST_IFACE_COMPANION_INTERFACE     NTOPNG_PREFS_PREFIX".companion_interface.ifid_%d.companion"
+#define CONST_IFACE_COMPANIONS_SET          NTOPNG_PREFS_PREFIX".companion_interface.ifid_%d.companion_of"
 #define CONST_HOST_ANOMALIES_THRESHOLD      NTOPNG_PREFS_PREFIX".%s:%d.alerts_config"
 #define CONST_HOSTS_ALERT_COUNTERS          "ntopng.cache.alerts.iface_%u.host_engaged_alert_counters"
 #define CONST_REMOTE_HOST_IDLE_PREFS        NTOPNG_PREFS_PREFIX".non_local_host_max_idle"
@@ -1024,7 +1024,7 @@ extern struct ntopngLuaContext* getUserdata(struct lua_State *vm);
 #define DONT_NOT_EXPIRE_BEFORE_SEC        30 /* sec */
 #define MAX_NDPI_IDLE_TIME_BEFORE_GUESS   5 /* sec */
 #define MAX_NUM_PCAP_CAPTURES             4
-
+#define MAX_NUM_COMPANION_INTERFACES      4
 #define MAX_NUM_FINGERPRINT               25
 
 #define ALERT_ACTION_ENGAGE           "engage"

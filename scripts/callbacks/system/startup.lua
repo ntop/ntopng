@@ -138,6 +138,11 @@ recording_utils.checkAvailable()
 
 -- ##################################################################
 
+local companion_interface_utils = require "companion_interface_utils"
+companion_interface_utils.initCompanions()
+
+-- ##################################################################
+
 initCustomnDPIProtoCategories()
 
 -- housekeeping will do the actual reload...
