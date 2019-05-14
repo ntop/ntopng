@@ -227,7 +227,6 @@ u_int8_t ZMQParserInterface::parseEvent(const char * const payload, int payload_
   json_object *o;
   enum json_tokener_error jerr = json_tokener_success;
   ZMQ_RemoteStats *zrs = NULL;
-  memset((void*)&zrs, 0, sizeof(zrs));
 
   // payload[payload_size] = '\0';
 
@@ -321,13 +320,14 @@ u_int8_t ZMQParserInterface::parseEvent(const char * const payload, int payload_
       ZMQParserInterface *current_iface;
 
       HASH_ITER(hh, flowHashing, current, tmp) {
-	ZMQ_RemoteStats *zrscopy = (ZMQ_RemoteStats*)malloc(sizeof(ZMQ_RemoteStats));
+	if((current_iface = dynamic_cast<ZMQParserInterface*>(current->iface))) {
+          ZMQ_RemoteStats *zrscopy = (ZMQ_RemoteStats*)malloc(sizeof(ZMQ_RemoteStats));
 
-	if(zrscopy)
-	  memcpy(zrscopy, zrs, sizeof(ZMQ_RemoteStats));
-
-	if((current_iface = dynamic_cast<ZMQParserInterface*>(current->iface)))
-	  current_iface->setRemoteStats(zrscopy);
+	  if(zrscopy) {
+	    memcpy(zrscopy, zrs, sizeof(ZMQ_RemoteStats));
+	    current_iface->setRemoteStats(zrscopy);
+          }
+        }
       }
     }
 
