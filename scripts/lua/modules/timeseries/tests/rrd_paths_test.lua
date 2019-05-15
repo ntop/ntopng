@@ -18,8 +18,7 @@ local prefixes_to_skip = {
 }
 
 local suffixes_to_skip = {
-  ndpi_categories = true,     -- Collides with nDPI protocol, but we assume that they hold different values
-  l4protos = true,            -- Collides with nDPI protocol, but we assume that they hold different values
+  l4protos = true,            -- Currently no overlap happens. "icmp" is the l4 protocol, "ICMP" is the l7 application
 }
 
 -- ##############################################

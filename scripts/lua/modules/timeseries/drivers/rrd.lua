@@ -94,19 +94,20 @@ local function schema_get_path(schema, tags)
   -- ifid is mandatory here
   local ifid = tags.ifid or -1
   local host_or_network = nil
+  local parts = string.split(schema.name, ":")
 
-  if (string.find(schema.name, "iface:") ~= 1) and
-     (string.find(schema.name, "process:") ~= 1) then
-    local parts = string.split(schema.name, ":")
+  if((string.find(schema.name, "iface:") ~= 1) and  -- interfaces are only identified by the first tag
+      (#schema._tags >= 2)) then                    -- some schema do not have 2 tags, e.g. "process:*" schemas
     host_or_network = (HOST_PREFIX_MAP[parts[1]] or (parts[1] .. ":")) .. tags[schema._tags[2]]
+  end
 
-    if parts[1] == "snmp_if" then
-       suffix = tags.if_index .. "/"
-    elseif (parts[1] == "flowdev_port") or (parts[1] == "sflowdev_port") then
-       suffix = tags.port .. "/"
-    elseif parts[2] == "ndpi_categories" then
-       suffix = "ndpi_categories/"
-    end
+  -- Some exceptions to avoid conflicts / keep compatibility
+  if parts[1] == "snmp_if" then
+     suffix = tags.if_index .. "/"
+  elseif (parts[1] == "flowdev_port") or (parts[1] == "sflowdev_port") then
+     suffix = tags.port .. "/"
+  elseif parts[2] == "ndpi_categories" then
+     suffix = "ndpi_categories/"
   end
 
   local path = getRRDName(ifid, host_or_network) .. suffix

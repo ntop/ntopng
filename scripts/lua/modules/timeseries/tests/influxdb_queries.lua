@@ -90,6 +90,11 @@ end
 -- ##############################################
 
 function run(tester)
+  if influxdb.db == nil then
+    print("Skipping influx_query tests. Enable InfluxDB export in order to test.<br/>")
+    return(true)
+  end
+
   local rv = tester.run_test("influx_query:test_simple_derivative", test_simple_derivative)
 
   return rv

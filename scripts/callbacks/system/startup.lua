@@ -22,6 +22,7 @@ local host_pools_utils = require "host_pools_utils"
 local os_utils = require "os_utils"
 local lists_utils = require "lists_utils"
 local recovery_utils = require "recovery_utils"
+local delete_data_utils = require "delete_data_utils"
 local ts_utils = require "ts_utils"
 
 local prefs = ntop.getPrefs()
@@ -169,3 +170,24 @@ recovery_utils.unmark_clean_shutdown()
 
 -- Need to run setup at startup since the schemas may be changed
 ts_utils.setupAgain()
+
+-- Migrate "iface:ndpi_categories" under the correct folder
+if(ntop.getCache("ntopng.cache.rrd_category_migration") ~= "1") then
+   for ifid, ifname in pairs(delete_data_utils.list_all_interfaces()) do
+      ntop.mkdir(dirs.workingdir .. "/" .. ifid .. "/rrd/ndpi_categories")
+
+      for cat_name, cat_id in pairs(interface.getnDPICategories()) do
+         local old_path = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/rrd/"..cat_name..".rrd")
+
+         if ntop.exists(old_path) then
+            local new_path = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/rrd/ndpi_categories/"..cat_name..".rrd")
+
+            traceError(TRACE_INFO, TRACE_CONSOLE, "Migrating Category RRD: " .. old_path)
+            os.rename(old_path, new_path)
+         end
+      end
+   end
+
+   -- do not perform migration again
+   ntop.setCache("ntopng.cache.rrd_category_migration", "1")
+end
