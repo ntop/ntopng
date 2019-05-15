@@ -332,7 +332,7 @@ int StatsManager::insertSampling(const char * const sampling, const char * const
 
   m.lock(__FILE__, __LINE__);
 
-  if(sqlite3_prepare(db, query, -1, &stmt, 0) ||
+  if(sqlite3_prepare_v2(db, query, -1, &stmt, 0) ||
      sqlite3_bind_int64(stmt, 1, key) ||
      sqlite3_bind_text(stmt, 2, sampling, strlen(sampling), SQLITE_TRANSIENT)) {
     rc = 1;

@@ -35,6 +35,8 @@ local uid         = _GET["uid"]
 local pid         = _GET["pid"]
 local container   = _GET["container"]
 local pod         = _GET["pod"]
+local icmp_type   = _GET["icmp_type"]
+local icmp_code   = _GET["icmp_cod"]
 
 local deviceIP    = _GET["deviceIP"]
 local inIfIdx     = _GET["inIfIdx"]
@@ -195,6 +197,9 @@ end
 if not isEmptyString(asn) then
    pageinfo["asnFilter"] = tonumber(asn)
 end
+
+pageinfo["icmp_type"] = tonumber(icmp_type)
+pageinfo["icmp_code"] = tonumber(icmp_code)
 
 if not isEmptyString(tcp_state) then
    pageinfo["tcpFlowStateFilter"] = tcp_state

@@ -529,6 +529,7 @@ print(
       query_title = i18n("search_host"),
       style       = "width:16em;",
       before_submit = [[makeFindHostBeforeSubmitCallback("]] .. ntop.getHttpPrefix() .. [[")]],
+      max_items   = "'all'" --[[ let source script decide ]],
     }
   })
 )

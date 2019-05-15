@@ -58,7 +58,16 @@ function getRRDName(ifid, host_or_network, rrdFile)
       host_or_network = string.gsub(host_or_network, 'country:', '')
       rrdname = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/countrystats/")
    else
-      rrdname = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/rrd/")
+      -- try to get a generic path based on the first part of the schema name
+      local parts = string.split(host_or_network or "", ":") or {}
+
+      if((#parts == 2) and (parts[1] ~= "host")) then
+         host_or_network = parts[2]
+         rrdname = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/rrd/".. parts[1] .. "/")
+      else
+         -- fallback, also for hosts
+         rrdname = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/rrd/")
+      end
    end
 
    if(host_or_network ~= nil) then

@@ -41,7 +41,7 @@ class Paginator {
   u_int32_t deviceIP;
   u_int16_t inIndex, outIndex;
   u_int16_t pool_filter;
-  u_int8_t *mac_filter;
+  u_int8_t *mac_filter, icmp_type, icmp_code;
   DetailsLevel details_level;
   bool details_level_set;
   LocationPolicy client_mode;
@@ -141,6 +141,10 @@ class Paginator {
 
   inline bool uidFilter(u_int32_t *f) const {
     if(uid_filter != NO_UID) { (*f) = uid_filter; return true; } return false;
+  }
+
+  inline bool icmpValue(u_int8_t *code, u_int8_t *typ) const {
+    if((icmp_type != u_int8_t(-1)) && (icmp_code != u_int8_t(-1))) { (*typ) = icmp_type; (*code) = icmp_code; return true; } return false;
   }
 
   inline bool pidFilter(u_int32_t *f) const {

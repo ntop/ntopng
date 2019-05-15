@@ -19,29 +19,27 @@
  *
  */
 
-#ifndef _STORE_MANAGER_H_
-#define _STORE_MANAGER_H_
+#ifndef _FINGERPRINT_H_
+#define _FINGERPRINT_H_
 
 #include "ntop_includes.h"
 
-class StoreManager {
+typedef struct {
+  std::string app_name; /* NetLink/eBPF-like only */
+  u_int32_t num_uses;
+} FingerprintStats;
+
+class Fingerprint {
  private:
- protected:
-  int ifid;
-  NetworkInterface *iface;
-  Mutex m;
-  sqlite3 *db;
+  std::map<std::string /* fingerprint */, FingerprintStats> fp;
 
-  int init(const char *db_file_full_path);
-  int exec_query(char *db_query,
-		 int (*callback)(void *, int, char **, char **),
-		 void *payload);
- public:
-  StoreManager(int interface_id);
-  virtual ~StoreManager();
-
-  NetworkInterface* getNetworkInterface();
+  void prune();
   
+ public:
+  Fingerprint() { ; }
+
+  void update(char *fp, char *app_name);
+  void lua(const char *key, lua_State* vm);
 };
 
-#endif /* _STORE_MANAGER_H_ */
+#endif /* _FINGERPRINT_H_ */

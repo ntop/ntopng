@@ -269,8 +269,8 @@ NetworkInterface::NetworkInterface(const char *name,
   is_loopback = (strncmp(ifname, "lo", 2) == 0) ? true : false;
 
   reloadHideFromTop(false);
-  reloadCompanion();
   updateTrafficMirrored();
+  updateFlowDumpDisabled();
   updateLbdIdentifier();
 }
 
@@ -295,7 +295,7 @@ void NetworkInterface::init() {
     cpu_affinity = -1 /* no affinity */,
     inline_interface = false, running = false, interfaceStats = NULL,
     has_too_many_hosts = has_too_many_flows = too_many_drops = false,
-    slow_stats_update = false,
+    slow_stats_update = false, flow_dump_disabled = false,
     numL2Devices = 0, numHosts = 0, numLocalHosts = 0,
     checkpointPktCount = checkpointBytesCount = checkpointPktDropCount = 0,
     pollLoopCreated = false, bridge_interface = false,
@@ -306,7 +306,6 @@ void NetworkInterface::init() {
 
   numSubInterfaces = 0;
   memset(subInterfaces, 0, sizeof(subInterfaces));
-  companion_interface = NULL;
   reload_custom_categories = reload_hosts_blacklist = false;
   reload_hosts_bcast_domain = false;
   hosts_bcast_domain_last_update = 0;
@@ -348,26 +347,12 @@ void NetworkInterface::init() {
       ts_ring = new TimeseriesRing(this);
   }
 
-#ifdef HAVE_EBPF
-  if(bridge_interface
-     || is_dynamic_interface
-     || is_traffic_mirrored
-     || isView())
-    ;
-  else {
-    ebpfEvents = (eBPFevent**)calloc(sizeof(eBPFevent*), EBPF_QUEUE_LEN);
-    next_insert_idx = next_remove_idx = 0;
-  }
-#endif
-
   if(bridge_interface
      || is_dynamic_interface
      || isView())
     ;
-  else {
-    ebpfFlows = new (std::nothrow) ParsedFlow*[EBPF_QUEUE_LEN];
-    for(int i = 0; i < EBPF_QUEUE_LEN; i++) ebpfFlows[i] = NULL;
-  }
+  else
+    ebpfFlows = new (std::nothrow) ParsedFlow*[EBPF_QUEUE_LEN]();
   next_ebpf_insert_idx = next_ebpf_remove_idx = 0;
   
 
@@ -556,6 +541,25 @@ void NetworkInterface::updateTrafficMirrored() {
 
 /* **************************************************** */
 
+void NetworkInterface::updateFlowDumpDisabled() {
+  char key[CONST_MAX_LEN_REDIS_KEY], rsp[2] = { 0 };
+  bool is_disabled = false;
+
+  if(!ntop->getRedis()) return;
+
+  snprintf(key, sizeof(key), CONST_DISABLED_FLOW_DUMP_PREFS, get_id());
+  if((ntop->getRedis()->get(key, rsp, sizeof(rsp)) == 0) && (rsp[0] != '\0')) {
+    if(rsp[0] == '1')
+      is_disabled = true;
+    else if(rsp[0] == '0')
+      is_disabled = false;
+  }
+
+  flow_dump_disabled = is_disabled;
+}
+
+/* **************************************************** */
+
 bool NetworkInterface::checkIdle() {
   is_idle = false;
 
@@ -592,22 +596,12 @@ void NetworkInterface::deleteDataStructures() {
   }
 #endif
 
-#ifdef HAVE_EBPF
-  if(ebpfEvents) {
-    for(u_int16_t i=0; i<EBPF_QUEUE_LEN; i++)
-      if(ebpfEvents[i])
-	free(ebpfEvents[i]);
-
-    free(ebpfEvents);
-  }
-#endif
-
   if(ebpfFlows) {
     for(u_int16_t i = 0; i < EBPF_QUEUE_LEN; i++)
       if(ebpfFlows[i])
 	delete ebpfFlows[i];
 
-    delete ebpfFlows;
+    delete []ebpfFlows;
     ebpfFlows = NULL;
   }
 }
@@ -1048,9 +1042,14 @@ NetworkInterface* NetworkInterface::getSubInterface(u_int32_t criteria, bool par
 	  HASH_ADD_INT(flowHashing, criteria, h);
 	  numVirtualInterfaces++;
 	  ntop->getRedis()->set(CONST_STR_RELOAD_LISTS, (const char * const)"1");
-	}
-      } else
+	} else {
+          ntop->getTrace()->traceEvent(TRACE_WARNING, "Failure allocating interface: not enough memory?");
+          free(h);
+          return(NULL);
+        }
+      } else {
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
+      }
     }
   }
 
@@ -2012,59 +2011,6 @@ void NetworkInterface::purgeIdle(time_t when) {
   }
 }
 
-/* ***************************************************** */
-
-#ifdef HAVE_EBPF
-
-#ifdef EBPF_DEBUG
-
-static void IPV4Handler(Flow *f, eBPFevent *e) {
-  struct ipv4_kernel_data *event = &e->event.v4;
-  char buf1[32], buf2[32];
-
-  ntop->getTrace()->traceEvent(TRACE_NORMAL,
-			       "[%s][IPv4][%s][pid/tid: %u/%u (%s), uid/gid: %u/%u][father pid/tid: %u/%u (%s), uid/gid: %u/%u][addr: %s:%u <-> %s:%u][latency: %.2f msec]\n",
-			       e->ifname, (event->net.proto == IPPROTO_TCP) ? "TCP" : "UDP",
-			       e->proc.pid, e->proc.tid,
-			       e->proc.full_task_path ? e->proc.full_task_path : e->proc.task,
-			       e->proc.uid, e->proc.gid,
-			       e->father.pid, e->father.tid,
-			       e->father.full_task_path ? e->father.full_task_path : e->father.task,
-			       e->father.uid, e->father.gid,
-			       Utils::intoaV4(htonl(event->saddr), buf1, sizeof(buf1)), event->net.sport,
-			       Utils::intoaV4(htonl(event->daddr), buf2, sizeof(buf2)), event->net.dport,
-			       ((float)event->net.latency_usec)/(float)1000);
-}
-
-/* ***************************************************** */
-
-static void IPV6Handler(Flow *f, eBPFevent *e) {
-  struct ipv6_kernel_data *event = &e->event.v6;
-  char buf1[32], buf2[32];
-  struct ndpi_in6_addr saddr, daddr;
-
-  memcpy(&saddr, &event->saddr, sizeof(saddr));
-  memcpy(&daddr, &event->daddr, sizeof(daddr));
-
-  ntop->getTrace()->traceEvent(TRACE_NORMAL,
-			       "[%s][IPv6][%s][pid/tid: %u/%u (%s), uid/gid: %u/%u][father pid/tid: %u/%u (%s), uid/gid: %u/%u][addr: %s:%u <-> %s:%u][latency: %.2f msec]\n",
-			       e->ifname, (event->net.proto == IPPROTO_TCP) ? "TCP" : "UDP",
-			       e->proc.pid, e->proc.tid,
-			       e->proc.full_task_path ? e->proc.full_task_path : e->proc.task,
-			       e->proc.uid, e->proc.gid,
-			       e->father.pid, e->father.tid,
-			       e->father.full_task_path ? e->father.full_task_path : e->father.task,
-			       e->father.uid, e->father.gid,
-			       Utils::intoaV6(saddr, 128, buf1, sizeof(buf1)),
-			       event->net.sport,
-			       Utils::intoaV6(daddr, 128, buf2, sizeof(buf2)),
-			       event->net.dport, ((float)event->net.latency_usec)/(float)1000);
-}
-
-#endif
-
-#endif
-
 /* **************************************************** */
 
 bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
@@ -2676,7 +2622,6 @@ decode_packet_eth:
 /* **************************************************** */
 
 void NetworkInterface::pollQueuedeBPFEvents() {
-#if ENABLE_EBPF_FLOWS_DISPATCH
   if(ebpfFlows) {
     ParsedFlow *dequeued = NULL;
 
@@ -2711,60 +2656,6 @@ void NetworkInterface::pollQueuedeBPFEvents() {
 
     return;
   }
-#endif
-
-#ifdef HAVE_EBPF
-  if(ebpfEvents) {
-    eBPFevent *event;
-
-    if(dequeueeBPFEvent(&event)) {
-      Flow *flow = NULL;
-      IpAddress src, dst;
-      bool src2dst_direction, new_flow;
-      u_int16_t proto, sport, dport;
-
-      if(event->ip_version == 4) {
-	src.set(event->addr.v4.saddr), dst.set(event->addr.v4.daddr),
-	  sport = event->sport, dport = event->dport,
-	  proto = event->proto;
-      } else {
-	src.set((struct ndpi_in6_addr*)&event->addr.v6.saddr),
-	  dst.set((struct ndpi_in6_addr*)&event->addr.v6.daddr),
-	  sport = event->sport, dport = event->dport,
-	  proto = event->proto;
-      }
-
-      sport = htons(sport), dport = htons(dport);
-
-      flow = getFlow(NULL /* srcMac */, NULL /* dstMac */,
-		     0 /* vlan_id */,
-		     0 /* deviceIP */,
-		     0 /* inIndex */, 1 /* outIndex */,
-		     NULL /* ICMPinfo */,
-		     &src, &dst,
-		     sport, dport,
-		     proto,
-		     &src2dst_direction,
-		     0, 0, 0, &new_flow,
-		     true /* create_if_missing */);
-
-
-      if(flow) flow->setProcessInfo(event, src2dst_direction ? event->sent_packet : !event->sent_packet);
-
-#ifdef EBPF_DEBUG
-      // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new flow: %u][src2dst_direction: %u]", new_flow ? 1 : 0, src2dst_direction ? 1 : 0);
-
-      if(event->ip_version == 4)
-	IPV4Handler(flow, event);
-      else
-	IPV6Handler(flow, event);
-#endif
-
-      ebpf_free_event(event);
-      free(event);
-    }
-  }
-#endif
 }
 
 /* **************************************************** */
@@ -3790,6 +3681,7 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
   u_int32_t pid_filter;
   u_int32_t deviceIP;
   u_int16_t inIndex, outIndex;
+  u_int8_t icmp_type, icmp_code;
   char *container_filter, *pod_filter;
 #ifdef HAVE_NEDGE
   bool filtered_flows;
@@ -3878,9 +3770,19 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
 
     if(retriever->pag
        && retriever->pag->pidFilter(&pid_filter)
-       && f->get_pid(true  /* client pid */) != pid_filter
-       && f->get_pid(false /* server pid */) != pid_filter)
+       && f->getPid(true  /* client pid */) != pid_filter
+       && f->getPid(false /* server pid */) != pid_filter)
       return(false);
+
+    if(retriever->pag
+       && retriever->pag->icmpValue(&icmp_type, &icmp_code)) {
+      u_int8_t cur_type, cur_code;
+      u_int16_t cur_echo_id;
+      f->getICMP(&cur_code, &cur_type, &cur_echo_id);
+
+      if((!f->isICMP()) || (cur_type != icmp_type) || (cur_code != icmp_code))
+        return(false);
+     }
 
     if(retriever->pag
        && retriever->pag->portFilter(&port)
@@ -6388,25 +6290,6 @@ ndpi_protocol_category_t NetworkInterface::get_ndpi_proto_category(u_int protoid
 
 /* **************************************** */
 
-void NetworkInterface::reloadCompanion() {
-  char key[CONST_MAX_LEN_REDIS_KEY], rsp[8] = { 0 };
-  int companion_ifid;
-
-  if(!ntop->getRedis()) return;
-
-  snprintf(key, sizeof(key), CONST_IFACE_COMPANION_INTERFACE, get_id());
-
-  if(ntop->getRedis()->get(key, rsp, sizeof(rsp)) == 0 && rsp[0] != '\0') {
-    companion_ifid = atoi(rsp);
-    companion_interface = ntop->getInterfaceById(companion_ifid);
-  } else {
-    companion_interface = NULL;
-  }
-
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Companion interface reloaded [interface: %s][companion: %s]",
-  // 			       get_name(), companion_interface ? companion_interface->get_name() : "NULL");
-}
-
 /* **************************************** */
 
 static bool host_reload_hide_from_top(GenericHashEntry *host, void *user_data, bool *matched) {
@@ -7194,11 +7077,14 @@ bool NetworkInterface::checkBroadcastDomainTooLarge(u_int32_t bcast_mask, u_int1
   Put here all the code that is executed when the NIC initialization
   is succesful
  */
-void NetworkInterface::finishInitialization(u_int8_t num_defined_interfaces) {
+bool NetworkInterface::initFlowDump(u_int8_t num_dump_interfaces) {
+  if(isFlowDumpDisabled())
+    return(false);
+
   if(!isView()) {
 #if defined(NTOPNG_PRO) && defined(HAVE_NINDEX)
     if(ntop->getPrefs()->do_dump_flows_on_nindex()) {
-      if(num_defined_interfaces + 1 >= NINDEX_MAX_NUM_INTERFACES) {
+      if(num_dump_interfaces + 1 >= NINDEX_MAX_NUM_INTERFACES) {
 	ntop->getTrace()->traceEvent(TRACE_ERROR,
 				     "nIndex cannot be enabled for %s.", get_name());
 	ntop->getTrace()->traceEvent(TRACE_ERROR,
@@ -7250,6 +7136,8 @@ void NetworkInterface::finishInitialization(u_int8_t num_defined_interfaces) {
 #endif
     }
   }
+
+  return(db != NULL);
 }
 
 /* *************************************** */
@@ -7646,7 +7534,7 @@ typedef std::map<std::string, ContainerStats> PodsMap;
 static bool flow_get_pods_stats(GenericHashEntry *entry, void *user_data, bool *matched) {
   PodsMap *pods_stats = (PodsMap*)user_data;
   Flow *flow = (Flow*)entry;
-  ContainerInfo *cli_cont, *srv_cont;
+  const ContainerInfo *cli_cont, *srv_cont;
   const char *cli_pod = NULL, *srv_pod = NULL;
 
   if((cli_cont = flow->getClientContainerInfo()) && cli_cont->data_type == container_info_data_type_k8s)
@@ -7656,7 +7544,7 @@ static bool flow_get_pods_stats(GenericHashEntry *entry, void *user_data, bool *
 
   if(cli_pod) {
     ContainerStats stats = (*pods_stats)[cli_pod]; /* get existing or create new */
-    TcpInfo *client_tcp = flow->getClientTcpInfo();
+    const TcpInfo *client_tcp = flow->getClientTcpInfo();
 
     stats.incNumFlowsAsClient();
     stats.accountLatency(client_tcp ? client_tcp->rtt : 0, client_tcp ? client_tcp->rtt_var : 0, true /* as_client */);
@@ -7669,7 +7557,7 @@ static bool flow_get_pods_stats(GenericHashEntry *entry, void *user_data, bool *
 
   if(srv_pod) {
     ContainerStats stats = (*pods_stats)[srv_pod]; /* get existing or create new */
-    TcpInfo *server_tcp = flow->getServerTcpInfo();
+    const TcpInfo *server_tcp = flow->getServerTcpInfo();
 
     stats.incNumFlowsAsServer();
     stats.accountLatency(server_tcp ? server_tcp->rtt : 0, server_tcp ? server_tcp->rtt_var : 0, false /* as server */);
@@ -7707,7 +7595,7 @@ void NetworkInterface::getPodsStats(lua_State* vm) {
 /* *************************************** */
 
 typedef struct {
-  ContainerInfo *info;
+  const ContainerInfo *info;
   ContainerStats stats;
 } ContainerData;
 
@@ -7722,7 +7610,7 @@ static bool flow_get_container_stats(GenericHashEntry *entry, void *user_data, b
   ContainersMap *containers_data = &((containerRetrieverData*)user_data)->containers;
   const char *pod_filter = ((containerRetrieverData*)user_data)->pod_filter;
   Flow *flow = (Flow*)entry;
-  ContainerInfo *cli_cont, *srv_cont;
+  const ContainerInfo *cli_cont, *srv_cont;
   const char *cli_cont_id = NULL, *srv_cont_id = NULL;
   const char *cli_pod = NULL, *srv_pod = NULL;
 
@@ -7740,7 +7628,7 @@ static bool flow_get_container_stats(GenericHashEntry *entry, void *user_data, b
   if(cli_cont_id &&
 	 ((!pod_filter) || (cli_pod && !strcmp(pod_filter, cli_pod)))) {
     ContainerData data = (*containers_data)[cli_cont_id]; /* get existing or create new */
-    TcpInfo *client_tcp = flow->getClientTcpInfo();
+    const TcpInfo *client_tcp = flow->getClientTcpInfo();
 
     data.stats.incNumFlowsAsClient();
     data.stats.accountLatency(client_tcp ? client_tcp->rtt : 0, client_tcp ? client_tcp->rtt_var : 0, true /* as_client */);
@@ -7753,7 +7641,7 @@ static bool flow_get_container_stats(GenericHashEntry *entry, void *user_data, b
   if(srv_cont_id &&
 	 ((!pod_filter) || (srv_pod && !strcmp(pod_filter, srv_pod)))) {
     ContainerData data = (*containers_data)[srv_cont_id]; /* get existing or create new */
-    TcpInfo *server_tcp = flow->getServerTcpInfo();
+    const TcpInfo *server_tcp = flow->getServerTcpInfo();
 
     data.stats.incNumFlowsAsServer();
     data.stats.accountLatency(server_tcp ? server_tcp->rtt : 0, server_tcp ? server_tcp->rtt_var : 0, false /* as server */);
@@ -7805,7 +7693,7 @@ bool NetworkInterface::enqueueeBPFFlow(ParsedFlow * const pf, bool skip_loopback
   if(ebpfFlows[next_ebpf_insert_idx])
     return false;
 
-  if((ebpfFlows[next_ebpf_insert_idx] = new (std::nothrow)ParsedFlow(*pf))) {
+  if((ebpfFlows[next_ebpf_insert_idx] = new (std::nothrow) ParsedFlow(*pf))) {
     next_ebpf_insert_idx = (next_ebpf_insert_idx + 1) % EBPF_QUEUE_LEN;
     return true;
   }
@@ -7827,64 +7715,3 @@ bool NetworkInterface::dequeueeBPFFlow(ParsedFlow **f) {
 
   return true;
 }
-
-/* *************************************** */
-
-#ifdef HAVE_EBPF
-
-bool NetworkInterface::enqueueeBPFEvent(eBPFevent *event) {
-#ifdef EBPF_DEBUG
-  // ntop->getTrace()->traceEvent(TRACE_ERROR, "[%s] %s(%d/%d)", ifname, __FUNCTION__, next_insert_idx, next_remove_idx);
-#endif
-
-  if(ebpfEvents[next_insert_idx] != (eBPFevent*)NULL)
-    return(false);
-
-  ebpf_preprocess_event(event);
-
-  ebpfEvents[next_insert_idx] = event;
-  next_insert_idx = (next_insert_idx + 1) % EBPF_QUEUE_LEN;
-  return(true);
-}
-
-/* *************************************** */
-
-bool NetworkInterface::dequeueeBPFEvent(eBPFevent **event) {
-  if(ebpfEvents[next_remove_idx] == (eBPFevent*)NULL) {
-    *event = NULL;
-    return(false);
-  }
-
-#ifdef EBPF_DEBUG
-  // ntop->getTrace()->traceEvent(TRACE_ERROR, "[%s] %s(%d/%d)", ifname, __FUNCTION__, next_insert_idx, next_remove_idx);
-#endif
-
-  *event = ebpfEvents[next_remove_idx];
-  ebpfEvents[next_remove_idx] = NULL;
-  next_remove_idx = (next_remove_idx + 1) % EBPF_QUEUE_LEN;
-  return(true);
-}
-
-/* *************************************** */
-
-void NetworkInterface::delivereBPFEvent(eBPFevent *event) {
-  eBPFevent *tmp;
-
-  if(ebpfEvents == NULL)
-    return; /* No events */
-  else if((event->ifname[0] != '\0') && strcmp(event->ifname, ifname))
-    return; /* Not for this interface */
-
-  if((tmp = (eBPFevent*)malloc(sizeof(eBPFevent))) != NULL) {
-    memcpy(tmp, event, sizeof(eBPFevent));
-
-    // ntop->getTrace()->traceEvent(TRACE_ERROR, "%s()", __FUNCTION__);
-
-    if(!enqueueeBPFEvent(tmp))
-      free(tmp); /* Not enough space */
-    else if(!hasSeenEBPFEvents())
-      setSeenEBPFEvents();
-  }
-}
-
-#endif // HAVE_EBPF

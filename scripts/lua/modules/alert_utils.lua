@@ -771,7 +771,8 @@ function formatRawUserActivity(record, activity_json)
 
       elseif decoded.name == 'resetUserPassword' and decoded.params[2] ~= nil then
         local pwd_user = decoded.params[2]
-        return  i18n('user_activity.password_changed', {user=user, pwd_user=pwd_user}) 
+        local user_ip = ternary(decoded.remote_addr, decoded.remote_addr, '')
+        return  i18n('user_activity.password_changed', {user=user, pwd_user=pwd_user, ip=user_ip}) 
 
       -- SNMP device add/del
 

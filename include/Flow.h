@@ -118,12 +118,8 @@ class Flow : public GenericHashEntry {
     u_int16_t in_index, out_index;
   } flow_device;
 
-  /* Process Information */
-  ProcessInfo *client_proc, *server_proc;
-  /* Container Information */
-  ContainerInfo *client_cont, *server_cont;
-  /* Tcp Information */
-  TcpInfo *client_tcp, *server_tcp;
+  /* eBPF Information */
+  ParsedeBPF *cli_ebpf, *srv_ebpf;
 
   /* Stats */
   u_int32_t cli2srv_packets, srv2cli_packets;
@@ -184,8 +180,7 @@ class Flow : public GenericHashEntry {
 
   //  tcpFlags = tp->th_flags, tcpSeqNum = ntohl(tp->th_seq), tcpAckNum = ntohl(tp->th_ack), tcpWin = ntohs(tp->th_win);
   char* intoaV4(unsigned int addr, char* buf, u_short bufLen);
-  static void processLua(lua_State* vm, const ProcessInfo * const proc, const ContainerInfo * const cont, const TcpInfo * const tcp, bool client);
-  void processJson(bool is_src, json_object *my_object, ProcessInfo *proc);
+  static void processLua(lua_State* vm, const ParsedeBPF * const pe, bool client);
   void allocDPIMemory();
   bool checkTor(char *hostname);
   void setBittorrentHash(char *hash);
@@ -210,7 +205,8 @@ class Flow : public GenericHashEntry {
 #endif
   bool triggerAlerts() const;
   void dumpFlowAlert();
-
+  void updateJA3();
+  
  public:
   Flow(NetworkInterface *_iface,
        u_int16_t _vlanId, u_int8_t _protocol,
@@ -258,7 +254,6 @@ class Flow : public GenericHashEntry {
   u_int32_t getPid(bool client);
   u_int32_t getFatherPid(bool client);
   u_int32_t get_uid(bool client) const;
-  u_int32_t get_pid(bool client) const;
   char* get_proc_name(bool client);
   u_int32_t getNextTcpSeq(u_int8_t tcpFlags, u_int32_t tcpSeqNum, u_int32_t payloadLen) ;
   double toMs(const struct timeval *t);
@@ -501,16 +496,25 @@ class Flow : public GenericHashEntry {
 #endif
   void housekeep(time_t t);
   void postFlowSetPurge(time_t t);
-#ifdef HAVE_EBPF
-  void setProcessInfo(eBPFevent *event, bool client_process);
-#endif
   void setParsedeBPFInfo(const ParsedeBPF * const ebpf, bool src2dst_direction);
-  inline ContainerInfo* getClientContainerInfo()  { return(client_cont); }
-  inline ContainerInfo* getServerContainerInfo()  { return(server_cont); }
-  inline ProcessInfo*   getClientProcessInfo()    { return(client_proc); }
-  inline ProcessInfo*   getServerProcessInfo()    { return(server_proc); }
-  inline TcpInfo*       getClientTcpInfo()        { return(client_tcp); }
-  inline TcpInfo*       getServerTcpInfo()        { return(server_tcp); }
+  inline const ContainerInfo* getClientContainerInfo() const {
+    return cli_ebpf && cli_ebpf->container_info_set ? &cli_ebpf->container_info : NULL;
+  }
+  inline const ContainerInfo* getServerContainerInfo() const {
+    return srv_ebpf && srv_ebpf->container_info_set ? &srv_ebpf->container_info : NULL;
+  }
+  inline const ProcessInfo * getClientProcessInfo() const {
+    return cli_ebpf && cli_ebpf->process_info_set ? &cli_ebpf->process_info : NULL;
+  }
+  inline const ProcessInfo* getServerProcessInfo() const {
+    return srv_ebpf && srv_ebpf->process_info_set ? &srv_ebpf->process_info : NULL;
+  }
+  inline const TcpInfo* getClientTcpInfo() const {
+    return cli_ebpf && cli_ebpf->tcp_info_set ? &cli_ebpf->tcp_info : NULL;
+  }
+  inline const TcpInfo* getServerTcpInfo() const {
+    return srv_ebpf && srv_ebpf->tcp_info_set ? &srv_ebpf->tcp_info : NULL;
+  }
 };
 
 #endif /* _FLOW_H_ */

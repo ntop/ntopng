@@ -92,12 +92,6 @@ class NetworkInterface : public Checkpointable {
   bool reload_hosts_bcast_domain, lbd_serialize_by_mac;
   time_t hosts_bcast_domain_last_update;
   
-#ifdef HAVE_EBPF
-  /* eBPF */
-  u_int16_t next_insert_idx, next_remove_idx;
-  eBPFevent **ebpfEvents; 
-#endif
-
   u_int16_t next_ebpf_insert_idx, next_ebpf_remove_idx;
   ParsedFlow **ebpfFlows;
   
@@ -133,7 +127,7 @@ class NetworkInterface : public Checkpointable {
   int pcap_datalink_type; /**< Datalink type of pcap. */
   pthread_t pollLoop;
   bool pollLoopCreated, has_too_many_hosts, has_too_many_flows, mtuWarningShown;
-  bool too_many_drops, slow_stats_update;
+  bool too_many_drops, slow_stats_update, flow_dump_disabled;
   u_int32_t ifSpeed, numL2Devices, numHosts, numLocalHosts, scalingFactor;
   u_int64_t checkpointPktCount, checkpointBytesCount, checkpointPktDropCount; /* Those will hold counters at checkpoints */
   u_int16_t ifMTU;
@@ -149,9 +143,6 @@ class NetworkInterface : public Checkpointable {
   /* Sub-interface views */
   u_int8_t numSubInterfaces;
   NetworkInterface *subInterfaces[MAX_NUM_VIEW_INTERFACES];
-
-  /* Companion Interface */
-  NetworkInterface *companion_interface;
 
   u_int nextFlowAggregation;
   TcpFlowStats tcpFlowStats;
@@ -278,7 +269,7 @@ class NetworkInterface : public Checkpointable {
   NetworkInterface(const char *name, const char *custom_interface_type = NULL);
   virtual ~NetworkInterface();
 
-  void finishInitialization(u_int8_t num_defined_interfaces);
+  bool initFlowDump(u_int8_t num_dump_interfaces);
   virtual u_int32_t getASesHashSize();
   virtual u_int32_t getCountriesHashSize();
   virtual u_int32_t getVLANsHashSize();
@@ -402,6 +393,7 @@ class NetworkInterface : public Checkpointable {
   inline int isRunning()	   { return running;             };
   inline bool isTrafficMirrored()  { return is_traffic_mirrored; };
   void  updateTrafficMirrored();
+  void updateFlowDumpDisabled();
   bool restoreHost(char *host_ip, u_int16_t vlan_id);
   u_int printAvailableInterfaces(bool printHelp, int idx, char *ifname, u_int ifname_len);
   void findFlowHosts(u_int16_t vlan_id,
@@ -645,7 +637,7 @@ class NetworkInterface : public Checkpointable {
   void refreshHostsAlertPrefs(bool full_refresh);
   int updateHostTrafficPolicy(AddressTree* allowed_networks, char *host_ip, u_int16_t host_vlan);
 
-  void reloadCompanion();
+  virtual void reloadCompanions() {};
   void reloadHideFromTop(bool refreshHosts=true);
   void updateLbdIdentifier();
   inline bool serializeLbdHostsAsMacs()             { return(lbd_serialize_by_mac); }
@@ -741,19 +733,12 @@ class NetworkInterface : public Checkpointable {
   void tsLua(lua_State* vm);
   void reloadDhcpRanges();
   inline bool hasConfiguredDhcpRanges()      { return(dhcp_ranges && !dhcp_ranges->last_ip.isEmpty()); };
+  inline bool isFlowDumpDisabled()           { return(flow_dump_disabled); }
   bool isInDhcpRange(IpAddress *ip);
   void getPodsStats(lua_State* vm);
   void getContainersStats(lua_State* vm, const char *pod_filter);
-  inline NetworkInterface * getCompanion() const { return companion_interface; };
   bool enqueueeBPFFlow(ParsedFlow * const pf, bool skip_loopback_traffic);
   bool dequeueeBPFFlow(ParsedFlow ** pf);
-
-#ifdef HAVE_EBPF
-  inline bool iseBPFEventAvailable() { return((ebpfEvents && (ebpfEvents[next_remove_idx] != NULL)) ? true : false); }
-  bool enqueueeBPFEvent(eBPFevent *event);
-  bool dequeueeBPFEvent(eBPFevent **event);
-  void delivereBPFEvent(eBPFevent *event);
-#endif
 
 #ifdef PROFILING
   inline void profiling_section_enter(const char *label, int id) { PROFILING_SECTION_ENTER(label, id); };

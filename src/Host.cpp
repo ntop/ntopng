@@ -622,6 +622,8 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
 
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[pkts_thpt: %.2f] [pkts_thpt_trend: %d]", pkts_thpt,pkts_thpt_trend);
 
+  fingerprints.ssl.lua("ssl_fingerprint", vm);
+  
   if(verbose) {
     char *rsp = serialize();
     lua_push_str_table_entry(vm, "json", rsp);

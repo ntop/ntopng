@@ -218,6 +218,7 @@ using namespace std;
 #include "FrequentNumericItems.h"
 #include "FrequentTrafficItems.h"
 #include "HostPools.h"
+#include "Fingerprint.h"
 #include "Prefs.h"
 #include "ProtoStats.h"
 #include "Utils.h"

@@ -40,6 +40,7 @@ class ParsedeBPF {
   ParsedeBPF(const ParsedeBPF &pe);
   virtual ~ParsedeBPF();
 
+  void update(const ParsedeBPF * const pe);
   void print();
 };
 

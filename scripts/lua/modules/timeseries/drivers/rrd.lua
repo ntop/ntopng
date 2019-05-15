@@ -95,8 +95,8 @@ local function schema_get_path(schema, tags)
   local ifid = tags.ifid or -1
   local host_or_network = nil
 
-  if (string.find(schema.name, "iface:") == nil) and
-     (string.find(schema.name, "process:") == nil) then
+  if (string.find(schema.name, "iface:") ~= 1) and
+     (string.find(schema.name, "process:") ~= 1) then
     local parts = string.split(schema.name, ":")
     host_or_network = (HOST_PREFIX_MAP[parts[1]] or (parts[1] .. ":")) .. tags[schema._tags[2]]
 
@@ -115,7 +115,7 @@ local function schema_get_path(schema, tags)
   return path, rrd
 end
 
-local function schema_get_full_path(schema, tags)
+function driver.schema_get_full_path(schema, tags)
   local base, rrd = schema_get_path(schema, tags)
   local full_path = os_utils.fixPath(base .. "/" .. rrd .. ".rrd")
 
@@ -144,7 +144,7 @@ function find_schema(rrdFile, rrdfname, tags, ts_utils)
       end
     end
 
-    local full_path = schema_get_full_path(schema, tags)
+    local full_path = driver.schema_get_full_path(schema, tags)
 
     if full_path == rrdFile then
       return schema_name
@@ -249,7 +249,7 @@ local function add_missing_ds(schema, rrdfile, cur_ds)
     return false
   end
 
-  traceError(TRACE_INFO, TRACE_CONSOLE, "RRD format changed, trying to fix " .. rrdfile)
+  traceError(TRACE_INFO, TRACE_CONSOLE, "RRD format changed [schema=".. schema.name .."], trying to fix " .. rrdfile)
 
   local params = {rrdfile, }
   local heartbeat = schema.options.rrd_heartbeat or (schema.options.step * 2)
@@ -296,12 +296,32 @@ local function update_rrd(schema, rrdfile, timestamp, data, dont_recover)
     if(dont_recover ~= true) then
       -- Try to recover
       local last_update, num_ds = ntop.rrd_lastupdate(rrdfile)
+      local retry = false
 
       if((num_ds ~= nil) and (num_ds < #schema._metrics)) then
         if add_missing_ds(schema, rrdfile, num_ds) then
-          -- retry
-          return update_rrd(schema, rrdfile, timestamp, data, true --[[ do not recovery again ]])
+          retry = true
         end
+      elseif((num_ds == 2) and (schema.name == "iface:traffic")) then
+        -- The RRD is corrupted due to collision between "iface:traffic" and "evexporter_iface:traffic"
+        traceError(TRACE_WARNING, TRACE_CONSOLE, "'evexporter_iface:traffic' schema collision detected on " .. rrdfile .. ", moving RRD to .old")
+        local rv, errmsg = os.rename(rrdfile, rrdfile..".old")
+
+        if(rv == nil) then
+          traceError(TRACE_ERROR, TRACE_CONSOLE, errmsg)
+          return false
+        end
+
+        if(not create_rrd(schema, rrdfile)) then
+          return false
+        end
+
+        retry = true
+      end
+
+      if retry then
+        -- Problem possibly fixed, retry
+        return update_rrd(schema, rrdfile, timestamp, data, true --[[ do not recovery again ]])
       end
     end
 
@@ -538,7 +558,7 @@ local function _listSeries(schema, tags_filter, wildcard_tags, start_time)
   local wildcard_tag = wildcard_tags[1]
 
   if not wildcard_tag then
-    local full_path = schema_get_full_path(schema, tags_filter)
+    local full_path = driver.schema_get_full_path(schema, tags_filter)
     local last_update = ntop.rrd_lastupdate(full_path)
 
     if last_update ~= nil and last_update >= start_time then
@@ -647,7 +667,7 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
   end
 
   for _, serie_tags in pairs(series) do
-    local rrdfile = schema_get_full_path(schema, serie_tags)
+    local rrdfile = driver.schema_get_full_path(schema, serie_tags)
 
     if isDebugEnabled() then
       traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("RRD_FETCH[topk] schema=%s %s[%s] -> (%s): last_update=%u",
@@ -754,7 +774,7 @@ end
 -- ##############################################
 
 function driver:queryTotal(schema, tstart, tend, tags, options)
-  local rrdfile = schema_get_full_path(schema, tags)
+  local rrdfile = driver.schema_get_full_path(schema, tags)
 
   if not ntop.exists(rrdfile) then
      return nil

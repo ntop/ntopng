@@ -122,26 +122,6 @@ AC_ARG_WITH(ndpi-includes,
       NDPI_CUST_INC="-I$withval -I$withval/../lib/third_party/include"
    ])
 
-EBPF_HOME=
-AC_MSG_CHECKING(for ebpfflowlib)
-
-if test -d "${HOME}/libebpfflow"; then
-  EBPF_HOME=${HOME}/libebpfflow
-else
-  if test -d "${PWD}/../libebpfflow"; then
-    EBPF_HOME=${PWD}/../libebpfflow
-  fi
-fi
-
-if test -f "${EBPF_HOME}/libebpfflow.a"; then
-   AC_MSG_RESULT(found $EBPF_HOME)
-   PRO_INCS="${PRO_INCS} -I ${EBPF_HOME}"
-   PRO_LIBS="${PRO_LIBS} -L${EBPF_HOME} -lebpfflow -lbcc"
-   AC_DEFINE_UNQUOTED(HAVE_EBPF, 1, [Building with eBPF support])
-else
-   AC_MSG_RESULT(not found)
-fi
-
 PKG_CHECK_MODULES([NDPI], [libndpi >= 2.0], [
    NDPI_INC=`echo $NDPI_CFLAGS | sed -e "s/[ ]*$//"`
    # Use static libndpi library as building against the dynamic library fails
