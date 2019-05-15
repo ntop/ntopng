@@ -51,13 +51,10 @@ void IpAddress::set(const char * const sym_addr) {
 void IpAddress::set(union usa *ip) {
   if(ip->sin.sin_family != AF_INET6) {
     addr.ipVersion = 4, addr.ipType.ipv4 = ip->sin.sin_addr.s_addr;
-  }
-#if defined(USE_IPV6)
-  else {
+  } else {
     memcpy(&addr.ipType.ipv6, &ip->sin6.sin6_addr.s6_addr, sizeof(struct ndpi_in6_addr));
     addr.ipVersion = 6;
   }
-#endif
 }
 
 /* ******************************************* */
@@ -66,11 +63,12 @@ bool IpAddress::isEmpty() const {
   if((addr.ipVersion == 0)
      || ((addr.ipVersion == 4) && (addr.ipType.ipv4 == 0))) {
     return true;
-  }else if(addr.ipVersion == 6) {
+  } else if(addr.ipVersion == 6) {
     struct ndpi_in6_addr empty_ipv6;
     memset(&empty_ipv6, 0, sizeof(empty_ipv6));
     return memcmp((void*)&empty_ipv6, (void*)&addr.ipType.ipv6, sizeof(empty_ipv6)) == 0 ? true : false;
   }
+
   return false;
 }
 
@@ -341,6 +339,7 @@ char* IpAddress::intoa(char* buf, u_short bufLen, u_int8_t bitmask) {
     return(Utils::intoaV6(addr.ipType.ipv6, bitmask, buf, bufLen));
   }
 }
+
 /* ****************************** */
 
 void IpAddress::dump() {
