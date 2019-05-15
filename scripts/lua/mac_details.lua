@@ -397,6 +397,7 @@ elseif(page == "historical") then
       top_categories = "top:mac:ndpi_categories",
       timeseries = table.merge({
          {schema="mac:traffic",                 label=i18n("traffic")},
+         {schema="mac:local_talkers",           label="Local Talkers"}, --WIP & TODO: localize
       }, getDeviceCommonTimeseries())
    })
 

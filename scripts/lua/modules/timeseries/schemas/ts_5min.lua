@@ -21,7 +21,7 @@ schema:addMetric("bytes_rcvd")
 
 -- ##############################################
 
-schema = ts_utils.newSchema("mac:arp_rqst_sent_rcvd_rpls", {step=300, metrics_type=ts_utils.metrics.gauge})
+schema = ts_utils.newSchema("mac:arp_rqst_sent_rcvd_rpls", {step=300, metrics_type=ts_utils.metrics.gauge}) --WIP ho aggiunto la metrica
 schema:addTag("ifid")
 schema:addTag("mac")
 schema:addMetric("request_packets_sent")
@@ -37,7 +37,7 @@ schema:addTag("category")
 schema:addMetric("bytes")
 
 -- ##############################################
--- --WIP           {schema="mac:local_talkers",           label="Local Talkers"}, --WIP & TODO: localize
+-- --WIP           
 schema = ts_utils.newSchema("mac:local_talkers", {step=300, metrics_type=ts_utils.metrics.gauge} ) 
 schema:addTag("ifid")
 schema:addTag("mac")
