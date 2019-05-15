@@ -403,6 +403,7 @@ elseif(page == "historical") then
       timeseries = {
          {schema="mac:traffic",                 label=i18n("traffic")},
          {schema="mac:arp_rqst_sent_rcvd_rpls", label=i18n("graphs.arp_rqst_sent_rcvd_rpls")},
+         {schema="mac:local_talkers",           label="Local Talkers"}, --WIP & TODO: localize
       }
    })
 

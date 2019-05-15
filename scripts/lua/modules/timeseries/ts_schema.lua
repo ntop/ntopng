@@ -119,6 +119,12 @@ function ts_schema:verifyTagsAndMetrics(tags_and_metrics)
   local metrics = {}
 
   for tag in pairs(self.tags) do
+    --WIP
+    -- if self.name == "mac:local_talkers" then
+    --   io.write("[DEBUG] tag: " .. tag .. " self.name: " .. self.name .. " \ntags_and_metrics: ")
+    --   tprint(tags_and_metrics)
+    --   io.write("\n")
+    -- end
     if not tags_and_metrics[tag] then
       traceError(TRACE_ERROR, TRACE_CONSOLE, "Failing to use mandatory tag '" .. tag .. "' when working on schema " .. self.name)
       return nil

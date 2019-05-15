@@ -32,6 +32,9 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6])
   memset(&names, 0, sizeof(names));
   device_type = device_unknown, os = os_unknown;
   host_pool_id = NO_HOST_POOL_ID;
+  //-------------WIP--- è necessario!?!?!?!?
+  talkers.as_client = 0; talkers.as_server = 0;
+  //-------------------
 #ifdef NTOPNG_PRO
   captive_portal_notified = 0;
 #endif
@@ -227,6 +230,11 @@ void Mac::lua(lua_State* vm, bool show_details, bool asListElement) {
   lua_push_uint64_table_entry(vm, "num_hosts", getNumHosts());
 
   lua_push_uint64_table_entry(vm, "pool", get_host_pool());
+
+  //---WIP
+  lua_push_uint64_table_entry(vm, "talkers.asClient", getNumTalkerAsClient());
+  lua_push_uint64_table_entry(vm, "talkers.asServer", getNumTalkerAsServer());
+
 
   if(asListElement) {
     lua_pushstring(vm, m);

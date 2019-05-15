@@ -40,6 +40,12 @@ class Mac : public GenericHashEntry {
     char * dhcp; /* Extracted from DHCP dissection */
   } names;
 
+//-----WIP-------------------------------------------
+  struct{
+    u_int32_t as_server;
+    u_int32_t as_client;
+  }talkers;
+//-----------------------------------------------
   char * fingerprint;
   char * model;
   char * ssid;
@@ -176,6 +182,13 @@ class Mac : public GenericHashEntry {
     else
       return(false);
   }
+//----------WIP------------------
+  inline void incTalkersAsClient()  { talkers.as_client++; }
+  inline void incTalkersAsServer()  { talkers.as_server++; }
+  inline u_int32_t getNumTalkerAsClient(){return talkers.as_client;}
+  inline u_int32_t getNumTalkerAsServer(){return talkers.as_server;}
+
+  //------------------------------
 };
 
 #endif /* _MAC_H_ */

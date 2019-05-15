@@ -2625,10 +2625,22 @@ decode_packet_eth:
 	    }
 	  }
 	}
+  //------------WIP--------------
+  updateMacTalkers(srcMac, dstMac, src, dst, &src2dst_element);
 
 	e = getArpHashMatrixElement(srcMac->get_mac(), dstMac->get_mac(),
 				    src, dst,
 				    &src2dst_element);
+
+  //------------WIP--------------
+  //TODO: ogni MAC deve tener traccia del numero di talker come client e come server
+
+  //SE elemento "e" NON è stato creato allora +1 talkers (as client/server) al src e dst MAC (tengo conto del verso della comunicazione)
+  //SE non è stato creato MA Questo pacchetto è per l'altro verso, allora +1 talkers (as client/server)
+
+  //NOTE: src2dst_element è true se la comunicazione è da src --> dst, false a.m. 
+
+
 
 	if(arp_opcode == 0x1 /* ARP request */) {
 	  arp_requests++;
@@ -5721,7 +5733,64 @@ ArpStatsMatrixElement* NetworkInterface::getArpHashMatrixElement(const u_int8_t 
   return ret;
 }
 
-/* **************************************************** */
+/* *********************WIP******************************* */
+  //------------WIP--------------
+  //NOTE: src2dst_element è true se la comunicazione è da src --> dst, false a.m. 
+
+  //NOTE: la funzione viene chiamata prima dell'update della matrice ARP
+
+  //TODO: il caso del broadcast nel dstMac
+//#define DEBUG_TALKERS 1 
+
+void NetworkInterface::updateMacTalkers(Mac* srcMac, Mac* dstMac,
+								 const u_int32_t _src_ip, const u_int32_t _dst_ip,
+								 bool * const src2dst) {
+  ArpStatsMatrixElement *e = NULL;
+
+  if(arp_hash_matrix == NULL)
+    return;
+
+  e = arp_hash_matrix->get(srcMac->get_mac(), _src_ip, _dst_ip, src2dst);
+
+  if(e == NULL) { 
+    srcMac->incTalkersAsClient();
+    dstMac->incTalkersAsServer();
+  }else{
+
+    if (*src2dst) { //il srcMac è il src anche nella matrice (anche il dst)
+
+      if ((e->getArpStats()->src2dst.requests + e->getArpStats()->src2dst.replies) == 0 ){ //non sono stati inviati pkt da srcMAc --> dstMac fin'ora
+        srcMac->incTalkersAsClient();
+        dstMac->incTalkersAsServer();
+      }else if ((e->getArpStats()->dst2src.requests + e->getArpStats()->dst2src.replies) == 0 ){ //non sono stati inviati pkt da dstMAc --> srcMac fin'ora
+        dstMac->incTalkersAsClient();
+        srcMac->incTalkersAsServer();
+      } 
+
+    }else{// nella matrice il srcMac e dstMac sono invertiti rispetto ai correnti
+      if ((e->getArpStats()->src2dst.requests + e->getArpStats()->src2dst.replies) == 0 ){
+        dstMac->incTalkersAsClient();
+        srcMac->incTalkersAsServer();
+
+      }else if ((e->getArpStats()->dst2src.requests + e->getArpStats()->dst2src.replies) == 0 ){ 
+        srcMac->incTalkersAsClient();
+        dstMac->incTalkersAsServer();
+      }  
+    }
+  }
+
+  #ifdef DEBUG_TALKERS
+  char buf1[32], buf2[32], buf3[32], buf4[32];
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "updateMacTalkers(): [SRC (IP:%s)(MAC:%s) #asClient %d - #asServer %d] [DST (ip:%s)(MAC:%s) #asClient %d - #asServer %d] " ,
+            Utils::intoaV4(_src_ip, buf3, sizeof(buf3)),
+            Utils::formatMac(srcMac->get_mac(), buf1, sizeof(buf1)), srcMac->getNumTalkerAsClient(), srcMac->getNumTalkerAsServer(),
+            Utils::intoaV4(_dst_ip, buf4, sizeof(buf4)),
+            Utils::formatMac(dstMac->get_mac(), buf2, sizeof(buf1)), dstMac->getNumTalkerAsClient(), dstMac->getNumTalkerAsServer() 
+      );
+  #endif
+}
+
+/* *************************WIP*************************** */
 
 bool NetworkInterface::getArpStatsMatrixInfo(lua_State* vm){
   if(getNumArpStatsMatrixElements() > 0) {

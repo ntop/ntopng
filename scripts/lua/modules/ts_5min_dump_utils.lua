@@ -34,6 +34,15 @@ function ts_dump.l2_device_update_stats_rrds(when, devicename, device, ifstats, 
               request_packets_sent = device["arp_requests.sent"],
               reply_packets_rcvd = device["arp_replies.rcvd"]},
         when,verbose)
+
+--WIP--------------
+--NOTE: 
+
+  ts_utils.append("mac:local_talkers", {ifid=ifstats.id, mac=devicename,
+              num_as_client = device["talkers.asClient"],
+              num_as_server = device["talkers.asServer"]},
+        when, verbose)
+--------------------------------------------
 end
 
 -- ########################################################

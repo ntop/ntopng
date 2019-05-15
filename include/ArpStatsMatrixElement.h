@@ -27,7 +27,7 @@
 
 class ArpStatsMatrixElement : public GenericHashEntry {
  private:
-  struct {
+  struct pktStats {
     struct {
       u_int32_t requests, replies;
     } src2dst, dst2src;
@@ -59,6 +59,11 @@ class ArpStatsMatrixElement : public GenericHashEntry {
   u_int32_t key();
   void lua(lua_State* vm);
   void print(char *msg) const;
+
+
+  //-----WIP---
+  pktStats* getArpStats(){ return &stats; }
+
 };
 
 #endif /* _ARP_STATS_MATRIX_ELEMENT_H_ */

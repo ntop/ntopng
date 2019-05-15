@@ -20,8 +20,8 @@ schema:addMetric("bytes_sent")
 schema:addMetric("bytes_rcvd")
 
 -- ##############################################
-
-schema = ts_utils.newSchema("mac:arp_rqst_sent_rcvd_rpls", {step=300})
+--wip
+schema = ts_utils.newSchema("mac:arp_rqst_sent_rcvd_rpls", {step=300, metrics_type=ts_utils.metrics.gauge})
 schema:addTag("ifid")
 schema:addTag("mac")
 schema:addMetric("request_packets_sent")
@@ -35,6 +35,14 @@ schema:addTag("ifid")
 schema:addTag("mac")
 schema:addTag("category")
 schema:addMetric("bytes")
+
+-- ##############################################
+-- --WIP
+schema = ts_utils.newSchema("mac:local_talkers", {step=300, metrics_type=ts_utils.metrics.gauge} ) 
+schema:addTag("ifid")
+schema:addTag("mac")
+schema:addMetric("num_as_client")
+schema:addMetric("num_as_server") 
 
 -------------------------------------------------------
 -- HOST POOLS SCHEMAS
@@ -324,13 +332,6 @@ schema:addTag("host")
 schema:addTag("category")
 schema:addMetric("bytes_sent")
 schema:addMetric("bytes_rcvd")
-
--- ##############################################
--- --WIP
--- schema = ts_utils.newSchema("host:local_talkers", {step=300, metrics_type=ts_utils.metrics.gauge} ) 
--- schema:addTag("ifid")
--- schema:addTag("host")
--- schema:addMetric("talkers")
 
 -- -- ##############################################
 
