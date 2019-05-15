@@ -37,7 +37,7 @@ schema:addTag("category")
 schema:addMetric("bytes")
 
 -- ##############################################
--- --WIP  
+-- --WIP           {schema="mac:local_talkers",           label="Local Talkers"}, --WIP & TODO: localize
 schema = ts_utils.newSchema("mac:local_talkers", {step=300, metrics_type=ts_utils.metrics.gauge} ) 
 schema:addTag("ifid")
 schema:addTag("mac")
