@@ -256,7 +256,7 @@ bool AlertsManager::isAlertEngaged(AlertEngine alert_engine, AlertEntity alert_e
            ALERTS_MANAGER_ENGAGED_TABLE_NAME);
 
   m.lock(__FILE__, __LINE__);
-  if(sqlite3_prepare(db, query, -1, &stmt, 0)) {
+  if(sqlite3_prepare_v2(db, query, -1, &stmt, 0)) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to prepare statement for query %s.", query);
     goto out;
   } else if(sqlite3_bind_int(stmt,   1, static_cast<int>(alert_entity))
@@ -358,7 +358,7 @@ int AlertsManager::engageAlert(AlertEngine alert_engine, AlertEntity alert_entit
 
       m.lock(__FILE__, __LINE__);
 
-      if(sqlite3_prepare(db, query, -1,  &stmt, 0)
+      if(sqlite3_prepare_v2(db, query, -1,  &stmt, 0)
 	 || sqlite3_bind_text(stmt,  1,  engaged_alert_id, -1, SQLITE_STATIC)
 	 || sqlite3_bind_int(stmt,   2,  static_cast<int>(alert_engine))
 	 || sqlite3_bind_int64(stmt, 3,  static_cast<long int>(now))
@@ -438,7 +438,7 @@ int AlertsManager::releaseAlert(AlertEngine alert_engine,
 
     m.lock(__FILE__, __LINE__);
 
-    if(sqlite3_prepare(db, query, -1, &stmt, 0)
+    if(sqlite3_prepare_v2(db, query, -1, &stmt, 0)
        || sqlite3_bind_int64(stmt, 1,  static_cast<long int>(alert_tstamp))
        || sqlite3_bind_int(stmt,   2,  static_cast<int>(alert_type))
        || sqlite3_bind_int(stmt,   3,  static_cast<int>(alert_severity))
@@ -472,7 +472,7 @@ int AlertsManager::releaseAlert(AlertEngine alert_engine,
 	     ALERTS_MANAGER_ENGAGED_TABLE_NAME);
 
     m.lock(__FILE__, __LINE__);
-    if(sqlite3_prepare(db, query, -1, &stmt, 0)
+    if(sqlite3_prepare_v2(db, query, -1, &stmt, 0)
        || sqlite3_bind_int(stmt,   1, static_cast<int>(alert_engine))
        || sqlite3_bind_int(stmt,   2, static_cast<int>(alert_entity))
        || sqlite3_bind_text(stmt,  3, alert_entity_value, -1, SQLITE_STATIC)
@@ -636,7 +636,7 @@ int AlertsManager::storeAlert(AlertEntity alert_entity, const char *alert_entity
 	     "LIMIT 1; ",
 	     ALERTS_MANAGER_TABLE_NAME);
 
-    if(sqlite3_prepare(db, query, -1, &stmt, 0)
+    if(sqlite3_prepare_v2(db, query, -1, &stmt, 0)
        || sqlite3_bind_int(stmt,   1, static_cast<int>(alert_type))
        || sqlite3_bind_int(stmt,   2, static_cast<int>(alert_severity))
        || sqlite3_bind_int(stmt,   3, static_cast<int>(alert_entity))
@@ -667,7 +667,7 @@ int AlertsManager::storeAlert(AlertEntity alert_entity, const char *alert_entity
 	       "WHERE rowid = ? ",
 	       ALERTS_MANAGER_TABLE_NAME);
 
-      if(sqlite3_prepare(db, query, -1, &stmt, 0)
+      if(sqlite3_prepare_v2(db, query, -1, &stmt, 0)
 	 || sqlite3_bind_int64(stmt, 1, static_cast<long int>(cur_counter + 1))
 	 || sqlite3_bind_int64(stmt, 2, static_cast<long int>(when))
 	 || sqlite3_bind_int64(stmt, 3, static_cast<long int>(cur_rowid))) {
@@ -691,7 +691,7 @@ int AlertsManager::storeAlert(AlertEntity alert_entity, const char *alert_entity
 	       "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?); ",
 	       ALERTS_MANAGER_TABLE_NAME);
 
-      if(sqlite3_prepare(db, query, -1, &stmt, 0)
+      if(sqlite3_prepare_v2(db, query, -1, &stmt, 0)
 	 || sqlite3_bind_int64(stmt, 1, static_cast<long int>(when))
 	 || sqlite3_bind_int(stmt,   2, static_cast<int>(alert_type))
 	 || sqlite3_bind_int(stmt,   3, static_cast<int>(alert_severity))
@@ -786,7 +786,7 @@ int AlertsManager::storeFlowAlert(Flow *f) {
 	     "LIMIT 1; ",
 	     ALERTS_MANAGER_FLOWS_TABLE_NAME);
 
-    if(sqlite3_prepare(db, query, -1, &stmt, 0)
+    if(sqlite3_prepare_v2(db, query, -1, &stmt, 0)
        || sqlite3_bind_int(stmt,   1, static_cast<int>(alert_type))
        || sqlite3_bind_int(stmt,   2, static_cast<int>(alert_severity))
        || sqlite3_bind_int(stmt,   3, f->get_vlan_id())
@@ -825,7 +825,7 @@ int AlertsManager::storeFlowAlert(Flow *f) {
 	       "WHERE rowid = ? ",
 	       ALERTS_MANAGER_FLOWS_TABLE_NAME);
 
-      if(sqlite3_prepare(db, query, -1, &stmt, 0)
+      if(sqlite3_prepare_v2(db, query, -1, &stmt, 0)
 	 || sqlite3_bind_int64(stmt, 1, static_cast<long int>(cur_counter + 1))
 	 || sqlite3_bind_int64(stmt, 2, static_cast<long int>(now))
 	 || sqlite3_bind_int64(stmt, 3, cur_cli2srv_bytes + f->get_bytes_cli2srv())
@@ -861,7 +861,7 @@ int AlertsManager::storeFlowAlert(Flow *f) {
 	       "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?); ",
 	       ALERTS_MANAGER_FLOWS_TABLE_NAME);
 
-      if(sqlite3_prepare(db, query, -1, &stmt, 0)) {
+      if(sqlite3_prepare_v2(db, query, -1, &stmt, 0)) {
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to prepare the statement for %s", query);
 	rc = 3;
 	goto out;
@@ -1075,7 +1075,7 @@ int AlertsManager::getNumAlerts(bool engaged, const char *sql_where_clause, bool
     //  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Going to execute: %s", query);
 
     m.lock(__FILE__, __LINE__);
-    if(sqlite3_prepare(db, query, -1, &stmt, 0)) {
+    if(sqlite3_prepare_v2(db, query, -1, &stmt, 0)) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to prepare statement for query %s.", query);
       goto out;
     }
@@ -1119,7 +1119,7 @@ int AlertsManager::getNumFlowAlerts(const char *sql_where_clause) {
     //  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Going to execute: %s", query);
 
     m.lock(__FILE__, __LINE__);
-    if(sqlite3_prepare(db, query, -1, &stmt, 0)) {
+    if(sqlite3_prepare_v2(db, query, -1, &stmt, 0)) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to prepare statement for query %s.", query);
       goto out;
     }
