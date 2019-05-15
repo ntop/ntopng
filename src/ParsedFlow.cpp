@@ -32,13 +32,14 @@ ParsedFlow::ParsedFlow() : ParsedFlowCore(), ParsedeBPF() {
   memset(&custom_app, 0, sizeof(custom_app));
   additional_fields = json_object_new_object();
 
+  has_parsed_ebpf = false;
   parsed_flow_free_memory = false;
 }
 
 /* *************************************** */
 
 ParsedFlow::ParsedFlow(const ParsedFlow &pf) : ParsedFlowCore(pf), ParsedeBPF(pf) {
-  additional_fields = json_object_get(pf.additional_fields);
+  additional_fields = NULL; /* Currently we avoid additional fields in the copy constructor */
 
   if(pf.http_url)  http_url = strdup(pf.http_url); else http_url = NULL;
   if(pf.http_site) http_site = strdup(pf.http_site); else http_site = NULL;
@@ -47,15 +48,16 @@ ParsedFlow::ParsedFlow(const ParsedFlow &pf) : ParsedFlowCore(pf), ParsedeBPF(pf
   if(pf.bittorrent_hash) bittorrent_hash = strdup(pf.bittorrent_hash); else bittorrent_hash = NULL;
 
   memcpy(&custom_app, &pf.custom_app, sizeof(custom_app));
-
+  has_parsed_ebpf = pf.has_parsed_ebpf;
+  
   parsed_flow_free_memory = true;
 }
 
 /* *************************************** */
 
 ParsedFlow::~ParsedFlow() {
-  /* Always decrease the ref counter */
-  json_object_put(additional_fields);
+  if(additional_fields)
+    json_object_put(additional_fields);
 
   if(parsed_flow_free_memory) {
     if(http_url)  free(http_url);

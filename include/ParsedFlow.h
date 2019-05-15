@@ -27,6 +27,7 @@
 class ParsedFlow : public ParsedFlowCore, public ParsedeBPF {
  private:
   bool parsed_flow_free_memory;
+  bool has_parsed_ebpf;
 
  public:
   json_object *additional_fields;
@@ -35,6 +36,8 @@ class ParsedFlow : public ParsedFlowCore, public ParsedeBPF {
 
   ParsedFlow();
   ParsedFlow(const ParsedFlow &pf);
+  inline bool hasParsedeBPF() const { return has_parsed_ebpf; };
+  inline void setParsedeBPF()       { has_parsed_ebpf = true; };
   virtual ~ParsedFlow();
 };
 
