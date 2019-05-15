@@ -20,7 +20,7 @@ schema:addMetric("bytes_sent")
 schema:addMetric("bytes_rcvd")
 
 -- ##############################################
---wip
+
 schema = ts_utils.newSchema("mac:arp_rqst_sent_rcvd_rpls", {step=300, metrics_type=ts_utils.metrics.gauge})
 schema:addTag("ifid")
 schema:addTag("mac")
@@ -37,7 +37,7 @@ schema:addTag("category")
 schema:addMetric("bytes")
 
 -- ##############################################
--- --WIP
+-- --WIP  
 schema = ts_utils.newSchema("mac:local_talkers", {step=300, metrics_type=ts_utils.metrics.gauge} ) 
 schema:addTag("ifid")
 schema:addTag("mac")

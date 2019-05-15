@@ -325,7 +325,6 @@ end
    print("var last_pkts_rcvd = " .. mac_info["packets.rcvd"] .. ";\n")
 
    print [[
-
 var host_details_interval = window.setInterval(function() {
   $.ajax({
     type: 'GET',
@@ -350,7 +349,6 @@ var host_details_interval = window.setInterval(function() {
 print[[
       if(host["flows.dropped"] > 0) {
         $('#bridge_dropped_flows').html(addCommas(host["flows.dropped"]));
-
         $('#bridge_dropped_flows_tr').show();
       } else {
         $('#bridge_dropped_flows_tr').hide();
@@ -362,7 +360,6 @@ print[[
     },
   });
 }, 3000);
-
 ]]
    print('</script>')
 
@@ -370,10 +367,8 @@ elseif(page == "packets") then
    print [[ <table class="table table-bordered table-striped"> ]]
    print("<tr><th width=30% rowspan=3>" .. i18n("packets_page.ip_version_distribution") .. '</th><td><div class="pie-chart" id="ipverDistro"></div></td></tr>\n')
    print[[</table>
-
    <script type='text/javascript'>
     var refresh = ]] print(getInterfaceRefreshRate(ifstats.id)) print[[ * 1000; /* ms */;
-
 	 window.onload=function() {
        do_pie("#ipverDistro", ']]
    print (ntop.getHttpPrefix())
@@ -400,11 +395,10 @@ elseif(page == "historical") then
 
    drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
       top_categories = "top:mac:ndpi_categories",
-      timeseries = {
+      timeseries = table.merge({
          {schema="mac:traffic",                 label=i18n("traffic")},
-         {schema="mac:arp_rqst_sent_rcvd_rpls", label=i18n("graphs.arp_rqst_sent_rcvd_rpls")},
          {schema="mac:local_talkers",           label="Local Talkers"}, --WIP & TODO: localize
-      }
+      }, getDeviceCommonTimeseries())
    })
 
 elseif(page == "config") then

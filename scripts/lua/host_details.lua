@@ -64,6 +64,10 @@ local hostkey = hostinfo2hostkey(host_info, nil, true --[[ force show vlan --]])
 local hostkey_compact = hostinfo2hostkey(host_info) -- do not force vlan
 local labelKey = host_info["host"].."@"..host_info["vlan"]
 
+function revFP(a,b)
+   return (a.num_uses > b.num_uses)
+end
+
 if((host_name == nil) or (host_ip == nil)) then
    sendHTTPContentTypeHeader('text/html')
    page_utils.print_header()
@@ -208,7 +212,6 @@ end
 
 --[[
 local tskey = _GET["tskey"] or host["tskey"]
-
 if tskey ~= hostkey_compact then
    -- Print the tskey
    print(string.format(" [LBD: %s]", visualTsKey(tskey)))
@@ -287,6 +290,16 @@ else
    if((host["dns"] ~= nil)
    and ((host["dns"]["sent"]["num_queries"]+host["dns"]["rcvd"]["num_queries"]) > 0)) then
       print("<li><a href=\""..url.."&page=dns\">"..i18n("dns").."</a></li>")
+   end
+end
+
+if(host["ssl_fingerprint"] ~= nil) then
+   if(page == "ssl") then
+   print("<li class=\"active\"><a href=\"#\">"..i18n("ssl").."</a></li>\n")
+   else
+      if(table.len(host["ssl_fingerprint"]) > 0) then
+        print("<li><a href=\""..url.."&page=ssl\">"..i18n("ssl").."</a></li>")
+      end 
    end
 end
 
@@ -696,29 +709,21 @@ end
          print[[<tr><th width=30% >]] print("ARP Requests")
          print[[<a href="arp_matrix_graph.lua?host=]]print(host_ip)print[["> [See in Map]</a>]]
          print[[</th><td colspan=2 id="arp_req_td">
-
          <script>
-
          var printText = function(){
             $.getJSON("]]print (ntop.getHttpPrefix())print[[/lua/get_arp_matrix_data.lua?host=]]print(host_ip)print[[", function(data){
-
                if (data.talkers_num == 1)
                   $("#arp_req_td").text( "Sent "+ data.req_num+ " Requests to " + data.talkers_num +" Host" );
                else
                   $("#arp_req_td").text( "Sent "+ data.req_num+ " Requests to " + data.talkers_num +" different Hosts" );
-
                $("#arp_req_td").prop("href", "arp_matrix_graph.lua?host=]]print(host_ip)print[[");
             } );
          };
-
          printText();
-
          setInterval(function() {
             printText();
          }, 3000);
-
          </script>
-
          </td></tr>]]
       end
    end
@@ -766,7 +771,6 @@ end
 
    elseif((page == "packets")) then
       print [[
-
       <table class="table table-bordered table-striped">
 	 ]]
 
@@ -792,10 +796,8 @@ end
       hostinfo2json(host_info)
       print [[
       </table>
-
         <script type='text/javascript'>
 	       window.onload=function() {
-
 		   do_pie("#sizeSentDistro", ']]
 print (ntop.getHttpPrefix())
 print [[/lua/host_pkt_distro.lua', { distr: "size", direction: "sent", ifid: "]] print(ifId.."") print ('", '..hostinfo2json(host_info) .."}, \"\", refresh); \n")
@@ -816,15 +818,12 @@ macinfo["host"] = host["mac"]
 print (ntop.getHttpPrefix())
 print [[/lua/get_arp_data.lua', { ifid: "]] print(ifId.."") print ('", '..hostinfo2json(macinfo) .."}, \"\", refresh); \n")
 	print [[
-
 		}
-
 	    </script><p>
 	]]
 
    elseif((page == "ports")) then
       print [[
-
       <table class="table table-bordered table-striped">
 	 ]]
 
@@ -837,10 +836,8 @@ print [[/lua/get_arp_data.lua', { ifid: "]] print(ifId.."") print ('", '..hostin
       hostinfo2json(host_info)
       print [[
       </table>
-
         <script type='text/javascript'>
 	       window.onload=function() {
-
 		   do_pie("#clientPortsDistro", ']]
 print (ntop.getHttpPrefix())
 print [[/lua/iface_ports_list.lua', { clisrv: "client", ifid: "]] print(ifId.."") print ('", '..hostinfo2json(host_info) .."}, \"\", refresh); \n")
@@ -849,9 +846,7 @@ print [[/lua/iface_ports_list.lua', { clisrv: "client", ifid: "]] print(ifId..""
 print (ntop.getHttpPrefix())
 print [[/lua/iface_ports_list.lua', { clisrv: "server", ifid: "]] print(ifId.."") print ('", '..hostinfo2json(host_info) .."}, \"\", refresh); \n")
 	print [[
-
 		}
-
 	    </script><p>
 	]]
 
@@ -867,20 +862,17 @@ end
 
 if(found) then
    print [[
-
    <table border=0>
    <tr><td>
    <div id="chart-row-hosts">
        <strong>]] print(i18n("peers_page.top_peers_for_host",{hostkey=hostinfo2hostkey(host_info)})) print  [[</strong>
        <div class="clearfix"></div>
    </div>
-
    <div id="chart-ring-protocol">
        <strong>]] print(i18n("peers_page.top_peer_protocol")) print[[</strong>
        <div class="clearfix"></div>
    </div>
    </td></tr></table>
-
 <div class="row">
     <div>
     <table class="table table-hover dc-data-table">
@@ -893,12 +885,9 @@ if(found) then
         </thead>
     </table>
 </div>
-
-
 <script>
 var protocolChart = dc.pieChart("#chart-ring-protocol");
 var hostChart     = dc.rowChart("#chart-row-hosts");
-
 $.ajax({
       type: 'GET',]]
       print("url: '"..ntop.getHttpPrefix().."/lua/host_top_peers_protocols.lua?ifid="..ifId.."&host="..host_info["host"])
@@ -918,43 +907,35 @@ var ndx = crossfilter(content),
     trafficPerl7proto = protocolDim.group().reduceSum(function(d) {return +d.traffic;}),
     trafficPerhost = nameDim.group().reduceSum(function(d) {return +d.traffic;}),
     trafficHist    = trafficDim.group().reduceCount();
-
 protocolChart
     .width(400).height(300)
     .dimension(protocolDim)
     .group(trafficPerl7proto)
     .innerRadius(70);
-
 // Tooltip
 protocolChart.title(function(d){
       return d.key+": " + bytesToVolume(Math.pow(10, d.value));
       })
-
 hostChart
     .width(600).height(300)
     .dimension(nameDim)
     .group(trafficPerhost)
     .elasticX(true);
-
 // Tooltip
 hostChart.title(function(d){
       return "Host "+d.key+": " + bytesToVolume(Math.pow(10, d.value));
       })
-
 hostChart.xAxis().tickFormat(function(_v) {
   var v = Math.pow(10, _v);
-
   if(v < 1024)
     return(v.toFixed(2));
   else
     return bytesToVolume(v);
 });
-
   // dimension by full date
     var dateDimension = ndx.dimension(function (d) {
         return d.host;
     });
-
    dc.dataTable(".dc-data-table")
         .dimension(dateDimension)
         .group(function (d) { return d.name; })
@@ -981,12 +962,9 @@ hostChart.xAxis().tickFormat(function(_v) {
         .renderlet(function (table) {
             table.selectAll(".dc-table-group").classed("info", true);
         });
-
-
 dc.renderAll();
 }
 });
-
 </script>
    ]]
 
@@ -1006,20 +984,16 @@ end
 	print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> "..i18n("traffic_page.no_traffic_observed_message").."</div>")
      else
       print [[
-
       <table class="table table-bordered table-striped">
       	<tr><th class="text-left">]] print(i18n("traffic_page.l4_proto_overview")) print[[</th><td colspan=5><div class="pie-chart" id="topApplicationProtocols"></div></td></tr>
 	</div>
-
         <script type='text/javascript'>
 	       window.onload=function() {
-
 				   do_pie("#topApplicationProtocols", ']]
 print (ntop.getHttpPrefix())
 print [[/lua/host_l4_stats.lua', { ifid: "]] print(ifId.."") print('", '..hostinfo2json(host_info) .."}, \"\", refresh); \n")
   print [[
 				}
-
 	    </script><p>
 	]]
 
@@ -1061,7 +1035,6 @@ elseif((page == "ICMP")) then
      <tbody id="host_details_icmp_tbody">
      </tbody>
      </table>
-
 <script>
 function update_icmp_table() {
   $.ajax({
@@ -1078,12 +1051,9 @@ function update_icmp_table() {
     }
   });
 }
-
 update_icmp_table();
 setInterval(update_icmp_table, 5000);
-
 </script>
-
 ]]
 elseif((page == "ndpi")) then
    if(host["ndpi"] ~= nil) then
@@ -1165,7 +1135,6 @@ elseif((page == "ndpi")) then
 ]]
 
       print[[
-
 	<script type='text/javascript'>
 	       window.onload=function() {]]
 
@@ -1179,18 +1148,13 @@ elseif((page == "ndpi")) then
       print[[ do_pie("#topApplicationProtocols", ']]
       print (ntop.getHttpPrefix())
       print [[/lua/iface_ndpi_stats.lua', { ifid: "]] print(ifId.."") print ("\" , ") print(hostinfo2json(host_info)) print [[ }, "", refresh);
-
 				   do_pie("#topApplicationCategories", ']]
       print (ntop.getHttpPrefix())
       print [[/lua/iface_ndpi_stats.lua', { ndpi_category: "true", ifid: "]] print(ifId.."") print ("\" , ") print(hostinfo2json(host_info)) print [[ }, "", refresh);
-
 				   do_pie("#topApplicationBreeds", ']]
       print (ntop.getHttpPrefix())
       print [[/lua/iface_ndpi_stats.lua', { breed: "true", ifid: "]] print(ifId.."") print ("\" , ") print(hostinfo2json(host_info)) print [[ }, "", refresh);
-
-
 				}
-
 function update_ndpi_table() {
   $.ajax({
     type: 'GET',
@@ -1209,7 +1173,6 @@ function update_ndpi_table() {
 }
 update_ndpi_table();
 setInterval(update_ndpi_table, 5000);
-
 function update_ndpi_categories_table() {
   $.ajax({
     type: 'GET',
@@ -1226,7 +1189,6 @@ function update_ndpi_categories_table() {
 }
 update_ndpi_categories_table();
 setInterval(update_ndpi_categories_table, 5000);
-
 </script>
 ]]
 
@@ -1264,7 +1226,6 @@ setInterval(update_ndpi_categories_table, 5000);
 		     <tr><th>]] print(i18n("dns_page.dns_query_sent_distribution")) print[[</th><td colspan=5>
 		     <div class="pie-chart" id="dnsSent"></div>
 		     <script type='text/javascript'>
-
 					 do_pie("#dnsSent", ']]
 print (ntop.getHttpPrefix())
 print [[/lua/host_dns_breakdown.lua', { ]] print(hostinfo2json(host_info)) print [[, direction: "sent" }, "", refresh);
@@ -1284,7 +1245,6 @@ print [[
 	 <tr><th>DNS Rcvd Query Distribution</th><td colspan=5>
          <div class="pie-chart" id="dnsRcvd"></div>
          <script type='text/javascript'>
-
 	     do_pie("#dnsRcvd", ']]
 print (ntop.getHttpPrefix())
 print [[/lua/host_dns_breakdown.lua', { ]] print(hostinfo2json(host_info)) print [[, direction: "recv" }, "", refresh);
@@ -1311,7 +1271,32 @@ print [[
 </small>
 ]]
       end
-   elseif(page == "http") then
+elseif(page == "ssl") then
+   local fp = host["ssl_fingerprint"]
+
+   print("<table class=\"table table-bordered table-striped\">\n")
+   print('<tr><th width=50% align=left><A HREF="https://github.com/salesforce/ja3">'..i18n("ja3_fingerprint")..'</A></th>')
+   print('<th align=left>'..i18n("app_name")..'</th>')
+   print('<th>'..i18n("num_uses")..'</th>')
+   print('</th>')
+
+   num = 0
+   max_num = 15
+   for key,value in pairsByValues(fp, revFP) do
+      if(num == max_num) then
+	 break
+      else
+	 num = num + 1
+	 print('<tr><td><A HREF="https://sslbl.abuse.ch/ja3-fingerprints/'..key..'">'..key..'</A> <i class="fa fa-external-link"></i></td>')
+	 print('<td align=left nowrap>'..value.app_name..'</td>')
+	 print('<td align=right>'..formatValue(value.num_uses)..'</td>')
+	 print('</tr>\n')
+      end
+   end
+   print("</table>")
+   print("<b>"..i18n("notes").."</b><ul><li>"..i18n("ja3_fingerprint_note").."</li></ul>")
+
+elseif(page == "http") then
       if(http ~= nil) then
 	 print("<table class=\"table table-bordered table-striped\">\n")
 
@@ -1321,7 +1306,6 @@ print [[
 print [[
          <div class="pie-chart" id="httpQueries"></div>
          <script type='text/javascript'>
-
 	     do_pie("#httpQueries", ']]
 print (ntop.getHttpPrefix())
 print [[/lua/host_http_breakdown.lua', { ]] print(hostinfo2json(host_info)) print [[, http_mode: "queries" }, "", refresh);
@@ -1340,7 +1324,6 @@ print [[/lua/host_http_breakdown.lua', { ]] print(hostinfo2json(host_info)) prin
 print [[
          <div class="pie-chart" id="httpResponses"></div>
          <script type='text/javascript'>
-
 	     do_pie("#httpResponses", ']]
 print (ntop.getHttpPrefix())
 print [[/lua/host_http_breakdown.lua', { ]] print(hostinfo2json(host_info)) print [[, http_mode: "responses" }, "", refresh);
@@ -1526,7 +1509,6 @@ if(show_vlan) then
                  css: {
               textAlign: 'center'
            }
-
          },
 ]]
 end
@@ -1572,7 +1554,6 @@ print [[
 	 	             css: {
 			        textAlign: 'right'
 			     }
-
 				 }
 			     ,{
                              title: "]] print(i18n("info")) print[[",
@@ -1592,7 +1573,6 @@ end
 
 print[[
        </script>
-
    ]]
 
 end
@@ -1661,14 +1641,12 @@ print [[
      <style type="text/css">
      #map-canvas { width: 800px; height: 480px; }
    </style>
-
 </center>
 ]]
 
 addGoogleMapsScript()
 
 print[[
-
     <script src="]] print(ntop.getHttpPrefix()) print [[/js/markerclusterer.js"></script>
 <div class="container-fluid">
   <div class="row-fluid">
@@ -1682,7 +1660,6 @@ print [[
 </div>
 </div>
 </div>
-
 <script type="text/javascript">
 /* IP Address to zoom */
   var zoomIP = "]] print('ifid='..ifId.."&"..hostinfo2url(host_info)) print [[ ";
@@ -1978,7 +1955,7 @@ drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
    l4_protocols = "host:l4protos",
    show_historical = true,
    tskey = tskey,
-   timeseries = {
+   timeseries = table.merge({
       {schema="host:traffic",                label=i18n("traffic")},
       {schema="host:active_flows",           label=i18n("graphs.active_flows")},
       {schema="host:total_flows",            label=i18n("db_explorer.total_flows")},
@@ -1997,8 +1974,9 @@ drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
 
       {schema="host:1d_delta_traffic_volume",  label="1 Day Traffic Delta"}, -- TODO localize
       {schema="host:1d_delta_flows",           label="1 Day Active Flows Delta"}, -- TODO localize
-      {schema="host:1d_delta_contacts",        label="1 Day Active Host Contacts Delta"} -- TODO localize
-   }
+      {schema="host:1d_delta_contacts",        label="1 Day Active Host Contacts Delta"}, -- TODO localize
+   }, getDeviceCommonTimeseries()),
+   device_timeseries_mac = host["mac"],
 })
 
 elseif(page == "traffic_report") then
@@ -2011,11 +1989,9 @@ if(page ~= "historical") and (host ~= nil) then
 
    print [[ 
    <script>
-
    $(document).ready(function() {
       $("#myTable").tablesorter();
    });
-
   ]]
    print("var last_pkts_sent = " .. host["packets.sent"] .. ";\n")
    print("var last_pkts_rcvd = " .. host["packets.rcvd"] .. ";\n")
@@ -2113,9 +2089,7 @@ print [[
                           } else {
                             $('#trend_bridge_dropped_flows').html("<i class=\"fa fa-arrow-up\"></i>");
                           }
-
                           $('#bridge_dropped_flows').html(addCommas(host["flows.dropped"]));
-
                           $('#bridge_dropped_flows_tr').show();
                           last_dropped_flows = host["flows.dropped"];
                         } else {
@@ -2132,42 +2106,36 @@ print [[
    			   $('#dns_rcvd_num_queries').html(addCommas(host["dns"]["rcvd"]["num_queries"]));
    			   $('#dns_rcvd_num_replies_ok').html(addCommas(host["dns"]["rcvd"]["num_replies_ok"]));
    			   $('#dns_rcvd_num_replies_error').html(addCommas(host["dns"]["rcvd"]["num_replies_error"]));
-
    			   if(host["dns"]["sent"]["num_queries"] == last_dns_sent_num_queries) {
    			      $('#trend_sent_num_queries').html("<i class=\"fa fa-minus\"></i>");
    			   } else {
    			      last_dns_sent_num_queries = host["dns"]["sent"]["num_queries"];
    			      $('#trend_sent_num_queries').html("<i class=\"fa fa-arrow-up\"></i>");
    			   }
-
    			   if(host["dns"]["sent"]["num_replies_ok"] == last_dns_sent_num_replies_ok) {
    			      $('#trend_sent_num_replies_ok').html("<i class=\"fa fa-minus\"></i>");
    			   } else {
    			      last_dns_sent_num_replies_ok = host["dns"]["sent"]["num_replies_ok"];
    			      $('#trend_sent_num_replies_ok').html("<i class=\"fa fa-arrow-up\"></i>");
    			   }
-
    			   if(host["dns"]["sent"]["num_replies_error"] == last_dns_sent_num_replies_error) {
    			      $('#trend_sent_num_replies_error').html("<i class=\"fa fa-minus\"></i>");
    			   } else {
    			      last_dns_sent_num_replies_error = host["dns"]["sent"]["num_replies_error"];
    			      $('#trend_sent_num_replies_error').html("<i class=\"fa fa-arrow-up\"></i>");
    			   }
-
    			   if(host["dns"]["rcvd"]["num_queries"] == last_dns_rcvd_num_queries) {
    			      $('#trend_rcvd_num_queries').html("<i class=\"fa fa-minus\"></i>");
    			   } else {
    			      last_dns_rcvd_num_queries = host["dns"]["rcvd"]["num_queries"];
    			      $('#trend_rcvd_num_queries').html("<i class=\"fa fa-arrow-up\"></i>");
    			   }
-
    			   if(host["dns"]["rcvd"]["num_replies_ok"] == last_dns_rcvd_num_replies_ok) {
    			      $('#trend_rcvd_num_replies_ok').html("<i class=\"fa fa-minus\"></i>");
    			   } else {
    			      last_dns_rcvd_num_replies_ok = host["dns"]["rcvd"]["num_replies_ok"];
    			      $('#trend_rcvd_num_replies_ok').html("<i class=\"fa fa-arrow-up\"></i>");
    			   }
-
    			   if(host["dns"]["rcvd"]["num_replies_error"] == last_dns_rcvd_num_replies_error) {
    			      $('#trend_rcvd_num_replies_error').html("<i class=\"fa fa-minus\"></i>");
    			   } else {
@@ -2216,7 +2184,6 @@ print [[
 
    print [[
    			/* **************************************** */
-
 			$('#trend_as_active_client').html(drawTrend(host["active_flows.as_client"], last_active_flows_as_client, ""));
 			$('#trend_as_client').html(drawTrend(host["flows.as_client"], last_flows_as_client, ""));
 			$('#low_goodput_trend_as_client').html(drawTrend(host["low_goodput_flows.as_client"], last_low_goodput_flows_as_client, " style=\"color: #B94A48;\""));
@@ -2235,7 +2202,6 @@ print [[
 			$('#pkt_ooo_trend').html(drawTrend(host["tcp.packets.out_of_order"], last_tcp_ooo, ""));
  		        $('#pkt_lost_trend').html(drawTrend(host["tcp.packets.lost"], last_tcp_lost, ""));
  		        $('#pkt_keep_alive_trend').html(drawTrend(host["tcp.packets.keep_alive"], last_tcp_keep_alive, ""));
-
    			last_num_alerts = host["num_alerts"];
    			last_pkts_sent = host["packets.sent"];
    			last_pkts_rcvd = host["packets.rcvd"];
@@ -2257,12 +2223,9 @@ print [[
 
 
    print [[
-
    			/* **************************************** */
-
    			/*
    			$('#throughput').html(rsp.throughput);
-
    			var values = thptChart.text().split(",");
    			values.shift();
    			values.push(rsp.throughput_raw);
@@ -2271,7 +2234,6 @@ print [[
    		     }
    	           });
    		 }, 3000);
-
    </script>
     ]]
 end
