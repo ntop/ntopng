@@ -25,6 +25,7 @@
 #include "ntop_includes.h"
 
 class StoreManager {
+ private:
  protected:
   int ifid;
   NetworkInterface *iface;
