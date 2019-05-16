@@ -2653,11 +2653,12 @@ void NetworkInterface::reloadCustomCategories() {
   if(customCategoriesReloadRequested()) {
     ntop->getTrace()->traceEvent(TRACE_DEBUG, "Going to reload categories [iface: %s]", get_name());
     ndpi_enable_loaded_categories(ndpi_struct);
-    reload_custom_categories = false;
-    reload_hosts_blacklist = true;
 
     custom_categories_to_purge = new_custom_categories;
     new_custom_categories.clear();
+
+    reload_custom_categories = false;
+    reload_hosts_blacklist = true;
   }
 }
 
