@@ -291,7 +291,7 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
 #endif
 
   /* License check could have increased the number of interfaces available */
-  initNetworkInterfaces();
+  resetNetworkInterfaces();
 
 #if defined(NTOPNG_PRO) && defined(HAVE_NINDEX)
 #if 0
@@ -342,7 +342,7 @@ void Ntop::registerNagios(void) {
 
 /* ******************************************* */
 
-void Ntop::initNetworkInterfaces() {
+void Ntop::resetNetworkInterfaces() {
   if(iface) delete []iface;
 
   if((iface = new NetworkInterface*[MAX_NUM_DEFINED_INTERFACES]) == NULL)
@@ -1979,16 +1979,14 @@ int Ntop::getInterfaceIdByName(lua_State *vm, const char * const name) {
 
 /* ****************************************** */
 
-void Ntop::registerInterface(NetworkInterface *_if) {
-  _if->finishInitialization(num_defined_interfaces);
-  _if->checkAggregationMode();
+bool Ntop::registerInterface(NetworkInterface *_if) {
 
   for(int i = 0; i < num_defined_interfaces; i++) {
     if(strcmp(iface[i]->get_name(), _if->get_name()) == 0) {
       ntop->getTrace()->traceEvent(TRACE_WARNING,
 				   "Skipping duplicated interface %s", _if->get_name());
       delete _if;
-      return;
+      return false;
     }
   }
 
@@ -1996,15 +1994,24 @@ void Ntop::registerInterface(NetworkInterface *_if) {
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Registered interface %s [id: %d]",
 				 _if->get_name(), _if->get_id());
     iface[num_defined_interfaces++] = _if;
-    _if->startDBLoop();
+    return true;
   } else {
     static bool too_many_interfaces_error = false;
     if(!too_many_interfaces_error) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Too many interfaces defined");
       too_many_interfaces_error = true;
     }
+    return false;
   }
 };
+
+/* ******************************************* */
+
+void Ntop::initInterface(NetworkInterface *_if) {
+  _if->finishInitialization(num_defined_interfaces);
+  _if->checkAggregationMode();
+  _if->startDBLoop();
+}
 
 /* ******************************************* */
 

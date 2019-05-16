@@ -243,8 +243,16 @@ class Ntop {
    * @details Check for duplicated interface and add the network interface in to @ref iface.
    *
    * @param i Network interface.
+   * @return true on success, false otherwise
    */
-  void registerInterface(NetworkInterface *i);
+  bool registerInterface(NetworkInterface *i);
+
+  /**
+   * @brief Finalize the network interface initialization.
+   *
+   * @param i Network interface.
+   */
+  void initInterface(NetworkInterface *i);
 
   /**
    * @brief Get the number of defined network interfaces.
@@ -425,7 +433,7 @@ class Ntop {
   void getLocalNetworkIp(int16_t local_network_id, IpAddress **network_ip, u_int8_t *network_prefix);
   inline void addLocalNetwork(const char *network)           { address->setLocalNetwork((char*)network); }
   void createExportInterface();
-  void initNetworkInterfaces();
+  void resetNetworkInterfaces();
   void initElasticSearch();
   void initLogstash(); 
 
