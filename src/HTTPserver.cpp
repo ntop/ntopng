@@ -1204,20 +1204,22 @@ int init_client_x509_auth(void *ctx) {
 
 HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
   struct mg_callbacks callbacks;
-  static char ports[256] = { 0 }, acl_management[64], ssl_cert_path[MAX_PATH], access_log_path[MAX_PATH] = { 0 };
   const char *http_binding_addr1, *http_binding_addr2;
   const char *https_binding_addr1, *https_binding_addr2;
-
+  bool use_http = true;
+  bool good_ssl_cert = false;
+  struct timeval tv;
+  
+  memset(ports, 0, sizeof(ports)), memset(access_log_path, 0, sizeof(access_log_path));
+  
   ntop->getPrefs()->get_http_binding_addresses(&http_binding_addr1, &http_binding_addr2);
   ntop->getPrefs()->get_https_binding_addresses(&https_binding_addr1, &https_binding_addr2);
 
-  bool use_http = true;
-  bool good_ssl_cert = false;
   wispr_captive_data = NULL;
   captive_redirect_addr = NULL;
   gui_access_restricted = false;
 
-  struct timeval tv;
+  /* TODO: remove static below */
   static char *http_options[] = {
     (char*)"listening_ports", ports,
     (char*)"enable_directory_listing", (char*)"no",
