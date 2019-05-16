@@ -522,6 +522,11 @@ end
 -- ##############################################
 
 function run(tester)
+  if influxdb.db == nil then
+    print("Skipping influx2Series tests. Enable InfluxDB export in order to test.<br/>")
+    return(true)
+  end
+
   local rv = tester.run_test("influx2Series:test_sampling1", test_sampling1)
   rv = tester.run_test("influx2Series:test_datafill1", test_datafill1) and rv
   rv = tester.run_test("influx2Series:test_datafill2", test_datafill2) and rv

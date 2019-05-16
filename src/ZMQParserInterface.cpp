@@ -782,8 +782,10 @@ void ZMQParserInterface::parseSingleFlow(json_object *o,
 	  break;
 	case UNKNOWN_FLOW_ELEMENT:
 	  /* Attempt to parse it as an nProbe mini field */
-	  if(parseNProbeMiniField(&flow, key, value, v))
+	  if(parseNProbeMiniField(&flow, key, value, v)) {
+	    flow.setParsedeBPF();
 	    break;
+	  }
 	default:
 #ifdef NTOPNG_PRO
 	  if(custom_app_maps || (custom_app_maps = new(std::nothrow) CustomAppMaps()))

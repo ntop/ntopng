@@ -94,19 +94,20 @@ local function schema_get_path(schema, tags)
   -- ifid is mandatory here
   local ifid = tags.ifid or -1
   local host_or_network = nil
+  local parts = string.split(schema.name, ":")
 
-  if (string.find(schema.name, "iface:") ~= 1) and
-     (string.find(schema.name, "process:") ~= 1) then
-    local parts = string.split(schema.name, ":")
+  if((string.find(schema.name, "iface:") ~= 1) and  -- interfaces are only identified by the first tag
+      (#schema._tags >= 2)) then                    -- some schema do not have 2 tags, e.g. "process:*" schemas
     host_or_network = (HOST_PREFIX_MAP[parts[1]] or (parts[1] .. ":")) .. tags[schema._tags[2]]
+  end
 
-    if parts[1] == "snmp_if" then
-       suffix = tags.if_index .. "/"
-    elseif (parts[1] == "flowdev_port") or (parts[1] == "sflowdev_port") then
-       suffix = tags.port .. "/"
-    elseif parts[2] == "ndpi_categories" then
-       suffix = "ndpi_categories/"
-    end
+  -- Some exceptions to avoid conflicts / keep compatibility
+  if parts[1] == "snmp_if" then
+     suffix = tags.if_index .. "/"
+  elseif (parts[1] == "flowdev_port") or (parts[1] == "sflowdev_port") then
+     suffix = tags.port .. "/"
+  elseif parts[2] == "ndpi_categories" then
+     suffix = "ndpi_categories/"
   end
 
   local path = getRRDName(ifid, host_or_network) .. suffix
@@ -271,6 +272,24 @@ local function add_missing_ds(schema, rrdfile, cur_ds)
   if(err ~= nil) then
     traceError(TRACE_ERROR, TRACE_CONSOLE, err)
     return false
+  end
+
+  -- Double check as some older implementations do not support adding a column and will silently fail
+  local last_update, num_ds = ntop.rrd_lastupdate(rrdfile)
+  if num_ds ~= #new_metrics then
+    -- In this case the only thing we can do is to remove the file and create a new one
+    if ntop.getCache("ntopng.cache.rrd_format_change_warning_shown") ~= "1" then
+      traceError(TRACE_WARNING, TRACE_CONSOLE, "RRD format change detected, incompatible RRDs will be moved to '.rrd.bak' files")
+      ntop.setCache("ntopng.cache.rrd_format_change_warning_shown", "1")
+    end
+
+    os.rename(rrdfile, rrdfile .. ".bak")
+
+    if(not create_rrd(schema, rrdfile)) then
+      return false
+    end
+
+    return true
   end
 
   traceError(TRACE_INFO, TRACE_CONSOLE, "RRD successfully fixed: " .. rrdfile)
