@@ -274,6 +274,24 @@ local function add_missing_ds(schema, rrdfile, cur_ds)
     return false
   end
 
+  -- Double check as some older implementations do not support adding a column and will silently fail
+  local last_update, num_ds = ntop.rrd_lastupdate(rrdfile)
+  if num_ds ~= #new_metrics then
+    -- In this case the only thing we can do is to remove the file and create a new one
+    if ntop.getCache("ntopng.cache.rrd_format_change_warning_shown") ~= "1" then
+      traceError(TRACE_WARNING, TRACE_CONSOLE, "RRD format change detected, incompatible RRDs will be moved to '.rrd.bak' files")
+      ntop.setCache("ntopng.cache.rrd_format_change_warning_shown", "1")
+    end
+
+    os.rename(rrdfile, rrdfile .. ".bak")
+
+    if(not create_rrd(schema, rrdfile)) then
+      return false
+    end
+
+    return true
+  end
+
   traceError(TRACE_INFO, TRACE_CONSOLE, "RRD successfully fixed: " .. rrdfile)
   return true
 end

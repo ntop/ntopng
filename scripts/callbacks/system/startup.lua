@@ -191,3 +191,6 @@ if(ntop.getCache("ntopng.cache.rrd_category_migration") ~= "1") then
    -- do not perform migration again
    ntop.setCache("ntopng.cache.rrd_category_migration", "1")
 end
+
+-- Show the warning at most 1 time per run
+ntop.delCache("ntopng.cache.rrd_format_change_warning_shown")
