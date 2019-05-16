@@ -238,6 +238,22 @@ end
 
 -- ##############################################
 
+local function handle_old_rrd_tune(schema, rrdfile)
+  -- In this case the only thing we can do is to remove the file and create a new one
+  if ntop.getCache("ntopng.cache.rrd_format_change_warning_shown") ~= "1" then
+    traceError(TRACE_WARNING, TRACE_CONSOLE, "RRD format change detected, incompatible RRDs will be moved to '.rrd.bak' files")
+    ntop.setCache("ntopng.cache.rrd_format_change_warning_shown", "1")
+  end
+
+  os.rename(rrdfile, rrdfile .. ".bak")
+
+  if(not create_rrd(schema, rrdfile)) then
+    return false
+  end
+
+  return true
+end
+
 local function add_missing_ds(schema, rrdfile, cur_ds)
   local cur_metrics = map_metrics_to_rrd_columns(cur_ds)
   local new_metrics = map_metrics_to_rrd_columns(#schema._metrics)
@@ -270,26 +286,19 @@ local function add_missing_ds(schema, rrdfile, cur_ds)
 
   local err = ntop.rrd_tune(table.unpack(params))
   if(err ~= nil) then
-    traceError(TRACE_ERROR, TRACE_CONSOLE, err)
-    return false
+    if(string.find(err, "unknown data source name") ~= nil) then
+      -- the RRD was already mangled by incompatible rrd_tune
+      return handle_old_rrd_tune(schema, rrdfile)
+    else
+      traceError(TRACE_ERROR, TRACE_CONSOLE, err)
+      return false
+    end
   end
 
   -- Double check as some older implementations do not support adding a column and will silently fail
   local last_update, num_ds = ntop.rrd_lastupdate(rrdfile)
   if num_ds ~= #new_metrics then
-    -- In this case the only thing we can do is to remove the file and create a new one
-    if ntop.getCache("ntopng.cache.rrd_format_change_warning_shown") ~= "1" then
-      traceError(TRACE_WARNING, TRACE_CONSOLE, "RRD format change detected, incompatible RRDs will be moved to '.rrd.bak' files")
-      ntop.setCache("ntopng.cache.rrd_format_change_warning_shown", "1")
-    end
-
-    os.rename(rrdfile, rrdfile .. ".bak")
-
-    if(not create_rrd(schema, rrdfile)) then
-      return false
-    end
-
-    return true
+    return handle_old_rrd_tune(schema, rrdfile)
   end
 
   traceError(TRACE_INFO, TRACE_CONSOLE, "RRD successfully fixed: " .. rrdfile)
