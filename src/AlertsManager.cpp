@@ -587,7 +587,7 @@ int AlertsManager::storeAlert(AlertEntity alert_entity, const char *alert_entity
 			      bool check_maximum, time_t when) {
   if(!ntop->getPrefs()->are_alerts_disabled()) {
     char query[STORE_MANAGER_MAX_QUERY];
-    sqlite3_stmt *stmt = NULL;
+    sqlite3_stmt *stmt = NULL, *stmt2 = NULL, *stmt3 = NULL;
     int rc = 0;
     u_int32_t alert_hash = alertHash(alert_json);
     u_int64_t cur_rowid = (u_int64_t)-1, cur_counter;
@@ -645,15 +645,15 @@ int AlertsManager::storeAlert(AlertEntity alert_entity, const char *alert_entity
 	       "WHERE rowid = ? ",
 	       ALERTS_MANAGER_TABLE_NAME);
 
-      if(sqlite3_prepare_v2(db, query, -1, &stmt, 0)
-	 || sqlite3_bind_int64(stmt, 1, static_cast<long int>(cur_counter + 1))
-	 || sqlite3_bind_int64(stmt, 2, static_cast<long int>(when))
-	 || sqlite3_bind_int64(stmt, 3, static_cast<long int>(cur_rowid))) {
+      if(sqlite3_prepare_v2(db, query, -1, &stmt2, 0)
+	 || sqlite3_bind_int64(stmt2, 1, static_cast<long int>(cur_counter + 1))
+	 || sqlite3_bind_int64(stmt2, 2, static_cast<long int>(when))
+	 || sqlite3_bind_int64(stmt2, 3, static_cast<long int>(cur_rowid))) {
 	rc = 1;
 	goto out;
       }
 
-      while((rc = sqlite3_step(stmt)) != SQLITE_DONE) {
+      while((rc = sqlite3_step(stmt2)) != SQLITE_DONE) {
 	if(rc == SQLITE_ERROR) {
 	  ntop->getTrace()->traceEvent(TRACE_INFO, "SQL Error: step");
 	  rc = 1;
@@ -669,21 +669,21 @@ int AlertsManager::storeAlert(AlertEntity alert_entity, const char *alert_entity
 	       "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?); ",
 	       ALERTS_MANAGER_TABLE_NAME);
 
-      if(sqlite3_prepare_v2(db, query, -1, &stmt, 0)
-	 || sqlite3_bind_int64(stmt, 1, static_cast<long int>(when))
-	 || sqlite3_bind_int(stmt,   2, static_cast<int>(alert_type))
-	 || sqlite3_bind_int(stmt,   3, static_cast<int>(alert_severity))
-	 || sqlite3_bind_int(stmt,   4, static_cast<int>(alert_entity))
-	 || sqlite3_bind_text(stmt,  5, alert_entity_value, -1, SQLITE_STATIC)
-	 || sqlite3_bind_text(stmt,  6, alert_json, -1, SQLITE_STATIC)
-	 || sqlite3_bind_int64(stmt, 7, static_cast<long int>(alert_hash))
-	 || sqlite3_bind_text(stmt,  8, alert_origin, -1, SQLITE_STATIC)
-	 || sqlite3_bind_text(stmt,  9, alert_target, -1, SQLITE_STATIC)) {
+      if(sqlite3_prepare_v2(db, query, -1, &stmt3, 0)
+	 || sqlite3_bind_int64(stmt3, 1, static_cast<long int>(when))
+	 || sqlite3_bind_int(stmt3,   2, static_cast<int>(alert_type))
+	 || sqlite3_bind_int(stmt3,   3, static_cast<int>(alert_severity))
+	 || sqlite3_bind_int(stmt3,   4, static_cast<int>(alert_entity))
+	 || sqlite3_bind_text(stmt3,  5, alert_entity_value, -1, SQLITE_STATIC)
+	 || sqlite3_bind_text(stmt3,  6, alert_json, -1, SQLITE_STATIC)
+	 || sqlite3_bind_int64(stmt3, 7, static_cast<long int>(alert_hash))
+	 || sqlite3_bind_text(stmt3,  8, alert_origin, -1, SQLITE_STATIC)
+	 || sqlite3_bind_text(stmt3,  9, alert_target, -1, SQLITE_STATIC)) {
 	rc = 1;
 	goto out;
       }
 
-      while((rc = sqlite3_step(stmt)) != SQLITE_DONE) {
+      while((rc = sqlite3_step(stmt3)) != SQLITE_DONE) {
 	if(rc == SQLITE_ERROR) {
 	  ntop->getTrace()->traceEvent(TRACE_INFO, "SQL Error: step");
 	  rc = 1;
@@ -697,6 +697,8 @@ int AlertsManager::storeAlert(AlertEntity alert_entity, const char *alert_entity
 
   out:
     if(stmt) sqlite3_finalize(stmt);
+    if(stmt2) sqlite3_finalize(stmt2);
+    if(stmt3) sqlite3_finalize(stmt3);
     m.unlock(__FILE__, __LINE__);
 
     return rc;
@@ -711,7 +713,7 @@ int AlertsManager::storeFlowAlert(Flow *f) {
     const char *alert_json;
     char cli_ip_buf[64], srv_ip_buf[64];
     char query[STORE_MANAGER_MAX_QUERY];
-    sqlite3_stmt *stmt = NULL;
+    sqlite3_stmt *stmt = NULL, *stmt2 = NULL, *stmt3 = NULL;
     int rc = 0;
     Host *cli, *srv;
     char *cli_ip = NULL, *srv_ip = NULL;
@@ -803,20 +805,20 @@ int AlertsManager::storeFlowAlert(Flow *f) {
 	       "WHERE rowid = ? ",
 	       ALERTS_MANAGER_FLOWS_TABLE_NAME);
 
-      if(sqlite3_prepare_v2(db, query, -1, &stmt, 0)
-	 || sqlite3_bind_int64(stmt, 1, static_cast<long int>(cur_counter + 1))
-	 || sqlite3_bind_int64(stmt, 2, static_cast<long int>(now))
-	 || sqlite3_bind_int64(stmt, 3, cur_cli2srv_bytes + f->get_bytes_cli2srv())
-	 || sqlite3_bind_int64(stmt, 4, cur_srv2cli_bytes + f->get_bytes_srv2cli())
-	 || sqlite3_bind_int64(stmt, 5, cur_cli2srv_packets + f->get_packets_cli2srv())
-	 || sqlite3_bind_int64(stmt, 6, cur_srv2cli_packets + f->get_packets_srv2cli())
-	 || sqlite3_bind_int64(stmt, 7, static_cast<long int>(cur_rowid))) {
+      if(sqlite3_prepare_v2(db, query, -1, &stmt2, 0)
+	 || sqlite3_bind_int64(stmt2, 1, static_cast<long int>(cur_counter + 1))
+	 || sqlite3_bind_int64(stmt2, 2, static_cast<long int>(now))
+	 || sqlite3_bind_int64(stmt2, 3, cur_cli2srv_bytes + f->get_bytes_cli2srv())
+	 || sqlite3_bind_int64(stmt2, 4, cur_srv2cli_bytes + f->get_bytes_srv2cli())
+	 || sqlite3_bind_int64(stmt2, 5, cur_cli2srv_packets + f->get_packets_cli2srv())
+	 || sqlite3_bind_int64(stmt2, 6, cur_srv2cli_packets + f->get_packets_srv2cli())
+	 || sqlite3_bind_int64(stmt2, 7, static_cast<long int>(cur_rowid))) {
 	ntop->getTrace()->traceEvent(TRACE_INFO, "SQL Error: step");
 	rc = 5;
 	goto out;
       }
 
-      while((rc = sqlite3_step(stmt)) != SQLITE_DONE) {
+      while((rc = sqlite3_step(stmt2)) != SQLITE_DONE) {
 	if(rc == SQLITE_ERROR) {
 	  ntop->getTrace()->traceEvent(TRACE_INFO, "SQL Error: step");
 	  rc = 4;
@@ -839,44 +841,44 @@ int AlertsManager::storeFlowAlert(Flow *f) {
 	       "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?); ",
 	       ALERTS_MANAGER_FLOWS_TABLE_NAME);
 
-      if(sqlite3_prepare_v2(db, query, -1, &stmt, 0)) {
+      if(sqlite3_prepare_v2(db, query, -1, &stmt3, 0)) {
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to prepare the statement for %s", query);
 	rc = 3;
 	goto out;
       }
 
-      if(sqlite3_bind_int64(stmt,     1, static_cast<long int>(now))
-	 || sqlite3_bind_int(stmt,    2, (int)(alert_type))
-	 || sqlite3_bind_int(stmt,    3, (int)(alert_severity))
-	 || sqlite3_bind_text(stmt,   4, alert_json, -1, SQLITE_STATIC)
-	 || sqlite3_bind_int(stmt,    5, f->get_vlan_id())
-	 || sqlite3_bind_int(stmt,    6, f->get_protocol())
-	 || sqlite3_bind_int(stmt,    7, f->get_detected_protocol().master_protocol)
-	 || sqlite3_bind_int(stmt,    8, f->get_detected_protocol().app_protocol)
-	 || sqlite3_bind_text(stmt,   9, cli ? cli->get_country(cb, sizeof(cb)) : NULL, -1, SQLITE_STATIC)
-	 || sqlite3_bind_text(stmt,  10, srv ? srv->get_country(cb1, sizeof(cb1)) : NULL, -1, SQLITE_STATIC)
-	 || sqlite3_bind_text(stmt,  11, cli ? cli->get_os(cli_os, sizeof(cli_os)) : NULL, -1, SQLITE_STATIC)
-	 || sqlite3_bind_text(stmt,  12, srv ? srv->get_os(srv_os, sizeof(srv_os)) : NULL, -1, SQLITE_STATIC)
-	 || sqlite3_bind_int(stmt,   13, cli ? cli->get_asn() : 0)
-	 || sqlite3_bind_int(stmt,   14, srv ? srv->get_asn() : 0)
-	 || sqlite3_bind_text(stmt,  15, cli_ip, -1, SQLITE_STATIC)
-	 || sqlite3_bind_text(stmt,  16, srv_ip, -1, SQLITE_STATIC)
-	 || sqlite3_bind_int64(stmt, 17, f->get_bytes_cli2srv())
-	 || sqlite3_bind_int64(stmt, 18, f->get_bytes_srv2cli())
-	 || sqlite3_bind_int64(stmt, 19, f->get_packets_cli2srv())
-	 || sqlite3_bind_int64(stmt, 20, f->get_packets_srv2cli())
-	 || sqlite3_bind_int(stmt,   21, (cli && cli->isBlacklisted()) ? 1 : 0)
-	 || sqlite3_bind_int(stmt,   22, (srv && srv->isBlacklisted()) ? 1 : 0)
-	 || sqlite3_bind_int(stmt,   23, (cli && cli->isLocalHost()) ? 1 : 0)
-	 || sqlite3_bind_int(stmt,   24, (srv && srv->isLocalHost()) ? 1 : 0)
-	 || sqlite3_bind_int(stmt,   25, (int)f->getFlowStatus())
+      if(sqlite3_bind_int64(stmt3,     1, static_cast<long int>(now))
+	 || sqlite3_bind_int(stmt3,    2, (int)(alert_type))
+	 || sqlite3_bind_int(stmt3,    3, (int)(alert_severity))
+	 || sqlite3_bind_text(stmt3,   4, alert_json, -1, SQLITE_STATIC)
+	 || sqlite3_bind_int(stmt3,    5, f->get_vlan_id())
+	 || sqlite3_bind_int(stmt3,    6, f->get_protocol())
+	 || sqlite3_bind_int(stmt3,    7, f->get_detected_protocol().master_protocol)
+	 || sqlite3_bind_int(stmt3,    8, f->get_detected_protocol().app_protocol)
+	 || sqlite3_bind_text(stmt3,   9, cli ? cli->get_country(cb, sizeof(cb)) : NULL, -1, SQLITE_STATIC)
+	 || sqlite3_bind_text(stmt3,  10, srv ? srv->get_country(cb1, sizeof(cb1)) : NULL, -1, SQLITE_STATIC)
+	 || sqlite3_bind_text(stmt3,  11, cli ? cli->get_os(cli_os, sizeof(cli_os)) : NULL, -1, SQLITE_STATIC)
+	 || sqlite3_bind_text(stmt3,  12, srv ? srv->get_os(srv_os, sizeof(srv_os)) : NULL, -1, SQLITE_STATIC)
+	 || sqlite3_bind_int(stmt3,   13, cli ? cli->get_asn() : 0)
+	 || sqlite3_bind_int(stmt3,   14, srv ? srv->get_asn() : 0)
+	 || sqlite3_bind_text(stmt3,  15, cli_ip, -1, SQLITE_STATIC)
+	 || sqlite3_bind_text(stmt3,  16, srv_ip, -1, SQLITE_STATIC)
+	 || sqlite3_bind_int64(stmt3, 17, f->get_bytes_cli2srv())
+	 || sqlite3_bind_int64(stmt3, 18, f->get_bytes_srv2cli())
+	 || sqlite3_bind_int64(stmt3, 19, f->get_packets_cli2srv())
+	 || sqlite3_bind_int64(stmt3, 20, f->get_packets_srv2cli())
+	 || sqlite3_bind_int(stmt3,   21, (cli && cli->isBlacklisted()) ? 1 : 0)
+	 || sqlite3_bind_int(stmt3,   22, (srv && srv->isBlacklisted()) ? 1 : 0)
+	 || sqlite3_bind_int(stmt3,   23, (cli && cli->isLocalHost()) ? 1 : 0)
+	 || sqlite3_bind_int(stmt3,   24, (srv && srv->isLocalHost()) ? 1 : 0)
+	 || sqlite3_bind_int(stmt3,   25, (int)f->getFlowStatus())
 	 ) {
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to bind to arguments to %s", query);
 	rc = 2;
 	goto out;
       }
 
-      while((rc = sqlite3_step(stmt)) != SQLITE_DONE) {
+      while((rc = sqlite3_step(stmt3)) != SQLITE_DONE) {
 	if(rc == SQLITE_ERROR) {
 	  ntop->getTrace()->traceEvent(TRACE_ERROR, "SQL Error: step [%s][%s]",
 				       query, sqlite3_errmsg(db));
@@ -891,6 +893,8 @@ int AlertsManager::storeFlowAlert(Flow *f) {
   out:
 
     if(stmt) sqlite3_finalize(stmt);
+    if(stmt2) sqlite3_finalize(stmt2);
+    if(stmt3) sqlite3_finalize(stmt3);
     m.unlock(__FILE__, __LINE__);
 
     f->setFlowAlerted();
