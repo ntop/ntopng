@@ -64,10 +64,6 @@ local hostkey = hostinfo2hostkey(host_info, nil, true --[[ force show vlan --]])
 local hostkey_compact = hostinfo2hostkey(host_info) -- do not force vlan
 local labelKey = host_info["host"].."@"..host_info["vlan"]
 
-function revFP(a,b)
-   return (a.num_uses > b.num_uses)
-end
-
 if((host_name == nil) or (host_ip == nil)) then
    sendHTTPContentTypeHeader('text/html')
    page_utils.print_header()
@@ -273,7 +269,7 @@ if((host["ICMPv4"] ~= nil) or (host["ICMPv6"] ~= nil)) then
       print("<li class=\"active\"><a href=\"#\">"..i18n("icmp").."</a></li>\n")
    else
       print("<li><a href=\""..url.."&page=ICMP\">"..i18n("icmp").."</a></li>")
-   end      
+   end
 end
 
 if(page == "ndpi") then
@@ -300,7 +296,7 @@ if(host["ssl_fingerprint"] ~= nil) then
    else
       if(table.len(host["ssl_fingerprint"]) > 0) then
         print("<li><a href=\""..url.."&page=ssl\">"..i18n("ssl").."</a></li>")
-      end 
+      end
    end
 end
 
@@ -382,7 +378,7 @@ if(not(isLoopback(ifname))) then
 	 end
       end
    end
-   
+
    if(page == "geomap") then
       print("<li class=\"active\"><a href=\"#\"><i class='fa fa-globe fa-lg'></i></a></li>\n")
    else
@@ -473,7 +469,7 @@ if((page == "overview") or (page == nil)) then
 	 else
 	    print("&nbsp;")
 	 end
-	 
+
 	 print('</td></tr>')
       end
 
@@ -485,7 +481,7 @@ if((page == "overview") or (page == nil)) then
       end
 
       print("</tr>")
-      
+
       print("<tr><th>"..i18n("ip_address").."</th><td colspan=1>" .. host["ip"])
       if(host.childSafe == true) then print(getSafeChildIcon()) end
 
@@ -494,7 +490,7 @@ if((page == "overview") or (page == nil)) then
      end
 
       historicalProtoHostHref(getInterfaceId(ifname), host["ip"], nil, nil, nil)
-      
+
       if(host["local_network_name"] ~= nil) then
 	 print(" [&nbsp;<A HREF='"..ntop.getHttpPrefix().."/lua/network_details.lua?network="..host["local_network_id"].."&page=historical'>".. host["local_network_name"].."</A>&nbsp;]")
       end
@@ -550,7 +546,7 @@ if((page == "overview") or (page == nil)) then
       if(isEmptyString(host["name"])) then
          host["name"] = host["ip"]
       end
-      
+
       print("<tr><th>"..i18n("name").."</th>")
 
       if(isAdministrator()) then
@@ -682,7 +678,7 @@ end
    end
 
    -- Stats reset
-   print(   
+   print(
      template.gen("modal_confirm_dialog.html", {
        dialog={
          id      = "reset_host_stats_dialog",
@@ -703,7 +699,7 @@ end
 
    local am_enabled = (ntop.getPrefs()).is_arp_matrix_generation_enabled
 
-   if am_enabled then 
+   if am_enabled then
       local arp_matrix_utils = require "arp_matrix_utils"
 
       if (arp_matrix_utils.arpCheck(host_ip)) then
@@ -756,14 +752,14 @@ end
 	 print("<tr><td>"..source.."</td><td>"..name.."</td></tr>\n")
       end
    end
-   
+
    if(host["json"] ~= nil) then
       print("<tr><th>"..i18n("download").."&nbsp;<i class=\"fa fa-download fa-lg\"></i></th><td")
       if(not isAdministrator()) then print(" colspan=2") end
       print("><A HREF='"..ntop.getHttpPrefix().."/lua/rest/get/host/data.lua?ifid="..ifId.."&"..hostinfo2url(host_info).."'>JSON</A></td>")
       print [[<td>]]
       if (isAdministrator() and ifstats.isView == false and ifstats.isDynamic == false and interface.isPacketInterface()) then
-	 
+
 	 local live_traffic_utils = require("live_traffic_utils")
 	 live_traffic_utils.printLiveTrafficForm(ifId, host_info)
       end
@@ -803,7 +799,7 @@ end
             print('<tr><th class="text-left">'..i18n("packets_page.arp_distribution")..'</th><td colspan=5><div class="pie-chart" id="arpDistro"></div></td></tr>')
          end
       end
-      
+
       hostinfo2json(host_info)
       print [[
       </table>
@@ -1313,7 +1309,7 @@ end
         local dns_ratio_str = string.format("%.2f", dns_ratio)
 
         if(dns_ratio < 0.9) then
-          dns_ratio_str = "<font color=red>".. dns_ratio_str .."</font>" 
+          dns_ratio_str = "<font color=red>".. dns_ratio_str .."</font>"
         end
 
 	print('<tr><td colspan=2 align=right>'..  dns_ratio_str ..'</td><td colspan=2>')
@@ -1327,28 +1323,37 @@ print [[
 ]]
       end
 elseif(page == "ssl") then
-   local fp = host["ssl_fingerprint"]
+  print [[
+     <table id="myTable" class="table table-bordered table-striped tablesorter">
+     <thead><tr><th>]] print('<A HREF="https://github.com/salesforce/ja3">'..i18n("ja3_fingerprint")..'</A>') print[[</th><th>]] print(i18n("app_name")) print[[</th><th>]] print(i18n("num_uses")) print[[</th></tr></thead>
+     <tbody id="host_details_ja3_tbody">
+     </tbody>
+     </table>
 
-   print("<table class=\"table table-bordered table-striped\">\n")
-   print('<tr><th width=50% align=left><A HREF="https://github.com/salesforce/ja3">'..i18n("ja3_fingerprint")..'</A></th>')
-   print('<th align=left>'..i18n("app_name")..'</th>')
-   print('<th>'..i18n("num_uses")..'</th>')
-   print('</th>')
+<script>
+function update_ja3_table() {
+  $.ajax({
+    type: 'GET',
+    url: ']]
+  print(ntop.getHttpPrefix())
+  print [[/lua/get_ja3_data.lua',
+    data: { ifid: "]] print(ifId.."") print ("\" , ") print(hostinfo2json(host_info))
 
-   num = 0
-   max_num = 15
-   for key,value in pairsByValues(fp, revFP) do
-      if(num == max_num) then
-	 break
-      else
-	 num = num + 1
-	 print('<tr><td><A HREF="https://sslbl.abuse.ch/ja3-fingerprints/'..key..'">'..key..'</A> <i class="fa fa-external-link"></i></td>')
-	 print('<td align=left nowrap>'..value.app_name..'</td>')
-	 print('<td align=right>'..formatValue(value.num_uses)..'</td>')
-	 print('</tr>\n')
-      end
-   end
-   print("</table>")
+    print [[ },
+    success: function(content) {
+      $('#host_details_ja3_tbody').html(content);
+      $('#myTable').trigger("update");
+    }
+  });
+}
+
+update_ja3_table();
+setInterval(update_ja3_table, 5000);
+
+</script>
+]]
+
+
    print("<b>"..i18n("notes").."</b><ul><li>"..i18n("ja3_fingerprint_note").."</li></ul>")
 
 elseif(page == "http") then
@@ -1682,7 +1687,7 @@ elseif(page == "dropbox") then
 
       print("<li><a href=\""..ntop.getHttpPrefix().."/lua/host_details.lua?host="..k)
       if(host_vlan ~= 0) then print("&vlan="..host_vlan) end
-      print("&page=dropbox\">")      
+      print("&page=dropbox\">")
       print(getResolvedAddress(hostkey2hostinfo(k)))
       print("</A></li>")
    end
@@ -2029,11 +2034,11 @@ drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
       {schema="host:host_unreachable_flows", label=i18n("graphs.host_unreachable_flows")},
       {schema="host:dns_qry_sent_rsp_rcvd",  label=i18n("graphs.dns_qry_sent_rsp_rcvd")},
       {schema="host:dns_qry_rcvd_rsp_sent",  label=i18n("graphs.dns_qry_rcvd_rsp_sent")},
-      {schema="host:udp_pkts",               label=i18n("graphs.udp_packets")},   
-      {schema="host:tcp_stats",              label=i18n("graphs.tcp_stats")},  
+      {schema="host:udp_pkts",               label=i18n("graphs.udp_packets")},
+      {schema="host:tcp_stats",              label=i18n("graphs.tcp_stats")},
       {schema="host:echo_reply_packets",     label=i18n("graphs.echo_reply_packets")},
       {schema="host:echo_packets",           label=i18n("graphs.echo_request_packets")},
-      {schema="host:tcp_packets",            label=i18n("graphs.tcp_packets")},        
+      {schema="host:tcp_packets",            label=i18n("graphs.tcp_packets")},
 
       {schema="host:1d_delta_traffic_volume",  label="1 Day Traffic Delta"}, -- TODO localize
       {schema="host:1d_delta_flows",           label="1 Day Active Flows Delta"}, -- TODO localize
@@ -2050,7 +2055,7 @@ end
 if(page ~= "historical") and (host ~= nil) then
    print[[<script type="text/javascript" src="]] print(ntop.getHttpPrefix()) print [[/js/jquery.tablesorter.js"></script>]]
 
-   print [[ 
+   print [[
    <script>
 
    $(document).ready(function() {
@@ -2268,7 +2273,7 @@ print [[
 			$('#trend_anomalous_flows_as_client').html(drawTrend(host["anomalous_flows.as_client"], last_anomalous_flows_as_client, " style=\"color: #B94A48;\""));
 			$('#trend_unreachable_flows_as_server').html(drawTrend(host["unreachable_flows.as_server"], last_unreachable_flows_as_server, " style=\"color: #B94A48;\""));
 			$('#trend_unreachable_flows_as_client').html(drawTrend(host["unreachable_flows.as_client"], last_unreachable_flows_as_client, " style=\"color: #B94A48;\""));
-			
+
 			$('#alerts_trend').html(drawTrend(host["num_alerts"], last_num_alerts, " style=\"color: #B94A48;\""));
 			$('#sent_trend').html(drawTrend(host["packets.sent"], last_pkts_sent, ""));
 			$('#rcvd_trend').html(drawTrend(host["packets.rcvd"], last_pkts_rcvd, ""));
