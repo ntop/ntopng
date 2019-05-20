@@ -39,7 +39,6 @@ HostStats::HostStats(Host *_host) : TimeseriesStats(_host) {
 
   checkpoint_set = false;
   checkpoint_sent_bytes = checkpoint_rcvd_bytes = 0;
-  memset(&tcpPacketStats, 0, sizeof(tcpPacketStats));
 
 #ifdef NTOPNG_PRO
   quota_enforcement_stats = quota_enforcement_stats_shadow = NULL;
@@ -95,24 +94,12 @@ void HostStats::lua(lua_State* vm, bool mask_host, DetailsLevel details_level, b
     recv_stats.lua(vm, "pktStats.recv");
   }
 
-  /* TCP stats */
-  if(details_level >= details_higher) {
-    lua_push_bool_table_entry(vm, "tcp.packets.seq_problems",
-			      (tcpPacketStats.pktRetr
-			       || tcpPacketStats.pktOOO
-			       || tcpPacketStats.pktLost
-			       || tcpPacketStats.pktKeepAlive) ? true : false);
-  }
-
-  if(details_level != details_high){
-    lua_push_uint64_table_entry(vm, "tcp.packets.retransmissions", tcpPacketStats.pktRetr);
-    lua_push_uint64_table_entry(vm, "tcp.packets.out_of_order", tcpPacketStats.pktOOO);
-    lua_push_uint64_table_entry(vm, "tcp.packets.lost", tcpPacketStats.pktLost);
-  }
+  lua_push_bool_table_entry(vm, "tcp.packets.seq_problems",
+			    tcp_packet_stats_sent.seqIssues() || tcp_packet_stats_rcvd.seqIssues() ? true : false);
+  tcp_packet_stats_sent.lua(vm, "tcpPacketStats.sent");
+  tcp_packet_stats_rcvd.lua(vm, "tcpPacketStats.rcvd");
 
   if(details_level >= details_higher) {
-    lua_push_uint64_table_entry(vm, "tcp.packets.keep_alive", tcpPacketStats.pktKeepAlive);
-
     /* Bytes anomalies */
     lua_push_uint64_table_entry(vm, "tcp.bytes.sent.anomaly_index", tcp_sent.getBytesAnomaly());
     lua_push_uint64_table_entry(vm, "tcp.bytes.rcvd.anomaly_index", tcp_sent.getBytesAnomaly());
@@ -126,19 +113,9 @@ void HostStats::lua(lua_State* vm, bool mask_host, DetailsLevel details_level, b
     lua_push_uint64_table_entry(vm, "total_activity_time", total_activity_time);
     lua_push_uint64_table_entry(vm, "flows.as_client", getTotalNumFlowsAsClient());
     lua_push_uint64_table_entry(vm, "flows.as_server", getTotalNumFlowsAsServer());
-  } else if(details_level >= details_high) {
-    /* Limit tcp information to anomalies when host_details aren't required */
-    if(tcpPacketStats.pktRetr)
-      lua_push_uint64_table_entry(vm, "tcp.packets.retransmissions", tcpPacketStats.pktRetr);
-    if(tcpPacketStats.pktOOO)
-      lua_push_uint64_table_entry(vm, "tcp.packets.out_of_order", tcpPacketStats.pktOOO);
-    if(tcpPacketStats.pktLost)
-      lua_push_uint64_table_entry(vm, "tcp.packets.lost", tcpPacketStats.pktLost);
-    if(tcpPacketStats.pktKeepAlive)
-      lua_push_uint64_table_entry(vm, "tcp.packets.keep_alive", tcpPacketStats.pktKeepAlive);
   }
 
-  if(details_level >= details_high){
+  if(details_level >= details_high) {
     ((GenericTrafficElement*)this)->lua(vm, details_level >= details_higher);
     ((TimeseriesStats*)this)->luaStats(vm, iface, details_level >= details_higher, details_level >= details_max, tsLua);
   }
@@ -171,19 +148,11 @@ bool HostStats::serializeCheckpoint(json_object *my_object, DetailsLevel details
     json_object_object_add(my_object, "pktStats.sent", sent_stats.getJSONObject());
     json_object_object_add(my_object, "pktStats.recv", recv_stats.getJSONObject());
 
-    /* TCP packet stats (serialize only anomalies) */
-    if(tcpPacketStats.pktRetr) json_object_object_add(my_object,
-						      "tcpPacketStats.pktRetr",
-						      json_object_new_int(tcpPacketStats.pktRetr));
-    if(tcpPacketStats.pktOOO)  json_object_object_add(my_object,
-						      "tcpPacketStats.pktOOO",
-						      json_object_new_int(tcpPacketStats.pktOOO));
-    if(tcpPacketStats.pktLost) json_object_object_add(my_object,
-						      "tcpPacketStats.pktLost",
-						      json_object_new_int(tcpPacketStats.pktLost));
-    if(tcpPacketStats.pktKeepAlive) json_object_object_add(my_object,
-							   "tcpPacketStats.pktKeepAlive",
-							   json_object_new_int(tcpPacketStats.pktKeepAlive));
+    /* TCP stats */
+    if(tcp_packet_stats_sent.seqIssues())
+      json_object_object_add(my_object, "tcpPacketStats.sent", tcp_packet_stats_sent.getJSONObject());
+    if(tcp_packet_stats_rcvd.seqIssues())
+      json_object_object_add(my_object, "tcpPacketStats.recv", tcp_packet_stats_rcvd.getJSONObject());
 
     /* throughput stats */
     json_object_object_add(my_object, "throughput_bps", json_object_new_double(bytes_thpt));

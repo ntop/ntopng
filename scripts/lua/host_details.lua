@@ -669,12 +669,12 @@ end
       print("</tr>")
    end
 
-
    if host["tcp.packets.seq_problems"] == true then
-      print("<tr><th width=30% rowspan=4>"..i18n("details.tcp_packets_sent_analysis").."</th><th>"..i18n("details.retransmissions").."</th><td align=right><span id=pkt_retransmissions>".. formatPackets(host["tcp.packets.retransmissions"]) .."</span> <span id=pkt_retransmissions_trend></span></td></tr>\n")
-      print("<tr></th><th>"..i18n("details.out_of_order").."</th><td align=right><span id=pkt_ooo>".. formatPackets(host["tcp.packets.out_of_order"]) .."</span> <span id=pkt_ooo_trend></span></td></tr>\n")
-      print("<tr></th><th>"..i18n("details.lost").."</th><td align=right><span id=pkt_lost>".. formatPackets(host["tcp.packets.lost"]) .."</span> <span id=pkt_lost_trend></span></td></tr>\n")
-      print("<tr></th><th>"..i18n("details.keep_alive").."</th><td align=right><span id=pkt_keep_alive>".. formatPackets(host["tcp.packets.keep_alive"]) .."</span> <span id=pkt_keep_alive_trend></span></td></tr>\n")
+      print("<tr><th></th><th>"..i18n("sent").."</th><th>"..i18n("received").."</th></tr>\n")
+      print("<tr><th>"..i18n("details.retransmissions").."</th><td><span id=pkt_retransmissions_sent>"..formatPackets(host["tcpPacketStats.sent"]["retransmissions"]).."</span> <span id=pkt_retransmissions_sent_trend></span></td><td><span id=pkt_retransmissions_rcvd>"..formatPackets(host["tcpPacketStats.rcvd"]["retransmissions"]).."</span> <span id=pkt_retransmissions_rcvd_trend></span></td></tr>\n")
+      print("<tr><th>"..i18n("details.out_of_order").."</th><td><span id=pkt_ooo_sent>"..formatPackets(host["tcpPacketStats.sent"]["out_of_order"]).."</span> <span id=pkt_ooo_sent_trend></span></td><td><span id=pkt_ooo_rcvd>"..formatPackets(host["tcpPacketStats.rcvd"]["out_of_order"]).."</span> <span id=pkt_ooo_rcvd_trend></span></td></tr>\n")
+      print("<tr><th>"..i18n("details.lost").."</th><td><span id=pkt_lost_sent>"..formatPackets(host["tcpPacketStats.sent"]["lost"]).."</span> <span id=pkt_lost_sent_trend></span></td><td><span id=pkt_lost_rcvd>"..formatPackets(host["tcpPacketStats.rcvd"]["lost"]).."</span> <span id=pkt_lost_rcvd_trend></span></td></tr>\n")
+      print("<tr><th>"..i18n("details.keep_alive").."</th><td><span id=pkt_keep_alive_sent>"..formatPackets(host["tcpPacketStats.sent"]["keep_alive"]).."</span> <span id=pkt_keep_alive_sent_trend></span></td><td><span id=pkt_keep_alive_rcvd>"..formatPackets(host["tcpPacketStats.rcvd"]["keep_alive"]).."</span> <span id=pkt_keep_alive_rcvd_trend></span></td></tr>\n")
    end
 
    -- Stats reset
@@ -2076,10 +2076,14 @@ if(page ~= "historical") and (host ~= nil) then
    print("var last_anomalous_flows_as_client = " .. host["anomalous_flows.as_client"] .. ";\n")
    print("var last_unreachable_flows_as_server = " .. host["unreachable_flows.as_server"] .. ";\n")
    print("var last_unreachable_flows_as_client = " .. host["unreachable_flows.as_client"] .. ";\n")
-   print("var last_tcp_retransmissions = " .. host["tcp.packets.retransmissions"] .. ";\n")
-   print("var last_tcp_ooo = " .. host["tcp.packets.out_of_order"] .. ";\n")
-   print("var last_tcp_lost = " .. host["tcp.packets.lost"] .. ";\n")
-   print("var last_tcp_keep_alive = " .. host["tcp.packets.keep_alive"] .. ";\n")
+   print("var last_sent_tcp_retransmissions = " .. host["tcpPacketStats.sent"]["retransmissions"].. ";\n")
+   print("var last_sent_tcp_ooo = " .. host["tcpPacketStats.sent"]["out_of_order"] .. ";\n")
+   print("var last_sent_tcp_lost = " .. host["tcpPacketStats.sent"]["lost"].. ";\n")
+   print("var last_sent_tcp_keep_alive = " .. host["tcpPacketStats.sent"]["keep_alive"] .. ";\n")
+   print("var last_rcvd_tcp_retransmissions = " .. host["tcpPacketStats.rcvd"]["retransmissions"].. ";\n")
+   print("var last_rcvd_tcp_ooo = " .. host["tcpPacketStats.rcvd"]["out_of_order"] .. ";\n")
+   print("var last_rcvd_tcp_lost = " .. host["tcpPacketStats.rcvd"]["lost"].. ";\n")
+   print("var last_rcvd_tcp_keep_alive = " .. host["tcpPacketStats.rcvd"]["keep_alive"] .. ";\n")
 
    if ntop.isnEdge() then
       print("var last_dropped_flows = " .. (host["flows.dropped"] or 0) .. ";\n")
@@ -2129,10 +2133,17 @@ if(page ~= "historical") and (host ~= nil) then
    			$('#pkts_rcvd').html(formatPackets(host["packets.rcvd"]));
    			$('#bytes_sent').html(bytesToVolume(host["bytes.sent"]));
    			$('#bytes_rcvd').html(bytesToVolume(host["bytes.rcvd"]));
-   			$('#pkt_retransmissions').html(formatPackets(host["tcp.packets.retransmissions"]));
-   			$('#pkt_ooo').html(formatPackets(host["tcp.packets.out_of_order"]));
-   			$('#pkt_lost').html(formatPackets(host["tcp.packets.lost"]));
-   			$('#pkt_keep_alive').html(formatPackets(host["tcp.packets.keep_alive"]));
+
+   			$('#pkt_retransmissions_sent').html(formatPackets(host["tcpPacketStats.sent"]["retransmissions"]));
+   			$('#pkt_ooo_sent').html(formatPackets(host["tcpPacketStats.sent"]["out_of_order"]));
+   			$('#pkt_lost_sent').html(formatPackets(host["tcpPacketStats.sent"]["lost"]));
+   			$('#pkt_keep_alive_sent').html(formatPackets(host["tcpPacketStats.sent"]["keep_alive"]));
+
+   			$('#pkt_retransmissions_rcvd').html(formatPackets(host["tcpPacketStats.rcvd"]["retransmissions"]));
+   			$('#pkt_ooo_rcvd').html(formatPackets(host["tcpPacketStats.rcvd"]["out_of_order"]));
+   			$('#pkt_lost_rcvd').html(formatPackets(host["tcpPacketStats.rcvd"]["lost"]));
+   			$('#pkt_keep_alive_rcvd').html(formatPackets(host["tcpPacketStats.rcvd"]["keep_alive"]));
+
    			if(!host["name"]) {
    			   $('#name').html(host["ip"]);
    			} else {
@@ -2277,10 +2288,16 @@ print [[
 			$('#alerts_trend').html(drawTrend(host["num_alerts"], last_num_alerts, " style=\"color: #B94A48;\""));
 			$('#sent_trend').html(drawTrend(host["packets.sent"], last_pkts_sent, ""));
 			$('#rcvd_trend').html(drawTrend(host["packets.rcvd"], last_pkts_rcvd, ""));
-			$('#pkt_retransmissions_trend').html(drawTrend(host["tcp.packets.retransmissions"], last_tcp_retransmissions, ""));
-			$('#pkt_ooo_trend').html(drawTrend(host["tcp.packets.out_of_order"], last_tcp_ooo, ""));
- 		        $('#pkt_lost_trend').html(drawTrend(host["tcp.packets.lost"], last_tcp_lost, ""));
- 		        $('#pkt_keep_alive_trend').html(drawTrend(host["tcp.packets.keep_alive"], last_tcp_keep_alive, ""));
+
+			$('#pkt_retransmissions_sent_trend').html(drawTrend(host["tcpPacketStats.sent"]["retransmissions"], last_sent_tcp_retransmissions, ""));
+			$('#pkt_ooo_sent_trend').html(drawTrend(host["tcpPacketStats.sent"]["out_of_order"], last_sent_tcp_ooo, ""));
+ 		        $('#pkt_lost_sent_trend').html(drawTrend(host["tcpPacketStats.sent"]["lost"], last_sent_tcp_lost, ""));
+ 		        $('#pkt_keep_alive_sent_trend').html(drawTrend(host["tcpPacketStats.sent"]["keep_alive"], last_sent_tcp_keep_alive, ""));
+
+			$('#pkt_retransmissions_rcvd_trend').html(drawTrend(host["tcpPacketStats.rcvd"]["retransmissions"], last_rcvd_tcp_retransmissions, ""));
+			$('#pkt_ooo_rcvd_trend').html(drawTrend(host["tcpPacketStats.rcvd"]["out_of_order"], last_rcvd_tcp_ooo, ""));
+ 		        $('#pkt_lost_rcvd_trend').html(drawTrend(host["tcpPacketStats.rcvd"]["lost"], last_rcvd_tcp_lost, ""));
+ 		        $('#pkt_keep_alive_rcvd_trend').html(drawTrend(host["tcpPacketStats.rcvd"]["keep_alive"], last_rcvd_tcp_keep_alive, ""));
 
    			last_num_alerts = host["num_alerts"];
    			last_pkts_sent = host["packets.sent"];
@@ -2295,10 +2312,14 @@ print [[
    			last_unreachable_flows_as_server = host["unreachable_flows.as_server"];
    			last_unreachable_flows_as_client = host["unreachable_flows.as_client"];
    			last_flows_as_server = host["flows.as_server"];
-   			last_tcp_retransmissions = host["tcp.packets.retransmissions"];
-   			last_tcp_ooo = host["tcp.packets.out_of_order"];
-   			last_tcp_lost = host["tcp.packets.lost"];
-   			last_tcp_keep_alive = host["tcp.packets.keep_alive"];
+   			last_sent_tcp_retransmissions = host["tcpPacketStats.sent"]["retransmissions"];
+   			last_sent_tcp_ooo = host["tcpPacketStats.sent"]["out_of_order"];
+   			last_sent_tcp_lost = host["tcpPacketStats.sent"]["lost"];
+   			last_sent_tcp_keep_alive = host["tcpPacketStats.sent"]["keep_alive"];
+   			last_rcvd_tcp_retransmissions = host["tcpPacketStats.rcvd"]["retransmissions"];
+   			last_rcvd_tcp_ooo = host["tcpPacketStats.rcvd"]["out_of_order"];
+   			last_rcvd_tcp_lost = host["tcpPacketStats.rcvd"]["lost"];
+   			last_rcvd_tcp_keep_alive = host["tcpPacketStats.rcvd"]["keep_alive"];
    		  ]]
 
 

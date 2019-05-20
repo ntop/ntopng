@@ -41,13 +41,16 @@ class HostStats: public Checkpointable, public TimeseriesStats {
   PacketStats sent_stats, recv_stats;
   u_int32_t total_num_flows_as_client, total_num_flows_as_server;
 
-  struct {
-    u_int32_t pktRetr, pktOOO, pktLost, pktKeepAlive;
-  } tcpPacketStats; /* Sent packets */
+  TcpPacketStats tcp_packet_stats_sent, tcp_packet_stats_rcvd;
 
   /* Written by minute activity thread */
   u_int64_t checkpoint_sent_bytes, checkpoint_rcvd_bytes;
   bool checkpoint_set;
+
+  inline void incRetx(TcpPacketStats * const tps, u_int32_t num)      { tps->incRetr(num);      };
+  inline void incOOO(TcpPacketStats * const tps, u_int32_t num)       { tps->incOOO(num);       };
+  inline void incLost(TcpPacketStats * const tps, u_int32_t num)      { tps->incLost(num);;     };
+  inline void incKeepAlive(TcpPacketStats * const tps, u_int32_t num) { tps->incKeepAlive(num); };
 
  public:
   HostStats(Host *_host);
@@ -63,10 +66,17 @@ class HostStats: public Checkpointable, public TimeseriesStats {
   inline void incFlagStats(bool as_client, u_int8_t flags)  { if (as_client) sent_stats.incFlagStats(flags); else recv_stats.incFlagStats(flags); };
 
   virtual void computeAnomalyIndex(time_t when) {};
-  inline void incRetransmittedPkts(u_int32_t num)   { tcpPacketStats.pktRetr += num;      };
-  inline void incOOOPkts(u_int32_t num)             { tcpPacketStats.pktOOO += num;       };
-  inline void incLostPkts(u_int32_t num)            { tcpPacketStats.pktLost += num;      };
-  inline void incKeepAlivePkts(u_int32_t num)       { tcpPacketStats.pktKeepAlive += num; };
+
+  inline void incRetxSent(u_int32_t num)       { incRetx(&tcp_packet_stats_sent, num);      };
+  inline void incOOOSent(u_int32_t num)        { incOOO(&tcp_packet_stats_sent, num);       };
+  inline void incLostSent(u_int32_t num)       { incLost(&tcp_packet_stats_sent, num);      };
+  inline void incKeepAliveSent(u_int32_t num)  { incKeepAlive(&tcp_packet_stats_sent, num); };
+
+  inline void incRetxRcvd(u_int32_t num)       { incRetx(&tcp_packet_stats_rcvd, num);      };
+  inline void incOOORcvd(u_int32_t num)        { incOOO(&tcp_packet_stats_rcvd, num);       };
+  inline void incLostRcvd(u_int32_t num)       { incLost(&tcp_packet_stats_rcvd, num);      };
+  inline void incKeepAliveRcvd(u_int32_t num)  { incKeepAlive(&tcp_packet_stats_rcvd, num); };
+
   inline void incSentStats(u_int pkt_len)           { sent_stats.incStats(pkt_len);       };
   inline void incRecvStats(u_int pkt_len)           { recv_stats.incStats(pkt_len);       };
   inline u_int32_t getTotalNumFlowsAsClient() const { return(total_num_flows_as_client);  };

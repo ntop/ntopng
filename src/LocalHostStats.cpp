@@ -153,10 +153,8 @@ void LocalHostStats::deserialize(json_object *o) {
   if(json_object_object_get_ex(o, "pktStats.recv", &obj))  recv_stats.deserialize(obj);
 
   /* TCP packet stats */
-  if(json_object_object_get_ex(o, "tcpPacketStats.pktRetr", &obj)) tcpPacketStats.pktRetr = json_object_get_int(obj);
-  if(json_object_object_get_ex(o, "tcpPacketStats.pktOOO",  &obj)) tcpPacketStats.pktOOO  = json_object_get_int(obj);
-  if(json_object_object_get_ex(o, "tcpPacketStats.pktLost", &obj)) tcpPacketStats.pktLost = json_object_get_int(obj);
-  if(json_object_object_get_ex(o, "tcpPacketStats.pktKeepAlive", &obj)) tcpPacketStats.pktKeepAlive = json_object_get_int(obj);
+  if(json_object_object_get_ex(o, "tcpPacketStats.sent", &obj))  tcp_packet_stats_sent.deserialize(obj);
+  if(json_object_object_get_ex(o, "tcpPacketStats.recv", &obj))  tcp_packet_stats_rcvd.deserialize(obj);
 
   if(json_object_object_get_ex(o, "sent", &obj))  sent.deserialize(obj);
   if(json_object_object_get_ex(o, "rcvd", &obj))  rcvd.deserialize(obj);

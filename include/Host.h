@@ -136,10 +136,16 @@ class Host : public GenericHashEntry {
   inline u_int16_t get_vlan_id()           { return(vlan_id);        };
   char* get_name(char *buf, u_int buf_len, bool force_resolution_if_not_found);
 
-  inline void incRetransmittedPkts(u_int32_t num)   { stats->incRetransmittedPkts(num);      };
-  inline void incOOOPkts(u_int32_t num)             { stats->incOOOPkts(num);                };
-  inline void incLostPkts(u_int32_t num)            { stats->incLostPkts(num);               };
-  inline void incKeepAlivePkts(u_int32_t num)       { stats->incKeepAlivePkts(num);          };
+  inline void incRetxSent(u_int32_t num)      { stats->incRetxSent(num);      };
+  inline void incOOOSent(u_int32_t num)       { stats->incOOOSent(num);       };
+  inline void incLostSent(u_int32_t num)      { stats->incLostSent(num);      };
+  inline void incKeepAliveSent(u_int32_t num) { stats->incKeepAliveSent(num); };
+
+  inline void incRetxRcvd(u_int32_t num)      { stats->incRetxRcvd(num);      };
+  inline void incOOORcvd(u_int32_t num)       { stats->incOOORcvd(num);       };
+  inline void incLostRcvd(u_int32_t num)      { stats->incLostRcvd(num);      };
+  inline void incKeepAliveRcvd(u_int32_t num) { stats->incKeepAliveRcvd(num); };
+
   inline void incSentStats(u_int pkt_len)           { stats->incSentStats(pkt_len);          };
   inline void incRecvStats(u_int pkt_len)           { stats->incRecvStats(pkt_len);          };
   
