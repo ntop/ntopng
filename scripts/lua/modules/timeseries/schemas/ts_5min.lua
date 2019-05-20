@@ -382,7 +382,7 @@ schema:addTag("category")
 schema:addMetric("bytes_sent")
 schema:addMetric("bytes_rcvd")
 
--- -- ##############################################
+-- ##############################################
 
 -- NOTE: these are "virtual" schema, they do not correspond to actual timeseries
 schema = ts_utils.newSchema("local_senders", {step=300})

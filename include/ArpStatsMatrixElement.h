@@ -60,7 +60,6 @@ class ArpStatsMatrixElement : public GenericHashEntry {
   void lua(lua_State* vm);
   void print(char *msg) const;
   pktStats* getArpStats(){ return &stats; }
-
 };
 
 #endif /* _ARP_STATS_MATRIX_ELEMENT_H_ */
