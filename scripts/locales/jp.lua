@@ -1528,7 +1528,7 @@ local lang = {
     ["type_5_1_redirect_for_host"] = "Redirect for host",
     ["type_5_2_redirect_for_tos_and_network"] = "Redirect for TOS and ネットワーク",
     ["type_5_3_redirect_for_tos_and_host"] = "Redirect for TOS and host",
-    ["type_8_0_echo_request_x"] = "Echo request x",
+    ["type_8_0_echo_request"] = "Echo request",
     ["type_9_0_router_advertisement"] = "Router advertisement",
   },
   ["icmp_v6_msgs"] = {

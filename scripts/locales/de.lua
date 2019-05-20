@@ -1295,7 +1295,7 @@ local lang = {
     ["type_5_1_redirect_for_host"] = "Umleiten für host",
     ["type_5_2_redirect_for_tos_and_network"] = "Umleiten für TOS und Netzwerk",
     ["type_5_3_redirect_for_tos_and_host"] = "Umleiten für TOS und Host",
-    ["type_8_0_echo_request_x"] = "Echo Anfrage x",
+    ["type_8_0_echo_request"] = "Echo Anfrage",
     ["type_9_0_router_advertisement"] = "Router advertisement",
   },
   ["icmp_v6_msgs"] = {

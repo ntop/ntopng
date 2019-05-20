@@ -2782,7 +2782,7 @@ local _icmp_types = {
    { 5, 1, "icmp_v4_types.type_5_1_redirect_for_host" },
    { 5, 2, "icmp_v4_types.type_5_2_redirect_for_tos_and_network" },
    { 5, 3, "icmp_v4_types.type_5_3_redirect_for_tos_and_host" },
-   { 8, 0, "icmp_v4_types.type_8_0_echo_request_x" },
+   { 8, 0, "icmp_v4_types.type_8_0_echo_request" },
    { 9, 0, "icmp_v4_types.type_9_0_router_advertisement" },
    { 10, 0, "icmp_v4_types.type_10_0_route_solicitation" },
    { 11, 0, "icmp_v4_types.type_11_0_ttl_equals_0_during_transit" },

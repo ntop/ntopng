@@ -1596,7 +1596,7 @@ local lang = {
     ["type_5_1_redirect_for_host"] = "Redirecionar para o host",
     ["type_5_2_redirect_for_tos_and_network"] = "Redirecionar para TOS e rede",
     ["type_5_3_redirect_for_tos_and_host"] = "Redirecionar para TOS e host",
-    ["type_8_0_echo_request_x"] = "Pedido de eco x",
+    ["type_8_0_echo_request"] = "Pedido de eco",
     ["type_9_0_router_advertisement"] = "Anúncio do roteador",
   },
   ["icmp_v6_msgs"] = {
