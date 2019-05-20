@@ -1302,6 +1302,7 @@ elseif(page == "config") then
 	print[[
 	   </td>
 	</tr>]]
+   end
 
 	-- Interface refresh rate
 	print[[
@@ -1316,7 +1317,6 @@ elseif(page == "config") then
 	   </td>
 	</tr>]]
      end
-   end
 
    if not have_nedge then
      -- Scaling factor
