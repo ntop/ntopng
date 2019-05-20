@@ -24,7 +24,7 @@ function fill_ports_array(field_key, flows_stats, host)
         if(ports_array[p] == nil) then ports_array[p] = 0 end
         ports_array[p] = ports_array[p] + flows_stats[key]["bytes"]
       end
-    endo
+    end
     return ports_array
 end
 
