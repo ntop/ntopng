@@ -50,6 +50,7 @@ local ipversion       = _GET["version"]
 local traffic_type = _GET["traffic_type"]
 local flow_status = _GET["flow_status"]
 local tcp_state   = _GET["tcp_flow_state"]
+local traffic_profile = _GET["traffic_profile"]
 
 -- System host parameters
 local hosts  = _GET["hosts"]
@@ -117,6 +118,10 @@ end
 
 if category ~= nil and category ~= "" then
    pageinfo["l7categoryFilter"] = interface.getnDPICategoryId(category)
+end
+
+if traffic_profile ~= nil then
+   pageinfo["trafficProfileFilter"] = traffic_profile
 end
 
 if not isEmptyString(flowhosts_type) then

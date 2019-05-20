@@ -354,7 +354,7 @@ void NetworkInterface::init() {
   else
     ebpfFlows = new (std::nothrow) ParsedFlow*[EBPF_QUEUE_LEN]();
   next_ebpf_insert_idx = next_ebpf_remove_idx = 0;
-  
+
 
   PROFILING_INIT();
 }
@@ -1073,7 +1073,7 @@ void NetworkInterface::processFlow(ParsedFlow *zflow, bool zmq_flow) {
 
   if(zmq_flow) {
     /* In ZMQ flows we need to fix the clock drift */
-    
+
     if(last_pkt_rcvd_remote > 0) {
       int drift = now - last_pkt_rcvd_remote;
 
@@ -1114,7 +1114,7 @@ void NetworkInterface::processFlow(ParsedFlow *zflow, bool zmq_flow) {
 #endif
     }
   }
-  
+
   if((!isDynamicInterface()) && (flowHashingMode != flowhashing_none)) {
     NetworkInterface *vIface = NULL, *vIfaceEgress = NULL;
 
@@ -1717,13 +1717,13 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
      && flow->get_cli_host() && flow->get_srv_host()) {
     struct ndpi_flow_struct *ndpi_flow;
     u_int32_t real_payload_len = min_val(h->caplen, payload_len);
-    
+
     /*
-      As the functions below play with payload contents we need to 
+      As the functions below play with payload contents we need to
       make sure we handle the payload up to the max allowed size
       thus we use the real_payload_len variable
     */
-    
+
     switch(ndpi_get_lower_proto(flow->get_detected_protocol())) {
     case NDPI_PROTOCOL_DHCP:
       {
@@ -2665,6 +2665,10 @@ void NetworkInterface::reloadCustomCategories() {
   if(customCategoriesReloadRequested()) {
     ntop->getTrace()->traceEvent(TRACE_DEBUG, "Going to reload categories [iface: %s]", get_name());
     ndpi_enable_loaded_categories(ndpi_struct);
+
+    custom_categories_to_purge = new_custom_categories;
+    new_custom_categories.clear();
+
     reload_custom_categories = false;
     reload_hosts_blacklist = true;
   }
@@ -3683,6 +3687,7 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
   u_int32_t deviceIP;
   u_int16_t inIndex, outIndex;
   u_int8_t icmp_type, icmp_code;
+  char *traffic_profile_filter;
   char *container_filter, *pod_filter;
 #ifdef HAVE_NEDGE
   bool filtered_flows;
@@ -3755,6 +3760,16 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
 	  || (srv_pod && !strcmp(pod_filter, srv_pod))))
         return(false);
     }
+
+#ifdef NTOPNG_PRO
+#ifndef HAVE_NEDGE
+    if(retriever->pag
+       && retriever->pag->trafficProfileFilter(&traffic_profile_filter)
+       && (f->isMaskedFlow() || strcmp(traffic_profile_filter, f->get_profile_name()))) {
+      return(false);
+    }
+#endif
+#endif
 
     if(retriever->pag
        && retriever->pag->asnFilter(&asn_filter)
@@ -5617,7 +5632,7 @@ ArpStatsMatrixElement* NetworkInterface::getArpHashMatrixElement(const u_int8_t 
   if(ret == NULL) {
     try{
       if((ret = new ArpStatsMatrixElement(this, _src_mac, _dst_mac, _src_ip, _dst_ip)) != NULL)
-	
+
         if(!arp_hash_matrix->add(ret)){
           delete ret;
           ret = NULL;
@@ -7700,6 +7715,28 @@ bool NetworkInterface::enqueueeBPFFlow(ParsedFlow * const pf, bool skip_loopback
   }
 
   return false;
+}
+
+/* *************************************** */
+
+void NetworkInterface::nDPILoadIPCategory(char *what, ndpi_protocol_category_t id) {
+  if(what) {
+    std::string toadd(what);
+
+    new_custom_categories.push_front(toadd);
+    ndpi_load_ip_category(ndpi_struct, (char*)toadd.c_str(), id);
+  }
+}
+
+/* *************************************** */
+
+void NetworkInterface::nDPILoadHostnameCategory(char *what, ndpi_protocol_category_t id) {
+  if(what) {
+    std::string toadd(what);
+
+    new_custom_categories.push_front(toadd);
+    ndpi_load_hostname_category(ndpi_struct, (char*)toadd.c_str(), id);
+  }
 }
 
 /* *************************************** */

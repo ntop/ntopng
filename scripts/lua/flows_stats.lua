@@ -40,6 +40,7 @@ local ipversion = _GET["version"]
 local vlan = _GET["vlan"]
 local icmp_type = _GET["icmp_type"]
 local icmp_code = _GET["icmp_cod"]
+local traffic_profile = _GET["traffic_profile"]
 
 -- remote exporters address and interfaces
 local deviceIP = _GET["deviceIP"]
@@ -145,6 +146,10 @@ end
 if((icmp_type ~= nil) and (icmp_code ~= nil)) then
   page_params["icmp_type"] = icmp_type
   page_params["icmp_cod"] = icmp_code
+end
+
+if(traffic_profile ~= nil) then
+  page_params["traffic_profile"] = traffic_profile
 end
 
 print(getPageUrl(ntop.getHttpPrefix().."/lua/get_flows_data.lua", page_params))

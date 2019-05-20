@@ -3073,6 +3073,7 @@ local lang = {
   },
   ["traffic_profiles"] = {
     ["advanced_filter_examples"] = "Advanced Filters Examples",
+    ["all_profiles"] = "All Profiles",
     ["confirm_delete_profile"] = "Do you really want to delete the profile",
     ["delete_profile"] = "Delete Profile",
     ["destination_network"] = "Destination network",

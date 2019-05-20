@@ -148,6 +148,9 @@ class NetworkInterface : public Checkpointable {
   TcpFlowStats tcpFlowStats;
   TcpPacketStats tcpPacketStats;
 
+  /* Custom categories */
+  std::list<std::string> new_custom_categories, custom_categories_to_purge;
+  
   /* Frequent Items */
   FrequentTrafficItems *frequentProtocols;
   FrequentTrafficItems *frequentMacs;
@@ -744,6 +747,9 @@ class NetworkInterface : public Checkpointable {
   inline void profiling_section_enter(const char *label, int id) { PROFILING_SECTION_ENTER(label, id); };
   inline void profiling_section_exit(int id) { PROFILING_SECTION_EXIT(id); };
 #endif
+
+  void nDPILoadIPCategory(char *category, ndpi_protocol_category_t id);
+  void nDPILoadHostnameCategory(char *category, ndpi_protocol_category_t id);
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */
