@@ -720,8 +720,8 @@ void ZMQParserInterface::deliverFlowToCompanions(ParsedFlow * const flow) {
 /* **************************************************** */
 
 void ZMQParserInterface::parseSingleFlow(json_object *o,
-				      u_int8_t source_id,
-				      NetworkInterface *iface) {
+					 u_int8_t source_id,
+					 NetworkInterface *iface) {
   ParsedFlow flow;
   IpAddress ip_aux; /* used to check empty IPs */
   struct json_object_iterator it = json_object_iter_begin(o);
@@ -812,26 +812,28 @@ void ZMQParserInterface::parseSingleFlow(json_object *o,
     flow.vlan_id = 0;
 
   /* Handle zero IPv4/IPv6 discrepacies */
-  if(flow.version == 0) {
-    if(flow.src_ip.getVersion() != flow.dst_ip.getVersion()) {
-      if(flow.dst_ip.isIPv4() && flow.src_ip.isIPv6() && flow.src_ip.isEmpty())
-	flow.src_ip.setVersion(4);
-      else if(flow.src_ip.isIPv4() && flow.dst_ip.isIPv6() && flow.dst_ip.isEmpty())
-	flow.dst_ip.setVersion(4);
-      else if(flow.dst_ip.isIPv6() && flow.src_ip.isIPv4() && flow.src_ip.isEmpty())
-	flow.src_ip.setVersion(6);
-      else if(flow.src_ip.isIPv6() && flow.dst_ip.isIPv4() && flow.dst_ip.isEmpty())
-	flow.dst_ip.setVersion(6);
-      else {
-	invalid_flow = true;
-	ntop->getTrace()->traceEvent(TRACE_WARNING,
-				     "IP version mismatch: client:%d server:%d - flow will be ignored",
-				     flow.src_ip.getVersion(), flow.dst_ip.getVersion());
+  if(!flow.hasParsedeBPF()) {
+    if(flow.version == 0) {
+      if(flow.src_ip.getVersion() != flow.dst_ip.getVersion()) {
+	if(flow.dst_ip.isIPv4() && flow.src_ip.isIPv6() && flow.src_ip.isEmpty())
+	  flow.src_ip.setVersion(4);
+	else if(flow.src_ip.isIPv4() && flow.dst_ip.isIPv6() && flow.dst_ip.isEmpty())
+	  flow.dst_ip.setVersion(4);
+	else if(flow.dst_ip.isIPv6() && flow.src_ip.isIPv4() && flow.src_ip.isEmpty())
+	  flow.src_ip.setVersion(6);
+	else if(flow.src_ip.isIPv6() && flow.dst_ip.isIPv4() && flow.dst_ip.isEmpty())
+	  flow.dst_ip.setVersion(6);
+	else {
+	  invalid_flow = true;
+	  ntop->getTrace()->traceEvent(TRACE_WARNING,
+				       "IP version mismatch: client:%d server:%d - flow will be ignored",
+				       flow.src_ip.getVersion(), flow.dst_ip.getVersion());
+	}
       }
-    }
-  } else
-    flow.src_ip.setVersion(flow.version), flow.dst_ip.setVersion(flow.version);
-
+    } else
+      flow.src_ip.setVersion(flow.version), flow.dst_ip.setVersion(flow.version);
+  }
+  
   if(!invalid_flow) {
     /* Process Flow */
     iface->processFlow(&flow, true);
