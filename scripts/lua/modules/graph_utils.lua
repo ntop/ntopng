@@ -585,7 +585,7 @@ function getMinZoomResolution(schema)
 
    if schema_obj then
       if schema_obj.options.step >= 300 then
-	 return '10m'
+	 return '30m'
       elseif schema_obj.options.step >= 60 then
          return '5m'
       end
@@ -611,8 +611,6 @@ end
 function drawGraphs(ifid, schema, tags, zoomLevel, baseurl, selectedEpoch, options)
    local debug_rrd = false
    options = options or {}
-
-   if(zoomLevel == nil) then zoomLevel = "5m" end
 
    if((selectedEpoch == nil) or (selectedEpoch == "")) then
       -- Refresh the page every minute unless:
@@ -644,14 +642,15 @@ print[[
        </script>]]
    end
 
+   local min_zoom = getMinZoomResolution(schema)
+   local min_zoom_k = 1
+   if(zoomLevel == nil) then zoomLevel = min_zoom end
+
    if ntop.isPro() then
       _ifstats = interface.getStats()
       drawProGraph(ifid, schema, tags, zoomLevel, baseurl, options)
       return
    end
-
-   local min_zoom = getMinZoomResolution(schema)
-   local min_zoom_k = 1
 
    nextZoomLevel = zoomLevel;
    epoch = tonumber(selectedEpoch);
