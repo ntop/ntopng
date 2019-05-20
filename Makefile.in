@@ -14,7 +14,7 @@ MAN_DIR=$(DESTDIR)@MAN_DIR@
 ifeq ($(OS), $(filter $(OS), FreeBSD))
 	GET_UTIL = fetch
 else
-	GET_UTIL = wget -nc
+	GET_UTIL = wget --no-proxy -nc
 endif
 
 ######
