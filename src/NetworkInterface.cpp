@@ -3675,6 +3675,7 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
   u_int32_t deviceIP;
   u_int16_t inIndex, outIndex;
   u_int8_t icmp_type, icmp_code;
+  char *traffic_profile_filter;
   char *container_filter, *pod_filter;
 #ifdef HAVE_NEDGE
   bool filtered_flows;
@@ -3747,6 +3748,16 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
 	  || (srv_pod && !strcmp(pod_filter, srv_pod))))
         return(false);
     }
+
+#ifdef NTOPNG_PRO
+#ifndef HAVE_NEDGE
+    if(retriever->pag
+       && retriever->pag->trafficProfileFilter(&traffic_profile_filter)
+       && (f->isMaskedFlow() || strcmp(traffic_profile_filter, f->get_profile_name()))) {
+      return(false);
+    }
+#endif
+#endif
 
     if(retriever->pag
        && retriever->pag->asnFilter(&asn_filter)

@@ -30,6 +30,7 @@ Paginator::Paginator() {
   host_filter = NULL;
   container_filter = NULL;
   pod_filter = NULL;
+  traffic_profile_filter = NULL;
 
   /* bool */
   a2z_sort_order = true;
@@ -81,6 +82,7 @@ Paginator::~Paginator() {
   if(container_filter) free(container_filter);
   if(pod_filter)     free(pod_filter);
   if(mac_filter)     free(mac_filter);
+  if(traffic_profile_filter) free(traffic_profile_filter);
 }
 
 /* **************************************************** */
@@ -155,6 +157,9 @@ void Paginator::readOptions(lua_State *L, int index) {
 	  if(mac_filter) free(mac_filter);
 	  mac_filter = (u_int8_t *) malloc(6);
 	  Utils::parseMac(mac_filter, value);
+	} else if(!strcmp(key, "trafficProfileFilter")) {
+	  if(traffic_profile_filter) free(traffic_profile_filter);
+	  traffic_profile_filter = strdup(lua_tostring(L, -1));
 	} //else
 	  //ntop->getTrace()->traceEvent(TRACE_ERROR, "Invalid string type (%s) for option %s", lua_tostring(L, -1), key);
 	break;
