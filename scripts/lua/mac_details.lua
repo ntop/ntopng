@@ -396,8 +396,16 @@ elseif(page == "historical") then
    drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
       top_categories = "top:mac:ndpi_categories",
       timeseries = table.merge({
-         {schema="mac:traffic",                 label=i18n("traffic")},
-         {schema="mac:local_talkers",           label="Local Talkers"}, --WIP & TODO: localize
+         {schema="mac:traffic",                    label=i18n("traffic")},
+
+         {schema="mac:local_talkers",                    label="Local Talkers"}, --TODO: localize
+         {schema="mac:local_talkers_network_devices",    label="Local Talkers: Network Devices"}, --TODO: localize
+         {schema="mac:local_talkers_mobile_devices",     label="Local Talkers: Mobile Devices"}, --TODO: localize
+         {schema="mac:local_talkers_media_devices",      label="Local Talkers: Media Devices"}, --TODO: localize
+         {schema="mac:local_talkers_work_devices",       label="Local Talkers: Work Devices"}, --TODO: localize
+         {schema="mac:local_talkers_iot_devices",        label="Local Talkers: IoT Devices"}, --TODO: localize
+         {schema="mac:local_talkers_unknow_devices",     label="Local Talkers: Unknown Devices"}, --TODO: localize
+
       }, getDeviceCommonTimeseries())
    })
 

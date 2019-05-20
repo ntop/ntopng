@@ -34,11 +34,4 @@ function arpMatrixModule.arpCheck(host_ip)
     return false
  end
 
-
 return arpMatrixModule
-
-
-
-
-
-

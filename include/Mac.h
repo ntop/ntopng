@@ -40,12 +40,12 @@ class Mac : public GenericHashEntry {
     char * dhcp; /* Extracted from DHCP dissection */
   } names;
 
-//-----WIP-------------------------------------------
   struct{
     u_int32_t as_server;
     u_int32_t as_client;
-  }talkers;
-//-----------------------------------------------
+  }talkers; /*local talkers*/
+  DeviceTypeCounters dev_t_counters = {0,0,0,0,0,0,0,0,0,0,0,0,0};/*type of the devices this mac talked to*/
+
   char * fingerprint;
   char * model;
   char * ssid;
@@ -157,6 +157,24 @@ class Mac : public GenericHashEntry {
     stats->incRcvdStats(t, num_pkts, num_bytes);
   }
 
+  inline void incDeviceCounter(DeviceType t){
+    switch (t){
+      case device_printer:     dev_t_counters.printer++;       break;
+      case device_video:       dev_t_counters.video++;         break;
+      case device_workstation: dev_t_counters.workstation++;   break;
+      case device_laptop:      dev_t_counters.laptop++;        break;
+      case device_tablet:      dev_t_counters.tablet++;        break;
+      case device_phone:       dev_t_counters.phone++;         break;
+      case device_tv:          dev_t_counters.tv++;            break;
+      case device_networking:  dev_t_counters.networking++;    break;
+      case device_wifi:        dev_t_counters.wifi++;          break;
+      case device_nas:         dev_t_counters.nas++;           break;
+      case device_multimedia:  dev_t_counters.multimedia++;    break;
+      case device_iot:         dev_t_counters.iot++;           break;
+      default:                 dev_t_counters.unknown++;       break;
+    }
+  }
+  inline DeviceTypeCounters* getDeviceTypeCounters() {return (&dev_t_counters);}
   inline u_int64_t  getNumSentArp()  { return(stats->getNumSentArp());      }
   inline u_int64_t  getNumRcvdArp()  { return(stats->getNumRcvdArp());      }
   inline void incNumDroppedFlows()   { stats->incNumDroppedFlows(); }
@@ -182,13 +200,10 @@ class Mac : public GenericHashEntry {
     else
       return(false);
   }
-//----------WIP------------------
   inline void incTalkersAsClient()  { talkers.as_client++; }
   inline void incTalkersAsServer()  { talkers.as_server++; }
   inline u_int32_t getNumTalkerAsClient(){return talkers.as_client;}
   inline u_int32_t getNumTalkerAsServer(){return talkers.as_server;}
-
-  //------------------------------
 };
 
 #endif /* _MAC_H_ */

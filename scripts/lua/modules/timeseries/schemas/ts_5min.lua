@@ -21,7 +21,7 @@ schema:addMetric("bytes_rcvd")
 
 -- ##############################################
 
-schema = ts_utils.newSchema("mac:arp_rqst_sent_rcvd_rpls", {step=300, metrics_type=ts_utils.metrics.gauge}) --WIP ho aggiunto la metrica
+schema = ts_utils.newSchema("mac:arp_rqst_sent_rcvd_rpls", {step=300}) 
 schema:addTag("ifid")
 schema:addTag("mac")
 schema:addMetric("request_packets_sent")
@@ -37,12 +37,61 @@ schema:addTag("category")
 schema:addMetric("bytes")
 
 -- ##############################################
--- --WIP           
+
 schema = ts_utils.newSchema("mac:local_talkers", {step=300, metrics_type=ts_utils.metrics.gauge} ) 
 schema:addTag("ifid")
 schema:addTag("mac")
 schema:addMetric("num_as_client")
 schema:addMetric("num_as_server") 
+
+-- ##############################################
+
+schema = ts_utils.newSchema("mac:local_talkers_network_devices", {step=300, metrics_type=ts_utils.metrics.gauge} ) 
+schema:addTag("ifid")
+schema:addTag("mac")
+schema:addMetric("num_router_or_switch")
+schema:addMetric("num_wireless_network") 
+
+-- ##############################################
+
+schema = ts_utils.newSchema("mac:local_talkers_mobile_devices", {step=300, metrics_type=ts_utils.metrics.gauge} ) 
+schema:addTag("ifid")
+schema:addTag("mac")
+schema:addMetric("num_laptop")
+schema:addMetric("num_tablet") 
+schema:addMetric("num_phone") 
+
+-- ##############################################
+
+schema = ts_utils.newSchema("mac:local_talkers_media_devices", {step=300, metrics_type=ts_utils.metrics.gauge} ) 
+schema:addTag("ifid")
+schema:addTag("mac")
+schema:addMetric("num_video")
+schema:addMetric("num_tv")
+schema:addMetric("num_multimedia") 
+
+-- ##############################################
+
+schema = ts_utils.newSchema("mac:local_talkers_work_devices", {step=300, metrics_type=ts_utils.metrics.gauge} ) 
+schema:addTag("ifid")
+schema:addTag("mac")
+schema:addMetric("num_computer")
+schema:addMetric("num_printer") 
+schema:addMetric("num_nas") 
+
+-- ##############################################
+
+schema = ts_utils.newSchema("mac:local_talkers_iot_devices", {step=300, metrics_type=ts_utils.metrics.gauge} ) 
+schema:addTag("ifid")
+schema:addTag("mac")
+schema:addMetric("num_iot")
+
+-- ##############################################
+
+schema = ts_utils.newSchema("mac:local_talkers_unknow_devices", {step=300, metrics_type=ts_utils.metrics.gauge} ) 
+schema:addTag("ifid")
+schema:addTag("mac")
+schema:addMetric("num_unknow")
 
 -------------------------------------------------------
 -- HOST POOLS SCHEMAS

@@ -544,6 +544,22 @@ typedef enum {
 } DeviceType;
 
 typedef struct {
+  u_int32_t unknown;
+  u_int32_t printer;
+  u_int32_t video;
+  u_int32_t workstation;
+  u_int32_t laptop;
+  u_int32_t tablet;
+  u_int32_t phone;
+  u_int32_t tv;
+  u_int32_t networking;
+  u_int32_t wifi;
+  u_int32_t nas;
+  u_int32_t multimedia;
+  u_int32_t iot;
+} DeviceTypeCounters;
+
+typedef struct {
   NDPI_PROTOCOL_BITMASK clientAllowed, serverAllowed;
 } DeviceProtocolBitmask;
 

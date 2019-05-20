@@ -35,14 +35,47 @@ function ts_dump.l2_device_update_stats_rrds(when, devicename, device, ifstats, 
               reply_packets_rcvd = device["arp_replies.rcvd"]},
         when,verbose)
 
---WIP--------------
---NOTE: 
-
   ts_utils.append("mac:local_talkers", {ifid=ifstats.id, mac=devicename,
               num_as_client = device["talkers.asClient"],
               num_as_server = device["talkers.asServer"]},
         when, verbose)
---------------------------------------------
+
+  ts_utils.append("mac:local_talkers_network_devices", {ifid=ifstats.id, mac=devicename,
+              num_router_or_switch = device["talkers.network_devices.router_or_switch"],
+              num_wireless_network = device["talkers.network_devices.wireless_network"],
+              },
+   when, verbose)
+
+  ts_utils.append("mac:local_talkers_mobile_devices", {ifid=ifstats.id, mac=devicename,
+              num_laptop = device["talkers.mobile_devices.laptop"],
+              num_tablet = device["talkers.mobile_devices.tablet"],
+              num_phone = device["talkers.mobile_devices.phone"],
+              },
+  when, verbose)
+
+  ts_utils.append("mac:local_talkers_media_devices", {ifid=ifstats.id, mac=devicename,
+              num_video = device["talkers.media_devices.video"],
+              num_tv = device["talkers.media_devices.tv"],
+              num_multimedia = device["talkers.media_devices.multimedia"],
+              },
+  when, verbose)
+
+  ts_utils.append("mac:local_talkers_work_devices", {ifid=ifstats.id, mac=devicename,
+              num_nas = device["talkers.work_devices.nas"],
+              num_printer = device["talkers.work_devices.printer"],
+              num_computer = device["talkers.work_devices.computer"],
+              },
+  when, verbose)
+
+  ts_utils.append("mac:local_talkers_iot_devices", {ifid=ifstats.id, mac=devicename,
+              num_iot = device["talkers.iot_devices"],
+              },
+  when, verbose)  
+
+  ts_utils.append("mac:local_talkers_unknow_devices", {ifid=ifstats.id, mac=devicename,
+                num_unknow = device["talkers.unknown_devices"],
+                },
+  when, verbose)
 end
 
 -- ########################################################

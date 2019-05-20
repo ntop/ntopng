@@ -59,9 +59,6 @@ class ArpStatsMatrixElement : public GenericHashEntry {
   u_int32_t key();
   void lua(lua_State* vm);
   void print(char *msg) const;
-
-
-  //-----WIP---
   pktStats* getArpStats(){ return &stats; }
 
 };
