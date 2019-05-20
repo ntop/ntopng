@@ -345,6 +345,9 @@ void Flow::dumpFlowAlert() {
     case status_ids_alert:
       do_dump = ntop->getPrefs()->are_ids_alerts_enabled();
       break;
+
+    case num_flow_status: /* nothing to do here */
+      break;
     }
 
 #ifdef HAVE_NEDGE
@@ -1942,10 +1945,14 @@ bool Flow::isFlowPeer(char *numIP, u_int16_t vlanId) {
 
 /* *************************************** */
 
-void Flow::sumStats(nDPIStats *stats) {
+void Flow::sumStats(nDPIStats *stats, FlowStatusStats *status_stats) {
+  FlowStatus status = getFlowStatus();
+
   stats->incStats(0, ndpiDetectedProtocol.app_protocol,
 		  cli2srv_packets, cli2srv_bytes,
 		  srv2cli_packets, srv2cli_bytes);
+
+  status_stats->incStats(status);
 }
 
 /* *************************************** */

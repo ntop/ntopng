@@ -185,6 +185,7 @@ using namespace std;
 #include "Checkpointable.h"
 #include "TrafficStats.h"
 #include "nDPIStats.h"
+#include "FlowStatusStats.h"
 #ifdef NTOPNG_PRO
 #include "CustomAppMaps.h"
 #include "CustomAppStats.h"

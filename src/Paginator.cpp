@@ -53,6 +53,7 @@ Paginator::Paginator() {
   filtered_flows = -1;
   pool_filter = ((u_int16_t)-1);
   mac_filter = NULL;
+  flow_status_filter = ((u_int16_t)-1);
 
   deviceIP = inIndex = outIndex = 0;
   asn_filter = (u_int32_t)-1;
@@ -197,7 +198,8 @@ void Paginator::readOptions(lua_State *L, int index) {
 	  icmp_type = lua_tointeger(L, -1);
 	else if(!strcmp(key, "icmp_code"))
 	  icmp_code = lua_tointeger(L, -1);
-
+	else if(!strcmp(key, "statusFilter"))
+	  flow_status_filter = lua_tointeger(L, -1);
 	//else
 	  //ntop->getTrace()->traceEvent(TRACE_ERROR, "Invalid int type (%d) for option %s", lua_tointeger(L, -1), key);
 	break;

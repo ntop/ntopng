@@ -77,7 +77,7 @@ local function printInterfaceSample(ifname, now)
       printElement("ifaces", { ["ifname"] = ifname, ["metric"] = "stats."..k }, v, now)
    end
    
-   local ndpi = interface.getnDPIStats()["ndpi"]
+   local ndpi = interface.getActiveFlowsStats()["ndpi"]
    metrics = { "bytes.sent", "bytes.rcvd" }
    for protoname in pairs(ndpi) do
       for _,k in pairs(metrics) do

@@ -431,9 +431,10 @@ static int ntop_get_max_if_speed(lua_State* vm) {
 /* ****************************************** */
 
 // ***API***
-static int ntop_get_ndpi_interface_stats(lua_State* vm) {
+static int ntop_get_active_flows_stats(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   nDPIStats stats;
+  FlowStatusStats status_stats;
   char *host_ip = NULL;
   u_int16_t vlan_id = 0;
   char buf[64];
@@ -448,10 +449,11 @@ static int ntop_get_ndpi_interface_stats(lua_State* vm) {
   if(lua_type(vm, 2) == LUA_TNUMBER) vlan_id = (u_int16_t)lua_tonumber(vm, 2);
 
   if(ntop_interface) {
-    ntop_interface->getnDPIStats(&stats, get_allowed_nets(vm), host_ip, vlan_id);
+    ntop_interface->getActiveFlowsStats(&stats, &status_stats, get_allowed_nets(vm), host_ip, vlan_id);
 
     lua_newtable(vm);
     stats.lua(ntop_interface, vm);
+    status_stats.lua(vm);
   } else
     lua_pushnil(vm);
 
@@ -8253,7 +8255,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "resetMacStats",            ntop_interface_reset_mac_stats },
   { "deleteMacData",            ntop_interface_delete_mac_data },
 
-  { "getnDPIStats",             ntop_get_ndpi_interface_stats },
+  { "getActiveFlowsStats",      ntop_get_active_flows_stats },
   { "getnDPIProtoName",         ntop_get_ndpi_protocol_name },
   { "getnDPIProtoId",           ntop_get_ndpi_protocol_id },
   { "getnDPICategoryId",        ntop_get_ndpi_category_id },

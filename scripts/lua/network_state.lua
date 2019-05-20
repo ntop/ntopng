@@ -31,7 +31,7 @@ end
 --makes the sum of "i1" and "i2" for each ndpi proto
 --return ndpi proto table [ "proto_name" = "i1 + i2" ]
 function network_state.check_ndpi_table(i1, i2)
-  local t, ndpi_stats = {}, interface.getnDPIStats() 
+  local t, ndpi_stats = {}, interface.getActiveFlowsStats() 
   local j = 1
   for i,v in pairs( ndpi_stats.ndpi ) do
 

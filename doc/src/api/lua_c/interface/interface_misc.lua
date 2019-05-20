@@ -11,6 +11,12 @@ function interface.getIfNames()
 --! @param ifname the interface name.
 function interface.select(string ifname)
 
+--! @brief Get statistics including nDPI protocol information of the network interface/a specific host.
+--! @param host_ip filter by a specific host/host@vlan
+--! @param vlan_id specify the host_ip filter vlan separately
+--! @return table with stats on success, nil otherwise.
+function interface.getActiveFlowsStats(string host_ip=nil, int vlan_id=nil)
+
 --! @brief Get the interface maximum speed.
 --! @param ifname the interface name.
 --! @return the interface maximum speed on success, nil otherwise.

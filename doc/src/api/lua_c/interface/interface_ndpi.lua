@@ -1,9 +1,3 @@
---! @brief Get nDPI protocol information of the network interface/a specific host.
---! @param host_ip filter by a specific host/host@vlan
---! @param vlan_id specify the host_ip filter vlan separately
---! @return table with nDPI stats on success, nil otherwise.
-function interface.getnDPIStats(string host_ip=nil, int vlan_id=nil)
-
 --! @brief Convert a nDPI protocol id to a protocol name
 --! @param proto the protocol id to convert
 --! @return the protocol name on success, nil otherwise.

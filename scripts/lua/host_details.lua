@@ -1515,7 +1515,7 @@ print [[
   flow_rows_option["type"] = 'host';
 	 $("#table-flows").datatable({
          url: url_update,
-         buttons: [ ]] printActiveFlowsDropdown(base_url, page_params, interface.getStats(), interface.getnDPIStats()) print[[ ],
+         buttons: [ ]] printActiveFlowsDropdown(base_url, page_params, interface.getStats(), interface.getActiveFlowsStats()) print[[ ],
          rowCallback: function ( row ) { return flow_table_setID(row); },
          tableCallback: function()  { $("#dt-bottom-details > .pull-left > p").first().append('. ]]
 print(i18n('flows_page.idle_flows_not_listed'))

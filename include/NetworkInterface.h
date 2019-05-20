@@ -431,7 +431,7 @@ class NetworkInterface : public Checkpointable {
 		     Host **srcHost, Host **dstHost, Flow **flow);
   void processFlow(ParsedFlow *zflow, bool zmq_flow);
   void processInterfaceStats(sFlowInterfaceStats *stats);
-  void getnDPIStats(nDPIStats *stats, AddressTree *allowed_hosts, const char *host_ip, u_int16_t vlan_id);
+  void getActiveFlowsStats(nDPIStats *stats, FlowStatusStats *status_stats, AddressTree *allowed_hosts, const char *host_ip, u_int16_t vlan_id);
   void periodicStatsUpdate();
   virtual void lua(lua_State* vm);
   void getnDPIProtocols(lua_State *vm, ndpi_protocol_category_t filter, bool skip_critical);

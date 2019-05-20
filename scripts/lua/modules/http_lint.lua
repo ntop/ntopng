@@ -324,12 +324,6 @@ local function validateBroadcastUnicast(mode)
    return validateChoice(modes, mode)
 end
 
-local function validateFlowStatus(mode)
-   local modes = {"normal", "alerted", "filtered"}
-
-   return validateChoice(modes, mode)
-end
-
 local function validateFlowStatusNumber(status)
    if not validateNumber(status) then
       return false
@@ -337,6 +331,16 @@ local function validateFlowStatusNumber(status)
 
    local num = tonumber(status)
    return((num >= 0) and (num < 2^8))
+end
+
+local function validateFlowStatus(mode)
+   local modes = {"normal", "alerted", "filtered"}
+
+   if validateFlowStatusNumber(mode) then
+      return true
+   end
+
+   return validateChoice(modes, mode)
 end
 
 local function validateTCPFlowState(mode)

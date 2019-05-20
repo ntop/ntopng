@@ -196,7 +196,7 @@ print [[
 
 elseif(page == "Flows") then
 
-stats = interface.getnDPIStats()
+stats = interface.getActiveFlowsStats()
 num_param = 0
 
 print [[

@@ -51,7 +51,7 @@ local server_asn = _GET["server_asn"]
 local prefs = ntop.getPrefs()
 interface.select(ifname)
 local ifstats = interface.getStats()
-local ndpistats = interface.getnDPIStats()
+local ndpistats = interface.getActiveFlowsStats()
 
 local base_url = ntop.getHttpPrefix() .. "/lua/flows_stats.lua"
 local page_params = {}

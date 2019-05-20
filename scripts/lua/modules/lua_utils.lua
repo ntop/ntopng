@@ -2656,34 +2656,52 @@ end
 -- ###############################################
 
 -- Update Utils::flowstatus2str / FlowStatus enum
+
+function getFlowStatusTypes()
+   local entries = {
+   [0]  = i18n("flow_details.normal"),
+   [1]  = i18n("flow_details.slow_tcp_connection"),
+   [2]  = i18n("flow_details.slow_application_header"),
+   [3]  = i18n("flow_details.slow_data_exchange"),
+   [4]  = i18n("flow_details.low_goodput"),
+   [5]  = i18n("flow_details.suspicious_tcp_syn_probing"),
+   [6]  = i18n("flow_details.tcp_connection_issues"),
+   [7]  = i18n("flow_details.suspicious_tcp_probing"),
+   [8]  = i18n("flow_details.flow_emitted"),
+   [9]  = i18n("flow_details.tcp_connection_refused"),
+   [10] = i18n("flow_details.ssl_certificate_mismatch"),
+   [11] = i18n("flow_details.dns_invalid_query"),
+   [12] = i18n("flow_details.remote_to_remote"),
+   [13] = i18n("flow_details.blacklisted_flow"),
+   [14] = i18n("flow_details.flow_blocked_by_bridge"),
+   [15] = i18n("flow_details.web_mining_detected"),
+   [16] = i18n("flow_details.suspicious_device_protocol"),
+   [17] = i18n("flow_details.elephant_flow_l2r"),
+   [18] = i18n("flow_details.elephant_flow_r2l"),
+   [19] = i18n("flow_details.longlived_flow"),
+   [20] = i18n("flow_details.not_purged"),
+   [21] = i18n("alerts_dashboard.ids_alert"),
+   [22] = i18n("flow_details.tcp_severe_connection_issues"),
+   }
+
+   return entries
+end
+
 function getFlowStatus(status, flowstatus_info, alert, no_icon)
    local warn_sign = ternary(no_icon, "", "<i class=\"fa fa-warning\" aria-hidden=true style=\"color: orange;\"></i> ")
    local res = warn_sign..i18n("flow_details.unknown_status",{status=status})
+   local types = getFlowStatusTypes()
 
    -- NOTE: flowstatus_info can be nil
-   if(status == 0) then res = i18n("flow_details.normal")
-   elseif(status == 1)  then res = warn_sign..i18n("flow_details.slow_tcp_connection")
-   elseif(status == 2)  then res = warn_sign..i18n("flow_details.slow_application_header")
-   elseif(status == 3)  then res = warn_sign..i18n("flow_details.slow_data_exchange")
-   elseif(status == 4)  then res = warn_sign..i18n("flow_details.low_goodput")
-   elseif(status == 5)  then res = warn_sign..i18n("flow_details.suspicious_tcp_syn_probing")
-   elseif(status == 6)  then res = warn_sign..i18n("flow_details.tcp_connection_issues")
-   elseif(status == 7)  then res = warn_sign..i18n("flow_details.suspicious_tcp_probing")
-   elseif(status == 8)  then res = warn_sign..i18n("flow_details.flow_emitted")
-   elseif(status == 9)  then res = warn_sign..i18n("flow_details.tcp_connection_refused")
-   elseif(status == 10) then res = warn_sign..formatSSLCertificateMismatch(status, flowstatus_info, alert)
-   elseif(status == 11) then res = warn_sign..i18n("flow_details.dns_invalid_query")
-   elseif(status == 12) then res = warn_sign..i18n("flow_details.remote_to_remote")
+   if(status == 10) then res = warn_sign..formatSSLCertificateMismatch(status, flowstatus_info, alert)
    elseif(status == 13) then res = warn_sign..formatBlacklistedFlow(status, flowstatus_info, alert)
-   elseif(status == 14) then res = warn_sign..i18n("flow_details.flow_blocked_by_bridge")
-   elseif(status == 15) then res = warn_sign..i18n("flow_details.web_mining_detected")
    elseif(status == 16) then res = formatSuspiciousDeviceProtocolAlert(flowstatus_info)
    elseif(status == 17) then res = warn_sign..formatElephantFlowAlert(flowstatus_info, true --[[ local 2 remote --]])
    elseif(status == 18) then res = warn_sign..formatElephantFlowAlert(flowstatus_info, false --[[ remote 2 local --]])
    elseif(status == 19) then res = warn_sign..formatLongLivedFlowAlert(flowstatus_info)
-   elseif(status == 20) then res = warn_sign..i18n("flow_details.not_purged")
    elseif(status == 21) then res = warn_sign..i18n("flow_details.ids_alert", { signature=(flowstatus_info.ids_alert and flowstatus_info.ids_alert.signature), severity=(flowstatus_info.ids_alert and flowstatus_info.ids_alert.severity)} )
    elseif(status == 22) then res = warn_sign..i18n("flow_details.tcp_severe_connection_issues")
+   elseif(types[status] ~= nil) then res = warn_sign..types[status]
    end
 
    return res

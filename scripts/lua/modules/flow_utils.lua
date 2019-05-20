@@ -2069,7 +2069,7 @@ local function getParamFilter(page_params, param_name)
     return ''
 end
 
-function printActiveFlowsDropdown(base_url, page_params, ifstats, ndpistats, is_ebpf_flows)
+function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_ebpf_flows)
     -- Local / Remote hosts selector
     local flowhosts_type_params = table.clone(page_params)
     flowhosts_type_params["flowhosts_type"] = nil
@@ -2102,8 +2102,18 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, ndpistats, is_
 
        local entries = {
 	  {"normal", i18n("flows_page.normal")},
-	  {"alerted", i18n("flows_page.alerted")},
+	  {"alerted", i18n("flows_page.all_alerted")},
        }
+
+       local status_types = getFlowStatusTypes()
+       local status_stats = flowstats["status"]
+       for t,desc in ipairs(status_types) do
+          if t then
+             if status_stats[t] and status_stats[t].count > 0 then
+               entries[#entries + 1] = {string.format("%u", t), desc.." ("..status_stats[t].count..")"}
+             end
+          end
+       end
 
        if isBridgeInterface(ifstats) then
 	  entries[#entries + 1] = {"filtered", i18n("flows_page.blocked")}
@@ -2223,7 +2233,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, ndpistats, is_
        print(getPageUrl(base_url, application_filter_params))
        print('">'..i18n("flows_page.all_proto")..'</a></li>')
 
-       for key, value in pairsByKeys(ndpistats["ndpi"], asc) do
+       for key, value in pairsByKeys(flowstats["ndpi"], asc) do
 	  local class_active = ''
 	  if(key == page_params.application) then
 	     class_active = ' class="active"'

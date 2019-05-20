@@ -60,7 +60,7 @@ local server_asn = _GET["server_asn"]
 local prefs = ntop.getPrefs()
 interface.select(ifname)
 local ifstats = interface.getStats()
-local ndpistats = interface.getnDPIStats()
+local flowstats = interface.getActiveFlowsStats()
 
 local base_url = ntop.getHttpPrefix() .. "/lua/flows_stats.lua"
 local page_params = {}
@@ -188,7 +188,7 @@ print ('sort: [ ["' .. getDefaultTableSort("flows") ..'","' .. getDefaultTableSo
 
 print ('buttons: [')
 
-printActiveFlowsDropdown(base_url, page_params, ifstats, ndpistats)
+printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats)
 
 print(" ],\n")
 

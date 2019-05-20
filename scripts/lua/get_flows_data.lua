@@ -160,6 +160,8 @@ if not isEmptyString(flow_status) then
       pageinfo["alertedFlows"] = true
    elseif flow_status == "filtered" then
       pageinfo["filteredFlows"] = true
+   else 
+      pageinfo["statusFilter"] = tonumber(flow_status)
    end
 end
 

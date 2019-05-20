@@ -42,7 +42,7 @@ class Paginator {
   u_int32_t uid_filter, pid_filter;
   u_int32_t deviceIP;
   u_int16_t inIndex, outIndex;
-  u_int16_t pool_filter;
+  u_int16_t pool_filter, flow_status_filter;
   u_int8_t *mac_filter, icmp_type, icmp_code;
   DetailsLevel details_level;
   bool details_level_set;
@@ -123,6 +123,10 @@ class Paginator {
 
   inline bool poolFilter(u_int16_t *f) const {
     if(pool_filter != ((u_int16_t)-1)) { (*f) = pool_filter; return true; } return false;
+  }
+
+  inline bool flowStatusFilter(u_int16_t *f) const {
+    if(flow_status_filter != ((u_int16_t)-1)) { (*f) = flow_status_filter; return true; } return false;
   }
 
   inline bool macFilter(u_int8_t **f) const {

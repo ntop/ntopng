@@ -2798,12 +2798,14 @@ void NetworkInterface::findFlowHosts(u_int16_t vlanId,
 
 struct ndpiStatsRetrieverData {
   nDPIStats *stats;
+  FlowStatusStats *status_stats;
   Host *host;
 };
 
-static bool flow_sum_protos(GenericHashEntry *flow, void *user_data, bool *matched) {
+static bool flow_sum_stats(GenericHashEntry *flow, void *user_data, bool *matched) {
   ndpiStatsRetrieverData *retriever = (ndpiStatsRetrieverData*)user_data;
   nDPIStats *stats = retriever->stats;
+  FlowStatusStats *status_stats = retriever->status_stats;
   Flow *f = (Flow*)flow;
 
   if(retriever->host
@@ -2811,7 +2813,7 @@ static bool flow_sum_protos(GenericHashEntry *flow, void *user_data, bool *match
      && (retriever->host != f->get_srv_host()))
     return(false); /* false = keep on walking */
 
-  f->sumStats(stats);
+  f->sumStats(stats, status_stats);
   *matched = true;
 
   return(false); /* false = keep on walking */
@@ -2819,8 +2821,9 @@ static bool flow_sum_protos(GenericHashEntry *flow, void *user_data, bool *match
 
 /* **************************************************** */
 
-void NetworkInterface::getnDPIStats(nDPIStats *stats, AddressTree *allowed_hosts,
-				    const char *host_ip, u_int16_t vlan_id) {
+void NetworkInterface::getActiveFlowsStats(nDPIStats *stats, FlowStatusStats *status_stats,
+					   AddressTree *allowed_hosts,
+					   const char *host_ip, u_int16_t vlan_id) {
   ndpiStatsRetrieverData retriever;
   Host *h = NULL;
   u_int32_t begin_slot = 0;
@@ -2830,8 +2833,9 @@ void NetworkInterface::getnDPIStats(nDPIStats *stats, AddressTree *allowed_hosts
     h = findHostByIP(allowed_hosts, (char *)host_ip, vlan_id);
 
   retriever.stats = stats;
+  retriever.status_stats = status_stats;
   retriever.host = h;
-  walker(&begin_slot, walk_all, walker_flows, flow_sum_protos, (void*)&retriever);
+  walker(&begin_slot, walk_all, walker_flows, flow_sum_stats, (void*)&retriever);
 }
 
 /* **************************************************** */
@@ -3662,7 +3666,7 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
   int ndpi_proto, ndpi_cat;
   u_int16_t port;
   int16_t local_network_id;
-  u_int16_t vlan_id = 0, pool_filter;
+  u_int16_t vlan_id = 0, pool_filter, flow_status_filter;
   u_int8_t ip_version;
   u_int8_t *mac_filter;
   LocationPolicy client_policy;
@@ -3823,6 +3827,12 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
        && retriever->pag->alertedFlows(&alerted_flows)
        && ((alerted_flows && f->getFlowStatus() == status_normal)
 	   || (!alerted_flows && f->getFlowStatus() != status_normal)))
+      return(false);
+
+    /* Flow Status filter */
+    if(retriever->pag
+       && retriever->pag->flowStatusFilter(&flow_status_filter)
+       && f->getFlowStatus() != flow_status_filter)
       return(false);
 
 #ifdef HAVE_NEDGE
