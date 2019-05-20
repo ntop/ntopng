@@ -592,6 +592,9 @@ const char* Utils::flowStatus2str(FlowStatus s, AlertType *aType, AlertLevel *aL
   case status_tcp_connection_issues:
     return("TCP Connection Issues");
     break;
+  case status_tcp_severe_connection_issues:
+    return("Severe TCP Connection Issues");
+    break;
   case status_suspicious_tcp_probing:
     *aType = alert_suspicious_activity;
     return("Suspicious TCP Probing");

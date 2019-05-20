@@ -332,6 +332,7 @@ typedef enum {
   status_longlived, /* 19 */
   status_not_purged, /* 20 */
   status_ids_alert /* 21 */,
+  status_tcp_severe_connection_issues /* 22 - higher severity than status_tcp_connection_issues */,
 } FlowStatus;
 
 typedef enum {

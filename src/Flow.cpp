@@ -292,6 +292,7 @@ void Flow::dumpFlowAlert() {
     case status_slow_data_exchange: /* 3 */
     case status_low_goodput: /* 4 */
     case status_tcp_connection_issues: /* 6 - i.e. too many retransmission ooo... or similar */
+    case status_tcp_severe_connection_issues: /* 22 */
       /* Don't log them for the time being otherwise we'll have too many flows */
       do_dump = false;
       break;
@@ -3392,7 +3393,7 @@ bool Flow::isLowGoodput() {
 
 FlowStatus Flow::getFlowStatus() {
 #ifndef HAVE_NEDGE
-  u_int32_t threshold;
+  u_int32_t issues_count;
 #endif
   u_int16_t l7proto = ndpi_get_lower_proto(ndpiDetectedProtocol);
 
@@ -3419,13 +3420,21 @@ FlowStatus Flow::getFlowStatus() {
 
 #ifndef HAVE_NEDGE
   /* All flows */
-  threshold = cli2srv_packets / CONST_TCP_CHECK_ISSUES_RATIO;
-  if((tcp_stats_s2d.pktRetr + tcp_stats_s2d.pktOOO + tcp_stats_s2d.pktLost) > threshold)
-    return status_tcp_connection_issues;
+  issues_count = tcp_stats_s2d.pktRetr + tcp_stats_s2d.pktOOO + tcp_stats_s2d.pktLost;
+  if(issues_count > CONST_TCP_CHECK_ISSUES_THRESHOLD) {
+    if(issues_count > (cli2srv_packets / CONST_TCP_CHECK_SEVERE_ISSUES_RATIO))
+      return status_tcp_severe_connection_issues;
+    else if(issues_count > (cli2srv_packets / CONST_TCP_CHECK_ISSUES_RATIO))
+      return status_tcp_connection_issues;
+  }
 
-  threshold = srv2cli_packets / CONST_TCP_CHECK_ISSUES_RATIO;
-  if((tcp_stats_d2s.pktRetr + tcp_stats_d2s.pktOOO + tcp_stats_d2s.pktLost) > threshold)
-    return status_tcp_connection_issues;
+  issues_count = tcp_stats_d2s.pktRetr + tcp_stats_d2s.pktOOO + tcp_stats_d2s.pktLost;
+  if(issues_count > CONST_TCP_CHECK_ISSUES_THRESHOLD) {
+    if(issues_count > (srv2cli_packets / CONST_TCP_CHECK_SEVERE_ISSUES_RATIO))
+      return status_tcp_severe_connection_issues;
+    else if(issues_count > (srv2cli_packets / CONST_TCP_CHECK_ISSUES_RATIO))
+      return status_tcp_connection_issues;
+  }
 #endif
 
   if(iface->getIfType() == interface_type_ZMQ) {

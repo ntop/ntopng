@@ -832,6 +832,7 @@ local lang = {
     ["tcp_connection_issues"] = "TCP Connection Issues (Retransmission, OOO, Lost)",
     ["tcp_connection_refused"] = "TCP connection refused",
     ["tcp_packet_analysis"] = "TCP Packet Analysis",
+    ["tcp_severe_connection_issues"] = "Severe TCP Connection Issues (Retransmission, OOO, Lost)",
     ["throughput_trend"] = "Throughput Trend",
     ["unknown_status"] = "Unknown status (%{status})",
     ["url"] = "URL",
