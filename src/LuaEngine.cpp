@@ -34,11 +34,10 @@ extern "C" {
 #include "rrd.h"
 };
 
-struct keyval string_to_replace[MAX_NUM_HTTP_REPLACEMENTS] = { { NULL, NULL } };
+struct keyval string_to_replace[MAX_NUM_HTTP_REPLACEMENTS] = { { NULL, NULL } }; /* TODO remove */
 static Mutex rrd_lock;
 static int live_extraction_num = 0;
 static Mutex live_extraction_num_lock;
-static std::list<char*> new_custom_categories, custom_categories_to_purge;
 
 /* ******************************* */
 
@@ -1658,11 +1657,8 @@ static int ntop_loadCustomCategoryIp(lua_State* vm) {
   for(int i=0; i<ntop->get_num_interfaces(); i++) {
     NetworkInterface *iface;
 
-    if((iface = ntop->getInterfaceAtId(vm, i)) != NULL) {
-      char *toadd = strdup(net);
-      new_custom_categories.push_front(toadd);
-      ndpi_load_ip_category(iface->get_ndpi_struct(), toadd, catid);
-    }
+    if((iface = ntop->getInterfaceAtId(vm, i)) != NULL)
+      iface->nDPILoadIPCategory(net, catid);
   }
 
   lua_pushnil(vm);
@@ -1684,12 +1680,9 @@ static int ntop_loadCustomCategoryHost(lua_State* vm) {
 
   for(int i=0; i<ntop->get_num_interfaces(); i++) {
     NetworkInterface *iface;
-
-    if((iface = ntop->getInterfaceAtId(vm, i)) != NULL)  {
-      char *toadd = strdup(host);
-      new_custom_categories.push_front(toadd);
-      ndpi_load_hostname_category(iface->get_ndpi_struct(), toadd, catid);
-    }
+    
+    if((iface = ntop->getInterfaceAtId(vm, i)) != NULL)
+      iface->nDPILoadHostnameCategory(host, catid);
   }
 
   lua_pushnil(vm);
@@ -1719,15 +1712,6 @@ static int ntop_reloadCustomCategories(lua_State* vm) {
       }
     }
   }
-
-  /* Now it is safe to remove old strings */
-  for(std::list<char*>::iterator it = custom_categories_to_purge.begin(); it != custom_categories_to_purge.end(); it++)
-    free(*it);
-  custom_categories_to_purge.clear();
-
-  /* Will purge on next reload */
-  custom_categories_to_purge = new_custom_categories;
-  new_custom_categories.clear();
 
   lua_pushnil(vm);
   return(CONST_LUA_OK);
@@ -6464,6 +6448,8 @@ static int ntop_has_ldap_support(lua_State* vm) {
 
 /* ****************************************** */
 
+#ifdef UNUSED_CODE
+
 struct ntopng_sqlite_state {
   lua_State* vm;
   u_int num_rows;
@@ -6485,6 +6471,8 @@ static int sqlite_callback(void *data, int argc,
 
   return(0);
 }
+
+#endif
 
 /* ****************************************** */
 

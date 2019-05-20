@@ -2277,6 +2277,40 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, ndpistats, is_
        print[[</div>']]
     end
 
+    if ntop.isPro() then
+      local hashname = "ntopng.prefs.profiles"
+      local profiles = ntop.getHashKeysCache(hashname) or {}
+      local profiles_defined = false
+
+      for k,_ in pairsByKeys(profiles) do 
+         profiles_defined = true
+         break
+      end
+
+      if profiles_defined then
+        -- Traffic Profiles
+        print(', \'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..i18n("traffic_profiles.traffic_profiles")..' ' .. getParamFilter(page_params, "traffic_profile") .. '<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" id="flow_dropdown">')
+        print('<li><a href="')
+        local traffic_profile_filter_params = table.clone(page_params)
+        traffic_profile_filter_params["traffic_profile"] = nil
+        print(getPageUrl(base_url, traffic_profile_filter_params))
+        print('">'..i18n("traffic_profiles.all_profiles")..'</a></li>')
+
+        for key,_ in pairsByKeys(profiles) do
+	  local class_active = ''
+	  if(key == page_params.traffic_profile) then
+	    class_active = ' class="active"'
+	  end
+	  print('<li '..class_active..'><a href="')
+	  traffic_profile_filter_params["traffic_profile"] = key
+	  print(getPageUrl(base_url, traffic_profile_filter_params))
+	  print('">'..key..'</a></li>')
+        end
+
+        print("</ul> </div>'")
+      end
+    end
+
     if ntop.isPro() and interface.isPacketInterface() == false then
        printFlowDevicesFilterDropdown(base_url, vlan_params)
     end
