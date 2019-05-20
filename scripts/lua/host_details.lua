@@ -1274,7 +1274,6 @@ elseif(page == "ssl") then
      <tbody id="host_details_ja3_tbody">
      </tbody>
      </table>
-
 <script>
 function update_ja3_table() {
   $.ajax({
@@ -1291,10 +1290,8 @@ function update_ja3_table() {
     }
   });
 }
-
 update_ja3_table();
 setInterval(update_ja3_table, 5000);
-
 </script>
 ]]
 
@@ -2199,7 +2196,6 @@ print [[
 			$('#trend_anomalous_flows_as_client').html(drawTrend(host["anomalous_flows.as_client"], last_anomalous_flows_as_client, " style=\"color: #B94A48;\""));
 			$('#trend_unreachable_flows_as_server').html(drawTrend(host["unreachable_flows.as_server"], last_unreachable_flows_as_server, " style=\"color: #B94A48;\""));
 			$('#trend_unreachable_flows_as_client').html(drawTrend(host["unreachable_flows.as_client"], last_unreachable_flows_as_client, " style=\"color: #B94A48;\""));
-
 			$('#alerts_trend').html(drawTrend(host["num_alerts"], last_num_alerts, " style=\"color: #B94A48;\""));
 			$('#sent_trend').html(drawTrend(host["packets.sent"], last_pkts_sent, ""));
 			$('#rcvd_trend').html(drawTrend(host["packets.rcvd"], last_pkts_rcvd, ""));
