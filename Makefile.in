@@ -195,8 +195,8 @@ geoip:
 	if test -d ../dat_files/; then \
 		cp ../dat_files/*.mmdb httpdocs/geoip; \
 	else \
-		$(GET_UTIL) http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.tar.gz; \
-		$(GET_UTIL) http://geolite.maxmind.com/download/geoip/database/GeoLite2-ASN.tar.gz; \
+		$(GET_UTIL) https://geolite.maxmind.com/download/geoip/database/GeoLite2-City.tar.gz; \
+		$(GET_UTIL) https://geolite.maxmind.com/download/geoip/database/GeoLite2-ASN.tar.gz; \
 		tar xfvz GeoLite2-ASN.tar.gz ; \
 		tar xfvz GeoLite2-City.tar.gz; \
 		mv GeoLite2-*/*.mmdb httpdocs/geoip; \
