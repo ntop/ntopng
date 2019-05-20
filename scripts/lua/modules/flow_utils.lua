@@ -2329,7 +2329,19 @@ end
 -- #######################
 
 function getFlowsTableTitle()
-    local filter = (_GET["application"] or _GET["category"] or _GET["vhost"] or _GET["flow_status"] or "")
+    local status_types = getFlowStatusTypes()
+    local status_type
+    
+    if _GET["flow_status"] then
+      local flow_status_id = tonumber(_GET["flow_status"])
+      if flow_status_id and status_types[flow_status_id] then
+        status_type = status_types[flow_status_id]
+      else
+        status_type = _GET["flow_status"]
+      end
+    end
+
+    local filter = (_GET["application"] or _GET["category"] or _GET["vhost"] or status_type or "")
     local active_msg
     local filter_msg = ""
 
