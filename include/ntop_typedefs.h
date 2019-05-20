@@ -333,6 +333,7 @@ typedef enum {
   status_not_purged, /* 20 */
   status_ids_alert /* 21 */,
   status_tcp_severe_connection_issues /* 22 - higher severity than status_tcp_connection_issues */,
+  status_ssl_unsafe_ciphers /* 23 */,
   num_flow_status,
 } FlowStatus;
 

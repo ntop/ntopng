@@ -32,11 +32,16 @@ local discover = require("discover_utils")
 local json = require ("dkjson")
 local page_utils = require("page_utils")
 
-local function ja3url(what)
+local function ja3url(what, safety)
    if(what == nil) then
       print("&nbsp;")
    else
-      print('<A HREF="https://sslbl.abuse.ch/ja3-fingerprints/'..what..'/">'..what..'</A> <i class="fa fa-external-link"></i>')
+      ret = '<A HREF="https://sslbl.abuse.ch/ja3-fingerprints/'..what..'/">'..what..'</A> <i class="fa fa-external-link"></i>'
+      if(safety ~= "safe") then
+	 ret = ret .. ' [ <i class="fa fa-warning" aria-hidden=true style="color: orange;"></i> <A HREF=https://en.wikipedia.org/wiki/Cipher_suite>'..capitalize(safety)..' Cipher</A> ]'
+      end
+
+      print(ret)
    end
 end
 
@@ -421,7 +426,8 @@ else
       end
    end
 
-   print("<tr><th width=33%>"..i18n("details.first_last_seen").."</th><td nowrap width=33%><div id=first_seen>" .. formatEpoch(flow["seen.first"]) ..  " [" .. secondsToTime(os.time()-flow["seen.first"]) .. " "..i18n("details.ago").."]" .. "</div></td>\n")
+   print("<tr><th width=33%>"..i18n("details.first_last_seen").."</th><td nowrap width=33%><div id=first_seen>"
+	    .. formatEpoch(flow["seen.first"]) ..  " [" .. secondsToTime(os.time()-flow["seen.first"]) .. " "..i18n("details.ago").."]" .. "</div></td>\n")
    print("<td nowrap><div id=last_seen>" .. formatEpoch(flow["seen.last"]) .. " [" .. secondsToTime(os.time()-flow["seen.last"]) .. " "..i18n("details.ago").."]" .. "</div></td></tr>\n")
 
    if flow["bytes"] > 0 then
@@ -545,6 +551,7 @@ else
       print("<td>")
       if(flow["protos.ssl.server_certificate"] ~= nil) then
 	 print(i18n("flow_details.server_certificate")..": <A HREF=\"http://"..flow["protos.ssl.server_certificate"].."\">"..flow["protos.ssl.server_certificate"].."</A>")
+
 	 if(flow["flow.status"] == 10) then
 	    print("\n<br><i class=\"fa fa-warning fa-lg\" style=\"color: #f0ad4e;\"></i> <b><font color=\"#f0ad4e\">"..i18n("flow_details.certificates_not_match").."</font></b>")
 	 end
@@ -555,9 +562,9 @@ else
 
    if((flow["protos.ssl.ja3.client_hash"] ~= nil) or (flow["protos.ssl.ja3.server_hash"] ~= nil)) then
       print('<tr><th width=30%><A HREF="https://github.com/salesforce/ja3">JA3</A></th><td>')
-      ja3url(flow["protos.ssl.ja3.client_hash"])
+      ja3url(flow["protos.ssl.ja3.client_hash"], flow["protos.ssl.ja3.client_unsafe_cipher"])
       print("</td><td>")
-      ja3url(flow["protos.ssl.ja3.server_hash"])
+      ja3url(flow["protos.ssl.ja3.server_hash"], flow["protos.ssl.ja3.server_unsafe_cipher"])
       print("</td></tr>")
    end
 
@@ -570,7 +577,6 @@ else
      print(bitsToSize(flow["tcp.max_thpt.srv2cli"]))
      print("</td></tr>\n")
    end
-
   
    if((flow["cli2srv.trend"] ~= nil) and false) then
      print("<tr><th width=30%>"..i18n("flow_details.throughput_trend").."</th><td nowrap>"..flow["cli.ip"].." <i class=\"fa fa-arrow-right\"></i> "..flow["srv.ip"]..": ")
@@ -616,6 +622,8 @@ else
       print("</td></tr>\n")
    end
 
+   -- ######################################
+   
    local icmp = flow["icmp"]
 
    if(icmp ~= nil) then
@@ -636,6 +644,8 @@ else
       print("</td></tr>")
    end
 
+   -- ######################################
+   
    if interface.isPacketInterface() then
       print("<tr><th width=30%>"..i18n("flow_details.flow_status").."</th><td colspan=2>"..getFlowStatus(flow["flow.status"], flow2statusinfo(flow)).."</td></tr>\n")
    end

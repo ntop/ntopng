@@ -310,6 +310,7 @@ void Flow::dumpFlowAlert() {
       break;
 
     case status_ssl_certificate_mismatch: /* 10 */
+    case status_ssl_unsafe_ciphers:       /* 23 */
       do_dump = ntop->getPrefs()->are_ssl_alerts_enabled();
       break;
 
@@ -506,12 +507,17 @@ void Flow::processDetectedProtocol() {
 
     if((protos.ssl.ja3.client_hash == NULL) && (ndpiFlow->protos.stun_ssl.ssl.ja3_client[0] != '\0')) {
       protos.ssl.ja3.client_hash = strdup(ndpiFlow->protos.stun_ssl.ssl.ja3_client);
+      protos.ssl.ja3.client_unsafe_cipher = ndpiFlow->protos.stun_ssl.ssl.client_unsafe_cipher;
+      if(protos.ssl.ja3.client_unsafe_cipher != ndpi_cipher_safe) setFlowAlerted();
       updateJA3();
     }
     
-    if((protos.ssl.ja3.server_hash == NULL) && (ndpiFlow->protos.stun_ssl.ssl.ja3_server[0] != '\0'))
+    if((protos.ssl.ja3.server_hash == NULL) && (ndpiFlow->protos.stun_ssl.ssl.ja3_server[0] != '\0')) {
       protos.ssl.ja3.server_hash = strdup(ndpiFlow->protos.stun_ssl.ssl.ja3_server);    
-
+      protos.ssl.ja3.server_unsafe_cipher = ndpiFlow->protos.stun_ssl.ssl.server_unsafe_cipher;
+      if(protos.ssl.ja3.server_unsafe_cipher != ndpi_cipher_safe) setFlowAlerted();
+    }
+    
     if(check_tor) {
       char rsp[256];
 
@@ -1543,6 +1549,26 @@ void Flow::processLua(lua_State* vm, const ParsedeBPF * const pe, bool client) {
 
 /* *************************************** */
 
+const char* Flow::cipher_weakness2str(ndpi_cipher_weakness w) {
+  switch(w) {
+  case ndpi_cipher_safe:
+    return("safe");
+    break;
+    
+  case ndpi_cipher_weak:
+    return("weak");
+    break;
+    
+  case ndpi_cipher_insecure:
+    return("insecure");
+    break;
+  }
+
+  return(""); /* NOTREACHED */
+}
+
+/* *************************************** */
+
 void Flow::lua(lua_State* vm, AddressTree * ptree,
 	       DetailsLevel details_level, bool skipNewTable) {
   char buf[64];
@@ -1786,11 +1812,17 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 	if(protos.ssl.server_certificate)
 	  lua_push_str_table_entry(vm, "protos.ssl.server_certificate", protos.ssl.server_certificate);
 
-	if(protos.ssl.ja3.client_hash)
+	if(protos.ssl.ja3.client_hash) {
 	  lua_push_str_table_entry(vm, "protos.ssl.ja3.client_hash", protos.ssl.ja3.client_hash);
-
-	if(protos.ssl.ja3.server_hash)
+	  lua_push_str_table_entry(vm, "protos.ssl.ja3.client_unsafe_cipher",
+				   cipher_weakness2str(protos.ssl.ja3.client_unsafe_cipher));
+	}
+	
+	if(protos.ssl.ja3.server_hash) {
 	  lua_push_str_table_entry(vm, "protos.ssl.ja3.server_hash", protos.ssl.ja3.server_hash);
+	  lua_push_str_table_entry(vm, "protos.ssl.ja3.server_unsafe_cipher",
+				   cipher_weakness2str(protos.ssl.ja3.server_unsafe_cipher));
+	}		  
       }
     }
 
@@ -3548,7 +3580,11 @@ FlowStatus Flow::getFlowStatus() {
    return(status_flow_when_interface_alerted);
 #endif
 
-  return status_normal;
+  if((protos.ssl.ja3.client_unsafe_cipher != ndpi_cipher_safe)
+     || (protos.ssl.ja3.server_unsafe_cipher != ndpi_cipher_safe))
+    return(status_ssl_unsafe_ciphers);
+  
+  return(status_normal);
 }
 
 /* ***************************************************** */

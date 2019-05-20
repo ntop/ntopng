@@ -104,6 +104,7 @@ class Flow : public GenericHashEntry {
       struct {
 	/* https://engineering.salesforce.com/tls-fingerprinting-with-ja3-and-ja3s-247362855967 */
 	char *client_hash, *server_hash;
+	ndpi_cipher_weakness client_unsafe_cipher, server_unsafe_cipher;
       } ja3;
     } ssl;
 
@@ -206,6 +207,7 @@ class Flow : public GenericHashEntry {
   bool triggerAlerts() const;
   void dumpFlowAlert();
   void updateJA3();
+  const char* cipher_weakness2str(ndpi_cipher_weakness w);
   
  public:
   Flow(NetworkInterface *_iface,

@@ -720,6 +720,7 @@ local lang = {
     ["ssh_signature"] = "Firma SSH",
     ["ssl_certificate"] = "Certificato SSL",
     ["ssl_certificate_mismatch"] = "Il certificato SSL non corrisponde",
+    ["ssl_unsafe_ciphers"] = "Cifratura SSL non Sicura",
     ["suspicious_client_device_protocol"] = "Protocollo client \"%{proto}\" non permesso dalla <a href=\"%{url}\">politica del protocollo per %{devtype}</a> configurata",
     ["suspicious_server_device_protocol"] = "Protocollo server \"%{proto}\" non permesso dalla <a href=\"%{url}\">politica del protocollo per %{devtype}</a> configurata",
     ["suspicious_tcp_probing"] = "Probing TCP Sospetto",

@@ -824,6 +824,7 @@ local lang = {
     ["ssl_certificate_mismatch"] = "SSL Certificate Mismatch",
     ["ssl_client_certificate"] = "Client Certificate",
     ["ssl_server_certificate"] = "Server Certificate",
+    ["ssl_unsafe_ciphers"] = "Unsafe SSL Ciphers",
     ["suspicious_client_device_protocol"] = "Client application \"%{proto}\" is not allowed by the configured <a href=\"%{url}\">%{devtype} application policy</a>",
     ["suspicious_device_protocol"] = "Suspicious Device Protocol",
     ["suspicious_server_device_protocol"] = "Server application \"%{proto}\" is not allowed by the configured <a href=\"%{url}\">%{devtype} application policy</a>",
