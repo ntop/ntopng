@@ -2660,27 +2660,58 @@ u_int32_t Flow::getNextTcpSeq ( u_int8_t tcpFlags,
 /* *************************************** */
 
 void Flow::incTcpBadStats(bool src2dst_direction,
-				u_int32_t ooo_pkts,
-				u_int32_t retr_pkts,
-				u_int32_t lost_pkts) {
+			  u_int32_t ooo_pkts,
+			  u_int32_t retr_pkts,
+			  u_int32_t lost_pkts,
+			  u_int32_t keep_alive_pkts) {
 #ifdef HAVE_NEDGE
   return;
 #endif
 
   TCPPacketStats * stats;
-  /*Host * host;*/
 
-  if(src2dst_direction) {
+  if(src2dst_direction)
     stats = &tcp_stats_s2d;
-    /*host = cli_host;*/
-  } else {
+  else
     stats = &tcp_stats_d2s;
-    /*host = srv_host;*/
-  }
 
+  stats->pktKeepAlive += keep_alive_pkts;
   stats->pktRetr += retr_pkts;
   stats->pktOOO += ooo_pkts;
   stats->pktLost += lost_pkts;
+
+  if(retr_pkts) iface->incRetransmittedPkts(retr_pkts);
+  if(lost_pkts) iface->incLostPkts(lost_pkts);
+  if(ooo_pkts) 	iface->incOOOPkts(ooo_pkts);
+
+  if(cli_host) {
+    if(src2dst_direction) {
+      if(keep_alive_pkts) cli_host->incKeepAliveSent(keep_alive_pkts);
+      if(retr_pkts)       cli_host->incRetxSent(retr_pkts);
+      if(lost_pkts)       cli_host->incLostSent(lost_pkts);
+      if(ooo_pkts)        cli_host->incOOOSent(ooo_pkts);
+    } else {
+      if(keep_alive_pkts) cli_host->incKeepAliveRcvd(keep_alive_pkts);
+      if(retr_pkts)       cli_host->incRetxRcvd(retr_pkts);
+      if(lost_pkts)       cli_host->incLostRcvd(lost_pkts);
+      if(ooo_pkts)        cli_host->incOOORcvd(ooo_pkts);
+    }
+  }
+
+  if(srv_host) {
+    if(src2dst_direction) {
+      if(keep_alive_pkts) srv_host->incKeepAliveRcvd(keep_alive_pkts);
+      if(retr_pkts)       srv_host->incRetxRcvd(retr_pkts);
+      if(lost_pkts)       srv_host->incLostRcvd(lost_pkts);
+      if(ooo_pkts)        srv_host->incOOORcvd(ooo_pkts);
+
+    } else {
+      if(keep_alive_pkts) srv_host->incKeepAliveSent(keep_alive_pkts);
+      if(retr_pkts)       srv_host->incRetxSent(retr_pkts);
+      if(lost_pkts)       srv_host->incLostSent(lost_pkts);
+      if(ooo_pkts)        srv_host->incOOOSent(ooo_pkts);
+    }
+  }
 }
 
 /* *************************************** */
@@ -2692,6 +2723,7 @@ void Flow::updateTcpSeqNum(const struct bpf_timeval *when,
   u_int32_t next_seq_num;
   bool update_last_seqnum = true;
   bool debug = false;
+  u_int32_t cnt_keep_alive = 0, cnt_lost = 0, cnt_ooo = 0, cnt_retx = 0;
 
 #ifdef HAVE_NEDGE
   return;
@@ -2701,7 +2733,7 @@ void Flow::updateTcpSeqNum(const struct bpf_timeval *when,
 
   if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[act: %u][next: %u][next - act (in flight): %d][ack: %u]",
 					 seq_num, next_seq_num,
-					 next_seq_num - seq_num,
+					 next_seq_num - seq_num, 
 					 ack_seq_num);
 
   if(src2dst_direction) {
@@ -2715,28 +2747,16 @@ void Flow::updateTcpSeqNum(const struct bpf_timeval *when,
 	   && (payload_Len == 0 || payload_Len == 1)
 	   && ((flags & (TH_SYN|TH_FIN|TH_RST)) == 0)) {
 	  if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[src2dst] Packet KeepAlive");
-	  tcp_stats_s2d.pktKeepAlive++;
-	  if(cli_host) cli_host->incKeepAliveSent(1);
-	  if(srv_host) srv_host->incKeepAliveRcvd(1);
+	  cnt_keep_alive++;
 	} else if(tcp_stats_s2d.last == seq_num) {
-	  tcp_stats_s2d.pktRetr++;
-	  if(cli_host) cli_host->incRetxSent(1);
-	  if(srv_host) srv_host->incRetxRcvd(1);
-	  iface->incRetransmittedPkts(1);
+	  cnt_retx++;
 	  if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[src2dst] Packet retransmission");
 	} else if((tcp_stats_s2d.last > seq_num)
 		  && (seq_num < tcp_stats_s2d.next)) {
-	  tcp_stats_s2d.pktLost++;
-	  if(cli_host) cli_host->incLostSent(1);
-	  if(srv_host) srv_host->incLostRcvd(1);
-	  iface->incLostPkts(1);
+	  cnt_lost++;
 	  if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[src2dst] Packet lost [last: %u][act: %u]", tcp_stats_s2d.last, seq_num);
 	} else {
-	  tcp_stats_s2d.pktOOO++;
-	  if(cli_host) cli_host->incOOOSent(1);
-	  if(srv_host) srv_host->incOOORcvd(1);
-	  iface->incOOOPkts(1);
-
+	  cnt_ooo++;
 	  update_last_seqnum = ((seq_num - 1) > tcp_stats_s2d.last) ? true : false;
 	  if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[src2dst] Packet OOO [last: %u][act: %u]", tcp_stats_s2d.last, seq_num);
 	}
@@ -2756,38 +2776,30 @@ void Flow::updateTcpSeqNum(const struct bpf_timeval *when,
 	   && (payload_Len == 0 || payload_Len == 1)
 	   && ((flags & (TH_SYN|TH_FIN|TH_RST)) == 0)) {
 	  if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[dst2src] Packet KeepAlive");
-	  tcp_stats_d2s.pktKeepAlive++;
-	  if(cli_host) cli_host->incKeepAliveRcvd(1);
-	  if(srv_host) srv_host->incKeepAliveSent(1);
+	  cnt_keep_alive++;
 	} else if(tcp_stats_d2s.last == seq_num) {
-	  tcp_stats_d2s.pktRetr++;
-	  if(cli_host) cli_host->incRetxRcvd(1);
-	  if(srv_host) srv_host->incRetxSent(1);
-	  iface->incRetransmittedPkts(1);
+	  cnt_retx++;
 	  if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[dst2src] Packet retransmission");
 	  // bytes
 	} else if((tcp_stats_d2s.last > seq_num)
 		  && (seq_num < tcp_stats_d2s.next)) {
-	  tcp_stats_d2s.pktLost++;
-	  if(cli_host) cli_host->incLostRcvd(1);
-	  if(srv_host) srv_host->incLostSent(1);
-	  iface->incLostPkts(1);
+	  cnt_lost++;
 	  if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[dst2src] Packet lost [last: %u][act: %u]", tcp_stats_d2s.last, seq_num);
 	} else {
-	  tcp_stats_d2s.pktOOO++;
-	  if(cli_host) cli_host->incOOORcvd(1);
-	  if(srv_host) srv_host->incOOOSent(1);
-	  iface->incOOOPkts(1);
+	  cnt_ooo++;
 	  update_last_seqnum = ((seq_num - 1) > tcp_stats_d2s.last) ? true : false;
 	  if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[dst2src] [last: %u][next: %u]", tcp_stats_d2s.last, tcp_stats_d2s.next);
 	  if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[dst2src] Packet OOO [last: %u][act: %u]", tcp_stats_d2s.last, seq_num);
 	}
       }
     }
-
+ 
     tcp_stats_d2s.next = next_seq_num;
     if(update_last_seqnum) tcp_stats_d2s.last = seq_num;
   }
+
+  if(cnt_keep_alive || cnt_lost || cnt_ooo || cnt_retx)
+    incTcpBadStats(src2dst_direction, cnt_ooo, cnt_retx, cnt_lost, cnt_keep_alive);
 }
 
 /* *************************************** */

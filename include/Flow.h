@@ -271,7 +271,7 @@ class Flow : public GenericHashEntry {
   void updateTcpFlags(const struct bpf_timeval *when,
 		      u_int8_t flags, bool src2dst_direction);
   void incTcpBadStats(bool src2dst_direction,
-		      u_int32_t ooo_pkts, u_int32_t retr_pkts, u_int32_t lost_pkts);
+		      u_int32_t ooo_pkts, u_int32_t retr_pkts, u_int32_t lost_pkts, u_int32_t keep_alive_pkts);
   
   void updateTcpSeqNum(const struct bpf_timeval *when,
 		       u_int32_t seq_num, u_int32_t ack_seq_num,
