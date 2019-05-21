@@ -225,6 +225,7 @@ using namespace std;
 #include "Utils.h"
 #include "CommunityIdFlowHash.h"
 #include "DnsStats.h"
+#include "TcpPacketStats.h"
 #include "NetworkStats.h"
 #ifndef HAVE_NEDGE
 #include "SNMP.h"
@@ -235,7 +236,6 @@ using namespace std;
 #include "Grouper.h"
 #include "FlowGrouper.h"
 #include "PacketStats.h"
-#include "TcpPacketStats.h"
 #include "EthStats.h"
 
 #include "LocalTrafficStats.h"

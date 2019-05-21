@@ -2669,6 +2669,9 @@ void Flow::incTcpBadStats(bool src2dst_direction,
 #endif
 
   TCPPacketStats * stats;
+  int16_t cli_network_id = -1, srv_network_id = -1;
+  NetworkStats *cli_network_stats, *srv_network_stats;
+  bool cli_and_srv_in_same_subnet = false;
 
   if(src2dst_direction)
     stats = &tcp_stats_s2d;
@@ -2680,11 +2683,10 @@ void Flow::incTcpBadStats(bool src2dst_direction,
   stats->pktOOO += ooo_pkts;
   stats->pktLost += lost_pkts;
 
-  if(retr_pkts) iface->incRetransmittedPkts(retr_pkts);
-  if(lost_pkts) iface->incLostPkts(lost_pkts);
-  if(ooo_pkts) 	iface->incOOOPkts(ooo_pkts);
-
   if(cli_host) {
+    cli_network_id = cli_host->get_local_network_id();
+    cli_network_stats = cli_host->getNetworkStats(cli_network_id);
+
     if(src2dst_direction) {
       if(keep_alive_pkts) cli_host->incKeepAliveSent(keep_alive_pkts);
       if(retr_pkts)       cli_host->incRetxSent(retr_pkts);
@@ -2699,6 +2701,9 @@ void Flow::incTcpBadStats(bool src2dst_direction,
   }
 
   if(srv_host) {
+    srv_network_id = srv_host->get_local_network_id();
+    srv_network_stats = srv_host->getNetworkStats(srv_network_id);
+
     if(src2dst_direction) {
       if(keep_alive_pkts) srv_host->incKeepAliveRcvd(keep_alive_pkts);
       if(retr_pkts)       srv_host->incRetxRcvd(retr_pkts);
@@ -2710,6 +2715,28 @@ void Flow::incTcpBadStats(bool src2dst_direction,
       if(retr_pkts)       srv_host->incRetxSent(retr_pkts);
       if(lost_pkts)       srv_host->incLostSent(lost_pkts);
       if(ooo_pkts)        srv_host->incOOOSent(ooo_pkts);
+    }
+  }
+
+  if(cli_network_id >= 0 && (cli_network_id == srv_network_id))
+    cli_and_srv_in_same_subnet = true;
+
+  if(cli_network_stats) {
+    if(!cli_and_srv_in_same_subnet) {
+      if(src2dst_direction)
+	cli_network_stats->incEgressTcp(ooo_pkts, retr_pkts, lost_pkts, keep_alive_pkts);
+      else
+	cli_network_stats->incIngressTcp(ooo_pkts, retr_pkts, lost_pkts, keep_alive_pkts);
+    } else
+      cli_network_stats->incInnerTcp(ooo_pkts, retr_pkts, lost_pkts, keep_alive_pkts);
+  }
+
+  if(srv_network_stats) {
+    if(!cli_and_srv_in_same_subnet) {
+      if(src2dst_direction)
+	srv_network_stats->incIngressTcp(ooo_pkts, retr_pkts, lost_pkts, keep_alive_pkts);
+      else
+	srv_network_stats->incEgressTcp(ooo_pkts, retr_pkts, lost_pkts, keep_alive_pkts); 
     }
   }
 }
