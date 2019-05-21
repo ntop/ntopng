@@ -182,7 +182,6 @@ print [[",
          showFilter: true,
          showPagination: true,
 ]]
-
 -- Automatic default sorted. NB: the column must be exists.
 print ('sort: [ ["' .. getDefaultTableSort("flows") ..'","' .. getDefaultTableSortOrder("flows").. '"] ],\n')
 
@@ -269,15 +268,15 @@ print[[
          field: "column_duration",
          sortable: true,
          css: {
-           textAlign: 'center'
+            textAlign: 'center'
          }
       }, {
          title: "]] print(i18n("breakdown")) print[[",
          field: "column_breakdown",
          sortable: false,
-            css: {
-               textAlign: 'center'
-            }
+         css: {
+            textAlign: 'center'
+         }
       }, {
          title: "]] print(i18n("flows_page.actual_throughput")) print[[",
          field: "column_thpt",
@@ -289,17 +288,17 @@ print[[
          title: "]] print(i18n("flows_page.total_bytes")) print[[",
          field: "column_bytes",
          sortable: true,
-            css: {
-               textAlign: 'right'
-            }
+         css: {
+            textAlign: 'right'
+         }
       }, {
          title: "]] print(i18n("info")) print[[",
          field: "column_info",
-         sortable: true,
-            css: {
-               textAlign: 'left'
-            }
+         sortable: false,
+         css: {
+            textAlign: 'left'
          }
+      }
       ]
    });
 ]]

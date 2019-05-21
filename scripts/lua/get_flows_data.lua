@@ -71,7 +71,7 @@ end
 if sortColumn == nil or sortColumn == "column_" or sortColumn == "" then
    sortColumn = getDefaultTableSort("flows")
 elseif sortColumn ~= "column_" and  sortColumn ~= "" then
-   tablePreferences("sort_flows",sortColumn)
+   tablePreferences("sort_flows", sortColumn)
 else
    sortColumn = "column_client"
 end
@@ -79,7 +79,7 @@ end
 if sortOrder == nil then
   sortOrder = getDefaultTableSortOrder("flows")
 elseif sortColumn ~= "column_" and sortColumn ~= "" then
-  tablePreferences("sort_order_flows",sortOrder)
+  tablePreferences("sort_order_flows", sortOrder)
 end
 
 if(currentPage == nil) then
