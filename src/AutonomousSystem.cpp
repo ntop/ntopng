@@ -108,8 +108,11 @@ void AutonomousSystem::lua(lua_State* vm, DetailsLevel details_level, bool asLis
     lua_push_uint64_table_entry(vm, "num_hosts", getNumHosts());
     lua_push_uint64_table_entry(vm, "round_trip_time", round_trip_time);
 
-    if(details_level >= details_higher)
+    if(details_level >= details_higher) {
       if(ndpiStats) ndpiStats->lua(iface, vm);
+        tcp_packet_stats_sent.lua(vm, "tcpPacketStats.sent");
+	tcp_packet_stats_rcvd.lua(vm, "tcpPacketStats.rcvd");
+    }
   }
 
   if(asListElement) {

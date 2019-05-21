@@ -2677,8 +2677,10 @@ void Flow::incTcpBadStats(bool src2dst_direction,
 
   TCPPacketStats * stats;
   int16_t cli_network_id = -1, srv_network_id = -1;
+  u_int32_t cli_asn = (u_int32_t)-1, srv_asn = (u_int32_t)-1;
+  AutonomousSystem *cli_as, *srv_as;
   NetworkStats *cli_network_stats, *srv_network_stats;
-  bool cli_and_srv_in_same_subnet = false;
+  bool cli_and_srv_in_same_subnet = false, cli_and_srv_in_same_as;
 
   if(src2dst_direction)
     stats = &tcp_stats_s2d;
@@ -2693,6 +2695,8 @@ void Flow::incTcpBadStats(bool src2dst_direction,
   if(cli_host) {
     cli_network_id = cli_host->get_local_network_id();
     cli_network_stats = cli_host->getNetworkStats(cli_network_id);
+    cli_asn = cli_host->get_asn();
+    cli_as = cli_host->get_as();
 
     if(src2dst_direction) {
       if(keep_alive_pkts) cli_host->incKeepAliveSent(keep_alive_pkts);
@@ -2710,6 +2714,8 @@ void Flow::incTcpBadStats(bool src2dst_direction,
   if(srv_host) {
     srv_network_id = srv_host->get_local_network_id();
     srv_network_stats = srv_host->getNetworkStats(srv_network_id);
+    srv_asn = srv_host->get_asn();
+    srv_as = srv_host->get_as();
 
     if(src2dst_direction) {
       if(keep_alive_pkts) srv_host->incKeepAliveRcvd(keep_alive_pkts);
@@ -2741,9 +2747,28 @@ void Flow::incTcpBadStats(bool src2dst_direction,
   if(srv_network_stats) {
     if(!cli_and_srv_in_same_subnet) {
       if(src2dst_direction)
-	srv_network_stats->incIngressTcp(ooo_pkts, retr_pkts, lost_pkts, keep_alive_pkts);
+ 	srv_network_stats->incIngressTcp(ooo_pkts, retr_pkts, lost_pkts, keep_alive_pkts);
       else
 	srv_network_stats->incEgressTcp(ooo_pkts, retr_pkts, lost_pkts, keep_alive_pkts); 
+    }
+  }
+
+  if(cli_asn != (u_int32_t)-1 && (cli_asn == srv_asn))
+    cli_and_srv_in_same_as = true;
+
+  if(!cli_and_srv_in_same_as) {
+    if(cli_as) {
+      if(src2dst_direction)
+	cli_as->incSentTcp(ooo_pkts, retr_pkts, lost_pkts, keep_alive_pkts);
+      else
+	cli_as->incRcvdTcp(ooo_pkts, retr_pkts, lost_pkts, keep_alive_pkts);
+    }
+
+    if(srv_as) {
+      if(src2dst_direction)
+	srv_as->incRcvdTcp(ooo_pkts, retr_pkts, lost_pkts, keep_alive_pkts);
+      else
+	srv_as->incSentTcp(ooo_pkts, retr_pkts, lost_pkts, keep_alive_pkts);
     }
   }
 }

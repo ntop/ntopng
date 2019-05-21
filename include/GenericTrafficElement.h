@@ -57,6 +57,20 @@ class GenericTrafficElement {
 #endif
   };
   inline void incNumDroppedFlows()         { total_num_dropped_flows++;      };
+
+  inline void incSentTcp(u_int32_t ooo_pkts, u_int32_t retr_pkts, u_int32_t lost_pkts, u_int32_t keep_alive_pkts) {
+    if(ooo_pkts)        incOOO(&tcp_packet_stats_sent, ooo_pkts);
+    if(retr_pkts)       incRetx(&tcp_packet_stats_sent, retr_pkts);
+    if(lost_pkts)       incLost(&tcp_packet_stats_sent, lost_pkts);
+    if(keep_alive_pkts) incKeepAlive(&tcp_packet_stats_sent, keep_alive_pkts);
+  }
+
+  inline void incRcvdTcp(u_int32_t ooo_pkts, u_int32_t retr_pkts, u_int32_t lost_pkts, u_int32_t keep_alive_pkts) {
+    if(ooo_pkts)        incOOO(&tcp_packet_stats_rcvd, ooo_pkts);
+    if(retr_pkts)       incRetx(&tcp_packet_stats_rcvd, retr_pkts);
+    if(lost_pkts)       incLost(&tcp_packet_stats_rcvd, lost_pkts);
+    if(keep_alive_pkts) incKeepAlive(&tcp_packet_stats_rcvd, keep_alive_pkts);
+  }
   
   inline void incRetxSent(u_int32_t num)       { incRetx(&tcp_packet_stats_sent, num);      };
   inline void incOOOSent(u_int32_t num)        { incOOO(&tcp_packet_stats_sent, num);       };

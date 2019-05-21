@@ -1276,11 +1276,6 @@ bool Host::statsResetRequested() {
 /* *************************************** */
 
 void Host::updateStats(struct timeval *tv) {
-  if(stats_shadow) {
-    delete stats_shadow;
-    stats_shadow = NULL;
-  }
-
   checkDataReset();
   checkStatsReset();
   checkBroadcastDomain();
@@ -1306,6 +1301,11 @@ void Host::updateStats(struct timeval *tv) {
 /* *************************************** */
 
 void Host::checkStatsReset() {
+  if(stats_shadow) {
+    delete stats_shadow;
+    stats_shadow = NULL;
+  }
+
   if(statsResetRequested()) {
     HostStats *new_stats = allocateStats();
     stats_shadow = stats;
