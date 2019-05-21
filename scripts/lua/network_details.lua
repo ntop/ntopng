@@ -118,8 +118,12 @@ if page == "historical" then
 
     drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
       timeseries = {
-         {schema="subnet:traffic",              label=i18n("traffic")},
-         {schema="subnet:broadcast_traffic",    label=i18n("broadcast_traffic")},
+         {schema="subnet:traffic",             label=i18n("traffic")},
+         {schema="subnet:broadcast_traffic",   label=i18n("broadcast_traffic")},
+	 {schema="subnet:tcp_retransmissions", label=i18n("graphs.tcp_packets_retr")},
+	 {schema="subnet:tcp_out_of_order",    label=i18n("graphs.tcp_packets_ooo")},
+	 {schema="subnet:tcp_lost",            label=i18n("graphs.tcp_packets_lost")},
+	 {schema="subnet:tcp_keep_alive",      label=i18n("graphs.tcp_packets_keep_alive")},
       }
     })
 elseif (page == "config") then

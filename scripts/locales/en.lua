@@ -1422,6 +1422,7 @@ local lang = {
     ["tcp_packets"] = "TCP Packets",
     ["tcp_packets_lost"] = "TCP Packets Lost",
     ["tcp_packets_ooo"] = "TCP Packets Out-Of-Order",
+    ["tcp_packets_keep_alive"] = "TCP Packets KeepAlive",
     ["tcp_packets_retr"] = "TCP Retransmitted Packets",
     ["tcp_retr_ooo_lost"] = "TCP Retransmitted Out-Of-Order and Lost",
     ["tcp_rst_packets"] = "TCP RST Packets",
