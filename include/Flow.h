@@ -25,6 +25,10 @@
 #include "ntop_includes.h"
 
 typedef struct {
+  u_int32_t pktFrag;
+} IPPacketStats;
+
+typedef struct {
   u_int32_t pktRetr, pktOOO, pktLost, pktKeepAlive;
   u_int64_t last, next;
 } TCPPacketStats;
@@ -127,6 +131,9 @@ class Flow : public GenericHashEntry {
   u_int64_t cli2srv_bytes, srv2cli_bytes;
   /* https://en.wikipedia.org/wiki/Goodput */
   u_int64_t cli2srv_goodput_bytes, srv2cli_goodput_bytes;
+
+  /* IP stats */
+  IPPacketStats ip_stats_s2d, ip_stats_d2s;
 
   /* TCP stats */
   TCPPacketStats tcp_stats_s2d, tcp_stats_d2s;
@@ -297,10 +304,12 @@ class Flow : public GenericHashEntry {
 #endif
   bool isFlowPeer(char *numIP, u_int16_t vlanId);
   void incStats(bool cli2srv_direction, u_int pkt_len,
-		u_int8_t *payload, u_int payload_len, u_int8_t l4_proto,
+		u_int8_t *payload, u_int payload_len, 
+                u_int8_t l4_proto, u_int8_t is_fragment,
 		const struct timeval *when);
   void addFlowStats(bool cli2srv_direction, u_int in_pkts, u_int in_bytes, u_int in_goodput_bytes,
-		    u_int out_pkts, u_int out_bytes, u_int out_goodput_bytes, time_t last_seen);
+		    u_int out_pkts, u_int out_bytes, u_int out_goodput_bytes, 
+		    u_int in_fragments, u_int out_fragments, time_t last_seen);
   inline bool isThreeWayHandshakeOK()             { return(twh_ok);                          };
   inline bool isDetectionCompleted() const        { return(detection_completed);             };
   inline struct ndpi_flow_struct* get_ndpi_flow() { return(ndpiFlow);                        };

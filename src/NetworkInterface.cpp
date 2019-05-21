@@ -1329,6 +1329,8 @@ void NetworkInterface::processFlow(ParsedFlow *zflow, bool zmq_flow) {
 		     zflow->pkt_sampling_rate*zflow->in_bytes, 0,
 		     zflow->pkt_sampling_rate*zflow->out_pkts,
 		     zflow->pkt_sampling_rate*zflow->out_bytes, 0,
+		     zflow->pkt_sampling_rate*zflow->in_fragments,
+		     zflow->pkt_sampling_rate*zflow->out_fragments,
 		     zflow->last_switched);
   p.app_protocol = zflow->l7_proto.app_protocol, p.master_protocol = zflow->l7_proto.master_protocol;
   p.category = NDPI_PROTOCOL_CATEGORY_UNSPECIFIED;
@@ -1682,10 +1684,10 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
     struct timeval tv_ts;
     tv_ts.tv_sec  = h->ts.tv_sec;
     tv_ts.tv_usec = h->ts.tv_usec;
-    flow->incStats(src2dst_direction, rawsize, payload, payload_len, l4_proto, &tv_ts);
+    flow->incStats(src2dst_direction, rawsize, payload, payload_len, l4_proto, is_fragment, &tv_ts);
 #else
     PROFILING_SECTION_ENTER("NetworkInterface::processPacket: flow->incStats", 2);
-    flow->incStats(src2dst_direction, rawsize, payload, payload_len, l4_proto, &h->ts);
+    flow->incStats(src2dst_direction, rawsize, payload, payload_len, l4_proto, is_fragment, &h->ts);
     PROFILING_SECTION_EXIT(2);
 #endif
 #endif

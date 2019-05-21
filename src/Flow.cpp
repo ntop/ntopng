@@ -135,6 +135,7 @@ Flow::Flow(NetworkInterface *_iface,
     synAckTime.tv_sec = synAckTime.tv_usec = 0,
     rttSec = 0, cli2srv_window = srv2cli_window = 0,
     c2sFirstGoodputTime.tv_sec = c2sFirstGoodputTime.tv_usec = 0;
+  memset(&ip_stats_s2d, 0, sizeof(ip_stats_s2d)), memset(&ip_stats_d2s, 0, sizeof(ip_stats_d2s));
   memset(&tcp_stats_s2d, 0, sizeof(tcp_stats_s2d)), memset(&tcp_stats_d2s, 0, sizeof(tcp_stats_d2s));
   memset(&clientNwLatency, 0, sizeof(clientNwLatency)), memset(&serverNwLatency, 0, sizeof(serverNwLatency));
 
@@ -1700,6 +1701,9 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     lua_push_uint64_table_entry(vm, "cli2srv.packets", cli2srv_packets);
     lua_push_uint64_table_entry(vm, "srv2cli.packets", srv2cli_packets);
 
+    lua_push_uint64_table_entry(vm, "cli2srv.fragments", ip_stats_s2d.pktFrag);
+    lua_push_uint64_table_entry(vm, "srv2cli.fragments", ip_stats_d2s.pktFrag);
+
     if(isICMP()) {
       lua_newtable(vm);
       lua_push_uint64_table_entry(vm, "type", protos.icmp.icmp_type);
@@ -2417,7 +2421,8 @@ bool Flow::isSSLProto() {
 /* *************************************** */
 
 void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
-		    u_int8_t *payload, u_int payload_len, u_int8_t l4_proto,
+		    u_int8_t *payload, u_int payload_len, 
+                    u_int8_t l4_proto, u_int8_t is_fragment,
 		    const struct timeval *when) {
   payload_len *= iface->getScalingFactor();
 
@@ -2428,10 +2433,10 @@ void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
 
   if(cli2srv_direction) {
     cli2srv_packets++, cli2srv_bytes += pkt_len, cli2srv_goodput_bytes += payload_len;
-      cli_host->incSentStats(pkt_len), srv_host->incRecvStats(pkt_len);
+      cli_host->incSentStats(pkt_len), srv_host->incRecvStats(pkt_len), ip_stats_s2d.pktFrag += is_fragment;
   } else {
     srv2cli_packets++, srv2cli_bytes += pkt_len, srv2cli_goodput_bytes += payload_len;
-    cli_host->incRecvStats(pkt_len), srv_host->incSentStats(pkt_len);
+    cli_host->incRecvStats(pkt_len), srv_host->incSentStats(pkt_len), ip_stats_d2s.pktFrag += is_fragment;
   }
 
   if((applLatencyMsec == 0) && (payload_len > 0)) {
@@ -2461,7 +2466,7 @@ void Flow::updateInterfaceLocalStats(bool src2dst_direction, u_int num_pkts, u_i
 void Flow::addFlowStats(bool cli2srv_direction,
 			u_int in_pkts, u_int in_bytes, u_int in_goodput_bytes,
 			u_int out_pkts, u_int out_bytes, u_int out_goodput_bytes,
-			time_t last_seen) {
+			u_int in_fragments, u_int out_fragments, time_t last_seen) {
 
   /* Don't update seen if no traffic has been observed */
   if((in_bytes == 0) && (out_bytes == 0)) return;
@@ -2470,10 +2475,12 @@ void Flow::addFlowStats(bool cli2srv_direction,
 
   if(cli2srv_direction)
     cli2srv_packets += in_pkts, cli2srv_bytes += in_bytes, cli2srv_goodput_bytes += in_goodput_bytes,
-      srv2cli_packets += out_pkts, srv2cli_bytes += out_bytes, srv2cli_goodput_bytes += out_goodput_bytes;
+      srv2cli_packets += out_pkts, srv2cli_bytes += out_bytes, srv2cli_goodput_bytes += out_goodput_bytes,
+      ip_stats_s2d.pktFrag += in_fragments, ip_stats_d2s.pktFrag += out_fragments;
   else
     cli2srv_packets += out_pkts, cli2srv_bytes += out_bytes, cli2srv_goodput_bytes += out_goodput_bytes,
-      srv2cli_packets += in_pkts, srv2cli_bytes += in_bytes, srv2cli_goodput_bytes += in_goodput_bytes;
+      srv2cli_packets += in_pkts, srv2cli_bytes += in_bytes, srv2cli_goodput_bytes += in_goodput_bytes,
+      ip_stats_s2d.pktFrag += out_fragments, ip_stats_d2s.pktFrag += in_fragments;
 
   if(bytes_thpt == 0 && last_seen >= first_seen + 1) {
     /* Do a fist estimation while waiting for the periodic activities */

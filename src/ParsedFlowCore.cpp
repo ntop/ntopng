@@ -36,6 +36,7 @@ ParsedFlowCore::ParsedFlowCore() {
   pkt_sampling_rate = 1; /* 1:1 (no sampling) */
   l4_proto = 0;
   in_pkts = in_bytes = out_pkts = out_bytes = vrfId = 0;
+  in_fragments = out_fragments = 0;
   absolute_packet_octet_counters = 0;
   memset(&tcp, 0, sizeof(tcp));
   first_switched = last_switched = 0;

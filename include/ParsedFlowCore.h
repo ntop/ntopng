@@ -36,6 +36,7 @@ class ParsedFlowCore {
   u_int16_t vlan_id, pkt_sampling_rate;
   u_int8_t l4_proto;
   u_int32_t in_pkts, in_bytes, out_pkts, out_bytes, vrfId;
+  u_int32_t in_fragments, out_fragments;
   u_int8_t absolute_packet_octet_counters;
   struct {
     u_int8_t tcp_flags, client_tcp_flags, server_tcp_flags;

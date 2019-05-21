@@ -93,6 +93,8 @@ ZMQParserInterface::ZMQParserInterface(const char *endpoint, const char *custom_
   addMapping("HTTP_SITE", HTTP_SITE, NTOP_PEN);
   addMapping("SSL_SERVER_NAME", SSL_SERVER_NAME, NTOP_PEN);
   addMapping("BITTORRENT_HASH", BITTORRENT_HASH, NTOP_PEN);
+  addMapping("SRC_FRAGMENTS", SRC_FRAGMENTS, NTOP_PEN);
+  addMapping("DST_FRAGMENTS", DST_FRAGMENTS, NTOP_PEN);
 }
 
 /* **************************************************** */
@@ -503,6 +505,12 @@ bool ZMQParserInterface::parsePENZeroField(ParsedFlow * const flow, u_int32_t fi
   case IPV4_NEXT_HOP:
     if(strcmp(value, "0.0.0.0"))
       return false;
+    break;
+  case SRC_FRAGMENTS:
+    flow->in_fragments = atol(value);
+    break;
+  case DST_FRAGMENTS:
+    flow->out_fragments = atol(value);
     break;
 
   default:

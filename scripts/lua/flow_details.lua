@@ -510,6 +510,13 @@ else
 	  if(flow["flow.idle"] == true) then print("<tr><td colspan=2><i class='fa fa-clock-o'></i> <small>"..i18n("flow_details.looks_like_idle_flow_message").."</small></td></tr>") end
        end
 
+       if((flow["cli2srv.fragments"] + flow["srv2cli.fragments"]) > 0) then
+	  rowspan = 3
+	  print("<tr><th width=30% rowspan="..rowspan..">"..i18n("flow_details.ip_packet_analysis").."</th><td colspan=2 cellpadding='0' width='100%' cellspacing='0' style='padding-top: 0px; padding-left: 0px;padding-bottom: 0px; padding-right: 0px;'></tr>")
+	  print("<tr><th>&nbsp;</th><th>"..i18n("client").." <i class=\"fa fa-arrow-right\"></i> "..i18n("server").." / "..i18n("client").." <i class=\"fa fa-arrow-left\"></i> "..i18n("server").."</th></tr>\n")
+	  print("<tr><th>"..i18n("details.fragments").."</th><td align=right><span id=c2sFrag>".. formatPackets(flow["cli2srv.fragments"]) .."</span> / <span id=s2cFrag>".. formatPackets(flow["srv2cli.fragments"]) .."</span></td></tr>\n")
+       end
+
        if(flow["tcp.seq_problems"] ~= nil) then
 	  rowspan = 2
 	  if((flow["cli2srv.retransmissions"] + flow["srv2cli.retransmissions"]) > 0) then rowspan = rowspan+1 end
