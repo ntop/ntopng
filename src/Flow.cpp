@@ -2716,21 +2716,25 @@ void Flow::updateTcpSeqNum(const struct bpf_timeval *when,
 	   && ((flags & (TH_SYN|TH_FIN|TH_RST)) == 0)) {
 	  if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[src2dst] Packet KeepAlive");
 	  tcp_stats_s2d.pktKeepAlive++;
-	  cli_host->incKeepAliveSent(1), srv_host->incKeepAliveRcvd(1);
+	  if(cli_host) cli_host->incKeepAliveSent(1);
+	  if(srv_host) srv_host->incKeepAliveRcvd(1);
 	} else if(tcp_stats_s2d.last == seq_num) {
 	  tcp_stats_s2d.pktRetr++;
-	  cli_host->incRetxSent(1), srv_host->incRetxRcvd(1);
+	  if(cli_host) cli_host->incRetxSent(1);
+	  if(srv_host) srv_host->incRetxRcvd(1);
 	  iface->incRetransmittedPkts(1);
 	  if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[src2dst] Packet retransmission");
 	} else if((tcp_stats_s2d.last > seq_num)
 		  && (seq_num < tcp_stats_s2d.next)) {
 	  tcp_stats_s2d.pktLost++;
-	  cli_host->incLostSent(1), srv_host->incLostRcvd(1);
+	  if(cli_host) cli_host->incLostSent(1);
+	  if(srv_host) srv_host->incLostRcvd(1);
 	  iface->incLostPkts(1);
 	  if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[src2dst] Packet lost [last: %u][act: %u]", tcp_stats_s2d.last, seq_num);
 	} else {
 	  tcp_stats_s2d.pktOOO++;
-	  cli_host->incOOOSent(1), srv_host->incOOORcvd(1);
+	  if(cli_host) cli_host->incOOOSent(1);
+	  if(srv_host) srv_host->incOOORcvd(1);
 	  iface->incOOOPkts(1);
 
 	  update_last_seqnum = ((seq_num - 1) > tcp_stats_s2d.last) ? true : false;
@@ -2753,22 +2757,26 @@ void Flow::updateTcpSeqNum(const struct bpf_timeval *when,
 	   && ((flags & (TH_SYN|TH_FIN|TH_RST)) == 0)) {
 	  if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[dst2src] Packet KeepAlive");
 	  tcp_stats_d2s.pktKeepAlive++;
-	  cli_host->incKeepAliveRcvd(1), srv_host->incKeepAliveSent(1);
+	  if(cli_host) cli_host->incKeepAliveRcvd(1);
+	  if(srv_host) srv_host->incKeepAliveSent(1);
 	} else if(tcp_stats_d2s.last == seq_num) {
 	  tcp_stats_d2s.pktRetr++;
-	  cli_host->incRetxRcvd(1), srv_host->incRetxSent(1);
+	  if(cli_host) cli_host->incRetxRcvd(1);
+	  if(srv_host) srv_host->incRetxSent(1);
 	  iface->incRetransmittedPkts(1);
 	  if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[dst2src] Packet retransmission");
 	  // bytes
 	} else if((tcp_stats_d2s.last > seq_num)
 		  && (seq_num < tcp_stats_d2s.next)) {
 	  tcp_stats_d2s.pktLost++;
-	  cli_host->incLostRcvd(1), srv_host->incLostSent(1);
+	  if(cli_host) cli_host->incLostRcvd(1);
+	  if(srv_host) srv_host->incLostSent(1);
 	  iface->incLostPkts(1);
 	  if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[dst2src] Packet lost [last: %u][act: %u]", tcp_stats_d2s.last, seq_num);
 	} else {
 	  tcp_stats_d2s.pktOOO++;
-	  cli_host->incOOORcvd(1), srv_host->incOOOSent(1);
+	  if(cli_host) cli_host->incOOORcvd(1);
+	  if(srv_host) srv_host->incOOOSent(1);
 	  iface->incOOOPkts(1);
 	  update_last_seqnum = ((seq_num - 1) > tcp_stats_d2s.last) ? true : false;
 	  if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[dst2src] [last: %u][next: %u]", tcp_stats_d2s.last, tcp_stats_d2s.next);
