@@ -2698,17 +2698,10 @@ void Flow::incTcpBadStats(bool src2dst_direction,
     cli_asn = cli_host->get_asn();
     cli_as = cli_host->get_as();
 
-    if(src2dst_direction) {
-      if(keep_alive_pkts) cli_host->incKeepAliveSent(keep_alive_pkts);
-      if(retr_pkts)       cli_host->incRetxSent(retr_pkts);
-      if(lost_pkts)       cli_host->incLostSent(lost_pkts);
-      if(ooo_pkts)        cli_host->incOOOSent(ooo_pkts);
-    } else {
-      if(keep_alive_pkts) cli_host->incKeepAliveRcvd(keep_alive_pkts);
-      if(retr_pkts)       cli_host->incRetxRcvd(retr_pkts);
-      if(lost_pkts)       cli_host->incLostRcvd(lost_pkts);
-      if(ooo_pkts)        cli_host->incOOORcvd(ooo_pkts);
-    }
+    if(src2dst_direction)
+      cli_host->incSentTcp(ooo_pkts, retr_pkts, lost_pkts, keep_alive_pkts);
+    else
+      cli_host->incRcvdTcp(ooo_pkts, retr_pkts, lost_pkts, keep_alive_pkts);
   }
 
   if(srv_host) {
@@ -2717,18 +2710,10 @@ void Flow::incTcpBadStats(bool src2dst_direction,
     srv_asn = srv_host->get_asn();
     srv_as = srv_host->get_as();
 
-    if(src2dst_direction) {
-      if(keep_alive_pkts) srv_host->incKeepAliveRcvd(keep_alive_pkts);
-      if(retr_pkts)       srv_host->incRetxRcvd(retr_pkts);
-      if(lost_pkts)       srv_host->incLostRcvd(lost_pkts);
-      if(ooo_pkts)        srv_host->incOOORcvd(ooo_pkts);
-
-    } else {
-      if(keep_alive_pkts) srv_host->incKeepAliveSent(keep_alive_pkts);
-      if(retr_pkts)       srv_host->incRetxSent(retr_pkts);
-      if(lost_pkts)       srv_host->incLostSent(lost_pkts);
-      if(ooo_pkts)        srv_host->incOOOSent(ooo_pkts);
-    }
+    if(src2dst_direction)
+      srv_host->incRcvdTcp(ooo_pkts, retr_pkts, lost_pkts, keep_alive_pkts);
+    else
+      srv_host->incSentTcp(ooo_pkts, retr_pkts, lost_pkts, keep_alive_pkts);
   }
 
   if(cli_network_id >= 0 && (cli_network_id == srv_network_id))

@@ -136,15 +136,19 @@ class Host : public GenericHashEntry {
   inline u_int16_t get_vlan_id()           { return(vlan_id);        };
   char* get_name(char *buf, u_int buf_len, bool force_resolution_if_not_found);
 
-  inline void incRetxSent(u_int32_t num)      { stats->incRetxSent(num);      };
-  inline void incOOOSent(u_int32_t num)       { stats->incOOOSent(num);       };
-  inline void incLostSent(u_int32_t num)      { stats->incLostSent(num);      };
-  inline void incKeepAliveSent(u_int32_t num) { stats->incKeepAliveSent(num); };
+  inline void incSentTcp(u_int32_t ooo_pkts, u_int32_t retr_pkts, u_int32_t lost_pkts, u_int32_t keep_alive_pkts) {
+    if(ooo_pkts)        stats->incOOOSent(ooo_pkts);
+    if(retr_pkts)       stats->incRetxSent(retr_pkts);
+    if(lost_pkts)       stats->incLostSent(lost_pkts);
+    if(keep_alive_pkts) stats->incKeepAliveSent(keep_alive_pkts);
+  }
 
-  inline void incRetxRcvd(u_int32_t num)      { stats->incRetxRcvd(num);      };
-  inline void incOOORcvd(u_int32_t num)       { stats->incOOORcvd(num);       };
-  inline void incLostRcvd(u_int32_t num)      { stats->incLostRcvd(num);      };
-  inline void incKeepAliveRcvd(u_int32_t num) { stats->incKeepAliveRcvd(num); };
+  inline void incRcvdTcp(u_int32_t ooo_pkts, u_int32_t retr_pkts, u_int32_t lost_pkts, u_int32_t keep_alive_pkts) {
+    if(ooo_pkts)        stats->incOOORcvd(ooo_pkts);
+    if(retr_pkts)       stats->incRetxRcvd(retr_pkts);
+    if(lost_pkts)       stats->incLostRcvd(lost_pkts);
+    if(keep_alive_pkts) stats->incKeepAliveRcvd(keep_alive_pkts);
+  }
 
   inline void incSentStats(u_int pkt_len)           { stats->incSentStats(pkt_len);          };
   inline void incRecvStats(u_int pkt_len)           { stats->incRecvStats(pkt_len);          };
