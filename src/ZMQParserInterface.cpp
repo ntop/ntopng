@@ -506,13 +506,6 @@ bool ZMQParserInterface::parsePENZeroField(ParsedFlow * const flow, u_int32_t fi
     if(strcmp(value, "0.0.0.0"))
       return false;
     break;
-  case SRC_FRAGMENTS:
-    flow->in_fragments = atol(value);
-    break;
-  case DST_FRAGMENTS:
-    flow->out_fragments = atol(value);
-    break;
-
   default:
     return false;
   }
@@ -595,6 +588,12 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t fi
     /* Do not override EXPORTER_IPV4_ADDRESS */
     if(flow->deviceIP == 0 && (flow->deviceIP = ntohl(inet_addr(value))))
       return false;
+    break;
+  case SRC_FRAGMENTS:
+    flow->in_fragments = atol(value);
+    break;
+  case DST_FRAGMENTS:
+    flow->out_fragments = atol(value);
     break;
   default:
     return false;
