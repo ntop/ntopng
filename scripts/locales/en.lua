@@ -2454,6 +2454,7 @@ local lang = {
     ["influxdb_password_description"] = "The password to authenticate with the InfluxDB database.",
     ["influxdb_retention_error"] = "Could not set retention policy on database \"%{db}\": %{msg}",
     ["influxdb_storage_description"] = "InfluxDB timeseries data retention days (use 0 for unlimited). Default: 365 days.",
+    ["influxdb_storage_note"] = "NOTE: data will be purged at intervals of %{interval}, which corresponds to the InfluxDB <a href='%{url}'>shard duration</a>.",
     ["influxdb_storage_title"] = "InfluxDB Storage",
     ["influxdb_url_description"] = "The URL pointing to a running InfluxDB instance.",
     ["influxdb_url_title"] = "InfluxDB URL",

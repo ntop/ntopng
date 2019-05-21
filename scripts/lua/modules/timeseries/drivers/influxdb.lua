@@ -1057,6 +1057,26 @@ end
 
 -- ##############################################
 
+function driver.getShardGroupDuration(days_retention)
+  -- https://docs.influxdata.com/influxdb/v1.7/query_language/database_management/#description-of-syntax-1
+  if days_retention < 2 then
+    return "1h"
+  elseif days_retention < 180 then
+    return "1d"
+  else
+    return "7d"
+  end
+end
+
+local function makeRetentionPolicyQuery(statement, rpname, dbname, retention)
+  return(string.format('%s RETENTION POLICY "%s" ON "%s" DURATION %ud REPLICATION 1 SHARD DURATION %s',
+    statement, rpname, dbname,
+    retention, driver.getShardGroupDuration(retention)
+  ))
+end
+
+-- ##############################################
+
 local function updateCQRetentionPolicies(dbname, url, username, password)
   local query = string.format("SHOW RETENTION POLICIES ON %s", dbname)
   local res = influx_query(url .. "/query?db=".. dbname, query, username, password)
@@ -1076,8 +1096,8 @@ local function updateCQRetentionPolicies(dbname, url, username, password)
   end
 
   local queries = {
-    string.format('%s RETENTION POLICY "1h" ON %s DURATION %ud REPLICATION 1', rp_1h_statement, dbname, get1hDatabaseRetentionDays()),
-    string.format('%s RETENTION POLICY "1d" ON %s DURATION %ud REPLICATION 1', rp_1d_statement, dbname, get1dDatabaseRetentionDays())
+    makeRetentionPolicyQuery(rp_1h_statement, "1h", dbname, get1hDatabaseRetentionDays()),
+    makeRetentionPolicyQuery(rp_1d_statement, "1d", dbname, get1dDatabaseRetentionDays())
   }
 
   return multiQueryPost(queries, url, username, password)
@@ -1173,7 +1193,7 @@ function driver.init(dbname, url, days_retention, username, password, verbose)
 
     -- Set retention
     if verbose then traceError(TRACE_NORMAL, TRACE_CONSOLE, "Setting retention for " .. dbname .. " ...") end
-    local query = "ALTER RETENTION POLICY autogen ON \"".. dbname .."\" DURATION ".. days_retention .."d"
+    local query = makeRetentionPolicyQuery("ALTER", "autogen", dbname, days_retention)
 
     local res = ntop.httpPost(url .. "/query", "q=" .. query, username, password, timeout, true)
     if not res or (res.RESPONSE_CODE ~= 200) then

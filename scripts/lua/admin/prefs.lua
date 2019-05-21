@@ -4,6 +4,7 @@
 
 dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/drivers/?.lua;" .. package.path -- for influxdb
 if((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.scriptdir .. "/lua/modules/?.lua;" .. package.path end
 require "lua_utils"
 require "prefs_utils"
@@ -18,6 +19,7 @@ local recording_utils = require "recording_utils"
 local remote_assistance = require "remote_assistance"
 local page_utils = require("page_utils")
 local ts_utils = require("ts_utils")
+local influxdb = require("influxdb")
 local nindex_utils = nil
 
 if(ntop.isPro()) then
@@ -122,8 +124,6 @@ if(haveAdminPrivileges()) then
         or (_POST["toggle_influx_auth"] ~= ntop.getPref("ntopng.prefs.influx_auth_enabled"))
         or (_POST["influx_username"] ~= ntop.getPref("ntopng.prefs.influx_username"))
         or (_POST["influx_password"] ~= ntop.getPref("ntopng.prefs.influx_password")) then
-         package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/drivers/?.lua;" .. package.path
-         local influxdb = require("influxdb")
          local username = nil
          local password = nil
 
@@ -1420,7 +1420,8 @@ function printStatsTimeseries()
 				    "ntopng.prefs.ts_high_resolution", has_custom_housekeeping,
 				    nil, nil, nil, influx_active)
 
-  prefsInputFieldPrefs(subpage_active.entries["influxdb_storage"].title, subpage_active.entries["influxdb_storage"].description,
+  prefsInputFieldPrefs(subpage_active.entries["influxdb_storage"].title, subpage_active.entries["influxdb_storage"].description .. "<br>" ..
+      i18n("prefs.influxdb_storage_note", {interval=influxdb.getShardGroupDuration(tonumber(_POST["influx_retention"] or ntop.getPref("ntopng.prefs.influx_retention"))), url="https://docs.influxdata.com/influxdb/v1.7/query_language/database_management/#description-of-syntax-1"}),
       "ntopng.prefs.", "influx_retention", 365, "number", influx_active, nil, nil, {min=0, max=365*10})
 
   prefsInputFieldPrefs(subpage_active.entries["rrd_files_retention"].title, subpage_active.entries["rrd_files_retention"].description,
