@@ -47,6 +47,8 @@ void GenericTrafficElement::resetStats() {
 
   sent = TrafficStats();
   rcvd = TrafficStats();
+  tcp_packet_stats_sent = TcpPacketStats();
+  tcp_packet_stats_rcvd = TcpPacketStats();
 }
 
 /* *************************************** */
@@ -63,6 +65,8 @@ GenericTrafficElement::GenericTrafficElement(const GenericTrafficElement &gte) {
 
     sent = gte.sent;
     rcvd = gte.rcvd;
+    tcp_packet_stats_sent = gte.tcp_packet_stats_sent;
+    tcp_packet_stats_rcvd = gte.tcp_packet_stats_rcvd;
 
 #ifdef NTOPNG_PRO
     custom_app_stats = (gte.custom_app_stats) ? new CustomAppStats(*gte.custom_app_stats) : NULL;

@@ -32,6 +32,7 @@ class GenericTrafficElement {
   CustomAppStats *custom_app_stats;
 #endif
   u_int32_t total_num_dropped_flows;
+  TcpPacketStats tcp_packet_stats_sent, tcp_packet_stats_rcvd;
 
   float bytes_thpt, pkts_thpt;
   float last_bytes_thpt, last_pkts_thpt;
@@ -39,6 +40,11 @@ class GenericTrafficElement {
   float bytes_thpt_diff;
   u_int64_t last_bytes, last_packets;
   struct timeval last_update_time;
+
+  inline void incRetx(TcpPacketStats * const tps, u_int32_t num)      { tps->incRetr(num);      };
+  inline void incOOO(TcpPacketStats * const tps, u_int32_t num)       { tps->incOOO(num);       };
+  inline void incLost(TcpPacketStats * const tps, u_int32_t num)      { tps->incLost(num);;     };
+  inline void incKeepAlive(TcpPacketStats * const tps, u_int32_t num) { tps->incKeepAlive(num); };
 
  public:
   GenericTrafficElement();
@@ -51,6 +57,17 @@ class GenericTrafficElement {
 #endif
   };
   inline void incNumDroppedFlows()         { total_num_dropped_flows++;      };
+  
+  inline void incRetxSent(u_int32_t num)       { incRetx(&tcp_packet_stats_sent, num);      };
+  inline void incOOOSent(u_int32_t num)        { incOOO(&tcp_packet_stats_sent, num);       };
+  inline void incLostSent(u_int32_t num)       { incLost(&tcp_packet_stats_sent, num);      };
+  inline void incKeepAliveSent(u_int32_t num)  { incKeepAlive(&tcp_packet_stats_sent, num); };
+
+  inline void incRetxRcvd(u_int32_t num)       { incRetx(&tcp_packet_stats_rcvd, num);      };
+  inline void incOOORcvd(u_int32_t num)        { incOOO(&tcp_packet_stats_rcvd, num);       };
+  inline void incLostRcvd(u_int32_t num)       { incLost(&tcp_packet_stats_rcvd, num);      };
+  inline void incKeepAliveRcvd(u_int32_t num)  { incKeepAlive(&tcp_packet_stats_rcvd, num); };
+
   virtual void updateStats(struct timeval *tv);
   void lua(lua_State* vm, bool host_details);
 

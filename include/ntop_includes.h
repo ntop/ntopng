@@ -190,6 +190,7 @@ using namespace std;
 #include "CustomAppMaps.h"
 #include "CustomAppStats.h"
 #endif
+#include "TcpPacketStats.h"
 #include "GenericTrafficElement.h"
 #include "ContainerStats.h"
 #include "ParsedFlowCore.h"
@@ -225,7 +226,6 @@ using namespace std;
 #include "Utils.h"
 #include "CommunityIdFlowHash.h"
 #include "DnsStats.h"
-#include "TcpPacketStats.h"
 #include "NetworkStats.h"
 #ifndef HAVE_NEDGE
 #include "SNMP.h"
