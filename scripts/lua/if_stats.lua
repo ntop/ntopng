@@ -662,7 +662,7 @@ if(ifstats.zmqRecvStats ~= nil) then
 
       if storage_info.rrd ~= nil and storage_info.rrd > 0 then
         table.insert(storage_items, {
-          title = i18n("prefs.timeseries"),
+          title = i18n("if_stats_overview.rrd_timeseries"),
           value = storage_info.rrd,
           class = "primary",
         })
