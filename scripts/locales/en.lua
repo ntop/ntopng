@@ -1655,6 +1655,7 @@ local lang = {
     ["received_traffic"] = "Received Traffic",
     ["remote_probe"] = "Remote Probe",
     ["reset_counters"] = "Reset Counters",
+    ["rrd_timeseries"] = "RRD Timeseries",
     ["send_error"] = "Send Error",
     ["sflow_counter_updates"] = "sFlow Counter Updates",
     ["shaped_filtered_packets"] = "Shaped/Filtered Packets",
