@@ -630,11 +630,7 @@ end
 
    local flows_th = i18n("details.flows_non_packet_iface")
    if interface.isPacketInterface() then
-      if interface.isPcapDumpInterface() == false then
-         flows_th = i18n("details.flows_packet_iface")
-      else
-         flows_th = i18n("details.flows_packet_pcap_dump_iface")
-      end
+      flows_th = i18n("details.flows_packet_iface")
    end
 
    if hasNindexSupport() then

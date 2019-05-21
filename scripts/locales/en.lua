@@ -575,7 +575,6 @@ local lang = {
     ["flows_dropped_by_bridge"] = "Flows Blocked due to Traffic Policies",
     ["flows_non_packet_iface"] = "Recently Active Flows / Total / Total Anomalous",
     ["flows_packet_iface"] = "Flows: Active / Total / Low Goodput / Anomalous / Port Unreach",
-    ["flows_packet_pcap_dump_iface"] = "Flows / Total Active / Total Anomalous",
     ["fragments"] = "Fragments",
     ["further_host_names_information"] = "Additional Host Names",
     ["goodput"] = "Goodput",
