@@ -120,10 +120,10 @@ if page == "historical" then
       timeseries = {
 	 {schema="subnet:traffic",             label=i18n("traffic")},
 	 {schema="subnet:broadcast_traffic",   label=i18n("broadcast_traffic")},
-	 {schema="subnet:tcp_retransmissions", label=i18n("graphs.tcp_packets_retr")},
-	 {schema="subnet:tcp_out_of_order",    label=i18n("graphs.tcp_packets_ooo")},
-	 {schema="subnet:tcp_lost",            label=i18n("graphs.tcp_packets_lost")},
-	 {schema="subnet:tcp_keep_alive",      label=i18n("graphs.tcp_packets_keep_alive")},
+	 {schema="subnet:tcp_retransmissions", label=i18n("graphs.tcp_packets_retr"), nedge_exclude=1},
+	 {schema="subnet:tcp_out_of_order",    label=i18n("graphs.tcp_packets_ooo"), nedge_exclude=1},
+	 {schema="subnet:tcp_lost",            label=i18n("graphs.tcp_packets_lost"), nedge_exclude=1},
+	 {schema="subnet:tcp_keep_alive",      label=i18n("graphs.tcp_packets_keep_alive"), nedge_exclude=1},
       }
     })
 elseif (page == "config") then

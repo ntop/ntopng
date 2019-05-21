@@ -102,6 +102,38 @@ schema:addTag("ifid")
 schema:addTag("asn")
 schema:addMetric("millis_rtt")
 
+-- ##############################################
+
+schema = ts_utils.newSchema("asn:tcp_retransmissions", {step=300})
+schema:addTag("ifid")
+schema:addTag("asn")
+schema:addMetric("packets_sent")
+schema:addMetric("packets_rcvd")
+
+-- ##############################################
+
+schema = ts_utils.newSchema("asn:tcp_out_of_order", {step=300})
+schema:addTag("ifid")
+schema:addTag("asn")
+schema:addMetric("packets_sent")
+schema:addMetric("packets_rcvd")
+
+-- ##############################################
+
+schema = ts_utils.newSchema("asn:tcp_lost", {step=300})
+schema:addTag("ifid")
+schema:addTag("asn")
+schema:addMetric("packets_sent")
+schema:addMetric("packets_rcvd")
+
+-- ##############################################
+
+schema = ts_utils.newSchema("asn:tcp_keep_alive", {step=300})
+schema:addTag("ifid")
+schema:addTag("asn")
+schema:addMetric("packets_sent")
+schema:addMetric("packets_rcvd")
+
 -------------------------------------------------------
 -- COUNTRIES SCHEMAS
 -------------------------------------------------------

@@ -57,8 +57,30 @@ function ts_dump.asn_update_rrds(when, ifstats, verbose)
     end
 
     -- Save ASN RTT stats
-    ts_utils.append("asn:rtt", {ifid=ifstats.id, asn=asn,
-                millis_rtt=asn_stats["round_trip_time"]}, when, verbose)
+    ts_utils.append("asn:rtt",
+		    {ifid=ifstats.id, asn=asn,
+		     millis_rtt=asn_stats["round_trip_time"]}, when, verbose)
+
+    -- Save ASN TCP stats
+    ts_utils.append("asn:tcp_retransmissions",
+		    {ifid=ifstats.id, asn=asn,
+		     packets_sent=asn_stats["tcpPacketStats.sent"]["retransmissions"],
+		     packets_rcvd=asn_stats["tcpPacketStats.rcvd"]["retransmissions"]}, when, verbose)
+
+    ts_utils.append("asn:tcp_out_of_order",
+		    {ifid=ifstats.id, asn=asn,
+		     packets_sent=asn_stats["tcpPacketStats.sent"]["out_of_order"],
+		     packets_rcvd=asn_stats["tcpPacketStats.rcvd"]["out_of_order"]}, when, verbose)
+
+    ts_utils.append("asn:tcp_lost",
+		    {ifid=ifstats.id, asn=asn,
+		     packets_sent=asn_stats["tcpPacketStats.sent"]["lost"],
+		     packets_rcvd=asn_stats["tcpPacketStats.rcvd"]["lost"]}, when, verbose)
+
+    ts_utils.append("asn:tcp_keep_alive",
+		    {ifid=ifstats.id, asn=asn,
+		     packets_sent=asn_stats["tcpPacketStats.sent"]["keep_alive"],
+		     packets_rcvd=asn_stats["tcpPacketStats.rcvd"]["keep_alive"]}, when, verbose)
   end
 end
 
