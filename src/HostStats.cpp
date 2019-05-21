@@ -76,6 +76,12 @@ void HostStats::getJSONObject(json_object *my_object, DetailsLevel details_level
     json_object_object_add(my_object, "rcvd", rcvd.getJSONObject());
     json_object_object_add(my_object, "ndpiStats", ndpiStats->getJSONObject(iface));
     json_object_object_add(my_object, "total_activity_time", json_object_new_int(total_activity_time));
+
+    /* TCP stats */
+    if(tcp_packet_stats_sent.seqIssues())
+      json_object_object_add(my_object, "tcpPacketStats.sent", tcp_packet_stats_sent.getJSONObject());
+    if(tcp_packet_stats_rcvd.seqIssues())
+      json_object_object_add(my_object, "tcpPacketStats.recv", tcp_packet_stats_rcvd.getJSONObject());
   }
 }
 
@@ -147,12 +153,6 @@ bool HostStats::serializeCheckpoint(json_object *my_object, DetailsLevel details
     /* packet stats */
     json_object_object_add(my_object, "pktStats.sent", sent_stats.getJSONObject());
     json_object_object_add(my_object, "pktStats.recv", recv_stats.getJSONObject());
-
-    /* TCP stats */
-    if(tcp_packet_stats_sent.seqIssues())
-      json_object_object_add(my_object, "tcpPacketStats.sent", tcp_packet_stats_sent.getJSONObject());
-    if(tcp_packet_stats_rcvd.seqIssues())
-      json_object_object_add(my_object, "tcpPacketStats.recv", tcp_packet_stats_rcvd.getJSONObject());
 
     /* throughput stats */
     json_object_object_add(my_object, "throughput_bps", json_object_new_double(bytes_thpt));
