@@ -89,7 +89,7 @@ end
 
 function ts_schema:allTagsDefined(tags)
   for tag in pairs(self.tags) do
-    if not tags[tag] then
+    if tags[tag] == nil then
       return false, tag
     end
   end
@@ -105,7 +105,7 @@ function ts_schema:verifyTags(tags)
   end
 
   for tag in pairs(tags) do
-    if not self.tags[tag] then
+    if self.tags[tag] == nil then
       traceError(TRACE_ERROR, TRACE_CONSOLE, "unknown tag '" .. tag .. "' in schema " .. self.name)
       return false
     end
@@ -119,8 +119,8 @@ function ts_schema:verifyTagsAndMetrics(tags_and_metrics)
   local metrics = {}
 
   for tag in pairs(self.tags) do
-    if not tags_and_metrics[tag] then
-      traceError(TRACE_ERROR, TRACE_CONSOLE, "Failing to use mandatory tag '" .. tag .. "' when working on schema " .. self.name)
+    if tags_and_metrics[tag] == nil then
+      traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing mandatory tag '" .. tag .. "' while using schema " .. self.name)
       return nil
     end
 
@@ -129,8 +129,8 @@ function ts_schema:verifyTagsAndMetrics(tags_and_metrics)
 
 
   for metric in pairs(self.metrics) do
-     if not tags_and_metrics[metric] then
-	traceError(TRACE_ERROR, TRACE_CONSOLE, "Failing to use mandatory metric '" .. metric .. "' when working on schema " .. self.name)
+    if tags_and_metrics[metric] == nil then
+      traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing mandatory metric '" .. metric .. "' while using schema " .. self.name)
       return nil
     end
 
@@ -138,7 +138,7 @@ function ts_schema:verifyTagsAndMetrics(tags_and_metrics)
   end
 
   for item in pairs(tags_and_metrics) do
-    if not self.tags[item] and not self.metrics[item] then
+    if((self.tags[item] == nil) and (self.metrics[item] == nil))then
       traceError(TRACE_ERROR, TRACE_CONSOLE, "unknown tag/metric '" .. item .. "' in schema " .. self.name)
       return nil
     end
