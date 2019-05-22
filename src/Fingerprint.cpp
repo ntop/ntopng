@@ -83,6 +83,6 @@ void Fingerprint::prune() {
     } /* while */
 
     for(std::vector<std::string>::iterator it1 = dropper.begin() ; it1 != dropper.end(); ++it1)
-      fp.erase(it->first);    
+      fp.erase(*it1);    
   }
 }
