@@ -206,6 +206,13 @@ schema:addTag("if_index")
 schema:addMetric("bytes_sent")
 schema:addMetric("bytes_rcvd")
 
+schema = ts_utils.newSchema("snmp_if:errors", {step=300, rrd_heartbeat=3000})
+schema:addTag("ifid")
+schema:addTag("device")
+schema:addTag("if_index")
+schema:addMetric("packets_disc")
+schema:addMetric("packets_err")
+
 -------------------------------------------------------
 -- HOSTS SCHEMAS
 -------------------------------------------------------
