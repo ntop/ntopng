@@ -142,15 +142,7 @@ void LocalHostStats::deserialize(json_object *o) {
   json_object *obj;
 
   HostStats::deserialize(o);
-
-  if(json_object_object_get_ex(o, "tcp_sent", &obj))  tcp_sent.deserialize(obj);
-  if(json_object_object_get_ex(o, "tcp_rcvd", &obj))  tcp_rcvd.deserialize(obj);
-  if(json_object_object_get_ex(o, "udp_sent", &obj))  udp_sent.deserialize(obj);
-  if(json_object_object_get_ex(o, "udp_rcvd", &obj))  udp_rcvd.deserialize(obj);
-  if(json_object_object_get_ex(o, "icmp_sent", &obj))  icmp_sent.deserialize(obj);
-  if(json_object_object_get_ex(o, "icmp_rcvd", &obj))  icmp_rcvd.deserialize(obj);
-  if(json_object_object_get_ex(o, "other_ip_sent", &obj))  other_ip_sent.deserialize(obj);
-  if(json_object_object_get_ex(o, "other_ip_rcvd", &obj))  other_ip_rcvd.deserialize(obj);
+  l4stats.deserialize(obj);
 
   /* packet stats */
   if(json_object_object_get_ex(o, "pktStats.sent", &obj))  sent_stats.deserialize(obj);
