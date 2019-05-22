@@ -163,7 +163,8 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   memset(&names, 0, sizeof(names));
   asn = 0, asname = NULL;
   as = NULL, country = NULL;
-  blacklisted_host = false, reloadHostBlacklist();
+  blacklisted_host = false;
+  reloadHostBlacklist();
   is_dhcp_host = false;
 
   num_alerts_detected = 0;
