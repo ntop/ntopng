@@ -25,6 +25,9 @@
 
 void Fingerprint::update(char *_fprint, char *app_name) {
   std::string fprint(_fprint);
+
+  m.lock(__FILE__, __LINE__);
+
   std::map<std::string, FingerprintStats>::iterator it = fp.find(fprint);
 
   if(it == fp.end()) {
@@ -36,13 +39,17 @@ void Fingerprint::update(char *_fprint, char *app_name) {
   } else {
     it->second.num_uses++, it->second.app_name = std::string(app_name ? app_name : "");
   }
+
+  m.unlock(__FILE__, __LINE__);
 }
 
 /* *************************************** */
 
 void Fingerprint::lua(const char *key, lua_State* vm) {
   lua_newtable(vm);
-  
+
+  m.lock(__FILE__, __LINE__);  
+
   for(std::map<std::string, FingerprintStats>::iterator it = fp.begin(); it != fp.end(); ++it) {
     lua_newtable(vm);
     
@@ -53,6 +60,8 @@ void Fingerprint::lua(const char *key, lua_State* vm) {
     lua_insert(vm, -2);
     lua_settable(vm, -3);    
   }
+
+  m.unlock(__FILE__, __LINE__);  
   
   lua_pushstring(vm, key);
   lua_insert(vm, -2);

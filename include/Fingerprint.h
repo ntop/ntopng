@@ -31,6 +31,7 @@ typedef struct {
 
 class Fingerprint {
  private:
+  Mutex m;
   std::map<std::string /* fingerprint */, FingerprintStats> fp;
 
   void prune();
