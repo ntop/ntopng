@@ -508,8 +508,6 @@ void Flow::processDetectedProtocol() {
 
     if((protos.ssl.ja3.client_hash == NULL) && (ndpiFlow->protos.stun_ssl.ssl.ja3_client[0] != '\0')) {
       protos.ssl.ja3.client_hash = strdup(ndpiFlow->protos.stun_ssl.ssl.ja3_client);
-      protos.ssl.ja3.client_unsafe_cipher = ndpiFlow->protos.stun_ssl.ssl.client_unsafe_cipher;
-      if(protos.ssl.ja3.client_unsafe_cipher != ndpi_cipher_safe) setFlowAlerted();
       updateJA3();
     }
     
@@ -517,6 +515,7 @@ void Flow::processDetectedProtocol() {
       protos.ssl.ja3.server_hash = strdup(ndpiFlow->protos.stun_ssl.ssl.ja3_server);    
       protos.ssl.ja3.server_unsafe_cipher = ndpiFlow->protos.stun_ssl.ssl.server_unsafe_cipher;
       if(protos.ssl.ja3.server_unsafe_cipher != ndpi_cipher_safe) setFlowAlerted();
+      protos.ssl.ja3.server_cipher = ndpiFlow->protos.stun_ssl.ssl.server_cipher;
     }
     
     if(check_tor) {
@@ -1818,16 +1817,15 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 	if(protos.ssl.server_certificate)
 	  lua_push_str_table_entry(vm, "protos.ssl.server_certificate", protos.ssl.server_certificate);
 
-	if(protos.ssl.ja3.client_hash) {
+	if(protos.ssl.ja3.client_hash)
 	  lua_push_str_table_entry(vm, "protos.ssl.ja3.client_hash", protos.ssl.ja3.client_hash);
-	  lua_push_str_table_entry(vm, "protos.ssl.ja3.client_unsafe_cipher",
-				   cipher_weakness2str(protos.ssl.ja3.client_unsafe_cipher));
-	}
 	
 	if(protos.ssl.ja3.server_hash) {
 	  lua_push_str_table_entry(vm, "protos.ssl.ja3.server_hash", protos.ssl.ja3.server_hash);
 	  lua_push_str_table_entry(vm, "protos.ssl.ja3.server_unsafe_cipher",
 				   cipher_weakness2str(protos.ssl.ja3.server_unsafe_cipher));
+	  lua_push_int32_table_entry(vm, "protos.ssl.ja3.server_cipher",
+				     protos.ssl.ja3.server_cipher);
 	}		  
       }
     }
@@ -2681,8 +2679,8 @@ void Flow::incTcpBadStats(bool src2dst_direction,
   int16_t cli_network_id = -1, srv_network_id = -1;
   u_int32_t cli_asn = (u_int32_t)-1, srv_asn = (u_int32_t)-1;
   AutonomousSystem *cli_as, *srv_as;
-  NetworkStats *cli_network_stats, *srv_network_stats;
-  bool cli_and_srv_in_same_subnet = false, cli_and_srv_in_same_as;
+  NetworkStats *cli_network_stats = NULL, *srv_network_stats = NULL;
+  bool cli_and_srv_in_same_subnet = false, cli_and_srv_in_same_as = false;
 
   if(src2dst_direction)
     stats = &tcp_stats_s2d;
@@ -3646,8 +3644,7 @@ FlowStatus Flow::getFlowStatus() {
    return(status_flow_when_interface_alerted);
 #endif
 
-  if((protos.ssl.ja3.client_unsafe_cipher != ndpi_cipher_safe)
-     || (protos.ssl.ja3.server_unsafe_cipher != ndpi_cipher_safe))
+  if(protos.ssl.ja3.server_unsafe_cipher != ndpi_cipher_safe)
     return(status_ssl_unsafe_ciphers);
   
   return(status_normal);
