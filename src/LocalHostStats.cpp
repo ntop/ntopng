@@ -111,6 +111,10 @@ void LocalHostStats::getJSONObject(json_object *my_object, DetailsLevel details_
 
   if(dns)  json_object_object_add(my_object, "dns", dns->getJSONObject());
   if(http) json_object_object_add(my_object, "http", http->getJSONObject());
+
+  /* UDP stats */
+  if(udp_sent_unicast) json_object_object_add(my_object, "udpBytesSent.unicast", json_object_new_int(udp_sent_unicast));
+  if(udp_sent_non_unicast) json_object_object_add(my_object, "udpBytesSent.non_unicast", json_object_new_int(udp_sent_non_unicast));
 }
 
 /* *************************************** */
@@ -151,6 +155,10 @@ void LocalHostStats::deserialize(json_object *o) {
   /* packet stats */
   if(json_object_object_get_ex(o, "pktStats.sent", &obj))  sent_stats.deserialize(obj);
   if(json_object_object_get_ex(o, "pktStats.recv", &obj))  recv_stats.deserialize(obj);
+
+  /* UDP stats */
+  if(json_object_object_get_ex(o, "udpBytesSent.unicast", &obj))      udp_sent_unicast = json_object_get_int64(obj);
+  if(json_object_object_get_ex(o, "udpBytesSent.non_unicast", &obj))  udp_sent_non_unicast = json_object_get_int64(obj);
 
   /* TCP packet stats */
   if(json_object_object_get_ex(o, "tcpPacketStats.sent", &obj))  tcp_packet_stats_sent.deserialize(obj);
@@ -276,4 +284,23 @@ bool LocalHostStats::hasAnomalies(time_t when) {
 void LocalHostStats::luaAnomalies(lua_State* vm, time_t when) {
   if(dns)  dns->luaAnomalies(vm, when);
   if(icmp) icmp->luaAnomalies(vm, when);
+}
+
+/* *************************************** */
+
+void LocalHostStats::incStats(time_t when, u_int8_t l4_proto, u_int ndpi_proto,
+		custom_app_t custom_app,
+		u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
+		u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes,
+		bool peer_is_unicast) {
+  HostStats::incStats(when, l4_proto, ndpi_proto, custom_app,
+		sent_packets, sent_bytes, sent_goodput_bytes,
+		rcvd_packets, rcvd_bytes, rcvd_goodput_bytes, peer_is_unicast);
+
+  if(l4_proto == IPPROTO_UDP) {
+    if(peer_is_unicast)
+      udp_sent_unicast += sent_bytes;
+    else
+      udp_sent_non_unicast += sent_bytes;
+  }
 }

@@ -772,12 +772,13 @@ bool Host::idle() {
 void Host::incStats(u_int32_t when, u_int8_t l4_proto, u_int ndpi_proto,
 		    custom_app_t custom_app,
 		    u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
-		    u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes) {
+		    u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes,
+        bool peer_is_unicast) {
 
   if(sent_bytes || rcvd_bytes) {
     stats->incStats(when, l4_proto, ndpi_proto, custom_app,
 		    sent_packets, sent_bytes, sent_goodput_bytes, rcvd_packets,
-		    rcvd_bytes, rcvd_goodput_bytes);
+		    rcvd_bytes, rcvd_goodput_bytes, peer_is_unicast);
 
     updateSeen();
   }

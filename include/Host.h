@@ -226,7 +226,8 @@ class Host : public GenericHashEntry {
   void incStats(u_int32_t when, u_int8_t l4_proto, u_int ndpi_proto,
 		custom_app_t custom_app,
 		u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
-		u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes);
+		u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes,
+    bool peer_is_unicast);
   void incHitter(Host *peer, u_int64_t sent_bytes, u_int64_t rcvd_bytes);
   virtual void updateHostTrafficPolicy(char *key) {};
   virtual json_object* getJSONObject(DetailsLevel details_level);

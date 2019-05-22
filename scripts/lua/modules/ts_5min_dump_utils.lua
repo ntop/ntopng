@@ -308,6 +308,11 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
     end
   end
 
+  -- UDP breakdown
+  ts_utils.append("host:udp_sent_unicast", {ifid=ifstats.id, host=hostname,
+            bytes_sent_unicast=host["udpBytesSent.unicast"],
+            bytes_sent_non_unicast=host["udpBytesSent.non_unicast"]}, when, verbose)
+
   -- create custom rrds
   if ts_custom and ts_custom.host_update_stats then
      ts_custom.host_update_stats(when, hostname, host, ifstats, verbose)

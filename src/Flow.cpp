@@ -1103,7 +1103,8 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
       cli_network_stats = cli_host->getNetworkStats(cli_network_id);
       cli_host->incStats(tv->tv_sec, protocol, stats_protocol, custom_app,
 			 diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes,
-			 diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes);
+			 diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes,
+			 srv_host->get_ip()->isNonEmptyUnicastAddress());
 
       // update per-subnet byte counters
       if(cli_network_stats) { // only if the network is known and local
@@ -1125,7 +1126,8 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
       srv_network_stats = srv_host->getNetworkStats(srv_network_id);
       srv_host->incStats(tv->tv_sec, protocol, stats_protocol, custom_app,
 			 diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes,
-			 diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes);
+			 diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes,
+			 cli_host->get_ip()->isNonEmptyUnicastAddress());
 
       if(srv_network_stats) {
 	// local and known server network

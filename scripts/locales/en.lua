@@ -1383,6 +1383,8 @@ local lang = {
     ["avg"] = "Avg",
     ["binary_operators_note"] = "For more information about the EMA, SMA and RSI indicators check out the <a href=\"%{url}\">online documentation</a>.",
     ["blocked_flows"] = "Blocked Flows",
+    ["bytes_sent_non_unicast"] = "Bytes Sent Non Unicast",
+    ["bytes_sent_unicast"] = "Bytes Sent Unicast",
     ["custom"] = "Custom",
     ["dns_qry_rcvd_rsp_sent"] = "DNS Rcvd Queries / Sent Repls",
     ["dns_qry_sent_rsp_rcvd"] = "DNS Sent Queries / Rcvd Repls",
@@ -1447,6 +1449,7 @@ local lang = {
     ["traffic_vs_errors"] = "Traffic vs Errors",
     ["trend"] = "Trend",
     ["udp_packets"] = "UDP Packets",
+    ["udp_sent_unicast_vs_non_unicast"] = "UDP sent Unicast vs Non Unicast",
     ["zmq_flow_coll_drops"] = "ZMQ Flow Collection Drops",
     ["zmq_received_flows"] = "ZMQ Received Flows",
     ["metrics_prefixes"] = {

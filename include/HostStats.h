@@ -51,10 +51,11 @@ class HostStats: public Checkpointable, public TimeseriesStats {
 
   void checkPointHostTalker(lua_State *vm, bool saveCheckpoint);
   bool serializeCheckpoint(json_object *my_object, DetailsLevel details_level);
-  void incStats(time_t when, u_int8_t l4_proto, u_int ndpi_proto,
+  virtual void incStats(time_t when, u_int8_t l4_proto, u_int ndpi_proto,
 		custom_app_t custom_app,
 		u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
-		u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes);
+		u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes,
+		bool peer_is_unicast);
   virtual void getJSONObject(json_object *my_object, DetailsLevel details_level);
   inline void incFlagStats(bool as_client, u_int8_t flags)  { if (as_client) sent_stats.incFlagStats(flags); else recv_stats.incFlagStats(flags); };
 

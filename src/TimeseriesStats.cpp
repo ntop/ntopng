@@ -29,6 +29,7 @@ TimeseriesStats::TimeseriesStats(Host * _host) : GenericTrafficElement() {
   unreachable_flows_as_client = unreachable_flows_as_server = 0;
   host_unreachable_flows_as_client = host_unreachable_flows_as_server = 0;
   total_alerts = 0;
+  udp_sent_unicast = udp_sent_non_unicast = 0;
 }
 
 /* *************************************** */
@@ -81,6 +82,9 @@ void TimeseriesStats::luaStats(lua_State* vm, NetworkInterface *iface, bool host
     lua_push_uint64_table_entry(vm, "other_ip.bytes.sent", other_ip_sent.getNumBytes());
     lua_push_uint64_table_entry(vm, "other_ip.packets.rcvd",  other_ip_rcvd.getNumPkts());
     lua_push_uint64_table_entry(vm, "other_ip.bytes.rcvd", other_ip_rcvd.getNumBytes());
+
+    lua_push_uint64_table_entry(vm, "udpBytesSent.unicast", udp_sent_unicast);
+    lua_push_uint64_table_entry(vm, "udpBytesSent.non_unicast", udp_sent_non_unicast);
 
     host->luaDNS(vm);
     host->luaTCP(vm);

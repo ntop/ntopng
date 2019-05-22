@@ -348,6 +348,14 @@ schema:addMetric("bytes_rcvd")
 
 -- ##############################################
 
+schema = ts_utils.newSchema("host:udp_sent_unicast", {step=300})
+schema:addTag("ifid")
+schema:addTag("host")
+schema:addMetric("bytes_sent_unicast")
+schema:addMetric("bytes_sent_non_unicast")
+
+-- ##############################################
+
 schema = ts_utils.newSchema("host:ndpi", {step=300})
 schema:addTag("ifid")
 schema:addTag("host")
