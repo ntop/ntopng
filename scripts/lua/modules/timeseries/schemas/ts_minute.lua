@@ -88,6 +88,13 @@ schema:addMetric("bytes")
 
 -- ##############################################
 
+schema = ts_utils.newSchema("iface:l4protos", {step=60})
+schema:addTag("ifid")
+schema:addTag("l4proto")
+schema:addMetric("bytes")
+
+-- ##############################################
+
 -- NOTE: not shown
 schema = ts_utils.newSchema("iface:local2remote", {step=60, rrd_fname="local2remote"})
 schema:addTag("ifid")

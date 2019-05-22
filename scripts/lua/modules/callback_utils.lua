@@ -18,6 +18,7 @@ function callback_utils.foreachInterface(ifnames, condition, callback, get_direc
    for _,_ifname in pairs(ifnames) do
       if(ntop.isShutdown()) then return true end
 
+      -- NOTE: "eth" will be overwritten here for emulated directions
       interface.select(_ifname)
       local ifstats = interface.getStats(get_direction_stats)
 

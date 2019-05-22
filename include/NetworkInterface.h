@@ -134,6 +134,7 @@ class NetworkInterface : public Checkpointable {
   int cpu_affinity; /**< Index of physical core where the network interface works. */
   nDPIStats ndpiStats;
   PacketStats pktStats;
+  L4Stats l4Stats;
   FlowHash *flows_hash; /**< Hash used to store flows information. */
   u_int32_t last_remote_pps, last_remote_bps;
   u_int8_t packet_drops_alert_perc;
@@ -366,24 +367,27 @@ class NetworkInterface : public Checkpointable {
   virtual u_int32_t getCheckPointNumPacketDrops();
 
   inline void _incStats(bool ingressPacket, time_t when,
-			u_int16_t eth_proto, u_int16_t ndpi_proto,
+			u_int16_t eth_proto, u_int16_t ndpi_proto, u_int8_t l4proto,
 		       u_int pkt_len, u_int num_pkts, u_int pkt_overhead) {
     ethStats.incStats(ingressPacket, eth_proto, num_pkts, pkt_len, pkt_overhead);
     ndpiStats.incStats(when, ndpi_proto, 0, 0, num_pkts, pkt_len);
     // Note: here we are not currently interested in packet direction, so we tell it is receive
     ndpiStats.incCategoryStats(when, get_ndpi_proto_category(ndpi_proto), 0 /* see above comment */, pkt_len);
     pktStats.incStats(pkt_len);
+    l4Stats.incStats(when, l4proto,
+      ingressPacket ? num_pkts : 0, ingressPacket ? pkt_len : 0,
+      !ingressPacket ? num_pkts : 0, !ingressPacket ? pkt_len : 0);
   };
 
   inline void incFlagsStats(u_int8_t flags) { pktStats.incFlagStats(flags); };
   inline void incStats(bool ingressPacket, time_t when, u_int16_t eth_proto, u_int16_t ndpi_proto,
-		       u_int pkt_len, u_int num_pkts, u_int pkt_overhead) {
+		       u_int8_t l4proto, u_int pkt_len, u_int num_pkts, u_int pkt_overhead) {
 #ifdef HAVE_NEDGE
     /* In nedge, we only update the stats periodically with conntrack */
     return;
 #endif
 
-    _incStats(ingressPacket, when, eth_proto, ndpi_proto, pkt_len, num_pkts, pkt_overhead);
+    _incStats(ingressPacket, when, eth_proto, ndpi_proto, l4proto, pkt_len, num_pkts, pkt_overhead);
   };
 
   inline void incLocalStats(u_int num_pkts, u_int pkt_len, bool localsender, bool localreceiver) {

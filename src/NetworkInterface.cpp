@@ -1364,7 +1364,7 @@ void NetworkInterface::processFlow(ParsedFlow *zflow, bool zmq_flow) {
   /* Do not put incStats before guessing the flow protocol */
   incStats(true /* ingressPacket */,
 	   now, srcIP.isIPv4() ? ETHERTYPE_IP : ETHERTYPE_IPV6,
-	   flow->get_detected_protocol().app_protocol,
+	   flow->get_detected_protocol().app_protocol, zflow->l4_proto,
 	   zflow->pkt_sampling_rate*(zflow->in_bytes + zflow->out_bytes),
 	   zflow->pkt_sampling_rate*(zflow->in_pkts + zflow->out_pkts),
 	   24 /* 8 Preamble + 4 CRC + 12 IFG */ + 14 /* Ethernet header */);
@@ -1423,7 +1423,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 				  h, packet, ndpiProtocol,
 				  srcHost, dstHost, hostFlow);
 
-      incStats(ingressPacket, when->tv_sec, ETHERTYPE_IP, NDPI_PROTOCOL_UNKNOWN,
+      incStats(ingressPacket, when->tv_sec, ETHERTYPE_IP, NDPI_PROTOCOL_UNKNOWN, 0,
 	       rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 
       return(ret);
@@ -1466,7 +1466,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
     /* IPv4 */
     if(ipsize < 20) {
       incStats(ingressPacket,
-	       when->tv_sec, ETHERTYPE_IP, NDPI_PROTOCOL_UNKNOWN,
+	       when->tv_sec, ETHERTYPE_IP, NDPI_PROTOCOL_UNKNOWN, 0,
 	       rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
       return(pass_verdict);
     }
@@ -1485,8 +1485,8 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 
     if(ipsize < sizeof(const struct ndpi_ipv6hdr)) {
       incStats(ingressPacket,
-	       when->tv_sec, ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN, rawsize,
-	       1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+	       when->tv_sec, ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN, 0,
+	       rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
       return(pass_verdict);
     }
 
@@ -1502,7 +1502,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 
       if(ipsize < ipv6_shift) {
 	incStats(ingressPacket,
-		 when->tv_sec, ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN,
+		 when->tv_sec, ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN, 0,
 		 rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 	return(pass_verdict);
       }
@@ -1528,7 +1528,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       /* Packet too short: this is a faked packet */
       ntop->getTrace()->traceEvent(TRACE_INFO, "Invalid TCP packet received [%u bytes long]", l4_packet_len);
       incStats(ingressPacket, when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
-	       NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+	       NDPI_PROTOCOL_UNKNOWN, 0, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
       return(pass_verdict);
     }
   } else if(l4_proto == IPPROTO_UDP) {
@@ -1541,7 +1541,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
     } else {
       /* Packet too short: this is a faked packet */
       ntop->getTrace()->traceEvent(TRACE_INFO, "Invalid UDP packet received [%u bytes long]", l4_packet_len);
-      incStats(ingressPacket, when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN,
+      incStats(ingressPacket, when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN, 0,
 	       rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
       return(pass_verdict);
     }
@@ -1556,7 +1556,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
     } else {
       /* Packet too short: this is a faked packet */
       ntop->getTrace()->traceEvent(TRACE_INFO, "Invalid SCTP packet received [%u bytes long]", l4_packet_len);
-      incStats(ingressPacket, when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN,
+      incStats(ingressPacket, when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN, 0,
 	       rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
       return(pass_verdict);
     }
@@ -1600,7 +1600,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 
   if(flow == NULL) {
     incStats(ingressPacket, when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN,
-	     rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+	     l4_proto, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
     return(pass_verdict);
   } else {
 #ifdef HAVE_NEDGE
@@ -1980,7 +1980,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 
   PROFILING_SECTION_ENTER("NetworkInterface::processPacket: incStats", 4);
   incStats(ingressPacket, when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
-	   flow->get_detected_protocol().app_protocol,
+	   flow->get_detected_protocol().app_protocol, l4_proto,
 	   rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
   PROFILING_SECTION_EXIT(4);
 
@@ -2075,7 +2075,7 @@ datalink_check:
       eth_type = ETHERTYPE_IPV6;
       break;
     default:
-      incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+      incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN, 0, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
       goto dissect_packet_end; /* Any other non IP protocol */
     }
 
@@ -2102,7 +2102,7 @@ datalink_check:
       eth_type = ETHERTYPE_IPV6;
       break;
     default:
-      incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+      incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN, 0, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
       goto dissect_packet_end; /* Unknown IP protocol version */
     }
 
@@ -2116,7 +2116,7 @@ datalink_check:
     ethernet = (struct ndpi_ethhdr *)&dummy_ethernet;
     ip_offset = 0;
   } else {
-    incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+    incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN, 0, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
     goto dissect_packet_end;
   }
 
@@ -2160,7 +2160,7 @@ decode_packet_eth:
 
     default:
       incStats(ingressPacket, h->ts.tv_sec, ETHERTYPE_IP,
-	       NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+	       NDPI_PROTOCOL_UNKNOWN, 0, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
       goto dissect_packet_end;
     }
     goto decode_packet_eth;
@@ -2176,7 +2176,7 @@ decode_packet_eth:
       if(iph->version != 4) {
 	/* This is not IPv4 */
 	incStats(ingressPacket, h->ts.tv_sec, ETHERTYPE_IP,
-		 NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+		 NDPI_PROTOCOL_UNKNOWN, 0, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 	goto dissect_packet_end;
       } else
 	frag_off = ntohs(iph->frag_off);
@@ -2249,7 +2249,7 @@ decode_packet_eth:
 	    if(iph->version != 4) {
 	      /* FIX - Add IPv6 support */
 	      incStats(ingressPacket, h->ts.tv_sec, ETHERTYPE_IPV6,
-		       NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+		       NDPI_PROTOCOL_UNKNOWN, 0, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 	      goto dissect_packet_end;
 	    }
 	  }
@@ -2284,7 +2284,7 @@ decode_packet_eth:
 	      offset += tag_len;
 
 	      if(offset >= h->caplen) {
-		incStats(ingressPacket, h->ts.tv_sec, ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN,
+		incStats(ingressPacket, h->ts.tv_sec, ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN, 0,
 			 rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 		goto dissect_packet_end;
 	      } else {
@@ -2313,7 +2313,7 @@ decode_packet_eth:
 	  ip_offset = ip_offset+capwap_header_len+24+8;
 
 	  if(ip_offset >= h->len) {
-	    incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
+	    incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN, 0,
 		     rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 	    goto dissect_packet_end;
 	  }
@@ -2328,7 +2328,7 @@ decode_packet_eth:
 	    ip6 = (struct ndpi_ipv6hdr*)&packet[ip_offset];
 	    break;
 	  default:
-	    incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
+	    incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN, 0,
 		     rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 	    goto dissect_packet_end;
 	  }
@@ -2371,7 +2371,7 @@ decode_packet_eth:
 
       if((ntohl(ip6->ip6_hdr.ip6_un1_flow) & 0xF0000000) != 0x60000000) {
 	/* This is not IPv6 */
-	incStats(ingressPacket, h->ts.tv_sec, ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN,
+	incStats(ingressPacket, h->ts.tv_sec, ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN, 0,
 		 rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 	goto dissect_packet_end;
       } else {
@@ -2426,7 +2426,7 @@ decode_packet_eth:
 	} else if(ntop->getGlobals()->decode_tunnels() && (l4_proto == IPPROTO_UDP)) {
 	  // ip_offset += ipv6_shift;
 	  if((ip_offset + ipv6_shift) >= h->len) {
-	    incStats(ingressPacket, h->ts.tv_sec, ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN,
+	    incStats(ingressPacket, h->ts.tv_sec, ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN, 0,
 		     rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 	    goto dissect_packet_end;
 	  }
@@ -2453,7 +2453,7 @@ decode_packet_eth:
 	    ip_offset = ip_offset+capwap_header_len+24+8;
 
 	    if(ip_offset >= h->len) {
-	      incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
+	      incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN, 0,
 		       rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 	      goto dissect_packet_end;
 	    }
@@ -2468,7 +2468,7 @@ decode_packet_eth:
 	      ip6 = (struct ndpi_ipv6hdr*)&packet[ip_offset];
 	      break;
 	    default:
-	      incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
+	      incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN, 0,
 		       rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 	      goto dissect_packet_end;
 	    }
@@ -2596,7 +2596,7 @@ decode_packet_eth:
       }
     }
 
-    incStats(ingressPacket, h->ts.tv_sec, eth_type, NDPI_PROTOCOL_UNKNOWN,
+    incStats(ingressPacket, h->ts.tv_sec, eth_type, NDPI_PROTOCOL_UNKNOWN, 0,
 	     rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
     break;
   }
@@ -7313,6 +7313,7 @@ void NetworkInterface::makeTsPoint(NetworkInterfaceTsPoint *pt) {
   pt->devices = getNumL2Devices();
   pt->flows = getNumFlows();
   pt->http_hosts = getNumHTTPHosts();
+  pt->l4Stats = l4Stats;
 }
 
 /* *************************************** */

@@ -105,6 +105,17 @@ function ts_dump.iface_update_general_stats(when, ifstats, verbose)
   ts_utils.append("iface:http_hosts", {ifid=ifstats.id, num_hosts=ifstats.stats.http_hosts}, when, verbose)
 end
 
+function ts_dump.iface_update_l4_stats(when, ifstats, verbose)
+  for id, _ in pairs(l4_keys) do
+    k = l4_keys[id][2]
+    if((ifstats.stats[k..".bytes.sent"] ~= nil) and (ifstats.stats[k..".bytes.rcvd"] ~= nil)) then
+      ts_utils.append("iface:l4protos", {ifid=ifstats.id,
+                -- NOTE: direction may not be correct for PCAP interfaces, so it cannot be split
+                l4proto=tostring(k), bytes=ifstats.stats[k..".bytes.sent"] + ifstats.stats[k..".bytes.rcvd"]}, when, verbose)
+    end
+  end
+end
+
 function ts_dump.iface_update_tcp_stats(when, ifstats, verbose)
   ts_utils.append("iface:tcp_retransmissions", {ifid=ifstats.id, packets=ifstats.tcpPacketStats.retransmissions}, when, verbose)
   ts_utils.append("iface:tcp_out_of_order", {ifid=ifstats.id, packets=ifstats.tcpPacketStats.out_of_order}, when, verbose)
@@ -205,6 +216,7 @@ function ts_dump.run_min_dump(_ifname, ifstats, iface_ts, config, when, verbose)
 
     ts_dump.iface_update_stats_rrds(instant, _ifname, iface_point, verbose)
     ts_dump.iface_update_general_stats(instant, iface_point, verbose)
+    ts_dump.iface_update_l4_stats(instant, iface_point, verbose)
 
     if config.interface_ndpi_timeseries_creation == "per_protocol" or config.interface_ndpi_timeseries_creation == "both" then
       ts_dump.iface_update_ndpi_rrds(instant, _ifname, iface_point, verbose)

@@ -268,6 +268,7 @@ using namespace std;
 #include "TimeseriesRing.h"
 #include "HostTimeseriesPoint.h"
 #include "SPSCQueue.h"
+#include "L4Stats.h"
 #include "NetworkInterfaceTsPoint.h"
 #include "NetworkInterface.h"
 #ifndef HAVE_NEDGE
@@ -328,7 +329,6 @@ using namespace std;
 #include "Country.h"
 #include "MacStats.h"
 #include "Mac.h"
-#include "L4Stats.h"
 #include "TimeseriesStats.h"
 #include "HostStats.h"
 #include "LocalHostStats.h"

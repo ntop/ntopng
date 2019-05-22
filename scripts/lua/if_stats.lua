@@ -1065,6 +1065,7 @@ elseif(page == "historical") then
       ifid = ifid,
       protocol = _GET["protocol"],
       category = _GET["category"],
+      l4proto = _GET["l4proto"],
    }
    url = url.."&page=historical"
 
@@ -1074,6 +1075,7 @@ elseif(page == "historical") then
       top_profiles = "top:profile:traffic",
       top_senders = "top:local_senders",
       top_receivers = "top:local_receivers",
+      l4_protocols = "iface:l4protos",
       show_historical = true,
       timeseries = {
          {schema="iface:flows",                 label=i18n("graphs.active_flows")},
