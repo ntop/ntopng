@@ -142,7 +142,8 @@ void LocalHostStats::deserialize(json_object *o) {
   json_object *obj;
 
   HostStats::deserialize(o);
-  l4stats.deserialize(obj);
+
+  l4stats.deserialize(o);
 
   /* packet stats */
   if(json_object_object_get_ex(o, "pktStats.sent", &obj))  sent_stats.deserialize(obj);
