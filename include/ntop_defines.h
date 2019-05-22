@@ -666,6 +666,9 @@
 #define CONST_DEFAULT_OVERRIDE_SRC_WITH_POST_NAT    NTOPNG_PREFS_PREFIX".override_src_with_post_nat_src"
 #define CONST_DEFAULT_OVERRIDE_DST_WITH_POST_NAT    NTOPNG_PREFS_PREFIX".override_dst_with_post_nat_dst"
 
+/* SRC/DST selection using port numbers (heuristic) */
+#define CONST_DEFAULT_USE_PORTS_TO_DETERMINE_SRC_AND_DST NTOPNG_PREFS_PREFIX".use_ports_to_determine_src_and_dst"
+
 /* Tiny Flows */
 #define CONST_DEFAULT_IS_TINY_FLOW_EXPORT_ENABLED        true  /* disabled by default */
 #define CONST_DEFAULT_IS_AGGR_FLOWS_EXPORT_LIMIT_ENABLED false /* exports all the aggregated flows by default */

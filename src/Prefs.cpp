@@ -54,6 +54,7 @@ Prefs::Prefs(Ntop *_ntop) {
     enable_informative_captive_portal = false,
     external_notifications_enabled = false, dump_flow_alerts_when_iface_alerted = false,
     override_dst_with_post_nat_dst = false, override_src_with_post_nat_src = false,
+    use_ports_to_determine_src_and_dst = false;
     hostMask = no_host_mask;
   enable_mac_ndpi_stats = false;
   auto_assigned_pool_id = NO_HOST_POOL_ID;
@@ -596,6 +597,7 @@ void Prefs::reloadPrefsFromRedis() {
 
     override_dst_with_post_nat_dst = getDefaultBoolPrefsValue(CONST_DEFAULT_OVERRIDE_DST_WITH_POST_NAT, false),
     override_src_with_post_nat_src = getDefaultBoolPrefsValue(CONST_DEFAULT_OVERRIDE_SRC_WITH_POST_NAT, false),
+    use_ports_to_determine_src_and_dst = getDefaultBoolPrefsValue(CONST_DEFAULT_USE_PORTS_TO_DETERMINE_SRC_AND_DST, false),
 
     max_num_packets_per_tiny_flow = getDefaultPrefsValue(CONST_MAX_NUM_PACKETS_PER_TINY_FLOW,
 							 CONST_DEFAULT_MAX_NUM_PACKETS_PER_TINY_FLOW),

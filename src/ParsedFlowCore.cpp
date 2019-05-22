@@ -77,6 +77,46 @@ ParsedFlowCore::~ParsedFlowCore() {
 
 /* *************************************** */
 
+void ParsedFlowCore::swap() {
+  u_int8_t tmp_mac[6];
+  IpAddress tmp_ip;
+  u_int16_t tmp_port, tmp_index;
+  u_int32_t tmp_bytes, tmp_pkts;
+  u_int32_t tmp_fragments;
+  u_int8_t tmp_tcp_flags;
+  u_int32_t tmp_ooo_pkts, tmp_retr_pkts, tmp_lost_pkts;
+  struct timeval tmp_nw_latency;
+
+  memcpy(&tmp_mac, &src_mac, sizeof(tmp_mac));
+  tmp_ip.set(&src_ip);
+  tmp_port = src_port, tmp_index = inIndex;
+  tmp_bytes = in_bytes, tmp_pkts = in_pkts;
+  tmp_fragments = in_fragments;
+  tmp_tcp_flags = tcp.client_tcp_flags;
+  tmp_ooo_pkts = tcp.ooo_in_pkts, tmp_retr_pkts = tcp.retr_in_pkts, tmp_lost_pkts = tcp.lost_in_pkts;
+  memcpy(&tmp_nw_latency, &tcp.clientNwLatency, sizeof(tcp.clientNwLatency));
+
+  memcpy(&src_mac, &dst_mac, sizeof(src_mac));
+  src_ip.set(&dst_ip);
+  src_port = dst_port, inIndex = outIndex;
+  in_bytes = out_bytes, in_pkts = out_pkts;
+  in_fragments = out_fragments;
+  tcp.client_tcp_flags = tcp.server_tcp_flags;
+  tcp.ooo_in_pkts = tcp.ooo_out_pkts, tcp.retr_in_pkts = tcp.retr_out_pkts, tcp.lost_in_pkts = tcp.lost_out_pkts;
+  memcpy(&tcp.clientNwLatency, &tcp.serverNwLatency, sizeof(tcp.clientNwLatency));
+
+  memcpy(&dst_mac, &tmp_mac, sizeof(dst_mac));
+  dst_ip.set(&tmp_ip);
+  dst_port = tmp_port, outIndex = tmp_index;
+  out_bytes = tmp_bytes, out_pkts = tmp_pkts;
+  out_fragments = tmp_fragments;
+  tcp.server_tcp_flags = tmp_tcp_flags;
+  tcp.ooo_out_pkts = tmp_ooo_pkts, tcp.retr_out_pkts = tmp_retr_pkts, tcp.lost_out_pkts = tmp_lost_pkts;
+  memcpy(&tcp.serverNwLatency, &tmp_nw_latency, sizeof(tcp.serverNwLatency));
+}
+
+/* *************************************** */
+
 void ParsedFlowCore::print() {
   char buf1[32], buf2[32];
 

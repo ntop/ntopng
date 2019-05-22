@@ -842,6 +842,13 @@ void ZMQParserInterface::parseSingleFlow(json_object *o,
   }
   
   if(!invalid_flow) {
+    /* Attempt to determine flow client and server using port numbers 
+       useful when exported flows are mono-directional
+       https://github.com/ntop/ntopng/issues/1978 */
+    if(ntop->getPrefs()->do_use_ports_to_determine_src_and_dst()
+       && ntohs(flow.src_port) < ntohs(flow.dst_port))
+      flow.swap();
+
     /* Process Flow */
     iface->processFlow(&flow, true);
     deliverFlowToCompanions(&flow);
