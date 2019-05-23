@@ -1659,6 +1659,13 @@ function printSnmp()
   })
 
   prefsToggleButton(subpage_active, {
+    field = "toggle_snmp_alerts_port_duplexstatus_change",
+    default = "1",
+    pref = "alerts.snmp_port_duplexstatus_change",
+    disabled = not info["version.enterprise_edition"],
+  })
+
+  prefsToggleButton(subpage_active, {
     field = "toggle_snmp_alerts_port_errors",
     default = "1",
     pref = "alerts.snmp_port_errors",
