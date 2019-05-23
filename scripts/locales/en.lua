@@ -2824,6 +2824,7 @@ local lang = {
     ["senders"] = "Senders",
     ["starting"] = "Starting",
     ["submit_filter"] = "Submit Filter",
+    ["symbolic_host_name_at_visualization"] = "Symbolic host names are resolved during the visualization.",
     ["toggle_all"] = "Toggle All",
     ["top_asn"] = "Top ASN",
     ["top_countries"] = "Top Countries",
