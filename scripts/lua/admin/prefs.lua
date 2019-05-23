@@ -1018,6 +1018,15 @@ function printMisc()
 			 pref = "arp_matrix_generation",
 			 to_switch = nil,
     })
+
+    print('<tr><th colspan=2 class="info">'..i18n("telemetry")..'</th></tr>')
+
+    prefsToggleButton(subpage_active, {
+			 field = "toggle_send_telemetry_data",
+			 default = "1",
+			 pref = "send_telemetry_data",
+			 to_switch = nil,
+    })
   end
 
   -- #####################

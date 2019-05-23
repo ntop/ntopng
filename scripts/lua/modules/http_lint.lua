@@ -1281,6 +1281,7 @@ local known_parameters = {
    ["ts_high_resolution"]                          = validateNumber,
    ["lbd_hosts_as_macs"]                           = validateBool,
    ["toggle_arp_matrix_generation"]                = validateBool,
+   ["toggle_send_telemetry_data"]                  = validateBool,
 
    -- Other
    ["flush_alerts_data"]                           = validateEmpty,

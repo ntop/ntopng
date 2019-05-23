@@ -8,6 +8,7 @@ if((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.
 require "lua_utils"
 local recording_utils = require "recording_utils"
 local remote_assistance = require "remote_assistance"
+local telemetry_utils = require "telemetry_utils"
 
 local is_admin = isAdministrator()
 
@@ -581,3 +582,4 @@ print[[<button type="button" class="close" data-dismiss="alert" aria-label="Clos
 print(i18n("about.influxdb_migration_msg", {url="https://www.ntop.org/ntopng/ntopng-and-time-series-from-rrd-to-influxdb-new-charts-with-time-shift/"}))
 print('</div>')
 
+telemetry_utils.show_notice()

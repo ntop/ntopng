@@ -439,6 +439,9 @@ local menu_subpages = {
     }, toggle_arp_matrix_generation = {
       title       = i18n("prefs.toggle_arp_matrix_generation_title"),
       description = i18n("prefs.toggle_arp_matrix_generation_description", { product = info.product}),
+    }, toggle_send_telemetry_data = {
+      title       = i18n("prefs.toggle_send_telemetry_data_title"),
+      description = i18n("prefs.toggle_send_telemetry_data_description", { product = info.product}),
     }, google_apis_browser_key = {
       title       = i18n("prefs.google_apis_browser_key_title"),
       description = i18n("prefs.google_apis_browser_key_description", {url="https://maps-apis.googleblog.com/2016/06/building-for-scale-updates-to-google.html"}),
