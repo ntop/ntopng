@@ -21,7 +21,7 @@ end
 
 function telemetry_utils.notify(obj)
    if telemetry_enabled() then
-      local res = ntop.httpPost(TELEMETRY_URL, json.encode(obj), nil, nil, TELEMETRY_TIMEOUT)
+      local res = ntop.httpPost(TELEMETRY_URL, json.encode(obj), nil, nil, TELEMETRY_TIMEOUT, true)
    end
 end
 
