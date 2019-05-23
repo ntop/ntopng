@@ -179,7 +179,9 @@ The list of currently supported alerts, divided by entity, is outlined below:
 
 - SNMP Devices
 
-  - **Interface Status Change** (event): Indicates whether an interface of an SNMP configured device has changed its status, for example by going from Up to Down, or vice versa.
+  - **Interface Status Change** (event): Indicates whether an interface of an SNMP configured device has changed its status, by going from Up to Down, or vice versa.
+  - **Interface Duplex Status Change** (event): Indicates whether an interface of an SNMP configured device has changed its *duplex* status, for example by going from full-duplex to half-duplex.
+  - **Interface Discards/Errors** (event): Indicates whether the *discards* or *errors* counters increased on an interface of an SNMP configured device.
   - **Unresponsive Device** (event): Indicates whether a configured SNMP device no longer responds to SNMP queries.
 
 - Flows
