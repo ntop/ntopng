@@ -16,7 +16,8 @@ local TELEMETRY_ENABLED_KEY = "ntopng.prefs.send_telemetry_data"
 local function telemetry_enabled()
    local tm = ntop.getPref(TELEMETRY_ENABLED_KEY)
 
-   return tm == "" or tm == "1"
+   return false -- TEMPORARILY DISABLED to ask explicit consent
+   -- return tm == "" or tm == "1"
 end
 
 function telemetry_utils.notify(obj)
@@ -28,7 +29,8 @@ end
 local function dismiss_notice()
    local dism = ntop.getPref(TELEMETRY_NOTICE_KEY)
 
-   return dism == "1"
+   return true -- TEMPORARILY HIDDEN to ask explicit consent
+   -- return dism == "1"
 end
 
 
