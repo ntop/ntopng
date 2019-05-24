@@ -31,6 +31,10 @@ After restarting ntopng, you can login with the default ntopng credentials (admi
    Sometimes adding an exception for ntopng is not enough. Try to disable them before
    reporting an issue.
 
+.. note::
+
+   If the login issue persist, deleting the browser cookies sometimes helps.
+
 .. _`authentication method`: advanced_features/authentication.html
 
 Too many failed authentication attempts
@@ -117,3 +121,29 @@ The following blog post gives accurate estimations of the disk space
 required by ntopng to store timeseries and flows:
 https://www.ntop.org/ntopng/ntopng-disk-requirements-for-timeseries-and-flows/
 
+Cannot see data in Grafana
+==========================
+
+When ntopng is configured to export timeseries to InfluxDB, it is possible to use
+grafana with InfluxDB as a data source to create customized dashboard. If the grafana
+visualization does display any data, here are some steps for the troubleshooting:
+
+- Verify that the data is actually written to the database. An easy way to do this
+  is to open the interface charts page into ntopng and see if the past traffic is shown.
+  A more accurate way is to run a query from command line:
+  `influx -database ntopng -execute 'select * from "iface:traffic" order by time desc limit 1'`
+  it will show the most recent data point written into the DB.
+
+- Ensure that the InfluxDB database connected to grafana is the same as the database
+  configured into the ntopng timeseries settings.
+
+- If the data is correctly written to the database, the problem may be related to
+  the missing `Time Series Index` due to an InfluxDB version upgrade. The necessary
+  steps to enable the TSI are described in the `InfluxDB documentation`_. In short, the
+  steps to perform should be:
+
+  1. Change the `[data]` section of the config and set `index-version = "tsi1"`
+  2. Convert the existing data to the TSI:
+     `su -m influxdb -c "influx_inspect buildtsi -database ntopng -datadir /var/lib/influxdb/data -waldir /var/lib/influxdb/wal"`
+
+.. _`InfluxDB documentation`: https://docs.influxdata.com/influxdb/v1.7/administration/upgrading
