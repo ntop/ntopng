@@ -26,9 +26,6 @@
 /* *************************************** */
 
 AutonomousSystem::AutonomousSystem(NetworkInterface *_iface, IpAddress *ipa) : GenericHashEntry(_iface), GenericTrafficElement() {
-  char key[CONST_MAX_LEN_REDIS_KEY];
-  json_object *o;
-
   asname = NULL;
   round_trip_time = 0;
   ntop->getGeolocation()->getAS(ipa, &asn, &asname);
@@ -37,44 +34,19 @@ AutonomousSystem::AutonomousSystem(NetworkInterface *_iface, IpAddress *ipa) : G
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Created Autonomous System %u", asn);
 #endif
 
-  if((o = Utils::deserializeJson(getSerializationKey(key, sizeof(key)))) != NULL) {
-    deserialize(o);
-    json_object_put(o);
-  }
+  deserializeFromRedis();
 }
 
 /* *************************************** */
 
 AutonomousSystem::~AutonomousSystem() {
-  json_object *my_obj;
-
-  if((my_obj = getJSONObject()) != NULL) {
-    char key[CONST_MAX_LEN_REDIS_KEY];
-
-    ntop->getRedis()->set(getSerializationKey(key, sizeof(key)),
-      json_object_to_json_string(my_obj), ntop->getPrefs()->get_local_host_cache_duration());
-
-    json_object_put(my_obj);
-  }
+  serializeToRedis();
 
   if(asname) free(asname);
   /* TODO: decide if it is useful to dump AS stats to redis */
 #ifdef AS_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deleted Autonomous System %u", asn);
 #endif
-}
-
-/* *************************************** */
-
-json_object* AutonomousSystem::getJSONObject() {
-  json_object *my_object = json_object_new_object();
-
-  if(my_object) {
-    GenericTrafficElement::getJSONObject(my_object, iface);
-    return(my_object);
-  }
-
-  return(NULL);
 }
 
 /* *************************************** */

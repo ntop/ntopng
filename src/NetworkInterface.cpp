@@ -749,7 +749,7 @@ static bool local_hosts_2_redis_walker(GenericHashEntry *h, void *user_data, boo
   Host *host = (Host*)h;
 
   if(host && (host->isLocalHost() || host->isSystemHost())) {
-    host->serialize2redis();
+    ((LocalHost*)host)->serializeToRedis();
     *matched = true;
   }
 

@@ -24,7 +24,7 @@
 
 #include "ntop_includes.h"
 
-class LocalHost : public Host {
+class LocalHost : public Host, public SerializableElement {
  protected:
   int16_t local_network_id;
   NetworkStats *networkStats;
@@ -41,8 +41,6 @@ class LocalHost : public Host {
 
   char * getMacBasedSerializationKey(char *redis_key, size_t size, char *mac_key);
   char * getIpBasedSerializationKey(char *redis_key, size_t size);
-  bool deserialize();
-  bool deserializeFromRedisKey(char *key);
 
  public:
   LocalHost(NetworkInterface *_iface, Mac *_mac, u_int16_t _vlanId, IpAddress *_ip);
@@ -53,8 +51,6 @@ class LocalHost : public Host {
   virtual int16_t get_local_network_id() const { return(local_network_id);  };
   virtual bool isLocalHost()  const            { return(true);              };
   virtual bool isSystemHost() const            { return(systemHost);        };
-
-  virtual void  serialize2redis();
 
   virtual NetworkStats* getNetworkStats(int16_t networkId){ return(iface->getNetworkStats(networkId));   };
   virtual u_int32_t getActiveHTTPHosts()             { return(getHTTPstats() ? getHTTPstats()->get_num_virtual_hosts() : 0); };
@@ -77,6 +73,10 @@ class LocalHost : public Host {
   virtual void luaTCP(lua_State *vm) const                { stats->lua(vm,false,details_normal); };
   virtual u_int16_t getNumActiveContactsAsClient() const  { return stats->getNumActiveContactsAsClient(); };
   virtual u_int16_t getNumActiveContactsAsServer() const  { return stats->getNumActiveContactsAsServer(); };
+
+  virtual void deserialize(json_object *obj);
+  virtual void serialize(json_object *obj, DetailsLevel details_level) { return Host::serialize(obj, details_level); };
+  virtual char* getSerializationKey(char *buf, uint bufsize);
 
   virtual void lua(lua_State* vm, AddressTree * ptree, bool host_details,
 		   bool verbose, bool returnHost, bool asListElement);

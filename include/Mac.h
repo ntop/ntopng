@@ -24,7 +24,7 @@
 
 #include "ntop_includes.h"
 
-class Mac : public GenericHashEntry {
+class Mac : public GenericHashEntry, public SerializableElement {
  private:
   Mutex m;
   u_int8_t mac[6];
@@ -119,9 +119,6 @@ class Mac : public GenericHashEntry {
   inline char* get_string_key(char *buf, u_int buf_len) { return(Utils::formatMac(mac, buf, buf_len)); };
   inline int16_t findAddress(AddressTree *ptree)        { return ptree ? ptree->findMac(mac) : -1;     };
   inline char* print(char *str, u_int str_len)          { return(Utils::formatMac(mac, str, str_len)); };
-  char* serialize();
-  bool deserialize(char *key, char *json_str);
-  json_object* getJSONObject();
   void updateHostPool(bool isInlineCall, bool firstUpdate = false);
   inline void setOperatingSystem(OperatingSystem _os) { os = ((device_type != device_networking) ? _os : os_unknown); }
   inline OperatingSystem getOperatingSystem()         { return((device_type != device_networking) ? os : os_unknown); }
@@ -150,6 +147,10 @@ class Mac : public GenericHashEntry {
   inline void incRcvdStats(time_t t,u_int64_t num_pkts, u_int64_t num_bytes) {
     stats->incRcvdStats(t, num_pkts, num_bytes);
   }
+
+  void deserialize(json_object *obj);
+  void serialize(json_object *obj, DetailsLevel details_level);
+  char* getSerializationKey(char *buf, uint bufsize);
 
   inline u_int64_t  getNumSentArp()  { return(stats->getNumSentArp());      }
   inline u_int64_t  getNumRcvdArp()  { return(stats->getNumRcvdArp());      }
