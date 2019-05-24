@@ -134,3 +134,31 @@ void GenericTrafficElement::lua(lua_State* vm, bool host_details) {
     lua_push_uint64_table_entry(vm, "packets.rcvd.anomaly_index", rcvd.getPktsAnomaly());
   }
 }
+
+/* *************************************** */
+
+void GenericTrafficElement::getJSONObject(json_object *my_object, NetworkInterface *iface) {
+  if(total_num_dropped_flows)
+      json_object_object_add(my_object, "flows.dropped", json_object_new_int(total_num_dropped_flows));
+
+  json_object_object_add(my_object, "sent", sent.getJSONObject());
+  json_object_object_add(my_object, "rcvd", rcvd.getJSONObject());
+
+  if(ndpiStats)
+    json_object_object_add(my_object, "ndpiStats", ndpiStats->getJSONObject(iface));
+}
+
+/* *************************************** */
+
+void GenericTrafficElement::deserialize(json_object *o, NetworkInterface *iface) {
+  json_object *obj;
+
+  if(json_object_object_get_ex(o, "flows.dropped", &obj)) total_num_dropped_flows = json_object_get_int(obj);
+  if(json_object_object_get_ex(o, "sent", &obj))  sent.deserialize(obj);
+  if(json_object_object_get_ex(o, "rcvd", &obj))  rcvd.deserialize(obj);
+  if(json_object_object_get_ex(o, "ndpiStats", &obj)) {
+    if(ndpiStats) delete ndpiStats;
+    ndpiStats = new nDPIStats();
+    ndpiStats->deserialize(iface, obj);
+  }
+}
