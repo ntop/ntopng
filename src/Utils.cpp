@@ -3847,3 +3847,48 @@ void Utils::containerInfoLua(lua_State *vm, const ContainerInfo * const cont) {
     if(cont->name) lua_push_str_table_entry(vm, "docker.name", cont->name);
   }
 }
+
+/* ****************************************************** */
+
+/* NOTE: returned object must be freed by the caller */
+json_object* Utils::deserializeJson(const char *key) {
+  json_object *o;
+  enum json_tokener_error jerr = json_tokener_success;
+  u_int json_len;
+  char *json = NULL;
+
+  if(!key ||
+      ((json_len = ntop->getRedis()->len(key)) <= 0) ||
+      (++json_len > HOST_MAX_SERIALIZED_LEN))
+    return(NULL);
+
+  ntop->getTrace()->traceEvent(TRACE_INFO, "Deserializing %s", key);
+
+  if((json = (char*)malloc(json_len * sizeof(char))) == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to allocate memory to deserialize %s", key);
+    return(NULL);
+  }
+
+  if(ntop->getRedis()->get((char*)key, json, json_len) != 0) {
+    free(json);
+    return(NULL);
+  }
+
+  if((o = json_tokener_parse_verbose(json, &jerr)) == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "JSON Parse error [%s] key: %s: %s",
+				 json_tokener_error_desc(jerr),
+				 key,
+				 json);
+    // DEBUG
+    printf("JSON Parse error [%s] key: %s: %s",
+				 json_tokener_error_desc(jerr),
+				 key,
+				 json);
+
+    free(json);
+    return(NULL);
+  }
+
+  free(json);
+  return(o);
+}

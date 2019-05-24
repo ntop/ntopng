@@ -122,44 +122,11 @@ void LocalHost::serialize2redis() {
 /* *************************************** */
 
 bool LocalHost::deserializeFromRedisKey(char *key) {
+  char host_key[64];
   json_object *o, *obj;
-  enum json_tokener_error jerr = json_tokener_success;
-  u_int json_len;
-  char host_key[64], *json = NULL;
 
-  if(!key ||
-      ((json_len = ntop->getRedis()->len(key)) <= 0) ||
-      (++json_len > HOST_MAX_SERIALIZED_LEN))
-    return false;
-
-  if((json = (char*)malloc(json_len * sizeof(char))) == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to allocate memory to deserialize %s", key);
-    return false;
-  }
-
-  if(ntop->getRedis()->get(key, json, json_len) != 0) {
-    free(json);
-    return false;
-  }
-
-  /* Found saved copy of the host so let's start from the previous state */
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s => %s", redis_key, json);
-  ntop->getTrace()->traceEvent(TRACE_INFO, "Deserializing %s from %s", ip.print(host_key, sizeof(host_key)), key);
-
-  if((o = json_tokener_parse_verbose(json, &jerr)) == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "JSON Parse error [%s] key: %s: %s",
-				 json_tokener_error_desc(jerr),
-				 key,
-				 json);
-    // DEBUG
-    printf("JSON Parse error [%s] key: %s: %s",
-				 json_tokener_error_desc(jerr),
-				 key,
-				 json);
-
-    free(json);
+  if((o = Utils::deserializeJson(key)) == NULL)
     return(false);
-  }
 
   stats->deserialize(o);
 
@@ -194,7 +161,6 @@ bool LocalHost::deserializeFromRedisKey(char *key) {
   json_object_put(o);
   checkStatsReset();
 
-  free(json);
   return(true);
 }
 

@@ -64,6 +64,9 @@ class AutonomousSystem : public GenericHashEntry, public GenericTrafficElement {
   void updateRoundTripTime(u_int32_t rtt_msecs);
   bool idle();
   void lua(lua_State* vm, DetailsLevel details_level, bool asListElement);
+  inline void deserialize(json_object *obj)         { GenericTrafficElement::deserialize(obj, iface); }
+  json_object* getJSONObject();
+  inline char* getSerializationKey(char *buf, uint bufsize) { snprintf(buf, bufsize, AS_SERIALIZED_KEY, iface->get_id(), asn); return(buf); }
 };
 
 #endif /* _AUTONOMOUS_SYSTEM_H_ */

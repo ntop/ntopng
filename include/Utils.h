@@ -132,6 +132,7 @@ class Utils {
   static bool parseAuthenticatorJson(HTTPAuthenticator *auth, char *content);
   static void freeAuthenticator(HTTPAuthenticator *auth);
   static DetailsLevel bool2DetailsLevel(bool max, bool higher,bool normal = false);
+  static json_object* deserializeJson(const char *key);
 
   /* Patricia Tree */
   static patricia_node_t* add_to_ptree(patricia_tree_t *tree, int family, void *addr, int bits);

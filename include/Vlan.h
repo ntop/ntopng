@@ -59,6 +59,9 @@ class Vlan : public GenericHashEntry, public GenericTrafficElement {
 
   bool idle();
   void lua(lua_State* vm, DetailsLevel details_level, bool asListElement);
+  inline void deserialize(json_object *obj)         { GenericTrafficElement::deserialize(obj, iface); }
+  json_object* getJSONObject();
+  inline char* getSerializationKey(char *buf, uint bufsize) { snprintf(buf, bufsize, VLAN_SERIALIZED_KEY, iface->get_id(), vlan_id); return(buf); }
 };
 
 #endif /* _VLAN_H_ */

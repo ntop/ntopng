@@ -25,21 +25,52 @@
 
 Vlan::Vlan(NetworkInterface *_iface, u_int16_t _vlan_id) : GenericHashEntry(_iface), GenericTrafficElement() {
   vlan_id = _vlan_id;
+  char key[CONST_MAX_LEN_REDIS_KEY];
+  json_object *o;
 
 #ifdef VLAN_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Created VLAN %u", vlan_id);
 #endif
+
+  if((o = Utils::deserializeJson(getSerializationKey(key, sizeof(key)))) != NULL) {
+    deserialize(o);
+    json_object_put(o);
+  }
 }
 
 /* *************************************** */
 
 Vlan::~Vlan() {
+  json_object *my_obj;
+
+  if((my_obj = getJSONObject()) != NULL) {
+    char key[CONST_MAX_LEN_REDIS_KEY];
+
+    ntop->getRedis()->set(getSerializationKey(key, sizeof(key)),
+      json_object_to_json_string(my_obj), ntop->getPrefs()->get_local_host_cache_duration());
+
+    json_object_put(my_obj);
+  }
+
   /* TODO: decide if it is useful to dump AS stats to redis */
 #ifdef VLAN_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deleted vlan %u", vlan_id);
 #endif
 
   /* NOTE: ndpiStats is alredy freed by GenericTrafficElement */
+}
+
+/* *************************************** */
+
+json_object* Vlan::getJSONObject() {
+  json_object *my_object = json_object_new_object();
+
+  if(my_object) {
+    GenericTrafficElement::getJSONObject(my_object, iface);
+    return(my_object);
+  }
+
+  return(NULL);
 }
 
 /* *************************************** */
