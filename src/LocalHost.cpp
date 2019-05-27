@@ -54,6 +54,7 @@ LocalHost::~LocalHost() {
 
 /* *************************************** */
 
+/* NOTE: Host::initialize will be called from the Host initializator */
 void LocalHost::initialize() {
   char buf[64];
 
@@ -65,7 +66,6 @@ void LocalHost::initialize() {
   os = NULL;
 
   ip.isLocalHost(&local_network_id);
-  networkStats = getNetworkStats(local_network_id);
 
   systemHost = ip.isLocalInterfaceAddress();
 

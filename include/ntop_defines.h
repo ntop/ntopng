@@ -214,6 +214,7 @@
 #define HOST_POOL_SERIALIZED_KEY "ntopng.serialized_host_pools.ifid_%u"
 #define VLAN_SERIALIZED_KEY     "ntopng.serialized_vlan.ifid_%u_vlan_%u"
 #define AS_SERIALIZED_KEY       "ntopng.serialized_as.ifid_%u_as_%u"
+#define COUNTRY_SERIALIZED_KEY  "ntopng.serialized_as.ifid_%u_country_%s"
 #define NTOPNG_PREFS_PREFIX     "ntopng.prefs"
 #define NTOPNG_CACHE_PREFIX     "ntopng.cache"
 #define MAC_CUSTOM_DEVICE_TYPE  NTOPNG_PREFS_PREFIX".device_types.%s"

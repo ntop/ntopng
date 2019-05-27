@@ -29,7 +29,7 @@ class Vlan : public GenericHashEntry, public GenericTrafficElement, public Seria
   u_int16_t vlan_id;
   
   inline void incSentStats(time_t t, u_int64_t num_pkts, u_int64_t num_bytes)  {
-    if(first_seen == 0) first_seen = iface->getTimeLastPktRcvd();
+    if(first_seen == 0) first_seen = t;
     last_seen = iface->getTimeLastPktRcvd();
     sent.incStats(t, num_pkts, num_bytes);
   }

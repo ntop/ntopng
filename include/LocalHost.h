@@ -27,7 +27,6 @@
 class LocalHost : public Host, public SerializableElement {
  protected:
   int16_t local_network_id;
-  NetworkStats *networkStats;
   bool systemHost;
 
   /* LocalHost data: update LocalHost::deleteHostData when adding new fields */

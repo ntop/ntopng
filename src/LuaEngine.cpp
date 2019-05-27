@@ -1179,6 +1179,22 @@ static int ntop_get_interface_countries_info(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_get_interface_country_info(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  const char* country;
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  country = lua_tostring(vm, 1);
+
+  if((!ntop_interface)
+     || (!ntop_interface->getCountryInfo(vm, country)))
+    return(CONST_LUA_ERROR);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 // ***API***
 static int ntop_get_interface_vlans_list(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
@@ -8335,6 +8351,7 @@ static const luaL_Reg ntop_interface_reg[] = {
 
   /* Countries */
   { "getCountriesInfo",                 ntop_get_interface_countries_info },
+  { "getCountryInfo",                   ntop_get_interface_country_info },
 
   /*ARP stats matrix*/
   { "getArpStatsMatrixInfo",            ntop_get_arp_matrix_info },
