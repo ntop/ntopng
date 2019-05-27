@@ -26,7 +26,7 @@
 
 #include "ntop_includes.h"
 
-class AutonomousSystem : public GenericHashEntry, public GenericTrafficElement {
+class AutonomousSystem : public GenericHashEntry, public GenericTrafficElement, public SerializableElement {
  private:
   u_int32_t asn;
   char *asname;
@@ -64,6 +64,10 @@ class AutonomousSystem : public GenericHashEntry, public GenericTrafficElement {
   void updateRoundTripTime(u_int32_t rtt_msecs);
   bool idle();
   void lua(lua_State* vm, DetailsLevel details_level, bool asListElement);
+
+  inline void deserialize(json_object *obj)                           { GenericTrafficElement::deserialize(obj, iface); }
+  inline void serialize(json_object *obj, DetailsLevel details_level) { GenericTrafficElement::getJSONObject(obj, iface); }
+  inline char* getSerializationKey(char *buf, uint bufsize) { snprintf(buf, bufsize, AS_SERIALIZED_KEY, iface->get_id(), asn); return(buf); }
 };
 
 #endif /* _AUTONOMOUS_SYSTEM_H_ */

@@ -65,32 +65,8 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6])
 			       iface->getNumL2Devices());
 #endif
 
-  /*
-   * Note: We do not load MAC data from redis right now.
-   * We only need redis MAC data to show Unassigned Devices in host pools view.
-   */
-  if(!special_mac) {
-    char *json = NULL;
-    u_int json_len = 0;
-
-    snprintf(redis_key, sizeof(redis_key), MAC_SERIALIZED_KEY, iface->get_id(), mac_ptr);
-
-    if((json_len = ntop->getRedis()->len(redis_key)) > 0
-       && ++json_len <= HOST_MAX_SERIALIZED_LEN) {
-      if((json = (char*)malloc(json_len * sizeof(char))) == NULL) {
-	ntop->getTrace()->traceEvent(TRACE_ERROR,
-				     "Unable to allocate memory to deserialize %s", redis_key);
-      } else if(!ntop->getRedis()->get(redis_key, json, json_len)) {
-	/* Found saved copy of the host so let's start from the previous state */
-	// ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s => %s", redis_key, json);
-	ntop->getTrace()->traceEvent(TRACE_INFO, "Deserializing %s", redis_key);
-	if(!deserialize(redis_key, json))
-	  ntop->getRedis()->del(redis_key);
-      }
-
-      if(json) free(json);
-    }
-  }
+  if(!special_mac)
+    deserializeFromRedis();
 
   // Load the user defined device type, if available
   snprintf(redis_key, sizeof(redis_key), MAC_CUSTOM_DEVICE_TYPE, mac_ptr);
@@ -109,18 +85,10 @@ Mac::~Mac() {
     iface->decNumL2Devices();
 
   if(!special_mac) {
-    char key[64], buf1[64];
-
-    snprintf(key, sizeof(key), MAC_SERIALIZED_KEY, iface->get_id(), Utils::formatMac(mac, buf1, sizeof(buf1)));
-
-    if(data_delete_requested) {
-      ntop->getTrace()->traceEvent(TRACE_INFO, "Delete serialization %s", key);
-      ntop->getRedis()->del(key);
-    } else {
-      char *json = serialize();
-      ntop->getRedis()->set(key, json, ntop->getPrefs()->get_local_host_cache_duration());
-      free(json);
-    }
+    if(data_delete_requested)
+      deleteRedisSerialization();
+    else
+      serializeToRedis();
   }
 
   /* Pool counters are updated both in and outside the datapath.
@@ -255,38 +223,18 @@ bool Mac::equal(const u_int8_t _mac[6]) {
 
 /* *************************************** */
 
-char* Mac::serialize() {
-  json_object *my_object = getJSONObject();
-  char *rsp = strdup(json_object_to_json_string(my_object));
+char* Mac::getSerializationKey(char *buf, uint bufsize) {
+  char buf1[32];
+  char *mac_ptr = Utils::formatMac(mac, buf1, sizeof(buf1));
 
-  ntop->getTrace()->traceEvent(TRACE_INFO, "%s", rsp);
-  
-  /* Free memory */
-  json_object_put(my_object);
-
-  return(rsp);
+  snprintf(buf, bufsize, MAC_SERIALIZED_KEY, iface->get_id(), mac_ptr);
+  return(buf);
 }
 
 /* *************************************** */
 
-bool Mac::deserialize(char *key, char *json_str) {
-  json_object *o, *obj;
-  enum json_tokener_error jerr = json_tokener_success;
-
-  ntop->getTrace()->traceEvent(TRACE_INFO, "%s", json_str);
-  
-  if((o = json_tokener_parse_verbose(json_str, &jerr)) == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "JSON Parse error [%s] key: %s: %s",
-				 json_tokener_error_desc(jerr),
-				 key,
-				 json_str);
-        // DEBUG
-    printf("JSON Parse error [%s] key: %s: %s",
-	 json_tokener_error_desc(jerr),
-	 key,
-	 json_str);
-    return false;
-  }
+void Mac::deserialize(json_object *o) {
+  json_object *obj;
 
   if(json_object_object_get_ex(o, "seen.first", &obj))  first_seen = json_object_get_int64(obj);
   if(json_object_object_get_ex(o, "seen.last", &obj))   last_seen = json_object_get_int64(obj);
@@ -299,10 +247,7 @@ bool Mac::deserialize(char *key, char *json_str) {
 
   stats->deserialize(o);
 
-  json_object_put(o);
   checkStatsReset();
-
-  return true;
 }
 
 /* *************************************** */
@@ -313,11 +258,8 @@ bool Mac::statsResetRequested() {
 
 /* *************************************** */
 
-json_object* Mac::getJSONObject() {
-  json_object *my_object;
+void Mac::serialize(json_object *my_object, DetailsLevel details_level) {
   char buf[32];
-
-  if((my_object = json_object_new_object()) == NULL) return(NULL);
 
   json_object_object_add(my_object, "mac", json_object_new_string(Utils::formatMac(get_mac(), buf, sizeof(buf))));
   json_object_object_add(my_object, "seen.first", json_object_new_int64(first_seen));
@@ -331,8 +273,6 @@ json_object* Mac::getJSONObject() {
 
   if(!statsResetRequested())
     stats->getJSONObject(my_object);
-
-  return my_object;
 }
 
 /* *************************************** */
