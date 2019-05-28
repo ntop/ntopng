@@ -219,7 +219,7 @@ local lang = {
     ["system"] = "System",
     ["system_id"] = "System Id",
     ["telegram"] = "Help and News",
-    ["telemetry_data_opt_out_msg"] = "Contribute to the project by sending encrypted, <a href=\"%{tel_url}\">anonymous telemetry data</a> to <a href=\"%{ntop_org}\">ntop.org</a>. Willing to contribute? Want to Opt-Out? Visit the <a href=\"%{url}\"><i class=\"fa fa-flask\"></i>Preferences</a> page and express your preference.",
+    ["telemetry_data_opt_out_msg"] = "Contribute to the project by sending encrypted, <a href=\"%{tel_url}\">anonymous telemetry data</a> to <a href=\"%{ntop_org}\">ntop.org</a>: visit the <a href=\"%{url}\"><i class=\"fa fa-flask\"></i>Preferences</a> page and express your preference.",
     ["upgrade_to_professional"] = "Upgrade to Professional version",
     ["uptime"] = "Uptime",
     ["version"] = "Version",
