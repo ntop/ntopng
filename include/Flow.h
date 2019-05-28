@@ -99,6 +99,7 @@ class Flow : public GenericHashEntry {
     } ssh;
 
     struct {
+      u_int16_t ssl_version;
       char *certificate, *server_certificate;
       /* Certificate dissection */
       char *certificate_buf_leftover;

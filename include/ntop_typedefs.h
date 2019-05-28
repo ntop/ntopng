@@ -334,6 +334,7 @@ typedef enum {
   status_ids_alert /* 21 */,
   status_tcp_severe_connection_issues /* 22 - higher severity than status_tcp_connection_issues */,
   status_ssl_unsafe_ciphers /* 23 */,
+  status_ssl_old_protocol_version /* 24 */,
   num_flow_status,
 } FlowStatus;
 

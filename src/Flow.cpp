@@ -312,6 +312,7 @@ void Flow::dumpFlowAlert() {
 
     case status_ssl_certificate_mismatch: /* 10 */
     case status_ssl_unsafe_ciphers:       /* 23 */
+    case status_ssl_old_protocol_version: /* 24 */
       do_dump = ntop->getPrefs()->are_ssl_alerts_enabled();
       break;
 
@@ -485,6 +486,8 @@ void Flow::processDetectedProtocol() {
 
   case NDPI_PROTOCOL_TOR:
   case NDPI_PROTOCOL_SSL:
+    protos.ssl.ssl_version = ndpiFlow->protos.stun_ssl.ssl.ssl_version;
+    
 #if 0
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "-> [client: %s][server: %s]",
 				 ndpiFlow->protos.stun_ssl.ssl.client_certificate,
@@ -1811,6 +1814,8 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
       }
 
       if(isSSL()) {
+	lua_push_int32_table_entry(vm, "protos.ssl_version", protos.ssl.ssl_version);
+	
 	if(protos.ssl.certificate)
 	  lua_push_str_table_entry(vm, "protos.ssl.certificate", protos.ssl.certificate);
 
@@ -3644,7 +3649,9 @@ FlowStatus Flow::getFlowStatus() {
    return(status_flow_when_interface_alerted);
 #endif
 
-  if(protos.ssl.ja3.server_unsafe_cipher != ndpi_cipher_safe)
+  if(protos.ssl.ssl_version && (protos.ssl.ssl_version < 0x303 /* TLSv1.2 */))
+    return(status_ssl_old_protocol_version);
+  else if(protos.ssl.ja3.server_unsafe_cipher != ndpi_cipher_safe)
     return(status_ssl_unsafe_ciphers);
   
   return(status_normal);

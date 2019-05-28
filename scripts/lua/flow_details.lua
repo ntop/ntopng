@@ -291,6 +291,22 @@ local ssl_cipher_suites = {
    SSL2_RC4_64_WITH_MD5=0x080080,
 }
 
+function sslVersion2Str(v)
+   if(v == 768) then
+      return("SSL v3")
+   elseif(v == 769) then
+      return("TLS v1");
+   elseif(v == 770) then
+      return("TLS v1.1");
+   elseif(v == 771) then
+      return("TLS v1.2");
+   elseif(v == 772) then
+      return("TLS v1.3");
+   else
+      return("SSL "..flow["protos.ssl_version"])
+   end
+end
+
 local function cipher2str(c)
    for s,v in pairs(ssl_cipher_suites) do
       if(v == c) then
@@ -601,6 +617,15 @@ else
    if(flow["verdict.pass"] == false) then print("</strike>") end
    historicalProtoHostHref(ifid, flow["cli.ip"], nil, flow["proto.ndpi_id"], flow["protos.ssl.certificate"])
 
+   if((flow["protos.ssl_version"] ~= nil)
+      and (flow["protos.ssl_version"] ~= 0)) then
+      print(" [ "..sslVersion2Str(flow["protos.ssl_version"]).." ]")
+      if(tonumber(flow["protos.ssl_version"]) < 771) then
+	 print(' <i class="fa fa-warning" aria-hidden=true style="color: orange;"></i> ')
+	 print(i18n("flow_details.ssl_old_protocol_version"))
+      end
+   end
+   
    if(ifstats.inline) then
       if(flow["verdict.pass"]) then
 	 print('<form class="form-inline pull-right" style="margin-bottom: 0px;" method="post">')
