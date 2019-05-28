@@ -11,6 +11,8 @@ local telemetry_utils = {}
 local TELEMETRY_URL = "https://telemetry.ntop.org/crash.php"
 local TELEMETRY_TIMEOUT = 3
 local TELEMETRY_ENABLED_KEY = "ntopng.prefs.send_telemetry_data"
+local TELEMETRY_RECORDS_SENT = "ntopng.cache.telemetry_data_sent"
+local TELEMETRY_MAX_NUM_RECORDS = 5
 
 function telemetry_utils.telemetry_enabled()
    local tm = ntop.getPref(TELEMETRY_ENABLED_KEY)
@@ -32,7 +34,14 @@ function telemetry_utils.notify(obj)
 	 mail = nil
       end
 
-      local res = ntop.httpPost(TELEMETRY_URL, json.encode({data=obj, mail=mail}), nil, nil, TELEMETRY_TIMEOUT, true)
+      local msg = {data = obj, mail = mail, timestamp = os.time()}
+      local encoded_msg = json.encode(msg)
+
+      local res = ntop.httpPost(TELEMETRY_URL, encoded_msg, nil, nil, TELEMETRY_TIMEOUT, true)
+
+      if res and res["RESPONSE_CODE"] == 200 then
+	 ntop.rpushCache(TELEMETRY_RECORDS_SENT, encoded_msg, TELEMETRY_MAX_NUM_RECORDS)
+      end
    end
 end
 
@@ -57,12 +66,12 @@ function telemetry_utils.show_notice()
    end
 end
 
-
 function telemetry_utils.print_overview()
    local info = ntop.getInfo()
 
-   print[[<p>
-]] print(i18n("telemetry_page.send_telemetry_data")) print [[: 
+   print("<table class=\"table table-bordered table-striped\">\n")
+
+   print[[<tr><th>]] print(i18n("telemetry_page.send_telemetry_data")) print [[</th><td>
 ]]
 
    if telemetry_utils.telemetry_enabled() then
@@ -74,16 +83,29 @@ function telemetry_utils.print_overview()
    end
 
    print[[ (]] print(i18n("telemetry_page.telemetry_data_change_preference", {url = ntop.getHttpPrefix().."/lua/admin/prefs.lua?tab=telemetry"})) print[[)
-</p>
+</td></tr>
 ]]
 
-   print[[<p>
-]] print(i18n("telemetry_page.telemetry_data")) print [[:
-<ul>
-<li><b>]] print(i18n("telemetry_page.crash_report")) print[[</b>. ]] print(i18n("telemetry_page.crash_report_descr", {product=ntop.getInfo()["product"]})) print [[<pre>{"entity_type":1,"type":20,"when":1558634220,"entity_value":"ntopng","message":"Started after anomalous termination (<a href=\"https://www.ntop.org/support/need-help-2/need-help/\">bug report</a>) ]] print(info.product) print[[ v.]] print(info.version) print[[ (]] print(info.OS) print[[[pid: 28775][options: --interface \"tcp://*:1234c\" --interface \"eno1\" --interface \"view:tcp://*:1234c,eno1\" --local-networks \"192.168.2.0/24\" --disable-login \"1\" ]","severity":2}</pre></li>
-</ul>
-</p>
+   print[[<tr><th>]] print(i18n("telemetry_page.telemetry_data")) print [[</th><td>
+<b>]] print(i18n("telemetry_page.crash_report")) print[[</b>. ]] print(i18n("telemetry_page.crash_report_descr", {product=ntop.getInfo()["product"]})) print [[<br><code>{"entity_type":1,"type":20,"when":1558634220,"entity_value":"ntopng","message":"Started after anomalous termination (<a href=\"https://www.ntop.org/support/need-help-2/need-help/\">bug report</a>) ]] print(info.product) print[[ v.]] print(info.version) print[[ (]] print(info.OS) print[[[pid: 28775][options: --interface \"tcp://*:1234c\" --interface \"eno1\" --interface \"view:tcp://*:1234c,eno1\" --local-networks \"192.168.2.0/24\" --disable-login \"1\" ]","severity":2}</code>
+</td></tr>
 ]]
+
+   local transmitted_data = ntop.lrangeCache(TELEMETRY_RECORDS_SENT, 0, -1) or {}
+
+   if table.len(transmitted_data) > 0 then
+      print[[<tr><th>]] print(i18n("telemetry_page.last_data_sent")) print[[</th><td><code>]]
+
+      for i, msg in ipairs(transmitted_data) do
+	 if msg then
+	    print(noHtml(msg).."<br>")
+	 end
+      end
+
+      print[[</code></td><tr>]]
+   end
+
+   print("</table>")
 end
 
 return telemetry_utils

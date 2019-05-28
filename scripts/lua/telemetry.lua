@@ -34,14 +34,8 @@ print("<li><a href=\"#\">"..i18n("telemetry").."</A> </li>")
 if page == "overview" then
    print("<li class=\"active\"><a href=\"#\"><i class=\"fa fa-home fa-lg\"></i>\n")
 else
-   print("<li><a href=\""..nav_url.."&page=overview\"><i class=\"fa fa-home fa-lg\"></i>\n")
+   print("<li><a href=\""..nav_url.."?page=overview\"><i class=\"fa fa-home fa-lg\"></i>\n")
 end
-
--- if page == "transmitted-data" then
---     print("\n<li class=\"active\"><a href=\"#\"><i class='fa fa-area-chart fa-lg'></i></a></li>\n")
--- else
---     print("\n<li><a href=\""..nav_url.."&page=historical\"><i class='fa fa-area-chart fa-lg'></i></a></li>")
--- end
 
 print [[
 <li><a href="javascript:history.go(-1)"><i class='fa fa-reply'></i></a></li>
@@ -53,7 +47,6 @@ print [[
 
 if page == "overview" then
    telemetry_utils.print_overview()
-elseif page == "transmitted-data" then
 end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

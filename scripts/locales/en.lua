@@ -3072,6 +3072,7 @@ local lang = {
      ["telemetry_data_no_consent"] = "No preference expressed",
      ["telemetry_data_change_preference"] = "<a href='%{url}'>change</a>",
      ["telemetry_data"] = "Telemetry Data",
+     ["last_data_sent"] = "Last Data Sent",
      ["crash_report"] = "Crash Report",
      ["crash_report_descr"] = "A crash report is sent upon %{product} anomalous termination. Crash report contains %{product} information such as version, build architecture, operating system and startup options. Nothing regarding the monitored traffic is ever sent. Following is an example of a crash report:",
   },
