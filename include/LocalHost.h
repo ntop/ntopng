@@ -28,6 +28,8 @@ class LocalHost : public Host, public SerializableElement {
  protected:
   int16_t local_network_id;
   bool systemHost;
+  time_t initialization_time;
+  HostTimeseriesPoint *initial_ts_point;
 
   /* LocalHost data: update LocalHost::deleteHostData when adding new fields */
   char *os;
