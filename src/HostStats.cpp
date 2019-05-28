@@ -69,13 +69,8 @@ void HostStats::getJSONObject(json_object *my_object, DetailsLevel details_level
     json_object_object_add(my_object, "host_unreachable_flows.as_server", json_object_new_int(host_unreachable_flows_as_server));
     json_object_object_add(my_object, "total_alerts", json_object_new_int(total_alerts));
 
-    if(total_num_dropped_flows)
-      json_object_object_add(my_object, "flows.dropped", json_object_new_int(total_num_dropped_flows));
-
-    json_object_object_add(my_object, "sent", sent.getJSONObject());
-    json_object_object_add(my_object, "rcvd", rcvd.getJSONObject());
-    json_object_object_add(my_object, "ndpiStats", ndpiStats->getJSONObject(iface));
     json_object_object_add(my_object, "total_activity_time", json_object_new_int(total_activity_time));
+    GenericTrafficElement::getJSONObject(my_object, iface);
 
     /* TCP stats */
     if(tcp_packet_stats_sent.seqIssues())

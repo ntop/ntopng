@@ -89,6 +89,7 @@ class Host : public GenericHashEntry {
   void freeHostData();
   virtual void deleteHostData();
   char* get_mac_based_tskey(Mac *mac, char *buf, size_t bufsize);
+  char* getSerializedString();
 
   
  public:
@@ -230,9 +231,6 @@ class Host : public GenericHashEntry {
     bool peer_is_unicast);
   void incHitter(Host *peer, u_int64_t sent_bytes, u_int64_t rcvd_bytes);
   virtual void updateHostTrafficPolicy(char *key) {};
-  virtual json_object* getJSONObject(DetailsLevel details_level);
-  char* serialize();
-  virtual void  serialize2redis() {};
   bool addIfMatching(lua_State* vm, AddressTree * ptree, char *key);
   bool addIfMatching(lua_State* vm, u_int8_t *mac);
   void updateSynAlertsCounter(time_t when, u_int8_t flags, Flow *f, bool syn_sent);
@@ -292,6 +290,8 @@ class Host : public GenericHashEntry {
   inline bool isOneWayTraffic() { return !(stats->getNumBytesRcvd() > 0 && stats->getNumBytesSent() > 0); };
   virtual void tsLua(lua_State* vm) { lua_pushnil(vm); };
   DeviceProtoStatus getDeviceAllowedProtocolStatus(ndpi_protocol proto, bool as_client);
+
+  virtual void serialize(json_object *obj, DetailsLevel details_level);
 
   inline void requestStatsReset()                        { stats_reset_requested = true; };
   inline void requestDataReset()                         { data_delete_requested = true; requestStatsReset(); };

@@ -409,6 +409,11 @@ function ts_dump.run_5min_dump(_ifname, ifstats, config, when, time_threshold, s
           end
         end
 
+        if(host_ts.initial_point ~= nil) then
+          -- Dump the first point
+          ts_dump.host_update_rrd(host_ts.initial_point_time, host_key, host_ts.initial_point, ifstats, verbose, config)
+        end
+
         for _, host_point in ipairs(host_ts or {}) do
           local instant = host_point.instant
 

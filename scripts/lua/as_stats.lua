@@ -86,6 +86,8 @@ print [[
 			     {
 			     title: "]] print(i18n("show_alerts.alerts")) print[[",
 				 field: "column_alerts",
+				 /* TODO: alerts not implemented */
+				 hidden: true,
 				 sortable: false,
                              css: {
 			        textAlign: 'center'

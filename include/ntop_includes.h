@@ -224,6 +224,7 @@ using namespace std;
 #include "Prefs.h"
 #include "ProtoStats.h"
 #include "Utils.h"
+#include "SerializableElement.h"
 #include "CommunityIdFlowHash.h"
 #include "DnsStats.h"
 #include "NetworkStats.h"

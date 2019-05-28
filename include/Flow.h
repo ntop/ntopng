@@ -117,6 +117,7 @@ class Flow : public GenericHashEntry {
     struct {
       u_int8_t icmp_type, icmp_code;
       u_int16_t icmp_echo_id;
+      bool has_long_icmp_payload;
     } icmp;
   } protos;
 
@@ -351,6 +352,8 @@ class Flow : public GenericHashEntry {
   inline Host* get_cli_host()                     { return(cli_host);                        };
   inline Host* get_srv_host()                     { return(srv_host);                        };
   inline char* get_json_info()			  { return(json_info);                       };
+  inline void set_long_icmp_payload()             { protos.icmp.has_long_icmp_payload = true; }
+  inline bool has_long_icmp_payload()             { return(protos.icmp.has_long_icmp_payload); }
   inline ndpi_protocol_breed_t get_protocol_breed() const {
     return(ndpi_get_proto_breed(iface->get_ndpi_struct(), isDetectionCompleted() ? ndpiDetectedProtocol.app_protocol : NDPI_PROTOCOL_UNKNOWN));
   };

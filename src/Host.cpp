@@ -626,7 +626,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   fingerprints.ssl.lua("ssl_fingerprint", vm);
   
   if(verbose) {
-    char *rsp = serialize();
+    char *rsp = getSerializedString();
     lua_push_str_table_entry(vm, "json", rsp);
     free(rsp);
 
@@ -786,24 +786,26 @@ void Host::incStats(u_int32_t when, u_int8_t l4_proto, u_int ndpi_proto,
 
 /* *************************************** */
 
-char* Host::serialize() {
-  json_object *my_object = getJSONObject(details_max);
-  char *rsp = strdup(json_object_to_json_string(my_object));
+char* Host::getSerializedString() {
+  json_object *my_object = json_object_new_object();
 
-  /* Free memory */
-  json_object_put(my_object);
+  if(my_object) {
+    char *rsp = strdup(json_object_to_json_string(my_object));
 
-  return(rsp);
+    /* Free memory */
+    json_object_put(my_object);
+
+    return(rsp);
+  }
+
+  return(NULL);
 }
 
 /* *************************************** */
 
-json_object* Host::getJSONObject(DetailsLevel details_level) {
-  json_object *my_object;
+void Host::serialize(json_object *my_object, DetailsLevel details_level) {
   char buf[96];
   Mac *m = mac;
-
-  if((my_object = json_object_new_object()) == NULL) return(NULL);
 
   stats->getJSONObject(my_object, details_level);
 
@@ -836,8 +838,6 @@ json_object* Host::getJSONObject(DetailsLevel details_level) {
 
   /* The value below is handled by reading dumps on disk as otherwise the string will be too long */
   //json_object_object_add(my_object, "activityStats", activityStats.getJSONObject());
-
-  return(my_object);
 }
 
 /* *************************************** */

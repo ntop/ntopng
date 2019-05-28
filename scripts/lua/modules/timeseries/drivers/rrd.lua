@@ -613,7 +613,6 @@ local function _listSeries(schema, tags_filter, wildcard_tags, start_time)
       local last_update = ntop.rrd_lastupdate(fpath)
 
       if last_update ~= nil and last_update >= start_time then
-        -- TODO remove after migration
         local value = v[1]
         local toadd = false
 

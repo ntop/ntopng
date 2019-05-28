@@ -259,6 +259,9 @@ local menu_subpages = {
     }, elephant_flow_remote_to_local_bytes = {
       title       = i18n("prefs.elephant_flow_remote_to_local_bytes_title"),
       description = i18n("prefs.elephant_flow_remote_to_local_bytes_description"),
+    }, toggle_data_exfiltration = {
+      title       = i18n("prefs.toggle_data_exfiltration_title"),
+      description = i18n("prefs.toggle_data_exfiltration_description"),
     }, max_num_alerts_per_entity = {
       title       = i18n("prefs.max_num_alerts_per_entity_title"),
       description = i18n("prefs.max_num_alerts_per_entity_description"),
@@ -403,17 +406,29 @@ local menu_subpages = {
     }, toggle_snmp_alerts_port_status_change = {
        title       = i18n("prefs.toggle_snmp_alerts_port_status_change_title"),
        description = i18n("prefs.toggle_snmp_alerts_port_status_change_description"),
+    }, toggle_snmp_alerts_port_duplexstatus_change = {
+       title       = i18n("prefs.toggle_snmp_alerts_port_duplexstatus_change_title"),
+       description = i18n("prefs.toggle_snmp_alerts_port_duplexstatus_change_description"),
     }, toggle_snmp_alerts_port_errors = {
        title       = i18n("prefs.toggle_snmp_alerts_port_errors_title"),
        description = i18n("prefs.toggle_snmp_alerts_port_errors_description"),
     },
-  }}, {id="discovery",     label=i18n("prefs.network_discovery"),     advanced=false,  pro_only=false,   hidden=false, entries={
+  }}, {id="discovery",     label=i18n("prefs.network_discovery"), advanced=false,  pro_only=false,   hidden=false, entries={
     toggle_network_discovery = {
       title       = i18n("prefs.toggle_network_discovery_title"),
       description = i18n("prefs.toggle_network_discovery_description"),
     }, network_discovery_interval = {
       title       = i18n("prefs.network_discovery_interval_title"),
       description = i18n("prefs.network_discovery_interval_description"),
+    },
+  }}, {id="telemetry",     label=i18n("prefs.telemetry"), advanced=false,  pro_only=false,   hidden=false, entries={
+    toggle_send_telemetry_data = {
+      title       = i18n("prefs.toggle_send_telemetry_data_title"),
+      description = i18n("prefs.toggle_send_telemetry_data_description", {product = info.product, url = ntop.getHttpPrefix() .. "/lua/telemetry.lua", ntop_org="https://www.ntop.org"}),
+    },
+    telemetry_email = {
+      title       = i18n("prefs.telemetry_email_title"),
+      description = i18n("prefs.telemetry_email_description", {product = info.product, url = ntop.getHttpPrefix() .. "/lua/telemetry.lua", ntop_org="https://www.ntop.org"}),
     },
   }}, {id="recording",     label=i18n("prefs.recording"),             advanced=false, pro_only=false,  hidden=(not recording_utils.isAvailable()), entries={
     n2disk_license = {
@@ -436,6 +451,9 @@ local menu_subpages = {
     }, toggle_arp_matrix_generation = {
       title       = i18n("prefs.toggle_arp_matrix_generation_title"),
       description = i18n("prefs.toggle_arp_matrix_generation_description", { product = info.product}),
+    }, toggle_send_telemetry_data = {
+      title       = i18n("prefs.toggle_send_telemetry_data_title"),
+      description = i18n("prefs.toggle_send_telemetry_data_description", { product = info.product}),
     }, google_apis_browser_key = {
       title       = i18n("prefs.google_apis_browser_key_title"),
       description = i18n("prefs.google_apis_browser_key_description", {url="https://maps-apis.googleblog.com/2016/06/building-for-scale-updates-to-google.html"}),

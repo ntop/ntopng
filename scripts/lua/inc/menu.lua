@@ -8,6 +8,7 @@ if((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.
 require "lua_utils"
 local recording_utils = require "recording_utils"
 local remote_assistance = require "remote_assistance"
+local telemetry_utils = require "telemetry_utils"
 
 local is_admin = isAdministrator()
 
@@ -58,7 +59,7 @@ ifId = ifs.id
 
 -- ##############################################
 
-if active_page == "home" or active_page == "about" then
+if active_page == "home" or active_page == "about" or active_page == "telemetry" then
   print [[ <li class="dropdown active"> ]]
 else
   print [[ <li class="dropdown"> ]]
@@ -75,7 +76,8 @@ print [[/lua/about.lua"><i class="fa fa-question-circle"></i> ]] print(i18n("abo
       <li><a href="]]
 print(ntop.getHttpPrefix())
 print [[/lua/runtime.lua"><i class="fa fa-hourglass-start"></i> ]] print(i18n("about.runtime_status")) print[[</a></li>
-      <li><a href="http://blog.ntop.org/" target="_blank"><i class="fa fa-rss"></i> ]] print(i18n("about.ntop_blog")) print[[ <i class="fa fa-external-link"></i></a></li>
+      <li><a href="]] print(ntop.getHttpPrefix()) print[[/lua/telemetry.lua"><i class="fa fa-rss"></i> ]] print(i18n("telemetry")) print[[</a></li>
+      <li><a href="http://blog.ntop.org/" target="_blank"><i class="fa fa-bullhorn"></i> ]] print(i18n("about.ntop_blog")) print[[ <i class="fa fa-external-link"></i></a></li>
       <li><a href="https://t.me/ntop_community" target="_blank"><i class="fa fa-telegram"></i> ]] print(i18n("about.telegram")) print[[ <i class="fa fa-external-link"></i></a></li>
       <li><a href="https://github.com/ntop/ntopng/issues" target="_blank"><i class="fa fa-bug"></i> ]] print(i18n("about.report_issue")) print[[ <i class="fa fa-external-link"></i></a></li>
 <li class="divider"></li><li><a href="https://www.ntop.org/guides/ntopng/" target="_blank"><i class="fa fa-book"></i> ]] print(i18n("about.readme_and_manual")) print[[ <i class="fa fa-external-link"></i></a></li>
@@ -581,3 +583,4 @@ print[[<button type="button" class="close" data-dismiss="alert" aria-label="Clos
 print(i18n("about.influxdb_migration_msg", {url="https://www.ntop.org/ntopng/ntopng-and-time-series-from-rrd-to-influxdb-new-charts-with-time-shift/"}))
 print('</div>')
 
+telemetry_utils.show_notice()

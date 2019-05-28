@@ -1148,6 +1148,7 @@ local known_parameters = {
    ["toggle_elephant_flows_alerts"]                = validateBool,
    ["toggle_ip_reassignment_alerts"]               = validateBool,
    ["toggle_longlived_flows_alerts"]               = validateBool,
+   ["toggle_data_exfiltration"]                    = validateBool,
    ["toggle_flow_db_dump_export"]                  = validateBool,
    ["toggle_alert_syslog"]                         = validateBool,
    ["toggle_slack_notification"]                   = validateBool,
@@ -1198,6 +1199,7 @@ local known_parameters = {
    ["toggle_webhook_notification"]                 = validateBool,
    ["toggle_auth_session_midnight_expiration"]     = validateBool,
    ["toggle_client_x509_auth"]                     = validateBool,
+   ["toggle_snmp_alerts_port_duplexstatus_change"] = validateBool,
    ["toggle_snmp_alerts_port_status_change"]       = validateBool,
    ["toggle_snmp_alerts_port_errors"]              = validateBool,
    ["toggle_midnight_stats_reset"]                 = validateBool,
@@ -1280,6 +1282,8 @@ local known_parameters = {
    ["ts_high_resolution"]                          = validateNumber,
    ["lbd_hosts_as_macs"]                           = validateBool,
    ["toggle_arp_matrix_generation"]                = validateBool,
+   ["toggle_send_telemetry_data"]                  = validateBool,
+   ["telemetry_email"]                             = validateSingleWord,
 
    -- Other
    ["flush_alerts_data"]                           = validateEmpty,

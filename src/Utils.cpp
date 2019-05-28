@@ -632,6 +632,9 @@ const char* Utils::flowStatus2str(FlowStatus s, AlertType *aType, AlertLevel *aL
   case status_elephant_local_to_remote:
     return("Elephant flow (local to remote)");
     break;
+  case status_data_exfiltration:
+    return("Data Exfiltration");
+    break;
   case status_elephant_remote_to_local:
     return("Elephant flow (remote to local)");
     break;

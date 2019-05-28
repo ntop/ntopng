@@ -78,6 +78,16 @@ if(debug_hosts) then traceError(TRACE_DEBUG,TRACE_CONSOLE, i18n("host_details.tr
 
 local host = interface.getHostInfo(host_info["host"], host_vlan)
 
+local tskey
+
+if _GET["tskey"] then
+   tskey = _GET["tskey"]
+elseif host then
+   tskey = host["tskey"]
+else
+   tskey = host_key
+end
+
 local restoreFailed = false
 
 -- NOTE: calling interface.restoreHost generates crashes!
@@ -400,7 +410,7 @@ end
 
 end -- not only_historical
 
-if((page == "historical") or ts_utils.exists("host:traffic", {ifid=ifId, host=hostinfo2hostkey(host_info)})) or hasNindexSupport() then
+if((page == "historical") or ts_utils.exists("host:traffic", {ifid=ifId, host=tskey})) or hasNindexSupport() then
    if(page == "historical") then
      print("\n<li class=\"active\"><a href=\"#\"><i class='fa fa-area-chart fa-lg'></i></a></li>\n")
    else
@@ -1053,7 +1063,7 @@ print [[/lua/host_l4_stats.lua', { ifid: "]] print(ifId.."") print('", '..hostin
 
 	if((sent > 0) or (rcvd > 0)) then
 	    print("<tr><th>")
-	    if(ts_utils.exists("host:l4protos", {ifid=ifId, host=host_ip, l4proto=k})) then
+	    if(ts_utils.exists("host:l4protos", {ifid=ifId, host=tskey, l4proto=k})) then
 	       print("<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url(host_info) .. "&page=historical&ts_schema=host:l4protos&l4proto=".. k .."\">".. label .."</A>")
 	    else
 	       print(label)
@@ -2003,16 +2013,6 @@ end
 
 local schema = _GET["ts_schema"] or "host:traffic"
 local selected_epoch = _GET["epoch"] or ""
-
-local tskey
-
-if _GET["tskey"] then
-   tskey = _GET["tskey"]
-elseif host then
-   tskey = host["tskey"]
-else
-   tskey = host_key
-end
 
 local tags = {
    ifid = ifId,

@@ -29,11 +29,15 @@ Country::Country(NetworkInterface *_iface, const char *country) : GenericHashEnt
 #ifdef COUNTRY_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Created Country %s", country_name);
 #endif
+
+  deserializeFromRedis();
 }
 
 /* *************************************** */
 
 Country::~Country() {
+  serializeToRedis();
+
 #ifdef COUNTRY_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deleted Country %s", country_name);
 #endif
@@ -67,9 +71,10 @@ void Country::lua(lua_State* vm, DetailsLevel details_level, bool asListElement)
   lua_newtable(vm);
 
   lua_push_str_table_entry(vm, "country", country_name);
-  lua_push_uint64_table_entry(vm, "bytes", totstats.getNumBytes());
+  lua_push_uint64_table_entry(vm, "bytes", getNumBytes());
 
   if(details_level >= details_high) {
+    GenericTrafficElement::lua(vm, true);
     dirstats.lua(vm);
     lua_push_uint64_table_entry(vm, "seen.first", first_seen);
     lua_push_uint64_table_entry(vm, "seen.last", last_seen);
@@ -89,4 +94,28 @@ void Country::lua(lua_State* vm, DetailsLevel details_level, bool asListElement)
 
 bool Country::equal(const char *country) {
   return(strcmp(country_name, country) == 0);
+}
+
+/* *************************************** */
+
+void Country::deserialize(json_object *o) {
+  json_object *obj;
+
+  if(json_object_object_get_ex(o, "traffic", &obj))
+    sent.deserialize(obj);
+  if(json_object_object_get_ex(o, "dirstats", &obj))
+    dirstats.deserialize(obj);
+}
+
+/* *************************************** */
+
+void Country::serialize(json_object *o, DetailsLevel details_level) {
+  json_object *obj;
+
+  if((obj = sent.getJSONObject()) != NULL)
+    json_object_object_add(o, "traffic", obj);
+  if((obj = json_object_new_object()) != NULL) {
+    dirstats.serializeCheckpoint(obj, details_level);
+    json_object_object_add(o, "dirstats", obj);
+  }
 }

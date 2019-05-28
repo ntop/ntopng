@@ -55,3 +55,14 @@ bool NetworkStats::serializeCheckpoint(json_object *my_object, DetailsLevel deta
 
   return true;
 }
+
+/* *************************************** */
+
+void NetworkStats::deserialize(json_object *o) {
+  json_object *obj;
+  time_t now = time(NULL);
+
+  if(json_object_object_get_ex(o, "ingress", &obj)) ingress.incStats(now, 0, json_object_get_int(obj));
+  if(json_object_object_get_ex(o, "egress", &obj)) egress.incStats(now, 0, json_object_get_int(obj));
+  if(json_object_object_get_ex(o, "inner", &obj)) inner.incStats(now, 0, json_object_get_int(obj));
+}

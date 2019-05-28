@@ -157,8 +157,7 @@ void LocalHostStats::deserialize(json_object *o) {
   if(json_object_object_get_ex(o, "tcpPacketStats.sent", &obj))  tcp_packet_stats_sent.deserialize(obj);
   if(json_object_object_get_ex(o, "tcpPacketStats.recv", &obj))  tcp_packet_stats_rcvd.deserialize(obj);
 
-  if(json_object_object_get_ex(o, "sent", &obj))  sent.deserialize(obj);
-  if(json_object_object_get_ex(o, "rcvd", &obj))  rcvd.deserialize(obj);
+  GenericTrafficElement::deserialize(o, iface);
   last_bytes = sent.getNumBytes() + rcvd.getNumBytes();
   last_packets = sent.getNumPkts() + rcvd.getNumPkts();
 
@@ -170,12 +169,6 @@ void LocalHostStats::deserialize(json_object *o) {
 
   if(json_object_object_get_ex(o, "http", &obj)) {
     if(http) http->deserialize(obj);
-  }
-
-  if(json_object_object_get_ex(o, "ndpiStats", &obj)) {
-    if(ndpiStats) delete ndpiStats;
-    ndpiStats = new nDPIStats();
-    ndpiStats->deserialize(iface, obj);
   }
 
   if(json_object_object_get_ex(o, "pktStats.sent", &obj)) sent_stats.deserialize(obj);
@@ -190,7 +183,6 @@ void LocalHostStats::deserialize(json_object *o) {
   if(json_object_object_get_ex(o, "host_unreachable_flows.as_client", &obj))  host_unreachable_flows_as_client = json_object_get_int(obj);
   if(json_object_object_get_ex(o, "host_unreachable_flows.as_server", &obj))  host_unreachable_flows_as_server = json_object_get_int(obj);
   if(json_object_object_get_ex(o, "total_alerts", &obj))  total_alerts = json_object_get_int(obj);
-  if(json_object_object_get_ex(o, "flows.dropped", &obj)) total_num_dropped_flows = json_object_get_int(obj);
 }
 
 /* *************************************** */

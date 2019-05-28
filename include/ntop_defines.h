@@ -212,6 +212,9 @@
 #define MAC_SERIALIZED_KEY      "ntopng.serialized_macs.ifid_%u__%s"
 #define HOST_BY_MAC_SERIALIZED_KEY "ntopng.serialized_hostsbymac.ifid_%u__%s"
 #define HOST_POOL_SERIALIZED_KEY "ntopng.serialized_host_pools.ifid_%u"
+#define VLAN_SERIALIZED_KEY     "ntopng.serialized_vlan.ifid_%u_vlan_%u"
+#define AS_SERIALIZED_KEY       "ntopng.serialized_as.ifid_%u_as_%u"
+#define COUNTRY_SERIALIZED_KEY  "ntopng.serialized_as.ifid_%u_country_%s"
 #define NTOPNG_PREFS_PREFIX     "ntopng.prefs"
 #define NTOPNG_CACHE_PREFIX     "ntopng.cache"
 #define MAC_CUSTOM_DEVICE_TYPE  NTOPNG_PREFS_PREFIX".device_types.%s"
@@ -461,6 +464,7 @@
 #define CONST_DEFAULT_ALERT_DEVICE_PROTOCOLS_ENABLED      0
 #define CONST_DEFAULT_ALERT_ELEPHANT_FLOWS_ENABLED        0
 #define CONST_DEFAULT_ALERT_LONGLIVED_FLOWS_ENABLED       1
+#define CONST_DEFAULT_ALERT_DATA_EXFILTRATION_ENABLED     1
 #define CONST_DEFAULT_ALERT_SYSLOG_ENABLED                0
 #define CONST_DEFAULT_MALWARE_ALERTS_ENABLED              1
 #define CONST_DEFAULT_IDS_ALERTS_ENABLED                  1
@@ -604,6 +608,7 @@
 #define CONST_RUNTIME_PREFS_ALERT_DEVICE_PROTOCOLS     NTOPNG_PREFS_PREFIX".device_protocols_alerts"
 #define CONST_RUNTIME_PREFS_ALERT_ELEPHANT_FLOWS       NTOPNG_PREFS_PREFIX".elephant_flows_alerts"
 #define CONST_RUNTIME_PREFS_ALERT_LONGLIVED_FLOWS      NTOPNG_PREFS_PREFIX".longlived_flows_alerts"
+#define CONST_RUNTIME_PREFS_ALERT_DATA_EXFILTRATION    NTOPNG_PREFS_PREFIX".data_exfiltration_alerts"
 #define CONST_RUNTIME_PREFS_HOSTS_ALERTS_CONFIG        NTOPNG_PREFS_PREFIX".alerts_global.min.local_hosts"
 #define CONST_PREFS_ENABLE_DEVICE_PROTOCOL_POLICIES    NTOPNG_PREFS_PREFIX".device_protocols_policing"
 #define CONST_HOST_SYN_ATTACKER_ALERT_THRESHOLD_KEY    "syn_attacker_threshold"
@@ -634,6 +639,8 @@
 #define CONST_RUNTIME_PREFS_HOSTMASK  NTOPNG_PREFS_PREFIX".host_mask"
 #define CONST_RUNTIME_PREFS_AUTO_ASSIGNED_POOL_ID      NTOPNG_PREFS_PREFIX".auto_assigned_pool_id"
 
+#define CONST_MAX_ACCEPTABLE_ICMP_V4_PAYLOAD_LENGTH 128
+#define CONST_MAX_ACCEPTABLE_ICMP_V6_PAYLOAD_LENGTH 256
 #define CONST_MAX_ALERT_MSG_QUEUE_LEN 8192
 #define CONST_MAX_ES_MSG_QUEUE_LEN    8192
 #define CONST_MAX_MYSQL_QUEUE_LEN     8192

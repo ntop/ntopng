@@ -29,7 +29,7 @@ function country_table_setID (row) {
 }
 
 function country_row_update(country_key) {
-   var url = "@HTTP_PREFIX@/lua/get_grouped_hosts_data.lua?grouped_by=country&country="+country_key;
+   var url = "@HTTP_PREFIX@/lua/get_country_data.lua?country="+country_key;
 
   $.ajax({
     type: 'GET',

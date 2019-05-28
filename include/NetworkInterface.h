@@ -659,6 +659,7 @@ class NetworkInterface : public Checkpointable {
   bool setMacDeviceType(char *strmac, DeviceType dtype, bool alwaysOverwrite);
   bool setMacOperatingSystem(lua_State* vm, char *mac, OperatingSystem os);
   bool getASInfo(lua_State* vm, u_int32_t asn);
+  bool getCountryInfo(lua_State* vm, const char *country);
   bool getVLANInfo(lua_State* vm, u_int16_t vlan_id);
   bool getArpStatsMatrixInfo(lua_State* vm);
   inline void incNumHosts(bool local) { if(local) numLocalHosts++; numHosts++; };

@@ -13,6 +13,7 @@ local host_pools_utils = require("host_pools_utils")
 local recovery_utils = require "recovery_utils"
 local alert_consts = require "alert_consts"
 local format_utils = require "format_utils"
+local telemetry_utils = require "telemetry_utils"
 local tracker = require "tracker"
 
 package.path = dirs.installdir .. "/scripts/lua/modules/alert_endpoints/?.lua;" .. package.path
@@ -3454,15 +3455,16 @@ local function notify_ntopng_status(started)
    local severity = alertSeverity("info")
    local msg
    local msg_details = string.format("%s v.%s (%s) [pid: %s][options: %s]", info.product, info.version, info.OS, info.pid, info.command_line)
+   local anomalous = false
    
-   if(started)
-   then
+   if(started) then
       -- let's check if we are restarting from an anomalous termination
       -- e.g., from a crash
       if not recovery_utils.check_clean_shutdown() then
 	 -- anomalous termination
 	 msg = string.format("%s %s", i18n("alert_messages.ntopng_anomalous_termination", {url="https://www.ntop.org/support/need-help-2/need-help/"}), msg_details)
 	 severity = alertSeverity("error")
+	 anomalous = true
       else
 	 -- normal termination
 	 msg = string.format("%s %s", i18n("alert_messages.ntopng_start"), msg_details)
@@ -3477,6 +3479,10 @@ local function notify_ntopng_status(started)
       severity = severity,
       message = msg,
       when = os.time() }
+
+   if anomalous then
+      telemetry_utils.notify(obj)
+   end
    
    ntop.rpushCache(alert_process_queue, json.encode(obj))
 end
@@ -3493,6 +3499,25 @@ function notify_snmp_device_interface_status_change(snmp_host, snmp_interface)
    local obj = {entity_type = alertEntity("snmp_device"),
 		entity_value = entity_value,
 		type = alertType("port_status_change"),
+		severity = alertSeverity("info"),
+		message = msg, when = os.time()
+	       }
+
+   ntop.rpushCache(alert_process_queue, json.encode(obj))
+end
+
+function notify_snmp_device_interface_duplexstatus_change(snmp_host, snmp_interface)
+   local msg = i18n("alerts_dashboard.snmp_port_changed_duplex_status",
+		    {device = snmp_host,
+		     port = snmp_interface["name"] or snmp_interface["index"],
+		     url = ntop.getHttpPrefix()..string.format("/lua/pro/enterprise/snmp_device_details.lua?host=%s", snmp_host),
+		     port_url = ntop.getHttpPrefix()..string.format("/lua/pro/enterprise/snmp_interface_details.lua?host=%s&snmp_port_idx=%d", snmp_host, snmp_interface["index"]),
+		     new_op = snmp_duplexstatus(snmp_interface["duplexstatus"])})
+
+   local entity_value = string.format("%s_ifidx%d", snmp_host, snmp_interface["index"])
+   local obj = {entity_type = alertEntity("snmp_device"),
+		entity_value = entity_value,
+		type = alertType("port_duplexstatus_change"),
 		severity = alertSeverity("info"),
 		message = msg, when = os.time()
 	       }

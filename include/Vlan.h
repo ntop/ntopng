@@ -24,12 +24,12 @@
 
 #include "ntop_includes.h"
 
-class Vlan : public GenericHashEntry, public GenericTrafficElement {
+class Vlan : public GenericHashEntry, public GenericTrafficElement, public SerializableElement {
  private:
   u_int16_t vlan_id;
   
   inline void incSentStats(time_t t, u_int64_t num_pkts, u_int64_t num_bytes)  {
-    if(first_seen == 0) first_seen = iface->getTimeLastPktRcvd();
+    if(first_seen == 0) first_seen = t;
     last_seen = iface->getTimeLastPktRcvd();
     sent.incStats(t, num_pkts, num_bytes);
   }
@@ -59,6 +59,10 @@ class Vlan : public GenericHashEntry, public GenericTrafficElement {
 
   bool idle();
   void lua(lua_State* vm, DetailsLevel details_level, bool asListElement);
+
+  inline void deserialize(json_object *obj)                           { GenericTrafficElement::deserialize(obj, iface); }
+  inline void serialize(json_object *obj, DetailsLevel details_level) { GenericTrafficElement::getJSONObject(obj, iface); }
+  inline char* getSerializationKey(char *buf, uint bufsize) { snprintf(buf, bufsize, VLAN_SERIALIZED_KEY, iface->get_id(), vlan_id); return(buf); }
 };
 
 #endif /* _VLAN_H_ */

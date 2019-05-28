@@ -749,7 +749,7 @@ static bool local_hosts_2_redis_walker(GenericHashEntry *h, void *user_data, boo
   Host *host = (Host*)h;
 
   if(host && (host->isLocalHost() || host->isSystemHost())) {
-    host->serialize2redis();
+    ((LocalHost*)host)->serializeToRedis();
     *matched = true;
   }
 
@@ -1675,6 +1675,13 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	    flow->setDetectedProtocol(icmp_proto, false);
 	  }
 	}
+
+	/* https://www.boiteaklou.fr/Data-exfiltration-with-PING-ICMP-NDH16.html */
+	if((((icmp_type == ICMP_ECHO) || (icmp_type == ICMP_ECHOREPLY)) && /* ICMPv4 ECHO */
+	      (l4_packet_len > CONST_MAX_ACCEPTABLE_ICMP_V4_PAYLOAD_LENGTH)) ||
+	   (((icmp_type == ICMP6_ECHO_REQUEST) || (icmp_type == ICMP6_ECHO_REPLY)) && /* ICMPv6 ECHO */
+	      (l4_packet_len > CONST_MAX_ACCEPTABLE_ICMP_V6_PAYLOAD_LENGTH)))
+	  flow->set_long_icmp_payload();
       }
       break;
     }
@@ -2859,6 +2866,7 @@ static bool flow_update_hosts_stats(GenericHashEntry *node,
 
 /* **************************************************** */
 
+/* NOTE: host is not a GenericTrafficElement */
 static bool update_hosts_stats(GenericHashEntry *node, void *user_data, bool *matched) {
   Host *host = (Host*)node;
   struct timeval *tv = (struct timeval*)user_data;
@@ -2877,36 +2885,28 @@ static bool update_hosts_stats(GenericHashEntry *node, void *user_data, bool *ma
 
 /* **************************************************** */
 
-static bool update_ases_stats(GenericHashEntry *node, void *user_data, bool *matched) {
-  AutonomousSystem *as = (AutonomousSystem*)node;
-  struct timeval *tv = (struct timeval*)user_data;
-
-  as->updateStats(tv);
-  *matched = true;
-
-  return(false); /* false = keep on walking */
-}
-
-/* **************************************************** */
-
-static bool update_vlans_stats(GenericHashEntry *node, void *user_data, bool *matched) {
-  Vlan *vl = (Vlan*)node;
-  struct timeval *tv = (struct timeval*)user_data;
-
-  vl->updateStats(tv);
-  *matched = true;
-
-  return(false); /* false = keep on walking */
-}
-
-/* **************************************************** */
-
+/* NOTE: mac is not a GenericTrafficElement */
 static bool update_macs_stats(GenericHashEntry *node, void *user_data, bool *matched) {
   Mac *mac = (Mac*)node;
   struct timeval *tv = (struct timeval*)user_data;
 
   mac->updateStats(tv);
   *matched = true;
+ 
+  return(false); /* false = keep on walking */
+}
+
+/* **************************************************** */
+
+static bool update_generic_element_stats(GenericHashEntry *node, void *user_data, bool *matched) {
+  GenericTrafficElement *elem;
+
+  if((elem = dynamic_cast<GenericTrafficElement*>(node))) {
+    struct timeval *tv = (struct timeval*)user_data;
+    elem->updateStats(tv);
+    *matched = true;
+  } else
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "update_generic_element_stats on non GenericTrafficElement");
 
   return(false); /* false = keep on walking */
 }
@@ -2997,11 +2997,14 @@ void NetworkInterface::periodicStatsUpdate() {
 #endif
 
   begin_slot = 0;
-  ases_hash->walk(&begin_slot, walk_all, update_ases_stats, (void*)&tv);
+  ases_hash->walk(&begin_slot, walk_all, update_generic_element_stats, (void*)&tv);
+
+  begin_slot = 0;
+  countries_hash->walk(&begin_slot, walk_all, update_generic_element_stats, (void*)&tv);
 
   if(hasSeenVlanTaggedPackets()) {
     begin_slot = 0;
-    vlans_hash->walk(&begin_slot, walk_all, update_vlans_stats, (void*)&tv);
+    vlans_hash->walk(&begin_slot, walk_all, update_generic_element_stats, (void*)&tv);
   }
 
   begin_slot = 0;
@@ -3289,6 +3292,13 @@ struct vlan_find_info {
 
 /* **************************************************** */
 
+struct country_find_info {
+  const char *country_id;
+  Country *country;
+};
+
+/* **************************************************** */
+
 struct mac_find_info {
   u_int8_t mac[6];
   u_int16_t vlan_id;
@@ -3368,6 +3378,21 @@ static bool find_as_by_asn(GenericHashEntry *he, void *user_data, bool *matched)
 
   if((info->as == NULL) && info->asn == as->get_asn()) {
     info->as = as;
+    *matched = true;
+    return(true); /* found */
+  }
+
+  return(false); /* false = keep on walking */
+}
+
+/* **************************************************** */
+
+static bool find_country(GenericHashEntry *he, void *user_data, bool *matched) {
+  struct country_find_info *info = (struct country_find_info*)user_data;
+  Country *country = (Country*)he;
+
+  if((info->country == NULL) && !strcmp(info->country_id, country->get_country_name())) {
+    info->country = country;
     *matched = true;
     return(true); /* found */
   }
@@ -4211,6 +4236,14 @@ static bool country_search_walker(GenericHashEntry *he, void *user_data, bool *m
     r->elems[r->actNumEntries++].numericValue = country->getNumHosts();
     break;
 
+  case column_thpt:
+    r->elems[r->actNumEntries++].numericValue = country->getBytesThpt();
+    break;
+
+  case column_traffic:
+    r->elems[r->actNumEntries++].numericValue = country->getNumBytes();
+    break;
+
   default:
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: column %d not handled", r->sorter);
     break;
@@ -4799,9 +4832,11 @@ int NetworkInterface::sortCountries(struct flowHostRetriever *retriever,
     return(-1);
   }
 
-  if((!strcmp(sortColumn, "column_country")) || (!strcmp(sortColumn, "column_"))) retriever->sorter = column_country, sorter = stringSorter;
+  if((!strcmp(sortColumn, "column_country")) || (!strcmp(sortColumn, "column_id")) || (!strcmp(sortColumn, "column_"))) retriever->sorter = column_country, sorter = stringSorter;
   else if(!strcmp(sortColumn, "column_since"))        retriever->sorter = column_since,        sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_hosts"))        retriever->sorter = column_num_hosts,    sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_thpt"))         retriever->sorter = column_thpt, 	       sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_traffic"))      retriever->sorter = column_traffic,      sorter = numericSorter;
   else ntop->getTrace()->traceEvent(TRACE_WARNING, "Unknown sort column %s", sortColumn), sorter = numericSorter;
 
   // make sure the caller has disabled the purge!!
@@ -6782,6 +6817,32 @@ bool NetworkInterface::getASInfo(lua_State* vm, u_int32_t asn) {
 
   if(info.as) {
     info.as->lua(vm, details_higher, false);
+    ret = true;
+  } else
+    ret = false;
+
+  enablePurge(false);
+
+  return ret;
+}
+
+/* **************************************** */
+
+bool NetworkInterface::getCountryInfo(lua_State* vm, const char *country) {
+  struct country_find_info info;
+  bool ret;
+  u_int32_t begin_slot = 0;
+  bool walk_all = true;
+
+  memset(&info, 0, sizeof(info));
+  info.country_id = country;
+
+  disablePurge(false);
+
+  walker(&begin_slot, walk_all, walker_countries, find_country, (void*)&info);
+
+  if(info.country) {
+    info.country->lua(vm, details_higher, false);
     ret = true;
   } else
     ret = false;
