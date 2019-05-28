@@ -344,6 +344,10 @@ void Flow::dumpFlowAlert() {
       do_dump = ntop->getPrefs()->are_longlived_flows_alerts_enabled();
       break;
 
+    case status_data_exfiltration:
+      do_dump = ntop->getPrefs()->are_exfiltration_alerts_enabled();
+      break;
+
     case status_ids_alert:
       do_dump = ntop->getPrefs()->are_ids_alerts_enabled();
       break;
@@ -3633,6 +3637,9 @@ FlowStatus Flow::getFlowStatus() {
     if(remote_to_local_bytes > ntop->getPrefs()->get_elephant_flow_remote_to_local_bytes())
       return status_elephant_remote_to_local;
   }
+
+  if(isICMP() && has_long_icmp_payload())
+    return status_data_exfiltration;
 
 #ifdef HAVE_NEDGE
   /* Leave this at the end. A more specific status should be returned above if avaialble. */

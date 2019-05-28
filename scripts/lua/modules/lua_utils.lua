@@ -2683,6 +2683,7 @@ function getFlowStatusTypes()
    [21] = i18n("alerts_dashboard.ids_alert"),
    [22] = i18n("flow_details.tcp_severe_connection_issues"),
    [23] = i18n("flow_details.ssl_unsafe_ciphers"),
+   [24] = i18n("flow_details.data_exfiltration"),
    }
 
    return entries

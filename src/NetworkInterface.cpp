@@ -1675,6 +1675,13 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	    flow->setDetectedProtocol(icmp_proto, false);
 	  }
 	}
+
+	/* https://www.boiteaklou.fr/Data-exfiltration-with-PING-ICMP-NDH16.html */
+	if((((icmp_type == ICMP_ECHO) || (icmp_type == ICMP_ECHOREPLY)) && /* ICMPv4 ECHO */
+	      (l4_packet_len > CONST_MAX_ACCEPTABLE_ICMP_V4_PAYLOAD_LENGTH)) ||
+	   (((icmp_type == ICMP6_ECHO_REQUEST) || (icmp_type == ICMP6_ECHO_REPLY)) && /* ICMPv6 ECHO */
+	      (l4_packet_len > CONST_MAX_ACCEPTABLE_ICMP_V6_PAYLOAD_LENGTH)))
+	  flow->set_long_icmp_payload();
       }
       break;
     }

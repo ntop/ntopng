@@ -1148,6 +1148,7 @@ local known_parameters = {
    ["toggle_elephant_flows_alerts"]                = validateBool,
    ["toggle_ip_reassignment_alerts"]               = validateBool,
    ["toggle_longlived_flows_alerts"]               = validateBool,
+   ["toggle_data_exfiltration"]                    = validateBool,
    ["toggle_flow_db_dump_export"]                  = validateBool,
    ["toggle_alert_syslog"]                         = validateBool,
    ["toggle_slack_notification"]                   = validateBool,
