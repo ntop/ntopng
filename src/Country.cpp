@@ -101,6 +101,7 @@ bool Country::equal(const char *country) {
 void Country::deserialize(json_object *o) {
   json_object *obj;
 
+  GenericHashEntry::deserialize(o);
   if(json_object_object_get_ex(o, "traffic", &obj))
     sent.deserialize(obj);
   if(json_object_object_get_ex(o, "dirstats", &obj))
@@ -111,6 +112,7 @@ void Country::deserialize(json_object *o) {
 
 void Country::serialize(json_object *o, DetailsLevel details_level) {
   json_object *obj;
+  GenericHashEntry::getJSONObject(o, details_level);
 
   if((obj = sent.getJSONObject()) != NULL)
     json_object_object_add(o, "traffic", obj);

@@ -815,8 +815,7 @@ void Host::serialize(json_object *my_object, DetailsLevel details_level) {
   json_object_object_add(my_object, "ifid", json_object_new_int(iface->get_id()));
 
   if(details_level >= details_high) {
-    json_object_object_add(my_object, "seen.first", json_object_new_int64(first_seen));
-    json_object_object_add(my_object, "seen.last",  json_object_new_int64(last_seen));
+    GenericHashEntry::getJSONObject(my_object, details_level);
     json_object_object_add(my_object, "last_stats_reset", json_object_new_int64(last_stats_reset));
     json_object_object_add(my_object, "asn", json_object_new_int(asn));
 

@@ -65,8 +65,14 @@ class AutonomousSystem : public GenericHashEntry, public GenericTrafficElement, 
   bool idle();
   void lua(lua_State* vm, DetailsLevel details_level, bool asListElement);
 
-  inline void deserialize(json_object *obj)                           { GenericTrafficElement::deserialize(obj, iface); }
-  inline void serialize(json_object *obj, DetailsLevel details_level) { GenericTrafficElement::getJSONObject(obj, iface); }
+  inline void deserialize(json_object *obj) {
+    GenericHashEntry::deserialize(obj);
+    GenericTrafficElement::deserialize(obj, iface);
+  }
+  inline void serialize(json_object *obj, DetailsLevel details_level) {
+    GenericHashEntry::getJSONObject(obj, details_level);
+    GenericTrafficElement::getJSONObject(obj, iface);
+  }
   inline char* getSerializationKey(char *buf, uint bufsize) { snprintf(buf, bufsize, AS_SERIALIZED_KEY, iface->get_id(), asn); return(buf); }
 };
 
