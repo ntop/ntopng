@@ -195,6 +195,9 @@ SERVICE_REQUIRES=
 SERVICE_WANTS=
 if test "$MACHINE" = "armv7l"; then
 SERVICE_AFTER="network.target syslog.target redis.service"
+  if test "${with_nedge+set}" = "set"; then
+    SERVICE_ALIAS="nedge.service"
+  fi
 elif test "${with_nedge+set}" = "set"; then
 SERVICE_AFTER="network-online.target syslog.target redis.service"
 SERVICE_REQUIRES="nedge_pinger.service"
