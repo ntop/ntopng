@@ -1472,6 +1472,7 @@ local known_parameters = {
    ["dhcp_ranges"]             = validateListOfTypeInline(validateIpRange),
    ["icmp_type"]               = validateNumber,
    ["icmp_cod"]                = validateNumber,
+   ["hosts_only"]              = validateBool,
 
    -- Containers
    ["pod"]                     = validateSingleWord,

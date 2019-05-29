@@ -24,10 +24,12 @@ local already_printed = {}
 
 local results = {}
 local query = _GET["query"]
+local hosts_only = _GET["hosts_only"]
 if(query == nil) then query = "" end
 
 interface.select(ifname)
 
+if not hosts_only then
 -- Look by network
 local network_stats = interface.getNetworksStats()
 cur_results = 0
@@ -105,6 +107,7 @@ if ntop.isEnterprise() and not query:find("%.") then
       cur_results = cur_results + 1
    end
 end
+end -- hosts only
 
 -- Hosts
 local res = interface.findHost(query)
