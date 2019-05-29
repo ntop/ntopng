@@ -4287,7 +4287,8 @@ static int ntop_rrd_create(lua_State* vm) {
       // rrd_lock.unlock(__FILE__, __LINE__);
       return(CONST_LUA_ERROR);
     }
-  }
+  } else
+    chmod(filename, CONST_DEFAULT_FILE_MODE);
 
   // rrd_lock.unlock(__FILE__, __LINE__);
 
