@@ -105,7 +105,11 @@ if test $SHORT_MACHINE = "mip"; then
   UBUNTU_RELEASE="mips"
 else
   if test $SHORT_MACHINE = "arm"; then
-    UBUNTU_RELEASE="arm"
+    if test "${with_nedge+set}" = set && test "$UBUNTU_RELEASE" = "debian9"; then
+        UBUNTU_RELEASE="arm.debian9"
+    else
+        UBUNTU_RELEASE="arm"
+    fi
   fi
 fi
 
