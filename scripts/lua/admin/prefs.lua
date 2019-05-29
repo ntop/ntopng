@@ -1473,9 +1473,10 @@ function printStatsTimeseries()
 				    "ntopng.prefs.ts_high_resolution", has_custom_housekeeping,
 				    nil, nil, nil, influx_active)
 
+  local default_influx_retention = 365
   prefsInputFieldPrefs(subpage_active.entries["influxdb_storage"].title, subpage_active.entries["influxdb_storage"].description .. "<br>" ..
-      i18n("prefs.influxdb_storage_note", {interval=influxdb.getShardGroupDuration(tonumber(_POST["influx_retention"] or ntop.getPref("ntopng.prefs.influx_retention"))), url="https://docs.influxdata.com/influxdb/v1.7/query_language/database_management/#description-of-syntax-1"}),
-      "ntopng.prefs.", "influx_retention", 365, "number", influx_active, nil, nil, {min=0, max=365*10})
+      i18n("prefs.influxdb_storage_note", {interval=influxdb.getShardGroupDuration(tonumber(_POST["influx_retention"] or ntop.getPref("ntopng.prefs.influx_retention")) or default_influx_retention), url="https://docs.influxdata.com/influxdb/v1.7/query_language/database_management/#description-of-syntax-1"}),
+      "ntopng.prefs.", "influx_retention", default_influx_retention, "number", influx_active, nil, nil, {min=0, max=365*10})
 
   prefsInputFieldPrefs(subpage_active.entries["rrd_files_retention"].title, subpage_active.entries["rrd_files_retention"].description,
 		       "ntopng.prefs.", "old_rrd_files_retention", 365, "number",
