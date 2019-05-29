@@ -24,76 +24,63 @@
 /* *************************************** */
 
 ICMPstats::ICMPstats() {
-  stats = NULL;
   num_destination_unreachable.reset();
 }
 
 /* *************************************** */
 
 ICMPstats::~ICMPstats() {
-  ICMPstats_t *curr, *tmp;
-  
-  HASH_ITER(hh, stats, curr, tmp) {
-    HASH_DEL(stats, curr);  /* delete it */
-    if(curr->last_host_sent_peer) free(curr->last_host_sent_peer);
-    if(curr->last_host_rcvd_peer) free(curr->last_host_rcvd_peer);
-    free(curr);         /* free it */
+  std::map<u_int16_t, ICMPstats_t>::const_iterator it;
+
+  for(it = stats.begin(); it != stats.end(); ++it) {
+    if(it->second.last_host_sent_peer) free(it->second.last_host_sent_peer);
+    if(it->second.last_host_rcvd_peer) free(it->second.last_host_rcvd_peer);
   }
+  stats.clear();
 }
 
 /* *************************************** */
 
 void ICMPstats::incStats(u_int8_t icmp_type, u_int8_t icmp_code, bool sent, Host *peer) {
-  ICMPstats_t *s = NULL;
-  int key = get_typecode(icmp_type, icmp_code);
+  std::map<u_int16_t, ICMPstats_t>::const_iterator it;
+  ICMPstats_t s;
+  u_int16_t key = get_typecode(icmp_type, icmp_code);
   char buf[64];
-  
-  m.lock(__FILE__, __LINE__);
-  HASH_FIND_INT(stats, &key, s);
-  
-  if(!s) {
-    if((s = (ICMPstats_t*)malloc(sizeof(ICMPstats_t))) != NULL) {
-      s->type_code = key, s->pkt_sent = s->pkt_rcvd = 0,
-	s->last_host_sent_peer = s->last_host_rcvd_peer = NULL;
 
-      HASH_ADD_INT(stats, type_code, s);
-    } else {
-      m.unlock(__FILE__, __LINE__);
-      return;
-    }
-  }
+  m.lock(__FILE__, __LINE__);
+
+  if((it = stats.find(key)) != stats.end())
+    s = it->second;
+  else
+    memset(&s, 0, sizeof(s));
 
   if(icmp_type == ICMP_DEST_UNREACH)
     num_destination_unreachable.inc(1);
 
   if(sent) {
-    s->pkt_sent++;
+    s.pkt_sent++;
 
     if(peer) {
-      if(s->last_host_sent_peer) free(s->last_host_sent_peer);
-      s->last_host_sent_peer = strdup(peer->get_string_key(buf, sizeof(buf)));
+      if(s.last_host_sent_peer) free(s.last_host_sent_peer);
+      s.last_host_sent_peer = strdup(peer->get_string_key(buf, sizeof(buf)));
     }
   } else {
-    s->pkt_rcvd++;
+    s.pkt_rcvd++;
 
     if(peer) {
-      if(s->last_host_rcvd_peer) free(s->last_host_rcvd_peer);
-      s->last_host_rcvd_peer = strdup(peer->get_string_key(buf, sizeof(buf)));
+      if(s.last_host_rcvd_peer) free(s.last_host_rcvd_peer);
+      s.last_host_rcvd_peer = strdup(peer->get_string_key(buf, sizeof(buf)));
     }
   }
-  
+
+  stats[key] = s;
+
   m.unlock(__FILE__, __LINE__);
 };
 
-/* ******************************************************** */
-
-static int key_sort(ICMPstats_t *a, ICMPstats_t *b) {
-  return(a->type_code - b->type_code); /* inc sort */
-}
-
 /* *************************************** */
 
-void ICMPstats::addToTable(const char *label, lua_State *vm, ICMPstats_t *curr, bool verbose) {
+void ICMPstats::addToTable(const char *label, lua_State *vm, const ICMPstats_t *curr, bool verbose) {
   lua_newtable(vm);
   lua_push_uint64_table_entry(vm, "sent", curr->pkt_sent);
   if(verbose)
@@ -123,24 +110,23 @@ void ICMPstats::updateStats(const struct timeval * const tv) {
 /* *************************************** */
 
 void ICMPstats::lua(bool isV4, lua_State *vm, bool verbose) {
-  ICMPstats_t *curr, *tmp;
-  
+  std::map<u_int16_t, ICMPstats_t>::const_iterator it;
+
   m.lock(__FILE__, __LINE__);
-  
-  HASH_SORT(stats, key_sort);
 
   lua_newtable(vm);
-  HASH_ITER(hh, stats, curr, tmp) {
+
+  for(it = stats.begin(); it != stats.end(); ++it) {
     u_int8_t icmp_type, icmp_code;
     char label[32];
-    
-    to_typecode(curr->type_code, &icmp_type, &icmp_code);
+
+    to_typecode(it->first, &icmp_type, &icmp_code);
     snprintf(label, sizeof(label), "%u,%u", icmp_type, icmp_code);
-    addToTable(label, vm, curr, verbose);   
+    addToTable(label, vm, &it->second, verbose);
   }
-  
+
   m.unlock(__FILE__, __LINE__);
-  
+
   lua_pushstring(vm, isV4 ? "ICMPv4" : "ICMPv6");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
@@ -162,29 +148,27 @@ void ICMPstats::luaAnomalies(lua_State *vm, time_t when) {
 /* *************************************** */
 
 void ICMPstats::sum(ICMPstats *e) {
-  ICMPstats_t *curr, *tmp, *s;
-  
-  HASH_ITER(hh, e->stats, curr, tmp) {
-    int key = curr->type_code;
-    
-    HASH_FIND_INT(stats, &key, s);
+  std::map<u_int16_t, ICMPstats_t>::const_iterator orig_it;
 
-    if(!s) {
-      if((s = (ICMPstats_t*)malloc(sizeof(ICMPstats_t))) != NULL) {
-	s->type_code = key, s->pkt_sent = s->pkt_rcvd = 0,
-	  s->last_host_sent_peer = s->last_host_rcvd_peer = NULL;
-	HASH_ADD_INT(stats, type_code, s);
-      }
-    }
+  for(orig_it = e->stats.begin(); orig_it != e->stats.end(); ++orig_it) {
+    std::map<u_int16_t, ICMPstats_t>::const_iterator it;
+    ICMPstats_t s;
+    u_int16_t key = orig_it->first;
+    const ICMPstats_t *curr = &orig_it->second;
 
-    if(s) {
-      s->pkt_sent = curr->pkt_sent, s->pkt_rcvd = curr->pkt_rcvd;
-      
-      if(curr->last_host_sent_peer && (! s->last_host_sent_peer))
-	s->last_host_sent_peer = strdup(curr->last_host_sent_peer);      
-      
-      if(curr->last_host_rcvd_peer && (! s->last_host_rcvd_peer))
-	s->last_host_rcvd_peer = strdup(curr->last_host_rcvd_peer);      
-    }
+    if((it = stats.find(key)) != stats.end())
+      s = it->second;
+    else
+      memset(&s, 0, sizeof(s));
+
+    s.pkt_sent = curr->pkt_sent, s.pkt_rcvd = curr->pkt_rcvd;
+
+    if(curr->last_host_sent_peer && (! s.last_host_sent_peer))
+      s.last_host_sent_peer = strdup(curr->last_host_sent_peer);
+
+    if(curr->last_host_rcvd_peer && (! s.last_host_rcvd_peer))
+      s.last_host_rcvd_peer = strdup(curr->last_host_rcvd_peer);
+
+    stats[key] = s;
   }
 }
