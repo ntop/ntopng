@@ -48,7 +48,7 @@ end
 local function dismiss_notice()
    local dism = ntop.getPref(TELEMETRY_ENABLED_KEY)
 
-   return dism ~= ""
+   return not isAdministrator() or dism ~= ""
 end
 
 function telemetry_utils.notice_msg()
@@ -82,8 +82,11 @@ function telemetry_utils.print_overview()
       print('<i>'..i18n('telemetry_page.telemetry_data_no_consent')..'</i>')
    end
 
-   print[[ (]] print(i18n("telemetry_page.telemetry_data_change_preference", {url = ntop.getHttpPrefix().."/lua/admin/prefs.lua?tab=telemetry"})) print[[)
-</td></tr>
+   if isAdministrator() then
+      print[[ (]] print(i18n("telemetry_page.telemetry_data_change_preference", {url = ntop.getHttpPrefix().."/lua/admin/prefs.lua?tab=telemetry"})) print[[)]]
+   end
+
+   print[[ </td></tr>
 ]]
 
    print[[<tr><th>]] print(i18n("telemetry_page.telemetry_data")) print [[</th><td>
