@@ -3583,13 +3583,17 @@ FlowStatus Flow::getFlowStatus() {
 	/* 3WH is over */
 	switch(l7proto) {
 	case NDPI_PROTOCOL_SSL:
+	  /*
+	    CNs are NOT case sensitive as per RFC 5280
+	    so we use ...case... functions to do the comparisions
+	  */
 	  if(protos.ssl.certificate
 	     && protos.ssl.server_certificate
 	     && !protos.ssl.subject_alt_name_match) {
 	    if(protos.ssl.server_certificate[0] == '*') {
-	      if(!strstr(protos.ssl.certificate, &protos.ssl.server_certificate[1]))
+	      if(!strcasestr(protos.ssl.certificate, &protos.ssl.server_certificate[1]))
 		return status_ssl_certificate_mismatch;
-	    } else if(strcmp(protos.ssl.certificate, protos.ssl.server_certificate))
+	    } else if(strcasecmp(protos.ssl.certificate, protos.ssl.server_certificate))
 	      return status_ssl_certificate_mismatch;
 	  }
 	  break;
@@ -3896,9 +3900,12 @@ void Flow::dissectSSL(char *payload, u_int16_t payload_len) {
 		  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [Len %u][sizeof(buf): %u][ssl cert: %s]", buf, len, sizeof(buf), getSSLCertificate());
 #endif
 
+		  /*
+		    CNs are NOT case sensitive as per RFC 5280
+		  */
 		  if(protos.ssl.certificate
-		     && ((buf[0] != '*' && !strncmp(protos.ssl.certificate, buf, sizeof(buf)))
-			 || (buf[0] == '*' && strstr(protos.ssl.certificate, &buf[1])))) {
+		     && ((buf[0] != '*' && !strncasecmp(protos.ssl.certificate, buf, sizeof(buf)))
+			 || (buf[0] == '*' && strcasestr(protos.ssl.certificate, &buf[1])))) {
 		    protos.ssl.subject_alt_name_match = true;
 		    protos.ssl.dissect_certificate = false;
 		    break;
