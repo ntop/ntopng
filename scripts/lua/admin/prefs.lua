@@ -1720,6 +1720,12 @@ function printSnmp()
     disabled = not info["version.enterprise_edition"],
   })
 
+  prefsInputFieldPrefs(subpage_active.entries["snmp_port_load_threshold"].title, 
+                       subpage_active.entries["snmp_port_load_threshold"].description,
+                       "ntopng.prefs.alerts.", 
+                       "snmp_port_load_threshold", 
+                       "100", "number", nil, false, nil, {min=0})
+
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
 
   print [[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />

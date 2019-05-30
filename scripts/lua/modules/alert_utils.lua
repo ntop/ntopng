@@ -3543,6 +3543,26 @@ function notify_snmp_device_interface_errors(snmp_host, snmp_interface)
    ntop.rpushCache(alert_process_queue, json.encode(obj))
 end
 
+function notify_snmp_device_interface_load_threshold_exceeded(snmp_host, snmp_interface, port_load, in_direction)
+   local msg = i18n("alerts_dashboard.snmp_port_load_threshold_exceeded_message",
+		    {device = snmp_host,
+		     port = snmp_interface["name"] or snmp_interface["index"],
+		     url = ntop.getHttpPrefix()..string.format("/lua/pro/enterprise/snmp_device_details.lua?host=%s", snmp_host),
+		     port_url = ntop.getHttpPrefix()..string.format("/lua/pro/enterprise/snmp_interface_details.lua?host=%s&snmp_port_idx=%d", snmp_host, snmp_interface["index"]),
+                     port_load = port_load,
+                     direction = ternary(in_direction, "RX", "TX") })
+
+   local entity_value = string.format("%s_ifidx%d", snmp_host, snmp_interface["index"])
+   local obj = {entity_type = alertEntity("snmp_device"),
+		entity_value = entity_value,
+		type = alertType("port_load_threshold_exceeded"),
+		severity = alertSeverity("info"),
+		message = msg, when = os.time()
+	       }
+
+   ntop.rpushCache(alert_process_queue, json.encode(obj))
+end
+
 function notify_ntopng_start()
    notify_ntopng_status(true)
 end
