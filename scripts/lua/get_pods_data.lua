@@ -8,6 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local format_utils = require("format_utils")
 local json = require("dkjson")
+local ts_utils = require("ts_utils")
 
 sendHTTPContentTypeHeader('application/json')
 
@@ -81,6 +82,7 @@ end
 
 local res = {}
 local i = 0
+local ifId = getInterfaceId(ifname)
 
 for key in pairsByValues(sort_to_key, sOrder) do
   if i >= to_skip + perPage then
@@ -94,6 +96,11 @@ for key in pairsByValues(sort_to_key, sOrder) do
       ..ntop.getHttpPrefix().."/lua/flows_stats.lua?pod="..key.."'>"
       .."<span class='label label-info'>"..i18n("flows").."</span>"
       .."</a>"
+   local chart = "-"
+
+   if ts_utils.exists("pod:num_flows", {ifid=ifId, pod=key}) then
+      chart = '<a href="'.. ntop.getHttpPrefix() ..'/lua/pod_details.lua?pod='.. key ..'&page=historical"><i class="fa fa-area-chart fa-lg"></i></a>'
+   end
 
    local num_containers = pod["num_containers"]
    if num_containers > 0 then
@@ -103,6 +110,7 @@ for key in pairsByValues(sort_to_key, sOrder) do
     res[#res + 1] = {
       column_info = column_info,
       column_pod = key,
+      column_chart = chart,
       column_num_containers = num_containers,
       column_num_flows_as_client = pod["num_flows.as_client"],
       column_num_flows_as_server = pod["num_flows.as_server"],

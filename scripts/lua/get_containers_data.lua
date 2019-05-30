@@ -8,6 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local format_utils = require("format_utils")
 local json = require("dkjson")
+local ts_utils = require("ts_utils")
 
 sendHTTPContentTypeHeader('application/json')
 
@@ -82,6 +83,7 @@ end
 
 local res = {}
 local i = 0
+local ifId = getInterfaceId(ifname)
 
 for key in pairsByValues(sort_to_key, sOrder) do
   if i >= to_skip + perPage then
@@ -95,10 +97,16 @@ for key in pairsByValues(sort_to_key, sOrder) do
       ..ntop.getHttpPrefix().."/lua/flows_stats.lua?container="..key.."'>"
       .."<span class='label label-info'>"..i18n("flows").."</span>"
       .."</a>"
+   local chart = "-"
+
+   if ts_utils.exists("container:num_flows", {ifid=ifId, container=key}) then
+      chart = '<a href="'.. ntop.getHttpPrefix() ..'/lua/container_details.lua?container='.. key ..'&page=historical"><i class="fa fa-area-chart fa-lg"></i></a>'
+   end
  
     res[#res + 1] = {
       column_info = column_info,
       column_key = key,
+      column_chart = chart,
       column_container = format_utils.formatContainer(container.info),
       column_num_flows_as_client = container["num_flows.as_client"],
       column_num_flows_as_server = container["num_flows.as_server"],
