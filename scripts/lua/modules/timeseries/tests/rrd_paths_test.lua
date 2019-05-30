@@ -11,6 +11,7 @@ local rrd = require("rrd")
 local test_tag_values = {
   "1", "1.2.3.4", "abcd", "11:22:33:44:55:66", "99"
 }
+local replacement_tag = "some_other_tag"
 
 local prefixes_to_skip = {
   test = true,
@@ -47,16 +48,29 @@ function test_unique_paths(test)
     end
 
     -- build the tags
-    local tags = {}
+    local tags1 = {}
     for tag_idx, tag_key in ipairs(schema._tags) do
-      tags[tag_key] = test_tag_values[tag_idx]
+      tags1[tag_key] = test_tag_values[tag_idx]
     end
 
-    local fpath = rrd.schema_get_full_path(schema, tags)
+    local fpath = rrd.schema_get_full_path(schema, tags1)
     if not (unique_paths[fpath] == nil) then
       return test:assertion_failed("unique_paths[" .. fpath .. "] == nil: schema=".. schema.name ..", existing_schema=" .. unique_paths[fpath])
     end
     unique_paths[fpath] = schema.name
+
+    -- double check changing the last tag
+    if #schema._tags >= 3 then
+      local last_tag = schema._tags[#schema._tags]
+      local tags2 = table.clone(tags1)
+      tags2[last_tag] = replacement_tag
+
+      local fpath = rrd.schema_get_full_path(schema, tags2)
+      if not (unique_paths[fpath] == nil) then
+        return test:assertion_failed("(while chaning last tag) unique_paths[" .. fpath .. "] == nil: schema=".. schema.name ..", existing_schema=" .. unique_paths[fpath])
+      end
+      unique_paths[fpath] = schema.name
+    end
 
     ::continue::
   end

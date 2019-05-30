@@ -108,6 +108,26 @@ local function schema_get_path(schema, tags)
      suffix = tags.port .. "/"
   elseif parts[2] == "ndpi_categories" then
      suffix = "ndpi_categories/"
+  elseif #schema._tags >= 3 then
+    local intermediate_tags = {}
+
+    -- tag1:ifid
+    -- tag2:already handled as host_or_network
+    -- last tag must be handled separately
+    for i=3, #schema._tags-1 do
+      intermediate_tags[#intermediate_tags + 1] = tags[schema._tags[i]]
+    end
+
+    local last_tag = schema._tags[#schema._tags]
+
+    if(not WILDCARD_TAGS[last_tag]) then
+      intermediate_tags[#intermediate_tags + 1] = tags[last_tag]
+    end
+
+    if intermediate_tags[1] ~= nil then
+      -- All the intermediate tags should be mapped in the path
+      suffix = table.concat(intermediate_tags, "/") .. "/"
+    end
   end
 
   local path = getRRDName(ifid, host_or_network) .. suffix
