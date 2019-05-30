@@ -2902,6 +2902,18 @@ char* Flow::get_proc_name(bool client) {
 
 /* *************************************** */
 
+char* Flow::get_user_name(bool client) {
+  if(client && cli_ebpf && cli_ebpf->process_info_set)
+    return cli_ebpf->process_info.uid_name;
+
+  if(!client && srv_ebpf && srv_ebpf->process_info_set)
+    return srv_ebpf->process_info.uid_name;
+
+  return NULL;
+}
+
+/* *************************************** */
+
 bool Flow::match(AddressTree *ptree) {
   if((cli_host && cli_host->match(ptree))
      || (srv_host && srv_host->match(ptree)))

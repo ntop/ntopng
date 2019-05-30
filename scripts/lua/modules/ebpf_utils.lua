@@ -191,7 +191,7 @@ function toggle(d) {
 
 end
 
-function ebpf_utils.draw_ndpi_piecharts(ifstats, url, host_info, uid, pid)
+function ebpf_utils.draw_ndpi_piecharts(ifstats, url, host_info, username, pid_name)
    local refresh_rate
 
    local have_nedge = ntop.isnEdge()
@@ -229,24 +229,24 @@ function ebpf_utils.draw_ndpi_piecharts(ifstats, url, host_info, uid, pid)
    print (ntop.getHttpPrefix())
    print [[/lua/]] print(url) print[[', { ebpf_data: "applications" ]]
    if host_info then print(", "..hostinfo2json(host_info)) end
-   if uid then print(", uid: "..uid) end
-   if pid then print(", pid: "..pid) end
+   if username then print(", username: '"..username.."'") end
+   if pid_name then print(", pid_name: '"..pid_name.."'") end
    print [[ }, "", refresh); ]]
 
    print[[ do_pie("#topApplicationCategories", ']]
    print (ntop.getHttpPrefix())
    print [[/lua/]] print(url) print[[', { ebpf_data: "categories" ]]
    if host_info then print(", "..hostinfo2json(host_info)) end
-   if uid then print(", uid: "..uid) end
-   if pid then print(", pid: "..pid) end
+   if username then print(", username: '"..username.."'") end
+   if pid_name then print(", pid_name: '"..pid_name.."'") end
    print [[ }, "", refresh); ]]
 
    print[[do_pie("#topApplicationBreeds", ']]
    print (ntop.getHttpPrefix())
    print [[/lua/]] print(url) print[[', { ebpf_data: "breeds" ]]
    if host_info then print(", "..hostinfo2json(host_info)) end
-   if uid then print(", uid: "..uid) end
-   if pid then print(", pid: "..pid) end
+   if username then print(", username: '"..username.."'") end
+   if pid_name then print(", pid_name: '"..pid_name.."'") end
    print [[ }, "", refresh);]]
 
    print[[
@@ -256,14 +256,14 @@ function ebpf_utils.draw_ndpi_piecharts(ifstats, url, host_info, uid, pid)
 ]]
 end
 
-function ebpf_utils.draw_flows_datatable(ifstats, host_info, uid, pid)
+function ebpf_utils.draw_flows_datatable(ifstats, host_info, username, pid_name)
    print [[
       <div id="table-flows"></div>
 	 <script>
    var url_update = "]]
    print (ntop.getHttpPrefix())
    print [[/lua/get_flows_data.lua?]]
-   print(table.tconcat({uid = uid, pid = pid, host = hostinfo2hostkey(host_info)}, "=", "&"))
+   print(table.tconcat({username = username, pid_name = pid_name, host = hostinfo2hostkey(host_info)}, "=", "&"))
    print ('";')
 
    ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/flows_stats_id.inc")

@@ -87,9 +87,9 @@ else
       print('</ul>\n\t</div>\n\t</nav>\n')
 
       if page == "process_ndpi" then
-	 ebpf_utils.draw_ndpi_piecharts(ifstats, "get_process_data.lua", host_info, nil, pid)
+	 ebpf_utils.draw_ndpi_piecharts(ifstats, "get_process_data.lua", host_info, nil, name_key)
       elseif page == "flows" then
-	 ebpf_utils.draw_flows_datatable(ifstats, host_info, nil, pid)
+	 ebpf_utils.draw_flows_datatable(ifstats, host_info, nil, name_key)
       end
    end
 end

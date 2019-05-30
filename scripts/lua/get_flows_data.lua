@@ -54,10 +54,10 @@ local traffic_profile = _GET["traffic_profile"]
 
 -- System host parameters
 local hosts  = _GET["hosts"]
-local user   = _GET["username"]
+local username = _GET["username"]
 local host   = _GET["host"]
 local pid    = tonumber(_GET["pid"])
-local name   = _GET["pid_name"]
+local pid_name = _GET["pid_name"]
 
 -- Get from redis the throughput type bps or pps
 local throughput_type = getThroughputType()
@@ -173,12 +173,12 @@ if not isEmptyString(vlan) then
    pageinfo["vlanIdFilter"] = tonumber(vlan)
 end
 
-if not isEmptyString(uid) then
-   pageinfo["uidFilter"] = tonumber(uid)
+if not isEmptyString(username) then
+   pageinfo["usernameFilter"] = username
 end
 
-if not isEmptyString(pid) then
-   pageinfo["pidFilter"] = tonumber(pid)
+if not isEmptyString(pid_name) then
+   pageinfo["pidnameFilter"] = pid_name
 end
 
 if not isEmptyString(container) then

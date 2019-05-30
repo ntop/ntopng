@@ -20,7 +20,7 @@ local pageinfo = {
    ["maxHits"] = 15,
    ["a2zSortOrder"] = false,
    ["hostFilter"] = host,
-   ["uidFilter"]  = tonumber(uid),
+   ["usernameFilter"]  = username,
    ["detailsLevel"] = "high", -- to obtain processes information
 }
 
@@ -41,9 +41,9 @@ else
 
       -- Prepare aggregation parameter
       if mode == "processes" then
-	 if f["client_process"] and f["client_process"]["uid"] == tonumber(uid) then
+	 if f["client_process"] and f["client_process"]["user_name"] == username then
 	    key = f["client_process"]["name"]
-	 elseif f["server_process"] and f["server_process"]["uid"] == tonumber(uid) then
+	 elseif f["server_process"] and f["server_process"]["user_name"] == username then
 	    key = f["server_process"]["name"]
 	 end
       elseif mode == "applications" then

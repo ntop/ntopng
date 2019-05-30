@@ -267,6 +267,7 @@ class Flow : public GenericHashEntry {
   u_int32_t getFatherPid(bool client);
   u_int32_t get_uid(bool client) const;
   char* get_proc_name(bool client);
+  char* get_user_name(bool client);
   u_int32_t getNextTcpSeq(u_int8_t tcpFlags, u_int32_t tcpSeqNum, u_int32_t payloadLen) ;
   double toMs(const struct timeval *t);
   void timeval_diff(struct timeval *begin, const struct timeval *end, struct timeval *result, u_short divide_by_two);

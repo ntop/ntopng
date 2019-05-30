@@ -3701,8 +3701,8 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
   TcpFlowStateFilter tcp_flow_state_filter;
   bool unicast, unidirectional, alerted_flows;
   u_int32_t asn_filter;
-  u_int32_t uid_filter;
-  u_int32_t pid_filter;
+  char* username_filter;
+  char* pidname_filter;
   u_int32_t deviceIP;
   u_int16_t inIndex, outIndex;
   u_int8_t icmp_type, icmp_code;
@@ -3798,15 +3798,15 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
       return(false);
 
     if(retriever->pag
-       && retriever->pag->uidFilter(&uid_filter)
-       && f->get_uid(true  /* client uid */) != uid_filter
-       && f->get_uid(false /* server uid */) != uid_filter)
+       && retriever->pag->usernameFilter(&username_filter)
+       && (!f->get_user_name(true  /* client uid */) || strcmp(f->get_user_name(true  /* client uid */), username_filter))
+       && (!f->get_user_name(false  /* server uid */) || strcmp(f->get_user_name(false  /* server uid */), username_filter)))
       return(false);
 
     if(retriever->pag
-       && retriever->pag->pidFilter(&pid_filter)
-       && f->getPid(true  /* client pid */) != pid_filter
-       && f->getPid(false /* server pid */) != pid_filter)
+       && retriever->pag->pidnameFilter(&pidname_filter)
+       && (!f->get_proc_name(true  /* client pid */) || strcmp(f->get_proc_name(true  /* client pid */), pidname_filter))
+       && (!f->get_proc_name(false  /* server pid */) || strcmp(f->get_proc_name(false  /* server pid */), pidname_filter)))
       return(false);
 
     if(retriever->pag
