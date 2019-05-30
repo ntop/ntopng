@@ -147,3 +147,26 @@ visualization does display any data, here are some steps for the troubleshooting
      `su -m influxdb -c "influx_inspect buildtsi -database ntopng -datadir /var/lib/influxdb/data -waldir /var/lib/influxdb/wal"`
 
 .. _`InfluxDB documentation`: https://docs.influxdata.com/influxdb/v1.7/administration/upgrading
+
+Permission denied errors
+========================
+
+If the ntopng log shows permission denied errors, then the ntopng data directory
+may need a manual fix.
+
+`Error 'opening '/var/lib/ntopng/1/rrd/bytes.rrd': Permission denied' while calling rrd_fetch_r(/var/lib/ntopng/1/rrd/bytes.rrd, AVERAGE): is the RRD corrupted perhaps`
+
+Such errors usually occur in the following cases:
+
+- ntopng was started as root with `-s` or `--dont-change-users` options and now
+  it is started as a normal user
+
+- on Ubuntu 18, sometimes the permissions for new files are wrong.
+
+In order to fix this issue, the following commands should be used:
+
+1. `sudo systemctl stop ntopng`
+2. `sudo chown -R ntopng:ntopng /var/lib/ntopng`
+3. `sudo find /var/lib/ntopng -type d -exec chmod 700 {} +`
+4. `sudo find /var/lib/ntopng -type f -exec chmod 600 {} +`
+5. `sudo systemctl restart ntopng`
