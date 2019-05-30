@@ -211,6 +211,7 @@ typedef enum {
 typedef struct {
   u_int32_t pid, father_pid;
   char *process_name, *father_process_name;
+  char *uid_name, *father_uid_name;
   u_int32_t uid /* User Id */, gid; /* Group Id */
   u_int32_t father_uid /* User Id */, father_gid; /* Group Id */
   u_int32_t actual_memory, peak_memory;

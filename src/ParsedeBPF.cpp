@@ -49,7 +49,9 @@ ParsedeBPF::ParsedeBPF(const ParsedeBPF &pe) {
 
   if((process_info_set = pe.process_info_set)) {
     if(process_info.process_name)        process_info.process_name = strdup(process_info.process_name);
+    if(process_info.uid_name)            process_info.uid_name = strdup(process_info.uid_name);
     if(process_info.father_process_name) process_info.father_process_name = strdup(process_info.father_process_name);
+    if(process_info.father_uid_name)     process_info.father_uid_name = strdup(process_info.father_uid_name);
   }
 
   if((container_info_set = pe.container_info_set)) {
@@ -78,7 +80,9 @@ ParsedeBPF::~ParsedeBPF() {
 
     if(process_info_set) {
       if(process_info.process_name)        free(process_info.process_name);
+      if(process_info.uid_name)            free(process_info.uid_name);
       if(process_info.father_process_name) free(process_info.father_process_name);
+      if(process_info.father_uid_name)     free(process_info.father_uid_name);
     }
 
     if(container_info_set) {

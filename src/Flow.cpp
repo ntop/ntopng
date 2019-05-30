@@ -1497,8 +1497,6 @@ bool Flow::clientLessThanServer() const {
 /* *************************************** */
 
 void Flow::processLua(lua_State* vm, const ParsedeBPF * const pe, bool client) {
-#ifndef WIN32
-  struct passwd * pwd;
   const ProcessInfo * proc;
   const ContainerInfo * cont;
   const TcpInfo * tcp;
@@ -1514,9 +1512,7 @@ void Flow::processLua(lua_State* vm, const ParsedeBPF * const pe, bool client) {
     lua_push_uint64_table_entry(vm, "gid", proc->gid);
     lua_push_uint64_table_entry(vm, "actual_memory", proc->actual_memory);
     lua_push_uint64_table_entry(vm, "peak_memory", proc->peak_memory);
-    /* TODO: improve code efficiency */
-    pwd = getpwuid(proc->uid);
-    lua_push_str_table_entry(vm, "user_name", pwd ? pwd->pw_name : "");
+    lua_push_str_table_entry(vm, "user_name", proc->uid_name);
 
     if(proc->father_pid > 0) {
       lua_push_uint64_table_entry(vm, "father_pid", proc->father_pid);
@@ -1525,16 +1521,12 @@ void Flow::processLua(lua_State* vm, const ParsedeBPF * const pe, bool client) {
       lua_push_str_table_entry(vm, "father_name", proc->father_process_name);
       lua_push_uint64_table_entry(vm, "actual_memory", proc->actual_memory);
       lua_push_uint64_table_entry(vm, "peak_memory", proc->peak_memory);
-
-      /* TODO: this is wrong for remote probe */
-      pwd = getpwuid(proc->father_uid);
-      lua_push_str_table_entry(vm, "father_user_name", pwd ? pwd->pw_name : "");
+      lua_push_str_table_entry(vm, "father_user_name", proc->father_uid_name);
     }
 
     lua_pushstring(vm, client ? "client_process" : "server_process");
     lua_insert(vm, -2);
     lua_settable(vm, -3);
-#endif
   }
 
   if(pe->container_info_set && (cont = &pe->container_info)) {

@@ -635,6 +635,7 @@ bool ZMQParserInterface::parseNProbeMiniField(ParsedFlow * const flow, const cha
   } else if(strlen(key) >= 14 && !strncmp(&key[strlen(key) - 14], "FATHER_PROCESS", 14)) {
     if(json_object_object_get_ex(jvalue, "PID", &obj))   flow->process_info.father_pid = (u_int32_t)json_object_get_int64(obj);
     if(json_object_object_get_ex(jvalue, "UID", &obj))      flow->process_info.father_uid = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "UID_NAME", &obj))    flow->process_info.father_uid_name = (char*)json_object_get_string(obj);
     if(json_object_object_get_ex(jvalue, "GID", &obj))     flow->process_info.father_gid = (u_int32_t)json_object_get_int64(obj);
     if(json_object_object_get_ex(jvalue, "VM_SIZE", &obj))     flow->process_info.actual_memory = (u_int32_t)json_object_get_int64(obj);
     if(json_object_object_get_ex(jvalue, "VM_PEAK", &obj))     flow->process_info.peak_memory = (u_int32_t)json_object_get_int64(obj);
@@ -649,6 +650,7 @@ bool ZMQParserInterface::parseNProbeMiniField(ParsedFlow * const flow, const cha
   } else if(strlen(key) >= 7 && !strncmp(&key[strlen(key) - 7], "PROCESS", 7)) {
     if(json_object_object_get_ex(jvalue, "PID", &obj))   flow->process_info.pid = (u_int32_t)json_object_get_int64(obj);
     if(json_object_object_get_ex(jvalue, "UID", &obj))      flow->process_info.uid = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "UID_NAME", &obj))    flow->process_info.uid_name = (char*)json_object_get_string(obj);
     if(json_object_object_get_ex(jvalue, "GID", &obj))     flow->process_info.gid = (u_int32_t)json_object_get_int64(obj);
     if(json_object_object_get_ex(jvalue, "VM_SIZE", &obj))     flow->process_info.actual_memory = (u_int32_t)json_object_get_int64(obj);
     if(json_object_object_get_ex(jvalue, "VM_PEAK", &obj))     flow->process_info.peak_memory = (u_int32_t)json_object_get_int64(obj);
