@@ -173,7 +173,7 @@ void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface) {
     return;
   }
 
-  l->run_script(script_path, iface);
+  l->run_script(script_path, (iface ? iface : ntop->getSystemInterface()));
 
   if(iface == NULL)
     systemTaskRunning = false;

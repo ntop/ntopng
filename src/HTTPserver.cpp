@@ -130,7 +130,7 @@ void HTTPserver::traceLogin(const char *user, bool authorized) {
   time_t when = time(NULL);
   json_object *jobj;
 
-  ntop_interface = ntop->getFirstInterface();
+  ntop_interface = ntop->getSystemInterface();
 
   if (ntop_interface == NULL)
     return;

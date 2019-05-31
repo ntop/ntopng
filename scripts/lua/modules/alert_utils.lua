@@ -2862,8 +2862,6 @@ function check_process_alerts()
    while(true) do
       local message = ntop.lpopCache(alert_process_queue)
       local elems
-      -- FIX: In the future we must create a special "ntopng/localhost" interface
-      local if_id, if_name = getFirstInterfaceId()
       
       if((message == nil) or (message == "")) then
 	 break
@@ -2875,9 +2873,7 @@ function check_process_alerts()
 
       if(decoded == nil) then
 	 if(verbose) then io.write("JSON Decoding error: "..message.."\n") end
-      else 
-	 interface.select(if_name)
-
+      else
 	 interface.storeAlert(decoded.entity_type,
 			      decoded.entity_value,
 			      decoded.type,

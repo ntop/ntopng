@@ -45,8 +45,7 @@ function tracker.log(f_name, f_args)
   -- tprint(alert_json)
 
   local old_iface = ifid
-  local sys_iface = getFirstInterfaceId()
-  interface.select(tostring(sys_iface))
+  interface.select(getSystemInterfaceId())
 
   interface.storeAlert(entity, entity_value, alert_type, alert_severity, alert_json)
 
