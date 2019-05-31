@@ -21,7 +21,9 @@ if status == "engaged" then
    engaged = true
 end
 
-interface.select(ifname)
+if _GET["ifid"] ~= nil then
+   interface.select(_GET["ifid"])
+end
 
 if(tonumber(_GET["currentPage"]) == nil) then _GET["currentPage"] = 1 end
 if(tonumber(_GET["perPage"]) == nil) then _GET["perPage"] = getDefaultTableSize() end
