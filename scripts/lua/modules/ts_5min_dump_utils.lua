@@ -383,32 +383,19 @@ function ts_dump.run_5min_dump(_ifname, ifstats, config, when, time_threshold, s
   end
 
   local dump_tstart = os.time()
-  local lbd_hosts_dumped = {}
+  local dumped_hosts = {}
 
   -- Save hosts stats (if enabled from the preferences)
   if (is_rrd_creation_enabled and (config.host_rrd_creation ~= "0")) or are_alerts_enabled then
     local in_time = callback_utils.foreachLocalRRDHost(_ifname, time_threshold, is_rrd_creation_enabled, function (hostname, host_ts)
+      local host_key = host_ts.tskey
+
       if are_alerts_enabled then
         -- Check alerts first
         check_host_alerts(ifstats.id, working_status, hostname)
       end
 
-      if is_rrd_creation_enabled then
-        local is_lbo_host = (hostname ~= host_ts.tskey)
-        local host_key = host_ts.tskey
-
-        if is_lbo_host then
-          if lbd_hosts_dumped[host_key] then
-            -- The host was already dumped by its key, use its IP address
-            -- as the fallback serialization id
-            host_key = hostname
-          else
-            -- Serialize by using the tskey but remember this key to avoid
-            -- multiple hosts to be serialized with same key
-            lbd_hosts_dumped[host_key] = true
-          end
-        end
-
+      if(is_rrd_creation_enabled and (dumped_hosts[host_key] == nil)) then
         if(host_ts.initial_point ~= nil) then
           -- Dump the first point
           ts_dump.host_update_rrd(host_ts.initial_point_time, host_key, host_ts.initial_point, ifstats, verbose, config)
@@ -421,6 +408,9 @@ function ts_dump.run_5min_dump(_ifname, ifstats, config, when, time_threshold, s
             ts_dump.host_update_rrd(instant, host_key, host_point, ifstats, verbose, config)
           end
         end
+
+        -- mark the host as dumped
+        dumped_hosts[host_key] = true
       end
 
       num_processed_hosts = num_processed_hosts + 1
