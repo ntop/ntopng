@@ -1401,10 +1401,11 @@ void Host::dissectDropbox(const char *payload, u_int16_t payload_len) {
 
     if(json_object_object_get_ex(o, "namespaces", &obj)) {
       struct array_list *l = json_object_get_array(obj);
-
+      u_int len = (u_int)array_list_length(l);
+      
       dropbox_namespaces.clear();
 
-      for(u_int i=0; i<array_list_length(l); i++) {
+      for(u_int i=0; i<len; i++) {
 	struct json_object *element = json_object_array_get_idx(obj, i);
 	u_int32_t ns = json_object_get_int(element);
 

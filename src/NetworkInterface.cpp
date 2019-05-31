@@ -3706,7 +3706,11 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
   u_int32_t deviceIP;
   u_int16_t inIndex, outIndex;
   u_int8_t icmp_type, icmp_code;
+#ifdef NTOPNG_PRO
+#ifndef HAVE_NEDGE
   char *traffic_profile_filter;
+#endif
+#endif
   char *container_filter, *pod_filter;
 #ifdef HAVE_NEDGE
   bool filtered_flows;
