@@ -2643,8 +2643,13 @@ void NetworkInterface::pollQueuedeBPFEvents() {
 #if 0
 	char buf[128];
 	flow->print(buf, sizeof(buf));
-	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Updating flow process info: [src2dst_direction: %u] %s", src2dst_direction ? 1 : 0, buf);
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Updating flow process info: [new flow: %u][src2dst_direction: %u] %s",
+				     new_flow ? 1 : 0,
+				     src2dst_direction ? 1 : 0, buf);
 #endif
+
+	if(new_flow)
+	  flow->updateSeen();
 
 	flow->setParsedeBPFInfo(dequeued, src2dst_direction);
       }
