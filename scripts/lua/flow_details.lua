@@ -968,22 +968,22 @@ else
 
       print("</td><td><span id=thpt_load_chart>0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>")
       print("</td></tr>\n")
-   else
-      if((flow.client_process ~= nil) or (flow.server_process ~= nil)) then
-	 local epbf_utils = require "ebpf_utils"
-	 print('<tr><th colspan=3><div id="sprobe"></div>')
+   end
 
-	 local width  = 1024
-	 local height = 200
-	 local url = ntop.getHttpPrefix().."/lua/get_flow_process_tree.lua?flow_key="..flow_key
-	 epbf_utils.draw_flow_processes_graph(width, height, url)
+   if((flow.client_process ~= nil) or (flow.server_process ~= nil)) then
+      local epbf_utils = require "ebpf_utils"
+      print('<tr><th colspan=3><div id="sprobe"></div>')
 
-	 print('</th></tr>\n')
-      end
+      local width  = 1024
+      local height = 200
+      local url = ntop.getHttpPrefix().."/lua/get_flow_process_tree.lua?flow_key="..flow_key
+      epbf_utils.draw_flow_processes_graph(width, height, url)
+
+      print('</th></tr>\n')
 
       if(flow.client_process ~= nil) then
 	 displayProc(flow.client_process,
-	     "<tr><th colspan=3 class=\"info\">"..i18n("flow_details.client_process_information").."</th></tr>\n")
+		     "<tr><th colspan=3 class=\"info\">"..i18n("flow_details.client_process_information").."</th></tr>\n")
       end
       if(flow.client_container ~= nil) then
 	 displayContainer(flow.client_container,
