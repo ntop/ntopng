@@ -7,7 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 local if_stats = interface.getStats()
 
-if (if_stats.has_seen_pods or if_stats.has_seen_containers) and not interface.isPacketInterface() then
+if (if_stats.has_seen_pods or if_stats.has_seen_containers) then
    -- Use a different flows page
    dofile(dirs.installdir .. "/scripts/lua/inc/ebpf_flows_stats.lua")
    return
