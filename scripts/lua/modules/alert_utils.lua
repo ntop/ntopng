@@ -1513,9 +1513,10 @@ end
 
 -- #################################
 
-function drawAlertTables(num_past_alerts, num_engaged_alerts, num_flow_alerts, get_params, hide_extended_title, alt_nav_tabs)
+function drawAlertTables(num_past_alerts, num_engaged_alerts, num_flow_alerts, get_params, hide_extended_title, alt_nav_tabs, options)
    local alert_items = {}
    local url_params = {}
+   local options = options or {}
 
    print(
       template.gen("modal_confirm_dialog.html", {
@@ -1688,7 +1689,7 @@ function getCurrentStatus() {
 	 local title = t["label"]
 
 	 -- TODO this condition should be removed and page integration support implemented
-	 if((isEmptyString(_GET["entity"])) and isEmptyString(_GET["epoch_begin"]) and isEmptyString(_GET["epoch_end"])) then
+	 if(((isEmptyString(_GET["entity"])) and isEmptyString(_GET["epoch_begin"]) and isEmptyString(_GET["epoch_end"])) and (options.hide_filters ~= true))  then
 	    -- alert_consts.alert_severity_keys and alert_consts.alert_type_keys are defined in lua_utils
 	    local alert_severities = {}
 	    for _, s in pairs(alert_consts.alert_severity_keys) do alert_severities[#alert_severities +1 ] = s[3] end
@@ -1965,7 +1966,7 @@ $('#buttonOpenDeleteModal').on('click', function() {
    cur_alert_num_req = $.ajax({
       type: 'GET',
       ]] print("url: '"..ntop.getHttpPrefix().."/lua/get_num_alerts.lua'") print[[,
-       data: getTabSpecificParams(),
+       data: $.extend(getTabSpecificParams(), {ifid: ]] print(_GET["ifid"] or "null") print[[}),
        complete: function() {
          $("#alerts-summary-wait").hide();
        }, error: function() {
@@ -1991,6 +1992,18 @@ $('#myModal').on('hidden.bs.modal', function () {
 </script>]]
       end
 
+end
+
+-- #################################
+
+function drawAlerts(options)
+   local num_engaged_alerts = getNumAlerts("engaged", getTabParameters(_GET, "engaged"))
+   local num_past_alerts = getNumAlerts("historical", getTabParameters(_GET, "historical"))
+   local num_flow_alerts = getNumAlerts("historical-flows", getTabParameters(_GET, "historical-flows"))
+
+   checkDeleteStoredAlerts()
+
+   return drawAlertTables(num_past_alerts, num_engaged_alerts, num_flow_alerts, _GET, true, nil, options)
 end
 
 -- #################################
@@ -2862,8 +2875,6 @@ function check_process_alerts()
    while(true) do
       local message = ntop.lpopCache(alert_process_queue)
       local elems
-      -- FIX: In the future we must create a special "ntopng/localhost" interface
-      local if_id, if_name = getFirstInterfaceId()
       
       if((message == nil) or (message == "")) then
 	 break
@@ -2875,9 +2886,7 @@ function check_process_alerts()
 
       if(decoded == nil) then
 	 if(verbose) then io.write("JSON Decoding error: "..message.."\n") end
-      else 
-	 interface.select(if_name)
-
+      else
 	 interface.storeAlert(decoded.entity_type,
 			      decoded.entity_value,
 			      decoded.type,

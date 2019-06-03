@@ -113,6 +113,14 @@ end
 
 -- ##############################################
 
+function getSystemInterfaceId()
+   -- NOTE: keep in sync with SYSTEM_INTERFACE_ID in ntop_defines.h
+   -- This must be a string as it is passed in interface.select
+   return "-1"
+end
+
+-- ##############################################
+
 -- Note that ifname can be set by Lua.cpp so don't touch it if already defined
 if((ifname == nil) and (_GET ~= nil)) then
    ifname = _GET["ifid"]

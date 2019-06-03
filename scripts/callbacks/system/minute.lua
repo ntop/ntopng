@@ -22,9 +22,6 @@ end
 local system_host_stats = ntop.systemHostStat()
 local when = os.time()
 
-local _, ifname = getFirstInterfaceId()
-interface.select(ifname)
-
 if((system_host_stats.mem_ntopng_resident ~= nil) and
       (system_host_stats.mem_ntopng_virtual ~= nil)) then
    ts_utils.append("process:memory", {

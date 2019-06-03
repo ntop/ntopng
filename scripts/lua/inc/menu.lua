@@ -392,7 +392,6 @@ print [[
 ]]
 end
 
-
 if ntop.isEnterprise() then
    if active_page == "devices_stats" then
      print [[ <li class="dropdown active"> ]]
@@ -428,7 +427,15 @@ if ntop.isEnterprise() then
 
 end
 
-
+if active_page == "system" then
+  print [[ <li class="dropdown active"> ]]
+else
+  print [[ <li class="dropdown"> ]]
+end
+print [[
+      <a href="]] print(ntop.getHttpPrefix()) print[[/lua/system_stats.lua">]] print(i18n("system")) print[[</a>
+   </li>
+   ]]
 
 -- Admin
 if active_page == "admin" then

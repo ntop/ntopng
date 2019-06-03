@@ -955,6 +955,8 @@ int Utils::ifname2id(const char *name) {
   if(name == NULL) return(-1);
   else if(!strncmp(name, "-", 1)) name = (char*) "stdin";
 
+  if(!strcmp(name, SYSTEM_INTERFACE_NAME)) return(SYSTEM_INTERFACE_ID);
+
   if(ntop->getRedis()->hashGet((char*)CONST_IFACE_ID_PREFS, (char*)name, rsp, sizeof(rsp)) == 0) {
     /* Found */
     return(atoi(rsp));

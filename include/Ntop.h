@@ -45,6 +45,7 @@ class Ntop {
   char startup_dir[MAX_PATH]; /**< Startup directory. */
   char *custom_ndpi_protos; /**< Pointer of a custom protocol for nDPI. */
   NetworkInterface **iface; /**< Array of network interfaces. */
+  NetworkInterface *system_interface; /** The system interface */
   u_int8_t num_defined_interfaces; /**< Number of defined interfaces. */
   uint8_t num_dump_interfaces;
   HTTPserver *httpd; /**< Pointer of httpd server. */
@@ -455,6 +456,7 @@ class Ntop {
   bool isExistingInterface(const char * const name) const;
   inline NetworkInterface* getFirstInterface() { return(iface[0]);         }
   inline NetworkInterface* getInterface(int i) { return(((i < num_defined_interfaces) && iface[i]) ? iface[i] : NULL); }
+  inline NetworkInterface* getSystemInterface() { return(system_interface); }
 #ifdef NTOPNG_PRO
   bool addToNotifiedInformativeCaptivePortal(u_int32_t client_ip);
   bool addIPToLRUMatches(u_int32_t client_ip, u_int16_t user_pool_id,

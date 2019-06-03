@@ -1422,6 +1422,7 @@ local lang = {
     ["percentile"] = "95th <a href=\"%{url}\">Percentile</a>",
     ["permanent_link"] = "Permanent Link",
     ["pkt_drops"] = "Pkt Drops",
+    ["process_memory"] = "Process Memory",
     ["query_too_much_time"] = "The query is taking a long time to complete",
     ["query_too_slow"] = "The query has taken too much time to complete",
     ["query_was_aborted"] = "Query was aborted",
