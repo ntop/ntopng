@@ -389,7 +389,9 @@ print [[
 ]]
 end
 
-if ntop.isEnterprise() then
+local show_flowdevs = (ifs["type"] == "zmq")
+
+if ntop.isEnterprise() and (isAllowedSystemInterface() or show_flowdevs) then
    if active_page == "devices_stats" then
      print [[ <li class="dropdown active"> ]]
    else
@@ -403,8 +405,10 @@ if ntop.isEnterprise() then
    ]]
 
    if(info["version.enterprise_edition"] == true) then
-      print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/snmpdevices_stats.lua">') print(i18n("prefs.snmp")) print('</a></li>')
-      if ifs["type"] == "zmq" then
+      if isAllowedSystemInterface() then
+         print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/snmpdevices_stats.lua">') print(i18n("prefs.snmp")) print('</a></li>')
+      end
+      if show_flowdevs then
          if _ifstats.has_seen_ebpf_events then
             print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/event_exporters.lua ">') print(i18n("event_exporters.event_exporters")) print('</a></li>')
          else
@@ -424,15 +428,17 @@ if ntop.isEnterprise() then
 
 end
 
-if active_page == "system" then
-  print [[ <li class="dropdown active"> ]]
-else
-  print [[ <li class="dropdown"> ]]
-end
-print [[
+if isAllowedSystemInterface() then
+   if active_page == "system" then
+     print [[ <li class="dropdown active"> ]]
+   else
+     print [[ <li class="dropdown"> ]]
+   end
+   print [[
       <a href="]] print(ntop.getHttpPrefix()) print[[/lua/system_stats.lua">]] print(i18n("system")) print[[</a>
    </li>
    ]]
+end
 
 -- Admin
 if active_page == "admin" then

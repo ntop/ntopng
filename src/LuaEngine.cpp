@@ -6285,9 +6285,8 @@ static int ntop_is_allowed_interface(lua_State* vm) {
 
   if((allowed_ifname == NULL) || (allowed_ifname[0] == '\0'))
     rv = true;
-  /* TODO -1 interface should not be accessible by limited users */
-  else if((id < 0) || (((iface = ntop->getNetworkInterface(vm, id)) != NULL) && (iface->get_id() == id) &&
-      matches_allowed_ifname(allowed_ifname, iface->get_name())))
+  else if(((iface = ntop->getNetworkInterface(vm, id)) != NULL) && (iface->get_id() == id) &&
+      matches_allowed_ifname(allowed_ifname, iface->get_name()))
     rv = true;
 
   lua_pushboolean(vm, rv);

@@ -350,7 +350,7 @@ if host["localhost"] == true then
       end
    end
 
-   if ntop.isEnterprise() then
+   if ntop.isEnterprise() and isAllowedSystemInterface() then
       if(page == "snmp") then
 	 print("<li class=\"active\"><a href=\"#\">"..i18n("host_details.snmp").."</a></li>\n")
       else
@@ -459,6 +459,7 @@ print [[
 local macinfo = interface.getMacInfo(host["mac"])
 local has_snmp_location = host['localhost'] and (host["mac"] ~= "")
    and (info["version.enterprise_edition"]) and host_has_snmp_location(host["mac"])
+   and isAllowedSystemInterface()
 
 if((page == "overview") or (page == nil)) then
    print("<table class=\"table table-bordered table-striped\">\n")
@@ -1658,7 +1659,7 @@ print[[
    ]]
 
 end
-elseif(page == "snmp" and ntop.isEnterprise()) then
+elseif(page == "snmp" and ntop.isEnterprise() and isAllowedSystemInterface()) then
    local snmp_devices = get_snmp_devices()
 
    if snmp_devices[host_ip] == nil then -- host has not been configured

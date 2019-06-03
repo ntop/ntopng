@@ -13,6 +13,10 @@ local ts_utils = require("ts_utils")
 require("graph_utils")
 require("alert_utils")
 
+if not isAllowedSystemInterface() then
+   return
+end
+
 sendHTTPContentTypeHeader('text/html')
 
 page_utils.print_header()

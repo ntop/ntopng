@@ -119,6 +119,10 @@ function getSystemInterfaceId()
    return "-1"
 end
 
+function isAllowedSystemInterface()
+   return ntop.isAllowedInterface(tonumber(getSystemInterfaceId()))
+end
+
 -- ##############################################
 
 -- Note that ifname can be set by Lua.cpp so don't touch it if already defined
