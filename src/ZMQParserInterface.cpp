@@ -711,7 +711,7 @@ bool ZMQParserInterface::parseNProbeMiniField(ParsedFlow * const flow, const cha
 void ZMQParserInterface::deliverFlowToCompanions(ParsedFlow * const flow) {
   if(num_companion_interfaces > 0
      && (flow->process_info_set || flow->container_info_set || flow->tcp_info_set)) {
-    NetworkInterface *flow_interface = flow->ifname ? ntop->getNetworkInterface(NULL, flow->ifname) : NULL;
+    NetworkInterface *flow_interface = flow->ifname ? ntop->getNetworkInterface(flow->ifname) : NULL;
 
     for(int i = 0; i < MAX_NUM_COMPANION_INTERFACES; i++) {
       NetworkInterface *cur_companion = companion_interfaces[i];

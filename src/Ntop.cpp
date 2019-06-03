@@ -1948,7 +1948,7 @@ bool Ntop::isExistingInterface(const char * const name) const {
 
 /* ******************************************* */
 
-NetworkInterface* Ntop::getNetworkInterface(lua_State* vm, const char *name) {
+NetworkInterface* Ntop::getNetworkInterface(const char *name, lua_State* vm) {
   char allowed_ifname[MAX_INTERFACE_NAME_LEN] = {0};
 
   if(vm && getInterfaceAllowed(vm, allowed_ifname)) {
@@ -1989,7 +1989,7 @@ NetworkInterface* Ntop::getNetworkInterface(lua_State* vm, const char *name) {
 /* ******************************************* */
 
 int Ntop::getInterfaceIdByName(lua_State *vm, const char * const name) {
-  NetworkInterface * res = getNetworkInterface(vm, name);
+  NetworkInterface * res = getNetworkInterface(name, vm);
 
   if(res)
     return res->get_id();
