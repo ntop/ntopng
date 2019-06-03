@@ -37,7 +37,7 @@ else
    print("<li><a href=\""..url.."&page=overview\"><i class=\"fa fa-home fa-lg\"></i></a></li>")
 end
 
-if(ts_utils.exists("process:memory", {})) then
+if(ts_utils.exists("process:memory")) then
    if(page == "historical") then
       print("<li class=\"active\"><a href=\""..url.."&page=historical\"><i class='fa fa-area-chart fa-lg'></i></a></li>")
    else

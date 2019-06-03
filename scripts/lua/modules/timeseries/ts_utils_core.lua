@@ -529,6 +529,7 @@ end
 
 local function list_series(schema_name, tags_filter, start_time, batched)
   local schema = ts_utils.getSchema(schema_name)
+  tags_filter = tags_filter or {}
 
   if not schema then
     traceError(TRACE_ERROR, TRACE_CONSOLE, "Schema not found: " .. schema_name)

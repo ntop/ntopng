@@ -708,7 +708,7 @@ local function processListSeriesResult(data, schema, tags_filter, wildcard_tags)
   if table.empty(wildcard_tags) then
     -- Simple "exists" check
     if #data.series[1].values >= min_values_list_series then
-      return tags_filter
+      return {tags_filter}
     else
       return nil
     end
