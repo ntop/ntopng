@@ -27,12 +27,16 @@ callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, functio
    if(enable_second_debug) then print("Processing "..ifname.."\n") end
 
    -- Traffic stats
-   ts_utils.append("iface:traffic", {ifid=ifstats.id, bytes=ifstats.stats.bytes}, when)
-   ts_utils.append("iface:packets", {ifid=ifstats.id, packets=ifstats.stats.packets}, when)
+   -- We check for ifstats.stats.bytes to start writing only when there's data. This
+   -- prevents artificial and wrong peaks especially during the startup of ntopng.
+   if ifstats.stats.bytes > 0 then
+      ts_utils.append("iface:traffic", {ifid=ifstats.id, bytes=ifstats.stats.bytes}, when)
+      ts_utils.append("iface:packets", {ifid=ifstats.id, packets=ifstats.stats.packets}, when)
 
-   if ifstats.has_traffic_directions then
-      ts_utils.append("iface:traffic_rxtx", {ifid=ifstats.id,
-         bytes_sent=ifstats.eth.egress.bytes, bytes_rcvd=ifstats.eth.ingress.bytes}, when)
+      if ifstats.has_traffic_directions then
+	 ts_utils.append("iface:traffic_rxtx", {ifid=ifstats.id,
+						bytes_sent=ifstats.eth.egress.bytes, bytes_rcvd=ifstats.eth.ingress.bytes}, when)
+      end
    end
 
    -- ZMQ stats
