@@ -1239,9 +1239,12 @@ void NetworkInterface::processFlow(ParsedFlow *zflow, bool zmq_flow) {
     flow->setFlowApplLatency(zflow->tcp.applLatencyMsec);
 
   /* Update process and container info */
-  if(zflow->hasParsedeBPF())
+  if(zflow->hasParsedeBPF()) {
     flow->setParsedeBPFInfo(zflow,
 			    src2dst_direction /* FIX: direction also depends on the type of event. */);
+    /* Now refresh the flow last seen so it will stay active as long as we keep receiving updates */
+    flow->updateSeen();
+  }
 
   /* Update flow device stats */
   if(!flow->setFlowDevice(zflow->deviceIP,
