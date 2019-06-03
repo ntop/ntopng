@@ -1951,7 +1951,7 @@ bool Flow::isReadyToPurge() {
        TWH from staying in memory for too long. */
     if((tcp_flags & TH_FIN
 	|| tcp_flags & TH_RST
-	|| !isThreeWayHandshakeOK())
+	|| (iface->isPacketInterface() && !isThreeWayHandshakeOK()))
        /* Flows won't expire if less than DONT_NOT_EXPIRE_BEFORE_SEC old */
        && iface->getTimeLastPktRcvd() > doNotExpireBefore
        && isIdle(MAX_TCP_FLOW_IDLE)) {
