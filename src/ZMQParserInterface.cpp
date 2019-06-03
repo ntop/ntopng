@@ -792,7 +792,10 @@ void ZMQParserInterface::parseSingleFlow(json_object *o,
 	case UNKNOWN_FLOW_ELEMENT:
 	  /* Attempt to parse it as an nProbe mini field */
 	  if(parseNProbeMiniField(&flow, key, value, v)) {
-	    flow.setParsedeBPF();
+	    if(!flow.hasParsedeBPF()) {
+	      flow.setParsedeBPF();
+	      flow.absolute_packet_octet_counters = true;
+	    }
 	    break;
 	  }
 	default:
