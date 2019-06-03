@@ -116,6 +116,8 @@ for key in pairsByValues(sort_to_key, sOrder) do
       column_avg_rtt_variance_as_server = format_utils.formatMillis(container["rtt_variance_as_server"]),
     }
   end
+
+  i = i + 1
 end
 
 -- ################################################
