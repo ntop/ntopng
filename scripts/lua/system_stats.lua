@@ -36,6 +36,8 @@ if(ts_utils.exists("process:memory", {})) then
    else
       print("<li><a href=\""..url.."&page=historical\"><i class='fa fa-area-chart fa-lg'></i></a></li>")
    end
+elseif page == "historical" then
+   page = "alerts"
 end
 
 if(isAdministrator() and areAlertsEnabled()) then
