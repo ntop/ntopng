@@ -1707,7 +1707,7 @@ elseif(page == "dropbox") then
       if(host_vlan ~= 0) then print("&vlan="..host_vlan) end
       print("&page=dropbox\">")
       print(getResolvedAddress(hostkey2hostinfo(k)))
-      print("</A></li>")
+      print("</A> ["..v.." share(s) in common]</li>")
    end
 
    print("</ul>")
