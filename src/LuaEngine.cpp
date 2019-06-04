@@ -2445,15 +2445,44 @@ static bool is_table_empty(lua_State *L, int index) {
 
 /* ****************************************** */
 
-static inline int concat_table_fields(lua_State *L, int index, char *buf, int size) {
+/* NOTE: outbuf and orig buffers must not overlap */
+static inline void influx_escape_char(char *outbuf, int outlen, const char *orig, char to_escape) {
+  const char *pos;
+
+  while((pos = strchr(orig, to_escape)) != NULL) {
+    int to_copy = (pos - orig);
+
+    if((to_copy+3) > outlen) // +3: escape, to_replace, NULL
+      break;
+
+    memcpy(outbuf, orig, to_copy);
+    outbuf[to_copy] = '\\';
+    outbuf[to_copy+1] = to_escape;
+
+    outbuf += to_copy+2;
+    outlen -= to_copy+2;
+    orig = pos+1;
+  }
+
+  if(outlen > 0)
+    strncpy(outbuf, orig, outlen);
+
+  outbuf[outlen-1] = '\0';
+}
+
+static inline int influx_concat_table_fields(lua_State *L, int index, char *buf, int size) {
   bool first = true;
+  char val_buf[128];
 
   // table traversal from https://www.lua.org/ftp/refman-5.0.pdf
   lua_pushnil(L);
 
   while(lua_next(L, index) != 0) {
+    influx_escape_char(val_buf, sizeof(val_buf), lua_tostring(L, -1), ' ');
+
     int l = snprintf(buf, size, "%s%s=%s", first ? "" : ",",
-		     lua_tostring(L, -2), lua_tostring(L, -1));
+		     lua_tostring(L, -2), val_buf);
+
     buf += l;
     size -= l;
     first = false;
@@ -2466,8 +2495,9 @@ static inline int concat_table_fields(lua_State *L, int index, char *buf, int si
 
 /* ****************************************** */
 
+/* curl -i -XPOST "http://localhost:8086/write?db=ntopng" --data-binary 'profile:traffic,ifid=0,profile=a profile bytes=2506351 1559634840000000000' */
 static int ntop_append_influx_db(lua_State* vm) {
-  char data[256], *schema;
+  char data[512], *schema;
   int buflen = sizeof(data);
   bool rv = false;
   time_t tstamp;
@@ -2489,9 +2519,9 @@ static int ntop_append_influx_db(lua_State* vm) {
 
   // "iface:traffic,ifid=0 bytes=0 1539358699000000000\n"
   buflen -= snprintf(data, buflen, is_table_empty(vm, 3) ? "%s" : "%s,", schema);
-  buflen = concat_table_fields(vm, 3, data + sizeof(data) - buflen, buflen);
+  buflen = influx_concat_table_fields(vm, 3, data + sizeof(data) - buflen, buflen); // tags
   buflen -= snprintf(data + sizeof(data) - buflen, buflen, " ");
-  buflen = concat_table_fields(vm, 4, data + sizeof(data) - buflen, buflen);
+  buflen = influx_concat_table_fields(vm, 4, data + sizeof(data) - buflen, buflen); // metrics
   buflen -= snprintf(data + sizeof(data) - buflen, buflen, " %lu000000000\n", tstamp);
 
   if(ntop_interface && ntop_interface->getTSExporter()) {
