@@ -1270,12 +1270,14 @@ int Prefs::setOption(int optkey, char *optarg) {
 
     printf("System Id:\t%s\n", ntop->getPro()->get_system_id());
 
+    {
+    char buf[128];
     ntop->getTrace()->set_trace_level((u_int8_t)0);
     ntop->registerPrefs(this, true);
     ntop->getPro()->init_license();
     printf("Platform:\t%s\n", PACKAGE_MACHINE);
     printf("Edition:\t%s\n",      ntop->getPro()->get_edition());
-    printf("License Type:\t%s\n", ntop->getPro()->get_license_type());
+    printf("License Type:\t%s\n", ntop->getPro()->get_license_type(buf, sizeof(buf)));
 
     if(ntop->getPro()->demo_ends_at())
       printf("Validity:\t%s\n", ntop->getPro()->get_demo_expiration(buf, sizeof(buf)));
@@ -1297,6 +1299,7 @@ int Prefs::setOption(int optkey, char *optarg) {
 
     if(ntop->getPro()->get_license()[0] != '\0')
       printf("License Hash:\t%s\n",      ntop->getPro()->get_license());
+    }
 #endif
     exit(0);
     break;
