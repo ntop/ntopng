@@ -428,7 +428,7 @@ class NetworkInterface : public Checkpointable {
 		     u_int16_t vlan_id,
 		     struct ndpi_iphdr *iph,
 		     struct ndpi_ipv6hdr *ip6,
-		     u_int16_t trusted_ipsize,
+		     u_int16_t ip_offset,
 		     u_int32_t rawsize,
 		     const struct pcap_pkthdr *h,
 		     const u_char *packet,
