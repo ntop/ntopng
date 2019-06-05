@@ -205,7 +205,7 @@ class NetworkInterface : public Checkpointable {
 		u_int8_t l4_proto,
 		bool *src2dst_direction,
 		time_t first_seen, time_t last_seen,
-		u_int32_t rawsize,
+		u_int32_t len_on_wire,
 		bool *new_flow, bool create_if_missing);
   int sortHosts(u_int32_t *begin_slot,
 		bool walk_all,
@@ -429,7 +429,7 @@ class NetworkInterface : public Checkpointable {
 		     struct ndpi_iphdr *iph,
 		     struct ndpi_ipv6hdr *ip6,
 		     u_int16_t ip_offset,
-		     u_int32_t rawsize,
+		     u_int32_t len_on_wire,
 		     const struct pcap_pkthdr *h,
 		     const u_char *packet,
 		     u_int16_t *ndpiProtocol,
