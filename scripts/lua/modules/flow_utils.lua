@@ -2389,9 +2389,9 @@ function getFlowsTableTitle()
        if(_GET["version"] ~= nil) then
          is_v4 = (_GET["version"] == "4")
        end
-       local icmo_label = get_icmp_label(_GET["icmp_type"], _GET["icmp_cod"], is_v4)
+       local icmp_label = get_icmp_label(_GET["icmp_type"], _GET["icmp_cod"], is_v4)
 
-       active_msg = active_msg .. " ["..icmo_label.."]"
+       active_msg = active_msg .. " ["..icmp_label.."]"
     end
 
     if(_GET["tcp_flow_state"] ~= nil) then
