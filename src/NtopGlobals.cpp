@@ -25,7 +25,6 @@
 
 NtopGlobals::NtopGlobals() {
   start_time = time(NULL);
-  ifMTU = snaplen = 1514;
   file_id = 0;
   trace = new Trace();  
   is_shutdown = shutdown_requested = false, do_decode_tunnels = true;

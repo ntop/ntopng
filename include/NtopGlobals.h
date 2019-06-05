@@ -27,7 +27,6 @@
 class NtopGlobals {
   bool is_shutdown, shutdown_requested, do_decode_tunnels;
   time_t start_time;
-  u_int ifMTU, snaplen;
   Trace *trace;
   u_int16_t file_id;
 
@@ -36,7 +35,6 @@ class NtopGlobals {
   ~NtopGlobals();
 
   inline u_int getUptime()                     const { return((u_int)(time(NULL)-start_time+1)); };
-  inline u_int getIfMTU()                      const { return(ifMTU);                            };
   inline Trace *getTrace()                     const { return(trace);                   }; 
   inline bool  decode_tunnels()                const { return(do_decode_tunnels);       };
   inline bool  isShutdown()                    const { return(is_shutdown);             };
