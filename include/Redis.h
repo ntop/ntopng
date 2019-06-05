@@ -41,7 +41,7 @@ class Redis {
   pthread_t lsThreadLoop;
   bool operational;
   bool initializationCompleted;
-  StringCache_t *stringCache;
+  std::map<std::string, StringCache> stringCache;
   u_int numCached;
 
   char* getRedisVersion();

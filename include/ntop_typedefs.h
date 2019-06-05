@@ -461,11 +461,11 @@ typedef struct {
   void *items[QUEUE_ITEMS];
 } spsc_queue_t;
 
-typedef struct {
-  char *key, *value;
+class StringCache {
+ public:
+  std::string value;
   time_t expire;
-  UT_hash_handle hh; /* makes this structure hashable */
-} StringCache_t;
+};
 
 PACK_ON
 
