@@ -1394,13 +1394,14 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 				     Host **srcHost, Host **dstHost,
 				     Flow **hostFlow) {
   u_int16_t trusted_ip_len = max_val(0, (int)h->caplen - ip_offset);
+  u_int16_t trusted_payload_len = 0;
   bool src2dst_direction, is_sent_packet = false; /* FIX */
   u_int8_t l4_proto;
   Flow *flow;
   Mac *srcMac = NULL, *dstMac = NULL;
   IpAddress src_ip, dst_ip;
   ICMPinfo icmp_info;
-  u_int16_t src_port = 0, dst_port = 0, payload_len = 0;
+  u_int16_t src_port = 0, dst_port = 0;
   struct ndpi_tcphdr *tcph = NULL;
   struct ndpi_udphdr *udph = NULL;
   struct sctphdr *sctph    = NULL;
@@ -1531,8 +1532,8 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       tcp_flags = l4[13];
       tcp_len = min_val(4 * tcph->doff, trusted_l4_packet_len);
       payload = &l4[tcp_len];
-      payload_len = trusted_l4_packet_len - tcp_len;
-      // TODO: check if payload should be set to NULL when payload_len == 0
+      trusted_payload_len = trusted_l4_packet_len - tcp_len;
+      // TODO: check if payload should be set to NULL when trusted_payload_len == 0
     } else {
       /* Packet too short: this is a faked packet */
       ntop->getTrace()->traceEvent(TRACE_INFO, "Invalid TCP packet received [%u bytes long]", trusted_l4_packet_len);
@@ -1546,7 +1547,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       udph = (struct ndpi_udphdr *)l4;
       src_port = udph->source,  dst_port = udph->dest;
       payload = &l4[sizeof(struct ndpi_udphdr)];
-      payload_len = trusted_l4_packet_len - sizeof(struct ndpi_udphdr);
+      trusted_payload_len = trusted_l4_packet_len - sizeof(struct ndpi_udphdr);
     } else {
       /* Packet too short: this is a faked packet */
       ntop->getTrace()->traceEvent(TRACE_INFO, "Invalid UDP packet received [%u bytes long]", trusted_l4_packet_len);
@@ -1561,7 +1562,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       src_port = sctph->sport,  dst_port = sctph->dport;
 
       payload = &l4[sizeof(struct sctphdr)];
-      payload_len = trusted_l4_packet_len - sizeof(struct sctphdr);
+      trusted_payload_len = trusted_l4_packet_len - sizeof(struct sctphdr);
     } else {
       /* Packet too short: this is a faked packet */
       ntop->getTrace()->traceEvent(TRACE_INFO, "Invalid SCTP packet received [%u bytes long]", trusted_l4_packet_len);
@@ -1700,10 +1701,10 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
     struct timeval tv_ts;
     tv_ts.tv_sec  = h->ts.tv_sec;
     tv_ts.tv_usec = h->ts.tv_usec;
-    flow->incStats(src2dst_direction, len_on_wire, payload, payload_len, l4_proto, is_fragment, &tv_ts);
+    flow->incStats(src2dst_direction, len_on_wire, payload, trusted_payload_len, l4_proto, is_fragment, &tv_ts);
 #else
     PROFILING_SECTION_ENTER("NetworkInterface::processPacket: flow->incStats", 2);
-    flow->incStats(src2dst_direction, len_on_wire, payload, payload_len, l4_proto, is_fragment, &h->ts);
+    flow->incStats(src2dst_direction, len_on_wire, payload, trusted_payload_len, l4_proto, is_fragment, &h->ts);
     PROFILING_SECTION_EXIT(2);
 #endif
 #endif
@@ -1734,20 +1735,13 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
      && (!isSampledTraffic())
      && flow->get_cli_host() && flow->get_srv_host()) {
     struct ndpi_flow_struct *ndpi_flow;
-    u_int32_t real_payload_len = min_val(h->caplen, payload_len);
-
-    /*
-      As the functions below play with payload contents we need to
-      make sure we handle the payload up to the max allowed size
-      thus we use the real_payload_len variable
-    */
 
     switch(ndpi_get_lower_proto(flow->get_detected_protocol())) {
     case NDPI_PROTOCOL_DHCP:
       {
 	Mac *mac = (*srcHost)->getMac(), *payload_cli_mac;
 
-	if(mac && (real_payload_len > 240)) {
+	if(mac && (trusted_payload_len > 240)) {
 	  struct dhcp_packet *dhcpp = (struct dhcp_packet*)payload;
 
 	  if(dhcpp->msgType == 0x01) /* Request */
@@ -1758,7 +1752,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	    setDHCPAddressesSeen();
 	  }
 
-	  for(u_int32_t i = 240; i<real_payload_len; ) {
+	  for(u_int32_t i = 240; i<trusted_payload_len; ) {
 	    u_int8_t id  = payload[i], len = payload[i+1];
 
 	    if(len == 0)
@@ -1818,7 +1812,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	Mac *dst_mac = (*dstHost)->getMac();
 
 	if(src_mac && dst_mac
-	   && (real_payload_len > 20)
+	   && (trusted_payload_len > 20)
 	   && dst_mac->isMulticast())
 	  ;//src_mac->setDhcpHost();
       }
@@ -1835,7 +1829,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	     ) {
 
 	    if(name[0] == '*') {
-	      int limit = min_val(real_payload_len-57, (int)sizeof(name)-1);
+	      int limit = min_val(trusted_payload_len-57, (int)sizeof(name)-1);
 	      int i = 0;
 
 	      while((i<limit) && (payload[57+i] != 0x20) && isprint(payload[57+i])) {
@@ -1866,17 +1860,17 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       if((flow->getBitTorrentHash() == NULL)
 	 && (l4_proto == IPPROTO_UDP)
 	 && (flow->get_packets() < 8))
-	flow->dissectBittorrent((char*)payload, real_payload_len);
+	flow->dissectBittorrent((char*)payload, trusted_payload_len);
       break;
 
     case NDPI_PROTOCOL_HTTP:
-      if(real_payload_len > 0)
-	flow->dissectHTTP(src2dst_direction, (char*)payload, real_payload_len);
+      if(trusted_payload_len > 0)
+	flow->dissectHTTP(src2dst_direction, (char*)payload, trusted_payload_len);
       break;
 
     case NDPI_PROTOCOL_SSDP:
-      if(real_payload_len > 0)
-	flow->dissectSSDP(src2dst_direction, (char*)payload, real_payload_len);
+      if(trusted_payload_len > 0)
+	flow->dissectSSDP(src2dst_direction, (char*)payload, trusted_payload_len);
       break;
 
     case NDPI_PROTOCOL_DNS:
@@ -1887,12 +1881,12 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	e.g., during three-way-handshake, or when acknowledging.
 	Make sure only non-zero-payload segments are processed.
       */
-      if((real_payload_len > 0) && payload) {
+      if((trusted_payload_len > 0) && payload) {
 	/*
 	  DNS-over-TCP has a 2-bytes field with DNS payload length
 	  at the beginning. See RFC1035 section 4.2.2. TCP usage.
 	*/
-	u_int8_t dns_offset = ((l4_proto == IPPROTO_TCP) && (real_payload_len > 1)) ? 2 : 0;
+	u_int8_t dns_offset = ((l4_proto == IPPROTO_TCP) && (trusted_payload_len > 1)) ? 2 : 0;
 	struct ndpi_dns_packet_header *header = (struct ndpi_dns_packet_header*)(payload + dns_offset);
 	u_int16_t dns_flags = ntohs(header->flags);
 	bool is_query   = (dns_flags & 0x8000) ? 0 : 1;
@@ -1944,23 +1938,23 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       extern void _dissectMDNS(u_char *buf, u_int buf_len, char *out, u_int out_len);
       char outbuf[1024];
 
-      _dissectMDNS(payload, real_payload_len, outbuf, sizeof(outbuf));
+      _dissectMDNS(payload, trusted_payload_len, outbuf, sizeof(outbuf));
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", outbuf);
 #endif
-      flow->dissectMDNS(payload, real_payload_len);
+      flow->dissectMDNS(payload, trusted_payload_len);
 
       if(discovery && iph)
-	discovery->queueMDNSRespomse(iph->saddr, payload, real_payload_len);
+	discovery->queueMDNSRespomse(iph->saddr, payload, trusted_payload_len);
       break;
 
     case NDPI_PROTOCOL_DROPBOX:
       if((src_port == dst_port) && (dst_port == htons(17500)))
-	flow->get_cli_host()->dissectDropbox((const char *)payload, real_payload_len);
+	flow->get_cli_host()->dissectDropbox((const char *)payload, trusted_payload_len);
       break;
 
     case NDPI_PROTOCOL_SSL:
-      if(real_payload_len > 0)
-	flow->dissectSSL((char *)payload, real_payload_len);
+      if(trusted_payload_len > 0)
+	flow->dissectSSL((char *)payload, trusted_payload_len);
       break;
     }
 
