@@ -1404,7 +1404,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
   struct ndpi_tcphdr *tcph = NULL;
   struct ndpi_udphdr *udph = NULL;
   struct sctphdr *sctph    = NULL;
-  u_int16_t l4_packet_len;
+  u_int16_t trusted_l4_packet_len;
   u_int8_t *l4, tcp_flags = 0, *payload = NULL;
   u_int8_t *ip;
   bool is_fragment = false, new_flow;
@@ -1484,7 +1484,6 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
        || (iph->frag_off & htons(0x2000 /* More Fragments: set */)))
       is_fragment = true;
 
-    l4_packet_len = ntohs(iph->tot_len) - (iph->ihl * 4);
     l4_proto = iph->protocol;
     l4 = ((u_int8_t *) iph + iph->ihl * 4);
     ip = (u_int8_t*)iph;
@@ -1499,7 +1498,6 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       return(pass_verdict);
     }
 
-    l4_packet_len = ntohs(ip6->ip6_hdr.ip6_un1_plen);
     l4_proto = ip6->ip6_hdr.ip6_un1_nxt;
 
     if((l4_proto == 0x3C /* IPv6 destination option */) ||
@@ -1521,56 +1519,58 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
     ip = (u_int8_t*)ip6;
   }
 
+  trusted_l4_packet_len = packet + h->caplen - l4;
+
   if(l4_proto == IPPROTO_TCP) {
-    if(l4_packet_len >= sizeof(struct ndpi_tcphdr)) {
+    if(trusted_l4_packet_len >= sizeof(struct ndpi_tcphdr)) {
       u_int tcp_len;
 
       /* TCP */
       tcph = (struct ndpi_tcphdr *)l4;
       src_port = tcph->source, dst_port = tcph->dest;
       tcp_flags = l4[13];
-      tcp_len = min_val(4*tcph->doff, l4_packet_len);
+      tcp_len = min_val(4 * tcph->doff, trusted_l4_packet_len);
       payload = &l4[tcp_len];
-      payload_len = max_val(0, l4_packet_len-4*tcph->doff);
+      payload_len = trusted_l4_packet_len - tcp_len;
       // TODO: check if payload should be set to NULL when payload_len == 0
     } else {
       /* Packet too short: this is a faked packet */
-      ntop->getTrace()->traceEvent(TRACE_INFO, "Invalid TCP packet received [%u bytes long]", l4_packet_len);
+      ntop->getTrace()->traceEvent(TRACE_INFO, "Invalid TCP packet received [%u bytes long]", trusted_l4_packet_len);
       incStats(ingressPacket, when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
 	       NDPI_PROTOCOL_UNKNOWN, 0, len_on_wire, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
       return(pass_verdict);
     }
   } else if(l4_proto == IPPROTO_UDP) {
-    if(l4_packet_len >= sizeof(struct ndpi_udphdr)) {
+    if(trusted_l4_packet_len >= sizeof(struct ndpi_udphdr)) {
       /* UDP */
       udph = (struct ndpi_udphdr *)l4;
       src_port = udph->source,  dst_port = udph->dest;
       payload = &l4[sizeof(struct ndpi_udphdr)];
-      payload_len = max_val(0, l4_packet_len-sizeof(struct ndpi_udphdr));
+      payload_len = trusted_l4_packet_len - sizeof(struct ndpi_udphdr);
     } else {
       /* Packet too short: this is a faked packet */
-      ntop->getTrace()->traceEvent(TRACE_INFO, "Invalid UDP packet received [%u bytes long]", l4_packet_len);
+      ntop->getTrace()->traceEvent(TRACE_INFO, "Invalid UDP packet received [%u bytes long]", trusted_l4_packet_len);
       incStats(ingressPacket, when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN, 0,
 	       len_on_wire, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
       return(pass_verdict);
     }
   } else if(l4_proto == IPPROTO_SCTP) {
-    if(l4_packet_len >= sizeof(struct sctphdr)) {
+    if(trusted_l4_packet_len >= sizeof(struct sctphdr)) {
       /* SCTP */
       sctph = (struct sctphdr *)l4;
       src_port = sctph->sport,  dst_port = sctph->dport;
 
       payload = &l4[sizeof(struct sctphdr)];
-      payload_len = max_val(0, l4_packet_len - sizeof(struct sctphdr));
+      payload_len = trusted_l4_packet_len - sizeof(struct sctphdr);
     } else {
       /* Packet too short: this is a faked packet */
-      ntop->getTrace()->traceEvent(TRACE_INFO, "Invalid SCTP packet received [%u bytes long]", l4_packet_len);
+      ntop->getTrace()->traceEvent(TRACE_INFO, "Invalid SCTP packet received [%u bytes long]", trusted_l4_packet_len);
       incStats(ingressPacket, when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN, 0,
 	       len_on_wire, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
       return(pass_verdict);
     }
   } else if (l4_proto == IPPROTO_ICMP) {
-    icmp_info.dissectICMP(l4_packet_len, l4);
+    icmp_info.dissectICMP(trusted_l4_packet_len, l4);
   } else {
     /* non TCP/UDP protocols */
   }
@@ -1624,13 +1624,13 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
     case IPPROTO_TCP:
       flow->updateTcpFlags(when, tcp_flags, src2dst_direction);
       flow->updateTcpSeqNum(when, ntohl(tcph->seq), ntohl(tcph->ack_seq), ntohs(tcph->window),
-			    tcp_flags, l4_packet_len - (4 * tcph->doff),
+			    tcp_flags, trusted_l4_packet_len - (4 * tcph->doff),
 			    src2dst_direction);
       break;
 
     case IPPROTO_ICMP:
     case IPPROTO_ICMPV6:
-      if(l4_packet_len > 2) {
+      if(trusted_l4_packet_len > 2) {
 	u_int8_t icmp_type = l4[0];
 	u_int8_t icmp_code = l4[1];
 
@@ -1647,7 +1647,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 
 #if 0
 	if(((icmp_type == ND_NEIGHBOR_ADVERT) || (icmp_type == ND_NEIGHBOR_SOLICIT))
-	   && l4_packet_len >= 24) {
+	   && trusted_l4_packet_len >= 24) {
 	  /*
 	    Neighbor Solicitation and Neighbor Advertisement
 	    have the Target Address at offset 8.
@@ -1687,9 +1687,9 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 
 	/* https://www.boiteaklou.fr/Data-exfiltration-with-PING-ICMP-NDH16.html */
 	if((((icmp_type == ICMP_ECHO) || (icmp_type == ICMP_ECHOREPLY)) && /* ICMPv4 ECHO */
-	      (l4_packet_len > CONST_MAX_ACCEPTABLE_ICMP_V4_PAYLOAD_LENGTH)) ||
+	      (trusted_l4_packet_len > CONST_MAX_ACCEPTABLE_ICMP_V4_PAYLOAD_LENGTH)) ||
 	   (((icmp_type == ICMP6_ECHO_REQUEST) || (icmp_type == ICMP6_ECHO_REPLY)) && /* ICMPv6 ECHO */
-	      (l4_packet_len > CONST_MAX_ACCEPTABLE_ICMP_V6_PAYLOAD_LENGTH)))
+	      (trusted_l4_packet_len > CONST_MAX_ACCEPTABLE_ICMP_V6_PAYLOAD_LENGTH)))
 	  flow->set_long_icmp_payload();
       }
       break;
