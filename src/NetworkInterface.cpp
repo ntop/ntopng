@@ -1386,7 +1386,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 				     u_int16_t vlan_id,
 				     struct ndpi_iphdr *iph,
 				     struct ndpi_ipv6hdr *ip6,
-				     u_int16_t ipsize,
+				     u_int16_t trusted_ipsize,
 				     u_int32_t rawsize,
 				     const struct pcap_pkthdr *h,
 				     const u_char *packet,
@@ -1421,7 +1421,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       ret = vIface->processPacket(bridge_iface_idx,
 				  ingressPacket, when, packet_time,
 				  eth, vlan_id,
-				  iph, ip6, ipsize, rawsize,
+				  iph, ip6, trusted_ipsize, rawsize,
 				  h, packet, ndpiProtocol,
 				  srcHost, dstHost, hostFlow);
 
@@ -1466,14 +1466,14 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 
   if(iph != NULL) {
     /* IPv4 */
-    if(ipsize < 20) {
+    if(trusted_ipsize < 20) {
       incStats(ingressPacket,
 	       when->tv_sec, ETHERTYPE_IP, NDPI_PROTOCOL_UNKNOWN, 0,
 	       rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
       return(pass_verdict);
     }
 
-    if(((iph->ihl * 4) > ipsize) || (ipsize < ntohs(iph->tot_len))
+    if(((iph->ihl * 4) > trusted_ipsize) || (trusted_ipsize < ntohs(iph->tot_len))
        || (iph->frag_off & htons(0x1FFF /* IP_OFFSET */)) != 0)
       is_fragment = true;
 
@@ -1485,7 +1485,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
     /* IPv6 */
     u_int ipv6_shift = sizeof(const struct ndpi_ipv6hdr);
 
-    if(ipsize < sizeof(const struct ndpi_ipv6hdr)) {
+    if(trusted_ipsize < sizeof(const struct ndpi_ipv6hdr)) {
       incStats(ingressPacket,
 	       when->tv_sec, ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN, 0,
 	       rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
@@ -1502,7 +1502,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       l4_proto = options[0];
       ipv6_shift += 8 * (options[1] + 1);
 
-      if(ipsize < ipv6_shift) {
+      if(trusted_ipsize < ipv6_shift) {
 	incStats(ingressPacket,
 		 when->tv_sec, ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN, 0,
 		 rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
@@ -1715,7 +1715,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	flow->setDetectedProtocol(ndpi_detection_giveup(ndpi_struct, ndpi_flow, 1), false);
       } else
 	flow->setDetectedProtocol(ndpi_detection_process_packet(ndpi_struct, ndpi_flow,
-								ip, ipsize, (u_int32_t)packet_time,
+								ip, trusted_ipsize, (u_int32_t)packet_time,
 								cli, srv), false);
     } else {
       // FIX - only handle unfragmented packets
@@ -1920,7 +1920,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	       0, sizeof(ndpi_flow->detected_protocol_stack));
 
 	ndpi_detection_process_packet(ndpi_struct, ndpi_flow,
-				      ip, ipsize, (u_int32_t)packet_time,
+				      ip, trusted_ipsize, (u_int32_t)packet_time,
 				      src2dst_direction ? cli : srv,
 				      src2dst_direction ? srv : cli);
 
@@ -2359,7 +2359,9 @@ decode_packet_eth:
 				     ingressPacket, &h->ts, time,
 				     ethernet,
 				     vlan_id, iph,
-				     ip6, h->caplen - ip_offset, rawsize,
+				     ip6,
+				     max_val(0, h->caplen - ip_offset),
+				     rawsize,
 				     h, packet, ndpiProtocol, srcHost, dstHost, flow);
         PROFILING_SECTION_EXIT(0);
       } catch(std::bad_alloc& ba) {
@@ -2498,7 +2500,9 @@ decode_packet_eth:
 				       ingressPacket, &h->ts, time,
 				       ethernet,
 				       vlan_id,
-				       iph, ip6, h->len - ip_offset, rawsize,
+				       iph, ip6,
+				       max_val(0, h->caplen - ip_offset),
+				       rawsize,
 				       h, packet, ndpiProtocol, srcHost, dstHost, flow);
           PROFILING_SECTION_EXIT(0);
 	} catch(std::bad_alloc& ba) {
