@@ -1473,7 +1473,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       return(pass_verdict);
     }
 
-    if(((iph->ihl * 4) > trusted_ipsize) || (trusted_ipsize < ntohs(iph->tot_len))
+    if(((iph->ihl * 4) > h->len) || (h->len < ntohs(iph->tot_len))
        || (iph->frag_off & htons(0x1FFF /* IP_OFFSET */)) != 0)
       is_fragment = true;
 
@@ -2505,6 +2505,7 @@ decode_packet_eth:
 				       rawsize,
 				       h, packet, ndpiProtocol, srcHost, dstHost, flow);
           PROFILING_SECTION_EXIT(0);
+	  
 	} catch(std::bad_alloc& ba) {
 	  static bool oom_warning_sent = false;
 
