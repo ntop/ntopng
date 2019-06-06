@@ -10,6 +10,7 @@ active_page = "system_stats"
 require "lua_utils"
 local page_utils = require("page_utils")
 local ts_utils = require("ts_utils")
+local system_probes = require("system_probes_utils")
 require("graph_utils")
 require("alert_utils")
 
@@ -26,6 +27,7 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 local page = _GET["page"] or "overview"
 local url = ntop.getHttpPrefix() .. "/lua/system_stats.lua?ifid=" .. getInterfaceId(ifname)
 local info = ntop.getInfo()
+system_schemas = system_probes.getAdditionalTimeseries()
 
 print [[
   <nav class="navbar navbar-default" role="navigation">
@@ -167,10 +169,10 @@ elseif(page == "historical") then
    url = url.."&page=historical"
 
    drawGraphs(getSystemInterfaceId(), schema, tags, _GET["zoom"], url, selected_epoch, {
-      timeseries = {
+      timeseries = table.merge({
          {schema="system:cpu_load",            label=i18n("about.cpu_load")},
          {schema="process:memory",             label=i18n("graphs.process_memory")},
-      }
+      }, system_schemas)
    })
 elseif(page == "alerts") then
    local old_ifname = ifname

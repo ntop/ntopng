@@ -9,6 +9,7 @@ local prefs_dump_utils = require "prefs_dump_utils"
 
 require "lua_utils"
 local ts_utils = require("ts_utils_core")
+local system_probes = require("system_probes_utils")
 require("ts_minute")
 
 local prefs_changed = ntop.getCache("ntopng.prefs_changed")
@@ -29,3 +30,5 @@ if((system_host_stats.mem_ntopng_resident ~= nil) and
       virtual_bytes = system_host_stats.mem_ntopng_virtual * 1024,
    }, when, verbose)
 end
+
+system_probes.runMinuteTasks(when)
