@@ -294,7 +294,7 @@ print[[
       }, {
          title: "]] print(i18n("info")) print[[",
          field: "column_info",
-         sortable: true,
+         sortable: false,
             css: {
                textAlign: 'left'
             }
