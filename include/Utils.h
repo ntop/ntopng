@@ -161,7 +161,7 @@ class Utils {
   static void containerInfoLua(lua_State *vm, const ContainerInfo * const cont);
  
   /* System Host Montoring and Diagnose Functions */
-  static void luaCpuLoad(lua_State* vm);
+  static bool getCpuLoad(cpu_load_stats *out);
   static void luaMeminfo(lua_State* vm);
   static int retainWriteCapabilities();
   static int gainWriteCapabilities();

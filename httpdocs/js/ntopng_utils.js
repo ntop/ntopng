@@ -150,6 +150,13 @@ function fint(value) {
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
+function fpercent(value) {
+    if(typeof(value) === "undefined")
+      return "-";
+
+    return Math.round(value * 100) / 100 + "%";
+}
+
 function fdate(when) {
     var epoch = when*1000;
     var d = new Date(epoch);

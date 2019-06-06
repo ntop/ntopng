@@ -70,6 +70,8 @@ class Ntop {
   int udp_socket;
   NtopPro *pro;
   DeviceProtocolBitmask deviceProtocolPresets[device_max_type];
+  cpu_load_stats cpu_stats;
+  float cpu_load;
   bool is_started;
   
 #ifdef NTOPNG_PRO
@@ -418,6 +420,8 @@ class Ntop {
   DeviceProtocolBitmask* getDeviceAllowedProtocols(DeviceType t) { return(&deviceProtocolPresets[t]); }
   void refreshAllowedProtocolPresets(DeviceType t, bool client, lua_State *L, int index);
   DeviceProtoStatus getDeviceAllowedProtocolStatus(DeviceType dev_type, ndpi_protocol proto, u_int16_t pool_id, bool as_client);
+  void refreshCpuLoad();
+  bool getCpuLoad(float *out);
 
   void sendNetworkInterfacesTermination();
   inline time_t getLastStatsReset() { return(last_stats_reset); }

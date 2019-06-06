@@ -665,4 +665,9 @@ typedef struct dhcp_range {
   IpAddress last_ip;
 } dhcp_range;
 
+typedef struct cpu_load_stats {
+  uint64_t active;
+  uint64_t idle;
+} cpu_load_stats;
+
 #endif /* _NTOP_TYPEDEFS_H_ */

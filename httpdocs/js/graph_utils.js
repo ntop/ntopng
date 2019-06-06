@@ -90,6 +90,8 @@ function getValueFormatter(schema, metric_type, series) {
       return [fmillis, fmillis];
     } else if(label.contains("alerts")) {
       return [falerts, falerts];
+    } else if(label.contains("percent")) {
+      return [fpercent, fpercent];
     }
   }
 

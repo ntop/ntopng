@@ -65,6 +65,8 @@ Ntop::Ntop(char *appName) {
   last_stats_reset = 0;
   is_started = false;
   httpd = NULL, geo = NULL, mac_manufacturers = NULL;
+  memset(&cpu_stats, 0, sizeof(cpu_stats));
+  cpu_load = 0;
 
 #ifdef WIN32
   if(SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, working_dir) != S_OK) {
@@ -2281,4 +2283,29 @@ void Ntop::resetStats() {
 
   /* Saving this is essential to reset inactive hosts across ntopng restarts */
   getRedis()->set(LAST_RESET_TIME, buf);
+}
+
+/* ******************************************* */
+
+void Ntop::refreshCpuLoad() {
+  cpu_load_stats old_stats = cpu_stats;
+  Utils::getCpuLoad(&cpu_stats);
+
+  if(old_stats.active > 0) {
+    float active = cpu_stats.active - old_stats.active;
+    float idle = cpu_stats.idle - old_stats.idle;
+    cpu_load = active * 100 / (active + idle);
+  }
+}
+
+/* ******************************************* */
+
+bool Ntop::getCpuLoad(float *out) {
+  if(cpu_stats.active > 0)
+   
+  if(cpu_stats.active > 0) {
+    *out = cpu_load;
+    return(true);
+  } else
+    return(false);
 }
