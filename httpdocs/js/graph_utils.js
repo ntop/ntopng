@@ -421,10 +421,19 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
     chart.fixChartButtons();
   }
 
-  $chart.on('dblclick', function(event) {
-    if($(event.target).hasClass("nv-legend-text"))
-      // legend was double-clicked, keep the original behavior
-      return;
+  chart.zoom_in = function() {
+    var cur_interval = params.epoch_end - params.epoch_begin;
+
+    if(cur_interval > 60) {
+      var delta = cur_interval/4;
+      $("#period_begin").data("DateTimePicker").date(new Date((params.epoch_begin + delta) * 1000));
+      $("#period_end").data("DateTimePicker").date(new Date((params.epoch_end - delta) * 1000));
+      updateChartFromPickers();
+    }
+  }
+
+  chart.zoom_out = function() {
+    var cur_interval = params.epoch_end - params.epoch_begin;
 
     //if(current_zoom_level) {
       // Zoom out from history
@@ -432,14 +441,23 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
       //history.back();
     //} else {
     // Zoom out with fixed interval
-    var delta = zoom_out_value;
-    if((params.epoch_end + delta/2)*1000 <= $.now())
-      delta /= 2;
+    //var delta = zoom_out_value;
+    var delta = cur_interval/2;
+    //if((params.epoch_end + delta)*1000 <= $.now())
+      //delta /= 2;
 
     $("#period_begin").data("DateTimePicker").date(new Date((params.epoch_begin - delta) * 1000));
     $("#period_end").data("DateTimePicker").date(new Date((params.epoch_end + delta) * 1000));
     updateChartFromPickers();
     //}
+  }
+
+  $chart.on('dblclick', function(event) {
+    if($(event.target).hasClass("nv-legend-text"))
+      // legend was double-clicked, keep the original behavior
+      return;
+
+    chart.zoom_out();
   });
 
   $zoom_reset.on("click", function() {

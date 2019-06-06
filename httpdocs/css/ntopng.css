@@ -384,7 +384,7 @@ tr.quotas > td {
 }
 
 .chart-action-buttons button {
-  margin-top: 2px;
+  /* margin-top: 2px; */
 }
 
 .ntop-progress-stacked {
