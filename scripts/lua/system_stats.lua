@@ -84,7 +84,7 @@ if(page == "overview") then
    if system_host_stats["mem_total"] ~= nil then system_rowspan = system_rowspan + 1 end
 
    if(info["pro.systemid"] and (info["pro.systemid"] ~= "")) then
-      print("<tr><th rowspan="..system_rowspan.." width=5%>"..i18n("about.system").."</th><th nowrap width=10%>"..i18n("about.system_id").."</th><td>".. info["pro.systemid"].."</td></tr>\n")
+      print("<tr><th rowspan="..system_rowspan.." width=5%>"..i18n("about.system").."</th></tr>\n")
    end
 
    if system_host_stats["cpu_load"] ~= nil then
@@ -94,18 +94,8 @@ if(page == "overview") then
       print("<tr><th nowrap>"..i18n("about.ram_memory").."</th><td><span id='ram-used'></span></td></tr>\n")
    end
 
-   local vers = string.split(info["version.git"], ":")
-   local ntopng_git_url = info["version"]
+   print("<tr><th rowspan=20>"..info["product"].."</th>")
 
-   if((vers ~= nil) and (vers[2] ~= nil)) then
-      ntopng_git_url = "<A HREF=\"https://github.com/ntop/ntopng/commit/".. vers[2] .."\">"..info["version"].."</A>"
-   end
-
-   print("<tr><th rowspan=20>"..info["product"].."</th><th nowrap>"..i18n("about.version").."</th><td>"..ntopng_git_url.." - ")
-
-   printntopngRelease(info)
-
-   print("<tr><th nowrap>"..i18n("about.platform").."</th><td>"..info["platform"].." - "..info["bits"] .." bit</td></tr>\n")
    if(info.pid ~= nil) then
       print("<tr><th nowrap>PID (Process ID)</th><td>"..info.pid.."</td></tr>\n")
    end
@@ -157,7 +147,6 @@ if(page == "overview") then
    </script>
    ]]
    end
-   print("<tr><th nowrap>"..i18n("about.startup_line").."</th><td>".. info["product"] .." "..info["command_line"].."</td></tr>\n")
    print("<tr><th nowrap>"..i18n("about.last_log").."</th><td><code>\n")
 
    for i=1,32 do
