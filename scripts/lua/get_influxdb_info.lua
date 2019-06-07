@@ -16,6 +16,7 @@ local info = {}
 if driver.getInfluxdbVersion then
   info.version = driver:getInfluxdbVersion()
   info.db_bytes = driver:getDiskUsage()
+  info.memory = driver:getMemoryUsage()
 end
 
 sendHTTPContentTypeHeader('application/json')

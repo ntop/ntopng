@@ -1087,6 +1087,19 @@ end
 
 -- ##############################################
 
+function driver:getMemoryUsage()
+  local query = 'select LAST(HeapInUse) FROM "_internal".."runtime"'
+  local data = influx_query(self.url .. "/query?db=_internal", query, self.username, self.password)
+
+  if data and data.series and data.series[1] and data.series[1].values[1] then
+    return data.series[1].values[1][2]
+  end
+
+  return nil
+end
+
+-- ##############################################
+
 function driver.getShardGroupDuration(days_retention)
   -- https://docs.influxdata.com/influxdb/v1.7/query_language/database_management/#description-of-syntax-1
   if days_retention < 2 then

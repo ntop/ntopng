@@ -98,6 +98,7 @@ local lang = {
   ["local_traffic"] = "Local Traffic",
   ["mac_address"] = "Mac Address",
   ["max_rate"] = "Max Rate",
+  ["memory"] = "Memory",
   ["model"] = "Model",
   ["month"] = "Month",
   ["mtu"] = "MTU",
@@ -3093,6 +3094,9 @@ local lang = {
     ["top_users"] = "Top Users",
     ["tree"] = "Tree",
     ["users"] = "Users",
+  },
+  ["system_stats"] = {
+    ["influxdb_storage"] = "Storage (%{dbname})",
   },
   ["telemetry_page"] = {
     ["crash_report"] = "Crash Report",
