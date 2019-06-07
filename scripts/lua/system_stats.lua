@@ -10,7 +10,7 @@ active_page = "system_stats"
 require "lua_utils"
 local page_utils = require("page_utils")
 local ts_utils = require("ts_utils")
-local system_probes = require("system_probes_utils")
+local system_scripts = require("system_scripts_utils")
 require("graph_utils")
 require("alert_utils")
 
@@ -27,7 +27,7 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 local page = _GET["page"] or "overview"
 local url = ntop.getHttpPrefix() .. "/lua/system_stats.lua?ifid=" .. getInterfaceId(ifname)
 local info = ntop.getInfo()
-system_schemas = system_probes.getAdditionalTimeseries()
+system_schemas = system_scripts.getAdditionalTimeseries()
 
 print [[
   <nav class="navbar navbar-default" role="navigation">

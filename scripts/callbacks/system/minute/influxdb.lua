@@ -3,11 +3,7 @@
 --
 
 local probe = {}
-
-local dirs = ntop.getDirs()
-package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
-
-local ts_utils = require("ts_utils")
+local ts_utils = require("ts_utils_core")
 
 -- ##############################################
 
@@ -32,7 +28,7 @@ end
 
 -- ##############################################
 
-function probe.runMinuteTasks(when)
+function probe.runTask(when, ts_utils)
   local influxdb = ts_utils.getQueryDriver()
   local start_ms = ntop.gettimemsec()
   local res = influxdb:getInfluxdbVersion()

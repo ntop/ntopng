@@ -22,10 +22,10 @@ require "graph_utils"
 local ts_utils = require("ts_utils")
 local ts_common = require("ts_common")
 local json = require("dkjson")
-local system_probes = require("system_probes_utils")
+local system_scripts = require("system_scripts_utils")
 
 -- Possibly load more timeseries schemas
-system_probes.getAdditionalTimeseries()
+system_scripts.getAdditionalTimeseries()
 
 local ts_schema = _GET["ts_schema"]
 local query     = _GET["ts_query"]
