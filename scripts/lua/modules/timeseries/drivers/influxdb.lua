@@ -1094,7 +1094,7 @@ end
 -- ##############################################
 
 function driver:getMemoryUsage()
-  local query = 'SELECT LAST(HeapInUse) FROM "_internal".."runtime"'
+  local query = 'SELECT LAST(Sys) FROM "_internal".."runtime"'
   return single_query(self.url .. "/query?db=_internal", query, self.username, self.password)
 end
 

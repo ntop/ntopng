@@ -21,7 +21,7 @@ local function get_storage_size_query(influxdb, schema, tstart, tend, time_step)
 end
 
 local function get_memory_size_query(influxdb, schema, tstart, tend, time_step)
-  local q = 'SELECT MEAN(HeapInUse) as heap_bytes' ..
+  local q = 'SELECT MEAN(Sys) as mem_bytes' ..
       ' FROM "_internal".."runtime"' ..
       " WHERE time >= " .. tstart .. "000000000 AND time <= " .. tend .. "000000000" ..
       " GROUP BY TIME(".. time_step .."s)"
@@ -78,7 +78,7 @@ function probe.loadSchemas(ts_utils)
     label = i18n("memory"), influx_internal_query = get_memory_size_query,
     metrics_type = ts_utils.metrics.gauge, step = 10
   })
-  schema:addMetric("heap_bytes")
+  schema:addMetric("mem_bytes")
 
   schema = ts_utils.newSchema("influxdb:write_successes", {
     label = i18n("system_stats.write_througput"), influx_internal_query = get_write_success_query,
