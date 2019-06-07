@@ -3002,6 +3002,7 @@ local lang = {
     ["PrinterOperationalStatus"] = "Operational Status",
     ["add_device"] = "Add New Device",
     ["add_snmp_devices"] = "Add SNMP Devices",
+    ["alerted_interfaces"] = "Interfaces with Errors",
     ["all_snmp_interface_types"] = "All Types",
     ["all_snmp_statuses"] = "All Statuses",
     ["and_one_more_interface"] = "and <a href='%{url}'>1 more interface</a>",
