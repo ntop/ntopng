@@ -92,7 +92,9 @@ function system_scripts.runTask(task, when)
   end
 
   ts_utils.newSchema = function(name, label, options)
-    return old_new_schema_fn(name, table.merge(default_schema_options, options))
+    if(ts_utils.getSchema(name) == nil) then
+      return old_new_schema_fn(name, table.merge(default_schema_options, options))
+    end
   end
 
   for _, probe in system_scripts.getSystemProbes(task) do
@@ -121,7 +123,10 @@ function system_scripts.getAdditionalTimeseries()
   local default_schema_options = nil
 
   ts_utils.newSchema = function(name, options)
-    local schema = old_new_schema_fn(name, table.merge(default_schema_options, options))
+    local schema = ts_utils.getSchema(name)
+    if(schema == nil) then
+      schema = old_new_schema_fn(name, table.merge(default_schema_options, options))
+    end
 
     if(options.label == nil) then
       traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Missing schema label in schema '%s'", name))

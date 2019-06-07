@@ -1409,7 +1409,7 @@ function driver:setup(ts_utils)
   for _, schema in pairs(schemas) do
     local tags = table.concat(schema._tags, ",")
 
-    if #schema._metrics == 0 then
+    if((#schema._metrics == 0) or (schema.options.influx_internal_query)) then
       goto continue
     end
 
