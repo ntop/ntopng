@@ -11,6 +11,17 @@ local probe = {
 
 -- ##############################################
 
+local function get_storage_size_query(influxdb, schema, tstart, tend, time_step)
+  local q = 'SELECT SUM(disk_bytes) as disk_bytes from (SELECT MEAN(diskBytes) as disk_bytes' ..
+      ' FROM "monitor"."shard" where "database"=\''.. influxdb.db ..'\' group by id, TIME('.. time_step ..'s)) WHERE ' ..
+      " time >= " .. tstart .. "000000000 AND time <= " .. tend .. "000000000" ..
+      " GROUP BY TIME(".. time_step .."s)"
+
+  return(q)
+end
+
+-- ##############################################
+
 function probe.isEnabled()
   return(ts_utils.getDriverName() == "influxdb")
 end
@@ -18,16 +29,18 @@ end
 -- ##############################################
 
 function probe.loadSchemas(ts_utils)
+  local influxdb = ts_utils.getQueryDriver()
   local schema
-
-  -- TODO: can directly fetch from the InfluxDB data
-  --[[
-  schema = ts_utils.newSchema("influxdb:storage_size", {metrics_type = ts_utils.metrics.gauge})
-  schema:addTag("database")
-  schema:addMetric("storage_size")]]
 
   schema = ts_utils.newSchema("influxdb:rtt", {label = i18n("graphs.num_ms_rtt"), metrics_type = ts_utils.metrics.gauge})
   schema:addMetric("millis_rtt")
+
+  -- The following metrics are built-in into influxdb
+  schema = ts_utils.newSchema("influxdb:storage_size", {
+    label = i18n("traffic_recording.storage"), influx_internal_query = get_storage_size_query,
+    metrics_type = ts_utils.metrics.gauge, step = 10
+  })
+  schema:addMetric("disk_bytes")
 end
 
 -- ##############################################

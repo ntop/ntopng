@@ -77,7 +77,7 @@ function getValueFormatter(schema, metric_type, series) {
     var label = series[0].label;
 
     if(label.contains("bytes")) {
-      if(schema.contains("volume") || schema.contains("memory"))
+      if(schema.contains("volume") || schema.contains("memory") || schema.contains("size"))
         return [bytesToSize, bytesToSize];
       else
         return [fbits_from_bytes, bytesToSize];

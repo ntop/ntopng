@@ -325,7 +325,7 @@ function fmillis(value) {
 
   if(value == 0) return '0 ms';
   if((value > 0) && (value < NTOPNG_MIN_VISUAL_VALUE)) return ('< ' + NTOPNG_MIN_VISUAL_VALUE + ' ms');
-  var x = Math.round(value);
+  var x = Math.round(value * 10) / 10;
   var res = scaleValue(x, ["ms", "s"], 1000);
 
   return res[0] + " " + res[1];
