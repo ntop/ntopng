@@ -83,6 +83,8 @@ function getValueFormatter(schema, metric_type, series) {
         return [fbits_from_bytes, bytesToSize];
     } else if(label.contains("packets"))
       return [fpackets, formatPackets];
+      else if(label.contains("points"))
+      return [fpoints, formatPoints];
     else if(label.contains("flows")) {
       var as_counter = ((metric_type === "counter") && (schema !== "custom:memory_vs_flows_hosts"));
       return [as_counter ? fflows : formatValue, formatFlows, as_counter ? fflows : formatFlows];

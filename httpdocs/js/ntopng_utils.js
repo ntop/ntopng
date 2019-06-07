@@ -121,6 +121,19 @@ function fpackets(pps) {
     return Math.round(res[0] * 100) / 100 + ' ' + res[1];
 }
 
+function fpoints(pps) {
+    if(typeof(pps) === "undefined")
+      return "-";
+
+    var sizes = ['pt/s', 'Kpt/s', 'Mpt/s', 'Gpt/s', 'Tpt/s'];
+    if(pps == 0) return '0';
+    if((pps > 0) && (pps < NTOPNG_MIN_VISUAL_VALUE)) return ('< ' + NTOPNG_MIN_VISUAL_VALUE + ' pt/s');
+    var res = scaleValue(pps, sizes, 1000);
+
+    // Round to two decimal digits
+    return Math.round(res[0] * 100) / 100 + ' ' + res[1];
+}
+
 function fflows(fps) {
     if(typeof(fps) === "undefined")
       return "-";
@@ -313,6 +326,10 @@ function formatValue(val) {
 
 function formatPackets(n) {
   return(addCommas(n.toFixed(0))+" Pkts");
+}
+
+function formatPoints(n) {
+  return(addCommas(n.toFixed(0))+" Points");
 }
 
 function formatFlows(n) {
