@@ -3098,6 +3098,7 @@ local lang = {
   },
   ["system_stats"] = {
     ["influxdb_storage"] = "Storage (%{dbname})",
+    ["series_cardinality"] = "Num Series",
   },
   ["telemetry_page"] = {
     ["crash_report"] = "Crash Report",

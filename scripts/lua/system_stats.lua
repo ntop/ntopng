@@ -97,15 +97,17 @@ if(page == "overview") then
    end
 
    if ts_utils.getDriverName() == "influxdb" then
-      print("<tr><th rowspan=3 width=5%>InfluxDB</th></tr>\n")
+      print("<tr><th rowspan=4 width=5%>InfluxDB</th></tr>\n")
       print("<tr><th nowrap>".. i18n("system_stats.influxdb_storage", {dbname = ts_utils.getQueryDriver().db}) .."</th><td><img class=\"influxdb-info-load\" border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber><span id=\"influxdb-info-text\"></span></td></tr>\n")
       print("<tr><th nowrap>".. i18n("memory") .."</th><td><img class=\"influxdb-info-load\" border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber><span id=\"influxdb-info-memory\"></span></td></tr>\n")
+      print("<tr><th nowrap>".. i18n("system_stats.series_cardinality") .."</th><td><img class=\"influxdb-info-load\" border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber><span id=\"influxdb-info-series\"></span></td></tr>\n")
       print[[<script>
    $(function() {
       $.get("]] print(ntop.getHttpPrefix()) print[[/lua/get_influxdb_info.lua", function(info) {
          $(".influxdb-info-load").hide();
          $("#influxdb-info-text").html(bytesToVolume(info.db_bytes) + " ");
          $("#influxdb-info-memory").html(bytesToVolume(info.memory) + " ");
+         $("#influxdb-info-series").html(info.num_series + " ");
       }).fail(function() {
          $(".influxdb-info-load").hide();
       });

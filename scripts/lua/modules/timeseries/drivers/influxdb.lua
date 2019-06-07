@@ -1074,9 +1074,8 @@ end
 
 -- ##############################################
 
-function driver:getDiskUsage()
-  local query = 'select SUM(last) FROM (select LAST(diskBytes) FROM "monitor"."shard" where "database" = \''.. self.db ..'\' group by id)'
-  local data = influx_query(self.url .. "/query?db=_internal", query, self.username, self.password)
+local function single_query(base_url, query, username, password)
+  local data = influx_query(base_url, query, username, password)
 
   if data and data.series and data.series[1] and data.series[1].values[1] then
     return data.series[1].values[1][2]
@@ -1087,15 +1086,23 @@ end
 
 -- ##############################################
 
+function driver:getDiskUsage()
+  local query = 'SELECT SUM(last) FROM (select LAST(diskBytes) FROM "monitor"."shard" where "database" = \''.. self.db ..'\' group by id)'
+  return single_query(self.url .. "/query?db=_internal", query, self.username, self.password)
+end
+
+-- ##############################################
+
 function driver:getMemoryUsage()
-  local query = 'select LAST(HeapInUse) FROM "_internal".."runtime"'
-  local data = influx_query(self.url .. "/query?db=_internal", query, self.username, self.password)
+  local query = 'SELECT LAST(HeapInUse) FROM "_internal".."runtime"'
+  return single_query(self.url .. "/query?db=_internal", query, self.username, self.password)
+end
 
-  if data and data.series and data.series[1] and data.series[1].values[1] then
-    return data.series[1].values[1][2]
-  end
+-- ##############################################
 
-  return nil
+function driver:getSeriesCardinality()
+  local query = 'SELECT LAST("numSeries") FROM "_internal".."database" where "database"=\'' .. self.db ..'\''
+  return single_query(self.url .. "/query?db=_internal", query, self.username, self.password)
 end
 
 -- ##############################################

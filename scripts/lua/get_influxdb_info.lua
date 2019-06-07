@@ -17,6 +17,7 @@ if driver.getInfluxdbVersion then
   info.version = driver:getInfluxdbVersion()
   info.db_bytes = driver:getDiskUsage()
   info.memory = driver:getMemoryUsage()
+  info.num_series = driver:getSeriesCardinality()
 end
 
 sendHTTPContentTypeHeader('application/json')
