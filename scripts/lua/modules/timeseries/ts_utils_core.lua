@@ -19,6 +19,7 @@ ts_utils.MAX_EXPORT_TIME = 60
 require "lua_trace"
 require "ntop_utils"
 
+local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/drivers/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/schemas/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/custom/?.lua;" .. package.path
