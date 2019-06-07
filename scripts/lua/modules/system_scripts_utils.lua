@@ -41,7 +41,7 @@ function system_scripts.getSystemProbes(task)
         if _module == nil then
           traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Could not load module '%s'", path))
           get_next = true
-        elseif _module.isActive() then
+        elseif (_module.isEnabled == nil) or _module.isEnabled() then
           return name, _module
         else
           get_next = true
@@ -85,7 +85,7 @@ end
 function system_scripts.runTask(task, when)
   local old_new_schema_fn = ts_utils.newSchema
   local periodicity = task_to_periodicity[task]
-  local default_schema_options = { step = periodicity }
+  local default_schema_options = { step = periodicity, is_system_schema = true }
 
   if(periodicity == nil) then
     return(false)
@@ -146,12 +146,12 @@ function system_scripts.getAdditionalTimeseries()
   end
 
   for task, periodicity in system_scripts.getTasks() do
-    default_schema_options = { step = periodicity }
+    default_schema_options = { step = periodicity, is_system_schema = true }
 
     for probe_name, probe in system_scripts.getSystemProbes(task) do
       if(probe.loadSchemas ~= nil) then
         needs_label = true
-        current_probe_label = probe_name
+        current_probe_label = probe.name or probe_name
 
         probe.loadSchemas(ts_utils)
       end

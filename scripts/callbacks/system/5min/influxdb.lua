@@ -2,12 +2,16 @@
 -- (C) 2013-19 - ntop.org
 --
 
-local probe = {}
 local ts_utils = require("ts_utils_core")
+
+local probe = {
+  name = "InfluxDB",
+  description = "Monitors InfluxDB health and performance",
+}
 
 -- ##############################################
 
-function probe.isActive()
+function probe.isEnabled()
   return(ts_utils.getDriverName() == "influxdb")
 end
 

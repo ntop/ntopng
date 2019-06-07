@@ -2,13 +2,10 @@
 -- (C) 2013-19 - ntop.org
 --
 
-local probe = {}
-
--- ##############################################
-
-function probe.isActive()
-  return true
-end
+local probe = {
+  name = "CPU",
+  descripton = "Monitors the CPU usage",
+}
 
 -- ##############################################
 
