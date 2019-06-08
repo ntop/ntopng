@@ -35,6 +35,8 @@ local uid         = _GET["uid"]
 local pid         = _GET["pid"]
 local container   = _GET["container"]
 local pod         = _GET["pod"]
+local icmp_type   = _GET["icmp_type"]
+local icmp_code   = _GET["icmp_cod"]
 
 local deviceIP    = _GET["deviceIP"]
 local inIfIdx     = _GET["inIfIdx"]
@@ -48,13 +50,14 @@ local ipversion       = _GET["version"]
 local traffic_type = _GET["traffic_type"]
 local flow_status = _GET["flow_status"]
 local tcp_state   = _GET["tcp_flow_state"]
+local traffic_profile = _GET["traffic_profile"]
 
 -- System host parameters
 local hosts  = _GET["hosts"]
-local user   = _GET["username"]
+local username = _GET["username"]
 local host   = _GET["host"]
 local pid    = tonumber(_GET["pid"])
-local name   = _GET["pid_name"]
+local pid_name = _GET["pid_name"]
 
 -- Get from redis the throughput type bps or pps
 local throughput_type = getThroughputType()
@@ -68,7 +71,7 @@ end
 if sortColumn == nil or sortColumn == "column_" or sortColumn == "" then
    sortColumn = getDefaultTableSort("flows")
 elseif sortColumn ~= "column_" and  sortColumn ~= "" then
-   tablePreferences("sort_flows",sortColumn)
+   tablePreferences("sort_flows", sortColumn)
 else
    sortColumn = "column_client"
 end
@@ -76,7 +79,7 @@ end
 if sortOrder == nil then
   sortOrder = getDefaultTableSortOrder("flows")
 elseif sortColumn ~= "column_" and sortColumn ~= "" then
-  tablePreferences("sort_order_flows",sortOrder)
+  tablePreferences("sort_order_flows", sortOrder)
 end
 
 if(currentPage == nil) then
@@ -117,6 +120,10 @@ if category ~= nil and category ~= "" then
    pageinfo["l7categoryFilter"] = interface.getnDPICategoryId(category)
 end
 
+if traffic_profile ~= nil then
+   pageinfo["trafficProfileFilter"] = traffic_profile
+end
+
 if not isEmptyString(flowhosts_type) then
    if flowhosts_type == "local_origin_remote_target" then
       pageinfo["clientMode"] = "local"
@@ -153,6 +160,8 @@ if not isEmptyString(flow_status) then
       pageinfo["alertedFlows"] = true
    elseif flow_status == "filtered" then
       pageinfo["filteredFlows"] = true
+   else 
+      pageinfo["statusFilter"] = tonumber(flow_status)
    end
 end
 
@@ -164,12 +173,12 @@ if not isEmptyString(vlan) then
    pageinfo["vlanIdFilter"] = tonumber(vlan)
 end
 
-if not isEmptyString(uid) then
-   pageinfo["uidFilter"] = tonumber(uid)
+if not isEmptyString(username) then
+   pageinfo["usernameFilter"] = username
 end
 
-if not isEmptyString(pid) then
-   pageinfo["pidFilter"] = tonumber(pid)
+if not isEmptyString(pid_name) then
+   pageinfo["pidnameFilter"] = pid_name
 end
 
 if not isEmptyString(container) then
@@ -195,6 +204,9 @@ end
 if not isEmptyString(asn) then
    pageinfo["asnFilter"] = tonumber(asn)
 end
+
+pageinfo["icmp_type"] = tonumber(icmp_type)
+pageinfo["icmp_code"] = tonumber(icmp_code)
 
 if not isEmptyString(tcp_state) then
    pageinfo["tcpFlowStateFilter"] = tcp_state

@@ -9,6 +9,7 @@ local prefs_dump_utils = require "prefs_dump_utils"
 
 require "lua_utils"
 local ts_utils = require("ts_utils_core")
+local system_scripts = require("system_scripts_utils")
 require("ts_minute")
 
 local prefs_changed = ntop.getCache("ntopng.prefs_changed")
@@ -22,9 +23,6 @@ end
 local system_host_stats = ntop.systemHostStat()
 local when = os.time()
 
-local _, ifname = getFirstInterfaceId()
-interface.select(ifname)
-
 if((system_host_stats.mem_ntopng_resident ~= nil) and
       (system_host_stats.mem_ntopng_virtual ~= nil)) then
    ts_utils.append("process:memory", {
@@ -32,3 +30,5 @@ if((system_host_stats.mem_ntopng_resident ~= nil) and
       virtual_bytes = system_host_stats.mem_ntopng_virtual * 1024,
    }, when, verbose)
 end
+
+system_scripts.runTask("minute", when)

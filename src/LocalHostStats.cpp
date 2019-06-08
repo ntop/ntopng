@@ -111,6 +111,10 @@ void LocalHostStats::getJSONObject(json_object *my_object, DetailsLevel details_
 
   if(dns)  json_object_object_add(my_object, "dns", dns->getJSONObject());
   if(http) json_object_object_add(my_object, "http", http->getJSONObject());
+
+  /* UDP stats */
+  if(udp_sent_unicast) json_object_object_add(my_object, "udpBytesSent.unicast", json_object_new_int(udp_sent_unicast));
+  if(udp_sent_non_unicast) json_object_object_add(my_object, "udpBytesSent.non_unicast", json_object_new_int(udp_sent_non_unicast));
 }
 
 /* *************************************** */
@@ -139,27 +143,21 @@ void LocalHostStats::deserialize(json_object *o) {
 
   HostStats::deserialize(o);
 
-  if(json_object_object_get_ex(o, "tcp_sent", &obj))  tcp_sent.deserialize(obj);
-  if(json_object_object_get_ex(o, "tcp_rcvd", &obj))  tcp_rcvd.deserialize(obj);
-  if(json_object_object_get_ex(o, "udp_sent", &obj))  udp_sent.deserialize(obj);
-  if(json_object_object_get_ex(o, "udp_rcvd", &obj))  udp_rcvd.deserialize(obj);
-  if(json_object_object_get_ex(o, "icmp_sent", &obj))  icmp_sent.deserialize(obj);
-  if(json_object_object_get_ex(o, "icmp_rcvd", &obj))  icmp_rcvd.deserialize(obj);
-  if(json_object_object_get_ex(o, "other_ip_sent", &obj))  other_ip_sent.deserialize(obj);
-  if(json_object_object_get_ex(o, "other_ip_rcvd", &obj))  other_ip_rcvd.deserialize(obj);
+  l4stats.deserialize(o);
 
   /* packet stats */
   if(json_object_object_get_ex(o, "pktStats.sent", &obj))  sent_stats.deserialize(obj);
   if(json_object_object_get_ex(o, "pktStats.recv", &obj))  recv_stats.deserialize(obj);
 
-  /* TCP packet stats */
-  if(json_object_object_get_ex(o, "tcpPacketStats.pktRetr", &obj)) tcpPacketStats.pktRetr = json_object_get_int(obj);
-  if(json_object_object_get_ex(o, "tcpPacketStats.pktOOO",  &obj)) tcpPacketStats.pktOOO  = json_object_get_int(obj);
-  if(json_object_object_get_ex(o, "tcpPacketStats.pktLost", &obj)) tcpPacketStats.pktLost = json_object_get_int(obj);
-  if(json_object_object_get_ex(o, "tcpPacketStats.pktKeepAlive", &obj)) tcpPacketStats.pktKeepAlive = json_object_get_int(obj);
+  /* UDP stats */
+  if(json_object_object_get_ex(o, "udpBytesSent.unicast", &obj))      udp_sent_unicast = json_object_get_int64(obj);
+  if(json_object_object_get_ex(o, "udpBytesSent.non_unicast", &obj))  udp_sent_non_unicast = json_object_get_int64(obj);
 
-  if(json_object_object_get_ex(o, "sent", &obj))  sent.deserialize(obj);
-  if(json_object_object_get_ex(o, "rcvd", &obj))  rcvd.deserialize(obj);
+  /* TCP packet stats */
+  if(json_object_object_get_ex(o, "tcpPacketStats.sent", &obj))  tcp_packet_stats_sent.deserialize(obj);
+  if(json_object_object_get_ex(o, "tcpPacketStats.recv", &obj))  tcp_packet_stats_rcvd.deserialize(obj);
+
+  GenericTrafficElement::deserialize(o, iface);
   last_bytes = sent.getNumBytes() + rcvd.getNumBytes();
   last_packets = sent.getNumPkts() + rcvd.getNumPkts();
 
@@ -171,12 +169,6 @@ void LocalHostStats::deserialize(json_object *o) {
 
   if(json_object_object_get_ex(o, "http", &obj)) {
     if(http) http->deserialize(obj);
-  }
-
-  if(json_object_object_get_ex(o, "ndpiStats", &obj)) {
-    if(ndpiStats) delete ndpiStats;
-    ndpiStats = new nDPIStats();
-    ndpiStats->deserialize(iface, obj);
   }
 
   if(json_object_object_get_ex(o, "pktStats.sent", &obj)) sent_stats.deserialize(obj);
@@ -191,7 +183,6 @@ void LocalHostStats::deserialize(json_object *o) {
   if(json_object_object_get_ex(o, "host_unreachable_flows.as_client", &obj))  host_unreachable_flows_as_client = json_object_get_int(obj);
   if(json_object_object_get_ex(o, "host_unreachable_flows.as_server", &obj))  host_unreachable_flows_as_server = json_object_get_int(obj);
   if(json_object_object_get_ex(o, "total_alerts", &obj))  total_alerts = json_object_get_int(obj);
-  if(json_object_object_get_ex(o, "flows.dropped", &obj)) total_num_dropped_flows = json_object_get_int(obj);
 }
 
 /* *************************************** */
@@ -278,4 +269,23 @@ bool LocalHostStats::hasAnomalies(time_t when) {
 void LocalHostStats::luaAnomalies(lua_State* vm, time_t when) {
   if(dns)  dns->luaAnomalies(vm, when);
   if(icmp) icmp->luaAnomalies(vm, when);
+}
+
+/* *************************************** */
+
+void LocalHostStats::incStats(time_t when, u_int8_t l4_proto, u_int ndpi_proto,
+		custom_app_t custom_app,
+		u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
+		u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes,
+		bool peer_is_unicast) {
+  HostStats::incStats(when, l4_proto, ndpi_proto, custom_app,
+		sent_packets, sent_bytes, sent_goodput_bytes,
+		rcvd_packets, rcvd_bytes, rcvd_goodput_bytes, peer_is_unicast);
+
+  if(l4_proto == IPPROTO_UDP) {
+    if(peer_is_unicast)
+      udp_sent_unicast += sent_bytes;
+    else
+      udp_sent_non_unicast += sent_bytes;
+  }
 }

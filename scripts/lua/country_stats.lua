@@ -22,7 +22,7 @@ print [[
 	 <script>
 	 var url_update = "]]
 print (ntop.getHttpPrefix())
-print [[/lua/get_grouped_hosts_data.lua?grouped_by=country]]
+print [[/lua/get_countries_data.lua]]
 
 print ('";')
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/country_stats_id.inc")
@@ -33,7 +33,7 @@ print [[
 			url: url_update ,
 	 ]]
 
-print('title: "'.. i18n("country_stats.hosts_by_country")..'",\n')
+print('title: "'.. i18n("countries")..'",\n')
 print ('rowCallback: function ( row ) { return country_table_setID(row); },')
 
 -- Set the preference table
@@ -66,7 +66,7 @@ print [[
 				 }, {
 					title: "]] print(i18n("chart")) print[[",
 					field: "column_chart",
-					sortable: true,]]
+					sortable: false,]]
 
 local charts_enabled = ntop.getPref("ntopng.prefs.country_rrd_creation") == "1"
 
@@ -94,6 +94,8 @@ print [[
 			     {
 			     title: "]] print(i18n("show_alerts.alerts")) print[[",
 				 field: "column_alerts",
+				 /* TODO: alerts not implemented */
+				 hidden: true,
 				 sortable: true,
                              css: {
 			        textAlign: 'center'

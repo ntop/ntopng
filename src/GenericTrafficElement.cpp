@@ -47,6 +47,8 @@ void GenericTrafficElement::resetStats() {
 
   sent = TrafficStats();
   rcvd = TrafficStats();
+  tcp_packet_stats_sent = TcpPacketStats();
+  tcp_packet_stats_rcvd = TcpPacketStats();
 }
 
 /* *************************************** */
@@ -63,6 +65,8 @@ GenericTrafficElement::GenericTrafficElement(const GenericTrafficElement &gte) {
 
     sent = gte.sent;
     rcvd = gte.rcvd;
+    tcp_packet_stats_sent = gte.tcp_packet_stats_sent;
+    tcp_packet_stats_rcvd = gte.tcp_packet_stats_rcvd;
 
 #ifdef NTOPNG_PRO
     custom_app_stats = (gte.custom_app_stats) ? new CustomAppStats(*gte.custom_app_stats) : NULL;
@@ -128,5 +132,33 @@ void GenericTrafficElement::lua(lua_State* vm, bool host_details) {
     lua_push_uint64_table_entry(vm, "bytes.rcvd.anomaly_index", rcvd.getBytesAnomaly());
     lua_push_uint64_table_entry(vm, "packets.sent.anomaly_index", sent.getPktsAnomaly());
     lua_push_uint64_table_entry(vm, "packets.rcvd.anomaly_index", rcvd.getPktsAnomaly());
+  }
+}
+
+/* *************************************** */
+
+void GenericTrafficElement::getJSONObject(json_object *my_object, NetworkInterface *iface) {
+  if(total_num_dropped_flows)
+      json_object_object_add(my_object, "flows.dropped", json_object_new_int(total_num_dropped_flows));
+
+  json_object_object_add(my_object, "sent", sent.getJSONObject());
+  json_object_object_add(my_object, "rcvd", rcvd.getJSONObject());
+
+  if(ndpiStats)
+    json_object_object_add(my_object, "ndpiStats", ndpiStats->getJSONObject(iface));
+}
+
+/* *************************************** */
+
+void GenericTrafficElement::deserialize(json_object *o, NetworkInterface *iface) {
+  json_object *obj;
+
+  if(json_object_object_get_ex(o, "flows.dropped", &obj)) total_num_dropped_flows = json_object_get_int(obj);
+  if(json_object_object_get_ex(o, "sent", &obj))  sent.deserialize(obj);
+  if(json_object_object_get_ex(o, "rcvd", &obj))  rcvd.deserialize(obj);
+  if(json_object_object_get_ex(o, "ndpiStats", &obj)) {
+    if(ndpiStats) delete ndpiStats;
+    ndpiStats = new nDPIStats();
+    ndpiStats->deserialize(iface, obj);
   }
 }

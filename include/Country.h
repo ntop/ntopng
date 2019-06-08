@@ -24,17 +24,16 @@
 
 #include "ntop_includes.h"
 
-class Country : public GenericHashEntry {
+class Country : public GenericHashEntry, public GenericTrafficElement, public SerializableElement {
  private:
   /* Note: country name can be more then 2 chars, see
    * https://www.iso.org/iso-3166-country-codes.html
    */
   char *country_name;
-  TrafficStats totstats;
   NetworkStats dirstats;
 
   inline void incStats(time_t t, u_int64_t num_pkts, u_int64_t num_bytes) {
-    last_seen = t, totstats.incStats(t, num_pkts, num_bytes);    
+    last_seen = t, sent.incStats(t, num_pkts, num_bytes);
   }
 
  public:
@@ -65,6 +64,10 @@ class Country : public GenericHashEntry {
 
   bool idle();
   void lua(lua_State* vm, DetailsLevel details_level, bool asListElement);
+
+  void deserialize(json_object *obj);
+  void serialize(json_object *obj, DetailsLevel details_level);
+  inline char* getSerializationKey(char *buf, uint bufsize) { snprintf(buf, bufsize, COUNTRY_SERIALIZED_KEY, iface->get_id(), country_name); return(buf); }
 };
 
 #endif /* _COUNTRIES_H_ */

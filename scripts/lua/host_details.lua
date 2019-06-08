@@ -78,6 +78,16 @@ if(debug_hosts) then traceError(TRACE_DEBUG,TRACE_CONSOLE, i18n("host_details.tr
 
 local host = interface.getHostInfo(host_info["host"], host_vlan)
 
+local tskey
+
+if _GET["tskey"] then
+   tskey = _GET["tskey"]
+elseif host then
+   tskey = host["tskey"]
+else
+   tskey = host_key
+end
+
 local restoreFailed = false
 
 -- NOTE: calling interface.restoreHost generates crashes!
@@ -269,7 +279,7 @@ if((host["ICMPv4"] ~= nil) or (host["ICMPv6"] ~= nil)) then
       print("<li class=\"active\"><a href=\"#\">"..i18n("icmp").."</a></li>\n")
    else
       print("<li><a href=\""..url.."&page=ICMP\">"..i18n("icmp").."</a></li>")
-   end      
+   end
 end
 
 if(page == "ndpi") then
@@ -287,6 +297,16 @@ else
    if((host["dns"] ~= nil)
    and ((host["dns"]["sent"]["num_queries"]+host["dns"]["rcvd"]["num_queries"]) > 0)) then
       print("<li><a href=\""..url.."&page=dns\">"..i18n("dns").."</a></li>")
+   end
+end
+
+if(host["ssl_fingerprint"] ~= nil) then
+   if(page == "ssl") then
+   print("<li class=\"active\"><a href=\"#\">"..i18n("ssl").."</a></li>\n")
+   else
+      if(table.len(host["ssl_fingerprint"]) > 0) then
+        print("<li><a href=\""..url.."&page=ssl\">"..i18n("ssl").."</a></li>")
+      end
    end
 end
 
@@ -330,7 +350,7 @@ if host["localhost"] == true then
       end
    end
 
-   if ntop.isEnterprise() then
+   if ntop.isEnterprise() and isAllowedSystemInterface() then
       if(page == "snmp") then
 	 print("<li class=\"active\"><a href=\"#\">"..i18n("host_details.snmp").."</a></li>\n")
       else
@@ -368,7 +388,7 @@ if(not(isLoopback(ifname))) then
 	 end
       end
    end
-   
+
    if(page == "geomap") then
       print("<li class=\"active\"><a href=\"#\"><i class='fa fa-globe fa-lg'></i></a></li>\n")
    else
@@ -390,7 +410,7 @@ end
 
 end -- not only_historical
 
-if((page == "historical") or ts_utils.exists("host:traffic", {ifid=ifId, host=hostinfo2hostkey(host_info)})) or hasNindexSupport() then
+if((page == "historical") or ts_utils.exists("host:traffic", {ifid=ifId, host=tskey})) or hasNindexSupport() then
    if(page == "historical") then
      print("\n<li class=\"active\"><a href=\"#\"><i class='fa fa-area-chart fa-lg'></i></a></li>\n")
    else
@@ -439,6 +459,7 @@ print [[
 local macinfo = interface.getMacInfo(host["mac"])
 local has_snmp_location = host['localhost'] and (host["mac"] ~= "")
    and (info["version.enterprise_edition"]) and host_has_snmp_location(host["mac"])
+   and isAllowedSystemInterface()
 
 if((page == "overview") or (page == nil)) then
    print("<table class=\"table table-bordered table-striped\">\n")
@@ -459,7 +480,7 @@ if((page == "overview") or (page == nil)) then
 	 else
 	    print("&nbsp;")
 	 end
-	 
+
 	 print('</td></tr>')
       end
 
@@ -471,7 +492,7 @@ if((page == "overview") or (page == nil)) then
       end
 
       print("</tr>")
-      
+
       print("<tr><th>"..i18n("ip_address").."</th><td colspan=1>" .. host["ip"])
       if(host.childSafe == true) then print(getSafeChildIcon()) end
 
@@ -480,7 +501,7 @@ if((page == "overview") or (page == nil)) then
      end
 
       historicalProtoHostHref(getInterfaceId(ifname), host["ip"], nil, nil, nil)
-      
+
       if(host["local_network_name"] ~= nil) then
 	 print(" [&nbsp;<A HREF='"..ntop.getHttpPrefix().."/lua/network_details.lua?network="..host["local_network_id"].."&page=historical'>".. host["local_network_name"].."</A>&nbsp;]")
       end
@@ -536,7 +557,7 @@ if((page == "overview") or (page == nil)) then
       if(isEmptyString(host["name"])) then
          host["name"] = host["ip"]
       end
-      
+
       print("<tr><th>"..i18n("name").."</th>")
 
       if(isAdministrator()) then
@@ -620,11 +641,7 @@ end
 
    local flows_th = i18n("details.flows_non_packet_iface")
    if interface.isPacketInterface() then
-      if interface.isPcapDumpInterface() == false then
-         flows_th = i18n("details.flows_packet_iface")
-      else
-         flows_th = i18n("details.flows_packet_pcap_dump_iface")
-      end
+      flows_th = i18n("details.flows_packet_iface")
    end
 
    if hasNindexSupport() then
@@ -659,16 +676,27 @@ end
       print("</tr>")
    end
 
-
    if host["tcp.packets.seq_problems"] == true then
-      print("<tr><th width=30% rowspan=4>"..i18n("details.tcp_packets_sent_analysis").."</th><th>"..i18n("details.retransmissions").."</th><td align=right><span id=pkt_retransmissions>".. formatPackets(host["tcp.packets.retransmissions"]) .."</span> <span id=pkt_retransmissions_trend></span></td></tr>\n")
-      print("<tr></th><th>"..i18n("details.out_of_order").."</th><td align=right><span id=pkt_ooo>".. formatPackets(host["tcp.packets.out_of_order"]) .."</span> <span id=pkt_ooo_trend></span></td></tr>\n")
-      print("<tr></th><th>"..i18n("details.lost").."</th><td align=right><span id=pkt_lost>".. formatPackets(host["tcp.packets.lost"]) .."</span> <span id=pkt_lost_trend></span></td></tr>\n")
-      print("<tr></th><th>"..i18n("details.keep_alive").."</th><td align=right><span id=pkt_keep_alive>".. formatPackets(host["tcp.packets.keep_alive"]) .."</span> <span id=pkt_keep_alive_trend></span></td></tr>\n")
+      local tcp_seq_label = "TCP: "..i18n("details.retransmissions").." / "..i18n("details.out_of_order").." / "..i18n("details.lost").." / "..i18n("details.keep_alive")
+
+      -- SENT ANALYSIS
+      local tcp_retx_sent = "<span id=pkt_retransmissions_sent>"..formatPackets(host["tcpPacketStats.sent"]["retransmissions"]).."</span> <span id=pkt_retransmissions_sent_trend></span>"
+      local tcp_ooo_sent = "<span id=pkt_ooo_sent>"..formatPackets(host["tcpPacketStats.sent"]["out_of_order"]).."</span> <span id=pkt_ooo_sent_trend></span>"
+      local tcp_lost_sent = "<span id=pkt_lost_sent>"..formatPackets(host["tcpPacketStats.sent"]["lost"]).."</span> <span id=pkt_lost_sent_trend></span>"
+      local tcp_keep_alive_sent = "<span id=pkt_keep_alive_sent>"..formatPackets(host["tcpPacketStats.sent"]["keep_alive"]).."</span> <span id=pkt_keep_alive_sent_trend></span>"
+
+      -- RCVD ANALYSIS
+      local tcp_retx_rcvd = "<span id=pkt_retransmissions_rcvd>"..formatPackets(host["tcpPacketStats.rcvd"]["retransmissions"]).."</span> <span id=pkt_retransmissions_rcvd_trend></span>"
+      local tcp_ooo_rcvd = "<span id=pkt_ooo_rcvd>"..formatPackets(host["tcpPacketStats.rcvd"]["out_of_order"]).."</span> <span id=pkt_ooo_rcvd_trend></span>"
+      local tcp_lost_rcvd = "<span id=pkt_lost_rcvd>"..formatPackets(host["tcpPacketStats.rcvd"]["lost"]).."</span> <span id=pkt_lost_rcvd_trend></span>"
+      local tcp_keep_alive_rcvd = "<span id=pkt_keep_alive_rcvd>"..formatPackets(host["tcpPacketStats.rcvd"]["keep_alive"]).."</span> <span id=pkt_keep_alive_rcvd_trend></span>"
+
+      print("<tr><th rowspan=2>"..tcp_seq_label.."</th><th>"..i18n("sent").."</th><th>"..i18n("received").."</th></tr>")
+      print("<tr><td>"..string.format("%s / %s / %s / %s", tcp_retx_sent, tcp_ooo_sent, tcp_lost_sent, tcp_keep_alive_sent).."</td><td>"..string.format("%s / %s / %s / %s", tcp_retx_rcvd, tcp_ooo_rcvd, tcp_lost_rcvd, tcp_keep_alive_rcvd).."</td></tr>")
    end
 
    -- Stats reset
-   print(   
+   print(
      template.gen("modal_confirm_dialog.html", {
        dialog={
          id      = "reset_host_stats_dialog",
@@ -689,7 +717,7 @@ end
 
    local am_enabled = (ntop.getPrefs()).is_arp_matrix_generation_enabled
 
-   if am_enabled then 
+   if am_enabled then
       local arp_matrix_utils = require "arp_matrix_utils"
 
       if (arp_matrix_utils.arpCheck(host_ip)) then
@@ -742,14 +770,14 @@ end
 	 print("<tr><td>"..source.."</td><td>"..name.."</td></tr>\n")
       end
    end
-   
+
    if(host["json"] ~= nil) then
       print("<tr><th>"..i18n("download").."&nbsp;<i class=\"fa fa-download fa-lg\"></i></th><td")
       if(not isAdministrator()) then print(" colspan=2") end
       print("><A HREF='"..ntop.getHttpPrefix().."/lua/rest/get/host/data.lua?ifid="..ifId.."&"..hostinfo2url(host_info).."'>JSON</A></td>")
       print [[<td>]]
       if (isAdministrator() and ifstats.isView == false and ifstats.isDynamic == false and interface.isPacketInterface()) then
-	 
+
 	 local live_traffic_utils = require("live_traffic_utils")
 	 live_traffic_utils.printLiveTrafficForm(ifId, host_info)
       end
@@ -789,7 +817,7 @@ end
             print('<tr><th class="text-left">'..i18n("packets_page.arp_distribution")..'</th><td colspan=5><div class="pie-chart" id="arpDistro"></div></td></tr>')
          end
       end
-      
+
       hostinfo2json(host_info)
       print [[
       </table>
@@ -1036,7 +1064,7 @@ print [[/lua/host_l4_stats.lua', { ifid: "]] print(ifId.."") print('", '..hostin
 
 	if((sent > 0) or (rcvd > 0)) then
 	    print("<tr><th>")
-	    if(ts_utils.exists("host:l4protos", {ifid=ifId, host=host_ip, l4proto=k})) then
+	    if(ts_utils.exists("host:l4protos", {ifid=ifId, host=tskey, l4proto=k})) then
 	       print("<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url(host_info) .. "&page=historical&ts_schema=host:l4protos&l4proto=".. k .."\">".. label .."</A>")
 	    else
 	       print(label)
@@ -1299,7 +1327,7 @@ end
         local dns_ratio_str = string.format("%.2f", dns_ratio)
 
         if(dns_ratio < 0.9) then
-          dns_ratio_str = "<font color=red>".. dns_ratio_str .."</font>" 
+          dns_ratio_str = "<font color=red>".. dns_ratio_str .."</font>"
         end
 
 	print('<tr><td colspan=2 align=right>'..  dns_ratio_str ..'</td><td colspan=2>')
@@ -1312,7 +1340,41 @@ print [[
 </small>
 ]]
       end
-   elseif(page == "http") then
+elseif(page == "ssl") then
+  print [[
+     <table id="myTable" class="table table-bordered table-striped tablesorter">
+     <thead><tr><th>]] print('<A HREF="https://github.com/salesforce/ja3">'..i18n("ja3_fingerprint")..'</A>') print[[</th><th>]] print(i18n("app_name")) print[[</th><th>]] print(i18n("num_uses")) print[[</th></tr></thead>
+     <tbody id="host_details_ja3_tbody">
+     </tbody>
+     </table>
+
+<script>
+function update_ja3_table() {
+  $.ajax({
+    type: 'GET',
+    url: ']]
+  print(ntop.getHttpPrefix())
+  print [[/lua/get_ja3_data.lua',
+    data: { ifid: "]] print(ifId.."") print ("\" , ") print(hostinfo2json(host_info))
+
+    print [[ },
+    success: function(content) {
+      $('#host_details_ja3_tbody').html(content);
+      $('#myTable').trigger("update");
+    }
+  });
+}
+
+update_ja3_table();
+setInterval(update_ja3_table, 5000);
+
+</script>
+]]
+
+
+   print("<b>"..i18n("notes").."</b><ul><li>"..i18n("ja3_fingerprint_note").."</li></ul>")
+
+elseif(page == "http") then
       if(http ~= nil) then
 	 print("<table class=\"table table-bordered table-striped\">\n")
 
@@ -1471,7 +1533,7 @@ print [[
   flow_rows_option["type"] = 'host';
 	 $("#table-flows").datatable({
          url: url_update,
-         buttons: [ ]] printActiveFlowsDropdown(base_url, page_params, interface.getStats(), interface.getnDPIStats()) print[[ ],
+         buttons: [ ]] printActiveFlowsDropdown(base_url, page_params, interface.getStats(), interface.getActiveFlowsStats()) print[[ ],
          rowCallback: function ( row ) { return flow_table_setID(row); },
          tableCallback: function()  { $("#dt-bottom-details > .pull-left > p").first().append('. ]]
 print(i18n('flows_page.idle_flows_not_listed'))
@@ -1597,7 +1659,7 @@ print[[
    ]]
 
 end
-elseif(page == "snmp" and ntop.isEnterprise()) then
+elseif(page == "snmp" and ntop.isEnterprise() and isAllowedSystemInterface()) then
    local snmp_devices = get_snmp_devices()
 
    if snmp_devices[host_ip] == nil then -- host has not been configured
@@ -1643,9 +1705,9 @@ elseif(page == "dropbox") then
 
       print("<li><a href=\""..ntop.getHttpPrefix().."/lua/host_details.lua?host="..k)
       if(host_vlan ~= 0) then print("&vlan="..host_vlan) end
-      print("&page=dropbox\">")      
+      print("&page=dropbox\">")
       print(getResolvedAddress(hostkey2hostinfo(k)))
-      print("</A></li>")
+      print("</A> ["..v.." share(s) in common]</li>")
    end
 
    print("</ul>")
@@ -1953,16 +2015,6 @@ end
 local schema = _GET["ts_schema"] or "host:traffic"
 local selected_epoch = _GET["epoch"] or ""
 
-local tskey
-
-if _GET["tskey"] then
-   tskey = _GET["tskey"]
-elseif host then
-   tskey = host["tskey"]
-else
-   tskey = host_key
-end
-
 local tags = {
    ifid = ifId,
    host = host_key,
@@ -1979,7 +2031,7 @@ drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
    l4_protocols = "host:l4protos",
    show_historical = true,
    tskey = tskey,
-   timeseries = {
+   timeseries = table.merge({
       {schema="host:traffic",                label=i18n("traffic")},
       {schema="host:active_flows",           label=i18n("graphs.active_flows")},
       {schema="host:total_flows",            label=i18n("db_explorer.total_flows")},
@@ -1990,16 +2042,18 @@ drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
       {schema="host:host_unreachable_flows", label=i18n("graphs.host_unreachable_flows")},
       {schema="host:dns_qry_sent_rsp_rcvd",  label=i18n("graphs.dns_qry_sent_rsp_rcvd")},
       {schema="host:dns_qry_rcvd_rsp_sent",  label=i18n("graphs.dns_qry_rcvd_rsp_sent")},
-      {schema="host:udp_pkts",               label=i18n("graphs.udp_packets")},   
-      {schema="host:tcp_stats",              label=i18n("graphs.tcp_stats")},  
+      {schema="host:udp_pkts",               label=i18n("graphs.udp_packets")},
+      {schema="host:tcp_stats",              label=i18n("graphs.tcp_stats")},
       {schema="host:echo_reply_packets",     label=i18n("graphs.echo_reply_packets")},
       {schema="host:echo_packets",           label=i18n("graphs.echo_request_packets")},
-      {schema="host:tcp_packets",            label=i18n("graphs.tcp_packets")},        
+      {schema="host:tcp_packets",            label=i18n("graphs.tcp_packets")},
+      {schema="host:udp_sent_unicast",       label=i18n("graphs.udp_sent_unicast_vs_non_unicast")},
 
       {schema="host:1d_delta_traffic_volume",  label="1 Day Traffic Delta"}, -- TODO localize
       {schema="host:1d_delta_flows",           label="1 Day Active Flows Delta"}, -- TODO localize
       {schema="host:1d_delta_contacts",        label="1 Day Active Host Contacts Delta"}, -- TODO localize
-   }
+   }, getDeviceCommonTimeseries()),
+   device_timeseries_mac = host["mac"],
 })
 
 elseif(page == "traffic_report") then
@@ -2010,7 +2064,7 @@ end
 if(page ~= "historical") and (host ~= nil) then
    print[[<script type="text/javascript" src="]] print(ntop.getHttpPrefix()) print [[/js/jquery.tablesorter.js"></script>]]
 
-   print [[ 
+   print [[
    <script>
 
    $(document).ready(function() {
@@ -2031,10 +2085,14 @@ if(page ~= "historical") and (host ~= nil) then
    print("var last_anomalous_flows_as_client = " .. host["anomalous_flows.as_client"] .. ";\n")
    print("var last_unreachable_flows_as_server = " .. host["unreachable_flows.as_server"] .. ";\n")
    print("var last_unreachable_flows_as_client = " .. host["unreachable_flows.as_client"] .. ";\n")
-   print("var last_tcp_retransmissions = " .. host["tcp.packets.retransmissions"] .. ";\n")
-   print("var last_tcp_ooo = " .. host["tcp.packets.out_of_order"] .. ";\n")
-   print("var last_tcp_lost = " .. host["tcp.packets.lost"] .. ";\n")
-   print("var last_tcp_keep_alive = " .. host["tcp.packets.keep_alive"] .. ";\n")
+   print("var last_sent_tcp_retransmissions = " .. host["tcpPacketStats.sent"]["retransmissions"].. ";\n")
+   print("var last_sent_tcp_ooo = " .. host["tcpPacketStats.sent"]["out_of_order"] .. ";\n")
+   print("var last_sent_tcp_lost = " .. host["tcpPacketStats.sent"]["lost"].. ";\n")
+   print("var last_sent_tcp_keep_alive = " .. host["tcpPacketStats.sent"]["keep_alive"] .. ";\n")
+   print("var last_rcvd_tcp_retransmissions = " .. host["tcpPacketStats.rcvd"]["retransmissions"].. ";\n")
+   print("var last_rcvd_tcp_ooo = " .. host["tcpPacketStats.rcvd"]["out_of_order"] .. ";\n")
+   print("var last_rcvd_tcp_lost = " .. host["tcpPacketStats.rcvd"]["lost"].. ";\n")
+   print("var last_rcvd_tcp_keep_alive = " .. host["tcpPacketStats.rcvd"]["keep_alive"] .. ";\n")
 
    if ntop.isnEdge() then
       print("var last_dropped_flows = " .. (host["flows.dropped"] or 0) .. ";\n")
@@ -2084,10 +2142,17 @@ if(page ~= "historical") and (host ~= nil) then
    			$('#pkts_rcvd').html(formatPackets(host["packets.rcvd"]));
    			$('#bytes_sent').html(bytesToVolume(host["bytes.sent"]));
    			$('#bytes_rcvd').html(bytesToVolume(host["bytes.rcvd"]));
-   			$('#pkt_retransmissions').html(formatPackets(host["tcp.packets.retransmissions"]));
-   			$('#pkt_ooo').html(formatPackets(host["tcp.packets.out_of_order"]));
-   			$('#pkt_lost').html(formatPackets(host["tcp.packets.lost"]));
-   			$('#pkt_keep_alive').html(formatPackets(host["tcp.packets.keep_alive"]));
+
+   			$('#pkt_retransmissions_sent').html(formatPackets(host["tcpPacketStats.sent"]["retransmissions"]));
+   			$('#pkt_ooo_sent').html(formatPackets(host["tcpPacketStats.sent"]["out_of_order"]));
+   			$('#pkt_lost_sent').html(formatPackets(host["tcpPacketStats.sent"]["lost"]));
+   			$('#pkt_keep_alive_sent').html(formatPackets(host["tcpPacketStats.sent"]["keep_alive"]));
+
+   			$('#pkt_retransmissions_rcvd').html(formatPackets(host["tcpPacketStats.rcvd"]["retransmissions"]));
+   			$('#pkt_ooo_rcvd').html(formatPackets(host["tcpPacketStats.rcvd"]["out_of_order"]));
+   			$('#pkt_lost_rcvd').html(formatPackets(host["tcpPacketStats.rcvd"]["lost"]));
+   			$('#pkt_keep_alive_rcvd').html(formatPackets(host["tcpPacketStats.rcvd"]["keep_alive"]));
+
    			if(!host["name"]) {
    			   $('#name').html(host["ip"]);
    			} else {
@@ -2228,14 +2293,20 @@ print [[
 			$('#trend_anomalous_flows_as_client').html(drawTrend(host["anomalous_flows.as_client"], last_anomalous_flows_as_client, " style=\"color: #B94A48;\""));
 			$('#trend_unreachable_flows_as_server').html(drawTrend(host["unreachable_flows.as_server"], last_unreachable_flows_as_server, " style=\"color: #B94A48;\""));
 			$('#trend_unreachable_flows_as_client').html(drawTrend(host["unreachable_flows.as_client"], last_unreachable_flows_as_client, " style=\"color: #B94A48;\""));
-			
+
 			$('#alerts_trend').html(drawTrend(host["num_alerts"], last_num_alerts, " style=\"color: #B94A48;\""));
 			$('#sent_trend').html(drawTrend(host["packets.sent"], last_pkts_sent, ""));
 			$('#rcvd_trend').html(drawTrend(host["packets.rcvd"], last_pkts_rcvd, ""));
-			$('#pkt_retransmissions_trend').html(drawTrend(host["tcp.packets.retransmissions"], last_tcp_retransmissions, ""));
-			$('#pkt_ooo_trend').html(drawTrend(host["tcp.packets.out_of_order"], last_tcp_ooo, ""));
- 		        $('#pkt_lost_trend').html(drawTrend(host["tcp.packets.lost"], last_tcp_lost, ""));
- 		        $('#pkt_keep_alive_trend').html(drawTrend(host["tcp.packets.keep_alive"], last_tcp_keep_alive, ""));
+
+			$('#pkt_retransmissions_sent_trend').html(drawTrend(host["tcpPacketStats.sent"]["retransmissions"], last_sent_tcp_retransmissions, ""));
+			$('#pkt_ooo_sent_trend').html(drawTrend(host["tcpPacketStats.sent"]["out_of_order"], last_sent_tcp_ooo, ""));
+ 		        $('#pkt_lost_sent_trend').html(drawTrend(host["tcpPacketStats.sent"]["lost"], last_sent_tcp_lost, ""));
+ 		        $('#pkt_keep_alive_sent_trend').html(drawTrend(host["tcpPacketStats.sent"]["keep_alive"], last_sent_tcp_keep_alive, ""));
+
+			$('#pkt_retransmissions_rcvd_trend').html(drawTrend(host["tcpPacketStats.rcvd"]["retransmissions"], last_rcvd_tcp_retransmissions, ""));
+			$('#pkt_ooo_rcvd_trend').html(drawTrend(host["tcpPacketStats.rcvd"]["out_of_order"], last_rcvd_tcp_ooo, ""));
+ 		        $('#pkt_lost_rcvd_trend').html(drawTrend(host["tcpPacketStats.rcvd"]["lost"], last_rcvd_tcp_lost, ""));
+ 		        $('#pkt_keep_alive_rcvd_trend').html(drawTrend(host["tcpPacketStats.rcvd"]["keep_alive"], last_rcvd_tcp_keep_alive, ""));
 
    			last_num_alerts = host["num_alerts"];
    			last_pkts_sent = host["packets.sent"];
@@ -2250,10 +2321,14 @@ print [[
    			last_unreachable_flows_as_server = host["unreachable_flows.as_server"];
    			last_unreachable_flows_as_client = host["unreachable_flows.as_client"];
    			last_flows_as_server = host["flows.as_server"];
-   			last_tcp_retransmissions = host["tcp.packets.retransmissions"];
-   			last_tcp_ooo = host["tcp.packets.out_of_order"];
-   			last_tcp_lost = host["tcp.packets.lost"];
-   			last_tcp_keep_alive = host["tcp.packets.keep_alive"];
+   			last_sent_tcp_retransmissions = host["tcpPacketStats.sent"]["retransmissions"];
+   			last_sent_tcp_ooo = host["tcpPacketStats.sent"]["out_of_order"];
+   			last_sent_tcp_lost = host["tcpPacketStats.sent"]["lost"];
+   			last_sent_tcp_keep_alive = host["tcpPacketStats.sent"]["keep_alive"];
+   			last_rcvd_tcp_retransmissions = host["tcpPacketStats.rcvd"]["retransmissions"];
+   			last_rcvd_tcp_ooo = host["tcpPacketStats.rcvd"]["out_of_order"];
+   			last_rcvd_tcp_lost = host["tcpPacketStats.rcvd"]["lost"];
+   			last_rcvd_tcp_keep_alive = host["tcpPacketStats.rcvd"]["keep_alive"];
    		  ]]
 
 

@@ -35,6 +35,7 @@
  *  @ingroup LuaEngine
  *
  */
+
 class LuaEngine {
  private:
   lua_State *L; /**< The LuaEngine state.*/

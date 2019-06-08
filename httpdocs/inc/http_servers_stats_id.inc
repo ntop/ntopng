@@ -12,7 +12,6 @@ function http_table_setID (row) {
   row.find("td").eq(index++).attr('id', http_key+"_key");
   row.find("td").eq(index++).attr('id', http_key+"_http_virtual_host");
   row.find("td").eq(index++).attr('id', http_key+"_server_ip");
-  row.find("td").eq(index++).attr('id', http_key+"_hosts_to_server");
   row.find("td").eq(index++).attr('id', http_key+"_bytes_sent");
   row.find("td").eq(index++).attr('id', http_key+"_bytes_rcvd");
   row.find("td").eq(index++).attr('id', http_key+"_http_requests");
@@ -23,7 +22,7 @@ function http_table_setID (row) {
 }
 
 function http_row_update(http_key) {
-   var url = "@HTTP_PREFIX@/lua/get_http_hosts_data.lua?host="+http_key.split("___").join("."); /* Needed as JQuery does not like . in id= field */
+   var url = "@HTTP_PREFIX@/lua/get_http_hosts_data.lua?vhost="+http_key.split("___").join("."); /* Needed as JQuery does not like . in id= field */
    
   $.ajax({
     type: 'GET',

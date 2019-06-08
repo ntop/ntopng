@@ -44,7 +44,7 @@ Redis::Redis(const char *_redis_host, const char *_redis_password, u_int16_t _re
   redis = NULL, operational = false;
   initializationCompleted = false;
   reconnectRedis(giveup_on_failure);
-  stringCache = NULL, numCached = 0;
+  numCached = 0;
   l = new Mutex();
 
   if(operational) getRedisVersion();
@@ -200,16 +200,14 @@ bool Redis::isCacheable(const char * const key) {
 /* **************************************** */
 
 bool Redis::expireCache(char *key, u_int expire_secs) {
-  StringCache_t *cached = NULL;
+  std::map<std::string, StringCache>::iterator it;
 
 #ifdef CACHE_DEBUG
   printf("**** Setting cache expire for %s [%u sec]\n", key, expire_secs);
 #endif
 
-  HASH_FIND_STR(stringCache, key, cached);
-
-  if(cached) {
-    cached->expire = expire_secs ? time(NULL)+expire_secs : 0;
+  if((it = stringCache.find(key)) != stringCache.end()) {
+    it->second.expire = expire_secs ? time(NULL)+expire_secs : 0;
     return(true);
   }
 
@@ -236,37 +234,28 @@ void Redis::checkDumpable(const char * const key) {
 
 /* NOTE: We assume that the addToCache() caller locks this instance */
 void Redis::addToCache(const char * const key, const char * const value, u_int expire_secs) {
-  StringCache_t *cached = NULL;
+  std::map<std::string, StringCache>::iterator it;
   if(!initializationCompleted) return;
 
 #ifdef CACHE_DEBUG
   printf("**** Caching %s=%s\n", key, value ? value : "<NULL>");
 #endif
 
-  HASH_FIND_STR(stringCache, key, cached);
+  if((it = stringCache.find(key)) != stringCache.end()) {
+    StringCache *cached = &it->second;
 
-  if(cached) {
-    if(cached->value) free(cached->value);
-    cached->value = strdup(value);
+    cached->value = value;
     cached->expire = expire_secs ? time(NULL)+expire_secs : 0;
     return;
+  } else {
+    StringCache item;
+
+    item.value = value;
+    item.expire = expire_secs ? time(NULL)+expire_secs : 0;
+
+    stringCache[key] = item;
+    numCached++;
   }
-
-  cached = (StringCache_t*)malloc(sizeof(StringCache_t));
-  if(cached) {
-    cached->key = strdup(key), cached->value = strdup(value);
-    cached->expire = expire_secs ? time(NULL)+expire_secs : 0;
-
-    if(cached->key && cached->value) {
-      HASH_ADD_STR(stringCache, key, cached);
-      numCached++;
-    } else {
-      if(cached->key)   free(cached->key);
-      if(cached->value) free(cached->value);
-      free(cached);
-    }
-  } else
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
 }
 
 /* **************************************** */
@@ -275,20 +264,22 @@ int Redis::get(char *key, char *rsp, u_int rsp_len, bool cache_it) {
   int rc;
   bool cacheable = false;
   redisReply *reply;
-  StringCache_t *cached = NULL;
+  std::map<std::string, StringCache>::iterator it;
 
   l->lock(__FILE__, __LINE__);
 
-  HASH_FIND_STR(stringCache, key, cached);
-  if(cached) {
+  if((it = stringCache.find(key)) != stringCache.end()) {
+    StringCache *cached = &it->second;
+
     if((cached->expire > 0) && (time(NULL) >= cached->expire)) {
 #ifdef CACHE_DEBUG
       printf("**** Cache expired %s\n", key);
 #endif
-      HASH_DEL(stringCache, cached);
+
+      stringCache.erase(it);
       rsp[0] = '\0';
     } else
-      snprintf(rsp, rsp_len, "%s", cached->value);
+      snprintf(rsp, rsp_len, "%s", cached->value.c_str());
 
 #ifdef CACHE_DEBUG
     printf("**** Read from cache %s=%s\n", key, rsp);
@@ -352,18 +343,10 @@ int Redis::get(char *key, char *rsp, u_int rsp_len, bool cache_it) {
 int Redis::del(char *key){
   int rc;
   redisReply *reply;
-  StringCache_t *cached = NULL;
 
   l->lock(__FILE__, __LINE__);
 
-  HASH_FIND_STR(stringCache, key, cached);
-
-  if(cached) {
-    HASH_DEL(stringCache, cached);
-    if(cached->key)   free(cached->key);
-    if(cached->value) free(cached->value);
-    free(cached);
-  }
+  stringCache.erase(key);
 
   num_requests++;
   reply = (redisReply*)redisCommand(redis, "DEL %s", key);
@@ -1274,19 +1257,8 @@ void Redis::lua(lua_State *vm) {
 /* **************************************** */
 
 void Redis::flushCache() {
-  StringCache_t *sd, *current, *tmp;
-
   l->lock(__FILE__, __LINE__);
-  sd = stringCache;
-
-  HASH_ITER(hh, sd, current, tmp) {
-    HASH_DEL(sd, current);
-    if(current->key)   free(current->key);
-    if(current->value) free(current->value);
-    free(current);
-  }
-
-  stringCache = NULL, numCached = 0;
+  stringCache.clear();
   l->unlock(__FILE__, __LINE__);
 
 #ifdef CACHE_DEBUG

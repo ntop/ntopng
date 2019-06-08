@@ -121,6 +121,19 @@ function fpackets(pps) {
     return Math.round(res[0] * 100) / 100 + ' ' + res[1];
 }
 
+function fpoints(pps) {
+    if(typeof(pps) === "undefined")
+      return "-";
+
+    var sizes = ['pt/s', 'Kpt/s', 'Mpt/s', 'Gpt/s', 'Tpt/s'];
+    if(pps == 0) return '0';
+    if((pps > 0) && (pps < NTOPNG_MIN_VISUAL_VALUE)) return ('< ' + NTOPNG_MIN_VISUAL_VALUE + ' pt/s');
+    var res = scaleValue(pps, sizes, 1000);
+
+    // Round to two decimal digits
+    return Math.round(res[0] * 100) / 100 + ' ' + res[1];
+}
+
 function fflows(fps) {
     if(typeof(fps) === "undefined")
       return "-";
@@ -148,6 +161,13 @@ function fint(value) {
 
     var x = Math.round(value);
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+function fpercent(value) {
+    if(typeof(value) === "undefined")
+      return "-";
+
+    return Math.round(value * 100) / 100 + "%";
 }
 
 function fdate(when) {
@@ -308,6 +328,10 @@ function formatPackets(n) {
   return(addCommas(n.toFixed(0))+" Pkts");
 }
 
+function formatPoints(n) {
+  return(addCommas(n.toFixed(0))+" Points");
+}
+
 function formatFlows(n) {
   return(addCommas(n.toFixed(0))+" Flows");
 }
@@ -318,7 +342,7 @@ function fmillis(value) {
 
   if(value == 0) return '0 ms';
   if((value > 0) && (value < NTOPNG_MIN_VISUAL_VALUE)) return ('< ' + NTOPNG_MIN_VISUAL_VALUE + ' ms');
-  var x = Math.round(value);
+  var x = Math.round(value * 10) / 10;
   var res = scaleValue(x, ["ms", "s"], 1000);
 
   return res[0] + " " + res[1];

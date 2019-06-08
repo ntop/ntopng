@@ -179,6 +179,8 @@
 #define MAX_NUM_QUEUED_CONTACTS 25000
 #define NTOP_COPYRIGHT          "(C) 1998-19 ntop.org"
 #define DEFAULT_PID_PATH        "/var/run/ntopng.pid"
+#define SYSTEM_INTERFACE_NAME   "__system__"
+#define SYSTEM_INTERFACE_ID     -1
 #define DOMAIN_CATEGORY         "ntopng.domain.category"
 #define DOMAIN_TO_CATEGORIZE    "ntopng.domain.tocategorize"
 #define DOMAIN_WHITELIST_CAT    "ntopng.domain.whitelist"
@@ -203,13 +205,18 @@
 #define DNS_CACHE_DURATION                 3600  /*  1 h */
 #define LOCAL_HOSTS_CACHE_DURATION         3600  /*  1 h */
 #define CONST_ALERT_PROBING_TIME            120  /* 2 mins */
-#define CONST_TCP_CHECK_ISSUES_RATIO         10  /* 10% */
+#define CONST_TCP_CHECK_ISSUES_THRESHOLD      5  /* min 5 retr/ooo/lost packets */
+#define CONST_TCP_CHECK_ISSUES_RATIO         10  /* 1/10 */
+#define CONST_TCP_CHECK_SEVERE_ISSUES_RATIO   3  /* 1/3 */
 #define HOST_LABEL_NAMES        "ntopng.host_labels"
 #define IFACE_DHCP_RANGE_KEY    "ntopng.prefs.ifid_%u.dhcp_ranges"
 #define HOST_SERIALIZED_KEY     "ntopng.serialized_hosts.ifid_%u__%s@%d"
 #define MAC_SERIALIZED_KEY      "ntopng.serialized_macs.ifid_%u__%s"
 #define HOST_BY_MAC_SERIALIZED_KEY "ntopng.serialized_hostsbymac.ifid_%u__%s"
 #define HOST_POOL_SERIALIZED_KEY "ntopng.serialized_host_pools.ifid_%u"
+#define VLAN_SERIALIZED_KEY     "ntopng.serialized_vlan.ifid_%u_vlan_%u"
+#define AS_SERIALIZED_KEY       "ntopng.serialized_as.ifid_%u_as_%u"
+#define COUNTRY_SERIALIZED_KEY  "ntopng.serialized_as.ifid_%u_country_%s"
 #define NTOPNG_PREFS_PREFIX     "ntopng.prefs"
 #define NTOPNG_CACHE_PREFIX     "ntopng.cache"
 #define MAC_CUSTOM_DEVICE_TYPE  NTOPNG_PREFS_PREFIX".device_types.%s"
@@ -459,6 +466,7 @@
 #define CONST_DEFAULT_ALERT_DEVICE_PROTOCOLS_ENABLED      0
 #define CONST_DEFAULT_ALERT_ELEPHANT_FLOWS_ENABLED        0
 #define CONST_DEFAULT_ALERT_LONGLIVED_FLOWS_ENABLED       1
+#define CONST_DEFAULT_ALERT_DATA_EXFILTRATION_ENABLED     1
 #define CONST_DEFAULT_ALERT_SYSLOG_ENABLED                0
 #define CONST_DEFAULT_MALWARE_ALERTS_ENABLED              1
 #define CONST_DEFAULT_IDS_ALERTS_ENABLED                  1
@@ -518,6 +526,7 @@
 #define CONST_TOP_TALKERS_ENABLED          NTOPNG_PREFS_PREFIX".host_top_sites_creation"
 #define CONST_SUPPRESSED_ALERT_PREFS       NTOPNG_PREFS_PREFIX".alerts.ifid_%d"
 #define CONST_MIRRORED_TRAFFIC_PREFS       NTOPNG_PREFS_PREFIX".ifid_%d.is_traffic_mirrored"
+#define CONST_DISABLED_FLOW_DUMP_PREFS     NTOPNG_PREFS_PREFIX".ifid_%d.is_flow_dump_disabled"
 #define CONST_LBD_SERIALIZATION_PREFS      NTOPNG_PREFS_PREFIX".ifid_%d.serialize_local_broadcast_hosts_as_macs"
 #define CONST_USE_NINDEX                   NTOPNG_PREFS_PREFIX".use_nindex"
 #ifdef NTOPNG_PRO
@@ -534,7 +543,7 @@
 #define CONST_IFACE_SCALING_FACTOR_PREFS    NTOPNG_PREFS_PREFIX".iface_%d.scaling_factor"
 #define CONST_IFACE_PACKET_DROPS_ALERT_PREFS NTOPNG_PREFS_PREFIX".iface_%d.packet_drops_alert"
 #define CONST_IFACE_HIDE_FROM_TOP_PREFS     NTOPNG_PREFS_PREFIX".iface_%d.hide_from_top"
-#define CONST_IFACE_COMPANION_INTERFACE     NTOPNG_PREFS_PREFIX".companion_interface.ifid_%d.companion"
+#define CONST_IFACE_COMPANIONS_SET          NTOPNG_PREFS_PREFIX".companion_interface.ifid_%d.companion_of"
 #define CONST_HOST_ANOMALIES_THRESHOLD      NTOPNG_PREFS_PREFIX".%s:%d.alerts_config"
 #define CONST_HOSTS_ALERT_COUNTERS          "ntopng.cache.alerts.iface_%u.host_engaged_alert_counters"
 #define CONST_REMOTE_HOST_IDLE_PREFS        NTOPNG_PREFS_PREFIX".non_local_host_max_idle"
@@ -601,6 +610,7 @@
 #define CONST_RUNTIME_PREFS_ALERT_DEVICE_PROTOCOLS     NTOPNG_PREFS_PREFIX".device_protocols_alerts"
 #define CONST_RUNTIME_PREFS_ALERT_ELEPHANT_FLOWS       NTOPNG_PREFS_PREFIX".elephant_flows_alerts"
 #define CONST_RUNTIME_PREFS_ALERT_LONGLIVED_FLOWS      NTOPNG_PREFS_PREFIX".longlived_flows_alerts"
+#define CONST_RUNTIME_PREFS_ALERT_DATA_EXFILTRATION    NTOPNG_PREFS_PREFIX".data_exfiltration_alerts"
 #define CONST_RUNTIME_PREFS_HOSTS_ALERTS_CONFIG        NTOPNG_PREFS_PREFIX".alerts_global.min.local_hosts"
 #define CONST_PREFS_ENABLE_DEVICE_PROTOCOL_POLICIES    NTOPNG_PREFS_PREFIX".device_protocols_policing"
 #define CONST_HOST_SYN_ATTACKER_ALERT_THRESHOLD_KEY    "syn_attacker_threshold"
@@ -631,6 +641,8 @@
 #define CONST_RUNTIME_PREFS_HOSTMASK  NTOPNG_PREFS_PREFIX".host_mask"
 #define CONST_RUNTIME_PREFS_AUTO_ASSIGNED_POOL_ID      NTOPNG_PREFS_PREFIX".auto_assigned_pool_id"
 
+#define CONST_MAX_ACCEPTABLE_ICMP_V4_PAYLOAD_LENGTH 128
+#define CONST_MAX_ACCEPTABLE_ICMP_V6_PAYLOAD_LENGTH 256
 #define CONST_MAX_ALERT_MSG_QUEUE_LEN 8192
 #define CONST_MAX_ES_MSG_QUEUE_LEN    8192
 #define CONST_MAX_MYSQL_QUEUE_LEN     8192
@@ -662,6 +674,9 @@
 /* SRC/DST override for ZMQ interfaces */
 #define CONST_DEFAULT_OVERRIDE_SRC_WITH_POST_NAT    NTOPNG_PREFS_PREFIX".override_src_with_post_nat_src"
 #define CONST_DEFAULT_OVERRIDE_DST_WITH_POST_NAT    NTOPNG_PREFS_PREFIX".override_dst_with_post_nat_dst"
+
+/* SRC/DST selection using port numbers (heuristic) */
+#define CONST_DEFAULT_USE_PORTS_TO_DETERMINE_SRC_AND_DST NTOPNG_PREFS_PREFIX".use_ports_to_determine_src_and_dst"
 
 /* Tiny Flows */
 #define CONST_DEFAULT_IS_TINY_FLOW_EXPORT_ENABLED        true  /* disabled by default */
@@ -1023,6 +1038,8 @@ extern struct ntopngLuaContext* getUserdata(struct lua_State *vm);
 #define DONT_NOT_EXPIRE_BEFORE_SEC        30 /* sec */
 #define MAX_NDPI_IDLE_TIME_BEFORE_GUESS   5 /* sec */
 #define MAX_NUM_PCAP_CAPTURES             4
+#define MAX_NUM_COMPANION_INTERFACES      4
+#define MAX_NUM_FINGERPRINT               25
 
 #define ALERT_ACTION_ENGAGE           "engage"
 #define ALERT_ACTION_RELEASE          "release"

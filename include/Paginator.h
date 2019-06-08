@@ -29,7 +29,10 @@ class Paginator {
   u_int16_t max_hits, to_skip;
   bool a2z_sort_order;
   bool detailed_results /* deprecated, use DetailsLevel instead */;
-  char *sort_column, *country_filter, *host_filter, *container_filter, *pod_filter;
+  char *sort_column, *country_filter, *host_filter;
+  char *container_filter, *pod_filter;
+  char *traffic_profile_filter;
+  char *username_filter, *pidname_filter;
   int l7proto_filter, l7category_filter;
   u_int16_t port_filter;
   int16_t local_network_filter;
@@ -37,11 +40,10 @@ class Paginator {
   u_int8_t ip_version /* Either 4 or 6 */;
   int8_t unicast_traffic, unidirectional_traffic, alerted_flows, filtered_flows;
   u_int32_t asn_filter;
-  u_int32_t uid_filter, pid_filter;
   u_int32_t deviceIP;
   u_int16_t inIndex, outIndex;
-  u_int16_t pool_filter;
-  u_int8_t *mac_filter;
+  u_int16_t pool_filter, flow_status_filter;
+  u_int8_t *mac_filter, icmp_type, icmp_code;
   DetailsLevel details_level;
   bool details_level_set;
   LocationPolicy client_mode;
@@ -79,12 +81,24 @@ class Paginator {
     if(pod_filter) { (*f) = pod_filter; return true; } return false;
   }
 
+  inline bool usernameFilter(char **f) const {
+    if(username_filter) { (*f) = username_filter; return true; } return false;
+  }
+
+  inline bool pidnameFilter(char **f) const {
+    if(pidname_filter) { (*f) = pidname_filter; return true; } return false;
+  }
+
   inline bool l7protoFilter(int *f) const {
     if(l7proto_filter >= 0) { (*f) = l7proto_filter; return true; } return false;
   }
 
   inline bool l7categoryFilter(int *f) const {
     if(l7category_filter >= 0) { (*f) = l7category_filter; return true; } return false;
+  }
+
+  inline bool trafficProfileFilter(char **f) const {
+    if(traffic_profile_filter) { (*f) = traffic_profile_filter; return true; } return false;
   }
 
   inline bool portFilter(u_int16_t *f) const {
@@ -119,6 +133,10 @@ class Paginator {
     if(pool_filter != ((u_int16_t)-1)) { (*f) = pool_filter; return true; } return false;
   }
 
+  inline bool flowStatusFilter(u_int16_t *f) const {
+    if(flow_status_filter != ((u_int16_t)-1)) { (*f) = flow_status_filter; return true; } return false;
+  }
+
   inline bool macFilter(u_int8_t **f) const {
     if(mac_filter) { (*f) = mac_filter; return true; } return false;
   }
@@ -139,12 +157,8 @@ class Paginator {
     if(asn_filter != (u_int32_t)-1) { (*f) = asn_filter; return true; } return false;
   }
 
-  inline bool uidFilter(u_int32_t *f) const {
-    if(uid_filter != NO_UID) { (*f) = uid_filter; return true; } return false;
-  }
-
-  inline bool pidFilter(u_int32_t *f) const {
-    if(pid_filter != NO_PID) { (*f) = pid_filter; return true; } return false;
+  inline bool icmpValue(u_int8_t *code, u_int8_t *typ) const {
+    if((icmp_type != u_int8_t(-1)) && (icmp_code != u_int8_t(-1))) { (*typ) = icmp_type; (*code) = icmp_code; return true; } return false;
   }
 
   inline bool unidirectionalTraffic(bool *f) const {

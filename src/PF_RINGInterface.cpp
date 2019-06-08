@@ -46,7 +46,7 @@ pfring *PF_RINGInterface::pfringSocketInit(const char *name) {
   else if(ntop->getPrefs()->are_vss_apcon_timestamps_enabled())
     flags |= PF_RING_VSS_APCON_TIMESTAMP;
 
-  if((handle = pfring_open(name, ntop->getGlobals()->getSnaplen(), flags)) == NULL)
+  if((handle = pfring_open(name, ntop->getGlobals()->getSnaplen(name), flags)) == NULL)
     return NULL;
 
   pfring_version(handle, &version);

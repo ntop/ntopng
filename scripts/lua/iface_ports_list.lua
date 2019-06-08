@@ -33,7 +33,12 @@ if (host == nil) then
 else
  flows_stats = interface.getFlowsInfo(host)
 end
-flows_stats = flows_stats["flows"]
+
+if(flows_stats == nil) then
+   flows_stats = {}
+else
+   flows_stats = flows_stats["flows"]
+end
 
 client_ports = fill_ports_array("cli", flows_stats, host)
 server_ports = fill_ports_array("srv", flows_stats, host)

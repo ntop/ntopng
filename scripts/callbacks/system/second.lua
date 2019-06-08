@@ -9,12 +9,15 @@ package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/?.lua;" .. pa
 -- do NOT include lua_utils here, it's not necessary, keep it light!
 local callback_utils = require "callback_utils"
 local ts_utils = require("ts_utils_core")
+local system_scripts = require("system_scripts_utils")
 require("ts_second")
 
 -- Toggle debug
 local enable_second_debug = false
 local ifnames = interface.getIfNames()
-local when = os.time()
+
+-- NOTE: must use gettimeofday otherwise the seconds may not correspond
+local when = math.floor(ntop.gettimemsec())
 
 local function interface_rrd_creation_enabled(ifid)
    return (ntop.getPref("ntopng.prefs.ifid_"..ifid..".interface_rrd_creation") ~= "false")
@@ -25,12 +28,16 @@ callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, functio
    if(enable_second_debug) then print("Processing "..ifname.."\n") end
 
    -- Traffic stats
-   ts_utils.append("iface:traffic", {ifid=ifstats.id, bytes=ifstats.stats.bytes}, when)
-   ts_utils.append("iface:packets", {ifid=ifstats.id, packets=ifstats.stats.packets}, when)
+   -- We check for ifstats.stats.bytes to start writing only when there's data. This
+   -- prevents artificial and wrong peaks especially during the startup of ntopng.
+   if ifstats.stats.bytes > 0 then
+      ts_utils.append("iface:traffic", {ifid=ifstats.id, bytes=ifstats.stats.bytes}, when)
+      ts_utils.append("iface:packets", {ifid=ifstats.id, packets=ifstats.stats.packets}, when)
 
-   if ifstats.has_traffic_directions then
-      ts_utils.append("iface:traffic_rxtx", {ifid=ifstats.id,
-         bytes_sent=ifstats.eth.egress.bytes, bytes_rcvd=ifstats.eth.ingress.bytes}, when)
+      if ifstats.has_traffic_directions then
+	 ts_utils.append("iface:traffic_rxtx", {ifid=ifstats.id,
+						bytes_sent=ifstats.eth.egress.bytes, bytes_rcvd=ifstats.eth.ingress.bytes}, when)
+      end
    end
 
    -- ZMQ stats
@@ -48,3 +55,5 @@ callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, functio
       ts_utils.append("iface:dropped_flows", {ifid=ifstats.id, num_flows=ifstats.stats.flow_export_drops}, when)
    end
 end, true --[[ get direction stats ]])
+
+system_scripts.runTask("second", when)

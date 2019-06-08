@@ -22,6 +22,25 @@
 #ifndef _NTOP_TYPEDEFS_H_
 #define _NTOP_TYPEDEFS_H_
 
+#ifndef __linux__
+#ifndef TCP_ESTABLISHED
+/* /usr/include/netinet/tcp.h */
+enum {
+      TCP_ESTABLISHED = 1,
+      TCP_SYN_SENT,
+      TCP_SYN_RECV,
+      TCP_FIN_WAIT1,
+      TCP_FIN_WAIT2,
+      TCP_TIME_WAIT,
+      TCP_CLOSE,
+      TCP_CLOSE_WAIT,
+      TCP_LAST_ACK,
+      TCP_LISTEN,
+      TCP_CLOSING   /* now a valid state */
+};
+#endif
+#endif
+
 typedef enum {
   no_host_mask = 0,
   mask_local_hosts = 1,
@@ -192,6 +211,7 @@ typedef enum {
 typedef struct {
   u_int32_t pid, father_pid;
   char *process_name, *father_process_name;
+  char *uid_name, *father_uid_name;
   u_int32_t uid /* User Id */, gid; /* Group Id */
   u_int32_t father_uid /* User Id */, father_gid; /* Group Id */
   u_int32_t actual_memory, peak_memory;
@@ -226,37 +246,6 @@ typedef struct {
   double rtt, rtt_var;
 } TcpInfo;
 
-typedef struct zmq_flow_core {
-  u_int8_t version; /* 0 so far */
-
-  u_int32_t deviceIP;
-  u_int16_t src_port, dst_port, inIndex, outIndex;
-  ndpi_proto l7_proto;
-  u_int16_t vlan_id, pkt_sampling_rate;
-  u_int8_t l4_proto;
-  u_int32_t in_pkts, in_bytes, out_pkts, out_bytes, vrfId;
-  u_int8_t absolute_packet_octet_counters;
-  struct {
-    u_int8_t tcp_flags, client_tcp_flags, server_tcp_flags;
-    u_int32_t ooo_in_pkts, ooo_out_pkts;
-    u_int32_t retr_in_pkts, retr_out_pkts;
-    u_int32_t lost_in_pkts, lost_out_pkts;
-    struct timeval clientNwLatency, serverNwLatency;
-    float applLatencyMsec;
-  } tcp;
-  u_int32_t first_switched, last_switched;
-  u_int8_t src_mac[6], dst_mac[6], direction, source_id;
-} Parsed_FlowCore;
-
-typedef struct zmq_flow_ebpf {
-  ProcessInfo process_info;
-  ContainerInfo container_info;
-  TcpInfo tcp_info;
-  eBPFEventType event_type;
-  char *ifname;
-  bool process_info_set, container_info_set, tcp_info_set;
-} Parsed_eBPF;
-
 /* Handle vendor-proprietary applications.
    Must stay with 32-bit integers as, at least sonicwall, uses
    32-bit application ids. */
@@ -265,23 +254,6 @@ typedef struct {
   u_int32_t app_id;
   u_int32_t remapped_app_id;
 } custom_app_t;
-
-typedef struct zmq_flow {
-  IpAddress src_ip, dst_ip;  
-  Parsed_FlowCore core;
-  Parsed_eBPF ebpf;
-  json_object *additional_fields;
-  char *http_url, *http_site, *dns_query, *ssl_server_name, *bittorrent_hash;
-  custom_app_t custom_app;
-  /* Process Extensions */
-} Parsed_Flow;
-
-/* A lightweigth version of the parsed flow used to dispatch eBPF info to interfaces */
-typedef struct ebpf_flow {
-  IpAddress src_ip, dst_ip;
-  Parsed_FlowCore core;
-  Parsed_eBPF ebpf;
-} eBPF_Flow;
 
 /* IMPORTANT: whenever the Parsed_FlowSerial is changed, nProbe must be updated too */
 
@@ -361,6 +333,11 @@ typedef enum {
   status_longlived, /* 19 */
   status_not_purged, /* 20 */
   status_ids_alert /* 21 */,
+  status_tcp_severe_connection_issues /* 22 - higher severity than status_tcp_connection_issues */,
+  status_ssl_unsafe_ciphers /* 23 */,
+  status_data_exfiltration /* 24 */,
+  status_ssl_old_protocol_version /* 25 */,
+  num_flow_status,
 } FlowStatus;
 
 typedef enum {
@@ -484,11 +461,11 @@ typedef struct {
   void *items[QUEUE_ITEMS];
 } spsc_queue_t;
 
-typedef struct {
-  char *key, *value;
+class StringCache {
+ public:
+  std::string value;
   time_t expire;
-  UT_hash_handle hh; /* makes this structure hashable */
-} StringCache_t;
+};
 
 PACK_ON
 
@@ -688,11 +665,9 @@ typedef struct dhcp_range {
   IpAddress last_ip;
 } dhcp_range;
 
-/* Function below is required when crating maps with char* */
-struct cmp_str {
-  bool operator()(char const *a, char const *b) {
-    return ::strcmp(a, b) < 0;
-  }
-};
+typedef struct cpu_load_stats {
+  uint64_t active;
+  uint64_t idle;
+} cpu_load_stats;
 
 #endif /* _NTOP_TYPEDEFS_H_ */

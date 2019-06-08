@@ -148,6 +148,16 @@ if _ifstats.has_traffic_directions then
 	    </div>
 	    <div class="col-xs-6 col-sm-4">
 	    </a>]]
+else
+  print [[  <a href="]]
+   print (ntop.getHttpPrefix())
+   print [[/lua/if_stats.lua">
+	    <table style="border-collapse:collapse; !important">
+	    <tr><td class="network-load-chart-total">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</td><td class="text-right" id="chart-total-text"></td></tr>
+	    </table>
+	    </div>
+	    <div class="col-xs-6 col-sm-4">
+	    </a>]]
 end
 
 print [[
@@ -202,15 +212,13 @@ print [[/lua/update_prefs.lua',
 
 var updatingChart_upload = $(".network-load-chart-upload").peity("line", { width: ]] print(traffic_peity_width) print[[, max: null });
 var updatingChart_download = $(".network-load-chart-download").peity("line", { width: ]] print(traffic_peity_width) print[[, max: null, fill: "lightgreen"});
+var updatingChart_total = $(".network-load-chart-total").peity("line", { width: ]] print(traffic_peity_width) print[[, max: null});
 
 var prev_bytes   = 0;
 var prev_packets = 0;
 var prev_upload   = 0;
 var prev_download  = 0;
 var prev_epoch   = 0;
-
-var prev_cpu_load = 0;
-var prev_cpu_idle = 0;
 
 var footerRefresh = function() {
     $.ajax({
@@ -235,6 +243,7 @@ print [[/lua/logout.lua");  }, */
 
               var values = updatingChart_upload.text().split(",")
 	      var values1 = updatingChart_download.text().split(",")
+	      var values2 = updatingChart_total.text().split(",")
 	      var bytes_diff   = Math.max(rsp.bytes-prev_bytes, 0);
 	      var packets_diff = Math.max(rsp.packets-prev_packets, 0);
 	      var upload_diff   = Math.max(rsp.bytes_upload-prev_upload, 0);
@@ -252,6 +261,9 @@ print [[/lua/logout.lua");  }, */
 		  values1.shift();
 		  values1.push(-download_diff);
 		  updatingChart_download.text(values1.join(",")).change();
+		  values2.shift();
+		  values2.push(bytes_diff);
+		  updatingChart_total.text(values2.join(",")).change();
 		}
 
 		var pps = Math.floor(packets_diff / epoch_diff);
@@ -282,6 +294,7 @@ print [[/lua/logout.lua");  }, */
      print[[
 		$('#chart-upload-text').html("&nbsp;"+bitsToSize(bps_upload, 1000));
 		$('#chart-download-text').html("&nbsp;"+bitsToSize(bps_download, 1000));
+		//$('#chart-total-text').html("&nbsp;"+bitsToSize(Math.min(bps, ]] print(maxSpeed) print[[), 1000));
      ]]
 
 print[[
@@ -302,18 +315,8 @@ print[[
 		   $('#ram-process-used').html('Used: ' + bytesToSize(rsp.system_host_stats.mem_ntopng_resident * 1024));
                 }
 
-                if(rsp.system_host_stats.cpu_load !== undefined) {
-                  var load = "...";
-                  if(prev_cpu_load > 0) {
-                     var active = (rsp.system_host_stats.cpu_load - prev_cpu_load);
-                     var idle = (rsp.system_host_stats.cpu_idle - prev_cpu_idle);
-                     load = active / (active + idle);
-                     load = load * 100;
-                     load = Math.round(load * 100) / 100;
-                     load = load + "%";
-                  }
-                  $('#cpu-load-pct').html(load);
-                }
+                if(rsp.system_host_stats.cpu_load_percentage !== undefined)
+                  $('#cpu-load-pct').html(fpercent(rsp.system_host_stats.cpu_load_percentage));
 
                 msg += "<br>";
 
@@ -464,10 +467,6 @@ print [[/lua/if_stats.lua\"><i class=\"fa fa-warning\" style=\"color: #B94A48;\"
             prev_upload   = rsp.bytes_upload;
             prev_download  = rsp.bytes_download;
 	    prev_epoch   = rsp.epoch;
-            if(rsp.system_host_stats.cpu_load !== undefined) {
-              prev_cpu_load = rsp.system_host_stats.cpu_load;
-              prev_cpu_idle = rsp.system_host_stats.cpu_idle;
-            }
 
 	  } catch(e) {
 	     console.log(e);

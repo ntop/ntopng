@@ -7,7 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 local if_stats = interface.getStats()
 
-if (if_stats.has_seen_pods or if_stats.has_seen_containers) and not interface.isPacketInterface() then
+if (if_stats.has_seen_pods or if_stats.has_seen_containers) then
    -- Use a different flows page
    dofile(dirs.installdir .. "/scripts/lua/inc/ebpf_flows_stats.lua")
    return
@@ -38,6 +38,9 @@ local vhost = _GET["vhost"]
 local flowhosts_type = _GET["flowhosts_type"]
 local ipversion = _GET["version"]
 local vlan = _GET["vlan"]
+local icmp_type = _GET["icmp_type"]
+local icmp_code = _GET["icmp_cod"]
+local traffic_profile = _GET["traffic_profile"]
 
 -- remote exporters address and interfaces
 local deviceIP = _GET["deviceIP"]
@@ -57,7 +60,7 @@ local server_asn = _GET["server_asn"]
 local prefs = ntop.getPrefs()
 interface.select(ifname)
 local ifstats = interface.getStats()
-local ndpistats = interface.getnDPIStats()
+local flowstats = interface.getActiveFlowsStats()
 
 local base_url = ntop.getHttpPrefix() .. "/lua/flows_stats.lua"
 local page_params = {}
@@ -140,6 +143,15 @@ if(flowhosts_type ~= nil) then
   page_params["flowhosts_type"] = flowhosts_type
 end
 
+if((icmp_type ~= nil) and (icmp_code ~= nil)) then
+  page_params["icmp_type"] = icmp_type
+  page_params["icmp_cod"] = icmp_code
+end
+
+if(traffic_profile ~= nil) then
+  page_params["traffic_profile"] = traffic_profile
+end
+
 print(getPageUrl(ntop.getHttpPrefix().."/lua/get_flows_data.lua", page_params))
 
 print ('";')
@@ -170,13 +182,12 @@ print [[",
          showFilter: true,
          showPagination: true,
 ]]
-
 -- Automatic default sorted. NB: the column must be exists.
 print ('sort: [ ["' .. getDefaultTableSort("flows") ..'","' .. getDefaultTableSortOrder("flows").. '"] ],\n')
 
 print ('buttons: [')
 
-printActiveFlowsDropdown(base_url, page_params, ifstats, ndpistats)
+printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats)
 
 print(" ],\n")
 
@@ -257,15 +268,15 @@ print[[
          field: "column_duration",
          sortable: true,
          css: {
-           textAlign: 'center'
+            textAlign: 'center'
          }
       }, {
          title: "]] print(i18n("breakdown")) print[[",
          field: "column_breakdown",
          sortable: false,
-            css: {
-               textAlign: 'center'
-            }
+         css: {
+            textAlign: 'center'
+         }
       }, {
          title: "]] print(i18n("flows_page.actual_throughput")) print[[",
          field: "column_thpt",
@@ -277,17 +288,17 @@ print[[
          title: "]] print(i18n("flows_page.total_bytes")) print[[",
          field: "column_bytes",
          sortable: true,
-            css: {
-               textAlign: 'right'
-            }
+         css: {
+            textAlign: 'right'
+         }
       }, {
          title: "]] print(i18n("info")) print[[",
          field: "column_info",
-         sortable: true,
-            css: {
-               textAlign: 'left'
-            }
+         sortable: false,
+         css: {
+            textAlign: 'left'
          }
+      }
       ]
    });
 ]]

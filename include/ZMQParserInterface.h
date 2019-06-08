@@ -26,6 +26,9 @@
 
 class ZMQParserInterface : public ParserInterface {
  private:
+  Mutex companions_lock;
+  u_int8_t num_companion_interfaces;
+  NetworkInterface **companion_interfaces;
   typedef std::pair<u_int32_t, u_int32_t> pen_value_t;
   typedef std::map<string, pen_value_t > labels_map_t;
   labels_map_t labels_map;
@@ -36,12 +39,14 @@ class ZMQParserInterface : public ParserInterface {
 #ifdef NTOPNG_PRO
   CustomAppMaps *custom_app_maps;
 #endif
+  virtual void reloadCompanions();
+  void deliverFlowToCompanions(ParsedFlow * const flow);
   bool getKeyId(char *sym, u_int32_t * const pen, u_int32_t * const field) const;
   void addMapping(const char *sym, u_int32_t num, u_int32_t pen = 0);
-  bool parsePENZeroField(Parsed_Flow * const flow, u_int32_t field, const char * const value) const;
-  bool parsePENNtopField(Parsed_Flow * const flow, u_int32_t field, const char * const value, json_object * const jvalue) const;
+  bool parsePENZeroField(ParsedFlow * const flow, u_int32_t field, const char * const value) const;
+  bool parsePENNtopField(ParsedFlow * const flow, u_int32_t field, const char * const value, json_object * const jvalue) const;
   static bool parseContainerInfo(json_object *jo, ContainerInfo * const container_info);
-  bool parseNProbeMiniField(Parsed_Flow * const flow, const char * const key, const char * const value, json_object * const jvalue) const;
+  bool parseNProbeMiniField(ParsedFlow * const flow, const char * const key, const char * const value, json_object * const jvalue) const;
   void parseSingleFlow(json_object *o, u_int8_t source_id, NetworkInterface *iface);
   void setFieldMap(const ZMQ_FieldMap * const field_map) const;
   void setFieldValueMap(const ZMQ_FieldValueMap * const field_value_map) const;

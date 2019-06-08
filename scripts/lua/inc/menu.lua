@@ -8,6 +8,7 @@ if((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.
 require "lua_utils"
 local recording_utils = require "recording_utils"
 local remote_assistance = require "remote_assistance"
+local telemetry_utils = require "telemetry_utils"
 
 local is_admin = isAdministrator()
 
@@ -58,7 +59,7 @@ ifId = ifs.id
 
 -- ##############################################
 
-if active_page == "home" or active_page == "about" then
+if active_page == "home" or active_page == "about" or active_page == "telemetry" then
   print [[ <li class="dropdown active"> ]]
 else
   print [[ <li class="dropdown"> ]]
@@ -72,10 +73,8 @@ print [[
       <li><a href="]]
 print(ntop.getHttpPrefix())
 print [[/lua/about.lua"><i class="fa fa-question-circle"></i> ]] print(i18n("about.about_ntopng")) print[[</a></li>
-      <li><a href="]]
-print(ntop.getHttpPrefix())
-print [[/lua/runtime.lua"><i class="fa fa-hourglass-start"></i> ]] print(i18n("about.runtime_status")) print[[</a></li>
-      <li><a href="http://blog.ntop.org/" target="_blank"><i class="fa fa-rss"></i> ]] print(i18n("about.ntop_blog")) print[[ <i class="fa fa-external-link"></i></a></li>
+      <li><a href="]] print(ntop.getHttpPrefix()) print[[/lua/telemetry.lua"><i class="fa fa-rss"></i> ]] print(i18n("telemetry")) print[[</a></li>
+      <li><a href="http://blog.ntop.org/" target="_blank"><i class="fa fa-bullhorn"></i> ]] print(i18n("about.ntop_blog")) print[[ <i class="fa fa-external-link"></i></a></li>
       <li><a href="https://t.me/ntop_community" target="_blank"><i class="fa fa-telegram"></i> ]] print(i18n("about.telegram")) print[[ <i class="fa fa-external-link"></i></a></li>
       <li><a href="https://github.com/ntop/ntopng/issues" target="_blank"><i class="fa fa-bug"></i> ]] print(i18n("about.report_issue")) print[[ <i class="fa fa-external-link"></i></a></li>
 <li class="divider"></li><li><a href="https://www.ntop.org/guides/ntopng/" target="_blank"><i class="fa fa-book"></i> ]] print(i18n("about.readme_and_manual")) print[[ <i class="fa fa-external-link"></i></a></li>
@@ -390,8 +389,9 @@ print [[
 ]]
 end
 
+local show_flowdevs = (ifs["type"] == "zmq")
 
-if ntop.isEnterprise() then
+if ntop.isEnterprise() and (isAllowedSystemInterface() or show_flowdevs) then
    if active_page == "devices_stats" then
      print [[ <li class="dropdown active"> ]]
    else
@@ -405,8 +405,10 @@ if ntop.isEnterprise() then
    ]]
 
    if(info["version.enterprise_edition"] == true) then
-      print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/snmpdevices_stats.lua">') print(i18n("prefs.snmp")) print('</a></li>')
-      if ifs["type"] == "zmq" then
+      if isAllowedSystemInterface() then
+         print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/snmpdevices_stats.lua">') print(i18n("prefs.snmp")) print('</a></li>')
+      end
+      if show_flowdevs then
          if _ifstats.has_seen_ebpf_events then
             print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/event_exporters.lua ">') print(i18n("event_exporters.event_exporters")) print('</a></li>')
          else
@@ -426,7 +428,17 @@ if ntop.isEnterprise() then
 
 end
 
-
+if isAllowedSystemInterface() then
+   if active_page == "system" then
+     print [[ <li class="dropdown active"> ]]
+   else
+     print [[ <li class="dropdown"> ]]
+   end
+   print [[
+      <a href="]] print(ntop.getHttpPrefix()) print[[/lua/system_stats.lua">]] print(i18n("system")) print[[</a>
+   </li>
+   ]]
+end
 
 -- Admin
 if active_page == "admin" then
@@ -529,6 +541,7 @@ print(
       query_title = i18n("search_host"),
       style       = "width:16em;",
       before_submit = [[makeFindHostBeforeSubmitCallback("]] .. ntop.getHttpPrefix() .. [[")]],
+      max_items   = "'all'" --[[ let source script decide ]],
     }
   })
 )
@@ -580,3 +593,4 @@ print[[<button type="button" class="close" data-dismiss="alert" aria-label="Clos
 print(i18n("about.influxdb_migration_msg", {url="https://www.ntop.org/ntopng/ntopng-and-time-series-from-rrd-to-influxdb-new-charts-with-time-shift/"}))
 print('</div>')
 
+telemetry_utils.show_notice()

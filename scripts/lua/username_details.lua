@@ -99,7 +99,7 @@ window.onload=function() {
    var refresh = ]] print(refresh_rate..'') print[[000 /* ms */;
 		    do_pie("#topProcesses", ']]
       print (ntop.getHttpPrefix())
-      print [[/lua/get_username_data.lua', { uid: "]] print(uid) print [[", ebpf_data: "processes" ]]
+      print [[/lua/get_username_data.lua', { username: "]] print(user_key) print [[", ebpf_data: "processes" ]]
       if (host_info ~= nil) then print(", "..hostinfo2json(host_info)) end
       print [[
  }, "", refresh);
@@ -108,9 +108,9 @@ window.onload=function() {
 ]]
 
    elseif(page == "username_ndpi") then
-      ebpf_utils.draw_ndpi_piecharts(ifstats, "get_username_data.lua", host_info, uid, nil)
+      ebpf_utils.draw_ndpi_piecharts(ifstats, "get_username_data.lua", host_info, user_key, nil)
    elseif page == "flows" then
-      ebpf_utils.draw_flows_datatable(ifstats, host_info, uid, nil)
+      ebpf_utils.draw_flows_datatable(ifstats, host_info, user_key, nil)
    end
 end
 

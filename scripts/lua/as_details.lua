@@ -99,8 +99,12 @@ if isEmptyString(page) or page == "historical" then
        drawGraphs(ifId, schema, tags, _GET["zoom"], asn_url, selected_epoch, {
          top_protocols = "top:asn:ndpi",
          timeseries = {
-            {schema="asn:traffic",                 label=i18n("traffic")},
-            {schema="asn:rtt",                     label=i18n("graphs.num_ms_rtt"), nedge_exclude=1},
+            {schema="asn:traffic",             label=i18n("traffic")},
+            {schema="asn:rtt",                 label=i18n("graphs.num_ms_rtt"), nedge_exclude=1},
+	    {schema="asn:tcp_retransmissions", label=i18n("graphs.tcp_packets_retr"), nedge_exclude=1},
+	    {schema="asn:tcp_out_of_order",    label=i18n("graphs.tcp_packets_ooo"), nedge_exclude=1},
+	    {schema="asn:tcp_lost",            label=i18n("graphs.tcp_packets_lost"), nedge_exclude=1},
+	    {schema="asn:tcp_keep_alive",      label=i18n("graphs.tcp_packets_keep_alive"), nedge_exclude=1},
          },
        })
    end

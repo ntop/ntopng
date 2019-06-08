@@ -94,18 +94,39 @@ local function schema_get_path(schema, tags)
   -- ifid is mandatory here
   local ifid = tags.ifid or -1
   local host_or_network = nil
+  local parts = string.split(schema.name, ":")
 
-  if (string.find(schema.name, "iface:") == nil) and
-     (string.find(schema.name, "process:") == nil) then
-    local parts = string.split(schema.name, ":")
+  if((string.find(schema.name, "iface:") ~= 1) and  -- interfaces are only identified by the first tag
+      (#schema._tags >= 2)) then                    -- some schema do not have 2 tags, e.g. "process:*" schemas
     host_or_network = (HOST_PREFIX_MAP[parts[1]] or (parts[1] .. ":")) .. tags[schema._tags[2]]
+  end
 
-    if parts[1] == "snmp_if" then
-       suffix = tags.if_index .. "/"
-    elseif (parts[1] == "flowdev_port") or (parts[1] == "sflowdev_port") then
-       suffix = tags.port .. "/"
-    elseif parts[2] == "ndpi_categories" then
-       suffix = "ndpi_categories/"
+  -- Some exceptions to avoid conflicts / keep compatibility
+  if parts[1] == "snmp_if" then
+     suffix = tags.if_index .. "/"
+  elseif (parts[1] == "flowdev_port") or (parts[1] == "sflowdev_port") then
+     suffix = tags.port .. "/"
+  elseif parts[2] == "ndpi_categories" then
+     suffix = "ndpi_categories/"
+  elseif #schema._tags >= 3 then
+    local intermediate_tags = {}
+
+    -- tag1:ifid
+    -- tag2:already handled as host_or_network
+    -- last tag must be handled separately
+    for i=3, #schema._tags-1 do
+      intermediate_tags[#intermediate_tags + 1] = tags[schema._tags[i]]
+    end
+
+    local last_tag = schema._tags[#schema._tags]
+
+    if(not WILDCARD_TAGS[last_tag]) then
+      intermediate_tags[#intermediate_tags + 1] = tags[last_tag]
+    end
+
+    if intermediate_tags[1] ~= nil then
+      -- All the intermediate tags should be mapped in the path
+      suffix = table.concat(intermediate_tags, "/") .. "/"
     end
   end
 
@@ -115,7 +136,7 @@ local function schema_get_path(schema, tags)
   return path, rrd
 end
 
-local function schema_get_full_path(schema, tags)
+function driver.schema_get_full_path(schema, tags)
   local base, rrd = schema_get_path(schema, tags)
   local full_path = os_utils.fixPath(base .. "/" .. rrd .. ".rrd")
 
@@ -144,7 +165,7 @@ function find_schema(rrdFile, rrdfname, tags, ts_utils)
       end
     end
 
-    local full_path = schema_get_full_path(schema, tags)
+    local full_path = driver.schema_get_full_path(schema, tags)
 
     if full_path == rrdFile then
       return schema_name
@@ -237,6 +258,22 @@ end
 
 -- ##############################################
 
+local function handle_old_rrd_tune(schema, rrdfile)
+  -- In this case the only thing we can do is to remove the file and create a new one
+  if ntop.getCache("ntopng.cache.rrd_format_change_warning_shown") ~= "1" then
+    traceError(TRACE_WARNING, TRACE_CONSOLE, "RRD format change detected, incompatible RRDs will be moved to '.rrd.bak' files")
+    ntop.setCache("ntopng.cache.rrd_format_change_warning_shown", "1")
+  end
+
+  os.rename(rrdfile, rrdfile .. ".bak")
+
+  if(not create_rrd(schema, rrdfile)) then
+    return false
+  end
+
+  return true
+end
+
 local function add_missing_ds(schema, rrdfile, cur_ds)
   local cur_metrics = map_metrics_to_rrd_columns(cur_ds)
   local new_metrics = map_metrics_to_rrd_columns(#schema._metrics)
@@ -249,7 +286,7 @@ local function add_missing_ds(schema, rrdfile, cur_ds)
     return false
   end
 
-  traceError(TRACE_NORMAL, TRACE_CONSOLE, "RRD format changed, trying to fix " .. rrdfile)
+  traceError(TRACE_INFO, TRACE_CONSOLE, "RRD format changed [schema=".. schema.name .."], trying to fix " .. rrdfile)
 
   local params = {rrdfile, }
   local heartbeat = schema.options.rrd_heartbeat or (schema.options.step * 2)
@@ -269,11 +306,22 @@ local function add_missing_ds(schema, rrdfile, cur_ds)
 
   local err = ntop.rrd_tune(table.unpack(params))
   if(err ~= nil) then
-    traceError(TRACE_ERROR, TRACE_CONSOLE, err)
-    return false
+    if(string.find(err, "unknown data source name") ~= nil) then
+      -- the RRD was already mangled by incompatible rrd_tune
+      return handle_old_rrd_tune(schema, rrdfile)
+    else
+      traceError(TRACE_ERROR, TRACE_CONSOLE, err)
+      return false
+    end
   end
 
-  traceError(TRACE_NORMAL, TRACE_CONSOLE, "RRD successfully fixed: " .. rrdfile)
+  -- Double check as some older implementations do not support adding a column and will silently fail
+  local last_update, num_ds = ntop.rrd_lastupdate(rrdfile)
+  if num_ds ~= #new_metrics then
+    return handle_old_rrd_tune(schema, rrdfile)
+  end
+
+  traceError(TRACE_INFO, TRACE_CONSOLE, "RRD successfully fixed: " .. rrdfile)
   return true
 end
 
@@ -296,12 +344,32 @@ local function update_rrd(schema, rrdfile, timestamp, data, dont_recover)
     if(dont_recover ~= true) then
       -- Try to recover
       local last_update, num_ds = ntop.rrd_lastupdate(rrdfile)
+      local retry = false
 
-      if num_ds < #schema._metrics then
+      if((num_ds ~= nil) and (num_ds < #schema._metrics)) then
         if add_missing_ds(schema, rrdfile, num_ds) then
-          -- retry
-          return update_rrd(schema, rrdfile, timestamp, data, true --[[ do not recovery again ]])
+          retry = true
         end
+      elseif((num_ds == 2) and (schema.name == "iface:traffic")) then
+        -- The RRD is corrupted due to collision between "iface:traffic" and "evexporter_iface:traffic"
+        traceError(TRACE_WARNING, TRACE_CONSOLE, "'evexporter_iface:traffic' schema collision detected on " .. rrdfile .. ", moving RRD to .old")
+        local rv, errmsg = os.rename(rrdfile, rrdfile..".old")
+
+        if(rv == nil) then
+          traceError(TRACE_ERROR, TRACE_CONSOLE, errmsg)
+          return false
+        end
+
+        if(not create_rrd(schema, rrdfile)) then
+          return false
+        end
+
+        retry = true
+      end
+
+      if retry then
+        -- Problem possibly fixed, retry
+        return update_rrd(schema, rrdfile, timestamp, data, true --[[ do not recovery again ]])
       end
     end
 
@@ -538,7 +606,7 @@ local function _listSeries(schema, tags_filter, wildcard_tags, start_time)
   local wildcard_tag = wildcard_tags[1]
 
   if not wildcard_tag then
-    local full_path = schema_get_full_path(schema, tags_filter)
+    local full_path = driver.schema_get_full_path(schema, tags_filter)
     local last_update = ntop.rrd_lastupdate(full_path)
 
     if last_update ~= nil and last_update >= start_time then
@@ -565,7 +633,6 @@ local function _listSeries(schema, tags_filter, wildcard_tags, start_time)
       local last_update = ntop.rrd_lastupdate(fpath)
 
       if last_update ~= nil and last_update >= start_time then
-        -- TODO remove after migration
         local value = v[1]
         local toadd = false
 
@@ -647,7 +714,7 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
   end
 
   for _, serie_tags in pairs(series) do
-    local rrdfile = schema_get_full_path(schema, serie_tags)
+    local rrdfile = driver.schema_get_full_path(schema, serie_tags)
 
     if isDebugEnabled() then
       traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("RRD_FETCH[topk] schema=%s %s[%s] -> (%s): last_update=%u",
@@ -754,7 +821,7 @@ end
 -- ##############################################
 
 function driver:queryTotal(schema, tstart, tend, tags, options)
-  local rrdfile = schema_get_full_path(schema, tags)
+  local rrdfile = driver.schema_get_full_path(schema, tags)
 
   if not ntop.exists(rrdfile) then
      return nil

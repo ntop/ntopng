@@ -163,7 +163,8 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   memset(&names, 0, sizeof(names));
   asn = 0, asname = NULL;
   as = NULL, country = NULL;
-  blacklisted_host = false, reloadHostBlacklist();
+  blacklisted_host = false;
+  reloadHostBlacklist();
   is_dhcp_host = false;
 
   num_alerts_detected = 0;
@@ -622,8 +623,10 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
 
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[pkts_thpt: %.2f] [pkts_thpt_trend: %d]", pkts_thpt,pkts_thpt_trend);
 
+  fingerprints.ssl.lua("ssl_fingerprint", vm);
+  
   if(verbose) {
-    char *rsp = serialize();
+    char *rsp = getSerializedString();
     lua_push_str_table_entry(vm, "json", rsp);
     free(rsp);
 
@@ -769,12 +772,13 @@ bool Host::idle() {
 void Host::incStats(u_int32_t when, u_int8_t l4_proto, u_int ndpi_proto,
 		    custom_app_t custom_app,
 		    u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
-		    u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes) {
+		    u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes,
+        bool peer_is_unicast) {
 
   if(sent_bytes || rcvd_bytes) {
     stats->incStats(when, l4_proto, ndpi_proto, custom_app,
 		    sent_packets, sent_bytes, sent_goodput_bytes, rcvd_packets,
-		    rcvd_bytes, rcvd_goodput_bytes);
+		    rcvd_bytes, rcvd_goodput_bytes, peer_is_unicast);
 
     updateSeen();
   }
@@ -782,24 +786,26 @@ void Host::incStats(u_int32_t when, u_int8_t l4_proto, u_int ndpi_proto,
 
 /* *************************************** */
 
-char* Host::serialize() {
-  json_object *my_object = getJSONObject(details_max);
-  char *rsp = strdup(json_object_to_json_string(my_object));
+char* Host::getSerializedString() {
+  json_object *my_object = json_object_new_object();
 
-  /* Free memory */
-  json_object_put(my_object);
+  if(my_object) {
+    char *rsp = strdup(json_object_to_json_string(my_object));
 
-  return(rsp);
+    /* Free memory */
+    json_object_put(my_object);
+
+    return(rsp);
+  }
+
+  return(NULL);
 }
 
 /* *************************************** */
 
-json_object* Host::getJSONObject(DetailsLevel details_level) {
-  json_object *my_object;
+void Host::serialize(json_object *my_object, DetailsLevel details_level) {
   char buf[96];
   Mac *m = mac;
-
-  if((my_object = json_object_new_object()) == NULL) return(NULL);
 
   stats->getJSONObject(my_object, details_level);
 
@@ -809,8 +815,7 @@ json_object* Host::getJSONObject(DetailsLevel details_level) {
   json_object_object_add(my_object, "ifid", json_object_new_int(iface->get_id()));
 
   if(details_level >= details_high) {
-    json_object_object_add(my_object, "seen.first", json_object_new_int64(first_seen));
-    json_object_object_add(my_object, "seen.last",  json_object_new_int64(last_seen));
+    GenericHashEntry::getJSONObject(my_object, details_level);
     json_object_object_add(my_object, "last_stats_reset", json_object_new_int64(last_stats_reset));
     json_object_object_add(my_object, "asn", json_object_new_int(asn));
 
@@ -832,8 +837,6 @@ json_object* Host::getJSONObject(DetailsLevel details_level) {
 
   /* The value below is handled by reading dumps on disk as otherwise the string will be too long */
   //json_object_object_add(my_object, "activityStats", activityStats.getJSONObject());
-
-  return(my_object);
 }
 
 /* *************************************** */
@@ -1274,11 +1277,6 @@ bool Host::statsResetRequested() {
 /* *************************************** */
 
 void Host::updateStats(struct timeval *tv) {
-  if(stats_shadow) {
-    delete stats_shadow;
-    stats_shadow = NULL;
-  }
-
   checkDataReset();
   checkStatsReset();
   checkBroadcastDomain();
@@ -1304,6 +1302,11 @@ void Host::updateStats(struct timeval *tv) {
 /* *************************************** */
 
 void Host::checkStatsReset() {
+  if(stats_shadow) {
+    delete stats_shadow;
+    stats_shadow = NULL;
+  }
+
   if(statsResetRequested()) {
     HostStats *new_stats = allocateStats();
     stats_shadow = stats;
@@ -1398,10 +1401,11 @@ void Host::dissectDropbox(const char *payload, u_int16_t payload_len) {
 
     if(json_object_object_get_ex(o, "namespaces", &obj)) {
       struct array_list *l = json_object_get_array(obj);
-
+      u_int len = (u_int)array_list_length(l);
+      
       dropbox_namespaces.clear();
 
-      for(u_int i=0; i<array_list_length(l); i++) {
+      for(u_int i=0; i<len; i++) {
 	struct json_object *element = json_object_array_get_idx(obj, i);
 	u_int32_t ns = json_object_get_int(element);
 

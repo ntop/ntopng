@@ -35,8 +35,8 @@ class MacStats: public GenericTrafficElement {
   MacStats(NetworkInterface *_iface);
 
   void lua(lua_State* vm, bool show_details);
-  void deserialize(json_object *obj);
-  void getJSONObject(json_object *my_object);
+  inline void deserialize(json_object *obj)         { GenericTrafficElement::deserialize(obj, iface); }
+  inline void getJSONObject(json_object *my_object) { GenericTrafficElement::getJSONObject(my_object, iface); }
 
   inline u_int64_t  getNumSentArp()   { return (u_int64_t)arp_stats.sent.requests.get() + arp_stats.sent.replies.get(); }
   inline u_int64_t  getNumRcvdArp()   { return (u_int64_t)arp_stats.rcvd.requests.get() + arp_stats.rcvd.replies.get(); }

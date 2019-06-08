@@ -30,8 +30,6 @@ AddressTree::AddressTree(bool handleIPv6) { init(handleIPv6); }
 /* **************************************** */
 
 AddressTree::AddressTree(const AddressTree &at) {
-  MacKey_t *current, *tmp;
-
   ptree_v4 = patricia_clone(at.ptree_v4);
 
   if(at.ptree_v6)
@@ -39,15 +37,7 @@ AddressTree::AddressTree(const AddressTree &at) {
   else
     ptree_v6 = NULL;
   
-  macs = NULL;
-  HASH_ITER(hh, at.macs, current, tmp) {
-    MacKey_t *s;
-    
-    if((s = (MacKey_t*)calloc(1, sizeof(MacKey_t))) != NULL)
-      memcpy(s, current, sizeof(MacKey_t));
-      HASH_ADD(hh, macs, mac, 6, s);
-  }
-
+  macs = at.macs;
   numAddresses = at.numAddresses;
 }
 
@@ -61,7 +51,7 @@ static void free_ptree_data(void *data) {
 
 void AddressTree::init(bool handleIPv6) {
   numAddresses = 0;
-  ptree_v4 = New_Patricia(32), macs = NULL;
+  ptree_v4 = New_Patricia(32), macs.clear();
 
   if(handleIPv6)
     ptree_v6 = New_Patricia(128);
@@ -171,21 +161,13 @@ bool AddressTree::addAddress(const char * const _what, const int16_t user_data) 
   if(sscanf(_what, "%02X:%02X:%02X:%02X:%02X:%02X",
 	    &_mac[0], &_mac[1], &_mac[2],
 	    &_mac[3], &_mac[4], &_mac[5]) == 6) {
-    int16_t v;
     u_int8_t mac[6];
+    u_int64_t mac_num;
 
     for(int i=0; i<6; i++) mac[i] = (u_int8_t)_mac[i];
 
-    if((v = findMac(mac)) == -1) {
-      /* Not found: let's add it */
-      MacKey_t *s;
-
-      if((s = (MacKey_t*)malloc(sizeof(MacKey_t))) != NULL) {
-	memcpy(s->mac, mac, 6), s->value = id;
-	HASH_ADD(hh, macs, mac, 6, s);
-      } else
-	return(false);
-    }
+    mac_num = Utils::mac2int(mac);
+    macs[mac_num] = id;
   } else {
     patricia_node_t *node = Utils::ptree_add_rule(strchr(_what, '.') ? ptree_v4 : ptree_v6, _what);
 
@@ -285,11 +267,14 @@ int16_t AddressTree::findAddress(int family, void *addr, u_int8_t *network_mask_
 /* ******************************************* */
 
 int16_t AddressTree::findMac(const u_int8_t addr[]) {
-  MacKey_t *s = NULL;
+  std::map<u_int64_t, int16_t>::iterator it;
+  u_int64_t mac_num = Utils::mac2int((u_int8_t *)addr);
 
-  HASH_FIND(hh, macs, addr, 6, s);
+  it = macs.find(mac_num);
+  if(it != macs.end())
+    return(it->second);
 
-  return(s ? s->value : -1);
+  return(-1);
 }
 
 /* **************************************************** */
@@ -322,26 +307,25 @@ static void address_tree_dump_funct(patricia_node_t * node, void *data, void *us
 /* **************************************************** */
 
 void AddressTree::getAddresses(lua_State* vm) const {
+  std::map<u_int64_t, int16_t>::const_iterator it;
+
   if(ptree_v4->head)
     patricia_walk_inorder(ptree_v4->head, address_tree_dump_funct, vm);
 
   if(ptree_v6 && ptree_v6->head)
     patricia_walk_inorder(ptree_v6->head, address_tree_dump_funct, vm);
 
-  if(macs) {
-    MacKey_t *current, *tmp;
+  for(it = macs.begin(); it != macs.end(); ++it) {
+    char key[32], val[8];
+    u_int8_t *mac = (u_int8_t*)&it->first;
 
-    HASH_ITER(hh, macs, current, tmp) {
-      char key[32], val[8];
+    snprintf(key, sizeof(key), "%02X:%02X:%02X:%02X:%02X:%02X",
+       mac[0], mac[1], mac[2],
+       mac[3], mac[4], mac[5]);
 
-      snprintf(key, sizeof(key), "%02X:%02X:%02X:%02X:%02X:%02X",
-	       current->mac[0], current->mac[1], current->mac[2],
-	       current->mac[3], current->mac[4], current->mac[5]);
+    snprintf(val, sizeof(val), "%u", it->second);
 
-      snprintf(val, sizeof(val), "%u", current->value);
-
-      lua_push_str_table_entry(vm, key, val);
-    }
+    lua_push_str_table_entry(vm, key, val);
   }
 }
 /* **************************************************** */
@@ -357,24 +341,23 @@ void AddressTree::walk(void_fn3_t func, void * const user_data) const {
 /* **************************************************** */
 
 void AddressTree::dump() {
+  std::map<u_int64_t, int16_t>::iterator it;
+
   if(ptree_v4->head)
     patricia_walk_inorder(ptree_v4->head, address_tree_dump_funct, NULL);
   
   if(ptree_v6 && ptree_v6->head)
     patricia_walk_inorder(ptree_v6->head, address_tree_dump_funct, NULL);
 
-  if(macs) {
-    MacKey_t *current, *tmp;
+  for(it = macs.begin(); it != macs.end(); ++it) {
+    char key[32];
+    u_int8_t *mac = (u_int8_t*)&it->first;
     
-    HASH_ITER(hh, macs, current, tmp) {
-      char key[32];
-      
-      snprintf(key, sizeof(key), "%02X:%02X:%02X:%02X:%02X:%02X",
-	       current->mac[0], current->mac[1], current->mac[2],
-	       current->mac[3], current->mac[4], current->mac[5]);
-      
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[AddressTree] %s", key);
-    }
+    snprintf(key, sizeof(key), "%02X:%02X:%02X:%02X:%02X:%02X",
+       mac[0], mac[1], mac[2],
+       mac[3], mac[4], mac[5]);
+
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[AddressTree] %s", key);
   }
 }
 
@@ -384,12 +367,5 @@ void AddressTree::cleanup() {
   if(ptree_v4) Destroy_Patricia(ptree_v4, free_ptree_data);
   if(ptree_v6) Destroy_Patricia(ptree_v6, free_ptree_data);
 
-  if(macs) {
-    MacKey_t *current, *tmp;
-    
-    HASH_ITER(hh, macs, current, tmp) {
-      HASH_DEL(macs, current);  /* delete it */
-      free(current);         /* free it */
-    }
-  }  
+  macs.clear();
 }

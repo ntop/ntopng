@@ -45,22 +45,7 @@ extern struct keyval string_to_replace[]; /* Lua.cpp */
 
 /* ******************************************* */
 
-#ifdef HAVE_EBPF
-static void ebpfHandler(void* t_bpfctx, void* t_data, int t_datasize) {
-  eBPFevent *event = (eBPFevent*)t_data;
-
-  if(ntop->isStarted())
-    ntop->deliverEventToInterfaces(event);
-}
-#endif
-
-/* ******************************************* */
-
 Ntop::Ntop(char *appName) {
-#ifdef HAVE_EBPF
-  ebpfRetCode rc;
-#endif
-  
   ntop = this;
   globals = new NtopGlobals();
   extract = new TimelineExtract();
@@ -74,11 +59,14 @@ Ntop::Ntop(char *appName) {
   trackers_automa = NULL;
   num_cpus = -1;
   num_defined_interfaces = 0;
+  num_dump_interfaces = 0;
   iface = NULL;
   start_time = 0, epoch_buf[0] = '\0'; /* It will be initialized by start() */
   last_stats_reset = 0;
   is_started = false;
   httpd = NULL, geo = NULL, mac_manufacturers = NULL;
+  memset(&cpu_stats, 0, sizeof(cpu_stats));
+  cpu_load = 0;
 
 #ifdef WIN32
   if(SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, working_dir) != S_OK) {
@@ -159,18 +147,6 @@ Ntop::Ntop(char *appName) {
 #ifndef WIN32
   setservent(1);
 #endif
-
-#ifdef HAVE_EBPF
-  if(getuid() == 0) {
-    ebpf = init_ebpf_flow(this, ebpfHandler, &rc, 0xFFFF);
-    
-    if(!ebpf)
-      ntop->getTrace()->traceEvent(TRACE_ERROR,
-				   "Unable to initialize libebpfflow: %s",
-				   ebpf_print_error(rc));
-  } else
-    ebpf = NULL;
-#endif
 }
 
 /* ******************************************* */
@@ -217,6 +193,7 @@ Ntop::~Ntop() {
   }
 
   delete []iface;
+  delete system_interface;
 
   if(udp_socket != -1) closesocket(udp_socket);
 
@@ -310,7 +287,9 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
 #endif
 
   if(quick_registration) return;
-  
+
+  system_interface = new NetworkInterface(SYSTEM_INTERFACE_NAME, SYSTEM_INTERFACE_NAME);
+
   /* License check could have increased the number of interfaces available */
   resetNetworkInterfaces();
 
@@ -391,40 +370,12 @@ void Ntop::createExportInterface() {
 
 /* ******************************************* */
 
-#ifdef HAVE_EBPF
- 
- void Ntop::pollEBPF() {
-   while((!ntop->getGlobals()->isShutdown())
-	 && (!ntop->getGlobals()->isShutdownRequested()))
-     ebpf_poll_event(ebpf, 100);
-
-   if(getuid() == 0)
-     term_ebpf_flow(ebpf);
- }
-
- /* ******************************************* */
- 
-static void* ebpfLoopFctn(void* ptr) {
-  Ntop *ntop = (Ntop*)ptr;
-  
-  Utils::setThreadName("ebpfLoop");
-
-  ntop->pollEBPF();
-  return(NULL);
-}
-#endif
-
-/* ******************************************* */
-
 void Ntop::start() {
   struct timeval begin, end;
   u_long usec_diff;
   char daybuf[64], buf[32];
   time_t when = time(NULL);
   int i = 0;
-#ifdef HAVE_EBPF
-  pthread_t ebpfLoop;
-#endif
 
   getTrace()->traceEvent(TRACE_NORMAL,
 			 "Welcome to %s %s v.%s - (C) 1998-19 ntop.org",
@@ -466,6 +417,8 @@ void Ntop::start() {
   
   address->startResolveAddressLoop();
 
+  system_interface->allocateNetworkStats();
+
   for(int i=0; i<num_defined_interfaces; i++)
     iface[i]->allocateNetworkStats();  
 
@@ -491,10 +444,6 @@ void Ntop::start() {
     iface[i]->checkPointCounters(true); /* Reset drop counters */
 
   is_started = true;
-  
-#ifdef HAVE_EBPF
-  pthread_create(&ebpfLoop, NULL, ebpfLoopFctn, (void*)this);
-#endif
 
   /* Align to the next 5-th second of the clock to make sure
      housekeeping starts alinged (and remains aligned when
@@ -1974,6 +1923,9 @@ void Ntop::setLocalNetworks(char *_nets) {
 /* ******************************************* */
 
 NetworkInterface* Ntop::getInterfaceById(int if_id) {
+  if(if_id == -1)
+    return(system_interface);
+
   for(int i=0; i<num_defined_interfaces; i++) {
     if(iface[i] && iface[i]->get_id() == if_id)
       return(iface[i]);
@@ -1998,7 +1950,7 @@ bool Ntop::isExistingInterface(const char * const name) const {
 
 /* ******************************************* */
 
-NetworkInterface* Ntop::getNetworkInterface(lua_State* vm, const char *name) {
+NetworkInterface* Ntop::getNetworkInterface(const char *name, lua_State* vm) {
   char allowed_ifname[MAX_INTERFACE_NAME_LEN] = {0};
 
   if(vm && getInterfaceAllowed(vm, allowed_ifname)) {
@@ -2013,6 +1965,9 @@ NetworkInterface* Ntop::getNetworkInterface(lua_State* vm, const char *name) {
   /* This method accepts both interface names or Ids */
   int if_id = atoi(name);
   char str[8];
+
+  if((if_id == SYSTEM_INTERFACE_ID) || !strcmp(name, SYSTEM_INTERFACE_NAME))
+    return(getSystemInterface());
 
   snprintf(str, sizeof(str), "%d", if_id);
   if (strcmp(name, str) == 0) {
@@ -2036,7 +1991,7 @@ NetworkInterface* Ntop::getNetworkInterface(lua_State* vm, const char *name) {
 /* ******************************************* */
 
 int Ntop::getInterfaceIdByName(lua_State *vm, const char * const name) {
-  NetworkInterface * res = getNetworkInterface(vm, name);
+  NetworkInterface * res = getNetworkInterface(name, vm);
 
   if(res)
     return res->get_id();
@@ -2075,7 +2030,8 @@ bool Ntop::registerInterface(NetworkInterface *_if) {
 /* ******************************************* */
 
 void Ntop::initInterface(NetworkInterface *_if) {
-  _if->finishInitialization(num_defined_interfaces);
+  if(_if->initFlowDump(num_dump_interfaces))
+    num_dump_interfaces++;
   _if->checkAggregationMode();
   _if->startDBLoop();
 }
@@ -2286,26 +2242,6 @@ bool Ntop::addToNotifiedInformativeCaptivePortal(u_int32_t client_ip) {
   return true;
 }
 
-/* ******************************************* */
-
-#ifdef HAVE_EBPF
-void Ntop::deliverEventToInterfaces(eBPFevent *event) {
-  bool loopback_only = ((event->ip_version == 4) && (event->addr.v4.saddr ==  0x0100007f /* 127.0.0.1 */)) ? true : false;
- 
-  for(int i = 0; i < num_defined_interfaces; i++) {
-    bool pass;
-    
-    if(loopback_only)
-      pass = iface[i]->isLoopback() ? true : false;
-    else
-      pass = iface[i]->isLoopback() ? false : true;
-	
-    if(pass)
-      iface[i]->delivereBPFEvent(event);
-  }
-}
-#endif
-
 #endif
 
 /* ******************************************* */
@@ -2347,4 +2283,29 @@ void Ntop::resetStats() {
 
   /* Saving this is essential to reset inactive hosts across ntopng restarts */
   getRedis()->set(LAST_RESET_TIME, buf);
+}
+
+/* ******************************************* */
+
+void Ntop::refreshCpuLoad() {
+  cpu_load_stats old_stats = cpu_stats;
+  Utils::getCpuLoad(&cpu_stats);
+
+  if(old_stats.active > 0) {
+    float active = cpu_stats.active - old_stats.active;
+    float idle = cpu_stats.idle - old_stats.idle;
+    cpu_load = active * 100 / (active + idle);
+  }
+}
+
+/* ******************************************* */
+
+bool Ntop::getCpuLoad(float *out) {
+  if(cpu_stats.active > 0)
+   
+  if(cpu_stats.active > 0) {
+    *out = cpu_load;
+    return(true);
+  } else
+    return(false);
 }

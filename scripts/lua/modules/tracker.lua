@@ -21,12 +21,14 @@ function tracker.log(f_name, f_args)
   end
 
   local ifid = stats.id
+  local remote_addr = _SERVER["REMOTE_ADDR"]
 
   local jobj = { 
     scope = 'function',
     name = f_name,
     params = f_args,
-    ifid = ifid
+    ifid = ifid,
+    remote_addr = remote_addr
   }
 
   local entity = alertEntity("user")
@@ -43,8 +45,7 @@ function tracker.log(f_name, f_args)
   -- tprint(alert_json)
 
   local old_iface = ifid
-  local sys_iface = getFirstInterfaceId()
-  interface.select(tostring(sys_iface))
+  interface.select(getSystemInterfaceId())
 
   interface.storeAlert(entity, entity_value, alert_type, alert_severity, alert_json)
 

@@ -29,11 +29,15 @@ Vlan::Vlan(NetworkInterface *_iface, u_int16_t _vlan_id) : GenericHashEntry(_ifa
 #ifdef VLAN_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Created VLAN %u", vlan_id);
 #endif
+
+  deserializeFromRedis();
 }
 
 /* *************************************** */
 
 Vlan::~Vlan() {
+  serializeToRedis();
+
   /* TODO: decide if it is useful to dump AS stats to redis */
 #ifdef VLAN_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deleted vlan %u", vlan_id);

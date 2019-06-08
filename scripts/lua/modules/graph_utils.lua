@@ -340,18 +340,25 @@ end
 function printGraphMenuEntries(entry_print_callback)
    local active_entries = {}
    local active_idx = 1 -- index in active_entries
+   local needs_separator = false
+   local separator_label = nil
 
    for _, entry in ipairs(graph_menu_entries) do
+      needs_separator = needs_separator or entry.needs_separator
+      separator_label = separator_label or entry.separator_label
+
       if(entry.pending and (entry.pending > 0)) then
          -- not verified, act like it does not exist
          goto continue
       end
 
-      if(entry.needs_separator) then
+      if(needs_separator) then
          print(makeMenuDivider())
+         needs_separator = false
       end
-      if(entry.separator_label) then
-         print(makeMenuHeader(entry.separator_label))
+      if(separator_label) then
+         print(makeMenuHeader(separator_label))
+         separator_label = nil
       end
 
       if entry.html then
@@ -376,11 +383,23 @@ function printSeries(options, tags, start_time, base_url, params)
    local needs_separator = false
    local separator_label = nil
    local batch_id_to_entry = {}
+   local device_timeseries_mac = options.device_timeseries_mac
+   local mac_tags = nil
+   local mac_params = nil
+   local mac_baseurl = ntop.getHttpPrefix() .. "/lua/mac_details.lua?page=historical"
 
    if params.tskey then
       -- this can contain a MAC address for local broadcast domain hosts
       tags = table.clone(tags)
       tags.host = params.tskey
+   end
+
+   if(device_timeseries_mac ~= nil) then
+      mac_tags = table.clone(tags)
+      mac_tags.host = nil
+      mac_tags.mac = device_timeseries_mac
+      mac_params = table.clone(params)
+      mac_params.host = device_timeseries_mac
    end
 
    for _, serie in ipairs(series) do
@@ -395,6 +414,10 @@ function printSeries(options, tags, start_time, base_url, params)
          local k = serie.schema
          local v = serie.label
          local exists = false
+         local entry_tags = tags
+         local entry_params = params
+         local entry_baseurl = base_url
+         local override_link = nil
 
          -- Contains the list of batch_ids to be associated to this menu entry.
          -- The entry can only be shown when all the batch_ids have been confirmed
@@ -426,8 +449,15 @@ function printSeries(options, tags, start_time, base_url, params)
                batch_ids[#batch_ids +1] = batch_id
             end
          elseif not exists then
+            if(mac_tags ~= nil) and (starts(k, "mac:")) then
+               -- This is a mac timeseries shown under the host
+               entry_tags = mac_tags
+               entry_params = mac_params
+               entry_baseurl = mac_baseurl
+            end
+
             -- only show if there has been an update within the specified time frame
-            local batch_id = ts_utils.batchListSeries(k, tags, start_time)
+            local batch_id = ts_utils.batchListSeries(k, entry_tags, start_time)
 
             if batch_id ~= nil then
                -- assume it exists for now, will verify in getBatchedListSeriesResult
@@ -437,8 +467,8 @@ function printSeries(options, tags, start_time, base_url, params)
          end
 
          if exists then
-            local entry = populateGraphMenuEntry(v, base_url, table.merge(params, {ts_schema=k}), nil,
-               needs_separator, separator_label, #batch_ids --[[ pending ]])
+            local entry = populateGraphMenuEntry(v, entry_baseurl, table.merge(entry_params, {ts_schema=k}), nil,
+               needs_separator, separator_label, #batch_ids --[[ pending ]], nil)
 
             if entry then
                for _, batch_id in pairs(batch_ids) do
@@ -562,7 +592,7 @@ function getMinZoomResolution(schema)
 
    if schema_obj then
       if schema_obj.options.step >= 300 then
-	 return '10m'
+	 return '30m'
       elseif schema_obj.options.step >= 60 then
          return '5m'
       end
@@ -588,8 +618,6 @@ end
 function drawGraphs(ifid, schema, tags, zoomLevel, baseurl, selectedEpoch, options)
    local debug_rrd = false
    options = options or {}
-
-   if(zoomLevel == nil) then zoomLevel = "5m" end
 
    if((selectedEpoch == nil) or (selectedEpoch == "")) then
       -- Refresh the page every minute unless:
@@ -621,14 +649,15 @@ print[[
        </script>]]
    end
 
+   local min_zoom = getMinZoomResolution(schema)
+   local min_zoom_k = 1
+   if(zoomLevel == nil) then zoomLevel = min_zoom end
+
    if ntop.isPro() then
       _ifstats = interface.getStats()
       drawProGraph(ifid, schema, tags, zoomLevel, baseurl, options)
       return
    end
-
-   local min_zoom = getMinZoomResolution(schema)
-   local min_zoom_k = 1
 
    nextZoomLevel = zoomLevel;
    epoch = tonumber(selectedEpoch);
@@ -1267,6 +1296,14 @@ function printCategoryDropdownButton(by_id, cat_id_or_name, base_url, page_param
 
    print('</ul></div>\', ')
    page_params["category"] = cat_id_or_name
+end
+
+-- #################################################
+
+function getDeviceCommonTimeseries()
+   return {
+      {schema="mac:arp_rqst_sent_rcvd_rpls", label=i18n("graphs.arp_rqst_sent_rcvd_rpls")},
+   }
 end
 
 -- #################################################

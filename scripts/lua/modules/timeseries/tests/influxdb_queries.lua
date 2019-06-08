@@ -58,6 +58,8 @@ end
 
 -- ##############################################
 
+-- When performing the derivative between two points, the delta must be calculated
+-- and accounted for the first point time
 function test_simple_derivative(test)
   local test_data = {
     {{v=1000}, now},
@@ -76,10 +78,10 @@ function test_simple_derivative(test)
 
   local rv = test_utils.timestampAsKey(test_utils.makeTimeStamp(res.series, res.start, schema.options.step))[1]
 
-  local t2 = test_data[2][2]
+  local t1 = test_data[1][2]
 
-  if not(rv[t2] == 1000) then
-    return test:assertion_failed("rv[t2=".. t2 .."] == 1000")
+  if not(rv[t1] == 1000) then
+    return test:assertion_failed("rv[t1=".. t1 .."] == 1000")
   end
 
   return test:success()
@@ -88,6 +90,11 @@ end
 -- ##############################################
 
 function run(tester)
+  if influxdb.db == nil then
+    print("Skipping influx_query tests. Enable InfluxDB export in order to test.<br/>")
+    return(true)
+  end
+
   local rv = tester.run_test("influx_query:test_simple_derivative", test_simple_derivative)
 
   return rv

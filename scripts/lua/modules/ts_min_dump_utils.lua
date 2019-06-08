@@ -58,13 +58,39 @@ function ts_dump.subnet_update_rrds(when, ifstats, verbose)
   local subnet_stats = interface.getNetworksStats()
 
   for subnet,sstats in pairs(subnet_stats) do
-    ts_utils.append("subnet:traffic", {ifid=ifstats.id, subnet=subnet,
-              bytes_ingress=sstats["ingress"], bytes_egress=sstats["egress"],
-              bytes_inner=sstats["inner"]}, when)
+     ts_utils.append("subnet:traffic",
+		     {ifid=ifstats.id, subnet=subnet,
+		      bytes_ingress=sstats["ingress"], bytes_egress=sstats["egress"],
+		      bytes_inner=sstats["inner"]}, when)
 
-    ts_utils.append("subnet:broadcast_traffic", {ifid=ifstats.id, subnet=subnet,
-              bytes_ingress=sstats["broadcast"]["ingress"], bytes_egress=sstats["broadcast"]["egress"],
-              bytes_inner=sstats["broadcast"]["inner"]}, when, verbose)
+     ts_utils.append("subnet:broadcast_traffic",
+		     {ifid=ifstats.id, subnet=subnet,
+		      bytes_ingress=sstats["broadcast"]["ingress"], bytes_egress=sstats["broadcast"]["egress"],
+		      bytes_inner=sstats["broadcast"]["inner"]}, when, verbose)
+
+     ts_utils.append("subnet:tcp_retransmissions",
+		     {ifid=ifstats.id, subnet=subnet,
+		      packets_ingress=sstats["tcpPacketStats.ingress"]["retransmissions"],
+		      packets_egress=sstats["tcpPacketStats.egress"]["retransmissions"],
+		      packets_inner=sstats["tcpPacketStats.inner"]["retransmissions"]}, when)
+
+     ts_utils.append("subnet:tcp_out_of_order",
+		     {ifid=ifstats.id, subnet=subnet,
+		      packets_ingress=sstats["tcpPacketStats.ingress"]["out_of_order"],
+		      packets_egress=sstats["tcpPacketStats.egress"]["out_of_order"],
+		      packets_inner=sstats["tcpPacketStats.inner"]["out_of_order"]}, when)
+
+     ts_utils.append("subnet:tcp_lost",
+		     {ifid=ifstats.id, subnet=subnet,
+		      packets_ingress=sstats["tcpPacketStats.ingress"]["lost"],
+		      packets_egress=sstats["tcpPacketStats.egress"]["lost"],
+		      packets_inner=sstats["tcpPacketStats.inner"]["lost"]}, when)
+
+     ts_utils.append("subnet:tcp_keep_alive",
+		     {ifid=ifstats.id, subnet=subnet,
+		      packets_ingress=sstats["tcpPacketStats.ingress"]["keep_alive"],
+		      packets_egress=sstats["tcpPacketStats.egress"]["keep_alive"],
+		      packets_inner=sstats["tcpPacketStats.inner"]["keep_alive"]}, when)
   end
 end
 
@@ -77,6 +103,17 @@ function ts_dump.iface_update_general_stats(when, ifstats, verbose)
   ts_utils.append("iface:devices", {ifid=ifstats.id, num_devices=ifstats.stats.devices}, when, verbose)
   ts_utils.append("iface:flows", {ifid=ifstats.id, num_flows=ifstats.stats.flows}, when, verbose)
   ts_utils.append("iface:http_hosts", {ifid=ifstats.id, num_hosts=ifstats.stats.http_hosts}, when, verbose)
+end
+
+function ts_dump.iface_update_l4_stats(when, ifstats, verbose)
+  for id, _ in pairs(l4_keys) do
+    k = l4_keys[id][2]
+    if((ifstats.stats[k..".bytes.sent"] ~= nil) and (ifstats.stats[k..".bytes.rcvd"] ~= nil)) then
+      ts_utils.append("iface:l4protos", {ifid=ifstats.id,
+                -- NOTE: direction may not be correct for PCAP interfaces, so it cannot be split
+                l4proto=tostring(k), bytes=ifstats.stats[k..".bytes.sent"] + ifstats.stats[k..".bytes.rcvd"]}, when, verbose)
+    end
+  end
 end
 
 function ts_dump.iface_update_tcp_stats(when, ifstats, verbose)
@@ -179,6 +216,7 @@ function ts_dump.run_min_dump(_ifname, ifstats, iface_ts, config, when, verbose)
 
     ts_dump.iface_update_stats_rrds(instant, _ifname, iface_point, verbose)
     ts_dump.iface_update_general_stats(instant, iface_point, verbose)
+    ts_dump.iface_update_l4_stats(instant, iface_point, verbose)
 
     if config.interface_ndpi_timeseries_creation == "per_protocol" or config.interface_ndpi_timeseries_creation == "both" then
       ts_dump.iface_update_ndpi_rrds(instant, _ifname, iface_point, verbose)

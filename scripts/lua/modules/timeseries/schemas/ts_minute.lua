@@ -34,6 +34,42 @@ schema:addMetric("bytes_ingress")
 schema:addMetric("bytes_egress")
 schema:addMetric("bytes_inner")
 
+-- ##############################################
+
+schema = ts_utils.newSchema("subnet:tcp_retransmissions", {step=60})
+schema:addTag("ifid")
+schema:addTag("subnet")
+schema:addMetric("packets_ingress")
+schema:addMetric("packets_egress")
+schema:addMetric("packets_inner")
+
+-- ##############################################
+
+schema = ts_utils.newSchema("subnet:tcp_out_of_order", {step=60})
+schema:addTag("ifid")
+schema:addTag("subnet")
+schema:addMetric("packets_ingress")
+schema:addMetric("packets_egress")
+schema:addMetric("packets_inner")
+
+-- ##############################################
+
+schema = ts_utils.newSchema("subnet:tcp_lost", {step=60})
+schema:addTag("ifid")
+schema:addTag("subnet")
+schema:addMetric("packets_ingress")
+schema:addMetric("packets_egress")
+schema:addMetric("packets_inner")
+
+-- ##############################################
+
+schema = ts_utils.newSchema("subnet:tcp_keep_alive", {step=60})
+schema:addTag("ifid")
+schema:addTag("subnet")
+schema:addMetric("packets_ingress")
+schema:addMetric("packets_egress")
+schema:addMetric("packets_inner")
+
 -------------------------------------------------------
 -- INTERFACES SCHEMAS
 -------------------------------------------------------
@@ -48,6 +84,13 @@ schema:addMetric("bytes")
 schema = ts_utils.newSchema("iface:ndpi_categories", {step=60})
 schema:addTag("ifid")
 schema:addTag("category")
+schema:addMetric("bytes")
+
+-- ##############################################
+
+schema = ts_utils.newSchema("iface:l4protos", {step=60})
+schema:addTag("ifid")
+schema:addTag("l4proto")
 schema:addMetric("bytes")
 
 -- ##############################################

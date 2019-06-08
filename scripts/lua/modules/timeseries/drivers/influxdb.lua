@@ -89,10 +89,14 @@ local function isRollupEnabled()
   return(ntop.getPref("ntopng.prefs.disable_influxdb_rollup") ~= "1")
 end
 
--- ##############################################
+ --##############################################
 
 -- Determines the most appropriate retention policy
 local function getSchemaRetentionPolicy(schema, tstart, tend, options)
+  if schema.options.influx_internal_query then
+    return "raw"
+  end
+
   options = options or {}
   local first_aggr_time = tonumber(ntop.getPref(FIRST_AGGREGATION_TIME_KEY))
 
@@ -439,7 +443,17 @@ end
 
 -- ##############################################
 
-local function makeSeriesQuery(query_schema, metrics, tags, tstart, tend, time_step)
+local function getDatabaseName(schema, db)
+  return ternary(schema.options.influx_internal_query, '_internal', db)
+end
+
+function driver:_makeSeriesQuery(query_schema, metrics, tags, tstart, tend, time_step, schema)
+  local internal_query = schema.options.influx_internal_query
+
+  if internal_query ~= nil then
+    return internal_query(self, schema, tstart, tend, time_step)
+  end
+
   return 'SELECT '.. table.concat(metrics, ",") ..' FROM ' .. query_schema .. where_tags(tags) ..
       " time >= " .. tstart .. "000000000 AND time <= " .. tend .. "000000000" ..
       " GROUP BY TIME(".. time_step .."s)"
@@ -471,10 +485,10 @@ function driver:query(schema, tstart, tend, tags, options)
     AND time >= 1531991910000000000 AND time <= 1532002710000000000
     GROUP BY TIME(60s)
   ]]
-  local query = makeSeriesQuery(query_schema, metrics, tags, tstart, tend + unaligned_offset, time_step)
+  local query = self:_makeSeriesQuery(query_schema, metrics, tags, tstart, tend + unaligned_offset, time_step, schema)
 
   local url = self.url
-  local data = influx_query(url .. "/query?db=".. self.db .."&epoch=s", query, self.username, self.password, options)
+  local data = influx_query(url .. "/query?db=".. getDatabaseName(schema, self.db) .."&epoch=s", query, self.username, self.password, options)
   local series, count
 
   if table.empty(data) then
@@ -529,8 +543,8 @@ function driver:query(schema, tstart, tend, tags, options)
       initial_metrics[idx] = "FIRST(" .. metric .. ")"
     end
 
-    local query = makeSeriesQuery(query_schema, metrics, tags, tstart-time_step, tstart+unaligned_offset, time_step)
-    local data = influx_query(url .. "/query?db=".. self.db .."&epoch=s", query, self.username, self.password, options)
+    local query = self:_makeSeriesQuery(query_schema, metrics, tags, tstart-time_step, tstart+unaligned_offset, time_step, schema)
+    local data = influx_query(url .. "/query?db=".. getDatabaseName(schema, self.db) .."&epoch=s", query, self.username, self.password, options)
 
     if table.empty(data) then
       -- Data fill
@@ -708,7 +722,7 @@ local function processListSeriesResult(data, schema, tags_filter, wildcard_tags)
   if table.empty(wildcard_tags) then
     -- Simple "exists" check
     if #data.series[1].values >= min_values_list_series then
-      return tags_filter
+      return {tags_filter}
     else
       return nil
     end
@@ -748,6 +762,11 @@ local function processListSeriesResult(data, schema, tags_filter, wildcard_tags)
 end
 
 function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
+  if schema.options.influx_internal_query then
+    -- internal metrics always exist
+    return {{}} -- exists
+  end
+
   local query = makeListSeriesQuery(schema, tags_filter, wildcard_tags, start_time)
   local url = self.url
   local data = influx_query(url .. "/query?db=".. self.db, query, self.username, self.password)
@@ -761,6 +780,8 @@ function driver:listSeriesBatched(batch)
   local max_batch_size = 30
   local url = self.url
   local rv = {}
+  local idx_to_batchid = {}
+  local internal_results = {}
 
   for i=1,#batch,max_batch_size do
     local queries = {}
@@ -768,7 +789,15 @@ function driver:listSeriesBatched(batch)
     -- Prepare the batch
     for j=i,math.min(i+max_batch_size-1, #batch) do
       local cur_query = batch[j]
-      queries[#queries +1] = makeListSeriesQuery(cur_query.schema, cur_query.filter_tags, cur_query.wildcard_tags, cur_query.start_time)
+
+      if cur_query.schema.options.influx_internal_query then
+        -- internal metrics always exist
+        internal_results[j] = {{}} -- exists
+      else
+        local idx = #queries +1
+        idx_to_batchid[idx] = j
+        queries[idx] = makeListSeriesQuery(cur_query.schema, cur_query.filter_tags, cur_query.wildcard_tags, cur_query.start_time)
+      end
     end
 
     local query_str = table.concat(queries, ";")
@@ -776,7 +805,8 @@ function driver:listSeriesBatched(batch)
 
     -- Collect the results
     if data and data.results then
-      for j, result in pairs(data.results) do
+      for idx, result in pairs(data.results) do
+        local j = idx_to_batchid[idx]
         local cur_query = batch[j]
         local result = processListSeriesResult(result, cur_query.schema, cur_query.filter_tags, cur_query.wildcard_tags)
         rv[j] = result
@@ -784,7 +814,7 @@ function driver:listSeriesBatched(batch)
     end
   end
 
-  return rv
+  return table.merge(rv, internal_results)
 end
 
 -- ##############################################
@@ -1044,15 +1074,55 @@ end
 
 -- ##############################################
 
-function driver:getDiskUsage()
-  local query = 'select SUM(last) FROM (select LAST(diskBytes) FROM "monitor"."shard" where "database" = \''.. self.db ..'\' group by id)'
-  local data = influx_query(self.url .. "/query?db=_internal", query, self.username, self.password)
+local function single_query(base_url, query, username, password)
+  local data = influx_query(base_url, query, username, password)
 
-  if data and data.series[1] and data.series[1].values[1] then
+  if data and data.series and data.series[1] and data.series[1].values[1] then
     return data.series[1].values[1][2]
   end
 
   return nil
+end
+
+-- ##############################################
+
+function driver:getDiskUsage()
+  local query = 'SELECT SUM(last) FROM (select LAST(diskBytes) FROM "monitor"."shard" where "database" = \''.. self.db ..'\' group by id)'
+  return single_query(self.url .. "/query?db=_internal", query, self.username, self.password)
+end
+
+-- ##############################################
+
+function driver:getMemoryUsage()
+  local query = 'SELECT LAST(Sys) FROM "_internal".."runtime"'
+  return single_query(self.url .. "/query?db=_internal", query, self.username, self.password)
+end
+
+-- ##############################################
+
+function driver:getSeriesCardinality()
+  local query = 'SELECT LAST("numSeries") FROM "_internal".."database" where "database"=\'' .. self.db ..'\''
+  return single_query(self.url .. "/query?db=_internal", query, self.username, self.password)
+end
+
+-- ##############################################
+
+function driver.getShardGroupDuration(days_retention)
+  -- https://docs.influxdata.com/influxdb/v1.7/query_language/database_management/#description-of-syntax-1
+  if days_retention < 2 then
+    return "1h"
+  elseif days_retention < 180 then
+    return "1d"
+  else
+    return "7d"
+  end
+end
+
+local function makeRetentionPolicyQuery(statement, rpname, dbname, retention)
+  return(string.format('%s RETENTION POLICY "%s" ON "%s" DURATION %ud REPLICATION 1 SHARD DURATION %s',
+    statement, rpname, dbname,
+    retention, driver.getShardGroupDuration(retention)
+  ))
 end
 
 -- ##############################################
@@ -1076,8 +1146,8 @@ local function updateCQRetentionPolicies(dbname, url, username, password)
   end
 
   local queries = {
-    string.format('%s RETENTION POLICY "1h" ON %s DURATION %ud REPLICATION 1', rp_1h_statement, dbname, get1hDatabaseRetentionDays()),
-    string.format('%s RETENTION POLICY "1d" ON %s DURATION %ud REPLICATION 1', rp_1d_statement, dbname, get1dDatabaseRetentionDays())
+    makeRetentionPolicyQuery(rp_1h_statement, "1h", dbname, get1hDatabaseRetentionDays()),
+    makeRetentionPolicyQuery(rp_1d_statement, "1d", dbname, get1dDatabaseRetentionDays())
   }
 
   return multiQueryPost(queries, url, username, password)
@@ -1173,7 +1243,7 @@ function driver.init(dbname, url, days_retention, username, password, verbose)
 
     -- Set retention
     if verbose then traceError(TRACE_NORMAL, TRACE_CONSOLE, "Setting retention for " .. dbname .. " ...") end
-    local query = "ALTER RETENTION POLICY autogen ON \"".. dbname .."\" DURATION ".. days_retention .."d"
+    local query = makeRetentionPolicyQuery("ALTER", "autogen", dbname, days_retention)
 
     local res = ntop.httpPost(url .. "/query", "q=" .. query, username, password, timeout, true)
     if not res or (res.RESPONSE_CODE ~= 200) then
@@ -1339,7 +1409,7 @@ function driver:setup(ts_utils)
   for _, schema in pairs(schemas) do
     local tags = table.concat(schema._tags, ",")
 
-    if #schema._metrics == 0 then
+    if((#schema._metrics == 0) or (schema.options.influx_internal_query)) then
       goto continue
     end
 

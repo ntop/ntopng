@@ -2,20 +2,20 @@
 -- (C) 2013-18 - ntop.org
 --
 
-dirs = ntop.getDirs()
+local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 
 sendHTTPContentTypeHeader('text/html')
 
 -- Table parameters
-all = _GET["all"]
-currentPage = _GET["currentPage"]
-perPage     = _GET["perPage"]
-sortColumn  = _GET["sortColumn"]
-sortOrder   = _GET["sortOrder"]
-protocol    = _GET["protocol"]
-key         = _GET["host"]
+local all = _GET["all"]
+local currentPage = _GET["currentPage"]
+local perPage     = _GET["perPage"]
+local sortColumn  = _GET["sortColumn"]
+local sortOrder   = _GET["sortOrder"]
+local protocol    = _GET["protocol"]
+local vhost         = _GET["vhost"]
 
 if((sortColumn == nil) or (sortColumn == "column_")) then
    sortColumn = getDefaultTableSort("http_hosts")
@@ -50,9 +50,9 @@ end
 
 interface.select(ifname)
 
-hosts_stats = interface.listHTTPhosts(key)
+local hosts_stats = interface.listHTTPhosts(vhost)
 
-to_skip = (currentPage-1) * perPage
+local to_skip = (currentPage-1) * perPage
 
 if(all ~= nil) then
    perPage = 0
@@ -60,21 +60,20 @@ if(all ~= nil) then
 end
 
 print("{ \"currentPage\" : " .. currentPage .. ",\n \"data\" : [\n")
-num = 0
-total = 0
+local num = 0
+local total = 0
 
-now = os.time()
-vals = {}
-num = 0
+local now = os.time()
+local vals = {}
+local num = 0
 
-sort_mode = mode
+local sort_mode = mode
 
 --
 if(hosts_stats ~= nil) then
 for key, value in pairs(hosts_stats) do
    num = num + 1
-   postfix = string.format("0.%04u", num)
-   ok = true
+   local postfix = string.format("0.%04u", num)
 
    if(sortColumn == "column_http_virtual_host") then
       vals[key] = key
@@ -103,10 +102,10 @@ end
 
 num = 0
 for _key, _value in pairsByKeys(vals, funct) do
-   key = vals[_key]
+   local key = vals[_key]
 
    if((key ~= nil) and (not(key == ""))) then
-      value = hosts_stats[key]
+      local value = hosts_stats[key]
 
       if(to_skip > 0) then
 	 to_skip = to_skip-1
@@ -120,7 +119,7 @@ for _key, _value in pairsByKeys(vals, funct) do
 	    print(' \"column_http_virtual_host\" : \"<A HREF=\'http://'..key..'\'>'..key.."</A> <i class='fa fa-external-link'></i>")
 
 	    print(" <A HREF='")
-	    url = ntop.getHttpPrefix().."/lua/flows_stats.lua?vhost="..key
+	    local url = ntop.getHttpPrefix().."/lua/flows_stats.lua?vhost="..key
 	    print(url.."'>")
 	    print("<i class='fa fa-search-plus fa-lg'></i>")
 	    print("</A>")

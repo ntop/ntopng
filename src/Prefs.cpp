@@ -50,10 +50,11 @@ Prefs::Prefs(Ntop *_ntop) {
     enable_syslog_alerts = false, enable_captive_portal = false, mac_based_captive_portal = false,
     enabled_malware_alerts = true, enabled_ids_alerts = true,
     enable_elephant_flows_alerts = false, enable_longlived_flows_alerts = true,
-    enable_arp_matrix_generation = false,
+    enable_arp_matrix_generation = false, enable_exfiltration_alerts = true,
     enable_informative_captive_portal = false,
     external_notifications_enabled = false, dump_flow_alerts_when_iface_alerted = false,
     override_dst_with_post_nat_dst = false, override_src_with_post_nat_src = false,
+    use_ports_to_determine_src_and_dst = false;
     hostMask = no_host_mask;
   enable_mac_ndpi_stats = false;
   auto_assigned_pool_id = NO_HOST_POOL_ID;
@@ -586,6 +587,8 @@ void Prefs::reloadPrefsFromRedis() {
 							     CONST_DEFAULT_ALERT_ELEPHANT_FLOWS_ENABLED),
     enable_longlived_flows_alerts  = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_ALERT_LONGLIVED_FLOWS,
 							      CONST_DEFAULT_ALERT_LONGLIVED_FLOWS_ENABLED),
+    enable_exfiltration_alerts = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_ALERT_DATA_EXFILTRATION,
+							      CONST_DEFAULT_ALERT_DATA_EXFILTRATION_ENABLED),
     enable_syslog_alerts  = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_ALERT_SYSLOG, CONST_DEFAULT_ALERT_SYSLOG_ENABLED),
     enabled_malware_alerts = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_MALWARE_ALERTS, CONST_DEFAULT_MALWARE_ALERTS_ENABLED),
     enabled_ids_alerts = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_IDS_ALERTS, CONST_DEFAULT_IDS_ALERTS_ENABLED),
@@ -596,6 +599,7 @@ void Prefs::reloadPrefsFromRedis() {
 
     override_dst_with_post_nat_dst = getDefaultBoolPrefsValue(CONST_DEFAULT_OVERRIDE_DST_WITH_POST_NAT, false),
     override_src_with_post_nat_src = getDefaultBoolPrefsValue(CONST_DEFAULT_OVERRIDE_SRC_WITH_POST_NAT, false),
+    use_ports_to_determine_src_and_dst = getDefaultBoolPrefsValue(CONST_DEFAULT_USE_PORTS_TO_DETERMINE_SRC_AND_DST, false),
 
     max_num_packets_per_tiny_flow = getDefaultPrefsValue(CONST_MAX_NUM_PACKETS_PER_TINY_FLOW,
 							 CONST_DEFAULT_MAX_NUM_PACKETS_PER_TINY_FLOW),
@@ -1307,11 +1311,13 @@ int Prefs::setOption(int optkey, char *optarg) {
     printVersionInformation();
 
 #ifdef NTOPNG_PRO
+    {
+    char buf[128];
     ntop->getTrace()->set_trace_level((u_int8_t)0);
     ntop->registerPrefs(this, true);
     ntop->getPro()->init_license();
     printf("Edition:\t%s\n",      ntop->getPro()->get_edition());
-    printf("License Type:\t%s\n", ntop->getPro()->get_license_type());
+    printf("License Type:\t%s\n", ntop->getPro()->get_license_type(buf, sizeof(buf)));
 
     if(ntop->getPro()->demo_ends_at())
       printf("Validity:\t%s\n", ntop->getPro()->get_demo_expiration(buf, sizeof(buf)));
@@ -1333,6 +1339,7 @@ int Prefs::setOption(int optkey, char *optarg) {
 
     if(ntop->getPro()->get_license()[0] != '\0')
       printf("License Hash:\t%s\n",      ntop->getPro()->get_license());
+    }
 #endif
     exit(0);
     break;

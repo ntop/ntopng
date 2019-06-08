@@ -53,8 +53,8 @@ Create Menu Bar with buttons
 local nav_url = ntop.getHttpPrefix().."/lua/network_details.lua?network="..tonumber(network)
 print [[
 <div class="bs-docs-example">
-            <nav class="navbar navbar-default" role="navigation">
-              <div class="navbar-collapse collapse">
+	    <nav class="navbar navbar-default" role="navigation">
+	      <div class="navbar-collapse collapse">
 <ul class="nav navbar-nav">
 ]]
 
@@ -68,30 +68,30 @@ end
 
 if areAlertsEnabled() and not ifstats.isView then
     if(page == "alerts") then
-        print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-warning fa-lg\"></i></a></li>\n")
+	print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-warning fa-lg\"></i></a></li>\n")
     else
-        print("\n<li><a href=\""..nav_url.."&page=alerts\"><i class=\"fa fa-warning fa-lg\"></i></a></li>")
+	print("\n<li><a href=\""..nav_url.."&page=alerts\"><i class=\"fa fa-warning fa-lg\"></i></a></li>")
     end
 end
 
 if ts_utils.getDriverName() == "rrd" then
    if ntop.isEnterprise() or ntop.isnEdge() then
       if(page == "traffic_report") then
-         print("\n<li class=\"active\"><a href=\"#\"><i class='fa fa-file-text report-icon'></i></a></li>\n")
+	 print("\n<li class=\"active\"><a href=\"#\"><i class='fa fa-file-text report-icon'></i></a></li>\n")
       else
-         print("\n<li><a href=\""..nav_url.."&page=traffic_report\"><i class='fa fa-file-text report-icon'></i></a></li>")
+	 print("\n<li><a href=\""..nav_url.."&page=traffic_report\"><i class='fa fa-file-text report-icon'></i></a></li>")
       end
    else
       print("\n<li><a href=\"#\" title=\""..i18n('enterpriseOnly').."\"><i class='fa fa-file-text report-icon'></i></A></li>\n")
    end
 end
-   
+
 if((network ~= nil) and (areAlertsEnabled())) then
     if(page == "config") then
-        print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-cog fa-lg\"></i></a></li>\n")
+	print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-cog fa-lg\"></i></a></li>\n")
 
     else
-        print("\n<li><a href=\""..nav_url.."&page=config\"><i class=\"fa fa-cog fa-lg\"></i></a></li>")
+	print("\n<li><a href=\""..nav_url.."&page=config\"><i class=\"fa fa-cog fa-lg\"></i></a></li>")
     end
 end
 
@@ -118,8 +118,12 @@ if page == "historical" then
 
     drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
       timeseries = {
-         {schema="subnet:traffic",              label=i18n("traffic")},
-         {schema="subnet:broadcast_traffic",    label=i18n("broadcast_traffic")},
+	 {schema="subnet:traffic",             label=i18n("traffic")},
+	 {schema="subnet:broadcast_traffic",   label=i18n("broadcast_traffic")},
+	 {schema="subnet:tcp_retransmissions", label=i18n("graphs.tcp_packets_retr"), nedge_exclude=1},
+	 {schema="subnet:tcp_out_of_order",    label=i18n("graphs.tcp_packets_ooo"), nedge_exclude=1},
+	 {schema="subnet:tcp_lost",            label=i18n("graphs.tcp_packets_lost"), nedge_exclude=1},
+	 {schema="subnet:tcp_keep_alive",      label=i18n("graphs.tcp_packets_keep_alive"), nedge_exclude=1},
       }
     })
 elseif (page == "config") then
@@ -138,9 +142,9 @@ elseif (page == "config") then
 
     if _SERVER["REQUEST_METHOD"] == "POST" then
       if _POST["trigger_alerts"] ~= "1" then
-         trigger_alerts = false
+	 trigger_alerts = false
       else
-         trigger_alerts = true
+	 trigger_alerts = true
       end
 
       ntop.setHashCache(get_alerts_suppressed_hash_name(getInterfaceId(ifname)), network_name, tostring(trigger_alerts))
@@ -151,28 +155,28 @@ elseif (page == "config") then
       trigger_alerts = ntop.getHashCache(get_alerts_suppressed_hash_name(getInterfaceId(ifname)), network_name)
 
       if trigger_alerts == "false" then
-         trigger_alerts = false
-         trigger_alerts_checked = ""
+	 trigger_alerts = false
+	 trigger_alerts_checked = ""
       else
-         trigger_alerts = true
-         trigger_alerts_checked = "checked"
+	 trigger_alerts = true
+	 trigger_alerts_checked = "checked"
       end
 
       print [[<tr>
-         <th>]] print(i18n("network_alert_config.trigger_network_alerts")) print[[</th>
-         <td>
-               <input type="checkbox" name="trigger_alerts" value="1" ]] print(trigger_alerts_checked) print[[>
-                  <i class="fa fa-exclamation-triangle fa-lg"></i>
-                  ]] print(i18n("network_alert_config.trigger_alerts_for_network",{network=network_name})) print[[
-               </input>
-         </td>
+	 <th>]] print(i18n("network_alert_config.trigger_network_alerts")) print[[</th>
+	 <td>
+	       <input type="checkbox" name="trigger_alerts" value="1" ]] print(trigger_alerts_checked) print[[>
+		  <i class="fa fa-exclamation-triangle fa-lg"></i>
+		  ]] print(i18n("network_alert_config.trigger_alerts_for_network",{network=network_name})) print[[
+	       </input>
+	 </td>
       </tr>]]
 
    print [[<tr>
-         <th>]] print(i18n("network_details.network_alias")) print[[</th>
-         <td>
-               <input type="text" name="custom_name" class="form-control" placeholder="Custom Name" style="width: 280px;" value="]] print(custom_name) print[[">
-         </td>
+	 <th>]] print(i18n("network_details.network_alias")) print[[</th>
+	 <td>
+	       <input type="text" name="custom_name" class="form-control" placeholder="Custom Name" style="width: 280px;" value="]] print(custom_name) print[[">
+	 </td>
       </tr>]]
 
    print[[
@@ -186,8 +190,8 @@ elseif (page == "config") then
 elseif(page == "alerts") then
 
     drawAlertSourceSettings("network", network_name,
-        i18n("show_alerts.network_delete_config_btn", {network=network_name}), "show_alerts.network_delete_config_confirm",
-        "network_details.lua", {network=network})
+	i18n("show_alerts.network_delete_config_btn", {network=network_name}), "show_alerts.network_delete_config_confirm",
+	"network_details.lua", {network=network})
 
 elseif page == "traffic_report" then
     dofile(dirs.installdir .. "/pro/scripts/lua/enterprise/traffic_report.lua")

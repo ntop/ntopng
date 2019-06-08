@@ -67,3 +67,19 @@ bool GenericHashEntry::isIdle(u_int max_idleness) {
   return(will_be_purged 
 	 || (((u_int)(iface->getTimeLastPktRcvd()) > (last_seen+max_idleness)) ? true : false));
 }
+
+/* ***************************************** */
+
+void GenericHashEntry::deserialize(json_object *o) {
+  json_object *obj;
+
+  if(json_object_object_get_ex(o, "seen.first", &obj)) first_seen = json_object_get_int64(obj);
+  if(json_object_object_get_ex(o, "seen.last", &obj))  last_seen  = json_object_get_int64(obj);
+}
+
+/* ***************************************** */
+
+void GenericHashEntry::getJSONObject(json_object *my_object, DetailsLevel details_level) {
+  json_object_object_add(my_object, "seen.first", json_object_new_int64(first_seen));
+  json_object_object_add(my_object, "seen.last",  json_object_new_int64(last_seen));
+}

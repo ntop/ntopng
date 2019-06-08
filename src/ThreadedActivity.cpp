@@ -173,7 +173,7 @@ void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface) {
     return;
   }
 
-  l->run_script(script_path, iface);
+  l->run_script(script_path, (iface ? iface : ntop->getSystemInterface()));
 
   if(iface == NULL)
     systemTaskRunning = false;
@@ -213,7 +213,13 @@ void ThreadedActivity::uSecDiffPeriodicActivityBody() {
 
 #ifndef PERIODIC_DEBUG
     if(usec_diff < max_duration) {
-      u_int diff = max_duration - usec_diff;
+      u_int diff;
+
+      if(periodicity == 1)
+        /* Align to the start of the second to avoid crossing second bounds */
+        diff = max_duration - end.tv_usec;
+      else
+        diff = max_duration - usec_diff;
 
       _usleep(diff);
     } /* else { the script took too long } */

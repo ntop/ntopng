@@ -31,7 +31,6 @@
 /* *************************************** */
 
 MacManufacturers::MacManufacturers(const char * const home) {
-  mac_manufacturers = NULL;
   snprintf(manufacturers_file, sizeof(manufacturers_file), "%s/other/%s", home ? home : "", "EtherOUI.txt");
   ntop->fixPath(manufacturers_file);
 
@@ -49,7 +48,7 @@ void MacManufacturers::init() {
   FILE *fd;
   char line[256], *cr;
   int _mac[3];
-  mac_manufacturers_t *s;
+  u_int32_t mac_key;
 
   if(!(stat(manufacturers_file, &buf) == 0) && (S_ISREG(buf.st_mode)))
     ntop->getTrace()->traceEvent(TRACE_ERROR, "File %s doesn't exists or is not readable",
@@ -97,32 +96,31 @@ void MacManufacturers::init() {
 	  *cr = '\0';
 
 	mac[0] = (u_int8_t)_mac[0], mac[1] = (u_int8_t)_mac[1], mac[2] = (u_int8_t)_mac[2];
-	HASH_FIND(hh, mac_manufacturers, mac, 3, s);
-	if(!s) {
-	  if((s = (mac_manufacturers_t*)calloc(1, sizeof(mac_manufacturers_t))) != NULL) {
-	    memcpy(s->mac_manufacturer, mac, 3);
+	mac_key = mac2key((u_int8_t*)mac);
 
-	    s->manufacturer_name = (char*)calloc(strlen(manuf) + 1, sizeof(char));
-	    strcpy(s->manufacturer_name, manuf);
-	    Utils::purifyHTTPparam(s->manufacturer_name, false, false, false);
+	if(mac_manufacturers.find(mac_key) == mac_manufacturers.end()) {
+	  mac_manufacturers_t s;
 
-	    s->short_name = (char*)calloc(strlen(shortmanuf) + 1, sizeof(char));
-	    strcpy(s->short_name, shortmanuf);
-	    Utils::purifyHTTPparam(s->short_name, false, false, false);
+	  s.manufacturer_name = (char*)calloc(strlen(manuf) + 1, sizeof(char));
+	  strcpy(s.manufacturer_name, manuf);
+	  Utils::purifyHTTPparam(s.manufacturer_name, false, false, false);
 
-	    /* TODO: reduce memory usage for recurrent manufacturers */
+	  s.short_name = (char*)calloc(strlen(shortmanuf) + 1, sizeof(char));
+	  strcpy(s.short_name, shortmanuf);
+	  Utils::purifyHTTPparam(s.short_name, false, false, false);
 
-	    HASH_ADD(hh, mac_manufacturers, mac_manufacturer, 3, s);
+	  /* TODO: reduce memory usage for recurrent manufacturers */
+
+	  mac_manufacturers[mac_key] = s;
 
 #ifdef MANUF_DEBUG
-	    ntop->getTrace()->traceEvent(TRACE_NORMAL,
-					 "Adding mac %02x:%02x:%02x [manufacturer name: %s]",
-					 s->mac_manufacturer[0],
-					 s->mac_manufacturer[1],
-					 s->mac_manufacturer[2],
-					 s->manufacturer_name);
+	  ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				       "Adding mac %02x:%02x:%02x [manufacturer name: %s]",
+				       s.mac_manufacturer[0],
+				       s.mac_manufacturer[1],
+				       s.mac_manufacturer[2],
+				       s.manufacturer_name);
 #endif
-	  }
 	}
       }
     }
@@ -134,12 +132,38 @@ void MacManufacturers::init() {
 /* *************************************** */
 
 MacManufacturers::~MacManufacturers() {
-  mac_manufacturers_t *current, *tmp;
+  std::map<u_int32_t, mac_manufacturers_t>::const_iterator it;
 
-  HASH_ITER(hh, mac_manufacturers, current, tmp) {
-    HASH_DEL(mac_manufacturers, current);
-    free(current->manufacturer_name);
-    free(current->short_name);
-    free(current);
+  for(it = mac_manufacturers.begin(); it != mac_manufacturers.end(); ++it) {
+    free(it->second.manufacturer_name);
+    free(it->second.short_name);
   }
+  mac_manufacturers.clear();
 }
+
+/* *************************************** */
+
+const char * MacManufacturers::getManufacturer(u_int8_t mac[]) {
+  std::map<u_int32_t, mac_manufacturers_t>::const_iterator it;
+  u_int32_t mac_key = mac2key(mac);
+
+  if((it = mac_manufacturers.find(mac_key)) != mac_manufacturers.end())
+    return(it->second.manufacturer_name);
+
+  return(NULL);
+}
+
+/* *************************************** */
+
+void MacManufacturers::getMacManufacturer(u_int8_t mac[], lua_State *vm) {
+  std::map<u_int32_t, mac_manufacturers_t>::const_iterator it;
+  u_int32_t mac_key = mac2key(mac);
+
+  if((it = mac_manufacturers.find(mac_key)) != mac_manufacturers.end()) {
+    lua_newtable(vm);
+    lua_push_str_table_entry(vm, "short", it->second.short_name);
+    lua_push_str_table_entry(vm, "extended", it->second.manufacturer_name);
+  } else {
+    lua_pushnil(vm);
+  }
+};

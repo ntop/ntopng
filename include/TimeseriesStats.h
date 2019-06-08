@@ -32,10 +32,8 @@ class TimeseriesStats: public GenericTrafficElement {
   u_int32_t unreachable_flows_as_client, unreachable_flows_as_server;
   u_int32_t anomalous_flows_as_client, anomalous_flows_as_server;
   u_int32_t host_unreachable_flows_as_client, host_unreachable_flows_as_server;
-  TrafficStats tcp_sent, tcp_rcvd;
-  TrafficStats udp_sent, udp_rcvd;
-  TrafficStats icmp_sent, icmp_rcvd;
-  TrafficStats other_ip_sent, other_ip_rcvd;
+  u_int64_t udp_sent_unicast, udp_sent_non_unicast;
+  L4Stats l4stats;
 
  public:
   TimeseriesStats(Host * _host);

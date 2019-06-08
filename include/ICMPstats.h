@@ -26,20 +26,18 @@
 
 
 typedef struct {
-  int type_code; /* too big but that's all UThash offers */
   u_int16_t pkt_sent, pkt_rcvd;
   char *last_host_sent_peer, *last_host_rcvd_peer;
-  UT_hash_handle hh; /* makes this structure hashable */  
 } ICMPstats_t;
   
 class ICMPstats {
  private:
-  ICMPstats_t *stats;
+  std::map<u_int16_t, ICMPstats_t> stats;
   Mutex m;
   MonitoredCounter<u_int32_t> num_destination_unreachable;
 
-  void addToTable(const char *label, lua_State *vm, ICMPstats_t *curr, bool verbose);
-  inline int  get_typecode(u_int8_t icmp_type, u_int8_t icmp_code) { return((icmp_type << 8) + icmp_code); }
+  void addToTable(const char *label, lua_State *vm, const ICMPstats_t *curr, bool verbose);
+  inline u_int16_t get_typecode(u_int8_t icmp_type, u_int8_t icmp_code) { return((icmp_type << 8) + icmp_code); }
   inline void to_typecode(int type_code, u_int8_t *icmp_type, u_int8_t *icmp_code) { *icmp_type = (type_code >> 8) & 0xFF, *icmp_code = type_code & 0xFF; }
   
  public:

@@ -72,7 +72,7 @@ PcapInterface::PcapInterface(const char *name) : NetworkInterface(name) {
       pcap_datalink_type = pcap_datalink(pcap_handle);
     }
   } else {
-    pcap_handle = pcap_open_live(ifname, ntop->getGlobals()->getSnaplen(),
+    pcap_handle = pcap_open_live(ifname, ntop->getGlobals()->getSnaplen(ifname),
 				 ntop->getPrefs()->use_promiscuous(),
 				 1000 /* 1 sec */, pcap_error_buffer);  
 

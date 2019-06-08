@@ -181,17 +181,23 @@ using namespace std;
 #include "IpAddress.h"
 #include "ntop_typedefs.h"
 #include "Trace.h"
+#include "ProtoStats.h"
+#include "Utils.h"
 #include "NtopGlobals.h"
 #include "Checkpointable.h"
 #include "TrafficStats.h"
 #include "nDPIStats.h"
+#include "FlowStatusStats.h"
 #ifdef NTOPNG_PRO
 #include "CustomAppMaps.h"
 #include "CustomAppStats.h"
 #endif
+#include "TcpPacketStats.h"
 #include "GenericTrafficElement.h"
 #include "ContainerStats.h"
-#include "eBPFFlow.h"
+#include "ParsedFlowCore.h"
+#include "ParsedeBPF.h"
+#include "ParsedFlow.h"
 #ifdef HAVE_EBPF
 #include "ebpf_flow.h"
 #endif
@@ -216,9 +222,9 @@ using namespace std;
 #include "FrequentNumericItems.h"
 #include "FrequentTrafficItems.h"
 #include "HostPools.h"
+#include "Fingerprint.h"
 #include "Prefs.h"
-#include "ProtoStats.h"
-#include "Utils.h"
+#include "SerializableElement.h"
 #include "CommunityIdFlowHash.h"
 #include "DnsStats.h"
 #include "NetworkStats.h"
@@ -231,7 +237,6 @@ using namespace std;
 #include "Grouper.h"
 #include "FlowGrouper.h"
 #include "PacketStats.h"
-#include "TcpPacketStats.h"
 #include "EthStats.h"
 
 #include "LocalTrafficStats.h"
@@ -264,6 +269,7 @@ using namespace std;
 #include "TimeseriesRing.h"
 #include "HostTimeseriesPoint.h"
 #include "SPSCQueue.h"
+#include "L4Stats.h"
 #include "NetworkInterfaceTsPoint.h"
 #include "NetworkInterface.h"
 #ifndef HAVE_NEDGE

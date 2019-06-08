@@ -101,6 +101,9 @@ class GenericHashEntry {
   void incUses()                       { num_uses++;      }
   void decUses()                       { num_uses--;      }
   u_int16_t getUses()                  { return num_uses; }
+
+  virtual void deserialize(json_object *obj);
+  virtual void getJSONObject(json_object *obj, DetailsLevel details_level);
 };
 
 #endif /* _GENERIC_HASH_ENTRY_H_ */

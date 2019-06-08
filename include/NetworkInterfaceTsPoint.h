@@ -32,6 +32,7 @@ class NetworkInterfaceTsPoint: public TimeseriesPoint {
   u_int devices, flows, http_hosts;
   TcpPacketStats tcpPacketStats;
   PacketStats packetStats;
+  L4Stats l4Stats;
 
   virtual void lua(lua_State* vm, NetworkInterface *iface);
 };

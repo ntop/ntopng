@@ -46,19 +46,3 @@ void MacStats::lua(lua_State* vm, bool show_details) {
 
   ((GenericTrafficElement*)this)->lua(vm, true);
 }
-
-/* *************************************** */
-
-void MacStats::deserialize(json_object *o) {
-  json_object *obj;
-
-  if(ndpiStats && json_object_object_get_ex(o, "ndpiStats", &obj)) ndpiStats->deserialize(iface, obj);
-  if(json_object_object_get_ex(o, "flows.dropped", &obj)) total_num_dropped_flows = json_object_get_int(obj);
-}
-
-/* *************************************** */
-
-void MacStats::getJSONObject(json_object *my_object) {
-  if(ndpiStats) json_object_object_add(my_object, "ndpiStats", ndpiStats->getJSONObject(iface));
-  if(total_num_dropped_flows) json_object_object_add(my_object, "flows.dropped", json_object_new_int(total_num_dropped_flows));
-}

@@ -57,8 +57,30 @@ function ts_dump.asn_update_rrds(when, ifstats, verbose)
     end
 
     -- Save ASN RTT stats
-    ts_utils.append("asn:rtt", {ifid=ifstats.id, asn=asn,
-                millis_rtt=asn_stats["round_trip_time"]}, when, verbose)
+    ts_utils.append("asn:rtt",
+		    {ifid=ifstats.id, asn=asn,
+		     millis_rtt=asn_stats["round_trip_time"]}, when, verbose)
+
+    -- Save ASN TCP stats
+    ts_utils.append("asn:tcp_retransmissions",
+		    {ifid=ifstats.id, asn=asn,
+		     packets_sent=asn_stats["tcpPacketStats.sent"]["retransmissions"],
+		     packets_rcvd=asn_stats["tcpPacketStats.rcvd"]["retransmissions"]}, when, verbose)
+
+    ts_utils.append("asn:tcp_out_of_order",
+		    {ifid=ifstats.id, asn=asn,
+		     packets_sent=asn_stats["tcpPacketStats.sent"]["out_of_order"],
+		     packets_rcvd=asn_stats["tcpPacketStats.rcvd"]["out_of_order"]}, when, verbose)
+
+    ts_utils.append("asn:tcp_lost",
+		    {ifid=ifstats.id, asn=asn,
+		     packets_sent=asn_stats["tcpPacketStats.sent"]["lost"],
+		     packets_rcvd=asn_stats["tcpPacketStats.rcvd"]["lost"]}, when, verbose)
+
+    ts_utils.append("asn:tcp_keep_alive",
+		    {ifid=ifstats.id, asn=asn,
+		     packets_sent=asn_stats["tcpPacketStats.sent"]["keep_alive"],
+		     packets_rcvd=asn_stats["tcpPacketStats.rcvd"]["keep_alive"]}, when, verbose)
   end
 end
 
@@ -251,13 +273,13 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
             packets_sent = host["udp.packets.sent"],
             packets_rcvd = host["udp.packets.rcvd"]},
       when, verbose)
-  
+
   -- Tcp Stats
   ts_utils.append("host:tcp_stats", {ifid = ifstats.id, host = hostname,
-            retransmission_packets = host["tcp.packets.retransmissions"],
-            out_of_order_packets = host["tcp.packets.out_of_order"],
-            lost_packets = host["tcp.packets.lost"]},
-      when, verbose)
+				     retransmission_packets = host["tcpPacketStats.sent"]["retransmissions"] + host["tcpPacketStats.rcvd"]["retransmissions"],
+				     out_of_order_packets = host["tcpPacketStats.sent"]["out_of_order"] + host["tcpPacketStats.rcvd"]["out_of_order"],
+				     lost_packets = host["tcpPacketStats.sent"]["lost"] + host["tcpPacketStats.rcvd"]["lost"]},
+		  when, verbose)
   
   -- Number of TCP packets
   ts_utils.append("host:tcp_packets", {ifid = ifstats.id, host = hostname,
@@ -286,6 +308,11 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
     end
   end
 
+  -- UDP breakdown
+  ts_utils.append("host:udp_sent_unicast", {ifid=ifstats.id, host=hostname,
+            bytes_sent_unicast=host["udpBytesSent.unicast"],
+            bytes_sent_non_unicast=host["udpBytesSent.non_unicast"]}, when, verbose)
+
   -- create custom rrds
   if ts_custom and ts_custom.host_update_stats then
      ts_custom.host_update_stats(when, hostname, host, ifstats, verbose)
@@ -306,9 +333,13 @@ end
 
 function ts_dump.host_update_categories_rrds(when, hostname, host, ifstats, verbose)
   -- nDPI Protocol CATEGORIES
-  for k, bytes in pairs(host["ndpi_categories"] or {}) do
+  for k, value in pairs(host["ndpi_categories"] or {}) do
+    local sep = string.find(value, "|")
+    local bytes_sent = string.sub(value, 1, sep-1)
+    local bytes_rcvd = string.sub(value, sep+1)
+    
     ts_utils.append("host:ndpi_categories", {ifid=ifstats.id, host=hostname, category=k,
-              bytes=bytes}, when, verbose)
+              bytes_sent=bytes_sent, bytes_rcvd=bytes_rcvd}, when, verbose)
   end
 end
 
@@ -352,23 +383,34 @@ function ts_dump.run_5min_dump(_ifname, ifstats, config, when, time_threshold, s
   end
 
   local dump_tstart = os.time()
+  local dumped_hosts = {}
 
   -- Save hosts stats (if enabled from the preferences)
   if (is_rrd_creation_enabled and (config.host_rrd_creation ~= "0")) or are_alerts_enabled then
     local in_time = callback_utils.foreachLocalRRDHost(_ifname, time_threshold, is_rrd_creation_enabled, function (hostname, host_ts)
+      local host_key = host_ts.tskey
+
       if are_alerts_enabled then
         -- Check alerts first
         check_host_alerts(ifstats.id, working_status, hostname)
       end
 
-      if is_rrd_creation_enabled then
+      if(is_rrd_creation_enabled and (dumped_hosts[host_key] == nil)) then
+        if(host_ts.initial_point ~= nil) then
+          -- Dump the first point
+          ts_dump.host_update_rrd(host_ts.initial_point_time, host_key, host_ts.initial_point, ifstats, verbose, config)
+        end
+
         for _, host_point in ipairs(host_ts or {}) do
           local instant = host_point.instant
 
           if instant >= min_instant then
-            ts_dump.host_update_rrd(instant, host_ts.tskey, host_point, ifstats, verbose, config)
+            ts_dump.host_update_rrd(instant, host_key, host_point, ifstats, verbose, config)
           end
         end
+
+        -- mark the host as dumped
+        dumped_hosts[host_key] = true
       end
 
       num_processed_hosts = num_processed_hosts + 1

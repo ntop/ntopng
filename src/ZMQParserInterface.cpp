@@ -34,6 +34,8 @@ ZMQParserInterface::ZMQParserInterface(const char *endpoint, const char *custom_
 #ifdef NTOPNG_PRO
   custom_app_maps = NULL;
 #endif
+  num_companion_interfaces = 0;
+  companion_interfaces = new (std::nothrow) NetworkInterface*[MAX_NUM_COMPANION_INTERFACES]();
 
   /* Populate defaults for @NTOPNG@ nProbe templates. No need to populate
      all the fields as nProbe will sent them periodically.
@@ -91,6 +93,8 @@ ZMQParserInterface::ZMQParserInterface(const char *endpoint, const char *custom_
   addMapping("HTTP_SITE", HTTP_SITE, NTOP_PEN);
   addMapping("SSL_SERVER_NAME", SSL_SERVER_NAME, NTOP_PEN);
   addMapping("BITTORRENT_HASH", BITTORRENT_HASH, NTOP_PEN);
+  addMapping("SRC_FRAGMENTS", SRC_FRAGMENTS, NTOP_PEN);
+  addMapping("DST_FRAGMENTS", DST_FRAGMENTS, NTOP_PEN);
 }
 
 /* **************************************************** */
@@ -101,6 +105,88 @@ ZMQParserInterface::~ZMQParserInterface() {
 #ifdef NTOPNG_PRO
   if(custom_app_maps)         delete(custom_app_maps);
 #endif
+  if(companion_interfaces)
+    delete []companion_interfaces;
+}
+
+/* **************************************************** */
+
+void ZMQParserInterface::reloadCompanions() {
+  char key[CONST_MAX_LEN_REDIS_KEY];
+  int num_companions;
+  char **companions = NULL;
+  bool found;
+
+  if(!ntop->getRedis()) return;
+
+  snprintf(key, sizeof(key), CONST_IFACE_COMPANIONS_SET, get_id());
+  num_companions = ntop->getRedis()->smembers(key, &companions);
+
+  companions_lock.lock(__FILE__, __LINE__);
+
+  if(num_companion_interfaces > 0) {
+    /* Check and possibly remove old companions */
+    for(int i = 0; i < MAX_NUM_COMPANION_INTERFACES; i++) {
+      if(!companion_interfaces[i]) continue;
+
+      found = false;
+      for(int j = 0; j < num_companions; j++) {
+	if(companion_interfaces[i]->get_id() == atoi(companions[j])) {
+	  found = true;
+	  break;
+	}
+      }
+
+      if(!found) {
+	// ntop->getTrace()->traceEvent(TRACE_NORMAL, "Removed companion interface [interface: %s][companion: %s]",
+	// 			     get_name(), companion_interfaces[i]->get_name());
+	companion_interfaces[i] = NULL;
+	num_companion_interfaces--;
+      }
+    }
+  }
+
+  if(num_companions > 0) {
+    /* Check and possibly add new companions */
+    for(int i = 0; i < num_companions; i++) {
+      found = false;
+      for(int j = 0; j < MAX_NUM_COMPANION_INTERFACES; j++) {
+	if(companion_interfaces[j] && companion_interfaces[j]->get_id() == atoi(companions[i])) {
+	  found = true;
+	  break;
+	}
+      }
+
+      if(!found) {
+	if(num_companion_interfaces < MAX_NUM_COMPANION_INTERFACES) {
+	  for(int j = 0; j < MAX_NUM_COMPANION_INTERFACES; j++) {
+	    if(!companion_interfaces[j]) {
+	      companion_interfaces[j] = ntop->getInterfaceById(atoi(companions[i]));
+
+	      if(companion_interfaces[j]) {
+		num_companion_interfaces++;
+		// ntop->getTrace()->traceEvent(TRACE_NORMAL, "Added new companion interface [interface: %s][companion: %s]",
+		// 			     get_name(), companion_interfaces[j]->get_name());
+	      }
+
+	      break;
+	    }
+	  }
+	} else
+	  ntop->getTrace()->traceEvent(TRACE_ERROR, "Too many companion interfaces defined [interface: %s]", get_name());
+      }
+
+      free(companions[i]);
+    }
+  }
+
+  companions_lock.unlock(__FILE__, __LINE__);
+
+  if(companions)
+    free(companions);
+
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Companion interface reloaded [interface: %s][companion: %s]",
+  // 			       get_name(), companion_interface ? companion_interface->get_name() : "NULL");
 }
 
 /* **************************************************** */
@@ -143,7 +229,6 @@ u_int8_t ZMQParserInterface::parseEvent(const char * const payload, int payload_
   json_object *o;
   enum json_tokener_error jerr = json_tokener_success;
   ZMQ_RemoteStats *zrs = NULL;
-  memset((void*)&zrs, 0, sizeof(zrs));
 
   // payload[payload_size] = '\0';
 
@@ -237,13 +322,14 @@ u_int8_t ZMQParserInterface::parseEvent(const char * const payload, int payload_
       ZMQParserInterface *current_iface;
 
       HASH_ITER(hh, flowHashing, current, tmp) {
-	ZMQ_RemoteStats *zrscopy = (ZMQ_RemoteStats*)malloc(sizeof(ZMQ_RemoteStats));
+	if((current_iface = dynamic_cast<ZMQParserInterface*>(current->iface))) {
+          ZMQ_RemoteStats *zrscopy = (ZMQ_RemoteStats*)malloc(sizeof(ZMQ_RemoteStats));
 
-	if(zrscopy)
-	  memcpy(zrscopy, zrs, sizeof(ZMQ_RemoteStats));
-
-	if((current_iface = dynamic_cast<ZMQParserInterface*>(current->iface)))
-	  current_iface->setRemoteStats(zrscopy);
+	  if(zrscopy) {
+	    memcpy(zrscopy, zrs, sizeof(ZMQ_RemoteStats));
+	    current_iface->setRemoteStats(zrscopy);
+          }
+        }
       }
     }
 
@@ -270,18 +356,18 @@ u_int8_t ZMQParserInterface::parseEvent(const char * const payload, int payload_
 
 /* **************************************************** */
 
-bool ZMQParserInterface::parsePENZeroField(Parsed_Flow * const flow, u_int32_t field, const char * const value) const {
+bool ZMQParserInterface::parsePENZeroField(ParsedFlow * const flow, u_int32_t field, const char * const value) const {
   IpAddress ip_aux; /* used to check empty IPs */
 
   switch(field) {
   case IN_SRC_MAC:
   case OUT_SRC_MAC:
     /* Format 00:00:00:00:00:00 */
-    Utils::parseMac(flow->core.src_mac, value);
+    Utils::parseMac(flow->src_mac, value);
     break;
   case IN_DST_MAC:
   case OUT_DST_MAC:
-    Utils::parseMac(flow->core.dst_mac, value);
+    Utils::parseMac(flow->dst_mac, value);
     break;
   case IPV4_SRC_ADDR:
   case IPV6_SRC_ADDR:
@@ -305,7 +391,7 @@ bool ZMQParserInterface::parsePENZeroField(Parsed_Flow * const flow, u_int32_t f
     }
     break;
   case IP_PROTOCOL_VERSION:
-    flow->core.version = atoi(value);
+    flow->version = atoi(value);
     break;
 
   case IPV4_DST_ADDR:
@@ -321,76 +407,76 @@ bool ZMQParserInterface::parsePENZeroField(Parsed_Flow * const flow, u_int32_t f
     }
     break;
   case L4_SRC_PORT:
-    if(!flow->core.src_port) flow->core.src_port = htons(atoi(value));
+    if(!flow->src_port) flow->src_port = htons(atoi(value));
     break;
   case L4_DST_PORT:
-    if(!flow->core.dst_port) flow->core.dst_port = htons(atoi(value));
+    if(!flow->dst_port) flow->dst_port = htons(atoi(value));
     break;
   case SRC_VLAN:
   case DST_VLAN:
-    flow->core.vlan_id = atoi(value);
+    flow->vlan_id = atoi(value);
     break;
   case DOT1Q_SRC_VLAN:
   case DOT1Q_DST_VLAN:
-    if (flow->core.vlan_id == 0)
+    if (flow->vlan_id == 0)
       /* as those fields are the outer vlans in q-in-q
 	 we set the vlan_id only if there is no inner vlan
 	 value set
       */
-      flow->core.vlan_id = atoi(value);
+      flow->vlan_id = atoi(value);
     break;
   case PROTOCOL:
-    flow->core.l4_proto = atoi(value);
+    flow->l4_proto = atoi(value);
     break;
   case TCP_FLAGS:
-    flow->core.tcp.tcp_flags = atoi(value);
+    flow->tcp.tcp_flags = atoi(value);
     break;
   case INITIATOR_PKTS:
-    flow->core.absolute_packet_octet_counters = true;
+    flow->absolute_packet_octet_counters = true;
     /* Don't break */
   case IN_PKTS:
-    flow->core.in_pkts = atol(value);
+    flow->in_pkts = atol(value);
     break;
   case INITIATOR_OCTETS:
-    flow->core.absolute_packet_octet_counters = true;
+    flow->absolute_packet_octet_counters = true;
     /* Don't break */
   case IN_BYTES:
-    flow->core.in_bytes = atol(value);
+    flow->in_bytes = atol(value);
     break;
   case RESPONDER_PKTS:
-    flow->core.absolute_packet_octet_counters = true;
+    flow->absolute_packet_octet_counters = true;
     /* Don't break */
   case OUT_PKTS:
-    flow->core.out_pkts = atol(value);
+    flow->out_pkts = atol(value);
     break;
   case RESPONDER_OCTETS:
-    flow->core.absolute_packet_octet_counters = true;
+    flow->absolute_packet_octet_counters = true;
     /* Don't break */
   case OUT_BYTES:
-    flow->core.out_bytes = atol(value);
+    flow->out_bytes = atol(value);
     break;
   case FIRST_SWITCHED:
-    flow->core.first_switched = atol(value);
+    flow->first_switched = atol(value);
     break;
   case LAST_SWITCHED:
-    flow->core.last_switched = atol(value);
+    flow->last_switched = atol(value);
     break;
   case SAMPLING_INTERVAL:
-    flow->core.pkt_sampling_rate = atoi(value);
+    flow->pkt_sampling_rate = atoi(value);
     break;
   case DIRECTION:
-    flow->core.direction = atoi(value);
+    flow->direction = atoi(value);
     break;
   case EXPORTER_IPV4_ADDRESS:
     /* Format: a.b.c.d, possibly overrides NPROBE_IPV4_ADDRESS */
-    if(ntohl(inet_addr(value)) && (flow->core.deviceIP = ntohl(inet_addr(value))))
+    if(ntohl(inet_addr(value)) && (flow->deviceIP = ntohl(inet_addr(value))))
       return false;
     break;
   case INPUT_SNMP:
-    flow->core.inIndex = atoi(value);
+    flow->inIndex = atoi(value);
     break;
   case OUTPUT_SNMP:
-    flow->core.outIndex = atoi(value);
+    flow->outIndex = atoi(value);
     break;
   case POST_NAT_SRC_IPV4_ADDR:
     if(ntop->getPrefs()->do_override_src_with_post_nat_src())
@@ -402,14 +488,14 @@ bool ZMQParserInterface::parsePENZeroField(Parsed_Flow * const flow, u_int32_t f
     break;
   case POST_NAPT_SRC_TRANSPORT_PORT:
     if(ntop->getPrefs()->do_override_src_with_post_nat_src())
-      flow->core.src_port = htons(atoi(value));
+      flow->src_port = htons(atoi(value));
     break;
   case POST_NAPT_DST_TRANSPORT_PORT:
     if(ntop->getPrefs()->do_override_dst_with_post_nat_dst())
-      flow->core.dst_port = htons(atoi(value));
+      flow->dst_port = htons(atoi(value));
     break;
   case INGRESS_VRFID:
-    flow->core.vrfId = atoi(value);
+    flow->vrfId = atoi(value);
     break;
   case IPV4_SRC_MASK:
   case IPV4_DST_MASK:
@@ -420,7 +506,6 @@ bool ZMQParserInterface::parsePENZeroField(Parsed_Flow * const flow, u_int32_t f
     if(strcmp(value, "0.0.0.0"))
       return false;
     break;
-
   default:
     return false;
   }
@@ -430,59 +515,59 @@ bool ZMQParserInterface::parsePENZeroField(Parsed_Flow * const flow, u_int32_t f
 
 /* **************************************************** */
 
-bool ZMQParserInterface::parsePENNtopField(Parsed_Flow * const flow, u_int32_t field, const char * const value, json_object * const jvalue) const {
+bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t field, const char * const value, json_object * const jvalue) const {
   switch(field) {
   case L7_PROTO:
     if(!strchr(value, '.')) {
       /* Old behaviour, only the app protocol */
-      flow->core.l7_proto.app_protocol = atoi(value);
+      flow->l7_proto.app_protocol = atoi(value);
     } else {
       char *proto_dot;
 
-      flow->core.l7_proto.master_protocol = (u_int16_t)strtoll(value, &proto_dot, 10);
-      flow->core.l7_proto.app_protocol    = (u_int16_t)strtoll(proto_dot + 1, NULL, 10);
+      flow->l7_proto.master_protocol = (u_int16_t)strtoll(value, &proto_dot, 10);
+      flow->l7_proto.app_protocol    = (u_int16_t)strtoll(proto_dot + 1, NULL, 10);
     }
 
 #if 0
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[value: %s][master: %u][app: %u]",
 				 value,
-				 flow->core.l7_proto.master_protocol,
-				 flow->core.l7_proto.app_protocol);
+				 flow->l7_proto.master_protocol,
+				 flow->l7_proto.app_protocol);
 #endif
     break;
   case OOORDER_IN_PKTS:
-    flow->core.tcp.ooo_in_pkts = atol(value);
+    flow->tcp.ooo_in_pkts = atol(value);
     break;
   case OOORDER_OUT_PKTS:
-    flow->core.tcp.ooo_out_pkts = atol(value);
+    flow->tcp.ooo_out_pkts = atol(value);
     break;
   case RETRANSMITTED_IN_PKTS:
-    flow->core.tcp.retr_in_pkts = atol(value);
+    flow->tcp.retr_in_pkts = atol(value);
     break;
   case RETRANSMITTED_OUT_PKTS:
-    flow->core.tcp.retr_out_pkts = atol(value);
+    flow->tcp.retr_out_pkts = atol(value);
     break;
     /* TODO add lost in/out to nProbe and here */
   case CLIENT_NW_LATENCY_MS:
     {
       float client_nw_latency = atof(value);
-      flow->core.tcp.clientNwLatency.tv_sec = client_nw_latency / 1e3;
-      flow->core.tcp.clientNwLatency.tv_usec = 1e3 * (client_nw_latency - flow->core.tcp.clientNwLatency.tv_sec * 1e3);
+      flow->tcp.clientNwLatency.tv_sec = client_nw_latency / 1e3;
+      flow->tcp.clientNwLatency.tv_usec = 1e3 * (client_nw_latency - flow->tcp.clientNwLatency.tv_sec * 1e3);
       break;
     }
   case SERVER_NW_LATENCY_MS:
     {
       float server_nw_latency = atof(value);
-      flow->core.tcp.serverNwLatency.tv_sec = server_nw_latency / 1e3;
-      flow->core.tcp.serverNwLatency.tv_usec = 1e3 * (server_nw_latency - flow->core.tcp.serverNwLatency.tv_sec * 1e3);
+      flow->tcp.serverNwLatency.tv_sec = server_nw_latency / 1e3;
+      flow->tcp.serverNwLatency.tv_usec = 1e3 * (server_nw_latency - flow->tcp.serverNwLatency.tv_sec * 1e3);
       break;
     }
   case CLIENT_TCP_FLAGS:
-    flow->core.tcp.client_tcp_flags = atoi(value);
+    flow->tcp.client_tcp_flags = atoi(value);
   case SERVER_TCP_FLAGS:
-    flow->core.tcp.server_tcp_flags = atoi(value);
+    flow->tcp.server_tcp_flags = atoi(value);
   case APPL_LATENCY_MS:
-    flow->core.tcp.applLatencyMsec = atof(value);
+    flow->tcp.applLatencyMsec = atof(value);
     break;
   case DNS_QUERY:
     flow->dns_query = (char*)json_object_get_string(jvalue);
@@ -501,8 +586,14 @@ bool ZMQParserInterface::parsePENNtopField(Parsed_Flow * const flow, u_int32_t f
     break;
   case NPROBE_IPV4_ADDRESS:
     /* Do not override EXPORTER_IPV4_ADDRESS */
-    if(flow->core.deviceIP == 0 && (flow->core.deviceIP = ntohl(inet_addr(value))))
+    if(flow->deviceIP == 0 && (flow->deviceIP = ntohl(inet_addr(value))))
       return false;
+    break;
+  case SRC_FRAGMENTS:
+    flow->in_fragments = atol(value);
+    break;
+  case DST_FRAGMENTS:
+    flow->out_fragments = atol(value);
     break;
   default:
     return false;
@@ -513,7 +604,7 @@ bool ZMQParserInterface::parsePENNtopField(Parsed_Flow * const flow, u_int32_t f
 
 /* **************************************************** */
 
-bool ZMQParserInterface::parseNProbeMiniField(Parsed_Flow * const flow, const char * const key, const char * const value, json_object * const jvalue) const {
+bool ZMQParserInterface::parseNProbeMiniField(ParsedFlow * const flow, const char * const key, const char * const value, json_object * const jvalue) const {
   bool ret = false;
   json_object *obj;
 
@@ -521,7 +612,7 @@ bool ZMQParserInterface::parseNProbeMiniField(Parsed_Flow * const flow, const ch
     u_int32_t seconds, nanoseconds /* nanoseconds not currently used */;
 
     if(sscanf(value, "%u.%u", &seconds, &nanoseconds) == 2) {
-      flow->core.first_switched = flow->core.last_switched = seconds;
+      flow->first_switched = flow->last_switched = seconds;
       ret = true;
     }
   } else if(!strncmp(key, "IPV4_LOCAL_ADDR", 15)
@@ -533,81 +624,83 @@ bool ZMQParserInterface::parseNProbeMiniField(Parsed_Flow * const flow, const ch
     flow->dst_ip.set(value); /* FIX: do not always assume Remote == Server */
     ret = true;
   } else if(!strncmp(key, "L4_LOCAL_PORT", 13)) {
-    flow->core.src_port = htons(atoi(value));
+    flow->src_port = htons(atoi(value));
     ret = true;
   } else if(!strncmp(key, "L4_REMOTE_PORT", 14)) {
-    flow->core.dst_port = htons(atoi(value));
+    flow->dst_port = htons(atoi(value));
     ret = true;
   } else if(!strncmp(key, "IF_NAME", 7) && strlen(key) == 7) {
-    flow->ebpf.ifname = (char*)json_object_get_string(jvalue);
+    flow->ifname = (char*)json_object_get_string(jvalue);
     ret = true;
   } else if(strlen(key) >= 14 && !strncmp(&key[strlen(key) - 14], "FATHER_PROCESS", 14)) {
-    if(json_object_object_get_ex(jvalue, "PID", &obj))   flow->ebpf.process_info.father_pid = (u_int32_t)json_object_get_int64(obj);
-    if(json_object_object_get_ex(jvalue, "UID", &obj))      flow->ebpf.process_info.father_uid = (u_int32_t)json_object_get_int64(obj);
-    if(json_object_object_get_ex(jvalue, "GID", &obj))     flow->ebpf.process_info.father_gid = (u_int32_t)json_object_get_int64(obj);
-    if(json_object_object_get_ex(jvalue, "VM_SIZE", &obj))     flow->ebpf.process_info.actual_memory = (u_int32_t)json_object_get_int64(obj);
-    if(json_object_object_get_ex(jvalue, "VM_PEAK", &obj))     flow->ebpf.process_info.peak_memory = (u_int32_t)json_object_get_int64(obj);
-    if(json_object_object_get_ex(jvalue, "PROCESS_PATH", &obj)) flow->ebpf.process_info.father_process_name = (char*)json_object_get_string(obj);
-    if(!flow->ebpf.process_info_set) flow->ebpf.process_info_set = true;
+    if(json_object_object_get_ex(jvalue, "PID", &obj))   flow->process_info.father_pid = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "UID", &obj))      flow->process_info.father_uid = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "UID_NAME", &obj))    flow->process_info.father_uid_name = (char*)json_object_get_string(obj);
+    if(json_object_object_get_ex(jvalue, "GID", &obj))     flow->process_info.father_gid = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "VM_SIZE", &obj))     flow->process_info.actual_memory = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "VM_PEAK", &obj))     flow->process_info.peak_memory = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "PROCESS_PATH", &obj)) flow->process_info.father_process_name = (char*)json_object_get_string(obj);
+    if(!flow->process_info_set) flow->process_info_set = true;
     ret = true;
 
     // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Father Process [pid: %u][uid: %u][gid: %u][path: %s]",
-    //					 flow->ebpf.process_info.father_pid, flow->ebpf.process_info.father_uid,
-    //				 flow->ebpf.process_info.father_gid,
-    //				 flow->ebpf.process_info.father_process_name);
+    //					 flow->process_info.father_pid, flow->process_info.father_uid,
+    //				 flow->process_info.father_gid,
+    //				 flow->process_info.father_process_name);
   } else if(strlen(key) >= 7 && !strncmp(&key[strlen(key) - 7], "PROCESS", 7)) {
-    if(json_object_object_get_ex(jvalue, "PID", &obj))   flow->ebpf.process_info.pid = (u_int32_t)json_object_get_int64(obj);
-    if(json_object_object_get_ex(jvalue, "UID", &obj))      flow->ebpf.process_info.uid = (u_int32_t)json_object_get_int64(obj);
-    if(json_object_object_get_ex(jvalue, "GID", &obj))     flow->ebpf.process_info.gid = (u_int32_t)json_object_get_int64(obj);
-    if(json_object_object_get_ex(jvalue, "VM_SIZE", &obj))     flow->ebpf.process_info.actual_memory = (u_int32_t)json_object_get_int64(obj);
-    if(json_object_object_get_ex(jvalue, "VM_PEAK", &obj))     flow->ebpf.process_info.peak_memory = (u_int32_t)json_object_get_int64(obj);
-    if(json_object_object_get_ex(jvalue, "PROCESS_PATH", &obj)) flow->ebpf.process_info.process_name = (char*)json_object_get_string(obj);
-    if(!flow->ebpf.process_info_set) flow->ebpf.process_info_set = true;
+    if(json_object_object_get_ex(jvalue, "PID", &obj))   flow->process_info.pid = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "UID", &obj))      flow->process_info.uid = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "UID_NAME", &obj))    flow->process_info.uid_name = (char*)json_object_get_string(obj);
+    if(json_object_object_get_ex(jvalue, "GID", &obj))     flow->process_info.gid = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "VM_SIZE", &obj))     flow->process_info.actual_memory = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "VM_PEAK", &obj))     flow->process_info.peak_memory = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "PROCESS_PATH", &obj)) flow->process_info.process_name = (char*)json_object_get_string(obj);
+    if(!flow->process_info_set) flow->process_info_set = true;
     ret = true;
 
     // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Process [pid: %u][uid: %u][gid: %u][size/peak vm: %u/%u][path: %s]",
-    //				 flow->ebpf.process_info.pid, flow->ebpf.process_info.uid, flow->ebpf.process_info.gid,
-    //				 flow->ebpf.process_info.actual_memory, flow->ebpf.process_info.peak_memory,
-    //				 flow->ebpf.process_info.process_name);
+    //				 flow->process_info.pid, flow->process_info.uid, flow->process_info.gid,
+    //				 flow->process_info.actual_memory, flow->process_info.peak_memory,
+    //				 flow->process_info.process_name);
   } else if(strlen(key) >= 9 && !strncmp(&key[strlen(key) - 9], "CONTAINER", 9)) {
-    if((ret = parseContainerInfo(jvalue, &flow->ebpf.container_info)))
-      flow->ebpf.container_info_set = true;
+    if((ret = parseContainerInfo(jvalue, &flow->container_info)))
+      flow->container_info_set = true;
   } else if(!strncmp(key, "TCP", 3) && strlen(key) == 3) {
-    if(json_object_object_get_ex(jvalue, "CONN_STATE", &obj))     flow->ebpf.tcp_info.conn_state = Utils::tcpStateStr2State(json_object_get_string(obj));
+    if(json_object_object_get_ex(jvalue, "CONN_STATE", &obj))     flow->tcp_info.conn_state = Utils::tcpStateStr2State(json_object_get_string(obj));
 
-    if(json_object_object_get_ex(jvalue, "SEGS_IN", &obj))        flow->ebpf.tcp_info.in_segs = (u_int32_t)json_object_get_int64(obj);
-    if(json_object_object_get_ex(jvalue, "SEGS_OUT", &obj))       flow->ebpf.tcp_info.out_segs = (u_int32_t)json_object_get_int64(obj);
-    if(json_object_object_get_ex(jvalue, "UNACK_SEGMENTS", &obj)) flow->ebpf.tcp_info.unacked_segs = (u_int32_t)json_object_get_int64(obj);
-    if(json_object_object_get_ex(jvalue, "RETRAN_PKTS", &obj))    flow->ebpf.tcp_info.retx_pkts = (u_int32_t)json_object_get_int64(obj);
-    if(json_object_object_get_ex(jvalue, "LOST_PKTS", &obj))      flow->ebpf.tcp_info.lost_pkts = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "SEGS_IN", &obj))        flow->tcp_info.in_segs = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "SEGS_OUT", &obj))       flow->tcp_info.out_segs = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "UNACK_SEGMENTS", &obj)) flow->tcp_info.unacked_segs = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "RETRAN_PKTS", &obj))    flow->tcp_info.retx_pkts = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "LOST_PKTS", &obj))      flow->tcp_info.lost_pkts = (u_int32_t)json_object_get_int64(obj);
 
-    if(json_object_object_get_ex(jvalue, "RTT", &obj))            flow->ebpf.tcp_info.rtt = json_object_get_double(obj);
-    if(json_object_object_get_ex(jvalue, "RTT_VARIANCE", &obj))   flow->ebpf.tcp_info.rtt_var = json_object_get_double(obj);
+    if(json_object_object_get_ex(jvalue, "RTT", &obj))            flow->tcp_info.rtt = json_object_get_double(obj);
+    if(json_object_object_get_ex(jvalue, "RTT_VARIANCE", &obj))   flow->tcp_info.rtt_var = json_object_get_double(obj);
 
     if(json_object_object_get_ex(jvalue, "BYTES_RCVD", &obj))
-      flow->core.out_bytes = flow->ebpf.tcp_info.rcvd_bytes = (u_int32_t)json_object_get_int64(obj);
+      flow->out_bytes = flow->tcp_info.rcvd_bytes = (u_int32_t)json_object_get_int64(obj);
 
-    if(!flow->ebpf.tcp_info_set) flow->ebpf.tcp_info_set = true;
-    flow->core.absolute_packet_octet_counters = true;
+    if(!flow->tcp_info_set) flow->tcp_info_set = true;
+    flow->absolute_packet_octet_counters = true;
     ret = true;
 
     // ntop->getTrace()->traceEvent(TRACE_NORMAL, "TCP INFO [conn state: %s][rcvd_bytes: %u][retx_pkts: %u][lost_pkts: %u]"
     //				 "[in_segs: %u][out_segs: %u][unacked_segs: %u]"
     //				 "[rtt: %f][rtt_var: %f]",
-    //				 Utils::tcpState2StateStr(flow->ebpf.tcp_info.conn_state),
-    //				 flow->ebpf.tcp_info.rcvd_bytes,
-    //				 flow->ebpf.tcp_info.retx_pkts,
-    //				 flow->ebpf.tcp_info.lost_pkts,
-    //				 flow->ebpf.tcp_info.in_segs,
-    //				 flow->ebpf.tcp_info.out_segs,
-    //				 flow->ebpf.tcp_info.unacked_segs,
-    //				 flow->ebpf.tcp_info.rtt,
-    //				 flow->ebpf.tcp_info.rtt_var);
+    //				 Utils::tcpState2StateStr(flow->tcp_info.conn_state),
+    //				 flow->tcp_info.rcvd_bytes,
+    //				 flow->tcp_info.retx_pkts,
+    //				 flow->tcp_info.lost_pkts,
+    //				 flow->tcp_info.in_segs,
+    //				 flow->tcp_info.out_segs,
+    //				 flow->tcp_info.unacked_segs,
+    //				 flow->tcp_info.rtt,
+    //				 flow->tcp_info.rtt_var);
   } else if((!strncmp(key, "TCP_EVENT_TYPE", 14) && strlen(key) == 14)
 	    || (!strncmp(key, "UDP_EVENT_TYPE", 14) && strlen(key) == 14)) {
-    flow->ebpf.event_type = Utils::eBPFEventStr2Event(value);
+    flow->event_type = Utils::eBPFEventStr2Event(value);
 
-    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Event Type [type: %s]", Utils::eBPFEvent2EventStr(flow->ebpf.event_type));
+    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Event Type [type: %s]", Utils::eBPFEvent2EventStr(flow->event_type));
   }
 
   return ret;
@@ -615,18 +708,37 @@ bool ZMQParserInterface::parseNProbeMiniField(Parsed_Flow * const flow, const ch
 
 /* **************************************************** */
 
+void ZMQParserInterface::deliverFlowToCompanions(ParsedFlow * const flow) {
+  if(num_companion_interfaces > 0
+     && (flow->process_info_set || flow->container_info_set || flow->tcp_info_set)) {
+    NetworkInterface *flow_interface = flow->ifname ? ntop->getNetworkInterface(flow->ifname) : NULL;
+
+    for(int i = 0; i < MAX_NUM_COMPANION_INTERFACES; i++) {
+      NetworkInterface *cur_companion = companion_interfaces[i];
+
+      if(!cur_companion) continue;
+
+      if(cur_companion->isTrafficMirrored())
+	cur_companion->enqueueeBPFFlow(flow, true /* Skip loopback traffic */);
+      else if(cur_companion == flow_interface)
+	cur_companion->enqueueeBPFFlow(flow, false /* do NOT skip loopback traffic */);
+    }
+  }
+}
+
+/* **************************************************** */
+
 void ZMQParserInterface::parseSingleFlow(json_object *o,
-				      u_int8_t source_id,
-				      NetworkInterface *iface) {
-  Parsed_Flow flow;
+					 u_int8_t source_id,
+					 NetworkInterface *iface) {
+  ParsedFlow flow;
   IpAddress ip_aux; /* used to check empty IPs */
   struct json_object_iterator it = json_object_iter_begin(o);
   struct json_object_iterator itEnd = json_object_iter_end(o);
   bool invalid_flow = false;
 
   /* Reset data */
-  resetParsedFlow(&flow);
-  flow.core.source_id = source_id;
+  flow.source_id = source_id;
 
   while(!json_object_iter_equal(&it, &itEnd)) {
     const char *key   = json_object_iter_peek_name(&it);
@@ -679,8 +791,13 @@ void ZMQParserInterface::parseSingleFlow(json_object *o,
 	  break;
 	case UNKNOWN_FLOW_ELEMENT:
 	  /* Attempt to parse it as an nProbe mini field */
-	  if(parseNProbeMiniField(&flow, key, value, v))
+	  if(parseNProbeMiniField(&flow, key, value, v)) {
+	    if(!flow.hasParsedeBPF()) {
+	      flow.setParsedeBPF();
+	      flow.absolute_packet_octet_counters = true;
+	    }
 	    break;
+	  }
 	default:
 #ifdef NTOPNG_PRO
 	  if(custom_app_maps || (custom_app_maps = new(std::nothrow) CustomAppMaps()))
@@ -703,57 +820,44 @@ void ZMQParserInterface::parseSingleFlow(json_object *o,
     json_object_iter_next(&it);
   } // while json_object_iter_equal
 
-  if(flow.core.vlan_id && ntop->getPrefs()->do_ignore_vlans())
-    flow.core.vlan_id = 0;
+  if(flow.vlan_id && ntop->getPrefs()->do_ignore_vlans())
+    flow.vlan_id = 0;
 
   /* Handle zero IPv4/IPv6 discrepacies */
-  if(flow.core.version == 0) {
-    if(flow.src_ip.getVersion() != flow.dst_ip.getVersion()) {
-      if(flow.dst_ip.isIPv4() && flow.src_ip.isIPv6() && flow.src_ip.isEmpty())
-	flow.src_ip.setVersion(4);
-      else if(flow.src_ip.isIPv4() && flow.dst_ip.isIPv6() && flow.dst_ip.isEmpty())
-	flow.dst_ip.setVersion(4);
-      else if(flow.dst_ip.isIPv6() && flow.src_ip.isIPv4() && flow.src_ip.isEmpty())
-	flow.src_ip.setVersion(6);
-      else if(flow.src_ip.isIPv6() && flow.dst_ip.isIPv4() && flow.dst_ip.isEmpty())
-	flow.dst_ip.setVersion(6);
-      else {
-	invalid_flow = true;
-	ntop->getTrace()->traceEvent(TRACE_WARNING,
-				     "IP version mismatch: client:%d server:%d - flow will be ignored",
-				     flow.src_ip.getVersion(), flow.dst_ip.getVersion());
+  if(!flow.hasParsedeBPF()) {
+    if(flow.version == 0) {
+      if(flow.src_ip.getVersion() != flow.dst_ip.getVersion()) {
+	if(flow.dst_ip.isIPv4() && flow.src_ip.isIPv6() && flow.src_ip.isEmpty())
+	  flow.src_ip.setVersion(4);
+	else if(flow.src_ip.isIPv4() && flow.dst_ip.isIPv6() && flow.dst_ip.isEmpty())
+	  flow.dst_ip.setVersion(4);
+	else if(flow.dst_ip.isIPv6() && flow.src_ip.isIPv4() && flow.src_ip.isEmpty())
+	  flow.src_ip.setVersion(6);
+	else if(flow.src_ip.isIPv6() && flow.dst_ip.isIPv4() && flow.dst_ip.isEmpty())
+	  flow.dst_ip.setVersion(6);
+	else {
+	  invalid_flow = true;
+	  ntop->getTrace()->traceEvent(TRACE_WARNING,
+				       "IP version mismatch: client:%d server:%d - flow will be ignored",
+				       flow.src_ip.getVersion(), flow.dst_ip.getVersion());
+	}
       }
-    }
-  } else
-    flow.src_ip.setVersion(flow.core.version), flow.dst_ip.setVersion(flow.core.version);
-
+    } else
+      flow.src_ip.setVersion(flow.version), flow.dst_ip.setVersion(flow.version);
+  }
+  
   if(!invalid_flow) {
+    /* Attempt to determine flow client and server using port numbers 
+       useful when exported flows are mono-directional
+       https://github.com/ntop/ntopng/issues/1978 */
+    if(ntop->getPrefs()->do_use_ports_to_determine_src_and_dst()
+       && ntohs(flow.src_port) < ntohs(flow.dst_port))
+      flow.swap();
+
     /* Process Flow */
     iface->processFlow(&flow, true);
-
-#if ENABLE_EBPF_FLOWS_DISPATCH
-    if(flow.ebpf.process_info_set || flow.ebpf.container_info_set || flow.ebpf.tcp_info_set) {
-      NetworkInterface * companion = getCompanion();
-
-      if(companion && companion->isTrafficMirrored())
-	companion->enqueueeBPFFlow(&flow, true /* Skip loopback traffic */);
-
-      if(flow.ebpf.ifname) {
-	NetworkInterface * matching_interface = ntop->getNetworkInterface(NULL, flow.ebpf.ifname);
-
-	if(matching_interface
-	   && matching_interface->isPacketInterface()
-	   && !matching_interface->isTrafficMirrored()
-	   && matching_interface != companion)
-	  matching_interface->enqueueeBPFFlow(&flow, !matching_interface->isLoopback() /* Skip loopback traffic */);
-      }
-
-    }
-#endif
+    deliverFlowToCompanions(&flow);
   }
-
-  // json_object_put(o);
-  json_object_put(flow.additional_fields);
 }
 
 /* **************************************************** */
@@ -809,6 +913,8 @@ u_int8_t ZMQParserInterface::parseFlow(const char * const payload, int payload_s
 bool ZMQParserInterface::parseContainerInfo(json_object *jo, ContainerInfo * const container_info) {
   json_object *obj, *obj2;
 
+  if(json_object_object_get_ex(jo, "ID", &obj)) container_info->id = (char*)json_object_get_string(obj);
+
   if(json_object_object_get_ex(jo, "K8S", &obj)) {
     if(json_object_object_get_ex(obj, "POD", &obj2))  container_info->data.k8s.pod  = (char*)json_object_get_string(obj2);
     if(json_object_object_get_ex(obj, "NS", &obj2))   container_info->data.k8s.ns   = (char*)json_object_get_string(obj2);
@@ -819,7 +925,6 @@ bool ZMQParserInterface::parseContainerInfo(json_object *jo, ContainerInfo * con
     container_info->data_type = container_info_data_type_unknown;
 
   if(obj) {
-    if(json_object_object_get_ex(obj, "ID", &obj2)) container_info->id = (char*)json_object_get_string(obj2);
     if(json_object_object_get_ex(obj, "NAME", &obj2)) container_info->name = (char*)json_object_get_string(obj2);
   }
 

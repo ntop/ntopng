@@ -324,12 +324,6 @@ local function validateBroadcastUnicast(mode)
    return validateChoice(modes, mode)
 end
 
-local function validateFlowStatus(mode)
-   local modes = {"normal", "alerted", "filtered"}
-
-   return validateChoice(modes, mode)
-end
-
 local function validateFlowStatusNumber(status)
    if not validateNumber(status) then
       return false
@@ -337,6 +331,16 @@ local function validateFlowStatusNumber(status)
 
    local num = tonumber(status)
    return((num >= 0) and (num < 2^8))
+end
+
+local function validateFlowStatus(mode)
+   local modes = {"normal", "alerted", "filtered"}
+
+   if validateFlowStatusNumber(mode) then
+      return true
+   end
+
+   return validateChoice(modes, mode)
 end
 
 local function validateTCPFlowState(mode)
@@ -1125,6 +1129,7 @@ local known_parameters = {
 -- PREFERENCES - see prefs.lua for details
    -- Toggle Buttons
    ["interface_rrd_creation"]                      = validateBool,
+   ["interface_flow_dump"]                         = validateBool,
    ["is_mirrored_traffic"]                         = validateBool,
    ["interface_network_discovery"]                 = validateBool,
    ["dynamic_iface_vlan_creation"]                 = validateBool,
@@ -1143,6 +1148,7 @@ local known_parameters = {
    ["toggle_elephant_flows_alerts"]                = validateBool,
    ["toggle_ip_reassignment_alerts"]               = validateBool,
    ["toggle_longlived_flows_alerts"]               = validateBool,
+   ["toggle_data_exfiltration"]                    = validateBool,
    ["toggle_flow_db_dump_export"]                  = validateBool,
    ["toggle_alert_syslog"]                         = validateBool,
    ["toggle_slack_notification"]                   = validateBool,
@@ -1177,6 +1183,7 @@ local known_parameters = {
    ["toggle_tcp_retr_ooo_lost_rrds"]               = validateBool,
    ["toggle_dst_with_post_nat_dst"]                = validateBool,
    ["toggle_src_with_post_nat_src"]                = validateBool,
+   ["toggle_src_and_dst_using_ports"]              = validateBool,
    ["toggle_device_activation_alert"]              = validateBool,
    ["toggle_device_first_seen_alert"]              = validateBool,
    ["toggle_pool_activation_alert"]                = validateBool,
@@ -1192,8 +1199,10 @@ local known_parameters = {
    ["toggle_webhook_notification"]                 = validateBool,
    ["toggle_auth_session_midnight_expiration"]     = validateBool,
    ["toggle_client_x509_auth"]                     = validateBool,
+   ["toggle_snmp_alerts_port_duplexstatus_change"] = validateBool,
    ["toggle_snmp_alerts_port_status_change"]       = validateBool,
    ["toggle_snmp_alerts_port_errors"]              = validateBool,
+   ["snmp_port_load_threshold"]                    = validateNumber,
    ["toggle_midnight_stats_reset"]                 = validateBool,
 
    -- Input fields
@@ -1274,6 +1283,8 @@ local known_parameters = {
    ["ts_high_resolution"]                          = validateNumber,
    ["lbd_hosts_as_macs"]                           = validateBool,
    ["toggle_arp_matrix_generation"]                = validateBool,
+   ["toggle_send_telemetry_data"]                  = validateBool,
+   ["telemetry_email"]                             = validateSingleWord,
 
    -- Other
    ["flush_alerts_data"]                           = validateEmpty,
@@ -1370,6 +1381,7 @@ local known_parameters = {
    ["flow_status"]             = validateFlowStatus,            -- flows_stats.lua
    ["flow_status_num"]         = validateFlowStatusNumber,      -- charts
    ["tcp_flow_state"]          = validateTCPFlowState,          -- flows_stats.lua
+   ["traffic_profile"]         = validateSingleWord,            -- flows_stats.lua
    ["include_unlimited"]       = validateBool,                  -- pool_details_ndpi.lua
    ["policy_preset"]           = validateEmptyOr(validatePolicyPreset), -- a traffic bridge policy set
    ["members_filter"]          = validateMembersFilter,         -- host_pools.lua
@@ -1436,7 +1448,7 @@ local known_parameters = {
    ["operating_system"]        = validateNumber,
    ["action"]                  = validateSingleWord, -- generic
    ["ts_schema"]               = validateSingleWord,
-   ["ts_query"]                = validateListOfTypeInline(validateSingleWord),
+   ["ts_query"]                = validateListOfTypeInline(validateUnquoted),
    ["ts_compare"]              = validateZoom,
    ["detail_view"]             = validateSingleWord,
    ["initial_point"]           = validateBool,
@@ -1459,6 +1471,9 @@ local known_parameters = {
    ["list_enabled"]            = validateOnOff,
    ["list_update"]             = validateNumber,
    ["dhcp_ranges"]             = validateListOfTypeInline(validateIpRange),
+   ["icmp_type"]               = validateNumber,
+   ["icmp_cod"]                = validateNumber,
+   ["hosts_only"]              = validateBool,
 
    -- Containers
    ["pod"]                     = validateSingleWord,

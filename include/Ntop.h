@@ -45,14 +45,13 @@ class Ntop {
   char startup_dir[MAX_PATH]; /**< Startup directory. */
   char *custom_ndpi_protos; /**< Pointer of a custom protocol for nDPI. */
   NetworkInterface **iface; /**< Array of network interfaces. */
+  NetworkInterface *system_interface; /** The system interface */
   u_int8_t num_defined_interfaces; /**< Number of defined interfaces. */
+  uint8_t num_dump_interfaces;
   HTTPserver *httpd; /**< Pointer of httpd server. */
   NtopGlobals *globals; /**< Pointer of Ntop globals info and variables. */
   u_int num_cpus; /**< Number of physical CPU cores. */
   Redis *redis; /**< Pointer to the Redis server. */
-#ifdef HAVE_EBPF
-  void *ebpf;
-#endif
 #ifndef HAVE_NEDGE
   ElasticSearch *elastic_search; /**< Pointer of Elastic Search. */
   Logstash *logstash; /**< Pointer of Logstash. */
@@ -71,6 +70,8 @@ class Ntop {
   int udp_socket;
   NtopPro *pro;
   DeviceProtocolBitmask deviceProtocolPresets[device_max_type];
+  cpu_load_stats cpu_stats;
+  float cpu_load;
   bool is_started;
   
 #ifdef NTOPNG_PRO
@@ -265,34 +266,6 @@ class Ntop {
   inline u_int8_t get_num_interfaces()               { return(num_defined_interfaces); }
 
   /**
-   * @brief Get the i-th network interface.
-   * @details Retrieves the pointer the network interface
-   *  identified by id i and enforces constraints on
-   *  user allowed interfaces.
-   *
-   * @param i The i-th network interface.
-   * @return The network interface instance if exists, NULL otherwise.
-   */
-  inline NetworkInterface* getInterfaceAtId(lua_State *vm, int i) const {
-    if(i >= 0 && i < num_defined_interfaces && iface[i]) {
-      return isInterfaceAllowed(vm, iface[i]->get_name()) ? iface[i] : NULL;
-    }
-    return NULL;
-  }
-  /**
-   * @brief Get the i-th network interface.
-   * @details Retrieves the pointer the network interface
-   *  identified by id i WITHOUT ENFORCING constraints on
-   *  user allowed interfaces.
-   *
-   * @param i The i-th network interface.
-   * @return The network interface instance if exists, NULL otherwise.
-   */
-  inline NetworkInterface* getInterfaceAtId(int i) const {
-    return getInterfaceAtId(NULL, i);
-  }
-
-  /**
    * @brief Get the Id of network interface.
    * @details This method accepts both interface names or Ids.
    *
@@ -325,31 +298,11 @@ class Ntop {
    * @param name Names or Id of network interface.
    * @return The network interface instance if exists, NULL otherwise.
    */
-  NetworkInterface* getNetworkInterface(lua_State *vm, const char *name);
-  /**
-   * @brief Get the network interface identified by name or Id.
-   * @details This method accepts both interface names or Ids.
-   *  No checks on user allowed interfaces are performed by this method.
-   *  Therefore is should not be used when forwarding UI requests
-   *  for security reasons.
-   * @param name Names or Id of network interface.
-   * @return The network interface instance if exists, NULL otherwise.
-   */
-  inline NetworkInterface* getNetworkInterface(const char *name) {
-    return getNetworkInterface(NULL /* don't enforce the check on the allowed interface */,
-			       name);
-  };
+  NetworkInterface* getNetworkInterface(const char *name, lua_State *vm = NULL);
   inline NetworkInterface* getNetworkInterface(lua_State *vm, int ifid) {
     char ifname[MAX_INTERFACE_NAME_LEN];
     snprintf(ifname, sizeof(ifname), "%d", ifid);
-    return getNetworkInterface(vm /* enforce the check on the allowed interface */,
-			       ifname);
-  };
-  inline NetworkInterface* getNetworkInterface(int ifid) {
-    char ifname[MAX_INTERFACE_NAME_LEN];
-    snprintf(ifname, sizeof(ifname), "%d", ifid);
-    return getNetworkInterface(NULL /* don't enforce the check on the allowed interface */,
-			       ifname);
+    return getNetworkInterface(ifname, vm /* enforce the check on the allowed interface */);
   };
 
   /**
@@ -457,19 +410,18 @@ class Ntop {
   bool isExistingInterface(const char * const name) const;
   inline NetworkInterface* getFirstInterface() { return(iface[0]);         }
   inline NetworkInterface* getInterface(int i) { return(((i < num_defined_interfaces) && iface[i]) ? iface[i] : NULL); }
+  inline NetworkInterface* getSystemInterface() { return(system_interface); }
 #ifdef NTOPNG_PRO
   bool addToNotifiedInformativeCaptivePortal(u_int32_t client_ip);
   bool addIPToLRUMatches(u_int32_t client_ip, u_int16_t user_pool_id,
 			 char *label, int32_t lifetime_secs, char *ifname);
-#ifdef HAVE_EBPF
-  void deliverEventToInterfaces(eBPFevent *event);
-  void pollEBPF();
-#endif
 #endif /* NTOPNG_PRO */
   
   DeviceProtocolBitmask* getDeviceAllowedProtocols(DeviceType t) { return(&deviceProtocolPresets[t]); }
   void refreshAllowedProtocolPresets(DeviceType t, bool client, lua_State *L, int index);
   DeviceProtoStatus getDeviceAllowedProtocolStatus(DeviceType dev_type, ndpi_protocol proto, u_int16_t pool_id, bool as_client);
+  void refreshCpuLoad();
+  bool getCpuLoad(float *out);
 
   void sendNetworkInterfacesTermination();
   inline time_t getLastStatsReset() { return(last_stats_reset); }

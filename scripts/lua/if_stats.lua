@@ -662,7 +662,7 @@ if(ifstats.zmqRecvStats ~= nil) then
 
       if storage_info.rrd ~= nil and storage_info.rrd > 0 then
         table.insert(storage_items, {
-          title = i18n("prefs.timeseries"),
+          title = i18n("if_stats_overview.rrd_timeseries"),
           value = storage_info.rrd,
           class = "primary",
         })
@@ -1065,6 +1065,7 @@ elseif(page == "historical") then
       ifid = ifid,
       protocol = _GET["protocol"],
       category = _GET["category"],
+      l4proto = _GET["l4proto"],
    }
    url = url.."&page=historical"
 
@@ -1074,6 +1075,7 @@ elseif(page == "historical") then
       top_profiles = "top:profile:traffic",
       top_senders = "top:local_senders",
       top_receivers = "top:local_receivers",
+      l4_protocols = "iface:l4protos",
       show_historical = true,
       timeseries = {
          {schema="iface:flows",                 label=i18n("graphs.active_flows")},
@@ -1117,7 +1119,7 @@ elseif(page == "trafficprofiles") then
      local statschart_icon = ''
 
      if ts_utils.exists("profile:traffic", {ifid=ifid}) then
-	 statschart_icon = '<A HREF=\"'..ntop.getHttpPrefix()..'/lua/profile_details.lua?profile='..trimmed..'\"><i class=\'fa fa-area-chart fa-lg\'></i></A>'
+	 statschart_icon = '<A HREF=\"'..ntop.getHttpPrefix()..'/lua/profile_details.lua?profile='..pname..'\"><i class=\'fa fa-area-chart fa-lg\'></i></A>'
      end
 
      print("<tr><th>"..pname.."</th><td align=center>"..statschart_icon.."</td><td><span id=profile_"..trimmed..">"..bytesToSize(pbytes).."</span> <span id=profile_"..trimmed.."_trend></span></td></tr>\n")
@@ -1240,6 +1242,34 @@ elseif(page == "config") then
       return
    end
 
+   local messages = {}
+
+   -- Flow dump check
+   local interface_flow_dump = true
+   if(prefs.is_dump_flows_enabled and ifstats.isView == false) then
+      interface_flow_dump = (ntop.getPref("ntopng.prefs.ifid_"..ifId..".is_flow_dump_disabled") ~= "1")
+
+      if _SERVER["REQUEST_METHOD"] == "POST" then
+         local new_value = (_POST["interface_flow_dump"] == "1")
+
+         if new_value ~= interface_flow_dump then
+            -- Value changed
+            interface_flow_dump = new_value
+            ntop.setPref("ntopng.prefs.ifid_"..ifId..".is_flow_dump_disabled", ternary(interface_flow_dump, "0", "1"))
+
+            messages[#messages + 1] = {
+             type = "warning",
+             text = i18n("prefs.restart_needed", {product=info.product}),
+           }
+         end
+      end
+   end
+
+   if not table.empty(messages) then
+      printMessageBanners(messages)
+      print("<br>")
+   end
+
    print[[
    <form id="iface_config" lass="form-inline" method="post">
    <input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
@@ -1274,6 +1304,7 @@ elseif(page == "config") then
 	print[[
 	   </td>
 	</tr>]]
+   end
 
 	-- Interface refresh rate
 	print[[
@@ -1288,7 +1319,6 @@ elseif(page == "config") then
 	   </td>
 	</tr>]]
      end
-   end
 
    if not have_nedge then
      -- Scaling factor
@@ -1333,6 +1363,7 @@ elseif(page == "config") then
 	   </td>
 	</tr>]]
 
+   -- Hidden from top
    local rv = ntop.getMembersCache(getHideFromTopSet(ifstats.id)) or {}
    local members = {}
 
@@ -1407,6 +1438,18 @@ elseif(page == "config") then
          </td>
       </tr>]]
 
+   -- Flow dump
+   if(prefs.is_dump_flows_enabled and ifstats.isView == false) then
+      local interface_flow_dump_checked = ternary(interface_flow_dump, "checked", "")
+
+      print [[<tr>
+         <th>]] print(i18n("if_stats_config.dump_flows_to_database")) print[[</th>
+         <td>
+            <input name="interface_flow_dump" type="checkbox" value="1" ]] print(interface_flow_dump_checked) print[[>
+         </td>
+      </tr>]]
+   end
+
    -- per-interface Network Discovery
    if not ntop.isnEdge() and interface.isPacketInterface() then
       local is_mirrored_traffic = false
@@ -1469,7 +1512,7 @@ elseif(page == "config") then
       </tr>]]
    end
 
-   if not interface.isPacketInterface() and not ifstats.isDynamic then
+   if interface.isPacketInterface() and not ifstats.isDynamic then
       local cur_companion = companion_interface_utils.getCurrentCompanion(ifstats.id)
       local companions = companion_interface_utils.getAvailableCompanions()
 

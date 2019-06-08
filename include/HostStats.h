@@ -41,10 +41,6 @@ class HostStats: public Checkpointable, public TimeseriesStats {
   PacketStats sent_stats, recv_stats;
   u_int32_t total_num_flows_as_client, total_num_flows_as_server;
 
-  struct {
-    u_int32_t pktRetr, pktOOO, pktLost, pktKeepAlive;
-  } tcpPacketStats; /* Sent packets */
-
   /* Written by minute activity thread */
   u_int64_t checkpoint_sent_bytes, checkpoint_rcvd_bytes;
   bool checkpoint_set;
@@ -55,18 +51,16 @@ class HostStats: public Checkpointable, public TimeseriesStats {
 
   void checkPointHostTalker(lua_State *vm, bool saveCheckpoint);
   bool serializeCheckpoint(json_object *my_object, DetailsLevel details_level);
-  void incStats(time_t when, u_int8_t l4_proto, u_int ndpi_proto,
+  virtual void incStats(time_t when, u_int8_t l4_proto, u_int ndpi_proto,
 		custom_app_t custom_app,
 		u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
-		u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes);
+		u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes,
+		bool peer_is_unicast);
   virtual void getJSONObject(json_object *my_object, DetailsLevel details_level);
   inline void incFlagStats(bool as_client, u_int8_t flags)  { if (as_client) sent_stats.incFlagStats(flags); else recv_stats.incFlagStats(flags); };
 
   virtual void computeAnomalyIndex(time_t when) {};
-  inline void incRetransmittedPkts(u_int32_t num)   { tcpPacketStats.pktRetr += num;      };
-  inline void incOOOPkts(u_int32_t num)             { tcpPacketStats.pktOOO += num;       };
-  inline void incLostPkts(u_int32_t num)            { tcpPacketStats.pktLost += num;      };
-  inline void incKeepAlivePkts(u_int32_t num)       { tcpPacketStats.pktKeepAlive += num; };
+
   inline void incSentStats(u_int pkt_len)           { sent_stats.incStats(pkt_len);       };
   inline void incRecvStats(u_int pkt_len)           { recv_stats.incStats(pkt_len);       };
   inline u_int32_t getTotalNumFlowsAsClient() const { return(total_num_flows_as_client);  };

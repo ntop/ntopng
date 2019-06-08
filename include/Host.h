@@ -29,6 +29,9 @@ class Host : public GenericHashEntry {
   IpAddress ip;
   Mac *mac;
   char *asname;
+  struct {
+    Fingerprint ssl;
+  } fingerprints;
   bool stats_reset_requested, data_delete_requested;
   u_int16_t vlan_id, host_pool_id;
   HostStats *stats, *stats_shadow;
@@ -86,6 +89,7 @@ class Host : public GenericHashEntry {
   void freeHostData();
   virtual void deleteHostData();
   char* get_mac_based_tskey(Mac *mac, char *buf, size_t bufsize);
+  char* getSerializedString();
 
   
  public:
@@ -133,10 +137,20 @@ class Host : public GenericHashEntry {
   inline u_int16_t get_vlan_id()           { return(vlan_id);        };
   char* get_name(char *buf, u_int buf_len, bool force_resolution_if_not_found);
 
-  inline void incRetransmittedPkts(u_int32_t num)   { stats->incRetransmittedPkts(num);      };
-  inline void incOOOPkts(u_int32_t num)             { stats->incOOOPkts(num);                };
-  inline void incLostPkts(u_int32_t num)            { stats->incLostPkts(num);               };
-  inline void incKeepAlivePkts(u_int32_t num)       { stats->incKeepAlivePkts(num);          };
+  inline void incSentTcp(u_int32_t ooo_pkts, u_int32_t retr_pkts, u_int32_t lost_pkts, u_int32_t keep_alive_pkts) {
+    if(ooo_pkts)        stats->incOOOSent(ooo_pkts);
+    if(retr_pkts)       stats->incRetxSent(retr_pkts);
+    if(lost_pkts)       stats->incLostSent(lost_pkts);
+    if(keep_alive_pkts) stats->incKeepAliveSent(keep_alive_pkts);
+  }
+
+  inline void incRcvdTcp(u_int32_t ooo_pkts, u_int32_t retr_pkts, u_int32_t lost_pkts, u_int32_t keep_alive_pkts) {
+    if(ooo_pkts)        stats->incOOORcvd(ooo_pkts);
+    if(retr_pkts)       stats->incRetxRcvd(retr_pkts);
+    if(lost_pkts)       stats->incLostRcvd(lost_pkts);
+    if(keep_alive_pkts) stats->incKeepAliveRcvd(keep_alive_pkts);
+  }
+
   inline void incSentStats(u_int pkt_len)           { stats->incSentStats(pkt_len);          };
   inline void incRecvStats(u_int pkt_len)           { stats->incRecvStats(pkt_len);          };
   
@@ -213,12 +227,10 @@ class Host : public GenericHashEntry {
   void incStats(u_int32_t when, u_int8_t l4_proto, u_int ndpi_proto,
 		custom_app_t custom_app,
 		u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
-		u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes);
+		u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes,
+    bool peer_is_unicast);
   void incHitter(Host *peer, u_int64_t sent_bytes, u_int64_t rcvd_bytes);
   virtual void updateHostTrafficPolicy(char *key) {};
-  virtual json_object* getJSONObject(DetailsLevel details_level);
-  char* serialize();
-  virtual void  serialize2redis() {};
   bool addIfMatching(lua_State* vm, AddressTree * ptree, char *key);
   bool addIfMatching(lua_State* vm, u_int8_t *mac);
   void updateSynAlertsCounter(time_t when, u_int8_t flags, Flow *f, bool syn_sent);
@@ -279,6 +291,8 @@ class Host : public GenericHashEntry {
   virtual void tsLua(lua_State* vm) { lua_pushnil(vm); };
   DeviceProtoStatus getDeviceAllowedProtocolStatus(ndpi_protocol proto, bool as_client);
 
+  virtual void serialize(json_object *obj, DetailsLevel details_level);
+
   inline void requestStatsReset()                        { stats_reset_requested = true; };
   inline void requestDataReset()                         { data_delete_requested = true; requestStatsReset(); };
   void checkDataReset();
@@ -299,5 +313,6 @@ class Host : public GenericHashEntry {
   void setResolvedName(const char * const resolved_name);
   void dissectDropbox(const char *payload, u_int16_t payload_len);
   void dumpDropbox(lua_State *vm);
+  inline Fingerprint* getSSLFingerprint() { return(&fingerprints.ssl); }
 };
 #endif /* _HOST_H_ */

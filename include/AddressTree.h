@@ -24,19 +24,13 @@
 
 #include "ntop_includes.h"
 
-typedef struct {
-  u_int8_t mac[6];
-  int16_t value;
-  UT_hash_handle hh; /* makes this structure hashable */
-} MacKey_t;
-
 class IpAddress;
 
 class AddressTree {
  private:
   u_int16_t numAddresses;
   patricia_tree_t *ptree_v4, *ptree_v6;
-  MacKey_t *macs;
+  std::map<u_int64_t, int16_t> macs;
   
   patricia_tree_t* getPatricia(char* what);
   

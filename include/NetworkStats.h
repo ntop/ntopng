@@ -29,6 +29,14 @@ class NetworkStats: public Checkpointable {
   TrafficStats ingress, ingress_broadcast; /* outside -> network */
   TrafficStats egress, egress_broadcast;   /* network -> outside */
   TrafficStats inner, inner_broadcast;     /* network -> network (local traffic) */
+  TcpPacketStats tcp_packet_stats_ingress, tcp_packet_stats_egress, tcp_packet_stats_inner;
+
+  static inline void incTcp(TcpPacketStats *tps, u_int32_t ooo_pkts, u_int32_t retr_pkts, u_int32_t lost_pkts, u_int32_t keep_alive_pkts) {
+    if(ooo_pkts)        tps->incOOO(ooo_pkts);
+    if(retr_pkts)       tps->incRetr(retr_pkts);
+    if(lost_pkts)       tps->incLost(lost_pkts);
+    if(keep_alive_pkts) tps->incKeepAlive(keep_alive_pkts);
+  }
 
  public:
   NetworkStats();
@@ -52,8 +60,21 @@ class NetworkStats: public Checkpointable {
     if(broadcast) inner_broadcast.incStats(t, num_pkts, num_bytes);
   };
 
+  inline void incIngressTcp(u_int32_t ooo_pkts, u_int32_t retr_pkts, u_int32_t lost_pkts, u_int32_t keep_alive_pkts) {
+    incTcp(&tcp_packet_stats_ingress, ooo_pkts, retr_pkts, lost_pkts, keep_alive_pkts);
+  };
+
+  inline void incEgressTcp(u_int32_t ooo_pkts, u_int32_t retr_pkts, u_int32_t lost_pkts, u_int32_t keep_alive_pkts) {
+    incTcp(&tcp_packet_stats_egress, ooo_pkts, retr_pkts, lost_pkts, keep_alive_pkts);
+  };
+
+  inline void incInnerTcp(u_int32_t ooo_pkts, u_int32_t retr_pkts, u_int32_t lost_pkts, u_int32_t keep_alive_pkts) {
+    incTcp(&tcp_packet_stats_inner, ooo_pkts, retr_pkts, lost_pkts, keep_alive_pkts);
+  };
+
   void lua(lua_State* vm);
   bool serializeCheckpoint(json_object *my_object, DetailsLevel details_level);
+  void deserialize(json_object *obj);
 };
 
 #endif /* _NETWORK_STATS_H_ */

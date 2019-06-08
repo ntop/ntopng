@@ -25,6 +25,10 @@
 #include "ntop_includes.h"
 
 typedef struct {
+  u_int32_t pktFrag;
+} IPPacketStats;
+
+typedef struct {
   u_int32_t pktRetr, pktOOO, pktLost, pktKeepAlive;
   u_int64_t last, next;
 } TCPPacketStats;
@@ -95,17 +99,25 @@ class Flow : public GenericHashEntry {
     } ssh;
 
     struct {
+      u_int16_t ssl_version;
       char *certificate, *server_certificate;
       /* Certificate dissection */
       char *certificate_buf_leftover;
       u_int certificate_leftover;
       bool dissect_certificate;
       bool subject_alt_name_match;
+      struct {
+	/* https://engineering.salesforce.com/tls-fingerprinting-with-ja3-and-ja3s-247362855967 */
+	char *client_hash, *server_hash;
+	u_int16_t server_cipher;
+	ndpi_cipher_weakness server_unsafe_cipher;
+      } ja3;
     } ssl;
 
     struct {
       u_int8_t icmp_type, icmp_code;
       u_int16_t icmp_echo_id;
+      bool has_long_icmp_payload;
     } icmp;
   } protos;
 
@@ -114,18 +126,17 @@ class Flow : public GenericHashEntry {
     u_int16_t in_index, out_index;
   } flow_device;
 
-  /* Process Information */
-  ProcessInfo *client_proc, *server_proc;
-  /* Container Information */
-  ContainerInfo *client_cont, *server_cont;
-  /* Tcp Information */
-  TcpInfo *client_tcp, *server_tcp;
+  /* eBPF Information */
+  ParsedeBPF *cli_ebpf, *srv_ebpf;
 
   /* Stats */
   u_int32_t cli2srv_packets, srv2cli_packets;
   u_int64_t cli2srv_bytes, srv2cli_bytes;
   /* https://en.wikipedia.org/wiki/Goodput */
   u_int64_t cli2srv_goodput_bytes, srv2cli_goodput_bytes;
+
+  /* IP stats */
+  IPPacketStats ip_stats_s2d, ip_stats_d2s;
 
   /* TCP stats */
   TCPPacketStats tcp_stats_s2d, tcp_stats_d2s;
@@ -180,8 +191,7 @@ class Flow : public GenericHashEntry {
 
   //  tcpFlags = tp->th_flags, tcpSeqNum = ntohl(tp->th_seq), tcpAckNum = ntohl(tp->th_ack), tcpWin = ntohs(tp->th_win);
   char* intoaV4(unsigned int addr, char* buf, u_short bufLen);
-  static void processLua(lua_State* vm, const ProcessInfo * const proc, const ContainerInfo * const cont, const TcpInfo * const tcp, bool client);
-  void processJson(bool is_src, json_object *my_object, ProcessInfo *proc);
+  static void processLua(lua_State* vm, const ParsedeBPF * const pe, bool client);
   void allocDPIMemory();
   bool checkTor(char *hostname);
   void setBittorrentHash(char *hash);
@@ -206,7 +216,9 @@ class Flow : public GenericHashEntry {
 #endif
   bool triggerAlerts() const;
   void dumpFlowAlert();
-
+  void updateJA3();
+  const char* cipher_weakness2str(ndpi_cipher_weakness w);
+  
  public:
   Flow(NetworkInterface *_iface,
        u_int16_t _vlanId, u_int8_t _protocol,
@@ -254,8 +266,8 @@ class Flow : public GenericHashEntry {
   u_int32_t getPid(bool client);
   u_int32_t getFatherPid(bool client);
   u_int32_t get_uid(bool client) const;
-  u_int32_t get_pid(bool client) const;
   char* get_proc_name(bool client);
+  char* get_user_name(bool client);
   u_int32_t getNextTcpSeq(u_int8_t tcpFlags, u_int32_t tcpSeqNum, u_int32_t payloadLen) ;
   double toMs(const struct timeval *t);
   void timeval_diff(struct timeval *begin, const struct timeval *end, struct timeval *result, u_short divide_by_two);
@@ -270,7 +282,7 @@ class Flow : public GenericHashEntry {
   void updateTcpFlags(const struct bpf_timeval *when,
 		      u_int8_t flags, bool src2dst_direction);
   void incTcpBadStats(bool src2dst_direction,
-		      u_int32_t ooo_pkts, u_int32_t retr_pkts, u_int32_t lost_pkts);
+		      u_int32_t ooo_pkts, u_int32_t retr_pkts, u_int32_t lost_pkts, u_int32_t keep_alive_pkts);
   
   void updateTcpSeqNum(const struct bpf_timeval *when,
 		       u_int32_t seq_num, u_int32_t ack_seq_num,
@@ -296,10 +308,12 @@ class Flow : public GenericHashEntry {
 #endif
   bool isFlowPeer(char *numIP, u_int16_t vlanId);
   void incStats(bool cli2srv_direction, u_int pkt_len,
-		u_int8_t *payload, u_int payload_len, u_int8_t l4_proto,
+		u_int8_t *payload, u_int payload_len, 
+                u_int8_t l4_proto, u_int8_t is_fragment,
 		const struct timeval *when);
   void addFlowStats(bool cli2srv_direction, u_int in_pkts, u_int in_bytes, u_int in_goodput_bytes,
-		    u_int out_pkts, u_int out_bytes, u_int out_goodput_bytes, time_t last_seen);
+		    u_int out_pkts, u_int out_bytes, u_int out_goodput_bytes, 
+		    u_int in_fragments, u_int out_fragments, time_t last_seen);
   inline bool isThreeWayHandshakeOK()             { return(twh_ok);                          };
   inline bool isDetectionCompleted() const        { return(detection_completed);             };
   inline struct ndpi_flow_struct* get_ndpi_flow() { return(ndpiFlow);                        };
@@ -339,6 +353,8 @@ class Flow : public GenericHashEntry {
   inline Host* get_cli_host()                     { return(cli_host);                        };
   inline Host* get_srv_host()                     { return(srv_host);                        };
   inline char* get_json_info()			  { return(json_info);                       };
+  inline void set_long_icmp_payload()             { protos.icmp.has_long_icmp_payload = true; }
+  inline bool has_long_icmp_payload()             { return(protos.icmp.has_long_icmp_payload); }
   inline ndpi_protocol_breed_t get_protocol_breed() const {
     return(ndpi_get_proto_breed(iface->get_ndpi_struct(), isDetectionCompleted() ? ndpiDetectedProtocol.app_protocol : NDPI_PROTOCOL_UNKNOWN));
   };
@@ -384,7 +400,7 @@ class Flow : public GenericHashEntry {
 	     const ICMPinfo * const icmp_info,
 	     bool *src2srv_direction);
   bool clientLessThanServer() const;
-  void sumStats(nDPIStats *stats);
+  void sumStats(nDPIStats *stats, FlowStatusStats *status_stats);
   bool dumpFlow(bool dump_alert);
   bool match(AddressTree *ptree);
   void dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_len);
@@ -497,16 +513,25 @@ class Flow : public GenericHashEntry {
 #endif
   void housekeep(time_t t);
   void postFlowSetPurge(time_t t);
-#ifdef HAVE_EBPF
-  void setProcessInfo(eBPFevent *event, bool client_process);
-#endif
-  void setParsedeBPFInfo(const Parsed_eBPF * const ebpf, bool src2dst_direction);
-  inline ContainerInfo* getClientContainerInfo()  { return(client_cont); }
-  inline ContainerInfo* getServerContainerInfo()  { return(server_cont); }
-  inline ProcessInfo*   getClientProcessInfo()    { return(client_proc); }
-  inline ProcessInfo*   getServerProcessInfo()    { return(server_proc); }
-  inline TcpInfo*       getClientTcpInfo()        { return(client_tcp); }
-  inline TcpInfo*       getServerTcpInfo()        { return(server_tcp); }
+  void setParsedeBPFInfo(const ParsedeBPF * const ebpf, bool src2dst_direction);
+  inline const ContainerInfo* getClientContainerInfo() const {
+    return cli_ebpf && cli_ebpf->container_info_set ? &cli_ebpf->container_info : NULL;
+  }
+  inline const ContainerInfo* getServerContainerInfo() const {
+    return srv_ebpf && srv_ebpf->container_info_set ? &srv_ebpf->container_info : NULL;
+  }
+  inline const ProcessInfo * getClientProcessInfo() const {
+    return cli_ebpf && cli_ebpf->process_info_set ? &cli_ebpf->process_info : NULL;
+  }
+  inline const ProcessInfo* getServerProcessInfo() const {
+    return srv_ebpf && srv_ebpf->process_info_set ? &srv_ebpf->process_info : NULL;
+  }
+  inline const TcpInfo* getClientTcpInfo() const {
+    return cli_ebpf && cli_ebpf->tcp_info_set ? &cli_ebpf->tcp_info : NULL;
+  }
+  inline const TcpInfo* getServerTcpInfo() const {
+    return srv_ebpf && srv_ebpf->tcp_info_set ? &srv_ebpf->tcp_info : NULL;
+  }
 };
 
 #endif /* _FLOW_H_ */

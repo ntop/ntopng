@@ -13,6 +13,7 @@ local host_pools_utils = require("host_pools_utils")
 local recovery_utils = require "recovery_utils"
 local alert_consts = require "alert_consts"
 local format_utils = require "format_utils"
+local telemetry_utils = require "telemetry_utils"
 local tracker = require "tracker"
 
 package.path = dirs.installdir .. "/scripts/lua/modules/alert_endpoints/?.lua;" .. package.path
@@ -771,7 +772,8 @@ function formatRawUserActivity(record, activity_json)
 
       elseif decoded.name == 'resetUserPassword' and decoded.params[2] ~= nil then
         local pwd_user = decoded.params[2]
-        return  i18n('user_activity.password_changed', {user=user, pwd_user=pwd_user}) 
+        local user_ip = ternary(decoded.remote_addr, decoded.remote_addr, '')
+        return  i18n('user_activity.password_changed', {user=user, pwd_user=pwd_user, ip=user_ip}) 
 
       -- SNMP device add/del
 
@@ -1511,9 +1513,10 @@ end
 
 -- #################################
 
-function drawAlertTables(num_past_alerts, num_engaged_alerts, num_flow_alerts, get_params, hide_extended_title, alt_nav_tabs)
+function drawAlertTables(num_past_alerts, num_engaged_alerts, num_flow_alerts, get_params, hide_extended_title, alt_nav_tabs, options)
    local alert_items = {}
    local url_params = {}
+   local options = options or {}
 
    print(
       template.gen("modal_confirm_dialog.html", {
@@ -1686,7 +1689,7 @@ function getCurrentStatus() {
 	 local title = t["label"]
 
 	 -- TODO this condition should be removed and page integration support implemented
-	 if((isEmptyString(_GET["entity"])) and isEmptyString(_GET["epoch_begin"]) and isEmptyString(_GET["epoch_end"])) then
+	 if(((isEmptyString(_GET["entity"])) and isEmptyString(_GET["epoch_begin"]) and isEmptyString(_GET["epoch_end"])) and (options.hide_filters ~= true))  then
 	    -- alert_consts.alert_severity_keys and alert_consts.alert_type_keys are defined in lua_utils
 	    local alert_severities = {}
 	    for _, s in pairs(alert_consts.alert_severity_keys) do alert_severities[#alert_severities +1 ] = s[3] end
@@ -1963,7 +1966,7 @@ $('#buttonOpenDeleteModal').on('click', function() {
    cur_alert_num_req = $.ajax({
       type: 'GET',
       ]] print("url: '"..ntop.getHttpPrefix().."/lua/get_num_alerts.lua'") print[[,
-       data: getTabSpecificParams(),
+       data: $.extend(getTabSpecificParams(), {ifid: ]] print(_GET["ifid"] or "null") print[[}),
        complete: function() {
          $("#alerts-summary-wait").hide();
        }, error: function() {
@@ -1989,6 +1992,18 @@ $('#myModal').on('hidden.bs.modal', function () {
 </script>]]
       end
 
+end
+
+-- #################################
+
+function drawAlerts(options)
+   local num_engaged_alerts = getNumAlerts("engaged", getTabParameters(_GET, "engaged"))
+   local num_past_alerts = getNumAlerts("historical", getTabParameters(_GET, "historical"))
+   local num_flow_alerts = getNumAlerts("historical-flows", getTabParameters(_GET, "historical-flows"))
+
+   checkDeleteStoredAlerts()
+
+   return drawAlertTables(num_past_alerts, num_engaged_alerts, num_flow_alerts, _GET, true, nil, options)
 end
 
 -- #################################
@@ -2860,8 +2875,6 @@ function check_process_alerts()
    while(true) do
       local message = ntop.lpopCache(alert_process_queue)
       local elems
-      -- FIX: In the future we must create a special "ntopng/localhost" interface
-      local if_id, if_name = getFirstInterfaceId()
       
       if((message == nil) or (message == "")) then
 	 break
@@ -2873,9 +2886,7 @@ function check_process_alerts()
 
       if(decoded == nil) then
 	 if(verbose) then io.write("JSON Decoding error: "..message.."\n") end
-      else 
-	 interface.select(if_name)
-
+      else
 	 interface.storeAlert(decoded.entity_type,
 			      decoded.entity_value,
 			      decoded.type,
@@ -3453,15 +3464,16 @@ local function notify_ntopng_status(started)
    local severity = alertSeverity("info")
    local msg
    local msg_details = string.format("%s v.%s (%s) [pid: %s][options: %s]", info.product, info.version, info.OS, info.pid, info.command_line)
+   local anomalous = false
    
-   if(started)
-   then
+   if(started) then
       -- let's check if we are restarting from an anomalous termination
       -- e.g., from a crash
       if not recovery_utils.check_clean_shutdown() then
 	 -- anomalous termination
 	 msg = string.format("%s %s", i18n("alert_messages.ntopng_anomalous_termination", {url="https://www.ntop.org/support/need-help-2/need-help/"}), msg_details)
 	 severity = alertSeverity("error")
+	 anomalous = true
       else
 	 -- normal termination
 	 msg = string.format("%s %s", i18n("alert_messages.ntopng_start"), msg_details)
@@ -3476,6 +3488,10 @@ local function notify_ntopng_status(started)
       severity = severity,
       message = msg,
       when = os.time() }
+
+   if anomalous then
+      telemetry_utils.notify(obj)
+   end
    
    ntop.rpushCache(alert_process_queue, json.encode(obj))
 end
@@ -3499,6 +3515,25 @@ function notify_snmp_device_interface_status_change(snmp_host, snmp_interface)
    ntop.rpushCache(alert_process_queue, json.encode(obj))
 end
 
+function notify_snmp_device_interface_duplexstatus_change(snmp_host, snmp_interface)
+   local msg = i18n("alerts_dashboard.snmp_port_changed_duplex_status",
+		    {device = snmp_host,
+		     port = snmp_interface["name"] or snmp_interface["index"],
+		     url = ntop.getHttpPrefix()..string.format("/lua/pro/enterprise/snmp_device_details.lua?host=%s", snmp_host),
+		     port_url = ntop.getHttpPrefix()..string.format("/lua/pro/enterprise/snmp_interface_details.lua?host=%s&snmp_port_idx=%d", snmp_host, snmp_interface["index"]),
+		     new_op = snmp_duplexstatus(snmp_interface["duplexstatus"])})
+
+   local entity_value = string.format("%s_ifidx%d", snmp_host, snmp_interface["index"])
+   local obj = {entity_type = alertEntity("snmp_device"),
+		entity_value = entity_value,
+		type = alertType("port_duplexstatus_change"),
+		severity = alertSeverity("info"),
+		message = msg, when = os.time()
+	       }
+
+   ntop.rpushCache(alert_process_queue, json.encode(obj))
+end
+
 function notify_snmp_device_interface_errors(snmp_host, snmp_interface)
    local msg = i18n("alerts_dashboard.snmp_port_errors_increased",
 		    {device = snmp_host,
@@ -3510,6 +3545,26 @@ function notify_snmp_device_interface_errors(snmp_host, snmp_interface)
    local obj = {entity_type = alertEntity("snmp_device"),
 		entity_value = entity_value,
 		type = alertType("port_errors"),
+		severity = alertSeverity("info"),
+		message = msg, when = os.time()
+	       }
+
+   ntop.rpushCache(alert_process_queue, json.encode(obj))
+end
+
+function notify_snmp_device_interface_load_threshold_exceeded(snmp_host, snmp_interface, port_load, in_direction)
+   local msg = i18n("alerts_dashboard.snmp_port_load_threshold_exceeded_message",
+		    {device = snmp_host,
+		     port = snmp_interface["name"] or snmp_interface["index"],
+		     url = ntop.getHttpPrefix()..string.format("/lua/pro/enterprise/snmp_device_details.lua?host=%s", snmp_host),
+		     port_url = ntop.getHttpPrefix()..string.format("/lua/pro/enterprise/snmp_interface_details.lua?host=%s&snmp_port_idx=%d", snmp_host, snmp_interface["index"]),
+                     port_load = port_load,
+                     direction = ternary(in_direction, "RX", "TX") })
+
+   local entity_value = string.format("%s_ifidx%d", snmp_host, snmp_interface["index"])
+   local obj = {entity_type = alertEntity("snmp_device"),
+		entity_value = entity_value,
+		type = alertType("port_load_threshold_exceeded"),
 		severity = alertSeverity("info"),
 		message = msg, when = os.time()
 	       }

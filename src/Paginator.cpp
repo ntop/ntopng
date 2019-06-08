@@ -30,6 +30,9 @@ Paginator::Paginator() {
   host_filter = NULL;
   container_filter = NULL;
   pod_filter = NULL;
+  traffic_profile_filter = NULL;
+  username_filter = NULL;
+  pidname_filter = NULL;
 
   /* bool */
   a2z_sort_order = true;
@@ -52,12 +55,13 @@ Paginator::Paginator() {
   filtered_flows = -1;
   pool_filter = ((u_int16_t)-1);
   mac_filter = NULL;
+  flow_status_filter = ((u_int16_t)-1);
 
   deviceIP = inIndex = outIndex = 0;
   asn_filter = (u_int32_t)-1;
 
-  uid_filter = NO_UID;
-  pid_filter = NO_PID;
+  icmp_type = u_int8_t(-1);
+  icmp_code = u_int8_t(-1);
 
   details_level = details_normal;
   details_level_set = false;
@@ -79,6 +83,9 @@ Paginator::~Paginator() {
   if(container_filter) free(container_filter);
   if(pod_filter)     free(pod_filter);
   if(mac_filter)     free(mac_filter);
+  if(traffic_profile_filter) free(traffic_profile_filter);
+  if(username_filter) free(username_filter);
+  if(pidname_filter) free(pidname_filter);
 }
 
 /* **************************************************** */
@@ -153,6 +160,15 @@ void Paginator::readOptions(lua_State *L, int index) {
 	  if(mac_filter) free(mac_filter);
 	  mac_filter = (u_int8_t *) malloc(6);
 	  Utils::parseMac(mac_filter, value);
+	} else if(!strcmp(key, "usernameFilter")) {
+	  if(username_filter) free(username_filter);
+	  username_filter = strdup(lua_tostring(L, -1));
+	} else if(!strcmp(key, "pidnameFilter")) {
+	  if(pidname_filter) free(pidname_filter);
+	  pidname_filter = strdup(lua_tostring(L, -1));
+	} else if(!strcmp(key, "trafficProfileFilter")) {
+	  if(traffic_profile_filter) free(traffic_profile_filter);
+	  traffic_profile_filter = strdup(lua_tostring(L, -1));
 	} //else
 	  //ntop->getTrace()->traceEvent(TRACE_ERROR, "Invalid string type (%s) for option %s", lua_tostring(L, -1), key);
 	break;
@@ -182,11 +198,12 @@ void Paginator::readOptions(lua_State *L, int index) {
 	  pool_filter = lua_tointeger(L, -1);
 	else if(!strcmp(key, "asnFilter"))
 	  asn_filter = lua_tointeger(L, -1);
-	else if(!strcmp(key, "uidFilter"))
-	  uid_filter = lua_tointeger(L, -1);
-	else if(!strcmp(key, "pidFilter"))
-	  pid_filter = lua_tointeger(L, -1);
-
+	else if(!strcmp(key, "icmp_type"))
+	  icmp_type = lua_tointeger(L, -1);
+	else if(!strcmp(key, "icmp_code"))
+	  icmp_code = lua_tointeger(L, -1);
+	else if(!strcmp(key, "statusFilter"))
+	  flow_status_filter = lua_tointeger(L, -1);
 	//else
 	  //ntop->getTrace()->traceEvent(TRACE_ERROR, "Invalid int type (%d) for option %s", lua_tointeger(L, -1), key);
 	break;

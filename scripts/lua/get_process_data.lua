@@ -12,14 +12,14 @@ sendHTTPContentTypeHeader('text/html')
 
 local mode     = _GET["ebpf_data"] or "applications"
 local host     = _GET["host"]
-local pid      = _GET["pid"]
+local pid_name = _GET["pid_name"]
 
 local pageinfo = {
    ["sortColumn"] = "column_bytes",
    ["maxHits"] = 15,
    ["a2zSortOrder"] = false,
    ["hostFilter"] = host,
-   ["pidFilter"]  = tonumber(pid),
+   ["pidnameFilter"]  = pid_name,
    ["detailsLevel"] = "high", -- to obtain processes information
 }
 

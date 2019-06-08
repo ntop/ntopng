@@ -5,3 +5,11 @@
 	copytruncate
 }
 
+/var/lib/ntopng/ntopng_access.log {
+	daily
+	missingok
+	rotate 4
+	copytruncate
+}
+
+

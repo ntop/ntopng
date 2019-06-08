@@ -25,40 +25,28 @@
 #include "ntop_includes.h"
 
 typedef struct {
-  u_int8_t mac_manufacturer[3];
   char *manufacturer_name;
   char *short_name;
-  UT_hash_handle hh;
 } mac_manufacturers_t;
 
 class MacManufacturers {
  private:
   char manufacturers_file[MAX_PATH];
-  mac_manufacturers_t *mac_manufacturers;
+  std::map<u_int32_t, mac_manufacturers_t> mac_manufacturers;
+
+  inline u_int32_t mac2key(u_int8_t mac[]) {
+    u_int32_t v = 0;
+    memcpy(&v, mac, 3);
+    return(v);
+  }
 
   void init();
  public:
   MacManufacturers(const char * const mac_file_home);
   ~MacManufacturers();
 
-  inline const char * const getManufacturer(u_int8_t mac[]) {
-    mac_manufacturers_t *m = NULL;
-    HASH_FIND(hh, mac_manufacturers, mac, 3, m);
-    return m ? m->manufacturer_name : NULL;
-  };
-
-  inline void getMacManufacturer(u_int8_t mac[], lua_State *vm) {
-    mac_manufacturers_t *m = NULL;
-    HASH_FIND(hh, mac_manufacturers, mac, 3, m);
-
-    if (m) {
-      lua_newtable(vm);
-      lua_push_str_table_entry(vm, "short", m->short_name);
-      lua_push_str_table_entry(vm, "extended", m->manufacturer_name);
-    } else {
-      lua_pushnil(vm);
-    }
-  };
+  const char *getManufacturer(u_int8_t mac[]);
+  void getMacManufacturer(u_int8_t mac[], lua_State *vm);
 };
 
 #endif /* _MAC_MANUFACTURERS_H_ */

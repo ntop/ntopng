@@ -26,22 +26,25 @@
 
 class TcpPacketStats {
  private:
-  u_int64_t pktRetr, pktOOO, pktLost;
+  u_int64_t pktRetr, pktOOO, pktLost, pktKeepAlive;
 
  public:
   TcpPacketStats();
   
-  inline void incRetr(u_int32_t num) { pktRetr += num; }
-  inline void incOOO(u_int32_t num)  { pktOOO += num;  }
-  inline void incLost(u_int32_t num) { pktLost += num; }
+  inline void incRetr(u_int32_t num)      { pktRetr += num;      }
+  inline void incOOO(u_int32_t num)       { pktOOO += num;       }
+  inline void incLost(u_int32_t num)      { pktLost += num;      }
+  inline void incKeepAlive(u_int32_t num) { pktKeepAlive += num; }
 
   char* serialize();
   void deserialize(json_object *o);
   json_object* getJSONObject();
+  inline bool seqIssues() const { return(pktRetr || pktOOO || pktLost || pktKeepAlive); }
   void lua(lua_State* vm, const char *label);
 
   inline void sum(TcpPacketStats *s) {
-    s->pktRetr += pktRetr, s->pktOOO += pktOOO, s-> pktLost += pktLost;
+    s->pktRetr += pktRetr, s->pktOOO += pktOOO,
+      s->pktLost += pktLost, s->pktKeepAlive += pktKeepAlive;
   }
 };
 

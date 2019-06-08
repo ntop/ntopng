@@ -8,7 +8,9 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 require "alert_utils"
 
-interface.select(ifname)
+if _GET["ifid"] ~= nil then
+   interface.select(_GET["ifid"])
+end
 
 sendHTTPContentTypeHeader('text/html')
 

@@ -102,6 +102,38 @@ schema:addTag("ifid")
 schema:addTag("asn")
 schema:addMetric("millis_rtt")
 
+-- ##############################################
+
+schema = ts_utils.newSchema("asn:tcp_retransmissions", {step=300})
+schema:addTag("ifid")
+schema:addTag("asn")
+schema:addMetric("packets_sent")
+schema:addMetric("packets_rcvd")
+
+-- ##############################################
+
+schema = ts_utils.newSchema("asn:tcp_out_of_order", {step=300})
+schema:addTag("ifid")
+schema:addTag("asn")
+schema:addMetric("packets_sent")
+schema:addMetric("packets_rcvd")
+
+-- ##############################################
+
+schema = ts_utils.newSchema("asn:tcp_lost", {step=300})
+schema:addTag("ifid")
+schema:addTag("asn")
+schema:addMetric("packets_sent")
+schema:addMetric("packets_rcvd")
+
+-- ##############################################
+
+schema = ts_utils.newSchema("asn:tcp_keep_alive", {step=300})
+schema:addTag("ifid")
+schema:addTag("asn")
+schema:addMetric("packets_sent")
+schema:addMetric("packets_rcvd")
+
 -------------------------------------------------------
 -- COUNTRIES SCHEMAS
 -------------------------------------------------------
@@ -167,12 +199,19 @@ schema:addMetric("bytes_rcvd")
 -- SNMP SCHEMAS
 -------------------------------------------------------
 
-schema = ts_utils.newSchema("snmp_if:traffic", {step=300, rrd_heartbeat=3000, rrd_fname="bytes"})
+schema = ts_utils.newSchema("snmp_if:traffic", {step=300, rrd_heartbeat=3000, rrd_fname="bytes", is_system_schema = true})
 schema:addTag("ifid")
 schema:addTag("device")
 schema:addTag("if_index")
 schema:addMetric("bytes_sent")
 schema:addMetric("bytes_rcvd")
+
+schema = ts_utils.newSchema("snmp_if:errors", {step=300, rrd_heartbeat=3000, is_system_schema = true})
+schema:addTag("ifid")
+schema:addTag("device")
+schema:addTag("if_index")
+schema:addMetric("packets_disc")
+schema:addMetric("packets_err")
 
 -------------------------------------------------------
 -- HOSTS SCHEMAS
@@ -309,6 +348,14 @@ schema:addMetric("bytes_rcvd")
 
 -- ##############################################
 
+schema = ts_utils.newSchema("host:udp_sent_unicast", {step=300})
+schema:addTag("ifid")
+schema:addTag("host")
+schema:addMetric("bytes_sent_unicast")
+schema:addMetric("bytes_sent_non_unicast")
+
+-- ##############################################
+
 schema = ts_utils.newSchema("host:ndpi", {step=300})
 schema:addTag("ifid")
 schema:addTag("host")
@@ -322,13 +369,14 @@ schema = ts_utils.newSchema("host:ndpi_categories", {step=300})
 schema:addTag("ifid")
 schema:addTag("host")
 schema:addTag("category")
-schema:addMetric("bytes")
+schema:addMetric("bytes_sent")
+schema:addMetric("bytes_rcvd")
 
 -- ##############################################
 
 -- NOTE: these are "virtual" schema, they do not correspond to actual timeseries
-schema = ts_utils.newSchema("local_senders", {step=300})
+schema = ts_utils.newSchema("local_senders", {step=300, is_system_schema = true})
 schema:addTag("ifid")
 
-schema = ts_utils.newSchema("local_receivers", {step=300})
+schema = ts_utils.newSchema("local_receivers", {step=300, is_system_schema = true})
 schema:addTag("ifid")

@@ -592,6 +592,9 @@ const char* Utils::flowStatus2str(FlowStatus s, AlertType *aType, AlertLevel *aL
   case status_tcp_connection_issues:
     return("TCP Connection Issues");
     break;
+  case status_tcp_severe_connection_issues:
+    return("Severe TCP Connection Issues");
+    break;
   case status_suspicious_tcp_probing:
     *aType = alert_suspicious_activity;
     return("Suspicious TCP Probing");
@@ -628,6 +631,9 @@ const char* Utils::flowStatus2str(FlowStatus s, AlertType *aType, AlertLevel *aL
     return("Protocol not allowed for this device type");
   case status_elephant_local_to_remote:
     return("Elephant flow (local to remote)");
+    break;
+  case status_data_exfiltration:
+    return("Data Exfiltration");
     break;
   case status_elephant_remote_to_local:
     return("Elephant flow (remote to local)");
@@ -948,6 +954,8 @@ int Utils::ifname2id(const char *name) {
 
   if(name == NULL) return(-1);
   else if(!strncmp(name, "-", 1)) name = (char*) "stdin";
+
+  if(!strcmp(name, SYSTEM_INTERFACE_NAME)) return(SYSTEM_INTERFACE_ID);
 
   if(ntop->getRedis()->hashGet((char*)CONST_IFACE_ID_PREFS, (char*)name, rsp, sizeof(rsp)) == 0) {
     /* Found */
@@ -3109,22 +3117,24 @@ bool Utils::maskHost(bool isLocalIP) {
 
 /* ****************************************************** */
 
-void Utils::luaCpuLoad(lua_State* vm) {
+bool Utils::getCpuLoad(cpu_load_stats *out) {
 #if !defined(__FreeBSD__) && !defined(__NetBSD__) & !defined(__OpenBSD__) && !defined(__APPLE__) && !defined(WIN32)
   long unsigned int user, nice, system, idle, iowait, irq, softirq;
   FILE *fp;
 
-  if(vm) {
-    if((fp = fopen("/proc/stat", "r"))) {
-      fscanf(fp,"%*s %lu %lu %lu %lu %lu %lu %lu",
-	     &user, &nice, &system, &idle, &iowait, &irq, &softirq);
-      fclose(fp);
+  if((fp = fopen("/proc/stat", "r"))) {
+    fscanf(fp,"%*s %lu %lu %lu %lu %lu %lu %lu",
+     &user, &nice, &system, &idle, &iowait, &irq, &softirq);
+    fclose(fp);
 
-      lua_push_uint64_table_entry(vm, "cpu_load", user + nice + system + iowait + irq + softirq);
-      lua_push_uint64_table_entry(vm, "cpu_idle", idle);
-    }
+    out->active = user + nice + system + iowait + irq + softirq;
+    out->idle = idle;
+
+    return(true);
   }
 #endif
+
+  return(false);
 };
 
 /* ****************************************************** */
@@ -3568,7 +3578,7 @@ void Utils::init_pcap_header(struct pcap_file_header * const h, NetworkInterface
   h->version_minor = 4;
   h->thiszone = 0;
   h->sigfigs  = 0;
-  h->snaplen  = ntop->getGlobals()->getSnaplen();
+  h->snaplen  = ntop->getGlobals()->getSnaplen(iface->get_name());
   h->linktype = iface->isPacketInterface() ? iface->get_datalink() : DLT_EN10MB;
 }
 

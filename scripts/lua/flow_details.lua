@@ -32,6 +32,304 @@ local discover = require("discover_utils")
 local json = require ("dkjson")
 local page_utils = require("page_utils")
 
+local ssl_cipher_suites = {
+   TLS_NULL_WITH_NULL_NULL=0x000000,
+   TLS_RSA_WITH_NULL_MD5=0x000001,
+   TLS_RSA_WITH_NULL_SHA=0x000002,
+   TLS_RSA_EXPORT_WITH_RC4_40_MD5=0x000003,
+   TLS_RSA_WITH_RC4_128_MD5=0x000004,
+   TLS_RSA_WITH_RC4_128_SHA=0x000005,
+   TLS_RSA_EXPORT_WITH_RC2_CBC_40_MD5=0x000006,
+   TLS_RSA_WITH_IDEA_CBC_SHA=0x000007,
+   TLS_RSA_EXPORT_WITH_DES40_CBC_SHA=0x000008,
+   TLS_RSA_WITH_DES_CBC_SHA=0x000009,
+   TLS_RSA_WITH_3DES_EDE_CBC_SHA=0x00000a,
+   TLS_DH_DSS_EXPORT_WITH_DES40_CBC_SHA=0x00000b,
+   TLS_DH_DSS_WITH_DES_CBC_SHA=0x00000c,
+   TLS_DH_DSS_WITH_3DES_EDE_CBC_SHA=0x00000d,
+   TLS_DH_RSA_EXPORT_WITH_DES40_CBC_SHA=0x00000e,
+   TLS_DH_RSA_WITH_DES_CBC_SHA=0x00000f,
+   TLS_DH_RSA_WITH_3DES_EDE_CBC_SHA=0x000010,
+   TLS_DHE_DSS_EXPORT_WITH_DES40_CBC_SHA=0x000011,
+   TLS_DHE_DSS_WITH_DES_CBC_SHA=0x000012,
+   TLS_DHE_DSS_WITH_3DES_EDE_CBC_SHA=0x000013,
+   TLS_DHE_RSA_EXPORT_WITH_DES40_CBC_SHA=0x000014,
+   TLS_DHE_RSA_WITH_DES_CBC_SHA=0x000015,
+   TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA=0x000016,
+   TLS_DH_anon_EXPORT_WITH_RC4_40_MD5=0x000017,
+   TLS_DH_anon_WITH_RC4_128_MD5=0x000018,
+   TLS_DH_anon_EXPORT_WITH_DES40_CBC_SHA=0x000019,
+   TLS_DH_anon_WITH_DES_CBC_SHA=0x00001a,
+   TLS_DH_anon_WITH_3DES_EDE_CBC_SHA=0x00001b,
+   SSL_FORTEZZA_KEA_WITH_NULL_SHA=0x00001c,
+   SSL_FORTEZZA_KEA_WITH_FORTEZZA_CBC_SHA=0x00001d,
+   SSL_FORTEZZA_KEA_WITH_RC4_128_SHA=0x00001e,
+   TLS_KRB5_WITH_DES_CBC_SHA=0x00001E,
+   TLS_KRB5_WITH_3DES_EDE_CBC_SHA=0x00001F,
+   TLS_KRB5_WITH_RC4_128_SHA=0x000020,
+   TLS_KRB5_WITH_IDEA_CBC_SHA=0x000021,
+   TLS_KRB5_WITH_DES_CBC_MD5=0x000022,
+   TLS_KRB5_WITH_3DES_EDE_CBC_MD5=0x000023,
+   TLS_KRB5_WITH_RC4_128_MD5=0x000024,
+   TLS_KRB5_WITH_IDEA_CBC_MD5=0x000025,
+   TLS_KRB5_EXPORT_WITH_DES_CBC_40_SHA=0x000026,
+   TLS_KRB5_EXPORT_WITH_RC2_CBC_40_SHA=0x000027,
+   TLS_KRB5_EXPORT_WITH_RC4_40_SHA=0x000028,
+   TLS_KRB5_EXPORT_WITH_DES_CBC_40_MD5=0x000029,
+   TLS_KRB5_EXPORT_WITH_RC2_CBC_40_MD5=0x00002A,
+   TLS_KRB5_EXPORT_WITH_RC4_40_MD5=0x00002B,
+   TLS_PSK_WITH_NULL_SHA=0x00002C,
+   TLS_DHE_PSK_WITH_NULL_SHA=0x00002D,
+   TLS_RSA_PSK_WITH_NULL_SHA=0x00002E,
+   TLS_RSA_WITH_AES_128_CBC_SHA=0x00002f,
+   TLS_DH_DSS_WITH_AES_128_CBC_SHA=0x000030,
+   TLS_DH_RSA_WITH_AES_128_CBC_SHA=0x000031,
+   TLS_DHE_DSS_WITH_AES_128_CBC_SHA=0x000032,
+   TLS_DHE_RSA_WITH_AES_128_CBC_SHA=0x000033,
+   TLS_DH_anon_WITH_AES_128_CBC_SHA=0x000034,
+   TLS_RSA_WITH_AES_256_CBC_SHA=0x000035,
+   TLS_DH_DSS_WITH_AES_256_CBC_SHA=0x000036,
+   TLS_DH_RSA_WITH_AES_256_CBC_SHA=0x000037,
+   TLS_DHE_DSS_WITH_AES_256_CBC_SHA=0x000038,
+   TLS_DHE_RSA_WITH_AES_256_CBC_SHA=0x000039,
+   TLS_DH_anon_WITH_AES_256_CBC_SHA=0x00003A,
+   TLS_RSA_WITH_NULL_SHA256=0x00003B,
+   TLS_RSA_WITH_AES_128_CBC_SHA256=0x00003C,
+   TLS_RSA_WITH_AES_256_CBC_SHA256=0x00003D,
+   TLS_DH_DSS_WITH_AES_128_CBC_SHA256=0x00003E,
+   TLS_DH_RSA_WITH_AES_128_CBC_SHA256=0x00003F,
+   TLS_DHE_DSS_WITH_AES_128_CBC_SHA256=0x000040,
+   TLS_RSA_WITH_CAMELLIA_128_CBC_SHA=0x000041,
+   TLS_DH_DSS_WITH_CAMELLIA_128_CBC_SHA=0x000042,
+   TLS_DH_RSA_WITH_CAMELLIA_128_CBC_SHA=0x000043,
+   TLS_DHE_DSS_WITH_CAMELLIA_128_CBC_SHA=0x000044,
+   TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA=0x000045,
+   TLS_DH_anon_WITH_CAMELLIA_128_CBC_SHA=0x000046,
+   TLS_ECDH_ECDSA_WITH_NULL_SHA=0x000047,
+   TLS_ECDH_ECDSA_WITH_RC4_128_SHA=0x000048,
+   TLS_ECDH_ECDSA_WITH_DES_CBC_SHA=0x000049,
+   TLS_ECDH_ECDSA_WITH_3DES_EDE_CBC_SHA=0x00004A,
+   TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA=0x00004B,
+   TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA=0x00004C,
+   TLS_RSA_EXPORT1024_WITH_RC4_56_MD5=0x000060,
+   TLS_RSA_EXPORT1024_WITH_RC2_CBC_56_MD5=0x000061,
+   TLS_RSA_EXPORT1024_WITH_DES_CBC_SHA=0x000062,
+   TLS_DHE_DSS_EXPORT1024_WITH_DES_CBC_SHA=0x000063,
+   TLS_RSA_EXPORT1024_WITH_RC4_56_SHA=0x000064,
+   TLS_DHE_DSS_EXPORT1024_WITH_RC4_56_SHA=0x000065,
+   TLS_DHE_DSS_WITH_RC4_128_SHA=0x000066,
+   TLS_DHE_RSA_WITH_AES_128_CBC_SHA256=0x000067,
+   TLS_DH_DSS_WITH_AES_256_CBC_SHA256=0x000068,
+   TLS_DH_RSA_WITH_AES_256_CBC_SHA256=0x000069,
+   TLS_DHE_DSS_WITH_AES_256_CBC_SHA256=0x00006A,
+   TLS_DHE_RSA_WITH_AES_256_CBC_SHA256=0x00006B,
+   TLS_DH_anon_WITH_AES_128_CBC_SHA256=0x00006C,
+   TLS_DH_anon_WITH_AES_256_CBC_SHA256=0x00006D,
+   TLS_RSA_WITH_CAMELLIA_256_CBC_SHA=0x000084,
+   TLS_DH_DSS_WITH_CAMELLIA_256_CBC_SHA=0x000085,
+   TLS_DH_RSA_WITH_CAMELLIA_256_CBC_SHA=0x000086,
+   TLS_DHE_DSS_WITH_CAMELLIA_256_CBC_SHA=0x000087,
+   TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA=0x000088,
+   TLS_DH_anon_WITH_CAMELLIA_256_CBC_SHA=0x000089,
+   TLS_PSK_WITH_RC4_128_SHA=0x00008A,
+   TLS_PSK_WITH_3DES_EDE_CBC_SHA=0x00008B,
+   TLS_PSK_WITH_AES_128_CBC_SHA=0x00008C,
+   TLS_PSK_WITH_AES_256_CBC_SHA=0x00008D,
+   TLS_DHE_PSK_WITH_RC4_128_SHA=0x00008E,
+   TLS_DHE_PSK_WITH_3DES_EDE_CBC_SHA=0x00008F,
+   TLS_DHE_PSK_WITH_AES_128_CBC_SHA=0x000090,
+   TLS_DHE_PSK_WITH_AES_256_CBC_SHA=0x000091,
+   TLS_RSA_PSK_WITH_RC4_128_SHA=0x000092,
+   TLS_RSA_PSK_WITH_3DES_EDE_CBC_SHA=0x000093,
+   TLS_RSA_PSK_WITH_AES_128_CBC_SHA=0x000094,
+   TLS_RSA_PSK_WITH_AES_256_CBC_SHA=0x000095,
+   TLS_RSA_WITH_SEED_CBC_SHA=0x000096,
+   TLS_DH_DSS_WITH_SEED_CBC_SHA=0x000097,
+   TLS_DH_RSA_WITH_SEED_CBC_SHA=0x000098,
+   TLS_DHE_DSS_WITH_SEED_CBC_SHA=0x000099,
+   TLS_DHE_RSA_WITH_SEED_CBC_SHA=0x00009A,
+   TLS_DH_anon_WITH_SEED_CBC_SHA=0x00009B,
+   TLS_RSA_WITH_AES_128_GCM_SHA256=0x00009C,
+   TLS_RSA_WITH_AES_256_GCM_SHA384=0x00009D,
+   TLS_DHE_RSA_WITH_AES_128_GCM_SHA256=0x00009E,
+   TLS_DHE_RSA_WITH_AES_256_GCM_SHA384=0x00009F,
+   TLS_DH_RSA_WITH_AES_128_GCM_SHA256=0x0000A0,
+   TLS_DH_RSA_WITH_AES_256_GCM_SHA384=0x0000A1,
+   TLS_DHE_DSS_WITH_AES_128_GCM_SHA256=0x0000A2,
+   TLS_DHE_DSS_WITH_AES_256_GCM_SHA384=0x0000A3,
+   TLS_DH_DSS_WITH_AES_128_GCM_SHA256=0x0000A4,
+   TLS_DH_DSS_WITH_AES_256_GCM_SHA384=0x0000A5,
+   TLS_DH_anon_WITH_AES_128_GCM_SHA256=0x0000A6,
+   TLS_DH_anon_WITH_AES_256_GCM_SHA384=0x0000A7,
+   TLS_PSK_WITH_AES_128_GCM_SHA256=0x0000A8,
+   TLS_PSK_WITH_AES_256_GCM_SHA384=0x0000A9,
+   TLS_DHE_PSK_WITH_AES_128_GCM_SHA256=0x0000AA,
+   TLS_DHE_PSK_WITH_AES_256_GCM_SHA384=0x0000AB,
+   TLS_RSA_PSK_WITH_AES_128_GCM_SHA256=0x0000AC,
+   TLS_RSA_PSK_WITH_AES_256_GCM_SHA384=0x0000AD,
+   TLS_PSK_WITH_AES_128_CBC_SHA256=0x0000AE,
+   TLS_PSK_WITH_AES_256_CBC_SHA384=0x0000AF,
+   TLS_PSK_WITH_NULL_SHA256=0x0000B0,
+   TLS_PSK_WITH_NULL_SHA384=0x0000B1,
+   TLS_DHE_PSK_WITH_AES_128_CBC_SHA256=0x0000B2,
+   TLS_DHE_PSK_WITH_AES_256_CBC_SHA384=0x0000B3,
+   TLS_DHE_PSK_WITH_NULL_SHA256=0x0000B4,
+   TLS_DHE_PSK_WITH_NULL_SHA384=0x0000B5,
+   TLS_RSA_PSK_WITH_AES_128_CBC_SHA256=0x0000B6,
+   TLS_RSA_PSK_WITH_AES_256_CBC_SHA384=0x0000B7,
+   TLS_RSA_PSK_WITH_NULL_SHA256=0x0000B8,
+   TLS_RSA_PSK_WITH_NULL_SHA384=0x0000B9,
+   TLS_RSA_WITH_CAMELLIA_128_CBC_SHA256=0x0000BA,
+   TLS_DH_DSS_WITH_CAMELLIA_128_CBC_SHA256=0x0000BB,
+   TLS_DH_RSA_WITH_CAMELLIA_128_CBC_SHA256=0x0000BC,
+   TLS_DHE_DSS_WITH_CAMELLIA_128_CBC_SHA256=0x0000BD,
+   TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA256=0x0000BE,
+   TLS_DH_anon_WITH_CAMELLIA_128_CBC_SHA256=0x0000BF,
+   TLS_RSA_WITH_CAMELLIA_256_CBC_SHA256=0x0000C0,
+   TLS_DH_DSS_WITH_CAMELLIA_256_CBC_SHA256=0x0000C1,
+   TLS_DH_RSA_WITH_CAMELLIA_256_CBC_SHA256=0x0000C2,
+   TLS_DHE_DSS_WITH_CAMELLIA_256_CBC_SHA256=0x0000C3,
+   TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA256=0x0000C4,
+   TLS_DH_anon_WITH_CAMELLIA_256_CBC_SHA256=0x0000C5,
+   TLS_EMPTY_RENEGOTIATION_INFO_SCSV=0x0000FF,
+   TLS_ECDH_ECDSA_WITH_NULL_SHA=0x00c001,
+   TLS_ECDH_ECDSA_WITH_RC4_128_SHA=0x00c002,
+   TLS_ECDH_ECDSA_WITH_3DES_EDE_CBC_SHA=0x00c003,
+   TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA=0x00c004,
+   TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA=0x00c005,
+   TLS_ECDHE_ECDSA_WITH_NULL_SHA=0x00c006,
+   TLS_ECDHE_ECDSA_WITH_RC4_128_SHA=0x00c007,
+   TLS_ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA=0x00c008,
+   TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA=0x00c009,
+   TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA=0x00c00a,
+   TLS_ECDH_RSA_WITH_NULL_SHA=0x00c00b,
+   TLS_ECDH_RSA_WITH_RC4_128_SHA=0x00c00c,
+   TLS_ECDH_RSA_WITH_3DES_EDE_CBC_SHA=0x00c00d,
+   TLS_ECDH_RSA_WITH_AES_128_CBC_SHA=0x00c00e,
+   TLS_ECDH_RSA_WITH_AES_256_CBC_SHA=0x00c00f,
+   TLS_ECDHE_RSA_WITH_NULL_SHA=0x00c010,
+   TLS_ECDHE_RSA_WITH_RC4_128_SHA=0x00c011,
+   TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA=0x00c012,
+   TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA=0x00c013,
+   TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA=0x00c014,
+   TLS_ECDH_anon_WITH_NULL_SHA=0x00c015,
+   TLS_ECDH_anon_WITH_RC4_128_SHA=0x00c016,
+   TLS_ECDH_anon_WITH_3DES_EDE_CBC_SHA=0x00c017,
+   TLS_ECDH_anon_WITH_AES_128_CBC_SHA=0x00c018,
+   TLS_ECDH_anon_WITH_AES_256_CBC_SHA=0x00c019,
+   TLS_SRP_SHA_WITH_3DES_EDE_CBC_SHA=0x00C01A,
+   TLS_SRP_SHA_RSA_WITH_3DES_EDE_CBC_SHA=0x00C01B,
+   TLS_SRP_SHA_DSS_WITH_3DES_EDE_CBC_SHA=0x00C01C,
+   TLS_SRP_SHA_WITH_AES_128_CBC_SHA=0x00C01D,
+   TLS_SRP_SHA_RSA_WITH_AES_128_CBC_SHA=0x00C01E,
+   TLS_SRP_SHA_DSS_WITH_AES_128_CBC_SHA=0x00C01F,
+   TLS_SRP_SHA_WITH_AES_256_CBC_SHA=0x00C020,
+   TLS_SRP_SHA_RSA_WITH_AES_256_CBC_SHA=0x00C021,
+   TLS_SRP_SHA_DSS_WITH_AES_256_CBC_SHA=0x00C022,
+   TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256=0x00C023,
+   TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384=0x00C024,
+   TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA256=0x00C025,
+   TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA384=0x00C026,
+   TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256=0x00C027,
+   TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384=0x00C028,
+   TLS_ECDH_RSA_WITH_AES_128_CBC_SHA256=0x00C029,
+   TLS_ECDH_RSA_WITH_AES_256_CBC_SHA384=0x00C02A,
+   TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256=0x00C02B,
+   TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384=0x00C02C,
+   TLS_ECDH_ECDSA_WITH_AES_128_GCM_SHA256=0x00C02D,
+   TLS_ECDH_ECDSA_WITH_AES_256_GCM_SHA384=0x00C02E,
+   TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256=0x00C02F,
+   TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384=0x00C030,
+   TLS_ECDH_RSA_WITH_AES_128_GCM_SHA256=0x00C031,
+   TLS_ECDH_RSA_WITH_AES_256_GCM_SHA384=0x00C032,
+   TLS_ECDHE_PSK_WITH_RC4_128_SHA=0x00C033,
+   TLS_ECDHE_PSK_WITH_3DES_EDE_CBC_SHA=0x00C034,
+   TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA=0x00C035,
+   TLS_ECDHE_PSK_WITH_AES_256_CBC_SHA=0x00C036,
+   TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA256=0x00C037,
+   TLS_ECDHE_PSK_WITH_AES_256_CBC_SHA384=0x00C038,
+   TLS_ECDHE_PSK_WITH_NULL_SHA=0x00C039,
+   TLS_ECDHE_PSK_WITH_NULL_SHA256=0x00C03A,
+   TLS_ECDHE_PSK_WITH_NULL_SHA384=0x00C03B,
+   TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256=0x00CC13,
+   TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256=0x00CC14,
+   TLS_DHE_RSA_WITH_CHACHA20_POLY1305_SHA256=0x00CC15,
+   TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256=0x00CCA8,
+   TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256=0x00CCA9,
+   TLS_DHE_RSA_WITH_CHACHA20_POLY1305_SHA256=0x00CCAA,
+   TLS_PSK_WITH_CHACHA20_POLY1305_SHA256=0x00CCAB,
+   TLS_ECDHE_PSK_WITH_CHACHA20_POLY1305_SHA256=0x00CCAC,
+   TLS_DHE_PSK_WITH_CHACHA20_POLY1305_SHA256=0x00CCAD,
+   TLS_RSA_PSK_WITH_CHACHA20_POLY1305_SHA256=0x00CCAE,
+   TLS_RSA_WITH_ESTREAM_SALSA20_SHA1=0x00E410,
+   TLS_RSA_WITH_SALSA20_SHA1=0x00E411,
+   TLS_ECDHE_RSA_WITH_ESTREAM_SALSA20_SHA1=0x00E412,
+   TLS_ECDHE_RSA_WITH_SALSA20_SHA1=0x00E413,
+   TLS_ECDHE_ECDSA_WITH_ESTREAM_SALSA20_SHA1=0x00E414,
+   TLS_ECDHE_ECDSA_WITH_SALSA20_SHA1=0x00E415,
+   TLS_PSK_WITH_ESTREAM_SALSA20_SHA1=0x00E416,
+   TLS_PSK_WITH_SALSA20_SHA1=0x00E417,
+   TLS_ECDHE_PSK_WITH_ESTREAM_SALSA20_SHA1=0x00E418,
+   TLS_ECDHE_PSK_WITH_SALSA20_SHA1=0x00E419,
+   TLS_RSA_PSK_WITH_ESTREAM_SALSA20_SHA1=0x00E41A,
+   TLS_RSA_PSK_WITH_SALSA20_SHA1=0x00E41B,
+   TLS_DHE_PSK_WITH_ESTREAM_SALSA20_SHA1=0x00E41C,
+   TLS_DHE_PSK_WITH_SALSA20_SHA1=0x00E41D,
+   TLS_DHE_RSA_WITH_ESTREAM_SALSA20_SHA1=0x00E41E,
+   TLS_DHE_RSA_WITH_SALSA20_SHA1=0x00E41F,
+   SSL_RSA_FIPS_WITH_DES_CBC_SHA=0x00fefe,
+   SSL_RSA_FIPS_WITH_3DES_EDE_CBC_SHA=0x00feff,
+   SSL_RSA_FIPS_WITH_3DES_EDE_CBC_SHA=0x00ffe0,
+   SSL_RSA_FIPS_WITH_DES_CBC_SHA=0x00ffe1,
+   SSL2_RC4_128_WITH_MD5=0x010080,
+   SSL2_RC4_128_EXPORT40_WITH_MD5=0x020080,
+   SSL2_RC2_128_CBC_WITH_MD5=0x030080,
+   SSL2_RC2_128_CBC_EXPORT40_WITH_MD5=0x040080,
+   SSL2_IDEA_128_CBC_WITH_MD5=0x050080,
+   SSL2_DES_64_CBC_WITH_MD5=0x060040,
+   SSL2_DES_192_EDE3_CBC_WITH_MD5=0x0700c0,
+   SSL2_RC4_64_WITH_MD5=0x080080,
+}
+
+function sslVersion2Str(v)
+   if(v == 768) then
+      return("SSL v3")
+   elseif(v == 769) then
+      return("TLS v1");
+   elseif(v == 770) then
+      return("TLS v1.1");
+   elseif(v == 771) then
+      return("TLS v1.2");
+   elseif(v == 772) then
+      return("TLS v1.3");
+   else
+      return("SSL "..flow["protos.ssl_version"])
+   end
+end
+
+local function cipher2str(c)
+   for s,v in pairs(ssl_cipher_suites) do
+      if(v == c) then
+	 return('<A HREF="https://ciphersuite.info/cs/'..s..'">'..s..'</A>')
+      end
+   end
+   
+   return(c)
+end
+
+local function ja3url(what, safety)
+   if(what == nil) then
+      print("&nbsp;")
+   else
+      ret = '<A HREF="https://sslbl.abuse.ch/ja3-fingerprints/'..what..'/">'..what..'</A> <i class="fa fa-external-link"></i>'
+      if((safety ~= nil) and (safety ~= "safe")) then
+	 ret = ret .. ' [ <i class="fa fa-warning" aria-hidden=true style="color: orange;"></i> <A HREF=https://en.wikipedia.org/wiki/Cipher_suite>'..capitalize(safety)..' Cipher</A> ]'
+      end
+
+      print(ret)
+   end
+end
+
 sendHTTPContentTypeHeader('text/html')
 
 page_utils.print_header(i18n("flow_details.flow_details"))
@@ -231,7 +529,7 @@ local function displayProc(proc, label)
    print("<tr><th width=30%>"..i18n("flow_details.user_name").."</th><td colspan=2><A HREF=\""..ntop.getHttpPrefix().."/lua/username_details.lua?uid=" .. proc.uid .. "&username=".. proc.user_name .."&".. hostinfo2url(flow,"cli").."\">".. proc.user_name .."</A></td></tr>\n")
    print("<tr><th width=30%>"..i18n("flow_details.process_pid_name").."</th><td colspan=2><A HREF=\""..ntop.getHttpPrefix().."/lua/process_details.lua?pid=".. proc.pid .."&pid_name=".. proc.name .. "&" .. hostinfo2url(flow,"srv").. "\">".. proc.name .. " [pid: "..proc.pid.."]</A>")
    if proc.father_pid then
-      print(" "..i18n("flow_details.son_of_father_process",{url=ntop.getHttpPrefix().."/lua/get_process_info.lua?pid="..proc.father_pid, proc_father_pid = proc.father_pid, proc_father_name = proc.father_name}).."</td></tr>\n")
+      print(" "..i18n("flow_details.son_of_father_process",{url=ntop.getHttpPrefix().."/lua/process_details.lua?pid="..proc.father_pid .. "&pid_name=".. proc.father_name .. "&" .. hostinfo2url(flow,"srv"), proc_father_pid = proc.father_pid, proc_father_name = proc.father_name}).."</td></tr>\n")
    end
 
    if((proc.actual_memory ~= nil) and (proc.actual_memory > 0)) then
@@ -319,6 +617,15 @@ else
    if(flow["verdict.pass"] == false) then print("</strike>") end
    historicalProtoHostHref(ifid, flow["cli.ip"], nil, flow["proto.ndpi_id"], flow["protos.ssl.certificate"])
 
+   if((flow["protos.ssl_version"] ~= nil)
+      and (flow["protos.ssl_version"] ~= 0)) then
+      print(" [ "..sslVersion2Str(flow["protos.ssl_version"]).." ]")
+      if(tonumber(flow["protos.ssl_version"]) < 771) then
+	 print(' <i class="fa fa-warning" aria-hidden=true style="color: orange;"></i> ')
+	 print(i18n("flow_details.ssl_old_protocol_version"))
+      end
+   end
+   
    if(ifstats.inline) then
       if(flow["verdict.pass"]) then
 	 print('<form class="form-inline pull-right" style="margin-bottom: 0px;" method="post">')
@@ -413,7 +720,8 @@ else
       end
    end
 
-   print("<tr><th width=33%>"..i18n("details.first_last_seen").."</th><td nowrap width=33%><div id=first_seen>" .. formatEpoch(flow["seen.first"]) ..  " [" .. secondsToTime(os.time()-flow["seen.first"]) .. " "..i18n("details.ago").."]" .. "</div></td>\n")
+   print("<tr><th width=33%>"..i18n("details.first_last_seen").."</th><td nowrap width=33%><div id=first_seen>"
+	    .. formatEpoch(flow["seen.first"]) ..  " [" .. secondsToTime(os.time()-flow["seen.first"]) .. " "..i18n("details.ago").."]" .. "</div></td>\n")
    print("<td nowrap><div id=last_seen>" .. formatEpoch(flow["seen.last"]) .. " [" .. secondsToTime(os.time()-flow["seen.last"]) .. " "..i18n("details.ago").."]" .. "</div></td></tr>\n")
 
    if flow["bytes"] > 0 then
@@ -476,7 +784,7 @@ else
    end
 
    if(flow["tcp.appl_latency"] ~= nil and flow["tcp.appl_latency"] > 0) then
-   print("<tr><th width=30%>"..i18n("flow_details.application_latency").."</th><td colspan=2>"..msToTime(flow["tcp.appl_latency"]).."</td></tr>\n")
+      print("<tr><th width=30%>"..i18n("flow_details.application_latency").."</th><td colspan=2>"..msToTime(flow["tcp.appl_latency"]).."</td></tr>\n")
    end
 
     if(not string.starts(ifname, "nf:")) then
@@ -494,6 +802,13 @@ else
 	  end
 	  print("</td></tr>\n")
 	  if(flow["flow.idle"] == true) then print("<tr><td colspan=2><i class='fa fa-clock-o'></i> <small>"..i18n("flow_details.looks_like_idle_flow_message").."</small></td></tr>") end
+       end
+
+       if((flow["cli2srv.fragments"] + flow["srv2cli.fragments"]) > 0) then
+	  rowspan = 3
+	  print("<tr><th width=30% rowspan="..rowspan..">"..i18n("flow_details.ip_packet_analysis").."</th><td colspan=2 cellpadding='0' width='100%' cellspacing='0' style='padding-top: 0px; padding-left: 0px;padding-bottom: 0px; padding-right: 0px;'></tr>")
+	  print("<tr><th>&nbsp;</th><th>"..i18n("client").." <i class=\"fa fa-arrow-right\"></i> "..i18n("server").." / "..i18n("client").." <i class=\"fa fa-arrow-left\"></i> "..i18n("server").."</th></tr>\n")
+	  print("<tr><th>"..i18n("details.fragments").."</th><td align=right><span id=c2sFrag>".. formatPackets(flow["cli2srv.fragments"]) .."</span> / <span id=s2cFrag>".. formatPackets(flow["srv2cli.fragments"]) .."</span></td></tr>\n")
        end
 
        if(flow["tcp.seq_problems"] ~= nil) then
@@ -537,12 +852,22 @@ else
       print("<td>")
       if(flow["protos.ssl.server_certificate"] ~= nil) then
 	 print(i18n("flow_details.server_certificate")..": <A HREF=\"http://"..flow["protos.ssl.server_certificate"].."\">"..flow["protos.ssl.server_certificate"].."</A>")
+
 	 if(flow["flow.status"] == 10) then
 	    print("\n<br><i class=\"fa fa-warning fa-lg\" style=\"color: #f0ad4e;\"></i> <b><font color=\"#f0ad4e\">"..i18n("flow_details.certificates_not_match").."</font></b>")
 	 end
       end
       print("</td>")
       print("</tr>\n")
+   end
+
+   if((flow["protos.ssl.ja3.client_hash"] ~= nil) or (flow["protos.ssl.ja3.server_hash"] ~= nil)) then
+      print('<tr><th width=30%><A HREF="https://github.com/salesforce/ja3">JA3</A></th><td>')
+      ja3url(flow["protos.ssl.ja3.client_hash"], nil)
+      print("</td><td>")
+      ja3url(flow["protos.ssl.ja3.server_hash"], flow["protos.ssl.ja3.server_unsafe_cipher"])
+      print(cipher2str(flow["protos.ssl.ja3.server_cipher"]))
+      print("</td></tr>")
    end
 
    if((flow["tcp.max_thpt.cli2srv"] ~= nil) and (flow["tcp.max_thpt.cli2srv"] > 0)) then
@@ -554,7 +879,6 @@ else
      print(bitsToSize(flow["tcp.max_thpt.srv2cli"]))
      print("</td></tr>\n")
    end
-
   
    if((flow["cli2srv.trend"] ~= nil) and false) then
      print("<tr><th width=30%>"..i18n("flow_details.throughput_trend").."</th><td nowrap>"..flow["cli.ip"].." <i class=\"fa fa-arrow-right\"></i> "..flow["srv.ip"]..": ")
@@ -600,6 +924,8 @@ else
       print("</td></tr>\n")
    end
 
+   -- ######################################
+   
    local icmp = flow["icmp"]
 
    if(icmp ~= nil) then
@@ -620,6 +946,8 @@ else
       print("</td></tr>")
    end
 
+   -- ######################################
+   
    if interface.isPacketInterface() then
       print("<tr><th width=30%>"..i18n("flow_details.flow_status").."</th><td colspan=2>"..getFlowStatus(flow["flow.status"], flow2statusinfo(flow)).."</td></tr>\n")
    end
@@ -640,22 +968,22 @@ else
 
       print("</td><td><span id=thpt_load_chart>0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>")
       print("</td></tr>\n")
-   else
-      if((flow.client_process ~= nil) or (flow.server_process ~= nil)) then
-	 local epbf_utils = require "ebpf_utils"
-	 print('<tr><th colspan=3><div id="sprobe"></div>')
+   end
 
-	 local width  = 1024
-	 local height = 200
-	 local url = ntop.getHttpPrefix().."/lua/get_flow_process_tree.lua?flow_key="..flow_key
-	 epbf_utils.draw_flow_processes_graph(width, height, url)
+   if((flow.client_process ~= nil) or (flow.server_process ~= nil)) then
+      local epbf_utils = require "ebpf_utils"
+      print('<tr><th colspan=3><div id="sprobe"></div>')
 
-	 print('</th></tr>\n')
-      end
+      local width  = 1024
+      local height = 200
+      local url = ntop.getHttpPrefix().."/lua/get_flow_process_tree.lua?flow_key="..flow_key
+      epbf_utils.draw_flow_processes_graph(width, height, url)
+
+      print('</th></tr>\n')
 
       if(flow.client_process ~= nil) then
 	 displayProc(flow.client_process,
-	     "<tr><th colspan=3 class=\"info\">"..i18n("flow_details.client_process_information").."</th></tr>\n")
+		     "<tr><th colspan=3 class=\"info\">"..i18n("flow_details.client_process_information").."</th></tr>\n")
       end
       if(flow.client_container ~= nil) then
 	 displayContainer(flow.client_container,

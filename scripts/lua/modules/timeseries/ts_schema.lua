@@ -59,16 +59,18 @@ function ts_schema:new(name, options)
 
   local step_info = ts_schema.supported_steps[tostring(options.step)]
 
-  if not step_info then
+  if not step_info and not options.is_system_schema then
     traceError(TRACE_ERROR, TRACE_CONSOLE, "unsupported step option in schema " .. name)
     return nil
   end
 
   local obj = {name=name, options=options, _tags={}, _metrics={}, tags={}, metrics={}}
 
-  -- add retention policy and other informations
-  for k, v in pairs(step_info) do
-    obj[k] = v
+  if step_info ~= nil then
+    -- add retention policy and other informations
+    for k, v in pairs(step_info) do
+      obj[k] = v
+    end
   end
 
   setmetatable(obj, self)
@@ -89,7 +91,7 @@ end
 
 function ts_schema:allTagsDefined(tags)
   for tag in pairs(self.tags) do
-    if not tags[tag] then
+    if tags[tag] == nil then
       return false, tag
     end
   end
@@ -105,7 +107,7 @@ function ts_schema:verifyTags(tags)
   end
 
   for tag in pairs(tags) do
-    if not self.tags[tag] then
+    if self.tags[tag] == nil then
       traceError(TRACE_ERROR, TRACE_CONSOLE, "unknown tag '" .. tag .. "' in schema " .. self.name)
       return false
     end
@@ -119,8 +121,8 @@ function ts_schema:verifyTagsAndMetrics(tags_and_metrics)
   local metrics = {}
 
   for tag in pairs(self.tags) do
-    if not tags_and_metrics[tag] then
-      traceError(TRACE_ERROR, TRACE_CONSOLE, "Failing to use mandatory tag '" .. tag .. "' when working on schema " .. self.name)
+    if tags_and_metrics[tag] == nil then
+      traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing mandatory tag '" .. tag .. "' while using schema " .. self.name)
       return nil
     end
 
@@ -129,8 +131,8 @@ function ts_schema:verifyTagsAndMetrics(tags_and_metrics)
 
 
   for metric in pairs(self.metrics) do
-     if not tags_and_metrics[metric] then
-	traceError(TRACE_ERROR, TRACE_CONSOLE, "Failing to use mandatory metric '" .. metric .. "' when working on schema " .. self.name)
+    if tags_and_metrics[metric] == nil then
+      traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing mandatory metric '" .. metric .. "' while using schema " .. self.name)
       return nil
     end
 
@@ -138,7 +140,7 @@ function ts_schema:verifyTagsAndMetrics(tags_and_metrics)
   end
 
   for item in pairs(tags_and_metrics) do
-    if not self.tags[item] and not self.metrics[item] then
+    if((self.tags[item] == nil) and (self.metrics[item] == nil))then
       traceError(TRACE_ERROR, TRACE_CONSOLE, "unknown tag/metric '" .. item .. "' in schema " .. self.name)
       return nil
     end

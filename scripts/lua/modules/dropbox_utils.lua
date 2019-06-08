@@ -30,18 +30,21 @@ function dropbox.getHostNamespaces(ipaddr)
    local ret = {}
    
    for _,hosts in pairs(ns) do
-      local found = false
+      local found = 0
       
       for a,b in pairs(hosts) do
 	 if(b == ipaddr) then
-	    found = true
+	    found = found + 1
 	 end
       end
 
-      if(found == true) then
+      if(found > 0) then
 	 for _,c in pairs(hosts) do
 	    if(c ~= ipaddr) then
-	       ret[c] = true
+	       if(ret[c] == nil) then
+		  ret[c] = 0
+	       end
+	       ret[c] = ret[c] + found
 	    end
 	 end
       end

@@ -29,6 +29,7 @@ TimeseriesStats::TimeseriesStats(Host * _host) : GenericTrafficElement() {
   unreachable_flows_as_client = unreachable_flows_as_server = 0;
   host_unreachable_flows_as_client = host_unreachable_flows_as_server = 0;
   total_alerts = 0;
+  udp_sent_unicast = udp_sent_non_unicast = 0;
 }
 
 /* *************************************** */
@@ -62,25 +63,9 @@ void TimeseriesStats::luaStats(lua_State* vm, NetworkInterface *iface, bool host
     lua_push_uint64_table_entry(vm, "contacts.as_server", host->getNumActiveContactsAsServer());
     lua_push_uint64_table_entry(vm, "total_alerts", total_alerts);
 
-    lua_push_uint64_table_entry(vm, "tcp.packets.sent",  tcp_sent.getNumPkts());
-    lua_push_uint64_table_entry(vm, "tcp.packets.rcvd",  tcp_rcvd.getNumPkts());
-    lua_push_uint64_table_entry(vm, "tcp.bytes.sent", tcp_sent.getNumBytes());
-    lua_push_uint64_table_entry(vm, "tcp.bytes.rcvd", tcp_rcvd.getNumBytes());
-
-    lua_push_uint64_table_entry(vm, "udp.packets.sent",  udp_sent.getNumPkts());
-    lua_push_uint64_table_entry(vm, "udp.bytes.sent", udp_sent.getNumBytes());
-    lua_push_uint64_table_entry(vm, "udp.packets.rcvd",  udp_rcvd.getNumPkts());
-    lua_push_uint64_table_entry(vm, "udp.bytes.rcvd", udp_rcvd.getNumBytes());
-
-    lua_push_uint64_table_entry(vm, "icmp.packets.sent",  icmp_sent.getNumPkts());
-    lua_push_uint64_table_entry(vm, "icmp.bytes.sent", icmp_sent.getNumBytes());
-    lua_push_uint64_table_entry(vm, "icmp.packets.rcvd",  icmp_rcvd.getNumPkts());
-    lua_push_uint64_table_entry(vm, "icmp.bytes.rcvd", icmp_rcvd.getNumBytes());
-
-    lua_push_uint64_table_entry(vm, "other_ip.packets.sent",  other_ip_sent.getNumPkts());
-    lua_push_uint64_table_entry(vm, "other_ip.bytes.sent", other_ip_sent.getNumBytes());
-    lua_push_uint64_table_entry(vm, "other_ip.packets.rcvd",  other_ip_rcvd.getNumPkts());
-    lua_push_uint64_table_entry(vm, "other_ip.bytes.rcvd", other_ip_rcvd.getNumBytes());
+    l4stats.luaStats(vm);
+    lua_push_uint64_table_entry(vm, "udpBytesSent.unicast", udp_sent_unicast);
+    lua_push_uint64_table_entry(vm, "udpBytesSent.non_unicast", udp_sent_non_unicast);
 
     host->luaDNS(vm);
     host->luaTCP(vm);

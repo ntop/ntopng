@@ -1753,7 +1753,7 @@ if  test -f /usr/bin/lsb_release ; then
   if  test -d $HOME/PF_RING ; then
     PFRING_VERS=`$HOME/PF_RING/package/version.sh --release`
     PFRING_RELEASE=`$HOME/PF_RING/package/version.sh --revision`
-    if [ ! "x$PFRING_VERS" = "x" ]; then
+    if  ! "x$PFRING_VERS" = "x" ; then
       PFRING_DEP="pfring (=$PFRING_VERS-$PFRING_RELEASE)"
     else
       PFRING_DEP="pfring"
@@ -1806,7 +1806,11 @@ if test $SHORT_MACHINE = "mip"; then
   UBUNTU_RELEASE="mips"
 else
   if test $SHORT_MACHINE = "arm"; then
-    UBUNTU_RELEASE="arm"
+    if test "${with_nedge+set}" = set && test "$UBUNTU_RELEASE" = "debian9"; then
+        UBUNTU_RELEASE="arm.debian9"
+    else
+        UBUNTU_RELEASE="arm"
+    fi
   fi
 fi
 
@@ -2578,6 +2582,8 @@ do
     "debian.ntopng/files") CONFIG_FILES="$CONFIG_FILES debian.ntopng/files" ;;
     "debian.ntopng/control") CONFIG_FILES="$CONFIG_FILES debian.ntopng/control" ;;
     "debian.ntopng/rules") CONFIG_FILES="$CONFIG_FILES debian.ntopng/rules" ;;
+    "debian.ntopng/postinst") CONFIG_FILES="$CONFIG_FILES debian.ntopng/postinst" ;;
+    "debian.ntopng/prerm") CONFIG_FILES="$CONFIG_FILES debian.ntopng/prerm" ;;
     "debian.ntopng-data/changelog") CONFIG_FILES="$CONFIG_FILES debian.ntopng-data/changelog" ;;
     "debian.ntopng-data/files") CONFIG_FILES="$CONFIG_FILES debian.ntopng-data/files" ;;
     "debian.ntopng-data/control") CONFIG_FILES="$CONFIG_FILES debian.ntopng-data/control" ;;

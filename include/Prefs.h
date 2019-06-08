@@ -77,10 +77,12 @@ class Prefs {
   bool enable_captive_portal, enable_informative_captive_portal, mac_based_captive_portal;
   bool dump_flow_alerts_when_iface_alerted;
   bool override_dst_with_post_nat_dst, override_src_with_post_nat_src;
+  bool use_ports_to_determine_src_and_dst;
   bool routing_mode_enabled, global_dns_forging_enabled;
   bool device_protocol_policies_enabled, enable_vlan_trunk_bridge;
   bool enable_elephant_flows_alerts;
   bool enable_longlived_flows_alerts;
+  bool enable_exfiltration_alerts;
   bool enable_arp_matrix_generation;
   int32_t max_num_alerts_per_entity, max_num_flow_alerts;
   u_int32_t safe_search_dns_ip, global_primary_dns_ip, global_secondary_dns_ip;
@@ -332,11 +334,13 @@ class Prefs {
   inline bool do_dump_flow_alerts_when_iface_alerted()   { return(dump_flow_alerts_when_iface_alerted); };
   inline bool are_elephant_flows_alerts_enabled()        { return(enable_elephant_flows_alerts);        };
   inline bool are_longlived_flows_alerts_enabled()       { return(enable_longlived_flows_alerts);       };
+  inline bool are_exfiltration_alerts_enabled()          { return(enable_exfiltration_alerts);          };
   inline bool is_arp_matrix_generation_enabled()         { return(enable_arp_matrix_generation);        };
 
-  inline bool do_override_dst_with_post_nat_dst()   { return(override_dst_with_post_nat_dst); };
-  inline bool do_override_src_with_post_nat_src()   { return(override_src_with_post_nat_src); };
-  inline bool are_device_protocol_policies_enabled()     { return(device_protocol_policies_enabled);    };
+  inline bool do_override_dst_with_post_nat_dst()     const { return(override_dst_with_post_nat_dst);     };
+  inline bool do_override_src_with_post_nat_src()     const { return(override_src_with_post_nat_src);     };
+  inline bool do_use_ports_to_determine_src_and_dst() const { return(use_ports_to_determine_src_and_dst); };
+  inline bool are_device_protocol_policies_enabled()  const { return(device_protocol_policies_enabled);   };
 
   inline bool isVLANTrunkModeEnabled()                   { return(enable_vlan_trunk_bridge);           }
   inline bool isCaptivePortalEnabled()                   { return(enable_captive_portal && !enable_vlan_trunk_bridge); }

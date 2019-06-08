@@ -407,7 +407,7 @@ var prepare_typeahead = function(host_id, vlan_id, buttons_id) {
     source: function (query, process) {
       return $.get(']]
 print (ntop.getHttpPrefix())
-print [[/lua/find_host.lua', { query: query }, function (data) {
+print [[/lua/find_host.lua', { query: query, hosts_only: true }, function (data) {
                      return process(data.results);
       });
       }, afterSelect: function(item) {

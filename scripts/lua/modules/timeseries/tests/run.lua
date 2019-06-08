@@ -14,6 +14,7 @@ local tests = {
   require("utils_test"),
   require("influxdb2series"),
   require("influxdb_queries"),
+  require("rrd_paths_test"),
 }
 
 -- ##############################################

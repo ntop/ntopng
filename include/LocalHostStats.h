@@ -40,6 +40,11 @@ class LocalHostStats: public HostStats {
   LocalHostStats(Host *_host);
   virtual ~LocalHostStats();
 
+  virtual void incStats(time_t when, u_int8_t l4_proto, u_int ndpi_proto,
+		custom_app_t custom_app,
+		u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
+		u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes,
+		bool peer_is_unicast);
   virtual void updateStats(struct timeval *tv);
   virtual void getJSONObject(json_object *my_object, DetailsLevel details_level);
   virtual void deserialize(json_object *obj);

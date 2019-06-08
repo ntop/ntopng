@@ -39,7 +39,11 @@ void NetworkStats::lua(lua_State* vm) {
   lua_push_uint64_table_entry(vm, "inner", inner_broadcast.getNumBytes());
   lua_pushstring(vm, "broadcast");
   lua_insert(vm, -2);
-  lua_settable(vm, -3);  
+  lua_settable(vm, -3);
+
+  tcp_packet_stats_ingress.lua(vm, "tcpPacketStats.ingress");
+  tcp_packet_stats_egress.lua(vm, "tcpPacketStats.egress");
+  tcp_packet_stats_inner.lua(vm, "tcpPacketStats.inner");
 }
 
 /* *************************************** */
@@ -50,4 +54,15 @@ bool NetworkStats::serializeCheckpoint(json_object *my_object, DetailsLevel deta
   json_object_object_add(my_object, "inner", json_object_new_int64(inner.getNumBytes()));
 
   return true;
+}
+
+/* *************************************** */
+
+void NetworkStats::deserialize(json_object *o) {
+  json_object *obj;
+  time_t now = time(NULL);
+
+  if(json_object_object_get_ex(o, "ingress", &obj)) ingress.incStats(now, 0, json_object_get_int(obj));
+  if(json_object_object_get_ex(o, "egress", &obj)) egress.incStats(now, 0, json_object_get_int(obj));
+  if(json_object_object_get_ex(o, "inner", &obj)) inner.incStats(now, 0, json_object_get_int(obj));
 }
