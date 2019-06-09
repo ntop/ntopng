@@ -274,12 +274,19 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
             packets_rcvd = host["udp.packets.rcvd"]},
       when, verbose)
 
-  -- Tcp Stats
-  ts_utils.append("host:tcp_stats", {ifid = ifstats.id, host = hostname,
-				     retransmission_packets = host["tcpPacketStats.sent"]["retransmissions"] + host["tcpPacketStats.rcvd"]["retransmissions"],
-				     out_of_order_packets = host["tcpPacketStats.sent"]["out_of_order"] + host["tcpPacketStats.rcvd"]["out_of_order"],
-				     lost_packets = host["tcpPacketStats.sent"]["lost"] + host["tcpPacketStats.rcvd"]["lost"]},
-		  when, verbose)
+  -- Tcp RX Stats 
+  ts_utils.append("host:tcp_rx_stats", {ifid = ifstats.id, host = hostname,
+				     retransmission_packets = host["tcpPacketStats.rcvd"]["retransmissions"],
+				     out_of_order_packets = host["tcpPacketStats.rcvd"]["out_of_order"],
+				     lost_packets = host["tcpPacketStats.rcvd"]["lost"]},
+      when, verbose)
+  
+  -- Tcp TX Stats
+  ts_utils.append("host:tcp_tx_stats", {ifid = ifstats.id, host = hostname,
+            retransmission_packets = host["tcpPacketStats.sent"]["retransmissions"],
+            out_of_order_packets = host["tcpPacketStats.sent"]["out_of_order"],
+            lost_packets = host["tcpPacketStats.sent"]["lost"]},
+      when, verbose)
   
   -- Number of TCP packets
   ts_utils.append("host:tcp_packets", {ifid = ifstats.id, host = hostname,
