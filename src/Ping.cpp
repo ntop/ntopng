@@ -49,8 +49,16 @@ Ping::Ping() {
   pid = getpid(), cnt = 0;
   running = true;
 
-  if((sd = socket(PF_INET, SOCK_RAW, IPPROTO_ICMP)) == -1)
+#if defined(__APPLE__)
+  sd = socket(AF_INET, SOCK_DGRAM, IPPROTO_ICMP);
+#else
+  sd = socket(PF_INET, SOCK_RAW, IPPROTO_ICMP))
+#endif
+
+  if(sd == -1) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Ping socket creation error: %s", strerror(errno));
     throw("Unable to create socket");
+  }
 
   setsockopt(sd, SOL_IP, IP_TTL, &val, sizeof(val));
   fcntl(sd, F_SETFL, O_NONBLOCK);
@@ -146,14 +154,14 @@ void Ping::pollResults() {
 
 	  rtt = ms_timeval_diff(begin, &end);
 
-	  ntop->getTrace()->traceEvent(TRACE_NORMAL,
+	  ntop->getTrace()->traceEvent(TRACE_INFO,
 				       "ICMP response from %s [%.2f ms]",
 				       inet_ntoa(s), rtt);
 	  m.lock(__FILE__, __LINE__);
 	  results[ip->saddr] = rtt;
 	  m.unlock(__FILE__, __LINE__);
 	} else {
-	  ntop->getTrace()->traceEvent(TRACE_WARNING,
+	  ntop->getTrace()->traceEvent(TRACE_INFO,
 				       "Discarding ICMP response from %s",
 				       inet_ntoa(s));
 	}
