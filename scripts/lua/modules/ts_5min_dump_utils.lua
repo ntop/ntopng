@@ -276,9 +276,9 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
 
   -- Tcp RX Stats 
   ts_utils.append("host:tcp_rx_stats", {ifid = ifstats.id, host = hostname,
-	          retransmission_packets = host["tcpPacketStats.rcvd"]["retransmissions"],
-	          out_of_order_packets = host["tcpPacketStats.rcvd"]["out_of_order"],
-				    lost_packets = host["tcpPacketStats.rcvd"]["lost"]},
+            retransmission_packets = host["tcpPacketStats.rcvd"]["retransmissions"],
+            out_of_order_packets = host["tcpPacketStats.rcvd"]["out_of_order"],
+            lost_packets = host["tcpPacketStats.rcvd"]["lost"]},
       when, verbose)
   
   -- Tcp TX Stats
