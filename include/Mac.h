@@ -171,7 +171,7 @@ class Mac : public GenericHashEntry, public SerializableElement {
     if(
        ((mac[0] == 0x33) && (mac[1] == 0x33))
        ||
-       ((mac[0] == 0x01) && (mac[1] == 0x00) && (mac[1] == 0x5E))
+       ((mac[0] == 0x01) && (mac[1] == 0x00) && (mac[2] == 0x5E))
        )
       return(true);
     else
