@@ -563,6 +563,7 @@ struct ntopngLuaContext {
   struct mg_connection *conn;
   AddressTree *allowedNets;
   NetworkInterface *iface;
+  Ping *ping;
 #ifndef HAVE_NEDGE
   SNMP *snmp;
 #endif

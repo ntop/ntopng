@@ -2301,8 +2301,6 @@ void Ntop::refreshCpuLoad() {
 /* ******************************************* */
 
 bool Ntop::getCpuLoad(float *out) {
-  if(cpu_stats.active > 0)
-   
   if(cpu_stats.active > 0) {
     *out = cpu_load;
     return(true);

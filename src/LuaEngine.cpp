@@ -144,6 +144,9 @@ LuaEngine::~LuaEngine() {
       if((ctx->iface != NULL) && ctx->live_capture.pcaphdr_sent)
 	ctx->iface->deregisterLiveCapture(ctx);
 
+      if(ctx->ping != NULL)
+	delete ctx->ping;
+      
       free(ctx);
     }
 
@@ -4980,6 +4983,61 @@ static int ntop_get_prefs(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_ping_host(lua_State* vm) {
+  char *host;
+  
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  if((host = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
+
+  if(getLuaVMUservalue(vm, ping) == NULL) {
+    Ping *ping;
+
+    try {
+      #if !defined(__APPLE__) && !defined(WIN32) && !defined(HAVE_NEDGE)
+      if(Utils::gainWriteCapabilities() == -1)
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to enable capabilities");
+#endif
+
+      ping = new Ping();
+
+#if !defined(__APPLE__) && !defined(WIN32) && !defined(HAVE_NEDGE)
+      Utils::dropWriteCapabilities();
+#endif
+    } catch(...) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create ping socket: are you root?");
+      ping = NULL;
+    }
+    
+    if(ping == NULL) {
+      lua_pushnil(vm);
+      return(CONST_LUA_PARAM_ERROR);
+    } else
+      getLuaVMUservalue(vm, ping) = ping;
+  }
+
+  getLuaVMUservalue(vm, ping)->ping(host);
+  
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_collect_ping_results(lua_State* vm) {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(getLuaVMUservalue(vm, ping) == NULL) {
+    lua_pushnil(vm);
+    return(CONST_LUA_PARAM_ERROR);
+  } else {
+    getLuaVMUservalue(vm, ping)->collectResponses(vm);  
+    return(CONST_LUA_OK);
+  }
+}
+
+/* ****************************************** */
+
 static int ntop_get_nologin_username(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -8616,8 +8674,12 @@ static const luaL_Reg ntop_reg[] = {
   { "rrd_tune",          ntop_rrd_tune  },
 
   /* Prefs */
-  { "getPrefs",         ntop_get_prefs },
+  { "getPrefs",          ntop_get_prefs },
 
+  /* Ping */
+  { "pingHost",             ntop_ping_host              },
+  { "collectPingResults",   ntop_collect_ping_results   },
+  
   /* HTTP utils */
   { "httpRedirect",         ntop_http_redirect          },
   { "getHttpPrefix",        ntop_http_get_prefix        },
@@ -8905,7 +8967,9 @@ static char* http_encode(char *str) {
 #endif
 
 /* ****************************************** */
+
 #ifdef NOT_USED
+
 void LuaEngine::purifyHTTPParameter(char *param) {
   char *ampersand;
   bool utf8_found = false;
@@ -8972,14 +9036,16 @@ void LuaEngine::purifyHTTPParameter(char *param) {
   }
 }
 #endif
+
 /* ****************************************** */
 
-void LuaEngine::setInterface(const char * user, char * const ifname, u_int16_t ifname_len, bool * const is_allowed) const {
+void LuaEngine::setInterface(const char * user, char * const ifname,
+			     u_int16_t ifname_len, bool * const is_allowed) const {
   NetworkInterface *iface = NULL;
   char key[CONST_MAX_LEN_REDIS_KEY];
   ifname[0] = '\0';
 
-  if(!user || user[0] == '\0')
+  if((user == NULL) || (user[0] == '\0'))
     user = NTOP_NOLOGIN_USER;
 
   if(is_allowed) *is_allowed = false;
@@ -8991,16 +9057,18 @@ void LuaEngine::setInterface(const char * user, char * const ifname, u_int16_t i
     /* If here is only one allowed interface for the user.
        The interface must exists otherwise we hould have prevented the login */
     if(is_allowed) *is_allowed = true;
-    ntop->getTrace()->traceEvent(TRACE_DEBUG, "Allowed interface found. [Interface: %s][user: %s]", ifname, user);
-
+    ntop->getTrace()->traceEvent(TRACE_DEBUG, "Allowed interface found. [Interface: %s][user: %s]",
+				 ifname, user);
   } else if(snprintf(key, sizeof(key), "ntopng.prefs.%s.ifname", user)
 	    && (ntop->getRedis()->get(key, ifname, ifname_len) < 0
-		|| !ntop->isExistingInterface(ifname))) {
+		|| (!ntop->isExistingInterface(ifname)))) {
     /* No allowed interface and no default (or not existing) set interface */
     snprintf(ifname, ifname_len, "%s",
 	     ntop->getFirstInterface()->get_name());
     ntop->getRedis()->set(key, ifname, 3600 /* 1h */);
-    ntop->getTrace()->traceEvent(TRACE_DEBUG, "No interface interface found. Using default. [Interface: %s][user: %s]", ifname, user);
+    ntop->getTrace()->traceEvent(TRACE_DEBUG,
+				 "No interface interface found. Using default. [Interface: %s][user: %s]",
+				 ifname, user);
   }
 
   if((iface = ntop->getNetworkInterface(ifname, NULL /* allowed user interface check already enforced */)) != NULL) {
@@ -9093,7 +9161,8 @@ bool LuaEngine::setParamsTable(lua_State* vm,
 
 int LuaEngine::handle_script_request(struct mg_connection *conn,
 				     const struct mg_request_info *request_info,
-				     char *script_path, bool *attack_attempt, const char *user,
+				     char *script_path, bool *attack_attempt,
+				     const char *user,
 				     const char *group, bool localuser) {
   NetworkInterface *iface = NULL;
   char buf[64], key[64], ifname[MAX_INTERFACE_NAME_LEN];
@@ -9126,7 +9195,9 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
       valid_csrf = 0;
 
     } else if(post_data_len > HTTP_MAX_POST_DATA_LEN - 1) {
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Too much data submitted with the form. [post_data_len: %u]", post_data_len);
+      ntop->getTrace()->traceEvent(TRACE_WARNING,
+				   "Too much data submitted with the form. [post_data_len: %u]",
+				   post_data_len);
       valid_csrf = 0;
     } else {
       post_data[post_data_len] = '\0';

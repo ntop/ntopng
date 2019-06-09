@@ -179,6 +179,7 @@ using namespace std;
 #include "AddressList.h"
 #include "BroadcastDomains.h"
 #include "IpAddress.h"
+#include "Ping.h"
 #include "ntop_typedefs.h"
 #include "Trace.h"
 #include "ProtoStats.h"
