@@ -87,7 +87,7 @@ int Ping::ping(char *_addr) {
   struct hostent *hname = gethostbyname(_addr);
   struct sockaddr_in addr;
   struct ping_packet pckt;
-  int i;
+  u_int i;
   struct timeval *tv;
 
   bzero(&addr, sizeof(addr));
@@ -139,7 +139,7 @@ void Ping::pollResults() {
 	s.s_addr = ip->saddr;
 	
 	if(icmp->un.echo.id == pid) {
-	  u_int16_t rtt;
+	  float rtt;
 	  struct timeval end, *begin = (struct timeval*)pckt->msg;
 
 	  gettimeofday(&end, NULL);
@@ -147,7 +147,7 @@ void Ping::pollResults() {
 	  rtt = ms_timeval_diff(begin, &end);
 
 	  ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				       "ICMP response from %s [%u ms]",
+				       "ICMP response from %s [%.2f ms]",
 				       inet_ntoa(s), rtt);
 	  m.lock(__FILE__, __LINE__);
 	  results[ip->saddr] = rtt;
@@ -170,25 +170,21 @@ void Ping::collectResponses(lua_State* vm) {
   
   m.lock(__FILE__, __LINE__);
 
-  for(std::map<u_int32_t,u_int16_t>::iterator it=results.begin(); it!=results.end(); ++it) {
+  for(std::map<u_int32_t,float>::iterator it=results.begin(); it!=results.end(); ++it) {
     struct in_addr s;
 
     s.s_addr = it->first;    
-    lua_push_int32_table_entry(vm, inet_ntoa(s), it->second);  
+    lua_push_float_table_entry(vm, inet_ntoa(s), it->second);  
   }
   
   results.clear();
 
   m.unlock(__FILE__, __LINE__);
-
-  lua_pushstring(vm, "ping");
-  lua_insert(vm, -2);
-  lua_settable(vm, -3);  
 }
 
 /* ****************************************************** */
 
-u_int32_t Ping::ms_timeval_diff(struct timeval *begin, struct timeval *end) {
+float Ping::ms_timeval_diff(struct timeval *begin, struct timeval *end) {
   if(end->tv_sec >= begin->tv_sec) {
     struct timeval result;
 
@@ -201,7 +197,7 @@ u_int32_t Ping::ms_timeval_diff(struct timeval *begin, struct timeval *end) {
     } else
       result.tv_usec = end->tv_usec-begin->tv_usec;
 
-    return((result.tv_sec*1000) + (result.tv_usec/1000));
+    return((result.tv_sec*1000) + ((float)result.tv_usec/(float)1000));
   } else
     return(0);
 }

@@ -32,10 +32,10 @@ class Ping {
   bool running;
   pthread_t resultPoller;
   Mutex m;
-  std::map<u_int32_t /* IP */, u_int16_t /* RTT */> results;
+  std::map<u_int32_t /* IP */, float /* RTT */> results;
   
   u_int16_t checksum(void *b, int len);
-  u_int32_t ms_timeval_diff(struct timeval *begin, struct timeval *end);
+  float ms_timeval_diff(struct timeval *begin, struct timeval *end);
   
  public:
   Ping();
