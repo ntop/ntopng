@@ -52,7 +52,7 @@ Ping::Ping() {
 #if defined(__APPLE__)
   sd = socket(AF_INET, SOCK_DGRAM, IPPROTO_ICMP);
 #else
-  sd = socket(PF_INET, SOCK_RAW, IPPROTO_ICMP));
+  sd = socket(PF_INET, SOCK_RAW, IPPROTO_ICMP);
 #endif
 
   if(sd == -1) {
