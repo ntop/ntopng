@@ -3101,10 +3101,11 @@ local lang = {
     ["users"] = "Users",
   },
   ["system_stats"] = {
+    ["dropped_points"] = "Dropped Points",
+    ["exported_points"] = "Exported Points",
     ["influxdb_storage"] = "Storage (%{dbname})",
-    ["series_cardinality"] = "Num Series",
-    ["write_failures"] = "Write Failures",
-    ["write_througput"] = "Write Througput",
+    ["series_cardinality"] = "Series Cardinality",
+    ["write_througput"] = "DB Write Througput",
   },
   ["telemetry_page"] = {
     ["crash_report"] = "Crash Report",

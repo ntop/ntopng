@@ -62,8 +62,29 @@ end
 
 -- ##############################################
 
+function system_scripts.getSystemProbe(probe_name)
+  for task in system_scripts.getTasks() do
+    for name, probe in system_scripts.getSystemProbes(task) do
+      if name == probe_name then
+        return(probe)
+      end
+    end
+  end
+
+  -- Not Found
+  return(nil)
+end
+
+-- ##############################################
+
+local tasks_cached = nil
+
 function system_scripts.getTasks()
-  local tasks = pairsByKeys(ntop.readdir(system_scripts_dir))
+  if(tasks_cached == nil) then
+    tasks_cached = ntop.readdir(system_scripts_dir)
+  end
+
+  local tasks = pairsByKeys(tasks_cached)
 
   return function()
     local get_next = true
@@ -108,6 +129,8 @@ function system_scripts.runTask(task, when)
   end
 
   for _, probe in system_scripts.getSystemProbes(task) do
+    interface.select(getSystemInterfaceId())
+
     if(probe.runTask ~= nil) then
       if(probe.loadSchemas ~= nil) then
         -- Possibly load the schemas first
@@ -120,6 +143,7 @@ function system_scripts.runTask(task, when)
 
   -- Restore original function
   ts_utils.newSchema = old_new_schema_fn
+  interface.select(getSystemInterfaceId())
   return(true)
 end
 

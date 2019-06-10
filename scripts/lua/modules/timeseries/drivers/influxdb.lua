@@ -620,7 +620,7 @@ end
 
 function driver:_exportTsFile(fname)
   if not ntop.exists(fname) then
-    return nil
+    return(false)
   end
 
   -- Delete the file after POST
@@ -633,27 +633,31 @@ function driver:_exportTsFile(fname)
 
      --delete the file manually
     os.remove(fname)
-    return nil
+    return(false)
   end
 
-  return ret
+  return(true)
 end
 
 function driver:export()
   while(true) do
+    interface.select(getSystemInterfaceId())
+
     local name_id = ntop.lpopCache("ntopng.influx_file_queue")
-    local ret
+    local rv
 
     if((name_id == nil) or (name_id == "")) then
       break
     end
 
     local parts = split(name_id, "|")
-    local ifid = tonumber(parts[1])
+    local ifid_str = parts[1]
+    local ifid = tonumber(ifid_str)
     local time_ref = tonumber(parts[2])
     local export_id = tonumber(parts[3])
+    local num_points = tonumber(parts[4])
 
-    if((ifid == nil) or (time_ref == nil) or (export_id == nil)) then
+    if((ifid == nil) or (time_ref == nil) or (export_id == nil) or (num_points == nil)) then
       traceError(TRACE_ERROR, TRACE_CONSOLE, "Invalid name "..name_id.."\n")
       break
     end
@@ -663,9 +667,13 @@ function driver:export()
     local fname = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/ts_export/" .. export_id .. "_" .. time_ref)
 
     --local t = os.time()
-    ret = self:_exportTsFile(fname)
+    rv = self:_exportTsFile(fname)
+    interface.select(ifid_str)
 
-    if ret == nil then
+    if rv then
+      interface.incInfluxExportedPoints(num_points)
+    else
+      interface.incInfluxDroppedPoints(num_points)
       break
     end
 
@@ -673,6 +681,8 @@ function driver:export()
     --tprint("Exported ".. fname .." in " .. (os.time() - t) .. " sec")
     ntop.setCache(time_key, tostring(math.max(prev_t, time_ref)))
   end
+
+  interface.select(getSystemInterfaceId())
 end
 
 -- ##############################################

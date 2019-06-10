@@ -71,18 +71,27 @@ print [[
 -- #######################################################
 
 if(page == "overview") then
+   local probe = system_scripts.getSystemProbe("influxdb")
+
     print("<table class=\"table table-bordered table-striped\">\n")
 
     print("<tr><th nowrap width='20%'>".. i18n("system_stats.influxdb_storage", {dbname = ts_utils.getQueryDriver().db}) .."</th><td><img class=\"influxdb-info-load\" border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber><span id=\"influxdb-info-text\"></span></td></tr>\n")
     print("<tr><th nowrap>".. i18n("memory") .."</th><td><img class=\"influxdb-info-load\" border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber><span id=\"influxdb-info-memory\"></span></td></tr>\n")
-    print("<tr><th nowrap>".. i18n("system_stats.series_cardinality") .."</th><td><img class=\"influxdb-info-load\" border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber><span id=\"influxdb-info-series\"></span></td></tr>\n")
+
+    if(probe ~= nil) then
+       local stats = probe.getExportStats()
+       print("<tr><th nowrap>".. i18n("system_stats.exported_points") .."</th><td>".. formatValue(stats.points_exported) .."</td></tr>\n")
+       print("<tr><th nowrap>".. i18n("system_stats.dropped_points") .."</th><td>".. formatValue(stats.points_dropped) .."</td></tr>\n")
+    end
+
+    print("<tr><th nowrap>".. i18n("system_stats.series_cardinality") .." <a href=\"https://docs.influxdata.com/influxdb/v1.7/concepts/glossary/#series-cardinality\"><i class='fa fa-external-link '></i></a></th><td><img class=\"influxdb-info-load\" border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber><span id=\"influxdb-info-series\"></span></td></tr>\n")
     print[[<script>
  $(function() {
     $.get("]] print(ntop.getHttpPrefix()) print[[/lua/get_influxdb_info.lua", function(info) {
        $(".influxdb-info-load").hide();
        $("#influxdb-info-text").html(bytesToVolume(info.db_bytes) + " ");
        $("#influxdb-info-memory").html(bytesToVolume(info.memory) + " ");
-       $("#influxdb-info-series").html(info.num_series + " ");
+       $("#influxdb-info-series").html(addCommas(info.num_series) + " ");
     }).fail(function() {
        $(".influxdb-info-load").hide();
     });

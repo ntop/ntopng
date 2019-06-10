@@ -2538,6 +2538,73 @@ static int ntop_append_influx_db(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_inc_influx_exported_points(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  u_int32_t num_points;
+  bool rv = false;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(!ntop_interface)
+    return(CONST_LUA_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  num_points = lua_tointeger(vm, 1);
+
+  if(ntop_interface && ntop_interface->getTSExporter()) {
+    ntop_interface->getTSExporter()->incNumExportedPoints(num_points);
+    rv = true;
+  }
+
+  lua_pushboolean(vm, rv);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_inc_influx_dropped_points(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  u_int32_t num_points;
+  bool rv = false;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(!ntop_interface)
+    return(CONST_LUA_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  num_points = lua_tointeger(vm, 1);
+
+  if(ntop_interface && ntop_interface->getTSExporter()) {
+    ntop_interface->getTSExporter()->incNumDroppedPoints(num_points);
+    rv = true;
+  }
+
+  lua_pushboolean(vm, rv);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_get_influx_export_stats(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(!ntop_interface)
+    return(CONST_LUA_ERROR);
+
+  if(ntop_interface && ntop_interface->getTSExporter()) {
+    lua_newtable(vm);
+    ntop_interface->getTSExporter()->lua(vm);
+  } else
+    lua_pushnil(vm);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 // ***API***
 static int ntop_get_interface_flows_info(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
@@ -8474,6 +8541,9 @@ static const luaL_Reg ntop_interface_reg[] = {
 
   /* InfluxDB */
   { "appendInfluxDB",                   ntop_append_influx_db                 },
+  { "incInfluxExportedPoints",          ntop_inc_influx_exported_points       },
+  { "incInfluxDroppedPoints",           ntop_inc_influx_dropped_points        },
+  { "getInfluxExportStats"  ,           ntop_get_influx_export_stats          },
 
 #ifdef NTOPNG_PRO
   { "resetPoolsQuotas",                 ntop_reset_pools_quotas               },

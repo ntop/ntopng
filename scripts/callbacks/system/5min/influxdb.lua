@@ -74,14 +74,47 @@ function probe.loadSchemas(ts_utils)
   })
   schema:addMetric("points")
 
-  schema = ts_utils.newSchema("influxdb:rtt", {label = i18n("graphs.num_ms_rtt"), metrics_type = ts_utils.metrics.gauge})
+  schema = ts_utils.newSchema("influxdb:exported_points",
+    {label = i18n("system_stats.exported_points"), metrics_type = ts_utils.metrics.counter})
+  schema:addMetric("points")
+
+  schema = ts_utils.newSchema("influxdb:dropped_points",
+    {label = i18n("system_stats.dropped_points"), metrics_type = ts_utils.metrics.counter})
+  schema:addMetric("points")
+
+    schema = ts_utils.newSchema("influxdb:rtt", {label = i18n("graphs.num_ms_rtt"), metrics_type = ts_utils.metrics.gauge})
   schema:addMetric("millis_rtt")
 end
 
 -- ##############################################
 
-function probe.runTask(when, ts_utils)
-  local influxdb = ts_utils.getQueryDriver()
+function probe.getExportStats()
+  local points_exported = 0
+  local points_dropped = 0
+  local ifnames = interface.getIfNames()
+  local old_ifname = ifname
+
+  for ifid, ifname in pairs(ifnames) do
+     interface.select(ifname)
+     local stats = interface.getInfluxExportStats()
+
+     if(stats ~= nil) then
+        points_exported = points_exported + stats.num_points_exported
+        points_dropped = points_dropped + stats.num_points_dropped
+     end
+  end
+
+  interface.select(old_ifname)
+
+  return {
+    points_exported = points_exported,
+    points_dropped = points_dropped
+  }
+end
+
+-- ##############################################
+
+function probe._measureRtt(when, ts_utils, influxdb)
   local start_ms = ntop.gettimemsec()
   local res = influxdb:getInfluxdbVersion()
 
@@ -90,6 +123,24 @@ function probe.runTask(when, ts_utils)
 
     ts_utils.append("influxdb:rtt", {millis_rtt = ((end_ms-start_ms)*1000)}, when)
   end
+end
+
+-- ##############################################
+
+function probe._exportStats(when, ts_utils)
+  local stats = probe.getExportStats()
+
+  ts_utils.append("influxdb:exported_points", {points = stats.points_exported}, when)
+  ts_utils.append("influxdb:dropped_points", {points = stats.points_dropped}, when)
+end
+
+-- ##############################################
+
+function probe.runTask(when, ts_utils)
+  local influxdb = ts_utils.getQueryDriver()
+
+  probe._exportStats(when, ts_utils)
+  probe._measureRtt(when, ts_utils, influxdb)
 end
 
 -- ##############################################

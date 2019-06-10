@@ -29,6 +29,8 @@ class TimeseriesExporter {
   time_t flushTime;
   u_int32_t cursize;
   u_int32_t num_exports;
+  u_int64_t num_points_exported;
+  u_int64_t num_points_dropped;
   int fd;
   char fbase[PATH_MAX], fname[PATH_MAX+32];
   NetworkInterface *iface;
@@ -44,6 +46,10 @@ class TimeseriesExporter {
 
   void exportData(char *data, bool do_lock = true);
   void flush();
+
+  inline void incNumExportedPoints(u_int32_t num_points) { num_points_exported += num_points; }
+  inline void incNumDroppedPoints(u_int32_t num_points) { num_points_dropped += num_points; }
+  void lua(lua_State *vm);
 };
 
 #endif /* _TS_EXPORTER_H_ */
