@@ -62,6 +62,7 @@ function queryEpochData(schema, tags, selectedEpoch, zoomLevel, options)
    local d = getZoomDuration(zoomLevel)
    local end_time
    local start_time
+   options = table.merge(options or {}, {initial_point=true})
 
    if((selectedEpoch == nil) or (selectedEpoch == "")) then 
       selectedEpoch = os.time() 
