@@ -33,22 +33,29 @@ function system_scripts.getSystemProbes(task)
       local probe_script = probes()
       get_next = false
 
-      if(probe_script ~= nil) and (string.ends(probe_script, ".lua")) then
-        local name = string.sub(probe_script, 1, string.len(probe_script)-4)
-        local path = os_utils.fixPath(base_dir .. "/" .. probe_script)
-        local _module = loadfile(path)()
-
-        if _module == nil then
-          traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Could not load module '%s'", path))
-          get_next = true
-        elseif (_module.isEnabled == nil) or _module.isEnabled() then
-          return name, _module
-        else
-          get_next = true
-        end
+      if(probe_script == nil) then
+        return nil
       end
 
-      return nil
+      if not(string.ends(probe_script, ".lua")) then
+        get_next = true
+        goto continue
+      end
+
+      local name = string.sub(probe_script, 1, string.len(probe_script)-4)
+      local path = os_utils.fixPath(base_dir .. "/" .. probe_script)
+      local _module = loadfile(path)()
+
+      if _module == nil then
+        traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Could not load module '%s'", path))
+        get_next = true
+      elseif (_module.isEnabled == nil) or _module.isEnabled() then
+        return name, _module
+      else
+        get_next = true
+      end
+
+      ::continue::
     end
   end
 end
