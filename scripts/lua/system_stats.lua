@@ -160,12 +160,13 @@ elseif(page == "historical") then
          {schema="process:memory",             label=i18n("graphs.process_memory")},
       }, system_schemas)
    })
-elseif(page == "alerts") then
+elseif((page == "alerts") and isAdministrator()) then
    local old_ifname = ifname
    interface.select(getSystemInterfaceId())
 
    _GET["ifid"] = getSystemInterfaceId()
-   _GET["entity_excludes"] = string.format("%u", alertEntity("influx_db"))
+   _GET["entity_excludes"] = string.format("%u,%u",
+      alertEntity("influx_db"), alertEntity("snmp_device"))
 
    drawAlerts({hide_filters = true})
 

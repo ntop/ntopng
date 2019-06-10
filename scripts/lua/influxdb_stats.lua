@@ -109,7 +109,7 @@ elseif(page == "historical") then
    drawGraphs(getSystemInterfaceId(), schema, tags, _GET["zoom"], url, selected_epoch, {
       timeseries = system_schemas,
    })
-elseif(page == "alerts") then
+elseif((page == "alerts") and isAdministrator()) then
    local old_ifname = ifname
    local influxdb = ts_utils.getQueryDriver()
    interface.select(getSystemInterfaceId())
