@@ -125,7 +125,7 @@ end
 
 -- ##############################################
 
-function system_scripts.getAdditionalTimeseries()
+function system_scripts.getAdditionalTimeseries(module_filter)
   local old_new_schema_fn = ts_utils.newSchema
   local additional_ts = {}
   local needs_label = false
@@ -164,7 +164,13 @@ function system_scripts.getAdditionalTimeseries()
     default_schema_options = { step = periodicity, is_system_schema = true }
 
     for probe_name, probe in system_scripts.getSystemProbes(task) do
-      if(probe.loadSchemas ~= nil) then
+      -- nil filter shows all the schemas
+      -- "system" filter shows all the schemas without has_own_page
+      -- other filter shows all the schemas with that name
+      if((probe.loadSchemas ~= nil) and
+          (((module_filter == "system") and (probe.has_own_page ~= true)) or
+            (probe_name == module_filter) or
+            (module_filter == nil))) then
         needs_label = true
         current_probe_label = probe.name or probe_name
 

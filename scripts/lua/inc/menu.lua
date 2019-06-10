@@ -9,6 +9,7 @@ require "lua_utils"
 local recording_utils = require "recording_utils"
 local remote_assistance = require "remote_assistance"
 local telemetry_utils = require "telemetry_utils"
+local ts_utils = require("ts_utils_core")
 
 local is_admin = isAdministrator()
 
@@ -391,7 +392,7 @@ end
 
 local show_flowdevs = (ifs["type"] == "zmq")
 
-if ntop.isEnterprise() and (isAllowedSystemInterface() or show_flowdevs) then
+if ntop.isEnterprise() and show_flowdevs then
    if active_page == "devices_stats" then
      print [[ <li class="dropdown active"> ]]
    else
@@ -404,23 +405,18 @@ if ntop.isEnterprise() and (isAllowedSystemInterface() or show_flowdevs) then
       <ul class="dropdown-menu">
    ]]
 
-   if(info["version.enterprise_edition"] == true) then
-      if isAllowedSystemInterface() then
-         print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/snmpdevices_stats.lua">') print(i18n("prefs.snmp")) print('</a></li>')
-      end
-      if show_flowdevs then
-         if _ifstats.has_seen_ebpf_events then
-            print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/event_exporters.lua ">') print(i18n("event_exporters.event_exporters")) print('</a></li>')
-         else
-            if table.len(interface.getSFlowDevices() or {}) > 0 then
-               print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/flowdevices_stats.lua?sflow_filter=All">') print(i18n("flows_page.sflow_devices")) print('</a></li>')
-            end
-
-            print('<li class="divider"></li>')
-            print('<li class="dropdown-header">') print(i18n("flows")) print('</li>')
-
-            print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/flowdevices_stats.lua">') print(i18n("flows_page.flow_exporters")) print('</a></li>')
+   if(info["version.enterprise_edition"] == true) and show_flowdevs then
+      if _ifstats.has_seen_ebpf_events then
+         print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/event_exporters.lua ">') print(i18n("event_exporters.event_exporters")) print('</a></li>')
+      else
+         if table.len(interface.getSFlowDevices() or {}) > 0 then
+            print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/flowdevices_stats.lua?sflow_filter=All">') print(i18n("flows_page.sflow_devices")) print('</a></li>')
          end
+
+         print('<li class="divider"></li>')
+         print('<li class="dropdown-header">') print(i18n("flows")) print('</li>')
+
+         print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/flowdevices_stats.lua">') print(i18n("flows_page.flow_exporters")) print('</a></li>')
       end
    end
 
@@ -434,10 +430,23 @@ if isAllowedSystemInterface() then
    else
      print [[ <li class="dropdown"> ]]
    end
+
    print [[
-      <a href="]] print(ntop.getHttpPrefix()) print[[/lua/system_stats.lua">]] print(i18n("system")) print[[</a>
-   </li>
-   ]]
+      <a class="dropdown-toggle" data-toggle="dropdown" href="#">]]
+   print(i18n("system")) print[[ <b class="caret"></b>
+         </a>
+       <ul class="dropdown-menu">]]
+
+   print[[<li><a href="]] print(ntop.getHttpPrefix()) print[[/lua/system_stats.lua">]] print(i18n("system_status")) print[[</li>]]
+
+   if(ts_utils.getDriverName() == "influxdb") then
+      print('<li><a href="'..ntop.getHttpPrefix()..'/lua/influxdb_stats.lua">') print("InfluxDB") print('</a></li>')
+   end
+
+   if ntop.isEnterprise() then
+      print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/snmpdevices_stats.lua">') print(i18n("prefs.snmp")) print('</a></li>')
+   end
+   print[[</ul></li>]]
 end
 
 -- Admin
