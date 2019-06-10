@@ -31,14 +31,14 @@ end
 -- ##############################################
 
 function probe.stateful_alert_handler(numeric_ip, ip_label, trigger_alert, current_value, upper_threshold)
-   if(trigger_alert) then
+   if(trigger_alert == 1) then
       if(current_value == 0) then
-	 io.write("[TRIGGER] Host "..ip_label.."/"..numeric_ip.." in unreacheable\n")
+	 print("[TRIGGER] Host "..ip_label.."/"..numeric_ip.." in unreacheable\n")
       else
-	 io.write("[TRIGGER] Host "..ip_label.."/"..numeric_ip.." [value: "..current_value.."][threshold: "..upper_threshold.."]\n")
+	 print("[TRIGGER] Host "..ip_label.."/"..numeric_ip.." [value: "..current_value.."][threshold: "..upper_threshold.."]\n")
       end
    else
-      io.write("[OK] Host "..ip_label.."/"..numeric_ip.." [value: "..current_value.."][threshold: "..upper_threshold.."]\n")
+      print("[OK] Host "..ip_label.."/"..numeric_ip.." [value: "..current_value.."][threshold: "..upper_threshold.."]\n")
    end
 end
 
@@ -50,7 +50,7 @@ function probe.runTask(when, ts_utils)
   local max_latency = {}
 
   if(debug) then
-     io.write("[RTT] Script started\n")
+     print("[RTT] Script started\n")
   end
   
   if table.empty(hosts) then
@@ -64,7 +64,7 @@ function probe.runTask(when, ts_utils)
      local host_label = e[2]
 
      if(debug) then
-	io.write("[RTT] Pinging "..ip_address.."/"..host_label.."\n")
+	print("[RTT] Pinging "..ip_address.."/"..host_label.."\n")
      end
      
      ntop.pingHost(ip_address)
@@ -82,6 +82,8 @@ function probe.runTask(when, ts_utils)
 	local label   = pinged_hosts[host]
 	ts_utils.append("host:rtt", {host = host, label = label, millis_rtt = rtt}, when)
 
+	rtt = tonumber(rtt)
+	
 	if(max_rtt and (rtt > max_rtt)) then
 	   probe.stateful_alert_handler(host, label, 1, rtt, max_rtt)
 	else
@@ -97,7 +99,7 @@ function probe.runTask(when, ts_utils)
   end
 
   if(debug) then
-     io.write("[RTT] Script is over\n")
+     print("[RTT] Script is over\n")
   end
 end
 
