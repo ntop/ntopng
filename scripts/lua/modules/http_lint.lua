@@ -268,6 +268,12 @@ local function validateNdpiStatsMode(mode)
    return validateChoice(modes, mode)
 end
 
+local function validateCounterSince(mode)
+   local modes = {"actual", "absolute"}
+
+   return validateChoice(modes, mode)
+end
+
 local function validateSflowDistroMode(mode)
    local modes = {"host", "process", "user"}
 
@@ -1074,6 +1080,7 @@ local known_parameters = {
    ["ifid"]                    = validateInterface,             -- An ntopng interface ID
    ["iffilter"]                = validateIfFilter,              -- An interface ID or 'all'
    ["mode"]                    = validateMode,                  -- Remote or Local users
+   ["err_counters_since"]      = validateCounterSince,          -- Select actual or absolute counters
    ["country"]                 = validateCountry,               -- Country code
    ["flow_key"]                = validateNumber,                -- The ID of a flow hash
    ["pool"]                    = validateNumber,                -- A pool ID
