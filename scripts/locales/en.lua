@@ -162,6 +162,7 @@ local lang = {
   ["stop"] = "Stop",
   ["summary"] = "Summary",
   ["system"] = "System",
+  ["system_status"] = "System Status",
   ["talkers"] = "Talkers",
   ["tcp_flags"] = "TCP Flags",
   ["tcp_stats"] = "TCP Statistics",

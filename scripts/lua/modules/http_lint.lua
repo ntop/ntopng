@@ -1094,6 +1094,7 @@ local known_parameters = {
    ["alert_type"]              = validateNumber,                -- An alert type enum
    ["alert_severity"]          = validateNumber,                -- An alert severity enum
    ["entity"]                  = validateNumber,                -- An alert entity type
+   ["entity_excludes"]         = validateListOfTypeInline(validateNumber),
    ["asn"]                     = validateNumber,                -- An ASN number
    ["client_asn"]              = validateNumber,                -- A client ASN number
    ["server_asn"]              = validateNumber,                -- A server ASN number

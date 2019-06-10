@@ -7,6 +7,7 @@ local ts_utils = require("ts_utils_core")
 local probe = {
   name = "InfluxDB",
   description = "Monitors InfluxDB health and performance",
+  has_own_page = true, -- this module has a dedicated page in the menu
 }
 
 -- ##############################################
@@ -35,19 +36,6 @@ local function get_write_success_query(influxdb, schema, tstart, tend, time_step
       ' (DERIVATIVE(MEAN(writePointsOk)) / '.. time_step ..') as writePointsOk' ..
       ' FROM "monitor"."shard" WHERE "database"=\''.. influxdb.db ..'\'' ..
       " AND time >= " .. tstart .. "000000000 AND time <= " .. tend .. "000000000" ..
-      " GROUP BY id)" ..
-      " GROUP BY TIME(".. time_step .."s)"
-
-  return(q)
-end
-
-local function get_write_failure_query(influxdb, schema, tstart, tend, time_step)
-  local q = 'SELECT SUM(writePoints) as points' ..
-      ' FROM (SELECT '..
-      ' (DERIVATIVE(MEAN(writePoints)) / '.. time_step ..') as writePoints ' ..
-      ' FROM (SELECT(writePointsDropped + writePointsErr) as writePoints from "monitor"."shard"'..
-      ' WHERE "database"=\''.. influxdb.db ..'\')' ..
-      " WHERE time >= " .. tstart .. "000000000 AND time <= " .. tend .. "000000000" ..
       " GROUP BY id)" ..
       " GROUP BY TIME(".. time_step .."s)"
 
@@ -85,13 +73,6 @@ function probe.loadSchemas(ts_utils)
     metrics_type = ts_utils.metrics.counter, step = 10
   })
   schema:addMetric("points")
-
-  schema = ts_utils.newSchema("influxdb:write_failures", {
-    label = i18n("system_stats.write_failures"), influx_internal_query = get_write_failure_query,
-    metrics_type = ts_utils.metrics.counter, step = 10
-  })  
-  schema:addMetric("points")
-  --
 
   schema = ts_utils.newSchema("influxdb:rtt", {label = i18n("graphs.num_ms_rtt"), metrics_type = ts_utils.metrics.gauge})
   schema:addMetric("millis_rtt")

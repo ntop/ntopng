@@ -27,7 +27,7 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 local page = _GET["page"] or "overview"
 local url = ntop.getHttpPrefix() .. "/lua/system_stats.lua?ifid=" .. getInterfaceId(ifname)
 local info = ntop.getInfo()
-system_schemas = system_scripts.getAdditionalTimeseries()
+system_schemas = system_scripts.getAdditionalTimeseries("system")
 
 print [[
   <nav class="navbar navbar-default" role="navigation">
@@ -94,26 +94,6 @@ if(page == "overview") then
    end
    if system_host_stats["mem_total"] ~= nil then
       print("<tr><th nowrap>"..i18n("about.ram_memory").."</th><td><span id='ram-used'></span></td></tr>\n")
-   end
-
-   if ts_utils.getDriverName() == "influxdb" then
-      print("<tr><th rowspan=4 width=5%>InfluxDB</th></tr>\n")
-      print("<tr><th nowrap>".. i18n("system_stats.influxdb_storage", {dbname = ts_utils.getQueryDriver().db}) .."</th><td><img class=\"influxdb-info-load\" border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber><span id=\"influxdb-info-text\"></span></td></tr>\n")
-      print("<tr><th nowrap>".. i18n("memory") .."</th><td><img class=\"influxdb-info-load\" border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber><span id=\"influxdb-info-memory\"></span></td></tr>\n")
-      print("<tr><th nowrap>".. i18n("system_stats.series_cardinality") .."</th><td><img class=\"influxdb-info-load\" border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber><span id=\"influxdb-info-series\"></span></td></tr>\n")
-      print[[<script>
-   $(function() {
-      $.get("]] print(ntop.getHttpPrefix()) print[[/lua/get_influxdb_info.lua", function(info) {
-         $(".influxdb-info-load").hide();
-         $("#influxdb-info-text").html(bytesToVolume(info.db_bytes) + " ");
-         $("#influxdb-info-memory").html(bytesToVolume(info.memory) + " ");
-         $("#influxdb-info-series").html(info.num_series + " ");
-      }).fail(function() {
-         $(".influxdb-info-load").hide();
-      });
-   });
-   </script>
-   ]]
    end
 
    print("<tr><th rowspan=20>"..info["product"].."</th>")
@@ -185,6 +165,7 @@ elseif(page == "alerts") then
    interface.select(getSystemInterfaceId())
 
    _GET["ifid"] = getSystemInterfaceId()
+   _GET["entity_excludes"] = string.format("%u", alertEntity("influx_db"))
 
    drawAlerts({hide_filters = true})
 

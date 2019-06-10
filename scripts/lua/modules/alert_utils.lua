@@ -387,6 +387,16 @@ function performAlertsQuery(statement, what, opts, force_query)
          wargs[#wargs+1] = 'AND alert_entity = "'..(opts.entity)..'"'
          wargs[#wargs+1] = 'AND alert_entity_val = "'..(opts.entity_val)..'"'
       end
+   elseif (what ~= "historical-flows") then
+      if (not isEmptyString(opts.entity)) then
+	 wargs[#wargs+1] = 'AND alert_entity = "'..(opts.entity)..'"'
+      elseif(not isEmptyString(opts.entity_excludes)) then
+	 local excludes = string.split(opts.entity_excludes, ",") or {opts.entity_excludes}
+
+	 for _, entity in pairs(excludes) do
+	    wargs[#wargs+1] = 'AND alert_entity != "'.. entity ..'"'
+	 end
+      end
    end
 
    if not isEmptyString(opts.origin) then
