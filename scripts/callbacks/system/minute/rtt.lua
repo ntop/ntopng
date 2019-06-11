@@ -7,6 +7,7 @@ local ts_utils = require("ts_utils_core")
 local probe = {
   name = "RTT Monitor",
   description = "Monitors the round trip time of an host",
+  has_own_page = true, -- this module has a dedicated page in the menu
 }
 
 local debug = false
