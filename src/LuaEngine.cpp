@@ -6530,6 +6530,44 @@ static int ntop_get_resolved_address(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_resolve_host_v4(lua_State* vm) {
+  char buf[64];
+  char *host;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  if((host = (char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
+
+  if(ntop->resolveHostV4(host, buf, sizeof(buf)))
+    lua_pushstring(vm, buf);
+  else
+    lua_pushnil(vm);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_resolve_host_v6(lua_State* vm) {
+  char buf[64];
+  char *host;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  if((host = (char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
+
+  if(ntop->resolveHostV6(host, buf, sizeof(buf)))
+    lua_pushstring(vm, buf);
+  else
+    lua_pushnil(vm);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 #ifndef HAVE_NEDGE
 static int ntop_snmpget(lua_State* vm)     { SNMP s; return(s.get(vm));     }
 static int ntop_snmpgetnext(lua_State* vm) { SNMP s; return(s.getnext(vm)); }
@@ -8794,6 +8832,8 @@ static const luaL_Reg ntop_reg[] = {
   /* Address Resolution */
   { "resolveName",       ntop_resolve_address },       /* Note: you should use resolveAddress() to call from Lua */
   { "getResolvedName",   ntop_get_resolved_address },  /* Note: you should use getResolvedAddress() to call from Lua */
+  { "resolveHostV4",     ntop_resolve_host_v4 },
+  { "resolveHostV6",     ntop_resolve_host_v6 },
 
   /* Logging */
 #ifndef WIN32

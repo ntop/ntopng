@@ -425,7 +425,7 @@ if ntop.isEnterprise() and show_flowdevs then
 end
 
 if isAllowedSystemInterface() then
-   if active_page == "system" then
+   if active_page == "system_stats" then
      print [[ <li class="dropdown active"> ]]
    else
      print [[ <li class="dropdown"> ]]
@@ -438,6 +438,7 @@ if isAllowedSystemInterface() then
        <ul class="dropdown-menu">]]
 
    print[[<li><a href="]] print(ntop.getHttpPrefix()) print[[/lua/system_stats.lua">]] print(i18n("system_status")) print[[</li>]]
+   print[[<li><a href="]] print(ntop.getHttpPrefix()) print[[/lua/rtt_stats.lua">]] print(i18n("graphs.rtt")) print[[</li>]]
 
    if(ts_utils.getDriverName() == "influxdb") then
       print('<li><a href="'..ntop.getHttpPrefix()..'/lua/influxdb_stats.lua">') print("InfluxDB") print('</a></li>')

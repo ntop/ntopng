@@ -1482,6 +1482,8 @@ local known_parameters = {
    ["icmp_type"]               = validateNumber,
    ["icmp_cod"]                = validateNumber,
    ["hosts_only"]              = validateBool,
+   ["rtt_hosts"]               = validateListOfTypeInline(validateSingleWord), -- TODO
+   ["rtt_host"]                = validateSingleWord,
 
    -- Containers
    ["pod"]                     = validateSingleWord,

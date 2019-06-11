@@ -212,6 +212,15 @@ class Ntop {
   inline void resolveHostName(char *numeric_ip, char *symbolic, u_int symbolic_len) {
     address->resolveHostName(numeric_ip, symbolic, symbolic_len);
   }
+
+  inline bool resolveHostV4(char *host, char *rsp, u_int rsp_len) {
+    return(address->resolveHostV4(host, rsp, rsp_len));
+  }
+
+  inline bool resolveHostV6(char *host, char *rsp, u_int rsp_len) {
+    return(address->resolveHostV6(host, rsp, rsp_len));
+  }
+
   /**
    * @brief Get the geolocation instance.
    *

@@ -26,7 +26,6 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 local page = _GET["page"] or "overview"
 local url = ntop.getHttpPrefix() .. "/lua/influxdb_stats.lua?ifid=" .. getInterfaceId(ifname)
-local info = ntop.getInfo()
 system_schemas = system_scripts.getAdditionalTimeseries("influxdb")
 
 print [[
