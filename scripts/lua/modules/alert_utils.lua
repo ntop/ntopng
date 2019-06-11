@@ -2282,10 +2282,19 @@ local function engageReleaseAlert(engaged, ifid, engine, entity_type, entity_val
    end
 end
 
-local function engageAlert(ifid, engine, entity_type, entity_value, atype, akey, entity_info, alert_info, force)
+local function engageAlert(ifid, working_status, entity_type, entity_value, atype, akey, entity_info, alert_info, force)
+   local engine = working_status.engine
+   local engaged_cache = working_status.engaged_cache
+
    if(verbose) then io.write("Engage Alert: "..entity_value.." "..atype.." "..akey.."\n") end
 
-   engageReleaseAlert(true, ifid, engine, entity_type, entity_value, atype, akey, entity_info, alert_info, force)
+   if ((engaged_cache[entity_type] == nil)
+	 or (engaged_cache[entity_type][entity_value] == nil)
+	 or (engaged_cache[entity_type][entity_value][atype] == nil)
+      or (engaged_cache[entity_type][entity_value][atype][akey] == nil)) then
+      engageReleaseAlert(true, ifid, engine, entity_type, entity_value, atype, akey, entity_info, alert_info, force)
+      working_status.dirty_cache = true
+   end
 end
 
 local function releaseAlert(ifid, engine, entity_type, entity_value, atype, akey, entity_info, alert_info, force)
@@ -2420,13 +2429,7 @@ local function check_entity_alerts(ifid, entity_type, entity_value, working_stat
    -- Engage logic
    for atype, akeys in pairs(current_alerts) do
       for akey, alert_info in pairs(akeys) do
-	 if ((engaged_cache[entity_type] == nil)
-	       or (engaged_cache[entity_type][entity_value] == nil)
-	       or (engaged_cache[entity_type][entity_value][atype] == nil)
-	    or (engaged_cache[entity_type][entity_value][atype][akey] == nil)) then
-	    engageAlert(ifid, engine, entity_type, entity_value, atype, akey, entity_info, alert_info)
-	    working_status.dirty_cache = true
-	 end
+	 engageAlert(ifid, working_status, entity_type, entity_value, atype, akey, entity_info, alert_info)
       end
    end
 
@@ -2642,14 +2645,9 @@ local function check_inactive_hosts_alerts(ifid, working_status)
 	    releaseAlert(ifid, engine, entity_type, entity_value, atype, akey)
 	    working_status.dirty_cache = true
 	 end
-      elseif not host_info and
-	 (not engaged_cache[entity_type]
-	     or not engaged_cache[entity_type][entity_value]
-	     or not engaged_cache[entity_type][entity_value][atype]
-	  or not engaged_cache[entity_type][entity_value][atype][akey]) then
-	    -- ENGAGE
-	    engageAlert(ifid, engine, entity_type, entity_value, atype, akey)
-	    working_status.dirty_cache = true
+      elseif not host_info then
+	 -- ENGAGE
+	 engageAlert(ifid, working_status, entity_type, entity_value, atype, akey)
       end
    end
 end
