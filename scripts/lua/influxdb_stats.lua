@@ -49,7 +49,7 @@ else
   print("<li><a href=\""..url.."&page=historical\"><i class='fa fa-area-chart fa-lg'></i></a></li>")
 end
 
-if(isAdministrator() and areAlertsEnabled()) then
+if(isAdministrator() and system_scripts.hasAlerts({entity = alertEntity("influx_db")})) then
    if(page == "alerts") then
       print("\n<li class=\"active\"><a href=\"#\">")
    else

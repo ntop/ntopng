@@ -211,4 +211,20 @@ end
 
 -- ##############################################
 
+function system_scripts.hasAlerts(options)
+  local opts = table.merge(options, {ifid = getSystemInterfaceId()})
+  local old_iface = iface
+  local rv
+  interface.select(getSystemInterfaceId())
+
+  rv = (areAlertsEnabled() and
+    (getNumAlerts("historical", getTabParameters(opts, "historical")) > 0) or
+    (getNumAlerts("engaged", getTabParameters(opts, "engaged")) > 0))
+
+  interface.select(old_iface)
+  return(rv)
+end
+
+-- ##############################################
+
 return system_scripts
