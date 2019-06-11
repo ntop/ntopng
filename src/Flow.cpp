@@ -94,17 +94,11 @@ Flow::Flow(NetworkInterface *_iface,
   if(icmp_info) {
     if(icmp_info->isPortUnreachable()) { //port unreachable icmpv6/icmpv4
 
-    /*
-      This is an ICMP flow which contains unreachable information. As is the cli_host
-      that complains, it means that the srv_host has made a connection that triggered
-      the issue and thus it must be accounted in reverse
-     */
-    
-      if(cli_host) cli_host->incNumUnreachableFlows(true  /* as server */);
-      if(srv_host) srv_host->incNumUnreachableFlows(false /* as client */);
+      if(srv_host) srv_host->incNumUnreachableFlows(true  /* as server */);
+      if(cli_host) cli_host->incNumUnreachableFlows(false /* as client */);
     } else if(icmp_info->isHostUnreachable(protocol)) {
-      if(cli_host) cli_host->incNumHostUnreachableFlows(true  /* as server */);
-      if(srv_host) srv_host->incNumHostUnreachableFlows(false /* as client */);
+      if(srv_host) srv_host->incNumHostUnreachableFlows(true  /* as server */);
+      if(cli_host) cli_host->incNumHostUnreachableFlows(false /* as client */);
     }
   }
   
