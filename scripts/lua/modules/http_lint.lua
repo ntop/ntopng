@@ -256,6 +256,12 @@ local function validateEBPFData(mode)
    return validateChoice(modes, mode)
 end
 
+local function validateErrorsFilter(mode)
+   local modes = {"errors", "discards", "errors_or_discards"}
+
+   return validateChoice(modes, mode)
+end
+
 local function validatePidMode(mode)
    local modes = {"l4", "l7", "host", "apps"}
 
@@ -1081,6 +1087,7 @@ local known_parameters = {
    ["iffilter"]                = validateIfFilter,              -- An interface ID or 'all'
    ["mode"]                    = validateMode,                  -- Remote or Local users
    ["err_counters_since"]      = validateCounterSince,          -- Select actual or absolute counters
+   ["err_counters_filter"]     = validateErrorsFilter,          -- Filter by errrrs, discards, both
    ["country"]                 = validateCountry,               -- Country code
    ["flow_key"]                = validateNumber,                -- The ID of a flow hash
    ["pool"]                    = validateNumber,                -- A pool ID
