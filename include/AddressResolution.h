@@ -37,6 +37,8 @@ class AddressResolution {
 
   void startResolveAddressLoop();
   void resolveHostName(char *numeric_ip, char *rsp = NULL, u_int rsp_len = 0);
+  bool resolveHostV4(char *host, char *rsp, u_int rsp_len);
+  bool resolveHostV6(char *host, char *rsp, u_int rsp_len);
 
   inline u_int8_t getNumLocalNetworks()       { return localNetworks.getNumAddresses();    };
   inline char *get_local_network(u_int8_t id) { return localNetworks.getAddressString(id); };

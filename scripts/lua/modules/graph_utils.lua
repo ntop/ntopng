@@ -62,6 +62,7 @@ function queryEpochData(schema, tags, selectedEpoch, zoomLevel, options)
    local d = getZoomDuration(zoomLevel)
    local end_time
    local start_time
+   options = table.merge(options or {}, {initial_point=true})
 
    if((selectedEpoch == nil) or (selectedEpoch == "")) then 
       selectedEpoch = os.time() 
@@ -344,8 +345,10 @@ function printGraphMenuEntries(entry_print_callback)
    local separator_label = nil
 
    for _, entry in ipairs(graph_menu_entries) do
-      needs_separator = needs_separator or entry.needs_separator
-      separator_label = separator_label or entry.separator_label
+      if active_idx ~= 1 then
+         needs_separator = needs_separator or entry.needs_separator
+         separator_label = separator_label or entry.separator_label
+      end
 
       if(entry.pending and (entry.pending > 0)) then
          -- not verified, act like it does not exist

@@ -33,30 +33,58 @@ function system_scripts.getSystemProbes(task)
       local probe_script = probes()
       get_next = false
 
-      if(probe_script ~= nil) and (string.ends(probe_script, ".lua")) then
-        local name = string.sub(probe_script, 1, string.len(probe_script)-4)
-        local path = os_utils.fixPath(base_dir .. "/" .. probe_script)
-        local _module = loadfile(path)()
-
-        if _module == nil then
-          traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Could not load module '%s'", path))
-          get_next = true
-        elseif (_module.isEnabled == nil) or _module.isEnabled() then
-          return name, _module
-        else
-          get_next = true
-        end
+      if(probe_script == nil) then
+        return nil
       end
 
-      return nil
+      if not(string.ends(probe_script, ".lua")) then
+        get_next = true
+        goto continue
+      end
+
+      local name = string.sub(probe_script, 1, string.len(probe_script)-4)
+      local path = os_utils.fixPath(base_dir .. "/" .. probe_script)
+      local _module = loadfile(path)()
+
+      if _module == nil then
+        traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Could not load module '%s'", path))
+        get_next = true
+      elseif (_module.isEnabled == nil) or _module.isEnabled() then
+        return name, _module
+      else
+        get_next = true
+      end
+
+      ::continue::
     end
   end
 end
 
 -- ##############################################
 
+function system_scripts.getSystemProbe(probe_name)
+  for task in system_scripts.getTasks() do
+    for name, probe in system_scripts.getSystemProbes(task) do
+      if name == probe_name then
+        return(probe)
+      end
+    end
+  end
+
+  -- Not Found
+  return(nil)
+end
+
+-- ##############################################
+
+local tasks_cached = nil
+
 function system_scripts.getTasks()
-  local tasks = pairsByKeys(ntop.readdir(system_scripts_dir))
+  if(tasks_cached == nil) then
+    tasks_cached = ntop.readdir(system_scripts_dir)
+  end
+
+  local tasks = pairsByKeys(tasks_cached)
 
   return function()
     local get_next = true
@@ -101,6 +129,8 @@ function system_scripts.runTask(task, when)
   end
 
   for _, probe in system_scripts.getSystemProbes(task) do
+    interface.select(getSystemInterfaceId())
+
     if(probe.runTask ~= nil) then
       if(probe.loadSchemas ~= nil) then
         -- Possibly load the schemas first
@@ -113,12 +143,13 @@ function system_scripts.runTask(task, when)
 
   -- Restore original function
   ts_utils.newSchema = old_new_schema_fn
+  interface.select(getSystemInterfaceId())
   return(true)
 end
 
 -- ##############################################
 
-function system_scripts.getAdditionalTimeseries()
+function system_scripts.getAdditionalTimeseries(module_filter)
   local old_new_schema_fn = ts_utils.newSchema
   local additional_ts = {}
   local needs_label = false
@@ -157,7 +188,13 @@ function system_scripts.getAdditionalTimeseries()
     default_schema_options = { step = periodicity, is_system_schema = true }
 
     for probe_name, probe in system_scripts.getSystemProbes(task) do
-      if(probe.loadSchemas ~= nil) then
+      -- nil filter shows all the schemas
+      -- "system" filter shows all the schemas without has_own_page
+      -- other filter shows all the schemas with that name
+      if((probe.loadSchemas ~= nil) and
+          (((module_filter == "system") and (probe.has_own_page ~= true)) or
+            (probe_name == module_filter) or
+            (module_filter == nil))) then
         needs_label = true
         current_probe_label = probe.name or probe_name
 
@@ -170,6 +207,22 @@ function system_scripts.getAdditionalTimeseries()
   ts_utils.newSchema = old_new_schema_fn
 
   return(additional_ts)
+end
+
+-- ##############################################
+
+function system_scripts.hasAlerts(options)
+  local opts = table.merge(options, {ifid = getSystemInterfaceId()})
+  local old_iface = iface
+  local rv
+  interface.select(getSystemInterfaceId())
+
+  rv = (areAlertsEnabled() and
+    (getNumAlerts("historical", getTabParameters(opts, "historical")) > 0) or
+    (getNumAlerts("engaged", getTabParameters(opts, "engaged")) > 0))
+
+  interface.select(old_iface)
+  return(rv)
 end
 
 -- ##############################################

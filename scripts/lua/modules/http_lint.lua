@@ -256,6 +256,12 @@ local function validateEBPFData(mode)
    return validateChoice(modes, mode)
 end
 
+local function validateErrorsFilter(mode)
+   local modes = {"errors", "discards", "errors_or_discards"}
+
+   return validateChoice(modes, mode)
+end
+
 local function validatePidMode(mode)
    local modes = {"l4", "l7", "host", "apps"}
 
@@ -264,6 +270,12 @@ end
 
 local function validateNdpiStatsMode(mode)
    local modes = {"sinceStartup", "count", "host"}
+
+   return validateChoice(modes, mode)
+end
+
+local function validateCounterSince(mode)
+   local modes = {"actual", "absolute"}
 
    return validateChoice(modes, mode)
 end
@@ -1074,6 +1086,8 @@ local known_parameters = {
    ["ifid"]                    = validateInterface,             -- An ntopng interface ID
    ["iffilter"]                = validateIfFilter,              -- An interface ID or 'all'
    ["mode"]                    = validateMode,                  -- Remote or Local users
+   ["err_counters_since"]      = validateCounterSince,          -- Select actual or absolute counters
+   ["err_counters_filter"]     = validateErrorsFilter,          -- Filter by errrrs, discards, both
    ["country"]                 = validateCountry,               -- Country code
    ["flow_key"]                = validateNumber,                -- The ID of a flow hash
    ["pool"]                    = validateNumber,                -- A pool ID
@@ -1087,6 +1101,7 @@ local known_parameters = {
    ["alert_type"]              = validateNumber,                -- An alert type enum
    ["alert_severity"]          = validateNumber,                -- An alert severity enum
    ["entity"]                  = validateNumber,                -- An alert entity type
+   ["entity_excludes"]         = validateListOfTypeInline(validateNumber),
    ["asn"]                     = validateNumber,                -- An ASN number
    ["client_asn"]              = validateNumber,                -- A client ASN number
    ["server_asn"]              = validateNumber,                -- A server ASN number
@@ -1474,6 +1489,8 @@ local known_parameters = {
    ["icmp_type"]               = validateNumber,
    ["icmp_cod"]                = validateNumber,
    ["hosts_only"]              = validateBool,
+   ["rtt_hosts"]               = validateListOfTypeInline(validateSingleWord), -- TODO
+   ["rtt_host"]                = validateSingleWord,
 
    -- Containers
    ["pod"]                     = validateSingleWord,

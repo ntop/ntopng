@@ -43,6 +43,11 @@ tablePreferences("sort_order_alerts", _GET["sortOrder"])
 
 local alert_options = _GET
 
+if alert_options.entity_val ~= nil then
+   alert_options.entity_val = string.gsub(alert_options.entity_val, "http:__", "http://")
+   alert_options.entity_val = string.gsub(alert_options.entity_val, "https:__", "https://")
+end
+
 local num_alerts = tonumber(_GET["totalRows"])
 if num_alerts == nil then
    num_alerts = getNumAlerts(status, alert_options)
