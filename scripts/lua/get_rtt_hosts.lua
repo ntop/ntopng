@@ -88,6 +88,24 @@ for key in pairsByValues(sort_to_key, sOrder) do
     if ts_utils.exists("monitored_host:rtt", {host=key}) then
       chart = '<a href="'.. ntop.getHttpPrefix() ..'/lua/rtt_stats.lua?rtt_host='.. key ..'&page=historical"><i class="fa fa-area-chart fa-lg"></i></a>'
     end
+
+    local column_last_ip = ""
+    local column_last_update = ""
+    local column_last_rtt = ""
+    local last_update = rtt_utils.getLastRttUpdate(key)
+
+    if(last_update ~= nil) then
+      local tdiff = os.time() - last_update.when
+
+      if(tdiff <= 600) then
+        column_last_update  = secondsToTime(tdiff).. " " ..i18n("details.ago")
+      else
+        column_last_update = format_utils.formatPastEpochShort(last_update.when)
+      end
+
+      column_last_rtt = last_update.value .. " ms"
+      column_last_ip = last_update.ip
+    end
  
     res[#res + 1] = {
       column_key = key,
@@ -95,6 +113,9 @@ for key in pairsByValues(sort_to_key, sOrder) do
       column_chart = chart,
       column_iptype = rtt_host.iptype,
       column_max_rrt = rtt_host.max_rtt,
+      column_last_rrt = column_last_rtt,
+      column_last_update = column_last_update,
+      column_last_ip = column_last_ip,
     }
   end
 

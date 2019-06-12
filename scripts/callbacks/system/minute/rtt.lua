@@ -104,6 +104,7 @@ function probe.runTask(when, ts_utils)
 	ts_utils.append("monitored_host:rtt", {host = key, millis_rtt = rtt}, when)
 
 	rtt = tonumber(rtt)
+	rtt_utils.setLastRttUpdate(key, when, rtt, host)
 	
 	if(max_rtt and (rtt > max_rtt)) then
 	   probe.stateful_alert_handler(host, key, 1, rtt, max_rtt)

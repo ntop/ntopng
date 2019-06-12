@@ -124,6 +124,9 @@ if(page == "overview") then
 <br><br>
 
 	 <script>
+    var key_field_idx = 9;
+    var action_field_idx = 9;
+
 	 $("#table-hosts").datatable({
 	 	url: "]]
       print (getPageUrl(ntop.getHttpPrefix().."/lua/get_rtt_hosts.lua", page_params))
@@ -181,6 +184,27 @@ if(page == "overview") then
             width: "10%",
           }
         }, {
+          title: "]] print(i18n("system_stats.last_rtt")) print[[",
+          field: "column_last_rrt",
+          sortable: false,
+          css: {
+            textAlign: 'center',
+          }
+        }, {
+          title: "]] print(i18n("system_stats.last_ip")) print[[",
+          field: "column_last_ip",
+          sortable: false,
+          css: {
+            textAlign: 'center',
+          }
+        }, {
+          title: "]] print(i18n("category_lists.last_update")) print[[",
+          field: "column_last_update",
+          sortable: false,
+          css: {
+            textAlign: 'center',
+          }
+        }, {
           title: "]] print(i18n("actions")) print[[",
           field: "column_actions",
           hidden: ]] print(tostring(not isAdministrator())) print[[,
@@ -199,10 +223,10 @@ if(page == "overview") then
         } else {
           datatableForEachRow("#table-hosts", function() {
             var host = $(this).find("td:eq(0)").html();
-            var key = $(this).find("td:eq(6)").html();
+            var key = $(this).find("td:eq("+ key_field_idx +")").html();
             addInputFields($(this));
 
-            datatableAddDeleteButtonCallback.bind(this)(6, "elem_to_delete = '" + key + "'; $('#host-to-delete').html('" + host + "'); $('#delete_host_dialog').modal('show');", "]] print(i18n('delete')) print[[");
+            datatableAddDeleteButtonCallback.bind(this)(action_field_idx, "elem_to_delete = '" + key + "'; $('#host-to-delete').html('" + host + "'); $('#delete_host_dialog').modal('show');", "]] print(i18n('delete')) print[[");
           });
         }
 
@@ -248,7 +272,7 @@ if(page == "overview") then
     var iptype = row.find("td:eq(2)");
     var probetype = row.find("td:eq(3)");
     var maxrtt = row.find("td:eq(4)");
-    var key = row.find("td:eq(6)");
+    var key = row.find("td:eq(" + key_field_idx +")");
 
     var iptypes = [
       {val : "ipv4", text: ']] print(i18n("ipv4")) print[['},
@@ -261,7 +285,7 @@ if(page == "overview") then
     ];
 
     addInputField(host, host.html(), ' data-orig-value="' + key.html() + '"');
-    addInputField(maxrtt, maxrtt.html(), 'autocomplete="off" style="width:12em;" type="number" min="0"');
+    addInputField(maxrtt, maxrtt.html() || "100", 'autocomplete="off" style="width:12em;" type="number" min="0"');
     addSelectField(iptype, iptype.html(), iptypes);
     addSelectField(probetype, probetype.html(), probetypes);
   }
@@ -289,10 +313,10 @@ if(page == "overview") then
     if(datatableIsEmpty("#table-hosts"))
       datatableRemoveEmptyRow("#table-hosts");
 
-    var tr = $('<tr id="'+ newid +'"><td></td><td></td><td class="text-center"></td><td class="text-center"></td><td class="text-center"></td><td class="text-center"></td></tr>');
+    var tr = $('<tr id="'+ newid +'"><td></td><td></td><td class="text-center"></td><td class="text-center"></td><td class="text-center"></td><td class="text-center"></td><td class="text-center"></td><td class="text-center"></td><td class="text-center"></td></tr>');
     addInputFields(tr);
 
-    datatableAddDeleteButtonCallback.bind(tr)(6, "datatableUndoAddRow('#" + newid + "', ']] print(i18n("host_pools.no_pools_defined")) print[[', '#addRowBtn', 'onRowAddUndo')", "]] print(i18n('undo')) print[[");
+    datatableAddDeleteButtonCallback.bind(tr)(action_field_idx, "datatableUndoAddRow('#" + newid + "', ']] print(i18n("host_pools.no_pools_defined")) print[[', '#addRowBtn', 'onRowAddUndo')", "]] print(i18n('undo')) print[[");
     $("#table-hosts table").append(tr);
     $("input:first", tr).focus();
 
