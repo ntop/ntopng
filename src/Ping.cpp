@@ -177,13 +177,15 @@ void Ping::handleICMPResponse(unsigned char *buf, socklen_t buf_len, bool is_v6)
   struct ndpi_icmphdr *icmp;
   struct ping_packet *pckt;
 
-  if((ip6->ip6_hdr.ip6_un1_nxt == 0x3C /* IPv6 destination option */) ||
-     (ip6->ip6_hdr.ip6_un1_nxt == 0x0 /* Hop-by-hop option */)) {
-    u_int8_t *options = (u_int8_t*)ip6 + offset;
-
-    offset += 8 * (options[1] + 1);
+  if(is_v6) {
+    if((ip6->ip6_hdr.ip6_un1_nxt == 0x3C /* IPv6 destination option */) ||
+       (ip6->ip6_hdr.ip6_un1_nxt == 0x0 /* Hop-by-hop option */)) {
+      u_int8_t *options = (u_int8_t*)ip6 + offset;
+      
+      offset += 8 * (options[1] + 1);
+    }
   }
-
+  
   if(offset >= buf_len)
     return;
 
@@ -202,7 +204,7 @@ void Ping::handleICMPResponse(unsigned char *buf, socklen_t buf_len, bool is_v6)
     m.lock(__FILE__, __LINE__);
 
     if(!is_v6)
-      h = Utils::intoaV4(ip->saddr, buf, sizeof(buf));
+      h = Utils::intoaV4(ntohl(ip->saddr), buf, sizeof(buf));
     else
       h = Utils::intoaV6(ip6->ip6_src, 128, buf, sizeof(buf));
 

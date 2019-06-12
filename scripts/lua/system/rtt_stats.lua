@@ -146,14 +146,14 @@ if(page == "overview") then
       if (preference ~= "") then print ('perPage: '..preference.. ",\n") end
 
     print[[
-	 	columns: [
+ 	columns: [
         {
           title: "]] print(i18n("traffic_profiles.host_traffic")) print[[",
           field: "column_host",
           sortable: false,
           css: {
 
-            width: "10%",
+            width: "20%",
           }
         }, {
           title: "]] print(i18n("chart")) print[[",
@@ -185,7 +185,7 @@ if(page == "overview") then
           sortable: false,
           css: {
             textAlign: 'center',
-            width: "10%",
+
           }
         }, {
           title: "]] print(i18n("system_stats.last_rtt")) print[[",
@@ -217,7 +217,7 @@ if(page == "overview") then
           hidden: ]] print(tostring(not isAdministrator())) print[[,
           css: {
             textAlign: 'center',
-            width: "5%",
+            width: "10%",
           }
         }, {
           field: "column_key",

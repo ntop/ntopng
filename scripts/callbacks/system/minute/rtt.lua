@@ -108,7 +108,12 @@ function probe.runTask(when, ts_utils)
   if(res ~= nil) then
      for host, rtt in pairs(res) do
 	local max_rtt = max_latency[host]
-	local key   = pinged_hosts[host]
+	local key     = pinged_hosts[host]
+
+	if(debug) then
+	   print("[RTT] Reading response for host ".. host .."\n")
+	end
+
 	ts_utils.append("monitored_host:rtt", {host = key, millis_rtt = rtt}, when)
 
 	rtt = tonumber(rtt)
