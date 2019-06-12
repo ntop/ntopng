@@ -5508,7 +5508,7 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_str_table_entry(vm, "name", get_name());
   lua_push_str_table_entry(vm, "description", get_description());
   lua_push_uint64_table_entry(vm, "scalingFactor", scalingFactor);
-  lua_push_uint64_table_entry(vm,  "id", id);
+  lua_push_int32_table_entry(vm,  "id", id);
   if(customIftype) lua_push_str_table_entry(vm, "customIftype", (char*)customIftype);
   lua_push_bool_table_entry(vm, "isView", isView()); /* View interface */
   lua_push_bool_table_entry(vm, "isDynamic", isDynamicInterface()); /* An runtime-instantiated interface */
