@@ -7,7 +7,8 @@ local ts_utils = require("ts_utils_core")
 local probe = {
   name = "InfluxDB",
   description = "Monitors InfluxDB health and performance",
-  has_own_page = true, -- this module has a dedicated page in the menu
+  page_script = "influxdb_stats.lua",
+  page_order = 1600,
 }
 
 -- ##############################################

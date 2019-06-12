@@ -189,10 +189,10 @@ function system_scripts.getAdditionalTimeseries(module_filter)
 
     for probe_name, probe in system_scripts.getSystemProbes(task) do
       -- nil filter shows all the schemas
-      -- "system" filter shows all the schemas without has_own_page
+      -- "system" filter shows all the schemas without page_script
       -- other filter shows all the schemas with that name
       if((probe.loadSchemas ~= nil) and
-          (((module_filter == "system") and (probe.has_own_page ~= true)) or
+          (((module_filter == "system") and (probe.page_script == nil)) or
             (probe_name == module_filter) or
             (module_filter == nil))) then
         needs_label = true
@@ -222,6 +222,43 @@ function system_scripts.hasAlerts(options)
     (getNumAlerts("engaged", getTabParameters(opts, "engaged")) > 0))
 
   interface.select(old_iface)
+  return(rv)
+end
+
+-- ##############################################
+
+function system_scripts.getPageScriptPath(page_script)
+  return(ntop.getHttpPrefix() .. "/lua/system/" .. page_script)
+end
+
+-- ##############################################
+
+local function menu_entry_compare(a, b)
+  if(a.page_order == nil) then return(false) end
+  if(b.page_order == nil) then return(true) end
+  return(a.page_order > b.page_order)
+end
+
+function system_scripts.getSystemMenuEntries()
+  local rv = {}
+
+  for task, periodicity in system_scripts.getTasks() do
+    for probe_name, probe in system_scripts.getSystemProbes(task) do
+      if(probe.page_script ~= nil) and ((probe.isEnabled == nil) or (probe.isEnabled())) then
+        rv[#rv + 1] = probe
+      end
+    end
+  end
+
+  table.sort(rv, menu_entry_compare)
+
+  for idx, probe in pairs(rv) do
+    rv[idx] = {
+      label = probe.name,
+      url = system_scripts.getPageScriptPath(probe.page_script),
+    }
+  end
+
   return(rv)
 end
 
