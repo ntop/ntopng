@@ -151,13 +151,17 @@ if(page == "overview") then
           title: "]] print(i18n("traffic_profiles.host_traffic")) print[[",
           field: "column_host",
           sortable: false,
+          css: {
+
+            width: "10%",
+          }
         }, {
           title: "]] print(i18n("chart")) print[[",
           field: "column_chart",
           sortable: false,
           css: {
             textAlign: 'center',
-            width: "10%",
+            width: "5%",
           }
         }, {
           title: "]] print(i18n("flows_page.ip_version")) print[[",
@@ -165,7 +169,7 @@ if(page == "overview") then
           sortable: false,
           css: {
             textAlign: 'center',
-            width: "15%",
+            width: "10%",
           }
         }, {
           title: "]] print(i18n("system_stats.probe")) print[[",
@@ -173,7 +177,7 @@ if(page == "overview") then
           sortable: false,
           css: {
             textAlign: 'center',
-            width: "15%",
+            width: "10%",
           }
         }, {
           title: "]] print(i18n("system_stats.max_rtt")) print[[",
@@ -189,6 +193,7 @@ if(page == "overview") then
           sortable: false,
           css: {
             textAlign: 'center',
+            width: "10%",
           }
         }, {
           title: "]] print(i18n("system_stats.last_ip")) print[[",
@@ -196,6 +201,7 @@ if(page == "overview") then
           sortable: false,
           css: {
             textAlign: 'center',
+            width: "10%",
           }
         }, {
           title: "]] print(i18n("category_lists.last_update")) print[[",
@@ -203,6 +209,7 @@ if(page == "overview") then
           sortable: false,
           css: {
             textAlign: 'center',
+            width: "10%",
           }
         }, {
           title: "]] print(i18n("actions")) print[[",
@@ -210,7 +217,7 @@ if(page == "overview") then
           hidden: ]] print(tostring(not isAdministrator())) print[[,
           css: {
             textAlign: 'center',
-            width: "15%",
+            width: "5%",
           }
         }, {
           field: "column_key",

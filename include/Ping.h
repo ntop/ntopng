@@ -27,21 +27,23 @@
 class Ping {
  private:
   int pid;
-  int sd;
+  int sd, sd6;
   u_int8_t cnt;
   bool running;
   pthread_t resultPoller;
   Mutex m;
-  std::map<u_int32_t /* IP */, float /* RTT */> results;
+  std::map<std::string /* IP */, float /* RTT */> results;
   
   u_int16_t checksum(void *b, int len);
   float ms_timeval_diff(struct timeval *begin, struct timeval *end);
+  void setOpts(int fd);
+  void handleICMPResponse(unsigned char *buf, socklen_t buf_len, bool is_v6);
   
  public:
   Ping();
   ~Ping();
   
-  int  ping(char *_addr);
+  int  ping(char *_addr, bool use_v6);
   void pollResults();
   void collectResponses(lua_State* vm);    
 };

@@ -5052,11 +5052,14 @@ static int ntop_get_prefs(lua_State* vm) {
 
 static int ntop_ping_host(lua_State* vm) {
   char *host;
-  
+  bool is_v6;
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
   if((host = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TBOOLEAN) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  is_v6 = (bool)lua_toboolean(vm, 2);
 
   if(getLuaVMUservalue(vm, ping) == NULL) {
     Ping *ping;
@@ -5084,7 +5087,7 @@ static int ntop_ping_host(lua_State* vm) {
       getLuaVMUservalue(vm, ping) = ping;
   }
 
-  getLuaVMUservalue(vm, ping)->ping(host);
+  getLuaVMUservalue(vm, ping)->ping(host, is_v6);
   
   return(CONST_LUA_OK);
 }

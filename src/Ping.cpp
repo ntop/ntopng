@@ -43,25 +43,41 @@ static void* resultPollerFctn(void* ptr) {
 
 /* ****************************************** */
 
-Ping::Ping() {
+void Ping::setOpts(int fd) {
   const int val = 255;
 
+  setsockopt(fd, SOL_IP, IP_TTL, &val, sizeof(val));
+  fcntl(fd, F_SETFL, O_NONBLOCK);
+}
+
+/* ****************************************** */
+
+Ping::Ping() {
   pid = getpid(), cnt = 0;
   running = true;
 
 #if defined(__APPLE__)
-  sd = socket(AF_INET, SOCK_DGRAM, IPPROTO_ICMP);
+  sd  = socket(AF_INET,  SOCK_DGRAM, IPPROTO_ICMP);
+  sd6 = socket(AF_INET6, SOCK_DGRAM, IPPROTO_ICMPV6);
 #else
-  sd = socket(PF_INET, SOCK_RAW, IPPROTO_ICMP);
+  sd  = socket(PF_INET, SOCK_RAW, IPPROTO_ICMP);
+  sd6 = socket(PF_INET6, SOCK_RAW, IPPROTO_ICMPV6);
 #endif
 
-  if(sd == -1) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Ping socket creation error: %s", strerror(errno));
-    throw("Unable to create socket");
-  }
+  if(sd == -1)
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Ping IPv4 socket creation error: %s",
+				 strerror(errno));
+  else
+    setOpts(sd);
 
-  setsockopt(sd, SOL_IP, IP_TTL, &val, sizeof(val));
-  fcntl(sd, F_SETFL, O_NONBLOCK);
+  if(sd6 == -1)
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Ping IPv6 socket creation error: %s",
+				 strerror(errno));
+  else
+    setOpts(sd6);
+
+  if((sd == -1) && (sd6 == -1))
+    throw "Socket creation error";
 
   pthread_create(&resultPoller, NULL, resultPollerFctn, (void*)this);
 }
@@ -85,18 +101,21 @@ u_int16_t Ping::checksum(void *b, int len) {
   sum = (sum >> 16) + (sum & 0xFFFF);
   sum += (sum >> 16);
   result = ~sum;
-  
+
   return(result);
 }
 
 /* ****************************************** */
 
-int Ping::ping(char *_addr) {
-  struct hostent *hname = gethostbyname(_addr);
+int Ping::ping(char *_addr, bool use_v6) {
+  struct hostent *hname = gethostbyname2(_addr, use_v6 ? AF_INET6 : AF_INET);
   struct sockaddr_in addr;
   struct ping_packet pckt;
   u_int i;
   struct timeval *tv;
+
+  if(hname == NULL)
+    return(-1);
 
   bzero(&addr, sizeof(addr));
   addr.sin_family = hname->h_addrtype;
@@ -124,50 +143,72 @@ int Ping::ping(char *_addr) {
 void Ping::pollResults() {
   while(running) {
     struct sockaddr_in addr;
-    int bytes;
+    int bytes, fd_max = max(sd, sd6);
     fd_set mask;
     struct timeval wait_time = { 1, 0 };
 
     FD_ZERO(&mask);
-    FD_SET(sd, &mask);
+    if(sd != -1)  FD_SET(sd, &mask);
+    if(sd6 != -1) FD_SET(sd6, &mask);
 
-    if(select(sd+1, &mask, 0, 0, &wait_time) > 0) {
+    if(select(fd_max+1, &mask, 0, 0, &wait_time) > 0) {
       socklen_t len = sizeof(addr);
       unsigned char buf[1024];
 
-      // bzero(buf, sizeof(buf));
-      bytes = recvfrom(sd, buf, sizeof(buf), 0, (struct sockaddr*)&addr, &len);
+      if(FD_ISSET(sd, &mask)) {
+	bytes = recvfrom(sd, buf, sizeof(buf), 0, (struct sockaddr*)&addr, &len);
+	handleICMPResponse(buf, bytes, false);
+      }
 
-      if(bytes > 0) {
-	struct ndpi_iphdr *ip = (struct ndpi_iphdr*)buf;
-	struct ndpi_icmphdr *icmp = (struct ndpi_icmphdr*)(buf+ip->ihl*4);
-	struct ping_packet *pckt = (struct ping_packet*)icmp;
-	struct in_addr s;
-
-	s.s_addr = ip->saddr;
-	
-	if(icmp->un.echo.id == pid) {
-	  float rtt;
-	  struct timeval end, *begin = (struct timeval*)pckt->msg;
-
-	  gettimeofday(&end, NULL);
-
-	  rtt = ms_timeval_diff(begin, &end);
-
-	  ntop->getTrace()->traceEvent(TRACE_INFO,
-				       "ICMP response from %s [%.2f ms]",
-				       inet_ntoa(s), rtt);
-	  m.lock(__FILE__, __LINE__);
-	  results[ip->saddr] = rtt;
-	  m.unlock(__FILE__, __LINE__);
-	} else {
-	  ntop->getTrace()->traceEvent(TRACE_INFO,
-				       "Discarding ICMP response from %s",
-				       inet_ntoa(s));
-	}
-      } else
-	break;
+      if(FD_ISSET(sd6, &mask)) {
+	bytes = recvfrom(sd6, buf, sizeof(buf), 0, (struct sockaddr*)&addr, &len);
+	handleICMPResponse(buf, bytes, true);
+      }
     }
+  }
+}
+
+/* ****************************************************** */
+
+void Ping::handleICMPResponse(unsigned char *buf, socklen_t buf_len, bool is_v6) {
+  struct ndpi_iphdr *ip     = (struct ndpi_iphdr*)buf;
+  struct ndpi_ipv6hdr *ip6  = (struct ndpi_ipv6hdr*)buf;
+  u_int offset              = (!is_v6) ? (ip->ihl*4) : sizeof(const struct ndpi_ipv6hdr);
+  struct ndpi_icmphdr *icmp;
+  struct ping_packet *pckt;
+
+  if((ip6->ip6_hdr.ip6_un1_nxt == 0x3C /* IPv6 destination option */) ||
+     (ip6->ip6_hdr.ip6_un1_nxt == 0x0 /* Hop-by-hop option */)) {
+    u_int8_t *options = (u_int8_t*)ip6 + offset;
+
+    offset += 8 * (options[1] + 1);
+  }
+
+  if(offset >= buf_len)
+    return;
+
+  icmp = (struct ndpi_icmphdr*)(buf+offset);
+  pckt  = (struct ping_packet*)icmp;
+
+  if(icmp->un.echo.id == pid) {
+    float rtt;
+    struct timeval end, *begin = (struct timeval*)pckt->msg;
+    char *h, buf[64];
+    
+    gettimeofday(&end, NULL);
+
+    rtt = ms_timeval_diff(begin, &end);
+
+    m.lock(__FILE__, __LINE__);
+
+    if(!is_v6)
+      h = Utils::intoaV4(ip->saddr, buf, sizeof(buf));
+    else
+      h = Utils::intoaV6(ip6->ip6_src, 128, buf, sizeof(buf));
+
+    results[std::string(h)] = rtt;
+    
+    m.unlock(__FILE__, __LINE__);
   }
 }
 
@@ -175,16 +216,12 @@ void Ping::pollResults() {
 
 void Ping::collectResponses(lua_State* vm) {
   lua_newtable(vm);
-  
+
   m.lock(__FILE__, __LINE__);
 
-  for(std::map<u_int32_t,float>::iterator it=results.begin(); it!=results.end(); ++it) {
-    struct in_addr s;
+  for(std::map<std::string,float>::iterator it=results.begin(); it!=results.end(); ++it)
+    lua_push_float_table_entry(vm, it->first.c_str(), it->second);  
 
-    s.s_addr = it->first;    
-    lua_push_float_table_entry(vm, inet_ntoa(s), it->second);  
-  }
-  
   results.clear();
 
   m.unlock(__FILE__, __LINE__);
