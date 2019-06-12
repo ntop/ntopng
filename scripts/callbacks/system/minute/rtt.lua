@@ -8,7 +8,8 @@ local rtt_utils = require("rtt_utils")
 local probe = {
   name = "RTT Monitor",
   description = "Monitors the round trip time of an host",
-  has_own_page = true, -- this module has a dedicated page in the menu
+  page_script = "rtt_stats.lua",
+  page_order = 1500,
 }
 
 local debug = false
