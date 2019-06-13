@@ -169,10 +169,6 @@ function probe.runTask(when, ts_utils)
 	  print("[RTT] Could not resolve IPv6 host: ".. host_label .."\n")
 	  goto continue
 	end
-
-	-- TODO add IPv6 support in Ping.cpp, otherwise it crashes
-	print("[RTT] TODO IPv6 host: ".. host_label .."\n")
-	goto continue
      end
 
      if(debug) then
