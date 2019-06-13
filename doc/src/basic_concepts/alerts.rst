@@ -183,6 +183,9 @@ The list of currently supported alerts, divided by entity, is outlined below:
   - **Interface Duplex Status Change** (event): Indicates whether an interface of an SNMP configured device has changed its *duplex* status, for example by going from full-duplex to half-duplex.
   - **Interface Discards/Errors** (event): Indicates whether the *discards* or *errors* counters increased on an interface of an SNMP configured device.
   - **Unresponsive Device** (event): Indicates whether a configured SNMP device no longer responds to SNMP queries.
+  - **Port Load Threshold** (event): Indicates whether the load (throughput with respect to the link speed) on a port of a configured SNMP device exceed a configured threshold.
+
+  Alerts for SNMP devices can be crontrolled from *Preferences* -> *SNMP* (after selecting *Expert View* mode). The same alerts can be also disabled for selected devices from *System* -> *SNMP* -> (device) -> (cog icon), and even selected interfaces from *System* -> *SNMP* -> (device) -> *Interfaces* -> (interface) -> (cog icon).
 
 - Flows
 
