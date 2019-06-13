@@ -87,6 +87,8 @@ Ping::Ping() {
 Ping::~Ping() {
   running = false;
   pthread_join(resultPoller, NULL);
+  if(sd != -1)  close(sd);
+  if(sd6 != -1) close(sd6);
 }
 
 /* ****************************************** */
