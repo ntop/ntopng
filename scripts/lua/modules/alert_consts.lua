@@ -59,6 +59,7 @@ alert_consts.alert_type_keys = {
    { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.misconfigured_dhcp_range"),    36, "ip_outsite_dhcp_range"      },
    { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.snmp_port_duplexstatus_change"), 37, "port_duplexstatus_change" },
    { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.snmp_port_load_threshold_exceeded"), 38, "port_load_threshold_exceeded" },
+   { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.ping_issues"), 39, "ping_issues" },
 }
 
 -- Keep in sync with ntop_typedefs.h:AlertEntity
@@ -75,6 +76,7 @@ alert_consts.alert_entity_keys = {
    { "Influx DB",       9, "influx_db"     },
    { "Test",           10, "test"          },
    { "Category Lists", 11, "category_lists" },
+   { "PINGed host",    12, "pinged_host"   },
 }
 
 alert_consts.alert_engine_keys = {

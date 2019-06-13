@@ -4,6 +4,8 @@
 
 local ts_utils = require("ts_utils_core")
 local rtt_utils = require("rtt_utils")
+local format_utils = require("format_utils")
+require "alert_utils"
 
 local probe = {
   name = "RTT Monitor",
@@ -13,6 +15,74 @@ local probe = {
 }
 
 local debug = false
+
+-- no need to add the ifid in the ALERT_RAISED_KEY as
+-- rtt alerts are only for the system interface
+local ALERT_RAISED_KEY = "ntopng.cache.rtt.alert_raised"
+
+-- ##############################################
+
+local function formatAlertMessage(rtt_value, maximum_rtt, ip_label, numeric_ip)
+   local msg
+   -- example of an ip label:
+   -- google-public-dns-b.google.com@ipv4@icmp/216.239.38.120
+   local ip_label = ip_label:split("@")[1]
+
+   if numeric_ip and numeric_ip ~= ip_label then
+      numeric_ip = string.format("[%s]", numeric_ip)
+   else
+      numeric_ip = ""
+   end
+
+   if(rtt_value == 0) then -- host unreachable
+      msg = i18n("alert_messages.ping_host_unreachable",
+		 {ip_label = ip_label,
+		  numeric_ip = numeric_ip})
+   else -- host too slow
+      msg = i18n("alert_messages.ping_rtt_too_slow",
+		 {ip_label = ip_label,
+		  numeric_ip = numeric_ip,
+		  rtt_value = format_utils.round(rtt_value, 2),
+		  maximum_rtt = maximum_rtt})
+   end
+
+   return msg
+end
+
+-- ##############################################
+
+local function engageReleaseRTTAlert(engage, ip_label, numeric_ip, current_value, upper_threshold)
+   -- we can safely use the "min" alert engine as this rtt.lua
+   -- is executed by system every minute 
+   local ALERT_ENGINE = alertEngine("min")
+   -- cannot use regular entity "host" as the system interface
+   -- doesn't have active hosts in memory, so we use a new
+   -- entity "pinged_host"
+   local ALERT_ENTITY = alertEntity("pinged_host")
+   local ALERT_KEY    = "rtt"
+   local ALERT_TYPE   = alertType("ping_issues")
+   local ALERT_SEVERITY = alertSeverity("error")
+
+   local alert_raised = ntop.getHashCache(ALERT_RAISED_KEY, ip_label)
+
+   if engage then
+      if alert_raised ~= "engaged" then
+	 -- ENGAGE
+	 ntop.setHashCache(ALERT_RAISED_KEY, ip_label, "engaged")
+	 interface.engageAlert(ALERT_ENGINE, ALERT_ENTITY, ip_label, ALERT_KEY,
+			       ALERT_TYPE, ALERT_SEVERITY,
+			       formatAlertMessage(current_value, upper_threshold, ip_label, numeric_ip))
+      end
+   else -- release
+      if alert_raised == "engaged" then
+	 -- RELEASE
+	 ntop.delHashCache(ALERT_RAISED_KEY, ip_label)
+	 interface.releaseAlert(ALERT_ENGINE, ALERT_ENTITY, ip_label, ALERT_KEY,
+				ALERT_TYPE,  ALERT_SEVERITY,
+				formatAlertMessage(current_value, upper_threshold, ip_label, numeric_ip))
+      end
+   end
+end
 
 -- ##############################################
 
@@ -33,14 +103,21 @@ end
 -- ##############################################
 
 function probe.stateful_alert_handler(numeric_ip, ip_label, trigger_alert, current_value, upper_threshold)
+   local alert_raised = ntop.getHashCache(ALERT_RAISED_KEY, ip_label)
+
    if(trigger_alert == 1) then
       if(current_value == 0) then
-	 if(debug) then print("[TRIGGER] Host "..ip_label.."/"..numeric_ip.." in unreacheable\n") end
+	 if(debug) then print("[TRIGGER] Host "..ip_label.."/"..numeric_ip.." is unreacheable\n") end
       else
 	 if(debug) then print("[TRIGGER] Host "..ip_label.."/"..numeric_ip.." [value: "..current_value.."][threshold: "..upper_threshold.."]\n") end
       end
+
+      engageReleaseRTTAlert(true --[[ engage --]], ip_label, numeric_ip, current_value, upper_threshold)
+
    else
       if(debug) then print("[OK] Host "..ip_label.."/"..numeric_ip.." [value: "..current_value.."][threshold: "..upper_threshold.."]\n") end
+
+      engageReleaseRTTAlert(false --[[ release --]], ip_label, numeric_ip, current_value, upper_threshold)
    end
 end
 
@@ -54,7 +131,15 @@ function probe.runTask(when, ts_utils)
   if(debug) then
      print("[RTT] Script started\n")
   end
-  
+
+  -- cleanup possibly engaged alerts for hosts
+  -- which are no longer among the pinged hosts
+  for key, status in pairs(ntop.getHashAllCache(ALERT_RAISED_KEY) or {}) do
+     if status == "engaged" and not hosts[key] then
+	engageReleaseRTTAlert(false --[[ release --]], key)
+     end
+  end
+
   if table.empty(hosts) then
     return
   end
