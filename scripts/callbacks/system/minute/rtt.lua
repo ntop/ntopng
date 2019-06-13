@@ -35,12 +35,12 @@ end
 function probe.stateful_alert_handler(numeric_ip, ip_label, trigger_alert, current_value, upper_threshold)
    if(trigger_alert == 1) then
       if(current_value == 0) then
-	 print("[TRIGGER] Host "..ip_label.."/"..numeric_ip.." in unreacheable\n")
+	 if(debug) then print("[TRIGGER] Host "..ip_label.."/"..numeric_ip.." in unreacheable\n") end
       else
-	 print("[TRIGGER] Host "..ip_label.."/"..numeric_ip.." [value: "..current_value.."][threshold: "..upper_threshold.."]\n")
+	 if(debug) then print("[TRIGGER] Host "..ip_label.."/"..numeric_ip.." [value: "..current_value.."][threshold: "..upper_threshold.."]\n") end
       end
    else
-      print("[OK] Host "..ip_label.."/"..numeric_ip.." [value: "..current_value.."][threshold: "..upper_threshold.."]\n")
+      if(debug) then print("[OK] Host "..ip_label.."/"..numeric_ip.." [value: "..current_value.."][threshold: "..upper_threshold.."]\n") end
    end
 end
 
