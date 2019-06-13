@@ -227,8 +227,8 @@ end
 
 -- ##############################################
 
-function system_scripts.getPageScriptPath(page_script)
-  return(ntop.getHttpPrefix() .. "/lua/system/" .. page_script)
+function system_scripts.getPageScriptPath(probe)
+  return(ntop.getHttpPrefix() .. "/lua/system/" .. probe.page_script)
 end
 
 -- ##############################################
@@ -255,7 +255,7 @@ function system_scripts.getSystemMenuEntries()
   for idx, probe in pairs(rv) do
     rv[idx] = {
       label = probe.name,
-      url = system_scripts.getPageScriptPath(probe.page_script),
+      url = system_scripts.getPageScriptPath(probe),
     }
   end
 

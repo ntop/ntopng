@@ -24,8 +24,9 @@ page_utils.print_header()
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
+local probe = system_scripts.getSystemProbe("influxdb")
 local page = _GET["page"] or "overview"
-local url = ntop.getHttpPrefix() .. "/lua/influxdb_stats.lua?ifid=" .. getInterfaceId(ifname)
+local url = system_scripts.getPageScriptPath(probe) .. "?ifid=" .. getInterfaceId(ifname)
 system_schemas = system_scripts.getAdditionalTimeseries("influxdb")
 
 print [[
@@ -70,8 +71,6 @@ print [[
 -- #######################################################
 
 if(page == "overview") then
-   local probe = system_scripts.getSystemProbe("influxdb")
-
     print("<table class=\"table table-bordered table-striped\">\n")
 
     print("<tr><th nowrap width='20%'>".. i18n("system_stats.influxdb_storage", {dbname = ts_utils.getQueryDriver().db}) .."</th><td><img class=\"influxdb-info-load\" border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber><span id=\"influxdb-info-text\"></span></td></tr>\n")

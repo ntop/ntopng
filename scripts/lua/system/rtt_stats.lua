@@ -28,7 +28,8 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 local page = _GET["page"] or "overview"
 local host = _GET["rtt_host"]
-local url = ntop.getHttpPrefix() .. "/lua/system/rtt_stats.lua?ifid=" .. getInterfaceId(ifname)
+local probe = system_scripts.getSystemProbe("rtt")
+local url = system_scripts.getPageScriptPath(probe) .. "?ifid=" .. getInterfaceId(ifname)
 
 system_schemas = system_scripts.getAdditionalTimeseries("rtt")
 
