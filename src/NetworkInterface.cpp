@@ -116,6 +116,7 @@ NetworkInterface::NetworkInterface(const char *name,
        || strchr(name, '/') /* file path */
        || strstr(name, ".pcap") /* pcap */
        || (strncmp(name, "lo", 2) == 0)
+       || (strcmp(name, SYSTEM_INTERFACE_NAME) == 0)
 #if !defined(__APPLE__) && !defined(WIN32)
        || (Utils::readIPv4((char*)name) == 0)
 #endif
