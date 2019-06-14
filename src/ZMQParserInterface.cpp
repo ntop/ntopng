@@ -850,10 +850,7 @@ void ZMQParserInterface::parseSingleFlow(json_object *o,
     /* Attempt to determine flow client and server using port numbers 
        useful when exported flows are mono-directional
        https://github.com/ntop/ntopng/issues/1978 */
-    if(((flow.hasParsedeBPF()
-	 && flow.event_type != ebpf_event_type_tcp_accept
-	 && flow.event_type != ebpf_event_type_tcp_connect)
-	|| ntop->getPrefs()->do_use_ports_to_determine_src_and_dst())
+    if(ntop->getPrefs()->do_use_ports_to_determine_src_and_dst()
        && ntohs(flow.src_port) < ntohs(flow.dst_port))
       flow.swap();
 

@@ -26,7 +26,6 @@
 
 class ParsedeBPF {
  private:
-  bool server_process;
   bool free_memory;
 
  public:
@@ -43,8 +42,6 @@ class ParsedeBPF {
 
   void update(const ParsedeBPF * const pe);
   void print();
-  inline void setServerProcess()       { server_process = true; };
-  inline bool isServerProcess()  const { return server_process; };
 };
 
 #endif /* _PARSED_EBPF_H_ */
