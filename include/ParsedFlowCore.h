@@ -25,9 +25,6 @@
 #include "ntop_includes.h"
 
 class ParsedFlowCore {
- private:
-  bool swapped;
-
  public:
   u_int8_t src_mac[6], dst_mac[6], direction, source_id;
   IpAddress src_ip, dst_ip;
@@ -54,9 +51,6 @@ class ParsedFlowCore {
   ParsedFlowCore(const ParsedFlowCore &pfc);
   virtual ~ParsedFlowCore();
   void swap();
-  inline bool isSwapped() const { return swapped; };
-
-
   void print();
 };
 

@@ -28,7 +28,6 @@ ParsedFlowCore::ParsedFlowCore() {
   memset(&src_mac, 0, sizeof(src_mac));
   memset(&dst_mac, 0, sizeof(dst_mac));
 
-  swapped = false;
   version = 0;
   deviceIP = 0;
   src_port = dst_port = inIndex = outIndex = 0;
@@ -87,8 +86,6 @@ void ParsedFlowCore::swap() {
   u_int8_t tmp_tcp_flags;
   u_int32_t tmp_ooo_pkts, tmp_retr_pkts, tmp_lost_pkts;
   struct timeval tmp_nw_latency;
-
-  swapped = true;
 
   memcpy(&tmp_mac, &src_mac, sizeof(tmp_mac));
   tmp_ip.set(&src_ip);
