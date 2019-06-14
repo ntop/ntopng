@@ -37,7 +37,7 @@ class Ping {
   u_int16_t checksum(void *b, int len);
   float ms_timeval_diff(struct timeval *begin, struct timeval *end);
   void setOpts(int fd);
-  void handleICMPResponse(unsigned char *buf, socklen_t buf_len, bool is_v6);
+  void handleICMPResponse(unsigned char *buf, u_int buf_len, struct in_addr *ip, struct in6_addr *ip6);
   
  public:
   Ping();

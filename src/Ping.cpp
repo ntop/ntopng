@@ -112,6 +112,7 @@ u_int16_t Ping::checksum(void *b, int len) {
 int Ping::ping(char *_addr, bool use_v6) {
   struct hostent *hname = gethostbyname2(_addr, use_v6 ? AF_INET6 : AF_INET);
   struct sockaddr_in addr;
+  struct sockaddr_in6 addr6;
   struct ping_packet pckt;
   u_int i;
   struct timeval *tv;
@@ -119,13 +120,20 @@ int Ping::ping(char *_addr, bool use_v6) {
   if(hname == NULL)
     return(-1);
 
-  bzero(&addr, sizeof(addr));
-  addr.sin_family = hname->h_addrtype;
-  addr.sin_port = 0;
-  addr.sin_addr.s_addr = *(long*)hname->h_addr;
-
+  if(use_v6) {
+    bzero(&addr6, sizeof(addr6));
+    addr6.sin6_family = hname->h_addrtype;
+    addr6.sin6_port = 0;
+    memcpy(&addr6.sin6_addr, hname->h_addr, sizeof(addr6.sin6_addr));
+  } else {
+    bzero(&addr, sizeof(addr));
+    addr.sin_family = hname->h_addrtype;
+    addr.sin_port = 0;
+    addr.sin_addr.s_addr = *(long*)hname->h_addr;
+  }
+  
   bzero(&pckt, sizeof(pckt));
-  pckt.hdr.type = ICMP_ECHO;
+  pckt.hdr.type = use_v6 ? ICMP6_ECHO_REQUEST : ICMP_ECHO;
   pckt.hdr.un.echo.id = pid;
   for(i = 0; i < sizeof(pckt.msg)-1; i++) pckt.msg[i] = i+'0';
   pckt.msg[i] = 0;
@@ -135,16 +143,20 @@ int Ping::ping(char *_addr, bool use_v6) {
 
   pckt.hdr.checksum = checksum(&pckt, sizeof(ping_packet));
 
+  if(use_v6)
+    return(sendto(sd6, &pckt, sizeof(pckt), 0,
+		  (struct sockaddr*)&addr6,
+		  sizeof(addr6)));
+else
   return(sendto(sd, &pckt, sizeof(pckt), 0,
 		(struct sockaddr*)&addr,
-		sizeof(struct sockaddr_in)));
+		sizeof(addr)));
 }
 
 /* ****************************************** */
 
 void Ping::pollResults() {
   while(running) {
-    struct sockaddr_in addr;
     int bytes, fd_max = max(sd, sd6);
     fd_set mask;
     struct timeval wait_time = { 1, 0 };
@@ -154,17 +166,22 @@ void Ping::pollResults() {
     if(sd6 != -1) FD_SET(sd6, &mask);
 
     if(select(fd_max+1, &mask, 0, 0, &wait_time) > 0) {
-      socklen_t len = sizeof(addr);
       unsigned char buf[1024];
 
       if(FD_ISSET(sd, &mask)) {
+	struct sockaddr_in addr;
+	socklen_t len = sizeof(addr);
+	
 	bytes = recvfrom(sd, buf, sizeof(buf), 0, (struct sockaddr*)&addr, &len);
-	handleICMPResponse(buf, bytes, false);
+	handleICMPResponse(buf, bytes, &addr.sin_addr, NULL);
       }
 
       if(FD_ISSET(sd6, &mask)) {
+	struct sockaddr_in6 addr;
+	socklen_t len = sizeof(addr);
+	
 	bytes = recvfrom(sd6, buf, sizeof(buf), 0, (struct sockaddr*)&addr, &len);
-	handleICMPResponse(buf, bytes, true);
+	handleICMPResponse(buf, bytes, NULL, &addr.sin6_addr);
       }
     }
   }
@@ -172,28 +189,25 @@ void Ping::pollResults() {
 
 /* ****************************************************** */
 
-void Ping::handleICMPResponse(unsigned char *buf, socklen_t buf_len, bool is_v6) {
-  struct ndpi_iphdr *ip     = (struct ndpi_iphdr*)buf;
-  struct ndpi_ipv6hdr *ip6  = (struct ndpi_ipv6hdr*)buf;
-  u_int offset              = (!is_v6) ? (ip->ihl*4) : sizeof(const struct ndpi_ipv6hdr);
+void Ping::handleICMPResponse(unsigned char *buf, u_int buf_len,
+			      struct in_addr *ip, struct in6_addr *ip6) {
   struct ndpi_icmphdr *icmp;
   struct ping_packet *pckt;
 
-  if(is_v6) {
-    if((ip6->ip6_hdr.ip6_un1_nxt == 0x3C /* IPv6 destination option */) ||
-       (ip6->ip6_hdr.ip6_un1_nxt == 0x0 /* Hop-by-hop option */)) {
-      u_int8_t *options = (u_int8_t*)ip6 + offset;
-      
-      offset += 8 * (options[1] + 1);
-    }
-  }
-  
-  if(offset >= buf_len)
-    return;
+ if(ip) {
+   struct ndpi_iphdr *ip4 = (struct ndpi_iphdr*)buf;
 
-  icmp = (struct ndpi_icmphdr*)(buf+offset);
-  pckt  = (struct ping_packet*)icmp;
-
+   icmp = (struct ndpi_icmphdr*)(buf+ip4->ihl*4);
+   pckt  = (struct ping_packet*)icmp;   
+ } else {
+   icmp = (struct ndpi_icmphdr*)buf;
+   pckt  = (struct ping_packet*)icmp;
+ }
+ 
+ if((ip && (icmp->type != ICMP_ECHOREPLY))
+    || (ip6 && (icmp->type != ICMP6_ECHO_REPLY)))
+   return;
+ 
   if(icmp->un.echo.id == pid) {
     float rtt;
     struct timeval end, *begin = (struct timeval*)pckt->msg;
@@ -205,10 +219,10 @@ void Ping::handleICMPResponse(unsigned char *buf, socklen_t buf_len, bool is_v6)
 
     m.lock(__FILE__, __LINE__);
 
-    if(!is_v6)
-      h = Utils::intoaV4(ntohl(ip->saddr), buf, sizeof(buf));
+    if(ip)
+      h = Utils::intoaV4(ntohl(ip->s_addr), buf, sizeof(buf));
     else
-      h = Utils::intoaV6(ip6->ip6_src, 128, buf, sizeof(buf));
+      h = Utils::intoaV6(*((struct ndpi_in6_addr*)ip6), 128, buf, sizeof(buf));
 
     results[std::string(h)] = rtt;
     
