@@ -285,6 +285,60 @@ bool AlertsManager::isAlertEngaged(AlertEngine alert_engine, AlertEntity alert_e
 
 /* **************************************************** */
 
+int AlertsManager::isAlertExisting(AlertType alert_type, AlertLevel alert_severity, AlertEntity alert_entity, const char * const alert_entity_value, u_int32_t alert_hash, char * const query_buf, ssize_t query_buf_len, bool * const is_existing, u_int64_t * const cur_rowid, u_int64_t * const cur_counter) const {
+  int rc = 0, step;
+  sqlite3_stmt *stmt = NULL;
+  bool found = false;
+
+  snprintf(query_buf, query_buf_len,
+	   "SELECT rowid, alert_counter  "
+	   "FROM %s "
+	   "WHERE alert_type = ? AND alert_severity = ? "
+	   "AND alert_entity = ? AND alert_entity_val = ? "
+	   "AND alert_hash = ? AND alert_hash IS NOT NULL "
+	   "LIMIT 1; ",
+	   ALERTS_MANAGER_TABLE_NAME);
+
+  if(sqlite3_prepare_v2(db, query_buf, -1, &stmt, 0)
+     || sqlite3_bind_int(stmt,   1, static_cast<int>(alert_type))
+     || sqlite3_bind_int(stmt,   2, static_cast<int>(alert_severity))
+     || sqlite3_bind_int(stmt,   3, static_cast<int>(alert_entity))
+     || sqlite3_bind_text(stmt,  4, alert_entity_value, -1, SQLITE_STATIC)
+     || sqlite3_bind_int64(stmt, 5, static_cast<long int>(alert_hash))) {
+    ntop->getTrace()->traceEvent(TRACE_INFO, "SQL Error: step");
+    rc = -1;
+    goto out;
+  }
+
+  /* Try and read the rowid (if the record exists) */
+  while((step = sqlite3_step(stmt)) != SQLITE_DONE) {
+    if(step == SQLITE_ROW) {
+      found = true;
+      if(cur_rowid)   *cur_rowid = sqlite3_column_int(stmt, 0);
+      if(cur_counter) *cur_counter = sqlite3_column_int(stmt, 1);
+      // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Found [rowid: %u][cur_counter: %u]\n", *cur_rowid, *cur_counter);
+      } else if(step == SQLITE_ERROR) {
+	ntop->getTrace()->traceEvent(TRACE_INFO, "SQL Error: step");
+	rc = -2;
+	goto out;
+      }
+    }
+
+ out:
+  if(stmt) sqlite3_finalize(stmt);
+
+  if(is_existing) {
+    if(found)
+      *is_existing = true;
+    else
+      *is_existing = false;
+  }
+
+  return rc;
+}
+
+/* **************************************************** */
+
 void AlertsManager::markForMakeRoom(bool on_flows) {
   Redis *r = ntop->getRedis();
   char k[128], buf[512];
@@ -587,10 +641,11 @@ int AlertsManager::storeAlert(AlertEntity alert_entity, const char *alert_entity
 			      bool check_maximum, time_t when) {
   if(!ntop->getPrefs()->are_alerts_disabled()) {
     char query[STORE_MANAGER_MAX_QUERY];
-    sqlite3_stmt *stmt = NULL, *stmt2 = NULL, *stmt3 = NULL;
+    sqlite3_stmt *stmt2 = NULL, *stmt3 = NULL;
     int rc = 0;
     u_int32_t alert_hash = alertHash(alert_json);
-    u_int64_t cur_rowid = (u_int64_t)-1, cur_counter;
+    bool is_existing;
+    u_int64_t cur_rowid, cur_counter;
 
     if(!store_initialized || !store_opened)
       return(-1);
@@ -605,40 +660,10 @@ int AlertsManager::storeAlert(AlertEntity alert_entity, const char *alert_entity
     m.lock(__FILE__, __LINE__);
 
     /* Check if this alert already exists ...*/
-    snprintf(query, sizeof(query),
-	     "SELECT rowid, alert_counter  "
-	     "FROM %s "
-	     "WHERE alert_type = ? AND alert_severity = ? "
-	     "AND alert_entity = ? AND alert_entity_val = ? "
-	     "AND alert_hash = ? AND alert_hash IS NOT NULL "
-	     "LIMIT 1; ",
-	     ALERTS_MANAGER_TABLE_NAME);
-
-    if(sqlite3_prepare_v2(db, query, -1, &stmt, 0)
-       || sqlite3_bind_int(stmt,   1, static_cast<int>(alert_type))
-       || sqlite3_bind_int(stmt,   2, static_cast<int>(alert_severity))
-       || sqlite3_bind_int(stmt,   3, static_cast<int>(alert_entity))
-       || sqlite3_bind_text(stmt,  4, alert_entity_value, -1, SQLITE_STATIC)
-       || sqlite3_bind_int64(stmt, 5, static_cast<long int>(alert_hash))) {
-      ntop->getTrace()->traceEvent(TRACE_INFO, "SQL Error: step");
-      rc = 1;
+    if((rc = isAlertExisting(alert_type, alert_severity, alert_entity, alert_entity_value, alert_hash, query, sizeof(query), &is_existing, &cur_rowid, &cur_counter)))
       goto out;
-    }
 
-    /* Try and read the rowid (if the record exists) */
-    while((rc = sqlite3_step(stmt)) != SQLITE_DONE) {
-      if(rc == SQLITE_ROW) {
-	cur_rowid = sqlite3_column_int(stmt, 0),
-	  cur_counter = sqlite3_column_int(stmt, 1);
-	// ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [rowid: %u][cur_counter: %u][cur_tstamp_end: %u]\n", sqlite3_column_text(stmt, 0), cur_rowid, cur_counter, cur_tstamp_end);
-      } else if(rc == SQLITE_ERROR) {
-	ntop->getTrace()->traceEvent(TRACE_INFO, "SQL Error: step");
-	rc = 1;
-	goto out;
-      }
-    }
-
-    if(cur_rowid != (u_int64_t)-1) { /* Already existing record found */
+    if(is_existing) { /* Already existing record found */
       snprintf(query, sizeof(query),
 	       "UPDATE %s "
 	       "SET alert_counter = ?, alert_tstamp_end = ? "
@@ -696,7 +721,6 @@ int AlertsManager::storeAlert(AlertEntity alert_entity, const char *alert_entity
     rc = 0;
 
   out:
-    if(stmt) sqlite3_finalize(stmt);
     if(stmt2) sqlite3_finalize(stmt2);
     if(stmt3) sqlite3_finalize(stmt3);
     m.unlock(__FILE__, __LINE__);
