@@ -191,9 +191,6 @@ end
 
 -- ##############################################
 
--- NOTE: do not use this, as it is modified below for each ntopng interface
-_ifstats = interface.getStats()
-
 url = ntop.getHttpPrefix().."/lua/flows_stats.lua"
 
 if(active_page == "flows") then
@@ -225,7 +222,7 @@ end
 
 print('<li><a href="'..ntop.getHttpPrefix()..'/lua/network_stats.lua">') print(i18n("networks")) print('</a></li>')
 
-if not _ifstats.isView then
+if not ifs.isView then
    print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pool_stats.lua">') print(i18n("host_pools.host_pools")) print('</a></li>')
 end
 
@@ -245,10 +242,10 @@ if(interface.hasEBPF()) then
    -- TODO: decide whether a page with the list of processes should be done or not
 end
 
-if _ifstats.has_seen_pods then
+if ifs.has_seen_pods then
    print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pods_stats.lua">') print(i18n("containers_stats.pods")) print('</a></li>')
 end
-if _ifstats.has_seen_containers then
+if ifs.has_seen_containers then
    print('<li><a href="'..ntop.getHttpPrefix()..'/lua/containers_stats.lua">') print(i18n("containers_stats.containers")) print('</a></li>')
 end
 
@@ -310,7 +307,7 @@ local ifCustom = {}
 
 for v,k in pairs(iface_names) do
    interface.select(k)
-   _ifstats = interface.getStats()
+   local _ifstats = interface.getStats()
    ifnames[_ifstats.id] = k
    ifdescr[_ifstats.id] = _ifstats.description
    --io.write("["..k.."/"..v.."][".._ifstats.id.."] "..ifnames[_ifstats.id].."=".._ifstats.id.."\n")
@@ -406,14 +403,14 @@ if ntop.isEnterprise() and show_flowdevs then
    ]]
 
    if(info["version.enterprise_edition"] == true) and show_flowdevs then
-      if _ifstats.has_seen_ebpf_events then
+      if ifs.has_seen_ebpf_events then
          print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/event_exporters.lua ">') print(i18n("event_exporters.event_exporters")) print('</a></li>')
       else
          if table.len(interface.getSFlowDevices() or {}) > 0 then
             print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/flowdevices_stats.lua?sflow_filter=All">') print(i18n("flows_page.sflow_devices")) print('</a></li>')
+            print('<li class="divider"></li>')
          end
 
-         print('<li class="divider"></li>')
          print('<li class="dropdown-header">') print(i18n("flows")) print('</li>')
 
          print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/flowdevices_stats.lua">') print(i18n("flows_page.flow_exporters")) print('</a></li>')
