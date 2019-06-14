@@ -26,6 +26,7 @@
 ParsedeBPF::ParsedeBPF() {
   ifname = NULL;
 
+  server_process = false;
   event_type = ebpf_event_type_unknown;
 
   process_info_set = container_info_set = tcp_info_set = false;
