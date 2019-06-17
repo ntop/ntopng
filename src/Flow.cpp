@@ -3731,25 +3731,18 @@ void Flow::setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
 
 /* ***************************************************** */
 
-void Flow::setParsedeBPFInfo(const ParsedeBPF * const ebpf, bool src2dst_direction) {
+void Flow::setParsedeBPFInfo(const ParsedeBPF * const ebpf, bool src2dst_direction) {  
+  bool client_process = true;
+  ParsedeBPF *cur = NULL;
+
   if(!ebpf)
     return;
 
   if(!iface->hasSeenEBPFEvents())
     iface->setSeenEBPFEvents();
 
-  bool client_process;
-  ParsedeBPF *cur = NULL;
-
-  /* Try to guess if the process is the client or the server */
-  if(ebpf->event_type == ebpf_event_type_tcp_accept)
+  if(ebpf->isServerInfo())
     client_process = false;
-  else if(ebpf->event_type == ebpf_event_type_tcp_connect)
-    client_process = true;
-  else if(get_srv_port() > get_cli_port())
-    client_process = false;
-  else
-    client_process = true;
 
   if(!src2dst_direction)
     client_process = !client_process;

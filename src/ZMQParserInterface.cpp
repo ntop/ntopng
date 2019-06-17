@@ -845,14 +845,22 @@ void ZMQParserInterface::parseSingleFlow(json_object *o,
     } else
       flow.src_ip.setVersion(flow.version), flow.dst_ip.setVersion(flow.version);
   }
-  
+
   if(!invalid_flow) {
-    /* Attempt to determine flow client and server using port numbers 
+    if(flow.hasParsedeBPF()) {
+      /* Direction already reliable when the event is an accept or a connect.
+         Heuristic is only used in the other cases. */
+      if(flow.event_type != ebpf_event_type_tcp_accept
+	 && flow.event_type != ebpf_event_type_tcp_connect
+	 && ntohs(flow.src_port) < ntohs(flow.dst_port))
+	flow.swap();
+    } else if(ntop->getPrefs()->do_use_ports_to_determine_src_and_dst()) {
+      /* Attempt to determine flow client and server using port numbers 
        useful when exported flows are mono-directional
        https://github.com/ntop/ntopng/issues/1978 */
-    if(ntop->getPrefs()->do_use_ports_to_determine_src_and_dst()
-       && ntohs(flow.src_port) < ntohs(flow.dst_port))
-      flow.swap();
+      if(ntohs(flow.src_port) < ntohs(flow.dst_port))
+	flow.swap();
+    }
 
     /* Process Flow */
     iface->processFlow(&flow, true);

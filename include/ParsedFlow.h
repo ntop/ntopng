@@ -39,6 +39,7 @@ class ParsedFlow : public ParsedFlowCore, public ParsedeBPF {
   inline bool hasParsedeBPF() const { return has_parsed_ebpf; };
   inline void setParsedeBPF()       { has_parsed_ebpf = true; };
   virtual ~ParsedFlow();
+  void swap();
 };
 
 #endif /* _PARSED_FLOW_H_ */

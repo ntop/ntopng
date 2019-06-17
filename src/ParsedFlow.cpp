@@ -67,3 +67,10 @@ ParsedFlow::~ParsedFlow() {
     if(bittorrent_hash) free(bittorrent_hash);
   }
 }
+
+/* *************************************** */
+
+void ParsedFlow::swap() {
+  ParsedFlowCore::swap();
+  ParsedeBPF::swap();
+}

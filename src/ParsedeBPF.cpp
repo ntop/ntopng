@@ -33,7 +33,8 @@ ParsedeBPF::ParsedeBPF() {
     memset(&container_info, 0, sizeof(container_info)),
     memset(&tcp_info, 0, sizeof(tcp_info));
 
-  free_memory = false;
+  server_info = false,
+    free_memory = false;
 }
 /* *************************************** */
 
@@ -109,6 +110,12 @@ void ParsedeBPF::update(const ParsedeBPF * const pe) {
     if(!tcp_info_set) tcp_info_set = true;
     memcpy(&tcp_info, &pe->tcp_info, sizeof(tcp_info));
   }
+}
+/* *************************************** */
+
+bool ParsedeBPF::isServerInfo() const {
+  return (event_type == ebpf_event_type_tcp_accept && !server_info)
+    || server_info;
 }
 
 /* *************************************** */
