@@ -58,11 +58,13 @@ for peer,value in pairsByValues(peers, rev) do
 
 	    host = interface.getHostInfo(peer)
 	    if(host ~= nil) then
-  	      if(host["name"] == nil) then
-	        host["name"] = getResolvedAddress(host)
-	      end
+        local hostinfo = {host = host["ip"], vlan = host["vlan"]}
 
-	      local r = {host=peer, name=host.name, url="<A HREF='"..ntop.getHttpPrefix().."/lua/host_details.lua?host=".. hostinfo2hostkey(host) .."'>"..host.name .."</A>", l7proto=proto, l7proto_url="<A HREF='"..ntop.getHttpPrefix().."/lua/flows_stats.lua?host=".. hostinfo2hostkey(host) .."&application="..proto.."'>"..proto.."</A>", traffic=math.log(peers_proto[peer][proto])/math.log(10)}
+        if(isEmptyString(host["name"])) then
+          host["name"] = resolveAddress(hostinfo)
+        end
+
+	      local r = {host=peer, name=host.name, url="<A HREF='"..ntop.getHttpPrefix().."/lua/host_details.lua?host=".. hostinfo2hostkey(hostinfo) .."'>"..host.name .."</A>", l7proto=proto, l7proto_url="<A HREF='"..ntop.getHttpPrefix().."/lua/flows_stats.lua?host=".. hostinfo2hostkey(host) .."&application="..proto.."'>"..proto.."</A>", traffic=peers_proto[peer][proto]}
 
 	      res[#res + 1] = r
 	    end

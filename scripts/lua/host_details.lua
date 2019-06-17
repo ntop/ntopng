@@ -956,23 +956,21 @@ protocolChart
 
 // Tooltip
 protocolChart.title(function(d){
-      return d.key+": " + bytesToVolume(Math.pow(10, d.value));
+      return d.key+": " + bytesToVolume(d.value);
       })
 
 hostChart
-    .width(600).height(300)
+    .width(800).height(300)
     .dimension(nameDim)
     .group(trafficPerhost)
     .elasticX(true);
 
 // Tooltip
 hostChart.title(function(d){
-      return "Host "+d.key+": " + bytesToVolume(Math.pow(10, d.value));
+      return "Host "+d.key+": " + bytesToVolume(d.value);
       })
 
-hostChart.xAxis().tickFormat(function(_v) {
-  var v = Math.pow(10, _v);
-
+hostChart.xAxis().tickFormat(function(v) {
   if(v < 1024)
     return(v.toFixed(2));
   else
@@ -997,7 +995,7 @@ hostChart.xAxis().tickFormat(function(_v) {
                 return d.l7proto_url;
             },
             function (d) {
-                return bytesToVolume(Math.pow(10, d.traffic));
+                return bytesToVolume(d.traffic);
             }
         ])
         // (optional) sort using the given field, :default = function(d){return d;}
