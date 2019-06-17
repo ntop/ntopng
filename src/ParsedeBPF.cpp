@@ -108,11 +108,24 @@ ParsedeBPF::~ParsedeBPF() {
 
 void ParsedeBPF::update(const ParsedeBPF * const pe) {
   /* Update tcp stats */
-  if(pe && pe->tcp_info_set) {
-    if(!tcp_info_set) tcp_info_set = true;
-    memcpy(&tcp_info, &pe->tcp_info, sizeof(tcp_info));
+  if(pe) {
+    if(pe->tcp_info_set) {
+      if(!tcp_info_set) tcp_info_set = true;
+      memcpy(&tcp_info, &pe->tcp_info, sizeof(tcp_info));
+    }
+
+    if(container_info_set && pe->container_info_set
+       && container_info.id && pe->container_info.id
+       && strcmp(container_info.id, pe->container_info.id)) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING,
+				   "The same flow has been observed across multiple containers. "
+				   "[current_container: %s][additional_container: %s]",
+				   container_info.id,
+				   pe->container_info.id);
+    }
   }
 }
+
 /* *************************************** */
 
 bool ParsedeBPF::isServerInfo() const {
