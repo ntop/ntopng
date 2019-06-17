@@ -16,7 +16,7 @@ The following picture summarizes how they can be combined together.
 
 .. figure:: ./img/using_nprobe_mini_with_ntopng.png
   :align: center
-  :scale: 40%
+  :width: 400 px
   :alt: Using nProbe Mini with ntopng
 
   Using nProbe Mini with ntopng
