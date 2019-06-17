@@ -85,7 +85,7 @@ Per-Container and Per-POD Network Activity and Performance Indicators
 
 Checking the the performance of a given container, or spotting the true bottlenecks in a OS-virtualized 
 infrastructure, is another question ntopng can answer using it in combination with nProbe™ Mini. It is
-possible to uncover container and POD activities and performance using, for example, the measured 
+possible to uncover container activities and performance using, for example, the measured 
 Round-Trip times of their communications.
 
 .. figure:: ./img/using_nprobe_mini_with_ntopng_containers_list.png
@@ -94,9 +94,10 @@ Round-Trip times of their communications.
 
   nProbe Mini: containers list
 
+The same also applies to PODs:
 
 .. figure:: ./img/using_nprobe_mini_with_ntopng_pods_list.png
-  :align: centeri
+  :align: center
   :alt: nProbe Mini: Pods list
 
   nProbe Mini: Pods list
