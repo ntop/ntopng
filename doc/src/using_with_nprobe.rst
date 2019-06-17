@@ -23,7 +23,7 @@ In the picture above, arrows from nProbe to ntopng represent the logical directi
 
 Following is a minimum, working, configuration example of nProbe and ntopng to obtain what has been sketched in the picture above. The example assumes both ntopng and nProbe are running on the same (local) host. In case they run on separate machines, the IP address :code:`127.0.0.1` has to be changed with the address of the machine hosting nProbe.
 
-*ntop Configuration*
+*ntopng Configuration*
 
 .. code:: bash
 

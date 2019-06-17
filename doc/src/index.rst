@@ -13,6 +13,7 @@ can be obtained from the traffic captured by the server.
    cli_options
    web_gui/index
    using_with_nprobe
+   using_with_nprobe_agent
    remote_assistance
    traffic_recording
    historical_flows
