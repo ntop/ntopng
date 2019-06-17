@@ -629,7 +629,7 @@ bool ZMQParserInterface::parseNProbeMiniField(ParsedFlow * const flow, const cha
   } else if(!strncmp(key, "L4_REMOTE_PORT", 14)) {
     flow->dst_port = htons(atoi(value));
     ret = true;
-  } else if(!strncmp(key, "INTERFACE_NAME", 7) && strlen(key) == 7) {
+  } else if(!strncmp(key, "INTERFACE_NAME", 7) && strlen(key) == 14) {
     flow->ifname = (char*)json_object_get_string(jvalue);
     ret = true;
   } else if(strlen(key) >= 14 && !strncmp(&key[strlen(key) - 14], "FATHER_PROCESS", 14)) {
