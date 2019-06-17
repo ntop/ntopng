@@ -69,6 +69,8 @@ ParsedeBPF::ParsedeBPF(const ParsedeBPF &pe) {
   if((tcp_info_set = pe.tcp_info_set))
     ;
 
+  server_info = pe.server_info;
+
   /* Free memory if allocation is from a 'copy' constructor */
   free_memory = true;
 }
