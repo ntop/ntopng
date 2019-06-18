@@ -9,12 +9,18 @@ local ts_common = require("ts_common")
 require("ntop_utils")
 require("rrd_paths")
 
-local RRD_CONSOLIDATION_FUNCTION = "AVERAGE"
 local use_hwpredict = false
 
 local type_to_rrdtype = {
   [ts_common.metrics.counter] = "DERIVE",
   [ts_common.metrics.gauge] = "GAUGE",
+}
+
+local aggregation_to_consolidation = {
+  [ts_common.aggregation.mean] = "AVERAGE",
+  [ts_common.aggregation.max] = "MAX",
+  [ts_common.aggregation.min] = "MIN",
+  [ts_common.aggregation.last] = "LAST",
 }
 
 -- ##############################################
@@ -97,8 +103,8 @@ local function schema_get_path(schema, tags)
   local parts = string.split(schema.name, ":")
 
   if((string.find(schema.name, "iface:") ~= 1) and  -- interfaces are only identified by the first tag
-      (#schema._tags >= 2)) then                    -- some schema do not have 2 tags, e.g. "process:*" schemas
-    host_or_network = (HOST_PREFIX_MAP[parts[1]] or (parts[1] .. ":")) .. tags[schema._tags[2]]
+      (#schema._tags >= 1)) then                    -- some schema do not have any tag, e.g. "process:*" schemas
+    host_or_network = (HOST_PREFIX_MAP[parts[1]] or (parts[1] .. ":")) .. tags[schema._tags[2] or schema._tags[1]]
   end
 
   -- Some exceptions to avoid conflicts / keep compatibility
@@ -217,10 +223,23 @@ local function map_rrd_column_to_metrics(schema, column_name)
   return nil
 end
 
+local function getConsolidationFunction(schema)
+  local fn = schema:getAggregationFunction()
+
+  if(aggregation_to_consolidation[fn] ~= nil) then
+    return(aggregation_to_consolidation[fn])
+  end
+
+  traceError(TRACE_ERROR, TRACE_CONSOLE, "unknown aggregation function: %s", fn)
+
+  return("AVERAGE")
+end
+
 local function create_rrd(schema, path)
   local heartbeat = schema.options.rrd_heartbeat or (schema.options.step * 2)
   local rrd_type = type_to_rrdtype[schema.options.metrics_type]
   local params = {path, schema.options.step}
+  local cf = getConsolidationFunction(schema)
 
   local metrics_map = map_metrics_to_rrd_columns(#schema._metrics)
   if not metrics_map then
@@ -233,7 +252,7 @@ local function create_rrd(schema, path)
   end
 
   for _, rra in ipairs(schema.retention) do
-    params[#params + 1] = "RRA:" .. RRD_CONSOLIDATION_FUNCTION .. ":0.5:" .. rra.aggregation_dp .. ":" .. rra.retention_dp
+    params[#params + 1] = "RRA:" .. cf .. ":0.5:" .. rra.aggregation_dp .. ":" .. rra.retention_dp
   end
 
   if use_hwpredict and schema.hwpredict then
@@ -504,8 +523,8 @@ function driver:query(schema, tstart, tend, tags, options)
 
   touchRRD(rrdfile)
 
-  --tprint("rrdtool fetch ".. rrdfile.. " " .. RRD_CONSOLIDATION_FUNCTION .. " -s ".. tstart .. " -e " .. tend)
-  local fstart, fstep, fdata, fend, fcount = ntop.rrd_fetch_columns(rrdfile, RRD_CONSOLIDATION_FUNCTION, tstart, tend)
+  --tprint("rrdtool fetch ".. rrdfile.. " " .. getConsolidationFunction(schema) .. " -s ".. tstart .. " -e " .. tend)
+  local fstart, fstep, fdata, fend, fcount = ntop.rrd_fetch_columns(rrdfile, getConsolidationFunction(schema), tstart, tend)
 
   if fdata == nil then
     return nil
@@ -556,7 +575,7 @@ function driver:query(schema, tstart, tend, tags, options)
   end
 
   if options.initial_point then
-    local _, _, initial_pt = ntop.rrd_fetch_columns(rrdfile, RRD_CONSOLIDATION_FUNCTION, tstart-schema.options.step, tstart-schema.options.step)
+    local _, _, initial_pt = ntop.rrd_fetch_columns(rrdfile, getConsolidationFunction(schema), tstart-schema.options.step, tstart-schema.options.step)
     initial_pt = initial_pt or {}
 
     for name_key, values in pairs(initial_pt) do
@@ -708,6 +727,7 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
   local total_valid = true
   local step = 0
   local query_start = tstart
+  local cf = getConsolidationFunction(schema)
 
   if options.initial_point then
     query_start =  tstart - schema.options.step
@@ -723,7 +743,7 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
 
     touchRRD(rrdfile)
 
-    local fstart, fstep, fdata, fend, fcount = ntop.rrd_fetch_columns(rrdfile, RRD_CONSOLIDATION_FUNCTION, query_start, tend)
+    local fstart, fstep, fdata, fend, fcount = ntop.rrd_fetch_columns(rrdfile, cf, query_start, tend)
     local sum = 0
 
     if fdata == nil then
@@ -829,7 +849,7 @@ function driver:queryTotal(schema, tstart, tend, tags, options)
 
   touchRRD(rrdfile)
 
-  local fstart, fstep, fdata, fend, fcount = ntop.rrd_fetch_columns(rrdfile, RRD_CONSOLIDATION_FUNCTION, tstart, tend)
+  local fstart, fstep, fdata, fend, fcount = ntop.rrd_fetch_columns(rrdfile, getConsolidationFunction(schema), tstart, tend)
   local totals = {}
 
   for name_key, serie in pairs(fdata or {}) do

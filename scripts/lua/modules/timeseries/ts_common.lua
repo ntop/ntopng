@@ -11,6 +11,12 @@ ts_common.metrics.counter = "counter"
 ts_common.metrics.gauge = "gauge"
 ts_common.metrics.derivative = "derivative"
 
+ts_common.aggregation = {}
+ts_common.aggregation.mean = "mean"
+ts_common.aggregation.max = "max"
+ts_common.aggregation.min = "min"
+ts_common.aggregation.last = "last"
+
 -- ##############################################
 
 -- Find the percentile of a list of values

@@ -119,7 +119,7 @@ function system_scripts.runTask(task, when)
     return(false)
   end
 
-  ts_utils.newSchema = function(name, label, options)
+  ts_utils.newSchema = function(name, options)
     local schema = ts_utils.getSchema(name)
     if(schema == nil) then
       return old_new_schema_fn(name, table.merge(default_schema_options, options))

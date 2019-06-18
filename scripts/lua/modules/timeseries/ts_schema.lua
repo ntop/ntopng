@@ -149,4 +149,15 @@ function ts_schema:verifyTagsAndMetrics(tags_and_metrics)
   return tags, metrics
 end
 
+function ts_schema:getAggregationFunction()
+  local fn = self.options.aggregation_function
+
+  if((fn ~= nil) and (ts_common.aggregation[fn] ~= nil)) then
+    return(fn)
+  end
+
+  -- fallback
+  return(ts_common.aggregation.mean)
+end
+
 return ts_schema

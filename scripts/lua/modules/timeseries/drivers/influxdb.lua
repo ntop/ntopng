@@ -511,7 +511,7 @@ function driver:query(schema, tstart, tend, tags, options)
     if data_type == ts_common.metrics.counter then
       metrics[i] = "(DERIVATIVE(MEAN(\"" .. metric .. "\")) / ".. time_step ..") as " .. metric
     else -- gauge / derivative
-      metrics[i] = "MEAN(\"".. metric .."\") as " .. metric
+      metrics[i] = schema:getAggregationFunction() .. "(\"".. metric .."\") as " .. metric
     end
   end
 
@@ -1397,7 +1397,7 @@ local function getCqQuery(dbname, tags, schema, source, dest, step, dest_step, r
     local means = {}
 
     for _, metric in ipairs(schema._metrics) do
-      means[#means + 1] = string.format('MEAN(%s) as %s', metric, metric)
+      means[#means + 1] = string.format('%s(%s) as %s', schema:getAggregationFunction(), metric, metric)
     end
 
     means = table.concat(means, ",")

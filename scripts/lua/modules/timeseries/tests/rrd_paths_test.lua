@@ -61,7 +61,7 @@ function test_unique_paths(test)
     unique_paths[fpath] = schema.name
 
     -- double check changing the last tag
-    if #schema._tags >= 3 then
+    if #schema._tags >= 1 then
       local last_tag = schema._tags[#schema._tags]
       local tags2 = table.clone(tags1)
       tags2[last_tag] = replacement_tag

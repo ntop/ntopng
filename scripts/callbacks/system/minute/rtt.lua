@@ -95,7 +95,10 @@ end
 function probe.loadSchemas(ts_utils)
   local schema
 
-  schema = ts_utils.newSchema("monitored_host:rtt", {label = i18n("graphs.num_ms_rtt"), metrics_type = ts_utils.metrics.gauge})
+  schema = ts_utils.newSchema("monitored_host:rtt", {
+    label = i18n("graphs.num_ms_rtt"), metrics_type = ts_utils.metrics.gauge,
+    aggregation_function = ts_utils.aggregation.max
+  })
   schema:addTag("host")
   schema:addMetric("millis_rtt")
 end
