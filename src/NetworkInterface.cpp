@@ -251,6 +251,7 @@ NetworkInterface::NetworkInterface(const char *name,
      && strcmp(ifname, "virbr")
      && strcmp(ifname, "wlan")
      && strncmp(ifname, "lo", 2)
+     && strcmp(ifname, SYSTEM_INTERFACE_NAME)
      ) {
     char buf[64], ifaces[128], *tmp, *iface;
 
