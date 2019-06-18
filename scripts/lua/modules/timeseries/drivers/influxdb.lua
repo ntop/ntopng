@@ -281,8 +281,11 @@ local function influx2Series(schema, tstart, tend, tags, options, data, time_ste
 
   -- The first time available in the returned data
   local first_t = data.values[1][1]
+  -- Align tstart to the first timestamp
+  tstart = tstart + (first_t - tstart) % time_step
+
   -- next_t holds the expected timestamp of the next point to process
-  local next_t = tstart + ((first_t - tstart) % time_step)
+  local next_t = tstart
   -- the next index to use for insertion in the result table
   local series_idx = 1
   --tprint(time_step .. ") " .. tstart .. " vs " .. first_t .. " - " .. next_t)
@@ -312,6 +315,17 @@ local function influx2Series(schema, tstart, tend, tags, options, data, time_ste
       series[i-1].data[series_idx] = val
     end
 
+    --traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("@ %u = %.2f", cur_t, values[2]))
+    if(false) then -- consinstency check
+      local expected_t = next_t
+      local actual_t = values[1]
+
+      if math.abs(expected_t - actual_t) >= time_step then
+        traceError(TRACE_WARNING, TRACE_CONSOLE,
+          string.format("Bad point timestamp: expected %u, found %u [value = %.2f]", expected_t, actual_t, values[2]))
+      end
+    end
+
     series_idx = series_idx + 1
     next_t = next_t + time_step
 
@@ -331,7 +345,7 @@ local function influx2Series(schema, tstart, tend, tags, options, data, time_ste
 
   local count = series_idx - 1
 
-  return series, count
+  return series, count, tstart
 end
 
 -- Test only
@@ -420,7 +434,7 @@ function driver:_makeTotalSerie(schema, query_schema, raw_step, tstart, tend, ta
 
   data = data.series[1]
 
-  local series, count = influx2Series(schema, tstart + time_step, tend, tags, options, data, time_step)
+  local series, count, tstart = influx2Series(schema, tstart + time_step, tend, tags, options, data, time_step)
   return series[1].data
 end
 
@@ -496,7 +510,7 @@ function driver:query(schema, tstart, tend, tags, options)
   else
     -- Note: we are working with intervals because of derivatives. The first interval ends at tstart + time_step
     -- which is the first value returned by InfluxDB
-    series, count = influx2Series(schema, tstart + time_step, tend, tags, options, data.series[1], time_step)
+    series, count, tstart = influx2Series(schema, tstart + time_step, tend, tags, options, data.series[1], time_step)
   end
 
   local total_serie = nil
@@ -559,6 +573,9 @@ function driver:query(schema, tstart, tend, tags, options)
         table.insert(series[i-1].data, 1, val)
       end
     end
+
+    -- shift tstart as we added one point
+    tstart = tstart - time_step
 
     if total_serie then
       local label = series and series[1].label
@@ -951,6 +968,9 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
   if options.initial_point and total_serie then
     local additional_pt = self:_makeTotalSerie(schema, query_schema, raw_step, tstart-time_step, tstart, tags, options, url, time_step, label, unaligned_offset, data_type) or {options.fill_value}
     table.insert(total_serie, 1, additional_pt[1])
+
+    -- shift tstart as we added one point
+    tstart = tstart - time_step
   end
 
   if options.calculate_stats and total_serie then

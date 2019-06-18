@@ -16,6 +16,7 @@ local replacement_tag = "some_other_tag"
 local prefixes_to_skip = {
   test = true,
   mac = true,                 -- Collides with host, but a MAC address is different from an IP address
+  influxdb = true,
 }
 
 local suffixes_to_skip = {

@@ -522,7 +522,7 @@ end
 -- ##############################################
 
 function run(tester)
-  if influxdb.db == nil then
+  if influx2Series == nil then
     print("Skipping influx2Series tests. Enable InfluxDB export in order to test.<br/>")
     return(true)
   end

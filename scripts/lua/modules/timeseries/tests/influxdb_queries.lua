@@ -59,7 +59,7 @@ end
 -- ##############################################
 
 -- When performing the derivative between two points, the delta must be calculated
--- and accounted for the first point time
+-- and accounted for the second point time
 function test_simple_derivative(test)
   local test_data = {
     {{v=1000}, now},
@@ -78,7 +78,7 @@ function test_simple_derivative(test)
 
   local rv = test_utils.timestampAsKey(test_utils.makeTimeStamp(res.series, res.start, schema.options.step))[1]
 
-  local t1 = test_data[1][2]
+  local t1 = test_data[2][2]
 
   if not(rv[t1] == 1000) then
     return test:assertion_failed("rv[t1=".. t1 .."] == 1000")

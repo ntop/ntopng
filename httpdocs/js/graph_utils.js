@@ -267,12 +267,12 @@ function fixTimeRange(chart, params, align_step, actual_step) {
 
     // align epoch end wrt params.limit
     params.epoch_end += Math.ceil(diff_epoch / params.limit) * params.limit - diff_epoch;
-
-    chart.xAxis.tickValues(buildTimeArray(params.epoch_begin, params.epoch_end, tick_step));
     chart.align = align;
-  }
-
-  chart.xAxis.tickFormat(function(d) { return d3.time.format(fmt)(new Date(d*1000)) });
+    chart.tick_step = tick_step;
+  } else
+    chart.tick_step = null;
+  
+  chart.x_fmt = fmt;
 }
 
 function findActualStep(raw_step, tstart) {
@@ -653,6 +653,11 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
         update_chart_data([]);
         return;
       }
+
+      // Fix x axis
+      var tick_step = (chart.tick_step && ((chart.tick_step % data.step) == 0)) ? chart.tick_step : data.step;
+      chart.xAxis.tickValues(buildTimeArray(data.start, data.start + data.count * data.step, tick_step));
+      chart.xAxis.tickFormat(function(d) { return d3.time.format(chart.x_fmt)(new Date(d*1000)) });
 
       // Adapt data
       var res = [];
