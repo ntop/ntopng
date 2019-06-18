@@ -117,11 +117,16 @@ void ParsedeBPF::update(const ParsedeBPF * const pe) {
     if(container_info_set && pe->container_info_set
        && container_info.id && pe->container_info.id
        && strcmp(container_info.id, pe->container_info.id)) {
-      ntop->getTrace()->traceEvent(TRACE_WARNING,
-				   "The same flow has been observed across multiple containers. "
-				   "[current_container: %s][additional_container: %s]",
-				   container_info.id,
-				   pe->container_info.id);
+      static bool warning_shown = false;
+
+      if(!warning_shown) {
+	ntop->getTrace()->traceEvent(TRACE_WARNING,
+				     "The same flow has been observed across multiple containers. "
+				     "[current_container: %s][additional_container: %s]",
+				     container_info.id,
+				     pe->container_info.id);
+	warning_shown = true;
+      }
     }
   }
 }
