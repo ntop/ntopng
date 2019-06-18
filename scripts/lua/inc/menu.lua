@@ -238,18 +238,6 @@ if(interface.hasVLANs()) then
    print('<li><a href="'..ntop.getHttpPrefix()..'/lua/vlan_stats.lua">') print(i18n("vlan_stats.vlans")) print('</a></li>')
 end
 
-if(interface.hasEBPF()) then
-   -- TODO: decide whether a page with the list of processes should be done or not
-end
-
-if((ifs["type"] == "zmq") and ntop.isEnterprise()) then
-   if ifs.has_seen_ebpf_events then
-      print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/event_exporters.lua ">') print(i18n("event_exporters.event_exporters")) print('</a></li>')
-   else
-      print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/flowdevices_stats.lua">') print(i18n("flows_page.flow_exporters")) print('</a></li>')
-   end
-end
-
 if ifs.has_seen_pods then
    print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pods_stats.lua">') print(i18n("containers_stats.pods")) print('</a></li>')
 end
@@ -287,8 +275,33 @@ print [[/lua/hosts_matrix.lua"><i class="fa fa-th-large"></i> ]] print(i18n("loc
 
 print("</ul> </li>")
 
--- Devices
+-- Exporters
 info = ntop.getInfo()
+
+if((ifs["type"] == "zmq") and ntop.isEnterprise()) then
+  if active_page == "exporters" then
+    print [[ <li class="dropdown active"> ]]
+  else
+    print [[ <li class="dropdown"> ]]
+  end
+
+   print [[
+      <a class="dropdown-toggle" data-toggle="dropdown" href="#">]] print(i18n("flow_devices.exporters")) print[[ <b class="caret"></b>
+      </a>
+      <ul class="dropdown-menu">
+]]
+
+  if ifs.has_seen_ebpf_events then
+      print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/event_exporters.lua ">') print(i18n("event_exporters.event_exporters")) print('</a></li>')
+   else
+      print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/flowdevices_stats.lua">') print(i18n("flows_page.flow_exporters")) print('</a></li>')
+   end
+
+   print [[
+
+      </ul>
+    </li>]]
+end
 
 -- Interfaces
 if(num_ifaces > 0) then
