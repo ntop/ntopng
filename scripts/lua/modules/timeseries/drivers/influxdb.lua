@@ -150,6 +150,28 @@ end
 
 -- ##############################################
 
+-- This is necessary to avoid fetching a point which is not already
+-- aggregated by the retention policy
+local function fixTendForRetention(tend, rp)
+  local now = os.time()
+
+  if(rp == "1h") then
+    local current_hour = now - (now % 3600)
+    return(math.min(tend, current_hour - 3600))
+  elseif(rp == "1d") then
+    local current_day = os.date("*t", now)
+    current_day.min = 0
+    current_day.sec = 0
+    current_day.hour = 0
+    current_day = os.time(current_day)
+    return(math.min(tend, current_day - 86400))
+  end
+
+  return(tend)
+end
+
+-- ##############################################
+
 -- returns schema_name, step
 local function retentionPolicyToSchema(schema, rp, db)
   if((rp == "raw") or (rp == "autogen")) then
@@ -477,6 +499,8 @@ function driver:query(schema, tstart, tend, tags, options)
   local metrics = {}
   local retention_policy = getSchemaRetentionPolicy(schema, tstart, tend, options)
   local query_schema, raw_step, data_type = retentionPolicyToSchema(schema, retention_policy, self.db)
+
+  tend = fixTendForRetention(tend, retention_policy)
   local time_step = ts_common.calculateSampledTimeStep(raw_step, tstart, tend, options)
 
   -- NOTE: this offset is necessary to fix graph edge points when data insertion is not aligned with tstep
@@ -859,6 +883,7 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
   local top_tag = top_tags[1]
   local retention_policy = getSchemaRetentionPolicy(schema, tstart, tend, options)
   local query_schema, raw_step, data_type = retentionPolicyToSchema(schema, retention_policy, self.db)
+  tend = fixTendForRetention(tend, retention_policy)
 
   -- NOTE: this offset is necessary to fix graph edge points when data insertion is not aligned with tstep
   local unaligned_offset = raw_step - 1
