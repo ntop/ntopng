@@ -338,7 +338,7 @@ end
 
 -- Prints the menu from the populated graph_menu_entries.
 -- The entry_print_callback is called to print the actual entries.
-function printGraphMenuEntries(entry_print_callback)
+function printGraphMenuEntries(entry_print_callback, active_entry)
    local active_entries = {}
    local active_idx = 1 -- index in active_entries
    local needs_separator = false
@@ -348,6 +348,11 @@ function printGraphMenuEntries(entry_print_callback)
       if active_idx ~= 1 then
          needs_separator = needs_separator or entry.needs_separator
          separator_label = separator_label or entry.separator_label
+      end
+
+      if(active_entry == entry) then
+        -- Always consider the selected entry as active
+        entry.pending = 0
       end
 
       if(entry.pending and (entry.pending > 0)) then
