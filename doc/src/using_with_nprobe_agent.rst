@@ -12,7 +12,7 @@ other performance indicators.
 For further information about nProbe Agent please visit the `product page <https://www.ntop.org/products/netflow/nprobe-agent/>`_ and the `nProbe Agent documentation <https://www.ntop.org/guides/nprobeagent/>`_.
 
 ntopng can be used to analyse and visualize data that has been generated or collected by nProbe Agent.
-The following picture summarizes how they can be combined together.
+The picture below shows how they can be combined together.
 
 .. figure:: ./img/using_nprobe_agent_with_ntopng.png
   :align: center
@@ -21,7 +21,7 @@ The following picture summarizes how they can be combined together.
 
   Using nProbe Agent with ntopng
 
-Following is a agentmum, working, configuration example of nProbe Agent and ntopng to obtain what 
+Following is a minimal, working, configuration example of nProbe Agent and ntopng to obtain what 
 has been sketched in the picture above. The example assumes both ntopng and nProbe Agent are running 
 on the same (local) host. In case they run on separate machines, the IP address 127.0.0.1 has to be 
 changed with the address of the machine hosting ntopng. You can even run multiple nprobe-agent and let 
@@ -44,9 +44,17 @@ Where:
 
    nprobe-agent -v --zmq tcp://127.0.0.1:1234c
 
+Where:
+
+- *--zmq* specifies the ntopng ZMQ endpoint
+- *-v* sets the verbosity for printing all exported information on screen. 
+
+For a full list of options please check the `nProbe Agent documentation <http://www.ntop.org/guides/nprobemini/cli_options.html>`_.
 
 Use Cases
 =========
+
+This section contains a few use cases for nProbe Agent and its integration with ntopng.
 
 Trace-Back Users and Processes Behind Network Activities
 --------------------------------------------------------
@@ -71,8 +79,8 @@ attempting to perform a download using process *curl*.
 
   nProbe Agent: blacklisted host flows
 
-At this point, it is possible to perform an additional drill down to get to the process and user ids, 
-along with other details.
+At this point, it is possible to perform an additional drill down by clicking on the flow *Info* and then
+*Overview* to get to the process and user ids, along with other details.
 
 .. figure:: ./img/using_nprobe_agent_with_ntopng_blacklisted_host_flow_details.png
   :align: center
@@ -85,8 +93,10 @@ Per-Container and Per-POD Network Activity and Performance Indicators
 
 Checking the the performance of a given container, or spotting the true bottlenecks in a OS-virtualized 
 infrastructure, is another question ntopng can answer using it in combination with nProbe™ Agent. It is
-possible to uncover container activities and performance using, for example, the measured 
-Round-Trip times of their communications.
+possible to uncover container activities and performance using, for example, the measured Round-Trip 
+times of their communications.
+
+It is possible to access the containers list through the *Hosts* -> *Containers* menu.
 
 .. figure:: ./img/using_nprobe_agent_with_ntopng_containers_list.png
   :align: center
@@ -94,7 +104,7 @@ Round-Trip times of their communications.
 
   nProbe Agent: containers list
 
-The same also applies to PODs:
+The same applies to Pods: it is possible to access the PODs list through the *Hosts* -> *Pods* menu.
 
 .. figure:: ./img/using_nprobe_agent_with_ntopng_pods_list.png
   :align: center
