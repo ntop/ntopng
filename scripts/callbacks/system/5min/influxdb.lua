@@ -4,6 +4,8 @@
 
 local ts_utils = require("ts_utils_core")
 
+local MAX_INFLUX_EXPORT_QUEUE_LEN = 30
+
 local probe = {
   name = "InfluxDB",
   description = "Monitors InfluxDB health and performance",
@@ -93,7 +95,6 @@ function probe.getExportStats()
   local points_exported = 0
   local points_dropped = 0
   local ifnames = interface.getIfNames()
-  local old_ifname = ifname
 
   for ifid, ifname in pairs(ifnames) do
      interface.select(ifname)
@@ -105,7 +106,7 @@ function probe.getExportStats()
      end
   end
 
-  interface.select(old_ifname)
+  interface.select(getSystemInterfaceId())
 
   return {
     points_exported = points_exported,
@@ -128,7 +129,7 @@ end
 
 -- ##############################################
 
-function probe._exportStats(when, ts_utils)
+function probe._exportStats(when, ts_utils, influxdb)
   local stats = probe.getExportStats()
 
   ts_utils.append("influxdb:exported_points", {points = stats.points_exported}, when)
@@ -137,10 +138,27 @@ end
 
 -- ##############################################
 
+function probe._checkExportQueueLen(when, ts_utils, influxdb)
+  local queue_len = influxdb.getExportQueueLength()
+
+  if(queue_len > MAX_INFLUX_EXPORT_QUEUE_LEN) then
+    local err_msg = i18n("alerts_dashboard.influxdb_queue_too_long_description",
+      {length = queue_len})
+
+    interface.storeAlert(alertEntity("influx_db"), influxdb.url,
+      alertType("influxdb_queue_too_long"), alertSeverity("error"), err_msg)
+  end
+
+  traceError(TRACE_INFO, TRACE_CONSOLE, string.format("InfluxDB export queue length: %u", queue_len))
+end
+
+-- ##############################################
+
 function probe.runTask(when, ts_utils)
   local influxdb = ts_utils.getQueryDriver()
 
-  probe._exportStats(when, ts_utils)
+  probe._exportStats(when, ts_utils, influxdb)
+  probe._checkExportQueueLen(when, ts_utils, influxdb)
   probe._measureRtt(when, ts_utils, influxdb)
 end
 

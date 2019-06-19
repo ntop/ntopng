@@ -19,6 +19,7 @@ require("ntop_utils")
 
 local INFLUX_QUERY_TIMEMOUT_SEC = 5
 local INFLUX_MAX_FILE_EXPORT_TRIES = 3
+local INFLUX_EXPORT_QUEUE = "ntopng.influx_file_queue"
 local MIN_INFLUXDB_SUPPORTED_VERSION = "1.5.1"
 local FIRST_AGGREGATION_TIME_KEY = "ntopng.prefs.influxdb.first_aggregation_time"
 
@@ -717,13 +718,11 @@ end
 -- ##############################################
 
 function driver:export(deadline)
-  local export_queue = "ntopng.influx_file_queue"
-
   -- Note: allow to go beyond the deadline for one export
   while(true) do
     interface.select(getSystemInterfaceId())
 
-    local name_id = ntop.lpopCache(export_queue)
+    local name_id = ntop.lpopCache(INFLUX_EXPORT_QUEUE)
 
     if((name_id == nil) or (name_id == "")) then
       -- Nothing to export
@@ -760,24 +759,26 @@ function driver:export(deadline)
       ntop.setCache(time_key, tostring(math.max(prev_t, time_ref)))
     else
       -- Note: alert is already generated in _exportTsFile
-      interface.incInfluxDroppedPoints(num_points)
-
       if file_still_existing then
         local cur_tries = incFileExportTries(fname)
 
         if(cur_tries >= INFLUX_MAX_FILE_EXPORT_TRIES) then
           -- max tries exceeded
           traceError(TRACE_ERROR, TRACE_CONSOLE,
-            string.format("Dropping ts file %s after %u export tries, %u points of data are now lost!", fname, cur_tries, num_points))
+            string.format("Dropping ts file %s after %u export tries, %u ts points are now lost!", fname, cur_tries, num_points))
+
           os.remove(fname)
+          interface.incInfluxDroppedPoints(num_points)
           file_still_existing = false
         else
           traceError(TRACE_INFO, TRACE_CONSOLE,
             string.format("Ts file %s still unexported [%u/%u tries]", fname, cur_tries, INFLUX_MAX_FILE_EXPORT_TRIES))
 
           -- Queue the file again as the first item
-          ntop.lpushCache(export_queue, name_id)
+          ntop.lpushCache(INFLUX_EXPORT_QUEUE, name_id)
         end
+      else
+        interface.incInfluxDroppedPoints(num_points)
       end
     end
 
@@ -1579,6 +1580,12 @@ function driver:setup(ts_utils)
   end
 
   return true
+end
+
+-- ##############################################
+
+function driver.getExportQueueLength()
+  return(ntop.llenCache(INFLUX_EXPORT_QUEUE))
 end
 
 -- ##############################################

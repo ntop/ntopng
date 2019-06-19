@@ -7551,6 +7551,22 @@ static int ntop_lrange_redis(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_llen_redis(lua_State* vm) {
+  char *l_name;
+  Redis *redis = ntop->getRedis();
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(!redis) return(CONST_LUA_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  if((l_name = (char*)lua_tostring(vm, 1)) == NULL)   return(CONST_LUA_PARAM_ERROR);
+
+  lua_pushinteger(vm, redis->llen(l_name));
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_redis_dump(lua_State* vm) {
   char *key, *dump;
   Redis *redis = ntop->getRedis();
@@ -8696,6 +8712,7 @@ static const luaL_Reg ntop_reg[] = {
   { "lpopCache",         ntop_lpop_redis },
   { "ltrimCache",        ntop_ltrim_redis },
   { "lrangeCache",       ntop_lrange_redis },
+  { "llenCache",         ntop_llen_redis },
   { "setMembersCache",   ntop_add_set_member_redis },
   { "delMembersCache",   ntop_del_set_member_redis },
   { "getMembersCache",   ntop_get_set_members_redis },
