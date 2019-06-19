@@ -436,6 +436,8 @@ end
 
 function driver:_exportTsFile(fname)
   if not ntop.exists(fname) then
+    traceError(TRACE_ERROR, TRACE_CONSOLE,
+      string.format("Cannot find ts file %s. Some timeseries data will be lost.", fname))
     return nil
   end
 

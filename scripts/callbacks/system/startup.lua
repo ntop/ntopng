@@ -114,6 +114,9 @@ for _, ifname in pairs(interface.getIfNames()) do
    ntop.rmdir(export_dir)
 end
 
+-- Also flush the export queue
+ntop.delCache("ntopng.influx_file_queue")
+
 -- ##################################################################
 
 -- Initialize device policies (presets)
