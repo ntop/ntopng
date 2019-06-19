@@ -222,13 +222,13 @@ end
 
 -- ########################################################
 
-function callback_utils.uploadTSdata()
+function callback_utils.uploadTSdata(deadline)
    local ts_utils = require("ts_utils_core")
    local drivers = ts_utils.listActiveDrivers()
    ts_utils.setup()
 
    for _, driver in ipairs(drivers) do
-      driver:export()
+      driver:export(deadline)
    end
 end
 -- ########################################################

@@ -682,7 +682,8 @@ function driver:_exportTsFile(fname)
   return(true)
 end
 
-function driver:export()
+function driver:export(deadline)
+  -- Note: allow to go beyond the deadline for one export
   while(true) do
     interface.select(getSystemInterfaceId())
 
@@ -690,6 +691,7 @@ function driver:export()
     local rv
 
     if((name_id == nil) or (name_id == "")) then
+      -- Nothing to export
       break
     end
 
@@ -702,7 +704,7 @@ function driver:export()
 
     if((ifid == nil) or (time_ref == nil) or (export_id == nil) or (num_points == nil)) then
       traceError(TRACE_ERROR, TRACE_CONSOLE, "Invalid name "..name_id.."\n")
-      break
+      goto continue
     end
 
     local time_key = "ntopng.cache.influxdb_export_time_" .. self.db .. "_" .. ifid
@@ -715,14 +717,21 @@ function driver:export()
 
     if rv then
       interface.incInfluxExportedPoints(num_points)
+
+      -- Successfully exported
+      --tprint("Exported ".. fname .." in " .. (os.time() - t) .. " sec")
+      ntop.setCache(time_key, tostring(math.max(prev_t, time_ref)))
     else
+      -- Note: alert is already generated in _exportTsFile
       interface.incInfluxDroppedPoints(num_points)
+    end
+
+    if(os.time() > deadline) then
+      -- time is up, stop exporting
       break
     end
 
-    -- Successfully exported
-    --tprint("Exported ".. fname .." in " .. (os.time() - t) .. " sec")
-    ntop.setCache(time_key, tostring(math.max(prev_t, time_ref)))
+    ::continue::
   end
 
   interface.select(getSystemInterfaceId())
