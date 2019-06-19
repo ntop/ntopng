@@ -293,7 +293,7 @@ if(page == "overview") then
     ];
 
     addInputField(host, host.html(), ' data-orig-value="' + key.html() + '"');
-    addInputField(maxrtt, maxrtt.html() || "100", 'autocomplete="off" style="width:12em;" type="number" min="0"');
+    addInputField(maxrtt, maxrtt.html() || "100", 'autocomplete="off" style="width:12em;" type="number" min="1"');
     addSelectField(iptype, iptype.html(), iptypes);
     addSelectField(probetype, probetype.html(), probetypes);
   }

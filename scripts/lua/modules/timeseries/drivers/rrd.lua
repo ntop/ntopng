@@ -349,6 +349,10 @@ end
 local function update_rrd(schema, rrdfile, timestamp, data, dont_recover)
   local params = {tolongint(timestamp), }
 
+  if isDebugEnabled() then
+    traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("Going to update %s [%s]", schema.name, rrdfile))
+  end
+
   for _, metric in ipairs(schema._metrics) do
     params[#params + 1] = tolongint(data[metric])
   end
