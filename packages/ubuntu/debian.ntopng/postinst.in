@@ -24,7 +24,7 @@ fi
 
 if ! /usr/bin/id -u ntopng > /dev/null 2>&1; then 
     echo "Creating ntopng user..."
-    /usr/sbin/useradd -M -N -g ntopng -r ntopng
+    /usr/sbin/useradd -M -N -g ntopng -r -s /bin/false ntopng
 fi
 
 if [ $(getent group n2disk) ] && [ $(getent passwd ntopng) ]; then
