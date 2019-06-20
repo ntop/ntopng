@@ -678,7 +678,10 @@ bool ZMQParserInterface::parseNProbeMiniField(ParsedFlow * const flow, const cha
     if(json_object_object_get_ex(jvalue, "RTT_VARIANCE", &obj))   flow->tcp_info.rtt_var = json_object_get_double(obj);
 
     if(json_object_object_get_ex(jvalue, "BYTES_RCVD", &obj))
-      flow->out_bytes = flow->tcp_info.rcvd_bytes = (u_int32_t)json_object_get_int64(obj);
+      flow->out_bytes = flow->tcp_info.rcvd_bytes = (u_int64_t)json_object_get_int64(obj);
+
+    if(json_object_object_get_ex(jvalue, "BYTES_ACKED", &obj))
+      flow->in_bytes = flow->tcp_info.sent_bytes = (u_int64_t)json_object_get_int64(obj);
 
     if(!flow->tcp_info_set) flow->tcp_info_set = true;
     flow->absolute_packet_octet_counters = true;

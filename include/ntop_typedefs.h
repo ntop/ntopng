@@ -240,7 +240,7 @@ typedef struct {
 
 typedef struct {
   int conn_state;
-  u_int32_t rcvd_bytes;
+  u_int64_t rcvd_bytes, sent_bytes;
   u_int32_t retx_pkts, lost_pkts;
   u_int32_t in_segs, out_segs, unacked_segs;
   double rtt, rtt_var;
