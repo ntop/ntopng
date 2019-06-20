@@ -113,8 +113,8 @@ void LocalHostStats::getJSONObject(json_object *my_object, DetailsLevel details_
   if(http) json_object_object_add(my_object, "http", http->getJSONObject());
 
   /* UDP stats */
-  if(udp_sent_unicast) json_object_object_add(my_object, "udpBytesSent.unicast", json_object_new_int(udp_sent_unicast));
-  if(udp_sent_non_unicast) json_object_object_add(my_object, "udpBytesSent.non_unicast", json_object_new_int(udp_sent_non_unicast));
+  if(udp_sent_unicast) json_object_object_add(my_object, "udpBytesSent.unicast", json_object_new_int64(udp_sent_unicast));
+  if(udp_sent_non_unicast) json_object_object_add(my_object, "udpBytesSent.non_unicast", json_object_new_int64(udp_sent_non_unicast));
 }
 
 /* *************************************** */
