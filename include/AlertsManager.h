@@ -37,7 +37,7 @@ class AlertsManager : protected StoreManager {
   /* methods used for alerts that have a timespan */
   bool isAlertEngaged(AlertEngine alert_engine, AlertEntity alert_entity, const char *alert_entity_value, const char *engaged_alert_id,
 		  AlertType *alert_type, AlertLevel *alert_severity, char **alert_json, char **alert_source, char **alert_target, time_t *alert_tstamp);
-  int isAlertExisting(AlertType alert_type, AlertLevel alert_severity, AlertEntity alert_entity, const char * const alert_entity_value, u_int32_t alert_hash, char * const query_buf, ssize_t query_buf_len, bool * const is_existing, u_int64_t * const cur_rowid, u_int64_t * const cur_counter) const;
+  int isAlertExisting(AlertType alert_type, AlertLevel alert_severity, AlertEntity alert_entity, const char * const alert_entity_value, u_int32_t alert_hash, time_t when, char * const query_buf, ssize_t query_buf_len, bool * const is_existing, u_int64_t * const cur_rowid, u_int64_t * const cur_counter) const;
   int updateExistingAlert(u_int64_t rowid, u_int64_t new_counter, time_t new_timestamp_end, char * const query_buf, ssize_t query_buf_len) const;
   void markForMakeRoom(bool on_flows);
   int engageAlert(AlertEngine alert_engine, AlertEntity alert_entity, const char *alert_entity_value,

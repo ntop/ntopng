@@ -285,7 +285,7 @@ bool AlertsManager::isAlertEngaged(AlertEngine alert_engine, AlertEntity alert_e
 
 /* **************************************************** */
 
-int AlertsManager::isAlertExisting(AlertType alert_type, AlertLevel alert_severity, AlertEntity alert_entity, const char * const alert_entity_value, u_int32_t alert_hash, char * const query_buf, ssize_t query_buf_len, bool * const is_existing, u_int64_t * const cur_rowid, u_int64_t * const cur_counter) const {
+int AlertsManager::isAlertExisting(AlertType alert_type, AlertLevel alert_severity, AlertEntity alert_entity, const char * const alert_entity_value, u_int32_t alert_hash, time_t when, char * const query_buf, ssize_t query_buf_len, bool * const is_existing, u_int64_t * const cur_rowid, u_int64_t * const cur_counter) const {
   int rc = 0, step;
   sqlite3_stmt *stmt = NULL;
   bool found = false;
@@ -296,6 +296,7 @@ int AlertsManager::isAlertExisting(AlertType alert_type, AlertLevel alert_severi
 	   "WHERE alert_type = ? AND alert_severity = ? "
 	   "AND alert_entity = ? AND alert_entity_val = ? "
 	   "AND alert_hash = ? AND alert_hash IS NOT NULL "
+	   "AND alert_tstamp >= ? "
 	   "LIMIT 1; ",
 	   ALERTS_MANAGER_TABLE_NAME);
 
@@ -304,7 +305,8 @@ int AlertsManager::isAlertExisting(AlertType alert_type, AlertLevel alert_severi
      || sqlite3_bind_int(stmt,   2, static_cast<int>(alert_severity))
      || sqlite3_bind_int(stmt,   3, static_cast<int>(alert_entity))
      || sqlite3_bind_text(stmt,  4, alert_entity_value, -1, SQLITE_STATIC)
-     || sqlite3_bind_int64(stmt, 5, static_cast<long int>(alert_hash))) {
+     || sqlite3_bind_int64(stmt, 5, static_cast<long int>(alert_hash))
+     || sqlite3_bind_int64(stmt, 6, static_cast<long int>(when) - ALERTS_MANAGER_MAX_AGGR_SECS)) {
     ntop->getTrace()->traceEvent(TRACE_INFO, "SQL Error: step");
     rc = -1;
     goto out;
@@ -693,7 +695,7 @@ int AlertsManager::storeAlert(AlertEntity alert_entity, const char *alert_entity
     m.lock(__FILE__, __LINE__);
 
     /* Check if this alert already exists ...*/
-    if((rc = isAlertExisting(alert_type, alert_severity, alert_entity, alert_entity_value, alert_hash, query, sizeof(query), &is_existing, &cur_rowid, &cur_counter)))
+    if((rc = isAlertExisting(alert_type, alert_severity, alert_entity, alert_entity_value, alert_hash, when, query, sizeof(query), &is_existing, &cur_rowid, &cur_counter)))
       goto out;
 
     if(is_existing) { /* Already existing record found */
@@ -800,19 +802,21 @@ int AlertsManager::storeFlowAlert(Flow *f) {
 	     "WHERE alert_type = ? AND alert_severity = ? "
 	     "AND vlan_id = ? AND proto = ? AND l7_master_proto = ? AND l7_proto = ? "
 	     "AND flow_status = ? AND cli_addr = ? AND srv_addr = ? "
+	     "AND alert_tstamp >= ? "
 	     "LIMIT 1; ",
 	     ALERTS_MANAGER_FLOWS_TABLE_NAME);
 
     if(sqlite3_prepare_v2(db, query, -1, &stmt, 0)
-       || sqlite3_bind_int(stmt,   1, static_cast<int>(alert_type))
-       || sqlite3_bind_int(stmt,   2, static_cast<int>(alert_severity))
-       || sqlite3_bind_int(stmt,   3, f->get_vlan_id())
-       || sqlite3_bind_int(stmt,   4, f->get_protocol())
-       || sqlite3_bind_int(stmt,   5, f->get_detected_protocol().master_protocol)
-       || sqlite3_bind_int(stmt,   6, f->get_detected_protocol().app_protocol)
-       || sqlite3_bind_int(stmt,   7, (int)f->getFlowStatus())
-       || sqlite3_bind_text(stmt,  8, cli_ip, -1, SQLITE_STATIC)
-       || sqlite3_bind_text(stmt,  9, srv_ip, -1, SQLITE_STATIC)) {
+       || sqlite3_bind_int(stmt,    1, static_cast<int>(alert_type))
+       || sqlite3_bind_int(stmt,    2, static_cast<int>(alert_severity))
+       || sqlite3_bind_int(stmt,    3, f->get_vlan_id())
+       || sqlite3_bind_int(stmt,    4, f->get_protocol())
+       || sqlite3_bind_int(stmt,    5, f->get_detected_protocol().master_protocol)
+       || sqlite3_bind_int(stmt,    6, f->get_detected_protocol().app_protocol)
+       || sqlite3_bind_int(stmt,    7, (int)f->getFlowStatus())
+       || sqlite3_bind_text(stmt,   8, cli_ip, -1, SQLITE_STATIC)
+       || sqlite3_bind_text(stmt,   9, srv_ip, -1, SQLITE_STATIC)
+       || sqlite3_bind_int64(stmt, 10, static_cast<long int>(now) - ALERTS_MANAGER_MAX_AGGR_SECS)) {
       ntop->getTrace()->traceEvent(TRACE_INFO, "SQL Error: step");
       rc = 5;
       goto out;
