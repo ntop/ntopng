@@ -82,7 +82,7 @@ if(page == "overview") then
        print("<tr><th nowrap>".. i18n("system_stats.dropped_points") .."</th><td>".. formatValue(stats.points_dropped) .."</td></tr>\n")
     end
 
-    print("<tr><th nowrap>".. i18n("system_stats.series_cardinality") .." <a href=\"https://docs.influxdata.com/influxdb/v1.7/concepts/glossary/#series-cardinality\"><i class='fa fa-external-link '></i></a></th><td><img class=\"influxdb-info-load\" border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber><span id=\"influxdb-info-series\"></span></td></tr>\n")
+    print("<tr><th nowrap>".. i18n("system_stats.series_cardinality") .." <a href=\"https://docs.influxdata.com/influxdb/v1.7/concepts/glossary/#series-cardinality\"><i class='fa fa-external-link '></i></a></th><td><img class=\"influxdb-info-load\" border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber><span id=\"influxdb-info-series\"></span><i id=\"high-cardinality-warn\" class=\"fa fa-warning fa-lg\" title=\"".. i18n("system_stats.high_series_cardinality") .."\" style=\"color: orange; display:none\"></td></i></tr>\n")
     print[[<script>
  $(function() {
     $.get("]] print(ntop.getHttpPrefix()) print[[/lua/get_influxdb_info.lua", function(info) {
@@ -90,6 +90,9 @@ if(page == "overview") then
        $("#influxdb-info-text").html(bytesToVolume(info.db_bytes) + " ");
        $("#influxdb-info-memory").html(bytesToVolume(info.memory) + " ");
        $("#influxdb-info-series").html(addCommas(info.num_series) + " ");
+
+       if(info.num_series >= 950000)
+         $("#high-cardinality-warn").show();
     }).fail(function() {
        $(".influxdb-info-load").hide();
     });

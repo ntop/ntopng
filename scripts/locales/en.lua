@@ -3125,6 +3125,7 @@ local lang = {
     ["no_hosts_configured"] = "No Hosts Configured",
     ["probe"] = "Probe",
     ["series_cardinality"] = "Series Cardinality",
+    ["high_series_cardinality"] = "An high cardinality can cause database slowdowns",
     ["write_througput"] = "DB Write Througput",
   },
   ["telemetry_page"] = {
