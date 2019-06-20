@@ -676,7 +676,7 @@ function driver:_exportTsFile(fname)
   end
 
   -- Delete the file after POST
-  local delete_file_after_post = true
+  local delete_file_after_post = false
   local ret = ntop.postHTTPTextFile(self.username, self.password, self.url .. "/write?db=" .. self.db, fname, delete_file_after_post, 5 --[[ timeout ]])
 
   if((ret == nil) or ((ret.RESPONSE_CODE ~= 200) and (ret.RESPONSE_CODE ~= 204))) then
@@ -685,6 +685,8 @@ function driver:_exportTsFile(fname)
 
     rv = false
     file_still_existing = true
+  else
+    os.remove(fname)
   end
 
   return rv, file_still_existing
