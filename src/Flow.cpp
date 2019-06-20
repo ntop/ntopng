@@ -3734,6 +3734,7 @@ void Flow::setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
 void Flow::setParsedeBPFInfo(const ParsedeBPF * const ebpf, bool src2dst_direction) {  
   bool client_process = true;
   ParsedeBPF *cur = NULL;
+  bool update_ok = true;
 
   if(!ebpf)
     return;
@@ -3751,12 +3752,26 @@ void Flow::setParsedeBPFInfo(const ParsedeBPF * const ebpf, bool src2dst_directi
     if(!cli_ebpf)
       cur = cli_ebpf = new (std::nothrow) ParsedeBPF(*ebpf);
     else
-      cli_ebpf->update(ebpf);
+      update_ok = cli_ebpf->update(ebpf);
   } else { /* server_process */
     if(!srv_ebpf)
       cur = srv_ebpf = new (std::nothrow) ParsedeBPF(*ebpf);
     else
-      srv_ebpf->update(ebpf);
+      update_ok = srv_ebpf->update(ebpf);
+  }
+
+  if(!update_ok) {
+    static bool warning_shown = false;
+    char *fbuf;
+    ssize_t fbuf_len = 512;
+
+    if(!warning_shown && (fbuf = (char*)malloc(fbuf_len))) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Identical flow seen across multiple containers? %s",
+				   print(fbuf, fbuf_len));
+
+      warning_shown = true;
+      free(fbuf);
+    }
   }
 
   if(cur && cur->container_info_set) {

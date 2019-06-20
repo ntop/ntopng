@@ -43,7 +43,7 @@ class ParsedeBPF {
 
   inline void swap() { server_info = !server_info; };	
 
-  void update(const ParsedeBPF * const pe);
+  bool update(const ParsedeBPF * const pe);
   bool isServerInfo() const;
   void print();
 
