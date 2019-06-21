@@ -54,39 +54,55 @@ end
 -- ##############################################
 
 function probe.loadSchemas(ts_utils)
-  local influxdb = ts_utils.getQueryDriver()
   local schema
 
   -- The following metrics are built-in into influxdb
   schema = ts_utils.newSchema("influxdb:storage_size", {
-    label = i18n("system_stats.influxdb_storage", {dbname = influxdb.db}),
     influx_internal_query = get_storage_size_query,
     metrics_type = ts_utils.metrics.gauge, step = 10
   })
   schema:addMetric("disk_bytes")
 
   schema = ts_utils.newSchema("influxdb:memory_size", {
-    label = i18n("memory"), influx_internal_query = get_memory_size_query,
+    influx_internal_query = get_memory_size_query,
     metrics_type = ts_utils.metrics.gauge, step = 10
   })
   schema:addMetric("mem_bytes")
 
   schema = ts_utils.newSchema("influxdb:write_successes", {
-    label = i18n("system_stats.write_througput"), influx_internal_query = get_write_success_query,
+    influx_internal_query = get_write_success_query,
     metrics_type = ts_utils.metrics.counter, step = 10
   })
   schema:addMetric("points")
 
   schema = ts_utils.newSchema("influxdb:exported_points",
-    {label = i18n("system_stats.exported_points"), metrics_type = ts_utils.metrics.counter})
+    {metrics_type = ts_utils.metrics.counter})
   schema:addMetric("points")
 
-  schema = ts_utils.newSchema("influxdb:dropped_points",
-    {label = i18n("system_stats.dropped_points"), metrics_type = ts_utils.metrics.counter})
+  schema = ts_utils.newSchema("influxdb:dropped_points", {metrics_type = ts_utils.metrics.counter})
   schema:addMetric("points")
 
-    schema = ts_utils.newSchema("influxdb:rtt", {label = i18n("graphs.num_ms_rtt"), metrics_type = ts_utils.metrics.gauge})
+  schema = ts_utils.newSchema("influxdb:rtt", {metrics_type = ts_utils.metrics.gauge})
   schema:addMetric("millis_rtt")
+end
+
+-- ##############################################
+
+function probe.getTimeseriesMenu(ts_utils)
+  local influxdb = ts_utils.getQueryDriver()
+
+  return {
+    {schema="influxdb:storage_size",                      label=i18n("system_stats.influxdb_storage", {dbname = influxdb.db})},
+    {schema="influxdb:memory_size",                       label=i18n("memory")},
+    {schema="influxdb:write_successes",                   label=i18n("system_stats.write_througput")},
+    {schema="custom:infludb_exported_vs_dropped_points",  label=i18n("system_stats.exported_vs_dropped_points"),
+      custom_schema = {
+        bases = {"influxdb:exported_points", "influxdb:dropped_points"},
+        types = {"area", "line"}, axis = {1,2},
+      }
+    },
+    {schema="influxdb:rtt",                               label=i18n("graphs.num_ms_rtt")},
+  }
 end
 
 -- ##############################################

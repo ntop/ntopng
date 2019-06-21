@@ -3120,6 +3120,7 @@ local lang = {
     ["delete_rtt_host"] = "Delete RTT Host",
     ["dropped_points"] = "Dropped Data Points",
     ["exported_points"] = "Exported Data Points",
+    ["exported_vs_dropped_points"] = "Exported/Dropped Data Points",
     ["high_series_cardinality"] = "An high cardinality can cause database slowdowns",
     ["influxdb_storage"] = "Storage (%{dbname})",
     ["last_ip"] = "Last IP",

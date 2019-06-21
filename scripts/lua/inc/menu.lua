@@ -406,7 +406,7 @@ print [[
       </ul>
     </li>
 ]]
-end
+end -- num_ifaces > 0
 
 if isAllowedSystemInterface() then
    local system_scripts = require("system_scripts_utils")
@@ -423,10 +423,10 @@ if isAllowedSystemInterface() then
          </a>
        <ul class="dropdown-menu">]]
 
-   print[[<li><a href="]] print(ntop.getHttpPrefix()) print[[/lua/system_stats.lua">]] print(i18n("system_status")) print[[</li>]]
+   print[[<li><a href="]] print(ntop.getHttpPrefix()) print[[/lua/system_stats.lua">]] print(i18n("system_status")) print[[</a></li>]]
 
    for _, entry in ipairs(system_scripts.getSystemMenuEntries()) do
-      print[[<li><a href="]] print(entry.url) print[[">]] print(entry.label) print[[</li>]]
+      print[[<li><a href="]] print(entry.url) print[[">]] print(entry.label) print[[</a></li>]]
    end
 
    if ntop.isEnterprise() then
