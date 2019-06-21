@@ -3593,7 +3593,7 @@ FlowStatus Flow::getFlowStatus() {
 	      return status_ssl_certificate_mismatch;
 	  }
 	  break;
- 	}
+	}
 
 #ifndef HAVE_NEDGE
 	if(isIdle  && lowGoodput)  return status_slow_data_exchange;
@@ -3620,7 +3620,7 @@ FlowStatus Flow::getFlowStatus() {
       && cli_host->get_ip()->isNonEmptyUnicastAddress()
       && srv_host->get_ip()->isNonEmptyUnicastAddress()) {
 
-    if(! cli_host->isLocalHost() && 
+    if(! cli_host->isLocalHost() &&
        ! srv_host->isLocalHost())
       return status_remote_to_remote;
   }
@@ -3661,11 +3661,11 @@ FlowStatus Flow::getFlowStatus() {
    return(status_flow_when_interface_alerted);
 #endif
 
-  if(protos.ssl.ssl_version && (protos.ssl.ssl_version < 0x303 /* TLSv1.2 */))
+  if(isSSL() && protos.ssl.ssl_version && (protos.ssl.ssl_version < 0x303 /* TLSv1.2 */))
     return(status_ssl_old_protocol_version);
   else if(protos.ssl.ja3.server_unsafe_cipher != ndpi_cipher_safe)
     return(status_ssl_unsafe_ciphers);
-  
+
   return(status_normal);
 }
 

@@ -252,9 +252,9 @@ class Flow : public GenericHashEntry {
   json_object* flow2json();
   json_object* flow2es(json_object *flow_object);
   json_object* flow2statusinfojson();
-  inline u_int8_t getTcpFlags()        { return(src2dst_tcp_flags | dst2src_tcp_flags);  };
-  inline u_int8_t getTcpFlagsCli2Srv() { return(src2dst_tcp_flags);                      };
-  inline u_int8_t getTcpFlagsSrv2Cli() { return(dst2src_tcp_flags);                      };
+  inline u_int8_t getTcpFlags()        const { return(src2dst_tcp_flags | dst2src_tcp_flags);  };
+  inline u_int8_t getTcpFlagsCli2Srv() const { return(src2dst_tcp_flags);                      };
+  inline u_int8_t getTcpFlagsSrv2Cli() const { return(dst2src_tcp_flags);                      };
 #ifdef HAVE_NEDGE
   bool checkPassVerdict(const struct tm *now);
   bool isPassVerdict();
