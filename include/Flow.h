@@ -236,7 +236,8 @@ class Flow : public GenericHashEntry {
   FlowStatus getFlowStatus();
   struct site_categories* getFlowCategory(bool force_categorization);
   void freeDPIMemory();
-  bool isTiny();
+  bool isTiny() const;
+  bool isLongLived() const;
   inline bool isSSL()  const { return(isProto(NDPI_PROTOCOL_SSL));  }
   inline bool isSSH()  const { return(isProto(NDPI_PROTOCOL_SSH));  }
   inline bool isDNS()  const { return(isProto(NDPI_PROTOCOL_DNS));  }
@@ -314,47 +315,48 @@ class Flow : public GenericHashEntry {
   void addFlowStats(bool cli2srv_direction, u_int in_pkts, u_int in_bytes, u_int in_goodput_bytes,
 		    u_int out_pkts, u_int out_bytes, u_int out_goodput_bytes, 
 		    u_int in_fragments, u_int out_fragments, time_t last_seen);
-  inline bool isThreeWayHandshakeOK()             { return(twh_ok);                          };
-  inline bool isDetectionCompleted() const        { return(detection_completed);             };
-  inline struct ndpi_flow_struct* get_ndpi_flow() { return(ndpiFlow);                        };
-  inline void* get_cli_id()                       { return(cli_id);                          };
-  inline void* get_srv_id()                       { return(srv_id);                          };
-  inline u_int32_t get_cli_ipv4()                 { return(cli_host->get_ip()->get_ipv4());  };
-  inline u_int32_t get_srv_ipv4()                 { return(srv_host->get_ip()->get_ipv4());  };
-  inline struct ndpi_in6_addr* get_cli_ipv6()     { return(cli_host->get_ip()->get_ipv6());  };
-  inline struct ndpi_in6_addr* get_srv_ipv6()     { return(srv_host->get_ip()->get_ipv6());  };
-  inline u_int16_t get_cli_port() const           { return(ntohs(cli_port));                 };
-  inline u_int16_t get_srv_port() const           { return(ntohs(srv_port));                 };
-  inline u_int16_t get_vlan_id()                  { return(vlanId);                          };
-  inline u_int8_t  get_protocol() const           { return(protocol);                        };
-  inline u_int64_t get_bytes()                    { return(cli2srv_bytes+srv2cli_bytes);     };
-  inline u_int64_t get_bytes_cli2srv()            { return(cli2srv_bytes);                   };
-  inline u_int64_t get_bytes_srv2cli()            { return(srv2cli_bytes);                   };
-  inline u_int64_t get_goodput_bytes()            { return(cli2srv_goodput_bytes+srv2cli_goodput_bytes);     };
-  inline u_int64_t get_packets()                  { return(cli2srv_packets+srv2cli_packets); };
-  inline u_int64_t get_packets_cli2srv()          { return(cli2srv_packets);                 };
-  inline u_int64_t get_packets_srv2cli()          { return(srv2cli_packets);                 };
-  inline u_int64_t get_partial_bytes()            { return(get_bytes() - (last_db_dump.cli2srv_bytes+last_db_dump.srv2cli_bytes));       };
-  inline u_int64_t get_partial_bytes_cli2srv()    { return(cli2srv_bytes - last_db_dump.cli2srv_bytes);       };
-  inline u_int64_t get_partial_bytes_srv2cli()    { return(srv2cli_bytes - last_db_dump.srv2cli_bytes);       };
-  inline u_int64_t get_partial_packets_cli2srv()  { return(cli2srv_packets - last_db_dump.cli2srv_packets);   };
-  inline u_int64_t get_partial_packets_srv2cli()  { return(srv2cli_packets - last_db_dump.srv2cli_packets);   };
-  inline u_int64_t get_partial_goodput_bytes()    { return(get_goodput_bytes() - (last_db_dump.cli2srv_goodput_bytes+last_db_dump.srv2cli_goodput_bytes));       };
-  inline u_int64_t get_partial_packets()          { return(get_packets() - (last_db_dump.cli2srv_packets+last_db_dump.srv2cli_packets)); };
-  inline float get_bytes_thpt()                   { return(bytes_thpt);                      };
-  inline float get_goodput_bytes_thpt()           { return(goodput_bytes_thpt);              };
-
-  inline time_t get_partial_first_seen()          { return(last_db_dump.last_dump == 0 ? get_first_seen() : last_db_dump.last_dump); };
-  inline time_t get_partial_last_seen()           { return(get_last_seen()); };
-  inline u_int32_t get_duration()                 { return((u_int32_t)(get_last_seen()-get_first_seen())); };
-  inline char* get_protocol_name()  const         { return(Utils::l4proto2name(protocol));   };
+  inline bool isThreeWayHandshakeOK()    const { return(twh_ok);                          };
+  inline bool isDetectionCompleted()     const { return(detection_completed);             };
+  inline void* get_cli_id()              const { return(cli_id);                          };
+  inline void* get_srv_id()              const { return(srv_id);                          };
+  inline u_int32_t get_cli_ipv4()        const { return(cli_host->get_ip()->get_ipv4());  };
+  inline u_int32_t get_srv_ipv4()        const { return(srv_host->get_ip()->get_ipv4());  };
   inline ndpi_protocol get_detected_protocol() const { return(isDetectionCompleted() ? ndpiDetectedProtocol : ndpiUnknownProtocol);          };
+  inline struct ndpi_flow_struct* get_ndpi_flow()   const { return(ndpiFlow);                        };
+  inline const struct ndpi_in6_addr* get_cli_ipv6() const { return(cli_host->get_ip()->get_ipv6());  };
+  inline const struct ndpi_in6_addr* get_srv_ipv6() const { return(srv_host->get_ip()->get_ipv6());  };
+  inline u_int16_t get_cli_port()        const { return(ntohs(cli_port));                 };
+  inline u_int16_t get_srv_port()        const { return(ntohs(srv_port));                 };
+  inline u_int16_t get_vlan_id()         const { return(vlanId);                          };
+  inline u_int8_t  get_protocol()        const { return(protocol);                        };
+  inline u_int64_t get_bytes()           const { return(cli2srv_bytes+srv2cli_bytes);     };
+  inline u_int64_t get_bytes_cli2srv()   const { return(cli2srv_bytes);                   };
+  inline u_int64_t get_bytes_srv2cli()   const { return(srv2cli_bytes);                   };
+  inline u_int64_t get_goodput_bytes()   const { return(cli2srv_goodput_bytes+srv2cli_goodput_bytes);     };
+  inline u_int64_t get_packets()         const { return(cli2srv_packets+srv2cli_packets); };
+  inline u_int64_t get_packets_cli2srv() const { return(cli2srv_packets);                 };
+  inline u_int64_t get_packets_srv2cli() const { return(srv2cli_packets);                 };
+  inline u_int64_t get_partial_bytes()   const { return(get_bytes() - (last_db_dump.cli2srv_bytes+last_db_dump.srv2cli_bytes));       };
+  inline u_int64_t get_partial_bytes_cli2srv()   const { return(cli2srv_bytes - last_db_dump.cli2srv_bytes);       };
+  inline u_int64_t get_partial_bytes_srv2cli()   const { return(srv2cli_bytes - last_db_dump.srv2cli_bytes);       };
+  inline u_int64_t get_partial_packets_cli2srv() const { return(cli2srv_packets - last_db_dump.cli2srv_packets);   };
+  inline u_int64_t get_partial_packets_srv2cli() const { return(srv2cli_packets - last_db_dump.srv2cli_packets);   };
+  inline u_int64_t get_partial_goodput_bytes()   const { return(get_goodput_bytes() - (last_db_dump.cli2srv_goodput_bytes+last_db_dump.srv2cli_goodput_bytes));       };
+  inline u_int64_t get_partial_packets() const { return(get_packets() - (last_db_dump.cli2srv_packets+last_db_dump.srv2cli_packets)); };
+  inline float get_bytes_thpt()          const { return(bytes_thpt);                      };
+  inline float get_goodput_bytes_thpt()  const { return(goodput_bytes_thpt);              };
 
-  inline Host* get_cli_host()                     { return(cli_host);                        };
-  inline Host* get_srv_host()                     { return(srv_host);                        };
-  inline char* get_json_info()			  { return(json_info);                       };
-  inline void set_long_icmp_payload()             { protos.icmp.has_long_icmp_payload = true; }
-  inline bool has_long_icmp_payload()             { return(protos.icmp.has_long_icmp_payload); }
+  inline time_t get_partial_first_seen() const { return(last_db_dump.last_dump == 0 ? get_first_seen() : last_db_dump.last_dump); };
+  inline time_t get_partial_last_seen()  const { return(get_last_seen()); };
+  inline u_int32_t get_duration()        const { return((u_int32_t)(get_last_seen()-get_first_seen())); };
+  inline char* get_protocol_name()       const { return(Utils::l4proto2name(protocol));   };
+
+
+  inline Host* get_cli_host()            const  { return(cli_host);                        };
+  inline Host* get_srv_host()            const  { return(srv_host);                        };
+  inline char* get_json_info()	         const  { return(json_info);                       };
+  inline bool has_long_icmp_payload()    const  { return(protos.icmp.has_long_icmp_payload); };
+  inline void set_long_icmp_payload()           { protos.icmp.has_long_icmp_payload = true;  };
   inline ndpi_protocol_breed_t get_protocol_breed() const {
     return(ndpi_get_proto_breed(iface->get_ndpi_struct(), isDetectionCompleted() ? ndpiDetectedProtocol.app_protocol : NDPI_PROTOCOL_UNKNOWN));
   };

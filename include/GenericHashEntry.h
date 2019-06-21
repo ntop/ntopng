@@ -65,14 +65,14 @@ class GenericHashEntry {
    * 
    * @return Time of first seen.
    */
-  inline time_t get_first_seen()     { return(first_seen); };
+  inline time_t get_first_seen() const { return(first_seen); };
   /**
    * @brief Get the last seen time.
    * @details Inline method.
    * 
    * @return Time of last seen.
    */
-  inline time_t get_last_seen()       { return(last_seen); };
+  inline time_t get_last_seen()  const { return(last_seen); };
   /**
    * @brief Get the next hash entry.
    * @details Inline method.

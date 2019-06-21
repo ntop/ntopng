@@ -1863,6 +1863,34 @@ time_t Prefs::pro_edition_demo_ends_at() {
 
 /* *************************************** */
 
+bool Prefs::in_longlived_whitelist(const Flow * f) const {
+  return f->get_protocol_category() == NDPI_PROTOCOL_CATEGORY_DATABASE;
+}
+
+/* *************************************** */
+
+bool Prefs::in_elephant_whitelist(const Flow * f) const {
+  return false;
+}
+
+/* *************************************** */
+
+bool Prefs::is_longlived_flow(const Flow * f) const {
+  bool ret = !in_longlived_whitelist(f)
+    && f->get_duration() > get_longlived_flow_duration();
+
+  return ret;
+}
+
+/* *************************************** */
+
+bool Prefs::is_elephant_flow(const Flow * f) const {
+  /* TODO */
+  return false;
+}
+
+/* *************************************** */
+
 /* Perform here post-initialization validations */
 
 void Prefs::validate() {
@@ -1875,7 +1903,6 @@ void Prefs::validate() {
   }
 #endif
 }
-
 
 /* *************************************** */
 

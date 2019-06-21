@@ -3623,10 +3623,10 @@ FlowStatus Flow::getFlowStatus() {
     if(! cli_host->isLocalHost() && 
        ! srv_host->isLocalHost())
       return status_remote_to_remote;
-
-    if(get_duration() > ntop->getPrefs()->get_longlived_flow_duration())
-      return status_longlived;
   }
+
+  if(isLongLived())
+    return status_longlived;
 
   if(cli_host && srv_host
      /* Assumes elephant flows are normal when the category is data transfer */
@@ -3671,13 +3671,19 @@ FlowStatus Flow::getFlowStatus() {
 
 /* ***************************************************** */
 
-bool Flow::isTiny() {
+bool Flow::isTiny() const {
   //if((cli2srv_packets < 3) && (srv2cli_packets == 0))
   if((get_packets() <= ntop->getPrefs()->get_max_num_packets_per_tiny_flow())
      || (get_bytes() <= ntop->getPrefs()->get_max_num_bytes_per_tiny_flow()))
     return(true);
   else
     return(false);
+}
+
+/* ***************************************************** */
+
+bool Flow::isLongLived() const {
+  return ntop->getPrefs()->is_longlived_flow(this);
 }
 
 /* ***************************************************** */

@@ -151,6 +151,8 @@ class Prefs {
     }
   };
   bool getDefaultBoolPrefsValue(const char *pref_key, const bool default_value);
+  bool in_longlived_whitelist(const Flow * f) const;
+  bool in_elephant_whitelist(const Flow * f)  const;
 
  public:
   Prefs(Ntop *_ntop);
@@ -342,10 +344,10 @@ class Prefs {
   inline bool do_use_ports_to_determine_src_and_dst() const { return(use_ports_to_determine_src_and_dst); };
   inline bool are_device_protocol_policies_enabled()  const { return(device_protocol_policies_enabled);   };
 
-  inline bool isVLANTrunkModeEnabled()                   { return(enable_vlan_trunk_bridge);           }
-  inline bool isCaptivePortalEnabled()                   { return(enable_captive_portal && !enable_vlan_trunk_bridge); }
-  inline bool isInformativeCaptivePortalEnabled()        { return(enable_informative_captive_portal && !enable_vlan_trunk_bridge); }
-  inline bool isMacBasedCaptivePortal()                  { return(mac_based_captive_portal);  }
+  inline bool isVLANTrunkModeEnabled()                const { return(enable_vlan_trunk_bridge);           }
+  inline bool isCaptivePortalEnabled()                const { return(enable_captive_portal && !enable_vlan_trunk_bridge); }
+  inline bool isInformativeCaptivePortalEnabled()     const { return(enable_informative_captive_portal && !enable_vlan_trunk_bridge); }
+  inline bool isMacBasedCaptivePortal()               const { return(mac_based_captive_portal);  }
   const char * const getCaptivePortalUrl();
 
   inline u_int8_t  getDefaultl7Policy()                  { return(default_l7policy);  }
@@ -353,12 +355,15 @@ class Prefs {
   inline int32_t   get_max_num_alerts_per_entity()       { return(max_num_alerts_per_entity); };
   inline int32_t   get_max_num_flow_alerts()             { return(max_num_flow_alerts); };
 
-  inline u_int32_t get_max_num_packets_per_tiny_flow()       { return(max_num_packets_per_tiny_flow);       };
-  inline u_int32_t get_max_num_bytes_per_tiny_flow()         { return(max_num_bytes_per_tiny_flow);         };
-  inline u_int32_t get_max_num_aggregated_flows_per_export() { return(max_num_aggregated_flows_per_export); };
-  inline u_int64_t get_elephant_flow_remote_to_local_bytes() { return(elephant_flow_remote_to_local_bytes); };
-  inline u_int64_t get_elephant_flow_local_to_remote_bytes() { return(elephant_flow_local_to_remote_bytes); };
-  inline u_int32_t get_longlived_flow_duration()             { return(longlived_flow_duration); };
+  inline u_int32_t get_max_num_packets_per_tiny_flow()       const { return(max_num_packets_per_tiny_flow);       };
+  inline u_int32_t get_max_num_bytes_per_tiny_flow()         const { return(max_num_bytes_per_tiny_flow);         };
+  inline u_int32_t get_max_num_aggregated_flows_per_export() const { return(max_num_aggregated_flows_per_export); };
+  inline u_int64_t get_elephant_flow_remote_to_local_bytes() const { return(elephant_flow_remote_to_local_bytes); };
+  inline u_int64_t get_elephant_flow_local_to_remote_bytes() const { return(elephant_flow_local_to_remote_bytes); };
+  inline u_int32_t get_longlived_flow_duration()             const { return(longlived_flow_duration);             };
+
+  bool is_longlived_flow(const Flow *f) const;
+  bool is_elephant_flow(const Flow *f)   const;
 
   inline u_int64_t get_max_extracted_pcap_bytes() { return max_extracted_pcap_bytes; };
 
