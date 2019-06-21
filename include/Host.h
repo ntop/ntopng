@@ -89,8 +89,6 @@ class Host : public GenericHashEntry {
   void freeHostData();
   virtual void deleteHostData();
   char* get_mac_based_tskey(Mac *mac, char *buf, size_t bufsize);
-  char* getSerializedString();
-
   
  public:
   Host(NetworkInterface *_iface, char *ipAddress, u_int16_t _vlanId);

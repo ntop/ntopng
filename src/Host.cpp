@@ -626,10 +626,6 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   fingerprints.ssl.lua("ssl_fingerprint", vm);
   
   if(verbose) {
-    char *rsp = getSerializedString();
-    lua_push_str_table_entry(vm, "json", rsp);
-    free(rsp);
-
     if(hasAnomalies()) luaAnomalies(vm);
   }
 
@@ -782,23 +778,6 @@ void Host::incStats(u_int32_t when, u_int8_t l4_proto, u_int ndpi_proto,
 
     updateSeen();
   }
-}
-
-/* *************************************** */
-
-char* Host::getSerializedString() {
-  json_object *my_object = json_object_new_object();
-
-  if(my_object) {
-    char *rsp = strdup(json_object_to_json_string(my_object));
-
-    /* Free memory */
-    json_object_put(my_object);
-
-    return(rsp);
-  }
-
-  return(NULL);
 }
 
 /* *************************************** */
