@@ -12,6 +12,9 @@ local have_nedge = ntop.isnEdge()
 
 local ts_utils = require("ts_utils")
 
+-- Keep global, need to be accessed from nv_graph_utils
+schemas_graph_options = {}
+
 -- ########################################################
 
 if(ntop.isPro()) then
@@ -432,6 +435,8 @@ function printSeries(options, tags, start_time, base_url, params)
          -- in getBatchedListSeriesResult
          local batch_ids = {}
 
+         schemas_graph_options[k] = serie
+
          if starts(k, "custom:") then
             if not ntop.isPro() then
                goto continue
@@ -441,12 +446,14 @@ function printSeries(options, tags, start_time, base_url, params)
             exists = true
          end
 
-         if serie.check ~= nil then
+         local to_check = serie.check or (serie.custom_schema and serie.custom_schema.bases)
+
+         if(to_check ~= nil) then
             exists = true
 
             -- In the case of custom series, the serie can only be shown if all
             -- the component series exists
-            for _, serie in pairs(serie.check) do
+            for _, serie in pairs(to_check) do
                local batch_id = ts_utils.batchListSeries(serie, tags, start_time)
 
                if batch_id == nil then

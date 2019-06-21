@@ -2586,6 +2586,46 @@ static int ntop_inc_influx_dropped_points(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_inc_influx_export_retries(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  bool rv = false;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(!ntop_interface)
+    return(CONST_LUA_ERROR);
+
+  if(ntop_interface && ntop_interface->getTSExporter()) {
+    ntop_interface->getTSExporter()->incNumExportRetries();
+    rv = true;
+  }
+
+  lua_pushboolean(vm, rv);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_inc_influx_export_failures(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  bool rv = false;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(!ntop_interface)
+    return(CONST_LUA_ERROR);
+
+  if(ntop_interface && ntop_interface->getTSExporter()) {
+    ntop_interface->getTSExporter()->incNumExportFailures();
+    rv = true;
+  }
+
+  lua_pushboolean(vm, rv);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_get_influx_export_stats(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -8600,6 +8640,8 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "appendInfluxDB",                   ntop_append_influx_db                 },
   { "incInfluxExportedPoints",          ntop_inc_influx_exported_points       },
   { "incInfluxDroppedPoints",           ntop_inc_influx_dropped_points        },
+  { "incInfluxExportRetries",           ntop_inc_influx_export_retries        },
+  { "incInfluxExportFailures",          ntop_inc_influx_export_failures       },
   { "getInfluxExportStats"  ,           ntop_get_influx_export_stats          },
 
 #ifdef NTOPNG_PRO

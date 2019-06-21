@@ -25,6 +25,8 @@ if driver.getInfluxdbVersion then
     local stats = probe.getExportStats()
     info.points_exported = stats.points_exported
     info.points_dropped = stats.points_dropped
+    info.export_retries = stats.export_retries
+    info.export_failures = stats.export_failures
   end
 end
 

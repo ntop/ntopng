@@ -79,8 +79,14 @@ function probe.loadSchemas(ts_utils)
     {metrics_type = ts_utils.metrics.counter})
   schema:addMetric("points")
 
-  schema = ts_utils.newSchema("influxdb:dropped_points", {metrics_type = ts_utils.metrics.counter})
+  schema = ts_utils.newSchema("influxdb:dropped_points",{metrics_type = ts_utils.metrics.counter})
   schema:addMetric("points")
+
+  schema = ts_utils.newSchema("influxdb:retried_exports", {metrics_type = ts_utils.metrics.counter})
+  schema:addMetric("num_exports")
+
+  schema = ts_utils.newSchema("influxdb:failed_exports", {metrics_type = ts_utils.metrics.counter})
+  schema:addMetric("num_exports")
 
   schema = ts_utils.newSchema("influxdb:rtt", {metrics_type = ts_utils.metrics.gauge})
   schema:addMetric("millis_rtt")
@@ -99,7 +105,16 @@ function probe.getTimeseriesMenu(ts_utils)
       custom_schema = {
         bases = {"influxdb:exported_points", "influxdb:dropped_points"},
         types = {"area", "line"}, axis = {1,2},
-      }
+      },
+      metrics_labels = {i18n("system_stats.exported_points"), i18n("system_stats.dropped_points")},
+    },
+    {schema="custom:infludb_retried_vs_failed_exports",  label=i18n("system_stats.infludb_retried_vs_failed_exports"),
+      custom_schema = {
+        bases = {"influxdb:retried_exports", "influxdb:failed_exports"},
+        types = {"area", "area"}, axis = {1,1},
+      },
+      metrics_labels = {i18n("system_stats.export_retries"), i18n("system_stats.export_failures")},
+      value_formatter = "fcounter_to_intval",
     },
     {schema="influxdb:rtt",                               label=i18n("graphs.num_ms_rtt")},
   }
@@ -110,6 +125,8 @@ end
 function probe.getExportStats()
   local points_exported = 0
   local points_dropped = 0
+  local export_retries = 0
+  local export_failures = 0
   local ifnames = interface.getIfNames()
 
   for ifid, ifname in pairs(ifnames) do
@@ -119,6 +136,8 @@ function probe.getExportStats()
      if(stats ~= nil) then
         points_exported = points_exported + stats.num_points_exported
         points_dropped = points_dropped + stats.num_points_dropped
+        export_retries = export_retries + stats.num_export_retries
+        export_failures = export_failures + stats.num_export_failures
      end
   end
 
@@ -126,7 +145,9 @@ function probe.getExportStats()
 
   return {
     points_exported = points_exported,
-    points_dropped = points_dropped
+    points_dropped = points_dropped,
+    export_retries = export_retries,
+    export_failures = export_failures,
   }
 end
 
@@ -150,6 +171,8 @@ function probe._exportStats(when, ts_utils, influxdb)
 
   ts_utils.append("influxdb:exported_points", {points = stats.points_exported}, when)
   ts_utils.append("influxdb:dropped_points", {points = stats.points_dropped}, when)
+  ts_utils.append("influxdb:retried_exports", {num_exports = stats.export_retries}, when)
+  ts_utils.append("influxdb:failed_exports", {num_exports = stats.export_failures}, when)
 end
 
 -- ##############################################

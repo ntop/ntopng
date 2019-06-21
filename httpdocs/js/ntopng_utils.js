@@ -102,6 +102,11 @@ function fbits(bits) {
 //    return Math.round(bits / Math.pow(1000, i), 2) + ' ' + sizes[i];
 }
 
+function fcounter_to_intval(value) {
+  /* Turns a derivate value into an integral */
+  return(fint(value * ts_chart.current_step));
+}
+
 function fbits_from_bytes(bytes) {
   if(typeof(bytes) === "undefined")
     return "-";

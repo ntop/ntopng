@@ -768,6 +768,7 @@ function driver:export(deadline)
           -- max tries exceeded
           traceError(TRACE_ERROR, TRACE_CONSOLE,
             string.format("Dropping ts file %s after %u export tries, %u ts points are now lost!", fname, cur_tries, num_points))
+          interface.incInfluxExportFailures()
 
           os.remove(fname)
           interface.incInfluxDroppedPoints(num_points)
@@ -775,6 +776,7 @@ function driver:export(deadline)
         else
           traceError(TRACE_INFO, TRACE_CONSOLE,
             string.format("Ts file %s still unexported [%u/%u tries]", fname, cur_tries, INFLUX_MAX_FILE_EXPORT_TRIES))
+          interface.incInfluxExportRetries()
 
           -- Queue the file again as the first item
           ntop.lpushCache(INFLUX_EXPORT_QUEUE, name_id)

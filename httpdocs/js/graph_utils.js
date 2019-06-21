@@ -10,9 +10,12 @@ function initLabelMaps(_schema_2_label, _data_2_label, _graph_i18n) {
   graph_i18n = _graph_i18n;
 };
 
-function getSerieLabel(schema, serie) {
+function getSerieLabel(schema, serie, visualization, serie_index) {
   var data_label = serie.label;
   var new_label = data_2_label[data_label];
+
+  if(visualization && visualization.metrics_labels && visualization.metrics_labels[serie_index])
+    return visualization.metrics_labels[serie_index];
 
   if((schema == "top:local_senders") || (schema == "top:local_receivers")) {
     if(serie.ext_label)
@@ -72,8 +75,16 @@ function getSerieLabel(schema, serie) {
 }
 
 // Value formatter
-function getValueFormatter(schema, metric_type, series) {
+function getValueFormatter(schema, metric_type, series, custom_formatter) {
   if(series && series.length && series[0].label) {
+    if(custom_formatter) {
+      // translate function name to actual function
+      var fn = window[custom_formatter];
+      if(typeof fn !== "function")
+        console.error("Cannot find custom value formatter \"" + custom_formatter + "\"");
+      return([fn]);
+    }
+
     var label = series[0].label;
 
     if(label.contains("bytes")) {
@@ -677,8 +688,10 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
           t += data.step;
         }
 
-        var label = getSerieLabel(schema_name, series[j]);
+        var visualization = chart.visualization_options || {};
+        var label = getSerieLabel(schema_name, series[j], visualization, j);
         var legend_key = schema_name + ":" + label;
+        chart.current_step = data.step;
 
         res.push({
           key: label,
@@ -825,15 +838,15 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
       }
 
       // get the value formatter
-      var formatter1 = getValueFormatter(schema_name, metric_type, series.filter(function(d) { return(d.axis != 2); }));
+      var formatter1 = getValueFormatter(schema_name, metric_type, series.filter(function(d) { return(d.axis != 2); }), visualization.value_formatter);
       var value_formatter = formatter1[0];
-      var tot_formatter = formatter1[1];
+      var tot_formatter = formatter1[1] || value_formatter;
       var stats_formatter = formatter1[2] || value_formatter;
       chart.yAxis1.tickFormat(value_formatter);
       chart.yAxis1_formatter = value_formatter;
 
       var second_axis_series = series.filter(function(d) { return(d.axis == 2); });
-      var formatter2 = getValueFormatter(schema_name, metric_type, second_axis_series);
+      var formatter2 = getValueFormatter(schema_name, metric_type, second_axis_series, visualization.value_formatter);
       var value_formatter2 = formatter2[0];
       chart.yAxis2.tickFormat(value_formatter2);
       chart.yAxis2_formatter = value_formatter2;

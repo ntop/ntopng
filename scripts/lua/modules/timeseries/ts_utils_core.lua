@@ -103,6 +103,8 @@ function ts_utils.loadSchemas()
   local menu_entries = system_scripts.getAdditionalTimeseries()
 
   -- Possibly load custom schemas
+  -- It is necessary to load them here in order for custom schemas to
+  -- be available in rest/ts.lua
   for _, entry in pairs(menu_entries) do
     if((entry.schema ~= nil) and (entry.custom_schema ~= nil)) then
       ts_utils.custom_schemas[entry.schema] = entry.custom_schema

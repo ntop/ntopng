@@ -40,6 +40,7 @@
 TimeseriesExporter::TimeseriesExporter(NetworkInterface *_if) {
   fd = -1, iface = _if, num_cached_entries = 0, dbCreated = false;
   cursize = num_exports = 0;
+  num_export_retries = num_export_failures = 0;
   num_points_exported = 0, num_points_dropped = 0;
 
   snprintf(fbase, sizeof(fbase), "%s/%d/ts_export/", ntop->get_working_dir(), iface->get_id());
@@ -143,4 +144,6 @@ void TimeseriesExporter::flush() {
 void TimeseriesExporter::lua(lua_State *vm) {
   lua_push_uint64_table_entry(vm, "num_points_exported", num_points_exported);
   lua_push_uint64_table_entry(vm, "num_points_dropped", num_points_dropped);
+  lua_push_uint64_table_entry(vm, "num_export_retries", num_export_retries);
+  lua_push_uint64_table_entry(vm, "num_export_failures", num_export_failures);
 }
