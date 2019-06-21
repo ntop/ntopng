@@ -115,6 +115,12 @@ function system_scripts.runTask(task, when)
   local periodicity = task_to_periodicity[task]
   local default_schema_options = { step = periodicity, is_system_schema = true }
 
+  if(task ~= "second") then
+    -- Do not include this in the second script as it has a performance
+    -- impact of about 100ms
+    require("lua_utils")
+  end
+
   if(periodicity == nil) then
     return(false)
   end
