@@ -2988,7 +2988,7 @@ void NetworkInterface::periodicStatsUpdate() {
     } else
 #ifdef AGGREGATED_FLOW_DEBUG
       ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				   "Aggregation in %i housekeeping cycles [housekeeping frequency: %i] [inter-aggregation housekeeping cycles: %i] ",
+				   "Aggregation in %i housekeeping cycles [housekeeping frequency: %i] [inter-aggregation housekeeping cycles: %i][num_items: %u]",
 				   nextFlowAggregation, ntop->getPrefs()->get_housekeeping_frequency(), FLOW_AGGREGATION_DURATION,
 				   aggregated_flows_hash->getCurrentSize());
 #endif

@@ -872,8 +872,10 @@ bool Flow::dumpFlow(bool dump_alert) {
     dumpFlowAlert();
   }
 
-  if(((cli2srv_packets - last_db_dump.cli2srv_packets) == 0)
-     && ((srv2cli_packets - last_db_dump.srv2cli_packets) == 0))
+  /* Check for bytes, and not for packets, as with nprobeagent
+     there are not packet counters, just bytes. */
+  if(((cli2srv_bytes - last_db_dump.cli2srv_bytes) == 0)
+     && ((srv2cli_bytes - last_db_dump.srv2cli_bytes) == 0))
       return(rc);
 
   if(ntop->getPrefs()->do_dump_flows()
