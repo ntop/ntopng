@@ -17,8 +17,8 @@ local host_stats           = _GET["host_stats"]
 local host_stats_flows     = _GET["host_stats_flows"]
 local host_stats_flows_num = _GET["limit"]
 
-host_info = url2hostinfo(_GET)
-host = _GET["host"]
+local host_info = url2hostinfo(_GET)
+local host = _GET["host"]
 
 if(host_info["host"] == nil) then
    sendHTTPContentTypeHeader('text/html')
@@ -55,7 +55,7 @@ function flows2protocolthpt(flows)
    return protocol_thpt
 end
 
-ifid = _GET["ifid"]
+local ifid = _GET["ifid"]
 -- parse interface names and possibly fall back to the selected interface:
 -- priority goes to the interface id
 if ifid ~= nil and ifid ~= "" then
@@ -78,12 +78,11 @@ if(host == nil) then
    return
 else
    sendHTTPHeader('application/json')
-   local hj = {}
+   local hj = host
+
    -- hosts stats are on by default, one must explicitly disable them
-   if host_stats == nil or host_stats == "" or host_stats == "true" or host_stats == "1" then
-      hj = json.decode(host["json"])
-      hj["sites"] = host["sites"]
-      hj["http"] = host["http"]
+   if not (host_stats == nil or host_stats == "" or host_stats == "true" or host_stats == "1") then
+      hj = {}
    end
 
    -- host flow stats are off by default and must be explicitly enabled
