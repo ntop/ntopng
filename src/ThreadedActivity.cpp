@@ -151,7 +151,11 @@ void ThreadedActivity::runScript() {
 /* Run a script - both periodic and one-shot scripts are called here */
 void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface) {
   LuaEngine *l;
+  u_long max_duration_ms = periodicity * 1e3;
+  u_long msec_diff;
+  struct timeval begin, end;
 
+  if(!iface) iface = ntop->getSystemInterface();
   if(strcmp(path, SHUTDOWN_SCRIPT_PATH) && isTerminating()) return;
 
 #ifdef THREADED_DEBUG
@@ -173,9 +177,22 @@ void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface) {
     return;
   }
 
-  l->run_script(script_path, (iface ? iface : ntop->getSystemInterface()));
+  gettimeofday(&begin, NULL);
+  l->run_script(script_path, iface);
+  gettimeofday(&end, NULL);
 
-  if(iface == NULL)
+  msec_diff = (end.tv_sec - begin.tv_sec) * 1000 + (end.tv_usec - begin.tv_usec) / 1000;
+
+  ntop->getTrace()->traceEvent(TRACE_INFO,
+    "[PeriodicActivity] %s: completed in %u/%u ms [%s]", path, msec_diff, max_duration_ms,
+    (((max_duration_ms > 0) && (msec_diff > max_duration_ms)) ? "SLOW" : "OK"));
+
+  if((max_duration_ms > 0) &&
+      (msec_diff > 2*max_duration_ms) &&
+      (strcmp(path, HOUSEKEEPING_SCRIPT_PATH) != 0)) /* housekeping can go beyond the max time right now */
+    storeSlowActivityAlert(msec_diff, iface);
+
+  if(iface == ntop->getSystemInterface())
     systemTaskRunning = false;
   else
     setInterfaceTaskRunning(iface, false);
@@ -192,6 +209,30 @@ void ThreadedActivity::aperiodicActivityBody() {
 
 /* ******************************************* */
 
+bool ThreadedActivity::storeSlowActivityAlert(u_long msec_diff, NetworkInterface *iface) {
+  u_long max_duration_ms = periodicity * 1e3;
+  json_object *jobject;
+
+  if((jobject = json_object_new_object()) != NULL) {
+    json_object_object_add(jobject, "ifname", json_object_new_string(iface->get_name()));
+    json_object_object_add(jobject, "ifid", json_object_new_int(iface->get_id()));
+    json_object_object_add(jobject, "duration_ms", json_object_new_int(msec_diff));
+    json_object_object_add(jobject, "max_duration_ms", json_object_new_int(max_duration_ms));
+    json_object_object_add(jobject, "path", json_object_new_string(path));
+
+    ntop->getRedis()->rpush(CONST_ALERT_PERIODIC_ACTIVITY_QUEUE,
+      (char *)json_object_to_json_string(jobject), 0 /* No trim */);
+
+    /* Free Memory */
+    json_object_put(jobject);
+    return(true);
+  }
+
+  return(false);
+}
+
+/* ******************************************* */
+
 void ThreadedActivity::uSecDiffPeriodicActivityBody() {
   struct timeval begin, end;
   u_long usec_diff;
@@ -203,7 +244,7 @@ void ThreadedActivity::uSecDiffPeriodicActivityBody() {
 #ifndef PERIODIC_DEBUG
     while(systemTaskRunning) _usleep(1000);
 #endif
-    
+
     gettimeofday(&begin, NULL);
     systemTaskRunning = true;
     runScript();

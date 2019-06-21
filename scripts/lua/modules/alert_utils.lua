@@ -2879,6 +2879,42 @@ function check_outside_dhcp_range_alerts()
 end
 
 -- Global function
+function check_periodic_activities_alerts()
+  while(true) do
+    local message = ntop.lpopCache("ntopng.periodic_activity_queue")
+    local elems
+
+    if((message == nil) or (message == "")) then
+      break
+    end
+
+    elems = json.decode(message)
+
+    if elems ~= nil then
+      local duration
+      local max_duration
+
+      if(elems.max_duration_ms > 3000) then
+        duration = string.format("%u s", math.floor(elems.duration_ms/1000))
+        max_duration = string.format("%u s", math.floor(elems.max_duration_ms/1000))
+      else
+        duration = string.format("%u ms", math.floor(elems.duration_ms))
+        max_duration = string.format("%u ms", math.floor(elems.max_duration_ms))
+      end
+
+      local msg = i18n("alert_messages.slow_periodic_activity", {
+        script = elems.path,
+        duration = duration,
+        max_duration = max_duration,
+      })
+
+      interface.select(elems.ifname)
+      interface.storeAlert(alertEntity("periodic_activity"), elems.path, alertType("slow_periodic_activity"), alertSeverity("warning"), msg)
+    end
+  end
+end
+
+-- Global function
 function check_process_alerts()
    while(true) do
       local message = ntop.lpopCache(alert_process_queue)
