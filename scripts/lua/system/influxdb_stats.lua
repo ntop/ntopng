@@ -94,31 +94,48 @@ if(page == "overview") then
  function refreshInfluxStats() {
   $.get("]] print(ntop.getHttpPrefix()) print[[/lua/get_influxdb_info.lua", function(info) {
      $(".influxdb-info-load").hide();
-     $("#influxdb-info-text").html(bytesToVolume(info.db_bytes) + " ");
-     $("#influxdb-info-memory").html(bytesToVolume(info.memory) + " ");
-     $("#influxdb-info-series").html(addCommas(info.num_series) + " ");
-     $("#influxdb-exported-points").html(addCommas(info.points_exported) + " ");
-     $("#influxdb-dropped-points").html(addCommas(info.points_dropped) + " ");
-     $("#influxdb-export-retries").html(addCommas(info.export_retries) + " ");
-     $("#influxdb-export-failures").html(addCommas(info.export_failures) + " ");
-
-     if(typeof last_db_bytes !== "undefined") {
-       $("#influxdb-info-text").append(drawTrend(info.db_bytes, last_db_bytes));
-       $("#influxdb-info-memory").append(drawTrend(info.memory, last_memory));
-       $("#influxdb-info-series").append(drawTrend(info.num_series, last_num_series));
-       $("#influxdb-exported-points").append(drawTrend(info.points_exported, last_exported_points));
-       $("#influxdb-dropped-points").append(drawTrend(info.points_dropped, last_dropped_points, " style=\"color: #B94A48;\""));
-       $("#influxdb-export-retries").append(drawTrend(info.export_retries, last_export_retries));
-       $("#influxdb-export-failures").append(drawTrend(info.export_failures, last_export_failures, " style=\"color: #B94A48;\""));
+     if(typeof info.db_bytes !== "undefined") {
+       $("#influxdb-info-text").html(bytesToVolume(info.db_bytes) + " ");
+       if(typeof last_db_bytes !== "undefined")
+         $("#influxdb-info-text").append(drawTrend(info.db_bytes, last_db_bytes));
+       last_db_bytes = info.db_bytes;
      }
-
-     last_db_bytes = info.db_bytes;
-     last_memory = info.memory;
-     last_num_series = info.num_series;
-     last_exported_points = info.points_exported;
-     last_dropped_points = info.points_dropped;
-     last_export_retries = info.export_retries;
-     last_export_failures = info.export_failures;
+     if(typeof info.memory !== "undefined") {
+       $("#influxdb-info-memory").html(bytesToVolume(info.memory) + " ");
+       if(typeof last_memory !== "undefined")
+         $("#influxdb-info-memory").append(drawTrend(info.memory, last_memory));
+       last_memory = info.memory;
+     }
+     if(typeof info.num_series !== "undefined") {
+       $("#influxdb-info-series").html(addCommas(info.num_series) + " ");
+       if(typeof last_num_series !== "undefined")
+         $("#influxdb-info-series").append(drawTrend(info.num_series, last_num_series));
+       last_num_series = info.num_series;
+     }
+     if(typeof info.points_exported !== "undefined") {
+       $("#influxdb-exported-points").html(addCommas(info.points_exported) + " ");
+       if(typeof last_exported_points !== "undefined")
+         $("#influxdb-exported-points").append(drawTrend(info.points_exported, last_exported_points));
+       last_exported_points = info.points_exported;
+     }
+     if(typeof info.points_dropped !== "undefined") {
+       $("#influxdb-dropped-points").html(addCommas(info.points_dropped) + " ");
+       if(typeof last_dropped_points !== "undefined")
+         $("#influxdb-dropped-points").append(drawTrend(info.points_dropped, last_dropped_points, " style=\"color: #B94A48;\""));
+       last_dropped_points = info.points_dropped;
+     }
+     if(typeof info.export_retries !== "undefined") {
+       $("#influxdb-export-retries").html(addCommas(info.export_retries) + " ");
+       if(typeof last_export_retries !== "undefined")
+         $("#influxdb-export-retries").append(drawTrend(info.export_retries, last_export_retries));
+       last_export_retries = info.export_retries;
+     }
+     if(typeof info.export_failures !== "undefined") {
+       $("#influxdb-export-failures").html(addCommas(info.export_failures) + " ");
+       if(typeof last_export_failures !== "undefined")
+         $("#influxdb-export-failures").append(drawTrend(info.export_failures, last_export_failures, " style=\"color: #B94A48;\""));
+       last_export_failures = info.export_failures;
+     }
 
      if(info.num_series >= 950000)
        $("#high-cardinality-warn").show();
