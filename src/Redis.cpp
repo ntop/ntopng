@@ -1070,13 +1070,13 @@ int Redis::lrem(const char *queue_name, const char *value) {
 
 /* ******************************************* */
 
-int Redis::lpop(const char *queue_name, char *buf, u_int buf_len) {
+int Redis::lrpop(const char *queue_name, char *buf, u_int buf_len, bool lpop) {
   int rc;
   redisReply *reply;
 
   l->lock(__FILE__, __LINE__);
   num_requests++;
-  reply = (redisReply*)redisCommand(redis, "LPOP %s", queue_name);
+  reply = (redisReply*)redisCommand(redis, "%sPOP %s", lpop ? "L" : "R", queue_name);
   if(!reply) reconnectRedis(true);
   if(reply && (reply->type == REDIS_REPLY_ERROR))
     ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
@@ -1090,6 +1090,18 @@ int Redis::lpop(const char *queue_name, char *buf, u_int buf_len) {
   l->unlock(__FILE__, __LINE__);
 
   return(rc);
+}
+
+/* ******************************************* */
+
+int Redis::lpop(const char *queue_name, char *buf, u_int buf_len) {
+  return lrpop(queue_name, buf, buf_len, true /* LPOP */);
+}
+
+/* ******************************************* */
+
+int Redis::rpop(const char *queue_name, char *buf, u_int buf_len) {
+  return lrpop(queue_name, buf, buf_len, false /* RPOP */);
 }
 
 /* ******************************************* */
@@ -1115,57 +1127,6 @@ int Redis::lindex(const char *queue_name, int idx, char *buf, u_int buf_len) {
   if(reply) freeReplyObject(reply);
   l->unlock(__FILE__, __LINE__);
 
-  return(rc);
-}
-
-/* ******************************************* */
-
-int Redis::lpop(const char *queue_name, char ***elements, u_int num_elements) {
-  int rc;
-  redisReply *reply;
-
-  l->lock(__FILE__, __LINE__);
-  num_requests++;
-  // make a redis pipeline that pops multiple elements
-  // with just 1 redis command (so we pay only one RTT
-  // and the operation is atomic)
-  /*
-
-    reply = (redisReply*)redisCommand(redis,
-				    "LRANGE %s -%u -1 \r\n LTRIM %s 0 -%u \r\n",
-				    queue_name, num_elements, queue_name, num_elements + 1);
-  */
-  redisAppendCommand(redis, "LRANGE %s -%u -1", queue_name, num_elements);
-  redisAppendCommand(redis, "LTRIM %s 0 -%u",   queue_name, num_elements + 1);
-
-  redisGetReply(redis, (void**)&reply);  // reply for LRANGE
-  if(!reply) reconnectRedis(true);
-
-  if(reply && (reply->type == REDIS_REPLY_ERROR)){
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
-    rc = -1;
-
-  } else if(reply && (reply->type == REDIS_REPLY_ARRAY)) {
-    (*elements) = (char**) calloc(reply->elements, sizeof(char*));
-    rc = (int)reply->elements;
-
-    int i = rc - 1, j = 0;
-    for(; i >= 0; i--, j++) {
-      (*elements)[j] = strdup(reply->element[i]->str);
-    }
-
-  } else
-    rc = -1;
-
-  if(reply) freeReplyObject(reply);
-  // empty also the second reply for the LTRIM
-  redisGetReply(redis, (void**)&reply);  // reply for LTRIM
-  if(!reply)
-    reconnectRedis(true);
-  else
-    freeReplyObject(reply);
-
-  l->unlock(__FILE__, __LINE__);
   return(rc);
 }
 

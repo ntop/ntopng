@@ -104,6 +104,7 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
     { DAILY_SCRIPT_PATH,        86400, true,  1           },
     { HOUSEKEEPING_SCRIPT_PATH, 3,     false, 1           },
     { DISCOVER_SCRIPT_PATH,     5,     false, 1           },
+    { TIMESERIES_SCRIPT_PATH,   5,     false, 1           },
 #ifdef HAVE_NEDGE
     { PINGER_SCRIPT_PATH,       5,     false, 1           },
 #endif

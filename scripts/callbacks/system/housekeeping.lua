@@ -1,5 +1,5 @@
 --
--- (C) 2013-18 - ntop.org
+-- (C) 2013-19 - ntop.org
 --
 -- This script is used to perform activities that are low
 -- priority with respect to second.lua but that require
@@ -12,12 +12,9 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 require "alert_utils"
-local callback_utils = require "callback_utils"
 local lists_utils = require "lists_utils"
 local recording_utils = require "recording_utils"
 local now = os.time()
-local periodicity = 3
-local deadline = (now + periodicity)
 
 check_mac_ip_association_alerts()
 if ntop.isnEdge() then
@@ -28,7 +25,6 @@ check_broadcast_domain_too_large_alerts()
 check_process_alerts()
 check_outside_dhcp_range_alerts()
 check_periodic_activities_alerts()
-callback_utils.uploadTSdata(deadline)
 lists_utils.checkReloadLists()
 
 recording_utils.checkExtractionJobs()

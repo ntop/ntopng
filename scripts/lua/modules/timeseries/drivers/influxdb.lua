@@ -18,7 +18,7 @@ require("ntop_utils")
 --
 
 local INFLUX_QUERY_TIMEMOUT_SEC = 5
-local INFLUX_MAX_FILE_EXPORT_TRIES = 3
+local INFLUX_MAX_EXPORT_QUEUE_LEN = 100
 local INFLUX_EXPORT_QUEUE = "ntopng.influx_file_queue"
 local MIN_INFLUXDB_SUPPORTED_VERSION = "1.5.1"
 local FIRST_AGGREGATION_TIME_KEY = "ntopng.prefs.influxdb.first_aggregation_time"
@@ -667,7 +667,6 @@ end
 -- Returns a tuple(success, file_still_existing)
 function driver:_exportTsFile(fname)
   local rv = true
-  local file_still_existing = false
 
   if not ntop.exists(fname) then
     traceError(TRACE_ERROR, TRACE_CONSOLE,
@@ -677,128 +676,139 @@ function driver:_exportTsFile(fname)
 
   -- Delete the file after POST
   local delete_file_after_post = false
-  local ret = ntop.postHTTPTextFile(self.username, self.password, self.url .. "/write?db=" .. self.db, fname, delete_file_after_post, 5 --[[ timeout ]])
+  local ret = ntop.postHTTPTextFile(self.username, self.password, self.url .. "/write?db=" .. self.db, fname, delete_file_after_post, 30 --[[ timeout ]])
 
   if((ret == nil) or ((ret.RESPONSE_CODE ~= 200) and (ret.RESPONSE_CODE ~= 204))) then
     local msg = self:_exportErrorMsg(ret)
     interface.storeAlert(alertEntity("influx_db"), self.url, alertType("influxdb_export_failure"), alertSeverity("error"), msg)
 
     rv = false
-    file_still_existing = true
-  else
-    os.remove(fname)
   end
 
-  return rv, file_still_existing
+  return rv
 end
 
 -- ##############################################
 
--- Returns the current tries
-local function incFileExportTries(fname)
-  local cur_tries = 0
-  local key = "ntopng.cache.influxdb.export." .. fname
-  local rv = ntop.getCache(key)
-
-  if(tonumber(rv) ~= nil) then
-    cur_tries = tonumber(rv)
-  end
-
-  cur_tries = cur_tries + 1
-  ntop.setCache(key, string.format("%u",  cur_tries), 3600)
-
-  return(cur_tries)
+local function deleteExportableFile(exportable)
+   if exportable and exportable["fname"] then
+      if ntop.exists(exportable["fname"]) then
+	 os.remove(exportable["fname"])
+	 traceError(TRACE_INFO, TRACE_CONSOLE, "Removed file "..exportable["fname"])
+      end
+   end
 end
 
 -- ##############################################
 
-local function deleteFileExportTries(fname)
-  local key = "ntopng.cache.influxdb.export." .. fname
-  ntop.delCache(key)
+local function dropExportable(exportable)
+   interface.select(exportable["ifid_str"])
+
+   interface.incInfluxDroppedPoints(exportable["num_points"])
+   deleteExportableFile(exportable)
+end
+
+-- ##############################################
+
+local function exportableSuccess(exportable)
+   interface.select(exportable["ifid_str"])
+
+   interface.incInfluxExportedPoints(exportable["num_points"])
+   deleteExportableFile(exportable)
+end
+
+-- ##############################################
+
+function driver:_performExport(exportable)
+   local time_key = "ntopng.cache.influxdb_export_time_" .. self.db .. "_" .. exportable["ifid"]
+   local prev_t = tonumber(ntop.getCache(time_key)) or 0
+
+   local start_t = ntop.gettimemsec()
+   local rv = self:_exportTsFile(exportable["fname"])
+   local end_t = ntop.gettimemsec()
+
+   if rv then
+      -- Successfully exported
+      traceError(TRACE_INFO, TRACE_CONSOLE,
+		 string.format("Successfully exported %u points in %.2fs", exportable["num_points"], (end_t - start_t)))
+      ntop.setCache(time_key, tostring(math.max(prev_t, exportable["time_ref"])))
+   end
+
+   return rv
+end
+
+-- ##############################################
+
+local function getExportable(item)
+   local parts = split(item, "|")
+   local ifid_str = parts[1]
+   local ifid = tonumber(ifid_str)
+   local time_ref = tonumber(parts[2])
+   local export_id = tonumber(parts[3])
+   local num_points = tonumber(parts[4])
+   local res = {item = item}
+
+   if not ifid or not time_ref or not export_id or not num_points then
+      traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing mandatory data from the exportable item "..(item or ''))
+      return res
+   end
+
+   res["fname"]      = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/ts_export/" .. export_id .. "_" .. time_ref)
+   res["ifid_str"]   = ifid_str
+   res["ifid"]       = ifid
+   res["num_points"] = num_points
+   res["time_ref"]   = time_ref
+
+   return res
 end
 
 -- ##############################################
 
 function driver:export(deadline)
-  -- Note: allow to go beyond the deadline for one export
-  while(true) do
-    interface.select(getSystemInterfaceId())
+   interface.select(getSystemInterfaceId())
 
-    local name_id = ntop.lpopCache(INFLUX_EXPORT_QUEUE)
+   local num_pending = ntop.llenCache(INFLUX_EXPORT_QUEUE)
 
-    if((name_id == nil) or (name_id == "")) then
-      -- Nothing to export
-      break
-    end
+   if num_pending == 0 then
+      return
+   end
 
-    local parts = split(name_id, "|")
-    local ifid_str = parts[1]
-    local ifid = tonumber(ifid_str)
-    local time_ref = tonumber(parts[2])
-    local export_id = tonumber(parts[3])
-    local num_points = tonumber(parts[4])
+   traceError(TRACE_INFO, TRACE_CONSOLE, "Exporting "..num_pending.." items")
 
-    if((ifid == nil) or (time_ref == nil) or (export_id == nil) or (num_points == nil)) then
-      traceError(TRACE_ERROR, TRACE_CONSOLE, "Invalid name "..name_id.."\n")
-      goto continue
-    end
+   -- Remove the old guys for which it wasn't possible to export
+   while num_pending > INFLUX_MAX_EXPORT_QUEUE_LEN do
+      local being_dropped = ntop.lpopCache(INFLUX_EXPORT_QUEUE)
+      local exportable_to_be_dropped = getExportable(being_dropped)
 
-    local time_key = "ntopng.cache.influxdb_export_time_" .. self.db .. "_" .. ifid
-    local prev_t = tonumber(ntop.getCache(time_key)) or 0
-    local fname = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/ts_export/" .. export_id .. "_" .. time_ref)
-    local start_t = ntop.gettimemsec()
+      dropExportable(exportable_to_be_dropped)
 
-    local rv, file_still_existing = self:_exportTsFile(fname)
-    interface.select(ifid_str)
-    local end_t = ntop.gettimemsec()
+      traceError(TRACE_INFO, TRACE_CONSOLE, "Dropped old item "..(being_dropped or ''))
 
-    if rv then
-      interface.incInfluxExportedPoints(num_points)
+      num_pending = num_pending - 1
+   end
 
-      -- Successfully exported
-      traceError(TRACE_INFO, TRACE_CONSOLE,
-        string.format("Successfully exported %u points in %.2fs", num_points, (end_t - start_t)))
-      ntop.setCache(time_key, tostring(math.max(prev_t, time_ref)))
-    else
-      -- Note: alert is already generated in _exportTsFile
-      if file_still_existing then
-        local cur_tries = incFileExportTries(fname)
+   -- Post the guys using a pretty long timeout
+   local pending_exports = ntop.lrangeCache(INFLUX_EXPORT_QUEUE, 0, -1)
 
-        if(cur_tries >= INFLUX_MAX_FILE_EXPORT_TRIES) then
-          -- max tries exceeded
-          traceError(TRACE_ERROR, TRACE_CONSOLE,
-            string.format("Dropping ts file %s after %u export tries, %u ts points are now lost!", fname, cur_tries, num_points))
-          interface.incInfluxExportFailures()
+   if not pending_exports then
+      return
+   end
 
-          os.remove(fname)
-          interface.incInfluxDroppedPoints(num_points)
-          file_still_existing = false
-        else
-          traceError(TRACE_INFO, TRACE_CONSOLE,
-            string.format("Ts file %s still unexported [%u/%u tries]", fname, cur_tries, INFLUX_MAX_FILE_EXPORT_TRIES))
-          interface.incInfluxExportRetries()
+   -- Process pending exports older-to-newer
+   for _, cur_export in ipairs(pending_exports) do
+      local exportable = getExportable(cur_export)
+      local res = self:_performExport(exportable)
 
-          -- Queue the file again as the first item
-          ntop.lpushCache(INFLUX_EXPORT_QUEUE, name_id)
-        end
+      if res then
+	 -- export SUCCEDED
+	 exportableSuccess(exportable)
+	 ntop.lremCache(INFLUX_EXPORT_QUEUE, cur_export)
       else
-        interface.incInfluxDroppedPoints(num_points)
+	 -- export FAILED, retry next time
       end
-    end
+   end
 
-    if(not file_still_existing) then
-      deleteFileExportTries(fname)
-    end
-
-    if(os.time() > deadline) then
-      traceError(TRACE_DEBUG, TRACE_CONSOLE, "Time is up for timeseries export")
-      break
-    end
-
-    ::continue::
-  end
-
-  interface.select(getSystemInterfaceId())
+   interface.select(getSystemInterfaceId())
 end
 
 -- ##############################################

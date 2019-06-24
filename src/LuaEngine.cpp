@@ -7684,8 +7684,7 @@ static int ntop_list_index_redis(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
-static int ntop_lpop_redis(lua_State* vm) {
+static int ntop_lrpop_redis(lua_State* vm, bool lpop) {
   char msg[1024], *list_name;
   Redis *redis = ntop->getRedis();
 
@@ -7694,10 +7693,50 @@ static int ntop_lpop_redis(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   if((list_name = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
 
-  if(redis->lpop(list_name, msg, sizeof(msg)) == 0) {
+  if((lpop ? redis->lpop(list_name, msg, sizeof(msg)) : redis->rpop(list_name, msg, sizeof(msg))) == 0) {
     lua_pushfstring(vm, "%s", msg);
     return(CONST_LUA_OK);
   } else
+    return(CONST_LUA_ERROR);
+}
+
+/* ****************************************** */
+
+// ***API***
+static int ntop_lpop_redis(lua_State* vm) {
+  return ntop_lrpop_redis(vm, true /* LPOP */);
+}
+
+/* ****************************************** */
+
+// ***API***
+static int ntop_rpop_redis(lua_State* vm) {
+  return ntop_lrpop_redis(vm, false /* RPOP */);
+}
+
+/* ****************************************** */
+
+// ***API***
+static int ntop_lrem_redis(lua_State* vm) {
+  char *list_name, *rem_value;
+  int ret;
+  Redis *redis = ntop->getRedis();
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+
+  if((list_name = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
+  if((rem_value = (char*)lua_tostring(vm, 2)) == NULL) return(CONST_LUA_PARAM_ERROR);
+
+  ret = redis->lrem(list_name, rem_value);
+
+  lua_pushnil(vm);
+
+  if(ret == 0)
+    return(CONST_LUA_OK);
+  else
     return(CONST_LUA_ERROR);
 }
 
@@ -8752,6 +8791,8 @@ static const luaL_Reg ntop_reg[] = {
   { "lpushCache",        ntop_lpush_redis },
   { "rpushCache",        ntop_rpush_redis },
   { "lpopCache",         ntop_lpop_redis },
+  { "rpopCache",         ntop_rpop_redis },
+  { "lremCache",         ntop_lrem_redis },
   { "ltrimCache",        ntop_ltrim_redis },
   { "lrangeCache",       ntop_lrange_redis },
   { "llenCache",         ntop_llen_redis },
