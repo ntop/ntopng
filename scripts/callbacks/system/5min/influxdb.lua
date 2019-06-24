@@ -98,8 +98,8 @@ function probe.getTimeseriesMenu(ts_utils)
   local influxdb = ts_utils.getQueryDriver()
 
   return {
-    {schema="influxdb:storage_size",                      label=i18n("system_stats.influxdb_storage", {dbname = influxdb.db})},
-    {schema="influxdb:memory_size",                       label=i18n("memory")},
+    {schema="influxdb:storage_size",                      label=i18n("traffic_recording.storage_utilization")},
+    {schema="influxdb:memory_size",                       label=i18n("about.ram_memory")},
     {schema="influxdb:write_successes",                   label=i18n("system_stats.write_througput")},
     {schema="custom:infludb_exported_vs_dropped_points",  label=i18n("system_stats.exported_vs_dropped_points"),
       custom_schema = {
