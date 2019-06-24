@@ -326,15 +326,26 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
   end
 end
 
-function ts_dump.host_update_ndpi_rrds(when, hostname, host, ifstats, verbose)
+function ts_dump.host_update_ndpi_rrds(when, hostname, host, ifstats, verbose, config)
+  -- TODO add preference
+  config.ndpi_flows_timeseries_creation = true
+
   -- nDPI Protocols
   for k, value in pairs(host["ndpi"] or {}) do
     local sep = string.find(value, "|")
+    local sep2 = string.find(value, "|", sep+1)
     local bytes_sent = string.sub(value, 1, sep-1)
-    local bytes_rcvd = string.sub(value, sep+1)
+    local bytes_rcvd = string.sub(value, sep+1, sep2-1)
 
     ts_utils.append("host:ndpi", {ifid=ifstats.id, host=hostname, protocol=k,
               bytes_sent=bytes_sent, bytes_rcvd=bytes_rcvd}, when, verbose)
+
+    if config.ndpi_flows_timeseries_creation then
+      local num_flows = string.sub(value, sep2+1)
+
+      ts_utils.append("host:ndpi_flows", {ifid=ifstats.id, host=hostname, protocol=k,
+              num_flows = num_flows}, when, verbose)
+    end
   end
 end
 
@@ -361,7 +372,7 @@ function ts_dump.host_update_rrd(when, hostname, host, ifstats, verbose, config)
     end
 
     if(config.host_ndpi_timeseries_creation == "per_protocol" or config.host_ndpi_timeseries_creation == "both") then
-      ts_dump.host_update_ndpi_rrds(when, hostname, host, ifstats, verbose)
+      ts_dump.host_update_ndpi_rrds(when, hostname, host, ifstats, verbose, config)
     end
 
     if(config.host_ndpi_timeseries_creation == "per_category" or config.host_ndpi_timeseries_creation == "both") then

@@ -95,6 +95,14 @@ end
 
 local res
 
+if(true --[[ TODO add preference]]) then
+  if(ts_schema == "host:ndpi") then
+    ts_schema = "custom:host_ndpi_and_flows"
+  elseif(ts_schema == "iface:ndpi") then
+    ts_schema = "custom:iface_ndpi_and_flows"
+  end
+end
+
 if starts(ts_schema, "custom:") and ntop.isPro() then
   res = performCustomQuery(ts_schema, tags, tstart, tend, options)
   compare_backward = nil

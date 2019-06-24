@@ -35,6 +35,7 @@ typedef struct {
 typedef struct {
   TrafficCounter packets, bytes;
   u_int32_t duration /* sec */, last_epoch_update; /* useful to avoid multiple updates */
+  u_int32_t total_flows;
 } ProtoCounter;
 
 typedef struct {
@@ -63,6 +64,8 @@ class nDPIStats {
 
   void incCategoryStats(u_int32_t when, ndpi_protocol_category_t category_id,
           u_int64_t sent_bytes, u_int64_t rcvd_bytes);
+
+  void incFlowsStats(u_int16_t proto_id);
 
   void print(NetworkInterface *iface);
   void lua(NetworkInterface *iface, lua_State* vm, bool with_categories = false, bool tsLua = false);

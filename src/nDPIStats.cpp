@@ -76,6 +76,7 @@ void nDPIStats::sum(nDPIStats *stats) {
       stats->counters[i]->bytes.sent    += counters[i]->bytes.sent;
       stats->counters[i]->bytes.rcvd    += counters[i]->bytes.rcvd;
       stats->counters[i]->duration      += counters[i]->duration;
+      stats->counters[i]->total_flows   += counters[i]->total_flows;
     }
   }
 
@@ -124,6 +125,7 @@ void nDPIStats::lua(NetworkInterface *iface, lua_State* vm, bool with_categories
 	    lua_push_uint64_table_entry(vm, "bytes.sent", counters[i]->bytes.sent);
 	    lua_push_uint64_table_entry(vm, "bytes.rcvd", counters[i]->bytes.rcvd);
 	    lua_push_uint64_table_entry(vm, "duration", counters[i]->duration);
+	    lua_push_uint64_table_entry(vm, "num_flows", counters[i]->total_flows);
 
 	    lua_pushstring(vm, name);
 	    lua_insert(vm, -2);
@@ -131,9 +133,10 @@ void nDPIStats::lua(NetworkInterface *iface, lua_State* vm, bool with_categories
           } else {
             char buf[64];
 	    
-            snprintf(buf, sizeof(buf), "%llu|%llu",
+            snprintf(buf, sizeof(buf), "%llu|%llu|%u",
 		     (unsigned long long)counters[i]->bytes.sent,
-		     (unsigned long long)counters[i]->bytes.rcvd);
+		     (unsigned long long)counters[i]->bytes.rcvd,
+		     counters[i]->total_flows);
 
             lua_push_str_table_entry(vm, name, buf);
           }
@@ -227,6 +230,15 @@ void nDPIStats::incCategoryStats(u_int32_t when, ndpi_protocol_category_t catego
       cat_counters[category_id].duration += ntop->getPrefs()->get_housekeeping_frequency(),
       cat_counters[category_id].last_epoch_update = when;
     }
+  }
+}
+
+/* *************************************** */
+
+void nDPIStats::incFlowsStats(u_int16_t proto_id) {
+  if(proto_id < (MAX_NDPI_PROTOS)) {
+    if(counters[proto_id] != NULL)
+      counters[proto_id]->total_flows++;
   }
 }
 

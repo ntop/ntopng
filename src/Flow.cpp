@@ -377,9 +377,21 @@ void Flow::dumpFlowAlert() {
 
 void Flow::processDetectedProtocol() {
   u_int16_t l7proto;
+  u_int16_t stats_protocol;
 
   if(protocol_processed || (ndpiFlow == NULL))
     return;
+
+  if(ndpiDetectedProtocol.app_protocol != NDPI_PROTOCOL_UNKNOWN
+      && !ndpi_is_subprotocol_informative(NULL, ndpiDetectedProtocol.master_protocol))
+    stats_protocol = ndpiDetectedProtocol.app_protocol;
+  else
+    stats_protocol = ndpiDetectedProtocol.master_protocol;
+
+  /* Update the active flows stats */
+  if(cli_host) cli_host->incnDPIFlows(stats_protocol);
+  if(srv_host) srv_host->incnDPIFlows(stats_protocol);
+  iface->incnDPIFlows(stats_protocol);
 
   l7proto = ndpi_get_lower_proto(ndpiDetectedProtocol);
 

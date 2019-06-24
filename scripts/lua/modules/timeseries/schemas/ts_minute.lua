@@ -95,6 +95,13 @@ schema:addMetric("bytes")
 
 -- ##############################################
 
+schema = ts_utils.newSchema("iface:ndpi_flows", {step=60})
+schema:addTag("ifid")
+schema:addTag("protocol")
+schema:addMetric("num_flows")
+
+-- ##############################################
+
 -- NOTE: not shown
 schema = ts_utils.newSchema("iface:local2remote", {step=60, rrd_fname="local2remote"})
 schema:addTag("ifid")

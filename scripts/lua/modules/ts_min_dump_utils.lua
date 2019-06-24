@@ -19,13 +19,20 @@ local ts_dump = {}
 
 -- ########################################################
 
-function ts_dump.iface_update_ndpi_rrds(when, _ifname, ifstats, verbose)
+function ts_dump.iface_update_ndpi_rrds(when, _ifname, ifstats, verbose, config)
+  -- TODO add preference
+  config.ndpi_flows_timeseries_creation = true
+
   for k in pairs(ifstats["ndpi"]) do
     local v = ifstats["ndpi"][k]["bytes.sent"]+ifstats["ndpi"][k]["bytes.rcvd"]
     if(verbose) then print("["..__FILE__()..":"..__LINE__().."] ".._ifname..": "..k.."="..v.."\n") end
 
     ts_utils.append("iface:ndpi", {ifid=ifstats.id, protocol=k, bytes=v}, when, verbose)
+
+    if config.ndpi_flows_timeseries_creation then
+      ts_utils.append("iface:ndpi_flows", {ifid=ifstats.id, protocol=k, num_flows=ifstats["ndpi"][k]["num_flows"]}, when, verbose)
     end
+  end
 end
 
 -- ########################################################
@@ -219,7 +226,7 @@ function ts_dump.run_min_dump(_ifname, ifstats, iface_ts, config, when, verbose)
     ts_dump.iface_update_l4_stats(instant, iface_point, verbose)
 
     if config.interface_ndpi_timeseries_creation == "per_protocol" or config.interface_ndpi_timeseries_creation == "both" then
-      ts_dump.iface_update_ndpi_rrds(instant, _ifname, iface_point, verbose)
+      ts_dump.iface_update_ndpi_rrds(instant, _ifname, iface_point, verbose, config)
     end
 
     if config.interface_ndpi_timeseries_creation == "per_category" or config.interface_ndpi_timeseries_creation == "both" then

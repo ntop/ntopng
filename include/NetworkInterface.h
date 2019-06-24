@@ -393,6 +393,7 @@ class NetworkInterface : public Checkpointable {
   inline void incLocalStats(u_int num_pkts, u_int pkt_len, bool localsender, bool localreceiver) {
     localStats.incStats(num_pkts, pkt_len, localsender, localreceiver);
   };
+  inline void incnDPIFlows(u_int16_t l7_protocol)    { ndpiStats.incFlowsStats(l7_protocol); }
 
   inline EthStats* getStats()      { return(&ethStats);          };
   inline int get_datalink()        { return(pcap_datalink_type); };

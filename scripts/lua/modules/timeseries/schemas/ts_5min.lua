@@ -265,6 +265,14 @@ schema:addMetric("flows_as_client")
 
 --##############################################
 
+schema = ts_utils.newSchema("host:ndpi_flows", {step = 300})
+schema:addTag("ifid")
+schema:addTag("host")
+schema:addTag("protocol")
+schema:addMetric("num_flows")
+
+--##############################################
+
 schema = ts_utils.newSchema("host:echo_packets", {step = 300})
 schema:addTag("ifid")
 schema:addTag("host")

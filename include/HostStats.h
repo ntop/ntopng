@@ -63,6 +63,7 @@ class HostStats: public Checkpointable, public TimeseriesStats {
 
   inline void incSentStats(u_int pkt_len)           { sent_stats.incStats(pkt_len);       };
   inline void incRecvStats(u_int pkt_len)           { recv_stats.incStats(pkt_len);       };
+  inline void incnDPIFlows(u_int16_t l7_protocol)   { if(ndpiStats) ndpiStats->incFlowsStats(l7_protocol); };
   inline u_int32_t getTotalNumFlowsAsClient() const { return(total_num_flows_as_client);  };
   inline u_int32_t getTotalNumFlowsAsServer() const { return(total_num_flows_as_server);  };
   virtual void deserialize(json_object *obj)        {}
