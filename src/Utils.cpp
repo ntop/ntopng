@@ -1568,7 +1568,7 @@ bool Utils::postHTTPTextFile(lua_State* vm, char *username, char *password, char
     res = curl_easy_perform(curl);
 
     if(res != CURLE_OK) {
-      ntop->getTrace()->traceEvent(TRACE_WARNING,
+      ntop->getTrace()->traceEvent(TRACE_INFO,
 				   "Unable to post data to (%s): %s",
 				   url, curl_easy_strerror(res));
       lua_push_str_table_entry(vm, "error_msg", curl_easy_strerror(res));
