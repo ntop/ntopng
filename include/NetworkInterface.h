@@ -500,15 +500,12 @@ class NetworkInterface : public Checkpointable {
   int getMacsIpAddresses(lua_State *vm, int idx);
   void getFlowsStats(lua_State* vm);
   void getNetworksStats(lua_State* vm);
-#ifdef NOTUSED
-  int  getFlows(lua_State* vm, AddressTree *allowed_hosts,
-		Host *host, int ndpi_proto, LocationPolicy location,
-		char *sortColumn, u_int32_t maxHits,
-		u_int32_t toSkip, bool a2zSortOrder);
-#endif
-  int getFlows(lua_State* vm, AddressTree *allowed_hosts,
-		Host *host,
-		Paginator *p);
+  int getFlows(lua_State* vm,
+	       u_int32_t *begin_slot,
+	       bool walk_all,
+	       AddressTree *allowed_hosts,
+	       Host *host,
+	       Paginator *p);
   int getFlowsGroup(lua_State* vm,
 		AddressTree *allowed_hosts,
 		Paginator *p,

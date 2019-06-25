@@ -4466,14 +4466,14 @@ int NetworkInterface::sortFlows(u_int32_t *begin_slot,
 /* **************************************************** */
 
 int NetworkInterface::getFlows(lua_State* vm,
+			       u_int32_t *begin_slot,
+			       bool walk_all,
 			       AddressTree *allowed_hosts,
 			       Host *host,
 			       Paginator *p) {
   struct flowHostRetriever retriever;
   char sortColumn[32];
   DetailsLevel highDetails;
-  u_int32_t begin_slot = 0;
-  bool walk_all = true;
 
   if(p == NULL) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to return results with a NULL paginator");
@@ -4492,13 +4492,14 @@ int NetworkInterface::getFlows(lua_State* vm,
 
   disablePurge(true);
 
-  if(sortFlows(&begin_slot, walk_all, &retriever, allowed_hosts, host, p, sortColumn) < 0) {
+  if(sortFlows(begin_slot, walk_all, &retriever, allowed_hosts, host, p, sortColumn) < 0) {
     enablePurge(true);
     return -1;
   }
 
   lua_newtable(vm);
   lua_push_uint64_table_entry(vm, "numFlows", retriever.actNumEntries);
+  lua_push_uint64_table_entry(vm, "nextSlot", *begin_slot);
 
   lua_newtable(vm);
 

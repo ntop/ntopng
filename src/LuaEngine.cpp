@@ -2654,6 +2654,8 @@ static int ntop_get_interface_flows_info(lua_State* vm) {
   Host *host = NULL;
   Paginator *p = NULL;
   int numFlows = -1;
+  u_int32_t begin_slot = 0;
+  bool walk_all = true;
 
   if(!ntop_interface)
     return(CONST_LUA_ERROR);
@@ -2673,7 +2675,50 @@ static int ntop_get_interface_flows_info(lua_State* vm) {
 
   if(ntop_interface
      && (!host_ip || host))
-    numFlows = ntop_interface->getFlows(vm, get_allowed_nets(vm), host, p);
+    numFlows = ntop_interface->getFlows(vm, &begin_slot, walk_all, get_allowed_nets(vm), host, p);
+  else
+    lua_pushnil(vm);
+
+  if(p) delete p;
+  return numFlows < 0 ? CONST_LUA_ERROR : CONST_LUA_OK;
+}
+
+/* ****************************************** */
+
+// ***API***
+static int ntop_get_batched_interface_flows_info(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  char buf[64];
+  char *host_ip = NULL;
+  u_int16_t vlan_id = 0;
+  Host *host = NULL;
+  Paginator *p = NULL;
+  int numFlows = -1;
+  u_int32_t begin_slot = 0;
+  bool walk_all = false;
+
+  if(!ntop_interface)
+    return(CONST_LUA_ERROR);
+
+  if((p = new(std::nothrow) Paginator()) == NULL)
+    return(CONST_LUA_ERROR);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(lua_type(vm, 1) == LUA_TNUMBER)
+    begin_slot = (u_int32_t)lua_tonumber(vm, 1);
+
+  if(lua_type(vm, 2) == LUA_TSTRING) {
+    get_host_vlan_info((char*)lua_tostring(vm, 2), &host_ip, &vlan_id, buf, sizeof(buf));
+    host = ntop_interface->getHost(host_ip, vlan_id);
+  }
+
+  if(lua_type(vm, 3) == LUA_TTABLE)
+    p->readOptions(vm, 3);
+
+  if(ntop_interface
+     && (!host_ip || host))
+    numFlows = ntop_interface->getFlows(vm, &begin_slot, walk_all, get_allowed_nets(vm), host, p);
   else
     lua_pushnil(vm);
 
@@ -8594,6 +8639,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getLocalHostsInfo",        ntop_get_interface_local_hosts_info },
   { "getRemoteHostsInfo",       ntop_get_interface_remote_hosts_info },
   { "getBroadcastDomainHostsInfo", ntop_get_interface_broadcast_domain_hosts_info },
+  { "getBatchedFlowsInfo",         ntop_get_batched_interface_flows_info },
   { "getBatchedHostsInfo",         ntop_get_batched_interface_hosts_info },
   { "getBatchedLocalHostsInfo",    ntop_get_batched_interface_local_hosts_info },
   { "getBatchedRemoteHostsInfo",   ntop_get_batched_interface_remote_hosts_info },

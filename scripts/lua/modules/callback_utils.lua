@@ -61,7 +61,9 @@ local function getBatchedIterator(batched_function, field, function_params)
             iterator_finished = true
          end
 
-         if iterator_finished then return nil end
+         if iterator_finished then
+	    return nil
+	 end
 
          -- we need to load new slots from C
          if(debug_enabled) then
@@ -80,8 +82,9 @@ local function getBatchedIterator(batched_function, field, function_params)
          loaded_elems = slot[field]
 
          if(debug_enabled) then
-            io.write("getBatchedIterator["..field.."](numElems=".. table.len(loaded_elems) ..", nextSlot=".. nextSlot ..")\n")
+            io.write("getBatchedIterator["..field.."] nextSlot=".. nextSlot ..")\n")
          end
+
       end
 
       for key, value in pairs(loaded_elems) do
@@ -89,6 +92,11 @@ local function getBatchedIterator(batched_function, field, function_params)
          return key, value
       end
    end
+end
+
+-- A batched iterator over the active flows
+function callback_utils.getFlowsIterator(...)
+   return getBatchedIterator(interface.getBatchedFlowsInfo, "flows", { ... })
 end
 
 -- A batched iterator over the local hosts with timeseries
@@ -114,6 +122,32 @@ end
 -- A batched iterator over the l2 devices
 function callback_utils.getDevicesIterator(...)
    return getBatchedIterator(interface.getBatchedMacsInfo, "macs", { ... })
+end
+
+-- ########################################################
+
+-- Iterates each active flow on the ifname interface.
+-- Each flow is passed to the callback with some more information.
+function callback_utils.foreachFlow(ifname, deadline, callback, ...)
+   interface.select(ifname)
+
+   local iterator = callback_utils.getFlowsIterator({...})
+
+   for flow_key, flow in iterator do
+
+      if(ntop.isShutdown()) then return true end
+
+      if ((deadline ~= nil) and (os.time() >= deadline)) then
+	 -- Out of time
+	 return false
+      end
+
+      if callback(flow_key, flow) == false then
+	 return false
+      end
+   end
+
+   return true
 end
 
 -- ########################################################
