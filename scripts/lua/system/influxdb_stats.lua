@@ -142,8 +142,14 @@ setInterval(refreshInfluxStats, 5000);
 refreshInfluxStats();
  </script>
  ]]
+       print("</table>\n")
 
-   print("</table>\n")
+    print("<b>"..i18n("notes").."</b>")
+    print("<ul>")
+    print("<li>"..i18n("system_stats.note_what_is_a_point").."</li>")
+    print("<li>"..i18n("system_stats.note_total_exports").."</li>")
+    print("</ul>")
+
 elseif(page == "historical") then
    local schema = _GET["ts_schema"] or "influxdb:storage_size"
    local selected_epoch = _GET["epoch"] or ""

@@ -98,7 +98,7 @@ function probe.getTimeseriesMenu(ts_utils)
     {schema="influxdb:storage_size",                      label=i18n("traffic_recording.storage_utilization")},
     {schema="influxdb:memory_size",                       label=i18n("about.ram_memory")},
     {schema="influxdb:write_successes",                   label=i18n("system_stats.write_througput")},
-    {schema="influxdb:exports",                           label=i18n("system_stats.exports")},
+    {schema="influxdb:exports",                           label=i18n("system_stats.exports"), value_formatter = "fcounter_to_intval",},
     {schema="custom:infludb_exported_vs_dropped_points",  label=i18n("system_stats.exported_vs_dropped_points"),
       custom_schema = {
         bases = {"influxdb:exported_points", "influxdb:dropped_points"},

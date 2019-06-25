@@ -3134,7 +3134,9 @@ local lang = {
     ["no_hosts_configured"] = "No Hosts Configured",
     ["probe"] = "Probe",
     ["series_cardinality"] = "Series Cardinality",
-    ["write_througput"] = "DB Write Througput",
+    ["write_througput"] = "Write Througput",
+    ["note_total_exports"] = "Totals count the number of successful export and successfully exported points.",
+    ["note_what_is_a_point"] = "A point is the value of a metric at a certain time.",
   },
   ["telemetry_page"] = {
     ["crash_report"] = "Crash Report",
