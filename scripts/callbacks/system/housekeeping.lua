@@ -15,6 +15,7 @@ require "alert_utils"
 local lists_utils = require "lists_utils"
 local recording_utils = require "recording_utils"
 local now = os.time()
+local periodicity = 3
 
 check_mac_ip_association_alerts()
 if ntop.isnEdge() then
