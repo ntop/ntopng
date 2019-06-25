@@ -1474,6 +1474,7 @@ local known_parameters = {
    ["allow_admin_access"]      = validateBool,
    ["accept_tos"]              = validateBool,
    ["no_timeout"]              = validateBool,
+   ["bubble_mode"]             = validateNumber,
    ["supernode"]               = validateSingleWord,
    ["ts_aggregation"]          = validateChoiceInline({"raw", "1h", "1d"}),
    ["fw_rule_id"]              = validateSingleWord,
