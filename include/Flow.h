@@ -52,6 +52,7 @@ class Flow : public GenericHashEntry {
   u_int32_t vrfId;
   u_int8_t protocol, src2dst_tcp_flags, dst2src_tcp_flags;
   struct ndpi_flow_struct *ndpiFlow;
+  bool idle_mark; /* Marked when visited by the periodic activities */
   bool detection_completed, protocol_processed,
     cli2srv_direction, twh_over, twh_ok, dissect_next_http_packet, passVerdict,
     check_tor, l7_protocol_guessed, flow_alerted, flow_dropped_counts_increased,
@@ -198,7 +199,7 @@ class Flow : public GenericHashEntry {
   bool isLowGoodput();
   void updatePacketStats(InterarrivalStats *stats, const struct timeval *when);
   void dumpPacketStats(lua_State* vm, bool cli2srv_direction);
-  bool isReadyToPurge();
+  bool isReadyToBeMarkedAsIdle();
   bool isBlacklistedFlow() const;
   inline bool isDeviceAllowedProtocol() {
       return(!cli_host || !srv_host ||
@@ -228,9 +229,9 @@ class Flow : public GenericHashEntry {
        time_t _first_seen, time_t _last_seen);
   ~Flow();
 
-  virtual void set_to_purge(time_t t) {
-    GenericHashEntry::set_to_purge(t);
-    postFlowSetPurge(t);
+  inline void set_idle(time_t t) {
+    idle_mark = true;
+    postFlowSetIdle(t);
   };
 
   FlowStatus getFlowStatus();
@@ -387,7 +388,7 @@ class Flow : public GenericHashEntry {
   u_int64_t get_current_goodput_bytes_srv2cli();
   u_int64_t get_current_packets_cli2srv();
   u_int64_t get_current_packets_srv2cli();
-  inline bool idle() { return(is_ready_to_be_purged()); }
+  bool idle() { return(idle_mark); };
   char* print(char *buf, u_int buf_len) const;
   void update_hosts_stats(struct timeval *tv, bool dump_alert);
   u_int32_t key();
@@ -514,7 +515,7 @@ class Flow : public GenericHashEntry {
   inline bool isIngress2EgressDirection() { return(ingress2egress_direction); }
 #endif
   void housekeep(time_t t);
-  void postFlowSetPurge(time_t t);
+  void postFlowSetIdle(time_t t);
   void setParsedeBPFInfo(const ParsedeBPF * const ebpf, bool src2dst_direction);
   inline const ContainerInfo* getClientContainerInfo() const {
     return cli_ebpf && cli_ebpf->container_info_set ? &cli_ebpf->container_info : NULL;

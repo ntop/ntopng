@@ -46,6 +46,7 @@ Flow::Flow(NetworkInterface *_iface,
     srv2cli_last_goodput_bytes = cli2srv_last_goodput_bytes = 0, good_ssl_hs = true,
     flow_alerted = flow_dropped_counts_increased = false, vrfId = 0;
 
+  idle_mark = false;
   detection_completed = false;
   ndpiDetectedProtocol = ndpiUnknownProtocol;
   doNotExpireBefore = iface->getTimeLastPktRcvd() + DONT_NOT_EXPIRE_BEFORE_SEC;
@@ -997,9 +998,9 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
   Vlan *vl;
   NetworkStats *cli_network_stats;
 
-  if(isReadyToPurge()) {
+  if(isReadyToBeMarkedAsIdle()) {
     /* Marked as ready to be purged, will be purged by NetworkInterface::purgeIdleFlows */
-    set_to_purge(tv->tv_sec);
+    set_idle(tv->tv_sec);
   }
 
   if(check_tor && (ndpiDetectedProtocol.app_protocol == NDPI_PROTOCOL_SSL)) {
@@ -1289,7 +1290,7 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
 	if(top_bytes_thpt < bytes_thpt) top_bytes_thpt = bytes_thpt;
 	if(top_goodput_bytes_thpt < goodput_bytes_thpt) top_goodput_bytes_thpt = goodput_bytes_thpt;
 
-	if(!idle() /* set_to_purge() deals with low goodput flows when they become idle */
+	if(!idle() /* set_idle() deals with low goodput flows when they become idle */
 	   && iface->getIfType() != interface_type_ZMQ
 	   && protocol == IPPROTO_TCP
 	   && get_goodput_bytes() > 0
@@ -1923,7 +1924,7 @@ u_int32_t Flow::key(Host *_cli, u_int16_t _cli_port,
 
 /* *************************************** */
 
-bool Flow::isReadyToPurge() {
+bool Flow::isReadyToBeMarkedAsIdle() {
   if (ntop->getPrefs()->flushFlowsOnShutdown()
       && (ntop->getGlobals()->isShutdownRequested() || ntop->getGlobals()->isShutdown()))
     return(true);
@@ -2334,7 +2335,7 @@ void Flow::housekeep(time_t t) {
 #ifdef HAVE_NEDGE
   if(iface->getIfType() == interface_type_NETFILTER) {
     if(isNetfilterIdleFlow()) {
-      set_to_purge(iface->getTimeLastPktRcvd());
+      set_idle(iface->getTimeLastPktRcvd());
     }
   }
 #endif
@@ -3805,8 +3806,8 @@ void Flow::updateJA3() {
 
 /* ***************************************************** */
 
-/* Called when a flow is set_to_purge */
-void Flow::postFlowSetPurge(time_t t) {
+/* Called when a flow is set_idle */
+void Flow::postFlowSetIdle(time_t t) {
   /* not called from the datapath for flows, so it is only
      safe to touch low goodput uses */
   if(good_low_flow_detected) {
