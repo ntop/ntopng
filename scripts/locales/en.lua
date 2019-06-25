@@ -3120,6 +3120,7 @@ local lang = {
     ["delete_rtt_confirm"] = "Do you really want to delete host \"%{host}\" ?",
     ["delete_rtt_host"] = "Delete RTT Host",
     ["dropped_points"] = "Dropped Points",
+    ["exports"]  = "Total Exports",
     ["export_failures"] = "Failed Exports",
     ["export_retries"] = "Retried Exports",
     ["exported_points"] = "Total Points",

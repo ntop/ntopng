@@ -704,6 +704,12 @@ end
 
 -- ##############################################
 
+local function get_exports_key(ifid)
+   return string.format(INFLUX_KEY_PREFIX.."exports", ifid)
+end
+
+-- ##############################################
+
 local function inc_val(k, val_to_add)
    local val = tonumber(ntop.getCache(k)) or 0
 
@@ -725,6 +731,12 @@ end
 
 -- ##############################################
 
+function inc_exports(ifid)
+   inc_val(get_exports_key(ifid), 1)
+end
+
+-- ##############################################
+
 function driver:get_dropped_points(ifid)
    return tonumber(ntop.getCache(get_dropped_points_key(ifid))) or 0
 end
@@ -733,6 +745,12 @@ end
 
 function driver:get_exported_points(ifid)
    return tonumber(ntop.getCache(get_exported_points_key(ifid))) or 0
+end
+
+-- ##############################################
+
+function driver:get_exports(ifid)
+   return tonumber(ntop.getCache(get_exports_key(ifid))) or 0
 end
 
 -- ##############################################
@@ -761,6 +779,7 @@ local function exportableSuccess(exportable)
    interface.select(exportable["ifid_str"])
 
    inc_exported_points(exportable["ifid"], exportable["num_points"])
+   inc_exports(exportable["ifid"])
    deleteExportableFile(exportable)
 end
 
