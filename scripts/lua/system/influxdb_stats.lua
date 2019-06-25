@@ -78,10 +78,10 @@ if(page == "overview") then
 
     if(probe ~= nil) then
        local stats = probe.getExportStats()
+
+       print("<tr><th nowrap>".. i18n("system_stats.exports") .."</th><td><span id=\"influxdb-exports\">".. formatValue(stats.exports) .."</span></td></tr>\n")
        print("<tr><th nowrap>".. i18n("system_stats.exported_points") .."</th><td><span id=\"influxdb-exported-points\">".. formatValue(stats.points_exported) .."</span></td></tr>\n")
        print("<tr><th nowrap>".. i18n("system_stats.dropped_points") .."</th><td><span id=\"influxdb-dropped-points\">".. formatValue(stats.points_dropped) .."</span></td></tr>\n")
-       print("<tr><th nowrap>".. i18n("system_stats.export_retries") .."</th><td><span id=\"influxdb-export-retries\">".. formatValue(stats.export_retries) .."</span></td></tr>\n")
-       print("<tr><th nowrap>".. i18n("system_stats.export_failures") .."</th><td><span id=\"influxdb-export-failures\">".. formatValue(stats.export_failures) .."</span></td></tr>\n")
     end
 
     print("<tr><th nowrap>".. i18n("system_stats.series_cardinality") .." <a href=\"https://docs.influxdata.com/influxdb/v1.7/concepts/glossary/#series-cardinality\"><i class='fa fa-external-link '></i></a></th><td><img class=\"influxdb-info-load\" border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber><span id=\"influxdb-info-series\"></span><i id=\"high-cardinality-warn\" class=\"fa fa-warning fa-lg\" title=\"".. i18n("system_stats.high_series_cardinality") .."\" style=\"color: orange; display:none\"></td></i></tr>\n")
@@ -89,7 +89,7 @@ if(page == "overview") then
 
  var last_db_bytes, last_memory, last_num_series;
  var last_exported_points, last_dropped_points;
- var last_export_retries, last_export_failures;
+ var last_exports;
 
  function refreshInfluxStats() {
   $.get("]] print(ntop.getHttpPrefix()) print[[/lua/get_influxdb_info.lua", function(info) {
@@ -124,17 +124,11 @@ if(page == "overview") then
          $("#influxdb-dropped-points").append(drawTrend(info.points_dropped, last_dropped_points, " style=\"color: #B94A48;\""));
        last_dropped_points = info.points_dropped;
      }
-     if(typeof info.export_retries !== "undefined") {
-       $("#influxdb-export-retries").html(addCommas(info.export_retries) + " ");
-       if(typeof last_export_retries !== "undefined")
-         $("#influxdb-export-retries").append(drawTrend(info.export_retries, last_export_retries));
-       last_export_retries = info.export_retries;
-     }
-     if(typeof info.export_failures !== "undefined") {
-       $("#influxdb-export-failures").html(addCommas(info.export_failures) + " ");
-       if(typeof last_export_failures !== "undefined")
-         $("#influxdb-export-failures").append(drawTrend(info.export_failures, last_export_failures, " style=\"color: #B94A48;\""));
-       last_export_failures = info.export_failures;
+     if(typeof info.exports !== "undefined") {
+       $("#influxdb-exports").html(addCommas(info.exports) + " ");
+       if(typeof last_exports !== "undefined")
+         $("#influxdb-exports").append(drawTrend(info.exports, last_exports));
+       last_exports = info.exports;
      }
 
      if(info.num_series >= 950000)
@@ -148,8 +142,14 @@ setInterval(refreshInfluxStats, 5000);
 refreshInfluxStats();
  </script>
  ]]
+       print("</table>\n")
 
-   print("</table>\n")
+    print("<b>"..i18n("notes").."</b>")
+    print("<ul>")
+    print("<li>"..i18n("system_stats.note_what_is_a_point").."</li>")
+    print("<li>"..i18n("system_stats.note_total_exports").."</li>")
+    print("</ul>")
+
 elseif(page == "historical") then
    local schema = _GET["ts_schema"] or "influxdb:storage_size"
    local selected_epoch = _GET["epoch"] or ""
