@@ -27,3 +27,28 @@ following snippet would be used:
     interface_macs
     interface_ndpi
     interface_dump
+
+Rather than using the :code:`interface` API directly, one can use lua
+wrappers to process hosts, flows and other elements in
+batches. Processing in batches has the benefit of reduced memory
+footprint and thus it may be absolutely necessary when working in large
+environments.
+
+For example, to visit all the active flows in batches using the lua
+wrapper, the following snippet of code can be used:
+
+.. code-block:: lua
+
+  local count = 0
+
+  callback_utils.foreachFlow("eno1", os.time() + 10,
+    function(flow_num, flow)
+      count = count + 1
+      return true -- continue
+    end
+  )
+
+  io.write("total flows: "..count.."\n")
+   
+The full list of wrappers is available at
+https://github.com/ntop/ntopng/blob/dev/scripts/lua/modules/callback_utils.lua
