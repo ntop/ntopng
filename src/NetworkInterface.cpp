@@ -1826,7 +1826,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	  char name[64];
 
 	  if(((payload[2] & 0x80) /* NetBIOS Response */ || ((payload[2] & 0x78) == 0x28 /* NetBIOS Registration */))
-	     && (ndpi_netbios_name_interpret((char*)&payload[12], name, sizeof(name)) > 0)
+	     && (ndpi_netbios_name_interpret((char*)&payload[14], name, sizeof(name)) > 0)
 	     && (!strstr(name, "__MSBROWSE__"))
 	     ) {
 
