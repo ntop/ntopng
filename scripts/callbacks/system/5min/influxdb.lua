@@ -129,19 +129,12 @@ function probe.getExportStats()
   local export_failures = 0
   local ifnames = interface.getIfNames()
 
+  local influxdb = ts_utils.getQueryDriver()
+
   for ifid, ifname in pairs(ifnames) do
-     interface.select(ifname)
-     local stats = interface.getInfluxExportStats()
-
-     if(stats ~= nil) then
-        points_exported = points_exported + stats.num_points_exported
-        points_dropped = points_dropped + stats.num_points_dropped
-        export_retries = export_retries + stats.num_export_retries
-        export_failures = export_failures + stats.num_export_failures
-     end
+     points_exported = points_exported + influxdb:get_exported_points(ifid)
+     points_dropped = points_dropped + influxdb:get_dropped_points(ifid)
   end
-
-  interface.select(getSystemInterfaceId())
 
   return {
     points_exported = points_exported,

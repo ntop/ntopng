@@ -688,6 +688,53 @@ function driver:_exportTsFile(fname)
   return rv
 end
 
+local INFLUX_KEY_PREFIX = "ntopng.cache.ifid_%i."
+
+-- ##############################################
+
+local function get_dropped_points_key(ifid)
+   return string.format(INFLUX_KEY_PREFIX.."dropped_points", ifid)
+end
+
+-- ##############################################
+
+local function get_exported_points_key(ifid)
+   return string.format(INFLUX_KEY_PREFIX.."exported_points", ifid)
+end
+
+-- ##############################################
+
+local function inc_val(k, val_to_add)
+   local val = tonumber(ntop.getCache(k)) or 0
+
+   val = val + val_to_add
+   ntop.setCache(k, string.format("%i", val))
+end
+
+-- ##############################################
+
+function inc_dropped_points(ifid, num_points)
+   inc_val(get_dropped_points_key(ifid), num_points)
+end
+
+-- ##############################################
+
+function inc_exported_points(ifid, num_points)
+   inc_val(get_exported_points_key(ifid), num_points)
+end
+
+-- ##############################################
+
+function driver:get_dropped_points(ifid)
+   return tonumber(ntop.getCache(get_dropped_points_key(ifid))) or 0
+end
+
+-- ##############################################
+
+function driver:get_exported_points(ifid)
+   return tonumber(ntop.getCache(get_exported_points_key(ifid))) or 0
+end
+
 -- ##############################################
 
 local function deleteExportableFile(exportable)
@@ -704,7 +751,7 @@ end
 local function dropExportable(exportable)
    interface.select(exportable["ifid_str"])
 
-   interface.incInfluxDroppedPoints(exportable["num_points"])
+   inc_dropped_points(exportable["ifid"], exportable["num_points"])
    deleteExportableFile(exportable)
 end
 
@@ -713,7 +760,7 @@ end
 local function exportableSuccess(exportable)
    interface.select(exportable["ifid_str"])
 
-   interface.incInfluxExportedPoints(exportable["num_points"])
+   inc_exported_points(exportable["ifid"], exportable["num_points"])
    deleteExportableFile(exportable)
 end
 
