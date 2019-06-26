@@ -296,13 +296,8 @@ for _key, _value in pairsByKeys(vals, funct) do
 
    record["column_name"] = column_name
 
-   local column_vlan
-   if(value["vlan"] ~= nil) then
-      if(value["vlan"] ~= 0) then
-	 column_vlan = value["vlan"]
-      else
-	 column_vlan = 0
-      end
+   if value["vlan"] > 0 then
+      record["column_vlan"] = value["vlan"]
    end
 
    record["column_since"] = secondsToTime(now-value["seen.first"] + 1)
