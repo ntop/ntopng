@@ -398,6 +398,7 @@ function printSeries(options, tags, start_time, base_url, params)
    local mac_tags = nil
    local mac_params = nil
    local mac_baseurl = ntop.getHttpPrefix() .. "/lua/mac_details.lua?page=historical"
+   local is_pro = ntop.isPro()
 
    if params.tskey then
       -- this can contain a MAC address for local broadcast domain hosts
@@ -414,7 +415,8 @@ function printSeries(options, tags, start_time, base_url, params)
    end
 
    for _, serie in ipairs(series) do
-      if (have_nedge and serie.nedge_exclude) or (not have_nedge and serie.nedge_only) then
+      if ((have_nedge and serie.nedge_exclude) or (not have_nedge and serie.nedge_only)) or
+         (serie.pro_skip and is_pro) then
          goto continue
       end
 

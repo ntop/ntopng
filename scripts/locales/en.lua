@@ -1454,6 +1454,7 @@ local lang = {
     ["tcp_rst_packets"] = "TCP RST Packets",
     ["tcp_rx_stats"] = "TCP RX Stats",
     ["tcp_syn_packets"] = "TCP SYN Packets",
+    ["tcp_syn_vs_tcp_synack"] = "TCP SYN vs SYN+ACK Packets",
     ["tcp_synack_packets"] = "TCP SYN+ACK Packets",
     ["tcp_tx_stats"] = "TCP TX Stats",
     ["the_select_timeframe_too_small_top_talkers"] = "The selected timeframe is too small to determine the top talkers. Please select at least a 1 minute frame.",
