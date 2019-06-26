@@ -329,41 +329,54 @@ local function interfaceStorageUsed(ifid)
   return 0
 end
 
---! @brief Read information about the storage, including storage size and available space
---! @param ifid the interface identifier 
---! @return a table containing storage information (size is in bytes)
-function recording_utils.storageInfo(ifid)
-  local storage_info = {
-    path = dirs.pcapdir, dev = "", mount = "",
-    total = 0, used = 0, avail = 0, used_perc = 0,
-    if_used = 0, extraction_used = 0,
+--! @brief Read information about a volume, including storage size and available space
+--! @param path the volume path (or a folder inside the volume)
+function recording_utils.volumeInfo(path)
+  local volume_info = {
+    path = path, 
+    dev = "", 
+    total = 0, 
+    used = 0, 
+    avail = 0, 
+    used_perc = 0,
+    mount = "",
   }
 
-  -- Global storage info
-  local root_path = storage_info.path
+  local root_path = path
   while not ntop.isdir(root_path) and string.len(root_path) > 1 do
     root_path = dirname(root_path) 
   end
+
   if ntop.isdir(root_path) then
     local line = os_utils.execWithOutput("df "..root_path.." 2>/dev/null|tail -n1")
     if line ~= nil then
       line = line:gsub('%s+', ' ')
       local values = split(line, ' ')
       if #values >= 6 then
-        storage_info.dev = values[1]
-        storage_info.total = tonumber(values[2])*1024
-        storage_info.used = tonumber(values[3])*1024
-        storage_info.avail = tonumber(values[4])*1024
-        storage_info.used_perc = values[5]
-        storage_info.mount = values[6]
+        volume_info.dev = values[1]
+        volume_info.total = tonumber(values[2])*1024
+        volume_info.used =  tonumber(values[3])*1024
+        volume_info.avail = tonumber(values[4])*1024
+        volume_info.used_perc = values[5]
+        volume_info.mount = values[6]
       end
     end
   end
+
+  return volume_info
+end
+
+--! @brief Read information about the storage, including storage size and available space
+--! @param ifid the interface identifier 
+--! @return a table containing storage information (size is in bytes)
+function recording_utils.storageInfo(ifid)
+  local storage_info = recording_utils.volumeInfo(dirs.pcapdir)
 
   -- Interface storage info
   storage_info.if_used = interfaceStorageUsed(ifid)
 
   -- PCAP Extraction storage info
+  storage_info.extraction_used = 0
   local extraction_path = getPcapExtractionPath(ifid)
   if ntop.isdir(extraction_path) then
     local line = os_utils.execWithOutput("du -s "..extraction_path.." 2>/dev/null")
