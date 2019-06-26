@@ -3270,6 +3270,7 @@ local lang = {
     ["storage_dir"] = "Storage Directory",
     ["storage_directory_config"] = "The Storage Directory path can be changed by specifing the <i>%{option}</i> option into the %{product} configuration file.",
     ["storage_utilization"] = "Storage Utilization",
+    ["storage_utilization_pcap"] = "PCAP Storage Utilization",
     ["traffic_extraction_jobs"] = "Traffic Extraction Jobs",
     ["traffic_extractions"] = "Extractions",
     ["traffic_on_disk"] = "Traffic On Disk",

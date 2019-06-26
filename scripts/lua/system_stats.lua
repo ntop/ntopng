@@ -105,60 +105,95 @@ if(page == "overview") then
       print("<tr><th nowrap>"..i18n("about.ram_memory").."</th><td><span id='ram-process-used'></span></td></tr>\n")
    end
 
-   local storage_info = storage_utils.storageInfo()
-
-   local storage_items = {}
-
-   local classes = { "primary", "info", "warning", "success", "default" }
-   local colors = { "blue", "salmon", "seagreen", "cyan", "green", "magenta", "orange", "red", "violet" }
-   local col = 1
-   local num_items = 0
-
-   -- interfaces
-   for if_id, if_info in pairs(storage_info.interfaces) do
-      local item = {
-         title = getInterfaceName(if_id),
-         value = if_info.total,
-         link = ntop.getHttpPrefix() .. "/lua/if_stats.lua?ifid=" .. if_id
-      }
-      if num_items < #classes then
-         item.class = classes[num_items+1]
-      else
-         item.style = "background-image: linear-gradient(to bottom, "..colors[col].." 0%, dark"..colors[col].." 100%)"
-         col = col + 1
-         if col > #colors then col = 1 end
-      end
-      table.insert(storage_items, item)
-      num_items = num_items + 1
-   end
-
-   -- system
-   local item = {
-      title = i18n("system"),
-      value = storage_info.system,
-      link = ""
-   }
-   item.style = "background-image: linear-gradient(to bottom, grey 0%, darkgrey 100%)"
-   table.insert(storage_items, item)
-
    if not ntop.isWindows() then
+      local storage_info = storage_utils.storageInfo()
+
+      local storage_items = {}
+
+      local classes = { "primary", "info", "warning", "success", "default" }
+      local colors = { "blue", "salmon", "seagreen", "cyan", "green", "magenta", "orange", "red", "violet" }
+
+      -- interfaces
+      local col = 1
+      local num_items = 0
+      for if_id, if_info in pairs(storage_info.interfaces) do
+         local item = {
+            title = getInterfaceName(if_id),
+            value = if_info.total,
+            link = ntop.getHttpPrefix() .. "/lua/if_stats.lua?ifid=" .. if_id
+         }
+         if num_items < #classes then
+            item.class = classes[num_items+1]
+         else
+            item.style = "background-image: linear-gradient(to bottom, "..colors[col].." 0%, dark"..colors[col].." 100%)"
+            col = col + 1
+            if col > #colors then col = 1 end
+         end
+         table.insert(storage_items, item)
+         num_items = num_items + 1
+      end
+
+      -- system
+      local item = {
+         title = i18n("system"),
+         value = storage_info.other,
+         link = ""
+      }
+      item.style = "background-image: linear-gradient(to bottom, grey 0%, darkgrey 100%)"
+      table.insert(storage_items, item)
+
       print("<tr><th>"..i18n("traffic_recording.storage_utilization").."</th><td>")
       print("<span>"..i18n("volume")..": "..dirs.workingdir.." ("..storage_info.volume_dev..")</span><br />")
       print(stackedProgressBars(storage_info.volume_size, storage_items, i18n("available"), bytesToSize))
       print("</td></tr>\n")
+
+      if storage_info.pcap_volume_dev ~= nil then
+         storage_items = {}
+
+         -- interfaces
+         col = 1
+         num_items = 0
+         for if_id, if_info in pairs(storage_info.interfaces) do
+            local item = {
+               title = getInterfaceName(if_id),
+               value = if_info.pcap,
+               link = ntop.getHttpPrefix() .. "/lua/if_stats.lua?ifid=" .. if_id
+            }
+            if num_items < #classes then
+               item.class = classes[num_items+1]
+            else
+               item.style = "background-image: linear-gradient(to bottom, "..colors[col].." 0%, dark"..colors[col].." 100%)"
+               col = col + 1
+               if col > #colors then col = 1 end
+            end
+            table.insert(storage_items, item)
+            num_items = num_items + 1
+         end
+
+         -- system
+         local item = {
+            title = i18n("system"),
+            value = storage_info.pcap_other,
+            link = ""
+         }
+         item.style = "background-image: linear-gradient(to bottom, grey 0%, darkgrey 100%)"
+         table.insert(storage_items, item)
+
+         print("<tr><th>"..i18n("traffic_recording.storage_utilization_pcap").."</th><td>")
+         print("<span>"..i18n("volume")..": "..dirs.workingdir.." ("..storage_info.pcap_volume_dev..")</span><br />")
+         print(stackedProgressBars(storage_info.pcap_volume_size, storage_items, i18n("available"), bytesToSize))
+         print("</td></tr>\n")     
+      end
    end
 
    print("<tr><th nowrap>"..i18n("about.last_log").."</th><td><code>\n")
-
    for i=1,32 do
        msg = ntop.listIndexCache("ntopng.trace", i)
        if(msg ~= nil) then
           print(noHtml(msg).."<br>\n")
        end
    end
-
    print("</code></td></tr>\n")
-
 
    print("</table>\n")
 elseif(page == "historical") then
