@@ -375,6 +375,20 @@ void Flow::dumpFlowAlert() {
 
 /* *************************************** */
 
+u_int16_t Flow::getStatsProtocol() const {
+  u_int16_t stats_protocol;
+
+  if(ndpiDetectedProtocol.app_protocol != NDPI_PROTOCOL_UNKNOWN
+      && !ndpi_is_subprotocol_informative(NULL, ndpiDetectedProtocol.master_protocol))
+    stats_protocol = ndpiDetectedProtocol.app_protocol;
+  else
+    stats_protocol = ndpiDetectedProtocol.master_protocol;
+
+  return(stats_protocol);
+}
+
+/* *************************************** */
+
 void Flow::processDetectedProtocol() {
   u_int16_t l7proto;
   u_int16_t stats_protocol;
@@ -382,11 +396,7 @@ void Flow::processDetectedProtocol() {
   if(protocol_processed || (ndpiFlow == NULL))
     return;
 
-  if(ndpiDetectedProtocol.app_protocol != NDPI_PROTOCOL_UNKNOWN
-      && !ndpi_is_subprotocol_informative(NULL, ndpiDetectedProtocol.master_protocol))
-    stats_protocol = ndpiDetectedProtocol.app_protocol;
-  else
-    stats_protocol = ndpiDetectedProtocol.master_protocol;
+  stats_protocol = getStatsProtocol();
 
   /* Update the active flows stats */
   if(cli_host) cli_host->incnDPIFlows(stats_protocol);
@@ -1031,11 +1041,7 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
     }
   }
 
-  if(ndpiDetectedProtocol.app_protocol != NDPI_PROTOCOL_UNKNOWN
-      && !ndpi_is_subprotocol_informative(NULL, ndpiDetectedProtocol.master_protocol))
-    stats_protocol = ndpiDetectedProtocol.app_protocol;
-  else
-    stats_protocol = ndpiDetectedProtocol.master_protocol;
+  stats_protocol = getStatsProtocol();
 
   sent_packets = cli2srv_packets, sent_bytes = cli2srv_bytes, sent_goodput_bytes = cli2srv_goodput_bytes;
   diff_sent_packets = sent_packets - cli2srv_last_packets,

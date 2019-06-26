@@ -181,6 +181,7 @@ function ts_dump.getConfig()
   config.country_rrd_creation = ntop.getPref("ntopng.prefs.country_rrd_creation")
   config.vlan_rrd_creation = ntop.getPref("ntopng.prefs.vlan_rrd_creation")
   config.tcp_retr_ooo_lost_rrd_creation = ntop.getPref("ntopng.prefs.tcp_retr_ooo_lost_rrd_creation")
+  config.ndpi_flows_timeseries_creation = ntop.getPref("ntopng.prefs.ndpi_flows_rrd_creation")
 
   -- ########################################################
   -- Populate some defaults
@@ -327,9 +328,6 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
 end
 
 function ts_dump.host_update_ndpi_rrds(when, hostname, host, ifstats, verbose, config)
-  -- TODO add preference
-  config.ndpi_flows_timeseries_creation = true
-
   -- nDPI Protocols
   for k, value in pairs(host["ndpi"] or {}) do
     local sep = string.find(value, "|")
@@ -340,7 +338,7 @@ function ts_dump.host_update_ndpi_rrds(when, hostname, host, ifstats, verbose, c
     ts_utils.append("host:ndpi", {ifid=ifstats.id, host=hostname, protocol=k,
               bytes_sent=bytes_sent, bytes_rcvd=bytes_rcvd}, when, verbose)
 
-    if config.ndpi_flows_timeseries_creation then
+    if config.ndpi_flows_timeseries_creation == "1" then
       local num_flows = string.sub(value, sep2+1)
 
       ts_utils.append("host:ndpi_flows", {ifid=ifstats.id, host=hostname, protocol=k,

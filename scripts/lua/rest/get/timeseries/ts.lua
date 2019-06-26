@@ -95,7 +95,7 @@ end
 
 local res
 
-if(true --[[ TODO add preference]]) then
+if(ntop.getPref("ntopng.prefs.ndpi_flows_rrd_creation") == "1") then
   if(ts_schema == "host:ndpi") then
     ts_schema = "custom:host_ndpi_and_flows"
   elseif(ts_schema == "iface:ndpi") then

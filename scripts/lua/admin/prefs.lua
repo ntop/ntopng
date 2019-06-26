@@ -442,7 +442,7 @@ function printAlerts()
   prefsInputFieldPrefs(subpage_active.entries["longlived_flow_duration"].title, 
      subpage_active.entries["longlived_flow_duration"].description,
     "ntopng.prefs.", "longlived_flow_duration", prefs.longlived_flow_duration, 
-    "number", showElements, nil, nil, {min=1, max=60*60*24*7, tformat="hd"})
+    "number", showElements, nil, nil, {min=1, max=60*60*24*7, tformat="mhd"})
 
   prefsToggleButton(subpage_active, {
     field = "toggle_elephant_flows_alerts",
@@ -1613,6 +1613,14 @@ function printStatsTimeseries()
     default = "0",
     pref = "country_rrd_creation",
   })
+
+  if ntop.isPro() then
+    prefsToggleButton(subpage_active, {
+      field = "toggle_ndpi_flows_rrds",
+      default = "0",
+      pref = "ndpi_flows_rrd_creation",
+    })
+  end
 
   print('</table>')
 

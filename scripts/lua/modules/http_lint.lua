@@ -1219,6 +1219,7 @@ local known_parameters = {
    ["toggle_snmp_alerts_port_errors"]              = validateBool,
    ["snmp_port_load_threshold"]                    = validateNumber,
    ["toggle_midnight_stats_reset"]                 = validateBool,
+   ["toggle_ndpi_flows_rrds"]                      = validateBool,
 
    -- Input fields
    ["companion_interface"]                         = validateEmptyOr(validateInterface),
