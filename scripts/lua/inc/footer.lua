@@ -11,6 +11,8 @@ print [[
    ]]
 
 local template = require "template_utils"
+local system_scripts = require("system_scripts_utils")
+
 local have_nedge = ntop.isnEdge()
 info = ntop.getInfo(true)
 
@@ -330,7 +332,7 @@ print[[
                    var label = error_label;
 
 		   msg += "&nbsp;<a href=\"]]
-print (ntop.getHttpPrefix())
+ print (ntop.getHttpPrefix())
 print [[/lua/show_alerts.lua\">"
 
                    msg += "<span class=\"label " + label + "\">"+addCommas(rsp.engaged_alerts)+" <i class=\"fa fa-warning\"></i></span></A>";
@@ -339,6 +341,13 @@ print [[/lua/show_alerts.lua\">"
 
 		if((rsp.engaged_alerts > 0 || rsp.alerts_stored == true) && $("#alerts-id").is(":visible") == false) {
                   $("#alerts-id").show();
+                }
+
+                if(rsp.ts_alerts.influxdb) {
+                  msg += "&nbsp;<a href=\"]]
+print (ntop.getHttpPrefix())
+print [[/lua/system/influxdb_stats.lua?ifid=]] print(tostring(getInterfaceId(ifname))) print[[&page=alerts#tab-table-alerts-history\">"
+                  msg += "<span class=\"label label-danger\"><i class=\"fa fa-database\"></i></span></A>";
                 }
 
 		var alarm_threshold_low = 60;  /* 60% */
