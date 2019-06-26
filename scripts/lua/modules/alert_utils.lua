@@ -2931,6 +2931,7 @@ function check_process_alerts()
       if(decoded == nil) then
 	 if(verbose) then io.write("JSON Decoding error: "..message.."\n") end
       else
+	 interface.select(getSystemInterfaceId())
 	 interface.storeAlert(decoded.entity_type,
 			      decoded.entity_value,
 			      decoded.type,

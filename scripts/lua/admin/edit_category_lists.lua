@@ -18,6 +18,7 @@ if not haveAdminPrivileges() then
 end
 
 page_utils.print_header()
+active_page = "admin"
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
