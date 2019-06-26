@@ -37,11 +37,9 @@ Flow* FlowHash::find(IpAddress *src_ip, IpAddress *dst_ip,
 		     u_int16_t vlanId, u_int8_t protocol,
 		     const ICMPinfo * const icmp_info,
 		     bool *src2dst_direction) {
-
-  /* Removed vlanId due to eBPF */
   u_int32_t hash = ((src_ip->key() + dst_ip->key()
 		     + (icmp_info ? icmp_info->key() : 0)
-		     + src_port + dst_port/* +vlanId */ + protocol) % num_hashes);
+		     + src_port + dst_port + vlanId + protocol) % num_hashes);
   Flow *head = (Flow*)table[hash];
   u_int16_t num_loops = 0;
 

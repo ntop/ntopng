@@ -1457,12 +1457,14 @@ bool Flow::equal(IpAddress *_cli_ip, IpAddress *_srv_ip, u_int16_t _cli_port,
 		 u_int16_t _srv_port, u_int16_t _vlanId, u_int8_t _protocol,
 		 const ICMPinfo * const _icmp_info,
 		 bool *src2srv_direction) {
-  if((_vlanId != vlanId) && (vlanId != 0))
+  if(_vlanId != vlanId)
     return(false);
 
-  if(_protocol != protocol) return(false);
+  if(_protocol != protocol)
+    return(false);
 
-  if(icmp_info && !icmp_info->equal(_icmp_info)) return(false);
+  if(icmp_info && !icmp_info->equal(_icmp_info))
+    return(false);
 
   if(cli_host && cli_host->equal(_cli_ip)
      && srv_host && srv_host->equal(_srv_ip)
@@ -1899,7 +1901,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 /* *************************************** */
 
 u_int32_t Flow::key() {
-  u_int32_t k = cli_port + srv_port /* +vlanId */ + protocol;
+  u_int32_t k = cli_port + srv_port + vlanId + protocol;
 
   if(cli_host)  k += cli_host->key();
   if(srv_host)  k += srv_host->key();
