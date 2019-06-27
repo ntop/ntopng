@@ -280,14 +280,14 @@ end
 print[[
          title: "]] print(i18n("containers_stats.client_rtt")) print[[",
          field: "column_client_rtt",
-         sortable: false,
+         sortable: true,
             css: {
                textAlign: 'right'
             }
       }, {
          title: "]] print(i18n("containers_stats.server_rtt")) print[[",
          field: "column_server_rtt",
-         sortable: false,
+         sortable: true,
             css: {
                textAlign: 'right'
             }

@@ -761,7 +761,7 @@ int AlertsManager::storeFlowAlert(Flow *f) {
     AlertType alert_type;
     AlertLevel alert_severity;
     time_t now = time(NULL);
-    char *info;
+    const char *info;
     json_object *alert_json_obj;
     u_int64_t cur_rowid = (u_int64_t)-1, cur_counter;
     u_int64_t cur_cli2srv_bytes, cur_srv2cli_bytes, cur_cli2srv_packets, cur_srv2cli_packets = 0;

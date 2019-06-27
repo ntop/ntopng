@@ -2640,7 +2640,7 @@ void Flow::timeval_diff(struct timeval *begin, const struct timeval *end,
 
 /* *************************************** */
 
-char* Flow::getFlowInfo() {
+const char* Flow::getFlowInfo() {
   if(!isMaskedFlow()) {
 
     if(isDNS() && protos.dns.last_query)

@@ -358,6 +358,8 @@ typedef enum {
   column_thpt,
   column_bytes,
   column_info,
+  column_client_rtt,
+  column_server_rtt,
   /* Hosts */
   column_ip,
   column_alerts,

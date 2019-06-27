@@ -3679,7 +3679,7 @@ struct flowHostRetrieveList {
   AutonomousSystem *asValue;
   Country *countryVal;
   u_int64_t numericValue;
-  char *stringValue;
+  const char *stringValue;
   IpAddress *ipValue;
 };
 
@@ -3949,7 +3949,8 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
 static bool flow_search_walker(GenericHashEntry *h, void *user_data, bool *matched) {
   struct flowHostRetriever *retriever = (struct flowHostRetriever*)user_data;
   Flow *f = (Flow*)h;
-  char *flow_info;
+  const char *flow_info;
+  const TcpInfo *tcp_info;
 
   if(retriever->actNumEntries >= retriever->maxNumEntries)
     return(true); /* Limit reached - stop iterating */
@@ -3981,6 +3982,18 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data, bool *match
 	break;
       case column_bytes:
 	retriever->elems[retriever->actNumEntries++].numericValue = f->get_bytes();
+	break;
+      case column_client_rtt:
+	if((tcp_info = f->getClientTcpInfo()))
+	  retriever->elems[retriever->actNumEntries++].numericValue = (u_int64_t)(tcp_info->rtt * 1000);
+	else
+	  retriever->elems[retriever->actNumEntries++].numericValue = 0;
+	break;
+      case column_server_rtt:
+	if((tcp_info = f->getServerTcpInfo()))
+	  retriever->elems[retriever->actNumEntries++].numericValue = (u_int64_t)(tcp_info->rtt * 1000);
+	else
+	  retriever->elems[retriever->actNumEntries++].numericValue = 0;
 	break;
       case column_info:
 	flow_info = f->getFlowInfo();
@@ -4467,6 +4480,8 @@ int NetworkInterface::sortFlows(u_int32_t *begin_slot,
   else if(!strcmp(sortColumn, "column_ndpi")) retriever->sorter = column_ndpi, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_duration")) retriever->sorter = column_duration, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_thpt")) retriever->sorter = column_thpt, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_client_rtt")) retriever->sorter = column_client_rtt, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_server_rtt")) retriever->sorter = column_server_rtt, sorter = numericSorter;
   else if((!strcmp(sortColumn, "column_bytes")) || (!strcmp(sortColumn, "column_") /* default */)) retriever->sorter = column_bytes, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_info")) retriever->sorter = column_info, sorter = stringSorter;
   else {
@@ -5014,7 +5029,7 @@ int NetworkInterface::getActiveHostsList(lua_State* vm,
      || retriever.sorter == column_os) {
     for(u_int i=0; i<retriever.maxNumEntries; i++)
       if(retriever.elems[i].stringValue)
-	free(retriever.elems[i].stringValue);
+	free((char*)retriever.elems[i].stringValue);
   } else if(retriever.sorter == column_local_network)
     for(u_int i=0; i<retriever.maxNumEntries; i++)
       if(retriever.elems[i].ipValue)
@@ -5158,7 +5173,7 @@ int NetworkInterface::getActiveHostsGroup(lua_State* vm,
      || (retriever.sorter == column_os)) {
     for(u_int i=0; i<retriever.maxNumEntries; i++)
       if(retriever.elems[i].stringValue)
-	free(retriever.elems[i].stringValue);
+	free((char*)retriever.elems[i].stringValue);
   } else if(retriever.sorter == column_local_network)
     for(u_int i=0; i<retriever.maxNumEntries; i++)
       if(retriever.elems[i].ipValue)
