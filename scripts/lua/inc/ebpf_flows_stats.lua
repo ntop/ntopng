@@ -239,45 +239,6 @@ print[[
          field: "column_server",
          sortable: true,
       }, {
-]]
-
-if ifstats.has_seen_pods and interface.isPacketInterface() then
-  print[[
-         title: "]] print(i18n("containers_stats.client_pod")) print[[",
-         field: "column_client_pod",
-         sortable: false,
-      }, {
-         title: "]] print(i18n("containers_stats.server_pod")) print[[",
-         field: "column_server_pod",
-         sortable: false,
-      }, {
-]]
-elseif ifstats.has_seen_containers and interface.isPacketInterface() then
-  print[[
-         title: "]] print(i18n("containers_stats.client_container")) print[[",
-         field: "column_client_container",
-         sortable: false,
-      }, {
-         title: "]] print(i18n("containers_stats.server_container")) print[[",
-         field: "column_server_container",
-         sortable: false,
-      }, {
-]]
---elseif ifstats.has_seen_ebpf_events then
-elseif false then
-  print[[
-         title: "]] print(i18n("sflows_stats.client_process")) print[[",
-         field: "column_client_process",
-         sortable: false,
-      }, {
-         title: "]] print(i18n("sflows_stats.server_process")) print[[",
-         field: "column_server_process",
-         sortable: false,
-      }, {
-]]
-end
-
-print[[
          title: "]] print(i18n("containers_stats.client_rtt")) print[[",
          field: "column_client_rtt",
          sortable: true,

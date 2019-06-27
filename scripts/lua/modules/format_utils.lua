@@ -229,13 +229,27 @@ function format_utils.formatMillis(x)
 end
 
 function format_utils.formatContainer(cont)
+   local name = ''
+
    if cont["k8s.name"] then
-      return cont["k8s.name"]
+      name = cont["k8s.name"]
    elseif cont["docker.name"] then
-      return cont["docker.name"]
+      name = cont["docker.name"]
+   elseif cont["id"] then
+      name = cont["id"]
    end
 
-   return cont["id"]
+   return string.format("%s", name)
+end
+
+function format_utils.formatPod(cont)
+   local name = ''
+
+   if cont["k8s.pod"] then
+      name = cont["k8s.pod"]
+   end
+
+   return string.format("%s", name)
 end
 
 function format_utils.formatExporterInterface(port_idx, port_info)
