@@ -2558,7 +2558,26 @@ decode_packet_eth:
 
 	diff = dst - src;
 
-	if(diff && (src & 0xFFFF0000) != 0xA9FE0000 && (dst & 0xFFFF0000) != 0xA9FE0000) {
+        /*
+          Following is an heuristic which tries to detect the broadcast domain
+          with its size and network-part of the address. Detection is done by checking
+          source and target protocol addresses found in arp.
+
+          Link-local addresses are excluded, as well as arp Probes with a zero source IP.
+
+          ARP Probes are defined in RFC 5227:
+           In this document, the term 'ARP Probe' is used to refer to an ARP
+           Request packet, broadcast on the local link, with an all-zero 'sender
+           IP address'.  [...]  The 'target IP
+           address' field MUST be set to the address being probed.  An ARP Probe
+           conveys both a question ("Is anyone using this address?") and an
+           implied statement ("This is the address I hope to use.").
+         */
+
+	if(diff
+	   && src /* Not a zero source IP (ARP Probe) */
+	   && (src & 0xFFFF0000) != 0xA9FE0000 /* Not a link-local IP */
+	   && (dst & 0xFFFF0000) != 0xA9FE0000 /* Not a link-local IP */) {
 	  u_int32_t cur_mask;
 	  u_int8_t cur_cidr;
 
