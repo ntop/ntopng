@@ -98,6 +98,10 @@ if ifstats.stats and ifstats.stats_since_reset then
    end
 end
 
+-- refreshing traffic recording availability as one may have installed 
+-- n2disk while ntopng was running
+recording_utils.checkAvailable()
+
 local ext_interfaces = {}
 if recording_utils.isAvailable() and recording_utils.isSupportedZMQInterface(ifid) then
    ext_interfaces = recording_utils.getExtInterfaces(ifid)
