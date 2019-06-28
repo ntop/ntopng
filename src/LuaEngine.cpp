@@ -5625,19 +5625,6 @@ static int ntop_get_interface_stats(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   bool get_direction_stats = false;
 
-  /*
-    ntop_interface->getAlertsManager()->engageAlert(alert_entity_host, "127.0.0.1",
-    "min_bytes",
-    alert_threshold_exceeded,
-    alert_level_warning,
-    "miao");
-    ntop_interface->getAlertsManager()->releaseAlert(alert_entity_host, "127.0.0.1",
-    "min_bytes",
-    alert_threshold_exceeded,
-    alert_level_warning,
-    "miao");
-  */
-
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(lua_type(vm, 1) == LUA_TBOOLEAN)
@@ -7787,7 +7774,7 @@ static int ntop_add_local_network(lua_State* vm) {
 /* ****************************************** */
 
 /* NOTE: do not call directly, use alerts_api instead */
-static int ntop_interface_emit_alert(lua_State* vm) {
+static int ntop_interface_trigger_alert(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *entity_value;
   AlertLevel alert_severity;
@@ -7830,15 +7817,69 @@ static int ntop_interface_emit_alert(lua_State* vm) {
      || ((am = ntop_interface->getAlertsManager()) == NULL))
     return(CONST_LUA_ERROR);
 
-  ret = am->emitAlert(when, periodicity, alert_type, alert_subtype, alert_severity,
+  ret = am->triggerAlert(when, periodicity, alert_type, alert_subtype, alert_severity,
     alert_entity, entity_value, alert_json, &is_new_alert, ignore_disabled, check_maximum);
 
-  if(ret < 0)
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "emitAlert failed with code %d", ret);
+  if(ret != 0)
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "triggerAlert failed with code %d", ret);
 
   lua_newtable(vm);
-  lua_push_bool_table_entry(vm, "success", (ret >= 0));
+  lua_push_bool_table_entry(vm, "success", (ret == 0));
   lua_push_bool_table_entry(vm, "new_alert", is_new_alert);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+/* NOTE: do not call directly, use alerts_api instead */
+static int ntop_interface_release_alert(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  char *entity_value;
+  AlertLevel alert_severity;
+  AlertType alert_type;
+  AlertEntity alert_entity;
+  AlertsManager *am;
+  int ret, periodicity = 0;
+  char *alert_subtype = (char*)"";
+  u_int64_t row_id = 0;
+  time_t when;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if((!ntop_interface)
+     || ((am = ntop_interface->getAlertsManager()) == NULL))
+    return(CONST_LUA_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  when = (int)lua_tonumber(vm, 1);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  periodicity = (int)lua_tonumber(vm, 2);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  alert_type = (AlertType)lua_tonumber(vm, 3);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  alert_severity = (AlertLevel)lua_tonumber(vm, 4);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 5, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  alert_entity = (AlertEntity)lua_tonumber(vm, 5);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 6, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  entity_value = (char*)lua_tostring(vm, 6);
+
+  ret = am->releaseAlert(when, periodicity, alert_type, alert_subtype, alert_severity,
+    alert_entity, entity_value, &row_id);
+
+  lua_newtable(vm);
+
+  if(ret != 0)
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "releaseAlert failed with code %d", ret);
+  else
+    lua_push_uint64_table_entry(vm, "rowid", row_id);
+
+  lua_push_bool_table_entry(vm, "success", (ret == 0));
 
   return(CONST_LUA_OK);
 }
@@ -8671,7 +8712,8 @@ static const luaL_Reg ntop_interface_reg[] = {
   /* Alerts */
   { "queryAlertsRaw",         ntop_interface_query_alerts_raw         },
   { "queryFlowAlertsRaw",     ntop_interface_query_flow_alerts_raw    },
-  { "emitAlert",              ntop_interface_emit_alert               },
+  { "triggerAlert",           ntop_interface_trigger_alert            },
+  { "releaseAlert",           ntop_interface_release_alert            },
   { "setHostAlerts",          ntop_interface_set_host_alerts          },
   { "setInterfaceEngagedAlerts",  ntop_interface_set_engaged_alerts   },
   { "setInterfaceHasAlerts",  ntop_interface_set_has_alerts           },

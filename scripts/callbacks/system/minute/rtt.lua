@@ -89,7 +89,7 @@ end
 -- ##############################################
 
 function probe.emitRttAlert(numeric_ip, ip_label, current_value, upper_threshold)
-   ping_issues_alert:emit(ip_label, {
+   ping_issues_alert:trigger(ip_label, {
       value = current_value,
       threashold = upper_threshold,
       label = ip_label,

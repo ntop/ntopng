@@ -12,7 +12,7 @@ local test_failed_alert = alerts:newAlert({
 })
 
 local function test_error(msg)
-  test_failed_alert:emit("test", msg)
+  test_failed_alert:trigger("test", msg)
 end
 
 local function test_assert(cond, error_msg)

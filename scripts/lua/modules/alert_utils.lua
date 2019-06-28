@@ -250,6 +250,13 @@ function statusFilter(query, engaged, now)
   local comparison = ternary(engaged, ">=", "<")
   now = now or os.time()
   local filter = string.format("%s %s %u", getAlertReleaseQueryTime(), comparison, now)
+  local alert_untriggered_val = ""
+
+  if engaged then
+    alert_untriggered_val = " AND (alert_untriggered=0)"
+  else
+    alert_untriggered_val = " OR (alert_untriggered=1)"
+  end
 
   local group_by_pos = string.find(query, "group by") or string.find(query, "GROUP BY")
   local prefix_part = query
@@ -267,7 +274,7 @@ function statusFilter(query, engaged, now)
     prefix_part = prefix_part .. " AND"
   end
 
-  return(string.format("%s %s %s", prefix_part, filter, suffix_part))
+  return(string.format("%s (%s%s) %s", prefix_part, filter, alert_untriggered_val, suffix_part))
 end
 
 -- ##############################################################################
@@ -2337,7 +2344,7 @@ local function check_entity_alerts(ifid, entity_type, entity_value, working_stat
          periodicity = working_status.interval,
       })
 
-      alert:emit(entity_value, alert_msg)
+      alert:trigger(entity_value, alert_msg)
    end
 
    local function getAnomalyType(anomal_name)
@@ -2576,7 +2583,7 @@ local function check_inactive_hosts_alerts(ifid, working_status)
            type = "inactivity",
            severity = aseverity,
         })
-        alert:emit(entity_value, alert_msg)
+        alert:trigger(entity_value, alert_msg)
       end
    end
 end
@@ -2609,14 +2616,14 @@ end
 
 -- #################################
 
-local function emitAlertFromNotification(notification)
+local function triggerAlertFromNotification(notification)
   local alert = alerts:newAlert({
      entity = alertEntityRaw(notification.entity_type),
      type = alertTypeRaw(notification.type),
      severity = alertSeverityRaw(notification.severity),
   })
 
-  alert:emit(notification.entity_value, notification.message, notification.when)
+  alert:trigger(notification.entity_value, notification.message, notification.when)
 end
 
 -- #################################
@@ -2664,7 +2671,7 @@ function check_mac_ip_association_alerts()
       if elems ~= nil then
          --io.write(elems.ip.." ==> "..message.."[".. elems.ifname .."]\n")
          interface.select(elems.ifname)
-         alert:emit(elems.new_mac, i18n("alert_messages.mac_ip_association_change",
+         alert:trigger(elems.new_mac, i18n("alert_messages.mac_ip_association_change",
                   {device=name, ip=elems.ip,
                   old_mac=elems.old_mac, old_mac_url=getMacUrl(elems.old_mac),
                   new_mac=elems.new_mac, new_mac_url=getMacUrl(elems.new_mac)}))
@@ -2695,7 +2702,7 @@ function check_broadcast_domain_too_large_alerts()
 
 	 --io.write(elems.ip.." ==> "..message.."[".. elems.ifname .."]\n")
 	 interface.select(elems.ifname)
-	 alert:emit(entity_value, i18n("alert_messages.broadcast_domain_too_large",
+	 alert:trigger(entity_value, i18n("alert_messages.broadcast_domain_too_large",
 				   {src_mac = elems.src_mac,
 				    src_mac_url = getMacUrl(elems.src_mac),
 				    dst_mac = elems.dst_mac,
@@ -2733,7 +2740,7 @@ function check_nfq_flushed_queue_alerts()
          -- io.write(elems.ip.." ==> "..message.."[".. elems.ifname .."]\n")
 
          interface.select(elems.ifname)
-         alert:emit(entity_value, i18n("alert_messages.nfq_flushed",{
+         alert:trigger(entity_value, i18n("alert_messages.nfq_flushed",{
                 name = elems.ifname, pct = elems.pct,
                 tot = elems.tot, dropped = elems.dropped,
                 url = ntop.getHttpPrefix().."/lua/if_stats.lua?ifid="..elems.ifid
@@ -2772,7 +2779,7 @@ function check_host_remote_to_remote_alerts()
 
          interface.select(getInterfaceName(elems.ifid))
 
-         alert:emit(entity_value, msg)
+         alert:trigger(entity_value, msg)
       end
    end   
 end
@@ -2813,7 +2820,7 @@ function check_outside_dhcp_range_alerts()
 	 })
 
          interface.select(getInterfaceName(elems.ifid))
-         alert:emit(entity_value, msg)
+         alert:trigger(entity_value, msg)
       end
    end
 end
@@ -2855,7 +2862,7 @@ function check_periodic_activities_alerts()
       })
 
       interface.select(elems.ifname)
-      alert:emit(elems.path, msg)
+      alert:trigger(elems.path, msg)
     end
   end
 end
@@ -2888,7 +2895,7 @@ function check_login_alerts()
 
         local user = decoded.user
         decoded.user = nil -- no need to serialize this
-        alert:emit(user, decoded)
+        alert:trigger(user, decoded)
       end
    end
 end
@@ -2911,7 +2918,7 @@ function check_process_alerts()
 	 if(verbose) then io.write("JSON Decoding error: "..message.."\n") end
       else
         interface.select(getSystemInterfaceId())
-        emitAlertFromNotification(decoded)
+        triggerAlertFromNotification(decoded)
       end
    end
 end
@@ -2957,7 +2964,7 @@ local function check_macs_alerts(ifid, working_status)
 					    local name = getDeviceName(mac)
 					    setSavedDeviceName(mac, name)
               
-              new_device_alert:emit(mac, i18n("alert_messages.a_new_device_has_connected", {device=name, url=getMacUrl(mac)}))
+              new_device_alert:trigger(mac, i18n("alert_messages.a_new_device_has_connected", {device=name, url=getMacUrl(mac)}))
 					 end
 				      end
 
@@ -2968,7 +2975,7 @@ local function check_macs_alerts(ifid, working_status)
 					 if alert_device_connection_enabled then
 					    local name = getDeviceName(mac)
 					    setSavedDeviceName(mac, name)
-              device_connection_alert:emit(mac, i18n("alert_messages.device_has_connected", {device=name, url=getMacUrl(mac)}))
+              device_connection_alert:trigger(mac, i18n("alert_messages.device_has_connected", {device=name, url=getMacUrl(mac)}))
 					 end
 				      else
 					 new_active_devices[mac] = 1
@@ -2983,7 +2990,7 @@ local function check_macs_alerts(ifid, working_status)
          ntop.delMembersCache(active_devices_set, mac)
 
          if alert_device_connection_enabled then
-            device_disconnection_alert:emit(mac, i18n("alert_messages.device_has_disconnected", {device=name, url=getMacUrl(mac)}))
+            device_disconnection_alert:trigger(mac, i18n("alert_messages.device_has_disconnected", {device=name, url=getMacUrl(mac)}))
          end
       end
    end
@@ -3092,7 +3099,7 @@ function check_host_pools_alerts(ifid, working_status)
 
 	       if alerts_on_quota_exceeded then
 		  if info.bytes_exceeded and not prev_exceeded[1] then
-         quota_exceeded_alert_traffic:emit(tostring(pool), i18n("alert_messages.subject_quota_exceeded", {
+         quota_exceeded_alert_traffic:trigger(tostring(pool), i18n("alert_messages.subject_quota_exceeded", {
                   pool = host_pools_utils.getPoolName(ifid, pool),
                   url = getHostPoolUrl(pool),
                   subject = i18n("alert_messages.proto_bytes_quotas", {proto=proto}),
@@ -3101,7 +3108,7 @@ function check_host_pools_alerts(ifid, working_status)
 		  end
 
 		  if info.time_exceeded and not prev_exceeded[2] then
-         quota_exceeded_alert_time:emit(tostring(pool), i18n("alert_messages.subject_quota_exceeded", {
+         quota_exceeded_alert_time:trigger(tostring(pool), i18n("alert_messages.subject_quota_exceeded", {
                 pool = host_pools_utils.getPoolName(ifid, pool),
                 url = getHostPoolUrl(pool),
                 subject = i18n("alert_messages.proto_time_quotas", {proto=proto}),
@@ -3140,7 +3147,7 @@ function check_host_pools_alerts(ifid, working_status)
 	       ntop.setMembersCache(active_pools_set, pool)
 
 	       if alert_pool_connection_enabled then
-            pool_connection_alert:emit(tostring(pool),
+            pool_connection_alert:trigger(tostring(pool),
               i18n("alert_messages.host_pool_has_connected",
                 {pool=host_pools_utils.getPoolName(ifid, pool), url=getHostPoolUrl(pool)}))
 	       end
@@ -3156,7 +3163,7 @@ function check_host_pools_alerts(ifid, working_status)
          ntop.delMembersCache(active_pools_set, pool)
 
          if alert_pool_connection_enabled then
-            pool_disconnection_alert:emit(tostring(pool),
+            pool_disconnection_alert:trigger(tostring(pool),
               i18n("alert_messages.host_pool_has_disconnected",
                 {pool=host_pools_utils.getPoolName(ifid, pool),
                 url=getHostPoolUrl(pool)}))

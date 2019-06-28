@@ -178,7 +178,7 @@ function probe._checkExportQueueLen(when, ts_utils, influxdb)
     local err_msg = i18n("alerts_dashboard.influxdb_queue_too_long_description",
       {length = queue_len})
 
-     influxdb_queue_long:emit(influxdb.url, err_msg) -- TODO json
+     influxdb_queue_long:trigger(influxdb.url, err_msg) -- TODO json
   end
 
   traceError(TRACE_INFO, TRACE_CONSOLE, string.format("InfluxDB export queue length: %u", queue_len))

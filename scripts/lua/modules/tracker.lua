@@ -45,7 +45,7 @@ function tracker.log(f_name, f_args)
     entity = "user",
     severity = "info",
   })
-  alert:emit(entity_value, jobj)
+  alert:trigger(entity_value, jobj)
 
   interface.select(tostring(old_iface))
 end

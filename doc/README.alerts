@@ -16,7 +16,7 @@ An alert on ntopng has some mandatory attributes:
 It also has some optional attributes:
 
   - *periodicity*: if set, it specify which is the expected alert recheck
-    periodicity, e.g. if set to "5mins", it means that the alert "emit" method
+    periodicity, e.g. if set to "5mins", it means that the alert "trigger" method
     is expected to be called every 5 minutes. Supported values
     are "min", "5mins", "hour", "day"
 
@@ -34,7 +34,7 @@ https://github.com/ntop/ntopng/blob/dev/scripts/lua/modules/alert_consts.lua .
 
 Alerts with periodicity 0 (default) are considered single events and are not
 shown as "engaged". Engaged alerts are released after the alert is not updated
-with "emit" for 2*periodicity seconds.
+with "trigger" for 2*periodicity seconds.
 
 Generate an Alert
 -----------------
@@ -52,7 +52,7 @@ local device_connection_alert = alerts:newAlert({
 })
 
 # Generate the alert, spefying which is the alert entity value and the message
-device_connection_alert:emit("00:11:22:33:44:55",
+device_connection_alert:trigger("00:11:22:33:44:55",
   "The device 00:11:22:33:44:55 has connected to the network")
 ```
 

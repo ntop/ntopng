@@ -33,7 +33,7 @@ class AlertsManager : protected StoreManager {
   int openStore();
 
   /* methods used for alerts that have a timespan */
-  int isAlertExisting(time_t when, AlertType alert_type, const char *subtype,
+  int isAlertEngaged(time_t when, AlertType alert_type, const char *subtype,
       int periodicity, AlertEntity alert_entity, const char * const alert_entity_value,
       char * const query_buf, ssize_t query_buf_len,
       bool * const is_existing, u_int64_t * const cur_rowid) const;
@@ -62,10 +62,14 @@ class AlertsManager : protected StoreManager {
   /*
     ========== Generic alerts API =========
    */
-  int emitAlert(time_t when, int periodicity, AlertType alert_type, const char *subtype,
+  int triggerAlert(time_t when, int periodicity, AlertType alert_type, const char *subtype,
       AlertLevel alert_severity, AlertEntity alert_entity, const char *alert_entity_value,
       const char *alert_json, bool *new_alert,
       bool ignore_disabled = false, bool check_maximum = true);
+
+  int releaseAlert(time_t when, int periodicity, AlertType alert_type, const char *subtype,
+      AlertLevel alert_severity, AlertEntity alert_entity, const char *alert_entity_value,
+      u_int64_t *row_id);
 
   /*
     ========== FLOW alerts API =========

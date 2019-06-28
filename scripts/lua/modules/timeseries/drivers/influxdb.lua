@@ -688,7 +688,7 @@ function driver:_exportTsFile(fname)
       severity = "error",
     })
 
-    influx_alert:emit(self.url, msg) -- TODO json
+    influx_alert:trigger(self.url, msg) -- TODO json
 
     rv = false
   end

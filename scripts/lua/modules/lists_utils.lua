@@ -323,7 +323,7 @@ local function checkListsUpdate(timeout)
           severity = "warning",
         })
 
-        list_alert:emit(list_name, msg) -- TODO json
+        list_alert:trigger(list_name, msg) -- TODO json
       end
 
       now = os.time()

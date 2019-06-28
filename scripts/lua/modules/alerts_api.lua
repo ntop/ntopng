@@ -90,7 +90,8 @@ end
 
 -- ##############################################
 
-function alerts:emit(entity_value, alert_message, when)
+-- Triggers a new alert or refreshes an existing one
+function alerts:trigger(entity_value, alert_message, when)
   local force = false
   local msg = alert_message
   when = when or os.time()
@@ -99,7 +100,7 @@ function alerts:emit(entity_value, alert_message, when)
     msg = json.encode(alert_message)
   end
 
-  local rv = interface.emitAlert(when, self.periodicity,
+  local rv = interface.triggerAlert(when, self.periodicity,
     self.type_id, self.severity_id,
     self.entity_type_id, entity_value, msg, self.subtype)
 
@@ -121,7 +122,44 @@ function alerts:emit(entity_value, alert_message, when)
     end
   end
 
-  return(rv)
+  return(rv.success)
+end
+
+-- ##############################################
+
+-- Releases an engaged alert
+-- NOTE: alerts are automomatically released based on their periodicity,
+-- this function is for premature release
+function alerts:release(entity_value, when)
+  when = when or os.time()
+
+  local rv = interface.releaseAlert(when, self.periodicity,
+    self.type_id, self.severity_id, self.entity_type_id, entity_value)
+
+  if(rv ~= nil) then
+    if(rv.success and rv.rowid) then
+      local res = interface.queryAlertsRaw("SELECT alert_json", string.format("WHERE rowid=%u", rv.rowid))
+
+      if((res ~= nil) and (#res == 1)) then
+        local msg = res[1].alert_json
+
+        local message = {
+          ifid = interface.getId(),
+          entity_type = self.entity_type_id,
+          entity_value = entity_value,
+          type = self.entity_type_id,
+          severity = self.severity_id,
+          message = msg,
+          tstamp = when,
+          action = "release",
+         }
+
+         alert_endpoints.dispatchNotification(message, json.encode(message))
+      end
+    end
+  end
+
+  return(rv.success)
 end
 
 -- ##############################################
