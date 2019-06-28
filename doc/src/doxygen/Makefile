@@ -18,6 +18,7 @@ TARGETS = $(DOC_SOURCES:.lua=.lua.cpp)
 TARGETS += $(LUA_API_DIR)/timeseries/ts_utils.lua.cpp
 TARGETS += $(LUA_API_DIR)/timeseries/driver.lua.cpp
 TARGETS += $(LUA_API_DIR)/recording/recording_utils.lua.cpp
+TARGETS += $(LUA_API_DIR)/alerts/alerts_api.lua.cpp
 
 # ######################################## #
 
@@ -41,4 +42,7 @@ $(LUA_API_DIR)/timeseries/driver.lua.cpp : ${MODULES_DIR}/timeseries/drivers/sam
 	./lua2dox $< > $@
 
 $(LUA_API_DIR)/recording/recording_utils.lua.cpp : ${MODULES_DIR}/recording_utils.lua
+	./lua2dox $< > $@
+
+$(LUA_API_DIR)/alerts/alerts_api.lua.cpp : ${MODULES_DIR}/alerts_api.lua
 	./lua2dox $< > $@

@@ -7,4 +7,5 @@ API Documentation
     rest/index
     lua_c/index
     timeseries/index
+    alerts/index
     recording/index

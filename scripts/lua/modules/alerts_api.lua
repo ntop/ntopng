@@ -40,15 +40,9 @@ end
 
 -- ##############################################
 
---
--- Creates a alert object
---
--- Metadata is a table which contains the following mandatory parameters:
---    - entity: the entity type
---    - type: the type of the alert
---    - severity the alert severity
--- See https://github.com/ntop/ntopng/blob/dev/doc/README.alerts for more details
---
+--! @brief Creates an alert object
+--! @param metadata the information about the alert type and severity
+--! @return an alert object on success, nil on error
 function alerts:newAlert(metadata)
   if(metadata == nil) then
     alertErrorTraceback("alerts:newAlert() missing argument")
@@ -90,7 +84,11 @@ end
 
 -- ##############################################
 
--- Triggers a new alert or refreshes an existing one
+--! @brief Triggers a new alert or refreshes an existing one (if already engaged)
+--! @param entity_value the string representing the entity of the alert (e.g. "192.168.1.1")
+--! @param alert_message the message (string) or json (table) to store
+--! @param when (optional) the time when the trigger event occurs
+--! @return true on success, false otherwise
 function alerts:trigger(entity_value, alert_message, when)
   local force = false
   local msg = alert_message
@@ -127,9 +125,11 @@ end
 
 -- ##############################################
 
--- Releases an engaged alert
--- NOTE: alerts are automomatically released based on their periodicity,
--- this function is for premature release
+--! @brief Manually releases an engaged alert
+--! @param entity_value the string representing the entity of the alert (e.g. "192.168.1.1")
+--! @param when (optional) the time when the release event occurs
+--! @note Alerts are also automatically released based on their periodicity,
+--! @return true on success, false otherwise
 function alerts:release(entity_value, when)
   when = when or os.time()
 
