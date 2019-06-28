@@ -19,7 +19,7 @@ require("ntop_utils")
 --
 
 local INFLUX_QUERY_TIMEMOUT_SEC = 5
-local INFLUX_MAX_EXPORT_QUEUE_LEN = 5 -- 100
+local INFLUX_MAX_EXPORT_QUEUE_LEN = 200
 local INFLUX_EXPORT_QUEUE = "ntopng.influx_file_queue"
 local MIN_INFLUXDB_SUPPORTED_VERSION = "1.5.1"
 local FIRST_AGGREGATION_TIME_KEY = "ntopng.prefs.influxdb.first_aggregation_time"
