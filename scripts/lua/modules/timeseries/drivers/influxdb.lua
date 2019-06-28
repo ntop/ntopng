@@ -780,8 +780,6 @@ end
 -- ##############################################
 
 local function dropExportable(exportable)
-   interface.select(exportable["ifid_str"])
-
    inc_dropped_points(exportable["ifid"], exportable["num_points"])
    deleteExportableFile(exportable)
 end
@@ -811,8 +809,6 @@ end
 -- ##############################################
 
 local function exportableSuccess(exportable)
-   interface.select(exportable["ifid_str"])
-
    inc_exported_points(exportable["ifid"], exportable["num_points"])
    inc_exports(exportable["ifid"])
    deleteExportableFile(exportable)
