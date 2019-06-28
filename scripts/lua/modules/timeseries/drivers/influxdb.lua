@@ -20,7 +20,6 @@ require("ntop_utils")
 
 local INFLUX_QUERY_TIMEMOUT_SEC = 5
 local INFLUX_MAX_EXPORT_QUEUE_LEN = 200
-local INFLUX_KEY_PREFIX = "ntopng.cache.ifid_%i."
 local INFLUX_EXPORT_QUEUE = "ntopng.influx_file_queue"
 local MIN_INFLUXDB_SUPPORTED_VERSION = "1.5.1"
 local FIRST_AGGREGATION_TIME_KEY = "ntopng.prefs.influxdb.first_aggregation_time"
@@ -705,65 +704,54 @@ end
 
 -- ##############################################
 
-local function get_dropped_points_key(ifid)
-   return string.format(INFLUX_KEY_PREFIX.."dropped_points", ifid)
-end
+local INFLUX_KEY_PREFIX = "ntopng.cache.ifid_%i."
+local INFLUX_KEY_DROPPED_POINTS = INFLUX_KEY_PREFIX.."dropped_points"
+local INFLUX_KEY_EXPORTED_POINTS = INFLUX_KEY_PREFIX.."exported_points"
+local INFLUX_KEY_EXPORTS = INFLUX_KEY_PREFIX.."exports"
 
 -- ##############################################
 
-local function get_exported_points_key(ifid)
-   return string.format(INFLUX_KEY_PREFIX.."exported_points", ifid)
-end
-
--- ##############################################
-
-local function get_exports_key(ifid)
-   return string.format(INFLUX_KEY_PREFIX.."exports", ifid)
-end
-
--- ##############################################
-
-local function inc_val(k, val_to_add)
-   local val = tonumber(ntop.getCache(k)) or 0
+local function inc_val(k, ifid, val_to_add)
+   local val = tonumber(ntop.getHashCache(k, ifid)) or 0
 
    val = val + val_to_add
-   ntop.setCache(k, string.format("%i", val))
+   ntop.setHashCache(k, ifid, string.format("%i", val))
 end
 
 -- ##############################################
 
 function inc_dropped_points(ifid, num_points)
-   inc_val(get_dropped_points_key(ifid), num_points)
+   inc_val(INFLUX_KEY_DROPPED_POINTS, ifid, num_points)
 end
 
 -- ##############################################
 
 function inc_exported_points(ifid, num_points)
-   inc_val(get_exported_points_key(ifid), num_points)
+   inc_val(INFLUX_KEY_EXPORTED_POINTS, ifid, num_points)
 end
 
 -- ##############################################
 
 function inc_exports(ifid)
-   inc_val(get_exports_key(ifid), 1)
+   inc_val(INFLUX_KEY_EXPORTS, ifid, 1)
 end
 
 -- ##############################################
 
 function driver:get_dropped_points(ifid)
-   return tonumber(ntop.getCache(get_dropped_points_key(ifid))) or 0
+   return tonumber(ntop.getHashCache(INFLUX_KEY_DROPPED_POINTS, ifid)) or 0
 end
 
 -- ##############################################
 
 function driver:get_exported_points(ifid)
-   return tonumber(ntop.getCache(get_exported_points_key(ifid))) or 0
+   return tonumber(ntop.getHashCache(INFLUX_KEY_EXPORTED_POINTS, ifid)) or 0
 end
 
 -- ##############################################
 
 function driver:get_exports(ifid)
-   return tonumber(ntop.getCache(get_exports_key(ifid))) or 0
+   return tonumber(ntop.getHashCache(INFLUX_KEY_EXPORTS, ifid)) or 0
 end
 
 -- ##############################################
