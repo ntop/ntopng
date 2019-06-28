@@ -60,8 +60,8 @@ alert_consts.alert_type_keys = {
    { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.snmp_port_duplexstatus_change"), 37, "port_duplexstatus_change" },
    { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.snmp_port_load_threshold_exceeded"), 38, "port_load_threshold_exceeded" },
    { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.ping_issues"), 39, "ping_issues" },
-   { "<i class='fa fa-database'></i> " .. i18n("alerts_dashboard.influxdb_queue_too_long"),        40, "influxdb_queue_too_long"    },
-   { "<i class='fa fa-undo'></i> " .. i18n("alerts_dashboard.slow_periodic_activity"),             41, "slow_periodic_activity"     },
+   { "<i class='fa fa-undo'></i> " .. i18n("alerts_dashboard.slow_periodic_activity"),             40, "slow_periodic_activity"     },
+   { "<i class='fa fa-database'></i> " .. i18n("alerts_dashboard.influxdb_dropped_points"),        41, "influxdb_dropped_points"    },
 }
 
 -- Keep in sync with ntop_typedefs.h:AlertEntity

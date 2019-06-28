@@ -159,38 +159,10 @@ end
 
 -- ##############################################
 
--- cannot use regular entity "host" as the system interface
--- doesn't have active hosts in memory, so we use a new
--- entity "pinged_host"
-local influxdb_queue_long = alerts:newAlert({
-   entity = "influx_db",
-   type = "influxdb_queue_too_long",
-   periodicity = "5mins",
-   severity = "error",
-})
-
--- ##############################################
-
-function probe._checkExportQueueLen(when, ts_utils, influxdb)
-  local queue_len = influxdb.getExportQueueLength()
-
-  if(queue_len > MAX_INFLUX_EXPORT_QUEUE_LEN) then
-    local err_msg = i18n("alerts_dashboard.influxdb_queue_too_long_description",
-      {length = queue_len})
-
-     influxdb_queue_long:trigger(influxdb.url, err_msg) -- TODO json
-  end
-
-  traceError(TRACE_INFO, TRACE_CONSOLE, string.format("InfluxDB export queue length: %u", queue_len))
-end
-
--- ##############################################
-
 function probe.runTask(when, ts_utils)
   local influxdb = ts_utils.getQueryDriver()
 
   probe._exportStats(when, ts_utils, influxdb)
-  probe._checkExportQueueLen(when, ts_utils, influxdb)
   probe._measureRtt(when, ts_utils, influxdb)
 end
 
