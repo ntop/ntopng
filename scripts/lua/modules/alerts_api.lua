@@ -17,8 +17,6 @@ local str_2_periodicity = {
   ["day"]     = 86400,
 }
 
-local MAX_NUM_PER_MODULE_QUEUED_ALERTS = 1024 -- should match ALERTS_MANAGER_MAX_ENTITY_ALERTS on the AlertsManager
-
 local known_alerts = {}
 
 -- ##############################################

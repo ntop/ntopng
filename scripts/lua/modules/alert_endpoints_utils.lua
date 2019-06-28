@@ -6,6 +6,8 @@ local alert_endpoints = {}
 
 package.path = dirs.installdir .. "/scripts/lua/modules/alert_endpoints/?.lua;" .. package.path
 
+local MAX_NUM_PER_MODULE_QUEUED_ALERTS = 1024 -- should match ALERTS_MANAGER_MAX_ENTITY_ALERTS on the AlertsManager
+
 -- ##############################################
 
 -- NOTE: order is important as it defines evaluation order
