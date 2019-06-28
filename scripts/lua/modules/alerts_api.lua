@@ -40,6 +40,15 @@ end
 
 -- ##############################################
 
+--
+-- Creates a alert object
+--
+-- Metadata is a table which contains the following mandatory parameters:
+--    - entity: the entity type
+--    - type: the type of the alert
+--    - severity the alert severity
+-- See https://github.com/ntop/ntopng/blob/dev/doc/README.alerts for more details
+--
 function alerts:newAlert(metadata)
   if(metadata == nil) then
     alertErrorTraceback("alerts:newAlert() missing argument")
