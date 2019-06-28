@@ -213,8 +213,9 @@ elseif((page == "alerts") and isAdministrator()) then
    interface.select(getSystemInterfaceId())
 
    _GET["ifid"] = getSystemInterfaceId()
-   _GET["entity_excludes"] = string.format("%u,%u",
-      alertEntity("influx_db"), alertEntity("snmp_device"))
+   _GET["entity_excludes"] = string.format("%u,%u,%u",
+      alertEntity("influx_db"), alertEntity("snmp_device"),
+      alertEntity("pinged_host"))
 
    drawAlerts({hide_filters = true})
 

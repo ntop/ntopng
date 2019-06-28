@@ -2065,7 +2065,11 @@ end
 function drawAlerts(options)
    local num_engaged_alerts = getNumAlerts("engaged", getTabParameters(_GET, "engaged"))
    local num_past_alerts = getNumAlerts("historical", getTabParameters(_GET, "historical"))
-   local num_flow_alerts = getNumAlerts("historical-flows", getTabParameters(_GET, "historical-flows"))
+   local num_flow_alerts = 0
+
+   if _GET["entity"] == nil then
+     num_flow_alerts = getNumAlerts("historical-flows", getTabParameters(_GET, "historical-flows"))
+   end
 
    checkDeleteStoredAlerts()
 

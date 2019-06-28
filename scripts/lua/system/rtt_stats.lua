@@ -31,6 +31,10 @@ local host = _GET["rtt_host"]
 local probe = system_scripts.getSystemProbe("rtt")
 local url = system_scripts.getPageScriptPath(probe) .. "?ifid=" .. getInterfaceId(ifname)
 
+if not isEmptyString(host) then
+  url = url .. "&rtt_host=" .. host
+end
+
 system_schemas = system_scripts.getAdditionalTimeseries("rtt")
 
 print [[
@@ -45,10 +49,12 @@ if host ~= nil then
 end
 print("</a></li>\n")
 
-if((page == "overview") or (page == nil)) then
-   print("<li class=\"active\"><a href=\"#\"><i class=\"fa fa-home fa-lg\"></i></a></li>\n")
-else
-   print("<li><a href=\""..url.."&page=overview\"><i class=\"fa fa-home fa-lg\"></i></a></li>")
+if isEmptyString(host) then
+  if((page == "overview") or (page == nil)) then
+     print("<li class=\"active\"><a href=\"#\"><i class=\"fa fa-home fa-lg\"></i></a></li>\n")
+  else
+     print("<li><a href=\""..url.."&page=overview\"><i class=\"fa fa-home fa-lg\"></i></a></li>")
+  end
 end
 
 if((host ~= nil) and ts_utils.exists("monitored_host:rtt", {host=host})) then
@@ -57,6 +63,17 @@ if((host ~= nil) and ts_utils.exists("monitored_host:rtt", {host=host})) then
   else
     print("<li><a href=\""..url.."&page=historical\"><i class='fa fa-area-chart fa-lg'></i></a></li>")
   end
+end
+
+if(isAdministrator() and system_scripts.hasAlerts({entity = alertEntity("pinged_host")})) then
+   if(page == "alerts") then
+      print("\n<li class=\"active\"><a href=\"#\">")
+   else
+      print("\n<li><a href=\""..url.."&page=alerts\">")
+   end
+
+   print("<i class=\"fa fa-warning fa-lg\"></i></a>")
+   print("</li>")
 end
 
 print [[
@@ -390,6 +407,18 @@ elseif((page == "historical") and (host ~= nil)) then
    drawGraphs(getSystemInterfaceId(), schema, tags, _GET["zoom"], url, selected_epoch, {
       timeseries = system_schemas,
    })
+elseif((page == "alerts") and isAdministrator()) then
+   local old_ifname = ifname
+   local influxdb = ts_utils.getQueryDriver()
+   interface.select(getSystemInterfaceId())
+
+   _GET["ifid"] = getSystemInterfaceId()
+   _GET["entity"] = alertEntity("pinged_host")
+   _GET["entity_val"] = _GET["rtt_host"]
+
+   drawAlerts({hide_filters = true})
+
+   interface.select(old_ifname)
 end
 
 -- #######################################################
