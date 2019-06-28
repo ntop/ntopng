@@ -26,3 +26,13 @@ ntopng supports influxdb authentication.
 A new privileged user can be created via the influxdb command line:
 
 `CREATE USER admin WITH PASSWORD 'mysecret' WITH ALL PRIVILEGES`
+
+Index format
+-----------
+In case you want to move from inmem to tsi1, you need to modify the file
+/etc/influxdb/influxdb.conf and change the line as follows
+index-version = "tsi1"
+
+then restart influxdb and do 
+sudo influx_inspect buildtsi -database ntopng -datadir /var/lib/influxdb/data/ -waldir /tmp/
+sudo chown -R influxdb:influxdb /var/lib/influxdb/data/
