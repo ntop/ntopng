@@ -3,6 +3,7 @@
 --
 
 require("lua_utils")
+local alerts = require("alerts_api")
 
 local nagios = {}
 
@@ -22,7 +23,8 @@ function nagios.dequeueAlerts(queue)
 
     local notif = alertNotificationToObject(notifications[1])
     local entity_value = notif.entity_value
-    local akey = notif.alert_key
+    local alert = alerts.parseNotification(notif)
+    local akey = alert:getId()
 
     if notif.action == "engage" then
       if not ntop.sendNagiosAlert(entity_value:gsub("@0", ""), akey, notif.message) then

@@ -41,6 +41,7 @@ void Mutex::lock(const char *filename, const int line, bool trace_errors) {
 
   errno = 0;
   rc = pthread_mutex_lock(&the_mutex);
+  //~ printf("LOCK %s:%d\n", filename, line);
 
   if(rc != 0) {
     if(trace_errors)
@@ -63,6 +64,7 @@ void Mutex::unlock(const char *filename, const int line, bool trace_errors) {
   int rc;
 
   errno = 0;
+  //~ printf("UNLOCK %s:%d\n", filename, line);
 
   rc = pthread_mutex_unlock(&the_mutex);
 

@@ -8,6 +8,7 @@ local dirs = ntop.getDirs()
 local os_utils = require("os_utils")
 local categories_utils = require("categories_utils")
 local json = require("dkjson")
+local alerts = require("alerts_api")
 
 -- ##############################################
 
@@ -315,7 +316,14 @@ local function checkListsUpdate(timeout)
         list.status.num_errors = list.status.num_errors + 1
 
         local msg = i18n("category_lists.error_occurred", {name=list_name, err=last_error})
-        interface.storeAlert(alertEntity("category_lists"), list_name, alertType("list_download_failed"), alertSeverity("warning"), msg)
+
+        local list_alert = alerts:newAlert({
+          entity = "category_lists",
+          type = "list_download_failed",
+          severity = "warning",
+        })
+
+        list_alert:emit(list_name, msg) -- TODO json
       end
 
       now = os.time()

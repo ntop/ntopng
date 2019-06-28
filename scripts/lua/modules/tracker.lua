@@ -11,6 +11,7 @@ local tracker = {}
 --! @param f_name is the function name
 --! @param f_args is a table with the arguments
 function tracker.log(f_name, f_args)
+  local alerts = require("alerts_api")
   local stats = interface.getStats()
 
   if stats == nil then
@@ -31,23 +32,20 @@ function tracker.log(f_name, f_args)
     remote_addr = remote_addr
   }
 
-  local entity = alertEntity("user")
-
   local entity_value = 'system'
   if _SESSION and _SESSION["user"] then
      entity_value = _SESSION["user"]
   end
 
-  local alert_type = alertType("alert_user_activity")
-  local alert_severity = alertSeverity("info")
-  local alert_json = json.encode(jobj)
-
-  -- tprint(alert_json)
-
   local old_iface = ifid
   interface.select(getSystemInterfaceId())
 
-  interface.storeAlert(entity, entity_value, alert_type, alert_severity, alert_json)
+  local alert = alerts:newAlert({
+    type = "alert_user_activity",
+    entity = "user",
+    severity = "info",
+  })
+  alert:emit(entity_value, jobj)
 
   interface.select(tostring(old_iface))
 end

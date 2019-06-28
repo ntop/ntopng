@@ -432,11 +432,6 @@ function ts_dump.run_5min_dump(_ifname, ifstats, config, when, time_threshold, s
       num_processed_hosts = num_processed_hosts + 1
     end)
 
-    if working_status ~= nil then
-      -- NOTE: must always finalize current working_status before returning
-      finalizeAlertsWorkingStatus(working_status)
-    end
-
     if not in_time then
        traceError(TRACE_ERROR, TRACE_CONSOLE, "[".. _ifname .." ]" .. i18n("error_rrd_cannot_complete_dump"))
       return false

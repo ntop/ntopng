@@ -515,6 +515,7 @@
 #define CONST_ALERT_NFQ_FLUSHED                  "ntopng.alert_nfq_flushed_queue"
 #define CONST_ALERT_HOST_REMOTE_TO_REMOTE        "ntopng.alert_host_remote_to_remote"
 #define CONST_ALERT_BCAST_DOMAIN_TOO_LARGE_QUEUE "ntopng.alert_bcast_domain_too_large"
+#define CONST_ALERT_NTOPNG_LOGIN_TRACE_QUEUE     "ntopng.alert_login_trace_queue"
 #define CONST_REMOTE_TO_REMOTE_MAX_QUEUE   32
 #define CONST_SQL_QUEUE                    "ntopng.sql_queue"
 #define CONST_SQL_BATCH_SIZE               32
@@ -546,7 +547,6 @@
 #define CONST_IFACE_HIDE_FROM_TOP_PREFS     NTOPNG_PREFS_PREFIX".iface_%d.hide_from_top"
 #define CONST_IFACE_COMPANIONS_SET          NTOPNG_PREFS_PREFIX".companion_interface.ifid_%d.companion_of"
 #define CONST_HOST_ANOMALIES_THRESHOLD      NTOPNG_PREFS_PREFIX".%s:%d.alerts_config"
-#define CONST_HOSTS_ALERT_COUNTERS          "ntopng.cache.alerts.iface_%u.host_engaged_alert_counters"
 #define CONST_REMOTE_HOST_IDLE_PREFS        NTOPNG_PREFS_PREFIX".non_local_host_max_idle"
 #define CONST_FLOW_MAX_IDLE_PREFS           NTOPNG_PREFS_PREFIX".flow_max_idle"
 #define CONST_INTF_RRD_RAW_DAYS             NTOPNG_PREFS_PREFIX".intf_rrd_raw_days"
@@ -850,10 +850,9 @@
 #define ALERTS_MANAGER_MAX_AGGR_SECS         300 /* Aggregate equal alerts if generated within this interval */
 #define ALERTS_MANAGER_MAX_ENTITY_ALERTS     1024
 #define ALERTS_MANAGER_MAX_FLOW_ALERTS       16384
-#define ALERTS_MANAGER_TABLE_NAME            "closed_alerts"
 #define ALERTS_MANAGER_FLOWS_TABLE_NAME      "flows_alerts"
-#define ALERTS_MANAGER_ENGAGED_TABLE_NAME    "engaged_alerts"
-#define ALERTS_MANAGER_STORE_NAME            "alerts_v9.db"
+#define ALERTS_MANAGER_TABLE_NAME            "alerts"
+#define ALERTS_MANAGER_STORE_NAME            "alerts_v10.db"
 #define ALERTS_MANAGER_QUEUE_NAME            "ntopng.alerts.ifid_%i.queue"
 #define ALERTS_MANAGER_MAKE_ROOM_ALERTS      "ntopng.cache.alerts.ifid_%i.make_room_closed_alerts"
 #define ALERTS_MANAGER_MAKE_ROOM_FLOW_ALERTS "ntopng.cache.alerts.ifid_%i.make_room_flow_alerts"

@@ -297,7 +297,6 @@ class Host : public GenericHashEntry {
   void checkBroadcastDomain();
   bool hasAnomalies();
   void luaAnomalies(lua_State* vm);
-  void loadAlertsCounter();
   bool triggerAlerts()                                   { return(trigger_host_alerts);       };
   void refreshHostAlertPrefs();
   u_int32_t getNumAlerts(bool from_alertsmanager = false);

@@ -103,7 +103,7 @@ u_int32_t Host::getNumAlerts(bool from_alertsmanager) {
   if(!from_alertsmanager)
     return(num_alerts_detected);
 
-  num_alerts_detected = iface->getAlertsManager()->getNumHostAlerts(this, true);
+  num_alerts_detected = 0; // TODO FIXME use internal counter from lua
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG,
 			       "Refreshing alerts from alertsmanager [num: %i]",
@@ -392,30 +392,6 @@ void Host::set_mac(char *m) {
     mac_address[4] = _mac[4], mac_address[5] = _mac[5];
 
   set_mac(mac_address);
-}
-
-/* *************************************** */
-
-void Host::loadAlertsCounter() {
-  char buf[64], counters_key[64];
-  char rsp[16];
-  char *key = get_hostkey(buf, sizeof(buf), true /* force vlan */);
-
-  if(ntop->getPrefs()->are_alerts_disabled()) {
-    num_alerts_detected = 0;
-    return;
-  }
-
-  snprintf(counters_key, sizeof(counters_key), CONST_HOSTS_ALERT_COUNTERS, iface->get_id());
-
-  if (ntop->getRedis()->hashGet(counters_key, key, rsp, sizeof(rsp)) == 0)
-    num_alerts_detected = atoi(rsp);
-  else
-    num_alerts_detected = 0;
-
-#if 0
-  printf("%s: num_alerts_detected = %d\n", key, num_alerts_detected);
-#endif
 }
 
 /* *************************************** */
@@ -1026,9 +1002,7 @@ void Host::luaUsedQuotas(lua_State* vm) {
 
 /* *************************************** */
 
-void Host::postHashAdd() {
-  loadAlertsCounter();
-}
+void Host::postHashAdd() {}
 
 /* *************************************** */
 

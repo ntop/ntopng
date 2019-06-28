@@ -42,7 +42,7 @@ class TimeseriesStats: public GenericTrafficElement {
   inline void incNumAnomalousFlows(bool as_client)   { if(as_client) anomalous_flows_as_client++; else anomalous_flows_as_server++; };
   inline void incNumUnreachableFlows(bool as_server) { if(as_server) unreachable_flows_as_server++; else unreachable_flows_as_client++; }
   inline void incNumHostUnreachableFlows(bool as_server) { if(as_server) host_unreachable_flows_as_server++; else host_unreachable_flows_as_client++; };
-  inline void incTotalAlerts() { total_alerts++; };
+  inline void incTotalAlerts()                       { total_alerts++; };
 
   inline u_int32_t getTotalAnomalousNumFlowsAsClient() const { return(anomalous_flows_as_client);  };
   inline u_int32_t getTotalAnomalousNumFlowsAsServer() const { return(anomalous_flows_as_server);  };

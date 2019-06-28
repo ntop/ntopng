@@ -339,7 +339,7 @@ print [[/lua/show_alerts.lua\">"
                    //Push.create('Hello World!');
                 }
 
-		if((rsp.engaged_alerts > 0 || rsp.alerts_stored == true) && $("#alerts-id").is(":visible") == false) {
+		if((rsp.engaged_alerts > 0 || rsp.has_alerts) && $("#alerts-id").is(":visible") == false) {
                   $("#alerts-id").show();
                 }
 

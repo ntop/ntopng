@@ -21,6 +21,7 @@ local remote_assistance = require "remote_assistance"
 local page_utils = require("page_utils")
 local ts_utils = require("ts_utils")
 local influxdb = require("influxdb")
+local alert_endpoints = require("alert_endpoints_utils")
 local nindex_utils = nil
 
 local email_peer_pattern = [[^(([A-Za-z0-9._%+-]|\s)+<)?[A-Za-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}>?$]]
@@ -571,14 +572,14 @@ function printExternalAlertsReport()
 
 	prefsToggleButton(subpage_active, {
 	      field = "toggle_email_notification",
-	      pref = getAlertNotificationModuleEnableKey("email", true),
+	      pref = alert_endpoints.getAlertNotificationModuleEnableKey("email", true),
 	      default = "0",
 	      disabled = (showElements==false),
 	      to_switch = elementToSwitch,
 	})
 
 	local showEmailNotificationPrefs = false
-	if ntop.getPref(getAlertNotificationModuleEnableKey("email")) == "1" then
+	if ntop.getPref(alert_endpoints.getAlertNotificationModuleEnableKey("email")) == "1" then
 	   showEmailNotificationPrefs = true
 	else
 	   showEmailNotificationPrefs = false
@@ -586,7 +587,7 @@ function printExternalAlertsReport()
 
 	multipleTableButtonPrefs(subpage_active.entries["slack_notification_severity_preference"].title, subpage_active.entries["slack_notification_severity_preference"].description,
 				 alert_sev_labels, alert_sev_values, "error", "primary", "email_notification_severity_preference",
-				 getAlertNotificationModuleSeverityKey("email"), nil, nil, nil, nil, showElements and showEmailNotificationPrefs)
+				 alert_endpoints.getAlertNotificationModuleSeverityKey("email"), nil, nil, nil, nil, showElements and showEmailNotificationPrefs)
 
 	prefsInputFieldPrefs(subpage_active.entries["email_notification_server"].title, subpage_active.entries["email_notification_server"].description,
 			     "ntopng.prefs.alerts.", "smtp_server",
@@ -609,14 +610,14 @@ function printExternalAlertsReport()
 
     prefsToggleButton(subpage_active, {
       field = "toggle_slack_notification",
-      pref = getAlertNotificationModuleEnableKey("slack", true),
+      pref = alert_endpoints.getAlertNotificationModuleEnableKey("slack", true),
       default = "0",
       disabled = showElements==false,
       to_switch = elementToSwitchSlack,
     })
 
     local showSlackNotificationPrefs = false
-    if ntop.getPref(getAlertNotificationModuleEnableKey("slack")) == "1" then
+    if ntop.getPref(alert_endpoints.getAlertNotificationModuleEnableKey("slack")) == "1" then
        showSlackNotificationPrefs = true
     else
        showSlackNotificationPrefs = false
@@ -624,7 +625,7 @@ function printExternalAlertsReport()
 
     multipleTableButtonPrefs(subpage_active.entries["slack_notification_severity_preference"].title, subpage_active.entries["slack_notification_severity_preference"].description,
                  alert_sev_labels, alert_sev_values, "error", "primary", "slack_notification_severity_preference",
-           getAlertNotificationModuleSeverityKey("slack"), nil, nil, nil, nil, showElements and showSlackNotificationPrefs)
+           alert_endpoints.getAlertNotificationModuleSeverityKey("slack"), nil, nil, nil, nil, showElements and showSlackNotificationPrefs)
 
     prefsInputFieldPrefs(subpage_active.entries["sender_username"].title, subpage_active.entries["sender_username"].description,
              "ntopng.prefs.alerts.", "slack_sender_username",
@@ -658,7 +659,7 @@ function printExternalAlertsReport()
 
       prefsToggleButton(subpage_active, {
         field = "toggle_alert_syslog",
-        pref = getAlertNotificationModuleEnableKey("syslog", true),
+        pref = alert_endpoints.getAlertNotificationModuleEnableKey("syslog", true),
         default = "0",
 	disabled = alertsEnabled == false,
         to_switch = elementToSwitch,
@@ -667,7 +668,7 @@ function printExternalAlertsReport()
       local format_labels = {i18n("prefs.syslog_alert_format_plaintext"), i18n("prefs.syslog_alert_format_json")}
       local format_values = {"plaintext", "json"}
 
-      if ntop.getPref(getAlertNotificationModuleEnableKey("syslog")) == "0" then
+      if ntop.getPref(alert_endpoints.getAlertNotificationModuleEnableKey("syslog")) == "0" then
         alertsEnabled = false
       end
 
@@ -694,21 +695,21 @@ function printExternalAlertsReport()
 
       prefsToggleButton(subpage_active, {
         field = "toggle_alert_nagios",
-        pref = getAlertNotificationModuleEnableKey("nagios", true),
+        pref = alert_endpoints.getAlertNotificationModuleEnableKey("nagios", true),
         default = "0",
         disabled = alertsEnabled == false,
         to_switch = elementToSwitch,
       })
 
       local showNagiosElements = showElements
-      if ntop.getPref(getAlertNotificationModuleEnableKey("nagios")) == "0" then
+      if ntop.getPref(alert_endpoints.getAlertNotificationModuleEnableKey("nagios")) == "0" then
         showNagiosElements = false
       end
       showNagiosElements = alertsEnabled and showNagiosElements
 
       multipleTableButtonPrefs(subpage_active.entries["slack_notification_severity_preference"].title, subpage_active.entries["slack_notification_severity_preference"].description,
                  alert_sev_labels, alert_sev_values, "error", "primary", "nagios_notification_severity_preference",
-           getAlertNotificationModuleSeverityKey("nagios"), nil, nil, nil, nil, showNagiosElements, false)
+           alert_endpoints.getAlertNotificationModuleSeverityKey("nagios"), nil, nil, nil, nil, showNagiosElements, false)
 
       prefsInputFieldPrefs(subpage_active.entries["nagios_nsca_host"].title, subpage_active.entries["nagios_nsca_host"].description, "ntopng.prefs.", "nagios_nsca_host", prefs.nagios_nsca_host, nil, showNagiosElements, false)
       prefsInputFieldPrefs(subpage_active.entries["nagios_nsca_port"].title, subpage_active.entries["nagios_nsca_port"].description, "ntopng.prefs.", "nagios_nsca_port", prefs.nagios_nsca_port, "number", showNagiosElements, false, nil, {min=1, max=65535})
@@ -725,14 +726,14 @@ function printExternalAlertsReport()
 
     prefsToggleButton(subpage_active, {
       field = "toggle_webhook_notification",
-      pref = getAlertNotificationModuleEnableKey("webhook", true),
+      pref = alert_endpoints.getAlertNotificationModuleEnableKey("webhook", true),
       default = "0",
       disabled = showElements==false,
       to_switch = elementToSwitchWebhook,
     })
 
     local showWebhookNotificationPrefs = false
-    if ntop.getPref(getAlertNotificationModuleEnableKey("webhook")) == "1" then
+    if ntop.getPref(alert_endpoints.getAlertNotificationModuleEnableKey("webhook")) == "1" then
        showWebhookNotificationPrefs = true
     else
        showWebhookNotificationPrefs = false
@@ -740,7 +741,7 @@ function printExternalAlertsReport()
 
     multipleTableButtonPrefs(subpage_active.entries["webhook_notification_severity_preference"].title, subpage_active.entries["webhook_notification_severity_preference"].description,
                  alert_sev_labels, alert_sev_values, "error", "primary", "webhook_notification_severity_preference",
-           getAlertNotificationModuleSeverityKey("webhook"), nil, nil, nil, nil, showElements and showWebhookNotificationPrefs)
+           alert_endpoints.getAlertNotificationModuleSeverityKey("webhook"), nil, nil, nil, nil, showElements and showWebhookNotificationPrefs)
 
     prefsInputFieldPrefs(subpage_active.entries["webhook_url"].title, subpage_active.entries["webhook_url"].description,
              "ntopng.prefs.alerts.", "webhook_url",

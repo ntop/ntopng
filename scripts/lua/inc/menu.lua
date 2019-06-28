@@ -134,8 +134,6 @@ end
 -- ##############################################
 
 if not ifs.isView and ntop.getPrefs().are_alerts_enabled == true then
-
-   local alert_cache = interface.getCachedNumAlerts() or {}
    local active = ""
    local style = ""
    local color = ""
@@ -144,7 +142,7 @@ if not ifs.isView and ntop.getPrefs().are_alerts_enabled == true then
    -- color = 'style="color: #B94A48;"' -- bootstrap danger red
    -- end
 
-   if alert_cache["num_alerts_engaged"] == 0 and alert_cache["alerts_stored"] == false then
+   if not ifs["has_alerts"] then
       style = ' style="display: none;"'
    end
 

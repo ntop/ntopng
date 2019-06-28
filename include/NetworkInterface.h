@@ -73,9 +73,11 @@ class NetworkInterface : public Checkpointable {
   char *ifname, *ifDescription;
   bpf_u_int32 ipv4_network_mask, ipv4_network;
   const char *customIftype;
-  u_int8_t alertLevel, purgeRuns;
+  u_int8_t purgeRuns;
   u_int32_t bridge_lan_interface_id, bridge_wan_interface_id;
   u_int32_t num_hashes;
+  u_int32_t num_alerts_engaged;
+  bool has_alerts;
 
   /* Disaggregations */
   u_int16_t numVirtualInterfaces;
@@ -668,9 +670,6 @@ class NetworkInterface : public Checkpointable {
   inline u_int32_t getScalingFactor()       { return(scalingFactor); }
   inline void setScalingFactor(u_int32_t f) { scalingFactor = f;     }
   inline bool isSampledTraffic()            { return((scalingFactor == 1) ? false : true); }
-  inline void incAlertLevel()               { alertLevel++;                        }
-  inline void decAlertLevel()               { if(--alertLevel < 0) alertLevel = 0; }
-  inline int8_t getAlertLevel()             { return(alertLevel);                  }
 #ifdef NTOPNG_PRO
   virtual bool getCustomAppDetails(u_int32_t remapped_app_id, u_int32_t *const pen, u_int32_t *const app_field, u_int32_t *const app_id) { return false; };
   virtual void addToNotifiedInformativeCaptivePortal(u_int32_t client_ip) { ; };
@@ -751,6 +750,11 @@ class NetworkInterface : public Checkpointable {
 
   void nDPILoadIPCategory(char *category, ndpi_protocol_category_t id);
   void nDPILoadHostnameCategory(char *category, ndpi_protocol_category_t id);
+
+  inline void setHasAlerts(bool has_alerts)               { this->has_alerts = has_alerts; }
+  inline void setNumAlertsEngaged(u_int32_t num_alerts)   { num_alerts_engaged = num_alerts; }
+  inline bool hasAlerts()                                 { return(has_alerts); }
+  inline u_int32_t getNumEngagedAlerts()                  { return(num_alerts_engaged); }
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */

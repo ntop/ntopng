@@ -11,6 +11,7 @@ require "flow_utils"
 
 local format_utils = require "format_utils"
 local json = require "dkjson"
+local alerts_api = require "alerts_api"
 
 sendHTTPHeader('application/json')
 
@@ -61,6 +62,17 @@ local function formatAlertRecord(alert_entity, record)
       column_msg = formatRawFlow(record, record["alert_json"])
    elseif alert_entity == "User" then
       column_msg = formatRawUserActivity(record, record["alert_json"])
+   else
+      local alert_obj = alerts_api.parseAlert(record)
+
+      if(alert_obj.formatter ~= nil) then
+        local msg = record["alert_json"]
+
+        if(string.sub(msg, 1, 1) == "{") then
+          msg = json.decode(msg)
+        end
+        column_msg = alert_obj.formatter(msg, record)
+      end
    end
 
    column_msg = string.gsub(column_msg, '"', "'")

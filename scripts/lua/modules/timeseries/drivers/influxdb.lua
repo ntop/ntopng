@@ -8,6 +8,7 @@ local ts_common = require("ts_common")
 
 local json = require("dkjson")
 local os_utils = require("os_utils")
+local alerts = require("alerts_api")
 require("ntop_utils")
 
 --
@@ -680,7 +681,14 @@ function driver:_exportTsFile(fname)
 
   if((ret == nil) or ((ret.RESPONSE_CODE ~= 200) and (ret.RESPONSE_CODE ~= 204))) then
     local msg = self:_exportErrorMsg(ret)
-    interface.storeAlert(alertEntity("influx_db"), self.url, alertType("influxdb_export_failure"), alertSeverity("error"), msg)
+
+    local influx_alert = alerts:newAlert({
+      entity = "influx_db",
+      type = "influxdb_export_failure",
+      severity = "error",
+    })
+
+    influx_alert:emit(self.url, msg) -- TODO json
 
     rv = false
   end

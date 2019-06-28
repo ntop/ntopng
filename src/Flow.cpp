@@ -3678,7 +3678,7 @@ FlowStatus Flow::getFlowStatus() {
 #endif
 
 #if 0
-  if(iface->getAlertLevel() > 0)
+  if(iface->hasAlerts())
    return(status_flow_when_interface_alerted);
 #endif
 
