@@ -126,9 +126,11 @@ bool TimelineExtract::extractToDisk(u_int32_t id, NetworkInterface *iface,
   PacketDumper *dumper;
   pfring  *handle;
   u_char *packet = NULL;
-  struct pfring_pkthdr header = { 0 };
+  struct pfring_pkthdr header;
   struct pcap_pkthdr *h;
  
+  memset(&header, 0, sizeof(header));
+
   shutdown = false;
   stats.packets = stats.bytes = 0;
   status_code = 1; /* default: unexpected error */
@@ -189,12 +191,13 @@ bool TimelineExtract::extractLive(struct mg_connection *conn, NetworkInterface *
 #ifdef HAVE_PF_RING
   pfring  *handle;
   u_char *packet = NULL;
-  struct pfring_pkthdr h = { 0 };
+  struct pfring_pkthdr h;
   struct pcap_file_header pcaphdr;
   struct pcap_disk_pkthdr pkthdr;
   bool http_client_disconnected = false;
   int rc;
 
+  memset(&h, 0, sizeof(h));
   stats.packets = stats.bytes = 0;
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "Running live extraction");

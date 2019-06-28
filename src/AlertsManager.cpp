@@ -225,8 +225,6 @@ int AlertsManager::isAlertExisting(time_t when, AlertType alert_type, const char
     goto out;
   }
 
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "isAlertExisting: %s", sqlite3_expanded_sql(stmt));
-
   /* Try and read the rowid (if the record exists) */
   while((step = sqlite3_step(stmt)) != SQLITE_DONE) {
     if(step == SQLITE_ROW) {
@@ -271,8 +269,6 @@ int AlertsManager::updateExistingAlert(u_int64_t rowid, time_t new_timestamp_end
     rc = -1;
     goto out;
   }
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "updateExistingAlert: %s", sqlite3_expanded_sql(stmt));
 
   while((step = sqlite3_step(stmt)) != SQLITE_DONE) {
     if(step == SQLITE_ERROR) {
@@ -397,8 +393,6 @@ int AlertsManager::emitAlert(time_t when, int periodicity, AlertType alert_type,
 	rc = -2;
 	goto out;
       }
-
-      ntop->getTrace()->traceEvent(TRACE_DEBUG, "emitAlert: %s", sqlite3_expanded_sql(stmt));
 
       while((rc = sqlite3_step(stmt)) != SQLITE_DONE) {
 	if(rc == SQLITE_ERROR) {
