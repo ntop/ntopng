@@ -20,6 +20,7 @@ require("ntop_utils")
 
 local INFLUX_QUERY_TIMEMOUT_SEC = 5
 local INFLUX_MAX_EXPORT_QUEUE_LEN = 200
+local INFLUX_KEY_PREFIX = "ntopng.cache.ifid_%i."
 local INFLUX_EXPORT_QUEUE = "ntopng.influx_file_queue"
 local MIN_INFLUXDB_SUPPORTED_VERSION = "1.5.1"
 local FIRST_AGGREGATION_TIME_KEY = "ntopng.prefs.influxdb.first_aggregation_time"
@@ -702,8 +703,6 @@ function driver:_exportTsFile(fname)
   return rv
 end
 
-local INFLUX_KEY_PREFIX = "ntopng.cache.ifid_%i."
-
 -- ##############################################
 
 local function get_dropped_points_key(ifid)
@@ -789,16 +788,24 @@ end
 
 -- ##############################################
 
-function driver:_droppedExportablesAlert()   
-   local influx_alert = alerts:newAlert({
-	 entity = "influx_db",
-	 type = "influxdb_dropped_points",
-	 severity = "error",
-	 periodicity = "min",
-   })
+function driver:_droppedExportablesAlert()
+   local alert_periodicity = 60
+   local k = "ntopng.cache.influxdb_dropped_points_alert_triggered"
 
-   local msg = droppedPointsErrorMsg(self.url)
-   influx_alert:trigger(self.url, msg)
+   if ntop.getCache(k) ~= "1" then
+      local influx_alert = alerts:newAlert({
+	    entity = "influx_db",
+	    type = "influxdb_dropped_points",
+	    severity = "error",
+	    periodicity = alert_periodicity,
+      })
+
+      local msg = droppedPointsErrorMsg(self.url)
+      influx_alert:trigger(self.url, msg)
+
+      -- Just to avoid doing :trigger too often
+      ntop.setCache(k, "1", alert_periodicity / 2)
+   end
 end
 
 -- ##############################################
