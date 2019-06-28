@@ -127,8 +127,15 @@ end
 
 if (isAdministrator()) then
    if (page == "config") and (not table.empty(_POST)) then
+      local custom_name = _POST["custom_name"]
+
+      if starts(custom_name, "tcp:__") then
+        -- Was mangled by sanitization
+        custom_name = "tcp://" .. string.sub(custom_name, 7)
+      end
+
       -- TODO move keys to new schema: replace ifstats.name with ifid
-      ntop.setCache('ntopng.prefs.'..ifstats.name..'.name',_POST["custom_name"])
+      ntop.setCache('ntopng.prefs.'..ifstats.name..'.name', custom_name)
 
       local ifspeed_cache = 'ntopng.prefs.'..ifstats.name..'.speed'
       if isEmptyString(_POST["ifSpeed"]) then
