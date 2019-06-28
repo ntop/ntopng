@@ -346,7 +346,7 @@ print [[/lua/show_alerts.lua\">"
                 if(rsp.ts_alerts.influxdb) {
                   msg += "&nbsp;<a href=\"]]
 print (ntop.getHttpPrefix())
-print [[/lua/system/influxdb_stats.lua?ifid=]] print(tostring(getInterfaceId(ifname))) print[[&page=alerts#tab-table-alerts-history\">"
+print [[/lua/system/influxdb_stats.lua?ifid=]] print(tostring(getInterfaceId(ifname))) print[[&page=alerts#tab-table-engaged-alerts\">"
                   msg += "<span class=\"label label-danger\"><i class=\"fa fa-database\"></i></span></A>";
                 }
 
