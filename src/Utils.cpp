@@ -367,8 +367,12 @@ time_t Utils::str2epoch(const char *str) {
   if(strptime(str, format, &tm) == NULL)
     return 0;
 
-  t = mktime(&tm) - tm.tm_gmtoff + (3600 * tm.tm_isdst);
+  t = mktime(&tm) + (3600 * tm.tm_isdst);
      
+#ifndef WIN32
+  t -= tm.tm_gmtoff;
+#endif
+
   if(t == -1)
     return 0;
 
@@ -1830,7 +1834,7 @@ bool Utils::httpGetPost(lua_State* vm, char *url, char *username,
 
       if(out_f == NULL) {
         char buf[64];
-        ntop->getTrace()->traceEvent(TRACE_ERROR, "Could not open %s for write", write_fname, strerror_r(errno, buf, sizeof(buf)));
+        ntop->getTrace()->traceEvent(TRACE_ERROR, "Could not open %s for write", write_fname, strerror(errno));
         curl_easy_cleanup(curl);
         if(vm) lua_pushnil(vm);
         return(false);
@@ -3226,7 +3230,7 @@ char* Utils::getInterfaceDescription(char *ifname, char *buf, int buf_len) {
 
 int Utils::bindSockToDevice(int sock, int family, const char* devicename) {
 #ifdef WIN32
-  return(-1);
+  return(0);
 #else
   struct ifaddrs* pList = NULL;
   struct ifaddrs* pAdapter = NULL;

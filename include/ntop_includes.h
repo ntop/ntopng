@@ -90,7 +90,9 @@
 #include <zmq.h>
 #include <assert.h>
 #include <fcntl.h>
+#ifndef WIN32
 #include <grp.h>
+#endif
 #ifdef HAVE_TEST_MODE
 #include <libgen.h>
 #endif
@@ -226,7 +228,6 @@ using namespace std;
 #include "Fingerprint.h"
 #include "Prefs.h"
 #include "SerializableElement.h"
-#include "CommunityIdFlowHash.h"
 #include "DnsStats.h"
 #include "NetworkStats.h"
 #ifndef HAVE_NEDGE
@@ -359,13 +360,6 @@ using namespace std;
 #include "HTTPserver.h"
 #include "Paginator.h"
 #include "Ntop.h"
-
-#ifdef WIN32
-extern "C" {
-  const char *strcasestr(const char *haystack, const char *needle);
-  int strncasecmp(const char *s1, const char *s2, unsigned int n);
-};
-#endif
 
 #ifdef NTOPNG_PRO
 #include "ntoppro_defines.h"

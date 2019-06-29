@@ -66,7 +66,11 @@ SyslogCollectorInterface::SyslogCollectorInterface(const char *_endpoint) : Sysl
     throw("socket error");
 
   /* Allow to re-bind in case previous instance died */ 
-  if(setsockopt(listen_sock, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) != 0)
+  if(setsockopt(listen_sock, SOL_SOCKET, SO_REUSEADDR,
+#ifdef WIN32
+  (const char*)
+#endif
+	  &reuse, sizeof(reuse)) != 0)
     throw("setsockopt error");
   
   memset(&listen_addr, 0, sizeof(listen_addr));
@@ -201,8 +205,13 @@ int SyslogCollectorInterface::receiveFromClient(syslog_client *client) {
     clientAddr2Str(client, buff));
 
   do {
-
-    len = recv(client->socket, (char *) buffer, buffer_size, MSG_DONTWAIT);
+    len = recv(client->socket, (char *) buffer, buffer_size, 
+#ifndef WIN32
+		MSG_DONTWAIT
+#else
+	0
+#endif
+	);
 
     if(len < 0) {
       if(errno == EAGAIN || errno == EWOULDBLOCK) {

@@ -1645,10 +1645,10 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	   && (flow->get_srv_host() && flow->get_srv_host()->isLocalHost())) {
 	  /* Set correct direction in localhost ping */
 	  if((icmp_type == ICMP_ECHO /* ICMP Echo [RFC792] */)
-	     || (icmp_type == ICMP6_ECHO_REQUEST /* 128 - ICMPV6 Echo Request [RFC4443] */))
+	     || (icmp_type == 128 /* 128 - ICMPV6 Echo Request [RFC4443] */))
 	    src2dst_direction = true;
 	  else if((icmp_type == ICMP_ECHOREPLY /* ICMP Echo Reply [RFC792] */)
-		  || (icmp_type == ICMP6_ECHO_REPLY /* 129 - ICMPV6 Echo Reply [RFC4443] */))
+		  || (icmp_type == 129 /* 129 - ICMPV6 Echo Reply [RFC4443] */))
 	    src2dst_direction = false;
 	}
 
@@ -1695,7 +1695,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	/* https://www.boiteaklou.fr/Data-exfiltration-with-PING-ICMP-NDH16.html */
 	if((((icmp_type == ICMP_ECHO) || (icmp_type == ICMP_ECHOREPLY)) && /* ICMPv4 ECHO */
 	      (trusted_l4_packet_len > CONST_MAX_ACCEPTABLE_ICMP_V4_PAYLOAD_LENGTH)) ||
-	   (((icmp_type == ICMP6_ECHO_REQUEST) || (icmp_type == ICMP6_ECHO_REPLY)) && /* ICMPv6 ECHO */
+	   (((icmp_type == 128) || (icmp_type == 129)) && /* ICMPv6 ECHO */
 	      (trusted_l4_packet_len > CONST_MAX_ACCEPTABLE_ICMP_V6_PAYLOAD_LENGTH)))
 	  flow->set_long_icmp_payload();
       }

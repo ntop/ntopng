@@ -30,16 +30,16 @@ template <typename METRICTYPE> class MonitoredMetric {
 
   inline void updateAnomalyIndex(time_t when, int64_t delta) {
     if(delta > 0)
-      gains = ewma(delta, gains),
+      gains = ewma((METRICTYPE)delta, gains),
 	losses = ewma(0, losses);
     else
       gains = ewma(0, gains),
-      losses = ewma(-delta, losses);
+      losses = ewma((METRICTYPE)-delta, losses);
 
     if(delta /* No variation -> no anomaly */
        && last_update /* Wait at least two points */
        && (gains || losses) /* Meaningless to calculate an anomaly when both are at zero */)
-      anomaly_index = (100 - (100 / (float)(1 + ((float)(gains) / (float)(losses) + 1))));
+      anomaly_index = (METRICTYPE)(100 - (100 / (float)(1 + ((float)(gains) / (float)(losses) + 1))));
     else
       anomaly_index = 0;
     
@@ -64,7 +64,7 @@ public:
   virtual ~MonitoredMetric() {};
 
   virtual void reset() {
-    value = last_value = gains = losses = last_update = anomaly_index = 0;
+    value = 0, last_value = 0, gains = 0, losses = 0, last_update = 0, anomaly_index = 0;
   }
   inline METRICTYPE get()             const { return(value);         }
   inline METRICTYPE getAnomalyIndex() const { return(anomaly_index); }
@@ -81,7 +81,7 @@ public:
 
   inline float inc(METRICTYPE v) {
     value += v;
-    return(anomaly_index /* Last computed */);
+    return((float)anomaly_index /* Last computed */);
   }
 
   const char * const print(char * const buf, ssize_t buf_size) {

@@ -323,6 +323,7 @@ static int isWhitelistedURI(const char * const uri) {
 
 /* ****************************************** */
 
+#ifdef NO_SSL_DL /* see configure.seed */
 static bool ssl_client_x509_auth(const struct mg_connection * const conn, const struct mg_request_info * const request_info,
 				 char * const username, char * const group, bool * const localuser) {
   bool ret = false;
@@ -362,6 +363,7 @@ static bool ssl_client_x509_auth(const struct mg_connection * const conn, const 
 
   return ret;
 };
+#endif
 
 /* ****************************************** */
 
@@ -435,11 +437,13 @@ static int getAuthorizedUser(struct mg_connection *conn,
     return(1);
   }
 
+  #ifdef NO_SSL_DL
   /* Try to authenticate using client TLS/SSL certificate */
   if(request_info->is_ssl
      && ntop->getPrefs()->is_client_x509_auth_enabled()
      && ssl_client_x509_auth(conn, request_info, username, group, localuser))
     return(1);
+#endif
 
   /* Try to decode Authorization header if present */
   auth_header_p = mg_get_header(conn, "Authorization");
@@ -1132,6 +1136,7 @@ void HTTPserver::parseACL(char * const acl, u_int acl_len) {
 
 static unsigned char ssl_session_ctx_id[] = PACKAGE_NAME "-" NTOPNG_GIT_RELEASE;
 
+#ifdef NO_SSL_DL
 int handle_ssl_verify(int ok, X509_STORE_CTX *ctx) {
   X509 *cert;
   char buf[256];
@@ -1193,6 +1198,7 @@ int init_client_x509_auth(void *ctx) {
 
   return 1;
 };
+#endif
 
 /* ****************************************** */
 
@@ -1228,8 +1234,11 @@ HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
   memset(&callbacks, 0, sizeof(callbacks));
   callbacks.begin_request = handle_lua_request;
   callbacks.log_message = handle_http_message;
+
+#ifdef NO_SSL_DL
   if(ntop->getPrefs()->is_client_x509_auth_enabled())
     callbacks.init_ssl = init_client_x509_auth;
+#endif
 
   /* Randomize data */
   gettimeofday(&tv, NULL);

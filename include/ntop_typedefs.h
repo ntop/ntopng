@@ -549,7 +549,7 @@ typedef struct {
 } DeviceProtocolBitmask;
 
 #ifndef HAVE_NEDGE
-class SNMP; /* Forward */
+class SNMP;
 #endif
 
 struct ntopngLuaContext {
@@ -558,7 +558,9 @@ struct ntopngLuaContext {
   struct mg_connection *conn;
   AddressTree *allowedNets;
   NetworkInterface *iface;
+#ifndef WIN32
   Ping *ping;
+#endif
 #ifndef HAVE_NEDGE
   SNMP *snmp;
 #endif

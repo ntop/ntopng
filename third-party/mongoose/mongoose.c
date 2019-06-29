@@ -585,7 +585,7 @@ u_int8_t is_ip6_enabled = 1;
 static void check_ipv6_enabled() {
   const int sock6 = socket (AF_INET6, SOCK_DGRAM, 0);
   is_ip6_enabled = (sock6 >= 0) ? 1 : 0;
-  close (sock6);
+  closesocket (sock6);
 }
 #endif
 

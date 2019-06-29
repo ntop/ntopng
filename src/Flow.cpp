@@ -3921,29 +3921,33 @@ void Flow::dissectSSL(char *payload, u_int16_t payload_len) {
 		if(!isalpha(_payload[i]) && _payload[i] != '*') {
 		  protos.ssl.dissect_certificate = false;
 		  break;
-		} else {
-		  char buf[len + 1];
+		}
+		else {
+			if(len < 256) {
+				char buf[256];
 
-		  strncpy(buf, (const char*)&_payload[i], len);
-		  buf[len] = '\0';
+				strncpy(buf, (const char*)&_payload[i], len);
+				buf[len] = '\0';
 
 #if 0
-		  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [Len %u][sizeof(buf): %u][ssl cert: %s]", buf, len, sizeof(buf), getSSLCertificate());
+				ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [Len %u][sizeof(buf): %u][ssl cert: %s]", buf, len, sizeof(buf), getSSLCertificate());
 #endif
 
-		  /*
-		    CNs are NOT case sensitive as per RFC 5280
-		  */
-		  if(protos.ssl.certificate
-		     && ((buf[0] != '*' && !strncasecmp(protos.ssl.certificate, buf, sizeof(buf)))
-			 || (buf[0] == '*' && strcasestr(protos.ssl.certificate, &buf[1])))) {
-		    protos.ssl.subject_alt_name_match = true;
-		    protos.ssl.dissect_certificate = false;
-		    break;
-		  }
-		}
+				/*
+				  CNs are NOT case sensitive as per RFC 5280
+				*/
+				if (protos.ssl.certificate
+					&& ((buf[0] != '*' && !strncasecmp(protos.ssl.certificate, buf, sizeof(buf)))
+						|| (buf[0] == '*' && strcasestr(protos.ssl.certificate, &buf[1])))) {
+					protos.ssl.subject_alt_name_match = true;
+					protos.ssl.dissect_certificate = false;
+					break;
+				}
+			} else /* The fix is not to enlarge the buf but figure out why we need more chars.*/
+				ntop->getTrace()->traceEvent(TRACE_WARNING, "Buffer too short [expected %u]", len);
 
-		i += len;
+			i += len;
+		}
 	      } else {
 #if 0
 		ntop->getTrace()->traceEvent(TRACE_NORMAL, "Leftover %u bytes [%u len]", _payload_len - i, len);

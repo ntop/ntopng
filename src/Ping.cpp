@@ -19,6 +19,8 @@
  *
  */
 
+#ifndef WIN32
+
 #include "ntop_includes.h"
 
 #ifndef SOL_IP
@@ -264,3 +266,5 @@ float Ping::ms_timeval_diff(struct timeval *begin, struct timeval *end) {
   } else
     return(0);
 }
+
+#endif /* WIN32 */

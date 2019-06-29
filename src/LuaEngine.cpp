@@ -144,9 +144,11 @@ LuaEngine::~LuaEngine() {
       if((ctx->iface != NULL) && ctx->live_capture.pcaphdr_sent)
 	ctx->iface->deregisterLiveCapture(ctx);
 
+#ifndef WIN32
       if(ctx->ping != NULL)
 	delete ctx->ping;
-      
+#endif
+
       free(ctx);
     }
 
@@ -5043,6 +5045,10 @@ static int ntop_get_prefs(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_ping_host(lua_State* vm) {
+#ifdef WIN32
+  lua_pushnil(vm);
+  return(CONST_LUA_PARAM_ERROR);
+#else
   char *host;
   bool is_v6;
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
@@ -5082,11 +5088,16 @@ static int ntop_ping_host(lua_State* vm) {
   getLuaVMUservalue(vm, ping)->ping(host, is_v6);
   
   return(CONST_LUA_OK);
+#endif
 }
 
 /* ****************************************** */
 
 static int ntop_collect_ping_results(lua_State* vm) {
+#ifdef WIN32
+  lua_pushnil(vm);
+  return(CONST_LUA_PARAM_ERROR);
+#else
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(getLuaVMUservalue(vm, ping) == NULL) {
@@ -5096,6 +5107,7 @@ static int ntop_collect_ping_results(lua_State* vm) {
     getLuaVMUservalue(vm, ping)->collectResponses(vm);  
     return(CONST_LUA_OK);
   }
+  #endif
 }
 
 /* ****************************************** */
@@ -7796,13 +7808,13 @@ static int ntop_interface_trigger_alert(lua_State* vm) {
   periodicity = (int)lua_tonumber(vm, 2);
 
   if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  alert_type = (AlertType)lua_tonumber(vm, 3);
+  alert_type = (AlertType)((int)lua_tonumber(vm, 3));
 
   if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  alert_severity = (AlertLevel)lua_tonumber(vm, 4);
+  alert_severity = (AlertLevel)((int)lua_tonumber(vm, 4));
 
   if(ntop_lua_check(vm, __FUNCTION__, 5, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  alert_entity = (AlertEntity)lua_tonumber(vm, 5);
+  alert_entity = (AlertEntity)((int)lua_tonumber(vm, 5));
 
   if(ntop_lua_check(vm, __FUNCTION__, 6, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   entity_value = (char*)lua_tostring(vm, 6);
@@ -7858,13 +7870,13 @@ static int ntop_interface_release_alert(lua_State* vm) {
   periodicity = (int)lua_tonumber(vm, 2);
 
   if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  alert_type = (AlertType)lua_tonumber(vm, 3);
+  alert_type = (AlertType)((int)lua_tonumber(vm, 3));
 
   if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  alert_severity = (AlertLevel)lua_tonumber(vm, 4);
+  alert_severity = (AlertLevel)((int)lua_tonumber(vm, 4));
 
   if(ntop_lua_check(vm, __FUNCTION__, 5, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  alert_entity = (AlertEntity)lua_tonumber(vm, 5);
+  alert_entity = (AlertEntity)((int)lua_tonumber(vm, 5));
 
   if(ntop_lua_check(vm, __FUNCTION__, 6, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   entity_value = (char*)lua_tostring(vm, 6);

@@ -232,10 +232,15 @@ extern "C" {
 	extern void usleep(__int64 usec);
 	extern int inet_aton(const char *cp, struct in_addr *addr);
 	extern char *strndup(const char *string, size_t s);
+	const char *strcasestr(const char *haystack, const char *needle);
+	char* strptime(const char *buf, const char *format, struct tm *tm);
 	//extern int inet_pton(int af, const char *src, void *dst);
 #ifdef __cplusplus
 };
 #endif
+
+#define strncasecmp _strnicmp
+#define strcasecmp _stricmp
 
 #endif /* _NTOP_WIN32_H_ */
 

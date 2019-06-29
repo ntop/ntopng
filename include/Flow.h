@@ -293,10 +293,6 @@ class Flow : public GenericHashEntry {
 		       u_int16_t payload_len, bool src2dst_direction);
 
   void updateSeqNum(time_t when, u_int32_t sN, u_int32_t aN);
-  inline void updateCommunityIdFlowHash() {
-    if(!community_id_flow_hash)
-      community_id_flow_hash = CommunityIdFlowHash::get_community_id_flow_hash(this);
-  }
   void processDetectedProtocol();
   void setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection);
   void setCustomApp(custom_app_t ca) {

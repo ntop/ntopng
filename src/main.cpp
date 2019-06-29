@@ -116,8 +116,7 @@ int main(int argc, char *argv[])
     
 #ifdef WIN32
   initWinsock32();
-#endif
-
+#else
   sqlite3_shutdown();
   /* Multi-thread.
      In this mode, SQLite can be safely used by multiple threads
@@ -129,6 +128,7 @@ int main(int argc, char *argv[])
     exit(1);
   }
   sqlite3_initialize();
+#endif
 
   if((ntop = new(std::nothrow)  Ntop(argv[0])) == NULL) _exit(0);
   if((prefs = new(std::nothrow) Prefs(ntop)) == NULL)   _exit(0);

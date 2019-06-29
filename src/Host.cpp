@@ -1342,7 +1342,9 @@ char* Host::get_tskey(char *buf, size_t bufsize) {
 void Host::dissectDropbox(const char *payload, u_int16_t payload_len) {
   json_object *o;
   enum json_tokener_error jerr;
-  char str[payload_len+1];
+  char str[1500];
+
+  if ((payload_len + 1) > sizeof(str)) return; /* Too long: this isn't a valid Dropbox packet */
 
   strncpy(str, payload, payload_len);
   str[payload_len] = '\0';
