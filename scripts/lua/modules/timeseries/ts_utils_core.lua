@@ -146,6 +146,9 @@ function ts_utils.listActiveDrivers()
     local dirs = ntop.getDirs()
     local rrd_driver = require("rrd"):new({base_path = (dirs.workingdir .. "/rrd_new")})
     active_drivers[#active_drivers + 1] = rrd_driver
+  elseif driver == "prometheus" then
+     local prometheus_driver = require("prometheus"):new()
+     active_drivers[#active_drivers + 1] = prometheus_driver
   elseif driver == "influxdb" then
     local auth_enabled = (ntop.getPref("ntopng.prefs.influx_auth_enabled") == "1")
 
@@ -775,15 +778,15 @@ function ts_utils.setup()
   local setup_ok = ntop.getPref(SETUP_OK_KEY)
 
   if(ntop.getCache(SETUP_OK_KEY) ~= "1") then
-    if ts_utils.getQueryDriver():setup(ts_utils) then
-      -- success, update version
-      ntop.setCache(SETUP_OK_KEY, "1")
-      return true
-    end
-
-    return false
+     if ts_utils.getQueryDriver():setup(ts_utils) then
+	-- success, update version
+	ntop.setCache(SETUP_OK_KEY, "1")
+	return true
+     end
+     
+     return false
   end
-
+  
   return true
 end
 

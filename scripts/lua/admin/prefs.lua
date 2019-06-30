@@ -1416,7 +1416,7 @@ function printStatsTimeseries()
   if not ntop.isWindows() then
     multipleTableButtonPrefs(subpage_active.entries["multiple_timeseries_database"].title,
 				    subpage_active.entries["multiple_timeseries_database"].description,
-				    {"RRD", "InfluxDB"}, {"rrd", "influxdb"},
+				    {"RRD", "InfluxDB", "Prometheus [Work in Progress]"}, {"rrd", "influxdb", "prometheus"},
 				    "rrd",
 				    "primary",
 				    "timeseries_driver",
