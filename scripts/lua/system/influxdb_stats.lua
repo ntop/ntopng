@@ -71,20 +71,21 @@ print [[
 -- #######################################################
 
 if(page == "overview") then
+   local fa_external =  "<i class='fa fa-external-link'></i>"
     print("<table class=\"table table-bordered table-striped\">\n")
 
-    print("<tr><th nowrap width='20%'>".. i18n("traffic_recording.storage_utilization") .."</th><td><img class=\"influxdb-info-load\" border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber><span id=\"influxdb-info-text\"></span></td></tr>\n")
-    print("<tr><th nowrap>".. i18n("about.ram_memory") .."</th><td><img class=\"influxdb-info-load\" border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber><span id=\"influxdb-info-memory\"></span></td></tr>\n")
+    print("<tr><th nowrap width='20%'>".. i18n("traffic_recording.storage_utilization") .."</th><td width='10%'><img class=\"influxdb-info-load\" border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber><span id=\"influxdb-info-text\"></span></td><td><small>"..i18n("system_stats.descr_influxdb_storage_utilization", {cq_url="https://docs.influxdata.com/influxdb/latest/query_language/continuous_queries/", cq_fa = fa_external}).."</small></td></tr>\n")
+    print("<tr><th nowrap>".. i18n("about.ram_memory") .."</th><td><img class=\"influxdb-info-load\" border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber><span id=\"influxdb-info-memory\"></span></td><td><small>"..i18n("system_stats.descr_influxdb_ram_memory", {mem_url="https://docs.influxdata.com/platform/monitoring/influxdata-platform/tools/measurements-internal/#sys", mem_fa = fa_external}).."</small></td></tr>\n")
 
     if(probe ~= nil) then
        local stats = probe.getExportStats()
 
-       print("<tr><th nowrap>".. i18n("system_stats.exports") .."</th><td><span id=\"influxdb-exports\">".. formatValue(stats.exports) .."</span></td></tr>\n")
-       print("<tr><th nowrap>".. i18n("system_stats.exported_points") .."</th><td><span id=\"influxdb-exported-points\">".. formatValue(stats.points_exported) .."</span></td></tr>\n")
-       print("<tr><th nowrap>".. i18n("system_stats.dropped_points") .."</th><td><span id=\"influxdb-dropped-points\">".. formatValue(stats.points_dropped) .."</span></td></tr>\n")
+       print("<tr><th nowrap>".. i18n("system_stats.exports") .."</th><td><span id=\"influxdb-exports\">".. formatValue(stats.exports) .."</span></td><td><small>"..i18n("system_stats.descr_influxdb_exports", {exp_url="https://docs.influxdata.com/influxdb/latest/guides/writing_data/", exp_fa = fa_external}).."</small></td></tr>\n")
+       print("<tr><th nowrap>".. i18n("system_stats.exported_points") .."</th><td><span id=\"influxdb-exported-points\">".. formatValue(stats.points_exported) .."</span></td><td><small>"..i18n("system_stats.descr_influxdb_exported_points", {point_url="https://docs.influxdata.com/influxdb/v1.7/write_protocols/line_protocol_tutorial/", point_fa = fa_external}).."</small></td></tr>\n")
+       print("<tr><th nowrap>".. i18n("system_stats.dropped_points") .."</th><td><span id=\"influxdb-dropped-points\">".. formatValue(stats.points_dropped) .."</span></td><td><small>"..i18n("system_stats.descr_influxdb_dropped_points", {drop_url="https://docs.influxdata.com/influxdb/latest/guides/writing_data/#http-response-summary", drop_fa = fa_external}).."</small></td></tr>\n")
     end
 
-    print("<tr><th nowrap>".. i18n("system_stats.series_cardinality") .." <a href=\"https://docs.influxdata.com/influxdb/v1.7/concepts/glossary/#series-cardinality\"><i class='fa fa-external-link '></i></a></th><td><img class=\"influxdb-info-load\" border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber><span id=\"influxdb-info-series\"></span><i id=\"high-cardinality-warn\" class=\"fa fa-warning fa-lg\" title=\"".. i18n("system_stats.high_series_cardinality") .."\" style=\"color: orange; display:none\"></td></i></tr>\n")
+    print("<tr><th nowrap>".. i18n("system_stats.series_cardinality") .." <a href=\"https://docs.influxdata.com/influxdb/v1.7/concepts/glossary/#series-cardinality\"><i class='fa fa-external-link '></i></a></th><td><img class=\"influxdb-info-load\" border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber><span id=\"influxdb-info-series\"></span><i id=\"high-cardinality-warn\" class=\"fa fa-warning fa-lg\" title=\"".. i18n("system_stats.high_series_cardinality") .."\" style=\"color: orange; display:none\"></td></i><td><small>"..i18n("system_stats.descr_influxdb_cardinality", {car_url="https://docs.influxdata.com/influxdb/latest/concepts/schema_and_data_layout/#don-t-have-too-many-series", car_fa = fa_external, sizing_url="https://docs.influxdata.com/influxdb/latest/guides/hardware_sizing/#general-hardware-guidelines-for-a-single-node", sizing_fa = fa_external}).."</small></td></tr>\n")
     print[[<script>
 
  var last_db_bytes, last_memory, last_num_series;
@@ -143,12 +144,6 @@ refreshInfluxStats();
  </script>
  ]]
        print("</table>\n")
-
-    print("<b>"..i18n("notes").."</b>")
-    print("<ul>")
-    print("<li>"..i18n("system_stats.note_what_is_a_point").."</li>")
-    print("<li>"..i18n("system_stats.note_total_exports").."</li>")
-    print("</ul>")
 
 elseif(page == "historical") then
    local schema = _GET["ts_schema"] or "influxdb:storage_size"

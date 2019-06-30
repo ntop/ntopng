@@ -704,7 +704,7 @@ end
 
 -- ##############################################
 
-local INFLUX_KEY_PREFIX = "ntopng.cache.ifid_%i."
+local INFLUX_KEY_PREFIX = "ntopng.cache.influxdb."
 local INFLUX_KEY_DROPPED_POINTS = INFLUX_KEY_PREFIX.."dropped_points"
 local INFLUX_KEY_EXPORTED_POINTS = INFLUX_KEY_PREFIX.."exported_points"
 local INFLUX_KEY_EXPORTS = INFLUX_KEY_PREFIX.."exports"
@@ -1321,7 +1321,7 @@ end
 -- ##############################################
 
 function driver:getDiskUsage()
-  local query = 'SELECT SUM(last) FROM (select LAST(diskBytes) FROM "monitor"."shard" where "database" = \''.. self.db ..'\' group by id)'
+   local query = 'SELECT SUM(last) FROM (select LAST(diskBytes) FROM "monitor"."shard" where "database" = \''.. self.db ..'\' group by id)'
   return single_query(self.url .. "/query?db=_internal", query, self.username, self.password)
 end
 
