@@ -2632,6 +2632,12 @@ local lang = {
     ["no_hosts_configured"] = "Nessun Host Configurato",
     ["probe"] = "Probe",
     ["series_cardinality"] = "Cardinalità",
+    ["short_desc_influxdb_cardinality"] = "Indicazione di quanto è complessa la gestione dei punti da parte di InfluxDB.",
+    ["short_desc_influxdb_dropped_points"] = "Numero totale di punti persi a seguito di scritture fallite su InfluxDB.",
+    ["short_desc_influxdb_exported_points"] = "Numero totale di punti scritti con successo su InfluxDB.",
+    ["short_desc_influxdb_exports"] = "Numero totale di scritture fatte con successo su InfluxDB",
+    ["short_desc_influxdb_ram_memory"] = "Memoria totale che InfluxDB ha ottenuto dal sistema operativo.",
+    ["short_desc_influxdb_storage_utilization"] = "Spazio disco totale usato da InfluxDB.",
     ["write_througput"] = "Throughput di Scrittura",
   },
   ["top_hosts"] = {
