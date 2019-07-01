@@ -119,7 +119,9 @@ function exports_format(exports) {
   if(typeof(exports) === "undefined")
       return "-";
 
-  var sizes = [i18n.exports, 'K ' + i18n.exports];
+  var exports_label = i18n.exports.toLowerCase();
+
+  var sizes = [exports_label, 'K ' + exports_label];
   if(exports == 0) return '0';
   if((exports > 0) && (exports < NTOPNG_MIN_VISUAL_VALUE)) return ('< ' + NTOPNG_MIN_VISUAL_VALUE + ' exps/s');
   var res = scaleValue(exports, sizes, 1000);
