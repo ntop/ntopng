@@ -78,11 +78,21 @@ function getSerieLabel(schema, serie, visualization, serie_index) {
 function getValueFormatter(schema, metric_type, series, custom_formatter) {
   if(series && series.length && series[0].label) {
     if(custom_formatter) {
-      // translate function name to actual function
-      var fn = window[custom_formatter];
-      if(typeof fn !== "function")
-        console.error("Cannot find custom value formatter \"" + custom_formatter + "\"");
-      return([fn]);
+      var formatters = [];
+
+      if(typeof(custom_formatter) != "object")
+        custom_formatter = [custom_formatter];
+
+      for(var i=0; i<custom_formatter.length; i++) {
+        // translate function name to actual function
+        var fn = window[custom_formatter[i]];
+
+        if(typeof fn !== "function")
+          console.error("Cannot find custom value formatter \"" + custom_formatter + "\"");
+        formatters[i] = fn;
+      }
+
+      return(formatters);
     }
 
     var label = series[0].label;

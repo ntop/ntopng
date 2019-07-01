@@ -102,9 +102,30 @@ function fbits(bits) {
 //    return Math.round(bits / Math.pow(1000, i), 2) + ' ' + sizes[i];
 }
 
-function fcounter_to_intval(value) {
-  /* Turns a derivate value into an integral */
-  return(fint(value * ts_chart.current_step));
+function export_rate(eps) {
+  if(typeof(eps) === "undefined")
+      return "-";
+
+  var sizes = ['exp/s', 'Kexp/s'];
+  if(eps == 0) return '0';
+  if((eps > 0) && (eps < NTOPNG_MIN_VISUAL_VALUE)) return ('< ' + NTOPNG_MIN_VISUAL_VALUE + ' exps/s');
+  var res = scaleValue(eps, sizes, 1000);
+
+  // Round to two decimal digits
+  return Math.round(res[0] * 100) / 100 + ' ' + res[1];
+}
+
+function exports_format(exports) {
+  if(typeof(exports) === "undefined")
+      return "-";
+
+  var sizes = [i18n.exports, 'K ' + i18n.exports];
+  if(exports == 0) return '0';
+  if((exports > 0) && (exports < NTOPNG_MIN_VISUAL_VALUE)) return ('< ' + NTOPNG_MIN_VISUAL_VALUE + ' exps/s');
+  var res = scaleValue(exports, sizes, 1000);
+
+  // Round to two decimal digits
+  return Math.round(res[0] * 100) / 100 + ' ' + res[1];
 }
 
 function fbits_from_bytes(bytes) {
