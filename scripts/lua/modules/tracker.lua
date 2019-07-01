@@ -22,7 +22,11 @@ function tracker.log(f_name, f_args)
   end
 
   local ifid = stats.id
-  local remote_addr = _SERVER["REMOTE_ADDR"]
+  local remote_addr
+
+  if _SERVER then
+     remote_addr = _SERVER["REMOTE_ADDR"]
+  end
 
   local jobj = { 
     scope = 'function',
