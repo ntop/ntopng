@@ -6,7 +6,10 @@
 
 local driver = {}
 
--- ##############################################
+local prometheus_queue = "ntopng.prometheus_export_queue"
+local max_prometheus_queueLen = 100000
+
+-- ###########################
 
 --! @brief Driver constructor.
 --! @param options global options.
@@ -28,7 +31,9 @@ end
 --! @param metrics map metric_name->metric_value. It contains exactly the metrics defined in the schema.
 --! @return the true on success, false otherwise.
 function driver:append(schema, timestamp, tags, metrics)
-   if(false) then
+   local debug = false
+   
+   if(debug) then
       print("----- Schema --------------")
       tprint(schema.name)
       print("------ Timestamp -------------")
@@ -49,8 +54,12 @@ function driver:append(schema, timestamp, tags, metrics)
    end
       
    for k,v in pairs(metrics) do
-      local exp = line .. ', metric="' .. k .. '"} '.. v .. " " ..timestamp .. "0000"
-      io.write(exp.."\n") -- TODO write onto prometheus
+      local exp = line .. ', metric="' .. k .. '"} '.. v .. " " ..timestamp .. "000"
+      if(debug) then io.write(exp.."\n") end
+
+      -- writing onto Prometheus
+      ntop.rpushCache(prometheus_queue, exp)
+      ntop.ltrimCache(prometheus_queue, 0, max_prometheus_queueLen)
    end
 
 end
@@ -98,7 +107,7 @@ end
 --! @brief Informs the driver that it's time to export data.
 --! @note This is called periodically by ntopng and should not be called manually.
 function driver:export()
-   print("prometheus.lua driver:export() called\n")
+   -- print("prometheus.lua driver:export() called\n")
 end
 
 --! @brief Get the most recent timestamp available for queries.

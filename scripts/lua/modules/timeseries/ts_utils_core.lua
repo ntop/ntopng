@@ -49,7 +49,9 @@ end
 -- ##############################################
 
 function ts_utils.hasHighResolutionTs()
-  return (ntop.getPref("ntopng.prefs.timeseries_driver") == "influxdb")
+   local driver_name = ntop.getPref("ntopng.prefs.timeseries_driver")
+   
+   return((driver_name == "influxdb") or (driver_name == "prometheus"))
 end
 
 -- ##############################################
@@ -147,7 +149,7 @@ function ts_utils.listActiveDrivers()
     local rrd_driver = require("rrd"):new({base_path = (dirs.workingdir .. "/rrd_new")})
     active_drivers[#active_drivers + 1] = rrd_driver
   elseif driver == "prometheus" then
-     local prometheus_driver = require("prometheus"):new()
+     local prometheus_driver = require("prometheus"):new({})
      active_drivers[#active_drivers + 1] = prometheus_driver
   elseif driver == "influxdb" then
     local auth_enabled = (ntop.getPref("ntopng.prefs.influx_auth_enabled") == "1")
