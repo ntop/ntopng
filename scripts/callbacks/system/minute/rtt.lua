@@ -62,7 +62,7 @@ local ping_issues_alert = alerts:newAlert({
 -- ##############################################
 
 function probe.isEnabled()
-  return(true)
+  return(not ntop.isWindows())
 end
 
 -- ##############################################
