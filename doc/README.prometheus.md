@@ -9,7 +9,9 @@ Installation
 After installing prometheus, in order to run it you will need a configuration file.
 You can use the one provided in the [https://prometheus.io/docs/introduction/getting_started/] (getting started guide).
 
-```prometheus -config.file /etc/prometheus/prometheus.yml```
+```
+prometheus --config.file=/etc/prometheus/prometheus.yml
+```
 
 By default, it will start a webserver on port 9090. Verify the connection before proceeding.
 
