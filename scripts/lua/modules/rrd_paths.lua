@@ -127,9 +127,11 @@ function getPathFromIPv6(addr)
    end
 
    local i = 1
-   for _, p in pairsByKeys(suffix:split(":") or {suffix}, rev) do
-      ipv6[8 - i + 1] = string.format('%.4x', tonumber(p, 16) or 0)
-      i = i + 1
+   if not isEmptyString(suffix) then
+     for _, p in pairsByKeys(suffix:split(":"), rev) do
+        ipv6[8 - i + 1] = string.format('%.4x', tonumber(p, 16) or 0)
+        i = i + 1
+     end
    end
 
    local most_significant = {ipv6[1], ipv6[2], ipv6[3], ipv6[4]}

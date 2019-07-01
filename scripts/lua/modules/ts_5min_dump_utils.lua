@@ -412,15 +412,18 @@ function ts_dump.run_5min_dump(_ifname, ifstats, config, when, time_threshold, s
       end
 
       if(is_rrd_creation_enabled and (dumped_hosts[host_key] == nil)) then
+        local min_host_instant = min_instant
+
         if(host_ts.initial_point ~= nil) then
           -- Dump the first point
           ts_dump.host_update_rrd(host_ts.initial_point_time, host_key, host_ts.initial_point, ifstats, verbose, config)
+          min_host_instant = math.max(min_host_instant, host_ts.initial_point_time - 1)
         end
 
         for _, host_point in ipairs(host_ts or {}) do
           local instant = host_point.instant
 
-          if instant >= min_instant then
+          if instant >= min_host_instant then
             ts_dump.host_update_rrd(instant, host_key, host_point, ifstats, verbose, config)
           end
         end
