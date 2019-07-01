@@ -1328,7 +1328,17 @@ end
 -- ##############################################
 
 function driver:getMemoryUsage()
-  local query = 'SELECT LAST(Sys) FROM "_internal".."runtime"'
+  --[[
+     This function attempts to match the memory used by the process, memory which is 
+     the top/htop RSS (Resident Stack Size) which is what it actually matters.
+
+     InfluxDB docs leak explanations of how to interpred memory-related numbers:
+     https://docs.influxdata.com/platform/monitoring/influxdata-platform/tools/measurements-internal/#runtime
+
+     So the formula below has been obtained by tentatives and it seems to be pretty
+     close to what top reports.
+  --]]
+  local query = 'SELECT LAST(Sys) - LAST(HeapReleased) FROM "_internal".."runtime"'
   return single_query(self.url .. "/query?db=_internal", query, self.username, self.password)
 end
 
