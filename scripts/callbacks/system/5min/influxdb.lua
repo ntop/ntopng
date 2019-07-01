@@ -20,7 +20,9 @@ local function get_storage_size_query(influxdb, schema, tstart, tend, time_step)
   local q = 'SELECT SUM(disk_bytes) as disk_bytes from (SELECT MEAN(diskBytes) as disk_bytes' ..
       ' FROM "monitor"."shard" where "database"=\''.. influxdb.db ..'\' GROUP BY id, TIME('.. time_step ..'s)) WHERE ' ..
       " time >= " .. tstart .. "000000000 AND time <= " .. tend .. "000000000" ..
-      " GROUP BY TIME(".. time_step .."s)"
+     " GROUP BY TIME(".. time_step .."s)"
+  tprint(q)
+  -- local q = 'SELECT SUM(last) as disk_bytes FROM (select LAST(diskBytes) FROM "monitor"."shard" where "database" = \''.. influxdb.db ..'\' group by id)'
 
   return(q)
 end
