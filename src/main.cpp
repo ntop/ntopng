@@ -63,7 +63,12 @@ static void nohup_after_shutdown_command(const char * const after_shutdown_comma
 
 /* ******************************** */
 
-void sigproc(int sig) {
+#ifdef WIN32
+BOOL WINAPI sigproc(DWORD sig)
+#else
+void sigproc(int sig)
+#endif
+ {
   static int called = 0;
   
   if(called) {
@@ -393,7 +398,9 @@ int main(int argc, char *argv[])
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Scripts/HTML pages directory: %s",
 			       ntop->get_install_dir());
 
-#ifndef WIN32
+#ifdef WIN32
+  SetConsoleCtrlHandler(sigproc, TRUE);
+#else
   signal(SIGHUP,  sighup);
   signal(SIGINT,  sigproc);
   signal(SIGTERM, sigproc);
