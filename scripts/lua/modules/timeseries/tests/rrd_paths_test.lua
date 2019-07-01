@@ -20,7 +20,6 @@ local prefixes_to_skip = {
 }
 
 local suffixes_to_skip = {
-  l4protos = true,            -- Currently no overlap happens. "icmp" is the l4 protocol, "ICMP" is the l7 application
 }
 
 -- ##############################################

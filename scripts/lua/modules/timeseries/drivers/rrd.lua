@@ -116,6 +116,8 @@ local function schema_get_path(schema, tags)
      suffix = "ndpi_categories/"
   elseif parts[2] == "ndpi_flows" then
    suffix = "ndpi_flows/"
+  elseif parts[2] == "l4protos" then
+   suffix = "l4protos/"
   elseif #schema._tags >= 3 then
     local intermediate_tags = {}
 
