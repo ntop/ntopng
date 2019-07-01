@@ -53,4 +53,3 @@ Here is how to perform some recurrent operations on the documentation:
     it's necessary to:
       - create `api/lua_c/db/index.rst`. Adapt this from an existing `.rst`.
       - edit `api/lua_c/index.rst` and add `db/index` to the `toctree` section.
-      - edit `doxygen/Doxyfile` and add `../api/lua_c/db` to the `INPUT` variable.

@@ -15,6 +15,7 @@ DOC_SOURCES = $(shell find ../api/lua_c/ -type f -name *.lua)
 TARGETS = $(DOC_SOURCES:.lua=.lua.cpp)
 
 # Specific rule for Lua API to document
+# NOTE: doxygen finds the files via the INPUT directive in the Doxyfile
 TARGETS += $(LUA_API_DIR)/timeseries/ts_utils.lua.cpp
 TARGETS += $(LUA_API_DIR)/timeseries/driver.lua.cpp
 TARGETS += $(LUA_API_DIR)/recording/recording_utils.lua.cpp
@@ -31,6 +32,8 @@ all: $(TARGETS)
 
 clean:
 	rm -rf html xml
+	rm -f DoxygenLayout.xml
+	rm -f *.tmp
 
 # ######################################## #
 
