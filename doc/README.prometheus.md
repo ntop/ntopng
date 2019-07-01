@@ -7,7 +7,7 @@ Prometheus polls data from ntopng that must expose the /metrics URL (pull model)
 Installation
 ------------
 After installing prometheus, in order to run it you will need a configuration file.
-You can use the one provided in the [https://prometheus.io/docs/introduction/getting_started/](getting started guide).
+You can use the one provided in the [https://prometheus.io/docs/introduction/getting_started/] (getting started guide).
 
 ```prometheus -config.file /etc/prometheus/prometheus.yml```
 
