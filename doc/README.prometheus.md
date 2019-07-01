@@ -13,6 +13,13 @@ You can use the one provided in the [https://prometheus.io/docs/introduction/get
 prometheus --config.file=/etc/prometheus/prometheus.yml
 ```
 
+You may also want to enable the admin API (for example to delete old
+timeseries). In this case, add the corresponding option
+
+```
+prometheus --config.file=/etc/prometheus/prometheus.yml --web.enable-admin-api
+```
+
 By default, it will start a webserver on port 9090. Verify the connection before proceeding.
 
 In order to start monitoring ntopng,
