@@ -71,7 +71,7 @@ function driver:append(schema, timestamp, tags, metrics)
       local metric_str = string.format('%s {%s metric="%s"} %f %d', schema.name, tags_str, k, v, timestamp * 1000)
 
       -- writing onto Prometheus
-      ntop.rpushCache(prometheus_queue, metric_str)
+      ntop.lpushCache(prometheus_queue, metric_str)
       ntop.ltrimCache(prometheus_queue, 0, max_prometheus_queueLen)
    end
 
