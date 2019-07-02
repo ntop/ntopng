@@ -16,15 +16,6 @@ local probe = {
 
 -- ##############################################
 
-local function get_storage_size_query(influxdb, schema, tstart, tend, time_step)
-  local q = 'SELECT SUM(disk_bytes) as disk_bytes from (SELECT MEAN(diskBytes) as disk_bytes' ..
-      ' FROM "monitor"."shard" where "database"=\''.. influxdb.db ..'\' GROUP BY id, TIME('.. time_step ..'s)) WHERE ' ..
-      " time >= " .. tstart .. "000000000 AND time <= " .. tend .. "000000000" ..
-      " GROUP BY TIME(".. time_step .."s)"
-
-  return(q)
-end
-
 local function get_memory_size_query(influxdb, schema, tstart, tend, time_step)
   local q = 'SELECT MEAN(Sys) as mem_bytes' ..
       ' FROM "_internal".."runtime"' ..
@@ -57,24 +48,10 @@ end
 function probe.loadSchemas(ts_utils)
   local schema
 
-  -- The following metrics are built-in into influxdb
   schema = ts_utils.newSchema("influxdb:storage_size", {
-    influx_internal_query = get_storage_size_query,
-    metrics_type = ts_utils.metrics.gauge, step = 10
+    metrics_type = ts_utils.metrics.gauge,
   })
   schema:addMetric("disk_bytes")
-
-  schema = ts_utils.newSchema("influxdb:memory_size", {
-    influx_internal_query = get_memory_size_query,
-    metrics_type = ts_utils.metrics.gauge, step = 10
-  })
-  schema:addMetric("mem_bytes")
-
-  schema = ts_utils.newSchema("influxdb:write_successes", {
-    influx_internal_query = get_write_success_query,
-    metrics_type = ts_utils.metrics.counter, step = 10
-  })
-  schema:addMetric("points")
 
   schema = ts_utils.newSchema("influxdb:exported_points",
     {metrics_type = ts_utils.metrics.counter})
@@ -88,6 +65,19 @@ function probe.loadSchemas(ts_utils)
 
   schema = ts_utils.newSchema("influxdb:rtt", {metrics_type = ts_utils.metrics.gauge})
   schema:addMetric("millis_rtt")
+
+  -- The following metrics are built-in into influxdb
+  schema = ts_utils.newSchema("influxdb:memory_size", {
+    influx_internal_query = get_memory_size_query,
+    metrics_type = ts_utils.metrics.gauge, step = 10
+  })
+  schema:addMetric("mem_bytes")
+
+  schema = ts_utils.newSchema("influxdb:write_successes", {
+    influx_internal_query = get_write_success_query,
+    metrics_type = ts_utils.metrics.counter, step = 10
+  })
+  schema:addMetric("points")
 end
 
 -- ##############################################
@@ -161,11 +151,22 @@ end
 
 -- ##############################################
 
+function probe._exportStorageSize(when, ts_utils, influxdb)
+  local disk_bytes = influxdb:getDiskUsage()
+
+  if(disk_bytes ~= nil) then
+    ts_utils.append("influxdb:storage_size", {disk_bytes = disk_bytes}, when)
+  end
+end
+
+-- ##############################################
+
 function probe.runTask(when, ts_utils)
   local influxdb = ts_utils.getQueryDriver()
 
   probe._exportStats(when, ts_utils, influxdb)
   probe._measureRtt(when, ts_utils, influxdb)
+  probe._exportStorageSize(when, ts_utils, influxdb)
 end
 
 -- ##############################################
