@@ -51,6 +51,18 @@ the following command can be used:
 After executing the above command and restarting ntopng, the device will be able to
 login again.
 
+Reset ntopng Preferences
+########################
+
+In order to reset the ntopng preferences the following commands can be used:
+
+.. code:: bash
+
+  sudo systemctl stop ntopng
+  redis-cli keys "ntopng.*" | xargs redis-cli unlink
+  sudo rm /var/lib/ntopng/runtimeprefs.json
+  sudo systemctl restart ntopng
+
 How can I monitor the sites visited by an host?
 ===============================================
 
