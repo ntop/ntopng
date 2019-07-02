@@ -29,7 +29,9 @@ local email_peer_pattern = [[^(([A-Za-z0-9._%+-]|\s)+<)?[A-Za-z0-9._%+-]+@[a-z0-
 if(ntop.isPro()) then
   package.path = dirs.installdir .. "/scripts/lua/pro/?.lua;" .. package.path
   package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
-  nindex_utils = require("nindex_utils")
+  if hasNindexSupport() then
+     nindex_utils = require("nindex_utils")
+  end
 end
 
 sendHTTPContentTypeHeader('text/html')
