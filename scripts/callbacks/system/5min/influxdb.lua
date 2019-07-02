@@ -17,7 +17,11 @@ local probe = {
 -- ##############################################
 
 local function get_memory_size_query(influxdb, schema, tstart, tend, time_step)
-  local q = 'SELECT MEAN(Sys) as mem_bytes' ..
+  --[[
+     See comments in function driver:getMemoryUsage() to understand
+     why it is necessary to subtract the HeapReleased from Sys.
+  --]]
+  local q = 'SELECT MEAN(Sys) - MEAN(HeapReleased) as mem_bytes' ..
       ' FROM "_internal".."runtime"' ..
       " WHERE time >= " .. tstart .. "000000000 AND time <= " .. tend .. "000000000" ..
       " GROUP BY TIME(".. time_step .."s)"
