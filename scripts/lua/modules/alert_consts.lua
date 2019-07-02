@@ -64,6 +64,9 @@ alert_consts.alert_type_keys = {
    { "<i class='fa fa-database'></i> " .. i18n("alerts_dashboard.influxdb_dropped_points"),        41, "influxdb_dropped_points"    },
 }
 
+-- See getFlowStatusTypes() in lua_utils for flow alerts
+-- See Utils::flowStatus2str to determine the alert_type for flow alerts
+
 -- Keep in sync with ntop_typedefs.h:AlertEntity
 alert_consts.alert_entity_keys = {
    { "Interface",       0, "interface"     },

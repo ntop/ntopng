@@ -1347,6 +1347,7 @@ local lang = {
     ["local_cli_remote_srv"] = "Local Client - Remote Server",
     ["local_only"] = "Local Only",
     ["local_srv_remote_cli"] = "Local Server - Remote Client",
+    ["misbehaving_flows_node"] = "Check out the <a href=\"%{url}\">online documentation</a> for a description of the misbehaving flows.",
     ["multicast"] = "Multicast/Broadcast",
     ["network"] = " [ Network %{network} ]",
     ["non_multicast"] = "Non-Multicast/Non-Broadcast",

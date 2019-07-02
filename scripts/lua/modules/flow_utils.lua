@@ -2052,12 +2052,19 @@ end
 
 local function printDropdownEntries(entries, base_url, param_arr, param_filter, curr_filter)
    for _, htype in ipairs(entries) do
+      if type(htype) == "string" then
+        -- plain html
+        print(htype)
+        goto continue
+      end
+
       param_arr[param_filter] = htype[1]
       print[[<li]]
 
       if htype[1] == curr_filter then print(' class="active"') end
 
       print[[><a href="]] print(getPageUrl(base_url, param_arr)) print[[">]] print(htype[2]) print[[</a></li>]]
+      ::continue::
    end
 end
 
@@ -2107,8 +2114,13 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
 
        local status_types = getFlowStatusTypes()
        local status_stats = flowstats["status"]
+       local first = true
        for t,desc in ipairs(status_types) do
           if t then
+             if first then
+                entries[#entries + 1] = '<li role="separator" class="divider"></li>'
+                first = false
+             end
              if status_stats[t] and status_stats[t].count > 0 then
                entries[#entries + 1] = {string.format("%u", t), desc.." ("..status_stats[t].count..")"}
              end

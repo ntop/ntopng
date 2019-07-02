@@ -567,6 +567,7 @@ int Utils::mkdir(const char *path, mode_t mode) {
 
 /* **************************************************** */
 
+/* NOTE: this function also determines the AlertType to use */
 const char* Utils::flowStatus2str(FlowStatus s, AlertType *aType, AlertLevel *aLevel) {
   *aType = alert_flow_misbehaviour; /* Default */
   *aLevel = alert_level_warning;

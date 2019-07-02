@@ -69,7 +69,17 @@ if (page == "flows" or page == nil) then
 
 print [[
       <hr>
-      <div id="table-flows"></div>
+      <div id="table-flows"></div>]]
+
+print(i18n("notes"))
+print[[<ul>
+  <li>]]
+print(i18n("flows_page.misbehaving_flows_node",
+    {url = "https://www.ntop.org/guides/ntopng/basic_concepts/alerts.html#misbehaving-flows"}))
+print[[</li>
+</ul>]]
+
+print[[
 	 <script>
    var url_update = "]]
 
