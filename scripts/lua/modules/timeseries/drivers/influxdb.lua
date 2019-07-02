@@ -720,20 +720,28 @@ end
 
 -- ##############################################
 
-function inc_dropped_points(ifid, num_points)
+local function inc_dropped_points(ifid, num_points)
    inc_val(INFLUX_KEY_DROPPED_POINTS, ifid, num_points)
 end
 
 -- ##############################################
 
-function inc_exported_points(ifid, num_points)
+local function inc_exported_points(ifid, num_points)
    inc_val(INFLUX_KEY_EXPORTED_POINTS, ifid, num_points)
 end
 
 -- ##############################################
 
-function inc_exports(ifid)
+local function inc_exports(ifid)
    inc_val(INFLUX_KEY_EXPORTS, ifid, 1)
+end
+
+-- ##############################################
+
+local function del_all_vals()
+   ntop.delCache(INFLUX_KEY_DROPPED_POINTS)
+   ntop.delCache(INFLUX_KEY_EXPORTED_POINTS)
+   ntop.delCache(INFLUX_KEY_EXPORTS)
 end
 
 -- ##############################################
@@ -1627,6 +1635,10 @@ end
 function driver:setup(ts_utils)
   local queries = {}
   local max_batch_size = 25 -- note: each query is about 400 characters
+
+  -- Clear saved values (e.g., number of exported points) as
+  -- we want to start clean and keep values since-ntopng-startup
+  del_all_vals()
 
   -- Ensure that the database exists
   driver.init(self.db, self.url, nil, self.username, self.password)
