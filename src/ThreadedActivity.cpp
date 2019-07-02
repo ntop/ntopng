@@ -189,7 +189,10 @@ void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface) {
 
   if((max_duration_ms > 0) &&
       (msec_diff > 2*max_duration_ms) &&
-      (strcmp(path, HOUSEKEEPING_SCRIPT_PATH) != 0)) /* housekeping can go beyond the max time right now */
+      /* These scripts are allowed to go beyong their max time */
+      (strcmp(path, HOUSEKEEPING_SCRIPT_PATH) != 0) &&
+      (strcmp(path, DISCOVER_SCRIPT_PATH) != 0) &&
+      (strcmp(path, TIMESERIES_SCRIPT_PATH) != 0))
     storeSlowActivityAlert(msec_diff, iface);
 
   if(iface == ntop->getSystemInterface())
