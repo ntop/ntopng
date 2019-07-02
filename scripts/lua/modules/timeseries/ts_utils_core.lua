@@ -175,7 +175,7 @@ end
 function ts_utils.getQueryDriver()
   local drivers = ts_utils.listActiveDrivers()
 
-  -- TODO: for now prefer the influx driver if present
+  -- NOTE: prefer the InfluxDB driver if available, RRD as fallback
   local driver = drivers[2] or drivers[1]
 
   return driver
@@ -286,12 +286,6 @@ function ts_utils.query(schema_name, tags, tstart, tend, options)
   if not schema then
     traceError(TRACE_ERROR, TRACE_CONSOLE, "Schema not found: " .. schema_name)
     return nil
-  end
-
-  -- TODO: temporary fix for "process:memory"
-  if schema_name == "process:memory" then
-    tags = table.clone(tags)
-    tags.ifid = nil
   end
 
   if not schema:verifyTags(tags) then
@@ -740,7 +734,6 @@ end
 
 -- ##############################################
 
--- TODO make standard and document
 function ts_utils.queryMean(schema_name, tstart, tend, tags, options)
   if not isUserAccessAllowed(tags) then
     return nil

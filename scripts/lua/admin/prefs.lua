@@ -1394,7 +1394,7 @@ function printStatsTimeseries()
   print('<tr><th colspan=2 class="info">'..i18n('prefs.timeseries_database')..'</th></tr>')
 
   local elementToSwitch = {"ts_post_data_url", "influx_dbname", "influx_retention", "row_toggle_influx_auth", "influx_username", "influx_password", "row_ts_high_resolution"}
-  local showElementArray = {false, true}
+  local showElementArray = {false, true, false}
 
   local javascriptAfterSwitch = "";
   javascriptAfterSwitch = javascriptAfterSwitch.."  if($(\"#id-toggle-timeseries_driver\").val() == \"influxdb\") {\n"
@@ -1406,7 +1406,7 @@ function printStatsTimeseries()
   javascriptAfterSwitch = javascriptAfterSwitch.."      $(\"#influx_password\").css(\"display\",\"none\");\n"
   javascriptAfterSwitch = javascriptAfterSwitch.."    }\n"
   javascriptAfterSwitch = javascriptAfterSwitch.."    $(\"#old_rrd_files_retention\").css(\"display\",\"none\");\n"
-  javascriptAfterSwitch = javascriptAfterSwitch.."  } else {\n"
+  javascriptAfterSwitch = javascriptAfterSwitch.."  } else if($(\"#id-toggle-timeseries_driver\").val() == \"rrd\") {\n"
   javascriptAfterSwitch = javascriptAfterSwitch.."    $(\"#old_rrd_files_retention\").css(\"display\",\"table-row\");\n"
   javascriptAfterSwitch = javascriptAfterSwitch.."  }\n"
 
@@ -1964,6 +1964,24 @@ if tonumber(_POST["ts_high_resolution"]) ~= nil then
     end
   end
 
+  -- When high resolution timeseries are enabled, the ntopng C core creates
+  -- timeseries rings with diffent slots. Each slot holds a snapshot of the
+  -- host/interface timeseries in a given time interval. For example, if 10s
+  -- resolution is choose, each slot holds a snapshot representing an interval
+  -- of 10s. Periodically (in NetworkInterface::periodicStatsUpdate) the slots
+  -- are polulated and then in minute.lua they are read and exported.
+  --
+  -- This Redis preferences tell the C core how to configure the ring:
+  --  - ntopng.prefs.ts_write_slots: the number of slots to allocate in the ring
+  --  - ntopng.prefs.ts_write_steps: how many ticks of NetworkInterface::periodicStatsUpdate
+  --    are necessary to fill a slot.
+  --
+  -- For the example above of 10s resolution:
+  --  - ntopng.prefs.ts_write_slots = 60 / 10 = 6 slots, + 1 extra slot as buffer (see above) = 7
+  --  - ntopng.prefs.ts_write_steps = 60 / 6 slots = 10s / 5 (5s is the periodicStatsUpdate interval) = 2
+  --
+  -- See TimseriesRing.cpp for more details.
+  --
   ntop.setPref("ntopng.prefs.ts_write_slots", tostring(math.ceil(new_slots)))
   ntop.setPref("ntopng.prefs.ts_write_steps", tostring(math.ceil(new_steps)))
 end

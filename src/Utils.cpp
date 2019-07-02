@@ -1833,7 +1833,6 @@ bool Utils::httpGetPost(lua_State* vm, char *url, char *username,
       out_f = fopen(write_fname, "w");
 
       if(out_f == NULL) {
-        char buf[64];
         ntop->getTrace()->traceEvent(TRACE_ERROR, "Could not open %s for write", write_fname, strerror(errno));
         curl_easy_cleanup(curl);
         if(vm) lua_pushnil(vm);

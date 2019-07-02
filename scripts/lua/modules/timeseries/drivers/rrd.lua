@@ -62,7 +62,6 @@ end
 
 -- ##############################################
 
--- TODO remove after migrating to the new path format
 -- Maps second tag name to getRRDName
 local HOST_PREFIX_MAP = {
   host = "",
@@ -151,40 +150,6 @@ function driver.schema_get_full_path(schema, tags)
   local full_path = os_utils.fixPath(base .. "/" .. rrd .. ".rrd")
 
   return full_path
-end
-
--- TODO remove after migration
-function find_schema(rrdFile, rrdfname, tags, ts_utils)
-  -- try to guess additional tags
-  local v = string.split(rrdfname, "%.rrd")
-  if((v ~= nil) and (#v == 1)) then
-    local app = v[1]
-
-    if interface.getnDPIProtoId(app) ~= -1 then
-      tags.protocol = app
-    elseif interface.getnDPICategoryId(app) ~= -1 then
-      tags.category = app
-    end
-  end
-
-  for schema_name, schema in pairs(ts_utils.getLoadedSchemas()) do
-    -- verify tags compatibility
-    for tag in pairs(schema.tags) do
-      if tags[tag] == nil then
-        goto next_schema
-      end
-    end
-
-    local full_path = driver.schema_get_full_path(schema, tags)
-
-    if full_path == rrdFile then
-      return schema_name
-    end
-
-    ::next_schema::
-  end
-
-  return nil
 end
 
 -- ##############################################
