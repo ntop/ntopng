@@ -757,16 +757,28 @@ end
    local num_extra_names = table.len(extra_names)
 
    if num_extra_names > 0 then
-      print('<tr><td width=35% rowspan='..(num_extra_names + 1)..'><b>'.. i18n("details.further_host_names_information") ..' </a></b></td>')
-      print("<th>"..i18n("details.source").."</th><th>"..i18n("name").."</th></tr>\n")
-
-      for source, name in pairs(extra_names) do
+      local name_sources = {}
+      for source, name in pairsByKeys(extra_names, rev) do
 	 if source == "resolved" then
 	    source = "DNS Resolution"
 	 else
 	    source = source:upper()
 	 end
 
+	 if not name_sources[name] then
+	    name_sources[name] = source
+	 else
+	    -- Collapse multiple sources in a single row when the name is the same
+	    name_sources[name] = string.format("%s, %s", source, name_sources[name])
+	    num_extra_names = num_extra_names - 1
+	 end
+
+
+      end
+
+      print('<tr><td width=35% rowspan='..(num_extra_names + 1)..'><b>'.. i18n("details.further_host_names_information") ..' </a></b></td>')
+      print("<th>"..i18n("details.source").."</th><th>"..i18n("name").."</th></tr>\n")
+      for name, source in pairsByValues(name_sources, asc) do
 	 print("<tr><td>"..source.."</td><td>"..name.."</td></tr>\n")
       end
    end
