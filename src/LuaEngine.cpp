@@ -8511,15 +8511,26 @@ static int ntop_set_logging_level(lua_State* vm) {
 
 /* ****************************************** */
 
+/* NOTE: use lua traceError function */
 static int ntop_trace_event(lua_State* vm) {
-  char *msg;
+  char *msg, *fname;
+  int level, line;
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  if((msg = (char*)lua_tostring(vm, 1)) == NULL)       return(CONST_LUA_PARAM_ERROR);
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  level = lua_tointeger(vm, 1);
 
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", msg);
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  if((fname = (char*)lua_tostring(vm, 2)) == NULL)       return(CONST_LUA_PARAM_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  line = lua_tointeger(vm, 3);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  if((msg = (char*)lua_tostring(vm, 4)) == NULL)       return(CONST_LUA_PARAM_ERROR);
+
+  ntop->getTrace()->traceEvent(level, fname, line, "%s", msg);
 
   lua_pushnil(vm);
   return(CONST_LUA_OK);
@@ -8843,9 +8854,6 @@ static const luaL_Reg ntop_reg[] = {
   { "tzset",            ntop_tzset },
   { "roundTime",        ntop_round_time },
 
-  /* Trace */
-  { "verboseTrace",     ntop_verbose_trace },
-
   /* UDP */
   { "send_udp_data",    ntop_send_udp_data },
 
@@ -8921,6 +8929,7 @@ static const luaL_Reg ntop_reg[] = {
 #endif
   { "setLoggingLevel",   ntop_set_logging_level },
   { "traceEvent",        ntop_trace_event },
+  { "verboseTrace",      ntop_verbose_trace },
 
   /* SNMP */
 #ifndef HAVE_NEDGE

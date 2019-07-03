@@ -187,7 +187,7 @@ if(page == "overview") then
    end
 
    print("<tr><th nowrap>"..i18n("about.last_log").."</th><td><code>\n")
-   for i=1,32 do
+   for i=0,32 do
        msg = ntop.listIndexCache("ntopng.trace", i)
        if(msg ~= nil) then
           print(noHtml(msg).."<br>\n")
