@@ -96,6 +96,8 @@ function probe.getTimeseriesMenu(ts_utils)
     {schema="influxdb:exports",                           label=i18n("system_stats.exports_label"),
       value_formatter = {"export_rate", "exports_format"},
       metrics_labels = {i18n("system_stats.exports_label")}},
+    {schema="influxdb:exported_points",                   label=i18n("system_stats.exported_points")},
+    {schema="influxdb:dropped_points",                    label=i18n("system_stats.dropped_points")},
     {schema="custom:infludb_exported_vs_dropped_points",  label=i18n("system_stats.exported_vs_dropped_points"),
       custom_schema = {
         bases = {"influxdb:exported_points", "influxdb:dropped_points"},

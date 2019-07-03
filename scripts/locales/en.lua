@@ -3155,6 +3155,9 @@ local lang = {
     ["short_desc_influxdb_ram_memory"] = "Total memory InfluxDB has obtained from the operating system.",
     ["short_desc_influxdb_storage_utilization"] = "Total disk space used by InfluxDB.",
     ["write_througput"] = "Write Througput",
+    ["metric"] = "Metric",
+    ["value"] = "Value",
+    ["health"] = "Health",
   },
   ["telemetry_page"] = {
     ["crash_report"] = "Crash Report",
