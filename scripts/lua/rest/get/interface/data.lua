@@ -1,5 +1,5 @@
 --
--- (C) 2013-18 - ntop.org
+-- (C) 2013-19 - ntop.org
 --
 
 local dirs = ntop.getDirs()
@@ -22,7 +22,7 @@ local function userHasRestrictions()
 
    for _, net in pairs(split(allowed_nets, ",")) do
       if not isEmptyString(net) and net ~= "0.0.0.0/0" and net ~= "::/0" then
-	 return true
+         return true
       end
    end
 
@@ -37,7 +37,7 @@ local function countHosts()
 
    for host, info in callback_utils.getHostsIterator(false --[[no details]]) do
       if info.localhost then
-	 res.local_hosts = res.local_hosts + 1
+         res.local_hosts = res.local_hosts + 1
       end
 
       res.hosts = res.hosts + 1
@@ -47,7 +47,7 @@ local function countHosts()
 end
 
 function dumpInterfaceStats(interface_name)
-   interface.select(interface_name)
+   interface.select(interface_name..'')
 
    local ifstats = interface.getStats()
 
@@ -68,32 +68,32 @@ function dumpInterfaceStats(interface_name)
       res["packets"] = ifstats.stats_since_reset.packets
       res["bytes"]   = ifstats.stats_since_reset.bytes
       res["drops"]   = ifstats.stats_since_reset.drops
-      
+
       if prefs.is_dump_flows_enabled == true then
-	  res["flow_export_drops"]  = ifstats.stats_since_reset.flow_export_drops
-	  res["flow_export_rate"]   = ifstats.stats_since_reset.flow_export_rate
-	  res["flow_export_count"]  = ifstats.stats_since_reset.flow_export_count
+         res["flow_export_drops"]  = ifstats.stats_since_reset.flow_export_drops
+         res["flow_export_rate"]   = ifstats.stats_since_reset.flow_export_rate
+         res["flow_export_count"]  = ifstats.stats_since_reset.flow_export_count
       end
 
       if prefs.are_alerts_enabled == true then
-	 res["engaged_alerts"]     = ifstats["num_alerts_engaged"] or 0
-	 res["has_alerts"]         = ifstats["has_alerts"]
-	 res["ts_alerts"] = {}
+         res["engaged_alerts"]     = ifstats["num_alerts_engaged"] or 0
+         res["has_alerts"]         = ifstats["has_alerts"]
+         res["ts_alerts"] = {}
 
-	 if ts_utils.getDriverName() == "influxdb" and system_scripts.hasAlerts({entity = alertEntity("influx_db")}) then
-	    res["ts_alerts"]["influxdb"] = true
-	 end
+         if ts_utils.getDriverName() == "influxdb" and system_scripts.hasAlerts({entity = alertEntity("influx_db")}) then
+            res["ts_alerts"]["influxdb"] = true
+         end
       end
 
       if not userHasRestrictions() then
-	 res["num_flows"]        = ifstats.stats.flows
-	 res["num_hosts"]        = ifstats.stats.hosts
-	 res["num_local_hosts"]  = ifstats.stats.local_hosts
-	 res["num_devices"]      = ifstats.stats.devices
+         res["num_flows"]        = ifstats.stats.flows
+         res["num_hosts"]        = ifstats.stats.hosts
+         res["num_local_hosts"]  = ifstats.stats.local_hosts
+         res["num_devices"]      = ifstats.stats.devices
       else
-	 local num_hosts = countHosts()
-	 res["num_hosts"]        = num_hosts.hosts
-	 res["num_local_hosts"]  = num_hosts.local_hosts
+         local num_hosts = countHosts()
+         res["num_hosts"]        = num_hosts.hosts
+         res["num_local_hosts"]  = num_hosts.local_hosts
       end
 
       res["epoch"]      = os.time()
@@ -108,7 +108,7 @@ function dumpInterfaceStats(interface_name)
       res["is_view"]    = ifstats.isView
 
       if isAdministrator() then
-	 res["num_live_captures"]    = ifstats.stats.num_live_captures
+         res["num_live_captures"]    = ifstats.stats.num_live_captures
       end
 
       res["local2remote"] = ifstats["localstats"]["bytes"]["local2remote"]
@@ -119,55 +119,55 @@ function dumpInterfaceStats(interface_name)
       res["packets_download"] = ifstats["eth"]["ingress"]["packets"]
 
       if ntop.isnEdge() and ifstats.type == "netfilter" and ifstats.netfilter then
-	 res["netfilter"] = ifstats.netfilter
+         res["netfilter"] = ifstats.netfilter
       end
 
       if(ifstats.zmqRecvStats ~= nil) then
-	 res["zmqRecvStats"] = {}
-	 res["zmqRecvStats"]["flows"] = ifstats.zmqRecvStats.flows
-	 res["zmqRecvStats"]["events"] = ifstats.zmqRecvStats.events
-	 res["zmqRecvStats"]["counters"] = ifstats.zmqRecvStats.counters
-	 res["zmqRecvStats"]["zmq_msg_drops"] = ifstats.zmqRecvStats.zmq_msg_drops
+         res["zmqRecvStats"] = {}
+         res["zmqRecvStats"]["flows"] = ifstats.zmqRecvStats.flows
+         res["zmqRecvStats"]["events"] = ifstats.zmqRecvStats.events
+         res["zmqRecvStats"]["counters"] = ifstats.zmqRecvStats.counters
+         res["zmqRecvStats"]["zmq_msg_drops"] = ifstats.zmqRecvStats.zmq_msg_drops
 
-	 res["zmq.num_flow_exports"] = ifstats["zmq.num_flow_exports"] or 0
-	 res["zmq.num_exporters"] = ifstats["zmq.num_exporters"] or 0
+         res["zmq.num_flow_exports"] = ifstats["zmq.num_flow_exports"] or 0
+         res["zmq.num_exporters"] = ifstats["zmq.num_exporters"] or 0
       end
-      
+
       res["tcpPacketStats"] = {}
       res["tcpPacketStats"]["retransmissions"] = ifstats.tcpPacketStats.retransmissions
       res["tcpPacketStats"]["out_of_order"]    = ifstats.tcpPacketStats.out_of_order
       res["tcpPacketStats"]["lost"]            = ifstats.tcpPacketStats.lost
 
       if(ifstats["profiles"] ~= nil) then
-	 res["profiles"] = ifstats["profiles"]
+         res["profiles"] = ifstats["profiles"]
       end
 
       if remote_assistance.isAvailable() then
-	 if remote_assistance.isEnabled() then
-	    res["remote_assistance"] = {
-	       status = remote_assistance.getStatus(),
-	    }
-	 end
+         if remote_assistance.isEnabled() then
+            res["remote_assistance"] = {
+               status = remote_assistance.getStatus(),
+            }
+         end
       end
 
       if recording_utils.isAvailable() then
-	 if recording_utils.isEnabled(ifstats.id) then
-	    if recording_utils.isActive(ifstats.id) then
-	       res["traffic_recording"] = "recording"
-	    else
-	       res["traffic_recording"] = "failed"
-	    end
-	 end
+         if recording_utils.isEnabled(ifstats.id) then
+            if recording_utils.isActive(ifstats.id) then
+               res["traffic_recording"] = "recording"
+            else
+               res["traffic_recording"] = "failed"
+            end
+         end
 
-	 if recording_utils.isEnabled(ifstats.id) then
-	    local jobs_info = recording_utils.extractionJobsInfo(ifstats.id)
-	    if jobs_info.ready > 0 then
-	       res["traffic_extraction"] = "ready"
-	    elseif jobs_info.total > 0 then
-	       res["traffic_extraction"] = jobs_info.total
-	    end
-	    res["traffic_extraction_num_tasks"] = jobs_info.total
-	 end
+         if recording_utils.isEnabled(ifstats.id) then
+            local jobs_info = recording_utils.extractionJobsInfo(ifstats.id)
+            if jobs_info.ready > 0 then
+               res["traffic_extraction"] = "ready"
+            elseif jobs_info.total > 0 then
+               res["traffic_extraction"] = jobs_info.total
+            end
+            res["traffic_extraction_num_tasks"] = jobs_info.total
+         end
       end
    end
 
@@ -182,15 +182,17 @@ if(_GET["iffilter"] == "all") then
       local ifid = getInterfaceId(ifname)
       -- ifid in the key must be a string or json.encode will think
       -- its a lua array and will look for integers starting at one
-      res[ifid..""] = dumpInterfaceStats(ifname)
+      res[ifid..""] = dumpInterfaceStats(ifid)
    end
 elseif not isEmptyString(_GET["iffilter"]) then
-   res = dumpInterfaceStats(getInterfaceName(_GET["iffilter"]))
+   res = dumpInterfaceStats(_GET["iffilter"])
 else
    local ifname = nil
    if not isEmptyString(_GET["ifid"]) then
-     ifname = getInterfaceName(_GET["ifid"])
+      ifname = _GET["ifid"]
    end
    res = dumpInterfaceStats(ifname)
+
 end
+
 print(json.encode(res))
