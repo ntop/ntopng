@@ -1462,14 +1462,16 @@ function driver.init(dbname, url, days_retention, username, password, verbose)
     local reply = json.decode(res.CONTENT)
 
     if reply and reply.results and reply.results[1] and reply.results[1].series then
-      local dbs = reply.results[1].series[1] or {values={}}
+      local dbs = reply.results[1].series[1]
 
-      for _, row in pairs(dbs.values) do
-        local user_db = row[1]
+      if((dbs ~= nil) and (dbs.values ~= nil)) then
+        for _, row in pairs(dbs.values) do
+          local user_db = row[1]
 
-        if user_db == dbname then
-          db_found = true
-          break
+          if user_db == dbname then
+            db_found = true
+            break
+          end
         end
       end
     end
