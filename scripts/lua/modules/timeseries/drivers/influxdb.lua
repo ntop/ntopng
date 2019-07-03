@@ -1443,11 +1443,13 @@ function driver.init(dbname, url, days_retention, username, password, verbose)
   local version, err = getInfluxdbVersion(url, username, password)
 
   if((not version) and (err ~= nil)) then
+    ntop.setCache("ntopng.cache.influxdb.last_error", err)
     return false, err
   elseif((not version) or (not isCompatibleVersion(version))) then
     local err = i18n("prefs.incompatible_influxdb_version_found",
       {required=MIN_INFLUXDB_SUPPORTED_VERSION, found=version, url="https://portal.influxdata.com/downloads"})
 
+    ntop.setCache("ntopng.cache.influxdb.last_error", err)
     traceError(TRACE_ERROR, TRACE_CONSOLE, err)
     return false, err
   end
@@ -1486,6 +1488,7 @@ function driver.init(dbname, url, days_retention, username, password, verbose)
     if not res or (res.RESPONSE_CODE ~= 200) then
       local err = i18n("prefs.influxdb_create_error", {db=dbname, msg=getResponseError(res)})
 
+      ntop.setCache("ntopng.cache.influxdb.last_error", err)
       traceError(TRACE_ERROR, TRACE_CONSOLE, err)
       return false, err
     end
@@ -1511,6 +1514,7 @@ function driver.init(dbname, url, days_retention, username, password, verbose)
     -- NOTE: updateCQRetentionPolicies will be called automatically as driver:setup is triggered after this
   end
 
+  ntop.delCache("ntopng.cache.influxdb.last_error")
   return true, i18n("prefs.successfully_connected_influxdb", {db=dbname, version=version})
 end
 
