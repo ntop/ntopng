@@ -1554,9 +1554,9 @@ function housekeepingAlertsMakeRoom(ifId)
 	 -- tprint({e=e, total=e.count, to_keep=to_keep, to_delete=to_delete, to_delete_not_discounted=(e.count - max_num_alerts_per_entity)})
 	 local cleanup = interface.queryAlertsRaw(
 						  "DELETE",
-						  "WHERE alert_entity="..e.alert_entity.." AND alert_entity_val=\""..e.alert_entity_val.."\" "
-						     .." AND rowid NOT IN (SELECT rowid FROM closed_alerts WHERE alert_entity="..e.alert_entity.." AND alert_entity_val=\""..e.alert_entity_val.."\" "
-						     .." ORDER BY alert_tstamp DESC LIMIT "..to_keep..")")
+						  statusFilter("WHERE alert_entity="..e.alert_entity.." AND alert_entity_val=\""..e.alert_entity_val.."\" "
+						     .." AND rowid NOT IN (SELECT rowid FROM alerts WHERE alert_entity="..e.alert_entity.." AND alert_entity_val=\""..e.alert_entity_val.."\" "
+						     .." ORDER BY alert_tstamp DESC LIMIT "..to_keep..")", false))
       end
    end
 
