@@ -705,9 +705,19 @@ end
 -- ##############################################
 
 local INFLUX_KEY_PREFIX = "ntopng.cache.influxdb."
+
+-- Keys to identify redis hash caches to keep stats counters
+-- such as dropped and exported points
 local INFLUX_KEY_DROPPED_POINTS = INFLUX_KEY_PREFIX.."dropped_points"
 local INFLUX_KEY_EXPORTED_POINTS = INFLUX_KEY_PREFIX.."exported_points"
 local INFLUX_KEY_EXPORTS = INFLUX_KEY_PREFIX.."exports"
+local INFLUX_KEY_FAILED_EXPORTS = INFLUX_KEY_PREFIX.."failed_exports"
+
+-- Use this flag as TTL-based redis keys to check wether the health
+-- of influxdb is OK.
+local INFLUX_FLAGS_TIMEOUT = 60 -- keep the issue for 60 seconds
+local INFLUX_FLAG_DROPPING_POINTS = INFLUX_KEY_PREFIX.."flag_dropping_points"
+local INFLUX_FLAG_FAILING_EXPORTS = INFLUX_KEY_PREFIX.."flag_failing_exports"
 
 -- ##############################################
 
@@ -721,6 +731,7 @@ end
 -- ##############################################
 
 local function inc_dropped_points(ifid, num_points)
+   ntop.setCache(INFLUX_FLAG_DROPPING_POINTS, "", INFLUX_FLAGS_TIMEOUT)
    inc_val(INFLUX_KEY_DROPPED_POINTS, ifid, num_points)
 end
 
@@ -738,10 +749,20 @@ end
 
 -- ##############################################
 
+local function inc_failed_exports(ifid)
+   ntop.setCache(INFLUX_FLAG_FAILING_EXPORTS, "", INFLUX_FLAGS_TIMEOUT)
+   inc_val(INFLUX_KEY_FAILED_EXPORTS, ifid, 1)
+end
+
+-- ##############################################
+
 local function del_all_vals()
    ntop.delCache(INFLUX_KEY_DROPPED_POINTS)
    ntop.delCache(INFLUX_KEY_EXPORTED_POINTS)
    ntop.delCache(INFLUX_KEY_EXPORTS)
+   ntop.delCache(INFLUX_KEY_FAILED_EXPORTS)
+   ntop.delCache(INFLUX_FLAG_DROPPING_POINTS)
+   ntop.delCache(INFLUX_KEY_FAILED_EXPORTS)
 end
 
 -- ##############################################
@@ -775,6 +796,8 @@ end
 
 -- ##############################################
 
+-- When we giveup for a certain exportable, that is, when we are not
+-- going to try and export it again, we call this function
 local function dropExportable(exportable)
    inc_dropped_points(exportable["ifid"], exportable["num_points"])
    deleteExportableFile(exportable)
@@ -804,10 +827,20 @@ end
 
 -- ##############################################
 
+-- Call this function when an exportable has been sent to InfluxDB
+-- with success
 local function exportableSuccess(exportable)
    inc_exported_points(exportable["ifid"], exportable["num_points"])
    inc_exports(exportable["ifid"])
    deleteExportableFile(exportable)
+end
+
+-- ##############################################
+
+-- Call this function when the export has failed but it is going
+-- to be tried again
+local function exportableFailure(exportable)
+   inc_failed_exports(exportable["ifid"])
 end
 
 -- ##############################################
@@ -907,6 +940,7 @@ function driver:export(deadline)
 	 ntop.lremCache(INFLUX_EXPORT_QUEUE, cur_export)
       else
 	 -- export FAILED, retry next time
+	 exportableFailure(exportable)
       end
    end
 
