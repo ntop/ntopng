@@ -193,6 +193,35 @@ end
 
 -- ################################################################
 
+local function delete_keys_patterns(keys_patterns, preserve_prefs)
+  for _, pattern in pairs(keys_patterns) do
+    local matching_keys = ntop.getKeysCache(pattern)
+
+    for matching_key, _ in pairs(matching_keys or {}) do
+	    if((not preserve_prefs) or
+		  ((not starts(matching_key, "ntopng.prefs.")) and
+		   (not starts(matching_key, "ntopng.user.")))) then
+	       if not dry_run then
+		  ntop.delCache(matching_key)
+	       end
+	    end
+	 end
+  end
+end
+
+-- ################################################################
+
+local function delete_system_interface_redis(preserve_prefs)
+  local keys_patterns = {
+    "ntopng.prefs.snmp_devices*",
+    "ntopng.prefs.system_rtt_hosts*",
+  }
+
+  delete_keys_patterns(keys_patterns, preserve_prefs)
+end
+
+-- ################################################################
+
 local function delete_interfaces_redis_keys(interfaces_list, preserve_prefs)
    local pref_prefix = "ntopng.prefs"
    local status = "OK"
@@ -234,18 +263,10 @@ local function delete_interfaces_redis_keys(interfaces_list, preserve_prefs)
 	 string.format("%s.%s_*", pref_prefix, if_name),
       }
 
-      for _, pattern in pairs(keys_patterns) do
-	 local matching_keys = ntop.getKeysCache(pattern)
+      delete_keys_patterns(keys_patterns, preserve_prefs)
 
-	 for matching_key, _ in pairs(matching_keys or {}) do
-	    if((not preserve_prefs) or
-		  ((not starts(matching_key, "ntopng.prefs.")) and
-		   (not starts(matching_key, "ntopng.user.")))) then
-	       if not dry_run then
-		  ntop.delCache(matching_key)
-	       end
-	    end
-	 end
+      if(if_id == getSystemInterfaceId()) then
+        delete_system_interface_redis(preserve_prefs)
       end
    end
 
@@ -433,12 +454,9 @@ end
 
 -- ################################################################
 
-function delete_data_utils.request_delete_active_interface_data(if_name)
-   local if_id = getInterfaceId(if_name)
-
-   if tonumber(if_id) >= 0 then
-      ntop.setHashCache(ACTIVE_INTERFACES_DELETE_HASH, tostring(if_id), if_name)
-   end
+function delete_data_utils.request_delete_active_interface_data(if_id)
+   local if_name = getInterfaceName(if_name)
+   ntop.setHashCache(ACTIVE_INTERFACES_DELETE_HASH, tostring(if_id), if_name)
 end
 
 -- ################################################################

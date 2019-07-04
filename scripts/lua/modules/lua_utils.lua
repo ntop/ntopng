@@ -65,6 +65,10 @@ end
 -- ##############################################
 
 function getInterfaceName(interface_id, windows_skip_description)
+   if(interface_id == getSystemInterfaceId()) then
+      return(getSystemInterfaceName())
+   end
+
    local ifnames = interface.getIfNames()
    local iface = ifnames[tostring(interface_id)]
 
@@ -88,6 +92,10 @@ end
 -- ##############################################
 
 function getInterfaceId(interface_name)
+   if(interface_name == getSystemInterfaceName()) then
+      return(getSystemInterfaceId())
+   end
+
    local ifnames = interface.getIfNames()
 
    for if_id, if_name in pairs(ifnames) do

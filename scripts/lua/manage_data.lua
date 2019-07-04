@@ -27,7 +27,7 @@ if _POST and table.len(_POST) > 0 and isAdministrator() then
    if _POST["delete_active_if_data"] then
       -- Data for the active interface can't be hot-deleted.
       -- a restart of ntopng is required so we just mark the deletion.
-      delete_data_utils.request_delete_active_interface_data(ifname)
+      delete_data_utils.request_delete_active_interface_data(_POST["ifid"])
 
       print('<div class="alert alert-success alert-dismissable"><a href="" class="close" data-dismiss="alert" aria-label="close">&times;</a>'..i18n('delete_data.delete_active_interface_data_ok', {ifname = ifname, product = ntop.getInfo().product})..'</div>')
 
@@ -96,7 +96,7 @@ if not delete_active_interface_requested then
 			 action  = "delete_interfaces_data('delete_active_if_data')",
 			 title   = i18n("manage_data.delete_active_interface"),
 			 message = i18n("delete_data.delete_active_interface_confirmation",
-					{ifname = ifname, product = ntop.getInfo().product}),
+					{ifname = "<span id='interface-name-to-delete'></span>", product = ntop.getInfo().product}),
 			 confirm = i18n("delete"),
                          confirm_button = "btn-danger",
 		      }
@@ -317,6 +317,12 @@ print [[
 
 print[[<div>]]
 
+print[[
+<form class="interface_data_form" method="POST">
+  <button class="btn btn-default" type="submit" onclick="$('#interface-name-to-delete').html(']] print(i18n("system")) print[['); delete_system_iface = true; return delete_interfaces_data_show_modal('delete_active_interface_data');" style="float:right; margin-right:1em;"><i class="fa fa-trash" aria-hidden="true" data-original-title="" title="]] print(i18n("manage_data.delete_active_interface")) print[["></i> ]] print(i18n("manage_data.delete_system_interface_data")) print[[</button>
+</form>
+]]
+
 if num_inactive_interfaces > 0 then
    print[[
         <form class="interface_data_form" id="form_delete_inactive_interfaces" method="POST">
@@ -327,8 +333,8 @@ end
 
 if (not ntop.isnEdge()) and (not delete_active_interface_requested) then
    print[[
-<form class="interface_data_form" id="form_delete_inactive_interfaces" method="POST">
-  <button class="btn btn-default" type="submit" onclick="return delete_interfaces_data_show_modal('delete_active_interface_data');" style="float:right; margin-right:1em;"><i class="fa fa-trash" aria-hidden="true" data-original-title="" title="]] print(i18n("manage_data.delete_active_interface")) print[["></i> ]] print(i18n("manage_data.delete_active_interface")) print[[</button>
+<form class="interface_data_form" method="POST">
+  <button class="btn btn-default" type="submit" onclick="$('#interface-name-to-delete').html(']] print(ifname) print[['); delete_system_iface = false; return delete_interfaces_data_show_modal('delete_active_interface_data');" style="float:right; margin-right:1em;"><i class="fa fa-trash" aria-hidden="true" data-original-title="" title="]] print(i18n("manage_data.delete_active_interface")) print[["></i> ]] print(i18n("manage_data.delete_active_interface")) print[[</button>
 </form>
 ]]
 end
@@ -338,6 +344,7 @@ print[[</div><br>]]
 print[[  <b>]] print(i18n('notes')) print[[</b>
 <ul>
 <li>]] print(i18n('delete_data.note_persistent_data')) print[[</li>
+<li>]] print(i18n('manage_data.system_interface_note')) print[[</li>
 </ul>
 </div>]]
 
@@ -346,6 +353,8 @@ print("</div>") -- closes <div class="tab-content">
 
 
 print[[<script type='text/javascript'>
+
+var delete_system_iface = false;
 
 var delete_data_show_modal = function() {
   $(".modal-body #modal_host").html(" " + $('#delete_host').val());
@@ -387,6 +396,7 @@ var delete_interfaces_data = function(action) {
   var params = {[action] : ''};
 
   params.page = 'delete';
+  params.ifid = delete_system_iface ? ]] print(getSystemInterfaceId()) print[[ : ]] print(getInterfaceId(ifname)) print[[;
 
   params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
 

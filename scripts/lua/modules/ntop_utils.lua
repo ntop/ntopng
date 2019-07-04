@@ -248,3 +248,10 @@ function getSystemInterfaceId()
    -- This must be a string as it is passed in interface.select
    return "-1"
 end
+
+-- ##############################################
+
+function getSystemInterfaceName()
+   -- NOTE: keep in sync with SYSTEM_INTERFACE_NAME in ntop_defines.h
+   return "__system__"
+end
