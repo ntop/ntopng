@@ -3167,6 +3167,7 @@ local lang = {
     ["influxdb_health_red_descr"] = "InfluxDB unreachable or too slow, unable to keep up with it. Dropping points.",
     ["value"] = "Value",
     ["write_througput"] = "Write Througput",
+    ["influxdb_note_docs"] = "Documentation with detailed descriptions of all the fields shown is available in the ntopng <a target='_blank' href='%{url}'>User's guide</a>."
   },
   ["telemetry_page"] = {
     ["crash_report"] = "Crash Report",
