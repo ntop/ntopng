@@ -676,7 +676,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
       }
 
       // Fix x axis
-      var tick_step = (chart.tick_step && ((chart.tick_step % data.step) == 0)) ? chart.tick_step : data.step;
+      var tick_step = Math.ceil(chart.tick_step / data.step) * data.step;
       chart.xAxis.tickValues(buildTimeArray(data.start, data.start + data.count * data.step, tick_step));
       chart.xAxis.tickFormat(function(d) { return d3.time.format(chart.x_fmt)(new Date(d*1000)) });
 
