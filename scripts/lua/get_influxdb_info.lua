@@ -26,6 +26,7 @@ if driver.getInfluxdbVersion then
     info.points_exported = stats.points_exported
     info.points_dropped = stats.points_dropped
     info.exports = stats.exports
+    info.health = stats.health
   end
 end
 

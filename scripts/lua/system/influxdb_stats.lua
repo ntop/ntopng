@@ -74,6 +74,8 @@ if(page == "overview") then
    local fa_external =  "<i class='fa fa-external-link'></i>"
     print("<table class=\"table table-bordered table-striped\">\n")
 
+    print("<tr><td nowrap width='30%'><b>".. i18n("system_stats.health") .."</b><br><small>"..i18n("system_stats.short_desc_influxdb_health").."</small></td><td><img class=\"influxdb-info-load\" border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber><span id=\"influxdb-health\"></span></td></tr>\n")
+
     local storage_chart_available = ts_utils.exists("influxdb:storage_size")
     print("<tr><td nowrap width='30%'><b>".. i18n("traffic_recording.storage_utilization") .."</b> "..ternary(storage_chart_available, "<A HREF='"..url.."&page=historical&ts_schema=influxdb:storage_size'><i class='fa fa-area-chart fa-sm'></i></A>", "").."<br><small>"..i18n("system_stats.short_desc_influxdb_storage_utilization").."</small></td><td><img class=\"influxdb-info-load\" border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber><span id=\"influxdb-info-text\"></span></td></tr>\n")
 
@@ -99,10 +101,21 @@ if(page == "overview") then
  var last_db_bytes, last_memory, last_num_series;
  var last_exported_points, last_dropped_points;
  var last_exports;
+ var health_descr = {
+]]
+    print('"green" : {"status" : "<span class=\'label label-success\'>'..i18n("system_stats.influxdb_health_green")..'</span>", "descr" : "<small>'..i18n("system_stats.influxdb_health_green_descr")..'</small>"},')
+    print('"yellow" : {"status" : "<span class=\'label label-warning\'>'..i18n("system_stats.influxdb_health_yellow")..'</span>", "descr" : "<small>'..i18n("system_stats.influxdb_health_yellow_descr")..'</small>"},')
+    print('"red" : {"status" : "<span class=\'label label-danger\'>'..i18n("system_stats.influxdb_health_red")..'</span>", "descr" : "<small>'..i18n("system_stats.influxdb_health_red_descr")..'</small>"},')
+       print[[
+ };
 
  function refreshInfluxStats() {
   $.get("]] print(ntop.getHttpPrefix()) print[[/lua/get_influxdb_info.lua", function(info) {
      $(".influxdb-info-load").hide();
+
+     if(typeof info.health !== "undefined" && health_descr[info.health]) {
+       $("#influxdb-health").html(health_descr[info.health]["status"] + "<br>" + health_descr[info.health]["descr"]);
+     }
      if(typeof info.db_bytes !== "undefined") {
        $("#influxdb-info-text").html(bytesToVolume(info.db_bytes) + " ");
        if(typeof last_db_bytes !== "undefined")

@@ -731,7 +731,7 @@ end
 -- ##############################################
 
 local function inc_dropped_points(ifid, num_points)
-   ntop.setCache(INFLUX_FLAG_DROPPING_POINTS, "", INFLUX_FLAGS_TIMEOUT)
+   ntop.setCache(INFLUX_FLAG_DROPPING_POINTS, "true", INFLUX_FLAGS_TIMEOUT)
    inc_val(INFLUX_KEY_DROPPED_POINTS, ifid, num_points)
 end
 
@@ -750,7 +750,7 @@ end
 -- ##############################################
 
 local function inc_failed_exports(ifid)
-   ntop.setCache(INFLUX_FLAG_FAILING_EXPORTS, "", INFLUX_FLAGS_TIMEOUT)
+   ntop.setCache(INFLUX_FLAG_FAILING_EXPORTS, "true", INFLUX_FLAGS_TIMEOUT)
    inc_val(INFLUX_KEY_FAILED_EXPORTS, ifid, 1)
 end
 
@@ -781,6 +781,36 @@ end
 
 function driver:get_exports(ifid)
    return tonumber(ntop.getHashCache(INFLUX_KEY_EXPORTS, ifid)) or 0
+end
+
+-- ##############################################
+
+local function is_dropping_points()
+   return ntop.getCache(INFLUX_FLAG_DROPPING_POINTS) == "true"
+end
+
+-- ##############################################
+
+local function is_failing_exports()
+   return ntop.getCache(INFLUX_FLAG_FAILING_EXPORTS) == "true"
+end
+
+-- ##############################################
+
+-- Returns an indication of the current InfluxDB health.
+-- Health is "green" when everything is working as expected,
+-- "yellow" when there are recoverable issues, or "red" when
+-- there is some critical error.
+-- Health corresponds to the current status, i.e., a past
+-- error, will no longer be considered
+function driver:get_health()
+   if is_dropping_points() then
+      return "red"
+   elseif is_failing_exports() then
+      return "yellow"
+   end
+
+   return "green"
 end
 
 -- ##############################################

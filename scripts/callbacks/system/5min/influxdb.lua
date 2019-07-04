@@ -125,11 +125,14 @@ function probe.getExportStats()
      exports = exports + influxdb:get_exports(ifid)
   end
 
-  return {
-    points_exported = points_exported,
-    points_dropped = points_dropped,
-    exports = exports,
+  local res = {
+     health = influxdb:get_health(),
+     points_exported = points_exported,
+     points_dropped = points_dropped,
+     exports = exports,
   }
+
+  return(res)
 end
 
 -- ##############################################
