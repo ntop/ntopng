@@ -67,13 +67,13 @@ local function delete_host_redis_keys(interface_id, host_info)
 
    if not isMacAddress(host_info["host"]) then
       -- this is an IP address, see HOST_SERIALIZED_KEY (ntop_defines.h)
-      serialized_k = string.format("ntopng.serialized_hosts.ifid_%u__%s@%d", interface_id, host_info["host"], host_info["vlan"] or "0")
+      serialized_k = string.format("ntopng.serialized_hosts.ifid_%d__%s@%d", interface_id, host_info["host"], host_info["vlan"] or "0")
       dns_k = string.format("ntopng.dns.cache.%s", host_info["host"]) -- neither vlan nor ifid implemented for the dns cache
       drop_k = "ntopng.prefs.drop_host_traffic"
       label_k = "ntopng.host_labels"
    else
       -- is a mac address, see MAC_SERIALIED_KEY (see ntop_defines.h)
-      serialized_k = string.format("ntopng.serialized_macs.ifid_%u__%s", interface_id, host_info["host"])
+      serialized_k = string.format("ntopng.serialized_macs.ifid_%d__%s", interface_id, host_info["host"])
       devnames_k = string.format("ntopng.cache.devnames.%s", host_info["host"])
       devtypes_k = string.format("ntopng.prefs.device_types.%s", host_info["host"])
       dhcp_k = getDhcpNamesKey(interface_id)
@@ -103,10 +103,10 @@ local function delete_host_mysql_flows(interface_id, host_info)
       local q
 
       if isIPv4(addr) then
-	 q = string.format("DELETE FROM %s WHERE (IP_SRC_ADDR = INET_ATON('%s') OR IP_DST_ADDR = INET_ATON('%s')) AND VLAN_ID = %u and INTERFACE_ID = %u",
+	 q = string.format("DELETE FROM %s WHERE (IP_SRC_ADDR = INET_ATON('%s') OR IP_DST_ADDR = INET_ATON('%s')) AND VLAN_ID = %u and INTERFACE_ID = %d",
 			   "flowsv4", addr, addr, vlan, interface_id)
       elseif isIPv6(addr) then
-	 q = string.format("DELETE FROM %s WHERE (IP_SRC_ADDR = '%s' OR IP_DST_ADDR = '%s') AND VLAN_ID = %u AND INTERFACE_ID = %u",
+	 q = string.format("DELETE FROM %s WHERE (IP_SRC_ADDR = '%s' OR IP_DST_ADDR = '%s') AND VLAN_ID = %u AND INTERFACE_ID = %d",
 			   "flowsv6", addr, addr, vlan, interface_id)
       end
 
@@ -234,27 +234,27 @@ local function delete_interfaces_redis_keys(interfaces_list, preserve_prefs)
 	 -- examples:
 	 --  ntopng.prefs.0.host_pools.pool_ids
 	 --  ntopng.prefs.0.host_pools.details.0
-	 string.format("%s.%u.*", pref_prefix, if_id),
+	 string.format("%s.%d.*", pref_prefix, if_id),
 	 -- examples:
 	 --  ntopng.profiles_counters.ifid_0
 	 --  ntopng.serialized_host_pools.ifid_0
-	 string.format("ntopng.*ifid_%u", if_id),
+	 string.format("ntopng.*ifid_%d", if_id),
 	 -- examples:
 	 --  ntopng.serialized_macs.ifid_0__52:54:00:3B:CB:B3
 	 --  ntopng.serialized_hosts.ifid_0__192.168.2.131@0
-	 string.format("*.ifid_%u_*", if_id),
+	 string.format("*.ifid_%d_*", if_id),
 	 -- examples:
 	 --  ntopng.cache.engaged_alerts_cache_ifid_4_5mins
 	 --  ntopng.cache.engaged_alerts_cache_ifid_4_min
-	 string.format("ntopng.*_ifid_%u_*", if_id),
+	 string.format("ntopng.*_ifid_%d_*", if_id),
 	 -- examples:
 	 -- ntopng.prefs.ifid_0.custom_nDPI_proto_categories
 	 -- ntopng.prefs.ifid_0.is_traffic_mirrored
-	 string.format("*.ifid_%u.*", if_id),
+	 string.format("*.ifid_%d.*", if_id),
 	 -- examples:
 	 --  ntopng.prefs.iface_2.packet_drops_alert
 	 --  ntopng.prefs.iface_3.scaling_factor
-	 string.format("%s.iface_%u.*", pref_prefix, if_id),
+	 string.format("%s.iface_%d.*", pref_prefix, if_id),
 	 -- examples:
 	 --  ntopng.prefs.enp1s0f0.xxx
 	 string.format("%s.%s.*", pref_prefix, if_name),
@@ -280,7 +280,7 @@ local function delete_interfaces_data(interfaces_list)
    local data_dir = ntop.getDirs()["workingdir"]
 
    for if_id, if_name in pairs(interfaces_list) do
-      local if_dir = os_utils.fixPath(string.format("%s/%u/", data_dir, if_id))
+      local if_dir = os_utils.fixPath(string.format("%s/%d/", data_dir, if_id))
 
       if not dry_run then
 	 if not ts_utils.delete("" --[[ all schemas ]], {ifid=if_id}) then
@@ -296,14 +296,6 @@ local function delete_interfaces_data(interfaces_list)
       end
    end
 
-   return {status = status}
-end
-
--- ################################################################
-
-local function delete_interfaces_influx_data(interfaces_list)
-   local status = "OK"
-   -- TODO
    return {status = status}
 end
 
@@ -455,7 +447,7 @@ end
 -- ################################################################
 
 function delete_data_utils.request_delete_active_interface_data(if_id)
-   local if_name = getInterfaceName(if_name)
+   local if_name = getInterfaceName(if_id)
    ntop.setHashCache(ACTIVE_INTERFACES_DELETE_HASH, tostring(if_id), if_name)
 end
 
