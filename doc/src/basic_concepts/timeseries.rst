@@ -76,6 +76,56 @@ get more detailed historical data. This can be configured from the
   It is possible to review the current InfluxDB storage size used by ntopng from the
   "Runtime Status" page.
 
+InfluxDB status can be monitored from the System menu, entry "InfluxDB".
+
+.. figure:: ../img/basic_concepts_influxdb_status.png
+  :align: center
+  :alt: InfluxDB Status
+
+  InfluxDB Status
+
+The InfluxDB status home page shows a series of measures useful to
+understand the current health of InfluxDB and export status. The
+"Health" badge can be "green", "yellow" or "red", depending on the
+current export status:
+
+ - A "green" badge means that the export is working properly;
+ - A "yellow" badge means there are issues with the export (for
+   example ntopng is not able to reach InfluxDB) but such errors are
+   recoverable an no data is lost;
+ - A "red" badge means there are issues with the export that are
+   non-recoverable and this led to the loss of data points.
+
+It is important to note that the "Health" represent a current
+picture, for past issues one should browse the "Alerts" page.
+
+The other metrics shown in the status page have the following meaning:
+
+ - "Storage Utilization" indicates the disk space taken by the
+   InfluxDB database which is being populated by ntopng. The number
+   takes into account all the shards, in case of a distributed setup.
+ - "RAM" is an estimation of the amount of memory which is taken by
+   the InfluxDB process.
+ - "Total Exports" is a counter of the number of times ntopng has
+   successfully performed :code:`POST` operations to the InfluxDB
+   :code:`/write` endpoint to write points.
+ - "Total Points" is a counter of the total number of points ntopng
+   has successfully written to InfluxDB, across all the "Total Exports".
+ - "Dropped Points" counts the number of points ntopng has dropped as
+   it could not successfully export them to InfluxDB. Points are only
+   dropped after several attempts, that is, ntopng will try and
+   contact InfluxDB several times before actually dropping
+   points. Reasons for dropped points could be an unreachable, down, overloaded or
+   significantly impaired InfluxDB.
+ - "Series Cardinality" provides an indication of how challenging is
+   for InfluxDB to handle written points. High  series cardinality is
+   a primary driver of high memory usage for many database workloads.
+   Hardware sizing guidelines for series cardinality
+   recommendations are available based on the hardware.
+
+"Total Exports", "Total Points" and "Dropped Points" are cumulative
+counters since the startup of ntopng.
+   
 Timeseries Configuration
 ------------------------
 
