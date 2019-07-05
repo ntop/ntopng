@@ -6,12 +6,12 @@ local rtt_utils = {}
 
 -- ##############################################
 
-local rtt_hosts_key = "ntopng.prefs.system_rtt_hosts"
+local rtt_hosts_key = string.format("ntopng.prefs.ifid_%d.system_rtt_hosts", getSystemInterfaceId())
 
 -- ##############################################
 
 local function rtt_last_updates_key(key)
-  return("ntopng.cache.system_rtt_hosts.last_update." .. key)
+  return(string.format("ntopng.cache.ifid_%d.system_rtt_hosts.last_update." .. key, getSystemInterfaceId()))
 end
 
 -- ##############################################

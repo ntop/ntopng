@@ -455,8 +455,14 @@ function printSeries(options, tags, start_time, base_url, params)
 
             -- In the case of custom series, the serie can only be shown if all
             -- the component series exists
-            for _, serie in pairs(to_check) do
-               local batch_id = ts_utils.batchListSeries(serie, tags, start_time)
+            for idx, serie in pairs(to_check) do
+               local exist_tags = tags
+
+               if starts(k, "custom:") then
+                 exist_tags = getCustomSchemaTags(k, exist_tags, idx)
+               end
+
+               local batch_id = ts_utils.batchListSeries(serie, exist_tags, start_time)
 
                if batch_id == nil then
                   exists = false

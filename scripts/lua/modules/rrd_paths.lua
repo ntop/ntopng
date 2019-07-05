@@ -39,8 +39,7 @@ function getRRDName(ifid, host_or_network, rrdFile)
       rrdname = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/host_pools/")
    elseif host_or_network ~= nil and string.starts(host_or_network, 'snmp:') then
       host_or_network = string.gsub(host_or_network, 'snmp:', '')
-      -- snmpstats are ntopng-wide so ifid is ignored
-      rrdname = os_utils.fixPath(dirs.workingdir .. "/snmpstats/")
+      rrdname = os_utils.fixPath(dirs.workingdir .. "/".. getSystemInterfaceId() .."/snmpstats/")
    elseif host_or_network ~= nil and string.starts(host_or_network, 'flow_device:') then
       host_or_network = string.gsub(host_or_network, 'flow_device:', '')
       rrdname = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/flow_devices/")

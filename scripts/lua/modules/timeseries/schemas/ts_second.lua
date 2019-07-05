@@ -57,4 +57,5 @@ schema:addMetric("packets")
 -- ##############################################
 
 schema = ts_utils.newSchema("system:cpu_load", {step=1, metrics_type=ts_utils.metrics.gauge})
+schema:addTag("ifid")
 schema:addMetric("load_percentage")

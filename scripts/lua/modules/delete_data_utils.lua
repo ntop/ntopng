@@ -215,6 +215,7 @@ local function delete_system_interface_redis(preserve_prefs)
   local keys_patterns = {
     "ntopng.prefs.snmp_devices*",
     "ntopng.prefs.system_rtt_hosts*",
+    "cachedsnmp*",
   }
 
   delete_keys_patterns(keys_patterns, preserve_prefs)

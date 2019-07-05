@@ -74,6 +74,7 @@ function probe.loadSchemas(ts_utils)
     metrics_type = ts_utils.metrics.gauge,
     aggregation_function = ts_utils.aggregation.max
   })
+  schema:addTag("ifid")
   schema:addTag("host")
   schema:addMetric("millis_rtt")
 end
@@ -163,7 +164,7 @@ function probe.runTask(when, ts_utils)
 	   print("[RTT] Reading response for host ".. host .."\n")
 	end
 
-	ts_utils.append("monitored_host:rtt", {host = key, millis_rtt = rtt}, when)
+	ts_utils.append("monitored_host:rtt", {ifid = getSystemInterfaceId(), host = key, millis_rtt = rtt}, when)
 
 	rtt = tonumber(rtt)
 	rtt_utils.setLastRttUpdate(key, when, rtt, host)

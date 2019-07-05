@@ -57,7 +57,7 @@ if isEmptyString(host) then
   end
 end
 
-if((host ~= nil) and ts_utils.exists("monitored_host:rtt", {host=host})) then
+if((host ~= nil) and ts_utils.exists("monitored_host:rtt", {ifid=getSystemInterfaceId(), host=host})) then
   if(page == "historical") then
     print("<li class=\"active\"><a href=\""..url.."&page=historical\"><i class='fa fa-area-chart fa-lg'></i></a></li>")
   else
@@ -401,7 +401,7 @@ if(page == "overview") then
 elseif((page == "historical") and (host ~= nil)) then
    local schema = _GET["ts_schema"] or "monitored_host:rtt"
    local selected_epoch = _GET["epoch"] or ""
-   local tags = {host=host}
+   local tags = {ifid=getSystemInterfaceId(), host=host}
    url = url.."&page=historical&rtt_host=" .. host
 
    drawGraphs(getSystemInterfaceId(), schema, tags, _GET["zoom"], url, selected_epoch, {

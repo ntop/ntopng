@@ -55,19 +55,24 @@ function probe.loadSchemas(ts_utils)
   schema = ts_utils.newSchema("influxdb:storage_size", {
     metrics_type = ts_utils.metrics.gauge,
   })
+  schema:addTag("ifid")
   schema:addMetric("disk_bytes")
 
   schema = ts_utils.newSchema("influxdb:exported_points",
     {metrics_type = ts_utils.metrics.counter})
+  schema:addTag("ifid")
   schema:addMetric("points")
 
   schema = ts_utils.newSchema("influxdb:dropped_points",{metrics_type = ts_utils.metrics.counter})
+  schema:addTag("ifid")
   schema:addMetric("points")
 
   schema = ts_utils.newSchema("influxdb:exports", {metrics_type = ts_utils.metrics.counter})
+  schema:addTag("ifid")
   schema:addMetric("num_exports")
 
   schema = ts_utils.newSchema("influxdb:rtt", {metrics_type = ts_utils.metrics.gauge})
+  schema:addTag("ifid")
   schema:addMetric("millis_rtt")
 
   -- The following metrics are built-in into influxdb
@@ -75,12 +80,14 @@ function probe.loadSchemas(ts_utils)
     influx_internal_query = get_memory_size_query,
     metrics_type = ts_utils.metrics.gauge, step = 10
   })
+  schema:addTag("ifid")
   schema:addMetric("mem_bytes")
 
   schema = ts_utils.newSchema("influxdb:write_successes", {
     influx_internal_query = get_write_success_query,
     metrics_type = ts_utils.metrics.counter, step = 10
   })
+  schema:addTag("ifid")
   schema:addMetric("points")
 end
 
@@ -140,11 +147,12 @@ end
 function probe._measureRtt(when, ts_utils, influxdb)
   local start_ms = ntop.gettimemsec()
   local res = influxdb:getInfluxdbVersion()
+  local ifid = getSystemInterfaceId()
 
   if res ~= nil then
     local end_ms = ntop.gettimemsec()
 
-    ts_utils.append("influxdb:rtt", {millis_rtt = ((end_ms-start_ms)*1000)}, when)
+    ts_utils.append("influxdb:rtt", {ifid = ifid, millis_rtt = ((end_ms-start_ms)*1000)}, when)
   end
 end
 
@@ -152,19 +160,21 @@ end
 
 function probe._exportStats(when, ts_utils, influxdb)
   local stats = probe.getExportStats()
+  local ifid = getSystemInterfaceId()
 
-  ts_utils.append("influxdb:exported_points", {points = stats.points_exported}, when)
-  ts_utils.append("influxdb:dropped_points", {points = stats.points_dropped}, when)
-  ts_utils.append("influxdb:exports", {num_exports = stats.exports}, when)
+  ts_utils.append("influxdb:exported_points", {ifid = ifid, points = stats.points_exported}, when)
+  ts_utils.append("influxdb:dropped_points", {ifid = ifid, points = stats.points_dropped}, when)
+  ts_utils.append("influxdb:exports", {ifid = ifid, num_exports = stats.exports}, when)
 end
 
 -- ##############################################
 
 function probe._exportStorageSize(when, ts_utils, influxdb)
   local disk_bytes = influxdb:getDiskUsage()
+  local ifid = getSystemInterfaceId()
 
   if(disk_bytes ~= nil) then
-    ts_utils.append("influxdb:storage_size", {disk_bytes = disk_bytes}, when)
+    ts_utils.append("influxdb:storage_size", {ifid = ifid, disk_bytes = disk_bytes}, when)
   end
 end
 

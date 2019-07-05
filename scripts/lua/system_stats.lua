@@ -43,7 +43,7 @@ else
    print("<li><a href=\""..url.."&page=overview\"><i class=\"fa fa-home fa-lg\"></i></a></li>")
 end
 
-if(ts_utils.exists("process:memory")) then
+if(ts_utils.exists("process:memory", {ifid=getSystemInterfaceId()})) then
    if(page == "historical") then
       print("<li class=\"active\"><a href=\""..url.."&page=historical\"><i class='fa fa-area-chart fa-lg'></i></a></li>")
    else
@@ -199,7 +199,7 @@ if(page == "overview") then
 elseif(page == "historical") then
    local schema = _GET["ts_schema"] or "system:cpu_load"
    local selected_epoch = _GET["epoch"] or ""
-   local tags = {}
+   local tags = {ifid = getSystemInterfaceId()}
    url = url.."&page=historical"
 
    drawGraphs(getSystemInterfaceId(), schema, tags, _GET["zoom"], url, selected_epoch, {
