@@ -5803,17 +5803,16 @@ AutonomousSystem* NetworkInterface::getAS(IpAddress *ipa, bool createIfNotPresen
 
 /* **************************************************** */
 
-Country* NetworkInterface::getCountry(const char *country_name,
-					  bool createIfNotPresent) {
+Country* NetworkInterface::getCountry(const char *country_name, bool createIfNotPresent, bool isInlineCall) {
   Country *ret = NULL;
 
   if(!country_name || !country_name[0]) return(NULL);
 
   if(!isView())
-    ret = countries_hash->get(country_name);
+    ret = countries_hash->get(country_name, isInlineCall);
   else {
     for(u_int8_t s = 0; s<numSubInterfaces; s++) {
-      if((ret = subInterfaces[s]->get_countries_hash()->get(country_name)) != NULL)
+      if((ret = subInterfaces[s]->get_countries_hash()->get(country_name, isInlineCall)) != NULL)
 	break;
     }
   }

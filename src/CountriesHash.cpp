@@ -31,7 +31,7 @@ CountriesHash::CountriesHash(NetworkInterface *_iface, u_int _num_hashes,
 
 /* ************************************ */
 
-Country* CountriesHash::get(const char *country_name) {
+Country* CountriesHash::get(const char *country_name, bool is_inline_call) {
   u_int32_t hash = Utils::stringHash(country_name);
 
   hash %= num_hashes;
@@ -41,7 +41,9 @@ Country* CountriesHash::get(const char *country_name) {
   } else {
     Country *head;
 
-    locks[hash]->lock(__FILE__, __LINE__);
+    if(!is_inline_call)
+      locks[hash]->lock(__FILE__, __LINE__);
+
     head = (Country*)table[hash];
 
     while(head != NULL) {
@@ -50,9 +52,10 @@ Country* CountriesHash::get(const char *country_name) {
       else
 	head = (Country*)head->next();
     }
-    
-    locks[hash]->unlock(__FILE__, __LINE__);
-    
+
+    if(!is_inline_call)
+      locks[hash]->unlock(__FILE__, __LINE__);
+
     return(head);
   }
 }

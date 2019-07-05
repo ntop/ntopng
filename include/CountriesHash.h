@@ -31,7 +31,7 @@ class CountriesHash : public GenericHash {
  public:
   CountriesHash(NetworkInterface *iface, u_int _num_hashes, u_int _max_hash_size);
 
-  Country* get(const char *country_name);
+  Country* get(const char *country_name, bool is_inline_call);
 };
 
 #endif /* _COUNTRIES_HASH_H_ */

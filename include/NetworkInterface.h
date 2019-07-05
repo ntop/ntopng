@@ -542,7 +542,7 @@ class NetworkInterface : public Checkpointable {
 						 bool * const src2dst);
   Vlan* getVlan(u_int16_t vlanId, bool createIfNotPresent, bool isInlineCall);
   AutonomousSystem *getAS(IpAddress *ipa, bool createIfNotPresent, bool isInlineCall);
-  Country* getCountry(const char *country_name, bool createIfNotPresent);
+  Country* getCountry(const char *country_name, bool createIfNotPresent, bool isInlineCall);
   virtual Mac*  getMac(u_int8_t _mac[6], bool createIfNotPresent);
   virtual Host* getHost(char *host_ip, u_int16_t vlan_id);
   bool getHostInfo(lua_State* vm, AddressTree *allowed_hosts, char *host_ip, u_int16_t vlan_id);

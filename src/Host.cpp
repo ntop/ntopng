@@ -191,7 +191,7 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
     char country_name[64];
     get_country(country_name, sizeof(country_name));
 
-    if((country = iface->getCountry(country_name, true)) != NULL)
+    if((country = iface->getCountry(country_name, true /* Create if missing */, true /* Inline call */ )) != NULL)
       country->incUses();
   }
 
