@@ -159,8 +159,6 @@ class Host : public GenericHashEntry {
   inline u_int32_t key()                            { return(ip.key());              };
   inline IpAddress* get_ip()                 { return(&ip);              }
   void set_mac(Mac  *m);
-  void set_mac(char *m);
-  void set_mac(u_int8_t *m);
   inline bool isBlacklisted()                  { return(blacklisted_host);  };
   void reloadHostBlacklist();
   inline const u_int8_t* const get_mac() const { return(mac ? mac->get_mac() : NULL);}

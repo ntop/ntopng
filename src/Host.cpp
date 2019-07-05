@@ -370,32 +370,6 @@ void Host::set_mac(Mac *_mac) {
 
 /* *************************************** */
 
-void Host::set_mac(u_int8_t *_mac) {
-  if(iface)
-    set_mac(iface->getMac(_mac, false));
-}
-
-/* *************************************** */
-
-void Host::set_mac(char *m) {
-  u_int8_t mac_address[6];
-  u_int32_t _mac[6] = { 0 };
-
-  if((m == NULL) || (!strcmp(m, "00:00:00:00:00:00")))
-    return;
-
-  sscanf(m, "%02X:%02X:%02X:%02X:%02X:%02X",
-	 &_mac[0], &_mac[1], &_mac[2], &_mac[3], &_mac[4], &_mac[5]);
-
-  mac_address[0] = _mac[0], mac_address[1] = _mac[1],
-    mac_address[2] = _mac[2], mac_address[3] = _mac[3],
-    mac_address[4] = _mac[4], mac_address[5] = _mac[5];
-
-  set_mac(mac_address);
-}
-
-/* *************************************** */
-
 bool Host::hasAnomalies() {
   time_t now = time(0);
 

@@ -30,7 +30,7 @@ MacHash::MacHash(NetworkInterface *_iface, u_int _num_hashes, u_int _max_hash_si
 
 /* ************************************ */
 
-Mac* MacHash::get(const u_int8_t mac[6]) {
+Mac* MacHash::get(const u_int8_t mac[6], bool is_inline_call) {
   if(mac == NULL)
     return(NULL);
   else {
@@ -43,7 +43,9 @@ Mac* MacHash::get(const u_int8_t mac[6]) {
     } else {
       Mac *head;
 
-      locks[hash]->lock(__FILE__, __LINE__);
+      if(!is_inline_call)
+	locks[hash]->lock(__FILE__, __LINE__);
+
       head = (Mac*)table[hash];
 
       while(head != NULL) {
@@ -52,9 +54,10 @@ Mac* MacHash::get(const u_int8_t mac[6]) {
 	else
 	  head = (Mac*)head->next();
       }
-    
-      locks[hash]->unlock(__FILE__, __LINE__);
-    
+
+      if(!is_inline_call)
+	locks[hash]->unlock(__FILE__, __LINE__);
+
       return(head);
     }
   }

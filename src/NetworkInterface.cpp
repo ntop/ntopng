@@ -1158,8 +1158,8 @@ void NetworkInterface::processFlow(ParsedFlow *zflow, bool zmq_flow) {
   }
 
   if(!ntop->getPrefs()->do_ignore_macs()) {
-    srcMac = getMac((u_int8_t*)zflow->src_mac, true);
-    dstMac = getMac((u_int8_t*)zflow->dst_mac, true);
+    srcMac = getMac((u_int8_t*)zflow->src_mac, true /* Create if missing */, true /* Inline call */);
+    dstMac = getMac((u_int8_t*)zflow->dst_mac, true /* Create if missing */, true /* Inline call */);
   }
 
   srcIP.set(&zflow->src_ip), dstIP.set(&zflow->dst_ip);
@@ -1442,7 +1442,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
     }
   }
 
-  if((srcMac = getMac(eth->h_source, true))) {
+  if((srcMac = getMac(eth->h_source, true /* Create if missing */, true /* Inline call */))) {
     /* NOTE: in nEdge, stats are updated into Flow::update_hosts_stats */
 #ifndef HAVE_NEDGE
     srcMac->incSentStats(getTimeLastPktRcvd(), 1, len_on_wire);
@@ -1467,7 +1467,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 #endif
   }
 
-  if((dstMac = getMac(eth->h_dest, true))) {
+  if((dstMac = getMac(eth->h_dest, true /* Create if missing */, true /* Inline call */))) {
     /* NOTE: in nEdge, stats are updated into Flow::update_hosts_stats */
 #ifndef HAVE_NEDGE
     dstMac->incRcvdStats(getTimeLastPktRcvd(), 1, len_on_wire);
@@ -1758,7 +1758,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	      snprintf(key, sizeof(key), DHCP_CACHE, get_id());
 	      ntop->getRedis()->hashSet(key, client_mac, name);
 
-	      if((payload_cli_mac = getMac(&payload[28], false)))
+	      if((payload_cli_mac = getMac(&payload[28], false /* Do not create if missing */, true /* Inline call */)))
 		payload_cli_mac->inlineSetDHCPName(name);
 
 #ifdef DHCP_DEBUG
@@ -2505,8 +2505,8 @@ decode_packet_eth:
     if(ntop->getPrefs()->do_ignore_macs())
       ethernet = &dummy_ethernet;
 
-    Mac *srcMac = getMac(ethernet->h_source, true);
-    Mac *dstMac = getMac(ethernet->h_dest, true);
+    Mac *srcMac = getMac(ethernet->h_source, true /* Create if missing */, true /* Inline call */);
+    Mac *dstMac = getMac(ethernet->h_dest, true /* Create if missing */, true /* Inline call */);
 
     /* NOTE: in nEdge, stats are updated into Flow::update_hosts_stats */
 #ifndef HAVE_NEDGE
@@ -5650,12 +5650,12 @@ void NetworkInterface::runShutdownTasks() {
 
 /* **************************************************** */
 
-Mac* NetworkInterface::getMac(u_int8_t _mac[6], bool createIfNotPresent) {
+Mac* NetworkInterface::getMac(u_int8_t _mac[6], bool createIfNotPresent, bool isInlineCall) {
   Mac *ret = NULL;
 
   if(_mac == NULL) return(NULL);
 
-  ret = macs_hash->get(_mac);
+  ret = macs_hash->get(_mac, isInlineCall);
 
   if((ret == NULL) && createIfNotPresent) {
     try {
@@ -6786,7 +6786,7 @@ bool NetworkInterface::setMacOperatingSystem(lua_State* vm, char *strmac, Operat
 
   Utils::parseMac(mac, strmac);
 
-  if((m = getMac(mac, false /* Don't create if missing */))) {
+  if((m = getMac(mac, false /* Don't create if missing */, false /* Not an inline call */))) {
     m->setOperatingSystem(os);
     return(true);
   } else
@@ -6805,7 +6805,7 @@ bool NetworkInterface::setMacDeviceType(char *strmac,
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "setMacDeviceType(%s) = %d", strmac, (int)dtype);
 
-  if((m = getMac(mac, false /* Don't create if missing */))) {
+  if((m = getMac(mac, false /* Don't create if missing */, false /* Not an inline call */))) {
     oldtype = m->getDeviceType();
 
     if(alwaysOverwrite || (oldtype == device_unknown)) {

@@ -143,7 +143,7 @@ void LocalHost::deserialize(json_object *o) {
     if(json_object_object_get_ex(o, "mac_address", &obj)) Utils::parseMac(mac_buf, json_object_get_string(obj));
 
     // sticky hosts enabled, we must bring up the mac address
-    if((mac = iface->getMac(mac_buf, true /* create if not exists*/)) != NULL)
+    if((mac = iface->getMac(mac_buf, true /* create if not exists */, true /* Inline call */)) != NULL)
       mac->incUses();
     else
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: NULL mac. Are you running out of memory or MAC hash is full?");

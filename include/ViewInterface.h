@@ -57,7 +57,7 @@ class ViewInterface : public NetworkInterface {
   virtual u_int32_t getMacsHashSize();
   virtual u_int32_t getHostsHashSize();
   virtual u_int32_t getFlowsHashSize();
-  virtual Mac*  getMac(u_int8_t _mac[6], bool createIfNotPresent);
+  virtual Mac*  getMac(u_int8_t _mac[6], bool createIfNotPresent, bool isInlineCall);
   virtual Host* getHost(char *host_ip, u_int16_t vlan_id);
   virtual Flow* findFlowByKey(u_int32_t key, AddressTree *allowed_hosts);
   virtual Flow* findFlowByTuple(u_int16_t vlan_id,
