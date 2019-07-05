@@ -182,7 +182,7 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   PROFILING_SUB_SECTION_EXIT(iface, 19);
 
   if(init_all) {
-    if((as = iface->getAS(&ip, true)) != NULL) {
+    if((as = iface->inlineGetAS(&ip, true)) != NULL) {
       as->incUses();
       asn = as->get_asn();
       asname = as->get_asname();
