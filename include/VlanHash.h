@@ -31,7 +31,7 @@ class VlanHash : public GenericHash {
  public:
   VlanHash(NetworkInterface *iface, u_int _num_hashes, u_int _max_hash_size);
 
-  Vlan* get(u_int16_t vlan_id);
+  Vlan* get(u_int16_t vlan_id, bool is_inline_call);
 
 #ifdef VLAN_DEBUG
   void printHash();

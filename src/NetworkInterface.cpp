@@ -5727,15 +5727,14 @@ bool NetworkInterface::getArpStatsMatrixInfo(lua_State* vm){
 
 /* **************************************************** */
 
-Vlan* NetworkInterface::getVlan(u_int16_t vlanId,
-				bool createIfNotPresent) {
+Vlan* NetworkInterface::getVlan(u_int16_t vlanId, bool createIfNotPresent, bool isInlineCall) {
   Vlan *ret = NULL;
 
   if(!isView())
-    ret = vlans_hash->get(vlanId);
+    ret = vlans_hash->get(vlanId, isInlineCall);
   else {
     for(u_int8_t s = 0; s<numSubInterfaces; s++) {
-      if((ret = subInterfaces[s]->get_vlans_hash()->get(vlanId)) != NULL)
+      if((ret = subInterfaces[s]->get_vlans_hash()->get(vlanId, isInlineCall)) != NULL)
 	break;
     }
   }

@@ -540,7 +540,7 @@ class NetworkInterface : public Checkpointable {
   ArpStatsMatrixElement* getArpHashMatrixElement(const u_int8_t _src_mac[6], const u_int8_t _dst_mac[6],
 						 const u_int32_t _src_ip, const u_int32_t _dst_ip,
 						 bool * const src2dst);
-  Vlan* getVlan(u_int16_t vlanId, bool createIfNotPresent);
+  Vlan* getVlan(u_int16_t vlanId, bool createIfNotPresent, bool isInlineCall);
   AutonomousSystem *inlineGetAS(IpAddress *ipa, bool createIfNotPresent);
   Country* getCountry(const char *country_name, bool createIfNotPresent);
   virtual Mac*  getMac(u_int8_t _mac[6], bool createIfNotPresent);

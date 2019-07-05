@@ -30,7 +30,7 @@ VlanHash::VlanHash(NetworkInterface *_iface, u_int _num_hashes, u_int _max_hash_
 
 /* ************************************ */
 
-Vlan* VlanHash::get(u_int16_t _vlan_id) {
+Vlan* VlanHash::get(u_int16_t _vlan_id, bool is_inline_call) {
   u_int32_t hash = _vlan_id;
 
   hash %= num_hashes;
@@ -40,7 +40,9 @@ Vlan* VlanHash::get(u_int16_t _vlan_id) {
   } else {
     Vlan *head;
 
-    locks[hash]->lock(__FILE__, __LINE__);
+    if(!is_inline_call)
+      locks[hash]->lock(__FILE__, __LINE__);
+
     head = (Vlan*)table[hash];
 
     while(head != NULL) {
@@ -49,31 +51,10 @@ Vlan* VlanHash::get(u_int16_t _vlan_id) {
       else
 	head = (Vlan*)head->next();
     }
-    
-    locks[hash]->unlock(__FILE__, __LINE__);
+
+    if(!is_inline_call)
+      locks[hash]->unlock(__FILE__, __LINE__);
     
     return(head);
   }
 }
-
-#ifdef VLAN_DEBUG
-
-static bool print_ases(GenericHashEntry *_vl, void *user_data) {
-  Vlan *vl = (Vlan*)_vl;
-
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Vlan %u [num_uses: %u]",
-			       vl->get_vlan_id(),
-			       vl->getNumHosts());
-  
-  return(false); /* false = keep on walking */
-}
-
-void VlanHash::printHash() {
-  disablePurge();
-
-  walk(print_ases, NULL);
-  
-  enablePurge();
-}
-
-#endif

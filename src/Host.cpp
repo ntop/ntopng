@@ -147,7 +147,7 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   if((mac = _mac))
     mac->incUses();
 
-  if((vlan = iface->getVlan(_vlanId, true)) != NULL)
+  if((vlan = iface->getVlan(_vlanId, true, true /* Inline call */)) != NULL)
     vlan->incUses();
 
   num_resolve_attempts = 0, ssdpLocation = NULL;
