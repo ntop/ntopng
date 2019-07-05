@@ -181,16 +181,13 @@ u_int GenericHash::purgeIdle() {
   u_int i, num_purged = 0, buckets_checked = 0;
   time_t now = time(NULL);
 
-  if(ntop->getGlobals()->isShutdown()
-     || purgeLock.is_locked())
+  if(ntop->getGlobals()->isShutdown())
     return(0);
 
 #if WALK_DEBUG
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s @ %s] Begin purgeIdle() [begin index: %u][purge step: %u]",
 				 name, iface->get_name(), last_purged_hash, purge_step);
 #endif
-
-  disablePurge();
 
   for(u_int j = 0; j < purge_step; j++) {
     if(++last_purged_hash == num_hashes) last_purged_hash = 0;
@@ -234,8 +231,6 @@ u_int GenericHash::purgeIdle() {
       // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[purge] Unlocked %d", i);
     }
   }
-
-  enablePurge();
 
 #if WALK_DEBUG
   if(/* (num_purged > 0) && */ (!strcmp(name, "FlowHash")))

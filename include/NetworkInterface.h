@@ -251,8 +251,6 @@ class NetworkInterface : public Checkpointable {
   bool isNumber(const char *str);
   bool checkIdle();
 
-  void disablePurge(bool on_flows);
-  void enablePurge(bool on_flows);
   void sumStats(TcpFlowStats *_tcpFlowStats, EthStats *_ethStats,
 		LocalTrafficStats *_localStats, nDPIStats *_ndpiStats,
 		PacketStats *_pktStats, TcpPacketStats *_tcpPacketStats);

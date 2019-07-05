@@ -42,7 +42,7 @@ class GenericHash {
   u_int32_t num_hashes; /**< Number of hash.*/
   u_int32_t current_size; /**< Current size of hash (including idle or ready-to-purge elements).*/
   u_int32_t max_hash_size; /**< Max size of hash.*/
-  Mutex **locks, purgeLock;
+  Mutex **locks;
   NetworkInterface *iface; /**< Pointer of network interface for this generic hash.*/
   u_int last_purged_hash; /**< Index of last purged hash.*/
   u_int purge_step;
@@ -130,9 +130,6 @@ class GenericHash {
    */
   inline bool hasEmptyRoom() { return((current_size < max_hash_size) ? true : false); };
   inline u_int32_t getCurrentSize() { return current_size;}
-
-  inline void disablePurge() { /* purgeLock.lock(__FILE__, __LINE__);   */ }
-  inline void enablePurge()  { /* purgeLock.unlock(__FILE__, __LINE__); */ }
 };
 
 #endif /* _GENERIC_HASH_H_ */

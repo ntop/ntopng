@@ -766,10 +766,8 @@ int NetworkInterface::dumpLocalHosts2redis(bool disable_purge) {
   u_int32_t begin_slot = 0;
   bool walk_all = true;
 
-  if(disable_purge) disablePurge(false /* on hosts */);
   rc = walker(&begin_slot, walk_all,  walker_hosts,
 	      local_hosts_2_redis_walker, NULL) ? 0 : -1;
-  if(disable_purge) enablePurge(false /* on hosts */);
 
 #ifdef NTOPNG_PRO
   if(getHostPools()) getHostPools()->dumpToRedis();
@@ -3260,8 +3258,6 @@ void NetworkInterface::resetPoolsStats(u_int16_t pool_filter) {
   localtime_r(&t_now, &now);
 
   if(host_pools) {
-    disablePurge(true);
-
     host_pools->resetPoolsStats(pool_filter);
 
 #ifdef HAVE_NEDGE
@@ -3276,8 +3272,6 @@ void NetworkInterface::resetPoolsStats(u_int16_t pool_filter) {
     begin_slot = 0;
     walker(&begin_slot, walk_all,  walker_flows, flow_recheck_quota_walker, &data);
 #endif
-
-    enablePurge(true);
   }
 }
 
@@ -3517,8 +3511,6 @@ bool NetworkInterface::getHostInfo(lua_State* vm,
   Host *h;
   bool ret;
 
-  disablePurge(false);
-
   h = findHostByIP(allowed_hosts, host_ip, vlan_id);
 
   if(h) {
@@ -3526,8 +3518,6 @@ bool NetworkInterface::getHostInfo(lua_State* vm,
     ret = true;
   } else
     ret = false;
-
-  enablePurge(false);
 
   return ret;
 }
@@ -4342,62 +4332,6 @@ int stringSorter(const void *_a, const void *_b) {
 
 /* **************************************************** */
 
-void NetworkInterface::disablePurge(bool on_flows) {
-  if(!isView()) {
-    if(on_flows)
-      flows_hash->disablePurge();
-    else {
-      hosts_hash->disablePurge();
-      ases_hash->disablePurge();
-      countries_hash->disablePurge();
-      vlans_hash->disablePurge();
-      macs_hash->disablePurge();
-    }
-  } else {
-    for(u_int8_t s = 0; s<numSubInterfaces; s++) {
-      if(on_flows)
-	subInterfaces[s]->get_flows_hash()->disablePurge();
-      else {
-	subInterfaces[s]->get_hosts_hash()->disablePurge();
-	subInterfaces[s]->get_ases_hash()->disablePurge();
-	subInterfaces[s]->get_countries_hash()->disablePurge();
-	subInterfaces[s]->get_vlans_hash()->disablePurge();
-	subInterfaces[s]->get_macs_hash()->disablePurge();
-      }
-    }
-  }
-}
-
-/* **************************************************** */
-
-void NetworkInterface::enablePurge(bool on_flows) {
-  if(!isView()) {
-    if(on_flows)
-      flows_hash->enablePurge();
-    else {
-      hosts_hash->enablePurge();
-      ases_hash->enablePurge();
-      countries_hash->enablePurge();
-      vlans_hash->enablePurge();
-      macs_hash->enablePurge();
-    }
-  } else {
-    for(u_int8_t s = 0; s<numSubInterfaces; s++) {
-      if(on_flows)
-	subInterfaces[s]->get_flows_hash()->enablePurge();
-      else {
-	subInterfaces[s]->get_hosts_hash()->enablePurge();
-	subInterfaces[s]->get_ases_hash()->enablePurge();
-	subInterfaces[s]->get_countries_hash()->enablePurge();
-	subInterfaces[s]->get_vlans_hash()->enablePurge();
-	subInterfaces[s]->get_macs_hash()->enablePurge();
-      }
-    }
-  }
-}
-
-/* **************************************************** */
-
 int NetworkInterface::sortFlows(u_int32_t *begin_slot,
 				bool walk_all,
 				struct flowHostRetriever *retriever,
@@ -4472,10 +4406,7 @@ int NetworkInterface::getFlows(lua_State* vm,
   if(! p->getDetailsLevel(&highDetails))
     highDetails = p->detailedResults() ? details_high : (local_hosts || (p && p->maxHits() != CONST_MAX_NUM_HITS)) ? details_high : details_normal;
 
-  disablePurge(true);
-
   if(sortFlows(begin_slot, walk_all, &retriever, allowed_hosts, host, p, sortColumn) < 0) {
-    enablePurge(true);
     return -1;
   }
 
@@ -4515,8 +4446,6 @@ int NetworkInterface::getFlows(lua_State* vm,
   lua_insert(vm, -2);
   lua_settable(vm, -3);
 
-  enablePurge(true);
-
   if(retriever.elems) free(retriever.elems);
 
   return(retriever.actNumEntries);
@@ -4538,10 +4467,7 @@ int NetworkInterface::getFlowsGroup(lua_State* vm,
     return(-1);
   }
 
-  disablePurge(true);
-
   if(sortFlows(&begin_slot, walk_all, &retriever, allowed_hosts, NULL, p, groupColumn) < 0) {
-    enablePurge(true);
     return -1;
   }
 
@@ -4549,7 +4475,6 @@ int NetworkInterface::getFlowsGroup(lua_State* vm,
   if((gper = new(std::nothrow) FlowGrouper(retriever.sorter)) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
 				 "Unable to allocate memory for a Grouper.");
-    enablePurge(true);
     return -1;
   }
 
@@ -4573,7 +4498,6 @@ int NetworkInterface::getFlowsGroup(lua_State* vm,
     gper->lua(vm);
 
   delete gper;
-  enablePurge(true);
 
   if(retriever.elems) free(retriever.elems);
 
@@ -4606,11 +4530,7 @@ int NetworkInterface::dropFlowsTraffic(AddressTree *allowed_hosts, Paginator *p)
   retriever.allowed_hosts = allowed_hosts;
   retriever.pag = p;
 
-  disablePurge(true);
-
   walker(&begin_slot, walk_all,  walker_flows, flow_drop_walker, (void*)&retriever);
-
-  enablePurge(true);
 
   return(0);
 }
@@ -4909,8 +4829,6 @@ int NetworkInterface::getActiveHostsList(lua_State* vm,
 					 u_int32_t toSkip, bool a2zSortOrder) {
   struct flowHostRetriever retriever;
 
-  disablePurge(false);
-
 #if DEBUG
   if(!walk_all)
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[BEGIN] %s(begin_slot=%u, walk_all=%u)",
@@ -4927,7 +4845,6 @@ int NetworkInterface::getActiveHostsList(lua_State* vm,
 	       ipver_filter, proto_filter,
 	       traffic_type_filter,
 	       sortColumn) < 0) {
-    enablePurge(false);
     return -1;
   }
 
@@ -4966,9 +4883,6 @@ int NetworkInterface::getActiveHostsList(lua_State* vm,
   lua_pushstring(vm, "hosts");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
-
-
-  enablePurge(false);
 
   // it's up to us to clean sorted data
   // make sure first to free elements in case a string sorter has been used
@@ -5065,8 +4979,6 @@ int NetworkInterface::getActiveHostsGroup(lua_State* vm,
   struct flowHostRetriever retriever;
   Grouper *gper;
 
-  disablePurge(false);
-
   // sort hosts according to the grouping criterion
   if(sortHosts(begin_slot, walk_all,
 	       &retriever, 0 /* bridge_iface_idx TODO */,
@@ -5078,7 +4990,6 @@ int NetworkInterface::getActiveHostsGroup(lua_State* vm,
 	       ipver_filter, -1 /* no protocol filter */,
 	       traffic_type_all /* no traffic type filter */,
 	       groupColumn) < 0 ) {
-    enablePurge(false);
     return -1;
   }
 
@@ -5086,7 +4997,6 @@ int NetworkInterface::getActiveHostsGroup(lua_State* vm,
   if((gper = new(std::nothrow) Grouper(retriever.sorter)) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
 				 "Unable to allocate memory for a Grouper.");
-    enablePurge(false);
     return -1;
   }
 
@@ -5111,8 +5021,6 @@ int NetworkInterface::getActiveHostsGroup(lua_State* vm,
 
   delete gper;
   gper = NULL;
-
-  enablePurge(false);
 
   // it's up to us to clean sorted data
   // make sure first to free elements in case a string sorter has been used
@@ -6384,13 +6292,10 @@ int NetworkInterface::getActiveMacList(lua_State* vm,
   struct flowHostRetriever retriever;
   bool show_details = true;
 
-  disablePurge(false);
-
   if(sortMacs(begin_slot, walk_all,
 	      &retriever, bridge_iface_idx, sourceMacsOnly,
 	      manufacturer, sortColumn,
 	      pool_filter, devtype_filter, location_filter) < 0) {
-    enablePurge(false);
     return -1;
   }
 
@@ -6420,8 +6325,6 @@ int NetworkInterface::getActiveMacList(lua_State* vm,
   lua_insert(vm, -2);
   lua_settable(vm, -3);
 
-  enablePurge(false);
-
   // finally free the elements regardless of the sorted kind
   if(retriever.elems) free(retriever.elems);
 
@@ -6437,10 +6340,7 @@ int NetworkInterface::getActiveASList(lua_State* vm, const Paginator *p) {
   if(!p)
     return -1;
 
-  disablePurge(false);
-
   if(sortASes(&retriever, p->sortColumn()) < 0) {
-    enablePurge(false);
     return -1;
   }
 
@@ -6472,8 +6372,6 @@ int NetworkInterface::getActiveASList(lua_State* vm, const Paginator *p) {
   lua_insert(vm, -2);
   lua_settable(vm, -3);
 
-  enablePurge(false);
-
   // finally free the elements regardless of the sorted kind
   if(retriever.elems) free(retriever.elems);
 
@@ -6490,10 +6388,7 @@ int NetworkInterface::getActiveCountriesList(lua_State* vm, const Paginator *p) 
   if(!p)
     return -1;
 
-  disablePurge(false);
-
   if(sortCountries(&retriever, p->sortColumn()) < 0) {
-    enablePurge(false);
     return -1;
   }
 
@@ -6525,8 +6420,6 @@ int NetworkInterface::getActiveCountriesList(lua_State* vm, const Paginator *p) 
   lua_insert(vm, -2);
   lua_settable(vm, -3);
 
-  enablePurge(false);
-
   // finally free the elements regardless of the sorted kind
   if(retriever.elems) free(retriever.elems);
 
@@ -6547,10 +6440,7 @@ int NetworkInterface::getActiveVLANList(lua_State* vm,
     return 0;
   }
 
-  disablePurge(false);
-
   if(sortVLANs(&retriever, sortColumn) < 0) {
-    enablePurge(false);
     return -1;
   }
 
@@ -6579,8 +6469,6 @@ int NetworkInterface::getActiveVLANList(lua_State* vm,
   lua_insert(vm, -2);
   lua_settable(vm, -3);
 
-  enablePurge(false);
-
   // finally free the elements regardless of the sorted kind
   if(retriever.elems) free(retriever.elems);
 
@@ -6598,13 +6486,10 @@ int NetworkInterface::getActiveMacManufacturers(lua_State* vm,
   u_int32_t begin_slot = 0;
   bool walk_all = true;
 
-  disablePurge(false);
-
   if(sortMacs(&begin_slot, walk_all,
 	      &retriever, bridge_iface_idx, sourceMacsOnly,
 	      NULL, (char*)"column_manufacturer",
 	      (u_int16_t)-1, devtype_filter, location_filter) < 0) {
-    enablePurge(false);
     return -1;
   }
 
@@ -6634,8 +6519,6 @@ int NetworkInterface::getActiveMacManufacturers(lua_State* vm,
   if(cur_manuf != NULL)
     lua_push_int32_table_entry(vm, cur_manuf, cur_count);
 
-  enablePurge(false);
-
   // finally free the elements regardless of the sorted kind
   if(retriever.elems) free(retriever.elems);
 
@@ -6653,13 +6536,10 @@ int NetworkInterface::getActiveDeviceTypes(lua_State* vm,
   u_int32_t begin_slot = 0;
   bool walk_all = true;
 
-  disablePurge(false);
-
   if(sortMacs(&begin_slot, walk_all,
 	      &retriever, bridge_iface_idx, sourceMacsOnly,
 	      manufacturer, (char*)"column_device_type",
 	      (u_int16_t)-1, (u_int8_t)-1, location_filter) < 0) {
-    enablePurge(false);
     return -1;
   }
 
@@ -6693,8 +6573,6 @@ int NetworkInterface::getActiveDeviceTypes(lua_State* vm,
     lua_settable(vm, -3);
   }
 
-  enablePurge(false);
-
   // finally free the elements regardless of the sorted kind
   if(retriever.elems) free(retriever.elems);
 
@@ -6712,8 +6590,6 @@ bool NetworkInterface::getMacInfo(lua_State* vm, char *mac) {
   memset(&info, 0, sizeof(info));
   Utils::parseMac(info.mac, mac);
 
-  disablePurge(false);
-
   walker(&begin_slot, walk_all,  walker_macs, find_mac_by_name, (void*)&info);
 
   if(info.m) {
@@ -6721,8 +6597,6 @@ bool NetworkInterface::getMacInfo(lua_State* vm, char *mac) {
     ret = true;
   } else
     ret = false;
-
-  enablePurge(false);
 
   return ret;
 }
@@ -6738,8 +6612,6 @@ bool NetworkInterface::resetMacStats(lua_State* vm, char *mac, bool delete_data)
   memset(&info, 0, sizeof(info));
   Utils::parseMac(info.mac, mac);
 
-  disablePurge(false);
-
   walker(&begin_slot, walk_all,  walker_macs, find_mac_by_name, (void*)&info);
 
   if(info.m) {
@@ -6750,8 +6622,6 @@ bool NetworkInterface::resetMacStats(lua_State* vm, char *mac, bool delete_data)
     ret = true;
   } else
     ret = false;
-
-  enablePurge(false);
 
   return ret;
 }
@@ -6809,8 +6679,6 @@ bool NetworkInterface::getASInfo(lua_State* vm, u_int32_t asn) {
   memset(&info, 0, sizeof(info));
   info.asn = asn;
 
-  disablePurge(false);
-
   walker(&begin_slot, walk_all,  walker_ases, find_as_by_asn, (void*)&info);
 
   if(info.as) {
@@ -6818,8 +6686,6 @@ bool NetworkInterface::getASInfo(lua_State* vm, u_int32_t asn) {
     ret = true;
   } else
     ret = false;
-
-  enablePurge(false);
 
   return ret;
 }
@@ -6835,8 +6701,6 @@ bool NetworkInterface::getCountryInfo(lua_State* vm, const char *country) {
   memset(&info, 0, sizeof(info));
   info.country_id = country;
 
-  disablePurge(false);
-
   walker(&begin_slot, walk_all, walker_countries, find_country, (void*)&info);
 
   if(info.country) {
@@ -6844,8 +6708,6 @@ bool NetworkInterface::getCountryInfo(lua_State* vm, const char *country) {
     ret = true;
   } else
     ret = false;
-
-  enablePurge(false);
 
   return ret;
 }
@@ -6861,8 +6723,6 @@ bool NetworkInterface::getVLANInfo(lua_State* vm, u_int16_t vlan_id) {
   memset(&info, 0, sizeof(info));
   info.vlan_id = vlan_id;
 
-  disablePurge(false);
-
   walker(&begin_slot, walk_all,  walker_vlans, find_vlan_by_vlan_id, (void*)&info);
 
   if(info.vl) {
@@ -6870,8 +6730,6 @@ bool NetworkInterface::getVLANInfo(lua_State* vm, u_int16_t vlan_id) {
     ret = true;
   } else
     ret = false;
-
-  enablePurge(false);
 
   return ret;
 }
@@ -6900,13 +6758,9 @@ void NetworkInterface::refreshHostsAlertPrefs(bool full_refresh) {
   /* Read the new configuration */
   ntop->getPrefs()->refreshHostsAlertsPrefs();
 
-  disablePurge(false);
-
   /* Update the hosts */
   walker(&begin_slot, walk_all,  walker_hosts,
 	 host_reload_alert_prefs, (void *)full_refresh);
-
-  enablePurge(false);
 };
 
 /* **************************************** */
@@ -6915,7 +6769,6 @@ int NetworkInterface::updateHostTrafficPolicy(AddressTree* allowed_networks,
 					      char *host_ip, u_int16_t host_vlan) {
   Host *h;
   int rv;
-  disablePurge(false);
 
   if((h = findHostByIP(allowed_networks, host_ip, host_vlan)) != NULL) {
     h->updateHostTrafficPolicy(host_ip);
@@ -6923,7 +6776,6 @@ int NetworkInterface::updateHostTrafficPolicy(AddressTree* allowed_networks,
   } else
     rv = CONST_LUA_ERROR;
 
-  enablePurge(false);
   return rv;
 }
 
@@ -7433,10 +7285,8 @@ int NetworkInterface::dumpDropboxHosts(lua_State *vm) {
 
   lua_newtable(vm);
 
-  disablePurge(false /* on hosts */);
   rc = walker(&begin_slot, true /* walk_all */, walker_hosts,
 	      local_hosts_2_dropbox_walker, vm) ? 0 : -1;
-  enablePurge(false /* on hosts */);
 
   return(rc);
 }
