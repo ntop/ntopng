@@ -1652,30 +1652,6 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	    src2dst_direction = false;
 	}
 
-#if 0
-	if(((icmp_type == ND_NEIGHBOR_ADVERT) || (icmp_type == ND_NEIGHBOR_SOLICIT))
-	   && trusted_l4_packet_len >= 24) {
-	  /*
-	    Neighbor Solicitation and Neighbor Advertisement
-	    have the Target Address at offset 8.
-
-	    https://tools.ietf.org/html/rfc2461#section-4.1
-	  */
-	  Host * target_address_h;
-	  IpAddress target_address;
-
-	  target_address.set((ndpi_in6_addr*)&l4[8]);
-
-	  char buf[64];
-	  ntop->getTrace()->traceEvent(TRACE_WARNING, "->> %s", target_address.print(buf, sizeof(buf)));
-
-	  if(target_address.isNonEmptyUnicastAddress()
-	     && (target_address_h = getHost(&target_address, vlan_id))
-	     && (!target_address_h->isBroadcastDomainHost()))
-	    target_address_h->setBroadcastDomainHost();
-	}
-#endif
-
         flow->setICMP(src2dst_direction, icmp_type, icmp_code, l4);
 	if(l4_proto == IPPROTO_ICMP)
 	  icmp_v4.incStats(icmp_type, icmp_code, is_sent_packet, NULL);
@@ -2769,7 +2745,7 @@ void NetworkInterface::findFlowHosts(u_int16_t vlanId,
 
   PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: hosts_hash->get", 8);
   /* Do not look on sub interfaces, Flows are always created in the same interface of its hosts */
-  (*src) = hosts_hash->get(vlanId, _src_ip);
+  (*src) = hosts_hash->get(vlanId, _src_ip, false /* Don't lock, we're inline with purgeIdle */);
   PROFILING_SECTION_EXIT(8);
 
   if((*src) == NULL) {
@@ -2805,7 +2781,7 @@ void NetworkInterface::findFlowHosts(u_int16_t vlanId,
   /* ***************************** */
 
   PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: hosts_hash->get", 8);
-  (*dst) = hosts_hash->get(vlanId, _dst_ip);
+  (*dst) = hosts_hash->get(vlanId, _dst_ip, false /* Don't lock, we're inline with purgeIdle */);
   PROFILING_SECTION_EXIT(8);
 
   if((*dst) == NULL) {
@@ -3507,20 +3483,13 @@ Host* NetworkInterface::getHost(char *host_ip, u_int16_t vlan_id) {
     if(ip) {
       ip->set(host_ip);
 
-      h = hosts_hash->get(vlan_id, ip);
+      h = hosts_hash->get(vlan_id, ip, true /* Need to lock, getHost is called non-inline */);
 
       delete ip;
     }
   }
 
   return(h);
-}
-
-
-/* **************************************************** */
-
-Host* NetworkInterface::getHost(IpAddress * const host_ip, u_int16_t vlan_id) const {
-  return(hosts_hash->get(vlan_id, host_ip));
 }
 
 /* **************************************************** */
