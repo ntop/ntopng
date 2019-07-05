@@ -389,11 +389,41 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
 
   var chart_colors_min = ["#7CC28F", "#FCD384", "#FD977B"];
 
+  /* The default number of y points */
+  var num_ticks_y1 = null;
+  var num_ticks_y2 = null;
+
   var update_chart_data = function(new_data) {
     /* reset chart data so that the next transition animation will be gracefull */
     d3_sel.datum([]).call(chart);
+    d3_sel.datum(new_data);
 
-    d3_sel.datum(new_data).transition().call(chart);
+    if(metric_type === "gauge") {
+      /* This additional refresh is needed to determine the yticks
+       * and domain, needed below. */
+      d3_sel.transition().call(chart);
+
+      if(!num_ticks_y1) num_ticks_y1 = chart.yAxis1.ticks();
+      if(!num_ticks_y2) num_ticks_y2 = chart.yAxis2.ticks();
+
+      var cur_domain_y1 = chart.yAxis1.scale().domain();
+      var cur_domain_y2 = chart.yAxis2.scale().domain();
+
+      cur_domain_y1 = cur_domain_y1[1] - cur_domain_y1[0];
+      cur_domain_y2 = cur_domain_y2[1] - cur_domain_y2[0];
+
+      /* If there are not enough points available, reduce the number of
+       * ticks to avoid repeated ticks with same integer value.
+       * Other solutions (documented in https://stackoverflow.com/questions/21075245/nvd3-prevent-repeated-values-on-y-axis)
+       * are not easily applicable in this case.
+       */
+      chart.yAxis1.ticks(Math.min(cur_domain_y1, num_ticks_y1));
+      chart.yAxis2.ticks(Math.min(cur_domain_y2, num_ticks_y2));
+    }
+
+    /* Refresh the chart */
+    d3_sel.transition().call(chart);
+
     nv.utils.windowResize(chart.update);
     spinner.remove();
   }
