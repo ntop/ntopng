@@ -5764,17 +5764,16 @@ Vlan* NetworkInterface::getVlan(u_int16_t vlanId, bool createIfNotPresent, bool 
 
 /* **************************************************** */
 
-AutonomousSystem* NetworkInterface::inlineGetAS(IpAddress *ipa,
-					  bool createIfNotPresent) {
+AutonomousSystem* NetworkInterface::getAS(IpAddress *ipa, bool createIfNotPresent, bool isInlineCall) {
   AutonomousSystem *ret = NULL;
 
   if(ipa == NULL) return(NULL);
 
   if(!isView())
-    ret = ases_hash->inlineGet(ipa);
+    ret = ases_hash->get(ipa, isInlineCall);
   else {
     for(u_int8_t s = 0; s<numSubInterfaces; s++) {
-      if((ret = subInterfaces[s]->get_ases_hash()->inlineGet(ipa)) != NULL)
+      if((ret = subInterfaces[s]->get_ases_hash()->get(ipa, isInlineCall)) != NULL)
 	break;
     }
   }

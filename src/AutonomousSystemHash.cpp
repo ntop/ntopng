@@ -31,7 +31,7 @@ AutonomousSystemHash::AutonomousSystemHash(NetworkInterface *_iface, u_int _num_
 
 /* ************************************ */
 
-AutonomousSystem* AutonomousSystemHash::inlineGet(IpAddress *ipa) {
+AutonomousSystem* AutonomousSystemHash::get(IpAddress *ipa, bool is_inline_call) {
   u_int32_t asn;
   ntop->getGeolocation()->getAS(ipa, &asn, NULL /* Don't care about AS name here */);
   u_int32_t hash = asn;
@@ -43,6 +43,9 @@ AutonomousSystem* AutonomousSystemHash::inlineGet(IpAddress *ipa) {
   } else {
     AutonomousSystem *head;
 
+    if(!is_inline_call)
+      locks[hash]->lock(__FILE__, __LINE__);
+
     head = (AutonomousSystem*)table[hash];
 
     while(head != NULL) {
@@ -51,6 +54,9 @@ AutonomousSystem* AutonomousSystemHash::inlineGet(IpAddress *ipa) {
       else
 	head = (AutonomousSystem*)head->next();
     }
+
+    if(!is_inline_call)
+      locks[hash]->unlock(__FILE__, __LINE__);
 
     return(head);
   }
