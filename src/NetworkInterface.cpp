@@ -2745,7 +2745,7 @@ void NetworkInterface::findFlowHosts(u_int16_t vlanId,
 
   PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: hosts_hash->get", 8);
   /* Do not look on sub interfaces, Flows are always created in the same interface of its hosts */
-  (*src) = hosts_hash->get(vlanId, _src_ip, false /* Don't lock, we're inline with purgeIdle */);
+  (*src) = hosts_hash->get(vlanId, _src_ip, true /* Inline call */);
   PROFILING_SECTION_EXIT(8);
 
   if((*src) == NULL) {
@@ -2781,7 +2781,7 @@ void NetworkInterface::findFlowHosts(u_int16_t vlanId,
   /* ***************************** */
 
   PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: hosts_hash->get", 8);
-  (*dst) = hosts_hash->get(vlanId, _dst_ip, false /* Don't lock, we're inline with purgeIdle */);
+  (*dst) = hosts_hash->get(vlanId, _dst_ip, true /* Inline call */);
   PROFILING_SECTION_EXIT(8);
 
   if((*dst) == NULL) {
@@ -3483,7 +3483,7 @@ Host* NetworkInterface::getHost(char *host_ip, u_int16_t vlan_id) {
     if(ip) {
       ip->set(host_ip);
 
-      h = hosts_hash->get(vlan_id, ip, true /* Need to lock, getHost is called non-inline */);
+      h = hosts_hash->get(vlan_id, ip, false /* Called non-inline */);
 
       delete ip;
     }
