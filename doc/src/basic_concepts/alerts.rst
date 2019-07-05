@@ -214,21 +214,23 @@ Ntopng can detect possibly anomalous flows, and report them as alerts. Such flow
 Here is a list of possible flows alert types:
 
   - **Flow Misbehaviour** (event): Indicates a generic misbehaviour. The alert description contains more details, namely:
-    - Slow TCP Connection
-    - Slow Application Header
-    - Slow Data Exchange (Slowloris?)
-    - Low Goodput
-    - TCP Connection Issues
-    - Severe TCP Connection Issues: Indicates that there are too many retransmissions, OOO or lost packets
-    - Elephant flow ("local to remote" or "remote to local"): Indicates that the flow is carrying a lot of data
-    - Data Exfiltration: The flow may be a data exfiltration attempt
-    - Long-lived flow: The flow is lasting too long
+
+    + Slow TCP Connection
+    + Slow Application Header
+    + Slow Data Exchange (Slowloris?)
+    + Low Goodput
+    + TCP Connection Issues
+    + Severe TCP Connection Issues: Indicates that there are too many retransmissions, OOO or lost packets
+    + Elephant flow ("local to remote" or "remote to local"): Indicates that the flow is carrying a lot of data
+    + Data Exfiltration: The flow may be a data exfiltration attempt
+    + Long-lived flow: The flow is lasting too long
   - **Suspicious Activity** (event): Indicates whether there is a suspicious flow activity, namely when there is one of the following:
-    - Suspicious TCP SYN Probing (or server port down)
-    - Suspicious TCP Probing
-    - TCP connection refused
-    - SSL certificate mismatch
-    - Invalid DNS query: This can indicate a DGA domain being contacted by a compromised host
+
+    + Suspicious TCP SYN Probing (or server port down)
+    + Suspicious TCP Probing
+    + TCP connection refused
+    + SSL certificate mismatch
+    + Invalid DNS query: This can indicate a DGA domain being contacted by a compromised host
   - **Remote client and remote server** (event): Indicates whether a flow has both the client and the server in ntopng remote networks.
   - **Blacklisted Flow** (event): Generated for flows that have the blacklisted client or the blacklisted server (or both).
   - **Web Mining** (event): Used for flows that are supposed to perform mining activities.
