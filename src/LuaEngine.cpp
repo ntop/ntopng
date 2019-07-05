@@ -583,7 +583,7 @@ static int ntop_get_host_used_quotas_stats(lua_State* vm) {
   /* Optional VLAN id */
   if(lua_type(vm, 2) == LUA_TNUMBER) vlan_id = (u_int16_t)lua_tonumber(vm, 2);
 
-  if((h = ntop_interface->getHost(host_ip, vlan_id)))
+  if((h = ntop_interface->getHost(host_ip, vlan_id, false /* Not an inline call */)))
     h->luaUsedQuotas(vm);
   else
     lua_newtable(vm);
@@ -2576,7 +2576,7 @@ static int ntop_get_interface_flows_info(lua_State* vm) {
 
   if(lua_type(vm, 1) == LUA_TSTRING) {
     get_host_vlan_info((char*)lua_tostring(vm, 1), &host_ip, &vlan_id, buf, sizeof(buf));
-    host = ntop_interface->getHost(host_ip, vlan_id);
+    host = ntop_interface->getHost(host_ip, vlan_id, false /* Not an inline call */);
   }
 
   if(lua_type(vm, 2) == LUA_TTABLE)
@@ -2619,7 +2619,7 @@ static int ntop_get_batched_interface_flows_info(lua_State* vm) {
 
   if(lua_type(vm, 2) == LUA_TSTRING) {
     get_host_vlan_info((char*)lua_tostring(vm, 2), &host_ip, &vlan_id, buf, sizeof(buf));
-    host = ntop_interface->getHost(host_ip, vlan_id);
+    host = ntop_interface->getHost(host_ip, vlan_id, false /* Not an inline call */);
   }
 
   if(lua_type(vm, 3) == LUA_TTABLE)
@@ -2735,7 +2735,7 @@ static int ntop_get_interface_host_timeseries(lua_State* vm) {
   /* Optional VLAN id */
   if(lua_type(vm, 2) == LUA_TNUMBER) vlan_id = (u_int16_t)lua_tonumber(vm, 2);
 
-  if((!ntop_interface) || !(h = ntop_interface->getHost(host_ip, vlan_id)))
+  if((!ntop_interface) || !(h = ntop_interface->getHost(host_ip, vlan_id, false /* Not an inline call */)))
     return(CONST_LUA_ERROR);
   else {
     h->tsLua(vm);
@@ -3283,8 +3283,8 @@ static int ntop_get_interface_flow_key(lua_State* vm) {
   }
 
   if(cli_name == NULL || srv_name == NULL
-     ||(cli = ntop_interface->getHost(cli_name, cli_vlan)) == NULL
-     ||(srv = ntop_interface->getHost(srv_name, srv_vlan)) == NULL) {
+     ||(cli = ntop_interface->getHost(cli_name, cli_vlan, false /* Not an inline call */)) == NULL
+     ||(srv = ntop_interface->getHost(srv_name, srv_vlan, false /* Not an inline call */)) == NULL) {
     lua_pushnil(vm);
   } else
     lua_pushinteger(vm, Flow::key(cli, cli_port, srv, srv_port, cli_vlan, protocol));

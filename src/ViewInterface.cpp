@@ -285,11 +285,11 @@ u_int32_t ViewInterface::getVLANsHashSize() {
 
 /* **************************************************** */
 
-Host* ViewInterface::getHost(char *host_ip, u_int16_t vlan_id) {
+Host* ViewInterface::getHost(char *host_ip, u_int16_t vlan_id, bool isInlineCall) {
   Host *h = NULL;
 
   for(u_int8_t s = 0; s < numSubInterfaces; s++) {
-    if((h = subInterfaces[s]->getHost(host_ip, vlan_id)))
+    if((h = subInterfaces[s]->getHost(host_ip, vlan_id, isInlineCall)))
       break;
   }
 

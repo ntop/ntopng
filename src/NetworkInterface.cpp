@@ -3457,7 +3457,7 @@ bool NetworkInterface::restoreHost(char *host_ip, u_int16_t vlan_id) {
 
 /* **************************************************** */
 
-Host* NetworkInterface::getHost(char *host_ip, u_int16_t vlan_id) {
+Host* NetworkInterface::getHost(char *host_ip, u_int16_t vlan_id, bool isInlineCall) {
   struct in_addr  a4;
   struct in6_addr a6;
   Host *h = NULL;
@@ -3483,7 +3483,7 @@ Host* NetworkInterface::getHost(char *host_ip, u_int16_t vlan_id) {
     if(ip) {
       ip->set(host_ip);
 
-      h = hosts_hash->get(vlan_id, ip, false /* Called non-inline */);
+      h = hosts_hash->get(vlan_id, ip, isInlineCall);
 
       delete ip;
     }
@@ -3577,7 +3577,7 @@ bool NetworkInterface::checkPointHostCounters(lua_State* vm, u_int8_t checkpoint
   Host *h;
   bool ret = false;
 
-  if(host_ip && (h = getHost(host_ip, vlan_id)))
+  if(host_ip && (h = getHost(host_ip, vlan_id, false /* Not an inline call */)))
     ret = h->checkpoint(vm, this, checkpoint_id, details_level);
 
   return ret;
@@ -3602,7 +3602,7 @@ bool NetworkInterface::checkPointHostTalker(lua_State* vm, char *host_ip, u_int1
   Host *h;
   bool ret = false;
 
-  if(host_ip && (h = getHost(host_ip, vlan_id))) {
+  if(host_ip && (h = getHost(host_ip, vlan_id, false /* Not an inline call */))) {
     h->checkPointHostTalker(vm, saveCheckpoint);
     ret = true;
   }
@@ -3632,7 +3632,7 @@ bool NetworkInterface::serializeCheckpoint(json_object *my_object, DetailsLevel 
 Host* NetworkInterface::findHostByIP(AddressTree *allowed_hosts,
 				      char *host_ip, u_int16_t vlan_id) {
   if(host_ip != NULL) {
-    Host *h = getHost(host_ip, vlan_id);
+    Host *h = getHost(host_ip, vlan_id, false /* Not an inline call */);
 
     if(h && h->match(allowed_hosts))
       return(h);

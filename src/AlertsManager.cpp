@@ -328,7 +328,7 @@ bool AlertsManager::incHostTotalAlerts(const char *hostkey) {
     host_ip = hostkey;
   }
 
-  if((host = iface->getHost((char*)host_ip, vlan_id))) {
+  if((host = iface->getHost((char*)host_ip, vlan_id, false /* Not an inline call */))) {
     host->incTotalAlerts();
     rv = true;
   } else

@@ -544,7 +544,7 @@ class NetworkInterface : public Checkpointable {
   AutonomousSystem *getAS(IpAddress *ipa, bool createIfNotPresent, bool isInlineCall);
   Country* getCountry(const char *country_name, bool createIfNotPresent, bool isInlineCall);
   virtual Mac*  getMac(u_int8_t _mac[6], bool createIfNotPresent, bool isInlineCall);
-  virtual Host* getHost(char *host_ip, u_int16_t vlan_id);
+  virtual Host* getHost(char *host_ip, u_int16_t vlan_id, bool isInlineCall);
   bool getHostInfo(lua_State* vm, AddressTree *allowed_hosts, char *host_ip, u_int16_t vlan_id);
   void findPidFlows(lua_State *vm, u_int32_t pid);
   void findProcNameFlows(lua_State *vm, char *proc_name);
