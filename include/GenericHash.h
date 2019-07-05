@@ -77,21 +77,12 @@ class GenericHash {
    * @details If current_size < max_hash_size, this method calculate a new hash key for the new entry, add it and update the current_size value.
    *
    * @param h Pointer of new entry to add.
+   * @param h whether the bucket should be locked before addin the entry to the linked list.
    * @return True if the entry has been added successfully,
    *         False otherwise.
    *
    */
-  bool add(GenericHashEntry *h);
-  /**
-   * @brief Remove entry from generic hash
-   * @details Check if the entry is present inside the hash, remove it and update the hash.
-   *
-   * @param h Pointer of entry to remove.
-   * @return True if the entry has been remove successfully,
-   *         False otherwise.
-   * @warning GenericHashEntry* memory is NOT freed.
-   */
-  bool remove(GenericHashEntry *h);
+  bool add(GenericHashEntry *h, bool do_lock);
   /**
    * @brief generic walker for the hash.
    * @details This method uses the walker function to compare each elements of the hash with the user data.

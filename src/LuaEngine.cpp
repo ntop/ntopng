@@ -3095,40 +3095,6 @@ static int ntop_getsflowdeviceinfo(lua_State* vm) {
 
 /* ****************************************** */
 
-/**
- * @brief Restore the host of network interface.
- * @details Get the ntop interface global variable of lua and the IP address of host form the lua stack and restore the host into hash host of network interface.
- *
- * @param vm The lua state.
- * @return CONST_LUA_ERROR if ntop_interface is null or if is impossible to restore the host, CONST_LUA_OK otherwise.
- */
-static int ntop_restore_interface_host(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  char *host_ip;
-  u_int16_t vlan_id = 0;
-  bool skip_privileges_check = false;
-  char buf[64];
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  get_host_vlan_info((char*)lua_tostring(vm, 1), &host_ip, &vlan_id, buf, sizeof(buf));
-
-  /* make sure skip privileges check cannot be set from the web interface */
-  if(lua_type(vm, 2) == LUA_TBOOLEAN) skip_privileges_check = lua_toboolean(vm, 2);
-
-  if(!skip_privileges_check && !ntop->isUserAdministrator(vm)) return(CONST_LUA_ERROR);
-
-  if((!ntop_interface) || !ntop_interface->restoreHost(host_ip, vlan_id))
-    return(CONST_LUA_ERROR);
-  else {
-    lua_pushnil(vm);
-    return(CONST_LUA_OK);
-  }
-}
-
-/* ****************************************** */
-
 static int ntop_checkpoint_host(lua_State* vm) {
   int ifid;
   NetworkInterface *iface = NULL;
@@ -8596,7 +8562,6 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getGroupedHosts",          ntop_get_grouped_interface_hosts },
   { "addMacsIpAddresses",       ntop_add_macs_ip_addresses },
   { "getNetworksStats",         ntop_get_interface_networks_stats },
-  { "restoreHost",              ntop_restore_interface_host },
   { "checkpointHost",           ntop_checkpoint_host },
   { "checkpointHostTalker",     ntop_checkpoint_host_talker },
   { "checkpointNetwork",        ntop_checkpoint_network },

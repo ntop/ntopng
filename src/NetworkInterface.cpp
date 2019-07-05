@@ -390,7 +390,8 @@ void NetworkInterface::aggregatePartialFlow(Flow *flow) {
 	try {
 	  aggregatedFlow = new AggregatedFlow(this, flow);
 
-	  if(aggregated_flows_hash->add(aggregatedFlow) == false) {
+	  if(aggregated_flows_hash->add(aggregatedFlow,
+					false /* No need to lock, aggregated_flows_hash->cleanup() is sequential wrt to this */) == false) {
 	    /* Too many flows, should never happen */
 	    delete aggregatedFlow;
 	    return;
@@ -915,7 +916,7 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
       return(NULL);
     }
 
-    if(flows_hash->add(ret)) {
+    if(flows_hash->add(ret, false /* Don't lock, we're inline with the purgeIdle */)) {
       *src2dst_direction = true;
     } else {
       delete ret;
@@ -2765,7 +2766,7 @@ void NetworkInterface::findFlowHosts(u_int16_t vlanId,
       PROFILING_SECTION_EXIT(10);
     }
 
-    if(!hosts_hash->add(*src)) {
+    if(!hosts_hash->add(*src, false /* Don't lock, we're inline with the purgeIdle */)) {
       //ntop->getTrace()->traceEvent(TRACE_WARNING, "Too many hosts in interface %s", ifname);
       delete *src;
       *src = *dst = NULL;
@@ -2803,7 +2804,7 @@ void NetworkInterface::findFlowHosts(u_int16_t vlanId,
       PROFILING_SECTION_EXIT(10);
     }
 
-    if(!hosts_hash->add(*dst)) {
+    if(!hosts_hash->add(*dst, false /* Don't lock, we're inline with the purgeIdle */)) {
       // ntop->getTrace()->traceEvent(TRACE_WARNING, "Too many hosts in interface %s", ifname);
       delete *dst;
       *dst = NULL;
@@ -3427,32 +3428,6 @@ static bool find_vlan_by_vlan_id(GenericHashEntry *he, void *user_data, bool *ma
   }
 
   return(false); /* false = keep on walking */
-}
-
-/* **************************************************** */
-
-bool NetworkInterface::restoreHost(char *host_ip, u_int16_t vlan_id) {
-  Host *h;
-  int16_t local_network_id;
-  IpAddress ipa;
-
-  ipa.set(host_ip);
-
-  if(ipa.isLocalHost(&local_network_id))
-    h = new LocalHost(this, host_ip, vlan_id);
-  else
-    h = new RemoteHost(this, host_ip, vlan_id);
-
-  if(!h) return(false);
-
-  if(!hosts_hash->add(h)) {
-    //ntop->getTrace()->traceEvent(TRACE_WARNING, "Too many hosts in interface %s", ifname);
-    delete h;
-    return(false);
-  }
-
-  h->postHashAdd();
-  return(true);
 }
 
 /* **************************************************** */
@@ -5660,7 +5635,8 @@ Mac* NetworkInterface::getMac(u_int8_t _mac[6], bool createIfNotPresent, bool is
   if((ret == NULL) && createIfNotPresent) {
     try {
       if((ret = new Mac(this, _mac)) != NULL) {
-	if(!macs_hash->add(ret)) {
+	if(!macs_hash->add(ret,
+			   !isInlineCall /* Lock only if not inline, if inline there's no need to lock as also the purgeIdle is done inline*/)) {
 	  delete ret;
 	  return(NULL);
 	}
@@ -5696,7 +5672,7 @@ ArpStatsMatrixElement* NetworkInterface::getArpHashMatrixElement(const u_int8_t 
     try{
       if((ret = new ArpStatsMatrixElement(this, _src_mac, _dst_mac, _src_ip, _dst_ip)) != NULL)
 
-        if(!arp_hash_matrix->add(ret)){
+        if(!arp_hash_matrix->add(ret, false /* No need to lock, we're inline with the purgeIdle */)){
           delete ret;
           ret = NULL;
         }
@@ -5742,7 +5718,8 @@ Vlan* NetworkInterface::getVlan(u_int16_t vlanId, bool createIfNotPresent, bool 
   if((ret == NULL) && createIfNotPresent) {
     try {
       if((ret = new Vlan(this, vlanId)) != NULL) {
-	if(!vlans_hash->add(ret)) {
+	if(!vlans_hash->add(ret,
+			    !isInlineCall /* Lock only if not inline, if inline there is no need to lock as we are sequential with the purgeIdle */)) {
 	  delete ret;
 	  return(NULL);
 	}
@@ -5781,7 +5758,8 @@ AutonomousSystem* NetworkInterface::getAS(IpAddress *ipa, bool createIfNotPresen
   if((ret == NULL) && createIfNotPresent) {
     try {
       if((ret = new AutonomousSystem(this, ipa)) != NULL) {
-	if(!ases_hash->add(ret)) {
+	if(!ases_hash->add(ret,
+			   !isInlineCall /* Lock only if not inline, if inline there is no need to lock as we are sequential with the purgeIdle */)) {
 	  delete ret;
 	  return(NULL);
 	}
@@ -5820,7 +5798,7 @@ Country* NetworkInterface::getCountry(const char *country_name, bool createIfNot
   if((ret == NULL) && createIfNotPresent) {
     try {
       if((ret = new Country(this, country_name)) != NULL) {
-	if(!countries_hash->add(ret)) {
+	if(!countries_hash->add(ret, !isInlineCall /* Lock only if not inline, if inline there is no need to lock as we are sequential with the purgeIdle */)) {
 	  delete ret;
 	  return(NULL);
 	}

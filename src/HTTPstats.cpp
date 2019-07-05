@@ -510,7 +510,7 @@ bool HTTPstats::updateHTTPHostRequest(time_t t,
       if((vh = new VirtualHost(h, virtual_host_name)) == NULL) {
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: are you running out of memory?");
       } else {
-	if(virtualHosts->add(vh) == false) {
+	if(virtualHosts->add(vh, false /* no need to lock the bucket, purgeIdle is sequential wrt to this */) == false) {
 	  /* Unable to add a new virtual host */
 	  delete vh;
 	  vh = NULL;

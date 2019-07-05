@@ -72,7 +72,7 @@ void GenericHash::cleanup() {
 
 /* ************************************ */
 
-bool GenericHash::add(GenericHashEntry *h) {
+bool GenericHash::add(GenericHashEntry *h, bool do_lock) {
   if(hasEmptyRoom()) {
     u_int32_t hash = (h->key() % num_hashes);
 
@@ -83,57 +83,19 @@ bool GenericHash::add(GenericHashEntry *h) {
 				   __FUNCTION__, h->get_string_key(buf, sizeof(buf)), h->key());
     }
 
-    locks[hash]->lock(__FILE__, __LINE__);
+    if(do_lock)
+      locks[hash]->lock(__FILE__, __LINE__);
+
     h->set_next(table[hash]);
-    table[hash] = h, current_size++;
-    locks[hash]->unlock(__FILE__, __LINE__);
+    table[hash] = h;
+    current_size++;
+
+    if(do_lock)
+      locks[hash]->unlock(__FILE__, __LINE__);
 
     return(true);
   } else
     return(false);
-}
-
-/* ************************************ */
-
-bool GenericHash::remove(GenericHashEntry *h) {
-  u_int32_t hash = (h->key() % num_hashes);
-
-  if(table[hash] == NULL)
-    return(false);
-  else {
-    GenericHashEntry *head, *prev = NULL;
-    bool ret;
-
-    locks[hash]->lock(__FILE__, __LINE__);
-
-    head = table[hash];
-    while(head && (!head->equal(h))) {
-      prev = head;
-      head = head->next();
-    }
-
-    if(head) {
-      if(false) {
-	char buf[256];
-
-	ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(): removing %s",
-				     __FUNCTION__, h->get_string_key(buf, sizeof(buf)));
-      }
-
-      if(prev != NULL)
-	prev->set_next(head->next());
-      else
-	table[hash] = head->next();
-
-      current_size--;
-
-      ret = true;
-    } else
-      ret = false;
-
-    locks[hash]->unlock(__FILE__, __LINE__);
-    return(ret);
-  }
 }
 
 /* ************************************ */
