@@ -86,11 +86,11 @@ local function checkHostAlertsThreshold(host_key, host_info, granularity, rules)
 
 		  -- IMPORTANT: uncommenting the line below break all
 		  -- host_alert:trigger(host_key, "Host "..host_key.." crossed threshold "..metric_name)
-		  host.triggerAlert(alert_key_name..":"..granularity)
+		  host.storeTriggeredAlert(alert_key_name..":"..granularity)
 	       else
 		  print("DON'T trigger alert [value: "..tostring(value).."]\n")
 		  -- host_alert:release(host_key)
-		  host.releaseAlert(alert_key_name..":"..granularity)
+		  host.releaseTriggeredAlert(alert_key_name..":"..granularity)
 	       end
 	    else
 	       if(do_trace) then print("Execution error:  "..tostring(rc).."\n") end

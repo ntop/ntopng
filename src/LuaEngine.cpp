@@ -2395,6 +2395,24 @@ static int ntop_check_hosts_alerts_day(lua_State* vm)  { return(ntop_check_hosts
 
 /* ****************************************** */
 
+static int ntop_check_interface_alerts(lua_State* vm, ScriptPeriodicity p) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  if(!ntop_interface)
+    return(CONST_LUA_ERROR);
+  else
+    ntop_interface->checkInterfaceAlerts(p);
+  
+  return(CONST_LUA_OK);
+}
+
+static int ntop_check_interface_alerts_min(lua_State* vm)  { return(ntop_check_interface_alerts(vm, minute_script)); }
+static int ntop_check_interface_alerts_5min(lua_State* vm) { return(ntop_check_interface_alerts(vm, five_minute_script)); }
+static int ntop_check_interface_alerts_hour(lua_State* vm) { return(ntop_check_interface_alerts(vm, hour_script));   }
+static int ntop_check_interface_alerts_day(lua_State* vm)  { return(ntop_check_interface_alerts(vm, day_script));    }
+
+/* ****************************************** */
+
 static int ntop_temporary_disable_alerts(lua_State* vm) {
   bool to_disable;
   if(!ntop->isUserAdministrator(vm)) return(CONST_LUA_ERROR);
@@ -8064,7 +8082,7 @@ static int ntop_host_set_cached_alert_value(lua_State* vm) {
  
 /* ****************************************** */
 
-static int ntop_host_trigger_alert(lua_State* vm) {
+static int ntop_host_store_triggered_alert(lua_State* vm) {
   struct ntopngLuaContext *c = getLuaVMContext(vm);
   Host *h = c ? c->host : NULL;
   char *key = NULL;
@@ -8080,7 +8098,7 @@ static int ntop_host_trigger_alert(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_host_release_alert(lua_State* vm) {
+static int ntop_host_release_triggered_alert(lua_State* vm) {
   struct ntopngLuaContext *c = getLuaVMContext(vm);
   Host *h = c ? c->host : NULL;
   char *key = NULL;
@@ -8090,6 +8108,80 @@ static int ntop_host_release_alert(lua_State* vm) {
 
   if((!h) || (!key)) return(CONST_LUA_PARAM_ERROR);
   h->releaseAlert(std::string(key));
+  
+  return(CONST_LUA_OK);  
+}
+
+/* ****************************************** */
+
+static int ntop_interface_get_cached_alert_value(lua_State* vm) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  char *key;
+  std::string val;
+  
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(!c->iface) return(CONST_LUA_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  if((key = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
+
+  val = c->iface->getAlertCachedValue(std::string(key));
+  lua_pushstring(vm, val.c_str());
+  
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_interface_set_cached_alert_value(lua_State* vm) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  char *key, *value;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(!c->iface) return(CONST_LUA_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  if((key = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  if((value = (char*)lua_tostring(vm, 2)) == NULL) return(CONST_LUA_PARAM_ERROR);
+
+  if((!key) || (!value))
+    return(CONST_LUA_PARAM_ERROR);
+  
+  c->iface->setAlertCacheValue(std::string(key), std::string(value));
+  
+  return(CONST_LUA_OK);
+}
+ 
+/* ****************************************** */
+
+static int ntop_interface_store_triggered_alert(lua_State* vm) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  char *key = NULL;
+  
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  if((key = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
+
+  if((!c->iface) || (!key)) return(CONST_LUA_PARAM_ERROR);
+  c->iface->triggerAlert(std::string(key));
+  
+  return(CONST_LUA_OK);  
+}
+
+/* ****************************************** */
+
+static int ntop_interface_release_triggered_alert(lua_State* vm) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  char *key = NULL;
+  
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  if((key = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
+
+  if((!c->iface) || (!key)) return(CONST_LUA_PARAM_ERROR);
+  c->iface->releaseAlert(std::string(key));
   
   return(CONST_LUA_OK);  
 }
@@ -8826,13 +8918,22 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "setHostAlerts",          ntop_interface_set_host_alerts          },
   { "setInterfaceEngagedAlerts",  ntop_interface_set_engaged_alerts   },
   { "setInterfaceHasAlerts",  ntop_interface_set_has_alerts           },
+  { "getCachedAlertValue",    ntop_interface_get_cached_alert_value   },
+  { "setCachedAlertValue",    ntop_interface_set_cached_alert_value   },
+  { "storeTriggeredAlert",    ntop_interface_store_triggered_alert    },
+  { "releaseTriggeredAlert",  ntop_interface_release_triggered_alert  },
+
+  { "checkAlertsMin",        ntop_check_interface_alerts_min   },
+  { "checkAlerts5Min",       ntop_check_interface_alerts_5min  },
+  { "checkAlertsHour",       ntop_check_interface_alerts_hour  },
+  { "checkAlertsDay",        ntop_check_interface_alerts_day   },
 
   /* eBPF, Containers and Companion Interfaces */
   { "getPodsStats",           ntop_interface_get_pods_stats           },
   { "getContainersStats",     ntop_interface_get_containers_stats     },
   { "reloadCompanions",       ntop_interface_reload_companions        },
 
-  { NULL,                             NULL }
+  { NULL,                     NULL }
 };
 
 /* **************************************************************** */
@@ -8842,8 +8943,8 @@ static const luaL_Reg ntop_host_reg[] = {
   { "getFullInfo",            ntop_host_get_all_fields   },
   { "getCachedAlertValue",    ntop_host_get_cached_alert_value },
   { "setCachedAlertValue",    ntop_host_set_cached_alert_value },
-  { "triggerAlert",           ntop_host_trigger_alert },
-  { "releaseAlert",           ntop_host_release_alert },
+  { "storeTriggerAlert",      ntop_host_store_triggered_alert },
+  { "releaseTriggeredAlert",  ntop_host_release_triggered_alert },
   
   { NULL,                     NULL }
 };
@@ -8915,6 +9016,8 @@ static const luaL_Reg ntop_reg[] = {
 #endif
   { "reloadPreferences",   ntop_reload_preferences },
   { "setAlertsTemporaryDisabled", ntop_temporary_disable_alerts },
+
+  /* Alerts */
   { "checkHostsAlertsMin",        ntop_check_hosts_alerts_min   },
   { "checkHostsAlerts5Min",       ntop_check_hosts_alerts_5min  },
   { "checkHostsAlertsHour",       ntop_check_hosts_alerts_hour  },

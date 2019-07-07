@@ -7646,7 +7646,7 @@ void NetworkInterface::checkHostsAlerts(ScriptPeriodicity p) {
   struct alert_check_param ap;
   
   snprintf(script_path, sizeof(script_path),
-	   "%s/callbacks/interface/alert.lua",
+	   "%s/callbacks/interface/alerts/host.lua",
 	   ntop->getPrefs()->get_scripts_dir());
   
   switch(p) {
@@ -7662,8 +7662,8 @@ void NetworkInterface::checkHostsAlerts(ScriptPeriodicity p) {
   {
     lua_State *L = le.getState();
     
-    lua_getglobal(L, "setup"); /* Called function */
-    lua_pushstring(L, ap.granularity);  /* push 1st argument */    
+    lua_getglobal(L, "setup");         /* Called function   */
+    lua_pushstring(L, ap.granularity); /* push 1st argument */    
     lua_pcall(L, 1 /* 1 argument */, 0 /* 0 results */, 0); /* Call the function now */
   }
   
@@ -7671,4 +7671,39 @@ void NetworkInterface::checkHostsAlerts(ScriptPeriodicity p) {
 
   /* ... then iterate all hosts */
   hosts_hash->walk(&begin_slot, true /* walk_all */, host_alert_check, &ap);
+}
+
+/* *************************************** */
+
+void NetworkInterface::checkInterfaceAlerts(ScriptPeriodicity p) {
+  LuaEngine le;
+  char script_path[256];
+  struct alert_check_param ap;
+  lua_State *L;
+  
+  snprintf(script_path, sizeof(script_path),
+	   "%s/callbacks/interface/alerts/interface.lua",
+	   ntop->getPrefs()->get_scripts_dir());
+  
+  switch(p) {
+  case 0: ap.granularity = "min";   break;
+  case 1: ap.granularity = "5mins"; break;
+  case 2: ap.granularity = "hour";  break;
+  case 3: ap.granularity = "day";   break;
+  }
+
+  le.load_script(script_path, this);
+
+  /* Call global setup once... */
+  L = le.getState();
+  
+  lua_getglobal(L, "setup");         /* Called function   */
+  lua_pushstring(L, ap.granularity); /* push 1st argument */    
+  lua_pcall(L, 1 /* 1 argument */, 0 /* 0 results */, 0); /* Call the function now */
+  
+  /* https://www.lua.org/pil/25.2.html */
+  lua_getglobal(L,  "checkInterfaceAlerts"); /* Called function */
+  lua_pushstring(L, ap.granularity);  /* push 1st argument */
+  
+  lua_pcall(L, 1 /* 1 argument */, 0 /* 0 results */, 0); /* Call the function now */
 }

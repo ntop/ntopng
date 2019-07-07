@@ -68,7 +68,7 @@ typedef struct {
  *  @ingroup NetworkInterface
  *
  */
-class NetworkInterface : public Checkpointable {
+class NetworkInterface : public Checkpointable, public AlertableEntity {
  protected:
   char *ifname, *ifDescription;
   bpf_u_int32 ipv4_network_mask, ipv4_network;
@@ -649,6 +649,7 @@ class NetworkInterface : public Checkpointable {
   inline void checkHostsBlacklistReload()           { if(reload_hosts_blacklist) { reloadHostsBlacklist(); reload_hosts_blacklist = false; } }
   void reloadHostsBlacklist();
   void checkHostsAlerts(ScriptPeriodicity p);
+  void checkInterfaceAlerts(ScriptPeriodicity p);
   bool isHiddenFromTop(Host *host);
   inline virtual bool areTrafficDirectionsSupported() { return(false); };
   inline virtual bool isView() { return(false); };
