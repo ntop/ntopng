@@ -24,7 +24,7 @@
 
 #include "ntop_includes.h"
 
-class Host : public GenericHashEntry {
+class Host : public GenericHashEntry, public AlertableEntity {
  protected:
   IpAddress ip;
   Mac *mac;

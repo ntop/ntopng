@@ -256,6 +256,7 @@ using namespace std;
 #endif
 #include "InterfaceStatsHash.h"
 #include "GenericHashEntry.h"
+#include "AlertableEntity.h"
 #if defined(NTOPNG_PRO) && defined(HAVE_NINDEX)
 #include "nindex_api.h"
 #endif

@@ -491,7 +491,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
 
   lua_push_bool_table_entry(vm, "privatehost", isPrivateHost());
   lua_push_bool_table_entry(vm, "hiddenFromTop", isHiddenFromTop());
-
+  lua_push_uint64_table_entry(vm, "num_triggered_alerts", getNumTriggeredAlerts());
   lua_push_uint64_table_entry(vm, "num_alerts", triggerAlerts() ? getNumAlerts() : 0);
 
   lua_push_str_table_entry(vm, "name", get_visual_name(buf, sizeof(buf)));
@@ -1378,3 +1378,8 @@ void Host::dumpDropbox(lua_State *vm) {
   lua_insert(vm, -2);
   lua_settable(vm, -3);
 }
+
+/* ****************************************xo************ */
+
+
+

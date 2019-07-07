@@ -2088,11 +2088,11 @@ end
 
 -- #################################
 
-local function getConfiguredAlertsThresholds(ifname, granularity)
+function getConfiguredAlertsThresholds(ifname, granularity)
    local thresholds_key = get_alerts_hash_name(granularity, ifname)
    local thresholds_config = {}
    local res = {}
-
+   
    -- Handle the global configuration
    local global_conf_keys = ntop.getKeysCache(getGlobalAlertsConfigurationHash(granularity, "*", "*")) or {}
 

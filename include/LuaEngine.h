@@ -57,6 +57,13 @@ class LuaEngine {
    */
   ~LuaEngine();
 
+
+  /* Set a host in the context */
+  void setHost(Host* h);
+  
+  /* Get the host context */
+  Host* getHost();
+  
   /**
    * @brief Run a Lua script.
    * @details Run a script from within ntopng. No HTTP GUI.
@@ -67,6 +74,9 @@ class LuaEngine {
    */
   int run_script(char *script_path, NetworkInterface *iface);
 
+  /* Same as run_script() but the script is just loaded and NOT executed */
+  int load_script(char *script_path, NetworkInterface *iface);
+  
   /**
    * @brief Handling of request info of script.
    * @details Read from the request the parameters and put the GET parameters and the _SESSION parameters into the environment. 
@@ -92,6 +102,8 @@ class LuaEngine {
   static void luaRegister(lua_State *L, const ntop_class_reg *reg);
   static void luaRegisterInternalRegs(lua_State *L);
 
+  inline lua_State* getState() { return(L); }
+  
   void setInterface(const char * user, char * const ifname, u_int16_t ifname_len, bool * const is_allowed) const;
 };
 

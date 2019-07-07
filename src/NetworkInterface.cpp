@@ -7607,3 +7607,68 @@ bool NetworkInterface::dequeueeBPFFlow(ParsedFlow **f) {
 
   return true;
 }
+
+/* *************************************** */
+
+struct alert_check_param {
+  ScriptPeriodicity p;
+  const char *granularity;
+  LuaEngine *le;
+};
+
+static bool host_alert_check(GenericHashEntry *h, void *user_data, bool *matched) {
+  struct alert_check_param *ap = (struct alert_check_param*)user_data;
+  lua_State *L = ap->le->getState();
+  Host *host = (Host*)h;
+
+  /* Alerts are checked only on local hosts */
+  if(host->isLocalHost()) {
+    const char *function_to_call = "checkHostAlerts";
+    
+    ap->le->setHost(host);
+
+    /* https://www.lua.org/pil/25.2.html */
+    lua_getglobal(L,  function_to_call); /* Called function */
+    lua_pushstring(L, ap->granularity);  /* push 1st argument */
+    
+    lua_pcall(L, 1 /* 1 argument */, 0 /* 0 results */, 0); /* Call the function now */
+  }
+  
+  return(false); /* false = keep on walking */
+}
+
+/* *************************************** */
+
+void NetworkInterface::checkHostsAlerts(ScriptPeriodicity p) {
+  LuaEngine le;
+  char script_path[256];
+  u_int32_t begin_slot = 0;
+  struct alert_check_param ap;
+  
+  snprintf(script_path, sizeof(script_path),
+	   "%s/callbacks/interface/alert.lua",
+	   ntop->getPrefs()->get_scripts_dir());
+  
+  switch(p) {
+  case 0: ap.granularity = "min";   break;
+  case 1: ap.granularity = "5mins"; break;
+  case 2: ap.granularity = "hour";  break;
+  case 3: ap.granularity = "day";   break;
+  }
+
+  le.load_script(script_path, this);
+
+  /* Call global setup once... */
+  {
+    lua_State *L = le.getState();
+    
+    lua_getglobal(L, "setup"); /* Called function */
+    lua_pushstring(L, ap.granularity);  /* push 1st argument */    
+    lua_pcall(L, 1 /* 1 argument */, 0 /* 0 results */, 0); /* Call the function now */
+  }
+  
+  ap.p = p, ap.le = &le;
+
+  /* ... then iterate all hosts */
+  hosts_hash->walk(&begin_slot, true /* walk_all */, host_alert_check, &ap);
+}

@@ -648,6 +648,7 @@ class NetworkInterface : public Checkpointable {
   inline bool reloadHostsBroadcastDomain()          { return reload_hosts_bcast_domain; }
   inline void checkHostsBlacklistReload()           { if(reload_hosts_blacklist) { reloadHostsBlacklist(); reload_hosts_blacklist = false; } }
   void reloadHostsBlacklist();
+  void checkHostsAlerts(ScriptPeriodicity p);
   bool isHiddenFromTop(Host *host);
   inline virtual bool areTrafficDirectionsSupported() { return(false); };
   inline virtual bool isView() { return(false); };

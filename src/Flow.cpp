@@ -3915,38 +3915,37 @@ void Flow::dissectSSL(char *payload, u_int16_t payload_len) {
 	    if(_payload[i] == 0x82) {
 	      u_int8_t len;
 
-	      if(i < _payload_len - 1 && (len = _payload[i + 1]) && i + len + 2 < _payload_len) {
+	      if((i < (_payload_len - 1))
+		 && (len = _payload[i + 1])
+		 && ((i + len + 2) < _payload_len)) {
 		i += 2;
-
+		
 		if(!isalpha(_payload[i]) && _payload[i] != '*') {
 		  protos.ssl.dissect_certificate = false;
 		  break;
 		}
 		else {
-			if(len < 256) {
-				char buf[256];
-
-				strncpy(buf, (const char*)&_payload[i], len);
-				buf[len] = '\0';
+		  char buf[256];
+		    
+		  strncpy(buf, (const char*)&_payload[i], len);
+		  buf[len] = '\0';
 
 #if 0
-				ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [Len %u][sizeof(buf): %u][ssl cert: %s]", buf, len, sizeof(buf), getSSLCertificate());
+		  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [Len %u][sizeof(buf): %u][ssl cert: %s]", buf, len, sizeof(buf), getSSLCertificate());
 #endif
 
-				/*
-				  CNs are NOT case sensitive as per RFC 5280
-				*/
-				if (protos.ssl.certificate
-					&& ((buf[0] != '*' && !strncasecmp(protos.ssl.certificate, buf, sizeof(buf)))
-						|| (buf[0] == '*' && strcasestr(protos.ssl.certificate, &buf[1])))) {
-					protos.ssl.subject_alt_name_match = true;
-					protos.ssl.dissect_certificate = false;
-					break;
-				}
-			} else /* The fix is not to enlarge the buf but figure out why we need more chars.*/
-				ntop->getTrace()->traceEvent(TRACE_WARNING, "Buffer too short [expected %u]", len);
+		  /*
+		    CNs are NOT case sensitive as per RFC 5280
+		  */
+		  if (protos.ssl.certificate
+		      && ((buf[0] != '*' && !strncasecmp(protos.ssl.certificate, buf, sizeof(buf)))
+			  || (buf[0] == '*' && strcasestr(protos.ssl.certificate, &buf[1])))) {
+		    protos.ssl.subject_alt_name_match = true;
+		    protos.ssl.dissect_certificate = false;
+		    break;
+		  }
 
-			i += len;
+		  i += len;
 		}
 	      } else {
 #if 0
@@ -3965,7 +3964,7 @@ void Flow::dissectSSL(char *payload, u_int16_t payload_len) {
 	      protos.ssl.dissect_certificate = false;
 	      break;
 	    }
-	  }
+	  } /* while */
 	}
       } /* for */
     }
