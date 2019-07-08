@@ -51,7 +51,8 @@ typedef enum {
   minute_script = 0,
   five_minute_script,
   hour_script,
-  day_script
+  day_script,
+  MAX_NUM_PERIODIC_SCRIPTS /* IMPORTANT: leave it as last element */
 } ScriptPeriodicity;
 
 typedef enum {

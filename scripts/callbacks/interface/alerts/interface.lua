@@ -27,7 +27,7 @@ end
 -- #################################################################
 
 -- The function below is called once per interface
-local function checkInterfaceAlertsThreshold(interface_key, interface_info, granularity, rules)
+local function checkInterfaceAlertsThreshold(interface_key, interface_info, granularity, num_granularity, rules)
    if(do_trace) then print("checkInterfaceAlertsThreshold()\n") end
 
    for function_name,params in pairs(rules) do
@@ -38,13 +38,14 @@ local function checkInterfaceAlertsThreshold(interface_key, interface_info, gran
       threshold_operator = params["operator"]
       metric_name        = params["metric"]
       threshold_gran     = granularity
+      threshold_num_gran = num_granularity
       i_info             = interface_info
 
       print("[Alert @ "..granularity.."] ".. interface_key .." ["..function_name.."]\n")
 
       if(true) then
 	 -- This is where magic happens: load() evaluates the string
-	 local what = 'return('..function_name..'(metric_name, i_info, threshold_gran))'
+	 local what = 'return('..function_name..'(metric_name, i_info, threshold_gran, threshold_num_gran))'
 	 -- print(what)
 	 local func, err = load(what)
 
@@ -66,15 +67,17 @@ local function checkInterfaceAlertsThreshold(interface_key, interface_info, gran
 	       end
 
 	       if(alarmed) then
-		  print("Trigger alert [value: "..tostring(value).."]\n")
-
-		  -- IMPORTANT: uncommenting the line below break all
-		  -- interface_alert:trigger(interface_key, "Host "..interface_key.." crossed threshold "..metric_name)
-		  interface.storeTriggeredAlert(alert_key_name..":"..granularity)
+		  if(interface.storeTriggeredAlert(alert_key_name, num_granularity)) then
+		     print("Trigger alert [value: "..tostring(value).."]\n")
+		     
+		     -- IMPORTANT: uncommenting the line below break all
+		     -- interface_alert:trigger(interface_key, "Host "..interface_key.." crossed threshold "..metric_name)
+		  end
 	       else
-		  print("DON'T trigger alert [value: "..tostring(value).."]\n")
-		  -- interface_alert:release(interface_key)
-		  interface.releaseTriggeredAlert(alert_key_name..":"..granularity)
+		  if(interface.releaseTriggeredAlert(alert_key_name, num_granularity)) then
+		     print("DON'T trigger alert [value: "..tostring(value).."]\n")
+		     -- interface_alert:release(interface_key)
+		  end
 	       end
 	    else
 	       if(do_trace) then print("Execution error:  "..tostring(rc).."\n") end
@@ -95,17 +98,18 @@ function checkInterfaceAlerts(granularity)
    local info = interface.getStats()
    local interface_key   = "iface_"..interface.getId()
    local interface_alert = config_alerts[interface_key]
-
+   local num_granularity = granularity2id(granularity)
+   
    if(do_trace) then print("checkInterfaceAlerts()\n") end
 
    -- specific host alerts
    if((interface_alert ~= nil) and (table.len(interface_alert) > 0)) then
-      checkInterfaceAlertsThreshold(interface_key, info, granularity, interface_alert)
+      checkInterfaceAlertsThreshold(interface_key, info, granularity, num_granularity, interface_alert)
    end
 
    -- generic host alerts
    interface_alert = config_alerts["interfaces"]
    if((interface_alert ~= nil) and (table.len(interface_alert) > 0)) then
-      checkInterfaceAlertsThreshold(interface_key, info, granularity, interface_alert)
+      checkInterfaceAlertsThreshold(interface_key, info, granularity, num_granularity, interface_alert)
    end
 end

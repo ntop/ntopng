@@ -4,21 +4,21 @@
 
 -- #################################################################
 
-local function cached_val_key(metric_name, granularity)
-   return string.format("%s:%s", metric_name, granularity)
+local function cached_val_key(metric_name, granularity_num)
+   return string.format("%s:%s", metric_name, granularity_num)
 end
 
 -- #################################################################
 
-local function delta_val(metric_name, granularity, curr_val)
-   local key = cached_val_key(metric_name, granularity)
+local function delta_val(metric_name, granularity_num, curr_val)
+   local key = cached_val_key(metric_name, granularity_num)
 
    -- Read cached value and purify it
-   local prev_val = interface.getCachedAlertValue(key)
+   local prev_val = interface.getCachedAlertValue(key, granularity_num)
    prev_val = tonumber(prev_val) or 0
 
    -- Save the value for the next round
-   interface.setCachedAlertValue(key, tostring(curr_val))
+   interface.setCachedAlertValue(key, tostring(curr_val), granularity_num)
 
    -- Compute the delta
    return curr_val - prev_val
@@ -38,46 +38,46 @@ end
 
 -- #################################################################
 
-function active_local_hosts(metric_name, info, granularity)
-   return delta_val(metric_name, granularity, info["stats"]["local_hosts"])
+function active_local_hosts(metric_name, info, granularity, granularity_num)
+   return delta_val(metric_name, granularity_num, info["stats"]["local_hosts"])
 end
 
 -- #################################################################
 
-function bytes(metric_name, info, granularity)
-  return delta_val(metric_name, granularity, info["stats"]["bytes"])
+function bytes(metric_name, info, granularity, granularity_num)
+  return delta_val(metric_name, granularity_num, info["stats"]["bytes"])
 end
 
 -- #################################################################
 
-function dns(metric_name, info, granularity)
-   return delta_val(metric_name, granularity, application_bytes(info, "DNS"))
+function dns(metric_name, info, granularity, granularity_num)
+   return delta_val(metric_name, granularity_num, application_bytes(info, "DNS"))
 end
 
 -- #################################################################
 
-function idle(metric_name, info, granularity)
-   return delta_val(metric_name, granularity, os.time() - info["seen.last"])
+function idle(metric_name, info, granularity, granularity_num)
+   return delta_val(metric_name, granularity_num, os.time() - info["seen.last"])
 end
 
 -- #################################################################
 
-function p2p(metric_name, info, granularity)
+function p2p(metric_name, info, granularity, granularity_num)
    local tot_p2p = application_bytes(info, "eDonkey") + application_bytes(info, "BitTorrent") + application_bytes(info, "Skype")
 
-   return delta_val(metric_name, granularity, tot_p2p)
+   return delta_val(metric_name, granularity_num, tot_p2p)
 end
 
 -- #################################################################
 
-function packets(metric_name, info, granularity)
-   return delta_val(metric_name, granularity, info["stats"]["packets"])
+function packets(metric_name, info, granularity, granularity_num)
+   return delta_val(metric_name, granularity_num, info["stats"]["packets"])
 end
 
 -- #################################################################
 
-function throughput(metric_name, info, granularity)
-   local duration = granularity2sec(granularity)
+function throughput(metric_name, info, granularity, granularity_num)
+   local duration = granularity_num2sec(granularity_num)
 
-   return delta_val(metric_name, granularity, info["stats"]["bytes"]) * 8 / duration
+   return delta_val(metric_name, granularity_num, info["stats"]["bytes"]) * 8 / duration
 end

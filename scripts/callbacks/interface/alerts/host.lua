@@ -27,7 +27,7 @@ end
 -- #################################################################
 
 -- The function below is called once per host
-local function checkHostAlertsThreshold(host_key, host_info, granularity, rules)
+local function checkHostAlertsThreshold(host_key, host_info, granularity, num_granularity, rules)
    if(do_trace) then print("checkHostAlertsThreshold()\n") end
 
    for function_name,params in pairs(rules) do
@@ -38,13 +38,14 @@ local function checkHostAlertsThreshold(host_key, host_info, granularity, rules)
       threshold_operator = params["operator"]
       metric_name        = params["metric"]
       threshold_gran     = granularity
+      threshold_num_gran = num_granularity
       h_info             = host_info
 
       print("[Alert @ "..granularity.."] ".. host_key .." ["..function_name.."]\n")
 
       if(true) then
 	 -- This is where magic happens: load() evaluates the string
-	 local what = 'return checks.'..function_name..'(metric_name, h_info, threshold_gran)'
+	 local what = 'return checks.'..function_name..'(metric_name, h_info, threshold_gran, threshold_num_gran)'
 	 -- tprint(what)
 	 local func, err = load(what, 't')
 
@@ -66,15 +67,16 @@ local function checkHostAlertsThreshold(host_key, host_info, granularity, rules)
 	       end
 
 	       if(alarmed) then
-		  print("Trigger alert [value: "..tostring(value).."]\n")
-
-		  -- IMPORTANT: uncommenting the line below break all
-		  -- host_alert:trigger(host_key, "Host "..host_key.." crossed threshold "..metric_name)
-		  host.storeTriggeredAlert(alert_key_name..":"..granularity)
+		  if(host.storeTriggeredAlert(alert_key_name, num_granularity)) then
+		     -- IMPORTANT: uncommenting the line below break all
+		     -- host_alert:trigger(host_key, "Host "..host_key.." crossed threshold "..metric_name)
+		     print("Trigger alert [value: "..tostring(value).."]\n")
+		  end
 	       else
-		  print("DON'T trigger alert [value: "..tostring(value).."]\n")
-		  -- host_alert:release(host_key)
-		  host.releaseTriggeredAlert(alert_key_name..":"..granularity)
+		  if(host.releaseTriggeredAlert(alert_key_name, num_granularity)) then
+		     print("DON'T trigger alert [value: "..tostring(value).."]\n")
+		     -- host_alert:release(host_key)
+		  end
 	       end
 	    else
 	       if(do_trace) then print("Execution error:  "..tostring(rc).."\n") end
@@ -95,17 +97,18 @@ function checkHostAlerts(granularity)
    local info       = host.getFullInfo()
    local host_key   = info.ip.."@"..info.vlan
    local host_alert = config_alerts[host_key]
-
+   local num_granularity = granularity2id(granularity)
+   
    if(do_trace) then print("checkHostAlerts()\n") end
 
    -- specific host alerts
    if((host_alert ~= nil) and (table.len(host_alert) > 0)) then
-      checkHostAlertsThreshold(host_key, info, granularity, host_alert)
+      checkHostAlertsThreshold(host_key, info, granularity, num_granularity, host_alert)
    end
 
    -- generic host alerts
    host_alert = config_alerts["local_hosts"]
    if((host_alert ~= nil) and (table.len(host_alert) > 0)) then
-      checkHostAlertsThreshold(host_key, info, granularity, host_alert)
+      checkHostAlertsThreshold(host_key, info, granularity, num_granularity, host_alert)
    end
 end

@@ -3651,5 +3651,14 @@ function notify_ntopng_stop()
    notify_ntopng_status(false)
 end
 
+-- See NetworkInterface::checkHostsAlerts()
+function granularity2id(granularity)
+   if(granularity == "min")       then return(0)
+   elseif(granularity == "5mins") then return(1)
+   elseif(granularity == "hour")  then return(2)
+   elseif(granularity == "day")   then return(3)
+   end
+end
+
 -- DEBUG: uncomment this to test
 --~ scanAlerts("min", "wlan0")

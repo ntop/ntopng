@@ -28,23 +28,35 @@ class NetworkInterface;
 
 class AlertableEntity {
  protected:
-  std::map<std::string, std::string> alert_cache;
-  std::set<std::string> triggered_alerts;
+  std::map<std::string, std::string> alert_cache[MAX_NUM_PERIODIC_SCRIPTS];
+  std::set<std::string> triggered_alerts[MAX_NUM_PERIODIC_SCRIPTS];
   
  public:
   AlertableEntity() { ; }
 
-  inline std::string getAlertCachedValue(std::string key) {
-    std::map<std::string, std::string>::iterator it = alert_cache.find(key);
+  inline std::string getAlertCachedValue(std::string key, ScriptPeriodicity p) {
+    std::map<std::string, std::string>::iterator it = alert_cache[(u_int)p].find(key);
     
-    return((it != alert_cache.end()) ? it->second : std::string(""));
+    return((it != alert_cache[(u_int)p].end()) ? it->second : std::string(""));
   }
   
-  inline void setAlertCacheValue(std::string key, std::string value) { alert_cache[key] = value; }
+  inline void setAlertCacheValue(std::string key, std::string value, ScriptPeriodicity p) {
+    alert_cache[(u_int)p][key] = value;
+  }
 
-  inline void  triggerAlert(std::string key) { triggered_alerts.insert(key);     }
-  inline void  releaseAlert(std::string key) { triggered_alerts.erase(key);      }
-  inline u_int getNumTriggeredAlerts()       { return(triggered_alerts.size()); }
+  /* Return true if the element was inserted, false if already present */
+  inline bool  triggerAlert(std::string key, ScriptPeriodicity p) {
+    return(triggered_alerts[(u_int)p].insert(key).second);
+  }
+
+  /* Return true if the element was existing and thus deleted, false if not present */
+  inline bool  releaseAlert(std::string key, ScriptPeriodicity p) {
+    return((triggered_alerts[(u_int)p].erase(key) == 1) ? true : false);
+  }
+  
+  inline u_int getNumTriggeredAlerts(ScriptPeriodicity p) {
+    return(triggered_alerts[(u_int)p].size());
+  }
 };
 
 #endif

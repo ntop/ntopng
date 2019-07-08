@@ -491,7 +491,16 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
 
   lua_push_bool_table_entry(vm, "privatehost", isPrivateHost());
   lua_push_bool_table_entry(vm, "hiddenFromTop", isHiddenFromTop());
-  lua_push_uint64_table_entry(vm, "num_triggered_alerts", getNumTriggeredAlerts());
+
+  lua_newtable(vm);
+  lua_push_uint64_table_entry(vm, "min", getNumTriggeredAlerts(minute_script));
+  lua_push_uint64_table_entry(vm, "5mins", getNumTriggeredAlerts(five_minute_script));
+  lua_push_uint64_table_entry(vm, "hour", getNumTriggeredAlerts(hour_script));
+  lua_push_uint64_table_entry(vm, "day", getNumTriggeredAlerts(day_script));
+    lua_pushstring(vm, "num_triggered_alerts");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+
   lua_push_uint64_table_entry(vm, "num_alerts", triggerAlerts() ? getNumAlerts() : 0);
 
   lua_push_str_table_entry(vm, "name", get_visual_name(buf, sizeof(buf)));
