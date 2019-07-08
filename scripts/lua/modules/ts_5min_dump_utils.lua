@@ -389,27 +389,17 @@ function ts_dump.run_5min_dump(_ifname, ifstats, config, when, time_threshold, s
   local min_instant = when - (when % 60) - 60
 
   -- alerts stuff
-  if are_alerts_enabled then
-    housekeepingAlertsMakeRoom(getInterfaceId(_ifname))
-    working_status = newAlertsWorkingStatus(ifstats, "5mins")
-
-    check_interface_alerts(ifstats.id, working_status)
-    check_networks_alerts(ifstats.id, working_status)
-    -- will scan the hosts alerts below
+  if(are_alerts_enabled) then
+    scanAlerts("5mins", ifstats)
   end
 
   local dump_tstart = os.time()
   local dumped_hosts = {}
 
   -- Save hosts stats (if enabled from the preferences)
-  if (is_rrd_creation_enabled and (config.host_rrd_creation ~= "0")) or are_alerts_enabled then
+  if (is_rrd_creation_enabled and (config.host_rrd_creation ~= "0")) then
     local in_time = callback_utils.foreachLocalRRDHost(_ifname, time_threshold, is_rrd_creation_enabled, function (hostname, host_ts)
       local host_key = host_ts.tskey
-
-      if are_alerts_enabled then
-        -- Check alerts first
-        check_host_alerts(ifstats.id, working_status, hostname)
-      end
 
       if(is_rrd_creation_enabled and (dumped_hosts[host_key] == nil)) then
         local min_host_instant = min_instant
