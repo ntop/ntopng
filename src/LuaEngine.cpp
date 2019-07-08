@@ -8019,7 +8019,7 @@ static int ntop_host_get_fields(lua_State* vm, bool all_fields) {
   Host *h = c ? c->host : NULL;
 
   if(h) {
-    h->lua(vm, NULL, all_fields, false, false, false);
+    h->lua(vm, NULL, all_fields, all_fields, false, false);
     return(CONST_LUA_OK);
   } else
     return(CONST_LUA_ERROR);
