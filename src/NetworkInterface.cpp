@@ -7596,6 +7596,9 @@ void NetworkInterface::checkHostsAlerts(ScriptPeriodicity p) {
   case 1: ap.granularity = "5mins"; break;
   case 2: ap.granularity = "hour";  break;
   case 3: ap.granularity = "day";   break;
+  default:
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "INTERNAL ERROR: Missing value");
+    break;
   }
 
   le.load_script(script_path, this);
@@ -7632,6 +7635,9 @@ void NetworkInterface::checkInterfaceAlerts(ScriptPeriodicity p) {
   case 1: ap.granularity = "5mins"; break;
   case 2: ap.granularity = "hour";  break;
   case 3: ap.granularity = "day";   break;
+  default:
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "INTERNAL ERROR: Missing value");
+    break;
   }
 
   le.load_script(script_path, this);
