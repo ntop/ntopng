@@ -3132,125 +3132,6 @@ static int ntop_getsflowdeviceinfo(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_checkpoint_host(lua_State* vm) {
-  int ifid;
-  NetworkInterface *iface = NULL;
-  char *host_ip;
-  u_int16_t vlan_id = 0;
-  u_int8_t checkpoint_id;
-  DetailsLevel details_level = details_normal;
-  char buf[64];
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  if(lua_type(vm, 4) == LUA_TSTRING) Utils::str2DetailsLevel(lua_tostring(vm, 4), &details_level);
-
-  ifid = (int)lua_tointeger(vm, 1);
-  iface = ntop->getInterfaceById(ifid);
-
-  get_host_vlan_info((char*)lua_tostring(vm, 2), &host_ip, &vlan_id, buf, sizeof(buf));
-
-  checkpoint_id = (u_int8_t)lua_tointeger(vm, 3);
-
-  if(!iface || iface->isView() ||
-     !iface->checkPointHostCounters(vm,
-				    checkpoint_id, host_ip, vlan_id, details_level)){
-    lua_pushnil(vm);
-    return(CONST_LUA_ERROR);
-  } else
-    return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-static int ntop_checkpoint_host_talker(lua_State* vm) {
-  int ifid;
-  NetworkInterface *iface = NULL;
-  char *host_ip;
-  u_int16_t vlan_id = 0;
-  char buf[64];
-  bool save_checkpoint = true;
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-
-  ifid = (int)lua_tointeger(vm, 1);
-  iface = ntop->getInterfaceById(ifid);
-
-  get_host_vlan_info((char*)lua_tostring(vm, 2), &host_ip, &vlan_id, buf, sizeof(buf));
-
-  if(lua_type(vm, 3) == LUA_TBOOLEAN) save_checkpoint = lua_toboolean(vm, 3);
-
-  if(!iface || iface->isView()
-     || !iface->checkPointHostTalker(vm, host_ip, vlan_id, save_checkpoint))
-    return(CONST_LUA_ERROR);
-  else
-    return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-static int ntop_checkpoint_network(lua_State* vm) {
-  int ifid;
-  NetworkInterface *iface = NULL;
-  u_int8_t network_id;
-  u_int8_t checkpoint_id;
-  DetailsLevel details_level = details_normal;
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  if(lua_type(vm, 4) == LUA_TSTRING) Utils::str2DetailsLevel(lua_tostring(vm, 4), &details_level);
-
-  ifid = (int)lua_tointeger(vm, 1);
-  iface = ntop->getInterfaceById(ifid);
-
-  network_id = (u_int8_t)lua_tointeger(vm, 2);
-  checkpoint_id = (u_int8_t)lua_tointeger(vm, 3);
-
-  if(!iface || iface->isView()
-     || !iface->checkPointNetworkCounters(vm,
-					  checkpoint_id, network_id, details_level))
-    return(CONST_LUA_ERROR);
-  else
-    return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-static int ntop_checkpoint_interface(lua_State* vm) {
-  int ifid;
-  NetworkInterface *iface = NULL;
-  u_int8_t checkpoint_id;
-  DetailsLevel details_level = details_normal;
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  if(lua_type(vm, 3) == LUA_TSTRING) Utils::str2DetailsLevel(lua_tostring(vm, 3), &details_level);
-
-  ifid = (int)lua_tointeger(vm, 1);
-  iface = ntop->getInterfaceById(ifid);
-  checkpoint_id = (u_int8_t)lua_tointeger(vm, 2);
-
-  if(!iface || iface->isView() ||
-     !iface->checkPointInterfaceCounters(vm,
-					 checkpoint_id, details_level))
-    return(CONST_LUA_ERROR);
-  else
-    return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
 // ***API***
 static int ntop_get_interface_flow_key(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
@@ -8773,10 +8654,6 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getGroupedHosts",          ntop_get_grouped_interface_hosts },
   { "addMacsIpAddresses",       ntop_add_macs_ip_addresses },
   { "getNetworksStats",         ntop_get_interface_networks_stats },
-  { "checkpointHost",           ntop_checkpoint_host },
-  { "checkpointHostTalker",     ntop_checkpoint_host_talker },
-  { "checkpointNetwork",        ntop_checkpoint_network },
-  { "checkpointInterface",      ntop_checkpoint_interface },
   { "getFlowsInfo",             ntop_get_interface_flows_info },
   { "getGroupedFlows",          ntop_get_interface_get_grouped_flows },
   { "getFlowsStats",            ntop_get_interface_flows_stats          },

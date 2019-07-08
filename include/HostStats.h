@@ -24,7 +24,7 @@
 
 class Host;
 
-class HostStats: public Checkpointable, public TimeseriesStats {
+class HostStats: public TimeseriesStats {
  protected:
   NetworkInterface *iface;
 
@@ -41,16 +41,10 @@ class HostStats: public Checkpointable, public TimeseriesStats {
   PacketStats sent_stats, recv_stats;
   u_int32_t total_num_flows_as_client, total_num_flows_as_server;
 
-  /* Written by minute activity thread */
-  u_int64_t checkpoint_sent_bytes, checkpoint_rcvd_bytes;
-  bool checkpoint_set;
-
  public:
   HostStats(Host *_host);
   virtual ~HostStats();
 
-  void checkPointHostTalker(lua_State *vm, bool saveCheckpoint);
-  bool serializeCheckpoint(json_object *my_object, DetailsLevel details_level);
   virtual void incStats(time_t when, u_int8_t l4_proto, u_int ndpi_proto,
 		custom_app_t custom_app,
 		u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,

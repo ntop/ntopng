@@ -24,7 +24,7 @@
 
 #include "ntop_includes.h"
 
-class NetworkStats: public Checkpointable {
+class NetworkStats {
  private:
   TrafficStats ingress, ingress_broadcast; /* outside -> network */
   TrafficStats egress, egress_broadcast;   /* network -> outside */
@@ -73,7 +73,7 @@ class NetworkStats: public Checkpointable {
   };
 
   void lua(lua_State* vm);
-  bool serializeCheckpoint(json_object *my_object, DetailsLevel details_level);
+  bool serialize(json_object *my_object);
   void deserialize(json_object *obj);
 };
 

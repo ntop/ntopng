@@ -37,9 +37,6 @@ HostStats::HostStats(Host *_host) : TimeseriesStats(_host) {
   last_update_time.tv_sec = 0, last_update_time.tv_usec = 0;
   total_num_flows_as_client = total_num_flows_as_server = 0;
 
-  checkpoint_set = false;
-  checkpoint_sent_bytes = checkpoint_rcvd_bytes = 0;
-
 #ifdef NTOPNG_PRO
   quota_enforcement_stats = quota_enforcement_stats_shadow = NULL;
 #endif
@@ -113,68 +110,6 @@ void HostStats::lua(lua_State* vm, bool mask_host, DetailsLevel details_level, b
     ((GenericTrafficElement*)this)->lua(vm, details_level >= details_higher);
     ((TimeseriesStats*)this)->luaStats(vm, iface, details_level >= details_higher, details_level >= details_max, tsLua);
   }
-}
-
-/* *************************************** */
-
-bool HostStats::serializeCheckpoint(json_object *my_object, DetailsLevel details_level) {
-  json_object_object_add(my_object, "sent", sent.getJSONObject());
-  json_object_object_add(my_object, "rcvd", rcvd.getJSONObject());
-
-  if (details_level >= details_high) {
-    json_object_object_add(my_object, "total_activity_time", json_object_new_int(total_activity_time));
-    json_object_object_add(my_object, "seen.last", json_object_new_int64(host->get_last_seen()));
-    json_object_object_add(my_object, "ndpiStats", ndpiStats->getJSONObjectForCheckpoint(iface));
-    json_object_object_add(my_object, "flows.as_client", json_object_new_int(getTotalNumFlowsAsClient()));
-    json_object_object_add(my_object, "flows.as_server", json_object_new_int(getTotalNumFlowsAsServer()));
-
-    /* Protocol stats */
-    l4stats.serialize(my_object);
-
-    /* packet stats */
-    json_object_object_add(my_object, "pktStats.sent", sent_stats.getJSONObject());
-    json_object_object_add(my_object, "pktStats.recv", recv_stats.getJSONObject());
-
-    /* throughput stats */
-    json_object_object_add(my_object, "throughput_bps", json_object_new_double(bytes_thpt));
-    json_object_object_add(my_object, "throughput_trend_bps", json_object_new_string(Utils::trend2str(bytes_thpt_trend)));
-    json_object_object_add(my_object, "throughput_pps", json_object_new_double(pkts_thpt));
-    json_object_object_add(my_object, "throughput_trend_pps", json_object_new_string(Utils::trend2str(pkts_thpt_trend)));
-  }
-
-  return true;
-}
-
-/* *************************************** */
-
-void HostStats::checkPointHostTalker(lua_State *vm, bool saveCheckpoint) {
-  lua_newtable(vm);
-
-  if (! checkpoint_set) {
-    if(saveCheckpoint) checkpoint_set = true;
-  } else {
-    lua_newtable(vm);
-    lua_push_uint64_table_entry(vm, "sent", checkpoint_sent_bytes);
-    lua_push_uint64_table_entry(vm, "rcvd", checkpoint_rcvd_bytes);
-    lua_pushstring(vm, "previous");
-    lua_insert(vm, -2);
-    lua_settable(vm, -3);
-  }
-
-  u_int32_t sent_bytes = sent.getNumBytes();
-  u_int32_t rcvd_bytes = rcvd.getNumBytes();
-
-  if(saveCheckpoint) {
-    checkpoint_sent_bytes = sent_bytes;
-    checkpoint_rcvd_bytes = rcvd_bytes;
-  }
-
-  lua_newtable(vm);
-  lua_push_uint64_table_entry(vm, "sent", sent_bytes);
-  lua_push_uint64_table_entry(vm, "rcvd", rcvd_bytes);
-  lua_pushstring(vm, "current");
-  lua_insert(vm, -2);
-  lua_settable(vm, -3);
 }
 
 /* *************************************** */
