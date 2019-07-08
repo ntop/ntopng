@@ -24,8 +24,8 @@ end
 
 function bytes(metric_name, info, granularity)
    local key = metric_name..":"..granularity
-   local prev_bytes = host.getCachedAlertValue(key) -- read cached value
-   local curr_bytes = info["bytes.sent"] + info["bytes.rcvd"]
+   local prev_bytes = interface.getCachedAlertValue(key) -- read cached value
+   local curr_bytes = info["stats"]["bytes"]
    local diff
 
    -- tprint(info)
@@ -34,7 +34,7 @@ function bytes(metric_name, info, granularity)
    if(prev_bytes == "") then prev_bytes = 0 else prev_bytes = tonumber(prev_bytes) end
 
    -- save the value for the next round
-   host.setCachedAlertValue(key, tostring(curr_bytes))
+   interface.setCachedAlertValue(key, tostring(curr_bytes))
 
    -- compute the difference
    return(curr_bytes - prev_bytes)
@@ -42,9 +42,9 @@ end
 
 -- #################################################################
 
--- The function below is called once per host
-local function checkHostAlertsThreshold(host_key, host_info, granularity, rules)
-   if(do_trace) then print("checkHostAlertsThreshold()\n") end
+-- The function below is called once per interface
+local function checkInterfaceAlertsThreshold(interface_key, interface_info, granularity, rules)
+   if(do_trace) then print("checkInterfaceAlertsThreshold()\n") end
 
    for function_name,params in pairs(rules) do
       -- IMPORTANT: do not use "local" with the variables below
@@ -54,13 +54,13 @@ local function checkHostAlertsThreshold(host_key, host_info, granularity, rules)
       threshold_operator = params["operator"]
       metric_name        = params["metric"]
       threshold_gran     = granularity
-      h_info             = host_info
+      i_info             = interface_info
 
-      print("[Alert @ "..granularity.."] ".. host_key .." ["..function_name.."]\n")
+      print("[Alert @ "..granularity.."] ".. interface_key .." ["..function_name.."]\n")
 
       if(true) then
 	 -- This is where magic happens: load() evaluates the string
-	 local what = 'return('..function_name..'(metric_name, h_info, threshold_gran))'
+	 local what = 'return('..function_name..'(metric_name, i_info, threshold_gran))'
 	 -- print(what)
 	 local func, err = load(what)
 
@@ -69,7 +69,7 @@ local function checkHostAlertsThreshold(host_key, host_info, granularity, rules)
 
 	    if ok then
 	       local alarmed = false
-	       local host_alert = alerts_api:newAlert({ entity = "host", type = "threshold_cross", severity = "error" })
+	       local interface_alert = alerts_api:newAlert({ entity = "host", type = "threshold_cross", severity = "error" })
 
 	       if(do_trace) then print("Execution OK. value: "..tostring(value)..", operator: "..threshold_operator..", threshold: "..threshold_value.."]\n") end
 
@@ -85,11 +85,11 @@ local function checkHostAlertsThreshold(host_key, host_info, granularity, rules)
 		  print("Trigger alert [value: "..tostring(value).."]\n")
 
 		  -- IMPORTANT: uncommenting the line below break all
-		  -- host_alert:trigger(host_key, "Host "..host_key.." crossed threshold "..metric_name)
+		  -- interface_alert:trigger(interface_key, "Host "..interface_key.." crossed threshold "..metric_name)
 		  host.storeTriggeredAlert(alert_key_name..":"..granularity)
 	       else
 		  print("DON'T trigger alert [value: "..tostring(value).."]\n")
-		  -- host_alert:release(host_key)
+		  -- interface_alert:release(interface_key)
 		  host.releaseTriggeredAlert(alert_key_name..":"..granularity)
 	       end
 	    else
@@ -108,20 +108,20 @@ end
 
 -- The function below is called once per host
 function checkInterfaceAlerts(granularity)
-   local info       = host.getInfo()
-   local host_key   = info.ip.."@"..info.vlan
-   local host_alert = config_alerts[host_key]
+   local info = interface.getStats()
+   local interface_key   = "iface_"..interface.getId()
+   local interface_alert = config_alerts[interface_key]
 
    if(do_trace) then print("checkInterfaceAlerts()\n") end
 
    -- specific host alerts
-   if((host_alert ~= nil) and (table.len(host_alert) > 0)) then
-      checkHostAlertsThreshold(host_key, info, granularity, host_alert)
+   if((interface_alert ~= nil) and (table.len(interface_alert) > 0)) then
+      checkInterfaceAlertsThreshold(interface_key, info, granularity, interface_alert)
    end
 
    -- generic host alerts
-   host_alert = config_alerts["local_hosts"]
-   if((host_alert ~= nil) and (table.len(host_alert) > 0)) then
-      checkHostAlertsThreshold(host_key, info, granularity, host_alert)
+   interface_alert = config_alerts["interfaces"]
+   if((interface_alert ~= nil) and (table.len(interface_alert) > 0)) then
+      checkInterfaceAlertsThreshold(interface_key, info, granularity, interface_alert)
    end
 end

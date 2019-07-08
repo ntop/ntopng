@@ -19,5 +19,8 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 -- checks all the hosts of the current interface (TODO: iterate all interfaces)
 ntop.checkHostsAlertsMin()
 
+-- checks the current interface alerts
+interface.checkAlertsMin()
+
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
 
