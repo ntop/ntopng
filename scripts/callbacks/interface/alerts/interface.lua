@@ -18,26 +18,10 @@ function setup(str_granularity)
    print("alert.lua:setup("..str_granularity..") called\n")
    ifname = interface.setActiveInterfaceId(tonumber(interface.getId()))
    config_alerts = getInterfaceConfiguredAlertThresholds(ifname, str_granularity)
-end
 
--- #################################################################
-
-function bytes(metric_name, info, granularity)
-   local key = metric_name..":"..granularity
-   local prev_bytes = interface.getCachedAlertValue(key) -- read cached value
-   local curr_bytes = info["stats"]["bytes"]
-   local diff
-
-   -- tprint(info)
-
-   -- purify the value
-   if(prev_bytes == "") then prev_bytes = 0 else prev_bytes = tonumber(prev_bytes) end
-
-   -- save the value for the next round
-   interface.setCachedAlertValue(key, tostring(curr_bytes))
-
-   -- compute the difference
-   return(curr_bytes - prev_bytes)
+   -- Load the threashold checking functions
+   package.path = dirs.installdir .. "/scripts/callbacks/interface/alerts/interface/?.lua;" .. package.path
+   require("check")
 end
 
 -- #################################################################
@@ -86,11 +70,11 @@ local function checkInterfaceAlertsThreshold(interface_key, interface_info, gran
 
 		  -- IMPORTANT: uncommenting the line below break all
 		  -- interface_alert:trigger(interface_key, "Host "..interface_key.." crossed threshold "..metric_name)
-		  host.storeTriggeredAlert(alert_key_name..":"..granularity)
+		  interface.storeTriggeredAlert(alert_key_name..":"..granularity)
 	       else
 		  print("DON'T trigger alert [value: "..tostring(value).."]\n")
 		  -- interface_alert:release(interface_key)
-		  host.releaseTriggeredAlert(alert_key_name..":"..granularity)
+		  interface.releaseTriggeredAlert(alert_key_name..":"..granularity)
 	       end
 	    else
 	       if(do_trace) then print("Execution error:  "..tostring(rc).."\n") end
