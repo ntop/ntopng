@@ -307,13 +307,13 @@ function is_allowed_alarmable_metric(metric)
    return false
 end
 
-function get_alerts_hash_name(timespan, ifname)
+function get_alerts_hash_name(timespan, ifname, entity_type)
    local ifid = getInterfaceId(ifname)
    if not is_allowed_timespan(timespan) or tonumber(ifid) == nil then
       return nil
    end
 
-   return "ntopng.prefs.alerts_"..timespan..".ifid_"..tostring(ifid)
+   return "ntopng.prefs.alerts_"..timespan..".".. entity_type ..".ifid_"..tostring(ifid)
 end
 
 -- Get the hash key used for saving global settings
@@ -1255,7 +1255,7 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
       if((_POST["to_delete"] ~= nil) and (_POST["SaveAlerts"] == nil)) then
          if _POST["to_delete"] == "local" then
             -- Delete threshold configuration
-            ntop.delHashCache(get_alerts_hash_name(tab, ifname), alert_source)
+            ntop.delHashCache(get_alerts_hash_name(tab, ifname, entity_type), alert_source)
 
             -- Delete specific settings
             if entity_type == "host" then
@@ -1341,12 +1341,12 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
 
          --print(alerts)
 
-         if(to_save) then
+         if(to_save and (_POST["to_delete"] == nil)) then
             -- This specific entity alerts
             if(alerts == "") then
-               ntop.delHashCache(get_alerts_hash_name(tab, ifname), alert_source)
+               ntop.delHashCache(get_alerts_hash_name(tab, ifname, entity_type), alert_source)
             else
-               ntop.setHashCache(get_alerts_hash_name(tab, ifname), alert_source, alerts)
+               ntop.setHashCache(get_alerts_hash_name(tab, ifname, entity_type), alert_source, alerts)
             end
 
             -- Global alerts
@@ -1356,7 +1356,7 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
                ntop.delHashCache(global_redis_hash, global_redis_thresholds_key)
             end
          else
-            alerts = ntop.getHashCache(get_alerts_hash_name(tab, ifname), alert_source)
+            alerts = ntop.getHashCache(get_alerts_hash_name(tab, ifname, entity_type), alert_source)
             global_alerts = ntop.getHashCache(global_redis_hash, global_redis_thresholds_key)
          end
       end -- END if _POST["to_delete"] ~= nil
@@ -2088,13 +2088,13 @@ end
 
 -- #################################
 
-function getConfiguredAlertsThresholds(ifname, granularity)
-   local thresholds_key = get_alerts_hash_name(granularity, ifname)
+local function getEntityConfiguredAlertThresholds(ifname, granularity, entity_type)
+   local thresholds_key = get_alerts_hash_name(granularity, ifname, entity_type)
    local thresholds_config = {}
    local res = {}
    
    -- Handle the global configuration
-   local global_conf_keys = ntop.getKeysCache(getGlobalAlertsConfigurationHash(granularity, "*", "*")) or {}
+   local global_conf_keys = ntop.getKeysCache(getGlobalAlertsConfigurationHash(granularity, entity_type, "*")) or {}
 
    for alert_key in pairs(global_conf_keys) do
       local thresholds_str = ntop.getHashCache(alert_key, global_redis_thresholds_key)
@@ -2120,6 +2120,48 @@ function getConfiguredAlertsThresholds(ifname, granularity)
    end
 
    return res
+end
+
+-- #################################
+
+-- TODO remove after alerts migration is completed
+function getConfiguredAlertsThresholds(ifname, granularity)
+  local supported_entities = {"host", "interface", "network"}
+  local res = {}
+
+  for _, entity_type in pairs(supported_entities) do
+    local entity_alerts = getEntityConfiguredAlertThresholds(ifname, granularity, entity_type)
+    res = table.merge(res, entity_alerts)
+  end
+
+  return(res)
+end
+
+-- #################################
+
+-- Get all the configured threasholds for the specified interface
+-- NOTE: an additional "interfaces" key is added if there are globally
+-- configured threasholds (threasholds active for all the interfaces)
+function getInterfaceConfiguredAlertThresholds(ifname, granularity)
+  return(getEntityConfiguredAlertThresholds(ifname, granularity, "interface"))
+end
+
+-- #################################
+
+-- Get all the configured threasholds for hosts on the specified interface
+-- NOTE: an additional "local_hosts" key is added if there are globally
+-- configured threasholds (threasholds active for all the hosts of the interface)
+function getHostsConfiguredAlertThresholds(ifname, granularity)
+  return(getEntityConfiguredAlertThresholds(ifname, granularity, "host"))
+end
+
+-- #################################
+
+-- Get all the configured threasholds for networks on the specified interface
+-- NOTE: an additional "local_networks" key is added if there are globally
+-- configured threasholds (threasholds active for all the hosts of the interface)
+function getNetworksConfiguredAlertThresholds(ifname, granularity)
+  return(getEntityConfiguredAlertThresholds(ifname, granularity, "network"))
 end
 
 -- #################################

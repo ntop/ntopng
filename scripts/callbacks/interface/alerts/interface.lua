@@ -17,8 +17,7 @@ local ifname        = nil
 function setup(str_granularity)
    print("alert.lua:setup("..str_granularity..") called\n")
    ifname = interface.setActiveInterfaceId(tonumber(interface.getId()))
-   -- TODO Adapt the call below to the interface
-   config_alerts = getConfiguredAlertsThresholds(ifname, str_granularity)
+   config_alerts = getInterfaceConfiguredAlertThresholds(ifname, str_granularity)
 end
 
 -- #################################################################
