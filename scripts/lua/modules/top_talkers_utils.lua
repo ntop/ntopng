@@ -145,7 +145,9 @@ function top_talkers_utils.makeTopJson(_ifname, save_checkpoint)
    local res = {}
 
    local in_time = callback_utils.foreachHost(_ifname, os.time() + 60 --[[1 minute --]], function (hostname, hoststats)
-      local checkpoint = interface.checkpointHostTalker(ifid, hostname, save_checkpoint)
+      -- TODO fix top talkers
+      --local checkpoint = interface.checkpointHostTalker(ifid, hostname, save_checkpoint)
+      local checkpoint = nil
       local tskey = hoststats["tskey"]
 
       if(checkpoint == nil) then 
