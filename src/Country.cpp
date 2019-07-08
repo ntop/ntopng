@@ -117,7 +117,7 @@ void Country::serialize(json_object *o, DetailsLevel details_level) {
   if((obj = sent.getJSONObject()) != NULL)
     json_object_object_add(o, "traffic", obj);
   if((obj = json_object_new_object()) != NULL) {
-    dirstats.serializeCheckpoint(obj, details_level);
+    dirstats.serialize(obj);
     json_object_object_add(o, "dirstats", obj);
   }
 }

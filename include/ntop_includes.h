@@ -187,7 +187,6 @@ using namespace std;
 #include "ProtoStats.h"
 #include "Utils.h"
 #include "NtopGlobals.h"
-#include "Checkpointable.h"
 #include "TrafficStats.h"
 #include "nDPIStats.h"
 #include "FlowStatusStats.h"

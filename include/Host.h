@@ -193,9 +193,6 @@ class Host : public GenericHashEntry, public AlertableEntity {
   inline u_int64_t getNumBytesRcvd()           { return(stats->getNumBytesRcvd());   }
   inline u_int64_t getNumDroppedFlows()        { return(stats->getNumDroppedFlows());}
   inline u_int64_t getNumBytes()               { return(stats->getNumBytes());}
-  inline bool checkpoint(lua_State* vm, NetworkInterface *iface,
-					      u_int8_t checkpoint_id,
-					      DetailsLevel details_level)    { return(stats->checkpoint(vm, iface, checkpoint_id, details_level)); }
   inline float getThptTrendDiff()              { return(stats->getThptTrendDiff());  }
   inline float getBytesThpt()                  { return(stats->getBytesThpt());      }
   inline float getPacketsThpt()                { return(stats->getPacketsThpt());    }
@@ -259,7 +256,6 @@ class Host : public GenericHashEntry, public AlertableEntity {
   virtual bool dropAllTraffic()  { return(false); };
   bool incFlowAlertHits(time_t when);
   virtual bool setRemoteToRemoteAlerts() { return(false); };
-  inline void checkPointHostTalker(lua_State *vm, bool saveCheckpoint) { stats->checkPointHostTalker(vm, saveCheckpoint); }
   virtual void incrVisitedWebSite(char *hostname) {};
   inline void incTotalAlerts()            { stats->incTotalAlerts(); }
   inline u_int32_t getTotalAlerts()       { return(stats->getTotalAlerts()); }

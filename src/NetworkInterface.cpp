@@ -3536,64 +3536,6 @@ void NetworkInterface::checkReloadHostsBroadcastDomain() {
 
 /* **************************************************** */
 
-bool NetworkInterface::checkPointHostCounters(lua_State* vm, u_int8_t checkpoint_id,
-					      char *host_ip, u_int16_t vlan_id,
-					      DetailsLevel details_level) {
-  Host *h;
-  bool ret = false;
-
-  if(host_ip && (h = getHost(host_ip, vlan_id, false /* Not an inline call */)))
-    ret = h->checkpoint(vm, this, checkpoint_id, details_level);
-
-  return ret;
-}
-
-/* **************************************************** */
-
-bool NetworkInterface::checkPointNetworkCounters(lua_State* vm, u_int8_t checkpoint_id,
-					      u_int8_t network_id,
-					      DetailsLevel details_level) {
-  NetworkStats *stats = getNetworkStats(network_id);
-
-  if (stats == NULL)
-    return false;
-
-  return stats->checkpoint(vm, this, checkpoint_id, details_level);
-}
-
-/* **************************************************** */
-
-bool NetworkInterface::checkPointHostTalker(lua_State* vm, char *host_ip, u_int16_t vlan_id, bool saveCheckpoint) {
-  Host *h;
-  bool ret = false;
-
-  if(host_ip && (h = getHost(host_ip, vlan_id, false /* Not an inline call */))) {
-    h->checkPointHostTalker(vm, saveCheckpoint);
-    ret = true;
-  }
-
-  return ret;
-}
-
-/* **************************************************** */
-
-bool NetworkInterface::serializeCheckpoint(json_object *my_object, DetailsLevel details_level) {
-  json_object *inner;
-
-  if((inner = json_object_new_object()) == NULL) return false;
-
-  json_object_object_add(my_object, "seen.last", json_object_new_int64(getTimeLastPktRcvd()));
-  json_object_object_add(my_object, "ndpiStats", ndpiStats.getJSONObjectForCheckpoint(this));
-  json_object_object_add(my_object, "local_hosts", json_object_new_int64(getNumLocalHosts()));
-  json_object_object_add(inner, "bytes", json_object_new_int64(getNumBytes()));
-  json_object_object_add(inner, "packets", json_object_new_int64(getNumPackets()));
-  json_object_object_add(my_object, "stats", inner);
-
-  return true;
-}
-
-/* **************************************************** */
-
 Host* NetworkInterface::findHostByIP(AddressTree *allowed_hosts,
 				      char *host_ip, u_int16_t vlan_id) {
   if(host_ip != NULL) {

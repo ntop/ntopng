@@ -2454,50 +2454,6 @@ end
 
 -- #################################
 
-function check_interface_alerts(ifid, working_status)
-   local ifstats = interface.getStats()
-   local entity_value = "iface_"..ifid
-
-   -- note: always checkpoint as the interface could have anomalies
-
-   local checkpoints = interface.checkpointInterface(ifid, working_status.checkpoint_id, "high") or {}
-   local old_entity_info = checkpoints["previous"] and j.decode(checkpoints["previous"])
-   local new_entity_info = checkpoints["current"] and j.decode(checkpoints["current"])
-
-   -- attach anomalies to the new entity info (no need to attach them to the old)
-   if new_entity_info ~= nil then
-      new_entity_info["anomalies"] = ifstats["anomalies"] or {}
-   end
-
-   if new_entity_info == nil then
-      if warning_shown == false then
-         print("["..__FILE__().."]:["..__LINE__().."] Unexpected new_entity_info == nil")
-         tprint({
-	       old_entity_info = old_entity_info,
-	       granularity = working_status.granularity,
-	       entity_value = entity_value,
-	       ifname=getInterfaceName(ifid)})
-      end
-      return
-   end
-
-   if (old_entity_info ~= nil) and (old_entity_info.stats ~= nil)
-      and (old_entity_info.stats.bytes ~= nil)
-   and not checkpointExpired(old_entity_info, working_status) then
-      -- wrap check
-      if old_entity_info.stats.bytes > ifstats.stats.bytes then
-         -- reset
-         if(verbose) then print("entity '"..entity_value.."' stats reset("..working_status.granularity..")") end
-         old_entity_info = nil
-      end
-   else
-      -- reset
-      old_entity_info = nil
-   end
-
-   check_entity_alerts(ifid, "interface", entity_value, working_status, old_entity_info, new_entity_info)
-end
-
 function check_networks_alerts(ifid, working_status)
    local subnet_stats = interface.getNetworksStats()
    local warning_shown = false
@@ -2553,84 +2509,35 @@ function check_networks_alerts(ifid, working_status)
    end
 end
 
-function check_host_alerts(ifid, working_status, host)
-   local entity_value = hostinfo2hostkey(hostkey2hostinfo(host), nil, true --[[force vlan]])
-   local old_entity_info, new_entity_info
+-- #################################
 
-   if (working_status.configured_thresholds[entity_value] ~= nil)
-   or (working_status.configured_thresholds["local_hosts"] ~= nil) then
-
-      local checkpoints = interface.checkpointHost(ifid, entity_value, working_status.checkpoint_id, "high") or {}
-
-      old_entity_info = checkpoints["previous"] and j.decode(checkpoints["previous"])
-      new_entity_info = checkpoints["current"] and j.decode(checkpoints["current"])
+function check_interface_alerts(granularity)
+   if(granularity == "min") then
+      interface.checkAlertsMin()
+   elseif(granularity == "5mins") then
+      interface.checkAlerts5Min()
+   elseif(granularity == "hour") then
+      interface.checkAlertsHour()
+   elseif(granularity == "days") then
+      interface.checkAlertsDay()
    else
-      -- no threshold configured, no need to checkpoint
-      new_entity_info = {}
-   end
-
-   -- attach anomalies to the new entity info (no need to attach them to the old)
-   if new_entity_info ~= nil then
-      local host_stats = interface.getHostInfo(host) or {}
-      new_entity_info["anomalies"] = host_stats["anomalies"] or {}
-   end
-
-   if (new_entity_info == nil) then
-      print("["..__FILE__().."]:["..__LINE__().."] Unexpected new_entity_info == nil")
-      tprint({new_entity_info = new_entity_info,
-	      old_entity_info = old_entity_info,
-	      granularity = working_status.granularity,
-	      entity_value = entity_value, host = host,
-	      ifname=getInterfaceName(ifid)})
-      return
-   end
-
-   if (old_entity_info ~= nil) and checkpointExpired(old_entity_info, working_status) then
-      -- reset
-      old_entity_info = nil
-   end
-
-   check_entity_alerts(ifid, "host", entity_value, working_status, old_entity_info, new_entity_info)
-end
-
-function check_hosts_alerts(ifid, working_status)
-   local local_hosts_iterator = callback_utils.getLocalHostsIterator(false --[[no details]])
-   local remote_hosts_iterator = callback_utils.getRemoteHostsIterator(false --[[no details]], nil, true --[[ only hosts with anomalies ]])
-
-   for host, _ in local_hosts_iterator do
-      check_host_alerts(ifid, working_status, host)
-   end
-
-   for host, _ in remote_hosts_iterator do
-      check_host_alerts(ifid, working_status, host)
+      traceError(TRACE_ERROR, TRACE_CONSOLE, "Unknown granularity " .. granularity)
    end
 end
 
 -- #################################
 
-local function check_inactive_hosts_alerts(ifid, working_status)
-   local inactive_hosts_hash = string.format(inactive_hosts_hash_key, ifid)
-   local akey = working_status.granularity
-
-   local keys = ntop.getMembersCache(inactive_hosts_hash) or {}
-
-   for _, inactive_host in pairs(keys) do
-      local hk = hostkey2hostinfo(inactive_host)
-      local entity_value = hostinfo2hostkey(hk, nil, true --[[force vlan]])
-      local host_info = interface.getHostInfo(hk["host"], hk["vlan"])
-
-      -- tprint({inactive_host=inactive_host, alert_status = alert_status, ip = hk["host"], vlan = hk["vlan"], hostkey = hk, entity_type = entity_type or "nil", entity_value = entity_value or "nil", atype  = atype or "nil", akey = akey or "nil"})
-
-      if not host_info then
-        local alert_msg, aseverity = formatAlertMessage(ifid, working_status.engine, entity_type, entity_value, atype, akey, entity_info, alert_info)
-
-        local alert = alerts:newAlert({
-           entity = "host",
-           type = "inactivity",
-           severity = aseverity,
-        })
-        alert:trigger(entity_value, alert_msg)
-      end
+function check_hosts_alerts(granularity)
+   if(granularity == "min") then
+      ntop.checkHostsAlertsMin()
+   elseif(granularity == "5mins") then
+      ntop.checkHostsAlerts5Min()
+   elseif(granularity == "hour") then
+      ntop.checkHostsAlertsHour()
+   elseif(granularity == "days") then
+      ntop.checkHostsAlertsDay()
+   else
+      traceError(TRACE_ERROR, TRACE_CONSOLE, "Unknown granularity " .. granularity)
    end
 end
 
@@ -3230,12 +3137,9 @@ function scanAlerts(granularity, ifstats)
 
    local working_status = newAlertsWorkingStatus(ifstats, granularity)
 
-   check_interface_alerts(ifid, working_status)
+   check_interface_alerts(granularity)
    check_networks_alerts(ifid, working_status)
-   check_hosts_alerts(ifid, working_status)
-   if granularity == "min" then
-      check_inactive_hosts_alerts(ifid, working_status)
-   end
+   check_hosts_alerts(granularity)
    check_macs_alerts(ifid, working_status)
    check_host_pools_alerts(ifid, working_status)
 
