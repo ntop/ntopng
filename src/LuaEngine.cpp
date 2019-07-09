@@ -2395,6 +2395,24 @@ static int ntop_check_hosts_alerts_day(lua_State* vm)  { return(ntop_check_hosts
 
 /* ****************************************** */
 
+static int ntop_check_networks_alerts(lua_State* vm, ScriptPeriodicity p) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  if(!ntop_interface)
+    return(CONST_LUA_ERROR);
+  else
+    ntop_interface->checkNetworksAlerts(p);
+  
+  return(CONST_LUA_OK);
+}
+
+static int ntop_check_networks_alerts_min(lua_State* vm)  { return(ntop_check_networks_alerts(vm, minute_script)); }
+static int ntop_check_networks_alerts_5min(lua_State* vm) { return(ntop_check_networks_alerts(vm, five_minute_script)); }
+static int ntop_check_networks_alerts_hour(lua_State* vm) { return(ntop_check_networks_alerts(vm, hour_script));   }
+static int ntop_check_networks_alerts_day(lua_State* vm)  { return(ntop_check_networks_alerts(vm, day_script));    }
+
+/* ****************************************** */
+
 static int ntop_check_interface_alerts(lua_State* vm, ScriptPeriodicity p) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -8889,6 +8907,17 @@ static const luaL_Reg ntop_host_reg[] = {
   
   { NULL,                     NULL }
 };
+
+/* **************************************************************** */
+
+static const luaL_Reg ntop_network_reg[] = {
+  // { "getCachedAlertValue",    ntop_network_get_cached_alert_value },
+  // { "setCachedAlertValue",    ntop_network_set_cached_alert_value },
+  // { "storeTriggerAlert",      ntop_network_store_triggered_alert },
+  // { "releaseTriggeredAlert",  ntop_network_release_triggered_alert },
+  
+  { NULL,                     NULL }
+};
   
 /* **************************************************************** */
 
@@ -8958,11 +8987,17 @@ static const luaL_Reg ntop_reg[] = {
   { "reloadPreferences",   ntop_reload_preferences },
   { "setAlertsTemporaryDisabled", ntop_temporary_disable_alerts },
 
-  /* Alerts */
+  /* Host Alerts */
   { "checkHostsAlertsMin",        ntop_check_hosts_alerts_min   },
   { "checkHostsAlerts5Min",       ntop_check_hosts_alerts_5min  },
   { "checkHostsAlertsHour",       ntop_check_hosts_alerts_hour  },
   { "checkHostsAlertsDay",        ntop_check_hosts_alerts_day   },
+
+  /* Network Alerts */
+  { "checkNetworksAlertsMin",        ntop_check_networks_alerts_min   },
+  { "checkNetworksAlerts5Min",       ntop_check_networks_alerts_5min  },
+  { "checkNetworksAlertsHour",       ntop_check_networks_alerts_hour  },
+  { "checkNetworksAlertsDay",        ntop_check_networks_alerts_day   },
   
 #ifdef NTOPNG_PRO
 #ifndef WIN32
@@ -9167,6 +9202,7 @@ void LuaEngine::luaRegisterInternalRegs(lua_State *L) {
     { "interface", ntop_interface_reg },
     { "ntop",      ntop_reg           },
     { "host",      ntop_host_reg      },
+    { "network",   ntop_network_reg   },
     {NULL,         NULL}
   };
 
@@ -9759,10 +9795,11 @@ void LuaEngine::setHost(Host* h) {
 
 /* ****************************************** */
 
-/* Get the host context */
-Host* LuaEngine::getHost() {
+void LuaEngine::setNetwork(NetworkStats* ns) {
   struct ntopngLuaContext *c = getLuaVMContext(L);
 
-  return(c ? c->host : NULL);
+  if(c) c->network = ns;
 }
-  
+
+/* ****************************************** */
+

@@ -58,11 +58,9 @@ class LuaEngine {
   ~LuaEngine();
 
 
-  /* Set a host in the context */
+  /* Set Hosts and Networks into the Lua context */
   void setHost(Host* h);
-  
-  /* Get the host context */
-  Host* getHost();
+  void setNetwork(NetworkStats* ns);
   
   /**
    * @brief Run a Lua script.

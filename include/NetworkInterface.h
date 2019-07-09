@@ -643,6 +643,7 @@ class NetworkInterface : public AlertableEntity {
   inline void checkHostsBlacklistReload()           { if(reload_hosts_blacklist) { reloadHostsBlacklist(); reload_hosts_blacklist = false; } }
   void reloadHostsBlacklist();
   void checkHostsAlerts(ScriptPeriodicity p);
+  void checkNetworksAlerts(ScriptPeriodicity p);
   void checkInterfaceAlerts(ScriptPeriodicity p);
   bool isHiddenFromTop(Host *host);
   inline virtual bool areTrafficDirectionsSupported() { return(false); };

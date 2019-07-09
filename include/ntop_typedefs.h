@@ -573,6 +573,7 @@ struct ntopngLuaContext {
   SNMP *snmp;
 #endif
   Host *host;
+  NetworkStats *network;
   bool localuser;
 
   /* Packet capture */

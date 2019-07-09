@@ -7592,14 +7592,14 @@ static bool host_alert_check(GenericHashEntry *h, void *user_data, bool *matched
 
 void NetworkInterface::checkHostsAlerts(ScriptPeriodicity p) {
   LuaEngine le;
-  char script_path[256];
+  char script_path[MAX_PATH];
   u_int32_t begin_slot = 0;
   struct alert_check_param ap;
-  
+
   snprintf(script_path, sizeof(script_path),
 	   "%s/callbacks/interface/alerts/host.lua",
 	   ntop->getPrefs()->get_scripts_dir());
-  
+
   switch(p) {
   case 0: ap.granularity = "min";   break;
   case 1: ap.granularity = "5mins"; break;
@@ -7615,12 +7615,12 @@ void NetworkInterface::checkHostsAlerts(ScriptPeriodicity p) {
   /* Call global setup once... */
   {
     lua_State *L = le.getState();
-    
+
     lua_getglobal(L, "setup");         /* Called function   */
-    lua_pushstring(L, ap.granularity); /* push 1st argument */    
+    lua_pushstring(L, ap.granularity); /* push 1st argument */
     lua_pcall(L, 1 /* 1 argument */, 0 /* 0 results */, 0); /* Call the function now */
   }
-  
+
   ap.p = p, ap.le = &le;
 
   /* ... then iterate all hosts */
@@ -7629,16 +7629,64 @@ void NetworkInterface::checkHostsAlerts(ScriptPeriodicity p) {
 
 /* *************************************** */
 
+void NetworkInterface::checkNetworksAlerts(ScriptPeriodicity p) {
+  LuaEngine le;
+  char script_path[MAX_PATH];
+  struct alert_check_param ap;
+
+  snprintf(script_path, sizeof(script_path),
+	   "%s/callbacks/interface/alerts/network.lua",
+	   ntop->getPrefs()->get_scripts_dir());
+
+  switch(p) {
+  case 0: ap.granularity = "min";   break;
+  case 1: ap.granularity = "5mins"; break;
+  case 2: ap.granularity = "hour";  break;
+  case 3: ap.granularity = "day";   break;
+  default:
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "INTERNAL ERROR: Missing value");
+    break;
+  }
+
+  le.load_script(script_path, this);
+
+  /* Call global setup once... */
+  lua_State *L = le.getState();
+
+  lua_getglobal(L, "setup");         /* Called function   */
+  lua_pushstring(L, ap.granularity); /* push 1st argument */
+  lua_pcall(L, 1 /* 1 argument */, 0 /* 0 results */, 0); /* Call the function now */
+
+  ap.p = p, ap.le = &le;
+
+  /* ... then iterate all networks */
+  u_int8_t num_local_networks = ntop->getNumLocalNetworks();
+
+  for(u_int8_t network_id = 0; network_id < num_local_networks; network_id++) {
+    const char *function_to_call = "checkNetworkAlerts";
+
+    ap.le->setNetwork(getNetworkStats(network_id));
+
+    /* https://www.lua.org/pil/25.2.html */
+    lua_getglobal(L,  function_to_call); /* Called function */
+    lua_pushstring(L, ap.granularity);  /* push 1st argument */
+
+    lua_pcall(L, 1 /* 1 argument */, 0 /* 0 results */, 0); /* Call the function now */
+  }
+}
+
+/* *************************************** */
+
 void NetworkInterface::checkInterfaceAlerts(ScriptPeriodicity p) {
   LuaEngine le;
-  char script_path[256];
+  char script_path[MAX_PATH];
   struct alert_check_param ap;
   lua_State *L;
-  
+
   snprintf(script_path, sizeof(script_path),
 	   "%s/callbacks/interface/alerts/interface.lua",
 	   ntop->getPrefs()->get_scripts_dir());
-  
+
   switch(p) {
   case 0: ap.granularity = "min";   break;
   case 1: ap.granularity = "5mins"; break;
@@ -7653,14 +7701,14 @@ void NetworkInterface::checkInterfaceAlerts(ScriptPeriodicity p) {
 
   /* Call global setup once... */
   L = le.getState();
-  
+
   lua_getglobal(L, "setup");         /* Called function   */
-  lua_pushstring(L, ap.granularity); /* push 1st argument */    
+  lua_pushstring(L, ap.granularity); /* push 1st argument */
   lua_pcall(L, 1 /* 1 argument */, 0 /* 0 results */, 0); /* Call the function now */
-  
+
   /* https://www.lua.org/pil/25.2.html */
   lua_getglobal(L,  "checkInterfaceAlerts"); /* Called function */
   lua_pushstring(L, ap.granularity);  /* push 1st argument */
-  
+
   lua_pcall(L, 1 /* 1 argument */, 0 /* 0 results */, 0); /* Call the function now */
 }
