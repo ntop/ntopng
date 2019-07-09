@@ -138,65 +138,44 @@ end
 
 -- ########################################################
 
-function top_talkers_utils.makeTopJson(_ifname, save_checkpoint)
+function top_talkers_utils.makeTopJson(_ifname)
    local ifid = getInterfaceId(_ifname)
-   if save_checkpoint == nil then save_checkpoint = true end
-
    local res = {}
 
    local in_time = callback_utils.foreachHost(_ifname, os.time() + 60 --[[1 minute --]], function (hostname, hoststats)
-      -- TODO fix top talkers
-      --local checkpoint = interface.checkpointHostTalker(ifid, hostname, save_checkpoint)
-      local checkpoint = nil
+      local checkpoint = interface.checkpointHostTalker(ifid, hostname)
       local tskey = hoststats["tskey"]
+      local vlan = hoststats["vlan"]
 
-      if(checkpoint == nil) then 
-        goto continue
-      end
+      updateCache(hostname_cache, tskey, hoststats["name"])
+      updateCache(localhost_cache, tskey, hoststats["localhost"])
+      updateCache(ipaddr_cache, tskey, hostname)
+      updateCache(asname_cache, hoststats["asn"], hoststats["asname"])
 
-      local current, previous
-      if checkpoint["previous"] then previous = checkpoint["previous"] end
-      if checkpoint["current"] then current = checkpoint["current"] end
+      for _, direction in pairs({"sent", "rcvd"}) do
+	 local delta = checkpoint["delta"][direction]
 
-      if not save_checkpoint and not previous then
-        previous = {sent=0, rcvd=0}
-      end
+	 vlan_totals[vlan] = (vlan_totals[vlan] or 0) + delta
 
-     local vlan = hoststats["vlan"]
+	 local os_key = "non-local os"
+	 if hoststats["localhost"] then
+	    os_key = "local os"
+	 end
 
-     updateCache(hostname_cache, tskey, hoststats["name"])
-     updateCache(localhost_cache, tskey, hoststats["localhost"])
-     updateCache(ipaddr_cache, tskey, hostname)
-     updateCache(asname_cache, hoststats["asn"], hoststats["asname"])
+	 local country = interface.getHostCountry(hostname)
 
-     if current and previous then
-	for _, direction in pairs({"sent", "rcvd"}) do
-	   local delta = current[direction] - previous[direction]
-
-	   vlan_totals[vlan] = (vlan_totals[vlan] or 0) + delta
-
-	   local os_key = "non-local os"
-	   if hoststats["localhost"] then
-	      os_key = "local os"
-	   end
-
-	   local country = interface.getHostCountry(hostname)
-
-	   for what_key, what_value in pairs({
+	 for what_key, what_value in pairs({
 	       ["hosts"] = tskey, ["asn"] = hoststats["asn"], [os_key] = hoststats["os"],
 	       ["countries"] = ternary(not isEmptyString(country), country, nil),
 	       ["networks"] = hoststats["local_network_id"],
-	    }) do
-	      if hoststats.hiddenFromTop then
-	        what_value = "Hidden Hosts"
-	      end
+	 }) do
+	    if hoststats.hiddenFromTop then
+	       what_value = "Hidden Hosts"
+	    end
 
-	      updateRes(res, vlan, what_key, what_value, direction, delta)
-	   end
-	end
-     end
-
-     ::continue::
+	    updateRes(res, vlan, what_key, what_value, direction, delta)
+	 end
+      end
    end)
 
    if not in_time then

@@ -40,6 +40,8 @@ HostStats::HostStats(Host *_host) : TimeseriesStats(_host) {
 #ifdef NTOPNG_PRO
   quota_enforcement_stats = quota_enforcement_stats_shadow = NULL;
 #endif
+
+  memset(&checkpoints, 0, sizeof(checkpoints));
 }
 
 /* *************************************** */
@@ -49,6 +51,29 @@ HostStats::~HostStats() {
   if(quota_enforcement_stats)        delete quota_enforcement_stats;
   if(quota_enforcement_stats_shadow) delete quota_enforcement_stats_shadow;
 #endif
+}
+
+/* *************************************** */
+
+/* NOTE: this function is used by Lua to create the minute-by-minute host top talkers,
+   both for remote and local hosts. Top talkerts are created by doing a checkpoint
+   of the current value. */
+void HostStats::checkpoint(lua_State* vm) {
+  u_int64_t new_val;
+
+  lua_newtable(vm);
+
+  lua_newtable(vm);
+
+  lua_push_uint64_table_entry(vm, "sent", (new_val = getNumBytesSent()) - checkpoints.sent_bytes);
+  checkpoints.sent_bytes = new_val;
+
+  lua_push_uint64_table_entry(vm, "rcvd", (new_val = getNumBytesRcvd()) - checkpoints.rcvd_bytes);
+  checkpoints.rcvd_bytes = new_val;
+
+  lua_pushstring(vm, "delta");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
 }
 
 /* *************************************** */

@@ -221,6 +221,7 @@ class Host : public GenericHashEntry, public AlertableEntity {
 		u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
 		u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes,
     bool peer_is_unicast);
+  inline void checkpoint(lua_State* vm) { if(stats) return stats->checkpoint(vm); };
   void incHitter(Host *peer, u_int64_t sent_bytes, u_int64_t rcvd_bytes);
   virtual void updateHostTrafficPolicy(char *key) {};
   bool addIfMatching(lua_State* vm, AddressTree * ptree, char *key);

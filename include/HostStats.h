@@ -41,6 +41,12 @@ class HostStats: public TimeseriesStats {
   PacketStats sent_stats, recv_stats;
   u_int32_t total_num_flows_as_client, total_num_flows_as_server;
 
+  /* Used to store checkpoint data to build top talkers stats */
+  struct {
+    u_int64_t sent_bytes;
+    u_int64_t rcvd_bytes;
+  } checkpoints;
+
  public:
   HostStats(Host *_host);
   virtual ~HostStats();
@@ -50,6 +56,7 @@ class HostStats: public TimeseriesStats {
 		u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
 		u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes,
 		bool peer_is_unicast);
+  void checkpoint(lua_State* vm);
   virtual void getJSONObject(json_object *my_object, DetailsLevel details_level);
   inline void incFlagStats(bool as_client, u_int8_t flags)  { if (as_client) sent_stats.incFlagStats(flags); else recv_stats.incFlagStats(flags); };
 
