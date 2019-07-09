@@ -576,6 +576,7 @@ local lang = {
     ["msg_err_unable_to_delete_dir"] = "Unable to delete the data directory.",
     ["msg_err_unable_to_delete_ts_data"] = "Unable to delete timeseries data.",
     ["msg_err_unknown"] = "An unknown error occurred.",
+    ["node_nindex_flows"] = "WARNING: nIndex is enabled for flows dump, historical flows information will not be deleted.",
     ["note_persistent_data"] = "All the persistent data is deleted. Data include traffic counters, timeseries, flows, alerts, and Redis caches.",
   },
   ["details"] = {

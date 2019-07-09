@@ -344,6 +344,13 @@ print[[</div><br>]]
 print[[  <b>]] print(i18n('notes')) print[[</b>
 <ul>
 <li>]] print(i18n('delete_data.note_persistent_data')) print[[</li>
+]]
+
+if hasNindexSupport() then
+  print[[<li>]] print(i18n('delete_data.node_nindex_flows')) print[[</li>]]
+end
+
+print[[
 <li>]] print(i18n('manage_data.system_interface_note')) print[[</li>
 </ul>
 </div>]]
