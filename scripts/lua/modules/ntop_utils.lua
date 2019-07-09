@@ -143,6 +143,23 @@ end
 
 -- ##############################################
 
+function pairsByField(t, field, f)
+  local a = {}
+  for n in pairs(t) do table.insert(a, n) end
+
+  table.sort(a, function(x, y) return f(t[x][field], t[y][field]) end)
+  local i = 0      -- iterator variable
+  local iter = function ()   -- iterator function
+    i = i + 1
+    if a[i] == nil then return nil
+    else return a[i], t[a[i]]
+    end
+  end
+  return iter
+end
+
+-- ##############################################
+
 function asc(a,b)
   return (a < b)
 end

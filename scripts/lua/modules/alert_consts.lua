@@ -10,86 +10,531 @@ local format_utils  = require "format_utils"
 -- Alerts (see ntop_typedefs.h)
 -- each table entry is an array as:
 -- {"alert html string", "alert C enum value", "plain string", "syslog severity"}
-alert_consts.alert_severity_keys = {
-   { "<span class='label label-info'>" .. i18n("alerts_dashboard.none") .. "</span>",      -1, "none",    6, --[[ LOG_INFO --]]    },
-   { "<span class='label label-info'>" .. i18n("alerts_dashboard.info") .. "</span>",       0, "info",    6, --[[ LOG_INFO --]]    },
-   { "<span class='label label-warning'>" .. i18n("alerts_dashboard.warning") .. "</span>", 1, "warning", 4, --[[ LOG_WARNING --]] },
-   { "<span class='label label-danger'>" .. i18n("alerts_dashboard.error") .. "</span>",    2, "error",   3, --[[ LOG_ERR --]]     }
+alert_consts.alert_severities = {
+  info = {
+    severity_id = 0,
+    label = "label-info",
+    i18n_title = "alerts_dashboard.info",
+    syslog_severity = 6,
+  }, warning = {
+    severity_id = 1,
+    label = "label-warning",
+    i18n_title = "alerts_dashboard.warning",
+    syslog_severity = 4,
+  }, error = {
+    severity_id = 2,
+    label = "label-danger",
+    i18n_title = "alerts_dashboard.error",
+    syslog_severity = 3,
+  }
 }
 
--- Keep in sync with AlertType
-alert_consts.alert_type_keys = {
-   { "<i class='fa fa-ok'></i> " .. i18n("alerts_dashboard.no_alert"),                             -1, "alert_none"                 },
-   { "<i class='fa fa-life-ring'></i> " .. i18n("alerts_dashboard.tcp_syn_flood"),                  0, "tcp_syn_flood"              },
-   { "<i class='fa fa-life-ring'></i> " .. i18n("alerts_dashboard.flows_flood"),                    1, "flows_flood"                },
-   { "<i class='fa fa-arrow-circle-up'></i> " .. i18n("alerts_dashboard.threashold_cross"),         2, "threshold_cross"            },
-   { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.suspicious_activity"),          3, "suspicious_activity"        },
-   { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.interface_alerted"),            4, "interface_alerted"          },
-   { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.flow_misbehaviour"),            5, "flow_misbehaviour"          },
-   { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.remote_to_remote"),             6, "remote_to_remote"           },
-   { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.blacklisted_flow"),             7, "flow_blacklisted"           },
-   { "<i class='fa fa-ban'></i> " .. i18n("alerts_dashboard.blocked_flow"),                         8, "flow_blocked"               },
-   { "<i class='fa fa-asterisk'></i> " .. i18n("alerts_dashboard.new_device"),                      9, "new_device"                 },
-   { "<i class='fa fa-sign-in'></i> " .. i18n("alerts_dashboard.device_connection"),               10, "device_connection"          },
-   { "<i class='fa fa-sign-out'></i> " .. i18n("alerts_dashboard.device_disconnection"),           11, "device_disconnection"       },
-   { "<i class='fa fa-sign-in'></i> " .. i18n("alerts_dashboard.host_pool_connection"),            12, "host_pool_connection"       },
-   { "<i class='fa fa-sign-out'></i> " .. i18n("alerts_dashboard.host_pool_disconnection"),        13, "host_pool_disconnection"    },
-   { "<i class='fa fa-thermometer-full'></i> " .. i18n("alerts_dashboard.quota_exceeded"),         14, "quota_exceeded"             },
-   { "<i class='fa fa-cog'></i> " .. i18n("alerts_dashboard.misconfigured_app"),                   15, "misconfigured_app"          },
-   { "<i class='fa fa-tint'></i> " .. i18n("alerts_dashboard.too_many_drops"),                     16, "too_many_drops"             },
-   { "<i class='fa fa-exchange'></i> " .. i18n("alerts_dashboard.mac_ip_association_change"),      17, "mac_ip_association_change"  },
-   { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.snmp_port_status_change"),     18, "port_status_change"         },
-   { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.unresponsive_device"),         19, "unresponsive_device"        },
-   { "<i class='fa fa-truck'></i> " .. i18n("alerts_dashboard.process"),                           20, "process_notification"       },
-   { "<i class='fa fa-bitcoin'></i> " .. i18n("alerts_dashboard.web_mining"),                      21, "web_mining"                 },
-   { "<i class='fa fa-angle-double-down'></i> " .. i18n("alerts_dashboard.nfq_flushed"),           22, "nfq_flushed"                },
-   { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.slow_stats_update"),           23, "slow_stats_update"          },
-   { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.suspicious_device_protocol"),  24, "alert_device_protocol_not_allowed" },
-   { "<i class='fa fa-user'></i> " .. i18n("alerts_dashboard.user_activity"),                      25, "alert_user_activity"        },
-   { "<i class='fa fa-database'></i> " .. i18n("alerts_dashboard.influxdb_export_failure"),        26, "influxdb_export_failure"    },
-   { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.snmp_port_errors"),            27, "port_errors"                },
-   { "<i class='fa fa-exclamation'></i> Test failed",                                              28, "test_failed"                },
-   { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.inactivity"),                  29, "inactivity"                 },
-   { "<i class='fa fa-life-ring'></i> " .. i18n("alerts_dashboard.active_flows_anomaly"),          30, "active_flows_anomaly"       },
-   { "<i class='fa fa-sticky-note'></i> " .. i18n("alerts_dashboard.list_download_failed"),        31, "list_download_failed"       },
-   { "<i class='fa fa-life-ring'></i> " .. i18n("alerts_dashboard.dns_anomaly"),                   32, "dns_anomaly"                },
-   { "<i class='fa fa-life-ring'></i> " .. i18n("alerts_dashboard.icmp_anomaly"),                  33, "icmp_anomaly"               },
-   { "<i class='fa fa-sitemap'></i> " .. i18n("alerts_dashboard.broadcast_domain_too_large"),      34, "broadcast_domain_too_large" },
-   { "<i class='fa fa-eye'></i> " .. i18n("alerts_dashboard.ids_alert"),                           35, "ids_alert"                  },
-   { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.misconfigured_dhcp_range"),    36, "ip_outsite_dhcp_range"      },
-   { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.snmp_port_duplexstatus_change"), 37, "port_duplexstatus_change" },
-   { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.snmp_port_load_threshold_exceeded"), 38, "port_load_threshold_exceeded" },
-   { "<i class='fa fa-exclamation'></i> " .. i18n("alerts_dashboard.ping_issues"), 39, "ping_issues" },
-   { "<i class='fa fa-undo'></i> " .. i18n("alerts_dashboard.slow_periodic_activity"),             40, "slow_periodic_activity"     },
-   { "<i class='fa fa-database'></i> " .. i18n("alerts_dashboard.influxdb_dropped_points"),        41, "influxdb_dropped_points"    },
+-- ##############################################
+
+local function formatSynFlood(ifid, engine, entity_type, entity_value, entity_info, alert_key, alert_info)
+   if entity_info.anomalies ~= nil then
+      if (alert_key == "syn_flood_attacker") and (entity_info.anomalies.syn_flood_attacker ~= nil) then
+	 local anomaly_info = entity_info.anomalies.syn_flood_attacker
+
+	 return firstToUpper(formatAlertEntity(ifid, entity_type, entity_value, entity_info)).." is a SYN Flooder ("..
+	    (anomaly_info.last_trespassed_hits).." SYN sent in "..secondsToTime(anomaly_info.over_threshold_duration_sec)..")"
+      elseif (alert_key == "syn_flood_victim") and (entity_info.anomalies.syn_flood_victim ~= nil) then
+	 local anomaly_info = entity_info.anomalies.syn_flood_victim
+
+	 return firstToUpper(formatAlertEntity(ifid, entity_type, entity_value, entity_info)).." is under SYN flood attack ("..
+	    (anomaly_info.last_trespassed_hits).." SYN received in "..secondsToTime(anomaly_info.over_threshold_duration_sec)..")"
+      end
+   end
+
+   return ""
+end
+
+-- ##############################################
+
+local function formatFlowsFlood(ifid, engine, entity_type, entity_value, entity_info, alert_key, alert_info)
+   if entity_info.anomalies ~= nil then
+      if (alert_key == "flows_flood_attacker") and (entity_info.anomalies.flows_flood_attacker) then
+	 local anomaly_info = entity_info.anomalies.flows_flood_attacker
+	 return firstToUpper(formatAlertEntity(ifid, entity_type, entity_value, entity_info)).." is a Flooder ("..
+	    (anomaly_info.last_trespassed_hits).." flows sent in "..secondsToTime(anomaly_info.over_threshold_duration_sec)..")"
+      elseif (alert_key == "flows_flood_victim") and (entity_info.anomalies.flows_flood_victim) then
+	 local anomaly_info = entity_info.anomalies.flows_flood_victim
+	 return firstToUpper(formatAlertEntity(ifid, entity_type, entity_value, entity_info)).." is under flood attack ("..
+	    (anomaly_info.last_trespassed_hits).." flows received in "..secondsToTime(anomaly_info.over_threshold_duration_sec)..")"
+      end
+   end
+
+   return ""
+end
+
+-- ##############################################
+
+--
+-- This function should be updated whenever a new alert entity type is available.
+-- If entity_info is nil, then no links will be provided.
+--
+local function formatAlertEntity(ifid, entity_type, entity_value, entity_info)
+   require "flow_utils"
+   local value
+   local epoch_begin, epoch_end = getAlertTimeBounds({alert_tstamp = os.time()})
+
+   if entity_type == "host" then
+      local host_info = hostkey2hostinfo(entity_value)
+      value = resolveAddress(host_info)
+
+      if host_info ~= nil then
+	 value = "<a href='"..ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifid..
+	    "&host="..hostinfo2hostkey(host_info).."&page=historical&epoch_begin="..
+	    epoch_begin .."&epoch_end=".. epoch_end .."'>"..value.."</a>"
+      end
+   elseif entity_type == "interface" then
+      value = getInterfaceName(ifid)
+
+      if entity_info ~= nil then
+	 value = "<a href='"..ntop.getHttpPrefix().."/lua/if_stats.lua?ifid="..ifid..
+	  "&page=historical&epoch_begin="..epoch_begin .."&epoch_end=".. epoch_end ..
+	  "'>"..value.."</a>"
+      end
+   elseif entity_type == "network" then
+      value = getLocalNetworkAlias(hostkey2hostinfo(entity_value)["host"])
+
+      if entity_info ~= nil then
+	 value = "<a href='"..ntop.getHttpPrefix().."/lua/network_details.lua?network="..
+	 (entity_info.network_id).."&page=historical&epoch_begin=".. epoch_begin
+	 .."&epoch_end=".. epoch_end .."'>" ..value.."</a>"
+      end
+   else
+      -- fallback
+      value = entity_value
+   end
+
+   -- try to get a localized message
+   local localized = i18n("alert_messages."..entity_type.."_entity", {entity_value=value})
+
+   if localized ~= nil then
+      return localized
+   else
+      -- fallback
+      return entity_type.." "..value
+   end
+end
+
+-- ##############################################
+
+local function formatThresholdCross(ifid, alert, threshold_info)
+  local entity = formatAlertEntity(ifid, alertEntityRaw(alert["alert_entity"]), alert["alert_entity_val"])
+  local engine_label = alertEngineLabel(alertEngine(sec2granularity(alert["alert_periodicity"])))
+
+  return engine_label.." <b>".. threshold_info.metric .."</b> crossed by ".. entity ..
+    " ["..threshold_info.value.." &"..(threshold_info.operator).."; "..threshold_info.threshold.."]"
+end
+
+-- ##############################################
+
+local function formatMisconfiguredApp(ifid, engine, entity_type, entity_value, entity_info, alert_key, alert_info)
+   if entity_info.anomalies ~= nil then
+      if alert_key == "too_many_flows" then
+	 return firstToUpper(formatAlertEntity(ifid, entity_type, entity_value, entity_info))..
+	    " has too many flows. Please extend the --max-num-flows/-X command line option"
+      elseif alert_key == "too_many_hosts" then
+	 return firstToUpper(formatAlertEntity(ifid, entity_type, entity_value, entity_info))..
+	    " has too many hosts. Please extend the --max-num-hosts/-x command line option"
+      end
+   end
+
+   return ""
+end
+
+-- ##############################################
+
+function formatSlowStatsUpdate(ifid, engine, entity_type, entity_value, entity_info, alert_key, alert_info)
+   return "Statistics update on ".. formatAlertEntity(ifid, entity_type, entity_value, entity_info) .. " is too slow."..
+      " This could lead to data accuracy loss and missing alerts. Update frequency can be tuned by the "..
+      "<a href=\"".. ntop.getHttpPrefix() .."/lua/admin/prefs.lua?tab=in_memory\">".. i18n("prefs.housekeeping_frequency_title") .."</a> preference."
+end
+
+-- ##############################################
+
+local function formatTooManyPacketDrops(ifid, engine, entity_type, entity_value, entity_info, alert_key, alert_info)
+   local max_drop_perc = ntop.getPref(getInterfacePacketDropPercAlertKey(getInterfaceName(ifid)))
+   if isEmptyString(max_drop_perc) then
+      max_drop_perc = CONST_DEFAULT_PACKETS_DROP_PERCENTAGE_ALERT
+   end
+
+   return firstToUpper(formatAlertEntity(ifid, entity_type, entity_value, entity_info))..
+      " has too many dropped packets [&gt " .. max_drop_perc .. "%]"
+end
+
+-- ##############################################
+
+local function formatActiveFlowsAnomaly(ifid, engine, entity_type, entity_value, entity_info, alert_key, alert_info)
+   if entity_info.anomalies ~= nil then
+      if(alert_key == "num_active_flows_as_client") and (entity_info.anomalies.num_active_flows_as_client) then
+	 local anomaly_info = entity_info.anomalies.num_active_flows_as_client
+
+	 return string.format("%s has an anomalous number of active client flows [current_flows=%u][anomaly_index=%u]",
+	    firstToUpper(formatAlertEntity(ifid, entity_type, entity_value, entity_info)),
+	    anomaly_info.value, anomaly_info.anomaly_index)
+      elseif(alert_key == "num_active_flows_as_server") and (entity_info.anomalies.num_active_flows_as_server) then
+	 local anomaly_info = entity_info.anomalies.num_active_flows_as_server
+
+	 return string.format("%s has an anomalous number of active server flows [current_flows=%u][anomaly_index=%u]",
+	    firstToUpper(formatAlertEntity(ifid, entity_type, entity_value, entity_info)),
+	    anomaly_info.value, anomaly_info.anomaly_index)
+      end
+   end
+
+   return ""
+end
+
+-- ##############################################
+
+local function formatDNSAnomaly(ifid, engine, entity_type, entity_value, entity_info, alert_key, alert_info)
+   -- tprint({ifid =ifid, engine = engine, entity_type = entity_type, entity_value = entity_value, entity_info = entity_info, alert_key = alert_key, alert_info = alert_info})
+
+   if entity_info.anomalies ~= nil then
+      for _, v in pairs({"dns.rcvd.num_replies_ok", "dns.rcvd.num_queries", "dns.rcvd.num_replies_error",
+			 "dns.sent.num_replies_ok", "dns.sent.num_queries", "dns.sent.num_replies_error"}) do
+	 if alert_key == v and entity_info.anomalies[v] then
+	    local anomaly_info = entity_info.anomalies[v]
+
+	    local res =  string.format("%s has a DNS anomaly [%s][current=%u][anomaly_index=%u]",
+				       firstToUpper(formatAlertEntity(ifid, entity_type, entity_value, entity_info)),
+				       v,
+				       anomaly_info.value,
+				       anomaly_info.anomaly_index)
+	    return res
+	 end
+      end
+   end
+
+   return ""
+end
+
+-- ##############################################
+
+local function formatICMPAnomaly(ifid, engine, entity_type, entity_value, entity_info, alert_key, alert_info)
+   -- tprint({ifid =ifid, engine = engine, entity_type = entity_type, entity_value = entity_value, entity_info = entity_info, alert_key = alert_key, alert_info = alert_info})
+
+   if entity_info.anomalies ~= nil then
+      for _, v in pairs({"icmp.num_destination_unreachable"}) do
+	 if alert_key == v and entity_info.anomalies[v] then
+	    local anomaly_info = entity_info.anomalies[v]
+
+	    local res =  string.format("%s has an ICMP anomaly [%s][current=%u][anomaly_index=%u]",
+				       firstToUpper(formatAlertEntity(ifid, entity_type, entity_value, entity_info)),
+				       v,
+				       anomaly_info.value,
+				       anomaly_info.anomaly_index)
+	    return res
+	 end
+      end
+   end
+
+   return ""
+end
+
+-- ##############################################
+
+-- Keep ID in sync with AlertType
+alert_consts.alert_types = {
+  tcp_syn_flood = {
+    alert_id = 0,
+    severity = alert_consts.alert_severities.error,
+    i18n_title = "alerts_dashboard.tcp_syn_flood",
+    icon = "fa-life-ring",
+    i18n_description = formatSynFlood,
+  }, flows_flood = {
+    alert_id = 1,
+    severity = alert_consts.alert_severities.error,
+    i18n_title = "alerts_dashboard.flows_flood",
+    icon = "fa-life-ring",
+    i18n_description = formatFlowsFlood,
+  }, threshold_cross = {
+    alert_id = 2,
+    severity = alert_consts.alert_severities.error,
+    i18n_title = "alerts_dashboard.threashold_cross",
+    icon = "fa-arrow-circle-up",
+    i18n_description = formatThresholdCross,
+  }, suspicious_activity = {
+    alert_id = 3,
+    severity = alert_consts.alert_severities.warning,
+    i18n_title = "alerts_dashboard.suspicious_activity",
+    icon = "fa-exclamation",
+  }, interface_alerted = {
+    alert_id = 4,
+    severity = alert_consts.alert_severities.warning,
+    i18n_title = "alerts_dashboard.interface_alerted",
+    icon = "fa-exclamation",
+  }, flow_misbehaviour = {
+    alert_id = 5,
+    severity = alert_consts.alert_severities.warning,
+    i18n_title = "alerts_dashboard.flow_misbehaviour",
+    icon = "fa-exclamation",
+  }, remote_to_remote = {
+    alert_id = 6,
+    severity = alert_consts.alert_severities.error,
+    i18n_title = "alerts_dashboard.remote_to_remote",
+    icon = "fa-exclamation",
+  }, flow_blacklisted = {
+    alert_id = 7,
+    severity = alert_consts.alert_severities.error,
+    i18n_title = "alerts_dashboard.blacklisted_flow",
+    icon = "fa-exclamation",
+  }, flow_blocked = {
+    alert_id = 8,
+    severity = alert_consts.alert_severities.warning,
+    i18n_title = "alerts_dashboard.blocked_flow",
+    icon = "fa-ban",
+  }, new_device = {
+    alert_id = 9,
+    severity = alert_consts.alert_severities.info,
+    i18n_title = "alerts_dashboard.new_device",
+    icon = "fa-asterisk",
+  }, device_connection = {
+    alert_id = 10,
+    severity = alert_consts.alert_severities.info,
+    i18n_title = "alerts_dashboard.device_connection",
+    icon = "fa-sign-in",
+  }, device_disconnection = {
+    alert_id = 11,
+    severity = alert_consts.alert_severities.info,
+    i18n_title = "alerts_dashboard.device_disconnection",
+    icon = "fa-sign-out",
+  }, host_pool_connection = {
+    alert_id = 12,
+    severity = alert_consts.alert_severities.info,
+    i18n_title = "alerts_dashboard.host_pool_connection",
+    icon = "fa-sign-in",
+  }, host_pool_disconnection = {
+    alert_id = 13,
+    severity = alert_consts.alert_severities.info,
+    i18n_title = "alerts_dashboard.host_pool_disconnection",
+    icon = "fa-sign-out",
+  }, quota_exceeded = {
+    alert_id = 14,
+    severity = alert_consts.alert_severities.warning,
+    i18n_title = "alerts_dashboard.quota_exceeded",
+    icon = "fa-thermometer-full",
+  }, misconfigured_app = {
+    alert_id = 15,
+    severity = alert_consts.alert_severities.error,
+    i18n_title = "alerts_dashboard.misconfigured_app",
+    icon = "fa-cog",
+    i18n_description = formatMisconfiguredApp,
+  }, too_many_drops = {
+    alert_id = 16,
+    severity = alert_consts.alert_severities.error,
+    i18n_title = "alerts_dashboard.too_many_drops",
+    icon = "fa-tint",
+    i18n_description = formatTooManyPacketDrops,
+  }, mac_ip_association_change = {
+    alert_id = 17,
+    severity = alert_consts.alert_severities.warning,
+    i18n_title = "alerts_dashboard.mac_ip_association_change",
+    icon = "fa-exchange",
+  }, port_status_change = {
+    alert_id = 18,
+    severity = alert_consts.alert_severities.info,
+    i18n_title = "alerts_dashboard.snmp_port_status_change",
+    icon = "fa-exclamation",
+  }, unresponsive_device = {
+    alert_id = 19,
+    severity = alert_consts.alert_severities.warning,
+    i18n_title = "alerts_dashboard.unresponsive_device",
+    icon = "fa-exclamation",
+  }, process_notification = {
+    alert_id = 20,
+    severity = alert_consts.alert_severities.error,
+    i18n_title = "alerts_dashboard.process",
+    icon = "fa-truck",
+  }, web_mining = {
+    alert_id = 21,
+    severity = alert_consts.alert_severities.warning,
+    i18n_title = "alerts_dashboard.web_mining",
+    icon = "fa-bitcoin",
+  }, nfq_flushed = {
+    alert_id = 22,
+    severity = alert_consts.alert_severities.error,
+    i18n_title = "alerts_dashboard.nfq_flushed",
+    icon = "fa-angle-double-down",
+  }, slow_stats_update = {
+    alert_id = 23,
+    severity = alert_consts.alert_severities.warning,
+    i18n_title = "alerts_dashboard.slow_stats_update",
+    icon = "fa-exclamation",
+    i18n_description = formatSlowStatsUpdate,
+  }, alert_device_protocol_not_allowed = {
+    alert_id = 24,
+    severity = alert_consts.alert_severities.warning,
+    i18n_title = "alerts_dashboard.suspicious_device_protocol",
+    icon = "fa-exclamation",
+  }, alert_user_activity = {
+    alert_id = 25,
+    severity = alert_consts.alert_severities.info,
+    i18n_title = "alerts_dashboard.user_activity",
+    icon = "fa-user",
+  }, influxdb_export_failure = {
+    alert_id = 26,
+    severity = alert_consts.alert_severities.error,
+    i18n_title = "alerts_dashboard.influxdb_export_failure",
+    icon = "fa-database",
+  }, port_errors = {
+    alert_id = 27,
+    severity = alert_consts.alert_severities.error,
+    i18n_title = "alerts_dashboard.snmp_port_errors",
+    icon = "fa-exclamation",
+  }, test_failed = {
+    alert_id = 28,
+    severity = alert_consts.alert_severities.warning,
+    i18n_title = "Test failed",
+    icon = "fa-exclamation",
+  }, inactivity = {
+    alert_id = 29,
+    severity = alert_consts.alert_severities.warning,
+    i18n_title = "alerts_dashboard.inactivity",
+    icon = "fa-exclamation",
+  }, active_flows_anomaly = {
+    alert_id = 30,
+    severity = alert_consts.alert_severities.warning,
+    i18n_title = "alerts_dashboard.active_flows_anomaly",
+    icon = "fa-life-ring",
+    i18n_description = formatActiveFlowsAnomaly,
+  }, list_download_failed = {
+    alert_id = 31,
+    severity = alert_consts.alert_severities.error,
+    i18n_title = "alerts_dashboard.list_download_failed",
+    icon = "fa-sticky-note",
+  }, dns_anomaly = {
+    alert_id = 32,
+    severity = alert_consts.alert_severities.error,
+    i18n_title = "alerts_dashboard.dns_anomaly",
+    icon = "fa-life-ring",
+    i18n_description = formatDNSAnomaly,
+  }, icmp_anomaly = {
+    alert_id = 33,
+    severity = alert_consts.alert_severities.error,
+    i18n_title = "alerts_dashboard.icmp_anomaly",
+    icon = "fa-life-ring",
+    i18n_description = formatICMPAnomaly,
+  }, broadcast_domain_too_large = {
+    alert_id = 34,
+    severity = alert_consts.alert_severities.error,
+    i18n_title = "alerts_dashboard.broadcast_domain_too_large",
+    icon = "fa-sitemap",
+  }, ids_alert = {
+    alert_id = 35,
+    severity = alert_consts.alert_severities.error,
+    i18n_title = "alerts_dashboard.ids_alert",
+    icon = "fa-eye",
+  }, ip_outsite_dhcp_range = {
+    alert_id = 36,
+    severity = alert_consts.alert_severities.warning,
+    i18n_title = "alerts_dashboard.misconfigured_dhcp_range",
+    icon = "fa-exclamation",
+  }, port_duplexstatus_change = {
+    alert_id = 37,
+    severity = alert_consts.alert_severities.warning,
+    i18n_title = "alerts_dashboard.snmp_port_duplexstatus_change",
+    icon = "fa-exclamation",
+  }, port_load_threshold_exceeded = {
+    alert_id = 38,
+    severity = alert_consts.alert_severities.warning,
+    i18n_title = "alerts_dashboard.snmp_port_load_threshold_exceeded",
+    icon = "fa-exclamation",
+  }, ping_issues = {
+    alert_id = 39,
+    severity = alert_consts.alert_severities.error,
+    i18n_title = "alerts_dashboard.ping_issues",
+    icon = "fa-exclamation",
+  }, slow_periodic_activity = {
+    alert_id = 40,
+    severity = alert_consts.alert_severities.warning,
+    i18n_title = "alerts_dashboard.slow_periodic_activity",
+    icon = "fa-undo",
+  }, influxdb_dropped_points = {
+    alert_id = 41,
+    severity = alert_consts.alert_severities.error,
+    i18n_title = "alerts_dashboard.influxdb_dropped_points",
+    icon = "fa-database",
+  }
 }
+
+-- ##############################################
 
 -- See getFlowStatusTypes() in lua_utils for flow alerts
 -- See Utils::flowStatus2str to determine the alert_type for flow alerts
 
 -- Keep in sync with ntop_typedefs.h:AlertEntity
-alert_consts.alert_entity_keys = {
-   { "Interface",       0, "interface"     },
-   { "Host",            1, "host"          },
-   { "Network",         2, "network"       },
-   { "SNMP device",     3, "snmp_device"   },
-   { "Flow",            4, "flow"          },
-   { "Device",          5, "mac"           },
-   { "Host Pool",       6, "host_pool"     },
-   { "Process",         7, "process"       },
-   { "User",            8, "user"          },
-   { "Influx DB",       9, "influx_db"     },
-   { "Test",           10, "test"          },
-   { "Category Lists", 11, "category_lists" },
-   { "PINGed host",    12, "pinged_host"   },
-   { "Periodi Activity", 13, "periodic_activity"   },
+alert_consts.alert_entities = {
+   interface = {
+    entity_id = 0,
+    label = "Interface",
+   }, host = {
+    entity_id = 1,
+    label = "Host",
+   }, network = {
+    entity_id = 2,
+    label = "Network",
+   }, snmp_device = {
+    entity_id = 3,
+    label = "SNMP device",
+   }, flow = {
+    entity_id = 4,
+    label = "Flow",
+   }, mac = {
+    entity_id = 5,
+    label = "Device",
+   }, host_pool = {
+    entity_id = 6,
+    label = "Host Pool",
+   }, process = {
+    entity_id = 7,
+    label = "Process",
+   }, user = {
+    entity_id = 8,
+    label = "User",
+   }, influx_db = {
+    entity_id = 9,
+    label = "Influx DB",
+   }, test = {
+    entity_id = 10,
+    label = "Test",
+   }, category_lists = {
+    entity_id = 11,
+    label = "Category Lists",
+   }, pinged_host = {
+    entity_id = 12,
+    label = "PINGed host",
+   }, periodic_activity = {
+    entity_id = 13,
+    label = "Periodic Activity",
+  }
 }
 
-alert_consts.alert_engine_keys = {
-   {i18n("show_alerts.minute"),       0, "min"    },
-   {i18n("show_alerts.five_minutes"), 1, "5mins"  },
-   {i18n("show_alerts.hourly"),       2, "hour"   },
-   {i18n("show_alerts.daily"),        3, "day"    },
+-- Keep in sync with C
+alert_consts.alerts_granularities = {
+  ["min"] = {
+    granularity_id = 0,
+    granularity_seconds = 60,
+    i18n_title = "show_alerts.minute",
+    i18n_description = "alerts_thresholds_config.every_minute",
+  }, ["5mins"] = {
+    granularity_id = 1,
+    granularity_seconds = 300,
+    i18n_title = "show_alerts.5_min",
+    i18n_description = "alerts_thresholds_config.every_5_minutes",
+  }, ["hour"] = {
+    granularity_id = 2,
+    granularity_seconds = 3600,
+    i18n_title = "show_alerts.hourly",
+    i18n_description = "alerts_thresholds_config.hourly",
+  }, ["day"] = {
+    granularity_id = 3,
+    granularity_seconds = 86400,
+    i18n_title = "show_alerts.daily",
+    i18n_description = "alerts_thresholds_config.daily",
+  }
 }
 
 -- Note: keep in sync with alarmable_metrics and alert_functions_infoes
@@ -115,13 +560,6 @@ alert_consts.network_alert_functions_description = {
 }
 
 -- ################################################################################
-
-alert_consts.alerts_granularity = {
-   { "min", i18n("alerts_thresholds_config.every_minute"), 60 },
-   { "5mins", i18n("alerts_thresholds_config.every_5_minutes"), 300 },
-   { "hour", i18n("alerts_thresholds_config.hourly"), 3600 },
-   { "day", i18n("alerts_thresholds_config.daily"), 86400 }
-}
 
 alert_consts.alarmable_metrics = {'bytes', 'dns', 'active', 'idle', 'packets', 'p2p', 'throughput',
 				  'ingress', 'egress', 'inner',

@@ -585,23 +585,6 @@ end
 
 -- ##############################################
 
--- Note: make sure the maximum id for checkpoint_keys honours CONST_MAX_NUM_CHECKPOINTS
-local checkpoint_keys = {
-   -- following checkpoints are used for alerts
-   {0, "min"},
-   {1, "5mins"},
-   {2, "hour"},
-   {3, "day"},
-}
-
-function checkpointId(v)
-   local checkpointtable = {}
-   for i, t in ipairs(checkpoint_keys) do
-      checkpointtable[#checkpointtable + 1] = {t[1], t[2]}
-   end
-   return(_handleArray(checkpointtable, v))
-end
-
 function noHtml(s)
    if s == nil then return nil end
 
@@ -626,62 +609,6 @@ function noHtml(s)
    return unescape(cleaned)
 end
 
-function alertSeverityLabel(v, nohtml)
-   local res = _handleArray(alert_consts.alert_severity_keys, tonumber(v))
-   if res ~= nil and nohtml == true then res = noHtml(res) end
-   return res
-end
-
-function alertSeverity(v)
-   local severity_table = {}
-   for i, t in ipairs(alert_consts.alert_severity_keys) do
-      severity_table[#severity_table + 1] = {t[2], t[3]}
-   end
-   return(_handleArray(severity_table, v))
-end
-
-function alertSeverityRaw(sev_idx)
-   sev_idx = sev_idx + 2 -- -1 and 0
-   if sev_idx <= #alert_consts.alert_severity_keys then
-      return alert_consts.alert_severity_keys[sev_idx][3]
-   end
-   return nil
-end
-
-function alertTypeLabel(v, nohtml)
-   local res = _handleArray(alert_consts.alert_type_keys, tonumber(v))
-   if res ~= nil and nohtml == true then res = noHtml(res) end
-   return res
-end
-
-function alertType(v)
-   local typetable = {}
-   for i, t in ipairs(alert_consts.alert_type_keys) do
-      typetable[#typetable + 1] = {t[2], t[3]}
-   end
-   return(_handleArray(typetable, v))
-end
-
-function alertEngine(v)
-   local enginetable = {}
-   for i, t in ipairs(alert_consts.alert_functions_description) do
-      enginetable[#enginetable + 1] = {t[2], t[3]}
-   end
-   return(_handleArray(enginetable, v))
-end
-
-function alertEngineLabel(v)
-   return _handleArray(alert_consts.alert_functions_description, tonumber(v))
-end
-
-function alertEngineRaw(idx)
-   idx = idx + 1
-   if idx <= #alert_consts.alert_functions_description then
-      return alert_consts.alert_functions_description[idx][3]
-   end
-   return nil
-end
-
 function alertLevel(v)
    local leveltable = {}
 
@@ -698,38 +625,6 @@ function alertLevelToSyslogLevel(v)
       leveltable[#leveltable + 1] = {t[4], t[3]}
    end
    return(_handleArray(leveltable, v))
-end
-
-function alertTypeRaw(alert_idx)
-   if(alert_idx == nil) then return nil end
-
-   alert_idx = alert_idx + 2 -- -1 and 0
-   if alert_idx <= #alert_consts.alert_type_keys then
-      return alert_consts.alert_type_keys[alert_idx][3]
-   end
-   return nil
-end
-
-function alertEntityLabel(v, nothml)
-   local res = _handleArray(alert_consts.alert_entity_keys, tonumber(v))
-   if res ~= nil and nohtml == true then res = noHtml(res) end
-   return res
-end
-
-function alertEntity(v)
-   local typetable = {}
-   for i, t in ipairs(alert_consts.alert_entity_keys) do
-      typetable[#typetable + 1] = {t[2], t[3]}
-   end
-   return(_handleArray(typetable, v))
-end
-
-function alertEntityRaw(entity_idx)
-   entity_idx = entity_idx + 1
-   if entity_idx <= #alert_consts.alert_entity_keys then
-      return alert_consts.alert_entity_keys[entity_idx][3]
-   end
-   return nil
 end
 
 function areAlertsEnabled()

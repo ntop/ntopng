@@ -9,13 +9,13 @@ require "alert_utils"
 
 alerts_api = require("alerts_api")
 
-local do_trace      = true
+local do_trace      = false
 local config_alerts = nil
 local ifname        = nil
 
 -- The function below ia called once (#pragma once)
 function setup(str_granularity)
-   print("alert.lua:setup("..str_granularity..") called\n")
+   if(do_trace) then print("alert.lua:setup("..str_granularity..") called\n") end
    ifname = interface.setActiveInterfaceId(tonumber(interface.getId()))
    config_alerts = getHostsConfiguredAlertThresholds(ifname, str_granularity)
 
@@ -41,7 +41,7 @@ local function checkHostAlertsThreshold(host_key, host_info, granularity, num_gr
       threshold_num_gran = num_granularity
       h_info             = host_info
 
-      print("[Alert @ "..granularity.."] ".. host_key .." ["..function_name.."]\n")
+      if(do_trace) then print("[Alert @ "..granularity.."] ".. host_key .." ["..function_name.."]\n") end
 
       if(true) then
 	 -- This is where magic happens: load() evaluates the string
@@ -54,8 +54,6 @@ local function checkHostAlertsThreshold(host_key, host_info, granularity, num_gr
 
 	    if ok then
 	       local alarmed = false
-	       local host_alert = alerts_api:newAlert({ entity = "host", type = "threshold_cross", severity = "error" })
-
 	       if(do_trace) then print("Execution OK. value: "..tostring(value)..", operator: "..threshold_operator..", threshold: "..threshold_value.."]\n") end
 
 	       threshold_value = tonumber(threshold_value)
@@ -67,16 +65,18 @@ local function checkHostAlertsThreshold(host_key, host_info, granularity, num_gr
 	       end
 
 	       if(alarmed) then
-		  if(host.storeTriggeredAlert(alert_key_name, num_granularity)) then
-		     -- IMPORTANT: uncommenting the line below break all
-		     -- host_alert:trigger(host_key, "Host "..host_key.." crossed threshold "..metric_name)
-		     print("Trigger alert [value: "..tostring(value).."]\n")
-		  end
+            if(do_trace) then print("Trigger alert [value: "..tostring(value).."]\n") end
+
+            alerts_api.new_trigger(
+              alerts_api.hostAlertEntity(host_key),
+              alerts_api.thresholdCrossType(granularity, function_name, value, threshold_operator, threshold_value)
+            )
 	       else
-		  if(host.releaseTriggeredAlert(alert_key_name, num_granularity)) then
-		     print("DON'T trigger alert [value: "..tostring(value).."]\n")
-		     -- host_alert:release(host_key)
-		  end
+            if(do_trace) then print("DON'T trigger alert [value: "..tostring(value).."]\n") end
+            alerts_api.new_release(
+              alerts_api.hostAlertEntity(host_key),
+              alerts_api.thresholdCrossType(granularity, function_name, value, threshold_operator, threshold_value)
+            )
 	       end
 	    else
 	       if(do_trace) then print("Execution error:  "..tostring(rc).."\n") end
@@ -86,7 +86,7 @@ local function checkHostAlertsThreshold(host_key, host_info, granularity, num_gr
 	 end
       end
 
-      print("=============\n")
+      if(do_trace) then print("=============\n") end
    end
 end
 

@@ -32,101 +32,151 @@ if(ntop.isnEdge()) then
    shaper_utils = require("shaper_utils")
 end
 
+-- ##############################################
+
+function alertSeverityRaw(severity_id)
+  severity_id = tonumber(severity_id)
+
+  for key, severity_info in pairs(alert_consts.alert_severities) do
+    if(severity_info.severity_id == severity_id) then
+      return(key)
+    end
+  end
+end
+
 function alertSeverityLabel(v, nohtml)
-   local res = _handleArray(alert_consts.alert_severity_keys, tonumber(v))
-   if res ~= nil and nohtml == true then res = noHtml(res) end
-   return res
+   local severity_id = alertSeverityRaw(v)
+
+   if(severity_id) then
+      local severity_info = alert_consts.alert_severities[severity_id]
+      local title = i18n(severity_info.i18n_title) or severity_info.i18n_title
+
+      if(nohtml) then
+        return(title)
+      else
+        return(string.format('<span class="label %s">%s</span>', severity_info.label, title))
+      end
+   end
 end
 
 function alertSeverity(v)
-   local severity_table = {}
-   for i, t in ipairs(alert_consts.alert_severity_keys) do
-      severity_table[#severity_table + 1] = {t[2], t[3]}
-   end
-   return(_handleArray(severity_table, v))
+  return(alert_consts.alert_severities[v].severity_id)
 end
 
-function alertSeverityRaw(sev_idx)
-   sev_idx = sev_idx + 2 -- -1 and 0
-   if sev_idx <= #alert_consts.alert_severity_keys then
-      return alert_consts.alert_severity_keys[sev_idx][3]
-   end
-   return nil
+-- ##############################################
+
+function alertTypeRaw(type_id)
+  type_id = tonumber(type_id)
+
+  for key, type_info in pairs(alert_consts.alert_types) do
+    if(type_info.alert_id == type_id) then
+      return(key)
+    end
+  end
 end
 
 function alertTypeLabel(v, nohtml)
-   local res = _handleArray(alert_consts.alert_type_keys, tonumber(v))
-   if res ~= nil and nohtml == true then res = noHtml(res) end
-   return res
+   local alert_id = alertTypeRaw(v)
+
+   if(alert_id) then
+      local type_info = alert_consts.alert_types[alert_id]
+      local title = i18n(type_info.i18n_title) or type_info.i18n_title
+
+      if(nohtml) then
+        return(title)
+      else
+        return(string.format('<i class="fa %s"></i> %s', type_info.icon, title))
+      end
+   end
 end
 
 function alertType(v)
-   local typetable = {}
-   for i, t in ipairs(alert_consts.alert_type_keys) do
-      typetable[#typetable + 1] = {t[2], t[3]}
-   end
-   return(_handleArray(typetable, v))
+  return(alert_consts.alert_types[v].alert_id)
+end
+
+function alertTypeDescription(v)
+  local alert_id = alertTypeRaw(v)
+
+  if(alert_id) then
+    return(alert_consts.alert_types[alert_id].i18n_description)
+  end
+end
+
+-- ##############################################
+
+-- Rename engine -> granulariy
+function alertEngineRaw(granularity_id)
+  granularity_id = tonumber(granularity_id)
+
+  for key, granularity_info in pairs(alert_consts.alerts_granularities) do
+    if(granularity_info.granularity_id == granularity_id) then
+      return(key)
+    end
+  end
 end
 
 function alertEngine(v)
-   local enginetable = {}
-   for i, t in ipairs(alert_consts.alert_engine_keys) do
-      enginetable[#enginetable + 1] = {t[2], t[3]}
-   end
-   return(_handleArray(enginetable, v))
+   return(alert_consts.alerts_granularities[v].granularity_id)
 end
 
 function alertEngineLabel(v)
-   return _handleArray(alert_consts.alert_engine_keys, tonumber(v))
+  local granularity_id = alertEngineRaw(v)
+
+  if(granularity_id ~= nil) then
+    return(i18n(alert_consts.alerts_granularities[granularity_id].i18n_title))
+  end
 end
 
-function alertEngineRaw(idx)
-   idx = idx + 1
-   if idx <= #alert_consts.alert_engine_keys then
-      return alert_consts.alert_engine_keys[idx][3]
-   end
-   return nil
+function alertEngineDescription(v)
+  local granularity_id = alertEngineRaw(v)
+
+  if(granularity_id ~= nil) then
+    return(i18n(alert_consts.alerts_granularities[granularity_id].i18n_description))
+  end
 end
 
-function alertSeverity(v)
-   local severitytable = {}
-
-   for i, t in ipairs(alert_consts.alert_severity_keys) do
-      severitytable[#severitytable + 1] = {t[2], t[3]}
-   end
-   return(_handleArray(severitytable, v))
+function granularity2sec(v)
+  return(alert_consts.alerts_granularities[v].granularity_seconds)
 end
 
-function alertTypeRaw(alert_idx)
-   if(alert_idx == nil) then return nil end
-
-   alert_idx = alert_idx + 2 -- -1 and 0
-   if alert_idx <= #alert_consts.alert_type_keys then
-      return alert_consts.alert_type_keys[alert_idx][3]
-   end
-   return nil
+-- See NetworkInterface::checkHostsAlerts()
+function granularity2id(granularity)
+  -- TODO replace alertEngine
+  return(alertEngine(granularity))
 end
 
-function alertEntityLabel(v, nothml)
-   local res = _handleArray(alert_consts.alert_entity_keys, tonumber(v))
-   if res ~= nil and nohtml == true then res = noHtml(res) end
-   return res
+function sec2granularity(seconds)
+  seconds = tonumber(seconds)
+
+  for key, granularity_info in pairs(alert_consts.alerts_granularities) do
+    if(granularity_info.granularity_seconds == seconds) then
+      return(key)
+    end
+  end
+end
+
+-- ##############################################
+
+function alertEntityRaw(entity_id)
+  entity_id = tonumber(entity_id)
+
+  for key, entity_info in pairs(alert_consts.alert_entities) do
+    if(entity_info.entity_id == entity_id) then
+      return(key)
+    end
+  end
 end
 
 function alertEntity(v)
-   local typetable = {}
-   for i, t in ipairs(alert_consts.alert_entity_keys) do
-      typetable[#typetable + 1] = {t[2], t[3]}
-   end
-   return(_handleArray(typetable, v))
+   return(alert_consts.alert_entities[v].entity_id)
 end
 
-function alertEntityRaw(entity_idx)
-   entity_idx = entity_idx + 1
-   if entity_idx <= #alert_consts.alert_entity_keys then
-      return alert_consts.alert_entity_keys[entity_idx][3]
-   end
-   return nil
+function alertEntityLabel(v, nothml)
+  local entity_id = alertEntityRaw(v)
+
+  if(entity_id) then
+    return(alert_consts.alert_entities[entity_id].label)
+  end
 end
 
 -- ##############################################################################
@@ -289,13 +339,7 @@ j = require("dkjson")
 require "persistence"
 
 function is_allowed_timespan(timespan)
-   for _, granularity in pairs(alert_consts.alerts_granularity) do
-      granularity = granularity[1]
-      if timespan == granularity then
-	 return true
-      end
-   end
-   return false
+   return(alert_consts.alerts_granularities[timespan] ~= nil)
 end
 
 function is_allowed_alarmable_metric(metric)
@@ -387,16 +431,6 @@ local function entity_threshold_crossed(granularity, old_table, new_table, thres
 end
 
 -- #################################
-
-function granularity2sec(g)
-   for _, granularity in pairs(alert_consts.alerts_granularity) do
-      if(granularity[1] == g) then
-	 return(granularity[3])
-      end
-   end
-
-   return(0)
-end
 
 function op2jsop(op)
    if op == "gt" then
@@ -639,58 +673,6 @@ function checkDeleteStoredAlerts()
          _GET["alert_severity"] = nil
          _GET["alert_type"] = nil
       end
-   end
-end
-
--- #################################
-
---
--- This function should be updated whenever a new alert entity type is available.
--- If entity_info is nil, then no links will be provided.
---
-local function formatAlertEntity(ifid, entity_type, entity_value, entity_info)
-   require "flow_utils"
-   local value
-   local epoch_begin, epoch_end = getAlertTimeBounds({alert_tstamp = os.time()})
-
-   if entity_type == "host" then
-      local host_info = hostkey2hostinfo(entity_value)
-      value = resolveAddress(host_info)
-
-      if host_info ~= nil then
-	 value = "<a href='"..ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifid..
-	    "&host="..hostinfo2hostkey(host_info).."&page=historical&epoch_begin="..
-	    epoch_begin .."&epoch_end=".. epoch_end .."'>"..value.."</a>"
-      end
-   elseif entity_type == "interface" then
-      value = getInterfaceName(ifid)
-
-      if entity_info ~= nil then
-	 value = "<a href='"..ntop.getHttpPrefix().."/lua/if_stats.lua?ifid="..ifid..
-	  "&page=historical&epoch_begin="..epoch_begin .."&epoch_end=".. epoch_end ..
-	  "'>"..value.."</a>"
-      end
-   elseif entity_type == "network" then
-      value = getLocalNetworkAlias(hostkey2hostinfo(entity_value)["host"])
-
-      if entity_info ~= nil then
-	 value = "<a href='"..ntop.getHttpPrefix().."/lua/network_details.lua?network="..
-	 (entity_info.network_id).."&page=historical&epoch_begin=".. epoch_begin
-	 .."&epoch_end=".. epoch_end .."'>" ..value.."</a>"
-      end
-   else
-      -- fallback
-      value = entity_value
-   end
-
-   -- try to get a localized message
-   local localized = i18n("alert_messages."..entity_type.."_entity", {entity_value=value})
-
-   if localized ~= nil then
-      return localized
-   else
-      -- fallback
-      return entity_type.." "..value
    end
 end
 
@@ -1200,10 +1182,9 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
       )
    end
 
-   for _,e in ipairs(alert_consts.alerts_granularity) do
-      local k = e[1]
-      local l = e[2]
-      local resolution = e[3]
+   for k, granularity in pairsByField(alert_consts.alerts_granularities, "granularity_id", asc) do
+      local l = i18n(granularity.i18n_title)
+      local resolution = granularity.granularity_seconds
 
       if (not options.remote_host) or resolution <= 60 then
 	 l = '<i class="fa fa-cog" aria-hidden="true"></i>&nbsp;'..l
@@ -1758,9 +1739,9 @@ function getCurrentStatus() {
 	 if(((isEmptyString(_GET["entity"])) and isEmptyString(_GET["epoch_begin"]) and isEmptyString(_GET["epoch_end"])) and (options.hide_filters ~= true))  then
 	    -- alert_consts.alert_severity_keys and alert_consts.alert_type_keys are defined in lua_utils
 	    local alert_severities = {}
-	    for _, s in pairs(alert_consts.alert_severity_keys) do alert_severities[#alert_severities +1 ] = s[3] end
+	    for s, _ in pairs(alert_consts.alert_severities) do alert_severities[#alert_severities +1 ] = s end
 	    local alert_types = {}
-	    for _, s in pairs(alert_consts.alert_type_keys) do alert_types[#alert_types +1 ] = s[3] end
+	    for s, _ in pairs(alert_consts.alert_types) do alert_types[#alert_types +1 ] = s end
 
 	    local a_type, a_severity = nil, nil
 	    if clicked == "1" then
@@ -2190,186 +2171,6 @@ end
 
 -- #################################
 
--- TODO localize
-local function formatThresholdCross(ifid, engine, entity_type, entity_value, entity_info, alert_key, threshold_info)
-   if threshold_info.metric then
-      local info = alert_consts.alert_functions_info[threshold_info.metric]
-      local label = info and string.lower(info.label) or threshold_info.metric
-      local value = info and info.fmt(threshold_info.value) or threshold_info.value
-      local edge = info and info.fmt(threshold_info.edge) or threshold_info.edge
-
-      return alertEngineLabel(engine).." <b>".. label .."</b> crossed by "..formatAlertEntity(ifid, entity_type, entity_value, entity_info)..
-	 " ["..value.." &"..(threshold_info.operator).."; "..edge.."]"
-   end
-
-   return ""
-end
-
-local function formatSynFlood(ifid, engine, entity_type, entity_value, entity_info, alert_key, alert_info)
-   if entity_info.anomalies ~= nil then
-      if (alert_key == "syn_flood_attacker") and (entity_info.anomalies.syn_flood_attacker ~= nil) then
-	 local anomaly_info = entity_info.anomalies.syn_flood_attacker
-
-	 return firstToUpper(formatAlertEntity(ifid, entity_type, entity_value, entity_info)).." is a SYN Flooder ("..
-	    (anomaly_info.last_trespassed_hits).." SYN sent in "..secondsToTime(anomaly_info.over_threshold_duration_sec)..")"
-      elseif (alert_key == "syn_flood_victim") and (entity_info.anomalies.syn_flood_victim ~= nil) then
-	 local anomaly_info = entity_info.anomalies.syn_flood_victim
-
-	 return firstToUpper(formatAlertEntity(ifid, entity_type, entity_value, entity_info)).." is under SYN flood attack ("..
-	    (anomaly_info.last_trespassed_hits).." SYN received in "..secondsToTime(anomaly_info.over_threshold_duration_sec)..")"
-      end
-   end
-
-   return ""
-end
-
-local function formatFlowsFlood(ifid, engine, entity_type, entity_value, entity_info, alert_key, alert_info)
-   if entity_info.anomalies ~= nil then
-      if (alert_key == "flows_flood_attacker") and (entity_info.anomalies.flows_flood_attacker) then
-	 local anomaly_info = entity_info.anomalies.flows_flood_attacker
-	 return firstToUpper(formatAlertEntity(ifid, entity_type, entity_value, entity_info)).." is a Flooder ("..
-	    (anomaly_info.last_trespassed_hits).." flows sent in "..secondsToTime(anomaly_info.over_threshold_duration_sec)..")"
-      elseif (alert_key == "flows_flood_victim") and (entity_info.anomalies.flows_flood_victim) then
-	 local anomaly_info = entity_info.anomalies.flows_flood_victim
-	 return firstToUpper(formatAlertEntity(ifid, entity_type, entity_value, entity_info)).." is under flood attack ("..
-	    (anomaly_info.last_trespassed_hits).." flows received in "..secondsToTime(anomaly_info.over_threshold_duration_sec)..")"
-      end
-   end
-
-   return ""
-end
-
-local function formatMisconfiguredApp(ifid, engine, entity_type, entity_value, entity_info, alert_key, alert_info)
-   if entity_info.anomalies ~= nil then
-      if alert_key == "too_many_flows" then
-	 return firstToUpper(formatAlertEntity(ifid, entity_type, entity_value, entity_info))..
-	    " has too many flows. Please extend the --max-num-flows/-X command line option"
-      elseif alert_key == "too_many_hosts" then
-	 return firstToUpper(formatAlertEntity(ifid, entity_type, entity_value, entity_info))..
-	    " has too many hosts. Please extend the --max-num-hosts/-x command line option"
-      end
-   end
-
-   return ""
-end
-
-function formatSlowStatsUpdate(ifid, engine, entity_type, entity_value, entity_info, alert_key, alert_info)
-   return "Statistics update on ".. formatAlertEntity(ifid, entity_type, entity_value, entity_info) .. " is too slow."..
-      " This could lead to data accuracy loss and missing alerts. Update frequency can be tuned by the "..
-      "<a href=\"".. ntop.getHttpPrefix() .."/lua/admin/prefs.lua?tab=in_memory\">".. i18n("prefs.housekeeping_frequency_title") .."</a> preference."
-end
-
-local function formatTooManyPacketDrops(ifid, engine, entity_type, entity_value, entity_info, alert_key, alert_info)
-   local max_drop_perc = ntop.getPref(getInterfacePacketDropPercAlertKey(getInterfaceName(ifid)))
-   if isEmptyString(max_drop_perc) then
-      max_drop_perc = CONST_DEFAULT_PACKETS_DROP_PERCENTAGE_ALERT
-   end
-
-   return firstToUpper(formatAlertEntity(ifid, entity_type, entity_value, entity_info))..
-      " has too many dropped packets [&gt " .. max_drop_perc .. "%]"
-end
-
-local function formatInactivity(ifid, engine, entity_type, entity_value, entity_info, alert_key, alert_info)
-   return firstToUpper(formatAlertEntity(ifid, entity_type, entity_value, entity_info))..
-      " is inactive."
-end
-
-local function formatActiveFlowsAnomaly(ifid, engine, entity_type, entity_value, entity_info, alert_key, alert_info)
-   if entity_info.anomalies ~= nil then
-      if(alert_key == "num_active_flows_as_client") and (entity_info.anomalies.num_active_flows_as_client) then
-	 local anomaly_info = entity_info.anomalies.num_active_flows_as_client
-
-	 return string.format("%s has an anomalous number of active client flows [current_flows=%u][anomaly_index=%u]",
-	    firstToUpper(formatAlertEntity(ifid, entity_type, entity_value, entity_info)),
-	    anomaly_info.value, anomaly_info.anomaly_index)
-      elseif(alert_key == "num_active_flows_as_server") and (entity_info.anomalies.num_active_flows_as_server) then
-	 local anomaly_info = entity_info.anomalies.num_active_flows_as_server
-
-	 return string.format("%s has an anomalous number of active server flows [current_flows=%u][anomaly_index=%u]",
-	    firstToUpper(formatAlertEntity(ifid, entity_type, entity_value, entity_info)),
-	    anomaly_info.value, anomaly_info.anomaly_index)
-      end
-   end
-
-   return ""
-end
-
-local function formatDNSAnomaly(ifid, engine, entity_type, entity_value, entity_info, alert_key, alert_info)
-   -- tprint({ifid =ifid, engine = engine, entity_type = entity_type, entity_value = entity_value, entity_info = entity_info, alert_key = alert_key, alert_info = alert_info})
-
-   if entity_info.anomalies ~= nil then
-      for _, v in pairs({"dns.rcvd.num_replies_ok", "dns.rcvd.num_queries", "dns.rcvd.num_replies_error",
-			 "dns.sent.num_replies_ok", "dns.sent.num_queries", "dns.sent.num_replies_error"}) do
-	 if alert_key == v and entity_info.anomalies[v] then
-	    local anomaly_info = entity_info.anomalies[v]
-
-	    local res =  string.format("%s has a DNS anomaly [%s][current=%u][anomaly_index=%u]",
-				       firstToUpper(formatAlertEntity(ifid, entity_type, entity_value, entity_info)),
-				       v,
-				       anomaly_info.value,
-				       anomaly_info.anomaly_index)
-	    return res
-	 end
-      end
-   end
-
-   return ""
-end
-
-local function formatICMPAnomaly(ifid, engine, entity_type, entity_value, entity_info, alert_key, alert_info)
-   -- tprint({ifid =ifid, engine = engine, entity_type = entity_type, entity_value = entity_value, entity_info = entity_info, alert_key = alert_key, alert_info = alert_info})
-
-   if entity_info.anomalies ~= nil then
-      for _, v in pairs({"icmp.num_destination_unreachable"}) do
-	 if alert_key == v and entity_info.anomalies[v] then
-	    local anomaly_info = entity_info.anomalies[v]
-
-	    local res =  string.format("%s has an ICMP anomaly [%s][current=%u][anomaly_index=%u]",
-				       firstToUpper(formatAlertEntity(ifid, entity_type, entity_value, entity_info)),
-				       v,
-				       anomaly_info.value,
-				       anomaly_info.anomaly_index)
-	    return res
-	 end
-      end
-   end
-
-   return ""
-end
-
--- returns the pair (message, severity)
-local function formatAlertMessage(ifid, engine, entity_type, entity_value, atype, akey, entity_info, alert_info)
-   -- Defaults
-   local msg = ""
-   local severity = "error"
-
-   if atype == "threshold_cross" then
-      msg = formatThresholdCross(ifid, engine, entity_type, entity_value, entity_info, akey, alert_info)
-   elseif atype == "tcp_syn_flood" then
-      msg = formatSynFlood(ifid, engine, entity_type, entity_value, entity_info, akey, alert_info)
-   elseif atype == "flows_flood" then
-      msg = formatFlowsFlood(ifid, engine, entity_type, entity_value, entity_info, akey, alert_info)
-   elseif atype == "misconfigured_app" then
-      msg = formatMisconfiguredApp(ifid, engine, entity_type, entity_value, entity_info, akey, alert_info)
-   elseif atype == "slow_stats_update" then
-      msg = formatSlowStatsUpdate(ifid, engine, entity_type, entity_value, entity_info, akey, alert_info)
-   elseif atype == "too_many_drops" then
-      msg = formatTooManyPacketDrops(ifid, engine, entity_type, entity_value, entity_info, akey, alert_info)
-   elseif atype == "inactivity" then
-      msg = formatInactivity(ifid, engine, entity_type, entity_value, entity_info, akey, alert_info)
-   elseif atype == "active_flows_anomaly" then
-      msg = formatActiveFlowsAnomaly(ifid, engine, entity_type, entity_value, entity_info, akey, alert_info)
-   elseif atype == "dns_anomaly" then
-      msg = formatDNSAnomaly(ifid, engine, entity_type, entity_value, entity_info, akey, alert_info)
-   elseif atype == "icmp_anomaly" then
-      msg = formatICMPAnomaly(ifid, engine, entity_type, entity_value, entity_info, akey, alert_info)
-   end
-
-   return msg, severity
-end
-
--- #################################
-
 local function check_entity_alerts(ifid, entity_type, entity_value, working_status, old_entity_info, entity_info)
    if are_alerts_suppressed(entity_value, ifid) then return end
 
@@ -2381,7 +2182,9 @@ local function check_entity_alerts(ifid, entity_type, entity_value, working_stat
    local now = os.time()
 
    local function generateAlert(info_arr, atype, akey, alert_info)
-      local alert_msg, aseverity = formatAlertMessage(ifid, working_status.engine, entity_type, entity_value, atype, akey, entity_info, alert_info)
+      --~ local alert_msg, aseverity = formatAlertMessage(ifid, working_status.engine, entity_type, entity_value, atype, akey, entity_info, alert_info)
+      local alert_msg = "TODO remove this"
+      local aseverity = "info"
       local alert = alerts:newAlert({
          entity = entity_type,
          type = atype,
@@ -2467,7 +2270,9 @@ function check_networks_alerts(ifid, working_status)
          goto continue
       end
 
-      local checkpoints = interface.checkpointNetwork(ifid, tonumber(sstats.network_id), working_status.checkpoint_id, "high") or {}
+      -- TODO
+      --~ local checkpoints = interface.checkpointNetwork(ifid, tonumber(sstats.network_id), working_status.checkpoint_id, "high") or {}
+      local checkpoints = {}
 
       local old_entity_info = checkpoints["previous"] and j.decode(checkpoints["previous"])
       local new_entity_info = checkpoints["current"] and j.decode(checkpoints["current"])
@@ -2547,7 +2352,6 @@ function newAlertsWorkingStatus(ifstats, granularity)
    local res = {
       granularity = granularity,
       engine = alertEngine(granularity),
-      checkpoint_id = checkpointId(granularity),
       ifid = ifstats.id,
       configured_thresholds = getConfiguredAlertsThresholds(ifstats.name, granularity),
       now = os.time(),
@@ -3412,6 +3216,8 @@ end
 function processAlertNotifications(now, periodic_frequency, force_export)
    updateAlertStats(now)
 
+   alerts.processPendingAlertEvents(now + periodic_frequency)
+
    -- Get new alerts
    while(true) do
       local json_message = ntop.lpopCache("ntopng.alerts.notifications_queue")
@@ -3553,15 +3359,6 @@ end
 
 function notify_ntopng_stop()
    notify_ntopng_status(false)
-end
-
--- See NetworkInterface::checkHostsAlerts()
-function granularity2id(granularity)
-   if(granularity == "min")       then return(0)
-   elseif(granularity == "5mins") then return(1)
-   elseif(granularity == "hour")  then return(2)
-   elseif(granularity == "day")   then return(3)
-   end
 end
 
 -- DEBUG: uncomment this to test
