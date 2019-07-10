@@ -209,6 +209,8 @@ end
 -- new entity appear and it has not previous dump or across ntopng reboot.
 --
 
+-- TODO remove after gui rework
+
 function bytes(old, new, interval)
    -- io.write(debug.traceback().."\n")
    if(verbose) then print("bytes("..interval..")") end
@@ -401,46 +403,6 @@ function are_alerts_suppressed(observed, ifid)
 end
 
 -- #################################
-
--- Note: see getConfiguredAlertsThresholds for threshold object format
-local function entity_threshold_crossed(granularity, old_table, new_table, threshold)
-   local rc
-   local threshold_info = table.clone(threshold)
-
-   if old_table and new_table then -- meaningful checks require both new and old tables
-      -- Needed because Lua. load() won't work otherwise.
-      old = old_table
-      new = new_table
-      duration = granularity2sec(granularity)
-
-      local op = op2jsop(threshold.operator)
-
-      -- This is where magic happens: load() evaluates the string
-      local what = "val = "..threshold.metric.."(old, new, duration); if(val ".. op .. " " .. threshold.edge .. ") then return(true) else return(false) end"
-
-      local f = load(what)
-
-      rc = f()
-      threshold_info.value = val
-   else
-      rc = false
-      threshold_info.value = nil
-   end
-
-   return rc, threshold_info
-end
-
--- #################################
-
-function op2jsop(op)
-   if op == "gt" then
-      return ">"
-   elseif op == "lt" then
-      return "<"
-   else
-      return "=="
-   end
-end
 
 function performAlertsQuery(statement, what, opts, force_query)
    local wargs = {"WHERE", "1=1"}
@@ -2059,16 +2021,6 @@ end
 
 -- #################################
 
--- Check for checkpoint expiration. This could occurr, for example, if the
--- user disables then re-enables alerts
-local function checkpointExpired(checkpoint, working_status)
-   local tdiff = working_status.now - checkpoint.timestamp
-
-   return tdiff > 1.9 * working_status.interval
-end
-
--- #################################
-
 local function getEntityConfiguredAlertThresholds(ifname, granularity, entity_type)
    local thresholds_key = get_alerts_hash_name(granularity, ifname, entity_type)
    local thresholds_config = {}
@@ -2101,21 +2053,6 @@ local function getEntityConfiguredAlertThresholds(ifname, granularity, entity_ty
    end
 
    return res
-end
-
--- #################################
-
--- TODO remove after alerts migration is completed
-function getConfiguredAlertsThresholds(ifname, granularity)
-  local supported_entities = {"host", "interface", "network"}
-  local res = {}
-
-  for _, entity_type in pairs(supported_entities) do
-    local entity_alerts = getEntityConfiguredAlertThresholds(ifname, granularity, entity_type)
-    res = table.merge(res, entity_alerts)
-  end
-
-  return(res)
 end
 
 -- #################################
@@ -2167,92 +2104,6 @@ local function getEntityThresholds(configured_thresholds, entity_type, entity)
    end
 
    return res
-end
-
--- #################################
-
-local function check_entity_alerts(ifid, entity_type, entity_value, working_status, old_entity_info, entity_info)
-   if are_alerts_suppressed(entity_value, ifid) then return end
-
-   local engine = working_status.engine
-   local granularity = working_status.granularity
-   local current_alerts = {}
-   local past_alert_info = {}
-   local invalidate = false
-   local now = os.time()
-
-   local function generateAlert(info_arr, atype, akey, alert_info)
-      --~ local alert_msg, aseverity = formatAlertMessage(ifid, working_status.engine, entity_type, entity_value, atype, akey, entity_info, alert_info)
-      local alert_msg = "TODO remove this"
-      local aseverity = "info"
-      local alert = alerts:newAlert({
-         entity = entity_type,
-         type = atype,
-         severity = aseverity,
-         subtype = akey,
-         periodicity = working_status.interval,
-      })
-
-      alert:trigger(entity_value, alert_msg)
-   end
-
-   local function getAnomalyType(anomal_name)
-      if starts(anomal_name, "syn_flood") then
-	 return "tcp_syn_flood"
-      elseif starts(anomal_name, "flows_flood") then
-	 return "flows_flood"
-      elseif anomal_name == "too_many_drops" then
-	 return "too_many_drops"
-      elseif anomal_name == "slow_stats_update" then
-	 return "slow_stats_update"
-      elseif starts(anomal_name, "too_many_") then
-	 return "misconfigured_app"
-      elseif starts(anomal_name, "num_active_flows_as_") then -- e.g. num_active_flows_as_client
-	 return "active_flows_anomaly"
-      elseif starts(anomal_name, "dns.") then -- e.g. dns.sent.num_queries
-	 return "dns_anomaly"
-      elseif starts(anomal_name, "icmp.") then -- e.g. icmp.num_destination_unreachable
-	 return "icmp_anomaly"
-      end
-
-      return nil
-   end
-
-   if granularity == "min" then
-      -- Populate current_alerts with anomalies
-      for anomal_name, anomaly in pairs(entity_info.anomalies or {}) do
-	 local anomal_type = getAnomalyType(anomal_name)
-
-	 if((anomal_type == "active_flows_anomaly" or anomal_type == "dns_anomaly" or anomal_type == "icmp_anomaly")
-	    and (ntop.getPref("ntopng.prefs.beta_anomaly_index_alerts") ~= "1")) then
-	    goto skip
-	 end
-
-	 if not isEmptyString(anomal_type) then
-	    generateAlert(current_alerts, anomal_type, anomal_name, anomaly)
-	 else
-	    -- default anomaly - empty alert key
-	    generateAlert(current_alerts, anomal_name, "", anomaly)
-	 end
-
-	 ::skip::
-      end
-   end
-
-   -- Populate current_alerts with threshold crosses
-   for _, threshold in pairs(getEntityThresholds(working_status.configured_thresholds, entity_type, entity_value)) do
-      local atype = "threshold_cross"
-      local akey = threshold.key
-      local exceeded, alert_info = entity_threshold_crossed(granularity, old_entity_info, entity_info, threshold)
-
-      if exceeded then
-	 generateAlert(current_alerts, atype, akey, alert_info)
-      else
-	 -- save past alert information
-	 generateAlert(past_alert_info, atype, akey, alert_info)
-      end
-   end
-   
 end
 
 -- #################################
@@ -2310,7 +2161,6 @@ function newAlertsWorkingStatus(ifstats, granularity)
       granularity = granularity,
       engine = alertEngine(granularity),
       ifid = ifstats.id,
-      configured_thresholds = getConfiguredAlertsThresholds(ifstats.name, granularity),
       now = os.time(),
       interval = granularity2sec(granularity),
    }
@@ -2637,8 +2487,8 @@ function check_process_alerts()
    end
 end
 
-local function check_macs_alerts(ifid, working_status)
-   if working_status.granularity ~= "min" then
+local function check_macs_alerts(ifid, granularity)
+   if granularity ~= "min" then
       return
    end
 
@@ -2738,8 +2588,8 @@ local function getHostPoolUrl(pool_id)
    return ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?pool=" .. pool_id
 end
 
-function check_host_pools_alerts(ifid, working_status)
-   if working_status.granularity ~= "min" then
+function check_host_pools_alerts(ifid, granularity)
+   if granularity ~= "min" then
       return
    end
 
@@ -2896,19 +2746,17 @@ function scanAlerts(granularity, ifstats)
 
    if(verbose) then print("[minute.lua] Scanning ".. granularity .." alerts for interface " .. ifname.."\n") end
 
-   local working_status = newAlertsWorkingStatus(ifstats, granularity)
-
    check_interface_alerts(granularity)
    check_networks_alerts(granularity)
    check_hosts_alerts(granularity)
-   check_macs_alerts(ifid, working_status)
-   check_host_pools_alerts(ifid, working_status)
+   check_macs_alerts(ifid, granularity)
+   check_host_pools_alerts(ifid, granularity)
 
    if ntop.getInfo()["test_mode"] then
       package.path = dirs.installdir .. "/scripts/lua/modules/test/?.lua;" .. package.path
       local test_utils = require "test_utils"
       if test_utils then
-	 test_utils.check_alerts(ifid, working_status)
+	 test_utils.check_alerts(ifid, granularity)
       end
    end
 end
