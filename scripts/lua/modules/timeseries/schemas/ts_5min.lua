@@ -241,7 +241,7 @@ schema:addMetric("flows_as_server")
 
 -- ##############################################
 
-schema = ts_utils.newSchema("host:anomalous_flows", {step = 300, rrd_fname = "anomalous_flows"})
+schema = ts_utils.newSchema("host:misbehaving_flows", {step = 300, rrd_fname = "misbehaving_flows"})
 schema:addTag("ifid")
 schema:addTag("host")
 schema:addMetric("flows_as_client")
