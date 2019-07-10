@@ -4,14 +4,18 @@
 
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
+local dirs = ntop.getDirs()
 local json = require("dkjson")
 local alert_endpoints = require("alert_endpoints_utils")
 local alert_consts = require("alert_consts")
+local os_utils = require("os_utils")
+local do_trace = false
 
 local alerts = {}
 
 local MAX_NUM_ENQUEUED_ALERTS_EVENTS = 100
 local ALERTS_EVENTS_QUEUE = "ntopng.cache.alerts_events_queue"
+local ALERT_CHECKS_MODULES_BASEDIR = dirs.installdir .. "/scripts/callbacks/interface/alerts"
 
 -- Just helpers
 local str_2_periodicity = {
@@ -401,6 +405,90 @@ function alerts.thresholdCrossType(granularity, metric, value, operator, thresho
     }
   }
   return(res)
+end
+
+-- ##############################################
+
+function alerts.load_check_modules(subdir)
+  local checks_dir = os_utils.fixPath(ALERT_CHECKS_MODULES_BASEDIR .. "/" .. subdir)
+  local available_modules = {}
+
+  package.path = checks_dir .. "/?.lua;" .. package.path
+
+  for fname in pairs(ntop.readdir(checks_dir)) do
+    if(ends(fname, ".lua")) then
+      local modname = string.sub(fname, 1, string.len(fname) - 4)
+      local check_module = require(modname)
+
+      if(check_module.check_function ~= nil) then
+        available_modules[fname] = check_module
+      end
+    end
+  end
+
+  return(available_modules)
+end
+
+-- ##############################################
+
+function alerts.check_threshold_cross(granularity, function_name, alert_entity, value, threshold_config)
+  local alarmed = false
+
+  local threshold_edge = tonumber(threshold_config.edge)
+
+  if(do_trace) then print("[Alert @ "..granularity.."] ".. alert_entity.alert_entity_val .." ["..function_name.."]\n") end
+
+  if(threshold_config.operator == "lt") then
+    if(value < threshold_edge) then alarmed = true end
+  else
+    if(value > threshold_edge) then alarmed = true end
+  end
+
+  if(alarmed) then
+    if(do_trace) then print("Trigger alert [value: "..tostring(value).."]\n") end
+
+    return(alerts.new_trigger(
+      alert_entity,
+      alerts.thresholdCrossType(granularity, function_name, value, threshold_config.operator, threshold_edge)
+    ))
+  else
+    if(do_trace) then print("DON'T trigger alert [value: "..tostring(value).."]\n") end
+
+    return(alerts.new_release(
+      alert_entity,
+      alerts.thresholdCrossType(granularity, function_name, value, threshold_config.operator, threshold_edge)
+    ))
+  end
+end
+
+-- ##############################################
+
+local function delta_val(reg, metric_name, granularity, curr_val)
+   local granularity_num = granularity2id(granularity)
+   local key = string.format("%s:%s", metric_name, granularity_num)
+
+   -- Read cached value and purify it
+   local prev_val = reg.getCachedAlertValue(key, granularity_num)
+   prev_val = tonumber(prev_val) or 0
+   -- Save the value for the next round
+   reg.setCachedAlertValue(key, tostring(curr_val), granularity_num)
+
+   -- Compute the delta
+   return curr_val - prev_val
+end
+
+-- ##############################################
+
+function alerts.host_delta_val(metric_name, granularity, curr_val)
+  return(delta_val(host --[[ the host Lua reg ]], metric_name, granularity, curr_val))
+end
+
+function alerts.interface_delta_val(metric_name, granularity, curr_val)
+  return(delta_val(interface --[[ the interface Lua reg ]], metric_name, granularity, curr_val))
+end
+
+function alerts.network_delta_val(metric_name, granularity, curr_val)
+  return(delta_val(network --[[ the network Lua reg ]], metric_name, granularity, curr_val))
 end
 
 -- ##############################################
