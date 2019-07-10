@@ -283,6 +283,8 @@ function alerts.new_trigger(entity_info, type_info, when)
       triggered = host.storeTriggeredAlert(alert_key_name, granularity_id)
     elseif((interface.storeTriggeredAlert) and (entity_info.alert_entity.entity_id == alertEntity("interface"))) then
       triggered = interface.storeTriggeredAlert(alert_key_name, granularity_id)
+    elseif((network.storeTriggerAlert) and (entity_info.alert_entity.entity_id == alertEntity("network"))) then
+      triggered = network.storeTriggerAlert(alert_key_name, granularity_id)
     end
 
     if(not triggered) then
@@ -330,6 +332,8 @@ function alerts.new_release(entity_info, type_info)
       triggered = host.releaseTriggeredAlert(alert_key_name, granularity_id)
     elseif((interface.releaseTriggeredAlert) and (entity_info.alert_entity.entity_id == alertEntity("interface"))) then
       triggered = interface.releaseTriggeredAlert(alert_key_name, granularity_id)
+    elseif((network.releaseTriggeredAlert) and (entity_info.alert_entity.entity_id == alertEntity("network"))) then
+      triggered = network.releaseTriggeredAlert(alert_key_name, granularity_id)
     end
 
     if(not released) then
@@ -364,10 +368,21 @@ function alerts.hostAlertEntity(hostip, hostvlan)
   }
 end
 
+-- ##############################################
+
 function alerts.interfaceAlertEntity(ifid)
   return {
     alert_entity = alert_consts.alert_entities.interface,
     alert_entity_val = string.format("iface_%d", ifid)
+  }
+end
+
+-- ##############################################
+
+function alerts.networkAlertEntity(network_cidr)
+  return {
+    alert_entity = alert_consts.alert_entities.network,
+    alert_entity_val = network_cidr
   }
 end
 

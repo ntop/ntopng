@@ -2257,60 +2257,17 @@ end
 
 -- #################################
 
-function check_networks_alerts(ifid, working_status)
-   local subnet_stats = interface.getNetworksStats()
-   local warning_shown = false
-
-   for subnet, sstats in pairs(subnet_stats) do
-      local entity_value = subnet
-
-      if (working_status.configured_thresholds[subnet] == nil)
-      and (working_status.configured_thresholds["local_networks"] == nil) then
-         -- no threshold configured, no need to checkpoint
-         goto continue
-      end
-
-      -- TODO
-      --~ local checkpoints = interface.checkpointNetwork(ifid, tonumber(sstats.network_id), working_status.checkpoint_id, "high") or {}
-      local checkpoints = {}
-
-      local old_entity_info = checkpoints["previous"] and j.decode(checkpoints["previous"])
-      local new_entity_info = checkpoints["current"] and j.decode(checkpoints["current"])
-
-      if new_entity_info == nil then
-         if warning_shown == false then
-            print("["..__FILE__().."]:["..__LINE__().."] Unexpected new_entity_info == nil")
-            tprint({
-		  old_entity_info = old_entity_info,
-		  granularity = working_status.granularity,
-		  entity_value = entity_value, network_id = network_id,
-		  ifname=getInterfaceName(ifid)})
-            warning_shown = true
-         end
-         goto continue
-      end
-
-      new_entity_info["network_id"] = sstats.network_id
-
-      if (old_entity_info ~= nil) and (old_entity_info.ingress ~= nil)
-      and not checkpointExpired(old_entity_info, working_status) then
-         old_entity_info["network_id"] = sstats.network_id
-
-         -- wrap check
-         if (old_entity_info["egress"] > new_entity_info["egress"])
-	    or (old_entity_info["ingress"] > new_entity_info["ingress"])
-	 or (old_entity_info["inner"] > new_entity_info["inner"]) then
-            -- reset
-            if(verbose) then print("entity '"..subnet.."' stats reset("..working_status.granularity..")") end
-            old_entity_info = nil
-         end
-      else
-         -- reset
-         old_entity_info = nil
-      end
-
-      check_entity_alerts(ifid, "network", subnet, working_status, old_entity_info, new_entity_info)
-      ::continue::
+function check_networks_alerts(granularity)
+   if(granularity == "min") then
+      ntop.checkNetworksAlertsMin()
+   elseif(granularity == "5mins") then
+      ntop.checkNetworksAlerts5Min()
+   elseif(granularity == "hour") then
+      ntop.checkNetworksAlertsHour()
+   elseif(granularity == "days") then
+      ntop.checkNetworksAlertsDay()
+   else
+      traceError(TRACE_ERROR, TRACE_CONSOLE, "Unknown granularity " .. granularity)
    end
 end
 
@@ -2942,7 +2899,7 @@ function scanAlerts(granularity, ifstats)
    local working_status = newAlertsWorkingStatus(ifstats, granularity)
 
    check_interface_alerts(granularity)
-   check_networks_alerts(ifid, working_status)
+   check_networks_alerts(granularity)
    check_hosts_alerts(granularity)
    check_macs_alerts(ifid, working_status)
    check_host_pools_alerts(ifid, working_status)

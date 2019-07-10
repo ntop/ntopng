@@ -39,7 +39,7 @@ end
 -- #################################################################
 
 function active_local_hosts(metric_name, info, granularity, granularity_num)
-   return delta_val(metric_name, granularity_num, info["stats"]["local_hosts"])
+   return(info["stats"]["local_hosts"])
 end
 
 -- #################################################################

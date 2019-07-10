@@ -9,13 +9,13 @@ require "alert_utils"
 
 alerts_api = require("alerts_api")
 
-local do_trace      = true
+local do_trace      = false
 local config_alerts = nil
 local ifname        = nil
 
 -- The function below ia called once (#pragma once)
 function setup(str_granularity)
-   print("alert.lua:setup("..str_granularity..") called\n")
+   if do_trace then print("alert.lua:setup("..str_granularity..") called\n") end
    ifname = interface.setActiveInterfaceId(tonumber(interface.getId()))
    config_alerts = getNetworksConfiguredAlertThresholds(ifname, str_granularity)
 
@@ -41,7 +41,7 @@ local function checkNetworkAlertsThreshold(network_key, network_info, granularit
       threshold_num_gran = num_granularity
       n_info             = network_info
 
-      print("[Alert @ "..granularity.."] ".. network_key .." ["..function_name.."]\n")
+      if do_trace then print("[Alert @ "..granularity.."] ".. network_key .." ["..function_name.."]\n") end
 
       if true then
          -- This is where magic happens: load() evaluates the string
@@ -66,16 +66,19 @@ local function checkNetworkAlertsThreshold(network_key, network_info, granularit
                end
 
                if alarmed then
-                  if interface.storeTriggeredAlert(alert_key_name, num_granularity) then
-                     -- IMPORTANT: uncommenting the line below break all
-                     -- network_alert:trigger(network_key, "Network "..network_key.." crossed threshold "..metric_name)
-                     print("Trigger alert [value: "..tostring(value).."]\n")
-                  end
+                  if do_trace then  print("Trigger alert [value: "..tostring(value).."]\n") end
+
+                  alerts_api.new_trigger(
+                      alerts_api.networkAlertEntity(network_key),
+                      alerts_api.thresholdCrossType(granularity, function_name, value, threshold_operator, threshold_value)
+                  )
                else
-                  if interface.releaseTriggeredAlert(alert_key_name, num_granularity) then
-                     print("DON'T trigger alert [value: "..tostring(value).."]\n")
-                     -- network_alert:release(network_key)
-                  end
+                  if do_trace then  print("DON'T trigger alert [value: "..tostring(value).."]\n") end
+
+                  alerts_api.new_trigger(
+                      alerts_api.networkAlertEntity(network_key),
+                      alerts_api.thresholdCrossType(granularity, function_name, value, threshold_operator, threshold_value)
+                  )
                end
             else
                if do_trace then print("Execution error:  "..tostring(rc).."\n") end
@@ -85,7 +88,7 @@ local function checkNetworkAlertsThreshold(network_key, network_info, granularit
          end
       end
 
-      print("=============\n")
+      if do_trace then print("=============\n") end
    end
 end
 
