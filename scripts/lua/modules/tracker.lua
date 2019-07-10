@@ -11,6 +11,7 @@ local tracker = {}
 --! @param f_name is the function name
 --! @param f_args is a table with the arguments
 function tracker.log(f_name, f_args)
+  require("alert_utils")
   local alerts = require("alerts_api")
   local stats = interface.getStats()
 
