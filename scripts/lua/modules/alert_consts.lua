@@ -69,11 +69,7 @@ end
 
 -- ##############################################
 
---
--- This function should be updated whenever a new alert entity type is available.
--- If entity_info is nil, then no links will be provided.
---
-local function formatAlertEntity(ifid, entity_type, entity_value, entity_info)
+local function formatAlertEntity(ifid, entity_type, entity_value)
    require "flow_utils"
    local value
    local epoch_begin, epoch_end = getAlertTimeBounds({alert_tstamp = os.time()})
@@ -94,11 +90,9 @@ local function formatAlertEntity(ifid, entity_type, entity_value, entity_info)
    elseif entity_type == "network" then
       value = getLocalNetworkAlias(hostkey2hostinfo(entity_value)["host"])
 
-      if entity_info ~= nil then
-	 value = "<a href='"..ntop.getHttpPrefix().."/lua/network_details.lua?network="..
-	 (entity_info.network_id).."&page=historical&epoch_begin=".. epoch_begin
-	 .."&epoch_end=".. epoch_end .."'>" ..value.."</a>"
-      end
+      value = "<a href='"..ntop.getHttpPrefix().."/lua/network_details.lua?network_cidr="..
+        entity_value.."&page=historical&epoch_begin=".. epoch_begin
+         .."&epoch_end=".. epoch_end .."'>" ..value.."</a>"
    else
       -- fallback
       value = entity_value

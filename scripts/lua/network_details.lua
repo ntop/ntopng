@@ -18,6 +18,7 @@ local page_utils = require("page_utils")
 local ts_utils = require("ts_utils")
 
 local network        = _GET["network"]
+local network_name   = _GET["network_cidr"]
 local page           = _GET["page"]
 
 interface.select(ifname)
@@ -25,7 +26,12 @@ local ifstats = interface.getStats()
 local ifId = ifstats.id
 local have_nedge = ntop.isnEdge()
 
-local network_name = ntop.getNetworkNameById(tonumber(network))
+if(not isEmptyString(network_name)) then
+  network = ntop.getNetworkIdByName(network_name)
+else
+  network_name = ntop.getNetworkNameById(tonumber(network))
+end
+
 local custom_name = getLocalNetworkAlias(network_name)
 
 local network_vlan   = tonumber(_GET["vlan"])

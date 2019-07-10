@@ -8712,6 +8712,29 @@ static int ntop_network_name_by_id(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_network_id_by_name(lua_State* vm) {
+  u_int8_t num_local_networks = ntop->getNumLocalNetworks();
+  int found_id = -1;
+  char *name;
+
+  ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  name = (char*)lua_tostring(vm, 1);
+
+  for(u_int8_t network_id = 0; network_id < num_local_networks; network_id++) {
+    if(!strcmp(ntop->getLocalNetworkName(network_id), name)) {
+      found_id = network_id;
+      break;
+    }
+  }
+
+  lua_pushinteger(vm, found_id);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_is_gui_access_restricted(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
@@ -9194,6 +9217,7 @@ static const luaL_Reg ntop_reg[] = {
   { "isLoginDisabled",      ntop_is_login_disabled },
   { "isLoginBlacklisted",   ntop_is_login_blacklisted },
   { "getNetworkNameById",   ntop_network_name_by_id },
+  { "getNetworkIdByName",   ntop_network_id_by_name },
   { "isGuiAccessRestricted", ntop_is_gui_access_restricted },
 
   /* Security */
