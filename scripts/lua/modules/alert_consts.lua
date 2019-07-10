@@ -88,13 +88,9 @@ local function formatAlertEntity(ifid, entity_type, entity_value, entity_info)
 	    epoch_begin .."&epoch_end=".. epoch_end .."'>"..value.."</a>"
       end
    elseif entity_type == "interface" then
-      value = getInterfaceName(ifid)
-
-      if entity_info ~= nil then
-	 value = "<a href='"..ntop.getHttpPrefix().."/lua/if_stats.lua?ifid="..ifid..
-	  "&page=historical&epoch_begin="..epoch_begin .."&epoch_end=".. epoch_end ..
-	  "'>"..value.."</a>"
-      end
+      value = "<a href='"..ntop.getHttpPrefix().."/lua/if_stats.lua?ifid="..ifid..
+        "&page=historical&epoch_begin="..epoch_begin .."&epoch_end=".. epoch_end ..
+        "'>"..getInterfaceName(ifid).."</a>"
    elseif entity_type == "network" then
       value = getLocalNetworkAlias(hostkey2hostinfo(entity_value)["host"])
 

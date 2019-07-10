@@ -279,8 +279,10 @@ function alerts.new_trigger(entity_info, type_info, when)
     local triggered = true
     local alert_key_name = get_alert_triggered_key(type_info)
 
-    if((not table.empty(host)) and (entity_info.alert_entity.entity_id == alertEntity("host"))) then
+    if((host.storeTriggeredAlert) and (entity_info.alert_entity.entity_id == alertEntity("host"))) then
       triggered = host.storeTriggeredAlert(alert_key_name, granularity_id)
+    elseif((interface.storeTriggeredAlert) and (entity_info.alert_entity.entity_id == alertEntity("interface"))) then
+      triggered = interface.storeTriggeredAlert(alert_key_name, granularity_id)
     end
 
     if(not triggered) then
@@ -324,8 +326,10 @@ function alerts.new_release(entity_info, type_info)
     local released = true
     local alert_key_name = get_alert_triggered_key(type_info)
 
-    if((not table.empty(host)) and (entity_info.alert_entity.entity_id == alertEntity("host"))) then
+    if((host.releaseTriggeredAlert) and (entity_info.alert_entity.entity_id == alertEntity("host"))) then
       triggered = host.releaseTriggeredAlert(alert_key_name, granularity_id)
+    elseif((interface.releaseTriggeredAlert) and (entity_info.alert_entity.entity_id == alertEntity("interface"))) then
+      triggered = interface.releaseTriggeredAlert(alert_key_name, granularity_id)
     end
 
     if(not released) then
@@ -360,6 +364,13 @@ function alerts.hostAlertEntity(hostip, hostvlan)
   }
 end
 
+function alerts.interfaceAlertEntity(ifid)
+  return {
+    alert_entity = alert_consts.alert_entities.interface,
+    alert_entity_val = string.format("iface_%d", ifid)
+  }
+end
+
 -- ##############################################
 -- type_info building functions
 -- ##############################################
@@ -374,14 +385,6 @@ function alerts.thresholdCrossType(granularity, metric, value, operator, thresho
       operator = operator, threshold = threshold,
     }
   }
-  --~ return {
-    --~ alert_severity = alertSeverity("error"),
-    --~ alert_type = alertType("threshold_cross"),
-    --~ alert_subtype = string.format("%s_%s", granularity, metric),
-    
-  --~ }
-
-  --~ return(alerts_table.tcp_syn_flood)
   return(res)
 end
 

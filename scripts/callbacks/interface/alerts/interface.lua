@@ -9,13 +9,13 @@ require "alert_utils"
 
 alerts_api = require("alerts_api")
 
-local do_trace      = true
+local do_trace      = false
 local config_alerts = nil
 local ifname        = nil
 
 -- The function below ia called once (#pragma once)
 function setup(str_granularity)
-   print("alert.lua:setup("..str_granularity..") called\n")
+   if(do_trace) then print("alert.lua:setup("..str_granularity..") called\n") end
    ifname = interface.setActiveInterfaceId(tonumber(interface.getId()))
    config_alerts = getInterfaceConfiguredAlertThresholds(ifname, str_granularity)
 
@@ -30,6 +30,8 @@ end
 local function checkInterfaceAlertsThreshold(interface_key, interface_info, granularity, num_granularity, rules)
    if(do_trace) then print("checkInterfaceAlertsThreshold()\n") end
 
+   local ifid = interface.getId()
+
    for function_name,params in pairs(rules) do
       -- IMPORTANT: do not use "local" with the variables below
       --            as they need to be accessible by the evaluated function
@@ -41,7 +43,7 @@ local function checkInterfaceAlertsThreshold(interface_key, interface_info, gran
       threshold_num_gran = num_granularity
       i_info             = interface_info
 
-      print("[Alert @ "..granularity.."] ".. interface_key .." ["..function_name.."]\n")
+      if(do_trace) then print("[Alert @ "..granularity.."] ".. interface_key .." ["..function_name.."]\n")  end
 
       if(true) then
 	 -- This is where magic happens: load() evaluates the string
@@ -67,17 +69,19 @@ local function checkInterfaceAlertsThreshold(interface_key, interface_info, gran
 	       end
 
 	       if(alarmed) then
-		  if(interface.storeTriggeredAlert(alert_key_name, num_granularity)) then
-		     print("Trigger alert [value: "..tostring(value).."]\n")
-		     
-		     -- IMPORTANT: uncommenting the line below break all
-		     -- interface_alert:trigger(interface_key, "Host "..interface_key.." crossed threshold "..metric_name)
-		  end
+                  if(do_trace) then print("Trigger alert [value: "..tostring(value).."]\n")  end
+
+                  alerts_api.new_trigger(
+                      alerts_api.interfaceAlertEntity(ifid),
+                      alerts_api.thresholdCrossType(granularity, function_name, value, threshold_operator, threshold_value)
+                  )
 	       else
-		  if(interface.releaseTriggeredAlert(alert_key_name, num_granularity)) then
-		     print("DON'T trigger alert [value: "..tostring(value).."]\n")
-		     -- interface_alert:release(interface_key)
-		  end
+		  if(do_trace) then print("DON'T trigger alert [value: "..tostring(value).."]\n") end
+ 
+                  alerts_api.new_trigger(
+                      alerts_api.interfaceAlertEntity(ifid),
+                      alerts_api.thresholdCrossType(granularity, function_name, value, threshold_operator, threshold_value)
+                  )
 	       end
 	    else
 	       if(do_trace) then print("Execution error:  "..tostring(rc).."\n") end
@@ -87,7 +91,7 @@ local function checkInterfaceAlertsThreshold(interface_key, interface_info, gran
 	 end
       end
 
-      print("=============\n")
+      if(do_trace) then print("=============\n") end
    end
 end
 
