@@ -18,10 +18,10 @@ active_page = "about"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 -- checks all the hosts of the current interface (TODO: iterate all interfaces)
--- ntop.checkHostsAlertsMin()
+ntop.checkHostsAlertsMin()
 
 -- checks the current networks alerts
-ntop.checkNetworksAlertsMin()
+-- ntop.checkNetworksAlertsMin()
 
 -- checks the current interface alerts
 -- interface.checkAlertsMin()

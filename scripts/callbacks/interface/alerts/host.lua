@@ -9,9 +9,9 @@ require "alert_utils"
 
 local alerts_api = require("alerts_api")
 
-local do_trace      = false
-local config_alerts = nil
-local ifname        = nil
+local do_trace          = false
+local config_alerts     = nil
+local ifname            = nil
 local available_modules = nil
 
 -- #################################################################
@@ -34,12 +34,12 @@ function checkHostAlerts(granularity)
   local host_key   = info.ip.."@"..info.vlan
   local host_alert = config_alerts[host_key] or config_alerts["local_hosts"]
 
-  if((host_alert ~= nil) and (table.len(host_alert) > 0)) then
+  if host_alert and table.len(host_alert) > 0 then
     for _, check in pairs(available_modules) do
       local config = host_alert[check.key]
 
-      if(config) then
-        check.check_function(granularity, host_key, info, config)
+      if config then
+	check.check_function(granularity, host_key, info, config)
       end
     end
   end

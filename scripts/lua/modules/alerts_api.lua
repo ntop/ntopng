@@ -493,4 +493,16 @@ end
 
 -- ##############################################
 
+function alerts.application_bytes(info, application_name)
+   local curr_val = 0
+
+   if info["ndpi"] and info["ndpi"][application_name] then
+      curr_val = info["ndpi"][application_name]["bytes.sent"] + info["ndpi"][application_name]["bytes.rcvd"]
+   end
+
+   return curr_val
+end
+
+-- ##############################################
+
 return(alerts)
