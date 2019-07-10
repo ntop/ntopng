@@ -1415,6 +1415,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
   u_int8_t *ip;
   bool is_fragment = false, new_flow;
   bool pass_verdict = true;
+  u_int16_t l4_len = 0;
   *hostFlow = NULL;
 
   /* VLAN disaggregation */
@@ -1474,6 +1475,8 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
   }
 
   if(iph != NULL) {
+    u_int16_t ip_len, ip_tot_len;
+
     /* IPv4 */
     if(trusted_ip_len < 20) {
       incStats(ingressPacket,
@@ -1482,16 +1485,21 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       return(pass_verdict);
     }
 
+    ip_len = iph->ihl * 4;
+    ip_tot_len = ntohs(iph->tot_len);
+
     /* Use the actual h->len and not the h->caplen to determine
        whether a packet is fragmented. */
-    if(iph->ihl * 4 > (int)h->len - ip_offset
-       || (int)h->len - ip_offset < ntohs(iph->tot_len)
+    if(ip_len > (int)h->len - ip_offset
+       || (int)h->len - ip_offset < ip_tot_len
        || (iph->frag_off & htons(0x1FFF /* IP_OFFSET */))
        || (iph->frag_off & htons(0x2000 /* More Fragments: set */)))
       is_fragment = true;
 
     l4_proto = iph->protocol;
-    l4 = ((u_int8_t *) iph + iph->ihl * 4);
+    l4 = ((u_int8_t *) iph + ip_len);
+    l4_len = ip_tot_len - ip_len; /* use len from the ip header to compute sequence numbers */
+
     ip = (u_int8_t*)iph;
   } else {
     /* IPv6 */
@@ -1522,6 +1530,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
     }
 
     l4 = (u_int8_t*)ip6 + ipv6_shift;
+    l4_len = packet + h->len - l4;
     ip = (u_int8_t*)ip6;
   }
 
@@ -1630,7 +1639,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
     case IPPROTO_TCP:
       flow->updateTcpFlags(when, tcp_flags, src2dst_direction);
       flow->updateTcpSeqNum(when, ntohl(tcph->seq), ntohl(tcph->ack_seq), ntohs(tcph->window),
-			    tcp_flags, trusted_l4_packet_len - (4 * tcph->doff),
+			    tcp_flags, l4_len - (4 * tcph->doff),
 			    src2dst_direction);
       break;
 

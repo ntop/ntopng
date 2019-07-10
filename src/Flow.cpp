@@ -2794,10 +2794,12 @@ void Flow::updateTcpSeqNum(const struct bpf_timeval *when,
 
   next_seq_num = getNextTcpSeq(flags, seq_num, payload_Len);
 
-  if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[act: %u][next: %u][next - act (in flight): %d][ack: %u]",
-					 seq_num, next_seq_num,
-					 next_seq_num - seq_num, 
-					 ack_seq_num);
+  if(debug) 
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "[act: %u][next: %u][next - act (in flight): %d][ack: %u][payload len: %u]",
+				 seq_num, next_seq_num,
+				 next_seq_num - seq_num, 
+				 ack_seq_num,
+				 payload_Len);
 
   if(src2dst_direction) {
     if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[src2dst][last: %u][next: %u]", tcp_stats_s2d.last, tcp_stats_s2d.next);
@@ -2812,8 +2814,10 @@ void Flow::updateTcpSeqNum(const struct bpf_timeval *when,
 	  if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[src2dst] Packet KeepAlive");
 	  cnt_keep_alive++;
 	} else if(tcp_stats_s2d.last == seq_num) {
-	  cnt_retx++;
-	  if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[src2dst] Packet retransmission");
+          if (tcp_stats_s2d.next != tcp_stats_s2d.last) {
+	    cnt_retx++;
+	    if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[src2dst] Packet retransmission");
+          }
 	} else if((tcp_stats_s2d.last > seq_num)
 		  && (seq_num < tcp_stats_s2d.next)) {
 	  cnt_lost++;
@@ -2841,8 +2845,10 @@ void Flow::updateTcpSeqNum(const struct bpf_timeval *when,
 	  if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[dst2src] Packet KeepAlive");
 	  cnt_keep_alive++;
 	} else if(tcp_stats_d2s.last == seq_num) {
-	  cnt_retx++;
-	  if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[dst2src] Packet retransmission");
+          if (tcp_stats_d2s.next != tcp_stats_d2s.last) {
+	    cnt_retx++;
+	    if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[dst2src] Packet retransmission");
+          }
 	  // bytes
 	} else if((tcp_stats_d2s.last > seq_num)
 		  && (seq_num < tcp_stats_d2s.next)) {
