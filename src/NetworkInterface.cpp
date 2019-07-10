@@ -5054,25 +5054,33 @@ void NetworkInterface::getFlowsStats(lua_State* vm) {
   lua_insert(vm, -2);
   lua_settable(vm, -3);
 }
+
 /* **************************************************** */
 
-void NetworkInterface::getNetworksStats(lua_State* vm) {
+void NetworkInterface::getNetworkStats(lua_State* vm, u_int8_t network_id) const {
   NetworkStats *network_stats;
-  u_int8_t num_local_networks = ntop->getNumLocalNetworks();
 
-  lua_newtable(vm);
-  for(u_int8_t network_id = 0; network_id < num_local_networks; network_id++) {
-    network_stats = getNetworkStats(network_id);
-    // do not add stats of networks that have not generated any traffic
-    if(!network_stats || !network_stats->trafficSeen())
-      continue;
+  if((network_stats = getNetworkStats(network_id)) && network_stats->trafficSeen()) {
     lua_newtable(vm);
+
     network_stats->lua(vm);
+
     lua_push_int32_table_entry(vm, "network_id", network_id);
     lua_pushstring(vm, ntop->getLocalNetworkName(network_id));
     lua_insert(vm, -2);
     lua_settable(vm, -3);
   }
+}
+
+/* **************************************************** */
+
+void NetworkInterface::getNetworksStats(lua_State* vm) const {
+  u_int8_t num_local_networks = ntop->getNumLocalNetworks();
+
+  lua_newtable(vm);
+
+  for(u_int8_t network_id = 0; network_id < num_local_networks; network_id++)
+    getNetworkStats(vm, network_id);
 }
 
 /* **************************************************** */
@@ -6079,11 +6087,14 @@ void NetworkInterface::allocateNetworkStats() {
       oom_warning_sent = true;
     }
   }
+
+  for(u_int8_t i = 0; i < numNetworks; i++)
+    networkStats[i].setNetworkId(i);
 }
 
 /* **************************************** */
 
-NetworkStats* NetworkInterface::getNetworkStats(u_int8_t networkId) {
+NetworkStats* NetworkInterface::getNetworkStats(u_int8_t networkId) const {
   if((networkStats == NULL) || (networkId >= ntop->getNumLocalNetworks()))
     return(NULL);
   else

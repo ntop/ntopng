@@ -24,8 +24,9 @@
 
 #include "ntop_includes.h"
 
-class NetworkStats {
+class NetworkStats : public AlertableEntity {
  private:
+  u_int8_t network_id;
   TrafficStats ingress, ingress_broadcast; /* outside -> network */
   TrafficStats egress, egress_broadcast;   /* network -> outside */
   TrafficStats inner, inner_broadcast;     /* network -> network (local traffic) */
@@ -72,6 +73,7 @@ class NetworkStats {
     incTcp(&tcp_packet_stats_inner, ooo_pkts, retr_pkts, lost_pkts, keep_alive_pkts);
   };
 
+  inline void setNetworkId(u_int8_t id) { network_id = id; };
   void lua(lua_State* vm);
   bool serialize(json_object *my_object);
   void deserialize(json_object *obj);

@@ -560,6 +560,10 @@ typedef struct {
 class SNMP;
 #endif
 
+/* Forward class declarations for the Lua context */
+class NetworkStats;
+class Host;
+
 struct ntopngLuaContext {
   char *allowed_ifname, *user, *group;
   void *zmq_context, *zmq_subscriber;

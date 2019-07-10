@@ -21,7 +21,7 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 -- ntop.checkHostsAlertsMin()
 
 -- checks the current networks alerts
--- ntop.checkNetworksAlertsMin()
+ntop.checkNetworksAlertsMin()
 
 -- checks the current interface alerts
 -- interface.checkAlertsMin()

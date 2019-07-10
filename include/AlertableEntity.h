@@ -24,8 +24,6 @@
 
 #include "ntop_includes.h"
 
-class NetworkInterface;
-
 class AlertableEntity {
  protected:
   std::map<std::string, std::string> alert_cache[MAX_NUM_PERIODIC_SCRIPTS];
@@ -45,12 +43,12 @@ class AlertableEntity {
   }
 
   /* Return true if the element was inserted, false if already present */
-  inline bool  triggerAlert(std::string key, ScriptPeriodicity p) {
+  inline bool triggerAlert(std::string key, ScriptPeriodicity p) {
     return(triggered_alerts[(u_int)p].insert(key).second);
   }
 
   /* Return true if the element was existing and thus deleted, false if not present */
-  inline bool  releaseAlert(std::string key, ScriptPeriodicity p) {
+  inline bool releaseAlert(std::string key, ScriptPeriodicity p) {
     return((triggered_alerts[(u_int)p].erase(key) == 1) ? true : false);
   }
   

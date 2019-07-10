@@ -184,8 +184,9 @@ using namespace std;
 #include "Ping.h"
 #include "TrafficStats.h"
 #include "TcpPacketStats.h"
-#include "NetworkStats.h"
 #include "ntop_typedefs.h"
+#include "AlertableEntity.h"
+#include "NetworkStats.h"
 #include "Trace.h"
 #include "ProtoStats.h"
 #include "Utils.h"
@@ -255,7 +256,6 @@ using namespace std;
 #endif
 #include "InterfaceStatsHash.h"
 #include "GenericHashEntry.h"
-#include "AlertableEntity.h"
 #if defined(NTOPNG_PRO) && defined(HAVE_NINDEX)
 #include "nindex_api.h"
 #endif

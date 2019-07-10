@@ -23,12 +23,16 @@
 
 /* *************************************** */
 
-NetworkStats::NetworkStats() {
+NetworkStats::NetworkStats() : AlertableEntity() {
+  network_id = 0;
 }
 
 /* *************************************** */
 
 void NetworkStats::lua(lua_State* vm) {
+  lua_push_str_table_entry(vm, "network_key", ntop->getLocalNetworkName(network_id));
+  lua_push_uint64_table_entry(vm, "network_id", network_id);
+
   lua_push_uint64_table_entry(vm, "ingress", ingress.getNumBytes());
   lua_push_uint64_table_entry(vm, "egress", egress.getNumBytes());
   lua_push_uint64_table_entry(vm, "inner", inner.getNumBytes());
