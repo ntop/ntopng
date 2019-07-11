@@ -1685,10 +1685,11 @@ function hostinfo2url(host_info, host_type, novlan)
       rsp = rsp..'host='..host_info["host"]
     elseif(host_info["ip"] ~= nil) then
       rsp = rsp..'host='..host_info["ip"]
-    elseif(host_info["name"] ~= nil) then
-      rsp = rsp..'host='..host_info["name"]
     elseif(host_info["mac"] ~= nil) then
       rsp = rsp..'host='..host_info["mac"]
+    --Note: the host'name' is not supported (not accepted by lint)
+    --elseif(host_info["name"] ~= nil) then
+    --  rsp = rsp..'host='..host_info["name"]
     end
   end
 
