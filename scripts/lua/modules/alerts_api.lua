@@ -292,6 +292,8 @@ function alerts.new_trigger(entity_info, type_info, when)
     end
 
     if(not triggered) then
+      if(do_trace) then print("[DON'T Trigger alert (already triggered?) @ "..granularity_sec.."] "..
+        entity_info.alert_entity_val .."@"..type_info.alert_type.i18n_title.."\n") end
       return(false)
     end
   end
@@ -341,6 +343,8 @@ function alerts.new_release(entity_info, type_info)
     end
 
     if(not released) then
+      if(do_trace) then print("[DON'T Release alert (already not triggered?) @ "..granularity_sec.."] "..
+        entity_info.alert_entity_val .."@"..type_info.alert_type.i18n_title.."\n") end
       return(false)
     end
   end
