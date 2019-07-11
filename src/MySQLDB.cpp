@@ -670,6 +670,13 @@ int MySQLDB::flow2InsertValues(Flow *f, char *json,
 void MySQLDB::try_exec_sql_query(MYSQL *conn, char *sql) {
   int rc;
 
+  if (!db_operational) {
+    if(!connectToDB(conn, true)) {
+      _usleep(100);
+      return;
+    }
+  }
+
   if (strlen(sql) >= CONST_MAX_SQL_QUERY_LEN - 1) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Tried to execute a query longer than %u. Skipping.",
       CONST_MAX_SQL_QUERY_LEN - 2);
@@ -819,7 +826,7 @@ bool MySQLDB::connectToDB(MYSQL *conn, bool select_db) {
   if(mysql_init(conn) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Failed to initialize MySQL connection");
     m.unlock(__FILE__, __LINE__);
-    return(false);
+    return(db_operational);
   }
 
   rc = mysql_try_connect(conn, dbname);
@@ -832,7 +839,7 @@ bool MySQLDB::connectToDB(MYSQL *conn, bool select_db) {
                  ntop->getPrefs()->get_mysql_port());
 
     m.unlock(__FILE__, __LINE__);
-    return(false);
+    return(db_operational);
   }
 
   db_operational = true;
@@ -844,7 +851,7 @@ bool MySQLDB::connectToDB(MYSQL *conn, bool select_db) {
 			       iface->get_name());
 
   m.unlock(__FILE__, __LINE__);
-  return(true);
+  return(db_operational);
 }
 
 /* ******************************************* */
