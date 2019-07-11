@@ -535,6 +535,7 @@ alert_consts.field_units = {
   flows = "field_units.flows",
   packets = "field_units.packets",
   mbits = "field_units.mbits",
+  hosts = "field_units.hosts",
 }
 
 -- ################################################################################

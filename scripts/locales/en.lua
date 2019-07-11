@@ -709,6 +709,7 @@ local lang = {
   ["field_units"] = {
     ["bytes"] = "B",
     ["flows"] = "flows",
+    ["hosts"] = "hosts",
     ["mbits"] = "mbps",
     ["packets"] = "pkt",
     ["seconds"] = "s",
