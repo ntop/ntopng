@@ -61,7 +61,7 @@ function PieChart(name, update_url, url_params, units, refresh) {
 
     // Needed to draw the pie immediately
     this.update();
-    //this.update();
+    this.update();
 
     // var updateInterval = window.setInterval(update, refresh);
 
