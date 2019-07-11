@@ -398,12 +398,28 @@ function alerts.thresholdCrossType(granularity, metric, value, operator, thresho
   local res = {
     alert_type = alert_consts.alert_types.threshold_cross,
     alert_subtype = string.format("%s_%s", granularity, metric),
-    alert_granularity = alert_consts.alerts_granularities.min,
+    alert_granularity = alert_consts.alerts_granularities[granularity],
     alert_type_params = {
       metric = metric, value = value,
       operator = operator, threshold = threshold,
     }
   }
+  return(res)
+end
+
+-- ##############################################
+
+function alerts.anomalyType(anomal_name, alert_type, value, threshold)
+  local res = {
+    alert_type = alert_type,
+    alert_subtype = anomal_name,
+    alert_granularity = alert_consts.alerts_granularities.min,
+    alert_type_params = {
+      value = value,
+      threshold = threshold,
+    }
+  }
+
   return(res)
 end
 
@@ -435,6 +451,7 @@ function alerts.check_threshold_cross(granularity, function_name, alert_entity, 
   local alarmed = false
 
   local threshold_edge = tonumber(threshold_config.edge)
+  local threshold_type = alerts.thresholdCrossType(granularity, function_name, value, threshold_config.operator, threshold_edge)
 
   if(do_trace) then print("[Alert @ "..granularity.."] ".. alert_entity.alert_entity_val .." ["..function_name.."]\n") end
 
@@ -447,17 +464,31 @@ function alerts.check_threshold_cross(granularity, function_name, alert_entity, 
   if(alarmed) then
     if(do_trace) then print("Trigger alert [value: "..tostring(value).."]\n") end
 
-    return(alerts.new_trigger(
-      alert_entity,
-      alerts.thresholdCrossType(granularity, function_name, value, threshold_config.operator, threshold_edge)
-    ))
+    return(alerts.new_trigger(alert_entity, threshold_type))
   else
     if(do_trace) then print("DON'T trigger alert [value: "..tostring(value).."]\n") end
 
-    return(alerts.new_release(
-      alert_entity,
-      alerts.thresholdCrossType(granularity, function_name, value, threshold_config.operator, threshold_edge)
-    ))
+    return(alerts.new_release(alert_entity, threshold_type))
+  end
+end
+
+-- ##############################################
+
+function alerts.check_anomaly(anomal_name, alert_type, alert_entity, entity_anomalies, anomal_config)
+  local anomaly = entity_anomalies[anomal_name] or {value = 0}
+  local value = anomaly.value
+  local anomaly_type = alerts.anomalyType(anomal_name, alert_type, value, anomal_config.threshold)
+
+  if(do_trace) then print("[Anomaly check] ".. alert_entity.alert_entity_val .." ["..anomal_name.."]\n") end
+
+  if(anomaly ~= nil) then
+    if(do_trace) then print("Trigger alert anomaly [value: "..tostring(value).."]\n") end
+
+    return(alerts.new_trigger(alert_entity, anomaly_type))
+  else
+    if(do_trace) then print("DON'T trigger alert anomaly [value: "..tostring(value).."]\n") end
+
+    return(alerts.new_release(alert_entity, threshold_type))
   end
 end
 
