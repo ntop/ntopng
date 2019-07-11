@@ -127,7 +127,13 @@ function getPathFromIPv6(addr)
 
    local i = 1
    if not isEmptyString(suffix) then
-     for _, p in pairsByKeys(suffix:split(":"), rev) do
+     local suffix_arr = {}
+     if suffix:find(":") then
+       suffix_arr = suffix:split(":")
+     else
+       suffix_arr[0] = suffix
+     end
+     for _, p in pairsByKeys(suffix_arr, rev) do
         ipv6[8 - i + 1] = string.format('%.4x', tonumber(p, 16) or 0)
         i = i + 1
      end
