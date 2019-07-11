@@ -551,6 +551,10 @@ alert_consts.alerts_granularities = {
 
 alert_consts.field_units = {
   seconds = "s",
+  bytes = "B",
+  flows = i18n("flows"),
+  packets = i18n("packets"),
+  mbits = "Mbps",
 }
 
 -- ################################################################################

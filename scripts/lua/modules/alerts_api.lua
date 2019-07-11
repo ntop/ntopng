@@ -437,7 +437,7 @@ function alerts.load_check_modules(subdir)
       local check_module = require(modname)
 
       if(check_module.check_function ~= nil) then
-        available_modules[fname] = check_module
+        available_modules[modname] = check_module
       end
     end
   end

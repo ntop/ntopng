@@ -3,11 +3,17 @@
 --
 
 local alerts_api = require("alerts_api")
+local alert_consts = require("alert_consts")
 
 local check_module = {
   key = "dns",
+  alert_type = alert_consts.alert_types.threshold_cross,
 
-  -- TODO gui specific parameters
+  gui = {
+    title = "alerts_thresholds_config.dns_traffic",
+    subtitle = "alerts_thresholds_config.alert_dns_description",
+    field = {field_unit = alert_consts.field_units.bytes},
+  }
 }
 
 -- #################################################################

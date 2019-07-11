@@ -181,112 +181,6 @@ end
 
 -- ##############################################################################
 
-local function ndpival_bytes(json, protoname)
-   key = "ndpiStats"
-
-   -- Host
-   if((json[key] == nil) or (json[key][protoname] == nil)) then
-      if(verbose) then print("## ("..protoname..") Empty<br>\n") end
-      return(0)
-   else
-      local v = (json[key][protoname]["bytes"]["sent"] or 0) + (json[key][protoname]["bytes"]["rcvd"] or 0)
-      if(verbose) then print("##  ("..protoname..") "..v.."<br>\n") end
-      return(v)
-   end
-end
-
-local function proto_bytes(old, new, protoname)
-   return(ndpival_bytes(new, protoname) - ndpival_bytes(old, protoname))
-end
-
---
--- NOTE
---
--- These functions are called by the load function to evaluate
--- threshold crosses.
--- When reading a field from the "old" parameter, an "or" operator should be used
--- to avoid working on nil value. Nil values can be found, for example, when a
--- new entity appear and it has not previous dump or across ntopng reboot.
---
-
--- TODO remove after gui rework
-
-function bytes(old, new, interval)
-   -- io.write(debug.traceback().."\n")
-   if(verbose) then print("bytes("..interval..")") end
-
-   if(new["sent"] ~= nil) then
-      -- Host
-      return((new["sent"]["bytes"] + new["rcvd"]["bytes"]) - ((old["sent"] and old["sent"]["bytes"] or 0) + (old["rcvd"] and old["rcvd"]["bytes"] or 0)))
-   else
-      -- Interface
-      return(new.stats.bytes - (old.stats and old.stats.bytes or 0))
-   end
-end
-
-function packets(old, new, interval)
-   if(verbose) then print("packets("..interval..")") end
-   if(new["sent"] ~= nil) then
-      -- Host
-      return((new["sent"]["packets"] + new["rcvd"]["packets"]) - ((old["sent"] and old["sent"]["packets"] or 0) + (old["rcvd"] and old["rcvd"]["packets"] or 0)))
-   else
-      -- Interface
-      return(new.stats.packets - (old.stats and old.stats.packets or 0))
-   end
-end
-
-function active(old, new, interval)
-   if(verbose) then print("active("..interval..")") end
-   local diff = (new["total_activity_time"] or 0) - (old["total_activity_time"] or 0)
-   return(diff)
-end
-
-function idle(old, new, interval)
-   if(verbose) then print("idle("..interval..")") end
-   local diff = os.time()-new["seen.last"]
-   return(diff)
-end
-
-function dns(old, new, interval)
-   if(verbose) then print("dns("..interval..")") end
-   return(proto_bytes(old, new, "DNS"))
-end
-
-function p2p(old, new, interval)
-   if(verbose) then print("p2p("..interval..")") end
-   return(proto_bytes(old, new, "eDonkey") + proto_bytes(old, new, "BitTorrent") + proto_bytes(old, new, "Skype"))
-end
-
-function throughput(old, new, interval)
-   if(verbose) then print("throughput("..interval..")") end
-
-   return((bytes(old, new, interval) * 8)/ (interval*1000000))
-end
-
-function ingress(old, new, interval)
-   return new["ingress"] - (old["ingress"] or 0)
-end
-
-function egress(old, new, interval)
-   return new["egress"] - (old["egress"] or 0)
-end
-
-function inner(old, new, interval)
-   return new["inner"] - (old["inner"] or 0)
-end
-
-function flows(old, new, interval)
-   local new_flows = new["flows.as_client"] + new["flows.as_server"]
-   local old_flows = (old["flows.as_client"] or 0) + (old["flows.as_server"] or 0)
-   return new_flows - old_flows
-end
-
-function active_local_hosts(old, new, interval)
-   return new["local_hosts"]
-end
-
--- ##############################################################################
-
 local function getInterfacePacketDropPercAlertKey(ifname)
    return "ntopng.prefs.iface_" .. getInterfaceId(ifname) .. ".packet_drops_alert"
 end
@@ -1203,8 +1097,7 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
 	 end
 
          -- TODO refactor this into the threshold cross checker
-         for _, check_module in pairs(descr) do
-      local k = check_module.key
+         for k, check_module in pairs(descr) do
 	    value    = _POST["value_"..k]
 	    operator = _POST["op_"..k]
 
@@ -1315,8 +1208,7 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 
    if not options.remote_host then
-      for _, check_module in pairsByField(descr, "key", asc) do
-        local key = check_module.key
+      for key, check_module in pairsByKeys(descr, asc) do
         local gui_conf = check_module.gui
 
         if(gui_conf == nil) then
