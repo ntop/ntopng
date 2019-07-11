@@ -304,7 +304,7 @@ static void* packetPollLoop(void* ptr) {
   } while(pcap_list != NULL);
 
   if(iface->read_from_pcap_dump()) {
-    iface->guessAllnDPIProtocols();
+    iface->processAllActiveFlows();
     iface->guessAllBroadcastDomainHosts();
   }
 

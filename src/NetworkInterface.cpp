@@ -5214,24 +5214,30 @@ void NetworkInterface::setnDPIProtocolCategory(u_int16_t protoId, ndpi_protocol_
 
 /* *************************************** */
 
-static bool guess_all_ndpi_protocols_walker(GenericHashEntry *node, void *user_data, bool *matched) {
+static void guess_all_ndpi_protocols_walker(Flow *flow, NetworkInterface *iface) {
+  if(!flow->isDetectionCompleted() && iface->get_ndpi_struct() && flow->get_ndpi_flow())
+    flow->setDetectedProtocol(ndpi_detection_giveup(iface->get_ndpi_struct(), flow->get_ndpi_flow(), 1), true);
+}
+
+static bool process_all_active_flows_walker(GenericHashEntry *node, void *user_data, bool *matched) {
   Flow *flow = (Flow*)node;
   NetworkInterface *iface = (NetworkInterface*)user_data;
 
-  if(!flow->isDetectionCompleted() && iface->get_ndpi_struct() && flow->get_ndpi_flow())
-    flow->setDetectedProtocol(ndpi_detection_giveup(iface->get_ndpi_struct(), flow->get_ndpi_flow(), 1), true);
+  guess_all_ndpi_protocols_walker(flow, iface);
+
+  flow->postFlowSetIdle(time(NULL));
 
   return(false /* keep walking */);
 }
 
 /* *************************************** */
 
-void NetworkInterface::guessAllnDPIProtocols() {
+void NetworkInterface::processAllActiveFlows() {
   u_int32_t begin_slot = 0;
   bool walk_all = true;
 
   walker(&begin_slot, walk_all, walker_flows,
-	 guess_all_ndpi_protocols_walker, this);
+	 process_all_active_flows_walker, this);
 }
 /* *************************************** */
 

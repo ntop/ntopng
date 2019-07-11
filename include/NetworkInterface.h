@@ -435,7 +435,7 @@ class NetworkInterface : public AlertableEntity {
   virtual void lua(lua_State* vm);
   void getnDPIProtocols(lua_State *vm, ndpi_protocol_category_t filter, bool skip_critical);
   void setnDPIProtocolCategory(u_int16_t protoId, ndpi_protocol_category_t protoCategory);
-  void guessAllnDPIProtocols();
+  void processAllActiveFlows();
   void guessAllBroadcastDomainHosts();
 
   int getActiveHostsList(lua_State* vm,
