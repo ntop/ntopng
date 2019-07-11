@@ -706,6 +706,13 @@ local lang = {
     ["note_active_hosts"] = "Only active hosts are returned.",
     ["note_maximum_number"] = "The maximum number of downloadable hosts is 32,768.",
   },
+  ["field_units"] = {
+    ["bytes"] = "B",
+    ["flows"] = "flows",
+    ["mbits"] = "mbps",
+    ["packets"] = "pkt",
+    ["seconds"] = "s",
+  },
   ["flow_alerts_explorer"] = {
     ["by_target_port"] = "By Target Port",
     ["flow_alert_origin"] = "Alert Origin",

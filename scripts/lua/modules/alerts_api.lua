@@ -447,13 +447,15 @@ end
 
 -- ##############################################
 
-function alerts.check_threshold_cross(granularity, function_name, alert_entity, value, threshold_config)
+function alerts.threshold_check_function(params)
   local alarmed = false
+  local value = params.check_module.get_threshold_value(params.granularity, params.entity_info)
+  local threshold_config = params.alert_config
 
   local threshold_edge = tonumber(threshold_config.edge)
-  local threshold_type = alerts.thresholdCrossType(granularity, function_name, value, threshold_config.operator, threshold_edge)
+  local threshold_type = alerts.thresholdCrossType(params.granularity, params.check_module.key, value, threshold_config.operator, threshold_edge)
 
-  if(do_trace) then print("[Alert @ "..granularity.."] ".. alert_entity.alert_entity_val .." ["..function_name.."]\n") end
+  if(do_trace) then print("[Alert @ "..params.granularity.."] ".. params.alert_entity.alert_entity_val .." ["..params.check_module.key.."]\n") end
 
   if(threshold_config.operator == "lt") then
     if(value < threshold_edge) then alarmed = true end
@@ -464,11 +466,11 @@ function alerts.check_threshold_cross(granularity, function_name, alert_entity, 
   if(alarmed) then
     if(do_trace) then print("Trigger alert [value: "..tostring(value).."]\n") end
 
-    return(alerts.new_trigger(alert_entity, threshold_type))
+    return(alerts.new_trigger(params.alert_entity, threshold_type))
   else
     if(do_trace) then print("DON'T trigger alert [value: "..tostring(value).."]\n") end
 
-    return(alerts.new_release(alert_entity, threshold_type))
+    return(alerts.new_release(params.alert_entity, threshold_type))
   end
 end
 
@@ -532,6 +534,37 @@ function alerts.application_bytes(info, application_name)
    end
 
    return curr_val
+end
+
+-- ##############################################
+
+function alerts.category_bytes(info, category_name)
+   local curr_val = 0
+
+   if info["ndpi_categories"] and info["ndpi_categories"][category_name] then
+      curr_val = info["ndpi_categories"][category_name]["bytes.sent"] + info["ndpi_categories"][category_name]["bytes.rcvd"]
+   end
+
+   return curr_val
+end
+
+-- ##############################################
+
+function alerts.threshold_cross_input_builder(gui_conf, input_id, value)
+  value = value or {}
+  local gt_selected = ternary(value[1] == "gt", ' selected="selected"', '')
+  local lt_selected = ternary(value[1] == "lt", ' selected="selected"', '')
+  local input_op = "op_" .. input_id
+  local input_val = "value_" .. input_id
+
+  return(string.format([[<select name="%s">
+  <option value="gt"%s>&gt;</option>
+  <option value="lt"%s>&lt;</option>
+</select> <input type="number" class="text-right form-control" min="%s" max="%s" step="%s" style="display:inline; width:12em;" name="%s" value="%s"/> %s]],
+    input_op, gt_selected, lt_selected,
+    gui_conf.field_min or "", gui_conf.field_max or "", gui_conf.field_step or "",
+    input_val, value[2], i18n(gui_conf.i18n_field_unit))
+  )
 end
 
 -- ##############################################

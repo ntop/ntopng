@@ -226,25 +226,6 @@ end
 
 -- ##############################################
 
-local function thresholdCrossInputHandler(field_conf, input_id, value)
-  value = value or {}
-  local gt_selected = ternary(value[1] == "gt", ' selected="selected"', '')
-  local lt_selected = ternary(value[1] == "lt", ' selected="selected"', '')
-  local input_op = "op_" .. input_id
-  local input_val = "value_" .. input_id
-
-  return(string.format([[<select name="%s">
-  <option value="gt"%s>&gt;</option>
-  <option value="lt"%s>&lt;</option>
-</select> <input type="number" class="text-right form-control" min="%s" max="%s" step="%s" style="display:inline; width:12em;" name="%s" value="%s"/> %s]],
-    input_op, gt_selected, lt_selected,
-    field_conf.field_min or "", field_conf.field_max or "", field_conf.field_step or "",
-    input_val, value[2], field_conf.field_unit)
-  )
-end
-
--- ##############################################
-
 -- Keep ID in sync with AlertType
 alert_consts.alert_types = {
   tcp_syn_flood = {
@@ -265,7 +246,6 @@ alert_consts.alert_types = {
     i18n_title = "alerts_dashboard.threashold_cross",
     icon = "fa-arrow-circle-up",
     i18n_description = formatThresholdCross,
-    input_handler = thresholdCrossInputHandler,
   }, suspicious_activity = {
     alert_id = 3,
     severity = alert_consts.alert_severities.warning,
@@ -550,11 +530,11 @@ alert_consts.alerts_granularities = {
 -- ################################################################################
 
 alert_consts.field_units = {
-  seconds = "s",
-  bytes = "B",
-  flows = i18n("flows"),
-  packets = i18n("packets"),
-  mbits = "Mbps",
+  seconds = "field_units.seconds",
+  bytes = "field_units.bytes",
+  flows = "field_units.flows",
+  packets = "field_units.packets",
+  mbits = "field_units.mbits",
 }
 
 -- ################################################################################

@@ -39,7 +39,13 @@ function checkHostAlerts(granularity)
       local config = host_alert[check.key]
 
       if config then
-	check.check_function(granularity, host_key, info, config)
+        check.check_function({
+          granularity = granularity,
+          alert_entity = alerts_api.hostAlertEntity(host_key),
+          entity_info = info,
+          alert_config = config,
+          check_module = check,
+        })
       end
     end
   end

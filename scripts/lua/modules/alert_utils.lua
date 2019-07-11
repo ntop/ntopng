@@ -1215,15 +1215,17 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
           goto next_module
         end
 
-         print("<tr><td><b>".. i18n(gui_conf.title) .."</b><br>")
-         print("<small>"..i18n(gui_conf.subtitle).."</small>\n")
+         print("<tr><td><b>".. i18n(gui_conf.i18n_title) .."</b><br>")
+         print("<small>"..i18n(gui_conf.i18n_description).."</small>\n")
 
          for _, prefix in pairs({"", "global_"}) do
-            local k = prefix..key
-            local value = vals[k]
-            print("</td><td>")
+            if(check_module.gui.input_builder ~= nil) then
+              local k = prefix..key
+              local value = vals[k]
+              print("</td><td>")
 
-            print(check_module.alert_type.input_handler(check_module.gui.field or {}, k, value))
+              print(check_module.gui.input_builder(check_module.gui or {}, k, value))
+            end
          end
 
          print("</td></tr>\n")
