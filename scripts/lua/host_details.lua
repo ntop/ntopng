@@ -648,8 +648,8 @@ end
       flows_th = flows_th .. ' <a href="?host='..hostinfo2hostkey(host_info)..'&page=historical&detail_view=flows&zoom=1h&flow_status=alerted"><i class="fa fa-search-plus"></i></a>'
    end
 
-   print("<tr><th rowspan=2>"..flows_th.."</th><th>"..i18n("details.as_client").."</th><th>"..i18n("details.as_server").."</th></tr>\n")
-   print("<tr><td><span id=active_flows_as_client>" .. formatValue(host["active_flows.as_client"]) .. "</span> <span id=trend_as_active_client></span> \n")
+   print("<tr><th></th><th>"..i18n("details.as_client").."</th><th>"..i18n("details.as_server").."</th></tr>\n")
+   print("<tr><th>"..flows_th.."</th><td><span id=active_flows_as_client>" .. formatValue(host["active_flows.as_client"]) .. "</span> <span id=trend_as_active_client></span> \n")
    print("/ <span id=flows_as_client>" .. formatValue(host["flows.as_client"]) .. "</span> <span id=trend_as_client></span> \n")
    if interface.isPacketInterface() then
       print("/ <span id=low_goodput_as_client>" .. formatValue(host["low_goodput_flows.as_client"]) .. "</span> <span id=low_goodput_trend_as_client></span>\n")
@@ -666,6 +666,10 @@ end
    print("/ <span id=anomalous_flows_as_server>" .. formatValue(host["anomalous_flows.as_server"]) .. "</span> <span id=trend_anomalous_flows_as_server></span>")
    print(" / <span id=unreachable_flows_as_server>" .. formatValue(host["unreachable_flows.as_server"]) .. "</span> <span id=trend_unreachable_flows_as_server></span>")
    print("</td></tr>")
+
+   print("<tr><th>"..i18n("details.peers").."</th>")
+   print("<td><span id=active_peers_as_client>" .. formatValue(host["contacts.as_client"]) .. "</span> <span id=peers_trend_as_active_client></span> \n")
+   print("<td><span id=active_peers_as_server>" .. formatValue(host["contacts.as_server"]) .. "</span>  <span id=peers_trend_as_active_server></span> \n")
 
    if ntop.isnEdge() then
       print("<tr id=bridge_dropped_flows_tr ") if not host["flows.dropped"] then print("style='display:none;'") end print(">")
@@ -2088,6 +2092,8 @@ if(page ~= "historical") and (host ~= nil) then
    print("var last_active_flows_as_client = " .. host["active_flows.as_client"] .. ";\n")
    print("var last_flows_as_server = " .. host["flows.as_server"] .. ";\n")
    print("var last_flows_as_client = " .. host["flows.as_client"] .. ";\n")
+   print("var last_active_peers_as_server = " .. host["contacts.as_server"] .. ";\n")
+   print("var last_active_peers_as_client = " .. host["contacts.as_client"] .. ";\n")
    print("var last_low_goodput_flows_as_client = " .. host["low_goodput_flows.as_client"] .. ";\n")
    print("var last_low_goodput_flows_as_server = " .. host["low_goodput_flows.as_server"] .. ";\n")
    print("var last_anomalous_flows_as_server = " .. host["anomalous_flows.as_server"] .. ";\n")
@@ -2169,11 +2175,13 @@ if(page ~= "historical") and (host ~= nil) then
    			}
    			$('#num_alerts').html(host["num_alerts"]);
    			$('#active_flows_as_client').html(addCommas(host["active_flows.as_client"]));
+   			$('#active_flows_as_server').html(addCommas(host["active_flows.as_server"]));
+   			$('#active_peers_as_client').html(addCommas(host["contacts.as_client"]));
+   			$('#active_peers_as_server').html(addCommas(host["contacts.as_server"]));
    			$('#flows_as_client').html(addCommas(host["flows.as_client"]));
    			$('#low_goodput_as_client').html(addCommas(host["low_goodput_flows.as_client"]));
                         $('#anomalous_flows_as_client').html(addCommas(host["anomalous_flows.as_client"]));
                         $('#unreachable_flows_as_client').html(addCommas(host["unreachable_flows.as_client"]));
-   			$('#active_flows_as_server').html(addCommas(host["active_flows.as_server"]));
    			$('#flows_as_server').html(addCommas(host["flows.as_server"]));
    			$('#low_goodput_as_server').html(addCommas(host["low_goodput_flows.as_server"]));
                         $('#anomalous_flows_as_server').html(addCommas(host["anomalous_flows.as_server"]));
@@ -2293,10 +2301,12 @@ print [[
    			/* **************************************** */
 
 			$('#trend_as_active_client').html(drawTrend(host["active_flows.as_client"], last_active_flows_as_client, ""));
-			$('#trend_as_client').html(drawTrend(host["flows.as_client"], last_flows_as_client, ""));
-			$('#low_goodput_trend_as_client').html(drawTrend(host["low_goodput_flows.as_client"], last_low_goodput_flows_as_client, " style=\"color: #B94A48;\""));
 			$('#trend_as_active_server').html(drawTrend(host["active_flows.as_server"], last_active_flows_as_server, ""));
+			$('#peers_trend_as_active_client').html(drawTrend(host["contacts.as_client"], last_active_peers_as_client, ""));
+			$('#peers_trend_as_active_server').html(drawTrend(host["contacts.as_server"], last_active_peers_as_server, ""));
+			$('#trend_as_client').html(drawTrend(host["flows.as_client"], last_flows_as_client, ""));
 			$('#trend_as_server').html(drawTrend(host["flows.as_server"], last_flows_as_server, ""));
+			$('#low_goodput_trend_as_client').html(drawTrend(host["low_goodput_flows.as_client"], last_low_goodput_flows_as_client, " style=\"color: #B94A48;\""));
 			$('#low_goodput_trend_as_server').html(drawTrend(host["low_goodput_flows.as_server"], last_low_goodput_flows_as_server, " style=\"color: #B94A48;\""));
 			$('#trend_anomalous_flows_as_server').html(drawTrend(host["anomalous_flows.as_server"], last_anomalous_flows_as_server, " style=\"color: #B94A48;\""));
 			$('#trend_anomalous_flows_as_client').html(drawTrend(host["anomalous_flows.as_client"], last_anomalous_flows_as_client, " style=\"color: #B94A48;\""));
@@ -2322,6 +2332,8 @@ print [[
    			last_pkts_rcvd = host["packets.rcvd"];
    			last_active_flows_as_client = host["active_flows.as_client"];
    			last_active_flows_as_server = host["active_flows.as_server"];
+   			last_active_peers_as_client = host["contacts.as_client"];
+   			last_active_peers_as_server = host["contacts.as_server"];
    			last_flows_as_client = host["flows.as_client"];
    			last_low_goodput_flows_as_server = host["low_goodput_flows.as_server"];
    			last_low_goodput_flows_as_client = host["low_goodput_flows.as_client"];

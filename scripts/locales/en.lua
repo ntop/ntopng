@@ -614,6 +614,7 @@ local lang = {
     ["note_hosts_located_snmp_device"] = "Hosts are located in SNMP devices using the <A HREF=%{url}>Bridge MIB</A>.",
     ["out_of_order"] = "Out of Order",
     ["output_device_port"] = "Device Output Port",
+    ["peers"] = "Peers: Active",
     ["rcvd"] = "Rcvd",
     ["retransmissions"] = "Retransmissions",
     ["router_access_point_mac_address"] = "(Router/AccessPoint) MAC Address",
