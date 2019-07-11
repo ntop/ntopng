@@ -2048,9 +2048,11 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
     if(!mtuWarningShown) {
 #ifdef __linux__
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Invalid packet received [len: %u][max len: %u].", h->len, ifMTU);
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "If you have TSO/GRO enabled, please disable it");
-      if (strchr(ifname, ':') == NULL) /* print ethtool command for standard interfaces only */
-        ntop->getTrace()->traceEvent(TRACE_WARNING, "Use sudo ethtool -K %s gro off gso off tso off", ifname);
+      if (!read_from_pcap_dump()) {
+        ntop->getTrace()->traceEvent(TRACE_WARNING, "If you have TSO/GRO enabled, please disable it");
+        if (strchr(ifname, ':') == NULL) /* print ethtool command for standard interfaces only */
+          ntop->getTrace()->traceEvent(TRACE_WARNING, "Use sudo ethtool -K %s gro off gso off tso off", ifname);
+      }
 #endif
       mtuWarningShown = true;
     }
