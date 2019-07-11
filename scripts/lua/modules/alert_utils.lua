@@ -344,15 +344,6 @@ function is_allowed_timespan(timespan)
    return(alert_consts.alerts_granularities[timespan] ~= nil)
 end
 
-function is_allowed_alarmable_metric(metric)
-   for _, allowed_metric in pairs(alert_consts.alarmable_metrics) do
-      if metric == allowed_metric then
-	 return true
-      end
-   end
-   return false
-end
-
 function get_alerts_hash_name(timespan, ifname, entity_type)
    local ifid = getInterfaceId(ifname)
    if not is_allowed_timespan(timespan) or tonumber(ifid) == nil then
@@ -1049,19 +1040,7 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
    local have_nedge = ntop.isnEdge()
    options = options or {}
 
-   -- This code controls which entries to show under the tabs Every Minute/Hourly/Daily
-   local descr
-   if entity_type == "network" then
-      descr = table.clone(alert_consts.network_alert_functions_description)
-   elseif entity_type == "interface" then
-      -- interface
-      descr = table.merge(alert_consts.alert_functions_description, alert_consts.iface_alert_functions_description)
-      descr["active"] = nil
-      descr["flows"] = nil
-   else
-      -- host
-      descr = table.clone(alert_consts.alert_functions_description)
-   end
+   local descr = alerts.load_check_modules(entity_type)
 
    local flow_rate_attacker_key = "flow_attacker_threshold"
    local flow_rate_victim_key = "flow_victim_threshold"
@@ -1223,7 +1202,9 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
 	    to_save = true
 	 end
 
-         for k,_ in pairs(descr) do
+         -- TODO refactor this into the threshold cross checker
+         for _, check_module in pairs(descr) do
+      local k = check_module.key
 	    value    = _POST["value_"..k]
 	    operator = _POST["op_"..k]
 
@@ -1334,25 +1315,27 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 
    if not options.remote_host then
-      for key,v in pairsByKeys(descr, asc) do
-         print("<tr><td><b>".. alert_consts.alert_functions_info[key].label .."</b><br>")
-         print("<small>"..v.."</small>\n")
+      for _, check_module in pairsByField(descr, "key", asc) do
+        local key = check_module.key
+        local gui_conf = check_module.gui
 
-	 for _, prefix in pairs({"", "global_"}) do
-	    local k = prefix..key
-	    print("</td><td>")
-	    print("<select name=op_".. k ..">\n")
-	    if((vals[k] ~= nil) and (vals[k][1] == "gt")) then print("<option selected=\"selected\"") else print("<option ") end
-	    print("value=\"gt\">&gt;</option>\n")
+        if(gui_conf == nil) then
+          goto next_module
+        end
 
-	    if((vals[k] ~= nil) and (vals[k][1] == "lt")) then print("<option selected=\"selected\"") else print("<option ") end
-	    print("value=\"lt\">&lt;</option>\n")
-	    print("</select>\n")
-	    print("<input type=number min=1 step=1 class=\"text-right form-control\" style=\"display:inline; width:12em;\" name=\"value_"..k.."\" value=\"")
-	    if(vals[k] ~= nil) then print(vals[k][2]) end
-	    print("\">\n")
-	 end
+         print("<tr><td><b>".. i18n(gui_conf.title) .."</b><br>")
+         print("<small>"..i18n(gui_conf.subtitle).."</small>\n")
+
+         for _, prefix in pairs({"", "global_"}) do
+            local k = prefix..key
+            local value = vals[k]
+            print("</td><td>")
+
+            print(check_module.alert_type.input_handler(check_module.gui.field or {}, k, value))
+         end
+
          print("</td></tr>\n")
+         ::next_module::
       end
    end
 

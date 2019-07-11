@@ -226,6 +226,25 @@ end
 
 -- ##############################################
 
+local function thresholdCrossInputHandler(field_conf, input_id, value)
+  value = value or {}
+  local gt_selected = ternary(value[1] == "gt", ' selected="selected"', '')
+  local lt_selected = ternary(value[1] == "lt", ' selected="selected"', '')
+  local input_op = "op_" .. input_id
+  local input_val = "value_" .. input_id
+
+  return(string.format([[<select name="%s">
+  <option value="gt"%s>&gt;</option>
+  <option value="lt"%s>&lt;</option>
+</select> <input type="number" class="text-right form-control" min="%s" max="%s" step="%s" style="display:inline; width:12em;" name="%s" value="%s"/> %s]],
+    input_op, gt_selected, lt_selected,
+    field_conf.field_min or "", field_conf.field_max or "", field_conf.field_step or "",
+    input_val, value[2], field_conf.field_unit)
+  )
+end
+
+-- ##############################################
+
 -- Keep ID in sync with AlertType
 alert_consts.alert_types = {
   tcp_syn_flood = {
@@ -246,6 +265,7 @@ alert_consts.alert_types = {
     i18n_title = "alerts_dashboard.threashold_cross",
     icon = "fa-arrow-circle-up",
     i18n_description = formatThresholdCross,
+    input_handler = thresholdCrossInputHandler,
   }, suspicious_activity = {
     alert_id = 3,
     severity = alert_consts.alert_severities.warning,
@@ -527,72 +547,12 @@ alert_consts.alerts_granularities = {
   }
 }
 
--- Note: keep in sync with alarmable_metrics and alert_functions_infoes
-alert_consts.alert_functions_description = {
-   ["active"]  = i18n("alerts_thresholds_config.alert_active_description"),
-   ["bytes"]   = i18n("alerts_thresholds_config.alert_bytes_description"),
-   ["dns"]     = i18n("alerts_thresholds_config.alert_dns_description"),
-   ["idle"]    = i18n("alerts_thresholds_config.alert_idle_description"),
-   ["packets"] = i18n("alerts_thresholds_config.alert_packets_description"),
-   ["p2p"]     = i18n("alerts_thresholds_config.alert_p2p_description"),
-   ["throughput"]   = i18n("alerts_thresholds_config.alert_throughput_description"),
-   ["flows"]   = i18n("alerts_thresholds_config.alert_flows_description"),
-}
+-- ################################################################################
 
-alert_consts.iface_alert_functions_description = {
-   ["active_local_hosts"] = i18n("alerts_thresholds_config.active_local_hosts_threshold_descr"),
-}
-
-alert_consts.network_alert_functions_description = {
-   ["ingress"] = i18n("alerts_thresholds_config.alert_network_ingress_description"),
-   ["egress"]  = i18n("alerts_thresholds_config.alert_network_egress_description"),
-   ["inner"]   = i18n("alerts_thresholds_config.alert_network_inner_description"),
+alert_consts.field_units = {
+  seconds = "s",
 }
 
 -- ################################################################################
-
-alert_consts.alarmable_metrics = {'bytes', 'dns', 'active', 'idle', 'packets', 'p2p', 'throughput',
-				  'ingress', 'egress', 'inner',
-				  'flows'}
-
-alert_consts.alert_functions_info = {
-   ["active"] = {
-      label = i18n("alerts_thresholds_config.activity_time"),
-      fmt = format_utils.secondsToTime,
-   }, ["bytes"] = {
-      label = i18n("traffic"),
-      fmt = format_utils.bytesToSize,
-   }, ["dns"] = {
-      label = i18n("alerts_thresholds_config.dns_traffic"),
-      fmt = format_utils.bytesToSize,
-   }, ["idle"] = {
-      label = i18n("alerts_thresholds_config.idle_time"),
-      fmt = format_utils.secondsToTime,
-   }, ["packets"] = {
-      label = i18n("packets"),
-      fmt = format_utils.formatPackets,
-   }, ["p2p"] = {
-      label = i18n("alerts_thresholds_config.p2p_traffic"),
-      fmt = format_utils.bytesToSize,
-   }, ["throughput"] = {
-      label = i18n("alerts_thresholds_config.throughput"),
-      fmt = function(val) return format_utils.bitsToSize(1000000 * val) end,
-   }, ["flows"] = {
-      label = i18n("flows"),
-      fmt = format_utils.formatFlows,
-   }, ["inner"] = {
-      label = i18n("alerts_thresholds_config.inner_traffic"),
-      fmt = format_utils.bytesToSize
-   }, ["ingress"] = {
-      label = i18n("alerts_thresholds_config.ingress_traffic"),
-      fmt = format_utils.bytesToSize
-   }, ["egress"] = {
-      label = i18n("alerts_thresholds_config.egress_traffic"),
-      fmt = format_utils.bytesToSize
-   }, ["active_local_hosts"] = {
-      label = i18n("alerts_thresholds_config.active_local_hosts"),
-      fmt = format_utils.formatValue
-   }
-}
 
 return alert_consts

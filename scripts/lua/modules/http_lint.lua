@@ -762,17 +762,7 @@ local function validateShapedElement(elem_id)
 end
 
 local function validateAlertDescriptor(d)
-   if starts(d, "global_") then
-      d = split(d, "global_")[2]
-   end
-
-   if ((validateChoiceByKeys(alert_consts.alert_functions_description, d)) or
-       (validateChoiceByKeys(alert_consts.iface_alert_functions_description, d)) or
-       (validateChoiceByKeys(alert_consts.network_alert_functions_description, d))) then
-      return true
-   else
-      return false
-   end
+   return(validateSingleWord(d))
 end
 
 local function validateInterfacesList(l)
