@@ -76,7 +76,7 @@ class NetworkInterface : public AlertableEntity {
   u_int8_t purgeRuns;
   u_int32_t bridge_lan_interface_id, bridge_wan_interface_id;
   u_int32_t num_hashes;
-  u_int32_t num_alerts_engaged;
+  u_int32_t num_alerts_engaged[MAX_NUM_PERIODIC_SCRIPTS];
   bool has_alerts;
 
   /* Disaggregations */
@@ -746,9 +746,11 @@ class NetworkInterface : public AlertableEntity {
   void nDPILoadHostnameCategory(char *category, ndpi_protocol_category_t id);
 
   inline void setHasAlerts(bool has_alerts)               { this->has_alerts = has_alerts; }
-  inline void setNumAlertsEngaged(u_int32_t num_alerts)   { num_alerts_engaged = num_alerts; }
+  inline void incNumAlertsEngaged(ScriptPeriodicity p)    { num_alerts_engaged[(u_int)p]++; }
+  inline void decNumAlertsEngaged(ScriptPeriodicity p)    { num_alerts_engaged[(u_int)p]--; }
   inline bool hasAlerts()                                 { return(has_alerts); }
-  inline u_int32_t getNumEngagedAlerts()                  { return(num_alerts_engaged); }
+  inline void refreshHasAlerts()                          { has_alerts = alertsManager ? alertsManager->hasAlerts() : false; }
+  u_int32_t getNumEngagedAlerts();
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */

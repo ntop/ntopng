@@ -320,7 +320,8 @@ void NetworkInterface::init() {
   frequentProtocols = new FrequentTrafficItems(5);
   num_live_captures = 0;
   memset(live_captures, 0, sizeof(live_captures));
-  num_alerts_engaged = 0, has_alerts = false;
+  memset(&num_alerts_engaged, 0, sizeof(num_alerts_engaged));
+  has_alerts = false;
 
   db = NULL;
 #ifdef NTOPNG_PRO
@@ -5391,7 +5392,7 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_bool_table_entry(vm, "has_seen_containers", hasSeenContainers());
   lua_push_bool_table_entry(vm, "has_seen_ebpf_events", hasSeenEBPFEvents());
   lua_push_bool_table_entry(vm, "has_alerts", has_alerts);
-  lua_push_int32_table_entry(vm, "num_alerts_engaged", num_alerts_engaged);
+  lua_push_int32_table_entry(vm, "num_alerts_engaged", getNumEngagedAlerts());
 
   lua_newtable(vm);
   lua_push_uint64_table_entry(vm, "packets",     getNumPackets());
@@ -6095,6 +6096,8 @@ void NetworkInterface::allocateNetworkStats() {
       oom_warning_sent = true;
     }
   }
+
+  refreshHasAlerts();
 
   for(u_int8_t i = 0; i < numNetworks; i++)
     networkStats[i].setNetworkId(i);
@@ -7749,4 +7752,15 @@ void NetworkInterface::checkInterfaceAlerts(ScriptPeriodicity p) {
 
   if(lua_pcall(L, 1 /* 1 argument */, 0 /* 0 results */, 0)) /* Call the function now */
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure [%s][%s]", ap.script_path, lua_tostring(L, -1));
+}
+
+/* *************************************** */
+
+u_int32_t NetworkInterface::getNumEngagedAlerts() {
+  u_int32_t ctr = 0;
+
+  for(u_int i = 0; i < MAX_NUM_PERIODIC_SCRIPTS; i++)
+    ctr += num_alerts_engaged[i];
+
+  return(ctr);
 }

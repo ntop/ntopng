@@ -73,6 +73,8 @@ class AlertsManager : protected StoreManager {
 
   int releaseEngagedAlerts(time_t when);
 
+  bool hasAlerts();
+
   /*
     ========== FLOW alerts API =========
    */

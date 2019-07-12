@@ -7740,8 +7740,8 @@ static int ntop_interface_trigger_alert(lua_State* vm) {
   AlertEntity alert_entity;
   char *alert_json;
   AlertsManager *am;
-  int ret, granularity = 0;
-  char *alert_subtype = (char*)"";
+  int ret, granularity;
+  char *alert_subtype;
   bool ignore_disabled = false, check_maximum = true, is_new_alert;
   time_t when;
 
@@ -7756,20 +7756,20 @@ static int ntop_interface_trigger_alert(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   alert_type = (AlertType)((int)lua_tonumber(vm, 3));
 
-  if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  alert_severity = (AlertLevel)((int)lua_tonumber(vm, 4));
+  if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  alert_subtype = (char*)lua_tostring(vm, 4);
 
   if(ntop_lua_check(vm, __FUNCTION__, 5, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  alert_entity = (AlertEntity)((int)lua_tonumber(vm, 5));
+  alert_severity = (AlertLevel)((int)lua_tonumber(vm, 5));
 
-  if(ntop_lua_check(vm, __FUNCTION__, 6, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  entity_value = (char*)lua_tostring(vm, 6);
+  if(ntop_lua_check(vm, __FUNCTION__, 6, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  alert_entity = (AlertEntity)((int)lua_tonumber(vm, 6));
 
   if(ntop_lua_check(vm, __FUNCTION__, 7, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  alert_json = (char*)lua_tostring(vm, 7);
+  entity_value = (char*)lua_tostring(vm, 7);
 
-  if(lua_type(vm, 8) == LUA_TSTRING)
-    alert_subtype = (char *) lua_tostring(vm, 8);
+  if(ntop_lua_check(vm, __FUNCTION__, 8, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  alert_json = (char*)lua_tostring(vm, 8);
 
   if((!ntop_interface)
      || ((am = ntop_interface->getAlertsManager()) == NULL))
@@ -7798,8 +7798,8 @@ static int ntop_interface_release_alert(lua_State* vm) {
   AlertType alert_type;
   AlertEntity alert_entity;
   AlertsManager *am;
-  int ret, granularity = 0;
-  char *alert_subtype = (char*)"";
+  int ret, granularity;
+  char *alert_subtype;
   u_int64_t row_id = 0;
   time_t when;
 
@@ -7818,14 +7818,17 @@ static int ntop_interface_release_alert(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   alert_type = (AlertType)((int)lua_tonumber(vm, 3));
 
-  if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  alert_severity = (AlertLevel)((int)lua_tonumber(vm, 4));
+  if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  alert_subtype = (char*)lua_tostring(vm, 4);
 
   if(ntop_lua_check(vm, __FUNCTION__, 5, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  alert_entity = (AlertEntity)((int)lua_tonumber(vm, 5));
+  alert_severity = (AlertLevel)((int)lua_tonumber(vm, 5));
 
-  if(ntop_lua_check(vm, __FUNCTION__, 6, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  entity_value = (char*)lua_tostring(vm, 6);
+  if(ntop_lua_check(vm, __FUNCTION__, 6, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  alert_entity = (AlertEntity)((int)lua_tonumber(vm, 6));
+
+  if(ntop_lua_check(vm, __FUNCTION__, 7, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  entity_value = (char*)lua_tostring(vm, 7);
 
   ret = am->releaseAlert(when, granularity, alert_type, alert_subtype, alert_severity,
     alert_entity, entity_value, &row_id);
@@ -7866,26 +7869,6 @@ static int ntop_interface_set_host_alerts(lua_State* vm) {
     lua_pushboolean(vm, true);
   }
 
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-static int ntop_interface_set_engaged_alerts(lua_State* vm) {
-  u_int32_t engaged_alerts;
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  engaged_alerts = (u_int32_t) lua_tointeger(vm, 1);
-
-  if(!ntop_interface)
-    return(CONST_LUA_ERROR);
-
-  ntop_interface->setNumAlertsEngaged(engaged_alerts);
-
-  lua_pushnil(vm);
   return(CONST_LUA_OK);
 }
 
@@ -8039,6 +8022,7 @@ static int ntop_host_store_triggered_alert(lua_State* vm) {
   Host *h = c ? c->host : NULL;
   char *key = NULL;
   ScriptPeriodicity periodicity;
+  bool triggered;
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   if((key = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
@@ -8048,8 +8032,10 @@ static int ntop_host_store_triggered_alert(lua_State* vm) {
 
   if((!h) || (!key)) return(CONST_LUA_PARAM_ERROR);
 
-  lua_pushboolean(vm, h->triggerAlert(std::string(key), periodicity));
+  if((triggered = h->triggerAlert(std::string(key), periodicity)))
+    c->iface->incNumAlertsEngaged(periodicity);
 
+  lua_pushboolean(vm, triggered);
   return(CONST_LUA_OK);
 }
 
@@ -8059,6 +8045,7 @@ static int ntop_host_release_triggered_alert(lua_State* vm) {
   struct ntopngLuaContext *c = getLuaVMContext(vm);
   Host *h = c ? c->host : NULL;
   char *key = NULL;
+  bool released;
   ScriptPeriodicity periodicity;
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
@@ -8068,8 +8055,11 @@ static int ntop_host_release_triggered_alert(lua_State* vm) {
   if((periodicity = (ScriptPeriodicity)lua_tonumber(vm, 2)) >= MAX_NUM_PERIODIC_SCRIPTS) return(CONST_LUA_PARAM_ERROR);
 
   if((!h) || (!key)) return(CONST_LUA_PARAM_ERROR);
-  lua_pushboolean(vm, h->releaseAlert(std::string(key), periodicity));
 
+  if((released = h->releaseAlert(std::string(key), periodicity)))
+    c->iface->decNumAlertsEngaged(periodicity);
+
+  lua_pushboolean(vm, released);
   return(CONST_LUA_OK);
 }
 
@@ -8133,6 +8123,7 @@ static int ntop_network_store_triggered_alert(lua_State* vm) {
   struct ntopngLuaContext *c = getLuaVMContext(vm);
   NetworkStats *ns = c ? c->network : NULL;
   char *key = NULL;
+  bool triggered;
   ScriptPeriodicity periodicity;
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
@@ -8143,8 +8134,10 @@ static int ntop_network_store_triggered_alert(lua_State* vm) {
 
   if((!ns) || (!key)) return(CONST_LUA_PARAM_ERROR);
 
-  lua_pushboolean(vm, ns->triggerAlert(std::string(key), periodicity));
+  if((triggered = ns->triggerAlert(std::string(key), periodicity)))
+    c->iface->incNumAlertsEngaged(periodicity);
 
+  lua_pushboolean(vm, triggered);
   return(CONST_LUA_OK);
 }
 
@@ -8154,6 +8147,7 @@ static int ntop_network_release_triggered_alert(lua_State* vm) {
   struct ntopngLuaContext *c = getLuaVMContext(vm);
   NetworkStats *ns = c ? c->network : NULL;
   char *key = NULL;
+  bool released;
   ScriptPeriodicity periodicity;
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
@@ -8163,8 +8157,11 @@ static int ntop_network_release_triggered_alert(lua_State* vm) {
   if((periodicity = (ScriptPeriodicity)lua_tonumber(vm, 2)) >= MAX_NUM_PERIODIC_SCRIPTS) return(CONST_LUA_PARAM_ERROR);
 
   if((!ns) || (!key)) return(CONST_LUA_PARAM_ERROR);
-  lua_pushboolean(vm, ns->releaseAlert(std::string(key), periodicity));
 
+  if((released = ns->releaseAlert(std::string(key), periodicity)))
+    c->iface->decNumAlertsEngaged(periodicity);
+
+  lua_pushboolean(vm, released);
   return(CONST_LUA_OK);
 }
 
@@ -8225,6 +8222,7 @@ static int ntop_interface_set_cached_alert_value(lua_State* vm) {
 static int ntop_interface_store_triggered_alert(lua_State* vm) {
   struct ntopngLuaContext *c = getLuaVMContext(vm);
   char *key = NULL;
+  bool triggered;
   ScriptPeriodicity periodicity;
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
@@ -8235,8 +8233,10 @@ static int ntop_interface_store_triggered_alert(lua_State* vm) {
 
   if((!c->iface) || (!key)) return(CONST_LUA_PARAM_ERROR);
 
-  lua_pushboolean(vm, c->iface->triggerAlert(std::string(key), periodicity));
+  if((triggered = c->iface->triggerAlert(std::string(key), periodicity)))
+    c->iface->incNumAlertsEngaged(periodicity);
 
+  lua_pushboolean(vm, triggered);
   return(CONST_LUA_OK);
 }
 
@@ -8245,6 +8245,7 @@ static int ntop_interface_store_triggered_alert(lua_State* vm) {
 static int ntop_interface_release_triggered_alert(lua_State* vm) {
   struct ntopngLuaContext *c = getLuaVMContext(vm);
   char *key = NULL;
+  bool released;
   ScriptPeriodicity periodicity;
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
@@ -8254,8 +8255,11 @@ static int ntop_interface_release_triggered_alert(lua_State* vm) {
   if((periodicity = (ScriptPeriodicity)lua_tonumber(vm, 2)) >= MAX_NUM_PERIODIC_SCRIPTS) return(CONST_LUA_PARAM_ERROR);
 
   if((!c->iface) || (!key)) return(CONST_LUA_PARAM_ERROR);
-  lua_pushboolean(vm, c->iface->releaseAlert(std::string(key), periodicity));
 
+  if((released = c->iface->releaseAlert(std::string(key), periodicity)))
+    c->iface->decNumAlertsEngaged(periodicity);
+
+  lua_pushboolean(vm, released);
   return(CONST_LUA_OK);
 }
 
@@ -9009,7 +9013,6 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "triggerAlert",           ntop_interface_trigger_alert            },
   { "releaseAlert",           ntop_interface_release_alert            },
   { "setHostAlerts",          ntop_interface_set_host_alerts          },
-  { "setInterfaceEngagedAlerts",  ntop_interface_set_engaged_alerts   },
   { "setInterfaceHasAlerts",  ntop_interface_set_has_alerts           },
   { "getCachedAlertValue",    ntop_interface_get_cached_alert_value   },
   { "setCachedAlertValue",    ntop_interface_set_cached_alert_value   },

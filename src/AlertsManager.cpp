@@ -391,6 +391,44 @@ bool AlertsManager::incHostTotalAlerts(const char *hostkey) {
 
 /* **************************************************** */
 
+bool AlertsManager::hasAlerts() {
+  char query[STORE_MANAGER_MAX_QUERY];
+  int step;
+  bool rc = false;
+  sqlite3_stmt *stmt = NULL;
+
+  if(!store_initialized || !store_opened)
+    return(-1);
+
+  m.lock(__FILE__, __LINE__);
+
+  snprintf(query, sizeof(query),
+     "SELECT rowid "
+     "FROM %s "
+     "LIMIT 1",
+     ALERTS_MANAGER_TABLE_NAME);
+
+  if(sqlite3_prepare_v2(db, query, -1, &stmt, 0)) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "SQL Error: %s", sqlite3_errmsg(db));
+    goto out;
+  }
+
+  if((step = sqlite3_step(stmt)) != SQLITE_DONE) {
+    if(step == SQLITE_ERROR)
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "SQL Error: %s", sqlite3_errmsg(db));
+    else
+      rc = true;
+  }
+
+out:
+  if(stmt) sqlite3_finalize(stmt);
+  m.unlock(__FILE__, __LINE__);
+
+  return(rc);
+}
+
+/* **************************************************** */
+
 /* NOTE: do not call this from C, use alert queues in LUA */
 int AlertsManager::triggerAlert(time_t when, int granularity, AlertType alert_type, const char *subtype,
       AlertLevel alert_severity, AlertEntity alert_entity, const char *alert_entity_value,
@@ -418,6 +456,8 @@ int AlertsManager::triggerAlert(time_t when, int granularity, AlertType alert_ty
           alert_entity_value, query, sizeof(query), &is_existing, &cur_rowid)))
         goto out;
     }
+
+    iface->setHasAlerts(true);
 
     if(is_existing) { /* Already existing record found */
       if((rc = updateExistingAlert(cur_rowid, when, query, sizeof(query))))

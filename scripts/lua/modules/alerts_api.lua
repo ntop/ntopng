@@ -105,8 +105,8 @@ function alerts:trigger(entity_value, alert_message, when)
   end
 
   local rv = interface.triggerAlert(when, self.periodicity,
-    self.type_id, self.severity_id,
-    self.entity_type_id, entity_value, msg, self.subtype)
+    self.type_id, self.subtype or "", self.severity_id,
+    self.entity_type_id, entity_value, msg)
 
   if(rv ~= nil) then
     if(rv.success and rv.new_alert) then
@@ -140,7 +140,7 @@ function alerts:release(entity_value, when)
   when = when or os.time()
 
   local rv = interface.releaseAlert(when, self.periodicity,
-    self.type_id, self.severity_id, self.entity_type_id, entity_value)
+    self.type_id, self.subtype or "", self.severity_id, self.entity_type_id, entity_value)
 
   if(rv ~= nil) then
     if(rv.success and rv.rowid) then
@@ -250,9 +250,9 @@ function alerts.processPendingAlertEvents(deadline)
 
     rv = to_call(
       event.tstamp, event.granularity,
-      event.type, event.severity,
+      event.type, event.subtype or "", event.severity,
       event.entity_type, event.entity_value,
-      event.message, event.subtype)
+      event.message) -- event.message: nil for "release"
 
     if(rv.success) then
       alert_endpoints.dispatchNotification(event, event_json)
@@ -356,7 +356,6 @@ function alerts.new_release(entity_info, type_info)
     entity_value = entity_info.alert_entity_val,
     type = type_info.alert_type.alert_id,
     severity = type_info.alert_type.severity.severity_id,
-    message = alert_json,
     subtype = type_info.alert_subtype or "",
     tstamp = when,
     action = "release",
@@ -472,7 +471,7 @@ function alerts.threshold_check_function(params)
 
     return(alerts.new_trigger(params.alert_entity, threshold_type))
   else
-    if(do_trace) then print("DON'T trigger alert [value: "..tostring(value).."]\n") end
+    if(do_trace) then print("Release alert [value: "..tostring(value).."]\n") end
 
     return(alerts.new_release(params.alert_entity, threshold_type))
   end
@@ -492,7 +491,7 @@ function alerts.check_anomaly(anomal_name, alert_type, alert_entity, entity_anom
 
     return(alerts.new_trigger(alert_entity, anomaly_type))
   else
-    if(do_trace) then print("DON'T trigger alert anomaly [value: "..tostring(value).."]\n") end
+    if(do_trace) then print("Release alert anomaly [value: "..tostring(value).."]\n") end
 
     return(alerts.new_release(alert_entity, threshold_type))
   end
