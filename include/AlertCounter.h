@@ -32,6 +32,8 @@
  *
  */
 
+#define  ALERT_COUNTER_WINDOW_SECS 3
+
 class AlertCounter {
  private:
   bool thresholdTrepassed;
@@ -44,13 +46,20 @@ class AlertCounter {
   u_int32_t num_trespassed_threshold; /**< Number of consecutives threshold trespassing. */
   u_int32_t num_hits_rcvd_last_second; /**< Number of hits reported in the last second. */
   u_int32_t last_trespassed_hits; /**< Number of hits during last threshold trespassing */
+
+  u_int16_t trailing_window[ALERT_COUNTER_WINDOW_SECS];
+  u_int16_t trailing_window_min;
+  u_int8_t  trailing_index;
   
   void init();
+  void reset(time_t when = 0);
 
  public:
   AlertCounter(u_int32_t _max_num_hits_sec,
 	       u_int8_t _over_threshold_duration_sec);
-  
+  void inc(time_t when, Host *h);
+  u_int16_t hits() const;
+
   bool incHits(time_t when);
   inline u_int32_t getCurrentHits()          { return(num_hits_since_first_alert);  };
   inline u_int32_t getMaxHitsPerSecond()     { return(max_num_hits_sec);  };

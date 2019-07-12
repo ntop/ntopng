@@ -94,7 +94,7 @@ void Host::updateSynAlertsCounter(time_t when, u_int8_t flags, Flow *f, bool syn
   AlertCounter *counter = syn_sent ? syn_flood_attacker_alert : syn_flood_victim_alert;
 
   if(triggerAlerts())
-    counter->incHits(when);
+    counter->inc(when, this);
 }
 
 /* *************************************** */
@@ -852,7 +852,7 @@ void Host::incNumFlows(time_t t, bool as_client, Host *peer) {
   }
 
   if(triggerAlerts())
-    counter->incHits(t);
+    counter->inc(t, this);
 
   stats->incNumFlows(as_client, peer);
 }
