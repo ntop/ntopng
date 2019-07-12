@@ -1127,10 +1127,12 @@ local icmp_v6_msgs = {
    { 4, 0, i18n("icmp_v6_msgs.type_4_0_parameter_problem") },
    { 128, 0, i18n("icmp_v6_msgs.type_128_0_echo_request") },
    { 129, 0, i18n("icmp_v6_msgs.type_129_0_echo_reply") },
+   { 131, 0, i18n("icmp_v6_msgs.type_131_0_multicast_listener_report") },
    { 133, 0, i18n("icmp_v6_msgs.type_133_0_router_solicitation") },
    { 134, 0, i18n("icmp_v6_msgs.type_134_0_router_advertisement") },
    { 135, 0, i18n("icmp_v6_msgs.type_135_0_neighbor_solicitation") },
    { 136, 0, i18n("icmp_v6_msgs.type_136_0_neighbor_advertisement") },
+   { 143, 0, i18n("icmp_v6_msgs.type_143_0_multicast_listener_report_v2") },
 }
 
 function get_icmp_label(icmp_type, icmp_value, is_v4)
