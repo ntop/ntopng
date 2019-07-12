@@ -7740,7 +7740,7 @@ static int ntop_interface_trigger_alert(lua_State* vm) {
   AlertEntity alert_entity;
   char *alert_json;
   AlertsManager *am;
-  int ret, periodicity = 0;
+  int ret, granularity = 0;
   char *alert_subtype = (char*)"";
   bool ignore_disabled = false, check_maximum = true, is_new_alert;
   time_t when;
@@ -7751,7 +7751,7 @@ static int ntop_interface_trigger_alert(lua_State* vm) {
   when = (int)lua_tonumber(vm, 1);
 
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  periodicity = (int)lua_tonumber(vm, 2);
+  granularity = (int)lua_tonumber(vm, 2);
 
   if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   alert_type = (AlertType)((int)lua_tonumber(vm, 3));
@@ -7775,7 +7775,7 @@ static int ntop_interface_trigger_alert(lua_State* vm) {
      || ((am = ntop_interface->getAlertsManager()) == NULL))
     return(CONST_LUA_ERROR);
 
-  ret = am->triggerAlert(when, periodicity, alert_type, alert_subtype, alert_severity,
+  ret = am->triggerAlert(when, granularity, alert_type, alert_subtype, alert_severity,
     alert_entity, entity_value, alert_json, &is_new_alert, ignore_disabled, check_maximum);
 
   if(ret != 0)
@@ -7798,7 +7798,7 @@ static int ntop_interface_release_alert(lua_State* vm) {
   AlertType alert_type;
   AlertEntity alert_entity;
   AlertsManager *am;
-  int ret, periodicity = 0;
+  int ret, granularity = 0;
   char *alert_subtype = (char*)"";
   u_int64_t row_id = 0;
   time_t when;
@@ -7813,7 +7813,7 @@ static int ntop_interface_release_alert(lua_State* vm) {
   when = (int)lua_tonumber(vm, 1);
 
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  periodicity = (int)lua_tonumber(vm, 2);
+  granularity = (int)lua_tonumber(vm, 2);
 
   if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   alert_type = (AlertType)((int)lua_tonumber(vm, 3));
@@ -7827,7 +7827,7 @@ static int ntop_interface_release_alert(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 6, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   entity_value = (char*)lua_tostring(vm, 6);
 
-  ret = am->releaseAlert(when, periodicity, alert_type, alert_subtype, alert_severity,
+  ret = am->releaseAlert(when, granularity, alert_type, alert_subtype, alert_severity,
     alert_entity, entity_value, &row_id);
 
   lua_newtable(vm);

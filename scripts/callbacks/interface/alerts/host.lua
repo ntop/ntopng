@@ -33,8 +33,8 @@ function checkHostAlerts(granularity)
   local info = host.getFullInfo()
   local host_key   = info.ip.."@"..info.vlan
   local host_config = config_alerts[host_key]
-  local global_config = config_alerts["local_hosts"]
-  local has_configured_alerts = (table.len(host_config or global_config or {}) > 0)
+  local global_config = config_alerts["local_hosts"] or {}
+  local has_configured_alerts = (table.len(host_config or global_confi) > 0)
 
   if has_configured_alerts then
     for _, check in pairs(available_modules) do

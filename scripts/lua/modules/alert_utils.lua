@@ -187,21 +187,14 @@ end
 
 -- ##############################################################################
 
-local function getAlertReleaseQueryTime()
-   return("(alert_tstamp_end + 2*alert_periodicity)")
-end
-
 -- Apply a "engaged only" or "closed only" filter
 function statusFilter(query, engaged, now)
-  local comparison = ternary(engaged, ">=", "<")
-  now = now or os.time()
-  local filter = string.format("%s %s %u", getAlertReleaseQueryTime(), comparison, now)
-  local alert_untriggered_val = ""
+  local alert_released_val
 
   if engaged then
-    alert_untriggered_val = " AND (alert_untriggered=0)"
+    alert_released_val = "alert_released=0"
   else
-    alert_untriggered_val = " OR (alert_untriggered=1)"
+    alert_released_val = "alert_released=1"
   end
 
   local group_by_pos = string.find(query, "group by") or string.find(query, "GROUP BY")
@@ -220,7 +213,7 @@ function statusFilter(query, engaged, now)
     prefix_part = prefix_part .. " AND"
   end
 
-  return(string.format("%s (%s%s) %s", prefix_part, filter, alert_untriggered_val, suffix_part))
+  return(string.format("%s %s %s", prefix_part, alert_released_val, suffix_part))
 end
 
 -- ##############################################################################
@@ -2818,86 +2811,8 @@ end
 
 -- ##############################################
 
-local UPDATE_ALERT_STATS_FREQUENCY = 30
-
--- NOTE: this is executed in a system VM, with no interfaces references
-local function updateAlertStats(now)
-   local last_run = tonumber(ntop.getCache("ntopng.cache.update_alerts_stats_time"))
-
-   if(last_run == nil) then
-      last_run = now - UPDATE_ALERT_STATS_FREQUENCY
-   end
-
-   if((now - last_run) >= UPDATE_ALERT_STATS_FREQUENCY) then
-      local ifnames = interface.getIfNames()
-
-      for ifid,ifname in pairs(ifnames) do
-         local hosts_to_update = {}
-         interface.select(ifname)
-
-         -- Get the number of engaged alerts on the interface
-         local iface_num_engaged = getNumAlerts("engaged")
-         interface.setInterfaceEngagedAlerts(iface_num_engaged, iface_num_engaged)
-
-         if(tonumber(ntop.getCache(string.format("ntopng.cache.alerts.ifid_%d.has_alerts", ifid))) == nil) then
-            if((iface_num_engaged > 0) or (getNumAlerts() > 0)) then
-               interface.setInterfaceHasAlerts(true)
-            else
-               interface.setInterfaceHasAlerts(false)
-            end
-         else
-            interface.setInterfaceHasAlerts(true)
-         end
-
-         -- Get the active alerts per host
-         local rv = interface.queryAlertsRaw("select alert_entity_val, COUNT(*) as count",
-            statusFilter("where alert_entity=" .. alertEntity("host") .. "", true, now) .. " group by alert_entity_val")
-
-         for _, res in pairs(rv or {}) do
-            hosts_to_update[res.alert_entity_val] = {
-               num_engaged = tonumber(res.count),
-            }
-         end
-
-         -- Get the released alerts since last run
-         rv = interface.queryAlertsRaw("select *",
-            statusFilter("where ".. getAlertReleaseQueryTime() .. " >= " .. last_run, false, now) .. " group by alert_entity_val")
-
-         if not table.empty(rv) then
-            for _, alert in pairs(rv) do
-               if tonumber(alert.alert_entity) == alertEntity("host") then
-                  local host = alert.alert_entity_val
-
-                  if(hosts_to_update[host] == nil) then
-                     -- Must refresh this host as well
-                     hosts_to_update[host] = {num_engaged = 0}
-                  end
-               end
-
-               -- convert the alert in the notification format
-               local message = alertToNotification(ifid, "release", alert)
-
-               -- Dispatch
-               alert_endpoints.dispatchNotification(message, json.encode(message))
-            end
-         end
-
-         -- Refresh the host counters
-         for host, num_alerts in pairs(hosts_to_update) do
-            interface.setHostAlerts(host, num_alerts.num_engaged)
-         end
-      end
-
-      ntop.setCache("ntopng.cache.update_alerts_stats_time", string.format("%u", now))
-   end
-end
-
--- ##############################################
-
 -- NOTE: this is executed in a system VM, with no interfaces references
 function processAlertNotifications(now, periodic_frequency, force_export)
-   updateAlertStats(now)
-
    alerts.processPendingAlertEvents(now + periodic_frequency)
 
    -- Get new alerts

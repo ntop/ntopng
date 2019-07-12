@@ -44,7 +44,7 @@ if(stats ~= nil) then
 
 	 if(k == "ICMPv4") then is_v4 = true else is_v4 = false end
 	 
-	 for key, value in pairs(icmp) do
+	 for key, value in pairsByKeys(icmp) do
 	    local keys = string.split(key, ",")
 	    local icmp_type = keys[1]
 	    local icmp_value = keys[2]

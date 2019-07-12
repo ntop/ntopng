@@ -36,8 +36,8 @@ function checkNetworkAlerts(granularity)
    end
 
    local network_config = config_alerts[network_key]
-   local global_config = config_alerts["local_networks"]
-   local has_configured_alerts = (table.len(network_config or global_config or {}) > 0)
+   local global_config = config_alerts["local_networks"] or {}
+   local has_configured_alerts = (table.len(network_config or global_config) > 0)
 
    if(has_configured_alerts) then
       for _, check in pairs(available_modules) do

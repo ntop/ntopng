@@ -21,10 +21,10 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 ntop.checkHostsAlertsMin()
 
 -- checks the current networks alerts
--- ntop.checkNetworksAlertsMin()
+ntop.checkNetworksAlertsMin()
 
 -- checks the current interface alerts
--- interface.checkAlertsMin()
+interface.checkAlertsMin()
 
 --alerts_api.new_trigger(alerts_api.hostAlertEntity("192.168.1.1", 0), alerts_api.thresholdCrossType("min", "bytes", 500, ">", 0))
 
