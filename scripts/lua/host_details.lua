@@ -1539,13 +1539,11 @@ end
 
 local active_flows_msg = getFlowsTableTitle()
 
-if false then
-else
 print [[
   flow_rows_option["type"] = 'host';
 	 $("#table-flows").datatable({
          url: url_update,
-         buttons: [ ]] printActiveFlowsDropdown(base_url, page_params, interface.getStats(), interface.getActiveFlowsStats()) print[[ ],
+         buttons: [ ]] printActiveFlowsDropdown(base_url, page_params, interface.getStats(), interface.getActiveFlowsStats(hostinfo2hostkey(host_info))) print[[ ],
          rowCallback: function ( row ) { return flow_table_setID(row); },
          tableCallback: function()  { $("#dt-bottom-details > .pull-left > p").first().append('. ]]
 print(i18n('flows_page.idle_flows_not_listed'))
@@ -1670,7 +1668,6 @@ print[[
 
    ]]
 
-end
 elseif(page == "snmp" and ntop.isEnterprise() and isAllowedSystemInterface()) then
    local snmp_devices = get_snmp_devices()
 
