@@ -45,8 +45,9 @@ local outIfIdx    = _GET["outIfIdx"]
 local asn         = _GET["asn"]
 
 local vhost       = _GET["vhost"]
-local flowhosts_type  = _GET["flowhosts_type"]
-local ipversion       = _GET["version"]
+local flowhosts_type = _GET["flowhosts_type"]
+local ipversion    = _GET["version"]
+local l4proto      = _GET["l4proto"]
 local traffic_type = _GET["traffic_type"]
 local flow_status = _GET["flow_status"]
 local tcp_state   = _GET["tcp_flow_state"]
@@ -167,6 +168,10 @@ end
 
 if not isEmptyString(ipversion) then
    pageinfo["ipVersion"] = tonumber(ipversion)
+end
+
+if not isEmptyString(l4proto) then
+   pageinfo["L4Protocol"] = tonumber(l4proto)
 end
 
 if not isEmptyString(vlan) then

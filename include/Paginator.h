@@ -38,6 +38,7 @@ class Paginator {
   int16_t local_network_filter;
   u_int16_t vlan_id_filter;
   u_int8_t ip_version /* Either 4 or 6 */;
+  u_int8_t l4_protocol;
   int8_t unicast_traffic, unidirectional_traffic, alerted_flows, filtered_flows;
   u_int32_t asn_filter;
   u_int32_t deviceIP;
@@ -115,6 +116,10 @@ class Paginator {
   
   inline bool ipVersion(u_int8_t *f) const {
     if(ip_version) { (*f) = ip_version; return true; } return false;
+  }
+
+  inline bool L4Protocol(u_int8_t *f) const {
+    if(l4_protocol) { (*f) = l4_protocol; return true; } return false;
   }
 
   inline bool deviceIpFilter(u_int32_t *f) const {

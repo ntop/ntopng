@@ -2298,6 +2298,14 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
     printIpVersionDropdown(base_url, ipversion_params)
     print [[</div>']]
 
+    -- L4 protocol selector
+    local l4proto_params = table.clone(page_params)
+    l4proto_params["l4proto"] = nil
+
+    print[[, '<div class="btn-group pull-right">]]
+    printL4ProtoDropdown(base_url, l4proto_params)
+    print [[</div>']]
+
     -- VLAN selector
     local vlan_params = table.clone(page_params)
     if ifstats.vlan then

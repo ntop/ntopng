@@ -3630,6 +3630,7 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
   int16_t local_network_id;
   u_int16_t vlan_id = 0, pool_filter, flow_status_filter;
   u_int8_t ip_version;
+  u_int8_t l4_protocol;
   u_int8_t *mac_filter;
   LocationPolicy client_policy;
   LocationPolicy server_policy;
@@ -3686,6 +3687,12 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
        && retriever->pag->ipVersion(&ip_version)
        && (((ip_version == 4) && (f->get_cli_host() && !f->get_cli_host()->get_ip()->isIPv4()))
 	   || ((ip_version == 6) && (f->get_cli_host() && !f->get_cli_host()->get_ip()->isIPv6()))))
+      return(false);
+
+    if(retriever->pag
+       && retriever->pag->L4Protocol(&l4_protocol)
+       && l4_protocol
+       && l4_protocol != f->get_protocol())
       return(false);
 
     if(retriever->pag

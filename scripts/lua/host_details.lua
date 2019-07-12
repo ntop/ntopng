@@ -1517,6 +1517,7 @@ local page_params = {
    vlan = _GET["vlan"],
    traffic_type = _GET["traffic_type"],
    version = _GET["version"],
+   l4proto = _GET["l4proto"],
    host = hostinfo2hostkey(host_info),
    tskey = _GET["tskey"],
 }

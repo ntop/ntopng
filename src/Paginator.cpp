@@ -46,6 +46,7 @@ Paginator::Paginator() {
   local_network_filter = 0;
   vlan_id_filter = 0;
   ip_version = 0;
+  l4_protocol = 0;
   client_mode = location_all;
   server_mode = location_all;
   tcp_flow_state_filter = tcp_flow_state_filter_all;
@@ -194,6 +195,8 @@ void Paginator::readOptions(lua_State *L, int index) {
 	  outIndex = lua_tointeger(L, -1);
 	else if(!strcmp(key, "ipVersion"))
 	  ip_version = lua_tointeger(L, -1);
+	else if(!strcmp(key, "L4Protocol"))
+	  l4_protocol = lua_tointeger(L, -1);
 	else if(!strcmp(key, "poolFilter"))
 	  pool_filter = lua_tointeger(L, -1);
 	else if(!strcmp(key, "asnFilter"))

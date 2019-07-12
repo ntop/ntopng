@@ -324,6 +324,30 @@ end
 
 -- ##############################################
 
+function printL4ProtoDropdown(base_url, page_params)
+   local l4proto = _GET["l4proto"]
+   local l4proto_filter
+   if not isEmptyString(l4proto) then
+      l4proto_filter = '<span class="glyphicon glyphicon-filter"></span>'
+   else
+      l4proto_filter = ''
+   end
+   local l4proto_params = table.clone(page_params)
+   l4proto_params["l4proto"] = nil
+
+   print[[\
+      <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("flows_page.l4_protocol")) print[[]] print(l4proto_filter) print[[<span class="caret"></span></button>\
+      <ul class="dropdown-menu" role="menu" id="flow_dropdown">\
+         <li><a href="]] print(getPageUrl(base_url, l4proto_params)) print[[">]] print(i18n("flows_page.all_l4_protocols")) print[[</a></li>\
+         <li]] if l4proto == "6" then print(' class="active"') end print[[><a href="]] l4proto_params["l4proto"] = "6"; print(getPageUrl(base_url, l4proto_params)); print[[">]] print(i18n("flows_page.tcp_only")) print[[</a></li>\
+         <li]] if l4proto == "17" then print(' class="active"') end print[[><a href="]] l4proto_params["l4proto"] = "17"; print(getPageUrl(base_url, l4proto_params)); print[[">]] print(i18n("flows_page.udp_only")) print[[</a></li>\
+         <li]] if l4proto == "1" then print(' class="active"') end print[[><a href="]] l4proto_params["l4proto"] = "1"; print(getPageUrl(base_url, l4proto_params)); print[[">]] print(i18n("flows_page.icmp_only")) print[[</a></li>\
+      </ul>]]
+end
+
+
+-- ##############################################
+
 function printVLANFilterDropdown(base_url, page_params)
    local vlans = interface.getVLANsList()
 
