@@ -118,6 +118,7 @@ local lang = {
   ["note_flow_search_allowed_networks_ipv6"] = "Non-zero allowed IPv6 networks will cause all IPv6 flows from being shown.",
   ["note_flow_search_allowed_networks_talkers"] = "Hosts not belonging to any of the allowed networks will be hidden from the top talkers.",
   ["notes"] = "NOTES:",
+  ["num_different_ports"] = "%{num} different ports",
   ["num_uses"] = "Num Uses",
   ["operating_systems"] = "Operating Systems",
   ["os"] = "OS",

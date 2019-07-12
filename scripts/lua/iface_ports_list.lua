@@ -64,7 +64,7 @@ print "[ "
 num = 0
 accumulate = 0
 for key, value in pairsByKeys(_ports, rev) do
-      if(key < threshold) then
+      if key < threshold then
 	 break
       end
 
@@ -86,16 +86,21 @@ for key, value in pairsByKeys(_ports, rev) do
        if(num == max_num_entries) then
 	  break
        end      
- end
+end
 
-    -- In case there is some leftover do print it as "Other"
-    if(accumulate < tot) then
-       if(num > 0) then
-	  print (",\n")
-       end
-
-       print("\t { \"label\": \"Other\", \"value\": ".. (tot-accumulate) .." }")
+-- In case there is some leftover do print it as "Other"
+if(accumulate < tot) then
+  local other_label = i18n("other")
+  if(num > 0) then
+    print (",\n")
+  else
+    if table.len(_ports) > 0 then
+      other_label = i18n("num_different_ports", { num = table.len(_ports)})
     end
+  end
+
+  print("\t { \"label\": \""..other_label.."\", \"value\": ".. (tot-accumulate) .." }")
+end
 
 if(tot == 0) then
        print("\t { \"label\": \"Other\", \"value\": ".. 0 .." }")
