@@ -537,6 +537,8 @@ alert_consts.field_units = {
   packets = "field_units.packets",
   mbits = "field_units.mbits",
   hosts = "field_units.hosts",
+  syn_sec = "field_units.syn_sec",
+  flow_sec = "field_units.flow_sec",
 }
 
 -- ################################################################################

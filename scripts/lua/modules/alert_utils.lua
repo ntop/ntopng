@@ -929,10 +929,6 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
 
    local descr = alerts.load_check_modules(entity_type)
 
-   local flow_rate_attacker_key = "flow_attacker_threshold"
-   local flow_rate_victim_key = "flow_victim_threshold"
-   local syn_attacker_key = "syn_attacker_threshold"
-   local syn_victim_key = "syn_victim_threshold"
    local anomaly_config_key = nil
    local flow_rate_alert_thresh, syn_alert_thresh
 
@@ -1022,27 +1018,6 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
 
    -- keep defaults in sync with ntop_defines.h
    local anomalies_config = {
-      {
-         title = i18n("entity_thresholds.flow_attacker_title"),
-         descr = i18n("entity_thresholds.flow_attacker_description"),
-         key = flow_rate_attacker_key,
-         global_default = 25, step = 1
-      }, {
-         title = i18n("entity_thresholds.flow_victim_title"),
-         descr = i18n("entity_thresholds.flow_victim_description"),
-         key = flow_rate_victim_key,
-         global_default = 25, step = 1
-	 }, {
-         title = i18n("entity_thresholds.syn_attacker_title"),
-         descr = i18n("entity_thresholds.syn_attacker_description"),
-         key = syn_attacker_key,
-         global_default = 25, step = 5
-	    }, {
-         title = i18n("entity_thresholds.syn_victim_title"),
-         descr = i18n("entity_thresholds.syn_victim_description"),
-         key = syn_victim_key,
-         global_default = 25, step = 5
-	       }
    }
 
    local global_redis_hash = getGlobalAlertsConfigurationHash(tab, entity_type, alert_source)
