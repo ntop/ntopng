@@ -31,7 +31,7 @@ function checkInterfaceAlerts(granularity)
    local info = interface.getStats()
    local ifid = interface.getId()
    local interface_key   = "iface_"..ifid
-   local interface_config = config_alerts[interface_key]
+   local interface_config = config_alerts[interface_key] or {}
    local global_config = config_alerts["interfaces"] or {}
    local has_configured_alerts = (table.len(interface_config or global_config) > 0)
 

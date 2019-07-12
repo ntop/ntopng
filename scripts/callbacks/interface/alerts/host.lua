@@ -32,7 +32,7 @@ end
 function checkHostAlerts(granularity)
   local info = host.getFullInfo()
   local host_key   = info.ip.."@"..info.vlan
-  local host_config = config_alerts[host_key]
+  local host_config = config_alerts[host_key] or {}
   local global_config = config_alerts["local_hosts"] or {}
   local has_configured_alerts = (table.len(host_config or global_confi) > 0)
 
