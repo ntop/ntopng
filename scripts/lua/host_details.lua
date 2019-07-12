@@ -77,7 +77,6 @@ if(debug_hosts) then traceError(TRACE_DEBUG,TRACE_CONSOLE, i18n("host_details.tr
 
 
 local host = interface.getHostInfo(host_info["host"], host_vlan)
-
 local tskey
 
 if _GET["tskey"] then
