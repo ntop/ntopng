@@ -1091,9 +1091,17 @@ local icmp_v4_msgs = {
    { 3, 2, i18n("icmp_v4_msgs.type_3_2_destination_protocol_unreachable") },
    { 3, 3, i18n("icmp_v4_msgs.type_3_3_destination_port_unreachable") },
    { 3, 4, i18n("icmp_v4_msgs.type_3_4_fragmentation_required") },
+   { 3, 5, i18n("icmp_v4_msgs.type_3_5_source_route_failed") },
    { 3, 6, i18n("icmp_v4_msgs.type_3_6_destination_network_unknown") },
    { 3, 7, i18n("icmp_v4_msgs.type_3_7_destination_host_unknown") },
-   { 3, 0, i18n("icmp_v4_msgs.type_3_0_destination_unreachable") },
+   { 3, 8, i18n("icmp_v4_msgs.type_3_8_source_isolated") },
+   { 3, 9, i18n("icmp_v4_msgs.type_3_9_communication_network_prohibited") },
+   { 3, 10, i18n("icmp_v4_msgs.type_3_10_communication_host_prohibited") },
+   { 3, 11, i18n("icmp_v4_msgs.type_3_11_destination_network_unreachable") },
+   { 3, 12, i18n("icmp_v4_msgs.type_3_12_destination_host_unreachable") },
+   { 3, 13, i18n("icmp_v4_msgs.type_3_13_communication_prohibited") },
+   { 3, 14, i18n("icmp_v4_msgs.type_3_14_host_precedence_violation") },
+   { 3, 15, i18n("icmp_v4_msgs.type_3_15_precedence_cutoff") },
    { 4, 0, i18n("icmp_v4_msgs.type_4_0_source_quench") },
    { 5, 0, i18n("icmp_v4_msgs.type_5_0_redirect") },
    { 8, 0, i18n("icmp_v4_msgs.type_8_0_echo_request") },
@@ -1141,12 +1149,9 @@ function get_icmp_label(icmp_type, icmp_value, is_v4)
       local i_value = tostring(k[2])
       local i_msg   = k[3]
 
-      -- print(i_type.."/"..icmp_type.."<br>\n")
-      if(i_type == icmp_type) then
-	 -- print("))"..i_type.."/"..icmp_type.."<br>\n")
-	 if(i_value == icmp_value) then
-	    return(i_msg)
-	 end
+      -- tprint("ICMP Type = "..icmp_type.." Value = "..icmp_value)
+      if i_type == icmp_type and i_value == icmp_value then
+        return(i_msg)
       end
    end
    
