@@ -150,11 +150,12 @@ if((ifname == nil) and (_GET ~= nil)) then
    end
 end
 
---print("(((("..ifname.."))))")
 l4_keys = {
-  { "TCP", "tcp", 6 },
-  { "UDP", "udp", 17 },
-  { "ICMP", "icmp", 1 },
+  { "TCP",    "tcp",     6 },
+  { "UDP",    "udp",    17 },
+  { "ICMP",   "icmp",    1 },
+  { "ICMPv6", "icmpv6", 58 },
+  { "IGMP",   "igmp",    2 },
   { "Other IP", "other_ip", -1 }
 }
 
@@ -599,7 +600,7 @@ function l4_proto_to_string(proto_id)
       end
    end
 
-   return nil
+   return string.format("%d", proto_id)
 end
 
 -- ##############################################
