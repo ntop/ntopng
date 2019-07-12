@@ -57,7 +57,7 @@ class AlertsManager : protected StoreManager {
 
  public:
   AlertsManager(int interface_id, const char *db_filename);
-  ~AlertsManager() {};
+  ~AlertsManager();
 
   /*
     ========== Generic alerts API =========
@@ -70,6 +70,8 @@ class AlertsManager : protected StoreManager {
   int releaseAlert(time_t when, int granularity, AlertType alert_type, const char *subtype,
       AlertLevel alert_severity, AlertEntity alert_entity, const char *alert_entity_value,
       u_int64_t *row_id);
+
+  int releaseEngagedAlerts(time_t when);
 
   /*
     ========== FLOW alerts API =========

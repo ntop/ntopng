@@ -80,6 +80,18 @@ AlertsManager::AlertsManager(int interface_id, const char *filename) : StoreMana
 				 fileFullPath);
 
   snprintf(queue_name, sizeof(queue_name), ALERTS_MANAGER_QUEUE_NAME, ifid);
+
+  /* After startup it's necessary to have 0 engaged alerts so that
+   * the database state is in sync with the Alertable state. */
+  releaseEngagedAlerts(time(NULL));
+}
+
+/* **************************************************** */
+
+AlertsManager::~AlertsManager() {
+  /* It's better to perform a clean release during shutdown, so that
+   * the end timestamp will be correctly set. */
+  releaseEngagedAlerts(time(NULL));
 }
 
 /* **************************************************** */
@@ -285,6 +297,46 @@ int AlertsManager::updateExistingAlert(u_int64_t rowid, time_t new_timestamp_end
   return rc;
 }
   
+/* **************************************************** */
+
+int AlertsManager::releaseEngagedAlerts(time_t when) {
+  char query[STORE_MANAGER_MAX_QUERY];
+  int rc = 0, step;
+  sqlite3_stmt *stmt = NULL;
+
+  if(!store_initialized || !store_opened)
+    return(-1);
+
+  m.lock(__FILE__, __LINE__);
+
+  snprintf(query, sizeof(query),
+     "UPDATE %s "
+     "SET alert_tstamp_end = ?, alert_released = 1 "
+     "WHERE alert_released = 0",
+     ALERTS_MANAGER_TABLE_NAME);
+
+  if(sqlite3_prepare_v2(db, query, -1, &stmt, 0)
+     || sqlite3_bind_int64(stmt, 1, static_cast<long int>(when))) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "SQL Error: %s", sqlite3_errmsg(db));
+    rc = -3;
+    goto out;
+  }
+
+  while((step = sqlite3_step(stmt)) != SQLITE_DONE) {
+    if(step == SQLITE_ERROR) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "SQL Error: %s", sqlite3_errmsg(db));
+      rc = -4;
+      goto out;
+    }
+  }
+
+out:
+  if(stmt) sqlite3_finalize(stmt);
+  m.unlock(__FILE__, __LINE__);
+
+  return(rc);
+}
+
 /* **************************************************** */
 
 void AlertsManager::markForMakeRoom(bool on_flows) {
