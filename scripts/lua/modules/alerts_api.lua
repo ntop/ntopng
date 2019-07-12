@@ -563,7 +563,7 @@ function alerts.threshold_cross_input_builder(gui_conf, input_id, value)
   return(string.format([[<select name="%s">
   <option value="gt"%s>&gt;</option>
   <option value="lt"%s>&lt;</option>
-</select> <input type="number" class="text-right form-control" min="%s" max="%s" step="%s" style="display:inline; width:12em;" name="%s" value="%s"/> %s]],
+</select> <input type="number" class="text-right form-control" min="%s" max="%s" step="%s" style="display:inline; width:12em;" name="%s" value="%s"/> <span>%s</span>]],
     input_op, gt_selected, lt_selected,
     gui_conf.field_min or "", gui_conf.field_max or "", gui_conf.field_step or "",
     input_val, value[2], i18n(gui_conf.i18n_field_unit))

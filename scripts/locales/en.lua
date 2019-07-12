@@ -709,10 +709,10 @@ local lang = {
   },
   ["field_units"] = {
     ["bytes"] = "B",
-    ["flows"] = "flows",
-    ["hosts"] = "hosts",
-    ["mbits"] = "mbps",
-    ["packets"] = "pkt",
+    ["flows"] = "Flows",
+    ["hosts"] = "Hosts",
+    ["mbits"] = "Mbps",
+    ["packets"] = "Pkt",
     ["seconds"] = "s",
   },
   ["flow_alerts_explorer"] = {

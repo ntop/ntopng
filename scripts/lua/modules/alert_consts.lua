@@ -115,6 +115,7 @@ local function formatThresholdCross(ifid, alert, threshold_info)
   local entity = formatAlertEntity(ifid, alertEntityRaw(alert["alert_entity"]), alert["alert_entity_val"])
   local engine_label = alertEngineLabel(alertEngine(sec2granularity(alert["alert_granularity"])))
 
+  -- TODO i18n
   return engine_label.." <b>".. threshold_info.metric .."</b> crossed by ".. entity ..
     " ["..threshold_info.value.." &"..(threshold_info.operator).."; "..threshold_info.threshold.."]"
 end
