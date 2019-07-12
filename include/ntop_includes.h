@@ -192,7 +192,7 @@ using namespace std;
 #include "Utils.h"
 #include "NtopGlobals.h"
 #include "nDPIStats.h"
-#include "FlowStatusStats.h"
+#include "FlowStats.h"
 #ifdef NTOPNG_PRO
 #include "CustomAppMaps.h"
 #include "CustomAppStats.h"

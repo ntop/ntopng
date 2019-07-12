@@ -23,24 +23,25 @@
 
 /* *************************************** */
 
-FlowStatusStats::FlowStatusStats() {
+FlowStats::FlowStats() {
   resetStats();
 }
 
 /* *************************************** */
 
-FlowStatusStats::~FlowStatusStats() {
+FlowStats::~FlowStats() {
 }
 
 /* *************************************** */
 
-void FlowStatusStats::incStats(FlowStatus status) {
+void FlowStats::incStats(FlowStatus status, u_int8_t l4_protocol) {
   counters[status]++;
+  protocols[l4_protocol]++;
 }
 
 /* *************************************** */
 
-void FlowStatusStats::lua(lua_State* vm) {
+void FlowStats::lua(lua_State* vm) {
   lua_newtable(vm);
 
   for(int i = 0; i < num_flow_status; i++) {
@@ -58,12 +59,31 @@ void FlowStatusStats::lua(lua_State* vm) {
   lua_pushstring(vm, "status");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
+
+  lua_newtable(vm);
+
+  for(int i = 0; i < 0x100; i++) {
+    if(unlikely(protocols[i] > 0)) {
+      lua_newtable(vm);
+
+      lua_push_uint64_table_entry(vm, "count", protocols[i]);
+
+      lua_pushinteger(vm, i);
+      lua_insert(vm, -2);
+      lua_rawset(vm, -3);
+    }
+  }
+
+  lua_pushstring(vm, "l4_protocols");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
 }
 
 /* *************************************** */
 
-void FlowStatusStats::resetStats() {
+void FlowStats::resetStats() {
   memset(counters, 0, sizeof(counters));
+  memset(protocols, 0, sizeof(protocols));
 }
 
 /* *************************************** */

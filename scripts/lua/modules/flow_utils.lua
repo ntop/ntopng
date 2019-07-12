@@ -2303,7 +2303,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
     l4proto_params["l4proto"] = nil
 
     print[[, '<div class="btn-group pull-right">]]
-    printL4ProtoDropdown(base_url, l4proto_params)
+    printL4ProtoDropdown(base_url, l4proto_params, flowstats["l4_protocols"])
     print [[</div>']]
 
     -- VLAN selector

@@ -1994,14 +1994,14 @@ bool Flow::isFlowPeer(char *numIP, u_int16_t vlanId) {
 
 /* *************************************** */
 
-void Flow::sumStats(nDPIStats *stats, FlowStatusStats *status_stats) {
+void Flow::sumStats(nDPIStats *stats, FlowStats *status_stats) {
   FlowStatus status = getFlowStatus();
 
   stats->incStats(0, ndpiDetectedProtocol.app_protocol,
 		  cli2srv_packets, cli2srv_bytes,
 		  srv2cli_packets, srv2cli_bytes);
 
-  status_stats->incStats(status);
+  status_stats->incStats(status, protocol);
 }
 
 /* *************************************** */

@@ -2831,15 +2831,15 @@ void NetworkInterface::findFlowHosts(u_int16_t vlanId,
 /* **************************************************** */
 
 struct ndpiStatsRetrieverData {
-  nDPIStats *stats;
-  FlowStatusStats *status_stats;
+  nDPIStats *ndpi_stats;
+  FlowStats *stats;
   Host *host;
 };
 
 static bool flow_sum_stats(GenericHashEntry *flow, void *user_data, bool *matched) {
   ndpiStatsRetrieverData *retriever = (ndpiStatsRetrieverData*)user_data;
-  nDPIStats *stats = retriever->stats;
-  FlowStatusStats *status_stats = retriever->status_stats;
+  nDPIStats *ndpi_stats = retriever->ndpi_stats;
+  FlowStats *stats = retriever->stats;
   Flow *f = (Flow*)flow;
 
   if(retriever->host
@@ -2847,7 +2847,7 @@ static bool flow_sum_stats(GenericHashEntry *flow, void *user_data, bool *matche
      && (retriever->host != f->get_srv_host()))
     return(false); /* false = keep on walking */
 
-  f->sumStats(stats, status_stats);
+  f->sumStats(ndpi_stats, stats);
   *matched = true;
 
   return(false); /* false = keep on walking */
@@ -2855,7 +2855,7 @@ static bool flow_sum_stats(GenericHashEntry *flow, void *user_data, bool *matche
 
 /* **************************************************** */
 
-void NetworkInterface::getActiveFlowsStats(nDPIStats *stats, FlowStatusStats *status_stats,
+void NetworkInterface::getActiveFlowsStats(nDPIStats *ndpi_stats, FlowStats *stats,
 					   AddressTree *allowed_hosts,
 					   const char *host_ip, u_int16_t vlan_id) {
   ndpiStatsRetrieverData retriever;
@@ -2866,8 +2866,8 @@ void NetworkInterface::getActiveFlowsStats(nDPIStats *stats, FlowStatusStats *st
   if(host_ip)
     h = findHostByIP(allowed_hosts, (char *)host_ip, vlan_id);
 
+  retriever.ndpi_stats = ndpi_stats;
   retriever.stats = stats;
-  retriever.status_stats = status_stats;
   retriever.host = h;
   walker(&begin_slot, walk_all, walker_flows, flow_sum_stats, (void*)&retriever);
 }
