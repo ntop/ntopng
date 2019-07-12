@@ -261,6 +261,7 @@ local lang = {
     ["proto_time_quotas"] = "%{proto} time",
     ["slow_periodic_activity"] = "Periodic activity \"%{script}\" took too much to complete [%{duration} &gt; %{max_duration}]",
     ["subject_quota_exceeded"] = "Host pool <a href=\"%{url}\">%{pool}</a> exceeded %{subject} quota [%{value} &gt; %{quota}]",
+    ["test_failed"] = "Test Failed",
     ["x_alerts"] = "%{num} alerts",
   },
   ["alerts_dashboard"] = {
@@ -708,12 +709,12 @@ local lang = {
     ["note_maximum_number"] = "The maximum number of downloadable hosts is 32,768.",
   },
   ["field_units"] = {
-    ["bytes"] = "B",
+    ["bytes"] = "Byte",
     ["flows"] = "Flows",
     ["hosts"] = "Hosts",
     ["mbits"] = "Mbps",
-    ["packets"] = "Pkt",
-    ["seconds"] = "s",
+    ["packets"] = "Packets",
+    ["seconds"] = "Seconds",
   },
   ["flow_alerts_explorer"] = {
     ["by_target_port"] = "By Target Port",
