@@ -262,6 +262,37 @@ static void* packetPollLoop(void* ptr) {
       }
       
       if((rc = pcap_next_ex(pd, &hdr, &pkt)) > 0) {
+	if(iface->reproducePcapOriginalSpeed()) {
+	  struct timeval now;
+	  static struct timeval lastPktProcessed = { 0, 0 }, lastPcapTime;
+	    
+	  gettimeofday(&now, NULL);
+
+	  if(lastPktProcessed.tv_sec > 0) {
+	    u_int32_t n, m = Utils::msTimevalDiff(&hdr->ts, &lastPcapTime);
+
+	    if(m < 100000) { /* Catch wrong timestamps */
+	      n = (u_int32_t)Utils::msTimevalDiff(&now, &lastPktProcessed);
+
+	      if(n < m) {
+		ntop->getTrace()->traceEvent(TRACE_INFO,
+					     "Sleeping %.3f sec [delta %.3f sec]",
+					     ((float)(m-n))/1000, ((float)m)/1000);
+		
+		usleep((m - n)*1000);
+	      }
+	    }
+
+	    /* Recompute after sleep */
+	    gettimeofday(&now, NULL);
+	  }
+
+	  lastPcapTime = hdr->ts;
+	  lastPktProcessed = now;
+	  
+	  hdr->ts = now;
+	}
+	  
 	if((pkt != NULL) && (hdr->caplen > 0)) {
 	  u_int16_t p;
 	  Host *srcHost = NULL, *dstHost = NULL;
@@ -300,7 +331,6 @@ static void* packetPollLoop(void* ptr) {
 	iface->purgeIdle(time(NULL));
       }
     } /* while */
-
   } while(pcap_list != NULL);
 
   if(iface->read_from_pcap_dump()) {
@@ -432,3 +462,10 @@ void PcapInterface::updateDirectionStats() {
 }
 
 #endif
+
+/* **************************************************** */
+
+bool PcapInterface::reproducePcapOriginalSpeed() {
+  return(read_pkts_from_pcap_dump && ntop->getPrefs()->reproduceOriginalSpeed());
+}
+

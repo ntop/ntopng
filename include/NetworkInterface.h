@@ -750,6 +750,7 @@ class NetworkInterface : public AlertableEntity {
   inline void decNumAlertsEngaged(ScriptPeriodicity p)    { num_alerts_engaged[(u_int)p]--; }
   inline bool hasAlerts()                                 { return(has_alerts); }
   inline void refreshHasAlerts()                          { has_alerts = alertsManager ? alertsManager->hasAlerts() : false; }
+  virtual bool reproducePcapOriginalSpeed()               { return(false); }
   u_int32_t getNumEngagedAlerts();
 };
 

@@ -1264,7 +1264,8 @@ void Host::dissectDropbox(const char *payload, u_int16_t payload_len) {
   enum json_tokener_error jerr;
   char str[1500];
 
-  if ((payload_len + 1) > sizeof(str)) return; /* Too long: this isn't a valid Dropbox packet */
+  if ((payload_len + 1) > (u_int16_t)sizeof(str))
+    return; /* Too long: this isn't a valid Dropbox packet */
 
   strncpy(str, payload, payload_len);
   str[payload_len] = '\0';

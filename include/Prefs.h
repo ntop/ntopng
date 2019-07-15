@@ -42,7 +42,7 @@ class Prefs {
   char **deferred_interfaces_to_register, *cli;
   char *http_binding_address1, *http_binding_address2;
   char *https_binding_address1, *https_binding_address2;
-  bool enable_client_x509_auth;
+  bool enable_client_x509_auth, reproduce_at_original_speed;
   char *lan_interface;
   Ntop *ntop;
   bool enable_dns_resolution, sniff_dns_responses,
@@ -377,7 +377,9 @@ class Prefs {
   inline bool isGlobalDnsForgingEnabled()        { return(global_dns_forging_enabled);                  };
   inline u_int8_t getNumTsSlots()                { return(num_ts_slots);                                };
   inline u_int8_t getNumTsSteps()                { return(ts_num_steps);                                };
-
+  inline bool     reproduceOriginalSpeed()       { return(reproduce_at_original_speed);                 };
+  inline void     doReproduceOriginalSpeed()     { reproduce_at_original_speed = true;                  };
+  
   void validate();
 };
 

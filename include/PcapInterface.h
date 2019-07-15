@@ -49,8 +49,9 @@ class PcapInterface : public NetworkInterface {
   void startPacketPolling();
   void shutdown();
   bool set_packet_filter(char *filter);
-  inline bool read_from_pcap_dump() { return(read_pkts_from_pcap_dump); };
-  inline void sendTermination()     { if(pcap_handle) pcap_breakloop(pcap_handle); }
+  inline bool read_from_pcap_dump() { return(read_pkts_from_pcap_dump);            };
+  inline void sendTermination()     { if(pcap_handle) pcap_breakloop(pcap_handle); };
+  bool reproducePcapOriginalSpeed();
   virtual void updateDirectionStats();
 };
 

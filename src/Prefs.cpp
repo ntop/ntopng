@@ -39,7 +39,7 @@ Prefs::Prefs(Ntop *_ntop) {
   data_dir = strdup(CONST_DEFAULT_DATA_DIR);
   enable_access_log = false, enable_sql_log = false, flow_aggregation_enabled = false;
   enable_flow_device_port_rrd_creation = false;
-  enable_ip_reassignment_alerts = false;
+  enable_ip_reassignment_alerts = false, reproduce_at_original_speed = false;
   enable_top_talkers = false, enable_idle_local_hosts_cache = false;
   enable_active_local_hosts_cache = false,
     enable_tiny_flows_export = true, enable_aggregated_flows_export_limit = false,
@@ -309,6 +309,8 @@ void usage() {
 	 "[--max-num-hosts|-x] <num>          | Max number of active hosts\n"
 	 "                                    | (default: %u)\n"
 	 "[--users-file|-u] <path>            | Users configuration file path\n"
+	 "                                    | Default: %s\n"
+	 "[--original-speed]                  | Reproduce (-i) the pcap file at original speed\n"
 	 "                                    | Default: %s\n"
 #ifndef WIN32
 	 "[--pid|-G] <path>                   | Pid file path\n"
@@ -747,6 +749,7 @@ static const struct option long_options[] = {
   { "callbacks-dir",                     required_argument, NULL, '3' },
   { "prefs-dir",                         required_argument, NULL, '4' },
   { "pcap-dir",                          required_argument, NULL, '5' },
+  { "original-speed",                    no_argument,       NULL, 208 },
   { "online-check",                      no_argument,       NULL, 209 },
   { "print-ndpi-protocols",              no_argument,       NULL, 210 },
   { "online-license-check",              no_argument,       NULL, 211 },
@@ -1346,6 +1349,10 @@ int Prefs::setOption(int optkey, char *optarg) {
 
   case 'X':
     max_num_flows = max_val(atoi(optarg), 1024);
+    break;
+
+  case 208:
+    reproduce_at_original_speed = true;
     break;
 
   case 209:
