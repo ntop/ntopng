@@ -13,7 +13,7 @@ local do_trace = false
 
 local alerts = {}
 
-local MAX_NUM_ENQUEUED_ALERTS_EVENTS = 4096
+local MAX_NUM_ENQUEUED_ALERTS_EVENTS = 1024
 local ALERTS_EVENTS_QUEUE = "ntopng.cache.alerts_events_queue"
 local ALERT_CHECKS_MODULES_BASEDIR = dirs.installdir .. "/scripts/callbacks/interface/alerts"
 

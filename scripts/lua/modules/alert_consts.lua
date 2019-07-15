@@ -119,7 +119,7 @@ local function formatThresholdCross(ifid, alert, threshold_info)
     granularity = engine_label,
     metric = threshold_info.metric,
     entity = entity,
-    value = threshold_info.value,
+    value = string.format("%u", math.ceil(threshold_info.value)),
     op = "&"..threshold_info.operator..";",
     threshold = threshold_info.threshold,
   })
