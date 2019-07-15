@@ -21,7 +21,7 @@ function setup(str_granularity)
    config_alerts = getInterfaceConfiguredAlertThresholds(ifname, str_granularity)
 
    -- Load the threshold checking functions
-   available_modules = alerts_api.load_check_modules("interface")
+   available_modules = alerts_api.load_check_modules("interface", str_granularity)
 end
 
 -- #################################################################

@@ -428,24 +428,41 @@ end
 
 -- ##############################################
 
-function alerts.load_check_modules(subdir)
+function alerts.load_check_modules(subdir, str_granularity)
   local checks_dir = os_utils.fixPath(ALERT_CHECKS_MODULES_BASEDIR .. "/" .. subdir)
   local available_modules = {}
 
   package.path = checks_dir .. "/?.lua;" .. package.path
 
   for fname in pairs(ntop.readdir(checks_dir)) do
-    if(ends(fname, ".lua")) then
+    if ends(fname, ".lua") then
       local modname = string.sub(fname, 1, string.len(fname) - 4)
       local check_module = require(modname)
 
-      if(check_module.check_function ~= nil) then
-        available_modules[modname] = check_module
+      if check_module.check_function then
+	 if check_module.granularity then
+
+	    -- When the module specify one or more granularities
+	    -- at which checks have to be run, the module is only
+	    -- loaded after checking the granularity
+	    for _, gran in pairs(check_module.granularity) do
+	       if gran == str_granularity then
+		  available_modules[modname] = check_module
+		  break
+	       end
+	    end
+	 else
+	    -- When no granularity is explicitly specified
+	    -- in the module, then the check it is assumed to
+	    -- be run for every granularity and the module is
+	    -- always loaded
+	    available_modules[modname] = check_module
+	 end
       end
     end
   end
 
-  return(available_modules)
+  return available_modules
 end
 
 -- ##############################################

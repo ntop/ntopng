@@ -21,7 +21,7 @@ function setup(str_granularity)
    config_alerts = getNetworksConfiguredAlertThresholds(ifname, str_granularity)
 
    -- Load the threshold checking functions
-   available_modules = alerts_api.load_check_modules("network")
+   available_modules = alerts_api.load_check_modules("network", str_granularity)
 end
 
 -- #################################################################

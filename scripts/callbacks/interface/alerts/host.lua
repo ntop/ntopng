@@ -23,7 +23,7 @@ function setup(str_granularity)
    config_alerts = getHostsConfiguredAlertThresholds(ifname, str_granularity)
 
    -- Load the threshold checking functions
-   available_modules = alerts_api.load_check_modules("host")
+   available_modules = alerts_api.load_check_modules("host", str_granularity)
 end
 
 -- #################################################################
