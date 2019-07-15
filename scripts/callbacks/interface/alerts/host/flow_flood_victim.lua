@@ -20,7 +20,8 @@ local check_module = {
     i18n_description = "entity_thresholds.flow_victim_description",
     i18n_field_unit = alert_consts.field_units.flow_sec,
     input_builder = alerts_api.threshold_cross_input_builder,
-    field_max = 65535
+    field_max = 65535,
+    field_min = 1,
   }
 }
 
