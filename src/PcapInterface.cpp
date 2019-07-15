@@ -461,11 +461,11 @@ void PcapInterface::updateDirectionStats() {
   }
 }
 
-#endif
-
 /* **************************************************** */
 
 bool PcapInterface::reproducePcapOriginalSpeed() {
   return(read_pkts_from_pcap_dump && ntop->getPrefs()->reproduceOriginalSpeed());
 }
+
+#endif
 
