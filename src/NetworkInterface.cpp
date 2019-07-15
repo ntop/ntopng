@@ -3553,6 +3553,8 @@ void NetworkInterface::checkPointHostTalker(lua_State* vm, char *host_ip, u_int1
 
   if(host_ip && (h = getHost(host_ip, vlan_id, false /* Not an inline call */)))
     h->checkpoint(vm);
+  else
+    lua_pushnil(vm);
 }
 
 /* **************************************************** */

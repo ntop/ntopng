@@ -152,6 +152,10 @@ function top_talkers_utils.makeTopJson(_ifname)
       updateCache(ipaddr_cache, tskey, hostname)
       updateCache(asname_cache, hoststats["asn"], hoststats["asname"])
 
+      if((checkpoint == nil) or (checkpoint["delta"] == nil)) then
+        goto continue
+      end
+
       for _, direction in pairs({"sent", "rcvd"}) do
 	 local delta = checkpoint["delta"][direction]
 
@@ -176,6 +180,8 @@ function top_talkers_utils.makeTopJson(_ifname)
 	    updateRes(res, vlan, what_key, what_value, direction, delta)
 	 end
       end
+
+      ::continue::
    end)
 
    if not in_time then
