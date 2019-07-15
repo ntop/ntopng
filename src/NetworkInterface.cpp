@@ -7643,15 +7643,7 @@ void NetworkInterface::checkHostsAlerts(ScriptPeriodicity p) {
 	   "%s/callbacks/interface/alerts/host.lua",
 	   ntop->getPrefs()->get_scripts_dir());
 
-  switch(p) {
-  case 0: ap.granularity = "min";   break;
-  case 1: ap.granularity = "5mins"; break;
-  case 2: ap.granularity = "hour";  break;
-  case 3: ap.granularity = "day";   break;
-  default:
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "INTERNAL ERROR: Missing value");
-    break;
-  }
+  ap.granularity = Utils::periodicityToScriptName(p);
 
   le.load_script(ap.script_path, this);
 
@@ -7683,15 +7675,7 @@ void NetworkInterface::checkNetworksAlerts(ScriptPeriodicity p) {
 	   "%s/callbacks/interface/alerts/network.lua",
 	   ntop->getPrefs()->get_scripts_dir());
 
-  switch(p) {
-  case 0: ap.granularity = "min";   break;
-  case 1: ap.granularity = "5mins"; break;
-  case 2: ap.granularity = "hour";  break;
-  case 3: ap.granularity = "day";   break;
-  default:
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "INTERNAL ERROR: Missing value");
-    break;
-  }
+  ap.granularity = Utils::periodicityToScriptName(p);
 
   le.load_script(ap.script_path, this);
 
@@ -7735,15 +7719,7 @@ void NetworkInterface::checkInterfaceAlerts(ScriptPeriodicity p) {
 	   "%s/callbacks/interface/alerts/interface.lua",
 	   ntop->getPrefs()->get_scripts_dir());
 
-  switch(p) {
-  case 0: ap.granularity = "min";   break;
-  case 1: ap.granularity = "5mins"; break;
-  case 2: ap.granularity = "hour";  break;
-  case 3: ap.granularity = "day";   break;
-  default:
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "INTERNAL ERROR: Missing value");
-    break;
-  }
+  ap.granularity = Utils::periodicityToScriptName(p);
 
   le.load_script(ap.script_path, this);
 

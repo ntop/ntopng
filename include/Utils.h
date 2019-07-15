@@ -114,6 +114,10 @@ class Utils {
   static void initRedis(Redis **r, const char *redis_host, const char *redis_password,
 			u_int16_t redis_port, u_int8_t _redis_db_id, bool giveup_on_failure);
 
+  /* ScriptPeriodicity */
+  static const char* periodicityToScriptName(ScriptPeriodicity p);
+  static int periodicityToSeconds(ScriptPeriodicity p);
+
   /* eBPF-related */
   static int tcpStateStr2State(const char * const state_str);
   static const char * tcpState2StateStr(int state);

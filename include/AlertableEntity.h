@@ -27,34 +27,32 @@
 class AlertableEntity {
  protected:
   std::map<std::string, std::string> alert_cache[MAX_NUM_PERIODIC_SCRIPTS];
-  std::set<std::string> triggered_alerts[MAX_NUM_PERIODIC_SCRIPTS];
-  
+  std::map<std::string, time_t> triggered_alerts[MAX_NUM_PERIODIC_SCRIPTS];
+
  public:
   AlertableEntity() { ; }
 
   inline std::string getAlertCachedValue(std::string key, ScriptPeriodicity p) {
     std::map<std::string, std::string>::iterator it = alert_cache[(u_int)p].find(key);
-    
+
     return((it != alert_cache[(u_int)p].end()) ? it->second : std::string(""));
   }
-  
+
   inline void setAlertCacheValue(std::string key, std::string value, ScriptPeriodicity p) {
     alert_cache[(u_int)p][key] = value;
-  }
-
-  /* Return true if the element was inserted, false if already present */
-  inline bool triggerAlert(std::string key, ScriptPeriodicity p) {
-    return(triggered_alerts[(u_int)p].insert(key).second);
   }
 
   /* Return true if the element was existing and thus deleted, false if not present */
   inline bool releaseAlert(std::string key, ScriptPeriodicity p) {
     return((triggered_alerts[(u_int)p].erase(key) == 1) ? true : false);
   }
-  
+
   inline u_int getNumTriggeredAlerts(ScriptPeriodicity p) {
     return(triggered_alerts[(u_int)p].size());
   }
+
+  bool triggerAlert(std::string key, ScriptPeriodicity p, time_t now);
+  void getExpiredAlerts(ScriptPeriodicity p, lua_State* vm, time_t now);
 };
 
 #endif

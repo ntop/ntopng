@@ -8032,7 +8032,7 @@ static int ntop_host_store_triggered_alert(lua_State* vm) {
 
   if((!h) || (!key)) return(CONST_LUA_PARAM_ERROR);
 
-  if((triggered = h->triggerAlert(std::string(key), periodicity)))
+  if((triggered = h->triggerAlert(std::string(key), periodicity, time(NULL))))
     c->iface->incNumAlertsEngaged(periodicity);
 
   lua_pushboolean(vm, triggered);
@@ -8060,6 +8060,24 @@ static int ntop_host_release_triggered_alert(lua_State* vm) {
     c->iface->decNumAlertsEngaged(periodicity);
 
   lua_pushboolean(vm, released);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_host_get_expired_alerts(lua_State* vm) {
+  ScriptPeriodicity periodicity;
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  Host *h = c ? c->host : NULL;
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  if((periodicity = (ScriptPeriodicity)lua_tonumber(vm, 1)) >= MAX_NUM_PERIODIC_SCRIPTS) return(CONST_LUA_PARAM_ERROR);
+
+  if(!h) return(CONST_LUA_PARAM_ERROR);
+
+  lua_newtable(vm);
+  h->getExpiredAlerts(periodicity, vm, time(NULL));
+
   return(CONST_LUA_OK);
 }
 
@@ -8134,7 +8152,7 @@ static int ntop_network_store_triggered_alert(lua_State* vm) {
 
   if((!ns) || (!key)) return(CONST_LUA_PARAM_ERROR);
 
-  if((triggered = ns->triggerAlert(std::string(key), periodicity)))
+  if((triggered = ns->triggerAlert(std::string(key), periodicity, time(NULL))))
     c->iface->incNumAlertsEngaged(periodicity);
 
   lua_pushboolean(vm, triggered);
@@ -8162,6 +8180,24 @@ static int ntop_network_release_triggered_alert(lua_State* vm) {
     c->iface->decNumAlertsEngaged(periodicity);
 
   lua_pushboolean(vm, released);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_network_get_expired_alerts(lua_State* vm) {
+  ScriptPeriodicity periodicity;
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  NetworkStats *ns = c ? c->network : NULL;
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  if((periodicity = (ScriptPeriodicity)lua_tonumber(vm, 1)) >= MAX_NUM_PERIODIC_SCRIPTS) return(CONST_LUA_PARAM_ERROR);
+
+  if(!ns) return(CONST_LUA_PARAM_ERROR);
+
+  lua_newtable(vm);
+  ns->getExpiredAlerts(periodicity, vm, time(NULL));
+
   return(CONST_LUA_OK);
 }
 
@@ -8233,7 +8269,7 @@ static int ntop_interface_store_triggered_alert(lua_State* vm) {
 
   if((!c->iface) || (!key)) return(CONST_LUA_PARAM_ERROR);
 
-  if((triggered = c->iface->triggerAlert(std::string(key), periodicity)))
+  if((triggered = c->iface->triggerAlert(std::string(key), periodicity, time(NULL))))
     c->iface->incNumAlertsEngaged(periodicity);
 
   lua_pushboolean(vm, triggered);
@@ -8260,6 +8296,23 @@ static int ntop_interface_release_triggered_alert(lua_State* vm) {
     c->iface->decNumAlertsEngaged(periodicity);
 
   lua_pushboolean(vm, released);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_interface_get_expired_alerts(lua_State* vm) {
+  ScriptPeriodicity periodicity;
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  if((periodicity = (ScriptPeriodicity)lua_tonumber(vm, 1)) >= MAX_NUM_PERIODIC_SCRIPTS) return(CONST_LUA_PARAM_ERROR);
+
+  if(!c->iface) return(CONST_LUA_PARAM_ERROR);
+
+  lua_newtable(vm);
+  c->iface->getExpiredAlerts(periodicity, vm, time(NULL));
+
   return(CONST_LUA_OK);
 }
 
@@ -9018,6 +9071,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "setCachedAlertValue",    ntop_interface_set_cached_alert_value   },
   { "storeTriggeredAlert",    ntop_interface_store_triggered_alert    },
   { "releaseTriggeredAlert",  ntop_interface_release_triggered_alert  },
+  { "getExpiredAlerts",       ntop_interface_get_expired_alerts       },
 
   { "checkAlertsMin",        ntop_check_interface_alerts_min   },
   { "checkAlerts5Min",       ntop_check_interface_alerts_5min  },
@@ -9039,8 +9093,9 @@ static const luaL_Reg ntop_host_reg[] = {
   { "getFullInfo",            ntop_host_get_all_fields          },
   { "getCachedAlertValue",    ntop_host_get_cached_alert_value  },
   { "setCachedAlertValue",    ntop_host_set_cached_alert_value  },
-  { "storeTriggerAlert",      ntop_host_store_triggered_alert   },
+  { "storeTriggeredAlert",    ntop_host_store_triggered_alert   },
   { "releaseTriggeredAlert",  ntop_host_release_triggered_alert },
+  { "getExpiredAlerts",       ntop_host_get_expired_alerts      },
   
   { NULL,                     NULL }
 };
@@ -9051,8 +9106,9 @@ static const luaL_Reg ntop_network_reg[] = {
   { "getNetworkStats",          ntop_get_interface_network_stats     },
   { "getCachedAlertValue",      ntop_network_get_cached_alert_value  },
   { "setCachedAlertValue",      ntop_network_set_cached_alert_value  },
-  { "storeTriggerAlert",        ntop_network_store_triggered_alert   },
+  { "storeTriggeredAlert",      ntop_network_store_triggered_alert   },
   { "releaseTriggeredAlert",    ntop_network_release_triggered_alert },
+  { "getExpiredAlerts",         ntop_network_get_expired_alerts      },
   
   { NULL,                     NULL }
 };

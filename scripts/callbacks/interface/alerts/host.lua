@@ -8,6 +8,7 @@ require "lua_utils"
 require "alert_utils"
 
 local alerts_api = require("alerts_api")
+local alert_consts = require("alert_consts")
 
 local do_trace          = false
 local config_alerts     = nil
@@ -35,6 +36,7 @@ function checkHostAlerts(granularity)
   local host_config = config_alerts[host_key] or {}
   local global_config = config_alerts["local_hosts"] or {}
   local has_configured_alerts = (table.len(host_config or global_confi) > 0)
+  local entity_info = alerts_api.hostAlertEntity(host_key)
 
   if has_configured_alerts then
     for _, check in pairs(available_modules) do
@@ -43,12 +45,22 @@ function checkHostAlerts(granularity)
       if config then
         check.check_function({
           granularity = granularity,
-          alert_entity = alerts_api.hostAlertEntity(host_key),
+          alert_entity = entity_info,
           entity_info = info,
           alert_config = config,
           check_module = check,
         })
       end
     end
+  end
+
+  for alert in pairs(host.getExpiredAlerts(granularity2id(granularity))) do
+    local alert_type, alert_subtype = alerts_api.triggerIdToAlertType(alert)
+
+    alerts_api.new_release(entity_info, {
+      alert_type = alert_consts.alert_types[alertTypeRaw(alert_type)],
+      alert_subtype = alert_subtype,
+      alert_granularity = alert_consts.alerts_granularities[granularity],
+    })
   end
 end

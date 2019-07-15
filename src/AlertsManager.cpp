@@ -125,7 +125,7 @@ int AlertsManager::openStore() {
 	   "CREATE INDEX IF NOT EXISTS t2i_severity ON %s(alert_severity); "
 	   "CREATE INDEX IF NOT EXISTS t2i_tstamp   ON %s(alert_tstamp); "
 	   "CREATE INDEX IF NOT EXISTS t2i_tstamp_e ON %s(alert_tstamp_end); "
-	   "CREATE INDEX IF NOT EXISTS t2i_engaged  ON %s(alert_tstamp_end, alert_granularity, alert_released); "
+	   "CREATE INDEX IF NOT EXISTS t2i_engaged  ON %s(alert_granularity, alert_released); "
 	   "CREATE INDEX IF NOT EXISTS t2i_hash     ON %s(alert_type, alert_subtype, alert_granularity, alert_entity, alert_entity_val); ",
 	   ALERTS_MANAGER_TABLE_NAME, ALERTS_MANAGER_TABLE_NAME, ALERTS_MANAGER_TABLE_NAME,
 	   ALERTS_MANAGER_TABLE_NAME, ALERTS_MANAGER_TABLE_NAME, ALERTS_MANAGER_TABLE_NAME,

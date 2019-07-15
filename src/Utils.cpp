@@ -3858,3 +3858,31 @@ void Utils::containerInfoLua(lua_State *vm, const ContainerInfo * const cont) {
     if(cont->name) lua_push_str_table_entry(vm, "docker.name", cont->name);
   }
 }
+
+/* ****************************************************** */
+
+const char* Utils::periodicityToScriptName(ScriptPeriodicity p) {
+  switch(p) {
+  case 0: return("min");
+  case 1: return("5mins");
+  case 2: return("hour");
+  case 3: return("day");
+  default:
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unknown periodicity value: %d", p);
+    return("");
+  }
+}
+
+/* ****************************************************** */
+
+int Utils::periodicityToSeconds(ScriptPeriodicity p) {
+  switch(p) {
+  case 0: return(60);
+  case 1: return(300);
+  case 2: return(3600);
+  case 3: return(86400);
+  default:
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unknown periodicity value: %d", p);
+    return(0);
+  }
+}

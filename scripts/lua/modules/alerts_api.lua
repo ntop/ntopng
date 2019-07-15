@@ -209,8 +209,19 @@ end
 
 -- ##############################################
 
-function get_alert_triggered_key(type_info)
-  return(string.format("%d_%s", type_info.alert_type.alert_id, type_info.alert_subtype or ""))
+local function get_alert_triggered_key(type_info)
+  return(string.format("%d@%s", type_info.alert_type.alert_id, type_info.alert_subtype or ""))
+end
+
+-- ##############################################
+
+function alerts.triggerIdToAlertType(trigger_id)
+  local parts = string.split(trigger_id, "@")
+
+  if((parts ~= nil) and (#parts == 2)) then
+    -- alert_type, alert_subtype
+    return tonumber(parts[1]), parts[2]
+  end
 end
 
 -- ##############################################
@@ -287,8 +298,8 @@ function alerts.new_trigger(entity_info, type_info, when)
       triggered = host.storeTriggeredAlert(alert_key_name, granularity_id)
     elseif((interface.storeTriggeredAlert) and (entity_info.alert_entity.entity_id == alertEntity("interface"))) then
       triggered = interface.storeTriggeredAlert(alert_key_name, granularity_id)
-    elseif((network.storeTriggerAlert) and (entity_info.alert_entity.entity_id == alertEntity("network"))) then
-      triggered = network.storeTriggerAlert(alert_key_name, granularity_id)
+    elseif((network.storeTriggeredAlert) and (entity_info.alert_entity.entity_id == alertEntity("network"))) then
+      triggered = network.storeTriggeredAlert(alert_key_name, granularity_id)
     end
 
     if(not triggered) then
