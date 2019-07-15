@@ -231,11 +231,27 @@ void LocalHost::lua(lua_State* vm, AddressTree *ptree,
     lua_insert(vm, -2);
     lua_settable(vm, -3);
   }
+}
 
-  if(verbose) {
-    ports2Lua(vm, true);
-    ports2Lua(vm, false);
-  }
+/* *************************************** */
+
+void LocalHost::luaPortsDump(lua_State* vm) {
+  lua_newtable(vm);
+
+  lua_newtable(vm);
+  ports2Lua(vm, true, true);
+  ports2Lua(vm, true, false);
+  lua_pushstring(vm, "udp");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+  
+  lua_newtable(vm);
+  ports2Lua(vm, false, true);
+  ports2Lua(vm, false, false);
+  lua_pushstring(vm, "tcp");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+  
 }
 
 /* *************************************** */
@@ -335,29 +351,44 @@ char * LocalHost::getIpBasedSerializationKey(char *redis_key, size_t size) {
 
 /* *************************************** */
 
-void LocalHost::ports2Lua(lua_State* vm, bool as_client) {
-  std::set<u_int16_t> *s = as_client ? &client_ports : &server_ports;
-  std::set<u_int16_t>::iterator it;
+void LocalHost::ports2Lua(lua_State* vm, bool proto_udp, bool as_client) {
+  std::map<u_int16_t,u_int16_t> *s = as_client ? (proto_udp ? &udp_client_ports : &tcp_client_ports) : (proto_udp ? &udp_server_ports : &tcp_server_ports);
 
-  lua_newtable(vm);
-
-  for(it = s->begin(); it != s->end(); ++it) {
-    char buf[8];
-
-    snprintf(buf, sizeof(buf), "%u", *it);
-    lua_push_bool_table_entry(vm, buf, true);
+  if(s->size() > 0) {
+    std::map<u_int16_t,u_int16_t>::iterator it;
+    
+    lua_newtable(vm);
+    
+    for(it = s->begin(); it != s->end(); ++it) {
+      char buf[8];
+      
+      snprintf(buf, sizeof(buf), "%u", it->first);
+      lua_push_str_table_entry(vm, buf, iface->get_ndpi_proto_name(it->second));
+    }
+    
+    lua_pushstring(vm, as_client ? "client_ports" : "server_ports");
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
   }
-  
-  lua_pushstring(vm, as_client ? "client_ports" : "server_ports");
-  lua_insert(vm, -2);
-  lua_settable(vm, -3);
 }
 
 /* *************************************** */
 
-void LocalHost::setFlowPort(bool as_server, u_int16_t port) {
-  if(as_server)
-    server_ports.insert(port);
-  else
-    client_ports.insert(port);
+void LocalHost::setFlowPort(bool as_server, u_int8_t protocol, u_int16_t port, u_int16_t l7_proto) {
+  if((port == 0)
+     || ((protocol != IPPROTO_UDP) && (protocol != IPPROTO_TCP))
+     )
+     return;
+  
+  if(as_server) {
+    if(protocol == IPPROTO_UDP)
+      udp_server_ports[port] = l7_proto;
+    else
+      tcp_server_ports[port] = l7_proto;
+  } else {
+    if(protocol == IPPROTO_UDP)
+      udp_client_ports[port] = l7_proto;
+    else
+      tcp_client_ports[port] = l7_proto;
+  }
 }

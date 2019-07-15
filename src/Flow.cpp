@@ -89,19 +89,17 @@ Flow::Flow(NetworkInterface *_iface,
   PROFILING_SUB_SECTION_ENTER(iface, "Flow::Flow: iface->findFlowHosts", 7);
   iface->findFlowHosts(_vlanId, _cli_mac, _cli_ip, &cli_host, _srv_mac, _srv_ip, &srv_host);
   PROFILING_SUB_SECTION_EXIT(iface, 7);
-  
+
   if(cli_host) {
     cli_host->incUses();
     cli_host->incNumFlows(last_seen, true, srv_host);
-    cli_host->setFlowPort(false /* client */, srv_port);
   }
-  
+
   if(srv_host) {
     srv_host->incUses();
     srv_host->incNumFlows(last_seen, false, cli_host);
-    srv_host->setFlowPort(true /* server */, srv_port);
   }
-  
+
   if(icmp_info) {
     if(icmp_info->isPortUnreachable()) { //port unreachable icmpv6/icmpv4
 
@@ -112,7 +110,7 @@ Flow::Flow(NetworkInterface *_iface,
       if(cli_host) cli_host->incNumHostUnreachableFlows(false /* as client */);
     }
   }
-  
+
   memset(&custom_app, 0, sizeof(custom_app));
 
 #ifdef NTOPNG_PRO
@@ -241,7 +239,7 @@ Flow::~Flow() {
 
   freeDPIMemory();
   if(icmp_info)        delete(icmp_info);
-  if(suricata_alert) json_object_put(suricata_alert); 
+  if(suricata_alert) json_object_put(suricata_alert);
 }
 
 /* *************************************** */
@@ -512,7 +510,7 @@ void Flow::processDetectedProtocol() {
   case NDPI_PROTOCOL_TOR:
   case NDPI_PROTOCOL_SSL:
     protos.ssl.ssl_version = ndpiFlow->protos.stun_ssl.ssl.ssl_version;
-    
+
 #if 0
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "-> [client: %s][server: %s]",
 				 ndpiFlow->protos.stun_ssl.ssl.client_certificate,
@@ -538,14 +536,14 @@ void Flow::processDetectedProtocol() {
       protos.ssl.ja3.client_hash = strdup(ndpiFlow->protos.stun_ssl.ssl.ja3_client);
       updateJA3();
     }
-    
+
     if((protos.ssl.ja3.server_hash == NULL) && (ndpiFlow->protos.stun_ssl.ssl.ja3_server[0] != '\0')) {
-      protos.ssl.ja3.server_hash = strdup(ndpiFlow->protos.stun_ssl.ssl.ja3_server);    
+      protos.ssl.ja3.server_hash = strdup(ndpiFlow->protos.stun_ssl.ssl.ja3_server);
       protos.ssl.ja3.server_unsafe_cipher = ndpiFlow->protos.stun_ssl.ssl.server_unsafe_cipher;
       if(protos.ssl.ja3.server_unsafe_cipher != ndpi_cipher_safe) setFlowAlerted();
       protos.ssl.ja3.server_cipher = ndpiFlow->protos.stun_ssl.ssl.server_cipher;
     }
-    
+
     if(check_tor) {
       char rsp[256];
 
@@ -611,19 +609,19 @@ void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
     ndpif->detected_protocol_stack[0] = NDPI_PROTOCOL_UNKNOWN;
     return;
   }
-  
+
   if((proto_id.app_protocol != NDPI_PROTOCOL_UNKNOWN)
      || forceDetection
      || (get_packets() >= NDPI_MIN_NUM_PACKETS)
      || (!iface->is_ndpi_enabled())
      || iface->isSampledTraffic()) {
     u_int8_t is_proto_user_defined;
-    
+
     if(forceDetection && (proto_id.app_protocol == NDPI_PROTOCOL_UNKNOWN))
       proto_id.app_protocol = (int16_t)ndpi_guess_protocol_id(iface->get_ndpi_struct(),
 							      NULL, protocol, get_cli_port(),
 							      get_srv_port(), &is_proto_user_defined);
-    
+
     ndpiDetectedProtocol.master_protocol = proto_id.master_protocol;
     ndpiDetectedProtocol.app_protocol = proto_id.app_protocol;
 
@@ -649,9 +647,39 @@ void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
   }
 
   if(detection_completed) {
+    bool dump_flow = true;
+
 #ifdef HAVE_NEDGE
     updateFlowShapers(true);
 #endif
+
+    if(protocol == IPPROTO_TCP) {
+      /*
+	 update the ports only if the flow has been observed from the beginning
+	 and it has been established
+      */
+
+      if((src2dst_tcp_flags & (TH_SYN|TH_PUSH)) != (TH_SYN|TH_PUSH))
+	dump_flow = false;
+      else if((dst2src_tcp_flags & (TH_SYN|TH_PUSH)) != (TH_SYN|TH_PUSH))
+	dump_flow = false;
+    }
+
+    if(dump_flow) {
+      if(cli_host)
+	cli_host->setFlowPort(false /* client */, protocol, ntohs(srv_port),
+			      ndpiDetectedProtocol.app_protocol);
+
+      if(srv_host)
+	srv_host->setFlowPort(true /* server */, protocol, ntohs(srv_port),
+			      ndpiDetectedProtocol.app_protocol);
+
+#if 0
+      char buf[128];
+      
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", print(buf, sizeof(buf)));
+#endif
+    }
   }
 
 #ifdef NTOPNG_PRO
@@ -937,7 +965,7 @@ bool Flow::dumpFlow(bool dump_alert) {
 
     if(!idle()) {
         time_t now = time(NULL);
-      
+
       if(iface->getIfType() == interface_type_PCAP_DUMP
          || (now - get_first_seen()) < CONST_DB_DUMP_FREQUENCY
 	 || (now - last_db_dump.last_dump) < CONST_DB_DUMP_FREQUENCY) {
@@ -1523,7 +1551,7 @@ void Flow::processLua(lua_State* vm, const ParsedeBPF * const pe, bool client) {
   const TcpInfo * tcp;
 
   if(!pe) return;
-  
+
   if(pe->process_info_set && (proc = &pe->process_info) && proc->pid > 0) {
     lua_newtable(vm);
 
@@ -1577,11 +1605,11 @@ const char* Flow::cipher_weakness2str(ndpi_cipher_weakness w) {
   case ndpi_cipher_safe:
     return("safe");
     break;
-    
+
   case ndpi_cipher_weak:
     return("weak");
     break;
-    
+
   case ndpi_cipher_insecure:
     return("insecure");
     break;
@@ -1833,7 +1861,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 
       if(isSSL()) {
 	lua_push_int32_table_entry(vm, "protos.ssl_version", protos.ssl.ssl_version);
-	
+
 	if(protos.ssl.certificate)
 	  lua_push_str_table_entry(vm, "protos.ssl.certificate", protos.ssl.certificate);
 
@@ -1842,14 +1870,14 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 
 	if(protos.ssl.ja3.client_hash)
 	  lua_push_str_table_entry(vm, "protos.ssl.ja3.client_hash", protos.ssl.ja3.client_hash);
-	
+
 	if(protos.ssl.ja3.server_hash) {
 	  lua_push_str_table_entry(vm, "protos.ssl.ja3.server_hash", protos.ssl.ja3.server_hash);
 	  lua_push_str_table_entry(vm, "protos.ssl.ja3.server_unsafe_cipher",
 				   cipher_weakness2str(protos.ssl.ja3.server_unsafe_cipher));
 	  lua_push_int32_table_entry(vm, "protos.ssl.ja3.server_cipher",
 				     protos.ssl.ja3.server_cipher);
-	}		  
+	}
       }
     }
 
@@ -2090,7 +2118,7 @@ json_object* Flow::flow2statusinfojson() {
       json_object_object_add(obj, "ssl_crt.srv", json_object_new_string(protos.ssl.server_certificate));
   } else if(fs == status_elephant_local_to_remote)
     json_object_object_add(obj, "elephant.l2r_threshold",
-			   json_object_new_int64(ntop->getPrefs()->get_elephant_flow_local_to_remote_bytes()));    
+			   json_object_new_int64(ntop->getPrefs()->get_elephant_flow_local_to_remote_bytes()));
   else if(fs == status_elephant_remote_to_local)
     json_object_object_add(obj, "elephant.r2l_threshold",
 			   json_object_new_int64(ntop->getPrefs()->get_elephant_flow_remote_to_local_bytes()));
@@ -2138,7 +2166,7 @@ json_object* Flow::flow2json() {
     /*
       strftime in the VS2013 library and earlier are not C99-conformant,
       as they do not accept that format-specifier: MSDN VS2013 strftime page
-      
+
       https://msdn.microsoft.com/en-us/library/fe06s4ak.aspx
     */
     strftime(buf, sizeof(buf), "%Y-%m-%dT%H:%M:%S.0Z", tm_info);
@@ -2368,7 +2396,7 @@ void Flow::housekeep(time_t t) {
      && iface->get_ndpi_struct()
      && get_ndpi_flow()) {
     ndpi_protocol givenup_protocol = ndpi_detection_giveup(iface->get_ndpi_struct(), get_ndpi_flow(), 1);
-    
+
     setDetectedProtocol(givenup_protocol, true);
   }
 }
@@ -2444,7 +2472,7 @@ bool Flow::isSSLProto() {
 /* *************************************** */
 
 void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
-		    u_int8_t *payload, u_int payload_len, 
+		    u_int8_t *payload, u_int payload_len,
                     u_int8_t l4_proto, u_int8_t is_fragment,
 		    const struct timeval *when) {
   payload_len *= iface->getScalingFactor();
@@ -2757,7 +2785,7 @@ void Flow::incTcpBadStats(bool src2dst_direction,
       if(src2dst_direction)
  	srv_network_stats->incIngressTcp(ooo_pkts, retr_pkts, lost_pkts, keep_alive_pkts);
       else
-	srv_network_stats->incEgressTcp(ooo_pkts, retr_pkts, lost_pkts, keep_alive_pkts); 
+	srv_network_stats->incEgressTcp(ooo_pkts, retr_pkts, lost_pkts, keep_alive_pkts);
     }
   }
 
@@ -2798,10 +2826,10 @@ void Flow::updateTcpSeqNum(const struct bpf_timeval *when,
 
   next_seq_num = getNextTcpSeq(flags, seq_num, payload_Len);
 
-  if(debug) 
+  if(debug)
     ntop->getTrace()->traceEvent(TRACE_WARNING, "[act: %u][next: %u][next - act (in flight): %d][ack: %u][payload len: %u]",
 				 seq_num, next_seq_num,
-				 next_seq_num - seq_num, 
+				 next_seq_num - seq_num,
 				 ack_seq_num,
 				 payload_Len);
 
@@ -2866,7 +2894,7 @@ void Flow::updateTcpSeqNum(const struct bpf_timeval *when,
 	}
       }
     }
- 
+
     tcp_stats_d2s.next = next_seq_num;
     if(update_last_seqnum) tcp_stats_d2s.last = seq_num;
   }
@@ -3770,7 +3798,7 @@ void Flow::setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
 
 /* ***************************************************** */
 
-void Flow::setParsedeBPFInfo(const ParsedeBPF * const ebpf, bool src2dst_direction) {  
+void Flow::setParsedeBPFInfo(const ParsedeBPF * const ebpf, bool src2dst_direction) {
   bool client_process = true;
   ParsedeBPF *cur = NULL;
   bool update_ok = true;
@@ -3929,14 +3957,14 @@ void Flow::dissectSSL(char *payload, u_int16_t payload_len) {
 		 && (len = _payload[i + 1])
 		 && ((i + len + 2) < _payload_len)) {
 		i += 2;
-		
+
 		if(!isalpha(_payload[i]) && _payload[i] != '*') {
 		  protos.ssl.dissect_certificate = false;
 		  break;
 		}
 		else {
 		  char buf[256];
-		    
+
 		  strncpy(buf, (const char*)&_payload[i], len);
 		  buf[len] = '\0';
 

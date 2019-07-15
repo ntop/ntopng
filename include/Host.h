@@ -307,6 +307,7 @@ class Host : public GenericHashEntry, public AlertableEntity {
   void dissectDropbox(const char *payload, u_int16_t payload_len);
   void dumpDropbox(lua_State *vm);
   inline Fingerprint* getSSLFingerprint() { return(&fingerprints.ssl); }
-  virtual void setFlowPort(bool as_server, u_int16_t port) { ; }
+  virtual void setFlowPort(bool as_server, u_int8_t proto, u_int16_t port, u_int16_t l7_proto) { ; }
+  virtual void luaPortsDump(lua_State* vm) { lua_pushnil(vm); }    
 };
 #endif /* _HOST_H_ */

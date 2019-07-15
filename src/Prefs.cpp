@@ -311,7 +311,6 @@ void usage() {
 	 "[--users-file|-u] <path>            | Users configuration file path\n"
 	 "                                    | Default: %s\n"
 	 "[--original-speed]                  | Reproduce (-i) the pcap file at original speed\n"
-	 "                                    | Default: %s\n"
 #ifndef WIN32
 	 "[--pid|-G] <path>                   | Pid file path\n"
 #endif
