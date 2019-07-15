@@ -218,6 +218,7 @@ void LocalHost::lua(lua_State* vm, AddressTree *ptree,
   lua_push_int32_table_entry(vm, "local_network_id", local_network_id);
 
   local_net = ntop->getLocalNetworkName(local_network_id);
+
   if(local_net == NULL)
     lua_push_nil_table_entry(vm, "local_network_name");
   else
@@ -229,6 +230,11 @@ void LocalHost::lua(lua_State* vm, AddressTree *ptree,
     lua_pushstring(vm, host_id);
     lua_insert(vm, -2);
     lua_settable(vm, -3);
+  }
+
+  if(verbose) {
+    ports2Lua(vm, true);
+    ports2Lua(vm, false);
   }
 }
 
@@ -245,7 +251,7 @@ void LocalHost::inlineSetOS(const char * const _os) {
 
   if(os || !_os)
     return; /* Already set */
-  
+
 
   if((os = strdup(_os))) {
     if(strcasestr(os, "iPhone")
@@ -312,10 +318,9 @@ void LocalHost::deleteHostData() {
 
 char * LocalHost::getMacBasedSerializationKey(char *redis_key, size_t size, char *mac_key) {
   /* Serialize both IP and MAC for static hosts */
-  snprintf(redis_key, size, HOST_BY_MAC_SERIALIZED_KEY,
-      iface->get_id(), mac_key);
+  snprintf(redis_key, size, HOST_BY_MAC_SERIALIZED_KEY, iface->get_id(), mac_key);
 
-  return redis_key;
+  return(redis_key);
 }
 
 /* *************************************** */
@@ -326,4 +331,33 @@ char * LocalHost::getIpBasedSerializationKey(char *redis_key, size_t size) {
   snprintf(redis_key, size, HOST_SERIALIZED_KEY, iface->get_id(), ip.print(buf, sizeof(buf)), vlan_id);
 
   return redis_key;
+}
+
+/* *************************************** */
+
+void LocalHost::ports2Lua(lua_State* vm, bool as_client) {
+  std::set<u_int16_t> *s = as_client ? &client_ports : &server_ports;
+  std::set<u_int16_t>::iterator it;
+
+  lua_newtable(vm);
+
+  for(it = s->begin(); it != s->end(); ++it) {
+    char buf[8];
+
+    snprintf(buf, sizeof(buf), "%u", *it);
+    lua_push_bool_table_entry(vm, buf, true);
+  }
+  
+  lua_pushstring(vm, as_client ? "client_ports" : "server_ports");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+}
+
+/* *************************************** */
+
+void LocalHost::setFlowPort(bool as_server, u_int16_t port) {
+  if(as_server)
+    server_ports.insert(port);
+  else
+    client_ports.insert(port);
 }

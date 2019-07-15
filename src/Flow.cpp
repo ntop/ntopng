@@ -89,8 +89,18 @@ Flow::Flow(NetworkInterface *_iface,
   PROFILING_SUB_SECTION_ENTER(iface, "Flow::Flow: iface->findFlowHosts", 7);
   iface->findFlowHosts(_vlanId, _cli_mac, _cli_ip, &cli_host, _srv_mac, _srv_ip, &srv_host);
   PROFILING_SUB_SECTION_EXIT(iface, 7);
-  if(cli_host) { cli_host->incUses(); cli_host->incNumFlows(last_seen, true, srv_host);  }
-  if(srv_host) { srv_host->incUses(); srv_host->incNumFlows(last_seen, false, cli_host); }
+  
+  if(cli_host) {
+    cli_host->incUses();
+    cli_host->incNumFlows(last_seen, true, srv_host);
+    cli_host->setFlowPort(false /* client */, srv_port);
+  }
+  
+  if(srv_host) {
+    srv_host->incUses();
+    srv_host->incNumFlows(last_seen, false, cli_host);
+    srv_host->setFlowPort(true /* server */, srv_port);
+  }
   
   if(icmp_info) {
     if(icmp_info->isPortUnreachable()) { //port unreachable icmpv6/icmpv4

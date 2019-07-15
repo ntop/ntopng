@@ -30,7 +30,8 @@ class LocalHost : public Host, public SerializableElement {
   bool systemHost;
   time_t initialization_time;
   HostTimeseriesPoint *initial_ts_point;
-
+  std::set<u_int16_t> client_ports, server_ports;
+  
   /* LocalHost data: update LocalHost::deleteHostData when adding new fields */
   char *os;
   bool drop_all_host_traffic;
@@ -40,9 +41,10 @@ class LocalHost : public Host, public SerializableElement {
   void freeLocalHostData();
   virtual void deleteHostData();
 
-  char * getMacBasedSerializationKey(char *redis_key, size_t size, char *mac_key);
-  char * getIpBasedSerializationKey(char *redis_key, size_t size);
-
+  char* getMacBasedSerializationKey(char *redis_key, size_t size, char *mac_key);
+  char* getIpBasedSerializationKey(char *redis_key, size_t size);
+  void  ports2Lua(lua_State* vm, bool as_client);
+    
  public:
   LocalHost(NetworkInterface *_iface, Mac *_mac, u_int16_t _vlanId, IpAddress *_ip);
   LocalHost(NetworkInterface *_iface, char *ipAddress, u_int16_t _vlanId);
@@ -82,6 +84,7 @@ class LocalHost : public Host, public SerializableElement {
   virtual void lua(lua_State* vm, AddressTree * ptree, bool host_details,
 		   bool verbose, bool returnHost, bool asListElement);
   virtual void tsLua(lua_State* vm);
+  void setFlowPort(bool as_server, u_int16_t port);
 };
 
 #endif /* _LOCAL_HOST_H_ */
