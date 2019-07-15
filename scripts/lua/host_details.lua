@@ -55,6 +55,8 @@ local ifstats = interface.getStats()
 
 ifId = ifstats.id
 
+local is_pcap_dump = interface.isPcapDumpInterface()
+
 local host = nil
 local family = nil
 
@@ -417,7 +419,7 @@ if((page == "historical") or ts_utils.exists("host:traffic", {ifid=ifId, host=ts
    end
 end
 
-if not only_historical then
+if not only_historical and not is_pcap_dump then
    if host["localhost"] and ts_utils.getDriverName() == "rrd" then
       if ntop.isEnterprise() or ntop.isnEdge() then
 	 if(page == "traffic_report") then
