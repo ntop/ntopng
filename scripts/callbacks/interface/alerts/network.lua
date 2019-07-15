@@ -38,7 +38,7 @@ function checkNetworkAlerts(granularity)
 
    local network_config = config_alerts[network_key] or {}
    local global_config = config_alerts["local_networks"] or {}
-   local has_configured_alerts = (table.len(network_config or global_config) > 0)
+   local has_configured_alerts = (table.len(network_config) or table.len(global_config))
    local entity_info = alerts_api.networkAlertEntity(network_key)
 
    if(has_configured_alerts) then
@@ -60,6 +60,8 @@ function checkNetworkAlerts(granularity)
 
    for alert in pairs(network.getExpiredAlerts(granularity2id(granularity))) do
       local alert_type, alert_subtype = alerts_api.triggerIdToAlertType(alert)
+
+      if(do_trace) then print("Expired Alert@"..granularity..": ".. alert .." called\n") end
 
       alerts_api.new_release(entity_info, {
          alert_type = alert_consts.alert_types[alertTypeRaw(alert_type)],

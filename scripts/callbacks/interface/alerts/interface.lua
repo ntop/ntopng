@@ -34,7 +34,7 @@ function checkInterfaceAlerts(granularity)
    local interface_key   = "iface_"..ifid
    local interface_config = config_alerts[interface_key] or {}
    local global_config = config_alerts["interfaces"] or {}
-   local has_configured_alerts = (table.len(interface_config or global_config) > 0)
+   local has_configured_alerts = (table.len(interface_config) or table.len(global_config))
    local entity_info = alerts_api.interfaceAlertEntity(ifid)
 
    if(do_trace) then print("checkInterfaceAlerts()\n") end
@@ -57,6 +57,8 @@ function checkInterfaceAlerts(granularity)
 
    for alert in pairs(interface.getExpiredAlerts(granularity2id(granularity))) do
       local alert_type, alert_subtype = alerts_api.triggerIdToAlertType(alert)
+
+      if(do_trace) then print("Expired Alert@"..granularity..": ".. alert .." called\n") end
 
       alerts_api.new_release(entity_info, {
          alert_type = alert_consts.alert_types[alertTypeRaw(alert_type)],

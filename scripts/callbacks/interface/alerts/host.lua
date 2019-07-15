@@ -35,7 +35,7 @@ function checkHostAlerts(granularity)
   local host_key   = info.ip.."@"..info.vlan
   local host_config = config_alerts[host_key] or {}
   local global_config = config_alerts["local_hosts"] or {}
-  local has_configured_alerts = (table.len(host_config or global_confi) > 0)
+  local has_configured_alerts = (table.len(host_config) or table.len(global_config))
   local entity_info = alerts_api.hostAlertEntity(host_key)
 
   if has_configured_alerts then
@@ -56,6 +56,8 @@ function checkHostAlerts(granularity)
 
   for alert in pairs(host.getExpiredAlerts(granularity2id(granularity))) do
     local alert_type, alert_subtype = alerts_api.triggerIdToAlertType(alert)
+
+    if(do_trace) then print("Expired Alert@"..granularity..": ".. alert .." called\n") end
 
     alerts_api.new_release(entity_info, {
       alert_type = alert_consts.alert_types[alertTypeRaw(alert_type)],
