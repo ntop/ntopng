@@ -10,6 +10,11 @@ local check_module = {
   alert_type = alert_consts.alert_types.threshold_cross,
   check_function = alerts_api.threshold_check_function,
 
+  granularity = {
+     -- executed only in the minute-by-minute check
+     "min"
+  },
+
   gui = {
     i18n_title = "entity_thresholds.flow_attacker_title",
     i18n_description = "entity_thresholds.flow_attacker_description",

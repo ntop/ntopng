@@ -1178,8 +1178,22 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
    if not options.remote_host then
       for key, check_module in pairsByKeys(descr, asc) do
         local gui_conf = check_module.gui
+	local show_input = true
 
-        if(gui_conf == nil) then
+	if check_module.granularity then
+	   -- check if the check is performed and thus has to
+	   -- be configured at this granularity
+	   show_input = false
+
+	   for _, gran in pairs(check_module.granularity) do
+	      if gran == tab then
+		 show_input = true
+		 break
+	      end
+	   end
+	end
+
+        if not gui_conf or not show_input then
           goto next_module
         end
 
@@ -1187,7 +1201,7 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
          print("<small>"..i18n(gui_conf.i18n_description).."</small>\n")
 
          for _, prefix in pairs({"", "global_"}) do
-            if(check_module.gui.input_builder ~= nil) then
+            if check_module.gui.input_builder then
               local k = prefix..key
               local value = vals[k]
               print("</td><td>")
