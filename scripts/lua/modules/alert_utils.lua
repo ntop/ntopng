@@ -1973,7 +1973,7 @@ function check_networks_alerts(granularity)
       ntop.checkNetworksAlerts5Min()
    elseif(granularity == "hour") then
       ntop.checkNetworksAlertsHour()
-   elseif(granularity == "days") then
+   elseif(granularity == "day") then
       ntop.checkNetworksAlertsDay()
    else
       traceError(TRACE_ERROR, TRACE_CONSOLE, "Unknown granularity " .. granularity)
@@ -1989,7 +1989,7 @@ function check_interface_alerts(granularity)
       interface.checkAlerts5Min()
    elseif(granularity == "hour") then
       interface.checkAlertsHour()
-   elseif(granularity == "days") then
+   elseif(granularity == "day") then
       interface.checkAlertsDay()
    else
       traceError(TRACE_ERROR, TRACE_CONSOLE, "Unknown granularity " .. granularity)
@@ -2005,7 +2005,7 @@ function check_hosts_alerts(granularity)
       ntop.checkHostsAlerts5Min()
    elseif(granularity == "hour") then
       ntop.checkHostsAlertsHour()
-   elseif(granularity == "days") then
+   elseif(granularity == "day") then
       ntop.checkHostsAlertsDay()
    else
       traceError(TRACE_ERROR, TRACE_CONSOLE, "Unknown granularity " .. granularity)
