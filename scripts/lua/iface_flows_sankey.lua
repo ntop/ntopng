@@ -80,7 +80,7 @@ while(num == 0) do
       end
 
       if(bytes > threshold) then
-	 if(debug) then io.write("==>"..key.."\t[T:"..tracked_host.. (values["bytes.last"]) .."][".. values["duration"].."][" .. last.. "]\n") end
+	 if(debug) then io.write("==>" .. key .. "\t[T:" .. tracked_host .. "][" .. values["duration"] .. "][" .. bytes .. "]\n") end
 	 if((debug) and (findString(key, tracked_host) ~= nil))then io.write("findString(key, tracked_host)==>"..findString(key, tracked_host)) end
 	 if((debug) and (findString(values["cli.ip"], tracked_host) ~= nil)) then io.write("findString(values[cli.ip], tracked_host)==>"..findString(values["cli.ip"], tracked_host)) end
 	 if((debug) and (findString(values["srv.ip"], tracked_host) ~= nil)) then io.write("findString(values[srv.ip], tracked_host)==>"..findString(values["srv.ip"], tracked_host)) end
@@ -191,7 +191,12 @@ num = 0
 reverse_nodes = {}
 for _, values in ipairs(peers) do
    key = {hostinfo2hostkey(values, "cli"), hostinfo2hostkey(values, "srv")}  --string.split(key, " ")
-   val = values["bytes.last"]
+   local val
+   if is_pcap_dump then
+     val = values["bytes"]
+   else
+     val = values["bytes.last"]
+   end
 
    if(((val == 0) or (val > threshold)) or ((top_host ~= nil) and (findString(table.concat(key, " "), top_host) ~= nil)) and (num < max_num_links)) then
       e = {}
@@ -210,8 +215,13 @@ for _, values in ipairs(peers) do
 
 	 reverse_nodes[e[1]..":"..e[0]] = 1
 
-	 sentv = values["cli2srv.last"]
-	 recvv = values["srv2cli.last"]
+         if is_pcap_dump then
+	    sentv = values["cli2srv.last"]
+	    recvv = values["srv2cli.last"]
+         else
+	    sentv = values["cli2srv.bytes"]
+	    recvv = values["srv2cli.bytes"]
+         end
 
 	 if(val == 0) then
 	    val = 1
