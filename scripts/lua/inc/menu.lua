@@ -248,7 +248,10 @@ print('<li class="divider"></li>')
 print('<li class="dropdown-header">') print(i18n("local_traffic")) print('</li>')
 
 print('<li><a href="'..ntop.getHttpPrefix()..'/lua/http_servers_stats.lua">') print(i18n("http_servers_stats.http_servers")) print('</a></li>')
-print('<li><a href="'..ntop.getHttpPrefix()..'/lua/top_hosts.lua"><i class="fa fa-trophy"></i> ') print(i18n("processes_stats.top_hosts")) print('</a></li>')
+
+if not is_pcap_dump then
+   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/top_hosts.lua"><i class="fa fa-trophy"></i> ') print(i18n("processes_stats.top_hosts")) print('</a></li>')
+end
 
 print('<li class="divider"></li>')
 
