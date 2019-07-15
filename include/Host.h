@@ -295,6 +295,7 @@ class Host : public GenericHashEntry, public AlertableEntity {
   bool triggerAlerts()                                   { return(trigger_host_alerts);       };
   void refreshHostAlertPrefs();
   u_int32_t getNumAlerts(bool from_alertsmanager = false);
+  void housekeepAlerts(ScriptPeriodicity p);
   void setNumAlerts(u_int32_t num)                       { num_alerts_detected = num;         };
   inline u_int getNumDropboxPeers()                      { return(dropbox_namespaces.size()); };
   virtual void inlineSetOS(const char * const _os) {};

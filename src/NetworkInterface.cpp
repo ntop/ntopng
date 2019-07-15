@@ -7623,6 +7623,8 @@ static bool host_alert_check(GenericHashEntry *h, void *user_data, bool *matched
     
     if(lua_pcall(L, 1 /* 1 argument */, 0 /* 0 results */, 0)) /* Call the function now */
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure [%s][%s]", ap->script_path, lua_tostring(L, -1));
+
+    host->housekeepAlerts(ap->p /* periodicity */);
   }
   
   return(false); /* false = keep on walking */

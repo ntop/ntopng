@@ -99,6 +99,17 @@ void Host::updateSynAlertsCounter(time_t when, u_int8_t flags, Flow *f, bool syn
 
 /* *************************************** */
 
+void Host::housekeepAlerts(ScriptPeriodicity p) {
+  switch(p) {
+  case minute_script:
+    break;
+  default:
+    break;
+  }
+}
+
+/* *************************************** */
+
 u_int32_t Host::getNumAlerts(bool from_alertsmanager) {
   if(!from_alertsmanager)
     return(num_alerts_detected);

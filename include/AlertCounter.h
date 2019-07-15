@@ -41,7 +41,6 @@ class AlertCounter {
   u_int16_t trailing_window_min;
   u_int8_t  trailing_index;
   
-  void init();
   void reset(time_t when = 0);
 
  public:
