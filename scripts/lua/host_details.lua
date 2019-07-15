@@ -397,8 +397,6 @@ if(not(isLoopback(ifname))) then
 	 print("<li><a href=\""..url.."&page=geomap\"><i class='fa fa-globe fa-lg'></i></a></li>")
       end
    end
-else
-
 end
 
 if (host["ip"] ~= nil) and areAlertsEnabled() and not ifstats.isView then
