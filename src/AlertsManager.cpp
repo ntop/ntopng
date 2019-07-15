@@ -436,6 +436,7 @@ int AlertsManager::triggerAlert(time_t when, int granularity, AlertType alert_ty
       bool ignore_disabled, bool check_maximum) {
   *new_alert = false;
   int rc = 0;
+  bool is_stored_alert = (granularity == 0);
 
   if(ignore_disabled || !ntop->getPrefs()->are_alerts_disabled()) {
     char query[STORE_MANAGER_MAX_QUERY];
@@ -450,7 +451,7 @@ int AlertsManager::triggerAlert(time_t when, int granularity, AlertType alert_ty
 
     m.lock(__FILE__, __LINE__);
 
-    if(granularity > 0) {
+    if(!is_stored_alert) {
       /* Check if this alert already exists ...*/
       if((rc = isAlertEngaged(when, alert_type, subtype, granularity, alert_entity,
           alert_entity_value, query, sizeof(query), &is_existing, &cur_rowid)))
@@ -468,8 +469,8 @@ int AlertsManager::triggerAlert(time_t when, int granularity, AlertType alert_ty
       /* This alert is being engaged/stored */
       snprintf(query, sizeof(query),
 	       "INSERT INTO %s "
-	       "(alert_granularity, alert_tstamp, alert_tstamp_end, alert_type, alert_severity, alert_entity, alert_entity_val, alert_json, alert_subtype) "
-	       "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?); ",
+	       "(alert_granularity, alert_tstamp, alert_tstamp_end, alert_type, alert_severity, alert_entity, alert_entity_val, alert_json, alert_subtype, alert_released) "
+	       "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?); ",
 	       ALERTS_MANAGER_TABLE_NAME);
 
       if(sqlite3_prepare_v2(db, query, -1,  &stmt, 0)
@@ -481,7 +482,8 @@ int AlertsManager::triggerAlert(time_t when, int granularity, AlertType alert_ty
 	 || sqlite3_bind_int(stmt,   6,  static_cast<int>(alert_entity))
 	 || sqlite3_bind_text(stmt,  7,  alert_entity_value, -1, SQLITE_STATIC)
 	 || sqlite3_bind_text(stmt,  8,  alert_json, -1, SQLITE_STATIC)
-	 || sqlite3_bind_text(stmt,  9,  subtype, -1, SQLITE_STATIC)) {
+	 || sqlite3_bind_text(stmt,  9,  subtype, -1, SQLITE_STATIC)
+	 || sqlite3_bind_int(stmt,  10,  is_stored_alert ? 1 : 0)) {
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "SQL Error: %s", sqlite3_errmsg(db));
 	rc = -2;
 	goto out;
