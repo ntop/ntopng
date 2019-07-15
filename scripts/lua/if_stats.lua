@@ -307,7 +307,7 @@ if(isAdministrator() and areAlertsEnabled() and not ifstats.isView) then
    end
 end
 
-if ts_utils.getDriverName() == "rrd" then
+if not is_pcap_dump and ts_utils.getDriverName() == "rrd" then
    if ntop.isEnterprise() or ntop.isnEdge() then
       if(page == "traffic_report") then
          print("\n<li class=\"active\"><a href=\"#\"><i class='fa fa-file-text report-icon'></i></a></li>\n")
