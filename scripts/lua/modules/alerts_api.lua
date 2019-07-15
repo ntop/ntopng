@@ -440,8 +440,7 @@ function alerts.load_check_modules(subdir, str_granularity)
       local check_module = require(modname)
 
       if check_module.check_function then
-	 if check_module.granularity then
-
+	 if check_module.granularity and str_granularity then
 	    -- When the module specify one or more granularities
 	    -- at which checks have to be run, the module is only
 	    -- loaded after checking the granularity
