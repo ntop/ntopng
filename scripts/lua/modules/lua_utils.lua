@@ -1630,9 +1630,8 @@ function hostinfo2hostkey(host_info,host_type,show_vlan)
     end
   end
 
-  if(((host_info["vlan"] ~= nil) and (host_info["vlan"] ~= 0))
-     or ((show_vlan ~= nil) and show_vlan and (host_info["vlan"] ~= nil)))  then
-    rsp = rsp..'@'..tostring(host_info["vlan"])
+  if((host_info["vlan"] ~= nil and host_info["vlan"] ~= 0) or show_vlan)  then
+    rsp = rsp..'@'..tostring(host_info["vlan"] or 0)
   end
 
   if(debug_host) then traceError(TRACE_DEBUG,TRACE_CONSOLE,"HOST2URL => ".. rsp .. "\n") end

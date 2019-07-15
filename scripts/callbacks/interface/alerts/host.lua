@@ -32,7 +32,7 @@ end
 -- The function below is called once per host
 function checkHostAlerts(granularity)
   local info = host.getFullInfo()
-  local host_key   = info.ip.."@"..info.vlan
+  local host_key   = hostinfo2hostkey({ip = info.ip, vlan = info.vlan}, nil, true --[[ force @[vlan] even when vlan is 0 --]])
   local host_config = config_alerts[host_key] or {}
   local global_config = config_alerts["local_hosts"] or {}
   local has_configured_alerts = (table.len(host_config) or table.len(global_config))
