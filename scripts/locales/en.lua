@@ -262,6 +262,7 @@ local lang = {
     ["slow_periodic_activity"] = "Periodic activity \"%{script}\" took too much to complete [%{duration} &gt; %{max_duration}]",
     ["subject_quota_exceeded"] = "Host pool <a href=\"%{url}\">%{pool}</a> exceeded %{subject} quota [%{value} &gt; %{quota}]",
     ["test_failed"] = "Test Failed",
+    ["threshold_crossed"] = "%{granularity} <b>%{metric}</b> crossed by %{entity} [%{value} %{op} %{threshold}]",
     ["x_alerts"] = "%{num} alerts",
   },
   ["alerts_dashboard"] = {
@@ -708,13 +709,13 @@ local lang = {
   },
   ["field_units"] = {
     ["bytes"] = "bytes",
+    ["flow_sec"] = "flows/sec",
     ["flows"] = "flows",
     ["hosts"] = "hosts",
     ["mbits"] = "Mbps",
     ["packets"] = "packets",
     ["seconds"] = "sec",
     ["syn_sec"] = "SYNs/sec",
-    ["flow_sec"] = "flows/sec",
   },
   ["flow_alerts_explorer"] = {
     ["by_target_port"] = "By Target Port",

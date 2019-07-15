@@ -13,7 +13,7 @@ local do_trace = false
 
 local alerts = {}
 
-local MAX_NUM_ENQUEUED_ALERTS_EVENTS = 100
+local MAX_NUM_ENQUEUED_ALERTS_EVENTS = 4096
 local ALERTS_EVENTS_QUEUE = "ntopng.cache.alerts_events_queue"
 local ALERT_CHECKS_MODULES_BASEDIR = dirs.installdir .. "/scripts/callbacks/interface/alerts"
 
@@ -228,9 +228,14 @@ end
 
 local function enqueueAlertEvent(alert_event)
   local event_json = json.encode(alert_event)
+  local trim = nil
 
-  ntop.rpushCache(ALERTS_EVENTS_QUEUE, event_json, MAX_NUM_ENQUEUED_ALERTS_EVENTS)
+  if(ntop.llenCache(ALERTS_EVENTS_QUEUE) > MAX_NUM_ENQUEUED_ALERTS_EVENTS) then
+    trim = math.ceil(MAX_NUM_ENQUEUED_ALERTS_EVENTS/2)
+    traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Alerts event queue too long: dropping %u alerts", trim))
+  end
 
+  ntop.rpushCache(ALERTS_EVENTS_QUEUE, event_json, trim)
   return(true)
 end
 
