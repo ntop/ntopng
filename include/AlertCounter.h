@@ -39,14 +39,17 @@ class AlertCounter {
   time_t time_last_hit;
   u_int16_t trailing_window[ALERT_COUNTER_WINDOW_SECS];
   u_int16_t trailing_window_min;
+  u_int16_t trailing_window_max_since_hits_reset;
   u_int8_t  trailing_index;
+  bool hits_reset_req;
   
-  void reset(time_t when = 0);
+  void reset_window(time_t when = 0);
 
  public:
   AlertCounter();
   void inc(time_t when, Host *h);
   u_int16_t hits() const;
+  void reset_hits();
 };
 
 #endif /* _ALERT_COUNTER_H_ */

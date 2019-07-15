@@ -36,7 +36,7 @@ Host::Host(NetworkInterface *_iface, Mac *_mac,
 
 #ifdef BROADCAST_DEBUG
   char buf[32];
-  
+
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Setting %s [broadcast: %u]",
 			       ip.print(buf, sizeof(buf)), ip.isBroadcastAddress() ? 1 : 0);
 #endif
@@ -83,7 +83,7 @@ Host::~Host() {
   /*
     Pool counters are updated both in and outside the datapath.
     So decPoolNumHosts must stay in the destructor to preserve counters
-    consistency (no thread outside the datapath will change the last pool id) 
+    consistency (no thread outside the datapath will change the last pool id)
   */
   iface->decPoolNumHosts(get_host_pool(), true /* Host is deleted inline */);
 }
@@ -102,6 +102,10 @@ void Host::updateSynAlertsCounter(time_t when, u_int8_t flags, Flow *f, bool syn
 void Host::housekeepAlerts(ScriptPeriodicity p) {
   switch(p) {
   case minute_script:
+    flow_flood_attacker_alert->reset_hits(),
+      flow_flood_victim_alert->reset_hits(),
+      syn_flood_attacker_alert->reset_hits(),
+      syn_flood_victim_alert->reset_hits();
     break;
   default:
     break;
@@ -516,7 +520,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[pkts_thpt: %.2f] [pkts_thpt_trend: %d]", pkts_thpt,pkts_thpt_trend);
 
   fingerprints.ssl.lua("ssl_fingerprint", vm);
-  
+
   if(verbose) {
     if(hasAnomalies()) luaAnomalies(vm);
   }
@@ -661,7 +665,7 @@ void Host::incStats(u_int32_t when, u_int8_t l4_proto, u_int ndpi_proto,
 		    custom_app_t custom_app,
 		    u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
 		    u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes,
-        bool peer_is_unicast) {
+	bool peer_is_unicast) {
 
   if(sent_bytes || rcvd_bytes) {
     stats->incStats(when, l4_proto, ndpi_proto, custom_app,
@@ -1273,7 +1277,7 @@ void Host::dissectDropbox(const char *payload, u_int16_t payload_len) {
     if(json_object_object_get_ex(o, "namespaces", &obj)) {
       struct array_list *l = json_object_get_array(obj);
       u_int len = (u_int)array_list_length(l);
-      
+
       dropbox_namespaces.clear();
 
       for(u_int i=0; i<len; i++) {
@@ -1321,7 +1325,7 @@ void Host::dumpDropbox(lua_State *vm) {
   lua_settable(vm, -3);
 }
 
-/* ****************************************xo************ */
+/* **************************************************** */
 
 
 

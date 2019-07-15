@@ -26,12 +26,14 @@
 /* *************************************** */
 
 AlertCounter::AlertCounter() {
-  reset();
+  trailing_window_max_since_hits_reset = 0;
+  hits_reset_req = false;
+  reset_window();
 }
 
 /* *************************************** */
 
-void AlertCounter::reset(time_t when) {
+void AlertCounter::reset_window(time_t when) {
   memset(&trailing_window, 0, sizeof(trailing_window));
   trailing_window_min = 0;
   trailing_index = 0;
@@ -41,16 +43,27 @@ void AlertCounter::reset(time_t when) {
 /* *************************************** */
 
 void AlertCounter::inc(time_t when, Host *h) {
-  if(when - time_last_hit > 1) /* Only consecutive hits matter */
-    reset(when);
+  if(hits_reset_req) { /* Reset the maximum as requested and start over */
+    trailing_window_max_since_hits_reset = 0;
+    hits_reset_req = false;
+    reset_window(when);
+  }
 
-  if(when - time_last_hit) { /* If true, difference must be 1 as reset(when) is called if > 1 */
+  if(when - time_last_hit > 1) /* Only consecutive hits matter */
+    reset_window(when);
+
+  if(when - time_last_hit) { /* If true, difference must be 1 as reset_window(when) is called if > 1 */
     u_int16_t tmp_min = trailing_window[0]; /* Update the minimum value to make sure all the elements in the window are >= */
     for(u_int8_t i = 1; i < ALERT_COUNTER_WINDOW_SECS; i++) {
       if(trailing_window[i] < tmp_min /* New minimum detected */)
 	tmp_min = trailing_window[i];
     }
     trailing_window_min = tmp_min;
+
+
+    /* Update the overall maximum of minima since reset */
+    if(trailing_window_min > trailing_window_max_since_hits_reset)
+      trailing_window_max_since_hits_reset = trailing_window_min;
 
     trailing_index = (trailing_index + 1) % ALERT_COUNTER_WINDOW_SECS; /* Move to the next element in the array */
     trailing_window[trailing_index] = 0; /* Reset as it could contain old values */
@@ -64,15 +77,16 @@ void AlertCounter::inc(time_t when, Host *h) {
 
   char buf[256];
   ntop->getTrace()->traceEvent(TRACE_NORMAL,
-			       "stats [host: %s][when: %u][time_last_hit: %u][trailing_window_min: %u]"
-			       "[trailing_window[0]: %u][trailing_window[1]: %u][trailing_window[2]: %u]",
+			       "stats [host: %s][when: %u][time_last_hit: %u][trailing_window_max_since_hits_reset: %u][trailing_window_min: %u]"
+			       "[trailing_window[cur]: %u][trailing_window[cur-1]: %u][trailing_window[cur-2]: %u]",
 			       h->get_ip()->print(buf, sizeof(buf)),
 			       when,
 			       time_last_hit,
+			       trailing_window_max_since_hits_reset,
 			       trailing_window_min,
-			       trailing_window[0],
-			       trailing_window[1],
-			       trailing_window[2]
+			       trailing_window[trailing_index],
+			       trailing_window[(trailing_index + 2) % ALERT_COUNTER_WINDOW_SECS],
+			       trailing_window[(trailing_index + 1) % ALERT_COUNTER_WINDOW_SECS]
 			       );
 
 #endif
@@ -81,11 +95,15 @@ void AlertCounter::inc(time_t when, Host *h) {
 /* *************************************** */
 
 u_int16_t AlertCounter::hits() const {
-  time_t now = time(NULL);
-
-  if(now - time_last_hit > 1) /* Only fresh hits matter */
+  if(hits_reset_req) /* Requested, but not yet reset */
     return 0;
 
-  return trailing_window_min;
+  return trailing_window_max_since_hits_reset;
 }
 
+
+/* *************************************** */
+
+void AlertCounter::reset_hits() {
+  hits_reset_req = true;
+}
