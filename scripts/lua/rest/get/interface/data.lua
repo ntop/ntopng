@@ -47,7 +47,8 @@ local function countHosts()
 end
 
 function dumpInterfaceStats(interface_name)
-   interface.select(interface_name..'')
+   local ifid = getInterfaceId(interface_name)
+   interface.select(ifid..'')
 
    local ifstats = interface.getStats()
 
@@ -182,7 +183,7 @@ if(_GET["iffilter"] == "all") then
       local ifid = getInterfaceId(ifname)
       -- ifid in the key must be a string or json.encode will think
       -- its a lua array and will look for integers starting at one
-      res[ifid..""] = dumpInterfaceStats(ifid)
+      res[ifid..""] = dumpInterfaceStats(ifname)
    end
 elseif not isEmptyString(_GET["iffilter"]) then
    res = dumpInterfaceStats(_GET["iffilter"])
