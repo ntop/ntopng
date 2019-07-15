@@ -1299,10 +1299,9 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
       print("<li>" .. i18n("alerts_thresholds_config.note_consecutive_checks") .. "</li>")
 
       if (entity_type == "host") then
-         print("<li>" .. i18n("alerts_thresholds_config.note_deltas_of_idle_host_become_active") .. "</li>")
 	 print("<li>" .. i18n("alerts_thresholds_config.note_checks_on_active_hosts") .. "</li>")
-	 print("<li>" .. i18n("alerts_thresholds_config.note_attacker_victime_threshold") .. "</li>")
       end
+
       print("</ul></div>")
 
       print[[
