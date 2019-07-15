@@ -190,7 +190,7 @@ elseif not isEmptyString(_GET["iffilter"]) then
 else
    local ifname = nil
    if not isEmptyString(_GET["ifid"]) then
-      ifname = _GET["ifid"]
+      ifname = getInterfaceName(_GET["ifid"])
    end
    res = dumpInterfaceStats(ifname)
 
