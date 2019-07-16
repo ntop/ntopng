@@ -647,12 +647,7 @@ function alertLevel(v)
 end
 
 function alertLevelToSyslogLevel(v)
-   local leveltable = {}
-
-   for i, t in ipairs(alert_consts.alert_severity_keys) do
-      leveltable[#leveltable + 1] = {t[4], t[3]}
-   end
-   return(_handleArray(leveltable, v))
+  return alert_consts.alert_severities[v]
 end
 
 function areAlertsEnabled()
