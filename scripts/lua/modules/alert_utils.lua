@@ -424,9 +424,18 @@ function getNumAlerts(what, options)
    end
 
    local num = 0
-   local opts = getUnpagedAlertOptions(options or {})
-   local res = performAlertsQuery("SELECT COUNT(*) AS count", what, opts)
-   if((res ~= nil) and (#res == 1) and (res[1].count ~= nil)) then num = tonumber(res[1].count) end
+
+   if(what == "engaged") then
+     local entity_type_filter = tonumber(options.entity)
+     local entity_value_filter = options.entity_val
+     local res = interface.getEngagedAlertsCount(entity_type_filter, entity_value_filter)
+
+     if(res ~= nil) then num = res.num_alerts end
+   else
+     local opts = getUnpagedAlertOptions(options or {})
+     local res = performAlertsQuery("SELECT COUNT(*) AS count", what, opts)
+     if((res ~= nil) and (#res == 1) and (res[1].count ~= nil)) then num = tonumber(res[1].count) end
+   end
 
    return num
 end
@@ -446,18 +455,19 @@ local function engagedAlertsQuery(params)
 
   --~ tprint(string.format("type=%s sev=%s entity=%s val=%s", type_filter, severity_filter, entity_type_filter, entity_value_filter))
 
-  --~ local alerts = interface.getEngagedAlerts(type_filter, severity_filter, entity_type_filter, entity_value_filter)
+  local alerts = interface.getEngagedAlerts(entity_type_filter, entity_value_filter, type_filter, severity_filter)
+
   return(alerts)
 end
 
 -- #################################
 
 function getAlerts(what, options)
-   --~ if what == "engaged" then
-      --~ return engagedAlertsQuery(options)
-   --~ else
+   if what == "engaged" then
+      return engagedAlertsQuery(options)
+   else
       return performAlertsQuery("SELECT rowid, *", what, options)
-   --~ end
+   end
 end
 
 -- #################################
@@ -1425,6 +1435,21 @@ end
 
 -- #################################
 
+local function menuEntriesToDbFormat(entries)
+  local res = {}
+
+  for entry_id, entry_val in pairs(entries) do
+    res[#res + 1] = {
+      id = tostring(entry_id),
+      count = tostring(entry_val),
+    }
+  end
+
+  return(res)
+end
+
+-- #################################
+
 function drawAlertTables(num_past_alerts, num_engaged_alerts, num_flow_alerts, get_params, hide_extended_title, alt_nav_tabs, options)
    local alert_items = {}
    local url_params = {}
@@ -1620,10 +1645,12 @@ function getCurrentStatus() {
 	    end
 
       if t["status"] == "engaged" then
-        -- TODO read from memory
-        --~ type_menu_entries = {
-          --~ {id = "2", count = "2"}
-        --~ }
+        local res = interface.getEngagedAlertsCount(tonumber(_GET["entity"]), _GET["entity_val"])
+
+        if(res ~= nil) then
+          type_menu_entries = menuEntriesToDbFormat(res.type)
+          sev_menu_entries = menuEntriesToDbFormat(res.severities)
+        end
       end
 
 	    print(drawDropdown(t["status"], "type", a_type, alert_types, i18n("alerts_dashboard.alert_type"), get_params, type_menu_entries))

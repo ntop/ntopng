@@ -294,17 +294,23 @@ function alerts.new_trigger(entity_info, type_info, when)
   when = when or os.time()
   local granularity_sec = type_info.alert_granularity and type_info.alert_granularity.granularity_seconds or 0
   local granularity_id = type_info.alert_granularity and type_info.alert_granularity.granularity_id or nil
+  local subtype = type_info.alert_subtype or ""
+  local alert_json = json.encode(type_info.alert_type_params)
 
   if(granularity_id ~= nil) then
     local triggered = true
     local alert_key_name = get_alert_triggered_key(type_info)
+    local params = {alert_key_name, granularity_id,
+      type_info.alert_type.severity.severity_id, type_info.alert_type.alert_id,
+      subtype, alert_json
+    }
 
     if((host.storeTriggeredAlert) and (entity_info.alert_entity.entity_id == alertEntity("host"))) then
-      triggered = host.storeTriggeredAlert(alert_key_name, granularity_id)
+      triggered = host.storeTriggeredAlert(table.unpack(params))
     elseif((interface.storeTriggeredAlert) and (entity_info.alert_entity.entity_id == alertEntity("interface"))) then
-      triggered = interface.storeTriggeredAlert(alert_key_name, granularity_id)
+      triggered = interface.storeTriggeredAlert(table.unpack(params))
     elseif((network.storeTriggeredAlert) and (entity_info.alert_entity.entity_id == alertEntity("network"))) then
-      triggered = network.storeTriggeredAlert(alert_key_name, granularity_id)
+      triggered = network.storeTriggeredAlert(table.unpack(params))
     end
 
     if(not triggered) then
@@ -314,7 +320,6 @@ function alerts.new_trigger(entity_info, type_info, when)
     end
   end
 
-  local alert_json = json.encode(type_info.alert_type_params)
   local action = ternary((granularity_id ~= nil), "engaged", "stored")
 
   local alert_event = {
@@ -325,7 +330,7 @@ function alerts.new_trigger(entity_info, type_info, when)
     type = type_info.alert_type.alert_id,
     severity = type_info.alert_type.severity.severity_id,
     message = alert_json,
-    subtype = type_info.alert_subtype or "",
+    subtype = subtype,
     tstamp = when,
     action = action,
   }

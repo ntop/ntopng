@@ -162,4 +162,6 @@ extern void lua_push_float_table_entry(lua_State *L, const char *key, float valu
 
 int ntop_lua_check(lua_State* vm, const char* func, int pos, int expected_type);
 
+void get_host_vlan_info(char* lua_ip, char** host_ip, u_int16_t* vlan_id, char *buf, u_int buf_len);
+
 #endif /* _LUA_H_ */

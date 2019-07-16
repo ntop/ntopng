@@ -26,11 +26,16 @@
 
 class AlertableEntity {
  protected:
+  AlertEntity entity_type;
+  std::string entity_val;
+
   std::map<std::string, std::string> alert_cache[MAX_NUM_PERIODIC_SCRIPTS];
-  std::map<std::string, time_t> triggered_alerts[MAX_NUM_PERIODIC_SCRIPTS];
+  std::map<std::string, Alert> triggered_alerts[MAX_NUM_PERIODIC_SCRIPTS];
 
  public:
-  AlertableEntity() { ; }
+  AlertableEntity() {
+    entity_type = (AlertEntity)-1;
+  }
 
   inline std::string getAlertCachedValue(std::string key, ScriptPeriodicity p) {
     std::map<std::string, std::string>::iterator it = alert_cache[(u_int)p].find(key);
@@ -51,9 +56,17 @@ class AlertableEntity {
     return(triggered_alerts[(u_int)p].size());
   }
 
-  bool triggerAlert(std::string key, ScriptPeriodicity p, time_t now);
+  void setEntityInfo(AlertEntity ent_type, const char *ent_val);
+
+  bool triggerAlert(std::string key, ScriptPeriodicity p, time_t now,
+    AlertLevel alert_severity, AlertType alert_type,
+    const char *alert_subtype,
+    const char *alert_json);
+
   void getExpiredAlerts(ScriptPeriodicity p, lua_State* vm, time_t now);
   u_int getNumTriggeredAlerts();
+  void countAlerts(grouped_alerts_counters *counters);
+  void getAlerts(lua_State* vm, int type_filter, int severity_filter, u_int *idx);
 };
 
 #endif

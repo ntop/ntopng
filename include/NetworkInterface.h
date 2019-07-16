@@ -749,6 +749,9 @@ class NetworkInterface : public AlertableEntity {
   inline void decNumAlertsEngaged(ScriptPeriodicity p)    { num_alerts_engaged[(u_int)p]--; }
   inline bool hasAlerts()                                 { return(has_alerts); }
   inline void refreshHasAlerts()                          { has_alerts = alertsManager ? alertsManager->hasAlerts() : false; }
+  void getEngagedAlertsCount(lua_State *vm, int entity_type, const char *entity_value);
+  void getEngagedAlerts(lua_State *vm, int entity_type, const char *entity_value, int alert_type, int alert_severity);
+
   virtual bool reproducePcapOriginalSpeed()               { return(false); }
   u_int32_t getNumEngagedAlerts();
 };
