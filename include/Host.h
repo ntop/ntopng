@@ -203,7 +203,7 @@ class Host : public GenericHashEntry, public AlertableEntity {
   inline bool isPrivateHost()                  { return(ip.isPrivateAddress()); }
   bool isLocalInterfaceAddress();
   char* get_visual_name(char *buf, u_int buf_len);
-  inline char* get_string_key(char *buf, u_int buf_len) { return(ip.print(buf, buf_len)); };
+  virtual char* get_string_key(char *buf, u_int buf_len) const { return(ip.print(buf, buf_len)); };
   char* get_hostkey(char *buf, u_int buf_len, bool force_vlan=false);
   char* get_tskey(char *buf, size_t bufsize);
   bool idle();

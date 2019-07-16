@@ -582,7 +582,6 @@ class NetworkInterface : public AlertableEntity {
   inline void setBridgeWanInterfaceId(u_int32_t v) { bridge_wan_interface_id = v;     };
   inline u_int32_t getBridgeWanInterfaceId()       { return(bridge_wan_interface_id); };
   inline HostHash* get_hosts_hash()                { return(hosts_hash);              }
-  inline MacHash*  get_macs_hash()                 { return(macs_hash);               }
   inline VlanHash*  get_vlans_hash()               { return(vlans_hash);              }
   inline AutonomousSystemHash* get_ases_hash()     { return(ases_hash);               }
   inline CountriesHash* get_countries_hash()       { return(countries_hash);          }

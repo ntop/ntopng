@@ -173,7 +173,7 @@ NetworkInterface::NetworkInterface(const char *name,
     flows_hash = new FlowHash(this, num_hashes, ntop->getPrefs()->get_max_num_flows());
 
     num_hashes = max_val(4096, ntop->getPrefs()->get_max_num_hosts() / 4);
-    hosts_hash = new HostHash(this, num_hashes, ntop->getPrefs()->get_max_num_hosts());
+    hosts_hash = new (std::nothrow) HostHash(this, num_hashes, ntop->getPrefs()->get_max_num_hosts());
     /* The number of ASes cannot be greater than the number of hosts */
     ases_hash = new AutonomousSystemHash(this, num_hashes,
 					 ntop->getPrefs()->get_max_num_hosts());
@@ -780,7 +780,7 @@ int NetworkInterface::dumpLocalHosts2redis(bool disable_purge) {
 /* **************************************************** */
 
 u_int32_t NetworkInterface::getHostsHashSize() {
-  return(hosts_hash->getNumEntries());
+  return(hosts_hash ? hosts_hash->getNumEntries() : 0);
 }
 
 /* **************************************************** */
@@ -833,7 +833,7 @@ bool NetworkInterface::walker(u_int32_t *begin_slot,
 
   switch(wtype) {
   case walker_hosts:
-    ret = hosts_hash->walk(begin_slot, walk_all, walker, user_data);
+    ret = hosts_hash ? hosts_hash->walk(begin_slot, walk_all, walker, user_data) : false;
     break;
 
   case walker_flows:
@@ -2737,7 +2737,7 @@ void NetworkInterface::cleanup() {
 
   getStats()->cleanup();
   flows_hash->cleanup();
-  hosts_hash->cleanup();
+  if(hosts_hash) hosts_hash->cleanup();
   ases_hash->cleanup();
   countries_hash->cleanup();
   vlans_hash->cleanup();
@@ -2754,6 +2754,11 @@ void NetworkInterface::findFlowHosts(u_int16_t vlanId,
 				     Mac *dst_mac, IpAddress *_dst_ip, Host **dst) {
   int16_t local_network_id;
 
+  if(!hosts_hash) {
+    *src = *dst = NULL;
+    return;
+  }
+
   PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: hosts_hash->get", 8);
   /* Do not look on sub interfaces, Flows are always created in the same interface of its hosts */
   (*src) = hosts_hash->get(vlanId, _src_ip, true /* Inline call */);
@@ -2768,11 +2773,11 @@ void NetworkInterface::findFlowHosts(u_int16_t vlanId,
 
     if(_src_ip && (_src_ip->isLocalHost(&local_network_id) || _src_ip->isLocalInterfaceAddress())) {
       PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: new LocalHost", 9);
-      (*src) = new LocalHost(this, src_mac, vlanId, _src_ip);
+      (*src) = new (std::nothrow) LocalHost(this, src_mac, vlanId, _src_ip);
       PROFILING_SECTION_EXIT(9);
     } else {
       PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: new RemoteHost", 10);
-      (*src) = new RemoteHost(this, src_mac, vlanId, _src_ip);
+      (*src) = new (std::nothrow) RemoteHost(this, src_mac, vlanId, _src_ip);
       PROFILING_SECTION_EXIT(10);
     }
 
@@ -2806,11 +2811,11 @@ void NetworkInterface::findFlowHosts(u_int16_t vlanId,
        && (_dst_ip->isLocalHost(&local_network_id)
 	   || _dst_ip->isLocalInterfaceAddress())) {
       PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: new LocalHost", 9);
-      (*dst) = new LocalHost(this, dst_mac, vlanId, _dst_ip);
+      (*dst) = new (std::nothrow) LocalHost(this, dst_mac, vlanId, _dst_ip);
       PROFILING_SECTION_EXIT(9);
     } else {
       PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: new RemoteHost", 10);
-      (*dst) = new RemoteHost(this, dst_mac, vlanId, _dst_ip);
+      (*dst) = new (std::nothrow) RemoteHost(this, dst_mac, vlanId, _dst_ip);
       PROFILING_SECTION_EXIT(10);
     }
 
@@ -3013,8 +3018,10 @@ void NetworkInterface::periodicStatsUpdate() {
 
   checkReloadHostsBroadcastDomain();
 
-  begin_slot = 0;
-  hosts_hash->walk(&begin_slot, walk_all, update_hosts_stats, (void*)&tv);
+  if(hosts_hash) {
+    begin_slot = 0;
+    hosts_hash->walk(&begin_slot, walk_all, update_hosts_stats, (void*)&tv);
+  }
 
 #ifdef PERIODIC_STATS_UPDATE_DEBUG_TIMING
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "hosts_hash->walk took %d seconds", time(NULL) - tdebug.tv_sec);
@@ -3176,7 +3183,9 @@ void NetworkInterface::refreshHostPools() {
   }
 #endif
 
-  hosts_hash->walk(&begin_slot, walk_all, update_host_host_pool_l7policy, &update_host);
+  if(hosts_hash)
+    hosts_hash->walk(&begin_slot, walk_all, update_host_host_pool_l7policy, &update_host);
+
   begin_slot = 0;
   macs_hash->walk(&begin_slot, walk_all, update_l2_device_host_pool, NULL);
 
@@ -3213,8 +3222,10 @@ void NetworkInterface::updateHostsL7Policy(u_int16_t host_pool_id) {
 
   /* Pool id didn't change here so there's no need to walk on the macs
    as policies are set on the hosts */
-  hosts_hash->walk(&begin_slot, walk_all,
-		   update_host_host_pool_l7policy, &update_host);
+  if(hosts_hash) {
+    hosts_hash->walk(&begin_slot, walk_all,
+		     update_host_host_pool_l7policy, &update_host);
+  }
 }
 
 /* **************************************************** */
@@ -3464,7 +3475,7 @@ Host* NetworkInterface::getHost(char *host_ip, u_int16_t vlan_id, bool isInlineC
     if(ip) {
       ip->set(host_ip);
 
-      h = hosts_hash->get(vlan_id, ip, isInlineCall);
+      h = hosts_hash ? hosts_hash->get(vlan_id, ip, isInlineCall) : NULL;
 
       delete ip;
     }
@@ -4265,7 +4276,7 @@ int hostSorter(const void *_a, const void *_b) {
   struct flowHostRetrieveList *a = (struct flowHostRetrieveList*)_a;
   struct flowHostRetrieveList *b = (struct flowHostRetrieveList*)_b;
 
-  return(a->hostValue->get_ip()->compare(b->hostValue->get_ip()));
+  return(a->hostValue->compare(b->hostValue));
 }
 
 int ipNetworkSorter(const void *_a, const void *_b) {
@@ -5202,7 +5213,7 @@ u_int NetworkInterface::purgeIdleHostsMacsASesVlans() {
     u_int n;
 
     // ntop->getTrace()->traceEvent(TRACE_INFO, "Purging idle hosts");
-    n = hosts_hash->purgeIdle()
+    n = (hosts_hash ? hosts_hash->purgeIdle() : 0)
       + macs_hash->purgeIdle()
       + ases_hash->purgeIdle()
       + countries_hash->purgeIdle()
@@ -7662,7 +7673,8 @@ void NetworkInterface::checkHostsAlerts(ScriptPeriodicity p) {
   ap.p = p, ap.le = &le;
 
   /* ... then iterate all hosts */
-  hosts_hash->walk(&begin_slot, true /* walk_all */, host_alert_check, &ap);
+  if(hosts_hash)
+    hosts_hash->walk(&begin_slot, true /* walk_all */, host_alert_check, &ap);
 }
 
 /* *************************************** */
