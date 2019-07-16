@@ -637,15 +637,6 @@ function noHtml(s)
    return unescape(cleaned)
 end
 
-function alertLevel(v)
-   local leveltable = {}
-
-   for i, t in ipairs(alert_consts.alert_severity_keys) do
-      leveltable[#leveltable + 1] = {t[2], t[3]}
-   end
-   return(_handleArray(leveltable, v))
-end
-
 function alertLevelToSyslogLevel(v)
   return alert_consts.alert_severities[v]
 end
