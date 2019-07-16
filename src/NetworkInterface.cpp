@@ -181,9 +181,7 @@ NetworkInterface::NetworkInterface(const char *name,
 
     countries_hash = new (std::nothrow) CountriesHash(this, num_hashes, ntop->getPrefs()->get_max_num_hosts());
 
-    vlans_hash = new VlanHash(this, num_hashes,
-			      max_val(ntop->getPrefs()->get_max_num_hosts() / 2,
-				      (u_int16_t)-1));
+    vlans_hash = new (std::nothrow) VlanHash(this, num_hashes, max_val(ntop->getPrefs()->get_max_num_hosts() / 2, (u_int16_t)-1));
 
     macs_hash = new MacHash(this, num_hashes, ntop->getPrefs()->get_max_num_hosts());
 
@@ -798,7 +796,7 @@ u_int32_t NetworkInterface::getCountriesHashSize() {
 /* **************************************************** */
 
 u_int32_t NetworkInterface::getVLANsHashSize() {
-  return(vlans_hash->getNumEntries());
+  return(vlans_hash ? vlans_hash->getNumEntries() : 0);
 }
 
 /* **************************************************** */
@@ -853,7 +851,7 @@ bool NetworkInterface::walker(u_int32_t *begin_slot,
     break;
 
   case walker_vlans:
-    ret = vlans_hash->walk(begin_slot, walk_all, walker, user_data);
+    ret = vlans_hash ? vlans_hash->walk(begin_slot, walk_all, walker, user_data) : false;
     break;
   }
 
@@ -2740,7 +2738,7 @@ void NetworkInterface::cleanup() {
   if(hosts_hash)     hosts_hash->cleanup();
   if(ases_hash)      ases_hash->cleanup();
   if(countries_hash) countries_hash->cleanup();
-  vlans_hash->cleanup();
+  if(vlans_hash)     vlans_hash->cleanup();
   macs_hash->cleanup();
   if(arp_hash_matrix) arp_hash_matrix->cleanup();
 
@@ -3041,7 +3039,7 @@ void NetworkInterface::periodicStatsUpdate() {
     countries_hash->walk(&begin_slot, walk_all, update_generic_element_stats, (void*)&tv);
   }
 
-  if(hasSeenVlanTaggedPackets()) {
+  if(vlans_hash && hasSeenVlanTaggedPackets()) {
     begin_slot = 0;
     vlans_hash->walk(&begin_slot, walk_all, update_generic_element_stats, (void*)&tv);
   }
@@ -5224,7 +5222,7 @@ u_int NetworkInterface::purgeIdleHostsMacsASesVlans() {
       + macs_hash->purgeIdle()
       + (ases_hash ? ases_hash->purgeIdle() : 0)
       + (countries_hash ? countries_hash->purgeIdle() : 0)
-      + vlans_hash->purgeIdle();
+      + (vlans_hash ? vlans_hash->purgeIdle() : 0);
 
     if(arp_hash_matrix)
       n += arp_hash_matrix->purgeIdle();
@@ -5618,14 +5616,9 @@ bool NetworkInterface::getArpStatsMatrixInfo(lua_State* vm){
 Vlan* NetworkInterface::getVlan(u_int16_t vlanId, bool createIfNotPresent, bool isInlineCall) {
   Vlan *ret = NULL;
 
-  if(!isView())
-    ret = vlans_hash->get(vlanId, isInlineCall);
-  else {
-    for(u_int8_t s = 0; s<numSubInterfaces; s++) {
-      if((ret = subInterfaces[s]->get_vlans_hash()->get(vlanId, isInlineCall)) != NULL)
-	break;
-    }
-  }
+  if(!vlans_hash) return(NULL);
+
+  ret = vlans_hash->get(vlanId, isInlineCall);
 
   if((ret == NULL) && createIfNotPresent) {
     try {
