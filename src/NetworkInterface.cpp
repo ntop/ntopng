@@ -2781,16 +2781,18 @@ void NetworkInterface::findFlowHosts(u_int16_t vlanId,
       PROFILING_SECTION_EXIT(10);
     }
 
-    if(!hosts_hash->add(*src, false /* Don't lock, we're inline with the purgeIdle */)) {
-      //ntop->getTrace()->traceEvent(TRACE_WARNING, "Too many hosts in interface %s", ifname);
-      delete *src;
-      *src = *dst = NULL;
-      has_too_many_hosts = true;
-      return;
-    }
+    if(*src) {
+      if(!hosts_hash->add(*src, false /* Don't lock, we're inline with the purgeIdle */)) {
+	//ntop->getTrace()->traceEvent(TRACE_WARNING, "Too many hosts in interface %s", ifname);
+	delete *src;
+	*src = *dst = NULL;
+	has_too_many_hosts = true;
+	return;
+      }
 
-    (*src)->postHashAdd();
-    has_too_many_hosts = false;
+      (*src)->postHashAdd();
+      has_too_many_hosts = false;
+    }
 
   }
 
@@ -2819,17 +2821,18 @@ void NetworkInterface::findFlowHosts(u_int16_t vlanId,
       PROFILING_SECTION_EXIT(10);
     }
 
-    if(!hosts_hash->add(*dst, false /* Don't lock, we're inline with the purgeIdle */)) {
-      // ntop->getTrace()->traceEvent(TRACE_WARNING, "Too many hosts in interface %s", ifname);
-      delete *dst;
-      *dst = NULL;
-      has_too_many_hosts = true;
-      return;
+    if(*dst) {
+      if(!hosts_hash->add(*dst, false /* Don't lock, we're inline with the purgeIdle */)) {
+	// ntop->getTrace()->traceEvent(TRACE_WARNING, "Too many hosts in interface %s", ifname);
+	delete *dst;
+	*dst = NULL;
+	has_too_many_hosts = true;
+	return;
+      }
+
+      (*dst)->postHashAdd();
+      has_too_many_hosts = false;
     }
-
-    (*dst)->postHashAdd();
-    has_too_many_hosts = false;
-
   }
 }
 
