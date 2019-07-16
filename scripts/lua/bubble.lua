@@ -30,6 +30,7 @@ local modes = {
    { mode = 1, label = "Unreacheable Flows" },
    { mode = 2, label = "Anomalous Flows" },
    { mode = 3, label = "DNS Queries vs Replies" },
+   { mode = 4, label = "SYN Distribution" },
 }
 
 
@@ -55,6 +56,9 @@ elseif(bubble_mode == 2) then
 elseif(bubble_mode == 3) then
    x_label = 'Positive DNS Replies Received'
    y_label = 'DNS Queries Sent'
+elseif(bubble_mode == 4) then
+   x_label = '# of SYN Sent'
+   y_label = '# of SYN Received'
 end
 
 function string.starts(String,Start)
@@ -87,6 +91,14 @@ function processHost(hostname, host)
       if((host["dns"] ~= nil) and ((host["dns"]["sent"]["num_queries"]+host["dns"]["rcvd"]["num_queries"]) > 0)) then
 	 line = { link = hostname, label = label, x = host["dns"]["rcvd"]["num_replies_ok"], y = host["dns"]["sent"]["num_queries"], r = host["dns"]["rcvd"]["num_replies_error"] }
       end
+   elseif(bubble_mode == 4) then
+      local stats = interface.getHostInfo(host["ip"],host["vlan"])
+    
+      line = { link = hostname, label = label, x = stats["pktStats.sent"]["syn"], y = stats["pktStats.recv"]["syn"],
+	       r = host["active_flows.as_client"] + host["active_flows.as_server"] }
+
+      -- io.write("--------------------------\n")
+      -- tprint(host)
    end
 
    if(line ~= nil) then
