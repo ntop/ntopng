@@ -179,8 +179,7 @@ NetworkInterface::NetworkInterface(const char *name,
     /* The number of ASes cannot be greater than the number of hosts */
     ases_hash = new (std::nothrow) AutonomousSystemHash(this, num_hashes, ntop->getPrefs()->get_max_num_hosts());
 
-    countries_hash = new CountriesHash(this, num_hashes,
-					 ntop->getPrefs()->get_max_num_hosts());
+    countries_hash = new (std::nothrow) CountriesHash(this, num_hashes, ntop->getPrefs()->get_max_num_hosts());
 
     vlans_hash = new VlanHash(this, num_hashes,
 			      max_val(ntop->getPrefs()->get_max_num_hosts() / 2,
@@ -793,7 +792,7 @@ u_int32_t NetworkInterface::getASesHashSize() {
 /* **************************************************** */
 
 u_int32_t NetworkInterface::getCountriesHashSize() {
-  return(countries_hash->getNumEntries());
+  return(countries_hash ? countries_hash->getNumEntries() : 0);
 }
 
 /* **************************************************** */
@@ -850,7 +849,7 @@ bool NetworkInterface::walker(u_int32_t *begin_slot,
     break;
 
   case walker_countries:
-    ret = countries_hash->walk(begin_slot, walk_all, walker, user_data);
+    ret = countries_hash ? countries_hash->walk(begin_slot, walk_all, walker, user_data) : false;
     break;
 
   case walker_vlans:
@@ -2738,9 +2737,9 @@ void NetworkInterface::cleanup() {
 
   getStats()->cleanup();
   flows_hash->cleanup();
-  if(hosts_hash) hosts_hash->cleanup();
-  if(ases_hash)  ases_hash->cleanup();
-  countries_hash->cleanup();
+  if(hosts_hash)     hosts_hash->cleanup();
+  if(ases_hash)      ases_hash->cleanup();
+  if(countries_hash) countries_hash->cleanup();
   vlans_hash->cleanup();
   macs_hash->cleanup();
   if(arp_hash_matrix) arp_hash_matrix->cleanup();
@@ -3037,8 +3036,10 @@ void NetworkInterface::periodicStatsUpdate() {
     ases_hash->walk(&begin_slot, walk_all, update_generic_element_stats, (void*)&tv);
   }
 
-  begin_slot = 0;
-  countries_hash->walk(&begin_slot, walk_all, update_generic_element_stats, (void*)&tv);
+  if(countries_hash) {
+    begin_slot = 0;
+    countries_hash->walk(&begin_slot, walk_all, update_generic_element_stats, (void*)&tv);
+  }
 
   if(hasSeenVlanTaggedPackets()) {
     begin_slot = 0;
@@ -5222,7 +5223,7 @@ u_int NetworkInterface::purgeIdleHostsMacsASesVlans() {
     n = (hosts_hash ? hosts_hash->purgeIdle() : 0)
       + macs_hash->purgeIdle()
       + (ases_hash ? ases_hash->purgeIdle() : 0)
-      + countries_hash->purgeIdle()
+      + (countries_hash ? countries_hash->purgeIdle() : 0)
       + vlans_hash->purgeIdle();
 
     if(arp_hash_matrix)
@@ -5688,16 +5689,9 @@ AutonomousSystem* NetworkInterface::getAS(IpAddress *ipa, bool createIfNotPresen
 Country* NetworkInterface::getCountry(const char *country_name, bool createIfNotPresent, bool isInlineCall) {
   Country *ret = NULL;
 
-  if(!country_name || !country_name[0]) return(NULL);
+  if(!countries_hash || !country_name || !country_name[0]) return(NULL);
 
-  if(!isView())
-    ret = countries_hash->get(country_name, isInlineCall);
-  else {
-    for(u_int8_t s = 0; s<numSubInterfaces; s++) {
-      if((ret = subInterfaces[s]->get_countries_hash()->get(country_name, isInlineCall)) != NULL)
-	break;
-    }
-  }
+  ret = countries_hash->get(country_name, isInlineCall);
 
   if((ret == NULL) && createIfNotPresent) {
     try {
