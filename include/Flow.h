@@ -46,7 +46,7 @@ typedef struct {
 class Flow : public GenericHashEntry {
  private:
   Host *cli_host, *srv_host;
-  IpAddress cli_ip_addr, srv_ip_addr;
+  IpAddress *cli_ip_addr, *srv_ip_addr;
   ICMPinfo *icmp_info;
   u_int16_t cli_port, srv_port;
   u_int16_t vlanId;
@@ -306,7 +306,6 @@ class Flow : public GenericHashEntry {
   inline void set_counted_in_aggregated_flow(bool val)        { counted_in_aggregated_flow  = val;         };
   inline void set_status_counted_in_aggregated_flow(bool val) { status_counted_in_aggregated_flow = val;   };
 #endif
-  bool isFlowPeer(char *numIP, u_int16_t vlanId);
   void incStats(bool cli2srv_direction, u_int pkt_len,
 		u_int8_t *payload, u_int payload_len, 
                 u_int8_t l4_proto, u_int8_t is_fragment,
@@ -351,8 +350,10 @@ class Flow : public GenericHashEntry {
   inline char* get_protocol_name()       const { return(Utils::l4proto2name(protocol));   };
 
 
-  inline Host* get_cli_host()            const  { return(cli_host);                        };
-  inline Host* get_srv_host()            const  { return(srv_host);                        };
+  inline Host* get_cli_host()               const { return(cli_host);    };
+  inline Host* get_srv_host()               const { return(srv_host);    };
+  inline const IpAddress* get_cli_ip_addr() const { return(cli_ip_addr); };
+  inline const IpAddress* get_srv_ip_addr() const { return(srv_ip_addr); };
   inline char* get_json_info()	         const  { return(json_info);                       };
   inline bool has_long_icmp_payload()    const  { return(protos.icmp.has_long_icmp_payload); };
   inline void set_long_icmp_payload()           { protos.icmp.has_long_icmp_payload = true;  };
@@ -400,7 +401,6 @@ class Flow : public GenericHashEntry {
 	     u_int16_t _vlanId, u_int8_t _protocol,
 	     const ICMPinfo * const icmp_info,
 	     bool *src2srv_direction);
-  bool clientLessThanServer() const;
   void sumStats(nDPIStats *ndpi_stats, FlowStats *stats);
   bool dumpFlow(bool dump_alert);
   bool match(AddressTree *ptree);

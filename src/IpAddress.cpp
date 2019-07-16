@@ -31,6 +31,12 @@ IpAddress::IpAddress() {
 
 /* ******************************************* */
 
+IpAddress::IpAddress(const IpAddress& ipa) {
+  set(&ipa);
+}
+
+/* ******************************************* */
+
 void IpAddress::set(const char * const sym_addr) {
   if(strchr(sym_addr, '.')) {
     addr.ipVersion = 4, addr.ipType.ipv4 = inet_addr(sym_addr);

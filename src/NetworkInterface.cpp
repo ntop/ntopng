@@ -3698,8 +3698,8 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
 
     if(retriever->pag
        && retriever->pag->ipVersion(&ip_version)
-       && (((ip_version == 4) && (f->get_cli_host() && !f->get_cli_host()->get_ip()->isIPv4()))
-	   || ((ip_version == 6) && (f->get_cli_host() && !f->get_cli_host()->get_ip()->isIPv6()))))
+       && (((ip_version == 4) && (f->get_cli_ip_addr() && !f->get_cli_ip_addr()->isIPv4()))
+	   || ((ip_version == 6) && (f->get_cli_ip_addr() && !f->get_cli_ip_addr()->isIPv6()))))
       return(false);
 
     if(retriever->pag
@@ -3838,10 +3838,10 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
     /* Unicast: at least one between client and server is unicast address */
     if(retriever->pag
        && retriever->pag->unicastTraffic(&unicast)
-       && ((unicast && ((f->get_cli_host() && (f->get_cli_host()->get_ip()->isMulticastAddress() || f->get_cli_host()->get_ip()->isBroadcastAddress()))
-			|| (f->get_srv_host() && (f->get_srv_host()->get_ip()->isMulticastAddress() || f->get_srv_host()->get_ip()->isBroadcastAddress()))))
-	   || (!unicast && ((f->get_cli_host() && (!f->get_cli_host()->get_ip()->isMulticastAddress() && !f->get_cli_host()->get_ip()->isBroadcastAddress()))
-			    && (f->get_srv_host() && (!f->get_srv_host()->get_ip()->isMulticastAddress() && !f->get_srv_host()->get_ip()->isBroadcastAddress()))))))
+       && ((unicast && ((f->get_cli_ip_addr() && (f->get_cli_ip_addr()->isMulticastAddress() || f->get_cli_ip_addr()->isBroadcastAddress()))
+			|| (f->get_srv_ip_addr() && (f->get_srv_ip_addr()->isMulticastAddress() || f->get_srv_ip_addr()->isBroadcastAddress()))))
+	   || (!unicast && ((f->get_cli_ip_addr() && (!f->get_cli_ip_addr()->isMulticastAddress() && !f->get_cli_ip_addr()->isBroadcastAddress()))
+			    && (f->get_srv_ip_addr() && (!f->get_srv_ip_addr()->isMulticastAddress() && !f->get_srv_ip_addr()->isBroadcastAddress()))))))
       return(false);
 
     /* Pool filter */

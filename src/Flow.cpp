@@ -60,8 +60,6 @@ Flow::Flow(NetworkInterface *_iface,
 
   memset(&cli2srvStats, 0, sizeof(cli2srvStats)), memset(&srv2cliStats, 0, sizeof(srv2cliStats));
 
-  cli_ip_addr.set(_cli_ip), srv_ip_addr.set(_srv_ip);
-
   ndpiFlow = NULL, cli_id = srv_id = NULL;
   cli_ebpf = srv_ebpf = NULL;
   json_info = strdup("{}"), cli2srv_direction = true, twh_over = twh_ok = false,
@@ -95,12 +93,16 @@ Flow::Flow(NetworkInterface *_iface,
   if(cli_host) {
     cli_host->incUses();
     cli_host->incNumFlows(last_seen, true, srv_host);
-  }
+    cli_ip_addr = cli_host->get_ip();
+  } else /* Client host has not been allocated, let's keep the info in an IpAddress */
+    cli_ip_addr = new (std::nothrow) IpAddress(*_cli_ip);
 
   if(srv_host) {
     srv_host->incUses();
     srv_host->incNumFlows(last_seen, false, cli_host);
-  }
+    srv_ip_addr = srv_host->get_ip();
+  } else /* Server host has not been allocated, let's keep the info in an IpAddress */
+    srv_ip_addr = new (std::nothrow) IpAddress(*_srv_ip);
 
   if(icmp_info) {
     if(icmp_info->isPortUnreachable()) { //port unreachable icmpv6/icmpv4
@@ -211,8 +213,15 @@ void Flow::freeDPIMemory() {
 /* *************************************** */
 
 Flow::~Flow() {
-  if(cli_host) cli_host->decNumFlows(last_seen, true, srv_host),  cli_host->decUses();
-  if(srv_host) srv_host->decNumFlows(last_seen, false, cli_host), srv_host->decUses();
+  if(cli_host)
+    cli_host->decNumFlows(last_seen, true, srv_host),  cli_host->decUses();
+  else if(cli_ip_addr) /* Dynamically allocated only when cli_host was NULL */
+    delete cli_ip_addr;
+
+  if(srv_host)
+    srv_host->decNumFlows(last_seen, false, cli_host), srv_host->decUses();
+  else if(srv_ip_addr) /* Dynamically allocated only when srv_host was NULL */
+    delete srv_ip_addr;
 
   if(json_info)        free(json_info);
   if(host_server_name) free(host_server_name);
@@ -896,8 +905,8 @@ char* Flow::print(char *buf, u_int buf_len) const {
 #endif
 	   ,
 	   get_protocol_name(),
-	   cli_ip_addr.print(buf1, sizeof(buf1)), ntohs(cli_port),
-	   srv_ip_addr.print(buf2, sizeof(buf2)), ntohs(srv_port),
+	   get_cli_ip_addr() ? get_cli_ip_addr()->print(buf1, sizeof(buf1)) : "", ntohs(cli_port),
+	   get_srv_ip_addr() ? get_srv_ip_addr()->print(buf2, sizeof(buf2)) : "", ntohs(srv_port),
 	   (u_int32_t)first_seen, (u_int32_t)last_seen,
 	   ndpiDetectedProtocol.master_protocol, ndpiDetectedProtocol.app_protocol,
 	   get_detected_protocol_name(pbuf, sizeof(pbuf)),
@@ -1159,21 +1168,21 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
       cli_host->incStats(tv->tv_sec, protocol, stats_protocol, custom_app,
 			 diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes,
 			 diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes,
-			 srv_ip_addr.isNonEmptyUnicastAddress());
+			 get_srv_ip_addr()->isNonEmptyUnicastAddress());
 
       // update per-subnet byte counters
       if(cli_network_stats) { // only if the network is known and local
 	if(!cli_and_srv_in_same_subnet) {
 	  cli_network_stats->incEgress(tv->tv_sec, diff_sent_packets, diff_sent_bytes,
-				       srv_ip_addr.isBroadcastAddress());
+				       get_srv_ip_addr()->isBroadcastAddress());
 	  cli_network_stats->incIngress(tv->tv_sec, diff_rcvd_packets, diff_rcvd_bytes,
-					cli_ip_addr.isBroadcastAddress());
+					get_cli_ip_addr()->isBroadcastAddress());
 	} else // client and server ARE in the same subnet
 	  // need to update the inner counter (just one time, will intentionally skip this for srv_host)
 	  cli_network_stats->incInner(tv->tv_sec, diff_sent_packets + diff_rcvd_packets,
 				      diff_sent_bytes + diff_rcvd_bytes,
-				      srv_ip_addr.isBroadcastAddress()
-				      || cli_ip_addr.isBroadcastAddress());
+				      get_srv_ip_addr()->isBroadcastAddress()
+				      || get_cli_ip_addr()->isBroadcastAddress());
       }
 
       NetworkStats *srv_network_stats;
@@ -1182,15 +1191,15 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
       srv_host->incStats(tv->tv_sec, protocol, stats_protocol, custom_app,
 			 diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes,
 			 diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes,
-			 cli_ip_addr.isNonEmptyUnicastAddress());
+			 get_cli_ip_addr()->isNonEmptyUnicastAddress());
 
       if(srv_network_stats) {
 	// local and known server network
 	if(!cli_and_srv_in_same_subnet) {
 	  srv_network_stats->incIngress(tv->tv_sec, diff_sent_packets, diff_sent_bytes,
-					srv_ip_addr.isBroadcastAddress());
+					get_srv_ip_addr()->isBroadcastAddress());
 	  srv_network_stats->incEgress(tv->tv_sec, diff_rcvd_packets, diff_rcvd_bytes,
-				       cli_ip_addr.isBroadcastAddress());
+				       get_cli_ip_addr()->isBroadcastAddress());
 	}
       }
 
@@ -1214,23 +1223,23 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
       if(cli_country_stats) {
 	if(!cli_and_srv_in_same_country) {
 	  cli_country_stats->incEgress(tv->tv_sec, diff_sent_packets, diff_sent_bytes,
-				       srv_ip_addr.isBroadcastAddress());
+				       get_srv_ip_addr()->isBroadcastAddress());
 	  cli_country_stats->incIngress(tv->tv_sec, diff_rcvd_packets, diff_rcvd_bytes,
-					cli_ip_addr.isBroadcastAddress());
+					get_cli_ip_addr()->isBroadcastAddress());
 	} else // client and server ARE in the same country
 	  // need to update the inner counter (just one time, will intentionally skip this for srv_host)
 	  cli_country_stats->incInner(tv->tv_sec, diff_sent_packets + diff_rcvd_packets,
 				      diff_sent_bytes + diff_rcvd_bytes,
-				      srv_ip_addr.isBroadcastAddress()
-				      || cli_ip_addr.isBroadcastAddress());
+				      get_srv_ip_addr()->isBroadcastAddress()
+				      || get_cli_ip_addr()->isBroadcastAddress());
       }
 
       if(srv_country_stats) {
 	if(!cli_and_srv_in_same_country) {
 	  srv_country_stats->incIngress(tv->tv_sec, diff_sent_packets, diff_sent_bytes,
-					srv_ip_addr.isBroadcastAddress());
+					get_srv_ip_addr()->isBroadcastAddress());
 	  srv_country_stats->incEgress(tv->tv_sec, diff_rcvd_packets, diff_rcvd_bytes,
-				       cli_ip_addr.isBroadcastAddress());
+				       get_cli_ip_addr()->isBroadcastAddress());
 	}
       }
 
@@ -1251,8 +1260,8 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
 
     /* Check and possibly enqueue host remote-to-remote alerts */
     if(!cli_host->isLocalHost() && !srv_host->isLocalHost()
-       && cli_ip_addr.isNonEmptyUnicastAddress()
-       && srv_ip_addr.isNonEmptyUnicastAddress()
+       && get_cli_ip_addr()->isNonEmptyUnicastAddress()
+       && get_srv_ip_addr()->isNonEmptyUnicastAddress()
        && ntop->getPrefs()->are_remote_to_remote_alerts_enabled()
        && !cli_host->setRemoteToRemoteAlerts()) {
       json_object *jo;
@@ -1511,11 +1520,13 @@ bool Flow::equal(IpAddress *_cli_ip, IpAddress *_srv_ip, u_int16_t _cli_port,
 		 u_int16_t _srv_port, u_int16_t _vlanId, u_int8_t _protocol,
 		 const ICMPinfo * const _icmp_info,
 		 bool *src2srv_direction) {
+  const IpAddress *cli_ip = get_cli_ip_addr(), *srv_ip = get_srv_ip_addr();
+
 #if 0
   char buf1[64],buf2[64],buf3[64],buf4[64];
   ntop->getTrace()->traceEvent(TRACE_WARNING, "[%s][%s][%s][%s]",
-			       cli_ip_addr.print(buf1, sizeof(buf1)),
-			       srv_ip_addr.print(buf2, sizeof(buf2)),
+			       cli_ip->print(buf1, sizeof(buf1)),
+			       srv_ip->print(buf2, sizeof(buf2)),
 			       _cli_ip->print(buf3, sizeof(buf3)),
 			       _srv_ip->print(buf4, sizeof(buf4)));
 #endif
@@ -1529,23 +1540,18 @@ bool Flow::equal(IpAddress *_cli_ip, IpAddress *_srv_ip, u_int16_t _cli_port,
   if(icmp_info && !icmp_info->equal(_icmp_info))
     return(false);
 
-
-  if(cli_ip_addr.equal(_cli_ip) && srv_ip_addr.equal(_srv_ip)
+  if(cli_ip && cli_ip->equal(_cli_ip)
+     && srv_ip && srv_ip->equal(_srv_ip)
      && _cli_port == cli_port && _srv_port == srv_port) {
     *src2srv_direction = true;
     return(true);
-  } else if(srv_ip_addr.equal(_cli_ip) && cli_ip_addr.equal(_srv_ip)
+  } else if(srv_ip && srv_ip->equal(_cli_ip)
+	    && cli_ip && cli_ip->equal(_srv_ip)
 	    && _srv_port == cli_port && _cli_port == srv_port) {
     *src2srv_direction = false;
     return(true);
   } else
     return(false);
-}
-
-/* *************************************** */
-
-bool Flow::clientLessThanServer() const {
-  return cli_ip_addr.compare(&srv_ip_addr) < 0;
 }
 
 /* *************************************** */
@@ -1629,11 +1635,13 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 	       DetailsLevel details_level, bool skipNewTable) {
   char buf[64];
   Host *src = get_cli_host(), *dst = get_srv_host();
+  const IpAddress *src_ip = get_cli_ip_addr(), *dst_ip = get_srv_ip_addr();
   bool src_match = true, dst_match = true;
   bool mask_cli_host = true, mask_dst_host = true, mask_flow;
 
   if(ptree) {
-    src_match = cli_ip_addr.match(ptree), dst_match = srv_ip_addr.match(ptree);
+    if(src_ip) src_match = src_ip->match(ptree);
+    if(dst_ip) dst_match = dst_ip->match(ptree);
     if(!src_match && !dst_match) return;
   }
 
@@ -1644,12 +1652,12 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     mask_cli_host = Utils::maskHost(src->isLocalHost());
 
     lua_push_str_table_entry(vm, "cli.ip",
-			     cli_ip_addr.printMask(buf, sizeof(buf),
-						   src->isLocalHost()));
+			     src->get_ip()->printMask(buf, sizeof(buf),
+						      src->isLocalHost()));
     lua_push_uint64_table_entry(vm, "cli.key", mask_cli_host ? 0 : src->key());
-  } else { /* Client host hasn't been instantiated but we still have the ip address */
-    lua_push_str_table_entry(vm, "cli.ip", cli_ip_addr.print(buf, sizeof(buf)));
-    lua_push_uint64_table_entry(vm, "cli.key", cli_ip_addr.key());
+  } else if(src_ip) { /* Client host hasn't been instantiated but we still have the ip address */
+    lua_push_str_table_entry(vm, "cli.ip", src_ip->print(buf, sizeof(buf)));
+    lua_push_uint64_table_entry(vm, "cli.key", src_ip->key());
   }
 
   lua_push_uint64_table_entry(vm, "cli.port", get_cli_port());
@@ -1658,12 +1666,12 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     mask_dst_host = Utils::maskHost(dst->isLocalHost());
 
     lua_push_str_table_entry(vm, "srv.ip",
-			     srv_ip_addr.printMask(buf, sizeof(buf),
-						   dst->isLocalHost()));
+			     dst->get_ip()->printMask(buf, sizeof(buf),
+						      dst->isLocalHost()));
     lua_push_uint64_table_entry(vm, "srv.key", mask_dst_host ? 0 : dst->key());
-  } else { /* Server host hasn't been instantiated but we still have the ip address */
-    lua_push_str_table_entry(vm, "srv.ip", srv_ip_addr.print(buf, sizeof(buf)));
-    lua_push_uint64_table_entry(vm, "srv.key", srv_ip_addr.key());
+  } else if(dst_ip) { /* Server host hasn't been instantiated but we still have the ip address */
+    lua_push_str_table_entry(vm, "srv.ip", dst_ip->print(buf, sizeof(buf)));
+    lua_push_uint64_table_entry(vm, "srv.key", dst_ip->key());
   }
 
   lua_push_uint64_table_entry(vm, "srv.port", get_srv_port());
@@ -1928,10 +1936,13 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
       lua_push_float_table_entry(vm, "srv.longitude", longitude);
 
       if(details_level >= details_max) {
-	lua_push_bool_table_entry(vm, "cli.private", cli_ip_addr.isPrivateAddress()); // cli. */
+	if(get_cli_ip_addr())
+	  lua_push_bool_table_entry(vm, "cli.private", get_cli_ip_addr()->isPrivateAddress()); // cli. */
 	lua_push_str_table_entry(vm,  "cli.country", get_cli_host()->get_country(buf, sizeof(buf)));
 	lua_push_str_table_entry(vm,  "cli.city", get_cli_host()->get_city(buf, sizeof(buf)));
-	lua_push_bool_table_entry(vm, "srv.private", srv_ip_addr.isPrivateAddress());
+
+	if(get_srv_ip_addr())
+	  lua_push_bool_table_entry(vm, "srv.private", get_srv_ip_addr()->isPrivateAddress());
 	lua_push_str_table_entry(vm,  "srv.country", get_srv_host()->get_country(buf, sizeof(buf)));
 	lua_push_str_table_entry(vm,  "srv.city", get_srv_host()->get_city(buf, sizeof(buf)));
       }
@@ -1956,8 +1967,8 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 u_int32_t Flow::key() {
   u_int32_t k = cli_port + srv_port + vlanId + protocol;
 
-  k += cli_ip_addr.key();
-  k += srv_ip_addr.key();
+  if(get_cli_ip_addr()) k += get_cli_ip_addr()->key();
+  if(get_srv_ip_addr()) k += get_srv_ip_addr()->key();
   if(icmp_info) k += icmp_info->key();
 
   return(k);
@@ -2013,24 +2024,6 @@ bool Flow::isReadyToBeMarkedAsIdle() {
   }
 
   return(isIdle(ntop->getPrefs()->get_flow_max_idle()));
-}
-
-/* *************************************** */
-
-bool Flow::isFlowPeer(char *numIP, u_int16_t vlanId) {
-  char s_buf[32], *ret;
-
-  if((!cli_host) || (!srv_host)) return(false);
-
-  ret = cli_ip_addr.print(s_buf, sizeof(s_buf));
-  if(strcmp(ret, numIP) == 0 && get_vlan_id() == vlanId)
-    return(true);
-
-  ret = srv_ip_addr.print(s_buf, sizeof(s_buf));
-  if(strcmp(ret, numIP) == 0 && get_vlan_id() == vlanId)
-    return(true);
-
-  return(false);
 }
 
 /* *************************************** */
@@ -2195,20 +2188,20 @@ json_object* Flow::flow2json() {
   }
 
   if(cli_host) {
-    if(cli_ip_addr.isIPv4()) {
+    if(get_cli_ip_addr()->isIPv4()) {
       json_object_object_add(my_object, Utils::jsonLabel(IPV4_SRC_ADDR, "IPV4_SRC_ADDR", jsonbuf, sizeof(jsonbuf)),
 			     json_object_new_string(cli_host->get_string_key(buf, sizeof(buf))));
-    } else if(cli_ip_addr.isIPv6()) {
+    } else if(get_cli_ip_addr()->isIPv6()) {
       json_object_object_add(my_object, Utils::jsonLabel(IPV6_SRC_ADDR, "IPV6_SRC_ADDR", jsonbuf, sizeof(jsonbuf)),
 			     json_object_new_string(cli_host->get_string_key(buf, sizeof(buf))));
     }
   }
 
   if(srv_host) {
-    if(srv_ip_addr.isIPv4()) {
+    if(get_srv_ip_addr()->isIPv4()) {
       json_object_object_add(my_object, Utils::jsonLabel(IPV4_DST_ADDR, "IPV4_DST_ADDR", jsonbuf, sizeof(jsonbuf)),
 			     json_object_new_string(srv_host->get_string_key(buf, sizeof(buf))));
-    } else if(srv_ip_addr.isIPv6()) {
+    } else if(get_srv_ip_addr()->isIPv6()) {
       json_object_object_add(my_object, Utils::jsonLabel(IPV6_DST_ADDR, "IPV6_DST_ADDR", jsonbuf, sizeof(jsonbuf)),
 			     json_object_new_string(srv_host->get_string_key(buf, sizeof(buf))));
     }
@@ -2973,8 +2966,8 @@ char* Flow::get_user_name(bool client) {
 /* *************************************** */
 
 bool Flow::match(AddressTree *ptree) {
-  if(cli_ip_addr.match(ptree)
-     || srv_ip_addr.match(ptree))
+  if((get_cli_ip_addr() && get_cli_ip_addr()->match(ptree))
+     || (get_srv_ip_addr() && get_srv_ip_addr()->match(ptree)))
     return(true);
   else
     return(false);
@@ -3125,8 +3118,8 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
 		  ntop->getTrace()->traceEvent(TRACE_WARNING, "[UA] [%s][OS=%u][%s]", cli_host->getMac()->get_string_key(mbuf, sizeof(mbuf)), os, ua);
 #endif
 
-		  if(!(cli_ip_addr.isBroadcastAddress()
-		       || cli_ip_addr.isMulticastAddress()))
+		  if(!(get_cli_ip_addr()->isBroadcastAddress()
+		       || get_cli_ip_addr()->isMulticastAddress()))
 		  cli_host->getMac()->setOperatingSystem(os);
 		}
 	      }
@@ -3679,8 +3672,8 @@ FlowStatus Flow::getFlowStatus() {
   }
 
   if(cli_host && srv_host
-      && cli_ip_addr.isNonEmptyUnicastAddress()
-      && srv_ip_addr.isNonEmptyUnicastAddress()) {
+     && get_cli_ip_addr()->isNonEmptyUnicastAddress()
+     && get_srv_ip_addr()->isNonEmptyUnicastAddress()) {
 
     if(! cli_host->isLocalHost() &&
        ! srv_host->isLocalHost())
@@ -3894,12 +3887,13 @@ void Flow::postFlowSetIdle(time_t t) {
 void Flow::fillZmqFlowCategory() {
   struct ndpi_detection_module_struct *ndpi_struct = iface->get_ndpi_struct();
   char *srv_name = getFlowServerInfo();
+  const IpAddress *cli_ip = get_cli_ip_addr(), *srv_ip = get_srv_ip_addr();
 
-  if(!cli_host || !srv_host)
+  if(!cli_ip || !srv_ip)
     return;
 
-  if(cli_ip_addr.isIPv4()) {
-    if(ndpi_fill_ip_protocol_category(ndpi_struct, get_cli_ipv4(), get_srv_ipv4(), &ndpiDetectedProtocol))
+  if(cli_ip->isIPv4()) {
+    if(ndpi_fill_ip_protocol_category(ndpi_struct, cli_ip->get_ipv4(), srv_ip->get_ipv4(), &ndpiDetectedProtocol))
       return;
   }
 
