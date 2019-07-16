@@ -53,6 +53,7 @@ class AlertableEntity {
 
   bool triggerAlert(std::string key, ScriptPeriodicity p, time_t now);
   void getExpiredAlerts(ScriptPeriodicity p, lua_State* vm, time_t now);
+  u_int getNumTriggeredAlerts();
 };
 
 #endif

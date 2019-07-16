@@ -48,7 +48,6 @@ class Host : public GenericHashEntry, public AlertableEntity {
   bool host_label_set;
   /* END Host data: */
 
-  u_int32_t num_alerts_detected;
   AlertCounter *syn_flood_attacker_alert, *syn_flood_victim_alert;
   AlertCounter *flow_flood_attacker_alert, *flow_flood_victim_alert;
   bool trigger_host_alerts;
@@ -294,9 +293,7 @@ class Host : public GenericHashEntry, public AlertableEntity {
   void luaAnomalies(lua_State* vm);
   bool triggerAlerts()                                   { return(trigger_host_alerts);       };
   void refreshHostAlertPrefs();
-  u_int32_t getNumAlerts(bool from_alertsmanager = false);
   void housekeepAlerts(ScriptPeriodicity p);
-  void setNumAlerts(u_int32_t num)                       { num_alerts_detected = num;         };
   inline u_int getNumDropboxPeers()                      { return(dropbox_namespaces.size()); };
   virtual void inlineSetOS(const char * const _os) {};
   void inlineSetSSDPLocation(const char * const url);

@@ -3969,7 +3969,7 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data, bool *matc
     break;
 
   case column_alerts:
-    r->elems[r->actNumEntries++].numericValue = h->getNumAlerts();
+    r->elems[r->actNumEntries++].numericValue = h->getNumTriggeredAlerts();
     break;
 
   case column_name:

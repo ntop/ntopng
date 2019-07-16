@@ -7876,33 +7876,6 @@ static int ntop_interface_release_alert(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_interface_set_host_alerts(lua_State* vm) {
-  u_int16_t vlan_id = 0;
-  u_int32_t engaged_alerts;
-  char buf[64], *host_ip;
-  Host *h;
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  get_host_vlan_info((char*)lua_tostring(vm, 1), &host_ip, &vlan_id, buf, sizeof(buf));
-
-  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  engaged_alerts = (u_int32_t) lua_tointeger(vm, 2);
-
-  if((!ntop_interface) || ((h = ntop_interface->findHostByIP(get_allowed_nets(vm), host_ip, vlan_id)) == NULL))
-    lua_pushboolean(vm, false);
-  else {
-    h->setNumAlerts(engaged_alerts);
-    lua_pushboolean(vm, true);
-  }
-
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
 static int ntop_interface_set_has_alerts(lua_State* vm) {
   bool has_alerts;
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
@@ -9095,7 +9068,6 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "queryFlowAlertsRaw",     ntop_interface_query_flow_alerts_raw    },
   { "triggerAlert",           ntop_interface_trigger_alert            },
   { "releaseAlert",           ntop_interface_release_alert            },
-  { "setHostAlerts",          ntop_interface_set_host_alerts          },
   { "setInterfaceHasAlerts",  ntop_interface_set_has_alerts           },
   { "getCachedAlertValue",    ntop_interface_get_cached_alert_value   },
   { "setCachedAlertValue",    ntop_interface_set_cached_alert_value   },

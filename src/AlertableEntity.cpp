@@ -48,3 +48,15 @@ bool AlertableEntity::triggerAlert(std::string key, ScriptPeriodicity p, time_t 
     return(true); /* inserted */
   }
 }
+
+/* ****************************************** */
+
+u_int AlertableEntity::getNumTriggeredAlerts() {
+  int i;
+  u_int num_alerts = 0;
+
+  for(i = 0; i<MAX_NUM_PERIODIC_SCRIPTS; i++)
+    num_alerts += getNumTriggeredAlerts((ScriptPeriodicity) i);
+
+  return(num_alerts);
+}

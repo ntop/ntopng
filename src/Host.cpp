@@ -114,21 +114,6 @@ void Host::housekeepAlerts(ScriptPeriodicity p) {
 
 /* *************************************** */
 
-u_int32_t Host::getNumAlerts(bool from_alertsmanager) {
-  if(!from_alertsmanager)
-    return(num_alerts_detected);
-
-  num_alerts_detected = 0; // TODO FIXME use internal counter from lua
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG,
-			       "Refreshing alerts from alertsmanager [num: %i]",
-			       num_alerts_detected);
-
-  return(num_alerts_detected);
-}
-
-/* *************************************** */
-
 void Host::set_host_label(char *label_name, bool ignoreIfPresent) {
   if(label_name) {
     char buf[64], buf1[64], *host = ip.print(buf, sizeof(buf));
@@ -182,7 +167,6 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   reloadHostBlacklist();
   is_dhcp_host = false;
 
-  num_alerts_detected = 0;
   trigger_host_alerts = false;
 
   PROFILING_SUB_SECTION_ENTER(iface, "Host::initialize: new AlertCounter", 17);
@@ -428,7 +412,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   lua_insert(vm, -2);
   lua_settable(vm, -3);
 
-  lua_push_uint64_table_entry(vm, "num_alerts", triggerAlerts() ? getNumAlerts() : 0);
+  lua_push_uint64_table_entry(vm, "num_alerts", triggerAlerts() ? getNumTriggeredAlerts() : 0);
 
   lua_push_str_table_entry(vm, "name", get_visual_name(buf, sizeof(buf)));
 
@@ -707,7 +691,7 @@ void Host::serialize(json_object *my_object, DetailsLevel details_level) {
     json_object_object_add(my_object, "is_blacklisted", json_object_new_boolean(isBlacklisted()));
 
     /* Generic Host */
-    json_object_object_add(my_object, "num_alerts", json_object_new_int(triggerAlerts() ? getNumAlerts() : 0));
+    json_object_object_add(my_object, "num_alerts", json_object_new_int(triggerAlerts() ? getNumTriggeredAlerts() : 0));
   }
 
   /* The value below is handled by reading dumps on disk as otherwise the string will be too long */
