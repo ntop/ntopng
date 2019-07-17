@@ -143,10 +143,6 @@ class NetworkInterface : public AlertableEntity {
   TimeseriesExporter *tsExporter;
   TimeseriesRing *ts_ring;
 
-  /* Sub-interface views */
-  u_int8_t numSubInterfaces;
-  NetworkInterface *subInterfaces[MAX_NUM_VIEW_INTERFACES];
-
   u_int nextFlowAggregation;
   TcpFlowStats tcpFlowStats;
   TcpPacketStats tcpPacketStats;

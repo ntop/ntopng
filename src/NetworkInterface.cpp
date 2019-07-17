@@ -303,8 +303,6 @@ void NetworkInterface::init() {
   macs_hash = NULL, ases_hash = NULL, countries_hash = NULL, vlans_hash = NULL,
     arp_hash_matrix = NULL;
 
-  numSubInterfaces = 0;
-  memset(subInterfaces, 0, sizeof(subInterfaces));
   reload_custom_categories = reload_hosts_blacklist = false;
   reload_hosts_bcast_domain = false;
   hosts_bcast_domain_last_update = 0;
@@ -2954,8 +2952,6 @@ void NetworkInterface::periodicStatsUpdate() {
   struct timeval tdebug;
 #endif
 
-  if(isView()) return;
-
   if(!read_from_pcap_dump())
     gettimeofday(&tv, NULL);
   else
@@ -5479,10 +5475,6 @@ void NetworkInterface::lua(lua_State *vm) {
   sumStats(&_tcpFlowStats, &_ethStats, &_localStats,
 	   &_ndpiStats, &_pktStats, &_tcpPacketStats);
 
-  for(u_int8_t s = 0; s<numSubInterfaces; s++)
-    subInterfaces[s]->sumStats(&_tcpFlowStats, &_ethStats,
-			       &_localStats, &_ndpiStats, &_pktStats, &_tcpPacketStats);
-
   _tcpFlowStats.lua(vm, "tcpFlowStats");
   _ethStats.lua(vm);
   _localStats.lua(vm);
@@ -7209,10 +7201,6 @@ void NetworkInterface::makeTsPoint(NetworkInterfaceTsPoint *pt) {
 
   sumStats(&_tcpFlowStats, &_ethStats, &pt->local_stats,
 	   &pt->ndpi, &pt->packetStats, &pt->tcpPacketStats);
-
-  for(u_int8_t s = 0; s<numSubInterfaces; s++)
-    subInterfaces[s]->sumStats(&_tcpFlowStats, &_ethStats,
-			       &pt->local_stats, &pt->ndpi, &pt->packetStats, &pt->tcpPacketStats);
 
   pt->hosts = getNumHosts();
   pt->local_hosts = getNumLocalHosts();

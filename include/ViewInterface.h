@@ -25,6 +25,10 @@
 #include "ntop_includes.h"
 
 class ViewInterface : public NetworkInterface {
+ private:
+  u_int8_t num_viewed_interfaces;
+  NetworkInterface *viewed_interfaces[MAX_NUM_VIEW_INTERFACES];
+
  public:
   ViewInterface(const char *_endpoint);
 

@@ -24,6 +24,8 @@
 /* **************************************************** */
 
 ViewInterface::ViewInterface(const char *_endpoint) : NetworkInterface(_endpoint) {
+  memset(viewed_interfaces, 0, sizeof(viewed_interfaces));
+  num_viewed_interfaces = 0;
   char *ifaces = strdup(&_endpoint[5]); /* Skip view: */
 
   if(ifaces) {
@@ -41,11 +43,11 @@ ViewInterface::ViewInterface(const char *_endpoint) : NetworkInterface(_endpoint
 	if(!strncmp(ifName, iface, MAX_INTERFACE_NAME_LEN)) {
 	  found = true;
 	  
-	  if(numSubInterfaces < MAX_NUM_VIEW_INTERFACES) {
+	  if(num_viewed_interfaces < MAX_NUM_VIEW_INTERFACES) {
 	    NetworkInterface *what = ntop->getInterfaceById(i);
 
 	    if(what)
-	      subInterfaces[numSubInterfaces++] = what;
+	      viewed_interfaces[num_viewed_interfaces++] = what;
 	    else
 	      ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal Error: NULL interface [%s][%d]", ifName, i);
 	  }
@@ -55,7 +57,7 @@ ViewInterface::ViewInterface(const char *_endpoint) : NetworkInterface(_endpoint
 
       if(!found) 
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "Skipping view sub-interface %s: not found", iface);
-      else if(numSubInterfaces == MAX_NUM_VIEW_INTERFACES)
+      else if(num_viewed_interfaces == MAX_NUM_VIEW_INTERFACES)
 	break; /* Upper interface limit reached */
       
       iface = strtok_r(NULL, ",", &tmp);
@@ -74,11 +76,11 @@ bool ViewInterface::walker(u_int32_t *begin_slot,
 			   void *user_data) {
   bool ret = false;
 
-  for(u_int8_t s = 0; s < numSubInterfaces; s++) {
+  for(u_int8_t s = 0; s < num_viewed_interfaces; s++) {
     // ntop->getTrace()->traceEvent(TRACE_WARNING, "VIEW: Iterating on subinterface %s [walker_flows: %u]",
-    // 				 subInterfaces[s]->get_name(),
+    // 				 viewed_interfaces[s]->get_name(),
     // 				 wtype == walker_flows ? 1 : 0);
-    ret |= subInterfaces[s]->walker(begin_slot, walk_all, wtype, walker, user_data);
+    ret |= viewed_interfaces[s]->walker(begin_slot, walk_all, wtype, walker, user_data);
   }
 
   return(ret);
@@ -89,8 +91,8 @@ bool ViewInterface::walker(u_int32_t *begin_slot,
 u_int64_t ViewInterface::getNumPackets() {  
   u_int64_t tot = 0;
 
-  for(u_int8_t s = 0; s<numSubInterfaces; s++)
-    tot += subInterfaces[s]->getNumPackets();
+  for(u_int8_t s = 0; s<num_viewed_interfaces; s++)
+    tot += viewed_interfaces[s]->getNumPackets();
 
   return(tot);
 };
@@ -100,8 +102,8 @@ u_int64_t ViewInterface::getNumPackets() {
 u_int32_t ViewInterface::getNumPacketDrops() {
   u_int32_t tot = 0;
 
-  for(u_int8_t s = 0; s<numSubInterfaces; s++)
-    tot += subInterfaces[s]->getNumDroppedPackets();
+  for(u_int8_t s = 0; s<num_viewed_interfaces; s++)
+    tot += viewed_interfaces[s]->getNumDroppedPackets();
 
   return(tot);
 };
@@ -111,8 +113,8 @@ u_int32_t ViewInterface::getNumPacketDrops() {
 u_int ViewInterface::getNumFlows() {
   u_int tot = 0;
 
-  for(u_int8_t s = 0; s < numSubInterfaces; s++)
-    tot += subInterfaces[s]->getNumFlows();
+  for(u_int8_t s = 0; s < num_viewed_interfaces; s++)
+    tot += viewed_interfaces[s]->getNumFlows();
 
   return(tot);
 };
@@ -122,8 +124,8 @@ u_int ViewInterface::getNumFlows() {
 u_int ViewInterface::getNumL2Devices() {
   u_int tot = 0;
 
-  for(u_int8_t s = 0; s < numSubInterfaces; s++)
-    tot += subInterfaces[s]->getNumL2Devices();
+  for(u_int8_t s = 0; s < num_viewed_interfaces; s++)
+    tot += viewed_interfaces[s]->getNumL2Devices();
 
   return(tot);
 };
@@ -133,8 +135,8 @@ u_int ViewInterface::getNumL2Devices() {
 u_int ViewInterface::getNumHosts() {
   u_int tot = 0;
 
-  for(u_int8_t s = 0; s < numSubInterfaces; s++)
-    tot += subInterfaces[s]->getNumHosts();
+  for(u_int8_t s = 0; s < num_viewed_interfaces; s++)
+    tot += viewed_interfaces[s]->getNumHosts();
 
   return(tot);
 };
@@ -144,8 +146,8 @@ u_int ViewInterface::getNumHosts() {
 u_int ViewInterface::getNumLocalHosts() {
   u_int tot = 0;
 
-  for(u_int8_t s = 0; s < numSubInterfaces; s++)
-    tot += subInterfaces[s]->getNumLocalHosts();
+  for(u_int8_t s = 0; s < num_viewed_interfaces; s++)
+    tot += viewed_interfaces[s]->getNumLocalHosts();
 
   return(tot);
 };
@@ -155,8 +157,8 @@ u_int ViewInterface::getNumLocalHosts() {
 u_int ViewInterface::getNumHTTPHosts() {
   u_int tot = 0;
 
-  for(u_int8_t s = 0; s < numSubInterfaces; s++)
-    tot += subInterfaces[s]->getNumHTTPHosts();
+  for(u_int8_t s = 0; s < num_viewed_interfaces; s++)
+    tot += viewed_interfaces[s]->getNumHTTPHosts();
 
   return(tot);
 };
@@ -166,8 +168,8 @@ u_int ViewInterface::getNumHTTPHosts() {
 u_int ViewInterface::getNumMacs() {
   u_int tot = 0;
 
-  for(u_int8_t s = 0; s < numSubInterfaces; s++)
-    tot += subInterfaces[s]->getNumMacs();
+  for(u_int8_t s = 0; s < num_viewed_interfaces; s++)
+    tot += viewed_interfaces[s]->getNumMacs();
 
   return(tot);
 };
@@ -177,8 +179,8 @@ u_int ViewInterface::getNumMacs() {
 u_int64_t ViewInterface::getNumBytes() {
   u_int64_t tot = 0;
 
-  for(u_int8_t s = 0; s<numSubInterfaces; s++)
-    tot += subInterfaces[s]->getNumBytes();
+  for(u_int8_t s = 0; s<num_viewed_interfaces; s++)
+    tot += viewed_interfaces[s]->getNumBytes();
 
   return(tot);
 }
@@ -188,8 +190,8 @@ u_int64_t ViewInterface::getNumBytes() {
 u_int64_t ViewInterface::getCheckPointNumPackets() {
   u_int64_t tot = 0;
 
-  for(u_int8_t s = 0; s < numSubInterfaces; s++)
-    tot += subInterfaces[s]->getCheckPointNumPackets();
+  for(u_int8_t s = 0; s < num_viewed_interfaces; s++)
+    tot += viewed_interfaces[s]->getCheckPointNumPackets();
 
   return(tot);
 };
@@ -199,8 +201,8 @@ u_int64_t ViewInterface::getCheckPointNumPackets() {
 u_int64_t ViewInterface::getCheckPointNumBytes() {
   u_int64_t tot = 0;
 
-  for(u_int8_t s = 0; s < numSubInterfaces; s++)
-    tot += subInterfaces[s]->getCheckPointNumBytes();
+  for(u_int8_t s = 0; s < num_viewed_interfaces; s++)
+    tot += viewed_interfaces[s]->getCheckPointNumBytes();
 
   return(tot);
 }
@@ -210,8 +212,8 @@ u_int64_t ViewInterface::getCheckPointNumBytes() {
 u_int32_t ViewInterface::getCheckPointNumPacketDrops() {
   u_int32_t tot = 0;
 
-  for(u_int8_t s = 0; s < numSubInterfaces; s++)
-    tot += subInterfaces[s]->getCheckPointNumPacketDrops();
+  for(u_int8_t s = 0; s < num_viewed_interfaces; s++)
+    tot += viewed_interfaces[s]->getCheckPointNumPacketDrops();
 
   return(tot);
 };
@@ -221,8 +223,8 @@ u_int32_t ViewInterface::getCheckPointNumPacketDrops() {
 u_int32_t ViewInterface::getFlowsHashSize() {
   u_int32_t tot = 0;
 
-  for(u_int8_t s = 0; s < numSubInterfaces; s++)
-    tot += subInterfaces[s]->getFlowsHashSize();
+  for(u_int8_t s = 0; s < num_viewed_interfaces; s++)
+    tot += viewed_interfaces[s]->getFlowsHashSize();
 
   return(tot);
 }
@@ -232,8 +234,8 @@ u_int32_t ViewInterface::getFlowsHashSize() {
 u_int32_t ViewInterface::getMacsHashSize() {
   u_int32_t tot = 0;
 
-  for(u_int8_t s = 0; s < numSubInterfaces; s++)
-    tot += subInterfaces[s]->getMacsHashSize();
+  for(u_int8_t s = 0; s < num_viewed_interfaces; s++)
+    tot += viewed_interfaces[s]->getMacsHashSize();
 
   return(tot);
 }
@@ -243,8 +245,8 @@ u_int32_t ViewInterface::getMacsHashSize() {
 u_int32_t ViewInterface::getHostsHashSize() {
   u_int32_t tot = 0;
 
-  for(u_int8_t s = 0; s < numSubInterfaces; s++) {
-    tot += subInterfaces[s]->getHostsHashSize();
+  for(u_int8_t s = 0; s < num_viewed_interfaces; s++) {
+    tot += viewed_interfaces[s]->getHostsHashSize();
   }
 
   return(tot);
@@ -255,8 +257,8 @@ u_int32_t ViewInterface::getHostsHashSize() {
 u_int32_t ViewInterface::getASesHashSize() {
   u_int32_t tot = 0;
 
-  for(u_int8_t s = 0; s < numSubInterfaces; s++)
-    tot += subInterfaces[s]->getASesHashSize();
+  for(u_int8_t s = 0; s < num_viewed_interfaces; s++)
+    tot += viewed_interfaces[s]->getASesHashSize();
 
   return(tot);
 }
@@ -266,8 +268,8 @@ u_int32_t ViewInterface::getASesHashSize() {
 u_int32_t ViewInterface::getCountriesHashSize() {
   u_int32_t tot = 0;
 
-  for(u_int8_t s = 0; s < numSubInterfaces; s++)
-    tot += subInterfaces[s]->getCountriesHashSize();
+  for(u_int8_t s = 0; s < num_viewed_interfaces; s++)
+    tot += viewed_interfaces[s]->getCountriesHashSize();
 
   return(tot);
 }
@@ -277,8 +279,8 @@ u_int32_t ViewInterface::getCountriesHashSize() {
 u_int32_t ViewInterface::getVLANsHashSize() {
   u_int32_t tot = 0;
 
-  for(u_int8_t s = 0; s < numSubInterfaces; s++)
-    tot += subInterfaces[s]->getVLANsHashSize();
+  for(u_int8_t s = 0; s < num_viewed_interfaces; s++)
+    tot += viewed_interfaces[s]->getVLANsHashSize();
 
   return(tot);
 }
@@ -288,8 +290,8 @@ u_int32_t ViewInterface::getVLANsHashSize() {
 Host* ViewInterface::getHost(char *host_ip, u_int16_t vlan_id, bool isInlineCall) {
   Host *h = NULL;
 
-  for(u_int8_t s = 0; s < numSubInterfaces; s++) {
-    if((h = subInterfaces[s]->getHost(host_ip, vlan_id, isInlineCall)))
+  for(u_int8_t s = 0; s < num_viewed_interfaces; s++) {
+    if((h = viewed_interfaces[s]->getHost(host_ip, vlan_id, isInlineCall)))
       break;
   }
 
@@ -301,8 +303,8 @@ Host* ViewInterface::getHost(char *host_ip, u_int16_t vlan_id, bool isInlineCall
 Mac* ViewInterface::getMac(u_int8_t _mac[6], bool createIfNotPresent, bool isInlineCall) {
   Mac *ret = NULL;
 
-  for(u_int8_t s = 0; s < numSubInterfaces; s++) {
-    if((ret = subInterfaces[s]->getMac(_mac, false, isInlineCall)))
+  for(u_int8_t s = 0; s < num_viewed_interfaces; s++) {
+    if((ret = viewed_interfaces[s]->getMac(_mac, false, isInlineCall)))
       break;
   }
 
@@ -314,8 +316,8 @@ Mac* ViewInterface::getMac(u_int8_t _mac[6], bool createIfNotPresent, bool isInl
 Flow* ViewInterface::findFlowByKey(u_int32_t key, AddressTree *allowed_hosts) {
   Flow *f = NULL;
 
-  for(u_int8_t s = 0; s < numSubInterfaces; s++) {
-    if((f = (Flow*)subInterfaces[s]->findFlowByKey(key, allowed_hosts)))
+  for(u_int8_t s = 0; s < num_viewed_interfaces; s++) {
+    if((f = (Flow*)viewed_interfaces[s]->findFlowByKey(key, allowed_hosts)))
       break;
   }
 
@@ -331,8 +333,8 @@ Flow* ViewInterface::findFlowByTuple(u_int16_t vlan_id,
 				     AddressTree *allowed_hosts) const {
   Flow *f = NULL;
 
-  for(u_int8_t s = 0; s < numSubInterfaces; s++) {
-    if((f = (Flow*)subInterfaces[s]->findFlowByTuple(vlan_id, src_ip, dst_ip, src_port, dst_port, l4_proto, allowed_hosts)))
+  for(u_int8_t s = 0; s < num_viewed_interfaces; s++) {
+    if((f = (Flow*)viewed_interfaces[s]->findFlowByTuple(vlan_id, src_ip, dst_ip, src_port, dst_port, l4_proto, allowed_hosts)))
       break;
   }
 
@@ -346,8 +348,8 @@ void ViewInterface::lua(lua_State *vm) {
   bool has_macs = false;
 
   NetworkInterface::lua(vm);
-  for(u_int8_t s = 0; s < numSubInterfaces; s++) {
-    if(subInterfaces[s]->hasSeenMacAddresses()) {
+  for(u_int8_t s = 0; s < num_viewed_interfaces; s++) {
+    if(viewed_interfaces[s]->hasSeenMacAddresses()) {
       has_macs = true;
       break;
     }
