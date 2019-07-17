@@ -75,7 +75,6 @@ class NetworkInterface : public AlertableEntity {
   const char *customIftype;
   u_int8_t purgeRuns;
   u_int32_t bridge_lan_interface_id, bridge_wan_interface_id;
-  u_int32_t num_hashes;
   u_int32_t num_alerts_engaged[MAX_NUM_PERIODIC_SCRIPTS];
   bool has_alerts;
 
@@ -591,7 +590,7 @@ class NetworkInterface : public AlertableEntity {
     return(-1);
   };
   NetworkStats* getNetworkStats(u_int8_t networkId) const;
-  void allocateNetworkStats();
+  void allocateStructures();
   void getsDPIStats(lua_State *vm);
 #ifdef NTOPNG_PRO
   void updateFlowProfiles();

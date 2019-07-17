@@ -169,28 +169,6 @@ NetworkInterface::NetworkInterface(const char *name,
   ndpi_set_protocol_detection_bitmask2(ndpi_struct, &all);
 
   if(id >= 0) {
-    num_hashes = max_val(4096, ntop->getPrefs()->get_max_num_flows()/4);
-    flows_hash = new FlowHash(this, num_hashes, ntop->getPrefs()->get_max_num_flows());
-
-    num_hashes = max_val(4096, ntop->getPrefs()->get_max_num_hosts() / 4);
-
-    hosts_hash = new (std::nothrow) HostHash(this, num_hashes, ntop->getPrefs()->get_max_num_hosts());
-
-    /* The number of ASes cannot be greater than the number of hosts */
-    ases_hash = new (std::nothrow) AutonomousSystemHash(this, num_hashes, ntop->getPrefs()->get_max_num_hosts());
-
-    countries_hash = new (std::nothrow) CountriesHash(this, num_hashes, ntop->getPrefs()->get_max_num_hosts());
-
-    vlans_hash = new (std::nothrow) VlanHash(this, num_hashes, max_val(ntop->getPrefs()->get_max_num_hosts() / 2, (u_int16_t)-1));
-
-    macs_hash = new (std::nothrow) MacHash(this, num_hashes, ntop->getPrefs()->get_max_num_hosts());
-
-    if(ntop->getPrefs()->is_arp_matrix_generation_enabled())
-      arp_hash_matrix = new (std::nothrow) ArpStatsHashMatrix(this, num_hashes,
-							      (ntop->getPrefs()->get_max_num_hosts() ^ 2) / 2);
-    else
-      arp_hash_matrix = NULL;
-
     last_pkt_rcvd = last_pkt_rcvd_remote = 0, pollLoopCreated = false,
       bridge_interface = false;
     next_idle_flow_purge = next_idle_host_purge = 0;
@@ -206,9 +184,6 @@ NetworkInterface::NetworkInterface(const char *name,
     ifMTU = Utils::getIfMTU(name), mtuWarningShown = false;
     reloadDhcpRanges();
   } else /* id < 0 */ {
-    flows_hash = NULL, hosts_hash = NULL;
-    macs_hash = NULL, ases_hash = NULL, vlans_hash = NULL;
-    countries_hash = NULL, arp_hash_matrix = NULL;
     db = NULL, ifSpeed = 0;
   }
 
@@ -276,7 +251,7 @@ NetworkInterface::NetworkInterface(const char *name,
 /* **************************************************** */
 
 void NetworkInterface::init() {
-  ifname = NULL, flows_hash = NULL, hosts_hash = NULL,
+  ifname = NULL,
     bridge_lan_interface_id = bridge_wan_interface_id = 0, ndpi_struct = NULL,
     inline_interface = false,
     has_vlan_packets = false, has_ebpf_events = false,
@@ -300,8 +275,10 @@ void NetworkInterface::init() {
     pollLoopCreated = false, bridge_interface = false,
     mdns = NULL, discovery = NULL, ifDescription = NULL,
     flowHashingMode = flowhashing_none;
-  macs_hash = NULL, ases_hash = NULL, countries_hash = NULL, vlans_hash = NULL,
-    arp_hash_matrix = NULL;
+
+  flows_hash = NULL, hosts_hash = NULL;
+  macs_hash = NULL, ases_hash = NULL, vlans_hash = NULL;
+  countries_hash = NULL, arp_hash_matrix = NULL;
 
   reload_custom_categories = reload_hosts_blacklist = false;
   reload_hosts_bcast_domain = false;
@@ -1038,7 +1015,7 @@ NetworkInterface* NetworkInterface::getSubInterface(u_int32_t criteria, bool par
 	if(h->iface) {
 	  if (ntop->registerInterface(h->iface))
             ntop->initInterface(h->iface);
-	  h->iface->allocateNetworkStats();
+	  h->iface->allocateStructures();
 	  h->iface->setDynamicInterface();
 	  HASH_ADD_INT(flowHashing, criteria, h);
 	  numVirtualInterfaces++;
@@ -6085,13 +6062,29 @@ bool NetworkInterface::isInterfaceNetwork(const IpAddress * const ipa, int netwo
 
 /* **************************************** */
 
-void NetworkInterface::allocateNetworkStats() {
+void NetworkInterface::allocateStructures() {
   u_int8_t numNetworks = ntop->getNumLocalNetworks();
 
   try {
-    networkStats = new NetworkStats[numNetworks];
-    statsManager  = new StatsManager(id, STATS_MANAGER_STORE_NAME);
-    alertsManager = new AlertsManager(id, ALERTS_MANAGER_STORE_NAME);
+    if(get_id() >= 0) {
+      u_int32_t num_hashes = max_val(4096, ntop->getPrefs()->get_max_num_flows()/4);
+
+      flows_hash     = new FlowHash(this, num_hashes, ntop->getPrefs()->get_max_num_flows());
+      num_hashes     = max_val(4096, ntop->getPrefs()->get_max_num_hosts() / 4);
+      hosts_hash     = new HostHash(this, num_hashes, ntop->getPrefs()->get_max_num_hosts());
+      /* The number of ASes cannot be greater than the number of hosts */
+      ases_hash      = new AutonomousSystemHash(this, num_hashes, ntop->getPrefs()->get_max_num_hosts());
+      countries_hash = new CountriesHash(this, num_hashes, ntop->getPrefs()->get_max_num_hosts());
+      vlans_hash     = new VlanHash(this, num_hashes, max_val(ntop->getPrefs()->get_max_num_hosts() / 2, (u_int16_t)-1));
+      macs_hash      = new MacHash(this, num_hashes, ntop->getPrefs()->get_max_num_hosts());
+
+      if(ntop->getPrefs()->is_arp_matrix_generation_enabled())
+	arp_hash_matrix = new ArpStatsHashMatrix(this, num_hashes, (ntop->getPrefs()->get_max_num_hosts() ^ 2) / 2);
+    }
+
+    networkStats     = new NetworkStats[numNetworks];
+    statsManager     = new StatsManager(id, STATS_MANAGER_STORE_NAME);
+    alertsManager    = new AlertsManager(id, ALERTS_MANAGER_STORE_NAME);
   } catch(std::bad_alloc& ba) {
     static bool oom_warning_sent = false;
 
@@ -6969,7 +6962,8 @@ bool NetworkInterface::initFlowDump(u_int8_t num_dump_interfaces) {
 #if defined(NTOPNG_PRO) && defined(HAVE_NINDEX)
 	enable_aggregation:
 #endif
-	  aggregated_flows_hash = new AggregatedFlowHash(this, num_hashes,
+	  aggregated_flows_hash = new AggregatedFlowHash(this,
+							 max_val(4096, ntop->getPrefs()->get_max_num_flows()/4) /* num buckets */,
 							 ntop->getPrefs()->get_max_num_flows());
 
 	  ntop->getPrefs()->enable_flow_aggregation();
