@@ -69,7 +69,7 @@ void DummyInterface::forgeFlow(u_int iteration) {
 	     iteration, iteration*1500,
 	     now-120, now-60, sport, dport);
 
-    parseFlow(payload, sizeof(payload), 1 /* source_id */, this /* iface */);
+    parseJSONFlow(payload, sizeof(payload), 1 /* source_id */, this /* iface */);
   }
 
   if(id == 0) sleep(ntop->getPrefs()->get_housekeeping_frequency());
