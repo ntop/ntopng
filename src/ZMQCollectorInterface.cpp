@@ -139,7 +139,7 @@ ZMQCollectorInterface::~ZMQCollectorInterface() {
 void ZMQCollectorInterface::collect_flows() {
   struct zmq_msg_hdr_v0 h0;
   struct zmq_msg_hdr *h = (struct zmq_msg_hdr *) &h0; /* NOTE: in network-byte-order format */
-  char payload[8192];
+  char payload[32768];
   const u_int payload_len = sizeof(payload) - 1;
   zmq_pollitem_t items[MAX_ZMQ_SUBSCRIBERS];
   u_int32_t zmq_max_num_polls_before_purge = MAX_ZMQ_POLLS_BEFORE_PURGE;

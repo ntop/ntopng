@@ -974,13 +974,13 @@ void ZMQParserInterface::parseSingleJSONFlow(json_object *o,
 
 /* **************************************************** */
 
-void ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
+int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
 						u_int8_t source_id,
 						NetworkInterface *iface) {
   ndpi_serialization_element_type et;
   ParsedFlow flow;
   bool debug_tlv = false;
-  int rc;
+  int ret = 0, rc;
 
   /* Reset data */
   flow.source_id = source_id;
@@ -989,9 +989,10 @@ void ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
     u_int32_t pen = 0, key_id;
     u_int32_t v32 = 0;
     ndpi_string key, vs;
+    char key_str[64];
     u_int8_t vbkp, kbkp;
     bool add_to_additional_fields = false;
-    bool value_is_string = false;
+    bool key_is_string = false, value_is_string = false;
 
     switch(et) {
       case ndpi_serialization_uint32_uint32:
@@ -1012,7 +1013,7 @@ void ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
         kbkp = key.str[key.str_len], vbkp = vs.str[vs.str_len];
         key.str[key.str_len] = vs.str[vs.str_len] = '\0';
         getKeyId(key.str, &pen, &key_id);
-        value_is_string = true;
+        key_is_string = value_is_string = true;
         if (debug_tlv) printf("%s='%s' ", key.str, vs.str);
       break;
 
@@ -1021,11 +1022,21 @@ void ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
         kbkp = key.str[key.str_len];
         key.str[key.str_len] = '\0';
         getKeyId(key.str, &pen, &key_id);
+        key_is_string = true;
         if (debug_tlv) printf("%s=%u ", key.str, v32);
       break;
 
-      default:
+      case ndpi_serialization_end_of_record:
+        ndpi_deserialize_end_of_record(deserializer);
+        if (debug_tlv) printf("EOR ");
         goto end_of_record;
+      break;
+
+      default:
+        //if (debug_tlv) 
+          printf("Unsupported type %u\n", et);
+        ret = -1;
+        goto error;
       break;
     }
 
@@ -1044,10 +1055,14 @@ void ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
       break;
     }
 
+    if (key_is_string) snprintf(key_str, sizeof(key_str),    "%s", key.str);
+    else if (pen)      snprintf(key_str, sizeof(key_str), "%u.%u", pen, key_id);
+    else               snprintf(key_str, sizeof(key_str),    "%u",      key_id);
+
     if (!rc) { /* Not handled */
       switch (key_id) {
 	case 0: //json additional object added by Flow::serialize()
-	  if (value_is_string && strcmp(key.str,"json") == 0) { 
+          if (strcmp(key_str,"json") == 0 && value_is_string) { 
             json_object *additional_o = json_tokener_parse(vs.str);
 
             if (additional_o) {
@@ -1074,7 +1089,7 @@ void ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
 	case UNKNOWN_FLOW_ELEMENT:
 #if 0 // TODO 
 	  /* Attempt to parse it as an nProbe mini field */
-	  if(parseNProbeMiniField(&flow, key.str, value_is_string ? vs.str : NULL, v32)) {
+	  if(parseNProbeMiniField(&flow, key_str, value_is_string ? vs.str : NULL, v32)) {
 	    if(!flow.hasParsedeBPF()) {
 	      flow.setParsedeBPF();
 	      flow.absolute_packet_octet_counters = true;
@@ -1085,7 +1100,7 @@ void ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
 	default:
 #ifdef NTOPNG_PRO
 	  if(custom_app_maps || (custom_app_maps = new(std::nothrow) CustomAppMaps()))
-	    custom_app_maps->checkCustomApp(key.str, vs.str, &flow); // TODO pass v32 for integer values
+	    custom_app_maps->checkCustomApp(key_str, vs.str, &flow); // TODO pass v32 for integer values
 #endif
 	  ntop->getTrace()->traceEvent(TRACE_DEBUG, "Not handled ZMQ field %u.%u", pen, key_id);
 	  add_to_additional_fields = true;
@@ -1094,9 +1109,6 @@ void ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
     }
 
     if (add_to_additional_fields) {
-      char key_str[64];
-      if (pen) snprintf(key_str, sizeof(key_str), "%u.%u", pen, key_id);
-      else     snprintf(key_str, sizeof(key_str),    "%u",      key_id);
       json_object_object_add(flow.additional_fields, key_str, 
         value_is_string ? json_object_new_string(vs.str) : json_object_new_int(v32));
     }
@@ -1122,6 +1134,9 @@ void ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
   if (debug_tlv) printf("\n");  
 
   preprocessFlow(&flow, iface);
+
+ error:
+  return ret;
 }
 
 /* **************************************************** */
@@ -1184,9 +1199,14 @@ u_int8_t ZMQParserInterface::parseTLVFlow(const char * const payload, int payloa
   if (rc == -1)
     return 0;
 
-  parseSingleTLVFlow(&deserializer, source_id, iface);
+  rc = 0;
+  while (ndpi_deserialize_get_nextitem_type(&deserializer) != ndpi_serialization_unknown) {
+    if (parseSingleTLVFlow(&deserializer, source_id, iface) != 0)
+      break;
+    rc++;
+  }
 
-  return 1;
+  return rc;
 }
 
 /* **************************************************** */
