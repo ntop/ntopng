@@ -115,7 +115,7 @@ function alerts:trigger(entity_value, alert_message, when)
       ifid = interface.getId(),
       entity_type = self.entity_type_id,
       entity_value = entity_value,
-      type = self.entity_type_id,
+      type = self.type_id,
       severity = self.severity_id,
       message = msg,
       tstamp = when,
