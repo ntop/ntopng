@@ -102,7 +102,7 @@ bool GenericHash::add(GenericHashEntry *h, bool do_lock) {
 
 bool GenericHash::walk(u_int32_t *begin_slot,
 		       bool walk_all,
-		       bool (*walker)(GenericHashEntry *h, void *user_data, bool *entryMatched), void *user_data) {
+		       bool (*walker)(GenericHashEntry *h, void *user_data, bool *entryMatched), void *user_data, bool walk_idle) {
   bool found = false;
   u_int16_t tot_matched = 0;
 
@@ -123,7 +123,8 @@ bool GenericHash::walk(u_int32_t *begin_slot,
       while(head) {
 	GenericHashEntry *next = head->next();
 
-	if(!head->idle() && !head->is_ready_to_be_purged()) {
+	if((walk_idle || !head->idle())
+	   && !head->is_ready_to_be_purged()) {
 	  bool matched = false;
 	  bool rc = walker(head, user_data, &matched);
 

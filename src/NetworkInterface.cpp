@@ -804,7 +804,8 @@ bool NetworkInterface::walker(u_int32_t *begin_slot,
 			      bool walk_all,
 			      WalkerType wtype,
 			      bool (*walker)(GenericHashEntry *h, void *user_data, bool *matched),
-			      void *user_data) {
+			      void *user_data,
+			      bool walk_idle) {
   bool ret = false;
 
   if(id == SYSTEM_INTERFACE_ID)
@@ -812,27 +813,27 @@ bool NetworkInterface::walker(u_int32_t *begin_slot,
 
   switch(wtype) {
   case walker_hosts:
-    ret = hosts_hash ? hosts_hash->walk(begin_slot, walk_all, walker, user_data) : false;
+    ret = hosts_hash ? hosts_hash->walk(begin_slot, walk_all, walker, user_data, walk_idle) : false;
     break;
 
   case walker_flows:
-    ret = flows_hash->walk(begin_slot, walk_all, walker, user_data);
+    ret = flows_hash->walk(begin_slot, walk_all, walker, user_data, walk_idle);
     break;
 
   case walker_macs:
-    ret = macs_hash ? macs_hash->walk(begin_slot, walk_all, walker, user_data) : false;
+    ret = macs_hash ? macs_hash->walk(begin_slot, walk_all, walker, user_data, walk_idle) : false;
     break;
 
   case walker_ases:
-    ret = ases_hash ? ases_hash->walk(begin_slot, walk_all, walker, user_data) : false;
+    ret = ases_hash ? ases_hash->walk(begin_slot, walk_all, walker, user_data, walk_idle) : false;
     break;
 
   case walker_countries:
-    ret = countries_hash ? countries_hash->walk(begin_slot, walk_all, walker, user_data) : false;
+    ret = countries_hash ? countries_hash->walk(begin_slot, walk_all, walker, user_data, walk_idle) : false;
     break;
 
   case walker_vlans:
-    ret = vlans_hash ? vlans_hash->walk(begin_slot, walk_all, walker, user_data) : false;
+    ret = vlans_hash ? vlans_hash->walk(begin_slot, walk_all, walker, user_data, walk_idle) : false;
     break;
   }
 

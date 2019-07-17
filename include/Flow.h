@@ -53,7 +53,14 @@ class Flow : public GenericHashEntry {
   u_int32_t vrfId;
   u_int8_t protocol, src2dst_tcp_flags, dst2src_tcp_flags;
   struct ndpi_flow_struct *ndpiFlow;
-  bool idle_mark; /* Marked when visited by the periodic activities */
+
+  /* Marked when visited by the periodic activities */
+  bool idle_mark;
+  /* When the interface isViewed(), the corresponding view needs to acknowledge the purge
+     before the flow can actually be deleted from memory. This guarantees the view has
+     seen the flow until it has become idle. */
+  bool purge_acknowledged_mark;
+
   bool detection_completed, protocol_processed,
     cli2srv_direction, twh_over, twh_ok, dissect_next_http_packet, passVerdict,
     check_tor, l7_protocol_guessed, flow_alerted, flow_dropped_counts_increased,
@@ -387,7 +394,13 @@ class Flow : public GenericHashEntry {
   u_int64_t get_current_goodput_bytes_srv2cli();
   u_int64_t get_current_packets_cli2srv();
   u_int64_t get_current_packets_srv2cli();
-  bool idle() { return(idle_mark); };
+
+  /* Methods to handle the flow in-memory lifecycle */
+  virtual bool idle() { return(idle_mark); };
+  virtual void set_to_purge(time_t t);
+  bool is_acknowledged_to_purge() const;
+  void set_acknowledge_to_purge();
+
   char* print(char *buf, u_int buf_len) const;
   void update_hosts_stats(struct timeval *tv, bool dump_alert);
   u_int32_t key();

@@ -46,7 +46,8 @@ Flow::Flow(NetworkInterface *_iface,
     srv2cli_last_goodput_bytes = cli2srv_last_goodput_bytes = 0, good_ssl_hs = true,
     flow_alerted = flow_dropped_counts_increased = false, vrfId = 0;
 
-  idle_mark = false;
+  idle_mark = purge_acknowledged_mark = false;
+
   detection_completed = false;
   ndpiDetectedProtocol = ndpiUnknownProtocol;
   doNotExpireBefore = iface->getTimeLastPktRcvd() + DONT_NOT_EXPIRE_BEFORE_SEC;
@@ -1987,6 +1988,38 @@ u_int32_t Flow::key(Host *_cli, u_int16_t _cli_port,
 
   return(k);
 }
+
+/* *************************************** */
+
+void Flow::set_to_purge(time_t t) {
+  /* The actual set_to_purge is done only when
+     the flow has been acknowledged (in the case of views).
+     Othewise this call is just ignored. */
+  if(is_acknowledged_to_purge())
+    GenericHashEntry::set_to_purge(t);
+};
+
+/* *************************************** */
+
+bool Flow::is_acknowledged_to_purge() const {
+  /* This ensures that, in case of view interfaces, the flow
+     has been acknowledged before being purged. In case the interface
+     has no corresponding view, i.e, when !iface->isViewed(), this
+     function is just a short circuit as there is no need to wait for
+     an acknowledge. In case there is a view interface, we must wait
+     until the view sets the acknowledge. */
+  return !iface->isViewed() || purge_acknowledged_mark;
+};
+
+/* *************************************** */
+
+void Flow::set_acknowledge_to_purge() {
+  /* If there is a view interface on top of this interface
+     then such view can acknowledge a flow when it is ready 
+     to purge. */
+  if(iface->isViewed())
+    purge_acknowledged_mark = true;
+};
 
 /* *************************************** */
 
