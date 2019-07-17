@@ -78,17 +78,24 @@ bool ViewInterface::walker(u_int32_t *begin_slot,
 			   bool walk_all,
 			   WalkerType wtype,
 			   bool (*walker)(GenericHashEntry *h, void *user_data, bool *matched),
-			   void *user_data) {
+			   void *user_data,
+			   bool walk_idle) {
   bool ret = false;
+  u_int32_t flows_begin_slot; /* Always from the beginning, all flows */
 
-  for(u_int8_t s = 0; s < num_viewed_interfaces; s++) {
-    // ntop->getTrace()->traceEvent(TRACE_WARNING, "VIEW: Iterating on subinterface %s [walker_flows: %u]",
-    // 				 viewed_interfaces[s]->get_name(),
-    // 				 wtype == walker_flows ? 1 : 0);
-    ret |= viewed_interfaces[s]->walker(begin_slot, walk_all, wtype, walker, user_data);
+  switch(wtype) {
+  case walker_flows:
+    for(u_int8_t s = 0; s < num_viewed_interfaces; s++) {
+      flows_begin_slot = 0; /* Always visit all the flows starting from slot 0 */
+      ret |= viewed_interfaces[s]->walker(&flows_begin_slot, true /* walk_all == true */, wtype, walker, user_data, walk_idle);
+    }
+    break;
+  default:
+    ret = NetworkInterface::walker(begin_slot, walk_all, wtype, walker, user_data, walk_idle);
+    break;
   }
 
-  return(ret);
+  return ret;
 }
 
 /* **************************************************** */
@@ -237,32 +244,6 @@ u_int32_t ViewInterface::getVLANsHashSize() {
 
 /* **************************************************** */
 
-Host* ViewInterface::getHost(char *host_ip, u_int16_t vlan_id, bool isInlineCall) {
-  Host *h = NULL;
-
-  for(u_int8_t s = 0; s < num_viewed_interfaces; s++) {
-    if((h = viewed_interfaces[s]->getHost(host_ip, vlan_id, isInlineCall)))
-      break;
-  }
-
-  return(h);
-}
-
-/* **************************************************** */
-
-Mac* ViewInterface::getMac(u_int8_t _mac[6], bool createIfNotPresent, bool isInlineCall) {
-  Mac *ret = NULL;
-
-  for(u_int8_t s = 0; s < num_viewed_interfaces; s++) {
-    if((ret = viewed_interfaces[s]->getMac(_mac, false, isInlineCall)))
-      break;
-  }
-
-  return(ret);
-}
-
-/* **************************************************** */
-
 Flow* ViewInterface::findFlowByKey(u_int32_t key, AddressTree *allowed_hosts) {
   Flow *f = NULL;
 
@@ -309,9 +290,27 @@ void ViewInterface::lua(lua_State *vm) {
 
 /* **************************************************** */
 
+static bool viewed_flows_walker(GenericHashEntry *flow, void *user_data, bool *matched) {
+  Flow *f = (Flow*)flow;
+
+  /* The flow has already been marked as idle by the underlying viewed interface,
+     so now that we have seen it for the last time, and we know the underlying interface
+     won't change it again, we can acknowledge the flow so it can be purged. */
+  if(f->idle())
+    f->set_acknowledge_to_purge();
+
+  return false; /* keep walking */
+}
+
+/* **************************************************** */
+
 void ViewInterface::flowPollLoop() {
+  u_int32_t begin_slot;
   while(isRunning() && !ntop->getGlobals()->isShutdown()) {
     while(idle()) sleep(1);
+
+    begin_slot = 0; /* Always visit all flows starting from the first slot */
+    walker(&begin_slot, true /* walk all the flows */, walker_flows, viewed_flows_walker, (void*)NULL/* &retriever */, true /* visit also idle flows (required to acknowledge the purge) */);
 
     purgeIdle(time(NULL));
     usleep(1000);

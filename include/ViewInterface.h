@@ -60,8 +60,6 @@ class ViewInterface : public NetworkInterface {
   virtual u_int32_t getMacsHashSize();
   virtual u_int32_t getHostsHashSize();
   virtual u_int32_t getFlowsHashSize();
-  virtual Mac*  getMac(u_int8_t _mac[6], bool createIfNotPresent, bool isInlineCall);
-  virtual Host* getHost(char *host_ip, u_int16_t vlan_id, bool isInlineCall);
   virtual Flow* findFlowByKey(u_int32_t key, AddressTree *allowed_hosts);
   virtual Flow* findFlowByTuple(u_int16_t vlan_id,
   				IpAddress *src_ip,  IpAddress *dst_ip,
@@ -72,7 +70,8 @@ class ViewInterface : public NetworkInterface {
 		      WalkerType wtype,		      
 		      bool (*walker)(GenericHashEntry *h,
 				     void *user_data, bool *entryMatched),
-		      void *user_data);
+		      void *user_data,
+		      bool walk_idle = false /* Should never walk idle unless in ViewInterface::flowPollLoop */);
   
   virtual void lua(lua_State* vm);
 };
