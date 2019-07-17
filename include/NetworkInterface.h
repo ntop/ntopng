@@ -78,6 +78,8 @@ class NetworkInterface : public AlertableEntity {
   u_int32_t num_alerts_engaged[MAX_NUM_PERIODIC_SCRIPTS];
   bool has_alerts;
 
+  bool is_viewed; /* Whether this interface is 'viewed' by a ViewInterface */
+
   /* Disaggregations */
   u_int16_t numVirtualInterfaces;
   set<u_int32_t>  flowHashingIgnoredInterfaces;
@@ -638,8 +640,12 @@ class NetworkInterface : public AlertableEntity {
   void checkNetworksAlerts(ScriptPeriodicity p);
   void checkInterfaceAlerts(ScriptPeriodicity p);
   bool isHiddenFromTop(Host *host);
-  inline virtual bool areTrafficDirectionsSupported() { return(false); };
-  inline virtual bool isView() { return(false); };
+  virtual bool areTrafficDirectionsSupported() { return(false); };
+
+  virtual bool isView()   const { return false;     };
+  virtual bool isViewed() const { return is_viewed; };
+  inline  void setViewed()      { is_viewed = true; };
+
   bool getMacInfo(lua_State* vm, char *mac);
   bool resetMacStats(lua_State* vm, char *mac, bool delete_data);
   bool setMacDeviceType(char *strmac, DeviceType dtype, bool alwaysOverwrite);

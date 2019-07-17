@@ -32,14 +32,17 @@ class ViewInterface : public NetworkInterface {
  public:
   ViewInterface(const char *_endpoint);
 
-  virtual InterfaceType getIfType() const { return(interface_type_VIEW);           };
-  inline const char* get_type()           { return(CONST_INTERFACE_TYPE_VIEW);     };
-  virtual bool is_ndpi_enabled() const    { return(false);                         };
-  inline bool isView()                    { return(true);                          };
-  virtual bool isPacketInterface() const  { return(false);                         };
-  inline void startPacketPolling()      { ; };
-  inline void shutdown()                { ; };
-  bool set_packet_filter(char *filter)  { return(false); };
+  virtual InterfaceType getIfType() const { return interface_type_VIEW;           };
+  inline const char* get_type()           { return CONST_INTERFACE_TYPE_VIEW;     };
+  virtual bool is_ndpi_enabled()    const { return false;                         };
+
+  virtual bool isView()             const { return true;                          };
+  virtual bool isViewed()           const { return false;                         };
+
+  virtual bool isPacketInterface()  const { return false;                         };
+  inline void startPacketPolling()        { ; };
+  inline void shutdown()                  { ; };
+  bool set_packet_filter(char *filter)    { return false ;                        };
 
   virtual u_int64_t getNumPackets();
   virtual u_int64_t getNumBytes();

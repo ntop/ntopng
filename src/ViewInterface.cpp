@@ -46,11 +46,16 @@ ViewInterface::ViewInterface(const char *_endpoint) : NetworkInterface(_endpoint
 	  if(num_viewed_interfaces < MAX_NUM_VIEW_INTERFACES) {
 	    NetworkInterface *what = ntop->getInterfaceById(i);
 
-	    if(what)
-	      viewed_interfaces[num_viewed_interfaces++] = what;
-	    else
+	    if(!what)
 	      ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal Error: NULL interface [%s][%d]", ifName, i);
+	    else if(what->isViewed())
+	      ntop->getTrace()->traceEvent(TRACE_ERROR, "Interface already belonging to a view [%s][%d]", ifName, i);
+	    else {
+	      what->setViewed();
+	      viewed_interfaces[num_viewed_interfaces++] = what;
+	    }
 	  }
+
 	  break;
 	}
       }

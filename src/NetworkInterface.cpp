@@ -296,6 +296,8 @@ void NetworkInterface::init() {
   memset(&num_alerts_engaged, 0, sizeof(num_alerts_engaged));
   has_alerts = false;
 
+  is_viewed = false;
+
   db = NULL;
 #ifdef NTOPNG_PRO
   custom_app_stats = NULL;
@@ -6070,16 +6072,19 @@ void NetworkInterface::allocateStructures() {
       u_int32_t num_hashes = max_val(4096, ntop->getPrefs()->get_max_num_flows()/4);
 
       flows_hash     = new FlowHash(this, num_hashes, ntop->getPrefs()->get_max_num_flows());
-      num_hashes     = max_val(4096, ntop->getPrefs()->get_max_num_hosts() / 4);
-      hosts_hash     = new HostHash(this, num_hashes, ntop->getPrefs()->get_max_num_hosts());
-      /* The number of ASes cannot be greater than the number of hosts */
-      ases_hash      = new AutonomousSystemHash(this, num_hashes, ntop->getPrefs()->get_max_num_hosts());
-      countries_hash = new CountriesHash(this, num_hashes, ntop->getPrefs()->get_max_num_hosts());
-      vlans_hash     = new VlanHash(this, num_hashes, max_val(ntop->getPrefs()->get_max_num_hosts() / 2, (u_int16_t)-1));
-      macs_hash      = new MacHash(this, num_hashes, ntop->getPrefs()->get_max_num_hosts());
 
-      if(ntop->getPrefs()->is_arp_matrix_generation_enabled())
-	arp_hash_matrix = new ArpStatsHashMatrix(this, num_hashes, (ntop->getPrefs()->get_max_num_hosts() ^ 2) / 2);
+      if(!isViewed()) { /* Do not allocate HTs when the interface is viewed, HTs are allocated in the corresponding ViewInterface */
+	num_hashes     = max_val(4096, ntop->getPrefs()->get_max_num_hosts() / 4);
+	hosts_hash     = new HostHash(this, num_hashes, ntop->getPrefs()->get_max_num_hosts());
+	/* The number of ASes cannot be greater than the number of hosts */
+	ases_hash      = new AutonomousSystemHash(this, num_hashes, ntop->getPrefs()->get_max_num_hosts());
+	countries_hash = new CountriesHash(this, num_hashes, ntop->getPrefs()->get_max_num_hosts());
+	vlans_hash     = new VlanHash(this, num_hashes, max_val(ntop->getPrefs()->get_max_num_hosts() / 2, (u_int16_t)-1));
+	macs_hash      = new MacHash(this, num_hashes, ntop->getPrefs()->get_max_num_hosts());
+
+	if(ntop->getPrefs()->is_arp_matrix_generation_enabled())
+	  arp_hash_matrix = new ArpStatsHashMatrix(this, num_hashes, (ntop->getPrefs()->get_max_num_hosts() ^ 2) / 2);
+      }
     }
 
     networkStats     = new NetworkStats[numNetworks];
