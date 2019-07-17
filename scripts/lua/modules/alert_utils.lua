@@ -189,31 +189,8 @@ end
 
 -- Apply a "engaged only" or "closed only" filter
 function statusFilter(query, engaged, now)
-  local alert_released_val
-
-  if engaged then
-    alert_released_val = "alert_released=0"
-  else
-    alert_released_val = "alert_released=1"
-  end
-
-  local group_by_pos = string.find(query, "group by") or string.find(query, "GROUP BY")
-  local prefix_part = query
-  local suffix_part = ""
-
-  if(group_by_pos ~= nil) then
-    prefix_part = string.sub(query, 1, group_by_pos-2)
-    suffix_part = string.sub(query, group_by_pos)
-  end
-  local where_pos = string.find(prefix_part, "where") or string.find(prefix_part, "WHERE")
-
-  if(where_pos == nil) then
-    prefix_part = "WHERE"
-  else
-    prefix_part = prefix_part .. " AND"
-  end
-
-  return(string.format("%s %s %s", prefix_part, alert_released_val, suffix_part))
+  -- TODO
+  return query
 end
 
 -- ##############################################################################
@@ -2819,6 +2796,21 @@ function alertNotificationToObject(alert_json)
 
    if(notification.flow ~= nil) then
       notification.message = formatRawFlow(notification.flow, notification.message, true --[[ skip add links ]])
+   else
+      local alert = alerts.alertNotificationToRecord(notification)
+      local description = alertTypeDescription(alert.alert_type)
+      local msg = alert.alert_json
+
+      if(string.sub(msg, 1, 1) == "{") then
+        msg = json.decode(msg)
+      end
+
+      if(type(description) == "string") then
+        -- localization string
+        notification.message = i18n(description, msg)
+      elseif(type(description) == "function") then
+        notification.message = description(notification.ifid, alert, msg)
+      end
    end
 
    return notification
