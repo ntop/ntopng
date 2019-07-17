@@ -296,7 +296,7 @@ void NetworkInterface::init() {
   num_live_captures = 0;
   memset(live_captures, 0, sizeof(live_captures));
   memset(&num_alerts_engaged, 0, sizeof(num_alerts_engaged));
-  has_alerts = false;
+  has_stored_alerts = false;
 
   is_viewed = false;
 
@@ -5402,7 +5402,7 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_bool_table_entry(vm, "has_seen_pods", hasSeenPods());
   lua_push_bool_table_entry(vm, "has_seen_containers", hasSeenContainers());
   lua_push_bool_table_entry(vm, "has_seen_ebpf_events", hasSeenEBPFEvents());
-  lua_push_bool_table_entry(vm, "has_alerts", has_alerts);
+  lua_push_bool_table_entry(vm, "has_alerts", hasAlerts());
   lua_push_int32_table_entry(vm, "num_alerts_engaged", getNumEngagedAlerts());
 
   lua_newtable(vm);

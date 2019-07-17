@@ -76,7 +76,7 @@ class NetworkInterface : public AlertableEntity {
   u_int8_t purgeRuns;
   u_int32_t bridge_lan_interface_id, bridge_wan_interface_id;
   u_int32_t num_alerts_engaged[MAX_NUM_PERIODIC_SCRIPTS];
-  bool has_alerts;
+  bool has_stored_alerts;
 
   bool is_viewed; /* Whether this interface is 'viewed' by a ViewInterface */
 
@@ -743,11 +743,11 @@ class NetworkInterface : public AlertableEntity {
   void nDPILoadIPCategory(char *category, ndpi_protocol_category_t id);
   void nDPILoadHostnameCategory(char *category, ndpi_protocol_category_t id);
 
-  inline void setHasAlerts(bool has_alerts)               { this->has_alerts = has_alerts; }
+  inline void setHasAlerts(bool has_stored_alerts)               { this->has_stored_alerts = has_stored_alerts; }
   inline void incNumAlertsEngaged(ScriptPeriodicity p)    { num_alerts_engaged[(u_int)p]++; }
   inline void decNumAlertsEngaged(ScriptPeriodicity p)    { num_alerts_engaged[(u_int)p]--; }
-  inline bool hasAlerts()                                 { return(has_alerts); }
-  inline void refreshHasAlerts()                          { has_alerts = alertsManager ? alertsManager->hasAlerts() : false; }
+  inline bool hasAlerts()                                 { return(has_stored_alerts || (getNumEngagedAlerts() > 0)); }
+  inline void refreshHasAlerts()                          { has_stored_alerts = alertsManager ? alertsManager->hasAlerts() : false; }
   void getEngagedAlertsCount(lua_State *vm, int entity_type, const char *entity_value);
   void getEngagedAlerts(lua_State *vm, int entity_type, const char *entity_value, AlertType alert_type, AlertLevel alert_severity);
 
