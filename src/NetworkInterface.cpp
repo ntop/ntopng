@@ -183,7 +183,7 @@ NetworkInterface::NetworkInterface(const char *name,
 
     vlans_hash = new (std::nothrow) VlanHash(this, num_hashes, max_val(ntop->getPrefs()->get_max_num_hosts() / 2, (u_int16_t)-1));
 
-    macs_hash = new MacHash(this, num_hashes, ntop->getPrefs()->get_max_num_hosts());
+    macs_hash = new (std::nothrow) MacHash(this, num_hashes, ntop->getPrefs()->get_max_num_hosts());
 
     if(ntop->getPrefs()->is_arp_matrix_generation_enabled())
       arp_hash_matrix = new (std::nothrow) ArpStatsHashMatrix(this, num_hashes,
@@ -808,7 +808,7 @@ u_int32_t NetworkInterface::getFlowsHashSize() {
 /* **************************************************** */
 
 u_int32_t NetworkInterface::getMacsHashSize() {
-  return(macs_hash->getNumEntries());
+  return(macs_hash ? macs_hash->getNumEntries() : 0);
 }
 
 /* **************************************************** */
@@ -839,7 +839,7 @@ bool NetworkInterface::walker(u_int32_t *begin_slot,
     break;
 
   case walker_macs:
-    ret = macs_hash->walk(begin_slot, walk_all, walker, user_data);
+    ret = macs_hash ? macs_hash->walk(begin_slot, walk_all, walker, user_data) : false;
     break;
 
   case walker_ases:
@@ -2735,11 +2735,11 @@ void NetworkInterface::cleanup() {
 
   getStats()->cleanup();
   flows_hash->cleanup();
-  if(hosts_hash)     hosts_hash->cleanup();
-  if(ases_hash)      ases_hash->cleanup();
-  if(countries_hash) countries_hash->cleanup();
-  if(vlans_hash)     vlans_hash->cleanup();
-  macs_hash->cleanup();
+  if(hosts_hash)      hosts_hash->cleanup();
+  if(ases_hash)       ases_hash->cleanup();
+  if(countries_hash)  countries_hash->cleanup();
+  if(vlans_hash)      vlans_hash->cleanup();
+  if(macs_hash)       macs_hash->cleanup();
   if(arp_hash_matrix) arp_hash_matrix->cleanup();
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Cleanup interface %s", get_name());
@@ -3044,8 +3044,10 @@ void NetworkInterface::periodicStatsUpdate() {
     vlans_hash->walk(&begin_slot, walk_all, update_generic_element_stats, (void*)&tv);
   }
 
-  begin_slot = 0;
-  macs_hash->walk(&begin_slot, walk_all, update_macs_stats, (void*)&tv);
+  if(macs_hash) {
+    begin_slot = 0;
+    macs_hash->walk(&begin_slot, walk_all, update_macs_stats, (void*)&tv);
+  }
 
 #ifdef PERIODIC_STATS_UPDATE_DEBUG_TIMING
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "asn/macs/vlan->walk took %d seconds", time(NULL) - tdebug.tv_sec);
@@ -3188,11 +3190,15 @@ void NetworkInterface::refreshHostPools() {
   }
 #endif
 
-  if(hosts_hash)
+  if(hosts_hash) {
+    begin_slot = 0;
     hosts_hash->walk(&begin_slot, walk_all, update_host_host_pool_l7policy, &update_host);
+  }
 
-  begin_slot = 0;
-  macs_hash->walk(&begin_slot, walk_all, update_l2_device_host_pool, NULL);
+  if(macs_hash) {
+    begin_slot = 0;
+    macs_hash->walk(&begin_slot, walk_all, update_l2_device_host_pool, NULL);
+  }
 
 #ifdef HAVE_NEDGE
   if(update_host.update_l7policy)
@@ -5219,7 +5225,7 @@ u_int NetworkInterface::purgeIdleHostsMacsASesVlans() {
 
     // ntop->getTrace()->traceEvent(TRACE_INFO, "Purging idle hosts");
     n = (hosts_hash ? hosts_hash->purgeIdle() : 0)
-      + macs_hash->purgeIdle()
+      + (macs_hash ? macs_hash->purgeIdle() : 0)
       + (ases_hash ? ases_hash->purgeIdle() : 0)
       + (countries_hash ? countries_hash->purgeIdle() : 0)
       + (vlans_hash ? vlans_hash->purgeIdle() : 0);
@@ -5538,7 +5544,7 @@ void NetworkInterface::runShutdownTasks() {
 Mac* NetworkInterface::getMac(u_int8_t _mac[6], bool createIfNotPresent, bool isInlineCall) {
   Mac *ret = NULL;
 
-  if(_mac == NULL) return(NULL);
+  if(!_mac || !macs_hash) return(NULL);
 
   ret = macs_hash->get(_mac, isInlineCall);
 
