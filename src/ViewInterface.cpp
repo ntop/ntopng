@@ -299,6 +299,11 @@ static bool viewed_flows_walker(GenericHashEntry *flow, void *user_data, bool *m
   if(f->is_acknowledged_to_purge())
     return false; /* Already visited for the last time after it has gone idle, keep walking */
 
+  FlowTrafficStats partials;
+  if(f->get_partial_traffic_stats(&partials)) {
+    
+  }
+
   /* The flow has already been marked as idle by the underlying viewed interface,
      so now that we have seen it for the last time, and we know the underlying interface
      won't change it again, we can acknowledge the flow so it can be purged. */

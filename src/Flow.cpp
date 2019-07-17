@@ -38,9 +38,9 @@ Flow::Flow(NetworkInterface *_iface,
 	   Mac *_srv_mac, IpAddress *_srv_ip, u_int16_t _srv_port,
 	   const ICMPinfo * const _icmp_info,
 	   time_t _first_seen, time_t _last_seen) : GenericHashEntry(_iface) {
+  memset(&stats, 0, sizeof(stats));
+  last_partial = NULL;
   vlanId = _vlanId, protocol = _protocol, cli_port = _cli_port, srv_port = _srv_port;
-  cli2srv_packets = 0, cli2srv_bytes = 0, cli2srv_goodput_bytes = 0,
-    srv2cli_packets = 0, srv2cli_bytes = 0, srv2cli_goodput_bytes = 0,
     cli2srv_last_packets = 0, cli2srv_last_bytes = 0, srv2cli_last_packets = 0, srv2cli_last_bytes = 0,
     cli_host = srv_host = NULL, good_low_flow_detected = false,
     srv2cli_last_goodput_bytes = cli2srv_last_goodput_bytes = 0, good_ssl_hs = true,
@@ -224,6 +224,7 @@ Flow::~Flow() {
   else if(srv_ip_addr) /* Dynamically allocated only when srv_host was NULL */
     delete srv_ip_addr;
 
+  if(last_partial)     free(last_partial);
   if(json_info)        free(json_info);
   if(host_server_name) free(host_server_name);
 
@@ -751,7 +752,7 @@ char* Flow::intoaV4(unsigned int addr, char* buf, u_short bufLen) {
 /* *************************************** */
 
 u_int64_t Flow::get_current_bytes_cli2srv() {
-  int64_t diff = cli2srv_bytes - cli2srv_last_bytes;
+  int64_t diff = stats.cli2srv_bytes - cli2srv_last_bytes;
 
   /*
     We need to do this as due to concurrency issues,
@@ -763,7 +764,7 @@ u_int64_t Flow::get_current_bytes_cli2srv() {
 /* *************************************** */
 
 u_int64_t Flow::get_current_bytes_srv2cli() {
-  int64_t diff = srv2cli_bytes - srv2cli_last_bytes;
+  int64_t diff = stats.srv2cli_bytes - srv2cli_last_bytes;
 
   /*
     We need to do this as due to concurrency issues,
@@ -775,7 +776,7 @@ u_int64_t Flow::get_current_bytes_srv2cli() {
 /* *************************************** */
 
 u_int64_t Flow::get_current_goodput_bytes_cli2srv() {
-  int64_t diff = cli2srv_goodput_bytes - cli2srv_last_goodput_bytes;
+  int64_t diff = stats.cli2srv_goodput_bytes - cli2srv_last_goodput_bytes;
 
   /*
     We need to do this as due to concurrency issues,
@@ -787,7 +788,7 @@ u_int64_t Flow::get_current_goodput_bytes_cli2srv() {
 /* *************************************** */
 
 u_int64_t Flow::get_current_goodput_bytes_srv2cli() {
-  int64_t diff = srv2cli_goodput_bytes - srv2cli_last_goodput_bytes;
+  int64_t diff = stats.srv2cli_goodput_bytes - srv2cli_last_goodput_bytes;
 
   /*
     We need to do this as due to concurrency issues,
@@ -799,7 +800,7 @@ u_int64_t Flow::get_current_goodput_bytes_srv2cli() {
 /* *************************************** */
 
 u_int64_t Flow::get_current_packets_cli2srv() {
-  int64_t diff = cli2srv_packets - cli2srv_last_packets;
+  int64_t diff = stats.cli2srv_packets - cli2srv_last_packets;
 
   /*
     We need to do this as due to concurrency issues,
@@ -811,7 +812,7 @@ u_int64_t Flow::get_current_packets_cli2srv() {
 /* *************************************** */
 
 u_int64_t Flow::get_current_packets_srv2cli() {
-  int64_t diff = srv2cli_packets - srv2cli_last_packets;
+  int64_t diff = stats.srv2cli_packets - srv2cli_last_packets;
 
   /*
     We need to do this as due to concurrency issues,
@@ -914,8 +915,8 @@ char* Flow::print(char *buf, u_int buf_len) const {
 	   get_protocol_category(),
 	   get_protocol_category_name(),
 	   flow_device.device_ip, flow_device.in_index, flow_device.out_index,
-	   cli2srv_packets, srv2cli_packets,
-	   (long long unsigned) cli2srv_bytes, (long long unsigned) srv2cli_bytes,
+	   stats.cli2srv_packets, stats.srv2cli_packets,
+	   (long long unsigned) stats.cli2srv_bytes, (long long unsigned) stats.srv2cli_bytes,
 	   printTCPflags(src2dst_tcp_flags, buf3, sizeof(buf3)),
 	   printTCPflags(dst2src_tcp_flags, buf4, sizeof(buf4)),
 	   (isSSL() && protos.ssl.certificate) ? "[" : "",
@@ -941,8 +942,8 @@ bool Flow::dumpFlow(bool dump_alert) {
 
   /* Check for bytes, and not for packets, as with nprobeagent
      there are not packet counters, just bytes. */
-  if(((cli2srv_bytes - last_db_dump.cli2srv_bytes) == 0)
-     && ((srv2cli_bytes - last_db_dump.srv2cli_bytes) == 0))
+  if(((stats.cli2srv_bytes - last_db_dump.cli2srv_bytes) == 0)
+     && ((stats.srv2cli_bytes - last_db_dump.srv2cli_bytes) == 0))
       return(rc);
 
   if(ntop->getPrefs()->do_dump_flows()
@@ -952,7 +953,7 @@ bool Flow::dumpFlow(bool dump_alert) {
      ) {
 #ifdef NTOPNG_PRO
 #ifndef HAVE_NEDGE
-    if(!detection_completed || cli2srv_packets + srv2cli_packets <= NDPI_MIN_NUM_PACKETS)
+    if(!detection_completed || stats.cli2srv_packets + stats.srv2cli_packets <= NDPI_MIN_NUM_PACKETS)
       /* force profile detection even if the L7 Protocol has not been detected */
      updateProfile();
 #endif
@@ -1087,13 +1088,13 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
 
   stats_protocol = getStatsProtocol();
 
-  sent_packets = cli2srv_packets, sent_bytes = cli2srv_bytes, sent_goodput_bytes = cli2srv_goodput_bytes;
+  sent_packets = stats.cli2srv_packets, sent_bytes = stats.cli2srv_bytes, sent_goodput_bytes = stats.cli2srv_goodput_bytes;
   diff_sent_packets = sent_packets - cli2srv_last_packets,
     diff_sent_bytes = sent_bytes - cli2srv_last_bytes, diff_sent_goodput_bytes = sent_goodput_bytes - cli2srv_last_goodput_bytes;
   prev_cli2srv_last_bytes = cli2srv_last_bytes, prev_cli2srv_last_goodput_bytes = cli2srv_last_goodput_bytes,
     prev_cli2srv_last_packets = cli2srv_last_packets;
 
-  rcvd_packets = srv2cli_packets, rcvd_bytes = srv2cli_bytes, rcvd_goodput_bytes = srv2cli_goodput_bytes;
+  rcvd_packets = stats.srv2cli_packets, rcvd_bytes = stats.srv2cli_bytes, rcvd_goodput_bytes = stats.srv2cli_goodput_bytes;
   diff_rcvd_packets = rcvd_packets - srv2cli_last_packets,
     diff_rcvd_bytes = rcvd_bytes - srv2cli_last_bytes, diff_rcvd_goodput_bytes = rcvd_goodput_bytes - srv2cli_last_goodput_bytes;
   prev_srv2cli_last_bytes = srv2cli_last_bytes, prev_srv2cli_last_goodput_bytes = srv2cli_last_goodput_bytes,
@@ -1380,14 +1381,14 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
 	thptRatioTrend.update(((double)(goodput_bytes_msec*100))/(double)bytes_msec);
 
 #ifdef DEBUG_TREND
-	if((cli2srv_goodput_bytes+srv2cli_goodput_bytes) > 0) {
+	if((stats.cli2srv_goodput_bytes+stats.srv2cli_goodput_bytes) > 0) {
 	  char buf[256];
 
 	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [Goodput long/mid/short %.3f/%.3f/%.3f][ratio: %s][goodput/thpt: %.3f]",
 				       print(buf, sizeof(buf)),
 				       goodputTrend.getLongTerm(), goodputTrend.getMidTerm(), goodputTrend.getShortTerm(),
 				       goodputTrend.getTrendMsg(),
-				       ((float)(100*(cli2srv_goodput_bytes+srv2cli_goodput_bytes)))/(float)(cli2srv_bytes+srv2cli_bytes));
+				       ((float)(100*(stats.cli2srv_goodput_bytes+stats.srv2cli_goodput_bytes)))/(float)(stats.cli2srv_bytes+stats.srv2cli_bytes));
 	}
 #endif
 #endif
@@ -1429,12 +1430,12 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
     memcpy(&last_update_time, tv, sizeof(struct timeval));
 
   if(dumpFlow(dump_alert)) {
-    last_db_dump.cli2srv_packets = cli2srv_packets,
-      last_db_dump.srv2cli_packets = srv2cli_packets,
-      last_db_dump.cli2srv_bytes = cli2srv_bytes,
-      last_db_dump.cli2srv_goodput_bytes = cli2srv_goodput_bytes,
-      last_db_dump.srv2cli_bytes = srv2cli_bytes,
-      last_db_dump.srv2cli_goodput_bytes = srv2cli_goodput_bytes,
+    last_db_dump.cli2srv_packets = stats.cli2srv_packets,
+      last_db_dump.srv2cli_packets = stats.srv2cli_packets,
+      last_db_dump.cli2srv_bytes = stats.cli2srv_bytes,
+      last_db_dump.cli2srv_goodput_bytes = stats.cli2srv_goodput_bytes,
+      last_db_dump.srv2cli_bytes = stats.srv2cli_bytes,
+      last_db_dump.srv2cli_goodput_bytes = stats.srv2cli_goodput_bytes,
       last_db_dump.last_dump = last_seen;
   }
 }
@@ -1684,8 +1685,8 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 
   mask_flow = isMaskedFlow(); // mask_cli_host || mask_dst_host;
 
-  lua_push_uint64_table_entry(vm, "bytes", cli2srv_bytes + srv2cli_bytes);
-  lua_push_uint64_table_entry(vm, "goodput_bytes", cli2srv_goodput_bytes + srv2cli_goodput_bytes);
+  lua_push_uint64_table_entry(vm, "bytes", stats.cli2srv_bytes + stats.srv2cli_bytes);
+  lua_push_uint64_table_entry(vm, "goodput_bytes", stats.cli2srv_goodput_bytes + stats.srv2cli_goodput_bytes);
 
   if(details_level >= details_high) {
     if(src && !mask_cli_host) {
@@ -1719,7 +1720,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     lua_push_uint64_table_entry(vm, "vlan", get_vlan_id());
     lua_push_str_table_entry(vm, "proto.l4", get_protocol_name());
 
-    if(((cli2srv_packets+srv2cli_packets) > NDPI_MIN_NUM_PACKETS)
+    if(((stats.cli2srv_packets+stats.srv2cli_packets) > NDPI_MIN_NUM_PACKETS)
        || (ndpiDetectedProtocol.app_protocol != NDPI_PROTOCOL_UNKNOWN)
        || iface->is_ndpi_enabled()
        || iface->isSampledTraffic()
@@ -1746,22 +1747,22 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     lua_push_uint64_table_entry(vm, "bytes.last",
 			     get_current_bytes_cli2srv() + get_current_bytes_srv2cli());
     lua_push_uint64_table_entry(vm, "goodput_bytes",
-			     cli2srv_goodput_bytes+srv2cli_goodput_bytes);
+			     stats.cli2srv_goodput_bytes+stats.srv2cli_goodput_bytes);
     lua_push_uint64_table_entry(vm, "goodput_bytes.last",
 			     get_current_goodput_bytes_cli2srv() + get_current_goodput_bytes_srv2cli());
-    lua_push_uint64_table_entry(vm, "packets", cli2srv_packets+srv2cli_packets);
+    lua_push_uint64_table_entry(vm, "packets", stats.cli2srv_packets+stats.srv2cli_packets);
     lua_push_uint64_table_entry(vm, "packets.last",
 			     get_current_packets_cli2srv() + get_current_packets_srv2cli());
     lua_push_uint64_table_entry(vm, "seen.first", get_first_seen());
     lua_push_uint64_table_entry(vm, "seen.last", get_last_seen());
     lua_push_uint64_table_entry(vm, "duration", get_duration());
 
-    lua_push_uint64_table_entry(vm, "cli2srv.bytes", cli2srv_bytes);
-    lua_push_uint64_table_entry(vm, "srv2cli.bytes", srv2cli_bytes);
-    lua_push_uint64_table_entry(vm, "cli2srv.goodput_bytes", cli2srv_goodput_bytes);
-    lua_push_uint64_table_entry(vm, "srv2cli.goodput_bytes", srv2cli_goodput_bytes);
-    lua_push_uint64_table_entry(vm, "cli2srv.packets", cli2srv_packets);
-    lua_push_uint64_table_entry(vm, "srv2cli.packets", srv2cli_packets);
+    lua_push_uint64_table_entry(vm, "cli2srv.bytes", stats.cli2srv_bytes);
+    lua_push_uint64_table_entry(vm, "srv2cli.bytes", stats.srv2cli_bytes);
+    lua_push_uint64_table_entry(vm, "cli2srv.goodput_bytes", stats.cli2srv_goodput_bytes);
+    lua_push_uint64_table_entry(vm, "srv2cli.goodput_bytes", stats.srv2cli_goodput_bytes);
+    lua_push_uint64_table_entry(vm, "cli2srv.packets", stats.cli2srv_packets);
+    lua_push_uint64_table_entry(vm, "srv2cli.packets", stats.srv2cli_packets);
 
     lua_push_uint64_table_entry(vm, "cli2srv.fragments", ip_stats_s2d.pktFrag);
     lua_push_uint64_table_entry(vm, "srv2cli.fragments", ip_stats_d2s.pktFrag);
@@ -1912,8 +1913,8 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     lua_push_float_table_entry(vm, "throughput_cli2srv_pps", pkts_thpt_cli2srv);
     lua_push_float_table_entry(vm, "throughput_srv2cli_pps", pkts_thpt_srv2cli);
 
-    lua_push_uint64_table_entry(vm, "cli2srv.packets", cli2srv_packets);
-    lua_push_uint64_table_entry(vm, "srv2cli.packets", srv2cli_packets);
+    lua_push_uint64_table_entry(vm, "cli2srv.packets", stats.cli2srv_packets);
+    lua_push_uint64_table_entry(vm, "srv2cli.packets", stats.srv2cli_packets);
     lua_push_uint64_table_entry(vm, "cli2srv.last", get_current_bytes_cli2srv());
     lua_push_uint64_table_entry(vm, "srv2cli.last", get_current_bytes_srv2cli());
 
@@ -2061,12 +2062,12 @@ bool Flow::isReadyToBeMarkedAsIdle() {
 
 /* *************************************** */
 
-void Flow::sumStats(nDPIStats *stats, FlowStats *status_stats) {
+void Flow::sumStats(nDPIStats *ndpi_stats, FlowStats *status_stats) {
   FlowStatus status = getFlowStatus();
 
-  stats->incStats(0, ndpiDetectedProtocol.app_protocol,
-		  cli2srv_packets, cli2srv_bytes,
-		  srv2cli_packets, srv2cli_bytes);
+  ndpi_stats->incStats(0, ndpiDetectedProtocol.app_protocol,
+		       stats.cli2srv_packets, stats.cli2srv_bytes,
+		       stats.srv2cli_packets, stats.srv2cli_bytes);
 
   status_stats->incStats(status, protocol);
 }
@@ -2178,8 +2179,8 @@ json_object* Flow::flow2json() {
   char buf[64], jsonbuf[64], *c;
   time_t t;
 
-  if(((cli2srv_packets - last_db_dump.cli2srv_packets) == 0)
-     && ((srv2cli_packets - last_db_dump.srv2cli_packets) == 0))
+  if(((stats.cli2srv_packets - last_db_dump.cli2srv_packets) == 0)
+     && ((stats.srv2cli_packets - last_db_dump.srv2cli_packets) == 0))
     return(NULL);
 
   if((my_object = json_object_new_object()) == NULL) return(NULL);
@@ -2248,7 +2249,7 @@ json_object* Flow::flow2json() {
   json_object_object_add(my_object, Utils::jsonLabel(PROTOCOL, "PROTOCOL", jsonbuf, sizeof(jsonbuf)),
 			 json_object_new_int(protocol));
 
-  if(((cli2srv_packets+srv2cli_packets) > NDPI_MIN_NUM_PACKETS)
+  if(((stats.cli2srv_packets+stats.srv2cli_packets) > NDPI_MIN_NUM_PACKETS)
      || (ndpiDetectedProtocol.app_protocol != NDPI_PROTOCOL_UNKNOWN)) {
     json_object_object_add(my_object, Utils::jsonLabel(L7_PROTO, "L7_PROTO", jsonbuf, sizeof(jsonbuf)),
 			   json_object_new_int(ndpiDetectedProtocol.app_protocol));
@@ -2432,6 +2433,31 @@ void Flow::housekeep(time_t t) {
 
 /* *************************************** */
 
+bool Flow::get_partial_traffic_stats(FlowTrafficStats *fts) {
+  FlowTrafficStats tmp;
+
+  if(!fts)
+    return false;
+
+  if(!last_partial && !(last_partial = (FlowTrafficStats*)malloc(sizeof(FlowTrafficStats))))
+    return false;
+
+  memcpy(&tmp, &stats, sizeof(stats));
+
+  fts->cli2srv_packets = tmp.cli2srv_packets - last_partial->cli2srv_packets;
+  fts->srv2cli_packets = tmp.srv2cli_packets - last_partial->srv2cli_packets;
+  fts->cli2srv_bytes   = tmp.cli2srv_bytes - last_partial->cli2srv_bytes;
+  fts->srv2cli_bytes   = tmp.srv2cli_bytes - last_partial->srv2cli_bytes;
+  fts->cli2srv_goodput_bytes = tmp.cli2srv_goodput_bytes - last_partial->cli2srv_goodput_bytes;
+  fts->srv2cli_goodput_bytes = tmp.srv2cli_goodput_bytes - last_partial->srv2cli_goodput_bytes;
+
+  memcpy(last_partial, &tmp, sizeof(tmp));
+
+  return true;
+}
+
+/* *************************************** */
+
 void Flow::updatePacketStats(InterarrivalStats *stats, const struct timeval *when) {
   if(stats->lastTime.tv_sec != 0) {
     float deltaMS = (float)(Utils::timeval2usec((struct timeval*)when) - Utils::timeval2usec(&stats->lastTime))/(float)1000;
@@ -2510,11 +2536,11 @@ void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
   updatePacketStats(cli2srv_direction ? &cli2srvStats.pktTime : &srv2cliStats.pktTime, when);
 
   if(cli2srv_direction) {
-    cli2srv_packets++, cli2srv_bytes += pkt_len, cli2srv_goodput_bytes += payload_len, ip_stats_s2d.pktFrag += is_fragment;
+    stats.cli2srv_packets++, stats.cli2srv_bytes += pkt_len, stats.cli2srv_goodput_bytes += payload_len, ip_stats_s2d.pktFrag += is_fragment;
     if(cli_host) cli_host->incSentStats(pkt_len);
     if(srv_host) srv_host->incRecvStats(pkt_len);
   } else {
-    srv2cli_packets++, srv2cli_bytes += pkt_len, srv2cli_goodput_bytes += payload_len, ip_stats_d2s.pktFrag += is_fragment;
+    stats.srv2cli_packets++, stats.srv2cli_bytes += pkt_len, stats.srv2cli_goodput_bytes += payload_len, ip_stats_d2s.pktFrag += is_fragment;
     if(cli_host) cli_host->incRecvStats(pkt_len);
     if(srv_host) srv_host->incSentStats(pkt_len);
   }
@@ -2554,18 +2580,18 @@ void Flow::addFlowStats(bool cli2srv_direction,
   updateSeen(last_seen);
 
   if(cli2srv_direction)
-    cli2srv_packets += in_pkts, cli2srv_bytes += in_bytes, cli2srv_goodput_bytes += in_goodput_bytes,
-      srv2cli_packets += out_pkts, srv2cli_bytes += out_bytes, srv2cli_goodput_bytes += out_goodput_bytes,
+    stats.cli2srv_packets += in_pkts, stats.cli2srv_bytes += in_bytes, stats.cli2srv_goodput_bytes += in_goodput_bytes,
+      stats.srv2cli_packets += out_pkts, stats.srv2cli_bytes += out_bytes, stats.srv2cli_goodput_bytes += out_goodput_bytes,
       ip_stats_s2d.pktFrag += in_fragments, ip_stats_d2s.pktFrag += out_fragments;
   else
-    cli2srv_packets += out_pkts, cli2srv_bytes += out_bytes, cli2srv_goodput_bytes += out_goodput_bytes,
-      srv2cli_packets += in_pkts, srv2cli_bytes += in_bytes, srv2cli_goodput_bytes += in_goodput_bytes,
+    stats.cli2srv_packets += out_pkts, stats.cli2srv_bytes += out_bytes, stats.cli2srv_goodput_bytes += out_goodput_bytes,
+      stats.srv2cli_packets += in_pkts, stats.srv2cli_bytes += in_bytes, stats.srv2cli_goodput_bytes += in_goodput_bytes,
       ip_stats_s2d.pktFrag += out_fragments, ip_stats_d2s.pktFrag += in_fragments;
 
   if(bytes_thpt == 0 && last_seen >= first_seen + 1) {
     /* Do a fist estimation while waiting for the periodic activities */
-    bytes_thpt = (cli2srv_bytes + srv2cli_bytes) / (float)(last_seen - first_seen),
-      pkts_thpt = (cli2srv_packets + srv2cli_packets) / (float)(last_seen - first_seen);
+    bytes_thpt = (stats.cli2srv_bytes + stats.srv2cli_bytes) / (float)(last_seen - first_seen),
+      pkts_thpt = (stats.cli2srv_packets + stats.srv2cli_packets) / (float)(last_seen - first_seen);
   }
 }
 /* *************************************** */
@@ -3629,17 +3655,17 @@ FlowStatus Flow::getFlowStatus() {
   /* All flows */
   issues_count = tcp_stats_s2d.pktRetr + tcp_stats_s2d.pktOOO + tcp_stats_s2d.pktLost;
   if(issues_count > CONST_TCP_CHECK_ISSUES_THRESHOLD) {
-    if(issues_count > (cli2srv_packets / CONST_TCP_CHECK_SEVERE_ISSUES_RATIO))
+    if(issues_count > (stats.cli2srv_packets / CONST_TCP_CHECK_SEVERE_ISSUES_RATIO))
       return status_tcp_severe_connection_issues;
-    else if(issues_count > (cli2srv_packets / CONST_TCP_CHECK_ISSUES_RATIO))
+    else if(issues_count > (stats.cli2srv_packets / CONST_TCP_CHECK_ISSUES_RATIO))
       return status_tcp_connection_issues;
   }
 
   issues_count = tcp_stats_d2s.pktRetr + tcp_stats_d2s.pktOOO + tcp_stats_d2s.pktLost;
   if(issues_count > CONST_TCP_CHECK_ISSUES_THRESHOLD) {
-    if(issues_count > (srv2cli_packets / CONST_TCP_CHECK_SEVERE_ISSUES_RATIO))
+    if(issues_count > (stats.srv2cli_packets / CONST_TCP_CHECK_SEVERE_ISSUES_RATIO))
       return status_tcp_severe_connection_issues;
-    else if(issues_count > (srv2cli_packets / CONST_TCP_CHECK_ISSUES_RATIO))
+    else if(issues_count > (stats.srv2cli_packets / CONST_TCP_CHECK_ISSUES_RATIO))
       return status_tcp_connection_issues;
   }
 #endif
@@ -3655,7 +3681,7 @@ FlowStatus Flow::getFlowStatus() {
 #endif
 
     if(protocol == IPPROTO_TCP) {
-      if((srv2cli_packets == 0) && ((time(NULL)-last_seen) > CONST_ALERT_PROBING_TIME))
+      if((stats.srv2cli_packets == 0) && ((time(NULL)-last_seen) > CONST_ALERT_PROBING_TIME))
 	return status_suspicious_tcp_probing;
 
       if(!twh_over) {
@@ -3793,8 +3819,8 @@ void Flow::setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
      A complete solution would require the registration of a netfilter callback
      and the detection of event NFCT_T_DESTROY.
   */
-  nf_existing_flow = !(cli2srv_packets > s2d_pkts || cli2srv_bytes > s2d_bytes
-		       || srv2cli_packets > d2s_pkts || srv2cli_bytes > d2s_bytes);
+  nf_existing_flow = !(stats.cli2srv_packets > s2d_pkts || stats.cli2srv_bytes > s2d_bytes
+		       || stats.srv2cli_packets > d2s_pkts || stats.srv2cli_bytes > d2s_bytes);
 
   updateSeen();
 
@@ -3806,21 +3832,21 @@ void Flow::setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
   last_conntrack_update = now;
 
   iface->_incStats(isIngress2EgressDirection(), now, eth_proto, ndpiDetectedProtocol.app_protocol, protocol,
-		   nf_existing_flow ? s2d_bytes - cli2srv_bytes : s2d_bytes,
-		   nf_existing_flow ? s2d_pkts - cli2srv_packets : s2d_pkts,
+		   nf_existing_flow ? s2d_bytes - stats.cli2srv_bytes : s2d_bytes,
+		   nf_existing_flow ? s2d_pkts - stats.cli2srv_packets : s2d_pkts,
 		   overhead);
 
   iface->_incStats(!isIngress2EgressDirection(), now, eth_proto, ndpiDetectedProtocol.app_protocol, protocol,
-		  nf_existing_flow ? d2s_bytes - srv2cli_bytes : d2s_bytes,
-		  nf_existing_flow ? d2s_pkts - srv2cli_packets : d2s_pkts,
+		  nf_existing_flow ? d2s_bytes - stats.srv2cli_bytes : d2s_bytes,
+		  nf_existing_flow ? d2s_pkts - stats.srv2cli_packets : d2s_pkts,
 		  overhead);
 
   if(nf_existing_flow) {
-    cli2srv_packets = s2d_pkts, cli2srv_bytes = s2d_bytes,
-      srv2cli_packets = d2s_pkts, srv2cli_bytes = d2s_bytes;
+    stats.cli2srv_packets = s2d_pkts, stats.cli2srv_bytes = s2d_bytes,
+      stats.srv2cli_packets = d2s_pkts, stats.srv2cli_bytes = d2s_bytes;
   } else {
-    cli2srv_packets += s2d_pkts, cli2srv_bytes += s2d_bytes,
-      srv2cli_packets += d2s_pkts, srv2cli_bytes += d2s_bytes;
+    stats.cli2srv_packets += s2d_pkts, stats.cli2srv_bytes += s2d_bytes,
+      stats.srv2cli_packets += d2s_pkts, stats.srv2cli_bytes += d2s_bytes;
   }
 }
 #endif
