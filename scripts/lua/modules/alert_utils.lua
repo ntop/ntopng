@@ -1247,6 +1247,11 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
 		 break
 	      end
 	   end
+  end
+
+  if(check_module.local_only and options.remote_host) then
+    show_input = false
+  end
 
         if not gui_conf or not show_input then
           goto next_module
@@ -1268,7 +1273,6 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
          print("</td></tr>\n")
          ::next_module::
       end
-   end
 
       if (entity_type == "host") and (tab == "min") then
          local vals = table.merge(anomalies, global_anomalies)
