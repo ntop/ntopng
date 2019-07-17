@@ -40,8 +40,9 @@ class ViewInterface : public NetworkInterface {
   virtual bool isViewed()           const { return false;                         };
 
   virtual bool isPacketInterface()  const { return false;                         };
-  inline void startPacketPolling()        { ; };
-  inline void shutdown()                  { ; };
+  void flowPollLoop();
+  void startPacketPolling();
+  void shutdown();
   bool set_packet_filter(char *filter)    { return false ;                        };
 
   virtual u_int64_t getNumPackets();

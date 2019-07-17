@@ -306,3 +306,48 @@ void ViewInterface::lua(lua_State *vm) {
   }
   lua_push_bool_table_entry(vm, "has_macs", has_macs);
 }
+
+/* **************************************************** */
+
+void ViewInterface::flowPollLoop() {
+  while(isRunning() && !ntop->getGlobals()->isShutdown()) {
+    while(idle()) sleep(1);
+
+    purgeIdle(time(NULL));
+    usleep(1000);
+  }
+}
+
+/* **************************************************** */
+
+static void* flowPollLoop(void* ptr) {
+  ViewInterface *iface = (ViewInterface*)ptr;
+
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Starting flows polling for %s", iface->get_name());
+
+  /* Wait until the initialization completes */
+  while(!iface->isRunning()) sleep(1);
+
+  iface->flowPollLoop();
+
+  return NULL;
+}
+
+/* **************************************************** */
+
+void ViewInterface::startPacketPolling() {
+  pthread_create(&pollLoop, NULL, ::flowPollLoop, this);
+  pollLoopCreated = true;
+  NetworkInterface::startPacketPolling();
+}
+
+/* **************************************************** */
+
+void ViewInterface::shutdown() {
+  void *res;
+
+  if(isRunning()) {
+    NetworkInterface::shutdown();
+    pthread_join(pollLoop, &res);
+  }
+}
