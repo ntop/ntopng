@@ -2931,7 +2931,7 @@ void NetworkInterface::periodicStatsUpdate() {
   struct timeval tdebug;
 #endif
 
-  if(!read_from_pcap_dump())
+  if(!read_from_pcap_dump() || reproducePcapOriginalSpeed())
     gettimeofday(&tv, NULL);
   else
     tv.tv_sec = last_pkt_rcvd, tv.tv_usec = 0;

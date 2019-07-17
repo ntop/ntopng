@@ -40,8 +40,8 @@ class PcapInterface : public NetworkInterface {
   virtual ~PcapInterface();
 
   bool isDiscoverableInterface()    { return(getMDNS() != NULL  && !isTrafficMirrored()); };
-  virtual InterfaceType getIfType() const { return(read_pkts_from_pcap_dump ? interface_type_PCAP_DUMP : interface_type_PCAP); }
-  inline const char* get_type()     { return(read_pkts_from_pcap_dump ? CONST_INTERFACE_TYPE_PCAP_DUMP : CONST_INTERFACE_TYPE_PCAP); };
+  virtual InterfaceType getIfType() const { return((read_pkts_from_pcap_dump && !reproducePcapOriginalSpeed()) ? interface_type_PCAP_DUMP : interface_type_PCAP); }
+  inline const char* get_type()     { return((read_pkts_from_pcap_dump && !reproducePcapOriginalSpeed()) ? CONST_INTERFACE_TYPE_PCAP_DUMP : CONST_INTERFACE_TYPE_PCAP); };
   inline pcap_t* get_pcap_handle()  { return(pcap_handle);   };
   inline virtual bool areTrafficDirectionsSupported() { return(emulate_traffic_directions); };
   inline void set_pcap_handle(pcap_t *p) { pcap_handle = p; };
@@ -51,7 +51,7 @@ class PcapInterface : public NetworkInterface {
   bool set_packet_filter(char *filter);
   inline bool read_from_pcap_dump() { return(read_pkts_from_pcap_dump);            };
   inline void sendTermination()     { if(pcap_handle) pcap_breakloop(pcap_handle); };
-  bool reproducePcapOriginalSpeed();
+  bool reproducePcapOriginalSpeed() const;
   virtual void updateDirectionStats();
 };
 
