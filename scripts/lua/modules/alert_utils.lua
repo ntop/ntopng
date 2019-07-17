@@ -187,37 +187,6 @@ end
 
 -- ##############################################################################
 
--- Apply a "engaged only" or "closed only" filter
-function statusFilter(query, engaged, now)
-  local alert_released_val
-
-  if engaged then
-    alert_released_val = "alert_released=0"
-  else
-    alert_released_val = "alert_released=1"
-  end
-
-  local group_by_pos = string.find(query, "group by") or string.find(query, "GROUP BY")
-  local prefix_part = query
-  local suffix_part = ""
-
-  if(group_by_pos ~= nil) then
-    prefix_part = string.sub(query, 1, group_by_pos-2)
-    suffix_part = string.sub(query, group_by_pos)
-  end
-  local where_pos = string.find(prefix_part, "where") or string.find(prefix_part, "WHERE")
-
-  if(where_pos == nil) then
-    prefix_part = "WHERE"
-  else
-    prefix_part = prefix_part .. " AND"
-  end
-
-  return(string.format("%s %s %s", prefix_part, alert_released_val, suffix_part))
-end
-
--- ##############################################################################
-
 if ntop.isEnterprise() then
    local dirs = ntop.getDirs()
    package.path = dirs.installdir .. "/pro/scripts/lua/enterprise/modules/?.lua;" .. package.path
@@ -390,12 +359,6 @@ function performAlertsQuery(statement, what, opts, force_query)
    local query = table.concat(wargs, " ")
    local res
 
-   if what == "engaged" then
-      query = statusFilter(query, true)
-   elseif what == "historical" then
-      query = statusFilter(query, false)
-   end
-
    query = query .. " " .. table.concat(oargs, " ")
 
    -- Uncomment to debug the queries
@@ -448,16 +411,51 @@ local function engagedAlertsQuery(params)
   local entity_type_filter = tonumber(params.entity)
   local entity_value_filter = params.entity_val
 
-  -- TODO
-  local per_page = params.perPage
-  local sort_order = params.sortOrder
-  local current_page = params.currentPage
+  local perPage = tonumber(params.perPage)
+  local sortColumn = params.sortColumn
+  local sortOrder = params.sortOrder
+  local sOrder = ternary(sortOrder == "desc", rev_insensitive, asc_insensitive)
+  local currentPage = tonumber(params.currentPage)
+  local totalRows = 0
 
   --~ tprint(string.format("type=%s sev=%s entity=%s val=%s", type_filter, severity_filter, entity_type_filter, entity_value_filter))
-
   local alerts = interface.getEngagedAlerts(entity_type_filter, entity_value_filter, type_filter, severity_filter)
+  local sort_2_col = {}
 
-  return(alerts)
+  -- Sort
+  for idx, alert in pairs(alerts) do
+    if sortColumn == "column_type" then
+      sort_2_col[idx] = alert.alert_type
+    elseif sortColumn == "column_severity" then
+      sort_2_col[idx] = alert.alert_severity
+    elseif sortColumn == "column_duration" then
+      sort_2_col[idx] = os.time() - alert.alert_tstamp
+    else -- column_date
+      sort_2_col[idx] = alert.alert_tstamp
+    end
+
+    totalRows = totalRows + 1
+  end
+
+  -- Pagination
+  local to_skip = (currentPage-1) * perPage
+  local totalRows = #alerts
+  local res = {}
+  local i = 0
+
+  for idx in pairsByValues(sort_2_col, sOrder) do
+    if i >= to_skip + perPage then
+      break
+    end
+
+    if (i >= to_skip) then
+      res[#res + 1] = alerts[idx]
+    end
+
+    i = i + 1
+  end
+
+  return(res)
 end
 
 -- #################################
@@ -895,9 +893,9 @@ local function getMenuEntries(status, selection_name)
       end
 
       if selection_name == "severity" then
-	 actual_entries = interface.queryAlertsRaw("select alert_severity id, count(*) count", statusFilter("group by alert_severity", engaged))
+	 actual_entries = interface.queryAlertsRaw("select alert_severity id, count(*) count", "group by alert_severity")
       elseif selection_name == "type" then
-	 actual_entries = interface.queryAlertsRaw("select alert_type id, count(*) count", statusFilter("group by alert_type", engaged))
+	 actual_entries = interface.queryAlertsRaw("select alert_type id, count(*) count", "group by alert_type")
       end
    end
 
@@ -1410,9 +1408,9 @@ function housekeepingAlertsMakeRoom(ifId)
 	 -- tprint({e=e, total=e.count, to_keep=to_keep, to_delete=to_delete, to_delete_not_discounted=(e.count - max_num_alerts_per_entity)})
 	 local cleanup = interface.queryAlertsRaw(
 						  "DELETE",
-						  statusFilter("WHERE alert_entity="..e.alert_entity.." AND alert_entity_val=\""..e.alert_entity_val.."\" "
+						  "WHERE alert_entity="..e.alert_entity.." AND alert_entity_val=\""..e.alert_entity_val.."\" "
 						     .." AND rowid NOT IN (SELECT rowid FROM alerts WHERE alert_entity="..e.alert_entity.." AND alert_entity_val=\""..e.alert_entity_val.."\" "
-						     .." ORDER BY alert_tstamp DESC LIMIT "..to_keep..")", false))
+						     .." ORDER BY alert_tstamp DESC LIMIT "..to_keep..")", false)
       end
    end
 
@@ -2819,6 +2817,21 @@ function alertNotificationToObject(alert_json)
 
    if(notification.flow ~= nil) then
       notification.message = formatRawFlow(notification.flow, notification.message, true --[[ skip add links ]])
+   else
+      local alert = alerts.alertNotificationToRecord(notification)
+      local description = alertTypeDescription(alert.alert_type)
+      local msg = alert.alert_json
+
+      if(string.sub(msg, 1, 1) == "{") then
+        msg = json.decode(msg)
+      end
+
+      if(type(description) == "string") then
+        -- localization string
+        notification.message = i18n(description, msg)
+      elseif(type(description) == "function") then
+        notification.message = description(notification.ifid, alert, msg)
+      end
    end
 
    return notification

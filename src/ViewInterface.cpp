@@ -291,7 +291,18 @@ void ViewInterface::lua(lua_State *vm) {
 /* **************************************************** */
 
 static bool viewed_flows_walker(GenericHashEntry *flow, void *user_data, bool *matched) {
+  ViewInterface *iface = (ViewInterface*)user_data;
   Flow *f = (Flow*)flow;
+
+  iface->purgeIdle(time(NULL));
+
+  if(f->is_acknowledged_to_purge())
+    return false; /* Already visited for the last time after it has gone idle, keep walking */
+
+  FlowTrafficStats partials;
+  if(f->get_partial_traffic_stats(&partials)) {
+    
+  }
 
   /* The flow has already been marked as idle by the underlying viewed interface,
      so now that we have seen it for the last time, and we know the underlying interface
@@ -299,7 +310,7 @@ static bool viewed_flows_walker(GenericHashEntry *flow, void *user_data, bool *m
   if(f->idle())
     f->set_acknowledge_to_purge();
 
-  return false; /* keep walking */
+  return false; /* Move on to the next flow, keep walking */
 }
 
 /* **************************************************** */
@@ -310,7 +321,7 @@ void ViewInterface::flowPollLoop() {
     while(idle()) sleep(1);
 
     begin_slot = 0; /* Always visit all flows starting from the first slot */
-    walker(&begin_slot, true /* walk all the flows */, walker_flows, viewed_flows_walker, (void*)NULL/* &retriever */, true /* visit also idle flows (required to acknowledge the purge) */);
+    walker(&begin_slot, true /* walk all the flows */, walker_flows, viewed_flows_walker, this, true /* visit also idle flows (required to acknowledge the purge) */);
 
     purgeIdle(time(NULL));
     usleep(1000);

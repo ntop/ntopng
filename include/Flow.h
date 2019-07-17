@@ -43,6 +43,12 @@ typedef struct {
   InterarrivalStats pktTime;
 } FlowPacketStats;
 
+typedef struct {
+  u_int32_t cli2srv_packets, srv2cli_packets;
+  u_int64_t cli2srv_bytes, srv2cli_bytes;
+  u_int64_t cli2srv_goodput_bytes, srv2cli_goodput_bytes;
+} FlowTrafficStats;
+
 class Flow : public GenericHashEntry {
  private:
   Host *cli_host, *srv_host;
@@ -139,10 +145,7 @@ class Flow : public GenericHashEntry {
   ParsedeBPF *cli_ebpf, *srv_ebpf;
 
   /* Stats */
-  u_int32_t cli2srv_packets, srv2cli_packets;
-  u_int64_t cli2srv_bytes, srv2cli_bytes;
-  /* https://en.wikipedia.org/wiki/Goodput */
-  u_int64_t cli2srv_goodput_bytes, srv2cli_goodput_bytes;
+  FlowTrafficStats stats;
 
   /* IP stats */
   IPPacketStats ip_stats_s2d, ip_stats_d2s;
@@ -171,6 +174,9 @@ class Flow : public GenericHashEntry {
     u_int64_t cli2srv_goodput_bytes, srv2cli_goodput_bytes;
     u_int32_t last_dump;
   } last_db_dump;
+
+  /* Lazily initialized and used by a possible view interface */
+  FlowTrafficStats *last_partial;
 
 #ifdef HAVE_NEDGE
   struct {
@@ -334,20 +340,21 @@ class Flow : public GenericHashEntry {
   inline u_int16_t get_srv_port()        const { return(ntohs(srv_port));                 };
   inline u_int16_t get_vlan_id()         const { return(vlanId);                          };
   inline u_int8_t  get_protocol()        const { return(protocol);                        };
-  inline u_int64_t get_bytes()           const { return(cli2srv_bytes+srv2cli_bytes);     };
-  inline u_int64_t get_bytes_cli2srv()   const { return(cli2srv_bytes);                   };
-  inline u_int64_t get_bytes_srv2cli()   const { return(srv2cli_bytes);                   };
-  inline u_int64_t get_goodput_bytes()   const { return(cli2srv_goodput_bytes+srv2cli_goodput_bytes);     };
-  inline u_int64_t get_packets()         const { return(cli2srv_packets+srv2cli_packets); };
-  inline u_int64_t get_packets_cli2srv() const { return(cli2srv_packets);                 };
-  inline u_int64_t get_packets_srv2cli() const { return(srv2cli_packets);                 };
+  inline u_int64_t get_bytes()           const { return(stats.cli2srv_bytes+stats.srv2cli_bytes);     };
+  inline u_int64_t get_bytes_cli2srv()   const { return(stats.cli2srv_bytes);                   };
+  inline u_int64_t get_bytes_srv2cli()   const { return(stats.srv2cli_bytes);                   };
+  inline u_int64_t get_goodput_bytes()   const { return(stats.cli2srv_goodput_bytes+stats.srv2cli_goodput_bytes);     };
+  inline u_int64_t get_packets()         const { return(stats.cli2srv_packets+stats.srv2cli_packets); };
+  inline u_int64_t get_packets_cli2srv() const { return(stats.cli2srv_packets);                 };
+  inline u_int64_t get_packets_srv2cli() const { return(stats.srv2cli_packets);                 };
   inline u_int64_t get_partial_bytes()   const { return(get_bytes() - (last_db_dump.cli2srv_bytes+last_db_dump.srv2cli_bytes));       };
-  inline u_int64_t get_partial_bytes_cli2srv()   const { return(cli2srv_bytes - last_db_dump.cli2srv_bytes);       };
-  inline u_int64_t get_partial_bytes_srv2cli()   const { return(srv2cli_bytes - last_db_dump.srv2cli_bytes);       };
-  inline u_int64_t get_partial_packets_cli2srv() const { return(cli2srv_packets - last_db_dump.cli2srv_packets);   };
-  inline u_int64_t get_partial_packets_srv2cli() const { return(srv2cli_packets - last_db_dump.srv2cli_packets);   };
+  inline u_int64_t get_partial_bytes_cli2srv()   const { return(stats.cli2srv_bytes - last_db_dump.cli2srv_bytes);       };
+  inline u_int64_t get_partial_bytes_srv2cli()   const { return(stats.srv2cli_bytes - last_db_dump.srv2cli_bytes);       };
+  inline u_int64_t get_partial_packets_cli2srv() const { return(stats.cli2srv_packets - last_db_dump.cli2srv_packets);   };
+  inline u_int64_t get_partial_packets_srv2cli() const { return(stats.srv2cli_packets - last_db_dump.srv2cli_packets);   };
   inline u_int64_t get_partial_goodput_bytes()   const { return(get_goodput_bytes() - (last_db_dump.cli2srv_goodput_bytes+last_db_dump.srv2cli_goodput_bytes));       };
   inline u_int64_t get_partial_packets() const { return(get_packets() - (last_db_dump.cli2srv_packets+last_db_dump.srv2cli_packets)); };
+  bool get_partial_traffic_stats(FlowTrafficStats *fts);
   inline float get_bytes_thpt()          const { return(bytes_thpt);                      };
   inline float get_goodput_bytes_thpt()  const { return(goodput_bytes_thpt);              };
 
@@ -456,10 +463,10 @@ class Flow : public GenericHashEntry {
 
   inline u_int32_t getCli2SrvMinInterArrivalTime()  { return(cli2srvStats.pktTime.min_ms); }
   inline u_int32_t getCli2SrvMaxInterArrivalTime()  { return(cli2srvStats.pktTime.max_ms); }
-  inline u_int32_t getCli2SrvAvgInterArrivalTime()  { return((cli2srv_packets < 2) ? 0 : cli2srvStats.pktTime.total_delta_ms / (cli2srv_packets-1)); }
+  inline u_int32_t getCli2SrvAvgInterArrivalTime()  { return((stats.cli2srv_packets < 2) ? 0 : cli2srvStats.pktTime.total_delta_ms / (stats.cli2srv_packets-1)); }
   inline u_int32_t getSrv2CliMinInterArrivalTime()  { return(srv2cliStats.pktTime.min_ms); }
   inline u_int32_t getSrv2CliMaxInterArrivalTime()  { return(srv2cliStats.pktTime.max_ms); }
-  inline u_int32_t getSrv2CliAvgInterArrivalTime()  { return((srv2cli_packets < 2) ? 0 : srv2cliStats.pktTime.total_delta_ms / (srv2cli_packets-1)); }
+  inline u_int32_t getSrv2CliAvgInterArrivalTime()  { return((stats.srv2cli_packets < 2) ? 0 : srv2cliStats.pktTime.total_delta_ms / (stats.srv2cli_packets-1)); }
   bool isIdleFlow();
   inline bool isTCPEstablished() const { return (!isTCPClosed() && !isTCPReset()
 						 && ((src2dst_tcp_flags & (TH_SYN | TH_ACK)) == (TH_SYN | TH_ACK))

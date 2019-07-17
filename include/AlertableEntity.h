@@ -47,11 +47,6 @@ class AlertableEntity {
     alert_cache[(u_int)p][key] = value;
   }
 
-  /* Return true if the element was existing and thus deleted, false if not present */
-  inline bool releaseAlert(std::string key, ScriptPeriodicity p) {
-    return((triggered_alerts[(u_int)p].erase(key) == 1) ? true : false);
-  }
-
   inline u_int getNumTriggeredAlerts(ScriptPeriodicity p) {
     return(triggered_alerts[(u_int)p].size());
   }
@@ -62,7 +57,9 @@ class AlertableEntity {
     AlertLevel alert_severity, AlertType alert_type,
     const char *alert_subtype,
     const char *alert_json);
+  bool releaseAlert(lua_State* vm, std::string key, ScriptPeriodicity p);
 
+  void luaAlert(lua_State* vm, Alert *alert, ScriptPeriodicity p);
   void getExpiredAlerts(ScriptPeriodicity p, lua_State* vm, time_t now);
   u_int getNumTriggeredAlerts();
   void countAlerts(grouped_alerts_counters *counters);
