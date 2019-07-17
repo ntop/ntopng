@@ -2439,7 +2439,7 @@ bool Flow::get_partial_traffic_stats(FlowTrafficStats *fts) {
   if(!fts)
     return false;
 
-  if(!last_partial && !(last_partial = (FlowTrafficStats*)malloc(sizeof(FlowTrafficStats))))
+  if(!last_partial && !(last_partial = (FlowTrafficStats*)calloc(1, sizeof(FlowTrafficStats))))
     return false;
 
   memcpy(&tmp, &stats, sizeof(stats));

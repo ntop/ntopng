@@ -215,7 +215,6 @@ class Flow : public GenericHashEntry {
   void dumpPacketStats(lua_State* vm, bool cli2srv_direction);
   bool isReadyToBeMarkedAsIdle();
   bool isBlacklistedFlow() const;
-  u_int16_t getStatsProtocol() const;
   inline bool isDeviceAllowedProtocol() {
       return(!cli_host || !srv_host ||
         ((cli_host->getDeviceAllowedProtocolStatus(ndpiDetectedProtocol, true) == device_proto_allowed) &&
@@ -309,9 +308,13 @@ class Flow : public GenericHashEntry {
   void updateSeqNum(time_t when, u_int32_t sN, u_int32_t aN);
   void processDetectedProtocol();
   void setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection);
-  void setCustomApp(custom_app_t ca) {
+  inline void setCustomApp(custom_app_t ca) {
     memcpy(&custom_app, &ca, sizeof(custom_app));
   };
+  inline custom_app_t getCustomApp() const {
+    return custom_app;
+  };
+  u_int16_t getStatsProtocol() const;
   void setJSONInfo(const char *json);
 #ifdef NTOPNG_PRO
   inline bool is_status_counted_in_aggregated_flow()    const { return(status_counted_in_aggregated_flow); };

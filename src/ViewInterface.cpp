@@ -293,15 +293,36 @@ void ViewInterface::lua(lua_State *vm) {
 static bool viewed_flows_walker(GenericHashEntry *flow, void *user_data, bool *matched) {
   ViewInterface *iface = (ViewInterface*)user_data;
   Flow *f = (Flow*)flow;
+  time_t now = time(NULL);
 
-  iface->purgeIdle(time(NULL));
+  iface->purgeIdle(now);
 
   if(f->is_acknowledged_to_purge())
     return false; /* Already visited for the last time after it has gone idle, keep walking */
 
   FlowTrafficStats partials;
-  if(f->get_partial_traffic_stats(&partials)) {
-    
+  const IpAddress *cli_ip = f->get_cli_ip_addr(), *srv_ip = f->get_srv_ip_addr();
+
+  if(f->get_partial_traffic_stats(&partials) && cli_ip && srv_ip) {
+    Host *cli_host = NULL, *srv_host = NULL;
+
+    iface->findFlowHosts(f->get_vlan_id(),
+			 NULL /* no src mac yet */, (IpAddress*)cli_ip, &cli_host,
+			 NULL /* no dst mac yet */, (IpAddress*)srv_ip, &srv_host);
+
+    if(cli_host) {
+      cli_host->incStats(now, f->get_protocol(), f->getStatsProtocol(), f->getCustomApp(),
+			 partials.cli2srv_packets, partials.cli2srv_bytes, partials.cli2srv_goodput_bytes,
+			 partials.srv2cli_packets, partials.srv2cli_bytes, partials.srv2cli_goodput_bytes,
+			 cli_ip->isNonEmptyUnicastAddress());
+    }
+
+    if(srv_host) {
+      srv_host->incStats(now, f->get_protocol(), f->getStatsProtocol(), f->getCustomApp(),
+			 partials.srv2cli_packets, partials.srv2cli_bytes, partials.srv2cli_goodput_bytes,
+			 partials.cli2srv_packets, partials.cli2srv_bytes, partials.cli2srv_goodput_bytes,
+			 srv_ip->isNonEmptyUnicastAddress());
+    }
   }
 
   /* The flow has already been marked as idle by the underlying viewed interface,
