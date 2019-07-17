@@ -188,62 +188,6 @@ u_int32_t ViewInterface::getFlowsHashSize() {
 
 /* **************************************************** */
 
-u_int32_t ViewInterface::getMacsHashSize() {
-  u_int32_t tot = 0;
-
-  for(u_int8_t s = 0; s < num_viewed_interfaces; s++)
-    tot += viewed_interfaces[s]->getMacsHashSize();
-
-  return(tot);
-}
-
-/* **************************************************** */
-
-u_int32_t ViewInterface::getHostsHashSize() {
-  u_int32_t tot = 0;
-
-  for(u_int8_t s = 0; s < num_viewed_interfaces; s++) {
-    tot += viewed_interfaces[s]->getHostsHashSize();
-  }
-
-  return(tot);
-}
-
-/* **************************************************** */
-
-u_int32_t ViewInterface::getASesHashSize() {
-  u_int32_t tot = 0;
-
-  for(u_int8_t s = 0; s < num_viewed_interfaces; s++)
-    tot += viewed_interfaces[s]->getASesHashSize();
-
-  return(tot);
-}
-
-/* **************************************************** */
-
-u_int32_t ViewInterface::getCountriesHashSize() {
-  u_int32_t tot = 0;
-
-  for(u_int8_t s = 0; s < num_viewed_interfaces; s++)
-    tot += viewed_interfaces[s]->getCountriesHashSize();
-
-  return(tot);
-}
-
-/* **************************************************** */
-
-u_int32_t ViewInterface::getVLANsHashSize() {
-  u_int32_t tot = 0;
-
-  for(u_int8_t s = 0; s < num_viewed_interfaces; s++)
-    tot += viewed_interfaces[s]->getVLANsHashSize();
-
-  return(tot);
-}
-
-/* **************************************************** */
-
 Flow* ViewInterface::findFlowByKey(u_int32_t key, AddressTree *allowed_hosts) {
   Flow *f = NULL;
 
@@ -353,8 +297,6 @@ void ViewInterface::flowPollLoop() {
 
 static void* flowPollLoop(void* ptr) {
   ViewInterface *iface = (ViewInterface*)ptr;
-
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Starting flows polling for %s", iface->get_name());
 
   /* Wait until the initialization completes */
   while(!iface->isRunning()) sleep(1);

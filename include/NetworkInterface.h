@@ -270,13 +270,13 @@ class NetworkInterface : public AlertableEntity {
   virtual ~NetworkInterface();
 
   bool initFlowDump(u_int8_t num_dump_interfaces);
-  virtual u_int32_t getASesHashSize();
-  virtual u_int32_t getCountriesHashSize();
-  virtual u_int32_t getVLANsHashSize();
-  virtual u_int32_t getMacsHashSize();
-  virtual u_int32_t getHostsHashSize();
+  u_int32_t getASesHashSize();
+  u_int32_t getCountriesHashSize();
+  u_int32_t getVLANsHashSize();
+  u_int32_t getMacsHashSize();
+  u_int32_t getHostsHashSize();
+  u_int32_t getArpHashMatrixSize();
   virtual u_int32_t getFlowsHashSize();
-  virtual u_int32_t getArpHashMatrixSize();
 
   virtual bool walker(u_int32_t *begin_slot,
 		      bool walk_all,
