@@ -134,7 +134,7 @@ int main(int argc, char *argv[]) {
   uint64_t total_time_usec;
   ndpi_serializer *serializer;
   ndpi_serializer deserializer;
-  int rc, i, j, num_records, tlv_msgs = 0, exported_msgs = 0;
+  int rc, i, j, z, num_records, max_tlv_msgs = 0, tlv_msgs = 0, exported_msgs = 0;
   char c;
 
   while ((c = getopt(argc, argv,"hi:vz:E:D:")) != '?') {
@@ -220,11 +220,13 @@ int main(int argc, char *argv[]) {
 
   /* nDPI TLV Serialization */
 
-  tlv_msgs = (num_records/batch_size)+1;
-  serializer = (ndpi_serializer *) calloc(tlv_msgs, sizeof(ndpi_serializer)); 
+  max_tlv_msgs = (num_records/batch_size)+1;
+  serializer = (ndpi_serializer *) calloc(max_tlv_msgs, sizeof(ndpi_serializer)); 
 
-  for (i = 0; i < tlv_msgs; i++) 
+  for (i = 0; i < max_tlv_msgs; i++) 
     ndpi_init_serializer(&serializer[i], ndpi_serialization_format_tlv);
+
+  printf("Serializing..\n");
 
   total_time_usec = 0;
 
@@ -278,13 +280,15 @@ int main(int argc, char *argv[]) {
 
   /* nDPI TLV Deserialization */
 
+  printf("Deserializing..\n");
+
   total_time_usec = 0;
 
   for (int r = 0; r < dec_repeat; r++) {
 
     gettimeofday(&t1, NULL);
 
-    for (i = 0; i < tlv_msgs; i++) {
+    for (i = 0, j = 0, z = 0; i < tlv_msgs; i++, z = 0) {
 
       if (verbose) printf("\n[Message %u]\n\n", i);
 
@@ -333,14 +337,18 @@ int main(int argc, char *argv[]) {
 
           case ndpi_serialization_end_of_record:
           ndpi_deserialize_end_of_record(&deserializer);
-          if (verbose) printf("EOR\n");  
+          if (verbose) printf("EOR\n");
+          j++;
+          z = 0;
           break;
 
           default:
-          if (verbose) printf("Unsupported type %u\n", et);
+          printf("Unsupported type %u [msg: %u][record: %u][element: %u]\n", et, i, j, z);
           goto close_message;
           break;
         }
+
+        z++;
       }
 
       close_message:

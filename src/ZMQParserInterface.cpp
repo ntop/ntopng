@@ -1034,7 +1034,7 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
 
       default:
         //if (debug_tlv) 
-          printf("Unsupported type %u\n", et);
+          ntop->getTrace()->traceEvent(TRACE_WARNING, "Unsupported TLV type %u\n", et);
         ret = -1;
         goto error;
       break;
