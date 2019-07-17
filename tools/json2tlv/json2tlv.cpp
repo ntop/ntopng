@@ -128,7 +128,7 @@ int main(int argc, char *argv[]) {
   void *zmq_sock = NULL;
   void *zmq_context = NULL;
   int enc_repeat = 1, dec_repeat = 1;
-  int batch_size = 32;
+  int batch_size = 20;
   int verbose = 0;
   struct timeval t1, t2;
   uint64_t total_time_usec;
