@@ -121,61 +121,6 @@ u_int ViewInterface::getNumFlows() {
 
 /* **************************************************** */
 
-u_int ViewInterface::getNumL2Devices() {
-  u_int tot = 0;
-
-  for(u_int8_t s = 0; s < num_viewed_interfaces; s++)
-    tot += viewed_interfaces[s]->getNumL2Devices();
-
-  return(tot);
-};
-
-/* **************************************************** */
-
-u_int ViewInterface::getNumHosts() {
-  u_int tot = 0;
-
-  for(u_int8_t s = 0; s < num_viewed_interfaces; s++)
-    tot += viewed_interfaces[s]->getNumHosts();
-
-  return(tot);
-};
-
-/* **************************************************** */
-
-u_int ViewInterface::getNumLocalHosts() {
-  u_int tot = 0;
-
-  for(u_int8_t s = 0; s < num_viewed_interfaces; s++)
-    tot += viewed_interfaces[s]->getNumLocalHosts();
-
-  return(tot);
-};
-
-/* **************************************************** */
-
-u_int ViewInterface::getNumHTTPHosts() {
-  u_int tot = 0;
-
-  for(u_int8_t s = 0; s < num_viewed_interfaces; s++)
-    tot += viewed_interfaces[s]->getNumHTTPHosts();
-
-  return(tot);
-};
-
-/* **************************************************** */
-
-u_int ViewInterface::getNumMacs() {
-  u_int tot = 0;
-
-  for(u_int8_t s = 0; s < num_viewed_interfaces; s++)
-    tot += viewed_interfaces[s]->getNumMacs();
-
-  return(tot);
-};
-
-/* **************************************************** */
-
 u_int64_t ViewInterface::getNumBytes() {
   u_int64_t tot = 0;
 
