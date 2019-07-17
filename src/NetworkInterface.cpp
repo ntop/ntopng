@@ -7609,21 +7609,19 @@ static bool host_alert_check(GenericHashEntry *h, void *user_data, bool *matched
   Host *host = (Host*)h;
 
   /* Alerts are checked only on local hosts */
-  if(host->isLocalHost()) {
-    const char *function_to_call = "checkHostAlerts";
-    
-    ap->le->setHost(host);
+  const char *function_to_call = "checkHostAlerts";
 
-    /* https://www.lua.org/pil/25.2.html */
-    lua_getglobal(L,  function_to_call); /* Called function */
-    lua_pushstring(L, ap->granularity);  /* push 1st argument */
-    
-    if(lua_pcall(L, 1 /* 1 argument */, 0 /* 0 results */, 0)) /* Call the function now */
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure [%s][%s]", ap->script_path, lua_tostring(L, -1));
+  ap->le->setHost(host);
 
-    host->housekeepAlerts(ap->p /* periodicity */);
-  }
-  
+  /* https://www.lua.org/pil/25.2.html */
+  lua_getglobal(L,  function_to_call); /* Called function */
+  lua_pushstring(L, ap->granularity);  /* push 1st argument */
+
+  if(lua_pcall(L, 1 /* 1 argument */, 0 /* 0 results */, 0)) /* Call the function now */
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure [%s][%s]", ap->script_path, lua_tostring(L, -1));
+
+  host->housekeepAlerts(ap->p /* periodicity */);
+
   return(false); /* false = keep on walking */
 }
 

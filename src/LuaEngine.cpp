@@ -8903,10 +8903,6 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "reloadHideFromTop",                ntop_reload_hide_from_top },
   { "reloadDhcpRanges",                 ntop_reload_dhcp_ranges },
 
-  /* Alerts */
-  { "refreshHostsAlertsConfiguration",  ntop_refresh_hosts_alerts_configuration },
-  { "loadPacketsDropsAlertPrefs",       ntop_load_packet_drops_prefs    },
-
   /* Mac */
   { "getMacsInfo",                      ntop_get_interface_macs_info },
   { "getBatchedMacsInfo",               ntop_get_batched_interface_macs_info },
@@ -9006,6 +9002,8 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "stopRunningCapture",     ntop_stop_running_capture               },
 
   /* Alerts */
+  { "refreshHostsAlertsConfiguration",  ntop_refresh_hosts_alerts_configuration },
+  { "loadPacketsDropsAlertPrefs",       ntop_load_packet_drops_prefs  },
   { "queryAlertsRaw",         ntop_interface_query_alerts_raw         },
   { "queryFlowAlertsRaw",     ntop_interface_query_flow_alerts_raw    },
   { "storeAlert",             ntop_interface_store_alert              },

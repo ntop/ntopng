@@ -210,9 +210,13 @@ function get_alerts_hash_name(timespan, ifname, entity_type)
 end
 
 -- Get the hash key used for saving global settings
-function get_global_alerts_hash_key(entity_type, alert_source)
+local function get_global_alerts_hash_key(entity_type, alert_source, local_hosts)
    if entity_type == "host" then
-      return "local_hosts"
+      if local_hosts then
+        return "local_hosts"
+      else
+        return "remote_hosts"
+      end
    elseif entity_type == "interface" then
       return "interfaces"
    elseif entity_type == "network" then
@@ -966,8 +970,8 @@ end
 
 -- #################################
 
-function getGlobalAlertsConfigurationHash(granularity, entity_type, alert_source)
-   return 'ntopng.prefs.alerts_global.'..granularity.."."..get_global_alerts_hash_key(entity_type, alert_source)
+local function getGlobalAlertsConfigurationHash(granularity, entity_type, alert_source, local_hosts)
+   return 'ntopng.prefs.alerts_global.'..granularity.."."..get_global_alerts_hash_key(entity_type, alert_source, local_hosts)
 end
 
 local global_redis_thresholds_key = "thresholds"
@@ -1073,7 +1077,7 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
    local anomalies_config = {
    }
 
-   local global_redis_hash = getGlobalAlertsConfigurationHash(tab, entity_type, alert_source)
+   local global_redis_hash = getGlobalAlertsConfigurationHash(tab, entity_type, alert_source, not options.remote_host)
 
    print('</ul>')
 
@@ -1228,7 +1232,6 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
       print[[</th></tr>]]
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 
-   if not options.remote_host then
       for key, check_module in pairsByKeys(descr, asc) do
         local gui_conf = check_module.gui
 	local show_input = true
@@ -1244,7 +1247,6 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
 		 break
 	      end
 	   end
-	end
 
         if not gui_conf or not show_input then
           goto next_module
@@ -1965,13 +1967,13 @@ end
 
 -- #################################
 
-local function getEntityConfiguredAlertThresholds(ifname, granularity, entity_type)
+local function getEntityConfiguredAlertThresholds(ifname, granularity, entity_type, local_hosts)
    local thresholds_key = get_alerts_hash_name(granularity, ifname, entity_type)
    local thresholds_config = {}
    local res = {}
    
    -- Handle the global configuration
-   local global_conf_keys = ntop.getKeysCache(getGlobalAlertsConfigurationHash(granularity, entity_type, "*")) or {}
+   local global_conf_keys = ntop.getKeysCache(getGlobalAlertsConfigurationHash(granularity, entity_type, "*", local_hosts)) or {}
 
    for alert_key in pairs(global_conf_keys) do
       local thresholds_str = ntop.getHashCache(alert_key, global_redis_thresholds_key)
@@ -2010,11 +2012,20 @@ end
 
 -- #################################
 
--- Get all the configured threasholds for hosts on the specified interface
+-- Get all the configured threasholds for local hosts on the specified interface
 -- NOTE: an additional "local_hosts" key is added if there are globally
 -- configured threasholds (threasholds active for all the hosts of the interface)
-function getHostsConfiguredAlertThresholds(ifname, granularity)
-  return(getEntityConfiguredAlertThresholds(ifname, granularity, "host"))
+function getLocalHostsConfiguredAlertThresholds(ifname, granularity, local_hosts)
+  return(getEntityConfiguredAlertThresholds(ifname, granularity, "host", true))
+end
+
+-- #################################
+
+-- Get all the configured threasholds for remote hosts on the specified interface
+-- NOTE: an additional "local_hosts" key is added if there are globally
+-- configured threasholds (threasholds active for all the hosts of the interface)
+function getRemoteHostsConfiguredAlertThresholds(ifname, granularity, local_hosts)
+  return(getEntityConfiguredAlertThresholds(ifname, granularity, "host", false))
 end
 
 -- #################################
@@ -2024,30 +2035,6 @@ end
 -- configured threasholds (threasholds active for all the hosts of the interface)
 function getNetworksConfiguredAlertThresholds(ifname, granularity)
   return(getEntityConfiguredAlertThresholds(ifname, granularity, "network"))
-end
-
--- #################################
-
--- Extracts the configured thresholds for the entity, global and local
-local function getEntityThresholds(configured_thresholds, entity_type, entity)
-   local res = {}
-   local global_conf_key = get_global_alerts_hash_key(entity_type, entity)
-
-   if configured_thresholds[global_conf_key] ~= nil then
-      -- Global configuration exists
-      for k, v in pairs(configured_thresholds[global_conf_key]) do
-         res[k] = v
-      end
-   end
-
-   -- Possibly override global thresholds with local configured ones
-   if configured_thresholds[entity] ~= nil then
-      for k, v in pairs(configured_thresholds[entity]) do
-         res[k] = v
-      end
-   end
-
-   return res
 end
 
 -- #################################
@@ -2757,7 +2744,8 @@ function flushAlertsData()
    if(verbose) then io.write("[Alerts] Flushing Redis configuration...\n") end
    deleteCachePattern("ntopng.prefs.*alert*")
    deleteCachePattern("ntopng.alerts.*")
-   deleteCachePattern(getGlobalAlertsConfigurationHash("*", "*", "*"))
+   deleteCachePattern(getGlobalAlertsConfigurationHash("*", "*", "*", true))
+   deleteCachePattern(getGlobalAlertsConfigurationHash("*", "*", "*", false))
    ntop.delCache(get_alerts_suppressed_hash_name("*"))
    for _, key in pairs(get_make_room_keys("*")) do deleteCachePattern(key) end
 
