@@ -16,25 +16,36 @@ struct zmq_msg_hdr {
   u_int32_t size;
 };
 
+/* *************************************** */
+
 static pair<char *, size_t> get_corpus(string filename) {
   ifstream is(filename, ios::binary);
 
   if (is) {
     stringstream buffer;
+    char *aligned_buffer;
+    size_t length;
+
     buffer << is.rdbuf();
-    size_t length = buffer.str().size();
-    char * aligned_buffer;
+
+    length = buffer.str().size();
+
     if (posix_memalign( (void **)&aligned_buffer, 64, (length + 63) / 64  * 64))
       throw "Allocation failed";
+
     memset(aligned_buffer, 0x20, (length + 63) / 64  * 64);
     memcpy(aligned_buffer, buffer.str().c_str(), length);
+
     is.close();
+
     return make_pair((char *)aligned_buffer, length);
   } 
 
   cerr << "JSON file " << filename << "not found or empty\n";
   exit(1);
 }
+
+/* *************************************** */
 
 int key_is_int(char *key) {
   int i, length = strlen(key);
@@ -46,6 +57,7 @@ int key_is_int(char *key) {
   return 1;
 }
 
+/* *************************************** */
 void json_to_tlv(json_object * jobj, ndpi_serializer *serializer) {
   enum json_type type;
   int rc, ikey, ival = 0;
@@ -99,10 +111,14 @@ void json_to_tlv(json_object * jobj, ndpi_serializer *serializer) {
   }
 }
 
+/* *************************************** */
+
 void print_help(char *bin) {
   cerr << "Usage: " << bin << " -i <JSON file> [-z <ZMQ endpoint>] [-E <num encoding loops] [-D <num decoding loop>] [-v]\n";
   cerr << "Note: the JSON file should contain an array of records\n";
 }
+
+/* *************************************** */
 
 int main(int argc, char *argv[]) {
   char *json_path = NULL;
