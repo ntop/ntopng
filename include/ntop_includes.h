@@ -185,6 +185,7 @@ using namespace std;
 #include "TrafficStats.h"
 #include "TcpPacketStats.h"
 #include "ntop_typedefs.h"
+#include "Alert.h"
 #include "AlertableEntity.h"
 #include "NetworkStats.h"
 #include "Trace.h"

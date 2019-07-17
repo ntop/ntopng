@@ -43,6 +43,11 @@ bool AlertableEntity::triggerAlert(std::string key, ScriptPeriodicity p, time_t 
     const char *alert_json) {
   std::map<std::string, Alert>::iterator it = triggered_alerts[(u_int)p].find(key);
 
+  if(entity_val.empty()) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "setEntityValue() not called or empty entity_val");
+    return(false);
+  }
+
   if(it != triggered_alerts[(u_int)p].end()) {
     it->second.last_update = now;
     return(false); /* already present */
@@ -74,15 +79,6 @@ u_int AlertableEntity::getNumTriggeredAlerts() {
 
 /* ****************************************** */
 
-void AlertableEntity::setEntityInfo(AlertEntity ent_type, const char *ent_val) {
-  if(entity_val.empty()) {
-    entity_type = ent_type;
-    entity_val = ent_val;
-  }
-}
-
-/* ****************************************** */
-
 void AlertableEntity::countAlerts(grouped_alerts_counters *counters) {
   int p;
   std::map<std::string, Alert>::iterator it;
@@ -99,7 +95,7 @@ void AlertableEntity::countAlerts(grouped_alerts_counters *counters) {
 
 /* ****************************************** */
 
-void AlertableEntity::getAlerts(lua_State* vm, int type_filter, int severity_filter, u_int *idx) {
+void AlertableEntity::getAlerts(lua_State* vm, AlertType type_filter, AlertLevel severity_filter, u_int *idx) {
   int p;
   std::map<std::string, Alert>::iterator it;
 
@@ -107,8 +103,8 @@ void AlertableEntity::getAlerts(lua_State* vm, int type_filter, int severity_fil
     for(it = triggered_alerts[p].begin(); it != triggered_alerts[p].end(); ++it) {
       Alert *alert = &it->second;
 
-      if(((type_filter == -1) || (type_filter == alert->alert_type))
-          && ((severity_filter == -1) || (severity_filter == alert->alert_severity))) {
+      if(((type_filter == alert_none) || (type_filter == alert->alert_type))
+          && ((severity_filter == alert_level_none) || (severity_filter == alert->alert_severity))) {
         lua_newtable(vm);
 
         /* NOTE: must conform to the AlertsManager format */

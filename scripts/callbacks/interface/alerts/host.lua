@@ -39,8 +39,6 @@ function checkHostAlerts(granularity)
   local entity_info = alerts_api.hostAlertEntity(info.ip, info.vlan)
 
   if has_configured_alerts then
-    host.setAlertableInfo(entity_info.alert_entity.entity_id, entity_info.alert_entity_val)
-
     for _, check in pairs(available_modules) do
       local config = host_config[check.key] or global_config[check.key]
 

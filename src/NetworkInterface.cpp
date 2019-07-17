@@ -34,14 +34,14 @@ static bool help_printed = false;
 /* **************************************************** */
 
 /* Method used for collateral activities */
-NetworkInterface::NetworkInterface() {
+NetworkInterface::NetworkInterface() : AlertableEntity(alert_entity_interface) {
   init();
 }
 
 /* **************************************************** */
 
 NetworkInterface::NetworkInterface(const char *name,
-				   const char *custom_interface_type) {
+				   const char *custom_interface_type) : AlertableEntity(alert_entity_interface) {
   NDPI_PROTOCOL_BITMASK all;
   char _ifname[MAX_INTERFACE_NAME_LEN], buf[MAX_INTERFACE_NAME_LEN];
   /* We need to do it as isView() is not yet initialized */
@@ -251,6 +251,8 @@ NetworkInterface::NetworkInterface(const char *name,
 /* **************************************************** */
 
 void NetworkInterface::init() {
+  char buf[32];
+
   ifname = NULL,
     bridge_lan_interface_id = bridge_wan_interface_id = 0, ndpi_struct = NULL,
     inline_interface = false,
@@ -333,6 +335,8 @@ void NetworkInterface::init() {
     ebpfFlows = new (std::nothrow) ParsedFlow*[EBPF_QUEUE_LEN]();
   next_ebpf_insert_idx = next_ebpf_remove_idx = 0;
 
+  snprintf(buf, sizeof(buf), "iface_%d", id);
+  setEntityValue(buf);
 
   PROFILING_INIT();
 }
@@ -7761,6 +7765,8 @@ void NetworkInterface::getEngagedAlertsCount(lua_State *vm, int entity_type,
           const char *entity_value) {
   grouped_alerts_counters counters;
   u_int32_t tot_alerts = 0;
+  std::map<AlertType, u_int32_t>::iterator it;
+  std::map<AlertLevel, u_int32_t>::iterator it2;
 
   /* Hosts */
   if((entity_type == -1) || (entity_type == alert_entity_host)) {
@@ -7805,42 +7811,34 @@ void NetworkInterface::getEngagedAlertsCount(lua_State *vm, int entity_type,
   lua_newtable(vm);
 
   /* Type counters */
-  {
-    std::map<AlertType, u_int32_t>::iterator it;
+  lua_newtable(vm);
 
-    lua_newtable(vm);
+  for(it = counters.types.begin(); it != counters.types.end(); ++it) {
+    tot_alerts += it->second;
 
-    for(it = counters.types.begin(); it != counters.types.end(); ++it) {
-      tot_alerts += it->second;
-
-      lua_pushinteger(vm, it->second);
-      lua_pushinteger(vm, it->first);
-      lua_insert(vm, -2);
-      lua_settable(vm, -3);
-    }
-
-    lua_pushstring(vm, "type");
+    lua_pushinteger(vm, it->second);
+    lua_pushinteger(vm, it->first);
     lua_insert(vm, -2);
     lua_settable(vm, -3);
   }
+
+  lua_pushstring(vm, "type");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
 
   /* Severity counters */
-  {
-    std::map<AlertLevel, u_int32_t>::iterator it;
+  lua_newtable(vm);
 
-    lua_newtable(vm);
-
-    for(it = counters.severities.begin(); it != counters.severities.end(); ++it) {
-      lua_pushinteger(vm, it->second);
-      lua_pushinteger(vm, it->first);
-      lua_insert(vm, -2);
-      lua_settable(vm, -3);
-    }
-
-    lua_pushstring(vm, "severities");
+  for(it2 = counters.severities.begin(); it2 != counters.severities.end(); ++it2) {
+    lua_pushinteger(vm, it2->second);
+    lua_pushinteger(vm, it2->first);
     lua_insert(vm, -2);
     lua_settable(vm, -3);
   }
+
+  lua_pushstring(vm, "severities");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
 
   /* Total */
   lua_push_int32_table_entry(vm, "num_alerts", tot_alerts);
@@ -7850,8 +7848,8 @@ void NetworkInterface::getEngagedAlertsCount(lua_State *vm, int entity_type,
 
 struct alerts_filter {
   lua_State *vm;
-  int alert_type;
-  int alert_severity;
+  AlertType alert_type;
+  AlertLevel alert_severity;
   u_int idx;
 };
 
@@ -7868,7 +7866,7 @@ static bool host_get_alerts(GenericHashEntry *entity, void *user_data, bool *mat
 /* *************************************** */
 
 void NetworkInterface::getEngagedAlerts(lua_State *vm, int entity_type,
-          const char *entity_value, int alert_type, int alert_severity) {
+          const char *entity_value, AlertType alert_type, AlertLevel alert_severity) {
   struct alerts_filter filter;
 
   filter.vm = vm;

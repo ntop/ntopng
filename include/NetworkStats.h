@@ -73,7 +73,7 @@ class NetworkStats : public AlertableEntity {
     incTcp(&tcp_packet_stats_inner, ooo_pkts, retr_pkts, lost_pkts, keep_alive_pkts);
   };
 
-  inline void setNetworkId(u_int8_t id) { network_id = id; };
+  void setNetworkId(u_int8_t id);
   void lua(lua_State* vm);
   bool serialize(json_object *my_object);
   void deserialize(json_object *obj);

@@ -392,6 +392,7 @@ end
 function alerts.hostAlertEntity(hostip, hostvlan)
   return {
     alert_entity = alert_consts.alert_entities.host,
+    -- NOTE: keep in sync with C (Alertable::setEntityValue)
     alert_entity_val = hostinfo2hostkey({ip = hostip, vlan = hostvlan}, nil, true)
   }
 end
@@ -401,6 +402,7 @@ end
 function alerts.interfaceAlertEntity(ifid)
   return {
     alert_entity = alert_consts.alert_entities.interface,
+    -- NOTE: keep in sync with C (Alertable::setEntityValue)
     alert_entity_val = string.format("iface_%d", ifid)
   }
 end
@@ -410,6 +412,7 @@ end
 function alerts.networkAlertEntity(network_cidr)
   return {
     alert_entity = alert_consts.alert_entities.network,
+    -- NOTE: keep in sync with C (Alertable::setEntityValue)
     alert_entity_val = network_cidr
   }
 end

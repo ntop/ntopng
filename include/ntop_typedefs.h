@@ -687,13 +687,4 @@ typedef struct grouped_alerts_counters {
   std::map<AlertLevel, u_int32_t> severities;
 } grouped_alerts_counters;
 
-typedef struct Alert {
-  time_t alert_tstamp_start;
-  time_t last_update;
-  AlertLevel alert_severity;
-  AlertType alert_type;
-  std::string alert_subtype;
-  std::string alert_json;
-} Alert;
-
 #endif /* _NTOP_TYPEDEFS_H_ */

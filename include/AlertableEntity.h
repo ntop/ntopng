@@ -33,8 +33,8 @@ class AlertableEntity {
   std::map<std::string, Alert> triggered_alerts[MAX_NUM_PERIODIC_SCRIPTS];
 
  public:
-  AlertableEntity() {
-    entity_type = (AlertEntity)-1;
+  AlertableEntity(AlertEntity entity) {
+    entity_type = entity;
   }
 
   inline std::string getAlertCachedValue(std::string key, ScriptPeriodicity p) {
@@ -56,7 +56,7 @@ class AlertableEntity {
     return(triggered_alerts[(u_int)p].size());
   }
 
-  void setEntityInfo(AlertEntity ent_type, const char *ent_val);
+  inline void setEntityValue(const char *ent_val) { entity_val = ent_val; }
 
   bool triggerAlert(std::string key, ScriptPeriodicity p, time_t now,
     AlertLevel alert_severity, AlertType alert_type,
@@ -66,7 +66,7 @@ class AlertableEntity {
   void getExpiredAlerts(ScriptPeriodicity p, lua_State* vm, time_t now);
   u_int getNumTriggeredAlerts();
   void countAlerts(grouped_alerts_counters *counters);
-  void getAlerts(lua_State* vm, int type_filter, int severity_filter, u_int *idx);
+  void getAlerts(lua_State* vm, AlertType type_filter, AlertLevel severity_filter, u_int *idx);
 };
 
 #endif

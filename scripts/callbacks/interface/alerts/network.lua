@@ -42,8 +42,6 @@ function checkNetworkAlerts(granularity)
    local entity_info = alerts_api.networkAlertEntity(network_key)
 
    if(has_configured_alerts) then
-      network.setAlertableInfo(entity_info.alert_entity.entity_id, entity_info.alert_entity_val)
-
       for _, check in pairs(available_modules) do
         local config = network_config[check.key] or global_config[check.key]
 
