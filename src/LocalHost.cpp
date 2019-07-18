@@ -375,11 +375,6 @@ void LocalHost::ports2Lua(lua_State* vm, bool proto_udp, bool as_client) {
 /* *************************************** */
 
 void LocalHost::setFlowPort(bool as_server, u_int8_t protocol, u_int16_t port, u_int16_t l7_proto) {
-  if((port == 0)
-     || ((protocol != IPPROTO_UDP) && (protocol != IPPROTO_TCP))
-     )
-     return;
-  
   if(as_server) {
     if(protocol == IPPROTO_UDP)
       udp_server_ports[port] = l7_proto;

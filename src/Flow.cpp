@@ -665,15 +665,21 @@ void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
 	dump_flow = false;
     }
 
-    if(dump_flow) {
+    if(dump_flow
+       && (srv_port != 0)
+       && ((protocol == IPPROTO_TCP) || (protocol == IPPROTO_UDP))) {
+      u_int16_t p = ndpiDetectedProtocol.master_protocol;
+      u_int16_t port = ntohs(srv_port);
+      
+      if(p == NDPI_PROTOCOL_UNKNOWN)
+	p = ndpiDetectedProtocol.app_protocol;
+
       if(cli_host)
-	cli_host->setFlowPort(false /* client */, protocol, ntohs(srv_port),
-			      ndpiDetectedProtocol.app_protocol);
-
+	cli_host->setFlowPort(false /* client */, protocol, port, p);
+      
       if(srv_host)
-	srv_host->setFlowPort(true /* server */, protocol, ntohs(srv_port),
-			      ndpiDetectedProtocol.app_protocol);
-
+	srv_host->setFlowPort(true /* server */, protocol, port, p);    
+      
 #if 0
       char buf[128];
       
