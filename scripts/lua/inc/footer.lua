@@ -343,7 +343,7 @@ print [[/lua/show_alerts.lua\">"
                   $("#alerts-id").show();
                 }
 
-                if(rsp.ts_alerts.influxdb) {
+                if(rsp.ts_alerts && rsp.ts_alerts.influxdb) {
                   msg += "&nbsp;<a href=\"]]
 print (ntop.getHttpPrefix())
 print [[/lua/system/influxdb_stats.lua?ifid=]] print(tostring(getInterfaceId(ifname))) print[[&page=alerts#tab-table-engaged-alerts\">"
