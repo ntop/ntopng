@@ -37,6 +37,8 @@ class AlertableEntity {
     entity_type = entity;
   }
 
+  virtual ~AlertableEntity() {};
+
   inline std::string getAlertCachedValue(std::string key, ScriptPeriodicity p) {
     std::map<std::string, std::string>::iterator it = alert_cache[(u_int)p].find(key);
 

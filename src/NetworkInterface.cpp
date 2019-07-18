@@ -7604,23 +7604,23 @@ struct alert_check_param {
 };
 
 static bool host_alert_check(GenericHashEntry *h, void *user_data, bool *matched) {
-  struct alert_check_param *ap = (struct alert_check_param*)user_data;
-  lua_State *L = ap->le->getState();
+  AlertCheckLuaEngine *acle = (AlertCheckLuaEngine*)user_data;
+  lua_State *L = acle->getState();
   Host *host = (Host*)h;
 
   /* Alerts are checked only on local hosts */
   const char *function_to_call = "checkHostAlerts";
 
-  ap->le->setHost(host);
+  acle->setEntity(host);
 
   /* https://www.lua.org/pil/25.2.html */
   lua_getglobal(L,  function_to_call); /* Called function */
-  lua_pushstring(L, ap->granularity);  /* push 1st argument */
+  lua_pushstring(L, acle->getGranularity());  /* push 1st argument */
 
   if(lua_pcall(L, 1 /* 1 argument */, 0 /* 0 results */, 0)) /* Call the function now */
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure [%s][%s]", ap->script_path, lua_tostring(L, -1));
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure [%s]", lua_tostring(L, -1));
 
-  host->housekeepAlerts(ap->p /* periodicity */);
+  host->housekeepAlerts(acle->getPeriodicity() /* periodicity */);
 
   return(false); /* false = keep on walking */
 }
@@ -7628,61 +7628,17 @@ static bool host_alert_check(GenericHashEntry *h, void *user_data, bool *matched
 /* *************************************** */
 
 void NetworkInterface::checkHostsAlerts(ScriptPeriodicity p) {
-  LuaEngine le;
   u_int32_t begin_slot = 0;
-  struct alert_check_param ap;
-
-  snprintf(ap.script_path, sizeof(ap.script_path),
-	   "%s/callbacks/interface/alerts/host.lua",
-	   ntop->getPrefs()->get_scripts_dir());
-
-  ap.granularity = Utils::periodicityToScriptName(p);
-
-  le.load_script(ap.script_path, this);
-
-  /* Call global setup once... */
-  {
-    lua_State *L = le.getState();
-
-    lua_getglobal(L, "setup");         /* Called function   */
-    lua_pushstring(L, ap.granularity); /* push 1st argument */
-    if(lua_pcall(L, 1 /* 1 argument */, 0 /* 0 results */, 0)) { /* Call the function now */
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure [%s][%s]", ap.script_path, lua_tostring(L, -1));
-      return;
-    }
-  }
-
-  ap.p = p, ap.le = &le;
+  AlertCheckLuaEngine acle(alert_entity_host, p, this);
 
   /* ... then iterate all hosts */
-  walker(&begin_slot, true /* walk_all */, walker_hosts, host_alert_check, &ap);
+  walker(&begin_slot, true /* walk_all */, walker_hosts, host_alert_check, &acle);
 }
 
 /* *************************************** */
 
 void NetworkInterface::checkNetworksAlerts(ScriptPeriodicity p) {
-  LuaEngine le;
-  struct alert_check_param ap;
-
-  snprintf(ap.script_path, sizeof(ap.script_path),
-	   "%s/callbacks/interface/alerts/network.lua",
-	   ntop->getPrefs()->get_scripts_dir());
-
-  ap.granularity = Utils::periodicityToScriptName(p);
-
-  le.load_script(ap.script_path, this);
-
-  /* Call global setup once... */
-  lua_State *L = le.getState();
-
-  lua_getglobal(L, "setup");         /* Called function   */
-  lua_pushstring(L, ap.granularity); /* push 1st argument */
-  if(lua_pcall(L, 1 /* 1 argument */, 0 /* 0 results */, 0)) { /* Call the function now */
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure [%s][%s]", ap.script_path, lua_tostring(L, -1));
-    return;
-  }
-
-  ap.p = p, ap.le = &le;
+  AlertCheckLuaEngine acle(alert_entity_network, p, this);
 
   /* ... then iterate all networks */
   u_int8_t num_local_networks = ntop->getNumLocalNetworks();
@@ -7690,48 +7646,31 @@ void NetworkInterface::checkNetworksAlerts(ScriptPeriodicity p) {
   for(u_int8_t network_id = 0; network_id < num_local_networks; network_id++) {
     const char *function_to_call = "checkNetworkAlerts";
 
-    ap.le->setNetwork(getNetworkStats(network_id));
+    acle.setEntity(getNetworkStats(network_id));
+
+    lua_State *L = acle.getState();
 
     /* https://www.lua.org/pil/25.2.html */
     lua_getglobal(L,  function_to_call); /* Called function */
-    lua_pushstring(L, ap.granularity);  /* push 1st argument */
+    lua_pushstring(L, acle.getGranularity());  /* push 1st argument */
 
     if(lua_pcall(L, 1 /* 1 argument */, 0 /* 0 results */, 0)) /* Call the function now */
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure [%s][%s]", ap.script_path, lua_tostring(L, -1));
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure [%s]", lua_tostring(L, -1));
   }
 }
 
 /* *************************************** */
 
 void NetworkInterface::checkInterfaceAlerts(ScriptPeriodicity p) {
-  LuaEngine le;
-  struct alert_check_param ap;
-  lua_State *L;
-
-  snprintf(ap.script_path, sizeof(ap.script_path),
-	   "%s/callbacks/interface/alerts/interface.lua",
-	   ntop->getPrefs()->get_scripts_dir());
-
-  ap.granularity = Utils::periodicityToScriptName(p);
-
-  le.load_script(ap.script_path, this);
-
-  /* Call global setup once... */
-  L = le.getState();
-
-  lua_getglobal(L, "setup");         /* Called function   */
-  lua_pushstring(L, ap.granularity); /* push 1st argument */
-  if(lua_pcall(L, 1 /* 1 argument */, 0 /* 0 results */, 0)) { /* Call the function now */
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure [%s][%s]", ap.script_path, lua_tostring(L, -1));
-    return;
-  }
+  AlertCheckLuaEngine acle(alert_entity_interface, p, this);
+  lua_State *L = acle.getState();
 
   /* https://www.lua.org/pil/25.2.html */
   lua_getglobal(L,  "checkInterfaceAlerts"); /* Called function */
-  lua_pushstring(L, ap.granularity);  /* push 1st argument */
+  lua_pushstring(L, acle.getGranularity());  /* push 1st argument */
 
   if(lua_pcall(L, 1 /* 1 argument */, 0 /* 0 results */, 0)) /* Call the function now */
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure [%s][%s]", ap.script_path, lua_tostring(L, -1));
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure [%s]", lua_tostring(L, -1));
 }
 
 /* *************************************** */

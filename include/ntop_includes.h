@@ -356,6 +356,7 @@ using namespace std;
 #include "ThreadPool.h"
 #include "PeriodicActivities.h"
 #include "LuaEngine.h"
+#include "AlertCheckLuaEngine.h"
 #include "MacManufacturers.h"
 #include "AddressResolution.h"
 #include "HTTPserver.h"
