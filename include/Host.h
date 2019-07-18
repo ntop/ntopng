@@ -60,6 +60,8 @@ class Host : public GenericHashEntry, public AlertableEntity {
   Vlan *vlan;
   bool blacklisted_host;
 
+  bool purge_acknowledged_mark;
+
   Mutex m;
   u_int32_t mac_last_seen;
   u_int8_t num_resolve_attempts;
@@ -105,8 +107,10 @@ class Host : public GenericHashEntry, public AlertableEntity {
   inline nDPIStats* get_ndpi_stats()       { return(stats->getnDPIStats()); };
 
   virtual void set_to_purge(time_t t) { /* Saves 1 extra-step of purge idle */
-    iface->decNumHosts(isLocalHost());
-    GenericHashEntry::set_to_purge(t);
+    if(is_acknowledged_to_purge()) {
+      iface->decNumHosts(isLocalHost());
+      GenericHashEntry::set_to_purge(t);
+    }
   };
 
   inline bool isChildSafe() {
@@ -206,7 +210,12 @@ class Host : public GenericHashEntry, public AlertableEntity {
   virtual char* get_string_key(char *buf, u_int buf_len) const { return(ip.print(buf, buf_len)); };
   char* get_hostkey(char *buf, u_int buf_len, bool force_vlan=false);
   char* get_tskey(char *buf, size_t bufsize);
-  bool idle();
+
+  /* Methods to handle the flow in-memory lifecycle */
+  virtual bool idle();
+  bool is_acknowledged_to_purge() const;
+  void set_acknowledge_to_purge();
+
   virtual void incICMP(u_int8_t icmp_type, u_int8_t icmp_code, bool sent, Host *peer) {};
   virtual void lua(lua_State* vm, AddressTree * ptree, bool host_details,
 	   bool verbose, bool returnHost, bool asListElement);

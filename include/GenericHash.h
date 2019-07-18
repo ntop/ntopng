@@ -91,7 +91,7 @@ class GenericHash {
    * @param walk_all true = walk all hash, false, walk only one (non NULL) slot
    * @param walker A pointer to the comparison function.
    * @param user_data Value to be compared with the values of hash.
-   * @param walk_idle Allows idle entries to be walked. WARNING: Should never be used unless in ViewInterface::flowPollLoop
+   * @param walk_idle Allows idle entries to be walked. WARNING: Should never be used unless when compulsory to set_acknowledge_to_purge()
    */
   bool walk(u_int32_t *begin_slot, bool walk_all,
 	    bool (*walker)(GenericHashEntry *h, void *user_data, bool *entryMatched), void *user_data, bool walk_idle = false);
