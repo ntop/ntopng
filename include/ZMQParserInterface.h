@@ -41,13 +41,15 @@ class ZMQParserInterface : public ParserInterface {
 #endif
   virtual void reloadCompanions();
   void deliverFlowToCompanions(ParsedFlow * const flow);
+  void preprocessFlow(ParsedFlow *flow, NetworkInterface *iface);
   bool getKeyId(char *sym, u_int32_t * const pen, u_int32_t * const field) const;
   void addMapping(const char *sym, u_int32_t num, u_int32_t pen = 0);
-  bool parsePENZeroField(ParsedFlow * const flow, u_int32_t field, const char * const value) const;
-  bool parsePENNtopField(ParsedFlow * const flow, u_int32_t field, const char * const value, json_object * const jvalue) const;
+  bool parsePENZeroField(ParsedFlow * const flow, u_int32_t field, const char * const value, u_int32_t ivalue) const;
+  bool parsePENNtopField(ParsedFlow * const flow, u_int32_t field, const char * const value, u_int32_t ivalue) const;
   static bool parseContainerInfo(json_object *jo, ContainerInfo * const container_info);
   bool parseNProbeMiniField(ParsedFlow * const flow, const char * const key, const char * const value, json_object * const jvalue) const;
-  void parseSingleFlow(json_object *o, u_int8_t source_id, NetworkInterface *iface);
+  void parseSingleJSONFlow(json_object *o, u_int8_t source_id, NetworkInterface *iface);
+  int parseSingleTLVFlow(ndpi_deserializer *deserializer, u_int8_t source_id, NetworkInterface *iface);
   void setFieldMap(const ZMQ_FieldMap * const field_map) const;
   void setFieldValueMap(const ZMQ_FieldValueMap * const field_value_map) const;
 
@@ -58,7 +60,8 @@ class ZMQParserInterface : public ParserInterface {
   ZMQParserInterface(const char *endpoint, const char *custom_interface_type = NULL);
   ~ZMQParserInterface();
 
-  u_int8_t parseFlow(const char * const payload, int payload_size, u_int8_t source_id, void *data);
+  u_int8_t parseJSONFlow(const char * const payload, int payload_size, u_int8_t source_id, void *data);
+  u_int8_t parseTLVFlow(const char * const payload, int payload_size, u_int8_t source_id, void *data);
   u_int8_t parseEvent(const char * const payload, int payload_size, u_int8_t source_id, void *data);
   u_int8_t parseCounter(const char * const payload, int payload_size, u_int8_t source_id, void *data);
   u_int8_t parseTemplate(const char * const payload, int payload_size, u_int8_t source_id, void *data);

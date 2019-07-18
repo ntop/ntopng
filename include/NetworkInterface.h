@@ -75,9 +75,10 @@ class NetworkInterface : public AlertableEntity {
   const char *customIftype;
   u_int8_t purgeRuns;
   u_int32_t bridge_lan_interface_id, bridge_wan_interface_id;
-  u_int32_t num_hashes;
   u_int32_t num_alerts_engaged[MAX_NUM_PERIODIC_SCRIPTS];
-  bool has_alerts;
+  bool has_stored_alerts;
+
+  bool is_viewed; /* Whether this interface is 'viewed' by a ViewInterface */
 
   /* Disaggregations */
   u_int16_t numVirtualInterfaces;
@@ -142,10 +143,6 @@ class NetworkInterface : public AlertableEntity {
   u_int8_t packet_drops_alert_perc;
   TimeseriesExporter *tsExporter;
   TimeseriesRing *ts_ring;
-
-  /* Sub-interface views */
-  u_int8_t numSubInterfaces;
-  NetworkInterface *subInterfaces[MAX_NUM_VIEW_INTERFACES];
 
   u_int nextFlowAggregation;
   TcpFlowStats tcpFlowStats;
@@ -273,19 +270,20 @@ class NetworkInterface : public AlertableEntity {
   virtual ~NetworkInterface();
 
   bool initFlowDump(u_int8_t num_dump_interfaces);
-  virtual u_int32_t getASesHashSize();
-  virtual u_int32_t getCountriesHashSize();
-  virtual u_int32_t getVLANsHashSize();
-  virtual u_int32_t getMacsHashSize();
-  virtual u_int32_t getHostsHashSize();
+  u_int32_t getASesHashSize();
+  u_int32_t getCountriesHashSize();
+  u_int32_t getVLANsHashSize();
+  u_int32_t getMacsHashSize();
+  u_int32_t getHostsHashSize();
+  u_int32_t getArpHashMatrixSize();
   virtual u_int32_t getFlowsHashSize();
-  virtual u_int32_t getArpHashMatrixSize();
 
   virtual bool walker(u_int32_t *begin_slot,
 		      bool walk_all,
 		      WalkerType wtype,
 		      bool (*walker)(GenericHashEntry *h, void *user_data, bool *entryMatched),
-		      void *user_data);
+		      void *user_data,
+		      bool walk_idle = false /* Should never walk idle unless in ViewInterface::flowPollLoop */);
 
   void checkAggregationMode();
   inline void setCPUAffinity(int core_id)      { cpu_affinity = core_id; };
@@ -516,12 +514,12 @@ class NetworkInterface : public AlertableEntity {
   virtual u_int32_t getNumDroppedPackets() { return 0; };
   virtual u_int     getNumPacketDrops();
   virtual u_int     getNumFlows();
-  virtual u_int     getNumL2Devices();
-  virtual u_int     getNumHosts();
-  virtual u_int     getNumLocalHosts();
-  virtual u_int     getNumMacs();
-  virtual u_int     getNumHTTPHosts();
-  virtual u_int     getNumArpStatsMatrixElements();
+  u_int             getNumL2Devices();
+  u_int             getNumHosts();
+  u_int             getNumLocalHosts();
+  u_int             getNumMacs();
+  u_int             getNumHTTPHosts();
+  u_int             getNumArpStatsMatrixElements();
 
   inline u_int64_t  getNumPacketsSinceReset()     { return getNumPackets() - getCheckPointNumPackets(); }
   inline u_int64_t  getNumBytesSinceReset()       { return getNumBytes() - getCheckPointNumBytes(); }
@@ -582,10 +580,6 @@ class NetworkInterface : public AlertableEntity {
   inline void setBridgeWanInterfaceId(u_int32_t v) { bridge_wan_interface_id = v;     };
   inline u_int32_t getBridgeWanInterfaceId()       { return(bridge_wan_interface_id); };
   inline HostHash* get_hosts_hash()                { return(hosts_hash);              }
-  inline MacHash*  get_macs_hash()                 { return(macs_hash);               }
-  inline VlanHash*  get_vlans_hash()               { return(vlans_hash);              }
-  inline AutonomousSystemHash* get_ases_hash()     { return(ases_hash);               }
-  inline CountriesHash* get_countries_hash()       { return(countries_hash);          }
   inline bool is_bridge_interface()                { return(bridge_interface);        }
   inline const char* getLocalIPAddresses()         { return(ip_addresses.c_str());    }
   void addInterfaceAddress(char * const addr);
@@ -599,7 +593,7 @@ class NetworkInterface : public AlertableEntity {
     return(-1);
   };
   NetworkStats* getNetworkStats(u_int8_t networkId) const;
-  void allocateNetworkStats();
+  void allocateStructures();
   void getsDPIStats(lua_State *vm);
 #ifdef NTOPNG_PRO
   void updateFlowProfiles();
@@ -647,8 +641,12 @@ class NetworkInterface : public AlertableEntity {
   void checkNetworksAlerts(ScriptPeriodicity p);
   void checkInterfaceAlerts(ScriptPeriodicity p);
   bool isHiddenFromTop(Host *host);
-  inline virtual bool areTrafficDirectionsSupported() { return(false); };
-  inline virtual bool isView() { return(false); };
+  virtual bool areTrafficDirectionsSupported() { return(false); };
+
+  virtual bool isView()   const { return false;     };
+  virtual bool isViewed() const { return is_viewed; };
+  inline  void setViewed()      { is_viewed = true; };
+
   bool getMacInfo(lua_State* vm, char *mac);
   bool resetMacStats(lua_State* vm, char *mac, bool delete_data);
   bool setMacDeviceType(char *strmac, DeviceType dtype, bool alwaysOverwrite);
@@ -745,12 +743,15 @@ class NetworkInterface : public AlertableEntity {
   void nDPILoadIPCategory(char *category, ndpi_protocol_category_t id);
   void nDPILoadHostnameCategory(char *category, ndpi_protocol_category_t id);
 
-  inline void setHasAlerts(bool has_alerts)               { this->has_alerts = has_alerts; }
+  inline void setHasAlerts(bool has_stored_alerts)               { this->has_stored_alerts = has_stored_alerts; }
   inline void incNumAlertsEngaged(ScriptPeriodicity p)    { num_alerts_engaged[(u_int)p]++; }
   inline void decNumAlertsEngaged(ScriptPeriodicity p)    { num_alerts_engaged[(u_int)p]--; }
-  inline bool hasAlerts()                                 { return(has_alerts); }
-  inline void refreshHasAlerts()                          { has_alerts = alertsManager ? alertsManager->hasAlerts() : false; }
-  virtual bool reproducePcapOriginalSpeed()               { return(false); }
+  inline bool hasAlerts()                                 { return(has_stored_alerts || (getNumEngagedAlerts() > 0)); }
+  inline void refreshHasAlerts()                          { has_stored_alerts = alertsManager ? alertsManager->hasAlerts() : false; }
+  void getEngagedAlertsCount(lua_State *vm, int entity_type, const char *entity_value);
+  void getEngagedAlerts(lua_State *vm, int entity_type, const char *entity_value, AlertType alert_type, AlertLevel alert_severity);
+
+  virtual bool reproducePcapOriginalSpeed() const         { return(false); }
   u_int32_t getNumEngagedAlerts();
 };
 

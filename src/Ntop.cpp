@@ -417,10 +417,10 @@ void Ntop::start() {
   
   address->startResolveAddressLoop();
 
-  system_interface->allocateNetworkStats();
+  system_interface->allocateStructures();
 
   for(int i=0; i<num_defined_interfaces; i++)
-    iface[i]->allocateNetworkStats();  
+    iface[i]->allocateStructures();  
 
   /* Note: must start periodic activities loop only *after* interfaces have been
    * completely initialized.

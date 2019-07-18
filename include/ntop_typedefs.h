@@ -682,4 +682,9 @@ typedef struct cpu_load_stats {
   uint64_t idle;
 } cpu_load_stats;
 
+typedef struct grouped_alerts_counters {
+  std::map<AlertType, u_int32_t> types;
+  std::map<AlertLevel, u_int32_t> severities;
+} grouped_alerts_counters;
+
 #endif /* _NTOP_TYPEDEFS_H_ */

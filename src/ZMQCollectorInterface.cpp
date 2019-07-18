@@ -137,8 +137,9 @@ ZMQCollectorInterface::~ZMQCollectorInterface() {
 /* **************************************************** */
 
 void ZMQCollectorInterface::collect_flows() {
-  struct zmq_msg_hdr h; /* NOTE: in network-byte-order format */
-  char payload[8192];
+  struct zmq_msg_hdr_v0 h0;
+  struct zmq_msg_hdr *h = (struct zmq_msg_hdr *) &h0; /* NOTE: in network-byte-order format */
+  char payload[32768];
   const u_int payload_len = sizeof(payload) - 1;
   zmq_pollitem_t items[MAX_ZMQ_SUBSCRIBERS];
   u_int32_t zmq_max_num_polls_before_purge = MAX_ZMQ_POLLS_BEFORE_PURGE;
@@ -175,22 +176,30 @@ void ZMQCollectorInterface::collect_flows() {
     for(int subscriber_id = 0; subscriber_id < num_subscribers; subscriber_id++) {
       u_int32_t msg_id, last_msg_id;
       u_int8_t source_id = 0;
+      u_int32_t publisher_version = 0;
 	
       if(items[subscriber_id].revents & ZMQ_POLLIN) {
-	size = zmq_recv(items[subscriber_id].socket, &h, sizeof(h), 0);
+	size = zmq_recv(items[subscriber_id].socket, &h0, sizeof(h0), 0);
+
+        if(size == sizeof(struct zmq_msg_hdr))
+          h = (struct zmq_msg_hdr *) &h0; 
 
 	if(size == sizeof(struct zmq_msg_hdr_v0)) {
 	  /* Legacy version */
 	  msg_id = 0, source_id = 0;
-	} else if((size != sizeof(h)) || ((h.version != ZMQ_MSG_VERSION) && (h.version != ZMQ_COMPATIBILITY_MSG_VERSION))) {
+          publisher_version = h0.version;
+	} else if((size != sizeof(struct zmq_msg_hdr)) || ((h->version != ZMQ_MSG_VERSION) && (h->version != ZMQ_COMPATIBILITY_MSG_VERSION))) {
 	  ntop->getTrace()->traceEvent(TRACE_WARNING,
-				       "Unsupported publisher version: your nProbe sender is outdated? [%u][%u]",
-				       sizeof(struct zmq_msg_hdr), sizeof(h));
+				       "Unsupported publisher version: your nProbe sender is outdated? [%u][%u][%u][%u][%u]",
+				       size, sizeof(struct zmq_msg_hdr), h->version, ZMQ_MSG_VERSION, ZMQ_COMPATIBILITY_MSG_VERSION);
 	  continue;
-	} else if(h.version == ZMQ_COMPATIBILITY_MSG_VERSION)
-	  source_id = 0, msg_id = h.msg_id; // host byte order
-	else
-	  source_id = h.source_id, msg_id = ntohl(h.msg_id);
+	} else if(h->version == ZMQ_COMPATIBILITY_MSG_VERSION) {
+	  source_id = 0, msg_id = h->msg_id; // host byte order
+          publisher_version = h->version;
+	} else {
+	  source_id = h->source_id, msg_id = ntohl(h->msg_id);
+          publisher_version = h->version;
+        }
 
 	if(source_id_last_msg_id.find(source_id) == source_id_last_msg_id.end())
 	  source_id_last_msg_id[source_id] = 0;
@@ -225,10 +234,15 @@ void ZMQCollectorInterface::collect_flows() {
 	else if(size > 0) {
 	  char *uncompressed = NULL;
 	  u_int uncompressed_len;
-	  
-	  payload[size] = '\0';
+          bool tlv_encoding = false;
+          bool compressed = false;
 
-	  if(payload[0] == 0 /* Compressed traffic */) {
+          if (publisher_version == ZMQ_MSG_VERSION_TLV)
+            tlv_encoding = true;
+          else if (payload[0] == 0)
+            compressed = true;
+
+	  if(compressed /* Compressed traffic */) {
 #ifdef HAVE_ZLIB
 	    int err;
 	    uLongf uLen;
@@ -249,23 +263,31 @@ void ZMQCollectorInterface::collect_flows() {
 
 	    continue;
 #endif
-	  } else
+          } else if (tlv_encoding /* TLV encoding */) {
+            // ntop->getTrace()->traceEvent(TRACE_NORMAL, "TLV message over ZMQ");
 	    uncompressed = payload, uncompressed_len = size;
+	  } else { /* JSON string */
+	    payload[size] = '\0';
+	    uncompressed = payload, uncompressed_len = size;
+          }
 
 	  if(ntop->getPrefs()->get_zmq_encryption_pwd())
 	    Utils::xor_encdec((u_char*)uncompressed, uncompressed_len, (u_char*)ntop->getPrefs()->get_zmq_encryption_pwd());
 
-	  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[url: %s]", h.url);
-	  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [msg_id=%u][url: %s]", uncompressed, msg_id, h.url);
+	  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[url: %s]", h->url);
+	  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [msg_id=%u][url: %s]", uncompressed, msg_id, h->url);
 
-          switch(h.url[0]) {
+          switch(h->url[0]) {
           case 'e': /* event */
             recvStats.num_events++;
             parseEvent(uncompressed, uncompressed_len, subscriber_id, this);
             break;
 
           case 'f': /* flow */
-            recvStats.num_flows += parseFlow(uncompressed, uncompressed_len, subscriber_id, this);
+            if (tlv_encoding) 
+              recvStats.num_flows += parseTLVFlow(uncompressed, uncompressed_len, subscriber_id, this);
+            else
+              recvStats.num_flows += parseJSONFlow(uncompressed, uncompressed_len, subscriber_id, this);
             break;
 
           case 'c': /* counter */
@@ -285,10 +307,10 @@ void ZMQCollectorInterface::collect_flows() {
 
           }
 
-	  /* ntop->getTrace()->traceEvent(TRACE_INFO, "[%s] %s", h.url, uncompressed); */
+	  /* ntop->getTrace()->traceEvent(TRACE_INFO, "[%s] %s", h->url, uncompressed); */
 
 #ifdef HAVE_ZLIB
-	  if(payload[0] == 0 /* only if the traffic was actually compressed */)
+	  if(compressed /* only if the traffic was actually compressed */)
 	    if(uncompressed) free(uncompressed);
 #endif
 	} /* size > 0 */

@@ -23,7 +23,8 @@
 
 /* *************************************** */
 
-Host::Host(NetworkInterface *_iface, char *ipAddress, u_int16_t _vlanId) : GenericHashEntry(_iface) {
+Host::Host(NetworkInterface *_iface, char *ipAddress, u_int16_t _vlanId) : GenericHashEntry(_iface),
+      AlertableEntity(alert_entity_host) {
   ip.set(ipAddress);
   initialize(NULL, _vlanId, true);
 }
@@ -31,7 +32,7 @@ Host::Host(NetworkInterface *_iface, char *ipAddress, u_int16_t _vlanId) : Gener
 /* *************************************** */
 
 Host::Host(NetworkInterface *_iface, Mac *_mac,
-	   u_int16_t _vlanId, IpAddress *_ip) : GenericHashEntry(_iface) {
+	   u_int16_t _vlanId, IpAddress *_ip) : GenericHashEntry(_iface), AlertableEntity(alert_entity_host) {
   ip.set(_ip);
 
 #ifdef BROADCAST_DEBUG
@@ -132,6 +133,8 @@ void Host::set_host_label(char *label_name, bool ignoreIfPresent) {
 /* *************************************** */
 
 void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
+  char buf[64];
+
   stats = NULL; /* it will be instantiated by specialized classes */
   stats_shadow = NULL;
   data_delete_requested = false, stats_reset_requested = false;
@@ -196,6 +199,7 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
 
   reloadHideFromTop();
   reloadDhcpHost();
+  setEntityValue(get_hostkey(buf, sizeof(buf), true));
 
   is_in_broadcast_domain = iface->isLocalBroadcastDomainHost(this, true /* Inline call */);
 }

@@ -324,7 +324,7 @@ static void* packetPollLoop(void* ptr) {
 #endif
 	}
       } else if(rc < 0) {
-	if(iface->read_from_pcap_dump())
+	if(iface->read_from_pcap_dump() && !iface->reproducePcapOriginalSpeed())
 	  break;
       } else {
 	/* No packet received before the timeout */
@@ -333,7 +333,7 @@ static void* packetPollLoop(void* ptr) {
     } /* while */
   } while(pcap_list != NULL);
 
-  if(iface->read_from_pcap_dump()) {
+  if(iface->read_from_pcap_dump() && !iface->reproducePcapOriginalSpeed()) {
     iface->processAllActiveFlows();
     iface->guessAllBroadcastDomainHosts();
   }
@@ -377,7 +377,12 @@ static void* packetPollLoop(void* ptr) {
 
 /* **************************************************** */
 
-void PcapInterface::startPacketPolling() { 
+void PcapInterface::startPacketPolling() {
+  if(reproducePcapOriginalSpeed()) {
+    /* Enable purge */
+    purge_idle_flows_hosts = true;
+  }
+
   pthread_create(&pollLoop, NULL, packetPollLoop, (void*)this);  
   pollLoopCreated = true;
   NetworkInterface::startPacketPolling();
@@ -463,7 +468,7 @@ void PcapInterface::updateDirectionStats() {
 
 /* **************************************************** */
 
-bool PcapInterface::reproducePcapOriginalSpeed() {
+bool PcapInterface::reproducePcapOriginalSpeed() const {
   return(read_pkts_from_pcap_dump && ntop->getPrefs()->reproduceOriginalSpeed());
 }
 

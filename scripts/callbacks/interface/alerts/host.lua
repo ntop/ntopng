@@ -11,7 +11,8 @@ local alerts_api = require("alerts_api")
 local alert_consts = require("alert_consts")
 
 local do_trace          = false
-local config_alerts     = nil
+local config_alerts_local = nil
+local config_alerts_remote = nil
 local ifname            = nil
 local available_modules = nil
 
@@ -21,7 +22,8 @@ local available_modules = nil
 function setup(str_granularity)
    if(do_trace) then print("alert.lua:setup("..str_granularity..") called\n") end
    ifname = interface.setActiveInterfaceId(tonumber(interface.getId()))
-   config_alerts = getHostsConfiguredAlertThresholds(ifname, str_granularity)
+   config_alerts_local = getLocalHostsConfiguredAlertThresholds(ifname, str_granularity)
+   config_alerts_remote = getRemoteHostsConfiguredAlertThresholds(ifname, str_granularity)
 
    -- Load the threshold checking functions
    available_modules = alerts_api.load_check_modules("host", str_granularity)
@@ -33,6 +35,7 @@ end
 function checkHostAlerts(granularity)
   local info = host.getFullInfo()
   local host_key   = hostinfo2hostkey({ip = info.ip, vlan = info.vlan}, nil, true --[[ force @[vlan] even when vlan is 0 --]])
+  local config_alerts = ternary(info["localhost"], config_alerts_local, config_alerts_remote)
   local host_config = config_alerts[host_key] or {}
   local global_config = config_alerts["local_hosts"] or {}
   local has_configured_alerts = (table.len(host_config) or table.len(global_config))

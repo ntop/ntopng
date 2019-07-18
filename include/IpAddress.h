@@ -42,12 +42,13 @@ class IpAddress {
   struct ipAddress addr;
   u_int32_t ip_key;
 
-  char* intoa(char* buf, u_short bufLen, u_int8_t bitmask);
+  char* intoa(char* buf, u_short bufLen, u_int8_t bitmask) const;
   void checkIP();
   void compute_key();
 
  public:
   IpAddress();
+  IpAddress(const IpAddress& ipa);
 
   bool isEmpty() const;
   inline void reset()                                 { memset(&addr, 0, sizeof(addr));               }
@@ -58,9 +59,9 @@ class IpAddress {
   const inline struct ipAddress* getIP() const        { return(&addr); };
   const inline bool equal(u_int32_t ipv4_addr) const  { if((addr.ipVersion == 4) && (addr.ipType.ipv4 == ipv4_addr)) return(true); else return(false); };
   inline bool equal(struct ndpi_in6_addr *ip6_addr)   { if((addr.ipVersion == 6) && (memcmp(&addr.ipType.ipv6, ip6_addr, sizeof(struct ndpi_in6_addr)) == 0)) return(true); else return(false); };
-  inline bool equal(IpAddress *_ip)                   { return(this->compare(_ip) == 0); };
-  int compare(const IpAddress * const ip) const;
-  inline u_int32_t key()                              { return(ip_key);         };
+  inline bool equal(const IpAddress * const _ip) const { return(this->compare(_ip) == 0); };
+  int compare(const IpAddress * const ip)        const;
+  inline u_int32_t key()                        const { return(ip_key);         };
   inline void set(u_int32_t _ipv4)                    { addr.ipVersion = 4, addr.ipType.ipv4 = _ipv4; compute_key(); }
   inline void set(struct ndpi_in6_addr *_ipv6)        { addr.ipVersion = 6, memcpy(&addr.ipType.ipv6, _ipv6, sizeof(struct ndpi_in6_addr));
 							addr.privateIP = false; compute_key(); }
@@ -75,7 +76,7 @@ class IpAddress {
   inline bool isNonEmptyUnicastAddress() const        { return(!isMulticastAddress() && !isBroadcastAddress() && !isEmpty()); };
   inline u_int8_t getVersion()                        { return(addr.ipVersion); };
   inline void setVersion(u_int8_t version)            { addr.ipVersion = version; };
-  char* print(char *str, u_int str_len, u_int8_t bitmask = 0xFF);
+  char* print(char *str, u_int str_len, u_int8_t bitmask = 0xFF) const;
   char* printMask(char *str, u_int str_len, bool isLocalIP);
   bool isLocalHost(int16_t *network_id);
   bool isLocalInterfaceAddress();

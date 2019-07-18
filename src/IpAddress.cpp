@@ -31,6 +31,12 @@ IpAddress::IpAddress() {
 
 /* ******************************************* */
 
+IpAddress::IpAddress(const IpAddress& ipa) {
+  set(&ipa);
+}
+
+/* ******************************************* */
+
 void IpAddress::set(const char * const sym_addr) {
   if(strchr(sym_addr, '.')) {
     addr.ipVersion = 4, addr.ipType.ipv4 = inet_addr(sym_addr);
@@ -192,7 +198,7 @@ void IpAddress::compute_key() {
 
 /* ******************************************* */
 
-char* IpAddress::print(char *str, u_int str_len, u_int8_t bitmask) {
+char* IpAddress::print(char *str, u_int str_len, u_int8_t bitmask) const {
   str[0] = '\0';
   return(intoa(str, str_len, bitmask));
 }
@@ -319,7 +325,7 @@ bool IpAddress::match(const AddressTree * const tree) const {
 
 /* ****************************** */
 
-char* IpAddress::intoa(char* buf, u_short bufLen, u_int8_t bitmask) {
+char* IpAddress::intoa(char* buf, u_short bufLen, u_int8_t bitmask) const {
   if((addr.ipVersion == 4) || (addr.ipVersion == 0 /* Misconfigured */)) {
     bitmask = bitmask <= 32 ? bitmask : 32;
     u_int32_t a = ntohl(addr.ipType.ipv4);

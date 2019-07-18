@@ -108,6 +108,7 @@
 
 #define ZMQ_COMPATIBILITY_MSG_VERSION 1
 #define ZMQ_MSG_VERSION           2
+#define ZMQ_MSG_VERSION_TLV       3
 #define LOGIN_URL                 "/lua/login.lua"
 #define LOGOUT_URL                "/lua/logout.lua"
 #define CAPTIVE_PORTAL_URL        "/lua/captive_portal.lua"
@@ -851,7 +852,7 @@
 #define ALERTS_MANAGER_MAX_FLOW_ALERTS       16384
 #define ALERTS_MANAGER_FLOWS_TABLE_NAME      "flows_alerts"
 #define ALERTS_MANAGER_TABLE_NAME            "alerts"
-#define ALERTS_MANAGER_STORE_NAME            "alerts_v11.db"
+#define ALERTS_MANAGER_STORE_NAME            "alerts_v12.db"
 #define ALERTS_MANAGER_QUEUE_NAME            "ntopng.alerts.ifid_%i.queue"
 #define ALERTS_MANAGER_MAKE_ROOM_ALERTS      "ntopng.cache.alerts.ifid_%i.make_room_closed_alerts"
 #define ALERTS_MANAGER_MAKE_ROOM_FLOW_ALERTS "ntopng.cache.alerts.ifid_%i.make_room_flow_alerts"

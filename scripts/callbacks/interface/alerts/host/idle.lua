@@ -9,6 +9,7 @@ local check_module = {
   key = "idle",
   alert_type = alert_consts.alert_types.threshold_cross,
   check_function = alerts_api.threshold_check_function,
+  local_only = true,
 
   gui = {
     i18n_title = "alerts_thresholds_config.idle_time",

@@ -187,37 +187,6 @@ end
 
 -- ##############################################################################
 
--- Apply a "engaged only" or "closed only" filter
-function statusFilter(query, engaged, now)
-  local alert_released_val
-
-  if engaged then
-    alert_released_val = "alert_released=0"
-  else
-    alert_released_val = "alert_released=1"
-  end
-
-  local group_by_pos = string.find(query, "group by") or string.find(query, "GROUP BY")
-  local prefix_part = query
-  local suffix_part = ""
-
-  if(group_by_pos ~= nil) then
-    prefix_part = string.sub(query, 1, group_by_pos-2)
-    suffix_part = string.sub(query, group_by_pos)
-  end
-  local where_pos = string.find(prefix_part, "where") or string.find(prefix_part, "WHERE")
-
-  if(where_pos == nil) then
-    prefix_part = "WHERE"
-  else
-    prefix_part = prefix_part .. " AND"
-  end
-
-  return(string.format("%s %s %s", prefix_part, alert_released_val, suffix_part))
-end
-
--- ##############################################################################
-
 if ntop.isEnterprise() then
    local dirs = ntop.getDirs()
    package.path = dirs.installdir .. "/pro/scripts/lua/enterprise/modules/?.lua;" .. package.path
@@ -241,9 +210,13 @@ function get_alerts_hash_name(timespan, ifname, entity_type)
 end
 
 -- Get the hash key used for saving global settings
-function get_global_alerts_hash_key(entity_type, alert_source)
+local function get_global_alerts_hash_key(entity_type, alert_source, local_hosts)
    if entity_type == "host" then
-      return "local_hosts"
+      if local_hosts then
+        return "local_hosts"
+      else
+        return "remote_hosts"
+      end
    elseif entity_type == "interface" then
       return "interfaces"
    elseif entity_type == "network" then
@@ -390,12 +363,6 @@ function performAlertsQuery(statement, what, opts, force_query)
    local query = table.concat(wargs, " ")
    local res
 
-   if what == "engaged" then
-      query = statusFilter(query, true)
-   elseif what == "historical" then
-      query = statusFilter(query, false)
-   end
-
    query = query .. " " .. table.concat(oargs, " ")
 
    -- Uncomment to debug the queries
@@ -424,9 +391,18 @@ function getNumAlerts(what, options)
    end
 
    local num = 0
-   local opts = getUnpagedAlertOptions(options or {})
-   local res = performAlertsQuery("SELECT COUNT(*) AS count", what, opts)
-   if((res ~= nil) and (#res == 1) and (res[1].count ~= nil)) then num = tonumber(res[1].count) end
+
+   if(what == "engaged") then
+     local entity_type_filter = tonumber(options.entity)
+     local entity_value_filter = options.entity_val
+     local res = interface.getEngagedAlertsCount(entity_type_filter, entity_value_filter)
+
+     if(res ~= nil) then num = res.num_alerts end
+   else
+     local opts = getUnpagedAlertOptions(options or {})
+     local res = performAlertsQuery("SELECT COUNT(*) AS count", what, opts)
+     if((res ~= nil) and (#res == 1) and (res[1].count ~= nil)) then num = tonumber(res[1].count) end
+   end
 
    return num
 end
@@ -439,25 +415,61 @@ local function engagedAlertsQuery(params)
   local entity_type_filter = tonumber(params.entity)
   local entity_value_filter = params.entity_val
 
-  -- TODO
-  local per_page = params.perPage
-  local sort_order = params.sortOrder
-  local current_page = params.currentPage
+  local perPage = tonumber(params.perPage)
+  local sortColumn = params.sortColumn
+  local sortOrder = params.sortOrder
+  local sOrder = ternary(sortOrder == "desc", rev_insensitive, asc_insensitive)
+  local currentPage = tonumber(params.currentPage)
+  local totalRows = 0
 
   --~ tprint(string.format("type=%s sev=%s entity=%s val=%s", type_filter, severity_filter, entity_type_filter, entity_value_filter))
+  local alerts = interface.getEngagedAlerts(entity_type_filter, entity_value_filter, type_filter, severity_filter)
+  local sort_2_col = {}
 
-  --~ local alerts = interface.getEngagedAlerts(type_filter, severity_filter, entity_type_filter, entity_value_filter)
-  return(alerts)
+  -- Sort
+  for idx, alert in pairs(alerts) do
+    if sortColumn == "column_type" then
+      sort_2_col[idx] = alert.alert_type
+    elseif sortColumn == "column_severity" then
+      sort_2_col[idx] = alert.alert_severity
+    elseif sortColumn == "column_duration" then
+      sort_2_col[idx] = os.time() - alert.alert_tstamp
+    else -- column_date
+      sort_2_col[idx] = alert.alert_tstamp
+    end
+
+    totalRows = totalRows + 1
+  end
+
+  -- Pagination
+  local to_skip = (currentPage-1) * perPage
+  local totalRows = #alerts
+  local res = {}
+  local i = 0
+
+  for idx in pairsByValues(sort_2_col, sOrder) do
+    if i >= to_skip + perPage then
+      break
+    end
+
+    if (i >= to_skip) then
+      res[#res + 1] = alerts[idx]
+    end
+
+    i = i + 1
+  end
+
+  return(res)
 end
 
 -- #################################
 
 function getAlerts(what, options)
-   --~ if what == "engaged" then
-      --~ return engagedAlertsQuery(options)
-   --~ else
+   if what == "engaged" then
+      return engagedAlertsQuery(options)
+   else
       return performAlertsQuery("SELECT rowid, *", what, options)
-   --~ end
+   end
 end
 
 -- #################################
@@ -885,9 +897,9 @@ local function getMenuEntries(status, selection_name)
       end
 
       if selection_name == "severity" then
-	 actual_entries = interface.queryAlertsRaw("select alert_severity id, count(*) count", statusFilter("group by alert_severity", engaged))
+	 actual_entries = interface.queryAlertsRaw("select alert_severity id, count(*) count", "group by alert_severity")
       elseif selection_name == "type" then
-	 actual_entries = interface.queryAlertsRaw("select alert_type id, count(*) count", statusFilter("group by alert_type", engaged))
+	 actual_entries = interface.queryAlertsRaw("select alert_type id, count(*) count", "group by alert_type")
       end
    end
 
@@ -958,8 +970,8 @@ end
 
 -- #################################
 
-function getGlobalAlertsConfigurationHash(granularity, entity_type, alert_source)
-   return 'ntopng.prefs.alerts_global.'..granularity.."."..get_global_alerts_hash_key(entity_type, alert_source)
+local function getGlobalAlertsConfigurationHash(granularity, entity_type, alert_source, local_hosts)
+   return 'ntopng.prefs.alerts_global.'..granularity.."."..get_global_alerts_hash_key(entity_type, alert_source, local_hosts)
 end
 
 local global_redis_thresholds_key = "thresholds"
@@ -1065,7 +1077,7 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
    local anomalies_config = {
    }
 
-   local global_redis_hash = getGlobalAlertsConfigurationHash(tab, entity_type, alert_source)
+   local global_redis_hash = getGlobalAlertsConfigurationHash(tab, entity_type, alert_source, not options.remote_host)
 
    print('</ul>')
 
@@ -1220,7 +1232,6 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
       print[[</th></tr>]]
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 
-   if not options.remote_host then
       for key, check_module in pairsByKeys(descr, asc) do
         local gui_conf = check_module.gui
 	local show_input = true
@@ -1236,7 +1247,11 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
 		 break
 	      end
 	   end
-	end
+  end
+
+  if(check_module.local_only and options.remote_host) then
+    show_input = false
+  end
 
         if not gui_conf or not show_input then
           goto next_module
@@ -1258,7 +1273,6 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
          print("</td></tr>\n")
          ::next_module::
       end
-   end
 
       if (entity_type == "host") and (tab == "min") then
          local vals = table.merge(anomalies, global_anomalies)
@@ -1400,9 +1414,9 @@ function housekeepingAlertsMakeRoom(ifId)
 	 -- tprint({e=e, total=e.count, to_keep=to_keep, to_delete=to_delete, to_delete_not_discounted=(e.count - max_num_alerts_per_entity)})
 	 local cleanup = interface.queryAlertsRaw(
 						  "DELETE",
-						  statusFilter("WHERE alert_entity="..e.alert_entity.." AND alert_entity_val=\""..e.alert_entity_val.."\" "
+						  "WHERE alert_entity="..e.alert_entity.." AND alert_entity_val=\""..e.alert_entity_val.."\" "
 						     .." AND rowid NOT IN (SELECT rowid FROM alerts WHERE alert_entity="..e.alert_entity.." AND alert_entity_val=\""..e.alert_entity_val.."\" "
-						     .." ORDER BY alert_tstamp DESC LIMIT "..to_keep..")", false))
+						     .." ORDER BY alert_tstamp DESC LIMIT "..to_keep..")", false)
       end
    end
 
@@ -1421,6 +1435,21 @@ function housekeepingAlertsMakeRoom(ifId)
       end
    end
 
+end
+
+-- #################################
+
+local function menuEntriesToDbFormat(entries)
+  local res = {}
+
+  for entry_id, entry_val in pairs(entries) do
+    res[#res + 1] = {
+      id = tostring(entry_id),
+      count = tostring(entry_val),
+    }
+  end
+
+  return(res)
 end
 
 -- #################################
@@ -1620,10 +1649,12 @@ function getCurrentStatus() {
 	    end
 
       if t["status"] == "engaged" then
-        -- TODO read from memory
-        --~ type_menu_entries = {
-          --~ {id = "2", count = "2"}
-        --~ }
+        local res = interface.getEngagedAlertsCount(tonumber(_GET["entity"]), _GET["entity_val"])
+
+        if(res ~= nil) then
+          type_menu_entries = menuEntriesToDbFormat(res.type)
+          sev_menu_entries = menuEntriesToDbFormat(res.severities)
+        end
       end
 
 	    print(drawDropdown(t["status"], "type", a_type, alert_types, i18n("alerts_dashboard.alert_type"), get_params, type_menu_entries))
@@ -1940,13 +1971,13 @@ end
 
 -- #################################
 
-local function getEntityConfiguredAlertThresholds(ifname, granularity, entity_type)
+local function getEntityConfiguredAlertThresholds(ifname, granularity, entity_type, local_hosts)
    local thresholds_key = get_alerts_hash_name(granularity, ifname, entity_type)
    local thresholds_config = {}
    local res = {}
    
    -- Handle the global configuration
-   local global_conf_keys = ntop.getKeysCache(getGlobalAlertsConfigurationHash(granularity, entity_type, "*")) or {}
+   local global_conf_keys = ntop.getKeysCache(getGlobalAlertsConfigurationHash(granularity, entity_type, "*", local_hosts)) or {}
 
    for alert_key in pairs(global_conf_keys) do
       local thresholds_str = ntop.getHashCache(alert_key, global_redis_thresholds_key)
@@ -1985,11 +2016,20 @@ end
 
 -- #################################
 
--- Get all the configured threasholds for hosts on the specified interface
+-- Get all the configured threasholds for local hosts on the specified interface
 -- NOTE: an additional "local_hosts" key is added if there are globally
 -- configured threasholds (threasholds active for all the hosts of the interface)
-function getHostsConfiguredAlertThresholds(ifname, granularity)
-  return(getEntityConfiguredAlertThresholds(ifname, granularity, "host"))
+function getLocalHostsConfiguredAlertThresholds(ifname, granularity, local_hosts)
+  return(getEntityConfiguredAlertThresholds(ifname, granularity, "host", true))
+end
+
+-- #################################
+
+-- Get all the configured threasholds for remote hosts on the specified interface
+-- NOTE: an additional "local_hosts" key is added if there are globally
+-- configured threasholds (threasholds active for all the hosts of the interface)
+function getRemoteHostsConfiguredAlertThresholds(ifname, granularity, local_hosts)
+  return(getEntityConfiguredAlertThresholds(ifname, granularity, "host", false))
 end
 
 -- #################################
@@ -1999,30 +2039,6 @@ end
 -- configured threasholds (threasholds active for all the hosts of the interface)
 function getNetworksConfiguredAlertThresholds(ifname, granularity)
   return(getEntityConfiguredAlertThresholds(ifname, granularity, "network"))
-end
-
--- #################################
-
--- Extracts the configured thresholds for the entity, global and local
-local function getEntityThresholds(configured_thresholds, entity_type, entity)
-   local res = {}
-   local global_conf_key = get_global_alerts_hash_key(entity_type, entity)
-
-   if configured_thresholds[global_conf_key] ~= nil then
-      -- Global configuration exists
-      for k, v in pairs(configured_thresholds[global_conf_key]) do
-         res[k] = v
-      end
-   end
-
-   -- Possibly override global thresholds with local configured ones
-   if configured_thresholds[entity] ~= nil then
-      for k, v in pairs(configured_thresholds[entity]) do
-         res[k] = v
-      end
-   end
-
-   return res
 end
 
 -- #################################
@@ -2732,7 +2748,8 @@ function flushAlertsData()
    if(verbose) then io.write("[Alerts] Flushing Redis configuration...\n") end
    deleteCachePattern("ntopng.prefs.*alert*")
    deleteCachePattern("ntopng.alerts.*")
-   deleteCachePattern(getGlobalAlertsConfigurationHash("*", "*", "*"))
+   deleteCachePattern(getGlobalAlertsConfigurationHash("*", "*", "*", true))
+   deleteCachePattern(getGlobalAlertsConfigurationHash("*", "*", "*", false))
    ntop.delCache(get_alerts_suppressed_hash_name("*"))
    for _, key in pairs(get_make_room_keys("*")) do deleteCachePattern(key) end
 
@@ -2792,6 +2809,21 @@ function alertNotificationToObject(alert_json)
 
    if(notification.flow ~= nil) then
       notification.message = formatRawFlow(notification.flow, notification.message, true --[[ skip add links ]])
+   else
+      local alert = alerts.alertNotificationToRecord(notification)
+      local description = alertTypeDescription(alert.alert_type)
+      local msg = alert.alert_json
+
+      if(string.sub(msg, 1, 1) == "{") then
+        msg = json.decode(msg)
+      end
+
+      if(type(description) == "string") then
+        -- localization string
+        notification.message = i18n(description, msg)
+      elseif(type(description) == "function") then
+        notification.message = description(notification.ifid, alert, msg)
+      end
    end
 
    return notification

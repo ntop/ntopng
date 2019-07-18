@@ -33,11 +33,6 @@ class AlertsManager : protected StoreManager {
   int openStore();
 
   /* methods used for alerts that have a timespan */
-  int isAlertEngaged(time_t when, AlertType alert_type, const char *subtype,
-      int granularity, AlertEntity alert_entity, const char * const alert_entity_value,
-      char * const query_buf, ssize_t query_buf_len,
-      bool * const is_existing, u_int64_t * const cur_rowid) const;
-  int updateExistingAlert(u_int64_t rowid, time_t new_timestamp_end, char * const query_buf, ssize_t query_buf_len) const;
   void markForMakeRoom(bool on_flows);
   bool incHostTotalAlerts(const char *hostkey);
 
@@ -62,16 +57,10 @@ class AlertsManager : protected StoreManager {
   /*
     ========== Generic alerts API =========
    */
-  int triggerAlert(time_t when, int granularity, AlertType alert_type, const char *subtype,
+  int storeAlert(time_t tstart, time_t tend, int granularity, AlertType alert_type, const char *subtype,
       AlertLevel alert_severity, AlertEntity alert_entity, const char *alert_entity_value,
       const char *alert_json, bool *new_alert,
       bool ignore_disabled = false, bool check_maximum = true);
-
-  int releaseAlert(time_t when, int granularity, AlertType alert_type, const char *subtype,
-      AlertLevel alert_severity, AlertEntity alert_entity, const char *alert_entity_value,
-      u_int64_t *row_id);
-
-  int releaseEngagedAlerts(time_t when);
 
   bool hasAlerts();
 

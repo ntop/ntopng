@@ -1,0 +1,7 @@
+JSON to TLV
+-----------
+
+json2tlv is a utility for converting a JSON file containing an array of flow records
+to the TLV format (implemented in nDPI). This tool is able to serialize and export 
+TLV records over ZMQ. This is meant to be used for functional and performance tests.
+

@@ -43,7 +43,7 @@ class PF_RINGInterface : public NetworkInterface {
 
   void singlePacketPollLoop();
   void multiPacketPollLoop();
-  inline bool areTrafficDirectionsSupported()  { return(true); };
+  virtual bool areTrafficDirectionsSupported() { return(true); };
   bool isDiscoverableInterface()               { return(!isTrafficMirrored());         };
   virtual InterfaceType getIfType() const      { return(interface_type_PF_RING);       };
   inline const char* get_type()                { return(CONST_INTERFACE_TYPE_PF_RING); };

@@ -23,7 +23,7 @@
 
 /* *************************************** */
 
-NetworkStats::NetworkStats() : AlertableEntity() {
+NetworkStats::NetworkStats() : AlertableEntity(alert_entity_network) {
   network_id = 0;
 }
 
@@ -69,4 +69,11 @@ void NetworkStats::deserialize(json_object *o) {
   if(json_object_object_get_ex(o, "ingress", &obj)) ingress.incStats(now, 0, json_object_get_int(obj));
   if(json_object_object_get_ex(o, "egress", &obj)) egress.incStats(now, 0, json_object_get_int(obj));
   if(json_object_object_get_ex(o, "inner", &obj)) inner.incStats(now, 0, json_object_get_int(obj));
+}
+
+/* *************************************** */
+
+void NetworkStats::setNetworkId(u_int8_t id) {
+  network_id = id;
+  setEntityValue(ntop->getLocalNetworkName(id));
 }
