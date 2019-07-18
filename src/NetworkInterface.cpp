@@ -7655,8 +7655,7 @@ void NetworkInterface::checkHostsAlerts(ScriptPeriodicity p) {
   ap.p = p, ap.le = &le;
 
   /* ... then iterate all hosts */
-  if(hosts_hash)
-    hosts_hash->walk(&begin_slot, true /* walk_all */, host_alert_check, &ap);
+  walker(&begin_slot, true /* walk_all */, walker_hosts, host_alert_check, &ap);
 }
 
 /* *************************************** */
