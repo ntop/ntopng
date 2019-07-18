@@ -2674,7 +2674,7 @@ end
 -- #################################
 
 function scanAlerts(granularity, ifstats)
-   -- Always do the scan, at least at one granularity as this is necessary to mark hosts as idle.
+   if not mustScanAlerts(ifstats) then return end
 
    local ifname = ifstats["name"]
    local ifid = getInterfaceId(ifname)

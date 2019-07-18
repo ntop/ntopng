@@ -7608,13 +7608,10 @@ static bool host_alert_check(GenericHashEntry *h, void *user_data, bool *matched
   lua_State *L = ap->le->getState();
   Host *host = (Host*)h;
 
-  if(host->is_acknowledged_to_purge())
-    return false; /* Already acknowledged, moving on to the next one */
+  /* Alerts are checked only on local hosts */
+  const char *function_to_call = "checkHostAlerts";
 
   ap->le->setHost(host);
-
-  /* Alerts are checked only on local hosts */
-  const char *function_to_call = !host->idle() ? "checkHostAlerts" : "checkIdle";
 
   /* https://www.lua.org/pil/25.2.html */
   lua_getglobal(L,  function_to_call); /* Called function */
@@ -7624,9 +7621,6 @@ static bool host_alert_check(GenericHashEntry *h, void *user_data, bool *matched
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure [%s][%s]", ap->script_path, lua_tostring(L, -1));
 
   host->housekeepAlerts(ap->p /* periodicity */);
-
-  if(host->idle())
-    host->set_acknowledge_to_purge();
 
   return(false); /* false = keep on walking */
 }
@@ -7661,7 +7655,7 @@ void NetworkInterface::checkHostsAlerts(ScriptPeriodicity p) {
   ap.p = p, ap.le = &le;
 
   /* ... then iterate all hosts */
-  walker(&begin_slot, true /* walk_all */, walker_hosts, host_alert_check, &ap, true /* walk also on idle hosts, this is necessary to acknowledge the purge */);
+  walker(&begin_slot, true /* walk_all */, walker_hosts, host_alert_check, &ap);
 }
 
 /* *************************************** */

@@ -69,12 +69,3 @@ function checkHostAlerts(granularity)
     })
   end
 end
-
-
--- #################################################################
-
--- The function below is called once per host when the host has gone idle()
-function checkIdle(granularity)
-   -- don't care about the granularity
-   -- Let's do the necessary releases
-end

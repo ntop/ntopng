@@ -37,6 +37,9 @@ class Host : public GenericHashEntry, public AlertableEntity {
   HostStats *stats, *stats_shadow;
   time_t last_stats_reset;
 
+  /* Marked when visited by the periodic activities */
+  bool idle_mark;
+
   /* Host data: update Host::deleteHostData when adding new fields */
   struct {
     char * mdns, * mdns_txt;
@@ -59,8 +62,6 @@ class Host : public GenericHashEntry, public AlertableEntity {
   Country *country;
   Vlan *vlan;
   bool blacklisted_host;
-
-  bool purge_acknowledged_mark;
 
   Mutex m;
   u_int32_t mac_last_seen;
@@ -107,10 +108,8 @@ class Host : public GenericHashEntry, public AlertableEntity {
   inline nDPIStats* get_ndpi_stats()       { return(stats->getnDPIStats()); };
 
   virtual void set_to_purge(time_t t) { /* Saves 1 extra-step of purge idle */
-    if(is_acknowledged_to_purge()) {
-      iface->decNumHosts(isLocalHost());
-      GenericHashEntry::set_to_purge(t);
-    }
+    iface->decNumHosts(isLocalHost());
+    GenericHashEntry::set_to_purge(t);
   };
 
   inline bool isChildSafe() {
@@ -211,10 +210,9 @@ class Host : public GenericHashEntry, public AlertableEntity {
   char* get_hostkey(char *buf, u_int buf_len, bool force_vlan=false);
   char* get_tskey(char *buf, size_t bufsize);
 
-  /* Methods to handle the flow in-memory lifecycle */
-  virtual bool idle();
-  bool is_acknowledged_to_purge() const;
-  void set_acknowledge_to_purge();
+  inline void set_idle(time_t t) { idle_mark = true;  };
+  virtual bool idle()            { return(idle_mark); };
+  bool isReadyToBeMarkedAsIdle();
 
   virtual void incICMP(u_int8_t icmp_type, u_int8_t icmp_code, bool sent, Host *peer) {};
   virtual void lua(lua_State* vm, AddressTree * ptree, bool host_details,

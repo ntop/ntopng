@@ -135,7 +135,7 @@ void Host::set_host_label(char *label_name, bool ignoreIfPresent) {
 void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   char buf[64];
 
-  purge_acknowledged_mark = false;
+  idle_mark = false;
 
   stats = NULL; /* it will be instantiated by specialized classes */
   stats_shadow = NULL;
@@ -624,7 +624,7 @@ char * Host::get_os(char * const buf, ssize_t buf_len) {
 
 /* ***************************************** */
 
-bool Host::idle() {
+bool Host::isReadyToBeMarkedAsIdle() {
   if((num_uses > 0) || (!iface->is_purge_idle_interface()))
     return(false);
 
@@ -647,22 +647,6 @@ bool Host::idle() {
   }
 
   return(isIdle(ntop->getPrefs()->get_host_max_idle(isLocalHost())));
-};
-
-/* *************************************** */
-
-bool Host::is_acknowledged_to_purge() const {
-  /* Hosts need to be acknowledged before being purged. The acknowledge
-     is done by one of the periodic alerts checks. This ensures hosts with
-     engaged alerts which go idle() have their alerts released */
-  return purge_acknowledged_mark;
-};
-
-/* *************************************** */
-
-void Host::set_acknowledge_to_purge() {
-  /* Setting this flag allows an host to be purged */
-    purge_acknowledged_mark = true;
 };
 
 /* *************************************** */
@@ -1156,6 +1140,9 @@ bool Host::statsResetRequested() {
 /* *************************************** */
 
 void Host::updateStats(struct timeval *tv) {
+  if(isReadyToBeMarkedAsIdle())
+    set_idle(tv->tv_sec);
+
   checkDataReset();
   checkStatsReset();
   checkBroadcastDomain();
