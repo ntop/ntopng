@@ -8240,6 +8240,24 @@ static int ntop_interface_get_engaged_alerts_count(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_interface_inc_num_dropped_alerts(lua_State* vm) {
+  NetworkInterface *iface = getCurrentInterface(vm);
+  u_int32_t num_dropped;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  if(!iface) return(CONST_LUA_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  num_dropped = lua_tonumber(vm, 1);
+
+  iface->incNumDroppedAlerts(num_dropped);
+
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_interface_get_engaged_alerts(lua_State* vm) {
   int entity_type = -1;
   const char *entity_value = NULL;
@@ -9015,6 +9033,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getExpiredAlerts",       ntop_interface_get_expired_alerts       },
   { "getEngagedAlerts",       ntop_interface_get_engaged_alerts       },
   { "getEngagedAlertsCount",  ntop_interface_get_engaged_alerts_count },
+  { "incNumDroppedAlerts",    ntop_interface_inc_num_dropped_alerts   },
 
   { "checkAlertsMin",        ntop_check_interface_alerts_min   },
   { "checkAlerts5Min",       ntop_check_interface_alerts_5min  },

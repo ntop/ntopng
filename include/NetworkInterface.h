@@ -76,6 +76,7 @@ class NetworkInterface : public AlertableEntity {
   u_int8_t purgeRuns;
   u_int32_t bridge_lan_interface_id, bridge_wan_interface_id;
   u_int32_t num_alerts_engaged[MAX_NUM_PERIODIC_SCRIPTS];
+  u_int32_t num_dropped_alerts;
   bool has_stored_alerts;
 
   bool is_viewed; /* Whether this interface is 'viewed' by a ViewInterface */
@@ -748,6 +749,7 @@ class NetworkInterface : public AlertableEntity {
   inline void decNumAlertsEngaged(ScriptPeriodicity p)    { num_alerts_engaged[(u_int)p]--; }
   inline bool hasAlerts()                                 { return(has_stored_alerts || (getNumEngagedAlerts() > 0)); }
   inline void refreshHasAlerts()                          { has_stored_alerts = alertsManager ? alertsManager->hasAlerts() : false; }
+  inline void incNumDroppedAlerts(u_int32_t num_dropped)  { num_dropped_alerts += num_dropped; }
   void walkAlertables(int entity_type, const char *entity_value, alertable_callback *callback, void *user_data);
   void getEngagedAlertsCount(lua_State *vm, int entity_type, const char *entity_value);
   void getEngagedAlerts(lua_State *vm, int entity_type, const char *entity_value, AlertType alert_type, AlertLevel alert_severity);

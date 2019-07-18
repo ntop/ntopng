@@ -2981,6 +2981,7 @@ local lang = {
     ["delete_config_btn"] = "Delete %{conf}s Common Configuration",
     ["delete_config_message"] = "Do you really want to delete the common %{granularity} alerts configuration of %{conf}s",
     ["detected_alerts"] = "Detected Alerts",
+    ["dropped_alerts"] = "Dropped Alerts",
     ["engaged"] = "Engaged",
     ["engaged_alerts"] = "Engaged Alerts",
     ["explorer"] = "Explore",

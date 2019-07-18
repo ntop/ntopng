@@ -293,7 +293,7 @@ void NetworkInterface::init() {
   gettimeofday(&last_frequent_reset, NULL);
   frequentMacs = new FrequentTrafficItems(5);
   frequentProtocols = new FrequentTrafficItems(5);
-  num_live_captures = 0;
+  num_live_captures = 0, num_dropped_alerts = 0;
   memset(live_captures, 0, sizeof(live_captures));
   memset(&num_alerts_engaged, 0, sizeof(num_alerts_engaged));
   has_stored_alerts = false;
@@ -5404,6 +5404,7 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_bool_table_entry(vm, "has_seen_ebpf_events", hasSeenEBPFEvents());
   lua_push_bool_table_entry(vm, "has_alerts", hasAlerts());
   lua_push_int32_table_entry(vm, "num_alerts_engaged", getNumEngagedAlerts());
+  lua_push_int32_table_entry(vm, "num_dropped_alerts", num_dropped_alerts);
 
   lua_newtable(vm);
   lua_push_uint64_table_entry(vm, "packets",     getNumPackets());

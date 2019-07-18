@@ -531,6 +531,15 @@ if((page == "overview") or (page == nil)) then
       print("</tr>")
    end
 
+   if((ifstats.num_alerts_engaged > 0) or (ifstats.num_dropped_alerts > 0)) then
+      print("<tr>")
+      local warning = "<i class='fa fa-warning fa-lg' style='color: #B94A48;'></i> "
+      print("<th>".. ternary(ifstats.num_alerts_engaged > 0, warning, "") ..i18n("show_alerts.engaged_alerts")..
+        "</th><td colspan=2  nowrap>".. formatValue(ifstats.num_alerts_engaged) .." <span id=engaged_alerts_trend></span></td>\n")
+      print("<th width=250>".. ternary(ifstats.num_dropped_alerts > 0, warning, "")..i18n("show_alerts.dropped_alerts")..
+        "</th><td colspan=2>" .. formatValue(ifstats.num_dropped_alerts) .. " <span id=dropped_alerts_trend></span></td>\n</td>")
+   end
+
    label = i18n("pkts")
 
    print[[ <tr><th colspan=1 nowrap>]] print(i18n("if_stats_overview.traffic_breakdown")) print[[</th> ]]
@@ -1766,6 +1775,8 @@ print("var last_pkts  = " .. ifstats.stats.packets .. ";\n")
 print("var last_in_pkts  = " .. ifstats.eth.ingress.packets .. ";\n")
 print("var last_out_pkts  = " .. ifstats.eth.egress.packets .. ";\n")
 print("var last_drops = " .. ifstats.stats.drops .. ";\n")
+print("var last_engaged_alerts = " .. ifstats.num_alerts_engaged .. ";\n")
+print("var last_dropped_alerts = " .. ifstats.num_dropped_alerts .. ";\n")
 
 if(ifstats.zmqRecvStats ~= nil) then
    print("var last_zmq_time = 0;\n")
@@ -1892,6 +1903,11 @@ print [[
 	$('#drops_trend').html(get_trend(last_drops, rsp.drops));
 	last_pkts = rsp.packets;
 	last_drops = rsp.drops;
+
+  $('#engaged_alerts_trend').html(get_trend(last_engaged_alerts, rsp.engaged_alerts));
+  last_engaged_alerts = rsp.engaged_alerts;
+  $('#dropped_alerts_trend').html(get_trend(last_dropped_alerts, rsp.dropped_alerts));
+  last_dropped_alerts = rsp.dropped_alerts;
 
 	if((rsp.packets + rsp.drops) > 0) {
           pctg = ((rsp.drops*100)/(rsp.packets+rsp.drops)).toFixed(2);

@@ -13,8 +13,8 @@ local do_trace = false
 
 local alerts = {}
 
-local MAX_NUM_ENQUEUED_ALERTS_EVENTS = 1024
-local ALERTS_EVENTS_QUEUE = "ntopng.cache.alerts_events_queue"
+-- NOTE: sqlite can handle about 10-50 alerts/sec
+local MAX_NUM_ENQUEUED_ALERT_PER_INTERFACE = 256
 local ALERT_CHECKS_MODULES_BASEDIR = dirs.installdir .. "/scripts/callbacks/interface/alerts"
 
 -- Just helpers
@@ -26,6 +26,12 @@ local str_2_periodicity = {
 }
 
 local known_alerts = {}
+
+-- ##############################################
+
+local function getAlertEventQueue(ifid)
+  return string.format("ntopng.cache.ifid_%d.alerts_events_queue", ifid)
+end
 
 -- ##############################################
 
@@ -205,15 +211,25 @@ end
 -- ##############################################
 
 local function enqueueAlertEvent(alert_event)
-  local event_json = json.encode(alert_event)
   local trim = nil
+  local ifid = interface.getId()
 
-  if(ntop.llenCache(ALERTS_EVENTS_QUEUE) > MAX_NUM_ENQUEUED_ALERTS_EVENTS) then
-    trim = math.ceil(MAX_NUM_ENQUEUED_ALERTS_EVENTS/2)
-    traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Alerts event queue too long: dropping %u alerts", trim))
+  if(alert_event.ifid ~= ifid) then
+    traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Wrong interface selected: expected %s, got %s", alert_event.ifid, ifid))
+    return(false)
   end
 
-  ntop.rpushCache(ALERTS_EVENTS_QUEUE, event_json, trim)
+  local event_json = json.encode(alert_event)
+  local queue = getAlertEventQueue(ifid)
+
+  if(ntop.llenCache(queue) > MAX_NUM_ENQUEUED_ALERT_PER_INTERFACE) then
+    trim = math.ceil(MAX_NUM_ENQUEUED_ALERT_PER_INTERFACE/2)
+    traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Alerts event queue too long: dropping %u alerts", trim))
+
+    interface.incNumDroppedAlerts(trim)
+  end
+
+  ntop.rpushCache(queue, event_json, trim)
   return(true)
 end
 
@@ -224,30 +240,34 @@ end
 -- the other scripts and as a necessity to avoid a deadlock on the
 -- host hash in the host.lua script
 function alerts.processPendingAlertEvents(deadline)
-  while(true) do
-    local event_json = ntop.lpopCache(ALERTS_EVENTS_QUEUE)
+  local ifnames = interface.getIfNames()
 
-    if(not event_json) then
-      break
-    end
+  for ifid, _ in pairs(ifnames) do
+    interface.select(ifid)
+    local queue = getAlertEventQueue(ifid)
 
-    local event = json.decode(event_json)
-    local to_call
+    while(true) do
+      local event_json = ntop.lpopCache(queue)
 
-    interface.select(tostring(event.ifid))
+      if(not event_json) then
+        break
+      end
 
-    if(event.action == "release") then
-      interface.storeAlert(
-        event.tstamp, event.tstamp_end, event.granularity,
-        event.type, event.subtype or "", event.severity,
-        event.entity_type, event.entity_value,
-        event.message) -- event.message: nil for "release"
-    end
+      local event = json.decode(event_json)
 
-    alert_endpoints.dispatchNotification(event, event_json)
+      if(event.action == "release") then
+        interface.storeAlert(
+          event.tstamp, event.tstamp_end, event.granularity,
+          event.type, event.subtype or "", event.severity,
+          event.entity_type, event.entity_value,
+          event.message) -- event.message: nil for "release"
+      end
 
-    if(os.time() > deadline) then
-      break
+      alert_endpoints.dispatchNotification(event, event_json)
+
+      if(os.time() > deadline) then
+        break
+      end
     end
   end
 end
