@@ -69,3 +69,7 @@ function checkHostAlerts(granularity)
     })
   end
 end
+
+function idleWithTriggeredAlerts()
+   -- TODO: handle the release of triggered alerts, including notifications
+end

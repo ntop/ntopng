@@ -2882,16 +2882,10 @@ static bool flow_update_hosts_stats(GenericHashEntry *node,
 /* NOTE: host is not a GenericTrafficElement */
 static bool update_hosts_stats(GenericHashEntry *node, void *user_data, bool *matched) {
   Host *host = (Host*)node;
-  struct timeval *tv = (struct timeval*)user_data;
+  update_hosts_stats_user_data_t *update_hosts_stats_user_data = (update_hosts_stats_user_data_t*)user_data;
 
-  host->updateStats(tv);
+  host->updateStats(update_hosts_stats_user_data);
   *matched = true;
-
-  /*
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Updated: %s [%d]",
-    ((StringHost*)node)->host_key(),
-    host->getThptTrend());
-  */
 
   return(false); /* false = keep on walking */
 }
@@ -3000,8 +2994,16 @@ void NetworkInterface::periodicStatsUpdate() {
   checkReloadHostsBroadcastDomain();
 
   if(hosts_hash) {
+    update_hosts_stats_user_data_t update_hosts_stats_user_data;
+
+    update_hosts_stats_user_data.acle = NULL /* Lazy instantiation */,
+      update_hosts_stats_user_data.tv = &tv;
+
     begin_slot = 0;
-    hosts_hash->walk(&begin_slot, walk_all, update_hosts_stats, (void*)&tv);
+    hosts_hash->walk(&begin_slot, walk_all, update_hosts_stats, &update_hosts_stats_user_data);
+
+    if(update_hosts_stats_user_data.acle)
+      delete update_hosts_stats_user_data.acle;
   }
 
 #ifdef PERIODIC_STATS_UPDATE_DEBUG_TIMING

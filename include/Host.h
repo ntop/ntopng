@@ -129,7 +129,7 @@ class Host : public GenericHashEntry, public AlertableEntity {
   };
 
   virtual HostStats* allocateStats()                { return(new HostStats(this)); };
-  void updateStats(struct timeval *tv);
+  void updateStats(update_hosts_stats_user_data_t *update_hosts_stats_user_data);
   void incLowGoodputFlows(time_t t, bool asClient);
   void decLowGoodputFlows(time_t t, bool asClient);
   inline void incNumAnomalousFlows(bool asClient)   { return(stats->incNumAnomalousFlows(asClient)); };

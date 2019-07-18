@@ -47,6 +47,13 @@ typedef enum {
   mask_remote_hosts = 2
 } HostMask;
 
+/* Struct used to pass parameters when walking hosts periodically to update their stats */
+class AlertCheckLuaEngine;
+typedef struct {
+  AlertCheckLuaEngine *acle;
+  struct timeval *tv;
+} update_hosts_stats_user_data_t;
+
 typedef enum {
   minute_script = 0,
   five_minute_script,

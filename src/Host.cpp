@@ -1139,9 +1139,26 @@ bool Host::statsResetRequested() {
 
 /* *************************************** */
 
-void Host::updateStats(struct timeval *tv) {
-  if(isReadyToBeMarkedAsIdle())
+void Host::updateStats(update_hosts_stats_user_data_t *update_hosts_stats_user_data) {
+  struct timeval *tv = update_hosts_stats_user_data->tv;
+
+  if(isReadyToBeMarkedAsIdle()) {
     set_idle(tv->tv_sec);
+
+    if(getNumTriggeredAlerts()
+       && (update_hosts_stats_user_data->acle
+	   || (update_hosts_stats_user_data->acle = new (std::nothrow) AlertCheckLuaEngine(alert_entity_host, minute_script /* doesn't matter */, iface)))
+       ) {
+      AlertCheckLuaEngine *acle = update_hosts_stats_user_data->acle;
+      lua_State *L = acle->getState();
+      acle->setEntity(this);
+
+      lua_getglobal(L, "idleWithTriggeredAlerts"); /* Called function */
+
+      if(lua_pcall(L, 0 /* 0 arguments */, 0 /* 0 results */, 0)) /* Call the function now */
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure [%s]", lua_tostring(L, -1));
+    }
+  }
 
   checkDataReset();
   checkStatsReset();
