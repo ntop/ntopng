@@ -23,7 +23,7 @@
 
 /* ****************************************** */
 
-AlertCheckLuaEngine::AlertCheckLuaEngine(AlertEntity alert_entity, ScriptPeriodicity script_periodicity,  NetworkInterface *iface) {
+AlertCheckLuaEngine::AlertCheckLuaEngine(AlertEntity alert_entity, ScriptPeriodicity script_periodicity,  NetworkInterface *iface) : LuaEngine() {
   const char *lua_file = NULL;
 
   p = script_periodicity;
@@ -50,8 +50,7 @@ AlertCheckLuaEngine::AlertCheckLuaEngine(AlertEntity alert_entity, ScriptPeriodi
 	     lua_file);
     ntop->fixPath(script_path);
 
-    le.load_script(script_path, iface);
-    lua_State *L = le.getState();
+    load_script(script_path, iface);
 
     lua_getglobal(L, "setup");         /* Called function   */
     lua_pushstring(L, Utils::periodicityToScriptName(p)); /* push 1st argument */
@@ -80,15 +79,9 @@ const char * AlertCheckLuaEngine::getGranularity() const {
 
 /* ****************************************** */
 
-lua_State * AlertCheckLuaEngine::getState() const {
-  return le.getState();
-}
-
-/* ****************************************** */
-
 void AlertCheckLuaEngine::setEntity(AlertableEntity *al) {
   if(Host *h = dynamic_cast<Host*>(al))
-    le.setHost(h);
+    setHost(h);
   else if(NetworkStats *ns = dynamic_cast<NetworkStats*>(al))
-    le.setNetwork(ns);
+    setNetwork(ns);
 }

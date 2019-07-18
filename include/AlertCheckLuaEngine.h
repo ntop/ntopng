@@ -22,11 +22,10 @@
 #ifndef _ALERT_CHECK_LUA_ENGINE_H_
 #define _ALERT_CHECK_LUA_ENGINE_H_
 
-class AlertCheckLuaEngine {
+class AlertCheckLuaEngine : public LuaEngine {
  private:
   ScriptPeriodicity p;
   char script_path[MAX_PATH];
-  LuaEngine le;
 
  public:
   AlertCheckLuaEngine(AlertEntity alert_entity, ScriptPeriodicity p, NetworkInterface *iface);
@@ -36,7 +35,6 @@ class AlertCheckLuaEngine {
 
   ScriptPeriodicity getPeriodicity() const;
   const char * getGranularity() const;
-  lua_State * getState() const;
 };
 
 #endif

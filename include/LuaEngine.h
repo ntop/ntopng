@@ -37,7 +37,7 @@
  */
 
 class LuaEngine {
- private:
+ protected:
   lua_State *L; /**< The LuaEngine state.*/
   
   void lua_register_classes(lua_State *L, bool http_mode);

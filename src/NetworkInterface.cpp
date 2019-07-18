@@ -7596,13 +7596,6 @@ bool NetworkInterface::dequeueeBPFFlow(ParsedFlow **f) {
 
 /* *************************************** */
 
-struct alert_check_param {
-  ScriptPeriodicity p;
-  char script_path[MAX_PATH];
-  const char *granularity;
-  LuaEngine *le;
-};
-
 static bool host_alert_check(GenericHashEntry *h, void *user_data, bool *matched) {
   AlertCheckLuaEngine *acle = (AlertCheckLuaEngine*)user_data;
   lua_State *L = acle->getState();
