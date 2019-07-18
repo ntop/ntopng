@@ -751,6 +751,9 @@ static MYSQL *mysql_try_connect(MYSQL *conn, const char *dbname) {
   MYSQL *rc;
   unsigned long flags = CLIENT_COMPRESS;
 
+  if(!ntop->getPrefs()->get_mysql_host())
+    return(NULL);
+
   if(ntop->getPrefs()->get_mysql_host()[0] == '/') /* Use socketD */
     rc = mysql_real_connect(conn,
 			    NULL, /* Host */

@@ -106,7 +106,7 @@ local host
 if not isEmptyString(_GET["referer"]) then
   host = getHttpUrlPrefix().._GET["referer"]
 else
-  host = _SERVER["HTTP_HOST"]
+  host = _SERVER["HTTP_HOST"] .. ntop.getHttpPrefix() .. "/lua/index.lua"
 end
 
 print[[</div>
