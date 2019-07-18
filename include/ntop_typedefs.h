@@ -687,4 +687,7 @@ typedef struct grouped_alerts_counters {
   std::map<AlertLevel, u_int32_t> severities;
 } grouped_alerts_counters;
 
+class AlertableEntity;
+typedef void (alertable_callback)(AlertableEntity *alertable, void *user_data);
+
 #endif /* _NTOP_TYPEDEFS_H_ */

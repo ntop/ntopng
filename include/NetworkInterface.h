@@ -748,6 +748,7 @@ class NetworkInterface : public AlertableEntity {
   inline void decNumAlertsEngaged(ScriptPeriodicity p)    { num_alerts_engaged[(u_int)p]--; }
   inline bool hasAlerts()                                 { return(has_stored_alerts || (getNumEngagedAlerts() > 0)); }
   inline void refreshHasAlerts()                          { has_stored_alerts = alertsManager ? alertsManager->hasAlerts() : false; }
+  void walkAlertables(int entity_type, const char *entity_value, alertable_callback *callback, void *user_data);
   void getEngagedAlertsCount(lua_State *vm, int entity_type, const char *entity_value);
   void getEngagedAlerts(lua_State *vm, int entity_type, const char *entity_value, AlertType alert_type, AlertLevel alert_severity);
 
