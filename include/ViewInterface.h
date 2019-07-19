@@ -67,8 +67,6 @@ class ViewInterface : public NetworkInterface {
 				     void *user_data, bool *entryMatched),
 		      void *user_data,
 		      bool walk_idle = false /* Should never walk idle unless in ViewInterface::flowPollLoop */);
-  
-  virtual void lua(lua_State* vm);
 };
 
 #endif /* _VIEW_INTERFACE_H_ */

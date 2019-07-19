@@ -216,22 +216,6 @@ Flow* ViewInterface::findFlowByTuple(u_int16_t vlan_id,
   return(f);
 }
 
-
-/* *************************************** */
-
-void ViewInterface::lua(lua_State *vm) {
-  bool has_macs = false;
-
-  NetworkInterface::lua(vm);
-  for(u_int8_t s = 0; s < num_viewed_interfaces; s++) {
-    if(viewed_interfaces[s]->hasSeenMacAddresses()) {
-      has_macs = true;
-      break;
-    }
-  }
-  lua_push_bool_table_entry(vm, "has_macs", has_macs);
-}
-
 /* **************************************************** */
 
 static bool viewed_flows_walker(GenericHashEntry *flow, void *user_data, bool *matched) {
@@ -249,15 +233,16 @@ static bool viewed_flows_walker(GenericHashEntry *flow, void *user_data, bool *m
   bool first_partial; /* Whether this is the first time the view is visiting this flow */
   const IpAddress *cli_ip = f->get_cli_ip_addr(), *srv_ip = f->get_srv_ip_addr();
 
-  if(f->get_partial_traffic_stats(&partials, &first_partial) && cli_ip && srv_ip) {
-    Host *cli_host = NULL, *srv_host = NULL;
-
-    iface->findFlowHosts(f->get_vlan_id(),
-			 NULL /* no src mac yet */, (IpAddress*)cli_ip, &cli_host,
-			 NULL /* no dst mac yet */, (IpAddress*)srv_ip, &srv_host);
-
-    if(!cli_host || !srv_host)
+  if(f->get_partial_traffic_stats(&partials, &first_partial)) {
+    if(!cli_ip || !srv_ip)
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to get flow hosts. Out of memory? Expect issues.");
+
+    if(cli_ip && srv_ip) {
+      Host *cli_host = NULL, *srv_host = NULL;
+
+      iface->findFlowHosts(f->get_vlan_id(),
+			   NULL /* no src mac yet */, (IpAddress*)cli_ip, &cli_host,
+			   NULL /* no dst mac yet */, (IpAddress*)srv_ip, &srv_host);
 
     if(cli_host) {
       cli_host->incStats(now, f->get_protocol(), f->getStatsProtocol(), f->getCustomApp(),
@@ -283,6 +268,14 @@ static bool viewed_flows_walker(GenericHashEntry *flow, void *user_data, bool *m
 
       if(flow_idle)
 	srv_host->decUses(), srv_host->decNumFlows(f->get_last_seen(), false, cli_host);
+    }
+
+    iface->incStats(true /* ingressPacket */,
+		    now, cli_ip && cli_ip->isIPv4() ? ETHERTYPE_IP : ETHERTYPE_IPV6,
+		    f->getStatsProtocol(), f->get_protocol(),
+		    partials.srv2cli_bytes + partials.cli2srv_bytes,
+		    partials.srv2cli_packets + partials.cli2srv_packets,
+		    24 /* 8 Preamble + 4 CRC + 12 IFG */ + 14 /* Ethernet header */);
     }
   }
 

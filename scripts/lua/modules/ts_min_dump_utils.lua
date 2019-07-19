@@ -211,7 +211,6 @@ function ts_dump.run_min_dump(_ifname, ifstats, iface_ts, config, when, verbose)
   end
 
   ts_dump.subnet_update_rrds(when, ifstats, verbose)
-
   for _, iface_point in ipairs(iface_ts or {}) do
     local instant = iface_point.instant
 

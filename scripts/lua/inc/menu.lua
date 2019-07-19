@@ -200,11 +200,13 @@ end
 
 -- ##############################################
 
-if active_page == "hosts" then
-  print [[ <li class="dropdown active"> ]]
-else
-  print [[ <li class="dropdown"> ]]
-end
+if not ifs.isViewed then -- Currently, hosts are not kept for viewed interfaces, only for their view
+   if active_page == "hosts" then
+      print [[ <li class="dropdown active"> ]]
+   else
+      print [[ <li class="dropdown"> ]]
+   end
+
 print [[
       <a class="dropdown-toggle" data-toggle="dropdown" href="#">
         ]] print(i18n("flows_page.hosts")) print[[ <b class="caret"></b>
@@ -214,6 +216,7 @@ print [[
 print(ntop.getHttpPrefix())
 print [[/lua/hosts_stats.lua">]] print(i18n("flows_page.hosts")) print[[</a></li>
       ]]
+
 
 if ifs["has_macs"] == true then
    print('<li><a href="'..ntop.getHttpPrefix()..'/lua/macs_stats.lua?devices_mode=source_macs_only">') print(i18n("users.devices")) print('</a></li>')
@@ -282,6 +285,8 @@ print [[/lua/bubble.lua"><i class="fa fa-circle-o"></i> Host Explorer</a></li>
    ]]
 
 print("</ul> </li>")
+
+end -- closes not ifs.isViewed
 
 -- Exporters
 info = ntop.getInfo()

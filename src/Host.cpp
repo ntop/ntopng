@@ -48,7 +48,8 @@ Host::Host(NetworkInterface *_iface, Mac *_mac,
 /* *************************************** */
 
 Host::~Host() {
-  if(num_uses > 0)
+  if(num_uses > 0 && (!iface->isView()
+		      || !ntop->getGlobals()->isShutdown() /* View hosts are not in sync with viewed flows so during shutdown it can be normal */))
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: num_uses=%u", num_uses);
 
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deleting %s (%s)", k, localHost ? "local": "remote");

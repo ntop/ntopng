@@ -481,7 +481,7 @@ function ts_dump.run_5min_dump(_ifname, ifstats, config, when, time_threshold, s
     end
 
     -- Save Host Pools stats every 5 minutes
-    if((ntop.isPro()) and (tostring(config.host_pools_rrd_creation) == "1") and (not ifstats.isView)) then
+    if((ntop.isPro()) and (tostring(config.host_pools_rrd_creation) == "1")) then
       host_pools_utils.updateRRDs(ifstats.id, true --[[ also dump nDPI data ]], verbose)
     end
   end
