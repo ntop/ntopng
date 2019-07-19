@@ -357,7 +357,7 @@ class Flow : public GenericHashEntry {
   inline u_int64_t get_partial_packets_srv2cli() const { return(stats.srv2cli_packets - last_db_dump.srv2cli_packets);   };
   inline u_int64_t get_partial_goodput_bytes()   const { return(get_goodput_bytes() - (last_db_dump.cli2srv_goodput_bytes+last_db_dump.srv2cli_goodput_bytes));       };
   inline u_int64_t get_partial_packets() const { return(get_packets() - (last_db_dump.cli2srv_packets+last_db_dump.srv2cli_packets)); };
-  bool get_partial_traffic_stats(FlowTrafficStats *fts);
+  bool get_partial_traffic_stats(FlowTrafficStats *fts, bool *first_partial);
   inline float get_bytes_thpt()          const { return(bytes_thpt);                      };
   inline float get_goodput_bytes_thpt()  const { return(goodput_bytes_thpt);              };
 

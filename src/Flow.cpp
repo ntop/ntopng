@@ -2439,14 +2439,18 @@ void Flow::housekeep(time_t t) {
 
 /* *************************************** */
 
-bool Flow::get_partial_traffic_stats(FlowTrafficStats *fts) {
+bool Flow::get_partial_traffic_stats(FlowTrafficStats *fts, bool *first_partial) {
   FlowTrafficStats tmp;
 
-  if(!fts)
+  if(!fts || !first_partial)
     return false;
 
-  if(!last_partial && !(last_partial = (FlowTrafficStats*)calloc(1, sizeof(FlowTrafficStats))))
-    return false;
+  if(!last_partial) {
+    if(!(last_partial = (FlowTrafficStats*)calloc(1, sizeof(FlowTrafficStats))))
+      return false;
+    *first_partial = true;
+  } else
+    *first_partial = false;
 
   memcpy(&tmp, &stats, sizeof(stats));
 

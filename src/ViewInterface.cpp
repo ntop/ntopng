@@ -238,6 +238,7 @@ static bool viewed_flows_walker(GenericHashEntry *flow, void *user_data, bool *m
   ViewInterface *iface = (ViewInterface*)user_data;
   Flow *f = (Flow*)flow;
   time_t now = time(NULL);
+  bool flow_idle = f->idle();
 
   iface->purgeIdle(now);
 
@@ -245,20 +246,30 @@ static bool viewed_flows_walker(GenericHashEntry *flow, void *user_data, bool *m
     return false; /* Already visited for the last time after it has gone idle, keep walking */
 
   FlowTrafficStats partials;
+  bool first_partial; /* Whether this is the first time the view is visiting this flow */
   const IpAddress *cli_ip = f->get_cli_ip_addr(), *srv_ip = f->get_srv_ip_addr();
 
-  if(f->get_partial_traffic_stats(&partials) && cli_ip && srv_ip) {
+  if(f->get_partial_traffic_stats(&partials, &first_partial) && cli_ip && srv_ip) {
     Host *cli_host = NULL, *srv_host = NULL;
 
     iface->findFlowHosts(f->get_vlan_id(),
 			 NULL /* no src mac yet */, (IpAddress*)cli_ip, &cli_host,
 			 NULL /* no dst mac yet */, (IpAddress*)srv_ip, &srv_host);
 
+    if(!cli_host || !srv_host)
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to get flow hosts. Out of memory? Expect issues.");
+
     if(cli_host) {
       cli_host->incStats(now, f->get_protocol(), f->getStatsProtocol(), f->getCustomApp(),
 			 partials.cli2srv_packets, partials.cli2srv_bytes, partials.cli2srv_goodput_bytes,
 			 partials.srv2cli_packets, partials.srv2cli_bytes, partials.srv2cli_goodput_bytes,
 			 cli_ip->isNonEmptyUnicastAddress());
+
+      if(first_partial)
+	cli_host->incNumFlows(f->get_last_seen(), true, srv_host), cli_host->incUses();
+
+      if(flow_idle)
+	cli_host->decNumFlows(f->get_last_seen(), true, srv_host), cli_host->decUses();
     }
 
     if(srv_host) {
@@ -266,13 +277,19 @@ static bool viewed_flows_walker(GenericHashEntry *flow, void *user_data, bool *m
 			 partials.srv2cli_packets, partials.srv2cli_bytes, partials.srv2cli_goodput_bytes,
 			 partials.cli2srv_packets, partials.cli2srv_bytes, partials.cli2srv_goodput_bytes,
 			 srv_ip->isNonEmptyUnicastAddress());
+
+      if(first_partial)
+	srv_host->incUses(), srv_host->incNumFlows(f->get_last_seen(), false, cli_host);
+
+      if(flow_idle)
+	srv_host->decUses(), srv_host->decNumFlows(f->get_last_seen(), false, cli_host);
     }
   }
 
   /* The flow has already been marked as idle by the underlying viewed interface,
      so now that we have seen it for the last time, and we know the underlying interface
      won't change it again, we can acknowledge the flow so it can be purged. */
-  if(f->idle())
+  if(flow_idle)
     f->set_acknowledge_to_purge();
 
   return false; /* Move on to the next flow, keep walking */
