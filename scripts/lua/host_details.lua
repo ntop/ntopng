@@ -399,7 +399,7 @@ if(not(isLoopback(ifname))) then
    end
 end
 
-if (host["ip"] ~= nil) and areAlertsEnabled() and not ifstats.isView then
+if (host["ip"] ~= nil) and areAlertsEnabled() then
    if(page == "alerts") then
       print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-warning fa-lg\"></i></a></li>\n")
    elseif interface.isPcapDumpInterface() == false then
@@ -409,7 +409,7 @@ end
 
 end -- not only_historical
 
-if((page == "historical") or ts_utils.exists("host:traffic", {ifid=ifId, host=tskey})) or hasNindexSupport() then
+if((page == "historical") or ts_utils.exists("host:traffic", {ifid = ifId, host = tskey})) or hasNindexSupport() then
    if(page == "historical") then
      print("\n<li class=\"active\"><a href=\"#\"><i class='fa fa-area-chart fa-lg'></i></a></li>\n")
    else

@@ -72,7 +72,7 @@ else
     print("\n<li><a href=\""..nav_url.."&page=historical\"><i class='fa fa-area-chart fa-lg'></i></a></li>")
 end
 
-if areAlertsEnabled() and not ifstats.isView then
+if areAlertsEnabled() then
     if(page == "alerts") then
 	print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-warning fa-lg\"></i></a></li>\n")
     else

@@ -646,8 +646,7 @@ function areAlertsEnabled()
 end
 
 function mustScanAlerts(ifstats)
-   -- can't alert on view interfaces as checkpoints will collide for their underlying real interfaces
-   return areAlertsEnabled() and not ifstats["isView"]
+   return areAlertsEnabled()
 end
 
 function hasAlertsDisabled()

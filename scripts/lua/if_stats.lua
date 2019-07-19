@@ -294,7 +294,7 @@ if has_traffic_recording_page then
    print("</a></li>")
 end
 
-if(isAdministrator() and areAlertsEnabled() and not ifstats.isView) then
+if isAdministrator() and areAlertsEnabled() then
    if(page == "alerts") then
       print("\n<li class=\"active\"><a href=\"#\">")
    elseif not is_pcap_dump then
