@@ -186,6 +186,8 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   refreshHostAlertPrefs();
   PROFILING_SUB_SECTION_EXIT(iface, 19);
 
+  disabled_flow_status = 0; /* TODO: load it from redis preferences */
+  
   if(init_all) {
     if((as = iface->getAS(&ip, true /* Create if missing */, true /* Inline call */)) != NULL) {
       as->incUses();

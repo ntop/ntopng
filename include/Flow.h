@@ -54,8 +54,7 @@ class Flow : public GenericHashEntry {
   Host *cli_host, *srv_host;
   IpAddress *cli_ip_addr, *srv_ip_addr;
   ICMPinfo *icmp_info;
-  u_int16_t cli_port, srv_port;
-  u_int16_t vlanId;
+  u_int16_t cli_port, srv_port, vlanId;
   u_int32_t vrfId;
   u_int8_t protocol, src2dst_tcp_flags, dst2src_tcp_flags;
   struct ndpi_flow_struct *ndpiFlow;
@@ -155,10 +154,9 @@ class Flow : public GenericHashEntry {
   u_int16_t cli2srv_window, srv2cli_window;
 
   time_t doNotExpireBefore; /*
-			       Used for collected flows via ZMQ to make sure that they are not immediately
-			       expired if their last seen time is back in time with respect to ntopng
+			      Used for collected flows via ZMQ to make sure that they are not immediately
+			      expired if their last seen time is back in time with respect to ntopng
 			    */
-
   struct timeval synTime, synAckTime, ackTime; /* network Latency (3-way handshake) */
   struct timeval clientNwLatency; /* The RTT/2 between the client and nprobe */
   struct timeval serverNwLatency; /* The RTT/2 between nprobe and the server */

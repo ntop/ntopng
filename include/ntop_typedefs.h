@@ -347,6 +347,10 @@ typedef enum {
   status_data_exfiltration /* 24 */,
   status_ssl_old_protocol_version /* 25 */,
   num_flow_status,
+  /* 
+     IMPORTANT IMPORTANT IMPORTANT
+     If # status >= 32 then change to 64 bit disabled_flow_status in Host.h 
+  */
 } FlowStatus;
 
 typedef enum {

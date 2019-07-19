@@ -36,7 +36,8 @@ class Host : public GenericHashEntry, public AlertableEntity {
   u_int16_t vlan_id, host_pool_id;
   HostStats *stats, *stats_shadow;
   time_t last_stats_reset;
-
+  u_int32_t disabled_flow_status;
+  
   /* Marked when visited by the periodic activities */
   bool idle_mark;
 
@@ -313,5 +314,18 @@ class Host : public GenericHashEntry, public AlertableEntity {
   inline Fingerprint* getSSLFingerprint() { return(&fingerprints.ssl); }
   virtual void setFlowPort(bool as_server, u_int8_t proto, u_int16_t port, u_int16_t l7_proto) { ; }
   virtual void luaPortsDump(lua_State* vm) { lua_pushnil(vm); }    
+  
+  inline bool isDisabledFlowAlertType(u_int32_t v) {
+    return(((disabled_flow_status >> v) & 1U) ? true : false);
+  }
+  
+  inline void toggleDisabledFlowAlertType(u_int32_t v, bool disable_alert) {
+    if(disable_alert)
+      disabled_flow_status &= ~(1UL << v);
+    else
+      disabled_flow_status |= 1UL << v;
+  }
+
+
 };
 #endif /* _HOST_H_ */

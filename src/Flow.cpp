@@ -44,8 +44,8 @@ Flow::Flow(NetworkInterface *_iface,
     cli2srv_last_packets = 0, cli2srv_last_bytes = 0, srv2cli_last_packets = 0, srv2cli_last_bytes = 0,
     cli_host = srv_host = NULL, good_low_flow_detected = false,
     srv2cli_last_goodput_bytes = cli2srv_last_goodput_bytes = 0, good_ssl_hs = true,
-    flow_alerted = flow_dropped_counts_increased = false, vrfId = 0;
-
+    flow_alerted = flow_dropped_counts_increased = false, vrfId = 0;   
+    
   idle_mark = purge_acknowledged_mark = false;
 
   detection_completed = false;
@@ -277,12 +277,13 @@ bool Flow::triggerAlerts() const {
 /* *************************************** */
 
 void Flow::dumpFlowAlert() {
-  time_t when = time(0);
-
+  time_t when;
+  FlowStatus status;
+  
   if(!triggerAlerts())
     return;
 
-  FlowStatus status = getFlowStatus();
+  status = getFlowStatus();
 
   if(!isFlowAlerted()) {
     bool do_dump = true;
@@ -383,14 +384,24 @@ void Flow::dumpFlowAlert() {
       do_dump = ntop->getPrefs()->are_dropped_flows_alerts_enabled();
 #endif
 
-    /* Check per-host thresholds */
-    if((cli_host && cli_host->incFlowAlertHits(when))
-         ||(srv_host && srv_host->incFlowAlertHits(when)))
-      do_dump = false;
+    if(!do_dump)
+      return; /* Nothing to do */
 
-    if(do_dump) {
-      iface->getAlertsManager()->storeFlowAlert(this);
+    when = time(0);
+
+    if(cli_host && srv_host) {
+      if(cli_host->isDisabledFlowAlertType(status) || srv_host->isDisabledFlowAlertType(status)) {
+	/* TODO: eventually increment a counter of untriggered alerts */
+	return;
+      }
+      
+      /* Check per-host thresholds */
+      if(cli_host->incFlowAlertHits(when) || srv_host->incFlowAlertHits(when))
+	do_dump = false;
     }
+    
+    if(do_dump)
+      iface->getAlertsManager()->storeFlowAlert(this);    
   }
 }
 
