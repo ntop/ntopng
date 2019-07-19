@@ -99,7 +99,6 @@ NetworkInterface::NetworkInterface(const char *name,
     }
   }
 
-  db = NULL;
   ifname = strdup(name);
   if(custom_interface_type) {
     ifDescription = strdup(name);
@@ -177,14 +176,14 @@ NetworkInterface::NetworkInterface(const char *name,
     arp_requests = arp_replies = 0;
 
     running = false,
-      inline_interface = false, db = NULL;
+      inline_interface = false;
 
     checkIdle();
     ifSpeed = Utils::getMaxIfSpeed(name);
     ifMTU = Utils::getIfMTU(name), mtuWarningShown = false;
     reloadDhcpRanges();
   } else /* id < 0 */ {
-    db = NULL, ifSpeed = 0;
+    ifSpeed = 0;
   }
 
   networkStats = NULL;
@@ -6945,7 +6944,7 @@ bool NetworkInterface::initFlowDump(u_int8_t num_dump_interfaces) {
   if(isFlowDumpDisabled())
     return(false);
 
-  if(!isView()) {
+  if(!isViewed()) { /* Flow dump is handled by the view interface in case of 'viewed' interfaces */
 #if defined(NTOPNG_PRO) && defined(HAVE_NINDEX)
     if(ntop->getPrefs()->do_dump_flows_on_nindex()) {
       if(num_dump_interfaces + 1 >= NINDEX_MAX_NUM_INTERFACES) {
