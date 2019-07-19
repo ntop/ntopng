@@ -596,7 +596,7 @@ else
       print("</th><td colspan=2>" .. flow["vlan"].. "</td></tr>\n")
    end
 
-   print("<tr><th width=30%>"..i18n("flow_details.flow_peers_client_server").."</th><td colspan=2>"..getFlowLabel(flow, true, true).."</td></tr>\n")
+   print("<tr><th width=30%>"..i18n("flow_details.flow_peers_client_server").."</th><td colspan=2>"..getFlowLabel(flow, true, not ifstats.isViewed --[[ don't add hyperlinks, viewed interface don't have hosts --]]).."</td></tr>\n")
 
    print("<tr><th width=30%>"..i18n("protocol").." / "..i18n("application").."</th>")
    if((ifstats.inline and flow["verdict.pass"]) or (flow.vrfId ~= nil)) then

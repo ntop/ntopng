@@ -454,7 +454,10 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
       app = "<strike>"..app.."</strike>"
    end
 
-   record["column_ndpi"] = "<A HREF='".. ntop.getHttpPrefix().."/lua/hosts_stats.lua?protocol=" .. value["proto.ndpi_id"] .."'>"..app.." " .. formatBreed(value["proto.ndpi_breed"]) .."</A>"
+   record["column_ndpi"] = app -- can't set the hosts_stats hyperlink for viewed interfaces
+   if not ifstats.isViewed then
+      record["column_ndpi"] = "<A HREF='".. ntop.getHttpPrefix().."/lua/hosts_stats.lua?protocol=" .. value["proto.ndpi_id"] .."'>"..app.." " .. formatBreed(value["proto.ndpi_breed"]) .."</A>"
+   end
    record["column_duration"] = secondsToTime(value["duration"])
    record["column_bytes"] = bytesToSize(value["bytes"])..""
 
