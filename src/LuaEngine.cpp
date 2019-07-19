@@ -8008,6 +8008,33 @@ static int ntop_interface_release_engaged_alerts(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_interface_inc_total_host_alerts(lua_State* vm) {
+  NetworkInterface *iface = getCurrentInterface(vm);
+  u_int16_t vlan_id = 0;
+  AlertType alert_type;
+  char buf[64], *host_ip;
+  Host *h;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  if(!iface) return(CONST_LUA_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  get_host_vlan_info((char*)lua_tostring(vm, 1), &host_ip, &vlan_id, buf, sizeof(buf));
+
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  alert_type = (AlertType)lua_tonumber(vm, 2);
+
+  h = iface->findHostByIP(get_allowed_nets(vm), host_ip, vlan_id);
+
+  if(h)
+    h->incTotalAlerts(alert_type);
+
+  lua_pushboolean(vm, h ? true : false);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_host_get_expired_alerts(lua_State* vm) {
   ScriptPeriodicity periodicity;
   struct ntopngLuaContext *c = getLuaVMContext(vm);
@@ -8156,6 +8183,7 @@ static int ntop_store_triggered_alert(lua_State* vm, AlertableEntity *alertable)
   ScriptPeriodicity periodicity;
   AlertLevel alert_severity;
   AlertType alert_type;
+  Host *host;
   bool triggered;
 
   if(!alertable) return(CONST_LUA_PARAM_ERROR);
@@ -8181,6 +8209,9 @@ static int ntop_store_triggered_alert(lua_State* vm, AlertableEntity *alertable)
   if((triggered = alertable->triggerAlert(std::string(key), periodicity, time(NULL),
       alert_severity, alert_type, alert_subtype, alert_json)))
     c->iface->incNumAlertsEngaged(periodicity);
+
+  if(triggered && (host = dynamic_cast<Host*>(alertable)))
+    host->incTotalAlerts(alert_type);
 
   lua_pushboolean(vm, triggered);
   return(CONST_LUA_OK);
@@ -9081,6 +9112,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "incNumDroppedAlerts",    ntop_interface_inc_num_dropped_alerts   },
   { "getAlerts",              ntop_interface_get_alerts               },
   { "releaseEngagedAlerts",   ntop_interface_release_engaged_alerts   },
+  { "incTotalHostAlerts",     ntop_interface_inc_total_host_alerts    },
 
   /* Interface Alerts */
   { "checkInterfaceAlertsMin",    ntop_check_interface_alerts_min     },

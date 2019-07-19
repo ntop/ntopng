@@ -96,7 +96,7 @@ end
 
 -- ##############################################
 
--- TODO remove
+-- TODO change in "store"
 --! @brief Triggers a new alert or refreshes an existing one (if already engaged)
 --! @param entity_value the string representing the entity of the alert (e.g. "192.168.1.1")
 --! @param alert_message the message (string) or json (table) to store
@@ -114,6 +114,11 @@ function alerts_api:trigger(entity_value, alert_message, when)
   local rv = interface.storeAlert(when, when, self.periodicity,
     self.type_id, self.subtype or "", self.severity_id,
     self.entity_type_id, entity_value, msg)
+
+  if(self.entity == "host") then
+    -- NOTE: for engaged alerts this operation is performed during trigger in C
+    interface.incTotalHostAlerts(entity_value, self.type_id)
+  end
 
   if(rv) then
     local action = "store"

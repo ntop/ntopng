@@ -2942,7 +2942,7 @@ local function notify_ntopng_status(started)
    end
 
    obj = {
-      entity_type = alertEntity("host"), entity_value="ntopng",
+      entity_type = alertEntity("process"), entity_value="ntopng",
       type = alertType("process_notification"),
       severity = severity,
       message = msg,

@@ -265,7 +265,7 @@ class Host : public GenericHashEntry, public AlertableEntity {
   bool incFlowAlertHits(time_t when);
   virtual bool setRemoteToRemoteAlerts() { return(false); };
   virtual void incrVisitedWebSite(char *hostname) {};
-  inline void incTotalAlerts()            { stats->incTotalAlerts(); }
+  inline void incTotalAlerts(AlertType alert_type) { stats->incTotalAlerts(alert_type); }
   inline u_int32_t getTotalAlerts()       { return(stats->getTotalAlerts()); }
   virtual u_int32_t getActiveHTTPHosts()  { return(0); };
   inline u_int32_t getNumOutgoingFlows()  { return(num_active_flows_as_client.get()); }

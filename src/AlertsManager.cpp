@@ -224,34 +224,6 @@ void AlertsManager::markForMakeRoom(bool on_flows) {
 
 /* **************************************************** */
 
-bool AlertsManager::incHostTotalAlerts(const char *hostkey) {
-/* Need to refresh the total alerts of the host */
-  Host *host;
-  u_int16_t vlan_id;
-  char ipbuf[64];
-  const char *at, *host_ip;
-  bool rv = false;
-
-  if((at = strchr(hostkey, '@'))) {
-    vlan_id = atoi(at + 1);
-    snprintf(ipbuf, min((uint)sizeof(ipbuf)-1, (uint)(at-hostkey+1)), "%s", hostkey);
-    host_ip = ipbuf;
-  } else {
-    vlan_id = 0;
-    host_ip = hostkey;
-  }
-
-  if((host = iface->getHost((char*)host_ip, vlan_id, false /* Not an inline call */))) {
-    host->incTotalAlerts();
-    rv = true;
-  } else
-    ntop->getTrace()->traceEvent(TRACE_INFO, "Could not find host %s (ip=%s, vlan=%u)", hostkey, host_ip, vlan_id);
-
-  return(rv);
-}
-
-/* **************************************************** */
-
 bool AlertsManager::hasAlerts() {
   char query[STORE_MANAGER_MAX_QUERY];
   int step;
@@ -341,9 +313,6 @@ int AlertsManager::storeAlert(time_t tstart, time_t tend, int granularity, Alert
 
     /* Success */
     rc = 0;
-
-    if(alert_entity == alert_entity_host)
-      incHostTotalAlerts(alert_entity_value);
 
  out:
     if(stmt) sqlite3_finalize(stmt);
@@ -632,8 +601,8 @@ int AlertsManager::storeFlowAlert(Flow *f) {
     m.unlock(__FILE__, __LINE__);
 
     f->setFlowAlerted();
-    if(cli) cli->incTotalAlerts();
-    if(srv) srv->incTotalAlerts();
+    if(cli) cli->incTotalAlerts(alert_type);
+    if(srv) srv->incTotalAlerts(alert_type);
 
     ntop->getTrace()->traceEvent(TRACE_INFO, "[%s] %s", msg, alert_json);
     json_object_put(alert_json_obj);

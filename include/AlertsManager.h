@@ -34,7 +34,6 @@ class AlertsManager : protected StoreManager {
 
   /* methods used for alerts that have a timespan */
   void markForMakeRoom(bool on_flows);
-  bool incHostTotalAlerts(const char *hostkey);
 
   bool notifyAlert(AlertEntity alert_entity, const char *alert_entity_value,
 		   AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
