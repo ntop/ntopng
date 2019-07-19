@@ -293,7 +293,7 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
       srv_tooltip = srv_tooltip.."&#10;nw latency: "..string.format("%.3f", value["tcp.nw_latency.server"]).." ms"
    end
 
-   if(value["cli.allowed_host"]) then
+   if value["cli.allowed_host"] and not ifstats.isViewed then
       src_key="<A HREF='"..ntop.getHttpPrefix().."/lua/host_details.lua?" .. hostinfo2url(value,"cli").. "' data-toggle='tooltip' title='" ..cli_tooltip.. "' >".. shortenString(stripVlan(cli_name))
       if(value["cli.systemhost"] == true) then src_key = src_key .. "&nbsp;<i class='fa fa-flag'></i>" end
 
@@ -310,10 +310,10 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
       src_container = flowinfo2container(value["client_container"])
    else
       src_key = shortenString(stripVlan(cli_name))
-      src_port=":"..value["cli.port"]
+      src_port=value["cli.port"]
    end
 
-   if(value["srv.allowed_host"]) then
+   if value["srv.allowed_host"] and not ifstats.isViewed then
       dst_key="<A HREF='"..ntop.getHttpPrefix().."/lua/host_details.lua?".. hostinfo2url(value,"srv").. "' data-toggle='tooltip' title='" ..srv_tooltip.. "' >".. shortenString(stripVlan(srv_name))
       if(value["srv.systemhost"] == true) then dst_key = dst_key .. "&nbsp;<i class='fa fa-flag'></i>" end
       dst_key = dst_key .. "</A>"
@@ -337,7 +337,7 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
       end
    else
       dst_key = shortenString(stripVlan(srv_name))
-      dst_port=":"..value["srv.port"]
+      dst_port=value["srv.port"]
    end
 
    if(value["client_tcp_info"] ~= nil) then

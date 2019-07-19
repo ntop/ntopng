@@ -1695,6 +1695,9 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
   lua_push_uint64_table_entry(vm, "goodput_bytes", stats.cli2srv_goodput_bytes + stats.srv2cli_goodput_bytes);
 
   if(details_level >= details_high) {
+    lua_push_bool_table_entry(vm, "cli.allowed_host", src_match);
+    lua_push_bool_table_entry(vm, "srv.allowed_host", dst_match);
+
     if(src && !mask_cli_host) {
       lua_push_str_table_entry(vm, "cli.host", src->get_visual_name(buf, sizeof(buf)));
       lua_push_uint64_table_entry(vm, "cli.source_id", 0 /* was never set by src->getSourceId()*/ );
@@ -1702,7 +1705,6 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 
       lua_push_bool_table_entry(vm, "cli.systemhost", src->isSystemHost());
       lua_push_bool_table_entry(vm, "cli.blacklisted", src->isBlacklisted());
-      lua_push_bool_table_entry(vm, "cli.allowed_host", src_match);
       lua_push_int32_table_entry(vm, "cli.network_id", src->get_local_network_id());
       lua_push_uint64_table_entry(vm, "cli.pool_id", src->get_host_pool());
     } else {
@@ -1715,7 +1717,6 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
       lua_push_str_table_entry(vm, "srv.mac", Utils::formatMac(dst->get_mac(), buf, sizeof(buf)));
       lua_push_bool_table_entry(vm, "srv.systemhost", dst->isSystemHost());
       lua_push_bool_table_entry(vm, "srv.blacklisted", dst->isBlacklisted());
-      lua_push_bool_table_entry(vm, "srv.allowed_host", dst_match);
       lua_push_int32_table_entry(vm, "srv.network_id", dst->get_local_network_id());
       lua_push_uint64_table_entry(vm, "srv.pool_id", dst->get_host_pool());
     } else {
