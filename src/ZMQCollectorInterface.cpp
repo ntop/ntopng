@@ -188,7 +188,11 @@ void ZMQCollectorInterface::collect_flows() {
 	  /* Legacy version */
 	  msg_id = 0, source_id = 0;
           publisher_version = h0.version;
-	} else if((size != sizeof(struct zmq_msg_hdr)) || ((h->version != ZMQ_MSG_VERSION) && (h->version != ZMQ_COMPATIBILITY_MSG_VERSION))) {
+	} else if(size != sizeof(struct zmq_msg_hdr) || (
+            h->version != ZMQ_MSG_VERSION && 
+            h->version != ZMQ_MSG_VERSION_TLV &&
+            h->version != ZMQ_COMPATIBILITY_MSG_VERSION
+          )) {
 	  ntop->getTrace()->traceEvent(TRACE_WARNING,
 				       "Unsupported publisher version: your nProbe sender is outdated? [%u][%u][%u][%u][%u]",
 				       size, sizeof(struct zmq_msg_hdr), h->version, ZMQ_MSG_VERSION, ZMQ_COMPATIBILITY_MSG_VERSION);
