@@ -107,7 +107,7 @@ class Prefs {
   bool read_flows_from_mysql;
   InterfaceInfo *ifNames;
   char *local_networks;
-  bool local_networks_set, shutdown_when_done, simulate_vlans, ignore_vlans, ignore_macs, flush_flows_on_shutdown;
+  bool local_networks_set, shutdown_when_done, simulate_vlans, ignore_vlans, ignore_macs;
   char *data_dir, *install_dir, *docs_dir, *scripts_dir,
 	  *callbacks_dir, *prefs_dir, *pcap_dir, *export_endpoint;
   char *categorization_key;
@@ -285,7 +285,6 @@ class Prefs {
   inline char* get_es_user()  { return(es_user);  };
   inline char* get_es_pwd()   { return(es_pwd);   };
   inline bool shutdownWhenDone() { return(shutdown_when_done); }
-  inline bool flushFlowsOnShutdown() { return(flush_flows_on_shutdown); }
   inline void set_promiscuous_mode(bool mode)  { use_promiscuous_mode = mode; };
   inline bool use_promiscuous()         { return(use_promiscuous_mode);  };
   inline char* get_mysql_host()         { return(mysql_host);            };

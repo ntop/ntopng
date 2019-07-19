@@ -628,6 +628,11 @@ char * Host::get_os(char * const buf, ssize_t buf_len) {
 /* ***************************************** */
 
 bool Host::isReadyToBeMarkedAsIdle() {
+  if(ntop->getGlobals()->isShutdownRequested() || ntop->getGlobals()->isShutdown())
+    return(true);
+
+  if(idle()) return(true);
+
   if((num_uses > 0) || (!iface->is_purge_idle_interface()))
     return(false);
 

@@ -292,14 +292,15 @@ static bool viewed_flows_walker(GenericHashEntry *flow, void *user_data, bool *m
 
 void ViewInterface::flowPollLoop() {
   u_int32_t begin_slot;
-  while(isRunning() && !ntop->getGlobals()->isShutdown()) {
+
+  while(isRunning()) {
     while(idle()) sleep(1);
 
     begin_slot = 0; /* Always visit all flows starting from the first slot */
     walker(&begin_slot, true /* walk all the flows */, walker_flows, viewed_flows_walker, this, true /* visit also idle flows (required to acknowledge the purge) */);
 
     purgeIdle(time(NULL));
-    usleep(1000);
+    usleep(500000);
   }
 }
 
@@ -330,6 +331,7 @@ void ViewInterface::shutdown() {
   void *res;
 
   if(isRunning()) {
+    running = false;
     NetworkInterface::shutdown();
     pthread_join(pollLoop, &res);
   }

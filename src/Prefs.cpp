@@ -28,7 +28,7 @@ Prefs::Prefs(Ntop *_ntop) {
   ntop = _ntop, sticky_hosts = location_none,
     ignore_vlans = false, simulate_vlans = false, ignore_macs = false;
   local_networks = strdup(CONST_DEFAULT_HOME_NET "," CONST_DEFAULT_LOCAL_NETS);
-  local_networks_set = false, shutdown_when_done = false, flush_flows_on_shutdown = true;
+  local_networks_set = false, shutdown_when_done = false;
   enable_users_login = true, disable_localhost_login = false;
   enable_dns_resolution = sniff_dns_responses = true, use_promiscuous_mode = true;
   resolve_all_host_ip = false, online_license_check = false, service_license_check = false;

@@ -2043,8 +2043,7 @@ void Flow::set_acknowledge_to_purge() {
 /* *************************************** */
 
 bool Flow::isReadyToBeMarkedAsIdle() {
-  if (ntop->getPrefs()->flushFlowsOnShutdown()
-      && (ntop->getGlobals()->isShutdownRequested() || ntop->getGlobals()->isShutdown()))
+  if(ntop->getGlobals()->isShutdownRequested() || ntop->getGlobals()->isShutdown())
     return(true);
 
   if(idle()) return(true);

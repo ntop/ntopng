@@ -2039,7 +2039,6 @@ void Ntop::sendNetworkInterfacesTermination() {
 /* NOTE: the multiple isShutdown checks below are necessary to reduce the shutdown time */
 void Ntop::runHousekeepingTasks() {
   for(int i=0; i<num_defined_interfaces; i++) {
-    if(globals->isShutdownRequested()) return;
     iface[i]->runHousekeepingTasks();
   }
 
@@ -2112,7 +2111,7 @@ void Ntop::shutdownAll() {
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Waiting for the application to shutdown");
 
   ntop->getGlobals()->shutdown();
-  sleep(2); /* Wait until all threads know that we're shutting down... */
+  sleep(1); /* Wait until all threads know that we're shutting down... */
   ntop->shutdown();
 
 #ifndef WIN32

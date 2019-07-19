@@ -2867,7 +2867,7 @@ static bool flow_update_hosts_stats(GenericHashEntry *node,
   struct timeval *tv = (struct timeval*)user_data;
   bool dump_alert = ((time(NULL) - tv->tv_sec) < ntop->getPrefs()->get_housekeeping_frequency()) ? true : false;
 
-  if(ntop->getGlobals()->isShutdownRequested() && !ntop->getPrefs()->flushFlowsOnShutdown())
+  if(ntop->getGlobals()->isShutdownRequested())
     return(true); /* true = stop walking */
 
   flow->update_hosts_stats(tv, dump_alert);
@@ -2951,9 +2951,6 @@ void NetworkInterface::periodicStatsUpdate() {
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "flows_hash->walk took %d seconds", time(NULL) - tdebug.tv_sec);
   gettimeofday(&tdebug, NULL);
 #endif
-
-  if(ntop->getGlobals()->isShutdownRequested())
-    return;
 
   // if drop alerts enabled and have some significant packets
   if((packet_drops_alert_perc > 0) && (getNumPacketsSinceReset() > 100)) {
@@ -5510,14 +5507,13 @@ void NetworkInterface::runShutdownTasks() {
      This task runs asynchronously with respect to the datapath
   */
 
-  if (ntop->getPrefs()->flushFlowsOnShutdown()) {
-    /* Setting all flows as "ready to purge" (see isReadyToPurge) and dump them to the DB */
-    periodicStatsUpdate();
+  /* Run the periodic stats update one last time so certain tasks can be properly finalized,
+     e.g., all hosts and all flows can be marked as idle */
+  periodicStatsUpdate();
 
 #ifdef NTOPNG_PRO
-    flushFlowDump();
+  flushFlowDump();
 #endif
-  }
 }
 
 /* **************************************************** */
