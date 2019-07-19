@@ -116,8 +116,14 @@ void json_to_tlv(json_object * jobj, ndpi_serializer *serializer) {
 /* *************************************** */
 
 void print_help(char *bin) {
-  cerr << "Usage: " << bin << " -i <JSON file> [-z <ZMQ endpoint>] [-E <num encoding loops] [-D <num decoding loop>] [-v]\n";
-  cerr << "Note: the JSON file should contain an array of records\n";
+  cerr << "Usage: " << bin << " -i <JSON file> [-z <ZMQ endpoint>] [-E <num encoding loops] [-D <num decoding loop>] [-j] [-v]\n";
+  cerr << "\n";
+  cerr << "-i <file>       Input JSON file containing an array of records\n";
+  cerr << "-z <endpoint>   ZMQ endpoint for delivering records\n";
+  cerr << "-E <loops>      Encode <loops> times to check the performance\n";
+  cerr << "-D <loops>      Decode <loops> times to check the performance\n";
+  cerr << "-j              Generate JSON records instead of TLV records\n";
+  cerr << "-v              Verbose mode\n";
 }
 
 /* *************************************** */
@@ -135,9 +141,10 @@ int main(int argc, char *argv[]) {
   ndpi_serializer *serializer;
   ndpi_serializer deserializer;
   int rc, i, j, z, num_records, max_tlv_msgs = 0, tlv_msgs = 0, exported_msgs = 0;
+  u_int8_t use_json_encoding = 0;
   char c;
 
-  while ((c = getopt(argc, argv,"hi:vz:E:D:")) != '?') {
+  while ((c = getopt(argc, argv,"hi:jvz:E:D:")) != '?') {
     if (c == (char) 255 || c == -1) break;
 
     switch(c) {
@@ -148,6 +155,11 @@ int main(int argc, char *argv[]) {
     
       case 'i':
         json_path = strdup(optarg);
+      break;
+
+      case 'j':
+        use_json_encoding = 1;
+        batch_size = 1;
       break;
 
       case 'v':
@@ -224,7 +236,7 @@ int main(int argc, char *argv[]) {
   serializer = (ndpi_serializer *) calloc(max_tlv_msgs, sizeof(ndpi_serializer)); 
 
   for (i = 0; i < max_tlv_msgs; i++) 
-    ndpi_init_serializer(&serializer[i], ndpi_serialization_format_tlv);
+    ndpi_init_serializer(&serializer[i], use_json_encoding ? ndpi_serialization_format_json : ndpi_serialization_format_tlv);
 
   printf("Serializing..\n");
 
@@ -260,10 +272,18 @@ int main(int argc, char *argv[]) {
       for(i = 0; i < tlv_msgs; i++) {
         struct zmq_msg_hdr msg_hdr;
         strncpy(msg_hdr.url, "flow", sizeof(msg_hdr.url));
-        msg_hdr.version = 3;
+        msg_hdr.version = (use_json_encoding ? 2 : 3);
         msg_hdr.size = serializer[i].size_used;
         zmq_send(zmq_sock, &msg_hdr, sizeof(msg_hdr), ZMQ_SNDMORE);
+
+        if (use_json_encoding && verbose) {
+          enum json_tokener_error jerr = json_tokener_success;
+          json_object *f = json_tokener_parse_verbose(serializer[i].json_buffer, &jerr);
+          printf("Sending JSON #%u '%s' [%s]\n", i, serializer[i].json_buffer, f == NULL ? "INVALID" : "VALID");
+        }
+
         rc = zmq_send(zmq_sock, serializer[i].buffer, msg_hdr.size, 0);
+
         if (rc > 0)
           exported_msgs++;
       }
@@ -277,6 +297,9 @@ int main(int argc, char *argv[]) {
   printf("Serialization perf (includes json-c overhead): %.3f msec total time for %u iterations\n", (double) total_time_usec/1000, enc_repeat);
 
   json_object_put(f);
+
+  if (ndpi_serialization_format_json)
+    goto exit;
 
   /* nDPI TLV Deserialization */
 
@@ -362,6 +385,8 @@ int main(int argc, char *argv[]) {
   }
 
   printf("Deserialization perf: %.3f msec total time for %u iterations\n", (double) total_time_usec/1000, dec_repeat);
+
+ exit:
 
   if (zmq_sock)
     printf("%u messages (max %u records each) sent over ZMQ\n", exported_msgs, batch_size);
