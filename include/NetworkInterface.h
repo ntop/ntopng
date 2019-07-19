@@ -79,6 +79,7 @@ class NetworkInterface : public AlertableEntity {
   u_int32_t num_dropped_alerts;
   bool has_stored_alerts;
 
+  bool is_view;   /* Whether this is a view interface */
   bool is_viewed; /* Whether this interface is 'viewed' by a ViewInterface */
 
   /* Disaggregations */
@@ -644,8 +645,8 @@ class NetworkInterface : public AlertableEntity {
   bool isHiddenFromTop(Host *host);
   virtual bool areTrafficDirectionsSupported() { return(false); };
 
-  virtual bool isView()   const { return false;     };
-  virtual bool isViewed() const { return is_viewed; };
+  bool isView()   const { return is_view;   };
+  bool isViewed() const { return is_viewed; };
   inline  void setViewed()      { is_viewed = true; };
 
   bool getMacInfo(lua_State* vm, char *mac);

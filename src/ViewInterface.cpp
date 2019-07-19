@@ -24,6 +24,8 @@
 /* **************************************************** */
 
 ViewInterface::ViewInterface(const char *_endpoint) : NetworkInterface(_endpoint) {
+  is_view = true; /* This is a view interface */
+
   memset(viewed_interfaces, 0, sizeof(viewed_interfaces));
   num_viewed_interfaces = 0;
   char *ifaces = strdup(&_endpoint[5]); /* Skip view: */

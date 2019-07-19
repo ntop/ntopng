@@ -297,7 +297,7 @@ void NetworkInterface::init() {
   memset(&num_alerts_engaged, 0, sizeof(num_alerts_engaged));
   has_stored_alerts = false;
 
-  is_viewed = false;
+  is_view = is_viewed = false;
 
   db = NULL;
 #ifdef NTOPNG_PRO

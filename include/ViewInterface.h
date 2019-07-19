@@ -35,10 +35,6 @@ class ViewInterface : public NetworkInterface {
   virtual InterfaceType getIfType() const { return interface_type_VIEW;           };
   inline const char* get_type()           { return CONST_INTERFACE_TYPE_VIEW;     };
   virtual bool is_ndpi_enabled()    const { return false;                         };
-
-  virtual bool isView()             const { return true;                          };
-  virtual bool isViewed()           const { return false;                         };
-
   virtual bool isPacketInterface()  const { return false;                         };
   void flowPollLoop();
   void startPacketPolling();
