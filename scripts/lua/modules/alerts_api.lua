@@ -11,7 +11,7 @@ local alert_consts = require("alert_consts")
 local os_utils = require("os_utils")
 local do_trace = false
 
-local alerts = {}
+local alerts_api = {}
 
 -- NOTE: sqlite can handle about 10-50 alerts/sec
 local MAX_NUM_ENQUEUED_ALERT_PER_INTERFACE = 256
@@ -39,7 +39,7 @@ local function makeAlertId(alert_type, subtype, periodicity, alert_entity)
   return(string.format("%s_%s_%s_%s", alert_type, subtype or "", periodicity or "", alert_entity))
 end
 
-function alerts:getId()
+function alerts_api:getId()
   return(makeAlertId(self.type_id, self.subtype, self.periodicity, self.entity_type_id))
 end
 
@@ -55,9 +55,9 @@ end
 --! @brief Creates an alert object
 --! @param metadata the information about the alert type and severity
 --! @return an alert object on success, nil on error
-function alerts:newAlert(metadata)
+function alerts_api:newAlert(metadata)
   if(metadata == nil) then
-    alertErrorTraceback("alerts:newAlert() missing argument")
+    alertErrorTraceback("alerts_api:newAlert() missing argument")
     return(nil)
   end
 
@@ -102,7 +102,7 @@ end
 --! @param alert_message the message (string) or json (table) to store
 --! @param when (optional) the time when the trigger event occurs
 --! @return true on success, false otherwise
-function alerts:trigger(entity_value, alert_message, when)
+function alerts_api:trigger(entity_value, alert_message, when)
   local force = false
   local msg = alert_message
   when = when or os.time()
@@ -136,7 +136,7 @@ end
 
 -- ##############################################
 
-function alerts.parseAlert(metadata)
+function alerts_api.parseAlert(metadata)
   local alert_id = makeAlertId(metadata.alert_type, metadata.alert_subtype, metadata.alert_periodicity, metadata.alert_entity)
 
   if known_alerts[alert_id] then
@@ -144,7 +144,7 @@ function alerts.parseAlert(metadata)
   end
 
   -- new alert
-  return(alerts:newAlert({
+  return(alerts_api:newAlert({
     entity = alertEntityRaw(metadata.alert_entity),
     type = alertTypeRaw(metadata.alert_type),
     severity = alertSeverityRaw(metadata.alert_severity),
@@ -156,7 +156,7 @@ end
 -- ##############################################
 
 -- TODO unify alerts and metadata/notications format
-function alerts.parseNotification(metadata)
+function alerts_api.parseNotification(metadata)
   local alert_id = makeAlertId(alertType(metadata.type), metadata.alert_subtype, metadata.alert_periodicity, alertEntity(metadata.entity_type))
 
   if known_alerts[alert_id] then
@@ -164,7 +164,7 @@ function alerts.parseNotification(metadata)
   end
 
   -- new alert
-  return(alerts:newAlert({
+  return(alerts_api:newAlert({
     entity = metadata.entity_type,
     type = metadata.type,
     severity = metadata.severity,
@@ -176,7 +176,7 @@ end
 -- ##############################################
 
 -- TODO unify alerts and metadata/notications format
-function alerts.alertNotificationToRecord(notif)
+function alerts_api.alertNotificationToRecord(notif)
   return {
     alert_entity = alertEntity(notif.entity_type),
     alert_type = alertType(notif.type),
@@ -195,17 +195,6 @@ end
 
 local function get_alert_triggered_key(type_info)
   return(string.format("%d@%s", type_info.alert_type.alert_id, type_info.alert_subtype or ""))
-end
-
--- ##############################################
-
-function alerts.triggerIdToAlertType(trigger_id)
-  local parts = string.split(trigger_id, "@")
-
-  if((parts ~= nil) and (#parts == 2)) then
-    -- alert_type, alert_subtype
-    return tonumber(parts[1]), parts[2]
-  end
 end
 
 -- ##############################################
@@ -239,7 +228,7 @@ end
 -- This is necessary both to avoid paying the database io cost inside
 -- the other scripts and as a necessity to avoid a deadlock on the
 -- host hash in the host.lua script
-function alerts.processPendingAlertEvents(deadline)
+function alerts_api.processPendingAlertEvents(deadline)
   local ifnames = interface.getIfNames()
 
   for ifid, _ in pairs(ifnames) do
@@ -282,7 +271,7 @@ end
 --! @param when (optional) the time when the release event occurs
 --! @note The actual trigger is performed asynchronously
 --! @return true on success, false otherwise
-function alerts.new_trigger(entity_info, type_info, when)
+function alerts_api.new_trigger(entity_info, type_info, when)
   when = when or os.time()
   local granularity_sec = type_info.alert_granularity and type_info.alert_granularity.granularity_seconds or 0
   local granularity_id = type_info.alert_granularity and type_info.alert_granularity.granularity_id or nil
@@ -338,7 +327,7 @@ end
 --! @param when (optional) the time when the release event occurs
 --! @note The actual release is performed asynchronously
 --! @return true on success, false otherwise
-function alerts.new_release(entity_info, type_info)
+function alerts_api.new_release(entity_info, type_info)
   local now = os.time()
   local granularity_sec = type_info.alert_granularity and type_info.alert_granularity.granularity_seconds or 0
   local granularity_id = type_info.alert_granularity and type_info.alert_granularity.granularity_id or nil
@@ -358,7 +347,7 @@ function alerts.new_release(entity_info, type_info)
   end
 
   if(released == nil) then
-    if(do_trace) then print("[DON'T Release alert (already not triggered?) @ "..granularity_sec.."] "..
+    if(do_trace) then print("[DON'T Release alert (not triggered?) @ "..granularity_sec.."] "..
       entity_info.alert_entity_val .."@"..type_info.alert_type.i18n_title..":".. subtype .. "\n") end
     return(false)
   end
@@ -381,10 +370,24 @@ function alerts.new_release(entity_info, type_info)
 end
 
 -- ##############################################
+
+-- Convenient method to release multiple alerts on an entity
+function alerts_api.releaseEntityAlerts(entity_info, alerts)
+  for _, alert in pairs(alerts) do
+    if(do_trace) then print("Release Alert."..alert.alert_granularity.." ".. alert.alert_type .."@".. alert.alert_subtype .." called\n") end
+    alerts_api.new_release(entity_info, {
+      alert_type = alert_consts.alert_types[alertTypeRaw(alert.alert_type)],
+      alert_subtype = alert.alert_subtype,
+      alert_granularity = alert_consts.alerts_granularities[sec2granularity(alert.alert_granularity)],
+    })
+  end
+end
+
+-- ##############################################
 -- entity_info building functions
 -- ##############################################
 
-function alerts.hostAlertEntity(hostip, hostvlan)
+function alerts_api.hostAlertEntity(hostip, hostvlan)
   return {
     alert_entity = alert_consts.alert_entities.host,
     -- NOTE: keep in sync with C (Alertable::setEntityValue)
@@ -394,7 +397,7 @@ end
 
 -- ##############################################
 
-function alerts.interfaceAlertEntity(ifid)
+function alerts_api.interfaceAlertEntity(ifid)
   return {
     alert_entity = alert_consts.alert_entities.interface,
     -- NOTE: keep in sync with C (Alertable::setEntityValue)
@@ -404,7 +407,7 @@ end
 
 -- ##############################################
 
-function alerts.networkAlertEntity(network_cidr)
+function alerts_api.networkAlertEntity(network_cidr)
   return {
     alert_entity = alert_consts.alert_entities.network,
     -- NOTE: keep in sync with C (Alertable::setEntityValue)
@@ -416,7 +419,7 @@ end
 -- type_info building functions
 -- ##############################################
 
-function alerts.thresholdCrossType(granularity, metric, value, operator, threshold)
+function alerts_api.thresholdCrossType(granularity, metric, value, operator, threshold)
   local res = {
     alert_type = alert_consts.alert_types.threshold_cross,
     alert_subtype = string.format("%s_%s", granularity, metric),
@@ -431,7 +434,7 @@ end
 
 -- ##############################################
 
-function alerts.anomalyType(anomal_name, alert_type, value, threshold)
+function alerts_api.anomalyType(anomal_name, alert_type, value, threshold)
   local res = {
     alert_type = alert_type,
     alert_subtype = anomal_name,
@@ -447,7 +450,7 @@ end
 
 -- ##############################################
 
-function alerts.load_check_modules(subdir, str_granularity)
+function alerts_api.load_check_modules(subdir, str_granularity)
   local checks_dir = os_utils.fixPath(ALERT_CHECKS_MODULES_BASEDIR .. "/" .. subdir)
   local available_modules = {}
 
@@ -485,13 +488,13 @@ end
 
 -- ##############################################
 
-function alerts.threshold_check_function(params)
+function alerts_api.threshold_check_function(params)
   local alarmed = false
   local value = params.check_module.get_threshold_value(params.granularity, params.entity_info)
   local threshold_config = params.alert_config
 
   local threshold_edge = tonumber(threshold_config.edge)
-  local threshold_type = alerts.thresholdCrossType(params.granularity, params.check_module.key, value, threshold_config.operator, threshold_edge)
+  local threshold_type = alerts_api.thresholdCrossType(params.granularity, params.check_module.key, value, threshold_config.operator, threshold_edge)
 
   if(do_trace) then print("[Alert @ "..params.granularity.."] ".. params.alert_entity.alert_entity_val .." ["..params.check_module.key.."]\n") end
 
@@ -504,31 +507,31 @@ function alerts.threshold_check_function(params)
   if(alarmed) then
     if(do_trace) then print("Trigger alert [value: "..tostring(value).."]\n") end
 
-    return(alerts.new_trigger(params.alert_entity, threshold_type))
+    return(alerts_api.new_trigger(params.alert_entity, threshold_type))
   else
     if(do_trace) then print("Release alert [value: "..tostring(value).."]\n") end
 
-    return(alerts.new_release(params.alert_entity, threshold_type))
+    return(alerts_api.new_release(params.alert_entity, threshold_type))
   end
 end
 
 -- ##############################################
 
-function alerts.check_anomaly(anomal_name, alert_type, alert_entity, entity_anomalies, anomal_config)
+function alerts_api.check_anomaly(anomal_name, alert_type, alert_entity, entity_anomalies, anomal_config)
   local anomaly = entity_anomalies[anomal_name] or {value = 0}
   local value = anomaly.value
-  local anomaly_type = alerts.anomalyType(anomal_name, alert_type, value, anomal_config.threshold)
+  local anomaly_type = alerts_api.anomalyType(anomal_name, alert_type, value, anomal_config.threshold)
 
   if(do_trace) then print("[Anomaly check] ".. alert_entity.alert_entity_val .." ["..anomal_name.."]\n") end
 
   if(anomaly ~= nil) then
     if(do_trace) then print("Trigger alert anomaly [value: "..tostring(value).."]\n") end
 
-    return(alerts.new_trigger(alert_entity, anomaly_type))
+    return(alerts_api.new_trigger(alert_entity, anomaly_type))
   else
     if(do_trace) then print("Release alert anomaly [value: "..tostring(value).."]\n") end
 
-    return(alerts.new_release(alert_entity, threshold_type))
+    return(alerts_api.new_release(alert_entity, threshold_type))
   end
 end
 
@@ -550,21 +553,21 @@ end
 
 -- ##############################################
 
-function alerts.host_delta_val(metric_name, granularity, curr_val)
+function alerts_api.host_delta_val(metric_name, granularity, curr_val)
   return(delta_val(host --[[ the host Lua reg ]], metric_name, granularity, curr_val))
 end
 
-function alerts.interface_delta_val(metric_name, granularity, curr_val)
+function alerts_api.interface_delta_val(metric_name, granularity, curr_val)
   return(delta_val(interface --[[ the interface Lua reg ]], metric_name, granularity, curr_val))
 end
 
-function alerts.network_delta_val(metric_name, granularity, curr_val)
+function alerts_api.network_delta_val(metric_name, granularity, curr_val)
   return(delta_val(network --[[ the network Lua reg ]], metric_name, granularity, curr_val))
 end
 
 -- ##############################################
 
-function alerts.application_bytes(info, application_name)
+function alerts_api.application_bytes(info, application_name)
    local curr_val = 0
 
    if info["ndpi"] and info["ndpi"][application_name] then
@@ -576,7 +579,7 @@ end
 
 -- ##############################################
 
-function alerts.category_bytes(info, category_name)
+function alerts_api.category_bytes(info, category_name)
    local curr_val = 0
 
    if info["ndpi_categories"] and info["ndpi_categories"][category_name] then
@@ -588,7 +591,7 @@ end
 
 -- ##############################################
 
-function alerts.threshold_cross_input_builder(gui_conf, input_id, value)
+function alerts_api.threshold_cross_input_builder(gui_conf, input_id, value)
   value = value or {}
   local gt_selected = ternary(value[1] == "gt", ' selected="selected"', '')
   local lt_selected = ternary(value[1] == "lt", ' selected="selected"', '')
@@ -607,4 +610,4 @@ end
 
 -- ##############################################
 
-return(alerts)
+return(alerts_api)

@@ -109,6 +109,9 @@ local function formatAlertEntity(ifid, entity_type, entity_value)
    end
 end
 
+-- TODO: should this be global?
+alert_consts.formatAlertEntity = formatAlertEntity
+
 -- ##############################################
 
 local function formatThresholdCross(ifid, alert, threshold_info)

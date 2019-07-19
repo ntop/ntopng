@@ -55,15 +55,14 @@ function checkInterfaceAlerts(granularity)
       end
    end
 
-   for alert in pairs(interface.getExpiredAlerts(granularity2id(granularity))) do
-      local alert_type, alert_subtype = alerts_api.triggerIdToAlertType(alert)
+   alerts_api.releaseEntityAlerts(entity_info, interface.getExpiredAlerts(granularity2id(granularity)))
+end
 
-      if(do_trace) then print("Expired Alert@"..granularity..": ".. alert .." called\n") end
+-- #################################################################
 
-      alerts_api.new_release(entity_info, {
-         alert_type = alert_consts.alert_types[alertTypeRaw(alert_type)],
-         alert_subtype = alert_subtype,
-         alert_granularity = alert_consts.alerts_granularities[granularity],
-      })
-   end
+function releaseInterfaceAlerts()
+  local ifid = interface.getId()
+  local entity_info = alerts_api.interfaceAlertEntity(ifid)
+
+  alerts_api.releaseEntityAlerts(entity_info, interface.getAlerts())
 end

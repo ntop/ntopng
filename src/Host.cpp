@@ -1154,7 +1154,7 @@ void Host::updateStats(update_hosts_stats_user_data_t *update_hosts_stats_user_d
       lua_State *L = acle->getState();
       acle->setEntity(this);
 
-      lua_getglobal(L, "idleWithTriggeredAlerts"); /* Called function */
+      lua_getglobal(L, "releaseHostAlerts"); /* Called function */
 
       if(lua_pcall(L, 0 /* 0 arguments */, 0 /* 0 results */, 0)) /* Call the function now */
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure [%s]", lua_tostring(L, -1));

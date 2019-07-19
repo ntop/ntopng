@@ -27,10 +27,17 @@
 void AlertableEntity::getExpiredAlerts(ScriptPeriodicity p, lua_State* vm, time_t now) {
   std::map<std::string, Alert>::iterator it;
   int seconds = Utils::periodicityToSeconds(p);
+  u_int idx = 0;
 
   for(it = triggered_alerts[(u_int)p].begin(); it != triggered_alerts[(u_int)p].end(); ++it) {
-    if((now - it->second.last_update) > seconds)
-      lua_push_uint64_table_entry(vm, it->first.c_str(), it->second.last_update);
+    if((now - it->second.last_update) > seconds) {
+      lua_newtable(vm);
+      luaAlert(vm, &it->second, p);
+
+      lua_pushinteger(vm, ++idx);
+      lua_insert(vm, -2);
+      lua_settable(vm, -3);
+    }
   }
 }
 

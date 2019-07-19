@@ -57,19 +57,14 @@ function checkHostAlerts(granularity)
     end
   end
 
-  for alert in pairs(host.getExpiredAlerts(granularity2id(granularity))) do
-    local alert_type, alert_subtype = alerts_api.triggerIdToAlertType(alert)
-
-    if(do_trace) then print("Expired Alert@"..granularity..": ".. alert .." called\n") end
-
-    alerts_api.new_release(entity_info, {
-      alert_type = alert_consts.alert_types[alertTypeRaw(alert_type)],
-      alert_subtype = alert_subtype,
-      alert_granularity = alert_consts.alerts_granularities[granularity],
-    })
-  end
+  alerts_api.releaseEntityAlerts(entity_info, host.getExpiredAlerts(granularity2id(granularity)))
 end
 
-function idleWithTriggeredAlerts()
-   -- TODO: handle the release of triggered alerts, including notifications
+-- #################################################################
+
+function releaseHostAlerts()
+  local info = host.getFullInfo()
+  local entity_info = alerts_api.hostAlertEntity(info.ip, info.vlan)
+
+  alerts_api.releaseEntityAlerts(entity_info, host.getAlerts())
 end

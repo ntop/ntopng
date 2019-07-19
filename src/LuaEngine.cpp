@@ -7963,6 +7963,37 @@ static int ntop_host_set_cached_alert_value(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_get_alerts(lua_State* vm, AlertableEntity *entity) {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  u_int idx = 0;
+
+  if(!entity) return(CONST_LUA_ERROR);
+
+  lua_newtable(vm);
+  entity->getAlerts(vm, alert_none, alert_level_none, &idx);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_interface_get_alerts(lua_State* vm) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  return ntop_get_alerts(vm, c->iface);
+}
+
+static int ntop_host_get_alerts(lua_State* vm) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  return ntop_get_alerts(vm, c->host);
+}
+
+static int ntop_network_get_alerts(lua_State* vm) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  return ntop_get_alerts(vm, c->network);
+}
+
+/* ****************************************** */
+
 static int ntop_host_get_expired_alerts(lua_State* vm) {
   ScriptPeriodicity periodicity;
   struct ntopngLuaContext *c = getLuaVMContext(vm);
@@ -9034,6 +9065,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getEngagedAlerts",       ntop_interface_get_engaged_alerts       },
   { "getEngagedAlertsCount",  ntop_interface_get_engaged_alerts_count },
   { "incNumDroppedAlerts",    ntop_interface_inc_num_dropped_alerts   },
+  { "getAlerts",              ntop_interface_get_alerts               },
 
   { "checkAlertsMin",        ntop_check_interface_alerts_min   },
   { "checkAlerts5Min",       ntop_check_interface_alerts_5min  },
@@ -9058,6 +9090,7 @@ static const luaL_Reg ntop_host_reg[] = {
   { "storeTriggeredAlert",    ntop_host_store_triggered_alert   },
   { "releaseTriggeredAlert",  ntop_host_release_triggered_alert },
   { "getExpiredAlerts",       ntop_host_get_expired_alerts      },
+  { "getAlerts",              ntop_host_get_alerts              },
   
   { NULL,                     NULL }
 };
@@ -9071,6 +9104,7 @@ static const luaL_Reg ntop_network_reg[] = {
   { "storeTriggeredAlert",      ntop_network_store_triggered_alert   },
   { "releaseTriggeredAlert",    ntop_network_release_triggered_alert },
   { "getExpiredAlerts",         ntop_network_get_expired_alerts      },
+  { "getAlerts",                ntop_network_get_alerts              },
   
   { NULL,                     NULL }
 };
