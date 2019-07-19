@@ -271,18 +271,19 @@ int main(int argc, char *argv[]) {
     if (zmq_sock) {
       for(i = 0; i < tlv_msgs; i++) {
         struct zmq_msg_hdr msg_hdr;
+        u_int8_t *buffer = (use_json_encoding ? (u_int8_t *) serializer[i].json_buffer : serializer[i].buffer);
         strncpy(msg_hdr.url, "flow", sizeof(msg_hdr.url));
         msg_hdr.version = (use_json_encoding ? 2 : 3);
-        msg_hdr.size = serializer[i].size_used;
+        msg_hdr.size = (use_json_encoding ? strlen(serializer[i].json_buffer) : serializer[i].size_used);
         zmq_send(zmq_sock, &msg_hdr, sizeof(msg_hdr), ZMQ_SNDMORE);
 
         if (use_json_encoding && verbose) {
           enum json_tokener_error jerr = json_tokener_success;
-          json_object *f = json_tokener_parse_verbose(serializer[i].json_buffer, &jerr);
-          printf("Sending JSON #%u '%s' [%s]\n", i, serializer[i].json_buffer, f == NULL ? "INVALID" : "VALID");
+          json_object *f = json_tokener_parse_verbose((char *) buffer, &jerr);
+          printf("Sending JSON #%u '%s' [len=%u][%s]\n", i, (char *) buffer, msg_hdr.size, f == NULL ? "INVALID" : "VALID");
         }
 
-        rc = zmq_send(zmq_sock, serializer[i].buffer, msg_hdr.size, 0);
+        rc = zmq_send(zmq_sock, buffer, msg_hdr.size, 0);
 
         if (rc > 0)
           exported_msgs++;

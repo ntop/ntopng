@@ -1163,8 +1163,11 @@ u_int8_t ZMQParserInterface::parseJSONFlow(const char * const payload, int paylo
   enum json_tokener_error jerr = json_tokener_success;
   NetworkInterface *iface = (NetworkInterface*)data;
   
-  // payload[payload_size] = '\0';
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", payload);
+#if 0
+  char *json_str = (char *) payload;
+  json_str[payload_size] = '\0';
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "JSON: '%s' [len=%lu]", json_str, strlen(json_str));
+#endif
 
   f = json_tokener_parse_verbose(payload, &jerr);
 
