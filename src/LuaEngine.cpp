@@ -7994,6 +7994,20 @@ static int ntop_network_get_alerts(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_interface_release_engaged_alerts(lua_State* vm) {
+  NetworkInterface *iface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  if(!iface) return(CONST_LUA_ERROR);
+
+  iface->releaseAllEngagedAlerts();
+
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_host_get_expired_alerts(lua_State* vm) {
   ScriptPeriodicity periodicity;
   struct ntopngLuaContext *c = getLuaVMContext(vm);
@@ -9066,11 +9080,25 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getEngagedAlertsCount",  ntop_interface_get_engaged_alerts_count },
   { "incNumDroppedAlerts",    ntop_interface_inc_num_dropped_alerts   },
   { "getAlerts",              ntop_interface_get_alerts               },
+  { "releaseEngagedAlerts",   ntop_interface_release_engaged_alerts   },
 
-  { "checkAlertsMin",        ntop_check_interface_alerts_min   },
-  { "checkAlerts5Min",       ntop_check_interface_alerts_5min  },
-  { "checkAlertsHour",       ntop_check_interface_alerts_hour  },
-  { "checkAlertsDay",        ntop_check_interface_alerts_day   },
+  /* Interface Alerts */
+  { "checkInterfaceAlertsMin",    ntop_check_interface_alerts_min     },
+  { "checkInterfaceAlerts5Min",   ntop_check_interface_alerts_5min    },
+  { "checkInterfaceAlertsHour",   ntop_check_interface_alerts_hour    },
+  { "checkInterfaceAlertsDay",    ntop_check_interface_alerts_day     },
+
+  /* Host Alerts */
+  { "checkHostsAlertsMin",        ntop_check_hosts_alerts_min         },
+  { "checkHostsAlerts5Min",       ntop_check_hosts_alerts_5min        },
+  { "checkHostsAlertsHour",       ntop_check_hosts_alerts_hour        },
+  { "checkHostsAlertsDay",        ntop_check_hosts_alerts_day         },
+
+  /* Network Alerts */
+  { "checkNetworksAlertsMin",     ntop_check_networks_alerts_min   },
+  { "checkNetworksAlerts5Min",    ntop_check_networks_alerts_5min  },
+  { "checkNetworksAlertsHour",    ntop_check_networks_alerts_hour  },
+  { "checkNetworksAlertsDay",     ntop_check_networks_alerts_day   },
 
   /* eBPF, Containers and Companion Interfaces */
   { "getPodsStats",           ntop_interface_get_pods_stats           },
@@ -9176,18 +9204,6 @@ static const luaL_Reg ntop_reg[] = {
 #endif
   { "reloadPreferences",   ntop_reload_preferences },
   { "setAlertsTemporaryDisabled", ntop_temporary_disable_alerts },
-
-  /* Host Alerts */
-  { "checkHostsAlertsMin",        ntop_check_hosts_alerts_min   },
-  { "checkHostsAlerts5Min",       ntop_check_hosts_alerts_5min  },
-  { "checkHostsAlertsHour",       ntop_check_hosts_alerts_hour  },
-  { "checkHostsAlertsDay",        ntop_check_hosts_alerts_day   },
-
-  /* Network Alerts */
-  { "checkNetworksAlertsMin",        ntop_check_networks_alerts_min   },
-  { "checkNetworksAlerts5Min",       ntop_check_networks_alerts_5min  },
-  { "checkNetworksAlertsHour",       ntop_check_networks_alerts_hour  },
-  { "checkNetworksAlertsDay",        ntop_check_networks_alerts_day   },
   
 #ifdef NTOPNG_PRO
 #ifndef WIN32

@@ -2045,13 +2045,13 @@ end
 
 function check_networks_alerts(granularity)
    if(granularity == "min") then
-      ntop.checkNetworksAlertsMin()
+      interface.checkNetworksAlertsMin()
    elseif(granularity == "5mins") then
-      ntop.checkNetworksAlerts5Min()
+      interface.checkNetworksAlerts5Min()
    elseif(granularity == "hour") then
-      ntop.checkNetworksAlertsHour()
+      interface.checkNetworksAlertsHour()
    elseif(granularity == "day") then
-      ntop.checkNetworksAlertsDay()
+      interface.checkNetworksAlertsDay()
    else
       traceError(TRACE_ERROR, TRACE_CONSOLE, "Unknown granularity " .. granularity)
    end
@@ -2059,15 +2059,15 @@ end
 
 -- #################################
 
-function check_interface_alerts(granularity)
+local function check_interface_alerts(granularity)
    if(granularity == "min") then
-      interface.checkAlertsMin()
+      interface.checkInterfaceAlertsMin()
    elseif(granularity == "5mins") then
-      interface.checkAlerts5Min()
+      interface.checkInterfaceAlerts5Min()
    elseif(granularity == "hour") then
-      interface.checkAlertsHour()
+      interface.checkInterfaceAlertsHour()
    elseif(granularity == "day") then
-      interface.checkAlertsDay()
+      interface.checkInterfaceAlertsDay()
    else
       traceError(TRACE_ERROR, TRACE_CONSOLE, "Unknown granularity " .. granularity)
    end
@@ -2075,15 +2075,15 @@ end
 
 -- #################################
 
-function check_hosts_alerts(granularity)
+local function check_hosts_alerts(granularity)
    if(granularity == "min") then
-      ntop.checkHostsAlertsMin()
+      interface.checkHostsAlertsMin()
    elseif(granularity == "5mins") then
-      ntop.checkHostsAlerts5Min()
+      interface.checkHostsAlerts5Min()
    elseif(granularity == "hour") then
-      ntop.checkHostsAlertsHour()
+      interface.checkHostsAlertsHour()
    elseif(granularity == "day") then
-      ntop.checkHostsAlertsDay()
+      interface.checkHostsAlertsDay()
    else
       traceError(TRACE_ERROR, TRACE_CONSOLE, "Unknown granularity " .. granularity)
    end

@@ -506,6 +506,9 @@
 #define CONST_AGGREGATIONS            "aggregations"
 #define CONST_HOST_CONTACTS           "host_contacts"
 
+#define ALERT_ENTITY_CALLBACK_CHECK_ALERTS    "checkAlerts"
+#define ALERT_ENTITY_CALLBACK_RELEASE_ALERTS  "releaseAlerts"
+
 #define CONST_INFLUXDB_FILE_QUEUE          "ntopng.influx_file_queue"
 #define CONST_INFLUXDB_FLUSH_TIME          10 /* sec */
 #define CONST_INFLUXDB_MAX_DUMP_SIZE       4194304 /* 4 MB */

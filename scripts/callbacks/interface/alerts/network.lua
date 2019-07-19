@@ -28,7 +28,7 @@ end
 -- #################################################################
 
 -- The function below is called once per local network
-function checkNetworkAlerts(granularity)
+function checkAlerts(granularity)
    local info = network.getNetworkStats()
    local network_key = info and info.network_key
    if not network_key then return end
@@ -59,7 +59,7 @@ end
 
 -- #################################################################
 
-function releaseNetworkAlerts()
+function releaseAlerts()
   local info = network.getNetworkStats()
   local network_key = info and info.network_key
   if not network_key then return end

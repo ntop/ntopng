@@ -55,10 +55,8 @@ AlertCheckLuaEngine::AlertCheckLuaEngine(AlertEntity alert_entity, ScriptPeriodi
     lua_getglobal(L, "setup");         /* Called function   */
     lua_pushstring(L, Utils::periodicityToScriptName(p)); /* push 1st argument */
 
-    if(lua_pcall(L, 1 /* 1 argument */, 0 /* 0 results */, 0)) { /* Call the function now */
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure [%s][%s]", script_path, lua_tostring(L, -1));
+    if(!pcall(1 /* 1 argument */, 0))
       return;
-    }
   } else {
     /* Possibly handle a generic entity */
     script_path[0] = '0';
@@ -79,9 +77,11 @@ const char * AlertCheckLuaEngine::getGranularity() const {
 
 /* ****************************************** */
 
-void AlertCheckLuaEngine::setEntity(AlertableEntity *al) {
-  if(Host *h = dynamic_cast<Host*>(al))
-    setHost(h);
-  else if(NetworkStats *ns = dynamic_cast<NetworkStats*>(al))
-    setNetwork(ns);
+bool AlertCheckLuaEngine::pcall(int num_args, int num_results) {
+  if(lua_pcall(L, num_args, num_results, 0)) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure [%s]", lua_tostring(L, -1));
+    return(false);
+  }
+
+  return(true);
 }

@@ -756,6 +756,7 @@ class NetworkInterface : public AlertableEntity {
 
   virtual bool reproducePcapOriginalSpeed() const         { return(false); }
   u_int32_t getNumEngagedAlerts();
+  void releaseAllEngagedAlerts();
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */

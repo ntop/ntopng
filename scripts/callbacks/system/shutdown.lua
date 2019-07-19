@@ -17,9 +17,16 @@ require "lua_utils" -- NOTE: required by alert_utils
 require "alert_utils"
 
 local now = os.time()
+local ifnames = interface.getIfNames()
 
 notify_ntopng_stop()
 prefs_dump_utils.savePrefsToDisk()
-processAlertNotifications(now, 0, true --[[ force ]])
+
+for _, ifname in pairs(ifnames) do
+  interface.select(ifname)
+  interface.releaseEngagedAlerts()
+end
+
+processAlertNotifications(now, 3 --[[ deadline ]], true --[[ force ]])
 
 recovery_utils.mark_clean_shutdown()

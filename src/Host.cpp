@@ -1152,12 +1152,11 @@ void Host::updateStats(update_hosts_stats_user_data_t *update_hosts_stats_user_d
        ) {
       AlertCheckLuaEngine *acle = update_hosts_stats_user_data->acle;
       lua_State *L = acle->getState();
-      acle->setEntity(this);
+      acle->setHost(this);
 
-      lua_getglobal(L, "releaseHostAlerts"); /* Called function */
+      lua_getglobal(L, ALERT_ENTITY_CALLBACK_RELEASE_ALERTS); /* Called function */
 
-      if(lua_pcall(L, 0 /* 0 arguments */, 0 /* 0 results */, 0)) /* Call the function now */
-	ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure [%s]", lua_tostring(L, -1));
+      acle->pcall(0 /* 0 arguments */, 0 /* 0 results */);
     }
   }
 

@@ -31,7 +31,7 @@ class AlertCheckLuaEngine : public LuaEngine {
   AlertCheckLuaEngine(AlertEntity alert_entity, ScriptPeriodicity p, NetworkInterface *iface);
   ~AlertCheckLuaEngine() {};
 
-  void setEntity(AlertableEntity *al);
+  bool pcall(int num_args, int num_results);
 
   ScriptPeriodicity getPeriodicity() const;
   const char * getGranularity() const;

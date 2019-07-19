@@ -255,10 +255,12 @@ function alerts_api.processPendingAlertEvents(deadline)
       alert_endpoints.dispatchNotification(event, event_json)
 
       if(os.time() > deadline) then
-        break
+        return(false)
       end
     end
   end
+
+  return(true)
 end
 
 -- ##############################################
@@ -327,7 +329,7 @@ end
 --! @param when (optional) the time when the release event occurs
 --! @note The actual release is performed asynchronously
 --! @return true on success, false otherwise
-function alerts_api.new_release(entity_info, type_info)
+function alerts_api.release(entity_info, type_info)
   local now = os.time()
   local granularity_sec = type_info.alert_granularity and type_info.alert_granularity.granularity_seconds or 0
   local granularity_id = type_info.alert_granularity and type_info.alert_granularity.granularity_id or nil
@@ -375,7 +377,7 @@ end
 function alerts_api.releaseEntityAlerts(entity_info, alerts)
   for _, alert in pairs(alerts) do
     if(do_trace) then print("Release Alert."..alert.alert_granularity.." ".. alert.alert_type .."@".. alert.alert_subtype .." called\n") end
-    alerts_api.new_release(entity_info, {
+    alerts_api.release(entity_info, {
       alert_type = alert_consts.alert_types[alertTypeRaw(alert.alert_type)],
       alert_subtype = alert.alert_subtype,
       alert_granularity = alert_consts.alerts_granularities[sec2granularity(alert.alert_granularity)],
@@ -511,7 +513,7 @@ function alerts_api.threshold_check_function(params)
   else
     if(do_trace) then print("Release alert [value: "..tostring(value).."]\n") end
 
-    return(alerts_api.new_release(params.alert_entity, threshold_type))
+    return(alerts_api.release(params.alert_entity, threshold_type))
   end
 end
 
@@ -531,7 +533,7 @@ function alerts_api.check_anomaly(anomal_name, alert_type, alert_entity, entity_
   else
     if(do_trace) then print("Release alert anomaly [value: "..tostring(value).."]\n") end
 
-    return(alerts_api.new_release(alert_entity, threshold_type))
+    return(alerts_api.release(alert_entity, threshold_type))
   end
 end
 

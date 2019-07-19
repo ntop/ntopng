@@ -13,7 +13,6 @@ local alert_consts = require("alert_consts")
 local do_trace          = false
 local config_alerts_local = nil
 local config_alerts_remote = nil
-local ifname            = nil
 local available_modules = nil
 
 -- #################################################################
@@ -21,7 +20,7 @@ local available_modules = nil
 -- The function below ia called once (#pragma once)
 function setup(str_granularity)
    if(do_trace) then print("alert.lua:setup("..str_granularity..") called\n") end
-   ifname = interface.setActiveInterfaceId(tonumber(interface.getId()))
+   local ifname = interface.setActiveInterfaceId(tonumber(interface.getId()))
    config_alerts_local = getLocalHostsConfiguredAlertThresholds(ifname, str_granularity)
    config_alerts_remote = getRemoteHostsConfiguredAlertThresholds(ifname, str_granularity)
 
@@ -32,7 +31,7 @@ end
 -- #################################################################
 
 -- The function below is called once per host
-function checkHostAlerts(granularity)
+function checkAlerts(granularity)
   local info = host.getFullInfo()
   local host_key   = hostinfo2hostkey({ip = info.ip, vlan = info.vlan}, nil, true --[[ force @[vlan] even when vlan is 0 --]])
   local config_alerts = ternary(info["localhost"], config_alerts_local, config_alerts_remote)
@@ -62,7 +61,7 @@ end
 
 -- #################################################################
 
-function releaseHostAlerts()
+function releaseAlerts()
   local info = host.getFullInfo()
   local entity_info = alerts_api.hostAlertEntity(info.ip, info.vlan)
 

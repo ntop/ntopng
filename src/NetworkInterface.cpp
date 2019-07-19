@@ -7605,17 +7605,11 @@ static bool host_alert_check(GenericHashEntry *h, void *user_data, bool *matched
   lua_State *L = acle->getState();
   Host *host = (Host*)h;
 
-  /* Alerts are checked only on local hosts */
-  const char *function_to_call = "checkHostAlerts";
+  acle->setHost(host);
 
-  acle->setEntity(host);
-
-  /* https://www.lua.org/pil/25.2.html */
-  lua_getglobal(L,  function_to_call); /* Called function */
+  lua_getglobal(L,  ALERT_ENTITY_CALLBACK_CHECK_ALERTS); /* Called function */
   lua_pushstring(L, acle->getGranularity());  /* push 1st argument */
-
-  if(lua_pcall(L, 1 /* 1 argument */, 0 /* 0 results */, 0)) /* Call the function now */
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure [%s]", lua_tostring(L, -1));
+  acle->pcall(1 /* num args */, 0);
 
   host->housekeepAlerts(acle->getPeriodicity() /* periodicity */);
 
@@ -7641,18 +7635,15 @@ void NetworkInterface::checkNetworksAlerts(ScriptPeriodicity p) {
   u_int8_t num_local_networks = ntop->getNumLocalNetworks();
 
   for(u_int8_t network_id = 0; network_id < num_local_networks; network_id++) {
-    const char *function_to_call = "checkNetworkAlerts";
-
-    acle.setEntity(getNetworkStats(network_id));
+    acle.setNetwork(getNetworkStats(network_id));
 
     lua_State *L = acle.getState();
 
     /* https://www.lua.org/pil/25.2.html */
-    lua_getglobal(L,  function_to_call); /* Called function */
+    lua_getglobal(L,  ALERT_ENTITY_CALLBACK_CHECK_ALERTS); /* Called function */
     lua_pushstring(L, acle.getGranularity());  /* push 1st argument */
 
-    if(lua_pcall(L, 1 /* 1 argument */, 0 /* 0 results */, 0)) /* Call the function now */
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure [%s]", lua_tostring(L, -1));
+    acle.pcall(1 /* 1 argument */, 0 /* 0 results */);
   }
 }
 
@@ -7662,12 +7653,10 @@ void NetworkInterface::checkInterfaceAlerts(ScriptPeriodicity p) {
   AlertCheckLuaEngine acle(alert_entity_interface, p, this);
   lua_State *L = acle.getState();
 
-  /* https://www.lua.org/pil/25.2.html */
-  lua_getglobal(L,  "checkInterfaceAlerts"); /* Called function */
+  lua_getglobal(L, ALERT_ENTITY_CALLBACK_CHECK_ALERTS); /* Called function */
   lua_pushstring(L, acle.getGranularity());  /* push 1st argument */
 
-  if(lua_pcall(L, 1 /* 1 argument */, 0 /* 0 results */, 0)) /* Call the function now */
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure [%s]", lua_tostring(L, -1));
+  acle.pcall(1 /* 1 argument */, 0 /* 0 results */);
 }
 
 /* *************************************** */
@@ -7707,7 +7696,7 @@ static bool host_invoke_alertable_callback(GenericHashEntry *entity, void *user_
 void NetworkInterface::walkAlertables(int entity_type, const char *entity_value,
           alertable_callback *callback, void *user_data) {
   /* Hosts */
-  if((entity_type == -1) || (entity_type == alert_entity_host)) {
+  if((entity_type == alert_entity_none) || (entity_type == alert_entity_host)) {
     if(entity_value == NULL) {
       struct alertable_walker_data data;
       bool walk_all = true;
@@ -7732,7 +7721,7 @@ void NetworkInterface::walkAlertables(int entity_type, const char *entity_value,
   }
 
   /* Interface */
-  if((entity_type == -1) || (entity_type == alert_entity_interface)) {
+  if((entity_type == alert_entity_none) || (entity_type == alert_entity_interface)) {
     if(entity_value != NULL)
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Interface filter not implemented");
 
@@ -7740,7 +7729,7 @@ void NetworkInterface::walkAlertables(int entity_type, const char *entity_value,
   }
 
   /* Networks */
-  if((entity_type == -1) || (entity_type == alert_entity_network)) {
+  if((entity_type == alert_entity_none) || (entity_type == alert_entity_network)) {
     u_int8_t num_local_networks = ntop->getNumLocalNetworks();
 
     if(entity_value != NULL)
@@ -7807,6 +7796,54 @@ void NetworkInterface::getEngagedAlertsCount(lua_State *vm, int entity_type,
 
 /* *************************************** */
 
+static bool host_release_engaged_alerts(GenericHashEntry *entity, void *user_data, bool *matched) {
+  Host *host = (Host *) entity;
+  AlertCheckLuaEngine *host_script = (AlertCheckLuaEngine *)user_data;
+
+  if(host->getNumTriggeredAlerts()) {
+    lua_getglobal(host_script->getState(), ALERT_ENTITY_CALLBACK_RELEASE_ALERTS);
+    host_script->setHost(host);
+    host_script->pcall(0, 0);
+  }
+
+  *matched = true;
+
+  return(false); /* false = keep on walking */
+}
+
+/* *************************************** */
+
+void NetworkInterface::releaseAllEngagedAlerts() {
+  AlertCheckLuaEngine network_script(alert_entity_network, minute_script /* doesn't matter */, this);
+  AlertCheckLuaEngine host_script(alert_entity_host, minute_script /* doesn't matter */, this);
+  u_int8_t num_local_networks = ntop->getNumLocalNetworks();
+  u_int32_t begin_slot = 0;
+  bool walk_all = true;
+
+  /* Hosts */
+  walker(&begin_slot, walk_all, walker_hosts, host_release_engaged_alerts, &host_script);
+
+  /* Interface */
+  if(getNumTriggeredAlerts()) {
+    AlertCheckLuaEngine interface_script(alert_entity_interface, minute_script /* doesn't matter */, this);
+    lua_getglobal(interface_script.getState(), ALERT_ENTITY_CALLBACK_RELEASE_ALERTS);
+    interface_script.pcall(0, 0);
+  }
+
+  /* Networks */
+  for(u_int8_t network_id = 0; network_id < num_local_networks; network_id++) {
+    NetworkStats *stats = getNetworkStats(network_id);
+
+    if(stats->getNumTriggeredAlerts()) {
+      lua_getglobal(network_script.getState(), ALERT_ENTITY_CALLBACK_RELEASE_ALERTS);
+      network_script.setNetwork(stats);
+      network_script.pcall(0, 0);
+    }
+  }
+}
+
+/* *************************************** */
+
 struct get_engaged_alerts_userdata {
   lua_State *vm;
   AlertType alert_type;
@@ -7814,7 +7851,7 @@ struct get_engaged_alerts_userdata {
   u_int idx;
 };
 
-void get_engaged_alerts_callback(AlertableEntity *alertable, void *user_data) {
+static void get_engaged_alerts_callback(AlertableEntity *alertable, void *user_data) {
   struct get_engaged_alerts_userdata *data = (struct get_engaged_alerts_userdata *)user_data;
 
   alertable->getAlerts(data->vm, data->alert_type, data->alert_severity, &data->idx);

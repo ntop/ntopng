@@ -28,7 +28,7 @@ end
 -- #################################################################
 
 -- The function below is called once
-function checkInterfaceAlerts(granularity)
+function checkAlerts(granularity)
    local info = interface.getStats()
    local ifid = interface.getId()
    local interface_key   = "iface_"..ifid
@@ -60,7 +60,7 @@ end
 
 -- #################################################################
 
-function releaseInterfaceAlerts()
+function releaseAlerts()
   local ifid = interface.getId()
   local entity_info = alerts_api.interfaceAlertEntity(ifid)
 

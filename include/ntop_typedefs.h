@@ -144,6 +144,7 @@ typedef enum {
   This is field "entity_type" of JSON put on "ntopng.alerts.notifications_queue"
  */
 typedef enum {
+  alert_entity_none = -1,
   alert_entity_interface = 0,
   alert_entity_host,
   alert_entity_network,
