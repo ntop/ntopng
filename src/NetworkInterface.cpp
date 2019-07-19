@@ -2942,7 +2942,9 @@ void NetworkInterface::periodicStatsUpdate() {
   gettimeofday(&tdebug, NULL);
 #endif
 
-  flows_hash->walk(&begin_slot, walk_all, flow_update_hosts_stats, (void*)&tv);
+  if(!isView()) /* View Interfaces don't have flows, they just walk flows of their 'viewed' peers */
+    flows_hash->walk(&begin_slot, walk_all, flow_update_hosts_stats, (void*)&tv);
+
   topItemsCommit(&tv);
 
 #ifdef PERIODIC_STATS_UPDATE_DEBUG_TIMING
