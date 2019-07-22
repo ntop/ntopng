@@ -40,6 +40,7 @@ RemoteHost::RemoteHost(NetworkInterface *_iface, char *ipAddress, u_int16_t _vla
 /* *************************************** */
 
 RemoteHost::~RemoteHost() {
+  iface->decNumHosts(false /* A remote host */);
 }
 
 /* *************************************** */

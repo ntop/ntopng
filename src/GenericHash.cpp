@@ -118,10 +118,11 @@ bool GenericHash::walk(u_int32_t *begin_slot,
       head = table[hash_id];
 
       while(head) {
+	HashEntryState head_state = head->get_state();
 	GenericHashEntry *next = head->next();
 
-	if((walk_idle || !head->idle())
-	   && !head->is_ready_to_be_purged()) {
+	if(head_state == hash_entry_state_active
+	   || (walk_idle && head_state == hash_entry_state_idle)) {
 	  bool matched = false;
 	  bool rc = walker(head, user_data, &matched);
 
@@ -199,10 +200,11 @@ u_int GenericHash::purgeIdle() {
       head = table[i];
 
       while(head) {
+	HashEntryState head_state = head->get_state();
 	GenericHashEntry *next = head->next();
 
 	buckets_checked++;
-	if(head->is_ready_to_be_purged()) {
+	if(head_state == hash_entry_state_ready_to_be_purged) {
 	  if(prev == NULL) {
 	    table[i] = next;
 	  } else {
@@ -216,9 +218,8 @@ u_int GenericHash::purgeIdle() {
 	  /* Do the chores */
 	  head->housekeep(now);
 
-	  /* Purge at the next run */
-	  if(head->idle())
-	    head->set_to_purge(iface->getTimeLastPktRcvd());
+	  if(head_state == hash_entry_state_active && head->idle())
+	    head->set_state(hash_entry_state_idle);
 
 	  prev = head;
 	  head = next;
@@ -249,8 +250,8 @@ GenericHashEntry* GenericHash::findByKey(u_int32_t key) {
   if(head == NULL) return(NULL);
 
   locks[hash]->lock(__FILE__, __LINE__);
-  while(head != NULL) {
-    if((!head->idle()) && (!head->is_ready_to_be_purged()) && (head->key() == key))
+  while(head) {
+    if(!head->idle() && head->key() == key)
       break;
     else
       head = head->next();

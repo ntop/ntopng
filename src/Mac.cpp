@@ -132,6 +132,8 @@ Mac::~Mac() {
 bool Mac::idle() {
   bool rc;
 
+  if(GenericHashEntry::idle()) return(true);
+
   if((num_uses > 0) || (!iface->is_purge_idle_interface()))
     return(false);
 
@@ -483,6 +485,9 @@ void Mac::checkStatsReset() {
 /* *************************************** */
 
 void Mac::updateStats(struct timeval *tv) {
+  if(get_state() == hash_entry_state_idle)
+    set_state(hash_entry_state_ready_to_be_purged);
+
   checkDataReset();
   checkStatsReset();
   stats->updateStats(tv);

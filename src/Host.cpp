@@ -136,8 +136,6 @@ void Host::set_host_label(char *label_name, bool ignoreIfPresent) {
 void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   char buf[64];
 
-  idle_mark = false;
-
   stats = NULL; /* it will be instantiated by specialized classes */
   stats_shadow = NULL;
   data_delete_requested = false, stats_reset_requested = false;
@@ -628,11 +626,8 @@ char * Host::get_os(char * const buf, ssize_t buf_len) {
 
 /* ***************************************** */
 
-bool Host::isReadyToBeMarkedAsIdle() {
-  if(ntop->getGlobals()->isShutdownRequested() || ntop->getGlobals()->isShutdown())
-    return(true);
-
-  if(idle()) return(true);
+bool Host::idle() {
+  if(GenericHashEntry::idle()) return(true);
 
   if((num_uses > 0) || (!iface->is_purge_idle_interface()))
     return(false);
@@ -1151,8 +1146,8 @@ bool Host::statsResetRequested() {
 void Host::updateStats(update_hosts_stats_user_data_t *update_hosts_stats_user_data) {
   struct timeval *tv = update_hosts_stats_user_data->tv;
 
-  if(isReadyToBeMarkedAsIdle()) {
-    set_idle(tv->tv_sec);
+  if(get_state() == hash_entry_state_idle) {
+    set_state(hash_entry_state_ready_to_be_purged);
 
     if(getNumTriggeredAlerts()
        && (update_hosts_stats_user_data->acle

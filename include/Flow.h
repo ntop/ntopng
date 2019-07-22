@@ -59,8 +59,6 @@ class Flow : public GenericHashEntry {
   u_int8_t protocol, src2dst_tcp_flags, dst2src_tcp_flags;
   struct ndpi_flow_struct *ndpiFlow;
 
-  /* Marked when visited by the periodic activities */
-  bool idle_mark;
   /* When the interface isViewed(), the corresponding view needs to acknowledge the purge
      before the flow can actually be deleted from memory. This guarantees the view has
      seen the flow until it has become idle. */
@@ -241,11 +239,6 @@ class Flow : public GenericHashEntry {
        time_t _first_seen, time_t _last_seen);
   ~Flow();
 
-  inline void set_idle(time_t t) {
-    idle_mark = true;
-    postFlowSetIdle(t);
-  };
-
   FlowStatus getFlowStatus();
   struct site_categories* getFlowCategory(bool force_categorization);
   void freeDPIMemory();
@@ -404,7 +397,7 @@ class Flow : public GenericHashEntry {
   u_int64_t get_current_packets_srv2cli();
 
   /* Methods to handle the flow in-memory lifecycle */
-  virtual bool idle() { return(idle_mark); };
+  virtual bool idle();
   virtual void set_to_purge(time_t t);
   bool is_acknowledged_to_purge() const;
   void set_acknowledge_to_purge();

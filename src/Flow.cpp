@@ -46,7 +46,7 @@ Flow::Flow(NetworkInterface *_iface,
     srv2cli_last_goodput_bytes = cli2srv_last_goodput_bytes = 0, good_ssl_hs = true,
     flow_alerted = flow_dropped_counts_increased = false, vrfId = 0;   
     
-  idle_mark = purge_acknowledged_mark = false;
+  purge_acknowledged_mark = false;
 
   detection_completed = false;
   ndpiDetectedProtocol = ndpiUnknownProtocol;
@@ -1082,9 +1082,10 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
   Vlan *vl;
   NetworkStats *cli_network_stats;
 
-  if(isReadyToBeMarkedAsIdle()) {
+  if(get_state() == hash_entry_state_idle) {
     /* Marked as ready to be purged, will be purged by NetworkInterface::purgeIdleFlows */
-    set_idle(tv->tv_sec);
+    postFlowSetIdle(tv->tv_sec);
+    set_state(hash_entry_state_ready_to_be_purged);
   }
 
   if(check_tor && (ndpiDetectedProtocol.app_protocol == NDPI_PROTOCOL_SSL)) {
@@ -2015,7 +2016,7 @@ void Flow::set_to_purge(time_t t) {
      the flow has been acknowledged (in the case of views).
      Othewise this call is just ignored. */
   if(is_acknowledged_to_purge())
-    GenericHashEntry::set_to_purge(t);
+    ;
 };
 
 /* *************************************** */
@@ -2042,11 +2043,8 @@ void Flow::set_acknowledge_to_purge() {
 
 /* *************************************** */
 
-bool Flow::isReadyToBeMarkedAsIdle() {
-  if(ntop->getGlobals()->isShutdownRequested() || ntop->getGlobals()->isShutdown())
-    return(true);
-
-  if(idle()) return(true);
+bool Flow::idle() {
+  if(GenericHashEntry::idle()) return(true);
 
 #ifdef HAVE_NEDGE
   if(iface->getIfType() == interface_type_NETFILTER)
@@ -2395,7 +2393,7 @@ json_object* Flow::flow2json() {
 #ifdef HAVE_NEDGE
 
 bool Flow::isNetfilterIdleFlow() {
-  if(idle()) return(true);
+  if(GenericHashEntry::idle()) return(true);
 
   /*
      Note that on netfilter interfaces we never observe the
@@ -2431,13 +2429,15 @@ bool Flow::isNetfilterIdleFlow() {
 /* *************************************** */
 
 void Flow::housekeep(time_t t) {
-#ifdef HAVE_NEDGE
-  if(iface->getIfType() == interface_type_NETFILTER) {
-    if(isNetfilterIdleFlow()) {
-      set_idle(iface->getTimeLastPktRcvd());
-    }
-  }
-#endif
+  /* Following snippet no longer necessary as confirmed by Emanuele as flows are
+     idled in then Flow::update_hosts_stats */
+// #ifdef HAVE_NEDGE
+//   if(iface->getIfType() == interface_type_NETFILTER) {
+//     if(isNetfilterIdleFlow()) {
+//       // set_idle(iface->getTimeLastPktRcvd()); TODO: check
+//     }
+//   }
+// #endif
 
   if((!isDetectionCompleted()) && ((t - get_last_seen()) > 5 /* sec */)
      && iface->get_ndpi_struct()
@@ -3654,7 +3654,7 @@ FlowStatus Flow::getFlowStatus() {
   /* NOTE: evaluation order is important here! */
 
   if(iface->isPacketInterface() && iface->is_purge_idle_interface() &&
-      !is_ready_to_be_purged() && isIdle(5 * ntop->getPrefs()->get_flow_max_idle())) {
+     get_state() != hash_entry_state_ready_to_be_purged && isIdle(5 * ntop->getPrefs()->get_flow_max_idle())) {
     /* Should've already been marked as idle and purged */
     return status_not_purged;
   }

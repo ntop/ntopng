@@ -46,7 +46,7 @@ Flow* FlowHash::find(IpAddress *src_ip, IpAddress *dst_ip,
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u:%u / %u:%u [icmp: %u][key: %u][icmp info key: %u][head: 0x%x]", src_ip->key(), src_port, dst_ip->key(), dst_port, icmp_info ? 1 : 0, hash, icmp_info ? icmp_info->key() : 0, head);
 
   while(head) {
-    if((!head->idle() && !head->is_ready_to_be_purged())
+    if(!head->idle()
        && head->equal(src_ip, dst_ip, src_port, dst_port, vlanId, protocol, icmp_info, src2dst_direction)) {
       if(num_loops > max_num_loops) {
 	ntop->getTrace()->traceEvent(TRACE_INFO, "DEBUG: [Num loops: %u][hashId: %u]", num_loops, hash);

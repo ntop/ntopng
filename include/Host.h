@@ -38,9 +38,6 @@ class Host : public GenericHashEntry, public AlertableEntity {
   time_t last_stats_reset;
   u_int32_t disabled_flow_status;
   
-  /* Marked when visited by the periodic activities */
-  bool idle_mark;
-
   /* Host data: update Host::deleteHostData when adding new fields */
   struct {
     char * mdns, * mdns_txt;
@@ -107,11 +104,6 @@ class Host : public GenericHashEntry, public AlertableEntity {
   inline void setSystemHost()                { /* TODO: remove */              };
 
   inline nDPIStats* get_ndpi_stats()       { return(stats->getnDPIStats()); };
-
-  virtual void set_to_purge(time_t t) { /* Saves 1 extra-step of purge idle */
-    iface->decNumHosts(isLocalHost());
-    GenericHashEntry::set_to_purge(t);
-  };
 
   inline bool isChildSafe() {
 #ifdef NTOPNG_PRO
@@ -211,9 +203,7 @@ class Host : public GenericHashEntry, public AlertableEntity {
   char* get_hostkey(char *buf, u_int buf_len, bool force_vlan=false);
   char* get_tskey(char *buf, size_t bufsize);
 
-  inline void set_idle(time_t t) { idle_mark = true;  };
-  virtual bool idle()            { return(idle_mark); };
-  bool isReadyToBeMarkedAsIdle();
+  virtual bool idle();
 
   virtual void incICMP(u_int8_t icmp_type, u_int8_t icmp_code, bool sent, Host *peer) {};
   virtual void lua(lua_State* vm, AddressTree * ptree, bool host_details,
