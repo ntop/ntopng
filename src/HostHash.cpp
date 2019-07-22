@@ -45,7 +45,6 @@ Host* HostHash::get(u_int16_t vlanId, IpAddress *key, bool is_inline_call) {
     
     while(head != NULL) {      
       if((!head->idle())
-	 && (!head->is_ready_to_be_purged())
 	 && (head->get_vlan_id() == vlanId)
 	 && (head->get_ip() != NULL)
 	 && (head->get_ip()->compare(key) == 0))

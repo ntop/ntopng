@@ -2907,6 +2907,9 @@ static bool update_macs_stats(GenericHashEntry *node, void *user_data, bool *mat
 static bool update_generic_element_stats(GenericHashEntry *node, void *user_data, bool *matched) {
   GenericTrafficElement *elem;
 
+  if(node->get_state() == hash_entry_state_idle)
+    node->set_state(hash_entry_state_ready_to_be_purged);
+
   if((elem = dynamic_cast<GenericTrafficElement*>(node))) {
     struct timeval *tv = (struct timeval*)user_data;
     elem->updateStats(tv);
@@ -2943,7 +2946,7 @@ void NetworkInterface::periodicStatsUpdate() {
 #endif
 
   if(!isView()) /* View Interfaces don't have flows, they just walk flows of their 'viewed' peers */
-    flows_hash->walk(&begin_slot, walk_all, flow_update_hosts_stats, (void*)&tv);
+    flows_hash->walk(&begin_slot, walk_all, flow_update_hosts_stats, (void*)&tv, true);
 
   topItemsCommit(&tv);
 
@@ -2998,7 +3001,7 @@ void NetworkInterface::periodicStatsUpdate() {
       update_hosts_stats_user_data.tv = &tv;
 
     begin_slot = 0;
-    hosts_hash->walk(&begin_slot, walk_all, update_hosts_stats, &update_hosts_stats_user_data);
+    hosts_hash->walk(&begin_slot, walk_all, update_hosts_stats, &update_hosts_stats_user_data, true);
 
     if(update_hosts_stats_user_data.acle)
       delete update_hosts_stats_user_data.acle;
@@ -3011,22 +3014,22 @@ void NetworkInterface::periodicStatsUpdate() {
 
   if(ases_hash) {
     begin_slot = 0;
-    ases_hash->walk(&begin_slot, walk_all, update_generic_element_stats, (void*)&tv);
+    ases_hash->walk(&begin_slot, walk_all, update_generic_element_stats, (void*)&tv, true);
   }
 
   if(countries_hash) {
     begin_slot = 0;
-    countries_hash->walk(&begin_slot, walk_all, update_generic_element_stats, (void*)&tv);
+    countries_hash->walk(&begin_slot, walk_all, update_generic_element_stats, (void*)&tv, true);
   }
 
   if(vlans_hash && hasSeenVlanTaggedPackets()) {
     begin_slot = 0;
-    vlans_hash->walk(&begin_slot, walk_all, update_generic_element_stats, (void*)&tv);
+    vlans_hash->walk(&begin_slot, walk_all, update_generic_element_stats, (void*)&tv, true);
   }
 
   if(macs_hash) {
     begin_slot = 0;
-    macs_hash->walk(&begin_slot, walk_all, update_macs_stats, (void*)&tv);
+    macs_hash->walk(&begin_slot, walk_all, update_macs_stats, (void*)&tv, true);
   }
 
 #ifdef PERIODIC_STATS_UPDATE_DEBUG_TIMING

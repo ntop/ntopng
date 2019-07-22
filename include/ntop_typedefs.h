@@ -454,6 +454,12 @@ typedef enum {
 } FlowHashingEnum;
 
 typedef enum {
+  hash_entry_state_active,
+  hash_entry_state_idle,
+  hash_entry_state_ready_to_be_purged
+} HashEntryState;
+
+typedef enum {
   device_proto_allowed = 0,
   device_proto_forbidden_master,
   device_proto_forbidden_app

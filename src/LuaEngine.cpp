@@ -3982,6 +3982,27 @@ static int ntop_reload_dhcp_ranges(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_reload_host_disabled_flow_alert_types(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  char buf[64], *host_ip;
+  Host *host;
+  u_int16_t vlan_id;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  if(!ntop_interface) return(CONST_LUA_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  get_host_vlan_info((char*)lua_tostring(vm, 1), &host_ip, &vlan_id, buf, sizeof(buf));
+
+  if((host = ntop_interface->getHost(host_ip, vlan_id, false /* Not an inline call */)))
+    host->refreshDisableFlowAlertTypes();
+
+  lua_pushboolean(vm, (host != NULL));
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 #ifdef HAVE_NEDGE
 
 static int ntop_set_lan_ip_address(lua_State* vm) {
@@ -6157,6 +6178,51 @@ static int ntop_run_live_extraction(lua_State *vm) {
   }
 
   lua_pushboolean(vm, success);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_bitmap_is_set(lua_State *vm) {
+  u_int32_t bitmap;
+  u_int32_t val;
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  bitmap = lua_tointeger(vm, 1);
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  val = lua_tointeger(vm, 2);
+
+  lua_pushboolean(vm, Utils::bitmapIsSet(bitmap, val));
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_bitmap_set(lua_State *vm) {
+  u_int32_t bitmap;
+  u_int32_t val;
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  bitmap = lua_tointeger(vm, 1);
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  val = lua_tointeger(vm, 2);
+
+  lua_pushinteger(vm, Utils::bitmapSet(bitmap, val));
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_bitmap_clear(lua_State *vm) {
+  u_int32_t bitmap;
+  u_int32_t val;
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  bitmap = lua_tointeger(vm, 1);
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  val = lua_tointeger(vm, 2);
+
+  lua_pushinteger(vm, Utils::bitmapClear(bitmap, val));
   return(CONST_LUA_OK);
 }
 
@@ -8996,6 +9062,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "loadScalingFactorPrefs",           ntop_load_scaling_factor_prefs },
   { "reloadHideFromTop",                ntop_reload_hide_from_top },
   { "reloadDhcpRanges",                 ntop_reload_dhcp_ranges },
+  { "reloadHostDisableFlowAlertTypes",  ntop_reload_host_disabled_flow_alert_types },
 
   /* Mac */
   { "getMacsInfo",                      ntop_get_interface_macs_info },
@@ -9392,6 +9459,11 @@ static const luaL_Reg ntop_reg[] = {
   { "isExtractionRunning",   ntop_is_extraction_running },
   { "getExtractionStatus",   ntop_get_extraction_status },
   { "runLiveExtraction",     ntop_run_live_extraction   },
+
+  /* Bitmap functions */
+  { "bitmapIsSet",           ntop_bitmap_is_set         },
+  { "bitmapSet",             ntop_bitmap_set            },
+  { "bitmapClear",           ntop_bitmap_clear          },
 
   /* nEdge */
 #ifdef HAVE_NEDGE

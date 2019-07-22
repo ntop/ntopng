@@ -1873,6 +1873,9 @@ elseif (page == "config") then
 
    local top_hiddens = ntop.getMembersCache(getHideFromTopSet(ifId) or {})
    local is_top_hidden = swapKeysValues(top_hiddens)[hostkey_compact] ~= nil
+   local host_key = hostinfo2hostkey(host_info, nil, true --[[show vlan]])
+   local host_bitmap_key = string.format("ntopng.prefs.alerts.ifid_%d.disabled_status.host_%s", ifId, host_key)
+   local cur_bitmap = tonumber(ntop.getPref(host_bitmap_key)) or 0
 
    if _SERVER["REQUEST_METHOD"] == "POST" then
 
@@ -1886,6 +1889,22 @@ elseif (page == "config") then
 
          interface.select(ifname)
          interface.refreshHostsAlertsConfiguration(host_ip, host_vlan)
+
+      local bitmap = 0
+
+      if not isEmptyString(_POST["disabled_status"]) then
+        local status_selection = split(_POST["disabled_status"], ",") or { _POST["disabled_status"] }
+
+        for _, status in pairs(status_selection) do
+          bitmap = ntop.bitmapSet(bitmap, tonumber(status))
+        end
+      end
+
+      if(bitmap ~= cur_bitmap) then
+        ntop.setPref(host_bitmap_key, string.format("%u", bitmap))
+        cur_bitmap = bitmap
+        interface.reloadHostDisableFlowAlertTypes(host_key)
+      end
 
       if(ifstats.inline and (host.localhost or host.systemhost)) then
          local drop_host_traffic = _POST["drop_host_traffic"]
@@ -1964,6 +1983,24 @@ elseif (page == "config") then
                   ]] print(i18n("host_config.trigger_alerts_for_host",{host=host["name"]})) print[[
                </input>
          </td>
+      </tr><tr>
+         <th>]] print(i18n("host_details.status_ignore")) print[[</th>
+         <td>
+           <input id="status_trigger_alert" name="disabled_status" type="hidden" />
+           <select onchange="convertMultiSelect()" id="status_trigger_alert_select" multiple class="form-control" style="width:40em; height:10em; display:inline;">]]
+
+      for status_id, label in pairsByKeys(getFlowStatusTypes()) do
+        print[[<option value="]] print(string.format("%d", status_id))
+        if ntop.bitmapIsSet(cur_bitmap, tonumber(status_id)) then
+          print[[" selected="selected]]
+        end
+        print[[">]]
+        print(label)
+        print[[</option>]]
+      end
+
+      print[[</select>
+         </td>
       </tr>]]
 
    if(ifstats.inline and (host.localhost or host.systemhost)) then
@@ -2009,6 +2046,19 @@ elseif (page == "config") then
    <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button><br><br>
    </form>
    <script>
+     function convertMultiSelect() {
+      var values = [];
+
+      $("#status_trigger_alert_select option:selected").each(function(idx, item) {
+        values.push($(item).val());
+      });
+
+      $("#status_trigger_alert").val(values.join(","));
+     }
+
+     /* Run after page load */
+     $(convertMultiSelect);
+
       aysHandleForm("#host_config");
    </script>]]
 

@@ -1540,6 +1540,7 @@ local lang = {
     ["reset_stats_in_progress"] = "Host statistics will be reset within 5 seconds",
     ["restore_from_cache_message"] = "Click <a href=%{js_code}> here</a> to restore it from cache.",
     ["snmp"] = "SNMP",
+    ["status_ignore"] = "Disabled Flow Status Alerts",
     ["trace_debug_host_info"] = "Host:%{hostinfo}, Vlan: %{vlan}",
     ["trace_debug_host_ip"] = "Host:%{hostip}, Vlan: %{vlan}",
     ["trace_debug_restored_host_info"] = "Restored Host Info",

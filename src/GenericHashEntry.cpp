@@ -24,8 +24,9 @@
 /* ***************************************** */
 
 GenericHashEntry::GenericHashEntry(NetworkInterface *_iface) {
-  hash_next = NULL, iface = _iface, first_seen = last_seen = 0, 
-    will_be_purged = false, num_uses = 0;
+  hash_next = NULL, iface = _iface, first_seen = last_seen = 0, num_uses = 0;
+
+  hash_entry_state = hash_entry_state_active;
   
   if(iface && iface->getTimeLastPktRcvd() > 0)
     first_seen = last_seen = iface->getTimeLastPktRcvd();
@@ -58,14 +59,16 @@ void GenericHashEntry::updateSeen() {
 /* ***************************************** */
 
 bool GenericHashEntry::idle() {
-  return(true); // Virtual
+  if(ntop->getGlobals()->isShutdownRequested() || ntop->getGlobals()->isShutdown())
+    return true;
+
+  return hash_entry_state != hash_entry_state_active;
 }
 
 /* ***************************************** */
 
 bool GenericHashEntry::isIdle(u_int max_idleness) {
-  return(will_be_purged 
-	 || (((u_int)(iface->getTimeLastPktRcvd()) > (last_seen+max_idleness)) ? true : false));
+  return((((u_int)(iface->getTimeLastPktRcvd()) > (last_seen + max_idleness)) ? true : false));
 }
 
 /* ***************************************** */

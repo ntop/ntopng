@@ -40,6 +40,8 @@ LocalHost::LocalHost(NetworkInterface *_iface, char *ipAddress, u_int16_t _vlanI
 /* *************************************** */
 
 LocalHost::~LocalHost() {
+  iface->decNumHosts(true /* A local host */);
+
   if(data_delete_requested)
     deleteRedisSerialization();
   else if((ntop->getPrefs()->is_idle_local_host_cache_enabled()
