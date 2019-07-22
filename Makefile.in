@@ -44,7 +44,7 @@ LUA_LIB=$(LUA_HOME)/src/liblua.a
 
 ######
 LIBRRDTOOL_HOME=${PWD}/third-party/rrdtool-1.4.8
-HAS_LIBRRDTOOL=$(shell pkg-config --atleast-version=1.4.8 librrd; echo $$?)
+HAS_LIBRRDTOOL=$(shell pkg-config --atleast-version=1.4.8 librrd & echo 0)
 ifeq ($(HAS_LIBRRDTOOL), 0)
 	LIBRRDTOOL_INC = $(shell pkg-config --cflags librrd)
 	LIBRRDTOOL_LIB = $(shell pkg-config --libs librrd) # -lrrd_th
@@ -70,7 +70,7 @@ HTTPCLIENT_INC=${PWD}/third-party/http-client-c/src/
 
 ######
 
-HAS_JSON=$(shell pkg-config --exists json-c; echo $$?)
+HAS_JSON=$(shell pkg-config --exists json-c & echo 0)
 ifeq ($(HAS_JSON), 0)
 	JSON_INC = $(shell pkg-config --cflags json-c)
 	JSON_LIB = $(shell pkg-config --libs json-c)
@@ -83,7 +83,7 @@ endif
 ######
 
 ifeq (@NEDGE@, 0)
- HAS_SODIUM=$(shell pkg-config --exists libsodium; echo $$?)
+ HAS_SODIUM=$(shell pkg-config --exists libsodium & echo 0)
  ifeq ($(HAS_SODIUM), 0)
 	SODIUM_INC = $(shell pkg-config --cflags libsodium)
 	SODIUM_LIB = $(shell pkg-config --libs libsodium)
@@ -92,7 +92,7 @@ ifeq (@NEDGE@, 0)
 	SODIUM_LIB=
  endif
 
- HAS_ZEROMQ=$(shell pkg-config --exists libzmq; echo $$?)
+ HAS_ZEROMQ=$(shell pkg-config --exists libzmq & echo 0)
  ifeq ($(HAS_ZEROMQ), 0)
 	ZEROMQ_INC = $(shell pkg-config --cflags libzmq)
 	ZMQ_STATIC=/usr/local/lib/libzmq.a
@@ -107,7 +107,7 @@ ifeq (@NEDGE@, 0)
 	ZEROMQ_LIB=$(ZEROMQ_HOME)/.libs/libzmq.a
  endif
 
- HAS_ZSTD=$(shell pkg-config --exists libzstd; echo $$?)
+ HAS_ZSTD=$(shell pkg-config --exists libzstd & echo 0)
  ifeq ($(HAS_ZSTD), 0)
 	ZSTD_LIB = $(shell pkg-config --libs libzstd)
  endif
