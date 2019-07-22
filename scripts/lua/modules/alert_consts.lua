@@ -73,6 +73,7 @@ local function formatAlertEntity(ifid, entity_type, entity_value)
    require "flow_utils"
    local value
    local epoch_begin, epoch_end = getAlertTimeBounds({alert_tstamp = os.time()})
+   local label = string.lower(alert_consts.alert_entities[entity_type].label)
 
    if entity_type == "host" then
       local host_info = hostkey2hostinfo(entity_value)
@@ -93,6 +94,9 @@ local function formatAlertEntity(ifid, entity_type, entity_value)
       value = "<a href='"..ntop.getHttpPrefix().."/lua/network_details.lua?network_cidr="..
         entity_value.."&page=historical&epoch_begin=".. epoch_begin
          .."&epoch_end=".. epoch_end .."'>" ..value.."</a>"
+   elseif entity_type == "host_pool" then
+      host_pools_utils = require("host_pools_utils")
+      value = host_pools_utils.getPoolName(ifid, entity_value)
    else
       -- fallback
       value = entity_value
@@ -105,7 +109,7 @@ local function formatAlertEntity(ifid, entity_type, entity_value)
       return localized
    else
       -- fallback
-      return entity_type.." "..value
+      return label.." "..value
    end
 end
 

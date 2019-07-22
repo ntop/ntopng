@@ -49,16 +49,14 @@ class AlertableEntity {
     alert_cache[(u_int)p][key] = value;
   }
 
-  inline u_int getNumTriggeredAlerts(ScriptPeriodicity p) {
-    return(triggered_alerts[(u_int)p].size());
-  }
-
+  u_int getNumTriggeredAlerts(ScriptPeriodicity p);
   inline void setEntityValue(const char *ent_val) { entity_val = ent_val; }
 
   bool triggerAlert(std::string key, ScriptPeriodicity p, time_t now,
     AlertLevel alert_severity, AlertType alert_type,
     const char *alert_subtype,
-    const char *alert_json);
+    const char *alert_json,
+    bool alert_disabled);
   bool releaseAlert(lua_State* vm, std::string key, ScriptPeriodicity p);
 
   void luaAlert(lua_State* vm, Alert *alert, ScriptPeriodicity p);

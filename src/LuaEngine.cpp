@@ -6184,8 +6184,8 @@ static int ntop_run_live_extraction(lua_State *vm) {
 /* ****************************************** */
 
 static int ntop_bitmap_is_set(lua_State *vm) {
-  u_int32_t bitmap;
-  u_int32_t val;
+  u_int64_t bitmap;
+  u_int64_t val;
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   bitmap = lua_tointeger(vm, 1);
@@ -6199,8 +6199,8 @@ static int ntop_bitmap_is_set(lua_State *vm) {
 /* ****************************************** */
 
 static int ntop_bitmap_set(lua_State *vm) {
-  u_int32_t bitmap;
-  u_int32_t val;
+  u_int64_t bitmap;
+  u_int64_t val;
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   bitmap = lua_tointeger(vm, 1);
@@ -6214,8 +6214,8 @@ static int ntop_bitmap_set(lua_State *vm) {
 /* ****************************************** */
 
 static int ntop_bitmap_clear(lua_State *vm) {
-  u_int32_t bitmap;
-  u_int32_t val;
+  u_int64_t bitmap;
+  u_int64_t val;
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   bitmap = lua_tointeger(vm, 1);
@@ -8250,7 +8250,7 @@ static int ntop_store_triggered_alert(lua_State* vm, AlertableEntity *alertable)
   AlertLevel alert_severity;
   AlertType alert_type;
   Host *host;
-  bool triggered;
+  bool triggered, alert_disabled;
 
   if(!alertable) return(CONST_LUA_PARAM_ERROR);
 
@@ -8272,8 +8272,11 @@ static int ntop_store_triggered_alert(lua_State* vm, AlertableEntity *alertable)
   if(ntop_lua_check(vm, __FUNCTION__, 6, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   if((alert_json = (char*)lua_tostring(vm, 6)) == NULL) return(CONST_LUA_PARAM_ERROR);
 
+  if(ntop_lua_check(vm, __FUNCTION__, 7, LUA_TBOOLEAN) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  alert_disabled = lua_toboolean(vm, 7);
+
   if((triggered = alertable->triggerAlert(std::string(key), periodicity, time(NULL),
-      alert_severity, alert_type, alert_subtype, alert_json)))
+      alert_severity, alert_type, alert_subtype, alert_json, alert_disabled)))
     c->iface->incNumAlertsEngaged(periodicity);
 
   if(triggered && (host = dynamic_cast<Host*>(alertable)))

@@ -126,6 +126,10 @@ typedef enum {
   alert_broadcast_domain_too_large = 34,
   alert_ids = 35,
   misconfigured_dhcp_range = 36,
+  /* 
+     IMPORTANT IMPORTANT IMPORTANT
+     If # status >= 64 then extend Utils.h and Lua bitmap functions to handle it
+  */
 } AlertType; /*
 	       NOTE:
 	       keep it in sync with alert_type_keys
