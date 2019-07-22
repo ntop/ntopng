@@ -12,6 +12,7 @@ require "flow_utils"
 local format_utils = require "format_utils"
 local json = require "dkjson"
 local alerts_api = require "alerts_api"
+local alert_consts = require "alert_consts"
 
 sendHTTPHeader('application/json')
 
@@ -27,6 +28,21 @@ if _GET["ifid"] ~= nil then
 end
 
 local ifid = interface.getId()
+local entities_bitmaps = {}
+
+local function getEntityAlertDisabledBitmap(entity, entity_val)
+  if((entities_bitmaps[entity] ~= nil) and (entities_bitmaps[entity][entity_val] ~= nil)) then
+    return entities_bitmaps[entity][entity_val]
+  end
+
+  local bitmap = alerts_api.getEntityAlertsDisabled(ifid, entity, entity_val)
+  entities_bitmaps[entity] = entities_bitmaps[entity] or {}
+  entities_bitmaps[entity][entity_val] = bitmap
+
+  return(bitmap)
+end
+
+--~ function alerts_api.getEntityAlertsDisabled(ifid, entity, entity_val)
 
 if(tonumber(_GET["currentPage"]) == nil) then _GET["currentPage"] = 1 end
 if(tonumber(_GET["perPage"]) == nil) then _GET["perPage"] = getDefaultTableSize() end
@@ -108,7 +124,7 @@ for _key,_value in ipairs(alerts) do
    local alert_id        = _value["rowid"]
 
    if _value["alert_entity"] ~= nil then
-      alert_entity    = alertEntityLabel(_value["alert_entity"])
+      alert_entity    = tonumber(_value["alert_entity"])
    else
       alert_entity = "flow" -- flow alerts page doesn't have an entity
    end
@@ -168,14 +184,22 @@ for _key,_value in ipairs(alerts) do
 
    end
 
+   if status ~= "historical-flows" then
+     local bitmap = getEntityAlertDisabledBitmap(_value["alert_entity"], _value["alert_entity_val"])
+
+     record["column_entity_formatted"] = alert_consts.formatAlertEntity(ifid, alertEntityRaw(_value["alert_entity"]), _value["alert_entity_val"])
+     record["column_alert_disabled"] = ntop.bitmapIsSet(bitmap, tonumber(_value["alert_type"]))
+   end
+
    record["column_key"] = column_id
    record["column_date"] = column_date
    record["column_duration"] = column_duration
    record["column_severity"] = column_severity
    record["column_count"] = column_count
    record["column_type"] = column_type
+   record["column_type_id"] = tonumber(_value["alert_type"])
    record["column_msg"] = column_msg
-   record["column_entity"] = alert_entity
+   record["column_entity_id"] = alert_entity
    record["column_entity_val"] = alert_entity_val
    record["column_chart"] = column_chart
 

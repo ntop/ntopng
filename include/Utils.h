@@ -180,14 +180,14 @@ class Utils {
   static void init_pcap_header(struct pcap_file_header * const h, NetworkInterface * const iface);
 
   /* Bitmap functions */
-  static inline bool bitmapIsSet(u_int32_t bitmap, u_int32_t v) {
+  static inline bool bitmapIsSet(u_int64_t bitmap, u_int64_t v) {
     return(((bitmap >> v) & 1U) ? true : false);
   }
-  static inline u_int32_t bitmapSet(u_int32_t bitmap, u_int32_t v) {
+  static inline u_int64_t bitmapSet(u_int64_t bitmap, u_int64_t v) {
     bitmap |= 1U << v;
     return(bitmap);
   }
-  static inline u_int32_t bitmapClear(u_int32_t bitmap, u_int32_t v) {
+  static inline u_int64_t bitmapClear(u_int64_t bitmap, u_int64_t v) {
     bitmap &= ~(1U << v);
     return(bitmap);
   }

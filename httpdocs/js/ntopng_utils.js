@@ -637,6 +637,10 @@ function tstampToDateString(html_tag, format, tdiff) {
   return localized;
 }
 
+function noHtml(s) {
+  return s.replace(/<[^>]+>/g, '');
+}
+
 function cleanCustomHostUrl(host) {
   /* Remove starting http(s). */
   return host

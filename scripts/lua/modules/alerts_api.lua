@@ -52,6 +52,46 @@ end
 
 -- ##############################################
 
+local function getEntityDisabledAlertsCountersKey(ifid, entity, entity_val)
+  return(string.format("ntopng.cache.alerts.ifid_%d.%d_%s", ifid, entity, entity_val))
+end
+
+local function incDisabledAlertsCount(ifid, granularity_id, entity, entity_val, alert_type)
+  local key = getEntityDisabledAlertsCountersKey(ifid, entity, entity_val)
+
+  -- NOTE: using separate keys based on granularity to avoid concurrency issues
+  counter_key = string.format("%d_%d", granularity_id, alert_type)
+
+  local val = tonumber(ntop.getHashCache(key, counter_key)) or 0
+  val = val + 1
+  ntop.setHashCache(key, counter_key, string.format("%d", val))
+  return(val)
+end
+
+-- ##############################################
+
+function alerts_api.getEntityDisabledAlertsCounters(ifid, entity, entity_val)
+  local key = getEntityDisabledAlertsCountersKey(ifid, entity, entity_val)
+  local entity_counters = ntop.getHashAllCache(key) or {}
+  local by_alert_type = {}
+
+  for what, counter in pairs(entity_counters) do
+    local parts = string.split(what, "_")
+
+    if((parts) and (#parts == 2)) then
+      local granularity_id = tonumber(parts[1])
+      local alert_type = tonumber(parts[2])
+
+      by_alert_type[alert_type] = by_alert_type[alert_type] or 0
+      by_alert_type[alert_type] = by_alert_type[alert_type] + counter
+    end
+  end
+
+  return(by_alert_type)
+end
+
+-- ##############################################
+
 --! @brief Creates an alert object
 --! @param metadata the information about the alert type and severity
 --! @return an alert object on success, nil on error
@@ -105,10 +145,16 @@ end
 function alerts_api:trigger(entity_value, alert_message, when)
   local force = false
   local msg = alert_message
+  local ifid = interface.getId()
   when = when or os.time()
 
   if(type(alert_message) == "table") then
     msg = json.encode(alert_message)
+  end
+
+  if alerts_api.isEntityAlertDisabled(ifid, self.entity_type_id, entity_value, self.type_id) then
+    incDisabledAlertsCount(ifid, -1, self.entity_type_id, entity_value, self.type_id)
+    return(false)
   end
 
   local rv = interface.storeAlert(when, when, self.periodicity,
@@ -280,17 +326,19 @@ end
 --! @return true on success, false otherwise
 function alerts_api.new_trigger(entity_info, type_info, when)
   when = when or os.time()
+  local ifid = interface.getId()
   local granularity_sec = type_info.alert_granularity and type_info.alert_granularity.granularity_seconds or 0
   local granularity_id = type_info.alert_granularity and type_info.alert_granularity.granularity_id or nil
   local subtype = type_info.alert_subtype or ""
   local alert_json = json.encode(type_info.alert_type_params)
+  local is_disabled = alerts_api.isEntityAlertDisabled(ifid, entity_info.alert_entity.entity_id, entity_info.alert_entity_val, type_info.alert_type.alert_id)
 
   if(granularity_id ~= nil) then
     local triggered = true
     local alert_key_name = get_alert_triggered_key(type_info)
     local params = {alert_key_name, granularity_id,
       type_info.alert_type.severity.severity_id, type_info.alert_type.alert_id,
-      subtype, alert_json
+      subtype, alert_json, is_disabled
     }
 
     if((host.storeTriggeredAlert) and (entity_info.alert_entity.entity_id == alertEntity("host"))) then
@@ -305,13 +353,18 @@ function alerts_api.new_trigger(entity_info, type_info, when)
       if(do_trace) then print("[DON'T Trigger alert (already triggered?) @ "..granularity_sec.."] "..
         entity_info.alert_entity_val .."@"..type_info.alert_type.i18n_title.."\n") end
       return(false)
+    elseif(is_disabled) then
+      if(do_trace) then print("[COUNT Disabled alert @ "..granularity_sec.."] "..
+        entity_info.alert_entity_val .."@"..type_info.alert_type.i18n_title.."\n") end
+
+      incDisabledAlertsCount(ifid, granularity_id, entity_info.alert_entity.entity_id, entity_info.alert_entity_val, type_info.alert_type.alert_id)
     end
   end
 
   local action = ternary((granularity_id ~= nil), "engaged", "stored")
 
   local alert_event = {
-    ifid = interface.getId(),
+    ifid = ifid,
     granularity = granularity_sec,
     entity_type = entity_info.alert_entity.entity_id,
     entity_value = entity_info.alert_entity_val,
@@ -613,6 +666,93 @@ function alerts_api.threshold_cross_input_builder(gui_conf, input_id, value)
     gui_conf.field_min or "0", gui_conf.field_max or "", gui_conf.field_step or "1",
     input_val, value[2], i18n(gui_conf.i18n_field_unit))
   )
+end
+
+-- ##############################################
+
+local function getEntityDisabledAlertsBitmapKey(ifid, entity, entity_val)
+  return string.format("ntopng.prefs.alerts.ifid_%d.disabled_alerts.__%s__%s", ifid, entity, entity_val)
+end
+
+-- ##############################################
+
+function alerts_api.getEntityAlertsDisabled(ifid, entity, entity_val)
+  local bitmap = tonumber(ntop.getPref(getEntityDisabledAlertsBitmapKey(ifid, entity, entity_val))) or 0
+  return(bitmap)
+end
+
+-- ##############################################
+
+function alerts_api.setEntityAlertsDisabled(ifid, entity, entity_val, bitmap)
+  local key = getEntityDisabledAlertsBitmapKey(ifid, entity, entity_val)
+
+  if(bitmap == 0) then
+    ntop.delCache(key)
+  else
+    ntop.setPref(key, string.format("%u", bitmap))
+  end
+end
+
+-- ##############################################
+
+local function toggleEntityAlert(ifid, entity, entity_val, alert_type, disable)
+  alert_type = tonumber(alert_type)
+  bitmap = alerts_api.getEntityAlertsDisabled(ifid, entity, entity_val)
+
+  if(disable) then
+    bitmap = ntop.bitmapSet(bitmap, alert_type)
+  else
+    bitmap = ntop.bitmapClear(bitmap, alert_type)
+  end
+
+  alerts_api.setEntityAlertsDisabled(ifid, entity, entity_val, bitmap)
+  return(bitmap)
+end
+
+-- ##############################################
+
+function alerts_api.disableEntityAlert(ifid, entity, entity_val, alert_type)
+  return(toggleEntityAlert(ifid, entity, entity_val, alert_type, true))
+end
+
+-- ##############################################
+
+function alerts_api.enableEntityAlert(ifid, entity, entity_val, alert_type)
+  return(toggleEntityAlert(ifid, entity, entity_val, alert_type, false))
+end
+
+-- ##############################################
+
+function alerts_api.isEntityAlertDisabled(ifid, entity, entity_val, alert_type)
+  local bitmap = alerts_api.getEntityAlertsDisabled(ifid, entity, entity_val)
+  return(ntop.bitmapIsSet(bitmap, tonumber(alert_type)))
+end
+
+-- ##############################################
+
+function alerts_api.hasEntitiesWithAlertsDisabled(ifid)
+  return(table.len(ntop.getKeysCache(getEntityDisabledAlertsBitmapKey(ifid, "*", "*"))) > 0)
+end
+
+-- ##############################################
+
+function alerts_api.listEntitiesWithAlertsDisabled(ifid)
+  local keys = ntop.getKeysCache(getEntityDisabledAlertsBitmapKey(ifid, "*", "*")) or {}
+  local res = {}
+
+  for key in pairs(keys) do
+    local parts = string.split(key, "__")
+
+    if((parts) and (#parts == 3)) then
+      local entity = tonumber(parts[2])
+      local entity_val = parts[3]
+
+      res[entity] = res[entity] or {}
+      res[entity][entity_val] = true
+    end
+  end
+
+  return(res)
 end
 
 -- ##############################################

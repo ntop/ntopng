@@ -30,6 +30,7 @@ class Alert {
   AlertType alert_type;
   std::string alert_subtype;
   std::string alert_json;
+  bool is_disabled;
 };
 
 #endif

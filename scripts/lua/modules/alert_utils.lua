@@ -522,6 +522,24 @@ end
 
 -- #################################
 
+local function checkDisableAlerts()
+  if(_POST["action"] == "disable_alert") then
+    local entity = _POST["entity"]
+    local entity_val = _POST["entity_val"]
+    local alert_type = _POST["alert_type"]
+
+    alerts.disableEntityAlert(interface.getId(), entity, entity_val, alert_type)
+  elseif(_POST["action"] == "enable_alert") then
+    local entity = _POST["entity"]
+    local entity_val = _POST["entity_val"]
+    local alert_type = _POST["alert_type"]
+
+    alerts.enableEntityAlert(interface.getId(), entity, entity_val, alert_type)
+  end
+end
+
+-- #################################
+
 function checkDeleteStoredAlerts()
    _GET["status"] = _GET["status"] or _POST["status"]
 
@@ -549,6 +567,8 @@ function checkDeleteStoredAlerts()
          _GET["alert_type"] = nil
       end
    end
+
+   checkDisableAlerts()
 end
 
 -- #################################
@@ -1454,6 +1474,76 @@ end
 
 -- #################################
 
+local function printDisabledAlerts(ifid)
+  local entitites = alerts.listEntitiesWithAlertsDisabled(ifid)
+
+  print(
+      template.gen("modal_confirm_dialog.html", {
+		      dialog={
+			 id      = "enable_alert_type",
+			 action  = "toggleAlert(false)",
+			 title   = i18n("show_alerts.enable_alerts_title"),
+			 message = i18n("show_alerts.enable_alerts_message", {
+        type = "<span class='toggle-alert-id'></span>",
+        entity_value = "<span class='toggle-alert-entity-value'></span>"
+       }),
+			 confirm = i18n("show_alerts.enable_alerts"),
+		      }
+      })
+   )
+
+  print[[
+  <div id="#table-disabled-alerts"></div>
+
+  <script>
+  $("#table-disabled-alerts").datatable({
+    url: "]] print(ntop.getHttpPrefix()) print [[/lua/get_disabled_alerts.lua",
+    showPagination: true,
+    title: "]] print(i18n("show_alerts.disabled_alerts")) print[[",
+      columns: [
+	 {
+	    title: "]]print(i18n("show_alerts.alarmable"))print[[",
+	    field: "column_entity_formatted",
+            sortable: true,
+	    css: {
+	       textAlign: 'center',
+          whiteSpace: 'nowrap',
+          width: '35%',
+	    }
+	 },{
+	    title: "]]print(i18n("show_alerts.alert_type"))print[[",
+	    field: "column_type",
+            sortable: true,
+	    css: {
+	       textAlign: 'center',
+          whiteSpace: 'nowrap',
+	    }
+	 },{
+	    title: "]]print(i18n("show_alerts.num_ignored_alerts"))print[[",
+	    field: "column_count",
+            sortable: true,
+	    css: {
+	       textAlign: 'center',
+          whiteSpace: 'nowrap',
+	    }
+	 },{
+	    title: "]]print(i18n("show_alerts.alert_actions")) print[[",
+	    css: {
+	       textAlign: 'center',
+	    }
+	 }], tableCallback: function() {
+        var enable_alerts_dialog = "#enable_alert_type";
+
+        datatableForEachRow("#table-disabled-alerts", function(row_id) {
+           datatableAddActionButtonCallback.bind(this)(4, "prepareToggleAlertsDialog('table-disabled-alerts',"+ row_id +"); $('"+enable_alerts_dialog+"').modal('show');", "]] print(i18n("show_alerts.enable_alerts")) print[[");
+        })
+       }
+  });
+  </script>]]
+end
+
+-- #################################
+
 function drawAlertTables(num_past_alerts, num_engaged_alerts, num_flow_alerts, get_params, hide_extended_title, alt_nav_tabs, options)
    local alert_items = {}
    local url_params = {}
@@ -1467,6 +1557,22 @@ function drawAlertTables(num_past_alerts, num_engaged_alerts, num_flow_alerts, g
 			 title   = i18n("show_alerts.delete_alert"),
 			 message = i18n("show_alerts.confirm_delete_alert").."?",
 			 confirm = i18n("delete"),
+			 confirm_button = "btn-danger",
+		      }
+      })
+   )
+
+   print(
+      template.gen("modal_confirm_dialog.html", {
+		      dialog={
+			 id      = "disable_alert_type",
+			 action  = "toggleAlert(true)",
+			 title   = i18n("show_alerts.disable_alerts_title"),
+			 message = i18n("show_alerts.disable_alerts_message", {
+        type = "<span class='toggle-alert-id'></span>",
+        entity_value = "<span class='toggle-alert-entity-value'></span>"
+       }),
+			 confirm = i18n("show_alerts.disable_alerts"),
 		      }
       })
    )
@@ -1598,6 +1704,10 @@ function getCurrentStatus() {
 	 status = nil; status_reset = 1
       end
 
+      if alerts.hasEntitiesWithAlertsDisabled(ifId) then
+        alert_items[#alert_items +1] = {["label"] = i18n("show_alerts.disabled_alerts"), ["div-id"] = "table-disabled-alerts",  ["status"] = "disabled-alerts"}
+      end
+
       for k, t in ipairs(alert_items) do
 	 local clicked = "0"
 	 if((not alt_nav_tabs) and ((k == 1 and status == nil) or (status ~= nil and status == t["status"]))) then
@@ -1609,6 +1719,17 @@ function getCurrentStatus() {
       </div>
 
       <script type="text/javascript">
+      $("#]] print(nav_tab_id) print[[").append('<li class="]] print(ternary(options.engaged_only, 'hidden', '')) print[["><a href="#tab-]] print(t["div-id"]) print[[" clicked="]] print(clicked) print[[" role="tab" data-toggle="tab">]] print(t["label"]) print[[</a></li>')
+      </script>
+   ]]
+
+   if t["status"] == "disabled-alerts" then
+     printDisabledAlerts(ifId)
+     goto next_menu_item
+   end
+
+   print[[
+      <script type="text/javascript">
          function deleteAlertById(alert_id) {
             var params = {};
             params.id_to_delete = alert_id;
@@ -1619,7 +1740,30 @@ function getCurrentStatus() {
             form.appendTo('body').submit();
          }
 
-         $("#]] print(nav_tab_id) print[[").append('<li class="]] print(ternary(options.engaged_only, 'hidden', '')) print[["><a href="#tab-]] print(t["div-id"]) print[[" clicked="]] print(clicked) print[[" role="tab" data-toggle="tab">]] print(t["label"]) print[[</a></li>')
+         var alert_to_toggle = null;
+
+         function prepareToggleAlertsDialog(table_id, idx) {
+           var table_data = $("#" + table_id ).data("datatable").resultset.data;
+           var row = table_data[idx];
+           alert_to_toggle = row;
+
+           $(".toggle-alert-id").html(noHtml(row.column_type).trim());
+           $(".toggle-alert-entity-value").html(noHtml(row.column_entity_formatted).trim())
+         }
+
+         function toggleAlert(disable) {
+           var row = alert_to_toggle;
+           var params = {
+             "action": disable ? "disable_alert" : "enable_alert",
+             "entity": row.column_entity_id,
+             "entity_val": row.column_entity_val,
+             "alert_type": row.column_type_id,
+             "csrf": "]] print(ntop.getRandomCSRFValue()) print[[",
+           };
+
+           var form = paramsToForm('<form method="post"></form>', params);
+           form.appendTo('body').submit();
+         }
 
          $('a[href="#tab-]] print(t["div-id"]) print[["]').on('shown.bs.tab', function (e) {
          // append the li to the tabs
@@ -1759,24 +1903,28 @@ function getCurrentStatus() {
 
     {
 	    title: "]]print(i18n("show_alerts.alert_actions")) print[[",
-       ]]
-	 if t["status"] == "engaged" then
-	    print("hidden: true,")
-	 end
-	 print[[
 	    css: {
 	       textAlign: 'center',
 	    }
 	 }
       ], tableCallback: function() {
-            datatableForEachRow("#]] print(t["div-id"]) print[[", function(row_id) {
+            var table_data = $("#]] print(t["div-id"]) print[[").data("datatable").resultset.data;
+
+            datatableForEachRow("#]] print(t["div-id"]) print[[", function(row_id) {              
                var alert_key = $("td:nth(7)", this).html().split("|");
                var alert_id = alert_key[0];
                var historical_url = alert_key[1];
+               var disable_alerts_dialog = "#disable_alert_type";
+               var data = table_data[row_id];
 
-               if (typeof(historical_url) === "string")
+               if(typeof(historical_url) === "string") {
                   datatableAddLinkButtonCallback.bind(this)(9, historical_url, "]] print(i18n("show_alerts.explorer")) print[[");
-               datatableAddDeleteButtonCallback.bind(this)(9, "delete_alert_id ='" + alert_id + "'; $('#delete_alert_dialog').modal('show');", "]] print(i18n('delete')) print[[");
+                  disable_alerts_dialog = "#disable_flows_alerts";
+               } else if(!data.column_alert_disabled)
+                  datatableAddActionButtonCallback.bind(this)(9, "prepareToggleAlertsDialog(']] print(t["div-id"]) print[[',"+ row_id +"); $('"+disable_alerts_dialog+"').modal('show');", "]] print(i18n("show_alerts.disable_alerts")) print[[");
+
+               if(]] print(ternary(t["status"] ~= "engaged", "true", "false")) print[[)
+                 datatableAddDeleteButtonCallback.bind(this)(9, "delete_alert_id ='" + alert_id + "'; $('#delete_alert_dialog').modal('show');", "]] print(i18n('delete')) print[[");
 
                $("form", this).submit(function() {
                   // add "status" parameter to the form
@@ -1812,6 +1960,7 @@ function getCurrentStatus() {
    </script>
 	      ]]
 
+       ::next_menu_item::
       end
 
       local zoom_vals = {
@@ -1965,6 +2114,7 @@ function drawAlerts(options)
    end
 
    checkDeleteStoredAlerts()
+   checkDisableAlert()
 
    return drawAlertTables(num_past_alerts, num_engaged_alerts, num_flow_alerts, _GET, true, nil, options)
 end
