@@ -2949,7 +2949,7 @@ void NetworkInterface::periodicStatsUpdate() {
 #endif
 
   if(!isView() && flows_hash) /* View Interfaces don't have flows, they just walk flows of their 'viewed' peers */
-    flows_hash->walk(&begin_slot, walk_all, flow_update_hosts_stats, (void*)&tv, true);
+    walker(&begin_slot, walk_all, walker_flows, flow_update_hosts_stats, (void*)&tv, true);
 
   topItemsCommit(&tv);
 
@@ -3004,7 +3004,7 @@ void NetworkInterface::periodicStatsUpdate() {
       update_hosts_stats_user_data.tv = &tv;
 
     begin_slot = 0;
-    hosts_hash->walk(&begin_slot, walk_all, update_hosts_stats, &update_hosts_stats_user_data, true);
+    walker(&begin_slot, walk_all, walker_hosts, update_hosts_stats, &update_hosts_stats_user_data, true);
 
     if(update_hosts_stats_user_data.acle)
       delete update_hosts_stats_user_data.acle;
@@ -3017,22 +3017,22 @@ void NetworkInterface::periodicStatsUpdate() {
 
   if(ases_hash) {
     begin_slot = 0;
-    ases_hash->walk(&begin_slot, walk_all, update_generic_element_stats, (void*)&tv, true);
+    walker(&begin_slot, walk_all, walker_ases, update_generic_element_stats, (void*)&tv, true);
   }
 
   if(countries_hash) {
     begin_slot = 0;
-    countries_hash->walk(&begin_slot, walk_all, update_generic_element_stats, (void*)&tv, true);
+    walker(&begin_slot, walk_all, walker_countries, update_generic_element_stats, (void*)&tv, true);
   }
 
   if(vlans_hash && hasSeenVlanTaggedPackets()) {
     begin_slot = 0;
-    vlans_hash->walk(&begin_slot, walk_all, update_generic_element_stats, (void*)&tv, true);
+    walker(&begin_slot, walk_all, walker_vlans, update_generic_element_stats, (void*)&tv, true);
   }
 
   if(macs_hash) {
     begin_slot = 0;
-    macs_hash->walk(&begin_slot, walk_all, update_macs_stats, (void*)&tv, true);
+    walker(&begin_slot, walk_all, walker_macs, update_macs_stats, (void*)&tv, true);
   }
 
 #ifdef PERIODIC_STATS_UPDATE_DEBUG_TIMING
@@ -3178,12 +3178,12 @@ void NetworkInterface::refreshHostPools() {
 
   if(hosts_hash) {
     begin_slot = 0;
-    hosts_hash->walk(&begin_slot, walk_all, update_host_host_pool_l7policy, &update_host);
+    walker(&begin_slot, walk_all, walker_hosts, update_host_host_pool_l7policy, &update_host);
   }
 
   if(macs_hash) {
     begin_slot = 0;
-    macs_hash->walk(&begin_slot, walk_all, update_l2_device_host_pool, NULL);
+    walker(&begin_slot, walk_all, walker_macs, update_l2_device_host_pool, NULL);
   }
 
 #ifdef HAVE_NEDGE
@@ -3219,10 +3219,8 @@ void NetworkInterface::updateHostsL7Policy(u_int16_t host_pool_id) {
 
   /* Pool id didn't change here so there's no need to walk on the macs
    as policies are set on the hosts */
-  if(hosts_hash) {
-    hosts_hash->walk(&begin_slot, walk_all,
-		     update_host_host_pool_l7policy, &update_host);
-  }
+  if(hosts_hash)
+    walker(&begin_slot, walk_all, walker_hosts, update_host_host_pool_l7policy, &update_host);
 }
 
 /* **************************************************** */
@@ -3233,7 +3231,8 @@ void NetworkInterface::updateFlowsL7Policy() {
 
   if(isView()) return;
 
-  if(flows_hash) flows_hash->walk(&begin_slot, walk_all, update_flow_l7_policy, NULL);
+  if(flows_hash)
+    walker(&begin_slot, walk_all, walker_flows, update_flow_l7_policy, NULL);
 }
 
 /* **************************************************** */
@@ -3516,7 +3515,8 @@ void NetworkInterface::updateFlowProfiles() {
     newP->loadProfiles(); /* and reload */
     flow_profiles = newP; /* Overwrite the current profiles */
 
-    if(flows_hash) flows_hash->walk(&begin_slot, walk_all, update_flow_profile, NULL);
+    if(flows_hash)
+      walker(&begin_slot, walk_all, walker_flows, update_flow_profile, NULL);
   }
 }
 #endif
