@@ -28,6 +28,52 @@
  *  @brief Base hash entry class.
  *  @details Defined the base hash entry class for ntopng.
  *
+ *  This class handle entries placed in hash tables built
+ *  with class GenericHash.
+ *
+ *  GenericHashEntry has a lifecycle which is written into
+ *  the enum HashEntryState and is implemented as a finite states
+ *  machine. States are:
+ *
+ *  - hash_entry_state_active. This state is the default one which
+ *  is set as soon as the GenericHashEntry is instantiated.
+ *
+ *  - hash_entry_state_idle. This state is set by method purgeIdle
+ *  in class GenericHash and is used to explicitly mark the entry 
+ *  as idle. NOTE that purgeIdle is always called inline, that is,
+ *  in the thread which receives the incoming packets (or incoming
+ *  flows). Once the entry has been marked as hash_entry_state_idle,
+ *  the inline thread will not be able to fetch the entry again. Howevever,
+ *  before deleting the entry, an extra transition is needed to make sure
+ *  also a non-inline periodic thread has seen the entry.
+ *
+ *  - hash_entry_state_ready_to_be_purged. This state is set by
+ *  non-inline periodic threads, generally from method updateStats,
+ *  only after the inline thread has set state hash_entry_state_idle. This
+ *  guarantees that also a non-inline thread has seen the entry before
+ *  cleaning it up and freeing its memory. Once this state has been set,
+ *  the inline-thread will perform the actual delete to free the memory.
+ *
+ *  The following diagram recaps the states transitions
+ *
+ *             ..new..
+ *                |
+ *                |
+ *                v
+ *      hash_entry_state_active
+ *                |
+ *                | [inline]
+ *                v
+ *      hash_entry_state_idle
+ *                |
+ *                | [non-inline]
+ *                v
+ *      hash_entry_state_ready_to_be_purged
+ *                |
+ *                |
+ *                v
+ *          ...deleted...
+ *
  *  @ingroup MonitoringData
  *
  */
