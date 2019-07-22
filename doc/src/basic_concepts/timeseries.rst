@@ -21,12 +21,12 @@ RRD Driver
 
 RRD is the default driver used. It writes data in the form of local `.rrd` files.
 With RRD the retention time for recorded data is fixed 1 year. RRD automatically
-aggregates old data to save space, reducing its resolution. Ence older data will be
+aggregates old data to save space, reducing its resolution. Hence older data will be
 aggregated together and finally be removed after 1 year (in fact RRD stands for *Round Robin*
 Database).
 
 Querying a single data series is efficient since the data is contained into a single file,
-while performing more conplex queries on multiple data series (e.g. when trying to determinate
+while performing more complex queries on multiple data series (e.g. when trying to determine
 the top protocols) can take some time. Moreover RRD has shown some limitations when writing
 a large volume of data, usually leading to gaps in the timeseries data points. With a large
 volume of data, the use of InfluxDB is suggested.
@@ -36,7 +36,7 @@ InfluxDB Driver
 
 ntopng supports writing and fetching timeseries data from an InfluxDB server.
 Since database communication happens via the network, the server can also be located
-into an external host.
+on an external host.
 
 .. note::
 
@@ -92,7 +92,7 @@ current export status:
  - A "green" badge means that the export is working properly;
  - A "yellow" badge means there are issues with the export (for
    example ntopng is not able to reach InfluxDB) but such errors are
-   recoverable an no data is lost;
+   recoverable and no data is lost;
  - A "red" badge means there are issues with the export that are
    non-recoverable and this led to the loss of data points.
 
@@ -117,7 +117,7 @@ The other metrics shown in the status page have the following meaning:
    contact InfluxDB several times before actually dropping
    points. Reasons for dropped points could be an unreachable, down, overloaded or
    significantly impaired InfluxDB.
- - "Series Cardinality" provides an indication of how challenging is
+ - "Series Cardinality" provides an indication of how challenging it is
    for InfluxDB to handle written points. High  series cardinality is
    a primary driver of high memory usage for many database workloads.
    Hardware sizing guidelines for series cardinality
@@ -146,7 +146,7 @@ Moreover, having a lot of timeseries usually means slower query time.
 
 Enabling a "Traffic" timeseries usually has little impact on the performance. On the
 other hand, enabling the "Layer-7 Applications" (in particular for the local hosts)
-has an high impact since there are many protocols and timeseries must be processed
+has a high impact since there are many protocols and timeseries must be processed
 for each of them.
 
 It is possible to skip timeseries generation for a particular network interface
