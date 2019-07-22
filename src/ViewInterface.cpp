@@ -224,12 +224,13 @@ static bool viewed_flows_walker(GenericHashEntry *flow, void *user_data, bool *m
   ViewInterface *iface = (ViewInterface*)user_data;
   Flow *f = (Flow*)flow;
   time_t now = time(NULL);
-  bool flow_idle = f->idle();
+  bool acked_to_purge = f->is_acknowledged_to_purge();
 
-  iface->purgeIdle(now);
-
-  if(f->is_acknowledged_to_purge())
-    return false; /* Already visited for the last time after it has gone idle, keep walking */
+  if(acked_to_purge) {
+    /* We can set the 'ready to be purged' state on behalf of the underlying viewed interface.
+       It is safe as this view is in sync with the viewed interfaces by bean of acked_to_purge */
+    f->set_state(hash_entry_state_ready_to_be_purged);
+  }
 
   FlowTrafficStats partials;
   bool first_partial; /* Whether this is the first time the view is visiting this flow */
@@ -255,7 +256,7 @@ static bool viewed_flows_walker(GenericHashEntry *flow, void *user_data, bool *m
       if(first_partial)
 	cli_host->incNumFlows(f->get_last_seen(), true, srv_host), cli_host->incUses();
 
-      if(flow_idle)
+      if(acked_to_purge)
 	cli_host->decNumFlows(f->get_last_seen(), true, srv_host), cli_host->decUses();
     }
 
@@ -268,7 +269,7 @@ static bool viewed_flows_walker(GenericHashEntry *flow, void *user_data, bool *m
       if(first_partial)
 	srv_host->incUses(), srv_host->incNumFlows(f->get_last_seen(), false, cli_host);
 
-      if(flow_idle)
+      if(acked_to_purge)
 	srv_host->decUses(), srv_host->decNumFlows(f->get_last_seen(), false, cli_host);
     }
 
@@ -280,12 +281,6 @@ static bool viewed_flows_walker(GenericHashEntry *flow, void *user_data, bool *m
 		    24 /* 8 Preamble + 4 CRC + 12 IFG */ + 14 /* Ethernet header */);
     }
   }
-
-  /* The flow has already been marked as idle by the underlying viewed interface,
-     so now that we have seen it for the last time, and we know the underlying interface
-     won't change it again, we can acknowledge the flow so it can be purged. */
-  if(flow_idle)
-    f->set_acknowledge_to_purge();
 
   return false; /* Move on to the next flow, keep walking */
 }

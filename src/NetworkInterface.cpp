@@ -782,7 +782,7 @@ u_int32_t NetworkInterface::getVLANsHashSize() {
 /* **************************************************** */
 
 u_int32_t NetworkInterface::getFlowsHashSize() {
-  return(flows_hash->getNumEntries());
+  return(flows_hash ? flows_hash->getNumEntries() : 0);
 }
 
 /* **************************************************** */
@@ -816,7 +816,7 @@ bool NetworkInterface::walker(u_int32_t *begin_slot,
     break;
 
   case walker_flows:
-    ret = flows_hash->walk(begin_slot, walk_all, walker, user_data, walk_idle);
+    ret = flows_hash ? flows_hash->walk(begin_slot, walk_all, walker, user_data, walk_idle) : false;
     break;
 
   case walker_macs:
@@ -855,6 +855,9 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
   Flow *ret;
   Mac *primary_mac;
   Host *srcHost = NULL, *dstHost = NULL;
+
+  if(!flows_hash)
+    return(NULL);
 
   if(vlan_id != 0)
     setSeenVlanTaggedPackets();
@@ -2715,7 +2718,7 @@ void NetworkInterface::cleanup() {
   has_seen_containers = false, has_seen_pods = false;
 
   getStats()->cleanup();
-  flows_hash->cleanup();
+  if(flows_hash)      flows_hash->cleanup();
   if(hosts_hash)      hosts_hash->cleanup();
   if(ases_hash)       ases_hash->cleanup();
   if(countries_hash)  countries_hash->cleanup();
@@ -2945,7 +2948,7 @@ void NetworkInterface::periodicStatsUpdate() {
   gettimeofday(&tdebug, NULL);
 #endif
 
-  if(!isView()) /* View Interfaces don't have flows, they just walk flows of their 'viewed' peers */
+  if(!isView() && flows_hash) /* View Interfaces don't have flows, they just walk flows of their 'viewed' peers */
     flows_hash->walk(&begin_slot, walk_all, flow_update_hosts_stats, (void*)&tv, true);
 
   topItemsCommit(&tv);
@@ -3230,7 +3233,7 @@ void NetworkInterface::updateFlowsL7Policy() {
 
   if(isView()) return;
 
-  flows_hash->walk(&begin_slot, walk_all, update_flow_l7_policy, NULL);
+  if(flows_hash) flows_hash->walk(&begin_slot, walk_all, update_flow_l7_policy, NULL);
 }
 
 /* **************************************************** */
@@ -3513,7 +3516,7 @@ void NetworkInterface::updateFlowProfiles() {
     newP->loadProfiles(); /* and reload */
     flow_profiles = newP; /* Overwrite the current profiles */
 
-    flows_hash->walk(&begin_slot, walk_all, update_flow_profile, NULL);
+    if(flows_hash) flows_hash->walk(&begin_slot, walk_all, update_flow_profile, NULL);
   }
 }
 #endif
@@ -5120,10 +5123,12 @@ u_int NetworkInterface::purgeIdleFlows() {
   else {
     /* Time to purge flows */
 
+#if 0
     ntop->getTrace()->traceEvent(TRACE_INFO,
 				 "Purging idle flows [ifname: %s] [ifid: %i] [current size: %i]",
 				 ifname, id, flows_hash->getCurrentSize());
-    n = flows_hash->purgeIdle();
+#endif
+    n = (flows_hash ? flows_hash->purgeIdle() : 0);
 
     next_idle_flow_purge = last_packet_time + FLOW_PURGE_FREQUENCY;
     return(n);
@@ -5701,6 +5706,9 @@ Flow* NetworkInterface::findFlowByKey(u_int32_t key,
 				      AddressTree *allowed_hosts) {
   Flow *f = NULL;
 
+  if(!flows_hash)
+    return NULL;
+
   f = (Flow*)(flows_hash->findByKey(key));
 
   if(f && (!f->match(allowed_hosts))) f = NULL;
@@ -5717,6 +5725,9 @@ Flow* NetworkInterface::findFlowByTuple(u_int16_t vlan_id,
 					AddressTree *allowed_hosts) const {
   bool src2dst;
   Flow *f = NULL;
+
+  if(!flows_hash)
+    return NULL;
 
   f = (Flow*)flows_hash->find(src_ip, dst_ip, src_port, dst_port, vlan_id, l4_proto, NULL, &src2dst);
 

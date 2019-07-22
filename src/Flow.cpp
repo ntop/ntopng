@@ -1091,9 +1091,19 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
   NetworkStats *cli_network_stats;
 
   if(get_state() == hash_entry_state_idle) {
-    /* Marked as ready to be purged, will be purged by NetworkInterface::purgeIdleFlows */
+    if(iface->isViewed()) {
+      /* Must acknowledge so the overlying 'view' interface can actually set 
+         the flow state as ready to be purged once it has processed the flow for the last
+         time */
+      if(is_acknowledged_to_purge())
+	return; /* Already acknowledged, nothing else to do */
+      set_acknowledge_to_purge();
+    } else {
+      /* Marked as ready to be purged, will be purged by NetworkInterface::purgeIdleFlows */
+      set_state(hash_entry_state_ready_to_be_purged);
+    }
+
     postFlowSetIdle(tv->tv_sec);
-    set_state(hash_entry_state_ready_to_be_purged);
   }
 
   if(check_tor && (ndpiDetectedProtocol.app_protocol == NDPI_PROTOCOL_SSL)) {
