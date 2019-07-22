@@ -88,7 +88,7 @@ class GenericHashEntry {
    */
   inline void set_next(GenericHashEntry *n) { hash_next = n;           };
   inline void set_state(HashEntryState s)   { hash_entry_state = s;    };
-  inline HashEntryState get_state() const   { return hash_entry_state; };
+  HashEntryState get_state() const;
   void updateSeen();
   void updateSeen(time_t _last_seen);
   bool equal(GenericHashEntry *b)         { return((this == b) ? true : false); };  

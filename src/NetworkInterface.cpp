@@ -2870,9 +2870,6 @@ static bool flow_update_hosts_stats(GenericHashEntry *node,
   struct timeval *tv = (struct timeval*)user_data;
   bool dump_alert = ((time(NULL) - tv->tv_sec) < ntop->getPrefs()->get_housekeeping_frequency()) ? true : false;
 
-  if(ntop->getGlobals()->isShutdownRequested())
-    return(true); /* true = stop walking */
-
   flow->update_hosts_stats(tv, dump_alert);
   *matched = true;
 

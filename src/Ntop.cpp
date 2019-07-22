@@ -2055,7 +2055,13 @@ void Ntop::runHousekeepingTasks() {
 
 void Ntop::runShutdownTasks() {
   for(int i=0; i<num_defined_interfaces; i++) {
-    iface[i]->runShutdownTasks();
+    if(!iface[i]->isView())
+      iface[i]->runShutdownTasks();
+  }
+
+  for(int i=0; i<num_defined_interfaces; i++) {
+    if(iface[i]->isView())
+      iface[i]->runShutdownTasks();
   }
 }
 

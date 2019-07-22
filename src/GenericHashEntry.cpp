@@ -58,12 +58,18 @@ void GenericHashEntry::updateSeen() {
 
 /* ***************************************** */
 
-bool GenericHashEntry::idle() {
+HashEntryState GenericHashEntry::get_state() const {
   if(ntop->getGlobals()->isShutdownRequested() || ntop->getGlobals()->isShutdown())
-    return true;
+    return hash_entry_state_idle;
 
-  return hash_entry_state != hash_entry_state_active;
-}
+  return hash_entry_state;
+};
+
+/* ***************************************** */
+
+bool GenericHashEntry::idle() {
+  return get_state() != hash_entry_state_active;
+};
 
 /* ***************************************** */
 

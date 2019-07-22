@@ -247,38 +247,38 @@ static bool viewed_flows_walker(GenericHashEntry *flow, void *user_data, bool *m
 			   NULL /* no src mac yet */, (IpAddress*)cli_ip, &cli_host,
 			   NULL /* no dst mac yet */, (IpAddress*)srv_ip, &srv_host);
 
-    if(cli_host) {
-      cli_host->incStats(now, f->get_protocol(), f->getStatsProtocol(), f->getCustomApp(),
-			 partials.cli2srv_packets, partials.cli2srv_bytes, partials.cli2srv_goodput_bytes,
-			 partials.srv2cli_packets, partials.srv2cli_bytes, partials.srv2cli_goodput_bytes,
-			 cli_ip->isNonEmptyUnicastAddress());
+      if(cli_host) {
+	cli_host->incStats(now, f->get_protocol(), f->getStatsProtocol(), f->getCustomApp(),
+			   partials.cli2srv_packets, partials.cli2srv_bytes, partials.cli2srv_goodput_bytes,
+			   partials.srv2cli_packets, partials.srv2cli_bytes, partials.srv2cli_goodput_bytes,
+			   cli_ip->isNonEmptyUnicastAddress());
 
-      if(first_partial)
-	cli_host->incNumFlows(f->get_last_seen(), true, srv_host), cli_host->incUses();
+	if(first_partial)
+	  cli_host->incNumFlows(f->get_last_seen(), true, srv_host), cli_host->incUses();
 
-      if(acked_to_purge)
-	cli_host->decNumFlows(f->get_last_seen(), true, srv_host), cli_host->decUses();
-    }
+	if(acked_to_purge)
+	  cli_host->decNumFlows(f->get_last_seen(), true, srv_host), cli_host->decUses();
+      }
 
-    if(srv_host) {
-      srv_host->incStats(now, f->get_protocol(), f->getStatsProtocol(), f->getCustomApp(),
-			 partials.srv2cli_packets, partials.srv2cli_bytes, partials.srv2cli_goodput_bytes,
-			 partials.cli2srv_packets, partials.cli2srv_bytes, partials.cli2srv_goodput_bytes,
-			 srv_ip->isNonEmptyUnicastAddress());
+      if(srv_host) {
+	srv_host->incStats(now, f->get_protocol(), f->getStatsProtocol(), f->getCustomApp(),
+			   partials.srv2cli_packets, partials.srv2cli_bytes, partials.srv2cli_goodput_bytes,
+			   partials.cli2srv_packets, partials.cli2srv_bytes, partials.cli2srv_goodput_bytes,
+			   srv_ip->isNonEmptyUnicastAddress());
 
-      if(first_partial)
-	srv_host->incUses(), srv_host->incNumFlows(f->get_last_seen(), false, cli_host);
+	if(first_partial)
+	  srv_host->incUses(), srv_host->incNumFlows(f->get_last_seen(), false, cli_host);
 
-      if(acked_to_purge)
-	srv_host->decUses(), srv_host->decNumFlows(f->get_last_seen(), false, cli_host);
-    }
+	if(acked_to_purge)
+	  srv_host->decUses(), srv_host->decNumFlows(f->get_last_seen(), false, cli_host);
+      }
 
-    iface->incStats(true /* ingressPacket */,
-		    now, cli_ip && cli_ip->isIPv4() ? ETHERTYPE_IP : ETHERTYPE_IPV6,
-		    f->getStatsProtocol(), f->get_protocol(),
-		    partials.srv2cli_bytes + partials.cli2srv_bytes,
-		    partials.srv2cli_packets + partials.cli2srv_packets,
-		    24 /* 8 Preamble + 4 CRC + 12 IFG */ + 14 /* Ethernet header */);
+      iface->incStats(true /* ingressPacket */,
+		      now, cli_ip && cli_ip->isIPv4() ? ETHERTYPE_IP : ETHERTYPE_IPV6,
+		      f->getStatsProtocol(), f->get_protocol(),
+		      partials.srv2cli_bytes + partials.cli2srv_bytes,
+		      partials.srv2cli_packets + partials.cli2srv_packets,
+		      24 /* 8 Preamble + 4 CRC + 12 IFG */ + 14 /* Ethernet header */);
     }
   }
 
@@ -290,7 +290,7 @@ static bool viewed_flows_walker(GenericHashEntry *flow, void *user_data, bool *m
 void ViewInterface::flowPollLoop() {
   u_int32_t begin_slot;
 
-  while(isRunning()) {
+  while(!ntop->getGlobals()->isShutdownRequested()) {
     while(idle()) sleep(1);
 
     begin_slot = 0; /* Always visit all flows starting from the first slot */
@@ -328,7 +328,6 @@ void ViewInterface::shutdown() {
   void *res;
 
   if(isRunning()) {
-    running = false;
     NetworkInterface::shutdown();
     pthread_join(pollLoop, &res);
   }
