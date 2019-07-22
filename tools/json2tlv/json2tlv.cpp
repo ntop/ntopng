@@ -159,7 +159,6 @@ int main(int argc, char *argv[]) {
 
       case 'j':
         use_json_encoding = 1;
-        batch_size = 1;
       break;
 
       case 'v':
