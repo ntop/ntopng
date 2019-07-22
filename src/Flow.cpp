@@ -44,8 +44,8 @@ Flow::Flow(NetworkInterface *_iface,
     cli2srv_last_packets = 0, cli2srv_last_bytes = 0, srv2cli_last_packets = 0, srv2cli_last_bytes = 0,
     cli_host = srv_host = NULL, good_low_flow_detected = false,
     srv2cli_last_goodput_bytes = cli2srv_last_goodput_bytes = 0, good_ssl_hs = true,
-    flow_alerted = flow_dropped_counts_increased = false, vrfId = 0;   
-    
+    flow_alerted = flow_dropped_counts_increased = false, vrfId = 0;
+
   idle_mark = purge_acknowledged_mark = false;
 
   detection_completed = false;
@@ -279,7 +279,7 @@ bool Flow::triggerAlerts() const {
 void Flow::dumpFlowAlert() {
   time_t when;
   FlowStatus status;
-  
+
   if(!triggerAlerts())
     return;
 
@@ -394,14 +394,14 @@ void Flow::dumpFlowAlert() {
 	/* TODO: eventually increment a counter of untriggered alerts */
 	return;
       }
-      
+
       /* Check per-host thresholds */
       if(cli_host->incFlowAlertHits(when) || srv_host->incFlowAlertHits(when))
 	do_dump = false;
     }
-    
+
     if(do_dump)
-      iface->getAlertsManager()->storeFlowAlert(this);    
+      iface->getAlertsManager()->storeFlowAlert(this);
   }
 }
 
@@ -682,31 +682,39 @@ void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
 	 update the ports only if the flow has been observed from the beginning
 	 and it has been established
       */
+      dump_flow = ((src2dst_tcp_flags|dst2src_tcp_flags) & (TH_SYN|TH_PUSH)) == (TH_SYN|TH_PUSH);
+    } else if(protocol == IPPROTO_UDP) {
+#if 0
+      char buf[128];
 
-      if((src2dst_tcp_flags & (TH_SYN|TH_PUSH)) != (TH_SYN|TH_PUSH))
-	dump_flow = false;
-      else if((dst2src_tcp_flags & (TH_SYN|TH_PUSH)) != (TH_SYN|TH_PUSH))
-	dump_flow = false;
-    }
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%u/%u] %s",
+				   stats.cli2srv_packets, stats.srv2cli_packets,
+				   print(buf, sizeof(buf)));
+#endif
+      dump_flow = true;
+    } else
+      dump_flow = false;
 
-    if(dump_flow
-       && (srv_port != 0)
-       && ((protocol == IPPROTO_TCP) || (protocol == IPPROTO_UDP))) {
+    if(dump_flow && (srv_port != 0)) {
       u_int16_t p = ndpiDetectedProtocol.master_protocol;
       u_int16_t port = ntohs(srv_port);
-      
+
       if(p == NDPI_PROTOCOL_UNKNOWN)
 	p = ndpiDetectedProtocol.app_protocol;
 
-      if(cli_host)
-	cli_host->setFlowPort(false /* client */, protocol, port, p);
-      
-      if(srv_host)
-	srv_host->setFlowPort(true /* server */, protocol, port, p);    
-      
+      if(cli_host && cli_host->isLocalHost())
+	cli_host->setFlowPort(false /* client */, srv_host, protocol, port, p,
+			      getFlowInfo() ? getFlowInfo() : "",
+			      iface->getTimeLastPktRcvd());
+
+      if(srv_host && srv_host->isLocalHost())
+	srv_host->setFlowPort(true /* server */, cli_host, protocol, port, p,
+			      getFlowInfo() ? getFlowInfo() : "",
+			      iface->getTimeLastPktRcvd());
+
 #if 0
       char buf[128];
-      
+
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", print(buf, sizeof(buf)));
 #endif
     }
@@ -2034,7 +2042,7 @@ bool Flow::is_acknowledged_to_purge() const {
 
 void Flow::set_acknowledge_to_purge() {
   /* If there is a view interface on top of this interface
-     then such view can acknowledge a flow when it is ready 
+     then such view can acknowledge a flow when it is ready
      to purge. */
   if(iface->isViewed())
     purge_acknowledged_mark = true;

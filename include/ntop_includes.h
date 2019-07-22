@@ -338,6 +338,7 @@ using namespace std;
 #include "LocalHostStats.h"
 #include "LuaEngine.h"
 #include "AlertCheckLuaEngine.h"
+#include "PortContactStats.h"
 #include "Host.h"
 #include "LocalHost.h"
 #include "RemoteHost.h"

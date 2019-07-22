@@ -352,18 +352,25 @@ char * LocalHost::getIpBasedSerializationKey(char *redis_key, size_t size) {
 /* *************************************** */
 
 void LocalHost::ports2Lua(lua_State* vm, bool proto_udp, bool as_client) {
-  std::map<u_int16_t,u_int16_t> *s = as_client ? (proto_udp ? &udp_client_ports : &tcp_client_ports) : (proto_udp ? &udp_server_ports : &tcp_server_ports);
+  std::map<u_int16_t,PortContactStats> *s = as_client ? (proto_udp ? &udp_client_ports : &tcp_client_ports) : (proto_udp ? &udp_server_ports : &tcp_server_ports);
 
   if(s->size() > 0) {
-    std::map<u_int16_t,u_int16_t>::iterator it;
+    std::map<u_int16_t,PortContactStats>::iterator it;
     
     lua_newtable(vm);
     
     for(it = s->begin(); it != s->end(); ++it) {
       char buf[8];
-      
+
       snprintf(buf, sizeof(buf), "%u", it->first);
-      lua_push_str_table_entry(vm, buf, iface->get_ndpi_proto_name(it->second));
+	
+      lua_newtable(vm);
+
+      it->second.lua(vm, iface);
+      
+      lua_pushstring(vm, buf);
+      lua_insert(vm, -2);
+      lua_settable(vm, -3);
     }
     
     lua_pushstring(vm, as_client ? "client_ports" : "server_ports");
@@ -374,16 +381,31 @@ void LocalHost::ports2Lua(lua_State* vm, bool proto_udp, bool as_client) {
 
 /* *************************************** */
 
-void LocalHost::setFlowPort(bool as_server, u_int8_t protocol, u_int16_t port, u_int16_t l7_proto) {
+void LocalHost::updateFlowPort(std::map<u_int16_t,PortContactStats> *c, Host *peer,
+			       u_int16_t port, u_int16_t l7_proto,
+			       const char *info, time_t when) {
+  std::map<u_int16_t,PortContactStats>::iterator it = c->find(port);
+
+  if(it == c->end())
+    (*c)[port] = PortContactStats(l7_proto, peer, info, when);
+  else
+    it->second.update(peer, info, when);
+}
+
+/* *************************************** */
+
+void LocalHost::setFlowPort(bool as_server, Host *peer, u_int8_t protocol,
+			    u_int16_t port, u_int16_t l7_proto,
+			    const char *info, time_t when) {
   if(as_server) {
     if(protocol == IPPROTO_UDP)
-      udp_server_ports[port] = l7_proto;
+      updateFlowPort(&udp_server_ports, peer, port, l7_proto, info, when);
     else
-      tcp_server_ports[port] = l7_proto;
+      updateFlowPort(&tcp_server_ports, peer, port, l7_proto, info, when);
   } else {
     if(protocol == IPPROTO_UDP)
-      udp_client_ports[port] = l7_proto;
+      updateFlowPort(&udp_client_ports, peer, port, l7_proto, info, when);
     else
-      tcp_client_ports[port] = l7_proto;
+      updateFlowPort(&tcp_client_ports, peer, port, l7_proto, info, when);
   }
 }
