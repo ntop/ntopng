@@ -171,6 +171,16 @@ if test -z "$NDPI_INC" || test -z "$NDPI_LIB" ; then :
 fi
 dnl finish: nDPI handling
 
+pkg-config --exists json-c
+if test "$?" -ne 1; then
+  JSON_INC=`pkg-config --cflags json-c`
+  JSON_LIB=`pkg-config --libs json-c`
+else
+  echo "Please install libjson-c-dev package prerequisite"
+  exit -1
+fi
+
+
 pkg-config --exists libssl
 if test "$?" -ne 1; then
  AC_DEFINE_UNQUOTED(NO_SSL_DL, 1, [has openssl])
@@ -625,6 +635,8 @@ AC_SUBST(REVISION)
 AC_SUBST(MYSQL_LIB)
 AC_SUBST(MYSQL_INC)
 AC_SUBST(MYSQL_DEP)
+AC_SUBST(JSON_INC)
+AC_SUBST(JSON_LIB)
 AC_SUBST(PFRING_GIT_RELEASE)
 AC_SUBST(PFRING_VERSION)
 AC_SUBST(NEDGE)
