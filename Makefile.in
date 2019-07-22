@@ -130,10 +130,6 @@ ifneq ($(HAS_LIBRRDTOOL), 0)
 LIB_TARGETS += $(LIBRRDTOOL_LIB)
 endif
 
-ifneq ($(HAS_JSON), 0)
-LIB_TARGETS += $(JSON_LIB)
-endif
-
 .PHONY: default all clean docs test
 
 default: hooks/.enabled $(NDPI_LIB_DEP) $(LIB_TARGETS) $(TARGET)
@@ -163,9 +159,6 @@ $(ZEROMQ_LIB):
 # --disable-rrd_graph
 $(LIBRRDTOOL_LIB):
 	cd $(LIBRRDTOOL_HOME); ./configure --disable-libdbi --disable-libwrap --disable-rrdcgi --disable-libtool-lock --disable-nls --disable-rpath --disable-perl --disable-ruby --disable-lua --disable-tcl --disable-python --disable-dependency-tracking --disable-rrd_graph ; cd src; @GMAKE@ librrd_th.la
-
-$(JSON_LIB):
-	cd $(JSON_HOME); ./autogen.sh; ./configure; @GMAKE@
 
 hooks/.enabled:
 	git config core.hooksPath hooks || true
