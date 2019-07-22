@@ -163,7 +163,7 @@ class Utils {
   static void listInterfaces(lua_State* vm); 
   static bool validInterface(char *name);
   static void containerInfoLua(lua_State *vm, const ContainerInfo * const cont);
- 
+
   /* System Host Montoring and Diagnose Functions */
   static bool getCpuLoad(cpu_load_stats *out);
   static void luaMeminfo(lua_State* vm);
@@ -178,6 +178,19 @@ class Utils {
 
   /* Pcap files utiles */
   static void init_pcap_header(struct pcap_file_header * const h, NetworkInterface * const iface);
+
+  /* Bitmap functions */
+  static inline bool bitmapIsSet(u_int32_t bitmap, u_int32_t v) {
+    return(((bitmap >> v) & 1U) ? true : false);
+  }
+  static inline u_int32_t bitmapSet(u_int32_t bitmap, u_int32_t v) {
+    bitmap |= 1U << v;
+    return(bitmap);
+  }
+  static inline u_int32_t bitmapClear(u_int32_t bitmap, u_int32_t v) {
+    bitmap &= ~(1U << v);
+    return(bitmap);
+  }
 };
 
 #endif /* _UTILS_H_ */

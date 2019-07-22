@@ -1483,6 +1483,7 @@ local known_parameters = {
    ["hosts_only"]              = validateBool,
    ["rtt_hosts"]               = validateListOfTypeInline(validateSingleWord), -- TODO
    ["rtt_host"]                = validateSingleWord,
+   ["disabled_status"]         = validateListOfTypeInline(validateNumber),
 
    -- Containers
    ["pod"]                     = validateSingleWord,

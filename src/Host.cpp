@@ -186,7 +186,8 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   refreshHostAlertPrefs();
   PROFILING_SUB_SECTION_EXIT(iface, 19);
 
-  disabled_flow_status = 0; /* TODO: load it from redis preferences */
+  disabled_flow_status = 0;
+  refreshDisableFlowAlertTypes();
   
   if(init_all) {
     if((as = iface->getAS(&ip, true /* Create if missing */, true /* Inline call */)) != NULL) {
@@ -1345,5 +1346,14 @@ void Host::dumpDropbox(lua_State *vm) {
 
 /* **************************************************** */
 
+void Host::refreshDisableFlowAlertTypes() {
+  char keybuf[128], buf[128], rsp[32];
 
+  snprintf(buf, sizeof(buf), CONST_HOST_REFRESH_DISABLED_FLOW_ALERT_TYPES,
+    iface->get_id(), get_hostkey(keybuf, sizeof(keybuf), true));
 
+  if(!ntop->getRedis()->get(buf, rsp, sizeof(rsp)) && (rsp[0] != '\0'))
+    disabled_flow_status = atol(rsp);
+  else
+    disabled_flow_status = 0;
+}

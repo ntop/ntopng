@@ -313,17 +313,18 @@ class Host : public GenericHashEntry, public AlertableEntity {
   void dumpDropbox(lua_State *vm);
   inline Fingerprint* getSSLFingerprint() { return(&fingerprints.ssl); }
   virtual void setFlowPort(bool as_server, u_int8_t proto, u_int16_t port, u_int16_t l7_proto) { ; }
-  virtual void luaPortsDump(lua_State* vm) { lua_pushnil(vm); }    
+  virtual void luaPortsDump(lua_State* vm) { lua_pushnil(vm); }
+  void refreshDisableFlowAlertTypes();
   
   inline bool isDisabledFlowAlertType(u_int32_t v) {
-    return(((disabled_flow_status >> v) & 1U) ? true : false);
+    return(Utils::bitmapIsSet(disabled_flow_status, v));
   }
-  
+
   inline void toggleDisabledFlowAlertType(u_int32_t v, bool disable_alert) {
     if(disable_alert)
-      disabled_flow_status &= ~(1UL << v);
+      disabled_flow_status = Utils::bitmapSet(disabled_flow_status, v);
     else
-      disabled_flow_status |= 1UL << v;
+      disabled_flow_status = Utils::bitmapClear(disabled_flow_status, v);
   }
 
 
