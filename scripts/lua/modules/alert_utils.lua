@@ -2331,7 +2331,7 @@ end
 -- Global function
 function check_broadcast_domain_too_large_alerts()
    local alert = alerts:newAlert({
-      entity = "interface",
+      entity = "mac",
       type = "broadcast_domain_too_large",
       severity = "warning",
    })
@@ -2347,7 +2347,7 @@ function check_broadcast_domain_too_large_alerts()
       elems = json.decode(message)
 
       if elems ~= nil then
-	 local entity_value = "iface_"..elems.ifid
+	 local entity_value = elems.src_mac
 
 	 --io.write(elems.ip.." ==> "..message.."[".. elems.ifname .."]\n")
 	 interface.select(elems.ifname)
