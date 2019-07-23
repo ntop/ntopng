@@ -36,7 +36,7 @@ void AlertableEntity::getExpiredAlerts(ScriptPeriodicity p, lua_State* vm, time_
       if(alert->is_disabled) {
         /* The alert is disabled, remove it now.
          * NOTE: do not increment again iterator after this assignment. */
-        it = triggered_alerts[(u_int)p].erase(it);
+        triggered_alerts[(u_int)p].erase(it++);
       } else {
         lua_newtable(vm);
         luaAlert(vm, alert, p);
