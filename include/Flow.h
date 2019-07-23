@@ -165,10 +165,9 @@ class Flow : public GenericHashEntry {
 
   /* Counter values at last host update */
   struct {
-    u_int32_t cli2srv_packets, srv2cli_packets;
-    u_int64_t cli2srv_bytes, srv2cli_bytes;
-    u_int64_t cli2srv_goodput_bytes, srv2cli_goodput_bytes;
-    u_int32_t last_dump;
+    FlowTrafficStats *partial;
+    FlowTrafficStats delta;
+    time_t first_seen, last_seen;
   } last_db_dump;
 
   /* Lazily initialized and used by a possible view interface */
@@ -229,7 +228,8 @@ class Flow : public GenericHashEntry {
   void dumpFlowAlert();
   void updateJA3();
   const char* cipher_weakness2str(ndpi_cipher_weakness w);
-  
+  bool get_partial_traffic_stats(FlowTrafficStats **dst, FlowTrafficStats *delta, bool *first_partial) const;  
+
  public:
   Flow(NetworkInterface *_iface,
        u_int16_t _vlanId, u_int8_t _protocol,
@@ -341,23 +341,21 @@ class Flow : public GenericHashEntry {
   inline u_int64_t get_packets()         const { return(stats.cli2srv_packets+stats.srv2cli_packets); };
   inline u_int64_t get_packets_cli2srv() const { return(stats.cli2srv_packets);                 };
   inline u_int64_t get_packets_srv2cli() const { return(stats.srv2cli_packets);                 };
-  inline u_int64_t get_partial_bytes()   const { return(get_bytes() - (last_db_dump.cli2srv_bytes+last_db_dump.srv2cli_bytes));       };
-  inline u_int64_t get_partial_bytes_cli2srv()   const { return(stats.cli2srv_bytes - last_db_dump.cli2srv_bytes);       };
-  inline u_int64_t get_partial_bytes_srv2cli()   const { return(stats.srv2cli_bytes - last_db_dump.srv2cli_bytes);       };
-  inline u_int64_t get_partial_packets_cli2srv() const { return(stats.cli2srv_packets - last_db_dump.cli2srv_packets);   };
-  inline u_int64_t get_partial_packets_srv2cli() const { return(stats.srv2cli_packets - last_db_dump.srv2cli_packets);   };
-  inline u_int64_t get_partial_goodput_bytes()   const { return(get_goodput_bytes() - (last_db_dump.cli2srv_goodput_bytes+last_db_dump.srv2cli_goodput_bytes));       };
-  inline u_int64_t get_partial_packets() const { return(get_packets() - (last_db_dump.cli2srv_packets+last_db_dump.srv2cli_packets)); };
-  bool get_partial_traffic_stats(FlowTrafficStats *fts, bool *first_partial);
+  inline u_int64_t get_partial_bytes()           const { return get_partial_bytes_cli2srv() + get_partial_bytes_srv2cli();     };
+  inline u_int64_t get_partial_packets()         const { return get_partial_packets_cli2srv() + get_partial_packets_srv2cli(); };
+  inline u_int64_t get_partial_goodput_bytes()   const { return last_db_dump.delta.cli2srv_goodput_bytes + last_db_dump.delta.srv2cli_goodput_bytes;       };
+  inline u_int64_t get_partial_bytes_cli2srv()   const { return last_db_dump.delta.cli2srv_bytes;   };
+  inline u_int64_t get_partial_bytes_srv2cli()   const { return last_db_dump.delta.srv2cli_bytes;   };
+  inline u_int64_t get_partial_packets_cli2srv() const { return last_db_dump.delta.cli2srv_packets; };
+  inline u_int64_t get_partial_packets_srv2cli() const { return last_db_dump.delta.srv2cli_packets; };
+  bool get_partial_traffic_stats_view(FlowTrafficStats *delta, bool *first_partial);
+  bool update_partial_traffic_stats_db_dump();
   inline float get_bytes_thpt()          const { return(bytes_thpt);                      };
   inline float get_goodput_bytes_thpt()  const { return(goodput_bytes_thpt);              };
-
-  inline time_t get_partial_first_seen() const { return(last_db_dump.last_dump == 0 ? get_first_seen() : last_db_dump.last_dump); };
-  inline time_t get_partial_last_seen()  const { return(get_last_seen()); };
-  inline u_int32_t get_duration()        const { return((u_int32_t)(get_last_seen()-get_first_seen())); };
+  inline time_t get_partial_first_seen() const { return(last_db_dump.first_seen); };
+  inline time_t get_partial_last_seen()  const { return(last_db_dump.last_seen);  };
+  inline u_int32_t get_duration()        const { return((u_int32_t)(get_last_seen() - get_first_seen())); };
   inline char* get_protocol_name()       const { return(Utils::l4proto2name(protocol));   };
-
-
   inline Host* get_cli_host()               const { return(cli_host);    };
   inline Host* get_srv_host()               const { return(srv_host);    };
   inline const IpAddress* get_cli_ip_addr() const { return(cli_ip_addr); };
