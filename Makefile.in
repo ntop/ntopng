@@ -76,7 +76,7 @@ JSON_LIB=@JSON_LIB@
 ######
 
 ifeq (@NEDGE@, 0)
- HAS_SODIUM=$(shell pkg-config --exists libsodium & echo 0)
+ HAS_SODIUM=$(shell pkg-config --exists libsodium && echo 0)
  ifeq ($(HAS_SODIUM), 0)
 	SODIUM_INC = $(shell pkg-config --cflags libsodium)
 	SODIUM_LIB = $(shell pkg-config --libs libsodium)
@@ -85,7 +85,7 @@ ifeq (@NEDGE@, 0)
 	SODIUM_LIB=
  endif
 
- HAS_ZEROMQ=$(shell pkg-config --exists libzmq & echo 0)
+ HAS_ZEROMQ=$(shell pkg-config --exists libzmq && echo 0)
  ifeq ($(HAS_ZEROMQ), 0)
 	ZEROMQ_INC = $(shell pkg-config --cflags libzmq)
 	ZMQ_STATIC=/usr/local/lib/libzmq.a
@@ -100,7 +100,7 @@ ifeq (@NEDGE@, 0)
 	ZEROMQ_LIB=$(ZEROMQ_HOME)/.libs/libzmq.a
  endif
 
- HAS_ZSTD=$(shell pkg-config --exists libzstd & echo 0)
+ HAS_ZSTD=$(shell pkg-config --exists libzstd && echo 0)
  ifeq ($(HAS_ZSTD), 0)
 	ZSTD_LIB = $(shell pkg-config --libs libzstd)
  endif
