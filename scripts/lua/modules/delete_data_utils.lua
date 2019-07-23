@@ -513,45 +513,74 @@ end
 -- ################################################################
 
 -- NOTE: this has 1 day accuracy
-function delete_data_utils.harvestDateBasedDirTree(dir, retention, now)
+function delete_data_utils.harvestDateBasedDirTree(dir, retention, now, verbose)
+   if not ntop.exists(dir) then
+      return
+   end
+
+   if verbose then traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format('Deleting files in %s older than %u days', dir, retention)) end
+
    for year in pairs(ntop.readdir(dir) or {}) do
       local year_path = os_utils.fixPath(dir .. "/" .. year)
       local num_deleted_months = 0
       local tot_months = 0
 
       for month in pairs(ntop.readdir(year_path) or {}) do
-	 local month_path = os_utils.fixPath(year_path .. "/" .. month)
-	 local num_deleted_days = 0
-	 local tot_days = 0
+         local month_path = os_utils.fixPath(year_path .. "/" .. month)
+         local num_deleted_days = 0
+         local tot_days = 0
 
-	 for day in pairs(ntop.readdir(month_path) or {}) do
-	    if(tonumber(day) ~= nil) then
-	       local tstamp = os.time({day=tonumber(day), month=tonumber(month), year=tonumber(year), hour=0, min=0, sec=0})
-	       local days_diff = (now - tstamp) / 86400
+         for day in pairs(ntop.readdir(month_path) or {}) do
+            if(tonumber(day) ~= nil) then
+               local tstamp = os.time({day=tonumber(day), month=tonumber(month), year=tonumber(year), hour=0, min=0, sec=0})
+               local days_diff = (now - tstamp) / 86400
 
-	       if(days_diff > retention) then
-		  local day_path = os_utils.fixPath(month_path .. "/" .. day)
-		  --tprint(os.date('PURGE %Y-%m-%d %H:%M:%S', tstamp))
-		  ntop.rmdir(day_path)
-		  num_deleted_days = num_deleted_days + 1
-	       end
+               if(days_diff > retention) then
+                  local day_path = os_utils.fixPath(month_path .. "/" .. day)
+                  if verbose then traceError(TRACE_NORMAL, TRACE_CONSOLE, os.date('PURGE day: %Y-%m-%d', tstamp)) end
 
-	       tot_days = tot_days + 1
-	    end
-	 end
+                  if not dry_run then
+                     ntop.rmdir(day_path)
+                  end
 
-	 if num_deleted_days == tot_days then
-	    --tprint("PURGE month: ".. month .."/" .. year)
-	    ntop.rmdir(month_path)
-	    num_deleted_months = num_deleted_months + 1
-	 end
+                  num_deleted_days = num_deleted_days + 1
+               else
+                  if verbose then traceError(TRACE_NORMAL, TRACE_CONSOLE, os.date('Keep day: %Y-%m-%d', tstamp)) end
+               end
 
-	 tot_months = tot_months + 1
+               tot_days = tot_days + 1
+            end
+         end
+
+         if num_deleted_days == tot_days then
+            if verbose then traceError(TRACE_NORMAL, TRACE_CONSOLE, "PURGE month: ".. month .."/" .. year) end
+
+            if not dry_run then
+               ntop.rmdir(month_path)
+            end
+
+            num_deleted_months = num_deleted_months + 1
+         else
+            if verbose then
+               traceError(TRACE_NORMAL, TRACE_CONSOLE,
+                  string.format("Keep month %u/%u: it still has %u days", month, year, tot_days-num_deleted_months))
+            end
+         end
+
+         tot_months = tot_months + 1
       end
 
       if num_deleted_months == tot_months then
-	 --tprint("PURGE year " .. year)
-	 ntop.rmdir(year_path)
+        if verbose then traceError(TRACE_NORMAL, TRACE_CONSOLE, "PURGE year: ".. year) end
+
+        if not dry_run then
+          ntop.rmdir(year_path)
+        end
+      else
+         if verbose then
+            traceError(TRACE_NORMAL, TRACE_CONSOLE,
+               string.format("Keep year %u: it still has %u months", year, tot_months-num_deleted_months))
+         end
       end
    end
 end
