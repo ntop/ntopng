@@ -120,7 +120,7 @@ if(ntop.isPro()) then
   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/report.lua"><i class="fa fa-area-chart"></i> ') print(i18n("report.traffic_report")) print('</a></li>')
 end
 
-if ntop.isPro() and prefs.is_dump_flows_to_mysql_enabled and not ifs.isView then
+if ntop.isPro() and prefs.is_dump_flows_to_mysql_enabled and not ifs.isViewed then
   print('<li class="divider"></li>')
   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/db_explorer.lua?ifid='..ifId..'"><i class="fa fa-history"></i> ') print(i18n("db_explorer.historical_data_explorer")) print('</a></li>')
 end

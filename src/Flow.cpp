@@ -911,27 +911,14 @@ return(buf);
 
 /* *************************************** */
 
-bool Flow::dumpFlow(const struct timeval *tv, bool dump_alert) {
+bool Flow::dumpFlow(const struct timeval *tv, NetworkInterface *dumper) {
   bool rc = false;
-
-  if(dump_alert) {
-    /* NOTE: this can be very time consuming */
-    dumpFlowAlert();
-  }
 
   if(ntop->getPrefs()->do_dump_flows()
 #ifndef HAVE_NEDGE
      || ntop->get_export_interface()
 #endif
      ) {
-#ifdef NTOPNG_PRO
-#ifndef HAVE_NEDGE
-    if(!detection_completed || stats.cli2srv_packets + stats.srv2cli_packets <= NDPI_MIN_NUM_PACKETS)
-      /* force profile detection even if the L7 Protocol has not been detected */
-     updateProfile();
-#endif
-#endif
-
     if(!ntop->getPrefs()->is_tiny_flows_export_enabled() && isTiny()) {
 #ifdef TINY_FLOWS_DEBUG
       ntop->getTrace()->traceEvent(TRACE_NORMAL,
@@ -950,7 +937,7 @@ bool Flow::dumpFlow(const struct timeval *tv, bool dump_alert) {
     }
 
     if(!idle()) {
-      if(iface->getIfType() == interface_type_PCAP_DUMP
+      if(dumper->getIfType() == interface_type_PCAP_DUMP
          || tv->tv_sec - get_first_seen() < CONST_DB_DUMP_FREQUENCY
 	 || tv->tv_sec - get_partial_last_seen() < CONST_DB_DUMP_FREQUENCY) {
 	return(rc);
@@ -960,7 +947,7 @@ bool Flow::dumpFlow(const struct timeval *tv, bool dump_alert) {
     }
 
     if(!update_partial_traffic_stats_db_dump())
-      return rc;
+      return rc; /* Partial stats update has failed */
 
     /* Check for bytes, and not for packets, as with nprobeagent
        there are not packet counters, just bytes. */
@@ -969,10 +956,10 @@ bool Flow::dumpFlow(const struct timeval *tv, bool dump_alert) {
 
 #ifdef NTOPNG_PRO
     if(ntop->getPro()->has_valid_license() && ntop->getPrefs()->is_enterprise_edition())
-      getInterface()->aggregatePartialFlow(tv, this);
+      dumper->aggregatePartialFlow(tv, this);
 #endif
 
-    getInterface()->dumpFlow(last_seen, this);
+    dumper->dumpFlow(last_seen, this);
 
 #ifndef HAVE_NEDGE
     if(ntop->get_export_interface()) {
@@ -1472,8 +1459,15 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
   if(updated)
     memcpy(&last_update_time, tv, sizeof(struct timeval));
 
-  if(dumpFlow(tv, dump_alert))
-    ;
+  if(dump_alert) {
+    /* NOTE: this can be very time consuming */
+    dumpFlowAlert();
+  }
+
+  /* Viewed interfaces don't dump flows, their flows are dumped by the overlying ViewInterface.
+     ViewInterface dump their flows in another thread, not this one. */
+  if(!iface->isView() && !iface->isViewed()) 
+    dumpFlow(tv, iface);
 }
 
 /* *************************************** */
@@ -1554,10 +1548,11 @@ void Flow::update_pools_stats(const struct timeval *tv,
 
 /* *************************************** */
 
-bool Flow::equal(IpAddress *_cli_ip, IpAddress *_srv_ip, u_int16_t _cli_port,
-		 u_int16_t _srv_port, u_int16_t _vlanId, u_int8_t _protocol,
+bool Flow::equal(const IpAddress *_cli_ip, const IpAddress *_srv_ip,
+		 u_int16_t _cli_port, u_int16_t _srv_port,
+		 u_int16_t _vlanId, u_int8_t _protocol,
 		 const ICMPinfo * const _icmp_info,
-		 bool *src2srv_direction) {
+		 bool *src2srv_direction) const {
   const IpAddress *cli_ip = get_cli_ip_addr(), *srv_ip = get_srv_ip_addr();
 
 #if 0
@@ -2111,9 +2106,6 @@ char* Flow::serialize(bool es_json) {
   json_object *my_object;
   char *rsp;
 
-  if((cli_host == NULL) || (srv_host == NULL))
-    return(NULL);
-
   if(es_json) {
     ntop->getPrefs()->set_json_symbolic_labels_format(true);
     if((my_object = flow2json()) != NULL) {
@@ -2211,6 +2203,7 @@ json_object* Flow::flow2json() {
   json_object *my_object;
   char buf[64], jsonbuf[64], *c;
   time_t t;
+  const IpAddress *cli_ip = get_cli_ip_addr(), *srv_ip = get_srv_ip_addr();
 
   if((my_object = json_object_new_object()) == NULL) return(NULL);
 
@@ -2244,29 +2237,31 @@ json_object* Flow::flow2json() {
     /* json_object_object_add(my_object, "@version", json_object_new_int(1)); */
 
     // MAC addresses are set only when dumping to ES to optimize space consumption
-    json_object_object_add(my_object, Utils::jsonLabel(IN_SRC_MAC, "IN_SRC_MAC", jsonbuf, sizeof(jsonbuf)),
-			   json_object_new_string(Utils::formatMac(cli_host ? cli_host->get_mac() : NULL, buf, sizeof(buf))));
-    json_object_object_add(my_object, Utils::jsonLabel(OUT_DST_MAC, "OUT_DST_MAC", jsonbuf, sizeof(jsonbuf)),
-			   json_object_new_string(Utils::formatMac(srv_host ? srv_host->get_mac() : NULL, buf, sizeof(buf))));
+    if(cli_host)
+      json_object_object_add(my_object, Utils::jsonLabel(IN_SRC_MAC, "IN_SRC_MAC", jsonbuf, sizeof(jsonbuf)),
+			     json_object_new_string(Utils::formatMac(cli_host ? cli_host->get_mac() : NULL, buf, sizeof(buf))));
+    if(srv_host)
+      json_object_object_add(my_object, Utils::jsonLabel(OUT_DST_MAC, "OUT_DST_MAC", jsonbuf, sizeof(jsonbuf)),
+			     json_object_new_string(Utils::formatMac(srv_host ? srv_host->get_mac() : NULL, buf, sizeof(buf))));
   }
 
-  if(cli_host) {
-    if(get_cli_ip_addr()->isIPv4()) {
+  if(cli_ip) {
+    if(cli_ip->isIPv4()) {
       json_object_object_add(my_object, Utils::jsonLabel(IPV4_SRC_ADDR, "IPV4_SRC_ADDR", jsonbuf, sizeof(jsonbuf)),
-			     json_object_new_string(cli_host->get_string_key(buf, sizeof(buf))));
-    } else if(get_cli_ip_addr()->isIPv6()) {
+			     json_object_new_string(cli_ip->print(buf, sizeof(buf))));
+    } else if(cli_ip->isIPv6()) {
       json_object_object_add(my_object, Utils::jsonLabel(IPV6_SRC_ADDR, "IPV6_SRC_ADDR", jsonbuf, sizeof(jsonbuf)),
-			     json_object_new_string(cli_host->get_string_key(buf, sizeof(buf))));
+			     json_object_new_string(cli_ip->print(buf, sizeof(buf))));
     }
   }
 
-  if(srv_host) {
-    if(get_srv_ip_addr()->isIPv4()) {
+  if(srv_ip) {
+    if(srv_ip->isIPv4()) {
       json_object_object_add(my_object, Utils::jsonLabel(IPV4_DST_ADDR, "IPV4_DST_ADDR", jsonbuf, sizeof(jsonbuf)),
-			     json_object_new_string(srv_host->get_string_key(buf, sizeof(buf))));
-    } else if(get_srv_ip_addr()->isIPv6()) {
+			     json_object_new_string(srv_ip->print(buf, sizeof(buf))));
+    } else if(srv_ip->isIPv6()) {
       json_object_object_add(my_object, Utils::jsonLabel(IPV6_DST_ADDR, "IPV6_DST_ADDR", jsonbuf, sizeof(jsonbuf)),
-			     json_object_new_string(srv_host->get_string_key(buf, sizeof(buf))));
+			     json_object_new_string(srv_ip->print(buf, sizeof(buf))));
     }
   }
 

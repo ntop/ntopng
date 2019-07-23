@@ -220,17 +220,29 @@ Flow* ViewInterface::findFlowByTuple(u_int16_t vlan_id,
 
 /* **************************************************** */
 
+typedef struct {
+  struct timeval tv;
+  ViewInterface *iface;
+} viewed_flows_walker_user_data_t;
+
+/* **************************************************** */
+
 static bool viewed_flows_walker(GenericHashEntry *flow, void *user_data, bool *matched) {
-  ViewInterface *iface = (ViewInterface*)user_data;
+  viewed_flows_walker_user_data_t *viewed_flows_walker_user_data = (viewed_flows_walker_user_data_t*)user_data;
+  ViewInterface *iface = viewed_flows_walker_user_data->iface;
+  const struct timeval *tv = &viewed_flows_walker_user_data->tv;
   Flow *f = (Flow*)flow;
-  time_t now = time(NULL);
-  bool acked_to_purge = f->is_acknowledged_to_purge();
+  bool acked_to_purge;
+
+  acked_to_purge = f->is_acknowledged_to_purge();
 
   if(acked_to_purge) {
     /* We can set the 'ready to be purged' state on behalf of the underlying viewed interface.
        It is safe as this view is in sync with the viewed interfaces by bean of acked_to_purge */
     f->set_state(hash_entry_state_ready_to_be_purged);
   }
+
+  f->dumpFlow(tv, iface);
 
   FlowTrafficStats partials;
   bool first_partial; /* Whether this is the first time the view is visiting this flow */
@@ -248,7 +260,7 @@ static bool viewed_flows_walker(GenericHashEntry *flow, void *user_data, bool *m
 			   NULL /* no dst mac yet */, (IpAddress*)srv_ip, &srv_host);
 
       if(cli_host) {
-	cli_host->incStats(now, f->get_protocol(), f->getStatsProtocol(), f->getCustomApp(),
+	cli_host->incStats(tv->tv_sec, f->get_protocol(), f->getStatsProtocol(), f->getCustomApp(),
 			   partials.cli2srv_packets, partials.cli2srv_bytes, partials.cli2srv_goodput_bytes,
 			   partials.srv2cli_packets, partials.srv2cli_bytes, partials.srv2cli_goodput_bytes,
 			   cli_ip->isNonEmptyUnicastAddress());
@@ -261,7 +273,7 @@ static bool viewed_flows_walker(GenericHashEntry *flow, void *user_data, bool *m
       }
 
       if(srv_host) {
-	srv_host->incStats(now, f->get_protocol(), f->getStatsProtocol(), f->getCustomApp(),
+	srv_host->incStats(tv->tv_sec, f->get_protocol(), f->getStatsProtocol(), f->getCustomApp(),
 			   partials.srv2cli_packets, partials.srv2cli_bytes, partials.srv2cli_goodput_bytes,
 			   partials.cli2srv_packets, partials.cli2srv_bytes, partials.cli2srv_goodput_bytes,
 			   srv_ip->isNonEmptyUnicastAddress());
@@ -274,7 +286,7 @@ static bool viewed_flows_walker(GenericHashEntry *flow, void *user_data, bool *m
       }
 
       iface->incStats(true /* ingressPacket */,
-		      now, cli_ip && cli_ip->isIPv4() ? ETHERTYPE_IP : ETHERTYPE_IPV6,
+		      tv->tv_sec, cli_ip && cli_ip->isIPv4() ? ETHERTYPE_IP : ETHERTYPE_IPV6,
 		      f->getStatsProtocol(), f->get_protocol(),
 		      partials.srv2cli_bytes + partials.cli2srv_bytes,
 		      partials.srv2cli_packets + partials.cli2srv_packets,
@@ -289,12 +301,19 @@ static bool viewed_flows_walker(GenericHashEntry *flow, void *user_data, bool *m
 
 void ViewInterface::flowPollLoop() {
   u_int32_t begin_slot;
+  viewed_flows_walker_user_data_t viewed_flows_walker_user_data;
+
+  viewed_flows_walker_user_data.tv.tv_sec = viewed_flows_walker_user_data.tv.tv_usec = 0;
+  viewed_flows_walker_user_data.iface = this;
 
   while(!ntop->getGlobals()->isShutdownRequested()) {
     while(idle()) sleep(1);
-
+    
+    viewed_flows_walker_user_data.tv.tv_sec = time(NULL);
     begin_slot = 0; /* Always visit all flows starting from the first slot */
-    walker(&begin_slot, true /* walk all the flows */, walker_flows, viewed_flows_walker, this, true /* visit also idle flows (required to acknowledge the purge) */);
+    walker(&begin_slot, true /* walk all the flows */, walker_flows, viewed_flows_walker, &viewed_flows_walker_user_data, true /* visit also idle flows (required to acknowledge the purge) */);
+
+    dumpAggregatedFlows(&viewed_flows_walker_user_data.tv);
 
     purgeIdle(time(NULL));
     usleep(500000);

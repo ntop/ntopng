@@ -1092,7 +1092,7 @@ elseif(page == "historical") then
       top_senders = "top:local_senders",
       top_receivers = "top:local_receivers",
       l4_protocols = "iface:l4protos",
-      show_historical = true,
+      show_historical = not ifstats.isViewed,
       timeseries = {
          {schema="iface:flows",                 label=i18n("graphs.active_flows")},
          {schema="iface:hosts",                 label=i18n("graphs.active_hosts")},

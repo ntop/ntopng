@@ -51,14 +51,14 @@ class IpAddress {
   IpAddress(const IpAddress& ipa);
 
   bool isEmpty() const;
-  inline void reset()                                 { memset(&addr, 0, sizeof(addr));               }
-  inline bool isIPv4() const                          { return((addr.ipVersion == 4) ? true : false); }
-  inline bool isIPv6() const                          { return((addr.ipVersion == 6) ? true : false); }
-  inline u_int32_t get_ipv4() const                   { return((addr.ipVersion == 4) ? addr.ipType.ipv4 : 0);     }
-  inline struct ndpi_in6_addr* get_ipv6()             { return((addr.ipVersion == 6) ? &addr.ipType.ipv6 : NULL); }
-  const inline struct ipAddress* getIP() const        { return(&addr); };
-  const inline bool equal(u_int32_t ipv4_addr) const  { if((addr.ipVersion == 4) && (addr.ipType.ipv4 == ipv4_addr)) return(true); else return(false); };
-  inline bool equal(struct ndpi_in6_addr *ip6_addr)   { if((addr.ipVersion == 6) && (memcmp(&addr.ipType.ipv6, ip6_addr, sizeof(struct ndpi_in6_addr)) == 0)) return(true); else return(false); };
+  inline void reset()                                  { memset(&addr, 0, sizeof(addr));               }
+  inline bool isIPv4() const                           { return((addr.ipVersion == 4) ? true : false); }
+  inline bool isIPv6() const                           { return((addr.ipVersion == 6) ? true : false); }
+  inline u_int32_t get_ipv4() const                    { return((addr.ipVersion == 4) ? addr.ipType.ipv4 : 0);     }
+  inline const struct ndpi_in6_addr* get_ipv6() const  { return((addr.ipVersion == 6) ? &addr.ipType.ipv6 : NULL); }
+  inline const struct ipAddress* getIP()        const  { return(&addr); };
+  inline bool equal(u_int32_t ipv4_addr)        const  { if((addr.ipVersion == 4) && (addr.ipType.ipv4 == ipv4_addr)) return(true); else return(false); };
+  inline bool equal(struct ndpi_in6_addr *ip6_addr) const { if((addr.ipVersion == 6) && (memcmp(&addr.ipType.ipv6, ip6_addr, sizeof(struct ndpi_in6_addr)) == 0)) return(true); else return(false); };
   inline bool equal(const IpAddress * const _ip) const { return(this->compare(_ip) == 0); };
   int compare(const IpAddress * const ip)        const;
   inline u_int32_t key()                        const { return(ip_key);         };

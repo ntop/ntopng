@@ -408,13 +408,13 @@ class Flow : public GenericHashEntry {
 		       u_int16_t vlan_id,
 		       u_int16_t protocol);
   void lua(lua_State* vm, AddressTree * ptree, DetailsLevel details_level, bool asListElement);
-  bool equal(IpAddress *_cli_ip, IpAddress *_srv_ip,
+  bool equal(const IpAddress *_cli_ip, const IpAddress *_srv_ip,
 	     u_int16_t _cli_port, u_int16_t _srv_port,
 	     u_int16_t _vlanId, u_int8_t _protocol,
 	     const ICMPinfo * const icmp_info,
-	     bool *src2srv_direction);
+	     bool *src2srv_direction) const;
   void sumStats(nDPIStats *ndpi_stats, FlowStats *stats);
-  bool dumpFlow(const struct timeval *tv, bool dump_alert);
+  bool dumpFlow(const struct timeval *tv, NetworkInterface *dumper);
   bool match(AddressTree *ptree);
   void dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_len);
   void dissectSSL(char *payload, u_int16_t payload_len);
