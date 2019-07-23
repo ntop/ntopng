@@ -124,7 +124,7 @@ if (host ~= nil) then
    end
 end
 
-local only_historical = (host == nil) and (page == "historical")
+local only_historical = (host == nil) and ((page == "historical") or (page == "config"))
 
 if(host == nil) and (not only_historical) then
       -- We need to check if this is an aggregated host
@@ -193,6 +193,10 @@ else
 
    if((host["label"] == nil) or (host["label"] == "")) then
       host["label"] = getHostAltName(host["ip"])
+   end
+
+   if(host["name"] == nil) then
+     host["name"] = host["label"]
    end
 
       print('<div style=\"display:none;\" id=\"host_purged\" class=\"alert alert-danger\"><i class="fa fa-warning fa-lg"></i>&nbsp;'..i18n("details.host_purged")..'</div>')
@@ -438,14 +442,15 @@ if ntop.isEnterprise() and ifstats.inline and host_pool_id ~= host_pools_utils.D
   end
 end
 
-if ((isAdministrator()) and (host["ip"] ~= nil)) then
+end -- not only_historical
+
+if(isAdministrator()) then
    if(page == "config") then
       print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-cog fa-lg\"></i></a></li>\n")
    elseif interface.isPcapDumpInterface() == false then
       print("\n<li><a href=\""..url.."&page=config\"><i class=\"fa fa-cog fa-lg\"></i></a></li>")
    end
 end
-end -- not only_historical
 
 print [[
 <li><a href="javascript:history.go(-1)"><i class='fa fa-reply'></i></a></li>
@@ -2134,7 +2139,7 @@ elseif(page == "traffic_report") then
    end
 end
 
-if(page ~= "historical") and (host ~= nil) then
+if(not only_historical) and (host ~= nil) then
    print[[<script type="text/javascript" src="]] print(ntop.getHttpPrefix()) print [[/js/jquery.tablesorter.js"></script>]]
 
    print [[
