@@ -2996,7 +2996,7 @@ void NetworkInterface::periodicStatsUpdate() {
   } else
     too_many_drops = false;
 
-  if(!isView())
+  if(!isView() && !isViewed())
     dumpAggregatedFlows(&tv);
 
   checkReloadHostsBroadcastDomain();
