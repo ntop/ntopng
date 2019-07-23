@@ -146,7 +146,7 @@ class NetworkInterface : public AlertableEntity {
   TimeseriesExporter *tsExporter;
   TimeseriesRing *ts_ring;
 
-  u_int nextFlowAggregation;
+  time_t lastFlowAggregation;
   TcpFlowStats tcpFlowStats;
   TcpPacketStats tcpPacketStats;
 
@@ -347,6 +347,8 @@ class NetworkInterface : public AlertableEntity {
   int dumpFlow(time_t when, Flow *f);
 #ifdef NTOPNG_PRO
   void dumpAggregatedFlow(time_t when, AggregatedFlow *f, bool is_top_aggregated_flow, bool is_top_cli, bool is_top_srv);
+  void dumpAggregatedFlows(const struct timeval *tv);
+  bool dumpAggregatedFlowsReady(const struct timeval *tv) const;
   void flushFlowDump();
 #endif
   void checkPointHostTalker(lua_State* vm, char *host_ip, u_int16_t vlan_id);
@@ -669,7 +671,7 @@ class NetworkInterface : public AlertableEntity {
   virtual void addToNotifiedInformativeCaptivePortal(u_int32_t client_ip) { ; };
   virtual void addIPToLRUMatches(u_int32_t client_ip, u_int16_t user_pool_id,
 				 char *label, int32_t lifetime_sec) { ; };
-  void aggregatePartialFlow(Flow *flow);
+  void aggregatePartialFlow(const struct timeval *tv, Flow *flow);
 #endif
 
   inline char* mdnsResolveIPv4(u_int32_t ipv4addr /* network byte order */,

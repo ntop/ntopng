@@ -416,7 +416,7 @@ class Flow : public GenericHashEntry {
 	     const ICMPinfo * const icmp_info,
 	     bool *src2srv_direction);
   void sumStats(nDPIStats *ndpi_stats, FlowStats *stats);
-  bool dumpFlow(bool dump_alert);
+  bool dumpFlow(const struct timeval *tv, bool dump_alert);
   bool match(AddressTree *ptree);
   void dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_len);
   void dissectSSL(char *payload, u_int16_t payload_len);

@@ -914,7 +914,7 @@ return(buf);
 
 /* *************************************** */
 
-bool Flow::dumpFlow(bool dump_alert) {
+bool Flow::dumpFlow(const struct timeval *tv, bool dump_alert) {
   bool rc = false;
 
   if(dump_alert) {
@@ -972,7 +972,7 @@ bool Flow::dumpFlow(bool dump_alert) {
 
 #ifdef NTOPNG_PRO
     if(ntop->getPro()->has_valid_license() && ntop->getPrefs()->is_enterprise_edition())
-      getInterface()->aggregatePartialFlow(this);
+      getInterface()->aggregatePartialFlow(tv, this);
 #endif
 
     getInterface()->dumpFlow(last_seen, this);
@@ -1475,7 +1475,7 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
   if(updated)
     memcpy(&last_update_time, tv, sizeof(struct timeval));
 
-  if(dumpFlow(dump_alert)) {
+  if(dumpFlow(tv, dump_alert)) {
     last_db_dump.cli2srv_packets = stats.cli2srv_packets,
       last_db_dump.srv2cli_packets = stats.srv2cli_packets,
       last_db_dump.cli2srv_bytes = stats.cli2srv_bytes,

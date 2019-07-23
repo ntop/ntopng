@@ -351,7 +351,7 @@ void NetworkInterface::initL7Policer() {
 
 /* **************************************** */
 
-void NetworkInterface::aggregatePartialFlow(Flow *flow) {
+void NetworkInterface::aggregatePartialFlow(const struct timeval *tv, Flow *flow) {
   if(flow && aggregated_flows_hash) {
     AggregatedFlow *aggregatedFlow = aggregated_flows_hash->find(flow);
 
@@ -401,14 +401,14 @@ void NetworkInterface::aggregatePartialFlow(Flow *flow) {
 
     if(aggregatedFlow) {
       aggregatedFlow->sumFlowStats(flow,
-				   /* nextFlowAggregation will be decremented by one after the current periodic
+				   /* lastFlowAggregation will be decremented by one after the current periodic
 				      flows walk (this method is called in the periodic flows walk)
 
-				      Therefore, we can check nextFlowAggregation minus one to determine whether
+				      Therefore, we can check lastFlowAggregation minus one to determine whether
 				      a cleanup of the aggregated flows hash table is going to be performed
 				      after this walk on the (normal, non-aggregated) flows table.
 				   */
-				   ((getIfType() == interface_type_DUMMY) || (nextFlowAggregation - 1 == 0)));
+				   ((getIfType() == interface_type_DUMMY) || dumpAggregatedFlowsReady(tv)));
 
 #ifdef AGGREGATED_FLOW_DEBUG
       char buf[256];
@@ -715,6 +715,39 @@ void NetworkInterface::dumpAggregatedFlow(time_t when, AggregatedFlow *f, bool i
       db->dumpAggregatedFlow(when, f, is_top_aggregated_flow, is_top_cli, is_top_srv);
     }
   }
+}
+
+/* **************************************************** */
+
+void NetworkInterface::dumpAggregatedFlows(const struct timeval *tv) {
+  if(aggregated_flows_hash) {
+    if(lastFlowAggregation == 0)
+      lastFlowAggregation = tv->tv_sec;
+    else if(getIfType() == interface_type_DUMMY || dumpAggregatedFlowsReady(tv)) {
+      /* Start over */
+      aggregated_flows_hash->cleanup();
+      lastFlowAggregation = tv->tv_sec;
+
+#ifdef AGGREGATED_FLOW_DEBUG
+      ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				   "Aggregated flows exported. "
+				   "Aggregated flows hash cleared. [num_items: %i]",
+				   aggregated_flows_hash->getCurrentSize());
+#endif
+    } else
+#ifdef AGGREGATED_FLOW_DEBUG
+      ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				   "[last aggregation: %u][flow aggregation duration: %i][num_items: %u]",
+				   lastFlowAggregation, FLOW_AGGREGATION_DURATION, aggregated_flows_hash->getCurrentSize());
+#endif
+    ;
+  }
+}
+
+/* **************************************************** */
+
+bool NetworkInterface::dumpAggregatedFlowsReady(const struct timeval *tv) const {
+  return lastFlowAggregation > 0 && lastFlowAggregation + FLOW_AGGREGATION_DURATION < tv->tv_sec;
 }
 
 /* **************************************************** */
@@ -2963,34 +2996,8 @@ void NetworkInterface::periodicStatsUpdate() {
   } else
     too_many_drops = false;
 
-#ifdef NTOPNG_PRO
-  if(aggregated_flows_hash) {
-    if((getIfType() == interface_type_DUMMY) || (--nextFlowAggregation == 0)) {
-      /* Start over */
-      aggregated_flows_hash->cleanup();
-      nextFlowAggregation = FLOW_AGGREGATION_DURATION;
-
-#ifdef AGGREGATED_FLOW_DEBUG
-      ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				   "Aggregated flows exported. "
-				   "Aggregated flows hash cleared. [num_items: %i]",
-				   aggregated_flows_hash->getCurrentSize());
-#endif
-    } else
-#ifdef AGGREGATED_FLOW_DEBUG
-      ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				   "Aggregation in %i housekeeping cycles [housekeeping frequency: %i] [inter-aggregation housekeeping cycles: %i][num_items: %u]",
-				   nextFlowAggregation, ntop->getPrefs()->get_housekeeping_frequency(), FLOW_AGGREGATION_DURATION,
-				   aggregated_flows_hash->getCurrentSize());
-#endif
-    ;
-  }
-#endif
-
-#ifdef PERIODIC_STATS_UPDATE_DEBUG_TIMING
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "flows aggregation took %d seconds", time(NULL) - tdebug.tv_sec);
-  gettimeofday(&tdebug, NULL);
-#endif
+  if(!isView())
+    dumpAggregatedFlows(&tv);
 
   checkReloadHostsBroadcastDomain();
 
@@ -6981,7 +6988,7 @@ bool NetworkInterface::initFlowDump(u_int8_t num_dump_interfaces) {
 	  db = new BatchedMySQLDB(this);
 #endif
 
-#if defined(NTOPNG_PRO) && defined(HAVE_NINDEX)
+#if defined(NTOPNG_PRO)
 	enable_aggregation:
 #endif
 	  aggregated_flows_hash = new AggregatedFlowHash(this,
@@ -6989,7 +6996,7 @@ bool NetworkInterface::initFlowDump(u_int8_t num_dump_interfaces) {
 							 ntop->getPrefs()->get_max_num_flows());
 
 	  ntop->getPrefs()->enable_flow_aggregation();
-	  nextFlowAggregation = FLOW_AGGREGATION_DURATION;
+	  lastFlowAggregation = 0;
 	} else
 	  aggregated_flows_hash = NULL;
 #endif
