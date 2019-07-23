@@ -1,8 +1,8 @@
-Existing Metrics
-################
+Accessing Metrics
+#################
 
-Here is a list of metrics already built-in and exported as timeseries into ntopng.
-The list is not exhaustive and only serves as a description of the internal structures.
+A full list of all the metrics already built-in and exported as timeseries into ntopng is available in the Metrics section.
+This section provides a couple of examples for accessing those metrics.
 
 Interface Metrics
 =================
