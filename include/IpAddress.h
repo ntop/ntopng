@@ -73,6 +73,7 @@ class IpAddress {
   inline bool isPrivateAddress()         const        { return(addr.privateIP);   };
   inline bool isMulticastAddress()       const        { return(addr.multicastIP); };
   inline bool isBroadcastAddress()       const        { return(addr.broadcastIP); };
+  inline bool isBroadMulticastAddress()  const        { return(addr.broadcastIP || addr.multicastIP); };
   inline bool isNonEmptyUnicastAddress() const        { return(!isMulticastAddress() && !isBroadcastAddress() && !isEmpty()); };
   inline u_int8_t getVersion()                        { return(addr.ipVersion); };
   inline void setVersion(u_int8_t version)            { addr.ipVersion = version; };

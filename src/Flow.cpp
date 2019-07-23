@@ -47,8 +47,7 @@ Flow::Flow(NetworkInterface *_iface,
     srv2cli_last_goodput_bytes = cli2srv_last_goodput_bytes = 0, good_ssl_hs = true,
     flow_alerted = flow_dropped_counts_increased = false, vrfId = 0;
   
-  purge_acknowledged_mark = false;
-  detection_completed = false;
+  purge_acknowledged_mark = detection_completed = update_flow_port_stats = false;
   ndpiDetectedProtocol = ndpiUnknownProtocol;
   doNotExpireBefore = iface->getTimeLastPktRcvd() + DONT_NOT_EXPIRE_BEFORE_SEC;
 
@@ -671,53 +670,11 @@ void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
   }
 
   if(detection_completed) {
-    bool dump_flow = true;
-
 #ifdef HAVE_NEDGE
     updateFlowShapers(true);
 #endif
 
-    if(protocol == IPPROTO_TCP) {
-      /*
-	 update the ports only if the flow has been observed from the beginning
-	 and it has been established
-      */
-      dump_flow = ((src2dst_tcp_flags|dst2src_tcp_flags) & (TH_SYN|TH_PUSH)) == (TH_SYN|TH_PUSH);
-    } else if(protocol == IPPROTO_UDP) {
-#if 0
-      char buf[128];
-
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%u/%u] %s",
-				   stats.cli2srv_packets, stats.srv2cli_packets,
-				   print(buf, sizeof(buf)));
-#endif
-      dump_flow = true;
-    } else
-      dump_flow = false;
-
-    if(dump_flow && (srv_port != 0)) {
-      u_int16_t p = ndpiDetectedProtocol.master_protocol;
-      u_int16_t port = ntohs(srv_port);
-
-      if(p == NDPI_PROTOCOL_UNKNOWN)
-	p = ndpiDetectedProtocol.app_protocol;
-
-      if(cli_host && cli_host->isLocalHost())
-	cli_host->setFlowPort(false /* client */, srv_host, protocol, port, p,
-			      getFlowInfo() ? getFlowInfo() : "",
-			      iface->getTimeLastPktRcvd());
-
-      if(srv_host && srv_host->isLocalHost())
-	srv_host->setFlowPort(true /* server */, cli_host, protocol, port, p,
-			      getFlowInfo() ? getFlowInfo() : "",
-			      iface->getTimeLastPktRcvd());
-
-#if 0
-      char buf[128];
-
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", print(buf, sizeof(buf)));
-#endif
-    }
+    update_flow_port_stats = true;
   }
 
 #ifdef NTOPNG_PRO
@@ -1090,6 +1047,59 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
   Vlan *vl;
   NetworkStats *cli_network_stats;
 
+  if(update_flow_port_stats) {
+    bool dump_flow = false;
+
+    if(protocol == IPPROTO_TCP) {
+      /*
+	 update the ports only if the flow has been observed from the beginning
+	 and it has been established
+      */
+      dump_flow = ((src2dst_tcp_flags|dst2src_tcp_flags) & (TH_SYN|TH_PUSH)) == (TH_SYN|TH_PUSH);
+    } else if(protocol == IPPROTO_UDP) {
+      if(
+	 (srv_host && srv_host->get_ip()->isBroadMulticastAddress())
+	 || (stats.srv2cli_packets > 0 /* We see a response, hence we assume this is not a probing attempt */)
+	 )
+	dump_flow = true;
+    }
+
+#if 0
+    char buf[128];
+    
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s][%u/%u] %s",
+				 dump_flow ? "DUMP" : "",
+				 stats.cli2srv_packets, stats.srv2cli_packets,
+				 print(buf, sizeof(buf)));
+#endif
+
+      if(dump_flow && (srv_port != 0)) {
+      u_int16_t p = ndpiDetectedProtocol.master_protocol;
+      u_int16_t port = ntohs(srv_port);
+
+      if(p == NDPI_PROTOCOL_UNKNOWN)
+	p = ndpiDetectedProtocol.app_protocol;
+
+      if(cli_host && cli_host->isLocalHost())
+	cli_host->setFlowPort(false /* client */, srv_host, protocol, port, p,
+			      getFlowInfo() ? getFlowInfo() : "",
+			      iface->getTimeLastPktRcvd());
+
+      if(srv_host && srv_host->isLocalHost())
+	srv_host->setFlowPort(true /* server */, cli_host, protocol, port, p,
+			      getFlowInfo() ? getFlowInfo() : "",
+			      iface->getTimeLastPktRcvd());
+
+#if 0
+      char buf[128];
+
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", print(buf, sizeof(buf)));
+#endif
+    }
+
+    update_flow_port_stats = false;
+  }
+  
   if(get_state() == hash_entry_state_idle) {
     if(iface->isViewed()) {
       /* Must acknowledge so the overlying 'view' interface can actually set 
