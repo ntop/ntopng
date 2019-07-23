@@ -1984,7 +1984,11 @@ elseif (page == "config") then
                </input>
          </td>
       </tr><tr>
-         <th>]] print(i18n("host_details.status_ignore")) print[[</th>
+         <td width="30%">
+           <b>]] print(i18n("host_details.status_ignore")) print[[</b> <i class="fa fa-info-circle" title="]] print(i18n("host_details.disabled_flow_status_help")) print[["></i>
+           <br><br>
+           <i>]] print(i18n("host_details.multiple_selection")) print[[</i>
+         </td>
          <td>
            <input id="status_trigger_alert" name="disabled_status" type="hidden" />
            <select onchange="convertMultiSelect()" id="status_trigger_alert_select" multiple class="form-control" style="width:40em; height:10em; display:inline;">]]
@@ -1999,7 +2003,7 @@ elseif (page == "config") then
         print[[</option>]]
       end
 
-      print[[</select>
+      print[[</select><button type="button" class="btn btn-default" style="margin-left:1em;" onclick="resetMultiSelect()">]] print(i18n("reset")) print[[</button>
          </td>
       </tr>]]
 
@@ -2054,6 +2058,15 @@ elseif (page == "config") then
       });
 
       $("#status_trigger_alert").val(values.join(","));
+      $("#status_trigger_alert").trigger("change");
+     }
+
+     function resetMultiSelect() {
+       $("#status_trigger_alert_select option:selected").each(function(idx, item) {
+         item.selected = "";
+       });
+
+       convertMultiSelect();
      }
 
      /* Run after page load */
