@@ -83,6 +83,7 @@ bool AlertableEntity::triggerAlert(std::string key, ScriptPeriodicity p, time_t 
 
   if(it != triggered_alerts[(u_int)p].end()) {
     it->second.last_update = now;
+    it->second.is_disabled = alert_disabled;
     return(false); /* already present */
   } else {
     Alert alert;
