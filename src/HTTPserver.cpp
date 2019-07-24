@@ -372,7 +372,7 @@ static bool ssl_client_x509_auth(const struct mg_connection * const conn, const 
 // which can also be "" or NTOP_NOLOGIN_USER .
 static int getAuthorizedUser(struct mg_connection *conn,
 			     const struct mg_request_info *request_info,
-			     char *username, char *group, bool *localuser) {
+			     char *username, ssize_t username_len, char *group, bool *localuser) {
   char session_id[NTOP_SESSION_ID_LENGTH];
   char key[64], val[128];
   char password[MAX_PASSWORD_LEN];
@@ -418,7 +418,7 @@ static int getAuthorizedUser(struct mg_connection *conn,
           char post_data[1024];
           int post_data_len = mg_read(conn, post_data, sizeof(post_data));
 
-          mg_get_var(post_data, post_data_len, "username", username, sizeof(username));
+          mg_get_var(post_data, post_data_len, "username", username, username_len);
           mg_get_var(post_data, post_data_len, "password", password, sizeof(password));
 
 	return(ntop->checkCaptiveUserPassword(username, password, group)
@@ -889,7 +889,7 @@ static int handle_lua_request(struct mg_connection *conn) {
 
   if(!isStaticResourceUrl(request_info, len)) {
     /* Only check authorized for non-static resources */
-    u_int8_t authorized = getAuthorizedUser(conn, request_info, username, group, &localuser);
+    u_int8_t authorized = getAuthorizedUser(conn, request_info, username, sizeof(username), group, &localuser);
 
     /* Make sure there are existing interfaces for username. */
     if(!ntop->checkUserInterfaces(username)) {
