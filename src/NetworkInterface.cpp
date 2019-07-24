@@ -2805,7 +2805,6 @@ void NetworkInterface::findFlowHosts(u_int16_t vlanId,
 	return;
       }
 
-      (*src)->postHashAdd();
       has_too_many_hosts = false;
     }
 
@@ -2845,7 +2844,6 @@ void NetworkInterface::findFlowHosts(u_int16_t vlanId,
 	return;
       }
 
-      (*dst)->postHashAdd();
       has_too_many_hosts = false;
     }
   }
