@@ -107,7 +107,7 @@ Senders view provides a pie chart representation of top flow senders currently a
 
 Dashboard in the Professional Version
 -------------------------------------
-The dashboard in the professional version provides a great deal of information, including realtime traffic - both per monitored interface and per application - top local talkers and top destinations. The dashboard is refreshed dynamically. Tables and chars are kept updated by ntopng.
+The dashboard in the professional version provides a great deal of information, including realtime traffic - both per monitored interface and per application - top local talkers and top destinations. The dashboard is refreshed dynamically. Tables and charts are kept updated by ntopng.
 The right part of the dashboard displays realtime and last-day charts of Top Applications and Network Traffic. In case a network interface view is selected, then network traffic is shown on a per physical-interface basis. Items shown in each chart can be dynamically toggled simply by clicking on the corresponding coloured dot in the chart key.
 
 .. figure:: ../img/web_gui_dashboard_pro.png
