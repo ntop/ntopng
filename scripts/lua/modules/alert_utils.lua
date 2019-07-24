@@ -500,6 +500,7 @@ function getTabParameters(_get, what)
       opts.alert_severity = nil
    end
    if not isEmptyString(what) then opts.status = what end
+   opts.ifid = interface.getId()
    return opts
 end
 
@@ -1000,6 +1001,7 @@ local global_redis_thresholds_key = "thresholds"
 
 function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, delete_confirm_msg, page_name, page_params, alt_name, show_entity, options)
    local num_engaged_alerts, num_past_alerts, num_flow_alerts = 0,0,0
+   local has_disabled_alerts = alerts.hasEntitiesWithAlertsDisabled(interface.getId())
    local tab = _GET["tab"]
    local have_nedge = ntop.isnEdge()
    options = options or {}
@@ -1039,7 +1041,8 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
       --~ num_past_alerts = getNumAlerts("historical", getTabParameters(_GET, "historical"))
       --~ num_flow_alerts = getNumAlerts("historical-flows", getTabParameters(_GET, "historical-flows"))
 
-      if num_past_alerts > 0 or num_engaged_alerts > 0 or num_flow_alerts > 0 then
+      --~ if num_past_alerts > 0 or num_engaged_alerts > 0 or num_flow_alerts > 0 then
+      if num_engaged_alerts > 0 then
          if(tab == nil) then
             -- if no tab is selected and there are alerts, we show them by default
             tab = "alert_list"
@@ -1102,7 +1105,7 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
    print('</ul>')
 
    if((show_entity) and (tab == "alert_list")) then
-      drawAlertTables(num_past_alerts, num_engaged_alerts, num_flow_alerts, _GET, true, nil, { engaged_only = true })
+      drawAlertTables(num_past_alerts, num_engaged_alerts, num_flow_alerts, has_disabled_alerts, _GET, true, nil, { engaged_only = true })
    else
       -- Before doing anything we need to check if we need to save values
 
@@ -1527,7 +1530,7 @@ end
 
 -- #################################
 
-function drawAlertTables(num_past_alerts, num_engaged_alerts, num_flow_alerts, get_params, hide_extended_title, alt_nav_tabs, options)
+function drawAlertTables(num_past_alerts, num_engaged_alerts, num_flow_alerts, has_disabled_alerts, get_params, hide_extended_title, alt_nav_tabs, options)
    local alert_items = {}
    local url_params = {}
    local options = options or {}
@@ -1737,7 +1740,7 @@ function toggleAlert(disable) {
 	 status = nil; status_reset = 1
       end
 
-      if alerts.hasEntitiesWithAlertsDisabled(ifId) then
+      if has_disabled_alerts then
         alert_items[#alert_items +1] = {["label"] = i18n("show_alerts.disabled_alerts"), ["div-id"] = "table-disabled-alerts",  ["status"] = "disabled-alerts"}
       end
 
@@ -2106,6 +2109,7 @@ end
 function drawAlerts(options)
    local num_engaged_alerts = getNumAlerts("engaged", getTabParameters(_GET, "engaged"))
    local num_past_alerts = getNumAlerts("historical", getTabParameters(_GET, "historical"))
+   local has_disabled_alerts = alerts_api.hasEntitiesWithAlertsDisabled(interface.getId())
    local num_flow_alerts = 0
 
    if _GET["entity"] == nil then

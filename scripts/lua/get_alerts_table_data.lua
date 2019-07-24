@@ -23,9 +23,8 @@ if status == "engaged" then
    engaged = true
 end
 
-if _GET["ifid"] ~= nil then
-   interface.select(_GET["ifid"])
-end
+-- ifid is mandatory here
+interface.select(_GET["ifid"])
 
 local ifid = interface.getId()
 local entities_bitmaps = {}

@@ -6,6 +6,7 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 if((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.scriptdir .. "/lua/modules/?.lua;" .. package.path end
 require "lua_utils"
+local alerts_api = require("alerts_api")
 local recording_utils = require "recording_utils"
 local remote_assistance = require "remote_assistance"
 local telemetry_utils = require "telemetry_utils"
@@ -143,7 +144,7 @@ if not ifs.isView and ntop.getPrefs().are_alerts_enabled == true then
    -- color = 'style="color: #B94A48;"' -- bootstrap danger red
    -- end
 
-   if not ifs["has_alerts"] then
+   if not ifs["has_alerts"] and not alerts_api.hasEntitiesWithAlertsDisabled(ifId) then
       style = ' style="display: none;"'
    end
 

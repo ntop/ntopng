@@ -8252,7 +8252,7 @@ static int ntop_store_triggered_alert(lua_State* vm, AlertableEntity *alertable)
   Host *host;
   bool triggered, alert_disabled;
 
-  if(!alertable) return(CONST_LUA_PARAM_ERROR);
+  if(!alertable || !c->iface) return(CONST_LUA_PARAM_ERROR);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   if((key = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
@@ -8275,11 +8275,10 @@ static int ntop_store_triggered_alert(lua_State* vm, AlertableEntity *alertable)
   if(ntop_lua_check(vm, __FUNCTION__, 7, LUA_TBOOLEAN) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   alert_disabled = lua_toboolean(vm, 7);
 
-  if((triggered = alertable->triggerAlert(std::string(key), periodicity, time(NULL),
-      alert_severity, alert_type, alert_subtype, alert_json, alert_disabled)))
-    c->iface->incNumAlertsEngaged(periodicity);
+  triggered = alertable->triggerAlert(std::string(key), c->iface, periodicity, time(NULL),
+    alert_severity, alert_type, alert_subtype, alert_json, alert_disabled);
 
-  if(triggered && (host = dynamic_cast<Host*>(alertable)))
+  if(triggered && !alert_disabled && (host = dynamic_cast<Host*>(alertable)))
     host->incTotalAlerts(alert_type);
 
   lua_pushboolean(vm, triggered);
@@ -8323,8 +8322,7 @@ static int ntop_release_triggered_alert(lua_State* vm, AlertableEntity *alertabl
   if((periodicity = (ScriptPeriodicity)lua_tonumber(vm, 2)) >= MAX_NUM_PERIODIC_SCRIPTS) return(CONST_LUA_PARAM_ERROR);
 
   /* The released alert will be pushed to LUA */
-  if(alertable->releaseAlert(vm, std::string(key), periodicity))
-    c->iface->decNumAlertsEngaged(periodicity);
+  alertable->releaseAlert(vm, c->iface, std::string(key), periodicity);
 
   return(CONST_LUA_OK);
 }

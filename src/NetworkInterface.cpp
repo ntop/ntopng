@@ -241,6 +241,9 @@ NetworkInterface::NetworkInterface(const char *name,
 
   is_loopback = (strncmp(ifname, "lo", 2) == 0) ? true : false;
 
+  snprintf(buf, sizeof(buf), "iface_%d", id);
+  setEntityValue(buf);
+
   reloadHideFromTop(false);
   updateTrafficMirrored();
   updateFlowDumpDisabled();
@@ -250,8 +253,6 @@ NetworkInterface::NetworkInterface(const char *name,
 /* **************************************************** */
 
 void NetworkInterface::init() {
-  char buf[32];
-
   ifname = NULL,
     bridge_lan_interface_id = bridge_wan_interface_id = 0, ndpi_struct = NULL,
     inline_interface = false,
@@ -333,9 +334,6 @@ void NetworkInterface::init() {
   else
     ebpfFlows = new (std::nothrow) ParsedFlow*[EBPF_QUEUE_LEN]();
   next_ebpf_insert_idx = next_ebpf_remove_idx = 0;
-
-  snprintf(buf, sizeof(buf), "iface_%d", id);
-  setEntityValue(buf);
 
   PROFILING_INIT();
 }

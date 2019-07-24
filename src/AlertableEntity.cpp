@@ -69,7 +69,7 @@ void AlertableEntity::luaAlert(lua_State* vm, Alert *alert, ScriptPeriodicity p)
 /* ****************************************** */
 
 /* Return true if the element was inserted, false if already present */
-bool AlertableEntity::triggerAlert(std::string key, ScriptPeriodicity p, time_t now,
+bool AlertableEntity::triggerAlert(std::string key, NetworkInterface *iface, ScriptPeriodicity p, time_t now,
     AlertLevel alert_severity, AlertType alert_type,
     const char *alert_subtype,
     const char *alert_json,
@@ -83,7 +83,17 @@ bool AlertableEntity::triggerAlert(std::string key, ScriptPeriodicity p, time_t 
 
   if(it != triggered_alerts[(u_int)p].end()) {
     it->second.last_update = now;
-    it->second.is_disabled = alert_disabled;
+
+    if(it->second.is_disabled && !alert_disabled) {
+      /* Alert was not accounted but now enabled, so increase count */
+      it->second.is_disabled = false;
+      iface->incNumAlertsEngaged(p);
+    } else if(!it->second.is_disabled && alert_disabled) {
+      /* Alert was accounted but and now disabled, so decresase count */
+      it->second.is_disabled = true;
+      iface->decNumAlertsEngaged(p);
+    }
+
     return(false); /* already present */
   } else {
     Alert alert;
@@ -98,6 +108,9 @@ bool AlertableEntity::triggerAlert(std::string key, ScriptPeriodicity p, time_t 
      * correctly increment disabled alerts counters */
     alert.is_disabled = alert_disabled;
 
+    if(!alert_disabled)
+      iface->incNumAlertsEngaged(p);
+
     triggered_alerts[(u_int)p][key] = alert;
     return(true); /* inserted */
   }
@@ -105,7 +118,7 @@ bool AlertableEntity::triggerAlert(std::string key, ScriptPeriodicity p, time_t 
 
 /* ****************************************** */
 
-bool AlertableEntity::releaseAlert(lua_State* vm, std::string key, ScriptPeriodicity p) {
+bool AlertableEntity::releaseAlert(lua_State* vm, NetworkInterface *iface, std::string key, ScriptPeriodicity p) {
   std::map<std::string, Alert>::iterator it = triggered_alerts[(u_int)p].find(key);
   bool rv = false;
 
@@ -118,6 +131,7 @@ bool AlertableEntity::releaseAlert(lua_State* vm, std::string key, ScriptPeriodi
     /* Found, push the alert */
     lua_newtable(vm);
     luaAlert(vm, &it->second, p);
+    iface->decNumAlertsEngaged(p);
     rv = true;
   } else
     lua_pushnil(vm);
