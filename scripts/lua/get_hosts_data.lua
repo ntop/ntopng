@@ -337,8 +337,8 @@ for _key, _value in pairsByKeys(vals, funct) do
       column_info = column_info.." <span title='"..
 	 (ternary(drop_traffic, i18n("host_config.unblock_host_traffic"), i18n("host_config.drop_all_host_traffic")))..
 	 "' class='label label-"..(ternary(drop_traffic, "danger", "default")).." block-badge' "..
-	 (ternary(isAdministrator(), "onclick='block_host(\\\""..symkey.."\\\", \\\""..hostinfo2url(value)..
-		     "\\\");' style='cursor: pointer;'", "")).."><i class='fa fa-ban' /></span>"
+	 (ternary(isAdministrator(), "onclick='block_host(\""..symkey.."\", \""..hostinfo2url(value)..
+		     "\");' style='cursor: pointer;'", "")).."><i class='fa fa-ban' /></span>"
    end
 
    record["column_info"] = column_info
