@@ -12,5 +12,6 @@ to handle writes and queries in a way that's independent of the specific impleme
     adding_new_timeseries.rst
     accessing_metrics.rst
     metrics.rst
+    queries.rst
     ts_utils.rst
     driver.rst

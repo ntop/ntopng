@@ -8,8 +8,9 @@ There are two types of metrics exported by ntiong currently: **counters** and **
 - **counters** are used for continuous incrementing metrics such as the total number of bytes.
 - **gauges** are used for metrics such as the number of active flows or active hosts at a certain point in time.
 
-ntopng supports two backends for storing timeseries: RRD and InfluxDB. The resolution reported below for each metric
-can actually be changed (a lower resolution can be configured) for InfluxDB through the runtime preferences.
+ntopng supports two backends for storing timeseries: RRD and InfluxDB. The supported resolution may change 
+based on the backend and can be configured through the Runtime Preferences (this is the case of InfluxDB for
+some of the metrics as reported below).
 
 
 Interface Metrics
@@ -731,7 +732,7 @@ Device Metrics
    Total number of bytes sent and received by a L2 device.
    
    - **Type**: counter 
-   - **Resolution**: 5m
+   - **Resolution**: 5m (RRD) / 10s-1min according to preferences (InfluxDB)
    
    **Tags**
    
@@ -759,7 +760,7 @@ Device Metrics
    Total ARP requests sent and replies received by a L2 device.
    
    - **Type**: counter 
-   - **Resolution**: 5m
+   - **Resolution**: 5m (RRD) / 10s-1min according to preferences (InfluxDB)
    
    **Tags**
    
@@ -787,7 +788,7 @@ Device Metrics
    Total number of bytes per category (nDPI) for a L2 device.
    
    - **Type**: counter 
-   - **Resolution**: 5m
+   - **Resolution**: 5m (RRD) / 10s-1min according to preferences (InfluxDB)
    
    **Tags**
    
@@ -819,7 +820,7 @@ Host Metrics
    Total number of bytes sent and received by a host.
    
    - **Type**: counter 
-   - **Resolution**: 5m
+   - **Resolution**: 5m (RRD) / 10s-1min according to preferences (InfluxDB)
    
    **Tags**
    
@@ -847,7 +848,7 @@ Host Metrics
    Number of active flows for a host.
    
    - **Type**: gauge
-   - **Resolution**: 5m
+   - **Resolution**: 5m (RRD) / 10s-1min according to preferences (InfluxDB)
    
    **Tags**
    
@@ -875,7 +876,7 @@ Host Metrics
    Total number of flows for a host.
    
    - **Type**: counter 
-   - **Resolution**: 5m
+   - **Resolution**: 5m (RRD) / 10s-1min according to preferences (InfluxDB)
    
    **Tags**
 
@@ -903,7 +904,7 @@ Host Metrics
    Total number of misbehaving flows for a host.
    
    - **Type**: counter 
-   - **Resolution**: 5m
+   - **Resolution**: 5m (RRD) / 10s-1min according to preferences (InfluxDB)
    
    **Tags**
 
@@ -931,7 +932,7 @@ Host Metrics
    Total number of ICMP Port Unreachable flows for a host.
    
    - **Type**: counter 
-   - **Resolution**: 5m
+   - **Resolution**: 5m (RRD) / 10s-1min according to preferences (InfluxDB)
    
    **Tags**
 
@@ -961,7 +962,7 @@ Host Metrics
    Total number of ICMP Host Unreachable flows for a host.
    
    - **Type**: counter 
-   - **Resolution**: 5m
+   - **Resolution**: 5m (RRD) / 10s-1min according to preferences (InfluxDB)
    
    **Tags**
 
@@ -991,7 +992,7 @@ Host Metrics
    Total number of flows per application protocol (nDPI) for a host.
    
    - **Type**: counter 
-   - **Resolution**: 5m
+   - **Resolution**: 5m (RRD) / 10s-1min according to preferences (InfluxDB)
    
    **Tags**
    
@@ -1019,7 +1020,7 @@ Host Metrics
    Total number of ICMP Echo packets sent and received by a host.
    
    - **Type**: counter 
-   - **Resolution**: 5m
+   - **Resolution**: 5m (RRD) / 10s-1min according to preferences (InfluxDB)
    
    **Tags**
    
@@ -1047,7 +1048,7 @@ Host Metrics
    Total number of ICMP Echo Reply packets sent and received by a host.
    
    - **Type**: counter 
-   - **Resolution**: 5m
+   - **Resolution**: 5m (RRD) / 10s-1min according to preferences (InfluxDB)
    
    **Tags**
    
@@ -1076,7 +1077,7 @@ Host Metrics
    Total number of DNS queries sent and replies received by a host.
    
    - **Type**: counter 
-   - **Resolution**: 5m
+   - **Resolution**: 5m (RRD) / 10s-1min according to preferences (InfluxDB)
    
    **Tags**
    
@@ -1106,7 +1107,7 @@ Host Metrics
     Total number of DNS queries received and replies sent by a host.
    
    - **Type**: counter 
-   - **Resolution**: 5m
+   - **Resolution**: 5m (RRD) / 10s-1min according to preferences (InfluxDB)
    
    **Tags**
    
@@ -1136,7 +1137,7 @@ Host Metrics
    Total number of retransmitted, Out-Of-Order and lost TCP packets received by a host.
    
    - **Type**: counter 
-   - **Resolution**: 5m
+   - **Resolution**: 5m (RRD) / 10s-1min according to preferences (InfluxDB)
    
    **Tags**
    
@@ -1166,7 +1167,7 @@ Host Metrics
    Total number of retransmitted, Out-Of-Order and lost TCP packets sent by a host.
    
    - **Type**: counter 
-   - **Resolution**: 5m
+   - **Resolution**: 5m (RRD) / 10s-1min according to preferences (InfluxDB)
    
    **Tags**
    
@@ -1196,7 +1197,7 @@ Host Metrics
    Total number of TCP packets sent and received by the host.
    
    - **Type**: counter 
-   - **Resolution**: 5m
+   - **Resolution**: 5m (RRD) / 10s-1min according to preferences (InfluxDB)
    
    **Tags**
    
@@ -1224,7 +1225,7 @@ Host Metrics
    Total number of UDP packets sent and received by the host.
    
    - **Type**: counter 
-   - **Resolution**: 5m
+   - **Resolution**: 5m (RRD) / 10s-1min according to preferences (InfluxDB)
    
    **Tags**
    
@@ -1252,7 +1253,7 @@ Host Metrics
    Total number of alerts generated by the host.
    
    - **Type**: counter 
-   - **Resolution**: 5m
+   - **Resolution**: 5m (RRD) / 10s-1min according to preferences (InfluxDB)
    
    **Tags**
    
@@ -1278,7 +1279,7 @@ Host Metrics
    Total number of contacts/peers with the host as client or server.
    
    - **Type**: gauge 
-   - **Resolution**: 5m
+   - **Resolution**: 5m (RRD) / 10s-1min according to preferences (InfluxDB)
    
    **Tags**
    
@@ -1306,7 +1307,7 @@ Host Metrics
    Total number of bytes sent and received by L4 protocol for a host.
    
    - **Type**: counter 
-   - **Resolution**: 5m
+   - **Resolution**: 5m (RRD) / 10s-1min according to preferences (InfluxDB)
    
    **Tags**
    
@@ -1334,7 +1335,7 @@ Host Metrics
    Total number of bytes sent by the host for unicast and non unicast traffic.
    
    - **Type**: counter 
-   - **Resolution**: 5m
+   - **Resolution**: 5m (RRD) / 10s-1min according to preferences (InfluxDB)
    
    **Tags**
    
@@ -1362,7 +1363,7 @@ Host Metrics
    Total number of bytes sent and received per application protocol (nDPI) for a host.
    
    - **Type**: counter 
-   - **Resolution**: 5m
+   - **Resolution**: 5m (RRD) / 10s-1min according to preferences (InfluxDB)
    
    **Tags**
    
@@ -1392,7 +1393,7 @@ Host Metrics
    Total number of bytes sent and received per category (nDPI) for a host.
    
    - **Type**: counter 
-   - **Resolution**: 5m
+   - **Resolution**: 5m (RRD) / 10s-1min according to preferences (InfluxDB)
    
    **Tags**
    
@@ -1467,7 +1468,7 @@ Host Metrics
    +--------------------------+-----------------------------------------------------------+
    | Name                     | Description                                               |
    +==========================+===========================================================+
-   | num_flows.               | Number of flows.                                          |
+   | num_flows                | Number of flows.                                          |
    +--------------------------+-----------------------------------------------------------+
 
 
@@ -1692,7 +1693,7 @@ VLAN Metrics
    Total number of bytes sent and received for a VLAN.
    
    - **Type**: counter 
-   - **Resolution**: 5m
+   - **Resolution**: 5m (RRD) / 10s-1min according to preferences (InfluxDB)
    
    **Tags**
    
@@ -1720,7 +1721,7 @@ VLAN Metrics
    Total number of bytes sent and received per application protocol (nDPI) for a VLAN.
    
    - **Type**: counter 
-   - **Resolution**: 5m
+   - **Resolution**: 5m (RRD) / 10s-1min according to preferences (InfluxDB)
    
    **Tags**
    
@@ -1754,7 +1755,7 @@ SNMP Interface Metrics
    Total number of bytes sent and received by a SNMP interface.
    
    - **Type**: counter 
-   - **Resolution**: 5m
+   - **Resolution**: 5m (RRD) / 10s-1min according to preferences (InfluxDB)
    
    **Tags**
    
@@ -1785,7 +1786,7 @@ SNMP Interface Metrics
    Total number of packets discarded or with errors on a SNMP interface.
    
    - **Type**: counter 
-   - **Resolution**: 5m
+   - **Resolution**: 5m (RRD) / 10s-1min according to preferences (InfluxDB)
    
    **Tags**
    
@@ -1849,7 +1850,7 @@ Host Pool Metrics
    Total number of bytes sent and received by a host pool.
    
    - **Type**: counter 
-   - **Resolution**: 5m
+   - **Resolution**: 5m (RRD) / 10s-1min according to preferences (InfluxDB)
    
    **Tags**
    
@@ -1877,7 +1878,7 @@ Host Pool Metrics
    Number of hosts in a host pool.
    
    - **Type**: counter 
-   - **Resolution**: 5m
+   - **Resolution**: 5m (RRD) / 10s-1min according to preferences (InfluxDB)
    
    **Tags**
    
@@ -1903,7 +1904,7 @@ Host Pool Metrics
    Number of devices in a host pool.
    
    - **Type**: counter 
-   - **Resolution**: 5m
+   - **Resolution**: 5m (RRD) / 10s-1min according to preferences (InfluxDB)
    
    **Tags**
    
@@ -1929,7 +1930,7 @@ Host Pool Metrics
    Total number of blocked flows for a host pool.
    
    - **Type**: counter 
-   - **Resolution**: 5m
+   - **Resolution**: 5m (RRD) / 10s-1min according to preferences (InfluxDB)
    
    **Tags**
    
@@ -1955,7 +1956,7 @@ Host Pool Metrics
    Total number of bytes sent and received per application protocol (nDPI) for a host pool.
    
    - **Type**: counter 
-   - **Resolution**: 5m
+   - **Resolution**: 5m (RRD) / 10s-1min according to preferences (InfluxDB)
    
    **Tags**
    
@@ -1989,7 +1990,7 @@ ASN Metrics
    Total number of bytes sent and received by an AS.
    
    - **Type**: counter 
-   - **Resolution**: 5m
+   - **Resolution**: 5m (RRD) / 10s-1min according to preferences (InfluxDB)
    
    **Tags**
    
@@ -2017,7 +2018,7 @@ ASN Metrics
    Total number of bytes sent and received per application protocol (nDPI) by an AS.
    
    - **Type**: counter 
-   - **Resolution**: 5m
+   - **Resolution**: 5m (RRD) / 10s-1min according to preferences (InfluxDB)
    
    **Tags**
    
@@ -2047,7 +2048,7 @@ ASN Metrics
    Round Trip Time for an AS, computed as exponentially weighted moving average.
    
    - **Type**: gauge 
-   - **Resolution**: 5m
+   - **Resolution**: 5m (RRD) / 10s-1min according to preferences (InfluxDB)
    
    **Tags**
    
@@ -2073,7 +2074,7 @@ ASN Metrics
    Total number of retransmitted TCP packets from/to an AS.
    
    - **Type**: counter 
-   - **Resolution**: 5m
+   - **Resolution**: 5m (RRD) / 10s-1min according to preferences (InfluxDB)
    
    **Tags**
    
@@ -2101,7 +2102,7 @@ ASN Metrics
    Total number of Out Of Order TCP packets from/to an AS.
    
    - **Type**: counter 
-   - **Resolution**: 5m
+   - **Resolution**: 5m (RRD) / 10s-1min according to preferences (InfluxDB)
    
    **Tags**
    
@@ -2129,7 +2130,7 @@ ASN Metrics
    Total number of lost TCP packets from/to an AS.
    
    - **Type**: counter 
-   - **Resolution**: 5m
+   - **Resolution**: 5m (RRD) / 10s-1min according to preferences (InfluxDB)
    
    **Tags**
    
@@ -2157,7 +2158,7 @@ ASN Metrics
    Total number of TCP Keepalives packets from/to an AS.
    
    - **Type**: counter 
-   - **Resolution**: 5m
+   - **Resolution**: 5m (RRD) / 10s-1min according to preferences (InfluxDB)
    
    **Tags**
    
@@ -2189,7 +2190,7 @@ Country Metrics
    Total number of ingress/egress/inner bytes for a country.
    
    - **Type**: counter 
-   - **Resolution**: 5m
+   - **Resolution**: 5m (RRD) / 10s-1min according to preferences (InfluxDB)
    
    **Tags**
    
@@ -2223,7 +2224,7 @@ sFlow Device Metrics
    Total number of bytes sent and received on a port of a sFlow device.
    
    - **Type**: counter 
-   - **Resolution**: 5m
+   - **Resolution**: 5m (RRD) / 10s-1min according to preferences (InfluxDB)
    
    **Tags**
    
@@ -2257,7 +2258,7 @@ Flow Device Metrics
    Total number of bytes sent and received on a port of a flow device (nProbe).
    
    - **Type**: counter 
-   - **Resolution**: 5m
+   - **Resolution**: 5m (RRD) / 10s-1min according to preferences (InfluxDB)
    
    **Tags**
    
@@ -2291,7 +2292,7 @@ Event Exporter Metrics
    Total number of bytes sent and received on an interface of an event exporter (nProbe Agent).
    
    - **Type**: counter 
-   - **Resolution**: 5m
+   - **Resolution**: 5m (RRD) / 10s-1min according to preferences (InfluxDB)
    
    **Tags**
    
