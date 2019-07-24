@@ -91,7 +91,6 @@ else
   LIBRRD="librrd4, "
 fi
 
-
 if test "${with_nedge+set}" = set; then
  APP=nedge
 else
@@ -126,7 +125,7 @@ fi
 
 cd -
 
-NTOPNG_VERS=`cat ../../configure.ac | head -2|grep 'C_INIT' | cut -d " " -f 2|cut -d ')' -f 1|cut -d ',' -f 2| tail -c +2 |sed 's/.\{1\}$//'`
+NTOPNG_VERS=`cat ../../configure.ac | head -2 | grep 'C_INIT' | cut -d " " -f 2 | cut -d ')' -f 1 | cut -d ',' -f 2 | tail -c +2 | sed 's/.\{1\}$//'`
 GIT_RELEASE=`git rev-parse HEAD`
 GIT_COMMITS=`git rev-list --all |wc -l | tr -d '[[:space:]]'`
 
