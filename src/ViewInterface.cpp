@@ -313,7 +313,9 @@ void ViewInterface::flowPollLoop() {
     begin_slot = 0; /* Always visit all flows starting from the first slot */
     walker(&begin_slot, true /* walk all the flows */, walker_flows, viewed_flows_walker, &viewed_flows_walker_user_data, true /* visit also idle flows (required to acknowledge the purge) */);
 
+#ifdef NTOPNG_PRO
     dumpAggregatedFlows(&viewed_flows_walker_user_data.tv);
+#endif
 
     purgeIdle(time(NULL));
     usleep(500000);

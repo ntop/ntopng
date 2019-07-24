@@ -2998,8 +2998,10 @@ void NetworkInterface::periodicStatsUpdate() {
   } else
     too_many_drops = false;
 
+#ifdef NTOPNG_PRO
   if(!isView() && !isViewed())
     dumpAggregatedFlows(&tv);
+#endif
 
   checkReloadHostsBroadcastDomain();
 
