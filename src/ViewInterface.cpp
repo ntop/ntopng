@@ -179,6 +179,17 @@ u_int32_t ViewInterface::getCheckPointNumPacketDrops() {
 
 /* **************************************************** */
 
+bool ViewInterface::hasSeenVlanTaggedPackets() const {
+  for(u_int8_t s = 0; s < num_viewed_interfaces; s++) {
+    if(viewed_interfaces[s]->hasSeenVlanTaggedPackets())
+      return true;
+  }
+
+  return false;
+}
+
+/* **************************************************** */
+
 u_int32_t ViewInterface::getFlowsHashSize() {
   u_int32_t tot = 0;
 

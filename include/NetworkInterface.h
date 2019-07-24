@@ -330,7 +330,7 @@ class NetworkInterface : public AlertableEntity {
   inline char* get_description() const         { return(ifDescription);                                };
   inline int  get_id() const                   { return(id);                                           };
   inline bool get_inline_interface()           { return inline_interface;  }
-  inline bool hasSeenVlanTaggedPackets() const { return(has_vlan_packets); }
+  virtual bool hasSeenVlanTaggedPackets() const{ return(has_vlan_packets); }
   inline void setSeenVlanTaggedPackets()       { has_vlan_packets = true;  }
   inline bool hasSeenEBPFEvents() const        { return(has_ebpf_events);  }
   inline void setSeenEBPFEvents()              { has_ebpf_events = true;   }

@@ -79,6 +79,7 @@ if(debug_hosts) then traceError(TRACE_DEBUG,TRACE_CONSOLE, i18n("host_details.tr
 
 
 local host = interface.getHostInfo(host_info["host"], host_vlan)
+
 local tskey
 
 if _GET["tskey"] then
@@ -530,7 +531,7 @@ if((page == "overview") or (page == nil)) then
       end
    end
 
-   if(ifstats.vlan and (host["vlan"] ~= nil)) then
+   if host["vlan"] then
       print("<tr><th>")
       print(i18n("details.vlan_id"))
       print("</th><td colspan=2><A HREF="..ntop.getHttpPrefix().."/lua/hosts_stats.lua?vlan="..host["vlan"]..">"..host["vlan"].."</A></td></tr>\n")
