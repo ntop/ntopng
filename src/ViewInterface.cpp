@@ -83,7 +83,7 @@ bool ViewInterface::walker(u_int32_t *begin_slot,
 			   void *user_data,
 			   bool walk_idle) {
   bool ret = false;
-  u_int32_t flows_begin_slot; /* Always from the beginning, all flows */
+  u_int32_t flows_begin_slot = 0; /* Always from the beginning, all flows */
 
   switch(wtype) {
   case walker_flows:

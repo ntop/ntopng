@@ -3671,10 +3671,29 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
 #endif
 
   if(f && (!f->idle())) {
-    if(retriever->host
-       && (retriever->host != f->get_cli_host())
-       && (retriever->host != f->get_srv_host()))
-      return(false);
+    if(retriever->host) {
+      if(!f->getInterface()->isViewed()) {
+	/*
+	  For non-viewed interfaces it is safe to just check on pointers equality.
+	  Indeed, the retriever->host has been obtained with getHost(), which has returned
+	  the same pointer also used by the flow to identify its client / server hosts.
+	 */
+	if(retriever->host != f->get_cli_host()
+	   && retriever->host != f->get_srv_host())
+	  return(false);
+      } else {
+	/*
+	  In case of view interfaces, hosts are in the view interface whereas flows are in
+	  the underlying viewed interfaces so in this case it is not possible to just check on
+	  pointers equality. This need to use the retriever->host which comes from the view interface
+	  to retrieve an IpAddress, and check it against the flow ip address, along with the vlan.
+	  Indeed, flow ip addresses exist also when a flow doesn't have Host* as in the case of viewed interfaces.
+	 */
+	if(!(retriever->host->get_ip()->equal(f->get_cli_ip_addr()) && retriever->host->get_vlan_id() == f->get_vlan_id())
+	   &&!(retriever->host->get_ip()->equal(f->get_srv_ip_addr()) && retriever->host->get_vlan_id() == f->get_vlan_id()))
+	  return(false);
+      }
+    }
 
     if(retriever->pag
        && retriever->pag->l7protoFilter(&ndpi_proto)
