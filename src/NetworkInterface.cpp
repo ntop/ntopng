@@ -399,6 +399,7 @@ void NetworkInterface::aggregatePartialFlow(const struct timeval *tv, Flow *flow
       }
     }
 
+#ifdef NTOPNG_PRO
     if(aggregatedFlow) {
       aggregatedFlow->sumFlowStats(flow,
 				   /* lastFlowAggregation will be decremented by one after the current periodic
@@ -421,6 +422,7 @@ void NetworkInterface::aggregatePartialFlow(const struct timeval *tv, Flow *flow
 				   aggregated_flows_hash->getCurrentSize());
 #endif
     }
+#endif
   }
 }
 
