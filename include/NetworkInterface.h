@@ -192,7 +192,7 @@ class NetworkInterface : public AlertableEntity {
   InterfaceStatsHash *interfaceStats;
   dhcp_range* dhcp_ranges, *dhcp_ranges_shadow;
 
-  PROFILING_DECLARE(24);
+  PROFILING_DECLARE(32);
 
   void init();
   void deleteDataStructures();

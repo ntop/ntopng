@@ -1172,12 +1172,18 @@ void NetworkInterface::processFlow(ParsedFlow *zflow, bool zmq_flow) {
     return;
   }
 
+  PROFILING_SECTION_ENTER("processFlow getMac", 20);
+
   if(!ntop->getPrefs()->do_ignore_macs()) {
     srcMac = getMac((u_int8_t*)zflow->src_mac, true /* Create if missing */, true /* Inline call */);
     dstMac = getMac((u_int8_t*)zflow->dst_mac, true /* Create if missing */, true /* Inline call */);
   }
 
+  PROFILING_SECTION_EXIT(20);
+
   srcIP.set(&zflow->src_ip), dstIP.set(&zflow->dst_ip);
+
+  PROFILING_SECTION_ENTER("processFlow getFlow", 21);
 
   /* Updating Flow */
   flow = getFlow(srcMac, dstMac,
@@ -1191,6 +1197,8 @@ void NetworkInterface::processFlow(ParsedFlow *zflow, bool zmq_flow) {
 		 zflow->first_switched,
 		 zflow->last_switched,
 		 0, &new_flow, true);
+
+  PROFILING_SECTION_EXIT(21);
 
   if(flow == NULL)
     return;
@@ -1288,6 +1296,8 @@ void NetworkInterface::processFlow(ParsedFlow *zflow, bool zmq_flow) {
       (src2dst_direction) ? 1 : 0);
 #endif
 
+  PROFILING_SECTION_ENTER("processFlow Inc", 22);
+
   /* Update Mac stats
      Note: do not use src2dst_direction to inc the stats as
      in_bytes/in_pkts and out_bytes/out_pkts are already relative to the current
@@ -1328,6 +1338,8 @@ void NetworkInterface::processFlow(ParsedFlow *zflow, bool zmq_flow) {
 			 zflow->tcp.lost_out_pkts, 0 /* TODO: add keepalive */);
   }
 
+  PROFILING_SECTION_EXIT(22);
+
 #ifdef NTOPNG_PRO
   if(zflow->deviceIP) {
     // if(ntop->getPrefs()->is_flow_device_port_rrd_creation_enabled() && ntop->getPro()->has_valid_license()) {
@@ -1355,6 +1367,9 @@ void NetworkInterface::processFlow(ParsedFlow *zflow, bool zmq_flow) {
 		     zflow->pkt_sampling_rate*zflow->in_fragments,
 		     zflow->pkt_sampling_rate*zflow->out_fragments,
 		     zflow->last_switched);
+
+  PROFILING_SECTION_ENTER("processFlow Misc", 23);
+
   p.app_protocol = zflow->l7_proto.app_protocol, p.master_protocol = zflow->l7_proto.master_protocol;
   p.category = NDPI_PROTOCOL_CATEGORY_UNSPECIFIED;
   flow->setDetectedProtocol(p, true);
@@ -1381,8 +1396,16 @@ void NetworkInterface::processFlow(ParsedFlow *zflow, bool zmq_flow) {
   }
 #endif
 
+  PROFILING_SECTION_EXIT(23);
+
+  PROFILING_SECTION_ENTER("processFlow fillZmqFlowCategory", 24);
+
   // NOTE: fill the category only after the server name is set
   flow->fillZmqFlowCategory();
+
+  PROFILING_SECTION_EXIT(24);
+
+  PROFILING_SECTION_ENTER("processFlow incStats", 25);
 
   /* Do not put incStats before guessing the flow protocol */
   incStats(true /* ingressPacket */,
@@ -1392,6 +1415,7 @@ void NetworkInterface::processFlow(ParsedFlow *zflow, bool zmq_flow) {
 	   zflow->pkt_sampling_rate*(zflow->in_pkts + zflow->out_pkts),
 	   24 /* 8 Preamble + 4 CRC + 12 IFG */ + 14 /* Ethernet header */);
 
+  PROFILING_SECTION_EXIT(25);
 
   /* purge is actually performed at most one time every FLOW_PURGE_FREQUENCY */
   // purgeIdle(zflow->last_switched);

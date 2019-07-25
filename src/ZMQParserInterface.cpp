@@ -856,6 +856,7 @@ void ZMQParserInterface::preprocessFlow(ParsedFlow *flow, NetworkInterface *ifac
   }
 
   if(!invalid_flow) {
+
     if(flow->hasParsedeBPF()) {
       /* Direction already reliable when the event is an accept or a connect.
          Heuristic is only used in the other cases. */
