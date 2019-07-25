@@ -1250,6 +1250,7 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
       print [[
        </ul>
        <form method="post">
+       <br>
        <table id="user" class="table table-bordered table-striped" style="clear: both"> <tbody>
        <tr><th>]] print(i18n("alerts_thresholds_config.threshold_type")) print[[</th><th width=30%>]] print(i18n("alerts_thresholds_config.thresholds_single_source", {source=firstToUpper(entity_type),alt_name=ternary(alt_name ~= nil, alt_name, alert_source)})) print[[</th><th width=30%>]] print(i18n("alerts_thresholds_config.common_thresholds_local_sources", {source=firstToUpper(entity_type)}))
       print[[</th></tr>]]
@@ -1598,7 +1599,7 @@ function drawAlertTables(num_past_alerts, num_engaged_alerts, num_flow_alerts, h
         print("<br>")
       end
 	 print[[
-<ul class="nav nav-tabs" role="tablist" id="alert-tabs" class="]] print(ternary(options.engaged_only, 'hidden', '')) print[[">
+<ul class="nav nav-tabs" role="tablist" id="alert-tabs" style="]] print(ternary(options.engaged_only, 'display:none', '')) print[[">
 <!-- will be populated later with javascript -->
 </ul>
 ]]

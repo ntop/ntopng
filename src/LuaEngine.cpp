@@ -8312,6 +8312,7 @@ static int ntop_release_triggered_alert(lua_State* vm, AlertableEntity *alertabl
   struct ntopngLuaContext *c = getLuaVMContext(vm);
   char *key;
   ScriptPeriodicity periodicity;
+  time_t when;
 
   if(!c->iface || !alertable) return(CONST_LUA_PARAM_ERROR);
 
@@ -8321,8 +8322,11 @@ static int ntop_release_triggered_alert(lua_State* vm, AlertableEntity *alertabl
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   if((periodicity = (ScriptPeriodicity)lua_tonumber(vm, 2)) >= MAX_NUM_PERIODIC_SCRIPTS) return(CONST_LUA_PARAM_ERROR);
 
+  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  when = (time_t)lua_tonumber(vm, 3);
+
   /* The released alert will be pushed to LUA */
-  alertable->releaseAlert(vm, c->iface, std::string(key), periodicity);
+  alertable->releaseAlert(vm, c->iface, std::string(key), periodicity, when);
 
   return(CONST_LUA_OK);
 }

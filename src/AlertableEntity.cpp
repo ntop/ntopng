@@ -61,7 +61,7 @@ void AlertableEntity::luaAlert(lua_State* vm, Alert *alert, ScriptPeriodicity p)
   lua_push_int32_table_entry(vm, "alert_entity", entity_type);
   lua_push_str_table_entry(vm, "alert_entity_val", entity_val.c_str());
   lua_push_uint64_table_entry(vm, "alert_tstamp", alert->alert_tstamp_start);
-  lua_push_uint64_table_entry(vm, "alert_tstamp_end", alert->alert_tstamp_start);
+  lua_push_uint64_table_entry(vm, "alert_tstamp_end", alert->last_update);
   lua_push_int32_table_entry(vm, "alert_granularity", Utils::periodicityToSeconds((ScriptPeriodicity)p));
   lua_push_str_table_entry(vm, "alert_json", alert->alert_json.c_str());
 }
@@ -118,7 +118,7 @@ bool AlertableEntity::triggerAlert(std::string key, NetworkInterface *iface, Scr
 
 /* ****************************************** */
 
-bool AlertableEntity::releaseAlert(lua_State* vm, NetworkInterface *iface, std::string key, ScriptPeriodicity p) {
+bool AlertableEntity::releaseAlert(lua_State* vm, NetworkInterface *iface, std::string key, ScriptPeriodicity p, time_t now) {
   std::map<std::string, Alert>::iterator it = triggered_alerts[(u_int)p].find(key);
   bool rv = false;
 
@@ -128,9 +128,13 @@ bool AlertableEntity::releaseAlert(lua_State* vm, NetworkInterface *iface, std::
   }
 
   if(!it->second.is_disabled) {
+    /* Set the release time */
+    it->second.last_update = now;
+
     /* Found, push the alert */
     lua_newtable(vm);
     luaAlert(vm, &it->second, p);
+
     iface->decNumAlertsEngaged(p);
     rv = true;
   } else

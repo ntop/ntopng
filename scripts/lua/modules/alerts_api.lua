@@ -409,8 +409,8 @@ end
 --! @param when (optional) the time when the release event occurs
 --! @note The actual release is performed asynchronously
 --! @return true on success, false otherwise
-function alerts_api.release(entity_info, type_info)
-  local now = os.time()
+function alerts_api.release(entity_info, type_info, when)
+  local when = when or os.time()
   local granularity_sec = type_info.alert_granularity and type_info.alert_granularity.granularity_seconds or 0
   local granularity_id = type_info.alert_granularity and type_info.alert_granularity.granularity_id or nil
   local subtype = type_info.alert_subtype or ""
@@ -418,11 +418,11 @@ function alerts_api.release(entity_info, type_info)
   local released = nil
 
   if((host.releaseTriggeredAlert) and (entity_info.alert_entity.entity_id == alertEntity("host"))) then
-    released = host.releaseTriggeredAlert(alert_key_name, granularity_id)
+    released = host.releaseTriggeredAlert(alert_key_name, granularity_id, when)
   elseif((interface.releaseTriggeredAlert) and (entity_info.alert_entity.entity_id == alertEntity("interface"))) then
-    released = interface.releaseTriggeredAlert(alert_key_name, granularity_id)
+    released = interface.releaseTriggeredAlert(alert_key_name, granularity_id, when)
   elseif((network.releaseTriggeredAlert) and (entity_info.alert_entity.entity_id == alertEntity("network"))) then
-    released = network.releaseTriggeredAlert(alert_key_name, granularity_id)
+    released = network.releaseTriggeredAlert(alert_key_name, granularity_id, when)
   else
     alertErrorTraceback("Unsupported entity" .. entity_info.alert_entity.entity_id)
     return(false)

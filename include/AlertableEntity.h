@@ -57,7 +57,7 @@ class AlertableEntity {
     const char *alert_subtype,
     const char *alert_json,
     bool alert_disabled);
-  bool releaseAlert(lua_State* vm, NetworkInterface *iface, std::string key, ScriptPeriodicity p);
+  bool releaseAlert(lua_State* vm, NetworkInterface *iface, std::string key, ScriptPeriodicity p, time_t now);
 
   void luaAlert(lua_State* vm, Alert *alert, ScriptPeriodicity p);
   void getExpiredAlerts(ScriptPeriodicity p, lua_State* vm, time_t now);
