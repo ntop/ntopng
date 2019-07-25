@@ -36,7 +36,7 @@ function checkAlerts(granularity)
   local host_key   = hostinfo2hostkey({ip = info.ip, vlan = info.vlan}, nil, true --[[ force @[vlan] even when vlan is 0 --]])
   local config_alerts = ternary(info["localhost"], config_alerts_local, config_alerts_remote)
   local host_config = config_alerts[host_key] or {}
-  local global_config = config_alerts["local_hosts"] or {}
+  local global_config = ternary(info["localhost"], config_alerts["local_hosts"], config_alerts["remote_hosts"]) or {}
   local has_configured_alerts = (table.len(host_config) or table.len(global_config))
   local entity_info = alerts_api.hostAlertEntity(info.ip, info.vlan)
 
