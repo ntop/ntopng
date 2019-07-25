@@ -140,7 +140,8 @@ int main(int argc, char *argv[]) {
   uint64_t total_time_usec;
   ndpi_serializer *serializer;
   ndpi_serializer deserializer;
-  int rc, i, j, z, num_records, max_tlv_msgs = 0, tlv_msgs = 0, exported_msgs = 0;
+  int rc, i, j, z, num_records, max_tlv_msgs = 0, tlv_msgs = 0;
+  u_int64_t exported_msgs = 0, exported_records = 0;
   u_int8_t use_json_encoding = 0;
   char c;
 
@@ -217,7 +218,7 @@ int main(int argc, char *argv[]) {
   enum json_tokener_error jerr = json_tokener_success;
   char * buffer = (char *) malloc(p.second);
   json_object *f;
-  u_int64_t delta_usec, last_delta_usec = 0, last_exported_msgs = 0;
+  u_int64_t delta_usec, last_delta_usec = 0, last_exported_records = 0;
 
   f = json_tokener_parse_verbose(buffer, &jerr);
 
@@ -287,7 +288,12 @@ int main(int argc, char *argv[]) {
 
         if (rc > 0)
           exported_msgs++;
+        else {
+          printf("zmq_send failure: %d\n", rc);
+          goto exit;
+        }
       }
+      exported_records += num_records;
     }
 
     gettimeofday(&t2, NULL);
@@ -296,8 +302,9 @@ int main(int argc, char *argv[]) {
     total_time_usec += delta_usec;
 
     if (total_time_usec - last_delta_usec > 1000000 /* every 1 sec */) {
-      printf("%u flows / %.2f flows/sec exported\n", exported_msgs, ((double) (exported_msgs - last_exported_msgs) / ((total_time_usec - last_delta_usec)/1000000)));
-      last_exported_msgs = exported_msgs;
+      printf("%lu flows / %.2f flows/sec exported\n", exported_records, 
+        ((double) (exported_records - last_exported_records) / ((total_time_usec - last_delta_usec)/1000000)));
+      last_exported_records = exported_records;
       last_delta_usec = total_time_usec;
     }
 
@@ -398,7 +405,7 @@ int main(int argc, char *argv[]) {
  exit:
 
   if (zmq_sock)
-    printf("%u messages (max %u records each) sent over ZMQ\n", exported_msgs, batch_size);
+    printf("%lu messages %lu records sent over ZMQ\n", exported_msgs, exported_records);
 
   for (i = 0; i < tlv_msgs; i++)
     ndpi_term_serializer(&serializer[i]);
