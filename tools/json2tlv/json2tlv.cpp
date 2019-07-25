@@ -217,6 +217,7 @@ int main(int argc, char *argv[]) {
   enum json_tokener_error jerr = json_tokener_success;
   char * buffer = (char *) malloc(p.second);
   json_object *f;
+  u_int64_t delta_usec, last_delta_usec = 0, last_exported_msgs = 0;
 
   f = json_tokener_parse_verbose(buffer, &jerr);
 
@@ -291,14 +292,22 @@ int main(int argc, char *argv[]) {
 
     gettimeofday(&t2, NULL);
 
-    total_time_usec += (u_int64_t) ((u_int64_t) t2.tv_sec * 1000000 + t2.tv_usec) - ((u_int64_t) t1.tv_sec * 1000000 + t1.tv_usec);
+    delta_usec = (u_int64_t) ((u_int64_t) t2.tv_sec * 1000000 + t2.tv_usec) - ((u_int64_t) t1.tv_sec * 1000000 + t1.tv_usec);
+    total_time_usec += delta_usec;
+
+    if (total_time_usec - last_delta_usec > 1000000 /* every 1 sec */) {
+      printf("%u flows / %.2f flows/sec exported\n", exported_msgs, ((double) (exported_msgs - last_exported_msgs) / ((total_time_usec - last_delta_usec)/1000000)));
+      last_exported_msgs = exported_msgs;
+      last_delta_usec = total_time_usec;
+    }
+
   }  
 
   printf("Serialization perf (includes json-c overhead): %.3f msec total time for %u iterations\n", (double) total_time_usec/1000, enc_repeat);
 
   json_object_put(f);
 
-  if (ndpi_serialization_format_json)
+  if (use_json_encoding)
     goto exit;
 
   /* nDPI TLV Deserialization */
