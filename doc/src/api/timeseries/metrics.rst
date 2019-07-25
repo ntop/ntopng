@@ -2525,7 +2525,7 @@ Process Metrics
 
 .. admonition:: process:memory
    
-   Memory statistics for a process.
+   Memory statistics for the ntopng process.
    
    - **Type**: gauge 
    - **Resolution**: 1m
