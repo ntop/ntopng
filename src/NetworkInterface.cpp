@@ -2811,13 +2811,6 @@ void NetworkInterface::findFlowHosts(u_int16_t vlanId,
 
   /* ***************************** */
 
-  if(_src_ip && _src_ip->equal(_dst_ip)) {
-    *dst = *src;
-    return;
-  }
-
-  /* ***************************** */
-
   PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: hosts_hash->get", 8);
   (*dst) = hosts_hash->get(vlanId, _dst_ip, true /* Inline call */);
   PROFILING_SECTION_EXIT(8);

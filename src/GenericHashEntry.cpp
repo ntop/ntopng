@@ -83,7 +83,9 @@ void GenericHashEntry::deserialize(json_object *o) {
   json_object *obj;
 
   if(json_object_object_get_ex(o, "seen.first", &obj)) first_seen = json_object_get_int64(obj);
-  if(json_object_object_get_ex(o, "seen.last", &obj))  last_seen  = json_object_get_int64(obj);
+
+  /* NOTE: do not deserialize the last_seen, as an old timestamp will
+   * make this (fresh) entry idle(). */
 }
 
 /* ***************************************** */
