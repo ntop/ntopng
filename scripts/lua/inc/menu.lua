@@ -276,12 +276,6 @@ end
 print [[
       <li><a href="]]
 print(ntop.getHttpPrefix())
-print [[/lua/hosts_matrix.lua"><i class="fa fa-th-large"></i> ]] print(i18n("local_flow_matrix.local_flow_matrix")) print[[</a></li>
-   ]]
-
-print [[
-      <li><a href="]]
-print(ntop.getHttpPrefix())
 print [[/lua/bubble.lua"><i class="fa fa-circle-o"></i> Host Explorer</a></li>
    ]]
 
