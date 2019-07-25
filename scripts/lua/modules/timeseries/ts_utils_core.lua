@@ -629,6 +629,7 @@ end
 --! @return nil on error, otherwise a table item_id -> result is returned. See ts_utils.listSeries() for details.
 function ts_utils.getBatchedListSeriesResult()
   local driver = ts_utils.getQueryDriver()
+  local result
 
   if not driver then
     return nil
@@ -636,7 +637,17 @@ function ts_utils.getBatchedListSeriesResult()
 
   ts_common.clearLastError()
 
-  local result = driver:listSeriesBatched(pending_listseries_batch)
+  if(driver.listSeriesBatched == nil) then
+    -- Do not batch, just call listSeries
+    result = {}
+
+    for key, item in pairs(pending_listseries_batch) do
+      result[key] = driver:listSeries(item.schema, item.filter_tags, item.wildcard_tags, item.start_time)
+    end
+  else
+    result = driver:listSeriesBatched(pending_listseries_batch)
+  end
+
   pending_listseries_batch = {}
 
   return result

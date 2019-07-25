@@ -663,19 +663,6 @@ end
 
 -- ##############################################
 
-function driver:listSeriesBatched(batch)
-  local res = {}
-
-  -- Do not batch, just call listSeries
-  for key, item in pairs(batch) do
-    res[key] = driver:listSeries(item.schema, item.filter_tags, item.wildcard_tags, item.start_time)
-  end
-
-  return res
-end
-
--- ##############################################
-
 function driver:topk(schema, tags, tstart, tend, options, top_tags)
   if #top_tags > 1 then
     traceError(TRACE_ERROR, TRACE_CONSOLE, "RRD driver does not support topk on multiple tags")

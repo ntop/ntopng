@@ -24,6 +24,8 @@ function driver:new(options)
   return obj
 end
 
+-- ##############################################
+
 --! @brief Append a new data point to the timeseries.
 --! @param schema the schema object.
 --! @param timestamp the data point timestamp.
@@ -74,8 +76,9 @@ function driver:append(schema, timestamp, tags, metrics)
       ntop.lpushCache(prometheus_queue, metric_str)
       ntop.ltrimCache(prometheus_queue, 0, max_prometheus_queueLen)
    end
-
 end
+
+-- ##############################################
 
 --! @brief Query timeseries data.
 --! @param schema the schema object.
@@ -128,6 +131,7 @@ end
 --! @note a conservative way to implement this is to return the current time.
 --! @return most recent timestamp available.
 function driver:getLatestTimestamp(ifid)
+  return os.time()
 end
 
 --! @brief Delete timeseries data
@@ -136,12 +140,14 @@ end
 --! @return true if operation was successful, false otherwise.
 --! @note E.g. "iface" schema_prefix matches any schema starting with "iface:". Empty prefix is allowed and matches all the schemas.
 function driver:delete(schema_prefix, tags)
+  return(true)
 end
 
 --! @brief Delete old data.
 --! @param ifid: the interface ID to process
 --! @return true if operation was successful, false otherwise.
 function driver:deleteOldData(ifid)
+  return(true)
 end
 
 --! @brief This is called when some driver configuration changes.
