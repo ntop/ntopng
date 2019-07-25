@@ -59,8 +59,8 @@ LocalHost::~LocalHost() {
 
 /* NOTE: Host::initialize will be called from the Host initializator */
 void LocalHost::initialize() {
-  char buf[64];
-
+  char buf[64], host[96], rsp[256];
+  
   stats = allocateStats();
   updateHostPool(true /* inline with packet processing */, true /* first inc */);
 
@@ -94,10 +94,8 @@ void LocalHost::initialize() {
   initial_ts_point = new HostTimeseriesPoint(stats);
   initialization_time = time(NULL);
 
-  char host[96];
   char *strIP = ip.print(buf, sizeof(buf));
   snprintf(host, sizeof(host), "%s@%u", strIP, vlan_id);
-  char rsp[256];
 
   ntop->getRedis()->getAddress(strIP, rsp, sizeof(rsp), true);
 

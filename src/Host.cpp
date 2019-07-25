@@ -24,7 +24,7 @@
 /* *************************************** */
 
 Host::Host(NetworkInterface *_iface, char *ipAddress, u_int16_t _vlanId) : GenericHashEntry(_iface),
-      AlertableEntity(alert_entity_host) {
+									   AlertableEntity(alert_entity_host) {
   ip.set(ipAddress);
   initialize(NULL, _vlanId, true);
 }
@@ -188,13 +188,14 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   refreshDisableFlowAlertTypes();
   
   if(init_all) {
+    char country_name[64];
+    
     if((as = iface->getAS(&ip, true /* Create if missing */, true /* Inline call */)) != NULL) {
       as->incUses();
       asn = as->get_asn();
       asname = as->get_asname();
     }
 
-    char country_name[64];
     get_country(country_name, sizeof(country_name));
 
     if((country = iface->getCountry(country_name, true /* Create if missing */, true /* Inline call */ )) != NULL)
@@ -659,8 +660,7 @@ void Host::incStats(u_int32_t when, u_int8_t l4_proto, u_int ndpi_proto,
 		    custom_app_t custom_app,
 		    u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
 		    u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes,
-	bool peer_is_unicast) {
-
+		    bool peer_is_unicast) {
   if(sent_bytes || rcvd_bytes) {
     stats->incStats(when, l4_proto, ndpi_proto, custom_app,
 		    sent_packets, sent_bytes, sent_goodput_bytes, rcvd_packets,
@@ -693,7 +693,6 @@ void Host::serialize(json_object *my_object, DetailsLevel details_level) {
     if(asname)      json_object_object_add(my_object, "asname",    json_object_new_string(asname ? asname : (char*)""));
     get_os(buf, sizeof(buf));
     if(strlen(buf)) json_object_object_add(my_object, "os",        json_object_new_string(buf));
-
 
     json_object_object_add(my_object, "localHost", json_object_new_boolean(isLocalHost()));
     json_object_object_add(my_object, "systemHost", json_object_new_boolean(isSystemHost()));

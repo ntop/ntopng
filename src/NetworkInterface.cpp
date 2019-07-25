@@ -2807,7 +2807,6 @@ void NetworkInterface::findFlowHosts(u_int16_t vlanId,
 
       has_too_many_hosts = false;
     }
-
   }
 
   /* ***************************** */
