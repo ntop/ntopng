@@ -177,7 +177,6 @@ Ntop::~Ntop() {
 
   for(int i = 0; i < num_defined_interfaces; i++) {
     if(iface[i]) {
-      iface[i]->shutdown();
       delete iface[i];
       iface[i] = NULL;
     }
@@ -473,8 +472,6 @@ void Ntop::start() {
 				 nap);
     _usleep(nap);
   }
-
-  runShutdownTasks();
 }
 
 /* ******************************************* */
@@ -2029,13 +2026,6 @@ void Ntop::initInterface(NetworkInterface *_if) {
 
 /* ******************************************* */
 
-void Ntop::sendNetworkInterfacesTermination() {
-  for(int i=0; i<num_defined_interfaces; i++)
-    iface[i]->sendTermination();
-}
-
-/* ******************************************* */
-
 /* NOTE: the multiple isShutdown checks below are necessary to reduce the shutdown time */
 void Ntop::runHousekeepingTasks() {
   for(int i=0; i<num_defined_interfaces; i++) {
@@ -2082,8 +2072,7 @@ void Ntop::shutdown() {
 
     stats->print();
     iface[i]->shutdown();
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Interface %s [running: %d]",
-				 iface[i]->get_name(), iface[i]->isRunning());
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Polling shut down [interface: %s]", iface[i]->get_name());
   }
 }
 
@@ -2108,13 +2097,6 @@ void Ntop::shutdownAll() {
     shutdown_activity->runScript();
     delete shutdown_activity;
   }
-
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Terminating network interfaces");
-
-  /* Now it is time to trear down running interfaces */
-  ntop->sendNetworkInterfacesTermination();
-
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Waiting for the application to shutdown");
 
   ntop->getGlobals()->shutdown();
   sleep(1); /* Wait until all threads know that we're shutting down... */

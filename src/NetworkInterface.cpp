@@ -2737,7 +2737,12 @@ void NetworkInterface::startPacketPolling() {
 /* **************************************************** */
 
 void NetworkInterface::shutdown() {
-  running = false;
+  void *res;
+
+  if(isRunning()) {
+    running = false;
+    pthread_join(pollLoop, &res);
+  }
 }
 
 /* **************************************************** */

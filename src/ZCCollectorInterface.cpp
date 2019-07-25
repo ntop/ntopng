@@ -137,13 +137,9 @@ void ZCCollectorInterface::startPacketPolling() {
 /* **************************************************** */
 
 void ZCCollectorInterface::shutdown() {
-  if(running) {
-    void *res;
+  pfring_zc_queue_breakloop(zq);
 
-    NetworkInterface::shutdown();
-    pfring_zc_queue_breakloop(zq);
-    pthread_join(pollLoop, &res);
-  }
+  NetworkInterface::shutdown();
 }
 
 /* **************************************************** */

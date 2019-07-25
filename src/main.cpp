@@ -230,7 +230,7 @@ int main(int argc, char *argv[])
         if(iface == NULL && strncmp(ifName, "nf:", 3) == 0)
           iface = new NetfilterInterface(ifName);
 #endif
-	
+
 #ifdef HAVE_PF_RING
 	if((iface == NULL) && (!strstr(ifName, ".pcap"))) {
 	  errno = 0;
@@ -413,11 +413,14 @@ int main(int argc, char *argv[])
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "-----------------------------------------------------------");
 #endif
 
-  /* this returns after a shutdown has been requested */
+  /* This method returns after a shutdown has been requested.
+     runHousekeepingTasks() is performed within this method untile it has returned. */
   ntop->start();
 
-  /* perform all the necessary cleanup and wait for other threads termination */
+  /* Perform all the necessary cleanup and wait for other threads termination */
   ntop->shutdownAll();
+
+  ntop->runShutdownTasks();
 
   delete ntop;
   ntop = NULL;

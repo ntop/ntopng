@@ -310,23 +310,29 @@ static bool viewed_flows_walker(GenericHashEntry *flow, void *user_data, bool *m
 
 /* **************************************************** */
 
-void ViewInterface::flowPollLoop() {
+void ViewInterface::viewedFlowsWalker() {
   u_int32_t begin_slot;
   viewed_flows_walker_user_data_t viewed_flows_walker_user_data;
 
-  viewed_flows_walker_user_data.tv.tv_sec = viewed_flows_walker_user_data.tv.tv_usec = 0;
-  viewed_flows_walker_user_data.iface = this;
+  viewed_flows_walker_user_data.tv.tv_sec = time(NULL),
+    viewed_flows_walker_user_data.tv.tv_usec = 0,
+    viewed_flows_walker_user_data.iface = this;      
 
-  while(!ntop->getGlobals()->isShutdownRequested()) {
-    while(idle()) sleep(1);
-    
-    viewed_flows_walker_user_data.tv.tv_sec = time(NULL);
-    begin_slot = 0; /* Always visit all flows starting from the first slot */
-    walker(&begin_slot, true /* walk all the flows */, walker_flows, viewed_flows_walker, &viewed_flows_walker_user_data, true /* visit also idle flows (required to acknowledge the purge) */);
+  begin_slot = 0; /* Always visit all flows starting from the first slot */
+  walker(&begin_slot, true /* walk all the flows */, walker_flows, viewed_flows_walker, &viewed_flows_walker_user_data, true /* visit also idle flows (required to acknowledge the purge) */);
 
 #ifdef NTOPNG_PRO
-    dumpAggregatedFlows(&viewed_flows_walker_user_data.tv);
+  dumpAggregatedFlows(&viewed_flows_walker_user_data.tv);
 #endif
+}
+
+/* **************************************************** */
+
+void ViewInterface::flowPollLoop() {
+  while(!ntop->getGlobals()->isShutdownRequested()) {
+    while(idle()) sleep(1);
+
+    viewedFlowsWalker();
 
     purgeIdle(time(NULL));
     usleep(500000);
@@ -352,15 +358,4 @@ void ViewInterface::startPacketPolling() {
   pthread_create(&pollLoop, NULL, ::flowPollLoop, this);
   pollLoopCreated = true;
   NetworkInterface::startPacketPolling();
-}
-
-/* **************************************************** */
-
-void ViewInterface::shutdown() {
-  void *res;
-
-  if(isRunning()) {
-    NetworkInterface::shutdown();
-    pthread_join(pollLoop, &res);
-  }
 }

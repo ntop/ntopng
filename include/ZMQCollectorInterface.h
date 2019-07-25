@@ -61,7 +61,6 @@ class ZMQCollectorInterface : public ZMQParserInterface {
   virtual void purgeIdle(time_t when);
 
   void startPacketPolling();
-  void shutdown();
   bool set_packet_filter(char *filter);
   virtual void lua(lua_State* vm);
 };

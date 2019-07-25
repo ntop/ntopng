@@ -256,16 +256,11 @@ void PF_RINGInterface::startPacketPolling() {
 /* **************************************************** */
 
 void PF_RINGInterface::shutdown() {
-  void *res;
-  int i;
-
-  if(running) {
-    NetworkInterface::shutdown();
-    for (i = 0; i < num_pfring_handles; i++) {
-      if (pfring_handle[i]) pfring_breakloop(pfring_handle[i]);
-    }
-    pthread_join(pollLoop, &res);
+  for (int i = 0; i < num_pfring_handles; i++) {
+    if (pfring_handle[i]) pfring_breakloop(pfring_handle[i]);
   }
+
+  NetworkInterface::shutdown();
 }
 
 /* **************************************************** */

@@ -59,7 +59,7 @@ void GenericHashEntry::updateSeen() {
 /* ***************************************** */
 
 HashEntryState GenericHashEntry::get_state() const {
-  if(ntop->getGlobals()->isShutdownRequested() || ntop->getGlobals()->isShutdown())
+  if(!iface->isRunning()) /* When the interface is no longer running it is safe to assume the entry is idle */
     return hash_entry_state_idle;
 
   return hash_entry_state;

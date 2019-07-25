@@ -347,17 +347,6 @@ void ZMQCollectorInterface::startPacketPolling() {
 
 /* **************************************************** */
 
-void ZMQCollectorInterface::shutdown() {
-  void *res;
-
-  if(running) {
-    NetworkInterface::shutdown();
-    pthread_join(pollLoop, &res);
-  }
-}
-
-/* **************************************************** */
-
 bool ZMQCollectorInterface::set_packet_filter(char *filter) {
   ntop->getTrace()->traceEvent(TRACE_ERROR,
 			       "No filter can be set on a collector interface. Ignored %s", filter);

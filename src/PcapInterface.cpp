@@ -121,8 +121,6 @@ PcapInterface::PcapInterface(const char *name) : NetworkInterface(name) {
 /* **************************************************** */
 
 PcapInterface::~PcapInterface() {
-  shutdown();
-
   if(pcap_handle) {
     pcap_close(pcap_handle);
     pcap_handle = NULL;
@@ -386,20 +384,6 @@ void PcapInterface::startPacketPolling() {
   pthread_create(&pollLoop, NULL, packetPollLoop, (void*)this);  
   pollLoopCreated = true;
   NetworkInterface::startPacketPolling();
-}
-
-/* **************************************************** */
-
-void PcapInterface::shutdown() {
-  if(running) {
-    void *res;
-
-    NetworkInterface::shutdown();
-#ifndef WIN32
-    pthread_kill(pollLoop, SIGTERM);
-#endif
-    pthread_join(pollLoop, &res);
-  }
 }
 
 /* **************************************************** */

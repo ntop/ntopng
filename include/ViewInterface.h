@@ -28,6 +28,7 @@ class ViewInterface : public NetworkInterface {
  private:
   u_int8_t num_viewed_interfaces;
   NetworkInterface *viewed_interfaces[MAX_NUM_VIEW_INTERFACES];
+  void viewedFlowsWalker();
 
  public:
   ViewInterface(const char *_endpoint);
@@ -38,7 +39,6 @@ class ViewInterface : public NetworkInterface {
   virtual bool isPacketInterface()  const { return false;                         };
   void flowPollLoop();
   void startPacketPolling();
-  void shutdown();
   bool set_packet_filter(char *filter)    { return false ;                        };
 
   virtual u_int64_t getNumPackets();

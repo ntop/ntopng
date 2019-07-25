@@ -47,7 +47,6 @@ class PcapInterface : public NetworkInterface {
   inline void set_pcap_handle(pcap_t *p) { pcap_handle = p; };
   inline FILE*   get_pcap_list()   { return(pcap_list);     };
   void startPacketPolling();
-  void shutdown();
   bool set_packet_filter(char *filter);
   inline bool read_from_pcap_dump() { return(read_pkts_from_pcap_dump);            };
   inline void sendTermination()     { if(pcap_handle) pcap_breakloop(pcap_handle); };
