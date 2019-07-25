@@ -376,12 +376,6 @@ if host.systemhost then
 end
 
 if(not(isLoopback(ifname))) then
-   if(page == "talkers") then
-      print("<li class=\"active\"><a href=\"#\">"..i18n("talkers").."</a></li>\n")
-   else
-      print("<li><a href=\""..url.."&page=talkers\">"..i18n("talkers").."</a></li>")
-   end
-
    if(host.has_dropbox_shares == true) then
       local dropbox = require("dropbox_utils")
       local namespaces = dropbox.getHostNamespaces(host.ip)
@@ -1726,11 +1720,6 @@ elseif(page == "dropbox") then
    end
 
    print("</ul>")
-elseif(page == "talkers") then
-print("<center>")
-print('<div class="row">')
-dofile(dirs.installdir .. "/scripts/lua/inc/sankey.lua")
-print("</div></center></br>")
 elseif(page == "geomap") then
 print("<center>")
 
