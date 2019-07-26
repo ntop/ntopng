@@ -83,7 +83,6 @@ class Flow : public GenericHashEntry {
   CounterTrend throughputTrend, goodputTrend, thptRatioTrend;
 #endif
   ndpi_protocol ndpiDetectedProtocol;
-  static const ndpi_protocol ndpiUnknownProtocol;
   custom_app_t custom_app;
   void *cli_id, *srv_id;
   char *json_info, *host_server_name, *bt_hash;
@@ -242,6 +241,7 @@ class Flow : public GenericHashEntry {
   FlowStatus getFlowStatus();
   struct site_categories* getFlowCategory(bool force_categorization);
   void freeDPIMemory();
+  static const ndpi_protocol ndpiUnknownProtocol;
   bool isTiny() const;
   bool isLongLived() const;
   inline bool isSSL()  const { return(isProto(NDPI_PROTOCOL_SSL));  }

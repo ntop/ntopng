@@ -1055,10 +1055,11 @@ NetworkInterface* NetworkInterface::getSubInterface(u_int32_t criteria, bool par
 	  h->iface = new NetworkInterface(buf, vIface_type);
 
 	if(h->iface) {
-	  if (ntop->registerInterface(h->iface))
+	  if(ntop->registerInterface(h->iface))
             ntop->initInterface(h->iface);
 	  h->iface->allocateStructures();
 	  h->iface->setDynamicInterface();
+	  h->iface->startPacketPolling(); /* Won't actually start a thread, just mark this interface as running */
 	  HASH_ADD_INT(flowHashing, criteria, h);
 	  numVirtualInterfaces++;
 	  ntop->getRedis()->set(CONST_STR_RELOAD_LISTS, (const char * const)"1");
@@ -1084,12 +1085,10 @@ NetworkInterface* NetworkInterface::getSubInterface(u_int32_t criteria, bool par
 void NetworkInterface::processFlow(ParsedFlow *zflow, bool zmq_flow) {
   bool src2dst_direction, new_flow;
   Flow *flow;
-  ndpi_protocol p;
+  ndpi_protocol p = Flow::ndpiUnknownProtocol;
   time_t now = time(NULL);
   Mac *srcMac = NULL, *dstMac = NULL;
   IpAddress srcIP, dstIP;
-
-  memset(&p, 0, sizeof(p));
 
   if(zmq_flow) {
     /* In ZMQ flows we need to fix the clock drift */
