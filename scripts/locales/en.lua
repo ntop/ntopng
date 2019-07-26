@@ -3034,6 +3034,7 @@ local lang = {
     ["reset_alert_database_message"] = "This action will remove any alerts related data, including<ul><li>Runtime alerts status</li><li>Alerts configuration</li><li>Persistent alerts SQLite storage</li></ul><br>Do you really want to proceed",
     ["rtt"] = "RTT",
     ["startup"] = "Startup",
+    ["trigger_alert_descr"] = "Enable alerts triggering on this alarmable",
   },
   ["sites_page"] = {
     ["contacts"] = "Contacts",

@@ -48,11 +48,6 @@ if(network == nil) then
     return
 end
 
-if(not ts_utils.exists("subnet:traffic", {ifid=ifId, subnet=network_name})) then
-    print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> " .. i18n("network_details.no_available_stats_for_network",{network=network_name}) .. "</div>")
-    return
-end
-
 --[[
 Create Menu Bar with buttons
 --]]
@@ -142,41 +137,10 @@ elseif (page == "config") then
    <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[["/>
    <table class="table table-bordered table-striped">]]
 
-   -- Alerts
-   local trigger_alerts
-   local trigger_alerts_checked
-
     if _SERVER["REQUEST_METHOD"] == "POST" then
-      if _POST["trigger_alerts"] ~= "1" then
-	 trigger_alerts = false
-      else
-	 trigger_alerts = true
-      end
-
-      ntop.setHashCache(get_alerts_suppressed_hash_name(getInterfaceId(ifname)), network_name, tostring(trigger_alerts))
       setLocalNetworkAlias(network_name, _POST["custom_name"])
       custom_name = getLocalNetworkAlias(network_name)
     end
-
-      trigger_alerts = ntop.getHashCache(get_alerts_suppressed_hash_name(getInterfaceId(ifname)), network_name)
-
-      if trigger_alerts == "false" then
-	 trigger_alerts = false
-	 trigger_alerts_checked = ""
-      else
-	 trigger_alerts = true
-	 trigger_alerts_checked = "checked"
-      end
-
-      print [[<tr>
-	 <th>]] print(i18n("network_alert_config.trigger_network_alerts")) print[[</th>
-	 <td>
-	       <input type="checkbox" name="trigger_alerts" value="1" ]] print(trigger_alerts_checked) print[[>
-		  <i class="fa fa-exclamation-triangle fa-lg"></i>
-		  ]] print(i18n("network_alert_config.trigger_alerts_for_network",{network=network_name})) print[[
-	       </input>
-	 </td>
-      </tr>]]
 
    print [[<tr>
 	 <th>]] print(i18n("network_details.network_alias")) print[[</th>

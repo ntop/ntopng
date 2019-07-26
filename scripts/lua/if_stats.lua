@@ -1402,32 +1402,6 @@ elseif(page == "config") then
 	   </td>
 	</tr>]]
 
-   -- Alerts
-   local trigger_alerts = true
-   local trigger_alerts_checked = "checked"
-
-   if _SERVER["REQUEST_METHOD"] == "POST" then
-      if _POST["trigger_alerts"] ~= "1" then
-         trigger_alerts = false
-         trigger_alerts_checked = ""
-      end
-
-      ntop.setHashCache(get_alerts_suppressed_hash_name(getInterfaceId(ifname)), ifname_clean, tostring(trigger_alerts))
-   else
-      trigger_alerts = ntop.getHashCache(get_alerts_suppressed_hash_name(getInterfaceId(ifname)), ifname_clean)
-      if trigger_alerts == "false" then
-         trigger_alerts = false
-         trigger_alerts_checked = ""
-      end
-   end
-
-   print [[<tr>
-         <th>]] print(i18n("if_stats_config.trigger_interface_alerts")) print[[</th>
-         <td>
-            <input name="trigger_alerts" type="checkbox" value="1" ]] print(trigger_alerts_checked) print[[>
-         </td>
-      </tr>]]
-
    -- per-interface RRD generation
    local interface_rrd_creation = true
    local interface_rrd_creation_checked = "checked"

@@ -14,13 +14,15 @@ local do_trace          = false
 local config_alerts_local = nil
 local config_alerts_remote = nil
 local available_modules = nil
+local ifid = nil
 
 -- #################################################################
 
 -- The function below ia called once (#pragma once)
 function setup(str_granularity)
    if(do_trace) then print("alert.lua:setup("..str_granularity..") called\n") end
-   local ifname = interface.setActiveInterfaceId(tonumber(interface.getId()))
+   ifid = interface.getId()
+   local ifname = interface.setActiveInterfaceId(ifid)
    config_alerts_local = getLocalHostsConfiguredAlertThresholds(ifname, str_granularity)
    config_alerts_remote = getRemoteHostsConfiguredAlertThresholds(ifname, str_granularity)
 
@@ -39,6 +41,11 @@ function checkAlerts(granularity)
   local global_config = ternary(info["localhost"], config_alerts["local_hosts"], config_alerts["remote_hosts"]) or {}
   local has_configured_alerts = (table.len(host_config) or table.len(global_config))
   local entity_info = alerts_api.hostAlertEntity(info.ip, info.vlan)
+
+  if are_alerts_suppressed(host_key, ifid) then
+    releaseAlerts()
+    return
+  end
 
   if has_configured_alerts then
     for _, check in pairs(available_modules) do

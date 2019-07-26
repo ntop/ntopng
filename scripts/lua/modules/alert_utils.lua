@@ -999,6 +999,128 @@ local global_redis_thresholds_key = "thresholds"
 
 -- #################################
 
+local function printConfigTab(entity_type, entity_value, page_name, page_params, alt_name, options)
+   local trigger_alerts = true
+   local ifid = interface.getId()
+   local trigger_alerts_checked
+   local cur_bitmap
+   local host_bitmap_key
+
+   if(entity_type == "host") then
+      host_bitmap_key = string.format("ntopng.prefs.alerts.ifid_%d.disabled_status.host_%s", ifid, entity_value)
+      cur_bitmap = tonumber(ntop.getPref(host_bitmap_key)) or 0
+   end
+
+   if _SERVER["REQUEST_METHOD"] == "POST" then
+      if _POST["trigger_alerts"] ~= "1" then
+         trigger_alerts = false
+      else
+         trigger_alerts = true
+      end
+
+      ntop.setHashCache(get_alerts_suppressed_hash_name(ifid), entity_value, tostring(trigger_alerts))
+      interface.refreshHostsAlertsConfiguration(host_ip, host_vlan)
+
+      if(entity_type == "host") then
+         local bitmap = 0
+
+         if not isEmptyString(_POST["disabled_status"]) then
+           local status_selection = split(_POST["disabled_status"], ",") or { _POST["disabled_status"] }
+
+           for _, status in pairs(status_selection) do
+             bitmap = ntop.bitmapSet(bitmap, tonumber(status))
+           end
+         end
+
+         if(bitmap ~= cur_bitmap) then
+           ntop.setPref(host_bitmap_key, string.format("%u", bitmap))
+           cur_bitmap = bitmap
+           interface.reloadHostDisableFlowAlertTypes(entity_value)
+         end
+      end
+   else
+      trigger_alerts = toboolean(ntop.getHashCache(get_alerts_suppressed_hash_name(ifid), entity_value))
+   end
+
+   if trigger_alerts == false then
+      trigger_alerts_checked = ""
+   else
+      trigger_alerts = true
+      trigger_alerts_checked = "checked"
+   end
+
+  print[[
+   <br>
+   <form id="alerts-config" class="form-inline" method="post">
+   <input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
+   <table class="table table-bordered table-striped">]]
+  print[[<tr>
+         <th width="25%">]] print(i18n("device_protocols.alert")) print[[</th>
+         <td>
+               <input type="checkbox" name="trigger_alerts" value="1" ]] print(trigger_alerts_checked) print[[>
+                  <i class="fa fa-exclamation-triangle fa-lg"></i>
+                  ]] print(i18n("show_alerts.trigger_alert_descr")) print[[
+               </input>
+         </td>
+      </tr>]]
+
+   if(entity_type == "host") then
+      print[[<tr>
+         <td width="30%">
+           <b>]] print(i18n("host_details.status_ignore")) print[[</b> <i class="fa fa-info-circle" title="]] print(i18n("host_details.disabled_flow_status_help")) print[["></i>
+         </td>
+         <td>
+           <input id="status_trigger_alert" name="disabled_status" type="hidden" />
+           <select onchange="convertMultiSelect()" id="status_trigger_alert_select" multiple class="form-control" style="width:40em; height:10em; display:inline;">]]
+
+      for status_id, label in pairsByKeys(getFlowStatusTypes()) do
+        print[[<option value="]] print(string.format("%d", status_id))
+        if ntop.bitmapIsSet(cur_bitmap, tonumber(status_id)) then
+          print[[" selected="selected]]
+        end
+        print[[">]]
+        print(label)
+        print[[</option>]]
+      end
+
+      print[[</select><div style="margin-top:1em;"><i>]] print(i18n("host_details.multiple_selection")) print[[</i></div>
+         <button type="button" class="btn btn-default" style="margin-top:1em;" onclick="resetMultiSelect()">]] print(i18n("reset")) print[[</button>
+         </td>
+      </tr>]]
+   end
+   print[[</table>
+   <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_configuration")) print[[</button>
+   </form>
+   <br><br>
+   <script>
+    function convertMultiSelect() {
+      var values = [];
+
+      $("#status_trigger_alert_select option:selected").each(function(idx, item) {
+        values.push($(item).val());
+      });
+
+      $("#status_trigger_alert").val(values.join(","));
+      $("#status_trigger_alert").trigger("change");
+    }
+
+    function resetMultiSelect() {
+       $("#status_trigger_alert_select option:selected").each(function(idx, item) {
+         item.selected = "";
+       });
+
+       convertMultiSelect();
+    }
+
+    /* Run after page load */
+    $(convertMultiSelect);
+
+    aysHandleForm("#alerts-config");
+   </script>]]
+end
+
+-- #################################
+
 function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, delete_confirm_msg, page_name, page_params, alt_name, show_entity, options)
    local num_engaged_alerts, num_past_alerts, num_flow_alerts = 0,0,0
    local has_disabled_alerts = alerts.hasEntitiesWithAlertsDisabled(interface.getId())
@@ -1056,9 +1178,9 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
    end
 
    -- Default tab
-   if(tab == nil) then tab = "min" end
+   if(tab == nil) then tab = "config" end
 
-   if(tab ~= "alert_list") then
+   if((tab ~= "alert_list") and (tab ~= "config")) then
       local granularity_label = alertEngineLabel(alertEngine(tab))
 
       print(
@@ -1086,6 +1208,8 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
       )
    end
 
+   printTab("config", '<i class="fa fa-cog" aria-hidden="true"></i> ' .. i18n("traffic_recording.settings"), tab)
+
    for k, granularity in pairsByField(alert_consts.alerts_granularities, "granularity_id", asc) do
       local l = i18n(granularity.i18n_title)
       local resolution = granularity.granularity_seconds
@@ -1106,6 +1230,8 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
 
    if((show_entity) and (tab == "alert_list")) then
       drawAlertTables(num_past_alerts, num_engaged_alerts, num_flow_alerts, has_disabled_alerts, _GET, true, nil, { engaged_only = true })
+   elseif(tab == "config") then
+      printConfigTab(entity_type, alert_source, page_name, page_params, alt_name, options)
    else
       -- Before doing anything we need to check if we need to save values
 
