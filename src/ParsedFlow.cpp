@@ -30,7 +30,6 @@ ParsedFlow::ParsedFlow() : ParsedFlowCore(), ParsedeBPF() {
   
   bittorrent_hash = NULL;
   memset(&custom_app, 0, sizeof(custom_app));
-  additional_fields = json_object_new_object();
 
   has_parsed_ebpf = false;
   parsed_flow_free_memory = false;

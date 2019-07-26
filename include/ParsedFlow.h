@@ -28,14 +28,19 @@ class ParsedFlow : public ParsedFlowCore, public ParsedeBPF {
  private:
   bool parsed_flow_free_memory;
   bool has_parsed_ebpf;
+  json_object *additional_fields;
 
  public:
-  json_object *additional_fields;
   char *http_url, *http_site, *dns_query, *ssl_server_name, *bittorrent_hash;
   custom_app_t custom_app;
 
   ParsedFlow();
   ParsedFlow(const ParsedFlow &pf);
+  inline void addAdditionalField(const char *key, json_object *field) {
+    if (!additional_fields) additional_fields = json_object_new_object();
+    if (additional_fields)  json_object_object_add(additional_fields, key, field);
+  }
+  inline json_object* getAdditionalFields() { return additional_fields; };
   inline bool hasParsedeBPF() const { return has_parsed_ebpf; };
   inline void setParsedeBPF()       { has_parsed_ebpf = true; };
   virtual ~ParsedFlow();

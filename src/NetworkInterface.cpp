@@ -1374,7 +1374,7 @@ void NetworkInterface::processFlow(ParsedFlow *zflow, bool zmq_flow) {
   PROFILING_SECTION_EXIT(23);
 
   PROFILING_SECTION_ENTER("processFlow setJSONInfo", 24);
-  flow->setJSONInfo(zflow->additional_fields);
+  flow->setJSONInfo(zflow->getAdditionalFields());
   PROFILING_SECTION_EXIT(24);
 
   PROFILING_SECTION_ENTER("processFlow local stats", 25);

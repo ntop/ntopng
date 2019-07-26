@@ -873,7 +873,9 @@ void ZMQParserInterface::preprocessFlow(ParsedFlow *flow, NetworkInterface *ifac
     }
 
     /* Process Flow */
+    PROFILING_SECTION_ENTER("processFlow", 30);
     iface->processFlow(flow, true);
+    PROFILING_SECTION_EXIT(30);
     deliverFlowToCompanions(flow);
   }
 }
@@ -932,8 +934,9 @@ void ZMQParserInterface::parseSingleJSONFlow(json_object *o,
 	      const char *additional_value = json_object_get_string(additional_v);
 
 	      if((additional_key != NULL) && (additional_value != NULL)) {
-		json_object_object_add(flow.additional_fields, additional_key,
-				       json_object_new_string(additional_value));
+                //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Additional field: %s", additional_key);
+		flow.addAdditionalField(additional_key,
+				        json_object_new_string(additional_value));
 	      }
 	      json_object_iter_next(&additional_it);
 	    }
@@ -959,9 +962,10 @@ void ZMQParserInterface::parseSingleJSONFlow(json_object *o,
 	} /* switch */
       }
 
-      if(add_to_additional_fields)
-	json_object_object_add(flow.additional_fields,
-			       key, json_object_new_string(value));
+      if(add_to_additional_fields) {
+        //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Additional field: %s", key);
+	flow.addAdditionalField(key, json_object_new_string(value));
+      }
 
       if(additional_o) json_object_put(additional_o);
     } /* if */
@@ -1094,8 +1098,8 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
 	        const char *additional_value = json_object_get_string(additional_v);
 
 	        if((additional_key != NULL) && (additional_value != NULL)) {
-		  json_object_object_add(flow.additional_fields, additional_key,
-				         json_object_new_string(additional_value));
+                  //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Additional field: %s", additional_key);
+		  flow.addAdditionalField(additional_key, json_object_new_string(additional_value));
 	        }
 	        json_object_iter_next(&additional_it);
               }
@@ -1127,7 +1131,8 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
     }
 
     if (add_to_additional_fields) {
-      json_object_object_add(flow.additional_fields, key_str, 
+      //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Additional field: %s", key_str);
+      flow.addAdditionalField(key_str, 
         value_is_string ? json_object_new_string(vs.str) : json_object_new_int64(v64));
     }
 
