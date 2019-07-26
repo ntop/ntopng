@@ -2303,12 +2303,8 @@ json_object* Flow::flow2json() {
   json_object_object_add(my_object, Utils::jsonLabel(LAST_SWITCHED, "LAST_SWITCHED", jsonbuf, sizeof(jsonbuf)),
 			 json_object_new_int((u_int32_t)get_partial_last_seen()));
 
-  if(json_info) {
-    bool json_info_empty = true;
-    json_object_object_foreach(json_info, key, val) { json_info_empty = false; break; }
-    if(!json_info_empty)
-      json_object_object_add(my_object, "json", json_info);
-  }
+  if(json_info && json_object_object_length(json_info) > 0)
+    json_object_object_add(my_object, "json", json_info);
 
   if(vlanId > 0) json_object_object_add(my_object,
 					Utils::jsonLabel(SRC_VLAN, "SRC_VLAN", jsonbuf, sizeof(jsonbuf)),
