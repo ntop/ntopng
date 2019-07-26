@@ -62,7 +62,7 @@ Flow::Flow(NetworkInterface *_iface,
 
   ndpiFlow = NULL, cli_id = srv_id = NULL;
   cli_ebpf = srv_ebpf = NULL;
-  json_info = strdup("{}"), cli2srv_direction = true, twh_over = twh_ok = false,
+  json_info = NULL, cli2srv_direction = true, twh_over = twh_ok = false,
     dissect_next_http_packet = false,
     check_tor = false, host_server_name = NULL, diff_num_http_requests = 0,
     bt_hash = NULL, community_id_flow_hash = NULL;
@@ -221,7 +221,7 @@ Flow::~Flow() {
 
   if(last_partial)         free(last_partial);
   if(last_db_dump.partial) free(last_db_dump.partial);
-  if(json_info)            free(json_info);
+  if(json_info)            json_object_put(json_info);
   if(host_server_name)     free(host_server_name);
 
   if(cli_ebpf) delete cli_ebpf;
@@ -687,11 +687,14 @@ void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
 
 /* *************************************** */
 
-void Flow::setJSONInfo(const char *json) {
+void Flow::setJSONInfo(json_object *json) {
   if(json == NULL) return;
 
-  if(json_info != NULL) free(json_info);
-  json_info = strdup(json);
+  if(json_info != NULL) 
+    json_object_put(json_info);
+
+  json_info = json;
+  json_object_get(json_info);
 }
 
 /* *************************************** */
@@ -1926,7 +1929,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
       }
     }
 
-    lua_push_str_table_entry(vm, "moreinfo.json", get_json_info());
+    lua_push_str_table_entry(vm, "moreinfo.json", get_json_info() ? json_object_to_json_string(get_json_info()) : "{}");
 
     if(cli_ebpf) processLua(vm, cli_ebpf, true);
     if(srv_ebpf) processLua(vm, srv_ebpf, false);
@@ -2300,21 +2303,11 @@ json_object* Flow::flow2json() {
   json_object_object_add(my_object, Utils::jsonLabel(LAST_SWITCHED, "LAST_SWITCHED", jsonbuf, sizeof(jsonbuf)),
 			 json_object_new_int((u_int32_t)get_partial_last_seen()));
 
-  if(json_info && strcmp(json_info, "{}")) {
-    json_object *o;
-    enum json_tokener_error jerr = json_tokener_success;
-
-    if((o = json_tokener_parse_verbose(json_info, &jerr)) != NULL) {
-      json_object_object_add(my_object, "json", o);
-    } else {
-      ntop->getTrace()->traceEvent(TRACE_INFO,
-				   "JSON Parse error [%s]: %s "
-				   " adding as a plain string",
-				   json_tokener_error_desc(jerr),
-				   json_info);
-      /* Experimental to attempt to fix https://github.com/ntop/ntopng/issues/522 */
-      json_object_object_add(my_object, "json", json_object_new_string(json_info));
-    }
+  if(json_info) {
+    bool json_info_empty = true;
+    json_object_object_foreach(json_info, key, val) { json_info_empty = false; break; }
+    if(!json_info_empty)
+      json_object_object_add(my_object, "json", json_info);
   }
 
   if(vlanId > 0) json_object_object_add(my_object,

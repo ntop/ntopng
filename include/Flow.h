@@ -85,7 +85,8 @@ class Flow : public GenericHashEntry {
   ndpi_protocol ndpiDetectedProtocol;
   custom_app_t custom_app;
   void *cli_id, *srv_id;
-  char *json_info, *host_server_name, *bt_hash;
+  json_object *json_info;
+  char *host_server_name, *bt_hash;
   char *community_id_flow_hash;
 #ifdef HAVE_NEDGE
   u_int32_t last_conntrack_update; 
@@ -306,7 +307,7 @@ class Flow : public GenericHashEntry {
     return custom_app;
   };
   u_int16_t getStatsProtocol() const;
-  void setJSONInfo(const char *json);
+  void setJSONInfo(json_object *json);
 #ifdef NTOPNG_PRO
   inline bool is_status_counted_in_aggregated_flow()    const { return(status_counted_in_aggregated_flow); };
   inline bool is_counted_in_aggregated_flow()           const { return(counted_in_aggregated_flow);        };
@@ -360,7 +361,7 @@ class Flow : public GenericHashEntry {
   inline Host* get_srv_host()               const { return(srv_host);    };
   inline const IpAddress* get_cli_ip_addr() const { return(cli_ip_addr); };
   inline const IpAddress* get_srv_ip_addr() const { return(srv_ip_addr); };
-  inline char* get_json_info()	         const  { return(json_info);                       };
+  inline json_object* get_json_info()	    const  { return(json_info);                       };
   inline bool has_long_icmp_payload()    const  { return(protos.icmp.has_long_icmp_payload); };
   inline void set_long_icmp_payload()           { protos.icmp.has_long_icmp_payload = true;  };
   inline ndpi_protocol_breed_t get_protocol_breed() const {
