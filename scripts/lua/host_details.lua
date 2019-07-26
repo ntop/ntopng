@@ -125,7 +125,7 @@ if (host ~= nil) then
    end
 end
 
-local only_historical = (host == nil) and ((page == "historical") or (page == "config"))
+local only_historical = (host == nil) and ((page == "historical") or (page == "config") or (page == "alerts"))
 
 if(host == nil) and (not only_historical) then
       -- We need to check if this is an aggregated host
@@ -398,15 +398,15 @@ if(not(isLoopback(ifname))) then
    end
 end
 
-if (host["ip"] ~= nil) and areAlertsEnabled() then
+end -- not only_historical
+
+if areAlertsEnabled() then
    if(page == "alerts") then
       print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-warning fa-lg\"></i></a></li>\n")
    elseif interface.isPcapDumpInterface() == false then
       print("\n<li><a href=\""..url.."&page=alerts\"><i class=\"fa fa-warning fa-lg\"></i></a></li>")
    end
 end
-
-end -- not only_historical
 
 if((page == "historical") or ts_utils.exists("host:traffic", {ifid = ifId, host = tskey})) or hasNindexSupport() then
    if(page == "historical") then

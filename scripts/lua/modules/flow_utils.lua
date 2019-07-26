@@ -1234,10 +1234,12 @@ end
 
 -- #######################
 
-local function formatFlowHost(flow, cli_or_srv, historical_bounds)
+local function formatFlowHost(flow, cli_or_srv, historical_bounds, hyperlink_suffix)
   local host_name = "<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?"..hostinfo2url(flow,cli_or_srv)
   if historical_bounds then
     host_name = host_name .. string.format("&page=historical&epoch_begin=%u&epoch_end=%u&detail_view=top_l7_contacts", historical_bounds[1], historical_bounds[2])
+  else
+    host_name = host_name .. hyperlink_suffix
   end
   host_name = host_name.."\">"..shortenString(flowinfo2hostname(flow,cli_or_srv))
   if(flow[cli_or_srv .. ".systemhost"] == true) then
@@ -1263,8 +1265,9 @@ local function formatFlowPort(flow, cli_or_srv, port, historical_bounds)
     return port_url
 end
 
-function getFlowLabel(flow, show_macs, add_hyperlinks, historical_bounds)
+function getFlowLabel(flow, show_macs, add_hyperlinks, historical_bounds, hyperlink_suffix)
    if flow == nil then return "" end
+   hyperlink_suffix = hyperlink_suffix or ""
 
    local cli_name = flowinfo2hostname(flow, "cli", true)
    local srv_name = flowinfo2hostname(flow, "srv", true)
@@ -1287,8 +1290,8 @@ function getFlowLabel(flow, show_macs, add_hyperlinks, historical_bounds)
    end
 
    if add_hyperlinks then
-      cli_name = formatFlowHost(flow, "cli", historical_bounds)
-      srv_name = formatFlowHost(flow, "srv", historical_bounds)
+      cli_name = formatFlowHost(flow, "cli", historical_bounds, hyperlink_suffix)
+      srv_name = formatFlowHost(flow, "srv", historical_bounds, hyperlink_suffix)
 
       if cli_port then
 	 cli_port = formatFlowPort(flow, "cli", cli_port, historical_bounds)
