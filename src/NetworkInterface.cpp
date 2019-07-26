@@ -1385,8 +1385,11 @@ void NetworkInterface::processFlow(ParsedFlow *zflow, bool zmq_flow) {
 
   PROFILING_SECTION_ENTER("processFlow strings", 26);
   if(zflow->dns_query && zflow->dns_query[0] != '\0') flow->setDNSQuery(zflow->dns_query);
+  flow->setDNSQueryType(zflow->dns_query_type);
+  flow->setDNSRetCode(zflow->dns_ret_code);
   if(zflow->http_url && zflow->http_url[0] != '\0')   flow->setHTTPURL(zflow->http_url);
   if(zflow->http_site && zflow->http_site[0] != '\0') flow->setServerName(zflow->http_site);
+  flow->setHTTPRetCode(zflow->http_ret_code);
   if(zflow->ssl_server_name && zflow->ssl_server_name[0] != '\0') flow->setServerName(zflow->ssl_server_name);
   if(zflow->bittorrent_hash && zflow->bittorrent_hash[0] != '\0') flow->setBTHash(zflow->bittorrent_hash);
   if(zflow->vrfId)      flow->setVRFid(zflow->vrfId);

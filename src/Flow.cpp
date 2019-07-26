@@ -1868,6 +1868,11 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
       lua_push_uint64_table_entry(vm, "protos.http.last_return_code", protos.http.last_return_code);
     }
 
+    if(isDNS() && protos.dns.last_query) {
+      lua_push_uint64_table_entry(vm, "protos.dns.last_query_type", protos.dns.last_query_type);
+      lua_push_uint64_table_entry(vm, "protos.dns.last_return_code", protos.dns.last_return_code);
+    }
+
 #ifdef HAVE_NEDGE
     lua_push_uint64_table_entry(vm, "marker", marker);
 

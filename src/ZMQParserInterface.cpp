@@ -729,10 +729,10 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t fi
     flow->ssl_server_name = (char *) value;
     break;
   case JA3C_HASH:
-    flow->ja3c_jash = (char *) value;
+    flow->ja3c_hash = (char *) value;
     break;
   case JA3S_HASH:
-    flow->ja3s_jash = (char *) value;
+    flow->ja3s_hash = (char *) value;
     break;
   case SSL__CIPHER:
     if (value)

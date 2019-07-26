@@ -27,7 +27,7 @@ ParsedFlow::ParsedFlow() : ParsedFlowCore(), ParsedeBPF() {
   additional_fields = NULL;
   http_url = http_site = NULL;
   dns_query = ssl_server_name = NULL;
-  ja3c_jash = ja3s_jash = NULL;
+  ja3c_hash = ja3s_hash = NULL;
 
   ssl_cipher = ssl_unsafe_cipher = http_ret_code = 0;
   dns_query_type = dns_ret_code = 0;
@@ -49,6 +49,8 @@ ParsedFlow::ParsedFlow(const ParsedFlow &pf) : ParsedFlowCore(pf), ParsedeBPF(pf
   if(pf.dns_query) dns_query = strdup(pf.dns_query); else dns_query = NULL;
   if(pf.ssl_server_name) ssl_server_name = strdup(pf.ssl_server_name); else ssl_server_name = NULL;
   if(pf.bittorrent_hash) bittorrent_hash = strdup(pf.bittorrent_hash); else bittorrent_hash = NULL;
+  if(pf.ja3c_hash) ja3c_hash = strdup(pf.ja3c_hash); else ja3c_hash = NULL;
+  if(pf.ja3s_hash) ja3s_hash = strdup(pf.ja3s_hash); else ja3c_hash = NULL;
 
   memcpy(&custom_app, &pf.custom_app, sizeof(custom_app));
   has_parsed_ebpf = pf.has_parsed_ebpf;
@@ -68,6 +70,8 @@ ParsedFlow::~ParsedFlow() {
     if(dns_query) free(dns_query);
     if(ssl_server_name) free(ssl_server_name);
     if(bittorrent_hash) free(bittorrent_hash);
+    if(ja3c_hash) free(ja3c_hash);
+    if(ja3s_hash) free(ja3s_hash);
   }
 }
 
