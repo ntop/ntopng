@@ -129,7 +129,7 @@ ZMQCollectorInterface::~ZMQCollectorInterface() {
 #ifdef PROFILING
   u_int64_t n = recvStats.num_flows;
   if (n > 0) {
-    for (u_int i = 20; i < PROFILING_NUM_SECTIONS; i++) {
+    for (u_int i = 0; i < PROFILING_NUM_SECTIONS; i++) {
       if (PROFILING_SECTION_LABEL(i) != NULL)
         ntop->getTrace()->traceEvent(TRACE_NORMAL, "[PROFILING] Section #%d '%s': AVG %llu ticks",
           i, PROFILING_SECTION_LABEL(i), PROFILING_SECTION_AVG(i, n));

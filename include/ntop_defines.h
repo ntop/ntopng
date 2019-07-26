@@ -1057,7 +1057,7 @@ extern struct ntopngLuaContext* getUserdata(struct lua_State *vm);
         ticks __profiling_sect_start[n]; \
         const char *__profiling_sect_label[n]; \
         ticks __profiling_sect_tot[n]
-#define PROFILING_INIT() memset(__profiling_sect_tot, 0, sizeof(__profiling_sect_tot))
+#define PROFILING_INIT() memset(__profiling_sect_tot, 0, sizeof(__profiling_sect_tot)), memset(__profiling_sect_label, 0, sizeof(__profiling_sect_label))
 #define PROFILING_SECTION_ENTER(l,i) __profiling_sect_start[i] = Utils::getticks(), __profiling_sect_label[i] = l
 #define PROFILING_SECTION_EXIT(i)    __profiling_sect_tot[i] += Utils::getticks() - __profiling_sect_start[i]
 #define PROFILING_SUB_SECTION_ENTER(f, l, i) f->profiling_section_enter(l, i)
