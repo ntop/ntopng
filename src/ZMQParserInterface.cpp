@@ -53,6 +53,8 @@ ZMQParserInterface::ZMQParserInterface(const char *endpoint, const char *custom_
   addMapping("OUTPUT_SNMP", OUTPUT_SNMP);
   addMapping("IPV4_SRC_ADDR", IPV4_SRC_ADDR);
   addMapping("IPV4_DST_ADDR", IPV4_DST_ADDR);
+  addMapping("SRC_TOS", SRC_TOS);
+  addMapping("DST_TOS", DST_TOS);
   addMapping("L4_SRC_PORT", L4_SRC_PORT);
   addMapping("L4_DST_PORT", L4_DST_PORT);
   addMapping("IPV6_SRC_ADDR", IPV6_SRC_ADDR);
@@ -60,6 +62,7 @@ ZMQParserInterface::ZMQParserInterface(const char *endpoint, const char *custom_
   addMapping("IP_PROTOCOL_VERSION", IP_PROTOCOL_VERSION);
   addMapping("PROTOCOL", PROTOCOL);
   addMapping("L7_PROTO", L7_PROTO, NTOP_PEN);
+  addMapping("L7_PROTO_NAME", L7_PROTO_NAME, NTOP_PEN);
   addMapping("IN_BYTES", IN_BYTES);
   addMapping("IN_PKTS", IN_PKTS);
   addMapping("OUT_BYTES", OUT_BYTES);
@@ -89,12 +92,21 @@ ZMQParserInterface::ZMQParserInterface(const char *endpoint, const char *custom_
   addMapping("RETRANSMITTED_IN_PKTS", RETRANSMITTED_IN_PKTS, NTOP_PEN);
   addMapping("RETRANSMITTED_OUT_PKTS", RETRANSMITTED_OUT_PKTS, NTOP_PEN);
   addMapping("DNS_QUERY", DNS_QUERY, NTOP_PEN);
+  addMapping("DNS_QUERY_TYPE", DNS_QUERY_TYPE, NTOP_PEN);
+  addMapping("DNS_RET_CODE", DNS_RET_CODE, NTOP_PEN);
   addMapping("HTTP_URL", HTTP_URL, NTOP_PEN);
   addMapping("HTTP_SITE", HTTP_SITE, NTOP_PEN);
+  addMapping("HTTP_RET_CODE", HTTP_RET_CODE, NTOP_PEN);
   addMapping("SSL_SERVER_NAME", SSL_SERVER_NAME, NTOP_PEN);
+  addMapping("SSL_CIPHER", SSL__CIPHER, NTOP_PEN);
+  addMapping("SSL_UNSAFE_CIPHER", SSL_UNSAFE_CIPHER, NTOP_PEN);
+  addMapping("JA3C_HASH", JA3C_HASH, NTOP_PEN);
+  addMapping("JA3S_HASH", JA3S_HASH, NTOP_PEN);
   addMapping("BITTORRENT_HASH", BITTORRENT_HASH, NTOP_PEN);
   addMapping("SRC_FRAGMENTS", SRC_FRAGMENTS, NTOP_PEN);
   addMapping("DST_FRAGMENTS", DST_FRAGMENTS, NTOP_PEN);
+  addMapping("CLIENT_NW_LATENCY_MS", CLIENT_NW_LATENCY_MS, NTOP_PEN);
+  addMapping("SERVER_NW_LATENCY_MS", SERVER_NW_LATENCY_MS, NTOP_PEN);
 }
 
 /* **************************************************** */
@@ -369,6 +381,18 @@ bool ZMQParserInterface::parsePENZeroField(ParsedFlow * const flow, u_int32_t fi
   case OUT_DST_MAC:
     Utils::parseMac(flow->dst_mac, value);
     break;
+  case SRC_TOS:
+    if (value)
+      flow->src_tos = atoi(value);
+    else
+      flow->src_tos = ivalue;
+    break;
+  case DST_TOS:
+    if (value)
+      flow->dst_tos = atoi(value);
+    else
+      flow->dst_tos = ivalue;
+    break;
   case IPV4_SRC_ADDR:
   case IPV6_SRC_ADDR:
     /*
@@ -583,6 +607,12 @@ bool ZMQParserInterface::parsePENZeroField(ParsedFlow * const flow, u_int32_t fi
 /* **************************************************** */
 
 bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t field, const char * const value, u_int64_t ivalue) const {
+ 
+  /* Check for backward compatibility to handle cases like field = 123 (CLIENT_NW_LATENCY_MS)
+   * instead of field = 57595 (NTOP_BASE_ID + 123) */ 
+  if (field < NTOP_BASE_ID)
+    field += NTOP_BASE_ID;
+
   switch(field) {
   case L7_PROTO:
     if (value) {
@@ -605,6 +635,8 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t fi
 				 flow->l7_proto.master_protocol,
 				 flow->l7_proto.app_protocol);
 #endif
+    break;
+  case L7_PROTO_NAME:
     break;
   case OOORDER_IN_PKTS:
     if (value)
@@ -633,14 +665,22 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t fi
     /* TODO add lost in/out to nProbe and here */
   case CLIENT_NW_LATENCY_MS:
     {
-      float client_nw_latency = atof(value);
+      float client_nw_latency;
+      if (value)
+        client_nw_latency = atof(value);
+      else
+        client_nw_latency = ivalue; //TODO handle float from TLV
       flow->tcp.clientNwLatency.tv_sec = client_nw_latency / 1e3;
       flow->tcp.clientNwLatency.tv_usec = 1e3 * (client_nw_latency - flow->tcp.clientNwLatency.tv_sec * 1e3);
       break;
     }
   case SERVER_NW_LATENCY_MS:
     {
-      float server_nw_latency = atof(value);
+      float server_nw_latency;
+      if (value)
+        server_nw_latency = atof(value);
+      else
+        server_nw_latency = ivalue; //TODO handle float from TLV
       flow->tcp.serverNwLatency.tv_sec = server_nw_latency / 1e3;
       flow->tcp.serverNwLatency.tv_usec = 1e3 * (server_nw_latency - flow->tcp.serverNwLatency.tv_sec * 1e3);
       break;
@@ -661,14 +701,50 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t fi
   case DNS_QUERY:
     flow->dns_query = (char *) value;
     break;
+  case DNS_QUERY_TYPE:
+    if (value) 
+      flow->dns_query_type = atoi(value);
+    else
+      flow->dns_query_type = ivalue;
+    break;
+  case DNS_RET_CODE:
+    if (value) 
+      flow->dns_ret_code = atoi(value);
+    else
+      flow->dns_ret_code = ivalue;
+    break;
   case HTTP_URL:
     flow->http_url = (char *) value;
     break;
   case HTTP_SITE:
     flow->http_site = (char *) value;
     break;
+  case HTTP_RET_CODE:
+    if (value) 
+      flow->http_ret_code = atoi(value);
+    else
+      flow->http_ret_code = ivalue;
+    break;
   case SSL_SERVER_NAME:
     flow->ssl_server_name = (char *) value;
+    break;
+  case JA3C_HASH:
+    flow->ja3c_jash = (char *) value;
+    break;
+  case JA3S_HASH:
+    flow->ja3s_jash = (char *) value;
+    break;
+  case SSL__CIPHER:
+    if (value)
+      flow->ssl_cipher = atoi(value);
+    else
+      flow->ssl_cipher = ivalue;
+    break;
+  case SSL_UNSAFE_CIPHER:
+    if (value)
+      flow->ssl_unsafe_cipher = atoi(value);
+    else
+      flow->ssl_unsafe_cipher = ivalue;
     break;
   case BITTORRENT_HASH:
     flow->bittorrent_hash = (char *) value;
@@ -1131,7 +1207,7 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
     }
 
     if (add_to_additional_fields) {
-      //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Additional field: %s", key_str);
+      //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Additional field: %s (Key-ID: %u PEN: %u)", key_str, key_id, pen);
       flow.addAdditionalField(key_str, 
         value_is_string ? json_object_new_string(vs.str) : json_object_new_int64(v64));
     }

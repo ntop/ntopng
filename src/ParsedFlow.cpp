@@ -27,7 +27,11 @@ ParsedFlow::ParsedFlow() : ParsedFlowCore(), ParsedeBPF() {
   additional_fields = NULL;
   http_url = http_site = NULL;
   dns_query = ssl_server_name = NULL;
-  
+  ja3c_jash = ja3s_jash = NULL;
+
+  ssl_cipher = ssl_unsafe_cipher = http_ret_code = 0;
+  dns_query_type = dns_ret_code = 0;
+ 
   bittorrent_hash = NULL;
   memset(&custom_app, 0, sizeof(custom_app));
 

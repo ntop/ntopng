@@ -31,7 +31,14 @@ class ParsedFlow : public ParsedFlowCore, public ParsedeBPF {
   json_object *additional_fields;
 
  public:
-  char *http_url, *http_site, *dns_query, *ssl_server_name, *bittorrent_hash;
+  char *http_url, *http_site;
+  char *dns_query;
+  char *ssl_server_name, *bittorrent_hash;
+  char *ja3c_jash, *ja3s_jash;
+  u_int16_t ssl_cipher;
+  u_int8_t ssl_unsafe_cipher;
+  u_int16_t http_ret_code;
+  u_int16_t dns_query_type, dns_ret_code;
   custom_app_t custom_app;
 
   ParsedFlow();

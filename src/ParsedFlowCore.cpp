@@ -28,6 +28,7 @@ ParsedFlowCore::ParsedFlowCore() {
   memset(&src_mac, 0, sizeof(src_mac));
   memset(&dst_mac, 0, sizeof(dst_mac));
 
+  src_tos = dst_tos = 0;
   version = 0;
   deviceIP = 0;
   src_port = dst_port = inIndex = outIndex = 0;

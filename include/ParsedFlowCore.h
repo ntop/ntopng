@@ -27,6 +27,7 @@
 class ParsedFlowCore {
  public:
   u_int8_t src_mac[6], dst_mac[6], direction, source_id;
+  u_int8_t src_tos, dst_tos;
   IpAddress src_ip, dst_ip;
   u_int32_t first_switched, last_switched;
   u_int8_t version; /* 0 so far */
