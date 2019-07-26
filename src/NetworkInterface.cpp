@@ -1367,24 +1367,33 @@ void NetworkInterface::processFlow(ParsedFlow *zflow, bool zmq_flow) {
 		     zflow->pkt_sampling_rate*zflow->out_fragments,
 		     zflow->last_switched);
 
-  PROFILING_SECTION_ENTER("processFlow Misc", 23);
-
+  PROFILING_SECTION_ENTER("processFlow NDPI", 23);
   p.app_protocol = zflow->l7_proto.app_protocol, p.master_protocol = zflow->l7_proto.master_protocol;
   p.category = NDPI_PROTOCOL_CATEGORY_UNSPECIFIED;
   flow->setDetectedProtocol(p, true);
-  flow->setJSONInfo(json_object_to_json_string(zflow->additional_fields));
+  PROFILING_SECTION_EXIT(23);
 
+  PROFILING_SECTION_ENTER("processFlow setJSONInfo", 24);
+  flow->setJSONInfo(json_object_to_json_string(zflow->additional_fields));
+  PROFILING_SECTION_EXIT(24);
+
+  PROFILING_SECTION_ENTER("processFlow local stats", 25);
   flow->updateInterfaceLocalStats(src2dst_direction,
 				  zflow->pkt_sampling_rate*(zflow->in_pkts+zflow->out_pkts),
 				  zflow->pkt_sampling_rate*(zflow->in_bytes+zflow->out_bytes));
+  PROFILING_SECTION_EXIT(25);
 
+  PROFILING_SECTION_ENTER("processFlow strings", 26);
   if(zflow->dns_query && zflow->dns_query[0] != '\0') flow->setDNSQuery(zflow->dns_query);
   if(zflow->http_url && zflow->http_url[0] != '\0')   flow->setHTTPURL(zflow->http_url);
   if(zflow->http_site && zflow->http_site[0] != '\0') flow->setServerName(zflow->http_site);
   if(zflow->ssl_server_name && zflow->ssl_server_name[0] != '\0') flow->setServerName(zflow->ssl_server_name);
   if(zflow->bittorrent_hash && zflow->bittorrent_hash[0] != '\0') flow->setBTHash(zflow->bittorrent_hash);
   if(zflow->vrfId)      flow->setVRFid(zflow->vrfId);
+  PROFILING_SECTION_EXIT(26);
+
 #ifdef NTOPNG_PRO
+  PROFILING_SECTION_ENTER("processFlow custom app", 27);
   if(zflow->custom_app.pen) {
     flow->setCustomApp(zflow->custom_app);
 
@@ -1393,19 +1402,15 @@ void NetworkInterface::processFlow(ParsedFlow *zflow, bool zmq_flow) {
 				 zflow->pkt_sampling_rate * (zflow->in_bytes + zflow->out_bytes));
     }
   }
+  PROFILING_SECTION_EXIT(27);
 #endif
 
-  PROFILING_SECTION_EXIT(23);
-
-  PROFILING_SECTION_ENTER("processFlow fillZmqFlowCategory", 24);
-
+  PROFILING_SECTION_ENTER("processFlow fillZmqFlowCategory", 28);
   // NOTE: fill the category only after the server name is set
   flow->fillZmqFlowCategory();
+  PROFILING_SECTION_EXIT(28);
 
-  PROFILING_SECTION_EXIT(24);
-
-  PROFILING_SECTION_ENTER("processFlow incStats", 25);
-
+  PROFILING_SECTION_ENTER("processFlow incStats", 29);
   /* Do not put incStats before guessing the flow protocol */
   incStats(true /* ingressPacket */,
 	   now, srcIP.isIPv4() ? ETHERTYPE_IP : ETHERTYPE_IPV6,
@@ -1413,8 +1418,7 @@ void NetworkInterface::processFlow(ParsedFlow *zflow, bool zmq_flow) {
 	   zflow->pkt_sampling_rate*(zflow->in_bytes + zflow->out_bytes),
 	   zflow->pkt_sampling_rate*(zflow->in_pkts + zflow->out_pkts),
 	   24 /* 8 Preamble + 4 CRC + 12 IFG */ + 14 /* Ethernet header */);
-
-  PROFILING_SECTION_EXIT(25);
+  PROFILING_SECTION_EXIT(29);
 
   /* purge is actually performed at most one time every FLOW_PURGE_FREQUENCY */
   // purgeIdle(zflow->last_switched);
