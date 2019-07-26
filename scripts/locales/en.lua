@@ -1400,7 +1400,7 @@ local lang = {
     ["note"] = "NOTE",
     ["note_active_flows"] = "Have active flows between peers with public IP addresses.",
     ["note_compiled_ntopng_with_geolocation"] = "Have compiled the software with geolocation and started with it.",
-    ["note_google_maps_browser_api_key"] = "A Google Maps Browser API Key may be required. Detailed information on key generation <a href='%{url_google}'>can be found here</a>.<br>Once generated, the key can be submitted via the <a href='%{url_prefs}'><i class=\"fa fa-flask\"></i> Preferences</a>.",
+    ["note_google_maps_browser_api_key"] = "A Google Maps API Key is required, you can generate one from <a href='%{url_google}'>Google Cloud Platform Console</a>:<br>please create a new project and select Maps JavaScript API -> Create Credentials -> API key.<br>Once generated, the key can be submitted via the <a href='%{url_prefs}'><i class=\"fa fa-flask\"></i> Preferences</a>.",
     ["note_html_browser_geolocation"] = "HTML <A HREF=%{url}>browser geolocation</A> is used to place on map hosts based on unknown locations.",
     ["note_requirements_visualize_maps"] = "In order to visualize maps you must",
     ["note_working_internet_connection"] = "Have a working Internet connection.",
