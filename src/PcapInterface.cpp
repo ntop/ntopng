@@ -321,7 +321,7 @@ static void* packetPollLoop(void* ptr) {
 #endif
 	}
       } else if(rc < 0) {
-	if(iface->read_from_pcap_dump() && !iface->reproducePcapOriginalSpeed())
+	if(iface->read_from_pcap_dump())
 	  break;
       } else {
 	/* No packet received before the timeout */
