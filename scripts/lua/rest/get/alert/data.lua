@@ -39,8 +39,6 @@ local function formatAlertRecord(alert_entity, record)
 
    if alert_entity == "flow" then
       column_msg = formatRawFlow(record, record["alert_json"])
-   elseif alert_entity == "User" then
-      column_msg = formatRawUserActivity(record, record["alert_json"])
    end
 
    column_msg = string.gsub(column_msg, '"', "'")

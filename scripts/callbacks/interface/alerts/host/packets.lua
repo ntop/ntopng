@@ -7,7 +7,6 @@ local alert_consts = require("alert_consts")
 
 local check_module = {
   key = "packets",
-  alert_type = alert_consts.alert_types.threshold_cross,
   check_function = alerts_api.threshold_check_function,
   local_only = true,
 

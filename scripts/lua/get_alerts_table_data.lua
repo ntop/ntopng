@@ -77,27 +77,20 @@ local function formatAlertRecord(alert_entity, record)
 
    if alert_entity == "flow" then
       column_msg = formatRawFlow(record, record["alert_json"])
-   elseif alert_entity == "User" then
-      column_msg = formatRawUserActivity(record, record["alert_json"])
    else
-      local alert_obj = alerts_api.parseAlert(record)
       local msg = record["alert_json"]
 
       if(string.sub(msg, 1, 1) == "{") then
-          msg = json.decode(msg)
-        end
+        msg = json.decode(msg)
+      end
 
-      if(alert_obj.formatter ~= nil) then
-        column_msg = alert_obj.formatter(msg, record)
-      else
-        local description = alertTypeDescription(record.alert_type)
+      local description = alertTypeDescription(record.alert_type)
 
-        if(type(description) == "string") then
-          -- localization string
-          column_msg = i18n(description, msg)
-        elseif(type(description) == "function") then
-          column_msg = description(ifid, record, msg)
-        end
+      if(type(description) == "string") then
+        -- localization string
+        column_msg = i18n(description, msg)
+      elseif(type(description) == "function") then
+        column_msg = description(ifid, record, msg)
       end
    end
 

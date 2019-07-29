@@ -48,7 +48,7 @@ function checkAlerts(granularity)
       for _, check in pairs(available_modules) do
         local config = network_config[check.key] or global_config[check.key]
 
-        if config then
+        if config or check.always_enabled then
            check.check_function({
               granularity = granularity,
               alert_entity = entity_info,

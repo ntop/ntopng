@@ -15,17 +15,16 @@ local alert_consts = require "alert_consts"
 local format_utils = require "format_utils"
 local telemetry_utils = require "telemetry_utils"
 local tracker = require "tracker"
-local alerts = require "alerts_api"
+local alerts_api = require "alerts_api"
 local alert_endpoints = require "alert_endpoints_utils"
 
 local alert_process_queue = "ntopng.alert_process_queue"
 local host_remote_to_remote_alerts_queue = "ntopng.alert_host_remote_to_remote"
 local inactive_hosts_hash_key = "ntopng.prefs.alerts.ifid_%d.inactive_hosts_alerts"
 local alert_login_queue = "ntopng.alert_login_trace_queue"
+local snmp_alert_queue = "ntopng.snmp_alert_queue"
 
 local shaper_utils = nil
-
-local CONST_DEFAULT_PACKETS_DROP_PERCENTAGE_ALERT = "5"
 
 if(ntop.isnEdge()) then
    package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
@@ -181,7 +180,7 @@ end
 
 -- ##############################################################################
 
-local function getInterfacePacketDropPercAlertKey(ifname)
+function getInterfacePacketDropPercAlertKey(ifname)
    return "ntopng.prefs.iface_" .. getInterfaceId(ifname) .. ".packet_drops_alert"
 end
 
@@ -529,13 +528,13 @@ local function checkDisableAlerts()
     local entity_val = _POST["entity_val"]
     local alert_type = _POST["alert_type"]
 
-    alerts.disableEntityAlert(interface.getId(), entity, entity_val, alert_type)
+    alerts_api.disableEntityAlert(interface.getId(), entity, entity_val, alert_type)
   elseif(_POST["action"] == "enable_alert") then
     local entity = _POST["entity"]
     local entity_val = _POST["entity_val"]
     local alert_type = _POST["alert_type"]
 
-    alerts.enableEntityAlert(interface.getId(), entity, entity_val, alert_type)
+    alerts_api.enableEntityAlert(interface.getId(), entity, entity_val, alert_type)
   end
 end
 
@@ -682,219 +681,6 @@ function formatRawFlow(record, flow_json, skip_add_links)
    end
 
    return flow
-end
-
--- #################################
-
-function formatRawUserActivity(record, activity_json)
-  local decoded = json.decode(activity_json)
-  local user = record.alert_entity_val
-
-  -- tprint(activity_json)
-
-  if decoded.scope ~= nil then
-
-    if decoded.scope == 'login' and decoded.status ~= nil then
-
-      if decoded.status == 'authorized' then
-        return i18n('user_activity.login_successful', {user=user})
-      else
-        return i18n('user_activity.login_not_authorized', {user=user})
-      end
-
-    elseif decoded.scope == 'function' and decoded.name ~= nil then
-      local ifname = getInterfaceName(decoded.ifid)
-
-      -- User add/del/password
-
-      if decoded.name == 'addUser' and decoded.params[1] ~= nil then
-        local add_user = decoded.params[1]
-        return i18n('user_activity.user_added', {user=user, add_user=add_user})
-
-      elseif decoded.name == 'deleteUser' and decoded.params[1] ~= nil then
-        local del_user = decoded.params[1]
-        return i18n('user_activity.user_deleted', {user=user, del_user=del_user})
-
-      elseif decoded.name == 'resetUserPassword' and decoded.params[2] ~= nil then
-        local pwd_user = decoded.params[2]
-        local user_ip = ternary(decoded.remote_addr, decoded.remote_addr, '')
-        return  i18n('user_activity.password_changed', {user=user, pwd_user=pwd_user, ip=user_ip}) 
-
-      -- SNMP device add/del
-
-      elseif decoded.name == 'add_snmp_device' and decoded.params[1] ~= nil then
-        local device_ip = decoded.params[1]
-        return i18n('user_activity.snmp_device_added', {user=user, ip=device_ip})
-
-      elseif decoded.name == 'del_snmp_device' and decoded.params[1] ~= nil then
-        local device_ip = decoded.params[1]
-        return i18n('user_activity.snmp_device_deleted', {user=user, ip=device_ip})
-
-      -- Stored data
-
-      elseif decoded.name == 'request_delete_active_interface_data' and decoded.params[1] ~= nil then
-        return i18n('user_activity.deleted_interface_data', {user=user, ifname=ifname})
-
-      elseif decoded.name == 'delete_all_interfaces_data' then
-        return i18n('user_activity.deleted_all_interfaces_data', {user=user})
-
-      elseif decoded.name == 'delete_host' and decoded.params[1] ~= nil then
-        local host = decoded.params[1]
-        local hostinfo = hostkey2hostinfo(host)
-        local hostname = host2name(hostinfo.host, hostinfo.vlan)
-        local host_url = "<a href=\"".. ntop.getHttpPrefix() .. "/lua/host_details.lua?ifid="..decoded.ifid.."&host="..host.."\">"..hostname .."</a>" 
-        return i18n('user_activity.deleted_host_data', {user=user, ifname=ifname, host=host_url})
-
-      elseif decoded.name == 'delete_network' and decoded.params[1] ~= nil then
-        local network = decoded.params[1]
-        return i18n('user_activity.deleted_network_data', {user=user, ifname=ifname, network=network})
-
-      elseif decoded.name == 'delete_inactive_interfaces' then
-        return i18n('user_activity.deleted_inactive_interfaces_data', {user=user})
-
-      -- Service enable/disable
-
-      elseif decoded.name == 'disableService' and decoded.params[1] ~= nil then
-        local service_name = decoded.params[1]
-        if service_name == 'n2disk-ntopng' and decoded.params[2] ~= nil then
-          local service_instance = decoded.params[2]
-          return i18n('user_activity.recording_disabled', {user=user, ifname=service_instance})
-        elseif service_name == 'n2n' then
-          return i18n('user_activity.remote_assistance_disabled', {user=user})
-        end
-
-      elseif decoded.name == 'enableService' and decoded.params[1] ~= nil then
-        local service_name = decoded.params[1]
-        if service_name == 'n2disk-ntopng' and decoded.params[2] ~= nil then
-          local service_instance = decoded.params[2]
-          return i18n('user_activity.recording_enabled', {user=user, ifname=service_instance})
-        elseif service_name == 'n2n' then
-          return i18n('user_activity.remote_assistance_enabled', {user=user})
-        end
-
-      -- File download
-
-      elseif decoded.name == 'dumpBinaryFile' and decoded.params[1] ~= nil then
-        local file_name = decoded.params[1]
-        return i18n('user_activity.file_downloaded', {user=user, file=file_name})
-
-      elseif decoded.name ==  'export_data' and decoded.params[1] ~= nil then
-        local mode = decoded.params[1]
-        if decoded.params[2] ~= nil then
-          local host = decoded.params[1]
-          local hostinfo = hostkey2hostinfo(host)
-          local hostname = host2name(hostinfo.host, hostinfo.vlan)
-          local host_url = "<a href=\"".. ntop.getHttpPrefix() .. "/lua/host_details.lua?ifid="..decoded.ifid.."&host="..host.."\">"..hostname .."</a>" 
-          return i18n('user_activity.exported_data_host', {user=user, mode=mode, host=host_url})
-        else
-          return i18n('user_activity.exported_data', {user=user, mode=mode})
-        end
-
-      elseif decoded.name == 'host_get_json' and decoded.params[1] ~= nil then
-        local host = decoded.params[1]
-        local hostinfo = hostkey2hostinfo(host)
-        local hostname = host2name(hostinfo.host, hostinfo.vlan)
-        local host_url = "<a href=\"".. ntop.getHttpPrefix() .. "/lua/host_details.lua?ifid="..decoded.ifid.."&host="..host.."\">"..hostname .."</a>" 
-        return i18n('user_activity.host_json_downloaded', {user=user, host=host_url})
-
-      elseif decoded.name == 'live_flows_extraction' and decoded.params[1] ~= nil and decoded.params[2] ~= nil then
-        local time_from = format_utils.formatEpoch(decoded.params[1])
-        local time_to = format_utils.formatEpoch(decoded.params[2])
-        return i18n('user_activity.flows_downloaded', {user=user, from=time_from, to=time_to })
-
-      -- Live capture
-
-      elseif decoded.name == 'liveCapture' then
-        if not isEmptyString(decoded.params[1]) then
-          local host = decoded.params[1]
-          local hostinfo = hostkey2hostinfo(host)
-          local hostname = host2name(hostinfo.host, hostinfo.vlan)
-          local host_url = "<a href=\"".. ntop.getHttpPrefix() .. "/lua/host_details.lua?ifid="..decoded.ifid.."&host="..host.."\">"..hostname .."</a>" 
-          if not isEmptyString(decoded.params[3]) then
-            local filter = decoded.params[3]
-            return i18n('user_activity.live_capture_host_with_filter', {user=user, host=host_url, filter=filter, ifname=ifname})
-          else
-            return i18n('user_activity.live_capture_host', {user=user, host=host_url, ifname=ifname})
-          end
-        else
-          if not isEmptyString(decoded.params[3]) then
-            local filter = decoded.params[3]
-            return i18n('user_activity.live_capture_with_filter', {user=user,filter=filter, ifname=ifname})
-          else
-            return i18n('user_activity.live_capture', {user=user, ifname=ifname})
-          end
-        end
-
-      -- Live extraction
-
-      elseif decoded.name == 'runLiveExtraction' and decoded.params[1] ~= nil then
-        local time_from = format_utils.formatEpoch(decoded.params[2])
-        local time_to = format_utils.formatEpoch(decoded.params[3])
-        local filter = decoded.params[4]
-        return i18n('user_activity.live_extraction', {user=user, ifname=ifname, 
-                    from=time_from, to=time_to, filter=filter})
-
-      -- Alerts
-
-      elseif decoded.name == 'checkDeleteStoredAlerts' and decoded.params[1] ~= nil then
-        local status = decoded.params[1]
-        return i18n('user_activity.alerts_deleted', {user=user, status=status})
-
-      elseif decoded.name == 'setPref' and decoded.params[1] ~= nil and decoded.params[2] ~= nil then
-        local key = decoded.params[1]
-        local value = decoded.params[2]
-        local k = key:gsub("^ntopng%.prefs%.", "")
-        local pref_desc
-
-        if k == "disable_alerts_generation" then pref_desc = i18n("prefs.disable_alerts_generation_title")
-        elseif k == "mining_alerts" then pref_desc = i18n("prefs.toggle_mining_alerts_title")
-        elseif k == "probing_alerts" then pref_desc = i18n("prefs.toggle_alert_probing_title")
-        elseif k == "ssl_alerts" then pref_desc = i18n("prefs.toggle_ssl_alerts_title")
-        elseif k == "dns_alerts" then pref_desc = i18n("prefs.toggle_dns_alerts_title")
-        elseif k == "ip_reassignment_alerts" then pref_desc = i18n("prefs.toggle_ip_reassignment_title")
-        elseif k == "remote_to_remote_alerts" then pref_desc = i18n("prefs.toggle_remote_to_remote_alerts_title")
-        elseif k == "mining_alerts" then pref_desc = i18n("prefs.toggle_mining_alerts_title")
-        elseif k == "host_blacklist" then pref_desc = i18n("prefs.toggle_malware_probing_title")
-        elseif k == "ids_alerts" then pref_desc = i18n("prefs.toggle_ids_alert_title")
-        elseif k == "device_protocols_alerts" then pref_desc = i18n("prefs.toggle_device_protocols_title")
-        elseif k == "alerts.device_first_seen_alert" then pref_desc = i18n("prefs.toggle_device_first_seen_alert_title")
-        elseif k == "alerts.device_connection_alert" then pref_desc = i18n("prefs.toggle_device_activation_alert_title")
-        elseif k == "alerts.pool_connection_alert" then pref_desc = i18n("prefs.toggle_pool_activation_alert_title")
-        elseif k == "alerts.external_notifications_enabled" then pref_desc = i18n("prefs.toggle_alerts_notifications_title")
-        elseif k == "alerts.email_notifications_enabled" then pref_desc = i18n("prefs.toggle_email_notification_title")
-        elseif k == "alerts.slack_notifications_enabled" then pref_desc = i18n("prefs.toggle_slack_notification_title", {url="http://www.slack.com"})
-        elseif k == "alerts.syslog_notifications_enabled" then pref_desc = i18n("prefs.toggle_alert_syslog_title")
-        elseif k == "alerts.nagios_notifications_enabled" then pref_desc = i18n("prefs.toggle_alert_nagios_title")
-        elseif k == "alerts.webhook_notifications_enabled" then pref_desc = i18n("prefs.toggle_webhook_notification_title")
-        elseif starts(k, "alerts.email_") then pref_desc = i18n("prefs.email_notification")
-        elseif starts(k, "alerts.smtp_") then pref_desc = i18n("prefs.email_notification")
-        elseif starts(k, "alerts.slack_") then pref_desc = i18n("prefs.slack_integration")
-        elseif starts(k, "alerts.nagios_") then pref_desc = i18n("prefs.nagios_integration")
-        elseif starts(k, "nagios_") then pref_desc = i18n("prefs.nagios_integration")
-        elseif starts(k, "alerts.webhook_") then pref_desc = i18n("prefs.webhook_notification")
-        else pref_desc = k -- last resort if not handled
-        end
-
-        if k == "disable_alerts_generation" then
-          if value == "1" then value = "0" else value = "1" end
-        end 
-
-        if value == "1" then 
-          return i18n('user_activity.enabled_preference', {user=user, pref=pref_desc})
-        elseif value == "0" then 
-          return i18n('user_activity.disabled_preference', {user=user, pref=pref_desc})
-        else
-          return i18n('user_activity.changed_preference', {user=user, pref=pref_desc})
-        end
-
-      else
-        return i18n('user_activity.unknown_activity_function', {user=user, name=decoded.name})
-
-      end
-    end
-  end
-
-  return i18n('user_activity.unknown_activity', {user=user, scope=decoded.scope})
 end
 
 -- #################################
@@ -1124,12 +910,12 @@ end
 
 function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, delete_confirm_msg, page_name, page_params, alt_name, show_entity, options)
    local num_engaged_alerts, num_past_alerts, num_flow_alerts = 0,0,0
-   local has_disabled_alerts = alerts.hasEntitiesWithAlertsDisabled(interface.getId())
+   local has_disabled_alerts = alerts_api.hasEntitiesWithAlertsDisabled(interface.getId())
    local tab = _GET["tab"]
    local have_nedge = ntop.isnEdge()
    options = options or {}
 
-   local descr = alerts.load_check_modules(entity_type)
+   local descr = alerts_api.load_check_modules(entity_type)
 
    local anomaly_config_key = nil
    local flow_rate_alert_thresh, syn_alert_thresh
@@ -1486,7 +1272,7 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
       elseif (entity_type == "interface") and (tab == "min") then
 	 local drop_perc = ntop.getCache(getInterfacePacketDropPercAlertKey(ifname), _POST["packets_drops_perc"])
 	 if isEmptyString(drop_perc) then
-	    drop_perc = CONST_DEFAULT_PACKETS_DROP_PERCENTAGE_ALERT
+	    drop_perc = tostring(alert_consts.CONST_DEFAULT_PACKETS_DROP_PERCENTAGE_ALERT)
 	 end
 	 if drop_perc == "0" then
 	    drop_perc = ""
@@ -1617,7 +1403,7 @@ end
 -- #################################
 
 local function printDisabledAlerts(ifid)
-  local entitites = alerts.listEntitiesWithAlertsDisabled(ifid)
+  local entitites = alerts_api.listEntitiesWithAlertsDisabled(ifid)
 
   print[[
   <div id="#table-disabled-alerts"></div>
@@ -2256,9 +2042,8 @@ function drawAlerts(options)
    end
 
    checkDeleteStoredAlerts()
-   checkDisableAlert()
-
-   return drawAlertTables(num_past_alerts, num_engaged_alerts, num_flow_alerts, _GET, true, nil, options)
+   checkDisableAlerts()
+   return drawAlertTables(num_past_alerts, num_engaged_alerts, num_flow_alerts, has_disabled_alerts, _GET, true, nil, options)
 end
 
 -- #################################
@@ -2407,26 +2192,6 @@ end
 
 -- #################################
 
-local function triggerAlertFromNotification(notification)
-  local alert = alerts:newAlert({
-     entity = alertEntityRaw(notification.entity_type),
-     type = alertTypeRaw(notification.type),
-     severity = alertSeverityRaw(notification.severity),
-  })
-
-  alert:trigger(notification.entity_value, notification.message, notification.when)
-end
-
--- #################################
-
-local function getMacUrl(mac)
-   return ntop.getHttpPrefix() .. "/lua/mac_details.lua?host=" .. mac
-end
-
-local function getHostUrl(host, vlan_id)
-   return ntop.getHttpPrefix() .. "/lua/host_details.lua?" .. hostinfo2url({host = host, vlan = vlan_id})
-end
-
 local function getSavedDeviceNameKey(mac)
    return "ntopng.cache.devnames." .. mac
 end
@@ -2443,12 +2208,6 @@ end
 
 -- Global function
 function check_mac_ip_association_alerts()
-   local alert = alerts:newAlert({
-      entity = "mac",
-      type = "mac_ip_association_change",
-      severity = "warning",
-   })
-
    while(true) do
       local message = ntop.lpopCache("ntopng.alert_mac_ip_queue")
       local elems
@@ -2462,22 +2221,18 @@ function check_mac_ip_association_alerts()
       if elems ~= nil then
          --io.write(elems.ip.." ==> "..message.."[".. elems.ifname .."]\n")
          interface.select(elems.ifname)
-         alert:trigger(elems.new_mac, i18n("alert_messages.mac_ip_association_change",
-                  {device=name, ip=elems.ip,
-                  old_mac=elems.old_mac, old_mac_url=getMacUrl(elems.old_mac),
-                  new_mac=elems.new_mac, new_mac_url=getMacUrl(elems.new_mac)}))
+         local name = getSavedDeviceName(elems.new_mac)
+
+         alerts_api.store(
+           alerts_api.macEntity(elems.new_mac),
+           alerts_api.macIpAssociationChangeType(name, elems.ip, elems.old_mac, elems.new_mac)
+         )
       end
    end   
 end
 
 -- Global function
 function check_broadcast_domain_too_large_alerts()
-   local alert = alerts:newAlert({
-      entity = "mac",
-      type = "broadcast_domain_too_large",
-      severity = "warning",
-   })
-
    while(true) do
       local message = ntop.lpopCache("ntopng.alert_bcast_domain_too_large")
       local elems
@@ -2493,27 +2248,16 @@ function check_broadcast_domain_too_large_alerts()
 
 	 --io.write(elems.ip.." ==> "..message.."[".. elems.ifname .."]\n")
 	 interface.select(elems.ifname)
-	 alert:trigger(entity_value, i18n("alert_messages.broadcast_domain_too_large",
-				   {src_mac = elems.src_mac,
-				    src_mac_url = getMacUrl(elems.src_mac),
-				    dst_mac = elems.dst_mac,
-				    dst_mac_url = getMacUrl(elems.dst_mac),
-				    spa = elems.spa,
-				    spa_url = getHostUrl(elems.spa, elems.vlan_id),
-				    tpa = elems.tpa,
-				    tpa_url = getHostUrl(elems.tpa, elems.vlan_id)}))
+   alerts_api.store(
+     alerts_api.macEntity(entity_value),
+     alerts_api.broadcastDomainTooLargeType(elems.src_mac, elems.dst_mac, elems.vlan_id, elems.spa, elems.tpa)
+   )
       end
    end
 end
 
 -- Global function
 function check_nfq_flushed_queue_alerts()
-   local alert = alerts:newAlert({
-      entity = "interface",
-      type = "nfq_flushed",
-      severity = "info",
-   })
-
    while(true) do
       local message = ntop.lpopCache("ntopng.alert_nfq_flushed_queue")
       local elems
@@ -2525,29 +2269,19 @@ function check_nfq_flushed_queue_alerts()
       elems = json.decode(message)
 
       if elems ~= nil then
-	 local entity_value = "iface_"..elems.ifid
-
-	 -- tprint(elems)
          -- io.write(elems.ip.." ==> "..message.."[".. elems.ifname .."]\n")
 
          interface.select(elems.ifname)
-         alert:trigger(entity_value, i18n("alert_messages.nfq_flushed",{
-                name = elems.ifname, pct = elems.pct,
-                tot = elems.tot, dropped = elems.dropped,
-                url = ntop.getHttpPrefix().."/lua/if_stats.lua?ifid="..elems.ifid
-          }))
+         alerts_api.store(
+            alerts_api.interfaceAlertEntity(getInterfaceId(elems.ifname)),
+            alerts_api.nfqFlushedType(elems.ifname, elems.pct, elems.tot, elems.dropped)
+         )
       end
    end   
 end
 
 -- Global function
 function check_host_remote_to_remote_alerts()
-   local alert = alerts:newAlert({
-      entity = "host",
-      type = "remote_to_remote",
-      severity = "warning",
-   })
-
    while(true) do
       local message = ntop.lpopCache(host_remote_to_remote_alerts_queue)
       local elems
@@ -2559,30 +2293,19 @@ function check_host_remote_to_remote_alerts()
       elems = json.decode(message)
 
       if elems ~= nil then
-	 local host_info = {host = elems.ip.ip, vlan = elems.vlan_id or 0}
-	 local entity_value = hostinfo2hostkey(host_info, nil, true --[[ show vlan --]])
-	 local msg = i18n("alert_messages.host_remote_to_remote",
-			  {url = ntop.getHttpPrefix() .. "/lua/host_details.lua?host=" .. entity_value,
-			   flow_alerts_url = ntop.getHttpPrefix() .."/lua/show_alerts.lua?status=historical-flows&alert_type="..alertType("remote_to_remote"),
-			   mac_url = ntop.getHttpPrefix() .."/lua/mac_details.lua?host="..elems.mac_address,
-			   ip = getResolvedAddress(host_info),
-			   mac = get_symbolic_mac(elems.mac_address, true)})
-
+         local host_info = {host = elems.ip.ip, vlan = elems.vlan_id}
          interface.select(getInterfaceName(elems.ifid))
 
-         alert:trigger(entity_value, msg)
+         alerts_api.store(
+            alerts_api.hostAlertEntity(elems.ip.ip, elems.vlan_id or 0),
+            alerts_api.remoteToRemoteType(host_info, elems.mac_address)
+         )
       end
    end   
 end
 
 -- Global function
 function check_outside_dhcp_range_alerts()
-   local alert = alerts:newAlert({
-      entity = "host",
-      type = "ip_outsite_dhcp_range",
-      severity = "warning",
-   })
-
    while(true) do
       local message = ntop.lpopCache("ntopng.alert_outside_dhcp_range_queue")
       local elems
@@ -2594,36 +2317,20 @@ function check_outside_dhcp_range_alerts()
       elems = json.decode(message)
 
       if elems ~= nil then
-	 local host_info = {host = elems.client_ip, vlan = elems.vlan_id or 0}
-	 local router_info = {host = elems.router_ip, vlan = elems.vlan_id or 0}
-	 local entity_value = hostinfo2hostkey(host_info, nil, true --[[ show vlan --]])
-
-	 local msg = i18n("alert_messages.ip_outsite_dhcp_range", {
-	    client_url = ntop.getHttpPrefix() .. "/lua/mac_details.lua?host=" .. elems.client_mac,
-	    client_mac = get_symbolic_mac(elems.client_mac, true),
-	    client_ip = hostinfo2hostkey(host_info),
-	    client_ip_url = ntop.getHttpPrefix() .. "/lua/host_details.lua?host=" .. hostinfo2hostkey(host_info),
-	    dhcp_url = ntop.getHttpPrefix() .. "/lua/if_stats.lua?page=dhcp",
-	    sender_url = ntop.getHttpPrefix() .. "/lua/mac_details.lua?host=" .. elems.sender_mac,
-	    sender_mac = get_symbolic_mac(elems.sender_mac, true),
-	    router_url = ntop.getHttpPrefix() .. "/lua/host_details.lua?host=" .. hostinfo2hostkey(router_info),
-	    router_ip = getResolvedAddress(router_info),
-	 })
-
          interface.select(getInterfaceName(elems.ifid))
-         alert:trigger(entity_value, msg)
+         local router_info = {host = elems.router_ip, vlan = elems.vlan_id}
+
+         alerts_api.store(
+            alerts_api.hostAlertEntity(elems.client_ip, elems.vlan_id or 0),
+            alerts_api.ipOutsideDHCPRangeType(router_info,
+              elems.mac_address, elems.client_mac, elems.sender_mac)
+         )
       end
    end
 end
 
 -- Global function
 function check_periodic_activities_alerts()
-  local alert = alerts:newAlert({
-     entity = "periodic_activity",
-     type = "slow_periodic_activity",
-     severity = "warning",
-  })
-
   while(true) do
     local message = ntop.lpopCache("ntopng.periodic_activity_queue")
     local elems
@@ -2635,25 +2342,12 @@ function check_periodic_activities_alerts()
     elems = json.decode(message)
 
     if elems ~= nil then
-      local duration
-      local max_duration
-
-      if(elems.max_duration_ms > 3000) then
-        duration = string.format("%u s", math.floor(elems.duration_ms/1000))
-        max_duration = string.format("%u s", math.floor(elems.max_duration_ms/1000))
-      else
-        duration = string.format("%u ms", math.floor(elems.duration_ms))
-        max_duration = string.format("%u ms", math.floor(elems.max_duration_ms))
-      end
-
-      local msg = i18n("alert_messages.slow_periodic_activity", {
-        script = elems.path,
-        duration = duration,
-        max_duration = max_duration,
-      })
-
       interface.select(elems.ifname)
-      alert:trigger(elems.path, msg)
+
+      alerts_api.store(
+        alerts_api.periodicActivityEntity(elems.path),
+        alerts_api.slowPeriodicActivityType(elems.duration_ms, elems.max_duration_ms)
+      )
     end
   end
 end
@@ -2677,16 +2371,19 @@ function check_login_alerts()
       else
         interface.select(getSystemInterfaceId())
 
-        local alert = alerts:newAlert({
-          entity = "user",
-          type = "alert_user_activity",
-          severity = ternary(decoded.status == "authorized", "info", "warning"),
-          subtype = decoded.authorized,
-        })
+        local is_login_failed = (decoded.status == "unauthorized")
 
-        local user = decoded.user
-        decoded.user = nil -- no need to serialize this
-        alert:trigger(user, decoded)
+        if(is_login_failed) then
+          alerts_api.store(
+            alerts_api.userEntity(decoded.user),
+            alerts_api.loginFailedType()
+          )
+        else
+          alerts_api.store(
+            alerts_api.userEntity(decoded.user),
+            alerts_api.userActivityType("login", nil, nil, nil, "authorized")
+          )
+        end
       end
    end
 end
@@ -2709,7 +2406,12 @@ function check_process_alerts()
 	 if(verbose) then io.write("JSON Decoding error: "..message.."\n") end
       else
         interface.select(getSystemInterfaceId())
-        triggerAlertFromNotification(decoded)
+
+        alerts_api.store(
+          alerts_api.processEntity(decoded.entity_value),
+          alerts_api.processNotificationType(decoded.event, decoded.severity, decoded.msg_details),
+          decoded.when
+        )
       end
    end
 end
@@ -2726,21 +2428,6 @@ local function check_macs_alerts(ifid, granularity)
    local alert_new_devices_enabled = ntop.getPref("ntopng.prefs.alerts.device_first_seen_alert") == "1"
    local alert_device_connection_enabled = ntop.getPref("ntopng.prefs.alerts.device_connection_alert") == "1"
    local new_active_devices = {}
-   local new_device_alert = alerts:newAlert({
-      entity = "mac",
-      type = "new_device",
-      severity = "warning",
-    })
-   local device_connection_alert = alerts:newAlert({
-      entity = "mac",
-      type = "device_connection",
-      severity = "info",
-    })
-   local device_disconnection_alert = alerts:newAlert({
-      entity = "mac",
-      type = "device_disconnection",
-      severity = "info",
-    })
 
    callback_utils.foreachDevice(getInterfaceName(ifid), nil, function(devicename, devicestats, devicebase)
 				   -- note: location is always lan when capturing from a local interface
@@ -2754,8 +2441,11 @@ local function check_macs_alerts(ifid, granularity)
 					 if alert_new_devices_enabled then
 					    local name = getDeviceName(mac)
 					    setSavedDeviceName(mac, name)
-              
-              new_device_alert:trigger(mac, i18n("alert_messages.a_new_device_has_connected", {device=name, url=getMacUrl(mac)}))
+
+              alerts_api.store(
+                alerts_api.macEntity(mac),
+                alerts_api.newDeviceType(name)
+              )
 					 end
 				      end
 
@@ -2766,7 +2456,11 @@ local function check_macs_alerts(ifid, granularity)
 					 if alert_device_connection_enabled then
 					    local name = getDeviceName(mac)
 					    setSavedDeviceName(mac, name)
-              device_connection_alert:trigger(mac, i18n("alert_messages.device_has_connected", {device=name, url=getMacUrl(mac)}))
+
+              alerts_api.store(
+                alerts_api.macEntity(mac),
+                alerts_api.deviceHasConnectedType(name)
+              )
 					 end
 				      else
 					 new_active_devices[mac] = 1
@@ -2781,7 +2475,10 @@ local function check_macs_alerts(ifid, granularity)
          ntop.delMembersCache(active_devices_set, mac)
 
          if alert_device_connection_enabled then
-            device_disconnection_alert:trigger(mac, i18n("alert_messages.device_has_disconnected", {device=name, url=getMacUrl(mac)}))
+            alerts_api.store(
+              alerts_api.macEntity(mac),
+              alerts_api.deviceHasDisconnectedType(name)
+            )
          end
       end
    end
@@ -2811,10 +2508,6 @@ end
 
 -- #################################
 
-local function getHostPoolUrl(pool_id)
-   return ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?pool=" .. pool_id
-end
-
 function check_host_pools_alerts(ifid, granularity)
    if granularity ~= "min" then
       return
@@ -2829,29 +2522,6 @@ function check_host_pools_alerts(ifid, granularity)
    local quota_exceeded_pools_values = ntop.getHashAllCache(quota_exceeded_pools_key) or {}
    local quota_exceeded_pools = {}
    local now_active_pools = {}
-
-   local quota_exceeded_alert_time = alerts:newAlert({
-      entity = "host_pool",
-      type = "quota_exceeded",
-      severity = "info",
-      subtype = "time_quota",
-   })
-   local quota_exceeded_alert_traffic = alerts:newAlert({
-      entity = "host_pool",
-      type = "quota_exceeded",
-      severity = "info",
-      subtype = "traffic_quota",
-   })
-   local pool_connection_alert = alerts:newAlert({
-      entity = "host_pool",
-      type = "host_pool_connection",
-      severity = "info",
-   })
-   local pool_disconnection_alert = alerts:newAlert({
-      entity = "host_pool",
-      type = "host_pool_disconnection",
-      severity = "info",
-   })
 
    -- Deserialize quota_exceeded_pools
    for pool, v in pairs(quota_exceeded_pools_values) do
@@ -2890,21 +2560,17 @@ function check_host_pools_alerts(ifid, granularity)
 
 	       if alerts_on_quota_exceeded then
 		  if info.bytes_exceeded and not prev_exceeded[1] then
-         quota_exceeded_alert_traffic:trigger(tostring(pool), i18n("alert_messages.subject_quota_exceeded", {
-                  pool = host_pools_utils.getPoolName(ifid, pool),
-                  url = getHostPoolUrl(pool),
-                  subject = i18n("alert_messages.proto_bytes_quotas", {proto=proto}),
-                  quota = bytesToSize(info.bytes_quota),
-                  value = bytesToSize(info.bytes_value)}))
+         alerts_api.store(
+            alerts_api.hostPoolEntity(pool),
+            alerts_api.poolQuotaExceededType(pool, proto, "traffic_quota", info.bytes_value, info.bytes_quota)
+         )
 		  end
 
 		  if info.time_exceeded and not prev_exceeded[2] then
-         quota_exceeded_alert_time:trigger(tostring(pool), i18n("alert_messages.subject_quota_exceeded", {
-                pool = host_pools_utils.getPoolName(ifid, pool),
-                url = getHostPoolUrl(pool),
-                subject = i18n("alert_messages.proto_time_quotas", {proto=proto}),
-                quota = secondsToTime(info.time_quota),
-                value = secondsToTime(info.time_value)}))
+         alerts_api.store(
+            alerts_api.hostPoolEntity(pool),
+            alerts_api.poolQuotaExceededType(pool, proto, "time_quota", info.time_value, info.time_quota)
+         )
 		  end
 	       end
 
@@ -2938,9 +2604,10 @@ function check_host_pools_alerts(ifid, granularity)
 	       ntop.setMembersCache(active_pools_set, pool)
 
 	       if alert_pool_connection_enabled then
-            pool_connection_alert:trigger(tostring(pool),
-              i18n("alert_messages.host_pool_has_connected",
-                {pool=host_pools_utils.getPoolName(ifid, pool), url=getHostPoolUrl(pool)}))
+            alerts_api.store(
+              alerts_api.hostPoolEntity(pool),
+              alerts_api.poolConnectionType(pool)
+            )
 	       end
 	    end
 	 end
@@ -2954,10 +2621,10 @@ function check_host_pools_alerts(ifid, granularity)
          ntop.delMembersCache(active_pools_set, pool)
 
          if alert_pool_connection_enabled then
-            pool_disconnection_alert:trigger(tostring(pool),
-              i18n("alert_messages.host_pool_has_disconnected",
-                {pool=host_pools_utils.getPoolName(ifid, pool),
-                url=getHostPoolUrl(pool)}))
+            alerts_api.store(
+              alerts_api.hostPoolEntity(pool),
+              alerts_api.poolDisconnectionType(pool)
+            )
          end
       end
    end
@@ -3102,7 +2769,7 @@ function alertNotificationToObject(alert_json)
    if(notification.flow ~= nil) then
       notification.message = formatRawFlow(notification.flow, notification.message, true --[[ skip add links ]])
    else
-      local alert = alerts.alertNotificationToRecord(notification)
+      local alert = alerts_api.alertNotificationToRecord(notification)
       local description = alertTypeDescription(alert.alert_type)
       local msg = alert.alert_json
 
@@ -3186,7 +2853,7 @@ end
 
 -- NOTE: this is executed in a system VM, with no interfaces references
 function processAlertNotifications(now, periodic_frequency, force_export)
-   alerts.processPendingAlertEvents(now + periodic_frequency)
+   alerts_api.processPendingAlertEvents(now + periodic_frequency)
 
    -- Get new alerts
    while(true) do
@@ -3216,25 +2883,31 @@ local function notify_ntopng_status(started)
    local msg
    local msg_details = string.format("%s v.%s (%s) [pid: %s][options: %s]", info.product, info.version, info.OS, info.pid, info.command_line)
    local anomalous = false
+   local event
    
    if(started) then
       -- let's check if we are restarting from an anomalous termination
       -- e.g., from a crash
       if not recovery_utils.check_clean_shutdown() then
-	 -- anomalous termination
-	 msg = string.format("%s %s", i18n("alert_messages.ntopng_anomalous_termination", {url="https://www.ntop.org/support/need-help-2/need-help/"}), msg_details)
-	 severity = alertSeverity("error")
-	 anomalous = true
+        -- anomalous termination
+        msg = string.format("%s %s", i18n("alert_messages.ntopng_anomalous_termination", {url="https://www.ntop.org/support/need-help-2/need-help/"}), msg_details)
+        severity = alertSeverity("error")
+        anomalous = true
+        event = "anomalous_termination"
       else
 	 -- normal termination
-	 msg = string.format("%s %s", i18n("alert_messages.ntopng_start"), msg_details)
+        msg = string.format("%s %s", i18n("alert_messages.ntopng_start"), msg_details)
+        event = "start"
       end
    else
       msg = string.format("%s %s", i18n("alert_messages.ntopng_stop"), msg_details)
+      event = "stop"
    end
 
+   local entity_value = "ntopng"
+
    obj = {
-      entity_type = alertEntity("process"), entity_value="ntopng",
+      entity_type = alertEntity("process"), entity_value=entity_value,
       type = alertType("process_notification"),
       severity = severity,
       message = msg,
@@ -3243,84 +2916,106 @@ local function notify_ntopng_status(started)
    if anomalous then
       telemetry_utils.notify(obj)
    end
-   
-   ntop.rpushCache(alert_process_queue, json.encode(obj))
+
+   ntop.rpushCache(alert_process_queue, json.encode({
+    msg_details = msg_details,
+    entity_value = entity_value, event = event,
+    severity = severity, when = os.time(),
+   }))
+end
+
+-- Global function
+function check_snmp_alerts()
+   while(true) do
+      local message = ntop.lpopCache(snmp_alert_queue)
+      local elems
+      
+      if((message == nil) or (message == "")) then
+	 break
+      end
+
+      if(verbose) then print(message.."\n") end
+      
+      local decoded = json.decode(message)
+
+      if(decoded == nil) then
+	 if(verbose) then io.write("JSON Decoding error: "..message.."\n") end
+      else
+        interface.select(getSystemInterfaceId())
+        local entity_info = alerts_api.snmpInterfaceEntity(decoded.device, decoded.interface)
+        local type_info = nil
+
+        interface.select(getSystemInterfaceId())
+
+        if decoded.event == "port_status_change" then
+          type_info = alerts_api.snmpInterfaceStatusChangeType(decoded.device, decoded.interface, decoded.interface_name, decoded.status)
+        elseif decoded.event == "port_duplexstatus_change" then
+          type_info = alerts_api.snmpInterfaceDuplexStatusChangeType(decoded.device, decoded.interface, decoded.interface_name, decoded.status)
+        elseif decoded.event == "port_errors" then
+          type_info = alerts_api.snmpInterfaceErrorsType(decoded.device, decoded.interface, decoded.interface_name)
+        elseif decoded.event == "port_load_threshold_exceeded" then
+          type_info = alerts_api.snmpPortLoadThresholdExceededType(decoded.device, decoded.interface, decoded.interface_name, decoded.interface_load, decoded.in_direction)
+        else
+          traceError(TRACE_ERROR, TRACE_CONSOLE, "Unknown SNMP event " .. (decoded.event or ""))
+        end
+
+        if(type_info ~= nil) then
+          alerts_api.store(entity_info, type_info)
+        end
+      end
+   end
 end
 
 function notify_snmp_device_interface_status_change(snmp_host, snmp_interface)
-   local msg = i18n("alerts_dashboard.snmp_port_changed_operational_status",
-		    {device = snmp_host,
-		     port = snmp_interface["name"] or snmp_interface["index"],
-		     url = ntop.getHttpPrefix()..string.format("/lua/pro/enterprise/snmp_device_details.lua?host=%s", snmp_host),
-		     port_url = ntop.getHttpPrefix()..string.format("/lua/pro/enterprise/snmp_interface_details.lua?host=%s&snmp_port_idx=%d", snmp_host, snmp_interface["index"]),
-		     new_op = snmp_ifstatus(snmp_interface["status"])})
+   local msg = {
+     device = snmp_host,
+     interface = snmp_interface["index"],
+     interface_name = snmp_interface["name"],
+     status = snmp_interface["status"],
+     event = "port_status_change",
+     when = os.time(),
+   }
 
-   local entity_value = string.format("%s_ifidx%d", snmp_host, snmp_interface["index"])
-   local obj = {entity_type = alertEntity("snmp_device"),
-		entity_value = entity_value,
-		type = alertType("port_status_change"),
-		severity = alertSeverity("info"),
-		message = msg, when = os.time()
-	       }
-
-   ntop.rpushCache(alert_process_queue, json.encode(obj))
+   ntop.rpushCache(snmp_alert_queue, json.encode(msg))
 end
 
 function notify_snmp_device_interface_duplexstatus_change(snmp_host, snmp_interface)
-   local msg = i18n("alerts_dashboard.snmp_port_changed_duplex_status",
-		    {device = snmp_host,
-		     port = snmp_interface["name"] or snmp_interface["index"],
-		     url = ntop.getHttpPrefix()..string.format("/lua/pro/enterprise/snmp_device_details.lua?host=%s", snmp_host),
-		     port_url = ntop.getHttpPrefix()..string.format("/lua/pro/enterprise/snmp_interface_details.lua?host=%s&snmp_port_idx=%d", snmp_host, snmp_interface["index"]),
-		     new_op = snmp_duplexstatus(snmp_interface["duplexstatus"])})
+   local msg = {
+     device = snmp_host,
+     interface = snmp_interface["index"],
+     interface_name = snmp_interface["name"],
+     status = snmp_interface["duplexstatus"],
+     event = "port_duplexstatus_change",
+     when = os.time(),
+   }
 
-   local entity_value = string.format("%s_ifidx%d", snmp_host, snmp_interface["index"])
-   local obj = {entity_type = alertEntity("snmp_device"),
-		entity_value = entity_value,
-		type = alertType("port_duplexstatus_change"),
-		severity = alertSeverity("info"),
-		message = msg, when = os.time()
-	       }
-
-   ntop.rpushCache(alert_process_queue, json.encode(obj))
+   ntop.rpushCache(snmp_alert_queue, json.encode(msg))
 end
 
 function notify_snmp_device_interface_errors(snmp_host, snmp_interface)
-   local msg = i18n("alerts_dashboard.snmp_port_errors_increased",
-		    {device = snmp_host,
-		     port = snmp_interface["name"] or snmp_interface["index"],
-		     url = ntop.getHttpPrefix()..string.format("/lua/pro/enterprise/snmp_device_details.lua?host=%s", snmp_host),
-		     port_url = ntop.getHttpPrefix()..string.format("/lua/pro/enterprise/snmp_interface_details.lua?host=%s&snmp_port_idx=%d", snmp_host, snmp_interface["index"])})
+   local msg = {
+     device = snmp_host,
+     interface = snmp_interface["index"],
+     interface_name = snmp_interface["name"],
+     event = "port_errors",
+     when = os.time(),
+   }
 
-   local entity_value = string.format("%s_ifidx%d", snmp_host, snmp_interface["index"])
-   local obj = {entity_type = alertEntity("snmp_device"),
-		entity_value = entity_value,
-		type = alertType("port_errors"),
-		severity = alertSeverity("info"),
-		message = msg, when = os.time()
-	       }
-
-   ntop.rpushCache(alert_process_queue, json.encode(obj))
+   ntop.rpushCache(snmp_alert_queue, json.encode(msg))
 end
 
-function notify_snmp_device_interface_load_threshold_exceeded(snmp_host, snmp_interface, port_load, in_direction)
-   local msg = i18n("alerts_dashboard.snmp_port_load_threshold_exceeded_message",
-		    {device = snmp_host,
-		     port = snmp_interface["name"] or snmp_interface["index"],
-		     url = ntop.getHttpPrefix()..string.format("/lua/pro/enterprise/snmp_device_details.lua?host=%s", snmp_host),
-		     port_url = ntop.getHttpPrefix()..string.format("/lua/pro/enterprise/snmp_interface_details.lua?host=%s&snmp_port_idx=%d", snmp_host, snmp_interface["index"]),
-                     port_load = port_load,
-                     direction = ternary(in_direction, "RX", "TX") })
+function notify_snmp_device_interface_load_threshold_exceeded(snmp_host, snmp_interface, interface_load, in_direction)
+   local msg = {
+     device = snmp_host,
+     interface = snmp_interface["index"],
+     interface_name = snmp_interface["name"],
+     interface_load = interface_load,
+     event = "port_load_threshold_exceeded",
+     in_direction = in_direction,
+     when = os.time(),
+   }
 
-   local entity_value = string.format("%s_ifidx%d", snmp_host, snmp_interface["index"])
-   local obj = {entity_type = alertEntity("snmp_device"),
-		entity_value = entity_value,
-		type = alertType("port_load_threshold_exceeded"),
-		severity = alertSeverity("info"),
-		message = msg, when = os.time()
-	       }
-
-   ntop.rpushCache(alert_process_queue, json.encode(obj))
+   ntop.rpushCache(snmp_alert_queue, json.encode(msg))
 end
 
 function notify_ntopng_start()

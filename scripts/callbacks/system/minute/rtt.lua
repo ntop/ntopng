@@ -5,7 +5,7 @@
 local ts_utils = require("ts_utils_core")
 local rtt_utils = require("rtt_utils")
 local format_utils = require("format_utils")
-local alerts = require("alerts_api")
+local alerts_api = require("alerts_api")
 
 local probe = {
   name = "RTT Monitor",
@@ -15,49 +15,6 @@ local probe = {
 }
 
 local debug = false
-
--- ##############################################
-
-local function formatAlertMessage(alert, metadata)
-   local msg
-   -- example of an ip label:
-   -- google-public-dns-b.google.com@ipv4@icmp/216.239.38.120
-   local ip_label = alert.label:split("@")[1]
-   local numeric_ip = alert.ip
-
-   if numeric_ip and numeric_ip ~= ip_label then
-      numeric_ip = string.format("[%s]", numeric_ip)
-   else
-      numeric_ip = ""
-   end
-
-   if(alert.value == 0) then -- host unreachable
-      msg = i18n("alert_messages.ping_host_unreachable",
-		 {ip_label = ip_label,
-		  numeric_ip = numeric_ip})
-   else -- host too slow
-      msg = i18n("alert_messages.ping_rtt_too_slow",
-		 {ip_label = ip_label,
-		  numeric_ip = numeric_ip,
-		  rtt_value = format_utils.round(alert.value, 2),
-		  maximum_rtt = alert.threashold})
-   end
-
-   return msg
-end
-
--- ##############################################
-
--- cannot use regular entity "host" as the system interface
--- doesn't have active hosts in memory, so we use a new
--- entity "pinged_host"
-local ping_issues_alert = alerts:newAlert({
-   periodicity = "min",
-   type = "ping_issues",
-   severity = "error",
-   entity = "pinged_host",
-   formatter = formatAlertMessage,
-})
 
 -- ##############################################
 
@@ -90,12 +47,10 @@ end
 -- ##############################################
 
 function probe.emitRttAlert(numeric_ip, ip_label, current_value, upper_threshold)
-   ping_issues_alert:trigger(ip_label, {
-      value = current_value,
-      threashold = upper_threshold,
-      label = ip_label,
-      ip = numeric_ip,
-   })
+  local entity_info =  alerts_api.pingedHostEntity(ip_label)
+  local type_info = alerts_api.pingIssuesType(current_value, upper_threshold, numeric_ip)
+
+  alerts_api.store(entity_info, type_info)
 end
 
 -- ##############################################

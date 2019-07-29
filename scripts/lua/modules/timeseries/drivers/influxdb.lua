@@ -8,7 +8,7 @@ local ts_common = require("ts_common")
 
 local json = require("dkjson")
 local os_utils = require("os_utils")
-local alerts = require("alerts_api")
+local alerts_api = require("alerts_api")
 require("ntop_utils")
 
 --
@@ -664,12 +664,6 @@ end
 
 -- ##############################################
 
-local function droppedPointsErrorMsg(url)
-  return i18n("alert_messages.influxdb_dropped_points", {influxdb=url})
-end
-
--- ##############################################
-
 -- Exports a timeseries file in line format to InfluxDB
 -- Returns a tuple(success, file_still_existing)
 function driver:_exportTsFile(fname)
@@ -840,15 +834,10 @@ function driver:_droppedExportablesAlert()
    local k = "ntopng.cache.influxdb_dropped_points_alert_triggered"
 
    if ntop.getCache(k) ~= "1" then
-      local influx_alert = alerts:newAlert({
-	    entity = "influx_db",
-	    type = "influxdb_dropped_points",
-	    severity = "error",
-	    periodicity = alert_periodicity,
-      })
-
-      local msg = droppedPointsErrorMsg(self.url)
-      influx_alert:trigger(self.url, msg)
+      alerts_api.store(
+        alerts_api.influxdbEntity(self.url),
+        alerts_api.influxdbDroppedPointsType(self.url)
+      )
 
       -- Just to avoid doing :trigger too often
       ntop.setCache(k, "1", alert_periodicity / 2)
