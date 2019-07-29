@@ -6167,6 +6167,7 @@ void NetworkInterface::allocateStructures() {
     networkStats     = new NetworkStats[numNetworks];
     statsManager     = new StatsManager(id, STATS_MANAGER_STORE_NAME);
     alertsManager    = new AlertsManager(id, ALERTS_MANAGER_STORE_NAME);
+    alerts_queue     = new AlertsQueue(this);
   } catch(std::bad_alloc& ba) {
     static bool oom_warning_sent = false;
 
@@ -6942,34 +6943,8 @@ void NetworkInterface::checkDhcpIPRange(Mac *sender_mac, struct dhcp_packet *dhc
     IpAddress ip;
     ip.set(ipv4);
 
-    if(!isInDhcpRange(&ip)) {
-      char macstr[32], sendermac[32], ipbuf[32], ipbuf2[32], *ipa, *router_ip;
-      json_object *jobject;
-
-      Utils::formatMac(_mac, macstr, sizeof(macstr));
-      sender_mac->print(sendermac, sizeof(sendermac));
-      ipa = Utils::intoaV4(ntohl(ipv4), ipbuf, sizeof(ipbuf));
-      router_ip = Utils::intoaV4(ntohl(dhcp_reply->siaddr), ipbuf2, sizeof(ipbuf2));
-
-      ntop->getTrace()->traceEvent(TRACE_INFO, "IP not in DHCP range: %s (mac=%s, sender=%s, router=%s)",
-				       ipa, macstr, sendermac, router_ip);
-
-      if((jobject = json_object_new_object()) != NULL) {
-	json_object_object_add(jobject, "ifname", json_object_new_string(get_name()));
-	json_object_object_add(jobject, "ifid", json_object_new_int(id));
-	json_object_object_add(jobject, "client_mac", json_object_new_string(macstr));
-	json_object_object_add(jobject, "sender_mac", json_object_new_string(sendermac));
-	json_object_object_add(jobject, "client_ip", json_object_new_string(ipa));
-	json_object_object_add(jobject, "router_ip", json_object_new_string(router_ip));
-	json_object_object_add(jobject, "vlan_id", json_object_new_int(vlan_id));
-
-	ntop->getRedis()->rpush(CONST_ALERT_OUTSIDE_DHCP_RANGE, (char *)json_object_to_json_string(jobject), 0 /* No trim */);
-
-	/* Free Memory */
-	json_object_put(jobject);
-      } else
-	ntop->getTrace()->traceEvent(TRACE_ERROR, "json_object_new_object: Not enough memory");
-    }
+    if(!isInDhcpRange(&ip))
+      alerts_queue->pushOutsideDhcpRangeAlert(_mac, sender_mac, ntohl(ipv4), ntohl(dhcp_reply->siaddr), vlan_id);
   }
 }
 

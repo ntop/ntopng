@@ -24,10 +24,10 @@ end
 check_host_remote_to_remote_alerts()
 check_broadcast_domain_too_large_alerts()
 check_process_alerts()
-check_outside_dhcp_range_alerts()
 check_periodic_activities_alerts()
 check_login_alerts()
 check_snmp_alerts()
+check_store_alerts(now + periodicity)
 lists_utils.checkReloadLists()
 
 recording_utils.checkExtractionJobs()

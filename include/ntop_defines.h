@@ -520,6 +520,7 @@
 #define CONST_ALERT_HOST_REMOTE_TO_REMOTE        "ntopng.alert_host_remote_to_remote"
 #define CONST_ALERT_BCAST_DOMAIN_TOO_LARGE_QUEUE "ntopng.alert_bcast_domain_too_large"
 #define CONST_ALERT_NTOPNG_LOGIN_TRACE_QUEUE     "ntopng.alert_login_trace_queue"
+#define CONST_ALERT_STORE_QUEUE                  "ntopng.alert_store_queue"
 #define CONST_REMOTE_TO_REMOTE_MAX_QUEUE   32
 #define CONST_SQL_QUEUE                    "ntopng.sql_queue"
 #define CONST_SQL_BATCH_SIZE               32

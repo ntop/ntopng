@@ -380,6 +380,11 @@ function alerts_api.release(entity_info, type_info, when)
         entity_info.alert_entity_val .."@"..type_info.alert_type.i18n_title..":".. subtype .. "\n") end
   end
 
+  if(type_info.alert_severity == nil) then
+    alertErrorTraceback("Missing alert_severity")
+    return(false)
+  end
+
   local alert_event = {
     ifid = interface.getId(),
     granularity = granularity_sec,

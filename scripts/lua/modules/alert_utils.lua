@@ -18,6 +18,7 @@ local tracker = require "tracker"
 local alerts_api = require "alerts_api"
 local alert_endpoints = require "alert_endpoints_utils"
 
+local store_alerts_queue = "ntopng.alert_store_queue"
 local alert_process_queue = "ntopng.alert_process_queue"
 local host_remote_to_remote_alerts_queue = "ntopng.alert_host_remote_to_remote"
 local inactive_hosts_hash_key = "ntopng.prefs.alerts.ifid_%d.inactive_hosts_alerts"
@@ -2305,31 +2306,6 @@ function check_host_remote_to_remote_alerts()
 end
 
 -- Global function
-function check_outside_dhcp_range_alerts()
-   while(true) do
-      local message = ntop.lpopCache("ntopng.alert_outside_dhcp_range_queue")
-      local elems
-
-      if((message == nil) or (message == "")) then
-	 break
-      end
-
-      elems = json.decode(message)
-
-      if elems ~= nil then
-         interface.select(getInterfaceName(elems.ifid))
-         local router_info = {host = elems.router_ip, vlan = elems.vlan_id}
-
-         alerts_api.store(
-            alerts_api.hostAlertEntity(elems.client_ip, elems.vlan_id or 0),
-            alerts_api.ipOutsideDHCPRangeType(router_info,
-              elems.mac_address, elems.client_mac, elems.sender_mac)
-         )
-      end
-   end
-end
-
--- Global function
 function check_periodic_activities_alerts()
   while(true) do
     local message = ntop.lpopCache("ntopng.periodic_activity_queue")
@@ -2847,6 +2823,54 @@ local function alertToNotification(ifid, action, alert)
       tstamp = tonumber(alert.alert_tstamp_end),
       action = action,
    })
+end
+
+-- ##############################################
+
+local function processStoreAlertFromQueue(alert)
+  local entity_info = nil
+  local type_info = nil
+
+  interface.select(tostring(alert.ifid))
+
+  if(alert.alert_type == alertType("ip_outsite_dhcp_range")) then
+    local router_info = {host = alert.router_ip, vlan = alert.vlan_id}
+    entity_info = alerts_api.hostAlertEntity(alert.client_ip, alert.vlan_id)
+    type_info = alerts_api.ipOutsideDHCPRangeType(router_info, alert.mac_address, alert.client_mac, alert.sender_mac)
+  else
+    traceError(TRACE_ERROR, TRACE_CONSOLE, "Unknown alert type " .. (alert.alert_type or ""))
+  end
+
+  return entity_info, type_info
+end
+
+-- ##############################################
+
+-- Global function
+-- NOTE: this is executed in a system VM, with no interfaces references
+function check_store_alerts(deadline)
+  while(os.time() <= deadline) do
+    -- TODO add max_length check and alert
+    local message = ntop.lpopCache(store_alerts_queue)
+
+    if((message == nil) or (message == "")) then
+      break
+    end
+
+    if(verbose) then print(message.."\n") end
+
+    local alert = json.decode(message)
+
+    if(alert == nil) then
+      if(verbose) then io.write("JSON Decoding error: "..message.."\n") end
+    else
+      local entity_info, type_info = processStoreAlertFromQueue(alert)
+
+      if((type_info ~= nil) and (entity_info ~= nil)) then
+        alerts_api.store(entity_info, type_info, alert.alert_tstamp)
+      end
+    end
+  end
 end
 
 -- ##############################################

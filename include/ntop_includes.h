@@ -273,6 +273,7 @@ using namespace std;
 #include "HostTimeseriesPoint.h"
 #include "SPSCQueue.h"
 #include "L4Stats.h"
+#include "AlertsQueue.h"
 #include "NetworkInterfaceTsPoint.h"
 #include "NetworkInterface.h"
 #ifndef HAVE_NEDGE

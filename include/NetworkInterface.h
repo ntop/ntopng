@@ -78,6 +78,7 @@ class NetworkInterface : public AlertableEntity {
   u_int32_t num_alerts_engaged[MAX_NUM_PERIODIC_SCRIPTS];
   u_int32_t num_dropped_alerts;
   bool has_stored_alerts;
+  AlertsQueue *alerts_queue;
 
   bool is_view;   /* Whether this is a view interface */
   bool is_viewed; /* Whether this interface is 'viewed' by a ViewInterface */
