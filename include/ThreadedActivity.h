@@ -45,7 +45,6 @@ class ThreadedActivity {
   void schedulePeriodicActivity(ThreadPool *pool);
   void setInterfaceTaskRunning(NetworkInterface *iface, bool running);
   bool isInterfaceTaskRunning(NetworkInterface *iface);
-  bool storeSlowActivityAlert(u_long duration_time, NetworkInterface *iface);
   
  public:
   ThreadedActivity(const char* _path,

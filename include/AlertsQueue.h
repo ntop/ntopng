@@ -32,8 +32,10 @@ class AlertsQueue {
 
  public:
   AlertsQueue(NetworkInterface *iface);
+
   void pushOutsideDhcpRangeAlert(u_char* cli_mac, Mac *sender_mac,
     u_int32_t ip, u_int32_t router_ip, int vlan_id);
+  void pushSlowPeriodicActivity(u_long msec_diff, u_long max_duration_ms, const char *activity_path);
 };
 
 #endif

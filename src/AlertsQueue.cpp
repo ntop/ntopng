@@ -66,3 +66,19 @@ void AlertsQueue::pushOutsideDhcpRangeAlert(u_char *cli_mac, Mac *sender_mac,
     json_object_put(jobject);
   }
 }
+
+/* **************************************************** */
+
+void AlertsQueue::pushSlowPeriodicActivity(u_long msec_diff,
+    u_long max_duration_ms, const char *activity_path) {
+  json_object *jobject = json_object_new_object();
+
+  if(jobject) {
+    json_object_object_add(jobject, "duration_ms", json_object_new_int64(msec_diff));
+    json_object_object_add(jobject, "max_duration_ms", json_object_new_int64(max_duration_ms));
+    json_object_object_add(jobject, "path", json_object_new_string(activity_path));
+
+    pushAlertJson(slow_periodic_activity, jobject);
+    json_object_put(jobject);
+  }
+}

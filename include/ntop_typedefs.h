@@ -126,6 +126,7 @@ typedef enum {
   alert_broadcast_domain_too_large = 34,
   alert_ids = 35,
   misconfigured_dhcp_range = 36,
+  slow_periodic_activity = 40,
   /* 
      IMPORTANT IMPORTANT IMPORTANT
      If # status >= 64 then extend Utils.h and Lua bitmap functions to handle it

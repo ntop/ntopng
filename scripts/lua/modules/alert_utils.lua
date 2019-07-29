@@ -2306,29 +2306,6 @@ function check_host_remote_to_remote_alerts()
 end
 
 -- Global function
-function check_periodic_activities_alerts()
-  while(true) do
-    local message = ntop.lpopCache("ntopng.periodic_activity_queue")
-    local elems
-
-    if((message == nil) or (message == "")) then
-      break
-    end
-
-    elems = json.decode(message)
-
-    if elems ~= nil then
-      interface.select(elems.ifname)
-
-      alerts_api.store(
-        alerts_api.periodicActivityEntity(elems.path),
-        alerts_api.slowPeriodicActivityType(elems.duration_ms, elems.max_duration_ms)
-      )
-    end
-  end
-end
-
--- Global function
 function check_login_alerts()
    while(true) do
       local message = ntop.lpopCache(alert_login_queue)
@@ -2837,6 +2814,9 @@ local function processStoreAlertFromQueue(alert)
     local router_info = {host = alert.router_ip, vlan = alert.vlan_id}
     entity_info = alerts_api.hostAlertEntity(alert.client_ip, alert.vlan_id)
     type_info = alerts_api.ipOutsideDHCPRangeType(router_info, alert.mac_address, alert.client_mac, alert.sender_mac)
+  elseif(alert.alert_type == alertType("slow_periodic_activity")) then
+    entity_info = alerts_api.periodicActivityEntity(alert.path)
+    type_info = alerts_api.slowPeriodicActivityType(alert.duration_ms, alert.max_duration_ms)
   else
     traceError(TRACE_ERROR, TRACE_CONSOLE, "Unknown alert type " .. (alert.alert_type or ""))
   end

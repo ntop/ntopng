@@ -193,7 +193,7 @@ void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface) {
       (strcmp(path, HOUSEKEEPING_SCRIPT_PATH) != 0) &&
       (strcmp(path, DISCOVER_SCRIPT_PATH) != 0) &&
       (strcmp(path, TIMESERIES_SCRIPT_PATH) != 0))
-    storeSlowActivityAlert(msec_diff, iface);
+    iface->getAlertsQueue()->pushSlowPeriodicActivity(msec_diff, periodicity * 1e3, path);
 
   if(iface == ntop->getSystemInterface())
     systemTaskRunning = false;
@@ -208,30 +208,6 @@ void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface) {
 void ThreadedActivity::aperiodicActivityBody() {
   if(!isTerminating())
     runScript();
-}
-
-/* ******************************************* */
-
-bool ThreadedActivity::storeSlowActivityAlert(u_long msec_diff, NetworkInterface *iface) {
-  u_long max_duration_ms = periodicity * 1e3;
-  json_object *jobject;
-
-  if((jobject = json_object_new_object()) != NULL) {
-    json_object_object_add(jobject, "ifname", json_object_new_string(iface->get_name()));
-    json_object_object_add(jobject, "ifid", json_object_new_int(iface->get_id()));
-    json_object_object_add(jobject, "duration_ms", json_object_new_int(msec_diff));
-    json_object_object_add(jobject, "max_duration_ms", json_object_new_int(max_duration_ms));
-    json_object_object_add(jobject, "path", json_object_new_string(path));
-
-    ntop->getRedis()->rpush(CONST_ALERT_PERIODIC_ACTIVITY_QUEUE,
-      (char *)json_object_to_json_string(jobject), 0 /* No trim */);
-
-    /* Free Memory */
-    json_object_put(jobject);
-    return(true);
-  }
-
-  return(false);
 }
 
 /* ******************************************* */
