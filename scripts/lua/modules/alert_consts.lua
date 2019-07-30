@@ -416,6 +416,15 @@ end
 
 -- ##############################################
 
+local function macIpAssociationChangedFormatter(ifid, alert, info)
+  return(i18n("alert_messages.mac_ip_association_change", {
+    new_mac = info.new_mac, old_mac = info.old_mac,
+    ip = info.ip, new_mac_url = getMacUrl(info.new_mac), old_mac_url = getMacUrl(info.old_mac)
+  }))
+end
+
+-- ##############################################
+
 local function userActivityFormatter(ifid, alert, info)
   local decoded = info
   local user = alert.alert_entity_val
@@ -809,7 +818,7 @@ alert_consts.alert_types = {
     alert_id = 17,
     i18n_title = "alerts_dashboard.mac_ip_association_change",
     icon = "fa-exchange",
-    i18n_description = "alert_messages.mac_ip_association_change",
+    i18n_description = macIpAssociationChangedFormatter,
   }, port_status_change = {
     alert_id = 18,
     i18n_title = "alerts_dashboard.snmp_port_status_change",
@@ -821,7 +830,6 @@ alert_consts.alert_types = {
     icon = "fa-exclamation",
   }, process_notification = {
     alert_id = 20,
-    severity = alert_consts.alert_severities.info,
     i18n_title = "alerts_dashboard.process",
     i18n_description = processNotificationFormatter,
     icon = "fa-truck",

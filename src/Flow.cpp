@@ -1299,14 +1299,7 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
        && get_srv_ip_addr()->isNonEmptyUnicastAddress()
        && ntop->getPrefs()->are_remote_to_remote_alerts_enabled()
        && !cli_host->setRemoteToRemoteAlerts()) {
-      json_object *jo;
-
-      if((jo = json_object_new_object()) != NULL) {
-	cli_host->serialize(jo, details_normal);
-      	ntop->getRedis()->rpush(CONST_ALERT_HOST_REMOTE_TO_REMOTE, json_object_to_json_string(jo), CONST_REMOTE_TO_REMOTE_MAX_QUEUE);
-
-      	json_object_put(jo);
-      }
+      iface->getAlertsQueue()->pushRemoteToRemoteAlert(cli_host);
     }
   } /* Closes if(cli_host && srv_host) */
 

@@ -381,7 +381,7 @@ function alerts_api.release(entity_info, type_info, when)
   end
 
   if(type_info.alert_severity == nil) then
-    alertErrorTraceback("Missing alert_severity")
+    alertErrorTraceback(string.format("Missing alert_severity [type=%s]", type_info.alert_type and type_info.alert_type.alert_id or ""))
     return(false)
   end
 
@@ -717,7 +717,7 @@ end
 function alerts_api.broadcastDomainTooLargeType(src_mac, dst_mac, vlan, spa, tpa)
   return({
     alert_type = alert_consts.alert_types.broadcast_domain_too_large,
-    alert_severity = alert_consts.alert_severities.error,
+    alert_severity = alert_consts.alert_severities.warning,
     alert_type_params = {
       src_mac = src_mac, dst_mac = dst_mac,
       spa = spa, tpa = tpa, vlan_id = vlan,

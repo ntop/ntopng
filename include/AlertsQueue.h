@@ -33,9 +33,14 @@ class AlertsQueue {
  public:
   AlertsQueue(NetworkInterface *iface);
 
-  void pushOutsideDhcpRangeAlert(u_char* cli_mac, Mac *sender_mac,
+  void pushOutsideDhcpRangeAlert(u_int8_t* cli_mac, Mac *sender_mac,
     u_int32_t ip, u_int32_t router_ip, int vlan_id);
   void pushSlowPeriodicActivity(u_long msec_diff, u_long max_duration_ms, const char *activity_path);
+  void pushMacIpAssociationChangedAlert(u_int32_t ip, u_int8_t *old_mac, u_int8_t *new_mac);
+  void pushBroadcastDomainTooLargeAlert(u_int8_t *src_mac, u_int8_t *dst_mac, u_int32_t spa, u_int32_t tpa, int vlan_id);
+  void pushRemoteToRemoteAlert(Host *host);
+  void pushLoginTrace(const char*user, bool authorized);
+  void pushNfqFlushedAlert(int queue_len, int queue_len_pct, int queue_dropped);
 };
 
 #endif

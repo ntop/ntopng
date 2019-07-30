@@ -20,9 +20,7 @@ local alert_endpoints = require "alert_endpoints_utils"
 
 local store_alerts_queue = "ntopng.alert_store_queue"
 local alert_process_queue = "ntopng.alert_process_queue"
-local host_remote_to_remote_alerts_queue = "ntopng.alert_host_remote_to_remote"
 local inactive_hosts_hash_key = "ntopng.prefs.alerts.ifid_%d.inactive_hosts_alerts"
-local alert_login_queue = "ntopng.alert_login_trace_queue"
 local snmp_alert_queue = "ntopng.snmp_alert_queue"
 
 local shaper_utils = nil
@@ -2208,140 +2206,6 @@ local function getSavedDeviceName(mac)
 end
 
 -- Global function
-function check_mac_ip_association_alerts()
-   while(true) do
-      local message = ntop.lpopCache("ntopng.alert_mac_ip_queue")
-      local elems
-
-      if((message == nil) or (message == "")) then
-	 break
-      end
-
-      elems = json.decode(message)
-
-      if elems ~= nil then
-         --io.write(elems.ip.." ==> "..message.."[".. elems.ifname .."]\n")
-         interface.select(elems.ifname)
-         local name = getSavedDeviceName(elems.new_mac)
-
-         alerts_api.store(
-           alerts_api.macEntity(elems.new_mac),
-           alerts_api.macIpAssociationChangeType(name, elems.ip, elems.old_mac, elems.new_mac)
-         )
-      end
-   end   
-end
-
--- Global function
-function check_broadcast_domain_too_large_alerts()
-   while(true) do
-      local message = ntop.lpopCache("ntopng.alert_bcast_domain_too_large")
-      local elems
-
-      if((message == nil) or (message == "")) then
-	 break
-      end
-
-      elems = json.decode(message)
-
-      if elems ~= nil then
-	 local entity_value = elems.src_mac
-
-	 --io.write(elems.ip.." ==> "..message.."[".. elems.ifname .."]\n")
-	 interface.select(elems.ifname)
-   alerts_api.store(
-     alerts_api.macEntity(entity_value),
-     alerts_api.broadcastDomainTooLargeType(elems.src_mac, elems.dst_mac, elems.vlan_id, elems.spa, elems.tpa)
-   )
-      end
-   end
-end
-
--- Global function
-function check_nfq_flushed_queue_alerts()
-   while(true) do
-      local message = ntop.lpopCache("ntopng.alert_nfq_flushed_queue")
-      local elems
-
-      if((message == nil) or (message == "")) then
-	 break
-      end
-
-      elems = json.decode(message)
-
-      if elems ~= nil then
-         -- io.write(elems.ip.." ==> "..message.."[".. elems.ifname .."]\n")
-
-         interface.select(elems.ifname)
-         alerts_api.store(
-            alerts_api.interfaceAlertEntity(getInterfaceId(elems.ifname)),
-            alerts_api.nfqFlushedType(elems.ifname, elems.pct, elems.tot, elems.dropped)
-         )
-      end
-   end   
-end
-
--- Global function
-function check_host_remote_to_remote_alerts()
-   while(true) do
-      local message = ntop.lpopCache(host_remote_to_remote_alerts_queue)
-      local elems
-
-      if((message == nil) or (message == "")) then
-	 break
-      end
-
-      elems = json.decode(message)
-
-      if elems ~= nil then
-         local host_info = {host = elems.ip.ip, vlan = elems.vlan_id}
-         interface.select(getInterfaceName(elems.ifid))
-
-         alerts_api.store(
-            alerts_api.hostAlertEntity(elems.ip.ip, elems.vlan_id or 0),
-            alerts_api.remoteToRemoteType(host_info, elems.mac_address)
-         )
-      end
-   end   
-end
-
--- Global function
-function check_login_alerts()
-   while(true) do
-      local message = ntop.lpopCache(alert_login_queue)
-      local elems
-      
-      if((message == nil) or (message == "")) then
-	 break
-      end
-
-      if(verbose) then print(message.."\n") end
-      
-      local decoded = json.decode(message)
-
-      if(decoded == nil) then
-	 if(verbose) then io.write("JSON Decoding error: "..message.."\n") end
-      else
-        interface.select(getSystemInterfaceId())
-
-        local is_login_failed = (decoded.status == "unauthorized")
-
-        if(is_login_failed) then
-          alerts_api.store(
-            alerts_api.userEntity(decoded.user),
-            alerts_api.loginFailedType()
-          )
-        else
-          alerts_api.store(
-            alerts_api.userEntity(decoded.user),
-            alerts_api.userActivityType("login", nil, nil, nil, "authorized")
-          )
-        end
-      end
-   end
-end
-
--- Global function
 function check_process_alerts()
    while(true) do
       local message = ntop.lpopCache(alert_process_queue)
@@ -2817,6 +2681,26 @@ local function processStoreAlertFromQueue(alert)
   elseif(alert.alert_type == alertType("slow_periodic_activity")) then
     entity_info = alerts_api.periodicActivityEntity(alert.path)
     type_info = alerts_api.slowPeriodicActivityType(alert.duration_ms, alert.max_duration_ms)
+  elseif(alert.alert_type == alertType("mac_ip_association_change")) then
+    local name = getSavedDeviceName(alert.new_mac)
+    entity_info = alerts_api.macEntity(alert.new_mac)
+    type_info = alerts_api.macIpAssociationChangeType(name, alert.ip, alert.old_mac, alert.new_mac)
+  elseif(alert.alert_type == alertType("login_failed")) then
+    entity_info = alerts_api.userEntity(alert.user)
+    type_info = alerts_api.loginFailedType()
+  elseif(alert.alert_type == alertType("broadcast_domain_too_large")) then
+    entity_info = alerts_api.macEntity(alert.src_mac)
+    type_info = alerts_api.broadcastDomainTooLargeType(alert.src_mac, alert.dst_mac, alert.vlan_id, alert.spa, alert.tpa)
+  elseif(alert.alert_type == alertType("remote_to_remote")) then
+    local host_info = {host = alert.host, vlan = alert.vlan}
+    entity_info = alerts_api.hostAlertEntity(alert.host, alert.vlan)
+    type_info = alerts_api.remoteToRemoteType(host_info, alert.mac_address)
+  elseif((alert.alert_type == alertType("alert_user_activity")) and (alert.scope == "login")) then
+    entity_info = alerts_api.userEntity(alert.user)
+    type_info = alerts_api.userActivityType("login", nil, nil, nil, "authorized")
+  elseif(alert.alert_type == alertType("nfq_flushed")) then
+    entity_info = alerts_api.interfaceAlertEntity(alert.ifid)
+    type_info = alerts_api.nfqFlushedType(getInterfaceName(alert.ifid), alert.pct, alert.tot, alert.dropped)
   else
     traceError(TRACE_ERROR, TRACE_CONSOLE, "Unknown alert type " .. (alert.alert_type or ""))
   end

@@ -616,7 +616,7 @@ const char* Utils::flowStatus2str(FlowStatus s, AlertType *aType, AlertLevel *aL
     *aType = alert_suspicious_activity;
     return("Invalid DNS query");
   case status_remote_to_remote:
-    *aType = alert_flow_remote_to_remote;
+    *aType = alert_remote_to_remote;
     return("Remote client and remote server");
   case status_web_mining_detected:
     *aType = alert_flow_web_mining;

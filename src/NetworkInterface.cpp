@@ -6895,31 +6895,10 @@ void NetworkInterface::checkMacIPAssociation(bool triggerEvent, u_char *_mac, u_
       if((it = ip_mac.find(ipv4)) != ip_mac.end()) {
 	/* Found entry */
 	if(it->second != mac) {
-	  char oldmac[32], newmac[32], ipbuf[32], *ipa;
-	  u_char tmp[6];
-	  json_object *jobject;
+    u_char tmp[16];
+    Utils::int2mac(it->second, tmp);
 
-	  Utils::int2mac(it->second, tmp);
-	  Utils::formatMac(tmp, oldmac, sizeof(oldmac));
-	  Utils::formatMac(_mac, newmac, sizeof(newmac));
-	  ipa = Utils::intoaV4(ntohl(ipv4), ipbuf, sizeof(ipbuf));
-
-	  ntop->getTrace()->traceEvent(TRACE_INFO, "IP %s: modified MAC association %s -> %s",
-				       ipa, oldmac, newmac);
-
-	  if((jobject = json_object_new_object()) != NULL) {
-	    json_object_object_add(jobject, "ifname", json_object_new_string(get_name()));
-	    json_object_object_add(jobject, "ifid", json_object_new_int(id));
-	    json_object_object_add(jobject, "ip", json_object_new_string(ipa));
-	    json_object_object_add(jobject, "old_mac", json_object_new_string(oldmac));
-	    json_object_object_add(jobject, "new_mac", json_object_new_string(newmac));
-
-	    ntop->getRedis()->rpush(CONST_ALERT_MAC_IP_QUEUE, (char *)json_object_to_json_string(jobject), 0 /* No trim */);
-
-	    /* Free Memory */
-	    json_object_put(jobject);
-	  } else
-	    ntop->getTrace()->traceEvent(TRACE_ERROR, "json_object_new_object: Not enough memory");
+	  alerts_queue->pushMacIpAssociationChangedAlert(ntohl(ipv4), tmp, _mac);
 
 	  ip_mac[ipv4] = mac;
 	}
@@ -6952,26 +6931,7 @@ void NetworkInterface::checkDhcpIPRange(Mac *sender_mac, struct dhcp_packet *dhc
 
 bool NetworkInterface::checkBroadcastDomainTooLarge(u_int32_t bcast_mask, u_int16_t vlan_id, const Mac * const src_mac, const Mac * const dst_mac, u_int32_t spa, u_int32_t tpa) const {
   if(bcast_mask < 0xFFFF0000) {
-    if(!ntop->getPrefs()->are_alerts_disabled()) {
-      json_object *jobject;
-      char buf[32];
-
-      if((jobject = json_object_new_object()) != NULL) {
-	json_object_object_add(jobject, "ifname", json_object_new_string(get_name()));
-	json_object_object_add(jobject, "ifid", json_object_new_int(id));
-	json_object_object_add(jobject, "vlan_id", json_object_new_int(vlan_id));
-	json_object_object_add(jobject, "src_mac", json_object_new_string(Utils::formatMac(src_mac->get_mac(), buf, sizeof(buf))));
-        json_object_object_add(jobject, "dst_mac", json_object_new_string(Utils::formatMac(dst_mac->get_mac(), buf, sizeof(buf))));
-	json_object_object_add(jobject, "spa", json_object_new_string(Utils::intoaV4(spa, buf, sizeof(buf))));
-	json_object_object_add(jobject, "tpa", json_object_new_string(Utils::intoaV4(tpa, buf, sizeof(buf))));
-
-	ntop->getRedis()->rpush(CONST_ALERT_BCAST_DOMAIN_TOO_LARGE_QUEUE, (char *)json_object_to_json_string(jobject), 0 /* No trim */);
-
-	/* Free Memory */
-	json_object_put(jobject);
-      }
-    }
-
+    alerts_queue->pushBroadcastDomainTooLargeAlert((u_int8_t*)src_mac->get_mac(), (u_int8_t*)dst_mac->get_mac(), spa, tpa, vlan_id);
     return true; /* At most a /16 broadcast domain is acceptable */
   }
 

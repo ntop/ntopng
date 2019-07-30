@@ -114,9 +114,10 @@ typedef enum {
   alert_suspicious_activity,
   alert_interface_alerted,
   alert_flow_misbehaviour,
-  alert_flow_remote_to_remote,
+  alert_remote_to_remote,
   alert_flow_blacklisted,
   alert_flow_blocked,
+  alert_mac_ip_association_change = 17,
   alert_flow_web_mining = 21,
   alert_nfq_flushed = 22,
   alert_device_protocol_not_allowed = 24,
@@ -127,6 +128,7 @@ typedef enum {
   alert_ids = 35,
   misconfigured_dhcp_range = 36,
   slow_periodic_activity = 40,
+  login_failed = 42,
   /* 
      IMPORTANT IMPORTANT IMPORTANT
      If # status >= 64 then extend Utils.h and Lua bitmap functions to handle it

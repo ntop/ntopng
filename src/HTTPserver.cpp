@@ -124,30 +124,7 @@ bool HTTPserver::authorized_localhost_user_login(const struct mg_connection *con
 /* ****************************************** */
 
 void HTTPserver::traceLogin(const char *user, bool authorized) {
-  NetworkInterface *ntop_interface;
-  AlertsManager *am;
-  json_object *jobj;
-
-  ntop_interface = ntop->getSystemInterface();
-
-  if (ntop_interface == NULL)
-    return;
-
-  am = ntop_interface->getAlertsManager();
-
-  if (am == NULL)
-    return;
-
-  jobj = json_object_new_object();
-  if (jobj == NULL) return;
-
-  json_object_object_add(jobj, "scope",  json_object_new_string("login"));
-  json_object_object_add(jobj, "status", json_object_new_string(authorized ? "authorized" : "unauthorized"));
-  json_object_object_add(jobj, "user",  json_object_new_string(user));
-
-  ntop->getRedis()->rpush(CONST_ALERT_NTOPNG_LOGIN_TRACE_QUEUE, (char *)json_object_to_json_string(jobj), 0 /* No trim */);
- 
-  json_object_put(jobj);
+  ntop->getSystemInterface()->getAlertsQueue()->pushLoginTrace(user, authorized);
 }
 
 /* ****************************************** */
