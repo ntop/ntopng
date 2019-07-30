@@ -409,6 +409,7 @@ function alerts_api.releaseEntityAlerts(entity_info, alerts)
   for _, alert in pairs(alerts) do
     alerts_api.release(entity_info, {
       alert_type = alert_consts.alert_types[alertTypeRaw(alert.alert_type)],
+      alert_severity = alert_consts.alert_severities[alertSeverityRaw(alert.alert_severity)],
       alert_subtype = alert.alert_subtype,
       alert_granularity = alert_consts.alerts_granularities[sec2granularity(alert.alert_granularity)],
     })
