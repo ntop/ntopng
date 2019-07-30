@@ -696,7 +696,7 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t fi
     else
       flow->tcp.server_tcp_flags = ivalue;
   case APPL_LATENCY_MS:
-    flow->tcp.applLatencyMsec = atof(value);
+    flow->tcp.applLatencyMsec = value ? atof(value) : ivalue;
     break;
   case DNS_QUERY:
     flow->dns_query = (char *) value;
@@ -1069,6 +1069,8 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
   while ((et = ndpi_deserialize_get_nextitem_type(deserializer)) != ndpi_serialization_unknown) {
     u_int32_t pen = 0, key_id;
     u_int32_t v32 = 0;
+    int32_t i32 = 0;
+    float f = 0;
     u_int64_t v64 = 0;
     ndpi_string key, vs;
     char key_str[64];
@@ -1076,65 +1078,87 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
     bool add_to_additional_fields = false;
     bool key_is_string = false, value_is_string = false;
 
+    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "TLV Type %u", et);
+      
     switch(et) {
-      case ndpi_serialization_uint32_uint32:
-        ndpi_deserialize_uint32_uint32(deserializer, &key_id, &v32);
-        v64 = v32;
-        if (debug_tlv) printf("%u=%u ", key_id, v32);
+    case ndpi_serialization_uint32_uint32:
+      ndpi_deserialize_uint32_uint32(deserializer, &key_id, &v32);
+      v64 = v32;
+      if (debug_tlv) printf("%u=%u ", key_id, v32);
       break;
 
-      case ndpi_serialization_uint32_uint64:
-        ndpi_deserialize_uint32_uint64(deserializer, &key_id, &v64);
-        if (debug_tlv) printf("%u=%llu ", key_id, (unsigned long long) v64);
+    case ndpi_serialization_uint32_uint64:
+      ndpi_deserialize_uint32_uint64(deserializer, &key_id, &v64);
+      if (debug_tlv) printf("%u=%llu ", key_id, (unsigned long long) v64);
       break;
 
-      case ndpi_serialization_uint32_string:
-        ndpi_deserialize_uint32_string(deserializer, &key_id, &vs);
-        vbkp = vs.str[vs.str_len];
-        vs.str[vs.str_len] = '\0';
-        value_is_string = true;
-        if (debug_tlv) printf("%u='%s' ", key_id, vs.str);
+    case ndpi_serialization_uint32_string:
+      ndpi_deserialize_uint32_string(deserializer, &key_id, &vs);
+      vbkp = vs.str[vs.str_len];
+      vs.str[vs.str_len] = '\0';
+      value_is_string = true;
+      if (debug_tlv) printf("%u='%s' ", key_id, vs.str);
+      break;
+	
+    case ndpi_serialization_string_float:
+      ndpi_deserialize_string_float(deserializer, &key, &f);
+      v64 = f; // TODO: handle float
+      kbkp = key.str[key.str_len];
+      key.str[key.str_len] = '\0';
+      getKeyId(key.str, &pen, &key_id);
+      key_is_string = true;
+      if (debug_tlv) printf("%s=%u ", key.str, v32);
+      break;
+      
+    case ndpi_serialization_string_int32:
+      ndpi_deserialize_string_int32(deserializer, &key, &i32);
+      v64 = i32; // TODO: handle signed integers
+      kbkp = key.str[key.str_len];
+      key.str[key.str_len] = '\0';
+      getKeyId(key.str, &pen, &key_id);
+      key_is_string = true;
+      if (debug_tlv) printf("%s=%u ", key.str, v32);
       break;
 
-      case ndpi_serialization_string_uint32:
-        ndpi_deserialize_string_uint32(deserializer, &key, &v32);
-        v64 = v32;
-        kbkp = key.str[key.str_len];
-        key.str[key.str_len] = '\0';
-        getKeyId(key.str, &pen, &key_id);
-        key_is_string = true;
-        if (debug_tlv) printf("%s=%u ", key.str, v32);
+    case ndpi_serialization_string_uint32:
+      ndpi_deserialize_string_uint32(deserializer, &key, &v32);
+      v64 = v32;
+      kbkp = key.str[key.str_len];
+      key.str[key.str_len] = '\0';
+      getKeyId(key.str, &pen, &key_id);
+      key_is_string = true;
+      if (debug_tlv) printf("%s=%u ", key.str, v32);
       break;
 
-      case ndpi_serialization_string_uint64:
-        ndpi_deserialize_string_uint64(deserializer, &key, &v64);
-        kbkp = key.str[key.str_len];
-        key.str[key.str_len] = '\0';
-        getKeyId(key.str, &pen, &key_id);
-        key_is_string = true;
-        if (debug_tlv) printf("%s=%llu ", key.str, (unsigned long long) v64);
+    case ndpi_serialization_string_uint64:
+      ndpi_deserialize_string_uint64(deserializer, &key, &v64);
+      kbkp = key.str[key.str_len];
+      key.str[key.str_len] = '\0';
+      getKeyId(key.str, &pen, &key_id);
+      key_is_string = true;
+      if (debug_tlv) printf("%s=%llu ", key.str, (unsigned long long) v64);
       break;
 
-      case ndpi_serialization_string_string:
-        ndpi_deserialize_string_string(deserializer, &key, &vs);
-        kbkp = key.str[key.str_len], vbkp = vs.str[vs.str_len];
-        key.str[key.str_len] = vs.str[vs.str_len] = '\0';
-        getKeyId(key.str, &pen, &key_id);
-        key_is_string = value_is_string = true;
-        if (debug_tlv) printf("%s='%s' ", key.str, vs.str);
+    case ndpi_serialization_string_string:
+      ndpi_deserialize_string_string(deserializer, &key, &vs);
+      kbkp = key.str[key.str_len], vbkp = vs.str[vs.str_len];
+      key.str[key.str_len] = vs.str[vs.str_len] = '\0';
+      getKeyId(key.str, &pen, &key_id);
+      key_is_string = value_is_string = true;
+      if (debug_tlv) printf("%s='%s' ", key.str, vs.str);
       break;
 
-      case ndpi_serialization_end_of_record:
-        ndpi_deserialize_end_of_record(deserializer);
-        if (debug_tlv) printf("EOR ");
-        goto end_of_record;
+    case ndpi_serialization_end_of_record:
+      ndpi_deserialize_end_of_record(deserializer);
+      if (debug_tlv) printf("EOR ");
+      goto end_of_record;
       break;
 
-      default:
-        //if (debug_tlv) 
-          ntop->getTrace()->traceEvent(TRACE_WARNING, "Unsupported TLV type %u\n", et);
-        ret = -1;
-        goto error;
+    default:
+      //if (debug_tlv) 
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Unsupported TLV type %u\n", et);
+      ret = -1;
+      goto error;
       break;
     }
 
@@ -1248,7 +1272,8 @@ u_int8_t ZMQParserInterface::parseJSONFlow(const char * const payload, int paylo
 #if 0
   char *json_str = (char *) payload;
   json_str[payload_size] = '\0';
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "JSON: '%s' [len=%lu]", json_str, strlen(json_str));
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "JSON: '%s' [len=%lu]", json_str, strlen(json_str));
+  printf("\n\n%s\n\n", json_str);
 #endif
 
   f = json_tokener_parse_verbose(payload, &jerr);

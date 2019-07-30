@@ -128,9 +128,9 @@ ZMQCollectorInterface::ZMQCollectorInterface(const char *_endpoint) : ZMQParserI
 ZMQCollectorInterface::~ZMQCollectorInterface() {
 #ifdef PROFILING
   u_int64_t n = recvStats.num_flows;
-  if (n > 0) {
+  if(n > 0) {
     for (u_int i = 0; i < PROFILING_NUM_SECTIONS; i++) {
-      if (PROFILING_SECTION_LABEL(i) != NULL)
+      if(PROFILING_SECTION_LABEL(i) != NULL)
         ntop->getTrace()->traceEvent(TRACE_NORMAL, "[PROFILING] Section #%d '%s': AVG %llu ticks",
           i, PROFILING_SECTION_LABEL(i), PROFILING_SECTION_AVG(i, n));
     }
@@ -252,9 +252,9 @@ void ZMQCollectorInterface::collect_flows() {
           bool tlv_encoding = false;
           bool compressed = false;
 
-          if (publisher_version == ZMQ_MSG_VERSION_TLV)
+          if(publisher_version == ZMQ_MSG_VERSION_TLV)
             tlv_encoding = true;
-          else if (payload[0] == 0)
+          else if(payload[0] == 0)
             compressed = true;
 
 	  if(compressed /* Compressed traffic */) {
@@ -278,7 +278,7 @@ void ZMQCollectorInterface::collect_flows() {
 
 	    continue;
 #endif
-          } else if (tlv_encoding /* TLV encoding */) {
+          } else if(tlv_encoding /* TLV encoding */) {
             // ntop->getTrace()->traceEvent(TRACE_NORMAL, "TLV message over ZMQ");
 	    uncompressed = payload, uncompressed_len = size;
 	  } else { /* JSON string */
@@ -299,7 +299,7 @@ void ZMQCollectorInterface::collect_flows() {
             break;
 
           case 'f': /* flow */
-            if (tlv_encoding) 
+            if(tlv_encoding) 
               recvStats.num_flows += parseTLVFlow(uncompressed, uncompressed_len, subscriber_id, this);
             else
               recvStats.num_flows += parseJSONFlow(uncompressed, uncompressed_len, subscriber_id, this);
