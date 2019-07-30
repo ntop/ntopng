@@ -17,8 +17,6 @@ local recording_utils = require "recording_utils"
 local now = os.time()
 local periodicity = 3
 
-check_process_alerts()
-check_snmp_alerts()
 check_store_alerts(now + periodicity)
 lists_utils.checkReloadLists()
 
