@@ -69,19 +69,18 @@ void AlertableEntity::luaAlert(lua_State* vm, Alert *alert, ScriptPeriodicity p)
 /* ****************************************** */
 
 /* Return true if the element was inserted, false if already present */
-bool AlertableEntity::triggerAlert(std::string key, NetworkInterface *iface, ScriptPeriodicity p, time_t now,
+bool AlertableEntity::triggerAlert(lua_State* vm, std::string key,
+    NetworkInterface *iface, ScriptPeriodicity p, time_t now,
     AlertLevel alert_severity, AlertType alert_type,
     const char *alert_subtype,
     const char *alert_json,
     bool alert_disabled) {
+  bool rv = false;
   std::map<std::string, Alert>::iterator it = triggered_alerts[(u_int)p].find(key);
 
   if(entity_val.empty()) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "setEntityValue() not called or empty entity_val");
-    return(false);
-  }
-
-  if(it != triggered_alerts[(u_int)p].end()) {
+  } else if(it != triggered_alerts[(u_int)p].end()) {
     it->second.last_update = now;
 
     if(it->second.is_disabled && !alert_disabled) {
@@ -94,7 +93,7 @@ bool AlertableEntity::triggerAlert(std::string key, NetworkInterface *iface, Scr
       iface->decNumAlertsEngaged(p);
     }
 
-    return(false); /* already present */
+    /* already present */
   } else {
     Alert alert;
 
@@ -112,8 +111,17 @@ bool AlertableEntity::triggerAlert(std::string key, NetworkInterface *iface, Scr
       iface->incNumAlertsEngaged(p);
 
     triggered_alerts[(u_int)p][key] = alert;
-    return(true); /* inserted */
+
+    rv = true; /* inserted */
+
+    lua_newtable(vm);
+    luaAlert(vm, &alert, p);
   }
+
+  if(!rv)
+    lua_pushnil(vm);
+
+  return(rv);
 }
 
 /* ****************************************** */

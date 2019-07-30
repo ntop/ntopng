@@ -251,6 +251,19 @@ end
 
 -- #################################
 
+-- This function maps the SQLite table names to the conventional table
+-- names used in this script
+local function luaTableName(sqlite_table_name)
+  --~ ALERTS_MANAGER_FLOWS_TABLE_NAME      "flows_alerts"
+  if(sqlite_table_name == "flows_alerts") then
+    return("historical-flows")
+  else
+    return("historical")
+  end
+end
+
+-- #################################
+
 function performAlertsQuery(statement, what, opts, force_query)
    local wargs = {"WHERE", "1=1"}
    local oargs = {}
@@ -364,9 +377,7 @@ function performAlertsQuery(statement, what, opts, force_query)
    -- Uncomment to debug the queries
    --~ tprint(statement.." (from "..what..") "..query)
 
-   if what == "engaged" then
-      res = interface.queryAlertsRaw(statement, query, force_query)
-   elseif what == "historical" then
+   if((what == "engaged") or (what == "historical")) then
       res = interface.queryAlertsRaw(statement, query, force_query)
    elseif what == "historical-flows" then
       res = interface.queryFlowAlertsRaw(statement, query, force_query)
@@ -589,10 +600,7 @@ end
 
 -- #################################
 
-function formatRawFlow(record, flow_json, skip_add_links)
-   -- Emanuele said: this function can also be called from alertNotificationToObject
-   -- with a dummy flow without timestamp. In that case we must skip_add_links
-   -- or we will get an exception
+local function formatRawFlow(record, flow_json, skip_add_links)
    require "flow_utils"
    local time_bounds
    local add_links = (not skip_add_links)
@@ -2530,59 +2538,42 @@ end
 
 -- #################################
 
---
--- Generic alerts extenral report
---
--- Guidelines:
---
---  - modules are enabled with the getAlertNotificationModuleEnableKey key
---  - module severity is defined with the getAlertNotificationModuleSeverityKey key
---  - A [module] name must have a corresponding modules/[module]_utils.lua script
---
+function formatAlertMessage(ifid, alert)
+  local msg
 
-function alertNotificationToObject(alert_json)
-   local notification = json.decode(alert_json)
+  if(alert.alert_entity == alertEntity("flow") or (alert.alert_entity == nil)) then
+    msg = formatRawFlow(alert, alert["alert_json"])
+  else
+    msg = alert["alert_json"]
 
-   if not notification then
-      return nil
-   end
+    if(string.sub(msg, 1, 1) == "{") then
+      msg = json.decode(msg)
+    end
 
-   if(notification.type ~= nil) then
-      notification.type = alertTypeRaw(notification.type)
-      notification.entity_type = alertEntityRaw(notification.entity_type)
-      notification.severity = alertSeverityRaw(notification.severity)
-   end
+    local description = alertTypeDescription(alert.alert_type)
 
-   if(notification.flow ~= nil) then
-      notification.message = formatRawFlow(notification.flow, notification.message, true --[[ skip add links ]])
-   else
-      local alert = alerts_api.alertNotificationToRecord(notification)
-      local description = alertTypeDescription(alert.alert_type)
-      local msg = alert.alert_json
+    if(type(description) == "string") then
+      -- localization string
+      msg = i18n(description, msg)
+    elseif(type(description) == "function") then
+      msg = description(ifid, alert, msg)
+    end
+  end
 
-      if(string.sub(msg, 1, 1) == "{") then
-        msg = json.decode(msg)
-      end
-
-      if(type(description) == "string") then
-        -- localization string
-        notification.message = i18n(description, msg)
-      elseif(type(description) == "function") then
-        notification.message = description(notification.ifid, alert, msg)
-      end
-   end
-
-   return notification
+  return(msg)
 end
 
+-- #################################
+
 function notification_timestamp_asc(a, b)
-   return (a.tstamp < b.tstamp)
+   return (a.alert_tstamp < b.alert_tstamp)
 end
 
 function notification_timestamp_rev(a, b)
-   return (a.tstamp > b.tstamp)
+   return (a.alert_tstamp > b.alert_tstamp)
 end
 
+-- Returns a summary of the alert as readable text
 function formatAlertNotification(notif, options)
    local defaults = {
       nohtml = false,
@@ -2590,19 +2581,19 @@ function formatAlertNotification(notif, options)
    }
    options = table.merge(defaults, options)
 
-   local msg = "[" .. formatEpoch(notif.tstamp or 0) .. "]"
-   msg = msg .. ternary(options.show_severity == false, "", "[" .. alertSeverityLabel(alertSeverity(notif.severity), options.nohtml) .. "]") ..
-      "[" .. alertTypeLabel(alertType(notif.type), options.nohtml) .."]"
+   local msg = "[" .. formatEpoch(notif.alert_tstamp or 0) .. "]"
+   msg = msg .. ternary(options.show_severity == false, "", "[" .. alertSeverityLabel(notif.alert_severity, options.nohtml) .. "]") ..
+      "[" .. alertTypeLabel(notif.alert_type, options.nohtml) .."]"
 
    -- entity can be hidden for example when one is OK with just the message
    if options.show_entity then
-      msg = msg.."["..alertEntityLabel(alertEntity(notif.entity_type)).."]"
+      msg = msg.."["..alertEntityLabel(notif.alert_entity).."]"
 
-      if notif.entity_type ~= "flow" then
-	 local ev = notif.entity_value
-	 if notif.entity_type == "host" then
+      if notif.alert_entity ~= "flow" then
+	 local ev = notif.alert_entity_val
+	 if notif.alert_entity == "host" then
 	    -- suppresses @0 when the vlan is zero
-	    ev = hostinfo2hostkey(hostkey2hostinfo(notif.entity_value))
+	    ev = hostinfo2hostkey(hostkey2hostinfo(notif.alert_entity_val))
 	 end
 
 	 msg = msg.."["..ev.."]"
@@ -2611,11 +2602,12 @@ function formatAlertNotification(notif, options)
 
    -- add the label, that is, engaged or released
    msg = msg .. alertNotificationActionToLabel(notif.action).. " "
+   local alert_message = formatAlertMessage(notif.ifid, notif)
 
    if options.nohtml then
-      msg = msg .. noHtml(notif.message)
+      msg = msg .. noHtml(alert_message)
    else
-      msg = msg .. notif.message
+      msg = msg .. alert_message
    end
 
    return msg
@@ -2623,23 +2615,9 @@ end
 
 -- ##############################################
 
-local function alertToNotification(ifid, action, alert)
-   return({
-      ifid = ifid,
-      entity_type = tonumber(alert.alert_entity),
-      entity_value = alert.alert_entity_val,
-      type = tonumber(alert.alert_type),
-      severity = tonumber(alert.alert_severity),
-      message = alert.alert_json,
-      tstamp = tonumber(alert.alert_tstamp_end),
-      action = action,
-   })
-end
-
--- ##############################################
-
 -- Processes queued alerts and returns the information necessary to store them.
--- Alerts are enqueued by AlertsQueue (C) and enqueueStoreAlert (Lua)
+-- Alerts are only enqueued by AlertsQueue in C. From lua, the alerts_api
+-- can be called directly as slow operations will be postponed
 local function processStoreAlertFromQueue(alert)
   local entity_info = nil
   local type_info = nil
@@ -2673,21 +2651,6 @@ local function processStoreAlertFromQueue(alert)
   elseif(alert.alert_type == alertType("nfq_flushed")) then
     entity_info = alerts_api.interfaceAlertEntity(alert.ifid)
     type_info = alerts_api.nfqFlushedType(getInterfaceName(alert.ifid), alert.pct, alert.tot, alert.dropped)
-  elseif(alert.alert_type == alertType("process_notification")) then
-    entity_info = alerts_api.processEntity(alert.entity_value)
-    type_info = alerts_api.processNotificationType(alert.event, alert.severity, alert.msg_details)
-  elseif(alert.alert_type == alertType("port_status_change")) then
-    entity_info = alerts_api.snmpInterfaceEntity(alert.device, alert.interface)
-    type_info = alerts_api.snmpInterfaceStatusChangeType(alert.device, alert.interface, alert.interface_name, alert.status)
-  elseif(alert.alert_type == alertType("port_duplexstatus_change")) then
-    entity_info = alerts_api.snmpInterfaceEntity(alert.device, alert.interface)
-    type_info = alerts_api.snmpInterfaceDuplexStatusChangeType(alert.device, alert.interface, alert.interface_name, alert.status)
-  elseif(alert.alert_type == alertType("port_errors")) then
-    entity_info = alerts_api.snmpInterfaceEntity(alert.device, alert.interface)
-    type_info = alerts_api.snmpInterfaceErrorsType(alert.device, alert.interface, alert.interface_name)
-  elseif(alert.alert_type == alertType("port_load_threshold_exceeded")) then
-    entity_info = alerts_api.snmpInterfaceEntity(alert.device, alert.interface)
-    type_info = alerts_api.snmpPortLoadThresholdExceededType(alert.device, alert.interface, alert.interface_name, alert.interface_load, alert.in_direction)
   else
     traceError(TRACE_ERROR, TRACE_CONSOLE, "Unknown alert type " .. (alert.alert_type or ""))
   end
@@ -2699,7 +2662,7 @@ end
 
 -- Global function
 -- NOTE: this is executed in a system VM, with no interfaces references
-function check_store_alerts(deadline)
+function checkStoreAlertsFromC(deadline)
   while(os.time() <= deadline) do
     -- TODO add max_length check and alert
     local message = ntop.lpopCache(store_alerts_queue)
@@ -2728,8 +2691,6 @@ end
 
 -- NOTE: this is executed in a system VM, with no interfaces references
 function processAlertNotifications(now, periodic_frequency, force_export)
-   alerts_api.processPendingAlertEvents(now + periodic_frequency)
-
    -- Get new alerts
    while(true) do
       local json_message = ntop.lpopCache("ntopng.alerts.notifications_queue")
@@ -2744,27 +2705,33 @@ function processAlertNotifications(now, periodic_frequency, force_export)
 
       local message = json.decode(json_message)
 
+      interface.select(tostring(message.ifid))
+
+      if((message.rowid ~= nil) and (message.table_name ~= nil)) then
+        -- A rowid has been passed instead of actual notification information,
+        -- retrieve the alert from sqlite
+        local res = performAlertsQuery("SELECT *", luaTableName(message.table_name), {row_id = message.rowid})
+
+        if((res == nil) or (#res ~= 1)) then
+          traceError(TRACE_WARNING, TRACE_CONSOLE,
+            string.format("Could not retrieve alert information [ifid=%s][table=%s][rowid=%s]",
+            message.ifid, message.table_name, message.rowid))
+
+          goto continue
+        end
+
+        -- Build the actual alert notification
+        message.rowid = nil
+        message.table_name = nil
+        message = table.merge(message, res[1])
+        json_message = json.encode(message)
+      end
+
       alert_endpoints.dispatchNotification(message, json_message)
+      ::continue::
    end
 
    alert_endpoints.processNotifications(now, periodic_frequency)
-end
-
--- ##############################################
-
--- This function is the lua equivalent of the AlertsQueue::pushAlertJson
-function enqueueStoreAlert(ifid, alert_type, alert_info, when)
-  when = when or os.time()
-
-  -- Alert-specific fields
-  local obj = table.clone(alert_info)
-
-  -- Mandatory fields
-  obj.ifid = ifid
-  obj.alert_type = alert_type.alert_id
-  obj.alert_tstamp = when
-
-  ntop.rpushCache(store_alerts_queue, json.encode(obj))
 end
 
 -- ##############################################
@@ -2809,55 +2776,52 @@ local function notify_ntopng_status(started)
       telemetry_utils.notify(obj)
    end
 
-   enqueueStoreAlert(getSystemInterfaceId(), alert_consts.alert_types.process_notification, {
-    msg_details = msg_details,
-    entity_value = entity_value, event = event,
-    severity = severity,
-   })
+  local entity_info = alerts_api.processEntity(entity_value)
+  local type_info = alerts_api.processNotificationType(event, severity, msg_details)
+
+  interface.select(getSystemInterfaceId())  
+  return(alerts_api.store(entity_info, type_info))
 end
 
 function notify_snmp_device_interface_status_change(snmp_host, snmp_interface)
-  enqueueStoreAlert(getSystemInterfaceId(), alert_consts.alert_types.port_status_change, {
-    device = snmp_host,
-    interface = snmp_interface["index"],
-    interface_name = snmp_interface["name"],
-    status = snmp_interface["status"],
-  })
+  local entity_info = alerts_api.snmpInterfaceEntity(snmp_host, snmp_interface["index"])
+  local type_info = alerts_api.snmpInterfaceStatusChangeType(snmp_host, snmp_interface["index"], snmp_interface["name"], snmp_interface["status"])
+
+  interface.select(getSystemInterfaceId())  
+  return(alerts_api.store(entity_info, type_info))
 end
 
 function notify_snmp_device_interface_duplexstatus_change(snmp_host, snmp_interface)
-  enqueueStoreAlert(getSystemInterfaceId(), alert_consts.alert_types.port_duplexstatus_change, {
-    device = snmp_host,
-    interface = snmp_interface["index"],
-    interface_name = snmp_interface["name"],
-    status = snmp_interface["duplexstatus"],
-  })
+  local entity_info = alerts_api.snmpInterfaceEntity(snmp_host, snmp_interface["index"])
+  local type_info = alerts_api.snmpInterfaceDuplexStatusChangeType(snmp_host, snmp_interface["index"], snmp_interface["name"], snmp_interface["duplexstatus"])
+
+  interface.select(getSystemInterfaceId())
+  return(alerts_api.store(entity_info, type_info))
 end
 
 function notify_snmp_device_interface_errors(snmp_host, snmp_interface)
-  enqueueStoreAlert(getSystemInterfaceId(), alert_consts.alert_types.port_errors, {
-    device = snmp_host,
-    interface = snmp_interface["index"],
-    interface_name = snmp_interface["name"],
-  })
+  local entity_info = alerts_api.snmpInterfaceEntity(snmp_host, snmp_interface["index"])
+  local type_info = alerts_api.snmpInterfaceErrorsType(snmp_host, snmp_interface["index"], snmp_interface["name"])
+
+  interface.select(getSystemInterfaceId())
+  return(alerts_api.store(entity_info, type_info))
 end
 
 function notify_snmp_device_interface_load_threshold_exceeded(snmp_host, snmp_interface, interface_load, in_direction)
-  enqueueStoreAlert(getSystemInterfaceId(), alert_consts.alert_types.port_load_threshold_exceeded, {
-    device = snmp_host,
-    interface = snmp_interface["index"],
-    interface_name = snmp_interface["name"],
-    interface_load = interface_load,
-    in_direction = in_direction,
-  })
+  local entity_info = alerts_api.snmpInterfaceEntity(snmp_host, snmp_interface["index"])
+  local type_info = alerts_api.snmpPortLoadThresholdExceededType(snmp_host, snmp_interface["index"], snmp_interface["name"],
+    interface_load, in_direction)
+
+  interface.select(getSystemInterfaceId())
+  return(alerts_api.store(entity_info, type_info))
 end
 
 function notify_ntopng_start()
-   notify_ntopng_status(true)
+   return(notify_ntopng_status(true))
 end
 
 function notify_ntopng_stop()
-   notify_ntopng_status(false)
+   return(notify_ntopng_status(false))
 end
 
 -- DEBUG: uncomment this to test

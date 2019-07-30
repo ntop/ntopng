@@ -4,6 +4,7 @@
 
 require "lua_utils"
 local json = require "dkjson"
+require "alert_utils"
 
 local slack = {}
 
@@ -62,16 +63,18 @@ function slack.dequeueAlerts(queue)
   local alerts_by_types = {}
 
   for _, json_message in ipairs(notifications) do
-    local notif = alertNotificationToObject(json_message)
+    local notif = json.decode(json_message)
 
-    alerts_by_types[notif.entity_type] = alerts_by_types[notif.entity_type] or {}
-    alerts_by_types[notif.entity_type][notif.severity] = alerts_by_types[notif.entity_type][notif.severity] or {}
-    table.insert(alerts_by_types[notif.entity_type][notif.severity], notif)
+    alerts_by_types[notif.alert_entity] = alerts_by_types[notif.alert_entity] or {}
+    alerts_by_types[notif.alert_entity][notif.alert_severity] = alerts_by_types[notif.alert_entity][notif.alert_severity] or {}
+    table.insert(alerts_by_types[notif.alert_entity][notif.alert_severity], notif)
   end
 
   for entity_type, by_severity in pairs(alerts_by_types) do
     for severity, notifications in pairs(by_severity) do
       local messages = {}
+      entity_type = alertEntityRaw(entity_type)
+      severity = alertSeverityRaw(severity)
 
       -- Most recent notifications first
       for _, notif in pairsByValues(notifications, notification_timestamp_rev) do

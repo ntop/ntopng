@@ -52,7 +52,8 @@ class AlertableEntity {
   u_int getNumTriggeredAlerts(ScriptPeriodicity p);
   inline void setEntityValue(const char *ent_val) { entity_val = ent_val; }
 
-  bool triggerAlert(std::string key, NetworkInterface *iface, ScriptPeriodicity p, time_t now,
+  bool triggerAlert(lua_State* vm, std::string key,
+    NetworkInterface *iface, ScriptPeriodicity p, time_t now,
     AlertLevel alert_severity, AlertType alert_type,
     const char *alert_subtype,
     const char *alert_json,

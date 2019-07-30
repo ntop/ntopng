@@ -8,7 +8,7 @@ local json = require "dkjson"
 local webhook = {}
 
 webhook.EXPORT_FREQUENCY = 60
-webhook.API_VERSION = "0.1"
+webhook.API_VERSION = "0.2"
 webhook.REQUEST_TIMEOUT = 1
 webhook.ITERATION_TIMEOUT = 3
 local MAX_ALERTS_PER_REQUEST = 10
@@ -62,7 +62,7 @@ function webhook.dequeueAlerts(queue)
       break
     end
 
-    local alert = alertNotificationToObject(json_alert)
+    local alert = json.decode(json_alert)
 
     table.insert(alerts, alert)
 

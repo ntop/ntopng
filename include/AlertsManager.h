@@ -35,10 +35,7 @@ class AlertsManager : protected StoreManager {
   /* methods used for alerts that have a timespan */
   void markForMakeRoom(bool on_flows);
 
-  bool notifyAlert(AlertEntity alert_entity, const char *alert_entity_value,
-		   AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
-		   const char *alert_origin, const char *alert_target,
-		   const char *action, time_t now, Flow *flow);
+  bool notifyFlowAlert(u_int64_t rowid);
 
   /* methods used to retrieve alerts and counters with possible sql clause to filter */
   int queryAlertsRaw(lua_State *vm, const char *selection, const char *clauses, const char *table_name, bool ignore_disabled);
@@ -58,7 +55,7 @@ class AlertsManager : protected StoreManager {
    */
   int storeAlert(time_t tstart, time_t tend, int granularity, AlertType alert_type, const char *subtype,
       AlertLevel alert_severity, AlertEntity alert_entity, const char *alert_entity_value,
-      const char *alert_json, bool *new_alert,
+      const char *alert_json, bool *new_alert, u_int64_t *rowid,
       bool ignore_disabled = false, bool check_maximum = true);
 
   bool hasAlerts();

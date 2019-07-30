@@ -32,20 +32,6 @@ end
 interface.select(ifname)
 
 local alert_options = _GET
-
-local function formatAlertRecord(alert_entity, record)
-   local flow = ""
-   local column_msg = record["alert_json"]
-
-   if alert_entity == "flow" then
-      column_msg = formatRawFlow(record, record["alert_json"])
-   end
-
-   column_msg = string.gsub(column_msg, '"', "'")
-
-   return column_msg
-end
-
 local alerts = getAlerts(status, alert_options)
 
 if alerts == nil then alerts = {} end
@@ -78,7 +64,7 @@ for _key,_value in ipairs(alerts) do
 
    local column_severity = alertSeverityLabel(tonumber(_value["alert_severity"]), true)
    local column_type     = alertTypeLabel(tonumber(_value["alert_type"]), true)
-   local column_msg      = formatAlertRecord(alert_entity, _value) or ""
+   local column_msg      = formatAlertMessage(ifid, _value)
    local column_id = tostring(_value["rowid"])
    local column_date = _value["alert_tstamp"]
 

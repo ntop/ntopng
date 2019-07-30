@@ -4,6 +4,8 @@
 
 local email = {}
 
+local json = require("dkjson")
+
 email.EXPORT_FREQUENCY = 60
 
 local MAX_ALERTS_PER_EMAIL = 100
@@ -75,7 +77,7 @@ function email.dequeueAlerts(queue)
 
     -- Multiple notifications
     for _, json_message in ipairs(notifications) do
-      local notif = alertNotificationToObject(json_message)
+      local notif = json.decode(json_message)
       message_body[#message_body + 1] = formatAlertNotification(notif, {nohtml=true})
     end
 

@@ -7839,6 +7839,7 @@ static int ntop_interface_store_alert(lua_State* vm) {
   char *alert_subtype;
   bool ignore_disabled = false, check_maximum = true, is_new_alert;
   time_t tstart, tend;
+  u_int64_t rowid;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -7874,12 +7875,16 @@ static int ntop_interface_store_alert(lua_State* vm) {
   alert_json = (char*)lua_tostring(vm, 9);
 
   ret = am->storeAlert(tstart, tend, granularity, alert_type, alert_subtype, alert_severity,
-    alert_entity, entity_value, alert_json, &is_new_alert, ignore_disabled, check_maximum);
+    alert_entity, entity_value, alert_json, &is_new_alert, &rowid, ignore_disabled, check_maximum);
 
   if(ret != 0)
     ntop->getTrace()->traceEvent(TRACE_ERROR, "triggerAlert failed with code %d", ret);
 
-  lua_pushboolean(vm, (ret == 0));
+  if(ret == 0) {
+    lua_newtable(vm);
+    lua_push_uint64_table_entry(vm, "rowid", rowid);
+  } else
+    lua_pushnil(vm);
 
   return(CONST_LUA_OK);
 }
@@ -8275,13 +8280,12 @@ static int ntop_store_triggered_alert(lua_State* vm, AlertableEntity *alertable)
   if(ntop_lua_check(vm, __FUNCTION__, 7, LUA_TBOOLEAN) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   alert_disabled = lua_toboolean(vm, 7);
 
-  triggered = alertable->triggerAlert(std::string(key), c->iface, periodicity, time(NULL),
+  triggered = alertable->triggerAlert(vm, std::string(key), c->iface, periodicity, time(NULL),
     alert_severity, alert_type, alert_subtype, alert_json, alert_disabled);
 
   if(triggered && !alert_disabled && (host = dynamic_cast<Host*>(alertable)))
     host->incTotalAlerts(alert_type);
 
-  lua_pushboolean(vm, triggered);
   return(CONST_LUA_OK);
 }
 

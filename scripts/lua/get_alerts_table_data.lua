@@ -71,34 +71,6 @@ if num_alerts == nil then
    num_alerts = getNumAlerts(status, alert_options)
 end
 
-local function formatAlertRecord(alert_entity, record)
-   local flow = ""
-   local column_msg = record["alert_json"]
-
-   if alert_entity == "flow" then
-      column_msg = formatRawFlow(record, record["alert_json"])
-   else
-      local msg = record["alert_json"]
-
-      if(string.sub(msg, 1, 1) == "{") then
-        msg = json.decode(msg)
-      end
-
-      local description = alertTypeDescription(record.alert_type)
-
-      if(type(description) == "string") then
-        -- localization string
-        column_msg = i18n(description, msg)
-      elseif(type(description) == "function") then
-        column_msg = description(ifid, record, msg)
-      end
-   end
-
-   column_msg = string.gsub(column_msg, '"', "'")
-
-   return column_msg
-end
-
 local alerts = getAlerts(status, alert_options)
 
 if alerts == nil then alerts = {} end
@@ -142,8 +114,7 @@ for _key,_value in ipairs(alerts) do
    local column_severity = alertSeverityLabel(tonumber(_value["alert_severity"]))
    local column_type     = alertTypeLabel(tonumber(_value["alert_type"]))
    local column_count    = format_utils.formatValue(tonumber(_value["alert_counter"]))
-
-   local column_msg      = formatAlertRecord(alert_entity, _value) or ""
+   local column_msg      = string.gsub(formatAlertMessage(ifid, _value), '"', "'")
    local column_chart = nil
 
    if ntop.isPro() then
