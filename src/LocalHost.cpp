@@ -358,6 +358,8 @@ void LocalHost::ports2Lua(lua_State* vm, bool proto_udp, bool as_client) {
     std::map<u_int16_t,PortContactStats>::iterator it;
     
     lua_newtable(vm);
+
+    m.lock(__FILE__, __LINE__);
     
     for(it = s->begin(); it != s->end(); ++it) {
       char buf[8];
@@ -372,6 +374,8 @@ void LocalHost::ports2Lua(lua_State* vm, bool proto_udp, bool as_client) {
       lua_insert(vm, -2);
       lua_settable(vm, -3);
     }
+
+    m.unlock(__FILE__, __LINE__);
     
     lua_pushstring(vm, as_client ? "client_ports" : "server_ports");
     lua_insert(vm, -2);
@@ -397,6 +401,7 @@ void LocalHost::updateFlowPort(std::map<u_int16_t,PortContactStats> *c, Host *pe
 void LocalHost::setFlowPort(bool as_server, Host *peer, u_int8_t protocol,
 			    u_int16_t port, u_int16_t l7_proto,
 			    const char *info, time_t when) {
+  m.lock(__FILE__, __LINE__);
   if(as_server) {
     if(protocol == IPPROTO_UDP)
       updateFlowPort(&udp_server_ports, peer, port, l7_proto, info, when);
@@ -408,4 +413,5 @@ void LocalHost::setFlowPort(bool as_server, Host *peer, u_int8_t protocol,
     else
       updateFlowPort(&tcp_client_ports, peer, port, l7_proto, info, when);
   }
+  m.unlock(__FILE__, __LINE__);
 }

@@ -76,14 +76,15 @@ json_object* SerializableElement::deserializeJson(const char *key) {
   u_int json_len;
   char *json = NULL;
 
-  if(!key ||
-      ((json_len = ntop->getRedis()->len(key)) <= 0) ||
-      (++json_len > HOST_MAX_SERIALIZED_LEN))
+  if(!key
+     || ((json_len = ntop->getRedis()->len(key)) <= 0)
+     || (++json_len > HOST_MAX_SERIALIZED_LEN)
+     )
     return(NULL);
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "Deserializing %s", key);
 
-  if((json = (char*)malloc(json_len * sizeof(char))) == NULL) {
+  if((json = (char*)calloc(json_len, sizeof(char))) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to allocate memory to deserialize %s", key);
     return(NULL);
   }

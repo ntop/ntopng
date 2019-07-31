@@ -32,7 +32,7 @@ PortContactStats::PortContactStats(u_int16_t _l7_proto, Host *peer,
 /* ************************************************************** */
 
 void PortContactStats::update(Host *peer, const char *_info, time_t when) {
-  char buf[64];
+  char buf[64] = { '\0' };
   
   last_seen = when;
   last_peer = std::string(peer->get_ip()->print(buf, sizeof(buf)));
