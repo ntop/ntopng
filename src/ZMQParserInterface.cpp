@@ -1268,12 +1268,10 @@ u_int8_t ZMQParserInterface::parseJSONFlow(const char * const payload, int paylo
   json_object *f;
   enum json_tokener_error jerr = json_tokener_success;
   NetworkInterface *iface = (NetworkInterface*)data;
-  
+
 #if 0
-  char *json_str = (char *) payload;
-  json_str[payload_size] = '\0';
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "JSON: '%s' [len=%lu]", json_str, strlen(json_str));
-  printf("\n\n%s\n\n", json_str);
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "JSON: '%s' [len=%lu]", payload, strlen(payload));
+  printf("\n\n%s\n\n", payload);
 #endif
 
   f = json_tokener_parse_verbose(payload, &jerr);
