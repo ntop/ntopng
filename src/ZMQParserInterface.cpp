@@ -423,6 +423,7 @@ bool ZMQParserInterface::parsePENZeroField(ParsedFlow * const flow, u_int32_t fi
 
   case IPV4_DST_ADDR:
   case IPV6_DST_ADDR:
+
     if(flow->dst_ip.isEmpty()) {
       flow->dst_ip.set((char*)value);
     } else {
@@ -959,8 +960,8 @@ void ZMQParserInterface::preprocessFlow(ParsedFlow *flow, NetworkInterface *ifac
 /* **************************************************** */
 
 void ZMQParserInterface::parseSingleJSONFlow(json_object *o,
-					 u_int8_t source_id,
-					 NetworkInterface *iface) {
+					     u_int8_t source_id,
+					     NetworkInterface *iface) {
   ParsedFlow flow;
   struct json_object_iterator it = json_object_iter_begin(o);
   struct json_object_iterator itEnd = json_object_iter_end(o);
@@ -1084,12 +1085,12 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
     case ndpi_serialization_uint32_uint32:
       ndpi_deserialize_uint32_uint32(deserializer, &key_id, &v32);
       v64 = v32;
-      if (debug_tlv) printf("%u=%u ", key_id, v32);
+      if (debug_tlv) printf("ndpi_serialization_uint32_uint32 %u=%u\n", key_id, v32);
       break;
 
     case ndpi_serialization_uint32_uint64:
       ndpi_deserialize_uint32_uint64(deserializer, &key_id, &v64);
-      if (debug_tlv) printf("%u=%llu ", key_id, (unsigned long long) v64);
+      if (debug_tlv) printf("ndpi_serialization_uint32_uint64 %u=%llu\n", key_id, (unsigned long long) v64);
       break;
 
     case ndpi_serialization_uint32_string:
@@ -1097,7 +1098,7 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
       vbkp = vs.str[vs.str_len];
       vs.str[vs.str_len] = '\0';
       value_is_string = true;
-      if (debug_tlv) printf("%u='%s' ", key_id, vs.str);
+      if (debug_tlv) printf("ndpi_serialization_uint32_string %u='%s'\n", key_id, vs.str);
       break;
 	
     case ndpi_serialization_string_float:
@@ -1107,7 +1108,7 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
       key.str[key.str_len] = '\0';
       getKeyId(key.str, &pen, &key_id);
       key_is_string = true;
-      if (debug_tlv) printf("%s=%u ", key.str, v32);
+      if (debug_tlv) printf("ndpi_serialization_string_float %s=%u\n", key.str, v32);
       break;
       
     case ndpi_serialization_string_int32:
@@ -1117,7 +1118,7 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
       key.str[key.str_len] = '\0';
       getKeyId(key.str, &pen, &key_id);
       key_is_string = true;
-      if (debug_tlv) printf("%s=%u ", key.str, v32);
+      if (debug_tlv) printf("ndpi_serialization_string_int32 %s=%u\n", key.str, v32);
       break;
 
     case ndpi_serialization_string_uint32:
@@ -1127,7 +1128,7 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
       key.str[key.str_len] = '\0';
       getKeyId(key.str, &pen, &key_id);
       key_is_string = true;
-      if (debug_tlv) printf("%s=%u ", key.str, v32);
+      if (debug_tlv) printf("ndpi_serialization_string_uint32 %s=%u\n", key.str, v32);
       break;
 
     case ndpi_serialization_string_uint64:
@@ -1136,7 +1137,7 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
       key.str[key.str_len] = '\0';
       getKeyId(key.str, &pen, &key_id);
       key_is_string = true;
-      if (debug_tlv) printf("%s=%llu ", key.str, (unsigned long long) v64);
+      if (debug_tlv) printf("ndpi_serialization_string_uint64 %s=%llu\n", key.str, (unsigned long long) v64);
       break;
 
     case ndpi_serialization_string_string:
@@ -1145,7 +1146,7 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
       key.str[key.str_len] = vs.str[vs.str_len] = '\0';
       getKeyId(key.str, &pen, &key_id);
       key_is_string = value_is_string = true;
-      if (debug_tlv) printf("%s='%s' ", key.str, vs.str);
+      if (debug_tlv) printf("ndpi_serialization_string_string %s='%s'\n", key.str, vs.str);
       break;
 
     case ndpi_serialization_end_of_record:

@@ -1235,13 +1235,15 @@ end
 -- #######################
 
 local function formatFlowHost(flow, cli_or_srv, historical_bounds, hyperlink_suffix)
-  local host_name = "<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?"..hostinfo2url(flow,cli_or_srv)
+  local host_name = "<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?"..hostinfo2url(flow, cli_or_srv)
+
   if historical_bounds then
     host_name = host_name .. string.format("&page=historical&epoch_begin=%u&epoch_end=%u&detail_view=top_l7_contacts", historical_bounds[1], historical_bounds[2])
   else
     host_name = host_name .. hyperlink_suffix
   end
   host_name = host_name.."\">"..shortenString(flowinfo2hostname(flow,cli_or_srv))
+
   if(flow[cli_or_srv .. ".systemhost"] == true) then
      host_name = host_name.." <i class='fa fa-flag' aria-hidden='true'></i>"
   end
@@ -1271,6 +1273,7 @@ function getFlowLabel(flow, show_macs, add_hyperlinks, historical_bounds, hyperl
 
    local cli_name = flowinfo2hostname(flow, "cli", true)
    local srv_name = flowinfo2hostname(flow, "srv", true)
+
    if((not isIPv4(cli_name)) and (not isIPv6(cli_name))) then cli_name = shortenString(cli_name) end
    if((not isIPv4(srv_name)) and (not isIPv6(srv_name))) then srv_name = shortenString(srv_name) end
 
