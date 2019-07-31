@@ -865,7 +865,7 @@ local function printConfigTab(entity_type, entity_value, page_name, page_params,
            <input id="status_trigger_alert" name="disabled_status" type="hidden" />
            <select onchange="convertMultiSelect()" id="status_trigger_alert_select" multiple class="form-control" style="width:40em; height:10em; display:inline;">]]
 
-      for status_id, label in pairsByKeys(getFlowStatusTypes()) do
+      for status_id, label in pairsByValues(getFlowStatusTypes(), asc_insensitive) do
         print[[<option value="]] print(string.format("%d", status_id))
         if ntop.bitmapIsSet(cur_bitmap, tonumber(status_id)) then
           print[[" selected="selected]]
