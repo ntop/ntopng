@@ -66,12 +66,7 @@ if alert_options.entity_val ~= nil then
    alert_options.entity_val = string.gsub(alert_options.entity_val, "https:__", "https://")
 end
 
-local num_alerts = tonumber(_GET["totalRows"])
-if num_alerts == nil then
-   num_alerts = getNumAlerts(status, alert_options)
-end
-
-local alerts = getAlerts(status, alert_options)
+local alerts, num_alerts = getAlerts(status, alert_options, true --[[ with_counters ]])
 
 if alerts == nil then alerts = {} end
 

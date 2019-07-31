@@ -466,17 +466,29 @@ local function engagedAlertsQuery(params)
     i = i + 1
   end
 
-  return(res)
+  return res, totalRows
 end
 
 -- #################################
 
-function getAlerts(what, options)
+function getAlerts(what, options, with_counters)
+   local alerts, num_alerts
+
    if what == "engaged" then
-      return engagedAlertsQuery(options)
+      alerts, num_alerts = engagedAlertsQuery(options)
+
+      if not with_counters then
+        num_alerts = nil
+      end
    else
-      return performAlertsQuery("SELECT rowid, *", what, options)
+      alerts = performAlertsQuery("SELECT rowid, *", what, options)
+
+      if with_counters then
+        num_alerts = getNumAlerts(what, options)
+      end
    end
+
+   return alerts, num_alerts
 end
 
 -- #################################
