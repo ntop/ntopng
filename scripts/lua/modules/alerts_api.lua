@@ -198,7 +198,7 @@ function alerts_api.store(entity_info, type_info, when)
   when = when or os.time()
 
   if alerts_api.isEntityAlertDisabled(ifid, entity_info.alert_entity.entity_id, entity_info.alert_entity_val, type_info.alert_type.alert_id) then
-    incDisabledAlertsCount(ifid, other_granularity, entity_info.alert_entity.entity_id, entity_info.alert_entity_val, type_info.alert_type.alert_id)
+    incDisabledAlertsCount(ifid, granularity_id, entity_info.alert_entity.entity_id, entity_info.alert_entity_val, type_info.alert_type.alert_id)
     return(false)
   end
 
