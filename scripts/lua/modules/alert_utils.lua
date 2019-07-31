@@ -725,7 +725,7 @@ local function dropdownUrlParams(get_params)
   local buttons = ""
 
   for param, val in pairs(get_params) do
-    if((param ~= "alert_severity") and (param ~= "alert_type")) then
+    if((param ~= "alert_severity") and (param ~= "alert_type") and (param ~= "status")) then
       buttons = buttons.."&"..param.."="..val
     end
   end
@@ -1836,6 +1836,7 @@ function toggleAlert(disable) {
 	    title: "]]print(i18n("show_alerts.alert_actions")) print[[",
 	    css: {
 	       textAlign: 'center',
+	       width: "10%",
 	    }
 	 }
       ], tableCallback: function() {
