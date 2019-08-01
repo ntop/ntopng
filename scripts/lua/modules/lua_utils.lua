@@ -2268,7 +2268,7 @@ function hasKey(key, theTable)
 end
 function getPasswordInputPattern()
   -- maximum len must be kept in sync with MAX_PASSWORD_LEN
-  return [[^[\w\$\\!\/\(\)=\?\^\*@_\-\u0000-\u0019\u0021-\u00ff]{5,31}$]]
+  return [[^[\w\$\\!\/\(\)= \?\^\*@_\-\u0000-\u0019\u0021-\u00ff]{5,31}$]]
 end
 
 function getIPv4Pattern()
