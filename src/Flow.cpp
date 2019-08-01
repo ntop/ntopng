@@ -693,8 +693,7 @@ void Flow::setJSONInfo(json_object *json) {
   if(json_info != NULL) 
     json_object_put(json_info);
 
-  json_info = json;
-  json_object_get(json_info);
+  json_info = json_object_get(json);
 }
 
 /* *************************************** */
