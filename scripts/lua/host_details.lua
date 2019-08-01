@@ -408,7 +408,7 @@ if areAlertsEnabled() then
    end
 end
 
-if((page == "historical") or ts_utils.exists("host:traffic", {ifid = ifId, host = tskey})) or hasNindexSupport() then
+if((page == "historical") or ts_utils.exists("host:traffic", {ifid = ifId, host = tskey})) or interfaceHasNindexSupport() then
    if(page == "historical") then
      print("\n<li class=\"active\"><a href=\"#\"><i class='fa fa-area-chart fa-lg'></i></a></li>\n")
    else
@@ -643,7 +643,7 @@ end
       flows_th = i18n("details.flows_packet_iface")
    end
 
-   if hasNindexSupport() then
+   if interfaceHasNindexSupport() then
       flows_th = flows_th .. ' <a href="?host='..hostinfo2hostkey(host_info)..'&page=historical&detail_view=flows&zoom=1h&flow_status=alerted"><i class="fa fa-search-plus"></i></a>'
    end
 

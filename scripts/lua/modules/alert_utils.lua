@@ -618,7 +618,7 @@ local function formatRawFlow(record, flow_json, skip_add_links)
    local add_links = (not skip_add_links)
    local host_page = "&page=alerts"
 
-   if hasNindexSupport() and not skip_add_links then
+   if interfaceHasNindexSupport() and not skip_add_links then
       -- only add links if nindex is present
       add_links = true
       time_bounds = {getAlertTimeBounds(record)}
@@ -1825,7 +1825,7 @@ function toggleAlert(disable) {
 	    title: "]]print(i18n("drilldown"))print[[",
 	    field: "column_chart",
             sortable: false,
-	    hidden: ]] print(ternary(not hasNindexSupport() or ntop.isPro(), "false", "true")) print[[,
+	    hidden: ]] print(ternary(not interfaceHasNindexSupport() or ntop.isPro(), "false", "true")) print[[,
 	    css: {
 	       textAlign: 'center'
 	    }

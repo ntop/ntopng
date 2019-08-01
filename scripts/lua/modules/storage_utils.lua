@@ -35,7 +35,7 @@ function storage_utils.interfaceStorageInfo(ifid, separate_pcap_volume)
       info["total"] = info["total"] + rrd_storage_info.total
     -- end
 
-    if hasNindexSupport() then
+    if interfaceHasNindexSupport() then
       local nindex_utils = require "nindex_utils"
       local flows_storage_info = nindex_utils.storageInfo(ifid)
       info["flows"] = flows_storage_info.total

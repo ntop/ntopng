@@ -672,11 +672,16 @@ function hasNindexSupport()
     prefs = ntop.getPrefs()
    end
 
-   if prefs.is_nindex_enabled and interface.nIndexEnabled() then
+   if prefs.is_nindex_enabled then
       return true
    end
 
    return false
+end
+
+-- NOTE: global nindex support may be enabled but some disable on some interfaces
+function interfaceHasNindexSupport()
+  return(hasNindexSupport() and interface.nIndexEnabled())
 end
 
 --for _key, _value in pairsByKeys(vals, rev) do

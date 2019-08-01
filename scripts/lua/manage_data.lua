@@ -346,7 +346,7 @@ print[[  <b>]] print(i18n('notes')) print[[</b>
 <li>]] print(i18n('delete_data.note_persistent_data')) print[[</li>
 ]]
 
-if hasNindexSupport() then
+if interfaceHasNindexSupport() then
   print[[<li>]] print(i18n('delete_data.node_nindex_flows')) print[[</li>]]
 end
 
