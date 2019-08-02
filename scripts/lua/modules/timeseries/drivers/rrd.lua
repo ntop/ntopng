@@ -322,6 +322,19 @@ local function update_rrd(schema, rrdfile, timestamp, data, dont_recover)
     traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("Going to update %s [%s]", schema.name, rrdfile))
   end
 
+  -- Verify last update time
+  local last_update = ntop.rrd_lastupdate(rrdfile)
+
+  if((last_update ~= nil) and (timestamp <= last_update)) then
+    if isDebugEnabled() then
+      traceError(TRACE_NORMAL, TRACE_CONSOLE,
+        string.format("Skip RRD update in the past: timestamp=%u but last_update=%u",
+        timestamp, last_update))
+    end
+
+    return false
+  end
+
   for _, metric in ipairs(schema._metrics) do
     params[#params + 1] = tolongint(data[metric])
   end
