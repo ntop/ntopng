@@ -157,11 +157,13 @@ function alerts_api.checkPendingStoreAlerts(deadline)
 
       local alert = json.decode(alert_json)
 
-      interface.storeAlert(
-        alert.alert_tstamp, alert.alert_tstamp_end, alert.alert_granularity,
-        alert.alert_type, alert.alert_subtype, alert.alert_severity,
-        alert.alert_entity, alert.alert_entity_val,
-        alert.alert_json)
+      if(alert) then
+        interface.storeAlert(
+          alert.alert_tstamp, alert.alert_tstamp_end, alert.alert_granularity,
+          alert.alert_type, alert.alert_subtype, alert.alert_severity,
+          alert.alert_entity, alert.alert_entity_val,
+          alert.alert_json)
+      end
 
       if(os.time() > deadline) then
         return(false)

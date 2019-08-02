@@ -2718,6 +2718,10 @@ function processAlertNotifications(now, periodic_frequency, force_export)
 
       local message = json.decode(json_message)
 
+      if(not message) then
+        goto continue
+      end
+
       interface.select(tostring(message.ifid))
 
       if((message.rowid ~= nil) and (message.table_name ~= nil)) then
