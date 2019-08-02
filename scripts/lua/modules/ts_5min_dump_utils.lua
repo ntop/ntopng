@@ -7,6 +7,9 @@ local ts_utils = require "ts_utils_core"
 local format_utils = require "format_utils"
 require "ts_5min"
 
+-- Set to true to debug host timeseries points timestamps
+local enable_debug = false
+
 local ts_custom
 if ntop.exists(dirs.installdir .. "/scripts/lua/modules/timeseries/custom/ts_5min_custom.lua") then
    package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/custom/?.lua;" .. package.path
@@ -364,6 +367,10 @@ end
 function ts_dump.host_update_rrd(when, hostname, host, ifstats, verbose, config)
   -- Crunch additional stats for local hosts only
   if config.host_rrd_creation ~= "0" then
+    if enable_debug then
+      traceError(TRACE_NORMAL, TRACE_CONSOLE, "@".. when .." Going to update host " .. hostname)
+    end
+
     -- Traffic stats
     if(config.host_rrd_creation == "1") then
       ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
@@ -406,15 +413,27 @@ function ts_dump.run_5min_dump(_ifname, ifstats, config, when, time_threshold, s
 
         if(host_ts.initial_point ~= nil) then
           -- Dump the first point
+          if enable_debug then
+            traceError(TRACE_NORMAL, TRACE_CONSOLE, "Dumping initial point for " .. host_key)
+          end
+
           ts_dump.host_update_rrd(host_ts.initial_point_time, host_key, host_ts.initial_point, ifstats, verbose, config)
-          min_host_instant = math.max(min_host_instant, host_ts.initial_point_time - 1)
+          min_host_instant = math.max(min_host_instant, host_ts.initial_point_time + 1)
         end
 
-        for _, host_point in ipairs(host_ts or {}) do
+        host_ts = host_ts or {}
+
+        if enable_debug then
+          traceError(TRACE_NORMAL, TRACE_CONSOLE, "Dumping ".. (#host_ts) .." points for " .. host_key)
+        end
+
+        for _, host_point in ipairs(host_ts) do
           local instant = host_point.instant
 
           if instant >= min_host_instant then
             ts_dump.host_update_rrd(instant, host_key, host_point, ifstats, verbose, config)
+          elseif enable_debug then
+            traceError(TRACE_NORMAL, TRACE_CONSOLE, "Skipping point: instant=" .. instant .. " but min_host_instant=" .. min_host_instant)
           end
         end
 
