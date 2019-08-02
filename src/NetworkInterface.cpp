@@ -6987,7 +6987,7 @@ bool NetworkInterface::initFlowDump(u_int8_t num_dump_interfaces) {
 	  db = new BatchedMySQLDB(this);
 #endif
 
-#if defined(NTOPNG_PRO)
+#if defined(NTOPNG_PRO) && defined(HAVE_NINDEX)
 	enable_aggregation:
 #endif
 	  aggregated_flows_hash = new AggregatedFlowHash(this,
