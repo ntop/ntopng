@@ -23,7 +23,11 @@ Custom Alert Generation
 Ntopng periodically checks the status of its internal elements, and determines if an
 alert should be generated. This mechanism is scriptable so alerts can be generated
 from custom scripts. Currently the user is limited to the alerts already available into
-ntopng.
+ntopng. In order to add new alert types, the lua table `alert_consts.alert_types` in
+`scripts/lua/modules/alert_consts.lua` should be edited. The new alert type must have
+a unique `alert_id` >= 0, a title and description. Moreover, a new
+"type_info building function" should be added to the `alerts_api.lua` to describe
+the alert type.
 
 ntopng checks the following alarmable for possible alerts:
 
