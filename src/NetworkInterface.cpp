@@ -2984,7 +2984,7 @@ static bool update_generic_element_stats(GenericHashEntry *node, void *user_data
   GenericTrafficElement *elem;
 
   if(node->get_state() == hash_entry_state_idle) {
-    if(!node->idle()) {
+    if(!node->idle() && !ntop->getGlobals()->isShutdown()) {
       /* This should never happen */
       ntop->getTrace()->traceEvent(TRACE_ERROR,
         "Inconsistent state: GenericHashEntry<%p> state=hash_entry_state_idle but idle()=false", node);
