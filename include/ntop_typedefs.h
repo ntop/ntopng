@@ -41,6 +41,12 @@ enum {
 #endif
 #endif
 
+typedef struct {
+  const char *string;
+  u_int64_t uint_num;
+  double double_num;
+} ParsedValue;
+
 typedef enum {
   no_host_mask = 0,
   mask_local_hosts = 1,

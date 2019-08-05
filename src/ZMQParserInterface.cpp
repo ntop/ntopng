@@ -368,33 +368,32 @@ u_int8_t ZMQParserInterface::parseEvent(const char * const payload, int payload_
 
 /* **************************************************** */
 
-bool ZMQParserInterface::parsePENZeroField(ParsedFlow * const flow, u_int32_t field, const char * const value, u_int64_t ivalue) const {
+bool ZMQParserInterface::parsePENZeroField(ParsedFlow * const flow, u_int32_t field, ParsedValue *value) const {
   IpAddress ip_aux; /* used to check empty IPs */
 
   switch(field) {
   case IN_SRC_MAC:
   case OUT_SRC_MAC:
     /* Format 00:00:00:00:00:00 */
-    Utils::parseMac(flow->src_mac, value);
+    if (value->string == NULL) { ntop->getTrace()->traceEvent(TRACE_WARNING, "Bad type, expected string, found number"); return false; }
+    Utils::parseMac(flow->src_mac, value->string);
     break;
   case IN_DST_MAC:
   case OUT_DST_MAC:
-    Utils::parseMac(flow->dst_mac, value);
+    if (value->string == NULL) { ntop->getTrace()->traceEvent(TRACE_WARNING, "Bad type, expected string, found number"); return false; }
+    Utils::parseMac(flow->dst_mac, value->string);
     break;
   case SRC_TOS:
-    if (value)
-      flow->src_tos = atoi(value);
-    else
-      flow->src_tos = ivalue;
+    if (value->string != NULL) { ntop->getTrace()->traceEvent(TRACE_WARNING, "Bad type, expected number, found string"); return false; }
+    flow->src_tos = value->uint_num;
     break;
   case DST_TOS:
-    if (value)
-      flow->dst_tos = atoi(value);
-    else
-      flow->dst_tos = ivalue;
+    if (value->string != NULL) { ntop->getTrace()->traceEvent(TRACE_WARNING, "Bad type, expected number, found string"); return false; }
+    flow->dst_tos = value->uint_num;
     break;
   case IPV4_SRC_ADDR:
   case IPV6_SRC_ADDR:
+    if (value->string == NULL) { ntop->getTrace()->traceEvent(TRACE_WARNING, "Bad type, expected string, found number"); return false; }
     /*
       The following check prevents an empty ip address (e.g., ::) to
       to overwrite another valid ip address already set.
@@ -404,9 +403,9 @@ bool ZMQParserInterface::parsePENZeroField(ParsedFlow * const flow, u_int32_t fi
       v6 address may overwrite the non empty v4.
     */
     if(flow->src_ip.isEmpty()) {
-      flow->src_ip.set((char*)value);
+      flow->src_ip.set((char *) value->string);
     } else {
-      ip_aux.set((char*)value);
+      ip_aux.set((char *) value->string);
       if(!ip_aux.isEmpty()  && !ntop->getPrefs()->do_override_src_with_post_nat_src())
 	/* tried to overwrite a non-empty IP with another non-empty IP */
 	ntop->getTrace()->traceEvent(TRACE_WARNING,
@@ -415,19 +414,17 @@ bool ZMQParserInterface::parsePENZeroField(ParsedFlow * const flow, u_int32_t fi
     }
     break;
   case IP_PROTOCOL_VERSION:
-    if (value)
-      flow->version = atoi(value);
-    else
-      flow->version = ivalue;
+    if (value->string != NULL) { ntop->getTrace()->traceEvent(TRACE_WARNING, "Bad type, expected number, found string"); return false; }
+    flow->version = value->uint_num;
     break;
 
   case IPV4_DST_ADDR:
   case IPV6_DST_ADDR:
-
+    if (value->string == NULL) { ntop->getTrace()->traceEvent(TRACE_WARNING, "Bad type, expected string, found number"); return false; }
     if(flow->dst_ip.isEmpty()) {
-      flow->dst_ip.set((char*)value);
+      flow->dst_ip.set((char *) value->string);
     } else {
-      ip_aux.set((char*)value);
+      ip_aux.set((char *) value->string);
       if(!ip_aux.isEmpty()  && !ntop->getPrefs()->do_override_dst_with_post_nat_dst())
 	ntop->getTrace()->traceEvent(TRACE_WARNING,
 				     "Attempt to set destination ip multiple times. "
@@ -435,167 +432,136 @@ bool ZMQParserInterface::parsePENZeroField(ParsedFlow * const flow, u_int32_t fi
     }
     break;
   case L4_SRC_PORT:
-    if(!flow->src_port) {
-      if (value)
-        flow->src_port = htons(atoi(value));
-      else
-        flow->src_port = htons((u_int32_t) ivalue);
-    }
+    if (value->string != NULL) { ntop->getTrace()->traceEvent(TRACE_WARNING, "Bad type, expected number, found string"); return false; }
+    if(!flow->src_port)
+      flow->src_port = htons((u_int32_t) value->uint_num);
     break;
   case L4_DST_PORT:
-    if(!flow->dst_port) {
-      if (value)
-        flow->dst_port = htons(atoi(value));
-      else
-        flow->dst_port = htons((u_int32_t) ivalue);
-    }
+    if (value->string != NULL) { ntop->getTrace()->traceEvent(TRACE_WARNING, "Bad type, expected number, found string"); return false; }
+    if(!flow->dst_port)
+      flow->dst_port = htons((u_int32_t) value->uint_num);
     break;
   case SRC_VLAN:
   case DST_VLAN:
-    if (value)
-      flow->vlan_id = atoi(value);
-    else
-      flow->vlan_id = ivalue;
+    if (value->string != NULL) { ntop->getTrace()->traceEvent(TRACE_WARNING, "Bad type, expected number, found string"); return false; }
+    flow->vlan_id = value->uint_num;
     break;
   case DOT1Q_SRC_VLAN:
   case DOT1Q_DST_VLAN:
+    if (value->string != NULL) { ntop->getTrace()->traceEvent(TRACE_WARNING, "Bad type, expected number, found string"); return false; }
     if (flow->vlan_id == 0) {
       /* as those fields are the outer vlans in q-in-q
 	 we set the vlan_id only if there is no inner vlan
 	 value set
       */
-      if (value)
-        flow->vlan_id = atoi(value);
-      else
-        flow->vlan_id = ivalue;
+      flow->vlan_id = value->uint_num;
     }
     break;
   case PROTOCOL:
-    if (value)
-      flow->l4_proto = atoi(value);
-    else
-      flow->l4_proto = ivalue;
+    if (value->string != NULL) { ntop->getTrace()->traceEvent(TRACE_WARNING, "Bad type, expected number, found string"); return false; }
+    flow->l4_proto = value->uint_num;
     break;
   case TCP_FLAGS:
-    if (value)
-      flow->tcp.tcp_flags = atoi(value);
-    else
-      flow->tcp.tcp_flags = ivalue;
+    if (value->string != NULL) { ntop->getTrace()->traceEvent(TRACE_WARNING, "Bad type, expected number, found string"); return false; }
+    flow->tcp.tcp_flags = value->uint_num;
     break;
   case INITIATOR_PKTS:
     flow->absolute_packet_octet_counters = true;
     /* Don't break */
   case IN_PKTS:
-    if (value)
-      flow->in_pkts = atol(value);
-    else
-      flow->in_pkts = ivalue;
+    if (value->string != NULL) { ntop->getTrace()->traceEvent(TRACE_WARNING, "Bad type, expected number, found string"); return false; }
+    flow->in_pkts = value->uint_num;
     break;
   case INITIATOR_OCTETS:
     flow->absolute_packet_octet_counters = true;
     /* Don't break */
   case IN_BYTES:
-    if (value)
-      flow->in_bytes = atol(value);
-    else
-      flow->in_bytes = ivalue;
+    if (value->string != NULL) { ntop->getTrace()->traceEvent(TRACE_WARNING, "Bad type, expected number, found string"); return false; }
+    flow->in_bytes = value->uint_num;
     break;
   case RESPONDER_PKTS:
     flow->absolute_packet_octet_counters = true;
     /* Don't break */
   case OUT_PKTS:
-    if (value)
-      flow->out_pkts = atol(value);
-    else
-      flow->out_pkts = ivalue;
+    if (value->string != NULL) { ntop->getTrace()->traceEvent(TRACE_WARNING, "Bad type, expected number, found string"); return false; }
+    flow->out_pkts = value->uint_num;
     break;
   case RESPONDER_OCTETS:
     flow->absolute_packet_octet_counters = true;
     /* Don't break */
   case OUT_BYTES:
-    if (value)
-      flow->out_bytes = atol(value);
-    else
-      flow->out_bytes = ivalue;
+    if (value->string != NULL) { ntop->getTrace()->traceEvent(TRACE_WARNING, "Bad type, expected number, found string"); return false; }
+    flow->out_bytes = value->uint_num;
     break;
   case FIRST_SWITCHED:
-    if (value)
-      flow->first_switched = atol(value);
+    if (value->string != NULL)
+      flow->first_switched = atoi(value->string);
     else
-      flow->first_switched = ivalue;
+      flow->first_switched = value->uint_num;
     break;
   case LAST_SWITCHED:
-    if (value)
-      flow->last_switched = atol(value);
+    if (value->string != NULL)
+      flow->last_switched = atoi(value->string);
     else
-      flow->last_switched = ivalue;
+      flow->last_switched = value->uint_num;
     break;
   case SAMPLING_INTERVAL:
-    if (value)
-      flow->pkt_sampling_rate = atoi(value);
-    else
-      flow->pkt_sampling_rate = ivalue;
+    if (value->string != NULL) { ntop->getTrace()->traceEvent(TRACE_WARNING, "Bad type, expected number, found string"); return false; }
+    flow->pkt_sampling_rate = value->uint_num;
     break;
   case DIRECTION:
-    if (value)
-      flow->direction = atoi(value);
-    else
-      flow->direction = ivalue;
+    if (value->string != NULL) 
+      flow->direction = atoi(value->string);
+    else     
+      flow->direction = value->uint_num;
     break;
   case EXPORTER_IPV4_ADDRESS:
+    if (value->string == NULL) { ntop->getTrace()->traceEvent(TRACE_WARNING, "Bad type, expected string, found number"); return false; }
     /* Format: a.b.c.d, possibly overrides NPROBE_IPV4_ADDRESS */
-    if(ntohl(inet_addr(value)) && (flow->deviceIP = ntohl(inet_addr(value))))
+    if(ntohl(inet_addr(value->string)) && (flow->deviceIP = ntohl(inet_addr(value->string))))
       return false;
     break;
   case INPUT_SNMP:
-    if (value)
-      flow->inIndex = atoi(value);
-    else
-      flow->inIndex = ivalue;
+    if (value->string != NULL) { ntop->getTrace()->traceEvent(TRACE_WARNING, "Bad type, expected number, found string"); return false; }
+    flow->inIndex = value->uint_num;
     break;
   case OUTPUT_SNMP:
-    if (value)
-      flow->outIndex = atoi(value);
-    else
-      flow->outIndex = ivalue;
+    if (value->string != NULL) { ntop->getTrace()->traceEvent(TRACE_WARNING, "Bad type, expected number, found string"); return false; }
+    flow->outIndex = value->uint_num;
     break;
   case POST_NAT_SRC_IPV4_ADDR:
+    if (value->string == NULL) { ntop->getTrace()->traceEvent(TRACE_WARNING, "Bad type, expected string, found number"); return false; }
     if(ntop->getPrefs()->do_override_src_with_post_nat_src())
-      flow->src_ip.set((char*)value);
+      flow->src_ip.set((char *) value->string);
     break;
   case POST_NAT_DST_IPV4_ADDR:
+    if (value->string == NULL) { ntop->getTrace()->traceEvent(TRACE_WARNING, "Bad type, expected string, found number"); return false; }
     if(ntop->getPrefs()->do_override_dst_with_post_nat_dst())
-      flow->dst_ip.set((char*)value);
+      flow->dst_ip.set((char *) value->string);
     break;
   case POST_NAPT_SRC_TRANSPORT_PORT:
-    if(ntop->getPrefs()->do_override_src_with_post_nat_src()) {
-      if (value)
-        flow->src_port = htons(atoi(value));
-      else
-        flow->src_port = htons((u_int16_t) ivalue);
-    }
+    if (value->string != NULL) { ntop->getTrace()->traceEvent(TRACE_WARNING, "Bad type, expected number, found string"); return false; }
+    if(ntop->getPrefs()->do_override_src_with_post_nat_src())
+      flow->src_port = htons((u_int16_t) value->uint_num);
     break;
   case POST_NAPT_DST_TRANSPORT_PORT:
-    if(ntop->getPrefs()->do_override_dst_with_post_nat_dst()) {
-      if (value)
-        flow->dst_port = htons(atoi(value));
-      else
-        flow->dst_port = htons((u_int16_t) ivalue);
-    }
+    if (value->string != NULL) { ntop->getTrace()->traceEvent(TRACE_WARNING, "Bad type, expected number, found string"); return false; }
+    if(ntop->getPrefs()->do_override_dst_with_post_nat_dst())
+      flow->dst_port = htons((u_int16_t) value->uint_num);
     break;
   case INGRESS_VRFID:
-    if (value)
-      flow->vrfId = atoi(value);
-    else
-      flow->vrfId = ivalue;
+    if (value->string != NULL) { ntop->getTrace()->traceEvent(TRACE_WARNING, "Bad type, expected number, found string"); return false; }
+    flow->vrfId = value->uint_num;
     break;
   case IPV4_SRC_MASK:
   case IPV4_DST_MASK:
-    if(strcmp(value, "0"))
+    if (value->string == NULL) { ntop->getTrace()->traceEvent(TRACE_WARNING, "Bad type, expected string, found number"); return false; }
+    if(strcmp(value->string, "0"))
       return false;
     break;
   case IPV4_NEXT_HOP:
-    if(strcmp(value, "0.0.0.0"))
+    if (value->string == NULL) { ntop->getTrace()->traceEvent(TRACE_WARNING, "Bad type, expected string, found number"); return false; }
+    if(strcmp(value->string, "0.0.0.0"))
       return false;
     break;
   default:
@@ -607,7 +573,7 @@ bool ZMQParserInterface::parsePENZeroField(ParsedFlow * const flow, u_int32_t fi
 
 /* **************************************************** */
 
-bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t field, const char * const value, u_int64_t ivalue) const {
+bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t field, ParsedValue *value) const {
  
   /* Check for backward compatibility to handle cases like field = 123 (CLIENT_NW_LATENCY_MS)
    * instead of field = 57595 (NTOP_BASE_ID + 123) */ 
@@ -616,23 +582,22 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t fi
 
   switch(field) {
   case L7_PROTO:
-    if (value) {
-      if(!strchr(value, '.')) {
+    if (value->string) {
+      if(!strchr(value->string, '.')) {
         /* Old behaviour, only the app protocol */
-        flow->l7_proto.app_protocol = atoi(value);
+        flow->l7_proto.app_protocol = atoi(value->string);
       } else {
         char *proto_dot;
 
-        flow->l7_proto.master_protocol = (u_int16_t)strtoll(value, &proto_dot, 10);
+        flow->l7_proto.master_protocol = (u_int16_t)strtoll(value->string, &proto_dot, 10);
         flow->l7_proto.app_protocol    = (u_int16_t)strtoll(proto_dot + 1, NULL, 10);
       }
     } else {
-      flow->l7_proto.app_protocol = ivalue;
+      flow->l7_proto.app_protocol = value->uint_num;
     }
-
 #if 0
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[value: %s][master: %u][app: %u]",
-				 value ? value : "(int)",
+				 value->string ? value->string : "(int)",
 				 flow->l7_proto.master_protocol,
 				 flow->l7_proto.app_protocol);
 #endif
@@ -640,132 +605,113 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t fi
   case L7_PROTO_NAME:
     break;
   case OOORDER_IN_PKTS:
-    if (value)
-      flow->tcp.ooo_in_pkts = atol(value);
-    else
-      flow->tcp.ooo_in_pkts = ivalue;
+    if (value->string != NULL) { ntop->getTrace()->traceEvent(TRACE_WARNING, "Bad type, expected number, found string"); return false; }
+    flow->tcp.ooo_in_pkts = value->uint_num;
     break;
   case OOORDER_OUT_PKTS:
-    if (value)
-      flow->tcp.ooo_out_pkts = atol(value);
-    else
-      flow->tcp.ooo_out_pkts = ivalue;
+    if (value->string != NULL) { ntop->getTrace()->traceEvent(TRACE_WARNING, "Bad type, expected number, found string"); return false; }
+    flow->tcp.ooo_out_pkts = value->uint_num;
     break;
   case RETRANSMITTED_IN_PKTS:
-    if (value)
-      flow->tcp.retr_in_pkts = atol(value);
-    else
-      flow->tcp.retr_in_pkts = ivalue;
+    if (value->string != NULL) { ntop->getTrace()->traceEvent(TRACE_WARNING, "Bad type, expected number, found string"); return false; }
+    flow->tcp.retr_in_pkts = value->uint_num;
     break;
   case RETRANSMITTED_OUT_PKTS:
-    if (value)
-      flow->tcp.retr_out_pkts = atol(value);
-    else
-      flow->tcp.retr_out_pkts = ivalue;
+    if (value->string != NULL) { ntop->getTrace()->traceEvent(TRACE_WARNING, "Bad type, expected number, found string"); return false; }
+    flow->tcp.retr_out_pkts = value->uint_num;
     break;
     /* TODO add lost in/out to nProbe and here */
   case CLIENT_NW_LATENCY_MS:
+    if (value->string != NULL) { ntop->getTrace()->traceEvent(TRACE_WARNING, "Bad type, expected number, found string"); return false; }
     {
       float client_nw_latency;
-      if (value)
-        client_nw_latency = atof(value);
-      else
-        client_nw_latency = ivalue; //TODO handle float from TLV
+      client_nw_latency = value->double_num; 
       flow->tcp.clientNwLatency.tv_sec = client_nw_latency / 1e3;
       flow->tcp.clientNwLatency.tv_usec = 1e3 * (client_nw_latency - flow->tcp.clientNwLatency.tv_sec * 1e3);
       break;
     }
   case SERVER_NW_LATENCY_MS:
+    if (value->string != NULL) { ntop->getTrace()->traceEvent(TRACE_WARNING, "Bad type, expected number, found string"); return false; }
     {
       float server_nw_latency;
-      if (value)
-        server_nw_latency = atof(value);
-      else
-        server_nw_latency = ivalue; //TODO handle float from TLV
+      server_nw_latency = value->double_num;
       flow->tcp.serverNwLatency.tv_sec = server_nw_latency / 1e3;
       flow->tcp.serverNwLatency.tv_usec = 1e3 * (server_nw_latency - flow->tcp.serverNwLatency.tv_sec * 1e3);
       break;
     }
   case CLIENT_TCP_FLAGS:
-    if (value) 
-      flow->tcp.client_tcp_flags = atoi(value);
-    else
-      flow->tcp.client_tcp_flags = ivalue;
+    if (value->string != NULL) { ntop->getTrace()->traceEvent(TRACE_WARNING, "Bad type, expected number, found string"); return false; }
+    flow->tcp.client_tcp_flags = value->uint_num;
+    break;
   case SERVER_TCP_FLAGS:
-    if (value) 
-      flow->tcp.server_tcp_flags = atoi(value);
-    else
-      flow->tcp.server_tcp_flags = ivalue;
+    if (value->string != NULL) { ntop->getTrace()->traceEvent(TRACE_WARNING, "Bad type, expected number, found string"); return false; }
+    flow->tcp.server_tcp_flags = value->uint_num;
+    break;
   case APPL_LATENCY_MS:
-    flow->tcp.applLatencyMsec = value ? atof(value) : ivalue;
+    if (value->string != NULL) { ntop->getTrace()->traceEvent(TRACE_WARNING, "Bad type, expected number, found string"); return false; }
+    flow->tcp.applLatencyMsec = value->double_num;
     break;
   case DNS_QUERY:
-    flow->dns_query = (char *) value;
+    if (value->string == NULL) { ntop->getTrace()->traceEvent(TRACE_WARNING, "Bad type, expected string, found number"); return false; }
+    flow->dns_query = (char *) value->string;
     break;
   case DNS_QUERY_TYPE:
-    if (value) 
-      flow->dns_query_type = atoi(value);
-    else
-      flow->dns_query_type = ivalue;
+    if (value->string != NULL) { ntop->getTrace()->traceEvent(TRACE_WARNING, "Bad type, expected number, found string"); return false; }
+    flow->dns_query_type = value->uint_num;
     break;
   case DNS_RET_CODE:
-    if (value) 
-      flow->dns_ret_code = atoi(value);
-    else
-      flow->dns_ret_code = ivalue;
+    if (value->string != NULL) { ntop->getTrace()->traceEvent(TRACE_WARNING, "Bad type, expected number, found string"); return false; }
+    flow->dns_ret_code = value->uint_num;
     break;
   case HTTP_URL:
-    flow->http_url = (char *) value;
+    if (value->string == NULL) { ntop->getTrace()->traceEvent(TRACE_WARNING, "Bad type, expected string, found number"); return false; }
+    flow->http_url = (char *) value->string;
     break;
   case HTTP_SITE:
-    flow->http_site = (char *) value;
+    if (value->string == NULL) { ntop->getTrace()->traceEvent(TRACE_WARNING, "Bad type, expected string, found number"); return false; }
+    flow->http_site = (char *) value->string;
     break;
   case HTTP_RET_CODE:
-    if (value) 
-      flow->http_ret_code = atoi(value);
-    else
-      flow->http_ret_code = ivalue;
+    if (value->string != NULL) { ntop->getTrace()->traceEvent(TRACE_WARNING, "Bad type, expected number, found string"); return false; }
+    flow->http_ret_code = value->uint_num;
     break;
   case SSL_SERVER_NAME:
-    flow->ssl_server_name = (char *) value;
+    if (value->string == NULL) { ntop->getTrace()->traceEvent(TRACE_WARNING, "Bad type, expected string, found number"); return false; }
+    flow->ssl_server_name = (char *) value->string;
     break;
   case JA3C_HASH:
-    flow->ja3c_hash = (char *) value;
+    if (value->string == NULL) { ntop->getTrace()->traceEvent(TRACE_WARNING, "Bad type, expected string, found number"); return false; }
+    flow->ja3c_hash = (char *) value->string;
     break;
   case JA3S_HASH:
-    flow->ja3s_hash = (char *) value;
+    if (value->string == NULL) { ntop->getTrace()->traceEvent(TRACE_WARNING, "Bad type, expected string, found number"); return false; }
+    flow->ja3s_hash = (char *) value->string;
     break;
   case SSL__CIPHER:
-    if (value)
-      flow->ssl_cipher = atoi(value);
-    else
-      flow->ssl_cipher = ivalue;
+    if (value->string != NULL) { ntop->getTrace()->traceEvent(TRACE_WARNING, "Bad type, expected number, found string"); return false; }
+    flow->ssl_cipher = value->uint_num;
     break;
   case SSL_UNSAFE_CIPHER:
-    if (value)
-      flow->ssl_unsafe_cipher = atoi(value);
-    else
-      flow->ssl_unsafe_cipher = ivalue;
+    if (value->string != NULL) { ntop->getTrace()->traceEvent(TRACE_WARNING, "Bad type, expected number, found string"); return false; }
+    flow->ssl_unsafe_cipher = value->uint_num;
     break;
   case BITTORRENT_HASH:
-    flow->bittorrent_hash = (char *) value;
+    if (value->string == NULL) { ntop->getTrace()->traceEvent(TRACE_WARNING, "Bad type, expected string, found number"); return false; }
+    flow->bittorrent_hash = (char *) value->string;
     break;
   case NPROBE_IPV4_ADDRESS:
+    if (value->string == NULL) { ntop->getTrace()->traceEvent(TRACE_WARNING, "Bad type, expected string, found number"); return false; }
     /* Do not override EXPORTER_IPV4_ADDRESS */
-    if(flow->deviceIP == 0 && (flow->deviceIP = ntohl(inet_addr(value))))
+    if(flow->deviceIP == 0 && (flow->deviceIP = ntohl(inet_addr(value->string))))
       return false;
     break;
   case SRC_FRAGMENTS:
-    if (value) 
-      flow->in_fragments = atol(value);
-    else
-      flow->in_fragments = ivalue;
+    if (value->string != NULL) { ntop->getTrace()->traceEvent(TRACE_WARNING, "Bad type, expected number, found string"); return false; }
+    flow->in_fragments = value->uint_num;
     break;
   case DST_FRAGMENTS:
-    if (value) 
-      flow->out_fragments = atol(value);
-    else
-      flow->out_fragments = ivalue;
+    if (value->string != NULL) { ntop->getTrace()->traceEvent(TRACE_WARNING, "Bad type, expected number, found string"); return false; }
+    flow->out_fragments = value->uint_num;
     break;
   default:
     return false;
@@ -776,30 +722,34 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t fi
 
 /* **************************************************** */
 
-bool ZMQParserInterface::parseNProbeMiniField(ParsedFlow * const flow, const char * const key, const char * const value, json_object * const jvalue) const {
+bool ZMQParserInterface::parseNProbeMiniField(ParsedFlow * const flow, const char * const key, ParsedValue *value, json_object * const jvalue) const {
   bool ret = false;
   json_object *obj;
 
   if(!strncmp(key, "timestamp", 9)) {
     u_int32_t seconds, nanoseconds /* nanoseconds not currently used */;
-
-    if(sscanf(value, "%u.%u", &seconds, &nanoseconds) == 2) {
+    if (value->string == NULL) { ntop->getTrace()->traceEvent(TRACE_WARNING, "Bad type, expected string, found number"); return false; }
+    if(sscanf(value->string, "%u.%u", &seconds, &nanoseconds) == 2) {
       flow->first_switched = flow->last_switched = seconds;
       ret = true;
     }
   } else if(!strncmp(key, "IPV4_LOCAL_ADDR", 15)
 	    || !strncmp(key, "IPV6_LOCAL_ADDR", 15)) {
-    flow->src_ip.set(value); /* FIX: do not always assume Local == Client */
+    if (value->string == NULL) { ntop->getTrace()->traceEvent(TRACE_WARNING, "Bad type, expected string, found number"); return false; }
+    flow->src_ip.set(value->string); /* FIX: do not always assume Local == Client */
     ret = true;
   } else if(!strncmp(key, "IPV4_REMOTE_ADDR", 16)
 	    || !strncmp(key, "IPV6_REMOTE_ADDR", 16)) {
-    flow->dst_ip.set(value); /* FIX: do not always assume Remote == Server */
+    if (value->string == NULL) { ntop->getTrace()->traceEvent(TRACE_WARNING, "Bad type, expected string, found number"); return false; }
+    flow->dst_ip.set(value->string); /* FIX: do not always assume Remote == Server */
     ret = true;
   } else if(!strncmp(key, "L4_LOCAL_PORT", 13)) {
-    flow->src_port = htons(atoi(value));
+    if (value->string != NULL) { ntop->getTrace()->traceEvent(TRACE_WARNING, "Bad type, expected number, found string"); return false; }
+    flow->src_port = htons((u_int32_t) value->uint_num);
     ret = true;
   } else if(!strncmp(key, "L4_REMOTE_PORT", 14)) {
-    flow->dst_port = htons(atoi(value));
+    if (value->string != NULL) { ntop->getTrace()->traceEvent(TRACE_WARNING, "Bad type, expected number, found string"); return false; }
+    flow->dst_port = htons((u_int32_t) value->uint_num);
     ret = true;
   } else if(!strncmp(key, "INTERFACE_NAME", 7) && strlen(key) == 14) {
     flow->ifname = (char*)json_object_get_string(jvalue);
@@ -873,7 +823,8 @@ bool ZMQParserInterface::parseNProbeMiniField(ParsedFlow * const flow, const cha
     //				 flow->tcp_info.rtt_var);
   } else if((!strncmp(key, "TCP_EVENT_TYPE", 14) && strlen(key) == 14)
 	    || (!strncmp(key, "UDP_EVENT_TYPE", 14) && strlen(key) == 14)) {
-    flow->event_type = Utils::eBPFEventStr2Event(value);
+    if (value->string == NULL) { ntop->getTrace()->traceEvent(TRACE_WARNING, "Bad type, expected string, found number"); return false; }
+    flow->event_type = Utils::eBPFEventStr2Event(value->string);
 
     // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Event Type [type: %s]", Utils::eBPFEvent2EventStr(flow->event_type));
   }
@@ -972,24 +923,43 @@ void ZMQParserInterface::parseSingleJSONFlow(json_object *o,
   while(!json_object_iter_equal(&it, &itEnd)) {
     const char *key   = json_object_iter_peek_name(&it);
     json_object *v    = json_object_iter_peek_value(&it);
-    const char *value = json_object_get_string(v);
+    json_object *additional_o = NULL;
+    enum json_type type = json_object_get_type(v);
+    ParsedValue value = { 0 };
     bool add_to_additional_fields = false;
 
-    if((key != NULL) && (value != NULL)) {
+    switch (type) {
+      case json_type_int:
+        value.uint_num = json_object_get_int64(v);
+        value.double_num = value.uint_num;
+      break;
+      case json_type_double:
+        value.double_num = json_object_get_double(v);
+      break;
+      case json_type_string:
+        value.string = json_object_get_string(v);
+        if (strcmp(key,"json") == 0)
+          additional_o = json_tokener_parse(value.string);
+      break;
+      default:
+        ntop->getTrace()->traceEvent(TRACE_WARNING, "JSON type %u not supported\n", type);
+      break;
+    }
+
+    if(key != NULL && v != NULL) {
       u_int32_t pen, key_id;
-      json_object *additional_o = json_tokener_parse(value);
       bool res;
 
       getKeyId((char*)key, &pen, &key_id);
 
       switch(pen) {
       case 0: /* No PEN */
-	res = parsePENZeroField(&flow, key_id, value, 0);
+	res = parsePENZeroField(&flow, key_id, &value);
 	if(res)
 	  break;
 	/* Dont'break when res == false for backward compatibility: attempt to parse Zero-PEN as Ntop-PEN */
       case NTOP_PEN:
-	res = parsePENNtopField(&flow, key_id, value, 0);
+	res = parsePENNtopField(&flow, key_id, &value);
 	break;
       case UNKNOWN_PEN:
       default:
@@ -1000,7 +970,7 @@ void ZMQParserInterface::parseSingleJSONFlow(json_object *o,
       if(!res) {
 	switch(key_id) {
 	case 0: //json additional object added by Flow::serialize()
-	  if((additional_o != NULL) && (strcmp(key,"json") == 0)) {
+	  if(additional_o != NULL) {
 	    struct json_object_iterator additional_it = json_object_iter_begin(additional_o);
 	    struct json_object_iterator additional_itEnd = json_object_iter_end(additional_o);
 
@@ -1021,7 +991,7 @@ void ZMQParserInterface::parseSingleJSONFlow(json_object *o,
 	  break;
 	case UNKNOWN_FLOW_ELEMENT:
 	  /* Attempt to parse it as an nProbe mini field */
-	  if(parseNProbeMiniField(&flow, key, value, v)) {
+	  if(parseNProbeMiniField(&flow, key, &value, v)) {
 	    if(!flow.hasParsedeBPF()) {
 	      flow.setParsedeBPF();
 	      flow.absolute_packet_octet_counters = true;
@@ -1031,7 +1001,7 @@ void ZMQParserInterface::parseSingleJSONFlow(json_object *o,
 	default:
 #ifdef NTOPNG_PRO
 	  if(custom_app_maps || (custom_app_maps = new(std::nothrow) CustomAppMaps()))
-	    custom_app_maps->checkCustomApp(key, value, &flow);
+	    custom_app_maps->checkCustomApp(key, &value, &flow);
 #endif
 	  ntop->getTrace()->traceEvent(TRACE_DEBUG, "Not handled ZMQ field %u/%s", key_id, key);
 	  add_to_additional_fields = true;
@@ -1041,7 +1011,7 @@ void ZMQParserInterface::parseSingleJSONFlow(json_object *o,
 
       if(add_to_additional_fields) {
         //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Additional field: %s", key);
-	flow.addAdditionalField(key, json_object_new_string(value));
+	flow.addAdditionalField(key, json_object_get(v));
       }
 
       if(additional_o) json_object_put(additional_o);
@@ -1068,6 +1038,7 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
   flow.source_id = source_id;
 
   while ((et = ndpi_deserialize_get_nextitem_type(deserializer)) != ndpi_serialization_unknown) {
+    ParsedValue value = { 0 };
     u_int32_t pen = 0, key_id;
     u_int32_t v32 = 0;
     int32_t i32 = 0;
@@ -1084,12 +1055,13 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
     switch(et) {
     case ndpi_serialization_uint32_uint32:
       ndpi_deserialize_uint32_uint32(deserializer, &key_id, &v32);
-      v64 = v32;
+      value.double_num = value.uint_num = v32;
       if (debug_tlv) printf("ndpi_serialization_uint32_uint32 %u=%u\n", key_id, v32);
       break;
 
     case ndpi_serialization_uint32_uint64:
       ndpi_deserialize_uint32_uint64(deserializer, &key_id, &v64);
+      value.double_num = value.uint_num = v64;
       if (debug_tlv) printf("ndpi_serialization_uint32_uint64 %u=%llu\n", key_id, (unsigned long long) v64);
       break;
 
@@ -1097,15 +1069,17 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
       ndpi_deserialize_uint32_string(deserializer, &key_id, &vs);
       vbkp = vs.str[vs.str_len];
       vs.str[vs.str_len] = '\0';
+      value.string = vs.str;
       value_is_string = true;
       if (debug_tlv) printf("ndpi_serialization_uint32_string %u='%s'\n", key_id, vs.str);
       break;
 	
     case ndpi_serialization_string_float:
       ndpi_deserialize_string_float(deserializer, &key, &f);
-      v64 = f; // TODO: handle float
+      value.double_num = f;
       kbkp = key.str[key.str_len];
       key.str[key.str_len] = '\0';
+      value.double_num = f;
       getKeyId(key.str, &pen, &key_id);
       key_is_string = true;
       if (debug_tlv) printf("ndpi_serialization_string_float %s=%u\n", key.str, v32);
@@ -1113,7 +1087,7 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
       
     case ndpi_serialization_string_int32:
       ndpi_deserialize_string_int32(deserializer, &key, &i32);
-      v64 = i32; // TODO: handle signed integers
+      value.double_num = value.uint_num = v32;
       kbkp = key.str[key.str_len];
       key.str[key.str_len] = '\0';
       getKeyId(key.str, &pen, &key_id);
@@ -1123,7 +1097,7 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
 
     case ndpi_serialization_string_uint32:
       ndpi_deserialize_string_uint32(deserializer, &key, &v32);
-      v64 = v32;
+      value.double_num = value.uint_num = v32;
       kbkp = key.str[key.str_len];
       key.str[key.str_len] = '\0';
       getKeyId(key.str, &pen, &key_id);
@@ -1133,6 +1107,7 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
 
     case ndpi_serialization_string_uint64:
       ndpi_deserialize_string_uint64(deserializer, &key, &v64);
+      value.double_num = value.uint_num = v64;
       kbkp = key.str[key.str_len];
       key.str[key.str_len] = '\0';
       getKeyId(key.str, &pen, &key_id);
@@ -1144,6 +1119,7 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
       ndpi_deserialize_string_string(deserializer, &key, &vs);
       kbkp = key.str[key.str_len], vbkp = vs.str[vs.str_len];
       key.str[key.str_len] = vs.str[vs.str_len] = '\0';
+      value.string = vs.str;
       getKeyId(key.str, &pen, &key_id);
       key_is_string = value_is_string = true;
       if (debug_tlv) printf("ndpi_serialization_string_string %s='%s'\n", key.str, vs.str);
@@ -1165,12 +1141,12 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
 
     switch(pen) {
       case 0: /* No PEN */
-        rc = parsePENZeroField(&flow, key_id, value_is_string ? vs.str : NULL, v64);
+        rc = parsePENZeroField(&flow, key_id, &value);
         if (rc)
           break;
         /* Dont'break when rc == false for backward compatibility: attempt to parse Zero-PEN as Ntop-PEN */
       case NTOP_PEN:
-        rc = parsePENNtopField(&flow, key_id, value_is_string ? vs.str : NULL, v64);
+        rc = parsePENNtopField(&flow, key_id, &value);
       break;
       case UNKNOWN_PEN:
       default:
@@ -1212,7 +1188,7 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
 	case UNKNOWN_FLOW_ELEMENT:
 #if 0 // TODO 
 	  /* Attempt to parse it as an nProbe mini field */
-	  if(parseNProbeMiniField(&flow, key_str, value_is_string ? vs.str : NULL, v64)) {
+	  if(parseNProbeMiniField(&flow, key_str, &value)) {
 	    if(!flow.hasParsedeBPF()) {
 	      flow.setParsedeBPF();
 	      flow.absolute_packet_octet_counters = true;
@@ -1223,7 +1199,7 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
 	default:
 #ifdef NTOPNG_PRO
 	  if(custom_app_maps || (custom_app_maps = new(std::nothrow) CustomAppMaps()))
-	    custom_app_maps->checkCustomApp(key_str, vs.str, &flow); // TODO pass v64 for integer values
+	    custom_app_maps->checkCustomApp(key_str, &value, &flow);
 #endif
 	  ntop->getTrace()->traceEvent(TRACE_DEBUG, "Not handled ZMQ field %u.%u", pen, key_id);
 	  add_to_additional_fields = true;
@@ -1233,8 +1209,8 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
 
     if (add_to_additional_fields) {
       //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Additional field: %s (Key-ID: %u PEN: %u)", key_str, key_id, pen);
-      flow.addAdditionalField(key_str, 
-        value_is_string ? json_object_new_string(vs.str) : json_object_new_int64(v64));
+      flow.addAdditionalField(key_str,  
+        value_is_string ? json_object_new_string(value.string) : json_object_new_int64(value.uint_num));
     }
 
     switch(et) {
