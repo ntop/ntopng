@@ -205,6 +205,12 @@ u_int GenericHash::purgeIdle() {
 
 	buckets_checked++;
 	if(head_state == hash_entry_state_ready_to_be_purged) {
+	  if(!head->idle()) {
+	    /* This should never happen */
+	    ntop->getTrace()->traceEvent(TRACE_ERROR,
+	      "Inconsistent state: GenericHashEntry<%p> state=hash_entry_state_ready_to_be_purged but idle()=false", head_state);
+	  }
+
 	  if(prev == NULL) {
 	    table[i] = next;
 	  } else {
