@@ -1142,7 +1142,7 @@ void Host::updateStats(update_hosts_stats_user_data_t *update_hosts_stats_user_d
   struct timeval *tv = update_hosts_stats_user_data->tv;
 
   if(get_state() == hash_entry_state_idle) {
-    set_state(hash_entry_state_ready_to_be_purged);
+    set_hash_entry_state_ready_to_be_purged();
 
     if(getNumTriggeredAlerts()
        && (update_hosts_stats_user_data->acle

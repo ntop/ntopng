@@ -250,7 +250,7 @@ static bool viewed_flows_walker(GenericHashEntry *flow, void *user_data, bool *m
   if(acked_to_purge) {
     /* We can set the 'ready to be purged' state on behalf of the underlying viewed interface.
        It is safe as this view is in sync with the viewed interfaces by bean of acked_to_purge */
-    f->set_state(hash_entry_state_ready_to_be_purged);
+    f->set_hash_entry_state_ready_to_be_purged();
   }
 
   f->dumpFlow(tv, iface);

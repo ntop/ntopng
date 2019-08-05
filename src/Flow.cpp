@@ -1096,7 +1096,7 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
       set_acknowledge_to_purge();
     } else {
       /* Marked as ready to be purged, will be purged by NetworkInterface::purgeIdleFlows */
-      set_state(hash_entry_state_ready_to_be_purged);
+      set_hash_entry_state_ready_to_be_purged();
     }
 
     postFlowSetIdle(tv->tv_sec);

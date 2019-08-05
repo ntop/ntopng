@@ -486,7 +486,7 @@ void Mac::checkStatsReset() {
 
 void Mac::updateStats(struct timeval *tv) {
   if(get_state() == hash_entry_state_idle)
-    set_state(hash_entry_state_ready_to_be_purged);
+    set_hash_entry_state_ready_to_be_purged();
 
   checkDataReset();
   checkStatsReset();

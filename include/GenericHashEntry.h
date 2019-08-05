@@ -81,15 +81,29 @@ class GenericHashEntry {
  private:
   GenericHashEntry *hash_next; /**< Pointer of next hash entry.*/
   HashEntryState hash_entry_state;
+  /**
+   * @brief Set one of the states of the hash entry in its lifecycle.
+   *
+   * @param s A state of the enum HashEntryState
+   */
+  inline void set_state(HashEntryState s)   { hash_entry_state = s;    };
+  /**
+   * @brief Set the hash entry state to active. Private as it must only be
+   * called in the constructor
+   * 
+   */
+  inline void set_hash_entry_state_active() {
+    set_state(hash_entry_state_active);
+  };
 
  protected:
   u_int32_t num_uses;  /* Don't use 16 bits as we might run out of space on large networks with MACs, VLANs etc. */
   time_t first_seen;   /**< Time of first seen. */
   time_t last_seen;    /**< Time of last seen. */
   NetworkInterface *iface; /**< Pointer of network interface. */
-
   virtual bool isIdle(u_int max_idleness);
- public:  
+
+ public:
   /**
     * @brief A Constructor
     * @details Creating a new GenericHashEntry.
@@ -133,7 +147,23 @@ class GenericHashEntry {
    * @param n Hash entry to set as next hash entry.
    */
   inline void set_next(GenericHashEntry *n) { hash_next = n;           };
-  inline void set_state(HashEntryState s)   { hash_entry_state = s;    };
+  /**
+   * @brief Set the hash entry state to idle. Must be called inline
+   * with packets/flows processing.
+   * 
+   */
+  virtual void set_hash_entry_state_idle() {
+    set_state(hash_entry_state_idle);
+  };
+  /**
+   * @brief Set the hash entry state to ready to be purged. Must be called NON-inline
+   * with packets/flows processing.
+   * @details Inline method.
+   * 
+   */
+  inline void set_hash_entry_state_ready_to_be_purged() {
+    set_state(hash_entry_state_ready_to_be_purged);
+  };
   HashEntryState get_state() const;
   void updateSeen();
   void updateSeen(time_t _last_seen);

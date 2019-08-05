@@ -2984,7 +2984,7 @@ static bool update_generic_element_stats(GenericHashEntry *node, void *user_data
   GenericTrafficElement *elem;
 
   if(node->get_state() == hash_entry_state_idle)
-    node->set_state(hash_entry_state_ready_to_be_purged);
+    node->set_hash_entry_state_ready_to_be_purged();
 
   if((elem = dynamic_cast<GenericTrafficElement*>(node))) {
     struct timeval *tv = (struct timeval*)user_data;
