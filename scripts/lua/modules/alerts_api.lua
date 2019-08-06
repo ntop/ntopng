@@ -451,7 +451,7 @@ end
 
 function alerts_api.categoryListsEntity(list_name)
   return {
-    alert_entity = alert_consts.alert_entities.influx_db,
+    alert_entity = alert_consts.alert_entities.category_lists,
     alert_entity_val = list_name
   }
 end
@@ -460,7 +460,7 @@ end
 
 function alerts_api.influxdbEntity(dburl)
   return {
-    alert_entity = alert_consts.alert_entities.category_lists,
+    alert_entity = alert_consts.alert_entities.influx_db,
     alert_entity_val = dburl
   }
 end
