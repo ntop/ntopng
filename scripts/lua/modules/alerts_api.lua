@@ -960,6 +960,14 @@ end
 
 -- ##############################################
 
+function alerts_api.checkbox_input_builder(gui_conf, input_id, value)
+  return(string.format([[
+  <input type="checkbox" name="%s" %s/>
+  ]], input_id, ternary(value, "checked", "")))
+end
+
+-- ##############################################
+
 local function getEntityDisabledAlertsBitmapKey(ifid, entity, entity_val)
   return string.format("ntopng.prefs.alerts.ifid_%d.disabled_alerts.__%s__%s", ifid, entity, entity_val)
 end

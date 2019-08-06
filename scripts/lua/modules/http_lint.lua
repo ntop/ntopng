@@ -244,6 +244,12 @@ local function validateOperator(mode)
    return validateChoice(modes, mode)
 end
 
+local function validateAlertValue(value)
+  return validateEmpty(value) or
+    validateNumber(value) or
+    validateOnOff(value)
+end
+
 local function validateHttpMode(mode)
    local modes = {"responses", "queries"}
 
@@ -1517,7 +1523,7 @@ local special_parameters = {   --[[Suffix validator]]     --[[Value Validator]]
 
 -- ALERTS (see alert_utils.lua)
    ["op_"]                     = { validateAlertDescriptor,   validateOperator },    -- key: an alert descriptor, value: alert operator
-   ["value_"]                  = { validateAlertDescriptor,   validateEmptyOr(validateNumber) }, -- key: an alert descriptor, value: alert value
+   ["value_"]                  = { validateAlertDescriptor,   validateAlertValue },  -- key: an alert descriptor, value: alert value
    ["slack_ch_"]               = { validateNumber, validateSingleWord },             -- slack channel name
 
 -- Protocol to categories match

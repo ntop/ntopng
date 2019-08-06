@@ -1077,7 +1077,11 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
          -- TODO refactor this into the threshold cross checker
          for k, check_module in pairs(descr) do
 	    value    = _POST["value_"..k]
-	    operator = _POST["op_"..k]
+	    operator = _POST["op_"..k] or ""
+
+	    if value == "on" then
+	      value = "1"
+	    end
 
 	    if((value ~= nil) and (operator ~= nil)) then
 	       --io.write("\t"..k.."\n")
@@ -1229,6 +1233,16 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
             if check_module.gui.input_builder then
               local k = prefix..key
               local value = vals[k]
+
+              if(check_module.check_function ~= alerts_api.threshold_check_function) then
+                -- Temporary fix to handle non-thresholds
+                k = "value_" .. k
+
+                if(value ~= nil) then
+                  value = tonumber(value[2])
+                end
+              end
+
               print("</td><td>")
 
               print(check_module.gui.input_builder(check_module.gui or {}, k, value))
