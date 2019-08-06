@@ -510,14 +510,9 @@ if((page == "overview") or (page == nil)) then
       end
 
       print[[</td><td><span>]] print(i18n(ternary(have_nedge, "nedge.user", "details.host_pool"))..": ")
-      if not ifstats.isView then
-	 print[[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/hosts_stats.lua?pool=]] print(host_pool_id) print[[">]] print(host_pools_utils.getPoolName(ifId, host_pool_id)) print[[</a></span>]]
-	 print[[&nbsp; <a href="]] print(ntop.getHttpPrefix()) print[[/lua/host_details.lua?]] print(hostinfo2url(host)) print[[&page=config&ifid=]] print(tostring(ifId)) print[[">]]
-	 print[[<i class="fa fa-sm fa-cog" aria-hidden="true"></i></a></span>]]
-      else
-        -- no link for view interfaces
-        print(host_pools_utils.getPoolName(ifId, host_pool_id))
-      end
+      print[[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/hosts_stats.lua?pool=]] print(host_pool_id) print[[">]] print(host_pools_utils.getPoolName(ifId, host_pool_id)) print[[</a></span>]]
+      print[[&nbsp; <a href="]] print(ntop.getHttpPrefix()) print[[/lua/host_details.lua?]] print(hostinfo2url(host)) print[[&page=config&ifid=]] print(tostring(ifId)) print[[">]]
+      print[[<i class="fa fa-sm fa-cog" aria-hidden="true"></i></a></span>]]
       print("</td></tr>")
    else
       if(host["mac"] ~= nil) then
@@ -1913,9 +1908,7 @@ elseif (page == "config") then
          </td>
       </tr>]]
 
-   if not ifstats.isView then
-      printPoolChangeDropdown(ifId, host_pool_id, have_nedge)
-   end
+   printPoolChangeDropdown(ifId, host_pool_id, have_nedge)
 
    local top_hidden_checked = ternary(is_top_hidden, "checked", "")
 
