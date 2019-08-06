@@ -59,7 +59,7 @@ void GenericHashEntry::updateSeen() {
 
 void GenericHashEntry::set_state(HashEntryState s) {
   if((int)s < (int)hash_entry_state
-     && !iface || iface->isRunning())
+     && (!iface || iface->isRunning()))
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal error: invalid state transition %d -> %d",
 				 (int)hash_entry_state, (int)s);
   else

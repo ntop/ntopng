@@ -327,7 +327,7 @@ if(isAdministrator()) then
    end
 end
 
-if isAdministrator() and (not ifstats.isView) then
+if isAdministrator() then
    local num_pool_hosts = ifstats.num_members.num_hosts
    local label
 
@@ -1733,10 +1733,6 @@ elseif(page == "snmp_bind") then
    });
 </script>]]
 elseif(page == "pools") then
-    if ifstats.isView then
-      error()
-    end
-
     dofile(dirs.installdir .. "/scripts/lua/admin/host_pools.lua")
 elseif(page == "dhcp") then
     dofile(dirs.installdir .. "/scripts/lua/admin/dhcp.lua")
