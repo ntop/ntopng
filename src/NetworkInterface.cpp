@@ -5601,14 +5601,14 @@ void NetworkInterface::runShutdownTasks() {
 
 /* **************************************************** */
 
-Mac* NetworkInterface::getMac(u_int8_t _mac[6], bool createIfNotPresent, bool isInlineCall) {
+Mac* NetworkInterface::getMac(u_int8_t _mac[6], bool create_if_not_present, bool isInlineCall) {
   Mac *ret = NULL;
 
   if(!_mac || !macs_hash) return(NULL);
 
   ret = macs_hash->get(_mac, isInlineCall);
 
-  if((ret == NULL) && createIfNotPresent) {
+  if((ret == NULL) && create_if_not_present) {
     try {
       if((ret = new Mac(this, _mac)) != NULL) {
 	if(!macs_hash->add(ret,
@@ -5679,14 +5679,14 @@ bool NetworkInterface::getArpStatsMatrixInfo(lua_State* vm){
 
 /* **************************************************** */
 
-Vlan* NetworkInterface::getVlan(u_int16_t vlanId, bool createIfNotPresent, bool isInlineCall) {
+Vlan* NetworkInterface::getVlan(u_int16_t vlanId, bool create_if_not_present, bool isInlineCall) {
   Vlan *ret = NULL;
 
   if(!vlans_hash) return(NULL);
 
   ret = vlans_hash->get(vlanId, isInlineCall);
 
-  if((ret == NULL) && createIfNotPresent) {
+  if((ret == NULL) && create_if_not_present) {
     try {
       if((ret = new Vlan(this, vlanId)) != NULL) {
 	if(!vlans_hash->add(ret,
@@ -5712,18 +5712,20 @@ Vlan* NetworkInterface::getVlan(u_int16_t vlanId, bool createIfNotPresent, bool 
 
 /* **************************************************** */
 
-AutonomousSystem* NetworkInterface::getAS(IpAddress *ipa, bool createIfNotPresent, bool isInlineCall) {
+AutonomousSystem* NetworkInterface::getAS(IpAddress *ipa, bool create_if_not_present, bool is_inline_call) {
   AutonomousSystem *ret = NULL;
 
-  if(!ipa || !ases_hash) return(NULL);
+  if((!ipa) || (!ases_hash))
+    return(NULL);
 
-  ret = ases_hash->get(ipa, isInlineCall);
+  ret = ases_hash->get(ipa, is_inline_call, create_if_not_present);
 
-  if((ret == NULL) && createIfNotPresent) {
+  if((ret == NULL) && create_if_not_present) {
     try {
       if((ret = new AutonomousSystem(this, ipa)) != NULL) {
+	ret->incUses();
 	if(!ases_hash->add(ret,
-			   !isInlineCall /* Lock only if not inline, if inline there is no need to lock as we are sequential with the purgeIdle */)) {
+			   !is_inline_call /* Lock only if not inline, if inline there is no need to lock as we are sequential with the purgeIdle */)) {
 	  delete ret;
 	  return(NULL);
 	}
@@ -5745,17 +5747,18 @@ AutonomousSystem* NetworkInterface::getAS(IpAddress *ipa, bool createIfNotPresen
 
 /* **************************************************** */
 
-Country* NetworkInterface::getCountry(const char *country_name, bool createIfNotPresent, bool isInlineCall) {
+Country* NetworkInterface::getCountry(const char *country_name, bool create_if_not_present, bool is_inline_call) {
   Country *ret = NULL;
 
-  if(!countries_hash || !country_name || !country_name[0]) return(NULL);
+  if((!countries_hash) || (!country_name) || (!country_name[0]))
+    return(NULL);
 
-  ret = countries_hash->get(country_name, isInlineCall);
+  ret = countries_hash->get(country_name, is_inline_call);
 
-  if((ret == NULL) && createIfNotPresent) {
+  if((ret == NULL) && create_if_not_present) {
     try {
       if((ret = new Country(this, country_name)) != NULL) {
-	if(!countries_hash->add(ret, !isInlineCall /* Lock only if not inline, if inline there is no need to lock as we are sequential with the purgeIdle */)) {
+	if(!countries_hash->add(ret, !is_inline_call /* Lock only if not inline, if inline there is no need to lock as we are sequential with the purgeIdle */)) {
 	  delete ret;
 	  return(NULL);
 	}
@@ -7401,10 +7404,10 @@ bool NetworkInterface::isInDhcpRange(IpAddress *ip) {
 
 /* *************************************** */
 
-bool NetworkInterface::isLocalBroadcastDomainHost(Host * const h, bool isInlineCall) {
+bool NetworkInterface::isLocalBroadcastDomainHost(Host * const h, bool is_inline_call) {
   IpAddress *i = h->get_ip();
 
-  return(bcast_domains->isLocalBroadcastDomainHost(h, isInlineCall)
+  return(bcast_domains->isLocalBroadcastDomainHost(h, is_inline_call)
 	 || (ntop->getLoadInterfaceAddresses() && i->match(ntop->getLoadInterfaceAddresses())));
 }
 

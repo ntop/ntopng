@@ -535,11 +535,11 @@ class NetworkInterface : public AlertableEntity {
   ArpStatsMatrixElement* getArpHashMatrixElement(const u_int8_t _src_mac[6], const u_int8_t _dst_mac[6],
 						 const u_int32_t _src_ip, const u_int32_t _dst_ip,
 						 bool * const src2dst);
-  Vlan* getVlan(u_int16_t vlanId, bool createIfNotPresent, bool isInlineCall);
-  AutonomousSystem *getAS(IpAddress *ipa, bool createIfNotPresent, bool isInlineCall);
-  Country* getCountry(const char *country_name, bool createIfNotPresent, bool isInlineCall);
-  virtual Mac*  getMac(u_int8_t _mac[6], bool createIfNotPresent, bool isInlineCall);
-  virtual Host* getHost(char *host_ip, u_int16_t vlan_id, bool isInlineCall);
+  Vlan* getVlan(u_int16_t vlanId, bool create_if_not_present, bool is_inline_call);
+  AutonomousSystem *getAS(IpAddress *ipa, bool create_if_not_present, bool is_inline_call);
+  Country* getCountry(const char *country_name, bool create_if_not_present, bool is_inline_call);
+  virtual Mac*  getMac(u_int8_t _mac[6], bool create_if_not_present, bool is_inline_call);
+  virtual Host* getHost(char *host_ip, u_int16_t vlan_id, bool is_inline_call);
   bool getHostInfo(lua_State* vm, AddressTree *allowed_hosts, char *host_ip, u_int16_t vlan_id);
   void findPidFlows(lua_State *vm, u_int32_t pid);
   void findProcNameFlows(lua_State *vm, char *proc_name);
@@ -702,21 +702,21 @@ class NetworkInterface : public AlertableEntity {
   void topMacsAdd(Mac *mac, u_int16_t protocol, u_int32_t bytes);
   inline bool isDynamicInterface()                { return(is_dynamic_interface);            };
   inline void setDynamicInterface()               { is_dynamic_interface = true;             };
-  bool isLocalBroadcastDomainHost(Host * const h, bool isInlineCall);
+  bool isLocalBroadcastDomainHost(Host * const h, bool is_inline_call);
   inline void luaTopMacsProtos(lua_State *vm) { frequentMacs->luaTopMacsProtocols(vm); }
   inline MDNS* getMDNS() { return(mdns); }
   inline NetworkDiscovery* getNetworkDiscovery() { return(discovery); }
-  inline void incPoolNumHosts(u_int16_t id, bool isInlineCall) {
-    if (host_pools) host_pools->incNumHosts(id, isInlineCall);
+  inline void incPoolNumHosts(u_int16_t id, bool is_inline_call) {
+    if (host_pools) host_pools->incNumHosts(id, is_inline_call);
   };
-  inline void decPoolNumHosts(u_int16_t id, bool isInlineCall) {
-    if (host_pools) host_pools->decNumHosts(id, isInlineCall);
+  inline void decPoolNumHosts(u_int16_t id, bool is_inline_call) {
+    if (host_pools) host_pools->decNumHosts(id, is_inline_call);
   };
-  inline void incPoolNumL2Devices(u_int16_t id, bool isInlineCall) {
-    if (host_pools) host_pools->incNumL2Devices(id, isInlineCall);
+  inline void incPoolNumL2Devices(u_int16_t id, bool is_inline_call) {
+    if (host_pools) host_pools->incNumL2Devices(id, is_inline_call);
   };
-  inline void decPoolNumL2Devices(u_int16_t id, bool isInlineCall) {
-    if (host_pools) host_pools->decNumL2Devices(id, isInlineCall);
+  inline void decPoolNumL2Devices(u_int16_t id, bool is_inline_call) {
+    if (host_pools) host_pools->decNumL2Devices(id, is_inline_call);
   };
   Host* findHostByIP(AddressTree *allowed_hosts, char *host_ip, u_int16_t vlan_id);
 #ifdef HAVE_NINDEX
