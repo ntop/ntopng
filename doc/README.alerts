@@ -20,25 +20,20 @@ modified with custom logic.
 Custom Alert Generation
 -----------------------
 
-Ntopng periodically checks the status of its internal elements, and determines if an
-alert should be generated. This mechanism is scriptable so alerts can be generated
-from custom scripts. Currently the user is limited to the alerts already available into
-ntopng. In order to add new alert types, the lua table `alert_consts.alert_types` in
-`scripts/lua/modules/alert_consts.lua` should be edited. The new alert type must have
-a unique `alert_id` >= 0, a title and description. Moreover, a new
-"type_info building function" should be added to the `alerts_api.lua` to describe
-the alert type.
+Ntopng periodically checks the status of its internal elements and determines if an
+alert should be generated. The checks are performed into lua scripts, called
+"alert check modules".
+The alert check modules are located under `scripts/callbacks/interface/alerts/{alarmable}` .
+For example, hosts alert check modules are located under `scripts/callbacks/interface/alerts/host`.
 
-ntopng checks the following alarmable for possible alerts:
+ntopng supports the following alarmable:
 
   - hosts
   - networks
   - interfaces
 
-ntopng checks for alerts every minute, 5 minutes, hour and day.
-
-The alert check modules are located under `scripts/callbacks/interface/alerts/{alarmable}` .
-For example, hosts alert check modules are located under `scripts/callbacks/interface/alerts/host`.
+The alert check modules are called by default every minute, 5 minutes, hour and day, although
+a module can limit its execution to a certain granularity.
 
 Here is an example of a check module:
 
@@ -50,15 +45,18 @@ local check_module = {
   key = "active",
   check_function = alerts_api.threshold_check_function,
   local_only = true,
-}
 
--- #################################################################
+  gui = {
+    i18n_title = "alerts_thresholds_config.activity_time",
+    i18n_description = "alerts_thresholds_config.alert_active_description",
+    i18n_field_unit = alert_consts.field_units.seconds,
+    input_builder = alerts_api.threshold_cross_input_builder,
+  }
+}
 
 function check_module.get_threshold_value(granularity, info)
   return alerts_api.host_delta_val(check_module.key, granularity, info["total_activity_time"])
 end
-
--- #################################################################
 
 return check_module
 ```
@@ -73,11 +71,12 @@ and here is a description of the module fields:
       - entity_info: contains entity specific data (e.g. on hosts, it is the output of `Host:lua()`)
       - alert_config: the alert configuration. This is automatically extracted via the `key`.
       - check_module: a reference to the check module
-    The `alerts_api.threshold_check_function` is an example of check function.
+    See below for a list of built-in check functions.
+  - `gui`: information on how to draw the alert configuration into the gui. See below for more details.
   - `local_only`: if true, only call the `check_function` on local hosts
-  - `always_enabled`: if true, the `check_function` will be called even when there are is
-     no `alert_config` for the entity
-  - `str_granularity`: if specified, the `check_function` will only be called at the specified granularity
+  - `granularity`: if specified, contains a list of granularities for which the `check_function` should be called
+
+## Triggering alerts
 
 Into the `check_function`, the check module should check the alarmable entity state (through the `entity_info`)
 and:
@@ -88,3 +87,44 @@ and:
 Alerts state is kept internally so multiple trigger/releases of the same alert have no effect.
 The `type_info` is specific of the alert_type and should be built using one of the "type_info building functions"
 available into `alerts_api.lua`, for example `alerts_api.thresholdCrossType`.
+
+ntopng already provides some check functions for common needs:
+
+  - `alerts_api.threshold_check_function`: can check thresholds and trigger threshold cross alerts
+  - `alerts_api.anomaly_check_function`: checks anomaly status, set by the C core
+
+## Alert configuration
+
+An alert check module can define a `gui` entry to specify how its configuration
+should be predented to the user into the ntopng gui. The gui element will be show
+under the alert settings of the alarmable, into one or multiple tabs based on its
+`granularity`. The `gui` entry contains the following parameters:
+
+  - `i18n_title` (mandatory): a localization string for the title of the element
+  - `i18n_description` (mandatory): a localization string for the description of the element
+  - `input_builder` (mandatory): a function which is responsible for building the HTML code
+    for the element
+
+Additional parameters can be specified based on the input_builder function. Here is
+a list of built-in input_builder functions:
+
+  - `alerts_api.threshold_cross_input_builder`: contains an input field with an operator
+    and a unit. Suitable to speficy thresholds like "bytes > 512". Here is a list of additional
+    supported parameters:
+
+    - `field_max`: max value for the input field
+    - `field_min`: min value for the input field
+    - `field_step`: step value for the input field
+    - `i18n_field_unit`: localization string for the unit of the field
+
+  - `alerts_api.checkbox_input_builder`: a simple checkbox
+
+## Built-in Alerts
+
+Alert types are defined into `alert_consts.alert_types` inside
+`scripts/lua/modules/alert_consts.lua`. In order to add new alert types,
+the alert definition must be inserted into `alert_consts.alert_types`.
+The new alert type must have a unique `alert_id` >= 0, a title and description.
+
+Moreover, a new "type_info building function" should be added to the `alerts_api.lua` to describe
+the alert type.
