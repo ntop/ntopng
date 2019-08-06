@@ -86,16 +86,8 @@ class GenericHashEntry {
    *
    * @param s A state of the enum HashEntryState
    */
-  inline void set_state(HashEntryState s)   { hash_entry_state = s;    };
-  /**
-   * @brief Set the hash entry state to active. Private as it must only be
-   * called in the constructor
-   * 
-   */
-  inline void set_hash_entry_state_active() {
-    set_state(hash_entry_state_active);
-  };
-
+  void set_state(HashEntryState s);
+  
  protected:
   u_int32_t num_uses;  /* Don't use 16 bits as we might run out of space on large networks with MACs, VLANs etc. */
   time_t first_seen;   /**< Time of first seen. */
@@ -164,7 +156,7 @@ class GenericHashEntry {
   inline void set_hash_entry_state_ready_to_be_purged() {
     set_state(hash_entry_state_ready_to_be_purged);
   };
-  HashEntryState get_state() const;
+  HashEntryState get_state();
   void updateSeen();
   void updateSeen(time_t _last_seen);
   bool equal(GenericHashEntry *b)         { return((this == b) ? true : false); };  

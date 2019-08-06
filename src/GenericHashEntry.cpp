@@ -26,13 +26,12 @@
 GenericHashEntry::GenericHashEntry(NetworkInterface *_iface) {
   hash_next = NULL, iface = _iface, first_seen = last_seen = 0, num_uses = 0;
 
-  set_hash_entry_state_active();
+  hash_entry_state = hash_entry_state_active;
   
   if(iface && iface->getTimeLastPktRcvd() > 0)
     first_seen = last_seen = iface->getTimeLastPktRcvd();
   else
     first_seen = last_seen = time(NULL);
-
 }
 
 /* ***************************************** */
@@ -58,11 +57,22 @@ void GenericHashEntry::updateSeen() {
 
 /* ***************************************** */
 
-HashEntryState GenericHashEntry::get_state() const {
-  if(iface && !iface->isRunning()) /* When the interface is no longer running it is safe to assume the entry is idle */
-    return hash_entry_state_idle;
+void GenericHashEntry::set_state(HashEntryState s) {
+  if((int)s < (int)hash_entry_state)
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal error: invalid state transition %d -> %d",
+				 (int)hash_entry_state, (int)s);
+  else
+    hash_entry_state = s;
+};
 
-  return hash_entry_state;
+/* ***************************************** */
+
+HashEntryState GenericHashEntry::get_state() {
+  /* When the interface is no longer running it is safe to assume the entry is idle */
+  if(iface && (!iface->isRunning()))
+    set_hash_entry_state_idle();
+  
+  return(hash_entry_state);
 };
 
 /* ***************************************** */

@@ -44,6 +44,7 @@ AutonomousSystem::~AutonomousSystem() {
 
   if(asname) free(asname);
   /* TODO: decide if it is useful to dump AS stats to redis */
+
 #ifdef AS_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deleted Autonomous System %u", asn);
 #endif
@@ -75,6 +76,8 @@ void AutonomousSystem::updateRoundTripTime(u_int32_t rtt_msecs) {
 
 bool AutonomousSystem::idle() {
   bool rc;
+
+  if(GenericHashEntry::idle()) return(true);
   
   if((num_uses > 0) || (!iface->is_purge_idle_interface()))
     return(false);
@@ -82,7 +85,7 @@ bool AutonomousSystem::idle() {
   rc = isIdle(MAX_LOCAL_HOST_IDLE);
 
 #ifdef AS_DEBUG
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, " Autonomous System %u is idle [uses %u][%s][last: %u][diff: %d]",
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Autonomous System %u is idle [uses %u][%s][last: %u][diff: %d]",
 			       asn, num_uses,
 			       rc ? "Idle" : "Not Idle",
 			       last_seen, iface->getTimeLastPktRcvd() - (last_seen+MAX_LOCAL_HOST_IDLE));

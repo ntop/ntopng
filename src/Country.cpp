@@ -49,6 +49,8 @@ Country::~Country() {
 
 bool Country::idle() {
   bool rc;
+
+  if(GenericHashEntry::idle()) return(true);
   
   if((num_uses > 0) || (!iface->is_purge_idle_interface()))
     return(false);

@@ -224,7 +224,7 @@ u_int GenericHash::purgeIdle() {
 	  /* Do the chores */
 	  head->housekeep(now);
 
-	  if(head_state == hash_entry_state_active && head->idle())
+	  if((head_state == hash_entry_state_active) && head->idle())
 	    head->set_hash_entry_state_idle();
 
 	  prev = head;
