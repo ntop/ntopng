@@ -3209,8 +3209,6 @@ void NetworkInterface::refreshHostPools() {
   u_int32_t begin_slot = 0;
   bool walk_all = true;
 
-  if(isView()) return;
-
   struct update_host_pool_l7policy update_host;
   update_host.update_pool_id = true;
   update_host.update_l7policy = false;

@@ -439,11 +439,9 @@ function host_pools_utils.emptyPools()
     local ifid = getInterfaceId(ifname)
     local ifstats = interface.getStats()
 
-    if not ifstats.isView then
-       local pools_list = host_pools_utils.getPoolsList(ifid)
-       for _, pool in pairs(pools_list) do
-	  host_pools_utils.emptyPool(ifid, pool["id"])
-       end
+    local pools_list = host_pools_utils.getPoolsList(ifid)
+    for _, pool in pairs(pools_list) do
+       host_pools_utils.emptyPool(ifid, pool["id"])
     end
   end
 end
@@ -454,9 +452,7 @@ function host_pools_utils.initPools()
     local ifstats = interface.getStats()
 
     -- Note: possible shapers are initialized in shaper_utils::initShapers
-    if not ifstats.isView then
-      initInterfacePools(ifid)
-    end
+    initInterfacePools(ifid)
   end
 end
 
