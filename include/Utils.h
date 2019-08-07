@@ -191,6 +191,9 @@ class Utils {
     bitmap &= ~(((u_int64_t)1) << v);
     return(bitmap);
   }
+
+  static OperatingSystem getOSFromFingerprint(const char *fingerprint, const char*manuf, DeviceType devtype);
+  static DeviceType getDeviceTypeFromOsDetail(const char *os_detail);
 };
 
 #endif /* _UTILS_H_ */

@@ -206,10 +206,6 @@ if((page == "overview") or (page == nil)) then
 
    print("<tr><th>"..i18n("name").."</th><td><span id=name>"..label.."</span>")
 
-   if(mac_info.operatingSystem ~= 0) then
-     print(" "..getOperatingSystemIcon(mac_info.operatingSystem).." ")
-   end
-
    if isAdministrator() then
       print[[ <a href="]] print(ntop.getHttpPrefix()) print[[/lua/mac_details.lua?]] print(hostinfo2url(mac_info)) print[[&page=config">]]
       print[[<i class="fa fa-sm fa-cog" aria-hidden="true" title="Set Host Alias"></i></a></span> ]]

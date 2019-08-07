@@ -30,7 +30,7 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6])
   source_mac = false, fingerprint = NULL;
   bridge_seen_iface_id = 0, lockDeviceTypeChanges = false;
   memset(&names, 0, sizeof(names));
-  device_type = device_unknown, os = os_unknown;
+  device_type = device_unknown;
   host_pool_id = NO_HOST_POOL_ID;
 #ifdef NTOPNG_PRO
   captive_portal_notified = 0;
@@ -189,7 +189,6 @@ void Mac::lua(lua_State* vm, bool show_details, bool asListElement) {
   stats->lua(vm, show_details);
 
   lua_push_str_table_entry(vm, "fingerprint", fingerprint ? fingerprint : (char*)"");
-  lua_push_uint64_table_entry(vm, "operatingSystem", os);
   lua_push_uint64_table_entry(vm, "seen.first", first_seen);
   lua_push_uint64_table_entry(vm, "seen.last", last_seen);
   lua_push_uint64_table_entry(vm, "duration", get_duration());
@@ -245,7 +244,6 @@ void Mac::deserialize(json_object *o) {
   if(json_object_object_get_ex(o, "model", &obj))       inlineSetModel((char*)json_object_get_string(obj));
   if(json_object_object_get_ex(o, "ssid", &obj))        inlineSetSSID((char*)json_object_get_string(obj));
   if(json_object_object_get_ex(o, "fingerprint", &obj)) inlineSetFingerprint((char*)json_object_get_string(obj));
-  if(json_object_object_get_ex(o, "operatingSystem", &obj)) setOperatingSystem((OperatingSystem)json_object_get_int(obj));
 
   stats->deserialize(o);
 
@@ -270,7 +268,6 @@ void Mac::serialize(json_object *my_object, DetailsLevel details_level) {
   json_object_object_add(my_object, "devtype", json_object_new_int(device_type));
   if(model) json_object_object_add(my_object, "model", json_object_new_string(model));
   if(ssid) json_object_object_add(my_object, "ssid", json_object_new_string(ssid));
-  json_object_object_add(my_object, "operatingSystem", json_object_new_int(os));
   if(fingerprint) json_object_object_add(my_object, "fingerprint", json_object_new_string(fingerprint));
 
   if(!statsResetRequested())
@@ -329,57 +326,6 @@ void Mac::updateHostPool(bool isInlineCall, bool firstUpdate) {
 			       iface->getHostPools()->getNumPoolL2Devices(get_host_pool()));
 #endif
 }
-
-/* *************************************** */
-
-void Mac::updateFingerprint() {
-  /*
-    Inefficient with many signatures but ok for the
-    time being that we have little data
-  */
-  if(!fingerprint) return;
-
-  if(!strcmp(fingerprint,      "017903060F77FC"))
-    setOperatingSystem(os_ios);
-  else if((!strcmp(fingerprint, "017903060F77FC5F2C2E"))
-	  || (!strcmp(fingerprint, "0103060F775FFC2C2E2F"))
-	  || (!strcmp(fingerprint, "0103060F775FFC2C2E"))
-	  )
-    setOperatingSystem(os_macos);
-  else if((!strcmp(fingerprint, "0103060F1F212B2C2E2F79F9FC"))
-	  || (!strcmp(fingerprint, "010F03062C2E2F1F2179F92B"))
-	  )
-    setOperatingSystem(os_windows);
-  else if((!strcmp(fingerprint, "0103060C0F1C2A"))
-	  || (!strcmp(fingerprint, "011C02030F06770C2C2F1A792A79F921FC2A"))
-	  )
-    setOperatingSystem(os_linux); /* Android is also linux */
-  else if((!strcmp(fingerprint, "0603010F0C2C51452B1242439607"))
-	  || (!strcmp(fingerprint, "01032C06070C0F16363A3B45122B7751999A"))
-	  )
-    setOperatingSystem(os_laserjet);
-  else if(!strcmp(fingerprint, "0102030F060C2C"))
-    setOperatingSystem(os_apple_airport);
-  else if(!strcmp(fingerprint, "01792103060F1C333A3B77"))
-    setOperatingSystem(os_android);
-
-  /* Below you can find ambiguous signatures */
-  if(manuf) {
-    if(!strcmp(fingerprint, "0103063633")) {
-      if(strstr(manuf, "Apple"))
-	setOperatingSystem(os_macos);
-      else if(device_type == device_unknown) {
-	setOperatingSystem(os_windows);
-      }
-    }
-  }
-}
-/*
-  Missing OS mapping
-
-  011C02030F06770C2C2F1A792A
-  010F03062C2E2F1F2179F92BFC
-*/
 
 /* *************************************** */
 
@@ -442,9 +388,13 @@ void Mac::inlineSetModel(const char * const the_model) {
 }
 /* *************************************** */
 
-void Mac::inlineSetFingerprint(const char * const f) {
-  if(!fingerprint && f && (fingerprint = strdup(f)))
-    updateFingerprint();
+bool Mac::inlineSetFingerprint(const char * const f) {
+  if(!fingerprint && f) {
+    fingerprint = strdup(f);
+    return(true);
+  }
+
+  return(false);
 }
 
 /* *************************************** */
@@ -523,7 +473,6 @@ void Mac::deleteMacData() {
   m.lock(__FILE__, __LINE__);
   freeMacData();
   m.unlock(__FILE__, __LINE__);
-  os = os_unknown;
   source_mac = false;
   device_type = device_unknown;
 #ifdef NTOPNG_PRO

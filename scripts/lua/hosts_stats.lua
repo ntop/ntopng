@@ -10,6 +10,7 @@ local host_pools_utils = require "host_pools_utils"
 local ts_utils = require("ts_utils")
 local page_utils = require("page_utils")
 local custom_column_utils = require("custom_column_utils")
+local discover = require("discover_utils")
 active_page = "hosts"
 local have_nedge = ntop.isnEdge()
 
@@ -257,7 +258,7 @@ if (_GET["page"] ~= "historical") then
 		     network = not isEmptyString(network_name) and i18n("hosts_stats.in_network", {network=network_name}) or "",
 		     network_cidr = not isEmptyString(cidr) and i18n("hosts_stats.in_network", {network=cidr}) or "",
 		     ip_version = ipver_title or "",
-		     ["os"] = os_ or "",
+		     ["os"] = discover.getOsName(os_),
 		     country_asn_or_mac = country or asninfo or mac or pool_ or "",
 		     vlan = vlan_title or "",
       }) .. charts_icon

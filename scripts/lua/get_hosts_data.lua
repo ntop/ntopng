@@ -35,7 +35,7 @@ local network      = _GET["network"]
 local cidr         = _GET["network_cidr"]
 local pool         = _GET["pool"]
 local country      = _GET["country"]
-local os_          = _GET["os"]
+local os_          = tonumber(_GET["os"])
 local mac          = _GET["mac"]
 local top_hidden   = ternary(_GET["top_hidden"] == "1", true, nil)
 
@@ -223,10 +223,10 @@ for _key, _value in pairsByKeys(vals, funct) do
 
    local column_ip = "<A HREF='"..url.."' "..
       ternary((have_nedge and drop_traffic), "style='text-decoration: line-through'", "")..
-      ">"..mapOS2Icon(stripVlan(key)).." </A>"
+      ">".. stripVlan(key) .." </A>"
 
    if((value.operatingSystem ~= 0) and (value["os"] == "")) then
-      column_ip = column_ip .. " "..getOperatingSystemIcon(value.operatingSystem)
+      column_ip = column_ip .. " ".. discover.getOsIcon(value.operatingSystem)
    end
 
    if value["systemhost"]    then column_ip = column_ip .. "&nbsp;<i class='fa fa-flag'></i> " end
@@ -242,7 +242,7 @@ for _key, _value in pairsByKeys(vals, funct) do
       column_ip = column_ip .."&nbsp;<a href='".. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?country="..host.country.."'><img src='".. ntop.getHttpPrefix() .. "/img/blank.gif' class='flag flag-".. string.lower(host.country) .."'></a> "
    end
 
-   local icon = getOSIcon(value["os"])
+   local icon = discover.getOsIcon(value["os"])
    if(host ~= nil) then
       icon = icon .." ".. discover.devtype2icon(host.devtype)
    end

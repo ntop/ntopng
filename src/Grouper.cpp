@@ -75,11 +75,7 @@ bool Grouper::inGroup(Host *h) {
     break;
     
   case column_os:
-    {
-      c = h->get_os(buf, sizeof(buf));
-      return (strcmp(group_id_s, c) == 0) ? true : false;
-    }
-    break;
+    return(h->getOS() == group_id_i);
 
   default:
     return false;
@@ -148,9 +144,9 @@ int8_t Grouper::newGroup(Host *h) {
     break;
 
   case column_os:
-    c = h->get_os(buf, sizeof(buf));
-    group_id_s  = strdup(c);
-    group_label = strdup(group_id_s);
+    group_id_i = h->getOS();
+    sprintf(buf, "%i", h->getOS());
+    group_label = strdup(buf);
     break;
 
   default:

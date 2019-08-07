@@ -1154,51 +1154,6 @@ end
 
 -- #################################
 
-function getOSIcon(name)
-  icon = ""
-
-  if(findString(name, "Linux") or findString(name, "Ubuntu")) then icon = '<i class=\'fa fa-linux fa-lg\'></i> '
-  elseif(findString(name, "Android")) then icon = '<i class=\'fa fa-android fa-lg\'></i> '
-  elseif(findString(name, "Windows") or findString(name, "Win32") or findString(name, "MSIE")) then icon = '<i class=\'fa fa-windows fa-lg\'></i> '
-  elseif(findString(name, "iPhone") or findString(name, "iPad") or findString(name, "OS X") ) then icon = '<i class=\'fa fa-apple fa-lg\'></i> '
-  end
-
-  return(icon)
-end
-
--- #################################
-
-function getOperatingSystemName(id)
-   if(id == 0) then return("Unknown")
-   elseif(id == 1) then return("Linux")
-   elseif(id == 2) then return("Windows")
-   elseif(id == 3) then return("MacOS")
-   elseif(id == 4) then return("iOS")
-   elseif(id == 5) then return("Android")
-   elseif(id == 6) then return("LaserJET")
-   elseif(id == 7) then return("AppleAirport")
-   else
-      return("") -- Unknown
-   end
-end
-
--- #################################
-
-function getOperatingSystemIcon(id)
-   if(id == 1) then return(' <i class=\'fa fa-linux fa-lg\'></i>')
-   elseif(id == 2) then return(' <i class=\'fa fa-windows fa-lg\'></i>')
-   elseif(id == 3) then return(' <i class=\'fa fa-apple fa-lg\'></i>')
-   elseif(id == 4) then return(' <i class=\'fa fa-apple fa-lg\'></i>')
-   elseif(id == 5) then return(' <i class=\'fa fa-android fa-lg\'></i>')
-   elseif(id == 6) then return(' LasetJET')
-   elseif(id == 7) then return(' Apple Airport')
-
-   else return("")
-   end
-end
-
--- #################################
-
 function getApplicationIcon(name)
   local icon = ""
   if(name == nil) then name = "" end
@@ -1233,14 +1188,6 @@ end
 function getCategoryLabel(cat_name)
   cat_name = cat_name:gsub("^%l", string.upper)
   return(cat_name)
-end
-
-function mapOS2Icon(name)
-  if(name == nil) then
-    return("")
-  else
-    return(getOSIcon(name) .. name)
-  end
 end
 
 function getItemsNumber(n)

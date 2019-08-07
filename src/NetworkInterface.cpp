@@ -3669,7 +3669,7 @@ struct flowHostRetriever {
   bool hideTopHidden;         /* Not used in flow_search_walker */
   const AddressTree * cidr_filter; /* Not used in flow_search_walker */
   u_int16_t vlan_id;
-  char *osFilter;
+  OperatingSystem osFilter;
   u_int32_t asnFilter;
   u_int32_t uidFilter;
   u_int32_t pidFilter;
@@ -4026,7 +4026,7 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data, bool *matc
      (r->mac           && ((!h->getMac()) || (!h->getMac()->equal(r->mac))))              ||
      ((r->poolFilter != (u_int16_t)-1)    && (r->poolFilter    != h->get_host_pool()))    ||
      (r->country  && strlen(r->country)  && strcmp(h->get_country(buf, sizeof(buf)), r->country)) ||
-     (r->osFilter && strlen(r->osFilter) && strcmp(h->get_os(buf, sizeof(buf)), r->osFilter))     ||
+     (r->osFilter != ((OperatingSystem)-1) && (h->getOS() != r->osFilter))     ||
      (r->blacklistedHosts && !h->isBlacklisted())     ||
      (r->anomalousOnly && !h->hasAnomalies())         ||
      (r->dhcpOnly && !h->isDhcpHost())                ||
@@ -4062,7 +4062,7 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data, bool *matc
     break;
 
   case column_os:
-    r->elems[r->actNumEntries++].stringValue = strdup(h->get_os(buf, sizeof(buf)));
+    r->elems[r->actNumEntries++].numericValue = h->getOS();
     break;
 
   case column_vlan:
@@ -4598,7 +4598,7 @@ int NetworkInterface::sortHosts(u_int32_t *begin_slot,
 				bool host_details,
 				LocationPolicy location,
 				char *countryFilter, char *mac_filter,
-				u_int16_t vlan_id, char *osFilter,
+				u_int16_t vlan_id, OperatingSystem osFilter,
 				u_int32_t asnFilter, int16_t networkFilter,
 				u_int16_t pool_filter, bool filtered_hosts,
 				bool blacklisted_hosts, bool hide_top_hidden,
@@ -4654,7 +4654,7 @@ int NetworkInterface::sortHosts(u_int32_t *begin_slot,
   else if(!strcmp(sortColumn, "column_alerts")) retriever->sorter = column_alerts, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_name")) retriever->sorter = column_name, sorter = stringSorter;
   else if(!strcmp(sortColumn, "column_country")) retriever->sorter = column_country, sorter = stringSorter;
-  else if(!strcmp(sortColumn, "column_os")) retriever->sorter = column_os, sorter = stringSorter;
+  else if(!strcmp(sortColumn, "column_os")) retriever->sorter = column_os, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_since")) retriever->sorter = column_since, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_asn")) retriever->sorter = column_asn, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_thpt")) retriever->sorter = column_thpt, sorter = numericSorter;
@@ -4870,7 +4870,7 @@ int NetworkInterface::getActiveHostsList(lua_State* vm,
 					 AddressTree *allowed_hosts,
 					 bool host_details, LocationPolicy location,
 					 char *countryFilter, char *mac_filter,
-					 u_int16_t vlan_id, char *osFilter,
+					 u_int16_t vlan_id, OperatingSystem osFilter,
 					 u_int32_t asnFilter, int16_t networkFilter,
 					 u_int16_t pool_filter, bool filtered_hosts,
 					 bool blacklisted_hosts, bool hide_top_hidden,
@@ -5024,7 +5024,7 @@ int NetworkInterface::getActiveHostsGroup(lua_State* vm,
 					  AddressTree *allowed_hosts,
 					  bool host_details, LocationPolicy location,
 					  char *countryFilter,
-					  u_int16_t vlan_id, char *osFilter,
+					  u_int16_t vlan_id, OperatingSystem osFilter,
 					  u_int32_t asnFilter, int16_t networkFilter,
 					  u_int16_t pool_filter, bool filtered_hosts,
 					  u_int8_t ipver_filter,
@@ -6705,21 +6705,6 @@ bool NetworkInterface::resetMacStats(lua_State* vm, char *mac, bool delete_data)
     ret = false;
 
   return ret;
-}
-
-/* **************************************** */
-
-bool NetworkInterface::setMacOperatingSystem(lua_State* vm, char *strmac, OperatingSystem os) {
-  u_int8_t mac[6];
-  Mac *m;
-
-  Utils::parseMac(mac, strmac);
-
-  if((m = getMac(mac, false /* Don't create if missing */, false /* Not an inline call */))) {
-    m->setOperatingSystem(os);
-    return(true);
-  } else
-    return(false);
 }
 
 /* **************************************** */

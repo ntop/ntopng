@@ -602,7 +602,7 @@ void Flow::processDetectedProtocol() {
 	doublecol[0] = '\0';
 
       if(srv_host && (ndpiFlow->protos.http.detected_os[0] != '\0') && cli_host)
-	cli_host->inlineSetOS((char*)ndpiFlow->protos.http.detected_os);
+	cli_host->inlineSetOSDetail((char*)ndpiFlow->protos.http.detected_os);
 
       if(cli_host && cli_host->isLocalHost())
 	cli_host->incrVisitedWebSite(host_server_name);
@@ -3199,6 +3199,7 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
 	      char *end = strchr(buf, ')');
 
 	      if(end) {
+        /* TODO: move into nDPI */
 		OperatingSystem os = os_unknown;
 
 		end[0] = '\0';
@@ -3226,7 +3227,7 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
 
 		  if(!(get_cli_ip_addr()->isBroadcastAddress()
 		       || get_cli_ip_addr()->isMulticastAddress()))
-		  cli_host->getMac()->setOperatingSystem(os);
+		  cli_host->setOS(os);
 		}
 	      }
 	    }

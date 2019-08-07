@@ -5,6 +5,7 @@
 dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
+local discover = require("discover_utils")
 
 sendHTTPHeader('application/json')
 
@@ -212,8 +213,8 @@ for _key, _value in pairsByKeys(vals, funct) do
 	    if(info ~= nil) then
 	       print(" \"<A HREF='"..ntop.getHttpPrefix().."/lua/")
 	       print("host_details.lua?host=" .. key .. "'>")
-	       print(mapOS2Icon(key))
-	       print(" </A> ".. getOSIcon(value["os"]))
+	       print(key)
+	       print(" </A> ".. discover.getOsIcon(value["os"]))
 	       print("&nbsp;"..getFlag(info["country"]).." ")
 	       print("\",")
 	    else

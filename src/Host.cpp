@@ -140,6 +140,7 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   stats_shadow = NULL;
   data_delete_requested = false, stats_reset_requested = false;
   last_stats_reset = ntop->getLastStatsReset(); /* assume fresh stats, may be changed by deserialize */
+  os = os_unknown;
 
   // readStats(); - Commented as if put here it's too early and the key is not yet set
 
@@ -406,7 +407,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
 
   lua_push_str_table_entry(vm, "mac", Utils::formatMac(cur_mac ? cur_mac->get_mac() : NULL, buf, sizeof(buf)));
   lua_push_uint64_table_entry(vm, "devtype", isBroadcastDomainHost() && cur_mac ? cur_mac->getDeviceType() : device_unknown);
-  lua_push_uint64_table_entry(vm, "operatingSystem", cur_mac ? cur_mac->getOperatingSystem() : os_unknown);
+  lua_push_uint64_table_entry(vm, "operatingSystem", getOS());
 
   lua_push_bool_table_entry(vm, "privatehost", isPrivateHost());
   lua_push_bool_table_entry(vm, "hiddenFromTop", isHiddenFromTop());
@@ -434,7 +435,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   lua_push_uint64_table_entry(vm, "asn", asn);
   lua_push_uint64_table_entry(vm, "host_pool_id", host_pool_id);
   lua_push_str_table_entry(vm, "asname", asname ? asname : (char*)"");
-  lua_push_str_table_entry(vm, "os", get_os(buf, sizeof(buf)));
+  lua_push_int32_table_entry(vm, "os", getOS());
 
   stats->lua(vm, mask_host, Utils::bool2DetailsLevel(verbose,host_details));
 
@@ -617,7 +618,7 @@ char * Host::getMDNSTXTName(char * const buf, ssize_t buf_len) {
 
 /* ***************************************** */
 
-char * Host::get_os(char * const buf, ssize_t buf_len) {
+const char * Host::getOSDetail(char * const buf, ssize_t buf_len) {
   if(buf && buf_len)
     buf[0] = '\0';
 
@@ -690,8 +691,7 @@ void Host::serialize(json_object *my_object, DetailsLevel details_level) {
     get_name(buf, sizeof(buf), false);
     if(strlen(buf)) json_object_object_add(my_object, "symbolic_name", json_object_new_string(buf));
     if(asname)      json_object_object_add(my_object, "asname",    json_object_new_string(asname ? asname : (char*)""));
-    get_os(buf, sizeof(buf));
-    if(strlen(buf)) json_object_object_add(my_object, "os",        json_object_new_string(buf));
+    json_object_object_add(my_object, "os_id", json_object_new_int(getOS()));
 
     json_object_object_add(my_object, "localHost", json_object_new_boolean(isLocalHost()));
     json_object_object_add(my_object, "systemHost", json_object_new_boolean(isSystemHost()));
@@ -1139,6 +1139,7 @@ bool Host::statsResetRequested() {
 
 void Host::updateStats(update_hosts_stats_user_data_t *update_hosts_stats_user_data) {
   struct timeval *tv = update_hosts_stats_user_data->tv;
+  Mac *cur_mac = getMac();
 
   if(get_state() == hash_entry_state_idle) {
     set_hash_entry_state_ready_to_be_purged();
@@ -1160,6 +1161,10 @@ void Host::updateStats(update_hosts_stats_user_data_t *update_hosts_stats_user_d
   checkDataReset();
   checkStatsReset();
   checkBroadcastDomain();
+
+  /* OS detection */
+  if((os == os_unknown) && cur_mac && cur_mac->getFingerprint())
+    os = Utils::getOSFromFingerprint(cur_mac->getFingerprint(), cur_mac->get_manufacturer(), cur_mac->getDeviceType());
 
   num_active_flows_as_client.computeAnomalyIndex(tv->tv_sec),
     num_active_flows_as_server.computeAnomalyIndex(tv->tv_sec),

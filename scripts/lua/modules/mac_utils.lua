@@ -35,7 +35,6 @@ function mac2record(mac)
       -- io.write(mac.fingerprint.."\n")
    end
    
-   record["column_mac"] = record["column_mac"]..getOperatingSystemIcon(mac.operatingSystem)   
    local manufacturer = get_manufacturer_mac(mac["mac"])
    if(manufacturer == nil) then manufacturer = "" end
 

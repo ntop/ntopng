@@ -28,7 +28,7 @@ local title = {operating_system = '', manufacturer = '', device_type = ''}
 
 if(not isEmptyString(os_filter)) then
    page_params.operating_system = os_filter
-   title.operating_system = getOperatingSystemName(tonumber(os_filter))
+   title.operating_system = discover.getOsName(tonumber(os_filter))
 end
 if(not isEmptyString(manuf_filter)) then
    page_params.manufacturer = manuf_filter
@@ -178,12 +178,12 @@ elseif discovered["status"]["code"] == "OK" then -- everything is ok
    print('<li><a href="' .. getPageUrl(base_url, os_params) .. '">' .. i18n("mac_stats.all_devices") .. '</a></li>')
 
    for osid, count in pairsByKeys(operating_systems) do
-      local os_name = getOperatingSystemName(osid)
+      local os_name = discover.getOsName(osid)
       if isEmptyString(os_name) then os_name = i18n("unknown") end
       os_params.operating_system = osid
 
       print('<li' .. ternary(os_filter == tostring(osid), ' class="active"', '') .. '><a href="' ..
-         getPageUrl(base_url, os_params) .. '">' .. --(getOperatingSystemIcon(osid):gsub("'",'"') or "") ..
+         getPageUrl(base_url, os_params) .. '">' .. --(discover.getOsIcon(osid):gsub("'",'"') or "") ..
          os_name  .." (" ..count.. ')</a></li>')
    end
    print('</ul></div>\'],')

@@ -66,7 +66,7 @@ void LocalHost::initialize() {
 
   local_network_id = -1;
   drop_all_host_traffic = false;
-  os = NULL;
+  os_detail = NULL;
 
   ip.isLocalHost(&local_network_id);
 
@@ -154,8 +154,8 @@ void LocalHost::deserialize(json_object *o) {
   if(json_object_object_get_ex(o, "broadcastDomainHost", &obj) && json_object_get_boolean(obj))
     setBroadcastDomainHost();
 
-  if(json_object_object_get_ex(o, "os", &obj))
-    inlineSetOS(json_object_get_string(obj));
+  if(json_object_object_get_ex(o, "os_id", &obj))
+    setOS((OperatingSystem)json_object_get_int(obj));
 
   /* We commented the line below to avoid strings too long */
 #if 0
@@ -188,10 +188,10 @@ void LocalHost::updateHostTrafficPolicy(char *key) {
 
 /* ***************************************** */
 
-char * LocalHost::get_os(char * const buf, ssize_t buf_len) {
+const char * LocalHost::getOSDetail(char * const buf, ssize_t buf_len) {
   if(buf && buf_len) {
     m.lock(__FILE__, __LINE__);
-    snprintf(buf, buf_len, "%s", os ? os : "");
+    snprintf(buf, buf_len, "%s", os_detail ? os_detail : "");
     m.unlock(__FILE__, __LINE__);
   }
 
@@ -256,7 +256,8 @@ void LocalHost::luaPortsDump(lua_State* vm) {
 
 /* *************************************** */
 
-void LocalHost::inlineSetOS(const char * const _os) {
+// TODO move into nDPI
+void LocalHost::inlineSetOSDetail(const char *_os_detail) {
   if((mac == NULL)
      /*
        When this happens then this is a (NAT+)router and
@@ -265,21 +266,16 @@ void LocalHost::inlineSetOS(const char * const _os) {
      || (mac->getDeviceType() == device_networking)
      ) return;
 
-  if(os || !_os)
+  if(os_detail || !_os_detail)
     return; /* Already set */
 
+  if((os_detail = strdup(_os_detail))) {
+    // TODO set mac device type
+    ;
+    DeviceType devtype = Utils::getDeviceTypeFromOsDetail(os_detail);
 
-  if((os = strdup(_os))) {
-    if(strcasestr(os, "iPhone")
-       || strcasestr(os, "Android")
-       || strcasestr(os, "mobile"))
-      mac->setDeviceType(device_phone);
-    else if(strcasestr(os, "Mac OS")
-	    || strcasestr(os, "Windows")
-	    || strcasestr(os, "Linux"))
-      mac->setDeviceType(device_workstation);
-    else if(strcasestr(os, "iPad") || strcasestr(os, "tablet"))
-      mac->setDeviceType(device_tablet);
+    if(devtype != device_unknown)
+      mac->setDeviceType(devtype);
   }
 }
 
@@ -315,7 +311,7 @@ void LocalHost::tsLua(lua_State* vm) {
 
 void LocalHost::freeLocalHostData() {
   /* Better not to use a virtual function as it is called in the destructor as well */
-  if(os) { free(os); os = NULL; }
+  if(os_detail) { free(os_detail); os_detail = NULL; }
 }
 
 /* *************************************** */
@@ -328,6 +324,7 @@ void LocalHost::deleteHostData() {
   m.unlock(__FILE__, __LINE__);
 
   updateHostTrafficPolicy(NULL);
+  os = os_unknown;
 }
 
 /* *************************************** */

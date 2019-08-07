@@ -659,6 +659,7 @@ typedef enum {
 } InterfaceType;
 
 /* Update Flow::dissectHTTP when extending the type below */
+/* Keep in sync with discover.os2label */
 typedef enum {
   os_unknown = 0,
   os_linux,
