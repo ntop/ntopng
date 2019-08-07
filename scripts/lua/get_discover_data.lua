@@ -146,15 +146,11 @@ for el_idx, el in pairs(discovered["devices"]) do
   end
   el.name = name
 
-  -- Operating System
-  local device_os = ""
+  -- Retrieve information from L3 host
+  local host = interface.getHostInfo(el["ip"])
 
-  if el.os_type == nil then
-    local mac_info = interface.getMacInfo(el.mac)
-
-    if(mac_info ~= nil) then
-      el.os_type = mac_info.operatingSystem
-    end
+  if(host ~= nil) then
+    el.os_type = host.os
   end
 
   el.os = discover.getOsIcon(el.os_type)

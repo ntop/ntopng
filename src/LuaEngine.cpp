@@ -1088,7 +1088,8 @@ static int ntop_set_host_operating_system(lua_State* vm) {
   if(!host)
     return(CONST_LUA_ERROR);
 
-  host->setOS(os);
+  if(os != os_unknown)
+    host->setOS(os);
   lua_pushnil(vm);
 
   return(CONST_LUA_OK);
