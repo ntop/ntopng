@@ -429,6 +429,13 @@ function printAlerts()
   })
 
   prefsToggleButton(subpage_active, {
+    field = "toggle_potentially_dangerous_protocols_alerts",
+    pref = "potentially_dangerous_protocols_alerts",
+    default = "1",
+    hidden = not showElements,
+  })
+
+  prefsToggleButton(subpage_active, {
     field = "toggle_device_protocols_alerts",
     pref = "device_protocols_alerts",
     default = "0",

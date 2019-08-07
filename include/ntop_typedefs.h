@@ -112,6 +112,7 @@ typedef enum {
   policy_source_schedule = 5,
 } L7PolicySource_t;
 
+/* keep in sync with alert_consts.alert_types in alert_const.lua */
 typedef enum {
   alert_none = -1,
   alert_syn_flood = 0,
@@ -135,6 +136,7 @@ typedef enum {
   misconfigured_dhcp_range = 36,
   slow_periodic_activity = 40,
   login_failed = 42,
+  alert_potentially_dangerous_protocol = 43,
   /* 
      IMPORTANT IMPORTANT IMPORTANT
      If # status >= 64 then extend Utils.h and Lua bitmap functions to handle it
@@ -359,6 +361,7 @@ typedef enum {
   status_ssl_unsafe_ciphers /* 23 */,
   status_data_exfiltration /* 24 */,
   status_ssl_old_protocol_version /* 25 */,
+  status_potentially_dangerous /* 26 */,
   num_flow_status,
   /* 
      IMPORTANT IMPORTANT IMPORTANT

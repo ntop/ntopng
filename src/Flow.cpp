@@ -349,6 +349,10 @@ void Flow::dumpFlowAlert() {
       do_dump = ntop->getPrefs()->are_device_protocols_alerts_enabled();
       break;
 
+    case status_potentially_dangerous:
+      do_dump = ntop->getPrefs()->are_potentially_dangerous_protocols_alerts_enabled();
+      break;
+
     case status_elephant_local_to_remote:
     case status_elephant_remote_to_local:
       do_dump = ntop->getPrefs()->are_elephant_flows_alerts_enabled();
@@ -3683,6 +3687,9 @@ FlowStatus Flow::getFlowStatus() {
 
   if(isBlacklistedFlow())
     return status_blacklisted;
+
+  if(get_protocol_breed() == NDPI_PROTOCOL_POTENTIALLY_DANGEROUS)
+    return status_potentially_dangerous;
 
   if(!isDeviceAllowedProtocol())
     return status_device_protocol_not_allowed;

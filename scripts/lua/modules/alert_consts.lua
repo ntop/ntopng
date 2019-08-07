@@ -939,7 +939,12 @@ alert_consts.alert_types = {
     i18n_title = "alerts_dashboard.login_failed",
     i18n_description = loginFailedFormatter,
     icon = "fa-sign-in",
-  },
+  }, potentially_dangerous_protocol = {
+    alert_id = 43,
+    i18n_title = "alerts_dashboard.potentially_dangerous_protocol",
+    i18n_description = "alert_messages.potentially_dangerous_protocol_description",
+    icon = "fa-exclamation",
+  }
 }
 
 -- ##############################################

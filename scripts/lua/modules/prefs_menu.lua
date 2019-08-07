@@ -245,6 +245,9 @@ local menu_subpages = {
     }, toggle_malware_probing = {
       title       = i18n("prefs.toggle_malware_probing_title"),
       description = i18n("prefs.toggle_malware_probing_description", {url=ntop.getHttpPrefix() .. "/lua/admin/edit_category_lists.lua"}),
+    }, toggle_potentially_dangerous_protocols_alerts = {
+      title       = i18n("prefs.toggle_potentially_dangerous_protocols_title"),
+      description = i18n("prefs.toggle_potentially_dangerous_protocols_description"),
     }, toggle_ids_alerts = {
       title       = i18n("prefs.toggle_ids_alert_title"),
       description = i18n("prefs.toggle_ids_alert_description"),

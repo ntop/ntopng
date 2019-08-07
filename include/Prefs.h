@@ -72,6 +72,7 @@ class Prefs {
   bool enable_dns_alerts, enable_remote_to_remote_alerts;
   bool enable_mining_alerts;
   bool enable_dropped_flows_alerts, enable_device_protocols_alerts;
+  bool enable_potentially_dangerous_protocols_alerts;
   bool enable_syslog_alerts, external_notifications_enabled;
   bool enabled_malware_alerts, enabled_ids_alerts;
   bool enable_captive_portal, enable_informative_captive_portal, mac_based_captive_portal;
@@ -328,6 +329,7 @@ class Prefs {
   inline bool are_remote_to_remote_alerts_enabled()      { return(enable_remote_to_remote_alerts);      };
   inline bool are_dropped_flows_alerts_enabled()         { return(enable_dropped_flows_alerts);         };
   inline bool are_device_protocols_alerts_enabled()      { return(enable_device_protocols_alerts);      };
+  inline bool are_potentially_dangerous_protocols_alerts_enabled() { return(enable_potentially_dangerous_protocols_alerts); };
   inline bool are_alerts_syslog_enabled()                { return(enable_syslog_alerts);                };
   inline bool are_ext_alerts_notifications_enabled()     { return(external_notifications_enabled);      };
   inline bool are_malware_alerts_enabled()               { return(enabled_malware_alerts);              };

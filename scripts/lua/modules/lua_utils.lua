@@ -2639,6 +2639,7 @@ function getFlowStatusTypes()
    [23] = i18n("flow_details.ssl_unsafe_ciphers"),
    [24] = i18n("flow_details.data_exfiltration"),
    [25] = i18n("flow_details.ssl_old_protocol_version"),
+   [26] = i18n("flow_details.potentially_dangerous_protocol"),
    }
 
    return entries
