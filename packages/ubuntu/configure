@@ -1741,9 +1741,14 @@ if  test -f /usr/bin/lsb_release ; then
 
   if test "$UBUNTU_SUB_RELEASE" = "9"; then
     UBUNTU_RELEASE="debian9"
+  else
+    if test "$UBUNTU_SUB_RELEASE" = "10"; then
+      # Debian buster
+      UBUNTU_RELEASE="debian10"
+    fi
   fi
 
-  if test "$UBUNTU_RELEASE" = "16.04" || test "$UBUNTU_RELEASE" = "18.04" || test "$UBUNTU_RELEASE" = "debian9" ; then
+  if test "$UBUNTU_RELEASE" = "16.04" || test "$UBUNTU_RELEASE" = "18.04" || test "$UBUNTU_RELEASE" = "debian9" || test "$UBUNTU_RELEASE" = "debian10" ; then
     ZMQ_DEP="libzmq5"
   else
     ZMQ_DEP="libzmq3"
