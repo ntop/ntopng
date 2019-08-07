@@ -436,6 +436,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   lua_push_uint64_table_entry(vm, "host_pool_id", host_pool_id);
   lua_push_str_table_entry(vm, "asname", asname ? asname : (char*)"");
   lua_push_int32_table_entry(vm, "os", getOS());
+  lua_push_str_table_entry(vm, "os_detail", getOSDetail(buf, sizeof(buf)));
 
   stats->lua(vm, mask_host, Utils::bool2DetailsLevel(verbose,host_details));
 
