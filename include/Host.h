@@ -35,6 +35,7 @@ class Host : public GenericHashEntry, public AlertableEntity {
   bool stats_reset_requested, data_delete_requested;
   u_int16_t vlan_id, host_pool_id;
   HostStats *stats, *stats_shadow;
+  OperatingSystem os;
   time_t last_stats_reset;
   u_int32_t disabled_flow_status;
   
@@ -161,7 +162,6 @@ class Host : public GenericHashEntry, public AlertableEntity {
   char * getResolvedName(char * const buf, ssize_t buf_len);
   char * getMDNSName(char * const buf, ssize_t buf_len);
   char * getMDNSTXTName(char * const buf, ssize_t buf_len);
-  virtual char * get_os(char * const buf, ssize_t buf_len);
 #ifdef NTOPNG_PRO
   inline TrafficShaper *get_ingress_shaper(ndpi_protocol ndpiProtocol) { return(get_shaper(ndpiProtocol, true)); }
   inline TrafficShaper *get_egress_shaper(ndpi_protocol ndpiProtocol)  { return(get_shaper(ndpiProtocol, false)); }
@@ -292,7 +292,8 @@ class Host : public GenericHashEntry, public AlertableEntity {
   void refreshHostAlertPrefs();
   void housekeepAlerts(ScriptPeriodicity p);
   inline u_int getNumDropboxPeers()                      { return(dropbox_namespaces.size()); };
-  virtual void inlineSetOS(const char * const _os) {};
+  virtual void inlineSetOSDetail(const char *detail) { }
+  virtual const char* getOSDetail(char * const buf, ssize_t buf_len);
   void inlineSetSSDPLocation(const char * const url);
   void inlineSetMDNSInfo(char * const s);
   void inlineSetMDNSName(const char * const n);
@@ -316,6 +317,19 @@ class Host : public GenericHashEntry, public AlertableEntity {
       disabled_flow_status = Utils::bitmapSet(disabled_flow_status, v);
     else
       disabled_flow_status = Utils::bitmapClear(disabled_flow_status, v);
+  }
+
+  inline void setOS(OperatingSystem _os) {
+    Mac *mac = getMac();
+    if(!mac || (mac->getDeviceType() != device_networking))
+      os = _os;
+  }
+
+  inline OperatingSystem getOS() {
+    Mac *mac = getMac();
+    if(!mac || (mac->getDeviceType() != device_networking))
+      return(os);
+    return(os_unknown);
   }
 };
 

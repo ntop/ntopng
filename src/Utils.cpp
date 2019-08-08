@@ -3891,3 +3891,75 @@ int Utils::periodicityToSeconds(ScriptPeriodicity p) {
     return(0);
   }
 }
+
+/* ****************************************************** */
+
+/* TODO move into nDPI */
+OperatingSystem Utils::getOSFromFingerprint(const char *fingerprint, const char*manuf, DeviceType devtype) {
+  /*
+    Inefficient with many signatures but ok for the
+    time being that we have little data
+  */
+  if(!fingerprint)
+    return(os_unknown);
+
+  if(!strcmp(fingerprint,      "017903060F77FC"))
+    return(os_ios);
+  else if((!strcmp(fingerprint, "017903060F77FC5F2C2E"))
+	  || (!strcmp(fingerprint, "0103060F775FFC2C2E2F"))
+	  || (!strcmp(fingerprint, "0103060F775FFC2C2E"))
+	  )
+    return(os_macos);
+  else if((!strcmp(fingerprint, "0103060F1F212B2C2E2F79F9FC"))
+	  || (!strcmp(fingerprint, "010F03062C2E2F1F2179F92B"))
+	  )
+    return(os_windows);
+  else if((!strcmp(fingerprint, "0103060C0F1C2A"))
+	  || (!strcmp(fingerprint, "011C02030F06770C2C2F1A792A79F921FC2A"))
+	  )
+    return(os_linux); /* Android is also linux */
+  else if((!strcmp(fingerprint, "0603010F0C2C51452B1242439607"))
+	  || (!strcmp(fingerprint, "01032C06070C0F16363A3B45122B7751999A"))
+	  )
+    return(os_laserjet);
+  else if(!strcmp(fingerprint, "0102030F060C2C"))
+    return(os_apple_airport);
+  else if(!strcmp(fingerprint, "01792103060F1C333A3B77"))
+    return(os_android);
+
+  /* Below you can find ambiguous signatures */
+  if(manuf) {
+    if(!strcmp(fingerprint, "0103063633")) {
+      if(strstr(manuf, "Apple"))
+        return(os_macos);
+      else if(devtype == device_unknown)
+        return(os_windows);
+    }
+  }
+
+  return(os_unknown);
+}
+/*
+  Missing OS mapping
+
+  011C02030F06770C2C2F1A792A
+  010F03062C2E2F1F2179F92BFC
+*/
+
+/* ****************************************************** */
+
+/* TODO move into nDPI? */
+DeviceType Utils::getDeviceTypeFromOsDetail(const char *os) {
+  if(strcasestr(os, "iPhone")
+      || strcasestr(os, "Android")
+      || strcasestr(os, "mobile"))
+    return(device_phone);
+  else if(strcasestr(os, "Mac OS")
+      || strcasestr(os, "Windows")
+      || strcasestr(os, "Linux"))
+    return(device_workstation);
+  else if(strcasestr(os, "iPad") || strcasestr(os, "tablet"))
+    return(device_tablet);
+
+  return(device_unknown);
+}

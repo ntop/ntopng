@@ -216,7 +216,7 @@ class NetworkInterface : public AlertableEntity {
 		bool host_details,
 		LocationPolicy location,
 		char *countryFilter, char *mac_filter,
-		u_int16_t vlan_id, char *osFilter,
+		u_int16_t vlan_id, OperatingSystem osFilter,
 		u_int32_t asnFilter, int16_t networkFilter,
 		u_int16_t pool_filter, bool filtered_hosts,
 		bool blacklisted_hosts, bool hide_top_hidden,
@@ -448,7 +448,7 @@ class NetworkInterface : public AlertableEntity {
 			 AddressTree *allowed_hosts,
 			 bool host_details, LocationPolicy location,
 			 char *countryFilter, char *mac_filter,
-			 u_int16_t vlan_id, char *osFilter,
+			 u_int16_t vlan_id, OperatingSystem osFilter,
 			 u_int32_t asnFilter, int16_t networkFilter,
 			 u_int16_t pool_filter, bool filtered_hosts,
 			 bool blacklisted_hosts, bool hide_top_hidden,
@@ -464,7 +464,7 @@ class NetworkInterface : public AlertableEntity {
 			  AddressTree *allowed_hosts,
 			  bool host_details, LocationPolicy location,
 			  char *countryFilter,
-			  u_int16_t vlan_id, char *osFilter,
+			  u_int16_t vlan_id, OperatingSystem osFilter,
 			  u_int32_t asnFilter, int16_t networkFilter,
 			  u_int16_t pool_filter, bool filtered_hosts, u_int8_t ipver_filter,
 			  char *groupColumn);
@@ -655,7 +655,6 @@ class NetworkInterface : public AlertableEntity {
   bool getMacInfo(lua_State* vm, char *mac);
   bool resetMacStats(lua_State* vm, char *mac, bool delete_data);
   bool setMacDeviceType(char *strmac, DeviceType dtype, bool alwaysOverwrite);
-  bool setMacOperatingSystem(lua_State* vm, char *mac, OperatingSystem os);
   bool getASInfo(lua_State* vm, u_int32_t asn);
   bool getCountryInfo(lua_State* vm, const char *country);
   bool getVLANInfo(lua_State* vm, u_int16_t vlan_id);

@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local host_pools_utils = require "host_pools_utils"
 local ts_utils = require("ts_utils")
+local discover = require("discover_utils")
 
 sendHTTPContentTypeHeader('text/html')
 
@@ -114,10 +115,7 @@ local function print_single_group(value)
       print("hosts_stats.lua?country="..value["id"].."'>")
       print(getFlag(value["country"]).."&nbsp&nbsp")
    elseif (group_col == "os" or os_n ~= nil) then        
-      print("hosts_stats.lua?os=".. string.gsub(value["id"], " ", '%%20')  .."'>")
-      if(value["id"] ~= nil ) then
-	 print("".. getOSIcon(value["id"]) .."")
-      end      
+      print("hosts_stats.lua?os=".. value["id"] .."'>")
    elseif (group_col == "local_network_id" or group_col == "local_network" or network_n ~= nil) then
       print("hosts_stats.lua?network="..tostring(value["id"]))
       if not isEmptyString(ipver_n) then print("&version="..ipver_n) end
@@ -168,6 +166,8 @@ local function print_single_group(value)
       print('", ')
    elseif(group_col == "country" and value["id"] == "Uncategorized") then
       print('</A>'..value["id"]..'", ')
+   elseif(group_col == "os") then
+      print(discover.getOsAndIcon(value["id"]) ..'</A>", ')
    else
       print(value["id"]..'</A>", ')
    end
@@ -223,7 +223,7 @@ local function print_single_group(value)
 
       print("\"column_name\" : \""..value["id"])
    elseif ( group_col == "os" or os_n ~= nil) then
-      print("\"column_name\" : \""..value["id"])
+      print("\"column_name\" : \"".. discover.getOsName(value["id"]))
    else
       print("\"column_name\" : \""..value["name"])
    end

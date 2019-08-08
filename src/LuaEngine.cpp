@@ -798,7 +798,8 @@ static int ntop_get_ndpi_protocol_breed(lua_State* vm) {
 static int ntop_get_batched_interface_hosts(lua_State* vm, LocationPolicy location, bool tsLua=false) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   bool show_details = true, filtered_hosts = false, blacklisted_hosts = false, hide_top_hidden = false;
-  char *sortColumn = (char*)"column_ip", *country = NULL, *os_filter = NULL, *mac_filter = NULL;
+  char *sortColumn = (char*)"column_ip", *country = NULL, *mac_filter = NULL;
+  OperatingSystem os_filter = ((OperatingSystem)-1);
   bool a2zSortOrder = true;
   u_int16_t vlan_filter = (u_int16_t)-1;
   u_int32_t asn_filter = (u_int32_t)-1;
@@ -845,8 +846,9 @@ static int ntop_get_batched_interface_hosts(lua_State* vm, LocationPolicy locati
 static int ntop_get_interface_hosts(lua_State* vm, LocationPolicy location) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   bool show_details = true, filtered_hosts = false, blacklisted_hosts = false;
-  char *sortColumn = (char*)"column_ip", *country = NULL, *os_filter = NULL, *mac_filter = NULL;
+  char *sortColumn = (char*)"column_ip", *country = NULL, *mac_filter = NULL;
   bool a2zSortOrder = true;
+  OperatingSystem os_filter = ((OperatingSystem)-1);
   u_int16_t vlan_filter = (u_int16_t)-1;
   u_int32_t asn_filter = (u_int32_t)-1;
   int16_t network_filter = -2;
@@ -870,7 +872,7 @@ static int ntop_get_interface_hosts(lua_State* vm, LocationPolicy location) {
   if(lua_type(vm, 4) == LUA_TNUMBER)  toSkip               = (u_int16_t)lua_tonumber(vm, 4);
   if(lua_type(vm, 5) == LUA_TBOOLEAN) a2zSortOrder         = lua_toboolean(vm, 5) ? true : false;
   if(lua_type(vm, 6) == LUA_TSTRING)  country              = (char*)lua_tostring(vm, 6);
-  if(lua_type(vm, 7) == LUA_TSTRING)  os_filter            = (char*)lua_tostring(vm, 7);
+  if(lua_type(vm, 7) == LUA_TNUMBER)  os_filter            = (OperatingSystem)lua_tointeger(vm, 7);
   if(lua_type(vm, 8) == LUA_TNUMBER)  vlan_filter          = (u_int16_t)lua_tonumber(vm, 8);
   if(lua_type(vm, 9) == LUA_TNUMBER)  asn_filter           = (u_int32_t)lua_tonumber(vm, 9);
   if(lua_type(vm,10) == LUA_TNUMBER)  network_filter       = (int16_t)lua_tonumber(vm, 10);
@@ -930,7 +932,8 @@ static int ntop_add_macs_ip_addresses(lua_State* vm) {
 static int ntop_get_grouped_interface_hosts(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   bool show_details = true;
-  char *country = NULL, *os_filter = NULL;
+  char *country = NULL;
+  OperatingSystem os_filter = ((OperatingSystem)-1);
   char *groupBy = (char*)"column_ip";
   bool filtered_hosts = false;
   u_int16_t vlan_filter = (u_int16_t)-1;
@@ -946,7 +949,7 @@ static int ntop_get_grouped_interface_hosts(lua_State* vm) {
   if(lua_type(vm, 1) == LUA_TBOOLEAN) show_details = lua_toboolean(vm, 1) ? true : false;
   if(lua_type(vm, 2) == LUA_TSTRING)  groupBy    = (char*)lua_tostring(vm, 2);
   if(lua_type(vm, 3) == LUA_TSTRING)  country = (char*)lua_tostring(vm, 3);
-  if(lua_type(vm, 4) == LUA_TSTRING)  os_filter      = (char*)lua_tostring(vm, 4);
+  if(lua_type(vm, 4) == LUA_TNUMBER)  os_filter      = (OperatingSystem)lua_tointeger(vm, 4);
   if(lua_type(vm, 5) == LUA_TNUMBER)  vlan_filter    = (u_int16_t)lua_tonumber(vm, 5);
   if(lua_type(vm, 6) == LUA_TNUMBER)  asn_filter     = (u_int32_t)lua_tonumber(vm, 6);
   if(lua_type(vm, 7) == LUA_TNUMBER)  network_filter = (int16_t)lua_tonumber(vm, 7);
@@ -1062,25 +1065,32 @@ static int ntop_get_interface_mac_info(lua_State* vm) {
 /* ****************************************** */
 
 // ***API***
-static int ntop_set_mac_operating_system(lua_State* vm) {
+static int ntop_set_host_operating_system(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  char *mac = NULL;
+  char *host_ip = NULL, buf[64];
+  u_int16_t vlan_id;
   OperatingSystem os = os_unknown;
-  int i;
+  Host *host;
+
+  if(!ntop_interface)
+    return(CONST_LUA_ERROR);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  mac = (char*)lua_tostring(vm, 1);
+  get_host_vlan_info((char*)lua_tostring(vm, 1), &host_ip, &vlan_id, buf, sizeof(buf));
 
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  i = lua_tonumber(vm, 2);
+  os = (OperatingSystem)lua_tonumber(vm, 2);
 
-  os = (OperatingSystem)i;
   if(os >= os_max_os) return(CONST_LUA_ERROR);
 
-  if((!ntop_interface)
-     || (!mac)
-     || (!ntop_interface->setMacOperatingSystem(vm, mac, os)))
+  host = ntop_interface->findHostByIP(get_allowed_nets(vm), host_ip, vlan_id);
+  
+  if(!host)
     return(CONST_LUA_ERROR);
+
+  if(os != os_unknown)
+    host->setOS(os);
+  lua_pushnil(vm);
 
   return(CONST_LUA_OK);
 }
@@ -9072,6 +9082,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "reloadHideFromTop",                ntop_reload_hide_from_top },
   { "reloadDhcpRanges",                 ntop_reload_dhcp_ranges },
   { "reloadHostDisableFlowAlertTypes",  ntop_reload_host_disabled_flow_alert_types },
+  { "setHostOperatingSystem",           ntop_set_host_operating_system },
 
   /* Mac */
   { "getMacsInfo",                      ntop_get_interface_macs_info },
@@ -9079,7 +9090,6 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getMacInfo",                       ntop_get_interface_mac_info },
   { "getMacManufacturers",              ntop_get_interface_macs_manufacturers },
   { "getTopMacsProtos",                 ntop_get_top_macs_protos },
-  { "setMacOperatingSystem",            ntop_set_mac_operating_system },
   { "setMacDeviceType",                 ntop_set_mac_device_type },
   { "getMacDeviceTypes",                ntop_get_mac_device_types },
 

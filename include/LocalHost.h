@@ -33,7 +33,8 @@ class LocalHost : public Host, public SerializableElement {
   std::map<u_int16_t,PortContactStats> udp_client_ports, tcp_client_ports, udp_server_ports, tcp_server_ports;
   
   /* LocalHost data: update LocalHost::deleteHostData when adding new fields */
-  char *os;
+  OperatingSystem os;
+  char *os_detail;
   bool drop_all_host_traffic; 
   /* END Host data: */
 
@@ -53,7 +54,6 @@ class LocalHost : public Host, public SerializableElement {
   LocalHost(NetworkInterface *_iface, char *ipAddress, u_int16_t _vlanId);
   virtual ~LocalHost();
 
-  virtual char * get_os(char * const buf, ssize_t buf_len);
   virtual int16_t get_local_network_id() const { return(local_network_id);  };
   virtual bool isLocalHost()  const            { return(true);              };
   virtual bool isSystemHost() const            { return(systemHost);        };
@@ -62,11 +62,11 @@ class LocalHost : public Host, public SerializableElement {
     return(iface->getNetworkStats(networkId));
   };
   virtual u_int32_t getActiveHTTPHosts()             { return(getHTTPstats() ? getHTTPstats()->get_num_virtual_hosts() : 0); };
-  virtual char* get_os()                             { return(os ? os : (char*)"");                    };
   virtual HostStats* allocateStats()                 { return(new LocalHostStats(this));               };
 
   virtual bool dropAllTraffic()  { return(drop_all_host_traffic); };
-  virtual void inlineSetOS(const char * const _os);
+  virtual void inlineSetOSDetail(const char *_os_detail);
+  virtual const char* getOSDetail(char * const buf, ssize_t buf_len);
   virtual void updateHostTrafficPolicy(char *key);
 
   virtual void incICMP(u_int8_t icmp_type, u_int8_t icmp_code, bool sent, Host *peer) { stats->incICMP(icmp_type, icmp_code, sent, peer); };

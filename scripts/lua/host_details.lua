@@ -496,7 +496,7 @@ if((page == "overview") or (page == nil)) then
       if(host.childSafe == true) then print(getSafeChildIcon()) end
 
      if(host.operatingSystem ~= 0) then
-       print(" "..getOperatingSystemIcon(host.operatingSystem).." ")
+       print(" "..discover.getOsIcon(host.operatingSystem).." ")
      end
 
       historicalProtoHostHref(getInterfaceId(ifname), host["ip"], nil, nil, nil)
@@ -529,7 +529,12 @@ if((page == "overview") or (page == nil)) then
    if(host["os"] ~= "") then
       print("<tr>")
       if(host["os"] ~= "") then
-         print("<th>"..i18n("os").."</th><td> <A HREF='"..ntop.getHttpPrefix().."/lua/hosts_stats.lua?os=" .. string.gsub(host["os"], " ", '%%20').. "'>"..mapOS2Icon(host["os"]) .. "</A></td><td></td>\n")
+        local os_detail = ""
+        if not isEmptyString(host["os_detail"]) then
+          os_detail = os_detail .. " [" .. host["os_detail"] .. "]"
+        end
+
+         print("<th>"..i18n("os").."</th><td> <A HREF='"..ntop.getHttpPrefix().."/lua/hosts_stats.lua?os=" .. host["os"] .."'>".. discover.getOsAndIcon(host["os"])  .."</A>".. os_detail .."</td><td></td>\n")
       else
          print("<th></th><td></td>\n")
       end
