@@ -814,7 +814,7 @@ function alerts_api.load_check_modules(subdir, str_granularity)
       local modname = string.sub(fname, 1, string.len(fname) - 4)
       local check_module = require(modname)
 
-      if check_module.check_function then
+      if check_module.check_function and check_module.key then
 	 if check_module.granularity and str_granularity then
 	    -- When the module specify one or more granularities
 	    -- at which checks have to be run, the module is only

@@ -1075,7 +1075,8 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
 	 end
 
          -- TODO refactor this into the threshold cross checker
-         for k, check_module in pairs(descr) do
+         for _, check_module in pairs(descr) do
+	    k = check_module.key
 	    value    = _POST["value_"..k]
 	    operator = _POST["op_"..k] or ""
 
@@ -1201,7 +1202,8 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
       print[[</th></tr>]]
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 
-      for key, check_module in pairsByKeys(descr, asc) do
+      for _, check_module in pairsByKeys(descr, asc) do
+        local key = check_module.key
         local gui_conf = check_module.gui
 	local show_input = true
 
