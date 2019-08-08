@@ -532,7 +532,7 @@ void Flow::processDetectedProtocol() {
     break;
 
   case NDPI_PROTOCOL_TOR:
-  case NDPI_PROTOCOL_SSL:
+  case NDPI_PROTOCOL_TLS:
     protos.ssl.ssl_version = ndpiFlow->protos.stun_ssl.ssl.ssl_version;
 
 #if 0
@@ -625,7 +625,7 @@ void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
      this addresses detection for youtube, e.g., when the client
      requests s.youtube.com but the server responds with google.com */
   if((!forceDetection)
-     && (proto_id.master_protocol == NDPI_PROTOCOL_SSL)
+     && (proto_id.master_protocol == NDPI_PROTOCOL_TLS)
      && (get_packets() < NDPI_MIN_NUM_PACKETS)
      && (ndpif = get_ndpi_flow())
      && ((ndpif->protos.stun_ssl.ssl.client_certificate[0] == '\0')
@@ -1106,7 +1106,7 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
     postFlowSetIdle(tv->tv_sec);
   }
 
-  if(check_tor && (ndpiDetectedProtocol.app_protocol == NDPI_PROTOCOL_SSL)) {
+  if(check_tor && (ndpiDetectedProtocol.app_protocol == NDPI_PROTOCOL_TLS)) {
     char rsp[256];
 
     if(ntop->getRedis()->getAddress(protos.ssl.certificate, rsp, sizeof(rsp), false) == 0) {
@@ -2564,7 +2564,7 @@ bool Flow::isSSLProto() {
   u_int16_t lower = ndpi_get_lower_proto(ndpiDetectedProtocol);
 
   return(
-    (lower == NDPI_PROTOCOL_SSL) ||
+    (lower == NDPI_PROTOCOL_TLS) ||
     (lower == NDPI_PROTOCOL_MAIL_IMAPS) ||
     (lower == NDPI_PROTOCOL_MAIL_SMTPS) ||
     (lower == NDPI_PROTOCOL_MAIL_POPS)
@@ -3743,7 +3743,7 @@ FlowStatus Flow::getFlowStatus() {
       } else {
 	/* 3WH is over */
 	switch(l7proto) {
-	case NDPI_PROTOCOL_SSL:
+	case NDPI_PROTOCOL_TLS:
 	  /*
 	    CNs are NOT case sensitive as per RFC 5280
 	    so we use ...case... functions to do the comparisions

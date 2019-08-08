@@ -1999,7 +1999,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	flow->get_cli_host()->dissectDropbox((const char *)payload, trusted_payload_len);
       break;
 
-    case NDPI_PROTOCOL_SSL:
+    case NDPI_PROTOCOL_TLS:
       if(trusted_payload_len > 0)
 	flow->dissectSSL((char *)payload, trusted_payload_len);
       break;

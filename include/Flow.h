@@ -247,7 +247,7 @@ class Flow : public GenericHashEntry {
   static const ndpi_protocol ndpiUnknownProtocol;
   bool isTiny() const;
   bool isLongLived() const;
-  inline bool isSSL()  const { return(isProto(NDPI_PROTOCOL_SSL));  }
+  inline bool isSSL()  const { return(isProto(NDPI_PROTOCOL_TLS));  }
   inline bool isSSH()  const { return(isProto(NDPI_PROTOCOL_SSH));  }
   inline bool isDNS()  const { return(isProto(NDPI_PROTOCOL_DNS));  }
   inline bool isDHCP() const { return(isProto(NDPI_PROTOCOL_DHCP)); }
