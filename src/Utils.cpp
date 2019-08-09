@@ -2509,7 +2509,7 @@ in_addr_t Utils::inet_addr(const char *cp) {
 /* ****************************************************** */
 
 char* Utils::intoaV4(unsigned int addr, char* buf, u_short bufLen) {
-  char *cp, *retStr;
+  char *cp;
   int n;
 
   cp = &buf[bufLen];
@@ -2527,14 +2527,12 @@ char* Utils::intoaV4(unsigned int addr, char* buf, u_short bufLen) {
       if(byte > 0)
 	*--cp = byte + '0';
     }
-    *--cp = '.';
+    if(n > 1)
+      *--cp = '.';
     addr >>= 8;
   } while (--n > 0);
 
-  /* Convert the string to lowercase */
-  retStr = (char*)(cp+1);
-
-  return(retStr);
+  return(cp);
 }
 
 /* ****************************************************** */
