@@ -3689,7 +3689,7 @@ FlowStatus Flow::getFlowStatus() {
   if(isBlacklistedFlow())
     return status_blacklisted;
 
-  if(get_protocol_breed() == NDPI_PROTOCOL_POTENTIALLY_DANGEROUS)
+  if(get_protocol_breed() == NDPI_PROTOCOL_DANGEROUS)
     return status_potentially_dangerous;
 
   if(!isDeviceAllowedProtocol())
