@@ -118,7 +118,8 @@ int main(int argc, char *argv[])
   char path[MAX_PATH];
   FILE *fd;
   ThreadedActivity *boot_activity;
-    
+
+  printf("%u\n", json_type_object); return(0);
 #ifdef WIN32
   initWinsock32();
 #else

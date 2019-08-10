@@ -928,21 +928,25 @@ void ZMQParserInterface::parseSingleJSONFlow(json_object *o,
     ParsedValue value = { 0 };
     bool add_to_additional_fields = false;
 
-    switch (type) {
-      case json_type_int:
-        value.uint_num = json_object_get_int64(v);
-        value.double_num = value.uint_num;
+    switch(type) {
+    case json_type_int:
+      value.uint_num = json_object_get_int64(v);
+      value.double_num = value.uint_num;
       break;
-      case json_type_double:
-        value.double_num = json_object_get_double(v);
+    case json_type_double:
+      value.double_num = json_object_get_double(v);
       break;
-      case json_type_string:
-        value.string = json_object_get_string(v);
-        if (strcmp(key,"json") == 0)
-          additional_o = json_tokener_parse(value.string);
+    case json_type_string:
+      value.string = json_object_get_string(v);
+      if (strcmp(key,"json") == 0)
+	additional_o = json_tokener_parse(value.string);
       break;
-      default:
-        ntop->getTrace()->traceEvent(TRACE_WARNING, "JSON type %u not supported\n", type);
+    case json_type_object:
+      // ntop->getTrace()->traceEvent(TRACE_WARNING, "Not handling json_type_object [%s]", json_object_get_string(v));
+      break;
+	
+    default:
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "JSON type %u not supported\n", type);
       break;
     }
 
