@@ -119,7 +119,6 @@ int main(int argc, char *argv[])
   FILE *fd;
   ThreadedActivity *boot_activity;
 
-  printf("%u\n", json_type_object); return(0);
 #ifdef WIN32
   initWinsock32();
 #else
