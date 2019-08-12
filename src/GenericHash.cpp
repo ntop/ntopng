@@ -76,13 +76,6 @@ bool GenericHash::add(GenericHashEntry *h, bool do_lock) {
   if(hasEmptyRoom()) {
     u_int32_t hash = (h->key() % num_hashes);
 
-    if(false) {
-      char buf[256];
-
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(): adding %s/%u",
-				   __FUNCTION__, h->get_string_key(buf, sizeof(buf)), h->key());
-    }
-
     if(do_lock)
       locks[hash]->lock(__FILE__, __LINE__);
 
@@ -176,19 +169,18 @@ bool GenericHash::walk(u_int32_t *begin_slot,
   Active -> Idle -> Ready to be Purged -> Purged
  */
 
-u_int GenericHash::purgeIdle() {
+u_int GenericHash::purgeIdle(bool force_idle) {
   u_int i, num_purged = 0, buckets_checked = 0;
   time_t now = time(NULL);
-
-  if(ntop->getGlobals()->isShutdown())
-    return(0);
+  /* Visit all entries when force_idle is true */
+  u_int visit_fraction = !force_idle ? purge_step : num_hashes; 
 
 #if WALK_DEBUG
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s @ %s] Begin purgeIdle() [begin index: %u][purge step: %u]",
-				 name, iface->get_name(), last_purged_hash, purge_step);
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s @ %s] Begin purgeIdle() [begin index: %u][purge step: %u][force_idle: %u]",
+				 name, iface->get_name(), last_purged_hash, visit_fraction, force_idle ? 1 : 0);
 #endif
 
-  for(u_int j = 0; j < purge_step; j++) {
+    for(u_int j = 0; j < visit_fraction; j++) {
     if(++last_purged_hash == num_hashes) last_purged_hash = 0;
     i = last_purged_hash;
 
@@ -224,7 +216,8 @@ u_int GenericHash::purgeIdle() {
 	  /* Do the chores */
 	  head->housekeep(now);
 
-	  if((head_state == hash_entry_state_active) && head->idle())
+	  if(head_state == hash_entry_state_active
+	     && (head->idle() || force_idle))
 	    head->set_hash_entry_state_idle();
 
 	  prev = head;

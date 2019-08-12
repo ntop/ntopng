@@ -560,7 +560,7 @@ void HTTPstats::updateStats(struct timeval *tv) {
     bool walk_all = true;
     
     virtualHosts->walk(&begin_slot, walk_all, update_http_stats, tv);
-    virtualHosts->purgeIdle();
+    virtualHosts->purgeIdle(false);
   }
 
   for(u_int8_t i = 0; i < 2 ; i++) {

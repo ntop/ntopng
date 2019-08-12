@@ -69,11 +69,7 @@ void GenericHashEntry::set_state(HashEntryState s) {
 /* ***************************************** */
 
 HashEntryState GenericHashEntry::get_state() {
-  /* When the interface is no longer running it is safe to assume the entry is idle */
-  if(iface && (!iface->isRunning()))
-    set_hash_entry_state_idle();
-  
-  return(hash_entry_state);
+  return hash_entry_state;
 };
 
 /* ***************************************** */
