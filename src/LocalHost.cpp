@@ -41,7 +41,16 @@ LocalHost::LocalHost(NetworkInterface *_iface, char *ipAddress, u_int16_t _vlanI
 
 LocalHost::~LocalHost() {
   iface->decNumHosts(true /* A local host */);
+  if(initial_ts_point) delete(initial_ts_point);
+  freeLocalHostData();
+}
 
+/* *************************************** */
+
+void LocalHost::set_hash_entry_state_idle() {
+  /* Serialization is performed, inline, as soon as the LocalHost becomes idle, and
+     not when it is deleted. This guarantees that, if the same host becomes active again,
+     its counters will be consistent even if its other instance has still to be deleted. */
   if(data_delete_requested)
     deleteRedisSerialization();
   else if((ntop->getPrefs()->is_idle_local_host_cache_enabled()
@@ -50,9 +59,8 @@ LocalHost::~LocalHost() {
     checkStatsReset();
     serializeToRedis();
   }
-  if(initial_ts_point) delete(initial_ts_point);
 
-  freeLocalHostData();
+  GenericHashEntry::set_hash_entry_state_idle();
 }
 
 /* *************************************** */

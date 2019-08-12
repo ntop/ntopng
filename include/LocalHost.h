@@ -54,6 +54,7 @@ class LocalHost : public Host, public SerializableElement {
   LocalHost(NetworkInterface *_iface, char *ipAddress, u_int16_t _vlanId);
   virtual ~LocalHost();
 
+  virtual void set_hash_entry_state_idle();
   virtual int16_t get_local_network_id() const { return(local_network_id);  };
   virtual bool isLocalHost()  const            { return(true);              };
   virtual bool isSystemHost() const            { return(systemHost);        };
