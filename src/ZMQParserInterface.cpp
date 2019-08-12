@@ -722,7 +722,7 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t fi
 
 /* **************************************************** */
 
-bool ZMQParserInterface::parseNProbeMiniField(ParsedFlow * const flow, const char * const key, ParsedValue *value, json_object * const jvalue) const {
+bool ZMQParserInterface::parseNProbeAgentField(ParsedFlow * const flow, const char * const key, ParsedValue *value, json_object * const jvalue) const {
   bool ret = false;
   json_object *obj;
 
@@ -921,28 +921,28 @@ void ZMQParserInterface::parseSingleJSONFlow(json_object *o,
   flow.source_id = source_id;
 
   while(!json_object_iter_equal(&it, &itEnd)) {
-    const char *key   = json_object_iter_peek_name(&it);
-    json_object *v    = json_object_iter_peek_value(&it);
+    const char *key     = json_object_iter_peek_name(&it);
+    json_object *jvalue = json_object_iter_peek_value(&it);
     json_object *additional_o = NULL;
-    enum json_type type = json_object_get_type(v);
+    enum json_type type = json_object_get_type(jvalue);
     ParsedValue value = { 0 };
     bool add_to_additional_fields = false;
 
     switch(type) {
     case json_type_int:
-      value.uint_num = json_object_get_int64(v);
+      value.uint_num = json_object_get_int64(jvalue);
       value.double_num = value.uint_num;
       break;
     case json_type_double:
-      value.double_num = json_object_get_double(v);
+      value.double_num = json_object_get_double(jvalue);
       break;
     case json_type_string:
-      value.string = json_object_get_string(v);
+      value.string = json_object_get_string(jvalue);
       if (strcmp(key,"json") == 0)
 	additional_o = json_tokener_parse(value.string);
       break;
     case json_type_object:
-      // ntop->getTrace()->traceEvent(TRACE_WARNING, "Not handling json_type_object [%s]", json_object_get_string(v));
+      /* This is handled by parseNProbeAgentField or addAdditionalField */
       break;
 	
     default:
@@ -950,7 +950,7 @@ void ZMQParserInterface::parseSingleJSONFlow(json_object *o,
       break;
     }
 
-    if(key != NULL && v != NULL) {
+    if(key != NULL && jvalue != NULL) {
       u_int32_t pen, key_id;
       bool res;
 
@@ -995,7 +995,7 @@ void ZMQParserInterface::parseSingleJSONFlow(json_object *o,
 	  break;
 	case UNKNOWN_FLOW_ELEMENT:
 	  /* Attempt to parse it as an nProbe mini field */
-	  if(parseNProbeMiniField(&flow, key, &value, v)) {
+	  if(parseNProbeAgentField(&flow, key, &value, jvalue)) {
 	    if(!flow.hasParsedeBPF()) {
 	      flow.setParsedeBPF();
 	      flow.absolute_packet_octet_counters = true;
@@ -1015,7 +1015,7 @@ void ZMQParserInterface::parseSingleJSONFlow(json_object *o,
 
       if(add_to_additional_fields) {
         //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Additional field: %s", key);
-	flow.addAdditionalField(key, json_object_get(v));
+	flow.addAdditionalField(key, json_object_get(jvalue));
       }
 
       if(additional_o) json_object_put(additional_o);
@@ -1192,7 +1192,7 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
 	case UNKNOWN_FLOW_ELEMENT:
 #if 0 // TODO 
 	  /* Attempt to parse it as an nProbe mini field */
-	  if(parseNProbeMiniField(&flow, key_str, &value)) {
+	  if(parseNProbeAgentField(&flow, key_str, &value)) {
 	    if(!flow.hasParsedeBPF()) {
 	      flow.setParsedeBPF();
 	      flow.absolute_packet_octet_counters = true;
