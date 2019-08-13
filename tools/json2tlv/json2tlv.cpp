@@ -272,10 +272,11 @@ int main(int argc, char *argv[]) {
     if (zmq_sock) {
       for(i = 0; i < tlv_msgs; i++) {
         struct zmq_msg_hdr msg_hdr;
-        u_int8_t *buffer = (use_json_encoding ? (u_int8_t *) serializer[i].json_buffer : serializer[i].buffer);
+        u_int32_t buffer_len;
+        u_int8_t *buffer = (u_int8_t *) ndpi_serializer_get_buffer(&serializer[i], &buffer_len);
         strncpy(msg_hdr.url, "flow", sizeof(msg_hdr.url));
         msg_hdr.version = (use_json_encoding ? 2 : 3);
-        msg_hdr.size = (use_json_encoding ? strlen(serializer[i].json_buffer) : serializer[i].size_used);
+        msg_hdr.size = buffer_len;
         zmq_send(zmq_sock, &msg_hdr, sizeof(msg_hdr), ZMQ_SNDMORE);
 
         if (use_json_encoding && verbose) {
