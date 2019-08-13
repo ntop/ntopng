@@ -977,7 +977,6 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
 						NetworkInterface *iface) {
   ndpi_serialization_element_type et;
   ParsedFlow flow;
-  bool debug_tlv = false;
   int ret = 0, rc;
 
   /* Reset data */
@@ -1002,87 +1001,71 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
     case ndpi_serialization_uint32_uint32:
       ndpi_deserialize_uint32_uint32(deserializer, &key_id, &v32);
       value.double_num = value.uint_num = v32;
-      if (debug_tlv) printf("ndpi_serialization_uint32_uint32 %u=%u\n", key_id, v32);
       break;
 
     case ndpi_serialization_uint32_uint64:
       ndpi_deserialize_uint32_uint64(deserializer, &key_id, &v64);
       value.double_num = value.uint_num = v64;
-      if (debug_tlv) printf("ndpi_serialization_uint32_uint64 %u=%llu\n", key_id, (unsigned long long) v64);
       break;
 
     case ndpi_serialization_uint32_string:
       ndpi_deserialize_uint32_string(deserializer, &key_id, &vs);
-      vbkp = vs.str[vs.str_len];
-      vs.str[vs.str_len] = '\0';
       value.string = vs.str;
       value_is_string = true;
-      if (debug_tlv) printf("ndpi_serialization_uint32_string %u='%s'\n", key_id, vs.str);
       break;
 	
     case ndpi_serialization_string_float:
       ndpi_deserialize_string_float(deserializer, &key, &f);
       value.double_num = f;
-      kbkp = key.str[key.str_len];
-      key.str[key.str_len] = '\0';
       value.double_num = f;
-      getKeyId(key.str, &pen, &key_id);
       key_is_string = true;
-      if (debug_tlv) printf("ndpi_serialization_string_float %s=%u\n", key.str, v32);
       break;
       
     case ndpi_serialization_string_int32:
       ndpi_deserialize_string_int32(deserializer, &key, &i32);
       value.double_num = value.uint_num = v32;
-      kbkp = key.str[key.str_len];
-      key.str[key.str_len] = '\0';
-      getKeyId(key.str, &pen, &key_id);
       key_is_string = true;
-      if (debug_tlv) printf("ndpi_serialization_string_int32 %s=%u\n", key.str, v32);
       break;
 
     case ndpi_serialization_string_uint32:
       ndpi_deserialize_string_uint32(deserializer, &key, &v32);
       value.double_num = value.uint_num = v32;
-      kbkp = key.str[key.str_len];
-      key.str[key.str_len] = '\0';
-      getKeyId(key.str, &pen, &key_id);
       key_is_string = true;
-      if (debug_tlv) printf("ndpi_serialization_string_uint32 %s=%u\n", key.str, v32);
       break;
 
     case ndpi_serialization_string_uint64:
       ndpi_deserialize_string_uint64(deserializer, &key, &v64);
       value.double_num = value.uint_num = v64;
-      kbkp = key.str[key.str_len];
-      key.str[key.str_len] = '\0';
-      getKeyId(key.str, &pen, &key_id);
       key_is_string = true;
-      if (debug_tlv) printf("ndpi_serialization_string_uint64 %s=%llu\n", key.str, (unsigned long long) v64);
       break;
 
     case ndpi_serialization_string_string:
       ndpi_deserialize_string_string(deserializer, &key, &vs);
-      kbkp = key.str[key.str_len], vbkp = vs.str[vs.str_len];
-      key.str[key.str_len] = vs.str[vs.str_len] = '\0';
       value.string = vs.str;
-      getKeyId(key.str, &pen, &key_id);
       key_is_string = value_is_string = true;
-      if (debug_tlv) printf("ndpi_serialization_string_string %s='%s'\n", key.str, vs.str);
       break;
 
     case ndpi_serialization_end_of_record:
       ndpi_deserialize_end_of_record(deserializer);
-      if (debug_tlv) printf("EOR ");
       goto end_of_record;
       break;
 
     default:
-      //if (debug_tlv) 
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Unsupported TLV type %u\n", et);
       ret = -1;
       goto error;
       break;
+    }
+
+    /* Adding '\0' to the end of the string, backing up the character */
+    if (key_is_string) {
+      kbkp = key.str[key.str_len];
+      key.str[key.str_len] = '\0';
+      getKeyId(key.str, &pen, &key_id);
+    }
+    if (value_is_string) {
+      vbkp = vs.str[vs.str_len];
+      vs.str[vs.str_len] = '\0';
     }
 
     switch(pen) {
@@ -1159,25 +1142,13 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
         value_is_string ? json_object_new_string(value.string) : json_object_new_int64(value.uint_num));
     }
 
-    switch(et) {
-      case ndpi_serialization_uint32_string:
-        vs.str[vs.str_len] = vbkp;
-      break;
-
-      case ndpi_serialization_string_string:
-        vs.str[vs.str_len] = vbkp;
-        /* no break here */
-      case ndpi_serialization_string_uint32:
-        key.str[key.str_len] = kbkp;
-      break;
-
-      default:
-      break;
-    }
+    /* Restoring backed up character at the end of the string in place of '\0' */
+    if (key_is_string) key.str[key.str_len] = kbkp;
+    if (value_is_string) vs.str[vs.str_len] = vbkp;
+    
   } /* while */
 
  end_of_record:
-  if (debug_tlv) printf("\n");  
 
   preprocessFlow(&flow, iface);
 
