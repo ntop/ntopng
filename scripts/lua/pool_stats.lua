@@ -55,6 +55,9 @@ print ('sort: [ ["' .. getDefaultTableSort("pool_id") ..'","' .. getDefaultTable
 
 print [[
         showPagination: true,
+        buttons: [
+         '<a href="]] print(ntop.getHttpPrefix()) print[[/lua/if_stats.lua?ifid=8&page=pools#create" class="add-on btn"><i class="fa fa-plus" aria-hidden="true"></i></a>'
+        ],
         columns: [
         {
             title: "Key",
