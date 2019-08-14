@@ -529,7 +529,8 @@ bool ZMQParserInterface::parsePENZeroField(ParsedFlow * const flow, u_int32_t fi
     break;
   case IPV4_SRC_MASK:
   case IPV4_DST_MASK:
-    if(strcmp(value->string, "0"))
+    if((value->string && strcmp(value->string, "0") != 0) || 
+       (!value->string && value->uint_num != 0))
       return false;
     break;
   case IPV4_NEXT_HOP:
