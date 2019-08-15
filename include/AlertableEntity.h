@@ -44,14 +44,14 @@ protected:
   /* Read-only and shadow copy of the triggered alerts (that as usually empty/NULL) */
     *rx_triggered_alerts[MAX_NUM_PERIODIC_SCRIPTS], *shadow_rx_triggered_alerts[MAX_NUM_PERIODIC_SCRIPTS];
   u_int num_triggered_alerts;
-  
+  bool force_shadow_refresh;
   
   void syncReadonlyTriggeredAlerts();
   void updateNumTriggeredAlerts();
   
 public:
   AlertableEntity(AlertEntity entity) {
-    entity_type = entity, num_triggered_alerts = 0;
+    entity_type = entity, num_triggered_alerts = 0, force_shadow_refresh = false;
 
     for(u_int i=0; i<MAX_NUM_PERIODIC_SCRIPTS; i++)
       rx_triggered_alerts[i] = NULL, shadow_rx_triggered_alerts[i] = NULL;
@@ -101,6 +101,13 @@ public:
   void countAlerts(grouped_alerts_counters *counters);
   void getAlerts(lua_State* vm, AlertType type_filter,
 		 AlertLevel severity_filter, u_int *idx);
+
+  inline void refreshAlerts() {
+    if(force_shadow_refresh) {
+      syncReadonlyTriggeredAlerts();
+      force_shadow_refresh = false;
+    }
+  }
 };
 
 #endif

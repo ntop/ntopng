@@ -28,7 +28,6 @@ void AlertableEntity::getExpiredAlerts(ScriptPeriodicity p, lua_State* vm, time_
   std::map<std::string, Alert>::iterator it;
   int seconds = Utils::periodicityToSeconds(p);
   u_int idx = 0;
-  bool modified = false;
 
   for(it = triggered_alerts[(u_int)p].begin(); it != triggered_alerts[(u_int)p].end();) {
     Alert *alert = &it->second;
@@ -37,7 +36,7 @@ void AlertableEntity::getExpiredAlerts(ScriptPeriodicity p, lua_State* vm, time_
       if(alert->is_disabled) {
         /* The alert is disabled, remove it now.
          * NOTE: do not increment again iterator after this assignment. */
-        triggered_alerts[(u_int)p].erase(it++), modified = true;	
+        triggered_alerts[(u_int)p].erase(it++), force_shadow_refresh = true;	
       } else {
         lua_newtable(vm);
 
@@ -51,8 +50,6 @@ void AlertableEntity::getExpiredAlerts(ScriptPeriodicity p, lua_State* vm, time_
     } else
       ++it;
   }
-
-  if(modified) syncReadonlyTriggeredAlerts();
 }
 
 /* ****************************************** */
@@ -81,7 +78,6 @@ bool AlertableEntity::triggerAlert(lua_State* vm, std::string key,
 				   bool alert_disabled) {
   bool rv = false;
   std::map<std::string, Alert>::iterator it = triggered_alerts[(u_int)p].find(key);
-  bool modified = false;
   
   if(entity_val.empty()) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "setEntityValue() not called or empty entity_val");
@@ -92,12 +88,12 @@ bool AlertableEntity::triggerAlert(lua_State* vm, std::string key,
       /* Alert was not accounted but now enabled, so increase count */
       it->second.is_disabled = false;
       iface->incNumAlertsEngaged(p);
-      modified = true;
+      force_shadow_refresh = true;
     } else if(!it->second.is_disabled && alert_disabled) {
-      /* Alert was accounted but and now disabled, so decresase count */
+      /* Alert was accounted but is now disabled, so decresase count */
       it->second.is_disabled = true;
       iface->decNumAlertsEngaged(p);
-      modified = true;
+      force_shadow_refresh = true;
     }
 
     /* already present */
@@ -118,7 +114,7 @@ bool AlertableEntity::triggerAlert(lua_State* vm, std::string key,
       iface->incNumAlertsEngaged(p);
 
     triggered_alerts[(u_int)p][key] = alert;
-    modified = true, rv = true; /* inserted */
+    force_shadow_refresh = true, rv = true; /* inserted */
 
     lua_newtable(vm);
     luaAlert(vm, &alert, p);
@@ -126,8 +122,6 @@ bool AlertableEntity::triggerAlert(lua_State* vm, std::string key,
 
   if(!rv)
     lua_pushnil(vm);
-
-  if(modified) syncReadonlyTriggeredAlerts();
   
   return(rv);
 }
@@ -158,7 +152,7 @@ bool AlertableEntity::releaseAlert(lua_State* vm, NetworkInterface *iface,
     lua_pushnil(vm);
 
   triggered_alerts[(u_int)p].erase(it);
-  syncReadonlyTriggeredAlerts();
+  force_shadow_refresh = true;
   
   return(rv);
 }
@@ -182,12 +176,14 @@ void AlertableEntity::countAlerts(grouped_alerts_counters *counters) {
   std::map<std::string, Alert>::iterator it;
 
   for(p = 0; p<MAX_NUM_PERIODIC_SCRIPTS; p++) {
-    for(it = triggered_alerts[p].begin(); it != triggered_alerts[p].end(); ++it) {
-      Alert *alert = &it->second;
-
-      if(!alert->is_disabled) {
-        counters->severities[alert->alert_severity]++;
-        counters->types[alert->alert_type]++;
+    if(rx_triggered_alerts[p] != NULL) {
+      for(it = rx_triggered_alerts[p]->begin(); it != rx_triggered_alerts[p]->end(); ++it) {
+	Alert *alert = &it->second;
+	
+	if(!alert->is_disabled) {
+	  counters->severities[alert->alert_severity]++;
+	  counters->types[alert->alert_type]++;
+	}
       }
     }
   }

@@ -57,11 +57,12 @@ class LuaEngine {
    */
   ~LuaEngine();
 
-
   /* Set Hosts and Networks into the Lua context */
   void setHost(Host* h);
   void setNetwork(NetworkStats* ns);
-  
+
+  inline Host* getHost()     { return(getLuaVMContext(L)->host); }
+  NetworkStats* getNetwork() { return(getLuaVMContext(L)->network); }
   /**
    * @brief Run a Lua script.
    * @details Run a script from within ntopng. No HTTP GUI.
