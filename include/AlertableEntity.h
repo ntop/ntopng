@@ -25,46 +25,82 @@
 #include "ntop_includes.h"
 
 class AlertableEntity {
- protected:
+protected:
   AlertEntity entity_type;
   std::string entity_val;
 
-  std::map<std::string, std::string> alert_cache[MAX_NUM_PERIODIC_SCRIPTS];
-  std::map<std::string, Alert> triggered_alerts[MAX_NUM_PERIODIC_SCRIPTS];
+  /*
+    Creating multiple maps guarantees that periodic scripts at different granularities
+    do not interfere each other and thus that they can run concurrently without locking.
 
- public:
+    However while alert_cache is accessed only by the alert engine and thus it is "thread-safe"
+    as concurrent scripts (i.e. at different granularities) cannot call it, triggered_alerts
+    needs to be protected as
+    - it can be called by the Lua GUI
+    - it can be called by the alert engine
+  */
+  std::map<std::string, std::string> alert_cache[MAX_NUM_PERIODIC_SCRIPTS];
+  std::map<std::string, Alert> triggered_alerts[MAX_NUM_PERIODIC_SCRIPTS],
+  /* Read-only and shadow copy of the triggered alerts (that as usually empty/NULL) */
+    *rx_triggered_alerts[MAX_NUM_PERIODIC_SCRIPTS], *shadow_rx_triggered_alerts[MAX_NUM_PERIODIC_SCRIPTS];
+  u_int num_triggered_alerts;
+  
+  
+  void syncReadonlyTriggeredAlerts();
+  void updateNumTriggeredAlerts();
+  
+public:
   AlertableEntity(AlertEntity entity) {
-    entity_type = entity;
+    entity_type = entity, num_triggered_alerts = 0;
+
+    for(u_int i=0; i<MAX_NUM_PERIODIC_SCRIPTS; i++)
+      rx_triggered_alerts[i] = NULL, shadow_rx_triggered_alerts[i] = NULL;
   }
 
-  virtual ~AlertableEntity() {};
+  virtual ~AlertableEntity() {
+    for(u_int i=0; i<MAX_NUM_PERIODIC_SCRIPTS; i++) {
+      if(rx_triggered_alerts[i])
+	delete rx_triggered_alerts[i];
+      
+      if(shadow_rx_triggered_alerts[i])
+	delete shadow_rx_triggered_alerts[i];
+    }
+  };
 
+  /*
+    getAlertCachedValue and setAlertCacheValue as thread safe as they are invoked only by
+    periodic scripts and are not accessed by the GUI lua methods
+  */
   inline std::string getAlertCachedValue(std::string key, ScriptPeriodicity p) {
     std::map<std::string, std::string>::iterator it = alert_cache[(u_int)p].find(key);
 
     return((it != alert_cache[(u_int)p].end()) ? it->second : std::string(""));
   }
 
-  inline void setAlertCacheValue(std::string key, std::string value, ScriptPeriodicity p) {
+  inline void setAlertCacheValue(std::string key, std::string value,
+				 ScriptPeriodicity p) {
     alert_cache[(u_int)p][key] = value;
   }
 
   u_int getNumTriggeredAlerts(ScriptPeriodicity p);
+  inline u_int getNumTriggeredAlerts() { return(num_triggered_alerts); }
+  
   inline void setEntityValue(const char *ent_val) { entity_val = ent_val; }
 
   bool triggerAlert(lua_State* vm, std::string key,
-    NetworkInterface *iface, ScriptPeriodicity p, time_t now,
-    AlertLevel alert_severity, AlertType alert_type,
-    const char *alert_subtype,
-    const char *alert_json,
-    bool alert_disabled);
-  bool releaseAlert(lua_State* vm, NetworkInterface *iface, std::string key, ScriptPeriodicity p, time_t now);
+		    NetworkInterface *iface, ScriptPeriodicity p, time_t now,
+		    AlertLevel alert_severity, AlertType alert_type,
+		    const char *alert_subtype,
+		    const char *alert_json,
+		    bool alert_disabled);
+  bool releaseAlert(lua_State* vm, NetworkInterface *iface, std::string key,
+		    ScriptPeriodicity p, time_t now);
 
   void luaAlert(lua_State* vm, Alert *alert, ScriptPeriodicity p);
   void getExpiredAlerts(ScriptPeriodicity p, lua_State* vm, time_t now);
-  u_int getNumTriggeredAlerts();
   void countAlerts(grouped_alerts_counters *counters);
-  void getAlerts(lua_State* vm, AlertType type_filter, AlertLevel severity_filter, u_int *idx);
+  void getAlerts(lua_State* vm, AlertType type_filter,
+		 AlertLevel severity_filter, u_int *idx);
 };
 
 #endif

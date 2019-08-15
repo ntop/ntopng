@@ -7700,7 +7700,7 @@ static bool host_invoke_alertable_callback(GenericHashEntry *entity, void *user_
  * parameter set to the provided user_data.
  */
 void NetworkInterface::walkAlertables(int entity_type, const char *entity_value,
-          alertable_callback *callback, void *user_data) {
+				      alertable_callback *callback, void *user_data) {
   /* Hosts */
   if((entity_type == alert_entity_none) || (entity_type == alert_entity_host)) {
     if(entity_value == NULL) {
@@ -7755,7 +7755,7 @@ static void count_alerts_callback(AlertableEntity *alertable, void *user_data) {
 }
 
 void NetworkInterface::getEngagedAlertsCount(lua_State *vm, int entity_type,
-          const char *entity_value) {
+					     const char *entity_value) {
   grouped_alerts_counters counters;
   u_int32_t tot_alerts = 0;
   std::map<AlertType, u_int32_t>::iterator it;
@@ -7864,7 +7864,8 @@ static void get_engaged_alerts_callback(AlertableEntity *alertable, void *user_d
 }
 
 void NetworkInterface::getEngagedAlerts(lua_State *vm, int entity_type,
-          const char *entity_value, AlertType alert_type, AlertLevel alert_severity) {
+					const char *entity_value, AlertType alert_type,
+					AlertLevel alert_severity) {
   struct get_engaged_alerts_userdata data;
 
   data.vm = vm;
