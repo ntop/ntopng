@@ -2,9 +2,9 @@
 -- (C) 2013-19 - ntop.org
 --
 
+local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
-local dirs = ntop.getDirs()
 local json = require("dkjson")
 local alert_endpoints = require("alert_endpoints_utils")
 local alert_consts = require("alert_consts")

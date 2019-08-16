@@ -10,6 +10,7 @@ local json = require("dkjson")
 local os_utils = require("os_utils")
 local alerts_api = require("alerts_api")
 require("ntop_utils")
+require "alert_utils"
 
 --
 -- Sample query:
