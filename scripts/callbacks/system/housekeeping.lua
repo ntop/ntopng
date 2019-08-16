@@ -23,6 +23,8 @@ alerts_api.checkPendingStoreAlerts(deadline)
 checkStoreAlertsFromC(deadline)
 lists_utils.checkReloadLists()
 
-recording_utils.checkExtractionJobs()
+if recording_utils.isAvailable() then
+  recording_utils.checkExtractionJobs()
+end
 
 processAlertNotifications(now, periodicity)
