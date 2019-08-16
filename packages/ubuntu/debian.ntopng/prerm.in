@@ -51,10 +51,14 @@ case "$1" in
 	if hash systemctl 2>/dev/null; then
                 if hash deb-systemd-invoke 2>/dev/null; then
                        deb-systemd-invoke stop ntopng
-                       deb-systemd-invoke disable ntopng
+                       deb-systemd-invoke stop 'ntopng@*'
+                       deb-systemd-invoke disable ntopng > /dev/null
+                       deb-systemd-invoke disable 'ntopng@*' > /dev/null
                 else
                        systemctl stop ntopng
-                       systemctl disable ntopng
+                       systemctl stop 'ntopng@*'
+                       systemctl disable ntopng > /dev/null
+                       systemctl disable 'ntopng@*' > /dev/null
                 fi
 		systemctl daemon-reload
 		systemctl reset-failed

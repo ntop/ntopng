@@ -30,7 +30,7 @@ ntopng-prep:
 	fi
 	if hash systemctl 2>/dev/null; then \
 		mkdir -p ${NTOPNG_BUILD}/etc/systemd/system/; \
-		cp -r $(NTOPNG_HOME)/packages/etc/systemd/system/ntopng.service ${NTOPNG_BUILD}/etc/systemd/system/; \
+		cp -r $(NTOPNG_HOME)/packages/etc/systemd/system/ntopng*.service ${NTOPNG_BUILD}/etc/systemd/system/; \
 		rm -rf ${NTOPNG_BUILD}/etc/init.d; \
 	fi
 	rm -rf ${NTOPNG_BUILD}/usr/share/ntopng/httpdocs/geoip/

@@ -65,9 +65,10 @@ if hash systemctl 2>/dev/null; then
         deb-systemd-invoke enable ntopng
         deb-systemd-invoke restart ntopng
     else
-        systemctl enable ntopng
-        systemctl restart ntopng
+	systemctl enable ntopng
+	systemctl restart ntopng
     fi
+    systemctl restart 'ntopng@*' --all
 elif [ -f /etc/init.d/ntopng ]; then
     update-rc.d ntopng defaults 93 >/dev/null
     /etc/init.d/ntopng restart

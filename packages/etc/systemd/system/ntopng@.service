@@ -1,0 +1,27 @@
+[Unit]
+Description=ntopng high-speed web-based traffic monitoring and analysis tool
+After=network.target syslog.target redis.service pf_ring.service cluster.service mysql.service
+Requires=
+Wants=pf_ring.service cluster.service
+PartOf=pf_ring.service cluster.service
+
+[Service]
+Type=simple
+
+ExecStartPre=/bin/sh -c '/bin/echo "$(/bin/date) ntopng %i StartPre" >> /var/log/ntop-systemd.log'
+# Config restore only available for non instantiated-services
+# ExecStartPre=/bin/sh -c '/usr/bin/ntopng-utils-manage-config -a check-restore  && /usr/bin/ntopng-utils-manage-config -a restore || true'
+ExecStartPre=/bin/sh -c '/bin/sed "/^[ ]*-e.*$\\|^[ ]*-G.*\\|^[ ]*--daemon.*\\|^[ ]*--pid.*/s/^/#/" /etc/ntopng/ntopng-%i.conf > /run/ntopng-%i.conf'
+
+ExecStart=/usr/local/bin/ntopng /run/ntopng-%i.conf
+
+ExecStartPost=/bin/sh -c '/bin/echo "$(/bin/date) ntopng %i StartPost" >> /var/log/ntop-systemd.log'
+ExecStopPost=-/bin/rm -rf /run/ntopng-%i.conf
+ExecStopPost=/bin/sh -c '/bin/echo "$(/bin/date) ntopng %i StopPost" >> /var/log/ntop-systemd.log'
+
+Restart=on-abnormal
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+Alias=
