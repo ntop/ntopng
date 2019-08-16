@@ -320,24 +320,28 @@ void HostPools::dumpToRedis() {
     }
   }
 
+#ifdef HAVE_NEDGE
   // Save the deadline time for quota expiration, assuming quota is reset at midnight
   snprintf(buf, sizeof(buf), "%u",
 	   Utils::roundTime(time(0), 86400, ntop->get_time_offset()) - 86400);
   redis->hashSet(key, (char *)"deadline", buf);
+#endif
 }
 
 /* *************************************** */
 
 void HostPools::loadFromRedis() {
-  char key[128], buf[32], *value;
+  char key[CONST_MAX_LEN_REDIS_KEY], buf[32], *value;
   json_object *obj;
   enum json_tokener_error jerr = json_tokener_success;
   Redis *redis = ntop->getRedis();
-  time_t deadline = 0;
 
   snprintf(key, sizeof(key), HOST_POOL_SERIALIZED_KEY, iface->get_id());
 
   if((!redis) || (!stats) || (!iface)) return;
+
+#ifdef HAVE_NEDGE
+  time_t deadline = 0;
 
   if(redis->hashGet(key, (char *)"deadline", buf, sizeof(buf)) == 0) {
     sscanf(buf, "%lu", &deadline);
@@ -345,6 +349,7 @@ void HostPools::loadFromRedis() {
     if(time(0) > deadline)
       return; /* Expired */
   }
+#endif
 
   if((value = (char *) malloc(POOL_MAX_SERIALIZED_LEN)) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to allocate memory to deserialize %s", key);

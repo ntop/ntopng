@@ -5805,6 +5805,7 @@ static int ntop_reload_host_pools(lua_State *vm) {
 
 #ifdef NTOPNG_PRO
 
+#ifdef HAVE_NEDGE
 /* NOTE: do no call this directly - use host_pools_utils.resetPoolsQuotas instead */
 static int ntop_reset_pools_quotas(lua_State *vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
@@ -5822,6 +5823,7 @@ static int ntop_reset_pools_quotas(lua_State *vm) {
   } else
     return(CONST_LUA_ERROR);
 }
+#endif
 
 /* ****************************************** */
 
@@ -9120,7 +9122,9 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "appendInfluxDB",                   ntop_append_influx_db                 },
 
 #ifdef NTOPNG_PRO
+#ifdef HAVE_NEDGE
   { "resetPoolsQuotas",                 ntop_reset_pools_quotas               },
+#endif
   { "getHostPoolsStats",                ntop_get_host_pool_interface_stats    },
   { "getHostPoolsVolatileMembers",      ntop_get_host_pool_volatile_members   },
   { "purgeExpiredPoolsMembers",         ntop_purge_expired_host_pools_members },
