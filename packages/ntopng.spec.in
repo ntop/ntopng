@@ -95,6 +95,7 @@ rm -fr $RPM_BUILD_ROOT
 %config(noreplace) /etc/ntopng/ntopng.conf
 %if 0%{?centos_ver} == 7
 /usr/lib/systemd/system/ntopng.service
+/usr/lib/systemd/system/ntopng@.service
 %else
 /etc/init.d/ntopng
 %endif
