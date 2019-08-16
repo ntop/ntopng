@@ -104,3 +104,46 @@ To print the status of the ntopng daemon on a unix system with systemd type
 .. code:: bash
 
    systemctl status ntopng
+
+Running Multiple Daemons
+------------------------
+
+Multiple ntopng daemons can be run on the same machine when
+:code:`systemd` is available. In general, this is not necessary as a
+single ntopng is multi-tenant and can handle multiple
+interfaces. However, there are circumstances under which it is
+desirable to have multiple ntopng instances running.
+
+To run multiple ntopng daemons, :code:`systemctl` can be used. Each
+daemon is identified by a :code:`<name>` so that :code:`systemctl` can
+be used with this identifier when controlling the daemon. For example:
+
+.. code:: bash
+
+   systemctl start ntopng@eno1
+   systemctl stop ntopng@eno1
+   systemctl start ntopng@lo
+   systemctl stop ntopng@lo
+
+Each daemon must have its own configuration file under
+:code:`/etc/ntopng` and the configuration file name must be named as
+:code:`ntopng-<name>.conf`. The example above assumes two files
+:code:`ntopng-eno1.conf` and :code:`ntopng-lo.conf` exist under
+:code:`/etc/ntopng`.
+
+In order to run multiple daemons on the same machine, each daemon
+must be guaranteed to have its own redis database (option :code:`-r`), its
+own HTTP/HTTPS ports (options :code:`-w` and :code:`-W`), and its own
+data directory (option :code:`-d`). Those options must be specified in
+each daemon's configuration file.
+
+In order to start daemons on boot, it is necessary to enable them as
+
+.. code:: bash
+
+   systemctl enable ntopng@eno1
+   systemctl enable ntopng@eno1
+
+Daemons which have been :code:`enable` d, will be automatically
+restarted after each ntopng update. Note that backup and restore of
+ntopng configuration is not supported when multiple daemons are in use.
