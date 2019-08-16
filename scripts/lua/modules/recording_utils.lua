@@ -17,6 +17,7 @@ local extraction_jobs_key = "ntopng.traffic_recording.extraction_jobs"
 local is_available_key = "ntopng.cache.traffic_recording_available"
 local provider_key = "ntopng.prefs.traffic_recording.ifid_%d.provider"
 local external_providers_reminder_dismissed_key = "ntopng.prefs.traffic_recording.ifid_%d.reminder_dismissed"
+local is_running_job_pending_key = "ntopng.cache.traffic_recording_job_pending"
 
 local recording_utils = {}
 
@@ -124,6 +125,9 @@ function recording_utils.checkAvailable()
   end
 
   ntop.setCache(is_available_key, ternary(is_available, "1", "0"))
+
+  -- forcing a setJobAsCompleted after startup to handle interrupted jobs
+  ntop.setCache(is_running_job_pending_key, "1")
 end
 
 --! @brief Check if traffic recording is available and allowed for the current user on an interface
@@ -1040,6 +1044,7 @@ function recording_utils.checkExtractionJobs()
       if not isEmptyString(job_json) then
         local job = json.decode(job_json)
 
+        -- job has been stopped, stopping extraction
         ntop.stopExtraction(job.id)
 
         job.status = 'stopped'
@@ -1050,12 +1055,14 @@ function recording_utils.checkExtractionJobs()
 
   if not ntop.isExtractionRunning() then
     -- set the previous job as completed, if any
-    setJobAsCompleted()
+    if ntop.getCache(is_running_job_pending_key) == "1" then
+      setJobAsCompleted()
+      ntop.setCache(is_running_job_pending_key, "0")
+    end
 
     -- run a new extraction job
     local id = ntop.lpopCache(extraction_queue_key)
     if not isEmptyString(id) then
-
       local job_json = ntop.getHashCache(extraction_jobs_key, id)
       if not isEmptyString(job_json) then
         local job = json.decode(job_json)
@@ -1080,6 +1087,8 @@ function recording_utils.checkExtractionJobs()
             job.filter, 
             extraction_limit,
 	    job.timeline_path)
+
+          ntop.setCache(is_running_job_pending_key, "1")
 
           job.status = 'processing'
           ntop.setHashCache(extraction_jobs_key, job.id, json.encode(job))
