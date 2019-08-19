@@ -2748,7 +2748,7 @@ static int ntop_get_interface_flows_stats(lua_State* vm) {
 /* ****************************************** */
 
 // ***API***
-static int ntop_get_interface_network_stats(lua_State* vm) {
+static int ntop_network_get_network_stats(lua_State* vm) {
   struct ntopngLuaContext *c = getLuaVMContext(vm);
   NetworkStats *ns = c ? c->network : NULL;
 
@@ -2771,6 +2771,28 @@ static int ntop_get_interface_networks_stats(lua_State* vm) {
   if(ntop_interface)
     ntop_interface->getNetworksStats(vm);
   else
+    lua_pushnil(vm);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+// ***API***
+static int ntop_get_interface_network_stats(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  u_int8_t network_id;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+
+  network_id = (u_int8_t)lua_tointeger(vm, 1);
+
+  if(ntop_interface) {
+    lua_newtable(vm);
+    ntop_interface->getNetworkStats(vm, network_id);
+  } else
     lua_pushnil(vm);
 
   return(CONST_LUA_OK);
@@ -9052,6 +9074,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getGroupedHosts",          ntop_get_grouped_interface_hosts },
   { "addMacsIpAddresses",       ntop_add_macs_ip_addresses },
   { "getNetworksStats",         ntop_get_interface_networks_stats       },
+  { "getNetworkStats",          ntop_get_interface_network_stats        },
   { "checkpointHostTalker",     ntop_checkpoint_host_talker             },
   { "getFlowsInfo",             ntop_get_interface_flows_info           },
   { "getGroupedFlows",          ntop_get_interface_get_grouped_flows    },
@@ -9248,7 +9271,7 @@ static const luaL_Reg ntop_host_reg[] = {
 /* **************************************************************** */
 
 static const luaL_Reg ntop_network_reg[] = {
-  { "getNetworkStats",          ntop_get_interface_network_stats     },
+  { "getNetworkStats",          ntop_network_get_network_stats       },
   { "getCachedAlertValue",      ntop_network_get_cached_alert_value  },
   { "setCachedAlertValue",      ntop_network_set_cached_alert_value  },
   { "storeTriggeredAlert",      ntop_network_store_triggered_alert   },

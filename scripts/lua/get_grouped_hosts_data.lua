@@ -17,7 +17,6 @@ local currentPage = _GET["currentPage"]
 local perPage     = _GET["perPage"]
 local sortColumn  = _GET["sortColumn"]
 local sortOrder   = _GET["sortOrder"]
-
 local group_col   = _GET["grouped_by"]
 local network_n   = _GET["network"]
 local country_n   = _GET["country"]

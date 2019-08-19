@@ -23,8 +23,9 @@
 
 /* *************************************** */
 
-NetworkStats::NetworkStats() : AlertableEntity(alert_entity_network) {
+NetworkStats::NetworkStats() : AlertableEntity(alert_entity_network), GenericTrafficElement() {
   network_id = 0;
+  numHosts = 0;
 }
 
 /* *************************************** */
@@ -32,6 +33,7 @@ NetworkStats::NetworkStats() : AlertableEntity(alert_entity_network) {
 void NetworkStats::lua(lua_State* vm) {
   lua_push_str_table_entry(vm, "network_key", ntop->getLocalNetworkName(network_id));
   lua_push_uint64_table_entry(vm, "network_id", network_id);
+  lua_push_uint64_table_entry(vm, "num_hosts", getNumHosts());
 
   lua_push_uint64_table_entry(vm, "ingress", ingress.getNumBytes());
   lua_push_uint64_table_entry(vm, "egress", egress.getNumBytes());
@@ -48,6 +50,8 @@ void NetworkStats::lua(lua_State* vm) {
   tcp_packet_stats_ingress.lua(vm, "tcpPacketStats.ingress");
   tcp_packet_stats_egress.lua(vm, "tcpPacketStats.egress");
   tcp_packet_stats_inner.lua(vm, "tcpPacketStats.inner");
+
+  GenericTrafficElement::lua(vm, true);
 }
 
 /* *************************************** */

@@ -187,7 +187,6 @@ using namespace std;
 #include "ntop_typedefs.h"
 #include "Alert.h"
 #include "AlertableEntity.h"
-#include "NetworkStats.h"
 #include "Trace.h"
 #include "ProtoStats.h"
 #include "Utils.h"
@@ -199,6 +198,7 @@ using namespace std;
 #include "CustomAppStats.h"
 #endif
 #include "GenericTrafficElement.h"
+#include "NetworkStats.h"
 #include "ContainerStats.h"
 #include "ParsedFlowCore.h"
 #include "ParsedeBPF.h"

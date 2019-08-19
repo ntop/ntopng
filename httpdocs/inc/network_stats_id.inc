@@ -14,8 +14,6 @@ function network_table_setID (row) {
   // network_stats_top
   row.find("td").eq(index++).attr('id', network_key+"_chart");
   row.find("td").eq(index++).attr('id', network_key+"_hosts");
-  row.find("td").eq(index++).attr('id', network_key+"_alerts");
-  row.find("td").eq(index++).attr('id', network_key+"_since");
 
   // network_stats_bottom
   row.find("td").eq(index++).attr('id', network_key+"_breakdown");
@@ -27,7 +25,7 @@ function network_table_setID (row) {
 }
 
 function network_row_update(network_key) {
-   var url = "@HTTP_PREFIX@/lua/get_grouped_hosts_data.lua?grouped_by=local_network_id&network="+network_key;
+   var url = "@HTTP_PREFIX@/lua/get_network_data.lua?network="+network_key;
 
   $.ajax({
     type: 'GET',

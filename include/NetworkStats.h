@@ -24,9 +24,10 @@
 
 #include "ntop_includes.h"
 
-class NetworkStats : public AlertableEntity {
+class NetworkStats : public AlertableEntity, public GenericTrafficElement {
  private:
   u_int8_t network_id;
+  u_int32_t numHosts;
   TrafficStats ingress, ingress_broadcast; /* outside -> network */
   TrafficStats egress, egress_broadcast;   /* network -> outside */
   TrafficStats inner, inner_broadcast;     /* network -> network (local traffic) */
@@ -41,22 +42,26 @@ class NetworkStats : public AlertableEntity {
 
  public:
   NetworkStats();
+  virtual ~NetworkStats() {};
 
   inline bool trafficSeen(){
     return ingress.getNumPkts() || egress.getNumPkts() || inner.getNumPkts();
   };
   
   inline void incIngress(time_t t, u_int64_t num_pkts, u_int64_t num_bytes, bool broadcast) {
+    rcvd.incStats(t, num_pkts, num_bytes);
     ingress.incStats(t, num_pkts, num_bytes);
     if(broadcast) ingress_broadcast.incStats(t, num_pkts, num_bytes);
   };
   
   inline void incEgress(time_t t, u_int64_t num_pkts, u_int64_t num_bytes, bool broadcast) {
+    sent.incStats(t, num_pkts, num_bytes);
     egress.incStats(t, num_pkts, num_bytes);
     if(broadcast) egress_broadcast.incStats(t, num_pkts, num_bytes);
   };
   
   inline void incInner(time_t t, u_int64_t num_pkts, u_int64_t num_bytes, bool broadcast) {
+    sent.incStats(t, num_pkts, num_bytes);
     inner.incStats(t, num_pkts, num_bytes);
     if(broadcast) inner_broadcast.incStats(t, num_pkts, num_bytes);
   };
@@ -72,6 +77,10 @@ class NetworkStats : public AlertableEntity {
   inline void incInnerTcp(u_int32_t ooo_pkts, u_int32_t retr_pkts, u_int32_t lost_pkts, u_int32_t keep_alive_pkts) {
     incTcp(&tcp_packet_stats_inner, ooo_pkts, retr_pkts, lost_pkts, keep_alive_pkts);
   };
+
+  inline void incNumHosts() { numHosts++; };
+  inline void decNumHosts() { numHosts--; };
+  inline u_int32_t getNumHosts() const { return numHosts; };
 
   void setNetworkId(u_int8_t id);
   void lua(lua_State* vm);

@@ -1,8 +1,8 @@
 --
--- (C) 2013-18 - ntop.org
+-- (C) 2013-19 - ntop.org
 --
 
-dirs = ntop.getDirs()
+local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
@@ -39,7 +39,7 @@ print [[
       <div id="table-network"></div>
 	 <script>
 	 var url_update = "]]
-print(getPageUrl(ntop.getHttpPrefix().."/lua/get_grouped_hosts_data.lua", page_params))
+print(getPageUrl(ntop.getHttpPrefix().."/lua/get_networks_data.lua", page_params))
 print ('";')
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/network_stats_id.inc")
 
@@ -98,23 +98,6 @@ print [[
 			     {
 			     title: "]] print(i18n("hosts_stats.hosts")) print[[",
 				 field: "column_hosts",
-				 sortable: true,
-                             css: {
-			        textAlign: 'center'
-			     }
-
-				 },
-			     {
-			     title: "]] print(i18n("show_alerts.alerts")) print[[",
-				 field: "column_alerts",
-				 sortable: true,
-                             css: {
-			        textAlign: 'center'
-			     }
-				 },
-			     {
-			     title: "]] print(i18n("seen_since")) print[[",
-				 field: "column_since",
 				 sortable: true,
                              css: {
 			        textAlign: 'center'

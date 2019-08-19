@@ -41,6 +41,9 @@ LocalHost::LocalHost(NetworkInterface *_iface, char *ipAddress, u_int16_t _vlanI
 
 LocalHost::~LocalHost() {
   iface->decNumHosts(true /* A local host */);
+  if(NetworkStats *ns = iface->getNetworkStats(local_network_id))
+    ns->decNumHosts();
+
   if(initial_ts_point) delete(initial_ts_point);
   freeLocalHostData();
 }
@@ -112,6 +115,8 @@ void LocalHost::initialize() {
   PROFILING_SUB_SECTION_EXIT(iface, 18);
 
   iface->incNumHosts(true /* Local Host */);
+  if(NetworkStats *ns = iface->getNetworkStats(local_network_id))
+    ns->incNumHosts();
 
 #ifdef LOCALHOST_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s is %s [%p]",
