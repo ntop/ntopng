@@ -91,6 +91,8 @@ bool AlertCheckLuaEngine::pcall(int num_args, int num_results) {
     getHost()->refreshAlerts();
   else if(getNetwork())
     getNetwork()->refreshAlerts();
-  
+  else if(getNetworkInterface())
+    getNetworkInterface()->refreshAlerts();
+
   return(true);
 }

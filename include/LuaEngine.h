@@ -62,7 +62,9 @@ class LuaEngine {
   void setNetwork(NetworkStats* ns);
 
   inline Host* getHost()     { return(getLuaVMContext(L)->host); }
+  inline NetworkInterface* getNetworkInterface() { return(getLuaVMContext(L)->iface); }
   NetworkStats* getNetwork() { return(getLuaVMContext(L)->network); }
+
   /**
    * @brief Run a Lua script.
    * @details Run a script from within ntopng. No HTTP GUI.
