@@ -16,7 +16,7 @@ local perPage      = _GET["perPage"]
 local sortColumn   = _GET["sortColumn"]
 local sortOrder    = _GET["sortOrder"]
 
-local sortPrefs = "network"
+local sortPrefs = "local_network"
 
 if((sortColumn == nil) or (sortColumn == "column_"))then
    sortColumn = getDefaultTableSort(sortPrefs)
@@ -30,6 +30,7 @@ end
 if(sortOrder == nil) then
    sortOrder = getDefaultTableSortOrder(sortPrefs)
 else
+         tprint(sortColumn)
    if((sortColumn ~= "column_")
     and (sortColumn ~= "")) then
       tablePreferences("sort_order_"..sortPrefs,sortOrder)

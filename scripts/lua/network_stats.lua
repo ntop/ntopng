@@ -17,12 +17,6 @@ active_page = "hosts"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 local base_url = ntop.getHttpPrefix().."/lua/network_stats.lua"
-local page_params = {}
-page_params["grouped_by"] = "local_network"
-
-if not isEmptyString(_GET["version"]) then
-   page_params["version"] = _GET["version"]
-end
 
 function getPageTitle()
    local t = i18n("network_stats.networks")
@@ -39,19 +33,14 @@ print [[
       <div id="table-network"></div>
 	 <script>
 	 var url_update = "]]
-print(getPageUrl(ntop.getHttpPrefix().."/lua/get_networks_data.lua", page_params))
+print(getPageUrl(ntop.getHttpPrefix().."/lua/get_networks_data.lua"))
 print ('";')
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/network_stats_id.inc")
 
 print [[
 	 $("#table-network").datatable({
                         title: "Network List",
-			url: url_update ,
-			buttons: ['<div class="btn-group pull-right">]]
-
-printIpVersionDropdown(base_url, page_params)
-
-print("</div>'],")
+			url: url_update,]]
 
 print('title: "'..getPageTitle()..'",\n')
 print ('rowCallback: function ( row ) { return network_table_setID(row); },')
