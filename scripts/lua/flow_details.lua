@@ -308,6 +308,8 @@ function sslVersion2Str(v)
 end
 
 local function cipher2str(c)
+   if(c == nil) then return end
+   
    for s,v in pairs(ssl_cipher_suites) do
       if(v == c) then
 	 return('<A HREF="https://ciphersuite.info/cs/'..s..'">'..s..'</A>')
