@@ -967,7 +967,7 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
    end
 
    -- Default tab
-   if(tab == nil) then tab = "config" end
+   if(tab == nil) then tab = "min" end
 
    if((tab ~= "alert_list") and (tab ~= "config")) then
       local granularity_label = alertEngineLabel(alertEngine(tab))
@@ -997,17 +997,17 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
       )
    end
 
-   printTab("config", '<i class="fa fa-cog" aria-hidden="true"></i> ' .. i18n("traffic_recording.settings"), tab)
-
    for k, granularity in pairsByField(alert_consts.alerts_granularities, "granularity_id", asc) do
       local l = i18n(granularity.i18n_title)
       local resolution = granularity.granularity_seconds
 
       if (not options.remote_host) or resolution <= 60 then
-	 l = '<i class="fa fa-cog" aria-hidden="true"></i>&nbsp;'..l
+	 --~ l = '<i class="fa fa-cog" aria-hidden="true"></i>&nbsp;'..l
 	 printTab(k, l, tab)
       end
    end
+
+   printTab("config", '<i class="fa fa-cog" aria-hidden="true"></i> ' .. i18n("traffic_recording.settings"), tab)
 
    -- keep defaults in sync with ntop_defines.h
    local anomalies_config = {
