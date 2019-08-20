@@ -2856,7 +2856,20 @@ function getTzOffsetSeconds()
    local utc_t = os.date("!*t", now)
    local delta = os.time(local_t) - os.time(utc_t)
 
-   return(delta)
+   if utc_t.isdst then
+      -- DST is the practice of advancing clocks during summer months
+      -- so that evening daylight lasts longer, while sacrificing normal sunrise times.
+      -- utc_t is increased by one hour when the time is DST.
+      -- For example, an UTC time of 2pm would be reported by lua as 3pm with
+      -- the isdst flag set.
+      -- For this reason, we need to add back the hour to the computed delta.
+      delta = delta + 3600
+   end
+
+   -- tprint(string.format("local_t %u [%s][isdst: %s]", os.time(local_t), formatEpoch(os.time(local_t)), local_t.isdst))
+   -- tprint(string.format("utc_t   %u [%s][isdst: %s]", os.time(utc_t), formatEpoch(os.time(utc_t)), utc_t.isdst))
+
+   return delta
 end
 
 -- ####################################################
@@ -2868,7 +2881,7 @@ function makeTimeStamp(d, tzoffset)
 
    local timestamp = os.time({year=year, month=month, day=day, hour=hour, min=minute, sec=seconds});
 
-   -- tprint("pre-timestamp is:"..timestamp)
+   -- tprint(string.format("pre-timestamp is %u [%s]", timestamp, formatEpoch(timestamp)))
    if tzoffset then
       -- from browser local time to UTC
       timestamp = timestamp - (tzoffset or 0)
@@ -2876,12 +2889,12 @@ function makeTimeStamp(d, tzoffset)
       -- from UTC to machine local time
       local delta = getTzOffsetSeconds()
 
-      timestamp = timestamp + (delta or 0)
+      timestamp = math.floor(timestamp + (delta or 0))
       -- tprint("delta: "..delta.." tzoffset is: "..tzoffset)
-      -- tprint("post-timestamp is:"..timestamp)
+      -- tprint(string.format("post-timestamp is %u [%s]", timestamp, formatEpoch(timestamp)))
    end
 
-   return math.floor(timestamp).."";
+   return string.format("%u", timestamp)
 end
 
 -- ###########################################
