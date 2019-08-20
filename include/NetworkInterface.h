@@ -80,6 +80,14 @@ class NetworkInterface : public AlertableEntity {
   bool has_stored_alerts;
   AlertsQueue *alerts_queue;
 
+  /* External alerts contain alertable entities other than host/interface/network
+   * which are dynamically allocated when an alert for them occurs.
+   * A lock is necessary to guard the insert/delete operations from lookup operations
+   * requested from the GUI and to ensure that a delete operation does generate
+   * a use-after-free. */
+  std::map<std::pair<AlertEntity, std::string>, AlertableEntity*> external_alerts;
+  Mutex external_alerts_lock;
+
   bool is_view;   /* Whether this is a view interface */
   bool is_viewed; /* Whether this interface is 'viewed' by a ViewInterface */
 
@@ -755,6 +763,10 @@ class NetworkInterface : public AlertableEntity {
   void walkAlertables(int entity_type, const char *entity_value, alertable_callback *callback, void *user_data);
   void getEngagedAlertsCount(lua_State *vm, int entity_type, const char *entity_value);
   void getEngagedAlerts(lua_State *vm, int entity_type, const char *entity_value, AlertType alert_type, AlertLevel alert_severity);
+
+  /* unlockExternalAlertable must be called after use whenever a non-null reference is returned */
+  AlertableEntity* lockExternalAlertable(AlertEntity entity, const char *entity_val, bool create_if_missing);
+  void unlockExternalAlertable(AlertableEntity *entity);
 
   virtual bool reproducePcapOriginalSpeed() const         { return(false); }
   u_int32_t getNumEngagedAlerts();

@@ -77,6 +77,7 @@ public:
   
   inline void setEntityValue(const char *ent_val) { entity_val = ent_val; refreshSuppressedAlert(); }
   inline std::string getEntityValue()             { return(entity_val); }
+  inline AlertEntity getEntityType()              { return(entity_type); }
   inline bool hasAlertsSuppressed()               { return(suppressed_alerts); }
 
   bool triggerAlert(lua_State* vm, std::string key,
@@ -95,6 +96,7 @@ public:
   void getAlerts(lua_State* vm, ScriptPeriodicity p, AlertType type_filter,
 		 AlertLevel severity_filter, u_int *idx);
 
+  /* This must be called once per script and updates what the user see on the gui. */
   inline void refreshAlerts() {
     if(force_shadow_refresh) {
       syncReadonlyTriggeredAlerts();

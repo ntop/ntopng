@@ -248,15 +248,16 @@ function alerts_api.trigger(entity_info, type_info, when)
     return(false)
   end
 
-  local granularity_sec = type_info.alert_granularity.granularity_seconds
-  local granularity_id = type_info.alert_granularity.granularity_id
+  local granularity_sec = type_info.alert_granularity and type_info.alert_granularity.granularity_seconds or 0
+  local granularity_id = type_info.alert_granularity and type_info.alert_granularity.granularity_id or 0 --[[ 0 is aperiodic ]]
   local subtype = type_info.alert_subtype or ""
   local alert_json = json.encode(type_info.alert_type_params)
   local is_disabled = alerts_api.isEntityAlertDisabled(ifid, entity_info.alert_entity.entity_id, entity_info.alert_entity_val, type_info.alert_type.alert_id)
   local triggered
   local alert_key_name = get_alert_triggered_key(type_info)
 
-  local params = {alert_key_name, granularity_id,
+  local params = {
+    alert_key_name, granularity_id,
     type_info.alert_severity.severity_id, type_info.alert_type.alert_id,
     subtype, alert_json, is_disabled
   }
@@ -268,8 +269,7 @@ function alerts_api.trigger(entity_info, type_info, when)
   elseif((network.storeTriggeredAlert) and (entity_info.alert_entity.entity_id == alertEntity("network"))) then
     triggered = network.storeTriggeredAlert(table.unpack(params))
   else
-    alertErrorTraceback("Bad lua context for entity_type " .. entity_info.alert_entity.entity_id)
-    return(false)
+    triggered = interface.triggerExternalAlert(entity_info.alert_entity.entity_id, entity_info.alert_entity.alert_entity_val, table.unpack(params))
   end
 
   if(triggered == nil) then
@@ -302,21 +302,21 @@ end
 function alerts_api.release(entity_info, type_info, when)
   local when = when or os.time()
   local granularity_sec = type_info.alert_granularity and type_info.alert_granularity.granularity_seconds or 0
-  local granularity_id = type_info.alert_granularity and type_info.alert_granularity.granularity_id or nil
+  local granularity_id = type_info.alert_granularity and type_info.alert_granularity.granularity_id or 0 --[[ 0 is aperiodic ]]
   local subtype = type_info.alert_subtype or ""
   local alert_key_name = get_alert_triggered_key(type_info)
   local ifid = interface.getId()
+  local params = {alert_key_name, granularity_id, when}
   local released = nil
 
   if((host.releaseTriggeredAlert) and (entity_info.alert_entity.entity_id == alertEntity("host"))) then
-    released = host.releaseTriggeredAlert(alert_key_name, granularity_id, when)
+    released = host.releaseTriggeredAlert(table.unpack(params))
   elseif((interface.releaseTriggeredAlert) and (entity_info.alert_entity.entity_id == alertEntity("interface"))) then
-    released = interface.releaseTriggeredAlert(alert_key_name, granularity_id, when)
+    released = interface.releaseTriggeredAlert(table.unpack(params))
   elseif((network.releaseTriggeredAlert) and (entity_info.alert_entity.entity_id == alertEntity("network"))) then
-    released = network.releaseTriggeredAlert(alert_key_name, granularity_id, when)
+    released = network.releaseTriggeredAlert(table.unpack(params))
   else
-    alertErrorTraceback("Unsupported entity" .. entity_info.alert_entity.entity_id)
-    return(false)
+    released = interface.releaseExternalAlert(entity_info.alert_entity.entity_id, entity_info.alert_entity.alert_entity_val, table.unpack(params))
   end
 
   if(released == nil) then

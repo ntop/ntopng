@@ -62,7 +62,8 @@ typedef struct {
 
 typedef enum {
   no_periodicity = -1,
-  minute_script = 0,
+  aperiodic_script = 0,
+  minute_script,
   five_minute_script,
   hour_script,
   day_script,

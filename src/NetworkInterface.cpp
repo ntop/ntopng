@@ -7699,6 +7699,8 @@ static bool host_invoke_alertable_callback(GenericHashEntry *entity, void *user_
  */
 void NetworkInterface::walkAlertables(int entity_type, const char *entity_value,
 				      alertable_callback *callback, void *user_data) {
+  std::map<std::pair<AlertEntity, std::string>, AlertableEntity*>::iterator it;
+
   /* Hosts */
   if((entity_type == alert_entity_none) || (entity_type == alert_entity_host)) {
     if(entity_value == NULL) {
@@ -7744,6 +7746,20 @@ void NetworkInterface::walkAlertables(int entity_type, const char *entity_value,
         callback(netstats, user_data);
     }
   }
+
+  /* External Alerts.
+   * Must lock in order to avoid concurrency issues with insertions/updates */
+  external_alerts_lock.lock(__FILE__, __LINE__);
+
+  for(it = external_alerts.begin(); it != external_alerts.end(); ++it) {
+    if((entity_type == alert_entity_none) || (entity_type == it->second->getEntityType())) {
+      if((entity_value == NULL) || (it->second->getEntityValue().compare(entity_value) == 0)) {
+        callback(it->second, user_data);
+      }
+    }
+  }
+
+  external_alerts_lock.unlock(__FILE__, __LINE__);
 }
 
 /* *************************************** */
@@ -7876,4 +7892,42 @@ void NetworkInterface::getEngagedAlerts(lua_State *vm, int entity_type,
   lua_newtable(vm);
 
   walkAlertables(entity_type, entity_value, get_engaged_alerts_callback, &data);
+}
+
+/* *************************************** */
+
+AlertableEntity* NetworkInterface::lockExternalAlertable(AlertEntity entity, const char *entity_val, bool create_if_missing) {
+  std::map<std::pair<AlertEntity, std::string>, AlertableEntity*>::iterator it;
+  std::pair<AlertEntity, std::string> key(entity, entity_val);
+  AlertableEntity *alertable;
+
+  external_alerts_lock.lock(__FILE__, __LINE__);
+
+  if((it = external_alerts.find(key)) == external_alerts.end()) {
+    if(!create_if_missing) {
+      external_alerts_lock.unlock(__FILE__, __LINE__);
+      return(NULL);
+    }
+
+    alertable = new AlertableEntity(this, entity);
+    alertable->setEntityValue(entity_val);
+    external_alerts[key] = alertable;
+  } else
+    alertable = it->second;
+
+  return(alertable);
+}
+
+/* *************************************** */
+
+void NetworkInterface::unlockExternalAlertable(AlertableEntity *alertable) {
+  if(alertable->getNumTriggeredAlerts() == 0) {
+    std::pair<AlertEntity, std::string> key(alertable->getEntityType(), alertable->getEntityValue());
+
+    external_alerts.erase(key);
+    delete alertable;
+  } else
+    alertable->refreshAlerts();
+
+  external_alerts_lock.unlock(__FILE__, __LINE__);
 }
