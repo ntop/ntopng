@@ -61,6 +61,7 @@ typedef struct {
 } update_hosts_stats_user_data_t;
 
 typedef enum {
+  no_periodicity = -1,
   minute_script = 0,
   five_minute_script,
   hour_script,

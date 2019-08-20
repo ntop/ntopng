@@ -39,11 +39,6 @@ function checkAlerts(granularity)
    local has_configured_alerts = (table.len(network_config) or table.len(global_config))
    local entity_info = alerts_api.networkAlertEntity(network_key)
 
-   if are_alerts_suppressed(network_key, ifid) then
-     releaseAlerts()
-     return
-   end
-
    if(has_configured_alerts) then
       for _, check in pairs(available_modules) do
         local config = network_config[check.key] or global_config[check.key]
@@ -65,12 +60,12 @@ end
 
 -- #################################################################
 
-function releaseAlerts()
+function releaseAlerts(granularity)
   local info = network.getNetworkStats()
   local network_key = info and info.network_key
   if not network_key then return end
 
   local entity_info = alerts_api.networkAlertEntity(network_key)
 
-  alerts_api.releaseEntityAlerts(entity_info, network.getAlerts())
+  alerts_api.releaseEntityAlerts(entity_info, network.getAlerts(granularity))
 end

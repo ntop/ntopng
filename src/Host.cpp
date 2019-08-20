@@ -24,7 +24,7 @@
 /* *************************************** */
 
 Host::Host(NetworkInterface *_iface, char *ipAddress, u_int16_t _vlanId) : GenericHashEntry(_iface),
-									   AlertableEntity(alert_entity_host) {
+									   AlertableEntity(_iface, alert_entity_host) {
   ip.set(ipAddress);
   initialize(NULL, _vlanId, true);
 }
@@ -32,7 +32,7 @@ Host::Host(NetworkInterface *_iface, char *ipAddress, u_int16_t _vlanId) : Gener
 /* *************************************** */
 
 Host::Host(NetworkInterface *_iface, Mac *_mac,
-	   u_int16_t _vlanId, IpAddress *_ip) : GenericHashEntry(_iface), AlertableEntity(alert_entity_host) {
+	   u_int16_t _vlanId, IpAddress *_ip) : GenericHashEntry(_iface), AlertableEntity(_iface, alert_entity_host) {
   ip.set(_ip);
 
 #ifdef BROADCAST_DEBUG
@@ -172,18 +172,12 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   reloadHostBlacklist();
   is_dhcp_host = false;
 
-  trigger_host_alerts = false;
-
   PROFILING_SUB_SECTION_ENTER(iface, "Host::initialize: new AlertCounter", 17);
   syn_flood_attacker_alert  = new AlertCounter();
   syn_flood_victim_alert    = new AlertCounter();
   flow_flood_attacker_alert = new AlertCounter();
   flow_flood_victim_alert = new AlertCounter();
   PROFILING_SUB_SECTION_EXIT(iface, 17);
-
-  PROFILING_SUB_SECTION_ENTER(iface, "Host::initialize: refreshHostAlertPrefs", 19);
-  refreshHostAlertPrefs();
-  PROFILING_SUB_SECTION_EXIT(iface, 19);
 
   disabled_flow_status = 0;
   refreshDisableFlowAlertTypes();
@@ -207,26 +201,6 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   setEntityValue(get_hostkey(buf, sizeof(buf), true));
 
   is_in_broadcast_domain = iface->isLocalBroadcastDomainHost(this, true /* Inline call */);
-}
-
-/* *************************************** */
-
-void Host::refreshHostAlertPrefs() {
-  if(!ntop->getPrefs()->are_alerts_disabled()
-      && (!ip.isEmpty())) {
-    char *key, ip_buf[48], rsp[64], rkey[128];
-
-    /* This value always contains vlan information */
-    key = get_hostkey(ip_buf, sizeof(ip_buf), true);
-
-    if(key) {
-      snprintf(rkey, sizeof(rkey), CONST_SUPPRESSED_ALERT_PREFS, getInterface()->get_id());
-      if(ntop->getRedis()->hashGet(rkey, key, rsp, sizeof(rsp)) == 0)
-	trigger_host_alerts = ((strcmp(rsp, "false") == 0) ? 0 : 1);
-      else
-	trigger_host_alerts = true;
-    }
-  }
 }
 
 /* *************************************** */

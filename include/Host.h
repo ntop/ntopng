@@ -52,7 +52,6 @@ class Host : public GenericHashEntry, public AlertableEntity {
 
   AlertCounter *syn_flood_attacker_alert, *syn_flood_victim_alert;
   AlertCounter *flow_flood_attacker_alert, *flow_flood_victim_alert;
-  bool trigger_host_alerts;
   std::vector<u_int32_t> dropbox_namespaces;
   MonitoredGauge<u_int32_t> num_active_flows_as_client, num_active_flows_as_server,
     low_goodput_client_flows, low_goodput_server_flows;  
@@ -288,8 +287,7 @@ class Host : public GenericHashEntry, public AlertableEntity {
   void checkBroadcastDomain();
   bool hasAnomalies();
   void luaAnomalies(lua_State* vm);
-  bool triggerAlerts()                                   { return(trigger_host_alerts);       };
-  void refreshHostAlertPrefs();
+  bool triggerAlerts()                                   { return(!hasAlertsSuppressed());    };
   void housekeepAlerts(ScriptPeriodicity p);
   inline u_int getNumDropboxPeers()                      { return(dropbox_namespaces.size()); };
   virtual void inlineSetOSDetail(const char *detail) { }

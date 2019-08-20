@@ -42,11 +42,6 @@ function checkAlerts(granularity)
   local has_configured_alerts = (table.len(host_config) or table.len(global_config))
   local entity_info = alerts_api.hostAlertEntity(info.ip, info.vlan)
 
-  if are_alerts_suppressed(host_key, ifid) then
-    releaseAlerts()
-    return
-  end
-
   if has_configured_alerts then
     for _, check in pairs(available_modules) do
       local config = host_config[check.key] or global_config[check.key]
@@ -68,9 +63,9 @@ end
 
 -- #################################################################
 
-function releaseAlerts()
+function releaseAlerts(granularity)
   local info = host.getFullInfo()
   local entity_info = alerts_api.hostAlertEntity(info.ip, info.vlan)
 
-  alerts_api.releaseEntityAlerts(entity_info, host.getAlerts())
+  alerts_api.releaseEntityAlerts(entity_info, host.getAlerts(granularity))
 end

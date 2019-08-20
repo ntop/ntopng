@@ -23,9 +23,11 @@
 
 /* *************************************** */
 
-NetworkStats::NetworkStats() : AlertableEntity(alert_entity_network), GenericTrafficElement() {
-  network_id = 0;
+NetworkStats::NetworkStats(NetworkInterface *iface, u_int8_t _network_id) : AlertableEntity(iface, alert_entity_network), GenericTrafficElement() {
+  network_id = _network_id;
   numHosts = 0;
+
+  setEntityValue(ntop->getLocalNetworkName(network_id));
 }
 
 /* *************************************** */
@@ -73,11 +75,4 @@ void NetworkStats::deserialize(json_object *o) {
   if(json_object_object_get_ex(o, "ingress", &obj)) ingress.incStats(now, 0, json_object_get_int(obj));
   if(json_object_object_get_ex(o, "egress", &obj)) egress.incStats(now, 0, json_object_get_int(obj));
   if(json_object_object_get_ex(o, "inner", &obj)) inner.incStats(now, 0, json_object_get_int(obj));
-}
-
-/* *************************************** */
-
-void NetworkStats::setNetworkId(u_int8_t id) {
-  network_id = id;
-  setEntityValue(ntop->getLocalNetworkName(id));
 }

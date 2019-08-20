@@ -34,14 +34,14 @@ static bool help_printed = false;
 /* **************************************************** */
 
 /* Method used for collateral activities */
-NetworkInterface::NetworkInterface() : AlertableEntity(alert_entity_interface) {
+NetworkInterface::NetworkInterface() : AlertableEntity(this, alert_entity_interface) {
   init();
 }
 
 /* **************************************************** */
 
 NetworkInterface::NetworkInterface(const char *name,
-				   const char *custom_interface_type) : AlertableEntity(alert_entity_interface) {
+				   const char *custom_interface_type) : AlertableEntity(this, alert_entity_interface) {
   NDPI_PROTOCOL_BITMASK all;
   char _ifname[MAX_INTERFACE_NAME_LEN], buf[MAX_INTERFACE_NAME_LEN];
   /* We need to do it as isView() is not yet initialized */
@@ -622,7 +622,14 @@ NetworkInterface::~NetworkInterface() {
   if(discovery)      delete discovery;
   if(statsManager)   delete statsManager;
   if(alertsManager)  delete alertsManager;
-  if(networkStats)   delete []networkStats;
+  if(networkStats) {
+    u_int8_t numNetworks = ntop->getNumLocalNetworks();
+
+    for(u_int8_t i = 0; i < numNetworks; i++)
+      delete networkStats[i];
+
+    delete []networkStats;
+  }
   if(interfaceStats) delete interfaceStats;
 
   if(flowHashing) {
@@ -6191,10 +6198,13 @@ void NetworkInterface::allocateStructures() {
       }
     }
 
-    networkStats     = new NetworkStats[numNetworks];
+    networkStats     = new NetworkStats*[numNetworks];
     statsManager     = new StatsManager(id, STATS_MANAGER_STORE_NAME);
     alertsManager    = new AlertsManager(id, ALERTS_MANAGER_STORE_NAME);
     alerts_queue     = new AlertsQueue(this);
+
+    for(u_int8_t i = 0; i < numNetworks; i++)
+      networkStats[i] = new NetworkStats(this, i);
   } catch(std::bad_alloc& ba) {
     static bool oom_warning_sent = false;
 
@@ -6205,9 +6215,6 @@ void NetworkInterface::allocateStructures() {
   }
 
   refreshHasAlerts();
-
-  for(u_int8_t i = 0; i < numNetworks; i++)
-    networkStats[i].setNetworkId(i);
 }
 
 /* **************************************** */
@@ -6216,7 +6223,7 @@ NetworkStats* NetworkInterface::getNetworkStats(u_int8_t networkId) const {
   if((networkStats == NULL) || (networkId >= ntop->getNumLocalNetworks()))
     return(NULL);
   else
-    return(&networkStats[networkId]);
+    return(networkStats[networkId]);
 }
 
 /* **************************************** */
@@ -6810,32 +6817,13 @@ bool NetworkInterface::getVLANInfo(lua_State* vm, u_int16_t vlan_id) {
 
 /* **************************************** */
 
-static bool host_reload_alert_prefs(GenericHashEntry *host, void *user_data, bool *matched) {
-  //bool full_refresh = (user_data != NULL) ? true : false;
-  Host *h = (Host*)host;
-
-  h->refreshHostAlertPrefs();
-  *matched = true;
-
-  //if(full_refresh)
-    //h->resetAlertCounters();
-
-  return(false); /* false = keep on walking */
+static void refresh_suppressed_alert_prefs_callback(AlertableEntity *alertable, void *user_data) {
+  alertable->refreshSuppressedAlert();
 }
 
-/* **************************************** */
-
-void NetworkInterface::refreshHostsAlertPrefs(bool full_refresh) {
-  u_int32_t begin_slot = 0;
-  bool walk_all = true;
-
-  /* Read the new configuration */
-  ntop->getPrefs()->refreshHostsAlertsPrefs();
-
-  /* Update the hosts */
-  walker(&begin_slot, walk_all,  walker_hosts,
-	 host_reload_alert_prefs, (void *)full_refresh);
-};
+void NetworkInterface::refreshSuppressedAlertsPrefs(AlertEntity entity_type, const char *entity_value) {
+  walkAlertables(entity_type, entity_value, refresh_suppressed_alert_prefs_callback, NULL);
+}
 
 /* **************************************** */
 
@@ -7615,16 +7603,28 @@ bool NetworkInterface::dequeueeBPFFlow(ParsedFlow **f) {
 
 /* *************************************** */
 
+static void handle_entity_alerts(AlertCheckLuaEngine *acle, AlertableEntity *entity) {
+  lua_State *L = acle->getState();
+
+  if(!entity->hasAlertsSuppressed()) {
+    lua_getglobal(L,  ALERT_ENTITY_CALLBACK_CHECK_ALERTS); /* Called function */
+    lua_pushstring(L, acle->getGranularity());  /* push 1st argument */
+    acle->pcall(1 /* num args */, 0);
+  } else if(entity->getNumTriggeredAlerts(acle->getPeriodicity()) > 0) {
+    lua_getglobal(L,  ALERT_ENTITY_CALLBACK_RELEASE_ALERTS);
+    lua_pushstring(L, acle->getGranularity());
+    acle->pcall(1 /* num args */, 0);
+  }
+}
+
+/* *************************************** */
+
 static bool host_alert_check(GenericHashEntry *h, void *user_data, bool *matched) {
   AlertCheckLuaEngine *acle = (AlertCheckLuaEngine*)user_data;
-  lua_State *L = acle->getState();
   Host *host = (Host*)h;
 
   acle->setHost(host);
-
-  lua_getglobal(L,  ALERT_ENTITY_CALLBACK_CHECK_ALERTS); /* Called function */
-  lua_pushstring(L, acle->getGranularity());  /* push 1st argument */
-  acle->pcall(1 /* num args */, 0);
+  handle_entity_alerts(acle, host);
 
   host->housekeepAlerts(acle->getPeriodicity() /* periodicity */);
 
@@ -7650,15 +7650,10 @@ void NetworkInterface::checkNetworksAlerts(ScriptPeriodicity p) {
   u_int8_t num_local_networks = ntop->getNumLocalNetworks();
 
   for(u_int8_t network_id = 0; network_id < num_local_networks; network_id++) {
-    acle.setNetwork(getNetworkStats(network_id));
+    NetworkStats *netstats = getNetworkStats(network_id);
 
-    lua_State *L = acle.getState();
-
-    /* https://www.lua.org/pil/25.2.html */
-    lua_getglobal(L,  ALERT_ENTITY_CALLBACK_CHECK_ALERTS); /* Called function */
-    lua_pushstring(L, acle.getGranularity());  /* push 1st argument */
-
-    acle.pcall(1 /* 1 argument */, 0 /* 0 results */);
+    acle.setNetwork(netstats);
+    handle_entity_alerts(&acle, netstats);
   }
 }
 
@@ -7666,12 +7661,8 @@ void NetworkInterface::checkNetworksAlerts(ScriptPeriodicity p) {
 
 void NetworkInterface::checkInterfaceAlerts(ScriptPeriodicity p) {
   AlertCheckLuaEngine acle(alert_entity_interface, p, this);
-  lua_State *L = acle.getState();
 
-  lua_getglobal(L, ALERT_ENTITY_CALLBACK_CHECK_ALERTS); /* Called function */
-  lua_pushstring(L, acle.getGranularity());  /* push 1st argument */
-
-  acle.pcall(1 /* 1 argument */, 0 /* 0 results */);
+  handle_entity_alerts(&acle, this);
 }
 
 /* *************************************** */
@@ -7737,8 +7728,9 @@ void NetworkInterface::walkAlertables(int entity_type, const char *entity_value,
 
   /* Interface */
   if((entity_type == alert_entity_none) || (entity_type == alert_entity_interface)) {
-    if(entity_value != NULL)
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Interface filter not implemented");
+    if((entity_value != NULL) && (getEntityValue().compare(entity_value) != 0))
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Interface filter does not correspond[type=%u]: expected %s, found %s",
+        entity_type, entity_value, getEntityValue().c_str());
 
     callback(this, user_data);
   }
@@ -7747,11 +7739,12 @@ void NetworkInterface::walkAlertables(int entity_type, const char *entity_value,
   if((entity_type == alert_entity_none) || (entity_type == alert_entity_network)) {
     u_int8_t num_local_networks = ntop->getNumLocalNetworks();
 
-    if(entity_value != NULL)
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Networks filter not implemented");
+    for(u_int8_t network_id = 0; network_id < num_local_networks; network_id++) {
+      NetworkStats *netstats = getNetworkStats(network_id);
 
-    for(u_int8_t network_id = 0; network_id < num_local_networks; network_id++)
-      callback(getNetworkStats(network_id), user_data);
+      if((entity_value == NULL) || (netstats->getEntityValue().compare(entity_value) == 0))
+        callback(netstats, user_data);
+    }
   }
 }
 
@@ -7869,7 +7862,7 @@ struct get_engaged_alerts_userdata {
 static void get_engaged_alerts_callback(AlertableEntity *alertable, void *user_data) {
   struct get_engaged_alerts_userdata *data = (struct get_engaged_alerts_userdata *)user_data;
 
-  alertable->getAlerts(data->vm, data->alert_type, data->alert_severity, &data->idx);
+  alertable->getAlerts(data->vm, no_periodicity, data->alert_type, data->alert_severity, &data->idx);
 }
 
 void NetworkInterface::getEngagedAlerts(lua_State *vm, int entity_type,

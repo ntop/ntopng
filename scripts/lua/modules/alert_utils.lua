@@ -234,21 +234,6 @@ function get_alerts_suppressed_hash_name(ifid)
    return hash_name
 end
 
-function are_alerts_suppressed(observed, ifid)
-   local suppressAlerts = ntop.getHashCache(get_alerts_suppressed_hash_name(ifid), observed)
-   --[[
-      tprint("are_alerts_suppressed ".. suppressAlerts)
-      tprint("are_alerts_suppressed observed: ".. observed)
-      tprint("are_alerts_suppressed ifname: "..ifname)
-   --]]
-   if((suppressAlerts == "") or (suppressAlerts == nil) or (suppressAlerts == "true")) then
-      return false  -- alerts are not suppressed
-   else
-      if(verbose) then print("Skipping alert check for("..observed.."): disabled in preferences<br>\n") end
-      return true -- alerts are suppressed
-   end
-end
-
 -- #################################
 
 -- This function maps the SQLite table names to the conventional table
@@ -823,7 +808,7 @@ local function printConfigTab(entity_type, entity_value, page_name, page_params,
       end
 
       ntop.setHashCache(get_alerts_suppressed_hash_name(ifid), entity_value, tostring(trigger_alerts))
-      interface.refreshHostsAlertsConfiguration(host_ip, host_vlan)
+      interface.refreshSuppressedAlertsPrefs(alertEntity(entity_type), entity_value)
 
       if(entity_type == "host") then
          local bitmap = 0
@@ -1054,7 +1039,6 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
             -- Delete specific settings
             if entity_type == "host" then
                ntop.delCache(anomaly_config_key)
-               interface.refreshHostsAlertsConfiguration()
             elseif entity_type == "interface" then
                ntop.delCache(getInterfacePacketDropPercAlertKey(ifname))
                interface.loadPacketsDropsAlertPrefs()
@@ -1131,7 +1115,6 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
 	       -- Serialize the settings
                local configdump = table.concat(config_to_dump, "|")
                ntop.setCache(anomaly_config_key, configdump)
-               interface.refreshHostsAlertsConfiguration()
             elseif entity_type == "interface" then
                local value = _POST["packets_drops_perc"]
                ntop.setCache(getInterfacePacketDropPercAlertKey(ifname), ternary(not isEmptyString(value), value, "0"))
@@ -2518,9 +2501,7 @@ function flushAlertsData()
 
    callback_utils.foreachInterface(ifnames, nil, function(ifname, ifstats)
 				      if(verbose) then io.write("[Alerts] Processing interface "..ifname.."...\n") end
-
-				      -- Clear hosts status
-				      interface.refreshHostsAlertsConfiguration(true --[[ with counters ]])
+				      interface.refreshSuppressedAlertsPrefs()
 
 				      if(verbose) then io.write("[Alerts] Flushing SQLite configuration...\n") end
 				      performAlertsQuery("DELETE", "engaged", {}, force_query)
@@ -2540,8 +2521,7 @@ function flushAlertsData()
    ntop.setAlertsTemporaryDisabled(false);
 
    callback_utils.foreachInterface(ifnames, nil, function(_ifname, ifstats)
-				      -- Reload hosts status
-				      interface.refreshHostsAlertsConfiguration(true --[[ with counters ]])
+      interface.refreshSuppressedAlertsPrefs()
    end)
 
    ntop.setPref("ntopng.prefs.disable_alerts_generation", generation_toggle_backup)

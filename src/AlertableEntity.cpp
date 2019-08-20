@@ -23,6 +23,31 @@
 
 /* ****************************************** */
 
+AlertableEntity::AlertableEntity(NetworkInterface *iface, AlertEntity entity) {
+  alert_iface = iface;
+  entity_type = entity, num_triggered_alerts = 0, force_shadow_refresh = false;
+
+  for(u_int i=0; i<MAX_NUM_PERIODIC_SCRIPTS; i++)
+    rx_triggered_alerts[i] = NULL, shadow_rx_triggered_alerts[i] = NULL;
+
+  suppressed_alerts = false;
+  refreshSuppressedAlert();
+}
+
+/* ****************************************** */
+
+AlertableEntity::~AlertableEntity() {
+  for(u_int i=0; i<MAX_NUM_PERIODIC_SCRIPTS; i++) {
+    if(rx_triggered_alerts[i])
+      delete rx_triggered_alerts[i];
+
+    if(shadow_rx_triggered_alerts[i])
+      delete shadow_rx_triggered_alerts[i];
+  }
+}
+
+/* ****************************************** */
+
 /* Relase the expired alerts and push them into the Lua table */
 void AlertableEntity::getExpiredAlerts(ScriptPeriodicity p, lua_State* vm, time_t now) {
   std::map<std::string, Alert>::iterator it;
@@ -71,7 +96,7 @@ void AlertableEntity::luaAlert(lua_State* vm, Alert *alert, ScriptPeriodicity p)
 
 /* Return true if the element was inserted, false if already present */
 bool AlertableEntity::triggerAlert(lua_State* vm, std::string key,
-				   NetworkInterface *iface, ScriptPeriodicity p, time_t now,
+				   ScriptPeriodicity p, time_t now,
 				   AlertLevel alert_severity, AlertType alert_type,
 				   const char *alert_subtype,
 				   const char *alert_json,
@@ -87,12 +112,12 @@ bool AlertableEntity::triggerAlert(lua_State* vm, std::string key,
     if(it->second.is_disabled && !alert_disabled) {
       /* Alert was not accounted but now enabled, so increase count */
       it->second.is_disabled = false;
-      iface->incNumAlertsEngaged(p);
+      alert_iface->incNumAlertsEngaged(p);
       force_shadow_refresh = true;
     } else if(!it->second.is_disabled && alert_disabled) {
       /* Alert was accounted but is now disabled, so decresase count */
       it->second.is_disabled = true;
-      iface->decNumAlertsEngaged(p);
+      alert_iface->decNumAlertsEngaged(p);
       force_shadow_refresh = true;
     }
 
@@ -111,7 +136,7 @@ bool AlertableEntity::triggerAlert(lua_State* vm, std::string key,
     alert.is_disabled = alert_disabled;
 
     if(!alert_disabled)
-      iface->incNumAlertsEngaged(p);
+      alert_iface->incNumAlertsEngaged(p);
 
     triggered_alerts[(u_int)p][key] = alert;
     force_shadow_refresh = true, rv = true; /* inserted */
@@ -128,7 +153,7 @@ bool AlertableEntity::triggerAlert(lua_State* vm, std::string key,
 
 /* ****************************************** */
 
-bool AlertableEntity::releaseAlert(lua_State* vm, NetworkInterface *iface,
+bool AlertableEntity::releaseAlert(lua_State* vm,
 				   std::string key, ScriptPeriodicity p, time_t now) {
   std::map<std::string, Alert>::iterator it = triggered_alerts[(u_int)p].find(key);
   bool rv = false;
@@ -146,7 +171,7 @@ bool AlertableEntity::releaseAlert(lua_State* vm, NetworkInterface *iface,
     lua_newtable(vm);
     luaAlert(vm, &it->second, p);
 
-    iface->decNumAlertsEngaged(p);
+    alert_iface->decNumAlertsEngaged(p);
     rv = true;
   } else
     lua_pushnil(vm);
@@ -191,43 +216,54 @@ void AlertableEntity::countAlerts(grouped_alerts_counters *counters) {
 
 /* ****************************************** */
 
-/*
-  IMPORTANT
-   as this method is called by the GUI while triggered_alerts[] might be manipulated
-   by periodic scrits, it uses rx_triggered_alerts instead of triggered_alerts
-*/
-void AlertableEntity::getAlerts(lua_State* vm, AlertType type_filter,
-				AlertLevel severity_filter, u_int *idx) {
-  int p;
+void AlertableEntity::getPeriodicityAlerts(lua_State* vm, ScriptPeriodicity p,
+				AlertType type_filter, AlertLevel severity_filter, u_int *idx) {
   std::map<std::string, Alert>::iterator it;
+  std::map<std::string, Alert> *rx_copy = rx_triggered_alerts[p];
 
-  for(p = 0; p<MAX_NUM_PERIODIC_SCRIPTS; p++) {
-    std::map<std::string, Alert> *rx_copy = rx_triggered_alerts[p];
-    
-    /* NOTE
-       Use rx_copy and not rx_triggered_alerts[p] as it might change overtime
-       due to syncReadonlyTriggeredAlerts()
-    */
+  /* NOTE
+     Use rx_copy and not rx_triggered_alerts[p] as it might change overtime
+     due to syncReadonlyTriggeredAlerts()
+  */
 
-    if(rx_copy != NULL) {
-      for(it = rx_copy->begin(); it != rx_copy->end(); ++it) {
-	Alert *alert = &it->second;
+  if(rx_copy != NULL) {
+    for(it = rx_copy->begin(); it != rx_copy->end(); ++it) {
+      Alert *alert = &it->second;
 
-	if(!alert->is_disabled) {
-	  if(((type_filter == alert_none)
-	      || (type_filter == alert->alert_type))
-	     && ((severity_filter == alert_level_none)
-		 || (severity_filter == alert->alert_severity))) {
-	    lua_newtable(vm);
-	    luaAlert(vm, alert, (ScriptPeriodicity)p);
+      if(!alert->is_disabled) {
+        if(((type_filter == alert_none)
+            || (type_filter == alert->alert_type))
+           && ((severity_filter == alert_level_none)
+         || (severity_filter == alert->alert_severity))) {
+          lua_newtable(vm);
+          luaAlert(vm, alert, (ScriptPeriodicity)p);
 
-	    lua_pushinteger(vm, ++(*idx));
-	    lua_insert(vm, -2);
-	    lua_settable(vm, -3);
-	  }
-	}
+          lua_pushinteger(vm, ++(*idx));
+          lua_insert(vm, -2);
+          lua_settable(vm, -3);
+        }
       }
     }
+  }
+}
+
+/* ****************************************** */
+
+/*
+  IMPORTANT
+   as this method is called by the GUI/periodic scripts while triggered_alerts[] might be manipulated
+   by periodic scrits, it uses rx_triggered_alerts instead of triggered_alerts
+*/
+void AlertableEntity::getAlerts(lua_State* vm, ScriptPeriodicity periodicity_filter,
+				AlertType type_filter, AlertLevel severity_filter, u_int *idx) {
+  if(periodicity_filter != no_periodicity) {
+    /* Get alerts about a specific periodicity */
+    getPeriodicityAlerts(vm, periodicity_filter, type_filter, severity_filter, idx);
+  } else {
+    int p;
+
+    for(p = 0; p<MAX_NUM_PERIODIC_SCRIPTS; p++)
+      getPeriodicityAlerts(vm, (ScriptPeriodicity)p, type_filter, severity_filter, idx);
   }
 }
 
@@ -282,4 +318,19 @@ void AlertableEntity::syncReadonlyTriggeredAlerts() {
   }
 
   updateNumTriggeredAlerts();
+}
+
+/* ****************************************** */
+
+void AlertableEntity::refreshSuppressedAlert() {
+  if(!entity_val.empty()) {
+    char rsp[64], rkey[128];
+
+    snprintf(rkey, sizeof(rkey), CONST_SUPPRESSED_ALERT_PREFS, alert_iface->get_id());
+
+    if(ntop->getRedis()->hashGet(rkey, entity_val.c_str(), rsp, sizeof(rsp)) == 0)
+      suppressed_alerts = ((strcmp(rsp, "false") == 0) ? 1 : 0);
+    else
+      suppressed_alerts = false;
+  }
 }

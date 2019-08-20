@@ -3632,17 +3632,20 @@ static int ntop_update_host_traffic_policy(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_refresh_hosts_alerts_configuration(lua_State* vm) {
-  bool full_refresh = false;
+static int ntop_refresh_suppressed_alerts_prefs(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  AlertEntity entity_type = alert_entity_none;
+  const char *entity_value = NULL;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-  if(lua_type(vm, 1) == LUA_TBOOLEAN) full_refresh = lua_toboolean(vm, 1);
 
   if(!ntop_interface)
     return(CONST_LUA_ERROR);
 
-  ntop_interface->refreshHostsAlertPrefs(full_refresh);
+  if(lua_type(vm, 1) == LUA_TNUMBER) entity_type = (AlertEntity) lua_tointeger(vm, 1);
+  if(lua_type(vm, 2) == LUA_TSTRING) entity_value = lua_tostring(vm, 2);
+
+  ntop_interface->refreshSuppressedAlertsPrefs(entity_type, entity_value);
   lua_pushnil(vm);
   return(CONST_LUA_OK);
 }
@@ -8096,11 +8099,14 @@ static int ntop_host_set_cached_alert_value(lua_State* vm) {
 static int ntop_get_alerts(lua_State* vm, AlertableEntity *entity) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
   u_int idx = 0;
+  ScriptPeriodicity periodicity = no_periodicity;
 
   if(!entity) return(CONST_LUA_ERROR);
 
+  if(lua_type(vm, 1) == LUA_TNUMBER) periodicity = (ScriptPeriodicity)lua_tointeger(vm, 1);
+
   lua_newtable(vm);
-  entity->getAlerts(vm, alert_none, alert_level_none, &idx);
+  entity->getAlerts(vm, periodicity, alert_none, alert_level_none, &idx);
 
   return(CONST_LUA_OK);
 }
@@ -8339,7 +8345,7 @@ static int ntop_store_triggered_alert(lua_State* vm, AlertableEntity *alertable)
   if(ntop_lua_check(vm, __FUNCTION__, 7, LUA_TBOOLEAN) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   alert_disabled = lua_toboolean(vm, 7);
 
-  triggered = alertable->triggerAlert(vm, std::string(key), c->iface, periodicity, time(NULL),
+  triggered = alertable->triggerAlert(vm, std::string(key), periodicity, time(NULL),
     alert_severity, alert_type, alert_subtype, alert_json, alert_disabled);
 
   if(triggered && !alert_disabled && (host = dynamic_cast<Host*>(alertable)))
@@ -8389,7 +8395,7 @@ static int ntop_release_triggered_alert(lua_State* vm, AlertableEntity *alertabl
   when = (time_t)lua_tonumber(vm, 3);
 
   /* The released alert will be pushed to LUA */
-  alertable->releaseAlert(vm, c->iface, std::string(key), periodicity, when);
+  alertable->releaseAlert(vm, std::string(key), periodicity, when);
 
   return(CONST_LUA_OK);
 }
@@ -8433,14 +8439,14 @@ static int ntop_interface_get_expired_alerts(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_interface_get_engaged_alerts_count(lua_State* vm) {
-  int entity_type = -1;
+  AlertEntity entity_type = alert_entity_none;
   const char *entity_value = NULL;
   NetworkInterface *iface = getCurrentInterface(vm);
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
   if(!iface) return(CONST_LUA_ERROR);
 
-  if(lua_type(vm, 1) == LUA_TNUMBER) entity_type = lua_tointeger(vm, 1);
+  if(lua_type(vm, 1) == LUA_TNUMBER) entity_type = (AlertEntity)lua_tointeger(vm, 1);
   if(lua_type(vm, 2) == LUA_TSTRING) entity_value = (char*)lua_tostring(vm, 2);
 
   iface->getEngagedAlertsCount(vm, entity_type, entity_value);
@@ -8469,7 +8475,7 @@ static int ntop_interface_inc_num_dropped_alerts(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_interface_get_engaged_alerts(lua_State* vm) {
-  int entity_type = -1;
+  AlertEntity entity_type = alert_entity_none;
   const char *entity_value = NULL;
   AlertType alert_type = alert_none;
   AlertLevel alert_severity = alert_level_none;
@@ -8478,7 +8484,7 @@ static int ntop_interface_get_engaged_alerts(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
   if(!iface) return(CONST_LUA_ERROR);
 
-  if(lua_type(vm, 1) == LUA_TNUMBER) entity_type = lua_tointeger(vm, 1);
+  if(lua_type(vm, 1) == LUA_TNUMBER) entity_type = (AlertEntity)lua_tointeger(vm, 1);
   if(lua_type(vm, 2) == LUA_TSTRING) entity_value = (char*)lua_tostring(vm, 2);
   if(lua_type(vm, 3) == LUA_TNUMBER) alert_type = (AlertType)lua_tointeger(vm, 3);
   if(lua_type(vm, 4) == LUA_TNUMBER) alert_severity = (AlertLevel)lua_tointeger(vm, 4);
@@ -9235,7 +9241,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "stopRunningCapture",     ntop_stop_running_capture               },
 
   /* Alerts */
-  { "refreshHostsAlertsConfiguration",  ntop_refresh_hosts_alerts_configuration },
+  { "refreshSuppressedAlertsPrefs",     ntop_refresh_suppressed_alerts_prefs },
   { "loadPacketsDropsAlertPrefs",       ntop_load_packet_drops_prefs  },
   { "queryAlertsRaw",         ntop_interface_query_alerts_raw         },
   { "queryFlowAlertsRaw",     ntop_interface_query_flow_alerts_raw    },

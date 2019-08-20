@@ -41,7 +41,7 @@ class NetworkStats : public AlertableEntity, public GenericTrafficElement {
   }
 
  public:
-  NetworkStats();
+  NetworkStats(NetworkInterface *iface, u_int8_t _network_id);
   virtual ~NetworkStats() {};
 
   inline bool trafficSeen(){

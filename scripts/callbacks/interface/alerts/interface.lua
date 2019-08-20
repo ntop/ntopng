@@ -38,11 +38,6 @@ function checkAlerts(granularity)
    local has_configured_alerts = (table.len(interface_config) or table.len(global_config))
    local entity_info = alerts_api.interfaceAlertEntity(ifid)
 
-   if are_alerts_suppressed(interface_key, ifid) then
-     releaseAlerts()
-     return
-   end
-
    if(do_trace) then print("checkInterfaceAlerts()\n") end
 
    if(has_configured_alerts) then
@@ -66,9 +61,9 @@ end
 
 -- #################################################################
 
-function releaseAlerts()
+function releaseAlerts(granularity)
   local ifid = interface.getId()
   local entity_info = alerts_api.interfaceAlertEntity(ifid)
 
-  alerts_api.releaseEntityAlerts(entity_info, interface.getAlerts())
+  alerts_api.releaseEntityAlerts(entity_info, interface.getAlerts(granularity))
 end

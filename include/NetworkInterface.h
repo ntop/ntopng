@@ -189,7 +189,7 @@ class NetworkInterface : public AlertableEntity {
   time_t last_pkt_rcvd, last_pkt_rcvd_remote, /* Meaningful only for ZMQ interfaces */
     next_idle_flow_purge, next_idle_host_purge;
   bool running, is_idle;
-  NetworkStats *networkStats;
+  NetworkStats **networkStats;
   InterfaceStatsHash *interfaceStats;
   dhcp_range* dhcp_ranges, *dhcp_ranges_shadow;
 
@@ -628,8 +628,7 @@ class NetworkInterface : public AlertableEntity {
   inline void getSFlowDeviceInfo(lua_State *vm, u_int32_t deviceIP) {
     if(interfaceStats) interfaceStats->luaDeviceInfo(vm, deviceIP); else lua_newtable(vm);
   };
-
-  void refreshHostsAlertPrefs(bool full_refresh);
+  void refreshSuppressedAlertsPrefs(AlertEntity entity_type, const char *entity_value);
   int updateHostTrafficPolicy(AddressTree* allowed_networks, char *host_ip, u_int16_t host_vlan);
 
   virtual void reloadCompanions() {};
