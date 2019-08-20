@@ -1,0 +1,36 @@
+#
+#         This is a sample configuration file for using ntopng in combination with nProbe,
+#        exporting flows over ZMQ from nProbe to ntopng.
+#        You can enable this configuration by renaming this file to ntopng.conf and restarting
+#        the ntopng service.
+#
+#
+#       -i|--interface
+#        Specifies the collector endpoint to be used by ntopng for receiving flows from nProbe.
+#        
+-i=tcp://127.0.0.1:5556
+#
+#        Note: by default ntopng is the connection initiator, this does not work if nprobe is 
+#        in a private network protected by a firewall. In this case it is necessary to revert 
+#        the configuration by swapping the roles and configuring ntopng as collector (notice
+#        the trailing 'c' below,  and nProbe as connection initiator (with the --zmq-probe-mode 
+#        option).
+#
+# -i=tcp://*:5556c
+#
+#
+#       -m|--local-networks
+#        Specifies the local networks. Any host on those  networks is considered local, while
+#        all other hosts are considered remote. It is possible to specify multiple networks 
+#        using commas to separate them. Both netmask and CIDR notation may be used,
+#        even mixed together. Example: "131.114.21.0/24,10.0.0.0/255.0.0.0".
+#
+# -m=10.10.123.0/24
+#
+#
+#       -G|--pid-path
+#        Specifies the path where the PID (process ID) is saved. This option is ignored when
+#        ntopng is controlled with systemd (e.g., service ntopng start).
+#
+-G=/var/run/ntopng.pid
+
