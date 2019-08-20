@@ -545,6 +545,7 @@ function host_pools_utils.hostpool2record(ifid, pool_id, pool)
 
    record["column_hosts"] = pool["num_hosts"]..""
    record["column_since"] = secondsToTime(os.time() - pool["seen.first"] + 1)
+   record["column_num_dropped_flows"] = (pool["flows.dropped"] or 0)..""
 
    local sent2rcvd = round((pool["bytes.sent"] * 100) / (pool["bytes.sent"] + pool["bytes.rcvd"]), 0)
    record["column_breakdown"] = "<div class='progress'><div class='progress-bar progress-bar-warning' style='width: "
