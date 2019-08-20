@@ -37,6 +37,8 @@ class HostPools {
   u_int16_t max_num_pools;
   int32_t *num_active_hosts_inline, *num_active_hosts_offline;
   int32_t *num_active_l2_devices_inline, *num_active_l2_devices_offline;
+  HostPoolStats **stats, **stats_shadow;
+
 #ifdef NTOPNG_PRO
   bool *children_safe;
   bool *forge_global_dns;
@@ -45,14 +47,12 @@ class HostPools {
   u_int32_t *schedule_bitmap;
   bool *enforce_quotas_per_pool_member;   /* quotas can be pool-wide or per pool member */
   bool *enforce_shapers_per_pool_member;
-  HostPoolStats **stats, **stats_shadow;
   volatile_members_t **volatile_members;
   Mutex **volatile_members_lock;
 
   void reloadVolatileMembers(VlanAddressTree *_trees);
   void addVolatileMember(char *host_or_mac, u_int16_t user_pool_id, time_t lifetime);
-  void swap(VlanAddressTree *new_trees, HostPoolStats **new_stats);
-
+#endif
   inline HostPoolStats* getPoolStats(u_int16_t host_pool_id) {
     if((host_pool_id >= max_num_pools) || (!stats))
       return NULL;
@@ -60,9 +60,8 @@ class HostPools {
   }
   void reloadPoolStats();
   static void deleteStats(HostPoolStats ***hps);
-#else
-  void swap(VlanAddressTree *new_trees);
-#endif
+
+  void swap(VlanAddressTree *new_trees, HostPoolStats **new_stats);
 
   void loadFromRedis();
 
@@ -115,14 +114,13 @@ class HostPools {
     decNumMembers(pool_id, isInlineCall ? num_active_l2_devices_inline : num_active_l2_devices_offline);
   };
 
-
-#ifdef NTOPNG_PRO
   void incPoolNumDroppedFlows(u_int16_t pool_id);
   void incPoolStats(u_int32_t when, u_int16_t host_pool_id, u_int16_t ndpi_proto,
 		    ndpi_protocol_category_t category_id, u_int64_t sent_packets, u_int64_t sent_bytes,
 		    u_int64_t rcvd_packets, u_int64_t rcvd_bytes);
   void updateStats(struct timeval *tv);
   void luaStats(lua_State *vm);
+  void luaStats(lua_State *mv, u_int16_t pool_id);
 
   /* To be called on the same thread as incPoolStats */
   void checkPoolsStatsReset();
@@ -153,6 +151,7 @@ class HostPools {
 
   void resetPoolsStats(u_int16_t pool_filter);
 
+#ifdef NTOPNG_PRO
   inline bool enforceQuotasPerPoolMember(u_int16_t pool_id) {
     return(((pool_id != NO_HOST_POOL_ID) && (pool_id < max_num_pools)) ? enforce_quotas_per_pool_member[pool_id] : false);
   }

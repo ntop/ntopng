@@ -218,7 +218,6 @@ using namespace std;
 #include "CounterTrend.h"
 #include "LRUMacIP.h"
 #include "FlowInterfacesStats.h"
-#include "HostPoolStats.h"
 #ifdef HAVE_LDAP
 #include "LdapAuthenticator.h"
 #endif
@@ -226,6 +225,7 @@ using namespace std;
 #include "FrequentStringItems.h"
 #include "FrequentNumericItems.h"
 #include "FrequentTrafficItems.h"
+#include "HostPoolStats.h"
 #include "HostPools.h"
 #include "Fingerprint.h"
 #include "Prefs.h"

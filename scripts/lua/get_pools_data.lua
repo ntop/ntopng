@@ -5,7 +5,7 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
-require "network_utils"
+local host_pools_utils = require "host_pools_utils"
 
 local json = require("dkjson")
 sendHTTPContentTypeHeader('text/html')
@@ -16,7 +16,7 @@ local perPage      = _GET["perPage"]
 local sortColumn   = _GET["sortColumn"]
 local sortOrder    = _GET["sortOrder"]
 
-local sortPrefs = "local_network"
+local sortPrefs = "pool_id"
 
 if((sortColumn == nil) or (sortColumn == "column_"))then
    sortColumn = getDefaultTableSort(sortPrefs)
@@ -53,21 +53,22 @@ local to_skip = (currentPage-1) * perPage
 
 if(sortOrder == "desc") then sOrder = false else sOrder = true end
 
-local networks_stats = interface.getNetworksStats()
+local ifid = interface.getStats()["id"]
+local pools_stats = interface.getHostPoolsStats()
 local total_rows = 0
 
 local sort_helper = {}
-for n, ns in pairs(networks_stats) do
+for pool_id, pool_stats in pairs(pools_stats) do
    total_rows = total_rows + 1
 
    if sortColumn == "column_hosts" then
-      sort_helper[n] = ns["num_hosts"]
+      sort_helper[pool_id] = pool_stats["num_hosts"]
    elseif sortColumn == "column_thpt" then
-      sort_helper[n] = ns["throughput_bps"]
+      sort_helper[pool_id] = pool_stats["throughput_bps"]
    elseif sortColumn == "column_traffic" then
-      sort_helper[n] = ns["bytes.sent"] + ns["bytes.rcvd"]
+      sort_helper[pool_id] = pool_stats["bytes.sent"] + pool_stats["bytes.rcvd"]
    else
-      sort_helper[n] = getLocalNetworkAlias(ns["network_key"])
+      sort_helper[pool_id] = host_pools_utils.getPoolName(ifid, pool_id)
    end
 end
 
@@ -81,7 +82,7 @@ for n, _ in pairsByValues(sort_helper, ternary(sOrder, asc, rev)) do
       goto continue
    end
 
-   local record = network2record(interface.getStats()["id"], networks_stats[n])
+   local record = host_pools_utils.hostpool2record(ifid, n, pools_stats[n])
    res_formatted[#res_formatted + 1] = record
 
    if cur_row >= perPage then

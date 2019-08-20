@@ -496,16 +496,14 @@ static int ntop_get_host_pools_info(lua_State* vm) {
 
 /* ****************************************** */
 
-#ifdef NTOPNG_PRO
 /**
  * @brief Get the Host Pool statistics of interface.
  *
  * @param vm The lua state.
  * @return @ref CONST_LUA_OK
  */
-static int ntop_get_host_pool_interface_stats(lua_State* vm) {
+static int ntop_get_host_pools_interface_stats(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  nDPIStats stats;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -518,6 +516,33 @@ static int ntop_get_host_pool_interface_stats(lua_State* vm) {
 
 /* ****************************************** */
 
+/**
+ * @brief Get the Host Pool statistics for a pool of interface.
+ *
+ * @param vm The lua state.
+ * @return @ref CONST_LUA_OK
+ */
+static int ntop_get_host_pool_interface_stats(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  HostPools *hp;
+  u_int64_t pool_id;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  pool_id = (u_int16_t)lua_tonumber(vm, 1);
+
+  if(ntop_interface && (hp = ntop_interface->getHostPools())) {
+    lua_newtable(vm);
+    hp->luaStats(vm, pool_id);
+    return(CONST_LUA_OK);
+  } else
+    return(CONST_LUA_ERROR);
+}
+
+/* ****************************************** */
+
+#ifdef NTOPNG_PRO
 /**
  * @brief Get the Host Pool volatile members
  *
@@ -9144,11 +9169,12 @@ static const luaL_Reg ntop_interface_reg[] = {
   /* InfluxDB */
   { "appendInfluxDB",                   ntop_append_influx_db                 },
 
+  { "getHostPoolsStats",                ntop_get_host_pools_interface_stats   },
+  { "getHostPoolStats",                 ntop_get_host_pool_interface_stats    },
 #ifdef NTOPNG_PRO
 #ifdef HAVE_NEDGE
   { "resetPoolsQuotas",                 ntop_reset_pools_quotas               },
 #endif
-  { "getHostPoolsStats",                ntop_get_host_pool_interface_stats    },
   { "getHostPoolsVolatileMembers",      ntop_get_host_pool_volatile_members   },
   { "purgeExpiredPoolsMembers",         ntop_purge_expired_host_pools_members },
   { "removeVolatileMemberFromPool",     ntop_remove_volatile_member_from_pool },

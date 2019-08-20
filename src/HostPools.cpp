@@ -30,9 +30,7 @@ HostPools::HostPools(NetworkInterface *_iface) {
 #ifdef NTOPNG_PRO
   children_safe = forge_global_dns = NULL;
   routing_policy_id = NULL;
-#endif
 
-#ifdef NTOPNG_PRO
   if((children_safe = (bool*)calloc(MAX_NUM_HOST_POOLS, sizeof(bool))) == NULL)
     throw 1;
 
@@ -43,8 +41,6 @@ HostPools::HostPools(NetworkInterface *_iface) {
     throw 1;
 
   for(int i = 0; i < MAX_NUM_HOST_POOLS; i++) routing_policy_id[i] = DEFAULT_ROUTING_TABLE_ID;
-
-  stats = stats_shadow = NULL;
 
   if((volatile_members = (volatile_members_t**)calloc(MAX_NUM_HOST_POOLS, sizeof(volatile_members_t*))) == NULL
      || (volatile_members_lock            = new Mutex*[MAX_NUM_HOST_POOLS]) == NULL
@@ -59,6 +55,8 @@ HostPools::HostPools(NetworkInterface *_iface) {
       throw 2;
   }
 #endif
+
+  stats = stats_shadow = NULL;
 
   if((num_active_hosts_inline          = (int32_t*)calloc(sizeof(int32_t), MAX_NUM_HOST_POOLS)) == NULL
      || (num_active_hosts_offline      = (int32_t*)calloc(sizeof(int32_t), MAX_NUM_HOST_POOLS)) == NULL
@@ -75,9 +73,7 @@ HostPools::HostPools(NetworkInterface *_iface) {
 
   reloadPools();
 
-#ifdef NTOPNG_PRO
   loadFromRedis();
-#endif
 
   max_num_pools = MAX_NUM_HOST_POOLS;
 
@@ -85,8 +81,6 @@ HostPools::HostPools(NetworkInterface *_iface) {
 }
 
 /* *************************************** */
-
-#ifdef NTOPNG_PRO
 
 void HostPools::deleteStats(HostPoolStats ***hps) {
   if(hps) {
@@ -99,8 +93,6 @@ void HostPools::deleteStats(HostPoolStats ***hps) {
     }
   }
 }
-
-#endif
 
 /* *************************************** */
 
@@ -118,13 +110,14 @@ HostPools::~HostPools() {
   if(tree)          delete tree;
   if(swap_lock)     delete swap_lock;
 
+  dumpToRedis();
+  if(stats)        deleteStats(&stats);
+  if(stats_shadow) deleteStats(&stats_shadow);
+
 #ifdef NTOPNG_PRO
   if(children_safe)     free(children_safe);
   if(forge_global_dns)  free(forge_global_dns);
   if(routing_policy_id) free(routing_policy_id);
-
-  dumpToRedis();
-
   if(pool_shaper)
     free(pool_shaper);
   if(schedule_bitmap)
@@ -133,10 +126,6 @@ HostPools::~HostPools() {
     free(enforce_quotas_per_pool_member);
   if(enforce_shapers_per_pool_member)
     free(enforce_shapers_per_pool_member);
-
-  if(stats)        deleteStats(&stats);
-  if(stats_shadow) deleteStats(&stats_shadow);
-
   if(volatile_members_lock) {
     for(int i = 0; i < MAX_NUM_HOST_POOLS; i++) {
       if(volatile_members_lock[i])
@@ -162,17 +151,12 @@ HostPools::~HostPools() {
 
     free(volatile_members);
   }
-
 #endif
 }
 
 /* *************************************** */
 
-#ifdef NTOPNG_PRO
 void HostPools::swap(VlanAddressTree *new_trees, HostPoolStats **new_stats) {
-#else
-void HostPools::swap(VlanAddressTree *new_trees) {
-#endif
   swap_lock->lock(__FILE__, __LINE__);
 
   while(time(NULL) - latest_swap < 1) {
@@ -181,7 +165,6 @@ void HostPools::swap(VlanAddressTree *new_trees) {
     swap_lock->lock(__FILE__, __LINE__);
   }
 
-#ifdef NTOPNG_PRO
   /* Swap statistics */
   if(new_stats) {
     if(stats) {
@@ -191,7 +174,6 @@ void HostPools::swap(VlanAddressTree *new_trees) {
 
     stats = new_stats;
   }
-#endif
 
   /* Swap address trees */
   if(new_trees) {
@@ -205,6 +187,84 @@ void HostPools::swap(VlanAddressTree *new_trees) {
 
   latest_swap = time(NULL);
   swap_lock->unlock(__FILE__, __LINE__);
+}
+
+/* *************************************** */
+
+void HostPools::dumpToRedis() {
+  char key[128];
+  char buf[32];
+  Redis *redis = ntop->getRedis();
+
+  if((!redis) || (! stats) || (! iface)) return;
+
+  snprintf(key, sizeof(key), HOST_POOL_SERIALIZED_KEY, iface->get_id());
+
+  for(int i = 0; i<MAX_NUM_HOST_POOLS; i++) {
+    if(stats[i] && !stats[i]->needsReset()) {
+      snprintf(buf, sizeof(buf), "%d", i);
+      char *value = stats[i]->serialize(iface);
+
+      if(value) {
+	redis->hashSet(key, buf, value);
+	free(value);
+      }
+    }
+  }
+
+#ifdef HAVE_NEDGE
+  // Save the deadline time for quota expiration, assuming quota is reset at midnight
+  snprintf(buf, sizeof(buf), "%u",
+	   Utils::roundTime(time(0), 86400, ntop->get_time_offset()) - 86400);
+  redis->hashSet(key, (char *)"deadline", buf);
+#endif
+}
+
+/* *************************************** */
+
+void HostPools::loadFromRedis() {
+  char key[CONST_MAX_LEN_REDIS_KEY], buf[32], *value;
+  json_object *obj;
+  enum json_tokener_error jerr = json_tokener_success;
+  Redis *redis = ntop->getRedis();
+
+  snprintf(key, sizeof(key), HOST_POOL_SERIALIZED_KEY, iface->get_id());
+
+  if((!redis) || (!stats) || (!iface)) return;
+
+#ifdef HAVE_NEDGE
+  time_t deadline = 0;
+
+  if(redis->hashGet(key, (char *)"deadline", buf, sizeof(buf)) == 0) {
+    sscanf(buf, "%lu", &deadline);
+
+    if(time(0) > deadline)
+      return; /* Expired */
+  }
+#endif
+
+  if((value = (char *) malloc(POOL_MAX_SERIALIZED_LEN)) == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to allocate memory to deserialize %s", key);
+    return;
+  }
+
+  for(int i = 0; i<MAX_NUM_HOST_POOLS; i++) {
+    if(stats[i]) {
+      snprintf(buf, sizeof(buf), "%d", i);
+      if(redis->hashGet(key, buf, value, POOL_MAX_SERIALIZED_LEN) == 0) {
+	if((obj = json_tokener_parse_verbose(value, &jerr)) == NULL) {
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "JSON Parse error [%s] key: %s: %s",
+				       json_tokener_error_desc(jerr),
+				       key, value);
+	} else {
+	  stats[i]->deserialize(iface, obj);
+	  json_object_put(obj);
+	}
+      }
+    }
+  }
+
+  free(value);
 }
 
 /* *************************************** */
@@ -299,84 +359,6 @@ void HostPools::addVolatileMember(char *host_or_mac, u_int16_t host_pool_id, tim
 
 /* *************************************** */
 
-void HostPools::dumpToRedis() {
-  char key[128];
-  char buf[32];
-  Redis *redis = ntop->getRedis();
-
-  if((!redis) || (! stats) || (! iface)) return;
-
-  snprintf(key, sizeof(key), HOST_POOL_SERIALIZED_KEY, iface->get_id());
-
-  for(int i = 0; i<MAX_NUM_HOST_POOLS; i++) {
-    if(stats[i] && !stats[i]->needsReset()) {
-      snprintf(buf, sizeof(buf), "%d", i);
-      char *value = stats[i]->serialize(iface);
-
-      if(value) {
-	redis->hashSet(key, buf, value);
-	free(value);
-      }
-    }
-  }
-
-#ifdef HAVE_NEDGE
-  // Save the deadline time for quota expiration, assuming quota is reset at midnight
-  snprintf(buf, sizeof(buf), "%u",
-	   Utils::roundTime(time(0), 86400, ntop->get_time_offset()) - 86400);
-  redis->hashSet(key, (char *)"deadline", buf);
-#endif
-}
-
-/* *************************************** */
-
-void HostPools::loadFromRedis() {
-  char key[CONST_MAX_LEN_REDIS_KEY], buf[32], *value;
-  json_object *obj;
-  enum json_tokener_error jerr = json_tokener_success;
-  Redis *redis = ntop->getRedis();
-
-  snprintf(key, sizeof(key), HOST_POOL_SERIALIZED_KEY, iface->get_id());
-
-  if((!redis) || (!stats) || (!iface)) return;
-
-#ifdef HAVE_NEDGE
-  time_t deadline = 0;
-
-  if(redis->hashGet(key, (char *)"deadline", buf, sizeof(buf)) == 0) {
-    sscanf(buf, "%lu", &deadline);
-
-    if(time(0) > deadline)
-      return; /* Expired */
-  }
-#endif
-
-  if((value = (char *) malloc(POOL_MAX_SERIALIZED_LEN)) == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to allocate memory to deserialize %s", key);
-    return;
-  }
-
-  for(int i = 0; i<MAX_NUM_HOST_POOLS; i++) {
-    if(stats[i]) {
-      snprintf(buf, sizeof(buf), "%d", i);
-      if(redis->hashGet(key, buf, value, POOL_MAX_SERIALIZED_LEN) == 0) {
-	if((obj = json_tokener_parse_verbose(value, &jerr)) == NULL) {
-	  ntop->getTrace()->traceEvent(TRACE_WARNING, "JSON Parse error [%s] key: %s: %s",
-				       json_tokener_error_desc(jerr),
-				       key, value);
-	} else {
-	  stats[i]->deserialize(iface, obj);
-	  json_object_put(obj);
-	}
-      }
-    }
-  }
-
-  free(value);
-}
-
-/* *************************************** */
-
 void HostPools::incPoolNumDroppedFlows(u_int16_t pool_id) {
   HostPoolStats *hps = getPoolStats(pool_id);
 
@@ -414,19 +396,27 @@ void HostPools::updateStats(struct timeval *tv) {
 /* *************************************** */
 
 void HostPools::luaStats(lua_State *vm) {
-  HostPoolStats *hps;
-
   if(vm) {
     lua_newtable(vm);
 
-    if(stats) {
-      for(int i = 0; i < MAX_NUM_HOST_POOLS; i++) {
-	if((hps = stats[i])) {
-	  /* Must use the assigned hps as stats can be swapped
-	     and accesses such as stats[i] could yield a NULL value */
-	  hps->lua(vm, iface);
-	  lua_rawseti(vm, -2, i);
-	}
+    for(int i = 0; i < MAX_NUM_HOST_POOLS; i++)
+      luaStats(vm, i);
+  }
+};
+
+/* *************************************** */
+
+void HostPools::luaStats(lua_State *vm, u_int16_t pool_id) {
+  HostPoolStats *hps;
+
+  if(vm) {
+    if(stats && pool_id < MAX_NUM_HOST_POOLS) {
+      if((hps = stats[pool_id])) {
+	/* Must use the assigned hps as stats can be swapped
+	   and accesses such as stats[pool_id] could yield a NULL value */
+	hps->lua(vm, iface);
+	lua_push_uint64_table_entry(vm, "num_hosts", getNumPoolHosts(pool_id));
+	lua_rawseti(vm, -2, pool_id);
       }
     }
   }
@@ -654,33 +644,24 @@ void HostPools::reloadPools() {
   int num_pools, num_members, actual_num_members;
   u_int16_t _pool_id, vlan_id;
   VlanAddressTree *new_tree;
-#ifdef NTOPNG_PRO
   HostPoolStats **new_stats;
-#endif
   Redis *redis = ntop->getRedis();
 
   if(!iface || (iface->get_id() == -1))
     return;
 
   new_tree = new VlanAddressTree;
-#ifdef NTOPNG_PRO
   new_stats = new HostPoolStats*[MAX_NUM_HOST_POOLS];
-#endif
-
-#ifdef NTOPNG_PRO
   for(u_int32_t i = 0; i < MAX_NUM_HOST_POOLS; i++)
     new_stats[i] = NULL;
-#endif
 
   snprintf(kname, sizeof(kname), HOST_POOL_IDS_KEY, iface->get_id());
 
-#ifdef NTOPNG_PRO
   /* Always allocate default pool stats */
   if(stats && stats[0]) /* Duplicate existing statistics */
     new_stats[0] = new HostPoolStats(*stats[0]);
   else /* Brand new statistics */
     new_stats[0] = new HostPoolStats(iface);
-#endif
 
   /* Keys are pool ids */
   num_pools = redis->smembers(kname, &pools);
@@ -699,14 +680,12 @@ void HostPools::reloadPools() {
       continue;
     }
 
-#ifdef NTOPNG_PRO
     if(_pool_id != 0) { /* Pool id 0 stats already updated */
       if(stats && stats[_pool_id]) /* Duplicate existing statistics */
 	new_stats[_pool_id] = new HostPoolStats(*stats[_pool_id]);
       else /* Brand new statistics */
 	new_stats[_pool_id] = new HostPoolStats(iface);
     }
-#endif
 
     snprintf(kname, sizeof(kname), HOST_POOL_DETAILS_KEY, iface->get_id(), _pool_id);
 
@@ -798,10 +777,8 @@ void HostPools::reloadPools() {
 #ifdef NTOPNG_PRO
   if(ntop->getPrefs()->isCaptivePortalEnabled())
     reloadVolatileMembers(new_tree /* Reload only on the new */);
-  swap(new_tree, new_stats);
-#else
-  swap(new_tree);
 #endif
+  swap(new_tree, new_stats);
 
   iface->refreshHostPools();
 }
