@@ -269,7 +269,7 @@ function alerts_api.trigger(entity_info, type_info, when)
   elseif((network.storeTriggeredAlert) and (entity_info.alert_entity.entity_id == alertEntity("network"))) then
     triggered = network.storeTriggeredAlert(table.unpack(params))
   else
-    triggered = interface.triggerExternalAlert(entity_info.alert_entity.entity_id, entity_info.alert_entity.alert_entity_val, table.unpack(params))
+    triggered = interface.triggerExternalAlert(entity_info.alert_entity.entity_id, entity_info.alert_entity_val, table.unpack(params))
   end
 
   if(triggered == nil) then
@@ -316,7 +316,7 @@ function alerts_api.release(entity_info, type_info, when)
   elseif((network.releaseTriggeredAlert) and (entity_info.alert_entity.entity_id == alertEntity("network"))) then
     released = network.releaseTriggeredAlert(table.unpack(params))
   else
-    released = interface.releaseExternalAlert(entity_info.alert_entity.entity_id, entity_info.alert_entity.alert_entity_val, table.unpack(params))
+    released = interface.releaseExternalAlert(entity_info.alert_entity.entity_id, entity_info.alert_entity_val, table.unpack(params))
   end
 
   if(released == nil) then
@@ -342,6 +342,10 @@ end
 
 -- Convenient method to release multiple alerts on an entity
 function alerts_api.releaseEntityAlerts(entity_info, alerts)
+  if(alerts == nil) then
+    alerts = interface.getEngagedAlerts(entity_info.alert_entity.entity_id, entity_info.alert_entity_val)
+  end
+
   for _, alert in pairs(alerts) do
     alerts_api.release(entity_info, {
       alert_type = alert_consts.alert_types[alertTypeRaw(alert.alert_type)],

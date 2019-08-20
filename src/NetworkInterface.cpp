@@ -7921,13 +7921,15 @@ AlertableEntity* NetworkInterface::lockExternalAlertable(AlertEntity entity, con
 /* *************************************** */
 
 void NetworkInterface::unlockExternalAlertable(AlertableEntity *alertable) {
+  /* Must refresh before being able to read the updated count */
+  alertable->refreshAlerts();
+
   if(alertable->getNumTriggeredAlerts() == 0) {
     std::pair<AlertEntity, std::string> key(alertable->getEntityType(), alertable->getEntityValue());
 
     external_alerts.erase(key);
     delete alertable;
-  } else
-    alertable->refreshAlerts();
+  }
 
   external_alerts_lock.unlock(__FILE__, __LINE__);
 }

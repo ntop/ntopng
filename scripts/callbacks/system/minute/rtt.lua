@@ -46,11 +46,20 @@ end
 
 -- ##############################################
 
-function probe.emitRttAlert(numeric_ip, ip_label, current_value, upper_threshold)
-  local entity_info =  alerts_api.pingedHostEntity(ip_label)
+function probe.triggerRttAlert(numeric_ip, ip_label, current_value, upper_threshold)
+  local entity_info = alerts_api.pingedHostEntity(ip_label)
   local type_info = alerts_api.pingIssuesType(current_value, upper_threshold, numeric_ip)
 
-  alerts_api.store(entity_info, type_info)
+  return alerts_api.trigger(entity_info, type_info)
+end
+
+-- ##############################################
+
+function probe.releaseRttAlert(numeric_ip, ip_label, current_value, upper_threshold)
+  local entity_info = alerts_api.pingedHostEntity(ip_label)
+  local type_info = alerts_api.pingIssuesType(current_value, upper_threshold, numeric_ip)
+
+  return alerts_api.release(entity_info, type_info)
 end
 
 -- ##############################################
@@ -126,9 +135,10 @@ function probe.runTask(when, ts_utils)
 	
 	if(max_rtt and (rtt > max_rtt)) then
      if(debug) then print("[TRIGGER] Host "..host.."/"..key.." [value: "..rtt.."][threshold: "..max_rtt.."]\n") end
-     probe.emitRttAlert(host, key, rtt, max_rtt)
+     probe.triggerRttAlert(host, key, rtt, max_rtt)
 	else
      if(debug) then print("[OK] Host "..host.."/"..key.." [value: "..rtt.."][threshold: "..max_rtt.."]\n") end
+     probe.releaseRttAlert(host, key, rtt, max_rtt)
 	end
 	
 	pinged_hosts[host] = nil -- Remove key
@@ -136,8 +146,8 @@ function probe.runTask(when, ts_utils)
   end
   
   for ip,label in pairs(pinged_hosts) do
-     probe.emitRttAlert(ip, label, 0, 0)
      if(debug) then print("[TRIGGER] Host "..ip.."/"..label.." is unreacheable\n") end
+     probe.triggerRttAlert(ip, label, 0, 0)
   end
 
   if(debug) then

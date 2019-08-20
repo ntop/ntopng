@@ -106,6 +106,14 @@ end
 -- ##############################################
 
 function rtt_utils.removeHost(host)
+  local alerts_api = require("alerts_api")
+  local rtt_host_entity = alerts_api.pingedHostEntity(host)
+  local old_ifname = ifname
+
+  interface.select(getSystemInterfaceId())
+  alerts_api.releaseEntityAlerts(rtt_host_entity)
+  interface.select(old_ifname)
+
   ntop.delHashCache(rtt_hosts_key, host)
 end
 
