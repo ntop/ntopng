@@ -269,6 +269,35 @@ void HostPools::loadFromRedis() {
 
 /* *************************************** */
 
+void HostPools::luaStats(lua_State *vm) {
+  if(vm) {
+    lua_newtable(vm);
+
+    for(int i = 0; i < MAX_NUM_HOST_POOLS; i++)
+      luaStats(vm, i);
+  }
+};
+
+/* *************************************** */
+
+void HostPools::luaStats(lua_State *vm, u_int16_t pool_id) {
+  HostPoolStats *hps;
+
+  if(vm) {
+    if(stats && pool_id < MAX_NUM_HOST_POOLS) {
+      if((hps = stats[pool_id])) {
+	/* Must use the assigned hps as stats can be swapped
+	   and accesses such as stats[pool_id] could yield a NULL value */
+	hps->lua(vm, iface);
+	lua_push_uint64_table_entry(vm, "num_hosts", getNumPoolHosts(pool_id));
+	lua_rawseti(vm, -2, pool_id);
+      }
+    }
+  }
+};
+
+/* *************************************** */
+
 #ifdef NTOPNG_PRO
 
 void HostPools::reloadVolatileMembers(VlanAddressTree *_trees) {
@@ -392,36 +421,6 @@ void HostPools::updateStats(struct timeval *tv) {
 	hps->updateStats(tv); /* Use hps, stats[i] can become NULL after a swap */
   }
 };
-
-/* *************************************** */
-
-void HostPools::luaStats(lua_State *vm) {
-  if(vm) {
-    lua_newtable(vm);
-
-    for(int i = 0; i < MAX_NUM_HOST_POOLS; i++)
-      luaStats(vm, i);
-  }
-};
-
-/* *************************************** */
-
-void HostPools::luaStats(lua_State *vm, u_int16_t pool_id) {
-  HostPoolStats *hps;
-
-  if(vm) {
-    if(stats && pool_id < MAX_NUM_HOST_POOLS) {
-      if((hps = stats[pool_id])) {
-	/* Must use the assigned hps as stats can be swapped
-	   and accesses such as stats[pool_id] could yield a NULL value */
-	hps->lua(vm, iface);
-	lua_push_uint64_table_entry(vm, "num_hosts", getNumPoolHosts(pool_id));
-	lua_rawseti(vm, -2, pool_id);
-      }
-    }
-  }
-};
-
 /* *************************************** */
 
 void HostPools::resetPoolsStats(u_int16_t pool_filter) {
