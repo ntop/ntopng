@@ -807,7 +807,13 @@ local function printConfigTab(entity_type, entity_value, page_name, page_params,
          trigger_alerts = true
       end
 
-      ntop.setHashCache(get_alerts_suppressed_hash_name(ifid), entity_value, tostring(trigger_alerts))
+      if(not trigger_alerts) then
+        ntop.setHashCache(get_alerts_suppressed_hash_name(ifid), entity_value, tostring(trigger_alerts))
+      else
+        -- Delete the entry to save space
+        ntop.delHashCache(get_alerts_suppressed_hash_name(ifid), entity_value)
+      end
+
       interface.refreshSuppressedAlertsPrefs(alertEntity(entity_type), entity_value)
 
       if(entity_type == "host") then
