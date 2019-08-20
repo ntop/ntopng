@@ -298,6 +298,32 @@ void HostPools::luaStats(lua_State *vm, u_int16_t pool_id) {
 
 /* *************************************** */
 
+void HostPools::updateStats(struct timeval *tv) {
+  HostPoolStats *hps;
+
+  if(stats && tv) {
+    for(int i = 0; i < MAX_NUM_HOST_POOLS; i++)
+      if((hps = stats[i]))
+	hps->updateStats(tv); /* Use hps, stats[i] can become NULL after a swap */
+  }
+};
+
+/* *************************************** */
+
+void HostPools::incPoolStats(u_int32_t when, u_int16_t host_pool_id, u_int16_t ndpi_proto,
+			     ndpi_protocol_category_t category_id, u_int64_t sent_packets, u_int64_t sent_bytes,
+			     u_int64_t rcvd_packets, u_int64_t rcvd_bytes) {
+  HostPoolStats *hps = getPoolStats(host_pool_id);
+
+  if(!hps) return;
+
+  /* Important to use the assigned hps as a swap can make stats[host_pool_id] NULL */
+  hps->incStats(when, ndpi_proto, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes);
+  hps->incCategoryStats(when, category_id, sent_bytes, rcvd_bytes);
+};
+
+/* *************************************** */
+
 #ifdef NTOPNG_PRO
 
 void HostPools::reloadVolatileMembers(VlanAddressTree *_trees) {
@@ -396,31 +422,6 @@ void HostPools::incPoolNumDroppedFlows(u_int16_t pool_id) {
   hps->incNumDroppedFlows();
 }
 
-/* *************************************** */
-
-void HostPools::incPoolStats(u_int32_t when, u_int16_t host_pool_id, u_int16_t ndpi_proto,
-			     ndpi_protocol_category_t category_id, u_int64_t sent_packets, u_int64_t sent_bytes,
-			     u_int64_t rcvd_packets, u_int64_t rcvd_bytes) {
-  HostPoolStats *hps = getPoolStats(host_pool_id);
-
-  if(!hps) return;
-
-  /* Important to use the assigned hps as a swap can make stats[host_pool_id] NULL */
-  hps->incStats(when, ndpi_proto, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes);
-  hps->incCategoryStats(when, category_id, sent_bytes, rcvd_bytes);
-};
-
-/* *************************************** */
-
-void HostPools::updateStats(struct timeval *tv) {
-  HostPoolStats *hps;
-
-  if(stats && tv) {
-    for(int i = 0; i < MAX_NUM_HOST_POOLS; i++)
-      if((hps = stats[i]))
-	hps->updateStats(tv); /* Use hps, stats[i] can become NULL after a swap */
-  }
-};
 /* *************************************** */
 
 void HostPools::resetPoolsStats(u_int16_t pool_filter) {

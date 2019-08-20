@@ -1185,10 +1185,10 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
 	if(trafficProfile)
 	  trafficProfile->incBytes(diff_sent_bytes+diff_rcvd_bytes);
 #endif
-
-	update_pools_stats(tv, diff_sent_packets, diff_sent_bytes, diff_rcvd_packets, diff_rcvd_bytes);
       }
 #endif
+      update_pools_stats(tv, diff_sent_packets, diff_sent_bytes, diff_rcvd_packets, diff_rcvd_bytes);
+
       if(iface && iface->hasSeenVlanTaggedPackets() && (vl = iface->getVlan(vlanId, false, false /* NOT an inline call */))) {
 	/* Note: source and destination hosts have, by definition, the same VLAN so the increase is done only one time. */
 	/* Note: vl will never be null as we're in a flow with that vlan. Hence, it is guaranteed that at least
@@ -1471,8 +1471,6 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
 
 /* *************************************** */
 
-#ifdef NTOPNG_PRO
-
 void Flow::update_pools_stats(const struct timeval *tv,
 				u_int64_t diff_sent_packets, u_int64_t diff_sent_bytes,
 				u_int64_t diff_rcvd_packets, u_int64_t diff_rcvd_bytes) {
@@ -1502,6 +1500,7 @@ void Flow::update_pools_stats(const struct timeval *tv,
 	hp->incPoolStats(tv->tv_sec, cli_host_pool_id, ndpiDetectedProtocol.master_protocol, category_id,
 		       diff_sent_packets, diff_sent_bytes, diff_rcvd_packets, diff_rcvd_bytes);
 
+#ifdef NTOPNG_PRO
       /* Per host quota-enforcement stats */
       if(hp->enforceQuotasPerPoolMember(cli_host_pool_id)) {
 	cli_host->incQuotaEnforcementStats(tv->tv_sec, ndpiDetectedProtocol.master_protocol,
@@ -1510,6 +1509,7 @@ void Flow::update_pools_stats(const struct timeval *tv,
 					   diff_sent_packets, diff_sent_bytes, diff_rcvd_packets, diff_rcvd_bytes);
 	cli_host->incQuotaEnforcementCategoryStats(tv->tv_sec, category_id, diff_sent_bytes, diff_rcvd_bytes);
       }
+#endif
     }
 
     /* Server host */
@@ -1532,6 +1532,7 @@ void Flow::update_pools_stats(const struct timeval *tv,
       }
 
       /* When quotas have to be enforced per pool member, stats must be increased even if cli and srv are on the same pool */
+#ifdef NTOPNG_PRO
       if(hp->enforceQuotasPerPoolMember(srv_host_pool_id)) {
 	srv_host->incQuotaEnforcementStats(tv->tv_sec, ndpiDetectedProtocol.master_protocol,
 			 diff_rcvd_packets, diff_rcvd_bytes, diff_sent_packets, diff_sent_bytes);
@@ -1539,11 +1540,10 @@ void Flow::update_pools_stats(const struct timeval *tv,
 			 diff_rcvd_packets, diff_rcvd_bytes, diff_sent_packets, diff_sent_bytes);
 	srv_host->incQuotaEnforcementCategoryStats(tv->tv_sec, category_id, diff_rcvd_bytes, diff_sent_bytes);
       }
+#endif
     }
   }
 }
-
-#endif
 
 /* *************************************** */
 

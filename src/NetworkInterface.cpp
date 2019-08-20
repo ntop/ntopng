@@ -3118,10 +3118,8 @@ void NetworkInterface::periodicStatsUpdate() {
   gettimeofday(&tdebug, NULL);
 #endif
 
-#ifdef NTOPNG_PRO
   if(host_pools)
     host_pools->updateStats(&tv);
-#endif
 
   for(u_int8_t network_id = 0; network_id < ntop->getNumLocalNetworks(); network_id++) {
     if(NetworkStats *ns = getNetworkStats(network_id))
