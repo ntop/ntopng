@@ -414,13 +414,21 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
 
   stats->lua(vm, mask_host, Utils::bool2DetailsLevel(verbose,host_details));
 
+  lua_push_uint64_table_entry(vm, "active_flows.as_client", getNumOutgoingFlows());
+  lua_push_uint64_table_entry(vm, "active_flows.as_server", getNumIncomingFlows());
   lua_push_uint64_table_entry(vm, "anomalous_flows.as_server", getTotalNumAnomalousIncomingFlows());
   lua_push_uint64_table_entry(vm, "anomalous_flows.as_client", getTotalNumAnomalousOutgoingFlows());
   lua_push_uint64_table_entry(vm, "unreachable_flows.as_server", getTotalNumUnreachableIncomingFlows());
   lua_push_uint64_table_entry(vm, "unreachable_flows.as_client", getTotalNumUnreachableOutgoingFlows());
   lua_push_uint64_table_entry(vm, "host_unreachable_flows.as_server", getTotalNumHostUnreachableIncomingFlows());
   lua_push_uint64_table_entry(vm, "host_unreachable_flows.as_client", getTotalNumHostUnreachableOutgoingFlows());
+  lua_push_uint64_table_entry(vm, "contacts.as_client", getNumActiveContactsAsClient());
+  lua_push_uint64_table_entry(vm, "contacts.as_server", getNumActiveContactsAsServer());
   lua_push_uint64_table_entry(vm, "total_alerts", stats->getTotalAlerts());
+
+  luaDNS(vm);
+  luaTCP(vm);
+  luaICMP(vm, get_ip()->isIPv4(), false);
 
 #ifdef NTOPNG_PRO
   lua_push_bool_table_entry(vm, "has_blocking_quota", has_blocking_quota);

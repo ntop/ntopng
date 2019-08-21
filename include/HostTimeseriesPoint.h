@@ -26,12 +26,23 @@
 
 class TimeseriesStats;
 
+class DnsStats;
+class ICMPstats;
+class LocalHostStats;
+
 class HostTimeseriesPoint: public TimeseriesPoint {
  private:
   TimeseriesStats *host_stats;
 
  public:
-  HostTimeseriesPoint(const TimeseriesStats * const hs);
+  /* Keep these public in order to allow LocalHostStats::makeTsPoint to set them. */
+  u_int32_t active_flows_as_client, active_flows_as_server;
+  u_int32_t contacts_as_client, contacts_as_server;
+  TcpPacketStats tcp_packet_stats_sent, tcp_packet_stats_rcvd;
+  DnsStats *dns;
+  ts_icmp_stats *icmp;
+
+  HostTimeseriesPoint(const LocalHostStats * const hs);
   virtual ~HostTimeseriesPoint();
   virtual void lua(lua_State* vm, NetworkInterface *iface);
 };

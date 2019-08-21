@@ -39,7 +39,6 @@ class HostStats: public TimeseriesStats {
 
   /* Written by NetworkInterface::processPacket thread */
   PacketStats sent_stats, recv_stats;
-  u_int32_t total_num_flows_as_client, total_num_flows_as_server;
 
   /* Used to store checkpoint data to build top talkers stats */
   struct {

@@ -102,7 +102,7 @@ void LocalHost::initialize() {
 
   /* Clone the initial point. It will be written to the timeseries DB to
    * address the first point problem (https://github.com/ntop/ntopng/issues/2184). */
-  initial_ts_point = new HostTimeseriesPoint(stats);
+  initial_ts_point = new HostTimeseriesPoint((LocalHostStats *)stats);
   initialization_time = time(NULL);
 
   char *strIP = ip.print(buf, sizeof(buf));

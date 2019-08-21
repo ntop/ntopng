@@ -172,3 +172,26 @@ void ICMPstats::sum(ICMPstats *e) {
     stats[key] = s;
   }
 }
+
+/* *************************************** */
+
+/* Get minimal stats required by the timeseries */
+void ICMPstats::getTsStats(ts_icmp_stats *s) {
+  u_int16_t echo_key = get_typecode(8, 0);
+  u_int16_t echo_reply_key = get_typecode(0, 0);
+  std::map<u_int16_t, ICMPstats_t>::const_iterator it;
+
+  m.lock(__FILE__, __LINE__);
+
+  if((it = stats.find(echo_key)) != stats.end()) {
+    s->echo_packets_sent = it->second.pkt_sent;
+    s->echo_packets_rcvd = it->second.pkt_rcvd;
+  }
+
+  if((it = stats.find(echo_reply_key)) != stats.end()) {
+    s->echo_reply_packets_sent = it->second.pkt_sent;
+    s->echo_reply_packets_rcvd = it->second.pkt_rcvd;
+  }
+
+  m.unlock(__FILE__, __LINE__);
+}

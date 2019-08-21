@@ -727,6 +727,14 @@ typedef struct grouped_alerts_counters {
   std::map<AlertLevel, u_int32_t> severities;
 } grouped_alerts_counters;
 
+/* ICMP stats required for timeseries generation */
+typedef struct ts_icmp_stats {
+  u_int16_t echo_packets_sent;
+  u_int16_t echo_packets_rcvd;
+  u_int16_t echo_reply_packets_sent;
+  u_int16_t echo_reply_packets_rcvd;
+} ts_icmp_stats;
+
 class AlertableEntity;
 typedef void (alertable_callback)(AlertableEntity *alertable, void *user_data);
 

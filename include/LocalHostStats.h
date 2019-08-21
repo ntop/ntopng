@@ -40,6 +40,10 @@ class LocalHostStats: public HostStats {
   LocalHostStats(Host *_host);
   virtual ~LocalHostStats();
 
+  inline DnsStats* getDNSStats() const    { return(dns);  }
+  inline HTTPstats* getHTTPStats() const  { return(http); }
+  inline ICMPstats* getICMPStats() const  { return(icmp); }
+
   virtual void incStats(time_t when, u_int8_t l4_proto, u_int ndpi_proto,
 		custom_app_t custom_app,
 		u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
@@ -51,6 +55,7 @@ class LocalHostStats: public HostStats {
   virtual void lua(lua_State* vm, bool mask_host, DetailsLevel details_level, bool tsLua = false);
   virtual void incNumFlows(bool as_client, Host *peer);
   virtual void decNumFlows(bool as_client, Host *peer);
+  virtual void makeTsPoint(HostTimeseriesPoint *pt);
 
   virtual void incICMP(u_int8_t icmp_type, u_int8_t icmp_code, bool sent, Host *peer);
   virtual void incNumDNSQueriesSent(u_int16_t query_type) { if(dns) dns->incNumDNSQueriesSent(query_type); };

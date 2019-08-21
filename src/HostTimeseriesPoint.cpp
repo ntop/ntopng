@@ -23,17 +23,47 @@
 
 /* *************************************** */
 
-HostTimeseriesPoint::HostTimeseriesPoint(const TimeseriesStats * const hs) : TimeseriesPoint() {
-  host_stats = hs ? new (std::nothrow) TimeseriesStats(*hs) : NULL;
+HostTimeseriesPoint::HostTimeseriesPoint(const LocalHostStats * const hs) : TimeseriesPoint() {
+  host_stats = hs ? new TimeseriesStats(*hs) : NULL;
+  dns = hs->getDNSStats() ? new DnsStats(*hs->getDNSStats()) : NULL;
+  icmp = NULL;
+
+  if(hs->getICMPStats() && (hs->getHost()->get_ip()->isIPv4())) {
+    icmp = (ts_icmp_stats*) calloc(1, sizeof(ts_icmp_stats));
+
+    if(icmp)
+      hs->getICMPStats()->getTsStats(icmp);
+  }
 }
 
 HostTimeseriesPoint::~HostTimeseriesPoint() {
   if(host_stats) delete host_stats;
+  if(dns) delete dns;
+  if(icmp) free(icmp);
 }
 
 /* *************************************** */
 
+/* NOTE: Return only the minimal information needed by the timeseries
+ * to avoid slowing down the periodic scripts too much! */
 void HostTimeseriesPoint::lua(lua_State* vm, NetworkInterface *iface) {
   if(host_stats)
     host_stats->luaStats(vm, iface, true /* host details */, true /* verbose */, true /* tsLua */);
+
+  lua_push_uint64_table_entry(vm, "active_flows.as_client", active_flows_as_client);
+  lua_push_uint64_table_entry(vm, "active_flows.as_server", active_flows_as_server);
+  lua_push_uint64_table_entry(vm, "contacts.as_client", contacts_as_client);
+  lua_push_uint64_table_entry(vm, "contacts.as_server", contacts_as_server);
+
+  tcp_packet_stats_sent.lua(vm, "tcpPacketStats.sent");
+  tcp_packet_stats_rcvd.lua(vm, "tcpPacketStats.rcvd");
+
+  if(dns) dns->lua(vm, false /* NOT verbose */);
+
+  if(icmp) {
+    lua_push_uint64_table_entry(vm, "icmp.echo_pkts_sent", icmp->echo_packets_sent);
+    lua_push_uint64_table_entry(vm, "icmp.echo_pkts_rcvd", icmp->echo_packets_rcvd);
+    lua_push_uint64_table_entry(vm, "icmp.echo_reply_pkts_sent", icmp->echo_reply_packets_sent);
+    lua_push_uint64_table_entry(vm, "icmp.echo_reply_pkts_rcvd", icmp->echo_reply_packets_rcvd);
+  }
 }

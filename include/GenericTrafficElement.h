@@ -58,6 +58,8 @@ class GenericTrafficElement {
   };
   inline void incNumDroppedFlows()         { total_num_dropped_flows++;      };
 
+  inline TcpPacketStats* getTcpPacketSentStats() { return(&tcp_packet_stats_sent); }
+  inline TcpPacketStats* getTcpPacketRcvdStats() { return(&tcp_packet_stats_rcvd); }
   inline void incSentTcp(u_int32_t ooo_pkts, u_int32_t retr_pkts, u_int32_t lost_pkts, u_int32_t keep_alive_pkts) {
     if(ooo_pkts)        incOOO(&tcp_packet_stats_sent, ooo_pkts);
     if(retr_pkts)       incRetx(&tcp_packet_stats_sent, retr_pkts);

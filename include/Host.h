@@ -243,6 +243,8 @@ class Host : public GenericHashEntry, public AlertableEntity {
   virtual void luaTCP(lua_State *vm) const { };
   virtual u_int16_t getNumActiveContactsAsClient() const  { return 0; };
   virtual u_int16_t getNumActiveContactsAsServer() const  { return 0; };
+  inline TcpPacketStats* getTcpPacketSentStats() { return(stats->getTcpPacketSentStats()); }
+  inline TcpPacketStats* getTcpPacketRcvdStats() { return(stats->getTcpPacketRcvdStats()); }
 
   virtual NetworkStats* getNetworkStats(int16_t networkId) { return(NULL);   };
   inline Country* getCountryStats()                        { return country; };

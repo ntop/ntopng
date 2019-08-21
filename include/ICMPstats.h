@@ -50,6 +50,7 @@ class ICMPstats {
   bool hasAnomalies(time_t when);
   void luaAnomalies(lua_State* vm, time_t when);
   void sum(ICMPstats *e);
+  void getTsStats(ts_icmp_stats *s);
 };
 
 #endif /* _ICMP_STATS_H_ */

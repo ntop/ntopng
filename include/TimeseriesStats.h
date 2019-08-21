@@ -24,7 +24,23 @@
 
 class Host;
 
-
+/* This class is specific for hosts and its used for two purposes:
+ *  - Keep realtime local/remote hosts stats
+ *  - Keep local/remote hosts timeseries stats in the form of HostTimeseriesPoint
+ *
+ * In order to add a totally new Host metric as class member:
+ *  1. Add the metric to this class
+ *  2. Edit TimeseriesStats::luaStats to push the metric to lua
+ *  3. Possibly serialize in HostStats and deserialize in LocalHostStats
+ *  4. The value is updated in HostStats. Usually the method is exposed by the Host (e.g. incNumAnomalousFlows)
+ *
+ * In order to export a simple metric which does result in a class member (e.g. number of alerts of an Host):
+ *  1. Add the metric to HostTimeseriesPoint
+ *  2. Save the current the metric value into LocalHostStats::makeTsPoint
+ *  3. Edit HostTimeseriesPoint::lua to push the metric to lua
+ *
+ *  Note: Timeseries data is stored into HostTimeseriesPoint, which is populated
+ *  in LocalHostStats::tsLua. */
 class TimeseriesStats: public GenericTrafficElement {
  protected:
   Host *host;
@@ -32,13 +48,16 @@ class TimeseriesStats: public GenericTrafficElement {
   u_int32_t unreachable_flows_as_client, unreachable_flows_as_server;
   u_int32_t anomalous_flows_as_client, anomalous_flows_as_server;
   u_int32_t host_unreachable_flows_as_client, host_unreachable_flows_as_server;
+  u_int32_t total_num_flows_as_client, total_num_flows_as_server;
   u_int64_t udp_sent_unicast, udp_sent_non_unicast;
   L4Stats l4stats;
 
  public:
   TimeseriesStats(Host * _host);
-  virtual ~TimeseriesStats();
+  /* NOTE: default copy constructor used by LocalHostStats::updateStats */
+  virtual ~TimeseriesStats() {}
 
+  inline Host* getHost() const { return(host); }
   inline void incNumAnomalousFlows(bool as_client)   { if(as_client) anomalous_flows_as_client++; else anomalous_flows_as_server++; };
   inline void incNumUnreachableFlows(bool as_server) { if(as_server) unreachable_flows_as_server++; else unreachable_flows_as_client++; }
   inline void incNumHostUnreachableFlows(bool as_server) { if(as_server) host_unreachable_flows_as_server++; else host_unreachable_flows_as_client++; };

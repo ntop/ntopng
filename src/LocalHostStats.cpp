@@ -98,10 +98,24 @@ void LocalHostStats::updateStats(struct timeval *tv) {
   
   if(ts_ring && ts_ring->isTimeToInsert()) {
     HostTimeseriesPoint *pt = new HostTimeseriesPoint(this);
+    makeTsPoint(pt);
 
     /* Ownership of the point is passed to the ring */
     ts_ring->insert(pt, last_update_time.tv_sec);
   }
+}
+
+/* *************************************** */
+
+void LocalHostStats::makeTsPoint(HostTimeseriesPoint *pt) {
+  /* NOTE: host_stats already populated via the HostTimeseriesPoint copy constructor.
+   * Edit HostTimeseriesPoint::lua to push these values to Lua */
+  pt->active_flows_as_client = host->getNumOutgoingFlows();
+  pt->active_flows_as_server = host->getNumIncomingFlows();
+  pt->contacts_as_client = host->getNumActiveContactsAsClient();
+  pt->contacts_as_server = host->getNumActiveContactsAsServer();
+  pt->tcp_packet_stats_sent = *host->getTcpPacketSentStats();
+  pt->tcp_packet_stats_rcvd = *host->getTcpPacketRcvdStats();
 }
 
 /* *************************************** */

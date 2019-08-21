@@ -24,6 +24,7 @@
 
 #include "ntop_includes.h"
 
+/* This is manually populated by NetworkInterface::makeTsPoint */
 class NetworkInterfaceTsPoint: public TimeseriesPoint {
  public:
   nDPIStats ndpi;
