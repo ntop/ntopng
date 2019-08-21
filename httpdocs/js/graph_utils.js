@@ -952,9 +952,9 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
           total_cell.show().find("span").html(tot_formatter(stats.total));
         if(stats.average || average_cell.is(':visible'))
           average_cell.show().find("span").html(stats_formatter(stats.average));
-        if(stats.min_val || min_cell.is(':visible'))
+        if((stats.min_val || min_cell.is(':visible')) && res[0].values[stats.min_val_idx])
           min_cell.show().find("span").html(stats_formatter(stats.min_val) + " @ " + (new Date(res[0].values[stats.min_val_idx][0] * 1000)).format(datetime_format));
-        if(stats.max_val || max_cell.is(':visible'))
+        if((stats.max_val || max_cell.is(':visible')) && res[0].values[stats.max_val_idx])
           max_cell.show().find("span").html(stats_formatter(stats.max_val) + " @ " + (new Date(res[0].values[stats.max_val_idx][0] * 1000)).format(datetime_format));
         if(stats["95th_percentile"] || perc_cell.is(':visible')) {
           perc_cell.show().find("span").html(stats_formatter(stats["95th_percentile"]));
