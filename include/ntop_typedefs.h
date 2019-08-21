@@ -60,6 +60,7 @@ typedef struct {
   struct timeval *tv;
 } update_hosts_stats_user_data_t;
 
+/* Keep in sync with alert_consts.alerts_granularities and Utils */
 typedef enum {
   no_periodicity = -1,
   aperiodic_script = 0,

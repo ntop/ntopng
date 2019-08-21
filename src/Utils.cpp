@@ -3866,10 +3866,11 @@ void Utils::containerInfoLua(lua_State *vm, const ContainerInfo * const cont) {
 
 const char* Utils::periodicityToScriptName(ScriptPeriodicity p) {
   switch(p) {
-  case 0: return("min");
-  case 1: return("5mins");
-  case 2: return("hour");
-  case 3: return("day");
+  case aperiodic_script:    return("aperiodic");
+  case minute_script:       return("min");
+  case five_minute_script:  return("5mins");
+  case hour_script:         return("hour");
+  case day_script:          return("day");
   default:
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unknown periodicity value: %d", p);
     return("");
@@ -3880,10 +3881,11 @@ const char* Utils::periodicityToScriptName(ScriptPeriodicity p) {
 
 int Utils::periodicityToSeconds(ScriptPeriodicity p) {
   switch(p) {
-  case 0: return(60);
-  case 1: return(300);
-  case 2: return(3600);
-  case 3: return(86400);
+  case aperiodic_script:    return(0);
+  case minute_script:       return(60);
+  case five_minute_script:  return(300);
+  case hour_script:         return(3600);
+  case day_script:          return(86400);
   default:
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unknown periodicity value: %d", p);
     return(0);
