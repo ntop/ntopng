@@ -70,6 +70,13 @@ schema:addMetric("packets_ingress")
 schema:addMetric("packets_egress")
 schema:addMetric("packets_inner")
 
+-- ##############################################
+
+schema = ts_utils.newSchema("subnet:engaged_alerts", {step=60, metrics_type=ts_utils.metrics.gauge})
+schema:addTag("ifid")
+schema:addTag("subnet")
+schema:addMetric("alerts")
+
 -------------------------------------------------------
 -- INTERFACES SCHEMAS
 -------------------------------------------------------
