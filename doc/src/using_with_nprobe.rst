@@ -125,3 +125,38 @@ Note the two options:
 - :code:`-i "tcp://*:5556c"` tells ntopng to act as a collector (notice the small :code:`c`) and to listen for incoming connections.
 
 In essence the roles of nProbe and ntopng have been reverted so they behave as NetFlow/IPFIX probes do. Only the roles have been reverted. Everything else will continue to work normally and the flows will still go from nProbe to ntopng.
+
+Quick Start
+===========
+
+A sample configuration file for running ntopng as ZMQ collector for nProbe is installed on unix 
+systems under /etc/ntopng/ntopng.conf.nprobe.sample. As described in the *Running ntopng as a Daemon*
+section, the configuration file has to be named ntopng.conf and must be placed under /etc/ntopng/ when 
+running ntopng as a daemon on unix systems with *init.d* or *systemd* support. In order to enable 
+this configuration, you should replace the configuration file with the sample configuration and
+restart the service:
+
+.. code:: bash
+
+   cp /etc/ntopng/ntopng.conf.nprobe.sample /etc/ntopng/ntopng.conf
+   systemctl restart ntopng
+
+Please note that the sample configuration assumes that both ntopng and nProbe are running on the 
+same (local) host. In case they run on separate machines, the configuration file has to be changed 
+with the address of the machine hosting nProbe.
+
+Similarly, a sample configuration file for nProbe is also installed (by the *nprobe* package) on unix 
+systems under /etc/nprobe/nprobe.conf.ntopng.sample. In order to enable this configuration, also in
+this case, you should replace the configuration file with the sample configuration and restart the 
+service:
+
+.. code:: bash
+
+   cp /etc/nprobe/nprobe.conf.ntopng.sample /etc/nprobe/nprobe.conf
+   systemctl restart nprobe
+
+Please note that the sample configuration for nProbe assumes that a NetFlow exporter is delivering
+NetFlow to nProbe on port 6363. In this case nProbe acts as a proxy, collecting NetFlow and delivering 
+flows to ntopng over ZMQ. If you need to process live traffic on a physical interface, the interface 
+name should be set in place of :code:`-i=none` and :code:`--collector-port=6363` should be commented out.
+
