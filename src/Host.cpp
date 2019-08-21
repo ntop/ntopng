@@ -898,6 +898,8 @@ void Host::luaUsedQuotas(lua_State* vm) {
 /* *************************************** */
 
 bool Host::incFlowAlertHits(time_t when) {
+  stats->incNumFlowAlerts();
+
   if(flow_alert_counter
      || (flow_alert_counter = new(std::nothrow) FlowAlertCounter(CONST_MAX_FLOW_ALERTS_PER_SECOND, CONST_MAX_THRESHOLD_CROSS_DURATION))) {
     return flow_alert_counter->incHits(when);

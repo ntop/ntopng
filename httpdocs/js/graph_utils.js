@@ -111,7 +111,7 @@ function getValueFormatter(schema, metric_type, series, custom_formatter) {
       return [as_counter ? fflows : formatValue, formatFlows, as_counter ? fflows : formatFlows];
     } else if(label.contains("millis")) {
       return [fmillis, fmillis];
-    } else if(label.contains("alerts")) {
+    } else if(label.contains("alerts") && (metric_type === "counter")) {
       return [falerts, falerts];
     } else if(label.contains("percent")) {
       return [fpercent, fpercent];

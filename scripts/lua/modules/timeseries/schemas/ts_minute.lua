@@ -194,6 +194,12 @@ schema:addMetric("num_nfq_pct")
 
 -- ##############################################
 
+schema = ts_utils.newSchema("iface:engaged_alerts", {step=60, metrics_type=ts_utils.metrics.gauge})
+schema:addTag("ifid")
+schema:addMetric("alerts")
+
+-- ##############################################
+
 -------------------------------------------------------
 -- CONTAINERS SCHEMAS
 -------------------------------------------------------

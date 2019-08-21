@@ -7211,6 +7211,7 @@ void NetworkInterface::makeTsPoint(NetworkInterfaceTsPoint *pt) {
   sumStats(&_tcpFlowStats, &_ethStats, &pt->local_stats,
 	   &pt->ndpi, &pt->packetStats, &pt->tcpPacketStats);
 
+  pt->engaged_alerts = getNumEngagedAlerts();
   pt->hosts = getNumHosts();
   pt->local_hosts = getNumLocalHosts();
   pt->devices = getNumL2Devices();

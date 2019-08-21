@@ -1096,6 +1096,7 @@ elseif(page == "historical") then
       timeseries = {
          {schema="iface:flows",                 label=i18n("graphs.active_flows")},
          {schema="iface:hosts",                 label=i18n("graphs.active_hosts")},
+         {schema="iface:engaged_alerts",        label=i18n("show_alerts.engaged_alerts")},
          {schema="custom:flows_vs_local_hosts", label=i18n("graphs.flows_vs_local_hosts"), check={"iface:flows", "iface:local_hosts"}, step=60},
          {schema="custom:flows_vs_traffic",     label=i18n("graphs.flows_vs_traffic"), check={"iface:flows", "iface:traffic"}, step=60},
          {schema="custom:memory_vs_flows_hosts", label=i18n("graphs.memory_vs_hosts_flows"), check={"process:memory", "iface:flows", "iface:hosts"}},

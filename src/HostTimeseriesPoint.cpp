@@ -40,6 +40,7 @@ HostTimeseriesPoint::HostTimeseriesPoint(const LocalHostStats * const hs) : Time
   active_flows_as_server = host->getNumIncomingFlows();
   contacts_as_client = host->getNumActiveContactsAsClient();
   contacts_as_server = host->getNumActiveContactsAsServer();
+  engaged_alerts = host->getNumTriggeredAlerts();
   tcp_packet_stats_sent = *host->getTcpPacketSentStats();
   tcp_packet_stats_rcvd = *host->getTcpPacketRcvdStats();
 }
@@ -63,6 +64,7 @@ void HostTimeseriesPoint::lua(lua_State* vm, NetworkInterface *iface) {
   lua_push_uint64_table_entry(vm, "active_flows.as_server", active_flows_as_server);
   lua_push_uint64_table_entry(vm, "contacts.as_client", contacts_as_client);
   lua_push_uint64_table_entry(vm, "contacts.as_server", contacts_as_server);
+  lua_push_uint64_table_entry(vm, "engaged_alerts", engaged_alerts);
 
   tcp_packet_stats_sent.lua(vm, "tcpPacketStats.sent");
   tcp_packet_stats_rcvd.lua(vm, "tcpPacketStats.rcvd");

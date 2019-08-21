@@ -300,6 +300,16 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
 					   alerts = host["total_alerts"]},
 		  when, verbose)
 
+  -- Total number of flow alerts
+  ts_utils.append("host:total_flow_alerts", {ifid = ifstats.id, host = hostname,
+					   alerts = host["num_flow_alerts"]},
+		  when, verbose)
+
+  -- Engaged alerts
+  ts_utils.append("host:engaged_alerts", {ifid = ifstats.id, host = hostname,
+					   alerts = host["engaged_alerts"]},
+		  when, verbose)
+
   -- Contacts
   ts_utils.append("host:contacts", {ifid=ifstats.id, host=hostname,
             num_as_client=host["contacts.as_client"], num_as_server=host["contacts.as_server"]}, when, verbose)

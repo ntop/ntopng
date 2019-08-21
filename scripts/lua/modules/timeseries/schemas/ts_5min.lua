@@ -346,6 +346,20 @@ schema:addTag("ifid")
 schema:addTag("host")
 schema:addMetric("alerts")
 
+--##############################################
+
+schema = ts_utils.newSchema("host:total_flow_alerts", {step = 300, rrd_fname = "total_flow_alerts"})
+schema:addTag("ifid")
+schema:addTag("host")
+schema:addMetric("alerts")
+
+--##############################################
+
+schema = ts_utils.newSchema("host:engaged_alerts", {step = 300, metrics_type=ts_utils.metrics.gauge})
+schema:addTag("ifid")
+schema:addTag("host")
+schema:addMetric("alerts")
+
 -- ##############################################
 
 schema = ts_utils.newSchema("host:contacts", {step=300, metrics_type=ts_utils.metrics.gauge})

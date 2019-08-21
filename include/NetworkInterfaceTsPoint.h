@@ -31,6 +31,7 @@ class NetworkInterfaceTsPoint: public TimeseriesPoint {
   LocalTrafficStats local_stats;
   u_int hosts, local_hosts;
   u_int devices, flows, http_hosts;
+  u_int engaged_alerts;
   TcpPacketStats tcpPacketStats;
   PacketStats packetStats;
   L4Stats l4Stats;

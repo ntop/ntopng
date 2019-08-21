@@ -38,6 +38,7 @@ class HostTimeseriesPoint: public TimeseriesPoint {
   /* Keep these public in order to allow LocalHostStats::makeTsPoint to set them. */
   u_int32_t active_flows_as_client, active_flows_as_server;
   u_int32_t contacts_as_client, contacts_as_server;
+  u_int32_t engaged_alerts;
   TcpPacketStats tcp_packet_stats_sent, tcp_packet_stats_rcvd;
   DnsStats *dns;
   ts_icmp_stats *icmp;
