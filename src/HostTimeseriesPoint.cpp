@@ -24,7 +24,8 @@
 /* *************************************** */
 
 HostTimeseriesPoint::HostTimeseriesPoint(const LocalHostStats * const hs) : TimeseriesPoint() {
-  host_stats = hs ? new TimeseriesStats(*hs) : NULL;
+  Host *host = hs->getHost();
+  host_stats = new TimeseriesStats(*hs);
   dns = hs->getDNSStats() ? new DnsStats(*hs->getDNSStats()) : NULL;
   icmp = NULL;
 
@@ -34,10 +35,19 @@ HostTimeseriesPoint::HostTimeseriesPoint(const LocalHostStats * const hs) : Time
     if(icmp)
       hs->getICMPStats()->getTsStats(icmp);
   }
+
+  active_flows_as_client = host->getNumOutgoingFlows();
+  active_flows_as_server = host->getNumIncomingFlows();
+  contacts_as_client = host->getNumActiveContactsAsClient();
+  contacts_as_server = host->getNumActiveContactsAsServer();
+  tcp_packet_stats_sent = *host->getTcpPacketSentStats();
+  tcp_packet_stats_rcvd = *host->getTcpPacketRcvdStats();
 }
 
+/* *************************************** */
+
 HostTimeseriesPoint::~HostTimeseriesPoint() {
-  if(host_stats) delete host_stats;
+  delete host_stats;
   if(dns) delete dns;
   if(icmp) free(icmp);
 }
@@ -47,8 +57,7 @@ HostTimeseriesPoint::~HostTimeseriesPoint() {
 /* NOTE: Return only the minimal information needed by the timeseries
  * to avoid slowing down the periodic scripts too much! */
 void HostTimeseriesPoint::lua(lua_State* vm, NetworkInterface *iface) {
-  if(host_stats)
-    host_stats->luaStats(vm, iface, true /* host details */, true /* verbose */, true /* tsLua */);
+  host_stats->luaStats(vm, iface, true /* host details */, true /* verbose */, true /* tsLua */);
 
   lua_push_uint64_table_entry(vm, "active_flows.as_client", active_flows_as_client);
   lua_push_uint64_table_entry(vm, "active_flows.as_server", active_flows_as_server);

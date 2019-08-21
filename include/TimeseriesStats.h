@@ -36,7 +36,7 @@ class Host;
  *
  * In order to export a simple metric which does result in a class member (e.g. number of alerts of an Host):
  *  1. Add the metric to HostTimeseriesPoint
- *  2. Save the current the metric value into LocalHostStats::makeTsPoint
+ *  2. Save the current the metric value into HostTimeseriesPoint copy constructor
  *  3. Edit HostTimeseriesPoint::lua to push the metric to lua
  *
  *  Note: Timeseries data is stored into HostTimeseriesPoint, which is populated

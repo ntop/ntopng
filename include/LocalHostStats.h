@@ -55,7 +55,6 @@ class LocalHostStats: public HostStats {
   virtual void lua(lua_State* vm, bool mask_host, DetailsLevel details_level, bool tsLua = false);
   virtual void incNumFlows(bool as_client, Host *peer);
   virtual void decNumFlows(bool as_client, Host *peer);
-  virtual void makeTsPoint(HostTimeseriesPoint *pt);
 
   virtual void incICMP(u_int8_t icmp_type, u_int8_t icmp_code, bool sent, Host *peer);
   virtual void incNumDNSQueriesSent(u_int16_t query_type) { if(dns) dns->incNumDNSQueriesSent(query_type); };
