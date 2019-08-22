@@ -178,6 +178,7 @@ function lists_utils.getCategoryLists()
   -- TODO add support for user defined urls
   local lists = {}
   local redis_lists = loadListsFromRedis()
+
   local default_status = {last_update=0, num_hosts=0, last_error=false, num_errors=0}
 
   for key, default_values in pairs(BUILTIN_LISTS) do
