@@ -955,17 +955,22 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
 
       -- possibly add a tab if there are alerts configured for the host
       num_engaged_alerts = getNumAlerts("engaged", getTabParameters(_GET, "engaged"))
-      --~ num_past_alerts = getNumAlerts("historical", getTabParameters(_GET, "historical"))
-      --~ num_flow_alerts = getNumAlerts("historical-flows", getTabParameters(_GET, "historical-flows"))
+      num_past_alerts = getNumAlerts("historical", getTabParameters(_GET, "historical"))
+      num_flow_alerts = getNumAlerts("historical-flows", getTabParameters(_GET, "historical-flows"))
 
-      --~ if num_past_alerts > 0 or num_engaged_alerts > 0 or num_flow_alerts > 0 then
-      if num_engaged_alerts > 0 then
-         if(tab == nil) then
-            -- if no tab is selected and there are alerts, we show them by default
-            tab = "alert_list"
+      if((num_past_alerts > 0) or (num_engaged_alerts > 0) or (num_flow_alerts > 0)) then
+         if num_engaged_alerts > 0 then
+           tab = tab or "alert_list"
+           printTab("alert_list", i18n("show_alerts.engaged_alerts"), tab)
          end
-
-         printTab("alert_list", i18n("show_alerts.engaged_alerts"), tab)
+         if num_past_alerts > 0 then
+           tab = tab or "past_alert_list"
+           printTab("past_alert_list", i18n("show_alerts.past_alerts"), tab)
+         end
+         if num_flow_alerts > 0 then
+           tab = tab or "flow_alert_list"
+           printTab("flow_alert_list", i18n("show_alerts.flow_alerts"), tab)
+         end
       else
          -- if there are no alerts, we show the alert settings
          if(tab=="alert_list") then tab = nil end
@@ -974,8 +979,9 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
 
    -- Default tab
    if(tab == nil) then tab = "min" end
+   local is_alert_list_tab = ((tab == "alert_list") or (tab == "past_alert_list") or (tab == "flow_alert_list"))
 
-   if((tab ~= "alert_list") and (tab ~= "config")) then
+   if((not is_alert_list_tab) and (tab ~= "config")) then
       local granularity_label = alertEngineLabel(alertEngine(tab))
 
       print(
@@ -1023,8 +1029,8 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
 
    print('</ul>')
 
-   if((show_entity) and (tab == "alert_list")) then
-      drawAlertTables(num_past_alerts, num_engaged_alerts, num_flow_alerts, has_disabled_alerts, _GET, true, nil, { engaged_only = true })
+   if((show_entity) and is_alert_list_tab) then
+      drawAlertTables(num_past_alerts, num_engaged_alerts, num_flow_alerts, has_disabled_alerts, _GET, true, nil, { dont_nest_alerts = true })
    elseif(tab == "config") then
       printConfigTab(entity_type, alert_source, page_name, page_params, alt_name, options)
    else
@@ -1541,11 +1547,11 @@ function drawAlertTables(num_past_alerts, num_engaged_alerts, num_flow_alerts, h
 
    for k,v in pairs(get_params) do if k ~= "csrf" then url_params[k] = v end end
       if not alt_nav_tabs then
-      if not options.engaged_only then
+      if not options.dont_nest_alerts then
         print("<br>")
       end
 	 print[[
-<ul class="nav nav-tabs" role="tablist" id="alert-tabs" style="]] print(ternary(options.engaged_only, 'display:none', '')) print[[">
+<ul class="nav nav-tabs" role="tablist" id="alert-tabs" style="]] print(ternary(options.dont_nest_alerts, 'display:none', '')) print[[">
 <!-- will be populated later with javascript -->
 </ul>
 ]]
@@ -1663,7 +1669,17 @@ function toggleAlert(disable) {
 
       if not alt_nav_tabs then print [[<div class="tab-content">]] end
 
-      local status = ternary(options.engaged_only, "engaged", _GET["status"])
+      local status = _GET["status"]
+      if(status == nil) then
+        local tab = _GET["tab"]
+
+        if(tab == "past_alert_list") then
+          status = "historical"
+        elseif(tab == "flow_alert_list") then
+          status = "historical-flows"
+        end
+      end
+
       local status_reset = (status == nil)
 
       if num_engaged_alerts > 0 then
@@ -1702,7 +1718,7 @@ function toggleAlert(disable) {
       </div>
 
       <script type="text/javascript">
-      $("#]] print(nav_tab_id) print[[").append('<li class="]] print(ternary(options.engaged_only, 'hidden', '')) print[["><a href="#tab-]] print(t["div-id"]) print[[" clicked="]] print(clicked) print[[" role="tab" data-toggle="tab">]] print(t["label"]) print[[</a></li>')
+      $("#]] print(nav_tab_id) print[[").append('<li class="]] print(ternary(options.dont_nest_alerts, 'hidden', '')) print[["><a href="#tab-]] print(t["div-id"]) print[[" clicked="]] print(clicked) print[[" role="tab" data-toggle="tab">]] print(t["label"]) print[[</a></li>')
       </script>
    ]]
 
@@ -1757,7 +1773,7 @@ function toggleAlert(disable) {
 	    end
 	 end
 
-   if options.engaged_only then
+   if options.dont_nest_alerts then
      title = ""
    end
 
