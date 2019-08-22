@@ -699,11 +699,16 @@ end
 
 local function getMenuEntries(status, selection_name, get_params)
    local actual_entries = {}
+   local params = table.clone(get_params)
+
+   -- Remove previous filters
+   params.alert_severity = nil
+   params.alert_type = nil
 
    if selection_name == "severity" then
-      actual_entries = performAlertsQuery("select alert_severity id, count(*) count", status, get_params, nil, "alert_severity" --[[ group by ]])
+      actual_entries = performAlertsQuery("select alert_severity id, count(*) count", status, params, nil, "alert_severity" --[[ group by ]])
     elseif selection_name == "type" then
-      actual_entries = performAlertsQuery("select alert_type id, count(*) count", status, get_params, nil, "alert_type" --[[ group by ]])
+      actual_entries = performAlertsQuery("select alert_type id, count(*) count", status, params, nil, "alert_type" --[[ group by ]])
    end
 
    return(actual_entries)
@@ -715,7 +720,8 @@ local function dropdownUrlParams(get_params)
   local buttons = ""
 
   for param, val in pairs(get_params) do
-    if((param ~= "alert_severity") and (param ~= "alert_type") and (param ~= "status")) then
+    -- NOTE: exclude the ifid parameter to avoid interface selection issues with system interface alerts
+    if((param ~= "alert_severity") and (param ~= "alert_type") and (param ~= "status") and (param ~= "ifid")) then
       buttons = buttons.."&"..param.."="..val
     end
   end
