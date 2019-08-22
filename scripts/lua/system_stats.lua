@@ -217,7 +217,7 @@ elseif((page == "alerts") and isAdministrator()) then
       alertEntity("influx_db"), alertEntity("snmp_device"),
       alertEntity("pinged_host"))
 
-   drawAlerts({hide_filters = true})
+   drawAlerts()
 
    interface.select(old_ifname)
 end

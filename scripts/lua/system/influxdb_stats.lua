@@ -188,7 +188,7 @@ elseif((page == "alerts") and isAdministrator()) then
    _GET["ifid"] = getSystemInterfaceId()
    _GET["entity"] = alertEntity("influx_db")
 
-   drawAlerts({hide_filters = true})
+   drawAlerts()
 
    interface.select(old_ifname)
 end

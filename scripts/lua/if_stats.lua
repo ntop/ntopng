@@ -1252,8 +1252,7 @@ elseif(page == "alerts") then
 
    drawAlertSourceSettings("interface", ifname_clean,
       i18n("show_alerts.iface_delete_config_btn", {iface=if_name}), "show_alerts.iface_delete_config_confirm",
-      "if_stats.lua", {ifid=ifid},
-      if_name)
+      "if_stats.lua", {ifid=ifid}, if_name, "interface")
 
 elseif(page == "config") then
    if(not isAdministrator()) then

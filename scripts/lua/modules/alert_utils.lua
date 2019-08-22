@@ -249,20 +249,30 @@ end
 
 -- #################################
 
-function performAlertsQuery(statement, what, opts, force_query)
+function performAlertsQuery(statement, what, opts, force_query, group_by)
    local wargs = {"WHERE", "1=1"}
    local oargs = {}
+
+   if(group_by ~= nil) then
+     group_by = " GROUP BY " .. group_by
+   else
+     group_by = ""
+   end
 
    if tonumber(opts.row_id) ~= nil then
       wargs[#wargs+1] = 'AND rowid = '..(opts.row_id)
    end
 
    if (not isEmptyString(opts.entity)) and (not isEmptyString(opts.entity_val)) then
-      if((what == "historical-flows") and (alertEntityRaw(opts.entity) == "host")) then
-         -- need to handle differently for flows table
-         local info = hostkey2hostinfo(opts.entity_val)
-         wargs[#wargs+1] = 'AND (cli_addr="'..(info.host)..'" OR srv_addr="'..(info.host)..'")'
-         wargs[#wargs+1] = 'AND vlan_id='..(info.vlan)
+      if(what == "historical-flows") then
+         if(tonumber(opts.entity) ~= alertEntity("host")) then
+           return({})
+         else
+           -- need to handle differently for flows table
+           local info = hostkey2hostinfo(opts.entity_val)
+           wargs[#wargs+1] = 'AND (cli_addr="'..(info.host)..'" OR srv_addr="'..(info.host)..'")'
+           wargs[#wargs+1] = 'AND vlan_id='..(info.vlan)
+         end
       else
          wargs[#wargs+1] = 'AND alert_entity = "'..(opts.entity)..'"'
          wargs[#wargs+1] = 'AND alert_entity_val = "'..(opts.entity_val)..'"'
@@ -357,7 +367,7 @@ function performAlertsQuery(statement, what, opts, force_query)
    local query = table.concat(wargs, " ")
    local res
 
-   query = query .. " " .. table.concat(oargs, " ")
+   query = query .. " " .. table.concat(oargs, " ") .. group_by
 
    -- Uncomment to debug the queries
    --~ tprint(statement.." (from "..what..") "..query)
@@ -687,30 +697,13 @@ end
 
 -- #################################
 
-local function getMenuEntries(status, selection_name)
-   -- compute counters to avoid printing items that have zero entries in the database
+local function getMenuEntries(status, selection_name, get_params)
    local actual_entries = {}
-   if status == "historical-flows" then
 
-      if selection_name == "severity" then
-	 actual_entries = interface.queryFlowAlertsRaw("select alert_severity id, count(*) count", "group by alert_severity")
-      elseif selection_name == "type" then
-	 actual_entries = interface.queryFlowAlertsRaw("select alert_type id, count(*) count", "group by alert_type")
-      end
-
-   else -- dealing with non flow alerts (engaged and closed)
-      local engaged
-      if status == "engaged" then
-	 engaged = true
-      elseif status == "historical" then
-	 engaged = false
-      end
-
-      if selection_name == "severity" then
-	 actual_entries = interface.queryAlertsRaw("select alert_severity id, count(*) count", "group by alert_severity")
-      elseif selection_name == "type" then
-	 actual_entries = interface.queryAlertsRaw("select alert_type id, count(*) count", "group by alert_type")
-      end
+   if selection_name == "severity" then
+      actual_entries = performAlertsQuery("select alert_severity id, count(*) count", status, get_params, nil, "alert_severity" --[[ group by ]])
+    elseif selection_name == "type" then
+      actual_entries = performAlertsQuery("select alert_type id, count(*) count", status, get_params, nil, "alert_type" --[[ group by ]])
    end
 
    return(actual_entries)
@@ -741,7 +734,7 @@ local function drawDropdown(status, selection_name, active_entry, entries_table,
       id_to_label = alertTypeLabel
    end
 
-   actual_entries = actual_entries or getMenuEntries(status, selection_name)
+   actual_entries = actual_entries or getMenuEntries(status, selection_name, get_params)
 
    local buttons = '<div class="btn-group">'
 
@@ -762,15 +755,18 @@ local function drawDropdown(status, selection_name, active_entry, entries_table,
    for _, entry in pairs(actual_entries) do
       local id = tonumber(entry["id"])
       local count = entry["count"]
-      local label = id_to_label(id, true)
 
-      class_active = ""
-      if label == active_entry then class_active = ' class="active"' end
-      -- buttons = buttons..'<li'..class_active..'><a href="'..ntop.getHttpPrefix()..'/lua/show_alerts.lua?status='..status
-      buttons = buttons..'<li'..class_active..'><a href="?status='..status
-      buttons = buttons..dropdownUrlParams(get_params)
-      buttons = buttons..'&alert_'..selection_name..'='..id..'">'
-      buttons = buttons..firstToUpper(label)..' ('..count..')</a></li>'
+      if(id >= 0) then
+        local label = id_to_label(id, true)
+
+        class_active = ""
+        if label == active_entry then class_active = ' class="active"' end
+        -- buttons = buttons..'<li'..class_active..'><a href="'..ntop.getHttpPrefix()..'/lua/show_alerts.lua?status='..status
+        buttons = buttons..'<li'..class_active..'><a href="?status='..status
+        buttons = buttons..dropdownUrlParams(get_params)
+        buttons = buttons..'&alert_'..selection_name..'='..id..'">'
+        buttons = buttons..firstToUpper(label)..' ('..count..')</a></li>'
+      end
    end
 
    buttons = buttons..'</ul></div>'
@@ -1740,7 +1736,6 @@ function toggleAlert(disable) {
 
 	 local title = t["label"]
 
-	 -- TODO this condition should be removed and page integration support implemented
 	 if(options.hide_filters ~= true)  then
 	    -- alert_consts.alert_severity_keys and alert_consts.alert_type_keys are defined in lua_utils
 	    local alert_severities = {}

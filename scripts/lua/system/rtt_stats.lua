@@ -416,7 +416,7 @@ elseif((page == "alerts") and isAdministrator()) then
    _GET["entity"] = alertEntity("pinged_host")
    _GET["entity_val"] = _GET["rtt_host"]
 
-   drawAlerts({hide_filters = true})
+   drawAlerts()
 
    interface.select(old_ifname)
 end

@@ -162,7 +162,7 @@ elseif(page == "alerts") then
 
     drawAlertSourceSettings("network", network_name,
 	i18n("show_alerts.network_delete_config_btn", {network=network_name}), "show_alerts.network_delete_config_confirm",
-	"network_details.lua", {network=network})
+	"network_details.lua", {network=network}, network_name, "network")
 
 elseif page == "traffic_report" then
     dofile(dirs.installdir .. "/pro/scripts/lua/enterprise/traffic_report.lua")
