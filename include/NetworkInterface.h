@@ -760,9 +760,9 @@ class NetworkInterface : public AlertableEntity {
   inline void refreshHasAlerts()                          { has_stored_alerts = alertsManager ? alertsManager->hasAlerts() : false; }
   inline void incNumDroppedAlerts(u_int32_t num_dropped)  { num_dropped_alerts += num_dropped; }
   inline AlertsQueue* getAlertsQueue()                    { return(alerts_queue); }
-  void walkAlertables(int entity_type, const char *entity_value, alertable_callback *callback, void *user_data);
-  void getEngagedAlertsCount(lua_State *vm, int entity_type, const char *entity_value);
-  void getEngagedAlerts(lua_State *vm, int entity_type, const char *entity_value, AlertType alert_type, AlertLevel alert_severity);
+  void walkAlertables(int entity_type, const char *entity_value, std::set<int> *entity_excludes, alertable_callback *callback, void *user_data);
+  void getEngagedAlertsCount(lua_State *vm, int entity_type, const char *entity_value, std::set<int> *entity_excludes);
+  void getEngagedAlerts(lua_State *vm, int entity_type, const char *entity_value, AlertType alert_type, AlertLevel alert_severity, std::set<int> *entity_excludes);
 
   /* unlockExternalAlertable must be called after use whenever a non-null reference is returned */
   AlertableEntity* lockExternalAlertable(AlertEntity entity, const char *entity_val, bool create_if_missing);

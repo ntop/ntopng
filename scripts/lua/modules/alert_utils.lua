@@ -397,7 +397,7 @@ function getNumAlerts(what, options)
    if(what == "engaged") then
      local entity_type_filter = tonumber(options.entity)
      local entity_value_filter = options.entity_val
-     local res = interface.getEngagedAlertsCount(entity_type_filter, entity_value_filter)
+     local res = interface.getEngagedAlertsCount(entity_type_filter, entity_value_filter, options.entity_excludes)
 
      if(res ~= nil) then num = res.num_alerts end
    else
@@ -425,7 +425,7 @@ local function engagedAlertsQuery(params)
   local totalRows = 0
 
   --~ tprint(string.format("type=%s sev=%s entity=%s val=%s", type_filter, severity_filter, entity_type_filter, entity_value_filter))
-  local alerts = interface.getEngagedAlerts(entity_type_filter, entity_value_filter, type_filter, severity_filter)
+  local alerts = interface.getEngagedAlerts(entity_type_filter, entity_value_filter, type_filter, severity_filter, params.entity_excludes)
   local sort_2_col = {}
 
   -- Sort
@@ -1759,7 +1759,7 @@ function toggleAlert(disable) {
 	    end
 
       if t["status"] == "engaged" then
-        local res = interface.getEngagedAlertsCount(tonumber(_GET["entity"]), _GET["entity_val"])
+        local res = interface.getEngagedAlertsCount(tonumber(_GET["entity"]), _GET["entity_val"], _GET["entity_excludes"])
 
         if(res ~= nil) then
           type_menu_entries = menuEntriesToDbFormat(res.type)
