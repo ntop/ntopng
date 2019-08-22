@@ -1440,7 +1440,7 @@ local function printDisabledAlerts(ifid)
 
   <script>
   $("#table-disabled-alerts").datatable({
-    url: "]] print(ntop.getHttpPrefix()) print [[/lua/get_disabled_alerts.lua",
+    url: "]] print(ntop.getHttpPrefix()) print [[/lua/get_disabled_alerts.lua?ifid=]] print(ifid) print[[",
     showPagination: true,
     title: "]] print(i18n("show_alerts.disabled_alerts")) print[[",
       columns: [
@@ -1489,6 +1489,7 @@ function drawAlertTables(num_past_alerts, num_engaged_alerts, num_flow_alerts, h
    local alert_items = {}
    local url_params = {}
    local options = options or {}
+   local ifid = interface.getId()
 
    print(
       template.gen("modal_confirm_dialog.html", {
@@ -1725,7 +1726,7 @@ function toggleAlert(disable) {
    ]]
 
    if t["status"] == "disabled-alerts" then
-     printDisabledAlerts(ifId)
+     printDisabledAlerts(ifid)
      goto next_menu_item
    end
 

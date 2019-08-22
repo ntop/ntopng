@@ -61,6 +61,10 @@ local to_skip = (currentPage-1) * perPage
 
 -- ################################################
 
+if _GET["ifid"] then
+  interface.select(_GET["ifid"])
+end
+
 local ifid = interface.getId()
 local entity_counters = {}
 
