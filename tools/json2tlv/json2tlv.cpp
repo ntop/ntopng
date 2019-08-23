@@ -145,6 +145,7 @@ int main(int argc, char *argv[]) {
   u_int32_t exported_msgs = 0, exported_records = 0;
   u_int8_t use_json_encoding = 0;
   char c;
+  int once = 0;
 
   while ((c = getopt(argc, argv,"hi:jvz:E:D:")) != '?') {
     if (c == (char) 255 || c == -1) break;
@@ -269,6 +270,11 @@ int main(int argc, char *argv[]) {
       tlv_msgs++;
     }
 
+    if (!once) {
+      printf("Batching %u flows in %u messages (%u per message)\n", num_records, tlv_msgs, batch_size);
+      once = 1;
+    }
+
     /* Sending TLV records over ZMQ */
 
     if (zmq_sock) {
@@ -307,8 +313,9 @@ int main(int argc, char *argv[]) {
     total_time_usec += delta_usec;
 
     if (total_time_usec - last_delta_usec > 1000000 /* every 1 sec */) {
-      printf("%u flows / %.2f flows/sec exported\n", exported_records, 
-        ((double) (exported_records - last_exported_records) / ((total_time_usec - last_delta_usec)/1000000)));
+      printf("%u flows / %.2f flows/sec / %u messages exported\n", exported_records, 
+        ((double) (exported_records - last_exported_records) / ((total_time_usec - last_delta_usec)/1000000)),
+        exported_msgs);
       last_exported_records = exported_records;
       last_delta_usec = total_time_usec;
     }
