@@ -200,14 +200,15 @@ int main(int argc, char *argv[]) {
 
     if (zmq_endpoint[strlen(zmq_endpoint) - 1] == 'c') {
       /* Collector mode */
-      if (zmq_connect(zmq_sock, zmq_endpoint) != 0)
-        printf("Unable to connect to ZMQ socket %s: %s\n", zmq_endpoint, strerror(errno));
-    } else {
-      /* Probe mode */
       if (zmq_bind(zmq_sock, zmq_endpoint) != 0) {
         printf("Unable to bind to ZMQ socket %s: %s\n", zmq_endpoint, strerror(errno));
         exit(1);
       }
+
+    } else {
+      /* Probe mode */
+      if (zmq_connect(zmq_sock, zmq_endpoint) != 0)
+        printf("Unable to connect to ZMQ socket %s: %s\n", zmq_endpoint, strerror(errno));
     }
   }
 
