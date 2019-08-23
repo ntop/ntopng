@@ -125,7 +125,7 @@ local function enqueueStoreAlert(ifid, alert)
 
   if(ntop.llenCache(queue) > MAX_NUM_ENQUEUED_ALERT_PER_INTERFACE) then
     trim = math.ceil(MAX_NUM_ENQUEUED_ALERT_PER_INTERFACE/2)
-    traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Alerts event queue too long: dropping %u alerts", trim))
+    traceError(TRACE_INFO, TRACE_CONSOLE, string.format("Alerts event queue too long: dropping %u alerts", trim))
 
     interface.incNumDroppedAlerts(trim)
   end
