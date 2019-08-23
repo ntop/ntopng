@@ -212,8 +212,8 @@ function system_scripts.hasAlerts(options)
   interface.select(getSystemInterfaceId())
 
   rv = (areAlertsEnabled() and
-    (getNumAlerts("historical", getTabParameters(opts, "historical")) > 0) or
-    (getNumAlerts("engaged", getTabParameters(opts, "engaged")) > 0))
+    (hasAlerts("historical", getTabParameters(opts, "historical")) or
+     hasAlerts("engaged", getTabParameters(opts, "engaged"))))
 
   interface.select(old_iface)
   return(rv)

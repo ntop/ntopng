@@ -387,21 +387,25 @@ end
 
 -- #################################
 
-function getNumAlerts(what, options)
-   if isEmptyString(what) then
-      return getNumAlerts("engaged", options) +
-         getNumAlerts("historical", options) +
-         getNumAlerts("historical-flows", options)
-   end
+local function getNumEngagedAlerts(options)
+  local entity_type_filter = tonumber(options.entity)
+  local entity_value_filter = options.entity_val
+  local res = interface.getEngagedAlertsCount(entity_type_filter, entity_value_filter, options.entity_excludes)
 
+  if(res ~= nil) then
+    return(res.num_alerts)
+  end
+
+  return(0)
+end
+
+-- #################################
+
+function getNumAlerts(what, options)
    local num = 0
 
    if(what == "engaged") then
-     local entity_type_filter = tonumber(options.entity)
-     local entity_value_filter = options.entity_val
-     local res = interface.getEngagedAlertsCount(entity_type_filter, entity_value_filter, options.entity_excludes)
-
-     if(res ~= nil) then num = res.num_alerts end
+     num = getNumEngagedAlerts(options)
    else
      local opts = getUnpagedAlertOptions(options or {})
      local res = performAlertsQuery("SELECT COUNT(*) AS count", what, opts)
@@ -409,6 +413,27 @@ function getNumAlerts(what, options)
    end
 
    return num
+end
+
+-- #################################
+
+-- Faster than of getNumAlerts
+function hasAlerts(what, options)
+  if(what == "engaged") then
+    return(getNumEngagedAlerts(options) > 0)
+  end
+
+  local opts = getUnpagedAlertOptions(options or {})
+  -- limit 1
+  opts.perPage = 1
+  opts.currentPage = 1
+  local res = performAlertsQuery("SELECT rowid", what, opts)
+
+  if((res ~= nil) and (#res == 1)) then
+    return(true)
+  else
+    return(false)
+  end
 end
 
 -- #################################
@@ -577,8 +602,8 @@ function checkDeleteStoredAlerts()
       -- in case of delete "older than" button, resets the time period after the delete took place
       if isEmptyString(_GET["epoch_begin"]) then _GET["epoch_end"] = nil end
 
-      local new_num = getNumAlerts(_GET["status"], _GET)
-      if new_num == 0 then
+      local has_alerts = hasAlerts(_GET["status"], _GET)
+      if(not has_alerts) then
          -- reset the filter to avoid hiding the tab
          _GET["alert_severity"] = nil
          _GET["alert_type"] = nil
@@ -921,7 +946,7 @@ end
 -- #################################
 
 function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, delete_confirm_msg, page_name, page_params, alt_name, show_entity, options)
-   local num_engaged_alerts, num_past_alerts, num_flow_alerts = 0,0,0
+   local has_engaged_alerts, has_past_alerts, has_flow_alerts = false,false,false
    local has_disabled_alerts = alerts_api.hasEntitiesWithAlertsDisabled(interface.getId())
    local tab = _GET["tab"]
    local have_nedge = ntop.isnEdge()
@@ -958,20 +983,20 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
       checkDeleteStoredAlerts()
 
       -- possibly add a tab if there are alerts configured for the host
-      num_engaged_alerts = getNumAlerts("engaged", getTabParameters(_GET, "engaged"))
-      num_past_alerts = getNumAlerts("historical", getTabParameters(_GET, "historical"))
-      num_flow_alerts = getNumAlerts("historical-flows", getTabParameters(_GET, "historical-flows"))
+      has_engaged_alerts = hasAlerts("engaged", getTabParameters(_GET, "engaged"))
+      has_past_alerts = hasAlerts("historical", getTabParameters(_GET, "historical"))
+      has_flow_alerts = hasAlerts("historical-flows", getTabParameters(_GET, "historical-flows"))
 
-      if((num_past_alerts > 0) or (num_engaged_alerts > 0) or (num_flow_alerts > 0)) then
-         if num_engaged_alerts > 0 then
+      if(has_engaged_alerts or has_past_alerts or has_flow_alerts) then
+         if(has_engaged_alerts) then
            tab = tab or "alert_list"
            printTab("alert_list", i18n("show_alerts.engaged_alerts"), tab)
          end
-         if num_past_alerts > 0 then
+         if(has_past_alerts) then
            tab = tab or "past_alert_list"
            printTab("past_alert_list", i18n("show_alerts.past_alerts"), tab)
          end
-         if num_flow_alerts > 0 then
+         if(has_flow_alerts) then
            tab = tab or "flow_alert_list"
            printTab("flow_alert_list", i18n("show_alerts.flow_alerts"), tab)
          end
@@ -1034,7 +1059,7 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
    print('</ul>')
 
    if((show_entity) and is_alert_list_tab) then
-      drawAlertTables(num_past_alerts, num_engaged_alerts, num_flow_alerts, has_disabled_alerts, _GET, true, nil, { dont_nest_alerts = true })
+      drawAlertTables(has_past_alerts, has_engaged_alerts, has_flow_alerts, has_disabled_alerts, _GET, true, nil, { dont_nest_alerts = true })
    elseif(tab == "config") then
       printConfigTab(entity_type, alert_source, page_name, page_params, alt_name, options)
    else
@@ -1487,7 +1512,7 @@ end
 
 -- #################################
 
-function drawAlertTables(num_past_alerts, num_engaged_alerts, num_flow_alerts, has_disabled_alerts, get_params, hide_extended_title, alt_nav_tabs, options)
+function drawAlertTables(has_past_alerts, has_engaged_alerts, has_flow_alerts, has_disabled_alerts, get_params, hide_extended_title, alt_nav_tabs, options)
    local alert_items = {}
    local url_params = {}
    local options = options or {}
@@ -1687,21 +1712,21 @@ function toggleAlert(disable) {
 
       local status_reset = (status == nil)
 
-      if num_engaged_alerts > 0 then
+      if(has_engaged_alerts) then
 	 alert_items[#alert_items + 1] = {["label"] = i18n("show_alerts.engaged_alerts"),
 	    ["div-id"] = "table-engaged-alerts",  ["status"] = "engaged"}
       elseif status == "engaged" then
 	 status = nil; status_reset = 1
       end
 
-      if num_past_alerts > 0 then
+      if(has_past_alerts) then
 	 alert_items[#alert_items +1] = {["label"] = i18n("show_alerts.past_alerts"),
 	    ["div-id"] = "table-alerts-history",  ["status"] = "historical"}
       elseif status == "historical" then
 	 status = nil; status_reset = 1
       end
 
-      if num_flow_alerts > 0 then
+      if(has_flow_alerts) then
 	 alert_items[#alert_items +1] = {["label"] = i18n("show_alerts.flow_alerts"),
 	    ["div-id"] = "table-flow-alerts-history",  ["status"] = "historical-flows"}
       elseif status == "historical-flows" then
@@ -1944,7 +1969,7 @@ function toggleAlert(disable) {
 	 { i18n("show_alerts.1_year"),  60*60*24*366 , i18n("show_alerts.older_1_year_ago") }
       }
 
-      if (num_past_alerts > 0 or num_flow_alerts > 0 or num_engaged_alerts > 0) then
+      if(has_engaged_alerts or has_past_alerts or has_flow_alerts) then
 	 -- trigger the click on the right tab to force table load
 	 print[[
 <script type="text/javascript">
@@ -2075,18 +2100,18 @@ end
 -- #################################
 
 function drawAlerts(options)
-   local num_engaged_alerts = getNumAlerts("engaged", getTabParameters(_GET, "engaged"))
-   local num_past_alerts = getNumAlerts("historical", getTabParameters(_GET, "historical"))
+   local has_engaged_alerts = hasAlerts("engaged", getTabParameters(_GET, "engaged"))
+   local has_past_alerts = hasAlerts("historical", getTabParameters(_GET, "historical"))
    local has_disabled_alerts = alerts_api.hasEntitiesWithAlertsDisabled(interface.getId())
-   local num_flow_alerts = 0
+   local has_flow_alerts = false
 
    if _GET["entity"] == nil then
-     num_flow_alerts = getNumAlerts("historical-flows", getTabParameters(_GET, "historical-flows"))
+     has_flow_alerts = hasAlerts("historical-flows", getTabParameters(_GET, "historical-flows"))
    end
 
    checkDeleteStoredAlerts()
    checkDisableAlerts()
-   return drawAlertTables(num_past_alerts, num_engaged_alerts, num_flow_alerts, has_disabled_alerts, _GET, true, nil, options)
+   return drawAlertTables(has_past_alerts, has_engaged_alerts, num_flow_alerts, has_disabled_alerts, _GET, true, nil, options)
 end
 
 -- #################################
