@@ -11,9 +11,10 @@
 using namespace std;
 
 struct zmq_msg_hdr {
-  char url[32];
-  u_int32_t version;
-  u_int32_t size;
+  char url[16];
+  u_int8_t version, source_id;
+  u_int16_t size;
+  u_int32_t msg_id;
 };
 
 /* *************************************** */
@@ -141,7 +142,7 @@ int main(int argc, char *argv[]) {
   ndpi_serializer *serializer;
   ndpi_serializer deserializer;
   int rc, i, j, z, num_records, max_tlv_msgs = 0, tlv_msgs = 0;
-  u_int64_t exported_msgs = 0, exported_records = 0;
+  u_int32_t exported_msgs = 0, exported_records = 0;
   u_int8_t use_json_encoding = 0;
   char c;
 
@@ -277,16 +278,18 @@ int main(int argc, char *argv[]) {
         u_int8_t *buffer = (u_int8_t *) ndpi_serializer_get_buffer(&serializer[i], &buffer_len);
         strncpy(msg_hdr.url, "flow", sizeof(msg_hdr.url));
         msg_hdr.version = (use_json_encoding ? 2 : 3);
-        msg_hdr.size = buffer_len;
-        zmq_send(zmq_sock, &msg_hdr, sizeof(msg_hdr), ZMQ_SNDMORE);
+        msg_hdr.size = htonl(buffer_len);
+        msg_hdr.msg_id = htonl(exported_msgs);
+        rc = zmq_send(zmq_sock, &msg_hdr, sizeof(msg_hdr), ZMQ_SNDMORE);
 
         if (use_json_encoding && verbose) {
           enum json_tokener_error jerr = json_tokener_success;
           json_object *f = json_tokener_parse_verbose((char *) buffer, &jerr);
-          printf("Sending JSON #%u '%s' [len=%u][%s]\n", i, (char *) buffer, msg_hdr.size, f == NULL ? "INVALID" : "VALID");
+          printf("Sending JSON #%u '%s' [len=%u][%s]\n", i, (char *) buffer, buffer_len, f == NULL ? "INVALID" : "VALID");
         }
 
-        rc = zmq_send(zmq_sock, buffer, msg_hdr.size, 0);
+        if (rc > 0)
+          rc = zmq_send(zmq_sock, buffer, buffer_len, 0);
 
         if (rc > 0)
           exported_msgs++;
@@ -304,7 +307,7 @@ int main(int argc, char *argv[]) {
     total_time_usec += delta_usec;
 
     if (total_time_usec - last_delta_usec > 1000000 /* every 1 sec */) {
-      printf("%lu flows / %.2f flows/sec exported\n", exported_records, 
+      printf("%u flows / %.2f flows/sec exported\n", exported_records, 
         ((double) (exported_records - last_exported_records) / ((total_time_usec - last_delta_usec)/1000000)));
       last_exported_records = exported_records;
       last_delta_usec = total_time_usec;
@@ -407,7 +410,7 @@ int main(int argc, char *argv[]) {
  exit:
 
   if (zmq_sock)
-    printf("%lu messages %lu records sent over ZMQ\n", exported_msgs, exported_records);
+    printf("%u messages %u records sent over ZMQ\n", exported_msgs, exported_records);
 
   for (i = 0; i < tlv_msgs; i++)
     ndpi_term_serializer(&serializer[i]);
