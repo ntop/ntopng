@@ -181,10 +181,22 @@ void CollectorInterface::collect_flows() {
 	if(size == sizeof(struct zmq_msg_hdr_v0)) {
 	  /* Legacy version */
 	  msg_id = 0;
-	} else if((size != sizeof(h)) || ((h.version != ZMQ_MSG_VERSION) && (h.version != ZMQ_COMPATIBILITY_MSG_VERSION))) {
-	  ntop->getTrace()->traceEvent(TRACE_WARNING,
-				       "Unsupported publisher version: your nProbe sender is outdated? [%u][%u]",
-				       sizeof(struct zmq_msg_hdr), sizeof(h));
+	} else if(size != sizeof(h) || (
+                  h.version != ZMQ_MSG_VERSION && 
+                  h.version != ZMQ_COMPATIBILITY_MSG_VERSION)) {
+          static bool once = false;
+          if (!once) {
+            if(h.version == ZMQ_MSG_VERSION_TLV) {
+  	      ntop->getTrace()->traceEvent(TRACE_WARNING, "Unsupported publisher version: your nProbe is using the TLV format");
+              ntop->getTrace()->traceEvent(TRACE_WARNING, "which is not supported by this version of ntopng. Please use the");
+              ntop->getTrace()->traceEvent(TRACE_WARNING, "'--zmq-format j' option in nProbe to use the legacy JSON format.");
+            } else {
+  	      ntop->getTrace()->traceEvent(TRACE_WARNING,
+				           "Unsupported publisher version: your nProbe sender is outdated? [%u][%u]",
+				           sizeof(struct zmq_msg_hdr), sizeof(h));
+            }
+            once = true;
+          }
 	  continue;
 	} else if(h.version == ZMQ_COMPATIBILITY_MSG_VERSION)
 	  msg_id = h.msg_id; // host byte order
