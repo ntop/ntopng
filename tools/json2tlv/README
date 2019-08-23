@@ -8,7 +8,7 @@ TLV records over ZMQ. This is meant to be used for functional and performance te
 Example with json2tlv reading a JSON file with flows and generating TLV records in a
 loop to a local instance of ntopng:
 
-# json2tlv -i flows.json -z tcp://*:5556 -E 10000
+# json2tlv -i flows.json -z tcp://*:5556c -E 10000
 
 # ntopng -i tcp://127.0.0.1:5556
 
