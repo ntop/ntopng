@@ -85,9 +85,11 @@ class Checker(object):
         """
         Requests
         entity = 1 means "Host" and this must be kept in sync with ntopng sources
+        sortColumn=column_key guarantees alerts are ordered by rowid which is meaningful for flow alerts
+        @0 forced, currently not supporting hosts with vlans
         """
 
-        return 'http%s://%s:%u/lua/get_alerts_table_data.lua?status=engaged&ifid=%u&entity=1&entity_val=%s&currentPage=1&perPage=1&sortColumn=column_date&sortOrder=desc' % ('s' if self.use_ssl else '', self.host, self.port, ifid, checked_host)
+        return 'http%s://%s:%u/lua/get_alerts_table_data.lua?status=historical&ifid=%u&entity=1&entity_val=%s@0&currentPage=1&perPage=1&sortColumn=column_key&sortOrder=desc' % ('s' if self.use_ssl else '', self.host, self.port, ifid, checked_host)
 
     def fetch(self, ifid, checked_host):
         req = urllib.request.Request(self.check_url(ifid, checked_host))

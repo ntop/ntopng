@@ -340,6 +340,8 @@ function performAlertsQuery(statement, what, opts, force_query, group_by)
 
       if opts.sortColumn == "column_date" then
          order_by = "alert_tstamp"
+      elseif opts.sortColumn == "column_key" then
+         order_by = "rowid"
       elseif opts.sortColumn == "column_severity" then
          order_by = "alert_severity"
       elseif opts.sortColumn == "column_type" then
@@ -1749,8 +1751,8 @@ function toggleAlert(disable) {
 	    for s, _ in pairs(alert_consts.alert_severities) do alert_severities[#alert_severities +1 ] = s end
 	    local alert_types = {}
 	    for s, _ in pairs(alert_consts.alert_types) do alert_types[#alert_types +1 ] = s end
-      local type_menu_entries = nil
-      local sev_menu_entries = nil
+	    local type_menu_entries = nil
+	    local sev_menu_entries = nil
 
 	    local a_type, a_severity = nil, nil
 	    if clicked == "1" then
@@ -1758,14 +1760,14 @@ function toggleAlert(disable) {
 	       if tonumber(_GET["alert_severity"]) ~= nil then a_severity = alertSeverityLabel(_GET["alert_severity"], true) end
 	    end
 
-      if t["status"] == "engaged" then
-        local res = interface.getEngagedAlertsCount(tonumber(_GET["entity"]), _GET["entity_val"], _GET["entity_excludes"])
+	    if t["status"] == "engaged" then
+	       local res = interface.getEngagedAlertsCount(tonumber(_GET["entity"]), _GET["entity_val"], _GET["entity_excludes"])
 
-        if(res ~= nil) then
-          type_menu_entries = menuEntriesToDbFormat(res.type)
-          sev_menu_entries = menuEntriesToDbFormat(res.severities)
-        end
-      end
+	       if(res ~= nil) then
+		  type_menu_entries = menuEntriesToDbFormat(res.type)
+		  sev_menu_entries = menuEntriesToDbFormat(res.severities)
+	       end
+	    end
 
 	    print(drawDropdown(t["status"], "type", a_type, alert_types, i18n("alerts_dashboard.alert_type"), get_params, type_menu_entries))
 	    print(drawDropdown(t["status"], "severity", a_severity, alert_severities, i18n("alerts_dashboard.alert_severity"), get_params, sev_menu_entries))
