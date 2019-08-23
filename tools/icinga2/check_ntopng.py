@@ -81,7 +81,7 @@ class Checker(object):
         if self.verbose:
             print('[%s:%u][ifid: %u][ntopng auth: %s/%s][ssl: %u][unsecure: %u][timeout: %u]' % (self.host, self.port, self.ifid, self.user, self.secret, self.use_ssl, self.unsecure, self.timeout))
 
-    def check_url(self, ifid, checked_host):
+    def check_url(self, ifid, checked_host, check_type):
         """
         Requests
         entity = 1 means "Host" and this must be kept in sync with ntopng sources
@@ -89,10 +89,10 @@ class Checker(object):
         @0 forced, currently not supporting hosts with vlans
         """
 
-        return 'http%s://%s:%u/lua/get_alerts_table_data.lua?status=historical&ifid=%u&entity=1&entity_val=%s@0&currentPage=1&perPage=1&sortColumn=column_key&sortOrder=desc' % ('s' if self.use_ssl else '', self.host, self.port, ifid, checked_host)
+        return 'http%s://%s:%u/lua/get_alerts_table_data.lua?status=%s&ifid=%u&entity=1&entity_val=%s@0&currentPage=1&perPage=1&sortColumn=column_key&sortOrder=desc'% ('s' if self.use_ssl else '', self.host, self.port, 'engaged' if check_type == 'host-alerts' else 'historical-flows', ifid, checked_host)
 
-    def fetch(self, ifid, checked_host):
-        req = urllib.request.Request(self.check_url(ifid, checked_host))
+    def fetch(self, ifid, checked_host, check_type):
+        req = urllib.request.Request(self.check_url(ifid, checked_host, check_type))
 
         if self.user is not None or self.secret is not None:
             credentials = ('%s:%s' % (self.user, self.secret))
@@ -117,12 +117,68 @@ class Checker(object):
 
         return data
 
-    def check(self, ifid, checked_host):
-        res = self.fetch(ifid, checked_host)
-        if res['totalRows'] > 0:
-            output("There are %u engaged alerts" % res['totalRows'], 2)
+    @staticmethod
+    def parse_perfdata(perfdata):
+        """
+        Perfdata is a string containing one or more performance values as
+        latest_alert_id=14 latest_alert_date=00:31
+
+        This method creates a dictionary by parsing the string.
+        """
+        res = {}
+
+        try:
+            for perf in perfdata.split(" "):
+                label_value = perf.split("=")
+                label = label_value[0]
+                value = label_value[1]
+                res[label] = value
+        except:
+            res = {}
+
+        return res
+
+    @staticmethod
+    def check_host_alerts(fetched):
+        if fetched['totalRows'] > 0:
+            output("There are %u engaged alerts" % fetched['totalRows'], 2)
         else:
             output("There are no engaged alerts", 0)
+
+    @staticmethod
+    def check_flow_alerts(fetched, perfdata):
+        status = 0
+        curr_perfdata = None
+        curr_latest_alert_id = 0
+        prev_latest_alert_id = 0
+
+        # Read the highest alert id from the fetched data and also store it as a perf data
+        if fetched['totalRows'] > 0:
+            curr_latest_alert = fetched['data'][0]
+            curr_latest_alert_id = int(curr_latest_alert['column_key'])
+            curr_perfdata = {'latest_alert_id': curr_latest_alert_id}
+
+        # Read the previous perfdata and compute the delta to see if in the meanwhile there have been new flow alerts
+        if perfdata:
+            parsed_perfdata = Checker.parse_perfdata(perfdata)
+            if 'latest_alert_id' in parsed_perfdata:
+                prev_latest_alert_id = int(parsed_perfdata['latest_alert_id'])
+
+        # If the highest alert id across two consecutive checks has increased, it means there are new flow alerts
+        if curr_latest_alert_id > prev_latest_alert_id:
+            status = 2 # CRITICAL, new flow alerts detected since last check
+
+        output("There are %snew flow alerts" % ('no ' if status == 0 else ''), status, [], curr_perfdata)
+
+    def check(self, ifid, checked_host, check_type, perfdata):
+        res = self.fetch(ifid, checked_host, check_type)
+
+        if check_type == 'host-alerts':
+            self.check_host_alerts(res)
+        elif check_type == 'flow-alerts':
+            self.check_flow_alerts(res, perfdata)
+        else:
+            output('Unknown check type requested', 3)
 
 
 if __name__ == '__main__':
@@ -135,15 +191,21 @@ if __name__ == '__main__':
     parser.add_argument("-U", "--user", help = "The name of an ntopng user")
     parser.add_argument("-S", "--secret", help = "The password to authenticate the ntopng user")
     parser.add_argument('-c', '--checked-host', help = 'The IP address of the host which should be checked', required = True)
-    # parser.add_argument("-T", "--type", required = True, help = "Alert type. Supported: 'host-alerts', 'flow-alerts'", choices = ['host-alerts', 'flow-alerts'])
+    parser.add_argument("-T", "--check-type", required = True, help = "Which alerts should be checked. Supported: 'host-alerts', 'flow-alerts'", choices = ['host-alerts', 'flow-alerts'])
     parser.add_argument("-s", "--use-ssl", help="Use SSL to connect to ntopng", action = 'store_true')
     parser.add_argument("-u", "--unsecure", help="When SSL is used, ignore SSL certificate verification", action = 'store_true')
+    parser.add_argument("-p", "--perfdata", help="Icinga2 perfdata")
     parser.add_argument("-t", "--timeout", help="Timeout in seconds (default 10s)", type = int, default = 10)
     args = parser.parse_args()
 
     signal.signal(signal.SIGALRM, partial(handle_sigalrm, timeout=args.timeout))
     signal.alarm(args.timeout)
 
+    # if args.perfdata:
+    #     f = open("/tmp/guru99.txt", "a+")
+    #     f.write(args.perfdata+"\n")
+    #     f.close()
+
     checker = Checker(args.host, args.port, args.ifid, args.user, args.secret, args.use_ssl, args.unsecure, args.timeout, args.verbose)
 
-    checker.check(args.ifid, args.checked_host)
+    checker.check(args.ifid, args.checked_host, args.check_type, args.perfdata)
