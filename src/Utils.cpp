@@ -1797,6 +1797,7 @@ bool Utils::httpGetPost(lua_State* vm, char *url, char *username,
   if(curl) {
     DownloadState *state = NULL;
     ProgressState progressState;
+    CURLcode curlcode;
     long response_code;
     char *content_type, *redirection;
     char ua[64];
@@ -1891,7 +1892,7 @@ bool Utils::httpGetPost(lua_State* vm, char *url, char *username,
 
     if(vm) lua_newtable(vm);
 
-    if(curl_easy_perform(curl) == CURLE_OK) {
+    if((curlcode = curl_easy_perform(curl)) == CURLE_OK) {
       readCurlStats(curl, stats, vm);
 	
       if(return_content && vm) {
@@ -1900,8 +1901,11 @@ bool Utils::httpGetPost(lua_State* vm, char *url, char *username,
       }
       
       ret = true;
-    } else
+    } else {
+      if(vm)
+        lua_push_str_table_entry(vm, "ERROR", curl_easy_strerror(curlcode));
       ret = false;
+    }
 
     if(vm) {
       if(curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code) == CURLE_OK)

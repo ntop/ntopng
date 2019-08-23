@@ -303,13 +303,19 @@ local function checkListsUpdate(timeout)
         local respcode = 0
         local last_error = i18n("delete_data.msg_err_unknown")
 
-        if res and res["RESPONSE_CODE"] ~= nil then
+        if res and res["ERROR"] then
+          last_error = res["ERROR"]
+        elseif res and res["RESPONSE_CODE"] ~= nil then
           respcode = ternary(res["RESPONSE_CODE"], res["RESPONSE_CODE"], "-")
 
           if res["IS_PARTIAL"] then
-            last_error = i18n("category_lists.connection_time_out", {err_code=respcode, duration=(os.time() - started_at)})
+            last_error = i18n("category_lists.connection_time_out", {duration=(os.time() - started_at)})
           else
-            last_error = i18n("category_lists.server_returned_error", {err_code=respcode})
+            last_error = i18n("category_lists.server_returned_error")
+          end
+
+          if(respcode > 0) then
+            last_error = last_error .. i18n("category_lists.http_code", {err_code = respcode})
           end
         end
 
