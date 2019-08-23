@@ -20,10 +20,11 @@ function setup(str_granularity)
    if do_trace then print("alert.lua:setup("..str_granularity..") called\n") end
    ifid = interface.getId()
    local ifname = interface.setActiveInterfaceId(ifid)
-   config_alerts = getNetworksConfiguredAlertThresholds(ifname, str_granularity)
 
    -- Load the threshold checking functions
    available_modules = alerts_api.load_check_modules("network", str_granularity)
+
+   config_alerts = getNetworksConfiguredAlertThresholds(ifname, str_granularity, available_modules)
 end
 
 -- #################################################################

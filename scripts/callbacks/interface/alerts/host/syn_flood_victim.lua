@@ -8,6 +8,7 @@ local alert_consts = require("alert_consts")
 local check_module = {
   key = "syn_flood_victim",
   check_function = alerts_api.threshold_check_function,
+  default_value = "syn_flood_victim;gt;50",
 
   granularity = {
      -- executed only in the minute-by-minute check

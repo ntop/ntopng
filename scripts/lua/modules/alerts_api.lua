@@ -947,8 +947,8 @@ end
 
 function alerts_api.threshold_cross_input_builder(gui_conf, input_id, value)
   value = value or {}
-  local gt_selected = ternary(value[1] == "gt", ' selected="selected"', '')
-  local lt_selected = ternary(value[1] == "lt", ' selected="selected"', '')
+  local gt_selected = ternary(value.operator == "gt", ' selected="selected"', '')
+  local lt_selected = ternary(value.operator == "lt", ' selected="selected"', '')
   local input_op = "op_" .. input_id
   local input_val = "value_" .. input_id
 
@@ -958,7 +958,7 @@ function alerts_api.threshold_cross_input_builder(gui_conf, input_id, value)
 </select> <input type="number" class="text-right form-control" min="%s" max="%s" step="%s" style="display:inline; width:12em;" name="%s" value="%s"/> <span>%s</span>]],
     input_op, gt_selected, lt_selected,
     gui_conf.field_min or "0", gui_conf.field_max or "", gui_conf.field_step or "1",
-    input_val, value[2], i18n(gui_conf.i18n_field_unit))
+    input_val, value.edge, i18n(gui_conf.i18n_field_unit))
   )
 end
 

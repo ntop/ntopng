@@ -206,7 +206,7 @@ function get_alerts_hash_name(timespan, ifname, entity_type)
 end
 
 -- Get the hash key used for saving global settings
-local function get_global_alerts_hash_key(entity_type, alert_source, local_hosts)
+local function get_global_alerts_hash_key(entity_type, local_hosts)
    if entity_type == "host" then
       if local_hosts then
         return "local_hosts"
@@ -809,8 +809,8 @@ end
 
 -- #################################
 
-local function getGlobalAlertsConfigurationHash(granularity, entity_type, alert_source, local_hosts)
-   return 'ntopng.prefs.alerts_global.'..granularity.."."..get_global_alerts_hash_key(entity_type, alert_source, local_hosts)
+local function getGlobalAlertsConfigurationHash(granularity, entity_type, local_hosts)
+   return 'ntopng.prefs.alerts_global.'..granularity.."."..get_global_alerts_hash_key(entity_type, local_hosts)
 end
 
 local global_redis_thresholds_key = "thresholds"
@@ -945,6 +945,62 @@ end
 
 -- #################################
 
+local function thresholdStr2Val(threshold)
+  local parts = string.split(threshold, ";")
+
+  if(#parts >= 2) then
+    return {metric=parts[1], operator=parts[2], edge=parts[3] --[[can be nil]]}
+  end
+end
+
+local function getEntityConfiguredAlertThresholds(ifname, granularity, entity_type, local_hosts, check_modules)
+   local thresholds_key = get_alerts_hash_name(granularity, ifname, entity_type)
+   local thresholds_config = {}
+   local skip_defaults = {}
+   local res = {}
+
+   -- Handle the global configuration
+   local thresholds_str = ntop.getHashCache(getGlobalAlertsConfigurationHash(granularity, entity_type, local_hosts), global_redis_thresholds_key)
+   local global_key = get_global_alerts_hash_key(entity_type, local_hosts)
+
+   if not isEmptyString(thresholds_str) then
+     thresholds_config[global_key] = thresholds_str
+   end
+
+   -- Entity specific/global alerts
+   for entity_val, thresholds_str in pairs(table.merge(thresholds_config, ntop.getHashAllCache(thresholds_key) or {})) do
+      local thresholds = split(thresholds_str, ",")
+      res[entity_val] = {}
+
+      for _, threshold in pairs(thresholds) do
+        local val = thresholdStr2Val(threshold)
+
+        if(val) then
+          if(val.edge) then
+            res[entity_val][val.metric] = val
+          else
+            skip_defaults[val.metric] = true
+          end
+        end
+      end
+   end
+
+   res[global_key] = res[global_key] or {}
+
+      -- Add defaults
+   for modname, check_module in pairs(check_modules) do
+     local default_value = check_module.default_value
+
+     if((res[global_key][modname] == nil) and (default_value ~= nil) and (not skip_defaults[modname])) then
+       res[global_key][modname] = thresholdStr2Val(default_value)
+     end
+   end
+
+   return res
+end
+
+-- #################################
+
 function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, delete_confirm_msg, page_name, page_params, alt_name, show_entity, options)
    local has_engaged_alerts, has_past_alerts, has_flow_alerts = false,false,false
    local has_disabled_alerts = alerts_api.hasEntitiesWithAlertsDisabled(interface.getId())
@@ -1054,7 +1110,7 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
    local anomalies_config = {
    }
 
-   local global_redis_hash = getGlobalAlertsConfigurationHash(tab, entity_type, alert_source, not options.remote_host)
+   local global_redis_hash = getGlobalAlertsConfigurationHash(tab, entity_type, not options.remote_host)
 
    print('</ul>')
 
@@ -1071,6 +1127,9 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
       anomalies = {}
       global_anomalies = {}
       to_save = false
+
+      -- Needed to handle the defaults
+      local check_modules = alerts_api.load_check_modules(entity_type)
 
       if((_POST["to_delete"] ~= nil) and (_POST["SaveAlerts"] == nil)) then
          if _POST["to_delete"] == "local" then
@@ -1112,18 +1171,33 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
 	    if((value ~= nil) and (operator ~= nil)) then
 	       --io.write("\t"..k.."\n")
 	       value = tonumber(value)
-	       if(value ~= nil) then
-		  if(alerts ~= "") then alerts = alerts .. "," end
-		  alerts = alerts .. k .. ";" .. operator .. ";" .. value
+         if(value ~= nil) then
+            if(alerts ~= "") then alerts = alerts .. "," end
+            alerts = alerts .. k .. ";" .. operator .. ";" .. value
 	       end
 
 	       -- Handle global settings
-	       local global_value = tonumber(_POST["value_global_"..k])
+	       local global_value = _POST["value_global_"..k]
 	       local global_operator = _POST["op_global_"..k]
 
 	       if (global_value ~= nil) and (global_operator ~= nil) then
-		  if(global_alerts ~= "") then global_alerts = global_alerts .. "," end
-		  global_alerts = global_alerts..k..";"..global_operator..";"..global_value
+           local default_value = check_modules[k] and check_modules[k].default_value
+           global_value = tonumber(global_value)
+
+           if((global_value == nil) and (default_value ~= nil)) then
+             -- save an empty value to differentiate it from the default
+             global_value = ""
+           end
+
+           if(global_value ~= nil) then
+             local cur_value = k..";"..global_operator..";"..global_value
+
+              -- Do not save default values
+              if(cur_value ~= default_value) then
+                if(global_alerts ~= "") then global_alerts = global_alerts .. "," end
+                global_alerts = global_alerts..cur_value
+              end
+            end
 	       end
 	    end
          end --END for k,_ in pairs(descr) do
@@ -1179,29 +1253,22 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
             else
                ntop.delHashCache(global_redis_hash, global_redis_thresholds_key)
             end
-         else
-            alerts = ntop.getHashCache(get_alerts_hash_name(tab, ifname, entity_type), alert_source)
-            global_alerts = ntop.getHashCache(global_redis_hash, global_redis_thresholds_key)
          end
       end -- END if _POST["to_delete"] ~= nil
 
-      --print(alerts)
-      --tokens = string.split(alerts, ",")
+      -- Reuse getEntityConfiguredAlertThresholds instead of directly read from hash to handle defaults
+      local alert_config = getEntityConfiguredAlertThresholds(ifname, tab, entity_type, not options.remote_host, check_modules) or {}
+      alerts = alert_config[alert_source]
+      global_alerts = alert_config[get_global_alerts_hash_key(entity_type, not options.remote_host)]
+
       for _, al in pairs({
 	    {prefix = "", config = alerts},
 	    {prefix = "global_", config = global_alerts},
       }) do
 	 if al.config ~= nil then
-	    tokens = split(al.config, ",")
-
-	    --print(tokens)
-	    if(tokens ~= nil) then
-	       for _,s in pairs(tokens) do
-		  t = string.split(s, ";")
-		  --print("-"..t[1].."-")
-		  if(t ~= nil) then vals[(al.prefix)..t[1]] = { t[2], t[3] } end
-	       end
-	    end
+      for k, v in pairs(al.config) do
+        vals[(al.prefix)..k] = v
+      end
 	 end
       end
 
@@ -1265,7 +1332,7 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
                 k = "value_" .. k
 
                 if(value ~= nil) then
-                  value = tonumber(value[2])
+                  value = tonumber(value.edge)
                 end
               end
 
@@ -1279,70 +1346,24 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
          ::next_module::
       end
 
-      if (entity_type == "host") and (tab == "min") then
-         local vals = table.merge(anomalies, global_anomalies)
+      -- TODO refactor and remove anomalies_config
+      if (entity_type == "interface") and (tab == "min") then
+        local drop_perc = ntop.getCache(getInterfacePacketDropPercAlertKey(ifname), _POST["packets_drops_perc"])
+        if isEmptyString(drop_perc) then
+           drop_perc = tostring(alert_consts.CONST_DEFAULT_PACKETS_DROP_PERCENTAGE_ALERT)
+        end
+        if drop_perc == "0" then
+           drop_perc = ""
+        end
 
-	 -- Possibly load old config
-	 local serialized_config = ntop.getCache(anomaly_config_key)
-	 local deserialized_config
-	 if isEmptyString(serialized_config) then
-	    deserialized_config = {}
-	 else
-	    deserialized_config = split(serialized_config, "|")
-	 end
+        print("<tr><td><b>"..i18n("show_alerts.interface_drops_threshold").."</b><br>\n")
+        print("<small>"..i18n("show_alerts.interface_drops_threshold_descr").."</small>")
 
-	 for idx, config in ipairs(anomalies_config) do
-	    if isEmptyString(vals[config.key]) then
-	       if idx <= #deserialized_config
-		  and deserialized_config[idx] ~= "global"
-	       and not isEmptyString(deserialized_config[idx]) then
-		  vals[config.key] = deserialized_config[idx]
-	       end
-	    end
-
-	    if isEmptyString(vals["global_"..config.key]) then
-	       vals["global_"..config.key] = ntop.getHashCache(global_redis_hash, config.key)
-	       if isEmptyString(vals["global_"..config.key]) then
-		  vals["global_"..config.key] = config.global_default
-	       end
-	    end
-	 end
-
-	 -- Print the config
-	 if not have_nedge then
-	    for _, config in ipairs(anomalies_config) do
-	       print("<tr><td><b>"..(config.title).."</b><br>\n")
-	       print("<small>"..(config.descr)..".</small>")
-
-	       for _, prefix in pairs({"", "global_"}) do
-		  local key = prefix..config.key
-
-		  print("</td><td>\n")
-		  print('<input type="number" class=\"text-right form-control\" name="'..key..'" style="display:inline; width:7em;" placeholder="" min="'..(config.step)..'" step="'..(config.step)..'" max="100000" value="')
-		  print(tostring(vals[key] or ""))
-		  print[["></input>]]
-	       end
-
-	       print("</td></tr>")
-	    end
-	 end
-      elseif (entity_type == "interface") and (tab == "min") then
-	 local drop_perc = ntop.getCache(getInterfacePacketDropPercAlertKey(ifname), _POST["packets_drops_perc"])
-	 if isEmptyString(drop_perc) then
-	    drop_perc = tostring(alert_consts.CONST_DEFAULT_PACKETS_DROP_PERCENTAGE_ALERT)
-	 end
-	 if drop_perc == "0" then
-	    drop_perc = ""
-	 end
-
-	 print("<tr><td><b>"..i18n("show_alerts.interface_drops_threshold").."</b><br>\n")
-	 print("<small>"..i18n("show_alerts.interface_drops_threshold_descr").."</small>")
-
-	 print("</td><td>\n")
-	 print('<input type="number" class=\"text-right form-control\" name="packets_drops_perc" style="display:inline; width:7em;" placeholder="" min="0" max="100" value="')
-	 print(tostring(drop_perc))
-	 print[[" /> %]]
-	 print("</td><td></td></tr>")
+        print("</td><td>\n")
+        print('<input type="number" class=\"text-right form-control\" name="packets_drops_perc" style="display:inline; width:7em;" placeholder="" min="0" max="100" value="')
+        print(tostring(drop_perc))
+        print[[" /> %]]
+        print("</td><td></td></tr>")
       end
 
       print [[
@@ -2116,47 +2137,11 @@ end
 
 -- #################################
 
-local function getEntityConfiguredAlertThresholds(ifname, granularity, entity_type, local_hosts)
-   local thresholds_key = get_alerts_hash_name(granularity, ifname, entity_type)
-   local thresholds_config = {}
-   local res = {}
-   
-   -- Handle the global configuration
-   local global_conf_keys = ntop.getKeysCache(getGlobalAlertsConfigurationHash(granularity, entity_type, "*", local_hosts)) or {}
-
-   for alert_key in pairs(global_conf_keys) do
-      local thresholds_str = ntop.getHashCache(alert_key, global_redis_thresholds_key)
-
-      if not isEmptyString(thresholds_str) then
-	 -- extract only the last part of the key
-	 local k = string.sub(alert_key, string.find(alert_key, "%.[^%.]*$")+1)
-	 thresholds_config[k] = thresholds_str
-      end
-   end
-
-   for entity_val, thresholds_str in pairs(table.merge(thresholds_config, ntop.getHashAllCache(thresholds_key) or {})) do
-      local thresholds = split(thresholds_str, ",")
-      res[entity_val] = {}
-
-      for _, threshold in pairs(thresholds) do
-	 local parts = string.split(threshold, ";")
-	 if #parts == 3 then
-	    local alert_key = granularity .. "_" .. parts[1] -- the alert key is the concatenation of the granularity and the metric
-	    res[entity_val][parts[1]] = {metric=parts[1], operator=parts[2], edge=parts[3], key=alert_key}
-	 end
-      end
-   end
-
-   return res
-end
-
--- #################################
-
 -- Get all the configured threasholds for the specified interface
 -- NOTE: an additional "interfaces" key is added if there are globally
 -- configured threasholds (threasholds active for all the interfaces)
-function getInterfaceConfiguredAlertThresholds(ifname, granularity)
-  return(getEntityConfiguredAlertThresholds(ifname, granularity, "interface"))
+function getInterfaceConfiguredAlertThresholds(ifname, granularity, check_modules)
+  return(getEntityConfiguredAlertThresholds(ifname, granularity, "interface", nil, check_modules))
 end
 
 -- #################################
@@ -2164,8 +2149,8 @@ end
 -- Get all the configured threasholds for local hosts on the specified interface
 -- NOTE: an additional "local_hosts" key is added if there are globally
 -- configured threasholds (threasholds active for all the hosts of the interface)
-function getLocalHostsConfiguredAlertThresholds(ifname, granularity, local_hosts)
-  return(getEntityConfiguredAlertThresholds(ifname, granularity, "host", true))
+function getLocalHostsConfiguredAlertThresholds(ifname, granularity, check_modules)
+  return(getEntityConfiguredAlertThresholds(ifname, granularity, "host", true, check_modules))
 end
 
 -- #################################
@@ -2173,8 +2158,8 @@ end
 -- Get all the configured threasholds for remote hosts on the specified interface
 -- NOTE: an additional "local_hosts" key is added if there are globally
 -- configured threasholds (threasholds active for all the hosts of the interface)
-function getRemoteHostsConfiguredAlertThresholds(ifname, granularity, local_hosts)
-  return(getEntityConfiguredAlertThresholds(ifname, granularity, "host", false))
+function getRemoteHostsConfiguredAlertThresholds(ifname, granularity, check_modules)
+  return(getEntityConfiguredAlertThresholds(ifname, granularity, "host", false, check_modules))
 end
 
 -- #################################
@@ -2182,8 +2167,8 @@ end
 -- Get all the configured threasholds for networks on the specified interface
 -- NOTE: an additional "local_networks" key is added if there are globally
 -- configured threasholds (threasholds active for all the hosts of the interface)
-function getNetworksConfiguredAlertThresholds(ifname, granularity)
-  return(getEntityConfiguredAlertThresholds(ifname, granularity, "network"))
+function getNetworksConfiguredAlertThresholds(ifname, granularity, check_modules)
+  return(getEntityConfiguredAlertThresholds(ifname, granularity, "network", nil, check_modules))
 end
 
 -- #################################
@@ -2563,8 +2548,8 @@ function flushAlertsData()
    if(verbose) then io.write("[Alerts] Flushing Redis configuration...\n") end
    deleteCachePattern("ntopng.prefs.*alert*")
    deleteCachePattern("ntopng.alerts.*")
-   deleteCachePattern(getGlobalAlertsConfigurationHash("*", "*", "*", true))
-   deleteCachePattern(getGlobalAlertsConfigurationHash("*", "*", "*", false))
+   deleteCachePattern(getGlobalAlertsConfigurationHash("*", "*", true))
+   deleteCachePattern(getGlobalAlertsConfigurationHash("*", "*", false))
    ntop.delCache(get_alerts_suppressed_hash_name("*"))
    for _, key in pairs(get_make_room_keys("*")) do deleteCachePattern(key) end
 
