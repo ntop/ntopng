@@ -31,8 +31,10 @@ static pair<char *, size_t> get_corpus(string filename) {
 
     length = buffer.str().size();
 
-    if (posix_memalign( (void **)&aligned_buffer, 64, (length + 63) / 64  * 64))
-      throw "Allocation failed";
+    if (posix_memalign( (void **)&aligned_buffer, 64, (length + 63) / 64  * 64)) {
+      printf("Allocation failed\n");
+      exit(1);
+    }
 
     memset(aligned_buffer, 0x20, (length + 63) / 64  * 64);
     memcpy(aligned_buffer, buffer.str().c_str(), length);
@@ -42,7 +44,7 @@ static pair<char *, size_t> get_corpus(string filename) {
     return make_pair((char *)aligned_buffer, length);
   } 
 
-  cerr << "JSON file " << filename << "not found or empty\n";
+  printf("JSON file %s not found or empty\n", filename.c_str());
   exit(1);
 }
 
@@ -59,7 +61,7 @@ int key_is_int(char *key) {
 }
 
 /* *************************************** */
-void json_to_tlv(json_object * jobj, ndpi_serializer *serializer) {
+void json_to_tlv(json_object *jobj, ndpi_serializer *serializer) {
   enum json_type type;
   int rc, ikey, ival = 0;
   char *sval = NULL;
@@ -219,11 +221,15 @@ int main(int argc, char *argv[]) {
   pair<char *, size_t> p = get_corpus(json_path);
 
   enum json_tokener_error jerr = json_tokener_success;
-  char * buffer = (char *) malloc(p.second);
   json_object *f;
   u_int64_t delta_usec, last_delta_usec = 0, last_exported_records = 0;
 
-  f = json_tokener_parse_verbose(buffer, &jerr);
+  f = json_tokener_parse_verbose(p.first, &jerr);
+
+  if (f == NULL) {
+    printf("Error parsing buffer\n");
+    goto exit;
+  }
 
   if (json_object_get_type(f) == json_type_array)
     num_records = json_object_array_length(f);
@@ -231,8 +237,6 @@ int main(int argc, char *argv[]) {
     num_records = 1;
 
   printf("%u records found\n", num_records);
-
-  free(buffer);
 
   /* nDPI TLV Serialization */
 
@@ -259,7 +263,12 @@ int main(int argc, char *argv[]) {
         ndpi_reset_serializer(&serializer[tlv_msgs]);
         j = 0;
         while (i < num_records && j < batch_size) {
-          json_to_tlv(json_object_array_get_idx(f, i), &serializer[tlv_msgs]);
+          json_object *ji = json_object_array_get_idx(f, i);
+          if (ji == NULL) {
+            printf("Error reading flow #%u\n", i);
+            goto exit;
+          }
+          json_to_tlv(ji, &serializer[tlv_msgs]);
           j++, i++;
         }
         tlv_msgs++;
@@ -297,9 +306,9 @@ int main(int argc, char *argv[]) {
         if (rc > 0)
           rc = zmq_send(zmq_sock, buffer, buffer_len, 0);
 
-        if (rc > 0)
+        if (rc > 0) {
           exported_msgs++;
-        else {
+        } else {
           printf("zmq_send failure: %d\n", rc);
           goto exit;
         }
