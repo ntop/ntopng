@@ -155,7 +155,8 @@ class Checker(object):
         # Read the highest alert id from the fetched data and also store it as a perf data
         if fetched['totalRows'] > 0:
             curr_latest_alert = fetched['data'][0]
-            curr_latest_alert_id = int(curr_latest_alert['column_key'])
+            # Set prev_ and curr_ to the same value, it safe as prev_ could possibly be overridden when parsing perfdata
+            curr_latest_alert_id = prev_latest_alert_id = int(curr_latest_alert['column_key'])
             curr_perfdata = {'latest_alert_id': curr_latest_alert_id}
 
         # Read the previous perfdata and compute the delta to see if in the meanwhile there have been new flow alerts
