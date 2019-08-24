@@ -10,6 +10,7 @@ section.
 
     authentication
     snmp
+    icinga2
     sflow_collection
     view_interfaces
     dynamic_interfaces_disaggregation
