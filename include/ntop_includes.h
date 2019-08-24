@@ -193,6 +193,10 @@ using namespace std;
 #include "NtopGlobals.h"
 #include "nDPIStats.h"
 #include "FlowStats.h"
+
+#include "std_dev.h"
+#include "mean.h"
+
 #ifdef NTOPNG_PRO
 #include "CustomAppMaps.h"
 #include "CustomAppStats.h"

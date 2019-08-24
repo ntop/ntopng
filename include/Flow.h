@@ -37,6 +37,7 @@ typedef struct {
   struct timeval lastTime;
   u_int64_t total_delta_ms;
   float min_ms, max_ms;
+  std_dev sd;
 } InterarrivalStats;
 
 typedef struct {
@@ -46,11 +47,14 @@ typedef struct {
 typedef struct {
   u_int32_t cli2srv_packets, srv2cli_packets;
   u_int64_t cli2srv_bytes, srv2cli_bytes;
+  u_int64_t cli2srv_bytes_min, srv2cli_bytes_min;
+  u_int64_t cli2srv_bytes_max, srv2cli_bytes_max;
   u_int64_t cli2srv_goodput_bytes, srv2cli_goodput_bytes;
+  std_dev cli2srv_bytes_sd, srv2cli_bytes_sd; //std dev of packets size cli2srv and srv2cli
 } FlowTrafficStats;
 
 class Flow : public GenericHashEntry {
- private:
+protected:
   Host *cli_host, *srv_host;
   IpAddress *cli_ip_addr, *srv_ip_addr;
   ICMPinfo *icmp_info;
@@ -89,11 +93,11 @@ class Flow : public GenericHashEntry {
   char *host_server_name, *bt_hash;
   char *community_id_flow_hash;
 #ifdef HAVE_NEDGE
-  u_int32_t last_conntrack_update; 
+  u_int32_t last_conntrack_update;
   u_int32_t marker;
 #endif
   json_object *suricata_alert;
- 
+
   union {
     struct {
       char *last_url, *last_method;
@@ -163,7 +167,7 @@ class Flow : public GenericHashEntry {
   struct timeval c2sFirstGoodputTime;
   float rttSec, applLatencyMsec;
 
-  FlowPacketStats cli2srvStats, srv2cliStats;
+  FlowPacketStats cli2srvStats, srv2cliStats, flowStats;
 
   /* Counter values at last host update */
   struct {
@@ -221,14 +225,16 @@ class Flow : public GenericHashEntry {
   inline bool isProto(u_int16_t p) const { return(((ndpiDetectedProtocol.master_protocol == p)
 						   || (ndpiDetectedProtocol.app_protocol == p))
 						  ? true : false); }
+#ifdef NTOPNG_PRO
   void update_pools_stats(const struct timeval *tv,
 			  u_int64_t diff_sent_packets, u_int64_t diff_sent_bytes,
 			  u_int64_t diff_rcvd_packets, u_int64_t diff_rcvd_bytes);
+#endif
   bool triggerAlerts() const;
   void dumpFlowAlert();
   void updateJA3();
   const char* cipher_weakness2str(ndpi_cipher_weakness w);
-  bool get_partial_traffic_stats(FlowTrafficStats **dst, FlowTrafficStats *delta, bool *first_partial) const;  
+  bool get_partial_traffic_stats(FlowTrafficStats **dst, FlowTrafficStats *delta, bool *first_partial) const;
 
  public:
   Flow(NetworkInterface *_iface,
@@ -291,7 +297,7 @@ class Flow : public GenericHashEntry {
 		      u_int8_t flags, bool src2dst_direction);
   void incTcpBadStats(bool src2dst_direction,
 		      u_int32_t ooo_pkts, u_int32_t retr_pkts, u_int32_t lost_pkts, u_int32_t keep_alive_pkts);
-  
+
   void updateTcpSeqNum(const struct bpf_timeval *when,
 		       u_int32_t seq_num, u_int32_t ack_seq_num,
 		       u_int16_t window, u_int8_t flags,
@@ -315,11 +321,11 @@ class Flow : public GenericHashEntry {
   inline void set_status_counted_in_aggregated_flow(bool val) { status_counted_in_aggregated_flow = val;   };
 #endif
   void incStats(bool cli2srv_direction, u_int pkt_len,
-		u_int8_t *payload, u_int payload_len, 
+		u_int8_t *payload, u_int payload_len,
                 u_int8_t l4_proto, u_int8_t is_fragment,
 		const struct timeval *when);
   void addFlowStats(bool cli2srv_direction, u_int in_pkts, u_int in_bytes, u_int in_goodput_bytes,
-		    u_int out_pkts, u_int out_bytes, u_int out_goodput_bytes, 
+		    u_int out_pkts, u_int out_bytes, u_int out_goodput_bytes,
 		    u_int in_fragments, u_int out_fragments, time_t last_seen);
   inline bool isThreeWayHandshakeOK()    const { return(twh_ok);                          };
   inline bool isDetectionCompleted()     const { return(detection_completed);             };
@@ -349,6 +355,26 @@ class Flow : public GenericHashEntry {
   inline u_int64_t get_partial_bytes_srv2cli()   const { return last_db_dump.delta.srv2cli_bytes;   };
   inline u_int64_t get_partial_packets_cli2srv() const { return last_db_dump.delta.cli2srv_packets; };
   inline u_int64_t get_partial_packets_srv2cli() const { return last_db_dump.delta.srv2cli_packets; };
+
+  float get_cli2srv_bytes_sd() { return stats.cli2srv_bytes_sd.get(); }
+  float get_cli2srv_bytes_min() { return stats.cli2srv_bytes_min; }
+  float get_cli2srv_bytes_max() { return stats.cli2srv_bytes_max; }
+  float get_cli2srv_bytes_avg() { return stats.cli2srv_packets > 0 ? stats.cli2srv_bytes / stats.cli2srv_packets : 0; }
+  float get_srv2cli_bytes_sd() { return stats.srv2cli_bytes_sd.get(); }
+  float get_srv2cli_bytes_min() { return stats.srv2cli_bytes_min; }
+  float get_srv2cli_bytes_max() { return stats.srv2cli_bytes_max; }
+  float get_srv2cli_bytes_avg() { return stats.srv2cli_packets > 0 ? stats.srv2cli_bytes / stats.srv2cli_packets : 0; }
+
+  float get_cli2srv_InterArrivalTime_sd() { return cli2srvStats.pktTime.sd.get(); }
+  float get_cli2srv_InterArrivalTime_avg() {return ((stats.cli2srv_packets) < 2 ? 0 : cli2srvStats.pktTime.total_delta_ms / (stats.cli2srv_packets - 1));}
+  float get_srv2cli_InterArrivalTime_sd() { return srv2cliStats.pktTime.sd.get(); }
+  float get_srv2cli_InterArrivalTime_avg() {return ((stats.srv2cli_packets) < 2 ? 0 : srv2cliStats.pktTime.total_delta_ms / (stats.srv2cli_packets - 1));}
+
+  float get_flow_InterArrivalTime_min() {return flowStats.pktTime.min_ms;}
+  float get_flow_InterArrivalTime_max() {return flowStats.pktTime.max_ms;}
+  float get_flow_InterArrivalTime_avg() {return ((stats.cli2srv_packets + stats.srv2cli_packets) < 2 ? 0 : flowStats.pktTime.total_delta_ms / ((stats.cli2srv_packets + stats.srv2cli_packets) - 1));}
+  float get_flow_InterArrivalTime_sd() {return flowStats.pktTime.sd.get();}
+
   bool get_partial_traffic_stats_view(FlowTrafficStats *delta, bool *first_partial);
   bool update_partial_traffic_stats_db_dump();
   inline float get_bytes_thpt()          const { return(bytes_thpt);                      };
@@ -508,9 +534,9 @@ class Flow : public GenericHashEntry {
   inline void setLastConntrackUpdate(u_int32_t when) { last_conntrack_update = when; }
   bool isNetfilterIdleFlow();
 #endif
-  
+
 #ifdef HAVE_NEDGE
-  void setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts, u_int64_t s2d_bytes, u_int64_t d2s_bytes);  
+  void setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts, u_int64_t s2d_bytes, u_int64_t d2s_bytes);
   void getFlowShapers(bool src2dst_direction, TrafficShaper **shaper_ingress, TrafficShaper **shaper_egress) {
     if(src2dst_direction) {
       *shaper_ingress = flowShaperIds.cli2srv.ingress,

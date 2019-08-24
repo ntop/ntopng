@@ -309,13 +309,13 @@ end
 
 local function cipher2str(c)
    if(c == nil) then return end
-   
+
    for s,v in pairs(ssl_cipher_suites) do
       if(v == c) then
 	 return('<A HREF="https://ciphersuite.info/cs/'..s..'">'..s..'</A>')
       end
    end
-   
+
    return(c)
 end
 
@@ -627,7 +627,7 @@ else
 	 print(i18n("flow_details.ssl_old_protocol_version"))
       end
    end
-   
+
    if(ifstats.inline) then
       if(flow["verdict.pass"]) then
 	 print('<form class="form-inline pull-right" style="margin-bottom: 0px;" method="post">')
@@ -643,7 +643,7 @@ else
       print("<td><b> <A HREF=https://en.wikipedia.org/wiki/Virtual_routing_and_forwarding>VRF</A> Id</b> "..flow.vrfId.."</td>")
    end
    print("</tr>\n")
-   
+
    if(ntop.isPro() and ifstats.inline and (flow["shaper.cli2srv_ingress"] ~= nil)) then
       local host_pools_utils = require("host_pools_utils")
       print("<tr><th width=30% rowspan=2>"..i18n("flow_details.flow_shapers").."</th>")
@@ -765,21 +765,21 @@ else
       if(rtt > 0) then
 	 local cli2srv = round(flow["tcp.nw_latency.client"], 3)
 	 local srv2cli = round(flow["tcp.nw_latency.server"], 3)
-	 
+
 	 print("<tr><th width=30%>"..i18n("flow_details.rtt_breakdown").."</th><td colspan=2>")
 	 print('<div class="progress"><div class="progress-bar progress-bar-warning" style="width: ' .. (cli2srv * 100 / rtt) .. '%;">'.. cli2srv ..' ms (client)</div>')
 	 print('<div class="progress-bar progress-bar-info" style="width: ' .. (srv2cli * 100 / rtt) .. '%;">' .. srv2cli .. ' ms (server)</div></div>')
 	 print("</td></tr>\n")
 
 	 -- Inspired by https://gist.github.com/geraldcombs/d38ed62650b1730fb4e90e2462f16125
-	 print("<tr><th width=30%><A HREF=\"https://en.wikipedia.org/wiki/Velocity_factor\">"..i18n("flow_details.rtt_distance").."</A></th><td>")	 
+	 print("<tr><th width=30%><A HREF=\"https://en.wikipedia.org/wiki/Velocity_factor\">"..i18n("flow_details.rtt_distance").."</A></th><td>")
 	 local c_vacuum_km_s = 299792
 	 local c_vacuum_mi_s = 186000
 	 local fiber_vf      = .67
 	 local delta_t       = rtt/1000
 	 local dd_fiber_km   = delta_t * c_vacuum_km_s * fiber_vf
 	 local dd_fiber_mi   = delta_t * c_vacuum_mi_s * fiber_vf
-	  
+
 	 print(formatValue(toint(dd_fiber_km)).." Km</td><td>"..formatValue(toint(dd_fiber_mi)).." Miles")
 	 print("</td></tr>\n")
       end
@@ -881,7 +881,7 @@ else
      print(bitsToSize(flow["tcp.max_thpt.srv2cli"]))
      print("</td></tr>\n")
    end
-  
+
    if((flow["cli2srv.trend"] ~= nil) and false) then
      print("<tr><th width=30%>"..i18n("flow_details.throughput_trend").."</th><td nowrap>"..flow["cli.ip"].." <i class=\"fa fa-arrow-right\"></i> "..flow["srv.ip"]..": ")
      print(flow["cli2srv.trend"])
@@ -927,7 +927,7 @@ else
    end
 
    -- ######################################
-   
+
    local icmp = flow["icmp"]
 
    if(icmp ~= nil) then
@@ -949,7 +949,7 @@ else
    end
 
    -- ######################################
-   
+
    if interface.isPacketInterface() then
       print("<tr><th width=30%>"..i18n("flow_details.flow_status").."</th><td colspan=2>"..getFlowStatus(flow["flow.status"], flow2statusinfo(flow)).."</td></tr>\n")
    end
@@ -991,14 +991,14 @@ else
 	 displayContainer(flow.client_container,
 			  "<tr><th colspan=3 class=\"info\">"..i18n("flow_details.client_container_information").."</th></tr>\n")
       end
-      if(flow.server_process ~= nil) then	 
+      if(flow.server_process ~= nil) then
 	 displayProc(flow.server_process,
                      "<tr><th colspan=3 class=\"info\">"..i18n("flow_details.server_process_information").."</th></tr>\n")
       end
-      if(flow.server_container ~= nil) then	 
+      if(flow.server_container ~= nil) then
 	 displayContainer(flow.server_container,
 			  "<tr><th colspan=3 class=\"info\">"..i18n("flow_details.server_container_information").."</th></tr>\n")
-      end      
+      end
    end
 
    if(flow["protos.dns.last_query"] ~= nil) then
@@ -1084,7 +1084,7 @@ else
       end
       info = syminfo
 
-      
+
       -- get SIP rows
       if(ntop.isPro() and (flow["proto.ndpi"] == "SIP")) then
         local sip_table_rows = getSIPTableRows(info)
@@ -1157,6 +1157,29 @@ if(flow ~= nil) then
    end
    print("var bytes = " .. flow["bytes"] .. ";")
    print("var goodput_bytes = " .. flow["goodput_bytes"] .. ";")
+
+   -- add to source code calculated metrics --
+   print("var cli2srv_bytes_sd = " .. flow["cli2srv.bytes_sd"] .. ";\n")
+   print("var cli2srv_bytes_min = " .. flow["cli2srv.bytes_min"] .. ";\n")
+   print("var cli2srv_bytes_max = " .. flow["cli2srv.bytes_max"] .. ";\n")
+   print("var cli2srv_bytes_mean = " .. flow["cli2srv.bytes_mean"] .. ";\n")
+
+   print("var srv2cli_bytes_sd = " .. flow["srv2cli.bytes_sd"] .. ";\n")
+   print("var srv2cli_bytes_min = " .. flow["srv2cli.bytes_min"] .. ";\n")
+   print("var srv2cli_bytes_max = " .. flow["srv2cli.bytes_max"] .. ";\n")
+   print("var srv2cli_bytes_mean = " .. flow["srv2cli.bytes_mean"] .. ";\n")
+
+
+   print("var cli2srv_iat_sd = " .. flow["cli2srv.iat_sd"] .. ";\n")
+   print("var cli2srv_iat_mean = " .. flow["cli2srv.iat_mean"] .. ";\n")
+   print("var srv2cli_iat_sd = " .. flow["srv2cli.iat_sd"] .. ";\n")
+   print("var srv2cli_iat_mean = " .. flow["srv2cli.iat_mean"] .. ";\n")
+
+   print("var flow_iat_min = " .. flow["flow.iat_min"] .. ";\n")
+   print("var flow_iat_max = " .. flow["flow.iat_max"] .. ";\n")
+   print("var flow_iat_mean = " .. flow["flow.iat_mean"] .. ";\n")
+   print("var flow_iat_sd = " .. flow["flow.iat_sd"] .. ";\n")
+
 end
 
 print [[

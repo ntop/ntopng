@@ -46,7 +46,7 @@ Flow::Flow(NetworkInterface *_iface,
     cli_host = srv_host = NULL, good_low_flow_detected = false,
     srv2cli_last_goodput_bytes = cli2srv_last_goodput_bytes = 0, good_ssl_hs = true,
     flow_alerted = flow_dropped_counts_increased = false, vrfId = 0;
-  
+
   purge_acknowledged_mark = detection_completed = update_flow_port_stats = false;
   ndpiDetectedProtocol = ndpiUnknownProtocol;
   doNotExpireBefore = iface->getTimeLastPktRcvd() + DONT_NOT_EXPIRE_BEFORE_SEC;
@@ -694,7 +694,7 @@ void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
 void Flow::setJSONInfo(json_object *json) {
   if(json == NULL) return;
 
-  if(json_info != NULL) 
+  if(json_info != NULL)
     json_object_put(json_info);
 
   json_info = json_object_get(json);
@@ -1056,7 +1056,7 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
 
 #if 0
     char buf[128];
-    
+
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s][%u/%u] %s",
 				 dump_flow ? "DUMP" : "",
 				 stats.cli2srv_packets, stats.srv2cli_packets,
@@ -1089,10 +1089,10 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
 
     update_flow_port_stats = false;
   }
-  
+
   if(get_state() == hash_entry_state_idle) {
     if(iface->isViewed()) {
-      /* Must acknowledge so the overlying 'view' interface can actually set 
+      /* Must acknowledge so the overlying 'view' interface can actually set
          the flow state as ready to be purged once it has processed the flow for the last
          time */
       if(is_acknowledged_to_purge())
@@ -1185,10 +1185,10 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
 	if(trafficProfile)
 	  trafficProfile->incBytes(diff_sent_bytes+diff_rcvd_bytes);
 #endif
+
+	update_pools_stats(tv, diff_sent_packets, diff_sent_bytes, diff_rcvd_packets, diff_rcvd_bytes);
       }
 #endif
-      update_pools_stats(tv, diff_sent_packets, diff_sent_bytes, diff_rcvd_packets, diff_rcvd_bytes);
-
       if(iface && iface->hasSeenVlanTaggedPackets() && (vl = iface->getVlan(vlanId, false, false /* NOT an inline call */))) {
 	/* Note: source and destination hosts have, by definition, the same VLAN so the increase is done only one time. */
 	/* Note: vl will never be null as we're in a flow with that vlan. Hence, it is guaranteed that at least
@@ -1465,11 +1465,13 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
 
   /* Viewed interfaces don't dump flows, their flows are dumped by the overlying ViewInterface.
      ViewInterface dump their flows in another thread, not this one. */
-  if(!iface->isView() && !iface->isViewed()) 
+  if(!iface->isView() && !iface->isViewed())
     dumpFlow(tv, iface);
 }
 
 /* *************************************** */
+
+#ifdef NTOPNG_PRO
 
 void Flow::update_pools_stats(const struct timeval *tv,
 				u_int64_t diff_sent_packets, u_int64_t diff_sent_bytes,
@@ -1500,7 +1502,6 @@ void Flow::update_pools_stats(const struct timeval *tv,
 	hp->incPoolStats(tv->tv_sec, cli_host_pool_id, ndpiDetectedProtocol.master_protocol, category_id,
 		       diff_sent_packets, diff_sent_bytes, diff_rcvd_packets, diff_rcvd_bytes);
 
-#ifdef NTOPNG_PRO
       /* Per host quota-enforcement stats */
       if(hp->enforceQuotasPerPoolMember(cli_host_pool_id)) {
 	cli_host->incQuotaEnforcementStats(tv->tv_sec, ndpiDetectedProtocol.master_protocol,
@@ -1509,7 +1510,6 @@ void Flow::update_pools_stats(const struct timeval *tv,
 					   diff_sent_packets, diff_sent_bytes, diff_rcvd_packets, diff_rcvd_bytes);
 	cli_host->incQuotaEnforcementCategoryStats(tv->tv_sec, category_id, diff_sent_bytes, diff_rcvd_bytes);
       }
-#endif
     }
 
     /* Server host */
@@ -1532,7 +1532,6 @@ void Flow::update_pools_stats(const struct timeval *tv,
       }
 
       /* When quotas have to be enforced per pool member, stats must be increased even if cli and srv are on the same pool */
-#ifdef NTOPNG_PRO
       if(hp->enforceQuotasPerPoolMember(srv_host_pool_id)) {
 	srv_host->incQuotaEnforcementStats(tv->tv_sec, ndpiDetectedProtocol.master_protocol,
 			 diff_rcvd_packets, diff_rcvd_bytes, diff_sent_packets, diff_sent_bytes);
@@ -1540,10 +1539,11 @@ void Flow::update_pools_stats(const struct timeval *tv,
 			 diff_rcvd_packets, diff_rcvd_bytes, diff_sent_packets, diff_sent_bytes);
 	srv_host->incQuotaEnforcementCategoryStats(tv->tv_sec, category_id, diff_rcvd_bytes, diff_sent_bytes);
       }
-#endif
     }
   }
 }
+
+#endif
 
 /* *************************************** */
 
@@ -1794,6 +1794,30 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     lua_push_uint64_table_entry(vm, "srv2cli.goodput_bytes", stats.srv2cli_goodput_bytes);
     lua_push_uint64_table_entry(vm, "cli2srv.packets", stats.cli2srv_packets);
     lua_push_uint64_table_entry(vm, "srv2cli.packets", stats.srv2cli_packets);
+
+	/* Push fwd/bwd packets len stats */
+	lua_push_float_table_entry(vm, "cli2srv.bytes_sd", get_cli2srv_bytes_sd());
+	lua_push_uint64_table_entry(vm, "cli2srv.bytes_min", stats.cli2srv_bytes_min);
+	lua_push_uint64_table_entry(vm, "cli2srv.bytes_max", stats.cli2srv_bytes_max);
+	lua_push_float_table_entry(vm, "cli2srv.bytes_mean", get_cli2srv_bytes_avg());
+
+    lua_push_float_table_entry(vm, "srv2cli.bytes_sd", get_srv2cli_bytes_sd());
+	lua_push_uint64_table_entry(vm, "srv2cli.bytes_min", stats.srv2cli_bytes_min);
+	lua_push_uint64_table_entry(vm, "srv2cli.bytes_max", stats.srv2cli_bytes_max);
+	lua_push_float_table_entry(vm, "srv2cli.bytes_mean", get_srv2cli_bytes_avg());
+
+	/* Push fwd/bwd iat stats */
+	lua_push_float_table_entry(vm, "cli2srv.iat_sd", cli2srvStats.pktTime.sd.get());
+	lua_push_float_table_entry(vm, "cli2srv.iat_mean", get_cli2srv_InterArrivalTime_avg());
+    lua_push_float_table_entry(vm, "srv2cli.iat_sd", srv2cliStats.pktTime.sd.get());
+	lua_push_float_table_entry(vm, "srv2cli.iat_mean", get_srv2cli_InterArrivalTime_avg());
+
+	/* Push flow iat stats */
+	lua_push_float_table_entry(vm, "flow.iat_min", flowStats.pktTime.min_ms);
+	lua_push_float_table_entry(vm, "flow.iat_max", flowStats.pktTime.max_ms);
+	lua_push_float_table_entry(vm, "flow.iat_mean", get_flow_InterArrivalTime_avg());
+	lua_push_float_table_entry(vm, "flow.iat_sd", get_flow_InterArrivalTime_sd());
+
 
     lua_push_uint64_table_entry(vm, "cli2srv.fragments", ip_stats_s2d.pktFrag);
     lua_push_uint64_table_entry(vm, "srv2cli.fragments", ip_stats_d2s.pktFrag);
@@ -2481,10 +2505,10 @@ bool Flow::get_partial_traffic_stats(FlowTrafficStats **dst, FlowTrafficStats *f
 bool Flow::get_partial_traffic_stats_view(FlowTrafficStats *fts, bool *first_partial) {
   return get_partial_traffic_stats(&last_partial, fts, first_partial);
 }
-  
+
 /* *************************************** */
 
-bool Flow::update_partial_traffic_stats_db_dump() {  
+bool Flow::update_partial_traffic_stats_db_dump() {
   FlowTrafficStats delta;
   bool first_partial;
 
@@ -2510,6 +2534,8 @@ void Flow::updatePacketStats(InterarrivalStats *stats, const struct timeval *whe
     float deltaMS = (float)(Utils::timeval2usec((struct timeval*)when) - Utils::timeval2usec(&stats->lastTime))/(float)1000;
 
     if(deltaMS > 0) {
+		/* Update inter arrival time standard deviation */
+		stats->sd.new_val(deltaMS);
       if(stats->max_ms == 0)
 	stats->min_ms = stats->max_ms = deltaMS;
       else {
@@ -2522,6 +2548,21 @@ void Flow::updatePacketStats(InterarrivalStats *stats, const struct timeval *whe
   }
 
   memcpy(&stats->lastTime, when, sizeof(struct timeval));
+
+	/* make the same updates for the flowStats */
+  float deltaMSabs = (float)(Utils::timeval2usec((struct timeval*)when) - Utils::timeval2usec(&flowStats.pktTime.lastTime))/(float)1000;
+
+  if(deltaMSabs > 0) {
+	if(flowStats.pktTime.max_ms == 0)
+		 flowStats.pktTime.min_ms = flowStats.pktTime.max_ms = deltaMSabs;
+	else {
+		if(deltaMSabs > flowStats.pktTime.max_ms) flowStats.pktTime.max_ms = deltaMSabs;
+		if(deltaMSabs < flowStats.pktTime.min_ms) flowStats.pktTime.min_ms = deltaMSabs;
+	}
+
+	flowStats.pktTime.total_delta_ms += deltaMSabs;
+  }
+  memcpy(&flowStats.pktTime.lastTime, when, sizeof(struct timeval));
 }
 
 /* *************************************** */
@@ -2584,12 +2625,35 @@ void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
 
   if(cli2srv_direction) {
     stats.cli2srv_packets++, stats.cli2srv_bytes += pkt_len, stats.cli2srv_goodput_bytes += payload_len, ip_stats_s2d.pktFrag += is_fragment;
-    if(cli_host) cli_host->incSentStats(pkt_len);
+	/* Update cli2srv direction standard deviation */
+	stats.cli2srv_bytes_sd.new_val(pkt_len);
+
+	if(cli_host) cli_host->incSentStats(pkt_len);
     if(srv_host) srv_host->incRecvStats(pkt_len);
+
+	/* Update cli2srv direction min and max bytes */
+	if(stats.cli2srv_bytes_min == 0 && stats.cli2srv_bytes_max == 0)
+		stats.cli2srv_bytes_min = stats.cli2srv_bytes_max = pkt_len;
+	else if(pkt_len < stats.cli2srv_bytes_min)
+		stats.cli2srv_bytes_min = pkt_len;
+	else if(pkt_len > stats.cli2srv_bytes_max)
+		stats.cli2srv_bytes_max = pkt_len;
+
   } else {
     stats.srv2cli_packets++, stats.srv2cli_bytes += pkt_len, stats.srv2cli_goodput_bytes += payload_len, ip_stats_d2s.pktFrag += is_fragment;
+	/* Update srv2cli direction standard deviation */
+	stats.srv2cli_bytes_sd.new_val(pkt_len);
+
     if(cli_host) cli_host->incRecvStats(pkt_len);
     if(srv_host) srv_host->incSentStats(pkt_len);
+
+	/* Update srv2cli direction min and max bytes */
+	if(stats.srv2cli_bytes_min == 0 && stats.srv2cli_bytes_max == 0)
+		stats.srv2cli_bytes_min = stats.srv2cli_bytes_max = pkt_len;
+	else if(pkt_len < stats.srv2cli_bytes_min)
+		stats.srv2cli_bytes_min = pkt_len;
+	else if(pkt_len > stats.srv2cli_bytes_max)
+		stats.srv2cli_bytes_max = pkt_len;
   }
 
   if((applLatencyMsec == 0) && (payload_len > 0)) {
@@ -2629,11 +2693,11 @@ void Flow::addFlowStats(bool cli2srv_direction,
   if(cli2srv_direction)
     stats.cli2srv_packets += in_pkts, stats.cli2srv_bytes += in_bytes, stats.cli2srv_goodput_bytes += in_goodput_bytes,
       stats.srv2cli_packets += out_pkts, stats.srv2cli_bytes += out_bytes, stats.srv2cli_goodput_bytes += out_goodput_bytes,
-      ip_stats_s2d.pktFrag += in_fragments, ip_stats_d2s.pktFrag += out_fragments;
+      ip_stats_s2d.pktFrag += in_fragments, ip_stats_d2s.pktFrag += out_fragments, stats.cli2srv_bytes_sd.new_val(in_bytes), stats.srv2cli_bytes_sd.new_val(out_bytes);
   else
     stats.cli2srv_packets += out_pkts, stats.cli2srv_bytes += out_bytes, stats.cli2srv_goodput_bytes += out_goodput_bytes,
       stats.srv2cli_packets += in_pkts, stats.srv2cli_bytes += in_bytes, stats.srv2cli_goodput_bytes += in_goodput_bytes,
-      ip_stats_s2d.pktFrag += out_fragments, ip_stats_d2s.pktFrag += in_fragments;
+      ip_stats_s2d.pktFrag += out_fragments, ip_stats_d2s.pktFrag += in_fragments, stats.cli2srv_bytes_sd.new_val(out_bytes), stats.srv2cli_bytes_sd.new_val(in_bytes);
 
   if(bytes_thpt == 0 && last_seen >= first_seen + 1) {
     /* Do a fist estimation while waiting for the periodic activities */
