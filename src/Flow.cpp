@@ -4004,7 +4004,7 @@ void Flow::setParsedeBPFInfo(const ParsedeBPF * const ebpf, bool src2dst_directi
 
 void Flow::updateJA3() {
   if(cli_host && protos.ssl.ja3.client_hash)
-    cli_host->getSSLFingerprint()->update(protos.ssl.ja3.client_hash,
+    cli_host->getJA3Fingerprint()->update(protos.ssl.ja3.client_hash,
 					  cli_ebpf ? cli_ebpf->process_info.process_name : NULL);
 }
 

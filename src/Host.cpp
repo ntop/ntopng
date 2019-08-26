@@ -495,7 +495,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
 
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[pkts_thpt: %.2f] [pkts_thpt_trend: %d]", pkts_thpt,pkts_thpt_trend);
 
-  fingerprints.ssl.lua("ja3_fingerprint", vm);
+  fingerprints.ja3.lua("ja3_fingerprint", vm);
   fingerprints.hassh.lua("hassh_fingerprint", vm);
 
   if(verbose) {
