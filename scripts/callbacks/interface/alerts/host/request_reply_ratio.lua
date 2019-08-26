@@ -38,7 +38,7 @@ end
 local check_module = {
   key = "request_reply_ratio",
   check_function = request_reply_ratio,
-  default_value = "request_reply_ratio;lt;15", -- 15%
+  --~ default_value = "request_reply_ratio;lt;15", -- 15%
   local_only = true,
 
   granularity = {
