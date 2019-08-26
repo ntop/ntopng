@@ -241,9 +241,6 @@ NetworkInterface::NetworkInterface(const char *name,
 
   is_loopback = (strncmp(ifname, "lo", 2) == 0) ? true : false;
 
-  snprintf(buf, sizeof(buf), "iface_%d", id);
-  setEntityValue(buf);
-
   reloadHideFromTop(false);
   updateTrafficMirrored();
   updateFlowDumpDisabled();
@@ -6175,6 +6172,7 @@ bool NetworkInterface::isInterfaceNetwork(const IpAddress * const ipa, int netwo
 
 void NetworkInterface::allocateStructures() {
   u_int8_t numNetworks = ntop->getNumLocalNetworks();
+  char buf[16];
 
   try {
     if(get_id() >= 0) {
@@ -6211,6 +6209,9 @@ void NetworkInterface::allocateStructures() {
       oom_warning_sent = true;
     }
   }
+
+  snprintf(buf, sizeof(buf), "iface_%d", id);
+  setEntityValue(buf);
 
   refreshHasAlerts();
 }
