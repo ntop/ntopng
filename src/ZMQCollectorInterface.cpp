@@ -241,7 +241,8 @@ void ZMQCollectorInterface::collect_flows() {
 
 	    if(diff > 1) {
 	      recvStats.zmq_msg_drops += diff - 1;
-	      ntop->getTrace()->traceEvent(TRACE_INFO, "msg_id=%u, drops=%u", msg_id, recvStats.zmq_msg_drops);
+	      ntop->getTrace()->traceEvent(TRACE_INFO, "msg_id=%u (last=%u), drops=%u (+%u)", 
+                msg_id, last_msg_id, recvStats.zmq_msg_drops, diff-1);
 	    }
 	  }
 
