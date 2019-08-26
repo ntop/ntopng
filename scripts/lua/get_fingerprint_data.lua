@@ -9,6 +9,7 @@ require "lua_utils"
 require "graph_utils"
 require "flow_utils"
 require "historical_utils"
+local companion_interface_utils = require "companion_interface_utils"
 
 local available_fingerprints = {
    ja3 = {
@@ -23,7 +24,7 @@ local available_fingerprints = {
 
 sendHTTPContentTypeHeader('text/html')
 
-interface.select(ifname)
+local ifid = _GET["ifid"]
 local host_info = url2hostinfo(_GET)
 local fingerprint_type = _GET["fingerprint_type"]
 
@@ -51,7 +52,9 @@ if stats and available_fingerprints[fingerprint_type] then
       else
 	 num = num + 1
 	 print('<tr><td>'..available_fingerprints[fingerprint_type]["href"](key)..'</td>')
-	 print('<td align=left nowrap>'..value.app_name..'</td>')
+	 if not isEmptyString(companion_interface_utils.getCurrentCompanion(ifid)) then
+	    print('<td align=left nowrap>'..value.app_name..'</td>')
+	 end
 	 print('<td align=right>'..formatValue(value.num_uses)..'</td>')
 	 print('</tr>\n')
       end

@@ -1019,7 +1019,10 @@ else
    end
 
    if not isEmptyString(flow["protos.ssh.hassh.client_hash"]) or not isEmptyString(flow["protos.ssh.hassh.server_hash"]) then
-      print("<tr><th><A HREF='https://engineering.salesforce.com/open-sourcing-hassh-abed3ae5044c'>HASSH</A></th><td><b>"..i18n("client")..":</b> "..(flow["protos.ssh.hassh.client_hash"] or '').."</td><td><b>"..i18n("server")..":</b> "..(flow["protos.ssh.hassh.server_hash"] or '').."</td></tr>\n")
+      print("<tr><th><A HREF='https://engineering.salesforce.com/open-sourcing-hassh-abed3ae5044c'>HASSH</A></th><td>")
+      print("<b>"..i18n("client")..":</b> <a href='"..ntop.getHttpPrefix().."/lua/host_details.lua?page=ssh&"..hostinfo2url(flow, "cli").."'>"..(flow["protos.ssh.hassh.client_hash"] or '').."</a></td>")
+      print("<td><b>"..i18n("server")..":</b> <a href='"..ntop.getHttpPrefix().."/lua/host_details.lua?page=ssh&"..hostinfo2url(flow, "srv").."'>"..(flow["protos.ssh.hassh.server_hash"] or '').."</a></td>")
+      print("</td>")
    end
 
    if(not isEmptyString(flow["protos.ssh.client_signature"])) then

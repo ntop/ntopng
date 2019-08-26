@@ -22,8 +22,9 @@ local json = require ("dkjson")
 local host_pools_utils = require "host_pools_utils"
 local discover = require "discover_utils"
 local ts_utils = require "ts_utils"
-local page_utils = require("page_utils")
+local page_utils = require "page_utils"
 local template = require "template_utils"
+local companion_interface_utils = require "companion_interface_utils"
 
 local info = ntop.getInfo()
 
@@ -1368,7 +1369,12 @@ print [[
 elseif(page == "ssl") then
   print [[
      <table id="myTable" class="table table-bordered table-striped tablesorter">
-     <thead><tr><th>]] print('<A HREF="https://github.com/salesforce/ja3" target="_blank">'..i18n("ja3_fingerprint")..'</A>') print[[</th><th>]] print(i18n("app_name")) print[[</th><th>]] print(i18n("num_uses")) print[[</th></tr></thead>
+     <thead><tr><th>]] print('<A HREF="https://github.com/salesforce/ja3" target="_blank">'..i18n("ja3_fingerprint")..'</A>') print[[</th>]]
+  if not isEmptyString(companion_interface_utils.getCurrentCompanion(ifId)) then
+     print[[<th>]] print(i18n("app_name")) print[[</th>]]
+  end
+  print[[<th>]] print(i18n("num_uses")) print[[</th>]]
+  print[[</tr></thead>
      <tbody id="host_details_ja3_tbody">
      </tbody>
      </table>
@@ -1402,7 +1408,11 @@ setInterval(update_ja3_table, 5000);
 elseif(page == "ssh") then
   print [[
      <table id="myTable" class="table table-bordered table-striped tablesorter">
-     <thead><tr><th>]] print('<A HREF="https://engineering.salesforce.com/open-sourcing-hassh-abed3ae5044c" target="_blank">'..i18n("hassh_fingerprint")..'</A>') print[[</th><th>]] print(i18n("app_name")) print[[</th><th>]] print(i18n("num_uses")) print[[</th></tr></thead>
+     <thead><tr><th>]] print('<A HREF="https://engineering.salesforce.com/open-sourcing-hassh-abed3ae5044c" target="_blank">'..i18n("hassh_fingerprint")..'</A>') print[[</th>]]
+  if not isEmptyString(companion_interface_utils.getCurrentCompanion(ifId)) then
+     print[[<th>]] print(i18n("app_name")) print[[</th>]]
+  end
+  print[[<th>]] print(i18n("num_uses")) print[[</th></tr></thead>
      <tbody id="host_details_hassh_tbody">
      </tbody>
      </table>
