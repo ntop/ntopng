@@ -537,12 +537,16 @@ void Flow::processDetectedProtocol() {
       protos.ssh.server_signature = strdup(ndpiFlow->protos.ssh.server_signature);
 
     if(protos.ssh.hassh.client_hash == NULL
-       && ndpiFlow->protos.ssh.hassh_client[0] != '\0')
+       && ndpiFlow->protos.ssh.hassh_client[0] != '\0') {
       protos.ssh.hassh.client_hash = strdup(ndpiFlow->protos.ssh.hassh_client);
+      updateHASSH(true /* As client */);
+    }
 
     if(protos.ssh.hassh.server_hash == NULL
-       && ndpiFlow->protos.ssh.hassh_server[0] != '\0')
+       && ndpiFlow->protos.ssh.hassh_server[0] != '\0') {
       protos.ssh.hassh.server_hash = strdup(ndpiFlow->protos.ssh.hassh_server);
+      updateHASSH(false /* As server */);
+    }
 
     break;
 
@@ -4002,6 +4006,18 @@ void Flow::updateJA3() {
   if(cli_host && protos.ssl.ja3.client_hash)
     cli_host->getSSLFingerprint()->update(protos.ssl.ja3.client_hash,
 					  cli_ebpf ? cli_ebpf->process_info.process_name : NULL);
+}
+
+/* ***************************************************** */
+
+void Flow::updateHASSH(bool as_client) {
+  Host *h = as_client ? get_cli_host() : get_srv_host();
+  const char *hassh = as_client ? protos.ssh.hassh.client_hash : protos.ssh.hassh.server_hash;
+  ParsedeBPF *pebpf = as_client ? cli_ebpf : srv_ebpf;
+  Fingerprint *fp;
+
+  if(h && hassh && hassh[0] != '\0' && (fp = h->getHASSHFingerprint()))
+    fp->update(hassh, pebpf ? pebpf->process_info.process_name : NULL);
 }
 
 /* ***************************************************** */

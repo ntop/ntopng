@@ -39,7 +39,7 @@ class Fingerprint {
  public:
   Fingerprint() { ; }
 
-  void update(char *fp, char *app_name);
+  void update(const char *fp, const char *app_name);
   void lua(const char *key, lua_State* vm);
 };
 

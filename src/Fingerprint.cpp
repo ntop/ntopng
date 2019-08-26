@@ -23,7 +23,7 @@
 
 /* *************************************** */
 
-void Fingerprint::update(char *_fprint, char *app_name) {
+void Fingerprint::update(const char *_fprint, const char *app_name) {
   std::string fprint(_fprint);
 
   m.lock(__FILE__, __LINE__);

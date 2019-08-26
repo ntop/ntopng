@@ -306,12 +306,22 @@ else
    end
 end
 
-if(host["ssl_fingerprint"] ~= nil) then
+if(host["ja3_fingerprint"] ~= nil) then
    if(page == "ssl") then
    print("<li class=\"active\"><a href=\"#\">"..i18n("ssl").."</a></li>\n")
    else
-      if(table.len(host["ssl_fingerprint"]) > 0) then
+      if(table.len(host["ja3_fingerprint"]) > 0) then
         print("<li><a href=\""..url.."&page=ssl\">"..i18n("ssl").."</a></li>")
+      end
+   end
+end
+
+if(host["hassh_fingerprint"] ~= nil) then
+   if(page == "ssh") then
+   print("<li class=\"active\"><a href=\"#\">"..i18n("ssh").."</a></li>\n")
+   else
+      if(table.len(host["hassh_fingerprint"]) > 0) then
+        print("<li><a href=\""..url.."&page=ssh\">"..i18n("ssh").."</a></li>")
       end
    end
 end
@@ -1358,7 +1368,7 @@ print [[
 elseif(page == "ssl") then
   print [[
      <table id="myTable" class="table table-bordered table-striped tablesorter">
-     <thead><tr><th>]] print('<A HREF="https://github.com/salesforce/ja3">'..i18n("ja3_fingerprint")..'</A>') print[[</th><th>]] print(i18n("app_name")) print[[</th><th>]] print(i18n("num_uses")) print[[</th></tr></thead>
+     <thead><tr><th>]] print('<A HREF="https://github.com/salesforce/ja3" target="_blank">'..i18n("ja3_fingerprint")..'</A>') print[[</th><th>]] print(i18n("app_name")) print[[</th><th>]] print(i18n("num_uses")) print[[</th></tr></thead>
      <tbody id="host_details_ja3_tbody">
      </tbody>
      </table>
@@ -1369,8 +1379,8 @@ function update_ja3_table() {
     type: 'GET',
     url: ']]
   print(ntop.getHttpPrefix())
-  print [[/lua/get_ja3_data.lua',
-    data: { ifid: "]] print(ifId.."") print ("\" , ") print(hostinfo2json(host_info))
+  print [[/lua/get_fingerprint_data.lua',
+    data: { fingerprint_type: 'ja3', ifid: "]] print(ifId.."") print ("\" , ") print(hostinfo2json(host_info))
 
     print [[ },
     success: function(content) {
@@ -1387,7 +1397,41 @@ setInterval(update_ja3_table, 5000);
 ]]
 
 
-   print("<b>"..i18n("notes").."</b><ul><li>"..i18n("ja3_fingerprint_note").."</li></ul>")
+   print("<b>"..i18n("notes").."</b><ul><li>"..i18n("fingerprint_note").."</li></ul>")
+
+elseif(page == "ssh") then
+  print [[
+     <table id="myTable" class="table table-bordered table-striped tablesorter">
+     <thead><tr><th>]] print('<A HREF="https://engineering.salesforce.com/open-sourcing-hassh-abed3ae5044c" target="_blank">'..i18n("hassh_fingerprint")..'</A>') print[[</th><th>]] print(i18n("app_name")) print[[</th><th>]] print(i18n("num_uses")) print[[</th></tr></thead>
+     <tbody id="host_details_hassh_tbody">
+     </tbody>
+     </table>
+
+<script>
+function update_hassh_table() {
+  $.ajax({
+    type: 'GET',
+    url: ']]
+  print(ntop.getHttpPrefix())
+  print [[/lua/get_fingerprint_data.lua',
+    data: { fingerprint_type: 'hassh', ifid: "]] print(ifId.."") print ("\" , ") print(hostinfo2json(host_info))
+
+    print [[ },
+    success: function(content) {
+      $('#host_details_hassh_tbody').html(content);
+      $('#myTable').trigger("update");
+    }
+  });
+}
+
+update_hassh_table();
+setInterval(update_hassh_table, 5000);
+
+</script>
+]]
+
+
+   print("<b>"..i18n("notes").."</b><ul><li>"..i18n("fingerprint_note").."</li></ul>")
 
 elseif(page == "http") then
       if(http ~= nil) then

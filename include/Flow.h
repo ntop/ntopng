@@ -231,6 +231,7 @@ class Flow : public GenericHashEntry {
   bool triggerAlerts() const;
   void dumpFlowAlert();
   void updateJA3();
+  void updateHASSH(bool as_client);
   const char* cipher_weakness2str(ndpi_cipher_weakness w);
   bool get_partial_traffic_stats(FlowTrafficStats **dst, FlowTrafficStats *delta, bool *first_partial) const;  
 

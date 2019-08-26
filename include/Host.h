@@ -31,6 +31,7 @@ class Host : public GenericHashEntry, public AlertableEntity {
   char *asname;
   struct {
     Fingerprint ssl;
+    Fingerprint hassh;
   } fingerprints;
   bool stats_reset_requested, data_delete_requested;
   u_int16_t vlan_id, host_pool_id;
@@ -301,7 +302,8 @@ class Host : public GenericHashEntry, public AlertableEntity {
   void setResolvedName(const char * const resolved_name);
   void dissectDropbox(const char *payload, u_int16_t payload_len);
   void dumpDropbox(lua_State *vm);
-  inline Fingerprint* getSSLFingerprint() { return(&fingerprints.ssl); }
+  inline Fingerprint* getSSLFingerprint()   { return(&fingerprints.ssl);   }
+  inline Fingerprint* getHASSHFingerprint() { return(&fingerprints.hassh); }
   virtual void setFlowPort(bool as_server, Host *peer, u_int8_t protocol,
 			   u_int16_t port, u_int16_t l7_proto,
 			   const char *info, time_t when) { ; }

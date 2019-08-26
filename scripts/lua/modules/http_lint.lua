@@ -328,6 +328,12 @@ local function validateSendersReceivers(mode)
    return validateChoice(modes, mode)
 end
 
+local function validateFingerprintType(ft)
+   local fingerprint_types = {"ja3", "hassh"}
+
+   return validateChoice(fingerprint_types, ft)
+end
+
 local function validateClientOrServer(mode)
    local modes = {"client", "server"}
 
@@ -1136,6 +1142,7 @@ local known_parameters = {
    ["device_type"]             = validateNumber,
    ["ewma_alpha_percent"]      = validateNumber,
    ["senders_receivers"]       = validateSendersReceivers,      -- Used in top scripts
+   ["fingerprint_type"]        = validateFingerprintType,
 
 -- PREFERENCES - see prefs.lua for details
    -- Toggle Buttons
