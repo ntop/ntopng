@@ -7,6 +7,7 @@ local alert_consts = require("alert_consts")
 
 local check_module = {
   key = "syn_flood_victim",
+  threshold_type_builder = alerts_api.synFloodType,
   check_function = alerts_api.threshold_check_function,
 
   granularity = {
@@ -21,13 +22,13 @@ local check_module = {
     input_builder = alerts_api.threshold_cross_input_builder,
     field_max = 65535,
     field_min = 1,
+    field_operator = "gt";
   }
 }
 
 -- #################################################################
 
 function check_module.get_threshold_value(granularity, info)
-tprint(info)
   return(info["hits.syn_flood_victim"] or 0)
 end
 

@@ -488,6 +488,36 @@ end
 
 -- ##############################################
 
+function alerts_api.synFloodType(granularity, metric, value, operator, threshold)
+  return({
+    alert_type = alert_consts.alert_types.tcp_syn_flood,
+    alert_subtype = metric,
+    alert_granularity = alert_consts.alerts_granularities[granularity],
+    alert_severity = alert_consts.alert_severities.error,
+    alert_type_params = {
+      value = value,
+      threshold = threshold,
+    }
+  })
+end
+
+-- ##############################################
+
+function alerts_api.flowFloodType(granularity, metric, value, operator, threshold)
+  return({
+    alert_type = alert_consts.alert_types.flows_flood,
+    alert_subtype = metric,
+    alert_granularity = alert_consts.alerts_granularities[granularity],
+    alert_severity = alert_consts.alert_severities.error,
+    alert_type_params = {
+      value = value,
+      threshold = threshold,
+    }
+  })
+end
+
+-- ##############################################
+
 function alerts_api.pingIssuesType(value, threshold, ip)
   return({
     alert_type = alert_consts.alert_types.ping_issues,
@@ -849,15 +879,18 @@ end
 -- against a configured threshold and generates a threshold_cross alert
 -- if the value is above the threshold.
 -- A check_module must implement:
---  get_threshold_value(granularity, entity_info)
---  A function, which returns the current value to be compared agains the threshold
+--   get_threshold_value(granularity, entity_info)
+--   A function, which returns the current value to be compared agains the threshold
+-- The check_module may implement an additional threshold_type_builder function which
+-- which returns a type_info. Check alerts_api.thresholdCrossType for the threshold_type_builder signature.
 function alerts_api.threshold_check_function(params)
   local alarmed = false
   local value = params.check_module.get_threshold_value(params.granularity, params.entity_info)
   local threshold_config = params.alert_config
 
   local threshold_edge = tonumber(threshold_config.edge)
-  local threshold_type = alerts_api.thresholdCrossType(params.granularity, params.check_module.key, value, threshold_config.operator, threshold_edge)
+  local threshold_builder = ternary(params.check_module.threshold_type_builder, params.check_module.threshold_type_builder, alerts_api.thresholdCrossType)
+  local threshold_type = threshold_builder(params.granularity, params.check_module.key, value, threshold_config.operator, threshold_edge)
 
   if(threshold_config.operator == "lt") then
     if(value < threshold_edge) then alarmed = true end
@@ -876,11 +909,11 @@ end
 
 -- An alert check function which checks for anomalies.
 -- The check_module key is the type of the anomaly to check.
--- The check_module must implement a anomaly_type(anomaly_key) function
+-- The check_module must implement a anomaly_type_builder(anomaly_key) function
 -- which returns a type_info for the given anomaly.
 function alerts_api.anomaly_check_function(params)
   local anomal_key = params.check_module.key
-  local type_info = params.check_module.anomaly_type(anomal_key)
+  local type_info = params.check_module.anomaly_type_builder(anomal_key)
 
   if params.entity_info.anomalies[anomal_key] then
     return alerts_api.trigger(params.alert_entity, type_info)
@@ -947,14 +980,14 @@ end
 
 function alerts_api.threshold_cross_input_builder(gui_conf, input_id, value)
   value = value or {}
-  local gt_selected = ternary(value.operator == "gt", ' selected="selected"', '')
-  local lt_selected = ternary(value.operator == "lt", ' selected="selected"', '')
+  local gt_selected = ternary((value.operator or gui_conf.field_operator) == "gt", ' selected="selected"', '')
+  local lt_selected = ternary((value.operator or gui_conf.field_operator) == "lt", ' selected="selected"', '')
   local input_op = "op_" .. input_id
   local input_val = "value_" .. input_id
 
   return(string.format([[<select name="%s">
-  <option value="gt"%s>&gt;</option>
-  <option value="lt"%s>&lt;</option>
+  <option value="gt"%s ]] .. (ternary(gui_conf.field_operator == "lt", "hidden", "")) .. [[>&gt;</option>
+  <option value="lt"%s ]] .. (ternary(gui_conf.field_operator == "gt", "hidden", "")) .. [[>&lt;</option>
 </select> <input type="number" class="text-right form-control" min="%s" max="%s" step="%s" style="display:inline; width:12em;" name="%s" value="%s"/> <span>%s</span>]],
     input_op, gt_selected, lt_selected,
     gui_conf.field_min or "0", gui_conf.field_max or "", gui_conf.field_step or "1",

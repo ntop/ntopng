@@ -29,47 +29,7 @@ alert_consts.alert_severities = {
   }
 }
 
--- ##############################################
-
 alert_consts.CONST_DEFAULT_PACKETS_DROP_PERCENTAGE_ALERT = 5
-
--- ##############################################
-
-local function formatSynFlood(ifid, engine, entity_type, entity_value, entity_info, alert_key, alert_info)
-   if entity_info.anomalies ~= nil then
-      if (alert_key == "syn_flood_attacker") and (entity_info.anomalies.syn_flood_attacker ~= nil) then
-	 local anomaly_info = entity_info.anomalies.syn_flood_attacker
-
-	 return firstToUpper(formatAlertEntity(ifid, entity_type, entity_value, entity_info)).." is a SYN Flooder ("..
-	    (anomaly_info.last_trespassed_hits).." SYN sent in "..secondsToTime(anomaly_info.over_threshold_duration_sec)..")"
-      elseif (alert_key == "syn_flood_victim") and (entity_info.anomalies.syn_flood_victim ~= nil) then
-	 local anomaly_info = entity_info.anomalies.syn_flood_victim
-
-	 return firstToUpper(formatAlertEntity(ifid, entity_type, entity_value, entity_info)).." is under SYN flood attack ("..
-	    (anomaly_info.last_trespassed_hits).." SYN received in "..secondsToTime(anomaly_info.over_threshold_duration_sec)..")"
-      end
-   end
-
-   return ""
-end
-
--- ##############################################
-
-local function formatFlowsFlood(ifid, engine, entity_type, entity_value, entity_info, alert_key, alert_info)
-   if entity_info.anomalies ~= nil then
-      if (alert_key == "flows_flood_attacker") and (entity_info.anomalies.flows_flood_attacker) then
-	 local anomaly_info = entity_info.anomalies.flows_flood_attacker
-	 return firstToUpper(formatAlertEntity(ifid, entity_type, entity_value, entity_info)).." is a Flooder ("..
-	    (anomaly_info.last_trespassed_hits).." flows sent in "..secondsToTime(anomaly_info.over_threshold_duration_sec)..")"
-      elseif (alert_key == "flows_flood_victim") and (entity_info.anomalies.flows_flood_victim) then
-	 local anomaly_info = entity_info.anomalies.flows_flood_victim
-	 return firstToUpper(formatAlertEntity(ifid, entity_type, entity_value, entity_info)).." is under flood attack ("..
-	    (anomaly_info.last_trespassed_hits).." flows received in "..secondsToTime(anomaly_info.over_threshold_duration_sec)..")"
-      end
-   end
-
-   return ""
-end
 
 -- ##############################################
 
@@ -134,6 +94,46 @@ local function formatThresholdCross(ifid, alert, threshold_info)
     op = "&"..threshold_info.operator..";",
     threshold = threshold_info.threshold,
   })
+end
+
+-- ##############################################
+
+local function formatSynFlood(ifid, alert, threshold_info)
+  local entity = formatAlertEntity(ifid, alertEntityRaw(alert["alert_entity"]), alert["alert_entity_val"])
+
+  if(alert.alert_subtype == "syn_flood_attacker") then
+    return i18n("alert_messages.syn_flood_attacker", {
+      entity = firstToUpper(entity),
+      value = string.format("%u", math.ceil(threshold_info.value)),
+      threshold = threshold_info.threshold,
+    })
+  else
+    return i18n("alert_messages.syn_flood_victim", {
+      entity = firstToUpper(entity),
+      value = string.format("%u", math.ceil(threshold_info.value)),
+      threshold = threshold_info.threshold,
+    })
+  end
+end
+
+-- ##############################################
+
+local function formatFlowsFlood(ifid, alert, threshold_info)
+  local entity = formatAlertEntity(ifid, alertEntityRaw(alert["alert_entity"]), alert["alert_entity_val"])
+
+  if(alert.alert_subtype == "flow_flood_attacker") then
+    return i18n("alert_messages.flow_flood_attacker", {
+      entity = firstToUpper(entity),
+      value = string.format("%u", math.ceil(threshold_info.value)),
+      threshold = threshold_info.threshold,
+    })
+  else
+    return i18n("alert_messages.flow_flood_victim", {
+      entity = firstToUpper(entity),
+      value = string.format("%u", math.ceil(threshold_info.value)),
+      threshold = threshold_info.threshold,
+    })
+  end
 end
 
 -- ##############################################

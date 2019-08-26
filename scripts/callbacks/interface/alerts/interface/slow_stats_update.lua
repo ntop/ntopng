@@ -10,7 +10,7 @@ local check_module = {
   str_granularity = "min",
   always_enabled = true,
   check_function = alerts_api.anomaly_check_function,
-  anomaly_type = alerts_api.slowStatsUpdateType,
+  anomaly_type_builder = alerts_api.slowStatsUpdateType,
 }
 
 -- #################################################################

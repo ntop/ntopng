@@ -7,6 +7,7 @@ local alert_consts = require("alert_consts")
 
 local check_module = {
   key = "flow_flood_victim",
+  threshold_type_builder = alerts_api.flowFloodType,
   check_function = alerts_api.threshold_check_function,
 
   granularity = {
@@ -21,6 +22,7 @@ local check_module = {
     input_builder = alerts_api.threshold_cross_input_builder,
     field_max = 65535,
     field_min = 1,
+    field_operator = "gt";
   }
 }
 
