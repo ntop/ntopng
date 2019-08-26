@@ -195,7 +195,6 @@ using namespace std;
 #include "FlowStats.h"
 
 #include "std_dev.h"
-#include "mean.h"
 
 #ifdef NTOPNG_PRO
 #include "CustomAppMaps.h"
