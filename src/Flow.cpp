@@ -3998,6 +3998,8 @@ void Flow::setParsedeBPFInfo(const ParsedeBPF * const ebpf, bool src2dst_directi
   }
 
   updateJA3();
+  updateHASSH(true /* AS client */);
+  updateHASSH(false /* AS server */);
 }
 
 /* ***************************************************** */
