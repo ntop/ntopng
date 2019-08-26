@@ -110,6 +110,10 @@ class Flow : public GenericHashEntry {
 
     struct {
       char *client_signature, *server_signature;
+      struct {
+	/* https://engineering.salesforce.com/open-sourcing-hassh-abed3ae5044c */
+	char *client_hash, *server_hash;
+      } hassh;
     } ssh;
 
     struct {

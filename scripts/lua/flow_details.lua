@@ -1018,12 +1018,16 @@ else
       print("</td></tr>\n")
    end
 
-   if(not isEmptyString(flow["bittorrent_hash"])) then
-      print("<tr><th>"..i18n("flow_details.bittorrent_hash").."</th><td colspan=4><A HREF=\"https://www.google.it/search?q="..flow["bittorrent_hash"].."\">".. flow["bittorrent_hash"].."</A></td></tr>\n")
+   if not isEmptyString(flow["protos.ssh.hassh.client_hash"]) or not isEmptyString(flow["protos.ssh.hassh.server_hash"]) then
+      print("<tr><th><A HREF='https://engineering.salesforce.com/open-sourcing-hassh-abed3ae5044c'>HASSH</A></th><td><b>"..i18n("client")..":</b> "..(flow["protos.ssh.hassh.client_hash"] or '').."</td><td><b>"..i18n("server")..":</b> "..(flow["protos.ssh.hassh.server_hash"] or '').."</td></tr>\n")
    end
 
    if(not isEmptyString(flow["protos.ssh.client_signature"])) then
       print("<tr><th>"..i18n("flow_details.ssh_signature").."</th><td><b>"..i18n("client")..":</b> "..(flow["protos.ssh.client_signature"] or '').."</td><td><b>"..i18n("server")..":</b> "..(flow["protos.ssh.server_signature"] or '').."</td></tr>\n")
+   end
+
+   if(not isEmptyString(flow["bittorrent_hash"])) then
+      print("<tr><th>"..i18n("flow_details.bittorrent_hash").."</th><td colspan=4><A HREF=\"https://www.google.it/search?q="..flow["bittorrent_hash"].."\">".. flow["bittorrent_hash"].."</A></td></tr>\n")
    end
 
    if(flow["protos.http.last_url"] ~= nil) then

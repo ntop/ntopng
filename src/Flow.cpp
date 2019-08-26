@@ -236,6 +236,8 @@ Flow::~Flow() {
   } else if(isSSH()) {
     if(protos.ssh.client_signature)  free(protos.ssh.client_signature);
     if(protos.ssh.server_signature)  free(protos.ssh.server_signature);
+    if(protos.ssh.hassh.client_hash) free(protos.ssh.hassh.client_hash);
+    if(protos.ssh.hassh.server_hash) free(protos.ssh.hassh.server_hash);
   } else if(isSSL()) {
     if(protos.ssl.certificate)         free(protos.ssl.certificate);
     if(protos.ssl.server_certificate)  free(protos.ssl.server_certificate);
@@ -525,10 +527,19 @@ void Flow::processDetectedProtocol() {
     break;
 
   case NDPI_PROTOCOL_SSH:
-    if(protos.ssh.client_signature)  free(protos.ssh.client_signature);
-    if(protos.ssh.server_signature)  free(protos.ssh.server_signature);
-    protos.ssh.client_signature = strdup(ndpiFlow->protos.ssh.client_signature);
-    protos.ssh.server_signature = strdup(ndpiFlow->protos.ssh.server_signature);
+    if(protos.ssh.client_signature == NULL)
+      protos.ssh.client_signature = strdup(ndpiFlow->protos.ssh.client_signature);
+    if(protos.ssh.server_signature == NULL)
+      protos.ssh.server_signature = strdup(ndpiFlow->protos.ssh.server_signature);
+
+    if(protos.ssh.hassh.client_hash == NULL
+       && ndpiFlow->protos.ssh.hassh_client[0] != '\0')
+      protos.ssh.hassh.client_hash = strdup(ndpiFlow->protos.ssh.hassh_client);
+
+    if(protos.ssh.hassh.server_hash == NULL
+       && ndpiFlow->protos.ssh.hassh_server[0] != '\0')
+      protos.ssh.hassh.server_hash = strdup(ndpiFlow->protos.ssh.hassh_server);
+
     break;
 
   case NDPI_PROTOCOL_TOR:
@@ -624,12 +635,19 @@ void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
   /* Let the client SSL certificate win over the server SSL certificate
      this addresses detection for youtube, e.g., when the client
      requests s.youtube.com but the server responds with google.com */
-  if((!forceDetection)
-     && (proto_id.master_protocol == NDPI_PROTOCOL_TLS)
-     && (get_packets() < NDPI_MIN_NUM_PACKETS)
+
+  if(!forceDetection
+     && get_packets() < NDPI_MIN_NUM_PACKETS
      && (ndpif = get_ndpi_flow())
-     && ((ndpif->protos.stun_ssl.ssl.client_certificate[0] == '\0')
-	 || (ndpif->protos.stun_ssl.ssl.server_certificate[0] == '\0'))) {
+     && (
+         (proto_id.master_protocol == NDPI_PROTOCOL_TLS
+          && (ndpif->protos.stun_ssl.ssl.client_certificate[0] == '\0'
+              || ndpif->protos.stun_ssl.ssl.server_certificate[0] == '\0'))
+         || (proto_id.app_protocol == NDPI_PROTOCOL_SSH
+          && (ndpif->protos.ssh.hassh_client[0] == '\0'
+	      || ndpif->protos.ssh.hassh_server[0] == '\0'))
+         )
+     ) {
     ndpif->detected_protocol_stack[0] = NDPI_PROTOCOL_UNKNOWN;
     return;
   }
@@ -1906,6 +1924,9 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
       if(isSSH()) {
 	if(protos.ssh.client_signature) lua_push_str_table_entry(vm, "protos.ssh.client_signature", protos.ssh.client_signature);
 	if(protos.ssh.server_signature) lua_push_str_table_entry(vm, "protos.ssh.server_signature", protos.ssh.server_signature);
+
+	if(protos.ssh.hassh.client_hash) lua_push_str_table_entry(vm, "protos.ssh.hassh.client_hash", protos.ssh.hassh.client_hash);
+	if(protos.ssh.hassh.server_hash) lua_push_str_table_entry(vm, "protos.ssh.hassh.server_hash", protos.ssh.hassh.server_hash);
       }
 
       if(isSSL()) {
