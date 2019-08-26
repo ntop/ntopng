@@ -215,21 +215,31 @@ void ZMQParserInterface::addMapping(const char *sym, u_int32_t num, u_int32_t pe
 
 /* **************************************************** */
 
-bool ZMQParserInterface::getKeyId(char *sym, u_int32_t * const pen, u_int32_t * const field) const {
-  u_int32_t cur_pen, cur_field;
+bool ZMQParserInterface::getKeyId(char *sym, u_int32_t sym_len, u_int32_t * const pen, u_int32_t * const field) const {
+  u_int32_t i, cur_pen, cur_field;
   string label(sym);
   labels_map_t::const_iterator it;
+  bool is_num = true, is_dotted = false;
 
   *pen = UNKNOWN_PEN, *field = UNKNOWN_FLOW_ELEMENT;
 
-  if(sscanf(sym, "%u.%u", &cur_pen, &cur_field) == 2)
+  for (i = 0; i < sym_len; i++) {
+    if (!isdigit(sym[i]) && sym[i] != '.') { is_num = false; break; }
+    if (sym[i] == '.') is_dotted = true;
+  }
+
+  if(is_num && is_dotted) {
+    if(sscanf(sym, "%u.%u", &cur_pen, &cur_field) != 2) 
+      return false;
     *pen = cur_pen, *field = cur_field;
-  else if(sscanf(sym, "%u", &cur_field) == 1)
+  } else if(is_num) {
+    cur_field = atoi(sym);
     *pen = 0, *field = cur_field;
-  else if((it = labels_map.find(label)) != labels_map.end())
+  } else if((it = labels_map.find(label)) != labels_map.end()) {
     *pen = it->second.first, *field = it->second.second;
-  else
+  } else {
     return false;
+  }
 
   return true;
 }
@@ -896,7 +906,7 @@ void ZMQParserInterface::parseSingleJSONFlow(json_object *o,
       u_int32_t pen, key_id;
       bool res;
 
-      getKeyId((char*)key, &pen, &key_id);
+      getKeyId((char*)key, strlen(key), &pen, &key_id);
 
       switch(pen) {
       case 0: /* No PEN */
@@ -995,7 +1005,7 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
     bool add_to_additional_fields = false;
     bool key_is_string = false, value_is_string = false;
 
-    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "TLV Type %u", et);
+    //ntop->getTrace()->traceEvent(TRACE_NORMAL, "TLV Type %u", et);
       
     switch(et) {
     case ndpi_serialization_uint32_uint32:
@@ -1061,7 +1071,7 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
     if (key_is_string) {
       kbkp = key.str[key.str_len];
       key.str[key.str_len] = '\0';
-      getKeyId(key.str, &pen, &key_id);
+      getKeyId(key.str, key.str_len, &pen, &key_id);
     }
     if (value_is_string) {
       vbkp = vs.str[vs.str_len];

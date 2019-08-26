@@ -42,7 +42,7 @@ class ZMQParserInterface : public ParserInterface {
   virtual void reloadCompanions();
   void deliverFlowToCompanions(ParsedFlow * const flow);
   void preprocessFlow(ParsedFlow *flow, NetworkInterface *iface);
-  bool getKeyId(char *sym, u_int32_t * const pen, u_int32_t * const field) const;
+  bool getKeyId(char *sym, u_int32_t sym_len, u_int32_t * const pen, u_int32_t * const field) const;
   void addMapping(const char *sym, u_int32_t num, u_int32_t pen = 0);
   bool parsePENZeroField(ParsedFlow * const flow, u_int32_t field, ParsedValue *value) const;
   bool parsePENNtopField(ParsedFlow * const flow, u_int32_t field, ParsedValue *value) const;
