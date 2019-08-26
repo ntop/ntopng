@@ -837,6 +837,20 @@ end
 
 -- ##############################################
 
+function alerts_api.requestReplyRatioType(key, requests, replies, granularity)
+  return({
+    alert_type = alert_consts.alert_types.request_reply_ratio,
+    alert_subtype = key,
+    alert_granularity = alert_consts.alerts_granularities[granularity],
+    alert_severity = alert_consts.alert_severities.warning,
+    alert_type_params = {
+      requests = requests, replies = replies,
+    }
+  })
+end
+
+-- ##############################################
+
 function alerts_api.load_check_modules(subdir, str_granularity)
   local checks_dir = os_utils.fixPath(ALERT_CHECKS_MODULES_BASEDIR .. "/" .. subdir)
   local available_modules = {}

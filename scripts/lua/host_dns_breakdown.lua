@@ -31,7 +31,11 @@ print "[\n"
 --end
 
 if(host ~= nil) then
-   tot = host["dns"][what]["queries"]["num_a"] + host["dns"][what]["queries"]["num_ns"] + host["dns"][what]["queries"]["num_cname"] + host["dns"][what]["queries"]["num_soa"] + host["dns"][what]["queries"]["num_ptr"] + host["dns"][what]["queries"]["num_mx"]  + host["dns"][what]["queries"]["num_txt"] + host["dns"][what]["queries"]["num_aaaa"] + host["dns"][what]["queries"]["num_any"]
+   if(host["dns"][what]["queries"] ~= nil) then
+    tot = host["dns"][what]["queries"]["num_a"] + host["dns"][what]["queries"]["num_ns"] + host["dns"][what]["queries"]["num_cname"] + host["dns"][what]["queries"]["num_soa"] + host["dns"][what]["queries"]["num_ptr"] + host["dns"][what]["queries"]["num_mx"]  + host["dns"][what]["queries"]["num_txt"] + host["dns"][what]["queries"]["num_aaaa"] + host["dns"][what]["queries"]["num_any"]
+   else
+    tot = 0
+   end
    
    if(tot > 0) then
       min = (tot * 3)/100

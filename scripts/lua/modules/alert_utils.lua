@@ -1327,7 +1327,7 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
               local k = prefix..key
               local value = vals[k]
 
-              if(check_module.check_function ~= alerts_api.threshold_check_function) then
+              if(check_module.gui.input_builder ~= alerts_api.threshold_cross_input_builder) then
                 -- Temporary fix to handle non-thresholds
                 k = "value_" .. k
 

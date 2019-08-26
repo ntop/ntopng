@@ -646,6 +646,23 @@ end
 
 -- ##############################################
 
+function requestReplyRatioFormatter(ifid, alert, info)
+  local entity = firstToUpper(formatAlertEntity(ifid, alertEntityRaw(alert["alert_entity"]), alert["alert_entity_val"]))
+  local engine_label = alertEngineLabel(alertEngine(sec2granularity(alert["alert_granularity"])))
+  local ratio = math.min((info.replies * 100) / (info.requests + 1), 100)
+
+  return(i18n("alerts_dashboard.request_replies_alert_descr", {
+    entity = entity,
+    granularity = engine_label,
+    what = alert.alert_subtype,
+    ratio = ratio,
+    requests = info.requests,
+    replies = info.replies,
+  }))
+end
+
+-- ##############################################
+
 local function processNotificationFormatter(ifid, alert, info)
   if info.event_type == "start" then
     return string.format("%s %s", i18n("alert_messages.ntopng_start"), info.msg_details)
@@ -944,6 +961,11 @@ alert_consts.alert_types = {
     i18n_title = "alerts_dashboard.potentially_dangerous_protocol",
     i18n_description = "alert_messages.potentially_dangerous_protocol_description",
     icon = "fa-exclamation",
+  }, request_reply_ratio = {
+    alert_id = 44,
+    i18n_title = "entity_thresholds.request_reply_ratio_title",
+    i18n_description = requestReplyRatioFormatter,
+    icon = "fa-exclamation",
   }
 }
 
@@ -1038,6 +1060,7 @@ alert_consts.field_units = {
   hosts = "field_units.hosts",
   syn_sec = "field_units.syn_sec",
   flow_sec = "field_units.flow_sec",
+  percentage = "field_units.percentage",
 }
 
 -- ################################################################################
