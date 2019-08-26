@@ -87,15 +87,19 @@ Flow::Flow(NetworkInterface *_iface,
   PROFILING_SUB_SECTION_EXIT(iface, 7);
 
   if(cli_host) {
+    NetworkStats *network_stats = cli_host->getNetworkStats(cli_host->get_local_network_id());
     cli_host->incUses();
     cli_host->incNumFlows(last_seen, true, srv_host);
+    if(network_stats) network_stats->incNumFlows(last_seen, true);
     cli_ip_addr = cli_host->get_ip();
   } else /* Client host has not been allocated, let's keep the info in an IpAddress */
     cli_ip_addr = new (std::nothrow) IpAddress(*_cli_ip);
 
   if(srv_host) {
+    NetworkStats *network_stats = srv_host->getNetworkStats(srv_host->get_local_network_id());
     srv_host->incUses();
     srv_host->incNumFlows(last_seen, false, cli_host);
+    if(network_stats) network_stats->incNumFlows(last_seen, false);
     srv_ip_addr = srv_host->get_ip();
   } else /* Server host has not been allocated, let's keep the info in an IpAddress */
     srv_ip_addr = new (std::nothrow) IpAddress(*_srv_ip);
@@ -2705,16 +2709,27 @@ void Flow::setTcpFlags(u_int8_t flags, bool src2dst_direction) {
 
 void Flow::updateTcpFlags(const struct bpf_timeval *when,
 			  u_int8_t flags, bool src2dst_direction) {
+  NetworkStats *cli_network_stats = NULL, *srv_network_stats = NULL;
+
   if(!iface->isPacketInterface())
     return; /* Use setTcpFlags for non-packet interfaces */
 
   iface->incFlagsStats(flags);
-  if(cli_host) cli_host->incFlagStats(src2dst_direction, flags);
-  if(srv_host) srv_host->incFlagStats(!src2dst_direction, flags);
+  if(cli_host) {
+    cli_host->incFlagStats(src2dst_direction, flags);
+    cli_network_stats = cli_host->getNetworkStats(cli_host->get_local_network_id());
+  }
+  if(srv_host) {
+    srv_host->incFlagStats(!src2dst_direction, flags);
+    srv_network_stats = srv_host->getNetworkStats(srv_host->get_local_network_id());
+  }
 
   if(flags == TH_SYN) {
     if(cli_host) cli_host->updateSynAlertsCounter(when->tv_sec, flags, this, true);
     if(srv_host) srv_host->updateSynAlertsCounter(when->tv_sec, flags, this, false);
+
+    if(cli_network_stats) cli_network_stats->updateSynAlertsCounter(when->tv_sec, true);
+    if(srv_network_stats) srv_network_stats->updateSynAlertsCounter(when->tv_sec, false);
   }
 
   if((flags & TH_SYN) && (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_SYN) != TH_SYN))

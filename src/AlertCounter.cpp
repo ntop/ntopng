@@ -42,7 +42,7 @@ void AlertCounter::reset_window(time_t when) {
 
 /* *************************************** */
 
-void AlertCounter::inc(time_t when, Host *h) {
+void AlertCounter::inc(time_t when, AlertableEntity *alertable) {
   if(hits_reset_req) { /* Reset the maximum as requested and start over */
     trailing_window_max_since_hits_reset = 0;
     hits_reset_req = false;
@@ -80,6 +80,7 @@ void AlertCounter::inc(time_t when, Host *h) {
 			       "stats [host: %s][when: %u][time_last_hit: %u][trailing_window_max_since_hits_reset: %u][trailing_window_min: %u]"
 			       "[trailing_window[cur]: %u][trailing_window[cur-1]: %u][trailing_window[cur-2]: %u]",
 			       h->get_ip()->print(buf, sizeof(buf)),
+             alertable->getEntityValue()->c_str(),
 			       when,
 			       time_last_hit,
 			       trailing_window_max_since_hits_reset,

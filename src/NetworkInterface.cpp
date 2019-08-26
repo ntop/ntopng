@@ -7653,6 +7653,8 @@ void NetworkInterface::checkNetworksAlerts(ScriptPeriodicity p) {
 
     acle.setNetwork(netstats);
     handle_entity_alerts(&acle, netstats);
+
+    netstats->housekeepAlerts(p);
   }
 }
 

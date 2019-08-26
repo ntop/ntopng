@@ -47,7 +47,7 @@ class AlertCounter {
 
  public:
   AlertCounter();
-  void inc(time_t when, Host *h);
+  void inc(time_t when, AlertableEntity *alertable);
   u_int16_t hits() const;
   void reset_hits();
 };

@@ -198,6 +198,7 @@ using namespace std;
 #include "CustomAppStats.h"
 #endif
 #include "GenericTrafficElement.h"
+#include "AlertCounter.h"
 #include "NetworkStats.h"
 #include "ContainerStats.h"
 #include "ParsedFlowCore.h"
@@ -283,7 +284,6 @@ using namespace std;
 #ifdef HAVE_PF_RING
 #include "PF_RINGInterface.h"
 #endif
-#include "AlertCounter.h"
 #include "FlowAlertCounter.h"
 #include "GenericHash.h"
 #include "VirtualHost.h"
