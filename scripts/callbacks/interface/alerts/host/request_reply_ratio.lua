@@ -37,8 +37,11 @@ local function request_reply_ratio(params)
 
   for key, values in pairs(to_check) do
     local to_check_key = check_module.key .. "__" .. key
-    local requests = alerts_api.host_delta_val(to_check_key .. "_requests", params.granularity, values[1])
-    local replies = alerts_api.host_delta_val(to_check_key .. "_replies", params.granularity, values[2])
+
+    -- true to avoid generating an alert due to a value just restored from redis
+    local skip_first = true
+    local requests = alerts_api.host_delta_val(to_check_key .. "_requests", params.granularity, values[1], skip_first)
+    local replies = alerts_api.host_delta_val(to_check_key .. "_replies", params.granularity, values[2], skip_first)
     local ratio = (replies * 100) / (requests+1)
     local req_repl_type = alerts_api.requestReplyRatioType(key, requests, replies, params.granularity)
 

@@ -938,32 +938,43 @@ end
 
 -- ##############################################
 
-local function delta_val(reg, metric_name, granularity, curr_val)
+-- @brief Performs a difference between the current metric value and
+-- the previous saved value and saves the current value for next call.
+-- @param reg lua C context pointer to the alertable entity storage
+-- @param metric_name name of the metric to retrieve
+-- @param granularity the granularity string
+-- @param curr_val the current metric value
+-- @param skip_first if true, 0 will be returned when no cached value is present
+-- @return the difference between current and previous value
+local function delta_val(reg, metric_name, granularity, curr_val, skip_first)
    local granularity_num = granularity2id(granularity)
    local key = string.format("%s:%s", metric_name, granularity_num)
 
    -- Read cached value and purify it
-   local prev_val = reg.getCachedAlertValue(key, granularity_num)
-   prev_val = tonumber(prev_val) or 0
+   local prev_val = tonumber(reg.getCachedAlertValue(key, granularity_num))
+
    -- Save the value for the next round
    reg.setCachedAlertValue(key, tostring(curr_val), granularity_num)
 
-   -- Compute the delta
-   return curr_val - prev_val
+   if((skip_first == true) and (prev_val == nil)) then
+      return(0)
+   else
+      return(curr_val - (prev_val or 0))
+   end
 end
 
 -- ##############################################
 
-function alerts_api.host_delta_val(metric_name, granularity, curr_val)
-  return(delta_val(host --[[ the host Lua reg ]], metric_name, granularity, curr_val))
+function alerts_api.host_delta_val(metric_name, granularity, curr_val, skip_first)
+  return(delta_val(host --[[ the host Lua reg ]], metric_name, granularity, curr_val, skip_first))
 end
 
-function alerts_api.interface_delta_val(metric_name, granularity, curr_val)
-  return(delta_val(interface --[[ the interface Lua reg ]], metric_name, granularity, curr_val))
+function alerts_api.interface_delta_val(metric_name, granularity, curr_val, skip_first)
+  return(delta_val(interface --[[ the interface Lua reg ]], metric_name, granularity, curr_val, skip_first))
 end
 
-function alerts_api.network_delta_val(metric_name, granularity, curr_val)
-  return(delta_val(network --[[ the network Lua reg ]], metric_name, granularity, curr_val))
+function alerts_api.network_delta_val(metric_name, granularity, curr_val, skip_first)
+  return(delta_val(network --[[ the network Lua reg ]], metric_name, granularity, curr_val, skip_first))
 end
 
 -- ##############################################
