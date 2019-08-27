@@ -257,11 +257,6 @@ class NetworkInterface : public AlertableEntity {
 
   bool isNumber(const char *str);
   bool checkIdle();
-
-  void sumStats(TcpFlowStats *_tcpFlowStats, EthStats *_ethStats,
-		LocalTrafficStats *_localStats, nDPIStats *_ndpiStats,
-		PacketStats *_pktStats, TcpPacketStats *_tcpPacketStats);
-
   void topItemsCommit(const struct timeval *when);
   void checkMacIPAssociation(bool triggerEvent, u_char *_mac, u_int32_t ipv4);
   void checkDhcpIPRange(Mac *sender_mac, struct dhcp_packet *dhcp_reply, u_int16_t vlan_id);
@@ -399,6 +394,10 @@ class NetworkInterface : public AlertableEntity {
     localStats.incStats(num_pkts, pkt_len, localsender, localreceiver);
   };
   inline void incnDPIFlows(u_int16_t l7_protocol)    { ndpiStats.incFlowsStats(l7_protocol); }
+
+  virtual void sumStats(TcpFlowStats *_tcpFlowStats, EthStats *_ethStats,
+			LocalTrafficStats *_localStats, nDPIStats *_ndpiStats,
+			PacketStats *_pktStats, TcpPacketStats *_tcpPacketStats) const;
 
   inline EthStats* getStats()      { return(&ethStats);          };
   inline int get_datalink()        { return(pcap_datalink_type); };

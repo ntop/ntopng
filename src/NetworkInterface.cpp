@@ -5464,7 +5464,7 @@ void NetworkInterface::sumStats(TcpFlowStats *_tcpFlowStats,
 				LocalTrafficStats *_localStats,
 				nDPIStats *_ndpiStats,
 				PacketStats *_pktStats,
-				TcpPacketStats *_tcpPacketStats) {
+				TcpPacketStats *_tcpPacketStats) const {
   tcpFlowStats.sum(_tcpFlowStats), ethStats.sum(_ethStats), localStats.sum(_localStats),
     ndpiStats.sum(_ndpiStats), pktStats.sum(_pktStats), tcpPacketStats.sum(_tcpPacketStats);
 }

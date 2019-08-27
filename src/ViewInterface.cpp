@@ -214,6 +214,15 @@ Flow* ViewInterface::findFlowByKey(u_int32_t key, AddressTree *allowed_hosts) {
 
 /* **************************************************** */
 
+void ViewInterface::sumStats(TcpFlowStats *_tcpFlowStats, EthStats *_ethStats,
+			     LocalTrafficStats *_localStats, nDPIStats *_ndpiStats,
+			     PacketStats *_pktStats, TcpPacketStats *_tcpPacketStats) const {
+  for(u_int8_t s = 0; s < num_viewed_interfaces; s++)
+    viewed_interfaces[s]->sumStats(_tcpFlowStats, _ethStats, _localStats, _ndpiStats, _pktStats, _tcpPacketStats);
+}
+
+/* **************************************************** */
+
 Flow* ViewInterface::findFlowByTuple(u_int16_t vlan_id,
 				     IpAddress *src_ip,  IpAddress *dst_ip,
 				     u_int16_t src_port, u_int16_t dst_port,

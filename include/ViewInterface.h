@@ -30,6 +30,10 @@ class ViewInterface : public NetworkInterface {
   NetworkInterface *viewed_interfaces[MAX_NUM_VIEW_INTERFACES];
   void viewedFlowsWalker();
 
+  virtual void sumStats(TcpFlowStats *_tcpFlowStats, EthStats *_ethStats,
+			LocalTrafficStats *_localStats, nDPIStats *_ndpiStats,
+			PacketStats *_pktStats, TcpPacketStats *_tcpPacketStats) const;
+
  public:
   ViewInterface(const char *_endpoint);
 

@@ -42,7 +42,7 @@ class TcpPacketStats {
   inline bool seqIssues() const { return(pktRetr || pktOOO || pktLost || pktKeepAlive); }
   void lua(lua_State* vm, const char *label);
 
-  inline void sum(TcpPacketStats *s) {
+  inline void sum(TcpPacketStats *s) const {
     s->pktRetr += pktRetr, s->pktOOO += pktOOO,
       s->pktLost += pktLost, s->pktKeepAlive += pktKeepAlive;
   }

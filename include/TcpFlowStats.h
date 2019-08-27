@@ -40,7 +40,7 @@ class TcpFlowStats {
   void deserialize(json_object *o);
   json_object* getJSONObject();
   void lua(lua_State* vm, const char *label);
-  inline void sum(TcpFlowStats *s) {
+  inline void sum(TcpFlowStats *s) const {
     s->numSynFlows += numSynFlows, s->numEstablishedFlows += numEstablishedFlows,
       s->numResetFlows += numResetFlows, s->numFinFlows += numFinFlows;
   };

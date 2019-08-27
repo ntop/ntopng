@@ -57,7 +57,7 @@ class EthStats {
   inline u_int64_t getNumPackets() { return(rawIngress.getPkts() + rawEgress.getPkts());  };
   inline u_int64_t getNumBytes()   { return(rawIngress.getBytes() + rawEgress.getBytes()); };
 
-  inline void sum(EthStats *e) {
+  inline void sum(EthStats *e) const {
     rawIngress.sum(&e->rawIngress), rawEgress.sum(&e->rawEgress),
       eth_IPv4.sum(&e->eth_IPv4), eth_IPv6.sum(&e->eth_IPv6),
       eth_ARP.sum(&e->eth_ARP), eth_MPLS.sum(&e->eth_MPLS), eth_other.sum(&e->eth_other);

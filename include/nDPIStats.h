@@ -73,7 +73,7 @@ class nDPIStats {
   json_object* getJSONObject(NetworkInterface *iface);
   json_object* getJSONObjectForCheckpoint(NetworkInterface *iface);
   void deserialize(NetworkInterface *iface, json_object *o);
-  void sum(nDPIStats *s);
+  void sum(nDPIStats *s) const;
 
   inline u_int64_t getProtoBytes(u_int16_t proto_id) { 
     if((proto_id < MAX_NDPI_PROTOS) && counters[proto_id]) {
