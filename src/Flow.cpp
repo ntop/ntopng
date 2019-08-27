@@ -4023,7 +4023,7 @@ void Flow::setParsedeBPFInfo(const ParsedeBPF * const ebpf, bool src2dst_directi
 /* ***************************************************** */
 
 void Flow::updateJA3() {
-  if(cli_host && protos.ssl.ja3.client_hash)
+  if(cli_host && isSSL() && protos.ssl.ja3.client_hash)
     cli_host->getJA3Fingerprint()->update(protos.ssl.ja3.client_hash,
 					  cli_ebpf ? cli_ebpf->process_info.process_name : NULL);
 }
@@ -4031,6 +4031,9 @@ void Flow::updateJA3() {
 /* ***************************************************** */
 
 void Flow::updateHASSH(bool as_client) {
+  if(!isSSH())
+    return;
+
   Host *h = as_client ? get_cli_host() : get_srv_host();
   const char *hassh = as_client ? protos.ssh.hassh.client_hash : protos.ssh.hassh.server_hash;
   ParsedeBPF *pebpf = as_client ? cli_ebpf : srv_ebpf;
