@@ -29,8 +29,6 @@ alert_consts.alert_severities = {
   }
 }
 
-alert_consts.CONST_DEFAULT_PACKETS_DROP_PERCENTAGE_ALERT = 5
-
 -- ##############################################
 
 local function formatAlertEntity(ifid, entity_type, entity_value)
@@ -166,11 +164,7 @@ end
 
 local function formatTooManyPacketDrops(ifid, alert, threshold_info)
   local entity = formatAlertEntity(ifid, alertEntityRaw(alert["alert_entity"]), alert["alert_entity_val"])
-  local max_drop_perc = tonumber(ntop.getPref(getInterfacePacketDropPercAlertKey(getInterfaceName(ifid))))
-
-  if(max_drop_perc == nil) then
-    max_drop_perc = alert_consts.CONST_DEFAULT_PACKETS_DROP_PERCENTAGE_ALERT
-  end
+  local max_drop_perc = threshold_info.edge or 0
 
   return(i18n("alert_messages.too_many_drops", {iface = entity, max_drops = max_drop_perc}))
 end

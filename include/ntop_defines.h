@@ -541,7 +541,6 @@
 #define CONST_NBOX_PASSWORD                 NTOPNG_PREFS_PREFIX".nbox_password"
 #define CONST_IFACE_ID_PREFS                NTOPNG_PREFS_PREFIX".iface_id"
 #define CONST_IFACE_SCALING_FACTOR_PREFS    NTOPNG_PREFS_PREFIX".iface_%d.scaling_factor"
-#define CONST_IFACE_PACKET_DROPS_ALERT_PREFS NTOPNG_PREFS_PREFIX".iface_%d.packet_drops_alert"
 #define CONST_IFACE_HIDE_FROM_TOP_PREFS     NTOPNG_PREFS_PREFIX".iface_%d.hide_from_top"
 #define CONST_IFACE_COMPANIONS_SET          NTOPNG_PREFS_PREFIX".companion_interface.ifid_%d.companion_of"
 #define CONST_HOST_REFRESH_DISABLED_FLOW_ALERT_TYPES NTOPNG_PREFS_PREFIX".alerts.ifid_%d.disabled_status.host_%s"

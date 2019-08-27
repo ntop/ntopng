@@ -815,12 +815,14 @@ end
 
 -- ##############################################
 
-function alerts_api.tooManyDropsType()
+function alerts_api.tooManyDropsType(drops, drop_perc, threshold)
   return({
     alert_type = alert_consts.alert_types.too_many_drops,
     alert_severity = alert_consts.alert_severities.error,
     alert_granularity = alert_consts.alerts_granularities.min,
-    alert_type_params = {},
+    alert_type_params = {
+      drops = drops, drop_perc = drop_perc, edge = threshold,
+    },
   })
 end
 

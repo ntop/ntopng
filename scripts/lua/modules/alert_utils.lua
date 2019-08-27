@@ -1106,10 +1106,6 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
 
    printTab("config", '<i class="fa fa-cog" aria-hidden="true"></i> ' .. i18n("traffic_recording.settings"), tab)
 
-   -- keep defaults in sync with ntop_defines.h
-   local anomalies_config = {
-   }
-
    local global_redis_hash = getGlobalAlertsConfigurationHash(tab, entity_type, not options.remote_host)
 
    print('</ul>')
@@ -1124,8 +1120,6 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
       vals = { }
       alerts = ""
       global_alerts = ""
-      anomalies = {}
-      global_anomalies = {}
       to_save = false
 
       -- Needed to handle the defaults
@@ -1135,14 +1129,6 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
          if _POST["to_delete"] == "local" then
             -- Delete threshold configuration
             ntop.delHashCache(get_alerts_hash_name(tab, ifname, entity_type), alert_source)
-
-            -- Delete specific settings
-            if entity_type == "host" then
-               ntop.delCache(anomaly_config_key)
-            elseif entity_type == "interface" then
-               ntop.delCache(getInterfacePacketDropPercAlertKey(ifname))
-               interface.loadPacketsDropsAlertPrefs()
-            end
             alerts = nil
 
             -- Load the global settings normally
@@ -1201,41 +1187,6 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
 	       end
 	    end
          end --END for k,_ in pairs(descr) do
-
-         -- Save source specific anomalies
-         if (tab == "min") and (to_save or (_POST["to_delete"] ~= nil)) then
-            if entity_type == "host" then
-               local config_to_dump = {}
-
-               for _, config in ipairs(anomalies_config) do
-                  local value = _POST[config.key]
-                  local global_value = _POST["global_"..config.key]
-
-                  if isEmptyString(global_value) then
-                     global_value = config.global_default
-                  end
-
-                  global_anomalies["global_"..config.key] = global_value
-		  ntop.setHashCache(global_redis_hash, config.key, global_value)
-
-                  if not isEmptyString(value) then
-                     anomalies[config.key] = value
-                  else
-                     value = "global"
-                  end
-
-                  config_to_dump[#config_to_dump + 1] = value
-               end
-
-	       -- Serialize the settings
-               local configdump = table.concat(config_to_dump, "|")
-               ntop.setCache(anomaly_config_key, configdump)
-            elseif entity_type == "interface" then
-               local value = _POST["packets_drops_perc"]
-               ntop.setCache(getInterfacePacketDropPercAlertKey(ifname), ternary(not isEmptyString(value), value, "0"))
-               interface.loadPacketsDropsAlertPrefs()
-            end
-         end
 
          --print(alerts)
 
@@ -1344,26 +1295,6 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
 
          print("</td></tr>\n")
          ::next_module::
-      end
-
-      -- TODO refactor and remove anomalies_config
-      if (entity_type == "interface") and (tab == "min") then
-        local drop_perc = ntop.getCache(getInterfacePacketDropPercAlertKey(ifname), _POST["packets_drops_perc"])
-        if isEmptyString(drop_perc) then
-           drop_perc = tostring(alert_consts.CONST_DEFAULT_PACKETS_DROP_PERCENTAGE_ALERT)
-        end
-        if drop_perc == "0" then
-           drop_perc = ""
-        end
-
-        print("<tr><td><b>"..i18n("show_alerts.interface_drops_threshold").."</b><br>\n")
-        print("<small>"..i18n("show_alerts.interface_drops_threshold_descr").."</small>")
-
-        print("</td><td>\n")
-        print('<input type="number" class=\"text-right form-control\" name="packets_drops_perc" style="display:inline; width:7em;" placeholder="" min="0" max="100" value="')
-        print(tostring(drop_perc))
-        print[[" /> %]]
-        print("</td><td></td></tr>")
       end
 
       print [[

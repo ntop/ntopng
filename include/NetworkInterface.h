@@ -141,7 +141,7 @@ class NetworkInterface : public AlertableEntity {
   int pcap_datalink_type; /**< Datalink type of pcap. */
   pthread_t pollLoop;
   bool pollLoopCreated, has_too_many_hosts, has_too_many_flows, mtuWarningShown;
-  bool too_many_drops, slow_stats_update, flow_dump_disabled;
+  bool slow_stats_update, flow_dump_disabled;
   u_int32_t ifSpeed, numL2Devices, numHosts, numLocalHosts, scalingFactor;
   u_int64_t checkpointPktCount, checkpointBytesCount, checkpointPktDropCount; /* Those will hold counters at checkpoints */
   u_int16_t ifMTU;
@@ -151,7 +151,6 @@ class NetworkInterface : public AlertableEntity {
   L4Stats l4Stats;
   FlowHash *flows_hash; /**< Hash used to store flows information. */
   u_int32_t last_remote_pps, last_remote_bps;
-  u_int8_t packet_drops_alert_perc;
   TimeseriesExporter *tsExporter;
   TimeseriesRing *ts_ring;
 
@@ -584,7 +583,6 @@ class NetworkInterface : public AlertableEntity {
   inline u_int16_t getHostPool(Mac *m)  { if(m && host_pools) return host_pools->getPool(m); return NO_HOST_POOL_ID; };
 
   void loadScalingFactorPrefs();
-  void loadPacketsDropsAlertPrefs();
   void getnDPIFlowsCount(lua_State *vm);
 
   inline void setBridgeLanInterfaceId(u_int32_t v) { bridge_lan_interface_id = v;     };

@@ -67,7 +67,7 @@ check_module = {
     i18n_description = "entity_thresholds.request_reply_ratio_description",
     i18n_field_unit = alert_consts.field_units.percentage,
     input_builder = alerts_api.threshold_cross_input_builder,
-    field_max = 65535,
+    field_max = 100,
     field_min = 1,
     field_operator = "lt";
   }
