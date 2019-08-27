@@ -37,6 +37,7 @@ class ParserInterface : public NetworkInterface {
   ~ParserInterface();
 
   void deliverFlowToCompanions(ParsedFlow * const flow);
+  inline bool companionsEnabled() { return num_companion_interfaces > 0; };
 };
 
 #endif /* _PARSER_INTERFACE_H_ */

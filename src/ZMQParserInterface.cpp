@@ -752,7 +752,13 @@ void ZMQParserInterface::preprocessFlow(ParsedFlow *flow, NetworkInterface *ifac
     PROFILING_SECTION_ENTER("processFlow", 30);
     iface->processFlow(flow, true);
     PROFILING_SECTION_EXIT(30);
-    deliverFlowToCompanions(flow);
+
+    /* Deliver eBPF info to companion queues */
+    if (flow->process_info_set || 
+        flow->container_info_set || 
+        flow->tcp_info_set) {
+      deliverFlowToCompanions(flow);
+    }
   }
 }
 

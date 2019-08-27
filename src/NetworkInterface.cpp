@@ -328,8 +328,8 @@ void NetworkInterface::init() {
      || isView())
     ;
   else
-    ebpfFlows = new (std::nothrow) ParsedFlow*[EBPF_QUEUE_LEN]();
-  next_ebpf_insert_idx = next_ebpf_remove_idx = 0;
+    companionQueue = new (std::nothrow) ParsedFlow*[COMPANION_QUEUE_LEN]();
+  next_compq_insert_idx = next_compq_remove_idx = 0;
 
   PROFILING_INIT();
 }
@@ -559,13 +559,13 @@ void NetworkInterface::deleteDataStructures() {
   }
 #endif
 
-  if(ebpfFlows) {
-    for(u_int16_t i = 0; i < EBPF_QUEUE_LEN; i++)
-      if(ebpfFlows[i])
-	delete ebpfFlows[i];
+  if(companionQueue) {
+    for(u_int16_t i = 0; i < COMPANION_QUEUE_LEN; i++)
+      if(companionQueue[i])
+	delete companionQueue[i];
 
-    delete []ebpfFlows;
-    ebpfFlows = NULL;
+    delete []companionQueue;
+    companionQueue = NULL;
   }
 }
 
@@ -2688,13 +2688,13 @@ decode_packet_eth:
 /* **************************************************** */
 
 void NetworkInterface::pollQueuedeBPFEvents() {
-  if(ebpfFlows) {
+  if(companionQueue) {
     ParsedFlow *dequeued = NULL;
 
     if(dequeueFlowFromCompanion(&dequeued)) {
       Flow *flow = NULL;
       bool src2dst_direction, new_flow;
-
+ 
       flow = getFlow(NULL /* srcMac */, NULL /* dstMac */,
 		     0 /* vlan_id */,
 		     0 /* deviceIP */,
@@ -2719,7 +2719,15 @@ void NetworkInterface::pollQueuedeBPFEvents() {
 	if(new_flow)
 	  flow->updateSeen();
 
-	flow->setParsedeBPFInfo(dequeued, src2dst_direction);
+        if (dequeued->suricata_alert) {
+          /* Flow from SyslogParserInterface (Suricata) */
+          enum json_tokener_error jerr = json_tokener_success;
+          json_object *o = json_tokener_parse_verbose(dequeued->suricata_alert, &jerr);
+          if (o) flow->setSuricataAlert(o);
+        } else {
+          /* Flow from ZMQParserInterface (nProbe Agent) */
+	  flow->setParsedeBPFInfo(dequeued, src2dst_direction);
+        }
       }
 
       delete dequeued;
@@ -7532,11 +7540,11 @@ bool NetworkInterface::enqueueFlowToCompanion(ParsedFlow * const pf, bool skip_l
      && (pf->src_ip.isLoopbackAddress() || pf->dst_ip.isLoopbackAddress()))
     return false;
 
-  if(ebpfFlows[next_ebpf_insert_idx])
+  if(companionQueue[next_compq_insert_idx])
     return false;
 
-  if((ebpfFlows[next_ebpf_insert_idx] = new (std::nothrow) ParsedFlow(*pf))) {
-    next_ebpf_insert_idx = (next_ebpf_insert_idx + 1) % EBPF_QUEUE_LEN;
+  if((companionQueue[next_compq_insert_idx] = new (std::nothrow) ParsedFlow(*pf))) {
+    next_compq_insert_idx = (next_compq_insert_idx + 1) % COMPANION_QUEUE_LEN;
     return true;
   }
 
@@ -7568,14 +7576,14 @@ void NetworkInterface::nDPILoadHostnameCategory(char *what, ndpi_protocol_catego
 /* *************************************** */
 
 bool NetworkInterface::dequeueFlowFromCompanion(ParsedFlow **f) {
-  if(!ebpfFlows[next_ebpf_remove_idx]) {
+  if(!companionQueue[next_compq_remove_idx]) {
     *f = NULL;
     return false;
   }
 
-  *f = ebpfFlows[next_ebpf_remove_idx];
-  ebpfFlows[next_ebpf_remove_idx] = NULL;
-  next_ebpf_remove_idx = (next_ebpf_remove_idx + 1) % EBPF_QUEUE_LEN;
+  *f = companionQueue[next_compq_remove_idx];
+  companionQueue[next_compq_remove_idx] = NULL;
+  next_compq_remove_idx = (next_compq_remove_idx + 1) % COMPANION_QUEUE_LEN;
 
   return true;
 }

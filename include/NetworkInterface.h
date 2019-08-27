@@ -106,8 +106,9 @@ class NetworkInterface : public AlertableEntity {
   bool reload_hosts_bcast_domain, lbd_serialize_by_mac;
   time_t hosts_bcast_domain_last_update;
   
-  u_int16_t next_ebpf_insert_idx, next_ebpf_remove_idx;
-  ParsedFlow **ebpfFlows;
+  u_int16_t next_compq_insert_idx;
+  u_int16_t next_compq_remove_idx;
+  ParsedFlow **companionQueue;
   
   /* Live Capture */
   Mutex active_captures_lock;

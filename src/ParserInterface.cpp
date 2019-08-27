@@ -120,8 +120,7 @@ void ParserInterface::reloadCompanions() {
 /* **************************************************** */
 
 void ParserInterface::deliverFlowToCompanions(ParsedFlow * const flow) {
-  if(num_companion_interfaces > 0
-     && (flow->process_info_set || flow->container_info_set || flow->tcp_info_set)) {
+  if(num_companion_interfaces > 0) {
     NetworkInterface *flow_interface = flow->ifname ? ntop->getNetworkInterface(flow->ifname) : NULL;
 
     for(int i = 0; i < MAX_NUM_COMPANION_INTERFACES; i++) {

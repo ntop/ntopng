@@ -1024,7 +1024,7 @@ extern struct ntopngLuaContext* getUserdata(struct lua_State *vm);
 
 #define MIN_NUM_HASH_WALK_ELEMS      512
 
-#define EBPF_QUEUE_LEN               4096
+#define COMPANION_QUEUE_LEN          4096
 
 #ifdef NTOPNG_EMBEDDED_EDITION
 #define DEFAULT_THREAD_POOL_SIZE     1

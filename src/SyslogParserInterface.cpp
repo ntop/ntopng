@@ -114,6 +114,11 @@ void SyslogParserInterface::parseSuricataAlert(json_object *a, ParsedFlow *flow,
 #endif
     }
 
+    if (companionsEnabled()) {
+      flow->suricata_alert = strdup(json_object_to_json_string(a));
+      deliverFlowToCompanions(flow);
+    }
+
   } else {
     /* Other alert types? (e.g. host) */
 #ifdef SYSLOG_DEBUG 
@@ -185,8 +190,8 @@ u_int8_t SyslogParserInterface::parseLog(char *log_line) {
 
         /* Suricata Alert */
 
-#ifdef USE_SURICATA_NETFLOW
-        ntop->getTrace()->traceEvent(TRACE_NORMAL, "[Suricata] Alert JSON: %s", content);
+#ifdef SYSLOG_DEBUG
+        //ntop->getTrace()->traceEvent(TRACE_NORMAL, "[Suricata] Alert JSON: %s", content);
 #endif
 
         if(json_object_object_get_ex(o, "flow", &f)) {
