@@ -143,7 +143,7 @@ Flow::Flow(NetworkInterface *_iface,
     rttSec = 0, cli2srv_window = srv2cli_window = 0,
     c2sFirstGoodputTime.tv_sec = c2sFirstGoodputTime.tv_usec = 0;
   memset(&ip_stats_s2d, 0, sizeof(ip_stats_s2d)), memset(&ip_stats_d2s, 0, sizeof(ip_stats_d2s));
-  memset(&tcp_stats_s2d, 0, sizeof(tcp_stats_s2d)), memset(&tcp_stats_d2s, 0, sizeof(tcp_stats_d2s));
+  memset(&tcp_seq_s2d, 0, sizeof(tcp_seq_s2d)), memset(&tcp_seq_d2s, 0, sizeof(tcp_seq_d2s));
   memset(&clientNwLatency, 0, sizeof(clientNwLatency)), memset(&serverNwLatency, 0, sizeof(serverNwLatency));
 
   if(!iface->isPacketInterface())
@@ -893,21 +893,21 @@ char* Flow::print(char *buf, u_int buf_len) const {
   if(protocol == IPPROTO_TCP) {
     int len = 0;
 
-    if((tcp_stats_s2d.pktOOO+tcp_stats_d2s.pktOOO) > 0)
+    if((stats.tcp_stats_s2d.pktOOO+stats.tcp_stats_d2s.pktOOO) > 0)
       len += snprintf(&tcp_buf[len], sizeof(tcp_buf)-len, "[OOO=%u/%u]",
-		      tcp_stats_s2d.pktOOO, tcp_stats_d2s.pktOOO);
+		      stats.tcp_stats_s2d.pktOOO, stats.tcp_stats_d2s.pktOOO);
 
-    if((tcp_stats_s2d.pktLost+tcp_stats_d2s.pktLost) > 0)
+    if((stats.tcp_stats_s2d.pktLost+stats.tcp_stats_d2s.pktLost) > 0)
       len += snprintf(&tcp_buf[len], sizeof(tcp_buf)-len, "[Lost=%u/%u]",
-		      tcp_stats_s2d.pktLost, tcp_stats_d2s.pktLost);
+		      stats.tcp_stats_s2d.pktLost, stats.tcp_stats_d2s.pktLost);
 
-    if((tcp_stats_s2d.pktRetr+tcp_stats_d2s.pktRetr) > 0)
+    if((stats.tcp_stats_s2d.pktRetr+stats.tcp_stats_d2s.pktRetr) > 0)
       len += snprintf(&tcp_buf[len], sizeof(tcp_buf)-len, "[Retr=%u/%u]",
-		      tcp_stats_s2d.pktRetr, tcp_stats_d2s.pktRetr);
+		      stats.tcp_stats_s2d.pktRetr, stats.tcp_stats_d2s.pktRetr);
 
-    if((tcp_stats_s2d.pktKeepAlive+tcp_stats_d2s.pktKeepAlive) > 0)
+    if((stats.tcp_stats_s2d.pktKeepAlive+stats.tcp_stats_d2s.pktKeepAlive) > 0)
       len += snprintf(&tcp_buf[len], sizeof(tcp_buf)-len, "[KeepAlive=%u/%u]",
-		      tcp_stats_s2d.pktKeepAlive, tcp_stats_d2s.pktKeepAlive);
+		      stats.tcp_stats_s2d.pktKeepAlive, stats.tcp_stats_d2s.pktKeepAlive);
   }
 
   snprintf(buf, buf_len,
@@ -1846,14 +1846,14 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 
     if(protocol == IPPROTO_TCP) {
       lua_push_bool_table_entry(vm, "tcp.seq_problems",
-				(tcp_stats_s2d.pktRetr
-				 | tcp_stats_s2d.pktOOO
-				 | tcp_stats_s2d.pktLost
-				 | tcp_stats_s2d.pktKeepAlive
-				 | tcp_stats_d2s.pktRetr
-				 | tcp_stats_d2s.pktOOO
-				 | tcp_stats_d2s.pktLost
-				 | tcp_stats_d2s.pktKeepAlive) ? true : false);
+				(stats.tcp_stats_s2d.pktRetr
+				 | stats.tcp_stats_s2d.pktOOO
+				 | stats.tcp_stats_s2d.pktLost
+				 | stats.tcp_stats_s2d.pktKeepAlive
+				 | stats.tcp_stats_d2s.pktRetr
+				 | stats.tcp_stats_d2s.pktOOO
+				 | stats.tcp_stats_d2s.pktLost
+				 | stats.tcp_stats_d2s.pktKeepAlive) ? true : false);
 
       lua_push_float_table_entry(vm, "tcp.nw_latency.client", toMs(&clientNwLatency));
       lua_push_float_table_entry(vm, "tcp.nw_latency.server", toMs(&serverNwLatency));
@@ -1861,14 +1861,14 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
       lua_push_float_table_entry(vm, "tcp.max_thpt.cli2srv", getCli2SrvMaxThpt());
       lua_push_float_table_entry(vm, "tcp.max_thpt.srv2cli", getSrv2CliMaxThpt());
 
-      lua_push_uint64_table_entry(vm, "cli2srv.retransmissions", tcp_stats_s2d.pktRetr);
-      lua_push_uint64_table_entry(vm, "cli2srv.out_of_order", tcp_stats_s2d.pktOOO);
-      lua_push_uint64_table_entry(vm, "cli2srv.lost", tcp_stats_s2d.pktLost);
-      lua_push_uint64_table_entry(vm, "cli2srv.keep_alive", tcp_stats_s2d.pktKeepAlive);
-      lua_push_uint64_table_entry(vm, "srv2cli.retransmissions", tcp_stats_d2s.pktRetr);
-      lua_push_uint64_table_entry(vm, "srv2cli.out_of_order", tcp_stats_d2s.pktOOO);
-      lua_push_uint64_table_entry(vm, "srv2cli.lost", tcp_stats_d2s.pktLost);
-      lua_push_uint64_table_entry(vm, "srv2cli.keep_alive", tcp_stats_d2s.pktKeepAlive);
+      lua_push_uint64_table_entry(vm, "cli2srv.retransmissions", stats.tcp_stats_s2d.pktRetr);
+      lua_push_uint64_table_entry(vm, "cli2srv.out_of_order", stats.tcp_stats_s2d.pktOOO);
+      lua_push_uint64_table_entry(vm, "cli2srv.lost", stats.tcp_stats_s2d.pktLost);
+      lua_push_uint64_table_entry(vm, "cli2srv.keep_alive", stats.tcp_stats_s2d.pktKeepAlive);
+      lua_push_uint64_table_entry(vm, "srv2cli.retransmissions", stats.tcp_stats_d2s.pktRetr);
+      lua_push_uint64_table_entry(vm, "srv2cli.out_of_order", stats.tcp_stats_d2s.pktOOO);
+      lua_push_uint64_table_entry(vm, "srv2cli.lost", stats.tcp_stats_d2s.pktLost);
+      lua_push_uint64_table_entry(vm, "srv2cli.keep_alive", stats.tcp_stats_d2s.pktKeepAlive);
 
       lua_push_uint64_table_entry(vm, "cli2srv.tcp_flags", src2dst_tcp_flags);
       lua_push_uint64_table_entry(vm, "srv2cli.tcp_flags", dst2src_tcp_flags);
@@ -2500,6 +2500,16 @@ bool Flow::get_partial_traffic_stats(FlowTrafficStats **dst, FlowTrafficStats *f
   fts->cli2srv_goodput_bytes = tmp.cli2srv_goodput_bytes - (*dst)->cli2srv_goodput_bytes;
   fts->srv2cli_goodput_bytes = tmp.srv2cli_goodput_bytes - (*dst)->srv2cli_goodput_bytes;
 
+  fts->tcp_stats_s2d.pktRetr = tmp.tcp_stats_s2d.pktRetr - (*dst)->tcp_stats_s2d.pktRetr,
+    fts->tcp_stats_s2d.pktOOO = tmp.tcp_stats_s2d.pktOOO - (*dst)->tcp_stats_s2d.pktOOO,
+    fts->tcp_stats_s2d.pktLost = tmp.tcp_stats_s2d.pktLost - (*dst)->tcp_stats_s2d.pktLost,
+    fts->tcp_stats_s2d.pktKeepAlive = tmp.tcp_stats_s2d.pktKeepAlive - (*dst)->tcp_stats_s2d.pktKeepAlive;
+
+  fts->tcp_stats_d2s.pktRetr = tmp.tcp_stats_d2s.pktRetr - (*dst)->tcp_stats_d2s.pktRetr,
+    fts->tcp_stats_d2s.pktOOO = tmp.tcp_stats_d2s.pktOOO - (*dst)->tcp_stats_d2s.pktOOO,
+    fts->tcp_stats_d2s.pktLost = tmp.tcp_stats_d2s.pktLost - (*dst)->tcp_stats_d2s.pktLost,
+    fts->tcp_stats_d2s.pktKeepAlive = tmp.tcp_stats_d2s.pktKeepAlive - (*dst)->tcp_stats_d2s.pktKeepAlive;
+
   memcpy(*dst, &tmp, sizeof(tmp));
 
   return true;
@@ -2860,6 +2870,8 @@ u_int32_t Flow::getNextTcpSeq ( u_int8_t tcpFlags,
 /* *************************************** */
 
 void Flow::incTcpBadStats(bool src2dst_direction,
+			  FlowTrafficStats *fts,
+			  Host *cli, Host *srv,
 			  u_int32_t ooo_pkts,
 			  u_int32_t retr_pkts,
 			  u_int32_t lost_pkts,
@@ -2867,46 +2879,48 @@ void Flow::incTcpBadStats(bool src2dst_direction,
 #ifdef HAVE_NEDGE
   return;
 #endif
-
-  TCPPacketStats * stats;
   int16_t cli_network_id = -1, srv_network_id = -1;
   u_int32_t cli_asn = (u_int32_t)-1, srv_asn = (u_int32_t)-1;
   AutonomousSystem *cli_as = NULL, *srv_as = NULL;
   NetworkStats *cli_network_stats = NULL, *srv_network_stats = NULL;
   bool cli_and_srv_in_same_subnet = false, cli_and_srv_in_same_as = false;
 
-  if(src2dst_direction)
-    stats = &tcp_stats_s2d;
-  else
-    stats = &tcp_stats_d2s;
-
-  stats->pktKeepAlive += keep_alive_pkts;
-  stats->pktRetr += retr_pkts;
-  stats->pktOOO += ooo_pkts;
-  stats->pktLost += lost_pkts;
-
-  if(cli_host) {
-    cli_network_id = cli_host->get_local_network_id();
-    cli_network_stats = cli_host->getNetworkStats(cli_network_id);
-    cli_asn = cli_host->get_asn();
-    cli_as = cli_host->get_as();
+  if(fts) {
+    TCPPacketStats * cur_stats;
 
     if(src2dst_direction)
-      cli_host->incSentTcp(ooo_pkts, retr_pkts, lost_pkts, keep_alive_pkts);
+      cur_stats = &fts->tcp_stats_s2d;
     else
-      cli_host->incRcvdTcp(ooo_pkts, retr_pkts, lost_pkts, keep_alive_pkts);
+      cur_stats = &fts->tcp_stats_d2s;
+
+    cur_stats->pktKeepAlive += keep_alive_pkts;
+    cur_stats->pktRetr += retr_pkts;
+    cur_stats->pktOOO += ooo_pkts;
+    cur_stats->pktLost += lost_pkts;
   }
 
-  if(srv_host) {
-    srv_network_id = srv_host->get_local_network_id();
-    srv_network_stats = srv_host->getNetworkStats(srv_network_id);
-    srv_asn = srv_host->get_asn();
-    srv_as = srv_host->get_as();
+  if(cli) {
+    cli_network_id = cli->get_local_network_id();
+    cli_network_stats = cli->getNetworkStats(cli_network_id);
+    cli_asn = cli->get_asn();
+    cli_as = cli->get_as();
 
     if(src2dst_direction)
-      srv_host->incRcvdTcp(ooo_pkts, retr_pkts, lost_pkts, keep_alive_pkts);
+      cli->incSentTcp(ooo_pkts, retr_pkts, lost_pkts, keep_alive_pkts);
     else
-      srv_host->incSentTcp(ooo_pkts, retr_pkts, lost_pkts, keep_alive_pkts);
+      cli->incRcvdTcp(ooo_pkts, retr_pkts, lost_pkts, keep_alive_pkts);
+  }
+
+  if(srv) {
+    srv_network_id = srv->get_local_network_id();
+    srv_network_stats = srv->getNetworkStats(srv_network_id);
+    srv_asn = srv->get_asn();
+    srv_as = srv->get_as();
+
+    if(src2dst_direction)
+      srv->incRcvdTcp(ooo_pkts, retr_pkts, lost_pkts, keep_alive_pkts);
+    else
+      srv->incSentTcp(ooo_pkts, retr_pkts, lost_pkts, keep_alive_pkts);
   }
 
   if(cli_network_id >= 0 && (cli_network_id == srv_network_id))
@@ -2976,73 +2990,73 @@ void Flow::updateTcpSeqNum(const struct bpf_timeval *when,
 				 payload_Len);
 
   if(src2dst_direction) {
-    if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[src2dst][last: %u][next: %u]", tcp_stats_s2d.last, tcp_stats_s2d.next);
+    if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[src2dst][last: %u][next: %u]", tcp_seq_s2d.last, tcp_seq_s2d.next);
 
     if(window > 0) srv2cli_window = window; /* Note the window is reverted */
-    if(tcp_stats_s2d.next > 0) {
-      if((tcp_stats_s2d.next != seq_num) /* If equal, seq_num is the expected seq_num as determined with prev. segment */
-	 && (tcp_stats_s2d.next != (seq_num - 1))) {
-	if((seq_num == tcp_stats_s2d.next - 1)
+    if(tcp_seq_s2d.next > 0) {
+      if((tcp_seq_s2d.next != seq_num) /* If equal, seq_num is the expected seq_num as determined with prev. segment */
+	 && (tcp_seq_s2d.next != (seq_num - 1))) {
+	if((seq_num == tcp_seq_s2d.next - 1)
 	   && (payload_Len == 0 || payload_Len == 1)
 	   && ((flags & (TH_SYN|TH_FIN|TH_RST)) == 0)) {
 	  if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[src2dst] Packet KeepAlive");
 	  cnt_keep_alive++;
-	} else if(tcp_stats_s2d.last == seq_num) {
-          if (tcp_stats_s2d.next != tcp_stats_s2d.last) {
+	} else if(tcp_seq_s2d.last == seq_num) {
+          if (tcp_seq_s2d.next != tcp_seq_s2d.last) {
 	    cnt_retx++;
 	    if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[src2dst] Packet retransmission");
           }
-	} else if((tcp_stats_s2d.last > seq_num)
-		  && (seq_num < tcp_stats_s2d.next)) {
+	} else if((tcp_seq_s2d.last > seq_num)
+		  && (seq_num < tcp_seq_s2d.next)) {
 	  cnt_lost++;
-	  if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[src2dst] Packet lost [last: %u][act: %u]", tcp_stats_s2d.last, seq_num);
+	  if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[src2dst] Packet lost [last: %u][act: %u]", tcp_seq_s2d.last, seq_num);
 	} else {
 	  cnt_ooo++;
-	  update_last_seqnum = ((seq_num - 1) > tcp_stats_s2d.last) ? true : false;
-	  if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[src2dst] Packet OOO [last: %u][act: %u]", tcp_stats_s2d.last, seq_num);
+	  update_last_seqnum = ((seq_num - 1) > tcp_seq_s2d.last) ? true : false;
+	  if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[src2dst] Packet OOO [last: %u][act: %u]", tcp_seq_s2d.last, seq_num);
 	}
       }
     }
 
-    tcp_stats_s2d.next = next_seq_num;
-    if(update_last_seqnum) tcp_stats_s2d.last = seq_num;
+    tcp_seq_s2d.next = next_seq_num;
+    if(update_last_seqnum) tcp_seq_s2d.last = seq_num;
   } else {
-    if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[dst2src][last: %u][next: %u]", tcp_stats_d2s.last, tcp_stats_d2s.next);
+    if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[dst2src][last: %u][next: %u]", tcp_seq_d2s.last, tcp_seq_d2s.next);
 
     if(window > 0) cli2srv_window = window; /* Note the window is reverted */
-    if(tcp_stats_d2s.next > 0) {
-      if((tcp_stats_d2s.next != seq_num)
-	 && (tcp_stats_d2s.next != (seq_num-1))) {
-	if((seq_num == tcp_stats_d2s.next - 1)
+    if(tcp_seq_d2s.next > 0) {
+      if((tcp_seq_d2s.next != seq_num)
+	 && (tcp_seq_d2s.next != (seq_num-1))) {
+	if((seq_num == tcp_seq_d2s.next - 1)
 	   && (payload_Len == 0 || payload_Len == 1)
 	   && ((flags & (TH_SYN|TH_FIN|TH_RST)) == 0)) {
 	  if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[dst2src] Packet KeepAlive");
 	  cnt_keep_alive++;
-	} else if(tcp_stats_d2s.last == seq_num) {
-          if (tcp_stats_d2s.next != tcp_stats_d2s.last) {
+	} else if(tcp_seq_d2s.last == seq_num) {
+          if (tcp_seq_d2s.next != tcp_seq_d2s.last) {
 	    cnt_retx++;
 	    if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[dst2src] Packet retransmission");
           }
 	  // bytes
-	} else if((tcp_stats_d2s.last > seq_num)
-		  && (seq_num < tcp_stats_d2s.next)) {
+	} else if((tcp_seq_d2s.last > seq_num)
+		  && (seq_num < tcp_seq_d2s.next)) {
 	  cnt_lost++;
-	  if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[dst2src] Packet lost [last: %u][act: %u]", tcp_stats_d2s.last, seq_num);
+	  if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[dst2src] Packet lost [last: %u][act: %u]", tcp_seq_d2s.last, seq_num);
 	} else {
 	  cnt_ooo++;
-	  update_last_seqnum = ((seq_num - 1) > tcp_stats_d2s.last) ? true : false;
-	  if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[dst2src] [last: %u][next: %u]", tcp_stats_d2s.last, tcp_stats_d2s.next);
-	  if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[dst2src] Packet OOO [last: %u][act: %u]", tcp_stats_d2s.last, seq_num);
+	  update_last_seqnum = ((seq_num - 1) > tcp_seq_d2s.last) ? true : false;
+	  if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[dst2src] [last: %u][next: %u]", tcp_seq_d2s.last, tcp_seq_d2s.next);
+	  if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[dst2src] Packet OOO [last: %u][act: %u]", tcp_seq_d2s.last, seq_num);
 	}
       }
     }
 
-    tcp_stats_d2s.next = next_seq_num;
-    if(update_last_seqnum) tcp_stats_d2s.last = seq_num;
+    tcp_seq_d2s.next = next_seq_num;
+    if(update_last_seqnum) tcp_seq_d2s.last = seq_num;
   }
 
   if(cnt_keep_alive || cnt_lost || cnt_ooo || cnt_retx)
-    incTcpBadStats(src2dst_direction, cnt_ooo, cnt_retx, cnt_lost, cnt_keep_alive);
+    incTcpBadStats(src2dst_direction, getFlowTrafficStats(), get_cli_host(), get_srv_host(), cnt_ooo, cnt_retx, cnt_lost, cnt_keep_alive);
 }
 
 /* *************************************** */
@@ -3744,7 +3758,7 @@ FlowStatus Flow::getFlowStatus() {
 
 #ifndef HAVE_NEDGE
   /* All flows */
-  issues_count = tcp_stats_s2d.pktRetr + tcp_stats_s2d.pktOOO + tcp_stats_s2d.pktLost;
+  issues_count = stats.tcp_stats_s2d.pktRetr + stats.tcp_stats_s2d.pktOOO + stats.tcp_stats_s2d.pktLost;
   if(issues_count > CONST_TCP_CHECK_ISSUES_THRESHOLD) {
     if(issues_count > (stats.cli2srv_packets / CONST_TCP_CHECK_SEVERE_ISSUES_RATIO))
       return status_tcp_severe_connection_issues;
@@ -3752,7 +3766,7 @@ FlowStatus Flow::getFlowStatus() {
       return status_tcp_connection_issues;
   }
 
-  issues_count = tcp_stats_d2s.pktRetr + tcp_stats_d2s.pktOOO + tcp_stats_d2s.pktLost;
+  issues_count = stats.tcp_stats_d2s.pktRetr + stats.tcp_stats_d2s.pktOOO + stats.tcp_stats_d2s.pktLost;
   if(issues_count > CONST_TCP_CHECK_ISSUES_THRESHOLD) {
     if(issues_count > (stats.srv2cli_packets / CONST_TCP_CHECK_SEVERE_ISSUES_RATIO))
       return status_tcp_severe_connection_issues;

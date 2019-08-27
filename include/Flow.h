@@ -34,6 +34,10 @@ typedef struct {
 } TCPPacketStats;
 
 typedef struct {
+  u_int64_t last, next;
+} TCPSeqNum;
+
+typedef struct {
   struct timeval lastTime;
   u_int64_t total_delta_ms;
   float min_ms, max_ms;
@@ -47,6 +51,7 @@ typedef struct {
   u_int32_t cli2srv_packets, srv2cli_packets;
   u_int64_t cli2srv_bytes, srv2cli_bytes;
   u_int64_t cli2srv_goodput_bytes, srv2cli_goodput_bytes;
+  TCPPacketStats tcp_stats_s2d, tcp_stats_d2s;
 } FlowTrafficStats;
 
 class Flow : public GenericHashEntry {
@@ -154,7 +159,7 @@ class Flow : public GenericHashEntry {
   IPPacketStats ip_stats_s2d, ip_stats_d2s;
 
   /* TCP stats */
-  TCPPacketStats tcp_stats_s2d, tcp_stats_d2s;
+  TCPSeqNum tcp_seq_s2d, tcp_seq_d2s;
   u_int16_t cli2srv_window, srv2cli_window;
 
   time_t doNotExpireBefore; /*
@@ -294,8 +299,11 @@ class Flow : public GenericHashEntry {
   void setTcpFlags(u_int8_t flags, bool src2dst_direction);
   void updateTcpFlags(const struct bpf_timeval *when,
 		      u_int8_t flags, bool src2dst_direction);
-  void incTcpBadStats(bool src2dst_direction,
-		      u_int32_t ooo_pkts, u_int32_t retr_pkts, u_int32_t lost_pkts, u_int32_t keep_alive_pkts);
+  static void incTcpBadStats(bool src2dst_direction,
+			     FlowTrafficStats *fts,
+			     Host *cli, Host *srv,
+			     u_int32_t ooo_pkts, u_int32_t retr_pkts,
+			     u_int32_t lost_pkts, u_int32_t keep_alive_pkts);
   
   void updateTcpSeqNum(const struct bpf_timeval *when,
 		       u_int32_t seq_num, u_int32_t ack_seq_num,
@@ -355,6 +363,7 @@ class Flow : public GenericHashEntry {
   inline u_int64_t get_partial_packets_cli2srv() const { return last_db_dump.delta.cli2srv_packets; };
   inline u_int64_t get_partial_packets_srv2cli() const { return last_db_dump.delta.srv2cli_packets; };
   bool get_partial_traffic_stats_view(FlowTrafficStats *delta, bool *first_partial);
+  inline FlowTrafficStats * getFlowTrafficStats() { return &stats; };
   bool update_partial_traffic_stats_db_dump();
   inline float get_bytes_thpt()          const { return(bytes_thpt);                      };
   inline float get_goodput_bytes_thpt()  const { return(goodput_bytes_thpt);              };

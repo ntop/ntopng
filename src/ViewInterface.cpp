@@ -302,6 +302,14 @@ static bool viewed_flows_walker(GenericHashEntry *flow, void *user_data, bool *m
 		      partials.srv2cli_bytes + partials.cli2srv_bytes,
 		      partials.srv2cli_packets + partials.cli2srv_packets,
 		      24 /* 8 Preamble + 4 CRC + 12 IFG */ + 14 /* Ethernet header */);
+
+      Flow::incTcpBadStats(true /* src2dst */, NULL, cli_host, srv_host,
+			   partials.tcp_stats_s2d.pktOOO, partials.tcp_stats_s2d.pktRetr,
+			   partials.tcp_stats_s2d.pktLost, partials.tcp_stats_s2d.pktKeepAlive);
+
+      Flow::incTcpBadStats(false /* dst2src */, NULL, cli_host, srv_host,
+			   partials.tcp_stats_d2s.pktOOO, partials.tcp_stats_d2s.pktRetr,
+			   partials.tcp_stats_d2s.pktLost, partials.tcp_stats_d2s.pktKeepAlive);
     }
   }
 
