@@ -135,7 +135,7 @@ end
 
 -- ##############################################
 
-if not ifs.isView and ntop.getPrefs().are_alerts_enabled == true then
+if ntop.getPrefs().are_alerts_enabled == true then
    local active = ""
    local style = ""
    local color = ""
