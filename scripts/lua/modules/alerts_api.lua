@@ -891,6 +891,23 @@ end
 
 -- ##############################################
 
+-- @brief Get the default alert configuration value for the given check module
+-- and granularity.
+-- @param check_module a check_module returned by alerts_api.load_check_modules
+-- @param granularity_str the target granularity
+-- @return nil if there is not default value, the given value otherwise
+function alerts_api.getCheckModuleDefaultValue(check_module, granularity_str)
+  if((check_module.default_values ~= nil) and (check_module.default_values[granularity_str] ~= nil)) then
+    -- granularity specific default
+    return(check_module.default_values[granularity_str])
+  end
+
+  -- global default
+  return(check_module.default_value)
+end
+
+-- ##############################################
+
 -- An alert check function which performs threshold checks of a value
 -- against a configured threshold and generates a threshold_cross alert
 -- if the value is above the threshold.

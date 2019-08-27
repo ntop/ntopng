@@ -662,8 +662,12 @@ function requestReplyRatioFormatter(ifid, alert, info)
     what = subtype_info[2],
     granularity = engine_label,
     ratio = ratio,
-    requests = formatValue(info.requests),
-    replies = formatValue(info.replies),
+    requests = i18n(
+      ternary(info.requests == 1, "alerts_dashboard.one_request", "alerts_dashboard.many_requests"),
+      {count = formatValue(info.requests)}),
+    replies =  i18n(
+      ternary(info.replies == 1, "alerts_dashboard.one_reply", "alerts_dashboard.many_replies"),
+      {count = formatValue(info.replies)}),
   }))
 end
 

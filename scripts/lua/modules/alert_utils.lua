@@ -989,7 +989,7 @@ local function getEntityConfiguredAlertThresholds(ifname, granularity, entity_ty
 
       -- Add defaults
    for modname, check_module in pairs(check_modules) do
-     local default_value = check_module.default_value
+     local default_value = alerts_api.getCheckModuleDefaultValue(check_module, granularity)
 
      if((res[global_key][modname] == nil) and (default_value ~= nil) and (not skip_defaults[modname])) then
        res[global_key][modname] = thresholdStr2Val(default_value)
@@ -1167,7 +1167,7 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
 	       local global_operator = _POST["op_global_"..k]
 
 	       if (global_value ~= nil) and (global_operator ~= nil) then
-           local default_value = check_modules[k] and check_modules[k].default_value
+           local default_value = alerts_api.getCheckModuleDefaultValue(check_modules[k], tab)
            global_value = tonumber(global_value)
 
            if((global_value == nil) and (default_value ~= nil)) then
