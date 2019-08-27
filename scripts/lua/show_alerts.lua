@@ -2,7 +2,7 @@
 -- (C) 2013-18 - ntop.org
 --
 
-dirs = ntop.getDirs()
+local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
@@ -10,8 +10,6 @@ require "alert_utils"
 
 local page_utils = require("page_utils")
 local alerts_api = require("alerts_api")
-
-interface.select(ifname)
 
 sendHTTPContentTypeHeader('text/html')
 
@@ -30,7 +28,7 @@ local has_disabled_alerts = alerts_api.hasEntitiesWithAlertsDisabled(interface.g
 if ntop.getPrefs().are_alerts_enabled == false then
    print("<div class=\"alert alert alert-warning\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png>" .. " " .. i18n("show_alerts.alerts_are_disabled_message") .. "</div>")
 --return
-elseif(not(has_engaged_alerts or has_flow_alerts or has_disabled_alerts)) then
+elseif not has_engaged_alerts and not has_past_alerts and not has_flow_alerts and not has_disabled_alerts then
    print("<div class=\"alert alert alert-info\"><i class=\"fa fa-info-circle fa-lg\" aria-hidden=\"true\"></i>" .. " " .. i18n("show_alerts.no_recorded_alerts_message",{ifname=ifname}).."</div>")
 else
    drawAlertTables(has_past_alerts, has_engaged_alerts, has_flow_alerts, has_disabled_alerts, _GET)
