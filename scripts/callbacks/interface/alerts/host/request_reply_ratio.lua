@@ -5,6 +5,8 @@
 local alerts_api = require("alerts_api")
 local alert_consts = require("alert_consts")
 
+local check_module
+
 -- #################################################################
 
 local function request_reply_ratio(params)
@@ -14,13 +16,14 @@ local function request_reply_ratio(params)
   local to_check = {}
 
   if(info["dns"] ~= nil) then
-    to_check["dns_sent"] = {info["dns"]["sent"]["num_queries"], (info["dns"]["sent"]["num_replies_ok"] + info["dns"]["sent"]["num_replies_error"])}
-    to_check["dns_rcvd"] = {info["dns"]["rcvd"]["num_queries"], (info["dns"]["rcvd"]["num_replies_ok"] + info["dns"]["rcvd"]["num_replies_error"])}
+    to_check["dns_sent"] = {info["dns"]["sent"]["num_queries"], (info["dns"]["rcvd"]["num_replies_ok"] + info["dns"]["rcvd"]["num_replies_error"])}
+    to_check["dns_rcvd"] = {info["dns"]["rcvd"]["num_queries"], (info["dns"]["sent"]["num_replies_ok"] + info["dns"]["sent"]["num_replies_error"])}
   end
 
   for key, values in pairs(to_check) do
-    local requests = values[1]
-    local replies = values[2]
+    local to_check_key = check_module.key .. "__" .. key
+    local requests = alerts_api.host_delta_val(to_check_key .. "_requests", params.granularity, values[1])
+    local replies = alerts_api.host_delta_val(to_check_key .. "_replies", params.granularity, values[2])
     local ratio = (replies * 100) / (requests+1)
     local req_repl_type = alerts_api.requestReplyRatioType(key, requests, replies, params.granularity)
 
@@ -35,7 +38,7 @@ end
 
 -- #################################################################
 
-local check_module = {
+check_module = {
   key = "request_reply_ratio",
   check_function = request_reply_ratio,
   --~ default_value = "request_reply_ratio;lt;15", -- 15%

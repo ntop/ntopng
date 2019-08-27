@@ -649,12 +649,16 @@ end
 function requestReplyRatioFormatter(ifid, alert, info)
   local entity = firstToUpper(formatAlertEntity(ifid, alertEntityRaw(alert["alert_entity"]), alert["alert_entity_val"]))
   local engine_label = alertEngineLabel(alertEngine(sec2granularity(alert["alert_granularity"])))
-  local ratio = math.min((info.replies * 100) / (info.requests + 1), 100)
+  local ratio = round(math.min((info.replies * 100) / (info.requests + 1), 100), 1)
 
-  return(i18n("alerts_dashboard.request_replies_alert_descr", {
+  local subtype_to_label = {
+    dns_sent = "alerts_dashboard.too_low_dns_replies_received",
+    dns_rcvd = "alerts_dashboard.too_low_dns_replies_sent",
+  }
+
+  return(i18n(subtype_to_label[alert.alert_subtype], {
     entity = entity,
     granularity = engine_label,
-    what = alert.alert_subtype,
     ratio = ratio,
     requests = info.requests,
     replies = info.replies,
