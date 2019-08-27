@@ -2691,7 +2691,7 @@ void NetworkInterface::pollQueuedeBPFEvents() {
   if(ebpfFlows) {
     ParsedFlow *dequeued = NULL;
 
-    if(dequeueeBPFFlow(&dequeued)) {
+    if(dequeueFlowFromCompanion(&dequeued)) {
       Flow *flow = NULL;
       bool src2dst_direction, new_flow;
 
@@ -7527,7 +7527,7 @@ void NetworkInterface::getContainersStats(lua_State* vm, const char *pod_filter)
 
 /* *************************************** */
 
-bool NetworkInterface::enqueueeBPFFlow(ParsedFlow * const pf, bool skip_loopback_traffic) {
+bool NetworkInterface::enqueueFlowToCompanion(ParsedFlow * const pf, bool skip_loopback_traffic) {
   if(skip_loopback_traffic
      && (pf->src_ip.isLoopbackAddress() || pf->dst_ip.isLoopbackAddress()))
     return false;
@@ -7567,7 +7567,7 @@ void NetworkInterface::nDPILoadHostnameCategory(char *what, ndpi_protocol_catego
 
 /* *************************************** */
 
-bool NetworkInterface::dequeueeBPFFlow(ParsedFlow **f) {
+bool NetworkInterface::dequeueFlowFromCompanion(ParsedFlow **f) {
   if(!ebpfFlows[next_ebpf_remove_idx]) {
     *f = NULL;
     return false;

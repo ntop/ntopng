@@ -739,8 +739,8 @@ class NetworkInterface : public AlertableEntity {
   bool isInDhcpRange(IpAddress *ip);
   void getPodsStats(lua_State* vm);
   void getContainersStats(lua_State* vm, const char *pod_filter);
-  bool enqueueeBPFFlow(ParsedFlow * const pf, bool skip_loopback_traffic);
-  bool dequeueeBPFFlow(ParsedFlow ** pf);
+  bool enqueueFlowToCompanion(ParsedFlow * const pf, bool skip_loopback_traffic);
+  bool dequeueFlowFromCompanion(ParsedFlow ** pf);
 
 #ifdef PROFILING
   inline void profiling_section_enter(const char *label, int id) { PROFILING_SECTION_ENTER(label, id); };
