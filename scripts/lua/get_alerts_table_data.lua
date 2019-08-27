@@ -138,8 +138,8 @@ for _key,_value in ipairs(alerts) do
 	 end
 	 return url
       end
-      column_id = column_id -- .."|"..explore()
 
+      record["column_explorer"] = explore()
    end
 
    if status ~= "historical-flows" then

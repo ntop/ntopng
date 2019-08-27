@@ -1845,25 +1845,25 @@ function toggleAlert(disable) {
       field: "column_key",
       hidden: true
     },
-
     {
 	    title: "]]print(i18n("show_alerts.alert_actions")) print[[",
 	    css: {
 	       textAlign: 'center',
 	       width: "10%",
 	    }
-	 }
+	 },
+
       ], tableCallback: function() {
             var table_data = $("#]] print(t["div-id"]) print[[").data("datatable").resultset.data;
 
             datatableForEachRow("#]] print(t["div-id"]) print[[", function(row_id) {              
                var alert_key = $("td:nth(7)", this).html().split("|");
                var alert_id = alert_key[0];
-               var historical_url = alert_key[1];
                var data = table_data[row_id];
+               var explorer_url = data["column_explorer"];
 
-               if(typeof(historical_url) === "string") {
-                  datatableAddLinkButtonCallback.bind(this)(9, historical_url, "]] print(i18n("show_alerts.explorer")) print[[");
+               if(explorer_url) {
+                  datatableAddLinkButtonCallback.bind(this)(9, explorer_url, "]] print(i18n("show_alerts.explorer")) print[[");
                   disable_alerts_dialog = "#disable_flows_alerts";
                } else if(!data.column_alert_disabled)
                   datatableAddActionButtonCallback.bind(this)(9, "prepareToggleAlertsDialog(']] print(t["div-id"]) print[[',"+ row_id +"); $('#disable_alert_type').modal('show');", "]] print(i18n("show_alerts.disable_alerts")) print[[");
