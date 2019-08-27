@@ -68,10 +68,4 @@ check_module = {
 
 -- #################################################################
 
-function check_module.get_threshold_value(granularity, info)
-  return(info["hits.syn_flood_attacker"] or 0)
-end
-
--- #################################################################
-
 return check_module

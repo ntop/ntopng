@@ -760,6 +760,29 @@ end
 
 -- ##############################################
 
+local function anomalousTCPFlagsFormatter(ifid, alert, info)
+  local entity = formatAlertEntity(ifid, alertEntityRaw(alert["alert_entity"]), alert["alert_entity_val"])
+  return(i18n("alert_messages.anomalous_tcp_flags", {
+    entity = firstToUpper(entity),
+    ratio = round(info.ratio, 1),
+    sent_or_rcvd = ternary(info.is_sent, i18n("graphs.metrics_suffixes.sent"), string.lower(i18n("received"))),
+  }))
+end
+
+-- ##############################################
+
+local function misbehavingFlowsRatioFormatter(ifid, alert, info)
+  local entity = formatAlertEntity(ifid, alertEntityRaw(alert["alert_entity"]), alert["alert_entity_val"])
+
+  return(i18n("alert_messages.misbehaving_flows_ratio", {
+    entity = firstToUpper(entity),
+    ratio = round(info.ratio, 1),
+    sent_or_rcvd = ternary(info.is_sent, i18n("graphs.metrics_suffixes.sent"), string.lower(i18n("received"))),
+  }))
+end
+
+-- ##############################################
+
 -- Keep ID in sync with AlertType
 alert_consts.alert_types = {
   tcp_syn_flood = {
@@ -975,7 +998,17 @@ alert_consts.alert_types = {
     i18n_title = "entity_thresholds.request_reply_ratio_title",
     i18n_description = requestReplyRatioFormatter,
     icon = "fa-exclamation",
-  }
+  }, anomalous_tcp_flags = {
+    alert_id = 45,
+    i18n_title = "alerts_dashboard.anomalous_tcp_flags",
+    i18n_description = anomalousTCPFlagsFormatter,
+    icon = "fa-exclamation",
+  }, misbehaving_flows_ratio = {
+    alert_id = 46,
+    i18n_title = "alerts_dashboard.misbehaving_flows_ratio",
+    i18n_description = misbehavingFlowsRatioFormatter,
+    icon = "fa-exclamation",
+  },
 }
 
 -- ##############################################

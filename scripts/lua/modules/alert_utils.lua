@@ -946,7 +946,7 @@ end
 -- #################################
 
 local function thresholdStr2Val(threshold)
-  local parts = string.split(threshold, ";")
+  local parts = string.split(threshold, ";") or {threshold}
 
   if(#parts >= 2) then
     return {metric=parts[1], operator=parts[2], edge=parts[3] --[[can be nil]]}
@@ -1146,46 +1146,39 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
 
          -- TODO refactor this into the threshold cross checker
          for _, check_module in pairs(descr) do
-	    k = check_module.key
-	    value    = _POST["value_"..k]
-	    operator = _POST["op_"..k] or ""
+            k = check_module.key
+            value    = _POST["value_"..k]
+            operator = _POST["op_"..k] or "gt"
+            if value == "on" then value = "1" end
+            value = tonumber(value)
 
-	    if value == "on" then
-	      value = "1"
-	    end
-
-	    if((value ~= nil) and (operator ~= nil)) then
-	       --io.write("\t"..k.."\n")
-	       value = tonumber(value)
-         if(value ~= nil) then
-            if(alerts ~= "") then alerts = alerts .. "," end
-            alerts = alerts .. k .. ";" .. operator .. ";" .. value
-	       end
-
-	       -- Handle global settings
-	       local global_value = _POST["value_global_"..k]
-	       local global_operator = _POST["op_global_"..k]
-
-	       if (global_value ~= nil) and (global_operator ~= nil) then
-           local default_value = alerts_api.getCheckModuleDefaultValue(check_modules[k], tab)
-           global_value = tonumber(global_value)
-
-           if((global_value == nil) and (default_value ~= nil)) then
-             -- save an empty value to differentiate it from the default
-             global_value = ""
-           end
-
-           if(global_value ~= nil) then
-             local cur_value = k..";"..global_operator..";"..global_value
-
-              -- Do not save default values
-              if(cur_value ~= default_value) then
-                if(global_alerts ~= "") then global_alerts = global_alerts .. "," end
-                global_alerts = global_alerts..cur_value
-              end
+            if(value ~= nil) then
+               if(alerts ~= "") then alerts = alerts .. "," end
+               alerts = alerts .. k .. ";" .. operator .. ";" .. value
             end
-	       end
-	    end
+
+            -- Handle global settings
+            local global_value = _POST["value_global_"..k]
+            local global_operator = _POST["op_global_"..k] or "gt"
+            if global_value == "on" then global_value = "1" end
+            global_value = tonumber(global_value)
+
+            local default_value = alerts_api.getCheckModuleDefaultValue(check_modules[k], tab)
+
+            if((global_value == nil) and (default_value ~= nil)) then
+               -- save an empty value to differentiate it from the default
+               global_value = ""
+            end
+
+            if(global_value ~= nil) then
+               local cur_value = k..";"..global_operator..";"..global_value
+
+               -- Do not save default values
+               if(cur_value ~= default_value) then
+                  if(global_alerts ~= "") then global_alerts = global_alerts .. "," end
+                  global_alerts = global_alerts..cur_value
+               end
+            end
          end --END for k,_ in pairs(descr) do
 
          --print(alerts)
