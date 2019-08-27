@@ -2879,6 +2879,10 @@ void Flow::incTcpBadStats(bool src2dst_direction,
 #ifdef HAVE_NEDGE
   return;
 #endif
+
+  if(!ooo_pkts && !retr_pkts && !lost_pkts && !keep_alive_pkts)
+    return;
+  
   int16_t cli_network_id = -1, srv_network_id = -1;
   u_int32_t cli_asn = (u_int32_t)-1, srv_asn = (u_int32_t)-1;
   AutonomousSystem *cli_as = NULL, *srv_as = NULL;
