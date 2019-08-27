@@ -66,6 +66,7 @@ void SyslogParserInterface::parseSuricataFlow(json_object *f, ParsedFlow *flow) 
 
   if(json_object_object_get_ex(f, "end", &w))
     flow->last_switched = Utils::str2epoch(json_object_get_string(w));
+  if (!flow->last_switched) flow->last_switched = flow->first_switched;
 
   if(json_object_object_get_ex(f, "pkts_toserver",  &w)) 
     flow->in_pkts   = json_object_get_int(w);
@@ -83,15 +84,17 @@ void SyslogParserInterface::parseSuricataFlow(json_object *f, ParsedFlow *flow) 
 /* **************************************************** */
 
 void SyslogParserInterface::parseSuricataAlert(json_object *a, ParsedFlow *flow, ICMPinfo *icmp_info, bool flow_alert) {
-
-#ifdef SYSLOG_DEBUG 
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[Suricata] %sAlert JSON: %s", flow_alert ? "Flow " : "", 
-    json_object_to_json_string(a));
-#endif
-
-  if(flow_alert) {
+  if (flow_alert) {
     Flow *f;
     bool src2dst_direction, new_flow;
+#ifdef SYSLOG_DEBUG
+    char src_ip_buf[64], dst_ip_buf[64];
+
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[Suricata] Flow Alert for %s:%u <-> %s:%u JSON: %s",
+      flow->src_ip.print(src_ip_buf, sizeof(src_ip_buf)), ntohs(flow->src_port), 
+      flow->dst_ip.print(dst_ip_buf, sizeof(dst_ip_buf)), ntohs(flow->dst_port),
+      json_object_to_json_string(a));
+#endif
 
     f = getFlow(NULL, NULL, flow->vlan_id, 0, 0, 0,
       icmp_info,
@@ -99,14 +102,24 @@ void SyslogParserInterface::parseSuricataAlert(json_object *a, ParsedFlow *flow,
       flow->src_port, flow->dst_port,
       flow->l4_proto, &src2dst_direction,
       flow->first_switched, flow->last_switched, 
-      0, &new_flow, false);
+      0, &new_flow, 
+      true /* create it if we didn't receive netflow yet */);
 
-    if(f) {
+    if (f) {
       f->setSuricataAlert(json_object_get(a));
+    } else {
+#ifdef SYSLOG_DEBUG 
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[Suricata] Flow matching the alert not found (ignored)", 
+        json_object_to_json_string(a));
+#endif
     }
 
   } else {
-    /* TODO Check for other alert types (e.g. host) */
+    /* Other alert types? (e.g. host) */
+#ifdef SYSLOG_DEBUG 
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[Suricata] Alert JSON: %s (ignored)", 
+      json_object_to_json_string(a));
+#endif
   }
 }
 
@@ -133,7 +146,7 @@ u_int8_t SyslogParserInterface::parseLog(char *log_line) {
     /* Suricata Log */
 
 #ifdef SYSLOG_DEBUG
-    //ntop->getTrace()->traceEvent(TRACE_NORMAL, "[Suricata] JSON: %s", content);
+    ntop->getTrace()->traceEvent(TRACE_DEBUG, "[Suricata] JSON: %s", content);
 #endif
 
     o = json_tokener_parse_verbose(content, &jerr);
@@ -172,6 +185,10 @@ u_int8_t SyslogParserInterface::parseLog(char *log_line) {
 
         /* Suricata Alert */
 
+#ifdef USE_SURICATA_NETFLOW
+        ntop->getTrace()->traceEvent(TRACE_NORMAL, "[Suricata] Alert JSON: %s", content);
+#endif
+
         if(json_object_object_get_ex(o, "flow", &f)) {
           parseSuricataFlow(f, &flow);
           flow_alert = true;
@@ -181,7 +198,9 @@ u_int8_t SyslogParserInterface::parseLog(char *log_line) {
 
 #ifdef USE_SURICATA_NETFLOW
       } else if(strcmp(event_type, "netflow") == 0 && json_object_object_get_ex(o, "netflow", &f)) {
-        /* Suricata Flow */
+
+        /* Suricata Flow (Unidirectional "netflow") */
+
         parseSuricataNetflow(f, &flow);
 
 #ifdef SYSLOG_DEBUG
@@ -194,10 +213,11 @@ u_int8_t SyslogParserInterface::parseLog(char *log_line) {
 
         processFlow(&flow, false);
         num_flows++;
-
 #else /* USE_SURICATA_NETFLOW */
       } else if(strcmp(event_type, "flow") == 0 && json_object_object_get_ex(o, "flow", &f)) {
-        /* Suricata Flow */
+
+        /* Suricata Flow (Bidirectional) */
+
         parseSuricataFlow(f, &flow);
 
 #ifdef SYSLOG_DEBUG
@@ -214,10 +234,8 @@ u_int8_t SyslogParserInterface::parseLog(char *log_line) {
 
 #ifdef SYSLOG_DEBUG
       } else {
-
-        /* System Event */
-
-        ntop->getTrace()->traceEvent(TRACE_NORMAL, "[Suricata] Event '%s' [%s]", event_type, timestamp);
+        /* Other Events */
+        ntop->getTrace()->traceEvent(TRACE_INFO, "[Suricata] Event '%s' [%s] (ignored)", event_type, timestamp);
 #endif
       }
 
@@ -227,7 +245,7 @@ u_int8_t SyslogParserInterface::parseLog(char *log_line) {
 #ifdef SYSLOG_DEBUG
   } else {
     /* System Log */
-    ntop->getTrace()->traceEvent(TRACE_INFO, "[SYSLOG] System Event (%s): %s", log_line, content);
+    ntop->getTrace()->traceEvent(TRACE_INFO, "[SYSLOG] System Event (%s): %s (ignored)", log_line, content);
 #endif
   }
 
