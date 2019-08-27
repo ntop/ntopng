@@ -651,17 +651,25 @@ function requestReplyRatioFormatter(ifid, alert, info)
   local engine_label = alertEngineLabel(alertEngine(sec2granularity(alert["alert_granularity"])))
   local ratio = round(math.min((info.replies * 100) / (info.requests + 1), 100), 1)
 
-  local subtype_to_label = {
-    dns_sent = "alerts_dashboard.too_low_dns_replies_received",
-    dns_rcvd = "alerts_dashboard.too_low_dns_replies_sent",
+  -- {i18_string, what}
+  local subtype_to_info = {
+    dns_sent = {"alerts_dashboard.too_low_replies_received", "DNS"},
+    dns_rcvd = {"alerts_dashboard.too_low_replies_sent", "DNS"},
+    http_sent = {"alerts_dashboard.too_low_replies_received", "HTTP"},
+    http_rcvd = {"alerts_dashboard.too_low_replies_sent", "HTTP"},
+    icmp_echo_sent = {"alerts_dashboard.too_low_replies_received", "ICMP ECHO"},
+    icmp_echo_rcvd = {"alerts_dashboard.too_low_replies_received", "ICMP ECHO"},
   }
 
-  return(i18n(subtype_to_label[alert.alert_subtype], {
+  local subtype_info = subtype_to_info[alert.alert_subtype]
+
+  return(i18n(subtype_info[1], {
     entity = entity,
+    what = subtype_info[2],
     granularity = engine_label,
     ratio = ratio,
-    requests = info.requests,
-    replies = info.replies,
+    requests = formatValue(info.requests),
+    replies = formatValue(info.replies),
   }))
 end
 

@@ -20,6 +20,21 @@ local function request_reply_ratio(params)
     to_check["dns_rcvd"] = {info["dns"]["rcvd"]["num_queries"], (info["dns"]["sent"]["num_replies_ok"] + info["dns"]["sent"]["num_replies_error"])}
   end
 
+  if(info["http"] ~= nil) then
+    to_check["http_sent"] = {info["http"]["sender"]["query"]["total"], info["http"]["receiver"]["response"]["total"]}
+    to_check["http_rcvd"] = {info["http"]["receiver"]["query"]["total"], info["http"]["sender"]["response"]["total"]}
+  end
+
+  if(info["ICMPv4"] ~= nil) then
+    local reqs = info["ICMPv4"]["8,0"]
+    local repl = info["ICMPv4"]["0,0"]
+
+    if((reqs ~= nil) and (repl ~= nil)) then
+      to_check["icmp_echo_sent"] = {reqs["sent"], repl["rcvd"]}
+      to_check["icmp_echo_rcvd"] = {reqs["rcvd"], repl["sent"]}
+    end
+  end
+
   for key, values in pairs(to_check) do
     local to_check_key = check_module.key .. "__" .. key
     local requests = alerts_api.host_delta_val(to_check_key .. "_requests", params.granularity, values[1])
@@ -43,11 +58,6 @@ check_module = {
   check_function = request_reply_ratio,
   --~ default_value = "request_reply_ratio;lt;15", -- 15%
   local_only = true,
-
-  granularity = {
-     -- executed only in the minute-by-minute check
-     "min"
-  },
 
   gui = {
     i18n_title = "entity_thresholds.request_reply_ratio_title",
