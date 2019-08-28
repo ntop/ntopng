@@ -2505,7 +2505,11 @@ end
 
 function formatMaliciousSignature(flowstatus_info)
   if(flowstatus_info.ja3_signature ~= nil) then
-    return(i18n("flow_details.malicious_ja3_signature", {signature = flowstatus_info.ja3_signature}))
+    return(i18n("flow_details.malicious_ja3_signature", {
+      signature = flowstatus_info.ja3_signature,
+      url = "https://sslbl.abuse.ch/ja3-fingerprints/" .. flowstatus_info.ja3_signature,
+      icon = " <i class=\"fa fa-external-link\"></i>",
+    }))
   end
 
   return(i18n("alerts_dashboard.malicious_signature_detected"))

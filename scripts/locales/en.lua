@@ -847,7 +847,7 @@ local lang = {
     ["looks_like_idle_flow_message"] = "This looks like an <font color=red>idle flow</font> with periodic transmissions just to keep it alive.",
     ["lost_packets"] = "Lost Packets",
     ["low_goodput"] = "Low Goodput",
-    ["malicious_ja3_signature"] = "Possibly Malicious Signature [JA3: %{signature}]",
+    ["malicious_ja3_signature"] = "Possibly Malicious Signature [JA3: <a href=\"%{url}\">%{signature}</a> %{icon}]",
     ["max_estimated_tcp_throughput"] = "Max (Estimated) TCP Throughput",
     ["max_packet_interarrival_time"] = "Max Packet Interarrival Time",
     ["memory_actual_peak"] = "Memory Actual / Peak",
