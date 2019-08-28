@@ -73,7 +73,7 @@ class Flow : public GenericHashEntry {
     cli2srv_direction, twh_over, twh_ok, dissect_next_http_packet, passVerdict,
     check_tor, l7_protocol_guessed, flow_alerted, flow_dropped_counts_increased,
     good_low_flow_detected, good_ssl_hs, update_flow_port_stats,
-    quota_exceeded;
+    quota_exceeded, has_malicious_signature;
   u_int16_t diff_num_http_requests;
 #ifdef NTOPNG_PRO
   bool counted_in_aggregated_flow, status_counted_in_aggregated_flow;

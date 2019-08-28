@@ -73,6 +73,7 @@ class Ntop {
   cpu_load_stats cpu_stats;
   float cpu_load;
   bool is_started;
+  std::set<std::string> *new_malicious_ja3, *malicious_ja3, *malicious_ja3_shadow;
   
 #ifdef NTOPNG_PRO
 #ifndef WIN32
@@ -435,6 +436,10 @@ class Ntop {
   void sendNetworkInterfacesTermination();
   inline time_t getLastStatsReset() { return(last_stats_reset); }
   void resetStats();
+
+  inline void loadMaliciousJA3Hash(std::string md5_hash)     { new_malicious_ja3->insert(md5_hash); }
+  bool isMaliciousJA3Hash(std::string md5_hash);
+  void reloadJA3Hashes();
 };
 
 extern Ntop *ntop;

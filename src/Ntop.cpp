@@ -67,6 +67,8 @@ Ntop::Ntop(char *appName) {
   httpd = NULL, geo = NULL, mac_manufacturers = NULL;
   memset(&cpu_stats, 0, sizeof(cpu_stats));
   cpu_load = 0;
+  malicious_ja3 = malicious_ja3_shadow = NULL;
+  new_malicious_ja3 = new std::set<std::string>();
 
 #ifdef WIN32
   if(SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, working_dir) != S_OK) {
@@ -211,6 +213,10 @@ Ntop::~Ntop() {
   }
 #endif
 #endif
+
+  if(new_malicious_ja3) delete new_malicious_ja3;
+  if(malicious_ja3) delete malicious_ja3;
+  if(malicious_ja3_shadow) delete malicious_ja3_shadow;
 
   if(redis)   { delete redis; redis = NULL;     }
   if(prefs)   { delete prefs; prefs = NULL;     }
@@ -2284,4 +2290,27 @@ bool Ntop::getCpuLoad(float *out) {
     return(true);
   } else
     return(false);
+}
+
+/* ******************************************* */
+
+bool Ntop::isMaliciousJA3Hash(std::string md5_hash) {
+  /* save to avoid swap */
+  std::set<std::string> *hashes = malicious_ja3;
+
+  if(!hashes)
+    return(false);
+
+  return(hashes->find(md5_hash) != hashes->end());
+}
+
+/* ******************************************* */
+
+void Ntop::reloadJA3Hashes() {
+  if(malicious_ja3_shadow)
+    delete malicious_ja3_shadow;
+
+  malicious_ja3_shadow = malicious_ja3;
+  malicious_ja3 = new_malicious_ja3;
+  new_malicious_ja3 = new std::set<std::string>();
 }

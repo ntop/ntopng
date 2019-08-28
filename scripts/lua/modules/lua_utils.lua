@@ -2503,6 +2503,16 @@ end
 
 -- ###############################################
 
+function formatMaliciousSignature(flowstatus_info)
+  if(flowstatus_info.ja3_signature ~= nil) then
+    return(i18n("flow_details.malicious_ja3_signature", {signature = flowstatus_info.ja3_signature}))
+  end
+
+  return(i18n("alerts_dashboard.malicious_signature_detected"))
+end
+
+-- ###############################################
+
 function formatBlacklistedFlow(status, flowstatus_info, alert)
    local who = {}
    if not flowstatus_info then
@@ -2587,6 +2597,7 @@ function getFlowStatusTypes()
    [24] = i18n("flow_details.data_exfiltration"),
    [25] = i18n("flow_details.ssl_old_protocol_version"),
    [26] = i18n("flow_details.potentially_dangerous_protocol"),
+   [27] = i18n("alerts_dashboard.malicious_signature_detected"),
    }
 
    return entries
@@ -2606,6 +2617,7 @@ function getFlowStatus(status, flowstatus_info, alert, no_icon)
    elseif(status == 19) then res = warn_sign..formatLongLivedFlowAlert(flowstatus_info)
    elseif(status == 21) then res = warn_sign..i18n("flow_details.ids_alert", { signature=(flowstatus_info.ids_alert and flowstatus_info.ids_alert.signature), severity=(flowstatus_info.ids_alert and flowstatus_info.ids_alert.severity)} )
    elseif(status == 22) then res = warn_sign..i18n("flow_details.tcp_severe_connection_issues")
+   elseif(status == 27) then res = warn_sign..formatMaliciousSignature(flowstatus_info)
    elseif(status == 0) then res = types[0]
    elseif(types[status] ~= nil) then res = warn_sign..types[status]
    end

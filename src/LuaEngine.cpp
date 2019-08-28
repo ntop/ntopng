@@ -1497,6 +1497,31 @@ static int ntop_ip_cmp(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_load_malicious_ja3_hash(lua_State* vm) {
+  const char *ja3_hash;
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  ja3_hash = lua_tostring(vm, 1);
+
+  ntop->loadMaliciousJA3Hash(ja3_hash);
+  lua_pushnil(vm);
+
+  return(CONST_LUA_OK);
+}
+/* ****************************************** */
+
+static int ntop_reload_ja3_hashes(lua_State* vm) {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  ntop->reloadJA3Hashes();
+  lua_pushnil(vm);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 #ifdef HAVE_NEDGE
 static int ntop_set_routing_mode(lua_State* vm) {
   bool routing_enabled;
@@ -9604,6 +9629,10 @@ static const luaL_Reg ntop_reg[] = {
   { "isShutdown",           ntop_is_shutdown          },
   { "listInterfaces",       ntop_list_interfaces      },
   { "ipCmp",                ntop_ip_cmp               },
+
+  /* JA3 */
+  { "loadMaliciousJA3Hash", ntop_load_malicious_ja3_hash },
+  { "reloadJA3Hashes",      ntop_reload_ja3_hashes       },
 
   /* Device Protocols */
   { "reloadDeviceProtocols", ntop_reload_device_protocols },

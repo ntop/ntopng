@@ -103,7 +103,13 @@ local BUILTIN_LISTS = {
     format = "hosts",
     enabled = is_nedge,
     update_interval = DEFAULT_UPDATE_INTERVAL,
-  },
+  }, ["SSLBL JA3"] = {
+    url = "https://sslbl.abuse.ch/blacklist/ja3_fingerprints.csv",
+    format = "ja3_suricata_csv",
+    category = CUSTOM_CATEGORY_MALWARE,
+    enabled = true,
+    update_interval = DEFAULT_UPDATE_INTERVAL,
+  }
 }
 
 -- ##############################################
@@ -386,6 +392,43 @@ end
 
 -- ##############################################
 
+local function parse_hosts_line(line)
+  local words = string.split(line, "%s+")
+  local host = nil
+
+  if(words and (#words == 2)) then
+    host = words[2]
+
+    if((host == "localhost") or (host == "127.0.0.1") or (host == "::1")) then
+      host = nil
+    end
+  else
+    -- invalid host
+    host = nil
+  end
+
+  return(host)
+end
+
+-- ##############################################
+
+local function handle_ja3_suricata_csv_line(line)
+  local parts = string.split(line, ",")
+
+  if((parts ~= nil) and (#parts >= 1)) then
+    local md5_hash = parts[1]
+
+    if(string.len(md5_hash) == 32) then
+      ntop.loadMaliciousJA3Hash(string.lower(md5_hash))
+      return(true)
+    end
+  end
+
+  return(false)
+end
+
+-- ##############################################
+
 -- Loads hosts from a list file on disk
 local function loadFromListFile(list_name, list, user_custom_categories)
   local list_fname = getListCacheFile(list_name)
@@ -410,18 +453,13 @@ local function loadFromListFile(list_name, list, user_custom_categories)
       local host = trimmed
 
       if list.format == "hosts" then
-        local words = string.split(trimmed, "%s+")
-
-        if words and (#words == 2) then
-          host = words[2]
-
-          if((host == "localhost") or (host == "127.0.0.1") or (host == "::1")) then
-            host = nil
-          end
-        else
-          -- invalid host
-          host = nil
+        host = parse_hosts_line(trimmed)
+      elseif list.format == "ja3_suricata_csv" then
+        -- handled differently
+        if handle_ja3_suricata_csv_line(trimmed) then
+          num_lines = num_lines + 1
         end
+        host = nil
       end
 
       if host then
@@ -466,6 +504,7 @@ local function reloadListsNow()
 
   -- Reload into memory
   ntop.reloadCustomCategories()
+  ntop.reloadJA3Hashes()
 end
 
 -- ##############################################

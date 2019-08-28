@@ -1024,7 +1024,11 @@ alert_consts.alert_types = {
     i18n_title = "alerts_dashboard.ghost_network_detected",
     i18n_description = ghostNetworkFormatter,
     icon = "fa-snapchat-ghost",
-  }
+  }, malicious_signature = {
+    alert_id = 48,
+    i18n_title = "alerts_dashboard.malicious_signature_detected",
+    icon = "fa-ban",
+  },
 }
 
 -- ##############################################

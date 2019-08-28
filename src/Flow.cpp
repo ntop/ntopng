@@ -131,6 +131,7 @@ Flow::Flow(NetworkInterface *_iface,
 #endif
 
   passVerdict = true, quota_exceeded = false;
+  has_malicious_signature = false;
   if(_first_seen > _last_seen) _first_seen = _last_seen;
   first_seen = _first_seen, last_seen = _last_seen;
   bytes_thpt_trend = trend_unknown, pkts_thpt_trend = trend_unknown;
@@ -303,6 +304,7 @@ void Flow::dumpFlowAlert() {
       do_dump = ntop->getPrefs()->are_mining_alerts_enabled();
       break;
 
+    case status_malicious_signature:
     case status_blacklisted:
       do_dump = ntop->getPrefs()->are_malware_alerts_enabled();
       break;
@@ -2210,6 +2212,10 @@ json_object* Flow::flow2statusinfojson() {
   else if(fs == status_elephant_remote_to_local)
     json_object_object_add(obj, "elephant.r2l_threshold",
 			   json_object_new_int64(ntop->getPrefs()->get_elephant_flow_remote_to_local_bytes()));
+  else if(fs == status_malicious_signature) {
+    if(isSSL() && protos.ssl.ja3.client_hash)
+      json_object_object_add(obj, "ja3_signature", json_object_new_string(protos.ssl.ja3.client_hash));
+  }
 
   if(isICMP()) {
     json_object_object_add(obj, "icmp.icmp_type", json_object_new_int(protos.icmp.icmp_type)),
@@ -3753,6 +3759,9 @@ FlowStatus Flow::getFlowStatus() {
   if(!isDeviceAllowedProtocol())
     return status_device_protocol_not_allowed;
 
+  if(has_malicious_signature)
+    return status_malicious_signature;
+
   //if(get_protocol_category() == CUSTOM_CATEGORY_MINING)
   if(ndpiDetectedProtocol.category == CUSTOM_CATEGORY_MINING)
     return status_web_mining_detected;
@@ -4023,9 +4032,12 @@ void Flow::setParsedeBPFInfo(const ParsedeBPF * const ebpf, bool src2dst_directi
 /* ***************************************************** */
 
 void Flow::updateJA3() {
-  if(cli_host && isSSL() && protos.ssl.ja3.client_hash)
+  if(cli_host && isSSL() && protos.ssl.ja3.client_hash) {
     cli_host->getJA3Fingerprint()->update(protos.ssl.ja3.client_hash,
 					  cli_ebpf ? cli_ebpf->process_info.process_name : NULL);
+
+    has_malicious_signature |= ntop->isMaliciousJA3Hash(protos.ssl.ja3.client_hash);
+  }
 }
 
 /* ***************************************************** */

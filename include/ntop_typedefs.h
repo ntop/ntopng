@@ -140,6 +140,7 @@ typedef enum {
   slow_periodic_activity = 40,
   login_failed = 42,
   alert_potentially_dangerous_protocol = 43,
+  alert_malicious_signature = 48,
   /* 
      IMPORTANT IMPORTANT IMPORTANT
      If # status >= 64 then extend Utils.h and Lua bitmap functions to handle it
@@ -365,6 +366,7 @@ typedef enum {
   status_data_exfiltration /* 24 */,
   status_ssl_old_protocol_version /* 25 */,
   status_potentially_dangerous /* 26 */,
+  status_malicious_signature /* 27 */,
   num_flow_status,
   /* 
      IMPORTANT IMPORTANT IMPORTANT

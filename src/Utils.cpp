@@ -655,6 +655,10 @@ const char* Utils::flowStatus2str(FlowStatus s, AlertType *aType, AlertLevel *aL
     *aType = alert_ids;
     *aLevel = alert_level_warning;
     return("IDS alert");
+  case status_malicious_signature:
+    *aType = alert_malicious_signature;
+    *aLevel = alert_level_warning;
+    return("Possibly Malicious Signature Detected");
   default:
     return("Unknown status");
     break;
