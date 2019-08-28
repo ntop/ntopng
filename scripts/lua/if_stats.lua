@@ -797,10 +797,10 @@ elseif((page == "networks")) then
       print("<tr><th width=250>"..i18n("broadcast_domain").."</th><td colspan=5>")
 
       local bcast_domains = {}
-      for bcast_domain, in_interface_range in pairsByKeys(ifstats.bcast_domains) do
+      for bcast_domain, domain_info in pairsByKeys(ifstats.bcast_domains) do
 	 bcast_domain = string.format("<a href='%s/lua/hosts_stats.lua?network_cidr=%s'>%s</a>", ntop.getHttpPrefix(), bcast_domain, bcast_domain)
 
-	 if in_interface_range == 0 and interface.isPacketInterface() and not is_pcap_dump and ntop.getPref(string.format("ntopng.prefs.ifid_%d.is_traffic_mirrored", ifId)) ~= "1" then
+	 if domain_info.ghost_network and interface.isPacketInterface() and not is_pcap_dump and ntop.getPref(string.format("ntopng.prefs.ifid_%d.is_traffic_mirrored", ifId)) ~= "1" then
 	    has_ghost_networks = true
 	    bcast_domain = bcast_domain..' '..ghost_icon
 	 end

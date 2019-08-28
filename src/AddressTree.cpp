@@ -223,13 +223,13 @@ bool AddressTree::match(char *addr) {
 
 /* ******************************************* */
 
-bool AddressTree::match(const IpAddress * const ipa, int network_bits) const {
+patricia_node_t* AddressTree::match(const IpAddress * const ipa, int network_bits) const {
   if(!ipa)
-    return false;
+    return(NULL);
 
   bool is_v4 = ipa->isIPv4();
   if(!is_v4 && !ptree_v6)
-    return false;
+    return(NULL);
 
   if(is_v4)
     return Utils::ptree_match(ptree_v4, AF_INET, &ipa->getIP()->ipType.ipv4, network_bits);
@@ -280,28 +280,19 @@ int16_t AddressTree::findMac(const u_int8_t addr[]) {
 /* **************************************************** */
 
 static void address_tree_dump_funct(patricia_node_t * node, void *data, void *user_data) {
-  char address[64], ret[64], *a;
+  char address[128];
   prefix_t *prefix;
 
   if(!node || !(prefix = node->prefix))
     return;
 
-  switch(prefix->family) {
-  case AF_INET:
-    a = Utils::intoaV4(ntohl(prefix->add.sin.s_addr), address, sizeof(address));
-    snprintf(ret, sizeof(ret), "%s/%d", a, prefix->bitlen);
-    break;
-
-  case AF_INET6:
-    a = Utils::intoaV6(*((struct ndpi_in6_addr*)&prefix->add.sin6), prefix->bitlen, address, sizeof(address));
-    snprintf(ret, sizeof(ret), "%s/%d", a, prefix->bitlen);
-    break;
-  }
+  if(!Utils::ptree_prefix_print(prefix, address, sizeof(address)))
+    return;
 
   if(user_data)
-    lua_push_uint64_table_entry((lua_State*)user_data, ret, node->user_data);
+    lua_push_uint64_table_entry((lua_State*)user_data, address, node->user_data);
   else
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[AddressTree] %s", ret);
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[AddressTree] %s", address);
 }
 
 /* **************************************************** */

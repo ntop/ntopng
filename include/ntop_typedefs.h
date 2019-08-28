@@ -738,4 +738,9 @@ typedef struct ts_icmp_stats {
 class AlertableEntity;
 typedef void (alertable_callback)(AlertableEntity *alertable, void *user_data);
 
+typedef struct bcast_domain_info {
+  bool is_ghost_network;
+  u_int64_t hits;
+} bcast_domain_info;
+
 #endif /* _NTOP_TYPEDEFS_H_ */

@@ -783,6 +783,17 @@ end
 
 -- ##############################################
 
+local function ghostNetworkFormatter(ifid, alert, info)
+  local entity = formatAlertEntity(ifid, alertEntityRaw(alert["alert_entity"]), alert["alert_entity_val"])
+
+  return(i18n("alerts_dashboard.ghost_network_detected_description", {
+    network = alert.alert_subtype,
+    entity = entity,
+  }))
+end
+
+-- ##############################################
+
 -- Keep ID in sync with AlertType
 alert_consts.alert_types = {
   tcp_syn_flood = {
@@ -1008,7 +1019,12 @@ alert_consts.alert_types = {
     i18n_title = "alerts_dashboard.misbehaving_flows_ratio",
     i18n_description = misbehavingFlowsRatioFormatter,
     icon = "fa-exclamation",
-  },
+  }, ghost_network = {
+    alert_id = 47,
+    i18n_title = "alerts_dashboard.ghost_network_detected",
+    i18n_description = ghostNetworkFormatter,
+    icon = "fa-snapchat-ghost",
+  }
 }
 
 -- ##############################################

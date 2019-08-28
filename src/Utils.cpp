@@ -2943,6 +2943,26 @@ int Utils::ptree_remove_rule(patricia_tree_t *ptree, char *line) {
 
 /* ******************************************* */
 
+bool Utils::ptree_prefix_print(prefix_t *prefix, char *buffer, size_t bufsize) {
+  char *a, ipbuf[64];
+
+  switch(prefix->family) {
+  case AF_INET:
+    a = Utils::intoaV4(ntohl(prefix->add.sin.s_addr), ipbuf, sizeof(ipbuf));
+    snprintf(buffer, bufsize, "%s/%d", a, prefix->bitlen);
+    return(true);
+
+  case AF_INET6:
+    a = Utils::intoaV6(*((struct ndpi_in6_addr*)&prefix->add.sin6), prefix->bitlen, ipbuf, sizeof(ipbuf));
+    snprintf(buffer, bufsize, "%s/%d", a, prefix->bitlen);
+    return(true);
+  }
+
+  return(false);
+}
+
+/* ******************************************* */
+
 int Utils::numberOfSetBits(u_int32_t i) {
   // Java: use >>> instead of >>
   // C or C++: use uint32_t

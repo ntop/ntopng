@@ -887,6 +887,18 @@ end
 
 -- ##############################################
 
+function alerts_api.ghostNetworkType(network, granularity)
+  return({
+    alert_type = alert_consts.alert_types.ghost_network,
+    alert_subtype = network,
+    alert_granularity = alert_consts.alerts_granularities[granularity],
+    alert_severity = alert_consts.alert_severities.warning,
+    alert_type_params = {},
+  })
+end
+
+-- ##############################################
+
 function alerts_api.load_check_modules(subdir, str_granularity)
   local checks_dir = os_utils.fixPath(ALERT_CHECKS_MODULES_BASEDIR .. "/" .. subdir)
   local available_modules = {}
