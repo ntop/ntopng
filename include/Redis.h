@@ -71,6 +71,7 @@ class Redis {
   void setDefaults();
   inline bool isOperational() { return(operational); };
   inline void setInitializationComplete() { initializationCompleted = true; };
+  int info(char *rsp, u_int rsp_len);
   int expire(char *key, u_int expire_sec);
   int get(char *key, char *rsp, u_int rsp_len, bool cache_it = false);
   int hashGet(const char * const key, const char * const member, char * const rsp, u_int rsp_len);

@@ -7429,6 +7429,24 @@ static int ntop_list_reports(lua_State* vm) {
 /* ****************************************** */
 
 // ***API***
+static int ntop_info_redis(lua_State* vm) {
+  char *rsp;
+  u_int rsp_len = CONST_MAX_LEN_REDIS_VALUE;
+  Redis *redis = ntop->getRedis();
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if((rsp = (char*)malloc(rsp_len)) != NULL) {
+    lua_pushfstring(vm, "%s", (redis->info(rsp, rsp_len) == 0) ? rsp : (char*)"");
+    free(rsp);
+    return(CONST_LUA_OK);
+  } else
+    return(CONST_LUA_ERROR);
+}
+
+/* ****************************************** */
+
+// ***API***
 static int ntop_get_redis(lua_State* vm) {
   char *key, *rsp;
   u_int rsp_len = CONST_MAX_LEN_REDIS_VALUE;
@@ -9437,6 +9455,7 @@ static const luaL_Reg ntop_reg[] = {
   { "resetStats",       ntop_reset_stats },
 
   /* Redis */
+  { "getCacheInfo",      ntop_info_redis },
   { "getCache",          ntop_get_redis },
   { "setCache",          ntop_set_redis },
   { "incrCache",         ntop_incr_redis },

@@ -3246,6 +3246,11 @@ local lang = {
     ["short_desc_influxdb_storage_utilization"] = "Total disk space used by InfluxDB.",
     ["value"] = "Value",
     ["write_througput"] = "Write Througput",
+    ["redis"] = {
+       ["short_desc_redis_health"] = "Current Redis health.",
+       ["short_desc_redis_storage_utilization"] = "Total disk space used by Redis.",
+       ["short_desc_redis_ram_memory"] = "Total memory Redis has obtained from the operating system.",
+    }
   },
   ["telemetry_page"] = {
     ["crash_report"] = "Crash Report",
