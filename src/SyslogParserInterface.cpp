@@ -83,6 +83,12 @@ void SyslogParserInterface::parseSuricataFlow(json_object *f, ParsedFlow *flow) 
 /* **************************************************** */
 
 void SyslogParserInterface::parseSuricataAlert(json_object *a, ParsedFlow *flow, ICMPinfo *icmp_info, bool flow_alert) {
+  json_object *w;
+  u_int8_t severity; 
+ 
+  if (json_object_object_get_ex(a, "severity", &w)) 
+    severity = json_object_get_int(w);
+
   if (flow_alert) {
     Flow *f;
     bool src2dst_direction, new_flow;
@@ -105,7 +111,7 @@ void SyslogParserInterface::parseSuricataAlert(json_object *a, ParsedFlow *flow,
       true /* create it if we didn't receive netflow yet */);
 
     if (f) {
-      f->setSuricataAlert(json_object_get(a));
+      f->setIDSAlert(json_object_get(a), severity);
     } else {
 #ifdef SYSLOG_DEBUG 
       ntop->getTrace()->traceEvent(TRACE_INFO, "[Suricata] Flow matching the alert not found (ignored)", 
@@ -115,6 +121,7 @@ void SyslogParserInterface::parseSuricataAlert(json_object *a, ParsedFlow *flow,
 
     if (companionsEnabled()) {
       flow->suricata_alert = strdup(json_object_to_json_string(a));
+      flow->suricata_alert_severity = severity;
       deliverFlowToCompanions(flow);
     }
 

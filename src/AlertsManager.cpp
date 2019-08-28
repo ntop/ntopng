@@ -395,7 +395,9 @@ int AlertsManager::storeFlowAlert(Flow *f) {
 
     info = f->getFlowInfo();
 
-    msg = Utils::flowStatus2str(f->getFlowStatus(), &alert_type, &alert_severity);
+    msg = Utils::flowStatus2str(f->getFlowStatus(), f->getIDSAlertSeverity(),
+      &alert_type, &alert_severity);
+
     cli = f->get_cli_host(), srv = f->get_srv_host();
     if(cli && cli->get_ip())
       cli_ip = cli->get_ip()->print(cli_ip_buf, sizeof(cli_ip_buf));

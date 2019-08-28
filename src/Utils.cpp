@@ -568,7 +568,8 @@ int Utils::mkdir(const char *path, mode_t mode) {
 /* **************************************************** */
 
 /* NOTE: this function also determines the AlertType to use */
-const char* Utils::flowStatus2str(FlowStatus s, AlertType *aType, AlertLevel *aLevel) {
+const char* Utils::flowStatus2str(FlowStatus s, u_int8_t ext_severity /* e.g. IDS severity */, 
+                                  AlertType *aType, AlertLevel *aLevel) {
   *aType = alert_flow_misbehaviour; /* Default */
   *aLevel = alert_level_warning;
 
@@ -620,7 +621,6 @@ const char* Utils::flowStatus2str(FlowStatus s, AlertType *aType, AlertLevel *aL
     return("Remote client and remote server");
   case status_web_mining_detected:
     *aType = alert_flow_web_mining;
-    *aLevel = alert_level_warning;
     return("Web miner detected");
   case status_blacklisted:
     *aType = alert_flow_blacklisted;
@@ -632,7 +632,6 @@ const char* Utils::flowStatus2str(FlowStatus s, AlertType *aType, AlertLevel *aL
     return("Flow blocked");
   case status_device_protocol_not_allowed:
     *aType = alert_device_protocol_not_allowed;
-    *aLevel = alert_level_warning;
     return("Protocol not allowed for this device type");
   case status_potentially_dangerous:
     *aType = alert_potentially_dangerous_protocol;
@@ -653,7 +652,8 @@ const char* Utils::flowStatus2str(FlowStatus s, AlertType *aType, AlertLevel *aL
     break;
   case status_ids_alert:
     *aType = alert_ids;
-    *aLevel = alert_level_warning;
+    if (ext_severity == 1)
+      *aLevel = alert_level_error;
     return("IDS alert");
   case status_malicious_signature:
     *aType = alert_malicious_signature;

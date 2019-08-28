@@ -29,6 +29,7 @@ ParsedFlow::ParsedFlow() : ParsedFlowCore(), ParsedeBPF() {
   dns_query = ssl_server_name = NULL;
   ja3c_hash = ja3s_hash = NULL;
   suricata_alert = NULL;
+  suricata_alert_severity = 255;
 
   ssl_cipher = ssl_unsafe_cipher = http_ret_code = 0;
   dns_query_type = dns_ret_code = 0;
@@ -53,6 +54,14 @@ ParsedFlow::ParsedFlow(const ParsedFlow &pf) : ParsedFlowCore(pf), ParsedeBPF(pf
   if(pf.ja3c_hash) ja3c_hash = strdup(pf.ja3c_hash); else ja3c_hash = NULL;
   if(pf.ja3s_hash) ja3s_hash = strdup(pf.ja3s_hash); else ja3s_hash = NULL;
   if(pf.suricata_alert) suricata_alert = strdup(pf.suricata_alert); else suricata_alert = NULL;
+
+  suricata_alert_severity = pf.suricata_alert_severity;
+
+  ssl_cipher = pf.ssl_cipher;
+  ssl_unsafe_cipher = pf.ssl_unsafe_cipher;
+  http_ret_code = pf.http_ret_code;
+  dns_query_type = pf.dns_query_type;
+  dns_ret_code = pf.dns_ret_code;
 
   memcpy(&custom_app, &pf.custom_app, sizeof(custom_app));
   has_parsed_ebpf = pf.has_parsed_ebpf;

@@ -76,7 +76,8 @@ Flow::Flow(NetworkInterface *_iface,
   cli2srv_last_packets = 0, prev_cli2srv_last_packets = 0, srv2cli_last_packets = 0, prev_srv2cli_last_packets = 0;
   top_bytes_thpt = 0, top_goodput_bytes_thpt = 0, applLatencyMsec = 0;
 
-  suricata_alert = NULL;
+  ids_alert = NULL;
+  ids_alert_severity = 255;
 
   memset(&last_db_dump, 0, sizeof(last_db_dump));
   memset(&protos, 0, sizeof(protos));
@@ -254,8 +255,8 @@ Flow::~Flow() {
   if(community_id_flow_hash) free(community_id_flow_hash);
 
   freeDPIMemory();
-  if(icmp_info)        delete(icmp_info);
-  if(suricata_alert) json_object_put(suricata_alert);
+  if(icmp_info) delete(icmp_info);
+  if(ids_alert) json_object_put(ids_alert);
 }
 
 /* *************************************** */
@@ -2191,7 +2192,7 @@ json_object* Flow::flow2statusinfojson() {
 
   FlowStatus fs = getFlowStatus();
   if(fs == status_ids_alert) {
-    json_object *json_alert = getSuricataAlert();
+    json_object *json_alert = getIDSAlert();
     if (json_alert)
       json_object_object_add(obj, "ids_alert", json_object_get(json_alert));
   } else if(fs == status_blacklisted) {
@@ -3766,7 +3767,7 @@ FlowStatus Flow::getFlowStatus() {
   if(ndpiDetectedProtocol.category == CUSTOM_CATEGORY_MINING)
     return status_web_mining_detected;
 
-  if(getSuricataAlert())
+  if(getIDSAlert())
     return status_ids_alert;
 
 #ifndef HAVE_NEDGE

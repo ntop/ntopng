@@ -97,7 +97,8 @@ class Flow : public GenericHashEntry {
   u_int32_t last_conntrack_update; 
   u_int32_t marker;
 #endif
-  json_object *suricata_alert;
+  json_object *ids_alert;
+  u_int8_t ids_alert_severity;
  
   union {
     struct {
@@ -460,8 +461,9 @@ class Flow : public GenericHashEntry {
   inline char* getSSLCertificate()  { return(isSSL() ? protos.ssl.certificate : (char*)""); }
   bool isSSLProto();
 
-  inline void setSuricataAlert(json_object *a) { if (suricata_alert) json_object_put(suricata_alert); suricata_alert = a; };
-  inline json_object *getSuricataAlert() { return suricata_alert; };
+  inline void setIDSAlert(json_object *a, u_int8_t severity) { if (ids_alert) json_object_put(ids_alert); ids_alert = a; ids_alert_severity = severity; };
+  inline json_object *getIDSAlert() { return ids_alert; };
+  inline u_int8_t getIDSAlertSeverity() { return ids_alert_severity; };
 
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   inline void updateProfile()     { trafficProfile = iface->getFlowProfile(this); }
