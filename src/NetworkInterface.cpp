@@ -2831,6 +2831,8 @@ void NetworkInterface::periodicStatsUpdate() {
   gettimeofday(&tdebug, NULL);
 #endif
 
+  updatePacketsStats();
+
   flows_hash->walk(&begin_slot, walk_all, flow_update_hosts_stats, (void*)&tv);
   topItemsCommit(&tv);
 

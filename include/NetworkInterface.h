@@ -487,6 +487,7 @@ class NetworkInterface : public Checkpointable {
 
   virtual u_int64_t getNumPackets();
   virtual u_int64_t getNumBytes();
+  virtual void      updatePacketsStats() { };
   virtual u_int32_t getNumDroppedPackets() { return 0; };
   virtual u_int     getNumPacketDrops();
   virtual u_int     getNumFlows();
