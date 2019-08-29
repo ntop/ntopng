@@ -1127,4 +1127,12 @@ alert_consts.field_units = {
 
 -- ################################################################################
 
+alert_consts.ids_rule_maker = {
+  GPL = "GPL",
+  SURICATA = "Suricata",
+  ET = "Emerging Threats",
+}
+
+-- ################################################################################
+
 return alert_consts

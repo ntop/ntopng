@@ -832,7 +832,7 @@ local lang = {
     ["host_successfully_added_to_category"] = "Host \"%{host}\" successfully added to the <a href=\"%{url}\">%{category}</a> category. Only new flows will be affected by the rule.",
     ["http_method"] = "HTTP Method",
     ["icmp_info"] = "ICMP Info",
-    ["ids_alert"] = "Detected %{signature} (severity %{severity})",
+    ["ids_alert"] = "Detected %{scope} alert: %{msg} [%{maker}]",
     ["imsi"] = "IMSI (International mobile Subscriber Identity)",
     ["io_wait_time_percentage"] = "I/O Wait Time Percentage",
     ["ip_packet_analysis"] = "IP Packet Analysis",
@@ -3247,10 +3247,10 @@ local lang = {
     ["value"] = "Value",
     ["write_througput"] = "Write Througput",
     ["redis"] = {
-       ["short_desc_redis_health"] = "Current Redis health.",
-       ["short_desc_redis_storage_utilization"] = "Total disk space used by Redis.",
-       ["short_desc_redis_ram_memory"] = "Total memory Redis has obtained from the operating system.",
-    }
+      ["short_desc_redis_health"] = "Current Redis health.",
+      ["short_desc_redis_ram_memory"] = "Total memory Redis has obtained from the operating system.",
+      ["short_desc_redis_storage_utilization"] = "Total disk space used by Redis.",
+    },
   },
   ["telemetry_page"] = {
     ["crash_report"] = "Crash Report",

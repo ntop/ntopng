@@ -2447,6 +2447,23 @@ end
 
 -- ###############################################
 
+function formatIDSFlowAlert(flowstatus_info)
+   local signature = (flowstatus_info.ids_alert and flowstatus_info.ids_alert.signature)
+   local category = (flowstatus_info.ids_alert and flowstatus_info.ids_alert.category)
+   local severity = (flowstatus_info.ids_alert and flowstatus_info.ids_alert.severity)
+   local signature_info = (signature and signature:split(" "));
+   local maker = (signature_info and table.remove(signature_info, 1))
+   local scope = (signature_info and table.remove(signature_info, 1))
+   local msg = (signature_info and table.concat(signature_info, " "))
+   if maker and alert_consts.ids_rule_maker[maker] then
+     maker = alert_consts.ids_rule_maker[maker]
+   end
+   local res = i18n("flow_details.ids_alert", { scope=scope, msg=msg, severity=severity, maker=maker } )
+   return res
+end
+
+-- ###############################################
+
 function formatElephantFlowAlert(flowstatus_info, local2remote)
    local threshold = ""
    local res = ""
@@ -2619,7 +2636,7 @@ function getFlowStatus(status, flowstatus_info, alert, no_icon)
    elseif(status == 17) then res = warn_sign..formatElephantFlowAlert(flowstatus_info, true --[[ local 2 remote --]])
    elseif(status == 18) then res = warn_sign..formatElephantFlowAlert(flowstatus_info, false --[[ remote 2 local --]])
    elseif(status == 19) then res = warn_sign..formatLongLivedFlowAlert(flowstatus_info)
-   elseif(status == 21) then res = warn_sign..i18n("flow_details.ids_alert", { signature=(flowstatus_info.ids_alert and flowstatus_info.ids_alert.signature), severity=(flowstatus_info.ids_alert and flowstatus_info.ids_alert.severity)} )
+   elseif(status == 21) then res = warn_sign..formatIDSFlowAlert(flowstatus_info)
    elseif(status == 22) then res = warn_sign..i18n("flow_details.tcp_severe_connection_issues")
    elseif(status == 27) then res = warn_sign..formatMaliciousSignature(flowstatus_info)
    elseif(status == 0) then res = types[0]
