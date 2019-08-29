@@ -3030,6 +3030,8 @@ void NetworkInterface::periodicStatsUpdate() {
   gettimeofday(&tdebug, NULL);
 #endif
 
+  updatePacketsStats();
+
   if(!isView() && flows_hash) /* View Interfaces don't have flows, they just walk flows of their 'viewed' peers */
     walker(&begin_slot, walk_all, walker_flows, flow_update_hosts_stats, (void*)&tv, true);
 

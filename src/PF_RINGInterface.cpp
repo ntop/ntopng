@@ -90,6 +90,7 @@ PF_RINGInterface::PF_RINGInterface(const char *name) : NetworkInterface(name) {
 
   num_pfring_handles = 0;
   pcap_datalink_type = DLT_EN10MB;
+  dropped_packets = 0;
 
   if (strchr(ifname, ':') && strchr(ifname, ',')) { 
     char name_list[MAX_INTERFACE_NAME_LEN];
@@ -265,7 +266,11 @@ void PF_RINGInterface::shutdown() {
 
 /* **************************************************** */
 
-u_int32_t PF_RINGInterface::getNumDroppedPackets() {
+/* Note: getNumDroppedPackets is called inline from the GUI,
+ * this creates issues when pfring_stats adds latency (e.g. with
+ * Napatech streams), for this reason we are updating drop stats 
+ * in a periodic housekeeping thread. */
+void PF_RINGInterface::updatePacketsStats() {
   pfring_stat stats;
   u_int32_t dropped = 0;
   int i;
@@ -280,7 +285,13 @@ u_int32_t PF_RINGInterface::getNumDroppedPackets() {
     }
   }
 
-  return dropped;
+  dropped_packets = dropped;
+}
+
+/* **************************************************** */
+
+u_int32_t PF_RINGInterface::getNumDroppedPackets() {
+  return dropped_packets;
 }
 
 /* **************************************************** */
