@@ -1128,7 +1128,7 @@ elseif(page == "historical") then
 
          {schema="iface:zmq_recv_flows",        label=i18n("graphs.zmq_received_flows"), nedge_exclude=1},
 	 {schema="iface:zmq_flow_coll_drops",     label=i18n("graphs.zmq_flow_coll_drops"), nedge_exclude=1},
-	 {schema="iface:zmq_flow_coll_udp_drops", label=i18n("graphs.zmq_flow_coll_udp_drops"), nedge_exclude=1},
+	 {schema="iface:zmq_flow_coll_udp_drops", label=i18n("graphs.zmq_flow_coll_udp_drops"), nedge_exclude=1,},
          {schema="iface:exported_flows",        label=i18n("if_stats_overview.exported_flows"), nedge_exclude=1},
          {schema="iface:dropped_flows",         label=i18n("if_stats_overview.dropped_flows"), nedge_exclude=1},
          {separator=1, nedge_exclude=1, label=i18n("tcp_stats")},

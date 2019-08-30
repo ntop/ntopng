@@ -603,7 +603,8 @@ end
 -- tags_filter is expected to contain all the tags of the schema except the last
 -- one. For such tag, a list of available values will be returned.
 local function _listSeries(schema, tags_filter, wildcard_tags, start_time)
-  if #wildcard_tags > 1 then
+   if #wildcard_tags > 1 then
+      tprint({schema_name = schema.name, wildcards=wildcard_tags})
     traceError(TRACE_ERROR, TRACE_CONSOLE, "RRD driver does not support listSeries on multiple tags")
     return nil
   end

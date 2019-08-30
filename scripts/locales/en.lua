@@ -3252,7 +3252,12 @@ local lang = {
     ["redis"] = {
       ["short_desc_redis_health"] = "Current Redis health.",
       ["short_desc_redis_ram_memory"] = "Total memory Redis has obtained from the operating system.",
-      ["short_desc_redis_storage_utilization"] = "Total disk space used by Redis.",
+      ["redis_keys"] = "Database Keys",
+      ["short_desc_redis_keys"] = "Total keys in the Redis database.",
+      ["redis_health_green"] = "OK",
+      ["redis_health_green_descr"] = "Redis is working OK.",
+      ["redis_health_red"] = "Persistence Issues",
+      ["redis_health_red_descr"] = "Redis is unable to persist data. Expect %{product} to malfunction.",
     },
   },
   ["telemetry_page"] = {

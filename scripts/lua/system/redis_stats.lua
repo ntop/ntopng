@@ -28,6 +28,7 @@ local probe = system_scripts.getSystemProbe("redis")
 local page = _GET["page"] or "overview"
 local url = system_scripts.getPageScriptPath(probe) .. "?ifid=" .. getInterfaceId(ifname)
 system_schemas = system_scripts.getAdditionalTimeseries("redis")
+tprint(system_schemas)
 
 print [[
   <nav class="navbar navbar-default" role="navigation">
@@ -43,11 +44,11 @@ else
    print("<li><a href=\""..url.."&page=overview\"><i class=\"fa fa-home fa-lg\"></i></a></li>")
 end
 
--- if(page == "historical") then
---    print("<li class=\"active\"><a href=\""..url.."&page=historical\"><i class='fa fa-area-chart fa-lg'></i></a></li>")
--- else
---    print("<li><a href=\""..url.."&page=historical\"><i class='fa fa-area-chart fa-lg'></i></a></li>")
--- end
+if(page == "historical") then
+   print("<li class=\"active\"><a href=\""..url.."&page=historical\"><i class='fa fa-area-chart fa-lg'></i></a></li>")
+else
+   print("<li><a href=\""..url.."&page=historical\"><i class='fa fa-area-chart fa-lg'></i></a></li>")
+end
 
 if isAdministrator()
 -- and system_scripts.hasAlerts({entity = alertEntity("redis")}))
@@ -77,22 +78,22 @@ if(page == "overview") then
    local tags = {ifid=getSystemInterfaceId()}
    print("<table class=\"table table-bordered table-striped\">\n")
 
-   -- print("<tr><td nowrap width='30%'><b>".. i18n("system_stats.health") .."</b><br><small>"..i18n("system_stats.redis.short_desc_redis_health").."</small></td><td><img class=\"redis-info-load\" border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber><span id=\"redis-health\"></span></td></tr>\n")
-
-   local storage_chart_available = false -- ts_utils.exists("redis:storage_size", tags)
-   -- print("<tr><td nowrap width='30%'><b>".. i18n("traffic_recording.storage_utilization") .."</b> "..ternary(storage_chart_available, "<A HREF='"..url.."&page=historical&ts_schema=redis:storage_size'><i class='fa fa-area-chart fa-sm'></i></A>", "").."<br><small>"..i18n("system_stats.redis.short_desc_redis_storage_utilization").."</small></td><td><img class=\"redis-info-load\" border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber><span id=\"redis-info-text\"></span></td></tr>\n")
+   print("<tr><td nowrap width='30%'><b>".. i18n("system_stats.health") .."</b><br><small>"..i18n("system_stats.redis.short_desc_redis_health").."</small></td><td><img class=\"redis-info-load\" border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber><span id=\"redis-health\"></span></td></tr>\n")
 
    -- No need to determine whether the chart exists for this as memory is always fetched straigth from redis
-   print("<tr><td nowrap width='30%'><b>".. i18n("about.ram_memory") .."</b> "..ternary(false, "<A HREF='"..url.."&page=historical&ts_schema=redis:memory_size'><i class='fa fa-area-chart fa-sm'></i></A>", "").."<br><small>"..i18n("system_stats.redis.short_desc_redis_ram_memory").."</small></td><td><img class=\"redis-info-load\" border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber><span id=\"redis-info-memory\"></span></td></tr>\n")
+   local storage_chart_available = ts_utils.exists("redis:memory", tags)
+   print("<tr><td nowrap width='30%'><b>".. i18n("about.ram_memory") .."</b> "..ternary(storage_chart_available, "<A HREF='"..url.."&page=historical&ts_schema=redis:memory'><i class='fa fa-area-chart fa-sm'></i></A>", "").."<br><small>"..i18n("system_stats.redis.short_desc_redis_ram_memory").."</small></td><td><img class=\"redis-info-load\" border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber><span id=\"redis-info-memory\"></span></td></tr>\n")
+
+   local keys_chart_available = ts_utils.exists("redis:keys", tags)
+   print("<tr><td nowrap width='30%'><b>".. i18n("system_stats.redis.redis_keys") .."</b> "..ternary(keys_chart_available, "<A HREF='"..url.."&page=historical&ts_schema=redis:keys'><i class='fa fa-area-chart fa-sm'></i></A>", "").."<br><small>"..i18n("system_stats.redis.short_desc_redis_keys").."</small></td><td><img class=\"redis-info-load\" border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber><span id=\"redis-info-keys\"></span></td></tr>\n")
 
    print[[<script>
 
- var last_db_bytes, last_memory
+ var last_keys, last_memory
  var health_descr = {
 ]]
-      -- print('"green" : {"status" : "<span class=\'label label-success\'>'..i18n("system_stats.redis_health_green")..'</span>", "descr" : "<small>'..i18n("system_stats.redis_health_green_descr")..'</small>"},')
-      -- print('"yellow" : {"status" : "<span class=\'label label-warning\'>'..i18n("system_stats.redis_health_yellow")..'</span>", "descr" : "<small>'..i18n("system_stats.redis_health_yellow_descr")..'</small>"},')
-      -- print('"red" : {"status" : "<span class=\'label label-danger\'>'..i18n("system_stats.redis_health_red")..'</span>", "descr" : "<small>'..i18n("system_stats.redis_health_red_descr")..'</small>"},')
+   print('"green" : {"status" : "<span class=\'label label-success\'>'..i18n("system_stats.redis.redis_health_green")..'</span>", "descr" : "<small>'..i18n("system_stats.redis.redis_health_green_descr")..'</small>"},')
+   print('"red" : {"status" : "<span class=\'label label-danger\'>'..i18n("system_stats.redis.redis_health_red")..'</span>", "descr" : "<small>'..i18n("system_stats.redis.redis_health_red_descr", {product = ntop.getInfo()["product"]})..'</small>"},')
       print[[
  };
 
@@ -103,11 +104,11 @@ if(page == "overview") then
      if(typeof info.health !== "undefined" && health_descr[info.health]) {
        $("#redis-health").html(health_descr[info.health]["status"] + "<br>" + health_descr[info.health]["descr"]);
      }
-     if(typeof info.db_bytes !== "undefined") {
-       $("#redis-info-text").html(bytesToVolume(info.db_bytes) + " ");
-       if(typeof last_db_bytes !== "undefined")
-	 $("#redis-info-text").append(drawTrend(info.db_bytes, last_db_bytes));
-       last_db_bytes = info.db_bytes;
+     if(typeof info.dbsize !== "undefined") {
+       $("#redis-info-keys").html(formatValue(info.dbsize) + " ");
+       if(typeof last_keys !== "undefined")
+	 $("#redis-info-keys").append(drawTrend(info.dbsize, last_keys));
+       last_keys = info.dbsize;
      }
      if(typeof info.memory !== "undefined") {
        $("#redis-info-memory").html(bytesToVolume(info.memory) + " ");
@@ -127,7 +128,7 @@ refreshRedisStats();
    print("</table>\n")
 
 elseif(page == "historical") then
-   local schema = _GET["ts_schema"] or "redis:storage_size"
+   local schema = _GET["ts_schema"] or "redis:memory"
    local selected_epoch = _GET["epoch"] or ""
    local tags = {ifid = getSystemInterfaceId()}
    url = url.."&page=historical"

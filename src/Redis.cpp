@@ -255,6 +255,31 @@ int Redis::info(char *rsp, u_int rsp_len) {
 
 /* **************************************** */
 
+u_int Redis::dbsize() {
+  redisReply *reply;
+  u_int num = 0;
+
+  l->lock(__FILE__, __LINE__);
+
+  num_requests++;
+  reply = (redisReply*)redisCommand(redis, "DBSIZE");
+
+  if(!reply) reconnectRedis(true);
+  if(reply) {
+    if(reply->type == REDIS_REPLY_ERROR)
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
+    else
+      num = (u_int)reply->integer;
+  }
+
+  l->unlock(__FILE__, __LINE__);
+  if(reply) freeReplyObject(reply);
+
+  return(num);
+}
+
+/* **************************************** */
+
 /* NOTE: We assume that the addToCache() caller locks this instance */
 void Redis::addToCache(const char * const key, const char * const value, u_int expire_secs) {
   std::map<std::string, StringCache>::iterator it;
@@ -1001,7 +1026,6 @@ u_int Redis::len(const char * const key) {
   if(reply) freeReplyObject(reply);
 
   return(num);
-
 }
 
 /* **************************************** */

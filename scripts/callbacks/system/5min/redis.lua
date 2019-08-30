@@ -23,25 +23,33 @@ end
 function probe.loadSchemas(ts_utils)
    local schema
 
-   schema = ts_utils.newSchema("redis:storage_size", {
+   schema = ts_utils.newSchema("redis:memory", {
 				  metrics_type = ts_utils.metrics.gauge,
    })
    schema:addTag("ifid")
-   schema:addMetric("disk_bytes")
+   schema:addMetric("resident_bytes")
+
+   schema = ts_utils.newSchema("redis:keys", {
+				  metrics_type = ts_utils.metrics.gauge,
+   })
+   schema:addTag("ifid")
+   schema:addMetric("num_keys")
 end
 
 -- ##############################################
 
 function probe.getTimeseriesMenu(ts_utils)
    return {
-      {schema = "redis:storage_size", label = i18n("traffic_recording.storage_utilization")},
+      {schema = "redis:memory", label = i18n("about.ram_memory")},
+      {schema = "redis:keys", label = i18n("system_stats.redis.redis_keys")},
    }
 end
 
 -- ##############################################
 
-function probe.getRedisInfo()
-   local redis_info = ntop.getCacheInfo()
+function probe.getRedisStatus()
+   local redis = ntop.getCacheStatus()
+   local redis_info = redis["info"]
    local res = {}
 
    for _, k in pairs(redis_info:split("\r\n")) do
@@ -55,18 +63,48 @@ function probe.getRedisInfo()
       end
    end
 
+
+   if redis["dbsize"] then
+      res["dbsize"] = redis["dbsize"]
+   end
+
    return res
 end
 
 -- ##############################################
 
+local function getHealth(redis_status)
+   local health = "green"
+
+   if redis_status["aof_enabled"] and redis_status["aof_enabled"] ~= 0 then
+      -- If here the use of Redis Append Only File (AOF) is enabled
+      -- so we should check for its errors
+      if redis_stats["aof_last_bgrewrite_status"] ~= "ok" or redis_status["aof_last_write_status"] ~= "ok" then
+	 health = "red"
+      end
+   end
+
+   if redis_status["rdb_last_bgsave_status"] ~= "ok" then
+      health = "red"
+   end
+
+   return health
+end
+
+-- ##############################################
+
 function probe.getStats()
-   local redis_info = probe.getRedisInfo()
+   local redis_status = probe.getRedisStatus()
+
    local res = {
       -- used_memory_rss: Number of bytes that Redis allocated
       -- as seen by the operating system (a.k.a resident set size).
       -- This is the number reported by tools such as top(1) and ps(1)
-      memory = redis_info["used_memory_rss"]
+      memory = redis_status["used_memory_rss"],
+      -- The number of keys in the database
+      dbsize = redis_status["dbsize"],
+      -- Health
+      health = getHealth(redis_status)
    }
 
    return res
@@ -74,19 +112,12 @@ end
 
 -- ##############################################
 
-function probe._exportStorageSize(when, ts_utils, influxdb)
-   local disk_bytes = 0
-   local ifid = getSystemInterfaceId()
-
-   if disk_bytes then
-      ts_utils.append("redis:storage_size", {ifid = ifid, disk_bytes = disk_bytes}, when)
-   end
-end
-
--- ##############################################
-
 function probe.runTask(when, ts_utils)
-   probe._exportStorageSize(when, ts_utils, influxdb)
+   local ifid = getSystemInterfaceId()
+   local stats = probe.getStats()
+
+   ts_utils.append("redis:memory", {ifid = ifid, resident_bytes = stats["memory"]}, when)
+   ts_utils.append("redis:keys", {ifid = ifid, num_keys = stats["dbsize"]}, when)
 end
 
 -- ##############################################
