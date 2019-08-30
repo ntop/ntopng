@@ -262,14 +262,46 @@ end
 
 -- ########################################################
 
+local function getEntryStep(schema_name)
+   if(starts(schema_name, "top:")) then
+      schema_name = split(schema_name, "top:")[2]
+   end
+   -- TODO handle custom schemas?
+
+   local schema_obj = ts_utils.getSchema(schema_name)
+
+   if(schema_obj) then
+      return(schema_obj.options.step)
+   end
+
+   return(nil)
+end
+
+-- ########################################################
+
 local graph_menu_entries = {}
 
-function populateGraphMenuEntry(label, base_url, params, tab_id, needs_separator, separator_label, pending, disabled)
+-- Menu entries are either populated by printSeries (optimized) or directly by
+-- calling this function. In the latter case it is mandatory to check that the
+-- series actually exist before calling this function.
+--
+-- The rule which determines how an entry is show is:
+--    - If no timeseries exist at all for the entry, the entry will not be shown
+--    - If the visualized interval is less then the entry timseries step, then
+--      the entry will be shown but will be grayed out (disabled state)
+--    - If timeseries exist for the entry in the visualized interval, the
+--      entry will be shown and will be clickable
+function populateGraphMenuEntry(label, base_url, params, tab_id, needs_separator, separator_label, pending)
    local url = getPageUrl(base_url, params)
+   local step = nil
 
    local entry_params = table.clone(params)
    for k, v in pairs(splitUrl(base_url).params) do
       entry_params[k] = v
+   end
+
+   if(params.ts_schema ~= nil) then
+      step = getEntryStep(params.ts_schema)
    end
 
    local entry = {
@@ -281,7 +313,7 @@ function populateGraphMenuEntry(label, base_url, params, tab_id, needs_separator
       needs_separator = needs_separator,
       separator_label = separator_label,
       pending = pending, -- true for batched operations
-      disabled = disabled,
+      step = step,
    }
 
    graph_menu_entries[#graph_menu_entries + 1] = entry
@@ -339,13 +371,22 @@ local function printEntry(idx, entry)
    print(table.concat(parts, ""))
 end
 
+-- ########################################################
+
+local function ignoreEntry(entry)
+   return(entry.pending and (entry.pending > 0))
+end
+
+-- ########################################################
+
 -- Prints the menu from the populated graph_menu_entries.
 -- The entry_print_callback is called to print the actual entries.
-function printGraphMenuEntries(entry_print_callback, active_entry)
+function printGraphMenuEntries(entry_print_callback, active_entry, start_time, end_time)
    local active_entries = {}
    local active_idx = 1 -- index in active_entries
    local needs_separator = false
    local separator_label = nil
+   local tdiff = (end_time - start_time)
 
    for _, entry in ipairs(graph_menu_entries) do
       if active_idx ~= 1 then
@@ -353,12 +394,16 @@ function printGraphMenuEntries(entry_print_callback, active_entry)
          separator_label = separator_label or entry.separator_label
       end
 
+      if(entry.step) then
+         entry.disabled = (tdiff <= entry.step)
+      end
+
       if(active_entry == entry) then
         -- Always consider the selected entry as active
         entry.pending = 0
       end
 
-      if(entry.pending and (entry.pending > 0)) then
+      if(ignoreEntry(entry)) then
          -- not verified, act like it does not exist
          goto continue
       end
@@ -389,7 +434,27 @@ end
 
 -- ########################################################
 
-function printSeries(options, tags, start_time, base_url, params)
+-- To be called after the menu has been populated. Returns the
+-- min step of the entries.
+function getMinGraphEntriesStep()
+   local min_step = nil
+
+   for _, entry in pairs(graph_menu_entries) do
+      if(not ignoreEntry(entry) and (entry.step)) then
+         if(min_step == nil) then
+            min_step = entry.step
+         else
+            min_step = math.min(entry.step, min_step)
+         end
+      end
+   end
+
+   return(min_step)
+end
+
+-- ########################################################
+
+function printSeries(options, tags, start_time, end_time, base_url, params)
    local series = options.timeseries
    local needs_separator = false
    local separator_label = nil
@@ -399,6 +464,7 @@ function printSeries(options, tags, start_time, base_url, params)
    local mac_params = nil
    local mac_baseurl = ntop.getHttpPrefix() .. "/lua/mac_details.lua?page=historical"
    local is_pro = ntop.isPro()
+   local tdiff = (end_time - start_time)
 
    if params.tskey then
       -- this can contain a MAC address for local broadcast domain hosts
@@ -418,6 +484,19 @@ function printSeries(options, tags, start_time, base_url, params)
       if ((have_nedge and serie.nedge_exclude) or (not have_nedge and serie.nedge_only)) or
          (serie.pro_skip and is_pro) then
          goto continue
+      end
+
+      local query_start = start_time
+
+      if(serie.schema ~= nil) then
+         local step = getEntryStep(serie.schema)
+
+         if step and (tdiff <= step) then
+            -- This entry will not be clickable but maybe it will be
+            -- shown in disabled state if any data for it exists, so
+            -- remove the time constraint
+            query_start = 0
+         end
       end
 
       if serie.separator then
@@ -462,7 +541,7 @@ function printSeries(options, tags, start_time, base_url, params)
                  exist_tags = getCustomSchemaTags(k, exist_tags, idx)
                end
 
-               local batch_id = ts_utils.batchListSeries(serie, exist_tags, start_time)
+               local batch_id = ts_utils.batchListSeries(serie, exist_tags, query_start)
 
                if batch_id == nil then
                   exists = false
@@ -480,7 +559,7 @@ function printSeries(options, tags, start_time, base_url, params)
             end
 
             -- only show if there has been an update within the specified time frame
-            local batch_id = ts_utils.batchListSeries(k, entry_tags, start_time)
+            local batch_id = ts_utils.batchListSeries(k, entry_tags, query_start)
 
             if batch_id ~= nil then
                -- assume it exists for now, will verify in getBatchedListSeriesResult
@@ -775,8 +854,8 @@ if(options.timeseries) then
   <ul class="dropdown-menu">
 ]]
 
-   printSeries(options, tags, start_time, baseurl, page_params)
-   printGraphMenuEntries(printEntry)
+   printSeries(options, tags, start_time, end_time, baseurl, page_params)
+   printGraphMenuEntries(printEntry, nil, start_time, end_time)
 
    print [[
   </ul>
