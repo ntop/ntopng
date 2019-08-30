@@ -412,7 +412,7 @@ if((page == "overview") or (page == nil)) then
       end
 
       if not isEmptyString(ifstats["probe.public_ip"]) then
-         remote_probe_public_ip = "<b>"..i18n("if_stats_overview.public_probe_ip").."</b>: <A HREF=\"http://"..ifstats["probe.public_ip"].."\">"..ifstats["probe.public_ip"].."</A> <i class='fa fa-external-link'></i></td>\n"
+	 remote_probe_public_ip = "<b>"..i18n("if_stats_overview.public_probe_ip").."</b>: <A HREF=\"http://"..ifstats["probe.public_ip"].."\">"..ifstats["probe.public_ip"].."</A> <i class='fa fa-external-link'></i></td>\n"
       end
 
       if not isEmptyString(ifstats["zmq.num_flow_exports"]) then
@@ -433,21 +433,22 @@ if((page == "overview") or (page == nil)) then
       local colspan = 4
 
       if ifstats["timeout.lifetime"] > 0 then
-        print("<td nowrap><b>"..i18n("if_stats_overview.probe_timeout_lifetime").."</b>: "..secondsToTime(ifstats["timeout.lifetime"]).."</td>")
+	print("<td nowrap><b>"..i18n("if_stats_overview.probe_timeout_lifetime").."</b>: "..secondsToTime(ifstats["timeout.lifetime"]).."</td>")
       else
-        colspan = colspan - 1
+	colspan = colspan - 1
       end
       if ifstats["timeout.idle"] > 0 then
-        print("<td nowrap><b>"..i18n("if_stats_overview.probe_timeout_idle").."</b>: "..secondsToTime(ifstats["timeout.idle"]).."</td>")
+	print("<td nowrap><b>"..i18n("if_stats_overview.probe_timeout_idle").."</b>: "..secondsToTime(ifstats["timeout.idle"]).."</td>")
       else
-        colspan = colspan - 1
+	colspan = colspan - 1
       end
 
       print("<td nowrap colspan="..colspan..">"..num_remote_flow_exporters.."</td>")
       print("</tr>")
 
       local has_drops_export_queue_full = (tonumber(ifstats["zmq.drops.export_queue_full"]) and tonumber(ifstats["zmq.drops.export_queue_full"]) > 0)
-      local has_drops_flow_collection_drops = (tonumber(ifstats["zmq.drops.flow_collection_drops"]) and tonumber(ifstats["zmq.drops.flow_collection_drops"]) > 0)
+      local has_drops_flow_collection_drops = (tonumber(ifstats["zmq.drops.flow_collection_drops"]) or 0) > 0
+      local has_drops_flow_collection_udp_socket_drops = (tonumber(ifstats["zmq.drops.flow_collection_udp_socket_drops"]) or 0) > 0
       local has_remote_drops = (has_drops_export_queue_full or has_drops_flow_collection_drops)
 
       if not has_remote_drops then
@@ -455,7 +456,7 @@ if((page == "overview") or (page == nil)) then
       else
 	 print("<tr>")
 	 local export_queue_full, flow_collection_drops
-	 local colspan = 5
+	 local colspan = 6
 
 	 if has_drops_export_queue_full then
 	    local num_full = tonumber(ifstats["zmq.drops.export_queue_full"])
@@ -475,12 +476,25 @@ if((page == "overview") or (page == nil)) then
 	    flow_collection_drops = "<b>"..i18n("if_stats_overview.probe_zmq_drops_flow_collection_drops").." <sup><i class='fa fa-info-circle' title='"..i18n("if_stats_overview.note_probe_zmq_drops_flow_collection_drops").."'></i></sup></b>: <span "..span_class.." id=if_zmq_drops_flow_collection_drops>"..formatValue(ifstats["zmq.drops.flow_collection_drops"]).."</span>"
 	 end
 
+	 if has_drops_flow_collection_udp_socket_drops then
+	    local num_full = tonumber(ifstats["zmq.drops.flow_collection_udp_socket_drops"])
+	    local span_class = ' '
+	    if num_full > 0 then
+	       span_class = 'class="label label-danger"'
+	    end
+	    flow_collection_udp_socket_drops = "<b>"..i18n("if_stats_overview.probe_zmq_drops_flow_collection_udp_socket_drops").." <sup><i class='fa fa-info-circle' title='"..i18n("if_stats_overview.note_probe_zmq_drops_flow_collection_udp_socket_drops").."'></i></sup></b>: <span "..span_class.." id=if_zmq_drops_flow_collection_udp_socket_drops>"..formatValue(ifstats["zmq.drops.flow_collection_udp_socket_drops"]).."</span>"
+	 end
+
 	 if export_queue_full then
 	    print("<td>"..export_queue_full.."</td>")
 	    colspan = colspan - 1
 	 end
 	 if flow_collection_drops then
 	    print("<td>"..flow_collection_drops.."</td>")
+	    colspan = colspan - 1
+	 end
+	 if flow_collection_udp_socket_drops then
+	    print("<td>"..flow_collection_udp_socket_drops.."</td>")
 	    colspan = colspan - 1
 	 end
 	 if colspan then
@@ -1113,7 +1127,8 @@ elseif(page == "historical") then
          {schema="iface:nfq_pct",               label=i18n("graphs.num_nfq_pct"), nedge_only=1},
 
          {schema="iface:zmq_recv_flows",        label=i18n("graphs.zmq_received_flows"), nedge_exclude=1},
-	 {schema="iface:zmq_flow_coll_drops",   label=i18n("graphs.zmq_flow_coll_drops"), nedge_exclude=1},
+	 {schema="iface:zmq_flow_coll_drops",     label=i18n("graphs.zmq_flow_coll_drops"), nedge_exclude=1},
+	 {schema="iface:zmq_flow_coll_udp_drops", label=i18n("graphs.zmq_flow_coll_udp_drops"), nedge_exclude=1},
          {schema="iface:exported_flows",        label=i18n("if_stats_overview.exported_flows"), nedge_exclude=1},
          {schema="iface:dropped_flows",         label=i18n("if_stats_overview.dropped_flows"), nedge_exclude=1},
          {separator=1, nedge_exclude=1, label=i18n("tcp_stats")},

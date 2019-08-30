@@ -1317,6 +1317,7 @@ local lang = {
     ["top_servers"] = "Top Server %{protocol}",
     ["trend"] = "Trend",
     ["zmq_flow_coll_drops"] = "Drop Collezionamento Flussi",
+    ["zmq_flow_coll_udp_drops"] = "Drop sul Socket di Collezionamento",
     ["zmq_received_flows"] = "Pacchetti ZMQ Ricevuti",
     ["metrics_prefixes"] = {
       ["broadcast_bytes"] = "Bytes di Broadcast",
@@ -1672,6 +1673,8 @@ local lang = {
     ["note_packets"] = "Nelle reti ethernet, ogni pacchetto ha un <A HREF=\"https://en.wikipedia.org/wiki/Ethernet_frame\">overhead di 24 byte</A> [preambolo (7 bytes), inizio frame (1 byte), CRC (4 bytes), e <A HREF=\"http://en.wikipedia.org/wiki/Interframe_gap\">IFG</A> (12 bytes)]. Di tale overhead bisogna tener conto nel calcolo del traffico dell'interfaccia, ma non nel traffico scambiato tra diversi indirizzo IP. Questo accade poiché tale traffico contribuisce al carico sull'interfaccia, ma non può essere conteggiato come traffico tra gli host, dunque potrebbero esserci discrepanze tra i valori del traffico degli host e quelli dell'interfaccia.",
     ["note_probe_zmq_drops_export_queue_full"] = "Il probe ha processato con successo questo flussi ma l'esportazione è fallita poichè la coda di esportazione era piena.",
     ["note_probe_zmq_drops_flow_collection_drops"] = "Pacchetti contenenti flussi droppati (NetFlow v9) oppure flussi droppati (NetFlow v5/IPFIX)",
+    ["note_probe_zmq_drops_flow_collection_udp_socket_drops"] = "Pacchetti droppati sul socket di collezionamento di nProbe",
+    ["probe_zmq_drops_flow_collection_udp_socket_drops"] = "Drop sul Socket di Collezionamento",
     ["paused"] = "In Pausa",
     ["probe_ip"] = "Probe IP",
     ["probe_timeout_idle"] = "Timeout d'Inattività",

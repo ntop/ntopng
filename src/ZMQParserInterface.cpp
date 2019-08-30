@@ -225,6 +225,9 @@ u_int8_t ZMQParserInterface::parseEvent(const char * const payload, int payload_
 
       if(json_object_object_get_ex(w, "flow_collection_drops", &z))
 	zrs->flow_collection_drops = (u_int32_t)json_object_get_int64(z);
+
+      if(json_object_object_get_ex(w, "flow_collection_udp_socket_drops", &z))
+	zrs->flow_collection_udp_socket_drops = (u_int32_t)json_object_get_int64(z);
     }
 
     if(json_object_object_get_ex(o, "zmq", &w)) {
@@ -1521,7 +1524,10 @@ void ZMQParserInterface::lua(lua_State* vm) {
 
     if(zrs->export_queue_full > 0)
       lua_push_uint64_table_entry(vm, "zmq.drops.export_queue_full", zrs->export_queue_full);
-    lua_push_uint64_table_entry(vm, "zmq.drops.flow_collection_drops", zrs->flow_collection_drops);
+    if(zrs->flow_collection_drops)
+      lua_push_uint64_table_entry(vm, "zmq.drops.flow_collection_drops", zrs->flow_collection_drops);
+    if(zrs->flow_collection_udp_socket_drops)
+      lua_push_uint64_table_entry(vm, "zmq.drops.flow_collection_udp_socket_drops", zrs->flow_collection_udp_socket_drops);
 
     lua_push_uint64_table_entry(vm, "timeout.lifetime", zrs->remote_lifetime_timeout);
     lua_push_uint64_table_entry(vm, "timeout.idle", zrs->remote_idle_timeout);
