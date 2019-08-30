@@ -28,7 +28,6 @@ local probe = system_scripts.getSystemProbe("redis")
 local page = _GET["page"] or "overview"
 local url = system_scripts.getPageScriptPath(probe) .. "?ifid=" .. getInterfaceId(ifname)
 system_schemas = system_scripts.getAdditionalTimeseries("redis")
-tprint(system_schemas)
 
 print [[
   <nav class="navbar navbar-default" role="navigation">
