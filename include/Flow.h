@@ -62,6 +62,8 @@ class Flow : public GenericHashEntry {
   u_int16_t cli_port, srv_port, vlanId;
   u_int32_t vrfId;
   u_int8_t protocol, src2dst_tcp_flags, dst2src_tcp_flags;
+  u_int16_t alert_score;
+  FlowStatus last_status;
   struct ndpi_flow_struct *ndpiFlow;
 
   /* When the interface isViewed(), the corresponding view needs to acknowledge the purge
@@ -520,12 +522,16 @@ class Flow : public GenericHashEntry {
   inline u_int32_t getFlowDeviceIp()       { return flow_device.device_ip; };
   inline u_int16_t getFlowDeviceInIndex()  { return flow_device.in_index;  };
   inline u_int16_t getFlowDeviceOutIndex() { return flow_device.out_index; };
+
+  inline void setScore(u_int16_t score)    { alert_score = score; };
+  inline u_int16_t getScore()              { return(alert_score); };
+  inline bool hasScore()                   { return(alert_score != ((u_int16_t)-1)); };
+  bool shouldRecheckScore();
+
 #ifdef HAVE_NEDGE
   inline void setLastConntrackUpdate(u_int32_t when) { last_conntrack_update = when; }
   bool isNetfilterIdleFlow();
-#endif
-  
-#ifdef HAVE_NEDGE
+
   void setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts, u_int64_t s2d_bytes, u_int64_t d2s_bytes);  
   void getFlowShapers(bool src2dst_direction, TrafficShaper **shaper_ingress, TrafficShaper **shaper_egress) {
     if(src2dst_direction) {

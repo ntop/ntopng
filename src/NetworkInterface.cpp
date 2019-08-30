@@ -7658,6 +7658,59 @@ void NetworkInterface::checkInterfaceAlerts(ScriptPeriodicity p) {
 
 /* *************************************** */
 
+static bool flow_check_score(GenericHashEntry *entry, void *user_data, bool *matched) {
+  Flow *flow = (Flow*)entry;
+  lua_State *vm = (lua_State*)user_data;
+
+  if(flow->shouldRecheckScore()) {
+    struct ntopngLuaContext *c = getLuaVMContext(vm);
+    c->flow = flow;
+
+    lua_getglobal(vm, "checkScore");
+
+    if(lua_pcall(vm, 0, 0, 0)) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure [%s]", lua_tostring(vm, -1));
+      return(true); /* true: stop walking */
+    }
+  }
+
+  *matched = true;
+  return(false); /* false = keep on walking */
+}
+
+/* *************************************** */
+
+bool NetworkInterface::checkFlowsScore() {
+  bool walk_all = true;
+  u_int32_t begin_slot = 0;
+  LuaEngine flows_engine;
+  char script_path[MAX_PATH];
+  lua_State *vm = flows_engine.getState();
+
+  if(!ntop->getPrefs()->is_enterprise_edition())
+    return(false);
+
+  snprintf(script_path, sizeof(script_path),
+      "%s/pro/scripts/callbacks/interface/alerts/flow.lua",
+      ntop->get_install_dir());
+
+  ntop->fixPath(script_path);
+
+  if(flows_engine.load_script(script_path, this) < 0)
+    return(false);
+
+  lua_getglobal(vm, "setup");
+
+  if(lua_pcall(vm, 0, 0, 0)) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure [%s]", lua_tostring(vm, -1));
+    return(false);
+  }
+
+  return(walker(&begin_slot, walk_all, walker_flows, flow_check_score, vm));
+}
+
+/* *************************************** */
+
 u_int32_t NetworkInterface::getNumEngagedAlerts() {
   u_int32_t ctr = 0;
 

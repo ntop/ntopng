@@ -604,6 +604,7 @@ class SNMP;
 /* Forward class declarations for the Lua context */
 class NetworkStats;
 class Host;
+class Flow;
 
 struct ntopngLuaContext {
   char *allowed_ifname, *user, *group;
@@ -619,6 +620,7 @@ struct ntopngLuaContext {
 #endif
   Host *host;
   NetworkStats *network;
+  Flow *flow;
   bool localuser;
 
   /* Packet capture */

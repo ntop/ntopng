@@ -50,7 +50,8 @@ AlertCheckLuaEngine::AlertCheckLuaEngine(AlertEntity alert_entity, ScriptPeriodi
 	     lua_file);
     ntop->fixPath(script_path);
 
-    load_script(script_path, iface);
+    if(load_script(script_path, iface) < 0)
+      return;
 
     lua_getglobal(L, "setup");         /* Called function   */
     lua_pushstring(L, Utils::periodicityToScriptName(p)); /* push 1st argument */

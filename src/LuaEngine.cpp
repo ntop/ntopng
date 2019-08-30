@@ -2444,7 +2444,8 @@ static int ntop_check_hosts_alerts(lua_State* vm, ScriptPeriodicity p) {
     return(CONST_LUA_ERROR);
   else
     ntop_interface->checkHostsAlerts(p);
-  
+
+  lua_pushnil(vm);
   return(CONST_LUA_OK);
 }
 
@@ -2462,7 +2463,8 @@ static int ntop_check_networks_alerts(lua_State* vm, ScriptPeriodicity p) {
     return(CONST_LUA_ERROR);
   else
     ntop_interface->checkNetworksAlerts(p);
-  
+
+  lua_pushnil(vm);
   return(CONST_LUA_OK);
 }
 
@@ -2473,6 +2475,20 @@ static int ntop_check_networks_alerts_day(lua_State* vm)  { return(ntop_check_ne
 
 /* ****************************************** */
 
+static int ntop_check_flows_score(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  if(!ntop_interface)
+    return(CONST_LUA_ERROR);
+  else
+    ntop_interface->checkFlowsScore();
+
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_check_interface_alerts(lua_State* vm, ScriptPeriodicity p) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -2480,7 +2496,8 @@ static int ntop_check_interface_alerts(lua_State* vm, ScriptPeriodicity p) {
     return(CONST_LUA_ERROR);
   else
     ntop_interface->checkInterfaceAlerts(p);
-  
+
+  lua_pushnil(vm);
   return(CONST_LUA_OK);
 }
 
@@ -8164,6 +8181,37 @@ static int ntop_network_get_alerts(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_flow_get_info(lua_State* vm) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  AddressTree *ptree = get_allowed_nets(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  if(c->flow == NULL) return(CONST_LUA_ERROR);
+
+  c->flow->lua(vm, ptree, details_high, false);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_flow_set_score(lua_State* vm) {
+  u_int16_t score;
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  if(c->flow == NULL) return(CONST_LUA_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  score = (u_int16_t)lua_tonumber(vm, 1);
+
+  c->flow->setScore(score);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_interface_release_engaged_alerts(lua_State* vm) {
   NetworkInterface *iface = getCurrentInterface(vm);
 
@@ -9400,6 +9448,9 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "checkNetworksAlertsHour",    ntop_check_networks_alerts_hour  },
   { "checkNetworksAlertsDay",     ntop_check_networks_alerts_day   },
 
+  /* Flow score */
+  { "checkFlowsScore",            ntop_check_flows_score           },
+
   /* eBPF, Containers and Companion Interfaces */
   { "getPodsStats",           ntop_interface_get_pods_stats           },
   { "getContainersStats",     ntop_interface_get_containers_stats     },
@@ -9437,6 +9488,15 @@ static const luaL_Reg ntop_network_reg[] = {
   { NULL,                     NULL }
 };
   
+/* **************************************************************** */
+
+static const luaL_Reg ntop_flow_reg[] = {
+  { "getInfo",                  ntop_flow_get_info       },
+  { "setScore",                 ntop_flow_set_score      },
+
+  { NULL,                     NULL }
+};
+
 /* **************************************************************** */
 
 static const luaL_Reg ntop_reg[] = {
@@ -9720,6 +9780,7 @@ void LuaEngine::luaRegisterInternalRegs(lua_State *L) {
     { "ntop",      ntop_reg           },
     { "host",      ntop_host_reg      },
     { "network",   ntop_network_reg   },
+    { "flow",      ntop_flow_reg      },
     {NULL,         NULL}
   };
 

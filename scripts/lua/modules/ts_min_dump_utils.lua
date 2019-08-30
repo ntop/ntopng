@@ -207,6 +207,7 @@ end
 function ts_dump.run_min_dump(_ifname, ifstats, iface_ts, config, when, verbose)
   dumpTopTalkers(_ifname, ifstats, verbose)
   scanAlerts("min", ifstats)
+  interface.checkFlowsScore()
 
   local iface_rrd_creation_enabled = (ntop.getPref("ntopng.prefs.ifid_"..ifstats.id..".interface_rrd_creation") ~= "false")
     and (ntop.getPref("ntopng.prefs.interface_rrd_creation") ~= "0")
