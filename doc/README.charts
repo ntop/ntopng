@@ -1,0 +1,83 @@
+Adding a new chart
+==================
+
+This assumes that the a timeseries schema has already been defined. Check out
+https://www.ntop.org/guides/ntopng/api/timeseries/index.html for more details on that topic.
+
+Depending on the timeseries subject, the following files should be modified:
+
+  - `hosts`: modify `scripts/lua/host_details.lua`
+  - `interfaces`: modify `scripts/lua/if_stats.lua`
+  - `networks`: modify `scripts/lua/network_details.lua`
+
+The `drawGraphs` function is responsible for drawing the charts. In order to
+add a new chart, it is necessary to add the chart definition into the `timeseries`
+field of the last parameter of drawGraphs. For example:
+
+```
+drawGraphs(ifstats.id, schema, tags, _GET["zoom"], url, selected_epoch, {
+  ...
+  timeseries = {
+    ...
+    {schema="iface:flows",                 label=i18n("graphs.active_flows")},
+    ...
+  },
+})
+```
+
+instructs drawGraphs that a chart containing the timeseries data of schema "iface:flows"
+should be presented into the interface menu, with a given label. The following parameters
+are accepted:
+
+  - `schema` (mandatory): the name of the timeseries schema to be used as the source of the charts data
+  - `label` (mandatory): the label to show into the menu entry
+  - `nedge_exclude`: if set, this chart will not be show in nEdge
+  - `nedge_only`: if set, this chart will only be show in nEdge
+  - `pro_skip`: if set, this chart will not be show in ntopng pro/enterprise
+  - `metrics_labels`: a list to specify a custom label to associate to the metrics of the chart.
+     The labels positional with the same order as the metrics definition in the schema,
+     e.g. for schema "host:traffic" the value:
+      ``{"SENT BYTES", "RECEIVED BYTES"}`
+     defines alternative labels for the `bytes_sent` and `bytes_rvd` metrics.
+  - `value_formatter`: specify the js functions to use to format the chart data. It has the following format:
+    `{points_formatter, total_formatter}`
+    where the `points_formatter` is the name of the js function to use to format the timeseries points
+    (e.g. "fbits" to format throughput) and `total_formatter` is the name of the js function to use to
+    format the total and average values (e.g. "bytesToSize" to format traffic volume).
+  - `custom_schema`: define a custom schema, see below for details
+  - `check` (deprecated): for custom schemas, defines the sub schemas to check in order to show
+    the entry in the menu. It is deprecated in favour of the inline custom schema definitions (see below)
+  - `step`: for custom schemas, defines the data `step` of the combined schemas
+
+The order of definition if the `timeseries` field is the same as the order presented into the menu.
+A separator with an optional label can be added to the `timeseries` field to separate logical groups:
+
+```
+  {separator=1, label=i18n("tcp_flags")},
+```
+
+Custom Schemas
+==============
+
+ntopng also supports creating charts from multiple timeseries sources (e.g. dipict into the same
+chart the interface traffic versus the number of drops). Custom schemas require ntopng pro and
+are usually defined into nv_graph_utils.lua, although an inline definition is possible via
+the `custom_schema` option above.
+
+Here is a sample definition:
+
+```
+custom_schema = {
+  bases = {"influxdb:exported_points", "influxdb:dropped_points"},
+  types = {"area", "line"},
+  axis = {1,2},
+},
+```
+
+The following parameters are accepted:
+
+  - `bases` (mandatory): contains a list of schema names to use as sources in the chart
+  - `types`: for each schema, defines the chart type ("area", "line", "bar")
+  - `axis`: for each schema, defines which y-axis of the chart will hold the data (1 for left axis, 2 for right axis)
+  - `exclude`: contains a list of metrics to exclude from the chart in the form `metric_name=1` (e.g. `exclude = {virtual_bytes=1},`)
+  - `tags_override`: for each schema, defines a list of tag overrides in the form `tag_name=new_value `
