@@ -9880,12 +9880,16 @@ int LuaEngine::run_script(char *script_path, NetworkInterface *iface, bool load_
 #endif
       rc = !load_only ? luaL_dofile(L, script_path) : luaL_loadfile(L, script_path);
 
+    if(rc == 0 && load_only)
+      rc = lua_pcall(L, 0, 0, 0); /* Prevents loaded scripts from failing silently by showing possible syntax errors */
+
     if(rc != 0) {
       const char *err = lua_tostring(L, -1);
 
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure [%s][%s]", script_path, err);
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure [%s][%s]", script_path, err ? err : "");
       rc = -1;
     }
+
   } catch(...) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure [%s]", script_path);
     rc = -2;

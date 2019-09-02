@@ -53,8 +53,6 @@ AlertCheckLuaEngine::AlertCheckLuaEngine(AlertEntity alert_entity, ScriptPeriodi
     if(run_script(script_path, iface, true /* Load only */) < 0)
       return;
 
-    lua_pcall(L, 0, 0, 0);
-
     lua_getglobal(L, "setup");         /* Called function   */
     lua_pushstring(L, Utils::periodicityToScriptName(p)); /* push 1st argument */
 
