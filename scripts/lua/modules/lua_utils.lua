@@ -591,6 +591,14 @@ function l4Label(proto)
   return(_handleArray(l4_keys, proto))
 end
 
+function l4_proto_to_id(proto_name)
+  for _, proto in pairs(l4_keys) do
+    if proto[2] == proto_name then
+      return(proto[3])
+    end
+  end
+end
+
 function l4_proto_to_string(proto_id)
    proto_id = tonumber(proto_id)
 
