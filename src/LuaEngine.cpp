@@ -9859,7 +9859,7 @@ static int post_iterator(void *cls,
 /*
   Run a Lua script from within ntopng (no HTTP GUI)
 */
-int LuaEngine::run_script(char *script_path, NetworkInterface *iface) {
+int LuaEngine::run_script(char *script_path, NetworkInterface *iface, bool load_only) {
   int rc = 0;
 
   if(!L) return(-1);
@@ -9873,51 +9873,16 @@ int LuaEngine::run_script(char *script_path, NetworkInterface *iface) {
       getLuaVMUservalue(L, iface) = iface;
     }
 
-#ifndef NTOPNG_PRO
-    rc = luaL_dofile(L, script_path);
-#else
+#ifdef NTOPNG_PRO
     if(ntop->getPro()->has_valid_license())
-      rc = __ntop_lua_handlefile(L, script_path, true);
+      rc = __ntop_lua_handlefile(L, script_path, !load_only /* Execute? */);
     else
-      rc = luaL_dofile(L, script_path);
 #endif
+      rc = !load_only ? luaL_dofile(L, script_path) : luaL_loadfile(L, script_path);
 
     if(rc != 0) {
       const char *err = lua_tostring(L, -1);
 
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure [%s][%s]", script_path, err);
-      rc = -1;
-    }
-  } catch(...) {
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure [%s]", script_path);
-    rc = -2;
-  }
-
-  return(rc);
-}
-
-/* ****************************************** */
-
-/*
-  Load a Lua script from WITHOUT executing it
-*/
-int LuaEngine::load_script(char *script_path, NetworkInterface *iface) {
-  int rc = 0;
-
-  if(!L) return(-1);
-
-  try {
-    luaL_openlibs(L); /* Load base libraries */
-    lua_register_classes(L, false); /* Load custom classes */
-
-    if(iface) {
-      /* Select the specified inteface */
-      getLuaVMUservalue(L, iface) = iface;
-    }
-
-    if(luaL_loadfile(L, script_path) || lua_pcall(L, 0, 0, 0)) {
-      const char *err = lua_tostring(L, -1);
-      
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure [%s][%s]", script_path, err);
       rc = -1;
     }

@@ -7696,8 +7696,10 @@ bool NetworkInterface::checkFlowsScore() {
 
   ntop->fixPath(script_path);
 
-  if(flows_engine.load_script(script_path, this) < 0)
+  if(flows_engine.run_script(script_path, this, true /* Load only */) < 0)
     return(false);
+
+  lua_pcall(vm, 0, 0, 0);
 
   lua_getglobal(vm, "setup");
 
