@@ -1267,7 +1267,7 @@ local function formatFlowPort(flow, cli_or_srv, port, historical_bounds)
     return port_url
 end
 
-function getFlowLabel(flow, show_macs, add_hyperlinks, historical_bounds, hyperlink_suffix)
+function getFlowLabel(flow, show_macs, add_hyperlinks, historical_bounds, hyperlink_suffix, add_flag)
    if flow == nil then return "" end
    hyperlink_suffix = hyperlink_suffix or ""
 
@@ -1320,6 +1320,14 @@ function getFlowLabel(flow, show_macs, add_hyperlinks, historical_bounds, hyperl
       label = label..cli_name
    end
 
+   if add_flag then
+      local info = interface.getHostInfo(flow["cli.ip"], flow["cli.vlan"])
+
+      if(info ~= nil) then
+         label = label .. getFlag(info["country"])
+      end
+   end
+
    if cli_port then
       label = label..":"..cli_port
    end
@@ -1332,6 +1340,14 @@ function getFlowLabel(flow, show_macs, add_hyperlinks, historical_bounds, hyperl
 
    if not isEmptyString(srv_name) then
       label = label..srv_name
+   end
+
+   if add_flag then
+      local info = interface.getHostInfo(flow["srv.ip"], flow["srv.vlan"])
+
+      if(info ~= nil) then
+         label = label .. getFlag(info["country"])
+      end
    end
 
    if srv_port then
