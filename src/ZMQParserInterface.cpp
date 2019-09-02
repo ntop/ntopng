@@ -327,7 +327,10 @@ bool ZMQParserInterface::parsePENZeroField(ParsedFlow * const flow, u_int32_t fi
       v6 address may overwrite the non empty v4.
     */
     if(flow->src_ip.isEmpty()) {
-      flow->src_ip.set((char *) value->string);
+      if(value->string)
+	flow->src_ip.set((char *) value->string);
+      else
+	flow->src_ip.set(ntohl(value->uint_num));
     } else {
       ip_aux.set((char *) value->string);
       if(!ip_aux.isEmpty()  && !ntop->getPrefs()->do_override_src_with_post_nat_src())
@@ -344,7 +347,10 @@ bool ZMQParserInterface::parsePENZeroField(ParsedFlow * const flow, u_int32_t fi
   case IPV4_DST_ADDR:
   case IPV6_DST_ADDR:
     if(flow->dst_ip.isEmpty()) {
-      flow->dst_ip.set((char *) value->string);
+      if(value->string)
+	flow->dst_ip.set((char *) value->string);
+      else
+	flow->dst_ip.set(ntohl(value->uint_num));
     } else {
       ip_aux.set((char *) value->string);
       if(!ip_aux.isEmpty()  && !ntop->getPrefs()->do_override_dst_with_post_nat_dst())
