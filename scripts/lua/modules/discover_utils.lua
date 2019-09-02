@@ -13,8 +13,8 @@ discover.progress_string = "discovery.progess"
 
 discover.osinfo = {
   [0] = {"Unknown",       ''},
-  [1] = {"Linux",         '<i class=\'fa fa-linux fa-lg\'></i>', },
-  [2] = {"Windows",       '<i class=\'fa fa-windows fa-lg\'></i>', },
+  [1] = {"Linux",         '<i class=\'fa fa-linux fa-lg\'></i>'},
+  [2] = {"Windows",       '<i class=\'fa fa-windows fa-lg\'></i>'},
   [3] = {"MacOS",         '<i class=\'fa fa-apple fa-lg\'></i>'},
   [4] = {"iOS",           '<i class=\'fa fa-apple fa-lg\'></i>'},
   [5] = {"Android",       '<i class=\'fa fa-android fa-lg\'></i>'},
