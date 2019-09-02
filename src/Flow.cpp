@@ -60,8 +60,6 @@ Flow::Flow(NetworkInterface *_iface,
 
   icmp_info = _icmp_info ? new (std::nothrow) ICMPinfo(*_icmp_info) : NULL;
 
-  memset(&cli2srvStats, 0, sizeof(cli2srvStats)), memset(&srv2cliStats, 0, sizeof(srv2cliStats));
-
   ndpiFlow = NULL, cli_id = srv_id = NULL;
   cli_ebpf = srv_ebpf = NULL;
   json_info = NULL, cli2srv_direction = true, twh_over = twh_ok = false,
@@ -2555,33 +2553,22 @@ bool Flow::update_partial_traffic_stats_db_dump() {
 /* *************************************** */
 
 void Flow::updatePacketStats(InterarrivalStats *stats, const struct timeval *when) {
-  if(stats->lastTime.tv_sec != 0) {
-    float deltaMS = (float)(Utils::timeval2usec((struct timeval*)when) - Utils::timeval2usec(&stats->lastTime))/(float)1000;
-
-    if(deltaMS > 0) {
-      if(stats->max_ms == 0)
-	stats->min_ms = stats->max_ms = deltaMS;
-      else {
-	if(deltaMS > stats->max_ms) stats->max_ms = deltaMS;
-	if(deltaMS < stats->min_ms) stats->min_ms = deltaMS;
-      }
-
-      stats->total_delta_ms += deltaMS;
-    }
-  }
-
-  memcpy(&stats->lastTime, when, sizeof(struct timeval));
+  stats->updatePacketStats((struct timeval*)when);
 }
 
 /* *************************************** */
 
 void Flow::dumpPacketStats(lua_State* vm, bool cli2srv_direction) {
+  InterarrivalStats *s = cli2srv_direction ? getCli2SrvIATStats() : getSrv2CliIATStats();
+
   lua_newtable(vm);
+  
+  lua_push_float_table_entry(vm, "min", (float)s->getMin());
+  lua_push_float_table_entry(vm, "max", (float)s->getMax());
+  lua_push_float_table_entry(vm, "avg", s->getAvg());
 
-  lua_push_float_table_entry(vm, "min", cli2srv_direction ? getCli2SrvMinInterArrivalTime() : getSrv2CliMinInterArrivalTime());
-  lua_push_float_table_entry(vm, "max", cli2srv_direction ? getCli2SrvMaxInterArrivalTime() : getSrv2CliMaxInterArrivalTime());
-  lua_push_float_table_entry(vm, "avg", cli2srv_direction ? getCli2SrvAvgInterArrivalTime() : getSrv2CliAvgInterArrivalTime());
-
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u / %.1f / %u", s->getMin(), s->getAvg(), s->getMax());
+			       
   lua_pushstring(vm, cli2srv_direction ? "interarrival.cli2srv" : "interarrival.srv2cli");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
@@ -2629,7 +2616,7 @@ void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
   payload_len *= iface->getScalingFactor();
 
   updateSeen();
-  updatePacketStats(cli2srv_direction ? &cli2srvStats.pktTime : &srv2cliStats.pktTime, when);
+  updatePacketStats(cli2srv_direction ? getCli2SrvIATStats() : getSrv2CliIATStats(), when);
 
   if(cli2srv_direction) {
     stats.cli2srv_packets++, stats.cli2srv_bytes += pkt_len, stats.cli2srv_goodput_bytes += payload_len, ip_stats_s2d.pktFrag += is_fragment;
@@ -2656,7 +2643,7 @@ void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
 
 void Flow::updateInterfaceLocalStats(bool src2dst_direction, u_int num_pkts, u_int pkt_len) {
   Host *from = src2dst_direction ? cli_host : srv_host;
-  Host *to = src2dst_direction ? srv_host : cli_host;
+  Host *to   = src2dst_direction ? srv_host : cli_host;
 
   iface->incLocalStats(num_pkts, pkt_len,
 		       from ? from->isLocalHost() : false,

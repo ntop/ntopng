@@ -38,16 +38,6 @@ typedef struct {
 } TCPSeqNum;
 
 typedef struct {
-  struct timeval lastTime;
-  u_int64_t total_delta_ms;
-  float min_ms, max_ms;
-} InterarrivalStats;
-
-typedef struct {
-  InterarrivalStats pktTime;
-} FlowPacketStats;
-
-typedef struct {
   u_int32_t cli2srv_packets, srv2cli_packets;
   u_int64_t cli2srv_bytes, srv2cli_bytes;
   u_int64_t cli2srv_goodput_bytes, srv2cli_goodput_bytes;
@@ -175,8 +165,8 @@ class Flow : public GenericHashEntry {
   struct timeval c2sFirstGoodputTime;
   float rttSec, applLatencyMsec;
 
-  FlowPacketStats cli2srvStats, srv2cliStats;
-
+  InterarrivalStats cli2srvPktTime, srv2cliPktTime;
+  
   /* Counter values at last host update */
   struct {
     FlowTrafficStats *partial;
@@ -475,12 +465,9 @@ class Flow : public GenericHashEntry {
   inline float getCli2SrvMaxThpt() { return(rttSec ? ((float)(cli2srv_window*8)/rttSec) : 0); }
   inline float getSrv2CliMaxThpt() { return(rttSec ? ((float)(srv2cli_window*8)/rttSec) : 0); }
 
-  inline u_int32_t getCli2SrvMinInterArrivalTime()  { return(cli2srvStats.pktTime.min_ms); }
-  inline u_int32_t getCli2SrvMaxInterArrivalTime()  { return(cli2srvStats.pktTime.max_ms); }
-  inline u_int32_t getCli2SrvAvgInterArrivalTime()  { return((stats.cli2srv_packets < 2) ? 0 : cli2srvStats.pktTime.total_delta_ms / (stats.cli2srv_packets-1)); }
-  inline u_int32_t getSrv2CliMinInterArrivalTime()  { return(srv2cliStats.pktTime.min_ms); }
-  inline u_int32_t getSrv2CliMaxInterArrivalTime()  { return(srv2cliStats.pktTime.max_ms); }
-  inline u_int32_t getSrv2CliAvgInterArrivalTime()  { return((stats.srv2cli_packets < 2) ? 0 : srv2cliStats.pktTime.total_delta_ms / (stats.srv2cli_packets-1)); }
+  inline InterarrivalStats* getCli2SrvIATStats()   { return(&cli2srvPktTime); }
+  inline InterarrivalStats* getSrv2CliIATStats()   { return(&srv2cliPktTime); }
+  
   bool isIdleFlow();
   inline bool isTCPEstablished() const { return (!isTCPClosed() && !isTCPReset()
 						 && ((src2dst_tcp_flags & (TH_SYN | TH_ACK)) == (TH_SYN | TH_ACK))

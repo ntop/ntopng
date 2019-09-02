@@ -73,7 +73,7 @@ function format_utils.secondsToTime(seconds)
 end
 
 function format_utils.msToTime(ms)
-   if(ms > 1000) then
+   if(ms > 10000) then -- 10 sec+
       return format_utils.secondsToTime(ms/1000)
    else
       if(ms < 1) then

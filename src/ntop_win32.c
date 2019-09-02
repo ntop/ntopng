@@ -156,58 +156,6 @@ unsigned long waitForNextEvent(unsigned long ulDelay /* ms */) {
 
 unsigned int sleep(unsigned int seconds) { return(waitForNextEvent(seconds*1000)); }
 
-#if 0
-/* ************************************ */
-
-/* Reentrant string tokenizer.  Generic version.
-
-   Slightly modified from: glibc 2.1.3
-
-   Copyright (C) 1991, 1996, 1997, 1998, 1999 Free Software Foundation, Inc.
-   This file is part of the GNU C Library.
-
-   The GNU C Library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public License as
-   published by the Free Software Foundation; either version 2 of the
-   License, or (at your option) any later version.
-
-   The GNU C Library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Library General Public License for more details.
-
-   You should have received a copy of the GNU Library General Public
-   License along with the GNU C Library; see the file COPYING.LIB.  If not,
-   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-   Boston, MA 02111-1307, USA.  */
-
-char* strtok_r(char *s, const char *delim, char **save_ptr) {
-  char *token;
-
-  if (s == NULL)
-    s = *save_ptr;
-
-  /* Scan leading delimiters.  */
-  s += strspn (s, delim);
-  if (*s == '\0')
-    return NULL;
-
-  /* Find the end of the token.  */
-  token = s;
-  s = strpbrk (token, delim);
-  if (s == NULL)
-    /* This token finishes the string.  */
-    *save_ptr = "";
-  else {
-    /* Terminate the token and make *SAVE_PTR point past it.  */
-    *s = '\0';
-    *save_ptr = s + 1;
-  }
-
-  return token;
-}
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif
