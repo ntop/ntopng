@@ -42,6 +42,7 @@ typedef struct {
   u_int64_t cli2srv_bytes, srv2cli_bytes;
   u_int64_t cli2srv_goodput_bytes, srv2cli_goodput_bytes;
   TCPPacketStats tcp_stats_s2d, tcp_stats_d2s;
+  ndpi_analyze_struct cli2srv_bytes_stats, srv2cli_bytes_stats;
 } FlowTrafficStats;
 
 class Flow : public GenericHashEntry {

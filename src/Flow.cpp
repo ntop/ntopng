@@ -76,6 +76,9 @@ Flow::Flow(NetworkInterface *_iface,
   cli2srv_last_packets = 0, prev_cli2srv_last_packets = 0, srv2cli_last_packets = 0, prev_srv2cli_last_packets = 0;
   top_bytes_thpt = 0, top_goodput_bytes_thpt = 0, applLatencyMsec = 0;
 
+  ndpi_init_data_analysis(&stats.cli2srv_bytes_stats, 0),
+    ndpi_init_data_analysis(&stats.srv2cli_bytes_stats, 0);
+  
   ids_alert = NULL;
   ids_alert_severity = 255;
 
@@ -1824,6 +1827,16 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     lua_push_uint64_table_entry(vm, "cli2srv.packets", stats.cli2srv_packets);
     lua_push_uint64_table_entry(vm, "srv2cli.packets", stats.srv2cli_packets);
 
+    /* Packet lenght stats */
+    lua_push_uint64_table_entry(vm, "cli2srv.pkt_len.min", ndpi_data_min(&stats.cli2srv_bytes_stats));
+    lua_push_uint64_table_entry(vm, "cli2srv.pkt_len.max", ndpi_data_max(&stats.cli2srv_bytes_stats));
+    lua_push_uint64_table_entry(vm, "cli2srv.pkt_len.avg", ndpi_data_average(&stats.cli2srv_bytes_stats));
+    lua_push_uint64_table_entry(vm, "cli2srv.pkt_len.stddev", ndpi_data_stddev(&stats.cli2srv_bytes_stats));
+    lua_push_uint64_table_entry(vm, "srv2cli.pkt_len.min", ndpi_data_min(&stats.srv2cli_bytes_stats));
+    lua_push_uint64_table_entry(vm, "srv2cli.pkt_len.max", ndpi_data_max(&stats.srv2cli_bytes_stats));
+    lua_push_uint64_table_entry(vm, "srv2cli.pkt_len.avg", ndpi_data_average(&stats.srv2cli_bytes_stats));
+    lua_push_uint64_table_entry(vm, "srv2cli.pkt_len.stddev", ndpi_data_stddev(&stats.srv2cli_bytes_stats));
+
     lua_push_uint64_table_entry(vm, "cli2srv.fragments", ip_stats_s2d.pktFrag);
     lua_push_uint64_table_entry(vm, "srv2cli.fragments", ip_stats_d2s.pktFrag);
     lua_push_int32_table_entry(vm, "score", hasScore() ? alert_score : -1);
@@ -1988,6 +2001,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     lua_push_uint64_table_entry(vm, "srv2cli.last", get_current_bytes_srv2cli());
 
     /* ********************* */
+
     dumpPacketStats(vm, true);
     dumpPacketStats(vm, false);
 
@@ -2563,9 +2577,10 @@ void Flow::dumpPacketStats(lua_State* vm, bool cli2srv_direction) {
 
   lua_newtable(vm);
   
-  lua_push_float_table_entry(vm, "min", (float)s->getMin());
-  lua_push_float_table_entry(vm, "max", (float)s->getMax());
-  lua_push_float_table_entry(vm, "avg", s->getAvg());
+  lua_push_float_table_entry(vm, "min",    (float)s->getMin());
+  lua_push_float_table_entry(vm, "max",    (float)s->getMax());
+  lua_push_float_table_entry(vm, "avg",    s->getAvg());
+  lua_push_float_table_entry(vm, "stddev", s->getStdDev());
 
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u / %.1f / %u", s->getMin(), s->getAvg(), s->getMax());
 			       
@@ -2620,10 +2635,12 @@ void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
 
   if(cli2srv_direction) {
     stats.cli2srv_packets++, stats.cli2srv_bytes += pkt_len, stats.cli2srv_goodput_bytes += payload_len, ip_stats_s2d.pktFrag += is_fragment;
+    ndpi_data_add_value(&stats.cli2srv_bytes_stats, pkt_len);
     if(cli_host) cli_host->incSentStats(pkt_len);
     if(srv_host) srv_host->incRecvStats(pkt_len);
   } else {
     stats.srv2cli_packets++, stats.srv2cli_bytes += pkt_len, stats.srv2cli_goodput_bytes += payload_len, ip_stats_d2s.pktFrag += is_fragment;
+    ndpi_data_add_value(&stats.srv2cli_bytes_stats, pkt_len);
     if(cli_host) cli_host->incRecvStats(pkt_len);
     if(srv_host) srv_host->incSentStats(pkt_len);
   }
