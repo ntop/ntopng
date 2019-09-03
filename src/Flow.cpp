@@ -408,7 +408,8 @@ void Flow::dumpFlowAlert() {
       }
 
       /* Check per-host thresholds */
-      if(cli_host->incFlowAlertHits(when) || srv_host->incFlowAlertHits(when))
+      if((cli_host->incFlowAlertHits(when) || srv_host->incFlowAlertHits(when)) &&
+        !getInterface()->read_from_pcap_dump())
 	do_dump = false;
     }
 
