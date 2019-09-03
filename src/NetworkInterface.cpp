@@ -2256,7 +2256,10 @@ decode_packet_eth:
 	      }
 	    }
 	  }
-	}
+	} else if(dport == VXLAN_PORT) {
+          eth_offset = ip_offset+ip_len+sizeof(struct ndpi_udphdr)+sizeof(struct ndpi_vxlanhdr);
+          goto datalink_check;
+        }
 
 	if((sport == CAPWAP_DATA_PORT) || (dport == CAPWAP_DATA_PORT)) {
 	  /*
