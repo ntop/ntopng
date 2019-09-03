@@ -71,16 +71,40 @@ void EthStats::lua(lua_State *vm) {
   lua_push_uint64_table_entry(vm, "packets", getNumPackets());
 
   lua_newtable(vm);
-  lua_push_uint64_table_entry(vm, "bytes",   getNumIngressBytes());
+  lua_push_uint64_table_entry(vm, "bytes",   getNumIngressBytes());  
   lua_push_uint64_table_entry(vm, "packets", getNumIngressPackets());
+
+  lua_newtable(vm);
+  lua_push_float_table_entry(vm, "bps", ingress_bytes_thpt.getThpt());
+  lua_push_uint64_table_entry(vm, "trend_bps", ingress_bytes_thpt.getTrend());
+  lua_push_float_table_entry(vm, "pps", ingress_pkts_thpt.getThpt());
+  lua_push_uint64_table_entry(vm, "trend_pps", ingress_pkts_thpt.getTrend());
+  lua_pushstring(vm, "throughput"); lua_insert(vm, -2); lua_settable(vm, -3);
+
   lua_pushstring(vm, "ingress"); lua_insert(vm, -2); lua_settable(vm, -3);
 
   lua_newtable(vm);
   lua_push_uint64_table_entry(vm, "bytes",   getNumEgressBytes());
   lua_push_uint64_table_entry(vm, "packets", getNumEgressPackets());
+
+  lua_newtable(vm);  
+  lua_push_float_table_entry(vm, "bps", egress_bytes_thpt.getThpt());
+  lua_push_uint64_table_entry(vm, "trend_bps", egress_bytes_thpt.getTrend());
+  lua_push_float_table_entry(vm, "pps", egress_pkts_thpt.getThpt());
+  lua_push_uint64_table_entry(vm, "trend_pps", egress_pkts_thpt.getTrend());
+  lua_pushstring(vm, "throughput"); lua_insert(vm, -2); lua_settable(vm, -3);
+
   lua_pushstring(vm, "egress"); lua_insert(vm, -2); lua_settable(vm, -3);
 
   lua_pushstring(vm, "eth"); lua_insert(vm, -2); lua_settable(vm, -3);
+}
+/* *************************************** */
+
+void EthStats::updateStats(struct timeval *tv) {
+  ingress_bytes_thpt.updateStats(tv, getNumIngressBytes()),
+    ingress_pkts_thpt.updateStats(tv, getNumIngressPackets());
+  egress_bytes_thpt.updateStats(tv, getNumEgressBytes()),
+    egress_pkts_thpt.updateStats(tv, getNumEgressPackets());
 }
 
 /* *************************************** */
@@ -96,7 +120,9 @@ void EthStats::print() {
 /* *************************************** */
 
 void EthStats::cleanup() {
-  rawIngress.reset(), rawEgress.reset(); 
+  rawIngress.reset(), rawEgress.reset();
+  ingress_bytes_thpt.resetStats(), ingress_pkts_thpt.resetStats();
+  egress_bytes_thpt.resetStats(), egress_pkts_thpt.resetStats();
   eth_IPv4.reset();
   eth_IPv6.reset();
   eth_ARP.reset();

@@ -124,6 +124,19 @@ function dumpInterfaceStats(ifid)
       res["packets_upload"] = ifstats["eth"]["egress"]["packets"]
       res["packets_download"] = ifstats["eth"]["ingress"]["packets"]
 
+      local ingress_thpt = ifstats["eth"]["ingress"]["throughput"]
+      local egress_thpt  = ifstats["eth"]["egress"]["throughput"]
+      res["throughput"] = {
+	 download = {
+	    bps = ingress_thpt["bps"], bps_trend = ingress_thpt["bps_trend"],
+	    pps = ingress_thpt["pps"], pps_trend = ingress_thpt["pps_trend"]
+	 },
+	 upload = {
+	    bps = egress_thpt["bps"], bps_trend = egress_thpt["bps_trend"],
+	    pps = egress_thpt["pps"], pps_trend = egress_thpt["pps_trend"]
+	 },
+      }
+
       if ntop.isnEdge() and ifstats.type == "netfilter" and ifstats.netfilter then
          res["netfilter"] = ifstats.netfilter
       end

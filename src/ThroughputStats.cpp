@@ -51,7 +51,7 @@ ThroughputStats::ThroughputStats(const ThroughputStats &thpts) {
 
 void ThroughputStats::updateStats(struct timeval *tv, u_int64_t new_val) {
   if(last_update_time.tv_sec > 0 /* Waits at least two calls before computing the throughput */
-     && new_val > last_val /* Protects against resets / wraps */) {
+     && new_val >= last_val /* Protects against resets / wraps */) {
     float tdiff = Utils::msTimevalDiff(tv, &last_update_time);
     float new_thpt = ((float)((new_val - last_val) * 1000)) / (1 + tdiff);
 

@@ -27,6 +27,7 @@
 class EthStats {
  private:
   ProtoStats rawIngress, rawEgress, eth_IPv4, eth_IPv6, eth_ARP, eth_MPLS, eth_other;
+  ThroughputStats ingress_bytes_thpt, ingress_pkts_thpt, egress_bytes_thpt, egress_pkts_thpt;
 
  public:
   EthStats();
@@ -38,6 +39,7 @@ class EthStats {
   inline ProtoStats* getEthOtherStats() { return(&eth_other); };
 
   void lua(lua_State *vm);
+  void updateStats(struct timeval *tv);
   void incStats(bool ingressPacket, u_int16_t proto, u_int32_t num_pkts,
 		u_int32_t num_bytes, u_int pkt_overhead);
 
@@ -59,6 +61,10 @@ class EthStats {
 
   inline void sum(EthStats *e) const {
     rawIngress.sum(&e->rawIngress), rawEgress.sum(&e->rawEgress),
+      ingress_bytes_thpt.sum(&e->ingress_bytes_thpt),
+      ingress_pkts_thpt.sum(&e->ingress_pkts_thpt),
+      egress_bytes_thpt.sum(&e->egress_bytes_thpt),
+      egress_pkts_thpt.sum(&e->egress_pkts_thpt),
       eth_IPv4.sum(&e->eth_IPv4), eth_IPv6.sum(&e->eth_IPv6),
       eth_ARP.sum(&e->eth_ARP), eth_MPLS.sum(&e->eth_MPLS), eth_other.sum(&e->eth_other);
   };

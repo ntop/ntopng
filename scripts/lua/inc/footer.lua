@@ -1,5 +1,5 @@
 --
--- (C) 2013-18 - ntop.org
+-- (C) 2013-19 - ntop.org
 --
 
 require "os"
@@ -17,9 +17,9 @@ local have_nedge = ntop.isnEdge()
 info = ntop.getInfo(true)
 
 print [[
-	<div class="container-fluid">
-	<div class="row">
-	<div class="col-xs-6 col-sm-4">]]
+        <div class="container-fluid">
+        <div class="row">
+        <div class="col-xs-6 col-sm-4">]]
 print(info["product"])
 
 local iface_id = interface.name2id(ifname)
@@ -80,10 +80,10 @@ if(info["pro.systemid"] and (info["pro.systemid"] ~= "")) then
    print('<br><A HREF="https://shop.ntop.org"> <span class="badge badge-warning">')
    if(info["pro.release"]) then
       if(info["pro.demo_ends_at"] ~= nil) then
-	 local rest = info["pro.demo_ends_at"] - os.time()
-	 if(rest > 0) then
-	    print(" " .. i18n("about.licence_expires_in", {time=secondsToTime(rest)}))
-	 end
+         local rest = info["pro.demo_ends_at"] - os.time()
+         if(rest > 0) then
+            print(" " .. i18n("about.licence_expires_in", {time=secondsToTime(rest)}))
+         end
       end
    else
       print(i18n("about.upgrade_to_professional"))
@@ -94,7 +94,7 @@ if(info["pro.systemid"] and (info["pro.systemid"] ~= "")) then
    if(info["pro.out_of_maintenance"] == true) then
       print('<span class="badge badge-error">') print(i18n("about.maintenance_expired", {product=info["product"]})) print('</span>')
    end
-   
+
    if(do_show) then
       print('<br><iframe src="https://ghbtns.com/github-btn.html?user=ntop&repo=ntopng&type=watch&count=true" allowtransparency="true" frameborder="0" scrolling="0" width="110" height="20"></iframe>')
    end
@@ -103,14 +103,14 @@ end
 print [[</font>
 
 </div> <!-- End column 1 -->
-	<div class="col-xs-4 v col-sm-4">
-	<div class="row">
+        <div class="col-xs-4 v col-sm-4">
+        <div class="row">
 ]]
 
 if not have_nedge then
-  print[[	 <div class="col-xs-6 col-sm-6"> ]]
+  print[[        <div class="col-xs-6 col-sm-6"> ]]
 else
-  print[[	 <div class="col-md-12"> ]]
+  print[[        <div class="col-md-12"> ]]
 end
 
 if (interface.isPcapDumpInterface() == false) and (not have_nedge) then
@@ -122,9 +122,9 @@ if (interface.isPcapDumpInterface() == false) and (not have_nedge) then
       -- if the speed in not custom we try to read the speed from the interface
       -- and, as a final resort, we use 1Gbps
       if tonumber(_ifstats.speed) ~= nil then
-	 maxSpeed = tonumber(_ifstats.speed) * 1e6
+         maxSpeed = tonumber(_ifstats.speed) * 1e6
       else
-	 maxSpeed = 1000000000 -- 1 Gbit
+         maxSpeed = 1000000000 -- 1 Gbit
       end
    else
       -- use the user-specified custom value for the speed
@@ -135,31 +135,31 @@ if (interface.isPcapDumpInterface() == false) and (not have_nedge) then
    print [[ <div class="text-center" title="All traffic detected by NTOP: Local2Local, download, upload" id="gauge_text_allTraffic"></div> ]]
 
    print [[
-	</div>
-	<div>]]
-end -- closes interface.isPcapDumpInterface() == false 
+        </div>
+        <div>]]
+end -- closes interface.isPcapDumpInterface() == false
 
 if _ifstats.has_traffic_directions then
    print [[  <a href="]]
    print (ntop.getHttpPrefix())
    print [[/lua/if_stats.lua">
-	    <table style="border-collapse:collapse; !important">
-	    <tr><td><i class="fa fa-arrow-up" title="]] print(i18n("iface_upload", {iface=_ifstats.name})) print[["></i>&nbsp;</td><td class="network-load-chart-upload">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</td><td class="text-right" id="chart-upload-text"></td></tr>
-	    <tr><td><i class="fa fa-arrow-down" title="]] print(i18n("iface_download", {iface=_ifstats.name})) print[["></i>&nbsp;</td><td class="network-load-chart-download">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</td><td class="text-right" id="chart-download-text"></td></tr>
-	    </table>
-	    </div>
-	    <div class="col-xs-6 col-sm-4">
-	    </a>]]
+            <table style="border-collapse:collapse; !important">
+            <tr><td><i class="fa fa-arrow-up" title="]] print(i18n("iface_upload", {iface=_ifstats.name})) print[["></i>&nbsp;</td><td class="network-load-chart-upload">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</td><td class="text-right" id="chart-upload-text"></td></tr>
+            <tr><td><i class="fa fa-arrow-down" title="]] print(i18n("iface_download", {iface=_ifstats.name})) print[["></i>&nbsp;</td><td class="network-load-chart-download">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</td><td class="text-right" id="chart-download-text"></td></tr>
+            </table>
+            </div>
+            <div class="col-xs-6 col-sm-4">
+            </a>]]
 else
   print [[  <a href="]]
    print (ntop.getHttpPrefix())
    print [[/lua/if_stats.lua">
-	    <table style="border-collapse:collapse; !important">
-	    <tr><td class="network-load-chart-total">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</td><td class="text-right" id="chart-total-text"></td></tr>
-	    </table>
-	    </div>
-	    <div class="col-xs-6 col-sm-4">
-	    </a>]]
+            <table style="border-collapse:collapse; !important">
+            <tr><td class="network-load-chart-total">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</td><td class="text-right" id="chart-total-text"></td></tr>
+            </table>
+            </div>
+            <div class="col-xs-6 col-sm-4">
+            </a>]]
 end
 
 print [[
@@ -205,10 +205,10 @@ $("#move-rrd-to-influxdb, #host-id-message-warning").on("close.bs.alert", functi
 print (ntop.getHttpPrefix())
 print [[/lua/update_prefs.lua',
         data: {
-	  csrf: ']] print(ntop.getRandomCSRFValue()) print[[',
-	  action: this.id,
-	  ifid: ]] print(string.format("%u", _ifstats.id)) print[[,
-	}
+          csrf: ']] print(ntop.getRandomCSRFValue()) print[[',
+          action: this.id,
+          ifid: ]] print(string.format("%u", _ifstats.id)) print[[,
+        }
     });
 });
 
@@ -216,94 +216,69 @@ var updatingChart_upload = $(".network-load-chart-upload").peity("line", { width
 var updatingChart_download = $(".network-load-chart-download").peity("line", { width: ]] print(traffic_peity_width) print[[, max: null, fill: "lightgreen"});
 var updatingChart_total = $(".network-load-chart-total").peity("line", { width: ]] print(traffic_peity_width) print[[, max: null});
 
-var prev_bytes   = 0;
-var prev_packets = 0;
-var prev_upload   = 0;
-var prev_download  = 0;
-var prev_epoch   = 0;
-
 var footerRefresh = function() {
     $.ajax({
       type: 'GET',
-	  url: ']]
+          url: ']]
 print (ntop.getHttpPrefix())
 print [[/lua/rest/get/interface/data.lua',
-	  data: { ifid: ]] print(tostring(getInterfaceId(ifname))) print[[ },
-	  /* error: function(content) { alert("JSON Error (session expired?): logging out"); window.location.replace("]]
+          data: { ifid: ]] print(tostring(getInterfaceId(ifname))) print[[ },
+          /* error: function(content) { alert("JSON Error (session expired?): logging out"); window.location.replace("]]
 print (ntop.getHttpPrefix())
 print [[/lua/logout.lua");  }, */
-	  success: function(rsp) {
-    
-	  try {
-	    if (prev_bytes > 0) {
-	      if (rsp.packets < prev_packets) {
-	        prev_bytes   = rsp.bytes;
-	        prev_packets = rsp.packets;
-	        prev_upload   = rsp.bytes_upload;
-	        prev_download  = rsp.bytes_download;
-	      }
+          success: function(rsp) {
 
+          try {
               var values = updatingChart_upload.text().split(",")
-	      var values1 = updatingChart_download.text().split(",")
-	      var values2 = updatingChart_total.text().split(",")
-	      var bytes_diff   = Math.max(rsp.bytes-prev_bytes, 0);
-	      var packets_diff = Math.max(rsp.packets-prev_packets, 0);
-	      var upload_diff   = Math.max(rsp.bytes_upload-prev_upload, 0);
-	      var download_diff  = Math.max(rsp.bytes_download-prev_download, 0);
-	      var epoch_diff   = Math.max(rsp.epoch - prev_epoch, 0);
+              var values1 = updatingChart_download.text().split(",")
+              var values2 = updatingChart_total.text().split(",")
 
-	      if(epoch_diff > 0) {
-		if(bytes_diff > 0) {
-		   var v = upload_diff-download_diff;
-		   var v_label;
+              var pps = rsp.throughput_pps;
+              var bps = rsp.throughput_bps * 8;
+              var bps_upload = rsp.throughput.upload.bps * 8;
+              var bps_download = rsp.throughput.download.bps * 8;
 
-		  values.shift();
-		  values.push(upload_diff);
-		  updatingChart_upload.text(values.join(",")).change();
-		  values1.shift();
-		  values1.push(-download_diff);
-		  updatingChart_download.text(values1.join(",")).change();
-		  values2.shift();
-		  values2.push(bytes_diff);
-		  updatingChart_total.text(values2.join(",")).change();
-		}
+              if(rsp.remote_pps != 0) {
+                pps = Math.max(rsp.remote_pps, 0);
+              }
+              if(rsp.remote_bps != 0) {
+                bps = Math.max(rsp.remote_bps, 0);
+                bps = Math.min(bps, rsp.speed * 1e6);
+              }
 
-		var pps = Math.floor(packets_diff / epoch_diff);
-		var bps = Math.round((bytes_diff*8) / epoch_diff );
-		var bps_upload = Math.round((upload_diff*8) / epoch_diff);
-		var bps_download = Math.round((download_diff*8) / epoch_diff);
+              values.shift();
+              values.push(bps_upload);
+              updatingChart_upload.text(values.join(",")).change();
+              values1.shift();
+              values1.push(-bps_download);
+              updatingChart_download.text(values1.join(",")).change();
+              values2.shift();
+              values2.push(bps);
+              updatingChart_total.text(values2.join(",")).change();
+              var v = bps_upload - bps_download;
 
-                if(rsp.remote_pps != 0) {
-                  pps = Math.max(rsp.remote_pps, 0);
-                }
-                if(rsp.remote_bps != 0) {
-                  bps = Math.max(rsp.remote_bps, 0);
-                  bps = Math.min(bps, rsp.speed * 1e6);
-                }
 ]]
 
    if (interface.isPcapDumpInterface() == false) and (not have_nedge) then
       print[[
 
-		$('#gauge_text_allTraffic').html("<small>"+bitsToSize(Math.min(bps, ]] print(maxSpeed) print[[), 1000) + " [" + addCommas(pps) + " pps]</small>");
-		var v = Math.round(Math.min((bps*100)/]] print(maxSpeed) print[[, 100));
-		$('#networkload').css("width", v+"%")
-		$('#networkload').html(v+"%");
+                $('#gauge_text_allTraffic').html("<small>"+bitsToSize(Math.min(bps, ]] print(maxSpeed) print[[), 1000) + " [" + fpackets(pps) + "]</small>");
+                var v = Math.round(Math.min((bps*100)/]] print(maxSpeed) print[[, 100));
+                $('#networkload').css("width", v+"%")
+                $('#networkload').html(v+"%");
 
 ]]
    end
 
      print[[
-		$('#chart-upload-text').html("&nbsp;"+bitsToSize(bps_upload, 1000));
-		$('#chart-download-text').html("&nbsp;"+bitsToSize(bps_download, 1000));
-		//$('#chart-total-text').html("&nbsp;"+bitsToSize(Math.min(bps, ]] print(maxSpeed) print[[), 1000));
+                $('#chart-upload-text').html("&nbsp;"+bitsToSize(bps_upload, 1000));
+                $('#chart-download-text').html("&nbsp;"+bitsToSize(bps_download, 1000));
+                //$('#chart-total-text').html("&nbsp;"+bitsToSize(Math.min(bps, ]] print(maxSpeed) print[[), 1000));
      ]]
 
 print[[
-}
-	      } /* closes if (prev_bytes > 0) */
 
-		var msg = "&nbsp;<i class=\"fa fa-clock-o\"></i> <small>"+rsp.localtime+" | ]] print(i18n("about.uptime")) print[[: "+rsp.uptime+"</small>";
+                var msg = "&nbsp;<i class=\"fa fa-clock-o\"></i> <small>"+rsp.localtime+" | ]] print(i18n("about.uptime")) print[[: "+rsp.uptime+"</small>";
 
                 if(rsp.system_host_stats.mem_total !== undefined) {
                    var mem_total = rsp.system_host_stats.mem_total;
@@ -314,7 +289,7 @@ print[[
                    mem_used_ratio = Math.round(mem_used_ratio * 100) / 100;
                    mem_used_ratio = mem_used_ratio + "%";
                    $('#ram-used').html('Used: ' + mem_used_ratio + ' / Available: ' + bytesToSize((mem_total - mem_used) * 1024) + ' / Total: ' + bytesToSize(mem_total * 1024));
-		   $('#ram-process-used').html('Used: ' + bytesToSize(rsp.system_host_stats.mem_ntopng_resident * 1024));
+                   $('#ram-process-used').html('Used: ' + bytesToSize(rsp.system_host_stats.mem_ntopng_resident * 1024));
                 }
 
                 if(rsp.system_host_stats.cpu_load_percentage !== undefined)
@@ -322,7 +297,7 @@ print[[
 
                 msg += "<br>";
 
-		if(rsp.engaged_alerts > 0) {
+                if(rsp.engaged_alerts > 0) {
                    // var warning_color = "#F0AD4E"; // bootstrap warning orange
                    // var warning_label = "label-warning";
                    var error_color = "#B94A48";  // bootstrap danger red
@@ -331,7 +306,7 @@ print[[
                    var color = error_color;
                    var label = error_label;
 
-		   msg += "&nbsp;<a href=\"]]
+                   msg += "&nbsp;<a href=\"]]
  print (ntop.getHttpPrefix())
 print [[/lua/show_alerts.lua\">"
 
@@ -339,7 +314,7 @@ print [[/lua/show_alerts.lua\">"
                    //Push.create('Hello World!');
                 }
 
-		if((rsp.engaged_alerts > 0 || rsp.has_alerts) && $("#alerts-id").is(":visible") == false) {
+                if((rsp.engaged_alerts > 0 || rsp.has_alerts) && $("#alerts-id").is(":visible") == false) {
                   $("#alerts-id").show();
                 }
 
@@ -350,140 +325,134 @@ print [[/lua/system/influxdb_stats.lua?ifid=]] print(tostring(getInterfaceId(ifn
                   msg += "<span class=\"label label-danger\"><i class=\"fa fa-database\"></i></span></A>";
                 }
 
-		var alarm_threshold_low = 60;  /* 60% */
-		var alarm_threshold_high = 90; /* 90% */
-		var alert = 0;     
+                var alarm_threshold_low = 60;  /* 60% */
+                var alarm_threshold_high = 90; /* 90% */
+                var alert = 0;
 
-		if(rsp.num_local_hosts > 0) {
-		  msg += "&nbsp;<a href=\"]]
+                if(rsp.num_local_hosts > 0) {
+                  msg += "&nbsp;<a href=\"]]
 print (ntop.getHttpPrefix())
 print [[/lua/hosts_stats.lua?mode=local\">";
 
-		  msg += "<span title=\"]] print(i18n("alerts_thresholds_config.active_local_hosts")) print[[\" class=\"label label-success\">";
-		  msg += addCommas(rsp.num_local_hosts)+" <i class=\"fa fa-laptop\" aria-hidden=\"true\"></i></span></a>";
+                  msg += "<span title=\"]] print(i18n("alerts_thresholds_config.active_local_hosts")) print[[\" class=\"label label-success\">";
+                  msg += addCommas(rsp.num_local_hosts)+" <i class=\"fa fa-laptop\" aria-hidden=\"true\"></i></span></a>";
 
-		  checkMigrationMessage(rsp);
-		}
+                  checkMigrationMessage(rsp);
+                }
 
-	    msg += "&nbsp;<a href=\"]]
+            msg += "&nbsp;<a href=\"]]
 print (ntop.getHttpPrefix())
 print [[/lua/hosts_stats.lua?mode=remote\">";
-		var remove_hosts_label = "]] print(i18n("remote_hosts")) print[[";
+                var remove_hosts_label = "]] print(i18n("remote_hosts")) print[[";
 
-		if(rsp.hosts_pctg < alarm_threshold_low) {
-		  msg += "<span title=\"" + remove_hosts_label +"\" class=\"label label-default\">";
-		} else if(rsp.hosts_pctg < alarm_threshold_high) {
-		  alert = 1;
-		  msg += "<span title=\"" + remove_hosts_label +"\" class=\"label label-warning\">";
-		} else {
-		  alert = 1;
-		  msg += "<span title=\"" + remove_hosts_label +"\" class=\"label label-danger\">";
-		}
+                if(rsp.hosts_pctg < alarm_threshold_low) {
+                  msg += "<span title=\"" + remove_hosts_label +"\" class=\"label label-default\">";
+                } else if(rsp.hosts_pctg < alarm_threshold_high) {
+                  alert = 1;
+                  msg += "<span title=\"" + remove_hosts_label +"\" class=\"label label-warning\">";
+                } else {
+                  alert = 1;
+                  msg += "<span title=\"" + remove_hosts_label +"\" class=\"label label-danger\">";
+                }
 
-		msg += addCommas(rsp.num_hosts-rsp.num_local_hosts)+" <i class=\"fa fa-laptop\" aria-hidden=\"true\"></i></span></a> ";
+                msg += addCommas(rsp.num_hosts-rsp.num_local_hosts)+" <i class=\"fa fa-laptop\" aria-hidden=\"true\"></i></span></a> ";
 
-	    if(typeof rsp.num_devices !== "undefined") {
-	      var macs_label = "]] print(i18n("mac_stats.layer_2_source_devices", {device_type=""})) print[[";
-	      msg += "<a href=\"]]
+            if(typeof rsp.num_devices !== "undefined") {
+              var macs_label = "]] print(i18n("mac_stats.layer_2_source_devices", {device_type=""})) print[[";
+              msg += "<a href=\"]]
 print (ntop.getHttpPrefix())
 print [[/lua/macs_stats.lua?devices_mode=source_macs_only\">";
-		if(rsp.macs_pctg < alarm_threshold_low) {
-		  msg += "<span title=\"" + macs_label +"\" class=\"label label-default\">";
-		} else if(rsp.macs_pctg < alarm_threshold_high) {
-		  alert = 1;
-		  msg += "<span title=\"" + macs_label +"\" class=\"label label-warning\">";
-		} else {
-		  alert = 1;
-		  msg += "<span title=\"" + macs_label +"\" class=\"label label-danger\">";
-		}
+                if(rsp.macs_pctg < alarm_threshold_low) {
+                  msg += "<span title=\"" + macs_label +"\" class=\"label label-default\">";
+                } else if(rsp.macs_pctg < alarm_threshold_high) {
+                  alert = 1;
+                  msg += "<span title=\"" + macs_label +"\" class=\"label label-warning\">";
+                } else {
+                  alert = 1;
+                  msg += "<span title=\"" + macs_label +"\" class=\"label label-danger\">";
+                }
 
-		msg += addCommas(rsp.num_devices)+" Devices</span></a> ";
-	    }
+                msg += addCommas(rsp.num_devices)+" Devices</span></a> ";
+            }
 
-	    if(typeof rsp.num_flows !== "undefined") {
+            if(typeof rsp.num_flows !== "undefined") {
     msg += "<a href=\"]]
 print (ntop.getHttpPrefix())
 print [[/lua/flows_stats.lua\">";
-		if(rsp.flows_pctg < alarm_threshold_low) {
-		  msg += "<span class=\"label label-default\">";
-		} else if(rsp.flows_pctg < alarm_threshold_high) {
-		   alert = 1;
-		  msg += "<span class=\"label label-warning\">";
-		} else {
-		   alert = 1;
-		  msg += "<span class=\"label label-danger\">";
-		}
+                if(rsp.flows_pctg < alarm_threshold_low) {
+                  msg += "<span class=\"label label-default\">";
+                } else if(rsp.flows_pctg < alarm_threshold_high) {
+                   alert = 1;
+                  msg += "<span class=\"label label-warning\">";
+                } else {
+                   alert = 1;
+                  msg += "<span class=\"label label-danger\">";
+                }
 
-		msg += addCommas(rsp.num_flows)+" Flows </span> </a>";
+                msg += addCommas(rsp.num_flows)+" Flows </span> </a>";
 
-		if(rsp.flow_export_drops > 0) {
-		   msg += "&nbsp;<a href=\"]]
+                if(rsp.flow_export_drops > 0) {
+                   msg += "&nbsp;<a href=\"]]
 print (ntop.getHttpPrefix())
 print [[/lua/if_stats.lua\"><i class=\"fa fa-warning\" style=\"color: #B94A48;\"></i> <span class=\"label label-danger\">"+addCommas(rsp.flow_export_drops)+" Dropped flow";
-		   if(rsp.flow_export_drops > 1) msg += "s";
+                   if(rsp.flow_export_drops > 1) msg += "s";
 
-		   msg += "</span></A> ";
-		}
-	    }
+                   msg += "</span></A> ";
+                }
+            }
 
-	    if((typeof rsp.num_live_captures !== "undefined") && (rsp.num_live_captures > 0)) {               
-   	        msg += "&nbsp;<a href=\"]]
+            if((typeof rsp.num_live_captures !== "undefined") && (rsp.num_live_captures > 0)) {
+                msg += "&nbsp;<a href=\"]]
                 print (ntop.getHttpPrefix())
                 print [[/lua/live_capture_stats.lua\">";
- 	        msg += "<span class=\"label label-primary\">";
-		msg += addCommas(rsp.num_live_captures)+" <i class=\"fa fa-download fa-lg\"></i></A> </span> ";
-	    }
+                msg += "<span class=\"label label-primary\">";
+                msg += addCommas(rsp.num_live_captures)+" <i class=\"fa fa-download fa-lg\"></i></A> </span> ";
+            }
 
-	    if(typeof rsp.remote_assistance !== "undefined") {
-	      var status = rsp.remote_assistance.status;
-	      var status_label = (status == "active") ? "success" : "danger";
-	      
-	      msg += "&nbsp;<a href=\"]] print(ntop.getHttpPrefix()) print[[/lua/admin/remote_assistance.lua?tab=status\"><span class=\"label label-" + status_label + "\" title=\"]]
-	      print(i18n("remote_assistance.remote_assistance")) print[[\">";
-	      msg += "<i class=\"fa fa-commenting fa-lg\"></i></span></a>";
-	    }
+            if(typeof rsp.remote_assistance !== "undefined") {
+              var status = rsp.remote_assistance.status;
+              var status_label = (status == "active") ? "success" : "danger";
 
-	    if(typeof rsp.traffic_recording !== "undefined") {
-                var status_label="primary"; 
+              msg += "&nbsp;<a href=\"]] print(ntop.getHttpPrefix()) print[[/lua/admin/remote_assistance.lua?tab=status\"><span class=\"label label-" + status_label + "\" title=\"]]
+              print(i18n("remote_assistance.remote_assistance")) print[[\">";
+              msg += "<i class=\"fa fa-commenting fa-lg\"></i></span></a>";
+            }
+
+            if(typeof rsp.traffic_recording !== "undefined") {
+                var status_label="primary";
                 var status_title="]] print(i18n("traffic_recording.recording")) print [[";
-                if (rsp.traffic_recording != "recording") { 
-                  status_label = "danger"; 
-                  status_title = "]] print(i18n("traffic_recording.failure")) print [["; 
+                if (rsp.traffic_recording != "recording") {
+                  status_label = "danger";
+                  status_title = "]] print(i18n("traffic_recording.failure")) print [[";
                 }
-   	        msg += "&nbsp;<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/if_stats.lua?ifid=]] print(tostring(getInterfaceId(ifname))) print[[&page=traffic_recording&tab=status\">";
- 	        msg += "<span class=\"label label-"+status_label+"\" title=\""+addCommas(status_title)+"\">";
-		msg += "<i class=\"fa fa-hdd-o fa-lg\"></i></a></span>";
-	    }
+                msg += "&nbsp;<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/if_stats.lua?ifid=]] print(tostring(getInterfaceId(ifname))) print[[&page=traffic_recording&tab=status\">";
+                msg += "<span class=\"label label-"+status_label+"\" title=\""+addCommas(status_title)+"\">";
+                msg += "<i class=\"fa fa-hdd-o fa-lg\"></i></a></span>";
+            }
 
-	    if(typeof rsp.traffic_extraction !== "undefined") {
-                var status_title="]] print(i18n("traffic_recording.traffic_extraction_jobs")) print [["; 
+            if(typeof rsp.traffic_extraction !== "undefined") {
+                var status_title="]] print(i18n("traffic_recording.traffic_extraction_jobs")) print [[";
                 var status_label = "default";
                 if (rsp.traffic_extraction == "ready") status_label="primary";
-   	        msg += "&nbsp;<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/if_stats.lua?ifid=]] print(tostring(getInterfaceId(ifname))) print[[&page=traffic_recording&tab=jobs\">";
- 	        msg += "<span class=\"label label-"+status_label+"\" title=\""+addCommas(status_title)+"\">";
-		msg += rsp.traffic_extraction_num_tasks+" <i class=\"fa fa-tasks fa-lg\"></i></a></span>";
-	    }
+                msg += "&nbsp;<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/if_stats.lua?ifid=]] print(tostring(getInterfaceId(ifname))) print[[&page=traffic_recording&tab=jobs\">";
+                msg += "<span class=\"label label-"+status_label+"\" title=\""+addCommas(status_title)+"\">";
+                msg += rsp.traffic_extraction_num_tasks+" <i class=\"fa fa-tasks fa-lg\"></i></a></span>";
+            }
 
-	    $('#network-load').html(msg);
+            $('#network-load').html(msg);
 
 
-	    if(alert) {
-	        $('#toomany').html("<div class='alert alert-warning'><h4>]] print(i18n("warning")) print[[</h4>]] print(i18n("about.you_have_too_many_flows", {product=info["product"]})) print[[.</div>");
-	    }
+            if(alert) {
+                $('#toomany').html("<div class='alert alert-warning'><h4>]] print(i18n("warning")) print[[</h4>]] print(i18n("about.you_have_too_many_flows", {product=info["product"]})) print[[.</div>");
+            }
 
-	    prev_bytes   = rsp.bytes;
-	    prev_packets = rsp.packets;
-            prev_upload   = rsp.bytes_upload;
-            prev_download  = rsp.bytes_download;
-	    prev_epoch   = rsp.epoch;
-
-	  } catch(e) {
-	     console.log(e);
-	     /* alert("JSON Error (session expired?): logging out"); window.location.replace("]]
+          } catch(e) {
+             console.log(e);
+             /* alert("JSON Error (session expired?): logging out"); window.location.replace("]]
 print (ntop.getHttpPrefix())
 print [[/lua/logout.lua");  */
-	  }
-	}
+          }
+        }
       });
 }
 
@@ -495,13 +464,7 @@ $(document).ajaxError(function(err, response, ajaxSettings, thrownError) {
 footerRefresh();  /* call immediately to give the UI a more responsive look */
 setInterval(footerRefresh, ]]
 
-local footer_refresh_rate
-
-if have_nedge then
-  footer_refresh_rate = 5
-else
-  footer_refresh_rate = getInterfaceRefreshRate(_ifstats.id)
-end
+local footer_refresh_rate = ntop.getPrefs()["housekeeping_frequency"]
 
 print(footer_refresh_rate.."")
 print[[ * 1000);  /* re-schedule every [interface-rate] seconds */

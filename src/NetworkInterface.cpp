@@ -3037,6 +3037,7 @@ void NetworkInterface::periodicStatsUpdate() {
 
   bytes_thpt.updateStats(&tv, getNumBytes());
   pkts_thpt.updateStats(&tv, getNumPackets());
+  ethStats.updateStats(&tv);
 
   if(!isView() && flows_hash) /* View Interfaces don't have flows, they just walk flows of their 'viewed' peers */
     walker(&begin_slot, walk_all, walker_flows, flow_update_hosts_stats, (void*)&tv, true);
