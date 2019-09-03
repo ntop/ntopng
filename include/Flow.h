@@ -513,7 +513,6 @@ class Flow : public GenericHashEntry {
 
   inline void setScore(u_int16_t score)    { alert_score = score; };
   inline u_int16_t getScore()              { return(alert_score); };
-  inline bool hasScore()                   { return(alert_score != ((u_int16_t)-1)); };
   bool shouldRecheckScore();
 
 #ifdef HAVE_NEDGE

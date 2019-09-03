@@ -38,6 +38,7 @@ class Host : public GenericHashEntry, public AlertableEntity {
   HostStats *stats, *stats_shadow;
   OperatingSystem os;
   time_t last_stats_reset;
+  u_int16_t alert_score;
   u_int32_t disabled_flow_status;
   
   /* Host data: update Host::deleteHostData when adding new fields */
@@ -308,6 +309,10 @@ class Host : public GenericHashEntry, public AlertableEntity {
 			   const char *info, time_t when) { ; }
   virtual void luaPortsDump(lua_State* vm) { lua_pushnil(vm); }    
   void refreshDisableFlowAlertTypes();
+
+  inline void setScore(u_int16_t score)    { alert_score = score; };
+  inline u_int16_t getScore()              { return(alert_score); };
+  inline bool hasScore()                   { return(alert_score != CONST_NO_SCORE_SET); };
   
   inline bool isDisabledFlowAlertType(u_int32_t v) {
     return(Utils::bitmapIsSet(disabled_flow_status, v));

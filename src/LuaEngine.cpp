@@ -8207,7 +8207,68 @@ static int ntop_flow_set_score(lua_State* vm) {
 
   c->flow->setScore(score);
 
+  lua_pushnil(vm);
   return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_flow_set_peer_score(lua_State* vm, bool client) {
+  int score;
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  Host *host;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  if(c->flow == NULL) return(CONST_LUA_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  score = lua_tonumber(vm, 1);
+
+  host = client ? c->flow->get_cli_host() : c->flow->get_srv_host();
+
+  if(!host)
+    return(CONST_LUA_ERROR);
+
+  host->setScore(max(min(score, (int)CONST_NO_SCORE_SET - 1), 0));
+
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
+
+static int ntop_flow_set_client_score(lua_State* vm) {
+  return(ntop_flow_set_peer_score(vm, true /* client */));
+}
+
+static int ntop_flow_set_server_score(lua_State* vm) {
+  return(ntop_flow_set_peer_score(vm, false /* server */));
+}
+
+/* ****************************************** */
+
+static int ntop_flow_get_peer_score(lua_State* vm, bool client) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  Host *host;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  if(c->flow == NULL) return(CONST_LUA_ERROR);
+
+  host = client ? c->flow->get_cli_host() : c->flow->get_srv_host();
+
+  if(!host)
+    return(CONST_LUA_ERROR);
+
+  lua_pushinteger(vm, (host->getScore() != CONST_NO_SCORE_SET) ? host->getScore() : 0);
+
+  return(CONST_LUA_OK);
+}
+
+static int ntop_flow_get_client_score(lua_State* vm) {
+  return(ntop_flow_get_peer_score(vm, true /* client */));
+}
+/* ****************************************** */
+
+static int ntop_flow_get_server_score(lua_State* vm) {
+  return(ntop_flow_get_peer_score(vm, false /* server */));
 }
 
 /* ****************************************** */
@@ -9493,6 +9554,10 @@ static const luaL_Reg ntop_network_reg[] = {
 static const luaL_Reg ntop_flow_reg[] = {
   { "getInfo",                  ntop_flow_get_info       },
   { "setScore",                 ntop_flow_set_score      },
+  { "getClientScore",           ntop_flow_get_client_score           },
+  { "getServerScore",           ntop_flow_get_server_score           },
+  { "setClientScore",           ntop_flow_set_client_score           },
+  { "setServerScore",           ntop_flow_set_server_score           },
 
   { NULL,                     NULL }
 };

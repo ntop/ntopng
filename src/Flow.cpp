@@ -46,7 +46,7 @@ Flow::Flow(NetworkInterface *_iface,
     cli_host = srv_host = NULL, good_low_flow_detected = false,
     srv2cli_last_goodput_bytes = cli2srv_last_goodput_bytes = 0, good_ssl_hs = true,
     flow_alerted = flow_dropped_counts_increased = false, vrfId = 0;
-    alert_score = (u_int16_t)-1;
+    alert_score = CONST_NO_SCORE_SET;
     last_status = status_normal;
   
   purge_acknowledged_mark = detection_completed = update_flow_port_stats = false;
@@ -1839,7 +1839,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 
     lua_push_uint64_table_entry(vm, "cli2srv.fragments", ip_stats_s2d.pktFrag);
     lua_push_uint64_table_entry(vm, "srv2cli.fragments", ip_stats_d2s.pktFrag);
-    lua_push_int32_table_entry(vm, "score", hasScore() ? alert_score : -1);
+    lua_push_int32_table_entry(vm, "score", alert_score != CONST_NO_SCORE_SET ? alert_score : -1);
 
     if(isICMP()) {
       lua_newtable(vm);
@@ -4223,7 +4223,7 @@ bool Flow::shouldRecheckScore() {
     return(true);
   }
 
-  if(isDetectionCompleted() && !hasScore())
+  if(isDetectionCompleted() && (alert_score != CONST_NO_SCORE_SET))
     return(true);
 
   return(false);

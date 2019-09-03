@@ -158,6 +158,7 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   num_resolve_attempts = 0, ssdpLocation = NULL;
   low_goodput_client_flows.reset(), low_goodput_server_flows.reset();
   num_active_flows_as_client.reset(), num_active_flows_as_server.reset();
+  alert_score = CONST_NO_SCORE_SET;
 
   flow_alert_counter = NULL;
   good_low_flow_detected = false;
@@ -378,6 +379,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   lua_push_str_table_entry(vm, "tskey", get_tskey(buf_id, sizeof(buf_id)));
   lua_push_bool_table_entry(vm, "localhost", isLocalHost());
   lua_push_uint64_table_entry(vm, "vlan", vlan_id);
+  lua_push_int32_table_entry(vm, "score", alert_score != CONST_NO_SCORE_SET ? alert_score : -1);
 
   lua_push_str_table_entry(vm, "mac", Utils::formatMac(cur_mac ? cur_mac->get_mac() : NULL, buf, sizeof(buf)));
   lua_push_uint64_table_entry(vm, "devtype", isBroadcastDomainHost() && cur_mac ? cur_mac->getDeviceType() : device_unknown);
