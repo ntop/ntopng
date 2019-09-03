@@ -2660,6 +2660,8 @@ end
 
 -- NOTE: this is executed in a system VM, with no interfaces references
 function processAlertNotifications(now, periodic_frequency, force_export)
+   local interfaces = interface.getIfNames()
+
    -- Get new alerts
    while(true) do
       local json_message = ntop.lpopCache("ntopng.alerts.notifications_queue")
@@ -2678,6 +2680,10 @@ function processAlertNotifications(now, periodic_frequency, force_export)
         goto continue
       end
 
+      if(interfaces[tostring(message.ifid)] == nil) then
+        goto continue
+      end
+
       interface.select(tostring(message.ifid))
 
       if((message.rowid ~= nil) and (message.table_name ~= nil)) then
@@ -2686,9 +2692,11 @@ function processAlertNotifications(now, periodic_frequency, force_export)
         local res = performAlertsQuery("SELECT *", luaTableName(message.table_name), {row_id = message.rowid})
 
         if((res == nil) or (#res ~= 1)) then
-          traceError(TRACE_WARNING, TRACE_CONSOLE,
-            string.format("Could not retrieve alert information [ifid=%s][table=%s][rowid=%s]",
-            message.ifid, message.table_name, message.rowid))
+          if not interface.isPcapDumpInterface() then
+            traceError(TRACE_WARNING, TRACE_CONSOLE,
+              string.format("Could not retrieve alert information [ifid=%s][table=%s][rowid=%s]",
+              message.ifid, message.table_name, message.rowid))
+          end
 
           goto continue
         end
