@@ -139,9 +139,9 @@ bool ZMQParserInterface::getKeyId(char *sym, u_int32_t sym_len, u_int32_t * cons
 
   *pen = UNKNOWN_PEN, *field = UNKNOWN_FLOW_ELEMENT;
 
-  for (i = 0; i < sym_len; i++) {
-    if (!isdigit(sym[i]) && sym[i] != '.') { is_num = false; break; }
-    if (sym[i] == '.') is_dotted = true;
+  for(i = 0; i < sym_len; i++) {
+    if(!isdigit(sym[i]) && sym[i] != '.') { is_num = false; break; }
+    if(sym[i] == '.') is_dotted = true;
   }
 
   if(is_num && is_dotted) {
@@ -163,7 +163,7 @@ bool ZMQParserInterface::getKeyId(char *sym, u_int32_t sym_len, u_int32_t * cons
 /* **************************************************** */
 
 u_int8_t ZMQParserInterface::parseEvent(const char * const payload, int payload_size,
-				     u_int8_t source_id, void *data) {
+					u_int8_t source_id, void *data) {
   json_object *o;
   enum json_tokener_error jerr = json_tokener_success;
   ZMQ_RemoteStats *zrs = NULL;
@@ -373,12 +373,12 @@ bool ZMQParserInterface::parsePENZeroField(ParsedFlow * const flow, u_int32_t fi
     break;
   case DOT1Q_SRC_VLAN:
   case DOT1Q_DST_VLAN:
-    if (flow->vlan_id == 0) {
+    if(flow->vlan_id == 0) {
       /* as those fields are the outer vlans in q-in-q
 	 we set the vlan_id only if there is no inner vlan
 	 value set
       */
-      flow->vlan_id = value->uint_num;
+     flow->vlan_id = value->uint_num;
     }
     break;
   case PROTOCOL:
@@ -412,13 +412,13 @@ bool ZMQParserInterface::parsePENZeroField(ParsedFlow * const flow, u_int32_t fi
     flow->out_bytes = value->uint_num;
     break;
   case FIRST_SWITCHED:
-    if (value->string != NULL)
+    if(value->string != NULL)
       flow->first_switched = atoi(value->string);
     else
       flow->first_switched = value->uint_num;
     break;
   case LAST_SWITCHED:
-    if (value->string != NULL)
+    if(value->string != NULL)
       flow->last_switched = atoi(value->string);
     else
       flow->last_switched = value->uint_num;
@@ -427,7 +427,7 @@ bool ZMQParserInterface::parsePENZeroField(ParsedFlow * const flow, u_int32_t fi
     flow->pkt_sampling_rate = value->uint_num;
     break;
   case DIRECTION:
-    if (value->string != NULL) 
+    if(value->string != NULL) 
       flow->direction = atoi(value->string);
     else     
       flow->direction = value->uint_num;
@@ -472,6 +472,7 @@ bool ZMQParserInterface::parsePENZeroField(ParsedFlow * const flow, u_int32_t fi
       return false;
     break;
   default:
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Skipping no-PEN flow fieldId %u", field);
     return false;
   }
 
@@ -484,12 +485,12 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t fi
  
   /* Check for backward compatibility to handle cases like field = 123 (CLIENT_NW_LATENCY_MS)
    * instead of field = 57595 (NTOP_BASE_ID + 123) */ 
-  if (field < NTOP_BASE_ID)
+  if(field < NTOP_BASE_ID)
     field += NTOP_BASE_ID;
 
   switch(field) {
   case L7_PROTO:
-    if (value->string) {
+    if(value->string) {
       if(!strchr(value->string, '.')) {
         /* Old behaviour, only the app protocol */
         flow->l7_proto.app_protocol = atoi(value->string);
@@ -741,7 +742,6 @@ void ZMQParserInterface::preprocessFlow(ParsedFlow *flow, NetworkInterface *ifac
   }
 
   if(!invalid_flow) {
-
     if(flow->hasParsedeBPF()) {
       /* Direction already reliable when the event is an accept or a connect.
          Heuristic is only used in the other cases. */
@@ -757,13 +757,16 @@ void ZMQParserInterface::preprocessFlow(ParsedFlow *flow, NetworkInterface *ifac
 	flow->swap();
     }
 
+    if(flow->pkt_sampling_rate == 0)
+      flow->pkt_sampling_rate = 1;
+    
     /* Process Flow */
     PROFILING_SECTION_ENTER("processFlow", 30);
     iface->processFlow(flow, true);
     PROFILING_SECTION_EXIT(30);
 
     /* Deliver eBPF info to companion queues */
-    if (flow->process_info_set || 
+    if(flow->process_info_set || 
         flow->container_info_set || 
         flow->tcp_info_set) {
       deliverFlowToCompanions(flow);
@@ -801,7 +804,7 @@ void ZMQParserInterface::parseSingleJSONFlow(json_object *o,
       break;
     case json_type_string:
       value.string = json_object_get_string(jvalue);
-      if (strcmp(key,"json") == 0)
+      if(strcmp(key,"json") == 0)
 	additional_o = json_tokener_parse(value.string);
       break;
     case json_type_object:
@@ -894,8 +897,8 @@ void ZMQParserInterface::parseSingleJSONFlow(json_object *o,
 /* **************************************************** */
 
 int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
-						u_int8_t source_id,
-						NetworkInterface *iface) {
+					   u_int8_t source_id,
+					   NetworkInterface *iface) {
   ndpi_serialization_element_type et;
   ParsedFlow flow;
   int ret = 0, rc;
@@ -903,7 +906,7 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
   /* Reset data */
   flow.source_id = source_id;
 
-  while ((et = ndpi_deserialize_get_nextitem_type(deserializer)) != ndpi_serialization_unknown) {
+  while((et = ndpi_deserialize_get_nextitem_type(deserializer)) != ndpi_serialization_unknown) {
     ParsedValue value = { 0 };
     u_int32_t pen = 0, key_id;
     u_int32_t v32 = 0;
@@ -1002,12 +1005,12 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
     }
 
     /* Adding '\0' to the end of the string, backing up the character */
-    if (key_is_string) {
+    if(key_is_string) {
       kbkp = key.str[key.str_len];
       key.str[key.str_len] = '\0';
       getKeyId(key.str, key.str_len, &pen, &key_id);
     }
-    if (value_is_string) {
+    if(value_is_string) {
       vbkp = vs.str[vs.str_len];
       vs.str[vs.str_len] = '\0';
     }
@@ -1015,7 +1018,7 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
     switch(pen) {
       case 0: /* No PEN */
         rc = parsePENZeroField(&flow, key_id, &value);
-        if (rc)
+        if(rc)
           break;
         /* Dont'break when rc == false for backward compatibility: attempt to parse Zero-PEN as Ntop-PEN */
       case NTOP_PEN:
@@ -1027,17 +1030,17 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
       break;
     }
 
-    if (key_is_string) snprintf(key_str, sizeof(key_str),    "%s", key.str);
-    else if (pen)      snprintf(key_str, sizeof(key_str), "%u.%u", pen, key_id);
+    if(key_is_string) snprintf(key_str,  sizeof(key_str),    "%s", key.str);
+    else if(pen)      snprintf(key_str,  sizeof(key_str), "%u.%u", pen, key_id);
     else               snprintf(key_str, sizeof(key_str),    "%u",      key_id);
 
-    if (!rc) { /* Not handled */
+    if(!rc) { /* Not handled */
       switch (key_id) {
 	case 0: //json additional object added by Flow::serialize()
-          if (strcmp(key_str,"json") == 0 && value_is_string) { 
+          if(strcmp(key_str,"json") == 0 && value_is_string) { 
             json_object *additional_o = json_tokener_parse(vs.str);
 
-            if (additional_o) {
+            if(additional_o) {
   	      struct json_object_iterator additional_it = json_object_iter_begin(additional_o);
   	      struct json_object_iterator additional_itEnd = json_object_iter_end(additional_o);
 
@@ -1080,15 +1083,15 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
       } /* switch */
     }
 
-    if (add_to_additional_fields) {
+    if(add_to_additional_fields) {
       //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Additional field: %s (Key-ID: %u PEN: %u)", key_str, key_id, pen);
       flow.addAdditionalField(key_str,  
         value_is_string ? json_object_new_string(value.string) : json_object_new_int64(value.uint_num));
     }
 
     /* Restoring backed up character at the end of the string in place of '\0' */
-    if (key_is_string) key.str[key.str_len] = kbkp;
-    if (value_is_string) vs.str[vs.str_len] = vbkp;
+    if(key_is_string) key.str[key.str_len] = kbkp;
+    if(value_is_string) vs.str[vs.str_len] = vbkp;
     
   } /* while */
 
@@ -1159,12 +1162,12 @@ u_int8_t ZMQParserInterface::parseTLVFlow(const char * const payload, int payloa
 
   rc = ndpi_init_deserializer_buf(&deserializer, (u_int8_t *) payload, payload_size);
 
-  if (rc == -1)
+  if(rc == -1)
     return 0;
 
   rc = 0;
-  while (ndpi_deserialize_get_nextitem_type(&deserializer) != ndpi_serialization_unknown) {
-    if (parseSingleTLVFlow(&deserializer, source_id, iface) != 0)
+  while(ndpi_deserialize_get_nextitem_type(&deserializer) != ndpi_serialization_unknown) {
+    if(parseSingleTLVFlow(&deserializer, source_id, iface) != 0)
       break;
     rc++;
   }
