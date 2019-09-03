@@ -100,7 +100,7 @@ void LocalHostStats::updateStats(struct timeval *tv) {
     HostTimeseriesPoint *pt = new HostTimeseriesPoint(this);
 
     /* Ownership of the point is passed to the ring */
-    ts_ring->insert(pt, last_update_time.tv_sec);
+    ts_ring->insert(pt, tv->tv_sec);
   }
 }
 
@@ -158,8 +158,6 @@ void LocalHostStats::deserialize(json_object *o) {
   if(json_object_object_get_ex(o, "tcpPacketStats.recv", &obj))  tcp_packet_stats_rcvd.deserialize(obj);
 
   GenericTrafficElement::deserialize(o, iface);
-  last_bytes = sent.getNumBytes() + rcvd.getNumBytes();
-  last_packets = sent.getNumPkts() + rcvd.getNumPkts();
 
   if(json_object_object_get_ex(o, "total_activity_time", &obj))  total_activity_time = json_object_get_int(obj);
 

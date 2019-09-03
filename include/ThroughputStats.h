@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2015-19 - ntop.org
+ * (C) 2013-19 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -19,48 +19,25 @@
  *
  */
 
-#ifndef _GROUPER_H_
-#define _GROUPER_H_
+#ifndef _THROUGHPUT_STATS_H_
+#define _THROUGHPUT_STATS_H_
 
 #include "ntop_includes.h"
 
-class Host;
-
-struct groupStats{
-  u_int32_t num_hosts;
-  u_int32_t num_flows, num_dropped_flows;
-  u_int64_t bytes_sent;
-  u_int64_t bytes_rcvd;
-  time_t first_seen;
-  time_t last_seen;
-  u_int32_t num_alerts;
-  float throughput_bps;
-  float throughput_pps;
-  char country[3];
-};
-
-class Grouper {
+class ThroughputStats {
  private:
-  sortField sorter;
-
-  int table_index;
-  int64_t group_id_i;
-  bool group_id_set;
-  char *group_id_s;
-  char *group_label;
-  groupStats stats;
+  u_int64_t last_val;
+  float thpt, last_thpt;
+  ValueTrend thpt_trend;
+  struct timeval last_update_time;
 
  public:
-  Grouper(sortField sf);
-  ~Grouper();
-
-  inline u_int32_t getNumEntries(){return stats.num_hosts;}
-
-  bool inGroup(Host *h);
-  int8_t incStats(Host *h);
-  int8_t newGroup(Host *h);
-
-  void lua(lua_State* vm);
+  ThroughputStats();
+  ThroughputStats(const ThroughputStats &thpts);
+  inline float getThpt()       const { return thpt;       };
+  inline ValueTrend getTrend() const { return thpt_trend; };
+  void updateStats(struct timeval *tv, u_int64_t new_val);
+  void resetStats();
 };
 
-#endif /* _GROUPER_H_ */
+#endif /* _THROUGHPUT_STATS_H_ */

@@ -158,7 +158,6 @@ class Mac : public GenericHashEntry, public SerializableElement {
   inline void incRcvdArpReplies()    { stats->incRcvdArpReplies();  }
   void updateStats(struct timeval *tv);
   inline u_int64_t getNumBytes()              { return(stats->getNumBytes());      }
-  inline float getThptTrendDiff()             { return(stats->getThptTrendDiff()); }
   inline float getBytesThpt()                 { return(stats->getBytesThpt());     }
   inline bool  isMulticast() {
     /*

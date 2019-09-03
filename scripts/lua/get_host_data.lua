@@ -33,8 +33,6 @@ function getNetworkStats(network)
 	       my_network["num_alerts"] = my_network["num_alerts"] + h["num_alerts"]
 	       my_network["throughput_bps"] = my_network["throughput_bps"] + h["throughput_bps"]
 	       my_network["throughput_pps"] = my_network["throughput_pps"] + h["throughput_pps"]
-	       my_network["last_throughput_bps"] = my_network["last_throughput_bps"] + h["last_throughput_bps"]
-	       my_network["last_throughput_pps"] = my_network["last_throughput_pps"] + h["last_throughput_pps"]
 	       my_network["bytes.sent"] = my_network["bytes.sent"] + h["bytes.sent"]
 	       my_network["bytes.rcvd"] = my_network["bytes.rcvd"] + h["bytes.rcvd"]
 
@@ -95,12 +93,13 @@ if host then
       else
 	 res_thpt = bitsToSize(8*host["throughput_bps"])
       end
-      
-      if(host["throughput_"..throughput_type] > host["last_throughput_"..throughput_type]) then
+
+      -- See ValueTrend in ntop_typedefs.h for values
+      if host["throughput_trend_"..throughput_type] == 1 then
 	 res_thpt = res_thpt .. " <i class='fa fa-arrow-up'></i>"
-	 elseif(host["throughput_"..throughput_type] < host["last_throughput_"..throughput_type]) then
+      elseif host["throughput_trend_"..throughput_type] == 2 then
 	 res_thpt = res_thpt .. " <i class='fa fa-arrow-down'></i>"
-      else
+      elseif host["throughput_trend_"..throughput_type] == 3 then
 	 res_thpt = res_thpt .. " <i class='fa fa-minus'></i>"
       end
 

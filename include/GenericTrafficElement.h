@@ -27,6 +27,7 @@
 class GenericTrafficElement {
  protected:
   TrafficStats sent, rcvd;
+  ThroughputStats bytes_thpt, pkts_thpt;
   nDPIStats *ndpiStats;
 #ifdef NTOPNG_PRO
   CustomAppStats *custom_app_stats;
@@ -34,12 +35,7 @@ class GenericTrafficElement {
   u_int32_t total_num_dropped_flows;
   TcpPacketStats tcp_packet_stats_sent, tcp_packet_stats_rcvd;
 
-  float bytes_thpt, pkts_thpt;
-  float last_bytes_thpt, last_pkts_thpt;
-  ValueTrend bytes_thpt_trend, pkts_thpt_trend;
   float bytes_thpt_diff;
-  u_int64_t last_bytes, last_packets;
-  struct timeval last_update_time;
 
   inline void incRetx(TcpPacketStats * const tps, u_int32_t num)      { tps->incRetr(num);      };
   inline void incOOO(TcpPacketStats * const tps, u_int32_t num)       { tps->incOOO(num);       };
@@ -95,10 +91,8 @@ class GenericTrafficElement {
   inline u_int64_t getNumBytesSent()    const { return(sent.getNumBytes());                    };
   inline u_int64_t getNumBytesRcvd()    const { return(rcvd.getNumBytes());                    };
 
-  inline ValueTrend getThptTrend()   const  { return(bytes_thpt_trend);          };
-  inline float getThptTrendDiff()    const  { return(bytes_thpt_diff);           };
-  inline float getBytesThpt()        const  { return(bytes_thpt);                };
-  inline float getPacketsThpt()      const  { return(pkts_thpt);                 };
+  inline float getBytesThpt()           const { return(bytes_thpt.getThpt());                  };
+  inline float getPacketsThpt()         const { return(pkts_thpt.getThpt());                   };
   void resetStats();
 };
 

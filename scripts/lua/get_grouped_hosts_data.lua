@@ -241,13 +241,6 @@ local function print_single_group(value)
    else
       print ("\"column_thpt\" : \"" .. bitsToSize(8*value["throughput_bps"]).. " ")
    end
-   if(value["throughput_trend_bps_diff"] > 0) then
-      print("<i class='fa fa-arrow-up'></i>")
-   elseif(value["throughput_trend_bps_diff"] < 0) then
-      print("<i class='fa fa-arrow-down'></i>")
-   else
-      print("<i class='fa fa-minus'></i>")
-   end
    print('", ')
 
    print("\"column_traffic\" : \"" .. bytesToSize(value["bytes.sent"]+value["bytes.rcvd"]))

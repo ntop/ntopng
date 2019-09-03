@@ -188,7 +188,6 @@ class Host : public GenericHashEntry, public AlertableEntity {
   inline u_int64_t getNumBytesRcvd()           { return(stats->getNumBytesRcvd());   }
   inline u_int64_t getNumDroppedFlows()        { return(stats->getNumDroppedFlows());}
   inline u_int64_t getNumBytes()               { return(stats->getNumBytes());}
-  inline float getThptTrendDiff()              { return(stats->getThptTrendDiff());  }
   inline float getBytesThpt()                  { return(stats->getBytesThpt());      }
   inline float getPacketsThpt()                { return(stats->getPacketsThpt());    }
   inline void incNumDroppedFlows()             { stats->incNumDroppedFlows();        }

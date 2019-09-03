@@ -198,6 +198,7 @@ using namespace std;
 #include "CustomAppMaps.h"
 #include "CustomAppStats.h"
 #endif
+#include "ThroughputStats.h"
 #include "GenericTrafficElement.h"
 #include "AlertCounter.h"
 #include "NetworkStats.h"

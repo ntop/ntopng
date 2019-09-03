@@ -30,11 +30,8 @@ HostStats::HostStats(Host *_host) : TimeseriesStats(_host) {
   ndpiStats = new nDPIStats();
   //printf("SIZE: %lu, %lu, %lu\n", sizeof(nDPIStats), MAX_NDPI_PROTOS, NDPI_PROTOCOL_NUM_CATEGORIES);
 
-  last_bytes = 0, last_bytes_thpt = bytes_thpt = 0, bytes_thpt_trend = trend_unknown;
-  bytes_thpt_diff = 0, last_epoch_update = 0;
+  last_epoch_update = 0;
   total_activity_time = 0;
-  last_packets = 0, last_pkts_thpt = pkts_thpt = 0, pkts_thpt_trend = trend_unknown;
-  last_update_time.tv_sec = 0, last_update_time.tv_usec = 0;
 
 #ifdef NTOPNG_PRO
   quota_enforcement_stats = quota_enforcement_stats_shadow = NULL;
