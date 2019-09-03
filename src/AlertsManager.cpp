@@ -566,6 +566,8 @@ int AlertsManager::storeFlowAlert(Flow *f) {
     if(cli) cli->incTotalAlerts(alert_type);
     if(srv) srv->incTotalAlerts(alert_type);
 
+    iface->setHasAlerts(true);
+
     ntop->getTrace()->traceEvent(TRACE_INFO, "[%s] %s", msg, alert_json);
     json_object_put(alert_json_obj);
 
