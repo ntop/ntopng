@@ -1799,15 +1799,19 @@ static int ntop_reloadCustomCategories(lua_State* vm) {
     if((iface = ntop->getInterface(i)) != NULL) {
       iface->requestReloadCustomCategories();
 
-      _usleep(5e4);
+      if(iface->read_from_pcap_dump() && !iface->isRunning()) {
+        /* Can reload directly as the PCAP interface is not running */
+        iface->reloadCustomCategories();
+      } else
+        _usleep(5e4);
+
       for(j = 0; j < max_wait && iface->customCategoriesReloadRequested(); j++) {
 	/* Make sure the interface has reloaded the categories */
 	_usleep(5e5);
       }
 
-      if((j == max_wait) && (!iface->read_from_pcap_dump() /* reload with small PCAP files may not occur */)) {
-	ntop->getTrace()->traceEvent(TRACE_ERROR, "Interface didn't reload custom categories on time [iface: %s]", iface->get_name());
-      }
+      if((j == max_wait) && !(iface->read_from_pcap_dump()))
+        ntop->getTrace()->traceEvent(TRACE_ERROR, "Interface didn't reload custom categories on time [iface: %s]", iface->get_name());
     }
   }
 

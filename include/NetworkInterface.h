@@ -263,7 +263,6 @@ class NetworkInterface : public AlertableEntity {
   void checkDhcpIPRange(Mac *sender_mac, struct dhcp_packet *dhcp_reply, u_int16_t vlan_id);
   bool checkBroadcastDomainTooLarge(u_int32_t bcast_mask, u_int16_t vlan_id, const Mac * const src_mac, const Mac * const dst_mac, u_int32_t spa, u_int32_t tpa) const;
   void pollQueuedeBPFEvents();
-  void reloadCustomCategories();
   
  public:
   /**
@@ -284,6 +283,7 @@ class NetworkInterface : public AlertableEntity {
   u_int32_t getHostsHashSize();
   u_int32_t getArpHashMatrixSize();
   virtual u_int32_t getFlowsHashSize();
+  void reloadCustomCategories();
 
   virtual bool walker(u_int32_t *begin_slot,
 		      bool walk_all,

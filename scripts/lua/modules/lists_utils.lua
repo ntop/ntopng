@@ -480,6 +480,7 @@ end
 local function reloadListsNow()
   local user_custom_categories = categories_utils.getAllCustomCategoryHosts()
   local lists = lists_utils.getCategoryLists()
+  local start_t = os.time()
 
   -- Load hosts from cached URL lists
   for list_name, list in pairsByKeys(lists) do
@@ -501,6 +502,9 @@ local function reloadListsNow()
       loadListItem(host, category_id, user_custom_categories)
     end
   end
+
+  local end_t = os.time()
+  traceError(TRACE_INFO, TRACE_CONSOLE, string.format("Lists loaded in %d seconds", (end_t - start_t)))
 
   -- Reload into memory
   ntop.reloadCustomCategories()

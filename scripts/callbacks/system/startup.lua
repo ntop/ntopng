@@ -93,10 +93,16 @@ end
 
 -- ##################################################################
 
+local has_pcap_dump_interface = false
+
 -- Remove the json dumps previously needed for alerts generation
 for _, ifname in pairs(interface.getIfNames()) do
    interface.select(ifname)
    local ifid = getInterfaceId(ifname)
+
+   if interface.isPcapDumpInterface() then
+      has_pcap_dump_interface = true
+   end
 
    local alerts_status_path = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/json/")
    ntop.rmdir(alerts_status_path)
@@ -193,6 +199,14 @@ if(ntop.getCache("ntopng.cache.rrd_category_migration") ~= "1") then
 
    -- do not perform migration again
    ntop.setCache("ntopng.cache.rrd_category_migration", "1")
+end
+
+if(has_pcap_dump_interface) then
+  -- Load the lists at the very beginning in order to avoid misclassification
+  -- when reading from PCAP dump. This can take some time.
+  traceError(TRACE_NORMAL, TRACE_CONSOLE, "Loading category lists...")
+  lists_utils.checkReloadLists()
+  traceError(TRACE_NORMAL, TRACE_CONSOLE, "Loading category lists done")
 end
 
 -- Show the warning at most 1 time per run
