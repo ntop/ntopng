@@ -262,11 +262,14 @@ function alerts_api.trigger(entity_info, type_info, when)
     subtype, alert_json, is_disabled
   }
 
-  if((host.storeTriggeredAlert) and (entity_info.alert_entity.entity_id == alertEntity("host"))) then
+  if(entity_info.alert_entity.entity_id == alertEntity("host")) then
+    host.checkContext(entity_info.alert_entity_val)
     triggered = host.storeTriggeredAlert(table.unpack(params))
-  elseif((interface.storeTriggeredAlert) and (entity_info.alert_entity.entity_id == alertEntity("interface"))) then
+  elseif(entity_info.alert_entity.entity_id == alertEntity("interface")) then
+    interface.checkContext(entity_info.alert_entity_val)
     triggered = interface.storeTriggeredAlert(table.unpack(params))
-  elseif((network.storeTriggeredAlert) and (entity_info.alert_entity.entity_id == alertEntity("network"))) then
+  elseif(entity_info.alert_entity.entity_id == alertEntity("network")) then
+    network.checkContext(entity_info.alert_entity_val)
     triggered = network.storeTriggeredAlert(table.unpack(params))
   else
     triggered = interface.triggerExternalAlert(entity_info.alert_entity.entity_id, entity_info.alert_entity_val, table.unpack(params))
@@ -309,11 +312,14 @@ function alerts_api.release(entity_info, type_info, when)
   local params = {alert_key_name, granularity_id, when}
   local released = nil
 
-  if((host.releaseTriggeredAlert) and (entity_info.alert_entity.entity_id == alertEntity("host"))) then
+  if(entity_info.alert_entity.entity_id == alertEntity("host")) then
+    host.checkContext(entity_info.alert_entity_val)
     released = host.releaseTriggeredAlert(table.unpack(params))
-  elseif((interface.releaseTriggeredAlert) and (entity_info.alert_entity.entity_id == alertEntity("interface"))) then
+  elseif(entity_info.alert_entity.entity_id == alertEntity("interface")) then
+    interface.checkContext(entity_info.alert_entity_val)
     released = interface.releaseTriggeredAlert(table.unpack(params))
-  elseif((network.releaseTriggeredAlert) and (entity_info.alert_entity.entity_id == alertEntity("network"))) then
+  elseif(entity_info.alert_entity.entity_id == alertEntity("network")) then
+    network.checkContext(entity_info.alert_entity_val)
     released = network.releaseTriggeredAlert(table.unpack(params))
   else
     released = interface.releaseExternalAlert(entity_info.alert_entity.entity_id, entity_info.alert_entity_val, table.unpack(params))

@@ -8185,6 +8185,80 @@ static int ntop_network_get_alerts(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_network_check_context(lua_State* vm) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  char *entity_val;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  if((entity_val = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
+
+  if((c->network == NULL) || (strcmp(c->network->getEntityValue().c_str(), entity_val)) != 0) {
+    NetworkInterface *iface = getCurrentInterface(vm);
+    u_int8_t network_id = ntop->getLocalNetworkId(entity_val);
+
+    if(!iface || (network_id == (u_int8_t)-1) || ((c->network = iface->getNetworkStats(network_id)) == NULL)) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Could not set context for network %s", entity_val);
+      return(CONST_LUA_ERROR);
+    }
+  }
+
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_host_check_context(lua_State* vm) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  char *entity_val;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  if((entity_val = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
+
+  if((c->host == NULL) || (strcmp(c->host->getEntityValue().c_str(), entity_val)) != 0) {
+    NetworkInterface *iface = getCurrentInterface(vm);
+    char *host_ip, buf[64];
+    u_int16_t vlan_id;
+
+    get_host_vlan_info(entity_val, &host_ip, &vlan_id, buf, sizeof(buf));
+
+    if(!iface || !host_ip || ((c->host = iface->getHost(host_ip, vlan_id, false /* not inline */)) == NULL)) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Could not set context for host %s", entity_val);
+      return(CONST_LUA_ERROR);
+    }
+  }
+
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_interface_check_context(lua_State* vm) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  char *entity_val;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  if((entity_val = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
+
+  if((c->iface == NULL) || (strcmp(c->iface->getEntityValue().c_str(), entity_val)) != 0) {
+    /* NOTE: settting a context for a differnt interface is currently not supported */
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Bad context for interface %s", entity_val);
+    return(CONST_LUA_ERROR);
+  }
+
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_flow_get_info(lua_State* vm) {
   struct ntopngLuaContext *c = getLuaVMContext(vm);
   AddressTree *ptree = get_allowed_nets(vm);
@@ -9488,6 +9562,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "triggerExternalAlert",   ntop_interface_store_external_alert     },
   { "releaseExternalAlert",   ntop_interface_release_external_alert   },
   { "getExpiredAlerts",       ntop_interface_get_expired_alerts       },
+  { "checkContext",           ntop_interface_check_context            },
   { "getEngagedAlerts",       ntop_interface_get_engaged_alerts       },
   { "getEngagedAlertsCount",  ntop_interface_get_engaged_alerts_count },
   { "incNumDroppedAlerts",    ntop_interface_inc_num_dropped_alerts   },
@@ -9535,6 +9610,7 @@ static const luaL_Reg ntop_host_reg[] = {
   { "releaseTriggeredAlert",  ntop_host_release_triggered_alert },
   { "getExpiredAlerts",       ntop_host_get_expired_alerts      },
   { "getAlerts",              ntop_host_get_alerts              },
+  { "checkContext",           ntop_host_check_context           },
   
   { NULL,                     NULL }
 };
@@ -9549,6 +9625,7 @@ static const luaL_Reg ntop_network_reg[] = {
   { "releaseTriggeredAlert",    ntop_network_release_triggered_alert },
   { "getExpiredAlerts",         ntop_network_get_expired_alerts      },
   { "getAlerts",                ntop_network_get_alerts              },
+  { "checkContext",             ntop_network_check_context           },
   
   { NULL,                     NULL }
 };

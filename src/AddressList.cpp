@@ -76,3 +76,15 @@ AddressList::~AddressList() {
       break;
 }
 
+/* **************************************** */
+
+u_int8_t AddressList::getAddressId(const char *address_str) {
+  u_int8_t i;
+
+  for(i = 0; i< getNumAddresses(); i++) {
+    if(!strcmp(address_str, addressString[i]))
+      return(i);
+  }
+
+  return((u_int8_t)-1);
+}

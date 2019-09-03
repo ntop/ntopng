@@ -42,6 +42,7 @@ class AddressResolution {
 
   inline u_int8_t getNumLocalNetworks()       { return localNetworks.getNumAddresses();    };
   inline char *get_local_network(u_int8_t id) { return localNetworks.getAddressString(id); };
+  inline u_int8_t get_local_network_id(const char *network_id) { return localNetworks.getAddressId(network_id); };
   bool setLocalNetworks(char *rule);
   int16_t findAddress(int family, void *addr, u_int8_t *network_mask_bits = NULL);
   void setLocalNetwork(char *net)             { localNetworks.addAddresses(net);           };
