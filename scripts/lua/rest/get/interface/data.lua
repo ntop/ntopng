@@ -71,6 +71,9 @@ function dumpInterfaceStats(ifid)
       res["bytes"]   = ifstats.stats_since_reset.bytes
       res["drops"]   = ifstats.stats_since_reset.drops
 
+      res["throughput_bps"] = ifstats.stats.throughput_bps;
+      res["throughput_pps"] = ifstats.stats.throughput_pps;
+
       if prefs.is_dump_flows_enabled == true then
          res["flow_export_drops"]  = ifstats.stats_since_reset.flow_export_drops
          res["flow_export_rate"]   = ifstats.stats_since_reset.flow_export_rate

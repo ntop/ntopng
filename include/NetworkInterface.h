@@ -158,6 +158,7 @@ class NetworkInterface : public AlertableEntity {
   time_t lastFlowAggregation;
   TcpFlowStats tcpFlowStats;
   TcpPacketStats tcpPacketStats;
+  ThroughputStats bytes_thpt, pkts_thpt;
 
   /* Custom categories */
   std::list<std::string> new_custom_categories, custom_categories_to_purge;

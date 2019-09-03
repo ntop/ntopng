@@ -3032,6 +3032,9 @@ void NetworkInterface::periodicStatsUpdate() {
 
   updatePacketsStats();
 
+  bytes_thpt.updateStats(&tv, getNumBytes());
+  pkts_thpt.updateStats(&tv, getNumPackets());
+
   if(!isView() && flows_hash) /* View Interfaces don't have flows, they just walk flows of their 'viewed' peers */
     walker(&begin_slot, walk_all, walker_flows, flow_update_hosts_stats, (void*)&tv, true);
 
@@ -5499,6 +5502,10 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_uint64_table_entry(vm, "devices",     getNumL2Devices());
   lua_push_uint64_table_entry(vm, "current_macs",  getNumMacs());
   lua_push_uint64_table_entry(vm, "num_live_captures", num_live_captures);
+  lua_push_float_table_entry(vm, "throughput_bps", bytes_thpt.getThpt());
+  lua_push_uint64_table_entry(vm, "throughput_trend_bps", bytes_thpt.getTrend());
+  lua_push_float_table_entry(vm, "throughput_pps", pkts_thpt.getThpt());
+  lua_push_uint64_table_entry(vm, "throughput_trend_pps", pkts_thpt.getTrend());
 
   if(db) db->lua(vm, false /* Overall */);
 
