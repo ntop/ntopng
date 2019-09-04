@@ -2040,8 +2040,6 @@ void Ntop::runHousekeepingTasks() {
 
   if(globals->isShutdownRequested()) return;
 
-  if(globals->isShutdownRequested()) return;
-
 #ifdef NTOPNG_PRO
   pro->runHousekeepingTasks();
 #endif
