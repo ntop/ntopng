@@ -24,18 +24,31 @@
 
 /* *************************************** */
 
-nDPIStats::nDPIStats() {
+nDPIStats::nDPIStats(bool enable_throughput_stats) {
   memset(counters, 0, sizeof(counters));
   memset(cat_counters, 0, sizeof(cat_counters));
+
+  if(enable_throughput_stats)
+    bytes_thpt = new (std::nothrow)ThroughputStats*[MAX_NDPI_PROTOS]();
+  else
+    bytes_thpt = NULL;
 }
 
 /* *************************************** */
 
 nDPIStats::nDPIStats(const nDPIStats &stats) {
-  for(int i=0; i<MAX_NDPI_PROTOS; i++) {
+  if(stats.bytes_thpt)
+    bytes_thpt = new (std::nothrow)ThroughputStats*[MAX_NDPI_PROTOS]();
+  else
+    bytes_thpt = NULL;
+
+  for(int i = 0; i < MAX_NDPI_PROTOS; i++) {
     if(stats.counters[i] != NULL) {
       counters[i] = (ProtoCounter*) malloc(sizeof(ProtoCounter));
       memcpy(counters[i], stats.counters[i], sizeof(ProtoCounter));
+
+      if(bytes_thpt && stats.bytes_thpt && stats.bytes_thpt[i])
+	bytes_thpt[i] = new (std::nothrow)ThroughputStats(*stats.bytes_thpt[i]);
     } else {
       counters[i] = NULL;
     }
@@ -50,12 +63,21 @@ nDPIStats::~nDPIStats() {
   for(int i=0; i<MAX_NDPI_PROTOS; i++) {
     if(counters[i] != NULL)
       free(counters[i]);
+
+    if(bytes_thpt && bytes_thpt[i])
+      delete bytes_thpt[i];
   }
+
+  if(bytes_thpt)
+    delete []bytes_thpt;
 }
 
 /* *************************************** */
 
 void nDPIStats::sum(nDPIStats *stats) const {
+  if(bytes_thpt && !stats->bytes_thpt)
+    stats->bytes_thpt = new (std::nothrow)ThroughputStats*[MAX_NDPI_PROTOS]();
+
   for(int i = 0; i < MAX_NDPI_PROTOS; i++) {
     if(counters[i] != NULL) {
       if(stats->counters[i] == NULL) {
@@ -66,7 +88,7 @@ void nDPIStats::sum(nDPIStats *stats) const {
 	    ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
 	    oom_warning_sent = true;
 	  }
-	 
+
 	  return;
 	}
       }
@@ -77,6 +99,13 @@ void nDPIStats::sum(nDPIStats *stats) const {
       stats->counters[i]->bytes.rcvd    += counters[i]->bytes.rcvd;
       stats->counters[i]->duration      += counters[i]->duration;
       stats->counters[i]->total_flows   += counters[i]->total_flows;
+
+      if(bytes_thpt && bytes_thpt[i] && stats->bytes_thpt) {
+	if(!stats->bytes_thpt[i])
+	  stats->bytes_thpt[i] = new (std::nothrow)ThroughputStats(*bytes_thpt[i]);
+	else
+	  bytes_thpt[i]->sum(stats->bytes_thpt[i]);
+      }
     }
   }
 
@@ -93,14 +122,15 @@ void nDPIStats::sum(nDPIStats *stats) const {
 /* *************************************** */
 
 void nDPIStats::print(NetworkInterface *iface) {
-  for(int i=0; i<MAX_NDPI_PROTOS; i++) {
+  for(int i = 0; i < MAX_NDPI_PROTOS; i++) {
     if(counters[i] != NULL) {
       if(counters[i]->bytes.sent || counters[i]->bytes.rcvd)
-	printf("[%s] [pkts: %llu/%llu][bytes: %llu/%llu][duration: %u sec]\n",
+	printf("[%s] [pkts: %llu/%llu][bytes: %llu/%llu][duration: %u sec][thpt: %.2f]\n",
 	       iface->get_ndpi_proto_name(i),
 	       (long long unsigned) counters[i]->packets.sent, (long long unsigned) counters[i]->packets.rcvd,
 	       (long long unsigned) counters[i]->bytes.sent,   (long long unsigned)counters[i]->bytes.rcvd,
-	       counters[i]->duration);
+	       counters[i]->duration,
+	       bytes_thpt && bytes_thpt[i] ? bytes_thpt[i]->getThpt() : 0);
     }
   }
 }
@@ -110,13 +140,13 @@ void nDPIStats::print(NetworkInterface *iface) {
 void nDPIStats::lua(NetworkInterface *iface, lua_State* vm, bool with_categories, bool tsLua) {
   lua_newtable(vm);
 
-  for(int i=0; i<MAX_NDPI_PROTOS; i++)
+  for(int i = 0; i < MAX_NDPI_PROTOS; i++)
     if(unlikely(counters[i] != NULL)) {
       char *name = iface->get_ndpi_proto_name(i);
 
       if(name != NULL) {
 	if(counters[i]->bytes.sent || counters[i]->bytes.rcvd) {
-          if(!tsLua) {
+	  if(!tsLua) {
 	    lua_newtable(vm);
 
 	    lua_push_str_table_entry(vm, "breed", iface->get_ndpi_proto_breed_name(i));
@@ -127,19 +157,28 @@ void nDPIStats::lua(NetworkInterface *iface, lua_State* vm, bool with_categories
 	    lua_push_uint64_table_entry(vm, "duration", counters[i]->duration);
 	    lua_push_uint64_table_entry(vm, "num_flows", counters[i]->total_flows);
 
+	    if(bytes_thpt && bytes_thpt[i]) {
+	      lua_newtable(vm);
+
+	      lua_push_float_table_entry(vm, "bps", bytes_thpt[i]->getThpt());
+	      lua_push_uint64_table_entry(vm, "trend_bps", bytes_thpt[i]->getTrend());
+
+	      lua_pushstring(vm, "throughput"); lua_insert(vm, -2); lua_rawset(vm, -3);
+	    }
+
 	    lua_pushstring(vm, name);
 	    lua_insert(vm, -2);
 	    lua_rawset(vm, -3);
-          } else {
-            char buf[64];
-	    
-            snprintf(buf, sizeof(buf), "%llu|%llu|%u",
+	  } else {
+	    char buf[64];
+
+	    snprintf(buf, sizeof(buf), "%llu|%llu|%u",
 		     (unsigned long long)counters[i]->bytes.sent,
 		     (unsigned long long)counters[i]->bytes.rcvd,
 		     counters[i]->total_flows);
 
-            lua_push_str_table_entry(vm, name, buf);
-          }
+	    lua_push_str_table_entry(vm, name, buf);
+	  }
 	}
       }
     }
@@ -153,30 +192,30 @@ void nDPIStats::lua(NetworkInterface *iface, lua_State* vm, bool with_categories
 
     for (int i=0; i<NDPI_PROTOCOL_NUM_CATEGORIES; i++) {
       if(unlikely(cat_counters[i].bytes.sent + cat_counters[i].bytes.rcvd > 0)) {
-        const char *name = iface->get_ndpi_category_name((ndpi_protocol_category_t)i);
+	const char *name = iface->get_ndpi_category_name((ndpi_protocol_category_t)i);
 
-        if(!tsLua) {
-          lua_newtable(vm);
+	if(!tsLua) {
+	  lua_newtable(vm);
 
-          lua_push_uint64_table_entry(vm, "category", i);
-          lua_push_uint64_table_entry(vm, "bytes", cat_counters[i].bytes.sent + cat_counters[i].bytes.rcvd);
-          lua_push_uint64_table_entry(vm, "bytes.sent", cat_counters[i].bytes.sent);
-          lua_push_uint64_table_entry(vm, "bytes.rcvd", cat_counters[i].bytes.rcvd);
-          lua_push_uint64_table_entry(vm, "duration", cat_counters[i].duration);
+	  lua_push_uint64_table_entry(vm, "category", i);
+	  lua_push_uint64_table_entry(vm, "bytes", cat_counters[i].bytes.sent + cat_counters[i].bytes.rcvd);
+	  lua_push_uint64_table_entry(vm, "bytes.sent", cat_counters[i].bytes.sent);
+	  lua_push_uint64_table_entry(vm, "bytes.rcvd", cat_counters[i].bytes.rcvd);
+	  lua_push_uint64_table_entry(vm, "duration", cat_counters[i].duration);
 
-          lua_pushstring(vm, name);
-          lua_insert(vm, -2);
-          lua_rawset(vm, -3);
-        } else {
-          
-          char buf[64];
+	  lua_pushstring(vm, name);
+	  lua_insert(vm, -2);
+	  lua_rawset(vm, -3);
+	} else {
 
-          snprintf(buf, sizeof(buf), "%llu|%llu",
-            (unsigned long long)cat_counters[i].bytes.sent,
-            (unsigned long long)cat_counters[i].bytes.rcvd);
+	  char buf[64];
 
-          lua_push_str_table_entry(vm, name, buf);
-        }
+	  snprintf(buf, sizeof(buf), "%llu|%llu",
+	    (unsigned long long)cat_counters[i].bytes.sent,
+	    (unsigned long long)cat_counters[i].bytes.rcvd);
+
+	  lua_push_str_table_entry(vm, name, buf);
+	}
       }
     }
 
@@ -188,10 +227,27 @@ void nDPIStats::lua(NetworkInterface *iface, lua_State* vm, bool with_categories
 
 /* *************************************** */
 
+void nDPIStats::updateStats(struct timeval *tv) {
+  if(!bytes_thpt)
+    return;
+
+  for(int i = 0; i < MAX_NDPI_PROTOS; i++) {
+    if(!counters[i])
+      continue;
+
+    if(!bytes_thpt[i])
+      bytes_thpt[i] = new (std::nothrow)ThroughputStats();
+
+    if(bytes_thpt[i])
+      bytes_thpt[i]->updateStats(tv, counters[i]->bytes.sent + counters[i]->bytes.rcvd);
+  }
+}
+
+/* *************************************** */
+
 void nDPIStats::incStats(u_int32_t when, u_int16_t proto_id,
 			 u_int64_t sent_packets, u_int64_t sent_bytes,
 			 u_int64_t rcvd_packets, u_int64_t rcvd_bytes) {
-
   if(proto_id < (MAX_NDPI_PROTOS)) {
     if(counters[proto_id] == NULL) {
       if((counters[proto_id] = (ProtoCounter*)calloc(1, sizeof(ProtoCounter))) == NULL) {
@@ -201,7 +257,7 @@ void nDPIStats::incStats(u_int32_t when, u_int16_t proto_id,
 	  ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
 	  oom_warning_sent = true;
 	}
-	
+
 	return;
       }
     }
@@ -220,7 +276,7 @@ void nDPIStats::incStats(u_int32_t when, u_int16_t proto_id,
 /* *************************************** */
 
 void nDPIStats::incCategoryStats(u_int32_t when, ndpi_protocol_category_t category_id,
-          u_int64_t sent_bytes, u_int64_t rcvd_bytes) {
+	  u_int64_t sent_bytes, u_int64_t rcvd_bytes) {
   if(category_id < NDPI_PROTOCOL_NUM_CATEGORIES) {
     cat_counters[category_id].bytes.sent += sent_bytes;
     cat_counters[category_id].bytes.rcvd += rcvd_bytes;
@@ -245,7 +301,7 @@ void nDPIStats::incFlowsStats(u_int16_t proto_id) {
 /* *************************************** */
 
 char* nDPIStats::serialize(NetworkInterface *iface) {
-  json_object *my_object = getJSONObject(iface);  
+  json_object *my_object = getJSONObject(iface);
   char *rsp = strdup(json_object_to_json_string(my_object));
 
   /* Free memory */
@@ -276,7 +332,7 @@ void nDPIStats::deserialize(NetworkInterface *iface, json_object *o) {
 
 	if((counters[proto_id] = (ProtoCounter*)calloc(1, sizeof(ProtoCounter))) != NULL) {
 	  json_object *duration;
-	  
+
 	  if(json_object_object_get_ex(obj, "bytes", &bytes)) {
 	    json_object *sent, *rcvd;
 
@@ -298,7 +354,7 @@ void nDPIStats::deserialize(NetworkInterface *iface, json_object *o) {
 	  }
 
 	  if(json_object_object_get_ex(obj, "duration", &duration))
-	    counters[proto_id]->duration = json_object_get_int(duration);	  
+	    counters[proto_id]->duration = json_object_get_int(duration);
 	}
       }
     }
@@ -336,7 +392,7 @@ static void addProtoJson(json_object *my_object, ProtoCounter *counter, const ch
   if(! inner) return;
 
   json_object_object_add(inner, "duration", json_object_new_int64(counter->duration));
-  
+
   inner1 = json_object_new_object();
   if(! inner1) { json_object_put(inner); return; }
   json_object_object_add(inner1, "sent", json_object_new_int64(counter->bytes.sent));
@@ -350,23 +406,23 @@ static void addProtoJson(json_object *my_object, ProtoCounter *counter, const ch
   json_object_object_add(inner, "packets", inner1);
 
   json_object_object_add(my_object, name, inner);
-} 
+}
 
 json_object* nDPIStats::getJSONObject(NetworkInterface *iface) {
   char *unknown = iface->get_ndpi_proto_name(NDPI_PROTOCOL_UNKNOWN);
   json_object *my_object;
-  json_object *inner, *inner1;  
+  json_object *inner, *inner1;
 
   my_object = json_object_new_object();
 
   for(int proto_id = 0; proto_id < MAX_NDPI_PROTOS; proto_id++) {
     if(counters[proto_id] != NULL) {
       char *name = iface->get_ndpi_proto_name(proto_id);
-      
+
       if((proto_id > 0) && (name == unknown)) break;
 
       if(name != NULL)
-        addProtoJson(my_object, counters[proto_id], name);
+	addProtoJson(my_object, counters[proto_id], name);
     }
   }
 
@@ -423,10 +479,14 @@ json_object* nDPIStats::getJSONObjectForCheckpoint(NetworkInterface *iface) {
 /* *************************************** */
 
 void nDPIStats::resetStats() {
-  for(int i=0; i<MAX_NDPI_PROTOS; i++) {
+  for(int i = 0; i < MAX_NDPI_PROTOS; i++) {
     /* NOTE: do not deallocate counters since they can be in use by other threads */
-    if(counters[i] != NULL)
+    if(counters[i] != NULL) {
       memset(&counters[i], 0, sizeof(counters[i]));
+
+      if(bytes_thpt && bytes_thpt[i])
+	bytes_thpt[i]->resetStats();
+    }
   }
 
   memset(cat_counters, 0, sizeof(cat_counters));

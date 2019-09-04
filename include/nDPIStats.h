@@ -44,19 +44,23 @@ typedef struct {
 } CategoryCounter;
 
 class NetworkInterface;
+class ThroughputStats;
 
 /* *************************************** */
 
 class nDPIStats {
  private:
   ProtoCounter *counters[MAX_NDPI_PROTOS];
+  ThroughputStats **bytes_thpt;
   /* NOTE: category counters are not dumped to redis right now, they are only used internally */
   CategoryCounter cat_counters[NDPI_PROTOCOL_NUM_CATEGORIES];
 
  public:
-  nDPIStats();
+  nDPIStats(bool enable_throughput_stats = false);
   nDPIStats(const nDPIStats &stats);
   ~nDPIStats();
+
+  void updateStats(struct timeval *tv);
 
   void incStats(u_int32_t when, u_int16_t proto_id,
 		u_int64_t sent_packets, u_int64_t sent_bytes,

@@ -2,7 +2,7 @@
 -- (C) 2013-18 - ntop.org
 --
 
-dirs = ntop.getDirs()
+local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
@@ -101,7 +101,7 @@ for _k in pairsByKeys(vals, asc) do
      end
   end
 
-  t = ifstats["ndpi"][k]["bytes.sent"]+ifstats["ndpi"][k]["bytes.rcvd"]
+  local t = ifstats["ndpi"][k]["bytes.sent"]+ifstats["ndpi"][k]["bytes.rcvd"]
 
   if(not(json_format)) then
      if(k ~= "ARP") then print(" <A HREF=\""..ntop.getHttpPrefix().."/lua/flows_stats.lua?application="..k.."\"><i class=\"fa fa-search-plus\"></i></A>") end
@@ -111,7 +111,13 @@ for _k in pairsByKeys(vals, asc) do
      -- print("</td>\n")
      print("</span><span style=\"width: 40%; margin-left: 15px;\" >" ..round((t * 100)/total, 1).. " %</span></td></tr>\n")
   else
-     print('"bytes": '..tostring(t)..' }')
+     print('"bytes": '..tostring(t))
+
+     if ifstats["ndpi"][k]["throughput"] then
+	print(', "throughput_bps": '..tostring(ifstats["ndpi"][k]["throughput"]["bps"]))
+     end
+
+     print('}')
   end
 
   num = num + 1

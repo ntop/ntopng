@@ -204,6 +204,7 @@ NetworkInterface::NetworkInterface(const char *name,
   loadScalingFactorPrefs();
 
   statsManager = NULL, alertsManager = NULL;
+  ndpiStats = NULL;
 
   host_pools = new HostPools(this);
   bcast_domains = new BroadcastDomains(this);
@@ -302,6 +303,7 @@ void NetworkInterface::init() {
   aggregated_flows_hash = NULL, flow_interfaces_stats = NULL;
   policer = NULL;
 #endif
+  ndpiStats = NULL;
   statsManager = NULL, alertsManager = NULL, ifSpeed = 0;
   host_pools = NULL;
   bcast_domains = NULL;
@@ -603,6 +605,7 @@ NetworkInterface::~NetworkInterface() {
   if(discovery)      delete discovery;
   if(statsManager)   delete statsManager;
   if(alertsManager)  delete alertsManager;
+  if(ndpiStats)      delete ndpiStats;
   if(networkStats) {
     u_int8_t numNetworks = ntop->getNumLocalNetworks();
 
@@ -3038,6 +3041,7 @@ void NetworkInterface::periodicStatsUpdate() {
   bytes_thpt.updateStats(&tv, getNumBytes());
   pkts_thpt.updateStats(&tv, getNumPackets());
   ethStats.updateStats(&tv);
+  ndpiStats->updateStats(&tv);
 
   if(!isView() && flows_hash) /* View Interfaces don't have flows, they just walk flows of their 'viewed' peers */
     walker(&begin_slot, walk_all, walker_flows, flow_update_hosts_stats, (void*)&tv, true);
@@ -5459,7 +5463,7 @@ void NetworkInterface::sumStats(TcpFlowStats *_tcpFlowStats,
 				PacketStats *_pktStats,
 				TcpPacketStats *_tcpPacketStats) const {
   tcpFlowStats.sum(_tcpFlowStats), ethStats.sum(_ethStats), localStats.sum(_localStats),
-    ndpiStats.sum(_ndpiStats), pktStats.sum(_pktStats), tcpPacketStats.sum(_tcpPacketStats);
+    ndpiStats->sum(_ndpiStats), pktStats.sum(_pktStats), tcpPacketStats.sum(_tcpPacketStats);
 }
 
 /* *************************************** */
@@ -6198,6 +6202,7 @@ void NetworkInterface::allocateStructures() {
     statsManager     = new StatsManager(id, STATS_MANAGER_STORE_NAME);
     alertsManager    = new AlertsManager(id, ALERTS_MANAGER_STORE_NAME);
     alerts_queue     = new AlertsQueue(this);
+    ndpiStats        = new nDPIStats(true /* Enable throughput calculation */);
 
     for(u_int8_t i = 0; i < numNetworks; i++)
       networkStats[i] = new NetworkStats(this, i);
