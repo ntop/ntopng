@@ -387,6 +387,8 @@ int AlertsManager::storeFlowAlert(Flow *f) {
     json_object *alert_json_obj;
     u_int64_t cur_rowid = (u_int64_t)-1, cur_counter;
     u_int64_t cur_cli2srv_bytes, cur_srv2cli_bytes, cur_cli2srv_packets, cur_srv2cli_packets = 0;
+    FlowStatus status;
+    FlowStatusMap status_map;
  
     if(!store_initialized || !store_opened || !f)
       return(-1);
@@ -394,8 +396,9 @@ int AlertsManager::storeFlowAlert(Flow *f) {
     markForMakeRoom(true);
 
     info = f->getFlowInfo();
+    status = f->getFlowStatus(&status_map);
 
-    msg = Utils::flowStatus2str(f->getFlowStatus(), f->getIDSAlertSeverity(),
+    msg = Utils::flowStatus2str(status, f->getIDSAlertSeverity(),
       &alert_type, &alert_severity);
 
     cli = f->get_cli_host(), srv = f->get_srv_host();
@@ -433,7 +436,7 @@ int AlertsManager::storeFlowAlert(Flow *f) {
        || sqlite3_bind_int(stmt,    4, f->get_protocol())
        || sqlite3_bind_int(stmt,    5, f->get_detected_protocol().master_protocol)
        || sqlite3_bind_int(stmt,    6, f->get_detected_protocol().app_protocol)
-       || sqlite3_bind_int(stmt,    7, (int)f->getFlowStatus())
+       || sqlite3_bind_int(stmt,    7, (int)status)
        || sqlite3_bind_text(stmt,   8, cli_ip, -1, SQLITE_STATIC)
        || sqlite3_bind_text(stmt,   9, srv_ip, -1, SQLITE_STATIC)
        || sqlite3_bind_int64(stmt, 10, static_cast<long int>(now) - ALERTS_MANAGER_MAX_AGGR_SECS)) {
@@ -532,7 +535,7 @@ int AlertsManager::storeFlowAlert(Flow *f) {
 	 || sqlite3_bind_int(stmt3,   22, (srv && srv->isBlacklisted()) ? 1 : 0)
 	 || sqlite3_bind_int(stmt3,   23, (cli && cli->isLocalHost()) ? 1 : 0)
 	 || sqlite3_bind_int(stmt3,   24, (srv && srv->isLocalHost()) ? 1 : 0)
-	 || sqlite3_bind_int(stmt3,   25, (int)f->getFlowStatus())
+	 || sqlite3_bind_int(stmt3,   25, (int) status)
 	 ) {
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to bind to arguments to %s", query);
 	rc = 2;

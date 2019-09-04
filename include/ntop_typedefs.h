@@ -371,8 +371,11 @@ typedef enum {
   /* 
      IMPORTANT IMPORTANT IMPORTANT
      If # status >= 32 then change to 64 bit disabled_flow_status in Host.h 
+     If # status >= 64 then change FlowStatusMap
   */
 } FlowStatus;
+
+typedef u_int64_t FlowStatusMap;
 
 typedef enum {
   details_normal = 0,

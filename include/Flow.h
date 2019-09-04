@@ -243,7 +243,7 @@ class Flow : public GenericHashEntry {
        time_t _first_seen, time_t _last_seen);
   ~Flow();
 
-  FlowStatus getFlowStatus();
+  FlowStatus getFlowStatus(FlowStatusMap *status_map);
   struct site_categories* getFlowCategory(bool force_categorization);
   void freeDPIMemory();
   static const ndpi_protocol ndpiUnknownProtocol;

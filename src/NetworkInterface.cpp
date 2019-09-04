@@ -3751,6 +3751,8 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
 #ifdef HAVE_NEDGE
   bool filtered_flows;
 #endif
+  FlowStatus status;
+  FlowStatusMap status_map;
 
   if(f && (!f->idle())) {
     if(retriever->host) {
@@ -3915,16 +3917,18 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
 	   || ((server_policy == location_remote_only) && (f->get_srv_host()->isLocalHost()))))
       return(false);
 
+    status = f->getFlowStatus(&status_map);
+
     if(retriever->pag
        && retriever->pag->alertedFlows(&alerted_flows)
-       && ((alerted_flows && f->getFlowStatus() == status_normal)
-	   || (!alerted_flows && f->getFlowStatus() != status_normal)))
+       && ((alerted_flows && status == status_normal)
+	   || (!alerted_flows && status != status_normal)))
       return(false);
 
     /* Flow Status filter */
     if(retriever->pag
        && retriever->pag->flowStatusFilter(&flow_status_filter)
-       && f->getFlowStatus() != flow_status_filter)
+       && status != flow_status_filter)
       return(false);
 
 #ifdef HAVE_NEDGE
