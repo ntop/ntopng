@@ -407,6 +407,7 @@ class NetworkInterface : public AlertableEntity {
   inline bool isTrafficMirrored()  { return is_traffic_mirrored; };
   void  updateTrafficMirrored();
   void updateFlowDumpDisabled();
+  bool restoreHost(char *host_ip, u_int16_t vlan_id);
   u_int printAvailableInterfaces(bool printHelp, int idx, char *ifname, u_int ifname_len);
   void findFlowHosts(u_int16_t vlan_id,
 		     Mac *src_mac, IpAddress *_src_ip, Host **src,

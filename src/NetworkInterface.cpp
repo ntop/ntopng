@@ -3509,6 +3509,32 @@ static bool find_vlan_by_vlan_id(GenericHashEntry *he, void *user_data, bool *ma
 
 /* **************************************************** */
 
+/* NOTE: this is inteded to be called only by startup.lua */
+bool NetworkInterface::restoreHost(char *host_ip, u_int16_t vlan_id) {
+  Host *h;
+  int16_t local_network_id;
+  IpAddress ipa;
+
+  ipa.set(host_ip);
+
+  if(ipa.isLocalHost(&local_network_id))
+    h = new LocalHost(this, host_ip, vlan_id);
+  else
+    h = new RemoteHost(this, host_ip, vlan_id);
+
+  if(!h) return(false);
+
+  if(!hosts_hash->add(h, false /* don't lock, we are in startup.lua */)) {
+    //ntop->getTrace()->traceEvent(TRACE_WARNING, "Too many hosts in interface %s", ifname);
+    delete h;
+    return(false);
+  }
+
+  return(true);
+}
+
+/* **************************************************** */
+
 Host* NetworkInterface::getHost(char *host_ip, u_int16_t vlan_id, bool isInlineCall) {
   struct in_addr  a4;
   struct in6_addr a6;
