@@ -8317,6 +8317,22 @@ static int ntop_flow_get_info(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_flow_is_local(lua_State* vm) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  bool is_local = false;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  if(c->flow == NULL) return(CONST_LUA_ERROR);
+
+  if(c->flow->get_cli_host() && c->flow->get_srv_host())
+    is_local = c->flow->get_cli_host()->isLocalHost() && c->flow->get_srv_host()->isLocalHost();
+
+  lua_pushboolean(vm, is_local);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_flow_set_score(lua_State* vm) {
   u_int16_t score;
   struct ntopngLuaContext *c = getLuaVMContext(vm);
@@ -9680,6 +9696,7 @@ static const luaL_Reg ntop_network_reg[] = {
 
 static const luaL_Reg ntop_flow_reg[] = {
   { "getInfo",                  ntop_flow_get_info       },
+  { "isLocal",                  ntop_flow_is_local       },
   { "setScore",                 ntop_flow_set_score      },
   { "getClientScore",           ntop_flow_get_client_score           },
   { "getServerScore",           ntop_flow_get_server_score           },

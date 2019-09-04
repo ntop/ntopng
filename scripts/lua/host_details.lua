@@ -24,6 +24,7 @@ local discover = require "discover_utils"
 local ts_utils = require "ts_utils"
 local page_utils = require "page_utils"
 local template = require "template_utils"
+local mud_utils = require "mud_utils"
 local companion_interface_utils = require "companion_interface_utils"
 
 local info = ntop.getInfo()
@@ -1954,6 +1955,10 @@ elseif (page == "config") then
          is_top_hidden = new_top_hidden
          interface.reloadHideFromTop()
       end
+
+      if(_POST["mud_recording"] ~= nil) then
+         mud_utils.setHostMUDRecordingPref(ifId, host_info.host, _POST["mud_recording"])
+      end
    end
 
    print[[
@@ -1983,6 +1988,27 @@ elseif (page == "config") then
                </input>
          </td>
       </tr>]]
+
+   -- TODO move flow.lua into community
+   if(ntop.isEnterprise() and host["localhost"] and ((host_vlan == nil) or (host_vlan == 0))) then
+      local mud_recording_pref = mud_utils.getHostMUDRecordingPref(ifId, host_info.host, _POST["mud_recording"])
+
+      print [[<tr>
+         <th>]] print(i18n("host_config.mud_recording")) print[[</th>
+         <td>
+               <select name="mud_recording" class="form-control" style="width:20em;">
+                  <option value="disabled" ]] if mud_recording_pref == "disabled" then print("selected") end print[[>]] print(i18n("traffic_recording.disabled")) print[[</option>
+                  <option value="general_purpose" ]] if mud_recording_pref == "general_purpose" then print("selected") end print[[>]] print(i18n("host_config.mud_general_purpose")) print[[</option>
+                  <option value="special_purpose" ]] if mud_recording_pref == "special_purpose" then print("selected") end print[[>]] print(i18n("host_config.mud_special_purpose")) print[[</option>
+               </select>]]
+
+      if mud_utils.hasRecordedMUD(ifId, host_info.host) then
+         print(" <a href=\""..ntop.getHttpPrefix().."/lua/rest/get/host/mud.lua?host=".. host_info.host .."\"><i class=\"fa fa-download\"></i></a>")
+      end
+
+      print[[</td>
+      </tr>]]
+   end
 
    if(ifstats.inline and (host.localhost or host.systemhost)) then
       -- Traffic policy
