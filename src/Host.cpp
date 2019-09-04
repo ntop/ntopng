@@ -517,7 +517,6 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
 /* ***************************************** */
 
 char* Host::get_name(char *buf, u_int buf_len, bool force_resolution_if_not_found) {
-  Mac *cur_mac = getMac(); /* Cache it as it can change */
   char *addr = NULL, name_buf[96];
   int rc = -1;
   time_t now = time(NULL);
@@ -531,10 +530,13 @@ char* Host::get_name(char *buf, u_int buf_len, bool force_resolution_if_not_foun
 
   num_resolve_attempts++;
 
-  if(cur_mac) {
-    cur_mac->getDHCPName(name_buf, sizeof(name_buf));
-    if(strlen(name_buf))
-      goto out;
+  if(isBroadcastDomainHost()) {
+    Mac *cur_mac = getMac(); /* Cache it as it can change */
+    if (cur_mac) {
+      cur_mac->getDHCPName(name_buf, sizeof(name_buf));
+      if(strlen(name_buf))
+        goto out;
+    }
   }
 
   getMDNSName(name_buf, sizeof(name_buf));
