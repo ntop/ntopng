@@ -64,10 +64,11 @@ function slack.dequeueAlerts(queue)
 
   for _, json_message in ipairs(notifications) do
     local notif = json.decode(json_message)
-
-    alerts_by_types[notif.alert_entity] = alerts_by_types[notif.alert_entity] or {}
-    alerts_by_types[notif.alert_entity][notif.alert_severity] = alerts_by_types[notif.alert_entity][notif.alert_severity] or {}
-    table.insert(alerts_by_types[notif.alert_entity][notif.alert_severity], notif)
+    if notif.alert_entity then
+      alerts_by_types[notif.alert_entity] = alerts_by_types[notif.alert_entity] or {}
+      alerts_by_types[notif.alert_entity][notif.alert_severity] = alerts_by_types[notif.alert_entity][notif.alert_severity] or {}
+      table.insert(alerts_by_types[notif.alert_entity][notif.alert_severity], notif)
+    end
   end
 
   for entity_type, by_severity in pairs(alerts_by_types) do
