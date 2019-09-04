@@ -312,6 +312,11 @@ function alerts_api.release(entity_info, type_info, when)
   local params = {alert_key_name, granularity_id, when}
   local released = nil
 
+  if(type_info.alert_severity == nil) then
+    alertErrorTraceback(string.format("Missing alert_severity [type=%s]", type_info.alert_type and type_info.alert_type.alert_id or ""))
+    return(false)
+  end
+
   if(entity_info.alert_entity.entity_id == alertEntity("host")) then
     host.checkContext(entity_info.alert_entity_val)
     released = host.releaseTriggeredAlert(table.unpack(params))
@@ -332,11 +337,6 @@ function alerts_api.release(entity_info, type_info, when)
   else
     if(do_trace) then print("[RELEASE alert @ "..granularity_sec.."] "..
         entity_info.alert_entity_val .."@"..type_info.alert_type.i18n_title..":".. subtype .. "\n") end
-  end
-
-  if(type_info.alert_severity == nil) then
-    alertErrorTraceback(string.format("Missing alert_severity [type=%s]", type_info.alert_type and type_info.alert_type.alert_id or ""))
-    return(false)
   end
 
   enqueueStoreAlert(ifid, released)

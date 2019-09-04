@@ -153,6 +153,9 @@ for _key,_value in ipairs(alerts) do
    record["column_date"] = column_date
    record["column_duration"] = column_duration
    record["column_severity"] = column_severity
+   record["column_severity_id"] = tonumber(_value["alert_severity"])
+   record["column_subtype"] = _value["alert_subtype"]
+   record["column_granularity"] = _value["alert_granularity"]
    record["column_count"] = column_count
    record["column_type"] = column_type
    record["column_type_id"] = tonumber(_value["alert_type"])

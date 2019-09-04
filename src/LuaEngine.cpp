@@ -8259,6 +8259,23 @@ static int ntop_interface_check_context(lua_State* vm) {
 
 /* ****************************************** */
 
+/* Manually refresh alerts for scripts outside the periodic scripts */
+static int ntop_interface_refresh_alerts(lua_State* vm) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+
+  if(c->host)
+    c->host->refreshAlerts();
+  else if(c->network)
+    c->network->refreshAlerts();
+  else if(c->iface)
+    c->iface->refreshAlerts();
+
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_flow_get_info(lua_State* vm) {
   struct ntopngLuaContext *c = getLuaVMContext(vm);
   AddressTree *ptree = get_allowed_nets(vm);
@@ -9563,6 +9580,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "releaseExternalAlert",   ntop_interface_release_external_alert   },
   { "getExpiredAlerts",       ntop_interface_get_expired_alerts       },
   { "checkContext",           ntop_interface_check_context            },
+  { "refreshAlerts",          ntop_interface_refresh_alerts           },
   { "getEngagedAlerts",       ntop_interface_get_engaged_alerts       },
   { "getEngagedAlertsCount",  ntop_interface_get_engaged_alerts_count },
   { "incNumDroppedAlerts",    ntop_interface_inc_num_dropped_alerts   },

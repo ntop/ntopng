@@ -611,6 +611,23 @@ function checkDeleteStoredAlerts()
    end
 
    checkDisableAlerts()
+
+   if(_POST["action"] == "release_alert") then
+      local entity_info = {
+         alert_entity = alert_consts.alert_entities[alertEntityRaw(_POST["entity"])],
+         alert_entity_val = _POST["entity_val"],
+      }
+
+      local type_info = {
+         alert_type = alert_consts.alert_types[alertTypeRaw(_POST["alert_type"])],
+         alert_severity = alert_consts.alert_severities[alertSeverityRaw(_POST["alert_severity"])],
+         alert_subtype = _POST["alert_subtype"],
+         alert_granularity = alert_consts.alerts_granularities[sec2granularity(_POST["alert_granularity"])],
+      }
+
+      alerts_api.release(entity_info, type_info)
+      interface.refreshAlerts();
+   end
 end
 
 -- #################################
@@ -1479,6 +1496,19 @@ function drawAlertTables(has_past_alerts, has_engaged_alerts, has_flow_alerts, h
    print(
       template.gen("modal_confirm_dialog.html", {
 		      dialog={
+			 id      = "release_single_alert",
+			 action  = "releaseAlert(alert_to_release)",
+			 title   = i18n("show_alerts.release_alert"),
+			 message = i18n("show_alerts.confirm_release_alert"),
+			 confirm = i18n("show_alerts.release_alert_action"),
+			 confirm_button = "btn-primary",
+		      }
+      })
+   )
+
+   print(
+      template.gen("modal_confirm_dialog.html", {
+		      dialog={
 			 id      = "enable_alert_type",
 			 action  = "toggleAlert(false)",
 			 title   = i18n("show_alerts.enable_alerts_title"),
@@ -1624,6 +1654,27 @@ function prepareToggleAlertsDialog(table_id, idx) {
 
   $(".toggle-alert-id").html(noHtml(row.column_type).trim());
   $(".toggle-alert-entity-value").html(noHtml(row.column_entity_formatted).trim())
+}
+
+var alert_to_release = null;
+
+function releaseAlert(idx) {
+  var table_data = $("#table-engaged-alerts").data("datatable").resultset.data;
+  var row = table_data[idx];
+
+  var params = {
+    "action": "release_alert",
+    "entity": row.column_entity_id,
+    "entity_val": row.column_entity_val,
+    "alert_type": row.column_type_id,
+    "alert_severity": row.column_severity_id,
+    "alert_subtype": row.column_subtype,
+    "alert_granularity": row.column_granularity,
+    "csrf": "]] print(ntop.getRandomCSRFValue()) print[[",
+  };
+
+  var form = paramsToForm('<form method="post"></form>', params);
+  form.appendTo('body').submit();
 }
 
 function toggleAlert(disable) {
@@ -1862,6 +1913,9 @@ function toggleAlert(disable) {
                   datatableAddActionButtonCallback.bind(this)(9, "prepareToggleAlertsDialog(']] print(t["div-id"]) print[[',"+ row_id +"); $('#disable_alert_type').modal('show');", "]] print(i18n("show_alerts.disable_alerts")) print[[");
                else
                   datatableAddActionButtonCallback.bind(this)(9, "prepareToggleAlertsDialog(']] print(t["div-id"]) print[[',"+ row_id +"); $('#enable_alert_type').modal('show');", "]] print(i18n("show_alerts.enable_alerts")) print[[");
+
+               if(]] print(ternary(t["status"] == "engaged", "true", "false")) print[[)
+                 datatableAddActionButtonCallback.bind(this)(9, "alert_to_release = "+ row_id +"; $('#release_single_alert').modal('show');", "]] print(i18n("show_alerts.release_alert_action")) print[[");
 
                if(]] print(ternary(t["status"] ~= "engaged", "true", "false")) print[[)
                  datatableAddDeleteButtonCallback.bind(this)(9, "delete_alert_id ='" + alert_id + "'; $('#delete_alert_dialog').modal('show');", "]] print(i18n('delete')) print[[");
