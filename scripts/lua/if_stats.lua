@@ -815,7 +815,7 @@ elseif((page == "networks")) then
       for bcast_domain, domain_info in pairsByKeys(ifstats.bcast_domains) do
 	 bcast_domain = string.format("<a href='%s/lua/hosts_stats.lua?network_cidr=%s'>%s</a>", ntop.getHttpPrefix(), bcast_domain, bcast_domain)
 
-	 if domain_info.ghost_network and interface.isPacketInterface() and not is_pcap_dump and ntop.getPref(string.format("ntopng.prefs.ifid_%d.is_traffic_mirrored", ifId)) ~= "1" then
+	 if domain_info.ghost_network then
 	    has_ghost_networks = true
 	    bcast_domain = bcast_domain..' '..ghost_icon
 	 end

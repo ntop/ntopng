@@ -79,7 +79,7 @@ void BroadcastDomains::inlineAddAddress(const IpAddress * const ipa, int network
 
   if(addr_node) {
     struct bcast_domain_info info;
-    info.is_ghost_network = !iface->isInterfaceNetwork(ipa, network_bits);
+    info.is_interface_network = iface->isInterfaceNetwork(ipa, network_bits);
     info.hits = 1;
 
     addr_node->user_data = next_domain_id++;
@@ -88,6 +88,15 @@ void BroadcastDomains::inlineAddAddress(const IpAddress * const ipa, int network
 
   if(!next_update)
     next_update = time(NULL) + 1;
+}
+
+/* *************************************** */
+
+bool BroadcastDomains::isGhostLocalBroadcastDomain(bool is_interface_network) const {
+  return !is_interface_network
+    && !iface->isTrafficMirrored()
+    && iface->isPacketInterface()
+    && iface->getIfType() != interface_type_PCAP_DUMP;
 }
 
 /* *************************************** */
@@ -141,6 +150,7 @@ bool BroadcastDomains::isLocalBroadcastDomainHost(const Host * const h, bool isI
 /* *************************************** */
 
 struct bcast_domain_walk_data {
+  const BroadcastDomains *bcast_domains;
   std::map<u_int16_t, bcast_domain_info> domains_info;
   lua_State *vm;
 };
@@ -157,7 +167,7 @@ static void bcast_domain_lua(patricia_node_t *node, void *data, void *user_data)
       return;
 
     lua_newtable(vm);
-    lua_push_bool_table_entry(vm, "ghost_network", it->second.is_ghost_network);
+    lua_push_bool_table_entry(vm, "ghost_network", bdata->bcast_domains->isGhostLocalBroadcastDomain(it->second.is_interface_network));
     lua_push_uint64_table_entry(vm, "hits", it->second.hits);
 
     lua_pushstring(vm, address);
@@ -175,6 +185,7 @@ void BroadcastDomains::lua(lua_State *vm) const {
   /* Make a copy to avoid iterating it during inline insertion */
   data.domains_info = domains_info;
   data.vm = vm;
+  data.bcast_domains = this;
 
   lua_newtable(vm);
 

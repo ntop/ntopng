@@ -44,6 +44,7 @@ class BroadcastDomains {
   void inlineReloadBroadcastDomains(bool force_immediate_reload = false);
   bool isLocalBroadcastDomain(const IpAddress * const ipa, int network_bits, bool isInlineCall) const;
   bool isLocalBroadcastDomainHost(const Host * const h, bool isInlineCall) const;
+  bool isGhostLocalBroadcastDomain(bool is_interface_network) const;
   void lua(lua_State* vm) const;
 };
 
