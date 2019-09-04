@@ -2734,11 +2734,13 @@ function processAlertNotifications(now, periodic_frequency, force_export)
         goto continue
       end
 
-      if(interfaces[tostring(message.ifid)] == nil) then
+      local str_ifid = tostring(message.ifid)
+
+      if((interfaces[str_ifid] == nil) and (str_ifid ~= getSystemInterfaceId())) then
         goto continue
       end
 
-      interface.select(tostring(message.ifid))
+      interface.select(str_ifid)
 
       if((message.rowid ~= nil) and (message.table_name ~= nil)) then
         -- A rowid has been passed instead of actual notification information,

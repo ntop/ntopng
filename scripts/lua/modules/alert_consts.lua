@@ -7,6 +7,11 @@ local alert_consts = {}
 local locales_utils = require "locales_utils"
 local format_utils  = require "format_utils"
 
+if(ntop.isPro()) then
+  package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
+  -- NOTE: import snmp_utils below to avoid import cycles
+end
+
 -- Alerts (see ntop_typedefs.h)
 -- each table entry is an array as:
 -- {"alert html string", "alert C enum value", "plain string", "syslog severity"}
@@ -687,6 +692,8 @@ end
 -- ##############################################
 
 local function portStatusChangeFormatter(ifid, alert, info)
+  if ntop.isPro() then require "snmp_utils" end
+
   return(i18n("alerts_dashboard.snmp_port_changed_operational_status",
     {device = info.device,
      port = info.interface_name or info.interface,
@@ -698,6 +705,8 @@ end
 -- ##############################################
 
 local function snmpPortDuplexChangeFormatter(ifid, alert, info)
+  if ntop.isPro() then require "snmp_utils" end
+
   return(i18n("alerts_dashboard.snmp_port_changed_duplex_status",
     {device = info.device,
      port = info.interface_name or info.interface,
@@ -709,6 +718,8 @@ end
 -- ##############################################
 
 local function snmpInterfaceErrorsFormatter(ifid, alert, info)
+  if ntop.isPro() then require "snmp_utils" end
+
   return(i18n("alerts_dashboard.snmp_port_errors_increased",
     {device = info.device,
      port = info.interface_name or info.interface,
@@ -719,6 +730,8 @@ end
 -- ##############################################
 
 local function snmpPortLoadThresholdFormatter(ifid, alert, info)
+  if ntop.isPro() then require "snmp_utils" end
+
   return(i18n("alerts_dashboard.snmp_port_load_threshold_exceeded_message",
     {device = info.device,
      port = info.interface_name or info.interface,
