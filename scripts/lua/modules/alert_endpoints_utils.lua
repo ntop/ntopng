@@ -128,7 +128,7 @@ function alert_endpoints.dispatchNotification(message, json_message)
    loadModules()
 
    for _, m in ipairs(modules) do
-      if message.alert_severity >= alertSeverity(m.severity) then
+      if tonumber(message.alert_severity) >= alertSeverity(m.severity) then
          ntop.rpushCache(m.export_queue, json_message, MAX_NUM_PER_MODULE_QUEUED_ALERTS)
       end
    end
