@@ -1046,7 +1046,7 @@ alert_consts.alert_types = {
 
 -- ##############################################
 
--- See getFlowStatusTypes() in lua_utils for flow alerts
+-- See flow_consts.flow_status_types in flow_consts for flow alerts
 -- See Utils::flowStatus2str to determine the alert_type for flow alerts
 
 -- Keep in sync with ntop_typedefs.h:AlertEntity

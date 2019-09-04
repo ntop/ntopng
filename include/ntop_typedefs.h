@@ -335,8 +335,8 @@ struct string_list {
 
 /*
   Remember to update
-  - Utils.cpp      Utils::flowStatus2str()
-  - lua_utils.lua  getFlowStatus(status)
+  - Utils.cpp        Utils::flowStatus2str()
+  - flow_consts.lua  flow_consts.flow_status_types
  */
 typedef enum {
   status_normal = 0,

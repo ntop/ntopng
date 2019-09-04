@@ -17,6 +17,7 @@ local telemetry_utils = require "telemetry_utils"
 local tracker = require "tracker"
 local alerts_api = require "alerts_api"
 local alert_endpoints = require "alert_endpoints_utils"
+local flow_consts = require "flow_consts"
 
 local store_alerts_queue = "ntopng.alert_store_queue"
 local inactive_hosts_hash_key = "ntopng.prefs.alerts.ifid_%d.inactive_hosts_alerts"
@@ -914,13 +915,13 @@ local function printConfigTab(entity_type, entity_value, page_name, page_params,
            <input id="status_trigger_alert" name="disabled_status" type="hidden" />
            <select onchange="convertMultiSelect()" id="status_trigger_alert_select" multiple class="form-control" style="width:40em; height:10em; display:inline;">]]
 
-      for status_id, label in pairsByValues(getFlowStatusTypes(), asc_insensitive) do
+      for status_id, status in pairsByValues(flow_consts.flow_status_types, asc_insensitive) do
         print[[<option value="]] print(string.format("%d", status_id))
         if ntop.bitmapIsSet(cur_bitmap, tonumber(status_id)) then
           print[[" selected="selected]]
         end
         print[[">]]
-        print(label)
+        print(status.i18n)
         print[[</option>]]
       end
 

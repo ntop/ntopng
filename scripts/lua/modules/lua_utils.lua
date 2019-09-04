@@ -14,6 +14,7 @@ locales_utils = require "locales_utils"
 local os_utils = require "os_utils"
 local format_utils = require "format_utils"
 local alert_consts = require "alert_consts"
+local flow_consts = require "flow_consts"
 local page_utils = require("page_utils")
 
 -- ##############################################
@@ -2594,61 +2595,32 @@ end
 
 -- ###############################################
 
--- Update Utils::flowstatus2str / FlowStatus enum
--- Utils::flowStatus2str determines the actual alert_type to set
-
-function getFlowStatusTypes()
-   local entries = {
-   [0]  = i18n("flow_details.normal"),
-   [1]  = i18n("flow_details.slow_tcp_connection"),
-   [2]  = i18n("flow_details.slow_application_header"),
-   [3]  = i18n("flow_details.slow_data_exchange"),
-   [4]  = i18n("flow_details.low_goodput"),
-   [5]  = i18n("flow_details.suspicious_tcp_syn_probing"),
-   [6]  = i18n("flow_details.tcp_connection_issues"),
-   [7]  = i18n("flow_details.suspicious_tcp_probing"),
-   [8]  = i18n("flow_details.flow_emitted"),
-   [9]  = i18n("flow_details.tcp_connection_refused"),
-   [10] = i18n("flow_details.ssl_certificate_mismatch"),
-   [11] = i18n("flow_details.dns_invalid_query"),
-   [12] = i18n("flow_details.remote_to_remote"),
-   [13] = i18n("flow_details.blacklisted_flow"),
-   [14] = i18n("flow_details.flow_blocked_by_bridge"),
-   [15] = i18n("flow_details.web_mining_detected"),
-   [16] = i18n("flow_details.suspicious_device_protocol"),
-   [17] = i18n("flow_details.elephant_flow_l2r"),
-   [18] = i18n("flow_details.elephant_flow_r2l"),
-   [19] = i18n("flow_details.longlived_flow"),
-   [20] = i18n("flow_details.not_purged"),
-   [21] = i18n("alerts_dashboard.ids_alert"),
-   [22] = i18n("flow_details.tcp_severe_connection_issues"),
-   [23] = i18n("flow_details.ssl_unsafe_ciphers"),
-   [24] = i18n("flow_details.data_exfiltration"),
-   [25] = i18n("flow_details.ssl_old_protocol_version"),
-   [26] = i18n("flow_details.potentially_dangerous_protocol"),
-   [27] = i18n("alerts_dashboard.malicious_signature_detected"),
-   }
-
-   return entries
-end
-
 function getFlowStatus(status, flowstatus_info, alert, no_icon)
    local warn_sign = ternary(no_icon, "", "<i class=\"fa fa-warning\" aria-hidden=true style=\"color: orange;\"></i> ")
    local res = warn_sign..i18n("flow_details.unknown_status",{status=status})
-   local types = getFlowStatusTypes()
 
    -- NOTE: flowstatus_info can be nil
-   if(status == 10) then res = warn_sign..formatSSLCertificateMismatch(status, flowstatus_info, alert)
-   elseif(status == 13) then res = warn_sign..formatBlacklistedFlow(status, flowstatus_info, alert)
-   elseif(status == 16) then res = formatSuspiciousDeviceProtocolAlert(flowstatus_info)
-   elseif(status == 17) then res = warn_sign..formatElephantFlowAlert(flowstatus_info, true --[[ local 2 remote --]])
-   elseif(status == 18) then res = warn_sign..formatElephantFlowAlert(flowstatus_info, false --[[ remote 2 local --]])
-   elseif(status == 19) then res = warn_sign..formatLongLivedFlowAlert(flowstatus_info)
-   elseif(status == 21) then res = warn_sign..formatIDSFlowAlert(flowstatus_info)
-   elseif(status == 22) then res = warn_sign..i18n("flow_details.tcp_severe_connection_issues")
-   elseif(status == 27) then res = warn_sign..formatMaliciousSignature(flowstatus_info)
-   elseif(status == 0) then res = types[0]
-   elseif(types[status] ~= nil) then res = warn_sign..types[status]
+   if(status == flow_consts.status_ssl_certificate_mismatch) then 
+     res = warn_sign..formatSSLCertificateMismatch(status, flowstatus_info, alert)
+   elseif(status == flow_consts.status_blacklisted) then 
+     res = warn_sign..formatBlacklistedFlow(status, flowstatus_info, alert)
+   elseif(status == flow_consts.status_device_protocol_not_allowed) then 
+     res = formatSuspiciousDeviceProtocolAlert(flowstatus_info)
+   elseif(status == flow_consts.status_elephant_local_to_remote) then 
+     res = warn_sign..formatElephantFlowAlert(flowstatus_info, true --[[ local 2 remote --]])
+   elseif(status == flow_consts.status_elephant_remote_to_local) then 
+     res = warn_sign..formatElephantFlowAlert(flowstatus_info, false --[[ remote 2 local --]])
+   elseif(status == flow_consts.status_longlived) then 
+     res = warn_sign..formatLongLivedFlowAlert(flowstatus_info)
+   elseif(status == flow_consts.status_ids_alert) then 
+     res = warn_sign..formatIDSFlowAlert(flowstatus_info)
+   elseif(status == flow_consts.status_tcp_severe_connection_issues) then 
+     res = warn_sign..i18n("flow_details.tcp_severe_connection_issues")
+   elseif(status == flow_consts.status_malicious_signature) then res = warn_sign..formatMaliciousSignature(flowstatus_info)
+   elseif(status == flow_consts.status_normal) then 
+     res = flow_consts.flow_status_types[flow_consts.status_normal].i18n
+   elseif(flow_consts.flow_status_types[status] ~= nil) then 
+     res = warn_sign..flow_consts.flow_status_types[status].i18n
    end
 
    return res
