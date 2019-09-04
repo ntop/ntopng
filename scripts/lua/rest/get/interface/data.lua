@@ -65,6 +65,7 @@ function dumpInterfaceStats(ifid)
       res["ifid"]  = ifid
       res["ifname"]  = interface_name
       res["speed"]  = getInterfaceSpeed(ifstats.id)
+      res["periodic_stats_update_frequency_secs"] = ifstats.periodic_stats_update_frequency_secs
       -- network load is used by web pages that are shown to the user
       -- so we must return statistics since the latest (possible) reset
       res["packets"] = ifstats.stats_since_reset.packets

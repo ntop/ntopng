@@ -1472,6 +1472,22 @@ u_int8_t ZMQParserInterface::parseOption(const char * const payload, int payload
 
 /* **************************************** */
 
+u_int32_t ZMQParserInterface::periodicStatsUpdateFrequency() {
+  ZMQ_RemoteStats *zrs = zmq_remote_stats;
+  u_int32_t update_freq;
+  u_int32_t update_freq_min = ntop->getPrefs()->get_housekeeping_frequency();
+
+  if(zrs)
+    update_freq = max_val(zrs->remote_lifetime_timeout, zrs->remote_idle_timeout);
+  else
+    update_freq = update_freq_min;
+  
+  return max_val(update_freq, update_freq_min);
+		 
+}
+
+/* **************************************** */
+
 void ZMQParserInterface::setRemoteStats(ZMQ_RemoteStats *zrs) {
   if(!zrs) return;
 

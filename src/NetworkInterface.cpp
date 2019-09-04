@@ -288,6 +288,7 @@ void NetworkInterface::init() {
   hide_from_top = hide_from_top_shadow = NULL;
 
   gettimeofday(&last_frequent_reset, NULL);
+  memcpy(&last_periodic_stats_update, &last_frequent_reset, sizeof(last_periodic_stats_update));
   frequentMacs = new FrequentTrafficItems(5);
   frequentProtocols = new FrequentTrafficItems(5);
   num_live_captures = 0, num_dropped_alerts = 0;
@@ -3013,6 +3014,25 @@ static bool update_generic_element_stats(GenericHashEntry *node, void *user_data
 
 /* **************************************************** */
 
+bool NetworkInterface::checkPeriodicStatsUpdateTime(const struct timeval *tv) {
+  float diff = Utils::msTimevalDiff(tv, &last_periodic_stats_update) / 1000;
+
+  if(diff >= periodicStatsUpdateFrequency()) {
+    memcpy(&last_periodic_stats_update, tv, sizeof(last_periodic_stats_update));
+    return true;
+  }
+    
+  return false;
+}
+
+/* **************************************************** */
+
+u_int32_t NetworkInterface::periodicStatsUpdateFrequency() {
+  return ntop->getPrefs()->get_housekeeping_frequency();
+}
+
+/* **************************************************** */
+
 // #define PERIODIC_STATS_UPDATE_DEBUG_TIMING
 
 void NetworkInterface::periodicStatsUpdate() {
@@ -3020,7 +3040,7 @@ void NetworkInterface::periodicStatsUpdate() {
   u_int32_t begin_slot = 0;
   bool walk_all = true;
 #ifdef PERIODIC_STATS_UPDATE_DEBUG_TIMING
-  struct timeval tdebug;
+  struct timeval tdebug, tdebug_init;
 #endif
 
   if(!read_from_pcap_dump() || reproducePcapOriginalSpeed())
@@ -3028,12 +3048,16 @@ void NetworkInterface::periodicStatsUpdate() {
   else
     tv.tv_sec = last_pkt_rcvd, tv.tv_usec = 0;
 
+  if(!checkPeriodicStatsUpdateTime(&tv))
+    return; /* Not yet the time to perform an update */
+
 #ifdef NTOPNG_PRO
   if(getHostPools()) getHostPools()->checkPoolsStatsReset();
 #endif
 
 #ifdef PERIODIC_STATS_UPDATE_DEBUG_TIMING
   gettimeofday(&tdebug, NULL);
+  memcpy(&tdebug_init, &tdebug, sizeof(tdebug_init));
 #endif
 
   updatePacketsStats();
@@ -3145,6 +3169,11 @@ void NetworkInterface::periodicStatsUpdate() {
     slow_stats_update = true;
   else
     slow_stats_update = false;
+
+#ifdef PERIODIC_STATS_UPDATE_DEBUG_TIMING
+  gettimeofday(&tdebug, NULL);
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Stats update done [took: %d]", tdebug.tv_sec - tdebug_init.tv_sec);
+#endif
 }
 
 /* **************************************************** */
@@ -5528,6 +5557,7 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_bool_table_entry(vm, "has_alerts", hasAlerts());
   lua_push_int32_table_entry(vm, "num_alerts_engaged", getNumEngagedAlerts());
   lua_push_int32_table_entry(vm, "num_dropped_alerts", num_dropped_alerts);
+  lua_push_uint64_table_entry(vm, "periodic_stats_update_frequency_secs", periodicStatsUpdateFrequency());
 
   lua_newtable(vm);
   lua_push_uint64_table_entry(vm, "packets",     getNumPackets());

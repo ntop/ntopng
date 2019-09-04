@@ -50,7 +50,8 @@ class ZMQParserInterface : public ParserInterface {
 
   u_int8_t parseOptionFieldMap(json_object * const jo) const;
   u_int8_t parseOptionFieldValueMap(json_object * const jo) const;
-    
+
+  u_int32_t periodicStatsUpdateFrequency();    
  public:
   ZMQParserInterface(const char *endpoint, const char *custom_interface_type = NULL);
   ~ZMQParserInterface();

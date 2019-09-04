@@ -167,6 +167,7 @@ class NetworkInterface : public AlertableEntity {
   FrequentTrafficItems *frequentProtocols;
   FrequentTrafficItems *frequentMacs;
   struct timeval last_frequent_reset;
+  struct timeval last_periodic_stats_update;
 
   /* Mac */
   MacHash *macs_hash; /**< Hash used to store MAC information. */
@@ -258,6 +259,8 @@ class NetworkInterface : public AlertableEntity {
 
   bool isNumber(const char *str);
   bool checkIdle();
+  bool checkPeriodicStatsUpdateTime(const struct timeval *tv);
+  virtual u_int32_t periodicStatsUpdateFrequency();
   void topItemsCommit(const struct timeval *when);
   void checkMacIPAssociation(bool triggerEvent, u_char *_mac, u_int32_t ipv4);
   void checkDhcpIPRange(Mac *sender_mac, struct dhcp_packet *dhcp_reply, u_int16_t vlan_id);

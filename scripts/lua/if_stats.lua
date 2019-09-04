@@ -105,7 +105,6 @@ local is_packet_interface = interface.isPacketInterface()
 local is_pcap_dump = interface.isPcapDumpInterface()
 
 local ifstats = interface.getStats()
---tprint(ifstats["ndpi"])
 
 -- this is a user-browseable page, so we must return counters from
 -- the latest reset as the user may have chosen to reset statistics at some point
