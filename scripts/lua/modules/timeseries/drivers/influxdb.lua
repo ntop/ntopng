@@ -1053,17 +1053,32 @@ local function processListSeriesResult(data, schema, tags_filter, wildcard_tags)
   return res
 end
 
-function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
-  if schema.options.influx_internal_query then
-    -- internal metrics always exist
-    return {{}} -- exists
-  end
+-- ##############################################
 
+function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
   local query = makeListSeriesQuery(schema, tags_filter, wildcard_tags, start_time)
   local url = self.url
   local data = influx_query(url .. "/query?db=".. self.db, query, self.username, self.password)
 
   return processListSeriesResult(data, schema, tags_filter, wildcard_tags)
+end
+
+-- ##############################################
+
+function driver:exists(schema, tags_filter, wildcard_tags)
+  if schema.options.influx_internal_query then
+    -- internal metrics always exist
+    return(true)
+  end
+
+  -- Ignore wildcard_tags to avoid exessive points returned due to group by
+  wildcard_tags = {}
+
+  local query = makeListSeriesQuery(schema, tags_filter, wildcard_tags, 0)
+  local url = self.url
+  local data = influx_query(url .. "/query?db=".. self.db, query, self.username, self.password)
+
+  return(not table.empty(processListSeriesResult(data, schema, tags_filter, wildcard_tags)))
 end
 
 -- ##############################################
