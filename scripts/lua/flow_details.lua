@@ -953,7 +953,7 @@ else
    
    if interface.isPacketInterface() then
       print("<tr><th width=30%>"..i18n("flow_details.flow_status").."</th><td colspan=2>")
-      for id, t in ipairs(flow_consts.flow_status_types) do
+      for id, t in pairs(flow_consts.flow_status_types) do
          if ntop.bitmapIsSet(flow["status_map"], id) then
             print(getFlowStatus(id, flow2statusinfo(flow)).."<br />")
          end

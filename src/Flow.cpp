@@ -3930,6 +3930,9 @@ FlowStatus Flow::getFlowStatus(FlowStatusMap *status_map) {
   if(isBlacklistedFlow())
     *status_map = Utils::bitmapSet(*status_map, status = status_blacklisted);
 
+  if(status == status_normal)
+    *status_map = Utils::bitmapSet(*status_map, status_normal);
+
   return(status);
 }
 
