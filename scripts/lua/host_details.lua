@@ -614,7 +614,7 @@ if(host["num_alerts"] > 0) then
    print("<tr><th><i class=\"fa fa-warning fa-lg\" style='color: #B94A48;'></i>  <A HREF='"..ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url(host_info).."&page=alerts'>"..i18n("show_alerts.engaged_alerts").."</A></th><td colspan=2></li> <span id=num_alerts>"..host["num_alerts"] .. "</span> <span id=alerts_trend></span></td></tr>\n")
 end
 
-if(host["score"] >= 0) then
+if(host["score"] > 0) then
   print("<tr><th>"..i18n("score").."</th><td colspan=2></li> <span id=score>"..host["score"] .. "</span> <span id=score_trend></span></td></tr>\n")
 end
 
@@ -2390,8 +2390,8 @@ print [[
 			$('#trend_unreachable_flows_as_client').html(drawTrend(host["unreachable_flows.as_client"], last_unreachable_flows_as_client, " style=\"color: #B94A48;\""));
 
 			$('#alerts_trend').html(drawTrend(host["num_alerts"], last_num_alerts, " style=\"color: #B94A48;\""));
-      $('#score_trend').html(drawTrend(host["score"], last_score, " style=\"color: #B94A48;\""));
-      $('#flow_alerts_trend').html(drawTrend(host["num_flow_alerts"], last_num_flow_alerts, " style=\"color: #B94A48;\""));
+			$('#score_trend').html(drawTrend(host["score"], last_score, " style=\"color: #B94A48;\""));
+			$('#flow_alerts_trend').html(drawTrend(host["num_flow_alerts"], last_num_flow_alerts, " style=\"color: #B94A48;\""));
 			$('#sent_trend').html(drawTrend(host["packets.sent"], last_pkts_sent, ""));
 			$('#rcvd_trend').html(drawTrend(host["packets.rcvd"], last_pkts_rcvd, ""));
 

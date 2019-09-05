@@ -960,7 +960,7 @@ else
       end
       print("</td></tr>\n")
 
-      if(flow["score"] >= 0) then
+      if(flow["score"] > 0) then
         print("<tr><th width=30%>"..i18n("flow_details.flow_score").."</th><td colspan=2>"..flow["score"].."</td></tr>\n")
       end
    end
