@@ -93,7 +93,6 @@ function ts_utils.getSchema(name)
 
   if schema and (name == "iface:traffic") and ntop.isnEdge() then
     schema.options.step = 4
-    schema.options.insertion_step = schema.options.step
   end
 
   return schema
