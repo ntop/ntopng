@@ -92,8 +92,17 @@ local function remote_full_mud_encode(info, peer_ip, peer_port, is_client)
    local l7proto = interface.getnDPIProtoName(info["proto.ndpi_id"])
    local fingerprints = getFingerprints(info, is_client)
 
-   -- TODO: this can take time, maybe postpone?
-   local peer_key = resolveAddress({host = peer_ip})
+   local peer_key = info["host_server_name"] or info["protos.dns.last_query"]
+
+   if(isEmptyString(peer_key)) then
+      -- TODO: this can take time, maybe postpone?
+      peer_key = resolveAddress({host = peer_ip})
+   end
+
+   -- Name Cleanup
+   if(string.find(peer_key, "www.") == 1) then
+      peer_key = string.sub(peer_key, 5)
+   end
 
    return(string.format("%s|%s|%s|%s|%s|%s", info["proto.l4"], l7proto,
       fingerprints[1], fingerprints[2], fingerprints[3], peer_key))

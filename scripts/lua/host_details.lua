@@ -2013,8 +2013,7 @@ elseif (page == "config") then
          </td>
       </tr>]]
 
-   -- TODO move flow.lua into community
-   if(ntop.isEnterprise() and host["localhost"] and ((host_vlan == nil) or (host_vlan == 0))) then
+   if(host["localhost"] and ((host_vlan == nil) or (host_vlan == 0))) then
       local mud_recording_pref = mud_utils.getHostMUDRecordingPref(ifId, host_info.host, _POST["mud_recording"])
 
       print [[<tr>
