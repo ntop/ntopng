@@ -395,4 +395,15 @@ end
 
 -- ###########################################
 
+function mud_utils.deleteHostMUD(ifid, host_key)
+  local pattern = string.format("ntopng.mud.ifid_%d.*._%s_*", ifid, host_key)
+  local keys = ntop.getKeysCache(pattern) or {}
+
+  for key in pairs(keys) do
+    ntop.delCache(key)
+  end
+end
+
+-- ###########################################
+
 return mud_utils
