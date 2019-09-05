@@ -25,6 +25,7 @@
 
 ViewInterface::ViewInterface(const char *_endpoint) : NetworkInterface(_endpoint) {
   is_view = true; /* This is a view interface */
+  is_packet_interface = true;
 
   memset(viewed_interfaces, 0, sizeof(viewed_interfaces));
   num_viewed_interfaces = 0;
@@ -55,6 +56,7 @@ ViewInterface::ViewInterface(const char *_endpoint) : NetworkInterface(_endpoint
 	    else {
 	      what->setViewed();
 	      viewed_interfaces[num_viewed_interfaces++] = what;
+	      is_packet_interface &= what->isPacketInterface();
 	    }
 	  }
 

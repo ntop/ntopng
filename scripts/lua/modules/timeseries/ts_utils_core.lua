@@ -74,25 +74,45 @@ function ts_utils.getSchema(name)
       schema.options.step = 60
 
       if starts(name, "host:") then
-        local write_steps = tonumber(ntop.getPref("ntopng.prefs.ts_write_steps"))
+	local write_steps = tonumber(ntop.getPref("ntopng.prefs.ts_write_steps"))
 
-        if write_steps > 0 then
-          schema.options.step = 5 * write_steps
-        end
+	if write_steps > 0 then
+	  schema.options.step = 5 * write_steps
+	end
       end
     elseif schema.options.step == 60 then
       if starts(name, "iface:") then
-        local write_steps = tonumber(ntop.getPref("ntopng.prefs.ts_write_steps"))
+	local write_steps = tonumber(ntop.getPref("ntopng.prefs.ts_write_steps"))
 
-        if write_steps > 0 then
-          schema.options.step = 5 * write_steps
-        end
+	if write_steps > 0 then
+	  schema.options.step = 5 * write_steps
+	end
       end
     end
   end
 
   if schema and (name == "iface:traffic") and ntop.isnEdge() then
     schema.options.step = 4
+  end
+
+  if schema then
+    if not interface.isPacketInterface() then
+      -- For non-packet interfaces it is necessary to adjust the
+      -- step used when READING to make sure no timeseries will
+      -- be read at a resolution higher than the interface.getStatsUpdateFreq.
+      -- The rationale is that if a ZMQ sends you flows with a timeout of 2 minutes
+      -- it is pointless to look at a resolution lower than these 2 minutes.
+      -- For packet interfaces the story is different. In this case ntopng sees
+      -- the traffic on a packet-by-packet basis so we can leave the step untouched
+      -- and go at the highest po
+      local update_freq = interface.getStatsUpdateFreq()
+
+      if update_freq then
+	 if schema.options.step < update_freq then
+	  schema.options.step = update_freq
+	 end
+      end
+    end
   end
 
   return schema
