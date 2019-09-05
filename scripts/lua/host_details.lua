@@ -613,6 +613,10 @@ if(host["num_alerts"] > 0) then
    print("<tr><th><i class=\"fa fa-warning fa-lg\" style='color: #B94A48;'></i>  <A HREF='"..ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url(host_info).."&page=alerts'>"..i18n("show_alerts.engaged_alerts").."</A></th><td colspan=2></li> <span id=num_alerts>"..host["num_alerts"] .. "</span> <span id=alerts_trend></span></td></tr>\n")
 end
 
+if(host["score"] >= 0) then
+  print("<tr><th>"..i18n("score").."</th><td colspan=2></li> <span id=score>"..host["score"] .. "</span> <span id=score_trend></span></td></tr>\n")
+end
+
 if(host["num_flow_alerts"] > 0) then
   print("<tr><th>"..i18n("show_alerts.flow_alerts").."</th><td colspan=2></li> <span id=num_flow_alerts>"..host["num_flow_alerts"] .. "</span> <span id=flow_alerts_trend></span></td></tr>\n")
 end
@@ -2131,6 +2135,7 @@ if(not only_historical) and (host ~= nil) then
    print("var last_pkts_sent = " .. host["packets.sent"] .. ";\n")
    print("var last_pkts_rcvd = " .. host["packets.rcvd"] .. ";\n")
    print("var last_num_alerts = " .. host["num_alerts"] .. ";\n")
+   print("var last_score = " .. host["score"] .. ";\n")
    print("var last_num_flow_alerts = " .. host["num_flow_alerts"] .. ";\n")
    print("var last_active_flows_as_server = " .. host["active_flows.as_server"] .. ";\n")
    print("var last_active_flows_as_client = " .. host["active_flows.as_client"] .. ";\n")
@@ -2218,6 +2223,7 @@ if(not only_historical) and (host ~= nil) then
    			   $('#name').html(host["name"]);
    			}
    			$('#num_alerts').html(host["num_alerts"]);
+   			$('#score').html(host["score"]);
    			$('#num_flow_alerts').html(host["num_flow_alerts"]);
    			$('#active_flows_as_client').html(addCommas(host["active_flows.as_client"]));
    			$('#active_flows_as_server').html(addCommas(host["active_flows.as_server"]));
@@ -2359,6 +2365,7 @@ print [[
 			$('#trend_unreachable_flows_as_client').html(drawTrend(host["unreachable_flows.as_client"], last_unreachable_flows_as_client, " style=\"color: #B94A48;\""));
 
 			$('#alerts_trend').html(drawTrend(host["num_alerts"], last_num_alerts, " style=\"color: #B94A48;\""));
+      $('#score_trend').html(drawTrend(host["score"], last_score, " style=\"color: #B94A48;\""));
       $('#flow_alerts_trend').html(drawTrend(host["num_flow_alerts"], last_num_flow_alerts, " style=\"color: #B94A48;\""));
 			$('#sent_trend').html(drawTrend(host["packets.sent"], last_pkts_sent, ""));
 			$('#rcvd_trend').html(drawTrend(host["packets.rcvd"], last_pkts_rcvd, ""));
@@ -2374,6 +2381,7 @@ print [[
  		        $('#pkt_keep_alive_rcvd_trend').html(drawTrend(host["tcpPacketStats.rcvd"]["keep_alive"], last_rcvd_tcp_keep_alive, ""));
 
    			last_num_alerts = host["num_alerts"];
+   			last_score = host["score"];
    			last_num_flow_alerts = host["num_flow_alerts"];
    			last_pkts_sent = host["packets.sent"];
    			last_pkts_rcvd = host["packets.rcvd"];
