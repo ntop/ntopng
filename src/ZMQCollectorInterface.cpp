@@ -52,7 +52,7 @@ ZMQCollectorInterface::ZMQCollectorInterface(const char *_endpoint) : ZMQParserI
 
     subscriber[num_subscribers].socket = zmq_socket(context, ZMQ_SUB);
 
-    val = 131072;
+    val = 8388608; /* 8M default: cat /proc/sys/net/core/rmem_max */
     if(zmq_setsockopt(subscriber[num_subscribers].socket, ZMQ_RCVBUF, &val, sizeof(val)) != 0)
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to enlarge ZMQ buffer size");
 
