@@ -142,6 +142,8 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   last_stats_reset = ntop->getLastStatsReset(); /* assume fresh stats, may be changed by deserialize */
   os = os_unknown;
 
+  anomalous_flows_as_client_status = anomalous_flows_as_server_status = 0;
+
   // readStats(); - Commented as if put here it's too early and the key is not yet set
 
 #ifdef NTOPNG_PRO
@@ -420,6 +422,8 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   lua_push_uint64_table_entry(vm, "active_flows.as_server", getNumIncomingFlows());
   lua_push_uint64_table_entry(vm, "anomalous_flows.as_server", getTotalNumAnomalousIncomingFlows());
   lua_push_uint64_table_entry(vm, "anomalous_flows.as_client", getTotalNumAnomalousOutgoingFlows());
+  lua_push_uint64_table_entry(vm, "anomalous_flows_status_map.as_server", getAnomalousIncomingFlowsStatusMap());
+  lua_push_uint64_table_entry(vm, "anomalous_flows_status_map.as_client", getAnomalousOutgoingFlowsStatusMap());
   lua_push_uint64_table_entry(vm, "unreachable_flows.as_server", getTotalNumUnreachableIncomingFlows());
   lua_push_uint64_table_entry(vm, "unreachable_flows.as_client", getTotalNumUnreachableOutgoingFlows());
   lua_push_uint64_table_entry(vm, "host_unreachable_flows.as_server", getTotalNumHostUnreachableIncomingFlows());

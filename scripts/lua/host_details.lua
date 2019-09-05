@@ -26,6 +26,7 @@ local page_utils = require "page_utils"
 local template = require "template_utils"
 local mud_utils = require "mud_utils"
 local companion_interface_utils = require "companion_interface_utils"
+local flow_consts = require "flow_consts"
 
 local info = ntop.getInfo()
 
@@ -685,6 +686,21 @@ end
    print("/ <span id=anomalous_flows_as_server>" .. formatValue(host["anomalous_flows.as_server"]) .. "</span> <span id=trend_anomalous_flows_as_server></span>")
    print(" / <span id=unreachable_flows_as_server>" .. formatValue(host["unreachable_flows.as_server"]) .. "</span> <span id=trend_unreachable_flows_as_server></span>")
    print("</td></tr>")
+
+   print("<tr><th>"..i18n("details.anomalous_flows_reasons").."</th><td nowrap><span id=anomalous_flows_status_map_as_client>")
+   for id, t in ipairs(flow_consts.flow_status_types) do
+      if ntop.bitmapIsSet(host["anomalous_flows_status_map.as_client"], id) then
+         print(getFlowStatus(id).."<br />")
+      end
+   end
+   print("</span></td>\n")
+   print("<td  width='35%'><span id=anomalous_flows_status_map_as_server>")
+   for id, t in ipairs(flow_consts.flow_status_types) do
+      if ntop.bitmapIsSet(host["anomalous_flows_status_map.as_server"], id) then
+         print(getFlowStatus(id).."<br />")
+      end
+   end
+   print("</span></td></tr>\n")
 
    print("<tr><th>"..i18n("details.peers").."</th>")
    print("<td><span id=active_peers_as_client>" .. formatValue(host["contacts.as_client"]) .. "</span> <span id=peers_trend_as_active_client></span> \n")

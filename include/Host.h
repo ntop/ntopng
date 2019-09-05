@@ -40,7 +40,8 @@ class Host : public GenericHashEntry, public AlertableEntity {
   time_t last_stats_reset;
   u_int16_t alert_score;
   u_int32_t disabled_flow_status;
-  
+  FlowStatusMap anomalous_flows_as_client_status, anomalous_flows_as_server_status;
+ 
   /* Host data: update Host::deleteHostData when adding new fields */
   struct {
     char * mdns, * mdns_txt;
@@ -127,7 +128,11 @@ class Host : public GenericHashEntry, public AlertableEntity {
   void updateStats(update_hosts_stats_user_data_t *update_hosts_stats_user_data);
   void incLowGoodputFlows(time_t t, bool asClient);
   void decLowGoodputFlows(time_t t, bool asClient);
-  inline void incNumAnomalousFlows(bool asClient)   { return(stats->incNumAnomalousFlows(asClient)); };
+  inline void incNumAnomalousFlows(bool asClient)   { stats->incNumAnomalousFlows(asClient); };
+  inline void setAnomalousFlowsStatusMap(FlowStatusMap status, bool asClient)  { 
+    if (asClient) anomalous_flows_as_client_status = Utils::bitmapOr(anomalous_flows_as_client_status, status); 
+    else anomalous_flows_as_server_status = Utils::bitmapOr(anomalous_flows_as_server_status, status); 
+  };
   inline u_int16_t get_host_pool()         { return(host_pool_id);   };
   inline u_int16_t get_vlan_id()           { return(vlan_id);        };
   char* get_name(char *buf, u_int buf_len, bool force_resolution_if_not_found);
@@ -266,6 +271,8 @@ class Host : public GenericHashEntry, public AlertableEntity {
   inline u_int32_t getTotalNumFlowsAsServer() const { return(stats->getTotalNumFlowsAsServer());  };
   inline u_int32_t getTotalNumAnomalousOutgoingFlows() const { return stats->getTotalAnomalousNumFlowsAsClient(); };
   inline u_int32_t getTotalNumAnomalousIncomingFlows() const { return stats->getTotalAnomalousNumFlowsAsServer(); };
+  inline FlowStatusMap getAnomalousOutgoingFlowsStatusMap() const { return anomalous_flows_as_client_status; };
+  inline FlowStatusMap getAnomalousIncomingFlowsStatusMap() const { return anomalous_flows_as_server_status; };
   inline u_int32_t getTotalNumUnreachableOutgoingFlows() const { return stats->getTotalUnreachableNumFlowsAsClient(); };
   inline u_int32_t getTotalNumUnreachableIncomingFlows() const { return stats->getTotalUnreachableNumFlowsAsServer(); };
   inline u_int32_t getTotalNumHostUnreachableOutgoingFlows() const { return stats->getTotalHostUnreachableNumFlowsAsClient(); };

@@ -2457,6 +2457,10 @@ end
 -- ###############################################
 
 function formatIDSFlowAlert(flowstatus_info)
+   if not flowstatus_info then
+      return i18n("alerts_dashboard.ids_alert")
+   end
+
    local signature = (flowstatus_info.ids_alert and flowstatus_info.ids_alert.signature)
    local category = (flowstatus_info.ids_alert and flowstatus_info.ids_alert.category)
    local severity = (flowstatus_info.ids_alert and flowstatus_info.ids_alert.severity)

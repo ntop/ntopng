@@ -615,6 +615,7 @@ local lang = {
     ["address_resolution_protocol"] = "Address Resolution Protocol",
     ["ago"] = "ago",
     ["alerts"] = "Alerts",
+    ["anomalous_flows_reasons"] = "Anomalous Flows Reasons",
     ["arp_replies"] = "ARP Replies",
     ["arp_requests"] = "ARP Requests",
     ["as_client"] = "As Client",

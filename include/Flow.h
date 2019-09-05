@@ -55,6 +55,7 @@ class Flow : public GenericHashEntry {
   u_int8_t protocol, src2dst_tcp_flags, dst2src_tcp_flags;
   u_int16_t alert_score;
   FlowStatus last_status;
+  FlowStatusMap last_status_map;
   struct ndpi_flow_struct *ndpiFlow;
 
   /* When the interface isViewed(), the corresponding view needs to acknowledge the purge

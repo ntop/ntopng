@@ -532,7 +532,7 @@ local function userActivityFormatter(ifid, alert, info)
         local host = decoded.params[1]
         local hostinfo = hostkey2hostinfo(host)
         local hostname = host2name(hostinfo.host, hostinfo.vlan)
-        local host_url = "<a href=\"".. ntop.getHttpPrefix() .. "/lua/host_details.lua?ifid="..decoded.ifid.."&host="..host.."\">"..hostname .."</a>" 
+        local host_url = "<a href=\"".. ntop.getHttpPrefix() .. "/lua/host_details.lua?ifid="..(decoded.ifid or ifid).."&host="..host.."\">"..hostname .."</a>" 
         return i18n('user_activity.host_json_downloaded', {user=user, host=host_url})
 
       elseif decoded.name == 'live_flows_extraction' and decoded.params[1] ~= nil and decoded.params[2] ~= nil then

@@ -181,16 +181,19 @@ class Utils {
   static void init_pcap_header(struct pcap_file_header * const h, NetworkInterface * const iface);
 
   /* Bitmap functions */
-  static inline bool bitmapIsSet(u_int64_t bitmap, u_int64_t v) {
+  static inline bool bitmapIsSet(u_int64_t bitmap, u_int8_t v) {
     return(((bitmap >> v) & 1) ? true : false);
   }
-  static inline u_int64_t bitmapSet(u_int64_t bitmap, u_int64_t v) {
+  static inline u_int64_t bitmapSet(u_int64_t bitmap, u_int8_t v) {
     bitmap |= ((u_int64_t)1) << v;
     return(bitmap);
   }
-  static inline u_int64_t bitmapClear(u_int64_t bitmap, u_int64_t v) {
+  static inline u_int64_t bitmapClear(u_int64_t bitmap, u_int8_t v) {
     bitmap &= ~(((u_int64_t)1) << v);
     return(bitmap);
+  }
+  static inline u_int64_t bitmapOr(u_int64_t bitmap1, u_int64_t bitmap2) {
+    return(bitmap1 | bitmap2);
   }
 
   static OperatingSystem getOSFromFingerprint(const char *fingerprint, const char*manuf, DeviceType devtype);

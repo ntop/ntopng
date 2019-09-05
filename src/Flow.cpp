@@ -47,8 +47,10 @@ Flow::Flow(NetworkInterface *_iface,
     srv2cli_last_goodput_bytes = cli2srv_last_goodput_bytes = 0, good_ssl_hs = true,
     flow_alerted = flow_dropped_counts_increased = false, vrfId = 0;
     alert_score = CONST_NO_SCORE_SET;
-    last_status = status_normal;
-  
+
+  last_status = status_normal;  
+  last_status_map = Utils::bitmapSet(0, last_status);
+
   purge_acknowledged_mark = detection_completed = update_flow_port_stats = false;
   ndpiDetectedProtocol = ndpiUnknownProtocol;
   doNotExpireBefore = iface->getTimeLastPktRcvd() + DONT_NOT_EXPIRE_BEFORE_SEC;
@@ -4248,8 +4250,13 @@ bool Flow::shouldRecheckScore() {
   FlowStatusMap status_map;
   FlowStatus status = getFlowStatus(&status_map);
 
-  if(status != last_status) {
+  if(status_map != last_status_map) {
     last_status = status;
+    last_status_map = status_map;
+
+    if(cli_host) cli_host->setAnomalousFlowsStatusMap(status_map, true);
+    if(srv_host) srv_host->setAnomalousFlowsStatusMap(status_map, false);
+
     return(true);
   }
 
