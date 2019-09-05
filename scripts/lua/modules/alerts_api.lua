@@ -943,6 +943,46 @@ end
 
 -- ##############################################
 
+--
+-- Flow check modules are lua scripts located into the following locations:
+--  - scripts/callbacks/interface/alerts/flow for community scripts
+--  - scripts/callbacks/interface/alerts/flow for pro/enterprise scripts
+--
+-- A script must return a lua table, with the following optional fields:
+--  - setup(): a function to call once before processing any flow
+--  - protocolDetected(info): a function which will be called once the flow protocol
+--    has been detected or detection has been aborted. This should happen once per flow.
+--  - statusChanged(info): a function which will be called *after* the protocolDetected()
+--    if the flow status changes.
+--
+function alerts_api.load_flow_check_modules()
+  local available_modules = {}
+  local check_dirs = {
+    os_utils.fixPath(ALERT_CHECKS_MODULES_BASEDIR .. "/flow"),
+  }
+
+  if ntop.isPro() then
+    check_dirs[#check_dirs + 1] = os_utils.fixPath(dirs.installdir .. "/pro/scripts/callbacks/interface/alerts/flow")
+  end
+
+  for _, checks_dir in pairs(check_dirs) do
+    package.path = checks_dir .. "/?.lua;" .. package.path
+
+    for fname in pairs(ntop.readdir(checks_dir)) do
+      if ends(fname, ".lua") then
+        local modname = string.sub(fname, 1, string.len(fname) - 4)
+        local check_module = require(modname)
+
+        available_modules[modname] = check_module
+      end
+    end
+  end
+
+  return available_modules
+end
+
+-- ##############################################
+
 -- @brief Get the default alert configuration value for the given check module
 -- and granularity.
 -- @param check_module a check_module returned by alerts_api.load_check_modules

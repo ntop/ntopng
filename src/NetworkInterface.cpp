@@ -7737,12 +7737,13 @@ void NetworkInterface::checkInterfaceAlerts(ScriptPeriodicity p) {
 static bool flow_check_score(GenericHashEntry *entry, void *user_data, bool *matched) {
   Flow *flow = (Flow*)entry;
   lua_State *vm = (lua_State*)user_data;
+  const char *lua_callback = flow->getLuaCallback();
 
-  if(flow->shouldRecheckScore()) {
+  if(lua_callback) {
     struct ntopngLuaContext *c = getLuaVMContext(vm);
     c->flow = flow;
 
-    lua_getglobal(vm, "checkScore");
+    lua_getglobal(vm, lua_callback);
 
     if(lua_pcall(vm, 0, 0, 0)) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure [%s]", lua_tostring(vm, -1));
@@ -7763,12 +7764,9 @@ bool NetworkInterface::checkFlowsScore() {
   char script_path[MAX_PATH];
   lua_State *vm = flows_engine.getState();
 
-  if(!ntop->getPrefs()->is_enterprise_edition())
-    return(false);
-
   snprintf(script_path, sizeof(script_path),
-      "%s/pro/scripts/callbacks/interface/alerts/flow.lua",
-      ntop->get_install_dir());
+      "%s/callbacks/interface/alerts/flow.lua",
+      ntop->getPrefs()->get_scripts_dir());
 
   ntop->fixPath(script_path);
 

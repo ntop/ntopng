@@ -48,9 +48,7 @@ Flow::Flow(NetworkInterface *_iface,
     flow_alerted = flow_dropped_counts_increased = false, vrfId = 0;
     alert_score = CONST_NO_SCORE_SET;
 
-  last_status = status_normal;  
-  last_status_map = Utils::bitmapSet(0, last_status);
-
+  last_notified_status_map = Utils::bitmapSet(0, last_status);
   purge_acknowledged_mark = detection_completed = update_flow_port_stats = false;
   ndpiDetectedProtocol = ndpiUnknownProtocol;
   doNotExpireBefore = iface->getTimeLastPktRcvd() + DONT_NOT_EXPIRE_BEFORE_SEC;
@@ -68,6 +66,7 @@ Flow::Flow(NetworkInterface *_iface,
     dissect_next_http_packet = false,
     check_tor = false, host_server_name = NULL, diff_num_http_requests = 0,
     bt_hash = NULL, community_id_flow_hash = NULL;
+  lua_detection_notified = false;
 
   src2dst_tcp_flags = 0, dst2src_tcp_flags = 0, last_update_time.tv_sec = 0, last_update_time.tv_usec = 0,
     bytes_thpt = 0, goodput_bytes_thpt = 0, top_bytes_thpt = 0, top_pkts_thpt = 0;
@@ -4246,22 +4245,35 @@ void Flow::dissectSSL(char *payload, u_int16_t payload_len) {
 
 /* ***************************************************** */
 
-bool Flow::shouldRecheckScore() {
+/* Returns NULL if no LUA callback should be called. Otherwise returns the name
+ * of the flow.lua callback to call.
+ * See alerts_api.load_flow_check_modules() for an explanation.
+ */
+const char* Flow::getLuaCallback() {
   FlowStatusMap status_map;
-  FlowStatus status = getFlowStatus(&status_map);
+  getFlowStatus(&status_map);
 
-  if(status_map != last_status_map) {
-    last_status = status;
-    last_status_map = status_map;
+  if(isDetectionCompleted()) {
+    const char *lua_callback = NULL;
+    bool update_status = false;
 
-    if(cli_host) cli_host->setAnomalousFlowsStatusMap(status_map, true);
-    if(srv_host) srv_host->setAnomalousFlowsStatusMap(status_map, false);
+    if(!lua_detection_notified) {
+      lua_detection_notified = true;
+      lua_callback = "protocolDetected";
+    } else if(status_map != last_notified_status_map)
+      lua_callback = "statusChanged";
 
-    return(true);
+    if(status_map != last_notified_status_map) {
+      /* Update the hosts status */
+      if(cli_host) cli_host->setAnomalousFlowsStatusMap(status_map, true);
+      if(srv_host) srv_host->setAnomalousFlowsStatusMap(status_map, false);
+
+      last_notified_status_map = status_map;
+    }
+
+    return lua_callback;
   }
 
-  if(isDetectionCompleted() && (alert_score != CONST_NO_SCORE_SET))
-    return(true);
-
-  return(false);
+  /* Nothing to call */
+  return(NULL);
 }
