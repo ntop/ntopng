@@ -62,6 +62,12 @@ end
 function ts_utils.getSchema(name)
   local schema = loaded_schemas[name]
 
+  if schema then
+    -- insertion_step: this corresponds to the interval of data writes
+    -- step: used for visualization
+    schema.options.insertion_step = schema.options.step
+  end
+
   if schema and ts_utils.hasHighResolutionTs() then
     if((schema.options.step == 300) and (schema.options.is_system_schema ~= true)) then
       schema.options.insertion_step = 60
@@ -87,6 +93,7 @@ function ts_utils.getSchema(name)
 
   if schema and (name == "iface:traffic") and ntop.isnEdge() then
     schema.options.step = 4
+    schema.options.insertion_step = schema.options.step
   end
 
   return schema
