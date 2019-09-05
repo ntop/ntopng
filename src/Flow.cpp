@@ -2045,7 +2045,8 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 
   lua_push_bool_table_entry(vm, "flow.idle", idle());
   lua_push_uint64_table_entry(vm, "flow.status", getFlowStatus(&status_map));
-  lua_push_uint64_table_entry(vm, "flow.status_map", status_map);
+
+  lua_push_uint64_table_entry(vm, "status_map", status_map);
 
   // this is used to dynamicall update entries in the GUI
   lua_push_uint64_table_entry(vm, "ntopng.key", key()); // Key
