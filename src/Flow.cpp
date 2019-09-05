@@ -48,7 +48,7 @@ Flow::Flow(NetworkInterface *_iface,
     flow_alerted = flow_dropped_counts_increased = false, vrfId = 0;
     alert_score = CONST_NO_SCORE_SET;
 
-  last_notified_status_map = Utils::bitmapSet(0, last_status);
+  last_notified_status_map = Utils::bitmapSet(0, status_normal);
   purge_acknowledged_mark = detection_completed = update_flow_port_stats = false;
   ndpiDetectedProtocol = ndpiUnknownProtocol;
   doNotExpireBefore = iface->getTimeLastPktRcvd() + DONT_NOT_EXPIRE_BEFORE_SEC;
@@ -4255,7 +4255,6 @@ const char* Flow::getLuaCallback() {
 
   if(isDetectionCompleted()) {
     const char *lua_callback = NULL;
-    bool update_status = false;
 
     if(!lua_detection_notified) {
       lua_detection_notified = true;
