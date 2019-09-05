@@ -4104,8 +4104,8 @@ void Flow::postFlowSetIdle(time_t t) {
 
   if(status != status_normal) {
 #if 0
-  char buf[256];
-  printf("%s status=%d\n", print(buf, sizeof(buf)), status);
+    char buf[256];
+    printf("%s status=%d\n", print(buf, sizeof(buf)), status);
 #endif
 
     if(cli_host) cli_host->incNumAnomalousFlows(true);

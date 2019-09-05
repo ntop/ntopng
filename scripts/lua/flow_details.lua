@@ -10,6 +10,7 @@ require "lua_utils"
 local format_utils = require "format_utils"
 local have_nedge = ntop.isnEdge()
 local NfConfig = nil
+local flow_consts = require "flow_consts"
 
 if ntop.isPro() then
    package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
@@ -855,7 +856,7 @@ else
       if(flow["protos.ssl.server_certificate"] ~= nil) then
 	 print(i18n("flow_details.server_certificate")..": <A HREF=\"http://"..flow["protos.ssl.server_certificate"].."\">"..flow["protos.ssl.server_certificate"].."</A>")
 
-	 if(flow["flow.status"] == 10) then
+	 if(flow["flow.status"] == flow_consts.status_ssl_certificate_mismatch) then
 	    print("\n<br><i class=\"fa fa-warning fa-lg\" style=\"color: #f0ad4e;\"></i> <b><font color=\"#f0ad4e\">"..i18n("flow_details.certificates_not_match").."</font></b>")
 	 end
       end
@@ -951,7 +952,13 @@ else
    -- ######################################
    
    if interface.isPacketInterface() then
-      print("<tr><th width=30%>"..i18n("flow_details.flow_status").."</th><td colspan=2>"..getFlowStatus(flow["flow.status"], flow2statusinfo(flow)).."</td></tr>\n")
+      print("<tr><th width=30%>"..i18n("flow_details.flow_status").."</th><td colspan=2>")
+      for id, t in ipairs(flow_consts.flow_status_types) do
+         if ntop.bitmapIsSet(flow["status_map"], id) then
+            print(getFlowStatus(id, flow2statusinfo(flow)).."<br />")
+         end
+      end
+      print("</td></tr>\n")
    end
 
    if((flow.client_process == nil) and (flow.server_process == nil)) then
