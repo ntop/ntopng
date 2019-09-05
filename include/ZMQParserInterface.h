@@ -51,7 +51,6 @@ class ZMQParserInterface : public ParserInterface {
   u_int8_t parseOptionFieldMap(json_object * const jo) const;
   u_int8_t parseOptionFieldValueMap(json_object * const jo) const;
 
-  u_int32_t periodicStatsUpdateFrequency();    
  public:
   ZMQParserInterface(const char *endpoint, const char *custom_interface_type = NULL);
   ~ZMQParserInterface();
@@ -63,6 +62,7 @@ class ZMQParserInterface : public ParserInterface {
   u_int8_t parseTemplate(const char * const payload, int payload_size, u_int8_t source_id, void *data);
   u_int8_t parseOption(const char * const payload, int payload_size, u_int8_t source_id, void *data);
 
+  u_int32_t periodicStatsUpdateFrequency();
   virtual void setRemoteStats(ZMQ_RemoteStats *zrs);
 #ifdef NTOPNG_PRO
   virtual bool getCustomAppDetails(u_int32_t remapped_app_id, u_int32_t *const pen, u_int32_t *const app_field, u_int32_t *const app_id);

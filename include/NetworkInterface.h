@@ -54,7 +54,7 @@ class FlowInterfacesStats;
 class TrafficShaper;
 class NIndexFlowDB;
 #endif
-  
+
 typedef struct {
   u_int32_t criteria;        /* IP address, interface... */
   NetworkInterface *iface;
@@ -105,11 +105,11 @@ class NetworkInterface : public AlertableEntity {
   BroadcastDomains *bcast_domains;
   bool reload_hosts_bcast_domain, lbd_serialize_by_mac;
   time_t hosts_bcast_domain_last_update;
-  
+
   u_int16_t next_compq_insert_idx;
   u_int16_t next_compq_remove_idx;
   ParsedFlow **companionQueue;
-  
+
   /* Live Capture */
   Mutex active_captures_lock;
   u_int8_t num_live_captures;
@@ -119,7 +119,7 @@ class NetworkInterface : public AlertableEntity {
 			       const u_char * const packet,
 			       Flow * const f);
   void deliverLiveCapture(const struct pcap_pkthdr * const h, const u_char * const packet, Flow * const f);
-  
+
   string ip_addresses;
   AddressTree interface_networks;
   int id;
@@ -162,7 +162,7 @@ class NetworkInterface : public AlertableEntity {
 
   /* Custom categories */
   std::list<std::string> new_custom_categories, custom_categories_to_purge;
-  
+
   /* Frequent Items */
   FrequentTrafficItems *frequentProtocols;
   FrequentTrafficItems *frequentMacs;
@@ -211,8 +211,8 @@ class NetworkInterface : public AlertableEntity {
   Flow* getFlow(Mac *srcMac, Mac *dstMac, u_int16_t vlan_id,
 		u_int32_t deviceIP, u_int16_t inIndex, u_int16_t outIndex,
 		const ICMPinfo * const icmp_info,
-  		IpAddress *src_ip, IpAddress *dst_ip,
-  		u_int16_t src_port, u_int16_t dst_port,
+		IpAddress *src_ip, IpAddress *dst_ip,
+		u_int16_t src_port, u_int16_t dst_port,
 		u_int8_t l4_proto,
 		bool *src2dst_direction,
 		time_t first_seen, time_t last_seen,
@@ -260,13 +260,12 @@ class NetworkInterface : public AlertableEntity {
   bool isNumber(const char *str);
   bool checkIdle();
   bool checkPeriodicStatsUpdateTime(const struct timeval *tv);
-  virtual u_int32_t periodicStatsUpdateFrequency();
   void topItemsCommit(const struct timeval *when);
   void checkMacIPAssociation(bool triggerEvent, u_char *_mac, u_int32_t ipv4);
   void checkDhcpIPRange(Mac *sender_mac, struct dhcp_packet *dhcp_reply, u_int16_t vlan_id);
   bool checkBroadcastDomainTooLarge(u_int32_t bcast_mask, u_int16_t vlan_id, const Mac * const src_mac, const Mac * const dst_mac, u_int32_t spa, u_int32_t tpa) const;
   void pollQueuedeBPFEvents();
-  
+
  public:
   /**
   * @brief A Constructor
@@ -314,7 +313,7 @@ class NetworkInterface : public AlertableEntity {
 #else
   virtual bool
 #endif
-                      isDiscoverableInterface(){ return(false);                              }
+		      isDiscoverableInterface(){ return(false);                              }
   inline virtual char* altDiscoverableName()   { return(NULL);                               }
   inline virtual const char* get_type()        { return(customIftype ? customIftype : CONST_INTERFACE_TYPE_UNKNOWN); }
   virtual InterfaceType getIfType() const      { return(interface_type_UNKNOWN); }
@@ -417,8 +416,8 @@ class NetworkInterface : public AlertableEntity {
 		     Mac *dst_mac, IpAddress *_dst_ip, Host **dst);
   virtual Flow* findFlowByKey(u_int32_t key, AddressTree *allowed_hosts);
   virtual Flow* findFlowByTuple(u_int16_t vlan_id,
-  				IpAddress *src_ip,  IpAddress *dst_ip,
-  				u_int16_t src_port, u_int16_t dst_port,
+				IpAddress *src_ip,  IpAddress *dst_ip,
+				u_int16_t src_port, u_int16_t dst_port,
 				u_int8_t l4_proto,
 				AddressTree *allowed_hosts) const;
   bool findHostsByName(lua_State* vm, AddressTree *allowed_hosts, char *key);
@@ -446,6 +445,7 @@ class NetworkInterface : public AlertableEntity {
   void processFlow(ParsedFlow *zflow, bool zmq_flow);
   void processInterfaceStats(sFlowInterfaceStats *stats);
   void getActiveFlowsStats(nDPIStats *stats, FlowStats *status_stats, AddressTree *allowed_hosts, const char *host_ip, u_int16_t vlan_id);
+  virtual u_int32_t periodicStatsUpdateFrequency();
   void periodicStatsUpdate();
   virtual void lua(lua_State* vm);
   void getnDPIProtocols(lua_State *vm, ndpi_protocol_category_t filter, bool skip_critical);
@@ -500,7 +500,7 @@ class NetworkInterface : public AlertableEntity {
 				u_int8_t bridge_iface_idx,
 				bool sourceMacsOnly,
 				u_int32_t maxHits, u_int8_t devtype_filter,
-			        u_int8_t location_filter);
+				u_int8_t location_filter);
   int getActiveDeviceTypes(lua_State* vm,
 			   u_int8_t bridge_iface_idx,
 			   bool sourceMacsOnly,

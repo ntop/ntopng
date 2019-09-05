@@ -5772,6 +5772,19 @@ static int ntop_get_interface_stats(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_get_interface_stats_update_freq(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  if(ntop_interface)
+    lua_pushinteger(vm, ntop_interface->periodicStatsUpdateFrequency());
+  else
+    lua_pushnil(vm);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 // ***API***
 static int ntop_interface_reset_counters(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
@@ -9439,6 +9452,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "hasVLANs",                 ntop_interface_has_vlans },
   { "hasEBPF",                  ntop_interface_has_ebpf  },
   { "getStats",                 ntop_get_interface_stats },
+  { "getStatsUpdateFreq",       ntop_get_interface_stats_update_freq },
   { "getInterfaceTimeseries",   ntop_get_interface_timeseries },
   { "resetCounters",            ntop_interface_reset_counters },
   { "resetHostStats",           ntop_interface_reset_host_stats },
