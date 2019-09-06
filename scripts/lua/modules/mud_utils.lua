@@ -99,7 +99,7 @@ local function remote_full_mud_encode(info, peer_ip, peer_port, is_client)
    end
 
    if(isEmptyString(peer_key)) then
-      -- TODO: this can take time, maybe postpone?
+      -- NOTE: this can take time, maybe postpone?
       peer_key = resolveAddress({host = peer_ip})
    end
 
@@ -152,8 +152,12 @@ mud_utils.mud_types = {
 
 -- ###########################################
 
-local function getMudRedisKey(mud_type, ifid, host_key, is_client)
-   return(string.format(mud_type.redis_key, ifid, host_key, ternary(is_client, "out", "in")))
+local function getMudRedisKey(mud_type, ifid, host_key, is_client, is_ipv6)
+   if(is_ipv6) then
+      return(string.format(mud_type.redis_key, ifid, host_key, ternary(is_client, "v6_out", "v6_in")))
+   else
+      return(string.format(mud_type.redis_key, ifid, host_key, ternary(is_client, "out", "in")))
+   end
 end
 
 -- ###########################################
@@ -187,11 +191,12 @@ local function handleHostMUD(ifid, info, is_local_connection, is_general_purpose
    end
 
    -- TODO use MAC address key is this is in LBD
-   local mud_key = getMudRedisKey(mud_type, ifid, host_ip, is_client)
+   local is_ipv6 = (not isIPv4(host_ip))
+   local mud_key = getMudRedisKey(mud_type, ifid, host_ip, is_client, is_ipv6)
    local conn_key = mud_type.encode(info, peer_ip, peer_port, is_client)
 
    -- Register the connection
-   -- TODO add check for disabled recording
+   -- TODO handle alerts
    ntop.setMembersCache(mud_key, conn_key)
 end
 
@@ -217,29 +222,37 @@ end
 -- ###########################################
 
 local function getAclMatches(conn, dir)
-   -- TODO support IPv6/MAC
+   -- TODO support MAC
    local peer_key = conn.peer_ip or conn.peer_key
    local mud_l4proto = string.lower(conn.l4proto)
    local matches = {}
 
-   matches["ipv4"] = {
+   matches[dir.mud_l3proto] = {
       ["protocol"] = l4_proto_to_id(mud_l4proto),
    }
 
-   if(conn.l4proto == "TCP") then
-      matches[mud_l4proto] = {
-         ["ietf-mud:direction-initiated"] = dir.mud_direction,
-      }
-   end
-
-   if isIPv4(peer_key or "") then
-      matches["ipv4"][dir.mud_ipv4_network] = string.format("%s/32", peer_key)
-   else
-      matches["ipv4"][dir.mud_dnsname] = peer_key
+   if(not isEmptyString(peer_key)) then
+      if(dir.is_ipv6) then
+         if isIPv6(peer_key or "") then
+            matches[dir.mud_l3proto][dir.mud_network] = string.format("%s/128", peer_key)
+         else
+            matches[dir.mud_l3proto][dir.mud_dnsname] = peer_key
+         end
+      else
+         if isIPv4(peer_key or "") then
+            matches[dir.mud_l3proto][dir.mud_network] = string.format("%s/32", peer_key)
+         else
+            matches[dir.mud_l3proto][dir.mud_dnsname] = peer_key
+         end
+      end
    end
 
    if(conn.peer_port ~= nil) then
-      matches[mud_l4proto] = matches[mud_l4proto] or {}
+      matches[mud_l4proto] = {}
+
+      if(conn.l4proto == "TCP") then
+         matches[mud_l4proto]["ietf-mud:direction-initiated"] = dir.mud_direction
+      end
 
       matches[mud_l4proto][dir.mud_port] = {
          ["operator"] = "eq",
@@ -293,10 +306,6 @@ function mud_utils.getHostMUD(host_key)
    local host_name = getHostAltName(host_key)
    local mud_url = _SERVER["HTTP_HOST"] .. ntop.getHttpPrefix() .. "/lua/rest/get/host/mud.lua?host=" .. host_key
 
-   -- TODO IPv6/MAC support
-   local mud_host_from = "from-ipv4-"..host_name
-   local mud_host_to = "to-ipv4-"..host_name
-
    -- https://tools.ietf.org/html/rfc8520
    mud["ietf-mud:mud"] = {
       ["mud-version"] = 1,
@@ -307,15 +316,13 @@ function mud_utils.getHostMUD(host_key)
       ["systeminfo"] = "MUD file for host "..host_name,
       ["from-device-policy"] = {
          ["access-lists"] = {
-            ["name"] = mud_host_from
+            ["access_list"] = {}
          }
       },
       ["to-device-policy"] = {
          ["access-lists"] = {
-            ["access-list"] = {
-               ["name"] = mud_host_to
-            }
-         },
+            ["access_list"] = {}
+         }
       },
       ["ietf-access-control-list:access-lists"] = {
           ["acl"] = {}
@@ -327,39 +334,66 @@ function mud_utils.getHostMUD(host_key)
    local local_mud_type = mud_utils.mud_types["local"]
    local remote_mud_type = ternary(is_general_purpose, mud_utils.mud_types["remote_minimal"], mud_utils.mud_types["remote_full"])
 
+   -- From/To device IPv4/IPv6
    local directions = {
       {
+         host = "from-ipv4-"..host_name,
          mud_direction = "from-device",
-         mud_ipv4_network = "destination-ipv4-network",
+         mud_network = "destination-ipv4-network",
          mud_port = "destination-port",
          mud_dnsname = "ietf-acldns:dst-dnsname",
-         host = mud_host_from,
-         local_key = getMudRedisKey(local_mud_type, ifid, host_key, true),
-         remote_key = getMudRedisKey(remote_mud_type, ifid, host_key, true),
-         id = 0,
+         mud_l3proto = "ipv4",
+         acl_type = "ipv4-acl-type",
+         acl_list = mud["ietf-mud:mud"]["from-device-policy"]["access-lists"]["access_list"],
+         is_client = true,
+         is_ipv6 = false,
       }, {
+         host = "to-ipv4-"..host_name,
          mud_direction = "to-device",
-         mud_ipv4_network = "source-ipv4-network",
+         mud_network = "source-ipv4-network",
          mud_port = "source-port",
          mud_dnsname = "ietf-acldns:src-dnsname",
-         host = mud_host_to,
-         local_key = getMudRedisKey(local_mud_type, ifid, host_key, false),
-         remote_key = getMudRedisKey(remote_mud_type, ifid, host_key, false),
-         id = 1,
+         mud_l3proto = "ipv4",
+         acl_type = "ipv4-acl-type",
+         acl_list = mud["ietf-mud:mud"]["to-device-policy"]["access-lists"]["access_list"],
+         is_client = false,
+         is_ipv6 = false,
+      }, {
+         host = "from-ipv6-"..host_name,
+         mud_direction = "from-device",
+         mud_network = "destination-ipv6-network",
+         mud_port = "destination-port",
+         mud_dnsname = "ietf-acldns:dst-dnsname",
+         mud_l3proto = "ipv6",
+         acl_type = "ipv6-acl-type",
+         acl_list = mud["ietf-mud:mud"]["from-device-policy"]["access-lists"]["access_list"],
+         is_client = true,
+         is_ipv6 = true,
+      }, {
+         host = "to-ipv6-"..host_name,
+         mud_direction = "to-device",
+         mud_network = "source-ipv6-network",
+         mud_port = "source-port",
+         mud_dnsname = "ietf-acldns:src-dnsname",
+         mud_l3proto = "ipv6",
+         acl_type = "ipv6-acl-type",
+         acl_list = mud["ietf-mud:mud"]["to-device-policy"]["access-lists"]["access_list"],
+         is_client = false,
+         is_ipv6 = true,
       }
    }
 
-   for _, direction in pairs(directions) do
+   for _, direction in ipairs(directions) do
       local direction_aces = {}
       local acl_id = 0
 
       local local_remote = {
          {
             mud_type = local_mud_type,
-            redis_key = direction.local_key,
+            redis_key = getMudRedisKey(local_mud_type, ifid, host_key, direction.is_client, direction.is_ipv6),
          }, {
-            redis_key = direction.remote_key,
             mud_type = remote_mud_type,
+            redis_key = getMudRedisKey(remote_mud_type, ifid, host_key, direction.is_client, direction.is_ipv6),
          }
       }
 
@@ -384,12 +418,17 @@ function mud_utils.getHostMUD(host_key)
          end
       end
 
-      -- TODO support IPv6
-      mud_acls[#mud_acls + 1] = {
-         name = direction.host,
-         type = "ipv4-acl-type",
-         aces = direction_aces,
-      }
+      if(not table.empty(direction_aces)) then
+         direction.acl_list[#direction.acl_list + 1] = {
+            ["name"] = direction.host
+         }
+
+         mud_acls[#mud_acls + 1] = {
+            name = direction.host,
+            type = direction.acl_type,
+            aces = direction_aces,
+         }
+      end
    end
 
    return(mud)
