@@ -4253,7 +4253,7 @@ const char* Flow::getLuaCallback() {
   FlowStatusMap status_map;
   getFlowStatus(&status_map);
 
-  if(isDetectionCompleted()) {
+  if(cli_host && srv_host && isDetectionCompleted()) {
     const char *lua_callback = NULL;
 
     if(!lua_detection_notified) {
@@ -4264,8 +4264,8 @@ const char* Flow::getLuaCallback() {
 
     if(status_map != last_notified_status_map) {
       /* Update the hosts status */
-      if(cli_host) cli_host->setAnomalousFlowsStatusMap(status_map, true);
-      if(srv_host) srv_host->setAnomalousFlowsStatusMap(status_map, false);
+      cli_host->setAnomalousFlowsStatusMap(status_map, true);
+      srv_host->setAnomalousFlowsStatusMap(status_map, false);
 
       last_notified_status_map = status_map;
     }
