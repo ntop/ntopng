@@ -2917,6 +2917,9 @@ static bool flow_sum_stats(GenericHashEntry *flow, void *user_data, bool *matche
   FlowStats *stats = retriever->stats;
   Flow *f = (Flow*)flow;
 
+  if(f->idle())
+    return(false);
+
   if(retriever->host
      && (retriever->host != f->get_cli_host())
      && (retriever->host != f->get_srv_host()))
