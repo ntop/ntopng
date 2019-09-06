@@ -7734,7 +7734,7 @@ void NetworkInterface::checkInterfaceAlerts(ScriptPeriodicity p) {
 
 /* *************************************** */
 
-static bool flow_check_score(GenericHashEntry *entry, void *user_data, bool *matched) {
+static bool flow_check_lua(GenericHashEntry *entry, void *user_data, bool *matched) {
   Flow *flow = (Flow*)entry;
   lua_State *vm = (lua_State*)user_data;
   const char *lua_callback = flow->getLuaCallback();
@@ -7757,7 +7757,7 @@ static bool flow_check_score(GenericHashEntry *entry, void *user_data, bool *mat
 
 /* *************************************** */
 
-bool NetworkInterface::checkFlowsScore() {
+bool NetworkInterface::checkFlowsLua() {
   bool walk_all = true;
   u_int32_t begin_slot = 0;
   LuaEngine flows_engine;
@@ -7780,7 +7780,7 @@ bool NetworkInterface::checkFlowsScore() {
     return(false);
   }
 
-  return(walker(&begin_slot, walk_all, walker_flows, flow_check_score, vm));
+  return(walker(&begin_slot, walk_all, walker_flows, flow_check_lua, vm));
 }
 
 /* *************************************** */

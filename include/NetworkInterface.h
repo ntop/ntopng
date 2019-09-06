@@ -656,7 +656,7 @@ class NetworkInterface : public AlertableEntity {
   void checkHostsAlerts(ScriptPeriodicity p);
   void checkNetworksAlerts(ScriptPeriodicity p);
   void checkInterfaceAlerts(ScriptPeriodicity p);
-  bool checkFlowsScore();
+  bool checkFlowsLua();
   bool isHiddenFromTop(Host *host);
   virtual bool areTrafficDirectionsSupported() { return(false); };
 

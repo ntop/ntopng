@@ -2479,13 +2479,13 @@ static int ntop_check_networks_alerts_day(lua_State* vm)  { return(ntop_check_ne
 
 /* ****************************************** */
 
-static int ntop_check_flows_score(lua_State* vm) {
+static int ntop_check_flows_lua(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
   if(!ntop_interface)
     return(CONST_LUA_ERROR);
   else
-    ntop_interface->checkFlowsScore();
+    ntop_interface->checkFlowsLua();
 
   lua_pushnil(vm);
   return(CONST_LUA_OK);
@@ -9665,7 +9665,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "checkNetworksAlertsDay",     ntop_check_networks_alerts_day   },
 
   /* Flow score */
-  { "checkFlowsScore",            ntop_check_flows_score           },
+  { "checkFlowsLua",              ntop_check_flows_lua             },
 
   /* eBPF, Containers and Companion Interfaces */
   { "getPodsStats",           ntop_interface_get_pods_stats           },
