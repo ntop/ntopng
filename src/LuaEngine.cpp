@@ -8396,6 +8396,32 @@ static int ntop_flow_set_server_score(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_flow_serialize_peer_by_mac(lua_State* vm, bool client) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  Host *host;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  if(c->flow == NULL) return(CONST_LUA_ERROR);
+
+  host = client ? c->flow->get_cli_host() : c->flow->get_srv_host();
+
+  if(!host)
+    return(CONST_LUA_ERROR);
+
+  lua_pushboolean(vm, host->serializeByMac());
+  return(CONST_LUA_OK);
+}
+
+static int ntop_flow_serialize_client_by_mac(lua_State* vm) {
+  return(ntop_flow_serialize_peer_by_mac(vm, true /* client */));
+}
+
+static int ntop_flow_serialize_server_by_mac(lua_State* vm) {
+  return(ntop_flow_serialize_peer_by_mac(vm, false /* server */));
+}
+
+/* ****************************************** */
+
 static int ntop_flow_get_peer_score(lua_State* vm, bool client) {
   struct ntopngLuaContext *c = getLuaVMContext(vm);
   Host *host;
@@ -9716,6 +9742,8 @@ static const luaL_Reg ntop_flow_reg[] = {
   { "getServerScore",           ntop_flow_get_server_score           },
   { "setClientScore",           ntop_flow_set_client_score           },
   { "setServerScore",           ntop_flow_set_server_score           },
+  { "serializeClientByMac",     ntop_flow_serialize_client_by_mac    },
+  { "serializeServerByMac",     ntop_flow_serialize_server_by_mac    },
 
   { NULL,                     NULL }
 };

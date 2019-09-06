@@ -8,10 +8,10 @@
 -- type:
 --
 -- <General Purpose Host>
---  - Local: <l4_proto, peer_ip, peer_port>
+--  - Local: <l4_proto, peer_key, peer_port>
 --  - Remote: <l4_proto, l7_proto, fp_type, host_fp>
 -- <Special Purpose Host>
---  - Local: <l4_proto, peer_ip, peer_port>
+--  - Local: <l4_proto, peer_key, peer_port>
 --  - Remote: <l4_proto, l7_proto, fp_type, host_fp, peer_fp, peer_key>
 --
 -- Items marked with the NTOP_MUD comment are part of the ntop MUD proposal
@@ -51,8 +51,8 @@ end
 
 -- ###########################################
 
-local function local_mud_encode(info, peer_ip, peer_port, is_client)
-   return(string.format("%s|%s|%u", info["proto.l4"], peer_ip, peer_port))
+local function local_mud_encode(info, peer_key, peer_port, is_client, peer_key_is_mac)
+   return(string.format("%s|%s|%u", info["proto.l4"], peer_key, peer_port))
 end
 
 local function local_mud_decode(value)
@@ -60,14 +60,14 @@ local function local_mud_decode(value)
 
    return({
       l4proto = v[1],
-      peer_ip = v[2],
-      peer_port = v[3],
+      peer_key = v[2],
+      peer_port = tonumber(v[3]),
    })
 end
 
 -- ###########################################
 
-local function remote_minimal_mud_encode(info, peer_key, peer_port, is_client)
+local function remote_minimal_mud_encode(info, peer_key, peer_port, is_client, peer_key_is_mac)
    local l7proto = interface.getnDPIProtoName(info["proto.ndpi_id"])
    local fingerprints = getFingerprints(info, is_client)
 
@@ -88,24 +88,31 @@ end
 
 -- ###########################################
 
-local function remote_full_mud_encode(info, peer_ip, peer_port, is_client)
+local function remote_full_mud_encode(info, peer_key, peer_port, is_client, peer_key_is_mac)
    local l7proto = interface.getnDPIProtoName(info["proto.ndpi_id"])
    local fingerprints = getFingerprints(info, is_client)
 
-   local peer_key = nil
+   if(not peer_key_is_mac) then
+      local is_symbolic = false
 
-   if(is_client) then
-      peer_key = info["host_server_name"] or info["protos.dns.last_query"]
-   end
+      if(is_client) then
+         local peer_name = info["host_server_name"] or info["protos.dns.last_query"]
 
-   if(isEmptyString(peer_key)) then
-      -- NOTE: this can take time, maybe postpone?
-      peer_key = resolveAddress({host = peer_ip})
-   end
+         if not isEmptyString(peer_name) then
+            peer_key = peer_name
+            is_symbolic = true
+         end
+      end
 
-   -- Name Cleanup
-   if(string.find(peer_key, "www.") == 1) then
-      peer_key = string.sub(peer_key, 5)
+      if(not is_symbolic) then
+         -- NOTE: this can take time, maybe postpone?
+         peer_key = resolveAddress({host = peer_key})
+      end
+
+      -- Name Cleanup
+      if(string.find(peer_key, "www.") == 1) then
+         peer_key = string.sub(peer_key, 5)
+      end
    end
 
    return(string.format("%s|%s|%s|%s|%s|%s", info["proto.l4"], l7proto,
@@ -165,7 +172,8 @@ end
 local function handleHostMUD(ifid, info, is_local_connection, is_general_purpose, is_client)
    local l4proto = info["proto.l4"]
    local mud_type
-   local host_ip, peer_ip, peer_port
+   local peer_key_is_mac = false
+   local host_ip, peer_ip, peer_port, peer_key
 
    -- Only support TCP and UDP
    if((l4proto ~= "TCP") and (l4proto ~= "UDP")) then
@@ -184,16 +192,19 @@ local function handleHostMUD(ifid, info, is_local_connection, is_general_purpose
       host_ip = info["cli.ip"]
       peer_ip = info["srv.ip"]
       peer_port = info["srv.port"]
+      peer_key_is_mac = flow.serializeServerByMac()
+      peer_key = ternary(peer_key_is_mac, info["srv.mac"], info["srv.ip"])
    else
       host_ip = info["srv.ip"]
       peer_ip = info["cli.ip"]
       peer_port = info["cli.port"]
+      peer_key_is_mac = flow.serializeClientByMac()
+      peer_key = ternary(peer_key_is_mac, info["cli.mac"], info["cli.ip"])
    end
 
-   -- TODO use MAC address key is this is in LBD
    local is_ipv6 = (not isIPv4(host_ip))
    local mud_key = getMudRedisKey(mud_type, ifid, host_ip, is_client, is_ipv6)
-   local conn_key = mud_type.encode(info, peer_ip, peer_port, is_client)
+   local conn_key = mud_type.encode(info, peer_key, peer_port, is_client, peer_key_is_mac)
 
    -- Register the connection
    -- TODO handle alerts
@@ -222,8 +233,7 @@ end
 -- ###########################################
 
 local function getAclMatches(conn, dir)
-   -- TODO support MAC
-   local peer_key = conn.peer_ip or conn.peer_key
+   local peer_key = conn.peer_key or ""
    local mud_l4proto = string.lower(conn.l4proto)
    local matches = {}
 
@@ -232,14 +242,18 @@ local function getAclMatches(conn, dir)
    }
 
    if(not isEmptyString(peer_key)) then
-      if(dir.is_ipv6) then
-         if isIPv6(peer_key or "") then
+      if(isMacAddress(peer_key)) then
+         matches["eth"] = {
+            [dir.mud_mac_address] = string.lower(peer_key)
+         }
+      elseif(dir.is_ipv6) then
+         if isIPv6(peer_key) then
             matches[dir.mud_l3proto][dir.mud_network] = string.format("%s/128", peer_key)
          else
             matches[dir.mud_l3proto][dir.mud_dnsname] = peer_key
          end
       else
-         if isIPv4(peer_key or "") then
+         if isIPv4(peer_key) then
             matches[dir.mud_l3proto][dir.mud_network] = string.format("%s/32", peer_key)
          else
             matches[dir.mud_l3proto][dir.mud_dnsname] = peer_key
@@ -271,24 +285,24 @@ local function getAclMatches(conn, dir)
       if(conn.fingerprint_type == "JA3") then
          if(not isEmptyString(conn.host_fingerprint)) then
             -- NTOP_MUD
-            matches["JA3"] = matches["JA3"] or {}
-            matches["JA3"]["source-fingerprint"] = conn.host_fingerprint
+            matches["ja3"] = matches["ja3"] or {}
+            matches["ja3"]["source-fingerprint"] = conn.host_fingerprint
          end
          if(not isEmptyString(conn.peer_fingerprint)) then
             -- NTOP_MUD
-            matches["JA3"] = matches["JA3"] or {}
-            matches["JA3"]["destination-fingerprint"] = conn.peer_fingerprint
+            matches["ja3"] = matches["ja3"] or {}
+            matches["ja3"]["destination-fingerprint"] = conn.peer_fingerprint
          end
       elseif(conn.fingerprint_type == "HASSH") then
          if(not isEmptyString(conn.host_fingerprint)) then
             -- NTOP_MUD
-            matches["HASSH"] = matches["HASSH"] or {}
-            matches["HASSH"]["source-fingerprint"] = conn.host_fingerprint
+            matches["hassh"] = matches["hassh"] or {}
+            matches["hassh"]["source-fingerprint"] = conn.host_fingerprint
          end
          if(not isEmptyString(conn.peer_fingerprint)) then
             -- NTOP_MUD
-            matches["HASSH"] = matches["HASSH"] or {}
-            matches["HASSH"]["destination-fingerprint"] = conn.peer_fingerprint
+            matches["hassh"] = matches["hassh"] or {}
+            matches["hassh"]["destination-fingerprint"] = conn.peer_fingerprint
          end
       end
    end
@@ -343,6 +357,7 @@ function mud_utils.getHostMUD(host_key)
          mud_port = "destination-port",
          mud_dnsname = "ietf-acldns:dst-dnsname",
          mud_l3proto = "ipv4",
+         mud_mac_address = "destination-mac-address",
          acl_type = "ipv4-acl-type",
          acl_list = mud["ietf-mud:mud"]["from-device-policy"]["access-lists"]["access_list"],
          is_client = true,
@@ -354,6 +369,7 @@ function mud_utils.getHostMUD(host_key)
          mud_port = "source-port",
          mud_dnsname = "ietf-acldns:src-dnsname",
          mud_l3proto = "ipv4",
+         mud_mac_address = "source-mac-address",
          acl_type = "ipv4-acl-type",
          acl_list = mud["ietf-mud:mud"]["to-device-policy"]["access-lists"]["access_list"],
          is_client = false,
@@ -365,6 +381,7 @@ function mud_utils.getHostMUD(host_key)
          mud_port = "destination-port",
          mud_dnsname = "ietf-acldns:dst-dnsname",
          mud_l3proto = "ipv6",
+         mud_mac_address = "destination-mac-address",
          acl_type = "ipv6-acl-type",
          acl_list = mud["ietf-mud:mud"]["from-device-policy"]["access-lists"]["access_list"],
          is_client = true,
@@ -376,6 +393,7 @@ function mud_utils.getHostMUD(host_key)
          mud_port = "source-port",
          mud_dnsname = "ietf-acldns:src-dnsname",
          mud_l3proto = "ipv6",
+         mud_mac_address = "source-mac-address",
          acl_type = "ipv6-acl-type",
          acl_list = mud["ietf-mud:mud"]["to-device-policy"]["access-lists"]["access_list"],
          is_client = false,

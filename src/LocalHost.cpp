@@ -130,8 +130,7 @@ void LocalHost::initialize() {
 char* LocalHost::getSerializationKey(char *redis_key, uint bufsize) {
   Mac *mac = getMac();
 
-  if(isBroadcastDomainHost() && isDhcpHost() && mac &&
-      iface->serializeLbdHostsAsMacs()) {
+  if(mac && serializeByMac()) {
     char mac_buf[128];
 
     get_mac_based_tskey(mac, mac_buf, sizeof(mac_buf));
