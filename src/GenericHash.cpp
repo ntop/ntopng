@@ -114,6 +114,10 @@ bool GenericHash::walk(u_int32_t *begin_slot,
 	HashEntryState head_state = head->get_state();
 	GenericHashEntry *next = head->next();
 
+        /* FIXX get_state() does not always match idle() as the latter can be 
+         * overriden (e.g. Flow), leading to wolking entries that are actually
+         * idle even with walk_idle = false, what about using idle() here? */
+
 	if(head_state == hash_entry_state_active
 	   || (walk_idle && head_state == hash_entry_state_idle)) {
 	  bool matched = false;
