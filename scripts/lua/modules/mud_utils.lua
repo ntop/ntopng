@@ -92,7 +92,11 @@ local function remote_full_mud_encode(info, peer_ip, peer_port, is_client)
    local l7proto = interface.getnDPIProtoName(info["proto.ndpi_id"])
    local fingerprints = getFingerprints(info, is_client)
 
-   local peer_key = info["host_server_name"] or info["protos.dns.last_query"]
+   local peer_key = nil
+
+   if(is_client) then
+      peer_key = info["host_server_name"] or info["protos.dns.last_query"]
+   end
 
    if(isEmptyString(peer_key)) then
       -- TODO: this can take time, maybe postpone?
@@ -212,23 +216,32 @@ end
 
 -- ###########################################
 
-local function getAclMatches(conn, mud_direction)
+local function getAclMatches(conn, dir)
    -- TODO support IPv6/MAC
    local peer_key = conn.peer_ip or conn.peer_key
+   local mud_l4proto = string.lower(conn.l4proto)
    local matches = {}
 
    matches["ipv4"] = {
-      ["protocol"] = string.lower(conn.l4proto),
+      ["protocol"] = l4_proto_to_id(mud_l4proto),
    }
 
+   if(conn.l4proto == "TCP") then
+      matches[mud_l4proto] = {
+         ["ietf-mud:direction-initiated"] = dir.mud_direction,
+      }
+   end
+
    if isIPv4(peer_key or "") then
-      matches["ipv4"]["destination-ipv4-network"] = string.format("%s/32", peer_key)
+      matches["ipv4"][dir.mud_ipv4_network] = string.format("%s/32", peer_key)
    else
-      matches["ipv4"]["ietf-acldns:dst-dnsname"] = peer_key
+      matches["ipv4"][dir.mud_dnsname] = peer_key
    end
 
    if(conn.peer_port ~= nil) then
-      matches["destination-port"] = {
+      matches[mud_l4proto] = matches[mud_l4proto] or {}
+
+      matches[mud_l4proto][dir.mud_port] = {
          ["operator"] = "eq",
          ["port"] = conn.peer_port,
       }
@@ -246,23 +259,23 @@ local function getAclMatches(conn, mud_direction)
          if(not isEmptyString(conn.host_fingerprint)) then
             -- NTOP_MUD
             matches["JA3"] = matches["JA3"] or {}
-            matches["JA3"]["source_fingerprint"] = conn.host_fingerprint
+            matches["JA3"]["source-fingerprint"] = conn.host_fingerprint
          end
          if(not isEmptyString(conn.peer_fingerprint)) then
             -- NTOP_MUD
             matches["JA3"] = matches["JA3"] or {}
-            matches["JA3"]["destination_fingerprint"] = conn.peer_fingerprint
+            matches["JA3"]["destination-fingerprint"] = conn.peer_fingerprint
          end
       elseif(conn.fingerprint_type == "HASSH") then
          if(not isEmptyString(conn.host_fingerprint)) then
             -- NTOP_MUD
             matches["HASSH"] = matches["HASSH"] or {}
-            matches["HASSH"]["source_fingerprint"] = conn.host_fingerprint
+            matches["HASSH"]["source-fingerprint"] = conn.host_fingerprint
          end
          if(not isEmptyString(conn.peer_fingerprint)) then
             -- NTOP_MUD
             matches["HASSH"] = matches["HASSH"] or {}
-            matches["HASSH"]["destination_fingerprint"] = conn.peer_fingerprint
+            matches["HASSH"]["destination-fingerprint"] = conn.peer_fingerprint
          end
       end
    end
@@ -316,12 +329,18 @@ function mud_utils.getHostMUD(host_key)
    local directions = {
       {
          mud_direction = "from-device",
+         mud_ipv4_network = "destination-ipv4-network",
+         mud_port = "destination-port",
+         mud_dnsname = "ietf-acldns:dst-dnsname",
          host = mud_host_from,
          local_key = getMudRedisKey(local_mud_type, ifid, host_key, true),
          remote_key = getMudRedisKey(remote_mud_type, ifid, host_key, true),
          id = 0,
       }, {
          mud_direction = "to-device",
+         mud_ipv4_network = "source-ipv4-network",
+         mud_port = "source-port",
+         mud_dnsname = "ietf-acldns:src-dnsname",
          host = mud_host_to,
          local_key = getMudRedisKey(local_mud_type, ifid, host_key, false),
          remote_key = getMudRedisKey(remote_mud_type, ifid, host_key, false),
@@ -353,7 +372,7 @@ function mud_utils.getHostMUD(host_key)
 
             local acl = {
                ["name"] = string.format("%s-%u", direction.host, acl_id),
-               ["matches"] = getAclMatches(connection, direction.mud_direction),
+               ["matches"] = getAclMatches(connection, direction),
                ["actions"] = {
                   ["forwarding"] = "accept",
                }
