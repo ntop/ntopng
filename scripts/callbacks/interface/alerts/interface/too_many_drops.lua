@@ -27,7 +27,7 @@ end
 
 check_module = {
   key = "too_many_drops",
-  str_granularity = "min",
+  granularity = {"min"},
   check_function = check_interface_drops,
   default_value = "too_many_drops;gt;5", -- 5%
 

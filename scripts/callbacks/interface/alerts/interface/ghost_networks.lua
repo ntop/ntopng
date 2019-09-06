@@ -28,7 +28,7 @@ end
 
 check_module = {
   key = "ghost_networks",
-  str_granularity = "min",
+  granularity = {"min"},
   always_enabled = true,
   check_function = check_ghost_networks,
 }
