@@ -290,20 +290,21 @@ function mud_utils.getHostMUD(host_key)
    local is_general_purpose = (mud_utils.getHostMUDRecordingPref(ifid, host_key) == "general_purpose")
    local ifid = interface.getId()
    local mud = {}
+   local host_name = getHostAltName(host_key)
+   local mud_url = _SERVER["HTTP_HOST"] .. ntop.getHttpPrefix() .. "/lua/rest/get/host/mud.lua?host=" .. host_key
 
    -- TODO IPv6/MAC support
-   local mud_host_from = "from-ipv4-"..host_key
-   local mud_host_to = "to-ipv4-"..host_key
+   local mud_host_from = "from-ipv4-"..host_name
+   local mud_host_to = "to-ipv4-"..host_name
 
    -- https://tools.ietf.org/html/rfc8520
    mud["ietf-mud:mud"] = {
       ["mud-version"] = 1,
-      -- TODO replace link with ntopng host link (NOTE: *MUST* use HTTPS)
-      ["mud-url"] = "https://mud.ntop.org/"..host_key,
+      ["mud-url"] = mud_url,
       ["last-update"] = os.date("%Y-%m-%dT%H:%M:%S"),
       ["cache-validity"] = 48,
       ["is-supported"] = true,
-      ["systeminfo"] = "MUD file for host "..host_key,
+      ["systeminfo"] = "MUD file for host "..host_name,
       ["from-device-policy"] = {
          ["access-lists"] = {
             ["name"] = mud_host_from
