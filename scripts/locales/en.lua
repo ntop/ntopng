@@ -305,7 +305,7 @@ local lang = {
     ["flow_misbehaviour"] = "Flow Misbehaviour",
     ["flows_flood"] = "Flows Flood",
     ["ghost_network_detected"] = "Ghost Network Detected",
-    ["ghost_network_detected_description"] = "Subnet %{network} does not belong to %{entity} networks",
+    ["ghost_network_detected_description"] = "Subnet %{network} does not belong to the <a href='%{url}'>%{entity} networks</a>.",
     ["host_pool_connection"] = "Host Pool Connection",
     ["host_pool_disconnection"] = "Host Pool Disconnection",
     ["icmp_anomaly"] = "ICMP Anomaly",

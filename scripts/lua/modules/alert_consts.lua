@@ -797,11 +797,10 @@ end
 -- ##############################################
 
 local function ghostNetworkFormatter(ifid, alert, info)
-  local entity = formatAlertEntity(ifid, alertEntityRaw(alert["alert_entity"]), alert["alert_entity_val"])
-
   return(i18n("alerts_dashboard.ghost_network_detected_description", {
     network = alert.alert_subtype,
-    entity = entity,
+    entity = getInterfaceName(ifid),
+    url = ntop.getHttpPrefix() .. "/lua/if_stats.lua?ifid=".. ifid .."&page=networks",
   }))
 end
 
