@@ -33,6 +33,8 @@ local info = ntop.getInfo()
 local have_nedge = ntop.isnEdge()
 
 local debug_hosts = false
+local debug_score = false
+
 local page        = _GET["page"]
 local protocol_id = _GET["protocol"]
 local application = _GET["application"]
@@ -614,8 +616,10 @@ if(host["num_alerts"] > 0) then
    print("<tr><th><i class=\"fa fa-warning fa-lg\" style='color: #B94A48;'></i>  <A HREF='"..ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url(host_info).."&page=alerts'>"..i18n("show_alerts.engaged_alerts").."</A></th><td colspan=2></li> <span id=num_alerts>"..host["num_alerts"] .. "</span> <span id=alerts_trend></span></td></tr>\n")
 end
 
-if(host["score"] > 0) then
-  print("<tr><th>"..i18n("score").."</th><td colspan=2></li> <span id=score>"..host["score"] .. "</span> <span id=score_trend></span></td></tr>\n")
+if debug_score then
+  if(host["score"] > 0) then
+    print("<tr><th>"..i18n("score").."</th><td colspan=2></li> <span id=score>"..host["score"] .. "</span> <span id=score_trend></span></td></tr>\n")
+  end
 end
 
 if(host["num_flow_alerts"] > 0) then
@@ -687,20 +691,22 @@ end
    print(" / <span id=unreachable_flows_as_server>" .. formatValue(host["unreachable_flows.as_server"]) .. "</span> <span id=trend_unreachable_flows_as_server></span>")
    print("</td></tr>")
 
-   print("<tr><th>"..i18n("details.anomalous_flows_reasons").."</th><td nowrap><span id=anomalous_flows_status_map_as_client>")
-   for id, t in ipairs(flow_consts.flow_status_types) do
-      if ntop.bitmapIsSet(host["anomalous_flows_status_map.as_client"], id) then
-         print(getFlowStatus(id).."<br />")
+   if debug_score then
+      print("<tr><th>"..i18n("details.anomalous_flows_reasons").."</th><td nowrap><span id=anomalous_flows_status_map_as_client>")
+      for id, t in ipairs(flow_consts.flow_status_types) do
+         if ntop.bitmapIsSet(host["anomalous_flows_status_map.as_client"], id) then
+            print(getFlowStatus(id).."<br />")
+         end
       end
-   end
-   print("</span></td>\n")
-   print("<td  width='35%'><span id=anomalous_flows_status_map_as_server>")
-   for id, t in ipairs(flow_consts.flow_status_types) do
-      if ntop.bitmapIsSet(host["anomalous_flows_status_map.as_server"], id) then
-         print(getFlowStatus(id).."<br />")
+      print("</span></td>\n")
+      print("<td  width='35%'><span id=anomalous_flows_status_map_as_server>")
+      for id, t in ipairs(flow_consts.flow_status_types) do
+         if ntop.bitmapIsSet(host["anomalous_flows_status_map.as_server"], id) then
+            print(getFlowStatus(id).."<br />")
+         end
       end
+      print("</span></td></tr>\n")
    end
-   print("</span></td></tr>\n")
 
    print("<tr><th>"..i18n("details.peers").."</th>")
    print("<td><span id=active_peers_as_client>" .. formatValue(host["contacts.as_client"]) .. "</span> <span id=peers_trend_as_active_client></span> \n")
