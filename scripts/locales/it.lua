@@ -1692,7 +1692,9 @@ local lang = {
     ["snmp"] = "SNMP",
     ["state"] = "Stato",
     ["traffic_breakdown"] = "Breakdown del Traffico",
-    ["zmq_message_drops"] = "Perdite di Messaggi ZMQ",
+    ["zmq_message_rcvd"] = "Messaggi Collezionati",
+    ["zmq_message_drops"] = "Messaggi Persi",
+    ["zmq_avg_msg_flows"] = "Media flussi per Messaggio",
     ["zmq_rx_statistics"] = "Statistiche ZMQ RX",
   },
   ["index_page"] = {

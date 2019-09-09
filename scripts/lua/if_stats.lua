@@ -586,9 +586,9 @@ if(ifstats.zmqRecvStats ~= nil) then
    print("<tr><th nowrap>"..i18n("if_stats_overview.collected_flows").."</th><td width=20%><span id=if_zmq_flows>"..formatValue(ifstats.zmqRecvStats.flows).."</span></td>")
    print("<th nowrap>"..i18n("if_stats_overview.interface_rx_updates").."</th><td width=20%><span id=if_zmq_events>"..formatValue(ifstats.zmqRecvStats.events).."</span></td>")
    print("<th nowrap>"..i18n("if_stats_overview.sflow_counter_updates").."</th><td width=20%><span id=if_zmq_counters>"..formatValue(ifstats.zmqRecvStats.counters).."</span></td></tr>")
-   print("<tr><th nowrap>"..i18n("if_stats_overview.zmq_message_drops").."</th><td width=20%><span id=if_zmq_msg_drops>"..formatValue(ifstats.zmqRecvStats.zmq_msg_drops).."</span></td>")
-   -- empty placeholder, can be used for future items
-   print("<th nowrap colspan=4></th></tr>")
+   print("<tr><th nowrap>"..i18n("if_stats_overview.zmq_message_rcvd").."</th><td width=20%><span id=if_zmq_msg_rcvd>"..formatValue(ifstats.zmqRecvStats.zmq_msg_rcvd).."</span></td>")
+   print("<th nowrap> <i class='fa fa-tint' aria-hidden='true'></i> "..i18n("if_stats_overview.zmq_message_drops").."</th><td width=20%><span id=if_zmq_msg_drops>"..formatValue(ifstats.zmqRecvStats.zmq_msg_drops).."</span></td>")
+   print("<th nowrap> "..i18n("if_stats_overview.zmq_avg_msg_flows").."</th><td width=20%><span id=if_zmq_avg_msg_flows></span></td></tr>")
    end
 
    print("<tr><th colspan=7 nowrap>"..i18n("if_stats_overview.traffic_statistics").."</th></tr>\n")
@@ -1769,6 +1769,8 @@ if(ifstats.zmqRecvStats ~= nil) then
    print("var last_zmq_events = ".. ifstats.zmqRecvStats.events .. ";\n")
    print("var last_zmq_counters = ".. ifstats.zmqRecvStats.counters .. ";\n")
    print("var last_zmq_msg_drops = ".. ifstats.zmqRecvStats.zmq_msg_drops .. ";\n")
+   print("var last_zmq_msg_rcvd = ".. ifstats.zmqRecvStats.zmq_msg_rcvd .. ";\n")
+   print("var last_zmq_avg_msg_flows = 1;\n")
 
    print("var last_probe_zmq_exported_flows = ".. (ifstats["zmq.num_flow_exports"] or 0) .. ";\n")
 end
@@ -1833,12 +1835,16 @@ print [[/lua/rest/get/interface/data.lua',
            $('#if_zmq_events').html(addCommas(rsp.zmqRecvStats.events)+" "+get_trend(rsp.zmqRecvStats.events, last_zmq_events));
            $('#if_zmq_counters').html(addCommas(rsp.zmqRecvStats.counters)+" "+get_trend(rsp.zmqRecvStats.counters, last_zmq_counters));
            $('#if_zmq_msg_drops').html(addCommas(rsp.zmqRecvStats.zmq_msg_drops)+" "+get_trend(rsp.zmqRecvStats.zmq_msg_drops, last_zmq_msg_drops));
+           $('#if_zmq_msg_rcvd').html(addCommas(rsp.zmqRecvStats.zmq_msg_rcvd)+" "+get_trend(rsp.zmqRecvStats.zmq_msg_rcvd, last_zmq_msg_rcvd));
+           $('#if_zmq_avg_msg_flows').html(addCommas(formatValue(rsp.zmqRecvStats.zmq_avg_msg_flows)));
            $('#if_num_remote_zmq_flow_exports').html(addCommas(rsp["zmq.num_flow_exports"])+" "+get_trend(rsp["zmq.num_flow_exports"], last_probe_zmq_exported_flows));
 
            last_zmq_flows = rsp.zmqRecvStats.flows;
            last_zmq_events = rsp.zmqRecvStats.events;
            last_zmq_counters = rsp.zmqRecvStats.counters;
            last_zmq_msg_drops = rsp.zmqRecvStats.zmq_msg_drops;
+           last_zmq_msg_rcvd = rsp.zmqRecvStats.zmq_msg_rcvd;
+           last_zmq_avg_msg_flows = rsp.zmqRecvStats.zmq_avg_msg_flows;
            last_probe_zmq_exported_flows = rsp["zmq.num_flow_exports"];
            last_zmq_time = now;
         }

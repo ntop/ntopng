@@ -241,8 +241,8 @@ void ZMQCollectorInterface::collect_flows() {
 
 	    if(diff > 1) {
 	      recvStats.zmq_msg_drops += diff - 1;
-	      ntop->getTrace()->traceEvent(TRACE_INFO, "msg_id=%u (last=%u), drops=%u (+%u)", 
-                msg_id, last_msg_id, recvStats.zmq_msg_drops, diff-1);
+	      ntop->getTrace()->traceEvent(TRACE_INFO, "[msg_id=%u][last=%u][tot_msgs=%u][drops=%u][+%u]", 
+					   msg_id, last_msg_id, recvStats.zmq_msg_rcvd, recvStats.zmq_msg_drops, diff-1);
 	    }
 	  }
 
@@ -266,6 +266,7 @@ void ZMQCollectorInterface::collect_flows() {
           bool tlv_encoding = false;
           bool compressed = false;
 
+	  recvStats.zmq_msg_rcvd++;
 	  payload[size] = '\0';
 	  
           if(publisher_version == ZMQ_MSG_VERSION_TLV)
@@ -391,6 +392,7 @@ void ZMQCollectorInterface::lua(lua_State* vm) {
   lua_push_uint64_table_entry(vm, "flows", recvStats.num_flows);
   lua_push_uint64_table_entry(vm, "events", recvStats.num_events);
   lua_push_uint64_table_entry(vm, "counters", recvStats.num_counters);
+  lua_push_uint64_table_entry(vm, "zmq_msg_rcvd", recvStats.zmq_msg_rcvd);
   lua_push_uint64_table_entry(vm, "zmq_msg_drops", recvStats.zmq_msg_drops);
   lua_pushstring(vm, "zmqRecvStats");
   lua_insert(vm, -2);

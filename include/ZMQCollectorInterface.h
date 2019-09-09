@@ -39,7 +39,7 @@ class ZMQCollectorInterface : public ZMQParserInterface {
   struct {
     u_int32_t num_flows, num_events, num_counters,
       num_templates, num_options, num_network_events,
-      zmq_msg_drops;
+      zmq_msg_rcvd, zmq_msg_drops;
   } recvStats;
   std::map<u_int8_t, u_int32_t>source_id_last_msg_id;
   bool is_collector;
