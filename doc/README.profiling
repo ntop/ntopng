@@ -1,0 +1,37 @@
+Performance Profiling
+---------------------
+
+Code profiling is implemented through a few macros in ntopng, those macros can
+be enabled by uncommenting the line below in include/ntop_defines.h
+
+  #define PROFILING
+
+In order to record the time a block of code takes to execute, you need to use the
+PROFILING_SECTION_ENTER and PROFILING_SECTION_EXIT macros to create sections.
+Example:
+
+  PROFILING_SECTION_ENTER(<label>, <section id>)
+  sleep (1);
+  PROFILING_SECTION_EXIT(<section id>)
+
+Each section requires a label (char *) and a unique id (uint).
+The section id is an index in an array of sections. The number of sections
+should be defined with PROFILING_DECLARE(<num>), see for example 
+include/NetworkInterface.h.
+Example:
+
+  PROFILING_DECLARE(32);
+
+In order to print the time (ticks) a section takes, you should use the
+PROFILING_SECTION_AVG(<section id>, <iterations>) macro, providing the
+section id and the number of iterations (number of times the section
+has been traversed).
+See for example NetworkInterface::~NetworkInterface() in src/NetworkInterface.cpp
+Example:
+
+  for (i = 0; i < PROFILING_NUM_SECTIONS; i++) {
+    if (PROFILING_SECTION_LABEL(i) != NULL)
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[PROFILING] Section #%d '%s': AVG %llu ticks",
+        i, PROFILING_SECTION_LABEL(i), PROFILING_SECTION_AVG(i, n));
+  }
+
