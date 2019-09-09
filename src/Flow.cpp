@@ -404,14 +404,17 @@ void Flow::dumpFlowAlert() {
     when = time(0);
 
     if(cli_host && srv_host) {
+      bool cli_thresh, srv_thresh;
+
       if(cli_host->isDisabledFlowAlertType(status) || srv_host->isDisabledFlowAlertType(status)) {
 	/* TODO: eventually increment a counter of untriggered alerts */
 	return;
       }
 
       /* Check per-host thresholds */
-      if((cli_host->incFlowAlertHits(when) || srv_host->incFlowAlertHits(when)) &&
-        !getInterface()->read_from_pcap_dump())
+      cli_thresh = cli_host->incFlowAlertHits(when);
+      srv_thresh = srv_host->incFlowAlertHits(when);
+      if((cli_thresh || srv_thresh) && !getInterface()->read_from_pcap_dump())
 	do_dump = false;
     }
 
