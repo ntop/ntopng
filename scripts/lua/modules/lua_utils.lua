@@ -2522,7 +2522,7 @@ function formatLongLivedFlowAlert(flowstatus_info)
       threshold = flowstatus_info["longlived.threshold"]
    end
 
-   local res = string.format("%s<sup><i class='fa fa-info-circle' aria-hidden='true' title='"..i18n("flow_details.longlived_flow_descr").."'></i></sup>", res)
+   res = string.format("%s<sup><i class='fa fa-info-circle' aria-hidden='true' title='"..i18n("flow_details.longlived_flow_descr").."'></i></sup>", res)
 
    if threshold ~= "" then
       res = string.format("%s [%s]", res, i18n("flow_details.longlived_exceeded", {amount = secondsToTime(threshold)}))
@@ -2534,21 +2534,28 @@ end
 -- ###############################################
 
 function formatMaliciousSignature(flowstatus_info)
+  local res = i18n("alerts_dashboard.malicious_signature_detected")
+
+  if not flowstatus_info then
+    return res
+  end
+
   if(flowstatus_info.ja3_signature ~= nil) then
-    return(i18n("flow_details.malicious_ja3_signature", {
+    res = i18n("flow_details.malicious_ja3_signature", {
       signature = flowstatus_info.ja3_signature,
       url = "https://sslbl.abuse.ch/ja3-fingerprints/" .. flowstatus_info.ja3_signature,
       icon = " <i class=\"fa fa-external-link\"></i>",
-    }))
+    })
   end
 
-  return(i18n("alerts_dashboard.malicious_signature_detected"))
+  return res
 end
 
 -- ###############################################
 
 function formatBlacklistedFlow(status, flowstatus_info, alert)
    local who = {}
+
    if not flowstatus_info then
       return i18n("flow_details.blacklisted_flow")
    end
